@@ -2,12 +2,14 @@
 
 import urllib.parse
 import urllib.request
+import urllib.error
 import http.client
 import email.message
 import io
 import unittest
 from test import support
 import os
+import sys
 import tempfile
 
 def hexescape(char):
@@ -91,7 +93,7 @@ class urlopen_FileTests(unittest.TestCase):
                          "did not return the expected text")
 
     def test_close(self):
-        # Test close() by calling it hear and then having it be called again
+        # Test close() by calling it here and then having it be called again
         # by the tearDown() method for the test
         self.returned_obj.close()
 
@@ -108,8 +110,9 @@ class urlopen_FileTests(unittest.TestCase):
         # Test iterator
         # Don't need to count number of iterations since test would fail the
         # instant it returned anything beyond the first line from the
-        # comparison
-        for line in self.returned_obj.__iter__():
+        # comparison.
+        # Use the iterator in the usual implicit way to test for ticket #4608.
+        for line in self.returned_obj:
             self.assertEqual(line, self.text)
 
 class ProxyTests(unittest.TestCase):
@@ -132,7 +135,9 @@ class ProxyTests(unittest.TestCase):
         proxies = urllib.request.getproxies_environment()
         # getproxies_environment use lowered case truncated (no '_proxy') keys
         self.assertEqual('localhost', proxies['no'])
-
+        # List of no_proxies with space.
+        self.env.set('NO_PROXY', 'localhost, anotherdomain.com, newdomain.com')
+        self.assertTrue(urllib.request.proxy_bypass_environment('anotherdomain.com'))
 
 class urlopen_HttpTests(unittest.TestCase):
     """Test urlopen() opening a fake http connection."""
@@ -174,6 +179,24 @@ class urlopen_HttpTests(unittest.TestCase):
         finally:
             self.unfakehttp()
 
+    def test_url_fragment(self):
+        # Issue #11703: geturl() omits fragments in the original URL.
+        url = 'http://docs.python.org/library/urllib.html#OK'
+        self.fakehttp(b"HTTP/1.1 200 OK\r\n\r\nHello!")
+        try:
+            fp = urllib.request.urlopen(url)
+            self.assertEqual(fp.geturl(), url)
+        finally:
+            self.unfakehttp()
+
+    def test_willclose(self):
+        self.fakehttp(b"HTTP/1.1 200 OK\r\n\r\nHello!")
+        try:
+            resp = urlopen("http://www.python.org")
+            self.assertTrue(resp.fp.will_close)
+        finally:
+            self.unfakehttp()
+
     def test_read_0_9(self):
         # "0.9" response accepted (but not "simple responses" without
         # a status line)
@@ -195,6 +218,21 @@ Content-Type: text/html; charset=iso-8859-1
 ''')
         try:
             self.assertRaises(IOError, urlopen, "http://python.org/")
+        finally:
+            self.unfakehttp()
+
+    def test_invalid_redirect(self):
+        # urlopen() should raise IOError for many error codes.
+        self.fakehttp(b'''HTTP/1.1 302 Found
+Date: Wed, 02 Jan 2008 03:03:54 GMT
+Server: Apache/1.3.33 (Debian GNU/Linux) mod_ssl/2.8.22 OpenSSL/0.9.7e
+Location: file://guidocomputer.athome.com:/python/license
+Connection: close
+Content-Type: text/html; charset=iso-8859-1
+''')
+        try:
+            self.assertRaises(urllib.error.HTTPError, urlopen,
+                              "http://python.org/")
         finally:
             self.unfakehttp()
 
@@ -987,6 +1025,23 @@ class Pathname_Tests(unittest.TestCase):
                          "url2pathname() failed; %s != %s" %
                          (expect, result))
 
+    @unittest.skipUnless(sys.platform == 'win32',
+                         'test specific to the urllib.url2path function.')
+    def test_ntpath(self):
+        given = ('/C:/', '///C:/', '/C|//')
+        expect = 'C:\\'
+        for url in given:
+            result = urllib.request.url2pathname(url)
+            self.assertEqual(expect, result,
+                             'urllib.request..url2pathname() failed; %s != %s' %
+                             (expect, result))
+        given = '///C|/path'
+        expect = 'C:\\path'
+        result = urllib.request.url2pathname(given)
+        self.assertEqual(expect, result,
+                         'urllib.request.url2pathname() failed; %s != %s' %
+                         (expect, result))
+
 class Utility_Tests(unittest.TestCase):
     """Testcase to test the various utility functions in the urllib."""
 
@@ -1021,7 +1076,7 @@ class URLopener_Tests(unittest.TestCase):
 
 # Just commented them out.
 # Can't really tell why keep failing in windows and sparc.
-# Everywhere else they work ok, but on those machines, someteimes
+# Everywhere else they work ok, but on those machines, sometimes
 # fail in one of the tests, sometimes in other. I have a linux, and
 # the tests go ok.
 # If anybody has one of the problematic enviroments, please help!

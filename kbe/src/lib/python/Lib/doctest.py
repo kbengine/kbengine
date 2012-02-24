@@ -92,10 +92,15 @@ __all__ = [
 ]
 
 import __future__
-
-import sys, traceback, inspect, linecache, os, re
-import unittest, difflib, pdb, tempfile
-import warnings
+import difflib
+import inspect
+import linecache
+import os
+import pdb
+import re
+import sys
+import traceback
+import unittest
 from io import StringIO
 from collections import namedtuple
 
@@ -1211,7 +1216,7 @@ class DocTestRunner:
         # Process each example.
         for examplenum, example in enumerate(test.examples):
 
-            # If REPORT_ONLY_FIRST_FAILURE is set, then supress
+            # If REPORT_ONLY_FIRST_FAILURE is set, then suppress
             # reporting after the first failure.
             quiet = (self.optionflags & REPORT_ONLY_FIRST_FAILURE and
                      failures > 0)
@@ -2133,7 +2138,7 @@ class DocTestCase(unittest.TestCase):
            caller can catch the errors and initiate post-mortem debugging.
 
            The DocTestCase provides a debug method that raises
-           UnexpectedException errors if there is an unexepcted
+           UnexpectedException errors if there is an unexpected
            exception:
 
              >>> test = DocTestParser().get_doctest('>>> raise KeyError\n42',
@@ -2509,39 +2514,21 @@ def debug_script(src, pm=False, globs=None):
     "Debug a test script.  `src` is the script, as a string."
     import pdb
 
-    # Note that tempfile.NameTemporaryFile() cannot be used.  As the
-    # docs say, a file so created cannot be opened by name a second time
-    # on modern Windows boxes, and exec() needs to open and read it.
-    srcfilename = tempfile.mktemp(".py", "doctestdebug")
-    f = open(srcfilename, 'w')
-    f.write(src)
-    f.close()
+    if globs:
+        globs = globs.copy()
+    else:
+        globs = {}
 
-    try:
-        if globs:
-            globs = globs.copy()
-        else:
-            globs = {}
-
-        if pm:
-            try:
-                with open(srcfilename) as f:
-                    exec(f.read(), globs, globs)
-            except:
-                print(sys.exc_info()[1])
-                p = pdb.Pdb(nosigint=True)
-                p.reset()
-                p.interaction(None, sys.exc_info()[2])
-        else:
-            fp = open(srcfilename)
-            try:
-                script = fp.read()
-            finally:
-                fp.close()
-            pdb.Pdb(nosigint=True).run("exec(%r)" % script, globs, globs)
-
-    finally:
-        os.remove(srcfilename)
+    if pm:
+        try:
+            exec(src, globs, globs)
+        except:
+            print(sys.exc_info()[1])
+            p = pdb.Pdb(nosigint=True)
+            p.reset()
+            p.interaction(None, sys.exc_info()[2])
+    else:
+        pdb.Pdb(nosigint=True).run("exec(%r)" % src, globs, globs)
 
 def debug(module, name, pm=False):
     """Debug a single doctest docstring.

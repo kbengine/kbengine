@@ -42,7 +42,7 @@ from types import MethodType as _MethodType, BuiltinMethodType as _BuiltinMethod
 from math import log as _log, exp as _exp, pi as _pi, e as _e, ceil as _ceil
 from math import sqrt as _sqrt, acos as _acos, cos as _cos, sin as _sin
 from os import urandom as _urandom
-import collections as _collections
+from collections import Set as _Set, Sequence as _Sequence
 from hashlib import sha512 as _sha512
 
 __all__ = ["Random","seed","random","uniform","randint","choice","sample",
@@ -114,7 +114,7 @@ class Random(_random.Random):
         if version == 2:
             if isinstance(a, (str, bytes, bytearray)):
                 if isinstance(a, str):
-                    a = a.encode("utf8")
+                    a = a.encode()
                 a += _sha512(a).digest()
                 a = int.from_bytes(a, 'big')
 
@@ -293,10 +293,10 @@ class Random(_random.Random):
         # preferred since the list takes less space than the
         # set and it doesn't suffer from frequent reselections.
 
-        if isinstance(population, _collections.Set):
+        if isinstance(population, _Set):
             population = tuple(population)
-        if not isinstance(population, _collections.Sequence):
-            raise TypeError("Population must be a sequence or Set.  For dicts, use list(d).")
+        if not isinstance(population, _Sequence):
+            raise TypeError("Population must be a sequence or set.  For dicts, use list(d).")
         randbelow = self._randbelow
         n = len(population)
         if not 0 <= k <= n:
@@ -402,11 +402,9 @@ class Random(_random.Random):
         # lambd: rate lambd = 1/mean
         # ('lambda' is a Python reserved word)
 
-        random = self.random
-        u = random()
-        while u <= 1e-7:
-            u = random()
-        return -_log(u)/lambd
+        # we use 1-random() instead of random() to preclude the
+        # possibility of taking the log of zero.
+        return -_log(1.0 - self.random())/lambd
 
 ## -------------------- von Mises distribution --------------------
 
@@ -464,6 +462,12 @@ class Random(_random.Random):
         """Gamma distribution.  Not the gamma function!
 
         Conditions on the parameters are alpha > 0 and beta > 0.
+
+        The probability distribution function is:
+
+                    x ** (alpha - 1) * math.exp(-x / beta)
+          pdf(x) =  --------------------------------------
+                      math.gamma(alpha) * beta ** alpha
 
         """
 
@@ -567,7 +571,7 @@ class Random(_random.Random):
 
 ## -------------------- beta --------------------
 ## See
-## http://sourceforge.net/bugs/?func=detailbug&bug_id=130030&group_id=5470
+## http://mail.python.org/pipermail/python-bugs-list/2001-January/003752.html
 ## for Ivan Frohne's insightful analysis of why the original implementation:
 ##
 ##    def betavariate(self, alpha, beta):

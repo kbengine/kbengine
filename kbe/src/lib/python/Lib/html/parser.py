@@ -28,7 +28,7 @@ tagfind = re.compile('[a-zA-Z][-.a-zA-Z0-9:_]*')
 # make it correctly strict without breaking backward compatibility.
 attrfind = re.compile(
     r'\s*([a-zA-Z_][-.:a-zA-Z_0-9]*)(\s*=\s*'
-    r'(\'[^\']*\'|"[^"]*"|[-a-zA-Z0-9./,:;+*%?!&$\(\)_#=~@]*))?')
+    r'(\'[^\']*\'|"[^"]*"|[^\s"\'=<>`]*))?')
 attrfind_tolerant = re.compile(
     r'\s*([a-zA-Z_][-.:a-zA-Z_0-9]*)(\s*=\s*'
     r'(\'[^\']*\'|"[^"]*"|[^>\s]*))?')
@@ -124,7 +124,7 @@ class HTMLParser(_markupbase.ParserBase):
         _markupbase.ParserBase.reset(self)
 
     def feed(self, data):
-        """Feed data to the parser.
+        r"""Feed data to the parser.
 
         Call this as often as you want, with as little or as much text
         as you want (may include '\n').

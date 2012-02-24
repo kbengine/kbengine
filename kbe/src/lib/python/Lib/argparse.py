@@ -82,6 +82,7 @@ __all__ = [
 ]
 
 
+import collections as _collections
 import copy as _copy
 import os as _os
 import re as _re
@@ -1041,7 +1042,7 @@ class _SubParsersAction(Action):
 
         self._prog_prefix = prog
         self._parser_class = parser_class
-        self._name_parser_map = {}
+        self._name_parser_map = _collections.OrderedDict()
         self._choices_actions = []
 
         super(_SubParsersAction, self).__init__(
@@ -1286,13 +1287,20 @@ class _ActionsContainer(object):
         # create the action object, and add it to the parser
         action_class = self._pop_action_class(kwargs)
         if not _callable(action_class):
-            raise ValueError('unknown action "%s"' % action_class)
+            raise ValueError('unknown action "%s"' % (action_class,))
         action = action_class(**kwargs)
 
         # raise an error if the action type is not callable
         type_func = self._registry_get('type', action.type, action.type)
         if not _callable(type_func):
-            raise ValueError('%r is not callable' % type_func)
+            raise ValueError('%r is not callable' % (type_func,))
+
+        # raise an error if the metavar does not match the type
+        if hasattr(self, "_get_formatter"):
+            try:
+                self._get_formatter()._format_args(action, None)
+            except TypeError:
+                raise ValueError("length of metavar tuple does not match nargs")
 
         return self._add_action(action)
 

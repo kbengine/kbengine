@@ -236,6 +236,10 @@ class TestMessageAPI(TestEmailBase):
         msg.set_payload('foo')
         eq(msg.get_payload(decode=True), b'foo')
 
+    def test_get_payload_n_raises_on_non_multipart(self):
+        msg = Message()
+        self.assertRaises(TypeError, msg.get_payload, 1)
+
     def test_decoded_generator(self):
         eq = self.assertEqual
         msg = self._msgobj('msg_07.txt')
@@ -391,6 +395,17 @@ class TestMessageAPI(TestEmailBase):
         msg.del_param('filename', 'content-disposition')
         self.assertEqual(msg['content-disposition'], 'attachment')
 
+    def test_del_param_on_nonexistent_header(self):
+        msg = Message()
+        msg.del_param('filename', 'content-disposition')
+
+    def test_del_nonexistent_param(self):
+        msg = Message()
+        msg.add_header('Content-Type', 'text/plain', charset='utf-8')
+        existing_header = msg['Content-Type']
+        msg.del_param('foobar', header='Content-Type')
+        self.assertEqual(msg['Content-Type'], 'text/plain; charset="utf-8"')
+
     def test_set_type(self):
         eq = self.assertEqual
         msg = Message()
@@ -521,6 +536,27 @@ class TestMessageAPI(TestEmailBase):
         self.assertEqual(msg.get_payload(decode=True),
                          bytes(x, 'raw-unicode-escape'))
 
+    def test_broken_unicode_payload(self):
+        # This test improves coverage but is not a compliance test.
+        # The behavior in this situation is currently undefined by the API.
+        x = 'this is a br\xf6ken thing to do'
+        msg = Message()
+        msg['content-type'] = 'text/plain'
+        msg['content-transfer-encoding'] = '8bit'
+        msg.set_payload(x)
+        self.assertEqual(msg.get_payload(decode=True),
+                         bytes(x, 'raw-unicode-escape'))
+
+    def test_questionable_bytes_payload(self):
+        # This test improves coverage but is not a compliance test,
+        # since it involves poking inside the black box.
+        x = 'this is a quéstionable thing to do'.encode('utf-8')
+        msg = Message()
+        msg['content-type'] = 'text/plain; charset="utf-8"'
+        msg['content-transfer-encoding'] = '8bit'
+        msg._payload = x
+        self.assertEqual(msg.get_payload(decode=True), x)
+
     # Issue 1078919
     def test_ascii_add_header(self):
         msg = Message()
@@ -561,6 +597,16 @@ class TestMessageAPI(TestEmailBase):
             "attachment; filename*=utf-8''Fu%C3%9Fballer%20%5Bfilename%5D.ppt",
             msg['Content-Disposition'])
 
+    def test_add_header_with_name_only_param(self):
+        msg = Message()
+        msg.add_header('Content-Disposition', 'inline', foo_bar=None)
+        self.assertEqual("inline; foo-bar", msg['Content-Disposition'])
+
+    def test_add_header_with_no_value(self):
+        msg = Message()
+        msg.add_header('X-Status', None)
+        self.assertEqual('', msg['X-Status'])
+
     # Issue 5871: reject an attempt to embed a header inside a header value
     # (header injection attack).
     def test_embeded_header_via_Header_rejected(self):
@@ -573,9 +619,18 @@ class TestMessageAPI(TestEmailBase):
         msg['Dummy'] = 'dummy\nX-Injected-Header: test'
         self.assertRaises(errors.HeaderParseError, msg.as_string)
 
-
 # Test the email.encoders module
 class TestEncoders(unittest.TestCase):
+
+    def test_EncodersEncode_base64(self):
+        with openfile('PyBanner048.gif', 'rb') as fp:
+            bindata = fp.read()
+        mimed = email.mime.image.MIMEImage(bindata)
+        base64ed = mimed.get_payload()
+        # the transfer-encoded body lines should all be <=76 characters
+        lines = base64ed.split('\n')
+        self.assertLessEqual(max([ len(x) for x in lines ]), 76)
+
     def test_encode_empty_payload(self):
         eq = self.assertEqual
         msg = Message()
@@ -605,6 +660,9 @@ class TestEncoders(unittest.TestCase):
 
 # Test long header wrapping
 class TestLongHeaders(TestEmailBase):
+
+    maxDiff = None
+
     def test_split_long_continuation(self):
         eq = self.ndiffAssertEqual
         msg = email.message_from_string("""\
@@ -725,6 +783,20 @@ wasnipoop; giraffes="very-long-necked-animals";
 wasnipoop; giraffes="very-long-necked-animals";
 \tspooge="yummy"; hippos="gargantuan"; marshmallows="gooey"''')
 
+    def test_header_encode_with_different_output_charset(self):
+        h = Header('文', 'euc-jp')
+        self.assertEqual(h.encode(), "=?iso-2022-jp?b?GyRCSjgbKEI=?=")
+
+    def test_long_header_encode_with_different_output_charset(self):
+        h = Header(b'test-ja \xa4\xd8\xc5\xea\xb9\xc6\xa4\xb5\xa4\xec\xa4'
+            b'\xbf\xa5\xe1\xa1\xbc\xa5\xeb\xa4\xcf\xbb\xca\xb2\xf1\xbc\xd4'
+            b'\xa4\xce\xbe\xb5\xc7\xa7\xa4\xf2\xc2\xd4\xa4\xc3\xa4\xc6\xa4'
+            b'\xa4\xa4\xde\xa4\xb9'.decode('euc-jp'), 'euc-jp')
+        res = """\
+=?iso-2022-jp?b?dGVzdC1qYSAbJEIkWEVqOUYkNSRsJD8lYSE8JWskTztKMnE8VCROPjUbKEI=?=
+ =?iso-2022-jp?b?GyRCRyckckJUJEMkRiQkJF4kORsoQg==?="""
+        self.assertEqual(h.encode(), res)
+
     def test_header_splitter(self):
         eq = self.ndiffAssertEqual
         msg = MIMEText('')
@@ -758,6 +830,156 @@ X-Foobar-Spoink-Defrobnit: wasnipoop; giraffes="very-long-necked-animals";
 From: test@dom.ain
 References: <0@dom.ain> <1@dom.ain> <2@dom.ain> <3@dom.ain> <4@dom.ain>
  <5@dom.ain> <6@dom.ain> <7@dom.ain> <8@dom.ain> <9@dom.ain>
+
+Test""")
+
+    def test_last_split_chunk_does_not_fit(self):
+        eq = self.ndiffAssertEqual
+        h = Header('Subject: the first part of this is short, but_the_second'
+            '_part_does_not_fit_within_maxlinelen_and_thus_should_be_on_a_line'
+            '_all_by_itself')
+        eq(h.encode(), """\
+Subject: the first part of this is short,
+ but_the_second_part_does_not_fit_within_maxlinelen_and_thus_should_be_on_a_line_all_by_itself""")
+
+    def test_splittable_leading_char_followed_by_overlong_unsplitable(self):
+        eq = self.ndiffAssertEqual
+        h = Header(', but_the_second'
+            '_part_does_not_fit_within_maxlinelen_and_thus_should_be_on_a_line'
+            '_all_by_itself')
+        eq(h.encode(), """\
+,
+ but_the_second_part_does_not_fit_within_maxlinelen_and_thus_should_be_on_a_line_all_by_itself""")
+
+    def test_multiple_splittable_leading_char_followed_by_overlong_unsplitable(self):
+        eq = self.ndiffAssertEqual
+        h = Header(', , but_the_second'
+            '_part_does_not_fit_within_maxlinelen_and_thus_should_be_on_a_line'
+            '_all_by_itself')
+        eq(h.encode(), """\
+, ,
+ but_the_second_part_does_not_fit_within_maxlinelen_and_thus_should_be_on_a_line_all_by_itself""")
+
+    def test_trailing_splitable_on_overlong_unsplitable(self):
+        eq = self.ndiffAssertEqual
+        h = Header('this_part_does_not_fit_within_maxlinelen_and_thus_should_'
+            'be_on_a_line_all_by_itself;')
+        eq(h.encode(), "this_part_does_not_fit_within_maxlinelen_and_thus_should_"
+            "be_on_a_line_all_by_itself;")
+
+    def test_trailing_splitable_on_overlong_unsplitable_with_leading_splitable(self):
+        eq = self.ndiffAssertEqual
+        h = Header('; '
+            'this_part_does_not_fit_within_maxlinelen_and_thus_should_'
+            'be_on_a_line_all_by_itself; ')
+        eq(h.encode(), """\
+;
+ this_part_does_not_fit_within_maxlinelen_and_thus_should_be_on_a_line_all_by_itself; """)
+
+    def test_long_header_with_multiple_sequential_split_chars(self):
+        eq = self.ndiffAssertEqual
+        h = Header('This is a long line that has two whitespaces  in a row.  '
+            'This used to cause truncation of the header when folded')
+        eq(h.encode(), """\
+This is a long line that has two whitespaces  in a row.  This used to cause
+ truncation of the header when folded""")
+
+    def test_splitter_split_on_punctuation_only_if_fws(self):
+        eq = self.ndiffAssertEqual
+        h = Header('thisverylongheaderhas;semicolons;and,commas,but'
+            'they;arenotlegal;fold,points')
+        eq(h.encode(), "thisverylongheaderhas;semicolons;and,commas,butthey;"
+                        "arenotlegal;fold,points")
+
+    def test_leading_splittable_in_the_middle_just_before_overlong_last_part(self):
+        eq = self.ndiffAssertEqual
+        h = Header('this is a  test where we need to have more than one line '
+            'before; our final line that is just too big to fit;; '
+            'this_part_does_not_fit_within_maxlinelen_and_thus_should_'
+            'be_on_a_line_all_by_itself;')
+        eq(h.encode(), """\
+this is a  test where we need to have more than one line before;
+ our final line that is just too big to fit;;
+ this_part_does_not_fit_within_maxlinelen_and_thus_should_be_on_a_line_all_by_itself;""")
+
+    def test_overlong_last_part_followed_by_split_point(self):
+        eq = self.ndiffAssertEqual
+        h = Header('this_part_does_not_fit_within_maxlinelen_and_thus_should_'
+            'be_on_a_line_all_by_itself ')
+        eq(h.encode(), "this_part_does_not_fit_within_maxlinelen_and_thus_"
+                        "should_be_on_a_line_all_by_itself ")
+
+    def test_multiline_with_overlong_parts_separated_by_two_split_points(self):
+        eq = self.ndiffAssertEqual
+        h = Header('this_is_a__test_where_we_need_to_have_more_than_one_line_'
+            'before_our_final_line_; ; '
+            'this_part_does_not_fit_within_maxlinelen_and_thus_should_'
+            'be_on_a_line_all_by_itself; ')
+        eq(h.encode(), """\
+this_is_a__test_where_we_need_to_have_more_than_one_line_before_our_final_line_;
+ ;
+ this_part_does_not_fit_within_maxlinelen_and_thus_should_be_on_a_line_all_by_itself; """)
+
+    def test_multiline_with_overlong_last_part_followed_by_split_point(self):
+        eq = self.ndiffAssertEqual
+        h = Header('this is a test where we need to have more than one line '
+            'before our final line; ; '
+            'this_part_does_not_fit_within_maxlinelen_and_thus_should_'
+            'be_on_a_line_all_by_itself; ')
+        eq(h.encode(), """\
+this is a test where we need to have more than one line before our final line;
+ ;
+ this_part_does_not_fit_within_maxlinelen_and_thus_should_be_on_a_line_all_by_itself; """)
+
+    def test_long_header_with_whitespace_runs(self):
+        eq = self.ndiffAssertEqual
+        msg = Message()
+        msg['From'] = 'test@dom.ain'
+        msg['References'] = SPACE.join(['<foo@dom.ain>  '] * 10)
+        msg.set_payload('Test')
+        sfp = StringIO()
+        g = Generator(sfp)
+        g.flatten(msg)
+        eq(sfp.getvalue(), """\
+From: test@dom.ain
+References: <foo@dom.ain>   <foo@dom.ain>   <foo@dom.ain>   <foo@dom.ain>
+   <foo@dom.ain>   <foo@dom.ain>   <foo@dom.ain>   <foo@dom.ain>
+   <foo@dom.ain>   <foo@dom.ain>\x20\x20
+
+Test""")
+
+    def test_long_run_with_semi_header_splitter(self):
+        eq = self.ndiffAssertEqual
+        msg = Message()
+        msg['From'] = 'test@dom.ain'
+        msg['References'] = SPACE.join(['<foo@dom.ain>'] * 10) + '; abc'
+        msg.set_payload('Test')
+        sfp = StringIO()
+        g = Generator(sfp)
+        g.flatten(msg)
+        eq(sfp.getvalue(), """\
+From: test@dom.ain
+References: <foo@dom.ain> <foo@dom.ain> <foo@dom.ain> <foo@dom.ain>
+ <foo@dom.ain> <foo@dom.ain> <foo@dom.ain> <foo@dom.ain> <foo@dom.ain>
+ <foo@dom.ain>; abc
+
+Test""")
+
+    def test_splitter_split_on_punctuation_only_if_fws(self):
+        eq = self.ndiffAssertEqual
+        msg = Message()
+        msg['From'] = 'test@dom.ain'
+        msg['References'] = ('thisverylongheaderhas;semicolons;and,commas,but'
+            'they;arenotlegal;fold,points')
+        msg.set_payload('Test')
+        sfp = StringIO()
+        g = Generator(sfp)
+        g.flatten(msg)
+        # XXX the space after the header should not be there.
+        eq(sfp.getvalue(), """\
+From: test@dom.ain
+References:\x20
+ thisverylongheaderhas;semicolons;and,commas,butthey;arenotlegal;fold,points
 
 Test""")
 
@@ -851,7 +1073,7 @@ Reply-To: =?utf-8?q?Britische_Regierung_gibt_gr=C3=BCnes_Licht_f=C3=BCr_Offs?=
     def test_long_to_header(self):
         eq = self.ndiffAssertEqual
         to = ('"Someone Test #A" <someone@eecs.umich.edu>,'
-              '<someone@eecs.umich.edu>,'
+              '<someone@eecs.umich.edu>, '
               '"Someone Test #B" <someone@umich.edu>, '
               '"Someone Test #C" <someone@eecs.umich.edu>, '
               '"Someone Test #D" <someone@eecs.umich.edu>')
@@ -906,9 +1128,11 @@ This is an example of string which has almost the limit of header length.
         msg['Received-2'] = h
         # This should be splitting on spaces not semicolons.
         self.ndiffAssertEqual(msg.as_string(maxheaderlen=78), """\
-Received-1: from FOO.TLD (vizworld.acl.foo.tld [123.452.678.9]) by hrothgar.la.mastaler.com (tmda-ofmipd) with ESMTP;
+Received-1: from FOO.TLD (vizworld.acl.foo.tld [123.452.678.9]) by
+ hrothgar.la.mastaler.com (tmda-ofmipd) with ESMTP;
  Wed, 05 Mar 2003 18:10:18 -0700
-Received-2: from FOO.TLD (vizworld.acl.foo.tld [123.452.678.9]) by hrothgar.la.mastaler.com (tmda-ofmipd) with ESMTP;
+Received-2: from FOO.TLD (vizworld.acl.foo.tld [123.452.678.9]) by
+ hrothgar.la.mastaler.com (tmda-ofmipd) with ESMTP;
  Wed, 05 Mar 2003 18:10:18 -0700
 
 """)
@@ -921,12 +1145,14 @@ Received-2: from FOO.TLD (vizworld.acl.foo.tld [123.452.678.9]) by hrothgar.la.m
         msg['Received-1'] = Header(h, header_name='Received-1',
                                    continuation_ws='\t')
         msg['Received-2'] = h
-        # XXX This should be splitting on spaces not commas.
+        # XXX The space after the ':' should not be there.
         self.ndiffAssertEqual(msg.as_string(maxheaderlen=78), """\
-Received-1: <15975.17901.207240.414604@sgigritzmann1.mathematik.tu-muenchen.de> (David Bremner's message of \"Thu,
- 6 Mar 2003 13:58:21 +0100\")
-Received-2: <15975.17901.207240.414604@sgigritzmann1.mathematik.tu-muenchen.de> (David Bremner's message of \"Thu,
- 6 Mar 2003 13:58:21 +0100\")
+Received-1:\x20
+ <15975.17901.207240.414604@sgigritzmann1.mathematik.tu-muenchen.de> (David
+ Bremner's message of \"Thu, 6 Mar 2003 13:58:21 +0100\")
+Received-2:\x20
+ <15975.17901.207240.414604@sgigritzmann1.mathematik.tu-muenchen.de> (David
+ Bremner's message of \"Thu, 6 Mar 2003 13:58:21 +0100\")
 
 """)
 
@@ -938,13 +1164,17 @@ iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAAGFBMVEUAAAAkHiJeRUIcGBi9
  locQDQ4zJykFBAXJfWDjAAACYUlEQVR4nF2TQY/jIAyFc6lydlG5x8Nyp1Y69wj1PN2I5gzp"""
         msg['Face-1'] = t
         msg['Face-2'] = Header(t, header_name='Face-2')
+        msg['Face-3'] = ' ' + t
         # XXX This splitting is all wrong.  It the first value line should be
-        # snug against the field name.
+        # snug against the field name or the space after the header not there.
         eq(msg.as_string(maxheaderlen=78), """\
 Face-1:\x20
  iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAAGFBMVEUAAAAkHiJeRUIcGBi9
  locQDQ4zJykFBAXJfWDjAAACYUlEQVR4nF2TQY/jIAyFc6lydlG5x8Nyp1Y69wj1PN2I5gzp
 Face-2:\x20
+ iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAAGFBMVEUAAAAkHiJeRUIcGBi9
+ locQDQ4zJykFBAXJfWDjAAACYUlEQVR4nF2TQY/jIAyFc6lydlG5x8Nyp1Y69wj1PN2I5gzp
+Face-3:\x20
  iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAAGFBMVEUAAAAkHiJeRUIcGBi9
  locQDQ4zJykFBAXJfWDjAAACYUlEQVR4nF2TQY/jIAyFc6lydlG5x8Nyp1Y69wj1PN2I5gzp
 
@@ -958,8 +1188,8 @@ Face-2:\x20
              'Wed, 16 Oct 2002 07:41:11 -0700')
         msg = email.message_from_string(m)
         eq(msg.as_string(maxheaderlen=78), '''\
-Received: from siimage.com ([172.25.1.3]) by zima.siliconimage.com with Microsoft SMTPSVC(5.0.2195.4905);
- Wed, 16 Oct 2002 07:41:11 -0700
+Received: from siimage.com ([172.25.1.3]) by zima.siliconimage.com with
+ Microsoft SMTPSVC(5.0.2195.4905); Wed, 16 Oct 2002 07:41:11 -0700
 
 ''')
 
@@ -973,9 +1203,11 @@ Received: from siimage.com ([172.25.1.3]) by zima.siliconimage.com with Microsof
         msg['List'] = h
         msg['List'] = Header(h, header_name='List')
         eq(msg.as_string(maxheaderlen=78), """\
-List: List-Unsubscribe: <http://lists.sourceforge.net/lists/listinfo/spamassassin-talk>,
+List: List-Unsubscribe:
+ <http://lists.sourceforge.net/lists/listinfo/spamassassin-talk>,
         <mailto:spamassassin-talk-request@lists.sourceforge.net?subject=unsubscribe>
-List: List-Unsubscribe: <http://lists.sourceforge.net/lists/listinfo/spamassassin-talk>,
+List: List-Unsubscribe:
+ <http://lists.sourceforge.net/lists/listinfo/spamassassin-talk>,
         <mailto:spamassassin-talk-request@lists.sourceforge.net?subject=unsubscribe>
 
 """)
@@ -1127,10 +1359,11 @@ class TestMIMEApplication(unittest.TestCase):
 
     def test_body(self):
         eq = self.assertEqual
-        bytes = b'\xfa\xfb\xfc\xfd\xfe\xff'
-        msg = MIMEApplication(bytes)
-        eq(msg.get_payload(), '+vv8/f7/')
-        eq(msg.get_payload(decode=True), bytes)
+        bytesdata = b'\xfa\xfb\xfc\xfd\xfe\xff'
+        msg = MIMEApplication(bytesdata)
+        # whitespace in the cte encoded block is RFC-irrelevant.
+        eq(msg.get_payload().strip(), '+vv8/f7/')
+        eq(msg.get_payload(decode=True), bytesdata)
 
 
 
@@ -2971,6 +3204,58 @@ class Test8BitBytesHandling(unittest.TestCase):
                               ['foo@bar.com',
                                'g\uFFFD\uFFFDst'])
 
+    def test_get_content_type_with_8bit(self):
+        msg = email.message_from_bytes(textwrap.dedent("""\
+            Content-Type: text/pl\xA7in; charset=utf-8
+            """).encode('latin-1'))
+        self.assertEqual(msg.get_content_type(), "text/pl\uFFFDin")
+        self.assertEqual(msg.get_content_maintype(), "text")
+        self.assertEqual(msg.get_content_subtype(), "pl\uFFFDin")
+
+    def test_get_params_with_8bit(self):
+        msg = email.message_from_bytes(
+            'X-Header: foo=\xa7ne; b\xa7r=two; baz=three\n'.encode('latin-1'))
+        self.assertEqual(msg.get_params(header='x-header'),
+           [('foo', '\uFFFDne'), ('b\uFFFDr', 'two'), ('baz', 'three')])
+        self.assertEqual(msg.get_param('Foo', header='x-header'), '\uFFFdne')
+        # XXX: someday you might be able to get 'b\xa7r', for now you can't.
+        self.assertEqual(msg.get_param('b\xa7r', header='x-header'), None)
+
+    def test_get_rfc2231_params_with_8bit(self):
+        msg = email.message_from_bytes(textwrap.dedent("""\
+            Content-Type: text/plain; charset=us-ascii;
+             title*=us-ascii'en'This%20is%20not%20f\xa7n"""
+             ).encode('latin-1'))
+        self.assertEqual(msg.get_param('title'),
+            ('us-ascii', 'en', 'This is not f\uFFFDn'))
+
+    def test_set_rfc2231_params_with_8bit(self):
+        msg = email.message_from_bytes(textwrap.dedent("""\
+            Content-Type: text/plain; charset=us-ascii;
+             title*=us-ascii'en'This%20is%20not%20f\xa7n"""
+             ).encode('latin-1'))
+        msg.set_param('title', 'test')
+        self.assertEqual(msg.get_param('title'), 'test')
+
+    def test_del_rfc2231_params_with_8bit(self):
+        msg = email.message_from_bytes(textwrap.dedent("""\
+            Content-Type: text/plain; charset=us-ascii;
+             title*=us-ascii'en'This%20is%20not%20f\xa7n"""
+             ).encode('latin-1'))
+        msg.del_param('title')
+        self.assertEqual(msg.get_param('title'), None)
+        self.assertEqual(msg.get_content_maintype(), 'text')
+
+    def test_get_payload_with_8bit_cte_header(self):
+        msg = email.message_from_bytes(textwrap.dedent("""\
+            Content-Transfer-Encoding: b\xa7se64
+            Content-Type: text/plain; charset=latin-1
+
+            payload
+            """).encode('latin-1'))
+        self.assertEqual(msg.get_payload(), 'payload\n')
+        self.assertEqual(msg.get_payload(decode=True), b'payload\n')
+
     non_latin_bin_msg = textwrap.dedent("""\
         From: foo@bar.com
         To: báz
@@ -3092,6 +3377,53 @@ class Test8BitBytesHandling(unittest.TestCase):
         g = email.generator.BytesGenerator(s)
         g.flatten(msg, linesep='\r\n')
         self.assertEqual(s.getvalue(), text)
+
+    def test_8bit_multipart(self):
+        # Issue 11605
+        source = textwrap.dedent("""\
+            Date: Fri, 18 Mar 2011 17:15:43 +0100
+            To: foo@example.com
+            From: foodwatch-Newsletter <bar@example.com>
+            Subject: Aktuelles zu Japan, Klonfleisch und Smiley-System
+            Message-ID: <76a486bee62b0d200f33dc2ca08220ad@localhost.localdomain>
+            MIME-Version: 1.0
+            Content-Type: multipart/alternative;
+                    boundary="b1_76a486bee62b0d200f33dc2ca08220ad"
+
+            --b1_76a486bee62b0d200f33dc2ca08220ad
+            Content-Type: text/plain; charset="utf-8"
+            Content-Transfer-Encoding: 8bit
+
+            Guten Tag, ,
+
+            mit großer Betroffenheit verfolgen auch wir im foodwatch-Team die
+            Nachrichten aus Japan.
+
+
+            --b1_76a486bee62b0d200f33dc2ca08220ad
+            Content-Type: text/html; charset="utf-8"
+            Content-Transfer-Encoding: 8bit
+
+            <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/html4/loose.dtd">
+            <html lang="de">
+            <head>
+                    <title>foodwatch - Newsletter</title>
+            </head>
+            <body>
+              <p>mit gro&szlig;er Betroffenheit verfolgen auch wir im foodwatch-Team
+                 die Nachrichten aus Japan.</p>
+            </body>
+            </html>
+            --b1_76a486bee62b0d200f33dc2ca08220ad--
+
+            """).encode('utf-8')
+        msg = email.message_from_bytes(source)
+        s = BytesIO()
+        g = email.generator.BytesGenerator(s)
+        g.flatten(msg)
+        self.assertEqual(s.getvalue(), source)
+
     maxDiff = None
 
 
@@ -3261,21 +3593,217 @@ class TestQuopri(unittest.TestCase):
             c = chr(x)
             self.assertEqual(quoprimime.unquote(quoprimime.quote(c)), c)
 
-    def test_header_encode(self):
-        eq = self.assertEqual
-        he = quoprimime.header_encode
-        eq(he(b'hello'), '=?iso-8859-1?q?hello?=')
-        eq(he(b'hello', charset='iso-8859-2'), '=?iso-8859-2?q?hello?=')
-        eq(he(b'hello\nworld'), '=?iso-8859-1?q?hello=0Aworld?=')
-        # Test a non-ASCII character
-        eq(he(b'hello\xc7there'), '=?iso-8859-1?q?hello=C7there?=')
+    def _test_header_encode(self, header, expected_encoded_header, charset=None):
+        if charset is None:
+            encoded_header = quoprimime.header_encode(header)
+        else:
+            encoded_header = quoprimime.header_encode(header, charset)
+        self.assertEqual(encoded_header, expected_encoded_header)
 
-    def test_decode(self):
-        eq = self.assertEqual
-        eq(quoprimime.decode(''), '')
-        eq(quoprimime.decode('hello'), 'hello')
-        eq(quoprimime.decode('hello', 'X'), 'hello')
-        eq(quoprimime.decode('hello\nworld', 'X'), 'helloXworld')
+    def test_header_encode_null(self):
+        self._test_header_encode(b'', '')
+
+    def test_header_encode_one_word(self):
+        self._test_header_encode(b'hello', '=?iso-8859-1?q?hello?=')
+
+    def test_header_encode_two_lines(self):
+        self._test_header_encode(b'hello\nworld',
+                                '=?iso-8859-1?q?hello=0Aworld?=')
+
+    def test_header_encode_non_ascii(self):
+        self._test_header_encode(b'hello\xc7there',
+                                '=?iso-8859-1?q?hello=C7there?=')
+
+    def test_header_encode_alt_charset(self):
+        self._test_header_encode(b'hello', '=?iso-8859-2?q?hello?=',
+                charset='iso-8859-2')
+
+    def _test_header_decode(self, encoded_header, expected_decoded_header):
+        decoded_header = quoprimime.header_decode(encoded_header)
+        self.assertEqual(decoded_header, expected_decoded_header)
+
+    def test_header_decode_null(self):
+        self._test_header_decode('', '')
+
+    def test_header_decode_one_word(self):
+        self._test_header_decode('hello', 'hello')
+
+    def test_header_decode_two_lines(self):
+        self._test_header_decode('hello=0Aworld', 'hello\nworld')
+
+    def test_header_decode_non_ascii(self):
+        self._test_header_decode('hello=C7there', 'hello\xc7there')
+
+    def _test_decode(self, encoded, expected_decoded, eol=None):
+        if eol is None:
+            decoded = quoprimime.decode(encoded)
+        else:
+            decoded = quoprimime.decode(encoded, eol=eol)
+        self.assertEqual(decoded, expected_decoded)
+
+    def test_decode_null_word(self):
+        self._test_decode('', '')
+
+    def test_decode_null_line_null_word(self):
+        self._test_decode('\r\n', '\n')
+
+    def test_decode_one_word(self):
+        self._test_decode('hello', 'hello')
+
+    def test_decode_one_word_eol(self):
+        self._test_decode('hello', 'hello', eol='X')
+
+    def test_decode_one_line(self):
+        self._test_decode('hello\r\n', 'hello\n')
+
+    def test_decode_one_line_lf(self):
+        self._test_decode('hello\n', 'hello\n')
+
+    def test_decode_one_line_cr(self):
+        self._test_decode('hello\r', 'hello\n')
+
+    def test_decode_one_line_nl(self):
+        self._test_decode('hello\n', 'helloX', eol='X')
+
+    def test_decode_one_line_crnl(self):
+        self._test_decode('hello\r\n', 'helloX', eol='X')
+
+    def test_decode_one_line_one_word(self):
+        self._test_decode('hello\r\nworld', 'hello\nworld')
+
+    def test_decode_one_line_one_word_eol(self):
+        self._test_decode('hello\r\nworld', 'helloXworld', eol='X')
+
+    def test_decode_two_lines(self):
+        self._test_decode('hello\r\nworld\r\n', 'hello\nworld\n')
+
+    def test_decode_two_lines_eol(self):
+        self._test_decode('hello\r\nworld\r\n', 'helloXworldX', eol='X')
+
+    def test_decode_one_long_line(self):
+        self._test_decode('Spam' * 250, 'Spam' * 250)
+
+    def test_decode_one_space(self):
+        self._test_decode(' ', '')
+
+    def test_decode_multiple_spaces(self):
+        self._test_decode(' ' * 5, '')
+
+    def test_decode_one_line_trailing_spaces(self):
+        self._test_decode('hello    \r\n', 'hello\n')
+
+    def test_decode_two_lines_trailing_spaces(self):
+        self._test_decode('hello    \r\nworld   \r\n', 'hello\nworld\n')
+
+    def test_decode_quoted_word(self):
+        self._test_decode('=22quoted=20words=22', '"quoted words"')
+
+    def test_decode_uppercase_quoting(self):
+        self._test_decode('ab=CD=EF', 'ab\xcd\xef')
+
+    def test_decode_lowercase_quoting(self):
+        self._test_decode('ab=cd=ef', 'ab\xcd\xef')
+
+    def test_decode_soft_line_break(self):
+        self._test_decode('soft line=\r\nbreak', 'soft linebreak')
+
+    def test_decode_false_quoting(self):
+        self._test_decode('A=1,B=A ==> A+B==2', 'A=1,B=A ==> A+B==2')
+
+    def _test_encode(self, body, expected_encoded_body, maxlinelen=None, eol=None):
+        kwargs = {}
+        if maxlinelen is None:
+            # Use body_encode's default.
+            maxlinelen = 76
+        else:
+            kwargs['maxlinelen'] = maxlinelen
+        if eol is None:
+            # Use body_encode's default.
+            eol = '\n'
+        else:
+            kwargs['eol'] = eol
+        encoded_body = quoprimime.body_encode(body, **kwargs)
+        self.assertEqual(encoded_body, expected_encoded_body)
+        if eol == '\n' or eol == '\r\n':
+            # We know how to split the result back into lines, so maxlinelen
+            # can be checked.
+            for line in encoded_body.splitlines():
+                self.assertLessEqual(len(line), maxlinelen)
+
+    def test_encode_null(self):
+        self._test_encode('', '')
+
+    def test_encode_null_lines(self):
+        self._test_encode('\n\n', '\n\n')
+
+    def test_encode_one_line(self):
+        self._test_encode('hello\n', 'hello\n')
+
+    def test_encode_one_line_crlf(self):
+        self._test_encode('hello\r\n', 'hello\n')
+
+    def test_encode_one_line_eol(self):
+        self._test_encode('hello\n', 'hello\r\n', eol='\r\n')
+
+    def test_encode_one_space(self):
+        self._test_encode(' ', '=20')
+
+    def test_encode_one_line_one_space(self):
+        self._test_encode(' \n', '=20\n')
+
+# XXX: body_encode() expect strings, but uses ord(char) from these strings
+# to index into a 256-entry list.  For code points above 255, this will fail.
+# Should there be a check for 8-bit only ord() values in body, or at least
+# a comment about the expected input?
+
+    def test_encode_two_lines_one_space(self):
+        self._test_encode(' \n \n', '=20\n=20\n')
+
+    def test_encode_one_word_trailing_spaces(self):
+        self._test_encode('hello   ', 'hello  =20')
+
+    def test_encode_one_line_trailing_spaces(self):
+        self._test_encode('hello   \n', 'hello  =20\n')
+
+    def test_encode_one_word_trailing_tab(self):
+        self._test_encode('hello  \t', 'hello  =09')
+
+    def test_encode_one_line_trailing_tab(self):
+        self._test_encode('hello  \t\n', 'hello  =09\n')
+
+    def test_encode_trailing_space_before_maxlinelen(self):
+        self._test_encode('abcd \n1234', 'abcd =\n\n1234', maxlinelen=6)
+
+    def test_encode_trailing_space_at_maxlinelen(self):
+        self._test_encode('abcd \n1234', 'abcd=\n=20\n1234', maxlinelen=5)
+
+    def test_encode_trailing_space_beyond_maxlinelen(self):
+        self._test_encode('abcd \n1234', 'abc=\nd=20\n1234', maxlinelen=4)
+
+    def test_encode_whitespace_lines(self):
+        self._test_encode(' \n' * 5, '=20\n' * 5)
+
+    def test_encode_quoted_equals(self):
+        self._test_encode('a = b', 'a =3D b')
+
+    def test_encode_one_long_string(self):
+        self._test_encode('x' * 100, 'x' * 75 + '=\n' + 'x' * 25)
+
+    def test_encode_one_long_line(self):
+        self._test_encode('x' * 100 + '\n', 'x' * 75 + '=\n' + 'x' * 25 + '\n')
+
+    def test_encode_one_very_long_line(self):
+        self._test_encode('x' * 200 + '\n',
+                2 * ('x' * 75 + '=\n') + 'x' * 50 + '\n')
+
+    def test_encode_one_long_line(self):
+        self._test_encode('x' * 100 + '\n', 'x' * 75 + '=\n' + 'x' * 25 + '\n')
+
+    def test_encode_shortest_maxlinelen(self):
+        self._test_encode('=' * 5, '=3D=\n' * 4 + '=3D', maxlinelen=4)
+
+    def test_encode_maxlinelen_too_small(self):
+        self.assertRaises(ValueError, self._test_encode, '', '', maxlinelen=3)
 
     def test_encode(self):
         eq = self.assertEqual
@@ -3351,9 +3879,9 @@ class TestCharset(unittest.TestCase):
         # built-in encodings where the header encoding is QP but the body
         # encoding is not.
         from email import charset as CharsetModule
-        CharsetModule.add_charset('fake', CharsetModule.QP, None)
+        CharsetModule.add_charset('fake', CharsetModule.QP, None, 'utf-8')
         c = Charset('fake')
-        eq('hello w\xf6rld', c.body_encode('hello w\xf6rld'))
+        eq('hello world', c.body_encode('hello world'))
 
     def test_unicode_charset_name(self):
         charset = Charset('us-ascii')
@@ -3646,6 +4174,35 @@ A very long line that must get split to something other than at the
         h.append(x, errors='replace')
         eq(str(h), e)
 
+    def test_escaped_8bit_header(self):
+        x = b'Ynwp4dUEbay Auction Semiar- No Charge \x96 Earn Big'
+        e = x.decode('ascii', 'surrogateescape')
+        h = Header(e, charset=email.charset.UNKNOWN8BIT)
+        self.assertEqual(str(h),
+                        'Ynwp4dUEbay Auction Semiar- No Charge \uFFFD Earn Big')
+        self.assertEqual(email.header.decode_header(h), [(x, 'unknown-8bit')])
+
+    def test_header_handles_binary_unknown8bit(self):
+        x = b'Ynwp4dUEbay Auction Semiar- No Charge \x96 Earn Big'
+        h = Header(x, charset=email.charset.UNKNOWN8BIT)
+        self.assertEqual(str(h),
+                        'Ynwp4dUEbay Auction Semiar- No Charge \uFFFD Earn Big')
+        self.assertEqual(email.header.decode_header(h), [(x, 'unknown-8bit')])
+
+    def test_make_header_handles_binary_unknown8bit(self):
+        x = b'Ynwp4dUEbay Auction Semiar- No Charge \x96 Earn Big'
+        h = Header(x, charset=email.charset.UNKNOWN8BIT)
+        h2 = email.header.make_header(email.header.decode_header(h))
+        self.assertEqual(str(h2),
+                        'Ynwp4dUEbay Auction Semiar- No Charge \uFFFD Earn Big')
+        self.assertEqual(email.header.decode_header(h2), [(x, 'unknown-8bit')])
+
+    def test_modify_returned_list_does_not_change_header(self):
+        h = Header('test')
+        chunks = email.header.decode_header(h)
+        chunks.append(('ascii', 'test2'))
+        self.assertEqual(str(h), 'test')
+
     def test_encoded_adjacent_nonencoded(self):
         eq = self.assertEqual
         h = Header()
@@ -3673,6 +4230,18 @@ A very long line that must get split to something other than at the
     def test_shift_jis_charset(self):
         h = Header('文', charset='shift_jis')
         self.assertEqual(h.encode(), '=?iso-2022-jp?b?GyRCSjgbKEI=?=')
+
+    def test_flatten_header_with_no_value(self):
+        # Issue 11401 (regression from email 4.x)  Note that the space after
+        # the header doesn't reflect the input, but this is also the way
+        # email 4.x behaved.  At some point it would be nice to fix that.
+        msg = email.message_from_string("EmptyHeader:")
+        self.assertEqual(str(msg), "EmptyHeader: \n\n")
+
+    def test_encode_preserves_leading_ws_on_value(self):
+        msg = Message()
+        msg['SomeHeader'] = '   value with leading ws'
+        self.assertEqual(str(msg), "SomeHeader:    value with leading ws\n\n")
 
 
 
@@ -3722,6 +4291,16 @@ Do you like this message?
 
 -Me
 """)
+
+    def test_set_param_requote(self):
+        msg = Message()
+        msg.set_param('title', 'foo')
+        self.assertEqual(msg['content-type'], 'text/plain; title="foo"')
+        msg.set_param('title', 'bar', requote=False)
+        self.assertEqual(msg['content-type'], 'text/plain; title=bar')
+        # tspecial is still quoted.
+        msg.set_param('title', "(bar)bell", requote=False)
+        self.assertEqual(msg['content-type'], 'text/plain; title="(bar)bell"')
 
     def test_del_param(self):
         eq = self.ndiffAssertEqual

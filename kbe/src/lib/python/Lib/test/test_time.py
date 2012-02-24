@@ -3,6 +3,7 @@ import time
 import unittest
 import locale
 import sysconfig
+import sys
 import warnings
 
 class TimeTestCase(unittest.TestCase):
@@ -38,6 +39,13 @@ class TimeTestCase(unittest.TestCase):
                 time.strftime(format, tt)
             except ValueError:
                 self.fail('conversion specifier: %r failed.' % format)
+
+        # Issue #10762: Guard against invalid/non-supported format string
+        # so that Python don't crash (Windows crashes when the format string
+        # input to [w]strftime is not kosher.
+        if sys.platform.startswith('win'):
+            with self.assertRaises(ValueError):
+                time.strftime('%f')
 
     def _bounds_checking(self, func=time.strftime):
         # Make sure that strftime() checks the bounds of the various parts
@@ -295,12 +303,8 @@ class _TestStrftimeYear:
         except ValueError:
             # strftime() is limited to [1; 9999] with Visual Studio
             return
-        # Issue #10864: OpenIndiana is limited to 4 digits,
-        # but Python doesn't raise a ValueError
-        #self.assertEqual(text, '12345')
-        #self.assertEqual(self.yearstr(123456789), '123456789')
-        self.assertIn(text, ('2345', '12345'))
-        self.assertIn(self.yearstr(123456789), ('123456789', '6789'))
+        self.assertEqual(text, '12345')
+        self.assertEqual(self.yearstr(123456789), '123456789')
 
 class _Test2dYear(_BaseYearTest):
     accept2dyear = 1

@@ -54,9 +54,11 @@ import warnings
 
 import os
 from errno import EALREADY, EINPROGRESS, EWOULDBLOCK, ECONNRESET, EINVAL, \
-     ENOTCONN, ESHUTDOWN, EINTR, EISCONN, EBADF, ECONNABORTED, errorcode
+     ENOTCONN, ESHUTDOWN, EINTR, EISCONN, EBADF, ECONNABORTED, EPIPE, EAGAIN, \
+     errorcode
 
-_DISCONNECTED = frozenset((ECONNRESET, ENOTCONN, ESHUTDOWN, ECONNABORTED))
+_DISCONNECTED = frozenset((ECONNRESET, ENOTCONN, ESHUTDOWN, ECONNABORTED, EPIPE,
+                           EBADF))
 
 try:
     socket_map
@@ -111,7 +113,7 @@ def readwrite(obj, flags):
         if flags & (select.POLLHUP | select.POLLERR | select.POLLNVAL):
             obj.handle_close()
     except socket.error as e:
-        if e.args[0] not in (EBADF, ECONNRESET, ENOTCONN, ESHUTDOWN, ECONNABORTED):
+        if e.args[0] not in _DISCONNECTED:
             obj.handle_error()
         else:
             obj.handle_close()
@@ -130,7 +132,8 @@ def poll(timeout=0.0, map=None):
             is_w = obj.writable()
             if is_r:
                 r.append(fd)
-            if is_w:
+            # accepting sockets should not be writable
+            if is_w and not obj.accepting:
                 w.append(fd)
             if is_r or is_w:
                 e.append(fd)
@@ -177,7 +180,8 @@ def poll2(timeout=0.0, map=None):
             flags = 0
             if obj.readable():
                 flags |= select.POLLIN | select.POLLPRI
-            if obj.writable():
+            # accepting sockets should not be writable
+            if obj.writable() and not obj.accepting:
                 flags |= select.POLLOUT
             if flags:
                 # Only check for exceptions if object was either readable
@@ -355,7 +359,7 @@ class dispatcher:
         except TypeError:
             return None
         except socket.error as why:
-            if why.args[0] in (EWOULDBLOCK, ECONNABORTED):
+            if why.args[0] in (EWOULDBLOCK, ECONNABORTED, EAGAIN):
                 return None
             else:
                 raise

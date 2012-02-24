@@ -566,6 +566,33 @@ class ExceptionTests(unittest.TestCase):
             del g
             self.assertEqual(sys.exc_info()[0], TypeError)
 
+    def test_generator_leaking2(self):
+        # See issue 12475.
+        def g():
+            yield
+        try:
+            raise RuntimeError
+        except RuntimeError:
+            it = g()
+            next(it)
+        try:
+            next(it)
+        except StopIteration:
+            pass
+        self.assertEqual(sys.exc_info(), (None, None, None))
+
+    def test_generator_doesnt_retain_old_exc(self):
+        def g():
+            self.assertIsInstance(sys.exc_info()[1], RuntimeError)
+            yield
+            self.assertEqual(sys.exc_info(), (None, None, None))
+        it = g()
+        try:
+            raise RuntimeError
+        except RuntimeError:
+            next(it)
+        self.assertRaises(StopIteration, next, it)
+
     def test_generator_finalizing_and_exc_info(self):
         # See #7173
         def simple_gen():

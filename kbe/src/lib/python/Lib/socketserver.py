@@ -549,7 +549,6 @@ class ForkingMixIn:
                 self.active_children = []
             self.active_children.append(pid)
             self.close_request(request)
-            return
         else:
             # Child process.
             # This must never return, hence os._exit()!
@@ -675,7 +674,7 @@ class StreamRequestHandler(BaseRequestHandler):
     # A timeout to apply to the request socket, if not None.
     timeout = None
 
-    # Disable nagle algoritm for this socket, if True.
+    # Disable nagle algorithm for this socket, if True.
     # Use only when wbufsize != 0, to avoid small packets.
     disable_nagle_algorithm = False
 

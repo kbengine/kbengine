@@ -2,6 +2,7 @@
 # these are all functions _testcapi exports whose name begins with 'test_'.
 
 from __future__ import with_statement
+import os
 import random
 import subprocess
 import sys
@@ -50,6 +51,8 @@ class CAPITest(unittest.TestCase):
                          b'Fatal Python error:'
                          b' PyThreadState_Get: no current thread')
 
+    def test_memoryview_from_NULL_pointer(self):
+        self.assertRaises(ValueError, _testcapi.make_memoryview_from_NULL_pointer)
 
 @unittest.skipUnless(threading, 'Threading required for this test.')
 class TestPendingCalls(unittest.TestCase):
@@ -125,7 +128,7 @@ class TestPendingCalls(unittest.TestCase):
                 context.event.set()
 
     def test_pendingcalls_non_threaded(self):
-        #again, just using the main thread, likely they will all be dispathced at
+        #again, just using the main thread, likely they will all be dispatched at
         #once.  It is ok to ask for too many, because we loop until we find a slot.
         #the loop can be interrupted to dispatch.
         #there are only 32 dispatch slots, so we go for twice that!
@@ -139,8 +142,41 @@ class Test6012(unittest.TestCase):
     def test(self):
         self.assertEqual(_testcapi.argparsing("Hello", "World"), 1)
 
+
+class EmbeddingTest(unittest.TestCase):
+
+    @unittest.skipIf(
+        sys.platform.startswith('win'),
+        "test doesn't work under Windows")
+    def test_subinterps(self):
+        # XXX only tested under Unix checkouts
+        basepath = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        oldcwd = os.getcwd()
+        # This is needed otherwise we get a fatal error:
+        # "Py_Initialize: Unable to get the locale encoding
+        # LookupError: no codec search functions registered: can't find encoding"
+        os.chdir(basepath)
+        try:
+            exe = os.path.join(basepath, "Modules", "_testembed")
+            if not os.path.exists(exe):
+                self.skipTest("%r doesn't exist" % exe)
+            p = subprocess.Popen([exe],
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            (out, err) = p.communicate()
+            self.assertEqual(p.returncode, 0,
+                             "bad returncode %d, stderr is %r" %
+                             (p.returncode, err))
+            if support.verbose:
+                print()
+                print(out.decode('latin1'))
+                print(err.decode('latin1'))
+        finally:
+            os.chdir(oldcwd)
+
+
 def test_main():
-    support.run_unittest(CAPITest)
+    support.run_unittest(CAPITest, TestPendingCalls, Test6012, EmbeddingTest)
 
     for name in dir(_testcapi):
         if name.startswith('test_'):
@@ -174,8 +210,6 @@ def test_main():
         t = threading.Thread(target=TestThreadState)
         t.start()
         t.join()
-
-    support.run_unittest(TestPendingCalls, Test6012)
 
 
 if __name__ == "__main__":

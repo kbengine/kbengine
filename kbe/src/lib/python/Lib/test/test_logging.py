@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2001-2010 by Vinay Sajip. All Rights Reserved.
+# Copyright 2001-2011 by Vinay Sajip. All Rights Reserved.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose and without fee is hereby granted,
@@ -18,7 +18,7 @@
 
 """Test harness for the logging module. Run all tests.
 
-Copyright (C) 2001-2010 Vinay Sajip. All Rights Reserved.
+Copyright (C) 2001-2011 Vinay Sajip. All Rights Reserved.
 """
 
 import logging
@@ -41,6 +41,7 @@ import struct
 import sys
 import tempfile
 from test.support import captured_stdout, run_with_locale, run_unittest
+from test.support import TestHandler, Matcher
 import textwrap
 import unittest
 import warnings
@@ -611,6 +612,38 @@ class ConfigFileTest(BaseTest):
     datefmt=
     """
 
+    # config1a moves the handler to the root.
+    config1a = """
+    [loggers]
+    keys=root,parser
+
+    [handlers]
+    keys=hand1
+
+    [formatters]
+    keys=form1
+
+    [logger_root]
+    level=WARNING
+    handlers=hand1
+
+    [logger_parser]
+    level=DEBUG
+    handlers=
+    propagate=1
+    qualname=compiler.parser
+
+    [handler_hand1]
+    class=StreamHandler
+    level=NOTSET
+    formatter=form1
+    args=(sys.stdout,)
+
+    [formatter_form1]
+    format=%(levelname)s ++ %(message)s
+    datefmt=
+    """
+
     # config2 has a subtle configuration error that should be reported
     config2 = config1.replace("sys.stdout", "sys.stbout")
 
@@ -689,6 +722,44 @@ class ConfigFileTest(BaseTest):
     datefmt=
     """
 
+    # config7 adds a compiler logger.
+    config7 = """
+    [loggers]
+    keys=root,parser,compiler
+
+    [handlers]
+    keys=hand1
+
+    [formatters]
+    keys=form1
+
+    [logger_root]
+    level=WARNING
+    handlers=hand1
+
+    [logger_compiler]
+    level=DEBUG
+    handlers=
+    propagate=1
+    qualname=compiler
+
+    [logger_parser]
+    level=DEBUG
+    handlers=
+    propagate=1
+    qualname=compiler.parser
+
+    [handler_hand1]
+    class=StreamHandler
+    level=NOTSET
+    formatter=form1
+    args=(sys.stdout,)
+
+    [formatter_form1]
+    format=%(levelname)s ++ %(message)s
+    datefmt=
+    """
+
     def apply_config(self, conf):
         file = io.StringIO(textwrap.dedent(conf))
         logging.config.fileConfig(file)
@@ -751,6 +822,49 @@ class ConfigFileTest(BaseTest):
 
     def test_config6_ok(self):
         self.test_config1_ok(config=self.config6)
+
+    def test_config7_ok(self):
+        with captured_stdout() as output:
+            self.apply_config(self.config1a)
+            logger = logging.getLogger("compiler.parser")
+            # See issue #11424. compiler-hyphenated sorts
+            # between compiler and compiler.xyz and this
+            # was preventing compiler.xyz from being included
+            # in the child loggers of compiler because of an
+            # overzealous loop termination condition.
+            hyphenated = logging.getLogger('compiler-hyphenated')
+            # All will output a message
+            logger.info(self.next_message())
+            logger.error(self.next_message())
+            hyphenated.critical(self.next_message())
+            self.assert_log_lines([
+                ('INFO', '1'),
+                ('ERROR', '2'),
+                ('CRITICAL', '3'),
+            ], stream=output)
+            # Original logger output is empty.
+            self.assert_log_lines([])
+        with captured_stdout() as output:
+            self.apply_config(self.config7)
+            logger = logging.getLogger("compiler.parser")
+            self.assertFalse(logger.disabled)
+            # Both will output a message
+            logger.info(self.next_message())
+            logger.error(self.next_message())
+            logger = logging.getLogger("compiler.lexer")
+            # Both will output a message
+            logger.info(self.next_message())
+            logger.error(self.next_message())
+            # Will not appear
+            hyphenated.critical(self.next_message())
+            self.assert_log_lines([
+                ('INFO', '4'),
+                ('ERROR', '5'),
+                ('INFO', '6'),
+                ('ERROR', '7'),
+            ], stream=output)
+            # Original logger output is empty.
+            self.assert_log_lines([])
 
 class LogRecordStreamHandler(StreamRequestHandler):
 
@@ -1057,6 +1171,33 @@ class ConfigDictTest(BaseTest):
         },
     }
 
+    # config1a moves the handler to the root. Used with config8a
+    config1a = {
+        'version': 1,
+        'formatters': {
+            'form1' : {
+                'format' : '%(levelname)s ++ %(message)s',
+            },
+        },
+        'handlers' : {
+            'hand1' : {
+                'class' : 'logging.StreamHandler',
+                'formatter' : 'form1',
+                'level' : 'NOTSET',
+                'stream'  : 'ext://sys.stdout',
+            },
+        },
+        'loggers' : {
+            'compiler.parser' : {
+                'level' : 'DEBUG',
+            },
+        },
+        'root' : {
+            'level' : 'WARNING',
+            'handlers' : ['hand1'],
+        },
+    }
+
     # config2 has a subtle configuration error that should be reported
     config2 = {
         'version': 1,
@@ -1307,9 +1448,42 @@ class ConfigDictTest(BaseTest):
         },
     }
 
+    # config8 defines both compiler and compiler.lexer
+    # so compiler.parser should not be disabled (since
+    # compiler is defined)
     config8 = {
         'version': 1,
         'disable_existing_loggers' : False,
+        'formatters': {
+            'form1' : {
+                'format' : '%(levelname)s ++ %(message)s',
+            },
+        },
+        'handlers' : {
+            'hand1' : {
+                'class' : 'logging.StreamHandler',
+                'formatter' : 'form1',
+                'level' : 'NOTSET',
+                'stream'  : 'ext://sys.stdout',
+            },
+        },
+        'loggers' : {
+            'compiler' : {
+                'level' : 'DEBUG',
+                'handlers' : ['hand1'],
+            },
+            'compiler.lexer' : {
+            },
+        },
+        'root' : {
+            'level' : 'WARNING',
+        },
+    }
+
+    # config8a disables existing loggers
+    config8a = {
+        'version': 1,
+        'disable_existing_loggers' : True,
         'formatters': {
             'form1' : {
                 'format' : '%(levelname)s ++ %(message)s',
@@ -1636,7 +1810,7 @@ class ConfigDictTest(BaseTest):
         with captured_stdout() as output:
             self.apply_config(self.config1)
             logger = logging.getLogger("compiler.parser")
-            # Both will output a message
+            # All will output a message
             logger.info(self.next_message())
             logger.error(self.next_message())
             self.assert_log_lines([
@@ -1661,6 +1835,49 @@ class ConfigDictTest(BaseTest):
                 ('ERROR', '4'),
                 ('INFO', '5'),
                 ('ERROR', '6'),
+            ], stream=output)
+            # Original logger output is empty.
+            self.assert_log_lines([])
+
+    def test_config_8a_ok(self):
+        with captured_stdout() as output:
+            self.apply_config(self.config1a)
+            logger = logging.getLogger("compiler.parser")
+            # See issue #11424. compiler-hyphenated sorts
+            # between compiler and compiler.xyz and this
+            # was preventing compiler.xyz from being included
+            # in the child loggers of compiler because of an
+            # overzealous loop termination condition.
+            hyphenated = logging.getLogger('compiler-hyphenated')
+            # All will output a message
+            logger.info(self.next_message())
+            logger.error(self.next_message())
+            hyphenated.critical(self.next_message())
+            self.assert_log_lines([
+                ('INFO', '1'),
+                ('ERROR', '2'),
+                ('CRITICAL', '3'),
+            ], stream=output)
+            # Original logger output is empty.
+            self.assert_log_lines([])
+        with captured_stdout() as output:
+            self.apply_config(self.config8a)
+            logger = logging.getLogger("compiler.parser")
+            self.assertFalse(logger.disabled)
+            # Both will output a message
+            logger.info(self.next_message())
+            logger.error(self.next_message())
+            logger = logging.getLogger("compiler.lexer")
+            # Both will output a message
+            logger.info(self.next_message())
+            logger.error(self.next_message())
+            # Will not appear
+            hyphenated.critical(self.next_message())
+            self.assert_log_lines([
+                ('INFO', '4'),
+                ('ERROR', '5'),
+                ('INFO', '6'),
+                ('ERROR', '7'),
             ], stream=output)
             # Original logger output is empty.
             self.assert_log_lines([])
@@ -1876,6 +2093,23 @@ class QueueHandlerTest(BaseTest):
         self.assertEqual(data.name, self.que_logger.name)
         self.assertEqual((data.msg, data.args), (msg, None))
 
+    @unittest.skipUnless(hasattr(logging.handlers, 'QueueListener'),
+                         'logging.handlers.QueueListener required for this test')
+    def test_queue_listener(self):
+        handler = TestHandler(Matcher())
+        listener = logging.handlers.QueueListener(self.queue, handler)
+        listener.start()
+        try:
+            self.que_logger.warning(self.next_message())
+            self.que_logger.error(self.next_message())
+            self.que_logger.critical(self.next_message())
+        finally:
+            listener.stop()
+        self.assertTrue(handler.matches(levelno=logging.WARNING, message='1'))
+        self.assertTrue(handler.matches(levelno=logging.ERROR, message='2'))
+        self.assertTrue(handler.matches(levelno=logging.CRITICAL, message='3'))
+
+
 class FormatterTest(unittest.TestCase):
     def setUp(self):
         self.common = {
@@ -1907,6 +2141,8 @@ class FormatterTest(unittest.TestCase):
         self.assertFalse(f.usesTime())
         f = logging.Formatter('%(asctime)s')
         self.assertTrue(f.usesTime())
+        f = logging.Formatter('%(asctime)-15s')
+        self.assertTrue(f.usesTime())
         f = logging.Formatter('asctime')
         self.assertFalse(f.usesTime())
 
@@ -1919,6 +2155,10 @@ class FormatterTest(unittest.TestCase):
         self.assertRaises(KeyError, f.format, r)
         self.assertFalse(f.usesTime())
         f = logging.Formatter('{asctime}', style='{')
+        self.assertTrue(f.usesTime())
+        f = logging.Formatter('{asctime!s:15}', style='{')
+        self.assertTrue(f.usesTime())
+        f = logging.Formatter('{asctime:15}', style='{')
         self.assertTrue(f.usesTime())
         f = logging.Formatter('asctime', style='{')
         self.assertFalse(f.usesTime())
@@ -1935,6 +2175,8 @@ class FormatterTest(unittest.TestCase):
         self.assertFalse(f.usesTime())
         f = logging.Formatter('${asctime}', style='$')
         self.assertTrue(f.usesTime())
+        f = logging.Formatter('${asctime', style='$')
+        self.assertFalse(f.usesTime())
         f = logging.Formatter('$asctime', style='$')
         self.assertTrue(f.usesTime())
         f = logging.Formatter('asctime', style='$')
@@ -2044,13 +2286,43 @@ for when, exp in (('S', 1),
                   ('M', 60),
                   ('H', 60 * 60),
                   ('D', 60 * 60 * 24),
-                  ('MIDNIGHT', 60 * 60 * 23),
+                  ('MIDNIGHT', 60 * 60 * 24),
                   # current time (epoch start) is a Thursday, W0 means Monday
-                  ('W0', secs(days=4, hours=23)),):
+                  ('W0', secs(days=4, hours=24)),
+                 ):
     def test_compute_rollover(self, when=when, exp=exp):
         rh = logging.handlers.TimedRotatingFileHandler(
-            self.fn, when=when, interval=1, backupCount=0)
-        self.assertEqual(exp, rh.computeRollover(0.0))
+            self.fn, when=when, interval=1, backupCount=0, utc=True)
+        currentTime = 0.0
+        actual = rh.computeRollover(currentTime)
+        if exp != actual:
+            # Failures occur on some systems for MIDNIGHT and W0.
+            # Print detailed calculation for MIDNIGHT so we can try to see
+            # what's going on
+            import time
+            if when == 'MIDNIGHT':
+                try:
+                    if rh.utc:
+                        t = time.gmtime(currentTime)
+                    else:
+                        t = time.localtime(currentTime)
+                    currentHour = t[3]
+                    currentMinute = t[4]
+                    currentSecond = t[5]
+                    # r is the number of seconds left between now and midnight
+                    r = logging.handlers._MIDNIGHT - ((currentHour * 60 +
+                                                       currentMinute) * 60 +
+                            currentSecond)
+                    result = currentTime + r
+                    print('t: %s (%s)' % (t, rh.utc), file=sys.stderr)
+                    print('currentHour: %s' % currentHour, file=sys.stderr)
+                    print('currentMinute: %s' % currentMinute, file=sys.stderr)
+                    print('currentSecond: %s' % currentSecond, file=sys.stderr)
+                    print('r: %s' % r, file=sys.stderr)
+                    print('result: %s' % result, file=sys.stderr)
+                except Exception:
+                    print('exception in diagnostic code: %s' % sys.exc_info()[1], file=sys.stderr)
+        self.assertEqual(exp, actual)
         rh.close()
     setattr(TimedRotatingFileHandlerTest, "test_compute_rollover_%s" % when, test_compute_rollover)
 
@@ -2067,7 +2339,7 @@ def test_main():
                  LogRecordFactoryTest, ChildLoggerTest, QueueHandlerTest,
                  RotatingFileHandlerTest,
                  LastResortTest,
-                 #TimedRotatingFileHandlerTest
+                 TimedRotatingFileHandlerTest
                 )
 
 if __name__ == "__main__":

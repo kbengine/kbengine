@@ -90,123 +90,38 @@ class FileTests(unittest.TestCase):
             self.assertEqual(fobj.read().splitlines(),
                 [b"bacon", b"eggs", b"spam"])
 
+    def write_windows_console(self, *args):
+        retcode = subprocess.call(args,
+            # use a new console to not flood the test output
+            creationflags=subprocess.CREATE_NEW_CONSOLE,
+            # use a shell to hide the console window (SW_HIDE)
+            shell=True)
+        self.assertEqual(retcode, 0)
 
-class TemporaryFileTests(unittest.TestCase):
-    def setUp(self):
-        self.files = []
-        os.mkdir(support.TESTFN)
-
-    def tearDown(self):
-        for name in self.files:
-            os.unlink(name)
-        os.rmdir(support.TESTFN)
-
-    def check_tempfile(self, name):
-        # make sure it doesn't already exist:
-        self.assertFalse(os.path.exists(name),
-                    "file already exists for temporary file")
-        # make sure we can create the file
-        open(name, "w")
-        self.files.append(name)
-
-    def test_tempnam(self):
-        if not hasattr(os, "tempnam"):
-            return
-        warnings.filterwarnings("ignore", "tempnam", RuntimeWarning,
-                                r"test_os$")
-        self.check_tempfile(os.tempnam())
-
-        name = os.tempnam(support.TESTFN)
-        self.check_tempfile(name)
-
-        name = os.tempnam(support.TESTFN, "pfx")
-        self.assertTrue(os.path.basename(name)[:3] == "pfx")
-        self.check_tempfile(name)
-
-    def test_tmpfile(self):
-        if not hasattr(os, "tmpfile"):
-            return
-        # As with test_tmpnam() below, the Windows implementation of tmpfile()
-        # attempts to create a file in the root directory of the current drive.
-        # On Vista and Server 2008, this test will always fail for normal users
-        # as writing to the root directory requires elevated privileges.  With
-        # XP and below, the semantics of tmpfile() are the same, but the user
-        # running the test is more likely to have administrative privileges on
-        # their account already.  If that's the case, then os.tmpfile() should
-        # work.  In order to make this test as useful as possible, rather than
-        # trying to detect Windows versions or whether or not the user has the
-        # right permissions, just try and create a file in the root directory
-        # and see if it raises a 'Permission denied' OSError.  If it does, then
-        # test that a subsequent call to os.tmpfile() raises the same error. If
-        # it doesn't, assume we're on XP or below and the user running the test
-        # has administrative privileges, and proceed with the test as normal.
-        if sys.platform == 'win32':
-            name = '\\python_test_os_test_tmpfile.txt'
-            if os.path.exists(name):
-                os.remove(name)
-            try:
-                fp = open(name, 'w')
-            except IOError as first:
-                # open() failed, assert tmpfile() fails in the same way.
-                # Although open() raises an IOError and os.tmpfile() raises an
-                # OSError(), 'args' will be (13, 'Permission denied') in both
-                # cases.
-                try:
-                    fp = os.tmpfile()
-                except OSError as second:
-                    self.assertEqual(first.args, second.args)
-                else:
-                    self.fail("expected os.tmpfile() to raise OSError")
-                return
-            else:
-                # open() worked, therefore, tmpfile() should work.  Close our
-                # dummy file and proceed with the test as normal.
-                fp.close()
-                os.remove(name)
-
-        fp = os.tmpfile()
-        fp.write("foobar")
-        fp.seek(0,0)
-        s = fp.read()
-        fp.close()
-        self.assertTrue(s == "foobar")
-
-    def test_tmpnam(self):
-        if not hasattr(os, "tmpnam"):
-            return
-        warnings.filterwarnings("ignore", "tmpnam", RuntimeWarning,
-                                r"test_os$")
-        name = os.tmpnam()
-        if sys.platform in ("win32",):
-            # The Windows tmpnam() seems useless.  From the MS docs:
-            #
-            #     The character string that tmpnam creates consists of
-            #     the path prefix, defined by the entry P_tmpdir in the
-            #     file STDIO.H, followed by a sequence consisting of the
-            #     digit characters '0' through '9'; the numerical value
-            #     of this string is in the range 1 - 65,535.  Changing the
-            #     definitions of L_tmpnam or P_tmpdir in STDIO.H does not
-            #     change the operation of tmpnam.
-            #
-            # The really bizarre part is that, at least under MSVC6,
-            # P_tmpdir is "\\".  That is, the path returned refers to
-            # the root of the current drive.  That's a terrible place to
-            # put temp files, and, depending on privileges, the user
-            # may not even be able to open a file in the root directory.
-            self.assertFalse(os.path.exists(name),
-                        "file already exists for temporary file")
-        else:
-            self.check_tempfile(name)
+    @unittest.skipUnless(sys.platform == 'win32',
+                         'test specific to the Windows console')
+    def test_write_windows_console(self):
+        # Issue #11395: the Windows console returns an error (12: not enough
+        # space error) on writing into stdout if stdout mode is binary and the
+        # length is greater than 66,000 bytes (or less, depending on heap
+        # usage).
+        code = "print('x' * 100000)"
+        self.write_windows_console(sys.executable, "-c", code)
+        self.write_windows_console(sys.executable, "-u", "-c", code)
 
     def fdopen_helper(self, *args):
         fd = os.open(support.TESTFN, os.O_RDONLY)
-        fp2 = os.fdopen(fd, *args)
-        fp2.close()
+        f = os.fdopen(fd, *args)
+        f.close()
 
     def test_fdopen(self):
+        fd = os.open(support.TESTFN, os.O_CREAT|os.O_RDWR)
+        os.close(fd)
+
         self.fdopen_helper()
         self.fdopen_helper('r')
         self.fdopen_helper('r', 100)
+
 
 # Test attributes on return values from os.*stat* family.
 class StatAttributeTests(unittest.TestCase):
@@ -277,7 +192,7 @@ class StatAttributeTests(unittest.TestCase):
         except TypeError:
             pass
 
-        # Use the constructr with a too-long tuple.
+        # Use the constructor with a too-long tuple.
         try:
             result2 = os.stat_result((0,1,2,3,4,5,6,7,8,9,10,11,12,13,14))
         except TypeError:
@@ -333,7 +248,7 @@ class StatAttributeTests(unittest.TestCase):
         except TypeError:
             pass
 
-        # Use the constructr with a too-long tuple.
+        # Use the constructor with a too-long tuple.
         try:
             result2 = os.statvfs_result((0,1,2,3,4,5,6,7,8,9,10,11,12,13,14))
         except TypeError:
@@ -670,12 +585,11 @@ class MakedirTests(unittest.TestCase):
 
 class DevNullTests(unittest.TestCase):
     def test_devnull(self):
-        f = open(os.devnull, 'w')
-        f.write('hello')
-        f.close()
-        f = open(os.devnull, 'r')
-        self.assertEqual(f.read(), '')
-        f.close()
+        with open(os.devnull, 'wb') as f:
+            f.write(b'hello')
+            f.close()
+        with open(os.devnull, 'rb') as f:
+            self.assertEqual(f.read(), b'')
 
 class URandomTests(unittest.TestCase):
     def test_urandom(self):
@@ -1025,7 +939,7 @@ if sys.platform != 'win32':
 
         def test_open(self):
             for fn in self.unicodefn:
-                f = open(os.path.join(self.dir, fn))
+                f = open(os.path.join(self.dir, fn), 'rb')
                 f.close()
 
         def test_stat(self):
@@ -1223,6 +1137,51 @@ class Win32SymlinkTests(unittest.TestCase):
     def check_stat(self, link, target):
         self.assertEqual(os.stat(link), os.stat(target))
         self.assertNotEqual(os.lstat(link), os.stat(link))
+
+        bytes_link = os.fsencode(link)
+        self.assertEqual(os.stat(bytes_link), os.stat(target))
+        self.assertNotEqual(os.lstat(bytes_link), os.stat(bytes_link))
+
+    def test_12084(self):
+        level1 = os.path.abspath(support.TESTFN)
+        level2 = os.path.join(level1, "level2")
+        level3 = os.path.join(level2, "level3")
+        try:
+            os.mkdir(level1)
+            os.mkdir(level2)
+            os.mkdir(level3)
+
+            file1 = os.path.abspath(os.path.join(level1, "file1"))
+
+            with open(file1, "w") as f:
+                f.write("file1")
+
+            orig_dir = os.getcwd()
+            try:
+                os.chdir(level2)
+                link = os.path.join(level2, "link")
+                os.symlink(os.path.relpath(file1), "link")
+                self.assertIn("link", os.listdir(os.getcwd()))
+
+                # Check os.stat calls from the same dir as the link
+                self.assertEqual(os.stat(file1), os.stat("link"))
+
+                # Check os.stat calls from a dir below the link
+                os.chdir(level1)
+                self.assertEqual(os.stat(file1),
+                                 os.stat(os.path.relpath(link)))
+
+                # Check os.stat calls from a dir above the link
+                os.chdir(level3)
+                self.assertEqual(os.stat(file1),
+                                 os.stat(os.path.relpath(link)))
+            finally:
+                os.chdir(orig_dir)
+        except OSError as err:
+            self.fail(err)
+        finally:
+            os.remove(file1)
+            shutil.rmtree(level1)
 
 
 class FSEncodingTests(unittest.TestCase):

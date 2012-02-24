@@ -13,8 +13,6 @@ the "typical" Unix-style command-line C compiler:
   * link shared library handled by 'cc -shared'
 """
 
-__revision__ = "$Id: unixccompiler.py 83053 2010-07-22 12:50:05Z tarek.ziade $"
-
 import os, sys, re
 
 from distutils import sysconfig

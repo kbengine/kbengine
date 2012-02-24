@@ -38,7 +38,8 @@ __all__ = ["urlparse", "urlunparse", "urljoin", "urldefrag",
 # A classification of schemes ('' means apply by default)
 uses_relative = ['ftp', 'http', 'gopher', 'nntp', 'imap',
                  'wais', 'file', 'https', 'shttp', 'mms',
-                 'prospero', 'rtsp', 'rtspu', '', 'sftp']
+                 'prospero', 'rtsp', 'rtspu', '', 'sftp',
+                 'svn', 'svn+ssh']
 uses_netloc = ['ftp', 'http', 'gopher', 'nntp', 'telnet',
                'imap', 'wais', 'file', 'mms', 'https', 'shttp',
                'snews', 'prospero', 'rtsp', 'rtspu', 'rsync', '',
@@ -340,12 +341,17 @@ def urlsplit(url, scheme='', allow_fragments=True):
             v = SplitResult(scheme, netloc, url, query, fragment)
             _parse_cache[key] = v
             return _coerce_result(v)
-        if url.endswith(':') or not url[i+1].isdigit():
-            for c in url[:i]:
-                if c not in scheme_chars:
-                    break
-            else:
+        for c in url[:i]:
+            if c not in scheme_chars:
+                break
+        else:
+            try:
+                # make sure "url" is not actually a port number (in which case
+                # "scheme" is really part of the path
+                _testportnum = int(url[i+1:])
+            except ValueError:
                 scheme, url = url[:i].lower(), url[i+1:]
+
     if url[:2] == '//':
         netloc, url = _splitnetloc(url, 2)
         if (('[' in netloc and ']' not in netloc) or

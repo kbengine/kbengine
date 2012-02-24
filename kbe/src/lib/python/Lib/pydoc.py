@@ -42,7 +42,7 @@ __all__ = ['help']
 __author__ = "Ka-Ping Yee <ping@lfw.org>"
 __date__ = "26 February 2001"
 
-__version__ = "$Revision: 88261 $"
+__version__ = "$Revision$"
 __credits__ = """Guido van Rossum, for an excellent programming language.
 Tommy Burnette, the original creator of manpy.
 Paul Prescod, for all his work on onlinehelp.
@@ -57,16 +57,17 @@ Richard Chamberlain, for the first implementation of textdoc.
 #     the current directory is changed with os.chdir(), an incorrect
 #     path will be displayed.
 
-import os
-import sys
 import builtins
 import imp
-import io
 import inspect
+import io
+import os
 import pkgutil
 import platform
 import re
+import sys
 import time
+import tokenize
 import warnings
 from collections import deque
 from reprlib import Repr
@@ -165,7 +166,7 @@ def _split_list(s, predicate):
             no.append(x)
     return yes, no
 
-def visiblename(name, all=None):
+def visiblename(name, all=None, obj=None):
     """Decide whether to show documentation on a variable."""
     # Certain special names are redundant.
     _hidden_names = ('__builtins__', '__doc__', '__file__', '__path__',
@@ -175,6 +176,9 @@ def visiblename(name, all=None):
     if name in _hidden_names: return 0
     # Private names are hidden, but special names are displayed.
     if name.startswith('__') and name.endswith('__'): return 1
+    # Namedtuples have public fields and methods with a single leading underscore
+    if name.startswith('_') and hasattr(obj, '_fields'):
+        return True
     if all is not None:
         # only document that which the programmer exported in __all__
         return name in all
@@ -220,11 +224,11 @@ def source_synopsis(file):
 def synopsis(filename, cache={}):
     """Get the one-line summary out of a module file."""
     mtime = os.stat(filename).st_mtime
-    lastupdate, result = cache.get(filename, (0, None))
-    if lastupdate < mtime:
+    lastupdate, result = cache.get(filename, (None, None))
+    if lastupdate is None or lastupdate < mtime:
         info = inspect.getmoduleinfo(filename)
         try:
-            file = open(filename)
+            file = tokenize.open(filename)
         except IOError:
             # module can't be opened, so skip it
             return None
@@ -252,20 +256,18 @@ class ErrorDuringImport(Exception):
 def importfile(path):
     """Import a Python source file or compiled file given its path."""
     magic = imp.get_magic()
-    file = open(path, 'r')
-    if file.read(len(magic)) == magic:
-        kind = imp.PY_COMPILED
-    else:
-        kind = imp.PY_SOURCE
-    file.close()
-    filename = os.path.basename(path)
-    name, ext = os.path.splitext(filename)
-    file = open(path, 'r')
-    try:
-        module = imp.load_module(name, file, path, (ext, 'r', kind))
-    except:
-        raise ErrorDuringImport(path, sys.exc_info())
-    file.close()
+    with open(path, 'rb') as file:
+        if file.read(len(magic)) == magic:
+            kind = imp.PY_COMPILED
+        else:
+            kind = imp.PY_SOURCE
+        file.seek(0)
+        filename = os.path.basename(path)
+        name, ext = os.path.splitext(filename)
+        try:
+            module = imp.load_module(name, file, path, (ext, 'r', kind))
+        except:
+            raise ErrorDuringImport(path, sys.exc_info())
     return module
 
 def safeimport(path, forceload=0, cache={}):
@@ -642,7 +644,7 @@ class HTMLDoc(Doc):
             # if __all__ exists, believe it.  Otherwise use old heuristic.
             if (all is not None or
                 (inspect.getmodule(value) or object) is object):
-                if visiblename(key, all):
+                if visiblename(key, all, object):
                     classes.append((key, value))
                     cdict[key] = cdict[value] = '#' + key
         for key, value in classes:
@@ -658,13 +660,13 @@ class HTMLDoc(Doc):
             # if __all__ exists, believe it.  Otherwise use old heuristic.
             if (all is not None or
                 inspect.isbuiltin(value) or inspect.getmodule(value) is object):
-                if visiblename(key, all):
+                if visiblename(key, all, object):
                     funcs.append((key, value))
                     fdict[key] = '#-' + key
                     if inspect.isfunction(value): fdict[value] = fdict[key]
         data = []
         for key, value in inspect.getmembers(object, isdata):
-            if visiblename(key, all):
+            if visiblename(key, all, object):
                 data.append((key, value))
 
         doc = self.markup(getdoc(object), self.preformat, fdict, cdict)
@@ -789,7 +791,7 @@ class HTMLDoc(Doc):
 
         attrs = [(name, kind, cls, value)
                  for name, kind, cls, value in classify_class_attrs(object)
-                 if visiblename(name)]
+                 if visiblename(name, obj=object)]
 
         mdict = {}
         for key, kind, homecls, value in attrs:
@@ -1056,18 +1058,18 @@ doubt, consult the module reference at the location listed above.
             # if __all__ exists, believe it.  Otherwise use old heuristic.
             if (all is not None
                 or (inspect.getmodule(value) or object) is object):
-                if visiblename(key, all):
+                if visiblename(key, all, object):
                     classes.append((key, value))
         funcs = []
         for key, value in inspect.getmembers(object, inspect.isroutine):
             # if __all__ exists, believe it.  Otherwise use old heuristic.
             if (all is not None or
                 inspect.isbuiltin(value) or inspect.getmodule(value) is object):
-                if visiblename(key, all):
+                if visiblename(key, all, object):
                     funcs.append((key, value))
         data = []
         for key, value in inspect.getmembers(object, isdata):
-            if visiblename(key, all):
+            if visiblename(key, all, object):
                 data.append((key, value))
 
         modpkgs = []
@@ -1206,7 +1208,7 @@ doubt, consult the module reference at the location listed above.
 
         attrs = [(name, kind, cls, value)
                  for name, kind, cls, value in classify_class_attrs(object)
-                 if visiblename(name)]
+                 if visiblename(name, obj=object)]
 
         while attrs:
             if mro:
@@ -1480,13 +1482,14 @@ def locate(path, forceload=0):
         else: break
     if module:
         object = module
-        for part in parts[n:]:
-            try: object = getattr(object, part)
-            except AttributeError: return None
-        return object
     else:
-        if hasattr(builtins, path):
-            return getattr(builtins, path)
+        object = builtins
+    for part in parts[n:]:
+        try:
+            object = getattr(object, part)
+        except AttributeError:
+            return None
+    return object
 
 # --------------------------------------- interactive interpreter interface
 
@@ -1573,6 +1576,9 @@ class Helper:
     #          in Doc/ and copying the output file into the Lib/ directory.
 
     keywords = {
+        'False': '',
+        'None': '',
+        'True': '',
         'and': 'BOOLEAN',
         'as': 'with',
         'assert': ('assert', ''),
@@ -1788,6 +1794,9 @@ has the same effect as typing a particular string at the help> prompt.
             elif request[:8] == 'modules ':
                 self.listmodules(request.split()[1])
             elif request in self.symbols: self.showsymbol(request)
+            elif request in ['True', 'False', 'None']:
+                # special case these keywords since they are objects too
+                doc(eval(request), 'Help on %s:')
             elif request in self.keywords: self.showtopic(request)
             elif request in self.topics: self.showtopic(request)
             elif request: doc(request, 'Help on %s:', output=self._output)
@@ -2572,7 +2581,7 @@ def _url_handler(url, content_type="text/html"):
     def html_getfile(path):
         """Get and display a source file listing safely."""
         path = path.replace('%20', ' ')
-        with open(path, 'r') as fp:
+        with tokenize.open(path) as fp:
             lines = html.escape(fp.read())
         body = '<pre>%s</pre>' % lines
         heading = html.heading(

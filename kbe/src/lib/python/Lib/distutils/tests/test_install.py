@@ -1,20 +1,30 @@
 """Tests for distutils.command.install."""
 
 import os
-import os.path
 import sys
 import unittest
 import site
 
 from test.support import captured_stdout, run_unittest
 
+from distutils import sysconfig
 from distutils.command.install import install
 from distutils.command import install as install_module
+from distutils.command.build_ext import build_ext
 from distutils.command.install import INSTALL_SCHEMES
 from distutils.core import Distribution
 from distutils.errors import DistutilsOptionError
+from distutils.extension import Extension
 
 from distutils.tests import support
+
+
+def _make_ext_name(modname):
+    if os.name == 'nt':
+        if sys.executable.endswith('_d.exe'):
+            modname += '_d'
+    return modname + sysconfig.get_config_var('SO')
+
 
 class InstallTestCase(support.TempdirManager,
                       support.EnvironGuard,
@@ -62,7 +72,7 @@ class InstallTestCase(support.TempdirManager,
         if sys.version < '2.6':
             return
 
-        # preparing the environement for the test
+        # preparing the environment for the test
         self.old_user_base = site.USER_BASE
         self.old_user_site = site.USER_SITE
         self.tmpdir = self.mkdtemp()
@@ -167,33 +177,67 @@ class InstallTestCase(support.TempdirManager,
         self.assertRaises(DistutilsOptionError, cmd.finalize_options)
 
     def test_record(self):
-
         install_dir = self.mkdtemp()
-        pkgdir, dist = self.create_dist()
+        project_dir, dist = self.create_dist(scripts=['hello'])
+        self.addCleanup(os.chdir, os.getcwd())
+        os.chdir(project_dir)
+        self.write_file('hello', "print('o hai')")
 
-        dist = Distribution()
         cmd = install(dist)
         dist.command_obj['install'] = cmd
         cmd.root = install_dir
-        cmd.record = os.path.join(pkgdir, 'RECORD')
+        cmd.record = os.path.join(project_dir, 'RECORD')
         cmd.ensure_finalized()
-
         cmd.run()
 
-        # let's check the RECORD file was created with one
-        # line (the egg info file)
         f = open(cmd.record)
         try:
-            self.assertEqual(len(f.readlines()), 1)
+            content = f.read()
         finally:
             f.close()
+
+        found = [os.path.basename(line) for line in content.splitlines()]
+        expected = ['hello',
+                    'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2]]
+        self.assertEqual(found, expected)
+
+    def test_record_extensions(self):
+        install_dir = self.mkdtemp()
+        project_dir, dist = self.create_dist(ext_modules=[
+            Extension('xx', ['xxmodule.c'])])
+        self.addCleanup(os.chdir, os.getcwd())
+        os.chdir(project_dir)
+        support.copy_xxmodule_c(project_dir)
+
+        buildextcmd = build_ext(dist)
+        support.fixup_build_ext(buildextcmd)
+        buildextcmd.ensure_finalized()
+
+        cmd = install(dist)
+        dist.command_obj['install'] = cmd
+        dist.command_obj['build_ext'] = buildextcmd
+        cmd.root = install_dir
+        cmd.record = os.path.join(project_dir, 'RECORD')
+        cmd.ensure_finalized()
+        cmd.run()
+
+        f = open(cmd.record)
+        try:
+            content = f.read()
+        finally:
+            f.close()
+
+        found = [os.path.basename(line) for line in content.splitlines()]
+        expected = [_make_ext_name('xx'),
+                    'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2]]
+        self.assertEqual(found, expected)
 
     def test_debug_mode(self):
         # this covers the code called when DEBUG is set
         old_logs_len = len(self.logs)
         install_module.DEBUG = True
         try:
-            with captured_stdout() as stdout:
+            with captured_stdout():
                 self.test_record()
         finally:
             install_module.DEBUG = False

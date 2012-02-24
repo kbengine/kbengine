@@ -11,6 +11,7 @@ import io
 import sys
 import os
 import gc
+import errno
 import signal
 import array
 import socket
@@ -756,7 +757,13 @@ class _TestCondition(BaseTestCase):
         cond.release()
 
         # check they have all woken
-        time.sleep(DELTA)
+        for i in range(10):
+            try:
+                if get_value(woken) == 6:
+                    break
+            except NotImplementedError:
+                break
+            time.sleep(DELTA)
         self.assertReturnsIfImplemented(6, get_value, woken)
 
         # check state is not mucked up
@@ -783,7 +790,7 @@ class _TestEvent(BaseTestCase):
         event = self.Event()
         wait = TimingWrapper(event.wait)
 
-        # Removed temporaily, due to API shear, this does not
+        # Removed temporarily, due to API shear, this does not
         # work with threading._Event objects. is_set == isSet
         self.assertEqual(event.is_set(), False)
 
@@ -915,6 +922,21 @@ class _TestArray(BaseTestCase):
         p.join()
 
         self.assertEqual(list(arr[:]), seq)
+
+    @unittest.skipIf(c_int is None, "requires _ctypes")
+    def test_array_from_size(self):
+        size = 10
+        # Test for zeroing (see issue #11675).
+        # The repetition below strengthens the test by increasing the chances
+        # of previously allocated non-zero memory being used for the new array
+        # on the 2nd and 3rd loops.
+        for _ in range(3):
+            arr = self.Array('i', size)
+            self.assertEqual(len(arr), size)
+            self.assertEqual(list(arr), [0] * size)
+            arr[:] = range(10)
+            self.assertEqual(list(arr), list(range(10)))
+            del arr
 
     @unittest.skipIf(c_int is None, "requires _ctypes")
     def test_rawarray(self):
@@ -1067,6 +1089,9 @@ class _TestPool(BaseTestCase):
         self.assertEqual(sorted(it), list(map(sqr, list(range(1000)))))
 
     def test_make_pool(self):
+        self.assertRaises(ValueError, multiprocessing.Pool, -1)
+        self.assertRaises(ValueError, multiprocessing.Pool, 0)
+
         p = multiprocessing.Pool(3)
         self.assertEqual(3, len(p._pool))
         p.close()
@@ -1088,7 +1113,7 @@ class _TestPool(BaseTestCase):
         self.pool.terminate()
         join = TimingWrapper(self.pool.join)
         join()
-        self.assertTrue(join.elapsed < 0.2)
+        self.assertLess(join.elapsed, 0.5)
 
 def raising():
     raise KeyError("key")
@@ -1154,7 +1179,8 @@ class _TestPoolWorkerLifetime(BaseTestCase):
         # Refill the pool
         p._repopulate_pool()
         # Wait until all workers are alive
-        countdown = 5
+        # (countdown * DELTA = 5 seconds max startup process time)
+        countdown = 50
         while countdown and not all(w.is_alive() for w in p._pool):
             countdown -= 1
             time.sleep(DELTA)
@@ -1344,7 +1370,16 @@ class _TestManagerRestart(BaseTestCase):
         manager.shutdown()
         manager = QueueManager(
             address=addr, authkey=authkey, serializer=SERIALIZER)
-        manager.start()
+        try:
+            manager.start()
+        except IOError as e:
+            if e.errno != errno.EADDRINUSE:
+                raise
+            # Retry after some time, in case the old socket was lingering
+            # (sporadic failure on buildbots)
+            time.sleep(1.0)
+            manager = QueueManager(
+                address=addr, authkey=authkey, serializer=SERIALIZER)
         manager.shutdown()
 
 #
@@ -1637,6 +1672,8 @@ class _TestHeap(BaseTestCase):
         # verify the state of the heap
         all = []
         occupied = 0
+        heap._lock.acquire()
+        self.addCleanup(heap._lock.release)
         for L in list(heap._len_to_seq.values()):
             for arena, start, stop in L:
                 all.append((heap._arenas.index(arena), start, stop,
@@ -1653,6 +1690,28 @@ class _TestHeap(BaseTestCase):
             (narena, nstart, nstop) = all[i+1][:3]
             self.assertTrue((arena != narena and nstart == 0) or
                             (stop == nstart))
+
+    def test_free_from_gc(self):
+        # Check that freeing of blocks by the garbage collector doesn't deadlock
+        # (issue #12352).
+        # Make sure the GC is enabled, and set lower collection thresholds to
+        # make collections more frequent (and increase the probability of
+        # deadlock).
+        if not gc.isenabled():
+            gc.enable()
+            self.addCleanup(gc.disable)
+        thresholds = gc.get_threshold()
+        self.addCleanup(gc.set_threshold, *thresholds)
+        gc.set_threshold(10)
+
+        # perform numerous block allocations, with cyclic references to make
+        # sure objects are collected asynchronously by the gc
+        for i in range(5000):
+            a = multiprocessing.heap.BufferWrapper(1)
+            b = multiprocessing.heap.BufferWrapper(1)
+            # circular references
+            a.buddy = b
+            b.buddy = a
 
 #
 #
@@ -1753,7 +1812,7 @@ class _TestFinalize(BaseTestCase):
 
         util.Finalize(None, conn.send, args=('STOP',), exitpriority=-100)
 
-        # call mutliprocessing's cleanup function then exit process without
+        # call multiprocessing's cleanup function then exit process without
         # garbage collecting locals
         util._exit_function()
         conn.close()

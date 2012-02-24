@@ -7,7 +7,10 @@ import socket
 import array
 
 import urllib.request
-from urllib.request import Request, OpenerDirector
+# The proxy bypass method imported below has logic specific to the OSX
+# proxy config data structure but is testable on all platforms.
+from urllib.request import Request, OpenerDirector, _proxy_bypass_macosx_sysconf
+import urllib.error
 
 # XXX
 # Request
@@ -314,6 +317,9 @@ class MockHTTPClass:
     def getresponse(self):
         return MockHTTPResponse(MockFile(), {}, 200, "OK")
 
+    def close(self):
+        pass
+
 class MockHandler:
     # useful for testing handler machinery
     # see add_ordered_mock_handlers() docstring
@@ -616,6 +622,7 @@ class HandlerTests(unittest.TestCase):
             def retrfile(self, filename, filetype):
                 self.filename, self.filetype = filename, filetype
                 return io.StringIO(self.data), len(self.data)
+            def close(self): pass
 
         class NullFTPHandler(urllib.request.FTPHandler):
             def __init__(self, data): self.data = data
@@ -1029,6 +1036,29 @@ class HandlerTests(unittest.TestCase):
             self.assertEqual(count,
                              urllib.request.HTTPRedirectHandler.max_redirections)
 
+
+    def test_invalid_redirect(self):
+        from_url = "http://example.com/a.html"
+        valid_schemes = ['http','https','ftp']
+        invalid_schemes = ['file','imap','ldap']
+        schemeless_url = "example.com/b.html"
+        h = urllib.request.HTTPRedirectHandler()
+        o = h.parent = MockOpener()
+        req = Request(from_url)
+        req.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
+
+        for scheme in invalid_schemes:
+            invalid_url = scheme + '://' + schemeless_url
+            self.assertRaises(urllib.error.HTTPError, h.http_error_302,
+                    req, MockFile(), 302, "Security Loophole",
+                    MockHeaders({"location": invalid_url}))
+
+        for scheme in valid_schemes:
+            valid_url = scheme + '://' + schemeless_url
+            h.http_error_302(req, MockFile(), 302, "That's fine",
+                MockHeaders({"location": valid_url}))
+            self.assertEqual(o.req.get_full_url(), valid_url)
+
     def test_cookie_redirect(self):
         # cookies shouldn't leak into redirected requests
         from http.cookiejar import CookieJar
@@ -1043,6 +1073,15 @@ class HandlerTests(unittest.TestCase):
         o = build_test_opener(hh, hdeh, hrh, cp)
         o.open("http://www.example.com/")
         self.assertFalse(hh.req.has_header("Cookie"))
+
+    def test_redirect_fragment(self):
+        redirected_url = 'http://www.example.com/index.html#OK\r\n\r\n'
+        hh = MockHTTPHandler(302, 'Location: ' + redirected_url)
+        hdeh = urllib.request.HTTPDefaultErrorHandler()
+        hrh = urllib.request.HTTPRedirectHandler()
+        o = build_test_opener(hh, hdeh, hrh)
+        fp = o.open('http://www.example.com')
+        self.assertEqual(fp.geturl(), redirected_url.strip())
 
     def test_proxy(self):
         o = OpenerDirector()
@@ -1070,6 +1109,17 @@ class HandlerTests(unittest.TestCase):
         self.assertEqual(req.get_host(), "www.perl.org")
         r = o.open(req)
         self.assertEqual(req.get_host(), "proxy.example.com")
+        req = Request("http://www.python.org")
+        self.assertEqual(req.get_host(), "www.python.org")
+        r = o.open(req)
+        self.assertEqual(req.get_host(), "www.python.org")
+        del os.environ['no_proxy']
+
+    def test_proxy_no_proxy_all(self):
+        os.environ['no_proxy'] = '*'
+        o = OpenerDirector()
+        ph = urllib.request.ProxyHandler(dict(http="proxy.example.com"))
+        o.add_handler(ph)
         req = Request("http://www.python.org")
         self.assertEqual(req.get_host(), "www.python.org")
         r = o.open(req)
@@ -1115,6 +1165,26 @@ class HandlerTests(unittest.TestCase):
         self.assertIsNotNone(req._tunnel_host)
         self.assertEqual(req.get_host(), "proxy.example.com:3128")
         self.assertEqual(req.get_header("Proxy-authorization"),"FooBar")
+
+    def test_osx_proxy_bypass(self):
+        bypass = {
+            'exclude_simple': False,
+            'exceptions': ['foo.bar', '*.bar.com', '127.0.0.1', '10.10',
+                           '10.0/16']
+        }
+        # Check hosts that should trigger the proxy bypass
+        for host in ('foo.bar', 'www.bar.com', '127.0.0.1', '10.10.0.1',
+                     '10.0.0.1'):
+            self.assertTrue(_proxy_bypass_macosx_sysconf(host, bypass),
+                            'expected bypass of %s to be True' % host)
+        # Check hosts that should not trigger the proxy bypass
+        for host in ('abc.foo.bar', 'bar.com', '127.0.0.2', '10.11.0.1', 'test'):
+            self.assertFalse(_proxy_bypass_macosx_sysconf(host, bypass),
+                             'expected bypass of %s to be False' % host)
+
+        # Check the exclude_simple flag
+        bypass = {'exclude_simple': True, 'exceptions': []}
+        self.assertTrue(_proxy_bypass_macosx_sysconf('test', bypass))
 
     def test_basic_auth(self, quote_char='"'):
         opener = OpenerDirector()
@@ -1328,12 +1398,16 @@ class RequestTests(unittest.TestCase):
         req = Request("<URL:http://www.python.org>")
         self.assertEqual("www.python.org", req.get_host())
 
-    def test_urlwith_fragment(self):
+    def test_url_fragment(self):
         req = Request("http://www.python.org/?qs=query#fragment=true")
         self.assertEqual("/?qs=query", req.get_selector())
         req = Request("http://www.python.org/#fun=true")
         self.assertEqual("/", req.get_selector())
 
+        # Issue 11703: geturl() omits fragment in the original URL.
+        url = 'http://docs.python.org/library/urllib2.html#OK'
+        req = Request(url)
+        self.assertEqual(req.get_full_url(), url)
 
 def test_main(verbose=None):
     from test import test_urllib2

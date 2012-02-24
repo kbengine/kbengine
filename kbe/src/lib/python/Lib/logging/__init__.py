@@ -18,7 +18,7 @@
 Logging package for Python. Based on PEP 282 and comments thereto in
 comp.lang.python, and influenced by Apache's log4j system.
 
-Copyright (C) 2001-2010 Vinay Sajip. All Rights Reserved.
+Copyright (C) 2001-2011 Vinay Sajip. All Rights Reserved.
 
 To use, simply 'import logging' and log away!
 """
@@ -360,12 +360,13 @@ class PercentStyle(object):
 
     default_format = '%(message)s'
     asctime_format = '%(asctime)s'
+    asctime_search = '%(asctime)'
 
     def __init__(self, fmt):
         self._fmt = fmt or self.default_format
 
     def usesTime(self):
-        return self._fmt.find(self.asctime_format) >= 0
+        return self._fmt.find(self.asctime_search) >= 0
 
     def format(self, record):
         return self._fmt % record.__dict__
@@ -373,6 +374,7 @@ class PercentStyle(object):
 class StrFormatStyle(PercentStyle):
     default_format = '{message}'
     asctime_format = '{asctime}'
+    asctime_search = '{asctime'
 
     def format(self, record):
         return self._fmt.format(**record.__dict__)
@@ -381,6 +383,7 @@ class StrFormatStyle(PercentStyle):
 class StringTemplateStyle(PercentStyle):
     default_format = '${message}'
     asctime_format = '${asctime}'
+    asctime_search = '${asctime}'
 
     def __init__(self, fmt):
         self._fmt = fmt or self.default_format
@@ -1437,7 +1440,8 @@ class Logger(Filterer):
                 c = c.parent
         if (found == 0):
             if lastResort:
-                lastResort.handle(record)
+                if record.levelno >= lastResort.level:
+                    lastResort.handle(record)
             elif raiseExceptions and not self.manager.emittedNoHandlerWarning:
                 sys.stderr.write("No handlers could be found for logger"
                                  " \"%s\"\n" % self.name)
@@ -1790,6 +1794,7 @@ def shutdown(handlerList=_handlerList):
             h = wr()
             if h:
                 try:
+                    h.acquire()
                     h.flush()
                     h.close()
                 except (IOError, ValueError):
@@ -1798,6 +1803,8 @@ def shutdown(handlerList=_handlerList):
                     # references to them are still around at
                     # application exit.
                     pass
+                finally:
+                    h.release()
         except:
             if raiseExceptions:
                 raise

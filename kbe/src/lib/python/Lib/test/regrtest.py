@@ -25,7 +25,7 @@ Verbosity
 
 -v/--verbose    -- run tests in verbose mode with output to stdout
 -w/--verbose2   -- re-run failed tests in verbose mode
--W/--verbose3   -- re-run failed tests in verbose mode immediately
+-W/--verbose3   -- display test output on failure
 -d/--debug      -- print traceback for failed tests
 -q/--quiet      -- no output unless one or more tests fail
 -S/--slow       -- print the slowest 10 tests
@@ -38,6 +38,8 @@ Selecting tests
 -f/--fromfile   -- read names of tests to run from a file (see below)
 -x/--exclude    -- arguments are tests to *exclude*
 -s/--single     -- single step through a set of tests (see below)
+-m/--match PAT  -- match test cases and methods with glob pattern PAT
+-G/--failfast   -- fail as soon as a test fails (only with -v or -W)
 -u/--use RES1,RES2,...
                 -- specify which special resource intensive tests to run
 -M/--memlimit LIMIT
@@ -154,22 +156,32 @@ option '-uall,-gui'.
 """
 
 import builtins
+import errno
 import getopt
+import io
 import json
+import logging
 import os
+import platform
 import random
 import re
-import io
 import sys
+import sysconfig
+import tempfile
 import time
 import traceback
-import warnings
 import unittest
+import warnings
 from inspect import isabstract
-import tempfile
-import platform
-import sysconfig
-import logging
+
+try:
+    import threading
+except ImportError:
+    threading = None
+try:
+    import multiprocessing.process
+except ImportError:
+    multiprocessing = None
 
 
 # Some times __path__ and __file__ are not absolute (e.g. while running from
@@ -231,7 +243,7 @@ def main(tests=None, testdir=None, verbose=0, quiet=False,
          findleaks=False, use_resources=None, trace=False, coverdir='coverage',
          runleaks=False, huntrleaks=False, verbose2=False, print_slow=False,
          random_seed=None, use_mp=None, verbose3=False, forever=False,
-         header=False):
+         header=False, failfast=False, match_tests=None):
     """Execute a test suite.
 
     This also parses command-line options and modifies its behavior
@@ -259,13 +271,13 @@ def main(tests=None, testdir=None, verbose=0, quiet=False,
 
     support.record_original_stdout(sys.stdout)
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hvqxsSrf:lu:t:TD:NLR:FwWM:nj:',
+        opts, args = getopt.getopt(sys.argv[1:], 'hvqxsSrf:lu:t:TD:NLR:FwWM:nj:Gm:',
             ['help', 'verbose', 'verbose2', 'verbose3', 'quiet',
              'exclude', 'single', 'slow', 'random', 'fromfile', 'findleaks',
              'use=', 'threshold=', 'trace', 'coverdir=', 'nocoverdir',
              'runleaks', 'huntrleaks=', 'memlimit=', 'randseed=',
              'multiprocess=', 'coverage', 'slaveargs=', 'forever', 'debug',
-             'start=', 'nowindows', 'header'])
+             'start=', 'nowindows', 'header', 'failfast', 'match'])
     except getopt.error as msg:
         usage(msg)
 
@@ -288,6 +300,8 @@ def main(tests=None, testdir=None, verbose=0, quiet=False,
             debug = True
         elif o in ('-W', '--verbose3'):
             verbose3 = True
+        elif o in ('-G', '--failfast'):
+            failfast = True
         elif o in ('-q', '--quiet'):
             quiet = True;
             verbose = 0
@@ -305,6 +319,8 @@ def main(tests=None, testdir=None, verbose=0, quiet=False,
             random_seed = int(a)
         elif o in ('-f', '--fromfile'):
             fromfile = a
+        elif o in ('-m', '--match'):
+            match_tests = a
         elif o in ('-l', '--findleaks'):
             findleaks = True
         elif o in ('-L', '--runleaks'):
@@ -396,6 +412,10 @@ def main(tests=None, testdir=None, verbose=0, quiet=False,
         usage("-T and -j don't go together!")
     if use_mp and findleaks:
         usage("-l and -j don't go together!")
+    if use_mp and support.max_memuse:
+        usage("-M and -j don't go together!")
+    if failfast and not (verbose or verbose3):
+        usage("-G/--failfast needs either -v or -W")
 
     good = []
     bad = []
@@ -497,7 +517,6 @@ def main(tests=None, testdir=None, verbose=0, quiet=False,
         elif ok == FAILED:
             bad.append(test)
         elif ok == ENV_CHANGED:
-            bad.append(test)
             environment_changed.append(test)
         elif ok == SKIPPED:
             skipped.append(test)
@@ -535,7 +554,8 @@ def main(tests=None, testdir=None, verbose=0, quiet=False,
                 args_tuple = (
                     (test, verbose, quiet),
                     dict(huntrleaks=huntrleaks, use_resources=use_resources,
-                        debug=debug)
+                         debug=debug, output_on_failure=verbose3,
+                         failfast=failfast, match_tests=match_tests)
                 )
                 yield (test, args_tuple)
         pending = tests_and_args()
@@ -579,9 +599,12 @@ def main(tests=None, testdir=None, verbose=0, quiet=False,
                 if test is None:
                     finished += 1
                     continue
+                accumulate_result(test, result)
                 if not quiet:
-                    print("[{1:{0}}{2}] {3}".format(
-                        test_count_width, test_index, test_count, test))
+                    fmt = "[{1:{0}}{2}/{3}] {4}" if bad else "[{1:{0}}{2}] {4}"
+                    print(fmt.format(
+                        test_count_width, test_index, test_count,
+                        len(bad), test))
                 if stdout:
                     print(stdout)
                 if stderr:
@@ -589,7 +612,6 @@ def main(tests=None, testdir=None, verbose=0, quiet=False,
                 if result[0] == INTERRUPTED:
                     assert result[1] == 'KeyboardInterrupt'
                     raise KeyboardInterrupt   # What else?
-                accumulate_result(test, result)
                 test_index += 1
         except KeyboardInterrupt:
             interrupted = True
@@ -599,8 +621,9 @@ def main(tests=None, testdir=None, verbose=0, quiet=False,
     else:
         for test_index, test in enumerate(tests, 1):
             if not quiet:
-                print("[{1:{0}}{2}] {3}".format(
-                    test_count_width, test_index, test_count, test))
+                fmt = "[{1:{0}}{2}/{3}] {4}" if bad else "[{1:{0}}{2}] {4}"
+                print(fmt.format(
+                    test_count_width, test_index, test_count, len(bad), test))
                 sys.stdout.flush()
             if trace:
                 # If we're tracing code coverage, then we don't exit with status
@@ -609,11 +632,10 @@ def main(tests=None, testdir=None, verbose=0, quiet=False,
                               globals=globals(), locals=vars())
             else:
                 try:
-                    result = runtest(test, verbose, quiet, huntrleaks, debug)
+                    result = runtest(test, verbose, quiet, huntrleaks, debug,
+                                     output_on_failure=verbose3,
+                                     failfast=failfast, match_tests=match_tests)
                     accumulate_result(test, result)
-                    if verbose3 and result[0] == FAILED:
-                        print("Re-running test {} in verbose mode".format(test))
-                        runtest(test, True, quiet, huntrleaks, debug)
                 except KeyboardInterrupt:
                     interrupted = True
                     break
@@ -758,7 +780,8 @@ def replace_stdout():
     atexit.register(restore_stdout)
 
 def runtest(test, verbose, quiet,
-            huntrleaks=False, debug=False, use_resources=None):
+            huntrleaks=False, debug=False, use_resources=None,
+            output_on_failure=False, failfast=False, match_tests=None):
     """Run a single test.
 
     test -- the name of the test
@@ -767,6 +790,7 @@ def runtest(test, verbose, quiet,
     test_times -- a list of (time, test_name) pairs
     huntrleaks -- run multiple times to test for leaks; requires a debug
                   build; a triple corresponding to -R's three arguments
+    output_on_failure -- if true, display test output on failure
 
     Returns one of the test result constants:
         INTERRUPTED      KeyboardInterrupt when run under -j
@@ -777,13 +801,48 @@ def runtest(test, verbose, quiet,
         PASSED           test passed
     """
 
-    support.verbose = verbose  # Tell tests to be moderately quiet
     if use_resources is not None:
         support.use_resources = use_resources
     try:
-        return runtest_inner(test, verbose, quiet, huntrleaks, debug)
+        support.match_tests = match_tests
+        if failfast:
+            support.failfast = True
+        if output_on_failure:
+            support.verbose = True
+
+            # Reuse the same instance to all calls to runtest(). Some
+            # tests keep a reference to sys.stdout or sys.stderr
+            # (eg. test_argparse).
+            if runtest.stringio is None:
+                stream = io.StringIO()
+                runtest.stringio = stream
+            else:
+                stream = runtest.stringio
+                stream.seek(0)
+                stream.truncate()
+
+            orig_stdout = sys.stdout
+            orig_stderr = sys.stderr
+            try:
+                sys.stdout = stream
+                sys.stderr = stream
+                result = runtest_inner(test, verbose, quiet, huntrleaks,
+                                       debug, display_failure=False)
+                if result[0] == FAILED:
+                    output = stream.getvalue()
+                    orig_stderr.write(output)
+                    orig_stderr.flush()
+            finally:
+                sys.stdout = orig_stdout
+                sys.stderr = orig_stderr
+        else:
+            support.verbose = verbose  # Tell tests to be moderately quiet
+            result = runtest_inner(test, verbose, quiet, huntrleaks, debug,
+                                   display_failure=not verbose)
+        return result
     finally:
         cleanup_test_droppings(test, verbose)
+runtest.stringio = None
 
 # Unit tests are supposed to leave the execution environment unchanged
 # once they complete.  But sometimes tests have bugs, especially when
@@ -827,7 +886,9 @@ class saved_test_environment:
     resources = ('sys.argv', 'cwd', 'sys.stdin', 'sys.stdout', 'sys.stderr',
                  'os.environ', 'sys.path', 'sys.path_hooks', '__import__',
                  'warnings.filters', 'asyncore.socket_map',
-                 'logging._handlers', 'logging._handlerList')
+                 'logging._handlers', 'logging._handlerList',
+                 'sys.warnoptions', 'threading._dangling',
+                 'multiprocessing.process._dangling')
 
     def get_sys_argv(self):
         return id(sys.argv), sys.argv, sys.argv[:]
@@ -909,6 +970,37 @@ class saved_test_environment:
         # Can't easily revert the logging state
         pass
 
+    def get_sys_warnoptions(self):
+        return id(sys.warnoptions), sys.warnoptions, sys.warnoptions[:]
+    def restore_sys_warnoptions(self, saved_options):
+        sys.warnoptions = saved_options[1]
+        sys.warnoptions[:] = saved_options[2]
+
+    # Controlling dangling references to Thread objects can make it easier
+    # to track reference leaks.
+    def get_threading__dangling(self):
+        if not threading:
+            return None
+        # This copies the weakrefs without making any strong reference
+        return threading._dangling.copy()
+    def restore_threading__dangling(self, saved):
+        if not threading:
+            return
+        threading._dangling.clear()
+        threading._dangling.update(saved)
+
+    # Same for Process objects
+    def get_multiprocessing_process__dangling(self):
+        if not multiprocessing:
+            return None
+        # This copies the weakrefs without making any strong reference
+        return multiprocessing.process._dangling.copy()
+    def restore_multiprocessing_process__dangling(self, saved):
+        if not multiprocessing:
+            return
+        multiprocessing.process._dangling.clear()
+        multiprocessing.process._dangling.update(saved)
+
     def resource_info(self):
         for name in self.resources:
             method_suffix = name.replace('.', '_')
@@ -942,12 +1034,9 @@ class saved_test_environment:
         return False
 
 
-def runtest_inner(test, verbose, quiet, huntrleaks=False, debug=False):
+def runtest_inner(test, verbose, quiet,
+                  huntrleaks=False, debug=False, display_failure=True):
     support.unload(test)
-    if verbose:
-        capture_stdout = None
-    else:
-        capture_stdout = io.StringIO()
 
     test_time = 0.0
     refleak = False  # True if the test leaked references.
@@ -984,16 +1073,16 @@ def runtest_inner(test, verbose, quiet, huntrleaks=False, debug=False):
     except KeyboardInterrupt:
         raise
     except support.TestFailed as msg:
-        print("test", test, "failed --", msg, file=sys.stderr)
+        if display_failure:
+            print("test", test, "failed --", msg, file=sys.stderr)
+        else:
+            print("test", test, "failed", file=sys.stderr)
         sys.stderr.flush()
         return FAILED, test_time
     except:
-        type, value = sys.exc_info()[:2]
-        print("test", test, "crashed --", str(type) + ":", value, file=sys.stderr)
+        msg = traceback.format_exc()
+        print("test", test, "crashed --", msg, file=sys.stderr)
         sys.stderr.flush()
-        if verbose or debug:
-            traceback.print_exc(file=sys.stderr)
-            sys.stderr.flush()
         return FAILED, test_time
     else:
         if refleak:
@@ -1469,7 +1558,7 @@ class _ExpectedSkips:
                 # is distributed with Python
                 WIN_ONLY = {"test_unicode_file", "test_winreg",
                             "test_winsound", "test_startfile",
-                            "test_sqlite"}
+                            "test_sqlite", "test_msilib"}
                 self.expected |= WIN_ONLY
 
             if sys.platform != 'sunos5':
@@ -1500,8 +1589,11 @@ def _make_temp_dir_for_build(TEMPDIR):
     if sysconfig.is_python_build():
         TEMPDIR = os.path.join(sysconfig.get_config_var('srcdir'), 'build')
         TEMPDIR = os.path.abspath(TEMPDIR)
-        if not os.path.exists(TEMPDIR):
+        try:
             os.mkdir(TEMPDIR)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
 
     # Define a writable temp dir that will be used as cwd while running
     # the tests. The name of the dir includes the pid to allow parallel

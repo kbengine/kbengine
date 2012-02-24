@@ -5,7 +5,7 @@
 # Converted to PyUnit by Peter Hansen <peter@engcorp.com>.
 # Currently maintained by Greg Ward.
 #
-# $Id: test_textwrap.py 86596 2010-11-20 19:04:17Z ezio.melotti $
+# $Id$
 #
 
 import unittest

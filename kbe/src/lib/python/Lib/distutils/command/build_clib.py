@@ -4,8 +4,6 @@ Implements the Distutils 'build_clib' command, to build a C/C++ library
 that is included in the module distribution and needed by an extension
 module."""
 
-__revision__ = "$Id: build_clib.py 84608 2010-09-07 22:11:52Z eric.araujo $"
-
 
 # XXX this module has *lots* of code ripped-off quite transparently from
 # build_ext.py -- not surprisingly really, as the work required to build

@@ -42,6 +42,7 @@ import os
 import sys
 import signal
 import itertools
+from _weakrefset import WeakSet
 
 #
 #
@@ -105,6 +106,7 @@ class Process(object):
         self._kwargs = dict(kwargs)
         self._name = name or type(self).__name__ + '-' + \
                      ':'.join(str(i) for i in self._identity)
+        _dangling.add(self)
 
     def run(self):
         '''
@@ -251,9 +253,15 @@ class Process(object):
                     sys.stdin = open(os.devnull)
                 except (OSError, ValueError):
                     pass
+            old_process = _current_process
             _current_process = self
-            util._finalizer_registry.clear()
-            util._run_after_forkers()
+            try:
+                util._finalizer_registry.clear()
+                util._run_after_forkers()
+            finally:
+                # delay finalization of the old process object until after
+                # _run_after_forkers() is executed
+                del old_process
             util.info('child process calling self.run()')
             try:
                 self.run()
@@ -322,3 +330,6 @@ _exitcode_to_name = {}
 for name, signum in list(signal.__dict__.items()):
     if name[:3]=='SIG' and '_' not in name:
         _exitcode_to_name[-signum] = name
+
+# For debug and leak testing
+_dangling = WeakSet()

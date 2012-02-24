@@ -777,8 +777,8 @@ class HTTPConnection:
                 for d in data:
                     self.sock.sendall(d)
             else:
-                raise TypeError("data should be a bytes-like object\
-                        or an iterable, got %r " % type(it))
+                raise TypeError("data should be a bytes-like object "
+                                "or an iterable, got %r" % type(data))
 
     def _output(self, s):
         """Add a line of output to the current request buffer.
@@ -798,7 +798,7 @@ class HTTPConnection:
         del self._buffer[:]
         # If msg and message_body are sent in a single send() call,
         # it will avoid performance problems caused by the interaction
-        # between delayed ack and the Nagle algorithim.
+        # between delayed ack and the Nagle algorithm.
         if isinstance(message_body, bytes):
             msg += message_body
             message_body = None

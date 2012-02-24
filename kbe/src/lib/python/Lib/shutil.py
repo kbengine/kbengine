@@ -34,7 +34,7 @@ __all__ = ["copyfileobj", "copyfile", "copymode", "copystat", "copy", "copy2",
            "ExecError", "make_archive", "get_archive_formats",
            "register_archive_format", "unregister_archive_format",
            "get_unpack_formats", "register_unpack_format",
-           "unregister_unpack_format", "unpack_archive"]
+           "unregister_unpack_format", "unpack_archive", "ignore_patterns"]
 
 class Error(EnvironmentError):
     pass
@@ -311,12 +311,18 @@ def move(src, dst):
     """
     real_dst = dst
     if os.path.isdir(dst):
+        if _samefile(src, dst):
+            # We might be on a case insensitive filesystem,
+            # perform the rename anyway.
+            os.rename(src, dst)
+            return
+
         real_dst = os.path.join(dst, _basename(src))
         if os.path.exists(real_dst):
             raise Error("Destination path '%s' already exists" % real_dst)
     try:
         os.rename(src, real_dst)
-    except OSError:
+    except OSError as exc:
         if os.path.isdir(src):
             if _destinsrc(src, dst):
                 raise Error("Cannot move a directory '%s' into itself '%s'." % (src, dst))
@@ -737,8 +743,8 @@ def unpack_archive(filename, extract_dir=None, format=None):
         except KeyError:
             raise ValueError("Unknown unpack format '{0}'".format(format))
 
-        func = format_info[0]
-        func(filename, extract_dir, **dict(format_info[1]))
+        func = format_info[1]
+        func(filename, extract_dir, **dict(format_info[2]))
     else:
         # we need to look at the registered unpackers supported extensions
         format = _find_unpack_format(filename)

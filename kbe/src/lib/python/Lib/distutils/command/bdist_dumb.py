@@ -4,8 +4,6 @@ Implements the Distutils 'bdist_dumb' command (create a "dumb" built
 distribution -- i.e., just an archive to be unpacked under $prefix or
 $exec_prefix)."""
 
-__revision__ = "$Id: bdist_dumb.py 83053 2010-07-22 12:50:05Z tarek.ziade $"
-
 import os
 from distutils.core import Command
 from distutils.util import get_platform
@@ -49,7 +47,7 @@ class bdist_dumb(Command):
         self.format = None
         self.keep_temp = 0
         self.dist_dir = None
-        self.skip_build = 0
+        self.skip_build = None
         self.relative = 0
 
     def finalize_options(self):
@@ -67,7 +65,8 @@ class bdist_dumb(Command):
 
         self.set_undefined_options('bdist',
                                    ('dist_dir', 'dist_dir'),
-                                   ('plat_name', 'plat_name'))
+                                   ('plat_name', 'plat_name'),
+                                   ('skip_build', 'skip_build'))
 
     def run(self):
         if not self.skip_build:

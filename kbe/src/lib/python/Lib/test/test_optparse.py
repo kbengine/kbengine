@@ -3,7 +3,7 @@
 # (taradino@softhome.net) -- translated from the original Optik
 # test suite to this PyUnit-based version.
 #
-# $Id: test_optparse.py 86596 2010-11-20 19:04:17Z ezio.melotti $
+# $Id$
 #
 
 import sys

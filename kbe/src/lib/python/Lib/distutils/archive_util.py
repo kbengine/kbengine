@@ -3,11 +3,15 @@
 Utility functions for creating archive files (tarballs, zip files,
 that sort of thing)."""
 
-__revision__ = "$Id: archive_util.py 87277 2010-12-15 20:26:30Z eric.araujo $"
-
 import os
 from warnings import warn
 import sys
+
+try:
+    import zipfile
+except ImportError:
+    zipfile = None
+
 
 from distutils.errors import DistutilsExecError
 from distutils.spawn import spawn
@@ -74,11 +78,6 @@ def make_zipfile(base_name, base_dir, verbose=0, dry_run=0):
     available, raises DistutilsExecError.  Returns the name of the output zip
     file.
     """
-    try:
-        import zipfile
-    except ImportError:
-        zipfile = None
-
     zip_filename = base_name + ".zip"
     mkpath(os.path.dirname(zip_filename), dry_run=dry_run)
 
@@ -105,8 +104,12 @@ def make_zipfile(base_name, base_dir, verbose=0, dry_run=0):
                  zip_filename, base_dir)
 
         if not dry_run:
-            zip = zipfile.ZipFile(zip_filename, "w",
-                                  compression=zipfile.ZIP_DEFLATED)
+            try:
+                zip = zipfile.ZipFile(zip_filename, "w",
+                                      compression=zipfile.ZIP_DEFLATED)
+            except RuntimeError:
+                zip = zipfile.ZipFile(zip_filename, "w",
+                                      compression=zipfile.ZIP_STORED)
 
             for dirpath, dirnames, filenames in os.walk(base_dir):
                 for name in filenames:

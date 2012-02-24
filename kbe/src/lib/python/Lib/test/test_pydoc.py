@@ -1,8 +1,10 @@
 import os
 import sys
+import builtins
 import difflib
 import inspect
 import pydoc
+import keyword
 import re
 import string
 import subprocess
@@ -12,11 +14,20 @@ import unittest
 import xml.etree
 import textwrap
 from io import StringIO
+from collections import namedtuple
 from contextlib import contextmanager
-from test.support import TESTFN, forget, rmtree, EnvironmentVarGuard, \
-     reap_children, captured_output
 
+from test.script_helper import assert_python_ok
+from test.support import (
+    TESTFN, forget, rmtree, EnvironmentVarGuard,
+    reap_children, reap_threads, captured_output, captured_stdout, unlink
+)
 from test import pydoc_mod
+
+try:
+    import threading
+except ImportError:
+    threading = None
 
 # Just in case sys.modules["test"] has the optional attribute __loader__.
 if hasattr(pydoc_mod, "__loader__"):
@@ -192,17 +203,14 @@ missing_pattern = "no Python documentation found for '%s'"
 # output pattern for module with bad imports
 badimport_pattern = "problem in %s - ImportError: No module named %s"
 
-def run_pydoc(module_name, *args):
+def run_pydoc(module_name, *args, **env):
     """
     Runs pydoc on the specified module. Returns the stripped
     output of pydoc.
     """
-    cmd = [sys.executable, pydoc.__file__, " ".join(args), module_name]
-    try:
-        output = subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0]
-        return output.strip()
-    finally:
-        reap_children()
+    args = args + (module_name,)
+    rc, out, err = assert_python_ok(pydoc.__file__, *args, **env)
+    return out.strip()
 
 def get_pydoc_html(module):
     "Returns pydoc generated output as html"
@@ -301,19 +309,20 @@ class PydocDocTest(unittest.TestCase):
         def newdirinpath(dir):
             os.mkdir(dir)
             sys.path.insert(0, dir)
-            yield
-            sys.path.pop(0)
-            rmtree(dir)
+            try:
+                yield
+            finally:
+                sys.path.pop(0)
+                rmtree(dir)
 
-        with newdirinpath(TESTFN), EnvironmentVarGuard() as env:
-            env['PYTHONPATH'] = TESTFN
+        with newdirinpath(TESTFN):
             fullmodname = os.path.join(TESTFN, modname)
             sourcefn = fullmodname + os.extsep + "py"
             for importstring, expectedinmsg in testpairs:
                 with open(sourcefn, 'w') as f:
                     f.write("import {}\n".format(importstring))
                 try:
-                    result = run_pydoc(modname).decode("ascii")
+                    result = run_pydoc(modname, PYTHONPATH=TESTFN).decode("ascii")
                 finally:
                     forget(modname)
                 expected = badimport_pattern % (modname, expectedinmsg)
@@ -373,6 +382,26 @@ class PydocDocTest(unittest.TestCase):
         finally:
             pydoc.getpager = getpager_old
 
+    def test_namedtuple_public_underscore(self):
+        NT = namedtuple('NT', ['abc', 'def'], rename=True)
+        with captured_stdout() as help_io:
+            help(NT)
+        helptext = help_io.getvalue()
+        self.assertIn('_1', helptext)
+        self.assertIn('_replace', helptext)
+        self.assertIn('_asdict', helptext)
+
+    def test_synopsis(self):
+        self.addCleanup(unlink, TESTFN)
+        for encoding in ('ISO-8859-1', 'UTF-8'):
+            with open(TESTFN, 'w', encoding=encoding) as script:
+                if encoding != 'UTF-8':
+                    print('#coding: {}'.format(encoding), file=script)
+                print('"""line 1: h\xe9', file=script)
+                print('line 2: hi"""', file=script)
+            synopsis = pydoc.synopsis(TESTFN, {})
+            self.assertEqual(synopsis, 'line 1: h\xe9')
+
 
 class TestDescriptions(unittest.TestCase):
 
@@ -391,7 +420,25 @@ class TestDescriptions(unittest.TestCase):
         expected = 'C in module %s object' % __name__
         self.assertIn(expected, pydoc.render_doc(c))
 
+    def test_builtin(self):
+        for name in ('str', 'str.translate', 'builtins.str',
+                     'builtins.str.translate'):
+            # test low-level function
+            self.assertIsNotNone(pydoc.locate(name))
+            # test high-level function
+            try:
+                pydoc.render_doc(name)
+            except ImportError:
+                self.fail('finding the doc of {!r} failed'.format(o))
 
+        for name in ('notbuiltins', 'strrr', 'strr.translate',
+                     'str.trrrranslate', 'builtins.strrr',
+                     'builtins.str.trrranslate'):
+            self.assertIsNone(pydoc.locate(name))
+            self.assertRaises(ImportError, pydoc.render_doc, name)
+
+
+@unittest.skipUnless(threading, 'Threading required for this test.')
 class PydocServerTest(unittest.TestCase):
     """Tests for pydoc._start_server"""
 
@@ -455,12 +502,22 @@ class PydocUrlHandlerTest(unittest.TestCase):
         self.assertEqual(result, title)
 
 
+class TestHelper(unittest.TestCase):
+    def test_keywords(self):
+        self.assertEqual(sorted(pydoc.Helper.keywords),
+                         sorted(keyword.kwlist))
+
+@reap_threads
 def test_main():
-    test.support.run_unittest(PydocDocTest,
-                              TestDescriptions,
-                              PydocServerTest,
-                              PydocUrlHandlerTest,
-                              )
+    try:
+        test.support.run_unittest(PydocDocTest,
+                                  TestDescriptions,
+                                  PydocServerTest,
+                                  PydocUrlHandlerTest,
+                                  TestHelper,
+                                  )
+    finally:
+        reap_children()
 
 if __name__ == "__main__":
     test_main()

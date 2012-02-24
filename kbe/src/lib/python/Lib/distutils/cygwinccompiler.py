@@ -45,8 +45,6 @@ cygwin in no-cygwin mode).
 # * mingw gcc 3.2/ld 2.13 works
 #   (ld supports -shared)
 
-__revision__ = "$Id: cygwinccompiler.py 86276 2010-11-06 18:03:52Z eric.araujo $"
-
 import os
 import sys
 import copy
@@ -155,7 +153,7 @@ class CygwinCCompiler(UnixCCompiler):
             self.dll_libraries = get_msvcr()
 
     def _compile(self, obj, src, ext, cc_args, extra_postargs, pp_opts):
-        """Compiles the source by spawing GCC and windres if needed."""
+        """Compiles the source by spawning GCC and windres if needed."""
         if ext == '.rc' or ext == '.res':
             # gcc needs '.res' and '.rc' compiled to object files !!!
             try:

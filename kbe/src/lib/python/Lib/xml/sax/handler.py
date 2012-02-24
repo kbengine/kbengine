@@ -6,7 +6,7 @@ functionality, from which drivers and applications can be subclassed.
 Many of these classes are empty and are included only as documentation
 of the interfaces.
 
-$Id: handler.py 53686 2007-02-09 05:37:30Z guido.van.rossum $
+$Id$
 """
 
 version = '2.0beta'

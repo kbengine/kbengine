@@ -704,6 +704,23 @@ class test_SpooledTemporaryFile(TC):
         f.write(b'x')
         self.assertTrue(f._rolled)
 
+    def test_writelines(self):
+        # Verify writelines with a SpooledTemporaryFile
+        f = self.do_create()
+        f.writelines((b'x', b'y', b'z'))
+        f.seek(0)
+        buf = f.read()
+        self.assertEqual(buf, b'xyz')
+
+    def test_writelines_sequential(self):
+        # A SpooledTemporaryFile should hold exactly max_size bytes, and roll
+        # over afterward
+        f = self.do_create(max_size=35)
+        f.writelines((b'x' * 20, b'x' * 10, b'x' * 5))
+        self.assertFalse(f._rolled)
+        f.write(b'x')
+        self.assertTrue(f._rolled)
+
     def test_sparse(self):
         # A SpooledTemporaryFile that is written late in the file will extend
         # when that occurs
@@ -946,6 +963,27 @@ class test_TemporaryDirectory(TC):
                         "TemporaryDirectory %s exists after cleanup" % d.name)
         finally:
             os.rmdir(dir)
+
+    @support.skip_unless_symlink
+    def test_cleanup_with_symlink_to_a_directory(self):
+        # cleanup() should not follow symlinks to directories (issue #12464)
+        d1 = self.do_create()
+        d2 = self.do_create()
+
+        # Symlink d1/foo -> d2
+        os.symlink(d2.name, os.path.join(d1.name, "foo"))
+
+        # This call to cleanup() should not follow the "foo" symlink
+        d1.cleanup()
+
+        self.assertFalse(os.path.exists(d1.name),
+                         "TemporaryDirectory %s exists after cleanup" % d1.name)
+        self.assertTrue(os.path.exists(d2.name),
+                        "Directory pointed to by a symlink was deleted")
+        self.assertEqual(os.listdir(d2.name), ['test.txt'],
+                         "Contents of the directory pointed to by a symlink "
+                         "were deleted")
+        d2.cleanup()
 
     @support.cpython_only
     def test_del_on_collection(self):

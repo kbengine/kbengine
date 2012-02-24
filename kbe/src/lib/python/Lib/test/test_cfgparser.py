@@ -20,10 +20,16 @@ class SortedDict(collections.UserDict):
     def values(self):
         return [i[1] for i in self.items()]
 
-    def iteritems(self): return iter(self.items())
-    def iterkeys(self): return iter(self.keys())
+    def iteritems(self):
+        return iter(self.items())
+
+    def iterkeys(self):
+        return iter(self.keys())
+
+    def itervalues(self):
+        return iter(self.values())
+
     __iter__ = iterkeys
-    def itervalues(self): return iter(self.values())
 
 
 class CfgParserTestCaseClass(unittest.TestCase):
@@ -858,6 +864,43 @@ class ConfigParserTestCase(BasicTestCase):
         cf = self.newconfig()
         self.assertRaises(ValueError, cf.add_section, self.default_section)
 
+
+class ConfigParserTestCaseNoInterpolation(BasicTestCase):
+    config_class = configparser.ConfigParser
+    interpolation = None
+    ini = textwrap.dedent("""
+        [numbers]
+        one = 1
+        two = %(one)s * 2
+        three = ${common:one} * 3
+
+        [hexen]
+        sixteen = ${numbers:two} * 8
+    """).strip()
+
+    def assertMatchesIni(self, cf):
+        self.assertEqual(cf['numbers']['one'], '1')
+        self.assertEqual(cf['numbers']['two'], '%(one)s * 2')
+        self.assertEqual(cf['numbers']['three'], '${common:one} * 3')
+        self.assertEqual(cf['hexen']['sixteen'], '${numbers:two} * 8')
+
+    def test_no_interpolation(self):
+        cf = self.fromstring(self.ini)
+        self.assertMatchesIni(cf)
+
+    def test_empty_case(self):
+        cf = self.newconfig()
+        self.assertIsNone(cf.read_string(""))
+
+    def test_none_as_default_interpolation(self):
+        class CustomConfigParser(configparser.ConfigParser):
+            _DEFAULT_INTERPOLATION = None
+
+        cf = CustomConfigParser()
+        cf.read_string(self.ini)
+        self.assertMatchesIni(cf)
+
+
 class ConfigParserTestCaseLegacyInterpolation(ConfigParserTestCase):
     config_class = configparser.ConfigParser
     interpolation = configparser.LegacyInterpolation()
@@ -950,7 +993,7 @@ class RawConfigParserTestCase(BasicTestCase):
         cf.add_section(123)
         cf.set(123, 'this is sick', True)
         self.assertEqual(cf.get(123, 'this is sick'), True)
-        if cf._dict.__class__ is configparser._default_dict:
+        if cf._dict is configparser._default_dict:
             # would not work for SortedDict; only checking for the most common
             # default dictionary (OrderedDict)
             cf.optionxform = lambda x: x
@@ -986,6 +1029,14 @@ class ConfigParserTestCaseExtendedInterpolation(BasicTestCase):
     config_class = configparser.ConfigParser
     interpolation = configparser.ExtendedInterpolation()
     default_section = 'common'
+    strict = True
+
+    def fromstring(self, string, defaults=None, optionxform=None):
+        cf = self.newconfig(defaults)
+        if optionxform:
+            cf.optionxform = optionxform
+        cf.read_string(string)
+        return cf
 
     def test_extended_interpolation(self):
         cf = self.fromstring(textwrap.dedent("""
@@ -1070,6 +1121,56 @@ class ConfigParserTestCaseExtendedInterpolation(BasicTestCase):
         self.assertEqual(cm.exception.reference, 'dollars:${sick')
         self.assertEqual(cm.exception.args[2], '}') #rawval
 
+    def test_case_sensitivity_basic(self):
+        ini = textwrap.dedent("""
+            [common]
+            optionlower = value
+            OptionUpper = Value
+
+            [Common]
+            optionlower = a better ${common:optionlower}
+            OptionUpper = A Better ${common:OptionUpper}
+
+            [random]
+            foolower = ${common:optionlower} redefined
+            FooUpper = ${Common:OptionUpper} Redefined
+        """).strip()
+
+        cf = self.fromstring(ini)
+        eq = self.assertEqual
+        eq(cf['common']['optionlower'], 'value')
+        eq(cf['common']['OptionUpper'], 'Value')
+        eq(cf['Common']['optionlower'], 'a better value')
+        eq(cf['Common']['OptionUpper'], 'A Better Value')
+        eq(cf['random']['foolower'], 'value redefined')
+        eq(cf['random']['FooUpper'], 'A Better Value Redefined')
+
+    def test_case_sensitivity_conflicts(self):
+        ini = textwrap.dedent("""
+            [common]
+            option = value
+            Option = Value
+
+            [Common]
+            option = a better ${common:option}
+            Option = A Better ${common:Option}
+
+            [random]
+            foo = ${common:option} redefined
+            Foo = ${Common:Option} Redefined
+        """).strip()
+        with self.assertRaises(configparser.DuplicateOptionError):
+            cf = self.fromstring(ini)
+
+        # raw options
+        cf = self.fromstring(ini, optionxform=lambda opt: opt)
+        eq = self.assertEqual
+        eq(cf['common']['option'], 'value')
+        eq(cf['common']['Option'], 'Value')
+        eq(cf['Common']['option'], 'a better value')
+        eq(cf['Common']['Option'], 'A Better Value')
+        eq(cf['random']['foo'], 'value redefined')
+        eq(cf['random']['Foo'], 'A Better Value Redefined')
 
     def test_other_errors(self):
         cf = self.fromstring("""
@@ -1235,6 +1336,59 @@ class CopyTestCase(BasicTestCase):
                     del section[default]
         return cf_copy
 
+
+class FakeFile:
+    def __init__(self):
+        file_path = support.findfile("cfgparser.1")
+        with open(file_path) as f:
+            self.lines = f.readlines()
+            self.lines.reverse()
+
+    def readline(self):
+        if len(self.lines):
+            return self.lines.pop()
+        return ''
+
+
+def readline_generator(f):
+    """As advised in Doc/library/configparser.rst."""
+    line = f.readline()
+    while line:
+        yield line
+        line = f.readline()
+
+
+class ReadFileTestCase(unittest.TestCase):
+    def test_file(self):
+        file_path = support.findfile("cfgparser.1")
+        parser = configparser.ConfigParser()
+        with open(file_path) as f:
+            parser.read_file(f)
+        self.assertIn("Foo Bar", parser)
+        self.assertIn("foo", parser["Foo Bar"])
+        self.assertEqual(parser["Foo Bar"]["foo"], "newbar")
+
+    def test_iterable(self):
+        lines = textwrap.dedent("""
+        [Foo Bar]
+        foo=newbar""").strip().split('\n')
+        parser = configparser.ConfigParser()
+        parser.read_file(lines)
+        self.assertIn("Foo Bar", parser)
+        self.assertIn("foo", parser["Foo Bar"])
+        self.assertEqual(parser["Foo Bar"]["foo"], "newbar")
+
+    def test_readline_generator(self):
+        """Issue #11670."""
+        parser = configparser.ConfigParser()
+        with self.assertRaises(TypeError):
+            parser.read_file(FakeFile())
+        parser.read_file(readline_generator(FakeFile()))
+        self.assertIn("Foo Bar", parser)
+        self.assertIn("foo", parser["Foo Bar"])
+        self.assertEqual(parser["Foo Bar"]["foo"], "newbar")
+
+
 class CoverageOneHundredTestCase(unittest.TestCase):
     """Covers edge cases in the codebase."""
 
@@ -1327,6 +1481,7 @@ def test_main():
         ConfigParserTestCaseNoValue,
         ConfigParserTestCaseExtendedInterpolation,
         ConfigParserTestCaseLegacyInterpolation,
+        ConfigParserTestCaseNoInterpolation,
         ConfigParserTestCaseTrickyFile,
         MultilineValuesTestCase,
         RawConfigParserTestCase,
@@ -1338,5 +1493,6 @@ def test_main():
         CompatibleTestCase,
         CopyTestCase,
         ConfigParserTestCaseNonStandardDefaultSection,
+        ReadFileTestCase,
         CoverageOneHundredTestCase,
         )

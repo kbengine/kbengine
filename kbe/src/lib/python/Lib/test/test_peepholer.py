@@ -195,6 +195,24 @@ class TestTranforms(unittest.TestCase):
         asm = dis_single('a="x"*1000')
         self.assertIn('(1000)', asm)
 
+    def test_binary_subscr_on_unicode(self):
+        # valid code get optimized
+        asm = dis_single('"foo"[0]')
+        self.assertIn("('f')", asm)
+        self.assertNotIn('BINARY_SUBSCR', asm)
+        asm = dis_single('"\u0061\uffff"[1]')
+        self.assertIn("('\\uffff')", asm)
+        self.assertNotIn('BINARY_SUBSCR', asm)
+
+        # invalid code doesn't get optimized
+        # out of range
+        asm = dis_single('"fuu"[10]')
+        self.assertIn('BINARY_SUBSCR', asm)
+        # non-BMP char (see #5057)
+        asm = dis_single('"\U00012345"[0]')
+        self.assertIn('BINARY_SUBSCR', asm)
+
+
     def test_folding_of_unaryops_on_constants(self):
         for line, elem in (
             ('-0.5', '(-0.5)'),                     # unary negative
@@ -267,11 +285,23 @@ class TestTranforms(unittest.TestCase):
         asm = disassemble(f)
         self.assertNotIn('BINARY_ADD', asm)
 
+class TestBuglets(unittest.TestCase):
+
+    def test_bug_11510(self):
+        # folded constant set optimization was commingled with the tuple
+        # unpacking optimization which would fail if the set had duplicate
+        # elements so that the set length was unexpected
+        def f():
+            x, y = {1, 1}
+            return x, y
+        with self.assertRaises(ValueError):
+            f()
+
 
 def test_main(verbose=None):
     import sys
     from test import support
-    test_classes = (TestTranforms,)
+    test_classes = (TestTranforms, TestBuglets)
     support.run_unittest(*test_classes)
 
     # verify reference counting

@@ -298,6 +298,23 @@ class TestRetrievingSourceCode(GetSourceBase):
         del sys.modules[name]
         inspect.getmodule(compile('a=10','','single'))
 
+    def test_proceed_with_fake_filename(self):
+        '''doctest monkeypatches linecache to enable inspection'''
+        fn, source = '<test>', 'def x(): pass\n'
+        getlines = linecache.getlines
+        def monkey(filename, module_globals=None):
+            if filename == fn:
+                return source.splitlines(True)
+            else:
+                return getlines(filename, module_globals)
+        linecache.getlines = monkey
+        try:
+            ns = {}
+            exec(compile(source, fn, 'single'), ns)
+            inspect.getsource(ns["x"])
+        finally:
+            linecache.getlines = getlines
+
 class TestDecorators(GetSourceBase):
     fodderModule = mod2
 
@@ -632,6 +649,16 @@ class TestGetcallargsFunctions(unittest.TestCase):
         self.assertEqualCallArgs(f, '2, c=4, **collections.UserDict(b=3)')
         self.assertEqualCallArgs(f, 'b=2, **collections.UserDict(a=3, c=4)')
 
+    def test_varkw_only(self):
+        # issue11256:
+        f = self.makeCallable('**c')
+        self.assertEqualCallArgs(f, '')
+        self.assertEqualCallArgs(f, 'a=1')
+        self.assertEqualCallArgs(f, 'a=1, b=2')
+        self.assertEqualCallArgs(f, 'c=3, **{"a": 1, "b": 2}')
+        self.assertEqualCallArgs(f, '**collections.UserDict(a=1, b=2)')
+        self.assertEqualCallArgs(f, 'c=3, **collections.UserDict(a=1, b=2)')
+
     def test_keyword_only(self):
         f = self.makeCallable('a=3, *, c, d=2')
         self.assertEqualCallArgs(f, 'c=3')
@@ -642,6 +669,11 @@ class TestGetcallargsFunctions(unittest.TestCase):
         self.assertEqualException(f, '3')
         self.assertEqualException(f, 'a=3')
         self.assertEqualException(f, 'd=4')
+
+        f = self.makeCallable('*, c, d=2')
+        self.assertEqualCallArgs(f, 'c=3')
+        self.assertEqualCallArgs(f, 'c=3, d=4')
+        self.assertEqualCallArgs(f, 'd=4, c=3')
 
     def test_multiple_features(self):
         f = self.makeCallable('a, b=2, *f, **g')
@@ -654,6 +686,17 @@ class TestGetcallargsFunctions(unittest.TestCase):
                                  '[2, 3, (4,[5,6])]), **{"y":9, "z":10}')
         self.assertEqualCallArgs(f, '2, x=8, *collections.UserList([3, '
                                  '(4,[5,6])]), **collections.UserDict('
+                                 'y=9, z=10)')
+
+        f = self.makeCallable('a, b=2, *f, x, y=99, **g')
+        self.assertEqualCallArgs(f, '2, 3, x=8')
+        self.assertEqualCallArgs(f, '2, 3, x=8, *[(4,[5,6]), 7]')
+        self.assertEqualCallArgs(f, '2, x=8, *[3, (4,[5,6]), 7], y=9, z=10')
+        self.assertEqualCallArgs(f, 'x=8, *[2, 3, (4,[5,6])], y=9, z=10')
+        self.assertEqualCallArgs(f, 'x=8, *collections.UserList('
+                                 '[2, 3, (4,[5,6])]), q=0, **{"y":9, "z":10}')
+        self.assertEqualCallArgs(f, '2, x=8, *collections.UserList([3, '
+                                 '(4,[5,6])]), q=0, **collections.UserDict('
                                  'y=9, z=10)')
 
     def test_errors(self):
@@ -692,6 +735,13 @@ class TestGetcallargsFunctions(unittest.TestCase):
             # - for functions and bound methods: unexpected keyword 'c'
             # - for unbound methods: multiple values for keyword 'a'
             #self.assertEqualException(f, '1, c=3, a=2')
+        # issue11256:
+        f3 = self.makeCallable('**c')
+        self.assertEqualException(f3, '1, 2')
+        self.assertEqualException(f3, '1, 2, a=1, b=2')
+        f4 = self.makeCallable('*, a, b=0')
+        self.assertEqualException(f3, '1, 2')
+        self.assertEqualException(f3, '1, 2, a=1, b=2')
 
 class TestGetcallargsMethods(TestGetcallargsFunctions):
 
@@ -768,7 +818,7 @@ class TestGetattrStatic(unittest.TestCase):
         thing = Thing()
         self.assertEqual(inspect.getattr_static(thing, 'x'), Thing.x)
 
-    def test_descriptor(self):
+    def test_descriptor_raises_AttributeError(self):
         class descriptor(object):
             def __get__(*_):
                 raise AttributeError("I'm pretending not to exist")
@@ -906,6 +956,53 @@ class TestGetattrStatic(unittest.TestCase):
         self.assertEqual(inspect.getattr_static(Something(), 'foo'), 3)
         self.assertEqual(inspect.getattr_static(Something, 'foo'), 3)
 
+    def test_dict_as_property(self):
+        test = self
+        test.called = False
+
+        class Foo(dict):
+            a = 3
+            @property
+            def __dict__(self):
+                test.called = True
+                return {}
+
+        foo = Foo()
+        foo.a = 4
+        self.assertEqual(inspect.getattr_static(foo, 'a'), 3)
+        self.assertFalse(test.called)
+
+    def test_custom_object_dict(self):
+        test = self
+        test.called = False
+
+        class Custom(dict):
+            def get(self, key, default=None):
+                test.called = True
+                super().get(key, default)
+
+        class Foo(object):
+            a = 3
+        foo = Foo()
+        foo.__dict__ = Custom()
+        self.assertEqual(inspect.getattr_static(foo, 'a'), 3)
+        self.assertFalse(test.called)
+
+    def test_metaclass_dict_as_property(self):
+        class Meta(type):
+            @property
+            def __dict__(self):
+                self.executed = True
+
+        class Thing(metaclass=Meta):
+            executed = False
+
+            def __init__(self):
+                self.spam = 42
+
+        instance = Thing()
+        self.assertEqual(inspect.getattr_static(instance, "spam"), 42)
+        self.assertFalse(Thing.executed)
 
 class TestGetGeneratorState(unittest.TestCase):
 

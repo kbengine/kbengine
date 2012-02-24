@@ -241,12 +241,13 @@ class FTP:
         This does not follow the procedure from the RFC to send Telnet
         IP and Synch; that doesn't seem to work with the servers I've
         tried.  Instead, just send the ABOR command as OOB data.'''
-        line = 'ABOR' + CRLF
+        line = b'ABOR' + B_CRLF
         if self.debugging > 1: print('*put urgent*', self.sanitize(line))
         self.sock.sendall(line, MSG_OOB)
         resp = self.getmultiline()
         if resp[:3] not in {'426', '225', '226'}:
             raise error_proto(resp)
+        return resp
 
     def sendcmd(self, cmd):
         '''Send a command and return the response.'''
@@ -335,33 +336,39 @@ class FTP:
         if self.passiveserver:
             host, port = self.makepasv()
             conn = socket.create_connection((host, port), self.timeout)
-            if rest is not None:
-                self.sendcmd("REST %s" % rest)
-            resp = self.sendcmd(cmd)
-            # Some servers apparently send a 200 reply to
-            # a LIST or STOR command, before the 150 reply
-            # (and way before the 226 reply). This seems to
-            # be in violation of the protocol (which only allows
-            # 1xx or error messages for LIST), so we just discard
-            # this response.
-            if resp[0] == '2':
-                resp = self.getresp()
-            if resp[0] != '1':
-                raise error_reply(resp)
+            try:
+                if rest is not None:
+                    self.sendcmd("REST %s" % rest)
+                resp = self.sendcmd(cmd)
+                # Some servers apparently send a 200 reply to
+                # a LIST or STOR command, before the 150 reply
+                # (and way before the 226 reply). This seems to
+                # be in violation of the protocol (which only allows
+                # 1xx or error messages for LIST), so we just discard
+                # this response.
+                if resp[0] == '2':
+                    resp = self.getresp()
+                if resp[0] != '1':
+                    raise error_reply(resp)
+            except:
+                conn.close()
+                raise
         else:
             sock = self.makeport()
-            if rest is not None:
-                self.sendcmd("REST %s" % rest)
-            resp = self.sendcmd(cmd)
-            # See above.
-            if resp[0] == '2':
-                resp = self.getresp()
-            if resp[0] != '1':
-                raise error_reply(resp)
-            conn, sockaddr = sock.accept()
-            if self.timeout is not _GLOBAL_DEFAULT_TIMEOUT:
-                conn.settimeout(self.timeout)
-            sock.close()
+            try:
+                if rest is not None:
+                    self.sendcmd("REST %s" % rest)
+                resp = self.sendcmd(cmd)
+                # See above.
+                if resp[0] == '2':
+                    resp = self.getresp()
+                if resp[0] != '1':
+                    raise error_reply(resp)
+                conn, sockaddr = sock.accept()
+                if self.timeout is not _GLOBAL_DEFAULT_TIMEOUT:
+                    conn.settimeout(self.timeout)
+            finally:
+                sock.close()
         if resp[:3] == '150':
             # this is conditional in case we received a 125
             size = parse150(resp)
@@ -613,7 +620,7 @@ else:
         Usage example:
         >>> from ftplib import FTP_TLS
         >>> ftps = FTP_TLS('ftp.python.org')
-        >>> ftps.login()  # login anonimously previously securing control channel
+        >>> ftps.login()  # login anonymously previously securing control channel
         '230 Guest login ok, access restrictions apply.'
         >>> ftps.prot_p()  # switch to secure data connection
         '200 Protection level set to P'
@@ -780,6 +787,15 @@ else:
             finally:
                 conn.close()
             return self.voidresp()
+
+        def abort(self):
+            # overridden as we can't pass MSG_OOB flag to sendall()
+            line = b'ABOR' + B_CRLF
+            self.sock.sendall(line)
+            resp = self.getmultiline()
+            if resp[:3] not in {'426', '225', '226'}:
+                raise error_proto(resp)
+            return resp
 
     __all__.append('FTP_TLS')
     all_errors = (Error, IOError, EOFError, ssl.SSLError)

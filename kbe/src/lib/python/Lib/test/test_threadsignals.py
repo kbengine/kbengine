@@ -14,6 +14,10 @@ if sys.platform[:3] in ('win', 'os2') or sys.platform=='riscos':
 process_pid = os.getpid()
 signalled_all=thread.allocate_lock()
 
+# Issue #11223: Locks are implemented using a mutex and a condition variable of
+# the pthread library on FreeBSD6. POSIX condition variables cannot be
+# interrupted by signals (see pthread_cond_wait manual page).
+USING_PTHREAD_COND = (sys.platform == 'freebsd6')
 
 def registerSignals(for_usr1, for_usr2, for_alrm):
     usr1 = signal.signal(signal.SIGUSR1, for_usr1)
@@ -70,21 +74,36 @@ class ThreadSignals(unittest.TestCase):
     def alarm_interrupt(self, sig, frame):
         raise KeyboardInterrupt
 
+    @unittest.skipIf(USING_PTHREAD_COND,
+                     'POSIX condition variables cannot be interrupted')
     def test_lock_acquire_interruption(self):
         # Mimic receiving a SIGINT (KeyboardInterrupt) with SIGALRM while stuck
         # in a deadlock.
+        # XXX this test can fail when the legacy (non-semaphore) implementation
+        # of locks is used in thread_pthread.h, see issue #11223.
         oldalrm = signal.signal(signal.SIGALRM, self.alarm_interrupt)
         try:
             lock = thread.allocate_lock()
             lock.acquire()
             signal.alarm(1)
-            self.assertRaises(KeyboardInterrupt, lock.acquire)
+            t1 = time.time()
+            self.assertRaises(KeyboardInterrupt, lock.acquire, timeout=5)
+            dt = time.time() - t1
+            # Checking that KeyboardInterrupt was raised is not sufficient.
+            # We want to assert that lock.acquire() was interrupted because
+            # of the signal, not that the signal handler was called immediately
+            # after timeout return of lock.acquire() (which can fool assertRaises).
+            self.assertLess(dt, 3.0)
         finally:
             signal.signal(signal.SIGALRM, oldalrm)
 
+    @unittest.skipIf(USING_PTHREAD_COND,
+                     'POSIX condition variables cannot be interrupted')
     def test_rlock_acquire_interruption(self):
         # Mimic receiving a SIGINT (KeyboardInterrupt) with SIGALRM while stuck
         # in a deadlock.
+        # XXX this test can fail when the legacy (non-semaphore) implementation
+        # of locks is used in thread_pthread.h, see issue #11223.
         oldalrm = signal.signal(signal.SIGALRM, self.alarm_interrupt)
         try:
             rlock = thread.RLock()
@@ -98,7 +117,11 @@ class ThreadSignals(unittest.TestCase):
                 rlock.release()
                 time.sleep(0.01)
             signal.alarm(1)
-            self.assertRaises(KeyboardInterrupt, rlock.acquire)
+            t1 = time.time()
+            self.assertRaises(KeyboardInterrupt, rlock.acquire, timeout=5)
+            dt = time.time() - t1
+            # See rationale above in test_lock_acquire_interruption
+            self.assertLess(dt, 3.0)
         finally:
             signal.signal(signal.SIGALRM, oldalrm)
 

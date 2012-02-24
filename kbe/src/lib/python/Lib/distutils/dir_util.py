@@ -2,8 +2,6 @@
 
 Utility functions for manipulating directories and directory trees."""
 
-__revision__ = "$Id: dir_util.py 86601 2010-11-20 19:35:27Z eric.araujo $"
-
 import os, sys
 import errno
 from distutils.errors import DistutilsFileError, DistutilsInternalError

@@ -29,12 +29,12 @@
 """Read from and write to tar format archives.
 """
 
-__version__ = "$Revision: 88201 $"
+__version__ = "$Revision$"
 
 version     = "0.9.0"
 __author__  = "Lars Gust\u00e4bel (lars@gustaebel.de)"
-__date__    = "$Date: 2011-01-26 20:34:14 +0000 (Mi, 26. Jan 2011) $"
-__cvsid__   = "$Id: tarfile.py 88201 2011-01-26 20:34:14Z raymond.hettinger $"
+__date__    = "$Date: 2011-02-25 17:42:01 +0200 (Fri, 25 Feb 2011) $"
+__cvsid__   = "$Id: tarfile.py 88586 2011-02-25 15:42:01Z marc-andre.lemburg $"
 __credits__ = "Gustavo Niemeyer, Niels Gust\u00e4bel, Richard Townsend."
 
 #---------
@@ -760,9 +760,8 @@ class _FileInFile(object):
                         self.map_index = 0
             length = min(size, stop - self.position)
             if data:
-                self.fileobj.seek(offset)
-                block = self.fileobj.read(stop - start)
-                buf += block[self.position - start:self.position + length]
+                self.fileobj.seek(offset + (self.position - start))
+                buf += self.fileobj.read(length)
             else:
                 buf += NUL * length
             size -= length
@@ -1805,11 +1804,13 @@ class TarFile(object):
             fileobj = gzip.GzipFile(name, mode + "b", compresslevel, fileobj)
             t = cls.taropen(name, mode, fileobj, **kwargs)
         except IOError:
-            if not extfileobj:
+            if not extfileobj and fileobj is not None:
                 fileobj.close()
+            if fileobj is None:
+                raise
             raise ReadError("not a gzip file")
         except:
-            if not extfileobj:
+            if not extfileobj and fileobj is not None:
                 fileobj.close()
             raise
         t._extfileobj = extfileobj

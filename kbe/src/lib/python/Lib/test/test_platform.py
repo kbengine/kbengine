@@ -57,11 +57,13 @@ class PlatformTest(unittest.TestCase):
     def setUp(self):
         self.save_version = sys.version
         self.save_subversion = sys.subversion
+        self.save_mercurial = sys._mercurial
         self.save_platform = sys.platform
 
     def tearDown(self):
         sys.version = self.save_version
         sys.subversion = self.save_subversion
+        sys._mercurial = self.save_mercurial
         sys.platform = self.save_platform
 
     def test_sys_version(self):
@@ -109,10 +111,12 @@ class PlatformTest(unittest.TestCase):
                 sys_versions.items():
             sys.version = version_tag
             if subversion is None:
+                if hasattr(sys, "_mercurial"):
+                    del sys._mercurial
                 if hasattr(sys, "subversion"):
                     del sys.subversion
             else:
-                sys.subversion = subversion
+                sys._mercurial = subversion
             if sys_platform is not None:
                 sys.platform = sys_platform
             self.assertEqual(platform.python_implementation(), info[0])
@@ -190,7 +194,7 @@ class PlatformTest(unittest.TestCase):
             self.assertEqual(res[1], ('', '', ''))
 
             if sys.byteorder == 'little':
-                self.assertEqual(res[2], 'i386')
+                self.assertIn(res[2], ('i386', 'x86_64'))
             else:
                 self.assertEqual(res[2], 'PowerPC')
 

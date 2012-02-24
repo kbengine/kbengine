@@ -1,16 +1,17 @@
 # Very rudimentary test of threading module
 
 import test.support
-from test.support import verbose, strip_python_stderr
+from test.support import verbose, strip_python_stderr, import_module
 import random
 import re
 import sys
-_thread = test.support.import_module('_thread')
-threading = test.support.import_module('threading')
+_thread = import_module('_thread')
+threading = import_module('threading')
 import time
 import unittest
 import weakref
 import os
+from test.script_helper import assert_python_ok, assert_python_failure
 import subprocess
 
 from test import lock_tests
@@ -162,10 +163,7 @@ class ThreadTests(BaseTestCase):
     # PyThreadState_SetAsyncExc() is a CPython-only gimmick, not (currently)
     # exposed at the Python level.  This test relies on ctypes to get at it.
     def test_PyThreadState_SetAsyncExc(self):
-        try:
-            import ctypes
-        except ImportError:
-            raise unittest.SkipTest("cannot import ctypes")
+        ctypes = import_module("ctypes")
 
         set_async_exc = ctypes.pythonapi.PyThreadState_SetAsyncExc
 
@@ -268,12 +266,9 @@ class ThreadTests(BaseTestCase):
         # Issue 1402: the PyGILState_Ensure / _Release functions may be called
         # very late on python exit: on deallocation of a running thread for
         # example.
-        try:
-            import ctypes
-        except ImportError:
-            raise unittest.SkipTest("cannot import ctypes")
+        import_module("ctypes")
 
-        rc = subprocess.call([sys.executable, "-c", """if 1:
+        rc, out, err = assert_python_failure("-c", """if 1:
             import ctypes, sys, time, _thread
 
             # This lock is used as a simple event variable.
@@ -297,13 +292,13 @@ class ThreadTests(BaseTestCase):
             _thread.start_new_thread(waitingThread, ())
             ready.acquire()  # Be sure the other thread is waiting.
             sys.exit(42)
-            """])
+            """)
         self.assertEqual(rc, 42)
 
     def test_finalize_with_trace(self):
         # Issue1733757
         # Avoid a deadlock when sys.settrace steps into threading._shutdown
-        p = subprocess.Popen([sys.executable, "-c", """if 1:
+        assert_python_ok("-c", """if 1:
             import sys, threading
 
             # A deadlock-killer, to prevent the
@@ -323,21 +318,12 @@ class ThreadTests(BaseTestCase):
                 return func
 
             sys.settrace(func)
-            """],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-        self.addCleanup(p.stdout.close)
-        self.addCleanup(p.stderr.close)
-        stdout, stderr = p.communicate()
-        rc = p.returncode
-        self.assertFalse(rc == 2, "interpreted was blocked")
-        self.assertTrue(rc == 0,
-                        "Unexpected error: " + ascii(stderr))
+            """)
 
     def test_join_nondaemon_on_shutdown(self):
         # Issue 1722344
         # Raising SystemExit skipped threading._shutdown
-        p = subprocess.Popen([sys.executable, "-c", """if 1:
+        rc, out, err = assert_python_ok("-c", """if 1:
                 import threading
                 from time import sleep
 
@@ -349,16 +335,10 @@ class ThreadTests(BaseTestCase):
 
                 threading.Thread(target=child).start()
                 raise SystemExit
-            """],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-        self.addCleanup(p.stdout.close)
-        self.addCleanup(p.stderr.close)
-        stdout, stderr = p.communicate()
-        self.assertEqual(stdout.strip(),
+            """)
+        self.assertEqual(out.strip(),
             b"Woke up, sleep function is: <built-in function sleep>")
-        stderr = strip_python_stderr(stderr)
-        self.assertEqual(stderr, b"")
+        self.assertEqual(err, b"")
 
     def test_enumerate_after_join(self):
         # Try hard to trigger #1703448: a thread is still returned in
@@ -430,6 +410,13 @@ class ThreadTests(BaseTestCase):
 
 class ThreadJoinOnShutdown(BaseTestCase):
 
+    # Between fork() and exec(), only async-safe functions are allowed (issues
+    # #12316 and #11870), and fork() from a worker thread is known to trigger
+    # problems with some operating systems (issue #3863): skip problematic tests
+    # on platforms known to behave badly.
+    platforms_to_skip = ('freebsd4', 'freebsd5', 'freebsd6', 'netbsd5',
+                         'os2emx')
+
     def _run_and_join(self, script):
         script = """if 1:
             import sys, os, time, threading
@@ -443,13 +430,9 @@ class ThreadJoinOnShutdown(BaseTestCase):
                 sys.stdout.flush()
         \n""" + script
 
-        p = subprocess.Popen([sys.executable, "-c", script], stdout=subprocess.PIPE)
-        rc = p.wait()
-        data = p.stdout.read().decode().replace('\r', '')
-        p.stdout.close()
+        rc, out, err = assert_python_ok("-c", script)
+        data = out.decode().replace('\r', '')
         self.assertEqual(data, "end of main\nend of thread\n")
-        self.assertFalse(rc == 2, "interpreter was blocked")
-        self.assertTrue(rc == 0, "Unexpected error")
 
     def test_1_join_on_shutdown(self):
         # The usual case: on exit, wait for a non-daemon thread
@@ -463,8 +446,8 @@ class ThreadJoinOnShutdown(BaseTestCase):
             """
         self._run_and_join(script)
 
-
     @unittest.skipUnless(hasattr(os, 'fork'), "needs os.fork()")
+    @unittest.skipIf(sys.platform in platforms_to_skip, "due to known OS bug")
     def test_2_join_in_forked_process(self):
         # Like the test above, but from a forked interpreter
         script = """if 1:
@@ -481,15 +464,11 @@ class ThreadJoinOnShutdown(BaseTestCase):
         self._run_and_join(script)
 
     @unittest.skipUnless(hasattr(os, 'fork'), "needs os.fork()")
+    @unittest.skipIf(sys.platform in platforms_to_skip, "due to known OS bug")
     def test_3_join_in_forked_from_thread(self):
         # Like the test above, but fork() was called from a worker thread
         # In the forked process, the main Thread object must be marked as stopped.
 
-        # Skip platforms with known problems forking from a worker thread.
-        # See http://bugs.python.org/issue3863.
-        if sys.platform in ('freebsd4', 'freebsd5', 'freebsd6', 'netbsd5',
-                           'os2emx'):
-            raise unittest.SkipTest('due to known OS bugs on ' + sys.platform)
         script = """if 1:
             main_thread = threading.current_thread()
             def worker():
@@ -510,22 +489,15 @@ class ThreadJoinOnShutdown(BaseTestCase):
         self._run_and_join(script)
 
     def assertScriptHasOutput(self, script, expected_output):
-        p = subprocess.Popen([sys.executable, "-c", script],
-                             stdout=subprocess.PIPE)
-        stdout, stderr = p.communicate()
-        data = stdout.decode().replace('\r', '')
-        self.assertEqual(p.returncode, 0, "Unexpected error")
+        rc, out, err = assert_python_ok("-c", script)
+        data = out.decode().replace('\r', '')
         self.assertEqual(data, expected_output)
 
     @unittest.skipUnless(hasattr(os, 'fork'), "needs os.fork()")
+    @unittest.skipIf(sys.platform in platforms_to_skip, "due to known OS bug")
     def test_4_joining_across_fork_in_worker_thread(self):
         # There used to be a possible deadlock when forking from a child
         # thread.  See http://bugs.python.org/issue6643.
-
-        # Skip platforms with known problems forking from a worker thread.
-        # See http://bugs.python.org/issue3863.
-        if sys.platform in ('freebsd4', 'freebsd5', 'freebsd6', 'os2emx'):
-            raise unittest.SkipTest('due to known OS bugs on ' + sys.platform)
 
         # The script takes the following steps:
         # - The main thread in the parent process starts a new thread and then
@@ -570,7 +542,7 @@ class ThreadJoinOnShutdown(BaseTestCase):
             # This acquires the lock and then waits until the child has forked
             # before returning, which will release the lock soon after.  If
             # someone else tries to fix this test case by acquiring this lock
-            # before forking instead of reseting it, the test case will
+            # before forking instead of resetting it, the test case will
             # deadlock when it shouldn't.
             condition = w._block
             orig_acquire = condition.acquire
@@ -595,6 +567,7 @@ class ThreadJoinOnShutdown(BaseTestCase):
         self.assertScriptHasOutput(script, "end of main\n")
 
     @unittest.skipUnless(hasattr(os, 'fork'), "needs os.fork()")
+    @unittest.skipIf(sys.platform in platforms_to_skip, "due to known OS bug")
     def test_5_clear_waiter_locks_to_avoid_crash(self):
         # Check that a spawned thread that forks doesn't segfault on certain
         # platforms, namely OS X.  This used to happen if there was a waiter
@@ -607,10 +580,6 @@ class ThreadJoinOnShutdown(BaseTestCase):
         # lock will be acquired, we can't know if the internal mutex will be
         # acquired at the time of the fork.
 
-        # Skip platforms with known problems forking from a worker thread.
-        # See http://bugs.python.org/issue3863.
-        if sys.platform in ('freebsd4', 'freebsd5', 'freebsd6', 'os2emx'):
-            raise unittest.SkipTest('due to known OS bugs on ' + sys.platform)
         script = """if True:
             import os, time, threading
 
@@ -655,6 +624,48 @@ class ThreadJoinOnShutdown(BaseTestCase):
         output = "end of worker thread\nend of main thread\n"
         self.assertScriptHasOutput(script, output)
 
+    def test_6_daemon_threads(self):
+        # Check that a daemon thread cannot crash the interpreter on shutdown
+        # by manipulating internal structures that are being disposed of in
+        # the main thread.
+        script = """if True:
+            import os
+            import random
+            import sys
+            import time
+            import threading
+
+            thread_has_run = set()
+
+            def random_io():
+                '''Loop for a while sleeping random tiny amounts and doing some I/O.'''
+                while True:
+                    in_f = open(os.__file__, 'rb')
+                    stuff = in_f.read(200)
+                    null_f = open(os.devnull, 'wb')
+                    null_f.write(stuff)
+                    time.sleep(random.random() / 1995)
+                    null_f.close()
+                    in_f.close()
+                    thread_has_run.add(threading.current_thread())
+
+            def main():
+                count = 0
+                for _ in range(40):
+                    new_thread = threading.Thread(target=random_io)
+                    new_thread.daemon = True
+                    new_thread.start()
+                    count += 1
+                while len(thread_has_run) < count:
+                    time.sleep(0.001)
+                # Trigger process shutdown
+                sys.exit(0)
+
+            main()
+            """
+        rc, out, err = assert_python_ok('-c', script)
+        self.assertFalse(err)
+
 
 class ThreadingExceptionTests(BaseTestCase):
     # A RuntimeError should be raised if Thread.start() is called
@@ -677,6 +688,37 @@ class ThreadingExceptionTests(BaseTestCase):
         thread.start()
         self.assertRaises(RuntimeError, setattr, thread, "daemon", True)
 
+    @unittest.skipUnless(sys.platform == 'darwin', 'test macosx problem')
+    def test_recursion_limit(self):
+        # Issue 9670
+        # test that excessive recursion within a non-main thread causes
+        # an exception rather than crashing the interpreter on platforms
+        # like Mac OS X or FreeBSD which have small default stack sizes
+        # for threads
+        script = """if True:
+            import threading
+
+            def recurse():
+                return recurse()
+
+            def outer():
+                try:
+                    recurse()
+                except RuntimeError:
+                    pass
+
+            w = threading.Thread(target=outer)
+            w.start()
+            w.join()
+            print('end of main thread')
+            """
+        expected_output = "end of main thread\n"
+        p = subprocess.Popen([sys.executable, "-c", script],
+                             stdout=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        data = stdout.decode().replace('\r', '')
+        self.assertEqual(p.returncode, 0, "Unexpected error")
+        self.assertEqual(data, expected_output)
 
 class LockTests(lock_tests.LockTests):
     locktype = staticmethod(threading.Lock)

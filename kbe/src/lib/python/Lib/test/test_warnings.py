@@ -332,7 +332,7 @@ class WarnTests(unittest.TestCase):
             sys.argv = argv
 
     def test_warn_explicit_type_errors(self):
-        # warn_explicit() shoud error out gracefully if it is given objects
+        # warn_explicit() should error out gracefully if it is given objects
         # of the wrong types.
         # lineno is expected to be an integer.
         self.assertRaises(TypeError, self.module.warn_explicit,
@@ -541,6 +541,18 @@ class _WarningsTests(BaseTest):
         expected_line = '  ' + linecache.getline(path, line).strip() + '\n'
         assert expected_line
         self.assertEqual(second_line, expected_line)
+
+    def test_filename_none(self):
+        # issue #12467: race condition if a warning is emitted at shutdown
+        globals_dict = globals()
+        oldfile = globals_dict['__file__']
+        try:
+            with original_warnings.catch_warnings(module=self.module) as w:
+                self.module.filterwarnings("always", category=UserWarning)
+                globals_dict['__file__'] = None
+                original_warnings.warn('test', UserWarning)
+        finally:
+            globals_dict['__file__'] = oldfile
 
 
 class WarningsDisplayTests(unittest.TestCase):
@@ -758,7 +770,7 @@ class PyEnvironmentVariableTests(EnvironmentVariableTests):
 class BootstrapTest(unittest.TestCase):
     def test_issue_8766(self):
         # "import encodings" emits a warning whereas the warnings is not loaded
-        # or not completly loaded (warnings imports indirectly encodings by
+        # or not completely loaded (warnings imports indirectly encodings by
         # importing linecache) yet
         with support.temp_cwd() as cwd, support.temp_cwd('encodings'):
             env = os.environ.copy()

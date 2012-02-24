@@ -1,4 +1,5 @@
-from test.support import TESTFN, run_unittest, import_module
+from test.support import (TESTFN, run_unittest, import_module, unlink,
+                          requires, _2G, _4G)
 import unittest
 import os
 import re
@@ -107,7 +108,7 @@ class MmapTests(unittest.TestCase):
 
             # Check that the underlying file is truncated too
             # (bug #728515)
-            f = open(TESTFN)
+            f = open(TESTFN, 'rb')
             try:
                 f.seek(0, 2)
                 self.assertEqual(f.tell(), 512)
@@ -234,6 +235,14 @@ class MmapTests(unittest.TestCase):
                                   flags=mmap.MAP_PRIVATE,
                                   prot=mmap.PROT_READ, access=mmap.ACCESS_WRITE)
 
+            # Try writing with PROT_EXEC and without PROT_WRITE
+            prot = mmap.PROT_READ | getattr(mmap, 'PROT_EXEC', 0)
+            with open(TESTFN, "r+b") as f:
+                m = mmap.mmap(f.fileno(), mapsize, prot=prot)
+                self.assertRaises(TypeError, m.write, b"abcdef")
+                self.assertRaises(TypeError, m.write_byte, 0)
+                m.close()
+
     def test_bad_file_desc(self):
         # Try opening a bad file descriptor...
         self.assertRaises(mmap.error, mmap.mmap, -2, 4096)
@@ -299,7 +308,7 @@ class MmapTests(unittest.TestCase):
         f.write(2**16 * b'a') # Arbitrary character
         f.close()
 
-        f = open(TESTFN)
+        f = open(TESTFN, 'rb')
         mf = mmap.mmap(f.fileno(), 2**16, access=mmap.ACCESS_READ)
         mf.close()
         mf.close()
@@ -492,7 +501,7 @@ class MmapTests(unittest.TestCase):
                 self.assertEqual(m[0:3], b'foo')
 
                 # Check that the underlying file is truncated too
-                f = open(TESTFN)
+                f = open(TESTFN, 'rb')
                 f.seek(0, 2)
                 self.assertEqual(f.tell(), halfsize + 512)
                 f.close()
@@ -586,7 +595,7 @@ class MmapTests(unittest.TestCase):
             m2.close()
             m1.close()
 
-            # Test differnt tag
+            # Test different tag
             m1 = mmap.mmap(-1, len(data1), tagname="foo")
             m1[:] = data1
             m2 = mmap.mmap(-1, len(data2), tagname="boo")
@@ -646,9 +655,59 @@ class MmapTests(unittest.TestCase):
                               "wrong exception raised in context manager")
         self.assertTrue(m.closed, "context manager failed")
 
+class LargeMmapTests(unittest.TestCase):
+
+    def setUp(self):
+        unlink(TESTFN)
+
+    def tearDown(self):
+        unlink(TESTFN)
+
+    def _make_test_file(self, num_zeroes, tail):
+        if sys.platform[:3] == 'win' or sys.platform == 'darwin':
+            requires('largefile',
+                'test requires %s bytes and a long time to run' % str(0x180000000))
+        f = open(TESTFN, 'w+b')
+        try:
+            f.seek(num_zeroes)
+            f.write(tail)
+            f.flush()
+        except (IOError, OverflowError):
+            f.close()
+            raise unittest.SkipTest("filesystem does not have largefile support")
+        return f
+
+    def test_large_offset(self):
+        with self._make_test_file(0x14FFFFFFF, b" ") as f:
+            with mmap.mmap(f.fileno(), 0, offset=0x140000000, access=mmap.ACCESS_READ) as m:
+                self.assertEqual(m[0xFFFFFFF], 32)
+
+    def test_large_filesize(self):
+        with self._make_test_file(0x17FFFFFFF, b" ") as f:
+            with mmap.mmap(f.fileno(), 0x10000, access=mmap.ACCESS_READ) as m:
+                self.assertEqual(m.size(), 0x180000000)
+
+    # Issue 11277: mmap() with large (~4GB) sparse files crashes on OS X.
+
+    def _test_around_boundary(self, boundary):
+        tail = b'  DEARdear  '
+        start = boundary - len(tail) // 2
+        end = start + len(tail)
+        with self._make_test_file(start, tail) as f:
+            with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as m:
+                self.assertEqual(m[start:end], tail)
+
+    @unittest.skipUnless(sys.maxsize > _4G, "test cannot run on 32-bit systems")
+    def test_around_2GB(self):
+        self._test_around_boundary(_2G)
+
+    @unittest.skipUnless(sys.maxsize > _4G, "test cannot run on 32-bit systems")
+    def test_around_4GB(self):
+        self._test_around_boundary(_4G)
+
 
 def test_main():
-    run_unittest(MmapTests)
+    run_unittest(MmapTests, LargeMmapTests)
 
 if __name__ == '__main__':
     test_main()

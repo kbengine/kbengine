@@ -294,7 +294,7 @@ def _parse_makefile(filename, vars=None):
                         variables.remove(name)
 
                         if name.startswith('PY_') \
-                                and name[3:] in renamed_variables:
+                        and name[3:] in renamed_variables:
 
                             name = name[3:]
                             if name not in done:
@@ -302,7 +302,9 @@ def _parse_makefile(filename, vars=None):
 
 
             else:
-                # bogus variable reference; just drop it since we can't deal
+                # bogus variable reference (e.g. "prefix=$/opt/python");
+                # just drop it since we can't deal
+                done[name] = value
                 variables.remove(name)
 
     # strip spurious spaces
@@ -345,21 +347,6 @@ def _init_posix(vars):
         if hasattr(e, "strerror"):
             msg = msg + " (%s)" % e.strerror
         raise IOError(msg)
-    # On MacOSX we need to check the setting of the environment variable
-    # MACOSX_DEPLOYMENT_TARGET: configure bases some choices on it so
-    # it needs to be compatible.
-    # If it isn't set we set it to the configure-time value
-    if sys.platform == 'darwin' and 'MACOSX_DEPLOYMENT_TARGET' in vars:
-        cfg_target = vars['MACOSX_DEPLOYMENT_TARGET']
-        cur_target = os.getenv('MACOSX_DEPLOYMENT_TARGET', '')
-        if cur_target == '':
-            cur_target = cfg_target
-            os.putenv('MACOSX_DEPLOYMENT_TARGET', cfg_target)
-        elif (list(map(int, cfg_target.split('.'))) >
-              list(map(int, cur_target.split('.')))):
-            msg = ('$MACOSX_DEPLOYMENT_TARGET mismatch: now "%s" but "%s" '
-                   'during configure' % (cur_target, cfg_target))
-            raise IOError(msg)
     # On AIX, there are wrong paths to the linker scripts in the Makefile
     # -- these paths are relative to the Python source, but when installed
     # the scripts are in another directory.
@@ -670,10 +657,9 @@ def get_platform():
         # to. This makes the compatibility story a bit more sane because the
         # machine is going to compile and link as if it were
         # MACOSX_DEPLOYMENT_TARGET.
+        #
         cfgvars = get_config_vars()
-        macver = os.environ.get('MACOSX_DEPLOYMENT_TARGET')
-        if not macver:
-            macver = cfgvars.get('MACOSX_DEPLOYMENT_TARGET')
+        macver = cfgvars.get('MACOSX_DEPLOYMENT_TARGET')
 
         if 1:
             # Always calculate the release of the running machine,
@@ -694,7 +680,6 @@ def get_platform():
                     m = re.search(
                             r'<key>ProductUserVisibleVersion</key>\s*' +
                             r'<string>(.*?)</string>', f.read())
-                    f.close()
                     if m is not None:
                         macrelease = '.'.join(m.group(1).split('.')[:2])
                     # else: fall back to the default behaviour

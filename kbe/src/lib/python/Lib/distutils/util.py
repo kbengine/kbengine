@@ -4,8 +4,6 @@ Miscellaneous utility functions -- anything that doesn't fit into
 one of the other *util.py modules.
 """
 
-__revision__ = "$Id: util.py 86248 2010-11-06 06:00:54Z eric.araujo $"
-
 import sys, os, string, re
 from distutils.errors import DistutilsPlatformError
 from distutils.dep_util import newer
@@ -96,9 +94,7 @@ def get_platform ():
         from distutils.sysconfig import get_config_vars
         cfgvars = get_config_vars()
 
-        macver = os.environ.get('MACOSX_DEPLOYMENT_TARGET')
-        if not macver:
-            macver = cfgvars.get('MACOSX_DEPLOYMENT_TARGET')
+        macver = cfgvars.get('MACOSX_DEPLOYMENT_TARGET')
 
         if 1:
             # Always calculate the release of the running machine,

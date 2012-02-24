@@ -4,8 +4,6 @@ Provides the Distribution class, which represents the module distribution
 being built/installed/distributed.
 """
 
-__revision__ = "$Id: dist.py 86223 2010-11-05 23:51:56Z eric.araujo $"
-
 import sys, os, re
 
 try:

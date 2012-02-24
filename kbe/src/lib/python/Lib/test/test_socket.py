@@ -295,6 +295,50 @@ class GeneralModuleTests(unittest.TestCase):
         self.assertRaises(socket.error, raise_gaierror,
                               "Error raising socket exception.")
 
+    def testSendtoErrors(self):
+        # Testing that sendto doens't masks failures. See #10169.
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.addCleanup(s.close)
+        s.bind(('', 0))
+        sockname = s.getsockname()
+        # 2 args
+        with self.assertRaises(TypeError) as cm:
+            s.sendto('\u2620', sockname)
+        self.assertEqual(str(cm.exception),
+                         "'str' does not support the buffer interface")
+        with self.assertRaises(TypeError) as cm:
+            s.sendto(5j, sockname)
+        self.assertEqual(str(cm.exception),
+                         "'complex' does not support the buffer interface")
+        with self.assertRaises(TypeError) as cm:
+            s.sendto(b'foo', None)
+        self.assertIn('not NoneType',str(cm.exception))
+        # 3 args
+        with self.assertRaises(TypeError) as cm:
+            s.sendto('\u2620', 0, sockname)
+        self.assertEqual(str(cm.exception),
+                         "'str' does not support the buffer interface")
+        with self.assertRaises(TypeError) as cm:
+            s.sendto(5j, 0, sockname)
+        self.assertEqual(str(cm.exception),
+                         "'complex' does not support the buffer interface")
+        with self.assertRaises(TypeError) as cm:
+            s.sendto(b'foo', 0, None)
+        self.assertIn('not NoneType', str(cm.exception))
+        with self.assertRaises(TypeError) as cm:
+            s.sendto(b'foo', 'bar', sockname)
+        self.assertIn('an integer is required', str(cm.exception))
+        with self.assertRaises(TypeError) as cm:
+            s.sendto(b'foo', None, None)
+        self.assertIn('an integer is required', str(cm.exception))
+        # wrong number of args
+        with self.assertRaises(TypeError) as cm:
+            s.sendto(b'foo')
+        self.assertIn('(1 given)', str(cm.exception))
+        with self.assertRaises(TypeError) as cm:
+            s.sendto(b'foo', 0, sockname, 4)
+        self.assertIn('(4 given)', str(cm.exception))
+
     def testCrucialConstants(self):
         # Testing for mission critical constants
         socket.AF_INET
@@ -520,23 +564,9 @@ class GeneralModuleTests(unittest.TestCase):
 
     # XXX The following don't test module-level functionality...
 
-    def _get_unused_port(self, bind_address='0.0.0.0'):
-        """Use a temporary socket to elicit an unused ephemeral port.
-
-        Args:
-            bind_address: Hostname or IP address to search for a port on.
-
-        Returns: A most likely to be unused port.
-        """
-        tempsock = socket.socket()
-        tempsock.bind((bind_address, 0))
-        host, port = tempsock.getsockname()
-        tempsock.close()
-        return port
-
     def testSockName(self):
         # Testing getsockname()
-        port = self._get_unused_port()
+        port = support.find_unused_port()
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.addCleanup(sock.close)
         sock.bind(("0.0.0.0", port))
@@ -585,7 +615,7 @@ class GeneralModuleTests(unittest.TestCase):
 
     def test_getsockaddrarg(self):
         host = '0.0.0.0'
-        port = self._get_unused_port(bind_address=host)
+        port = support.find_unused_port()
         big_port = port + 65536
         neg_port = port - 65536
         sock = socket.socket()
@@ -743,6 +773,13 @@ class GeneralModuleTests(unittest.TestCase):
             fp = sock.makefile("rb")
             fp.close()
             self.assertEqual(repr(fp), "<_io.BufferedReader name=-1>")
+
+    def testListenBacklog0(self):
+        srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        srv.bind((HOST, 0))
+        # backlog = 0
+        srv.listen(0)
+        srv.close()
 
 
 @unittest.skipUnless(thread, 'Threading required for this test.')
@@ -1109,6 +1146,23 @@ class FileObjectClassTestCase(SocketConnectedTest):
         self.write_file = None
         SocketConnectedTest.clientTearDown(self)
 
+    def testReadAfterTimeout(self):
+        # Issue #7322: A file object must disallow further reads
+        # after a timeout has occurred.
+        self.cli_conn.settimeout(1)
+        self.read_file.read(3)
+        # First read raises a timeout
+        self.assertRaises(socket.timeout, self.read_file.read, 1)
+        # Second read is disallowed
+        with self.assertRaises(IOError) as ctx:
+            self.read_file.read(1)
+        self.assertIn("cannot read from timed out object", str(ctx.exception))
+
+    def _testReadAfterTimeout(self):
+        self.write_file.write(self.write_msg[0:3])
+        self.write_file.flush()
+        self.serv_finished.wait()
+
     def testSmallRead(self):
         # Performing small file read test
         first_seg = self.read_file.read(len(self.read_msg)-3)
@@ -1367,6 +1421,10 @@ class UnbufferedFileObjectClassTestCase(FileObjectClassTestCase):
         self.evt1.set()
         self.evt2.wait(1.0)
         first_seg = self.read_file.read(len(self.read_msg) - 3)
+        if first_seg is None:
+            # Data not arrived (can happen under Windows), wait a bit
+            time.sleep(0.5)
+            first_seg = self.read_file.read(len(self.read_msg) - 3)
         buf = bytearray(10)
         n = self.read_file.readinto(buf)
         self.assertEqual(n, 3)

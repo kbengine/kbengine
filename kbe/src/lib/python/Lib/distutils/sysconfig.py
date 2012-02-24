@@ -9,8 +9,6 @@ Written by:   Fred L. Drake, Jr.
 Email:        <fdrake@acm.org>
 """
 
-__revision__ = "$Id: sysconfig.py 86731 2010-11-24 19:43:47Z barry.warsaw $"
-
 import os
 import re
 import sys
@@ -418,21 +416,6 @@ def _init_posix():
             my_msg = my_msg + " (%s)" % msg.strerror
 
         raise DistutilsPlatformError(my_msg)
-
-    # On MacOSX we need to check the setting of the environment variable
-    # MACOSX_DEPLOYMENT_TARGET: configure bases some choices on it so
-    # it needs to be compatible.
-    # If it isn't set we set it to the configure-time value
-    if sys.platform == 'darwin' and 'MACOSX_DEPLOYMENT_TARGET' in g:
-        cfg_target = g['MACOSX_DEPLOYMENT_TARGET']
-        cur_target = os.getenv('MACOSX_DEPLOYMENT_TARGET', '')
-        if cur_target == '':
-            cur_target = cfg_target
-            os.putenv('MACOSX_DEPLOYMENT_TARGET', cfg_target)
-        elif [int(x) for x in cfg_target.split('.')] > [int(x) for x in cur_target.split('.')]:
-            my_msg = ('$MACOSX_DEPLOYMENT_TARGET mismatch: now "%s" but "%s" during configure'
-                % (cur_target, cfg_target))
-            raise DistutilsPlatformError(my_msg)
 
     # On AIX, there are wrong paths to the linker scripts in the Makefile
     # -- these paths are relative to the Python source, but when installed

@@ -278,6 +278,38 @@ class DebuggingServerTests(unittest.TestCase):
         mexpect = '%s%s\n%s' % (MSG_BEGIN, m.decode('ascii'), MSG_END)
         self.assertEqual(self.output.getvalue(), mexpect)
 
+    def testSendNeedingDotQuote(self):
+        # Issue 12283
+        m = '.A test\n.mes.sage.'
+        smtp = smtplib.SMTP(HOST, self.port, local_hostname='localhost', timeout=3)
+        smtp.sendmail('John', 'Sally', m)
+        # XXX (see comment in testSend)
+        time.sleep(0.01)
+        smtp.quit()
+
+        self.client_evt.set()
+        self.serv_evt.wait()
+        self.output.flush()
+        mexpect = '%s%s\n%s' % (MSG_BEGIN, m, MSG_END)
+        self.assertEqual(self.output.getvalue(), mexpect)
+
+    def testSendNullSender(self):
+        m = 'A test message'
+        smtp = smtplib.SMTP(HOST, self.port, local_hostname='localhost', timeout=3)
+        smtp.sendmail('<>', 'Sally', m)
+        # XXX (see comment in testSend)
+        time.sleep(0.01)
+        smtp.quit()
+
+        self.client_evt.set()
+        self.serv_evt.wait()
+        self.output.flush()
+        mexpect = '%s%s\n%s' % (MSG_BEGIN, m, MSG_END)
+        self.assertEqual(self.output.getvalue(), mexpect)
+        debugout = smtpd.DEBUGSTREAM.getvalue()
+        sender = re.compile("^sender: <>$", re.MULTILINE)
+        self.assertRegex(debugout, sender)
+
     def testSendMessage(self):
         m = email.mime.text.MIMEText('A test message')
         smtp = smtplib.SMTP(HOST, self.port, local_hostname='localhost', timeout=3)
@@ -290,8 +322,7 @@ class DebuggingServerTests(unittest.TestCase):
         self.serv_evt.wait()
         self.output.flush()
         # Add the X-Peer header that DebuggingServer adds
-        # XXX: I'm not sure hardcoding this IP will work on linux-vserver.
-        m['X-Peer'] = '127.0.0.1'
+        m['X-Peer'] = socket.gethostbyname('localhost')
         mexpect = '%s%s\n%s' % (MSG_BEGIN, m.as_string(), MSG_END)
         self.assertEqual(self.output.getvalue(), mexpect)
 
@@ -306,14 +337,16 @@ class DebuggingServerTests(unittest.TestCase):
         # XXX (see comment in testSend)
         time.sleep(0.01)
         smtp.quit()
+        # make sure the Bcc header is still in the message.
+        self.assertEqual(m['Bcc'], 'John Root <root@localhost>, "Dinsdale" '
+                                    '<warped@silly.walks.com>')
 
         self.client_evt.set()
         self.serv_evt.wait()
         self.output.flush()
         # Add the X-Peer header that DebuggingServer adds
-        # XXX: I'm not sure hardcoding this IP will work on linux-vserver.
-        m['X-Peer'] = '127.0.0.1'
-        # The Bcc header is deleted before serialization.
+        m['X-Peer'] = socket.gethostbyname('localhost')
+        # The Bcc header should not be transmitted.
         del m['Bcc']
         mexpect = '%s%s\n%s' % (MSG_BEGIN, m.as_string(), MSG_END)
         self.assertEqual(self.output.getvalue(), mexpect)
@@ -341,8 +374,7 @@ class DebuggingServerTests(unittest.TestCase):
         self.serv_evt.wait()
         self.output.flush()
         # Add the X-Peer header that DebuggingServer adds
-        # XXX: I'm not sure hardcoding this IP will work on linux-vserver.
-        m['X-Peer'] = '127.0.0.1'
+        m['X-Peer'] = socket.gethostbyname('localhost')
         mexpect = '%s%s\n%s' % (MSG_BEGIN, m.as_string(), MSG_END)
         self.assertEqual(self.output.getvalue(), mexpect)
         debugout = smtpd.DEBUGSTREAM.getvalue()
@@ -353,6 +385,112 @@ class DebuggingServerTests(unittest.TestCase):
                                  re.MULTILINE)
             self.assertRegex(debugout, to_addr)
 
+    def testSendMessageWithSpecifiedAddresses(self):
+        # Make sure addresses specified in call override those in message.
+        m = email.mime.text.MIMEText('A test message')
+        m['From'] = 'foo@bar.com'
+        m['To'] = 'John, Dinsdale'
+        smtp = smtplib.SMTP(HOST, self.port, local_hostname='localhost', timeout=3)
+        smtp.send_message(m, from_addr='joe@example.com', to_addrs='foo@example.net')
+        # XXX (see comment in testSend)
+        time.sleep(0.01)
+        smtp.quit()
+
+        self.client_evt.set()
+        self.serv_evt.wait()
+        self.output.flush()
+        # Add the X-Peer header that DebuggingServer adds
+        m['X-Peer'] = socket.gethostbyname('localhost')
+        mexpect = '%s%s\n%s' % (MSG_BEGIN, m.as_string(), MSG_END)
+        self.assertEqual(self.output.getvalue(), mexpect)
+        debugout = smtpd.DEBUGSTREAM.getvalue()
+        sender = re.compile("^sender: joe@example.com$", re.MULTILINE)
+        self.assertRegex(debugout, sender)
+        for addr in ('John', 'Dinsdale'):
+            to_addr = re.compile(r"^recips: .*'{}'.*$".format(addr),
+                                 re.MULTILINE)
+            self.assertNotRegex(debugout, to_addr)
+        recip = re.compile(r"^recips: .*'foo@example.net'.*$", re.MULTILINE)
+        self.assertRegex(debugout, recip)
+
+    def testSendMessageWithMultipleFrom(self):
+        # Sender overrides To
+        m = email.mime.text.MIMEText('A test message')
+        m['From'] = 'Bernard, Bianca'
+        m['Sender'] = 'the_rescuers@Rescue-Aid-Society.com'
+        m['To'] = 'John, Dinsdale'
+        smtp = smtplib.SMTP(HOST, self.port, local_hostname='localhost', timeout=3)
+        smtp.send_message(m)
+        # XXX (see comment in testSend)
+        time.sleep(0.01)
+        smtp.quit()
+
+        self.client_evt.set()
+        self.serv_evt.wait()
+        self.output.flush()
+        # Add the X-Peer header that DebuggingServer adds
+        m['X-Peer'] = socket.gethostbyname('localhost')
+        mexpect = '%s%s\n%s' % (MSG_BEGIN, m.as_string(), MSG_END)
+        self.assertEqual(self.output.getvalue(), mexpect)
+        debugout = smtpd.DEBUGSTREAM.getvalue()
+        sender = re.compile("^sender: the_rescuers@Rescue-Aid-Society.com$", re.MULTILINE)
+        self.assertRegex(debugout, sender)
+        for addr in ('John', 'Dinsdale'):
+            to_addr = re.compile(r"^recips: .*'{}'.*$".format(addr),
+                                 re.MULTILINE)
+            self.assertRegex(debugout, to_addr)
+
+    def testSendMessageResent(self):
+        m = email.mime.text.MIMEText('A test message')
+        m['From'] = 'foo@bar.com'
+        m['To'] = 'John'
+        m['CC'] = 'Sally, Fred'
+        m['Bcc'] = 'John Root <root@localhost>, "Dinsdale" <warped@silly.walks.com>'
+        m['Resent-Date'] = 'Thu, 1 Jan 1970 17:42:00 +0000'
+        m['Resent-From'] = 'holy@grail.net'
+        m['Resent-To'] = 'Martha <my_mom@great.cooker.com>, Jeff'
+        m['Resent-Bcc'] = 'doe@losthope.net'
+        smtp = smtplib.SMTP(HOST, self.port, local_hostname='localhost', timeout=3)
+        smtp.send_message(m)
+        # XXX (see comment in testSend)
+        time.sleep(0.01)
+        smtp.quit()
+
+        self.client_evt.set()
+        self.serv_evt.wait()
+        self.output.flush()
+        # The Resent-Bcc headers are deleted before serialization.
+        del m['Bcc']
+        del m['Resent-Bcc']
+        # Add the X-Peer header that DebuggingServer adds
+        m['X-Peer'] = socket.gethostbyname('localhost')
+        mexpect = '%s%s\n%s' % (MSG_BEGIN, m.as_string(), MSG_END)
+        self.assertEqual(self.output.getvalue(), mexpect)
+        debugout = smtpd.DEBUGSTREAM.getvalue()
+        sender = re.compile("^sender: holy@grail.net$", re.MULTILINE)
+        self.assertRegex(debugout, sender)
+        for addr in ('my_mom@great.cooker.com', 'Jeff', 'doe@losthope.net'):
+            to_addr = re.compile(r"^recips: .*'{}'.*$".format(addr),
+                                 re.MULTILINE)
+            self.assertRegex(debugout, to_addr)
+
+    def testSendMessageMultipleResentRaises(self):
+        m = email.mime.text.MIMEText('A test message')
+        m['From'] = 'foo@bar.com'
+        m['To'] = 'John'
+        m['CC'] = 'Sally, Fred'
+        m['Bcc'] = 'John Root <root@localhost>, "Dinsdale" <warped@silly.walks.com>'
+        m['Resent-Date'] = 'Thu, 1 Jan 1970 17:42:00 +0000'
+        m['Resent-From'] = 'holy@grail.net'
+        m['Resent-To'] = 'Martha <my_mom@great.cooker.com>, Jeff'
+        m['Resent-Bcc'] = 'doe@losthope.net'
+        m['Resent-Date'] = 'Thu, 2 Jan 1970 17:42:00 +0000'
+        m['Resent-To'] = 'holy@grail.net'
+        m['Resent-From'] = 'Martha <my_mom@great.cooker.com>, Jeff'
+        smtp = smtplib.SMTP(HOST, self.port, local_hostname='localhost', timeout=3)
+        with self.assertRaises(ValueError):
+            smtp.send_message(m)
+        smtp.close()
 
 class NonConnectingTests(unittest.TestCase):
 
@@ -402,7 +540,7 @@ class BadHELOServerTests(unittest.TestCase):
 
 
 sim_users = {'Mr.A@somewhere.com':'John A',
-             'Ms.B@somewhere.com':'Sally B',
+             'Ms.B@xn--fo-fka.com':'Sally B',
              'Mrs.C@somewhereesle.com':'Ruth C',
             }
 
@@ -418,7 +556,7 @@ sim_auth_credentials = {
 sim_auth_login_password = 'C29TZXBHC3N3B3JK'
 
 sim_lists = {'list-1':['Mr.A@somewhere.com','Mrs.C@somewhereesle.com'],
-             'list-2':['Ms.B@somewhere.com',],
+             'list-2':['Ms.B@xn--fo-fka.com',],
             }
 
 # Simulated SMTP channel & server
@@ -439,15 +577,14 @@ class SimSMTPChannel(smtpd.SMTPChannel):
         self.push(resp)
 
     def smtp_VRFY(self, arg):
-        raw_addr = email.utils.parseaddr(arg)[1]
-        quoted_addr = smtplib.quoteaddr(arg)
-        if raw_addr in sim_users:
-            self.push('250 %s %s' % (sim_users[raw_addr], quoted_addr))
+        # For max compatibility smtplib should be sending the raw address.
+        if arg in sim_users:
+            self.push('250 %s %s' % (sim_users[arg], smtplib.quoteaddr(arg)))
         else:
             self.push('550 No such user: %s' % arg)
 
     def smtp_EXPN(self, arg):
-        list_name = email.utils.parseaddr(arg)[1].lower()
+        list_name = arg.lower()
         if list_name in sim_lists:
             user_list = sim_lists[list_name]
             for n, user_email in enumerate(user_list):
@@ -567,8 +704,7 @@ class SMTPSimTests(unittest.TestCase):
             self.assertEqual(smtp.vrfy(email), expected_known)
 
         u = 'nobody@nowhere.com'
-        expected_unknown = (550, ('No such user: %s'
-                                       % smtplib.quoteaddr(u)).encode('ascii'))
+        expected_unknown = (550, ('No such user: %s' % u).encode('ascii'))
         self.assertEqual(smtp.vrfy(u), expected_unknown)
         smtp.quit()
 

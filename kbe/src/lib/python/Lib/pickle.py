@@ -23,7 +23,7 @@ Misc variables:
 
 """
 
-__version__ = "$Revision: 84653 $"       # Code version
+__version__ = "$Revision$"       # Code version
 
 from types import FunctionType, BuiltinFunctionType
 from copyreg import dispatch_table

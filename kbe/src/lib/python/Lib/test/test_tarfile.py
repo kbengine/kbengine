@@ -419,6 +419,22 @@ class StreamReadTest(CommonReadTest):
 
     mode="r|"
 
+    def test_read_through(self):
+        # Issue #11224: A poorly designed _FileInFile.read() method
+        # caused seeking errors with stream tar files.
+        for tarinfo in self.tar:
+            if not tarinfo.isreg():
+                continue
+            fobj = self.tar.extractfile(tarinfo)
+            while True:
+                try:
+                    buf = fobj.read(512)
+                except tarfile.StreamError:
+                    self.fail("simple read-through using TarFile.extractfile() failed")
+                if not buf:
+                    break
+            fobj.close()
+
     def test_fileobj_regular_file(self):
         tarinfo = self.tar.next() # get "regtype" (can't use getmember)
         fobj = self.tar.extractfile(tarinfo)
@@ -965,6 +981,36 @@ class WriteTest(WriteTestBase):
             os.rmdir(foo)
 
         self.assertEqual(t.name, cmp_path or path.replace(os.sep, "/"))
+
+
+    @support.skip_unless_symlink
+    def test_extractall_symlinks(self):
+        # Test if extractall works properly when tarfile contains symlinks
+        tempdir = os.path.join(TEMPDIR, "testsymlinks")
+        temparchive = os.path.join(TEMPDIR, "testsymlinks.tar")
+        os.mkdir(tempdir)
+        try:
+            source_file = os.path.join(tempdir,'source')
+            target_file = os.path.join(tempdir,'symlink')
+            with open(source_file,'w') as f:
+                f.write('something\n')
+            os.symlink(source_file, target_file)
+            tar = tarfile.open(temparchive,'w')
+            tar.add(source_file)
+            tar.add(target_file)
+            tar.close()
+            # Let's extract it to the location which contains the symlink
+            tar = tarfile.open(temparchive,'r')
+            # this should not raise OSError: [Errno 17] File exists
+            try:
+                tar.extractall(path=tempdir)
+            except OSError:
+                self.fail("extractall failed with symlinked files")
+            finally:
+                tar.close()
+        finally:
+            os.unlink(temparchive)
+            shutil.rmtree(tempdir)
 
     def test_pathnames(self):
         self._test_pathname("foo")
@@ -1636,6 +1682,14 @@ class LinkEmulationTest(ReadTest):
 class GzipMiscReadTest(MiscReadTest):
     tarname = gzipname
     mode = "r:gz"
+
+    def test_non_existent_targz_file(self):
+        # Test for issue11513: prevent non-existent gzipped tarfiles raising
+        # multiple exceptions.
+        with self.assertRaisesRegex(IOError, "xxx") as ex:
+            tarfile.open("xxx", self.mode)
+        self.assertEqual(ex.exception.errno, errno.ENOENT)
+
 class GzipUstarReadTest(UstarReadTest):
     tarname = gzipname
     mode = "r:gz"

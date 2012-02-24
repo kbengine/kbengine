@@ -10,12 +10,112 @@ from random import randrange, shuffle
 import keyword
 import re
 import sys
+from collections import _ChainMap
 from collections import Hashable, Iterable, Iterator
 from collections import Sized, Container, Callable
 from collections import Set, MutableSet
 from collections import Mapping, MutableMapping, KeysView, ItemsView, UserDict
 from collections import Sequence, MutableSequence
 from collections import ByteString
+
+
+################################################################################
+### _ChainMap (helper class for configparser)
+################################################################################
+
+ChainMap = _ChainMap  # rename to keep test code in sync with 3.3 version
+
+class TestChainMap(unittest.TestCase):
+
+    def test_basics(self):
+        c = ChainMap()
+        c['a'] = 1
+        c['b'] = 2
+        d = c.new_child()
+        d['b'] = 20
+        d['c'] = 30
+        self.assertEqual(d.maps, [{'b':20, 'c':30}, {'a':1, 'b':2}])  # check internal state
+        self.assertEqual(d.items(), dict(a=1, b=20, c=30).items())    # check items/iter/getitem
+        self.assertEqual(len(d), 3)                                   # check len
+        for key in 'abc':                                             # check contains
+            self.assertIn(key, d)
+        for k, v in dict(a=1, b=20, c=30, z=100).items():             # check get
+            self.assertEqual(d.get(k, 100), v)
+
+        del d['b']                                                    # unmask a value
+        self.assertEqual(d.maps, [{'c':30}, {'a':1, 'b':2}])          # check internal state
+        self.assertEqual(d.items(), dict(a=1, b=2, c=30).items())     # check items/iter/getitem
+        self.assertEqual(len(d), 3)                                   # check len
+        for key in 'abc':                                             # check contains
+            self.assertIn(key, d)
+        for k, v in dict(a=1, b=2, c=30, z=100).items():              # check get
+            self.assertEqual(d.get(k, 100), v)
+        self.assertIn(repr(d), [                                      # check repr
+            type(d).__name__ + "({'c': 30}, {'a': 1, 'b': 2})",
+            type(d).__name__ + "({'c': 30}, {'b': 2, 'a': 1})"
+        ])
+
+        for e in d.copy(), copy.copy(d):                               # check shallow copies
+            self.assertEqual(d, e)
+            self.assertEqual(d.maps, e.maps)
+            self.assertIsNot(d, e)
+            self.assertIsNot(d.maps[0], e.maps[0])
+            for m1, m2 in zip(d.maps[1:], e.maps[1:]):
+                self.assertIs(m1, m2)
+
+        for e in [pickle.loads(pickle.dumps(d)),
+                  copy.deepcopy(d),
+                  eval(repr(d))
+                ]:                                                    # check deep copies
+            self.assertEqual(d, e)
+            self.assertEqual(d.maps, e.maps)
+            self.assertIsNot(d, e)
+            for m1, m2 in zip(d.maps, e.maps):
+                self.assertIsNot(m1, m2, e)
+
+        f = d.new_child()
+        f['b'] = 5
+        self.assertEqual(f.maps, [{'b': 5}, {'c':30}, {'a':1, 'b':2}])
+        self.assertEqual(f.parents.maps, [{'c':30}, {'a':1, 'b':2}])   # check parents
+        self.assertEqual(f['b'], 5)                                    # find first in chain
+        self.assertEqual(f.parents['b'], 2)                            # look beyond maps[0]
+
+    def test_contructor(self):
+        self.assertEqual(ChainMap().maps, [{}])                        # no-args --> one new dict
+        self.assertEqual(ChainMap({1:2}).maps, [{1:2}])                # 1 arg --> list
+
+    def test_bool(self):
+        self.assertFalse(ChainMap())
+        self.assertFalse(ChainMap({}, {}))
+        self.assertTrue(ChainMap({1:2}, {}))
+        self.assertTrue(ChainMap({}, {1:2}))
+
+    def test_missing(self):
+        class DefaultChainMap(ChainMap):
+            def __missing__(self, key):
+                return 999
+        d = DefaultChainMap(dict(a=1, b=2), dict(b=20, c=30))
+        for k, v in dict(a=1, b=2, c=30, d=999).items():
+            self.assertEqual(d[k], v)                                  # check __getitem__ w/missing
+        for k, v in dict(a=1, b=2, c=30, d=77).items():
+            self.assertEqual(d.get(k, 77), v)                          # check get() w/ missing
+        for k, v in dict(a=True, b=True, c=True, d=False).items():
+            self.assertEqual(k in d, v)                                # check __contains__ w/missing
+        self.assertEqual(d.pop('a', 1001), 1, d)
+        self.assertEqual(d.pop('a', 1002), 1002)                       # check pop() w/missing
+        self.assertEqual(d.popitem(), ('b', 2))                        # check popitem() w/missing
+        with self.assertRaises(KeyError):
+            d.popitem()
+
+    def test_dict_coercion(self):
+        d = ChainMap(dict(a=1, b=2), dict(b=20, c=30))
+        self.assertEqual(dict(d), dict(a=1, b=2, c=30))
+        self.assertEqual(dict(d.items()), dict(a=1, b=2, c=30))
+
+
+################################################################################
+### Named Tuples
+################################################################################
 
 TestNT = namedtuple('TestNT', 'x y z')    # type used for pickle tests
 
@@ -80,12 +180,12 @@ class TestNamedTuple(unittest.TestCase):
         self.assertRaises(TypeError, eval, 'Point(XXX=1, y=2)', locals())   # wrong keyword argument
         self.assertRaises(TypeError, eval, 'Point(x=1)', locals())          # missing keyword argument
         self.assertEqual(repr(p), 'Point(x=11, y=22)')
-        self.assertNotIn('__dict__', dir(p))                              # verify instance has no dict
         self.assertNotIn('__weakref__', dir(p))
         self.assertEqual(p, Point._make([11, 22]))                          # test _make classmethod
         self.assertEqual(p._fields, ('x', 'y'))                             # test _fields attribute
         self.assertEqual(p._replace(x=1), (1, 22))                          # test _replace method
         self.assertEqual(p._asdict(), dict(x=11, y=22))                     # test _asdict method
+        self.assertEqual(vars(p), p._asdict())                              # verify that vars() works
 
         try:
             p._replace(x=1, error=2)
@@ -227,6 +327,10 @@ class TestNamedTuple(unittest.TestCase):
             pass
         self.assertEqual(repr(B(1)), 'B(x=1)')
 
+
+################################################################################
+### Abstract Base Classes
+################################################################################
 
 class ABCTestCase(unittest.TestCase):
 
@@ -507,7 +611,7 @@ class TestCollectionABCs(ABCTestCase):
 
     def test_issue_4920(self):
         # MutableSet.pop() method did not work
-        class MySet(collections.MutableSet):
+        class MySet(MutableSet):
             __slots__=['__s']
             def __init__(self,items=None):
                 if items is None:
@@ -553,7 +657,7 @@ class TestCollectionABCs(ABCTestCase):
             self.assertTrue(issubclass(sample, Mapping))
         self.validate_abstract_methods(Mapping, '__contains__', '__iter__', '__len__',
             '__getitem__')
-        class MyMapping(collections.Mapping):
+        class MyMapping(Mapping):
             def __len__(self):
                 return 0
             def __getitem__(self, i):
@@ -624,6 +728,11 @@ class TestCollectionABCs(ABCTestCase):
         self.assertFalse(issubclass(str, MutableSequence))
         self.validate_abstract_methods(MutableSequence, '__contains__', '__iter__',
             '__len__', '__getitem__', '__setitem__', '__delitem__', 'insert')
+
+
+################################################################################
+### Counter
+################################################################################
 
 class TestCounter(unittest.TestCase):
 
@@ -711,6 +820,15 @@ class TestCounter(unittest.TestCase):
             self.assertEqual(len(dup), len(words))
             self.assertEqual(type(dup), type(words))
 
+    def test_copy_subclass(self):
+        class MyCounter(Counter):
+            pass
+        c = MyCounter('slartibartfast')
+        d = c.copy()
+        self.assertEqual(d, c)
+        self.assertEqual(len(d), len(c))
+        self.assertEqual(type(d), type(c))
+
     def test_conversions(self):
         # Convert to: set, list, dict
         s = 'she sells sea shells by the sea shore'
@@ -787,6 +905,11 @@ class TestCounter(unittest.TestCase):
         _count_elements(m, elems)
         self.assertEqual(m,
              OrderedDict([('a', 5), ('b', 2), ('r', 2), ('c', 1), ('d', 1)]))
+
+
+################################################################################
+### OrderedDict
+################################################################################
 
 class TestOrderedDict(unittest.TestCase):
 
@@ -1066,12 +1189,16 @@ class SubclassMappingTests(mapping_tests.BasicTestMappingProtocol):
         self.assertRaises(KeyError, d.popitem)
 
 
+################################################################################
+### Run tests
+################################################################################
+
 import doctest, collections
 
 def test_main(verbose=None):
     NamedTupleDocs = doctest.DocTestSuite(module=collections)
     test_classes = [TestNamedTuple, NamedTupleDocs, TestOneTrickPonyABCs,
-                    TestCollectionABCs, TestCounter,
+                    TestCollectionABCs, TestCounter, TestChainMap,
                     TestOrderedDict, GeneralMappingTests, SubclassMappingTests]
     support.run_unittest(*test_classes)
     support.run_doctest(collections, verbose)

@@ -2,8 +2,6 @@
 
 Implements the Distutils 'build_py' command."""
 
-__revision__ = "$Id: build_py.py 83053 2010-07-22 12:50:05Z tarek.ziade $"
-
 import sys, os
 import sys
 from glob import glob

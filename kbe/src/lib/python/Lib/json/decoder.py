@@ -5,7 +5,7 @@ import re
 import sys
 import struct
 
-from json.scanner import make_scanner
+from json import scanner
 try:
     from _json import scanstring as c_scanstring
 except ImportError:
@@ -165,6 +165,12 @@ def JSONObject(s_and_end, strict, scan_once, object_hook, object_pairs_hook,
             nextchar = s[end:end + 1]
         # Trivial empty object
         if nextchar == '}':
+            if object_pairs_hook is not None:
+                result = object_pairs_hook(pairs)
+                return result, end
+            pairs = {}
+            if object_hook is not None:
+                pairs = object_hook(pairs)
             return pairs, end + 1
         elif nextchar != '"':
             raise ValueError(errmsg("Expecting property name", s, end))
@@ -334,7 +340,7 @@ class JSONDecoder(object):
         self.parse_array = JSONArray
         self.parse_string = scanstring
         self.memo = {}
-        self.scan_once = make_scanner(self)
+        self.scan_once = scanner.make_scanner(self)
 
 
     def decode(self, s, _w=WHITESPACE.match):

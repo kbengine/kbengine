@@ -202,27 +202,6 @@ class _AssertWarnsContext(_AssertRaisesBaseContext):
                 .format(exc_name))
 
 
-class _TypeEqualityDict(object):
-
-    def __init__(self, testcase):
-        self.testcase = testcase
-        self._store = {}
-
-    def __setitem__(self, key, value):
-        self._store[key] = value
-
-    def __getitem__(self, key):
-        value = self._store[key]
-        if isinstance(value, str):
-            return getattr(self.testcase, value)
-        return value
-
-    def get(self, key, default=None):
-        if key in self._store:
-            return self[key]
-        return default
-
-
 class TestCase(object):
     """A class whose instances are single test cases.
 
@@ -263,6 +242,10 @@ class TestCase(object):
 
     maxDiff = 80*8
 
+    # If a string is longer than _diffThreshold, use normal comparison instead
+    # of difflib.  See #11763.
+    _diffThreshold = 2**16
+
     # Attribute used by TestSuite for classSetUp
 
     _classSetupFailed = False
@@ -290,7 +273,7 @@ class TestCase(object):
         # Map types to custom assertEqual functions that will compare
         # instances of said type in more detail to generate a more useful
         # error message.
-        self._type_equality_funcs = _TypeEqualityDict(self)
+        self._type_equality_funcs = {}
         self.addTypeEqualityFunc(dict, 'assertDictEqual')
         self.addTypeEqualityFunc(list, 'assertListEqual')
         self.addTypeEqualityFunc(tuple, 'assertTupleEqual')
@@ -624,6 +607,8 @@ class TestCase(object):
         if type(first) is type(second):
             asserter = self._type_equality_funcs.get(type(first))
             if asserter is not None:
+                if isinstance(asserter, str):
+                    asserter = getattr(self, asserter)
                 return asserter
 
         return self._baseAssertEqual
@@ -1048,6 +1033,10 @@ class TestCase(object):
         self.assertIsInstance(second, str, 'Second argument is not a string')
 
         if first != second:
+            # don't use difflib if the strings are too long
+            if (len(first) > self._diffThreshold or
+                len(second) > self._diffThreshold):
+                self._baseAssertEqual(first, second, msg)
             firstlines = first.splitlines(True)
             secondlines = second.splitlines(True)
             if len(firstlines) == 1 and first.strip('\r\n') == first:
@@ -1181,8 +1170,7 @@ class TestCase(object):
             return original_func(*args, **kwargs)
         return deprecated_func
 
-    # The fail* methods can be removed in 3.3, the 5 assert* methods will
-    # have to stay around for a few more versions.  See #9424.
+    # see #9424
     failUnlessEqual = assertEquals = _deprecate(assertEqual)
     failIfEqual = assertNotEquals = _deprecate(assertNotEqual)
     failUnlessAlmostEqual = assertAlmostEquals = _deprecate(assertAlmostEqual)

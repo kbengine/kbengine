@@ -248,7 +248,7 @@ class CommandLineTests(unittest.TestCase):
         self.assertEqual(b'', quiet)
 
     def test_regexp(self):
-        self.assertRunOK('-q', '-x', 'ba.*', self.pkgdir)
+        self.assertRunOK('-q', '-x', r'ba[^\\/]*$', self.pkgdir)
         self.assertNotCompiled(self.barfn)
         self.assertCompiled(self.initfn)
 
@@ -345,7 +345,7 @@ class CommandLineTests(unittest.TestCase):
 
     def test_invalid_arg_produces_message(self):
         out = self.assertRunOK('badfilename')
-        self.assertRegex(out, b"Can't list badfilename")
+        self.assertRegex(out, b"Can't list 'badfilename'")
 
 
 def test_main():

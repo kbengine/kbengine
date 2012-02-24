@@ -14,6 +14,7 @@ except ImportError:
 
 import io
 from io import (__all__, SEEK_SET, SEEK_CUR, SEEK_END)
+from errno import EINTR
 
 # open() uses st_blksize whenever we can
 DEFAULT_BUFFER_SIZE = 8 * 1024  # bytes
@@ -557,7 +558,11 @@ class RawIOBase(IOBase):
             if not data:
                 break
             res += data
-        return bytes(res)
+        if res:
+            return bytes(res)
+        else:
+            # b'' or None
+            return data
 
     def readinto(self, b):
         """Read up to len(b) bytes into bytearray b.
@@ -943,7 +948,12 @@ class BufferedReader(_BufferedIOMixin):
             current_size = 0
             while True:
                 # Read until EOF or until read() would block.
-                chunk = self.raw.read()
+                try:
+                    chunk = self.raw.read()
+                except IOError as e:
+                    if e.errno != EINTR:
+                        raise
+                    continue
                 if chunk in empty_values:
                     nodata_val = chunk
                     break
@@ -962,7 +972,12 @@ class BufferedReader(_BufferedIOMixin):
         chunks = [buf[pos:]]
         wanted = max(self.buffer_size, n)
         while avail < n:
-            chunk = self.raw.read(wanted)
+            try:
+                chunk = self.raw.read(wanted)
+            except IOError as e:
+                if e.errno != EINTR:
+                    raise
+                continue
             if chunk in empty_values:
                 nodata_val = chunk
                 break
@@ -991,7 +1006,14 @@ class BufferedReader(_BufferedIOMixin):
         have = len(self._read_buf) - self._read_pos
         if have < want or have <= 0:
             to_read = self.buffer_size - have
-            current = self.raw.read(to_read)
+            while True:
+                try:
+                    current = self.raw.read(to_read)
+                except IOError as e:
+                    if e.errno != EINTR:
+                        raise
+                    continue
+                break
             if current:
                 self._read_buf = self._read_buf[self._read_pos:] + current
                 self._read_pos = 0
@@ -1098,7 +1120,12 @@ class BufferedWriter(_BufferedIOMixin):
         written = 0
         try:
             while self._write_buf:
-                n = self.raw.write(self._write_buf)
+                try:
+                    n = self.raw.write(self._write_buf)
+                except IOError as e:
+                    if e.errno != EINTR:
+                        raise
+                    continue
                 if n > len(self._write_buf) or n < 0:
                     raise IOError("write() returned incorrect number of bytes")
                 del self._write_buf[:n]
@@ -1445,7 +1472,7 @@ class TextIOWrapper(TextIOBase):
     _CHUNK_SIZE = 2048
 
     def __init__(self, buffer, encoding=None, errors=None, newline=None,
-                 line_buffering=False):
+                 line_buffering=False, write_through=False):
         if newline is not None and not isinstance(newline, str):
             raise TypeError("illegal newline type: %r" % (type(newline),))
         if newline not in (None, "", "\n", "\r", "\r\n"):
@@ -1488,6 +1515,7 @@ class TextIOWrapper(TextIOBase):
         self._decoded_chars_used = 0  # offset into _decoded_chars for read()
         self._snapshot = None  # info for reconstructing decoder state
         self._seekable = self._telling = self.buffer.seekable()
+        self._has_read1 = hasattr(self.buffer, 'read1')
 
         if self._seekable and self.writable():
             position = self.buffer.tell()
@@ -1653,7 +1681,10 @@ class TextIOWrapper(TextIOBase):
             # len(dec_buffer) bytes ago with decoder state (b'', dec_flags).
 
         # Read a chunk, decode it, and put the result in self._decoded_chars.
-        input_chunk = self.buffer.read1(self._CHUNK_SIZE)
+        if self._has_read1:
+            input_chunk = self.buffer.read1(self._CHUNK_SIZE)
+        else:
+            input_chunk = self.buffer.read(self._CHUNK_SIZE)
         eof = not input_chunk
         self._set_decoded_chars(self._decoder.decode(input_chunk, eof))
 

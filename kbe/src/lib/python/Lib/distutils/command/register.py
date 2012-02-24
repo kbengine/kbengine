@@ -5,8 +5,6 @@ Implements the Distutils 'register' command (register with the repository).
 
 # created 2002/10/21, Richard Jones
 
-__revision__ = "$Id: register.py 83053 2010-07-22 12:50:05Z tarek.ziade $"
-
 import os, string, getpass
 import io
 import urllib.parse, urllib.request

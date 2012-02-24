@@ -2,8 +2,6 @@
 
 Implements the Distutils 'build' command."""
 
-__revision__ = "$Id: build.py 83053 2010-07-22 12:50:05Z tarek.ziade $"
-
 import sys, os
 from distutils.core import Command
 from distutils.errors import DistutilsOptionError

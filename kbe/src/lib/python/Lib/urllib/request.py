@@ -180,7 +180,7 @@ class Request:
                  origin_req_host=None, unverifiable=False):
         # unwrap('<URL:type://host/path>') --> 'type://host/path'
         self.full_url = unwrap(url)
-        self.full_url, fragment = splittag(self.full_url)
+        self.full_url, self.fragment = splittag(self.full_url)
         self.data = data
         self.headers = {}
         self._tunnel_host = None
@@ -219,7 +219,10 @@ class Request:
         return self.data
 
     def get_full_url(self):
-        return self.full_url
+        if self.fragment:
+            return '%s#%s' % (self.full_url, self.fragment)
+        else:
+            return self.full_url
 
     def get_type(self):
         return self.type
@@ -545,6 +548,17 @@ class HTTPRedirectHandler(BaseHandler):
 
         # fix a possible malformed URL
         urlparts = urlparse(newurl)
+
+        # For security reasons we don't allow redirection to anything other
+        # than http, https or ftp.
+
+        if not urlparts.scheme in ('http', 'https', 'ftp'):
+            raise HTTPError(newurl, code,
+                            msg +
+                            " - Redirection to url '%s' is not allowed" %
+                            newurl,
+                            headers, fp)
+
         if not urlparts.path:
             urlparts = list(urlparts)
             urlparts[2] = "/"
@@ -1120,11 +1134,13 @@ class AbstractHTTPHandler(BaseHandler):
 
         try:
             h.request(req.get_method(), req.selector, req.data, headers)
-            r = h.getresponse()  # an HTTPResponse instance
-        except socket.error as err:
+        except socket.error as err: # timeout error
+            h.close()
             raise URLError(err)
+        else:
+            r = h.getresponse()
 
-        r.url = req.full_url
+        r.url = req.get_full_url()
         # This line replaces the .msg attribute of the HTTPResponse
         # with .headers, because urllib clients expect the response to
         # have the reason in .msg.  It would be good to mark this
@@ -1346,8 +1362,8 @@ class FTPHandler(BaseHandler):
             raise exc.with_traceback(sys.exc_info()[2])
 
     def connect_ftp(self, user, passwd, host, port, dirs, timeout):
-        fw = ftpwrapper(user, passwd, host, port, dirs, timeout)
-        return fw
+        return ftpwrapper(user, passwd, host, port, dirs, timeout,
+                          persistent=False)
 
 class CacheFTPHandler(FTPHandler):
     # XXX would be nice to have pluggable cache strategies
@@ -1395,6 +1411,13 @@ class CacheFTPHandler(FTPHandler):
                     del self.timeout[k]
                     break
             self.soonest = min(list(self.timeout.values()))
+
+    def clear_cache(self):
+        for conn in self.cache.values():
+            conn.close()
+        self.cache.clear()
+        self.timeout.clear()
+
 
 # Code move from the old urllib module
 
@@ -1657,6 +1680,12 @@ class URLopener:
             headers["Authorization"] =  "Basic %s" % auth
         if realhost:
             headers["Host"] = realhost
+
+        # Add Connection:close as we don't support persistent connections yet.
+        # This helps in closing the socket and avoiding ResourceWarning
+
+        headers["Connection"] = "close"
+
         for header, value in self.addheaders:
             headers[header] = value
 
@@ -1897,8 +1926,24 @@ class FancyURLopener(URLopener):
             return
         void = fp.read()
         fp.close()
+
         # In case the server sent a relative URL, join with original:
         newurl = urljoin(self.type + ":" + url, newurl)
+
+        urlparts = urlparse(newurl)
+
+        # For security reasons, we don't allow redirection to anything other
+        # than http, https and ftp.
+
+        # We are using newer HTTPError with older redirect_internal method
+        # This older method will get deprecated in 3.3
+
+        if not urlparts.scheme in ('http', 'https', 'ftp'):
+            raise HTTPError(newurl, errcode,
+                            errmsg +
+                            " Redirection to url '%s' is not allowed." % newurl,
+                            headers, fp)
+
         return self.open(newurl)
 
     def http_error_301(self, url, fp, errcode, errmsg, headers, data=None):
@@ -2097,13 +2142,16 @@ def noheaders():
 class ftpwrapper:
     """Class used by open_ftp() for cache of open FTP connections."""
 
-    def __init__(self, user, passwd, host, port, dirs, timeout=None):
+    def __init__(self, user, passwd, host, port, dirs, timeout=None,
+                 persistent=True):
         self.user = user
         self.passwd = passwd
         self.host = host
         self.port = port
         self.dirs = dirs
         self.timeout = timeout
+        self.refcount = 0
+        self.keepalive = persistent
         self.init()
 
     def init(self):
@@ -2130,7 +2178,7 @@ class ftpwrapper:
             # Try to retrieve as a file
             try:
                 cmd = 'RETR ' + file
-                conn = self.ftp.ntransfercmd(cmd)
+                conn, retrlen = self.ftp.ntransfercmd(cmd)
             except ftplib.error_perm as reason:
                 if str(reason)[:3] != '550':
                     raise URLError('ftp error', reason).with_traceback(
@@ -2151,10 +2199,15 @@ class ftpwrapper:
                 cmd = 'LIST ' + file
             else:
                 cmd = 'LIST'
-            conn = self.ftp.ntransfercmd(cmd)
+            conn, retrlen = self.ftp.ntransfercmd(cmd)
         self.busy = 1
+
+        ftpobj = addclosehook(conn.makefile('rb'), self.file_close)
+        self.refcount += 1
+        conn.close()
         # Pass back both a suitably decorated object and a retrieval length
-        return (addclosehook(conn[0].makefile('rb'), self.endtransfer), conn[1])
+        return (ftpobj, retrlen)
+
     def endtransfer(self):
         if not self.busy:
             return
@@ -2165,6 +2218,17 @@ class ftpwrapper:
             pass
 
     def close(self):
+        self.keepalive = False
+        if self.refcount <= 0:
+            self.real_close()
+
+    def file_close(self):
+        self.endtransfer()
+        self.refcount -= 1
+        if self.refcount <= 0 and not self.keepalive:
+            self.real_close()
+
+    def real_close(self):
         self.endtransfer()
         try:
             self.ftp.close()
@@ -2201,75 +2265,84 @@ def proxy_bypass_environment(host):
     # strip port off host
     hostonly, port = splitport(host)
     # check if the host ends with any of the DNS suffixes
-    for name in no_proxy.split(','):
+    no_proxy_list = [proxy.strip() for proxy in no_proxy.split(',')]
+    for name in no_proxy_list:
         if name and (hostonly.endswith(name) or host.endswith(name)):
             return 1
     # otherwise, don't bypass
     return 0
 
 
+# This code tests an OSX specific data structure but is testable on all
+# platforms
+def _proxy_bypass_macosx_sysconf(host, proxy_settings):
+    """
+    Return True iff this host shouldn't be accessed using a proxy
+
+    This function uses the MacOSX framework SystemConfiguration
+    to fetch the proxy information.
+
+    proxy_settings come from _scproxy._get_proxy_settings or get mocked ie:
+    { 'exclude_simple': bool,
+      'exceptions': ['foo.bar', '*.bar.com', '127.0.0.1', '10.1', '10.0/16']
+    }
+    """
+    import re
+    import socket
+    from fnmatch import fnmatch
+
+    hostonly, port = splitport(host)
+
+    def ip2num(ipAddr):
+        parts = ipAddr.split('.')
+        parts = list(map(int, parts))
+        if len(parts) != 4:
+            parts = (parts + [0, 0, 0, 0])[:4]
+        return (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]
+
+    # Check for simple host names:
+    if '.' not in host:
+        if proxy_settings['exclude_simple']:
+            return True
+
+    hostIP = None
+
+    for value in proxy_settings.get('exceptions', ()):
+        # Items in the list are strings like these: *.local, 169.254/16
+        if not value: continue
+
+        m = re.match(r"(\d+(?:\.\d+)*)(/\d+)?", value)
+        if m is not None:
+            if hostIP is None:
+                try:
+                    hostIP = socket.gethostbyname(hostonly)
+                    hostIP = ip2num(hostIP)
+                except socket.error:
+                    continue
+
+            base = ip2num(m.group(1))
+            mask = m.group(2)
+            if mask is None:
+                mask = 8 * (m.group(1).count('.') + 1)
+            else:
+                mask = int(mask[1:])
+            mask = 32 - mask
+
+            if (hostIP >> mask) == (base >> mask):
+                return True
+
+        elif fnmatch(host, value):
+            return True
+
+    return False
+
+
 if sys.platform == 'darwin':
     from _scproxy import _get_proxy_settings, _get_proxies
 
     def proxy_bypass_macosx_sysconf(host):
-        """
-        Return True iff this host shouldn't be accessed using a proxy
-
-        This function uses the MacOSX framework SystemConfiguration
-        to fetch the proxy information.
-        """
-        import re
-        import socket
-        from fnmatch import fnmatch
-
-        hostonly, port = splitport(host)
-
-        def ip2num(ipAddr):
-            parts = ipAddr.split('.')
-            parts = list(map(int, parts))
-            if len(parts) != 4:
-                parts = (parts + [0, 0, 0, 0])[:4]
-            return (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]
-
         proxy_settings = _get_proxy_settings()
-
-        # Check for simple host names:
-        if '.' not in host:
-            if proxy_settings['exclude_simple']:
-                return True
-
-        hostIP = None
-
-        for value in proxy_settings.get('exceptions', ()):
-            # Items in the list are strings like these: *.local, 169.254/16
-            if not value: continue
-
-            m = re.match(r"(\d+(?:\.\d+)*)(/\d+)?", value)
-            if m is not None:
-                if hostIP is None:
-                    try:
-                        hostIP = socket.gethostbyname(hostonly)
-                        hostIP = ip2num(hostIP)
-                    except socket.error:
-                        continue
-
-                base = ip2num(m.group(1))
-                mask = m.group(2)
-                if mask is None:
-                    mask = 8 * (m.group(1).count('.') + 1)
-
-                else:
-                    mask = int(mask[1:])
-                    mask = 32 - mask
-
-                if (hostIP >> mask) == (base >> mask):
-                    return True
-
-            elif fnmatch(host, value):
-                return True
-
-        return False
-
+        return _proxy_bypass_macosx_sysconf(host, proxy_settings)
 
     def getproxies_macosx_sysconf():
         """Return a dictionary of scheme -> proxy server URL mappings.

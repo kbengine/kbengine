@@ -21,9 +21,11 @@ import functools
 ssl = support.import_module("ssl")
 
 PROTOCOLS = [
-    ssl.PROTOCOL_SSLv2, ssl.PROTOCOL_SSLv3,
+    ssl.PROTOCOL_SSLv3,
     ssl.PROTOCOL_SSLv23, ssl.PROTOCOL_TLSv1
 ]
+if hasattr(ssl, 'PROTOCOL_SSLv2'):
+    PROTOCOLS.append(ssl.PROTOCOL_SSLv2)
 
 HOST = support.HOST
 
@@ -58,7 +60,7 @@ def handle_error(prefix):
 
 def can_clear_options():
     # 0.9.8m or higher
-    return ssl.OPENSSL_VERSION_INFO >= (0, 9, 8, 13, 15)
+    return ssl._OPENSSL_API_VERSION >= (0, 9, 8, 13, 15)
 
 def no_sslv2_implies_sslv3_hello():
     # 0.9.7h or higher
@@ -67,22 +69,25 @@ def no_sslv2_implies_sslv3_hello():
 
 # Issue #9415: Ubuntu hijacks their OpenSSL and forcefully disables SSLv2
 def skip_if_broken_ubuntu_ssl(func):
-    @functools.wraps(func)
-    def f(*args, **kwargs):
-        try:
-            ssl.SSLContext(ssl.PROTOCOL_SSLv2)
-        except ssl.SSLError:
-            if (ssl.OPENSSL_VERSION_INFO == (0, 9, 8, 15, 15) and
-                platform.linux_distribution() == ('debian', 'squeeze/sid', '')):
-                raise unittest.SkipTest("Patched Ubuntu OpenSSL breaks behaviour")
-        return func(*args, **kwargs)
-    return f
+    if hasattr(ssl, 'PROTOCOL_SSLv2'):
+        @functools.wraps(func)
+        def f(*args, **kwargs):
+            try:
+                ssl.SSLContext(ssl.PROTOCOL_SSLv2)
+            except ssl.SSLError:
+                if (ssl.OPENSSL_VERSION_INFO == (0, 9, 8, 15, 15) and
+                    platform.linux_distribution() == ('debian', 'squeeze/sid', '')):
+                    raise unittest.SkipTest("Patched Ubuntu OpenSSL breaks behaviour")
+            return func(*args, **kwargs)
+        return f
+    else:
+        return func
 
 
 class BasicSocketTests(unittest.TestCase):
 
     def test_constants(self):
-        ssl.PROTOCOL_SSLv2
+        #ssl.PROTOCOL_SSLv2
         ssl.PROTOCOL_SSLv23
         ssl.PROTOCOL_SSLv3
         ssl.PROTOCOL_TLSv1
@@ -277,6 +282,24 @@ class BasicSocketTests(unittest.TestCase):
                             (('organizationName', 'Google Inc'),))}
         fail(cert, 'mail.google.com')
 
+        # No DNS entry in subjectAltName but a commonName
+        cert = {'notAfter': 'Dec 18 23:59:59 2099 GMT',
+                'subject': ((('countryName', 'US'),),
+                            (('stateOrProvinceName', 'California'),),
+                            (('localityName', 'Mountain View'),),
+                            (('commonName', 'mail.google.com'),)),
+                'subjectAltName': (('othername', 'blabla'), )}
+        ok(cert, 'mail.google.com')
+
+        # No DNS entry subjectAltName and no commonName
+        cert = {'notAfter': 'Dec 18 23:59:59 2099 GMT',
+                'subject': ((('countryName', 'US'),),
+                            (('stateOrProvinceName', 'California'),),
+                            (('localityName', 'Mountain View'),),
+                            (('organizationName', 'Google Inc'),)),
+                'subjectAltName': (('othername', 'blabla'),)}
+        fail(cert, 'google.com')
+
         # Empty cert / no cert
         self.assertRaises(ValueError, ssl.match_hostname, None, 'example.com')
         self.assertRaises(ValueError, ssl.match_hostname, {}, 'example.com')
@@ -292,7 +315,8 @@ class ContextTests(unittest.TestCase):
 
     @skip_if_broken_ubuntu_ssl
     def test_constructor(self):
-        ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv2)
+        if hasattr(ssl, 'PROTOCOL_SSLv2'):
+            ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv2)
         ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
         ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv3)
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
@@ -448,6 +472,67 @@ class NetworkedTests(unittest.TestCase):
             try:
                 s.connect(("svn.python.org", 443))
                 self.assertTrue(s.getpeercert())
+            finally:
+                s.close()
+
+    def test_connect_ex(self):
+        # Issue #11326: check connect_ex() implementation
+        with support.transient_internet("svn.python.org"):
+            s = ssl.wrap_socket(socket.socket(socket.AF_INET),
+                                cert_reqs=ssl.CERT_REQUIRED,
+                                ca_certs=SVN_PYTHON_ORG_ROOT_CERT)
+            try:
+                self.assertEqual(0, s.connect_ex(("svn.python.org", 443)))
+                self.assertTrue(s.getpeercert())
+            finally:
+                s.close()
+
+    def test_non_blocking_connect_ex(self):
+        # Issue #11326: non-blocking connect_ex() should allow handshake
+        # to proceed after the socket gets ready.
+        with support.transient_internet("svn.python.org"):
+            s = ssl.wrap_socket(socket.socket(socket.AF_INET),
+                                cert_reqs=ssl.CERT_REQUIRED,
+                                ca_certs=SVN_PYTHON_ORG_ROOT_CERT,
+                                do_handshake_on_connect=False)
+            try:
+                s.setblocking(False)
+                rc = s.connect_ex(('svn.python.org', 443))
+                # EWOULDBLOCK under Windows, EINPROGRESS elsewhere
+                self.assertIn(rc, (0, errno.EINPROGRESS, errno.EWOULDBLOCK))
+                # Wait for connect to finish
+                select.select([], [s], [], 5.0)
+                # Non-blocking handshake
+                while True:
+                    try:
+                        s.do_handshake()
+                        break
+                    except ssl.SSLError as err:
+                        if err.args[0] == ssl.SSL_ERROR_WANT_READ:
+                            select.select([s], [], [], 5.0)
+                        elif err.args[0] == ssl.SSL_ERROR_WANT_WRITE:
+                            select.select([], [s], [], 5.0)
+                        else:
+                            raise
+                # SSL established
+                self.assertTrue(s.getpeercert())
+            finally:
+                s.close()
+
+    def test_timeout_connect_ex(self):
+        # Issue #12065: on a timeout, connect_ex() should return the original
+        # errno (mimicking the behaviour of non-SSL sockets).
+        with support.transient_internet("svn.python.org"):
+            s = ssl.wrap_socket(socket.socket(socket.AF_INET),
+                                cert_reqs=ssl.CERT_REQUIRED,
+                                ca_certs=SVN_PYTHON_ORG_ROOT_CERT,
+                                do_handshake_on_connect=False)
+            try:
+                s.settimeout(0.0000001)
+                rc = s.connect_ex(('svn.python.org', 443))
+                if rc == 0:
+                    self.skipTest("svn.python.org responded too quickly")
+                self.assertIn(rc, (errno.EAGAIN, errno.EWOULDBLOCK))
             finally:
                 s.close()
 
@@ -1137,6 +1222,7 @@ else:
                 t.join()
 
         @skip_if_broken_ubuntu_ssl
+        @unittest.skipUnless(hasattr(ssl, 'PROTOCOL_SSLv2'), "need SSLv2")
         def test_protocol_sslv2(self):
             """Connecting to an SSLv2 server with various client options"""
             if support.verbose:
@@ -1162,14 +1248,15 @@ else:
             """Connecting to an SSLv23 server with various client options"""
             if support.verbose:
                 sys.stdout.write("\n")
-            try:
-                try_protocol_combo(ssl.PROTOCOL_SSLv23, ssl.PROTOCOL_SSLv2, True)
-            except (ssl.SSLError, socket.error) as x:
-                # this fails on some older versions of OpenSSL (0.9.7l, for instance)
-                if support.verbose:
-                    sys.stdout.write(
-                        " SSL2 client to SSL23 server test unexpectedly failed:\n %s\n"
-                        % str(x))
+            if hasattr(ssl, 'PROTOCOL_SSLv2'):
+                try:
+                    try_protocol_combo(ssl.PROTOCOL_SSLv23, ssl.PROTOCOL_SSLv2, True)
+                except (ssl.SSLError, socket.error) as x:
+                    # this fails on some older versions of OpenSSL (0.9.7l, for instance)
+                    if support.verbose:
+                        sys.stdout.write(
+                            " SSL2 client to SSL23 server test unexpectedly failed:\n %s\n"
+                            % str(x))
             try_protocol_combo(ssl.PROTOCOL_SSLv23, ssl.PROTOCOL_SSLv3, True)
             try_protocol_combo(ssl.PROTOCOL_SSLv23, ssl.PROTOCOL_SSLv23, True)
             try_protocol_combo(ssl.PROTOCOL_SSLv23, ssl.PROTOCOL_TLSv1, True)
@@ -1200,7 +1287,8 @@ else:
             try_protocol_combo(ssl.PROTOCOL_SSLv3, ssl.PROTOCOL_SSLv3, True)
             try_protocol_combo(ssl.PROTOCOL_SSLv3, ssl.PROTOCOL_SSLv3, True, ssl.CERT_OPTIONAL)
             try_protocol_combo(ssl.PROTOCOL_SSLv3, ssl.PROTOCOL_SSLv3, True, ssl.CERT_REQUIRED)
-            try_protocol_combo(ssl.PROTOCOL_SSLv3, ssl.PROTOCOL_SSLv2, False)
+            if hasattr(ssl, 'PROTOCOL_SSLv2'):
+                try_protocol_combo(ssl.PROTOCOL_SSLv3, ssl.PROTOCOL_SSLv2, False)
             try_protocol_combo(ssl.PROTOCOL_SSLv3, ssl.PROTOCOL_SSLv23, False)
             try_protocol_combo(ssl.PROTOCOL_SSLv3, ssl.PROTOCOL_TLSv1, False)
             if no_sslv2_implies_sslv3_hello():
@@ -1216,7 +1304,8 @@ else:
             try_protocol_combo(ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1, True)
             try_protocol_combo(ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1, True, ssl.CERT_OPTIONAL)
             try_protocol_combo(ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_TLSv1, True, ssl.CERT_REQUIRED)
-            try_protocol_combo(ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_SSLv2, False)
+            if hasattr(ssl, 'PROTOCOL_SSLv2'):
+                try_protocol_combo(ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_SSLv2, False)
             try_protocol_combo(ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_SSLv3, False)
             try_protocol_combo(ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_SSLv23, False)
 

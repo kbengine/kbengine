@@ -1,6 +1,6 @@
 #
 # XML-RPC CLIENT LIBRARY
-# $Id: client.py 87128 2010-12-08 08:04:49Z senthil.kumaran $
+# $Id$
 #
 # an XML-RPC client interface for Python.
 #

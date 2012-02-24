@@ -148,6 +148,8 @@ class Pool(object):
                 processes = cpu_count()
             except NotImplementedError:
                 processes = 1
+        if processes < 1:
+            raise ValueError("Number of processes must be at least 1")
 
         if initializer is not None and not hasattr(initializer, '__call__'):
             raise TypeError('initializer must be a callable')
@@ -322,6 +324,8 @@ class Pool(object):
         while pool._worker_handler._state == RUN and pool._state == RUN:
             pool._maintain_pool()
             time.sleep(0.1)
+        # send sentinel to stop workers
+        pool._taskqueue.put(None)
         debug('worker handler exiting')
 
     @staticmethod
@@ -440,7 +444,6 @@ class Pool(object):
         if self._state == RUN:
             self._state = CLOSE
             self._worker_handler._state = CLOSE
-            self._taskqueue.put(None)
 
     def terminate(self):
         debug('terminating pool')
@@ -474,7 +477,6 @@ class Pool(object):
 
         worker_handler._state = TERMINATE
         task_handler._state = TERMINATE
-        taskqueue.put(None)                 # sentinel
 
         debug('helping task handler/workers to finish')
         cls._help_stuff_finish(inqueue, task_handler, len(pool))
@@ -483,6 +485,11 @@ class Pool(object):
 
         result_handler._state = TERMINATE
         outqueue.put(None)                  # sentinel
+
+        # We must wait for the worker handler to exit before terminating
+        # workers because we don't want workers to be restarted behind our back.
+        debug('joining worker handler')
+        worker_handler.join()
 
         # Terminate workers which haven't already finished.
         if pool and hasattr(pool[0], 'terminate'):
@@ -495,7 +502,7 @@ class Pool(object):
         task_handler.join()
 
         debug('joining result handler')
-        task_handler.join()
+        result_handler.join()
 
         if pool and hasattr(pool[0], 'terminate'):
             debug('joining pool workers')

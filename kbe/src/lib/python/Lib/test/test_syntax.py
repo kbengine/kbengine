@@ -67,6 +67,10 @@ SyntaxError: can't assign to literal
 Traceback (most recent call last):
 SyntaxError: can't assign to literal
 
+>>> b"" = 1
+Traceback (most recent call last):
+SyntaxError: can't assign to literal
+
 >>> `1` = 1
 Traceback (most recent call last):
 SyntaxError: invalid syntax
@@ -237,7 +241,7 @@ SyntaxError: can't assign to function call
 
 Test continue in finally in weird combinations.
 
-continue in for loop under finally shouuld be ok.
+continue in for loop under finally should be ok.
 
     >>> def test():
     ...     try:

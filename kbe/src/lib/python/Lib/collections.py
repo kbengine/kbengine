@@ -27,20 +27,20 @@ class OrderedDict(dict):
     # An inherited dict maps keys to values.
     # The inherited dict provides __getitem__, __len__, __contains__, and get.
     # The remaining methods are order-aware.
-    # Big-O running times for all methods are the same as for regular dictionaries.
+    # Big-O running times for all methods are the same as regular dictionaries.
 
-    # The internal self.__map dictionary maps keys to links in a doubly linked list.
+    # The internal self.__map dict maps keys to links in a doubly linked list.
     # The circular doubly linked list starts and ends with a sentinel element.
     # The sentinel element never gets deleted (this simplifies the algorithm).
-    # The sentinel is stored in self.__hardroot with a weakref proxy in self.__root.
+    # The sentinel is in self.__hardroot with a weakref proxy in self.__root.
     # The prev/next links are weakref proxies (to prevent circular references).
     # Individual links are kept alive by the hard reference in self.__map.
     # Those hard references disappear when a key is deleted from an OrderedDict.
 
     def __init__(self, *args, **kwds):
-        '''Initialize an ordered dictionary.  Signature is the same as for
-        regular dictionaries, but keyword arguments are not recommended
-        because their insertion order is arbitrary.
+        '''Initialize an ordered dictionary.  The signature is the same as
+        regular dictionaries, but keyword arguments are not recommended because
+        their insertion order is arbitrary.
 
         '''
         if len(args) > 1:
@@ -57,8 +57,8 @@ class OrderedDict(dict):
     def __setitem__(self, key, value,
                     dict_setitem=dict.__setitem__, proxy=_proxy, Link=_Link):
         'od.__setitem__(i, y) <==> od[i]=y'
-        # Setting a new item creates a new link which goes at the end of the linked
-        # list, and the inherited dictionary is updated with the new key/value pair.
+        # Setting a new item creates a new link at the end of the linked list,
+        # and the inherited dictionary is updated with the new key/value pair.
         if key not in self:
             self.__map[key] = link = Link()
             root = self.__root
@@ -70,8 +70,8 @@ class OrderedDict(dict):
 
     def __delitem__(self, key, dict_delitem=dict.__delitem__):
         'od.__delitem__(y) <==> del od[y]'
-        # Deleting an existing item uses self.__map to find the link which is
-        # then removed by updating the links in the predecessor and successor nodes.
+        # Deleting an existing item uses self.__map to find the link which gets
+        # removed by updating the links in the predecessor and successor nodes.
         dict_delitem(self, key)
         link = self.__map.pop(key)
         link_prev = link.prev
@@ -151,17 +151,6 @@ class OrderedDict(dict):
             link.next = first
             root.next = first.prev = link
 
-    def __reduce__(self):
-        'Return state information for pickling'
-        items = [[k, self[k]] for k in self]
-        tmp = self.__map, self.__root, self.__hardroot
-        del self.__map, self.__root, self.__hardroot
-        inst_dict = vars(self).copy()
-        self.__map, self.__root, self.__hardroot = tmp
-        if inst_dict:
-            return (self.__class__, (items,), inst_dict)
-        return self.__class__, (items,)
-
     def __sizeof__(self):
         sizeof = _sys.getsizeof
         n = len(self) + 1                       # number of links including root
@@ -180,6 +169,11 @@ class OrderedDict(dict):
     __marker = object()
 
     def pop(self, key, default=__marker):
+        '''od.pop(k[,d]) -> v, remove specified key and return the corresponding
+        value.  If key is not found, d is returned if given, otherwise KeyError
+        is raised.
+
+        '''
         if key in self:
             result = self[key]
             del self[key]
@@ -189,7 +183,7 @@ class OrderedDict(dict):
         return default
 
     def setdefault(self, key, default=None):
-        'OD.setdefault(k[,d]) -> OD.get(k,d), also set OD[k]=d if k not in OD'
+        'od.setdefault(k[,d]) -> od.get(k,d), also set od[k]=d if k not in od'
         if key in self:
             return self[key]
         self[key] = default
@@ -202,20 +196,30 @@ class OrderedDict(dict):
             return '%s()' % (self.__class__.__name__,)
         return '%s(%r)' % (self.__class__.__name__, list(self.items()))
 
+    def __reduce__(self):
+        'Return state information for pickling'
+        items = [[k, self[k]] for k in self]
+        inst_dict = vars(self).copy()
+        for k in vars(OrderedDict()):
+            inst_dict.pop(k, None)
+        if inst_dict:
+            return (self.__class__, (items,), inst_dict)
+        return self.__class__, (items,)
+
     def copy(self):
         'od.copy() -> a shallow copy of od'
         return self.__class__(self)
 
     @classmethod
     def fromkeys(cls, iterable, value=None):
-        '''OD.fromkeys(S[, v]) -> New ordered dictionary with keys from S
-        and values equal to v (which defaults to None).
+        '''OD.fromkeys(S[, v]) -> New ordered dictionary with keys from S.
+        If not specified, the value defaults to None.
 
         '''
-        d = cls()
+        self = cls()
         for key in iterable:
-            d[key] = value
-        return d
+            self[key] = value
+        return self
 
     def __eq__(self, other):
         '''od.__eq__(y) <==> od==y.  Comparison to another OD is order-sensitive
@@ -232,10 +236,64 @@ class OrderedDict(dict):
 ### namedtuple
 ################################################################################
 
+_class_template = '''\
+from builtins import property as _property, tuple as _tuple
+from operator import itemgetter as _itemgetter
+from collections import OrderedDict
+
+class {typename}(tuple):
+    '{typename}({arg_list})'
+
+    __slots__ = ()
+
+    _fields = {field_names!r}
+
+    def __new__(_cls, {arg_list}):
+        'Create new instance of {typename}({arg_list})'
+        return _tuple.__new__(_cls, ({arg_list}))
+
+    @classmethod
+    def _make(cls, iterable, new=tuple.__new__, len=len):
+        'Make a new {typename} object from a sequence or iterable'
+        result = new(cls, iterable)
+        if len(result) != {num_fields:d}:
+            raise TypeError('Expected {num_fields:d} arguments, got %d' % len(result))
+        return result
+
+    def __repr__(self):
+        'Return a nicely formatted representation string'
+        return self.__class__.__name__ + '({repr_fmt})' % self
+
+    def _asdict(self):
+        'Return a new OrderedDict which maps field names to their values'
+        return OrderedDict(zip(self._fields, self))
+
+    __dict__ = property(_asdict)
+
+    def _replace(_self, **kwds):
+        'Return a new {typename} object replacing specified fields with new values'
+        result = _self._make(map(kwds.pop, {field_names!r}, _self))
+        if kwds:
+            raise ValueError('Got unexpected field names: %r' % list(kwds))
+        return result
+
+    def __getnewargs__(self):
+        'Return self as a plain tuple.  Used by copy and pickle.'
+        return tuple(self)
+
+{field_defs}
+'''
+
+_repr_template = '{name}=%r'
+
+_field_template = '''\
+    {name} = _property(_itemgetter({index:d}), doc='Alias for field number {index:d}')
+'''
+
 def namedtuple(typename, field_names, verbose=False, rename=False):
     """Returns a new subclass of tuple with named fields.
 
-    >>> Point = namedtuple('Point', 'x y')
+    >>> Point = namedtuple('Point', ['x', 'y'])
     >>> Point.__doc__                   # docstring for the new class
     'Point(x, y)'
     >>> p = Point(11, y=22)             # instantiate with positional args or keywords
@@ -260,79 +318,54 @@ def namedtuple(typename, field_names, verbose=False, rename=False):
     # generating informative error messages and preventing template injection attacks.
     if isinstance(field_names, str):
         field_names = field_names.replace(',', ' ').split() # names separated by whitespace and/or commas
-    field_names = tuple(map(str, field_names))
+    field_names = list(map(str, field_names))
     if rename:
-        names = list(field_names)
         seen = set()
-        for i, name in enumerate(names):
-            if (not all(c.isalnum() or c=='_' for c in name) or _iskeyword(name)
-                or not name or name[0].isdigit() or name.startswith('_')
+        for index, name in enumerate(field_names):
+            if (not all(c.isalnum() or c=='_' for c in name)
+                or _iskeyword(name)
+                or not name
+                or name[0].isdigit()
+                or name.startswith('_')
                 or name in seen):
-                names[i] = '_%d' % i
+                field_names[index] = '_%d' % index
             seen.add(name)
-        field_names = tuple(names)
-    for name in (typename,) + field_names:
+    for name in [typename] + field_names:
         if not all(c.isalnum() or c=='_' for c in name):
             raise ValueError('Type names and field names can only contain alphanumeric characters and underscores: %r' % name)
         if _iskeyword(name):
             raise ValueError('Type names and field names cannot be a keyword: %r' % name)
         if name[0].isdigit():
             raise ValueError('Type names and field names cannot start with a number: %r' % name)
-    seen_names = set()
+    seen = set()
     for name in field_names:
         if name.startswith('_') and not rename:
             raise ValueError('Field names cannot start with an underscore: %r' % name)
-        if name in seen_names:
+        if name in seen:
             raise ValueError('Encountered duplicate field name: %r' % name)
-        seen_names.add(name)
+        seen.add(name)
 
-    # Create and fill-in the class template
-    numfields = len(field_names)
-    argtxt = repr(field_names).replace("'", "")[1:-1]   # tuple repr without parens or quotes
-    reprtxt = ', '.join('%s=%%r' % name for name in field_names)
-    template = '''class %(typename)s(tuple):
-        '%(typename)s(%(argtxt)s)' \n
-        __slots__ = () \n
-        _fields = %(field_names)r \n
-        def __new__(_cls, %(argtxt)s):
-            'Create new instance of %(typename)s(%(argtxt)s)'
-            return _tuple.__new__(_cls, (%(argtxt)s)) \n
-        @classmethod
-        def _make(cls, iterable, new=tuple.__new__, len=len):
-            'Make a new %(typename)s object from a sequence or iterable'
-            result = new(cls, iterable)
-            if len(result) != %(numfields)d:
-                raise TypeError('Expected %(numfields)d arguments, got %%d' %% len(result))
-            return result \n
-        def __repr__(self):
-            'Return a nicely formatted representation string'
-            return self.__class__.__name__ + '(%(reprtxt)s)' %% self \n
-        def _asdict(self):
-            'Return a new OrderedDict which maps field names to their values'
-            return OrderedDict(zip(self._fields, self)) \n
-        def _replace(_self, **kwds):
-            'Return a new %(typename)s object replacing specified fields with new values'
-            result = _self._make(map(kwds.pop, %(field_names)r, _self))
-            if kwds:
-                raise ValueError('Got unexpected field names: %%r' %% kwds.keys())
-            return result \n
-        def __getnewargs__(self):
-            'Return self as a plain tuple.  Used by copy and pickle.'
-            return tuple(self) \n\n''' % locals()
-    for i, name in enumerate(field_names):
-        template += "        %s = _property(_itemgetter(%d), doc='Alias for field number %d')\n" % (name, i, i)
-    if verbose:
-        print(template)
+    # Fill-in the class template
+    class_definition = _class_template.format(
+        typename = typename,
+        field_names = tuple(field_names),
+        num_fields = len(field_names),
+        arg_list = repr(tuple(field_names)).replace("'", "")[1:-1],
+        repr_fmt = ', '.join(_repr_template.format(name=name) for name in field_names),
+        field_defs = '\n'.join(_field_template.format(index=index, name=name)
+                               for index, name in enumerate(field_names))
+    )
 
     # Execute the template string in a temporary namespace and
     # support tracing utilities by setting a value for frame.f_globals['__name__']
-    namespace = dict(_itemgetter=_itemgetter, __name__='namedtuple_%s' % typename,
-                     OrderedDict=OrderedDict, _property=property, _tuple=tuple)
+    namespace = dict(__name__='namedtuple_%s' % typename)
     try:
-        exec(template, namespace)
+        exec(class_definition, namespace)
     except SyntaxError as e:
-        raise SyntaxError(e.msg + ':\n\n' + template)
+        raise SyntaxError(e.msg + ':\n\n' + class_definition)
     result = namespace[typename]
+    if verbose:
+        print(class_definition)
 
     # For pickling to work, the __module__ variable needs to be set to the frame
     # where the named tuple is created.  Bypass this step in enviroments where
@@ -536,8 +569,8 @@ class Counter(dict):
             self.subtract(kwds)
 
     def copy(self):
-        'Like dict.copy() but returns a Counter instance instead of a dict.'
-        return Counter(self)
+        'Return a shallow copy.'
+        return self.__class__(self)
 
     def __reduce__(self):
         return self.__class__, (dict(self),)
@@ -572,10 +605,13 @@ class Counter(dict):
         if not isinstance(other, Counter):
             return NotImplemented
         result = Counter()
-        for elem in set(self) | set(other):
-            newcount = self[elem] + other[elem]
+        for elem, count in self.items():
+            newcount = count + other[elem]
             if newcount > 0:
                 result[elem] = newcount
+        for elem, count in other.items():
+            if elem not in self and count > 0:
+                result[elem] = count
         return result
 
     def __sub__(self, other):
@@ -588,10 +624,13 @@ class Counter(dict):
         if not isinstance(other, Counter):
             return NotImplemented
         result = Counter()
-        for elem in set(self) | set(other):
-            newcount = self[elem] - other[elem]
+        for elem, count in self.items():
+            newcount = count - other[elem]
             if newcount > 0:
                 result[elem] = newcount
+        for elem, count in other.items():
+            if elem not in self and count < 0:
+                result[elem] = 0 - count
         return result
 
     def __or__(self, other):
@@ -604,11 +643,14 @@ class Counter(dict):
         if not isinstance(other, Counter):
             return NotImplemented
         result = Counter()
-        for elem in set(self) | set(other):
-            p, q = self[elem], other[elem]
-            newcount = q if p < q else p
+        for elem, count in self.items():
+            other_count = other[elem]
+            newcount = other_count if count < other_count else count
             if newcount > 0:
                 result[elem] = newcount
+        for elem, count in other.items():
+            if elem not in self and count > 0:
+                result[elem] = count
         return result
 
     def __and__(self, other):
@@ -621,14 +663,115 @@ class Counter(dict):
         if not isinstance(other, Counter):
             return NotImplemented
         result = Counter()
-        if len(self) < len(other):
-            self, other = other, self
-        for elem in filter(self.__contains__, other):
-            p, q = self[elem], other[elem]
-            newcount = p if p < q else q
+        for elem, count in self.items():
+            other_count = other[elem]
+            newcount = count if count < other_count else other_count
             if newcount > 0:
                 result[elem] = newcount
         return result
+
+
+########################################################################
+###  ChainMap (helper for configparser)
+########################################################################
+
+class _ChainMap(MutableMapping):
+    ''' A ChainMap groups multiple dicts (or other mappings) together
+    to create a single, updateable view.
+
+    The underlying mappings are stored in a list.  That list is public and can
+    accessed or updated using the *maps* attribute.  There is no other state.
+
+    Lookups search the underlying mappings successively until a key is found.
+    In contrast, writes, updates, and deletions only operate on the first
+    mapping.
+
+    '''
+
+    def __init__(self, *maps):
+        '''Initialize a ChainMap by setting *maps* to the given mappings.
+        If no mappings are provided, a single empty dictionary is used.
+
+        '''
+        self.maps = list(maps) or [{}]          # always at least one map
+
+    def __missing__(self, key):
+        raise KeyError(key)
+
+    def __getitem__(self, key):
+        for mapping in self.maps:
+            try:
+                return mapping[key]             # can't use 'key in mapping' with defaultdict
+            except KeyError:
+                pass
+        return self.__missing__(key)            # support subclasses that define __missing__
+
+    def get(self, key, default=None):
+        return self[key] if key in self else default
+
+    def __len__(self):
+        return len(set().union(*self.maps))     # reuses stored hash values if possible
+
+    def __iter__(self):
+        return iter(set().union(*self.maps))
+
+    def __contains__(self, key):
+        return any(key in m for m in self.maps)
+
+    def __bool__(self):
+        return any(self.maps)
+
+    @_recursive_repr()
+    def __repr__(self):
+        return '{0.__class__.__name__}({1})'.format(
+            self, ', '.join(map(repr, self.maps)))
+
+    @classmethod
+    def fromkeys(cls, iterable, *args):
+        'Create a ChainMap with a single dict created from the iterable.'
+        return cls(dict.fromkeys(iterable, *args))
+
+    def copy(self):
+        'New ChainMap or subclass with a new copy of maps[0] and refs to maps[1:]'
+        return self.__class__(self.maps[0].copy(), *self.maps[1:])
+
+    __copy__ = copy
+
+    def new_child(self):                        # like Django's Context.push()
+        'New ChainMap with a new dict followed by all previous maps.'
+        return self.__class__({}, *self.maps)
+
+    @property
+    def parents(self):                          # like Django's Context.pop()
+        'New ChainMap from maps[1:].'
+        return self.__class__(*self.maps[1:])
+
+    def __setitem__(self, key, value):
+        self.maps[0][key] = value
+
+    def __delitem__(self, key):
+        try:
+            del self.maps[0][key]
+        except KeyError:
+            raise KeyError('Key not found in the first mapping: {!r}'.format(key))
+
+    def popitem(self):
+        'Remove and return an item pair from maps[0]. Raise KeyError is maps[0] is empty.'
+        try:
+            return self.maps[0].popitem()
+        except KeyError:
+            raise KeyError('No keys found in the first mapping.')
+
+    def pop(self, key, *args):
+        'Remove *key* from maps[0] and return its value. Raise KeyError if *key* not in maps[0].'
+        try:
+            return self.maps[0].pop(key, *args)
+        except KeyError:
+            raise KeyError('Key not found in the first mapping: {!r}'.format(key))
+
+    def clear(self):
+        'Clear maps[0], leaving maps[1:] intact.'
+        self.maps[0].clear()
 
 
 ################################################################################

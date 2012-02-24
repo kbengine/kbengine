@@ -62,8 +62,6 @@ import _ssl             # if we can't import it, let the error propagate
 from _ssl import OPENSSL_VERSION_NUMBER, OPENSSL_VERSION_INFO, OPENSSL_VERSION
 from _ssl import _SSLContext, SSLError
 from _ssl import CERT_NONE, CERT_OPTIONAL, CERT_REQUIRED
-from _ssl import (PROTOCOL_SSLv2, PROTOCOL_SSLv3, PROTOCOL_SSLv23,
-                  PROTOCOL_TLSv1)
 from _ssl import OP_ALL, OP_NO_SSLv2, OP_NO_SSLv3, OP_NO_TLSv1
 from _ssl import RAND_status, RAND_egd, RAND_add
 from _ssl import (
@@ -78,6 +76,20 @@ from _ssl import (
     SSL_ERROR_INVALID_ERROR_CODE,
     )
 from _ssl import HAS_SNI
+from _ssl import PROTOCOL_SSLv3, PROTOCOL_SSLv23, PROTOCOL_TLSv1
+from _ssl import _OPENSSL_API_VERSION
+
+_PROTOCOL_NAMES = {
+    PROTOCOL_TLSv1: "TLSv1",
+    PROTOCOL_SSLv23: "SSLv23",
+    PROTOCOL_SSLv3: "SSLv3",
+}
+try:
+    from _ssl import PROTOCOL_SSLv2
+except ImportError:
+    pass
+else:
+    _PROTOCOL_NAMES[PROTOCOL_SSLv2] = "SSLv2"
 
 from socket import getnameinfo as _getnameinfo
 from socket import error as socket_error
@@ -122,8 +134,9 @@ def match_hostname(cert, hostname):
             if _dnsname_to_pat(value).match(hostname):
                 return
             dnsnames.append(value)
-    if not san:
-        # The subject is only checked when subjectAltName is empty
+    if not dnsnames:
+        # The subject is only checked when there is no dNSName entry
+        # in subjectAltName
         for sub in cert.get('subject', ()):
             for key, value in sub:
                 # XXX according to RFC 2818, the most specific Common Name
@@ -237,6 +250,7 @@ class SSLSocket(socket):
 
         self._closed = False
         self._sslobj = None
+        self._connected = connected
         if connected:
             # create the SSL object
             try:
@@ -430,23 +444,38 @@ class SSLSocket(socket):
         finally:
             self.settimeout(timeout)
 
-    def connect(self, addr):
-        """Connects to remote ADDR, and then wraps the connection in
-        an SSL channel."""
+    def _real_connect(self, addr, connect_ex):
         if self.server_side:
             raise ValueError("can't connect in server-side mode")
         # Here we assume that the socket is client-side, and not
         # connected at the time of the call.  We connect it, then wrap it.
-        if self._sslobj:
+        if self._connected:
             raise ValueError("attempt to connect already-connected SSLSocket!")
-        socket.connect(self, addr)
         self._sslobj = self.context._wrap_socket(self, False, self.server_hostname)
         try:
-            if self.do_handshake_on_connect:
-                self.do_handshake()
-        except:
+            if connect_ex:
+                rc = socket.connect_ex(self, addr)
+            else:
+                rc = None
+                socket.connect(self, addr)
+            if not rc:
+                if self.do_handshake_on_connect:
+                    self.do_handshake()
+                self._connected = True
+            return rc
+        except socket_error:
             self._sslobj = None
             raise
+
+    def connect(self, addr):
+        """Connects to remote ADDR, and then wraps the connection in
+        an SSL channel."""
+        self._real_connect(addr, False)
+
+    def connect_ex(self, addr):
+        """Connects to remote ADDR, and then wraps the connection in
+        an SSL channel."""
+        return self._real_connect(addr, True)
 
     def accept(self):
         """Accepts a new connection from a remote client, and returns
@@ -537,13 +566,4 @@ def get_server_certificate(addr, ssl_version=PROTOCOL_SSLv3, ca_certs=None):
     return DER_cert_to_PEM_cert(dercert)
 
 def get_protocol_name(protocol_code):
-    if protocol_code == PROTOCOL_TLSv1:
-        return "TLSv1"
-    elif protocol_code == PROTOCOL_SSLv23:
-        return "SSLv23"
-    elif protocol_code == PROTOCOL_SSLv2:
-        return "SSLv2"
-    elif protocol_code == PROTOCOL_SSLv3:
-        return "SSLv3"
-    else:
-        return "<unknown>"
+    return _PROTOCOL_NAMES.get(protocol_code, '<unknown>')

@@ -303,6 +303,11 @@ class BaseBytesTest(unittest.TestCase):
         self.assertTrue(b.startswith(b"h"))
         self.assertFalse(b.startswith(b"hellow"))
         self.assertFalse(b.startswith(b"ha"))
+        with self.assertRaises(TypeError) as cm:
+            b.startswith([b'h'])
+        exc = str(cm.exception)
+        self.assertIn('bytes', exc)
+        self.assertIn('tuple', exc)
 
     def test_endswith(self):
         b = self.type2test(b'hello')
@@ -312,6 +317,11 @@ class BaseBytesTest(unittest.TestCase):
         self.assertTrue(b.endswith(b"o"))
         self.assertFalse(b.endswith(b"whello"))
         self.assertFalse(b.endswith(b"no"))
+        with self.assertRaises(TypeError) as cm:
+            b.endswith([b'o'])
+        exc = str(cm.exception)
+        self.assertIn('bytes', exc)
+        self.assertIn('tuple', exc)
 
     def test_find(self):
         b = self.type2test(b'mississippi')
@@ -475,6 +485,68 @@ class BaseBytesTest(unittest.TestCase):
         self.assertEqual(self.type2test.maketrans(b'\375\376\377', b'xyz'), transtable)
         self.assertRaises(ValueError, self.type2test.maketrans, b'abc', b'xyzq')
         self.assertRaises(TypeError, self.type2test.maketrans, 'abc', 'def')
+
+    def test_none_arguments(self):
+        # issue 11828
+        b = self.type2test(b'hello')
+        l = self.type2test(b'l')
+        h = self.type2test(b'h')
+        x = self.type2test(b'x')
+        o = self.type2test(b'o')
+
+        self.assertEqual(2, b.find(l, None))
+        self.assertEqual(3, b.find(l, -2, None))
+        self.assertEqual(2, b.find(l, None, -2))
+        self.assertEqual(0, b.find(h, None, None))
+
+        self.assertEqual(3, b.rfind(l, None))
+        self.assertEqual(3, b.rfind(l, -2, None))
+        self.assertEqual(2, b.rfind(l, None, -2))
+        self.assertEqual(0, b.rfind(h, None, None))
+
+        self.assertEqual(2, b.index(l, None))
+        self.assertEqual(3, b.index(l, -2, None))
+        self.assertEqual(2, b.index(l, None, -2))
+        self.assertEqual(0, b.index(h, None, None))
+
+        self.assertEqual(3, b.rindex(l, None))
+        self.assertEqual(3, b.rindex(l, -2, None))
+        self.assertEqual(2, b.rindex(l, None, -2))
+        self.assertEqual(0, b.rindex(h, None, None))
+
+        self.assertEqual(2, b.count(l, None))
+        self.assertEqual(1, b.count(l, -2, None))
+        self.assertEqual(1, b.count(l, None, -2))
+        self.assertEqual(0, b.count(x, None, None))
+
+        self.assertEqual(True, b.endswith(o, None))
+        self.assertEqual(True, b.endswith(o, -2, None))
+        self.assertEqual(True, b.endswith(l, None, -2))
+        self.assertEqual(False, b.endswith(x, None, None))
+
+        self.assertEqual(True, b.startswith(h, None))
+        self.assertEqual(True, b.startswith(l, -2, None))
+        self.assertEqual(True, b.startswith(h, None, -2))
+        self.assertEqual(False, b.startswith(x, None, None))
+
+    def test_find_etc_raise_correct_error_messages(self):
+        # issue 11828
+        b = self.type2test(b'hello')
+        x = self.type2test(b'x')
+        self.assertRaisesRegex(TypeError, r'\bfind\b', b.find,
+                                x, None, None, None)
+        self.assertRaisesRegex(TypeError, r'\brfind\b', b.rfind,
+                                x, None, None, None)
+        self.assertRaisesRegex(TypeError, r'\bindex\b', b.index,
+                                x, None, None, None)
+        self.assertRaisesRegex(TypeError, r'\brindex\b', b.rindex,
+                                x, None, None, None)
+        self.assertRaisesRegex(TypeError, r'\bcount\b', b.count,
+                                x, None, None, None)
+        self.assertRaisesRegex(TypeError, r'\bstartswith\b', b.startswith,
+                                x, None, None, None)
+        self.assertRaisesRegex(TypeError, r'\bendswith\b', b.endswith,
+                                x, None, None, None)
 
 
 class BytesTest(BaseBytesTest):
@@ -755,7 +827,7 @@ class ByteArrayTest(BaseBytesTest):
         self.assertEqual(b.pop(0), ord('w'))
         self.assertEqual(b.pop(-2), ord('r'))
         self.assertRaises(IndexError, lambda: b.pop(10))
-        self.assertRaises(OverflowError, lambda: bytearray().pop())
+        self.assertRaises(IndexError, lambda: bytearray().pop())
         # test for issue #6846
         self.assertEqual(bytearray(b'\xff').pop(), 0xff)
 

@@ -8,8 +8,6 @@ additional features:
   * options set attributes of a passed-in object
 """
 
-__revision__ = "$Id: fancy_getopt.py 83053 2010-07-22 12:50:05Z tarek.ziade $"
-
 import sys, string, re
 import getopt
 from distutils.errors import *

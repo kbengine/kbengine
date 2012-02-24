@@ -21,30 +21,40 @@ import subprocess
 import imp
 import time
 import sysconfig
+import fnmatch
 import logging.handlers
 
 try:
-    import _thread
+    import _thread, threading
 except ImportError:
     _thread = None
+    threading = None
+try:
+    import multiprocessing.process
+except ImportError:
+    multiprocessing = None
+
 
 __all__ = [
     "Error", "TestFailed", "ResourceDenied", "import_module",
     "verbose", "use_resources", "max_memuse", "record_original_stdout",
     "get_original_stdout", "unload", "unlink", "rmtree", "forget",
-    "is_resource_enabled", "requires", "find_unused_port", "bind_port",
+    "is_resource_enabled", "requires", "requires_mac_ver",
+    "find_unused_port", "bind_port",
     "fcmp", "is_jython", "TESTFN", "HOST", "FUZZ", "SAVEDCWD", "temp_cwd",
     "findfile", "sortdict", "check_syntax_error", "open_urlresource",
     "check_warnings", "CleanImport", "EnvironmentVarGuard",
     "TransientResource", "captured_output", "captured_stdout",
+    "captured_stdin", "captured_stderr",
     "time_out", "socket_peer_reset", "ioerror_peer_reset",
     "run_with_locale", 'temp_umask', "transient_internet",
     "set_memlimit", "bigmemtest", "bigaddrspacetest", "BasicTestRunner",
     "run_unittest", "run_doctest", "threading_setup", "threading_cleanup",
     "reap_children", "cpython_only", "check_impl_detail", "get_attribute",
     "swap_item", "swap_attr", "requires_IEEE_754",
-    "TestHandler", "Matcher", "can_symlink", "skip_unless_symlink"]
-
+    "TestHandler", "Matcher", "can_symlink", "skip_unless_symlink",
+    "import_fresh_module", "failfast",
+    ]
 
 class Error(Exception):
     """Base class for regression test exceptions."""
@@ -91,23 +101,20 @@ def import_module(name, deprecated=False):
 def _save_and_remove_module(name, orig_modules):
     """Helper function to save and remove a module from sys.modules
 
-       Return value is True if the module was in sys.modules and
-       False otherwise."""
-    saved = True
-    try:
-        orig_modules[name] = sys.modules[name]
-    except KeyError:
-        saved = False
-    else:
+       Raise ImportError if the module can't be imported."""
+    # try to import the module and raise an error if it can't be imported
+    if name not in sys.modules:
+        __import__(name)
         del sys.modules[name]
-    return saved
-
+    for modname in list(sys.modules):
+        if modname == name or modname.startswith(name + '.'):
+            orig_modules[modname] = sys.modules[modname]
+            del sys.modules[modname]
 
 def _save_and_block_module(name, orig_modules):
     """Helper function to save and block a module in sys.modules
 
-       Return value is True if the module was in sys.modules and
-       False otherwise."""
+       Return True if the module was in sys.modules, False otherwise."""
     saved = True
     try:
         orig_modules[name] = sys.modules[name]
@@ -123,14 +130,15 @@ def import_fresh_module(name, fresh=(), blocked=(), deprecated=False):
     the sys.modules cache is restored to its original state.
 
     Modules named in fresh are also imported anew if needed by the import.
+    If one of these modules can't be imported, None is returned.
 
     Importing of modules named in blocked is prevented while the fresh import
     takes place.
 
     If deprecated is True, any module or package deprecation messages
     will be suppressed."""
-    # NOTE: test_heapq and test_warnings include extra sanity checks to make
-    # sure that this utility function is working as expected
+    # NOTE: test_heapq, test_json and test_warnings include extra sanity checks
+    # to make sure that this utility function is working as expected
     with _ignore_deprecated_imports(deprecated):
         # Keep track of modules saved for later restoration as well
         # as those which just need a blocking entry removed
@@ -144,6 +152,8 @@ def import_fresh_module(name, fresh=(), blocked=(), deprecated=False):
                 if not _save_and_block_module(blocked_name, orig_modules):
                     names_to_remove.append(blocked_name)
             fresh_module = importlib.import_module(name)
+        except ImportError:
+            fresh_module = None
         finally:
             for orig_name, module in orig_modules.items():
                 sys.modules[orig_name] = module
@@ -167,6 +177,8 @@ use_resources = None     # Flag set to [] by regrtest.py
 max_memuse = 0           # Disable bigmem tests (they will still be run with
                          # small sizes, to make sure they work.)
 real_max_memuse = 0
+failfast = False
+match_tests = None
 
 # _original_stdout is meant to hold stdout at the time regrtest began.
 # This may be "the real" stdout, or IDLE's emulation of stdout, or whatever.
@@ -233,6 +245,36 @@ def forget(modname):
         unlink(imp.cache_from_source(source, debug_override=True))
         unlink(imp.cache_from_source(source, debug_override=False))
 
+# On some platforms, should not run gui test even if it is allowed
+# in `use_resources'.
+if sys.platform.startswith('win'):
+    import ctypes
+    import ctypes.wintypes
+    def _is_gui_available():
+        UOI_FLAGS = 1
+        WSF_VISIBLE = 0x0001
+        class USEROBJECTFLAGS(ctypes.Structure):
+            _fields_ = [("fInherit", ctypes.wintypes.BOOL),
+                        ("fReserved", ctypes.wintypes.BOOL),
+                        ("dwFlags", ctypes.wintypes.DWORD)]
+        dll = ctypes.windll.user32
+        h = dll.GetProcessWindowStation()
+        if not h:
+            raise ctypes.WinError()
+        uof = USEROBJECTFLAGS()
+        needed = ctypes.wintypes.DWORD()
+        res = dll.GetUserObjectInformationW(h,
+            UOI_FLAGS,
+            ctypes.byref(uof),
+            ctypes.sizeof(uof),
+            ctypes.byref(needed))
+        if not res:
+            raise ctypes.WinError()
+        return bool(uof.dwFlags & WSF_VISIBLE)
+else:
+    def _is_gui_available():
+        return True
+
 def is_resource_enabled(resource):
     """Test whether a resource is enabled.  Known resources are set by
     regrtest.py."""
@@ -245,6 +287,8 @@ def requires(resource, msg=None):
     possibility of False being returned occurs when regrtest.py is
     executing.
     """
+    if resource == 'gui' and not _is_gui_available():
+        raise unittest.SkipTest("Cannot use the 'gui' resource")
     # see if the caller's module is __main__ - if so, treat as if
     # the resource was set
     if sys._getframe(1).f_globals.get("__name__") == "__main__":
@@ -253,6 +297,33 @@ def requires(resource, msg=None):
         if msg is None:
             msg = "Use of the `%s' resource not enabled" % resource
         raise ResourceDenied(msg)
+
+def requires_mac_ver(*min_version):
+    """Decorator raising SkipTest if the OS is Mac OS X and the OS X
+    version if less than min_version.
+
+    For example, @requires_mac_ver(10, 5) raises SkipTest if the OS X version
+    is lesser than 10.5.
+    """
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kw):
+            if sys.platform == 'darwin':
+                version_txt = platform.mac_ver()[0]
+                try:
+                    version = tuple(map(int, version_txt.split('.')))
+                except ValueError:
+                    pass
+                else:
+                    if version < min_version:
+                        min_version_txt = '.'.join(map(str, min_version))
+                        raise unittest.SkipTest(
+                            "Mac OS X %s or higher required, not %s"
+                            % (min_version_txt, version_txt))
+            return func(*args, **kw)
+        wrapper.min_version = min_version
+        return wrapper
+    return decorator
 
 HOST = 'localhost'
 
@@ -805,8 +876,11 @@ def transient_internet(resource_name, *, timeout=30.0, errnos=()):
         ('ETIMEDOUT', 110),
     ]
     default_gai_errnos = [
+        ('EAI_AGAIN', -3),
         ('EAI_NONAME', -2),
         ('EAI_NODATA', -5),
+        # Encountered when trying to resolve IPv6-only hostnames
+        ('WSANO_DATA', 11004),
     ]
 
     denied = ResourceDenied("Resource '%s' is not available" % resource_name)
@@ -856,14 +930,8 @@ def transient_internet(resource_name, *, timeout=30.0, errnos=()):
 
 @contextlib.contextmanager
 def captured_output(stream_name):
-    """Run the 'with' statement body using a StringIO object in place of a
-    specific attribute on the sys module.
-    Example use (with 'stream_name=stdout')::
-
-       with captured_stdout() as s:
-           print("hello")
-       assert s.getvalue() == "hello"
-    """
+    """Return a context manager used by captured_stdout/stdin/stderr
+    that temporarily replaces the sys stream *stream_name* with a StringIO."""
     import io
     orig_stdout = getattr(sys, stream_name)
     setattr(sys, stream_name, io.StringIO())
@@ -873,6 +941,12 @@ def captured_output(stream_name):
         setattr(sys, stream_name, orig_stdout)
 
 def captured_stdout():
+    """Capture the output of sys.stdout:
+
+       with captured_stdout() as s:
+           print("hello")
+       self.assertEqual(s.getvalue(), "hello")
+    """
     return captured_output("stdout")
 
 def captured_stderr():
@@ -880,6 +954,7 @@ def captured_stderr():
 
 def captured_stdin():
     return captured_output("stdin")
+
 
 def gc_collect():
     """Force as many objects as possible to be collected.
@@ -1063,6 +1138,8 @@ def _id(obj):
     return obj
 
 def requires_resource(resource):
+    if resource == 'gui' and not _is_gui_available():
+        return unittest.skip("resource 'gui' is not available")
     if is_resource_enabled(resource):
         return _id
     else:
@@ -1108,11 +1185,24 @@ def check_impl_detail(**guards):
     return guards.get(platform.python_implementation().lower(), default)
 
 
+def _filter_suite(suite, pred):
+    """Recursively filter test cases in a suite based on a predicate."""
+    newtests = []
+    for test in suite._tests:
+        if isinstance(test, unittest.TestSuite):
+            _filter_suite(test, pred)
+            newtests.append(test)
+        else:
+            if pred(test):
+                newtests.append(test)
+    suite._tests = newtests
+
 
 def _run_suite(suite):
     """Run tests from a unittest.TestSuite-derived class."""
     if verbose:
-        runner = unittest.TextTestRunner(sys.stdout, verbosity=2)
+        runner = unittest.TextTestRunner(sys.stdout, verbosity=2,
+                                         failfast=failfast)
     else:
         runner = BasicTestRunner()
 
@@ -1142,6 +1232,14 @@ def run_unittest(*classes):
             suite.addTest(cls)
         else:
             suite.addTest(unittest.makeSuite(cls))
+    def case_pred(test):
+        if match_tests is None:
+            return True
+        for name in test.id().split("."):
+            if fnmatch.fnmatchcase(name, match_tests):
+                return True
+        return False
+    _filter_suite(suite, case_pred)
     _run_suite(suite)
 
 
@@ -1163,16 +1261,9 @@ def run_doctest(module, verbosity=None):
     else:
         verbosity = None
 
-    # Direct doctest output (normally just errors) to real stdout; doctest
-    # output shouldn't be compared by regrtest.
-    save_stdout = sys.stdout
-    sys.stdout = get_original_stdout()
-    try:
-        f, t = doctest.testmod(module, verbose=verbosity)
-        if f:
-            raise TestFailed("%d of %d doctests failed" % (f, t))
-    finally:
-        sys.stdout = save_stdout
+    f, t = doctest.testmod(module, verbose=verbosity)
+    if f:
+        raise TestFailed("%d of %d doctests failed" % (f, t))
     if verbose:
         print('doctest (%s) ... %d tests with zero failures' %
               (module.__name__, t))
@@ -1214,19 +1305,20 @@ def modules_cleanup(oldmodules):
 
 def threading_setup():
     if _thread:
-        return _thread._count(),
+        return _thread._count(), threading._dangling.copy()
     else:
-        return 1,
+        return 1, ()
 
-def threading_cleanup(nb_threads):
+def threading_cleanup(*original_values):
     if not _thread:
         return
     _MAX_COUNT = 10
     for count in range(_MAX_COUNT):
-        n = _thread._count()
-        if n == nb_threads:
+        values = _thread._count(), threading._dangling
+        if values == original_values:
             break
         time.sleep(0.1)
+        gc_collect()
     # XXX print a warning in case of failure?
 
 def reap_threads(func):
@@ -1420,11 +1512,14 @@ def can_symlink():
     global _can_symlink
     if _can_symlink is not None:
         return _can_symlink
+    symlink_path = TESTFN + "can_symlink"
     try:
-        os.symlink(TESTFN, TESTFN + "can_symlink")
+        os.symlink(TESTFN, symlink_path)
         can = True
-    except (OSError, NotImplementedError):
+    except (OSError, NotImplementedError, AttributeError):
         can = False
+    else:
+        os.remove(symlink_path)
     _can_symlink = can
     return can
 
@@ -1433,3 +1528,36 @@ def skip_unless_symlink(test):
     ok = can_symlink()
     msg = "Requires functional symlink implementation"
     return test if ok else unittest.skip(msg)(test)
+
+def patch(test_instance, object_to_patch, attr_name, new_value):
+    """Override 'object_to_patch'.'attr_name' with 'new_value'.
+
+    Also, add a cleanup procedure to 'test_instance' to restore
+    'object_to_patch' value for 'attr_name'.
+    The 'attr_name' should be a valid attribute for 'object_to_patch'.
+
+    """
+    # check that 'attr_name' is a real attribute for 'object_to_patch'
+    # will raise AttributeError if it does not exist
+    getattr(object_to_patch, attr_name)
+
+    # keep a copy of the old value
+    attr_is_local = False
+    try:
+        old_value = object_to_patch.__dict__[attr_name]
+    except (AttributeError, KeyError):
+        old_value = getattr(object_to_patch, attr_name, None)
+    else:
+        attr_is_local = True
+
+    # restore the value when the test is done
+    def cleanup():
+        if attr_is_local:
+            setattr(object_to_patch, attr_name, old_value)
+        else:
+            delattr(object_to_patch, attr_name)
+
+    test_instance.addCleanup(cleanup)
+
+    # actually override the attribute
+    setattr(object_to_patch, attr_name, new_value)
