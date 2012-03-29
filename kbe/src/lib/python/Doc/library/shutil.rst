@@ -101,8 +101,9 @@ Directory and files operations
    :func:`copy2`.
 
    If *symlinks* is true, symbolic links in the source tree are represented as
-   symbolic links in the new tree; if false or omitted, the contents of the
-   linked files are copied to the new tree.
+   symbolic links in the new tree, but the metadata of the original links is NOT
+   copied; if false or omitted, the contents and metadata of the linked files
+   are copied to the new tree.
 
    When *symlinks* is false, if the file pointed by the symlink doesn't
    exist, a exception will be added in the list of errors raised in
@@ -159,17 +160,25 @@ Directory and files operations
 
 .. function:: move(src, dst)
 
-   Recursively move a file or directory to another location.
+   Recursively move a file or directory (*src*) to another location (*dst*).
 
-   If the destination is on the current filesystem, then simply use rename.
-   Otherwise, copy src (with :func:`copy2`) to the dst and then remove src.
+   If the destination is a directory or a symlink to a directory, then *src* is
+   moved inside that directory.
+
+   The destination directory must not already exist.  If the destination already
+   exists but is not a directory, it may be overwritten depending on
+   :func:`os.rename` semantics.
+
+   If the destination is on the current filesystem, then :func:`os.rename` is
+   used.  Otherwise, *src* is copied (using :func:`copy2`) to *dst* and then
+   removed.
 
 
 .. exception:: Error
 
-   This exception collects exceptions that raised during a multi-file operation. For
-   :func:`copytree`, the exception argument is a list of 3-tuples (*srcname*,
-   *dstname*, *exception*).
+   This exception collects exceptions that are raised during a multi-file
+   operation. For :func:`copytree`, the exception argument is a list of 3-tuples
+   (*srcname*, *dstname*, *exception*).
 
 
 .. _shutil-example:
@@ -267,7 +276,7 @@ Archiving operations
 
 .. function:: get_archive_formats()
 
-   Returns a list of supported formats for archiving.
+   Return a list of supported formats for archiving.
    Each element of the returned sequence is a tuple ``(name, description)``
 
    By default :mod:`shutil` provides these formats:
@@ -285,7 +294,7 @@ Archiving operations
 
 .. function:: register_archive_format(name, function, [extra_args, [description]])
 
-   Registers an archiver for the format *name*. *function* is a callable that
+   Register an archiver for the format *name*. *function* is a callable that
    will be used to invoke the archiver.
 
    If given, *extra_args* is a sequence of ``(name, value)`` pairs that will be

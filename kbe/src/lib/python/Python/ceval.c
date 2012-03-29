@@ -26,7 +26,7 @@
 
 typedef unsigned long long uint64;
 
-/* PowerPC suppport.
+/* PowerPC support.
    "__ppc__" appears to be the preprocessor definition to detect on OS X, whereas
    "__powerpc__" appears to be the correct one for Linux with GCC
 */
@@ -440,6 +440,12 @@ PyEval_RestoreThread(PyThreadState *tstate)
     if (gil_created()) {
         int err = errno;
         take_gil(tstate);
+        /* _Py_Finalizing is protected by the GIL */
+        if (_Py_Finalizing && tstate != _Py_Finalizing) {
+            drop_gil(tstate);
+            PyThread_exit_thread();
+            assert(0);  /* unreachable */
+        }
         errno = err;
     }
 #endif
@@ -1139,6 +1145,23 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
         f->f_exc_traceback = tmp; \
     }
 
+#define RESTORE_AND_CLEAR_EXC_STATE() \
+    { \
+        PyObject *type, *value, *tb; \
+        type = tstate->exc_type; \
+        value = tstate->exc_value; \
+        tb = tstate->exc_traceback; \
+        tstate->exc_type = f->f_exc_type; \
+        tstate->exc_value = f->f_exc_value; \
+        tstate->exc_traceback = f->f_exc_traceback; \
+        f->f_exc_type = NULL; \
+        f->f_exc_value = NULL; \
+        f->f_exc_traceback = NULL; \
+        Py_XDECREF(type); \
+        Py_XDECREF(value); \
+        Py_XDECREF(tb); \
+    }
+
 /* Start of code */
 
     if (f == NULL)
@@ -1282,7 +1305,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
         if (_Py_atomic_load_relaxed(&eval_breaker)) {
             if (*next_instr == SETUP_FINALLY) {
                 /* Make the last opcode before
-                   a try: finally: block uninterruptable. */
+                   a try: finally: block uninterruptible. */
                 goto fast_next_opcode;
             }
             tstate->tick_counter++;
@@ -1875,10 +1898,6 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             retval = POP();
             f->f_stacktop = stack_pointer;
             why = WHY_YIELD;
-            /* Put aside the current exception state and restore
-               that of the calling frame. This only serves when
-               "yield" is used inside an except handler. */
-            SWAP_EXC_STATE();
             goto fast_yield;
 
         TARGET(POP_EXCEPT)
@@ -3015,6 +3034,26 @@ fast_block_end:
         retval = NULL;
 
 fast_yield:
+    if (co->co_flags & CO_GENERATOR && (why == WHY_YIELD || why == WHY_RETURN)) {
+        /* The purpose of this block is to put aside the generator's exception
+           state and restore that of the calling frame. If the current
+           exception state is from the caller, we clear the exception values
+           on the generator frame, so they are not swapped back in latter. The
+           origin of the current exception state is determined by checking for
+           except handler blocks, which we must be in iff a new exception
+           state came into existence in this frame. (An uncaught exception
+           would have why == WHY_EXCEPTION, and we wouldn't be here). */
+        int i;
+        for (i = 0; i < f->f_iblock; i++)
+            if (f->f_blockstack[i].b_type == EXCEPT_HANDLER)
+                break;
+        if (i == f->f_iblock)
+            /* We did not create this exception. */
+            RESTORE_AND_CLEAR_EXC_STATE()
+        else
+            SWAP_EXC_STATE()
+    }
+
     if (tstate->use_tracing) {
         if (tstate->c_tracefunc) {
             if (why == WHY_RETURN || why == WHY_YIELD) {
@@ -3374,6 +3413,13 @@ do_raise(PyObject *exc, PyObject *cause)
         value = PyObject_CallObject(exc, NULL);
         if (value == NULL)
             goto raise_error;
+        if (!PyExceptionInstance_Check(value)) {
+            PyErr_Format(PyExc_TypeError,
+                         "calling %R should have returned an instance of "
+                         "BaseException, not %R",
+                         type, Py_TYPE(value));
+            goto raise_error;
+        }
     }
     else if (PyExceptionInstance_Check(exc)) {
         value = exc;

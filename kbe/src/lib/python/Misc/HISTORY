@@ -4375,7 +4375,7 @@ Tests
   platforms that use the Makefile.
 
 - SF patch 995225:  The test file testtar.tar accidentally contained
-  CVS keywords (like $Id: HISTORY 78959 2010-03-14 10:56:14Z georg.brandl $), which could cause spurious failures in
+  CVS keywords (like $Id$), which could cause spurious failures in
   test_tarfile.py depending on how the test file was checked out.
 
 

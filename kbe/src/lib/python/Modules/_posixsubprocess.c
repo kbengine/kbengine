@@ -69,6 +69,13 @@ static void child_exec(char *const exec_array[],
     }
     POSIX_CALL(close(errpipe_read));
 
+    /* When duping fds, if there arises a situation where one of the fds is
+       either 0, 1 or 2, it is possible that it is overwritten (#12607). */
+    if (c2pwrite == 0)
+        POSIX_CALL(c2pwrite = dup(c2pwrite));
+    if (errwrite == 0 || errwrite == 1)
+        POSIX_CALL(errwrite = dup(errwrite));
+
     /* Dup fds for child.
        dup2() removes the CLOEXEC flag but we must do it ourselves if dup2()
        would be a no-op (issue #10806). */
@@ -99,10 +106,10 @@ static void child_exec(char *const exec_array[],
     if (p2cread > 2) {
         POSIX_CALL(close(p2cread));
     }
-    if (c2pwrite > 2) {
+    if (c2pwrite > 2 && c2pwrite != p2cread) {
         POSIX_CALL(close(c2pwrite));
     }
-    if (errwrite != c2pwrite && errwrite > 2) {
+    if (errwrite != c2pwrite && errwrite != p2cread && errwrite > 2) {
         POSIX_CALL(close(errwrite));
     }
 

@@ -307,7 +307,7 @@ builtin_bin(PyObject *self, PyObject *v)
 PyDoc_STRVAR(bin_doc,
 "bin(number) -> string\n\
 \n\
-Return the binary representation of an integer or long integer.");
+Return the binary representation of an integer.");
 
 
 static PyObject *
@@ -1192,7 +1192,7 @@ builtin_hex(PyObject *self, PyObject *v)
 PyDoc_STRVAR(hex_doc,
 "hex(number) -> string\n\
 \n\
-Return the hexadecimal representation of an integer or long integer.");
+Return the hexadecimal representation of an integer.");
 
 
 static PyObject *
@@ -1380,7 +1380,7 @@ builtin_oct(PyObject *self, PyObject *v)
 PyDoc_STRVAR(oct_doc,
 "oct(number) -> string\n\
 \n\
-Return the octal representation of an integer or long integer.");
+Return the octal representation of an integer.");
 
 
 static PyObject *
@@ -1621,6 +1621,7 @@ builtin_input(PyObject *self, PyObject *args)
         PyObject *stdin_encoding;
         char *stdin_encoding_str;
         PyObject *result;
+        size_t len;
 
         stdin_encoding = PyObject_GetAttrString(fin, "encoding");
         if (!stdin_encoding)
@@ -1685,19 +1686,23 @@ builtin_input(PyObject *self, PyObject *args)
             Py_DECREF(stdin_encoding);
             return NULL;
         }
-        if (*s == '\0') {
+
+        len = strlen(s);
+        if (len == 0) {
             PyErr_SetNone(PyExc_EOFError);
             result = NULL;
         }
-        else { /* strip trailing '\n' */
-            size_t len = strlen(s);
+        else {
             if (len > PY_SSIZE_T_MAX) {
                 PyErr_SetString(PyExc_OverflowError,
                                 "input: input too long");
                 result = NULL;
             }
             else {
-                result = PyUnicode_Decode(s, len-1, stdin_encoding_str, NULL);
+                len--;   /* strip trailing '\n' */
+                if (len != 0 && s[len-1] == '\r')
+                    len--;   /* strip trailing '\r' */
+                result = PyUnicode_Decode(s, len, stdin_encoding_str, NULL);
             }
         }
         Py_DECREF(stdin_encoding);

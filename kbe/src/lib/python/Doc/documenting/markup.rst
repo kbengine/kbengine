@@ -98,11 +98,12 @@ following example shows all of the features of this directive type::
 
        Spam or ham the foo.
 
-The signatures of object methods or data attributes should always include the
-type name (``.. method:: FileInput.input(...)``), even if it is obvious from the
-context which type they belong to; this is to enable consistent
-cross-references.  If you describe methods belonging to an abstract protocol,
-such as "context managers", include a (pseudo-)type name too to make the
+The signatures of object methods or data attributes should not include the
+class name, but be nested in a class directive.  The generated files will
+reflect this nesting, and the target identifiers (for HTML output) will use
+both the class and method name, to enable consistent cross-references.  If you
+describe methods belonging to an abstract protocol such as context managers,
+use a class directive with a (pseudo-)type name too to make the
 index entries more informative.
 
 The directives are:
@@ -152,7 +153,7 @@ The directives are:
 
    Describes global data in a module, including both variables and values used
    as "defined constants."  Class and object attributes are not documented
-   using this environment.
+   using this directive.
 
 .. describe:: exception
 
@@ -165,7 +166,7 @@ The directives are:
    parameters, enclosing optional parameters in brackets.  Default values can be
    given if it enhances clarity.  For example::
 
-      .. function:: Timer.repeat([repeat=3[, number=1000000]])
+      .. function:: repeat([repeat=3[, number=1000000]])
 
    Object methods are not documented using this directive. Bound object methods
    placed in the module namespace as part of the public interface of the module
@@ -217,13 +218,30 @@ The directives are:
 
    Describes an object data attribute.  The description should include
    information about the type of the data to be expected and whether it may be
-   changed directly.
+   changed directly.  This directive should be nested in a class directive,
+   like in this example::
+
+      .. class:: Spam
+
+            Description of the class.
+
+            .. data:: ham
+
+               Description of the attribute.
+
+   If is also possible to document an attribute outside of a class directive,
+   for example if the documentation for different attributes and methods is
+   split in multiple sections.  The class name should then be included
+   explicitly::
+
+      .. data:: Spam.eggs
 
 .. describe:: method
 
    Describes an object method.  The parameters should not include the ``self``
    parameter.  The description should include similar information to that
-   described for ``function``.
+   described for ``function``.  This directive should be nested in a class
+   directive, like in the example above.
 
 .. describe:: decoratormethod
 

@@ -10,7 +10,7 @@
 /*
  * Written by Thomas Heller, May 2000
  *
- * $Id: install.c 81032 2010-05-09 15:52:27Z antoine.pitrou $
+ * $Id$
  */
 
 /*
@@ -62,7 +62,7 @@
  * instead showing the user an empty listbox to select something from.
  *
  * Finish the code so that we can use other python installations
- * additionaly to those found in the registry,
+ * additionally to those found in the registry,
  * and then #define USE_OTHER_PYTHON_VERSIONS
  *
  *  - install a help-button, which will display something meaningful
@@ -148,7 +148,7 @@ BOOL pyc_compile, pyo_compile;
    the permissions of the current user. */
 HKEY hkey_root = (HKEY)-1;
 
-BOOL success;                   /* Installation successfull? */
+BOOL success;                   /* Installation successful? */
 char *failure_reason = NULL;
 
 HANDLE hBitmap;
@@ -797,7 +797,7 @@ run_installscript(char *pathname, int argc, char **argv, char **pOutput)
 
     tempname = tempnam(NULL, NULL);
     // We use a static CRT while the Python version we load uses
-    // the CRT from one of various possibile DLLs.  As a result we
+    // the CRT from one of various possible DLLs.  As a result we
     // need to redirect the standard handles using the API rather
     // than the CRT.
     redirected = CreateFile(

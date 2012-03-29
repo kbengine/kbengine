@@ -61,7 +61,7 @@ The module defines the following items:
    time is used.  This module ignores the timestamp when decompressing;
    however, some programs, such as :program:`gunzip`\ , make use of it.
    The format of the timestamp is the same as that of the return value of
-   ``time.time()`` and of the ``st_mtime`` member of the object returned
+   ``time.time()`` and of the ``st_mtime`` attribute of the object returned
    by ``os.stat()``.
 
    Calling a :class:`GzipFile` object's :meth:`close` method does not close
@@ -72,7 +72,7 @@ The module defines the following items:
 
    :class:`GzipFile` supports the :class:`io.BufferedIOBase` interface,
    including iteration and the :keyword:`with` statement.  Only the
-   :meth:`truncate` method isn't implemented.
+   :meth:`read1` and :meth:`truncate` methods aren't implemented.
 
    :class:`GzipFile` also provides the following method:
 

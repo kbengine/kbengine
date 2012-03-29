@@ -157,8 +157,8 @@ any that have been added to the map during asynchronous service) is closed.
 
       Called on listening channels (passive openers) when a connection has been
       established with a new remote endpoint that has issued a :meth:`connect`
-      call for the local endpoint.  *conn* is a *new* socket object usable to
-      send and receive data on the connection, and *address* is the address
+      call for the local endpoint.  *sock* is a *new* socket object usable to
+      send and receive data on the connection, and *addr* is the address
       bound to the socket on the other end of the connection.
 
       .. versionadded:: 3.2
@@ -282,7 +282,8 @@ implement its socket handling::
            asyncore.dispatcher.__init__(self)
            self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
            self.connect( (host, 80) )
-           self.buffer = bytes('GET %s HTTP/1.0\r\n\r\n' % path, 'ascii')
+           self.buffer = bytes('GET %s HTTP/1.0\r\nHost: %s\r\n\r\n' %
+                               (path, host), 'ascii')
 
        def handle_connect(self):
            pass
@@ -309,7 +310,7 @@ implement its socket handling::
 asyncore Example basic echo server
 ----------------------------------
 
-Here is abasic echo server that uses the :class:`dispatcher` class to accept
+Here is a basic echo server that uses the :class:`dispatcher` class to accept
 connections and dispatches the incoming connections to a handler::
 
     import asyncore
@@ -319,7 +320,8 @@ connections and dispatches the incoming connections to a handler::
 
         def handle_read(self):
             data = self.recv(8192)
-            self.send(data)
+            if data:
+                self.send(data)
 
     class EchoServer(asyncore.dispatcher):
 

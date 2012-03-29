@@ -106,9 +106,17 @@ been GPL-compatible; the table below summarizes the various releases.
 +----------------+--------------+------------+------------+-----------------+
 | 3.1.1          | 3.1          | 2009       | PSF        | yes             |
 +----------------+--------------+------------+------------+-----------------+
-| 3.1.2          | 3.1          | 2010       | PSF        | yes             |
+| 3.1.2          | 3.1.1        | 2010       | PSF        | yes             |
++----------------+--------------+------------+------------+-----------------+
+| 3.1.3          | 3.1.2        | 2010       | PSF        | yes             |
++----------------+--------------+------------+------------+-----------------+
+| 3.1.4          | 3.1.3        | 2011       | PSF        | yes             |
 +----------------+--------------+------------+------------+-----------------+
 | 3.2            | 3.1          | 2011       | PSF        | yes             |
++----------------+--------------+------------+------------+-----------------+
+| 3.2.1          | 3.2          | 2011       | PSF        | yes             |
++----------------+--------------+------------+------------+-----------------+
+| 3.2.2          | 3.2.1        | 2011       | PSF        | yes             |
 +----------------+--------------+------------+------------+-----------------+
 
 .. note::
@@ -492,36 +500,6 @@ The :mod:`http.cookies` module contains the following notice::
    PERFORMANCE OF THIS SOFTWARE.
 
 
-Profiling
----------
-
-The :mod:`profile` and :mod:`pstats` modules contain the following notice::
-
-   Copyright 1994, by InfoSeek Corporation, all rights reserved.
-   Written by James Roskind
-
-   Permission to use, copy, modify, and distribute this Python software
-   and its associated documentation for any purpose (subject to the
-   restriction in the following sentence) without fee is hereby granted,
-   provided that the above copyright notice appears in all copies, and
-   that both that copyright notice and this permission notice appear in
-   supporting documentation, and that the name of InfoSeek not be used in
-   advertising or publicity pertaining to distribution of the software
-   without specific, written prior permission.  This permission is
-   explicitly restricted to the copying and modification of the software
-   to remain in Python, compiled Python, or other languages (such as C)
-   wherein the modified or derived code is exclusively imported into a
-   Python module.
-
-   INFOSEEK CORPORATION DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS
-   SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
-   FITNESS. IN NO EVENT SHALL INFOSEEK CORPORATION BE LIABLE FOR ANY
-   SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER
-   RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF
-   CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
-   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-
 Execution tracing
 -----------------
 
@@ -845,7 +823,7 @@ expat
 -----
 
 The :mod:`pyexpat` extension is built using an included copy of the expat
-sources unless the build is configured :option:`--with-system-expat`::
+sources unless the build is configured ``--with-system-expat``::
 
   Copyright (c) 1998, 1999, 2000 Thai Open Source Software Center Ltd
                                  and Clark Cooper
@@ -874,7 +852,7 @@ libffi
 ------
 
 The :mod:`_ctypes` extension is built using an included copy of the libffi
-sources unless the build is configured :option:`--with-system-libffi`::
+sources unless the build is configured ``--with-system-libffi``::
 
    Copyright (c) 1996-2008  Red Hat, Inc and others.
 
@@ -903,7 +881,7 @@ zlib
 ----
 
 The :mod:`zlib` extension is built using an included copy of the zlib
-sources unless the zlib version found on the system is too old to be
+sources if the zlib version found on the system is too old to be
 used for the build::
 
   Copyright (C) 1995-2011 Jean-loup Gailly and Mark Adler

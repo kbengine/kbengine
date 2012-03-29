@@ -10,7 +10,7 @@
 :Release: |release|
 :Date: |today|
 
-.. $Id: 2.6.rst 85272 2010-10-06 10:11:56Z georg.brandl $
+.. $Id$
    Rules for maintenance:
 
    * Anyone can add text to this document.  Do not spend very much time

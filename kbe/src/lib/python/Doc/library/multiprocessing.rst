@@ -26,7 +26,7 @@ Windows.
 
 .. note::
 
-    Functionality within this package requires that the ``__main__`` method be
+    Functionality within this package requires that the ``__main__`` module be
     importable by the children. This is covered in :ref:`multiprocessing-programming`
     however it is worth pointing out here. This means that some examples, such
     as the :class:`multiprocessing.Pool` examples will not work in the
@@ -869,7 +869,7 @@ object -- see :ref:`multiprocessing-managers`.
 
 .. class:: Semaphore([value])
 
-   A bounded semaphore object: a clone of :class:`threading.Semaphore`.
+   A semaphore object: a clone of :class:`threading.Semaphore`.
 
 .. note::
 
@@ -1609,7 +1609,7 @@ with the :class:`Pool` class.
       the process pool as separate tasks.  The (approximate) size of these
       chunks can be specified by setting *chunksize* to a positive integer.
 
-   .. method:: map_async(func, iterable[, chunksize[, callback]])
+   .. method:: map_async(func, iterable[, chunksize[, callback[, error_callback]]])
 
       A variant of the :meth:`.map` method which returns a result object.
 

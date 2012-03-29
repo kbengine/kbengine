@@ -18,10 +18,10 @@ Turtle graphics is a popular way for introducing programming to kids.  It was
 part of the original Logo programming language developed by Wally Feurzig and
 Seymour Papert in 1966.
 
-Imagine a robotic turtle starting at (0, 0) in the x-y plane.  Give it the
+Imagine a robotic turtle starting at (0, 0) in the x-y plane.  After an ``import turtle``, give it the
 command ``turtle.forward(15)``, and it moves (on-screen!) 15 pixels in the
 direction it is facing, drawing a line as it moves.  Give it the command
-``turtle.left(25)``, and it rotates in-place 25 degrees clockwise.
+``turtle.right(25)``, and it rotates in-place 25 degrees clockwise.
 
 .. sidebar:: Turtle star
 
@@ -2306,9 +2306,11 @@ The demo scripts are:
 | bytedesign     | complex classical            | :func:`tracer`, delay,|
 |                | turtle graphics pattern      | :func:`update`        |
 +----------------+------------------------------+-----------------------+
-| chaos          | graphs verhust dynamics,     | world coordinates     |
-|                | proves that you must not     |                       |
-|                | trust computers' computations|                       |
+| chaos          | graphs Verhulst dynamics,    | world coordinates     |
+|                | shows that computer's        |                       |
+|                | computations can generate    |                       |
+|                | results sometimes against the|                       |
+|                | common sense expectations    |                       |
 +----------------+------------------------------+-----------------------+
 | clock          | analog clock showing time    | turtles as clock's    |
 |                | of your computer             | hands, ontimer        |

@@ -967,6 +967,8 @@ subtype_dealloc(PyObject *self)
     assert(basedealloc);
     basedealloc(self);
 
+    PyType_Modified(type);
+
     /* Can't reference self beyond this point */
     Py_DECREF(type);
 
@@ -1008,7 +1010,7 @@ subtype_dealloc(PyObject *self)
           self has a refcount of 0, and if gc ever gets its hands on it
           (which can happen if any weakref callback gets invoked), it
           looks like trash to gc too, and gc also tries to delete self
-          then.  But we're already deleting self.  Double dealloction is
+          then.  But we're already deleting self.  Double deallocation is
           a subtle disaster.
 
        Q. Why the bizarre (net-zero) manipulation of
@@ -2330,6 +2332,8 @@ PyObject* PyType_FromSpec(PyType_Spec *spec)
     char *res_start = (char*)res;
     PyType_Slot *slot;
 
+    if (res == NULL)
+      return NULL;
     res->ht_name = PyUnicode_FromString(spec->name);
     if (!res->ht_name)
 	goto fail;
@@ -2580,9 +2584,9 @@ static PyMethodDef type_methods[] = {
      PyDoc_STR("__prepare__() -> dict\n"
                "used to create the namespace for the class statement")},
     {"__instancecheck__", type___instancecheck__, METH_O,
-     PyDoc_STR("__instancecheck__() -> check if an object is an instance")},
+     PyDoc_STR("__instancecheck__() -> bool\ncheck if an object is an instance")},
     {"__subclasscheck__", type___subclasscheck__, METH_O,
-     PyDoc_STR("__subclasscheck__() -> check if a class is a subclass")},
+     PyDoc_STR("__subclasscheck__() -> bool\ncheck if a class is a subclass")},
     {0}
 };
 
@@ -2886,7 +2890,7 @@ object_str(PyObject *self)
     unaryfunc f;
 
     f = Py_TYPE(self)->tp_repr;
-    if (f == NULL)
+    if (f == NULL || f == object_str)
         f = object_repr;
     return f(self);
 }
@@ -3428,7 +3432,7 @@ static PyMethodDef object_methods[] = {
     {"__format__", object_format, METH_VARARGS,
      PyDoc_STR("default object formatter")},
     {"__sizeof__", object_sizeof, METH_NOARGS,
-     PyDoc_STR("__sizeof__() -> size of object in memory, in bytes")},
+     PyDoc_STR("__sizeof__() -> int\nsize of object in memory, in bytes")},
     {0}
 };
 
@@ -5935,7 +5939,7 @@ recurse_down_subclasses(PyTypeObject *type, PyObject *name,
    slots compete for the same descriptor (for example both sq_item and
    mp_subscript generate a __getitem__ descriptor).
 
-   In the latter case, the first slotdef entry encoutered wins.  Since
+   In the latter case, the first slotdef entry encountered wins.  Since
    slotdef entries are sorted by the offset of the slot in the
    PyHeapTypeObject, this gives us some control over disambiguating
    between competing slots: the members of PyHeapTypeObject are listed

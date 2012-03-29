@@ -583,6 +583,8 @@ fileio_readall(fileio *self)
     Py_ssize_t total = 0;
     int n;
 
+    if (self->fd < 0)
+        return err_closed();
     if (!_PyVerify_fd(self->fd))
         return PyErr_SetFromErrno(PyExc_IOError);
 
@@ -662,6 +664,10 @@ fileio_read(fileio *self, PyObject *args)
         return fileio_readall(self);
     }
 
+#if defined(MS_WIN64) || defined(MS_WINDOWS)
+    if (size > INT_MAX)
+        size = INT_MAX;
+#endif
     bytes = PyBytes_FromStringAndSize(NULL, size);
     if (bytes == NULL)
         return NULL;
@@ -670,7 +676,11 @@ fileio_read(fileio *self, PyObject *args)
     if (_PyVerify_fd(self->fd)) {
         Py_BEGIN_ALLOW_THREADS
         errno = 0;
+#if defined(MS_WIN64) || defined(MS_WINDOWS)
+        n = read(self->fd, ptr, (int)size);
+#else
         n = read(self->fd, ptr, size);
+#endif
         Py_END_ALLOW_THREADS
     } else
         n = -1;
@@ -712,7 +722,14 @@ fileio_write(fileio *self, PyObject *args)
         errno = 0;
         len = pbuf.len;
 #if defined(MS_WIN64) || defined(MS_WINDOWS)
-        if (len > INT_MAX)
+        if (len > 32767 && isatty(self->fd)) {
+            /* Issue #11395: the Windows console returns an error (12: not
+               enough space error) on writing into stdout if stdout mode is
+               binary and the length is greater than 66,000 bytes (or less,
+               depending on heap usage). */
+            len = 32767;
+        }
+        else if (len > INT_MAX)
             len = INT_MAX;
         n = write(self->fd, pbuf.buf, (int)len);
 #else

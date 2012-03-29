@@ -27,18 +27,17 @@ the same library that the Python runtime is using.
 
 .. c:function:: int Py_Main(int argc, wchar_t **argv)
 
-   The main program for the standard interpreter.  This is made
-   available for programs which embed Python.  The *argc* and *argv*
-   parameters should be prepared exactly as those which are passed to
-   a C program's :c:func:`main` function (converted to wchar_t
-   according to the user's locale).  It is important to note that the
-   argument list may be modified (but the contents of the strings
-   pointed to by the argument list are not). The return value will be
-   the integer passed to the :func:`sys.exit` function, ``1`` if the
-   interpreter exits due to an exception, or ``2`` if the parameter
+   The main program for the standard interpreter.  This is made available for
+   programs which embed Python.  The *argc* and *argv* parameters should be
+   prepared exactly as those which are passed to a C program's :c:func:`main`
+   function (converted to wchar_t according to the user's locale).  It is
+   important to note that the argument list may be modified (but the contents of
+   the strings pointed to by the argument list are not). The return value will
+   be ``0`` if the interpreter exits normally (i.e., without an exception),
+   ``1`` if the interpreter exits due to an exception, or ``2`` if the parameter
    list does not represent a valid Python command line.
 
-   Note that if an otherwise unhandled :exc:`SystemError` is raised, this
+   Note that if an otherwise unhandled :exc:`SystemExit` is raised, this
    function will not return ``1``, but exit the process, as long as
    ``Py_InspectFlag`` is not set.
 
@@ -85,7 +84,7 @@ the same library that the Python runtime is using.
    there was an error, there is no way to get the exception information. For the
    meaning of *flags*, see below.
 
-   Note that if an otherwise unhandled :exc:`SystemError` is raised, this
+   Note that if an otherwise unhandled :exc:`SystemExit` is raised, this
    function will not return ``-1``, but exit the process, as long as
    ``Py_InspectFlag`` is not set.
 

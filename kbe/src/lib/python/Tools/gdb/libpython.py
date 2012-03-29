@@ -905,7 +905,11 @@ class PyFrameObjectPtr(PyObjectPtr):
         if self.is_optimized_out():
             return '(frame information optimized out)'
         filename = self.filename()
-        with open(os_fsencode(filename), 'r') as f:
+        try:
+            f = open(os_fsencode(filename), 'r')
+        except IOError:
+            return None
+        with f:
             all_lines = f.readlines()
             # Convert from 1-based current_line_num to 0-based list offset:
             return all_lines[self.current_line_num()-1]
@@ -930,6 +934,15 @@ class PyFrameObjectPtr(PyObjectPtr):
             pyop_value.write_repr(out, visited)
 
         out.write(')')
+
+    def print_traceback(self):
+        if self.is_optimized_out():
+            sys.stdout.write('  (frame information optimized out)\n')
+        visited = set()
+        sys.stdout.write('  File "%s", line %i, in %s\n'
+                  % (self.co_filename.proxyval(visited),
+                     self.current_line_num(),
+                     self.co_name.proxyval(visited)))
 
 class PySetObjectPtr(PyObjectPtr):
     _typename = 'PySetObject'
@@ -1421,11 +1434,26 @@ class Frame(object):
             if pyop:
                 line = pyop.get_truncated_repr(MAX_OUTPUT_LEN)
                 write_unicode(sys.stdout, '#%i %s\n' % (self.get_index(), line))
-                sys.stdout.write(pyop.current_line())
+                line = pyop.current_line()
+                if line is not None:
+                    sys.stdout.write(line)
             else:
                 sys.stdout.write('#%i (unable to read python frame information)\n' % self.get_index())
         else:
             sys.stdout.write('#%i\n' % self.get_index())
+
+    def print_traceback(self):
+        if self.is_evalframeex():
+            pyop = self.get_pyop()
+            if pyop:
+                pyop.print_traceback()
+                line = pyop.current_line()
+                if line is not None:
+                    sys.stdout.write('    %s\n' % line.strip())
+            else:
+                sys.stdout.write('  (unable to read python frame information)\n')
+        else:
+            sys.stdout.write('  (not a python frame)\n')
 
 class PyList(gdb.Command):
     '''List the current Python source code, if any
@@ -1481,7 +1509,13 @@ class PyList(gdb.Command):
         if start<1:
             start = 1
 
-        with open(os_fsencode(filename), 'r') as f:
+        try:
+            f = open(os_fsencode(filename), 'r')
+        except IOError as err:
+            sys.stdout.write('Unable to open %s: %s\n'
+                             % (filename, err))
+            return
+        with f:
             all_lines = f.readlines()
             # start and end are 1-based, all_lines is 0-based;
             # so [start-1:end] as a python slice gives us [start, end] as a
@@ -1551,6 +1585,24 @@ if hasattr(gdb.Frame, 'select'):
     PyUp()
     PyDown()
 
+class PyBacktraceFull(gdb.Command):
+    'Display the current python frame and all the frames within its call stack (if any)'
+    def __init__(self):
+        gdb.Command.__init__ (self,
+                              "py-bt-full",
+                              gdb.COMMAND_STACK,
+                              gdb.COMPLETE_NONE)
+
+
+    def invoke(self, args, from_tty):
+        frame = Frame.get_selected_python_frame()
+        while frame:
+            if frame.is_evalframeex():
+                frame.print_summary()
+            frame = frame.older()
+
+PyBacktraceFull()
+
 class PyBacktrace(gdb.Command):
     'Display the current python frame and all the frames within its call stack (if any)'
     def __init__(self):
@@ -1561,10 +1613,11 @@ class PyBacktrace(gdb.Command):
 
 
     def invoke(self, args, from_tty):
+        sys.stdout.write('Traceback (most recent call first):\n')
         frame = Frame.get_selected_python_frame()
         while frame:
             if frame.is_evalframeex():
-                frame.print_summary()
+                frame.print_traceback()
             frame = frame.older()
 
 PyBacktrace()

@@ -50,7 +50,7 @@ PyDoc_STRVAR(iobase_doc,
     "stream.\n"
     "\n"
     "IOBase also supports the :keyword:`with` statement. In this example,\n"
-    "fp is closed after the suite of the with statment is complete:\n"
+    "fp is closed after the suite of the with statement is complete:\n"
     "\n"
     "with open('spam.txt', 'r') as fp:\n"
     "    fp.write('Spam and eggs!')\n");
@@ -814,6 +814,14 @@ rawiobase_readall(PyObject *self, PyObject *args)
         if (!data) {
             Py_DECREF(chunks);
             return NULL;
+        }
+        if (data == Py_None) {
+            if (PyList_GET_SIZE(chunks) == 0) {
+                Py_DECREF(chunks);
+                return data;
+            }
+            Py_DECREF(data);
+            break;
         }
         if (!PyBytes_Check(data)) {
             Py_DECREF(chunks);

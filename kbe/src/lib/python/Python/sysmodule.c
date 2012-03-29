@@ -259,8 +259,9 @@ sys_getfilesystemencoding(PyObject *self)
 {
     if (Py_FileSystemDefaultEncoding)
         return PyUnicode_FromString(Py_FileSystemDefaultEncoding);
-    Py_INCREF(Py_None);
-    return Py_None;
+    PyErr_SetString(PyExc_RuntimeError,
+                    "filesystem encoding is not initialized");
+    return NULL;
 }
 
 PyDoc_STRVAR(getfilesystemencoding_doc,
@@ -686,7 +687,7 @@ PyDoc_STRVAR(getwindowsversion_doc,
 Return information about the running version of Windows as a named tuple.\n\
 The members are named: major, minor, build, platform, service_pack,\n\
 service_pack_major, service_pack_minor, suite_mask, and product_type. For\n\
-backward compatibiliy, only the first 5 items are available by indexing.\n\
+backward compatibility, only the first 5 items are available by indexing.\n\
 All elements are numbers, except service_pack which is a string. Platform\n\
 may be 0 for win32s, 1 for Windows 9x/ME, 2 for Windows NT/2000/XP/Vista/7,\n\
 3 for Windows CE. Product_type may be 1 for a workstation, 2 for a domain\n\
@@ -1305,8 +1306,6 @@ settrace() -- set the global debug tracing function\n\
 /* end of sys_doc */ ;
 
 /* Subversion branch and revision management */
-static const char _patchlevel_revision[] = PY_PATCHLEVEL_REVISION;
-static const char headurl[] = "$HeadURL: http://svn.python.org/projects/python/tags/r32/Python/sysmodule.c $";
 static int svn_initialized;
 static char patchlevel_revision[50]; /* Just the number */
 static char branch[50];
@@ -1316,64 +1315,14 @@ static const char *svn_revision;
 static void
 svnversion_init(void)
 {
-    const char *python, *br_start, *br_end, *br_end2, *svnversion;
-    Py_ssize_t len;
-    int istag = 0;
-
     if (svn_initialized)
         return;
 
-    python = strstr(headurl, "/python/");
-    if (!python) {
-        strcpy(branch, "unknown branch");
-        strcpy(shortbranch, "unknown");
-    }
-    else {
-        br_start = python + 8;
-        br_end = strchr(br_start, '/');
-        assert(br_end);
-
-        /* Works even for trunk,
-           as we are in trunk/Python/sysmodule.c */
-        br_end2 = strchr(br_end+1, '/');
-
-        istag = strncmp(br_start, "tags", 4) == 0;
-        if (strncmp(br_start, "trunk", 5) == 0) {
-            strcpy(branch, "trunk");
-            strcpy(shortbranch, "trunk");
-        }
-        else if (istag || strncmp(br_start, "branches", 8) == 0) {
-            len = br_end2 - br_start;
-            strncpy(branch, br_start, len);
-            branch[len] = '\0';
-
-            len = br_end2 - (br_end + 1);
-            strncpy(shortbranch, br_end + 1, len);
-            shortbranch[len] = '\0';
-        }
-        else {
-            Py_FatalError("bad HeadURL");
-            return;
-        }
-    }
-
-
-    svnversion = _Py_svnversion();
-    if (strcmp(svnversion, "Unversioned directory") != 0 && strcmp(svnversion, "exported") != 0)
-        svn_revision = svnversion;
-    else if (istag) {
-        len = strlen(_patchlevel_revision);
-        assert(len >= 13);
-        assert(len < (sizeof(patchlevel_revision) + 13));
-        strncpy(patchlevel_revision, _patchlevel_revision + 11,
-            len - 13);
-        patchlevel_revision[len - 13] = '\0';
-        svn_revision = patchlevel_revision;
-    }
-    else
-        svn_revision = "";
-
     svn_initialized = 1;
+    *patchlevel_revision = '\0';
+    strcpy(branch, "");
+    strcpy(shortbranch, "unknown");
+    svn_revision = "";
 }
 
 /* Return svnversion output if available.
@@ -1600,6 +1549,9 @@ _PySys_Init(void)
     SET_SYS_FROM_STRING("subversion",
                         Py_BuildValue("(sss)", "CPython", branch,
                                       svn_revision));
+    SET_SYS_FROM_STRING("_mercurial",
+                        Py_BuildValue("(szz)", "CPython", _Py_hgidentifier(),
+                                      _Py_hgversion()));
     SET_SYS_FROM_STRING("dont_write_bytecode",
                          PyBool_FromLong(Py_DontWriteBytecodeFlag));
     SET_SYS_FROM_STRING("api_version",

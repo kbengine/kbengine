@@ -52,7 +52,7 @@ The :mod:`csv` module defines the following functions:
    *csvfile* can be any object which supports the :term:`iterator` protocol and returns a
    string each time its :meth:`!__next__` method is called --- :term:`file objects
    <file object>` and list objects are both suitable.   If *csvfile* is a file object,
-   it should be opened with ``newline=''``. [#]_  An optional
+   it should be opened with ``newline=''``. [1]_  An optional
    *dialect* parameter can be given which is used to define a set of parameters
    specific to a particular CSV dialect.  It may be an instance of a subclass of
    the :class:`Dialect` class or one of the strings returned by the
@@ -79,7 +79,8 @@ The :mod:`csv` module defines the following functions:
 
    Return a writer object responsible for converting the user's data into delimited
    strings on the given file-like object.  *csvfile* can be any object with a
-   :func:`write` method.  An optional *dialect*
+   :func:`write` method.  If *csvfile* is a file object, it should be opened with
+   ``newline=''`` [1]_.  An optional *dialect*
    parameter can be given which is used to define a set of parameters specific to a
    particular CSV dialect.  It may be an instance of a subclass of the
    :class:`Dialect` class or one of the strings returned by the
@@ -96,7 +97,7 @@ The :mod:`csv` module defines the following functions:
    A short usage example::
 
       >>> import csv
-      >>> spamWriter = csv.writer(open('eggs.csv', 'w'), delimiter=' ',
+      >>> spamWriter = csv.writer(open('eggs.csv', 'w', newline=''), delimiter=' ',
       ...                         quotechar='|', quoting=csv.QUOTE_MINIMAL)
       >>> spamWriter.writerow(['Spam'] * 5 + ['Baked Beans'])
       >>> spamWriter.writerow(['Spam', 'Lovely Spam', 'Wonderful Spam'])
@@ -419,32 +420,36 @@ Examples
 The simplest example of reading a CSV file::
 
    import csv
-   reader = csv.reader(open("some.csv", newline=''))
-   for row in reader:
-       print(row)
+   with open('some.csv', newline='') as f:
+       reader = csv.reader(f)
+       for row in reader:
+           print(row)
 
 Reading a file with an alternate format::
 
    import csv
-   reader = csv.reader(open("passwd"), delimiter=':', quoting=csv.QUOTE_NONE)
-   for row in reader:
-       print(row)
+   with open('passwd', newline='') as f:
+       reader = csv.reader(f, delimiter=':', quoting=csv.QUOTE_NONE)
+       for row in reader:
+           print(row)
 
 The corresponding simplest possible writing example is::
 
    import csv
-   writer = csv.writer(open("some.csv", "w"))
-   writer.writerows(someiterable)
+   with open('some.csv', 'w', newline='') as f:
+       writer = csv.writer(f)
+       writer.writerows(someiterable)
 
 Since :func:`open` is used to open a CSV file for reading, the file
 will by default be decoded into unicode using the system default
 encoding (see :func:`locale.getpreferredencoding`).  To decode a file
 using a different encoding, use the ``encoding`` argument of open::
 
-    import csv
-    reader = csv.reader(open("some.csv", newline='', encoding='utf-8'))
-    for row in reader:
-        print(row)
+   import csv
+   with open('some.csv', newline='', encoding='utf-8') as f:
+       reader = csv.reader(f)
+       for row in reader:
+           print(row)
 
 The same applies to writing in something other than the system default
 encoding: specify the encoding argument when opening the output file.
@@ -453,18 +458,20 @@ Registering a new dialect::
 
    import csv
    csv.register_dialect('unixpwd', delimiter=':', quoting=csv.QUOTE_NONE)
-   reader = csv.reader(open("passwd"), 'unixpwd')
+   with open('passwd', newline='') as f:
+       reader = csv.reader(f, 'unixpwd')
 
 A slightly more advanced use of the reader --- catching and reporting errors::
 
    import csv, sys
-   filename = "some.csv"
-   reader = csv.reader(open(filename, newline=''))
-   try:
-       for row in reader:
-           print(row)
-   except csv.Error as e:
-       sys.exit('file {}, line {}: {}'.format(filename, reader.line_num, e))
+   filename = 'some.csv'
+   with open(filename, newline='') as f:
+       reader = csv.reader(f)
+       try:
+           for row in reader:
+               print(row)
+       except csv.Error as e:
+           sys.exit('file {}, line {}: {}'.format(filename, reader.line_num, e))
 
 And while the module doesn't directly support parsing strings, it can easily be
 done::
@@ -476,7 +483,7 @@ done::
 
 .. rubric:: Footnotes
 
-.. [#] If ``newline=''`` is not specified, newlines embedded inside quoted fields
-   will not be interpreted correctly.  It should always be safe to specify
-   ``newline=''``, since the csv module does its own universal newline handling
-   on input.
+.. [1] If ``newline=''`` is not specified, newlines embedded inside quoted fields
+   will not be interpreted correctly, and on platforms that use ``\r\n`` linendings
+   on write an extra ``\r`` will be added.  It should always be safe to specify
+   ``newline=''``, since the csv module does its own (universal) newline handling.

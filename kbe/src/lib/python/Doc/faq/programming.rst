@@ -171,7 +171,7 @@ tick of the interpreter's mainloop using highly optimized C implementations.
 Thus to get the same effect as::
 
    L2 = []
-   for i in range[3]:
+   for i in range(3):
        L2.append(L1[i])
 
 it is much shorter and far faster to use ::
@@ -472,15 +472,6 @@ calling another function by using ``*`` and ``**``::
        kwargs['width'] = '14.3c'
        ...
        g(x, *args, **kwargs)
-
-In the unlikely case that you care about Python versions older than 2.0, use
-:func:`apply`::
-
-   def f(x, *args, **kwargs):
-       ...
-       kwargs['width'] = '14.3c'
-       ...
-       apply(g, (x,)+args, kwargs)
 
 
 How do I write a function with output parameters (call by reference)?

@@ -483,6 +483,7 @@ set_context(struct compiling *c, expr_ty e, expr_context_ty ctx, const node *n)
         case Set_kind:
         case Num_kind:
         case Str_kind:
+        case Bytes_kind:
             expr_name = "literal";
             break;
         case Ellipsis_kind:
@@ -2282,7 +2283,7 @@ alias_for_import_name(struct compiling *c, const node *n, int store)
 
  loop:
     switch (TYPE(n)) {
-         case import_as_name: {
+        case import_as_name: {
             node *name_node = CHILD(n, 0);
             str = NULL;
             name = NEW_IDENTIFIER(name_node);

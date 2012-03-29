@@ -290,19 +290,18 @@ are always available.  They are listed here in alphabetical order.
    The resulting list is sorted alphabetically.  For example:
 
       >>> import struct
-      >>> dir()   # doctest: +SKIP
+      >>> dir()   # show the names in the module namespace
       ['__builtins__', '__doc__', '__name__', 'struct']
-      >>> dir(struct)   # doctest: +NORMALIZE_WHITESPACE
+      >>> dir(struct)   # show the names in the struct module
       ['Struct', '__builtins__', '__doc__', '__file__', '__name__',
        '__package__', '_clearcache', 'calcsize', 'error', 'pack', 'pack_into',
        'unpack', 'unpack_from']
-      >>> class Foo:
-      ...     def __dir__(self):
-      ...         return ["kan", "ga", "roo"]
-      ...
-      >>> f = Foo()
-      >>> dir(f)
-      ['ga', 'kan', 'roo']
+      >>> class Shape(object):
+              def __dir__(self):
+                  return ['area', 'perimeter', 'location']
+      >>> s = Shape()
+      >>> dir(s)
+      ['area', 'perimeter', 'location']
 
    .. note::
 
@@ -332,16 +331,21 @@ are always available.  They are listed here in alphabetical order.
    :term:`iterator`, or some other object which supports iteration.  The
    :meth:`__next__` method of the iterator returned by :func:`enumerate` returns a
    tuple containing a count (from *start* which defaults to 0) and the
-   corresponding value obtained from iterating over *iterable*.
-   :func:`enumerate` is useful for obtaining an indexed series: ``(0, seq[0])``,
-   ``(1, seq[1])``, ``(2, seq[2])``, .... For example:
+   values obtained from iterating over *iterable*.
 
-      >>> for i, season in enumerate(['Spring', 'Summer', 'Fall', 'Winter']):
-      ...     print(i, season)
-      0 Spring
-      1 Summer
-      2 Fall
-      3 Winter
+      >>> seasons = ['Spring', 'Summer', 'Fall', 'Winter']
+      >>> list(enumerate(seasons))
+      [(0, 'Spring'), (1, 'Summer'), (2, 'Fall'), (3, 'Winter')]
+      >>> list(enumerate(seasons, start=1))
+      [(1, 'Spring'), (2, 'Summer'), (3, 'Fall'), (4, 'Winter')]
+
+   Equivalent to::
+
+      def enumerate(sequence, start=0):
+          n = start
+          for elem in sequence:
+              yield n, elem
+              n += 1
 
 
 .. function:: eval(expression, globals=None, locals=None)
@@ -498,11 +502,14 @@ are always available.  They are listed here in alphabetical order.
    of the *value* argument, however there is a standard formatting syntax that
    is used by most built-in types: :ref:`formatspec`.
 
-   .. note::
+   The default *format_spec* is an empty string which usually gives the same
+   effect as calling ``str(value)``.
 
-      ``format(value, format_spec)`` merely calls
-      ``value.__format__(format_spec)``.
-
+   A call to ``format(value, format_spec)`` is translated to
+   ``type(value).__format__(format_spec)`` which bypasses the instance
+   dictionary when searching for the value's :meth:`__format__` method.  A
+   :exc:`TypeError` exception is raised if the method is not found or if either
+   the *format_spec* or the return value are not strings.
 
 .. function:: frozenset([iterable])
    :noindex:
@@ -577,7 +584,7 @@ are always available.  They are listed here in alphabetical order.
    Two objects with non-overlapping lifetimes may have the same :func:`id`
    value.
 
-   .. impl-detail:: This is the address of the object.
+   .. impl-detail:: This is the address of the object in memory.
 
 
 .. function:: input([prompt])
@@ -649,10 +656,10 @@ are always available.  They are listed here in alphabetical order.
 
    One useful application of the second form of :func:`iter` is to read lines of
    a file until a certain line is reached.  The following example reads a file
-   until ``"STOP"`` is reached: ::
+   until the :meth:`readline` method returns an empty string::
 
-      with open("mydata.txt") as fp:
-          for line in iter(fp.readline, "STOP"):
+      with open('mydata.txt') as fp:
+          for line in iter(fp.readline, ''):
               process_line(line)
 
 
@@ -1166,8 +1173,9 @@ are always available.  They are listed here in alphabetical order.
    It can be called either on the class (such as ``C.f()``) or on an instance (such
    as ``C().f()``).  The instance is ignored except for its class.
 
-   Static methods in Python are similar to those found in Java or C++. For a more
-   advanced concept, see :func:`classmethod` in this section.
+   Static methods in Python are similar to those found in Java or C++. Also see
+   :func:`classmethod` for a variant that is useful for creating alternate class
+   constructors.
 
    For more information on static methods, consult the documentation on the
    standard type hierarchy in :ref:`types`.
@@ -1266,6 +1274,10 @@ are always available.  They are listed here in alphabetical order.
    argument form specifies the arguments exactly and makes the appropriate
    references.  The zero argument form automatically searches the stack frame
    for the class (``__class__``) and the first argument.
+
+   For practical suggestions on how to design cooperative classes using
+   :func:`super`, see `guide to using super()
+   <http://rhettinger.wordpress.com/2011/05/26/super-considered-super/>`_.
 
 
 .. function:: tuple([iterable])
@@ -1375,7 +1387,7 @@ are always available.  They are listed here in alphabetical order.
    .. note::
 
       This is an advanced function that is not needed in everyday Python
-      programming.
+      programming, unlike :func:`importlib.import_module`.
 
    This function is invoked by the :keyword:`import` statement.  It can be
    replaced (by importing the :mod:`builtins` module and assigning to
@@ -1425,15 +1437,8 @@ are always available.  They are listed here in alphabetical order.
    names.
 
    If you simply want to import a module (potentially within a package) by name,
-   you can call :func:`__import__` and then look it up in :data:`sys.modules`::
+   use :func:`importlib.import_module`.
 
-      >>> import sys
-      >>> name = 'foo.bar.baz'
-      >>> __import__(name)
-      <module 'foo' from ...>
-      >>> baz = sys.modules[name]
-      >>> baz
-      <module 'foo.bar.baz' from ...>
 
 .. rubric:: Footnotes
 

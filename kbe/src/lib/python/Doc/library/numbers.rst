@@ -5,9 +5,9 @@
    :synopsis: Numeric abstract base classes (Complex, Real, Integral, etc.).
 
 
-The :mod:`numbers` module (:pep:`3141`) defines a hierarchy of numeric abstract
-base classes which progressively define more operations.  None of the types
-defined in this module can be instantiated.
+The :mod:`numbers` module (:pep:`3141`) defines a hierarchy of numeric
+:term:`abstract base classes <abstract base class>` which progressively define
+more operations.  None of the types defined in this module can be instantiated.
 
 
 .. class:: Number
@@ -45,7 +45,7 @@ The numeric tower
    To :class:`Complex`, :class:`Real` adds the operations that work on real
    numbers.
 
-   In short, those are: a conversion to :class:`float`, :func:`trunc`,
+   In short, those are: a conversion to :class:`float`, :func:`math.trunc`,
    :func:`round`, :func:`math.floor`, :func:`math.ceil`, :func:`divmod`, ``//``,
    ``%``, ``<``, ``<=``, ``>``, and ``>=``.
 

@@ -977,11 +977,6 @@ _Unpickler_Read(UnpicklerObject *self, char **s, Py_ssize_t n)
 {
     Py_ssize_t num_read;
 
-    if (n == 0) {
-        *s = NULL;
-        return 0;
-    }
-
     if (self->next_read_idx + n <= self->input_len) {
         *s = self->input_buffer + self->next_read_idx;
         self->next_read_idx += n;
@@ -1039,9 +1034,8 @@ _Unpickler_Readline(UnpicklerObject *self, char **result)
         num_read = _Unpickler_ReadFromFile(self, READ_WHOLE_LINE);
         if (num_read < 0)
             return -1;
-        *result = self->input_buffer;
         self->next_read_idx = num_read;
-        return num_read;
+        return _Unpickler_CopyLine(self, self->input_buffer, num_read, result);
     }
  
     /* If we get here, we've run off the end of the input string. Return the
@@ -6247,7 +6241,7 @@ initmodule(void)
         goto error;
     if (!PyDict_CheckExact(name_mapping_3to2)) {
         PyErr_Format(PyExc_RuntimeError,
-                     "_compat_pickle.REVERSE_NAME_MAPPING shouldbe a dict, "
+                     "_compat_pickle.REVERSE_NAME_MAPPING should be a dict, "
                      "not %.200s", Py_TYPE(name_mapping_3to2)->tp_name);
         goto error;
     }
@@ -6326,8 +6320,10 @@ PyInit__pickle(void)
     if (m == NULL)
         return NULL;
 
+    Py_INCREF(&Pickler_Type);
     if (PyModule_AddObject(m, "Pickler", (PyObject *)&Pickler_Type) < 0)
         return NULL;
+    Py_INCREF(&Unpickler_Type);
     if (PyModule_AddObject(m, "Unpickler", (PyObject *)&Unpickler_Type) < 0)
         return NULL;
 

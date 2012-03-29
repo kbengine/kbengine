@@ -27,12 +27,14 @@ Glossary
       :ref:`2to3-reference`.
 
    abstract base class
-      :ref:`abstract-base-classes` complement :term:`duck-typing` by
+      Abstract base classes complement :term:`duck-typing` by
       providing a way to define interfaces when other techniques like
-      :func:`hasattr` would be clumsy. Python comes with many built-in ABCs for
+      :func:`hasattr` would be clumsy or subtly wrong (for example with
+      :ref:`magic methods <special-lookup>`). Python comes with many built-in ABCs for
       data structures (in the :mod:`collections` module), numbers (in the
-      :mod:`numbers` module), and streams (in the :mod:`io` module). You can
-      create your own ABC with the :mod:`abc` module.
+      :mod:`numbers` module), streams (in the :mod:`io` module), import finders
+      and loaders (in the :mod:`importlib.abc` module).  You can create your own
+      ABCs with the :mod:`abc` module.
 
    argument
       A value passed to a function or method, assigned to a named local
@@ -247,7 +249,7 @@ Glossary
       processing, remembering the location execution state (including local
       variables and pending try-statements).  When the generator resumes, it
       picks-up where it left-off (in contrast to functions which start fresh on
-      every invocation.
+      every invocation).
 
       .. index:: single: generator expression
 
@@ -429,9 +431,10 @@ Glossary
 
    mapping
       A container object that supports arbitrary key lookups and implements the
-      methods specified in the :class:`Mapping` or :class:`MutableMapping`
-      :ref:`abstract base classes <abstract-base-classes>`. Examples include
-      :class:`dict`, :class:`collections.defaultdict`,
+      methods specified in the :class:`~collections.Mapping` or
+      :class:`~collections.MutableMapping`
+      :ref:`abstract base classes <collections-abstract-base-classes>`.  Examples
+      include :class:`dict`, :class:`collections.defaultdict`,
       :class:`collections.OrderedDict` and :class:`collections.Counter`.
 
    metaclass
@@ -486,7 +489,7 @@ Glossary
       :func:`builtins.open` and :func:`os.open` are distinguished by their
       namespaces.  Namespaces also aid readability and maintainability by making
       it clear which module implements a function.  For instance, writing
-      :func:`random.seed` or :func:`itertools.izip` makes it clear that those
+      :func:`random.seed` or :func:`itertools.islice` makes it clear that those
       functions are implemented by the :mod:`random` and :mod:`itertools`
       modules, respectively.
 

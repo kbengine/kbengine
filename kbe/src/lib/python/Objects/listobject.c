@@ -11,7 +11,7 @@
 /* Ensure ob_item has room for at least newsize elements, and set
  * ob_size to newsize.  If newsize > ob_size on entry, the content
  * of the new slots at exit is undefined heap trash; it's the caller's
- * responsiblity to overwrite them with sane values.
+ * responsibility to overwrite them with sane values.
  * The number of allocated elements may grow, shrink, or stay the same.
  * Failure is impossible if newsize <= self.allocated on entry, although
  * that partly relies on an assumption that the system realloc() never
@@ -1944,6 +1944,8 @@ listsort(PyListObject *self, PyObject *args, PyObject *kwds)
             if (keys[i] == NULL) {
                 for (i=i-1 ; i>=0 ; i--)
                     Py_DECREF(keys[i]);
+                if (keys != &ms.temparray[saved_ob_size+1])
+                    PyMem_FREE(keys);
                 goto keyfunc_fail;
             }
         }

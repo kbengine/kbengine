@@ -29,8 +29,7 @@ Initializing and finalizing the interpreter
 
    Initialize the Python interpreter.  In an application embedding  Python, this
    should be called before using any other Python/C API functions; with the
-   exception of :c:func:`Py_SetProgramName`, :c:func:`Py_SetPath`,
-   and :c:func:`PyEval_InitThreads`. This initializes
+   exception of :c:func:`Py_SetProgramName` and :c:func:`Py_SetPath`.  This initializes
    the table of loaded modules (``sys.modules``), and creates the fundamental
    modules :mod:`builtins`, :mod:`__main__` and :mod:`sys`.  It also initializes
    the module search path (``sys.path``). It does not set ``sys.argv``; use
@@ -123,7 +122,7 @@ Process-wide parameters
    program name is ``'/usr/local/bin/python'``, the prefix is ``'/usr/local'``. The
    returned string points into static storage; the caller should not modify its
    value.  This corresponds to the :makevar:`prefix` variable in the top-level
-   :file:`Makefile` and the :option:`--prefix` argument to the :program:`configure`
+   :file:`Makefile` and the ``--prefix`` argument to the :program:`configure`
    script at build time.  The value is available to Python code as ``sys.prefix``.
    It is only useful on Unix.  See also the next function.
 
@@ -136,7 +135,7 @@ Process-wide parameters
    program name is ``'/usr/local/bin/python'``, the exec-prefix is
    ``'/usr/local'``.  The returned string points into static storage; the caller
    should not modify its value.  This corresponds to the :makevar:`exec_prefix`
-   variable in the top-level :file:`Makefile` and the :option:`--exec-prefix`
+   variable in the top-level :file:`Makefile` and the ``--exec-prefix``
    argument to the :program:`configure` script at build  time.  The value is
    available to Python code as ``sys.exec_prefix``.  It is only useful on Unix.
 
@@ -490,7 +489,7 @@ the fork, and releasing them afterwards. In addition, it resets any
 :ref:`lock-objects` in the child. When extending or embedding Python, there
 is no way to inform Python of additional (non-Python) locks that need to be
 acquired before or reset after a fork. OS facilities such as
-:c:func:`posix_atfork` would need to be used to accomplish the same thing.
+:c:func:`pthread_atfork` would need to be used to accomplish the same thing.
 Additionally, when extending or embedding Python, calling :c:func:`fork`
 directly rather than through :func:`os.fork` (and returning to or calling
 into Python) may result in a deadlock by one of Python's internal locks
@@ -538,10 +537,10 @@ code, or when embedding the Python interpreter:
    operations such as ``PyEval_ReleaseThread(tstate)``. It is not needed before
    calling :c:func:`PyEval_SaveThread` or :c:func:`PyEval_RestoreThread`.
 
-   .. index:: single: Py_Initialize()
+   This is a no-op when called for a second time.
 
-   This is a no-op when called for a second time.  It is safe to call this function
-   before calling :c:func:`Py_Initialize`.
+   .. versionchanged:: 3.2
+      This function cannot be called before :c:func:`Py_Initialize()` anymore.
 
    .. index:: module: _thread
 
@@ -645,6 +644,14 @@ with sub-interpreters:
 
    Every call to :c:func:`PyGILState_Ensure` must be matched by a call to
    :c:func:`PyGILState_Release` on the same thread.
+
+
+.. c:function:: PyThreadState PyGILState_GetThisThreadState()
+
+   Get the current thread state for this thread.  May return ``NULL`` if no
+   GILState API has been used on the current thread.  Note that the main thread
+   always has such a thread-state, even if no auto-thread-state call has been
+   made on the main thread.  This is mainly a helper/diagnostic function.
 
 
 The following macros are normally used without a trailing semicolon; look for
@@ -884,7 +891,7 @@ by such objects may affect the wrong (sub-)interpreter's dictionary of loaded
 modules.
 
 Also note that combining this functionality with :c:func:`PyGILState_\*` APIs
-is delicate, become these APIs assume a bijection between Python thread states
+is delicate, because these APIs assume a bijection between Python thread states
 and OS-level threads, an assumption broken by the presence of sub-interpreters.
 It is highly recommended that you don't switch sub-interpreters between a pair
 of matching :c:func:`PyGILState_Ensure` and :c:func:`PyGILState_Release` calls.
@@ -909,7 +916,7 @@ a worker thread and the actual call than made at the earliest convenience by the
 main thread where it has possession of the global interpreter lock and can
 perform any Python API calls.
 
-.. c:function:: void Py_AddPendingCall( int (*func)(void *, void *arg) )
+.. c:function:: int Py_AddPendingCall(int (*func)(void *), void *arg)
 
    .. index:: single: Py_AddPendingCall()
 

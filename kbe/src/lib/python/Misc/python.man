@@ -1,4 +1,4 @@
-.TH PYTHON "1" "$Date: 2010-12-04 10:47:18 +0000 (Sa, 04. Dez 2010) $"
+.TH PYTHON "1" "$Date$"
 
 .\" To view this file while editing, run it through groff:
 .\"   groff -Tascii -man python.man | less
@@ -34,7 +34,7 @@ python \- an interpreted, interactive, object-oriented programming language
 .B \-O
 ]
 [
-.B \-O0
+.B \-OO
 ]
 [
 .B -Q
@@ -145,7 +145,7 @@ compiled (bytecode) files from
 .I .pyc
 to \fI.pyo\fP.  Given twice, causes docstrings to be discarded.
 .TP
-.B \-O0
+.B \-OO
 Discard docstrings in addition to the \fB-O\fP optimizations.
 .TP
 .B \-q

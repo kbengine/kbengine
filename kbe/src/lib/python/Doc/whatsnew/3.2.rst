@@ -270,7 +270,7 @@ launch of four parallel threads for copying files::
       e.submit(shutil.copy, 'src1.txt', 'dest1.txt')
       e.submit(shutil.copy, 'src2.txt', 'dest2.txt')
       e.submit(shutil.copy, 'src3.txt', 'dest3.txt')
-      e.submit(shutil.copy, 'src3.txt', 'dest4.txt')
+      e.submit(shutil.copy, 'src4.txt', 'dest4.txt')
 
 .. seealso::
 
@@ -385,7 +385,7 @@ PEP 3333: Python Web Server Gateway Interface v1.0.1
 =====================================================
 
 This informational PEP clarifies how bytes/text issues are to be handled by the
-WGSI protocol.  The challenge is that string handling in Python 3 is most
+WSGI protocol.  The challenge is that string handling in Python 3 is most
 conveniently handled with the :class:`str` type even though the HTTP protocol
 is itself bytes oriented.
 
@@ -1499,11 +1499,11 @@ filenames:
 >>> os.fsencode(filename)
 b'Sehensw\xc3\xbcrdigkeiten'
 
-Some operating systems allow direct access to the unencoded bytes in the
+Some operating systems allow direct access to encoded bytes in the
 environment.  If so, the :attr:`os.supports_bytes_environ` constant will be
 true.
 
-For direct access to unencoded environment variables (if available),
+For direct access to encoded environment variables (if available),
 use the new :func:`os.getenvb` function or use :data:`os.environb`
 which is a bytes version of :data:`os.environ`.
 
@@ -2354,7 +2354,7 @@ A number of small performance enhancements have been added:
   (Contributed by Antoine Pitrou; :issue:`3001`.)
 
 * The fast-search algorithm in stringlib is now used by the :meth:`split`,
-  :meth:`rsplit`, :meth:`splitlines` and :meth:`replace` methods on
+  :meth:`splitlines` and :meth:`replace` methods on
   :class:`bytes`, :class:`bytearray` and :class:`str` objects. Likewise, the
   algorithm is also used by :meth:`rfind`, :meth:`rindex`, :meth:`rsplit` and
   :meth:`rpartition`.
@@ -2372,9 +2372,9 @@ when one operand is much larger than the other (patch by Andress Bennetts in
 :issue:`8685`).  The :meth:`array.repeat` method has a faster implementation
 (:issue:`1569291` by Alexander Belopolsky). The :class:`BaseHTTPRequestHandler`
 has more efficient buffering (:issue:`3709` by Andrew Schaaf).  The
-multi-argument form of :func:`operator.attrgetter` function now runs slightly
-faster (:issue:`10160` by Christos Georgiou).  And :class:`ConfigParser` loads
-multi-line arguments a bit faster (:issue:`7113` by Łukasz Langa).
+:func:`operator.attrgetter` function has been sped-up (:issue:`10160` by
+Christos Georgiou).  And :class:`ConfigParser` loads multi-line arguments a bit
+faster (:issue:`7113` by Łukasz Langa).
 
 
 Unicode
@@ -2471,14 +2471,14 @@ Code Repository
 
 In addition to the existing Subversion code repository at http://svn.python.org
 there is now a `Mercurial <http://mercurial.selenic.com/>`_ repository at
-http://hg.python.org/ .
+http://hg.python.org/\.
 
 After the 3.2 release, there are plans to switch to Mercurial as the primary
 repository.  This distributed version control system should make it easier for
 members of the community to create and share external changesets.  See
 :pep:`385` for details.
 
-To learn to use the new version control system, see the `tutorial by Joel
+To learn the new version control system, see the `tutorial by Joel
 Spolsky <http://hginit.com>`_ or the `Guide to Mercurial Workflows
 <http://mercurial.selenic.com/guide/>`_.
 
@@ -2698,3 +2698,7 @@ require changes to your code:
   a new function, :func:`asyncore.handle_accepted`, was added to replace it.
 
   (Contributed by Giampaolo Rodola in :issue:`6706`.)
+
+* Due to the new :term:`GIL` implementation, :c:func:`PyEval_InitThreads()`
+  cannot be called before :c:func:`Py_Initialize()` anymore.
+

@@ -100,7 +100,7 @@ UNIVERSALARCHS = '32-bit'
 
 ARCHLIST = universal_opts_map[UNIVERSALARCHS]
 
-# Source directory (asume we're in Mac/BuildScript)
+# Source directory (assume we're in Mac/BuildScript)
 SRCDIR = os.path.dirname(
         os.path.dirname(
             os.path.dirname(
@@ -362,7 +362,7 @@ def fileContents(fn):
 
 def runCommand(commandline):
     """
-    Run a command and raise RuntimeError if it fails. Output is surpressed
+    Run a command and raise RuntimeError if it fails. Output is suppressed
     unless the command fails.
     """
     fd = os.popen(commandline, 'r')

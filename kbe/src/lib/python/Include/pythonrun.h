@@ -182,6 +182,8 @@ PyAPI_FUNC(const char *) Py_GetBuildInfo(void);
 PyAPI_FUNC(const char *) _Py_svnversion(void);
 PyAPI_FUNC(const char *) Py_SubversionRevision(void);
 PyAPI_FUNC(const char *) Py_SubversionShortBranch(void);
+PyAPI_FUNC(const char *) _Py_hgidentifier(void);
+PyAPI_FUNC(const char *) _Py_hgversion(void);
 #endif
 
 /* Internal -- various one-time initializations */
@@ -212,6 +214,8 @@ PyAPI_FUNC(void) PyByteArray_Fini(void);
 PyAPI_FUNC(void) PyFloat_Fini(void);
 PyAPI_FUNC(void) PyOS_FiniInterrupts(void);
 PyAPI_FUNC(void) _PyGC_Fini(void);
+
+PyAPI_DATA(PyThreadState *) _Py_Finalizing;
 #endif
 
 /* Stuff with no proper home (yet) */

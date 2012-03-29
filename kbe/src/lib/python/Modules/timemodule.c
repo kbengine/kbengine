@@ -476,9 +476,8 @@ time_strftime(PyObject *self, PyObject *args)
 
 #if defined(_MSC_VER) || defined(sun)
     if (buf.tm_year + 1900 < 1 || 9999 < buf.tm_year + 1900) {
-        PyErr_Format(PyExc_ValueError,
-                     "strftime() requires year in [1; 9999]",
-                     buf.tm_year + 1900);
+        PyErr_SetString(PyExc_ValueError,
+                        "strftime() requires year in [1; 9999]");
         return NULL;
     }
 #endif
@@ -513,7 +512,7 @@ time_strftime(PyObject *self, PyObject *args)
         if (outbuf[1]=='#')
             ++outbuf; /* not documented by python, */
         if (outbuf[1]=='\0' ||
-            !wcschr(L"aAbBcdfHIjmMpSUwWxXyYzZ%", outbuf[1]))
+            !wcschr(L"aAbBcdHIjmMpSUwWxXyYzZ%", outbuf[1]))
         {
             PyErr_SetString(PyExc_ValueError, "Invalid format string");
             return 0;
@@ -697,7 +696,7 @@ time_mktime(PyObject *self, PyObject *tup)
     buf.tm_wday = -1;  /* sentinel; original value ignored */
     tt = mktime(&buf);
     /* Return value of -1 does not necessarily mean an error, but tm_wday
-     * cannot remain set to -1 if mktime succedded. */
+     * cannot remain set to -1 if mktime succeeded. */
     if (tt == (time_t)(-1) && buf.tm_wday == -1) {
         PyErr_SetString(PyExc_OverflowError,
                         "mktime argument out of range");

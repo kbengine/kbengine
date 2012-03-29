@@ -63,8 +63,10 @@ enum py_ssl_cert_requirements {
 };
 
 enum py_ssl_version {
+#ifndef OPENSSL_NO_SSL2
     PY_SSL_VERSION_SSL2,
-    PY_SSL_VERSION_SSL3,
+#endif
+    PY_SSL_VERSION_SSL3=1,
     PY_SSL_VERSION_SSL23,
     PY_SSL_VERSION_TLS1
 };
@@ -1450,8 +1452,10 @@ context_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         ctx = SSL_CTX_new(TLSv1_method());
     else if (proto_version == PY_SSL_VERSION_SSL3)
         ctx = SSL_CTX_new(SSLv3_method());
+#ifndef OPENSSL_NO_SSL2
     else if (proto_version == PY_SSL_VERSION_SSL2)
         ctx = SSL_CTX_new(SSLv2_method());
+#endif
     else if (proto_version == PY_SSL_VERSION_SSL23)
         ctx = SSL_CTX_new(SSLv23_method());
     else
@@ -1623,7 +1627,7 @@ load_cert_chain(PySSLContext *self, PyObject *args, PyObject *kwds)
         goto error;
     }
     PySSL_BEGIN_ALLOW_THREADS
-    r = SSL_CTX_use_RSAPrivateKey_file(self->ctx,
+    r = SSL_CTX_use_PrivateKey_file(self->ctx,
         PyBytes_AS_STRING(keyfile ? keyfile_bytes : certfile_bytes),
         SSL_FILETYPE_PEM);
     PySSL_END_ALLOW_THREADS
@@ -2033,6 +2037,24 @@ static struct PyModuleDef _sslmodule = {
     NULL
 };
 
+
+static void
+parse_openssl_version(unsigned long libver,
+                      unsigned int *major, unsigned int *minor,
+                      unsigned int *fix, unsigned int *patch,
+                      unsigned int *status)
+{
+    *status = libver & 0xF;
+    libver >>= 4;
+    *patch = libver & 0xFF;
+    libver >>= 8;
+    *fix = libver & 0xFF;
+    libver >>= 8;
+    *minor = libver & 0xFF;
+    libver >>= 8;
+    *major = libver & 0xFF;
+}
+
 PyMODINIT_FUNC
 PyInit__ssl(void)
 {
@@ -2110,8 +2132,10 @@ PyInit__ssl(void)
                             PY_SSL_CERT_REQUIRED);
 
     /* protocol versions */
+#ifndef OPENSSL_NO_SSL2
     PyModule_AddIntConstant(m, "PROTOCOL_SSLv2",
                             PY_SSL_VERSION_SSL2);
+#endif
     PyModule_AddIntConstant(m, "PROTOCOL_SSLv3",
                             PY_SSL_VERSION_SSL3);
     PyModule_AddIntConstant(m, "PROTOCOL_SSLv23",
@@ -2143,20 +2167,18 @@ PyInit__ssl(void)
         return NULL;
     if (PyModule_AddObject(m, "OPENSSL_VERSION_NUMBER", r))
         return NULL;
-    status = libver & 0xF;
-    libver >>= 4;
-    patch = libver & 0xFF;
-    libver >>= 8;
-    fix = libver & 0xFF;
-    libver >>= 8;
-    minor = libver & 0xFF;
-    libver >>= 8;
-    major = libver & 0xFF;
+    parse_openssl_version(libver, &major, &minor, &fix, &patch, &status);
     r = Py_BuildValue("IIIII", major, minor, fix, patch, status);
     if (r == NULL || PyModule_AddObject(m, "OPENSSL_VERSION_INFO", r))
         return NULL;
     r = PyUnicode_FromString(SSLeay_version(SSLEAY_VERSION));
     if (r == NULL || PyModule_AddObject(m, "OPENSSL_VERSION", r))
+        return NULL;
+
+    libver = OPENSSL_VERSION_NUMBER;
+    parse_openssl_version(libver, &major, &minor, &fix, &patch, &status);
+    r = Py_BuildValue("IIIII", major, minor, fix, patch, status);
+    if (r == NULL || PyModule_AddObject(m, "_OPENSSL_API_VERSION", r))
         return NULL;
 
     return m;

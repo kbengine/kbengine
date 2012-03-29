@@ -865,10 +865,6 @@ ConfigParser Objects
    Comments can be indented. When *inline_comment_prefixes* is given, it will be
    used as the set of substrings that prefix comments in non-empty lines.
 
-   line and inline comments.  For backwards compatibility, the default value for
-   *comment_prefixes* is a special value that indicates that ``;`` and ``#`` can
-   start whole line comments while only ``;`` can start inline comments.
-
    When *strict* is ``True`` (the default), the parser won't allow for
    any section or option duplicates while reading from a single source (file,
    string or dictionary), raising :exc:`DuplicateSectionError` or
@@ -974,10 +970,8 @@ ConfigParser Objects
 
    .. method:: read_file(f, source=None)
 
-      Read and parse configuration data from the file or file-like object in
-      *f* (only the :meth:`readline` method is used).  The file-like object
-      must operate in text mode.  Specifically, it must return strings from
-      :meth:`readline`.
+      Read and parse configuration data from *f* which must be an iterable
+      yielding Unicode strings (for example files opened in text mode).
 
       Optional argument *source* specifies the name of the file being read.  If
       not given and *f* has a :attr:`name` attribute, that is used for
@@ -985,7 +979,6 @@ ConfigParser Objects
 
       .. versionadded:: 3.2
          Replaces :meth:`readfp`.
-
 
    .. method:: read_string(string, source='<string>')
 
@@ -1067,6 +1060,10 @@ ConfigParser Objects
       given *section*.  Optional arguments have the same meaning as for the
       :meth:`get` method.
 
+      .. versionchanged:: 3.2
+         Items present in *vars* no longer appear in the result. The previous
+         behaviour mixed actual parser options with variables provided for
+         interpolation.
 
    .. method:: set(section, option, value)
 
@@ -1122,6 +1119,22 @@ ConfigParser Objects
 
       .. deprecated:: 3.2
          Use :meth:`read_file` instead.
+
+      .. versionchanged:: 3.2
+         :meth:`readfp` now iterates on *f* instead of calling ``f.readline()``.
+
+      For existing code calling :meth:`readfp` with arguments which don't
+      support iteration, the following generator may be used as a wrapper
+      around the file-like object::
+
+         def readline_generator(f):
+             line = f.readline()
+             while line:
+                 yield line
+                 line = f.readline()
+
+      Instead of ``parser.readfp(f)`` use
+      ``parser.read_file(readline_generator(f))``.
 
 
 .. data:: MAX_INTERPOLATION_DEPTH

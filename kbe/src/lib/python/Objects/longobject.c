@@ -709,7 +709,7 @@ _PyLong_FromByteArray(const unsigned char* bytes, size_t n,
         is_signed = *pendbyte >= 0x80;
 
     /* Compute numsignificantbytes.  This consists of finding the most
-       significant byte.  Leading 0 bytes are insignficant if the number
+       significant byte.  Leading 0 bytes are insignificant if the number
        is positive, and leading 0xff bytes if negative. */
     {
         size_t i;
@@ -3120,7 +3120,7 @@ ah*bh and al*bl too.
  * of slices, each with a->ob_size digits, and multiply the slices by a,
  * one at a time.  This gives k_mul balanced inputs to work with, and is
  * also cache-friendly (we compute one double-width slice of the result
- * at a time, then move on, never bactracking except for the helpful
+ * at a time, then move on, never backtracking except for the helpful
  * single-width slice overlap between successive partial sums).
  */
 static PyLongObject *

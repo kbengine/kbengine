@@ -6,7 +6,7 @@
 .. moduleauthor:: Bob Ippolito <bob@redivi.com>
 .. sectionauthor:: Bob Ippolito <bob@redivi.com>
 
-JSON (JavaScript Object Notation) <http://json.org> is a subset of JavaScript
+`JSON (JavaScript Object Notation) <http://json.org>`_ is a subset of JavaScript
 syntax (ECMA-262 3rd edition) used as a lightweight data interchange format.
 
 :mod:`json` exposes an API familiar to users of the standard library
@@ -34,7 +34,7 @@ Encoding basic Python object hierarchies::
 Compact encoding::
 
     >>> import json
-    >>> json.dumps([1,2,3,{'4': 5, '6': 7}], separators=(',',':'))
+    >>> json.dumps([1,2,3,{'4': 5, '6': 7}], separators=(',', ':'))
     '[1,2,3,{"4":5,"6":7}]'
 
 Pretty printing::
@@ -136,10 +136,10 @@ Basic Usage
 
    If *indent* is a non-negative integer or string, then JSON array elements and
    object members will be pretty-printed with that indent level.  An indent level
-   of 0 or ``""`` will only insert newlines.  ``None`` (the default) selects the
-   most compact representation. Using an integer indent indents that many spaces
-   per level.  If *indent* is a string (such at '\t'), that string is used to indent
-   each level.
+   of 0, negative, or ``""`` will only insert newlines.  ``None`` (the default)
+   selects the most compact representation. Using a positive integer indent
+   indents that many spaces per level.  If *indent* is a string (such at '\t'),
+   that string is used to indent each level.
 
    If *separators* is an ``(item_separator, dict_separator)`` tuple, then it
    will be used instead of the default ``(', ', ': ')`` separators.  ``(',',
@@ -157,6 +157,12 @@ Basic Usage
 
    Serialize *obj* to a JSON formatted :class:`str`.  The arguments have the
    same meaning as in :func:`dump`.
+
+   .. note::
+
+      Unlike :mod:`pickle` and :mod:`marshal`, JSON is not a framed protocol,
+      so trying to serialize multiple objects with repeated calls to
+      :func:`dump` using the same *fp* will result in an invalid JSON file.
 
 
 .. function:: load(fp, cls=None, object_hook=None, parse_float=None, parse_int=None, parse_constant=None, object_pairs_hook=None, **kw)

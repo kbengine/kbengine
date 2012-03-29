@@ -21,6 +21,12 @@ file object, use its :meth:`fileno` method to obtain the correct value for the
 :func:`os.open` function, which returns a file descriptor directly (the file
 still needs to be closed when done).
 
+.. note::
+   If you want to create a memory-mapping for a writable, buffered file, you
+   should :func:`~io.IOBase.flush` the file first.  This is necessary to ensure
+   that local modifications to the buffers are actually available to the
+   mapping.
+
 For both the Unix and Windows versions of the constructor, *access* may be
 specified as an optional keyword parameter. *access* accepts one of three
 values: :const:`ACCESS_READ`, :const:`ACCESS_WRITE`, or :const:`ACCESS_COPY`
@@ -85,6 +91,10 @@ To map anonymous memory, -1 should be passed as the fileno along with the length
    will be relative to the offset from the beginning of the file. *offset*
    defaults to 0.  *offset* must be a multiple of the PAGESIZE or
    ALLOCATIONGRANULARITY.
+
+   To ensure validity of the created memory mapping the file specified
+   by the descriptor *fileno* is internally automatically synchronized
+   with physical backing store on Mac OS X and OpenVMS.
 
    This example shows a simple way of using :class:`mmap`::
 

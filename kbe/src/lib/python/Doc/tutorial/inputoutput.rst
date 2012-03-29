@@ -19,18 +19,16 @@ the :func:`print` function.  (A third way is using the :meth:`write` method
 of file objects; the standard output file can be referenced as ``sys.stdout``.
 See the Library Reference for more information on this.)
 
-.. index:: module: string
-
 Often you'll want more control over the formatting of your output than simply
 printing space-separated values.  There are two ways to format your output; the
 first way is to do all the string handling yourself; using string slicing and
 concatenation operations you can create any layout you can imagine.  The
-standard module :mod:`string` contains some useful operations for padding
+string type has some methods that perform useful operations for padding
 strings to a given column width; these will be discussed shortly.  The second
 way is to use the :meth:`str.format` method.
 
-The :mod:`string` module contains a class Template which offers yet another way
-to substitute values into strings.
+The :mod:`string` module contains a :class:`~string.Template` class which offers
+yet another way to substitute values into strings.
 
 One question remains, of course: how do you convert values to strings? Luckily,
 Python has ways to convert any value to a string: pass it to the :func:`repr`
@@ -42,8 +40,8 @@ which can be read by the interpreter (or will force a :exc:`SyntaxError` if
 there is not equivalent syntax).  For objects which don't have a particular
 representation for human consumption, :func:`str` will return the same value as
 :func:`repr`.  Many values, such as numbers or structures like lists and
-dictionaries, have the same representation using either function.  Strings and
-floating point numbers, in particular, have two distinct representations.
+dictionaries, have the same representation using either function.  Strings, in
+particular, have two distinct representations.
 
 Some examples::
 
@@ -52,9 +50,7 @@ Some examples::
    'Hello, world.'
    >>> repr(s)
    "'Hello, world.'"
-   >>> str(1.0/7.0)
-   '0.142857142857'
-   >>> repr(1.0/7.0)
+   >>> str(1/7)
    '0.14285714285714285'
    >>> x = 10 * 3.25
    >>> y = 200 * 200
@@ -105,17 +101,18 @@ Here are two ways to write a table of squares and cubes::
 (Note that in the first example, one space between each column was added by the
 way :func:`print` works: it always adds spaces between its arguments.)
 
-This example demonstrates the :meth:`rjust` method of string objects, which
-right-justifies a string in a field of a given width by padding it with spaces
-on the left.  There are similar methods :meth:`ljust` and :meth:`center`.  These
-methods do not write anything, they just return a new string.  If the input
-string is too long, they don't truncate it, but return it unchanged; this will
-mess up your column lay-out but that's usually better than the alternative,
-which would be lying about a value.  (If you really want truncation you can
-always add a slice operation, as in ``x.ljust(n)[:n]``.)
+This example demonstrates the :meth:`str.rjust` method of string
+objects, which right-justifies a string in a field of a given width by padding
+it with spaces on the left.  There are similar methods :meth:`str.ljust` and
+:meth:`str.center`.  These methods do not write anything, they just return a
+new string.  If the input string is too long, they don't truncate it, but
+return it unchanged; this will mess up your column lay-out but that's usually
+better than the alternative, which would be lying about a value.  (If you
+really want truncation you can always add a slice operation, as in
+``x.ljust(n)[:n]``.)
 
-There is another method, :meth:`zfill`, which pads a numeric string on the left
-with zeros.  It understands about plus and minus signs::
+There is another method, :meth:`str.zfill`, which pads a numeric string on the
+left with zeros.  It understands about plus and minus signs::
 
    >>> '12'.zfill(5)
    '00012'
@@ -130,16 +127,16 @@ Basic usage of the :meth:`str.format` method looks like this::
    We are the knights who say "Ni!"
 
 The brackets and characters within them (called format fields) are replaced with
-the objects passed into the :meth:`~str.format` method.  A number in the
+the objects passed into the :meth:`str.format` method.  A number in the
 brackets can be used to refer to the position of the object passed into the
-:meth:`~str.format` method. ::
+:meth:`str.format` method. ::
 
    >>> print('{0} and {1}'.format('spam', 'eggs'))
    spam and eggs
    >>> print('{1} and {0}'.format('spam', 'eggs'))
    eggs and spam
 
-If keyword arguments are used in the :meth:`~str.format` method, their values
+If keyword arguments are used in the :meth:`str.format` method, their values
 are referred to by using the name of the argument. ::
 
    >>> print('This {food} is {adjective}.'.format(
@@ -163,7 +160,7 @@ Positional and keyword arguments can be arbitrarily combined::
 
 An optional ``':'`` and format specifier can follow the field name. This allows
 greater control over how the value is formatted.  The following example
-truncates Pi to three places after the decimal.
+rounds Pi to three places after the decimal.
 
    >>> import math
    >>> print('The value of PI is approximately {0:.3f}.'.format(math.pi))
@@ -197,8 +194,8 @@ notation. ::
    >>> print('Jack: {Jack:d}; Sjoerd: {Sjoerd:d}; Dcab: {Dcab:d}'.format(**table))
    Jack: 4098; Sjoerd: 4127; Dcab: 8637678
 
-This is particularly useful in combination with the new built-in :func:`vars`
-function, which returns a dictionary containing all local variables.
+This is particularly useful in combination with the built-in function
+:func:`vars`, which returns a dictionary containing all local variables.
 
 For a complete overview of string formatting with :meth:`str.format`, see
 :ref:`formatstrings`.

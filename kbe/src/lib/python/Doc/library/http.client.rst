@@ -543,6 +543,9 @@ statement.
    A debugging hook.  If :attr:`debuglevel` is greater than zero, messages
    will be printed to stdout as the response is read and parsed.
 
+.. attribute:: HTTPResponse.closed
+
+   Is True if the stream is closed.
 
 Examples
 --------
@@ -555,7 +558,15 @@ Here is an example session that uses the ``GET`` method::
    >>> r1 = conn.getresponse()
    >>> print(r1.status, r1.reason)
    200 OK
-   >>> data1 = r1.read()
+   >>> data1 = r1.read()  # This will return entire content.
+   >>> # The following example demonstrates reading data in chunks.
+   >>> conn.request("GET", "/index.html")
+   >>> r1 = conn.getresponse()
+   >>> while not r1.closed:
+   ...     print(r1.read(200)) # 200 bytes
+   b'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"...
+   ...
+   >>> # Example of an invalid request
    >>> conn.request("GET", "/parrot.spam")
    >>> r2 = conn.getresponse()
    >>> print(r2.status, r2.reason)
@@ -581,15 +592,17 @@ Here is an example session that uses the ``HEAD`` method.  Note that the
 Here is an example session that shows how to ``POST`` requests::
 
    >>> import http.client, urllib.parse
-   >>> params = urllib.parse.urlencode({'spam': 1, 'eggs': 2, 'bacon': 0})
+   >>> params = urllib.parse.urlencode({'@number': 12524, '@type': 'issue', '@action': 'show'})
    >>> headers = {"Content-type": "application/x-www-form-urlencoded",
    ...            "Accept": "text/plain"}
-   >>> conn = http.client.HTTPConnection("musi-cal.mojam.com:80")
-   >>> conn.request("POST", "/cgi-bin/query", params, headers)
+   >>> conn = http.client.HTTPConnection("bugs.python.org")
+   >>> conn.request("POST", "", params, headers)
    >>> response = conn.getresponse()
    >>> print(response.status, response.reason)
-   200 OK
+   302 Found
    >>> data = response.read()
+   >>> data
+   b'Redirecting to <a href="http://bugs.python.org/issue12524">http://bugs.python.org/issue12524</a>'
    >>> conn.close()
 
 

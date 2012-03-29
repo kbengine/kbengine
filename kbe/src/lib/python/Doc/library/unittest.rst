@@ -277,9 +277,11 @@ Test Discovery
 
 .. versionadded:: 3.2
 
-Unittest supports simple test discovery. For a project's tests to be
-compatible with test discovery they must all be importable from the top level
-directory of the project (in other words, they must all be in Python packages).
+Unittest supports simple test discovery. In order to be compatible with test
+discovery, all of the test files must be :ref:`modules <tut-modules>` or
+:ref:`packages <tut-packages>` importable from the top-level directory of
+the project (this means that their filenames must be valid
+:ref:`identifiers <identifiers>`).
 
 Test discovery is implemented in :meth:`TestLoader.discover`, but can also be
 used from the command line. The basic command-line usage is::
@@ -721,8 +723,8 @@ Test cases
    Here, we create two instances of :class:`WidgetTestCase`, each of which runs a
    single test.
 
-   .. versionchanged::
-      `TestCase` can be instantiated successfully without providing a method
+   .. versionchanged:: 3.2
+      :class:`TestCase` can be instantiated successfully without providing a method
       name. This makes it easier to experiment with `TestCase` from the
       interactive interpreter.
 
@@ -1406,7 +1408,7 @@ Test cases
       If :meth:`setUp` fails, meaning that :meth:`tearDown` is not called,
       then any cleanup functions added will still be called.
 
-      .. versionadded:: 3.2
+      .. versionadded:: 3.1
 
 
    .. method:: doCleanups()
@@ -1422,7 +1424,7 @@ Test cases
       :meth:`doCleanups` pops methods off the stack of cleanup
       functions one at a time, so it can be called at any time.
 
-      .. versionadded:: 3.2
+      .. versionadded:: 3.1
 
 
 .. class:: FunctionTestCase(testFunc, setUp=None, tearDown=None, description=None)
@@ -1457,7 +1459,7 @@ along with their deprecated aliases:
     :meth:`.assertRaisesRegex`                             assertRaisesRegexp
    ==============================  ====================== ======================
 
-   .. deprecated-removed:: 3.1 3.3
+   .. deprecated:: 3.1
          the fail* aliases listed in the second column.
    .. deprecated:: 3.2
          the assert* aliases listed in the third column.
@@ -1799,14 +1801,14 @@ Loading and running tests
 
       Called once before any tests are executed.
 
-      .. versionadded:: 3.2
+      .. versionadded:: 3.1
 
 
    .. method:: stopTestRun(test)
 
       Called once after all tests are executed.
 
-      .. versionadded:: 3.2
+      .. versionadded:: 3.1
 
 
    .. method:: addError(test, err)
@@ -1920,7 +1922,7 @@ Loading and running tests
 
 
 .. function:: main(module='__main__', defaultTest=None, argv=None, testRunner=None, \
-                   testLoader=unittest.loader.defaultTestLoader, exit=True, verbosity=1, \
+                   testLoader=unittest.defaultTestLoader, exit=True, verbosity=1, \
                    failfast=None, catchbreak=None, buffer=None, warnings=None)
 
    A command-line program that runs a set of tests; this is primarily for making

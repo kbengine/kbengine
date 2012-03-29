@@ -52,7 +52,13 @@ typedef struct
 static void
 zlib_error(z_stream zst, int err, char *msg)
 {
-    const char *zmsg = zst.msg;
+    const char *zmsg = Z_NULL;
+    /* In case of a version mismatch, zst.msg won't be initialized.
+       Check for this case first, before looking at zst.msg. */
+    if (err == Z_VERSION_ERROR)
+        zmsg = "library version mismatch";
+    if (zmsg == Z_NULL)
+        zmsg = zst.msg;
     if (zmsg == Z_NULL) {
         switch (err) {
         case Z_BUF_ERROR:
@@ -116,7 +122,7 @@ PyZlib_compress(PyObject *self, PyObject *args)
 {
     PyObject *ReturnVal = NULL;
     Py_buffer pinput;
-    Byte *input, *output;
+    Byte *input, *output = NULL;
     unsigned int length;
     int level=Z_DEFAULT_COMPRESSION, err;
     z_stream zst;
@@ -127,20 +133,19 @@ PyZlib_compress(PyObject *self, PyObject *args)
 
     if (pinput.len > UINT_MAX) {
         PyErr_SetString(PyExc_OverflowError,
-            "size does not fit in an unsigned int");
-        return NULL;
+                        "Size does not fit in an unsigned int");
+        goto error;
     }
-    length = pinput.len;
     input = pinput.buf;
+    length = pinput.len;
 
     zst.avail_out = length + length/1000 + 12 + 1;
 
     output = (Byte*)malloc(zst.avail_out);
     if (output == NULL) {
-        PyBuffer_Release(&pinput);
         PyErr_SetString(PyExc_MemoryError,
                         "Can't allocate memory to compress data");
-        return NULL;
+        goto error;
     }
 
     /* Past the point of no return.  From here on out, we need to make sure
@@ -203,7 +208,7 @@ PyDoc_STRVAR(decompress__doc__,
 static PyObject *
 PyZlib_decompress(PyObject *self, PyObject *args)
 {
-    PyObject *result_str;
+    PyObject *result_str = NULL;
     Py_buffer pinput;
     Byte *input;
     unsigned int length;
@@ -218,11 +223,11 @@ PyZlib_decompress(PyObject *self, PyObject *args)
 
     if (pinput.len > UINT_MAX) {
         PyErr_SetString(PyExc_OverflowError,
-            "size does not fit in an unsigned int");
-        return NULL;
+                        "Size does not fit in an unsigned int");
+        goto error;
     }
-    length = pinput.len;
     input = pinput.buf;
+    length = pinput.len;
 
     if (r_strlen <= 0)
         r_strlen = 1;
@@ -230,10 +235,8 @@ PyZlib_decompress(PyObject *self, PyObject *args)
     zst.avail_in = length;
     zst.avail_out = r_strlen;
 
-    if (!(result_str = PyBytes_FromStringAndSize(NULL, r_strlen))) {
-        PyBuffer_Release(&pinput);
-        return NULL;
-    }
+    if (!(result_str = PyBytes_FromStringAndSize(NULL, r_strlen)))
+        goto error;
 
     zst.zalloc = (alloc_func)NULL;
     zst.zfree = (free_func)Z_NULL;
@@ -423,22 +426,26 @@ PyDoc_STRVAR(comp_compress__doc__,
 static PyObject *
 PyZlib_objcompress(compobject *self, PyObject *args)
 {
-    int err, inplen;
+    int err;
+    unsigned int inplen;
     Py_ssize_t length = DEFAULTALLOC;
-    PyObject *RetVal;
+    PyObject *RetVal = NULL;
     Py_buffer pinput;
     Byte *input;
     unsigned long start_total_out;
 
     if (!PyArg_ParseTuple(args, "y*:compress", &pinput))
         return NULL;
+    if (pinput.len > UINT_MAX) {
+        PyErr_SetString(PyExc_OverflowError,
+                        "Size does not fit in an unsigned int");
+        goto error_outer;
+    }
     input = pinput.buf;
     inplen = pinput.len;
 
-    if (!(RetVal = PyBytes_FromStringAndSize(NULL, length))) {
-        PyBuffer_Release(&pinput);
-        return NULL;
-    }
+    if (!(RetVal = PyBytes_FromStringAndSize(NULL, length)))
+        goto error_outer;
 
     ENTER_ZLIB(self);
 
@@ -487,6 +494,7 @@ PyZlib_objcompress(compobject *self, PyObject *args)
 
  error:
     LEAVE_ZLIB(self);
+ error_outer:
     PyBuffer_Release(&pinput);
     return RetVal;
 }
@@ -505,9 +513,10 @@ PyDoc_STRVAR(decomp_decompress__doc__,
 static PyObject *
 PyZlib_objdecompress(compobject *self, PyObject *args)
 {
-    int err, inplen, max_length = 0;
+    int err, max_length = 0;
+    unsigned int inplen;
     Py_ssize_t old_length, length = DEFAULTALLOC;
-    PyObject *RetVal;
+    PyObject *RetVal = NULL;
     Py_buffer pinput;
     Byte *input;
     unsigned long start_total_out;
@@ -515,22 +524,24 @@ PyZlib_objdecompress(compobject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "y*|i:decompress", &pinput,
                           &max_length))
         return NULL;
+    if (pinput.len > UINT_MAX) {
+        PyErr_SetString(PyExc_OverflowError,
+                        "Size does not fit in an unsigned int");
+        goto error_outer;
+    }
     input = pinput.buf;
     inplen = pinput.len;
     if (max_length < 0) {
-        PyBuffer_Release(&pinput);
         PyErr_SetString(PyExc_ValueError,
                         "max_length must be greater than zero");
-        return NULL;
+        goto error_outer;
     }
 
     /* limit amount of data allocated to max_length */
     if (max_length && length > max_length)
         length = max_length;
-    if (!(RetVal = PyBytes_FromStringAndSize(NULL, length))) {
-        PyBuffer_Release(&pinput);
-        return NULL;
-    }
+    if (!(RetVal = PyBytes_FromStringAndSize(NULL, length)))
+        goto error_outer;
 
     ENTER_ZLIB(self);
 
@@ -574,17 +585,22 @@ PyZlib_objdecompress(compobject *self, PyObject *args)
         Py_END_ALLOW_THREADS
     }
 
-    /* Not all of the compressed data could be accommodated in the output buffer
-       of specified size. Return the unconsumed tail in an attribute.*/
     if(max_length) {
+        /* Not all of the compressed data could be accommodated in a buffer of
+           the specified size. Return the unconsumed tail in an attribute. */
         Py_DECREF(self->unconsumed_tail);
         self->unconsumed_tail = PyBytes_FromStringAndSize((char *)self->zst.next_in,
                                                            self->zst.avail_in);
-        if(!self->unconsumed_tail) {
-            Py_DECREF(RetVal);
-            RetVal = NULL;
-            goto error;
-        }
+    }
+    else if (PyBytes_GET_SIZE(self->unconsumed_tail) > 0) {
+        /* All of the compressed data was consumed. Clear unconsumed_tail. */
+        Py_DECREF(self->unconsumed_tail);
+        self->unconsumed_tail = PyBytes_FromStringAndSize("", 0);
+    }
+    if (self->unconsumed_tail == NULL) {
+        Py_DECREF(RetVal);
+        RetVal = NULL;
+        goto error;
     }
 
     /* The end of the compressed data has been reached, so set the
@@ -619,6 +635,7 @@ PyZlib_objdecompress(compobject *self, PyObject *args)
 
  error:
     LEAVE_ZLIB(self);
+ error_outer:
     PyBuffer_Release(&pinput);
     return RetVal;
 }
@@ -945,8 +962,18 @@ PyZlib_adler32(PyObject *self, PyObject *args)
     /* Releasing the GIL for very small buffers is inefficient
        and may lower performance */
     if (pbuf.len > 1024*5) {
+        unsigned char *buf = pbuf.buf;
+        Py_ssize_t len = pbuf.len;
+
         Py_BEGIN_ALLOW_THREADS
-        adler32val = adler32(adler32val, pbuf.buf, pbuf.len);
+        /* Avoid truncation of length for very large buffers. adler32() takes
+           length as an unsigned int, which may be narrower than Py_ssize_t. */
+        while (len > (size_t) UINT_MAX) {
+            adler32val = adler32(adler32val, buf, UINT_MAX);
+            buf += (size_t) UINT_MAX;
+            len -= (size_t) UINT_MAX;
+        }
+        adler32val = adler32(adler32val, buf, len);
         Py_END_ALLOW_THREADS
     } else {
         adler32val = adler32(adler32val, pbuf.buf, pbuf.len);
@@ -973,8 +1000,18 @@ PyZlib_crc32(PyObject *self, PyObject *args)
     /* Releasing the GIL for very small buffers is inefficient
        and may lower performance */
     if (pbuf.len > 1024*5) {
+        unsigned char *buf = pbuf.buf;
+        Py_ssize_t len = pbuf.len;
+
         Py_BEGIN_ALLOW_THREADS
-        signed_val = crc32(crc32val, pbuf.buf, pbuf.len);
+        /* Avoid truncation of length for very large buffers. crc32() takes
+           length as an unsigned int, which may be narrower than Py_ssize_t. */
+        while (len > (size_t) UINT_MAX) {
+            crc32val = crc32(crc32val, buf, UINT_MAX);
+            buf += (size_t) UINT_MAX;
+            len -= (size_t) UINT_MAX;
+        }
+        signed_val = crc32(crc32val, buf, len);
         Py_END_ALLOW_THREADS
     } else {
         signed_val = crc32(crc32val, pbuf.buf, pbuf.len);

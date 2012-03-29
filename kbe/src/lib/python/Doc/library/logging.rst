@@ -405,13 +405,21 @@ The useful mapping keys in a :class:`LogRecord` are given in the section on
 :ref:`logrecord-attributes`.
 
 
-.. class:: Formatter(fmt=None, datefmt=None)
+.. class:: Formatter(fmt=None, datefmt=None, style='%')
 
    Returns a new instance of the :class:`Formatter` class.  The instance is
    initialized with a format string for the message as a whole, as well as a
    format string for the date/time portion of a message.  If no *fmt* is
    specified, ``'%(message)s'`` is used.  If no *datefmt* is specified, the
    ISO8601 date format is used.
+
+   The *style* parameter can be one of '%', '{' or '$' and determines how
+   the format string will be merged with its data: using one of %-formatting,
+   :meth:`str.format` or :class:`string.Template`.
+
+   .. versionchanged:: 3.2
+      The *style* parameter was added.
+
 
    .. method:: format(record)
 
@@ -445,6 +453,13 @@ The useful mapping keys in a :class:`LogRecord` are given in the section on
       record. Otherwise, the ISO8601 format is used.  The resulting string is
       returned.
 
+      This function uses a user-configurable function to convert the creation
+      time to a tuple. By default, :func:`time.localtime` is used; to change
+      this for a particular formatter instance, set the ``converter`` attribute
+      to a function with the same signature as :func:`time.localtime` or
+      :func:`time.gmtime`. To change it for all formatters, for example if you
+      want all logging times to be shown in GMT, set the ``converter``
+      attribute in the ``Formatter`` class.
 
    .. method:: formatException(exc_info)
 
@@ -536,6 +551,9 @@ wire).
    :param name:  The name of the logger used to log the event represented by
                  this LogRecord.
    :param level: The numeric level of the logging event (one of DEBUG, INFO etc.)
+                 Note that this is converted to *two* attributes of the LogRecord:
+                 ``levelno`` for the numeric value and ``levelname`` for the
+                 corresponding level name.
    :param pathname: The full pathname of the source file where the logging call
                     was made.
    :param lineno: The line number in the source file where the logging call was
@@ -690,7 +708,6 @@ LoggerAdapter Objects
 :class:`LoggerAdapter` instances are used to conveniently pass contextual
 information into logging calls. For a usage example , see the section on
 :ref:`adding contextual information to your logging output <context-info>`.
-
 
 .. class:: LoggerAdapter(logger, extra)
 

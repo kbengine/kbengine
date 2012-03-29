@@ -268,46 +268,46 @@ All numeric types (except complex) support the following operations, sorted by
 ascending priority (operations in the same box have the same priority; all
 numeric operations have a higher priority than comparison operations):
 
-+---------------------+---------------------------------+-------+--------------------+
-| Operation           | Result                          | Notes | Full documentation |
-+=====================+=================================+=======+====================+
-| ``x + y``           | sum of *x* and *y*              |       |                    |
-+---------------------+---------------------------------+-------+--------------------+
-| ``x - y``           | difference of *x* and *y*       |       |                    |
-+---------------------+---------------------------------+-------+--------------------+
-| ``x * y``           | product of *x* and *y*          |       |                    |
-+---------------------+---------------------------------+-------+--------------------+
-| ``x / y``           | quotient of *x* and *y*         |       |                    |
-+---------------------+---------------------------------+-------+--------------------+
-| ``x // y``          | floored quotient of *x* and     | \(1)  |                    |
-|                     | *y*                             |       |                    |
-+---------------------+---------------------------------+-------+--------------------+
-| ``x % y``           | remainder of ``x / y``          | \(2)  |                    |
-+---------------------+---------------------------------+-------+--------------------+
-| ``-x``              | *x* negated                     |       |                    |
-+---------------------+---------------------------------+-------+--------------------+
-| ``+x``              | *x* unchanged                   |       |                    |
-+---------------------+---------------------------------+-------+--------------------+
-| ``abs(x)``          | absolute value or magnitude of  |       | :func:`abs`        |
-|                     | *x*                             |       |                    |
-+---------------------+---------------------------------+-------+--------------------+
-| ``int(x)``          | *x* converted to integer        | \(3)  | :func:`int`        |
-+---------------------+---------------------------------+-------+--------------------+
-| ``float(x)``        | *x* converted to floating point | \(4)  | :func:`float`      |
-+---------------------+---------------------------------+-------+--------------------+
-| ``complex(re, im)`` | a complex number with real part |       | :func:`complex`    |
-|                     | *re*, imaginary part *im*.      |       |                    |
-|                     | *im* defaults to zero.          |       |                    |
-+---------------------+---------------------------------+-------+--------------------+
-|  ``c.conjugate()``  | conjugate of the complex number |       |                    |
-|                     | *c*                             |       |                    |
-+---------------------+---------------------------------+-------+--------------------+
-| ``divmod(x, y)``    | the pair ``(x // y, x % y)``    | \(2)  | :func:`divmod`     |
-+---------------------+---------------------------------+-------+--------------------+
-| ``pow(x, y)``       | *x* to the power *y*            | \(5)  | :func:`pow`        |
-+---------------------+---------------------------------+-------+--------------------+
-| ``x ** y``          | *x* to the power *y*            | \(5)  |                    |
-+---------------------+---------------------------------+-------+--------------------+
++---------------------+---------------------------------+---------+--------------------+
+| Operation           | Result                          | Notes   | Full documentation |
++=====================+=================================+=========+====================+
+| ``x + y``           | sum of *x* and *y*              |         |                    |
++---------------------+---------------------------------+---------+--------------------+
+| ``x - y``           | difference of *x* and *y*       |         |                    |
++---------------------+---------------------------------+---------+--------------------+
+| ``x * y``           | product of *x* and *y*          |         |                    |
++---------------------+---------------------------------+---------+--------------------+
+| ``x / y``           | quotient of *x* and *y*         |         |                    |
++---------------------+---------------------------------+---------+--------------------+
+| ``x // y``          | floored quotient of *x* and     | \(1)    |                    |
+|                     | *y*                             |         |                    |
++---------------------+---------------------------------+---------+--------------------+
+| ``x % y``           | remainder of ``x / y``          | \(2)    |                    |
++---------------------+---------------------------------+---------+--------------------+
+| ``-x``              | *x* negated                     |         |                    |
++---------------------+---------------------------------+---------+--------------------+
+| ``+x``              | *x* unchanged                   |         |                    |
++---------------------+---------------------------------+---------+--------------------+
+| ``abs(x)``          | absolute value or magnitude of  |         | :func:`abs`        |
+|                     | *x*                             |         |                    |
++---------------------+---------------------------------+---------+--------------------+
+| ``int(x)``          | *x* converted to integer        | \(3)\(6)| :func:`int`        |
++---------------------+---------------------------------+---------+--------------------+
+| ``float(x)``        | *x* converted to floating point | \(4)\(6)| :func:`float`      |
++---------------------+---------------------------------+---------+--------------------+
+| ``complex(re, im)`` | a complex number with real part | \(6)    | :func:`complex`    |
+|                     | *re*, imaginary part *im*.      |         |                    |
+|                     | *im* defaults to zero.          |         |                    |
++---------------------+---------------------------------+---------+--------------------+
+|  ``c.conjugate()``  | conjugate of the complex number |         |                    |
+|                     | *c*                             |         |                    |
++---------------------+---------------------------------+---------+--------------------+
+| ``divmod(x, y)``    | the pair ``(x // y, x % y)``    | \(2)    | :func:`divmod`     |
++---------------------+---------------------------------+---------+--------------------+
+| ``pow(x, y)``       | *x* to the power *y*            | \(5)    | :func:`pow`        |
++---------------------+---------------------------------+---------+--------------------+
+| ``x ** y``          | *x* to the power *y*            | \(5)    |                    |
++---------------------+---------------------------------+---------+--------------------+
 
 .. index::
    triple: operations on; numeric; types
@@ -346,10 +346,16 @@ Notes:
    Python defines ``pow(0, 0)`` and ``0 ** 0`` to be ``1``, as is common for
    programming languages.
 
+(6)
+   The numeric literals accepted include the digits ``0`` to ``9`` or any
+   Unicode equivalent (code points with the ``Nd`` property).
+
+   See http://www.unicode.org/Public/6.0.0/ucd/extracted/DerivedNumericType.txt
+   for a complete list of code points with the ``Nd`` property.
 
 
-All :class:`numbers.Real` types (:class:`int` and
-:class:`float`) also include the following operations:
+All :class:`numbers.Real` types (:class:`int` and :class:`float`) also include
+the following operations:
 
 +--------------------+------------------------------------+--------+
 | Operation          | Result                             | Notes  |
@@ -432,6 +438,9 @@ Notes:
 
 Additional Methods on Integer Types
 -----------------------------------
+
+The int type implements the :class:`numbers.Integral` :term:`abstract base
+class`. In addition, it provides one more method:
 
 .. method:: int.bit_length()
 
@@ -526,7 +535,8 @@ Additional Methods on Integer Types
 Additional Methods on Float
 ---------------------------
 
-The float type has some additional methods.
+The float type implements the :class:`numbers.Real` :term:`abstract base
+class`. float also has the following additional methods.
 
 .. method:: float.as_integer_ratio()
 
@@ -1037,6 +1047,15 @@ functions based on regular expressions.
    *start* and *end* are interpreted as in slice notation.  Return ``-1`` if
    *sub* is not found.
 
+   .. note::
+
+      The :meth:`~str.find` method should be used only if you need to know the
+      position of *sub*.  To check if *sub* is a substring or not, use the
+      :keyword:`in` operator::
+
+         >>> 'Py' in 'Python'
+         True
+
 
 .. method:: str.format(*args, **kwargs)
 
@@ -1445,7 +1464,7 @@ components, which must occur in this order:
    object to convert comes after the minimum field width and optional precision.
 
 #. Precision (optional), given as a ``'.'`` (dot) followed by the precision.  If
-   specified as ``'*'`` (an asterisk), the actual width is read from the next
+   specified as ``'*'`` (an asterisk), the actual precision is read from the next
    element of the tuple in *values*, and the value to convert comes after the
    precision.
 
@@ -1527,8 +1546,11 @@ The conversion types are:
 | ``'r'``    | String (converts any Python object using            | \(5)  |
 |            | :func:`repr`).                                      |       |
 +------------+-----------------------------------------------------+-------+
-| ``'s'``    | String (converts any Python object using            |       |
+| ``'s'``    | String (converts any Python object using            | \(5)  |
 |            | :func:`str`).                                       |       |
++------------+-----------------------------------------------------+-------+
+| ``'a'``    | String (converts any Python object using            | \(5)  |
+|            | :func:`ascii`).                                     |       |
 +------------+-----------------------------------------------------+-------+
 | ``'%'``    | No argument is converted, results in a ``'%'``      |       |
 |            | character in the result.                            |       |
@@ -1562,7 +1584,7 @@ Notes:
    decimal point and defaults to 6.
 
 (5)
-   The precision determines the maximal number of characters used.
+   If precision is ``N``, the output is truncated to ``N`` characters.
 
 
 (7)
@@ -2296,7 +2318,7 @@ An example of dictionary view usage::
    >>> keys & {'eggs', 'bacon', 'salad'}
    {'bacon'}
    >>> keys ^ {'sausage', 'juice'}
-   {'juice', 'eggs', 'bacon', 'spam'}
+   {'juice', 'sausage', 'bacon', 'spam'}
 
 
 .. _typememoryview:
@@ -2311,7 +2333,7 @@ copying.  Memory is generally interpreted as simple bytes.
 .. class:: memoryview(obj)
 
    Create a :class:`memoryview` that references *obj*.  *obj* must support the
-   buffer protocol.  Builtin objects that support the buffer protocol include
+   buffer protocol.  Built-in objects that support the buffer protocol include
    :class:`bytes` and :class:`bytearray`.
 
    A :class:`memoryview` has the notion of an *element*, which is the
@@ -2548,7 +2570,7 @@ statement is not, strictly speaking, an operation on a module object; ``import
 foo`` does not require a module object named *foo* to exist, rather it requires
 an (external) *definition* for a module named *foo* somewhere.)
 
-A special member of every module is :attr:`__dict__`. This is the dictionary
+A special attribute of every module is :attr:`__dict__`. This is the dictionary
 containing the module's symbol table. Modifying this dictionary will actually
 change the module's symbol table, but direct assignment to the :attr:`__dict__`
 attribute is not possible (you can write ``m.__dict__['a'] = 1``, which defines
@@ -2688,6 +2710,16 @@ special operations.  There is exactly one ellipsis object, named
 :const:`Ellipsis` (a built-in name).
 
 It is written as ``Ellipsis`` or ``...``.
+
+
+The NotImplemented Object
+-------------------------
+
+This object is returned from comparisons and binary operations when they are
+asked to operate on types they don't support. See :ref:`comparisons` for more
+information.
+
+It is written as ``NotImplemented``.
 
 
 Boolean Values

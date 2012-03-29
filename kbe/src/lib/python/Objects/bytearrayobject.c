@@ -1081,8 +1081,8 @@ bytearray_find_internal(PyByteArrayObject *self, PyObject *args, int dir)
     Py_ssize_t start=0, end=PY_SSIZE_T_MAX;
     Py_ssize_t res;
 
-    if (!PyArg_ParseTuple(args, "O|O&O&:find/rfind/index/rindex", &subobj,
-        _PyEval_SliceIndex, &start, _PyEval_SliceIndex, &end))
+    if (!stringlib_parse_args_finds("find/rfind/index/rindex",
+                                    args, &subobj, &start, &end))
         return -2;
     if (_getbuffer(subobj, &subbuf) < 0)
         return -2;
@@ -1102,7 +1102,7 @@ PyDoc_STRVAR(find__doc__,
 "B.find(sub[, start[, end]]) -> int\n\
 \n\
 Return the lowest index in B where subsection sub is found,\n\
-such that sub is contained within s[start,end].  Optional\n\
+such that sub is contained within B[start,end].  Optional\n\
 arguments start and end are interpreted as in slice notation.\n\
 \n\
 Return -1 on failure.");
@@ -1132,8 +1132,7 @@ bytearray_count(PyByteArrayObject *self, PyObject *args)
     Py_buffer vsub;
     PyObject *count_obj;
 
-    if (!PyArg_ParseTuple(args, "O|O&O&:count", &sub_obj,
-        _PyEval_SliceIndex, &start, _PyEval_SliceIndex, &end))
+    if (!stringlib_parse_args_finds("count", args, &sub_obj, &start, &end))
         return NULL;
 
     if (_getbuffer(sub_obj, &vsub) < 0)
@@ -1173,7 +1172,7 @@ PyDoc_STRVAR(rfind__doc__,
 "B.rfind(sub[, start[, end]]) -> int\n\
 \n\
 Return the highest index in B where subsection sub is found,\n\
-such that sub is contained within s[start,end].  Optional\n\
+such that sub is contained within B[start,end].  Optional\n\
 arguments start and end are interpreted as in slice notation.\n\
 \n\
 Return -1 on failure.");
@@ -1281,7 +1280,7 @@ PyDoc_STRVAR(startswith__doc__,
 Return True if B starts with the specified prefix, False otherwise.\n\
 With optional start, test B beginning at that position.\n\
 With optional end, stop comparing B at that position.\n\
-prefix can also be a tuple of strings to try.");
+prefix can also be a tuple of bytes to try.");
 
 static PyObject *
 bytearray_startswith(PyByteArrayObject *self, PyObject *args)
@@ -1291,8 +1290,7 @@ bytearray_startswith(PyByteArrayObject *self, PyObject *args)
     PyObject *subobj;
     int result;
 
-    if (!PyArg_ParseTuple(args, "O|O&O&:startswith", &subobj,
-        _PyEval_SliceIndex, &start, _PyEval_SliceIndex, &end))
+    if (!stringlib_parse_args_finds("startswith", args, &subobj, &start, &end))
         return NULL;
     if (PyTuple_Check(subobj)) {
         Py_ssize_t i;
@@ -1309,8 +1307,12 @@ bytearray_startswith(PyByteArrayObject *self, PyObject *args)
         Py_RETURN_FALSE;
     }
     result = _bytearray_tailmatch(self, subobj, start, end, -1);
-    if (result == -1)
+    if (result == -1) {
+        if (PyErr_ExceptionMatches(PyExc_TypeError))
+            PyErr_Format(PyExc_TypeError, "startswith first arg must be bytes "
+                         "or a tuple of bytes, not %s", Py_TYPE(subobj)->tp_name);
         return NULL;
+    }
     else
         return PyBool_FromLong(result);
 }
@@ -1321,7 +1323,7 @@ PyDoc_STRVAR(endswith__doc__,
 Return True if B ends with the specified suffix, False otherwise.\n\
 With optional start, test B beginning at that position.\n\
 With optional end, stop comparing B at that position.\n\
-suffix can also be a tuple of strings to try.");
+suffix can also be a tuple of bytes to try.");
 
 static PyObject *
 bytearray_endswith(PyByteArrayObject *self, PyObject *args)
@@ -1331,8 +1333,7 @@ bytearray_endswith(PyByteArrayObject *self, PyObject *args)
     PyObject *subobj;
     int result;
 
-    if (!PyArg_ParseTuple(args, "O|O&O&:endswith", &subobj,
-        _PyEval_SliceIndex, &start, _PyEval_SliceIndex, &end))
+    if (!stringlib_parse_args_finds("endswith", args, &subobj, &start, &end))
         return NULL;
     if (PyTuple_Check(subobj)) {
         Py_ssize_t i;
@@ -1349,8 +1350,12 @@ bytearray_endswith(PyByteArrayObject *self, PyObject *args)
         Py_RETURN_FALSE;
     }
     result = _bytearray_tailmatch(self, subobj, start, end, +1);
-    if (result == -1)
+    if (result == -1) {
+        if (PyErr_ExceptionMatches(PyExc_TypeError))
+            PyErr_Format(PyExc_TypeError, "endswith first arg must be bytes or "
+                         "a tuple of bytes, not %s", Py_TYPE(subobj)->tp_name);
         return NULL;
+    }
     else
         return PyBool_FromLong(result);
 }
@@ -2221,7 +2226,7 @@ bytearray_extend(PyByteArrayObject *self, PyObject *arg)
     if (it == NULL)
         return NULL;
 
-    /* Try to determine the length of the argument. 32 is abitrary. */
+    /* Try to determine the length of the argument. 32 is arbitrary. */
     buf_size = _PyObject_LengthHint(arg, 32);
     if (buf_size == -1) {
         Py_DECREF(it);
@@ -2285,8 +2290,8 @@ bytearray_pop(PyByteArrayObject *self, PyObject *args)
         return NULL;
 
     if (n == 0) {
-        PyErr_SetString(PyExc_OverflowError,
-                        "cannot pop an empty bytearray");
+        PyErr_SetString(PyExc_IndexError,
+                        "pop from empty bytearray");
         return NULL;
     }
     if (where < 0)

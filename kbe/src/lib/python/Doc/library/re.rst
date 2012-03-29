@@ -295,11 +295,12 @@ The special characters are:
    match at the beginning of the string being searched.
 
 ``(?(id/name)yes-pattern|no-pattern)``
-   Will try to match with ``yes-pattern`` if the group with given *id* or *name*
-   exists, and with ``no-pattern`` if it doesn't. ``no-pattern`` is optional and
-   can be omitted. For example,  ``(<)?(\w+@\w+(?:\.\w+)+)(?(1)>)`` is a poor email
-   matching pattern, which will match with ``'<user@host.com>'`` as well as
-   ``'user@host.com'``, but not with ``'<user@host.com'``.
+   Will try to match with ``yes-pattern`` if the group with given *id* or
+   *name* exists, and with ``no-pattern`` if it doesn't. ``no-pattern`` is
+   optional and can be omitted. For example,
+   ``(<)?(\w+@\w+(?:\.\w+)+)(?(1)>|$)`` is a poor email matching pattern, which
+   will match with ``'<user@host.com>'`` as well as ``'user@host.com'``, but
+   not with ``'<user@host.com'`` nor ``'user@host.com>'`` .
 
 
 The special sequences consist of ``'\'`` and a character from the list below.
@@ -634,7 +635,7 @@ form.
    of *pattern* in *string* by the replacement *repl*.  If the pattern isn't found,
    *string* is returned unchanged.  *repl* can be a string or a function; if it is
    a string, any backslash escapes in it are processed.  That is, ``\n`` is
-   converted to a single newline character, ``\r`` is converted to a linefeed, and
+   converted to a single newline character, ``\r`` is converted to a carriage return, and
    so forth.  Unknown escapes such as ``\j`` are left alone.  Backreferences, such
    as ``\6``, are replaced with the substring matched by group 6 in the pattern.
    For example:
@@ -1297,56 +1298,70 @@ The text categories are specified with regular expressions.  The technique is
 to combine those into a single master regular expression and to loop over
 successive matches::
 
-    Token = collections.namedtuple('Token', 'typ value line column')
+    import collections
+    import re
+
+    Token = collections.namedtuple('Token', ['typ', 'value', 'line', 'column'])
 
     def tokenize(s):
-        keywords = {'IF', 'THEN', 'FOR', 'NEXT', 'GOSUB', 'RETURN'}
-        tok_spec = [
-            ('NUMBER', r'\d+(\.\d*)?'), # Integer or decimal number
-            ('ASSIGN', r':='),          # Assignment operator
-            ('END', ';'),               # Statement terminator
-            ('ID', r'[A-Za-z]+'),       # Identifiers
-            ('OP', r'[+*\/\-]'),        # Arithmetic operators
-            ('NEWLINE', r'\n'),         # Line endings
-            ('SKIP', r'[ \t]'),         # Skip over spaces and tabs
+        keywords = {'IF', 'THEN', 'ENDIF', 'FOR', 'NEXT', 'GOSUB', 'RETURN'}
+        token_specification = [
+            ('NUMBER',  r'\d+(\.\d*)?'), # Integer or decimal number
+            ('ASSIGN',  r':='),          # Assignment operator
+            ('END',     r';'),           # Statement terminator
+            ('ID',      r'[A-Za-z]+'),   # Identifiers
+            ('OP',      r'[+*\/\-]'),    # Arithmetic operators
+            ('NEWLINE', r'\n'),          # Line endings
+            ('SKIP',    r'[ \t]'),       # Skip over spaces and tabs
         ]
-        tok_re = '|'.join('(?P<%s>%s)' % pair for pair in tok_spec)
-        gettok = re.compile(tok_re).match
+        tok_regex = '|'.join('(?P<%s>%s)' % pair for pair in token_specification)
+        get_token = re.compile(tok_regex).match
         line = 1
         pos = line_start = 0
-        mo = gettok(s)
+        mo = get_token(s)
         while mo is not None:
             typ = mo.lastgroup
             if typ == 'NEWLINE':
                 line_start = pos
                 line += 1
             elif typ != 'SKIP':
+                val = mo.group(typ)
                 if typ == 'ID' and val in keywords:
                     typ = val
-                yield Token(typ, mo.group(typ), line, mo.start()-line_start)
+                yield Token(typ, val, line, mo.start()-line_start)
             pos = mo.end()
-            mo = gettok(s, pos)
+            mo = get_token(s, pos)
         if pos != len(s):
             raise RuntimeError('Unexpected character %r on line %d' %(s[pos], line))
 
-    >>> statements = '''\
-        total := total + price * quantity;
-        tax := price * 0.05;
+    statements = '''
+        IF quantity THEN
+            total := total + price * quantity;
+            tax := price * 0.05;
+        ENDIF;
     '''
-    >>> for token in tokenize(statements):
-    ...     print(token)
-    ...
-    Token(typ='ID', value='total', line=1, column=8)
-    Token(typ='ASSIGN', value=':=', line=1, column=14)
-    Token(typ='ID', value='total', line=1, column=17)
-    Token(typ='OP', value='+', line=1, column=23)
-    Token(typ='ID', value='price', line=1, column=25)
-    Token(typ='OP', value='*', line=1, column=31)
-    Token(typ='ID', value='quantity', line=1, column=33)
-    Token(typ='END', value=';', line=1, column=41)
-    Token(typ='ID', value='tax', line=2, column=9)
-    Token(typ='ASSIGN', value=':=', line=2, column=13)
-    Token(typ='ID', value='price', line=2, column=16)
-    Token(typ='OP', value='*', line=2, column=22)
-    Token(typ='NUMBER', value='0.05', line=2, column=24)
-    Token(typ='END', value=';', line=2, column=28)
+
+    for token in tokenize(statements):
+        print(token)
+
+The tokenizer produces the following output::
+
+    Token(typ='IF', value='IF', line=2, column=5)
+    Token(typ='ID', value='quantity', line=2, column=8)
+    Token(typ='THEN', value='THEN', line=2, column=17)
+    Token(typ='ID', value='total', line=3, column=9)
+    Token(typ='ASSIGN', value=':=', line=3, column=15)
+    Token(typ='ID', value='total', line=3, column=18)
+    Token(typ='OP', value='+', line=3, column=24)
+    Token(typ='ID', value='price', line=3, column=26)
+    Token(typ='OP', value='*', line=3, column=32)
+    Token(typ='ID', value='quantity', line=3, column=34)
+    Token(typ='END', value=';', line=3, column=42)
+    Token(typ='ID', value='tax', line=4, column=9)
+    Token(typ='ASSIGN', value=':=', line=4, column=13)
+    Token(typ='ID', value='price', line=4, column=16)
+    Token(typ='OP', value='*', line=4, column=22)
+    Token(typ='NUMBER', value='0.05', line=4, column=24)
+    Token(typ='END', value=';', line=4, column=28)
+    Token(typ='ENDIF', value='ENDIF', line=5, column=5)
+    Token(typ='END', value=';', line=5, column=10)

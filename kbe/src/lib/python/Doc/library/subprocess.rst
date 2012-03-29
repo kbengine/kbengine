@@ -94,12 +94,10 @@ This module defines one class called :class:`Popen`:
       *shell=False* does not suffer from this vulnerability; the above Note may be
       helpful in getting code using *shell=False* to work.
 
-   On Windows: the :class:`Popen` class uses CreateProcess() to execute the child
-   program, which operates on strings.  If *args* is a sequence, it will be
-   converted to a string using the :meth:`list2cmdline` method.  Please note that
-   not all MS Windows applications interpret the command line the same way:
-   :meth:`list2cmdline` is designed for applications using the same rules as the MS
-   C runtime.
+   On Windows: the :class:`Popen` class uses CreateProcess() to execute the
+   child program, which operates on strings.  If *args* is a sequence, it will
+   be converted to a string in a manner described in
+   :ref:`converting-argument-sequence`.
 
    *bufsize*, if given, has the same meaning as the corresponding argument to the
    built-in open() function: :const:`0` means unbuffered, :const:`1` means line
@@ -214,12 +212,13 @@ This module defines one class called :class:`Popen`:
       :attr:`stdout`, :attr:`stdin` and :attr:`stderr` are not updated by the
       :meth:`communicate` method.
 
-   The *startupinfo* and *creationflags*, if given, will be passed to the
-   underlying CreateProcess() function.  They can specify things such as appearance
-   of the main window and priority for the new process.  (Windows only)
+   If given, *startupinfo* will be a :class:`STARTUPINFO` object, which is
+   passed to the underlying ``CreateProcess`` function.
+   *creationflags*, if given, can be :data:`CREATE_NEW_CONSOLE` or
+   :data:`CREATE_NEW_PROCESS_GROUP`. (Windows only)
 
-   Popen objects are supported as context managers via the :keyword:`with` statement,
-   closing any open file descriptors on exit.
+   Popen objects are supported as context managers via the :keyword:`with` statement:
+   on exit, standard file descriptors are closed, and the process is waited for.
    ::
 
       with Popen(["ifconfig"], stdout=PIPE) as proc:
@@ -246,7 +245,7 @@ This module defines one class called :class:`Popen`:
 Convenience Functions
 ^^^^^^^^^^^^^^^^^^^^^
 
-This module also defines four shortcut functions:
+This module also defines the following shortcut functions:
 
 
 .. function:: call(*popenargs, **kwargs)
@@ -484,6 +483,110 @@ The following attributes are also available:
    ``N`` (Unix only).
 
 
+Windows Popen Helpers
+---------------------
+
+The :class:`STARTUPINFO` class and following constants are only available
+on Windows.
+
+.. class:: STARTUPINFO()
+
+   Partial support of the Windows
+   `STARTUPINFO <http://msdn.microsoft.com/en-us/library/ms686331(v=vs.85).aspx>`__
+   structure is used for :class:`Popen` creation.
+
+   .. attribute:: dwFlags
+
+      A bit field that determines whether certain :class:`STARTUPINFO`
+      attributes are used when the process creates a window. ::
+
+         si = subprocess.STARTUPINFO()
+         si.dwFlags = subprocess.STARTF_USESTDHANDLES | subprocess.STARTF_USESHOWWINDOW
+
+   .. attribute:: hStdInput
+
+      If :attr:`dwFlags` specifies :data:`STARTF_USESTDHANDLES`, this attribute
+      is the standard input handle for the process. If
+      :data:`STARTF_USESTDHANDLES` is not specified, the default for standard
+      input is the keyboard buffer.
+
+   .. attribute:: hStdOutput
+
+      If :attr:`dwFlags` specifies :data:`STARTF_USESTDHANDLES`, this attribute
+      is the standard output handle for the process. Otherwise, this attribute
+      is ignored and the default for standard output is the console window's
+      buffer.
+
+   .. attribute:: hStdError
+
+      If :attr:`dwFlags` specifies :data:`STARTF_USESTDHANDLES`, this attribute
+      is the standard error handle for the process. Otherwise, this attribute is
+      ignored and the default for standard error is the console window's buffer.
+
+   .. attribute:: wShowWindow
+
+      If :attr:`dwFlags` specifies :data:`STARTF_USESHOWWINDOW`, this attribute
+      can be any of the values that can be specified in the ``nCmdShow``
+      parameter for the
+      `ShowWindow <http://msdn.microsoft.com/en-us/library/ms633548(v=vs.85).aspx>`__
+      function, except for ``SW_SHOWDEFAULT``. Otherwise, this attribute is
+      ignored.
+
+      :data:`SW_HIDE` is provided for this attribute. It is used when
+      :class:`Popen` is called with ``shell=True``.
+
+
+Constants
+^^^^^^^^^
+
+The :mod:`subprocess` module exposes the following constants.
+
+.. data:: STD_INPUT_HANDLE
+
+   The standard input device. Initially, this is the console input buffer,
+   ``CONIN$``.
+
+.. data:: STD_OUTPUT_HANDLE
+
+   The standard output device. Initially, this is the active console screen
+   buffer, ``CONOUT$``.
+
+.. data:: STD_ERROR_HANDLE
+
+   The standard error device. Initially, this is the active console screen
+   buffer, ``CONOUT$``.
+
+.. data:: SW_HIDE
+
+   Hides the window. Another window will be activated.
+
+.. data:: STARTF_USESTDHANDLES
+
+   Specifies that the :attr:`STARTUPINFO.hStdInput`,
+   :attr:`STARTUPINFO.hStdOutput`, and :attr:`STARTUPINFO.hStdError` attributes
+   contain additional information.
+
+.. data:: STARTF_USESHOWWINDOW
+
+   Specifies that the :attr:`STARTUPINFO.wShowWindow` attribute contains
+   additional information.
+
+.. data:: CREATE_NEW_CONSOLE
+
+   The new process has a new console, instead of inheriting its parent's
+   console (the default).
+
+   This flag is always set when :class:`Popen` is created with ``shell=True``.
+
+.. data:: CREATE_NEW_PROCESS_GROUP
+
+   A :class:`Popen` ``creationflags`` parameter to specify that a new process
+   group will be created. This flag is necessary for using :func:`os.kill`
+   on the subprocess.
+
+   This flag is ignored if :data:`CREATE_NEW_CONSOLE` is specified.
+
+
 .. _subprocess-replacements:
 
 Replacing Older Functions with the subprocess Module
@@ -664,3 +767,37 @@ Replacing functions from the :mod:`popen2` module
 * popen2 closes all file descriptors by default, but you have to specify
   ``close_fds=True`` with :class:`Popen` to guarantee this behavior on
   all platforms or past Python versions.
+
+Notes
+-----
+
+.. _converting-argument-sequence:
+
+Converting an argument sequence to a string on Windows
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+On Windows, an *args* sequence is converted to a string that can be parsed
+using the following rules (which correspond to the rules used by the MS C
+runtime):
+
+1. Arguments are delimited by white space, which is either a
+   space or a tab.
+
+2. A string surrounded by double quotation marks is
+   interpreted as a single argument, regardless of white space
+   contained within.  A quoted string can be embedded in an
+   argument.
+
+3. A double quotation mark preceded by a backslash is
+   interpreted as a literal double quotation mark.
+
+4. Backslashes are interpreted literally, unless they
+   immediately precede a double quotation mark.
+
+5. If backslashes immediately precede a double quotation mark,
+   every pair of backslashes is interpreted as a literal
+   backslash.  If the number of backslashes is odd, the last
+   backslash escapes the next double quotation mark as
+   described in rule 3.
+
+

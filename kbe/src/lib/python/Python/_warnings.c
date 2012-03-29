@@ -496,7 +496,7 @@ setup_context(Py_ssize_t stack_level, PyObject **filename, int *lineno,
 
     /* Setup filename. */
     *filename = PyDict_GetItemString(globals, "__file__");
-    if (*filename != NULL) {
+    if (*filename != NULL && PyUnicode_Check(*filename)) {
         Py_ssize_t len = PyUnicode_GetSize(*filename);
         Py_UNICODE *unicode = PyUnicode_AS_UNICODE(*filename);
 
@@ -517,6 +517,7 @@ setup_context(Py_ssize_t stack_level, PyObject **filename, int *lineno,
     }
     else {
         const char *module_str = _PyUnicode_AsString(*module);
+        *filename = NULL;
         if (module_str == NULL)
                 goto handle_error;
         if (strcmp(module_str, "__main__") == 0) {
@@ -764,7 +765,7 @@ PyErr_WarnEx(PyObject *category, const char *text, Py_ssize_t stack_level)
     return ret;
 }
 
-/* PyErr_Warn is only for backwards compatability and will be removed.
+/* PyErr_Warn is only for backwards compatibility and will be removed.
    Use PyErr_WarnEx instead. */
 
 #undef PyErr_Warn

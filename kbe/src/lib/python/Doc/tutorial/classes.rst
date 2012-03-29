@@ -595,6 +595,28 @@ current class name with leading underscore(s) stripped.  This mangling is done
 without regard to the syntactic position of the identifier, as long as it
 occurs within the definition of a class.
 
+Name mangling is helpful for letting subclasses override methods without
+breaking intraclass method calls.  For example::
+
+   class Mapping:
+       def __init__(self, iterable):
+           self.items_list = []
+           self.__update(iterable)
+
+       def update(self, iterable):
+           for item in iterable:
+               self.items_list.append(item)
+
+       __update = update   # private copy of original update() method
+
+   class MappingSubclass(Mapping):
+
+       def update(self, keys, values):
+           # provides new signature for update()
+           # but does not break __init__()
+           for item in zip(keys, values):
+               self.items_list.append(item)
+
 Note that the mangling rules are designed mostly to avoid accidents; it still is
 possible to access or modify a variable that is considered private.  This can
 even be useful in special circumstances, such as in the debugger.
@@ -730,7 +752,6 @@ built-in function; this example shows how it all works::
    >>> next(it)
    'c'
    >>> next(it)
-
    Traceback (most recent call last):
      File "<stdin>", line 1, in ?
        next(it)
@@ -742,7 +763,7 @@ returns an object with a :meth:`__next__` method.  If the class defines
 :meth:`__next__`, then :meth:`__iter__` can just return ``self``::
 
    class Reverse:
-       "Iterator for looping over a sequence backwards"
+       """Iterator for looping over a sequence backwards."""
        def __init__(self, data):
            self.data = data
            self.index = len(data)
@@ -753,6 +774,8 @@ returns an object with a :meth:`__next__` method.  If the class defines
                raise StopIteration
            self.index = self.index - 1
            return self.data[self.index]
+
+::
 
    >>> rev = Reverse('spam')
    >>> iter(rev)
@@ -781,6 +804,8 @@ easy to create::
    def reverse(data):
        for index in range(len(data)-1, -1, -1):
            yield data[index]
+
+::
 
    >>> for char in reverse('golf'):
    ...     print(char)

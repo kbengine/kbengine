@@ -29,7 +29,7 @@
 
   4. _ctypes_callproc is then called with the 'callargs' tuple.  _ctypes_callproc first
   allocates two arrays.  The first is an array of 'struct argument' items, the
-  second array has 'void *' entried.
+  second array has 'void *' entries.
 
   5. If 'converters' are present (converters is a sequence of argtypes'
   from_param methods), for each item in 'callargs' converter is called and the
@@ -49,7 +49,7 @@
   So, there are 4 data structures holding processed arguments:
   - the inargs tuple (in PyCFuncPtr_call)
   - the callargs tuple (in PyCFuncPtr_call)
-  - the 'struct argguments' array
+  - the 'struct arguments' array
   - the 'void *' array
 
  */

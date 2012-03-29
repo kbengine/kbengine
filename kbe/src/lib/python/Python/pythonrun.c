@@ -53,7 +53,7 @@ extern grammar _PyParser_Grammar; /* From graminit.c */
 
 /* Forward */
 static void initmain(void);
-static void initfsencoding(void);
+static int initfsencoding(PyInterpreterState *interp);
 static void initsite(void);
 static int initstdio(void);
 static void flush_io(void);
@@ -80,7 +80,7 @@ int Py_DebugFlag; /* Needed by parser.c */
 int Py_VerboseFlag; /* Needed by import.c */
 int Py_QuietFlag; /* Needed by sysmodule.c */
 int Py_InteractiveFlag; /* Needed by Py_FdIsInteractive() below */
-int Py_InspectFlag; /* Needed to determine whether to exit at SystemError */
+int Py_InspectFlag; /* Needed to determine whether to exit at SystemExit */
 int Py_NoSiteFlag; /* Suppress 'import site' */
 int Py_BytesWarningFlag; /* Warn on str(bytes) and str(buffer) */
 int Py_DontWriteBytecodeFlag; /* Suppress writing bytecode files (*.py[co]) */
@@ -89,6 +89,8 @@ int Py_FrozenFlag; /* Needed by getpath.c */
 int Py_IgnoreEnvironmentFlag; /* e.g. PYTHONPATH, PYTHONHOME */
 int Py_NoUserSiteDirectory = 0; /* for -s and site.py */
 int Py_UnbufferedStdioFlag = 0; /* Unbuffered binary std{in,out,err} */
+
+PyThreadState *_Py_Finalizing = NULL;
 
 /* PyModule_GetWarningsModule is no longer necessary as of 2.6
 since _warnings is builtin.  This API should not be used. */
@@ -147,7 +149,7 @@ get_codec_name(const char *encoding)
         goto error;
 
     name_utf8 = _PyUnicode_AsString(name);
-    if (name == NULL)
+    if (name_utf8 == NULL)
         goto error;
     name_str = strdup(name_utf8);
     Py_DECREF(name);
@@ -188,6 +190,7 @@ Py_InitializeEx(int install_sigs)
     if (initialized)
         return;
     initialized = 1;
+    _Py_Finalizing = NULL;
 
 #if defined(HAVE_LANGINFO_H) && defined(HAVE_SETLOCALE)
     /* Set up the LC_CTYPE locale, so we can obtain
@@ -291,7 +294,8 @@ Py_InitializeEx(int install_sigs)
 
     _PyTime_Init();
 
-    initfsencoding();
+    if (initfsencoding(interp) < 0)
+        Py_FatalError("Py_Initialize: unable to load the file system codec");
 
     if (install_sigs)
         initsigs(); /* Signal handling stuff, including initintr() */
@@ -387,14 +391,18 @@ Py_Finalize(void)
      * the threads created via Threading.
      */
     call_py_exitfuncs();
-    initialized = 0;
-
-    /* Flush stdout+stderr */
-    flush_std_files();
 
     /* Get current thread state and interpreter pointer */
     tstate = PyThreadState_GET();
     interp = tstate->interp;
+
+    /* Remaining threads (e.g. daemon threads) will automatically exit
+       after taking the GIL (in PyEval_RestoreThread()). */
+    _Py_Finalizing = tstate;
+    initialized = 0;
+
+    /* Flush stdout+stderr */
+    flush_std_files();
 
     /* Disable signal handling */
     PyOS_FiniInterrupts();
@@ -608,6 +616,10 @@ Py_NewInterpreter(void)
         Py_DECREF(pstderr);
 
         _PyImportHooks_Init();
+
+        if (initfsencoding(interp) < 0)
+            goto handle_error;
+
         if (initstdio() < 0)
             Py_FatalError(
             "Py_Initialize: can't initialize sys standard streams");
@@ -622,7 +634,7 @@ Py_NewInterpreter(void)
 handle_error:
     /* Oops, it didn't work.  Undo it all. */
 
-    PyErr_Print();
+    PyErr_PrintEx(0);
     PyThreadState_Clear(tstate);
     PyThreadState_Swap(save_tstate);
     PyThreadState_Delete(tstate);
@@ -720,8 +732,8 @@ initmain(void)
     }
 }
 
-static void
-initfsencoding(void)
+static int
+initfsencoding(PyInterpreterState *interp)
 {
     PyObject *codec;
 #if defined(HAVE_LANGINFO_H) && defined(CODESET)
@@ -738,7 +750,8 @@ initfsencoding(void)
 
         Py_FileSystemDefaultEncoding = codeset;
         Py_HasFileSystemDefaultEncoding = 0;
-        return;
+        interp->fscodec_initialized = 1;
+        return 0;
     }
 #endif
 
@@ -748,10 +761,11 @@ initfsencoding(void)
         /* Such error can only occurs in critical situations: no more
          * memory, import a module of the standard library failed,
          * etc. */
-        Py_FatalError("Py_Initialize: unable to load the file system codec");
-    } else {
-        Py_DECREF(codec);
+        return -1;
     }
+    Py_DECREF(codec);
+    interp->fscodec_initialized = 1;
+    return 0;
 }
 
 /* Import the site module (not into __main__ though) */
@@ -778,6 +792,7 @@ create_stdio(PyObject* io,
 {
     PyObject *buf = NULL, *stream = NULL, *text = NULL, *raw = NULL, *res;
     const char* mode;
+    const char* newline;
     PyObject *line_buffering;
     int buffering, isatty;
 
@@ -828,9 +843,17 @@ create_stdio(PyObject* io,
     Py_CLEAR(raw);
     Py_CLEAR(text);
 
+    newline = "\n";
+#ifdef MS_WINDOWS
+    if (!write_mode) {
+        /* translate \r\n to \n for sys.stdin on Windows */
+        newline = NULL;
+    }
+#endif
+
     stream = PyObject_CallMethod(io, "TextIOWrapper", "OsssO",
                                  buf, encoding, errors,
-                                 "\n", line_buffering);
+                                 newline, line_buffering);
     Py_CLEAR(buf);
     if (stream == NULL)
         goto error;

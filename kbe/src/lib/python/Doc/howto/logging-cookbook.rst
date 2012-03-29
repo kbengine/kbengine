@@ -630,8 +630,6 @@ script::
 
     if __name__ == '__main__':
        levels = (logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL)
-       a1 = logging.LoggerAdapter(logging.getLogger('a.b.c'),
-                                  { 'ip' : '123.231.231.123', 'user' : 'sheila' })
        logging.basicConfig(level=logging.DEBUG,
                            format='%(asctime)-15s %(name)-5s %(levelname)-8s IP: %(ip)-15s User: %(user)-8s %(message)s')
        a1 = logging.getLogger('a.b.c')
@@ -725,7 +723,7 @@ the basis for code meeting your own specific requirements::
     # The size of the rotated files is made small so you can see the results easily.
     def listener_configurer():
         root = logging.getLogger()
-        h = logging.handlers.RotatingFileHandler('/tmp/mptest.log', 'a', 300, 10)
+        h = logging.handlers.RotatingFileHandler('mptest.log', 'a', 300, 10)
         f = logging.Formatter('%(asctime)s %(processName)-10s %(name)s %(levelname)-8s %(message)s')
         h.setFormatter(f)
         root.addHandler(h)

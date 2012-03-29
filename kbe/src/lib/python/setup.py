@@ -1,7 +1,7 @@
 # Autodetecting setup.py script for building the Python extensions
 #
 
-__version__ = "$Revision: 87525 $"
+__version__ = "$Revision$"
 
 import sys, os, imp, re, optparse
 from glob import glob
@@ -370,12 +370,35 @@ class PyBuildExt(build_ext):
                 return platform
         return sys.platform
 
+    def add_multiarch_paths(self):
+        # Debian/Ubuntu multiarch support.
+        # https://wiki.ubuntu.com/MultiarchSpec
+        if not find_executable('dpkg-architecture'):
+            return
+        tmpfile = os.path.join(self.build_temp, 'multiarch')
+        if not os.path.exists(self.build_temp):
+            os.makedirs(self.build_temp)
+        ret = os.system(
+            'dpkg-architecture -qDEB_HOST_MULTIARCH > %s 2> /dev/null' %
+            tmpfile)
+        try:
+            if ret >> 8 == 0:
+                with open(tmpfile) as fp:
+                    multiarch_path_component = fp.readline().strip()
+                add_dir_to_list(self.compiler.library_dirs,
+                                '/usr/lib/' + multiarch_path_component)
+                add_dir_to_list(self.compiler.include_dirs,
+                                '/usr/include/' + multiarch_path_component)
+        finally:
+            os.unlink(tmpfile)
+
     def detect_modules(self):
         # Ensure that /usr/local is always used, but the local build
         # directories (i.e. '.' and 'Include') must be first.  See issue
         # 10520.
         add_dir_to_list(self.compiler.library_dirs, '/usr/local/lib')
         add_dir_to_list(self.compiler.include_dirs, '/usr/local/include')
+        self.add_multiarch_paths()
 
         # Add paths specified in the environment variables LDFLAGS and
         # CPPFLAGS for header and library files.
@@ -901,7 +924,7 @@ class PyBuildExt(build_ext):
 
                     db_dirs_to_check = tmp
 
-                # Look for a version specific db-X.Y before an ambiguoius dbX
+                # Look for a version specific db-X.Y before an ambiguous dbX
                 # XXX should we -ever- look for a dbX name?  Do any
                 # systems really not name their library by version and
                 # symlink to more general names?
@@ -1017,8 +1040,8 @@ class PyBuildExt(build_ext):
             if sys.platform == 'darwin':
                 # In every directory on the search path search for a dynamic
                 # library and then a static library, instead of first looking
-                # for dynamic libraries on the entiry path.
-                # This way a staticly linked custom sqlite gets picked up
+                # for dynamic libraries on the entire path.
+                # This way a statically linked custom sqlite gets picked up
                 # before the dynamic library in /usr/lib.
                 sqlite_extra_link_args = ('-Wl,-search_paths_first',)
             else:

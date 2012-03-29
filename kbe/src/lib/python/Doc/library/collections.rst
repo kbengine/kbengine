@@ -1,3 +1,4 @@
+
 :mod:`collections` --- Container datatypes
 ==========================================
 
@@ -32,8 +33,9 @@ Python's general purpose built-in containers, :class:`dict`, :class:`list`,
 =====================   ====================================================================
 
 In addition to the concrete container classes, the collections module provides
-:ref:`abstract-base-classes` that can be used to test whether a class provides a
-particular interface, for example, whether it is hashable or a mapping.
+:ref:`abstract base classes <collections-abstract-base-classes>` that can be
+used to test whether a class provides a particular interface, for example,
+whether it is hashable or a mapping.
 
 
 :class:`Counter` objects
@@ -204,14 +206,14 @@ counts, but the output will exclude results with counts of zero or less.
     * `Bag class <http://www.gnu.org/software/smalltalk/manual-base/html_node/Bag.html>`_
       in Smalltalk.
 
-    * Wikipedia entry for `Multisets <http://en.wikipedia.org/wiki/Multiset>`_\.
+    * Wikipedia entry for `Multisets <http://en.wikipedia.org/wiki/Multiset>`_.
 
     * `C++ multisets <http://www.demo2s.com/Tutorial/Cpp/0380__set-multiset/Catalog0380__set-multiset.htm>`_
       tutorial with examples.
 
     * For mathematical operations on multisets and their use cases, see
       *Knuth, Donald. The Art of Computer Programming Volume II,
-      Section 4.6.3, Exercise 19*\.
+      Section 4.6.3, Exercise 19*.
 
     * To enumerate all distinct multisets of a given size over a given set of
       elements, see :func:`itertools.combinations_with_replacement`.
@@ -590,7 +592,7 @@ they add the ability to access fields by name instead of position index.
    :options: +NORMALIZE_WHITESPACE
 
    >>> # Basic example
-   >>> Point = namedtuple('Point', 'x y')
+   >>> Point = namedtuple('Point', ['x', 'y'])
    >>> p = Point(x=10, y=11)
 
    >>> # Example using the verbose option to print the class definition
@@ -621,6 +623,8 @@ they add the ability to access fields by name instead of position index.
            def _asdict(self):
                'Return a new OrderedDict which maps field names to their values'
                return OrderedDict(zip(self._fields, self))
+   <BLANKLINE>
+           __dict__ = property(_asdict)
    <BLANKLINE>
            def _replace(_self, **kwds):
                'Return a new Point object replacing specified fields with new values'
@@ -735,15 +739,15 @@ functionality with a subclass.  Here is how to add a calculated field and
 a fixed-width print format:
 
     >>> class Point(namedtuple('Point', 'x y')):
-    ...     __slots__ = ()
-    ...     @property
-    ...     def hypot(self):
-    ...         return (self.x ** 2 + self.y ** 2) ** 0.5
-    ...     def __str__(self):
-    ...         return 'Point: x=%6.3f  y=%6.3f  hypot=%6.3f' % (self.x, self.y, self.hypot)
+            __slots__ = ()
+            @property
+            def hypot(self):
+                return (self.x ** 2 + self.y ** 2) ** 0.5
+            def __str__(self):
+                return 'Point: x=%6.3f  y=%6.3f  hypot=%6.3f' % (self.x, self.y, self.hypot)
 
     >>> for p in Point(3, 4), Point(14, 5/7):
-    ...     print(p)
+            print(p)
     Point: x= 3.000  y= 4.000  hypot= 5.000
     Point: x=14.000  y= 0.714  hypot=14.018
 
@@ -770,12 +774,19 @@ and more efficient to use a simple class declaration:
     >>> Status.open, Status.pending, Status.closed
     (0, 1, 2)
     >>> class Status:
-    ...     open, pending, closed = range(3)
+            open, pending, closed = range(3)
 
 .. seealso::
 
-   `Named tuple recipe <http://code.activestate.com/recipes/500261/>`_
-   adapted for Python 2.4.
+   * `Named tuple recipe <http://code.activestate.com/recipes/500261/>`_
+     adapted for Python 2.4.
+
+   * `Recipe for named tuple abstract base class with a metaclass mix-in
+     <http://code.activestate.com/recipes/577629-namedtupleabc-abstract-base-class-mix-in-for-named/>`_
+     by Jan Kaliszewski.  Besides providing an :term:`abstract base class` for
+     named tuples, it also supports an alternate :term:`metaclass`-based
+     constructor that is convenient for use cases where named tuples are being
+     subclassed.
 
 
 :class:`OrderedDict` objects
@@ -810,10 +821,10 @@ the items are returned in the order their keys were first added.
 
           >>> d = OrderedDict.fromkeys('abcde')
           >>> d.move_to_end('b')
-          >>> ''.join(d.keys)
+          >>> ''.join(d.keys())
           'acdeb'
           >>> d.move_to_end('b', last=False)
-          >>> ''.join(d.keys)
+          >>> ''.join(d.keys())
           'bacde'
 
       .. versionadded:: 3.2
@@ -836,6 +847,9 @@ semantics pass-in keyword arguments using a regular unordered dictionary.
 
    `Equivalent OrderedDict recipe <http://code.activestate.com/recipes/576693/>`_
    that runs on Python 2.4 or later.
+
+:class:`OrderedDict` Examples and Recipes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Since an ordered dictionary remembers its insertion order, it can be used
 in conjuction with sorting to make a sorted dictionary::
@@ -866,10 +880,23 @@ original insertion position is changed and moved to the end::
 
     class LastUpdatedOrderedDict(OrderedDict):
         'Store items in the order the keys were last added'
+
         def __setitem__(self, key, value):
             if key in self:
                 del self[key]
             OrderedDict.__setitem__(self, key, value)
+
+An ordered dictionary can combined with the :class:`Counter` class
+so that the counter remembers the order elements are first encountered::
+
+   class OrderedCounter(Counter, OrderedDict):
+        'Counter that remembers the order elements are first encountered'
+
+        def __repr__(self):
+            return '%s(%r)' % (self.__class__.__name__, OrderedDict(self))
+
+        def __reduce__(self):
+            return self.__class__, (OrderedDict(self),)
 
 
 :class:`UserDict` objects
@@ -958,15 +985,15 @@ attribute.
    subclass) or an arbitrary sequence which can be converted into a string using
    the built-in :func:`str` function.
 
-.. _abstract-base-classes:
+.. _collections-abstract-base-classes:
 
 ABCs - abstract base classes
 ----------------------------
 
-The collections module offers the following ABCs:
+The collections module offers the following :term:`ABCs <abstract base class>`:
 
 =========================  =====================  ======================  ====================================================
-ABC                        Inherits               Abstract Methods        Mixin Methods
+ABC                        Inherits from          Abstract Methods        Mixin Methods
 =========================  =====================  ======================  ====================================================
 :class:`Container`                                ``__contains__``
 :class:`Hashable`                                 ``__hash__``
@@ -979,15 +1006,15 @@ ABC                        Inherits               Abstract Methods        Mixin 
                            :class:`Iterable`,                             ``index``, and ``count``
                            :class:`Container`
 
-:class:`MutableSequence`   :class:`Sequence`      ``__setitem__``         Inherited Sequence methods and
+:class:`MutableSequence`   :class:`Sequence`      ``__setitem__``,        Inherited :class:`Sequence` methods and
                                                   ``__delitem__``,        ``append``, ``reverse``, ``extend``, ``pop``,
-                                                  and ``insert``          ``remove``, and ``__iadd__``
+                                                  ``insert``              ``remove``, and ``__iadd__``
 
 :class:`Set`               :class:`Sized`,                                ``__le__``, ``__lt__``, ``__eq__``, ``__ne__``,
                            :class:`Iterable`,                             ``__gt__``, ``__ge__``, ``__and__``, ``__or__``,
                            :class:`Container`                             ``__sub__``, ``__xor__``, and ``isdisjoint``
 
-:class:`MutableSet`        :class:`Set`           ``add`` and             Inherited Set methods and
+:class:`MutableSet`        :class:`Set`           ``add``,                Inherited :class:`Set` methods and
                                                   ``discard``             ``clear``, ``pop``, ``remove``, ``__ior__``,
                                                                           ``__iand__``, ``__ixor__``, and ``__isub__``
 
@@ -995,18 +1022,60 @@ ABC                        Inherits               Abstract Methods        Mixin 
                            :class:`Iterable`,                             ``get``, ``__eq__``, and ``__ne__``
                            :class:`Container`
 
-:class:`MutableMapping`    :class:`Mapping`       ``__setitem__`` and     Inherited Mapping methods and
+:class:`MutableMapping`    :class:`Mapping`       ``__setitem__``,        Inherited :class:`Mapping` methods and
                                                   ``__delitem__``         ``pop``, ``popitem``, ``clear``, ``update``,
                                                                           and ``setdefault``
 
 
 :class:`MappingView`       :class:`Sized`                                 ``__len__``
-:class:`KeysView`          :class:`MappingView`,                          ``__contains__``,
-                           :class:`Set`                                   ``__iter__``
 :class:`ItemsView`         :class:`MappingView`,                          ``__contains__``,
+                           :class:`Set`                                   ``__iter__``
+:class:`KeysView`          :class:`MappingView`,                          ``__contains__``,
                            :class:`Set`                                   ``__iter__``
 :class:`ValuesView`        :class:`MappingView`                           ``__contains__``, ``__iter__``
 =========================  =====================  ======================  ====================================================
+
+
+.. class:: Container
+           Hashable
+           Sized
+           Callable
+
+   ABCs for classes that provide respectively the methods :meth:`__contains__`,
+   :meth:`__hash__`, :meth:`__len__`, and :meth:`__call__`.
+
+.. class:: Iterable
+
+   ABC for classes that provide the :meth:`__iter__` method.
+   See also the definition of :term:`iterable`.
+
+.. class:: Iterator
+
+   ABC for classes that provide the :meth:`__iter__` and :meth:`next` methods.
+   See also the definition of :term:`iterator`.
+
+.. class:: Sequence
+           MutableSequence
+
+   ABCs for read-only and mutable :term:`sequences <sequence>`.
+
+.. class:: Set
+           MutableSet
+
+   ABCs for read-only and mutable sets.
+
+.. class:: Mapping
+           MutableMapping
+
+   ABCs for read-only and mutable :term:`mappings <mapping>`.
+
+.. class:: MappingView
+           ItemsView
+           KeysView
+           ValuesView
+
+   ABCs for mapping, items, keys, and values :term:`views <view>`.
+
 
 These ABCs allow us to ask classes or instances if they provide
 particular functionality, for example::
@@ -1050,7 +1119,7 @@ Notes on using :class:`Set` and :class:`MutableSet` as a mixin:
    That assumption is factored-out to an internal classmethod called
    :meth:`_from_iterable` which calls ``cls(iterable)`` to produce a new set.
    If the :class:`Set` mixin is being used in a class with a different
-   constructor signature, you will need to override :meth:`from_iterable`
+   constructor signature, you will need to override :meth:`_from_iterable`
    with a classmethod that can construct new instances from
    an iterable argument.
 
@@ -1067,9 +1136,6 @@ Notes on using :class:`Set` and :class:`MutableSet` as a mixin:
    ``__hash__ = Set._hash``.
 
 .. seealso::
-
-   * Latest version of the :source:`Python source code for the collections
-     abstract base classes <Lib/_abcoll.py>`
 
    * `OrderedSet recipe <http://code.activestate.com/recipes/576694/>`_ for an
      example built on :class:`MutableSet`.
