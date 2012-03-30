@@ -20,7 +20,7 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			ConfigurationType="2"
+			ConfigurationType="4"
 			InheritedPropertySheets=".\pyproject.vsprops;.\release.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
@@ -45,7 +45,7 @@
 				AdditionalOptions="/Zm200 "
 				AdditionalIncludeDirectories="..\Python;..\Modules\zlib"
 				PreprocessorDefinitions="_USRDLL;Py_BUILD_CORE;Py_ENABLE_SHARED;WIN32"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -62,19 +62,11 @@
 				CommandLine="&quot;$(SolutionDir)make_buildinfo.exe&quot; Release &quot;$(IntDir)\&quot;"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="&quot;$(IntDir)getbuildinfo.o&quot;"
-				OutputFile="$(OutDir)\$(PyDllName).dll"
-				IgnoreDefaultLibraryNames="libc"
-				ProgramDatabaseFile="$(OutDir)$(PyDllName).pdb"
-				BaseAddress="0x1e000000"
-				ImportLibrary="$(OutDir)$(PyDllName).lib"
+				Name="VCLibrarianTool"
+				OutputFile="../../../libs\$(ProjectName).lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -84,9 +76,6 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -141,6 +130,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				OutputFile="../../../libs\$(ProjectName)_d.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
