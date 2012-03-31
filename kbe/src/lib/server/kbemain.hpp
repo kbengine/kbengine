@@ -11,6 +11,17 @@ same license as the rest of the engine.
 #ifndef __KBEMAIN__
 #define __KBEMAIN__
 #include "serverapp.hpp"
+#include <cstdkbe/cstdkbe.hpp>
+
+template <class SERVER_APP>
+int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType)
+{
+	SERVER_APP app;
+	app.initialize(componentType);
+	int ret = app.run();
+	app.finalise();
+	return ret;
+}
 
 #define KBENGINE_MAIN										\
 kbeMain(int argc, char* argv[]);							\

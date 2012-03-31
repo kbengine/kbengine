@@ -57,10 +57,7 @@ template<> TestApp* Singleton<TestApp>::m_singleton_ = 0;
 
 int KBENGINE_MAIN(int argc, char* argv[])
 {
-	TestApp app;
-	app.getSingleton().initialize(CELLAPP_TYPE);
-	app.getSingleton().run();
-	app.getSingleton().finalise();
+	int ret= kbeMainT<TestApp>(argc, argv, CELLAPP_TYPE);
 	getchar();
 	return 0; 
 }
