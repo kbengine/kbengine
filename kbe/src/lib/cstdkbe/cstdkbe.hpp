@@ -31,7 +31,7 @@ same license as the rest of the engine.
 /** 定义服务器各组件类别 */
 enum COMPONENT_TYPE
 {
-	UNKNOWN_TYPE	= 0,
+	UNKNOWN_COMPONENT_TYPE	= 0,
 	DBMGR_TYPE		= 1,
 	LOGINAPP_TYPE	= 2,
 	BASEAPPMGR_TYPE	= 3,
