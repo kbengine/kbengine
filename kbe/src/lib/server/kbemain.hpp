@@ -10,6 +10,7 @@ same license as the rest of the engine.
 */
 #ifndef __KBEMAIN__
 #define __KBEMAIN__
+#include "serverapp.hpp"
 
 #define KBENGINE_MAIN										\
 kbeMain(int argc, char* argv[]);							\
