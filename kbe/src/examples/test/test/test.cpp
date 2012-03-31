@@ -14,6 +14,7 @@ same license as the rest of the engine.
 #include "log/debug_helper.hpp"
 #include "pyscript/Script.hpp"
 #include "server/kbemain.hpp"
+#include "server/serverconfig.hpp"
 #include "cstdkbe/smartpointer.hpp"
 #include "pyscript/pyobject_pointer.hpp"
 #include "entitydef/entitydef.hpp"
@@ -65,6 +66,9 @@ bool test_script()
 
 int KBENGINE_MAIN(int argc, char* argv[])
 {
+	ServerConfig sc;
+	sc.loadConfig("../../res/server/KBEngineDefault.xml");
+	sc.loadConfig("../../../demo/res/server/KBEngine.xml");
 	test_script();
 	getchar();
 	return 0; 

@@ -5,7 +5,6 @@ template<> ServerConfig* Singleton<ServerConfig>::m_singleton_ = 0;
 //-------------------------------------------------------------------------------------
 ServerConfig::ServerConfig()
 {
-	loadConfig("../../res/server/KBEngineDefault.xml");
 }
 
 //-------------------------------------------------------------------------------------
