@@ -1,0 +1,33 @@
+<root>
+	<OBJECT_ID>			INT32		</OBJECT_ID>
+	<BOOL>				UINT8		</BOOL>
+	<CONTROLLER_ID>		INT32		</CONTROLLER_ID>
+	<EXPERIENCE>		INT32		</EXPERIENCE>
+	<ITEM_ID>			INT32		</ITEM_ID>
+	<SKILLID>			INT64		</SKILLID>
+	<QUESTID>			INT32		</QUESTID>
+	<UID>				INT64		</UID>
+	<UID1>				PYTHON		</UID1>	
+	
+	<BAG>	FIXED_DICT
+		<Properties>
+			<kebiao>
+				<Type>	ARRAY <of> ARRAY <of>INT64 </of></of>	</Type>
+			</kebiao>
+		</Properties>
+	</BAG>	
+		
+	<LIVINGSKILL>	FIXED_DICT	<!--生活技能-->
+		<Properties>
+			<skillID>			<!--技能编号-->
+				<Type>	INT8	</Type>
+			</skillID>
+			<sleight>			<!--技能熟练度-->
+				<Type>	BAG	</Type>
+			</sleight>
+			<sleightMax>			<!--当前熟练度上限-->
+				<Type>	INT32	</Type>
+			</sleightMax>
+		</Properties>
+	</LIVINGSKILL>	
+</root>

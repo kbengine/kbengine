@@ -1,0 +1,24 @@
+<root>
+	<!-- <Parent>	NPC	</Parent> -->
+
+	<Volatile>
+		<position/>
+		<yaw/>
+		<pitch> 20 </pitch>
+	</Volatile>
+
+	<Implements>
+		<Interface>			GameObject		</Interface>
+	</Implements>
+
+	<Properties>
+		<spawnPos>
+			<Type>			VECTOR3			</Type>
+			<Flags>			CELL_PRIVATE		</Flags>
+			<Default>		30.0 50.0 100		</Default>
+		</spawnPos>
+	</Properties>
+
+	<CellMethods>
+	</CellMethods>
+</root>

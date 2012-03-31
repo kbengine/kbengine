@@ -1,0 +1,27 @@
+<root>
+	<Volatile>
+		<position/>
+		<yaw/>
+		<pitch> 20 </pitch>
+	</Volatile>
+
+	<Properties>
+		<spawnEntityType>
+			<Type>			STRING			</Type>
+			<Flags>			CELL_PRIVATE		</Flags>
+			<Persistent>		true			</Persistent>
+		</spawnEntityType>
+
+		<createToCell>
+			<Type>			MAILBOX			</Type>
+			<Flags>			BASE			</Flags>
+			<Persistent>		true			</Persistent>
+		</createToCell>
+	</Properties>
+
+	<BaseMethods>
+	</BaseMethods>
+
+	<CellMethods>
+	</CellMethods>
+</root>

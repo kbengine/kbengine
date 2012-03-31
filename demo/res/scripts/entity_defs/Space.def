@@ -1,0 +1,27 @@
+<root>
+	<Volatile>
+		<position/>
+		<yaw/>
+		<pitch> 20 </pitch>
+	</Volatile>
+
+	<Implements>
+	</Implements>
+
+	<Properties>
+		<spaceName>
+			<Type>			STRING				</Type>
+			<Flags>			CELL_PRIVATE			</Flags>
+			<Persistent>		false				</Persistent>
+		</spaceName>
+	</Properties>
+
+	<BaseMethods>
+		<onLoginToSpace>
+			<Arg>		MAILBOX		</Arg>
+		</onLoginToSpace>
+	</BaseMethods>
+
+	<CellMethods>
+	</CellMethods>
+</root>

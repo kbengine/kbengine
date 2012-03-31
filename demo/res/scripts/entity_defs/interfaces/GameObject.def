@@ -1,0 +1,53 @@
+<root>
+	<Properties>
+		<name>
+			<Type>			STRING			</Type>
+			<Flags>			ALL_CLIENTS		</Flags>
+			<Default>		monster			</Default>
+			<Persistent>		true			</Persistent>
+			<DetailLevel>		MEDIUM			</DetailLevel>
+		</name>
+		<modelNumber>
+			<Type>			STRING			</Type>
+			<Flags>			ALL_CLIENTS		</Flags>
+			<Default>		Ogre			</Default>
+			<DetailLevel>		FAR			</DetailLevel>
+		</modelNumber>
+		<modelScale>
+			<Type>			FLOAT			</Type>
+			<Flags>			ALL_CLIENTS		</Flags>
+			<Default>		6.5			</Default>
+			<DetailLevel>		FAR			</DetailLevel>
+		</modelScale>
+		<modelYOffset>
+			<Type>			FLOAT			</Type>
+			<Flags>			ALL_CLIENTS		</Flags>
+			<Default>		14.0			</Default>
+			<DetailLevel>		MEDIUM			</DetailLevel>
+		</modelYOffset>
+		<moveSpeed>
+			<Type>			FLOAT			</Type>
+			<Flags>			ALL_CLIENTS		</Flags>
+			<Default>		6.0			</Default>
+			<DetailLevel>		FAR			</DetailLevel>
+		</moveSpeed>
+	</Properties>
+
+	<CellMethods>
+	</CellMethods>
+	
+	<DetailLevels><!-- entity详情级别, 决定某些属性广播给客户端的优先级 -->
+		<NEAR>
+			<hyst>5</hyst>
+			<radius>25</radius>
+		</NEAR>
+		<MEDIUM>
+			<hyst>7</hyst>
+			<radius>50</radius>
+		</MEDIUM>
+		<FAR>
+			<hyst>10</hyst>
+			<radius>75</radius>
+		</FAR>
+	</DetailLevels>
+</root>

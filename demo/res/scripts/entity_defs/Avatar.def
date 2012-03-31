@@ -1,0 +1,26 @@
+<root>
+	<Volatile>
+		<position/>
+		<yaw/>
+		<pitch> 20 </pitch>
+	</Volatile>
+
+	<Implements>
+		<Interface>	GameObject		</Interface>
+	</Implements>
+
+	<Properties>
+	</Properties>
+
+	<BaseMethods>
+		<createCell>
+			<Arg>		MAILBOX		</Arg>
+		</createCell>
+	</BaseMethods>
+
+	<CellMethods>
+	</CellMethods>
+
+	<ClientMethods>
+	</ClientMethods>
+</root>

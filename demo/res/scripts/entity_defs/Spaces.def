@@ -1,0 +1,21 @@
+<root>
+	<Volatile>
+		<position/>
+		<yaw/>
+		<pitch> 20 </pitch>
+	</Volatile>
+
+	<Implements>
+	</Implements>
+
+	<Properties>
+	</Properties>
+
+	<BaseMethods>
+		<loginToSpace>
+			<Arg>		MAILBOX		</Arg>
+			<Arg>		STRING		</Arg>
+		</loginToSpace>
+	</BaseMethods>
+
+</root>

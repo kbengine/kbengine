@@ -1,0 +1,43 @@
+<root>
+	<Properties>
+		<accountName>
+			<Type>			STRING				</Type>
+			<Flags>			BASE_AND_CLIENT			</Flags>
+			<Persistent>		true				</Persistent>
+			<DatabaseLength> 	100				</DatabaseLength>
+			<Default>		"kbengine"			</Default>
+			<Identifier>		true				</Identifier>
+		</accountName>
+		
+		<password>
+			<Type>			STRING				</Type>
+			<Flags>			BASE				</Flags>
+			<Default>						</Default>
+			<Persistent>		true				</Persistent>
+		</password>
+		
+		<activeCharacter>
+			<Type>			MAILBOX				</Type>
+			<Flags>			BASE				</Flags>
+		</activeCharacter>
+		
+		<lastClientIpAddr>
+			<Type>			UINT32				</Type>
+			<Flags>			BASE				</Flags>
+			<Default>		0				</Default>
+		</lastClientIpAddr>
+	</Properties>
+
+	<ClientMethods>
+		<initPlayerList>
+			<Arg>	ARRAY <of>INT64 </of>	</Arg>
+		</initPlayerList>
+	</ClientMethods>
+
+	<BaseMethods>
+	</BaseMethods>
+
+	<CellMethods>
+	</CellMethods>
+
+</root>

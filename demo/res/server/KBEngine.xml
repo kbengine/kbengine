@@ -1,0 +1,42 @@
+<root>
+	<dbmgr>
+		<ip>						127.0.0.1					</ip>
+		<port>						30000						</port>
+		<dbAccountEntityScriptType>	Account						</dbAccountEntityScriptType>
+	</dbmgr>
+	<cellapp>
+		<ip>						127.0.0.1					</ip>
+		<port>						50000						</port>
+		<entryScriptFile>			kbengine					</entryScriptFile>
+		
+		<defaultAoIRadius>			
+			<radius>				80.0						</radius>
+			<hysteresisArea>		5.0							</hysteresisArea>
+		</defaultAoIRadius>
+	</cellapp>
+	<baseapp>
+		<ip>						127.0.0.1					</ip>
+		<port>						40000						</port>
+		<entryScriptFile>			kbengine					</entryScriptFile>
+	</baseapp>
+	<cellappmgr>
+		<ip>						127.0.0.1					</ip>
+		<port>						10000						</port>
+	</cellappmgr>
+	<baseappmgr>
+		<ip>						127.0.0.1					</ip>
+		<port>						12000						</port>
+	</baseappmgr>
+	<loginapp>
+		<ip>						127.0.0.1					</ip>
+		<port>						20000						</port>
+	</loginapp>		
+	<kbmachine>
+		<ip>						127.0.0.1					</ip>
+		<port>						60000						</port>
+	</kbmachine>	
+	<kbcenter>
+		<ip>						127.0.0.1					</ip>
+		<port>						90000						</port>
+	</kbcenter>
+</root>
