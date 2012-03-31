@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="test"
-	ProjectGUID="{CF469C2C-AB96-4E3C-8250-C1A2EA317EAD}"
-	RootNamespace="test"
+	Name="entitydef"
+	ProjectGUID="{44FA54E8-0A60-4A6C-A449-118872E75502}"
+	RootNamespace="entitydef"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -19,8 +19,8 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
+			IntermediateDirectory="..\..\obj\$(ProjectName)\$(ConfigurationName)"
+			ConfigurationType="4"
 			CharacterSet="1"
 			>
 			<Tool
@@ -41,8 +41,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;Py_NO_ENABLE_SHARED"
+				AdditionalIncludeDirectories="../python/PC;../python/Include;../;../../common;../;../../lib"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -60,21 +60,11 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="d3dx9.lib python32_d.lib pyscript_d.lib XmlPlus_d.lib cstdkbe_d.lib log_d.lib math_d.lib"
-				OutputFile="../../../../bin/Hybrid32\$(ProjectName).exe"
-				LinkIncremental="2"
-				AdditionalLibraryDirectories="../../../libs"
-				IgnoreDefaultLibraryNames=""
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
+				OutputFile="../../libs/$(ProjectName)_d.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -86,17 +76,14 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
+			IntermediateDirectory="..\..\obj\$(ProjectName)\$(ConfigurationName)"
+			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -119,10 +106,10 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -136,19 +123,11 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				LinkIncremental="1"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
+				OutputFile="../$(ProjectName).lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -158,9 +137,6 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -176,39 +152,35 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\entities.cpp"
+				RelativePath=".\array.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\entity.cpp"
+				RelativePath=".\dataType.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\python\Modules\getbuildinfo.c"
+				RelativePath=".\dataTypes.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.cpp"
+				RelativePath=".\entitydef.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\test.cpp"
+				RelativePath=".\entitymailboxabstract.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\fixedDict.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\method.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\property.cpp"
 				>
 			</File>
 		</Filter>
@@ -218,19 +190,43 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\entities.hpp"
+				RelativePath=".\array.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\entity.hpp"
+				RelativePath=".\common.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.h"
+				RelativePath=".\common.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\targetver.h"
+				RelativePath=".\dataType.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\dataTypes.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\entitydef.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\entitymailboxabstract.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\fixedDict.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\method.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\property.hpp"
 				>
 			</File>
 		</Filter>

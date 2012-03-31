@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="test"
-	ProjectGUID="{CF469C2C-AB96-4E3C-8250-C1A2EA317EAD}"
-	RootNamespace="test"
+	Name="math"
+	ProjectGUID="{F67B2C56-D1B1-4EA7-B16E-EF8E7F1B6C5F}"
+	RootNamespace="math"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -19,8 +19,8 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
+			IntermediateDirectory="..\..\obj\$(ProjectName)\$(ConfigurationName)"
+			ConfigurationType="4"
 			CharacterSet="1"
 			>
 			<Tool
@@ -41,8 +41,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;Py_NO_ENABLE_SHARED"
+				AdditionalIncludeDirectories="../third_party/g3dlite/G3D;../;../../common"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -60,21 +60,11 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="d3dx9.lib python32_d.lib pyscript_d.lib XmlPlus_d.lib cstdkbe_d.lib log_d.lib math_d.lib"
-				OutputFile="../../../../bin/Hybrid32\$(ProjectName).exe"
-				LinkIncremental="2"
-				AdditionalLibraryDirectories="../../../libs"
-				IgnoreDefaultLibraryNames=""
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
+				OutputFile="../../libs\$(ProjectName)_d.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -86,17 +76,14 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
+			IntermediateDirectory="..\..\obj\$(ProjectName)\$(ConfigurationName)"
+			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -119,10 +106,10 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -136,19 +123,11 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				LinkIncremental="1"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
+				OutputFile="..\$(ProjectName).lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -158,9 +137,6 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -176,39 +152,47 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\entities.cpp"
+				RelativePath="..\third_party\g3dlite\AABox.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\entity.cpp"
+				RelativePath="..\third_party\g3dlite\Box.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\python\Modules\getbuildinfo.c"
+				RelativePath="..\third_party\g3dlite\Crypto.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.cpp"
+				RelativePath="..\third_party\g3dlite\format.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\test.cpp"
+				RelativePath=".\math.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\Matrix3.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\Plane.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\System.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\Triangle.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\Vector3.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\Vector4.cpp"
 				>
 			</File>
 		</Filter>
@@ -218,19 +202,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\entities.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\entity.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\stdafx.h"
-				>
-			</File>
-			<File
-				RelativePath=".\targetver.h"
+				RelativePath=".\math.hpp"
 				>
 			</File>
 		</Filter>

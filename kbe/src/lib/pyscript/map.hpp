@@ -1,0 +1,51 @@
+/*
+This source file is part of KBEngine
+For the latest info, see http://www.kbengine.org/
+
+Copyright (c) 2008-2012 kbegine Software Ltd
+Also see acknowledgements in Readme.html
+
+You may use this sample code for anything you like, it is not covered by the
+same license as the rest of the engine.
+*/
+#ifndef _SCRIPT_MAP_H
+#define _SCRIPT_MAP_H
+#include "cstdkbe/cstdkbe.hpp"
+#include "scriptobject.hpp"
+#include "pickler.hpp"
+	
+namespace KBEngine{ namespace script{
+class Map : public ScriptObject
+{		
+	/** 子类化 将一些py操作填充进派生类 */
+	INSTANCE_SCRIPT_HREADER(Map, ScriptObject)
+public:	
+	static PyMappingMethods mappingMethods;
+
+	Map(PyTypeObject* pyType, bool isInitialised = false);
+	virtual ~Map();
+
+	/** 暴露一些字典方法给python */
+	static PyObject* _has_key(PyObject* self, PyObject* args);
+	static PyObject* _keys(PyObject* self, PyObject* args);
+	static PyObject* _values(PyObject* self, PyObject* args);
+	static PyObject* _items(PyObject* self, PyObject* args);
+	static PyObject* _update(PyObject* self, PyObject* args);
+	
+	/** map操作函数相关 */
+	static PyObject* mp_subscript(PyObject* self, PyObject* key);
+	static int mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value);
+	static int mp_length(PyObject* self);
+
+	/** 获取字典对象 */
+	PyObject* getDictObject(void)const{ return m_pyDict_;}
+	
+	/** 数据改变通知 */
+	virtual void onDataChanged(std::string& key, std::string& value, bool isDelete = false);
+protected:
+	PyObject* m_pyDict_;											// 字典数据， 所有的数据都往这里面写
+} ;
+
+}
+}
+#endif

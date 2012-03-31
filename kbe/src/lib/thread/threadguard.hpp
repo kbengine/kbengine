@@ -1,0 +1,61 @@
+/*
+This source file is part of KBEngine
+For the latest info, see http://www.kbengine.org/
+
+Copyright (c) 2008-2012 kbegine Software Ltd
+Also see acknowledgements in Readme.html
+
+You may use this sample code for anything you like, it is not covered by the
+same license as the rest of the engine.
+*/
+/*
+	线程守护体：
+		避免线程之间恶意竞争产生死锁问题。
+	用法:
+		在一个类中定义互诉体成员
+		ThreadMutex tm;
+		在需要保护的地方:
+		void XXCLASS::foo(void)
+		{
+			ThreadGuard tg(this->tm);
+			下面的代码都是安全的
+			...
+		}
+*/
+#ifndef __THREADGUARD_H__
+#define __THREADGUARD_H__
+	
+// common include
+#include "thread/threadMutex.hpp"
+//#define NDEBUG
+#include <assert.h>
+
+// windows include	
+#if KBE_PLATFORM == PLATFORM_WIN32
+#else
+// linux include
+#include <errno.h>
+#endif
+	
+namespace KBEngine{ namespace thread{
+
+class ThreadGuard
+{
+public:
+	explicit ThreadGuard(ThreadMutex* mutexPtr):m_mutexPtr_(mutexPtr)
+	{
+		m_mutexPtr_->lockMutex();
+	}
+
+	virtual ~ThreadGuard(void) 
+	{ 
+		m_mutexPtr_->unlockMutex();
+	}	
+	
+protected:
+	ThreadMutex* m_mutexPtr_;
+};
+
+}
+}
+#endif

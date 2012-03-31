@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "entitydef", "entitydef.vcproj", "{44FA54E8-0A60-4A6C-A449-118872E75502}"
+EndProject
+Global
+	GlobalSection(DPCodeReviewSolutionGUID) = preSolution
+		DPCodeReviewSolutionGUID = {00000000-0000-0000-0000-000000000000}
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{44FA54E8-0A60-4A6C-A449-118872E75502}.Debug|Win32.ActiveCfg = Debug|Win32
+		{44FA54E8-0A60-4A6C-A449-118872E75502}.Debug|Win32.Build.0 = Debug|Win32
+		{44FA54E8-0A60-4A6C-A449-118872E75502}.Release|Win32.ActiveCfg = Release|Win32
+		{44FA54E8-0A60-4A6C-A449-118872E75502}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
