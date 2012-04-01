@@ -56,7 +56,7 @@ public:
 		m_idClient_->onAddRange(1, 500);
 		Entity* e = createEntity("Avatar", NULL);
 		registerPyObjectToScript("avatar", e);
-		PyRun_SimpleString("print(KBEngine.avatar.__class__.__bases__)");
+		PyRun_SimpleString("for e in KBEngine.entities.values():print (e)");
 		DEBUG_MSG("kbe:python is init successfully!!! %d\n", 88);
 		SmartPointer<PyObject> testsmartpointer(::PyBytes_FromString("test"));
 		testsmartpointer.clear();

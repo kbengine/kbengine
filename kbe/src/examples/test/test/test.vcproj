@@ -119,10 +119,11 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
-				RuntimeLibrary="2"
+				AdditionalIncludeDirectories="../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;Py_NO_ENABLE_SHARED"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -137,7 +138,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				OutputFile="../../../../bin/Hybrid32\$(ProjectName).exe"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="../../../libs"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
