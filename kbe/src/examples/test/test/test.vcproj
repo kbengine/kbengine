@@ -138,6 +138,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="d3dx9.lib python32.lib server.lib pyscript.lib XmlPlus.lib cstdkbe.lib log.lib math.lib"
 				OutputFile="../../../../bin/Hybrid32\$(ProjectName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../../../libs"
