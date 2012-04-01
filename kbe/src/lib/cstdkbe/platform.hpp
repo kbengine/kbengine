@@ -105,10 +105,12 @@ namespace KBEngine{
 #define KBE_PLATFORM_TEXT "Win32"
 #endif
 
+#ifndef KBE_CONFIG
 #ifdef _DEBUG
 #define KBE_CONFIG "Debug"
 #else
 #define KBE_CONFIG "Release"
+#endif
 #endif
 
 #ifdef X64
