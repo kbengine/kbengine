@@ -142,6 +142,11 @@ namespace KBEngine{ namespace script{
 		return static_cast<CLASS*>(self)->tp_repr();										\
 	}																						\
 																							\
+	static PyObject* _tp_str(PyObject* self)												\
+	{																						\
+		return static_cast<CLASS*>(self)->tp_str();											\
+	}																						\
+																							\
 	/** 脚本模块对象从python中创建
 	*/																						\
 	static PyObject* _tp_new(PyTypeObject* type, PyObject* args, PyObject* kwds)			\
@@ -427,7 +432,7 @@ public:																						\
 		MAP,													/* tp_as_mapping      */	\
 		0,														/* tp_hash            */	\
 		CALL,													/* tp_call            */	\
-		0,														/* tp_str             */	\
+		CLASS##::_tp_str,										/* tp_str             */	\
 		(getattrofunc)CLASS##::_tp_getattro,					/* tp_getattro        */	\
 		(setattrofunc)CLASS##::_tp_setattro,					/* tp_setattro        */	\
 		0,														/* tp_as_buffer       */	\
@@ -501,6 +506,7 @@ public:
 	
 	/** 获得对象的描述 */
 	PyObject* tp_repr();
+	PyObject* tp_str();
 
 	/** 脚本请求创建一个该对象 */
 	static PyObject* tp_new(PyTypeObject* type, PyObject* args, PyObject* kwds){ return type->tp_alloc(type, 0); };

@@ -113,6 +113,12 @@ bool Script::uninstall()
 }
 
 //-------------------------------------------------------------------------------------
+int Script::registerToModule(const char* attrName, PyObject* pyObj)
+{
+	return PyObject_SetAttrString(m_module_, attrName, pyObj);
+}
+
+//-------------------------------------------------------------------------------------
 
 }
 }
