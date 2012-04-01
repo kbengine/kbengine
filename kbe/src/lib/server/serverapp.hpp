@@ -40,17 +40,23 @@ namespace KBEngine{
 class ServerApp : public Singleton<ServerApp>
 {
 protected:
-	COMPONENT_TYPE m_componentType_;
-	KBEngine::script::Script m_script_;
-	std::vector<PyTypeObject*> m_scriptBaseTypes_;
+	COMPONENT_TYPE											m_componentType_;
+	COMPONENT_ID											m_componentID_;									// 本组件的ID
+	KBEngine::script::Script								m_script_;
+	std::vector<PyTypeObject*>								m_scriptBaseTypes_;
+	
 public:
 	ServerApp();
 	~ServerApp();
 	
 	KBEngine::script::Script& getScript(){ return m_script_; }
+
 	void registerScript(PyTypeObject*);
+	int registerPyObjectToScript(const char* attrName, PyObject* pyObj){ return m_script_.registerToModule(attrName, pyObj); };
 
 	bool initialize(COMPONENT_TYPE componentType);
+	virtual bool initializeBegin(COMPONENT_TYPE componentType){return true;};
+	virtual bool initializeEnd(COMPONENT_TYPE componentType){return true;};
 	void finalise();
 	virtual bool run();
 

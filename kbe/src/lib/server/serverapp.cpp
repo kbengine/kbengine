@@ -88,11 +88,12 @@ bool ServerApp::uninstallPyScript()
 bool ServerApp::initialize(COMPONENT_TYPE componentType)
 {
 	m_componentType_ = componentType;
+	initializeBegin(componentType);
 	loadConfig();
 	installPyScript();
 	installPyModules();
 	installEntityDef();
-	return true;
+	return initializeEnd(componentType);
 }
 
 //-------------------------------------------------------------------------------------		
