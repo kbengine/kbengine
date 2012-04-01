@@ -24,10 +24,17 @@ same license as the rest of the engine.
 #include <windows.h> 
 #else
 // linux include
-#include <sys/time.h>	
 #include <errno.h>
 #include <pthread.h>	
+#include <sys/time.h>
 #include <sys/types.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <signal.h>
+#include <netdb.h>
 #endif
 
 /** 定义引擎名字空间 */
@@ -133,6 +140,7 @@ typedef unsigned __int32										uint32;
 typedef unsigned __int16										uint16;
 typedef unsigned __int8											uint8;
 #else
+#include <stdint.h>
 typedef int64_t													int64;
 typedef int32_t													int32;
 typedef int16_t													int16;
