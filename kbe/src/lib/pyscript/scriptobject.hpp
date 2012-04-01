@@ -117,7 +117,7 @@ namespace KBEngine{ namespace script{
 	*/																						\
 	static void _tp_dealloc(PyObject* self)													\
 	{																						\
-		static_cast<CLASS*>(self)->~##CLASS##();											\
+		static_cast<CLASS*>(self)->~CLASS();												\
 		CLASS::_scriptType.tp_free(self);													\
 	}																						\
 
@@ -151,7 +151,7 @@ namespace KBEngine{ namespace script{
 	*/																						\
 	static PyObject* _tp_new(PyTypeObject* type, PyObject* args, PyObject* kwds)			\
 	{																						\
-		return CLASS##::tp_new(type, args, kwds);											\
+		return CLASS::tp_new(type, args, kwds);												\
 	}																						\
 																							\
 	/** python 请求获取本模块的属性或者方法
@@ -165,7 +165,7 @@ namespace KBEngine{ namespace script{
 	*/																						\
 	static int _tp_setattro(PyObject* self, PyObject* name, PyObject* value)				\
 	{																						\
-		const Py_UNICODE* attr = PyUnicode_AS_UNICODE(name);										\
+		const Py_UNICODE* attr = PyUnicode_AS_UNICODE(name);								\
 		return (value != NULL) ?															\
 				static_cast<CLASS*>(self)->onScriptSetAttribute(attr, value):				\
 				static_cast<CLASS*>(self)->onScriptDelAttribute(attr);						\
@@ -230,7 +230,7 @@ public:																						\
 																							\
 		if(strcmp(#CLASS, #SUPERCLASS) == 0)												\
 			return nlen;																	\
-		return SUPERCLASS##::calcTotalMethodCount() + nlen;									\
+		return SUPERCLASS::calcTotalMethodCount() + nlen;									\
 	}																						\
 																							\
 	/** 计算所有继承模块的暴露成员个数 
@@ -248,7 +248,7 @@ public:																						\
 																							\
 		if(strcmp(#CLASS, #SUPERCLASS) == 0)												\
 			return nlen;																	\
-		return SUPERCLASS##::calcTotalMemberCount() + nlen;									\
+		return SUPERCLASS::calcTotalMemberCount() + nlen;									\
 	}																						\
 																							\
 	/** 计算所有继承模块的暴露getset个数 
@@ -266,7 +266,7 @@ public:																						\
 																							\
 		if(strcmp(#CLASS, #SUPERCLASS) == 0)												\
 			return nlen;																	\
-		return SUPERCLASS##::calcTotalGetSetCount() + nlen;									\
+		return SUPERCLASS::calcTotalGetSetCount() + nlen;									\
 	}																						\
 																							\
 	/** 将所有父类以及当前模块的暴露成员和方法安装到最终要导入脚本的列表中 
@@ -312,7 +312,7 @@ public:																						\
 			return;																			\
 		}																					\
 																							\
-		##SUPERCLASS##::setupScriptMethodAndAttribute(lppmf, lppmd, lppgs);					\
+		SUPERCLASS::setupScriptMethodAndAttribute(lppmf, lppmd, lppgs);						\
 	}																						\
 																							\
 	/** 安装当前脚本模块 
@@ -320,9 +320,9 @@ public:																						\
 	*/																						\
 	static void installScript(PyObject* mod, const char* name = #CLASS)						\
 	{																						\
-		int nMethodCount			= CLASS##::calcTotalMethodCount();						\
-		int nMemberCount			= CLASS##::calcTotalMemberCount();						\
-		int nGetSetCount			= CLASS##::calcTotalGetSetCount();						\
+		int nMethodCount			= CLASS::calcTotalMethodCount();						\
+		int nMemberCount			= CLASS::calcTotalMemberCount();						\
+		int nGetSetCount			= CLASS::calcTotalGetSetCount();						\
 																							\
 		_##CLASS##_lpScriptmethods	= new PyMethodDef[nMethodCount + 2];					\
 		_##CLASS##_lpScriptmembers	= new PyMemberDef[nMemberCount + 2];					\
@@ -336,7 +336,7 @@ public:																						\
 		_scriptType.tp_members		= _##CLASS##_lpScriptmembers;							\
 		_scriptType.tp_getset		= _##CLASS##_lpgetseters;								\
 																							\
-		CLASS##::onInstallScript(mod);														\
+		CLASS::onInstallScript(mod);														\
 		if (PyType_Ready(&_scriptType) < 0)													\
 			return;																			\
 																							\
@@ -353,7 +353,7 @@ public:																						\
 		SAFE_RELEASE_ARRAY(_##CLASS##_lpScriptmethods);										\
 		SAFE_RELEASE_ARRAY(_##CLASS##_lpScriptmembers);										\
 		SAFE_RELEASE_ARRAY(_##CLASS##_lpgetseters);											\
-		CLASS##::onUninstallScript();														\
+		CLASS::onUninstallScript();															\
 		Py_DECREF(&_scriptType);															\
 	}																						\
 
@@ -363,30 +363,30 @@ public:																						\
 /** 这个宏正式的初始化一个脚本模块， 将一些必要的信息填充到python的type对象中
 */
 #define SCRIPT_INIT(CLASS, CALL, SEQ, MAP, ITER, ITERNEXT)									\
-	PyMethodDef* CLASS##::_##CLASS##_lpScriptmethods = NULL;								\
-	PyMemberDef* CLASS##::_##CLASS##_lpScriptmembers = NULL;								\
-	PyGetSetDef* CLASS##::_##CLASS##_lpgetseters = NULL;									\
+	PyMethodDef* CLASS::_##CLASS##_lpScriptmethods = NULL;									\
+	PyMemberDef* CLASS::_##CLASS##_lpScriptmembers = NULL;									\
+	PyGetSetDef* CLASS::_##CLASS##_lpgetseters = NULL;										\
 																							\
-	PyTypeObject CLASS##::_scriptType =														\
+	PyTypeObject CLASS::_scriptType =														\
 	{																						\
 		PyVarObject_HEAD_INIT(NULL, 0)														\
 		#CLASS,													/* tp_name            */	\
 		sizeof(CLASS),											/* tp_basicsize       */	\
 		0,														/* tp_itemsize        */	\
-		(destructor)CLASS##::_tp_dealloc,						/* tp_dealloc         */	\
+		(destructor)CLASS::_tp_dealloc,							/* tp_dealloc         */	\
 		0,														/* tp_print           */	\
 		0,														/* tp_getattr         */	\
 		0,														/* tp_setattr         */	\
 		0,														/* tp_compare         */	\
-		CLASS##::_tp_repr,										/* tp_repr            */	\
+		CLASS::_tp_repr,										/* tp_repr            */	\
 		0,														/* tp_as_number       */	\
 		SEQ,													/* tp_as_sequence     */	\
 		MAP,													/* tp_as_mapping      */	\
 		0,														/* tp_hash            */	\
 		CALL,													/* tp_call            */	\
 		0,														/* tp_str             */	\
-		(getattrofunc)CLASS##::_tp_getattro,					/* tp_getattro        */	\
-		(setattrofunc)CLASS##::_tp_setattro,					/* tp_setattro        */	\
+		(getattrofunc)CLASS::_tp_getattro,						/* tp_getattro        */	\
+		(setattrofunc)CLASS::_tp_setattro,						/* tp_setattro        */	\
 		0,														/* tp_as_buffer       */	\
 		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,				/* tp_flags           */	\
 		"KBEngine::" #CLASS " objects.",						/* tp_doc             */	\
@@ -404,37 +404,37 @@ public:																						\
 		0,														/* tp_descr_get       */	\
 		0,														/* tp_descr_set       */	\
 		0,														/* tp_dictoffset      */	\
-		(initproc)CLASS##::_tp_init,							/* tp_init            */	\
+		(initproc)CLASS::_tp_init,								/* tp_init            */	\
 		0,														/* tp_alloc           */	\
-		CLASS##::_tp_new,										/* tp_new             */	\
+		CLASS::_tp_new,											/* tp_new             */	\
 	};																						\
 
 // BASE_SCRIPT_HREADER基础类脚本初始化
 #define BASE_SCRIPT_INIT(CLASS, CALL, SEQ, MAP, ITER, ITERNEXT)								\
-	PyMethodDef* CLASS##::_##CLASS##_lpScriptmethods = NULL;								\
-	PyMemberDef* CLASS##::_##CLASS##_lpScriptmembers = NULL;								\
-	PyGetSetDef* CLASS##::_##CLASS##_lpgetseters = NULL;									\
+	PyMethodDef* CLASS::_##CLASS##_lpScriptmethods = NULL;									\
+	PyMemberDef* CLASS::_##CLASS##_lpScriptmembers = NULL;									\
+	PyGetSetDef* CLASS::_##CLASS##_lpgetseters = NULL;										\
 																							\
-	PyTypeObject CLASS##::_scriptType =														\
+	PyTypeObject CLASS::_scriptType =														\
 	{																						\
 		PyObject_HEAD_INIT(&PyType_Type)													\
 		#CLASS,													/* tp_name            */	\
 		sizeof(CLASS),											/* tp_basicsize       */	\
 		0,														/* tp_itemsize        */	\
-		(destructor)CLASS##::_tp_dealloc,						/* tp_dealloc         */	\
+		(destructor)CLASS::_tp_dealloc,							/* tp_dealloc         */	\
 		0,														/* tp_print           */	\
 		0,														/* tp_getattr         */	\
 		0,														/* tp_setattr         */	\
 		0,														/* void *tp_reserved  */	\
-		CLASS##::_tp_repr,										/* tp_repr            */	\
+		CLASS::_tp_repr,										/* tp_repr            */	\
 		0,														/* tp_as_number       */	\
 		SEQ,													/* tp_as_sequence     */	\
 		MAP,													/* tp_as_mapping      */	\
 		0,														/* tp_hash            */	\
 		CALL,													/* tp_call            */	\
-		CLASS##::_tp_str,										/* tp_str             */	\
-		(getattrofunc)CLASS##::_tp_getattro,					/* tp_getattro        */	\
-		(setattrofunc)CLASS##::_tp_setattro,					/* tp_setattro        */	\
+		CLASS::_tp_str,											/* tp_str             */	\
+		(getattrofunc)CLASS::_tp_getattro,						/* tp_getattro        */	\
+		(setattrofunc)CLASS::_tp_setattro,						/* tp_setattro        */	\
 		0,														/* tp_as_buffer       */	\
 		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,				/* tp_flags           */	\
 		0,														/* tp_doc             */	\
@@ -467,24 +467,24 @@ public:																						\
 			
 /** 定义暴露给脚本的方法宏
 */
-#define SCRIPT_METHOD_DECLARE_BEGIN(CLASS)											PyMethodDef CLASS##::_##CLASS##_scriptMethods[] = {			
+#define SCRIPT_METHOD_DECLARE_BEGIN(CLASS)											PyMethodDef CLASS::_##CLASS##_scriptMethods[] = {			
 #define SCRIPT_METHOD_DECLARE(METHOD_NAME, METHOD_FUNC, FLAGS, DOC)					{METHOD_NAME, (PyCFunction)&METHOD_FUNC, FLAGS, DOC},
 #define SCRIPT_METHOD_DECLARE_END()													{NULL, NULL, NULL, NULL}};
 
 // 向模块追加方法
 #define APPEND_SCRIPT_MODULE_METHOD(MODULE, NAME, FUNC, FLAGS, SELF)						\
-	static PyMethodDef __pymethod_##NAME = {#NAME, (PyCFunction) FUNC, FLAGS, NULL};		\
+	static PyMethodDef __pymethod_NAME = {#NAME, (PyCFunction) FUNC, FLAGS, NULL};		\
 	PyModule_AddObject(MODULE, #NAME, PyCFunction_New(&__pymethod_##NAME, SELF));
 
 /** 定义暴露给脚本的属性宏
 */
-#define SCRIPT_MEMBER_DECLARE_BEGIN(CLASS)											PyMemberDef CLASS##::_##CLASS##_scriptMembers[] =	{
+#define SCRIPT_MEMBER_DECLARE_BEGIN(CLASS)											PyMemberDef CLASS::_##CLASS##_scriptMembers[] =	{
 #define SCRIPT_MEMBER_DECLARE(MEMBER_NAME, MEMBER_REF, MEMBER_TYPE, FLAGS, DOC)		{MEMBER_NAME, MEMBER_TYPE, offsetof(ThisClass, MEMBER_REF), FLAGS, DOC},
 #define SCRIPT_MEMBER_DECLARE_END()													{NULL, NULL, NULL, NULL, NULL}};
 
 /** 定义暴露给脚本的getset属性宏
 */
-#define SCRIPT_GETSET_DECLARE_BEGIN(CLASS)											PyGetSetDef CLASS##::_##CLASS##_scriptGetSeters[] =	{
+#define SCRIPT_GETSET_DECLARE_BEGIN(CLASS)											PyGetSetDef CLASS::_##CLASS##_scriptGetSeters[] =	{
 #define SCRIPT_GETSET_DECLARE(NAME, GET, SET, DOC, CLOSURE)							{NAME, (getter)GET, (setter)SET, DOC, CLOSURE},
 #define SCRIPT_GET_DECLARE(NAME, GET, DOC, CLOSURE)									{NAME, (getter)GET, (setter)__py_readonly_descr, DOC, CLOSURE},
 #define SCRIPT_SET_DECLARE(NAME, GET, DOC, CLOSURE)									{NAME, (getter)GET, (setter)__py_writeonly_descr, DOC, CLOSURE},
