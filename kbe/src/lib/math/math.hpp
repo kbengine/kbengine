@@ -26,7 +26,7 @@ same license as the rest of the engine.
 // linux include
 #include <errno.h>
 #endif
-#define USE_D3DX
+//#define USE_D3DX
 #if KBE_PLATFORM == PLATFORM_WIN32 && defined(USE_D3DX)
 #include <d3dx9math.h>
 typedef D3DXMATRIX								Matrix;
@@ -81,16 +81,15 @@ typedef D3DXVECTOR4								Vector4;
 #define KBEQuaternionMultiply					D3DXQuaternionMultiply
 #define KBEQuaternionInverse					D3DXQuaternionInverse
 #else
-#include "../third_party/g3dlite/G3D/g3dmath.h"
-#include "../third_party/g3dlite/G3D/Vector2.h"
-#include "../third_party/g3dlite/G3D/Vector3.h"
-#include "../third_party/g3dlite/G3D/Vector4.h"
-#include "../third_party/g3dlite/G3D/Matrix3.h"
-#include "../third_party/g3dlite/G3D/Quat.h"
-using namespace G3D;
+#include "G3D/g3dmath.h"
+#include "G3D/Vector2.h"
+#include "G3D/Vector3.h"
+#include "G3D/Vector4.h"
+#include "G3D/Matrix3.h"
+#include "G3D/Quat.h"
 
 typedef G3D::Matrix3							Matrix;
-typedef G3D::quat								Quaternion;
+typedef G3D::Quat								Quaternion;
 typedef G3D::Vector2							Vector2;
 typedef G3D::Vector3							Vector3;
 typedef G3D::Vector4							Vector4;
@@ -99,25 +98,25 @@ typedef G3D::Vector4							Vector4;
 #define KBE_DegreeToRadian						G3D::toRadians
 #define KBE_RadianToDegree						G3D::toRadians
 	
-#define KBEVec2Length(v)						v.length()
-#define KBEVec2LengthSq(v)						v.squaredLength()
-#define KBEVec2Normalize(v)						D3DXVec2Normalize
-#define KBEVec2Dot(v)							v.dot()
-#define KBEVec3Length(v)						v.length()
-#define KBEVec3LengthSq(v)						v.squaredLength()
-#define KBEVec3Dot(v)							v.dot()
-#define KBEVec3Cross(v)							v.cross()
-#define KBEVec3Normalize(v)						D3DXVec3Normalize
-#define KBEVec3Lerp(v)							v.lerp()
+#define KBEVec2Length(v)						(v)->length()
+#define KBEVec2LengthSq(v)						(v)->squaredLength()
+#define KBEVec2Normalize(v, vv)					(v)
+#define KBEVec2Dot(v, vv)						(v)->dot(static_cast<const G3D::Vector2 &>(*(vv)))
+#define KBEVec3Length(v)						(v)->length()
+#define KBEVec3LengthSq(v)						(v)->squaredLength()
+#define KBEVec3Dot(v, vv)						(v)->dot(static_cast<const G3D::Vector3 &>(*(vv)))
+#define KBEVec3Cross(v)							(v)->cross()
+#define KBEVec3Normalize(v, vv)					(v)->fastUnit()
+#define KBEVec3Lerp(v)							(v)->lerp()
 #define KBEVec3Transform(v)						D3DXVec3Transform
 #define KBEVec3TransformCoord(v)				D3DXVec3TransformCoord
 #define KBEVec3TransformNormal(v)				D3DXVec3TransformNormal
 #define KBEVec4Transform(v)						D3DXVec4Transform
-#define KBEVec4Length(v)						v.length()
-#define KBEVec4LengthSq(v)						v.squaredLength()
-#define KBEVec4Normalize(v)						D3DXVec4Normalize
-#define KBEVec4Lerp(v)							v.lerp()
-#define KBEVec4Dot(v)							v.dot()
+#define KBEVec4Length(v)						(v)->length()
+#define KBEVec4LengthSq(v)						(v)->squaredLength()
+#define KBEVec4Normalize(v, vv)					(v)
+#define KBEVec4Lerp(v)							(v)->lerp()
+#define KBEVec4Dot(v, vv)						(v)->dot(static_cast<const G3D::Vector4 &>(*(vv)))
 #define KBEMatrixIdentity						Matrix3::identity()
 #define KBEMatrixInverse(v)						Matrix3::inverse()
 #define KBEMatrixRotationQuaternion(v)			D3DXMatrixRotationQuaternion

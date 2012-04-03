@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../python/PC;../python/Include;../;../../common;../;../../lib"
+				AdditionalIncludeDirectories="../python/PC;../python/Include;../;../../common;../;../../lib;../../lib/third_party/g3dlite"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -106,7 +106,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../python/PC;../python/Include;../;../../common;../;../../lib"
+				AdditionalIncludeDirectories="../python/PC;../python/Include;../;../../common;../;../../lib;../../lib/third_party/g3dlite"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"

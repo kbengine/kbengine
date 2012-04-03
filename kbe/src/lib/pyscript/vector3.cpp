@@ -61,7 +61,7 @@ PyNumberMethods ScriptVector3::numberMethods =
 	0,									//binaryfunc nb_inplace_floor_divide;
 	0,									//binaryfunc nb_inplace_true_divide;
 };
-
+/*
 static int tp_compare(PyObject* v, PyObject* w)
 {
 	if (ScriptVector3::check(v) && ScriptVector3::check(w)){
@@ -71,7 +71,7 @@ static int tp_compare(PyObject* v, PyObject* w)
 	}
 	return 0;
 }
-
+*/
 SCRIPT_METHOD_DECLARE_BEGIN(ScriptVector3)
 SCRIPT_METHOD_DECLARE("flatDistTo",						pyFlatDistTo,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("flatDistSqrTo",					pyFlatDistSqrTo,			METH_VARARGS,				0)

@@ -106,7 +106,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../third_party/g3dlite/G3D;../;../../common"
+				AdditionalIncludeDirectories="../third_party/g3dlite;../;../../common"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -203,7 +203,135 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath="..\third_party\g3dlite\G3D\AABox.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Array.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Box.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\CollisionDetection.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\CoordinateFrame.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Crypto.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\debug.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\format.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\g3dmath.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\g3dmath.inl"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\GCamera.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Line.h"
+				>
+			</File>
+			<File
 				RelativePath=".\math.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Matrix3.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Plane.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\platform.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Quat.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Quat.inl"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Ray.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\RegistryUtil.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Sphere.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\stringutils.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\System.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Table.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Triangle.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Vector2.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Vector2.inl"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Vector2int16.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Vector3.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Vector3.inl"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Vector3int16.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Vector4.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\g3dlite\G3D\Vector4.inl"
 				>
 			</File>
 		</Filter>

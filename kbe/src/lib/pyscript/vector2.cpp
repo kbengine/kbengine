@@ -61,7 +61,7 @@ PyNumberMethods ScriptVector2::numberMethods =
 	0,									//binaryfunc nb_inplace_floor_divide;
 	0,									//binaryfunc nb_inplace_true_divide;
 };
-
+/*
 static int tp_compare(PyObject* v, PyObject* w)
 {
 	if (ScriptVector2::check(v) && ScriptVector2::check(w)){
@@ -71,7 +71,7 @@ static int tp_compare(PyObject* v, PyObject* w)
 	}
 	return 0;
 }
-
+*/
 SCRIPT_METHOD_DECLARE_BEGIN(ScriptVector2)
 SCRIPT_METHOD_DECLARE("distTo",				pyDistTo,					METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE("distSqrTo",			pyDistSqrTo,				METH_VARARGS,		0)
