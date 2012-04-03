@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="XmlPlus"
+	Name="xmlplus"
 	ProjectGUID="{2992ABDB-0853-4C43-B9E2-98D4211192EE}"
 	RootNamespace="xmlplus"
 	Keyword="Win32Proj"
