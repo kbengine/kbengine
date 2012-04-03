@@ -1,13 +1,13 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/**
+ @file platform.h
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
+ #defines for platform specific issues.
 
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+ @maintainer Morgan McGuire, matrix@graphics3d.com
+
+ @created 2003-06-09
+ @edited  2006-01-16
+ */
 
 #ifndef G3D_PLATFORM_H
 #define G3D_PLATFORM_H
@@ -32,20 +32,18 @@ same license as the rest of the engine.
 
 #ifdef _MSC_VER 
     #define G3D_WIN32
-#elif __MINGW32__
+#elif defined(__MINGW32__)
     #define G3D_WIN32 
     #define G3D_MINGW32 
-#elif __linux__ 
+#elif defined(__linux__)
     #define G3D_LINUX
-#elif __OpenBSD__
+#elif defined(__OpenBSD__)
     #define G3D_LINUX
-#elif __FreeBSD__ 
+#elif defined(__FreeBSD__)
     #define G3D_LINUX
-#elif __DragonFly__
+#elif defined(__NetBSD__)
     #define G3D_LINUX
-#elif __NetBSD__
-    #define G3D_LINUX
-#elif __APPLE__ 
+#elif defined(__APPLE__)
     #define G3D_OSX
 #else
     #error Unknown platform 
@@ -172,6 +170,8 @@ same license as the rest of the engine.
 #		pragma warning (disable : 4018)
 #	endif
 
+#   define ZLIB_WINAPI
+
 // Mingw32 defines restrict
 #   ifndef G3D_MINGW32
 #          define restrict
@@ -191,6 +191,54 @@ same license as the rest of the engine.
     //  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vccore/html/_core_.2f.md.2c_2f.ml.2c_2f.mt.2c_2f.ld.asp
     //  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vccore98/HTML/_core_Compiler_Reference.asp
     //
+
+#if 0 //ignore that for mangos
+    // DLL runtime
+    #ifndef _DLL
+	    #define _DLL
+    #endif
+
+    // Multithreaded runtime
+    #ifndef _MT
+	    #define _MT 1
+    #endif
+    // Ensure that we aren't forced into the static lib
+    #ifdef _STATIC_CPPLIB
+	    #undef _STATIC_CPPLIB
+    #endif
+#endif
+
+    #ifdef _DEBUG
+        #pragma comment (linker, "/NODEFAULTLIB:libc.lib")
+        #pragma comment (linker, "/NODEFAULTLIB:libcmt.lib")
+        #pragma comment (linker, "/NODEFAULTLIB:msvcrt.lib")
+        #pragma comment (linker, "/NODEFAULTLIB:libcd.lib")
+        #pragma comment (linker, "/NODEFAULTLIB:msvcrtd.lib")
+    #else
+        #pragma comment(linker, "/NODEFAULTLIB:LIBC.LIB")
+        #pragma comment(linker, "/NODEFAULTLIB:msvcrt.lib")
+        #pragma comment(linker, "/NODEFAULTLIB:libcd.lib")
+        #pragma comment(linker, "/NODEFAULTLIB:libcmtd.lib")
+        #pragma comment(linker, "/NODEFAULTLIB:msvcrtd.lib")
+    #endif
+
+    // Now set up external linking
+
+    #ifdef _DEBUG
+        // zlib and SDL were linked against the release MSVCRT; force
+        // the debug version.
+        #pragma comment(linker, "/NODEFAULTLIB:MSVCRT.LIB")
+#	endif
+
+#   ifndef WIN32_LEAN_AND_MEAN
+#       define WIN32_LEAN_AND_MEAN 1
+#   endif
+
+
+#   define NOMINMAX 1
+#   include <windows.h>
+#   undef WIN32_LEAN_AND_MEAN
+#   undef NOMINMAX
 
 #ifdef _G3D_INTERNAL_HIDE_WINSOCK_
 #   undef _G3D_INTERNAL_HIDE_WINSOCK_

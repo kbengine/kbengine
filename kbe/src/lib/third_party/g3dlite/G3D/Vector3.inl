@@ -1,13 +1,15 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/** 
+  @file Vector3.inl
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
+  @maintainer Morgan McGuire, matrix@graphics3d.com
 
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+  @cite Portions based on Dave Eberly's Magic Software Library at http://www.magic-software.com
+
+  @created 2001-06-02
+  @edited  2004-05-21
+  Copyright 2000-2004, Morgan McGuire.
+  All rights reserved.
+ */
 
 //----------------------------------------------------------------------------
 #ifdef SSE
@@ -22,7 +24,7 @@ same license as the rest of the engine.
 #   include <xmmintrin.h>
 #endif
 
-inline size_t hashCode(const G3D::Vector3& v) {
+inline unsigned int hashCode(const G3D::Vector3& v) {
      return v.hashCode();
 }
 
@@ -226,12 +228,12 @@ inline Vector3 Vector3::unitCross (const Vector3& rkVector) const {
 
 //----------------------------------------------------------------------------
 inline Vector3 Vector3::min(const Vector3 &v) const {
-    return Vector3(std::min(v.x, x), std::min(v.y, y), std::min(v.z, z));
+    return Vector3(G3D::min(v.x, x), G3D::min(v.y, y), G3D::min(v.z, z));
 }
 
 //----------------------------------------------------------------------------
 inline Vector3 Vector3::max(const Vector3 &v) const {
-    return Vector3(std::max(v.x, x), std::max(v.y, y), std::max(v.z, z));
+    return Vector3(G3D::max(v.x, x), G3D::max(v.y, y), G3D::max(v.z, z));
 }
 
 //----------------------------------------------------------------------------

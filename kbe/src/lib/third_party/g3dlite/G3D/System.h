@@ -1,18 +1,21 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/** 
+  @file System.h
+ 
+  @maintainer Morgan McGuire, matrix@graphics3d.com
+ 
+  @cite Rob Wyatt http://www.gamasutra.com/features/wyatts_world/19990709/processor_detection_01.htm
+  @cite Benjamin Jurke http://www.flipcode.com/cgi-bin/msg.cgi?showThread=COTD-ProcessorDetectionClass&forum=cotd&id=-1
+  @cite Michael Herf http://www.stereopsis.com/memcpy.html
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
+  @created 2003-01-25
+  @edited  2006-04-26
+ */
 
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
 #ifndef G3D_SYSTEM_H
 #define G3D_SYSTEM_H
 
-#include "platform.h"
-#include "g3dmath.h"
+#include "G3D/platform.h"
+#include "G3D/g3dmath.h"
 #include <string>
 
 #ifdef G3D_OSX

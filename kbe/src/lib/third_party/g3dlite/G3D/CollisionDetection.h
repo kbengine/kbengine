@@ -1,25 +1,34 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/**
+  @file CollisionDetection.h
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
 
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+  Moving collision detection for simple primitives.
+
+  @author Morgan McGuire, matrix@graphics3d.com
+  @cite Spherical collision based on Paul Nettle's
+  ftp://ftp.3dmaileffects.com/pub/FluidStudios/CollisionDetection/Fluid_Studios_Generic_Collision_Detection_for_Games_Using_Ellipsoids.pdf
+  and comments by Max McGuire.  Ray-sphere intersection by Eric Haines.
+  Box-Box intersection written by Kevin Egan.
+  Thanks to Max McGuire of Iron Lore for various bug fixes.
+
+  @created 2001-11-19
+  @edited  2006-01-10
+
+  Copyright 2000-2006, Morgan McGuire.
+  All rights reserved.
+ */
 
 #ifndef G3D_COLLISIONDETECTION_H
 #define G3D_COLLISIONDETECTION_H
 
-#include "platform.h"
-#include "Vector3.h"
-#include "Plane.h"
-#include "Box.h"
-#include "Triangle.h"
-#include "Array.h"
-#include "Ray.h"
-#include "Line.h"
+#include "G3D/platform.h"
+#include "G3D/Vector3.h"
+#include "G3D/Plane.h"
+#include "G3D/Box.h"
+#include "G3D/Triangle.h"
+#include "G3D/Array.h"
+#include "G3D/Ray.h"
+#include "G3D/Line.h"
 
 namespace G3D {
 

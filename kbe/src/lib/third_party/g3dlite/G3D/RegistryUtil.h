@@ -1,19 +1,18 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/**
+ @file RegistryUtil.h
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
+ @created 2006-04-06
+ @edited  2006-04-06
 
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
+ Copyright 2000-2006, Morgan McGuire.
+ All rights reserved.
 */
 
 #ifndef G3D_REGISTRYUTIL_H
 #define G3D_REGISTRYUTIL_H
 
-#include "platform.h"
-#include "g3dmath.h"
+#include "G3D/platform.h"
+#include "G3D/g3dmath.h"
 
 // This file is only used on Windows
 #ifdef G3D_WIN32

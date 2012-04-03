@@ -1,13 +1,12 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/**
+ @file Crypto.cpp
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
+ @author Morgan McGuire, matrix@graphics3d.com
 
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+
+ @created 2006-03-28
+ @edited  2006-04-06
+ */
 
 #include "G3D/platform.h"
 #include "G3D/Crypto.h"

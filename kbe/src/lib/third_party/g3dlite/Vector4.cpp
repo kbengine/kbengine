@@ -1,13 +1,11 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
-
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+/**
+ @file Vector4.cpp
+ 
+ @maintainer Morgan McGuire, matrix@graphics3d.com
+  
+ @created 2001-07-09
+ @edited  2003-09-29
+ */
 
 #include <stdlib.h>
 #include <limits>
@@ -19,11 +17,11 @@ same license as the rest of the engine.
 
 namespace G3D {
 
-size_t Vector4::hashCode() const {
-    size_t xhash = (*(size_t*)(void*)(&x));
-    size_t yhash = (*(size_t*)(void*)(&y));
-    size_t zhash = (*(size_t*)(void*)(&z));
-    size_t whash = (*(int*)(void*)(&w));
+unsigned int Vector4::hashCode() const {
+    unsigned int xhash = (*(int*)(void*)(&x));
+    unsigned int yhash = (*(int*)(void*)(&y));
+    unsigned int zhash = (*(int*)(void*)(&z));
+    unsigned int whash = (*(int*)(void*)(&w));
 
     return xhash + (yhash * 37) + (zhash * 101) + (whash * 241);
 }

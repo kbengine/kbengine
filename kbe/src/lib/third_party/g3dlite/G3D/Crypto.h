@@ -1,19 +1,18 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/** 
+  @file Crypto.h
+ 
+  @maintainer Morgan McGuire, matrix@graphics3d.com
+ 
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
-
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+  @created 2006-03-29
+  @edited  2006-04-06
+ */
 
 #ifndef G3D_CRYPTO_H
 #define G3D_CRYPTO_H
 
-#include "platform.h"
-#include "g3dmath.h"
+#include "G3D/platform.h"
+#include "G3D/g3dmath.h"
 #include <string>
 
 namespace G3D {

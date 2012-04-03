@@ -1,13 +1,11 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
-
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+/**
+ @file g3dmath.inl
+ 
+  @maintainer Morgan McGuire, matrix@graphics3d.com
+ 
+ @created 2001-06-02
+ @edited  2006-01-14
+ */
 
 #include <stdlib.h>
 
@@ -194,13 +192,13 @@ inline double distance(double x, double y, double z) {
 
 //----------------------------------------------------------------------------
 
-/** @deprecated use std::min */
+/** @deprecated use G3D::min */
 inline int iMin(int x, int y) {
     return (x >= y) ? y : x;
 }
 
 //----------------------------------------------------------------------------
-/** @deprecated use std::min */
+/** @deprecated use G3D::min */
 inline int iMax(int x, int y) {
     return (x >= y) ? x : y;
 }

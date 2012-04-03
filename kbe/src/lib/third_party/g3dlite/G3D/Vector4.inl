@@ -1,17 +1,15 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/** 
+  @file Vector4.inl
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
+  @maintainer Morgan McGuire, matrix@graphics3d.com
 
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+  @created 2002-07-09
+  @edited  2003-02-10
+ */
 
 //----------------------------------------------------------------------------
 
-inline size_t hashCode(const G3D::Vector4& v) {
+inline unsigned int hashCode(const G3D::Vector4& v) {
      return v.hashCode();
 }
 
@@ -154,12 +152,12 @@ inline float Vector4::dot(const Vector4& rkVector) const {
 
 //----------------------------------------------------------------------------
 inline Vector4 Vector4::min(const Vector4 &v) const {
-    return Vector4(std::min(v.x, x), std::min(v.y, y), std::min(v.z, z), std::min(v.w, w));
+    return Vector4(G3D::min(v.x, x), G3D::min(v.y, y), G3D::min(v.z, z), G3D::min(v.w, w));
 }
 
 //----------------------------------------------------------------------------
 inline Vector4 Vector4::max(const Vector4 &v) const {
-    return Vector4(std::max(v.x, x), std::max(v.y, y), std::max(v.z, z), std::max(v.w, w));
+    return Vector4(G3D::max(v.x, x), G3D::max(v.y, y), G3D::max(v.z, z), G3D::max(v.w, w));
 }
 
 //----------------------------------------------------------------------------

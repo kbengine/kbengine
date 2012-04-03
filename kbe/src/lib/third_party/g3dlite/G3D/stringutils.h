@@ -1,19 +1,17 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
-
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+/**
+ @file stringutils.h
+ 
+ @maintainer Morgan McGuire, matrix@graphics3d.com
+ 
+ @author  2000-09-09
+ @edited  2002-11-30
+ */
 
 #ifndef G3D_STRINGUTILS_H
 #define G3D_STRINGUTILS_H
 
-#include "platform.h"
-#include "Array.h"
+#include "G3D/platform.h"
+#include "G3D/Array.h"
 #include <string>
 
 namespace G3D {

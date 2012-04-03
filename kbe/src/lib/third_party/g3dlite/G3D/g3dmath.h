@@ -1,19 +1,21 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/**
+ @file g3dmath.h
+ 
+ Math util class.
+ 
+ @maintainer Morgan McGuire, matrix@graphics3d.com
+ @cite highestBit by Jukka Liimatta
+ 
+ @created 2001-06-02
+ @edited  2006-01-16
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
-
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+ Copyright 2000-2006, Morgan McGuire.
+ All rights reserved.
+ */
 
 #ifndef G3DMATH_H
 #define G3DMATH_H
 
-#include "cstdkbe/cstdkbe.hpp" // for uint32, etc typedefs
-using namespace KBEngine;
 #ifdef _MSC_VER
 // Disable conditional expression is constant, which occurs incorrectly on inlined functions
 #   pragma warning (push)
@@ -22,7 +24,7 @@ using namespace KBEngine;
 #   pragma warning (disable : 4530)
 #endif
 
-#include "platform.h"
+#include "G3D/platform.h"
 #include <ctype.h>
 #include <string>
 #include <float.h>
@@ -42,17 +44,16 @@ using namespace KBEngine;
 
 #include <math.h>
 
-#include "debug.h"
+#include "G3D/debug.h"
 
 #undef min
 #undef max
 
 namespace G3D {
 
-#ifdef _MSC_VER
-
-//#include <intrin.h>
-#include <xmmintrin.h>
+#if defined(_MSC_VER)
+    
+#if !defined(_WIN64)
 
 /**
    Win32 implementation of the C99 fast rounding routines.
@@ -67,14 +68,8 @@ namespace G3D {
    provided "as is" without express or implied warranty.
 */
 
-#if _MSC_VER >= 1400 && !COMPILER_INTEL
-#pragma float_control(push)
-#pragma float_control(precise, on)
-#endif
-
 __inline long int lrint (double flt) {
-#ifndef X64
-	int intgr;
+    int intgr;
 
     _asm {
         fld flt
@@ -82,50 +77,33 @@ __inline long int lrint (double flt) {
     };
 
     return intgr;
-
-#else
-
-	union { int asInt[2]; double asDouble; } n;
-	n.asDouble = flt + 6755399441055744.0;
-#if USING_BIG_ENDIAN
-	return n.asInt [1];
-#else
-	return n.asInt [0];
-#endif
-
-#endif
-
 }
 
 __inline long int lrintf(float flt) {
-#ifndef X64
     int intgr;
 
-	_asm {
+    _asm {
         fld flt
         fistp intgr
     };
 
     return intgr;
-#else
-
-	union { int asInt[2]; double asDouble; } n;
-	n.asDouble = flt + 6755399441055744.0;
-#if USING_BIG_ENDIAN
-	return n.asInt [1];
-#else
-	return n.asInt [0];
-#endif
-
-#endif
 }
 
-#if _MSC_VER >= 1400 && !COMPILER_INTEL
-#pragma float_control(pop)
-#endif
+#else
+
+    __inline long int lrint (double flt) {
+        return (long int)floor(flt+0.5f);
+    }
+
+    __inline long int lrintf(float flt) {
+        return (long int)floorf(flt+0.5f);
+    }
+
 
 #endif
 
+#endif
 
 
 const double fuzzyEpsilon = 0.00001;
@@ -189,6 +167,25 @@ inline const double& twoPi() {
 /** @def G3D_TWO_PI
     @deprecated Use G3D::twoPi() instead. */
 #define G3D_TWO_PI  (6.283185)
+
+typedef signed char		int8;
+typedef unsigned char	uint8;
+typedef short			int16;
+typedef unsigned short	uint16;
+typedef int				int32;
+typedef unsigned int	uint32;
+
+#ifdef _MSC_EXTENSIONS
+    typedef __int64			   int64;
+    typedef unsigned __int64   uint64;
+#else
+    typedef long long		   int64;
+    typedef unsigned long long uint64;
+#endif
+typedef unsigned int uint;
+
+typedef float			float32;
+typedef double			float64;
 
 int iAbs(int iValue);
 int iCeil(double fValue);
@@ -304,6 +301,51 @@ float uniformRandom(float low = 0.0f, float hi = 1.0f);
  */
 float gaussRandom(float mean = 0.0f, float stdev = 1.0f);
 
+#if defined(_MSC_VER) && (_MSC_VER <= 1200)
+
+    /** VC6 lacks std::min and std::max */
+    inline double min(double x, double y) {
+        return std::_cpp_min(x, y);
+    }
+
+    /** VC6 lacks std::min and std::max */
+    inline float min(float x, float y) {
+        return std::_cpp_min(x, y);
+    }
+
+    /** VC6 lacks std::min and std::max */
+    inline int min(int x, int y) {
+        return std::_cpp_min(x, y);
+    }
+
+    /** VC6 lacks std::min and std::max */
+    inline double max(double x, double y) {
+        return std::_cpp_max(x, y);
+    }
+
+    /** VC6 lacks std::min and std::max */
+    inline float max(float x, float y) {
+        return std::_cpp_max(x, y);
+    }
+
+    /** VC6 lacks std::min and std::max */
+    inline int max(int x, int y) {
+        return std::_cpp_max(x, y);
+    }
+
+#else
+    template <class T>
+    inline T min(const T& x, const T& y) {
+        return std::min<T>(x, y);
+    }
+
+    template <class T>
+    inline T max(const T& x, const T& y) {
+        return std::max<T>(x, y);
+    }
+
+#endif
+
 int iMin(int x, int y);
 int iMax(int x, int y);
 
@@ -359,20 +401,13 @@ inline float rsq(float x) {
  */
 inline float SSErsq(float x) {
 
-    #if defined(SSE) && defined(G3D_WIN32)
-	#ifdef X64
-		__m128 a, b;
-		a = _mm_set_ps1(x);
-		b = _mm_rsqrt_ss(a);
-		return b.m128_f32[0];
-	#else
-	    __asm {
+    #if defined(SSE) && defined(G3D_WIN32) && !defined(_WIN64)
+        __asm {
            movss xmm0, x
            rsqrtss xmm0, xmm0
            movss x, xmm0
         }
         return x;
-	#endif
     #else
         return 1.0f / sqrt(x);
     #endif

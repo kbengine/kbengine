@@ -1,21 +1,24 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/**
+ @file Triangle.h
+  
+ @maintainer Morgan McGuire, matrix@graphics3d.com
+ 
+ @created 2003-04-05
+ @edited  2004-03-14
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
+ @cite Random point method by  Greg Turk, Generating random points in triangles.  In A. S. Glassner, ed., Graphics Gems, pp. 24-28. Academic Press, 1990
 
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+ Copyright 2000-2006, Morgan McGuire.
+ All rights reserved.
+ */
 
 #ifndef G3D_TRIANGLE_H
 #define G3D_TRIANGLE_H
 
-#include "platform.h"
-#include "g3dmath.h"
-#include "Vector3.h"
-#include "Plane.h"
+#include "G3D/platform.h"
+#include "G3D/g3dmath.h"
+#include "G3D/Vector3.h"
+#include "G3D/Plane.h"
 #include <string>
 
 namespace G3D {
@@ -83,7 +86,7 @@ public:
      the same vertices <I>in the same order</I>.
      That is, vertex[0] == vertex[0], etc.
      */
-    inline bool operator==(const Triangle& other) {
+    inline bool operator==(const Triangle& other) const {
         for (int i = 0; i < 3; ++i) {
             if (_vertex[i] != other._vertex[i]) {
                 return false;
@@ -93,7 +96,7 @@ public:
         return true;
     }
 
-    inline size_t hashCode() const {
+    inline unsigned int hashCode() const {
         return
             _vertex[0].hashCode() +
             (_vertex[1].hashCode() >> 2) +
@@ -106,7 +109,7 @@ public:
 
 } // namespace
 
-inline size_t hashCode(const G3D::Triangle& t) {
+inline unsigned int hashCode(const G3D::Triangle& t) {
 	return t.hashCode();
 }
 

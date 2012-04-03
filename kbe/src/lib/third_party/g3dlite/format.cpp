@@ -1,12 +1,10 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/**
+ @file format.cpp
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
+ @author Morgan McGuire, graphics3d.com
 
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
+ @created 2000-09-09
+ @edited  2006-04-30
 */
 
 #include "G3D/format.h"

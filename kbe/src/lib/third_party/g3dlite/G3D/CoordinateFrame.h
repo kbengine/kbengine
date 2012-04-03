@@ -1,22 +1,23 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/**
+ @file CoordinateFrame.h
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
+ @maintainer Morgan McGuire, matrix@graphics3d.com
+ 
+ @created 2001-03-04
+ @edited  2006-04-07
 
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
+ Copyright 2000-2006, Morgan McGuire.
+ All rights reserved.
 */
 
 #ifndef G3D_COORDINATEFRAME_H
 #define G3D_COORDINATEFRAME_H
 
-#include "platform.h"
-#include "Vector3.h"
-#include "Vector4.h"
-#include "Matrix3.h"
-#include "Array.h"
+#include "G3D/platform.h"
+#include "G3D/Vector3.h"
+#include "G3D/Vector4.h"
+#include "G3D/Matrix3.h"
+#include "G3D/Array.h"
 #include <math.h>
 #include <string>
 #include <stdio.h>

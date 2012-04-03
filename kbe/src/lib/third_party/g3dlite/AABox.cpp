@@ -1,12 +1,10 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/**
+  @file AABox.cpp
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
+  @maintainer Morgan McGuire, matrix@graphics3d.com
 
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
+  @created 2004-01-10
+  @edited  2006-01-11
 */
 
 #include "G3D/platform.h"
@@ -32,9 +30,9 @@ Box AABox::toBox() const {
 
 void AABox::split(const Vector3::Axis& axis, float location, AABox& low, AABox& high) const {
     // Low, medium, and high along the chosen axis
-    float L = std::min(location, lo[axis]);
-    float M = std::min(std::max(location, lo[axis]), hi[axis]);
-    float H = std::max(location, hi[axis]);
+    float L = G3D::min(location, lo[axis]);
+    float M = G3D::min(G3D::max(location, lo[axis]), hi[axis]);
+    float H = G3D::max(location, hi[axis]);
 
     // Copy over this box.
     high = low = *this;

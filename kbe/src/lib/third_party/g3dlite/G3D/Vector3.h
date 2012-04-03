@@ -1,20 +1,22 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/**
+  @file Vector3.h
+ 
+  3D vector class
+ 
+  @maintainer Morgan McGuire, matrix@graphics3d.com
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
-
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+  @created 2001-06-02
+  @edited  2005-08-23
+  Copyright 2000-2006, Morgan McGuire.
+  All rights reserved.
+ */
 
 #ifndef G3D_VECTOR3_H
 #define G3D_VECTOR3_H
 
-#include "platform.h"
-#include "g3dmath.h"
-#include "Vector2.h"
+#include "G3D/platform.h"
+#include "G3D/g3dmath.h"
+#include "G3D/Vector2.h"
 #include <iostream>
 #include <string>
 
@@ -112,7 +114,7 @@ public:
     Vector3& operator= (const Vector3& rkVector);
     bool operator== (const Vector3& rkVector) const;
     bool operator!= (const Vector3& rkVector) const;
-    size_t hashCode() const;
+    unsigned int hashCode() const;
     bool fuzzyEq(const Vector3& other) const;
     bool fuzzyNe(const Vector3& other) const;
 
@@ -477,12 +479,6 @@ public:
 
     /** A value that can be passed to ignore a parameter.  Never look at the result of dummy. */
     static Vector3 dummy;
-
-	void MultiplyXZ(float s)
-	{
-		this->x *= s;
-		this->z *= s;
-	}
 };
 
 inline G3D::Vector3 operator*(float s, const G3D::Vector3& v) {
@@ -501,7 +497,7 @@ std::ostream& operator<<(std::ostream& os, const Vector3&);
 
 }
 
-size_t hashCode(const G3D::Vector3& v);
+unsigned int hashCode(const G3D::Vector3& v);
 
 #include "Vector3.inl"
 

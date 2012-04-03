@@ -1,20 +1,26 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/** 
+  @file Array.h
+ 
+  @maintainer Morgan McGuire, graphics3d.com
+  @cite Portions written by Aaron Orenstein, a@orenstein.name
+ 
+  @created 2001-03-11
+  @edited  2007-05-12
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
-
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+  Copyright 2000-2007, Morgan McGuire.
+  All rights reserved.
+ */
 
 #ifndef G3D_ARRAY_H
 #define G3D_ARRAY_H
 
-#include "platform.h"
-#include "debug.h"
-#include "System.h"
+#include "G3D/platform.h"
+#include "G3D/debug.h"
+#include "G3D/System.h"
+#ifdef G3D_DEBUG
+//   For formatting error messages
+#    include "G3D/format.h"
+#endif
 #include <vector>
 #include <algorithm>
 
@@ -73,6 +79,8 @@ const int SORT_DECREASING = -1;
  Array::getCArray.  Although (T*)std::vector::begin() can be used for
  this purpose, it is not guaranteed to succeed on all platforms.
 
+ To serialize an array, see G3D::serialize.
+
  Do not subclass an Array.
  */
 template <class T>
@@ -114,7 +122,7 @@ private:
 
 
     /** Only compiled if you use the sort procedure. */
-    static bool compareGT(const T& a, const T& b) {
+    static bool __cdecl compareGT(const T& a, const T& b) {
         return a > b;
     }
 
@@ -316,6 +324,11 @@ public:
       resize(n, true);
    }
 
+   /** Resizes without shrinking the underlying array */
+   void fastResize(int n) {
+      resize(n, false);
+   }
+
 
    /**
     Inserts at the specified index and shifts all other elements up by one.
@@ -330,7 +343,9 @@ public:
        data[n] = value;
    }
 
-
+    /** @param shrinkIfNecessary if false, memory will never be
+      reallocated when the array shrinks.  This makes resizing much
+      faster but can waste memory. */
    void resize(int n, bool shrinkIfNecessary) {
       int oldNum = num;
       num = n;
@@ -583,16 +598,17 @@ public:
    }
 
    /**
-    Removes the last element and returns it.
+    Removes the last element and returns it.  By default, shrinks the underlying array.
     */
-   inline T pop(bool shrinkUnderlyingArrayIfNecessary = false) {
+   inline T pop(bool shrinkUnderlyingArrayIfNecessary = true) {
        debugAssert(num > 0);
        T temp = data[num - 1];
        resize(num - 1, shrinkUnderlyingArrayIfNecessary);
        return temp;
    }
 
-   /** Pops the last element and discards it.  Faster than pop.*/
+   /** Pops the last element and discards it without returning anything.  Faster than pop.
+      By default, does not shrink the underlying array.*/
    inline void popDiscard(bool shrinkUnderlyingArrayIfNecessary = false) {
        debugAssert(num > 0);
        resize(num - 1, shrinkUnderlyingArrayIfNecessary);
@@ -601,9 +617,7 @@ public:
 
    /**
     "The member function swaps the controlled sequences between *this and str."
-
-    This is slower than the optimal std implementation; please post on the G3D user's forum
-    if you need a fast version.
+    Note that this is slower than the optimal std implementation.
 
     For compatibility with std::vector.
     */
@@ -618,14 +632,14 @@ public:
     Performs bounds checks in debug mode
     */
    inline T& operator[](int n) {
-      debugAssert((n >= 0) && (n < num));
-	  debugAssert(data!=NULL);
-      return data[n];
+        debugAssertM((n >= 0) && (n < num), format("Array index out of bounds. n = %d, size() = %d", n, num));
+        debugAssert(data!=NULL);
+        return data[n];
    }
 
    inline T& operator[](unsigned int n) {
-      debugAssert(((int)n < num));
-      return data[n];
+        debugAssertM(((int)n < num), format("Array index out of bounds. n = %d, size() = %d", n, num));
+        return data[n];
    }
 
    /**
@@ -665,19 +679,60 @@ public:
         return data[num - 1];
     }
 
+    /** Returns element lastIndex() */
     inline T& last() {
         debugAssert(num > 0);
         debugAssert(data!=NULL);
         return data[num - 1];
     }
 
-   /**
+    /** Returns <i>size() - 1</i> */
+    inline int lastIndex() const {
+        debugAssertM(num > 0, "Array is empty");
+        return num - 1;
+    }
+
+    inline int firstIndex() const {
+        debugAssertM(num > 0, "Array is empty");
+        return 0;
+    }
+
+    /** Returns element firstIndex(), performing a check in debug mode to ensure that there is at least one */
+    inline T& first() {
+        debugAssertM(num > 0, "Array is empty");
+        return data[0];
+    }
+
+    inline const T& first() const {
+        debugAssertM(num > 0, "Array is empty");
+        return data[0];
+    }
+
+    /** Returns iFloor(size() / 2), throws an assertion in debug mode if the array is empty */
+    inline int middleIndex() const {
+        debugAssertM(num > 0, "Array is empty");
+        return num >> 1;
+    }
+
+    /** Returns element middleIndex() */
+    inline const T& middle() const {
+        debugAssertM(num > 0, "Array is empty");
+        return data[num >> 1];   
+    }
+
+    /** Returns element middleIndex() */
+    inline T& middle() {
+        debugAssertM(num > 0, "Array is empty");
+        return data[num >> 1];   
+    }
+
+    /**
     Calls delete on all objects[0...size-1]
     and sets the size to zero.
     */
     void deleteAll() {
         for (int i = 0; i < num; i++) {
-            delete(data[i]);
+            delete data[i];
         }
         resize(0);
     }
@@ -773,7 +828,7 @@ public:
     }
     </PRE>
      */
-    void sort(bool (*lessThan)(const T& elem1, const T& elem2)) {
+    void sort(bool (__cdecl *lessThan)(const T& elem1, const T& elem2)) {
         std::sort(data, data + num, lessThan);
     }
 
@@ -791,7 +846,7 @@ public:
         }
      </code>
      */
-    void sort(int direction=SORT_INCREASING) {
+    void sort(int direction = SORT_INCREASING) {
         if (direction == SORT_INCREASING) {
             std::sort(data, data + num);
         } else {
@@ -802,7 +857,7 @@ public:
     /**
      Sorts elements beginIndex through and including endIndex.
      */
-    void sortSubArray(int beginIndex, int endIndex, int direction=SORT_INCREASING) {
+    void sortSubArray(int beginIndex, int endIndex, int direction = SORT_INCREASING) {
         if (direction == SORT_INCREASING) {
             std::sort(data + beginIndex, data + endIndex + 1);
         } else {
@@ -810,9 +865,259 @@ public:
         }
     }
 
-    void sortSubArray(int beginIndex, int endIndex, bool (*lessThan)(const T& elem1, const T& elem2)) {
+    void sortSubArray(int beginIndex, int endIndex, bool (__cdecl *lessThan)(const T& elem1, const T& elem2)) {
         std::sort(data + beginIndex, data + endIndex + 1, lessThan);
     }
+
+    /**
+     The StrictWeakOrdering can be either a class that overloads the function call operator() or
+     a function pointer of the form <code>bool (__cdecl *lessThan)(const T& elem1, const T& elem2)</code>
+     */
+    template<typename StrictWeakOrdering>
+    void sortSubArray(int beginIndex, int endIndex, StrictWeakOrdering& lessThan) {
+        std::sort(data + beginIndex, data + endIndex + 1, lessThan);
+    }
+
+    /** Uses < and == to evaluate operator(); this is the default comparator for Array::partition. */
+    class DefaultComparator {
+    public:
+        inline int operator()(const T& A, const T& B) const {
+            if (A < B) {
+                return 1;
+            } else if (A == B) {
+                return 0;
+            } else {
+                return -1;
+            }
+        }
+    };
+
+    /** The output arrays are resized with fastClear() so that if they are already of the same size
+        as this array no memory is allocated during partitioning. 
+        
+        @param comparator A function, or class instance with an overloaded operator() that compares
+        two elements of type <code>T</code> and returns 0 if they are equal, -1 if the second is smaller,
+        and 1 if the first is smaller (i.e., following the conventions of std::string::compare).  For example:
+
+        <pre>
+        int compare(int A, int B) {
+            if (A < B) {
+                return 1;
+            } else if (A == B) {
+                return 0;
+            } else {
+                return -1;
+            }
+        }
+        </pre>
+        */
+    template<typename Comparator>
+    void partition(
+        const T& partitionElement, 
+        Array<T>& ltArray,
+        Array<T>& eqArray,
+        Array<T>& gtArray,
+        const Comparator& comparator) const {
+
+        // Make sure all arrays are independent
+        debugAssert(&ltArray != this);
+        debugAssert(&eqArray != this);
+        debugAssert(&gtArray != this);
+        debugAssert(&ltArray != &eqArray);
+        debugAssert(&ltArray != &gtArray);
+        debugAssert(&eqArray != &gtArray);
+
+        // Clear the arrays
+        ltArray.fastClear();
+        eqArray.fastClear();
+        gtArray.fastClear();
+
+        // Form a table of buckets for lt, eq, and gt
+        Array<T>* bucket[3] = {&ltArray, &eqArray, &gtArray};
+
+        for (int i = 0; i < num; ++i) {
+            int c = comparator(partitionElement, data[i]);
+            debugAssertM(c >= -1 && c <= 1, "Comparator returned an illegal value.");
+
+            // Insert into the correct bucket, 0, 1, or 2
+            bucket[c + 1]->append(data[i]);
+        }
+    }
+
+    /**
+      Uses < and == on elements to perform a partition.  See partition().
+     */
+    void partition(
+        const T& partitionElement, 
+        Array<T>& ltArray,
+        Array<T>& eqArray,
+        Array<T>& gtArray) const {
+
+        partition(partitionElement, ltArray, eqArray, gtArray, typename Array<T>::DefaultComparator());
+    }
+
+    /** 
+     Paritions the array into those below the median, those above the median, and those elements
+     equal to the median in expected O(n) time using quickselect.  If the array has an even
+     number of different elements, the median for partition purposes is the largest value
+     less than the median.
+
+     @param tempArray used for working scratch space
+     @param comparator see parition() for a discussion.*/
+    template<typename Comparator>
+    void medianPartition(
+        Array<T>&           ltMedian, 
+        Array<T>&           eqMedian, 
+        Array<T>&           gtMedian,
+        Array<T>&           tempArray,
+        const Comparator&   comparator) const {
+
+        ltMedian.fastClear();
+        eqMedian.fastClear();
+        gtMedian.fastClear();
+
+        // Handle trivial cases first
+        switch (size()) {
+        case 0:
+            // Array is empty; no parition is possible
+            return;
+
+        case 1:
+            // One element
+            eqMedian.append(first());
+            return;
+
+        case 2:
+            {
+                // Two element array; median is the smaller
+                int c = comparator(first(), last());
+                
+                switch (c) {
+                case -1:
+                    // first was bigger
+                    eqMedian.append(last());
+                    gtMedian.append(first());
+                    break;
+
+                case 0:
+                    // Both equal to the median
+                    eqMedian.append(first(), last());
+                    break;
+
+                case 1:
+                    // Last was bigger
+                    eqMedian.append(first());
+                    gtMedian.append(last());
+                    break;
+                }
+            }
+            return;
+        }
+
+        // All other cases use a recursive randomized median
+
+        // Number of values less than all in the current arrays        
+        int ltBoost = 0;
+
+        // Number of values greater than all in the current arrays        
+        int gtBoost = 0;
+
+        // For even length arrays, force the gt array to be one larger than the
+        // lt array:  
+        //  [1 2 3] size = 3, choose half = (s + 1) /2
+        //
+        int lowerHalfSize, upperHalfSize;
+        if (isEven(size())) {
+            lowerHalfSize = size() / 2;
+            upperHalfSize = lowerHalfSize + 1;
+        } else {
+            lowerHalfSize = upperHalfSize = (size() + 1) / 2;
+        }
+        const T* xPtr = NULL;
+
+        // Maintain pointers to the arrays; we'll switch these around during sorting
+        // to avoid copies.
+        const Array<T>* source = this;
+        Array<T>* lt     = &ltMedian;
+        Array<T>* eq     = &eqMedian;
+        Array<T>* gt     = &gtMedian;
+        Array<T>* extra  = &tempArray;
+
+        while (true) {
+            // Choose a random element -- choose the middle element; this is theoretically
+            // suboptimal, but for loosly sorted array is actually the best strategy
+
+            xPtr = &(source->middle());
+            if (source->size() == 1) {
+                // Done; there's only one element left
+                break;
+            }
+            const T& x = *xPtr;
+
+            // Note: partition (fast) clears the arrays for us
+            source->partition(x, *lt, *eq, *gt, comparator);
+
+            int L = lt->size() + ltBoost + eq->size();
+            int U = gt->size() + gtBoost + eq->size();
+            if ((L >= lowerHalfSize) &&
+                (U >= upperHalfSize)) {
+
+                // x must be the partition median                    
+                break;
+
+            } else if (L < lowerHalfSize) {
+
+                // x must be smaller than the median.  Recurse into the 'gt' array.
+                ltBoost += lt->size() + eq->size();
+
+                // The new gt array will be the old source array, unless
+                // that was the this pointer (i.e., unless we are on the 
+                // first iteration)
+                Array<T>* newGt = (source == this) ? extra : const_cast<Array<T>*>(source);
+                
+                // Now set up the gt array as the new source
+                source = gt;
+                gt = newGt;
+
+            } else {
+
+                // x must be bigger than the median.  Recurse into the 'lt' array.
+                gtBoost += gt->size() + eq->size();
+
+                // The new lt array will be the old source array, unless
+                // that was the this pointer (i.e., unless we are on the 
+                // first iteration)
+                Array<T>* newLt = (source == this) ? extra : const_cast<Array<T>*>(source);
+                
+                // Now set up the lt array as the new source
+                source = lt;
+                lt = newLt;
+            }
+        }
+
+        // Now that we know the median, make a copy of it (since we're about to destroy the array that it
+        // points into).
+        T median = *xPtr;
+        xPtr = NULL;
+
+        // Partition the original array (note that this fast clears for us)
+        partition(median, ltMedian, eqMedian, gtMedian, comparator);
+    }
+
+    /**
+      Computes a median partition using the default comparator and a dynamically allocated temporary 
+      working array.  If the median is not in the array, it is chosen to be the largest value smaller
+      than the true median.
+     */
+    void medianPartition(
+        Array<T>&           ltMedian, 
+        Array<T>&           eqMedian, 
+        Array<T>&           gtMedian) const {
+
+        Array<T> temp;
+        medianPartition(ltMedian, eqMedian, gtMedian, temp, DefaultComparator());
+    }
+
 
     /** Redistributes the elements so that the new order is statistically independent
         of the original order. O(n) time.*/
@@ -827,6 +1132,7 @@ public:
             data[x] = temp;
         }
     }
+
 
 };
 

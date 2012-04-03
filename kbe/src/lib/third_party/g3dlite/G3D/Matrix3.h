@@ -1,21 +1,23 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
-
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+/**
+  @file Matrix3.h
+ 
+  3x3 matrix class
+ 
+  @maintainer Morgan McGuire, matrix@graphics3d.com
+ 
+  @cite Portions based on Dave Eberly's Magic Software Library at <A HREF="http://www.magic-software.com">http://www.magic-software.com</A>
+ 
+  @created 2001-06-02
+  @edited  2006-04-05
+ */
 
 #ifndef G3D_MATRIX3_H
 #define G3D_MATRIX3_H
 
-#include "platform.h"
-#include "System.h"
-#include "Vector3.h"
-#include "Vector4.h"
+#include "G3D/platform.h"
+#include "G3D/System.h"
+#include "G3D/Vector3.h"
+#include "G3D/Vector4.h"
 
 namespace G3D {
 
@@ -250,7 +252,7 @@ public:
     // "You might be tempted to write [...] them as inline functions 
     // inside their respective header files, but this is something you 
     // must definitely not do. An inline function can be duplicated 
-    // in every file in which it appears ï¿½ and this duplication 
+    // in every file in which it appears – and this duplication 
     // includes the static object definition. Because inline functions 
     // automatically default to internal linkage, this would result in 
     // having multiple static objects across the various translation 

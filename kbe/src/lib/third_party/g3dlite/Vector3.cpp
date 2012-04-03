@@ -1,13 +1,15 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
-
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+/**
+ @file Vector3.cpp
+ 
+ 3D vector class
+ 
+ @maintainer Morgan McGuire, matrix@graphics3d.com
+ 
+ @cite Portions based on Dave Eberly's Magic Software Library at http://www.magic-software.com
+ 
+ @created 2001-06-02
+ @edited  2006-01-30
+ */
 
 #include <limits>
 #include <stdlib.h>
@@ -61,10 +63,10 @@ Vector3::Axis Vector3::primaryAxis() const {
 }
 
 
-size_t Vector3::hashCode() const {
-    size_t xhash = (*(size_t*)(void*)(&x));
-    size_t yhash = (*(size_t*)(void*)(&y));
-    size_t zhash = (*(size_t*)(void*)(&z));
+unsigned int Vector3::hashCode() const {
+    unsigned int xhash = (*(int*)(void*)(&x));
+    unsigned int yhash = (*(int*)(void*)(&y));
+    unsigned int zhash = (*(int*)(void*)(&z));
 
     return xhash + (yhash * 37) + (zhash * 101);
 }

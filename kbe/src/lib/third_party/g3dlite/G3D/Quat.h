@@ -1,21 +1,21 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
-
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+/**
+  @file Quat.h
+ 
+  Quaternion
+  
+  @maintainer Morgan McGuire, matrix@graphics3d.com
+  
+  @created 2002-01-23
+  @edited  2006-05-10
+ */
 
 #ifndef G3D_QUAT_H
 #define G3D_QUAT_H
 
-#include "platform.h"
-#include "g3dmath.h"
-#include "Vector3.h"
-#include "Matrix3.h"
+#include "G3D/platform.h"
+#include "G3D/g3dmath.h"
+#include "G3D/Vector3.h"
+#include "G3D/Matrix3.h"
 #include <string>
 
 namespace G3D {

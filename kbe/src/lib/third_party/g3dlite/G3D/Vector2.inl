@@ -1,13 +1,19 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/**
+ @file Vector2.inl
+ 
+ @maintainer Morgan McGuire, matrix@graphics3d.com
+ @cite Portions by Laura Wollstadt, graphics3d.com
+ 
+ @cite Portions based on Dave Eberly'x Magic Software Library
+ at http://www.magic-software.com
+ 
+ 
+ @created 2001-06-02
+ @edited  2006-01-14
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
-
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+  Copyright 2000-2006, Morgan McGuire.
+  All rights reserved.
+ */
 
 
 }

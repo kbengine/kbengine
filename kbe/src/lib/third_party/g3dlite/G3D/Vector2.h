@@ -1,20 +1,21 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
-
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
+/**
+  @file Vector2.h
+ 
+  2D vector class
+ 
+  @maintainer Morgan McGuire, matrix@graphics3d.com
+  
+  @created 2001-06-02
+  @edited  2006-01-14
+  Copyright 2000-2006, Morgan McGuire.
+  All rights reserved.
 */
-
 
 #ifndef G3D_VECTOR2_H
 #define G3D_VECTOR2_H
 
-#include "platform.h"
-#include "g3dmath.h"
+#include "G3D/platform.h"
+#include "G3D/g3dmath.h"
 #include "Vector2int16.h"
 #include <string>
 
@@ -57,7 +58,7 @@ public:
     Vector2& operator= (const Vector2& rkVector);
     bool operator== (const Vector2& rkVector) const;
     bool operator!= (const Vector2& rkVector) const;
-    size_t hashCode() const;
+    unsigned int hashCode() const;
     bool fuzzyEq(const Vector2& other) const;
     bool fuzzyNe(const Vector2& other) const;
     /** Returns true if this vector has finite length */
@@ -207,7 +208,7 @@ inline Vector2 operator*(int s, const Vector2& v) {
 }
 
 
-inline size_t hashCode(const G3D::Vector2& v) {
+inline unsigned int hashCode(const G3D::Vector2& v) {
      return v.hashCode();
 }
 
@@ -340,6 +341,11 @@ inline Vector2& Vector2::operator/= (const Vector2& rkVector) {
     return *this;
 }
 
+inline Vector2& Vector2::operator/= (float fScalar) {
+    x /= fScalar;
+    y /= fScalar;
+    return *this;
+}
 
 inline Vector2 Vector2::operator* (const Vector2& rkVector) const {
     return Vector2(x * rkVector.x, y * rkVector.y);
@@ -351,6 +357,9 @@ inline Vector2 Vector2::operator/ (const Vector2& rkVector) const {
     return Vector2(x / rkVector.x, y / rkVector.y);
 }
 
+inline Vector2 Vector2::operator/ (float fScalar)const {
+    return Vector2(x / fScalar, y / fScalar);
+}
 
 inline float Vector2::squaredLength () const {
     return x*x + y*y;
@@ -381,13 +390,13 @@ inline float Vector2::dot (const Vector2& rkVector) const {
 
 
 inline Vector2 Vector2::min(const Vector2 &v) const {
-    return Vector2(std::min(v.x, x), std::min(v.y, y));
+    return Vector2(G3D::min(v.x, x), G3D::min(v.y, y));
 }
 
 
 
 inline Vector2 Vector2::max(const Vector2 &v) const {
-    return Vector2(std::max(v.x, x), std::max(v.y, y));
+    return Vector2(G3D::max(v.x, x), G3D::max(v.y, y));
 }
 
 
@@ -431,7 +440,7 @@ inline G3D::Vector2 operator*(int s, const G3D::Vector2& v) {
 }
 
 
-inline size_t hashCode(const G3D::Vector2& v);
+inline unsigned int hashCode(const G3D::Vector2& v);
 
 
 #endif

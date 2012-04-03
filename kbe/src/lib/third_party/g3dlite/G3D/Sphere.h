@@ -1,21 +1,21 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
-
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+/**
+ @file Sphere.h
+ 
+ Sphere class
+ 
+ @maintainer Morgan McGuire, matrix@graphics3d.com
+ 
+ @created 2001-06-02
+ @edited  2004-07-05
+ */
 
 #ifndef G3D_SPHERE_H
 #define G3D_SPHERE_H
 
-#include "platform.h"
-#include "Vector3.h"
-#include "Array.h"
-#include "Sphere.h"
+#include "G3D/platform.h"
+#include "G3D/Vector3.h"
+#include "G3D/Array.h"
+#include "G3D/Sphere.h"
 
 namespace G3D {
 
@@ -121,8 +121,8 @@ public:
 
 } // namespace
 
-inline size_t hashCode(const G3D::Sphere& sphere) {
-    return (size_t)(hashCode(sphere.center) + (sphere.radius * 13));
+inline unsigned int hashCode(const G3D::Sphere& sphere) {
+    return (unsigned int)(hashCode(sphere.center) + (sphere.radius * 13));
 }
 
 #endif

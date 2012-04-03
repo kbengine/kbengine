@@ -1,13 +1,22 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/** 
+  @file System.cpp
+ 
+  @maintainer Morgan McGuire, matrix@graphics3d.com
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
+  Note: every routine must call init() first.
 
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+  There are two kinds of detection used in this file.  At compile
+  time, the _MSC_VER #define is used to determine whether x86 assembly
+  can be used at all.  At runtime, processor detection is used to
+  determine if we can safely call the routines that use that assembly.
+
+  @cite Rob Wyatt http://www.gamasutra.com/features/wyatts_world/19990709/processor_detection_01.htm
+  @cite Benjamin Jurke http://www.flipcode.com/cgi-bin/msg.cgi?showThread=COTD-ProcessorDetectionClass&forum=cotd&id=-1
+  @cite Michael Herf http://www.stereopsis.com/memcpy.html
+
+  @created 2003-01-25
+  @edited  2006-05-17
+ */
 
 #include "G3D/platform.h"
 #include "G3D/System.h"

@@ -1,12 +1,12 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/**
+ @file Matrix3.cpp
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
+ 3x3 matrix class
 
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
+ @author Morgan McGuire, graphics3d.com
+
+ @created 2001-06-02
+ @edited  2006-04-06
 */
 
 #include "G3D/platform.h"

@@ -1,12 +1,11 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/**
+  @file Box.cpp
+  Box class
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
+  @maintainer Morgan McGuire, matrix@graphics3d.com
 
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
+  @created 2001-06-02
+  @edited  2006-02-05
 */
 
 #include "G3D/Box.h"

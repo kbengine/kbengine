@@ -1,13 +1,14 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/**
+ @file Triangle.cpp
+ 
+ @maintainer Morgan McGuire, graphics3d.com
+ 
+ @created 2001-04-06
+ @edited  2006-01-20
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
-
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+ Copyright 2000-2006, Morgan McGuire.
+ All rights reserved.
+ */
 
 #include "G3D/platform.h"
 #include "G3D/Triangle.h"

@@ -1,18 +1,19 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/**
+ @file format.h
+ 
+ @maintainer Morgan McGuire, matrix@graphics3d.com
+ 
+ @author  2000-09-09
+ @edited  2005-11-03
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
-
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+ Copyright 2000-2005, Morgan McGuire.
+ All rights reserved.
+ */
 
 #ifndef G3D_FORMAT_H
 #define G3D_FORMAT_H
 
-#include "platform.h"
+#include "G3D/platform.h"
 #include <string>
 #include <stdio.h>
 #include <cstdarg>

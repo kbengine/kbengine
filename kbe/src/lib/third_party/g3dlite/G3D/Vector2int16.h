@@ -1,19 +1,20 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
+/**
+  @file Vector2int16.h
+  
+  @maintainer Morgan McGuire, matrix@brown.edu
 
-Copyright (c) 2008-2012 kbegine Software Ltd
-Also see acknowledgements in Readme.html
+  @created 2003-08-09
+  @edited  2004-01-03
 
-You may use this sample code for anything you like, it is not covered by the
-same license as the rest of the engine.
-*/
+  Copyright 2000-2006, Morgan McGuire.
+  All rights reserved.
+ */
 
 #ifndef VECTOR2INT16_H
 #define VECTOR2INT16_H
 
-#include "platform.h"
-#include "g3dmath.h"
+#include "G3D/platform.h"
+#include "G3D/g3dmath.h"
 
 namespace G3D {
 
@@ -34,21 +35,21 @@ private:
     bool operator>=(const Vector2int16&) const;
 
 public:
-    int16              x;
-    int16              y;
+    G3D::int16              x;
+    G3D::int16              y;
 
     Vector2int16() : x(0), y(0) {}
-    Vector2int16(int16 _x, int16 _y) : x(_x), y(_y){}
+    Vector2int16(G3D::int16 _x, G3D::int16 _y) : x(_x), y(_y){}
     Vector2int16(const class Vector2& v);
 
-    inline int16& operator[] (int i) {
+    inline G3D::int16& operator[] (int i) {
         debugAssert(((unsigned int)i) <= 1);
-        return ((int16*)this)[i];
+        return ((G3D::int16*)this)[i];
     }
 
-    inline const int16& operator[] (int i) const {
+    inline const G3D::int16& operator[] (int i) const {
         debugAssert(((unsigned int)i) <= 1);
-        return ((int16*)this)[i];
+        return ((G3D::int16*)this)[i];
     }
 
 
