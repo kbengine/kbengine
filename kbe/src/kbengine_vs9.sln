@@ -11,7 +11,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "math", "lib\math\math.vcpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pyscript", "lib\pyscript\pyscript.vcproj", "{7A411D5D-DA3B-474D-B08B-3DD787A1F375}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XmlPlus", "lib\xmlplus\xmlplus.vcproj", "{2992ABDB-0853-4C43-B9E2-98D4211192EE}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xmlplus", "lib\xmlplus\xmlplus.vcproj", "{2992ABDB-0853-4C43-B9E2-98D4211192EE}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "examples\test\test\test.vcproj", "{CF469C2C-AB96-4E3C-8250-C1A2EA317EAD}"
 	ProjectSection(ProjectDependencies) = postProject
