@@ -15,7 +15,7 @@ ifeq (,$(findstring 64,$(MF_CONFIG)))
  ifeq (0,$(ALLOW_32BIT_BUILD))
 
 all::
-	@echo "ERROR: 32 bit builds are not supported as of BigWorld 2.0 ($(MF_CONFIG))"
+	@echo "ERROR: 32 bit builds are not supported as of KBEngine ($(MF_CONFIG))"
 	@false
 
  endif
@@ -183,7 +183,7 @@ endif
 
 LDFLAGS += -export-dynamic
 
-# The OpenSSL redist is used for all builds as cstdmf/md5.[ch]pp depends
+# The OpenSSL redist is used for all builds as cstdkbe/md5.[ch]pp depends
 # on the OpenSSL MD5 implementation.
 OPENSSL_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/openssl
 KBE_INCLUDES += -I$(OPENSSL_DIR)/include
