@@ -1,0 +1,125 @@
+#
+# crypto/aes/Makefile
+#
+
+DIR=	aes
+TOP=	../..
+CC=	cc
+CPP=	$(CC) -E
+INCLUDES=
+CFLAG=-g
+MAKEFILE=	Makefile
+AR=		ar r
+
+AES_ASM_OBJ=$(MF_CONFIG)/aes_core.o $(MF_CONFIG)/aes_cbc.o
+
+CFLAGS= $(INCLUDES) $(CFLAG)
+ASFLAGS= $(INCLUDES) $(ASFLAG)
+AFLAGS= $(ASFLAGS)
+
+GENERAL=Makefile
+#TEST=aestest.c
+TEST=
+APPS=
+
+LIB=$(BWLIBDIR)/libcrypto.a
+LIBSRC=aes_core.c aes_misc.c aes_ecb.c aes_cbc.c aes_cfb.c aes_ofb.c \
+       aes_ctr.c aes_ige.c
+LIBOBJ=$(MF_CONFIG)/aes_misc.o $(MF_CONFIG)/aes_ecb.o $(MF_CONFIG)/aes_cfb.o $(MF_CONFIG)/aes_ofb.o $(MF_CONFIG)/aes_ctr.o $(MF_CONFIG)/aes_ige.o \
+       $(AES_ASM_OBJ)
+
+SRC= $(LIBSRC)
+
+EXHEADER= aes.h
+HEADER= aes_locl.h $(EXHEADER)
+
+ALL=    $(GENERAL) $(SRC) $(HEADER)
+
+top:
+	(cd ../..; $(MAKE) DIRS=crypto SDIRS=$(DIR) sub_all)
+
+all:	lib
+
+$(MF_CONFIG):
+	@-mkdir $(MF_CONFIG)
+
+lib:	$(MF_CONFIG) $(LIBOBJ)
+	$(AR) $(LIB) $(LIBOBJ)
+	$(RANLIB) $(LIB) || echo Never mind.
+	@touch lib
+
+$(MF_CONFIG)/%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(LIBOBJ): $(LIBSRC)
+
+$(MF_CONFIG)/aes-ia64.s: asm/aes-ia64.S
+	$(CC) $(CFLAGS) -E asm/aes-ia64.S > $@
+
+$(MF_CONFIG)/ax86-elf.s: asm/aes-586.pl ../perlasm/x86asm.pl
+	(cd asm; $(PERL) aes-586.pl elf $(CFLAGS) $(PROCESSOR) > ../$@)
+$(MF_CONFIG)/ax86-cof.s: asm/aes-586.pl ../perlasm/x86asm.pl
+	(cd asm; $(PERL) aes-586.pl coff $(CFLAGS) $(PROCESSOR) > ../$@)
+$(MF_CONFIG)/ax86-out.s: asm/aes-586.pl ../perlasm/x86asm.pl
+	(cd asm; $(PERL) aes-586.pl a.out $(CFLAGS) $(PROCESSOR) > ../$@)
+
+files:
+	$(PERL) $(TOP)/util/files.pl Makefile >> $(TOP)/MINFO
+
+links:
+	@$(PERL) $(TOP)/util/mklink.pl ../../include/openssl $(EXHEADER)
+	@$(PERL) $(TOP)/util/mklink.pl ../../test $(TEST)
+	@$(PERL) $(TOP)/util/mklink.pl ../../apps $(APPS)
+
+install:
+	@[ -n "$(INSTALLTOP)" ] # should be set by top Makefile...
+	@headerlist="$(EXHEADER)"; for i in $$headerlist ; \
+	do  \
+	(cp $$i $(INSTALL_PREFIX)$(INSTALLTOP)/include/openssl/$$i; \
+	chmod 644 $(INSTALL_PREFIX)$(INSTALLTOP)/include/openssl/$$i ); \
+	done;
+
+tags:
+	ctags $(SRC)
+
+tests:
+
+lint:
+	lint -DLINT $(INCLUDES) $(SRC)>fluff
+
+depend:
+	@[ -n "$(MAKEDEPEND)" ] # should be set by upper Makefile...
+	$(MAKEDEPEND) -- $(CFLAG) $(INCLUDES) $(DEPFLAG) -- $(PROGS) $(LIBSRC)
+
+dclean:
+	$(PERL) -pe 'if (/^# DO NOT DELETE THIS LINE/) {print; exit(0);}' $(MAKEFILE) >Makefile.new
+	mv -f Makefile.new $(MAKEFILE)
+
+clean:
+	rm -f $(MF_CONFIG)/*.s *.s $(MF_CONFIG)/*.o *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+$(MF_CONFIG)/aes_cbc.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
+$(MF_CONFIG)/aes_cbc.o: ../../include/openssl/opensslconf.h aes_cbc.c aes_locl.h
+$(MF_CONFIG)/aes_cfb.o: ../../e_os.h ../../include/openssl/aes.h
+$(MF_CONFIG)/aes_cfb.o: ../../include/openssl/e_os2.h ../../include/openssl/opensslconf.h
+$(MF_CONFIG)/aes_cfb.o: aes_cfb.c aes_locl.h
+$(MF_CONFIG)/aes_core.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
+$(MF_CONFIG)/aes_core.o: ../../include/openssl/opensslconf.h aes_core.c aes_locl.h
+$(MF_CONFIG)/aes_ctr.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
+$(MF_CONFIG)/aes_ctr.o: ../../include/openssl/opensslconf.h aes_ctr.c aes_locl.h
+$(MF_CONFIG)/aes_ecb.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
+$(MF_CONFIG)/aes_ecb.o: ../../include/openssl/opensslconf.h aes_ecb.c aes_locl.h
+$(MF_CONFIG)/aes_ige.o: ../../e_os.h ../../include/openssl/aes.h ../../include/openssl/bio.h
+$(MF_CONFIG)/aes_ige.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
+$(MF_CONFIG)/aes_ige.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
+$(MF_CONFIG)/aes_ige.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
+$(MF_CONFIG)/aes_ige.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+$(MF_CONFIG)/aes_ige.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+$(MF_CONFIG)/aes_ige.o: ../../include/openssl/symhacks.h ../cryptlib.h aes_ige.c aes_locl.h
+$(MF_CONFIG)/aes_misc.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
+$(MF_CONFIG)/aes_misc.o: ../../include/openssl/opensslconf.h
+$(MF_CONFIG)/aes_misc.o: ../../include/openssl/opensslv.h aes_locl.h aes_misc.c
+$(MF_CONFIG)/aes_ofb.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
+$(MF_CONFIG)/aes_ofb.o: ../../include/openssl/opensslconf.h aes_locl.h aes_ofb.c
