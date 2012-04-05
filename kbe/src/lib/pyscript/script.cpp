@@ -49,8 +49,24 @@ bool Script::install(wchar_t* pythonHomeDir, std::wstring pyPaths, const char* m
     	ERROR_MSG("Script::install::Py_Initialize is failed!\n");
         return false;
     } 
+
+	pyPaths += SCRIPT_PATH;
+
 	
-	PySys_SetPath((pyPaths + SCRIPT_PATH).c_str());
+#if KBE_PLATFORM != PLATFORM_WIN32
+		std::wstring fs = L";";
+		std::wstring rs = L":";
+		size_t pos = 0; 
+
+		while(true)
+		{ 
+			pos = pyPaths.find(fs, pos);
+			if (pos == std::wstring::npos) break;
+			pyPaths.replace(pos, fs.length(), rs);
+		}   
+#endif
+
+	PySys_SetPath(pyPaths.c_str());
 	PyObject *m = PyImport_AddModule("__main__");
 
 	m_module_ = PyImport_AddModule(moduleName);										// 添加一个脚本基础模块

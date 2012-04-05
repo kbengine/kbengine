@@ -35,13 +35,10 @@ bool ServerApp::installPyScript()
 	case CELLAPP_TYPE:
 		pyPaths += L"../../../demo/res/scripts/cell;";
 		break;
-	default:
-		pyPaths += L"../../../demo/res/scripts/cell;";
-		break;
 	};
 							
-	wchar_t homedir[] = L"../../res/script/common";
-	return getScript().install(homedir, pyPaths, "KBEngine");
+
+	return getScript().install(L"../../res/script/common", pyPaths, "KBEngine");
 }
 
 //-------------------------------------------------------------------------------------
