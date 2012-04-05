@@ -3,8 +3,8 @@ LIB =	entitydef
 SRCS =				\
 	array			\
 	common			\
-	dataType		\
-	dataTypes		\
+	datatype		\
+	datatypes		\
 	entitydef		\
 	entitymailboxabstract	\
 	fixedDict		\
