@@ -132,7 +132,7 @@ bool ScriptModule::addPropertyDescription(const char* attrName, PropertyDescript
 
 	(*propertyDescr)[attrName] = propertyDescription;
 	(*propertyDescr_uidmap)[propertyDescription->getUType()] = propertyDescription;
-	propertyDescription->addRef();
+	propertyDescription->incRef();
 	return true;
 }
 

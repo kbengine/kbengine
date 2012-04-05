@@ -32,7 +32,7 @@ FixedDict::FixedDict(DataType* dataType, std::string& strDictInitData):
 Map(getScriptType(), false)
 {
 	_m_dataType = static_cast<FixedDictType*>(dataType);
-	_m_dataType->addRef();
+	_m_dataType->incRef();
 	initialize(strDictInitData);
 }
 
@@ -41,7 +41,7 @@ FixedDict::FixedDict(DataType* dataType):
 Map(getScriptType(), false)
 {
 	_m_dataType = static_cast<FixedDictType*>(dataType);
-	_m_dataType->addRef();
+	_m_dataType->incRef();
 	initialize("");
 }
 

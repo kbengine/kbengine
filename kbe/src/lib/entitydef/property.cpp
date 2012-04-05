@@ -18,7 +18,7 @@ PropertyDescription::PropertyDescription(std::string dataTypeName, std::string n
 	m_databaseLength_(databaseLength),
 	m_detailLevel_(detailLevel)
 {
-	m_dataType_->addRef();
+	m_dataType_->incRef();
 	
 	PropertyDescription::propertyDescriptionCount_++;
 	m_utype_ = PropertyDescription::propertyDescriptionCount_;

@@ -47,7 +47,7 @@ extern "C" {
 
 namespace KBEngine{
 
-class LIB_DLLAPI MethodDescription
+class MethodDescription
 {
 protected:	
 	static uint32				methodDescriptionCount_;						// 所有的属性描述的数量
@@ -80,8 +80,8 @@ public:
 	PyObject* call(PyObject* func, PyObject* args);	
 };
 
-class LIB_DLLAPI script::ScriptObject;
-class LIB_DLLAPI RemoteEntityMethod : public script::ScriptObject
+class script::ScriptObject;
+class RemoteEntityMethod : public script::ScriptObject
 {
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(RemoteEntityMethod, script::ScriptObject)	

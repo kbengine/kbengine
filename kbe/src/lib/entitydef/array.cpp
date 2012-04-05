@@ -26,7 +26,7 @@ Array::Array(DataType* dataType, std::string& strInitData):
 Sequence(getScriptType(), false)
 {
 	_m_dataType = static_cast<ArrayType*>(dataType);
-	_m_dataType->addRef();
+	_m_dataType->incRef();
 	initialize(strInitData);
 }
 
@@ -35,7 +35,7 @@ Array::Array(DataType* dataType):
 Sequence(getScriptType(), false)
 {
 	_m_dataType = static_cast<ArrayType*>(dataType);
-	_m_dataType->addRef();
+	_m_dataType->incRef();
 	initialize("");
 }
 
@@ -163,7 +163,7 @@ PyObject* Array::_insert(PyObject* self, PyObject* args, PyObject* kwargs)
 	int before = PyLong_AsLong(PyTuple_GetItem(args, 0));
 	PyObject* pyobj = PyTuple_GetItem(args, 1);
 	
-	Array* ary = static_cast<Array*>(self);
+	//Array* ary = static_cast<Array*>(self);
 	PyObject* pyTuple = PyTuple_New(1);
 	PyTuple_SET_ITEM(&*pyTuple, 0, pyobj);
 

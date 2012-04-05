@@ -46,8 +46,8 @@ extern "C" {
 
 namespace KBEngine{
 
-class LIB_DLLAPI RefCountable;
-class LIB_DLLAPI PropertyDescription : public RefCountable
+class RefCountable;
+class PropertyDescription : public RefCountable
 {
 protected:	
 	std::string		m_name_;										// 这个属性的名称
@@ -108,7 +108,7 @@ public:
 	virtual int onSetValue(PyObject* parentObj, PyObject* value);		
 };
 
-class LIB_DLLAPI FixedDictDescription : public PropertyDescription
+class FixedDictDescription : public PropertyDescription
 {
 protected:	
 public:	
@@ -120,7 +120,7 @@ public:
 	int onSetValue(PyObject* parentObj, PyObject* value);		
 };
 
-class LIB_DLLAPI ArrayDescription : public PropertyDescription
+class ArrayDescription : public PropertyDescription
 {
 protected:	
 public:	
@@ -132,7 +132,7 @@ public:
 	int onSetValue(PyObject* parentObj, PyObject* value);
 };
 
-class LIB_DLLAPI VectorDescription : public PropertyDescription
+class VectorDescription : public PropertyDescription
 {
 protected:	
 	uint8 m_elemCount_;

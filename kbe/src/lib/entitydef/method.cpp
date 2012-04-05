@@ -41,7 +41,7 @@ bool MethodDescription::pushArgType(DataType* dataType)
 		return false;
 	}
 
-	dataType->addRef();
+	dataType->incRef();
 	m_argTypes_.push_back(dataType);
 	return true;
 }
