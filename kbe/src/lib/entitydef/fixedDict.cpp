@@ -183,4 +183,10 @@ PyObject* FixedDict::mp_subscript(PyObject* self, PyObject* key)
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* FixedDict::update(PyObject* args)
+{
+	return script::Map::_update(this, args);
+}
+	
+//-------------------------------------------------------------------------------------
 }

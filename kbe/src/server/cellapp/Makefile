@@ -7,8 +7,8 @@ SRCS =						\
 ASMS =
 
 MY_LIBS =		\
-	pyscript	\
 	entitydef	\
+	pyscript	\
 	server		
 	
 

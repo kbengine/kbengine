@@ -51,7 +51,7 @@ public:
 	bool checkDataChanged(const char* keyName, PyObject* value, bool isDelete = false);
 	
 	/** 更新字典数据到自己的数据中 */
-	PyObject* update(PyObject* args){ return script::Map::_update(this, args); }
+	PyObject* update(PyObject* args);
 protected:
 	FixedDictType* _m_dataType;
 } ;

@@ -8,13 +8,6 @@
 	
 namespace KBEngine{
 
-#define OUT_TYPE_ERROR(T)								\
-{														\
-	char err[] = {"must be set to a " T " type."};	\
-	PyErr_SetString(PyExc_TypeError, err);				\
-	PyErr_PrintEx(0);									\
-}
-
 //-------------------------------------------------------------------------------------
 DataType::DataType()
 {
@@ -29,95 +22,6 @@ DataType::~DataType()
 bool DataType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 {
 	return true;
-}
-
-//-------------------------------------------------------------------------------------
-template <typename SPECIFY_TYPE>
-IntType<SPECIFY_TYPE>::IntType()
-{
-}
-
-//-------------------------------------------------------------------------------------
-template <typename SPECIFY_TYPE>
-IntType<SPECIFY_TYPE>::~IntType()
-{
-}
-
-//-------------------------------------------------------------------------------------
-template <typename SPECIFY_TYPE>
-bool IntType<SPECIFY_TYPE>::isSameType(PyObject* pyValue)
-{
-	int ival = 0;
-	if(PyLong_Check(pyValue))
-	{
-		ival = (int)PyLong_AsLong(pyValue);
-		if(PyErr_Occurred())
-		{
-			PyErr_Clear();
-			ival = (int)PyLong_AsUnsignedLong(pyValue);
-			if (PyErr_Occurred())
-			{
-				OUT_TYPE_ERROR("INT");
-				return false;
-			}
-		}
-	}
-	else
-	{
-		OUT_TYPE_ERROR("INT");
-		return false;
-	}
-
-	SPECIFY_TYPE val = (SPECIFY_TYPE)ival;
-	if(ival != int(val))
-	{
-		ERROR_MSG("IntType::isSameType:%d is out of range (currVal = %d).\n", ival, int(val));
-		return false;
-	}
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
-template <typename SPECIFY_TYPE>
-PyObject* IntType<SPECIFY_TYPE>::createObject(MemoryStream* defaultVal)
-{
-	SPECIFY_TYPE val = 0;
-	if(defaultVal)
-		(*defaultVal) >> (SPECIFY_TYPE)val;
-
-	return PyLong_FromLong(val);
-}
-
-//-------------------------------------------------------------------------------------
-template <typename SPECIFY_TYPE>
-MemoryStream* IntType<SPECIFY_TYPE>::parseDefaultStr(std::string defaultVal)
-{
-	MemoryStream* bs = NULL;
-	if(!defaultVal.empty())
-	{
-		std::stringstream stream;
-		stream << defaultVal;
-		SPECIFY_TYPE i;
-		stream >> i;
-		bs = new MemoryStream();
-		(*bs) << (SPECIFY_TYPE)i;
-	}
-
-	return bs;
-}
-
-//-------------------------------------------------------------------------------------
-template <typename SPECIFY_TYPE>
-void IntType<SPECIFY_TYPE>::addToStream(MemoryStream* mstream, PyObject* pyValue)
-{
-	(*mstream) << (SPECIFY_TYPE)PyLong_AsLong(pyValue);
-}
-
-//-------------------------------------------------------------------------------------
-template <typename SPECIFY_TYPE>
-PyObject* IntType<SPECIFY_TYPE>::createFromStream(MemoryStream* mstream)
-{
-	return createObject(mstream);
 }
 
 //-------------------------------------------------------------------------------------
