@@ -10,14 +10,15 @@ same license as the rest of the engine.
 */
 #ifndef __KBENGINE_DEF_METHOD_H__
 #define __KBENGINE_DEF_METHOD_H__
+#include "cstdkbe/cstdkbe.hpp"
+#if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4910)
 #pragma warning (disable : 4251)
-
+#endif
 // common include	
 #include "datatype.hpp"
 #include "datatypes.hpp"
 #include "log/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
 #include "network/Packet.hpp"
 #include "entitymailboxabstract.hpp"
 #include "pyscript/scriptobject.hpp"	
@@ -80,7 +81,6 @@ public:
 	PyObject* call(PyObject* func, PyObject* args);	
 };
 
-class script::ScriptObject;
 class RemoteEntityMethod : public script::ScriptObject
 {
 	/** 子类化 将一些py操作填充进派生类 */

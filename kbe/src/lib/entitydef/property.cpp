@@ -9,8 +9,8 @@ uint32	PropertyDescription::propertyDescriptionCount_ = 0;
 //-------------------------------------------------------------------------------------
 PropertyDescription::PropertyDescription(std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
 	DataType* dataType, bool isIdentifier, uint32 databaseLength, std::string defaultStr, uint8 detailLevel):
-	m_dataTypeName_(dataTypeName),
 	m_name_(name),
+	m_dataTypeName_(dataTypeName),
 	m_flags_(flags),
 	m_isPersistent_(isPersistent),
 	m_dataType_(dataType),
@@ -130,7 +130,7 @@ int ArrayDescription::onSetValue(PyObject* parentObj, PyObject* value)
 	if(pyobj == NULL)
 		return -1;
 	
-	Array* array1 = static_cast<Array*>(pyobj);
+	//Array* array1 = static_cast<Array*>(pyobj);
 	Py_XDECREF(pyobj);
 	return 0;	
 }

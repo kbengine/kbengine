@@ -16,14 +16,16 @@ same license as the rest of the engine.
 #define __SERVER_CONFIG_H__
 #define __LIB_DLLAPI__	
 // common include
-#pragma warning(disable: 4996)
+#include "cstdkbe/cstdkbe.hpp"
+#if KBE_PLATFORM == PLATFORM_WIN32
+#pragma warning (disable : 4996)
+#endif
 //#define NDEBUG
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <iostream>	
 #include <stdarg.h> 
-#include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "thread/threadmutex.hpp"
 #include "thread/threadguard.hpp"

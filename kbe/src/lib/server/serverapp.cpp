@@ -35,6 +35,9 @@ bool ServerApp::installPyScript()
 	case CELLAPP_TYPE:
 		pyPaths += L"../../../demo/res/scripts/cell;";
 		break;
+	default:
+		pyPaths += L"../../../demo/res/scripts/cell;";
+		break;
 	};
 							
 

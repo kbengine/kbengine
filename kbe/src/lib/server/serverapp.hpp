@@ -11,7 +11,10 @@ same license as the rest of the engine.
 #ifndef __SERVER_APP_H__
 #define __SERVER_APP_H__
 // common include
-#pragma warning(disable: 4996)
+#include "cstdkbe/cstdkbe.hpp"
+#if KBE_PLATFORM == PLATFORM_WIN32
+#pragma warning (disable : 4996)
+#endif
 //#define NDEBUG
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +22,6 @@ same license as the rest of the engine.
 #include <iostream>	
 #include <stdarg.h> 
 #include "Python.h"
-#include "cstdkbe/cstdkbe.hpp"
 #include "log/debug_helper.hpp"
 #include "pyscript/Script.hpp"
 #include "xmlplus/xmlplus.hpp"	

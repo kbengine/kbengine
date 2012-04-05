@@ -10,14 +10,15 @@ same license as the rest of the engine.
 */
 #ifndef __KBENGINE_DEF_PROPERTY_H__
 #define __KBENGINE_DEF_PROPERTY_H__
+#include "cstdkbe/cstdkbe.hpp"
+#if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4910)
 #pragma warning (disable : 4251)
-
+#endif
 // common include
 #include "array.hpp"
 #include "fixeddict.hpp"
 #include "datatype.hpp"
-#include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/refcountable.hpp"
 #include "memorystream.hpp"
 //#define NDEBUG
@@ -58,7 +59,7 @@ protected:
 	bool			m_isIdentifier_;								// 是否是一个索引键
 	uint32			m_databaseLength_;								// 这个属性在数据库中的长度
 	uint32			m_utype_;										// 这个属性的数字类别， 用于网络上传输识别
-	MemoryStream*		m_defaultVal_;									// 这个属性的默认值
+	MemoryStream*	m_defaultVal_;									// 这个属性的默认值
 	int8			m_detailLevel_;									// 这个属性的lod详情级别 看common中的:属性的lod广播级别范围的定义
 	static uint32	propertyDescriptionCount_;						// 所有的属性描述的数量
 public:	

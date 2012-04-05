@@ -31,4 +31,4 @@ int main(int argc, char* argv[])							\
 }															\
 int kbeMain
 
-#endif __KBEMAIN__
+#endif // __KBEMAIN__

@@ -127,5 +127,5 @@ int KBENGINE_MAIN(int argc, char* argv[])
 {
 	int ret= kbeMainT<TestApp>(argc, argv, CELLAPP_TYPE);
 	getchar();
-	return 0; 
+	return ret; 
 }

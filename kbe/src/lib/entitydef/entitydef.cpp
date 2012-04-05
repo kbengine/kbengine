@@ -678,7 +678,7 @@ bool EntityDef::loadDefPropertys(XmlPlus* xml, TiXmlNode* defPropertyNode, Scrip
 					isIdentifier = true;
 			}
 
-			TiXmlNode* databaseLengthNode = xml->enterNode(defPropertyNode->FirstChild(), "Identifier");
+			//TiXmlNode* databaseLengthNode = xml->enterNode(defPropertyNode->FirstChild(), "Identifier");
 			if(identifierNode)
 			{
 				databaseLength = xml->getValInt(identifierNode);
@@ -737,7 +737,7 @@ bool EntityDef::loadDefCellMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scrip
 
 			XML_FOR_BEGIN(argNode)
 			{
-				std::string& argType = xml->getKey(argNode);
+				std::string argType = xml->getKey(argNode);
 				if(argType == "Exposed")
 					methodDescription->setExposed();
 				else if(argType == "Arg")
@@ -790,7 +790,7 @@ bool EntityDef::loadDefBaseMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scrip
 
 			XML_FOR_BEGIN(argNode)
 			{
-				std::string& argType = xml->getKey(argNode);
+				std::string argType = xml->getKey(argNode);
 				if(argType == "Exposed")
 					methodDescription->setExposed();
 				else if(argType == "Arg")
@@ -843,7 +843,7 @@ bool EntityDef::loadDefClientMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scr
 
 			XML_FOR_BEGIN(argNode)
 			{
-				std::string& argType = xml->getKey(argNode);
+				std::string argType = xml->getKey(argNode);
 				if(argType == "Arg")
 				{
 					DataType* dataType = NULL;
@@ -893,6 +893,10 @@ bool EntityDef::isLoadScriptModule(ScriptModule* scriptModule)
 		if(!scriptModule->hasClient())
 			return false;
 		break;
+	default:
+		if(!scriptModule->hasCell())
+			return false;
+		break;
 	};
 
 	return true;
@@ -913,6 +917,9 @@ bool EntityDef::checkDefMethod(ScriptModule* scriptModule, PyObject* moduleObj, 
 		break;
 	case CLIENT_TYPE:
 		methodDescrsPtr = (ScriptModule::METHODDESCRIPTION_MAP*)&scriptModule->getClientMethodDescriptions();
+		break;
+	default:
+		methodDescrsPtr = (ScriptModule::METHODDESCRIPTION_MAP*)&scriptModule->getCellMethodDescriptions();
 		break;
 	};
 

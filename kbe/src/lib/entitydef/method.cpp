@@ -153,7 +153,7 @@ PyObject* MethodDescription::createFromStream(MemoryStream* mstream)
 		ENTITY_ID id = 0;
 		pyArgsTuple = PyTuple_New(argSize + offset);
 		
-		(*mstream) >> (ENTITY_ID)id;
+		(*mstream) >> id;
 		PyTuple_SET_ITEM(&*pyArgsTuple, 0, PyLong_FromLong(id));
 	}
 	else
@@ -212,7 +212,7 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args, PyObject* 
 {	
 	RemoteEntityMethod* rmethod = static_cast<RemoteEntityMethod*>(self);
 	MethodDescription* methodDescription = rmethod->getDescription();
-	EntityMailboxAbstract* mailbox = rmethod->getMailbox();
+	//EntityMailboxAbstract* mailbox = rmethod->getMailbox();
 
 	if(methodDescription->checkArgs(args))
 	{

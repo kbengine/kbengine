@@ -24,6 +24,7 @@ same license as the rest of the engine.
 #else
 // linux include
 #include <errno.h>
+#include <tr1/unordered_map>
 #endif
 	
 namespace KBEngine{

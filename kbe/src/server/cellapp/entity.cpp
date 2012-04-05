@@ -52,8 +52,8 @@ m_isReal_(true),
 m_isDestroyed_(false),
 m_aoiRadius_(0.0f),
 m_aoiHysteresisArea_(0.0f),
-m_hasWitness_(false),
 m_isWitnessed_(false),
+m_hasWitness_(false),
 m_topSpeed_(-0.1f),
 m_topSpeedY_(-0.1f)
 {

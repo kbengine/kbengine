@@ -53,10 +53,10 @@ same license as the rest of the engine.
 	
 namespace KBEngine{
 
-class ByteStreamException
+class MemoryStreamException
 {
     public:
-        ByteStreamException(bool _add, size_t _pos, size_t _esize, size_t _size)
+        MemoryStreamException(bool _add, size_t _pos, size_t _esize, size_t _size)
             : _m_add(_add), _m_pos(_pos), _m_esize(_esize), _m_size(_size)
         {
             PrintPosError();
@@ -287,7 +287,7 @@ class MemoryStream
         void read_skip(size_t skip)
         {
             if(m_rpos_ + skip > size())
-                throw ByteStreamException(false, m_rpos_, skip, size());
+                throw MemoryStreamException(false, m_rpos_, skip, size());
             m_rpos_ += skip;
         }
 
@@ -301,7 +301,7 @@ class MemoryStream
         template <typename T> T read(size_t pos) const
         {
             if(pos + sizeof(T) > size())
-                throw ByteStreamException(false, pos, sizeof(T), size());
+                throw MemoryStreamException(false, pos, sizeof(T), size());
             T val = *((T const*)&m_storage_[pos]);
             EndianConvert(val);
             return val;
@@ -310,7 +310,7 @@ class MemoryStream
         void read(uint8 *dest, size_t len)
         {
             if(m_rpos_  + len > size())
-               throw ByteStreamException(false, m_rpos_, len, size());
+               throw MemoryStreamException(false, m_rpos_, len, size());
             memcpy(dest, &m_storage_[m_rpos_], len);
             m_rpos_ += len;
         }
@@ -425,7 +425,7 @@ class MemoryStream
         void put(size_t pos, const uint8 *src, size_t cnt)
         {
             if(pos + cnt > size())
-               throw ByteStreamException(true, pos, cnt, size());
+               throw MemoryStreamException(true, pos, cnt, size());
             memcpy(&m_storage_[pos], src, cnt);
         }
 

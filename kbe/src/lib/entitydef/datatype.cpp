@@ -150,7 +150,7 @@ PyObject* UInt64Type::createObject(MemoryStream* defaultVal)
 {
 	uint64 val = 0;
 	if(defaultVal)
-		(*defaultVal) >> (uint64)val;	
+		(*defaultVal) >> val;	
 	return PyLong_FromUnsignedLongLong(val);
 }
 
@@ -165,7 +165,7 @@ MemoryStream* UInt64Type::parseDefaultStr(std::string defaultVal)
 		uint64 val = 0;
 		stream >> val;
 		bs = new MemoryStream();
-		(*bs) << (uint64)val;
+		(*bs) << val;
 	}
 
 	return bs;
@@ -174,7 +174,7 @@ MemoryStream* UInt64Type::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void UInt64Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	(*mstream) << (uint64)PyLong_AsUnsignedLongLong(pyValue);
+	(*mstream) << PyLong_AsUnsignedLongLong(pyValue);
 }
 
 //-------------------------------------------------------------------------------------
@@ -213,7 +213,7 @@ PyObject* UInt32Type::createObject(MemoryStream* defaultVal)
 {
 	uint32 val = 0;
 	if(defaultVal)
-		(*defaultVal) >> (uint32)val;	
+		(*defaultVal) >> val;	
 	return PyLong_FromUnsignedLong(val);
 }
 
@@ -276,7 +276,7 @@ PyObject* Int64Type::createObject(MemoryStream* defaultVal)
 {
 	int64 val = 0;
 	if(defaultVal)
-		(*defaultVal) >> (int64)val;	
+		(*defaultVal) >> val;	
 	return PyLong_FromLongLong(val);
 }
 
@@ -333,7 +333,7 @@ PyObject* FloatType::createObject(MemoryStream* defaultVal)
 {
 	double val = 0.0;
 	if(defaultVal)
-		(*defaultVal) >> (double)val;	
+		(*defaultVal) >> val;	
 	return PyFloat_FromDouble(val);
 }
 
@@ -582,7 +582,7 @@ PyObject* PythonType::createFromStream(MemoryStream* mstream)
 	uint8* udata = NULL;
 	uint32 udataLen = 0;
 
-	(*mstream) >> (uint32)udataLen;
+	(*mstream) >> udataLen;
 	udata = new uint8[udataLen + 1];
 	mstream->read(udata, udataLen);
 	val.assign((char*)udata, udataLen);
@@ -807,7 +807,7 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 	}
 	
 	Py_ssize_t dictSize = PyDict_Size(pyValue);
-	if(dictSize != m_keyTypes_.size())
+	if(dictSize != (Py_ssize_t)m_keyTypes_.size())
 	{
 		PyErr_Format(PyExc_TypeError, "FIXED_DICT key no match. size:%d-%d, keyNames=[%s].", 
 			dictSize, m_keyTypes_.size(), getKeyNames().c_str());

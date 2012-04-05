@@ -95,7 +95,7 @@ class SmartPointer : public ConstSmartPointer<T>
 public:
 	typedef ConstSmartPointer<T> ConstProxy;
 
-	SmartPointer(T* obj, REF_TAG tag = ConstSmartPointer::NEW_REF):
+	SmartPointer(T* obj, typename ConstProxy::REF_TAG tag = ConstProxy::NEW_REF):
 	ConstProxy(obj, tag)
 	{
 	}

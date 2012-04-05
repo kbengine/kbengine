@@ -10,11 +10,12 @@ same license as the rest of the engine.
 */
 #ifndef __KBENGINE_DEF_COMMON_H__
 #define __KBENGINE_DEF_COMMON_H__
+#include "cstdkbe/cstdkbe.hpp"
+#if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4910)
 #pragma warning (disable : 4251)
-
+#endif
 // common include	
-#include "cstdkbe/cstdkbe.hpp"
 //#define NDEBUG
 #include <stdio.h>
 #include <stdlib.h>

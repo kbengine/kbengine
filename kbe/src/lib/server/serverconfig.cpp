@@ -150,6 +150,8 @@ ENGINE_COMPONENT_INFO& ServerConfig::getComponent(COMPONENT_TYPE componentType)
 		return getKBMachine();
 	case CENTER_TYPE:
 		return getKBCenter();
+	default:
+		return getCellApp();
 	};
 
 	return getBaseApp();	

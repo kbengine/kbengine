@@ -11,7 +11,7 @@ endif
 
 ALLOW_32BIT_BUILD=1
 
-ifeq (,$(findstring 64,$(MF_CONFIG)))
+ifeq (,$(findstring 64,$(KBE_CONFIG)))
  ifeq (0,$(ALLOW_32BIT_BUILD))
 
 all::
@@ -129,7 +129,7 @@ OBJS = $(addsuffix .o, $(ALL_SRC))
 # don't want these for a shared object - we'll use the exe's instead
 ifndef SO
 ifndef NO_EXTRA_LIBS
-MY_LIBS += math cstdkbe
+MY_LIBS += math cstdkbe xmlplus log
 endif
 endif
 
@@ -196,7 +196,7 @@ endif
 G3DMATH_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/g3dlite
 KBE_INCLUDES += -I$(G3DMATH_DIR)
 ifeq ($(USE_G3DMATH),1)
-LDLIBS += -lg3d
+LDLIBS += -lg3dlite
 CPPFLAGS += -DUSE_G3DMATH
 endif
 
@@ -254,7 +254,7 @@ CXXFLAGS += -Wno-uninitialized -Wno-char-subscripts
 CXXFLAGS += -fno-strict-aliasing -Wno-non-virtual-dtor
 #CXXFLAGS += -Werror
 
-CPPFLAGS += -DMF_SERVER -MMD -DKBE_CONFIG=\"${KBE_CONFIG}\"
+CPPFLAGS += -DKBE_SERVER -MMD -DKBE_CONFIG=\"${KBE_CONFIG}\"
 
 ifeq (,$(findstring SingleThreaded,$(KBE_CONFIG)))
 LDLIBS += -lpthread
@@ -271,26 +271,26 @@ endif
 
 ifneq (,$(findstring Hybrid,$(KBE_CONFIG)))
 	CXXFLAGS += -O3 -g
-	CPPFLAGS += -DCODE_INLINE -DMF_USE_ASSERTS -D_HYBRID
+	CPPFLAGS += -DCODE_INLINE -DKBE_USE_ASSERTS -D_HYBRID
 endif
 
 ifeq ($(KBE_CONFIG), Evaluation)
 	CXXFLAGS += -O3 -g
-	CPPFLAGS += -DCODE_INLINE -DMF_USE_ASSERTS -D_HYBRID -DKBE_EVALUATION
+	CPPFLAGS += -DCODE_INLINE -DKBE_USE_ASSERTS -D_HYBRID -DKBE_EVALUATION
 endif
 
 ifneq (,$(findstring Debug,$(KBE_CONFIG)))
 	CXXFLAGS += -g
-	CPPFLAGS += -DMF_USE_ASSERTS -D_DEBUG
+	CPPFLAGS += -DKBE_USE_ASSERTS -D_DEBUG
 endif
 
 ifeq ($(KBE_CONFIG), Release_SingleThreaded)
 	CXXFLAGS += -O3
-	CPPFLAGS += -DCODE_INLINE -D_RELEASE -DMF_SINGLE_THREADED
+	CPPFLAGS += -DCODE_INLINE -D_RELEASE -DKBE_SINGLE_THREADED
 endif
 
 ifneq (,$(findstring SingleThreaded,$(KBE_CONFIG)))
-	CPPFLAGS += -DMF_SINGLE_THREADED
+	CPPFLAGS += -DKBE_SINGLE_THREADED
 
 endif
 
