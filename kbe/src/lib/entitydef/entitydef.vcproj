@@ -157,11 +157,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\dataType.cpp"
+				RelativePath=".\datatype.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\dataTypes.cpp"
+				RelativePath=".\datatypes.cpp"
 				>
 			</File>
 			<File
@@ -203,11 +203,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\dataType.hpp"
+				RelativePath=".\datatype.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\dataTypes.hpp"
+				RelativePath=".\datatypes.hpp"
 				>
 			</File>
 			<File

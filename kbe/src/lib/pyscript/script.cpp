@@ -40,7 +40,7 @@ int Script::Run_SimpleString(std::string command, std::string* retBufferPtr)
 }
 
 //-------------------------------------------------------------------------------------
-bool Script::install(Py_UNICODE* pythonHomeDir, std::wstring pyPaths, const char* moduleName)
+bool Script::install(wchar_t* pythonHomeDir, std::wstring pyPaths, const char* moduleName)
 {
 	Py_SetPythonHome(pythonHomeDir);												// 先设置python的环境变量
 	Py_Initialize();                      											// python解释器的初始化  

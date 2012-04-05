@@ -137,6 +137,7 @@ endif
 LDFLAGS += -L$(LIBDIR)
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/common
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/server
 
 # Preprocessor output only (useful when debugging macros)
@@ -158,11 +159,11 @@ ifdef USE_PYTHON
  # If empty string != SingleThreaded
  ifneq (,$(findstring SingleThreaded, $(KBE_CONFIG)))
 	USE_KBE_PYTHON = 1
-	BW_STANDARD_PYTHON = 1
+	KBE_STANDARD_PYTHON = 1
 	# These flags are defined so that any kbengine library that includes
 	# the Python headers will work correctly. The src/lib/python Makefile
 	# has its own definition of these if it needs to build the same way.
-	CPPFLAGS+=-DBW_DONT_WRAP_MALLOC -DBW_PY_NO_RES_FS
+	CPPFLAGS+=-DKBE_DONT_WRAP_MALLOC -DKBE_PY_NO_RES_FS
  endif
  
 
@@ -190,6 +191,13 @@ KBE_INCLUDES += -I$(OPENSSL_DIR)/include
 ifeq ($(USE_OPENSSL),1)
 LDLIBS += -lssl -lcrypto -ldl
 CPPFLAGS += -DUSE_OPENSSL
+endif
+
+G3DMATH_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/g3dlite
+KBE_INCLUDES += -I$(G3DMATH_DIR)
+ifeq ($(USE_G3DMATH),1)
+LDLIBS += -lg3d
+CPPFLAGS += -DUSE_G3DMATH
 endif
 
 ifneq (,$(findstring 64,$(KBE_CONFIG)))
@@ -244,7 +252,7 @@ CXXFLAGS = $(ARCHFLAGS) -pipe
 CXXFLAGS += -Wall -Wno-deprecated
 CXXFLAGS += -Wno-uninitialized -Wno-char-subscripts
 CXXFLAGS += -fno-strict-aliasing -Wno-non-virtual-dtor
-CXXFLAGS += -Werror
+#CXXFLAGS += -Werror
 
 CPPFLAGS += -DMF_SERVER -MMD -DKBE_CONFIG=\"${KBE_CONFIG}\"
 
@@ -268,7 +276,7 @@ endif
 
 ifeq ($(KBE_CONFIG), Evaluation)
 	CXXFLAGS += -O3 -g
-	CPPFLAGS += -DCODE_INLINE -DMF_USE_ASSERTS -D_HYBRID -DBW_EVALUATION
+	CPPFLAGS += -DCODE_INLINE -DMF_USE_ASSERTS -D_HYBRID -DKBE_EVALUATION
 endif
 
 ifneq (,$(findstring Debug,$(KBE_CONFIG)))
@@ -287,7 +295,7 @@ ifneq (,$(findstring SingleThreaded,$(KBE_CONFIG)))
 endif
 
 ifneq (,$(findstring Evaluation,$(KBE_CONFIG)))
-	CPPFLAGS += -DBW_EVALUATION
+	CPPFLAGS += -DKBE_EVALUATION
 
 endif
 
@@ -421,12 +429,12 @@ MY_LIBNAMES = $(foreach L, $(MY_LIBS), $(LIBDIR)/lib$(L).a)
 
 .PHONY: always
 
-BW_PYTHONLIB=$(LIBDIR)/lib$(PYTHONLIB).a
+KBE_PYTHONLIB=$(LIBDIR)/lib$(PYTHONLIB).a
 
 ifdef USE_KBE_PYTHON
-$(BW_PYTHONLIB): always
+$(KBE_PYTHONLIB): always
 	@$(MAKE) -C $(KBE_ROOT)/kbe/src/lib/python $(LIBDIR)/lib$(PYTHONLIB).a \
-		"BW_STANDARD_PYTHON=$(BW_STANDARD_PYTHON)" \
+		"KBE_STANDARD_PYTHON=$(KBE_STANDARD_PYTHON)" \
 		"KBE_CONFIG=$(KBE_CONFIG)" \
 		$(PYTHON_EXTRA_CFLAGS) 
 endif
@@ -561,7 +569,7 @@ $(OUTPUTDIR)/$(BIN)::
 endif
 
 ifdef USE_KBE_PYTHON
-PYTHON_DEP = $(BW_PYTHONLIB)
+PYTHON_DEP = $(KBE_PYTHONLIB)
 else
 PYTHON_DEP =
 endif
@@ -609,7 +617,7 @@ endif # BIN
 ifdef SO
 
 ifdef USE_KBE_PYTHON
-PYTHON_DEP = $(BW_PYTHONLIB)
+PYTHON_DEP = $(KBE_PYTHONLIB)
 else
 PYTHON_DEP =
 endif

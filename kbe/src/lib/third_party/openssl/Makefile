@@ -1,15 +1,15 @@
 ### Generated automatically from Makefile.org by Configure.
 
-# Bigworld: include our common makefile here to get access to the MF_CONFIG 
-ifndef MF_ROOT
-export MF_ROOT := $(subst /bigworld/src/lib/third_party/openssl,,$(CURDIR))
+# kbe: include our common makefile here to get access to the KBE_CONFIG 
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl,,$(CURDIR))
 endif
 
-include $(MF_ROOT)/bigworld/src/build/common.mak
+include $(KBE_ROOT)/kbe/src/build/common.mak
 
-# The LIBDIR used by BigWorld will be overridden in this Makefile,
+# The LIBDIR used by kbe will be overridden in this Makefile,
 # so lets call it something else.
-BWLIBDIR = $(MF_ROOT)/bigworld/src/lib/bin/$(MF_CONFIG)
+KBELIBDIR = $(KBE_ROOT)/kbe/src/lib/bin/$(KBE_CONFIG)
 
 
 
@@ -78,19 +78,19 @@ OPENSSLDIR=/usr/local/ssl
 
 CC= gcc
 
-# BigWorld:
-#  BW_SHARED_CFLAGS is required to be enabled all the time in regular builds
+# kbe:
+#  KBE_SHARED_CFLAGS is required to be enabled all the time in regular builds
 #  so that any third party Python modules (such as MySQLdb) which
 #  link against this library can successfully do so and be loaded by the
 #  server. This however requires that the machine specific assembly
 #  optimisation must be disabled (ie: the equiv of running ./config -no-asm)
 
-BW_SHARED_CFLAGS=-fPIC -DOPENSSL_PIC
+KBE_SHARED_CFLAGS=-fPIC -DOPENSSL_PIC
 
 ifdef x86_64
-CFLAG= $(BW_SHARED_CFLAGS) -DOPENSSL_THREADS -D_REENTRANT -DDSO_DLFCN -DHAVE_DLFCN_H -m64 -DL_ENDIAN -DTERMIO -O3 -Wall -DMD32_REG_T=int
+CFLAG= $(KBE_SHARED_CFLAGS) -DOPENSSL_THREADS -D_REENTRANT -DDSO_DLFCN -DHAVE_DLFCN_H -m64 -DL_ENDIAN -DTERMIO -O3 -Wall -DMD32_REG_T=int
 else
-CFLAG= $(BW_SHARED_CFLAGS) -DOPENSSL_THREADS -D_REENTRANT -DDSO_DLFCN -DHAVE_DLFCN_H -m32 -DL_ENDIAN -DTERMIO -O3 -fomit-frame-pointer -Wall -DOPENSSL_IA32_SSE2
+CFLAG= $(KBE_SHARED_CFLAGS) -DOPENSSL_THREADS -D_REENTRANT -DDSO_DLFCN -DHAVE_DLFCN_H -m32 -DL_ENDIAN -DTERMIO -O3 -fomit-frame-pointer -Wall -DOPENSSL_IA32_SSE2
 endif
 DEPFLAG= -DOPENSSL_NO_CAMELLIA -DOPENSSL_NO_CAST -DOPENSSL_NO_DES -DOPENSSL_NO_DH -DOPENSSL_NO_DSA -DOPENSSL_NO_GMP -DOPENSSL_NO_MD2 -DOPENSSL_NO_MDC2 -DOPENSSL_NO_RC2 -DOPENSSL_NO_RC4 -DOPENSSL_NO_RC5 -DOPENSSL_NO_RFC3779 -DOPENSSL_NO_SEED -DOPENSSL_NO_TLSEXT 
 PEX_LIBS= 
@@ -118,13 +118,13 @@ PROCESSOR=
 
 # CPUID module collects small commonly used assembler snippets
 CPUID_OBJ=
-BN_ASM= $(MF_CONFIG)/bn_asm.o
-DES_ENC= $(MF_CONFIG)/des_enc.o $(MF_CONFIG)/fcrypt_b.o
-AES_ASM_OBJ= $(MF_CONFIG)/aes_core.o $(MF_CONFIG)/aes_cbc.o
-BF_ENC= $(MF_CONFIG)/bf_enc.o
-CAST_ENC= $(MF_CONFIG)/c_enc.o
-RC4_ENC= $(MF_CONFIG)/rc4_enc.o $(MF_CONFIG)/rc4_skey.o
-RC5_ENC= $(MF_CONFIG)/rc5_enc.o
+BN_ASM= $(KBE_CONFIG)/bn_asm.o
+DES_ENC= $(KBE_CONFIG)/des_enc.o $(KBE_CONFIG)/fcrypt_b.o
+AES_ASM_OBJ= $(KBE_CONFIG)/aes_core.o $(KBE_CONFIG)/aes_cbc.o
+BF_ENC= $(KBE_CONFIG)/bf_enc.o
+CAST_ENC= $(KBE_CONFIG)/c_enc.o
+RC4_ENC= $(KBE_CONFIG)/rc4_enc.o $(KBE_CONFIG)/rc4_skey.o
+RC5_ENC= $(KBE_CONFIG)/rc5_enc.o
 MD5_ASM_OBJ=
 SHA1_ASM_OBJ=
 RMD160_ASM_OBJ=
@@ -187,7 +187,7 @@ HEADER=         e_os.h
 
 .PHONY: all
 
-# BigWorld: disabled the 'all' rule, as we only ever invoke
+# kbe: disabled the 'all' rule, as we only ever invoke
 #			via the 'build_crypto' or 'build_ssl' rules
 #all: Makefile build_all openssl.pc libssl.pc libcrypto.pc
 all:: build_crypto build_ssl
@@ -231,8 +231,8 @@ BUILDENV=	PLATFORM='${PLATFORM}' PROCESSOR='${PROCESSOR}' \
 		SHA1_ASM_OBJ='${SHA1_ASM_OBJ}'			\
 		MD5_ASM_OBJ='${MD5_ASM_OBJ}'			\
 		RMD160_ASM_OBJ='${RMD160_ASM_OBJ}'		\
-		BWLIBDIR='${BWLIBDIR}' \
-		MF_CONFIG='${MF_CONFIG}' \
+		KBELIBDIR='${KBELIBDIR}' \
+		KBE_CONFIG='${KBE_CONFIG}' \
 		THIS=$${THIS:-$@} MAKEFILE=Makefile MAKEOVERRIDES=
 # MAKEOVERRIDES= effectively "equalizes" GNU-ish and SysV-ish make flavors,
 # which in turn eliminates ambiguities in variable treatment with -e.
@@ -286,7 +286,7 @@ all_testapps: build_libs build_testapps
 build_testapps:
 	@dir=crypto; target=testapps; $(BUILD_ONE_CMD)
 
-libcrypto$(SHLIB_EXT): $(BWLIBDIR)/libcrypto.a
+libcrypto$(SHLIB_EXT): $(KBELIBDIR)/libcrypto.a
 	@if [ "$(SHLIB_TARGET)" != "" ]; then \
 		$(MAKE) SHLIBDIRS=crypto build-shared; \
 	else \
@@ -294,7 +294,7 @@ libcrypto$(SHLIB_EXT): $(BWLIBDIR)/libcrypto.a
 		exit 1; \
 	fi
 
-libssl$(SHLIB_EXT): libcrypto$(SHLIB_EXT) $(BWLIBDIR)/libssl.a
+libssl$(SHLIB_EXT): libcrypto$(SHLIB_EXT) $(KBELIBDIR)/libssl.a
 	@if [ "$(SHLIB_TARGET)" != "" ]; then \
 		$(MAKE) SHLIBDIRS=ssl SHLIBDEPS='-lcrypto' build-shared; \
 	else \
@@ -386,7 +386,7 @@ openssl.pc: Makefile
 
 libclean:
 	rm -f *.map *.so *.so.* *.dll engines/*.so engines/*.dll *.a engines/*.a */lib */*/lib
-	rm -f $(BWLIBDIR)/libcrypto.a $(BWLIBDIR)/libssl.a
+	rm -f $(KBELIBDIR)/libcrypto.a $(KBELIBDIR)/libssl.a
 
 clean::	libclean
 	rm -f shlib/*.o *.o core a.out fluff rehash.time testlog make.log cctest cctest.c
@@ -516,7 +516,7 @@ dist:
 dist_pem_h:
 	(cd crypto/pem; $(MAKE) -e $(BUILDENV) pem.h; $(MAKE) clean)
 
-# BigWorld: disabling the install target which should not be used
+# kbe: disabling the install target which should not be used
 #install: all install_docs install_sw
 
 install_sw:

@@ -7,9 +7,9 @@ PySequenceMethods Sequence::seqMethods =
 	seq_concat,				// binaryfunc sq_concat;			x + y
 	seq_repeat,				// intargfunc sq_repeat;			x * n
 	seq_item,				// intargfunc sq_item;				x[i]
-	seq_slice,				// intintargfunc sq_slice;			x[i:j]
+	0,//seq_slice,				// intintargfunc sq_slice;			x[i:j]
 	seq_ass_item,			// intobjargproc sq_ass_item;		x[i] = v
-	seq_ass_slice,			// intintobjargproc sq_ass_slice;	x[i:j] = v
+	0,//seq_ass_slice,			// intintobjargproc sq_ass_slice;	x[i:j] = v
 	seq_contains,			// objobjproc sq_contains;			v in x
 	seq_inplace_concat,		// binaryfunc sq_inplace_concat;	x += y
 	seq_inplace_repeat		// intargfunc sq_inplace_repeat;	x *= n
@@ -248,7 +248,7 @@ int Sequence::seq_ass_slice(PyObject* self, int index1, int index2, PyObject* ot
 		values.erase(values.begin() + index1, values.begin() + index2);
 
 	// 先让vector分配好内存
-	values.insert(values.begin() + index1, osz, NULL);
+	values.insert(values.begin() + index1, osz, (PyObject*)NULL);
 	for(int i = 0; i < osz; ++i)
 	{
 		PyObject* pyTemp = PySequence_GetItem(oterSeq, i);
@@ -304,7 +304,7 @@ PyObject* Sequence::seq_inplace_concat(PyObject* self, PyObject* oterSeq)
 	}
 	
 	// 先让vector分配好内存
-	values.insert(values.end(), szB, NULL);
+	values.insert(values.end(), szB, (PyObject*)NULL);
 
 	for (int i = 0; i < szB; ++i)
 	{
@@ -334,7 +334,7 @@ PyObject* Sequence::seq_inplace_repeat(PyObject* self, int n)
 	}
 	else
 	{
-		values.insert(values.end(), (n - 1)*sz, NULL);
+		values.insert(values.end(), (n - 1)*sz, (PyObject*)NULL);
 		for(int i = 1; i < n; ++i)
 		{
 			for(int j = 0; j < sz; ++j)

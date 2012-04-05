@@ -25,7 +25,7 @@ public:
 	static PySequenceMethods seqMethods;
 	static PyNumberMethods numberMethods;
 		
-	ScriptVector4(Vector4& v);
+	ScriptVector4(Vector4 v);
 	ScriptVector4(Vector4* v);
 	ScriptVector4(float x, float y, float z, float w);
 	virtual ~ScriptVector4();

@@ -158,14 +158,14 @@ namespace KBEngine{ namespace script{
 	*/																						\
 	static PyObject* _tp_getattro(PyObject* self, PyObject* name)							\
 	{																						\
-		return static_cast<CLASS*>(self)->onScriptGetAttribute(PyUnicode_AS_UNICODE(name));	\
+		return static_cast<CLASS*>(self)->onScriptGetAttribute(PyUnicode_AS_DATA(name));	\
 	}																						\
 																							\
 	/** python 请求设置本模块的属性或者方法
 	*/																						\
 	static int _tp_setattro(PyObject* self, PyObject* name, PyObject* value)				\
 	{																						\
-		const Py_UNICODE* attr = PyUnicode_AS_UNICODE(name);								\
+		const char* attr = PyUnicode_AS_DATA(name);											\
 		return (value != NULL) ?															\
 				static_cast<CLASS*>(self)->onScriptSetAttribute(attr, value):				\
 				static_cast<CLASS*>(self)->onScriptDelAttribute(attr);						\
@@ -473,7 +473,7 @@ public:																						\
 
 // 向模块追加方法
 #define APPEND_SCRIPT_MODULE_METHOD(MODULE, NAME, FUNC, FLAGS, SELF)						\
-	static PyMethodDef __pymethod_NAME = {#NAME, (PyCFunction) FUNC, FLAGS, NULL};		\
+	static PyMethodDef __pymethod_NAME = {#NAME, (PyCFunction) FUNC, FLAGS, NULL};			\
 	PyModule_AddObject(MODULE, #NAME, PyCFunction_New(&__pymethod_##NAME, SELF));
 
 /** 定义暴露给脚本的属性宏
@@ -512,13 +512,13 @@ public:
 	static PyObject* tp_new(PyTypeObject* type, PyObject* args, PyObject* kwds){ return type->tp_alloc(type, 0); };
 
 	/** 脚本请求获取属性或者方法 */
-	PyObject* onScriptGetAttribute(const Py_UNICODE* attr);						
+	PyObject* onScriptGetAttribute(const char* attr);						
 
 	/** 脚本请求设置属性或者方法 */
-	int onScriptSetAttribute(const Py_UNICODE* attr, PyObject* value);			
+	int onScriptSetAttribute(const char* attr, PyObject* value);			
 
 	/** 脚本请求删除一个属性 */
-	int onScriptDelAttribute(const Py_UNICODE* attr);
+	int onScriptDelAttribute(const char* attr);
 
 	/** 脚本请求初始化 */
 	int onScriptInit(PyObject* self, PyObject *args, PyObject* kwds);

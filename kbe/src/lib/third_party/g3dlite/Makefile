@@ -1,21 +1,19 @@
-LIB =	pyscript
+LIB =	g3dlite
 
 SRCS =				\
-	map			\
-	math			\
-	pickler			\
-	script			\
-	scriptobject		\
-	scriptstdouterr		\
-	scriptStdouterrhook	\
-	sequence		\
-	vector2			\
-	vector3			\
-	vector4
+	AABox			\
+	Box			\
+	Crypto			\
+	format			\
+	Matrix3			\
+	Plane			\
+	System			\
+	Triangle		\
+	Vector3			\
+	Vector4
 
 ifndef KBE_ROOT
-export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/$(LIB),,$(CURDIR))
 endif
 
-USE_PYTHON=1
 include $(KBE_ROOT)/kbe/src/build/common.mak

@@ -10,7 +10,7 @@ PySequenceMethods ScriptVector2::seqMethods =
 	0,								/* sq_concat */
 	0,								/* sq_repeat */
 	ScriptVector2::seq_item,		/* sq_item */
-	ScriptVector2::seq_slice,		/* sq_slice */
+	0,//ScriptVector2::seq_slice,		/* sq_slice */
 	ScriptVector2::seq_ass_item,	/* sq_ass_item */
 	0,								/* sq_ass_slice */
 	0,								/* sq_contains */
@@ -105,7 +105,7 @@ m_isCopy_(true)
 
 
 //-------------------------------------------------------------------------------------
-ScriptVector2::ScriptVector2(Vector2& v):
+ScriptVector2::ScriptVector2(Vector2 v):
 ScriptObject(getScriptType(), false),
 m_isCopy_(false)
 {
@@ -479,7 +479,7 @@ PyObject* ScriptVector2::py_divide(PyObject *a, PyObject *b)
 //-------------------------------------------------------------------------------------
 PyObject* ScriptVector2::py_negative(PyObject *self)
 {
-	ScriptVector2* sv = static_cast<ScriptVector2*>(self);
+	//ScriptVector2* sv = static_cast<ScriptVector2*>(self);
 	S_Return;
 }
 

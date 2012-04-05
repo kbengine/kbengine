@@ -16,6 +16,8 @@ same license as the rest of the engine.
 #include <stdlib.h>
 #include <stdarg.h> 
 #include <iostream>  
+#include <string>  
+#include <cstring>  
 // windows include	
 #if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
 #include <time.h> 

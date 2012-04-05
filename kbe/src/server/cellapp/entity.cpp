@@ -257,14 +257,11 @@ PyObject* Entity::pyGetClientMailbox(Entity *self, void *closure)
 }
 */
 //-------------------------------------------------------------------------------------
-int Entity::onScriptSetAttribute(const Py_UNICODE* attr, PyObject* value)
+int Entity::onScriptSetAttribute(const char* attr, PyObject* value)
 {
-	char cattr[255];
-	wcstombs(cattr, attr, 255);
-
 	if(m_lpPropertyDescrs_)
 	{
-		ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = m_lpPropertyDescrs_->find(cattr);
+		ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = m_lpPropertyDescrs_->find(attr);
 		if(iter != m_lpPropertyDescrs_->end())
 		{
 			PropertyDescription* propertyDescription = iter->second;
@@ -289,35 +286,32 @@ int Entity::onScriptSetAttribute(const Py_UNICODE* attr, PyObject* value)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject * Entity::onScriptGetAttribute(const Py_UNICODE* attr)
+PyObject * Entity::onScriptGetAttribute(const char* attr)
 {
 	return ScriptObject::onScriptGetAttribute(attr);
 }
 
 //-------------------------------------------------------------------------------------
-int Entity::onScriptDelAttribute(const Py_UNICODE* attr)
+int Entity::onScriptDelAttribute(const char* attr)
 {
-	char cattr[255];
-	wcstombs(cattr, attr, 255);
-
 	if(m_lpPropertyDescrs_)
 	{
 
-		ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = m_lpPropertyDescrs_->find(cattr);
+		ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = m_lpPropertyDescrs_->find(attr);
 		if(iter != m_lpPropertyDescrs_->end())
 		{
 			char err[255];
-			sprintf((char*)&err, "property[%s] is in [%s] def. can't to del.", cattr, getScriptModuleName());
+			sprintf((char*)&err, "property[%s] is in [%s] def. can't to del.", attr, getScriptModuleName());
 			PyErr_SetString(PyExc_TypeError, err);			
 			PyErr_PrintEx(0);
 			return 0;
 		}
 	}
 
-	if(m_scriptModule_->findCellMethodDescription(cattr) != NULL)
+	if(m_scriptModule_->findCellMethodDescription(attr) != NULL)
 	{
 		char err[255];
-		sprintf((char*)&err, "method[%s] is in [%s] def. can't to del.", cattr, getScriptModuleName());
+		sprintf((char*)&err, "method[%s] is in [%s] def. can't to del.", attr, getScriptModuleName());
 		PyErr_SetString(PyExc_TypeError, err);			
 		PyErr_PrintEx(0);
 		return 0;

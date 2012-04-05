@@ -90,7 +90,7 @@ namespace KBEngine{
 #define XML_FOR_END(node)																\
 	}while((node = node->NextSibling()));												\
 			
-class LIB_DLLAPI XmlPlus
+class  XmlPlus
 {
 protected:
 	TiXmlDocument* m_txdoc_;

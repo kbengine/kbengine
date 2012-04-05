@@ -41,7 +41,6 @@ same license as the rest of the engine.
 #include <assert.h>
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
-#include <windows.h>
 #else
 // linux include
 #include <errno.h>
@@ -52,7 +51,7 @@ namespace KBEngine{
 class RefCountable 
 {
 public:
-	int addRef(void) 
+	int incRef(void) 
 	{
 		return ++m_refCount_;
 	}
@@ -97,11 +96,11 @@ protected:
 	int m_refCount_;
 };
 
-
+#if KBE_PLATFORM == PLATFORM_WIN32
 class SafeRefCountable 
 {
 public:
-	int addRef(void) 
+	int incRef(void) 
 	{
 		return ::InterlockedIncrement(&m_refCount_);
 	}
@@ -145,6 +144,78 @@ protected:
 protected:
 	long m_refCount_;
 };
+#else
+class SafeRefCountable 
+{
+public:
+	int incRef(void) 
+	{
+		__asm__ volatile (
+			"lock addl $1, %0"
+			:						// no output
+			: "m"	(this->m_refCount_) 	// input: this->count_
+			: "memory" 				// clobbers memory
+		);
+		return this->m_refCount_;
+	}
+
+	int decRef(void) 
+	{
+		
+		long currRef = intDecRef();
+		assert(currRef >= 0 && "RefCountable:currRef maybe a error!");
+		if (0 >= currRef)
+			onRefOver();											// 引用结束了
+			
+		return currRef;
+	}
+
+	virtual void onRefOver(void)
+	{
+		delete this;
+	}
+
+	void setRefCount(long n)
+	{
+		//InterlockedExchange((long *)&m_refCount_, n);
+	}
+
+	int getRefCount(void) const 
+	{ 
+		//return InterlockedExchange((long *)&m_refCount_, m_refCount_);
+		return m_refCount_;
+	}
+
+protected:
+	SafeRefCountable(void) : m_refCount_(0) 
+	{
+	}
+
+	virtual ~SafeRefCountable(void) 
+	{ 
+		assert(0 == m_refCount_ && "SafeRefCountable:currRef maybe a error!"); 
+	}
+
+protected:
+	long m_refCount_;
+private:
+	/**
+	 *	This private method decreases the reference count by 1.
+	 */
+	inline int intDecRef() const
+	{
+		int ret;
+		__asm__ volatile (
+			"mov $-1, %0  \n\t"
+			"lock xadd %0, %1"
+			: "=&a"	(ret)				// output only and early clobber
+			: "m"	(this->m_refCount_)		// input (memory)
+			: "memory"
+		);
+		return ret;
+	}
+};
+#endif
 
 template<class T>
 class RefCountedPtr 

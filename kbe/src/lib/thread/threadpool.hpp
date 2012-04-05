@@ -32,8 +32,8 @@ same license as the rest of the engine.
 #include <list>
 #include <queue>
 #include <algorithm>
-#include "cstdkbe/singleton.hpp"
-#include "cstdkbe/debug.hpp"
+#include "cstdkbe/cstdkbe.hpp"
+#include "log/debug_helper.hpp"
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #include <windows.h>          // for HANDLE

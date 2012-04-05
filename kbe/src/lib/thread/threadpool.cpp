@@ -238,7 +238,7 @@ bool TPThread::onWaitCondSignal(void)
 	if(m_threadWaitSecond <= 0){
 		lock();
 		m_state = 0;
-		pthread_cond_wait(&cond, &mutex);
+		pthread_cond_wait(&m_cond, &m_mutex);
 		unlock();
 	}
 	else
@@ -251,7 +251,7 @@ bool TPThread::onWaitCondSignal(void)
 		
 		lock();
 		m_state = 0;
-		int ret = pthread_cond_timedwait(&cond, &mutex, &timeout);
+		int ret = pthread_cond_timedwait(&m_cond, &m_mutex, &timeout);
 		unlock();
 		
 		// 如果是因为超时了， 说明这个线程很久没有被用到， 我们应该注销这个线程。
