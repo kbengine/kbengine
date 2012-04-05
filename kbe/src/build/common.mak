@@ -129,7 +129,7 @@ OBJS = $(addsuffix .o, $(ALL_SRC))
 # don't want these for a shared object - we'll use the exe's instead
 ifndef SO
 ifndef NO_EXTRA_LIBS
-MY_LIBS += tinyxml math cstdkbe log
+MY_LIBS += math cstdkbe log
 endif
 endif
 
@@ -200,6 +200,8 @@ ifeq ($(USE_G3DMATH),1)
 LDLIBS += -lg3dlite
 CPPFLAGS += -DUSE_G3DMATH
 endif
+
+LDLIBS += -ltinyxml
 
 ifneq (,$(findstring 64,$(KBE_CONFIG)))
 	x86_64=1

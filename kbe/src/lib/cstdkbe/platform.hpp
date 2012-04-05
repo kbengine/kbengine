@@ -24,6 +24,7 @@ same license as the rest of the engine.
 #include <winsock2.h>		// 必须在windows.h之前包含， 否则网络模块编译会出错
 #include <mswsock.h> 
 #include <windows.h> 
+#include <unordered_map>
 #else
 // linux include
 #include <errno.h>
@@ -37,6 +38,7 @@ same license as the rest of the engine.
 #include <unistd.h>
 #include <signal.h>
 #include <netdb.h>
+#include <tr1/unordered_map>
 #endif
 
 /** 定义引擎名字空间 */
