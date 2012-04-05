@@ -40,8 +40,8 @@ bool ServerApp::installPyScript()
 		break;
 	};
 							
-
-	return getScript().install(L"../../res/script/common", pyPaths, "KBEngine");
+	wchar_t homedir[] = L"../../res/script/common";
+	return getScript().install(homedir, pyPaths, "KBEngine");
 }
 
 //-------------------------------------------------------------------------------------

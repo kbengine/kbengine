@@ -129,7 +129,7 @@ OBJS = $(addsuffix .o, $(ALL_SRC))
 # don't want these for a shared object - we'll use the exe's instead
 ifndef SO
 ifndef NO_EXTRA_LIBS
-MY_LIBS += math cstdkbe xmlplus log
+MY_LIBS += tinyxml math cstdkbe log
 endif
 endif
 
@@ -139,6 +139,7 @@ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/common
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/server
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party/tinyxml
 
 # Preprocessor output only (useful when debugging macros)
 # CPPFLAGS += -E

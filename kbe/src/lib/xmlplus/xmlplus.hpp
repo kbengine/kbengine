@@ -96,28 +96,74 @@ protected:
 	TiXmlDocument* m_txdoc_;
 	TiXmlElement* m_rootElement_;
 public:
-	XmlPlus(void);
-	XmlPlus(const char* xmlFile);
-	~XmlPlus(void);
+	XmlPlus(void):m_txdoc_(NULL),m_rootElement_(NULL)
+	{
+	}
+	XmlPlus(const char* xmlFile){
+		openSection(xmlFile);
+	}
+	
+	~XmlPlus(void){
+		if(m_txdoc_){
+			m_txdoc_->Clear();
+			delete m_txdoc_;
+			m_txdoc_ = NULL;
+			m_rootElement_ = NULL;
+		}
+	}
 
-	TiXmlNode* openSection(const char* xmlFile);
+	TiXmlNode* openSection(const char* xmlFile)
+	{
+		char pathbuf[255];
+		sprintf(pathbuf, "%s", xmlFile);
+
+		m_txdoc_ = new TiXmlDocument((char*)&pathbuf);
+		if(!m_txdoc_->LoadFile()){
+			ERROR_MSG("load xml from %s is error!\n", pathbuf);
+			return NULL;
+		}
+
+		m_rootElement_ = m_txdoc_->RootElement();
+		return getRootNode();
+	}
 
 	/**获取根元素*/
-	TiXmlElement* getRootElement(void);
+	TiXmlElement* getRootElement(void){return m_rootElement_;}
 
 	/**获取根节点， 带参数key为范围根节点下的某个子节点根*/
-	TiXmlNode* getRootNode(const char* key = "");
+	TiXmlNode* getRootNode(const char* key = "")
+	{
+		if(strlen(key) > 0)
+			return m_rootElement_->FirstChild(key)->FirstChild();
+		return m_rootElement_->FirstChild();
+	}
 
 	/**直接返回要进入的key节点指针*/
-	TiXmlNode* enterNode(TiXmlNode* node, const char* key);
+	TiXmlNode* enterNode(TiXmlNode* node, const char* key)
+	{
+		do{
+			if(getKey(node) == key)
+				return node->FirstChild();
+		}while((node = node->NextSibling()));
+
+		return NULL;
+	}
 
 	/**是否存在这样一个key*/
-	bool hasNode(TiXmlNode* node, const char* key);
-	
-	std::string getKey(const TiXmlNode* node);
-	std::string getValStr(const TiXmlNode* node);
-	int getValInt(const TiXmlNode* node);
-	double getValFloat(const TiXmlNode* node);
+	bool hasNode(TiXmlNode* node, const char* key)
+	{
+		do{
+			if(getKey(node) == key)
+				return true;
+		}while((node = node->NextSibling()));
+
+		return false;	
+	}
+
+	std::string getKey(const TiXmlNode* node){return node->Value();}
+	std::string getValStr(const TiXmlNode* node){return node->ToText()->Value();}
+	int getValInt(const TiXmlNode* node){return atoi(node->ToText()->Value());}
+	double getValFloat(const TiXmlNode* node){return atof(node->ToText()->Value());}
 };
 
 }

@@ -1,7 +1,6 @@
 LIB =	xmlplus
 
-SRCS =				\
-	xmlplus		
+SRCS =	
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))
