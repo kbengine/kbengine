@@ -136,6 +136,7 @@ namespace KBEngine{ namespace script{
 	/* 当前脚本模块的类别 */																\
 	static PyTypeObject _scriptType;														\
 	typedef CLASS ThisClass;																\
+	static std::string _classname;															\
 																							\
 	static PyObject* _tp_repr(PyObject* self)												\
 	{																						\
@@ -158,17 +159,16 @@ namespace KBEngine{ namespace script{
 	*/																						\
 	static PyObject* _tp_getattro(PyObject* self, PyObject* name)							\
 	{																						\
-		return static_cast<CLASS*>(self)->onScriptGetAttribute(PyUnicode_AS_DATA(name));	\
+		return static_cast<CLASS*>(self)->onScriptGetAttribute(name);						\
 	}																						\
 																							\
 	/** python 请求设置本模块的属性或者方法
 	*/																						\
 	static int _tp_setattro(PyObject* self, PyObject* name, PyObject* value)				\
 	{																						\
-		const char* attr = PyUnicode_AS_DATA(name);											\
 		return (value != NULL) ?															\
-				static_cast<CLASS*>(self)->onScriptSetAttribute(attr, value):				\
-				static_cast<CLASS*>(self)->onScriptDelAttribute(attr);						\
+				static_cast<CLASS*>(self)->onScriptSetAttribute(name, value):				\
+				static_cast<CLASS*>(self)->onScriptDelAttribute(name);						\
 	}																						\
 																							\
 	/** python 请求初始化本模块对象
@@ -215,6 +215,10 @@ public:																						\
 		return &_scriptType;																\
 	}																						\
 																							\
+	static std::string getScriptName(void)													\
+	{																						\
+		return _classname;																	\
+	}																						\
 	/** 计算所有继承模块的暴露方法个数 
 	*/																						\
 	static int calcTotalMethodCount(void)													\
@@ -336,6 +340,7 @@ public:																						\
 		_scriptType.tp_members		= _##CLASS##_lpScriptmembers;							\
 		_scriptType.tp_getset		= _##CLASS##_lpgetseters;								\
 																							\
+																							\
 		CLASS::onInstallScript(mod);														\
 		if (PyType_Ready(&_scriptType) < 0){												\
 			ERROR_MSG("PyType_Ready(" #CLASS ") is error!");								\
@@ -369,10 +374,11 @@ public:																						\
 	PyMethodDef* CLASS::_##CLASS##_lpScriptmethods = NULL;									\
 	PyMemberDef* CLASS::_##CLASS##_lpScriptmembers = NULL;									\
 	PyGetSetDef* CLASS::_##CLASS##_lpgetseters = NULL;										\
+	std::string CLASS::_classname = #CLASS;													\
 																							\
 	PyTypeObject CLASS::_scriptType =														\
 	{																						\
-		PyVarObject_HEAD_INIT(NULL, 0)														\
+		PyVarObject_HEAD_INIT(&PyType_Type, 0)												\
 		#CLASS,													/* tp_name            */	\
 		sizeof(CLASS),											/* tp_basicsize       */	\
 		0,														/* tp_itemsize        */	\
@@ -387,7 +393,7 @@ public:																						\
 		MAP,													/* tp_as_mapping      */	\
 		0,														/* tp_hash            */	\
 		CALL,													/* tp_call            */	\
-		0,														/* tp_str             */	\
+		CLASS::_tp_str,											/* tp_str             */	\
 		(getattrofunc)CLASS::_tp_getattro,						/* tp_getattro        */	\
 		(setattrofunc)CLASS::_tp_setattro,						/* tp_setattro        */	\
 		0,														/* tp_as_buffer       */	\
@@ -410,6 +416,7 @@ public:																						\
 		(initproc)CLASS::_tp_init,								/* tp_init            */	\
 		0,														/* tp_alloc           */	\
 		CLASS::_tp_new,											/* tp_new             */	\
+		PyObject_GC_Del,										/* tp_free            */	\
 	};																						\
 
 // BASE_SCRIPT_HREADER基础类脚本初始化
@@ -420,7 +427,7 @@ public:																						\
 																							\
 	PyTypeObject CLASS::_scriptType =														\
 	{																						\
-		PyObject_HEAD_INIT(&PyType_Type)													\
+		PyVarObject_HEAD_INIT(NULL, 0)														\
 		#CLASS,													/* tp_name            */	\
 		sizeof(CLASS),											/* tp_basicsize       */	\
 		0,														/* tp_itemsize        */	\
@@ -472,7 +479,7 @@ public:																						\
 */
 #define SCRIPT_METHOD_DECLARE_BEGIN(CLASS)											PyMethodDef CLASS::_##CLASS##_scriptMethods[] = {			
 #define SCRIPT_METHOD_DECLARE(METHOD_NAME, METHOD_FUNC, FLAGS, DOC)					{METHOD_NAME, (PyCFunction)&METHOD_FUNC, FLAGS, DOC},
-#define SCRIPT_METHOD_DECLARE_END()													{NULL, NULL, NULL, NULL}};
+#define SCRIPT_METHOD_DECLARE_END()													{NULL, NULL, 0, NULL}};
 
 // 向模块追加方法
 #define APPEND_SCRIPT_MODULE_METHOD(MODULE, NAME, FUNC, FLAGS, SELF)						\
@@ -515,13 +522,13 @@ public:
 	static PyObject* tp_new(PyTypeObject* type, PyObject* args, PyObject* kwds){ return type->tp_alloc(type, 0); };
 
 	/** 脚本请求获取属性或者方法 */
-	PyObject* onScriptGetAttribute(const char* attr);						
+	PyObject* onScriptGetAttribute(PyObject* attr);						
 
 	/** 脚本请求设置属性或者方法 */
-	int onScriptSetAttribute(const char* attr, PyObject* value);			
+	int onScriptSetAttribute(PyObject* attr, PyObject* value);			
 
 	/** 脚本请求删除一个属性 */
-	int onScriptDelAttribute(const char* attr);
+	int onScriptDelAttribute(PyObject* attr);
 
 	/** 脚本请求初始化 */
 	int onScriptInit(PyObject* self, PyObject *args, PyObject* kwds);

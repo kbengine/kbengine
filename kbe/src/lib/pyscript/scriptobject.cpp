@@ -33,25 +33,19 @@ ScriptObject::~ScriptObject()
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptObject::onScriptGetAttribute(const char* attr)
+PyObject* ScriptObject::onScriptGetAttribute(PyObject* attr)
 {
-	PyObject* pName = PyUnicode_FromString(attr);
-	PyObject* pResult = PyObject_GenericGetAttr(this, pName);
-	Py_DECREF(pName);
-	return pResult;
+	return PyObject_GenericGetAttr(this, attr);
 }
 
 //-------------------------------------------------------------------------------------
-int ScriptObject::onScriptSetAttribute(const char* attr, PyObject* value)
+int ScriptObject::onScriptSetAttribute(PyObject* attr, PyObject* value)
 {
-	PyObject* pyName = PyUnicode_FromString(attr);
-	int result = PyObject_GenericSetAttr(this, pyName, value);
-	Py_DECREF(pyName);
-	return result;
+	return PyObject_GenericSetAttr(this, attr, value);
 }
 
 //-------------------------------------------------------------------------------------
-int ScriptObject::onScriptDelAttribute(const char* attr)
+int ScriptObject::onScriptDelAttribute(PyObject* attr)
 {
 	return this->onScriptSetAttribute(attr, NULL);
 }

@@ -35,8 +35,10 @@ bool ServerApp::installPyScript()
 	case CELLAPP_TYPE:
 		pyPaths += L"../../../demo/res/scripts/cell;";
 		break;
+	default:
+		pyPaths += L"../../../demo/res/scripts/client;";
+		break;
 	};
-							
 
 	return getScript().install(L"../../res/script/common", pyPaths, "KBEngine");
 }
@@ -88,11 +90,21 @@ bool ServerApp::uninstallPyScript()
 bool ServerApp::initialize(COMPONENT_TYPE componentType)
 {
 	m_componentType_ = componentType;
-	initializeBegin(componentType);
-	loadConfig();
-	installPyScript();
-	installPyModules();
-	installEntityDef();
+	if(!initializeBegin(componentType))
+		return false;
+
+	if(!loadConfig())
+		return false;
+
+	if(!installPyScript())
+		return false;
+
+	if(!installPyModules())
+		return false;
+
+	if(!installEntityDef())
+		return false;
+
 	return initializeEnd(componentType);
 }
 

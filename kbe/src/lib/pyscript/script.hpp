@@ -23,7 +23,7 @@ namespace KBEngine{ namespace script{
 #define SCRIPT_PATH												\
 					L"../../res/script;"						\
 					L"../../res/script/common;"					\
-					L"../../res/script/common/DLLs;"			\
+					L"../../res/script/common/lib-dynload;"		\
 					L"../../res/script/common/Lib"
 
 class Script

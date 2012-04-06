@@ -55,7 +55,7 @@ public:
 		m_idClient_->onAddRange(1, 500);
 		Entity* e = createEntity("Avatar", NULL);
 		registerPyObjectToScript("avatar", e);
-		PyRun_SimpleString("for e in KBEngine.entities.values():print (e)");
+		PyRun_SimpleString("print ('888888888888888888888', KBEngine.avatar.id)");
 		DEBUG_MSG("kbe:python is init successfully!!! %d\n", 88);
 		SmartPointer<PyObject> testsmartpointer(::PyBytes_FromString("test"));
 		testsmartpointer.clear();
@@ -103,10 +103,10 @@ Entity* TestApp::createEntity(const char* entityType, PyObject* params, bool isI
 
 	// 执行Entity的构造函数
 	Entity* entity = new(obj) Entity(id, sm);
-	
+
 	// 创建名字空间
 	entity->createNamespace(params);
-	
+
 	// 将entity加入entities
 	m_entities_->add(id, entity); 
 	

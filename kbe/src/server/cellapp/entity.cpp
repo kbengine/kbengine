@@ -78,7 +78,6 @@ m_topSpeedY_(-0.1f)
 	}
 
 	m_lpPropertyDescrs_ = &propertyDescrs;
-
 	// 获得onTimer函数地址
 //	m_TimerFunc_ = std::tr1::bind(&Entity::onTimer, this, _1, _2);
 }
@@ -257,17 +256,20 @@ PyObject* Entity::pyGetClientMailbox(Entity *self, void *closure)
 }
 */
 //-------------------------------------------------------------------------------------
-int Entity::onScriptSetAttribute(const char* attr, PyObject* value)
+int Entity::onScriptSetAttribute(PyObject* attr, PyObject* value)
 {
+	char* ccattr = wchar2char(PyUnicode_AsWideCharString(attr, NULL));
+
 	if(m_lpPropertyDescrs_)
 	{
-		ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = m_lpPropertyDescrs_->find(attr);
+		ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = m_lpPropertyDescrs_->find(ccattr);
 		if(iter != m_lpPropertyDescrs_->end())
 		{
 			PropertyDescription* propertyDescription = iter->second;
 			DataType* dataType = propertyDescription->getDataType();
 			
 			if(!dataType->isSameType(value)){
+				delete ccattr;
 				return 0;
 			}
 			else
@@ -278,45 +280,53 @@ int Entity::onScriptSetAttribute(const char* attr, PyObject* value)
 				if(result != -1)
 					onDefDataChanged(propertyDescription, value);
 				
+				delete ccattr;
 				return result;
 			}
 		}
 	}
+
+	delete ccattr;
 	return ScriptObject::onScriptSetAttribute(attr, value);
 }
 
 //-------------------------------------------------------------------------------------
-PyObject * Entity::onScriptGetAttribute(const char* attr)
+PyObject * Entity::onScriptGetAttribute(PyObject* attr)
 {
 	return ScriptObject::onScriptGetAttribute(attr);
 }
 
 //-------------------------------------------------------------------------------------
-int Entity::onScriptDelAttribute(const char* attr)
+int Entity::onScriptDelAttribute(PyObject* attr)
 {
+	char* ccattr = wchar2char(PyUnicode_AsWideCharString(attr, NULL));
+
 	if(m_lpPropertyDescrs_)
 	{
 
-		ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = m_lpPropertyDescrs_->find(attr);
+		ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = m_lpPropertyDescrs_->find(ccattr);
 		if(iter != m_lpPropertyDescrs_->end())
 		{
 			char err[255];
-			sprintf((char*)&err, "property[%s] is in [%s] def. can't to del.", attr, getScriptModuleName());
+			sprintf((char*)&err, "property[%s] is in [%s] def. can't to del.", ccattr, getScriptModuleName());
 			PyErr_SetString(PyExc_TypeError, err);			
 			PyErr_PrintEx(0);
+			delete ccattr;
 			return 0;
 		}
 	}
 
-	if(m_scriptModule_->findCellMethodDescription(attr) != NULL)
+	if(m_scriptModule_->findCellMethodDescription(ccattr) != NULL)
 	{
 		char err[255];
-		sprintf((char*)&err, "method[%s] is in [%s] def. can't to del.", attr, getScriptModuleName());
+		sprintf((char*)&err, "method[%s] is in [%s] def. can't to del.", ccattr, getScriptModuleName());
 		PyErr_SetString(PyExc_TypeError, err);			
 		PyErr_PrintEx(0);
+		delete ccattr;
 		return 0;
 	}
-
+	
+	delete ccattr;
 	return ScriptObject::onScriptDelAttribute(attr);
 }
 

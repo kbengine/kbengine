@@ -297,5 +297,19 @@ static inline int long2int32(const double value)
 #pragma float_control(pop)
 #endif
 
+
+inline char* wchar2char(wchar_t* ts)
+{
+	char* ccattr =(char *)malloc(MB_CUR_MAX);
+    wcstombs(ccattr, ts, MB_CUR_MAX);
+	return ccattr;
+};
+
+inline wchar_t* char2wchar(char* cs)
+{
+	wchar_t* ccattr =(wchar_t *)malloc(MB_CUR_MAX);
+    mbstowcs(ccattr, cs, MB_CUR_MAX);
+	return ccattr;
+};
 }
 #endif

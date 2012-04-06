@@ -85,13 +85,13 @@ public:
 	inline bool isReal(void)const{ return m_isReal_; }
 	
 	/** 脚本请求设置属性或者方法 */
-	int onScriptSetAttribute(const char* attr, PyObject * value);	
+	int onScriptSetAttribute(PyObject* attr, PyObject * value);	
 	
 	/** 脚本请求获取属性或者方法 */
-	PyObject* onScriptGetAttribute(const char* attr);	
+	PyObject* onScriptGetAttribute(PyObject* attr);	
 			
 	/** 脚本请求删除一个属性 */
-	int onScriptDelAttribute(const char* attr);
+	int onScriptDelAttribute(PyObject* attr);
 
 	/** onTimer被触发 */
 	//void onTimer(const TIMER_ID& timerID, TimerArgsBase* args);
