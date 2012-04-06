@@ -62,7 +62,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="d3dx9.lib python32_d.lib server_d.lib pyscript_d.lib xmlplus_d.lib cstdkbe_d.lib log_d.lib math_d.lib"
-				OutputFile="../../../../bin/Hybrid32\$(ProjectName).exe"
+				OutputFile="../../../../bin/Hybrid\$(ProjectName).exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../../../libs"
 				IgnoreDefaultLibraryNames=""
@@ -139,7 +139,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="d3dx9.lib python32.lib server.lib pyscript.lib xmlplus.lib cstdkbe.lib log.lib math.lib"
-				OutputFile="../../../../bin/Hybrid32\$(ProjectName).exe"
+				OutputFile="../../../../bin/Hybrid\$(ProjectName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../../../libs"
 				GenerateDebugInformation="true"

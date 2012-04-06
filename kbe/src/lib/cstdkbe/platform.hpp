@@ -39,6 +39,7 @@ same license as the rest of the engine.
 #include <signal.h>
 #include <netdb.h>
 #include <tr1/unordered_map>
+#include <langinfo.h>   /* CODESET */
 #endif
 
 /** 定义引擎名字空间 */
