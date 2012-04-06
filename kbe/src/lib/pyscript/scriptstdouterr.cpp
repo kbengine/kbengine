@@ -69,8 +69,8 @@ bool ScriptStdOutErr::install(void)
 	m_prevStderr_ = PyObject_GetAttrString(m_sysModule_, "stderr");
 	m_prevStdout_ = PyObject_GetAttrString(m_sysModule_, "stdout");
 
-	//PyObject_SetAttrString(m_sysModule_, "stdout", (PyObject *)this);
-	//PyObject_SetAttrString(m_sysModule_, "stderr", (PyObject *)this);
+	PyObject_SetAttrString(m_sysModule_, "stdout", (PyObject *)this);
+	PyObject_SetAttrString(m_sysModule_, "stderr", (PyObject *)this);
 	m_isInstall_ = true;
 	return true;	
 }
