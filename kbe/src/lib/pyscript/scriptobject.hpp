@@ -337,8 +337,11 @@ public:																						\
 		_scriptType.tp_getset		= _##CLASS##_lpgetseters;								\
 																							\
 		CLASS::onInstallScript(mod);														\
-		if (PyType_Ready(&_scriptType) < 0)													\
+		if (PyType_Ready(&_scriptType) < 0){												\
+			ERROR_MSG("PyType_Ready(" #CLASS ") is error!");								\
+			PyErr_Print();																	\
 			return;																			\
+		}																					\
 																							\
 		Py_INCREF(&_scriptType);															\
 		if(mod)																				\
