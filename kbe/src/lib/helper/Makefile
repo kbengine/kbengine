@@ -1,4 +1,4 @@
-LIB =	log
+LIB =	helper
 
 SRCS =				\
 	debug_helper		
