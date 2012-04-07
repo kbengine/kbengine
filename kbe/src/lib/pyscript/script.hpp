@@ -10,7 +10,7 @@ same license as the rest of the engine.
 */
 #ifndef __KBENGINE_SCRIPT_H__
 #define __KBENGINE_SCRIPT_H__
-#include "log/debug_helper.hpp"
+#include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "scriptobject.hpp"

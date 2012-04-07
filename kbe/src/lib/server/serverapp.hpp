@@ -22,7 +22,7 @@ same license as the rest of the engine.
 #include <iostream>	
 #include <stdarg.h> 
 #include "Python.h"
-#include "log/debug_helper.hpp"
+#include "helper/debug_helper.hpp"
 #include "pyscript/Script.hpp"
 #include "xmlplus/xmlplus.hpp"	
 #include "cstdkbe/singleton.hpp"

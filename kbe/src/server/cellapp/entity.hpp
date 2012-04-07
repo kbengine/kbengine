@@ -15,7 +15,7 @@ same license as the rest of the engine.
 //#include "entitymovecontroller.hpp"
 //#include "timer.hpp"
 #include "cstdkbe/cstdkbe.hpp"
-#include "log/debug_helper.hpp"
+#include "helper/debug_helper.hpp"
 //#include "entityMailbox.hpp"
 #include "pyscript/math.hpp"
 #include "pyscript/scriptobject.hpp"

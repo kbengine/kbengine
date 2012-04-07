@@ -58,7 +58,7 @@ same license as the rest of the engine.
 #include <stdlib.h>
 #include <assert.h>
 #include <string>
-#include "log/debug_helper.hpp"
+#include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "third_party/tinyxml/tinyxml.h"
 

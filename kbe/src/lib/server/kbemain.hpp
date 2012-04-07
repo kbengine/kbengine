@@ -12,7 +12,7 @@ same license as the rest of the engine.
 #define __KBEMAIN__
 #include "serverapp.hpp"
 #include "cstdkbe/cstdkbe.hpp"
-#include "log/debug_helper.hpp"
+#include "helper/debug_helper.hpp"
 namespace KBEngine{
 
 template <class SERVER_APP>

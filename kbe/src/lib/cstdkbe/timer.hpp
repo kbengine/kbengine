@@ -12,7 +12,7 @@ same license as the rest of the engine.
 #ifndef __TIMER__
 #define __TIMER__
 #include "cstdkbe/cstdkbe.hpp"
-#include "log/debug_helper.hpp"
+#include "helper/debug_helper.hpp"
 
 namespace KBEngine
 {

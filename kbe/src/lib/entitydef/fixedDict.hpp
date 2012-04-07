@@ -12,7 +12,7 @@ same license as the rest of the engine.
 #define __FIXED_DICT_H__
 #include <string>
 #include "dataType.hpp"
-#include "log/debug_helper.hpp"
+#include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "pyscript/map.hpp"
 #include "pyscript/pickler.hpp"

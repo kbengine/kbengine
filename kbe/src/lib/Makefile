@@ -26,7 +26,7 @@ all install clean full:
 	cd math && $(MAKE) $@
 	cd pyscript && $(MAKE) $@
 	cd server && $(MAKE) $@
-	cd log && $(MAKE) $@
+	cd helper && $(MAKE) $@
 	cd thread && $(MAKE) $@
 	cd xmlplus && $(MAKE) $@
 	cd third_party/g3dlite && $(MAKE) $@
@@ -36,9 +36,9 @@ UNITTEST_LIBS = cstdkbe \
 				entitydef \
 				math \
 				pyscript \
-				log \
+				helper \
 				thread \
-				
+				network \
 
 unit_tests: unit_tests_build unit_tests_run
 

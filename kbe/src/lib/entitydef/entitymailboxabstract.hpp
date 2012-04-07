@@ -12,7 +12,7 @@ same license as the rest of the engine.
 #define __ENTITY_MAILBOX_BASE_H__
 	
 // common include	
-#include "log/debug_helper.hpp"
+#include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "network/packet.hpp"
 //#include "network/channel.hpp"

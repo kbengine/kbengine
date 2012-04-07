@@ -129,7 +129,7 @@ OBJS = $(addsuffix .o, $(ALL_SRC))
 # don't want these for a shared object - we'll use the exe's instead
 ifndef SO
 ifndef NO_EXTRA_LIBS
-MY_LIBS += math cstdkbe log
+MY_LIBS += math cstdkbe helper
 endif
 endif
 

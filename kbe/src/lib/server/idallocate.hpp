@@ -49,7 +49,7 @@ same license as the rest of the engine.
 #define __IDAllocate_H__
 
 // common include	
-#include "log/debug_helper.hpp"
+#include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 //#define NDEBUG
 #include <stdio.h>

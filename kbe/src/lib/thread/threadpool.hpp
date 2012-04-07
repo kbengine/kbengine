@@ -33,7 +33,7 @@ same license as the rest of the engine.
 #include <queue>
 #include <algorithm>
 #include "cstdkbe/cstdkbe.hpp"
-#include "log/debug_helper.hpp"
+#include "helper/debug_helper.hpp"
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #include <windows.h>          // for HANDLE

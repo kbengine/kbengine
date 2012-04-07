@@ -74,7 +74,7 @@ same license as the rest of the engine.
 #define __SCRIPTOBJECT_H__
 #include <vector>	
 #include "Python.h"     
-#include "log/debug_helper.hpp"
+#include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include <structmember.h>
 #include <assert.h>

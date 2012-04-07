@@ -13,7 +13,7 @@ same license as the rest of the engine.
 	
 // common include	
 #include "entity.hpp"
-#include "log/debug_helper.hpp"
+#include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "pyscript/scriptobject.hpp"
 //#define NDEBUG

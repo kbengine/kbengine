@@ -18,7 +18,7 @@ same license as the rest of the engine.
 */
 #ifndef __SCRIPTSTDOUTERR_H__
 #define __SCRIPTSTDOUTERR_H__
-#include "log/debug_helper.hpp"
+#include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "scriptobject.hpp"
 

@@ -5,7 +5,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cstdkbe", "lib\cstdkbe\cstd
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "entitydef", "lib\entitydef\entitydef.vcproj", "{44FA54E8-0A60-4A6C-A449-118872E75502}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log", "lib\log\log.vcproj", "{0E032FA8-BB7B-40F6-8CB1-15F204113B24}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "helper", "lib\helper\helper.vcproj", "{0E032FA8-BB7B-40F6-8CB1-15F204113B24}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "math", "lib\math\math.vcproj", "{F67B2C56-D1B1-4EA7-B16E-EF8E7F1B6C5F}"
 EndProject

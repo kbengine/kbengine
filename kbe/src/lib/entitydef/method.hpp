@@ -18,7 +18,7 @@ same license as the rest of the engine.
 // common include	
 #include "datatype.hpp"
 #include "datatypes.hpp"
-#include "log/debug_helper.hpp"
+#include "helper/debug_helper.hpp"
 #include "network/Packet.hpp"
 #include "entitymailboxabstract.hpp"
 #include "pyscript/scriptobject.hpp"	
