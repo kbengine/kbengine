@@ -56,6 +56,13 @@ public:
 #define DEBUG_MSG			DebugHelper::getSingleton().debug_msg					// 输出一个debug信息
 #define INFO_MSG			DebugHelper::getSingleton().info_msg					// 输出一个info信息
 #define WARNING_MSG			DebugHelper::getSingleton().warning_msg					// 输出一个警告信息
+
+#ifdef _DEBUG
+#define KBE_ASSERT(exp) assert(exp);
+#else
+#define KBE_ASSERT(exp) NULL;
+#endif
+
 }
 
 #endif // __KBE_DEBUG_HPP__

@@ -18,6 +18,12 @@ same license as the rest of the engine.
 #include <iostream>  
 #include <string>  
 #include <cstring>  
+#include <vector>
+#include <map>
+#include <list>
+#include <set>
+#include <assert.h> 
+#include <algorithm>
 // windows include	
 #if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
 #include <time.h> 

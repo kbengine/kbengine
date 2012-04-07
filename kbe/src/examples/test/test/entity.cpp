@@ -258,10 +258,7 @@ PyObject* Entity::pyGetClientMailbox(Entity *self, void *closure)
 //-------------------------------------------------------------------------------------
 int Entity::onScriptSetAttribute(PyObject* attr, PyObject* value)
 {
-	wchar_t* cattr = PyUnicode_AsWideCharString(attr, NULL);
-	int len = wcslen(cattr);
-	char* ccattr =(char *)malloc(2 * len + 1);
-    wcstombs(ccattr, cattr, 2 * len + 1);
+	char* ccattr = wchar2char(PyUnicode_AsWideCharString(attr, NULL));
 
 	if(m_lpPropertyDescrs_)
 	{
@@ -272,6 +269,7 @@ int Entity::onScriptSetAttribute(PyObject* attr, PyObject* value)
 			DataType* dataType = propertyDescription->getDataType();
 			
 			if(!dataType->isSameType(value)){
+				delete ccattr;
 				return 0;
 			}
 			else
@@ -282,10 +280,13 @@ int Entity::onScriptSetAttribute(PyObject* attr, PyObject* value)
 				if(result != -1)
 					onDefDataChanged(propertyDescription, value);
 				
+				delete ccattr;
 				return result;
 			}
 		}
 	}
+
+	delete ccattr;
 	return ScriptObject::onScriptSetAttribute(attr, value);
 }
 
@@ -298,10 +299,7 @@ PyObject * Entity::onScriptGetAttribute(PyObject* attr)
 //-------------------------------------------------------------------------------------
 int Entity::onScriptDelAttribute(PyObject* attr)
 {
-	wchar_t* cattr = PyUnicode_AsWideCharString(attr, NULL);
-	int len = wcslen(cattr);
-	char* ccattr =(char *)malloc(2 * len + 1);
-    wcstombs(ccattr, cattr, 2 * len + 1);
+	char* ccattr = wchar2char(PyUnicode_AsWideCharString(attr, NULL));
 
 	if(m_lpPropertyDescrs_)
 	{
@@ -310,9 +308,10 @@ int Entity::onScriptDelAttribute(PyObject* attr)
 		if(iter != m_lpPropertyDescrs_->end())
 		{
 			char err[255];
-			sprintf((char*)&err, "property[%s] is in [%s] def. can't to del.", cattr, getScriptModuleName());
+			sprintf((char*)&err, "property[%s] is in [%s] def. can't to del.", ccattr, getScriptModuleName());
 			PyErr_SetString(PyExc_TypeError, err);			
 			PyErr_PrintEx(0);
+			delete ccattr;
 			return 0;
 		}
 	}
@@ -323,9 +322,11 @@ int Entity::onScriptDelAttribute(PyObject* attr)
 		sprintf((char*)&err, "method[%s] is in [%s] def. can't to del.", ccattr, getScriptModuleName());
 		PyErr_SetString(PyExc_TypeError, err);			
 		PyErr_PrintEx(0);
+		delete ccattr;
 		return 0;
 	}
-
+	
+	delete ccattr;
 	return ScriptObject::onScriptDelAttribute(attr);
 }
 

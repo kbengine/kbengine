@@ -9,7 +9,8 @@ ASMS =
 MY_LIBS =		\
 	entitydef	\
 	pyscript	\
-	server		
+	server		\
+	network
 	
 
 BUILD_TIME_FILE = main

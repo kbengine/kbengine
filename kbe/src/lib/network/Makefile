@@ -1,9 +1,7 @@
-LIB =	cstdkbe
+LIB =	network
 
 SRCS =				\
-	cstdkbe			\
-	tasks			\
-	timer
+	event_dispatcher
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))

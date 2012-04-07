@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="cstdkbe"
-	ProjectGUID="{A04109A7-46C9-42F9-AB29-8E3D84450172}"
-	RootNamespace="cstdkbe"
+	Name="network"
+	ProjectGUID="{5EF24499-4F74-4AF6-8048-650BE7BD7808}"
+	RootNamespace="network"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -153,15 +153,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\cstdkbe.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\tasks.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\timer.cpp"
+				RelativePath=".\event_dispatcher.cpp"
 				>
 			</File>
 		</Filter>
@@ -171,31 +163,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\cstdkbe.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\platform.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\refcountable.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\singleton.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\smartpointer.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\tasks.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\timer.hpp"
+				RelativePath=".\event_dispatcher.hpp"
 				>
 			</File>
 		</Filter>
@@ -205,6 +173,10 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
+		<File
+			RelativePath=".\event_dispatcher.ipp"
+			>
+		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>
