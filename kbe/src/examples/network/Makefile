@@ -1,6 +1,6 @@
-objects = a.o
+objects = main.o
 
-a : $(objects)
+network : $(objects)
 	g++ -o a $(objects)
-a.o : a.cpp a.hpp
-	g++ -c -O3 -Wall -W -m32 a.cpp 
+main.o : main.cpp main.hpp
+	g++ -c -O3 -Wall -W -m32 main.cpp 
