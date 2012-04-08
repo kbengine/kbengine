@@ -13,6 +13,7 @@ same license as the rest of the engine.
 
 #include <map>
 #include "cstdkbe/tasks.hpp"
+#include "cstdkbe/timer.hpp"
 
 namespace KBEngine { 
 namespace Mercury

@@ -28,6 +28,12 @@ same license as the rest of the engine.
 			i = NULL;										\
 		}
 
+#ifdef CODE_INLINE
+    #define INLINE    inline
+#else
+    #define INLINE
+#endif
+
 /** 定义服务器各组件类别 */
 enum COMPONENT_TYPE
 {

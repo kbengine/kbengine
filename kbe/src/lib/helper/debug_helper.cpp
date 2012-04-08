@@ -6,6 +6,14 @@ namespace KBEngine{
 template<> DebugHelper* Singleton<DebugHelper>::m_singleton_ = 0;
 DebugHelper dbghelper;
 
+#ifdef _DEBUG
+void myassert(const char * exp, const char * file, unsigned int line)
+{
+    printf("assertion failed: %s, file %s, line %d\n",exp, file, line);
+    abort();
+}
+#endif
+
 //-------------------------------------------------------------------------------------
 void utf8printf(FILE *out, const char *str, ...)
 {

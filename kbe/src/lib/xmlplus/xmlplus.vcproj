@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../lib;../;../../common"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;__LIB_DLLAPI__"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;__LIB_DLLAPI__;CODE_INLINE;KBE_USE_ASSERTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -107,7 +107,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="../../lib;../;../../common"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -144,7 +144,7 @@
 			/>
 		</Configuration>
 	</Configurations>
-	<References> 
+	<References>
 	</References>
 	<Files>
 		<Filter
