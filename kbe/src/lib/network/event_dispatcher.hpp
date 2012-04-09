@@ -14,11 +14,17 @@ same license as the rest of the engine.
 #include <map>
 #include "cstdkbe/tasks.hpp"
 #include "cstdkbe/timer.hpp"
+#include "network/interfaces.hpp"
+#include "network/event_poller.hpp"
 
 namespace KBEngine { 
 namespace Mercury
 {
-	
+
+typedef TimesT<uint64> Times64;
+class DispatcherCoupling;
+
+
 class EventDispatcher
 {
 public:
@@ -38,13 +44,32 @@ public:
 	void addFrequentTask(Task * pTask);
 	bool cancelFrequentTask(Task * pTask);
 	
-	inline double maxWait() const;
-	inline void maxWait(double seconds);
+	INLINE double maxWait() const;
+	INLINE void maxWait(double seconds);
 
+	bool registerFileDescriptor( int fd, InputNotificationHandler * handler );
+	bool deregisterFileDescriptor( int fd );
+	bool registerWriteFileDescriptor( int fd, InputNotificationHandler * handler );
+	bool deregisterWriteFileDescriptor( int fd );
+
+	INLINE TimerHandle addTimer( int64 microseconds,
+					TimerHandler * handler, void* arg = NULL );
+	INLINE TimerHandle addOnceOffTimer( int64 microseconds,
+					TimerHandler * handler, void * arg = NULL );
+
+	uint64 timerDeliveryTime( TimerHandle handle ) const;
+	uint64 timerIntervalTime( TimerHandle handle ) const;
+	uint64 & timerIntervalTime( TimerHandle handle );
+	
 	uint64 getSpareTime() const;
 	void clearSpareTime();
 	double proportionalSpareTime() const;
 private:
+	TimerHandle addTimerCommon(int64 microseconds,
+		TimerHandler * handler,
+		void * arg,
+		bool recurrent );
+
 	void processFrequentTasks();
 	void processTimers();
 	void processStats();
@@ -54,15 +79,57 @@ private:
 	
 	void attachTo(EventDispatcher & parentDispatcher);
 	void detachFrom(EventDispatcher & parentDispatcher);
+	
+	typedef std::vector<EventDispatcher *> ChildDispatchers;
+	ChildDispatchers childDispatchers_;
 protected:
 	bool m_breakProcessing_;
 	double m_maxWait_;
+	uint32 m_numTimerCalls_;
+	
+	// Statistics
+	TimeStamp		m_accSpareTime_;
+	TimeStamp		m_oldSpareTime_;
+	TimeStamp		m_totSpareTime_;
+	TimeStamp		m_lastStatisticsGathered_;
 	
 	Tasks* m_pFrequentTasks_;
+	Times64* m_pTimes_;
+	EventPoller* m_pPoller_;
+	DispatcherCoupling * m_pCouplingToParent_;
+};
+
+
+class DispatcherCoupling : public Task
+{
+public:
+	DispatcherCoupling( EventDispatcher & mainDispatcher,
+			EventDispatcher & childDispatcher ) :
+		mainDispatcher_( mainDispatcher ),
+		childDispatcher_( childDispatcher )
+	{
+		mainDispatcher.addFrequentTask( this );
+	}
+
+	~DispatcherCoupling()
+	{
+		mainDispatcher_.cancelFrequentTask( this );
+	}
+
+private:
+	void process()
+	{
+		childDispatcher_.processOnce();
+	}
+
+	EventDispatcher & mainDispatcher_;
+	EventDispatcher & childDispatcher_;
 };
 
 }
 }
 
+#ifdef CODE_INLINE
 #include "event_dispatcher.ipp"
+#endif
 #endif // __EVENT_DISPATCHER__

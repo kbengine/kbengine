@@ -164,6 +164,10 @@
 				RelativePath=".\timer.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\timestamp.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -198,6 +202,10 @@
 				RelativePath=".\timer.hpp"
 				>
 			</File>
+			<File
+				RelativePath=".\timestamp.hpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -207,6 +215,10 @@
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
+			>
+		</File>
+		<File
+			RelativePath=".\timer.ipp"
 			>
 		</File>
 	</Files>

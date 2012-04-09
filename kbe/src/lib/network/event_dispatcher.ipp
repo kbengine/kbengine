@@ -11,22 +11,34 @@ same license as the rest of the engine.
 namespace KBEngine { 
 namespace Mercury
 {
-inline void EventDispatcher::breakProcessing( bool breakState )
+INLINE TimerHandle EventDispatcher::addTimer(int64 microseconds,
+	TimerHandler * handler, void * arg)
+{
+	return this->addTimerCommon(microseconds, handler, arg, true);
+}
+
+INLINE TimerHandle EventDispatcher::addOnceOffTimer(int64 microseconds,
+	TimerHandler * handler, void * arg)
+{
+	return this->addTimerCommon(microseconds, handler, arg, false);
+}
+
+INLINE void EventDispatcher::breakProcessing( bool breakState )
 {
 	m_breakProcessing_ = breakState;
 }
 
-inline bool EventDispatcher::processingBroken() const
+INLINE bool EventDispatcher::processingBroken() const
 {
 	return m_breakProcessing_;
 }
 
-inline double EventDispatcher::maxWait() const
+INLINE double EventDispatcher::maxWait() const
 {
 	return m_maxWait_;
 }
 
-inline void EventDispatcher::maxWait(double seconds)
+INLINE void EventDispatcher::maxWait(double seconds)
 {
 	m_maxWait_ = seconds;
 }

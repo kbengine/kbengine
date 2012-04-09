@@ -7,11 +7,11 @@ namespace KBEngine
 //-------------------------------------------------------------------------------------
 void TimerHandle::cancel()
 {
-	if (m_pTimer_ != NULL)
+	if (m_pTime_ != NULL)
 	{
-		TimerBase* pTimer = m_pTimer_;
-		m_pTimer_ = NULL;
-		pTimer->cancel();
+		TimeBase* pTime = m_pTime_;
+		m_pTime_ = NULL;
+		pTime->cancel();
 	}
 }
 

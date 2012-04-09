@@ -156,6 +156,10 @@
 				RelativePath=".\event_dispatcher.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\event_poller.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -164,6 +168,14 @@
 			>
 			<File
 				RelativePath=".\event_dispatcher.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\event_poller.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\interfaces.hpp"
 				>
 			</File>
 		</Filter>

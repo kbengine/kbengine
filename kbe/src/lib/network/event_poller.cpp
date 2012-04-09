@@ -317,13 +317,8 @@ int SelectPoller::processPendingEvents( double maxWait )
 	nextTimeout.tv_usec =
 		(int)( (maxWait - (double)nextTimeout.tv_sec) * 1000000.0 );
 
-#if ENABLE_WATCHERS
-	g_idleProfile.start();
-#else
-	uint64 startTime = ::timestamp();
-#endif
-
-	BWConcurrency::startMainThreadIdling();
+	uint64 startTime = timestamp();
+	KBEConcurrency::startMainThreadIdling();
 
 	int countReady = 0;
 
@@ -341,14 +336,9 @@ int SelectPoller::processPendingEvents( double maxWait )
 				fdWriteCount_ ? &writeFDs : NULL, NULL, &nextTimeout );
 	}
 
-	BWConcurrency::endMainThreadIdling();
+	KBEConcurrency::endMainThreadIdling();
 
-#if ENABLE_WATCHERS
-	g_idleProfile.stop();
-	spareTime_ += g_idleProfile.lastTime_;
-#else
-	spareTime_ += ::timestamp() - startTime;
-#endif
+	spareTime_ += timestamp() - startTime;
 
 	if (countReady > 0)
 	{
@@ -624,27 +614,16 @@ bool EPoller::doRegister( int fd, bool isRead, bool isRegister )
 int EPoller::processPendingEvents( double maxWait )
 {
 	const int MAX_EVENTS = 10;
-
 	struct epoll_event events[ MAX_EVENTS ];
-
 	int maxWaitInMilliseconds = int( ceil( maxWait * 1000 ) );
+	uint64 startTime = timestamp();
 
-#if ENABLE_WATCHERS
-	g_idleProfile.start();
-#else
-	uint64 startTime = ::timestamp();
-#endif
-
-	BWConcurrency::startMainThreadIdling();
+	KBEConcurrency::startMainThreadIdling();
 	int nfds = epoll_wait( epfd_, events, MAX_EVENTS, maxWaitInMilliseconds );
-	BWConcurrency::endMainThreadIdling();
+	KBEConcurrency::endMainThreadIdling();
 
-#if ENABLE_WATCHERS
-	g_idleProfile.stop();
-	spareTime_ += g_idleProfile.lastTime_;
-#else
+
 	spareTime_ += ::timestamp() - startTime;
-#endif
 
 	for (int i = 0; i < nfds; ++i)
 	{

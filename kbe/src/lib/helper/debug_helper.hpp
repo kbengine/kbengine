@@ -57,11 +57,20 @@ public:
 #define INFO_MSG			DebugHelper::getSingleton().info_msg					// 输出一个info信息
 #define WARNING_MSG			DebugHelper::getSingleton().warning_msg					// 输出一个警告信息
 
+/*---------------------------------------------------------------------------------
+	调试宏
+---------------------------------------------------------------------------------*/
 #ifdef KBE_USE_ASSERTS
 void myassert(const char* exp, const char * file, unsigned int line);
 #define KBE_ASSERT(exp) if(exp)myassert(#exp, __FILE__, __LINE__);
 #else
 #define KBE_ASSERT(exp) NULL;
+#endif
+
+#ifdef _DEBUG
+#define KBE_VERIFY KBE_ASSERT
+#else
+#define KBE_VERIFY(exp) (exp)
 #endif
 
 }

@@ -11,8 +11,12 @@ same license as the rest of the engine.
 #ifndef __EVENT_POLLER__
 #define __EVENT_POLLER__
 
+#include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/timestamp.hpp"
 #include "network/interfaces.hpp"
+#include "thread/concurrency.hpp"
 #include <map>
+
 namespace KBEngine { 
 namespace Mercury
 {

@@ -41,7 +41,7 @@ all::
 	@false
 endif
 
-LIBDIR = $(KBE_ROOT)/kbe/src/lib/bin/$(KBE_CONFIG)
+LIBDIR = $(KBE_ROOT)/kbe/src/libs
 
 ifneq (,$(findstring s, $(MAKEFLAGS)))
 QUIET_BUILD=1

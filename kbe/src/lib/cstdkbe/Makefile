@@ -3,7 +3,8 @@ LIB =	cstdkbe
 SRCS =				\
 	cstdkbe			\
 	tasks			\
-	timer
+	timer			\
+	timestamp
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))

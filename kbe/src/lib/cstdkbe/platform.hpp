@@ -28,6 +28,7 @@ same license as the rest of the engine.
 #include <algorithm>
 // windows include	
 #if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
+#pragma warning(disable:4996)
 #include <time.h> 
 #include <winsock2.h>		// ±ØĞëÔÚwindows.hÖ®Ç°°üº¬£¬ ·ñÔòÍøÂçÄ£¿é±àÒë»á³ö´í
 #include <mswsock.h> 
@@ -239,6 +240,103 @@ typedef uint8													MAIL_TYPE;												// mailbox ËùÍ¶µİµÄmailÀà±ğµÄÀà±
 	#define THREAD_MUTEX_DELETE(x)								pthread_mutex_destroy(&x)
 	#define THREAD_MUTEX_LOCK(x)								pthread_mutex_lock(&x)
 	#define THREAD_MUTEX_UNLOCK(x)								pthread_mutex_unlock(&x)		
+#endif
+
+/*---------------------------------------------------------------------------------
+	¿çÆ½Ì¨ºê¶¨Òå
+---------------------------------------------------------------------------------*/
+#if 0
+#define ARRAYCLR(v)					memset((v), 0x0, sizeof(v))
+#define MEMCLR(v)					memset(&(v), 0x0, sizeof(v))
+#define MEMCLRP(v)					memset((v), 0x0, sizeof(*v))
+#endif
+
+#define ARRAYSZ(v)					(sizeof(v) / sizeof(v[0]))
+#define ARRAY_SIZE(v)				(sizeof(v) / sizeof(v[0]))
+
+#if 0
+#define offsetof(type, field)		((uint32)&(((type *)NULL)->field))
+#ifndef FIELD_OFFSET
+#define FIELD_OFFSET(type, field)	offsetof(type, field)
+#endif
+#ifndef FIELD_SIZE
+#define FIELD_SIZE(type, field)		(sizeof(((type *)NULL)->field))
+#endif
+#endif
+
+#define KBE_LITTLE_ENDIAN
+/*#define KBE_BIG_ENDIAN*/
+
+#ifdef KBE_LITTLE_ENDIAN
+/* accessing individual bytes (int8) and words (int16) within
+ * words and long words (int32).
+ * Macros ending with W deal with words, L macros deal with longs
+ */
+/// Returns the high byte of a word.
+#define HIBYTEW(b)		(((b) & 0xff00) >> 8)
+/// Returns the low byte of a word.
+#define LOBYTEW(b)		( (b) & 0xff)
+
+/// Returns the high byte of a long.
+#define HIBYTEL(b)		(((b) & 0xff000000L) >> 24)
+/// Returns the low byte of a long.
+#define LOBYTEL(b)		( (b) & 0xffL)
+
+/// Returns byte 0 of a long.
+#define BYTE0L(b)		( (b) & 0xffL)
+/// Returns byte 1 of a long.
+#define BYTE1L(b)		(((b) & 0xff00L) >> 8)
+/// Returns byte 2 of a long.
+#define BYTE2L(b)		(((b) & 0xff0000L) >> 16)
+/// Returns byte 3 of a long.
+#define BYTE3L(b)		(((b) & 0xff000000L) >> 24)
+
+/// Returns the high word of a long.
+#define HIWORDL(b)		(((b) & 0xffff0000L) >> 16)
+/// Returns the low word of a long.
+#define LOWORDL(b)		( (b) & 0xffffL)
+
+/**
+ *	This macro takes a dword ordered 0123 and reorder it to 3210.
+ */
+#define SWAP_DW(a)	  ( (((a) & 0xff000000)>>24) |	\
+						(((a) & 0xff0000)>>8) |		\
+						(((a) & 0xff00)<<8) |		\
+						(((a) & 0xff)<<24) )
+
+#else
+/* big endian macros go here */
+#endif
+
+#if defined(_WIN32)
+
+#undef min
+#define min min
+#undef max
+#define max max
+
+template <class T>
+inline const T & min( const T & a, const T & b )
+{
+	return b < a ? b : a;
+}
+
+template <class T>
+inline const T & max( const T & a, const T & b )
+{
+	return a < b ? b : a;
+}
+
+#define KBE_MIN min
+#define KBE_MAX max
+
+#define NOMINMAX
+
+#else
+
+#define KBE_MIN std::min
+#define KBE_MAX std::max
+
 #endif
 
 /*---------------------------------------------------------------------------------
