@@ -15,18 +15,18 @@ same license as the rest of the engine.
 
 using namespace KBEngine;
 
-class TestApp: public ServerApp
+class App: public ServerApp
 {
 protected:
 	IDClient<ENTITY_ID>*		m_idClient_;
 	Entities*					m_entities_;									// 存储所有的entity的容器
 public:
-	TestApp()
+	App(Mercury::EventDispatcher& dispatcher, COMPONENT_TYPE componentType):ServerApp(dispatcher, componentType)
 	{
 		
 	}
 
-	~TestApp()
+	~App()
 	{
 	}
 
@@ -62,13 +62,13 @@ public:
 		return true;
 	}
 	
-	bool initializeBegin(COMPONENT_TYPE componentType)
+	bool initializeBegin()
 	{
 		 m_idClient_ = new IDClient<ENTITY_ID>;
 		return true;
 	}
 
-	bool initializeEnd(COMPONENT_TYPE componentType)
+	bool initializeEnd()
 	{
 		return true;
 	}
@@ -76,7 +76,7 @@ public:
 	Entity* createEntity(const char* entityType, PyObject* params, bool isInitializeScript = true, ENTITY_ID eid = 0);
 };
 
-Entity* TestApp::createEntity(const char* entityType, PyObject* params, bool isInitializeScript, ENTITY_ID eid)
+Entity* App::createEntity(const char* entityType, PyObject* params, bool isInitializeScript, ENTITY_ID eid)
 {
 	// 检查ID是否足够, 不足返回NULL
 	if(eid <= 0 && m_idClient_->getSize() == 0)
@@ -121,11 +121,11 @@ Entity* TestApp::createEntity(const char* entityType, PyObject* params, bool isI
 	return entity;
 }
 
-template<> TestApp* Singleton<TestApp>::m_singleton_ = 0;
+template<> App* Singleton<App>::m_singleton_ = 0;
 
 int KBENGINE_MAIN(int argc, char* argv[])
 {
-	int ret= kbeMainT<TestApp>(argc, argv, CELLAPP_TYPE);
+	int ret= kbeMainT<App>(argc, argv, CELLAPP_TYPE);
 	getchar();
 	return ret; 
 }

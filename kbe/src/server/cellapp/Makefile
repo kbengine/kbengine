@@ -10,7 +10,8 @@ MY_LIBS =		\
 	entitydef	\
 	pyscript	\
 	server		\
-	network
+	network		\
+	thread
 	
 
 BUILD_TIME_FILE = main

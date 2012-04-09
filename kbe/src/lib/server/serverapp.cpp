@@ -3,8 +3,10 @@ namespace KBEngine{
 template<> ServerApp* Singleton<ServerApp>::m_singleton_ = 0;
 
 //-------------------------------------------------------------------------------------
-ServerApp::ServerApp():
-m_componentType_(UNKNOWN_COMPONENT_TYPE)
+ServerApp::ServerApp(Mercury::EventDispatcher& dispatcher, COMPONENT_TYPE componentType):
+m_componentType_(componentType),
+m_componentID_(0),
+m_mainDispatcher_(dispatcher)
 {
 }
 
@@ -40,7 +42,7 @@ bool ServerApp::installPyScript()
 		break;
 	};
 
-	return getScript().install(L"../../res/script/common", pyPaths, "KBEngine");
+	return getScript().install(L"../../res/script/common", pyPaths, "KBEngine", m_componentType_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -87,10 +89,9 @@ bool ServerApp::uninstallPyScript()
 }
 
 //-------------------------------------------------------------------------------------		
-bool ServerApp::initialize(COMPONENT_TYPE componentType)
+bool ServerApp::initialize()
 {
-	m_componentType_ = componentType;
-	if(!initializeBegin(componentType))
+	if(!initializeBegin())
 		return false;
 
 	if(!loadConfig())
@@ -105,7 +106,7 @@ bool ServerApp::initialize(COMPONENT_TYPE componentType)
 	if(!installEntityDef())
 		return false;
 
-	return initializeEnd(componentType);
+	return initializeEnd();
 }
 
 //-------------------------------------------------------------------------------------		

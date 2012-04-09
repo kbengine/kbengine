@@ -4,7 +4,8 @@ SRCS =				\
 	cstdkbe			\
 	tasks			\
 	timer			\
-	timestamp
+	timestamp		\
+	kbeversion
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))

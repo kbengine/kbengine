@@ -160,6 +160,10 @@
 				RelativePath=".\serverconfig.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\serverinfos.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -180,6 +184,10 @@
 			</File>
 			<File
 				RelativePath=".\serverconfig.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\serverinfos.hpp"
 				>
 			</File>
 		</Filter>

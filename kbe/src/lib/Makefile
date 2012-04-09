@@ -39,6 +39,7 @@ UNITTEST_LIBS = cstdkbe \
 				helper \
 				thread \
 				network \
+				thread	\
 
 unit_tests: unit_tests_build unit_tests_run
 

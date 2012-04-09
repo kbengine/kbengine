@@ -22,7 +22,7 @@ protected:
 	IDClient<ENTITY_ID>*		m_idClient_;
 	Entities*					m_entities_;									// 存储所有的entity的容器
 public:
-	TestApp()
+	TestApp(Mercury::EventDispatcher& dispatcher, COMPONENT_TYPE componentType):ServerApp(dispatcher, componentType)
 	{
 		
 	}
@@ -63,13 +63,13 @@ public:
 		return true;
 	}
 	
-	bool initializeBegin(COMPONENT_TYPE componentType)
+	bool initializeBegin()
 	{
 		 m_idClient_ = new IDClient<ENTITY_ID>;
 		return true;
 	}
 
-	bool initializeEnd(COMPONENT_TYPE componentType)
+	bool initializeEnd()
 	{
 		return true;
 	}

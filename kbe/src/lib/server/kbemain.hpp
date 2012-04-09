@@ -13,19 +13,44 @@ same license as the rest of the engine.
 #include "serverapp.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
+#include "server/serverinfos.hpp"
+#include "network/event_dispatcher.hpp"
 namespace KBEngine{
+
+inline void START_MSG(const char * name)
+{
+	ServerInfos serverInfo;
+	
+	INFO_MSG( "---- %-10s "
+			"Version: %s. "
+			"Config: %s. "
+			"Built: %s %s. "
+			"UID: %d. "
+			"PID: %d ----\n",
+		name, KBEVersion::versionString().c_str(),
+		KBE_CONFIG, __TIME__, __DATE__, 
+		getUserUID(), getProcessPID() );
+	
+	INFO_MSG( "Server %s: %s with %s RAM\n",
+		serverInfo.serverName().c_str(),
+		serverInfo.cpuInfo().c_str(),
+		serverInfo.memInfo().c_str() );
+}
 
 template <class SERVER_APP>
 int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType)
 {
-	SERVER_APP app;
-	if(!app.initialize(componentType)){
+	Mercury::EventDispatcher dispatcher;
+	SERVER_APP app(dispatcher, componentType);
+	START_MSG(COMPONENT_NAME[componentType]);
+	if(!app.initialize()){
 		ERROR_MSG("app::initialize is error!");
 		return -1;
 	}
-
+	
 	int ret = app.run();
 	app.finalise();
+	INFO_MSG("%s has shut down.\n", COMPONENT_NAME[componentType]);
 	return ret;
 }
 

@@ -8,6 +8,7 @@ namespace Mercury
 #define HAS_EPOLL
 #endif
 
+//-------------------------------------------------------------------------------------
 EventPoller::EventPoller() : 
 	fdReadHandlers_(), 
 	fdWriteHandlers_(), 
@@ -16,17 +17,13 @@ EventPoller::EventPoller() :
 }
 
 
-/**
- *	Destructor.
- */
+//-------------------------------------------------------------------------------------
 EventPoller::~EventPoller()
 {
 }
 
 
-/**
- *	This method registers a file descriptor for reading.
- */
+//-------------------------------------------------------------------------------------
 bool EventPoller::registerForRead( int fd,
 		InputNotificationHandler * handler )
 {
@@ -40,10 +37,7 @@ bool EventPoller::registerForRead( int fd,
 	return true;
 }
 
-
-/**
- *	This method registers a file descriptor for writing.
- */
+//-------------------------------------------------------------------------------------
 bool EventPoller::registerForWrite( int fd,
 		InputNotificationHandler * handler )
 {
@@ -57,10 +51,7 @@ bool EventPoller::registerForWrite( int fd,
 	return true;
 }
 
-
-/**
- *	This method deregisters a file previously registered for reading.
- */
+//-------------------------------------------------------------------------------------
 bool EventPoller::deregisterForRead( int fd )
 {
 	fdReadHandlers_.erase( fd );
@@ -68,10 +59,7 @@ bool EventPoller::deregisterForRead( int fd )
 	return this->doDeregisterForRead( fd );
 }
 
-
-/**
- *	This method deregisters a file previously registered for writing.
- */
+//-------------------------------------------------------------------------------------
 bool EventPoller::deregisterForWrite( int fd )
 {
 	fdWriteHandlers_.erase( fd );
@@ -79,11 +67,7 @@ bool EventPoller::deregisterForWrite( int fd )
 	return this->doDeregisterForWrite( fd );
 }
 
-
-/**
- *	This method is called when there is data to be read or written on the
- *	input file descriptor.
- */
+//-------------------------------------------------------------------------------------
 bool EventPoller::trigger( int fd, FDHandlers & handlers )
 {
 	FDHandlers::iterator iter = handlers.find( fd );
@@ -98,10 +82,7 @@ bool EventPoller::trigger( int fd, FDHandlers & handlers )
 	return true;
 }
 
-
-/**
- *	This method is called when there is an error on the input file descriptor.
- */
+//-------------------------------------------------------------------------------------
 bool EventPoller::triggerError( int fd )
 {
 	if (!this->triggerRead( fd ))
@@ -112,15 +93,7 @@ bool EventPoller::triggerError( int fd )
 	return true;
 }
 
-
-/**
- *	This method returns whether or not a file descriptor is already registered.
- *	
- *	@param fd The file descriptor to test.
- *	@param isForRead Indicates whether checking for read or write registration.
- *
- *	@return True if registered, otherwise false.
- */
+//-------------------------------------------------------------------------------------
 bool EventPoller::isRegistered( int fd, bool isForRead ) const
 {
 	const FDHandlers & handlers =
@@ -129,11 +102,7 @@ bool EventPoller::isRegistered( int fd, bool isForRead ) const
 	return handlers.find( fd ) != handlers.end();
 }
 
-
-/**
- *	This method overrides the InputNotificationHandler. It is called when there
- *	are events to process.
- */
+//-------------------------------------------------------------------------------------
 int EventPoller::handleInputNotification( int fd )
 {
 
@@ -142,22 +111,13 @@ int EventPoller::handleInputNotification( int fd )
 	return 0;
 }
 
-
-/**
- *	This method returns the file descriptor for this EventPoller or -1 if it
- *	does not have one. For epoll, this is used to register with the parent
- *	EventDispatcher's poller.
- */
+//-------------------------------------------------------------------------------------
 int EventPoller::getFileDescriptor() const
 {
 	return -1;
 }
 
-
-/**
- *	Returns the largest file descriptor present in both the read or write 
- *	handler maps. If neither have entries, -1 is returned.
- */
+//-------------------------------------------------------------------------------------
 int EventPoller::maxFD() const
 {
 	int readMaxFD = EventPoller::maxFD( fdReadHandlers_ );
@@ -165,11 +125,7 @@ int EventPoller::maxFD() const
 	return std::max( readMaxFD, writeMaxFD );
 }
 
-
-/**
- *	Return the largest file descriptor present in the given map. If the given 
- *	map is empty, -1 is returned.
- */
+//-------------------------------------------------------------------------------------
 int EventPoller::maxFD( const FDHandlers & handlerMap )
 {
 	int maxFD = -1;
@@ -186,13 +142,7 @@ int EventPoller::maxFD( const FDHandlers & handlerMap )
 }
 
 
-// -----------------------------------------------------------------------------
-// Section: SelectPoller
-// -----------------------------------------------------------------------------
-
-/**
- *	This class is an EventPoller that uses select.
- */
+//-------------------------------------------------------------------------------------
 class SelectPoller : public EventPoller
 {
 public:
@@ -226,9 +176,7 @@ private:
 };
 
 
-/**
- *	Constructor.
- */
+//-------------------------------------------------------------------------------------
 SelectPoller::SelectPoller() :
 	EventPoller(),
 	fdReadSet_(),
@@ -241,20 +189,13 @@ SelectPoller::SelectPoller() :
 	FD_ZERO( &fdWriteSet_ );
 }
 
-
-/**
- *  This method finds the highest file descriptor in the read and write sets
- *  and writes it to fdLargest_.
- */
+//-------------------------------------------------------------------------------------
 void SelectPoller::updateLargestFileDescriptor()
 {
 	fdLargest_ = this->maxFD();
 }
 
-
-/**
- *  Trigger input notification handlers for ready file descriptors.
- */
+//-------------------------------------------------------------------------------------
 void SelectPoller::handleInputNotifications( int &countReady,
 	fd_set &readFDs, fd_set &writeFDs )
 {
@@ -297,10 +238,7 @@ void SelectPoller::handleInputNotifications( int &countReady,
 #endif
 }
 
-
-/*
- *	Override from EventPoller.
- */
+//-------------------------------------------------------------------------------------
 int SelectPoller::processPendingEvents( double maxWait )
 {
 	fd_set	readFDs;
@@ -357,11 +295,7 @@ int SelectPoller::processPendingEvents( double maxWait )
 	return countReady;
 }
 
-
-/**
- *	This method implements a virtual method from EventPoller to do the real
- *	work of registering a file descriptor for reading.
- */
+//-------------------------------------------------------------------------------------
 bool SelectPoller::doRegisterForRead( int fd )
 {
 #ifndef _WIN32
@@ -389,11 +323,7 @@ bool SelectPoller::doRegisterForRead( int fd )
 	return true;
 }
 
-
-/**
- *	This method implements a virtual method from EventPoller to do the real
- *	work of registering a file descriptor for writing.
- */
+//-------------------------------------------------------------------------------------
 bool SelectPoller::doRegisterForWrite( int fd )
 {
 #ifndef _WIN32
@@ -423,11 +353,7 @@ bool SelectPoller::doRegisterForWrite( int fd )
 	return true;
 }
 
-
-/**
- *	This method implements a virtual method from EventPoller to do the real
- *	work of deregistering a file descriptor for reading.
- */
+//-------------------------------------------------------------------------------------
 bool SelectPoller::doDeregisterForRead( int fd )
 {
 #ifndef _WIN32
@@ -452,11 +378,7 @@ bool SelectPoller::doDeregisterForRead( int fd )
 	return true;
 }
 
-
-/**
- *	This method implements a virtual method from EventPoller to do the real
- *	work of deregistering a file descriptor for reading.
- */
+//-------------------------------------------------------------------------------------
 bool SelectPoller::doDeregisterForWrite( int fd )
 {
 #ifndef _WIN32
@@ -483,11 +405,7 @@ bool SelectPoller::doDeregisterForWrite( int fd )
 }
 
 
-// -----------------------------------------------------------------------------
-// Section: EPoller
-// -----------------------------------------------------------------------------
-
-// TODO: Probably not on the PS3 too.
+//-------------------------------------------------------------------------------------
 #ifdef HAS_EPOLL
 #include <sys/epoll.h>
 
@@ -525,24 +443,18 @@ private:
 	int epfd_;
 };
 
-
-/**
- *	Constructor.
- */
+//-------------------------------------------------------------------------------------
 EPoller::EPoller( int expectedSize ) :
 	epfd_( epoll_create( expectedSize ) )
 {
 	if (epfd_ == -1)
 	{
-		CRITICAL_MSG( "EPoller::EPoller: epoll_create failed: %s\n",
+		ERROR_MSG( "EPoller::EPoller: epoll_create failed: %s\n",
 				strerror( errno ) );
 	}
 };
 
-
-/**
- *	Destructor.
- */
+//-------------------------------------------------------------------------------------
 EPoller::~EPoller()
 {
 	if (epfd_ != -1)
@@ -551,11 +463,7 @@ EPoller::~EPoller()
 	}
 }
 
-
-/**
- *	This method does the work registering and deregistering file descriptors
- *	from the epoll descriptor.
- */
+//-------------------------------------------------------------------------------------
 bool EPoller::doRegister( int fd, bool isRead, bool isRegister )
 {
 	struct epoll_event ev;
@@ -607,10 +515,7 @@ bool EPoller::doRegister( int fd, bool isRead, bool isRegister )
 	return true;
 }
 
-
-/*
- *	Override from EventPoller.
- */
+//-------------------------------------------------------------------------------------
 int EPoller::processPendingEvents( double maxWait )
 {
 	const int MAX_EVENTS = 10;
@@ -623,7 +528,7 @@ int EPoller::processPendingEvents( double maxWait )
 	KBEConcurrency::endMainThreadIdling();
 
 
-	spareTime_ += ::timestamp() - startTime;
+	spareTime_ += timestamp() - startTime;
 
 	for (int i = 0; i < nfds; ++i)
 	{
@@ -650,15 +555,7 @@ int EPoller::processPendingEvents( double maxWait )
 
 #endif // HAS_EPOLL
 
-
-// -----------------------------------------------------------------------------
-// Section: EventPoller::create
-// -----------------------------------------------------------------------------
-
-/**
- *	This static method creates an appropriate EventPoller. It may use select or
- *	epoll.
- */
+//-------------------------------------------------------------------------------------
 EventPoller * EventPoller::create()
 {
 #ifdef HAS_EPOLL

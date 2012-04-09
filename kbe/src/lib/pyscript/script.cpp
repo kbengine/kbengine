@@ -1,8 +1,16 @@
 #include "script.hpp"
 #include "math.hpp"
 #include "pickler.hpp"
+#include "thread/concurrency.hpp"
+
 namespace KBEngine{ 
 namespace script{
+
+#ifndef KBE_SINGLE_THREADED
+static PyObject * s_pOurInitTimeModules;
+static PyThreadState * s_pMainThreadState;
+static PyThreadState* s_defaultContext;
+#endif
 
 //-------------------------------------------------------------------------------------
 Script::Script():
@@ -40,12 +48,19 @@ int Script::Run_SimpleString(std::string command, std::string* retBufferPtr)
 }
 
 //-------------------------------------------------------------------------------------
-bool Script::install(wchar_t* pythonHomeDir, std::wstring pyPaths, const char* moduleName)
+bool Script::install(wchar_t* pythonHomeDir, std::wstring pyPaths, const char* moduleName, COMPONENT_TYPE componentType)
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
 	Py_SetPythonHome(pythonHomeDir);												// 先设置python的环境变量
 #endif
+	// Initialise python
+	// Py_VerboseFlag = 2;
+	Py_FrozenFlag = 1;
 
+	// Warn if tab and spaces are mixed in indentation.
+	// Py_TabcheckFlag = 1;
+	Py_NoSiteFlag = 1;
+	Py_IgnoreEnvironmentFlag = 1;
 	Py_Initialize();                      											// python解释器的初始化  
     if (!Py_IsInitialized())
     {
@@ -76,6 +91,25 @@ bool Script::install(wchar_t* pythonHomeDir, std::wstring pyPaths, const char* m
 	if (m_module_ == NULL)
 		return false;
 	
+	const char* componentName = COMPONENT_NAME[componentType];
+	PyObject* pStr = PyUnicode_FromString(componentName);
+	if (PyObject_SetAttrString(m_module_, "component", pStr) == -1)
+	{
+		ERROR_MSG( "Script::init: Unable to set KBEngine.component to %s\n",
+			componentName );
+	}
+	Py_XDECREF(pStr);
+
+#ifndef KBE_SINGLE_THREADED
+	s_pOurInitTimeModules = PyDict_Copy( PySys_GetObject( "modules" ) );
+	s_pMainThreadState = PyThreadState_Get();
+	s_defaultContext = s_pMainThreadState;
+	PyEval_InitThreads();
+
+	KBEConcurrency::setMainThreadIdleFunctions(
+		&Script::releaseLock, &Script::acquireLock );
+#endif
+
 	ScriptStdOutErr::installScript(NULL);											// 安装py重定向模块
 	ScriptStdOutErrHook::installScript(NULL);
 
@@ -126,6 +160,14 @@ bool Script::uninstall()
 	ScriptStdOutErr::uninstallScript();	
 	ScriptStdOutErrHook::uninstallScript();
 
+#ifndef KBE_SINGLE_THREADED
+	if (s_pOurInitTimeModules != NULL)
+	{
+		Py_DECREF(s_pOurInitTimeModules);
+		s_pOurInitTimeModules = NULL;
+	}
+#endif
+
 	Py_Finalize();																	// 卸载python解释器
 	INFO_MSG("Script::uninstall is successfully!\n");
 	return true;	
@@ -135,6 +177,32 @@ bool Script::uninstall()
 int Script::registerToModule(const char* attrName, PyObject* pyObj)
 {
 	return PyObject_SetAttrString(m_module_, attrName, pyObj);
+}
+
+//-------------------------------------------------------------------------------------
+void Script::acquireLock()
+{
+#ifndef KBE_SINGLE_THREADED
+	if (s_defaultContext == NULL) return;
+
+	//KBE_ASSERT( PyThreadState_Get() != s_defaultContext );
+	// can't do assert above because PyThreadState_Get can't (since 2.4)
+	// be called when the thread state is null - it generates a fatal
+	// error. NULL is what we expect it to be as set by releaseLock anyway...
+	// there doesn't appear to be a good way to assert this here. Oh well.
+	PyEval_RestoreThread( s_defaultContext );
+#endif
+}
+
+//-------------------------------------------------------------------------------------
+void Script::releaseLock()
+{
+#ifndef KBE_SINGLE_THREADED
+	if (s_defaultContext == NULL) return;
+
+	PyThreadState * oldState = PyEval_SaveThread();
+	KBE_ASSERT(oldState == s_defaultContext && "releaseLock: default context is incorrect");
+#endif
 }
 
 //-------------------------------------------------------------------------------------

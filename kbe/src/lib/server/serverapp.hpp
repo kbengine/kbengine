@@ -30,6 +30,7 @@ same license as the rest of the engine.
 #include "cstdkbe/smartpointer.hpp"
 #include "pyscript/pyobject_pointer.hpp"
 #include "entitydef/entitydef.hpp"
+#include "network/event_dispatcher.hpp"
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
@@ -46,9 +47,9 @@ protected:
 	COMPONENT_ID											m_componentID_;									// 本组件的ID
 	KBEngine::script::Script								m_script_;
 	std::vector<PyTypeObject*>								m_scriptBaseTypes_;
-	
+	Mercury::EventDispatcher& 								m_mainDispatcher_;				
 public:
-	ServerApp();
+	ServerApp(Mercury::EventDispatcher& dispatcher, COMPONENT_TYPE componentType);
 	~ServerApp();
 	
 	KBEngine::script::Script& getScript(){ return m_script_; }
@@ -56,9 +57,9 @@ public:
 	void registerScript(PyTypeObject*);
 	int registerPyObjectToScript(const char* attrName, PyObject* pyObj){ return m_script_.registerToModule(attrName, pyObj); };
 
-	bool initialize(COMPONENT_TYPE componentType);
-	virtual bool initializeBegin(COMPONENT_TYPE componentType){return true;};
-	virtual bool initializeEnd(COMPONENT_TYPE componentType){return true;};
+	bool initialize();
+	virtual bool initializeBegin(){return true;};
+	virtual bool initializeEnd(){return true;};
 	void finalise();
 	virtual bool run();
 
@@ -69,6 +70,7 @@ public:
 	bool uninstallPyScript();
 
 	virtual bool loadConfig();
+	const char* name(){return COMPONENT_NAME[m_componentType_];}
 };
 
 }

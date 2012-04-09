@@ -10,7 +10,9 @@ same license as the rest of the engine.
 */
 #ifndef __CSTDKBE__
 #define __CSTDKBE__
-#include "platform.hpp"
+#include "cstdkbe/platform.hpp"
+#include "cstdkbe/singleton.hpp"
+#include "cstdkbe/kbeversion.hpp"
 
 /** 安全的释放一个指针内存 */
 #define SAFE_RELEASE(i)										\

@@ -38,6 +38,7 @@ same license as the rest of the engine.
 #if KBE_PLATFORM == PLATFORM_WIN32
 #include <windows.h>          // for HANDLE
 #include <process.h>          // for _beginthread()	
+#include "cstdkbe/crashhandler.hpp"
 #else
 // linux include
 #include <errno.h>

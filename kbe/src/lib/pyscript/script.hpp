@@ -33,7 +33,7 @@ public:
 	virtual ~Script();
 	
 	/** 安装和卸载脚本模块 */
-	virtual bool install(wchar_t* pythonHomeDir, std::wstring pyPaths, const char* moduleName);
+	virtual bool install(wchar_t* pythonHomeDir, std::wstring pyPaths, const char* moduleName, COMPONENT_TYPE componentType);
 	virtual bool uninstall(void);
 	
 	/** 获取脚本基础模块 */
@@ -43,7 +43,11 @@ public:
 
 
 	int registerToModule(const char* attrName, PyObject* pyObj);
-
+	
+	void initThread( bool plusOwnInterpreter = false );
+	void finiThread( bool plusOwnInterpreter = false );
+	static void acquireLock();
+	static void releaseLock();
 protected:
 	PyObject* 					m_module_;
 	ScriptStdOutErr*			m_pyStdouterr_;

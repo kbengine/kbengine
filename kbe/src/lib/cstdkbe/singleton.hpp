@@ -24,7 +24,7 @@ same license as the rest of the engine.
 #endif // _MSC_VER > 1000
 
 // common include
-#include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/platform.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>	

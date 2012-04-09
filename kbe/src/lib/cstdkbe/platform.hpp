@@ -18,6 +18,7 @@ same license as the rest of the engine.
 #include <math.h>
 #include <assert.h> 
 #include <iostream>  
+#include <sstream>
 #include <string>  
 #include <cstring>  
 #include <vector>

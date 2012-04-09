@@ -2,7 +2,8 @@ LIB =	server
 
 SRCS =				\
 	serverapp		\
-	serverconfig
+	serverconfig		\
+	serverinfos
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))
