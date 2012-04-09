@@ -1,0 +1,660 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
+    <style title="Visual Leak Detector" type="text/css" media="screen,print">
+        body {
+            margin: 0;
+            font-family: verdana, sans-serif;
+        }
+
+        #masthead {
+            border-width: 0 0 1px 0;
+            border-style: solid;
+            border-color: #808080;
+            background-color: #3569cc;
+        }
+
+        #content {
+            margin: 1em 1em 1em 1em;
+            font-size: 10pt;
+        }
+
+        #toc {
+            float: right;
+            background-color: #ffeda5;
+        }
+
+        h1 {
+            margin: 0 0 0 0;
+            padding: 0.5em 1em 0 1em;
+            text-align: right;
+            font-size: 24pt;
+            font-family: arial, sans-serif;
+            color: #ffffff;
+        }
+
+        h2 {
+            margin-top: 0;
+            border-width: 2px;
+            border-style: solid;
+            border-color: #3569cc;
+            padding-left: 1em;
+            font-size: 16pt;
+            font-family: trebuchet ms, sans-serif;
+            letter-spacing: -1pt;
+            background-color: #6599fc;
+        }
+
+        h3 {
+            font-size: 11pt;
+        }
+
+        li {
+            margin-bottom: 1em;
+        }
+
+        #toc h2 {
+            margin: 0;
+            border-width: 2px 2px 2px 0;
+            border-style: solid;
+            border-color: #6599fc;
+            text-align: center;
+            color: #ffffff;
+            background-color: #3569cc;
+        }
+
+        #toc ul {
+            margin-left: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        #toc li {
+            margin: 1em;
+        }
+
+        a {
+            color: #0000ff;
+            text-decoration:none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        a:visited {
+            color: #0000ff;
+        }
+
+        .preprocessor {
+            font-size: 10pt;
+            font-weight: bold;
+        }
+
+        .api {
+            font-size: 12pt;
+            font-weight: bold;
+        }
+
+        .code {
+            font-family: courier new, monospace;
+            background-color: #e0e0e0;
+        }
+
+        .filename, .operator, .function {
+            font-style: italic;
+        }
+
+        .note {
+            margin-left: 2em;
+        }
+
+        #slogan {
+            margin-bottom: 0;
+            padding: 0 1em 1em 1em;
+            border-width: 0 0 1px 0;
+            border-style: solid;
+            border-color: #404040;
+            text-align: right;
+            font-size: larger;
+            font-style: italic;
+            color: #6599fc;
+        }
+
+        #copyright {
+            text-align: right;
+            font-family: georgia, serif;
+            color: #808080;
+        }
+
+        #compliance {
+            text-align: right;
+        }
+
+        #compliance img {
+            border: 0;
+        }
+
+    </style>
+    <title>Visual Leak Detector</title>
+</head>
+
+
+
+
+<body>
+
+<div id="masthead">
+
+<h1>Visual&nbsp;Leak&nbsp;Detector&nbsp;1.0</h1>
+
+<p id="slogan">Enhanced Memory Leak Detection for Visual&nbsp;C++</p>
+
+</div> <!-- #masthead -->
+
+
+
+
+<div id="content">
+
+<div id="toc">
+
+<h2>Table of Contents</h2>
+
+<ul>
+    <li><a href="#intro">Introduction</a></li>
+
+    <li><a href="#use">Using Visual&nbsp;Leak&nbsp;Detector</a></li>
+
+    <li><a href="#configure">Configuration Options</a></li>
+
+    <li><a href="#control">Controlling Leak Detection at Runtime</a></li>
+
+    <li><a href="#dlls">Detecting Leaks in DLLs</a></li>
+
+    <li><a href="#build">Building Visual&nbsp;Leak&nbsp;Detector from Source</a></li>
+
+    <li><a href="#x64">Windows x64 Support</a></li>
+
+    <li><a href="#faq">Frequently Asked Questions</a></li>
+
+    <li><a href="#restrictions">Known Restrictions</a></li>
+
+    <li><a href="#license">License</a></li>
+
+    <li><a href="#contact">Contacting the Author</a></li>
+</ul>
+
+</div> <!-- #toc -->
+
+
+
+
+<h2 id="intro">Introduction</h2>
+
+<p>Visual&nbsp;C++ provides built-in memory leak detection, but its capabilities are minimal at best. This memory leak detector was
+   created as a free alternative to the built-in memory leak detector provided with Visual&nbsp;C++. Here are some of
+   Visual&nbsp;Leak&nbsp;Detector's features, none of which exist in the built-in detector:</p>
+
+<ul>
+    <li>Provides a complete stack trace for each leaked block, including source file and line number information when
+        available.</li>
+
+    <li>Provides complete data dumps (in hex and ASCII) of leaked blocks.</li>
+
+    <li>Customizable level of detail in the memory leak report.</li>
+</ul>
+
+<p>Other after-market leak detectors for Visual&nbsp;C++ are already available. But most of the really popular ones, like Purify and
+   BoundsChecker, are very expensive. A few free alternatives exist, but they're often too intrusive, restrictive, or unreliable.
+   Here's some key advantages that Visual&nbsp;Leak&nbsp;Detector has over many other free alternatives:</p>
+
+<ul>
+    <li>Visual&nbsp;Leak&nbsp;Detector is cleanly packaged as an easy-to-use library. You don't need to compile its source code to
+        use it. And you only need to make minor additions to your own source code to integrate it with your program.</li>
+
+    <li>In addition to providing stack traces with source files, line numbers, and function names, Visual&nbsp;Leak&nbsp;Detector
+        also provides data dumps.</li>
+
+    <li>It works with both C++ and C programs (compatible with both
+        <span class="operator">new</span>/<span class="operator">delete</span> and
+        <span class="function">malloc</span>/<span class="function">free</span>).</li>
+
+    <li>The full source code to the library is included and it is well documented, so it is easy to customize it to suit your
+        needs.</li>
+</ul>
+
+<p>Visual Leak Detector is <a href="#license">licensed</a> free of charge as a service to the Windows developer community. If you
+   find it to be useful and would like to just say "Thanks!", or you think it stinks and would like to say "This thing sucks!",
+   please feel free to <a href="mailto:dmoulding@gmail.com">drop me a note</a>. Or, if you'd prefer, you can
+   <a href="#contact">contribute a small donation</a>. Both are very appreciated.</p>
+
+
+<h2 id="use">Using Visual&nbsp;Leak&nbsp;Detector</h2>
+
+<p>This section briefly describes the basics of using Visual&nbsp;Leak&nbsp;Detector (VLD). If your project contains DLLs that you'd
+   like to also check for memory leaks, please see <a href="#dlls">Detecting Leaks in DLLs</a>.</p>
+
+<p>To use VLD with your project, follow these simple steps:</p>
+
+<ol>
+    <li>Copy the VLD library (<span class="filename">*.lib</span>) files to your Visual&nbsp;C++ installation's "lib"
+        subdirectory.</li>
+
+    <li>Copy the VLD header files (<span class="filename">vld.h</span> and <span class="filename">vldapi.h</span>) to your
+        Visual&nbsp;C++ installation's "include" subdirectory.</li>
+
+    <li>In the source file containing your program's main entry point, include the <span class="filename">vld.h</span> header file.
+        It's best, but not absolutely required, to include this header before any other header files, except for
+        <span class="filename">stdafx.h</span>. If the source file includes <span class="filename">stdafx.h</span>, then
+        <span class="filename">vld.h</span> should be included after it.</li>
+
+    <li>If you are running Windows 2000 or earlier, then you will need to copy <span class="filename">dbghelp.dll</span> to the
+        directory where the executable being debugged resides.</li>
+
+    <li>Build the debug version of your project.</li>
+</ol>
+
+<p>VLD will detect memory leaks in your program whenever you run the debug version under the Visual&nbsp;C++ debugger. A report of
+   all the memory leaks detected will be displayed in the debugger's output window when your program exits. Double-clicking on a
+   source file's line number in the memory leak report will take you to that file and line in the editor window, allowing easy
+   navigation of the code path leading up to the allocation that resulted in a memory leak.</p>
+
+<p class="note"><strong>Note:</strong> When you build release versions of your program, VLD will not be linked into the executable.
+   So it is safe to leave <span class="filename">vld.h</span> included in your source files when doing release builds. Doing so will
+   not result in any performance degradation or any other undesirable overhead.</p>
+
+
+
+
+<h2 id="configure">Configuration Options</h2>
+
+<p>There are a few optional preprocessor macros that you can define to control certain aspects of VLD's operation, including the
+   level of detail provided in the memory leak report:</p>
+
+<dl>
+    <dt class="preprocessor">VLD_AGGREGATE_DUPLICATES</dt>
+    <dd>
+        <p>Normally, VLD displays each individual leaked block in detail. Defining this macro will make VLD aggregate all leaks that
+        share the same size and call stack under a single entry in the memory leak report. Only the first leaked block will be
+        reported in detail. No other identical leaks will be displayed. Instead, a tally showing the total number of leaks matching
+        that size and call stack will be shown. This can be useful if there are only a few sources of leaks, but those few sources
+        are repeatedly leaking a very large number of memory blocks.</p>
+    </dd>
+
+    <dt class="preprocessor">VLD_MAX_TRACE_FRAMES</dt>
+    <dd>
+        <p>By default, VLD will trace the call stack for each allocated block as far back as possible. Each frame traced adds
+        additional overhead (in both CPU time and memory usage) to your debug executable. If you'd like to limit this overhead, you
+        can define this macro to an integer value. The stack trace will stop when it has traced this number of frames. The frame
+        count includes the "useless" frames which, by default, are not displayed in the debugger's output window (see
+        VLD_SHOW_USELESS_FRAMES below). Usually, there will be about five or six "useless" frames at the beginning of the call
+        stack. Keep this in mind when using this macro, or you may not see the number of frames you expect.</p>
+    </dd>
+
+    <dt class="preprocessor">VLD_MAX_DATA_DUMP</dt>
+    <dd>
+        <p>Define this macro to an integer value to limit the amount of data displayed in memory block data dumps. When this number of
+        bytes of data has been dumped, the dump will stop. This can be useful if any of the leaked blocks are very large and the
+        debugger's output window becomes too cluttered. You can define this macro to 0 (zero) if you want to suppress data dumps
+        altogether.</p>
+    </dd>
+
+    <dt class="preprocessor">VLD_SELF_TEST</dt>
+    <dd>
+        <p>VLD has the ability to check itself for memory leaks. This feature is always active. Every time you run VLD, in addition
+           to checking your own program for memory leaks, it is also checking itself for leaks. Defining this macro forces VLD to
+           intentionally leak a small amount of memory: a 21-byte block filled with the text "Memory Leak Self-Test". This provides
+           a way to test VLD's ability to check itself for memory leaks and verify that this capability is working correctly.
+           This macro is usually only useful for debugging VLD itself.</p>
+    </dd>
+
+    <dt class="preprocessor">VLD_SHOW_USELESS_FRAMES</dt>
+    <dd>
+        <p>By default, only "useful" frames are printed in the call stacks. Frames that are internal to the heap or VLD are not shown.
+        Define this to force all frames of the call stacks to be printed. This macro is usually only useful for debugging VLD
+        itself.</p>
+    </dd>
+
+    <dt class="preprocessor">VLD_START_DISABLED</dt>
+    <dd>
+        <p>Define this macro to disable memory leak detection initially. This can be useful if you need to be able to selectively
+           enable memory leak detection from runtime, without needing to rebuild the executable; however, this macro should be used
+           with caution. Any memory leaks that may occur before memory leak detection is enabled at runtime will go undetected. For
+           example, if the constructor of some global variable allocates memory before execution reaches a subsequent call to
+           <span class="function">VLDEnable</span>, then VLD will not be able to detect if the memory allocated by the global
+           variable is never freed. Refer to the following section on <a href="#control">controlling leak detection at runtime</a>
+           for details on using the runtime APIs which can be useful in conjunction with this preprocessor macro.</p>
+    </dd>
+</dl>
+
+
+
+
+<h2 id="control">Controlling Leak Detection at Runtime</h2>
+
+<p>Using the default configuration, VLD's memory leak detection will be enabled during the entire run of your program. In certain
+   scenarios it may be desirable to selectively disable memory leak detection in certain segments of your code. VLD provides simple
+   APIs for controlling the state of memory leak detection at runtime. To access these APIs, include
+   <span class="filename">vldapi.h</span> in your source file. These APIs are described here in detail:</p>
+
+<dl>
+    <dt class="api">VLDDisable</dt>
+    <dd>
+        <p>This function disables memory leak detection. After calling this function, memory leak detection will remain disabled
+           until it is explicitly re-enabled via a call to VLDEnable.</p>
+
+        <p class="code">void VLDDisable (void);</p>
+
+        <h3>Arguments:</h3>
+
+        <p>This function accepts no arguments.</p>
+
+        <h3>Return Value:</h3>
+
+        <p>None (this function always succeeds).</p>
+
+        <h3>Notes:</h3>
+
+        <p>This function controls memory leak detection on a per-thread basis. In other words, calling this function disables
+           memory leak detection for only the thread that called the function. Memory leak detection will remain enabled for any
+           other threads in the same process. This insulates the programmer from having to synchronize multiple threads that
+           disable and enable memory leak detection. However, note also that this means that in order to disable memory leak
+           detection process-wide, this function must be called from every thread in the process.</p>
+    </dd>
+
+
+    <dt class="api">VLDEnable</dt>
+    <dd>
+        <p>This function enables memory leak detection if it was previously disabled. After calling this function, memory leak
+           detection will remain enabled unless it is explicitly disabled again via a call to VLDDisable().</p>
+
+        <p class="code">void VLDEnable (void);</p>
+
+        <h3>Arguments:</h3>
+
+        <p>This function accepts no arguments.</p>
+
+        <h3>Return Value:</h3>
+
+        <p>None (this function always succeeds).</p>
+
+        <h3>Notes:</h3>
+
+        <p>This function controls memory leak detection on a per-thread basis. See the remarks for
+           <span class="function">VLDDisable</span> regarding multithreading and memory leak detection for details. Those same
+           concepts also apply to this function.</p>
+    </dd>
+</dl>
+
+
+
+
+<h2 id="dlls">Detecting Leaks in DLLs</h2>
+
+<p>VLD is capable of detecting memory leaks in DLLs. But DLLs can present special situations that need to be carefully considered to
+   ensure that VLD can properly do its job. When using DLLs, you will have more than one module. Each DLL is a module and the main
+   executable is also a module. VLD should be linked with only one module per process. So the question is: which module should VLD
+   be linked with? The answer will depend on whether your DLLs are load-time linked or run-time linked. <em>The general rule of
+   thumb is that VLD should always be linked with the module that is initialized first.</em></p>
+
+<h3>Load-Time Dynamic Linking</h3>
+
+<p>This is probably the most commonly used way to link with DLLs. If your program doesn't use
+   <span class="function">LoadLibrary</span> to load your DLL, then this is the type of dynamic linking your program uses. With this
+   form of linking, the DLL is initialized before the program's main executable. Therefore, the DLL is the first module to be
+   initialized and VLD should be linked with the DLL. Include <span class="filename">vld.h</span> in the main source file for the
+   DLL.</p>
+
+<p>Of course, there will most likely be several system DLLs that are loaded before any of your own DLLs. You don't need to worry
+   about linking VLD with those DLLs, because those DLLs are not being checked for memory leaks. Only your own DLLs will be checked
+   for leaks so VLD only needs to be linked with the first DLL <em>of your own</em> which is loaded first.</p>
+
+<p>As was mentioned earlier, you should only link VLD with <em>one</em> module. In almost all situations, linking VLD with just one
+   module that will be loaded in a given process will enable VLD to detect memory leaks in all other modules loaded in the same
+   process. This means that if your program links with several load-time DLLs, you only need to link with one of them -- the one
+   that is loaded first. This rule also applies if a mix of load-time linked and run-time linked DLLs are used.</p>
+
+<p>One obvious question all of this gives rise to is: which DLL will load first and how will you know? That is a difficult question
+   to answer. Because DLL dependencies can be circular, there is no guaranteed way to determine DLL load order. It is entirely up to
+   the DLL loader and any seemingly innocuous change can alter the order that DLLs are loaded. But in general, DLLs that are
+   dependencies of many other DLLs will probably be loaded sooner rather than later. If you just want to know which DLL is loaded
+   first with your project, run it under the Visual&nbsp;C++ debugger. It will display a list of all the DLLs that are loaded and in
+   which order. But be aware that changes to the project might unexpectedly change the DLL load order.</p>
+
+<h3>Runtime Dynamic Linking</h3>
+
+<p>You know you're using this type of dynamic linking if your program calls <span class="function">LoadLibrary</span> to load your
+   DLL. With this type of dynamic linking, the DLL is not initialized until <span class="function">LoadLibrary</span> is called.
+   Therefore, if all of your DLLs are runtime linked, then the main executable is the first module to be initialized and VLD should
+   be linked with the main executable. Include <span class="filename">vld.h</span> in the main source file for the main
+   executable.</p>
+
+<h3>Using DLLs and the Static C Runtime Libraries</h3>
+
+<p>This refers to using DLLs in conjunction with the /ML or /MT compiler options. If you do this, then there are some things you
+   should be aware of. This creates more than one copy of the CRT in the same process. There are many things that you cannot do
+   across CRT boundaries. For example, you can't allocate memory in one CRT instance and free it in another. This isolation of CRT
+   instances has important ramifications for VLD. VLD can normally only monitor memory allocations from a single CRT instance. If
+   there are two CRTs in the same process then a single instance of VLD can only detect memory leaks in one of the CRT instances
+   (even though both exist in the same process). If you want to be able to detect memory leaks in two instances of the CRT, then
+   you'll need two instances of VLD -- one for each CRT instance. To do this, link VLD with both the main executable (where one of
+   the CRT instances resides) and one of the DLLs (usually all DLLs will share one instance of the CRT). The same rules from above
+   apply when deciding which DLL to link with. The downside to this is that each instance of VLD will generate its own memory leak
+   report.</p>
+
+
+
+
+<h2 id="build">Building Visual&nbsp;Leak&nbsp;Detector from Source</h2>
+
+<p>Because Visual&nbsp;Leak&nbsp;Detector is open source, the libraries can be built from source if you want to tweak them to your
+   liking. The hardest part about building the VLD libraries from source is getting your build environment correctly set up. But if
+   you follow these instructions carefully, the  process should be fairly painless.</p>
+
+<ol>
+    <li>VLD depends on the Debug Help library header file, <span class="filename">dbghelp.h</span>. This header file won't exist
+        unless you have a recent Platform&nbsp;SDK installed. If you don't see <span class="filename">dbghelp.h</span> in your
+        Platform&nbsp;SDK's "include" directory, then you probably need to
+        <a href="http://www.microsoft.com/msdownload/platformsdk/sdkupdate/">update your Platform&nbsp;SDK</a>.</li>
+
+    <li>Visual&nbsp;C++ will need to be made aware of where it can find the Debug Help library header file. If you have not done so
+        already, add the "include" subdirectory from the Platform&nbsp;SDK installation directory to the include search path in
+        Visual&nbsp;C++:
+        <ul>
+            <li><strong>Visual&nbsp;C++ 7</strong>: Go to Project Properties -> C/C++ -> General -> Additional Include Directories and
+                add the "include" subdirectory from the Platform&nbsp;SDK. Make sure it's at the top of the list.</li>
+
+            <li><strong>Visual&nbsp;C++ 6</strong>: Go to Tools -> Options -> Directories. Select "Include files" from the "Show
+                Directories For" drop-down menu. Add the "include" subdirectory from the Platform&nbsp;SDK. Make sure it's at the top of
+                the list.</li>
+        </ul>
+	</li>
+
+    <li>VLD also depends on two other header files (<span class="filename">dbgint.h</span> and
+        <span class="filename">mtdll.h</span>) that will only be installed if you elected to install the CRT source files when you
+        installed Visual&nbsp;C++. If you didn't install the CRT sources, you'll need to re-run the Visual&nbsp;C++ installer and
+        install them. If you are not sure whether you installed the CRT sources when you installed Visual&nbsp;C++, check to see if
+        <span class="filename">dbgint.h</span> and <span class="filename">mtdll.h</span> exist in the "CRT\src" subdirectory of your
+        Visual&nbsp;C++ installation directory. If those files are missing, or you don't have a "CRT\src" directory, then chances
+        are you need to re-install Visual&nbsp;C++ with the CRT sources selected.</li>
+
+    <li>Make sure that your Visual&nbsp;C++ installation's "CRT\src" subdirectory is in the include search path. Refer to step 2 for
+        instructions on how to add directories to the include search path. The "CRT\src" subdirectory should go after the default
+        include directory. To summarize, your include search path should look like this:
+        <ul>
+            <li>C:\Program&nbsp;Files\Microsoft&nbsp;Platform&nbsp;SDK\Include</li>
+
+            <li>C:\Program&nbsp;Files\Microsoft&nbsp;Visual&nbsp;Studio\VCx\Include</li>
+
+            <li>C:\Program&nbsp;Files\Microsoft&nbsp;Visual&nbsp;Studio\CRT\src</li>
+        </ul>
+
+        <p>In the above example, "VCx" would be "VC7" for Visual&nbsp;Studio&nbsp;.NET or "VC98" for Visual&nbsp;Studio&nbsp;6.0. Also,
+           the name of your Platform&nbsp;SDK directory might be different from the example depending on which version of the
+           Platform&nbsp;SDK you have installed.</p>
+    </li>
+</ol>
+
+<p>Once you've completed all of the above steps, your build environment should be ready. To build VLD, just open the
+   <span class="filename">vld.dsp</span> project and do a batch build to build all six of the configurations:</p>
+
+<ul>
+    <li>The three debug configurations are for building versions of the library that have debugging information so that VLD itself
+        can be conveniently debugged.</li>
+
+    <li>The three release configurations build the library for use in debugging other programs.</li>
+
+    <li>There are three configurations each: one for each method of linking with the C runtime library (single-threaded static,
+        multithreaded static, and multithreaded DLL). When linking the VLD library against a program, the
+        <span class="filename">vld.h</span> header file detects how the program is linking to the C runtime library and selects the
+        appropriate VLD library from the three possible choices.</li>
+</ul>
+
+<p class="note"><strong>Note:</strong> The "release" builds of the VLD libraries are not like typical release builds. Despite the
+   "release" name, they are actually meant to be linked only to debug builds of your own programs. When doing release builds of your
+   programs, VLD will not be linked to them at all. In the context of VLD, "release" simply means the versions that are optimized
+   and have the symbols stripped from them (to make the libraries smaller). They are the versions of the libraries that are included
+   in the release of VLD itself (hence the "release" name). So when you are building the release libraries, you're really building
+   the same libraries that are included in the main VLD distribution. The "debug" builds of VLD are strictly for debugging VLD
+   itself (e.g. if you want to modify it or if you need to fix a bug in it).</p>
+
+
+
+
+<h2 id="x64">Windows x64 Support</h2>
+
+<p>The VLD source code has been modified to add support for x64-based 64-bit Windows. However, the binaries contained in the
+   distributed versions of VLD are 32-bit only. To take advantage of the 64-bit support, you'll need to build 64-bit versions of the
+   libraries from source. To build the 64-bit versions, follow the instructions for <a href="#build">building VLD from source</a>.
+   So long as they are built using a x64-compatible compiler in 64-bit mode, the resulting libraries will be 64-bit libraries.</p>
+
+<p class="note"><strong>Note:</strong> I have not personally tested the 64-bit extensions so they are not absolutely guaranteed to
+   work out-of-the-box. There may be a few lingering 64-bit compiler errors that still need to be worked out. If you need 64-bit
+   support and run into problems trying to build the source in 64-bit mode, please
+   <a href="mailto:dmoulding@gmail.com">let me know</a>. I'll be glad to assist in getting the 64-bit code working properly.</p>
+
+
+
+
+<h2 id="faq">Frequently Asked Questions</h2>
+
+<dl>
+    <dt>When running my program with VLD linked to it I get an error message saying, "the procedure entry point SymFromAddr could
+        not be located in the dynamic link library dbghelp.dll".</dt>
+    <dd>
+        <p>This typically only happens on Windows 2000. It will happen if the Debug Help Library is out-of-date. Copy the included
+           version of <span class="filename">dbghelp.dll</span> (version 6.3) to the directory where the executable you are
+           debugging resides. If <span class="filename">dbghelp.dll</span> is missing for some reason, you can get it by installing
+           <a href="http://www.microsoft.com/whdc/devtools/debugging/default.mspx">Debugging Tools for Windows</a>. I recommend
+           installing version 6.3.</p>
+    </dd>
+
+    <dt>When building VLD from source, I get the fatal error "C1189: #error :  ERROR: Use of C runtime library internal header
+        file." in either the file stdio.h or in the file assert.h (or possibly in some other standard header file).</dt>
+    <dd>
+        <p>Visual&nbsp;C++ is including the wrong copies of the standard headers. Be sure that the "CRT\src" subdirectory of your
+           Visual&nbsp;C++ installation directory is listed <em>after</em> the "include" subdirectory in Visual&nbsp;C++'s include
+           search path.</p>
+    </dd>
+
+    <dt>When building VLD from source, I get Compile Error C1083: "Cannot open include file: 'dbgint.h': No such file or
+        directory"</dt>
+    <dd>
+        <p>This will happen if the CRT source files are not installed. These are an optional part of the installation when you first
+           install Visual&nbsp;C++. Re-run the Visual&nbsp;C++ installation, if needed, to install them. If the CRT sources are
+           already installed, make sure the "CRT\src" subdirectory of the Visual&nbsp;C++ installation directory is in
+           Visual&nbsp;C++'s include search path.</p>
+    </dd>
+
+    <dt>Is Visual&nbsp;Leak&nbsp;Detector compatible with platforms other than Microsoft Windows?</dt>
+    <dd>
+        <p>No. It is designed specifically for use with Visual&nbsp;C++, and it depends on heap debugging functions found only in
+           Microsoft's C runtime library. It's called <em>Visual</em> Leak Detector for a reason.</p>
+    </dd>
+</dl>
+
+
+
+
+<h2 id="restrictions">Known Restrictions</h2>
+
+<p>Known restrictions in the current version of VLD, as of the time of this writing, include:</p>
+
+<ul>
+    <li>VLD does not detect COM leaks, out-of-process resource leaks, or any other types of memory leaks that are not associated
+        with the CRT heap. In simpler terms, VLD only detects memory leaks that are the result of calls to
+        <span class="function">new</span> or <span class="function">malloc</span>.</li>
+
+    <li>VLD is not compatible with version 6.5 of the Debug Help library (<span class="filename">dbghelp.dll</span>). The
+        recommended version of <span class="filename">dbghelp.dll</span> to use with VLD is 6.3. Version 6.3 is included in the VLD
+        distribution.</li>
+
+    <li>The pre-compiled libraries included in the VLD distribution may not be compatible with Visual&nbsp;Studio&nbsp;2005. If you
+        need to use VLD with Visual&nbsp;Studio&nbsp;2005, <a href="#build">building VLD from source</a> in
+        Visual&nbsp;Studio&nbsp;2005 should create compatible libraries.</li>
+</ul>
+
+
+
+
+<h2 id="license">License</h2>
+
+<p>Visual&nbsp;Leak&nbsp;Detector is distributed under the terms of the <a href="http://www.gnu.org/copyleft/lesser.html">GNU Lesser
+   General Public License</a>. See the <span class="filename"><a href="COPYING.txt">COPYING.txt</a></span> file for details.</p>
+
+<p>The Debug Help Library (<span class="filename">dbghelp.dll</span>) distributed with this software is not part of
+   Visual&nbsp;Leak&nbsp;Detector and is not covered under the terms of the GNU Lesser General Public License. It is a separately
+   copyrighted work of Microsoft Corporation. Microsoft reserves all its rights to its copyright in the Debug Help Library. Neither
+   your use of the Visual&nbsp;Leak&nbsp;Detector software, nor your license under the GNU Lesser General Public license grant you
+   any rights to use the Debug Help Library in <strong>ANY WAY</strong> (for example, redistributing it) that would infringe upon
+   Microsoft Corporation's copyright in the Debug Help Library.</p>
+
+<h3>NO WARRANTY</h3>
+
+<p>BECAUSE VISUAL LEAK DETECTOR ("THE SOFTWARE") IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY FOR THE SOFTWARE, TO THE EXTENT
+   PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE
+   SOFTWARE "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+   OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS
+   WITH YOU. SHOULD THE SOFTWARE PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.</p>
+
+<p>IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY
+   MODIFY AND/OR REDISTRIBUTE THE SOFTWARE AS PERMITTED BY THE LICENSING TERMS SET FORTH ABOVE, BE LIABLE TO YOU FOR DAMAGES,
+   INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE SOFTWARE
+   (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A
+   FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER SOFTWARE), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
+   POSSIBILITY OF SUCH DAMAGES.</p>
+
+
+
+
+<h2 id="contact">Contacting the Author</h2>
+
+<p>Please forward any bug reports, questions, comments or suggestions to me at
+<a href="mailto:dmoulding@gmail.com">dmoulding@gmail.com.</a></p>
+
+<p>Donations to help support ongoing development of Visual Leak Detector are very appreciated!</p>
+
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+    <div>
+    <input type="hidden" name="cmd" value="_s-xclick" />
+    <input type="image" src="https://www.paypal.com/en_US/i/btn/x-click-but21.gif" name="submit" alt="Make payments with PayPal - it's fast, free and secure!" />
+    <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----" />
+    </div>
+</form>
+
+<p id="compliance">
+    <a href="http://validator.w3.org/check?uri=referer"><img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0!" height="31" width="88" /></a>
+    <a href="http://jigsaw.w3.org/css-validator/check/referer"><img id="valid-css" src="http://jigsaw.w3.org/css-validator/images/vcss" alt="Valid CSS!" /></a>
+</p>
+
+<p id="copyright">Copyright &copy; 2005 Dan Moulding</p>
+
+</div> <!-- #content -->
+
+</body>
+
+</html>

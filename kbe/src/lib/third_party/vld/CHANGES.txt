@@ -1,0 +1,195 @@
+Visual Leak Detector (VLD) Version 1.0
+
+  Change Log / Release Notes
+
+
+1.0 (5 August 2005)
+-------------------
+  New Features/Enhancements:
+  + Memory leak detection can now be selectively disabled and enabled at
+    runtime, using provided APIs. This provides a straight-forward way of
+    allowing VLD to selectively "ignore" certain allocations. It can also be
+    used to disable VLD altogether at runtime, improving application performance
+    without needing to recompile.
+
+  + If there are multiple identical memory leaks (i.e. leaks that originate from
+    the same call stack and that leak the same size memory block) then VLD can
+    optionally aggregate all of the repeated leaks, showing only the first such
+    leaked block in detail in the memory leak report. A tally of the total
+    number of leaks that match that particular size and call stack accompanies
+    the information for that leak.
+
+  + When VLD is initialized at program startup, the library type which was
+    linked-in is displayed. This can help verify that the expected VLD library
+    (either single-threaded static, multithreaded static, or multithreaded DLL)
+    is being linked with your program.
+
+  + The Visual Leak Detector name is displayed on most messages output to the
+    debugger to easily differentiate VLD's output from the output produced by
+    the built-in memory leak detector.
+
+  + If any of the compile-time configuration options have been changed from
+    their default values, then the current state of the option is displayed in
+    the debugger when VLD is initialized.
+
+  + VLD's memory leak self-checking capability (checking for leaks in VLD
+    itself) can be verified using a new preprocessor macro that allows VLD to
+    perform a self-test at runtime.
+
+  Bugs Fixed:
+  + If the MFC libraries are statically linked to the program being debugged,
+    then MFC will erroneously report memory leaks in the Visual Leak Detector
+    code and may cause an access violation while attempting to report the false
+    memory leaks. These bogus leaks are always reported as "client block at
+    <address>, subtype bf42" and are claimed to be "invalid objects".
+
+  + VLD will leak a fixed-sized block of memory when the program exits if VLD
+    failed to initialize because the Debug Help library (dbghelp.dll) could not
+    be loaded.
+
+  + In multithreaded programs, if the program's main thread terminates before
+    other threads in the same process, then VLD may cause an access violation
+    while freeing resources used internally by VLD.
+
+
+0.9i (30 April 2005)
+--------------------
+  New Features/Enhancements:
+  + Added support in the source code for x64 architecture. The pre-built
+    libraries will continue to support 32-bit only. If you need 64-bit support
+    you'll need to build 64-bit versions of the libraries from source. Note that
+    x64 is the only 64-bit architecture supported at this time. Itanium (aka
+    IA-64) is NOT currently supported.
+
+  Bugs Fixed:
+  + VLD does not report memory leaks that are the result of a failure to free
+    memory allocated via a call to realloc().
+  + In multithreaded programs, if the program's main thread terminates before
+    other threads in the same process, then VLD may cause an access violation
+    while checking for memory leaks.
+  + If VLD cannot find the source file and line number information for a program
+    address, the last known file and line number will be repeated in the call
+    stack section of the memory leak report. The correct behavior should be for
+    VLD to print "File and line number not available" for that call stack entry.
+
+
+0.9h (22 April 2005)
+--------------------
+  Bugs Fixed:
+  + Access Violations occur at random places within the VLD code when using
+    VLD version 0.9g.
+  + When using VLD version 0.9g, VLD may fail to report some memory leaks.
+
+
+0.9g (22 April 2005)
+--------------------
+  New Features/Enhancements:
+  + Replaced the temporary internal search algorithm with a permanent search
+    algorithm that is much faster. Programs that dynamically allocate a large
+    number of memory blocks (tens of thousands or more) will see the most
+    significant performance boost from this version of VLD versus the previous
+    version. Overall, this is the fastest version of VLD released to date.
+
+
+0.9f (13 April 2005)
+--------------------
+  New Features/Enhancements:
+  + Changed the internal search algorithm to a temporary simpler, but
+    more stable algorithm. A permanent algorithm which should be much
+    more efficient will be in a forthcoming release.
+
+  Bugs Fixed:
+  + Access Violation at line 319 in vldutil.cpp may occur when running a
+    program linked with the VLD library.
+
+
+0.9e (12 April 2005)
+--------------------
+  New Features/Enhancements:
+  + VLD no longer uses any STL containers or STL strings. This solves all of the
+    compatibility problems with Visual Studio .NET when using the pre-built
+    VLD libraries.
+
+  + The configuration preprocessor macros now work with C programs without the
+    need to call VLDConfigure from within the program being debugged.
+    Because VLDConfigure is now obsolete, it has been removed.
+
+  + One new source file (vldutil.cpp) and one new header (vldutil.h) have been
+    added. They contain utility functions and utility classes that replace
+    functionality previously performed by STL containers and strings.
+
+  + The VisualLeakDetector global class object is now constructed at C runtime
+    initialization (i.e. it resides in the "compiler" initialization area).
+    Because VLD no longer uses any STL components, there is no longer the risk
+    that VLD will conflict with any STL libraries that also are constructed at
+    C runtime initialization. The end result is that VLD starts running earlier
+    and is destroyed later, which leads to more accurate leak detection.
+
+  Bugs Fixed:
+  + Linking to the VLD 0.9d libraries from the VLD distribution under Visual
+    Studio .NET results in a number of linker "unresolved external symbol"
+    errors. Unresolved symbols include "__declspec(dllimport) void __cdecl
+    std::_Xran(void)" and "__declspec(dllimport) private: void __thiscall
+    std::basic_string,class std::allocator >::_Eos(unsigned int)", among others.
+
+  + Call stacks do not appear in the memory leak report when linking against
+    release VLD libraries built from source with Visual Studio .NET.
+
+  + If the preprocessor macro VLD_MAX_DATA_DUMP is defined as 0 (zero), then VLD
+    will get stuck in an infinite loop, repeatedly printing the same information
+    while attempting to display the memory leak report in the debugger's output
+    window.
+
+
+0.9d (30 March 2005)
+--------------------
+  New Features/Enhancements:
+  + This version of VLD brings with it some major changes to the way VLD
+    interfaces with programs that use it. Instead of requiring that VLD be built
+    from source and then linked with the application, VLD is now packaged as a
+    pre-built static library. For those who just want to use VLD and are not
+    interested in modifying the source, this eliminates the complexities of
+    building VLD from source. A single header file, vld.h, has been added. To
+    link with the static library, this header needs to be included in one of the
+    program's source files. Please see the README.txt file for details on how
+    these changes affect how to use Visual Leak Detector.
+
+  + The Microsoft Debug Help Library (dbghelp.dll) version 6.3 is now included
+    with the VLD distribution.
+
+
+0.9c (17 March 2005)
+--------------------
+  Bugs Fixed:
+  + Compile error, "error C2039: 'size' : is not a member of '_CrtMemBlockHeader'"
+    occurs at line 644 of vld.cpp when building VLD with the VLD_MAX_DATA_DUMP
+    preprocessor macro defined.
+
+
+0.9b (15 March 2005)
+--------------------
+  Bugs Fixed:
+  + VLD fails to detect memory leaks in class constructors if the objects
+    constructed are global objects.
+
+  + If a debug executable is built with certain compiler optimizations turned on,
+    specifically frame pointer omission optimization or automatic inlining, then
+    theoretically VLD may produce incomplete or inaccurate stack traces or might
+    fail to produce stack traces altogether.
+
+
+0.9a (12 March 2005)
+--------------------
+  Initial Public Release
+
+
+
+
+
+
+
+
+
+
+
+
