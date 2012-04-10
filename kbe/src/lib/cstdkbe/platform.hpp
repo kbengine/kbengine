@@ -30,6 +30,9 @@ same license as the rest of the engine.
 // windows include	
 #if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
 #pragma warning(disable:4996)
+#pragma warning(disable:4819)
+#pragma warning(disable:4049)
+#pragma warning(disable:4217)
 #include <time.h> 
 #include <winsock2.h>		// 必须在windows.h之前包含， 否则网络模块编译会出错
 #include <mswsock.h> 
@@ -44,6 +47,7 @@ same license as the rest of the engine.
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -52,6 +56,11 @@ same license as the rest of the engine.
 #include <stdint.h>
 #include <tr1/unordered_map>
 #include <langinfo.h>   /* CODESET */
+#include <linux/errqueue.h>
+#include <signal.h>
+#include <sys/uio.h>
+#include <netinet/ip.h>
+#include <net/if.h>
 #endif
 
 /** 定义引擎名字空间 */
@@ -216,6 +225,30 @@ typedef	uint32													TIMER_ID;												// 一个timer的id类型
 typedef uint8													MAIL_TYPE;												// mailbox 所投递的mail类别的类别
 
 
+#if KBE_PLATFORM == PLATFORM_WIN32
+#define IFNAMSIZ												16
+
+#ifndef socklen_t
+typedef	int														socklen_t;
+#endif
+
+#ifndef IFF_UP
+	enum
+	{
+		IFF_UP													= 0x1,
+		IFF_BROADCAST											= 0x2,
+		IFF_DEBUG												= 0x4,
+		IFF_LOOPBACK											= 0x8,
+		IFF_POINTOPOINT											= 0x10,
+		IFF_NOTRAILERS											= 0x20,
+		IFF_RUNNING												= 0x40,
+		IFF_NOARP												= 0x80,
+		IFF_PROMISC												= 0x100,
+		IFF_MULTICAST											= 0x1000
+	};
+#endif
+#endif
+
 /*---------------------------------------------------------------------------------
 	定会多种平台上的多线程相关
 ---------------------------------------------------------------------------------*/
@@ -343,6 +376,31 @@ inline const T & max( const T & a, const T & b )
 /*---------------------------------------------------------------------------------
 	跨平台接口定义
 ---------------------------------------------------------------------------------*/
+#if defined( unix ) || defined( PLAYSTATION3 )
+
+#define kbe_isnan isnan
+#define kbe_isinf isinf
+#define kbe_snprintf snprintf
+#define kbe_vsnprintf vsnprintf
+#define kbe_vsnwprintf vsnwprintf
+#define kbe_snwprintf swprintf
+#define kbe_stricmp strcasecmp
+#define kbe_strnicmp strncasecmp
+#define kbe_fileno fileno
+#define kbe_va_copy va_copy
+#else
+#define kbe_isnan _isnan
+#define kbe_isinf(x) (!_finite(x) && !_isnan(x))
+#define kbe_snprintf _snprintf
+#define kbe_vsnprintf _vsnprintf
+#define kbe_vsnwprintf _vsnwprintf
+#define kbe_snwprintf _snwprintf
+#define kbe_stricmp _stricmp
+#define kbe_strnicmp _strnicmp
+#define kbe_fileno _fileno
+#define kbe_va_copy( dst, src) dst = src
+#endif // unix
+
 /** 获取用户UID */
 inline int getUserUID()
 {

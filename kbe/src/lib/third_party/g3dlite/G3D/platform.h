@@ -59,7 +59,8 @@
 
 #ifdef G3D_WIN32
 // Turn off warnings about deprecated C routines (TODO: revisit)
-#	pragma warning (disable : 4996)
+#pragma warning(disable:4996)
+#pragma warning(disable:4819)
 #endif
 
 // On g++, recognize cases where the -msse2 flag was not specified
@@ -234,11 +235,12 @@
 #       define WIN32_LEAN_AND_MEAN 1
 #   endif
 
-
+#ifndef NOMINMAX
 #   define NOMINMAX 1
 #   include <windows.h>
 #   undef WIN32_LEAN_AND_MEAN
 #   undef NOMINMAX
+#endif
 
 #ifdef _G3D_INTERNAL_HIDE_WINSOCK_
 #   undef _G3D_INTERNAL_HIDE_WINSOCK_
