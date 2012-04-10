@@ -12,7 +12,7 @@ namespace Mercury
 EventPoller::EventPoller() : 
 	fdReadHandlers_(), 
 	fdWriteHandlers_(), 
-	spareTime_( 0 )
+	spareTime_(0)
 {
 }
 
@@ -24,10 +24,10 @@ EventPoller::~EventPoller()
 
 
 //-------------------------------------------------------------------------------------
-bool EventPoller::registerForRead( int fd,
-		InputNotificationHandler * handler )
+bool EventPoller::registerForRead(int fd,
+		InputNotificationHandler * handler)
 {
-	if (!this->doRegisterForRead( fd ))
+	if (!this->doRegisterForRead(fd))
 	{
 		return false;
 	}
@@ -38,10 +38,10 @@ bool EventPoller::registerForRead( int fd,
 }
 
 //-------------------------------------------------------------------------------------
-bool EventPoller::registerForWrite( int fd,
-		InputNotificationHandler * handler )
+bool EventPoller::registerForWrite(int fd,
+		InputNotificationHandler * handler)
 {
-	if (!this->doRegisterForWrite( fd ))
+	if (!this->doRegisterForWrite(fd))
 	{
 		return false;
 	}
@@ -52,61 +52,61 @@ bool EventPoller::registerForWrite( int fd,
 }
 
 //-------------------------------------------------------------------------------------
-bool EventPoller::deregisterForRead( int fd )
+bool EventPoller::deregisterForRead(int fd)
 {
-	fdReadHandlers_.erase( fd );
+	fdReadHandlers_.erase(fd);
 
-	return this->doDeregisterForRead( fd );
+	return this->doDeregisterForRead(fd);
 }
 
 //-------------------------------------------------------------------------------------
-bool EventPoller::deregisterForWrite( int fd )
+bool EventPoller::deregisterForWrite(int fd)
 {
-	fdWriteHandlers_.erase( fd );
+	fdWriteHandlers_.erase(fd);
 
-	return this->doDeregisterForWrite( fd );
+	return this->doDeregisterForWrite(fd);
 }
 
 //-------------------------------------------------------------------------------------
-bool EventPoller::trigger( int fd, FDHandlers & handlers )
+bool EventPoller::trigger(int fd, FDHandlers & handlers)
 {
-	FDHandlers::iterator iter = handlers.find( fd );
+	FDHandlers::iterator iter = handlers.find(fd);
 
 	if (iter == handlers.end())
 	{
 		return false;
 	}
 
-	iter->second->handleInputNotification( fd );
+	iter->second->handleInputNotification(fd);
 
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool EventPoller::triggerError( int fd )
+bool EventPoller::triggerError(int fd)
 {
-	if (!this->triggerRead( fd ))
+	if (!this->triggerRead(fd))
 	{
-		return this->triggerWrite( fd );
+		return this->triggerWrite(fd);
 	}
 
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool EventPoller::isRegistered( int fd, bool isForRead ) const
+bool EventPoller::isRegistered(int fd, bool isForRead) const
 {
 	const FDHandlers & handlers =
 		isForRead ? fdReadHandlers_ : fdWriteHandlers_;
 
-	return handlers.find( fd ) != handlers.end();
+	return handlers.find(fd) != handlers.end();
 }
 
 //-------------------------------------------------------------------------------------
-int EventPoller::handleInputNotification( int fd )
+int EventPoller::handleInputNotification(int fd)
 {
 
-	this->processPendingEvents( 0.0 );
+	this->processPendingEvents(0.0);
 
 	return 0;
 }
@@ -120,13 +120,13 @@ int EventPoller::getFileDescriptor() const
 //-------------------------------------------------------------------------------------
 int EventPoller::maxFD() const
 {
-	int readMaxFD = EventPoller::maxFD( fdReadHandlers_ );
-	int writeMaxFD = EventPoller::maxFD( fdWriteHandlers_ );
-	return std::max( readMaxFD, writeMaxFD );
+	int readMaxFD = EventPoller::maxFD(fdReadHandlers_);
+	int writeMaxFD = EventPoller::maxFD(fdWriteHandlers_);
+	return std::max(readMaxFD, writeMaxFD);
 }
 
 //-------------------------------------------------------------------------------------
-int EventPoller::maxFD( const FDHandlers & handlerMap )
+int EventPoller::maxFD(const FDHandlers & handlerMap)
 {
 	int maxFD = -1;
 	FDHandlers::const_iterator iFDHandler = handlerMap.begin();
@@ -149,17 +149,17 @@ public:
 	SelectPoller();
 
 protected:
-	virtual bool doRegisterForRead( int fd );
-	virtual bool doRegisterForWrite( int fd );
+	virtual bool doRegisterForRead(int fd);
+	virtual bool doRegisterForWrite(int fd);
 
-	virtual bool doDeregisterForRead( int fd );
-	virtual bool doDeregisterForWrite( int fd );
+	virtual bool doDeregisterForRead(int fd);
+	virtual bool doDeregisterForWrite(int fd);
 
-	virtual int processPendingEvents( double maxWait );
+	virtual int processPendingEvents(double maxWait);
 
 private:
-	void handleInputNotifications( int &countReady,
-		fd_set &readFDs, fd_set &writeFDs );
+	void handleInputNotifications(int &countReady,
+		fd_set &readFDs, fd_set &writeFDs);
 
 	void updateLargestFileDescriptor();
 
@@ -181,12 +181,12 @@ SelectPoller::SelectPoller() :
 	EventPoller(),
 	fdReadSet_(),
 	fdWriteSet_(),
-	fdLargest_( -1 ),
-	fdWriteCount_( 0 )
+	fdLargest_(-1),
+	fdWriteCount_(0)
 {
 	// set up our list of file descriptors
-	FD_ZERO( &fdReadSet_ );
-	FD_ZERO( &fdWriteSet_ );
+	FD_ZERO(&fdReadSet_);
+	FD_ZERO(&fdWriteSet_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -196,8 +196,8 @@ void SelectPoller::updateLargestFileDescriptor()
 }
 
 //-------------------------------------------------------------------------------------
-void SelectPoller::handleInputNotifications( int &countReady,
-	fd_set &readFDs, fd_set &writeFDs )
+void SelectPoller::handleInputNotifications(int &countReady,
+	fd_set &readFDs, fd_set &writeFDs)
 {
 #ifdef _WIN32
 	// X360 fd_sets don't look like POSIX ones, we know exactly what they are
@@ -207,14 +207,14 @@ void SelectPoller::handleInputNotifications( int &countReady,
 	{
 		int fd = readFDs.fd_array[ i ];
 		--countReady;
-		this->triggerRead( fd );
+		this->triggerRead(fd);
 	}
 
 	for (unsigned i=0; i < writeFDs.fd_count; i++)
 	{
 		int fd = writeFDs.fd_array[ i ];
 		--countReady;
-		this->triggerWrite( fd );
+		this->triggerWrite(fd);
 	}
 
 #else
@@ -223,37 +223,37 @@ void SelectPoller::handleInputNotifications( int &countReady,
 
 	for (int fd = 0; fd <= fdLargest_ && countReady > 0; ++fd)
 	{
-		if (FD_ISSET( fd, &readFDs ))
+		if (FD_ISSET(fd, &readFDs))
 		{
 			--countReady;
-			this->triggerRead( fd );
+			this->triggerRead(fd);
 		}
 
-		if (FD_ISSET( fd, &writeFDs ))
+		if (FD_ISSET(fd, &writeFDs))
 		{
 			--countReady;
-			this->triggerWrite( fd );
+			this->triggerWrite(fd);
 		}
 	}
 #endif
 }
 
 //-------------------------------------------------------------------------------------
-int SelectPoller::processPendingEvents( double maxWait )
+int SelectPoller::processPendingEvents(double maxWait)
 {
 	fd_set	readFDs;
 	fd_set	writeFDs;
 	struct timeval		nextTimeout;
 	// Is this needed?
-	FD_ZERO( &readFDs );
-	FD_ZERO( &writeFDs );
+	FD_ZERO(&readFDs);
+	FD_ZERO(&writeFDs);
 
 	readFDs = fdReadSet_;
 	writeFDs = fdWriteSet_;
 
 	nextTimeout.tv_sec = (int)maxWait;
 	nextTimeout.tv_usec =
-		(int)( (maxWait - (double)nextTimeout.tv_sec) * 1000000.0 );
+		(int)((maxWait - (double)nextTimeout.tv_sec) * 1000000.0);
 
 	uint64 startTime = timestamp();
 	KBEConcurrency::startMainThreadIdling();
@@ -265,13 +265,13 @@ int SelectPoller::processPendingEvents( double maxWait )
 	{
 		// Windows can't handle it if we don't have any FDs to select on, but
 		// we have a non-NULL timeout.
-		Sleep( int( maxWait * 1000.0 ) );
+		Sleep(int(maxWait * 1000.0));
 	}
 	else
 #endif
 	{
-		countReady = select( fdLargest_+1, &readFDs,
-				fdWriteCount_ ? &writeFDs : NULL, NULL, &nextTimeout );
+		countReady = select(fdLargest_+1, &readFDs,
+				fdWriteCount_ ? &writeFDs : NULL, NULL, &nextTimeout);
 	}
 
 	KBEConcurrency::endMainThreadIdling();
@@ -280,15 +280,15 @@ int SelectPoller::processPendingEvents( double maxWait )
 
 	if (countReady > 0)
 	{
-		this->handleInputNotifications( countReady, readFDs, writeFDs );
+		this->handleInputNotifications(countReady, readFDs, writeFDs);
 	}
 	else if (countReady == -1)
 	{
 		// TODO: Clean this up on shutdown
 		// if (!breakProcessing_)
 		{
-			WARNING_MSG( "EventDispatcher::processContinuously: "
-				"error in select(): %s\n", strerror( errno ) );
+			WARNING_MSG("EventDispatcher::processContinuously: "
+				"error in select(): %s\n", strerror(errno));
 		}
 	}
 
@@ -296,24 +296,24 @@ int SelectPoller::processPendingEvents( double maxWait )
 }
 
 //-------------------------------------------------------------------------------------
-bool SelectPoller::doRegisterForRead( int fd )
+bool SelectPoller::doRegisterForRead(int fd)
 {
 #ifndef _WIN32
 	if ((fd < 0) || (FD_SETSIZE <= fd))
 	{
-		ERROR_MSG( "EventDispatcher::registerFileDescriptor: "
+		ERROR_MSG("EventDispatcher::registerFileDescriptor: "
 			"Tried to register invalid fd %d. FD_SETSIZE (%d)\n",
-			fd, FD_SETSIZE );
+			fd, FD_SETSIZE);
 
 		return false;
 	}
 #endif
 
 	// Bail early if it's already in the read set
-	if (FD_ISSET( fd, &fdReadSet_ ))
+	if (FD_ISSET(fd, &fdReadSet_))
 		return false;
 
-	FD_SET( fd, &fdReadSet_ );
+	FD_SET(fd, &fdReadSet_);
 
 	if (fd > fdLargest_)
 	{
@@ -324,25 +324,25 @@ bool SelectPoller::doRegisterForRead( int fd )
 }
 
 //-------------------------------------------------------------------------------------
-bool SelectPoller::doRegisterForWrite( int fd )
+bool SelectPoller::doRegisterForWrite(int fd)
 {
 #ifndef _WIN32
 	if ((fd < 0) || (FD_SETSIZE <= fd))
 	{
-		ERROR_MSG( "EventDispatcher::registerWriteFileDescriptor: "
+		ERROR_MSG("EventDispatcher::registerWriteFileDescriptor: "
 			"Tried to register invalid fd %d. FD_SETSIZE (%d)\n",
-			fd, FD_SETSIZE );
+			fd, FD_SETSIZE);
 
 		return false;
 	}
 #endif
 
-	if (FD_ISSET( fd, &fdWriteSet_ ))
+	if (FD_ISSET(fd, &fdWriteSet_))
 	{
 		return false;
 	}
 
-	FD_SET( fd, &fdWriteSet_ );
+	FD_SET(fd, &fdWriteSet_);
 
 	if (fd > fdLargest_)
 	{
@@ -354,7 +354,7 @@ bool SelectPoller::doRegisterForWrite( int fd )
 }
 
 //-------------------------------------------------------------------------------------
-bool SelectPoller::doDeregisterForRead( int fd )
+bool SelectPoller::doDeregisterForRead(int fd)
 {
 #ifndef _WIN32
 	if ((fd < 0) || (FD_SETSIZE <= fd))
@@ -363,12 +363,12 @@ bool SelectPoller::doDeregisterForRead( int fd )
 	}
 #endif
 
-	if (!FD_ISSET( fd, &fdReadSet_ ))
+	if (!FD_ISSET(fd, &fdReadSet_))
 	{
 		return false;
 	}
 
-	FD_CLR( fd, &fdReadSet_ );
+	FD_CLR(fd, &fdReadSet_);
 
 	if (fd == fdLargest_)
 	{
@@ -379,7 +379,7 @@ bool SelectPoller::doDeregisterForRead( int fd )
 }
 
 //-------------------------------------------------------------------------------------
-bool SelectPoller::doDeregisterForWrite( int fd )
+bool SelectPoller::doDeregisterForWrite(int fd)
 {
 #ifndef _WIN32
 	if ((fd < 0) || (FD_SETSIZE <= fd))
@@ -388,12 +388,12 @@ bool SelectPoller::doDeregisterForWrite( int fd )
 	}
 #endif
 
-	if (!FD_ISSET( fd, &fdWriteSet_ ))
+	if (!FD_ISSET(fd, &fdWriteSet_))
 	{
 		return false;
 	}
 
-	FD_CLR( fd, &fdWriteSet_ );
+	FD_CLR(fd, &fdWriteSet_);
 
 	if (fd == fdLargest_)
 	{
@@ -416,27 +416,27 @@ bool SelectPoller::doDeregisterForWrite( int fd )
 class EPoller : public EventPoller
 {
 public:
-	EPoller( int expectedSize = 10 );
+	EPoller(int expectedSize = 10);
 	virtual ~EPoller();
 
 	int getFileDescriptor() const { return epfd_; }
 
 protected:
-	virtual bool doRegisterForRead( int fd )
-		{ return this->doRegister( fd, true, true ); }
+	virtual bool doRegisterForRead(int fd)
+		{ return this->doRegister(fd, true, true); }
 
-	virtual bool doRegisterForWrite( int fd )
-		{ return this->doRegister( fd, false, true ); }
+	virtual bool doRegisterForWrite(int fd)
+		{ return this->doRegister(fd, false, true); }
 
-	virtual bool doDeregisterForRead( int fd )
-		{ return this->doRegister( fd, true, false ); }
+	virtual bool doDeregisterForRead(int fd)
+		{ return this->doRegister(fd, true, false); }
 
-	virtual bool doDeregisterForWrite( int fd )
-		{ return this->doRegister( fd, false, false ); }
+	virtual bool doDeregisterForWrite(int fd)
+		{ return this->doRegister(fd, false, false); }
 
-	virtual int processPendingEvents( double maxWait );
+	virtual int processPendingEvents(double maxWait);
 
-	bool doRegister( int fd, bool isRead, bool isRegister );
+	bool doRegister(int fd, bool isRead, bool isRegister);
 
 private:
 	// epoll file descriptor
@@ -444,13 +444,13 @@ private:
 };
 
 //-------------------------------------------------------------------------------------
-EPoller::EPoller( int expectedSize ) :
-	epfd_( epoll_create( expectedSize ) )
+EPoller::EPoller(int expectedSize) :
+	epfd_(epoll_create(expectedSize))
 {
 	if (epfd_ == -1)
 	{
-		ERROR_MSG( "EPoller::EPoller: epoll_create failed: %s\n",
-				strerror( errno ) );
+		ERROR_MSG("EPoller::EPoller: epoll_create failed: %s\n",
+				strerror(errno));
 	}
 };
 
@@ -459,22 +459,22 @@ EPoller::~EPoller()
 {
 	if (epfd_ != -1)
 	{
-		close( epfd_ );
+		close(epfd_);
 	}
 }
 
 //-------------------------------------------------------------------------------------
-bool EPoller::doRegister( int fd, bool isRead, bool isRegister )
+bool EPoller::doRegister(int fd, bool isRead, bool isRegister)
 {
 	struct epoll_event ev;
-	memset( &ev, 0, sizeof( ev ) ); // stop valgrind warning
+	memset(&ev, 0, sizeof(ev)); // stop valgrind warning
 	int op;
 
 	ev.data.fd = fd;
 
 	// Handle the case where the file is already registered for the opposite
 	// action.
-	if (this->isRegistered( fd, !isRead ))
+	if (this->isRegistered(fd, !isRead))
 	{
 		op = EPOLL_CTL_MOD;
 
@@ -488,25 +488,25 @@ bool EPoller::doRegister( int fd, bool isRead, bool isRegister )
 		op = isRegister ? EPOLL_CTL_ADD : EPOLL_CTL_DEL;
 	}
 
-	if (epoll_ctl( epfd_, op, fd, &ev ) < 0)
+	if (epoll_ctl(epfd_, op, fd, &ev) < 0)
 	{
 		const char* MESSAGE = "EPoller::doRegister: Failed to %s %s file "
 				"descriptor %d (%s)\n";
 		if (errno == EBADF)
 		{
-			WARNING_MSG( MESSAGE,
+			WARNING_MSG(MESSAGE,
 					isRegister ? "add" : "remove",
 					isRead ? "read" : "write",
 					fd,
-					strerror( errno ) );
+					strerror(errno));
 		}
 		else
 		{
-			ERROR_MSG( MESSAGE,
+			ERROR_MSG(MESSAGE,
 					isRegister ? "add" : "remove",
 					isRead ? "read" : "write",
 					fd,
-					strerror( errno) );
+					strerror(errno));
 		}
 
 		return false;
@@ -516,15 +516,15 @@ bool EPoller::doRegister( int fd, bool isRead, bool isRegister )
 }
 
 //-------------------------------------------------------------------------------------
-int EPoller::processPendingEvents( double maxWait )
+int EPoller::processPendingEvents(double maxWait)
 {
 	const int MAX_EVENTS = 10;
 	struct epoll_event events[ MAX_EVENTS ];
-	int maxWaitInMilliseconds = int( ceil( maxWait * 1000 ) );
+	int maxWaitInMilliseconds = int(ceil(maxWait * 1000));
 	uint64 startTime = timestamp();
 
 	KBEConcurrency::startMainThreadIdling();
-	int nfds = epoll_wait( epfd_, events, MAX_EVENTS, maxWaitInMilliseconds );
+	int nfds = epoll_wait(epfd_, events, MAX_EVENTS, maxWaitInMilliseconds);
 	KBEConcurrency::endMainThreadIdling();
 
 
@@ -534,18 +534,18 @@ int EPoller::processPendingEvents( double maxWait )
 	{
 		if (events[i].events & (EPOLLERR|EPOLLHUP))
 		{
-			this->triggerError( events[i].data.fd );
+			this->triggerError(events[i].data.fd);
 		}
 		else
 		{
 			if (events[i].events & EPOLLIN)
 			{
-				this->triggerRead( events[i].data.fd );
+				this->triggerRead(events[i].data.fd);
 			}
 
 			if (events[i].events & EPOLLOUT)
 			{
-				this->triggerWrite( events[i].data.fd );
+				this->triggerWrite(events[i].data.fd);
 			}
 		}
 	}

@@ -153,11 +153,19 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\address.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\event_dispatcher.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\event_poller.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\socket.cpp"
 				>
 			</File>
 		</Filter>
@@ -166,6 +174,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\address.hpp"
+				>
+			</File>
 			<File
 				RelativePath=".\event_dispatcher.hpp"
 				>
@@ -176,6 +188,10 @@
 			</File>
 			<File
 				RelativePath=".\interfaces.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\socket.hpp"
 				>
 			</File>
 		</Filter>
@@ -191,6 +207,10 @@
 		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
+			>
+		</File>
+		<File
+			RelativePath=".\socket.ipp"
 			>
 		</File>
 	</Files>

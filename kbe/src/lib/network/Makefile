@@ -2,7 +2,9 @@ LIB =	network
 
 SRCS =				\
 	event_dispatcher	\
-	event_poller
+	event_poller		\
+	socket			\
+	address
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))

@@ -47,19 +47,19 @@ public:
 	static EventPoller * create();
 
 protected:
-	virtual bool doRegisterForRead( int fd ) = 0;
-	virtual bool doRegisterForWrite( int fd ) = 0;
+	virtual bool doRegisterForRead(int fd) = 0;
+	virtual bool doRegisterForWrite(int fd) = 0;
 
-	virtual bool doDeregisterForRead( int fd ) = 0;
-	virtual bool doDeregisterForWrite( int fd ) = 0;
+	virtual bool doDeregisterForRead(int fd) = 0;
+	virtual bool doDeregisterForWrite(int fd) = 0;
 
-	bool triggerRead( int fd )	{return this->trigger( fd, fdReadHandlers_ );}
-	bool triggerWrite( int fd )	{return this->trigger( fd, fdWriteHandlers_ );}
-	bool triggerError( int fd );
+	bool triggerRead(int fd)	{return this->trigger(fd, fdReadHandlers_);}
+	bool triggerWrite(int fd)	{return this->trigger(fd, fdWriteHandlers_);}
+	bool triggerError(int fd);
 
-	bool trigger( int fd, FDHandlers & handlers );
+	bool trigger(int fd, FDHandlers & handlers);
 	
-	bool isRegistered( int fd, bool isForRead ) const;
+	bool isRegistered(int fd, bool isForRead) const;
 	
 	int maxFD() const;
 

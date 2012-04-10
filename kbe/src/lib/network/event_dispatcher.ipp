@@ -23,7 +23,7 @@ INLINE TimerHandle EventDispatcher::addOnceOffTimer(int64 microseconds,
 	return this->addTimerCommon(microseconds, handler, arg, false);
 }
 
-INLINE void EventDispatcher::breakProcessing( bool breakState )
+INLINE void EventDispatcher::breakProcessing(bool breakState)
 {
 	m_breakProcessing_ = breakState;
 }

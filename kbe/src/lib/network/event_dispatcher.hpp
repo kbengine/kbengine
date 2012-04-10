@@ -47,19 +47,19 @@ public:
 	INLINE double maxWait() const;
 	INLINE void maxWait(double seconds);
 
-	bool registerFileDescriptor( int fd, InputNotificationHandler * handler );
-	bool deregisterFileDescriptor( int fd );
-	bool registerWriteFileDescriptor( int fd, InputNotificationHandler * handler );
-	bool deregisterWriteFileDescriptor( int fd );
+	bool registerFileDescriptor(int fd, InputNotificationHandler * handler);
+	bool deregisterFileDescriptor(int fd);
+	bool registerWriteFileDescriptor(int fd, InputNotificationHandler * handler);
+	bool deregisterWriteFileDescriptor(int fd);
 
-	INLINE TimerHandle addTimer( int64 microseconds,
-					TimerHandler * handler, void* arg = NULL );
-	INLINE TimerHandle addOnceOffTimer( int64 microseconds,
-					TimerHandler * handler, void * arg = NULL );
+	INLINE TimerHandle addTimer(int64 microseconds,
+					TimerHandler * handler, void* arg = NULL);
+	INLINE TimerHandle addOnceOffTimer(int64 microseconds,
+					TimerHandler * handler, void * arg = NULL);
 
-	uint64 timerDeliveryTime( TimerHandle handle ) const;
-	uint64 timerIntervalTime( TimerHandle handle ) const;
-	uint64 & timerIntervalTime( TimerHandle handle );
+	uint64 timerDeliveryTime(TimerHandle handle) const;
+	uint64 timerIntervalTime(TimerHandle handle) const;
+	uint64 & timerIntervalTime(TimerHandle handle);
 	
 	uint64 getSpareTime() const;
 	void clearSpareTime();
@@ -68,7 +68,7 @@ private:
 	TimerHandle addTimerCommon(int64 microseconds,
 		TimerHandler * handler,
 		void * arg,
-		bool recurrent );
+		bool recurrent);
 
 	void processFrequentTasks();
 	void processTimers();
@@ -103,17 +103,17 @@ protected:
 class DispatcherCoupling : public Task
 {
 public:
-	DispatcherCoupling( EventDispatcher & mainDispatcher,
-			EventDispatcher & childDispatcher ) :
-		mainDispatcher_( mainDispatcher ),
-		childDispatcher_( childDispatcher )
+	DispatcherCoupling(EventDispatcher & mainDispatcher,
+			EventDispatcher & childDispatcher) :
+		mainDispatcher_(mainDispatcher),
+		childDispatcher_(childDispatcher)
 	{
-		mainDispatcher.addFrequentTask( this );
+		mainDispatcher.addFrequentTask(this);
 	}
 
 	~DispatcherCoupling()
 	{
-		mainDispatcher_.cancelFrequentTask( this );
+		mainDispatcher_.cancelFrequentTask(this);
 	}
 
 private:

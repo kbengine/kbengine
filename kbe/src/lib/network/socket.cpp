@@ -1,0 +1,499 @@
+#include "socket.hpp"
+#ifndef CODE_INLINE
+#include "socket.ipp"
+#endif
+
+namespace KBEngine { 
+namespace Mercury
+{
+#ifdef unix
+#else	// not unix
+	// Need to implement if_nameindex functions on Windows
+	/** @internal */
+	struct if_nameindex
+	{
+
+		unsigned int if_index;	/* 1, 2, ... */
+
+		char *if_name;			/* null terminated name: "eth0", ... */
+
+	};
+
+	/** @internal */
+	struct if_nameindex *if_nameindex(void)
+	{
+		static struct if_nameindex staticIfList[3] =
+		{ { 1, "eth0" }, { 2, "lo" }, { 0, 0 } };
+
+		return staticIfList;
+	}
+
+	/** @internal */
+	inline void if_freenameindex(struct if_nameindex *)
+	{}
+#endif	// not unix
+
+static bool g_networkInitted = false;
+
+//-------------------------------------------------------------------------------------
+bool Socket::getClosedPort(Mercury::Address & closedPort)
+{
+	bool isResultSet = false;
+
+#ifdef unix
+//	KBE_ASSERT(errno == ECONNREFUSED);
+
+	struct sockaddr_in	offender;
+	offender.sin_family = 0;
+	offender.sin_port = 0;
+	offender.sin_addr.s_addr = 0;
+
+	struct msghdr	errHeader;
+	struct iovec	errPacket;
+
+	char data[ 256 ];
+	char control[ 256 ];
+
+	errHeader.msg_name = &offender;
+	errHeader.msg_namelen = sizeof(offender);
+	errHeader.msg_iov = &errPacket;
+	errHeader.msg_iovlen = 1;
+	errHeader.msg_control = control;
+	errHeader.msg_controllen = sizeof(control);
+	errHeader.msg_flags = 0;	// result only
+
+	errPacket.iov_base = data;
+	errPacket.iov_len = sizeof(data);
+
+	int errMsgErr = recvmsg(*this, &errHeader, MSG_ERRQUEUE);
+	if (errMsgErr < 0)
+	{
+		return false;
+	}
+
+	struct cmsghdr * ctlHeader;
+
+	for (ctlHeader = CMSG_FIRSTHDR(&errHeader);
+		ctlHeader != NULL;
+		ctlHeader = CMSG_NXTHDR(&errHeader,ctlHeader))
+	{
+		if (ctlHeader->cmsg_level == SOL_IP &&
+			ctlHeader->cmsg_type == IP_RECVERR) break;
+	}
+
+	// Was there an IP_RECVERR error.
+
+	if (ctlHeader != NULL)
+	{
+		struct sock_extended_err * extError =
+			(struct sock_extended_err*)CMSG_DATA(ctlHeader);
+
+		// Only use this address if the kernel has the bug where it does not
+		// report the packet details.
+
+		if (errHeader.msg_namelen == 0)
+		{
+			// Finally we figure out whose fault it is except that this is the
+			// generator of the error (possibly a machine on the path to the
+			// destination), and we are interested in the actual destination.
+			offender = *(sockaddr_in*)SO_EE_OFFENDER(extError);
+			offender.sin_port = 0;
+
+			ERROR_MSG("Socket::getClosedPort: "
+				"Kernel has a bug: recv_msg did not set msg_name.\n");
+		}
+
+		closedPort.ip = offender.sin_addr.s_addr;
+		closedPort.port = offender.sin_port;
+
+		isResultSet = true;
+	}
+#endif // unix
+
+	return isResultSet;
+}
+//-------------------------------------------------------------------------------------
+bool Socket::getInterfaces(std::map< uint32, std::string > &interfaces)
+{
+#ifdef _WIN32
+	ERROR_MSG("Socket::getInterfaces: Not implemented for Windows.\n");
+	return false;
+
+#else
+	struct ifconf ifc;
+	char          buf[1024];
+
+	ifc.ifc_len = sizeof(buf);
+	ifc.ifc_buf = buf;
+
+	if(ioctl(socket_, SIOCGIFCONF, &ifc) < 0)
+	{
+		ERROR_MSG("Socket::getInterfaces: ioctl(SIOCGIFCONF) failed.\n");
+		return false;
+	}
+
+	// Iterate through the list of interfaces.
+	struct ifreq * ifr         = ifc.ifc_req;
+	int nInterfaces = ifc.ifc_len / sizeof(struct ifreq);
+	for (int i = 0; i < nInterfaces; i++)
+	{
+		struct ifreq *item = &ifr[i];
+
+		interfaces[ ((struct sockaddr_in *)&item->ifr_addr)->sin_addr.s_addr ] =
+			item->ifr_name;
+	}
+
+	return true;
+#endif
+}
+
+//-------------------------------------------------------------------------------------
+int Socket::findDefaultInterface(char * name)
+{
+#ifndef unix
+	strcpy(name, "eth0");
+	return 0;
+#else
+	int		ret = -1;
+
+	struct if_nameindex* pIfInfo = if_nameindex();
+	if (pIfInfo)
+	{
+		int		flags = 0;
+		struct if_nameindex* pIfInfoCur = pIfInfo;
+		while (pIfInfoCur->if_name)
+		{
+			flags = 0;
+			this->getInterfaceFlags(pIfInfoCur->if_name, flags);
+
+			if ((flags & IFF_UP) && (flags & IFF_RUNNING))
+			{
+				uint32	addr;
+				if (this->getInterfaceAddress(pIfInfoCur->if_name, addr) == 0)
+				{
+					strcpy(name, pIfInfoCur->if_name);
+					ret = 0;
+
+					// we only stop if it's not a loopback address,
+					// otherwise we continue, hoping to find a better one
+					if (!(flags & IFF_LOOPBACK)) break;
+				}
+			}
+			++pIfInfoCur;
+		}
+		if_freenameindex(pIfInfo);
+	}
+	else
+	{
+		ERROR_MSG("Socket::findDefaultInterface: "
+							"if_nameindex returned NULL (%s)\n",
+						strerror(errno));
+	}
+
+	return ret;
+#endif // unix
+}
+
+//-------------------------------------------------------------------------------------
+int Socket::findIndicatedInterface(const char * spec, char * name)
+{
+	// start with it cleared
+	name[0] = 0;
+
+	// make sure there's something there
+	if (spec == NULL || spec[0] == 0) return -1;
+
+	// set up some working vars
+	char * slash;
+	int netmaskbits = 32;
+	char iftemp[IFNAMSIZ+16];
+	strncpy(iftemp, spec, IFNAMSIZ); iftemp[IFNAMSIZ] = 0;
+	uint32 addr = 0;
+
+	// see if it's a netmask
+	if ((slash = const_cast< char * >(strchr(spec, '/'))) && slash-spec <= 16)
+	{
+		// specified a netmask
+		KBE_ASSERT(IFNAMSIZ >= 16);
+		iftemp[slash-spec] = 0;
+		bool ok = Socket::convertAddress(iftemp, addr) == 0;
+
+		netmaskbits = atoi(slash+1);
+		ok &= netmaskbits > 0 && netmaskbits <= 32;
+
+		if (!ok)
+		{
+			ERROR_MSG("Socket::findIndicatedInterface: "
+				"netmask match %s length %s is not valid.\n", iftemp, slash+1);
+			return -1;
+		}
+	}
+	else if (this->getInterfaceAddress(iftemp, addr) == 0)
+	{
+		// specified name of interface
+		strncpy(name, iftemp, IFNAMSIZ);
+	}
+	else if (Socket::convertAddress(spec, addr) == 0)
+	{
+		// specified ip address
+		netmaskbits = 32; // redundant but instructive
+	}
+	else
+	{
+		ERROR_MSG("Socket::findIndicatedInterface: "
+			"No interface matching interface spec '%s' found\n", spec);
+		return -1;
+	}
+
+	// if we haven't set a name yet then we're supposed to
+	// look up the ip address
+	if (name[0] == 0)
+	{
+		int netmaskshift = 32-netmaskbits;
+		uint32 netmaskmatch = ntohl(addr);
+
+		std::vector< std::string > interfaceNames;
+
+		struct if_nameindex* pIfInfo = if_nameindex();
+		if (pIfInfo)
+		{
+			struct if_nameindex* pIfInfoCur = pIfInfo;
+			while (pIfInfoCur->if_name)
+			{
+				interfaceNames.push_back(pIfInfoCur->if_name);
+				++pIfInfoCur;
+			}
+			if_freenameindex(pIfInfo);
+		}
+
+		std::vector< std::string >::iterator iter = interfaceNames.begin();
+
+		while (iter != interfaceNames.end())
+		{
+			uint32 tip = 0;
+			char * currName = (char *)iter->c_str();
+
+			if (this->getInterfaceAddress(currName, tip) == 0)
+			{
+				uint32 htip = ntohl(tip);
+
+				if ((htip >> netmaskshift) == (netmaskmatch >> netmaskshift))
+				{
+					//DEBUG_MSG("Socket::bind(): found a match\n");
+					strncpy(name, currName, IFNAMSIZ);
+					break;
+				}
+			}
+
+			++iter;
+		}
+
+		if (name[0] == 0)
+		{
+			uint8 * qik = (uint8*)&addr;
+			ERROR_MSG("Socket::findIndicatedInterface: "
+				"No interface matching netmask spec '%s' found "
+				"(evals to %d.%d.%d.%d/%d)\n", spec,
+				qik[0], qik[1], qik[2], qik[3], netmaskbits);
+
+			return -2; // parsing ok, just didn't match
+		}
+	}
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+int Socket::convertAddress(const char * string, uint32 & address)
+{
+	uint32	trial;
+
+	#ifdef unix
+	if (inet_aton(string, (struct in_addr*)&trial) != 0)
+	#else
+	if ((trial = inet_addr(string)) != INADDR_NONE)
+	#endif
+		{
+			address = trial;
+			return 0;
+		}
+
+	struct hostent * hosts = gethostbyname(string);
+	if (hosts != NULL)
+	{
+		address = *(uint32*)(hosts->h_addr_list[0]);
+		return 0;
+	}
+
+	return -1;
+}
+
+//-------------------------------------------------------------------------------------
+#ifdef unix
+int Socket::getQueueSizes(int & tx, int & rx) const
+{
+	int	ret = -1;
+
+	uint16	nport = 0;
+	this->getlocaladdress(&nport,NULL);
+
+	char		match[16];
+	kbe_snprintf(match, sizeof(match), "%04X", (int)ntohs(nport));
+
+	FILE * f = fopen("/proc/net/udp", "r");
+
+	if (!f)
+	{
+		ERROR_MSG("Endpoint::getQueueSizes: "
+				"could not open /proc/net/udp: %s\n",
+			strerror(errno));
+		return -1;
+	}
+
+	char	aline[256];
+	fgets(aline, 256, f);
+
+	while (fgets(aline, 256, f) != NULL)
+	{	// it goes "iiii: hhhhhhhh:pppp" (could check ip too 'tho)
+		if(!strncmp(aline+4+1+ 1 +8+1, match, 4))
+		{	// then goes " hhhhhhhh:pppp ss tttttttt:rrrrrrrr"
+			char * start = aline+4+1+ 1 +8+1+4+ 1 +8+1+4+ 1 +2+ 1;
+			start[8] = 0;
+			tx = strtol(start, NULL, 16);
+
+			start += 8+1;
+			start[8] = 0;
+			rx = strtol(start, NULL, 16);
+
+			ret = 0;
+
+			break;
+		}
+	}
+
+	fclose(f);
+
+	return ret;
+}
+#else
+int Socket::getQueueSizes(int &, int &) const
+{
+	return -1;
+}
+#endif
+
+//-------------------------------------------------------------------------------------
+int Socket::getBufferSize(int optname) const
+{
+#ifdef unix
+	KBE_ASSERT(optname == SO_SNDBUF || optname == SO_RCVBUF);
+
+	int recvbuf = -1;
+	socklen_t rbargsize = sizeof(int);
+	int rberr = getsockopt(socket_, SOL_SOCKET, optname,
+		(char*)&recvbuf, &rbargsize);
+
+	if (rberr == 0 && rbargsize == sizeof(int))
+	{
+		return recvbuf;
+	}
+	else
+	{
+		ERROR_MSG("Socket::getBufferSize: "
+			"Failed to read option %s: %s\n",
+			optname == SO_SNDBUF ? "SO_SNDBUF" : "SO_RCVBUF",
+			strerror(errno));
+
+		return -1;
+	}
+
+#else
+	return -1;
+#endif
+}
+
+//-------------------------------------------------------------------------------------
+bool Socket::setBufferSize(int optname, int size)
+{
+#ifdef unix
+	setsockopt(socket_, SOL_SOCKET, optname, (const char*)&size,
+		sizeof(size));
+#endif
+
+	return this->getBufferSize(optname) >= size;
+}
+
+//-------------------------------------------------------------------------------------
+bool Socket::recvAll(void * gramData, int gramSize)
+{
+	while (gramSize > 0)
+	{
+		int len = this->recv(gramData, gramSize);
+
+		if (len <= 0)
+		{
+			if (len == 0)
+			{
+				WARNING_MSG("Socket::recvAll: Connection lost\n");
+			}
+			else
+			{
+				WARNING_MSG("Socket::recvAll: Got error '%s'\n",
+					strerror(errno));
+			}
+
+			return false;
+		}
+		gramSize -= len;
+		gramData = ((char *)gramData) + len;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+Mercury::Address Socket::getLocalAddress() const
+{
+	Mercury::Address addr(0, 0);
+
+	if (this->getlocaladdress((uint16*)&addr.port,
+				(uint32*)&addr.ip) == -1)
+	{
+		ERROR_MSG("Socket::getLocalAddress: Failed\n");
+	}
+
+	return addr;
+}
+
+//-------------------------------------------------------------------------------------
+Mercury::Address Socket::getRemoteAddress() const
+{
+	Mercury::Address addr(0, 0);
+
+	if (this->getremoteaddress((uint16*)&addr.port,
+				(uint32*)&addr.ip) == -1)
+	{
+		ERROR_MSG("Socket::getRemoteAddress: Failed\n");
+	}
+
+	return addr;
+}
+
+//-------------------------------------------------------------------------------------
+void Socket::initNetwork()
+{
+	if (g_networkInitted) 
+		return;
+	
+	g_networkInitted = true;
+
+#if !defined(PLAYSTATION3)
+#ifndef unix
+	WSAData wsdata;
+	WSAStartup(0x202, &wsdata);
+#endif // !unix
+#endif
+}
+
+}
+}
