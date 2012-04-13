@@ -104,6 +104,11 @@ public:
 	{
 		return const_cast<T *>( this->m_obj_ );
 	}
+
+	T* operator->()const
+	{
+		return const_cast<T *>( this->m_obj_ );
+	}
 };
 
 }
