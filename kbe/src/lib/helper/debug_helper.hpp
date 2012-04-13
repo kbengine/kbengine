@@ -26,6 +26,8 @@ class DebugHelper : public Singleton<DebugHelper>
 {
 private:
 	FILE* _m_logfile;
+	std::string _m_currFile;
+	uint32 _m_currLine;
 public:
 	KBEngine::thread::ThreadMutex logMutex;
 public:
@@ -38,6 +40,11 @@ public:
 	{
 	}	
 	
+	void setFile(std::string file, uint32 line){
+		_m_currFile = file;
+		_m_currLine = line;
+	}
+
 	void outTime();
 	static void outTimestamp(FILE* file);
     
@@ -46,17 +53,19 @@ public:
     void error_msg(const char * err, ...);
     void info_msg(const char * info, ...);
 	void warning_msg(const char * str, ...);
+	void critical_msg(const char * str, ...);
 };
 
 /*---------------------------------------------------------------------------------
 	调试信息输出接口
 ---------------------------------------------------------------------------------*/
-#define PRINT_MSG			DebugHelper::getSingleton().print_msg					// 输出任何信息
-#define ERROR_MSG			DebugHelper::getSingleton().error_msg					// 输出一个错误
-#define DEBUG_MSG			DebugHelper::getSingleton().debug_msg					// 输出一个debug信息
-#define INFO_MSG			DebugHelper::getSingleton().info_msg					// 输出一个info信息
-#define WARNING_MSG			DebugHelper::getSingleton().warning_msg					// 输出一个警告信息
-
+#define PRINT_MSG			DebugHelper::getSingleton().print_msg									// 输出任何信息
+#define ERROR_MSG			DebugHelper::getSingleton().error_msg									// 输出一个错误
+#define DEBUG_MSG			DebugHelper::getSingleton().debug_msg									// 输出一个debug信息
+#define INFO_MSG			DebugHelper::getSingleton().info_msg									// 输出一个info信息
+#define WARNING_MSG			DebugHelper::getSingleton().warning_msg									// 输出一个警告信息
+#define CRITICAL_MSG		DebugHelper::getSingleton().setFile(__FILE__, __LINE__); \
+							DebugHelper::getSingleton().critical_msg
 /*---------------------------------------------------------------------------------
 	调试宏
 ---------------------------------------------------------------------------------*/

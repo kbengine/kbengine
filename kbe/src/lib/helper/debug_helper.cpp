@@ -211,6 +211,38 @@ void DebugHelper::warning_msg(const char * str, ...)
     fflush(stdout);
 }
 
+void DebugHelper::critical_msg(const char * str, ...)
+{
+	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
+
+    if(!str)
+        return;
+
+    outTime();
+	fprintf(stdout, "CRITICAL:");
+
+    va_list ap;
+    va_start(ap, str);
+    vutf8printf(stdout, str, &ap);
+    va_end(ap);
+
+    if(_m_logfile)
+    {
+        outTimestamp(_m_logfile);
+		fprintf(_m_logfile, "CRITICAL:%s(%d)\n\t", _m_currFile.c_str(), _m_currLine);
+
+        va_start(ap, str);
+        vfprintf(_m_logfile, str, ap);
+        va_end(ap);
+
+        fprintf(_m_logfile, "\n");
+        fflush(_m_logfile);
+    }
+
+    fflush(stdout);
+
+	setFile("", 0);
+}
 //-------------------------------------------------------------------------------------
 
 }
