@@ -15,15 +15,15 @@ namespace KBEngine {
 typedef SmartPointer<PyObject> PyObjectPtr;
 
 template<>
-inline void incrementReferenceCount(const PyObject* obj)
+inline void incrementReferenceCount(const PyObject& obj)
 {
-	Py_INCREF( const_cast<PyObject*>( obj ) );
+	Py_INCREF( const_cast<PyObject*>( &obj ) );
 };
 
 template<>
-inline void decrementReferenceCount(const PyObject* obj)
+inline void decrementReferenceCount(const PyObject& obj)
 {
-	Py_DECREF( const_cast<PyObject*>( obj ) );
+	Py_DECREF( const_cast<PyObject*>( &obj ) );
 };
 
 }
