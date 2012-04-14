@@ -13,7 +13,8 @@ same license as the rest of the engine.
 #include "cstdkbe/platform.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "cstdkbe/kbeversion.hpp"
-
+	
+namespace KBEngine{
 /** 安全的释放一个指针内存 */
 #define SAFE_RELEASE(i)										\
 	if (i)													\
@@ -78,5 +79,5 @@ const char COMPONENT_NAME[][12] = {
 #define DETAIL_LEVEL_MEDIUM													1	// lod级别：中
 #define DETAIL_LEVEL_FAR													2	// lod级别：远	
 #define DETAIL_LEVEL_UNKNOW													3	// lod级别：非常的远 (通常在这个级别内的entity不会对他广播任何属性（不包括位置方向等）)	
-
+}
 #endif // __CSTDKBE__

@@ -10,17 +10,19 @@ same license as the rest of the engine.
 */
 #ifndef __SMARTPOINTER__
 #define __SMARTPOINTER__
+#include "cstdkbe/refcountable.hpp"
+
 namespace KBEngine { 
 
 template<class T>
-inline void incrementReferenceCount(const T* obj)
+inline void incrementReferenceCount(const T& obj)
 {
 };
 
 template<class T>
-inline void decrementReferenceCount(const T* obj)
+inline void decrementReferenceCount(const T& obj)
 {
-	delete obj;
+	//delete obj;
 };
 
 template<class T>
@@ -28,7 +30,8 @@ class ConstSmartPointer
 {
 public:
 	enum REF_TAG {STEAL_REF, NEW_REF};
-	ConstSmartPointer(const T* obj, REF_TAG tag = ConstSmartPointer::NEW_REF):
+	
+	ConstSmartPointer(const T* obj = 0, REF_TAG tag = ConstSmartPointer::NEW_REF):
 	m_obj_(obj)
 	{
 		if(tag == ConstSmartPointer::STEAL_REF)
@@ -36,11 +39,18 @@ public:
 			incrementReferenceCount(m_obj_);
 		}
 	}
-	
+
+	ConstSmartPointer( const ConstSmartPointer<T>& P )
+	{
+		m_obj_ = P.get();
+		if (m_obj_) 
+			incrementReferenceCount( *m_obj_ );
+	}
+
 	~ConstSmartPointer()
 	{
 		if (m_obj_)
-			decrementReferenceCount(m_obj_);
+			decrementReferenceCount(*m_obj_);
 
 		m_obj_ = 0;
 	}
@@ -53,7 +63,7 @@ public:
 		m_obj_ = 0;
 	}
 	
-	const T* get()
+	const T* get()const
 	{
 		return m_obj_;
 	}
@@ -61,12 +71,6 @@ public:
 	const T* operator()()
 	{
 		return m_obj_;
-	}
-
-	ConstSmartPointer( const ConstSmartPointer<T>& P )
-	{
-		m_obj_ = P.get();
-		if (m_obj_) incrementReferenceCount( *m_obj_ );
 	}
 
 	ConstSmartPointer<T>& operator=( const ConstSmartPointer<T>& X )
@@ -85,6 +89,17 @@ public:
 	{
 		return m_obj_;
 	}
+
+	const T& operator*() const
+	{
+		return *m_obj_;
+	}
+
+	typedef const T * ConstSmartPointer<T>::*unspecified_bool_type;
+	operator unspecified_bool_type() const
+	{
+		return m_obj_ == 0? 0 : &ConstSmartPointer<T>::m_obj_;
+	}
 protected:
 	const T* m_obj_;
 };
@@ -94,12 +109,33 @@ class SmartPointer : public ConstSmartPointer<T>
 {
 public:
 	typedef ConstSmartPointer<T> ConstProxy;
-
-	SmartPointer(T* obj, typename ConstProxy::REF_TAG tag = ConstProxy::NEW_REF):
+		
+	SmartPointer(T* obj = 0, typename ConstProxy::REF_TAG tag = ConstProxy::NEW_REF):
 	ConstProxy(obj, tag)
 	{
 	}
 	
+	SmartPointer( const SmartPointer<T>& P ) : ConstProxy( P ) { }
+
+	template<class DerivedType>
+	SmartPointer( ConstSmartPointer<DerivedType>& dt ) :
+		ConstProxy( dt.get() )
+	{
+	}
+
+	SmartPointer<T>& operator=( const SmartPointer<T>& P )
+	{
+		ConstProxy::operator=(P);
+		return *this;
+	}
+
+	template<class DerivedType>
+	SmartPointer<T>& operator=( ConstSmartPointer<DerivedType>& dt )
+	{
+		ConstProxy::operator=(dt.get());
+		return *this;
+	}
+
 	T * get() const
 	{
 		return const_cast<T *>( this->m_obj_ );
@@ -108,6 +144,11 @@ public:
 	T* operator->()const
 	{
 		return const_cast<T *>( this->m_obj_ );
+	}
+
+	T& operator*() const
+	{
+		return *const_cast<T *>( this->m_obj_ );
 	}
 };
 
