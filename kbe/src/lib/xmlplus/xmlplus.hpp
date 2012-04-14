@@ -60,6 +60,7 @@ same license as the rest of the engine.
 #include <string>
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/smartpointer.hpp"
 #include "third_party/tinyxml/tinyxml.h"
 
 // windows include	
@@ -90,7 +91,7 @@ namespace KBEngine{
 #define XML_FOR_END(node)																\
 	}while((node = node->NextSibling()));												\
 			
-class  XmlPlus
+class  XmlPlus : public RefCountable
 {
 protected:
 	TiXmlDocument* m_txdoc_;
