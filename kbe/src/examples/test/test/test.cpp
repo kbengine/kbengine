@@ -22,7 +22,8 @@ protected:
 	IDClient<ENTITY_ID>*		m_idClient_;
 	Entities*					m_entities_;									// 存储所有的entity的容器
 public:
-	TestApp(Mercury::EventDispatcher& dispatcher, COMPONENT_TYPE componentType):ServerApp(dispatcher, componentType)
+	TestApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
+	  ServerApp(dispatcher, ninterface, componentType)
 	{
 		
 	}

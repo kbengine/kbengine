@@ -21,7 +21,8 @@ protected:
 	IDClient<ENTITY_ID>*		m_idClient_;
 	Entities*					m_entities_;									// 存储所有的entity的容器
 public:
-	App(Mercury::EventDispatcher& dispatcher, COMPONENT_TYPE componentType):ServerApp(dispatcher, componentType)
+	App(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
+	  ServerApp(dispatcher, ninterface, componentType)
 	{
 		
 	}
@@ -59,7 +60,10 @@ public:
 		DEBUG_MSG("kbe:python is init successfully!!! %d\n", 88);
 		SmartPointer<PyObject> testsmartpointer(::PyBytes_FromString("test"));
 		testsmartpointer.clear();
-		return true;
+
+		CRITICAL_MSG("hahahah %d", 1111);
+
+		return ServerApp::run();
 	}
 	
 	bool initializeBegin()
