@@ -71,7 +71,7 @@ public:
 ---------------------------------------------------------------------------------*/
 #ifdef KBE_USE_ASSERTS
 void myassert(const char* exp, const char * file, unsigned int line);
-#define KBE_ASSERT(exp) if(exp)myassert(#exp, __FILE__, __LINE__);
+#define KBE_ASSERT(exp) if(!(exp))myassert(#exp, __FILE__, __LINE__);
 #else
 #define KBE_ASSERT(exp) NULL;
 #endif

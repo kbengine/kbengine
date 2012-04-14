@@ -219,7 +219,7 @@ void DebugHelper::critical_msg(const char * str, ...)
         return;
 
     outTime();
-	fprintf(stdout, "CRITICAL:");
+	fprintf(stdout, "CRITICAL:%s(%d)\n\t", _m_currFile.c_str(), _m_currLine);
 
     va_list ap;
     va_start(ap, str);
