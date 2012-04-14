@@ -12,6 +12,7 @@ same license as the rest of the engine.
 #define __KBE_ADDRESS__
 
 #include "cstdkbe/cstdkbe.hpp"
+#include "network/common.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -19,6 +20,8 @@ namespace Mercury
 class Address
 {
 public:
+	static const Address NONE;
+
 	Address();
 	Address(uint32 ipArg, uint16 portArg);
 	uint32	ip;

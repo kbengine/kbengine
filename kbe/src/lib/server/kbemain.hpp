@@ -15,6 +15,8 @@ same license as the rest of the engine.
 #include "helper/debug_helper.hpp"
 #include "server/serverinfos.hpp"
 #include "network/event_dispatcher.hpp"
+#include "network/network_interface.hpp"
+
 namespace KBEngine{
 
 inline void START_MSG(const char * name)
@@ -41,13 +43,16 @@ template <class SERVER_APP>
 int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType)
 {
 	Mercury::EventDispatcher dispatcher;
-	SERVER_APP app(dispatcher, componentType);
+	Mercury::NetworkInterface networkInterface(&dispatcher, Mercury::NETWORK_INTERFACE_INTERNAL, 0, "");
+
+	SERVER_APP app(dispatcher, networkInterface, componentType);
 	START_MSG(COMPONENT_NAME[componentType]);
 	if(!app.initialize()){
 		ERROR_MSG("app::initialize is error!");
 		return -1;
 	}
 	
+	INFO_MSG( "---- %s is running ----\n", COMPONENT_NAME[componentType]);
 	int ret = app.run();
 	app.finalise();
 	INFO_MSG("%s has shut down.\n", COMPONENT_NAME[componentType]);

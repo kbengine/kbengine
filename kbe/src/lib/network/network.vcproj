@@ -157,11 +157,39 @@
 				>
 			</File>
 			<File
+				RelativePath=".\bundle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\channel.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\error_reporter.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\event_dispatcher.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\event_poller.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\network_interface.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\packet.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\packet_filter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\packet_receiver.cpp"
 				>
 			</File>
 			<File
@@ -179,6 +207,26 @@
 				>
 			</File>
 			<File
+				RelativePath=".\bundle.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\channel.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\circular_buffer.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\common.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\error_reporter.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\event_dispatcher.hpp"
 				>
 			</File>
@@ -188,6 +236,26 @@
 			</File>
 			<File
 				RelativePath=".\interfaces.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\network_interface.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\nub_exception.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\packet.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\packet_filter.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\packet_receiver.hpp"
 				>
 			</File>
 			<File
@@ -202,7 +270,35 @@
 			>
 		</Filter>
 		<File
+			RelativePath=".\bundle.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\channel.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\error_reporter.ipp"
+			>
+		</File>
+		<File
 			RelativePath=".\event_dispatcher.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\network_interface.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\packet.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\packet_filter.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\packet_receiver.ipp"
 			>
 		</File>
 		<File

@@ -15,6 +15,7 @@ same license as the rest of the engine.
 #include "cstdkbe/timestamp.hpp"
 #include "network/interfaces.hpp"
 #include "thread/concurrency.hpp"
+#include "network/common.hpp"
 #include <map>
 
 namespace KBEngine { 

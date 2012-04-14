@@ -13,11 +13,13 @@ EventDispatcher::EventDispatcher() :
 	m_totSpareTime_(0),
 	m_lastStatisticsGathered_(0),
 	m_pFrequentTasks_(new Tasks),
+	m_pErrorReporter_(NULL),
 	m_pTimes_(new Times64),
 	m_pCouplingToParent_(NULL)
 	
 {
 	m_pPoller_ = EventPoller::create();
+	m_pErrorReporter_ = new ErrorReporter(*this);
 }
 
 //-------------------------------------------------------------------------------------

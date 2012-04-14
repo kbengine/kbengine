@@ -31,6 +31,7 @@ same license as the rest of the engine.
 #include "pyscript/pyobject_pointer.hpp"
 #include "entitydef/entitydef.hpp"
 #include "network/event_dispatcher.hpp"
+#include "network/network_interface.hpp"
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
@@ -42,14 +43,8 @@ namespace KBEngine{
 
 class ServerApp : public Singleton<ServerApp>
 {
-protected:
-	COMPONENT_TYPE											m_componentType_;
-	COMPONENT_ID											m_componentID_;									// 本组件的ID
-	KBEngine::script::Script								m_script_;
-	std::vector<PyTypeObject*>								m_scriptBaseTypes_;
-	Mercury::EventDispatcher& 								m_mainDispatcher_;				
 public:
-	ServerApp(Mercury::EventDispatcher& dispatcher, COMPONENT_TYPE componentType);
+	ServerApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
 	~ServerApp();
 	
 	KBEngine::script::Script& getScript(){ return m_script_; }
@@ -71,6 +66,16 @@ public:
 
 	virtual bool loadConfig();
 	const char* name(){return COMPONENT_NAME[m_componentType_];}
+
+	Mercury::EventDispatcher & getMainDispatcher()				{ return m_mainDispatcher_; }
+	Mercury::NetworkInterface & getNetworkInterface()			{ return m_networkInterface_; }
+protected:
+	COMPONENT_TYPE											m_componentType_;
+	COMPONENT_ID											m_componentID_;									// 本组件的ID
+	KBEngine::script::Script								m_script_;
+	std::vector<PyTypeObject*>								m_scriptBaseTypes_;
+	Mercury::EventDispatcher& 								m_mainDispatcher_;	
+	Mercury::NetworkInterface&								m_networkInterface_;
 };
 
 }

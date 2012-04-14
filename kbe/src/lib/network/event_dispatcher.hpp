@@ -16,6 +16,8 @@ same license as the rest of the engine.
 #include "cstdkbe/timer.hpp"
 #include "network/interfaces.hpp"
 #include "network/event_poller.hpp"
+#include "network/error_reporter.hpp"
+#include "network/common.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -64,6 +66,8 @@ public:
 	uint64 getSpareTime() const;
 	void clearSpareTime();
 	double proportionalSpareTime() const;
+
+	ErrorReporter & errorReporter()	{ return *m_pErrorReporter_; }
 private:
 	TimerHandle addTimerCommon(int64 microseconds,
 		TimerHandler * handler,
@@ -94,6 +98,7 @@ protected:
 	TimeStamp		m_lastStatisticsGathered_;
 	
 	Tasks* m_pFrequentTasks_;
+	ErrorReporter * m_pErrorReporter_;
 	Times64* m_pTimes_;
 	EventPoller* m_pPoller_;
 	DispatcherCoupling * m_pCouplingToParent_;

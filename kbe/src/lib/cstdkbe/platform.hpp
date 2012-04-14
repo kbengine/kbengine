@@ -226,6 +226,30 @@ typedef	uint32													TIMER_ID;												// 一个timer的id类型
 typedef uint8													MAIL_TYPE;												// mailbox 所投递的mail类别的类别
 
 
+#if KBE_PLATFORM == PLATFORM_WIN32
+#define IFNAMSIZ												16
+
+#ifndef socklen_t
+typedef	int														socklen_t;
+#endif
+
+#ifndef IFF_UP
+	enum
+	{
+		IFF_UP													= 0x1,
+		IFF_BROADCAST											= 0x2,
+		IFF_DEBUG												= 0x4,
+		IFF_LOOPBACK											= 0x8,
+		IFF_POINTOPOINT											= 0x10,
+		IFF_NOTRAILERS											= 0x20,
+		IFF_RUNNING												= 0x40,
+		IFF_NOARP												= 0x80,
+		IFF_PROMISC												= 0x100,
+		IFF_MULTICAST											= 0x1000
+	};
+#endif
+#endif
+
 /*---------------------------------------------------------------------------------
 	定会多种平台上的多线程相关
 ---------------------------------------------------------------------------------*/

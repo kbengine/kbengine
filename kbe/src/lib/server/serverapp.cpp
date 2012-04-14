@@ -3,11 +3,13 @@ namespace KBEngine{
 template<> ServerApp* Singleton<ServerApp>::m_singleton_ = 0;
 
 //-------------------------------------------------------------------------------------
-ServerApp::ServerApp(Mercury::EventDispatcher& dispatcher, COMPONENT_TYPE componentType):
+ServerApp::ServerApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
 m_componentType_(componentType),
 m_componentID_(0),
-m_mainDispatcher_(dispatcher)
+m_mainDispatcher_(dispatcher),
+m_networkInterface_(ninterface)
 {
+	m_networkInterface_.pExtensionData( this );
 }
 
 //-------------------------------------------------------------------------------------
@@ -118,6 +120,7 @@ void ServerApp::finalise(void)
 //-------------------------------------------------------------------------------------		
 bool ServerApp::run(void)
 {
+	m_mainDispatcher_.processUntilBreak();
 	return true;
 }
 

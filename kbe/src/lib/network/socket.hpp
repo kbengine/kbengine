@@ -14,6 +14,7 @@ same license as the rest of the engine.
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/address.hpp"
+#include "network/common.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -26,7 +27,7 @@ public:
 	virtual ~Socket();
 	operator int() const;
 	static void initNetwork();
-	bool valid() const;
+	bool good() const;
 		
 	void socket(int type);
 	void setFileDescriptor(int fd);

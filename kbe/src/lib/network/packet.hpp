@@ -12,9 +12,11 @@ same license as the rest of the engine.
 #define __SOCKETPACKET_H__
 	
 // common include
-#include "cstdkbe/cstdkbe.hpp"
 #include "memorystream.hpp"
-#include "opcodes.hpp"	
+#include "cstdkbe/cstdkbe.hpp"
+#include "network/common.hpp"
+#include "network/address.hpp"
+#include "cstdkbe/smartpointer.hpp"	
 //#define NDEBUG
 #include <assert.h>
 // windows include	
@@ -25,55 +27,37 @@ same license as the rest of the engine.
 #endif
 	
 namespace KBEngine{
+namespace Mercury
+{
+class Socket;
+class Packet;
+typedef SmartPointer<Packet> PacketPtr;
 
-class Packet : public MemoryStream
+class Packet : public RefCountable
 {
 public:
-    Packet(): 
-    MemoryStream(0), 
-    m_opcode_(0),
-    m_onRecvtime_(0)
-    {
-    }
-    
-    explicit Packet(OPCODE_TYPE opcode, size_t res = 200): 
-    MemoryStream(res), m_opcode_(opcode) 
-    { 
-		(*this) << (OPCODE_TYPE)m_opcode_;
-    }
+    Packet();
+	virtual ~Packet(void);
+	
+	int recvFromSocket( Socket & ep, Address & addr );
 
-    Packet(const Packet &packet): 
-    MemoryStream(packet), 
-    m_opcode_(packet.m_opcode_)
-    {
-    }
-
-    void initialize(OPCODE_TYPE opcode, size_t newres = 200)
-    {
-        clear();
-        m_storage_.resize(newres);
-        m_opcode_ = opcode;
-		(*this) << (OPCODE_TYPE)m_opcode_;
-    }
-
-    void unPacket(const char* data, size_t& length)
-    {
-		append(data, length);
-		(*this) >> m_opcode_;
-		m_onRecvtime_ = getSystemTime();
-    }
-
-	virtual ~Packet(void){}	
-
-    OPCODE_TYPE getOpcode() const { return m_opcode_; }
-
-    void setOpcode(OPCODE_TYPE opcode) { m_opcode_ = opcode; }
-
-	uint32 getOnRecvTime(void)const{ return m_onRecvtime_; }
+	int msgEndOffset() const	{ return msgEndOffset_; }
+	void msgEndOffset( int offset )		{ msgEndOffset_ = offset; }
+	int totalSize() const		{ return 1; }
 protected:
-	OPCODE_TYPE		m_opcode_;									// 数据包的操作码
-	uint32			m_onRecvtime_;								// 这个数据包接收时的时间
-};
+	int			msgEndOffset_;
 
+
+#ifdef _WIN32
+	#pragma warning (push)
+	#pragma warning (disable: 4200)
+#endif
+	/// The variable-length data follows the packet header in memory.
+	char			data_[PACKET_MAX_SIZE];
+#ifdef _WIN32
+	#pragma warning (pop)
+#endif
+};
+}
 }
 #endif

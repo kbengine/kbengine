@@ -12,7 +12,7 @@ INLINE Socket::~Socket()
 	this->close();
 }
 
-INLINE bool Socket::valid() const
+INLINE bool Socket::good() const
 {
 	return socket_ != -1;
 }

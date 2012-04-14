@@ -5,6 +5,7 @@ namespace Mercury
 {
 char Address::s_stringBuf[ 2 ][32];
 int Address::s_currStringBuf = 0;
+const Address Address::NONE(0, 0);
 
 //-------------------------------------------------------------------------------------
 int Address::writeToString(char * str, int length) const
