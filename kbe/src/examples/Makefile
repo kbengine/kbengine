@@ -1,2 +1,2 @@
 all:
-	cd network && $(MAKE)
+	cd testnetwork && $(MAKE)
