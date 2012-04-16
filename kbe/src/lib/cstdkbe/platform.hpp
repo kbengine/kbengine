@@ -232,7 +232,9 @@ typedef uint8													MAIL_TYPE;												// mailbox ËùÍ¶µİµÄmailÀà±ğµÄÀà±
 #ifndef socklen_t
 	typedef	int													socklen_t;
 #endif
-
+	typedef u_short												u_int16_t;
+	typedef u_long												u_int32_t;
+	
 #ifndef IFF_UP
 	enum
 	{

@@ -96,8 +96,8 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 {
 	this->closeSocket();
 
-	socket_.getInterfaceAddress(listeningInterface, address_.ip);
-	address_.port = listeningPort;
+	address_.ip = 0;
+	address_.port = 0;
 
 	socket_.socket(SOCK_STREAM);
 	if (!socket_.good())
@@ -107,8 +107,42 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 	}
 
 	this->dispatcher().registerFileDescriptor(socket_, pPacketReceiver_);
+	
+	char ifname[IFNAMSIZ];
+	u_int32_t ifaddr = INADDR_ANY;
+	bool listeningInterfaceEmpty =
+		(listeningInterface == NULL || listeningInterface[0] == 0);
 
-	if (socket_.bind(listeningPort, INADDR_ANY) != 0)
+	// Query bwmachined over the local interface (dev: lo) for what it
+	// believes the internal interface is.
+	if (listeningInterface &&
+		(strcmp( listeningInterface, USE_KBEMACHINED ) == 0))
+	{
+		INFO_MSG( "NetworkInterface::recreateListeningSocket: "
+				"Querying KBEMachined for interface\n" );
+		
+		// 没有实现
+	}
+	else if (socket_.findIndicatedInterface( listeningInterface, ifname ) == 0)
+	{
+		INFO_MSG( "NetworkInterface::recreateListeningSocket: "
+				"Creating on interface '%s' (= %s)\n",
+			listeningInterface, ifname );
+		if (socket_.getInterfaceAddress( ifname, ifaddr ) != 0)
+		{
+			WARNING_MSG( "NetworkInterface::recreateListeningSocket: "
+				"Couldn't get addr of interface %s so using all interfaces\n",
+				ifname );
+		}
+	}
+	else if (!listeningInterfaceEmpty)
+	{
+		WARNING_MSG( "NetworkInterface::recreateListeningSocket: "
+				"Couldn't parse interface spec '%s' so using all interfaces\n",
+			listeningInterface );
+	}
+	
+	if (socket_.bind(listeningPort, ifaddr) != 0)
 	{
 		ERROR_MSG("NetworkInterface::recreateListeningSocket: "
 				"Couldn't bind the socket to %s (%s)\n",
@@ -118,8 +152,30 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 		socket_.detach();
 		return false;
 	}
+	
+	socket_.getlocaladdress( (u_int16_t*)&address_.port,
+		(u_int32_t*)&address_.ip );
 
-	INFO_MSG("NetworkInterface::recreateListeningSocket: address %s\n", address_.c_str());
+	if (address_.ip == 0)
+	{
+		if (socket_.findDefaultInterface( ifname ) != 0 ||
+			socket_.getInterfaceAddress( ifname,
+				(u_int32_t&)address_.ip ) != 0)
+		{
+			ERROR_MSG( "NetworkInterface::recreateListeningSocket: "
+				"Couldn't determine ip addr of default interface\n" );
+
+			socket_.close();
+			socket_.detach();
+			return false;
+		}
+
+		INFO_MSG( "NetworkInterface::recreateListeningSocket: "
+				"bound to all interfaces with default route "
+				"interface on %s ( %s )\n",
+			ifname, address_.c_str() );
+	}
+	
 	socket_.setnonblocking(true);
 	socket_.setnodelay(true);
 	
@@ -143,6 +199,7 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 		return false;
 	}
 	
+	INFO_MSG("NetworkInterface::recreateListeningSocket: address %s\n", address_.c_str());
 	return true;
 }
 

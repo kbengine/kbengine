@@ -46,7 +46,7 @@ public:
 	static const char * USE_KBEMACHINED;
 	
 	NetworkInterface(EventDispatcher * pMainDispatcher, NetworkInterfaceType interfaceType,
-		uint16 listeningPort = 0, const char * listeningInterface = "eth0");
+		uint16 listeningPort = 0, const char * listeningInterface = "");
 	~NetworkInterface();
 	
 	void attach(EventDispatcher & mainDispatcher);

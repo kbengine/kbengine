@@ -17,7 +17,7 @@ Packet::~Packet(void)
 {
 }
 
-int Packet::recvFromEndPoint(Socket & ep, Address & addr)
+int Packet::recvFromEndPoint(Socket & ep)
 {
 	int len = ep.recv(data_, PACKET_MAX_SIZE);
 	/*

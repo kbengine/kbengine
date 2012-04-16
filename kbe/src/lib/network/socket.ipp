@@ -29,12 +29,12 @@ INLINE void Socket::setFileDescriptor(int fd)
 
 INLINE void Socket::socket(int type)
 {
-	this->setFileDescriptor(::socket(PF_INET, type, 0));
+	this->setFileDescriptor(::socket(AF_INET, type, 0));
 #if KBE_PLATFORM == PLATFORM_WIN32
 	if ((socket_ == INVALID_SOCKET) && (WSAGetLastError() == WSANOTINITIALISED))
 	{
 		Socket::initNetwork();
-		this->setFileDescriptor(::socket(PF_INET, type, 0));
+		this->setFileDescriptor(::socket(AF_INET, type, 0));
 		KBE_ASSERT((socket_ != INVALID_SOCKET) && (WSAGetLastError() != WSANOTINITIALISED) && \
 				"Socket::socket: create socket is error!");
 	}
@@ -101,7 +101,7 @@ INLINE int Socket::setkeepalive(bool keepalive)
 		(char*)&val, sizeof(val));
 }
 
-INLINE int Socket::bind(uint16 networkPort, uint32 networkAddr)
+INLINE int Socket::bind(u_int16_t networkPort, u_int32_t networkAddr)
 {
 	sockaddr_in	sin;
 	memset(&sin, 0, sizeof(sockaddr_in));
@@ -111,7 +111,7 @@ INLINE int Socket::bind(uint16 networkPort, uint32 networkAddr)
 	return ::bind(socket_, (struct sockaddr*)&sin, sizeof(sin));
 }
 
-INLINE int Socket::joinMulticastGroup(uint32 networkAddr)
+INLINE int Socket::joinMulticastGroup(u_int32_t networkAddr)
 {
 #ifdef unix
 	struct ip_mreqn req;
@@ -124,7 +124,7 @@ INLINE int Socket::joinMulticastGroup(uint32 networkAddr)
 #endif
 }
 
-INLINE int Socket::quitMulticastGroup(uint32 networkAddr)
+INLINE int Socket::quitMulticastGroup(u_int32_t networkAddr)
 {
 #ifdef unix
 	struct ip_mreqn req;
@@ -166,7 +166,7 @@ INLINE int Socket::detach()
 }
 
 INLINE int Socket::getlocaladdress(
-	uint16 * networkPort, uint32 * networkAddr) const
+	u_int16_t * networkPort, u_int32_t * networkAddr) const
 {
 	sockaddr_in		sin;
 	socklen_t		sinLen = sizeof(sin);
@@ -180,7 +180,7 @@ INLINE int Socket::getlocaladdress(
 }
 
 INLINE int Socket::getremoteaddress(
-	uint16 * networkPort, uint32 * networkAddr) const
+	u_int16_t * networkPort, u_int32_t * networkAddr) const
 {
 	sockaddr_in		sin;
 	socklen_t		sinLen = sizeof(sin);
@@ -196,7 +196,7 @@ INLINE int Socket::getremoteaddress(
 INLINE const char * Socket::c_str() const
 {
 	Mercury::Address addr;
-	this->getlocaladdress(&(uint16&)addr.port, &(uint32&)addr.ip);
+	this->getlocaladdress(&(u_int16_t&)addr.port, &(u_int32_t&)addr.ip);
 	return addr.c_str();
 }
 
@@ -224,7 +224,7 @@ INLINE int Socket::getremotehostname(std::string * host) const
 }
 
 INLINE int Socket::sendto(void * gramData, int gramSize,
-	uint16 networkPort, uint32 networkAddr)
+	u_int16_t networkPort, u_int32_t networkAddr)
 {
 	sockaddr_in	sin;
 	sin.sin_family = AF_INET;
@@ -242,7 +242,7 @@ INLINE int Socket::sendto(void * gramData, int gramSize,
 }
 
 INLINE int Socket::recvfrom(void * gramData, int gramSize,
-	uint16 * networkPort, uint32 * networkAddr)
+	u_int16_t * networkPort, u_int32_t * networkAddr)
 {
 	sockaddr_in sin;
 	int result = this->recvfrom(gramData, gramSize, sin);
@@ -271,7 +271,7 @@ INLINE int Socket::listen(int backlog)
 	return ::listen(socket_, backlog);
 }
 
-INLINE int Socket::connect(uint16 networkPort, uint32 networkAddr)
+INLINE int Socket::connect(u_int16_t networkPort, u_int32_t networkAddr)
 {
 	sockaddr_in	sin;
 	sin.sin_family = AF_INET;
@@ -281,7 +281,7 @@ INLINE int Socket::connect(uint16 networkPort, uint32 networkAddr)
 	return ::connect(socket_, (sockaddr*)&sin, sizeof(sin));
 }
 
-INLINE Socket * Socket::accept(uint16 * networkPort, uint32 * networkAddr)
+INLINE Socket * Socket::accept(u_int16_t * networkPort, u_int32_t * networkAddr)
 {
 	sockaddr_in		sin;
 	socklen_t		sinLen = sizeof(sin);
@@ -327,7 +327,7 @@ INLINE int Socket::getInterfaceFlags(char * name, int & flags)
 	return 0;
 }
 
-INLINE int Socket::getInterfaceAddress(const char * name, uint32 & address)
+INLINE int Socket::getInterfaceAddress(const char * name, u_int32_t & address)
 {
 	struct ifreq	request;
 
@@ -349,7 +349,7 @@ INLINE int Socket::getInterfaceAddress(const char * name, uint32 & address)
 }
 
 INLINE int Socket::getInterfaceNetmask(const char * name,
-	uint32 & netmask)
+	u_int32_t & netmask)
 {
 	struct ifreq request;
 	strncpy(request.ifr_name, name, IFNAMSIZ);
@@ -381,7 +381,7 @@ INLINE int Socket::getInterfaceFlags(char * name, int & flags)
 	return -1;
 }
 
-INLINE int Socket::getInterfaceAddress(const char * name, uint32 & address)
+INLINE int Socket::getInterfaceAddress(const char * name, u_int32_t & address)
 {
 	if (!strcmp(name,"eth0"))
 	{

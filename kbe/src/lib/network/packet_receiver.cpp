@@ -53,19 +53,15 @@ int PacketReceiver::handleInputNotification(int fd)
  */
 bool PacketReceiver::processSocket(bool expectingPacket)
 {
-	// try a recvfrom
-	Address	srcAddr;
-	int len = pNextPacket_->recvFromEndPoint(socket_, srcAddr);
-
+	int len = pNextPacket_->recvFromEndPoint(socket_);
 	if (len <= 0)
 	{
 		return this->checkSocketErrors(len, expectingPacket);
 	}
 
-	// process it if it succeeded
 	PacketPtr curPacket = pNextPacket_;
 	pNextPacket_ = new Packet();
-
+	Address srcAddr = socket_.getRemoteAddress();
 	Reason ret = this->processPacket(srcAddr, curPacket.get());
 
 	if ((ret != REASON_SUCCESS) &&

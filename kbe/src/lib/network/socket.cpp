@@ -113,7 +113,7 @@ bool Socket::getClosedPort(Mercury::Address & closedPort)
 	return isResultSet;
 }
 //-------------------------------------------------------------------------------------
-bool Socket::getInterfaces(std::map< uint32, std::string > &interfaces)
+bool Socket::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 {
 #ifdef _WIN32
 	ERROR_MSG("Socket::getInterfaces: Not implemented for Windows.\n");
@@ -168,7 +168,7 @@ int Socket::findDefaultInterface(char * name)
 
 			if ((flags & IFF_UP) && (flags & IFF_RUNNING))
 			{
-				uint32	addr;
+				u_int32_t	addr;
 				if (this->getInterfaceAddress(pIfInfoCur->if_name, addr) == 0)
 				{
 					strcpy(name, pIfInfoCur->if_name);
@@ -208,7 +208,7 @@ int Socket::findIndicatedInterface(const char * spec, char * name)
 	int netmaskbits = 32;
 	char iftemp[IFNAMSIZ+16];
 	strncpy(iftemp, spec, IFNAMSIZ); iftemp[IFNAMSIZ] = 0;
-	uint32 addr = 0;
+	u_int32_t addr = 0;
 
 	// see if it's a netmask
 	if ((slash = const_cast< char * >(strchr(spec, '/'))) && slash-spec <= 16)
@@ -250,7 +250,7 @@ int Socket::findIndicatedInterface(const char * spec, char * name)
 	if (name[0] == 0)
 	{
 		int netmaskshift = 32-netmaskbits;
-		uint32 netmaskmatch = ntohl(addr);
+		u_int32_t netmaskmatch = ntohl(addr);
 
 		std::vector< std::string > interfaceNames;
 
@@ -270,12 +270,12 @@ int Socket::findIndicatedInterface(const char * spec, char * name)
 
 		while (iter != interfaceNames.end())
 		{
-			uint32 tip = 0;
+			u_int32_t tip = 0;
 			char * currName = (char *)iter->c_str();
 
 			if (this->getInterfaceAddress(currName, tip) == 0)
 			{
-				uint32 htip = ntohl(tip);
+				u_int32_t htip = ntohl(tip);
 
 				if ((htip >> netmaskshift) == (netmaskmatch >> netmaskshift))
 				{
@@ -304,9 +304,9 @@ int Socket::findIndicatedInterface(const char * spec, char * name)
 }
 
 //-------------------------------------------------------------------------------------
-int Socket::convertAddress(const char * string, uint32 & address)
+int Socket::convertAddress(const char * string, u_int32_t & address)
 {
-	uint32	trial;
+	u_int32_t	trial;
 
 	#ifdef unix
 	if (inet_aton(string, (struct in_addr*)&trial) != 0)
@@ -321,7 +321,7 @@ int Socket::convertAddress(const char * string, uint32 & address)
 	struct hostent * hosts = gethostbyname(string);
 	if (hosts != NULL)
 	{
-		address = *(uint32*)(hosts->h_addr_list[0]);
+		address = *(u_int32_t*)(hosts->h_addr_list[0]);
 		return 0;
 	}
 
@@ -334,7 +334,7 @@ int Socket::getQueueSizes(int & tx, int & rx) const
 {
 	int	ret = -1;
 
-	uint16	nport = 0;
+	u_int16_t	nport = 0;
 	this->getlocaladdress(&nport,NULL);
 
 	char		match[16];
@@ -456,8 +456,8 @@ Mercury::Address Socket::getLocalAddress() const
 {
 	Mercury::Address addr(0, 0);
 
-	if (this->getlocaladdress((uint16*)&addr.port,
-				(uint32*)&addr.ip) == -1)
+	if (this->getlocaladdress((u_int16_t*)&addr.port,
+				(u_int32_t*)&addr.ip) == -1)
 	{
 		ERROR_MSG("Socket::getLocalAddress: Failed\n");
 	}
@@ -470,8 +470,8 @@ Mercury::Address Socket::getRemoteAddress() const
 {
 	Mercury::Address addr(0, 0);
 
-	if (this->getremoteaddress((uint16*)&addr.port,
-				(uint32*)&addr.ip) == -1)
+	if (this->getremoteaddress((u_int16_t*)&addr.port,
+				(u_int32_t*)&addr.ip) == -1)
 	{
 		ERROR_MSG("Socket::getRemoteAddress: Failed\n");
 	}

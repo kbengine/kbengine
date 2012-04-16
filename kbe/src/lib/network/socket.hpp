@@ -32,8 +32,8 @@ public:
 	void socket(int type);
 	void setFileDescriptor(int fd);
 
-	int joinMulticastGroup(uint32 networkAddr);
-	int quitMulticastGroup(uint32 networkAddr);
+	int joinMulticastGroup(u_int32_t networkAddr);
+	int quitMulticastGroup(u_int32_t networkAddr);
 	
 	INLINE int close();
 	INLINE int detach();
@@ -44,22 +44,22 @@ public:
 	int setkeepalive(bool keepalive);
 	int setnodelay(bool nodelay = true);
 	
-	int bind(uint16 networkPort = 0, uint32 networkAddr = INADDR_ANY);
+	int bind(u_int16_t networkPort = 0, u_int32_t networkAddr = INADDR_ANY);
 	int listen(int backlog = 5);
-	int connect(uint16 networkPort, uint32 networkAddr = INADDR_BROADCAST);
-	Socket* accept(uint16 * networkPort = NULL, uint32 * networkAddr = NULL);
+	int connect(u_int16_t networkPort, u_int32_t networkAddr = INADDR_BROADCAST);
+	Socket* accept(u_int16_t * networkPort = NULL, u_int32_t * networkAddr = NULL);
 	
 	INLINE int send(const void * gramData, int gramSize);
 	int recv(void * gramData, int gramSize);
 	bool recvAll(void * gramData, int gramSize);
 	
 	int getInterfaceFlags(char * name, int & flags);
-	int getInterfaceAddress(const char * name, uint32 & address);
-	int getInterfaceNetmask(const char * name, uint32 & netmask);
-	bool getInterfaces(std::map< uint32, std::string > &interfaces);
+	int getInterfaceAddress(const char * name, u_int32_t & address);
+	int getInterfaceNetmask(const char * name, u_int32_t & netmask);
+	bool getInterfaces(std::map< u_int32_t, std::string > &interfaces);
 	int findDefaultInterface(char * name);
 	int findIndicatedInterface(const char * spec, char * name);
-	static int convertAddress(const char * string, uint32 & address);
+	static int convertAddress(const char * string, u_int32_t & address);
 	
 	int transmitQueueSize() const;
 	int receiveQueueSize() const;
@@ -68,8 +68,8 @@ public:
 	int getBufferSize(int optname) const;
 	bool setBufferSize(int optname, int size);
 	
-	int getlocaladdress(uint16 * networkPort, uint32 * networkAddr) const;
-	int getremoteaddress(uint16 * networkPort, uint32 * networkAddr) const;
+	int getlocaladdress(u_int16_t * networkPort, u_int32_t * networkAddr) const;
+	int getremoteaddress(u_int16_t * networkPort, u_int32_t * networkAddr) const;
 	
 	Mercury::Address getLocalAddress() const;
 	Mercury::Address getRemoteAddress() const;
@@ -79,9 +79,9 @@ public:
 
 	bool getClosedPort(Mercury::Address & closedPort);
 	
-	int sendto(void * gramData, int gramSize, uint16 networkPort, uint32 networkAddr = INADDR_BROADCAST);
+	int sendto(void * gramData, int gramSize, u_int16_t networkPort, u_int32_t networkAddr = INADDR_BROADCAST);
 	INLINE int sendto(void * gramData, int gramSize, struct sockaddr_in & sin);
-	INLINE int recvfrom(void * gramData, int gramSize, uint16 * networkPort, uint32 * networkAddr);
+	INLINE int recvfrom(void * gramData, int gramSize, u_int16_t * networkPort, u_int32_t * networkAddr);
 	INLINE int recvfrom(void * gramData, int gramSize, struct sockaddr_in & sin);
 	
 	KBESOCKET get()const{ return socket_; }

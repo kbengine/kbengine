@@ -187,7 +187,7 @@ void init_network(void)
 	packetReceiver = new MyPacketReceiver(mysocket);
 	gdispatcher.registerFileDescriptor(mysocket, packetReceiver);
 	
-	if(mysocket.connect(htons(50000), inet_addr("192.168.1.104")) == -1)
+	if(mysocket.connect(htons(49312), inet_addr("192.168.1.104")) == -1)
 	{
 		ERROR_MSG("NetworkInterface::recreateListeningSocket: connect server is error!\n");
 		return;
