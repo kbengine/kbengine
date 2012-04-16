@@ -50,6 +50,7 @@ same license as the rest of the engine.
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h> 
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <signal.h>
