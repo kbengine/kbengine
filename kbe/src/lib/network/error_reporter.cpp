@@ -22,13 +22,13 @@ const uint ErrorReporter::ERROR_REPORT_COUNT_MAX_LIFETIME_MS = 10000; // 10 seco
 /**
  *	Constructor.
  */
-ErrorReporter::ErrorReporter( EventDispatcher & dispatcher ) :
+ErrorReporter::ErrorReporter(EventDispatcher & dispatcher) :
 	reportLimitTimerHandle_(),
 	errorsAndCounts_()
 {
 	// report any pending exceptions every so often
 	reportLimitTimerHandle_ = dispatcher.addTimer(
-							ERROR_REPORT_MIN_PERIOD_MS * 1000, this );
+							ERROR_REPORT_MIN_PERIOD_MS * 1000, this);
 }
 
 
@@ -41,8 +41,8 @@ ErrorReporter::~ErrorReporter()
 }
 
 
-std::string ErrorReporter::addressErrorToString( const Address & address,
-		const std::string & errorString )
+std::string ErrorReporter::addressErrorToString(const Address & address,
+		const std::string & errorString)
 {
 	std::ostringstream out;
 	out << address.c_str() << ": " << errorString;
@@ -54,7 +54,7 @@ std::string ErrorReporter::addressErrorToString(
 		const Address & address,
 		const std::string & errorString,
 		const ErrorReportAndCount & reportAndCount,
-		const uint64 & now )
+		const uint64 & now)
 {
 	int64 deltaStamps = now - reportAndCount.lastReportStamps;
 	double deltaMillis = 1000 * deltaStamps / stampsPerSecondD();
@@ -68,22 +68,22 @@ std::string ErrorReporter::addressErrorToString(
 		delete [] buf;
 		buf = new char[ bufLen ];
 #ifdef _WIN32
-		strLen = _snprintf( buf, bufLen, "%d reports of '%s' "
+		strLen = _snprintf(buf, bufLen, "%d reports of '%s' "
 				"in the last %.00fms",
 			reportAndCount.count,
-			addressErrorToString( address, errorString ).c_str(),
-			deltaMillis );
+			addressErrorToString(address, errorString).c_str(),
+			deltaMillis);
 		if (strLen == -1) strLen = (bufLen - 1) * 2;
 #else
-		strLen = snprintf( buf, bufLen, "%d reports of '%s' "
+		strLen = snprintf(buf, bufLen, "%d reports of '%s' "
 				"in the last %.00fms",
 			reportAndCount.count,
-			addressErrorToString( address, errorString ).c_str(),
-			deltaMillis );
+			addressErrorToString(address, errorString).c_str(),
+			deltaMillis);
 #endif
 	} while (strLen >= bufLen);
 
-	std::string out( buf );
+	std::string out(buf);
 	delete [] buf;
 	return out;
 }
@@ -95,7 +95,7 @@ std::string ErrorReporter::addressErrorToString(
  *	they are accumulated and output after the minimum output window has passed.
  */
 void ErrorReporter::reportError(
-		const Address & address, const char* format, ... )
+		const Address & address, const char* format, ...)
 {
 	char * buf = NULL;
 	int bufLen = 32;
@@ -107,35 +107,35 @@ void ErrorReporter::reportError(
 		buf = new char[ bufLen ];
 
 		va_list va;
-		va_start( va, format );
+		va_start(va, format);
 #ifdef _WIN32
-		strLen = _vsnprintf( buf, bufLen, format, va );
+		strLen = _vsnprintf(buf, bufLen, format, va);
 		if (strLen == -1) strLen = (bufLen - 1) * 2;
 #else
-		strLen = vsnprintf( buf, bufLen, format, va );
+		strLen = vsnprintf(buf, bufLen, format, va);
 #endif
-		va_end( va );
+		va_end(va);
 		buf[bufLen -1] = '\0';
 
-	} while (strLen >= bufLen );
+	} while (strLen >= bufLen);
 
-	std::string error( buf );
+	std::string error(buf);
 
 	delete [] buf;
 
-	this->addReport( address, error );
+	this->addReport(address, error);
 }
 
 
 /**
  *
  */
-void ErrorReporter::reportException( Reason reason,
+void ErrorReporter::reportException(Reason reason,
 		const Address & addr,
-		const char* prefix )
+		const char* prefix)
 {
-	NubException ne( reason, addr );
-	this->reportException( ne, prefix );
+	NubException ne(reason, addr);
+	this->reportException(ne, prefix);
 
 }
 
@@ -149,21 +149,21 @@ void ErrorReporter::reportException( Reason reason,
  *	@param prefix 	any prefix to add to the error message, or NULL if no prefix
  *
  */
-void ErrorReporter::reportException( const NubException & ne, const char* prefix )
+void ErrorReporter::reportException(const NubException & ne, const char* prefix)
 {
-	Address offender( 0, 0 );
-	ne.getAddress( offender );
+	Address offender(0, 0);
+	ne.getAddress(offender);
 
 	if (prefix)
 	{
-		this->reportError( offender,
+		this->reportError(offender,
 			"%s: Exception occurred: %s",
-			prefix, reasonToString( ne.reason() ) );
+			prefix, reasonToString(ne.reason()));
 	}
 	else
 	{
-		this->reportError( offender, "Exception occurred: %s",
-				reasonToString( ne.reason() ) );
+		this->reportError(offender, "Exception occurred: %s",
+				reasonToString(ne.reason()));
 	}
 }
 
@@ -173,11 +173,11 @@ void ErrorReporter::reportException( const NubException & ne, const char* prefix
  *	Emits an error message if there has been no previous equivalent error
  *	string provider for this address.
  */
-void ErrorReporter::addReport( const Address & address, const std::string & errorString )
+void ErrorReporter::addReport(const Address & address, const std::string & errorString)
 {
-	AddressAndErrorString addressError( address, errorString );
+	AddressAndErrorString addressError(address, errorString);
 	ErrorsAndCounts::iterator searchIter =
-		errorsAndCounts_.find( addressError );
+		errorsAndCounts_.find(addressError);
 
 	uint64 now = timestamp();
 	// see if we have ever reported this error
@@ -195,9 +195,9 @@ void ErrorReporter::addReport( const Address & address, const std::string & erro
 
 		if (millisSinceLastReport >= ERROR_REPORT_MIN_PERIOD_MS)
 		{
-			ERROR_MSG( "%s\n",
-				addressErrorToString( address, errorString,
-					reportAndCount, now ).c_str() );
+			ERROR_MSG("%s\n",
+				addressErrorToString(address, errorString,
+					reportAndCount, now).c_str());
 			reportAndCount.count = 0;
 			reportAndCount.lastReportStamps = now;
 		}
@@ -205,8 +205,8 @@ void ErrorReporter::addReport( const Address & address, const std::string & erro
 	}
 	else
 	{
-		ERROR_MSG( "%s\n",
-			addressErrorToString( address, errorString ).c_str() );
+		ERROR_MSG("%s\n",
+			addressErrorToString(address, errorString).c_str());
 
 		ErrorReportAndCount reportAndCount = {
 			now, 	// lastReportStamps,
@@ -222,7 +222,7 @@ void ErrorReporter::addReport( const Address & address, const std::string & erro
 /**
  *	Output all exception's reports that have not yet been output.
  */
-void ErrorReporter::reportPendingExceptions( bool reportBelowThreshold )
+void ErrorReporter::reportPendingExceptions(bool reportBelowThreshold)
 {
 	uint64 now = timestamp();
 
@@ -232,12 +232,12 @@ void ErrorReporter::reportPendingExceptions( bool reportBelowThreshold )
 	for (	ErrorsAndCounts::iterator exceptionCountIter =
 				this->errorsAndCounts_.begin();
 			exceptionCountIter != this->errorsAndCounts_.end();
-			++exceptionCountIter )
+			++exceptionCountIter)
 	{
 		// remove any stale mappings from the last loop's run
 		if (staleIter != this->errorsAndCounts_.end())
 		{
-			this->errorsAndCounts_.erase( staleIter );
+			this->errorsAndCounts_.erase(staleIter);
 			staleIter = this->errorsAndCounts_.end();
 		}
 
@@ -254,10 +254,10 @@ void ErrorReporter::reportPendingExceptions( bool reportBelowThreshold )
 		{
 			if (reportAndCount.count)
 			{
-				ERROR_MSG( "%s\n",
+				ERROR_MSG("%s\n",
 					addressErrorToString(
 						addressError.first, addressError.second,
-						reportAndCount, now ).c_str()
+						reportAndCount, now).c_str()
 				);
 				reportAndCount.count = 0;
 				reportAndCount.lastReportStamps = now;
@@ -280,7 +280,7 @@ void ErrorReporter::reportPendingExceptions( bool reportBelowThreshold )
 	// remove the last mapping if it is marked stale
 	if (staleIter != this->errorsAndCounts_.end())
 	{
-		this->errorsAndCounts_.erase( staleIter );
+		this->errorsAndCounts_.erase(staleIter);
 	}
 }
 
@@ -289,9 +289,9 @@ void ErrorReporter::reportPendingExceptions( bool reportBelowThreshold )
  *	This method handles the timer event and checks to see if any delayed
  *	messages should be reported.
  */
-void ErrorReporter::handleTimeout( TimerHandle handle, void * arg )
+void ErrorReporter::handleTimeout(TimerHandle handle, void * arg)
 {
-	KBE_ASSERT( handle == reportLimitTimerHandle_ );
+	KBE_ASSERT(handle == reportLimitTimerHandle_);
 
 	this->reportPendingExceptions();
 }

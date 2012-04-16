@@ -29,7 +29,7 @@ class BundlePrimer
 {
 public:
 	virtual ~BundlePrimer() {}
-	virtual void primeBundle( Bundle & bundle ) = 0;
+	virtual void primeBundle(Bundle & bundle) = 0;
 	virtual int numUnreliableMessages() const = 0;
 };
 

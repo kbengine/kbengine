@@ -14,11 +14,11 @@ namespace KBEngine {
 namespace Mercury
 {
 
-PacketReceiver::PacketReceiver( Socket & socket,
+PacketReceiver::PacketReceiver(Socket & socket,
 	   NetworkInterface & networkInterface	) :
-	socket_( socket ),
-	networkInterface_( networkInterface ),
-	pNextPacket_( new Packet() )
+	socket_(socket),
+	networkInterface_(networkInterface),
+	pNextPacket_(new Packet())
 {
 }
 
@@ -34,11 +34,11 @@ PacketReceiver::~PacketReceiver()
 /**
  *	This method is called when their is data on the socket.
  */
-int PacketReceiver::handleInputNotification( int fd )
+int PacketReceiver::handleInputNotification(int fd)
 {
-	if (this->processSocket( /*expectingPacket:*/true ))
+	if (this->processSocket(/*expectingPacket:*/true))
 	{
-		while (this->processSocket( /*expectingPacket:*/false ))
+		while (this->processSocket(/*expectingPacket:*/false))
 		{
 			/* pass */;
 		}
@@ -51,27 +51,27 @@ int PacketReceiver::handleInputNotification( int fd )
 /**
  *	This method will read and process any pending data on this object's socket.
  */
-bool PacketReceiver::processSocket( bool expectingPacket )
+bool PacketReceiver::processSocket(bool expectingPacket)
 {
 	// try a recvfrom
 	Address	srcAddr;
-	int len = pNextPacket_->recvFromSocket( socket_, srcAddr );
+	int len = pNextPacket_->recvFromEndPoint(socket_, srcAddr);
 
 	if (len <= 0)
 	{
-		return this->checkSocketErrors( len, expectingPacket );
+		return this->checkSocketErrors(len, expectingPacket);
 	}
 
 	// process it if it succeeded
 	PacketPtr curPacket = pNextPacket_;
 	pNextPacket_ = new Packet();
 
-	Reason ret = this->processPacket( srcAddr, curPacket.get());
+	Reason ret = this->processPacket(srcAddr, curPacket.get());
 
 	if ((ret != REASON_SUCCESS) &&
 			networkInterface_.isVerbose())
 	{
-		this->dispatcher().errorReporter().reportException( ret, srcAddr );
+		this->dispatcher().errorReporter().reportException(ret, srcAddr);
 	}
 
 	return true;
@@ -81,17 +81,17 @@ bool PacketReceiver::processSocket( bool expectingPacket )
 /**
  *	This method checks whether an error was received from a call to
  */
-bool PacketReceiver::checkSocketErrors( int len, bool expectingPacket )
+bool PacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 {
 	// is len weird?
 	if (len == 0)
 	{
-		WARNING_MSG( "PacketReceiver::processPendingEvents: "
+		WARNING_MSG("PacketReceiver::processPendingEvents: "
 			"Throwing REASON_GENERAL_NETWORK (1)- %s\n",
-			strerror( errno ) );
+			strerror(errno));
 
 		this->dispatcher().errorReporter().reportException(
-				REASON_GENERAL_NETWORK );
+				REASON_GENERAL_NETWORK);
 
 		return true;
 	}
@@ -120,14 +120,14 @@ bool PacketReceiver::checkSocketErrors( int len, bool expectingPacket )
 		errno == ECONNREFUSED ||
 		errno == EHOSTUNREACH)
 	{
-#if defined( PLAYSTATION3 )
+#if defined(PLAYSTATION3)
 		this->dispatcher().errorReporter().reportException(
-				REASON_NO_SUCH_PORT );
+				REASON_NO_SUCH_PORT);
 		return true;
 #else
 		Mercury::Address offender;
 
-		if (socket_.getClosedPort( offender ))
+		if (socket_.getClosedPort(offender))
 		{
 			// If we got a NO_SUCH_PORT error and there is an internal
 			// channel to this address, mark it as remote failed.  The logic
@@ -136,27 +136,27 @@ bool PacketReceiver::checkSocketErrors( int len, bool expectingPacket )
 			if (errno == ECONNREFUSED)
 			{
 				Channel * pDeadChannel = 
-					networkInterface_.findChannel( offender );
+					networkInterface_.findChannel(offender);
 
 				if (pDeadChannel &&
 						pDeadChannel->isInternal())
 				{
-					INFO_MSG( "PacketReceiver::processPendingEvents: "
+					INFO_MSG("PacketReceiver::processPendingEvents: "
 						"Marking channel to %s as dead (%s)\n",
 						pDeadChannel->c_str(),
-						reasonToString( REASON_NO_SUCH_PORT ) );
+						reasonToString(REASON_NO_SUCH_PORT));
 				}
 			}
 
 			this->dispatcher().errorReporter().reportException(
-					REASON_NO_SUCH_PORT, offender );
+					REASON_NO_SUCH_PORT, offender);
 
 			return true;
 		}
 		else
 		{
-			WARNING_MSG( "PacketReceiver::processPendingEvents: "
-				"getClosedPort() failed\n" );
+			WARNING_MSG("PacketReceiver::processPendingEvents: "
+				"getClosedPort() failed\n");
 		}
 #endif
 	}
@@ -169,16 +169,16 @@ bool PacketReceiver::checkSocketErrors( int len, bool expectingPacket )
 
 	// ok, I give up, something's wrong
 #ifdef _WIN32
-	WARNING_MSG( "PacketReceiver::processPendingEvents: "
+	WARNING_MSG("PacketReceiver::processPendingEvents: "
 				"Throwing REASON_GENERAL_NETWORK - %d\n",
-				wsaErr );
+				wsaErr);
 #else
-	WARNING_MSG( "PacketReceiver::processPendingEvents: "
+	WARNING_MSG("PacketReceiver::processPendingEvents: "
 				"Throwing REASON_GENERAL_NETWORK - %s\n",
-			strerror( errno ) );
+			strerror(errno));
 #endif
 	this->dispatcher().errorReporter().reportException(
-			REASON_GENERAL_NETWORK );
+			REASON_GENERAL_NETWORK);
 
 	return true;
 }
@@ -187,26 +187,26 @@ bool PacketReceiver::checkSocketErrors( int len, bool expectingPacket )
 /**
  *	This is the entrypoint for new packets, which just gives it to the filter.
  */
-Reason PacketReceiver::processPacket( const Address & addr, Packet * p)
+Reason PacketReceiver::processPacket(const Address & addr, Packet * p)
 {
 	// Packets arriving on external interface will probably be encrypted, so
 	// there's no point examining their header flags right now.
-	Channel * pChannel = networkInterface_.findChannel( addr );
+	Channel * pChannel = networkInterface_.findChannel(addr);
 
 	if (pChannel != NULL)
 	{
 		// We update received times for addressed channels here.  Indexed
 		// channels are done in processFilteredPacket().
-		pChannel->onPacketReceived( p->totalSize() );
+		pChannel->onPacketReceived(p->totalSize());
 
 		if (pChannel->pFilter())
 		{
 			// let the filter decide what to do with it
-			return pChannel->pFilter()->recv( *this, addr, p);
+			return pChannel->pFilter()->recv(*this, addr, p);
 		}
 	}
 
-	return this->processFilteredPacket( addr, p);
+	return this->processFilteredPacket(addr, p);
 }
 
 
@@ -214,7 +214,7 @@ Reason PacketReceiver::processPacket( const Address & addr, Packet * p)
  *	This function has to be very robust, if we intend to use this transport over
  *	the big bad internet. We basically have to assume it'll be complete garbage.
  */
-Reason PacketReceiver::processFilteredPacket( const Address & addr,
+Reason PacketReceiver::processFilteredPacket(const Address & addr,
 		Packet * p)
 {
 	return REASON_SUCCESS;

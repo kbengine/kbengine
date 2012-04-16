@@ -39,10 +39,10 @@ public:
     Packet();
 	virtual ~Packet(void);
 	
-	int recvFromSocket( Socket & ep, Address & addr );
+	int recvFromEndPoint(Socket & ep, Address & addr);
 
 	int msgEndOffset() const	{ return msgEndOffset_; }
-	void msgEndOffset( int offset )		{ msgEndOffset_ = offset; }
+	void msgEndOffset(int offset)		{ msgEndOffset_ = offset; }
 	int totalSize() const		{ return 1; }
 protected:
 	int			msgEndOffset_;

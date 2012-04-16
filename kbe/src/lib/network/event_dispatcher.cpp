@@ -38,6 +38,14 @@ EventDispatcher::~EventDispatcher()
 	delete m_pTimes_;
 }
 
+//-------------------------------------------------------------------------------------
+EventPoller* EventDispatcher::createPoller()
+{
+	m_pPoller_ = EventPoller::create();
+	return m_pPoller_;
+}
+
+//-------------------------------------------------------------------------------------
 void EventDispatcher::attach(EventDispatcher & childDispatcher)
 {
 	childDispatcher.attachTo(*this);

@@ -23,19 +23,19 @@ namespace Mercury
 class NubException
 {
 public:
-	NubException( Reason reason, const Address & addr = Address::NONE );
+	NubException(Reason reason, const Address & addr = Address::NONE);
 	virtual ~NubException() {};
 	Reason reason() const;
-	bool getAddress( Address & addr ) const;
+	bool getAddress(Address & addr) const;
 
 private:
 	Reason		reason_;
 	Address address_;
 };
 
-inline NubException::NubException( Reason reason, const Address & addr ) :
-	reason_( reason ),
-	address_( addr )
+inline NubException::NubException(Reason reason, const Address & addr) :
+	reason_(reason),
+	address_(addr)
 {}
 
 
@@ -45,7 +45,7 @@ inline Reason NubException::reason() const
 }
 
 
-inline bool NubException::getAddress( Address & addr ) const
+inline bool NubException::getAddress(Address & addr) const
 {
 	addr = address_;
 	return address_ != Address::NONE;

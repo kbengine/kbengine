@@ -42,7 +42,8 @@ public:
 	int setbroadcast(bool broadcast);
 	int setreuseaddr(bool reuseaddr);
 	int setkeepalive(bool keepalive);
-
+	int setnodelay(bool nodelay = true);
+	
 	int bind(uint16 networkPort = 0, uint32 networkAddr = INADDR_ANY);
 	int listen(int backlog = 5);
 	int connect(uint16 networkPort, uint32 networkAddr = INADDR_BROADCAST);
@@ -82,12 +83,10 @@ public:
 	INLINE int sendto(void * gramData, int gramSize, struct sockaddr_in & sin);
 	INLINE int recvfrom(void * gramData, int gramSize, uint16 * networkPort, uint32 * networkAddr);
 	INLINE int recvfrom(void * gramData, int gramSize, struct sockaddr_in & sin);
+	
+	KBESOCKET get()const{ return socket_; }
 protected:
-#if defined(unix) || defined(PLAYSTATION3)
-	int	socket_;
-#else //ifdef unix
-	SOCKET	socket_;
-#endif //def _WIN32
+	KBESOCKET	socket_;
 };
 
 }

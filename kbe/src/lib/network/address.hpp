@@ -26,7 +26,6 @@ public:
 	Address(uint32 ipArg, uint16 portArg);
 	uint32	ip;
 	uint16	port;
-	uint16	salt;
 
 	int writeToString(char * str, int length) const;
 	
@@ -49,8 +48,7 @@ inline Address::Address()
 
 inline Address::Address(uint32 ipArg, uint16 portArg) :
 	ip(ipArg),
-	port(portArg),
-	salt(0)
+	port(portArg)
 {
 }
 

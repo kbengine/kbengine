@@ -30,21 +30,21 @@ class EventDispatcher;
 class PacketReceiver : public InputNotificationHandler
 {
 public:
-	PacketReceiver( Socket & socket, NetworkInterface & networkInterface );
+	PacketReceiver(Socket & socket, NetworkInterface & networkInterface);
 	~PacketReceiver();
 
-	Reason processPacket( const Address & addr, Packet * p);
-	Reason processFilteredPacket( const Address & addr, Packet * p);
+	Reason processPacket(const Address & addr, Packet * p);
+	Reason processFilteredPacket(const Address & addr, Packet * p);
 
 private:
-	virtual int handleInputNotification( int fd );
-	bool processSocket( bool expectingPacket );
-	bool checkSocketErrors( int len, bool expectingPacket );
+	virtual int handleInputNotification(int fd);
+	bool processSocket(bool expectingPacket);
+	bool checkSocketErrors(int len, bool expectingPacket);
 
-	Reason processOrderedPacket( const Address & addr, Packet * p,
+	Reason processOrderedPacket(const Address & addr, Packet * p,
 		Channel * pChannel);
 
-	bool processPiggybacks( const Address & addr,
+	bool processPiggybacks(const Address & addr,
 			Packet * p);
 	EventDispatcher & dispatcher();
 private:

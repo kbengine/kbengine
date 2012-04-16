@@ -29,16 +29,22 @@ INLINE void Socket::setFileDescriptor(int fd)
 
 INLINE void Socket::socket(int type)
 {
-	this->setFileDescriptor(::socket(AF_INET, type, 0));
+	this->setFileDescriptor(::socket(PF_INET, type, 0));
 #if KBE_PLATFORM == PLATFORM_WIN32
 	if ((socket_ == INVALID_SOCKET) && (WSAGetLastError() == WSANOTINITIALISED))
 	{
 		Socket::initNetwork();
-		this->setFileDescriptor(::socket(AF_INET, type, 0));
+		this->setFileDescriptor(::socket(PF_INET, type, 0));
 		KBE_ASSERT((socket_ != INVALID_SOCKET) && (WSAGetLastError() != WSANOTINITIALISED) && \
 				"Socket::socket: create socket is error!");
 	}
 #endif
+}
+
+INLINE int Socket::setnodelay(bool nodelay)
+{
+	int arg = int(nodelay);
+	return setsockopt(socket_, IPPROTO_TCP, TCP_NODELAY, (char*)&arg, sizeof(int));
 }
 
 INLINE int Socket::setnonblocking(bool nonblocking)
@@ -98,6 +104,7 @@ INLINE int Socket::setkeepalive(bool keepalive)
 INLINE int Socket::bind(uint16 networkPort, uint32 networkAddr)
 {
 	sockaddr_in	sin;
+	memset(&sin, 0, sizeof(sockaddr_in));
 	sin.sin_family = AF_INET;
 	sin.sin_port = networkPort;
 	sin.sin_addr.s_addr = networkAddr;

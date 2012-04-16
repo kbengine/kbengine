@@ -10,11 +10,11 @@
 namespace KBEngine { 
 namespace Mercury
 {
-Bundle::Bundle( uint8 spareSize, Channel * pChannel )
+Bundle::Bundle(uint8 spareSize, Channel * pChannel)
 {
 }
 
-Bundle::Bundle( Packet * p )
+Bundle::Bundle(Packet * p)
 {
 }
 
@@ -23,7 +23,7 @@ Bundle::~Bundle()
 }
 
 
-void Bundle::clear( bool newBundle )
+void Bundle::clear(bool newBundle)
 {
 }
 
@@ -33,10 +33,10 @@ int Bundle::size() const
 	return total;
 }
 
-void Bundle::send( const Address & address, NetworkInterface & networkInterface,
-		Channel * pChannel )
+void Bundle::send(const Address & address, NetworkInterface & networkInterface,
+		Channel * pChannel)
 {
-	networkInterface.send( address, *this, pChannel );
+	networkInterface.send(address, *this, pChannel);
 }
 
 

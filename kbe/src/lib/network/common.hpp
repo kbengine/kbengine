@@ -48,7 +48,7 @@ enum Reason
 };
 
 inline
-const char * reasonToString( Reason reason )
+const char * reasonToString(Reason reason)
 {
 	const char * reasons[] =
 	{

@@ -46,12 +46,12 @@ public:
 		EXTERNAL = 1,
 	};
 public:
-	Channel( NetworkInterface & networkInterface, const Address & address, Traits traits, PacketFilterPtr pFilter = NULL, ChannelID id = CHANNEL_ID_NULL );
+	Channel(NetworkInterface & networkInterface, const Address & address, Traits traits, PacketFilterPtr pFilter = NULL, ChannelID id = CHANNEL_ID_NULL);
 
 	virtual ~Channel();
 	
-	static Channel * get( NetworkInterface & networkInterface,
-			const Address & address );
+	static Channel * get(NetworkInterface & networkInterface,
+			const Address & address);
 	
 
 	PacketFilterPtr pFilter() const { return pFilter_; }
@@ -71,18 +71,18 @@ public:
 	NetworkInterface & networkInterface()			{ return *pNetworkInterface_; }
 		
 	INLINE const Mercury::Address & addr() const;
-	void addr( const Mercury::Address & addr );
+	void addr(const Mercury::Address & addr);
 	
 	Bundle & bundle();
 	const Bundle & bundle() const;
 	bool hasUnsentData() const;
-	void bundlePrimer( BundlePrimer & primer );
+	void bundlePrimer(BundlePrimer & primer);
 	void clearBundle();
 
-	void send( Bundle * pBundle = NULL );
+	void send(Bundle * pBundle = NULL);
 	void delayedSend();
 
-	void reset( const Address & newAddr, bool warnOnDiscard = true );
+	void reset(const Address & newAddr, bool warnOnDiscard = true);
 	
 	void dropNextSend() { shouldDropNextSend_ = true; }
 
@@ -90,7 +90,7 @@ public:
 	bool isExternal() const { return traits_ == EXTERNAL; }
 	bool isInternal() const { return traits_ == INTERNAL; }
 		
-	void onPacketReceived( int bytes );
+	void onPacketReceived(int bytes);
 
 	const char * c_str() const;
 	int windowSize() const;
@@ -106,7 +106,7 @@ private:
 		TIMEOUT_INACTIVITY_CHECK
 	};
 
-	virtual void handleTimeout( TimerHandle, void * );
+	virtual void handleTimeout(TimerHandle, void *);
 	
 	EventDispatcher & dispatcher();
 

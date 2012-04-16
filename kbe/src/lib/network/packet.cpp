@@ -17,13 +17,15 @@ Packet::~Packet(void)
 {
 }
 
-int Packet::recvFromSocket( Socket & ep, Address & addr )
+int Packet::recvFromEndPoint(Socket & ep, Address & addr)
 {
-	int len = ep.recvfrom( data_, PACKET_MAX_SIZE, (uint16*)&addr.port, (uint32*)&addr.ip );
-
+	int len = ep.recv(data_, PACKET_MAX_SIZE);
+	/*
+	int len = ep.recvfrom(data_, PACKET_MAX_SIZE, (uint16*)&addr.port, (uint32*)&addr.ip);
+*/
 	if (len >= 0)
 	{
-		this->msgEndOffset( len );
+		this->msgEndOffset(len);
 	}
 
 	return len;

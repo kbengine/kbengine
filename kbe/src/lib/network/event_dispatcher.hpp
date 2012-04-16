@@ -68,6 +68,8 @@ public:
 	double proportionalSpareTime() const;
 
 	ErrorReporter & errorReporter()	{ return *m_pErrorReporter_; }
+
+	INLINE EventPoller* createPoller();
 private:
 	TimerHandle addTimerCommon(int64 microseconds,
 		TimerHandler * handler,
@@ -86,6 +88,7 @@ private:
 	
 	typedef std::vector<EventDispatcher *> ChildDispatchers;
 	ChildDispatchers childDispatchers_;
+
 protected:
 	bool m_breakProcessing_;
 	double m_maxWait_;

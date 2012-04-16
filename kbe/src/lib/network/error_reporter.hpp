@@ -39,35 +39,35 @@ typedef std::map< AddressAndErrorString, ErrorReportAndCount >
 class ErrorReporter : public TimerHandler
 {
 public:
-	ErrorReporter( EventDispatcher & dispatcher );
+	ErrorReporter(EventDispatcher & dispatcher);
 	~ErrorReporter();
 
-	void reportException( Reason reason, const Address & addr = Address::NONE,
-			const char * prefix = NULL );
-	void reportPendingExceptions( bool reportBelowThreshold = false );
+	void reportException(Reason reason, const Address & addr = Address::NONE,
+			const char * prefix = NULL);
+	void reportPendingExceptions(bool reportBelowThreshold = false);
 
 private:
-	void reportException( const NubException & ne, const char * prefix = NULL );
+	void reportException(const NubException & ne, const char * prefix = NULL);
 
-	void reportError( const Address & address, const char* format, ... );
+	void reportError(const Address & address, const char* format, ...);
 
 
 	static const uint ERROR_REPORT_MIN_PERIOD_MS;
 	static const uint ERROR_REPORT_COUNT_MAX_LIFETIME_MS;
 
-	void addReport( const Address & address, const std::string & error );
+	void addReport(const Address & address, const std::string & error);
 
 	static std::string addressErrorToString(
 			const Address & address,
-			const std::string & errorString );
+			const std::string & errorString);
 
 	static std::string addressErrorToString(
 			const Address & address,
 			const std::string & errorString,
 			const ErrorReportAndCount & reportAndCount,
-			const uint64 & now );
+			const uint64 & now);
 
-	virtual void handleTimeout( TimerHandle handle, void * arg );
+	virtual void handleTimeout(TimerHandle handle, void * arg);
 
 	TimerHandle reportLimitTimerHandle_;
 	ErrorsAndCounts errorsAndCounts_;

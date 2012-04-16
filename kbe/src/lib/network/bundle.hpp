@@ -29,15 +29,15 @@ class Channel;
 class Bundle
 {
 public:
-	Bundle( uint8 spareSize = 0, Channel * pChannel = NULL );
+	Bundle(uint8 spareSize = 0, Channel * pChannel = NULL);
 
-	Bundle( Packet * packetChain );
+	Bundle(Packet * packetChain);
 	virtual ~Bundle();
 
-	void send( const Address & address, NetworkInterface & networkInterface,
-		Channel * pChannel = NULL );
+	void send(const Address & address, NetworkInterface & networkInterface,
+		Channel * pChannel = NULL);
 
-	void clear( bool newBundle = false );
+	void clear(bool newBundle = false);
 	bool isEmpty() const;
 	int size() const;
 

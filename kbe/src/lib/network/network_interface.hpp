@@ -45,62 +45,62 @@ public:
 	static const int RECV_BUFFER_SIZE;
 	static const char * USE_KBEMACHINED;
 	
-	NetworkInterface( EventDispatcher * pMainDispatcher, NetworkInterfaceType interfaceType,
-		uint16 listeningPort = 0, const char * listeningInterface = NULL);
+	NetworkInterface(EventDispatcher * pMainDispatcher, NetworkInterfaceType interfaceType,
+		uint16 listeningPort = 0, const char * listeningInterface = "eth0");
 	~NetworkInterface();
 	
-	void attach( EventDispatcher & mainDispatcher );
+	void attach(EventDispatcher & mainDispatcher);
 	void detach();
 
-	bool recreateListeningSocket( uint16 listeningPort,
-							const char * listeningInterface );
+	bool recreateListeningSocket(uint16 listeningPort,
+							const char * listeningInterface);
 
-	bool registerChannel( Channel & channel );
-	bool deregisterChannel( Channel & channel );
+	bool registerChannel(Channel & channel);
+	bool deregisterChannel(Channel & channel);
 	
-	Channel * findChannel( const Address & addr);
+	Channel * findChannel(const Address & addr);
 
-	INLINE Channel & findOrCreateChannel( const Address & addr );
+	INLINE Channel & findOrCreateChannel(const Address & addr);
 
-	void onChannelGone( Channel * pChannel );
-	void onChannelTimeOut( Channel * pChannel );
+	void onChannelGone(Channel * pChannel);
+	void onChannelTimeOut(Channel * pChannel);
 
-	Reason processPacketFromStream( const Address & addr,
-		MemoryStream & data );
+	Reason processPacketFromStream(const Address & addr,
+		MemoryStream & data);
 
 	EventDispatcher & dispatcher()			{ return *pDispatcher_; }
 	EventDispatcher & mainDispatcher()		{ return *pMainDispatcher_; }
 
 	INLINE const Address & address() const;
 	
-	void delayedSend( Channel & channel );
+	void delayedSend(Channel & channel);
 
 	bool isExternal() const				{ return isExternal_; }
 	bool isVerbose() const				{ return isVerbose_; }
-	void isVerbose( bool value )		{ isVerbose_ = value; }
+	void isVerbose(bool value)		{ isVerbose_ = value; }
 
 	Socket & socket()					{ return socket_; }
 
 	const char * c_str() const { return socket_.c_str(); }
 
 	void * pExtensionData() const			{ return pExtensionData_; }
-	void pExtensionData( void * pData )		{ pExtensionData_ = pData; }
+	void pExtensionData(void * pData)		{ pExtensionData_ = pData; }
 
-	unsigned int numBytesReceivedForMessage( uint8 msgID ) const;
+	unsigned int numBytesReceivedForMessage(uint8 msgID) const;
 
-	void send( const Address & address, Bundle & bundle,
-		Channel * pChannel = NULL );
+	void send(const Address & address, Bundle & bundle,
+		Channel * pChannel = NULL);
 	
-	void sendPacket( const Address & addr, Packet * pPacket,
-			Channel * pChannel, bool isResend );
+	void sendPacket(const Address & addr, Packet * pPacket,
+			Channel * pChannel, bool isResend);
 	
-	void sendRescheduledPacket( const Address & address, Packet * pPacket,
-						Channel * pChannel );
+	void sendRescheduledPacket(const Address & address, Packet * pPacket,
+						Channel * pChannel);
 
-	Reason basicSendWithRetries( const Address & addr, Packet * pPacket );
-	Reason basicSendSingleTry( const Address & addr, Packet * pPacket );
+	Reason basicSendWithRetries(const Address & addr, Packet * pPacket);
+	Reason basicSendSingleTry(const Address & addr, Packet * pPacket);
 
-	bool rescheduleSend( const Address & addr, Packet * pPacket );
+	bool rescheduleSend(const Address & addr, Packet * pPacket);
 
 
 	bool isGood() const
@@ -108,8 +108,8 @@ public:
 		return (socket_ != -1) && !address_.isNone();
 	}
 
-	void onPacketIn( const Address & addr, const Packet & packet );
-	void onPacketOut( const Address & addr, const Packet & packet );
+	void onPacketIn(const Address & addr, const Packet & packet);
+	void onPacketOut(const Address & addr, const Packet & packet);
 
 private:
 	enum TimeoutType
@@ -118,7 +118,7 @@ private:
 		TIMEOUT_RECENTLY_DEAD_CHANNEL
 	};
 
-	virtual void handleTimeout( TimerHandle handle, void * arg );
+	virtual void handleTimeout(TimerHandle handle, void * arg);
 
 	void closeSocket();
 
