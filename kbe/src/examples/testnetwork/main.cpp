@@ -8,118 +8,196 @@ Also see acknowledgements in Readme.html
 You may use this sample code for anything you like, it is not covered by the
 same license as the rest of the engine.
 */
-#include "server/kbemain.hpp"
-#include "server/idallocate.hpp"
-#include "entity.hpp"
-#include "entities.hpp"
+#include "cstdkbe/cstdkbe.hpp"
+#include "network/address.hpp"
+#include "network/socket.hpp"
+#include "network/event_poller.hpp"
+#include "helper/debug_helper.hpp"
+#include "network/event_dispatcher.hpp"
+#include "network/interfaces.hpp"
+#include "network/Packet.hpp"
 
 using namespace KBEngine;
+using namespace KBEngine::Mercury;
+Address address;
+Socket mysocket;
+EventDispatcher gdispatcher;
 
-class App: public ServerApp
+
+class MyPacketReceiver : public InputNotificationHandler
 {
-protected:
-	IDClient<ENTITY_ID>*		m_idClient_;
-	Entities*					m_entities_;									// 存储所有的entity的容器
 public:
-	App(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
-	  ServerApp(dispatcher, ninterface, componentType)
+	MyPacketReceiver(Socket & mysocket):
+	socket_(mysocket),
+	pNextPacket_(new Packet())
 	{
-		
-	}
-
-	~App()
-	{
-	}
-
-	bool installPyModules()
-	{
-		Entities::installScript(NULL);
-		Entity::installScript(getScript().getModule());
-
-		registerScript(Entity::getScriptType());
-		
-		 m_entities_ = new Entities();
-		registerPyObjectToScript("entities", m_entities_);
-		return true;
-	}
-
-	//-------------------------------------------------------------------------------------
-	bool uninstallPyModules()
-	{
-		Entities::uninstallScript();
-		Entity::uninstallScript();
-		return true;
-	}
-
-	bool run()
-	{
-		return ServerApp::run();
 	}
 	
-	bool initializeBegin()
+	~MyPacketReceiver()
 	{
-		 m_idClient_ = new IDClient<ENTITY_ID>;
+	}
+	
+	EventDispatcher& dispatcher(){return gdispatcher;}
+private:
+	virtual int handleInputNotification(int fd)
+	{
+		if (this->processSocket(/*expectingPacket:*/true))
+		{
+			while (this->processSocket(/*expectingPacket:*/false))
+			{
+				/* pass */;
+			}
+		}
+
+		return 0;
+	}
+	
+	bool processSocket(bool expectingPacket)
+	{
+		int len = pNextPacket_->recvFromEndPoint(socket_);
+		if (len <= 0)
+		{
+			return this->checkSocketErrors(len, expectingPacket);
+		}
+
+		PacketPtr curPacket = pNextPacket_;
+		pNextPacket_ = new Packet();
+		Address srcAddr = socket_.getRemoteAddress();
+		Reason ret = this->processPacket(srcAddr, curPacket.get());
+
+		if (ret != REASON_SUCCESS)
+		{
+			this->dispatcher().errorReporter().reportException(ret, srcAddr);
+		}
 		return true;
 	}
 
-	bool initializeEnd()
+	Reason processPacket(const Address & addr, Packet * p)
 	{
+		return REASON_SUCCESS;
+	}
+	
+	bool checkSocketErrors(int len, bool expectingPacket)
+	{
+		// is len weird?
+		if (len == 0)
+		{
+			WARNING_MSG("PacketReceiver::processPendingEvents: "
+				"Throwing REASON_GENERAL_NETWORK (1)- %s\n",
+				strerror(errno));
+
+			this->dispatcher().errorReporter().reportException(
+					REASON_GENERAL_NETWORK);
+
+			return true;
+		}
+			// I'm not quite sure what it means if len is 0
+			// (0 => 'end of file', but with dgram sockets?)
+
+	#ifdef _WIN32
+		DWORD wsaErr = WSAGetLastError();
+	#endif //def _WIN32
+
+		// is the buffer empty?
+		if (
+	#ifdef _WIN32
+			wsaErr == WSAEWOULDBLOCK
+	#else
+			errno == EAGAIN && !expectingPacket
+	#endif
+			)
+		{
+			return false;
+		}
+
+	#ifdef unix
+		// is it telling us there's an error?
+		if (errno == EAGAIN ||
+			errno == ECONNREFUSED ||
+			errno == EHOSTUNREACH)
+		{
+	#if defined(PLAYSTATION3)
+			this->dispatcher().errorReporter().reportException(
+					REASON_NO_SUCH_PORT);
+			return true;
+	#else
+			Mercury::Address offender;
+
+			if (socket_.getClosedPort(offender))
+			{
+				// If we got a NO_SUCH_PORT error and there is an internal
+				// channel to this address, mark it as remote failed.  The logic
+				// for dropping external channels that get NO_SUCH_PORT
+				// exceptions is built into BaseApp::onClientNoSuchPort().
+				if (errno == ECONNREFUSED)
+				{
+				}
+
+				this->dispatcher().errorReporter().reportException(
+						REASON_NO_SUCH_PORT, offender);
+
+				return true;
+			}
+			else
+			{
+				WARNING_MSG("PacketReceiver::processPendingEvents: "
+					"getClosedPort() failed\n");
+			}
+	#endif
+		}
+	#else
+		if (wsaErr == WSAECONNRESET)
+		{
+			return true;
+		}
+	#endif // unix
+
+		// ok, I give up, something's wrong
+	#ifdef _WIN32
+		WARNING_MSG("PacketReceiver::processPendingEvents: "
+					"Throwing REASON_GENERAL_NETWORK - %d\n",
+					wsaErr);
+	#else
+		WARNING_MSG("PacketReceiver::processPendingEvents: "
+					"Throwing REASON_GENERAL_NETWORK - %s\n",
+				strerror(errno));
+	#endif
+		this->dispatcher().errorReporter().reportException(
+				REASON_GENERAL_NETWORK);
+
 		return true;
 	}
-
-	Entity* createEntity(const char* entityType, PyObject* params, bool isInitializeScript = true, ENTITY_ID eid = 0);
+private:
+	Socket & socket_;
+	PacketPtr pNextPacket_;
 };
 
-Entity* App::createEntity(const char* entityType, PyObject* params, bool isInitializeScript, ENTITY_ID eid)
+MyPacketReceiver* packetReceiver;
+
+void init_network(void)
 {
-	// 检查ID是否足够, 不足返回NULL
-	if(eid <= 0 && m_idClient_->getSize() == 0)
+	mysocket.socket(SOCK_STREAM);
+	if (!mysocket.good())
 	{
-		PyErr_SetString(PyExc_SystemError, "App::createEntity: is Failed. not enough entityIDs.");
-		PyErr_PrintEx(0);
-		return NULL;
+		ERROR_MSG("NetworkInterface::recreateListeningSocket: couldn't create a socket\n");
+		return;
 	}
 	
-	ScriptModule* sm = EntityDef::findScriptModule(entityType);
-	if(sm == NULL || !sm->hasCell())
+	mysocket.setnodelay(true);
+	packetReceiver = new MyPacketReceiver(mysocket);
+	gdispatcher.registerFileDescriptor(mysocket, packetReceiver);
+	
+	if(mysocket.connect(htons(50000), inet_addr("192.168.1.104")) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "App::createEntity: entityType [%s] not found.\n", entityType);
-		PyErr_PrintEx(0);
-		return NULL;
+		ERROR_MSG("NetworkInterface::recreateListeningSocket: connect server is error!\n");
+		return;
 	}
-
-	PyObject* obj = sm->createObject();
-
-	// 判断是否要分配一个新的id
-	ENTITY_ID id = eid;
-	if(id <= 0)
-		id = m_idClient_->alloc();
-
-	// 执行Entity的构造函数
-	Entity* entity = new(obj) Entity(id, sm);
-
-	// 创建名字空间
-	entity->createNamespace(params);
-
-	// 将entity加入entities
-	m_entities_->add(id, entity); 
-	
-	// 检查ID的足够性，不足则申请
-	//checkEntityIDEnough();
-
-	// 初始化脚本
-	if(isInitializeScript)
-		entity->initializeScript();
-	
-	INFO_MSG("App::createEntity: new %s (%ld).\n", entityType, id);
-	return entity;
 }
 
-template<> App* Singleton<App>::m_singleton_ = 0;
-
-int KBENGINE_MAIN(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
-	int ret= kbeMainT<App>(argc, argv, CLIENT_TYPE);
+	init_network();
+	gdispatcher.processUntilBreak();
 	getchar();
-	return ret; 
+	return 0; 
 }

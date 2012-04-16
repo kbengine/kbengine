@@ -1,15 +1,10 @@
 BIN  = testnetwork
 SRCS =				\
-	entities				\
-	entity					\
 	main
 
 ASMS =
 
 MY_LIBS =		\
-	entitydef	\
-	pyscript	\
-	server		\
 	network		\
 	thread
 	
