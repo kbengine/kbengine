@@ -1,5 +1,7 @@
 BIN  = testnetwork
 SRCS =				\
+	entities				\
+	entity					\
 	main
 
 ASMS =
@@ -23,7 +25,7 @@ endif
 #HAS_PCH = 1
 
 ifndef KBE_ROOT
-export KBE_ROOT := $(subst /kbe/src/examples/network,,$(CURDIR))
+export KBE_ROOT := $(subst /kbe/src/examples/$(BIN),,$(CURDIR))
 endif
 
 include $(KBE_ROOT)/kbe/src/build/common.mak
