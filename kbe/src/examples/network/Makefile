@@ -1,6 +1,30 @@
-objects = main.o
+BIN  = testnetwork
+SRCS =				\
+	main
 
-network : $(objects)
-	g++ -o a $(objects)
-main.o : main.cpp main.hpp
-	g++ -c -O3 -Wall -W -m32 main.cpp 
+ASMS =
+
+MY_LIBS =		\
+	entitydef	\
+	pyscript	\
+	server		\
+	network		\
+	thread
+	
+
+BUILD_TIME_FILE = main
+USE_PYTHON = 1
+USE_G3DMATH=1
+	
+ifndef USE_OPENSSL
+	USE_OPENSSL = 0
+endif
+
+#HAS_PCH = 1
+
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/examples/network,,$(CURDIR))
+endif
+
+include $(KBE_ROOT)/kbe/src/build/common.mak
+

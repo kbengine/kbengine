@@ -1,37 +1,43 @@
-#include "main.hpp"
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h> 
-#include <iostream>  
-#include <string>  
-#include <cstring>  
-#include <vector>  
-#include <list>  
-#include <map>  
-#include <assert.h>
-typedef int64_t													int64;
-typedef int32_t													int32;
-typedef int16_t													int16;
-typedef int8_t													int8;
-typedef uint64_t												uint64;
-typedef uint32_t												uint32;
-typedef uint16_t												uint16;
-typedef uint8_t													uint8;
-typedef uint16_t												WORD;
-typedef uint32_t												DWORD;
-typedef uint16													ENTITY_TYPE;											// entity的类别类型定义支持0-65535个类别
-typedef int32													ENTITY_ID;												// entityID的类型
-typedef uint32													SPACE_ID;												// 一个space的id
-typedef uint32													CALLBACK_ID;											// 一个callback由CallbackMgr分配的id
-typedef uint32													COMPONENT_ID;											// 一个服务器组件的id										
-typedef	uint32													TIMER_ID;												// 一个timer的id类型
-typedef uint8													MAIL_TYPE;	
+/*
+This source file is part of KBEngine
+For the latest info, see http://www.kbengine.org/
 
+Copyright (c) 2008-2012 kbegine Software Ltd
+Also see acknowledgements in Readme.html
 
+You may use this sample code for anything you like, it is not covered by the
+same license as the rest of the engine.
+*/
+#include "server/kbemain.hpp"
 
-int main()
+using namespace KBEngine;
+
+class App: public ServerApp
 {
+protected:
+public:
+	App(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
+	  ServerApp(dispatcher, ninterface, componentType)
+	{
+		
+	}
 
-	return 0;
+	~App()
+	{
+	}
+
+
+	bool run()
+	{
+		return ServerApp::run();
+	}
 };
+
+template<> App* Singleton<App>::m_singleton_ = 0;
+
+int KBENGINE_MAIN(int argc, char* argv[])
+{
+	int ret= kbeMainT<App>(argc, argv, CLIENT_TYPE);
+	getchar();
+	return ret; 
+}

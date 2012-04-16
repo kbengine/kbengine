@@ -21,8 +21,8 @@ ServerApp::~ServerApp()
 bool ServerApp::loadConfig()
 {
 	ServerConfig sc;
-	sc.loadConfig("../../res/server/KBEngineDefault.xml");
-	sc.loadConfig("../../../demo/res/server/KBEngine.xml");
+	sc.loadConfig("../../res/server/kbengine_defs.xml");
+	sc.loadConfig("../../../demo/res/server/kbengine.xml");
 	return true;
 }
 
