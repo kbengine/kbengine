@@ -23,7 +23,7 @@ namespace Mercury
 class Socket
 {
 public:
-	Socket();
+	Socket(u_int32_t networkAddr = 0, u_int16_t networkPort = 0);
 	virtual ~Socket();
 	operator int() const;
 	static void initNetwork();
@@ -85,8 +85,12 @@ public:
 	INLINE int recvfrom(void * gramData, int gramSize, struct sockaddr_in & sin);
 	
 	KBESOCKET get()const{ return socket_; }
+	Address& address();
+	void address(const Address& newAddress);
+	void address(u_int16_t port, u_int32_t newAddress);
 protected:
 	KBESOCKET	socket_;
+	Address address_;
 };
 
 }

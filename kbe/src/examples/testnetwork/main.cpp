@@ -176,22 +176,40 @@ MyPacketReceiver* packetReceiver;
 
 void init_network(void)
 {
-	mysocket.socket(SOCK_STREAM);
-	if (!mysocket.good())
+	while(1)
 	{
-		ERROR_MSG("NetworkInterface::recreateListeningSocket: couldn't create a socket\n");
-		return;
-	}
-	
-	mysocket.setnodelay(true);
-	packetReceiver = new MyPacketReceiver(mysocket);
-	gdispatcher.registerFileDescriptor(mysocket, packetReceiver);
-	
-	if(mysocket.connect(htons(49312), inet_addr("192.168.1.104")) == -1)
-	{
-		ERROR_MSG("NetworkInterface::recreateListeningSocket: connect server is error!\n");
-		return;
-	}
+		mysocket.close();
+		mysocket.socket(SOCK_STREAM);
+		if (!mysocket.good())
+		{
+			ERROR_MSG("NetworkInterface::recreateListeningSocket: couldn't create a socket\n");
+			return;
+		}
+		
+		mysocket.setnodelay(true);
+		packetReceiver = new MyPacketReceiver(mysocket);
+		gdispatcher.registerFileDescriptor(mysocket, packetReceiver);
+
+		printf("请输入服务器端口号:\n>>>");
+		int port =0;
+		std::cin >> port;
+		if(mysocket.connect(htons(port), inet_addr("192.168.1.104")) == -1)
+		{
+			ERROR_MSG("NetworkInterface::recreateListeningSocket: connect server is error!\n");
+			continue;
+		}
+
+		while(1)
+		{
+			char data[1024];
+			memset(data, 0, 1024);
+			int len = mysocket.recv(data, 1024);
+			if(len == -1)
+				break;
+
+			printf("data(%d): [%s]\n", len, data);
+		};
+	};
 }
 
 int main(int argc, char* argv[])

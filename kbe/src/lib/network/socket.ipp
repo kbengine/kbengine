@@ -2,9 +2,14 @@ namespace KBEngine {
 namespace Mercury
 {
 
-INLINE Socket::Socket():
+INLINE Socket::Socket(u_int32_t networkAddr, u_int16_t networkPort):
 socket_(-1)
 {
+	if(networkAddr)
+	{
+		address_.ip = networkAddr;
+		address_.port = networkPort;
+	}
 }
 
 INLINE Socket::~Socket()
@@ -25,6 +30,7 @@ INLINE Socket::operator int() const
 INLINE void Socket::setFileDescriptor(int fd)
 {
 	socket_ = fd;
+	address();
 }
 
 INLINE void Socket::socket(int type)
@@ -195,10 +201,25 @@ INLINE int Socket::getremoteaddress(
 
 INLINE const char * Socket::c_str() const
 {
-	Mercury::Address addr;
-	this->getlocaladdress(&(u_int16_t&)addr.port, &(u_int32_t&)addr.ip);
-	return addr.c_str();
+	return address_.c_str();
 }
+
+INLINE Address& Socket::address()
+{
+	return address_;
+}
+
+INLINE void Socket::address(const Address& newAddress)
+{
+	address_ = newAddress;
+}
+
+INLINE void Socket::address(u_int16_t port, u_int32_t newAddress)
+{
+	address_.port = port;
+	address_.ip = newAddress;
+}
+
 
 INLINE int Socket::getremotehostname(std::string * host) const
 {
@@ -294,7 +315,8 @@ INLINE Socket * Socket::accept(u_int16_t * networkPort, u_int32_t * networkAddr)
 
 	Socket * pNew = new Socket();
 	pNew->setFileDescriptor(ret);
-
+	pNew->address(sin.sin_port, sin.sin_addr.s_addr);
+	
 	if (networkPort != NULL) *networkPort = sin.sin_port;
 	if (networkAddr != NULL) *networkAddr = sin.sin_addr.s_addr;
 

@@ -225,6 +225,7 @@ void DebugHelper::critical_msg(const char * str, ...)
     va_start(ap, str);
     vutf8printf(stdout, str, &ap);
     va_end(ap);
+	fprintf(stdout, "\n");
 
     if(_m_logfile)
     {

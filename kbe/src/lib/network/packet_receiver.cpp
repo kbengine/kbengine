@@ -36,7 +36,17 @@ PacketReceiver::~PacketReceiver()
  */
 int PacketReceiver::handleInputNotification(int fd)
 {
-	if (this->processSocket(/*expectingPacket:*/true))
+	if(fd == socket_)
+	{
+		Socket* pNewSocket = socket_.accept();
+		if(pNewSocket == NULL){
+			ERROR_MSG("PacketReceiver::handleInputNotification: accept fd(%d) %s!\n",
+				 fd, strerror(errno));
+		}
+		else
+			INFO_MSG("PacketReceiver::handleInputNotification: new address: %s\n", pNewSocket->c_str());
+	}
+	else if (this->processSocket(/*expectingPacket:*/true))
 	{
 		while (this->processSocket(/*expectingPacket:*/false))
 		{
@@ -61,7 +71,7 @@ bool PacketReceiver::processSocket(bool expectingPacket)
 
 	PacketPtr curPacket = pNextPacket_;
 	pNextPacket_ = new Packet();
-	Address srcAddr = socket_.getRemoteAddress();
+	Address& srcAddr = socket_.address();
 	Reason ret = this->processPacket(srcAddr, curPacket.get());
 
 	if ((ret != REASON_SUCCESS) &&

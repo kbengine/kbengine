@@ -178,6 +178,7 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 	
 	socket_.setnonblocking(true);
 	socket_.setnodelay(true);
+	socket_.address(address_);
 	
 #ifdef KBE_SERVER
 	if (!socket_.setBufferSize(SO_RCVBUF, RECV_BUFFER_SIZE))
