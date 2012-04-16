@@ -45,13 +45,13 @@ INLINE int Socket::setnonblocking(bool nonblocking)
 {
 #ifdef unix
 	int val = nonblocking ? O_NONBLOCK : 0;
-	return ::fcntl(socket_,F_SETFL,val);
+	return ::fcntl(socket_, F_SETFL, val);
 #elif defined(PLAYSTATION3)
 	int val = nonblocking ? 1 : 0;
 	return setsockopt(socket_, SOL_SOCKET, SO_NBIO, &val, sizeof(int));
 #else
 	u_long val = nonblocking ? 1 : 0;
-	return ::ioctlsocket(socket_,FIONBIO,&val);
+	return ::ioctlsocket(socket_, FIONBIO, &val);
 #endif
 }
 
@@ -68,8 +68,7 @@ INLINE int Socket::setbroadcast(bool broadcast)
 	bool val;
 #endif
 	val = broadcast ? 1 : 0;
-	return ::setsockopt(socket_,SOL_SOCKET,SO_BROADCAST,
-		(char*)&val,sizeof(val));
+	return ::setsockopt(socket_, SOL_SOCKET, SO_BROADCAST, (char*)&val, sizeof(val));
 }
 
 INLINE int Socket::setreuseaddr(bool reuseaddr)
