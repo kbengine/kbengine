@@ -37,7 +37,7 @@ template<> App* Singleton<App>::m_singleton_ = 0;
 
 int KBENGINE_MAIN(int argc, char* argv[])
 {
-	int ret= kbeMainT<App>(argc, argv, CLIENT_TYPE);
+	int ret= kbeMainT<App>(argc, argv, CELLAPP_TYPE);
 	getchar();
 	return ret; 
 }
