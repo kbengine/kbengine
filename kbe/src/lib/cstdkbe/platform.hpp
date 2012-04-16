@@ -225,12 +225,11 @@ typedef uint32													COMPONENT_ID;											// 一个服务器组件的id
 typedef	uint32													TIMER_ID;												// 一个timer的id类型
 typedef uint8													MAIL_TYPE;												// mailbox 所投递的mail类别的类别
 
-
 #if KBE_PLATFORM == PLATFORM_WIN32
-#define IFNAMSIZ												16
-
+	#define IFNAMSIZ											16
+	typedef SOCKET												KBESOCKET;
 #ifndef socklen_t
-typedef	int														socklen_t;
+	typedef	int													socklen_t;
 #endif
 
 #ifndef IFF_UP
@@ -248,6 +247,8 @@ typedef	int														socklen_t;
 		IFF_MULTICAST											= 0x1000
 	};
 #endif
+#else
+	typedef int													KBESOCKET;
 #endif
 
 /*---------------------------------------------------------------------------------
