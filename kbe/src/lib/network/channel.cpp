@@ -124,7 +124,7 @@ void Channel::send(Bundle * pBundle)
 	if(isSendingOwnBundle)
 		pBundle = pBundle_;
 
-	pBundle->send(addr_, *pNetworkInterface_, this);
+	pBundle->send(*pNetworkInterface_, this);
 
 	// Update our stats
 	++numPacketsSent_;

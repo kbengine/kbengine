@@ -204,16 +204,19 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 	return true;
 }
 
+//-------------------------------------------------------------------------------------
 void NetworkInterface::delayedSend(Channel & channel)
 {
 	//pDelayedChannels_->add(channel);
 }
 
+//-------------------------------------------------------------------------------------
 void NetworkInterface::handleTimeout(TimerHandle handle, void * arg)
 {
 	INFO_MSG("NetworkInterface::handleTimeout: address %s\n", address_.c_str());
 }
 
+//-------------------------------------------------------------------------------------
 Channel * NetworkInterface::findChannel(const Address & addr)
 {
 	if (addr.ip == 0)
@@ -227,25 +230,66 @@ Channel * NetworkInterface::findChannel(const Address & addr)
 	return pChannel;
 }
 
+//-------------------------------------------------------------------------------------
+bool NetworkInterface::registerChannel(Channel & channel)
+{
+	KBE_ASSERT( channel.addr() != Address::NONE );
+	KBE_ASSERT( &channel.networkInterface() == this );
+
+	ChannelMap::iterator iter = channelMap_.find(channel.addr());
+	Channel * pExisting = iter != channelMap_.end() ? iter->second : NULL;
+
+	if(!pExisting)
+	{
+		CRITICAL_MSG("NetworkInterface::registerChannel: channel %s is exist.\n", channel.addr().c_str());
+		return false;
+	}
+
+	channelMap_[channel.addr()] = &channel;
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool NetworkInterface::deregisterChannel(Channel & channel)
+{
+	const Address & addr = channel.addr();
+	KBE_ASSERT( addr != Address::NONE );
+
+	if (!channelMap_.erase( addr ))
+	{
+		CRITICAL_MSG( "NetworkInterface::deregisterChannel: "
+				"Channel not found %s!\n",
+			addr.c_str() );
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 void NetworkInterface::onChannelGone(Channel * pChannel)
 {
 }
 
+//-------------------------------------------------------------------------------------
 void NetworkInterface::onChannelTimeOut(Channel * pChannel)
 {
 	ERROR_MSG("NetworkInterface::onChannelTimeOut: Channel %s timed out.\n",
 			pChannel->c_str());
 }
 
-void NetworkInterface::send(const Address & address, Bundle & bundle, Channel * pChannel)
+//-------------------------------------------------------------------------------------
+Reason NetworkInterface::send(Bundle & bundle, Channel * pChannel)
 {
+	return REASON_SUCCESS;
 }
 
-void NetworkInterface::sendPacket(const Address & address,
-						Packet * pPacket,
-						Channel * pChannel, bool isResend)
+//-------------------------------------------------------------------------------------
+Reason NetworkInterface::sendPacket(Packet * pPacket, Channel * pChannel)
 {
+	return REASON_SUCCESS;
 }
 
+//-------------------------------------------------------------------------------------
 }
 }

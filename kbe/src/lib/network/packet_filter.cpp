@@ -11,18 +11,18 @@
 namespace KBEngine { 
 namespace Mercury
 {
-	
-Reason PacketFilter::send(NetworkInterface & networkInterface,
-		const Address & addr, Packet * pPacket)
+//-------------------------------------------------------------------------------------
+Reason PacketFilter::send(NetworkInterface & networkInterface, Packet * pPacket)
 {
-	return networkInterface.basicSendWithRetries(addr, pPacket);
+	return networkInterface.sendPacket(pPacket);
 }
 
-Reason PacketFilter::recv(PacketReceiver & receiver,
-							const Address & addr, Packet * pPacket)
+//-------------------------------------------------------------------------------------
+Reason PacketFilter::recv(PacketReceiver & receiver, Packet * pPacket)
 {
-	return receiver.processFilteredPacket(addr, pPacket);
+	return receiver.processFilteredPacket(pPacket);
 }
 
+//-------------------------------------------------------------------------------------
 } 
 }

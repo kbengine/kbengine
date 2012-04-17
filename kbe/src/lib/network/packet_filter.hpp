@@ -33,11 +33,9 @@ class PacketFilter : public RefCountable
 public:
 	virtual ~PacketFilter() {}
 
-	virtual Reason send(NetworkInterface & networkInterface,
-							const Address & addr, Packet * pPacket);
+	virtual Reason send(NetworkInterface & networkInterface, Packet * pPacket);
 
-	virtual Reason recv(PacketReceiver & receiver, const Address & addr,
-					Packet * pPacket);
+	virtual Reason recv(PacketReceiver & receiver, Packet * pPacket);
 
 	virtual int maxSpareSize() { return 0; }
 };

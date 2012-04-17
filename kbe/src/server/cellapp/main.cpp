@@ -61,7 +61,7 @@ public:
 		SmartPointer<PyObject> testsmartpointer(::PyBytes_FromString("test"));
 		testsmartpointer.clear();
 
-		CRITICAL_MSG("hahahah %d", 1111);
+		CRITICAL_MSG("hahahah %d\n", 1111);
 
 		return ServerApp::run();
 	}

@@ -33,10 +33,9 @@ int Bundle::size() const
 	return total;
 }
 
-void Bundle::send(const Address & address, NetworkInterface & networkInterface,
-		Channel * pChannel)
+void Bundle::send(NetworkInterface & networkInterface, Channel * pChannel)
 {
-	networkInterface.send(address, *this, pChannel);
+	networkInterface.send(*this, pChannel);
 }
 
 

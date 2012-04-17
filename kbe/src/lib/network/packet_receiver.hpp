@@ -33,19 +33,18 @@ public:
 	PacketReceiver(Socket & socket, NetworkInterface & networkInterface);
 	~PacketReceiver();
 
-	Reason processPacket(const Address & addr, Packet * p);
-	Reason processFilteredPacket(const Address & addr, Packet * p);
+	Reason processPacket(Packet * p);
+	Reason processFilteredPacket(Packet * p);
 
 private:
 	virtual int handleInputNotification(int fd);
 	bool processSocket(bool expectingPacket);
 	bool checkSocketErrors(int len, bool expectingPacket);
 
-	Reason processOrderedPacket(const Address & addr, Packet * p,
+	Reason processOrderedPacket(Packet * p,
 		Channel * pChannel);
 
-	bool processPiggybacks(const Address & addr,
-			Packet * p);
+	bool processPiggybacks(Packet * p);
 	EventDispatcher & dispatcher();
 private:
 	Socket & socket_;

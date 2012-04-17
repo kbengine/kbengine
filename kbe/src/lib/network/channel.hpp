@@ -147,6 +147,6 @@ typedef SmartPointer<Channel> ChannelPtr;
 }
 
 #ifdef CODE_INLINE
-#include "network_interface.ipp"
+#include "channel.ipp"
 #endif
 #endif // __NETWORKINTERFACE__

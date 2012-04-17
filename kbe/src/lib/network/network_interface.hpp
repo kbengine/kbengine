@@ -32,13 +32,6 @@ enum NetworkInterfaceType
 	NETWORK_INTERFACE_EXTERNAL
 };
 
-enum IndexedChannelFinderResult
-{
-	INDEXED_CHANNEL_HANDLED,
-	INDEXED_CHANNEL_NOT_HANDLED,
-	INDEXED_CHANNEL_CORRUPTED
-};
-
 class NetworkInterface : public TimerHandler
 {
 public:
@@ -60,8 +53,6 @@ public:
 	
 	Channel * findChannel(const Address & addr);
 
-	INLINE Channel & findOrCreateChannel(const Address & addr);
-
 	void onChannelGone(Channel * pChannel);
 	void onChannelTimeOut(Channel * pChannel);
 
@@ -77,7 +68,7 @@ public:
 
 	bool isExternal() const				{ return isExternal_; }
 	bool isVerbose() const				{ return isVerbose_; }
-	void isVerbose(bool value)		{ isVerbose_ = value; }
+	void isVerbose(bool value)			{ isVerbose_ = value; }
 
 	Socket & socket()					{ return socket_; }
 
@@ -88,53 +79,30 @@ public:
 
 	unsigned int numBytesReceivedForMessage(uint8 msgID) const;
 
-	void send(const Address & address, Bundle & bundle,
-		Channel * pChannel = NULL);
+	Reason send(Bundle & bundle, Channel * pChannel = NULL);
 	
-	void sendPacket(const Address & addr, Packet * pPacket,
-			Channel * pChannel, bool isResend);
-	
-	void sendRescheduledPacket(const Address & address, Packet * pPacket,
-						Channel * pChannel);
-
-	Reason basicSendWithRetries(const Address & addr, Packet * pPacket);
-	Reason basicSendSingleTry(const Address & addr, Packet * pPacket);
-
-	bool rescheduleSend(const Address & addr, Packet * pPacket);
-
+	Reason sendPacket(Packet * pPacket, Channel * pChannel = NULL);
 
 	bool isGood() const
 	{
 		return (socket_ != -1) && !address_.isNone();
 	}
 
-	void onPacketIn(const Address & addr, const Packet & packet);
-	void onPacketOut(const Address & addr, const Packet & packet);
+	void onPacketIn(const Packet & packet);
+	void onPacketOut(const Packet & packet);
 
 private:
-	enum TimeoutType
-	{
-		TIMEOUT_DEFAULT = 0,
-		TIMEOUT_RECENTLY_DEAD_CHANNEL
-	};
-
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 
 	void closeSocket();
-
-	// -------------------------------------------------------------------------
-	// Section: Private data
-	// -------------------------------------------------------------------------
-
+private:
 	Socket		socket_;
 
-	// The address of this socket.
 	Address	address_;
 
 	typedef std::map< Address, Channel * >	ChannelMap;
 	ChannelMap					channelMap_;
 
-	/// Indicates whether this is listening on an external interface.
 	const bool isExternal_;
 
 	bool isVerbose_;

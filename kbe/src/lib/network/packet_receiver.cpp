@@ -13,7 +13,7 @@
 namespace KBEngine { 
 namespace Mercury
 {
-
+//-------------------------------------------------------------------------------------
 PacketReceiver::PacketReceiver(Socket & socket,
 	   NetworkInterface & networkInterface	) :
 	socket_(socket),
@@ -22,18 +22,12 @@ PacketReceiver::PacketReceiver(Socket & socket,
 {
 }
 
-
-/**
- *	Destructor.
- */
+//-------------------------------------------------------------------------------------
 PacketReceiver::~PacketReceiver()
 {
 }
 
-
-/**
- *	This method is called when their is data on the socket.
- */
+//-------------------------------------------------------------------------------------
 int PacketReceiver::handleInputNotification(int fd)
 {
 	if(fd == socket_)
@@ -57,10 +51,7 @@ int PacketReceiver::handleInputNotification(int fd)
 	return 0;
 }
 
-
-/**
- *	This method will read and process any pending data on this object's socket.
- */
+//-------------------------------------------------------------------------------------
 bool PacketReceiver::processSocket(bool expectingPacket)
 {
 	int len = pNextPacket_->recvFromEndPoint(socket_);
@@ -71,22 +62,18 @@ bool PacketReceiver::processSocket(bool expectingPacket)
 
 	PacketPtr curPacket = pNextPacket_;
 	pNextPacket_ = new Packet();
-	Address& srcAddr = socket_.address();
-	Reason ret = this->processPacket(srcAddr, curPacket.get());
+	Reason ret = this->processPacket(curPacket.get());
 
 	if ((ret != REASON_SUCCESS) &&
 			networkInterface_.isVerbose())
 	{
-		this->dispatcher().errorReporter().reportException(ret, srcAddr);
+		this->dispatcher().errorReporter().reportException(ret, socket_.address());
 	}
 
 	return true;
 }
 
-
-/**
- *	This method checks whether an error was received from a call to
- */
+//-------------------------------------------------------------------------------------
 bool PacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 {
 	// is len weird?
@@ -189,50 +176,37 @@ bool PacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 	return true;
 }
 
-
-/**
- *	This is the entrypoint for new packets, which just gives it to the filter.
- */
-Reason PacketReceiver::processPacket(const Address & addr, Packet * p)
+//-------------------------------------------------------------------------------------
+Reason PacketReceiver::processPacket(Packet * p)
 {
-	// Packets arriving on external interface will probably be encrypted, so
-	// there's no point examining their header flags right now.
+	Address & addr = socket_.address();
 	Channel * pChannel = networkInterface_.findChannel(addr);
 
 	if (pChannel != NULL)
 	{
-		// We update received times for addressed channels here.  Indexed
-		// channels are done in processFilteredPacket().
 		pChannel->onPacketReceived(p->totalSize());
 
 		if (pChannel->pFilter())
 		{
-			// let the filter decide what to do with it
-			return pChannel->pFilter()->recv(*this, addr, p);
+			return pChannel->pFilter()->recv(*this, p);
 		}
 	}
 
-	return this->processFilteredPacket(addr, p);
+	return this->processFilteredPacket(p);
 }
 
-
-/**
- *	This function has to be very robust, if we intend to use this transport over
- *	the big bad internet. We basically have to assume it'll be complete garbage.
- */
-Reason PacketReceiver::processFilteredPacket(const Address & addr,
-		Packet * p)
+//-------------------------------------------------------------------------------------
+Reason PacketReceiver::processFilteredPacket(Packet * p)
 {
 	return REASON_SUCCESS;
 }
 
-/**
-*	This method returns the dispatcher that is used by this receiver.
-*/
+//-------------------------------------------------------------------------------------
 EventDispatcher & PacketReceiver::dispatcher()
 {
 	return networkInterface_.dispatcher();
 }
 
+//-------------------------------------------------------------------------------------
 }
 }

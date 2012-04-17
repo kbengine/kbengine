@@ -34,8 +34,7 @@ public:
 	Bundle(Packet * packetChain);
 	virtual ~Bundle();
 
-	void send(const Address & address, NetworkInterface & networkInterface,
-		Channel * pChannel = NULL);
+	void send(NetworkInterface & networkInterface, Channel * pChannel);
 
 	void clear(bool newBundle = false);
 	bool isEmpty() const;
