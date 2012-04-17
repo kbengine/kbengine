@@ -186,28 +186,32 @@ void init_network(void)
 			return;
 		}
 		
-		mysocket.setnodelay(true);
 		packetReceiver = new MyPacketReceiver(mysocket);
 		gdispatcher.registerFileDescriptor(mysocket, packetReceiver);
 
 		printf("请输入服务器端口号:\n>>>");
-		int port =0;
-		std::cin >> port;
+		static int port = 0;
+		if(port == 0)
+			std::cin >> port;
+
 		if(mysocket.connect(htons(port), inet_addr("192.168.1.104")) == -1)
 		{
-			ERROR_MSG("NetworkInterface::recreateListeningSocket: connect server is error!\n");
+			ERROR_MSG("NetworkInterface::recreateListeningSocket: connect server is error(%s)!\n", strerror(errno));
 			continue;
 		}
+		
+		mysocket.setnodelay(true);
+		mysocket.setnonblocking(true);
 
-		while(1)
+		int ii = 0;
+		while(ii ++ <= 10)
 		{
 			char data[1024];
 			memset(data, 0, 1024);
 			int len = mysocket.recv(data, 1024);
-			if(len == -1)
-				break;
-
 			printf("data(%d): [%s]\n", len, data);
+			KBEngine::sleep(10000);
+			mysocket.send("sss", 3);
 		};
 	};
 }

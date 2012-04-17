@@ -28,7 +28,7 @@ int Packet::recvFromEndPoint(Socket & ep)
 	{
 		this->msgEndOffset(len);
 	}
-
+	printf("---------------------------[%s]%d\n",data_, len);
 	return len;
 }
 

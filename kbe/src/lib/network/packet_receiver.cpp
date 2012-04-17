@@ -34,11 +34,17 @@ int PacketReceiver::handleInputNotification(int fd)
 	{
 		Socket* pNewSocket = socket_.accept();
 		if(pNewSocket == NULL){
-			ERROR_MSG("PacketReceiver::handleInputNotification: accept fd(%d) %s!\n",
+			WARNING_MSG("PacketReceiver::handleInputNotification: accept socketID(%d) %s!\n",
 				 fd, strerror(errno));
+			
+			this->dispatcher().errorReporter().reportException(
+					REASON_GENERAL_NETWORK);
 		}
 		else
-			INFO_MSG("PacketReceiver::handleInputNotification: new address: %s\n", pNewSocket->c_str());
+		{
+			Channel* pchannel = new Channel(networkInterface_, pNewSocket, Channel::INTERNAL);
+			networkInterface_.registerChannel(*pchannel);
+		}
 	}
 	else if (this->processSocket(/*expectingPacket:*/true))
 	{
@@ -67,7 +73,7 @@ bool PacketReceiver::processSocket(bool expectingPacket)
 	if ((ret != REASON_SUCCESS) &&
 			networkInterface_.isVerbose())
 	{
-		this->dispatcher().errorReporter().reportException(ret, socket_.address());
+		this->dispatcher().errorReporter().reportException(ret, socket_.addr());
 	}
 
 	return true;
@@ -128,17 +134,7 @@ bool PacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 			// exceptions is built into BaseApp::onClientNoSuchPort().
 			if (errno == ECONNREFUSED)
 			{
-				Channel * pDeadChannel = 
-					networkInterface_.findChannel(offender);
-
-				if (pDeadChannel &&
-						pDeadChannel->isInternal())
-				{
-					INFO_MSG("PacketReceiver::processPendingEvents: "
-						"Marking channel to %s as dead (%s)\n",
-						pDeadChannel->c_str(),
-						reasonToString(REASON_NO_SUCH_PORT));
-				}
+				// Î´ÊµÏÖ
 			}
 
 			this->dispatcher().errorReporter().reportException(
@@ -179,8 +175,7 @@ bool PacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 //-------------------------------------------------------------------------------------
 Reason PacketReceiver::processPacket(Packet * p)
 {
-	Address & addr = socket_.address();
-	Channel * pChannel = networkInterface_.findChannel(addr);
+	Channel * pChannel = networkInterface_.findChannel(&socket_);
 
 	if (pChannel != NULL)
 	{

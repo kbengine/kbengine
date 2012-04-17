@@ -178,7 +178,7 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 	
 	socket_.setnonblocking(true);
 	socket_.setnodelay(true);
-	socket_.address(address_);
+	socket_.addr(address_);
 	
 #ifdef KBE_SERVER
 	if (!socket_.setBufferSize(SO_RCVBUF, RECV_BUFFER_SIZE))
@@ -217,14 +217,28 @@ void NetworkInterface::handleTimeout(TimerHandle handle, void * arg)
 }
 
 //-------------------------------------------------------------------------------------
-Channel * NetworkInterface::findChannel(const Address & addr)
+Channel * NetworkInterface::findChannel(KBESOCKET s)
 {
-	if (addr.ip == 0)
+	if (s <= 0)
 	{
 		return NULL;
 	}
 
-	ChannelMap::iterator iter = channelMap_.find(addr);
+	ChannelMap::iterator iter = channelMap_.find(s);
+	Channel * pChannel = iter != channelMap_.end() ? iter->second : NULL;
+
+	return pChannel;
+}
+
+Channel * NetworkInterface::findChannel(const Socket* pSocket)
+{
+	KBESOCKET s = pSocket->get();
+	if (s <= 0)
+	{
+		return NULL;
+	}
+
+	ChannelMap::iterator iter = channelMap_.find(s);
 	Channel * pChannel = iter != channelMap_.end() ? iter->second : NULL;
 
 	return pChannel;
@@ -233,19 +247,21 @@ Channel * NetworkInterface::findChannel(const Address & addr)
 //-------------------------------------------------------------------------------------
 bool NetworkInterface::registerChannel(Channel & channel)
 {
-	KBE_ASSERT( channel.addr() != Address::NONE );
-	KBE_ASSERT( &channel.networkInterface() == this );
-
-	ChannelMap::iterator iter = channelMap_.find(channel.addr());
+	KBE_ASSERT(channel.socket() != NULL);
+	KBE_ASSERT(&channel.networkInterface() == this);
+	KBESOCKET s = channel.socket()->get();
+	ChannelMap::iterator iter = channelMap_.find(s);
 	Channel * pExisting = iter != channelMap_.end() ? iter->second : NULL;
 
-	if(!pExisting)
+	if(pExisting)
 	{
-		CRITICAL_MSG("NetworkInterface::registerChannel: channel %s is exist.\n", channel.addr().c_str());
+		CRITICAL_MSG("NetworkInterface::registerChannel: channel %s is exist. socketID: %d\n", \
+		channel.addr().c_str(), s);
 		return false;
 	}
 
-	channelMap_[channel.addr()] = &channel;
+	channelMap_[s] = &channel;
+	INFO_MSG("NetworkInterface::registerChannel: new channel: %s, socketID: %d\n", channel.addr().c_str(), s);
 	return true;
 }
 
@@ -253,16 +269,17 @@ bool NetworkInterface::registerChannel(Channel & channel)
 bool NetworkInterface::deregisterChannel(Channel & channel)
 {
 	const Address & addr = channel.addr();
-	KBE_ASSERT( addr != Address::NONE );
+	KBE_ASSERT(channel.socket() != NULL);
 
-	if (!channelMap_.erase( addr ))
+	if (!channelMap_.erase(channel.socket()->get()))
 	{
 		CRITICAL_MSG( "NetworkInterface::deregisterChannel: "
 				"Channel not found %s!\n",
 			addr.c_str() );
 		return false;
 	}
-
+	
+	INFO_MSG("NetworkInterface::deregisterChannel: del channel: %s\n", addr.c_str());
 	return true;
 }
 

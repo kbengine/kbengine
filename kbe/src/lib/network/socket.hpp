@@ -85,9 +85,9 @@ public:
 	INLINE int recvfrom(void * gramData, int gramSize, struct sockaddr_in & sin);
 	
 	KBESOCKET get()const{ return socket_; }
-	Address& address();
-	void address(const Address& newAddress);
-	void address(u_int16_t port, u_int32_t newAddress);
+	INLINE const Address& addr() const;
+	void addr(const Address& newAddress);
+	void addr(u_int16_t port, u_int32_t newAddress);
 protected:
 	KBESOCKET	socket_;
 	Address address_;

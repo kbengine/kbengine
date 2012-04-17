@@ -51,8 +51,9 @@ public:
 	bool registerChannel(Channel & channel);
 	bool deregisterChannel(Channel & channel);
 	
-	Channel * findChannel(const Address & addr);
-
+	Channel * findChannel(KBESOCKET s);
+	Channel * findChannel(const Socket* pSocket);
+	
 	void onChannelGone(Channel * pChannel);
 	void onChannelTimeOut(Channel * pChannel);
 
@@ -100,7 +101,7 @@ private:
 
 	Address	address_;
 
-	typedef std::map< Address, Channel * >	ChannelMap;
+	typedef std::map<KBESOCKET, Channel *>	ChannelMap;
 	ChannelMap					channelMap_;
 
 	const bool isExternal_;

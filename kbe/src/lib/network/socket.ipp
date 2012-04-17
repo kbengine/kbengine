@@ -30,7 +30,7 @@ INLINE Socket::operator int() const
 INLINE void Socket::setFileDescriptor(int fd)
 {
 	socket_ = fd;
-	address();
+	addr();
 }
 
 INLINE void Socket::socket(int type)
@@ -204,17 +204,17 @@ INLINE const char * Socket::c_str() const
 	return address_.c_str();
 }
 
-INLINE Address& Socket::address()
+INLINE const Address& Socket::addr() const
 {
 	return address_;
 }
 
-INLINE void Socket::address(const Address& newAddress)
+INLINE void Socket::addr(const Address& newAddress)
 {
 	address_ = newAddress;
 }
 
-INLINE void Socket::address(u_int16_t port, u_int32_t newAddress)
+INLINE void Socket::addr(u_int16_t port, u_int32_t newAddress)
 {
 	address_.port = port;
 	address_.ip = newAddress;
@@ -315,7 +315,7 @@ INLINE Socket * Socket::accept(u_int16_t * networkPort, u_int32_t * networkAddr)
 
 	Socket * pNew = new Socket();
 	pNew->setFileDescriptor(ret);
-	pNew->address(sin.sin_port, sin.sin_addr.s_addr);
+	pNew->addr(sin.sin_port, sin.sin_addr.s_addr);
 	
 	if (networkPort != NULL) *networkPort = sin.sin_port;
 	if (networkAddr != NULL) *networkAddr = sin.sin_addr.s_addr;

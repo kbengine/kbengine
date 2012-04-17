@@ -46,14 +46,16 @@ public:
 		EXTERNAL = 1,
 	};
 public:
-	Channel(NetworkInterface & networkInterface, const Address & address, Traits traits, PacketFilterPtr pFilter = NULL, ChannelID id = CHANNEL_ID_NULL);
+	Channel(NetworkInterface & networkInterface, const Socket * socket, Traits traits, PacketFilterPtr pFilter = NULL, ChannelID id = CHANNEL_ID_NULL);
 
 	virtual ~Channel();
 	
 	static Channel * get(NetworkInterface & networkInterface,
-			const Address & address);
+			KBESOCKET s);
 	
-
+	static Channel * get(NetworkInterface & networkInterface,
+			const Socket* pSocket);
+	
 	PacketFilterPtr pFilter() const { return pFilter_; }
 	void pFilter(PacketFilterPtr pFilter) { pFilter_ = pFilter; }
 
@@ -70,9 +72,9 @@ public:
 
 	NetworkInterface & networkInterface()			{ return *pNetworkInterface_; }
 		
-	INLINE const Mercury::Address & addr() const;
-	void addr(const Mercury::Address & addr);
-	
+	INLINE const Address& addr() const;
+	void socket(const Socket* socket);
+	INLINE const Socket * socket() const;
 	Bundle & bundle();
 	const Bundle & bundle() const;
 	bool hasUnsentData() const;
@@ -82,7 +84,7 @@ public:
 	void send(Bundle * pBundle = NULL);
 	void delayedSend();
 
-	void reset(const Address & newAddr, bool warnOnDiscard = true);
+	void reset(const Socket* socket, bool warnOnDiscard = true);
 	
 	void dropNextSend() { shouldDropNextSend_ = true; }
 
@@ -121,7 +123,6 @@ private:
 	
 	uint64						lastReceivedTime_;
 	
-	Address						addr_;
 	Bundle*						pBundle_;
 	uint32						windowSize_;
 	uint64						roundTripTime_;
@@ -140,6 +141,8 @@ private:
 	uint32						numBytesReceived_;
 
 	PacketFilterPtr				pFilter_;
+	
+	Socket *					socket_;
 };
 
 typedef SmartPointer<Channel> ChannelPtr;
