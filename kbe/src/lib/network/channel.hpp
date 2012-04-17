@@ -34,7 +34,7 @@ namespace Mercury
 class Bundle;
 class NetworkInterface;
 
-class Channel : public TimerHandler, RefCountable
+class Channel : public TimerHandler, public RefCountable
 {
 public:
 	enum Traits

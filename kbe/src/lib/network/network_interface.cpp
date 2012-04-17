@@ -245,33 +245,33 @@ Channel * NetworkInterface::findChannel(const Socket* pSocket)
 }
 
 //-------------------------------------------------------------------------------------
-bool NetworkInterface::registerChannel(Channel & channel)
+bool NetworkInterface::registerChannel(Channel* channel)
 {
-	KBE_ASSERT(channel.socket() != NULL);
-	KBE_ASSERT(&channel.networkInterface() == this);
-	KBESOCKET s = channel.socket()->get();
+	KBE_ASSERT(channel->socket() != NULL);
+	KBE_ASSERT(&channel->networkInterface() == this);
+	KBESOCKET s = channel->socket()->get();
 	ChannelMap::iterator iter = channelMap_.find(s);
 	Channel * pExisting = iter != channelMap_.end() ? iter->second : NULL;
 
 	if(pExisting)
 	{
 		CRITICAL_MSG("NetworkInterface::registerChannel: channel %s is exist. socketID: %d\n", \
-		channel.addr().c_str(), s);
+		channel->addr().c_str(), s);
 		return false;
 	}
 
-	channelMap_[s] = &channel;
-	INFO_MSG("NetworkInterface::registerChannel: new channel: %s, socketID: %d\n", channel.addr().c_str(), s);
+	channelMap_[s] = channel;
+	INFO_MSG("NetworkInterface::registerChannel: new channel: %s, socketID: %d\n", channel->addr().c_str(), s);
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool NetworkInterface::deregisterChannel(Channel & channel)
+bool NetworkInterface::deregisterChannel(Channel* channel)
 {
-	const Address & addr = channel.addr();
-	KBE_ASSERT(channel.socket() != NULL);
+	const Address & addr = channel->addr();
+	KBE_ASSERT(channel->socket() != NULL);
 
-	if (!channelMap_.erase(channel.socket()->get()))
+	if (!channelMap_.erase(channel->socket()->get()))
 	{
 		CRITICAL_MSG( "NetworkInterface::deregisterChannel: "
 				"Channel not found %s!\n",

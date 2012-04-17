@@ -9,7 +9,7 @@
 #include "network/socket.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
-
+#include "network/event_poller.hpp"
 namespace KBEngine { 
 namespace Mercury
 {
@@ -45,11 +45,20 @@ int PacketReceiver::handleInputNotification(int fd)
 bool PacketReceiver::processSocket(bool expectingPacket)
 {
 	int len = pNextPacket_->recvFromEndPoint(socket_);
-	if (len <= 0)
+
+	if (len < 0)
 	{
 		return this->checkSocketErrors(len, expectingPacket);
 	}
-
+	else if(len == 0)
+	{
+		Channel* pChannel = networkInterface_.findChannel(socket_);
+		KBE_ASSERT(pChannel != NULL);
+		networkInterface_.deregisterChannel(pChannel);
+		pChannel->decRef();
+		return false;
+	}
+	
 	PacketPtr curPacket = pNextPacket_;
 	pNextPacket_ = new Packet();
 	Reason ret = this->processPacket(curPacket.get());
@@ -66,21 +75,6 @@ bool PacketReceiver::processSocket(bool expectingPacket)
 //-------------------------------------------------------------------------------------
 bool PacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 {
-	// is len weird?
-	if (len == 0)
-	{
-		WARNING_MSG("PacketReceiver::processPendingEvents: "
-			"Throwing REASON_GENERAL_NETWORK (1)- %s\n",
-			strerror(errno));
-
-		this->dispatcher().errorReporter().reportException(
-				REASON_GENERAL_NETWORK);
-
-		return true;
-	}
-		// I'm not quite sure what it means if len is 0
-		// (0 => 'end of file', but with dgram sockets?)
-
 #ifdef _WIN32
 	DWORD wsaErr = WSAGetLastError();
 #endif //def _WIN32

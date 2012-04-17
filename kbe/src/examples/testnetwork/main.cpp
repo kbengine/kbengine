@@ -193,8 +193,10 @@ void init_network(void)
 		static int port = 0;
 		if(port == 0)
 			std::cin >> port;
-
-		if(mysocket.connect(htons(port), inet_addr("192.168.1.104")) == -1)
+		
+		u_int32_t address;
+		mysocket.convertAddress("192.168.1.104", address );
+		if(mysocket.connect(htons(port), address) == -1)
 		{
 			ERROR_MSG("NetworkInterface::recreateListeningSocket: connect server is error(%s)!\n", strerror(errno));
 			continue;
@@ -204,14 +206,15 @@ void init_network(void)
 		mysocket.setnonblocking(true);
 
 		int ii = 0;
-		while(ii ++ <= 10)
+		while(ii ++ <= 2)
 		{
 			char data[1024];
 			memset(data, 0, 1024);
+			mysocket.send("sss", 3);
 			int len = mysocket.recv(data, 1024);
 			printf("data(%d): [%s]\n", len, data);
 			KBEngine::sleep(10000);
-			mysocket.send("sss", 3);
+			
 		};
 	};
 }

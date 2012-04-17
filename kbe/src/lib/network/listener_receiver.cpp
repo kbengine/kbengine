@@ -42,7 +42,7 @@ int ListenerReceiver::handleInputNotification(int fd)
 	{
 		Channel* pchannel = new Channel(networkInterface_, pNewSocket, Channel::INTERNAL);
 		
-		if(networkInterface_.registerChannel(*pchannel))
+		if(networkInterface_.registerChannel(pchannel))
 		{
 			networkInterface_.dispatcher().registerFileDescriptor(pNewSocket->get(), pchannel->packetReceiver());
 		}

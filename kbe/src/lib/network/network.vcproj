@@ -177,6 +177,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\listener_receiver.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\network_interface.cpp"
 				>
 			</File>
@@ -239,6 +243,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\listener_receiver.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\network_interface.hpp"
 				>
 			</File>
@@ -283,6 +291,10 @@
 		</File>
 		<File
 			RelativePath=".\event_dispatcher.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\listener_receiver.ipp"
 			>
 		</File>
 		<File

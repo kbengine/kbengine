@@ -316,7 +316,9 @@ INLINE Socket * Socket::accept(u_int16_t * networkPort, u_int32_t * networkAddr)
 	Socket * pNew = new Socket();
 	pNew->setFileDescriptor(ret);
 	pNew->addr(sin.sin_port, sin.sin_addr.s_addr);
-	
+	pNew->setnonblocking(true);
+	pNew->setnodelay(true);
+
 	if (networkPort != NULL) *networkPort = sin.sin_port;
 	if (networkAddr != NULL) *networkAddr = sin.sin_addr.s_addr;
 

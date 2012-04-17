@@ -49,8 +49,8 @@ public:
 	bool recreateListeningSocket(uint16 listeningPort,
 							const char * listeningInterface);
 
-	bool registerChannel(Channel & channel);
-	bool deregisterChannel(Channel & channel);
+	bool registerChannel(Channel* channel);
+	bool deregisterChannel(Channel* channel);
 	
 	Channel * findChannel(KBESOCKET s);
 	Channel * findChannel(const Socket* pSocket);
