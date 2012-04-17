@@ -30,23 +30,7 @@ PacketReceiver::~PacketReceiver()
 //-------------------------------------------------------------------------------------
 int PacketReceiver::handleInputNotification(int fd)
 {
-	if(fd == socket_)
-	{
-		Socket* pNewSocket = socket_.accept();
-		if(pNewSocket == NULL){
-			WARNING_MSG("PacketReceiver::handleInputNotification: accept socketID(%d) %s!\n",
-				 fd, strerror(errno));
-			
-			this->dispatcher().errorReporter().reportException(
-					REASON_GENERAL_NETWORK);
-		}
-		else
-		{
-			Channel* pchannel = new Channel(networkInterface_, pNewSocket, Channel::INTERNAL);
-			networkInterface_.registerChannel(*pchannel);
-		}
-	}
-	else if (this->processSocket(/*expectingPacket:*/true))
+	if (this->processSocket(/*expectingPacket:*/true))
 	{
 		while (this->processSocket(/*expectingPacket:*/false))
 		{

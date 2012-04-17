@@ -38,7 +38,8 @@ Channel::Channel(NetworkInterface & networkInterface,
 	numBytesSent_(0),
 	numBytesReceived_(0),
 	pFilter_(pFilter),
-	socket_(NULL)
+	pSocket_(NULL),
+	pPacketReceiver_(NULL)
 {
 	// This corresponds to the decRef in Channel::destroy.
 	this->incRef();
@@ -52,6 +53,8 @@ Channel::Channel(NetworkInterface & networkInterface,
 
 	this->clearBundle();
 	this->socket(socket);
+	
+	pPacketReceiver_ = new PacketReceiver(*pSocket_, networkInterface);
 }
 
 //-------------------------------------------------------------------------------------
@@ -71,10 +74,10 @@ Channel * get(NetworkInterface & networkInterface,
 //-------------------------------------------------------------------------------------
 void Channel::socket(const Socket* socket)
 {
-	if (socket && socket_ != socket)
+	if (socket && pSocket_ != socket)
 	{
 		lastReceivedTime_ = timestamp();
-		socket_ = const_cast<Socket*>(socket);
+		pSocket_ = const_cast<Socket*>(socket);
 	}
 }
 
@@ -82,8 +85,12 @@ void Channel::socket(const Socket* socket)
 Channel::~Channel()
 {
 	pNetworkInterface_->onChannelGone(this);
-	delete pBundle_;
-	socket_ = NULL;
+	pSocket_->close();
+	pSocket_->detach();
+	
+	SAFE_RELEASE(pPacketReceiver_);
+	SAFE_RELEASE(pBundle_);
+	SAFE_RELEASE(pSocket_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -154,7 +161,7 @@ const char * Channel::c_str() const
 {
 	static char dodgyString[ 40 ];
 
-	int length = socket_->addr().writeToString(dodgyString, sizeof(dodgyString));
+	int length = pSocket_->addr().writeToString(dodgyString, sizeof(dodgyString));
 
 	length += kbe_snprintf(dodgyString + length,
 		sizeof(dodgyString) - length,	"/%d", id_);
@@ -212,7 +219,7 @@ void Channel::handleTimeout(TimerHandle, void * arg)
 void Channel::reset(const Socket* socket, bool warnOnDiscard)
 {
 	// Don't do anything if the address hasn't changed.
-	if (socket == socket_)
+	if (socket == pSocket_)
 	{
 		return;
 	}

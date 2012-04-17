@@ -21,9 +21,9 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 	pDispatcher_(new EventDispatcher),
 	pMainDispatcher_(NULL),
 	pExtensionData_(NULL),
-	pPacketReceiver_(NULL)
+	pListenerReceiver_(NULL)
 {
-	pPacketReceiver_ = new PacketReceiver(socket_, *this);
+	pListenerReceiver_ = new ListenerReceiver(socket_, *this);
 	this->recreateListeningSocket(listeningPort, listeningInterface);
 
 	if (pMainDispatcher != NULL)
@@ -106,7 +106,7 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 		return false;
 	}
 
-	this->dispatcher().registerFileDescriptor(socket_, pPacketReceiver_);
+	this->dispatcher().registerFileDescriptor(socket_, pListenerReceiver_);
 	
 	char ifname[IFNAMSIZ];
 	u_int32_t ifaddr = INADDR_ANY;

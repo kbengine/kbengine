@@ -102,6 +102,8 @@ public:
 	uint32	numPacketsReceived() const	{ return numPacketsReceived_; }
 	uint32	numBytesSent() const		{ return numBytesSent_; }
 	uint32	numBytesReceived() const	{ return numBytesReceived_; }
+		
+	PacketReceiver* packetReceiver()const { return pPacketReceiver_; }
 private:
 	enum TimeOutType
 	{
@@ -142,7 +144,8 @@ private:
 
 	PacketFilterPtr				pFilter_;
 	
-	Socket *					socket_;
+	Socket *					pSocket_;
+	PacketReceiver*				pPacketReceiver_;
 };
 
 typedef SmartPointer<Channel> ChannelPtr;

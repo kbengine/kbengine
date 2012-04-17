@@ -18,6 +18,7 @@ same license as the rest of the engine.
 #include "network/address.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/packet_receiver.hpp"
+#include "network/listener_receiver.hpp"
 #include "network/socket.hpp"
 #include "network/common.hpp"
 #include "network/channel.hpp"
@@ -113,7 +114,7 @@ private:
 
 	void * pExtensionData_;
 	
-	PacketReceiver * pPacketReceiver_;
+	ListenerReceiver * pListenerReceiver_;
 };
 
 }
