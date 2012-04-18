@@ -9,11 +9,13 @@ SRCS =				\
 	event_poller		\
 	listener_receiver	\
 	network_interface	\
-	packet			\
 	packet_filter		\
 	packet_receiver		\
-	socket			\
-	
+	endpoint		\
+	tcp_packet		\
+	tcp_packet_receiver	\
+	udp_packet		\
+	udp_packet_receiver
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))

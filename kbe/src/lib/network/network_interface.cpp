@@ -13,7 +13,7 @@ const char * NetworkInterface::USE_KBEMACHINED = "kbemachined";
 NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 		NetworkInterfaceType networkInterfaceType,
 		uint16 listeningPort, const char * listeningInterface) :
-	socket_(),
+	endpoint_(),
 	address_(Address::NONE),
 	channelMap_(),
 	isExternal_(networkInterfaceType == NETWORK_INTERFACE_EXTERNAL),
@@ -23,7 +23,7 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 	pExtensionData_(NULL),
 	pListenerReceiver_(NULL)
 {
-	pListenerReceiver_ = new ListenerReceiver(socket_, *this);
+	pListenerReceiver_ = new ListenerReceiver(endpoint_, *this);
 	this->recreateListeningSocket(listeningPort, listeningInterface);
 
 	if (pMainDispatcher != NULL)
@@ -82,11 +82,11 @@ void NetworkInterface::detach()
 //-------------------------------------------------------------------------------------
 void NetworkInterface::closeSocket()
 {
-	if (socket_.good())
+	if (endpoint_.good())
 	{
-		this->dispatcher().deregisterFileDescriptor(socket_);
-		socket_.close();
-		socket_.detach();
+		this->dispatcher().deregisterFileDescriptor(endpoint_);
+		endpoint_.close();
+		endpoint_.detach();
 	}
 }
 
@@ -99,14 +99,14 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 	address_.ip = 0;
 	address_.port = 0;
 
-	socket_.socket(SOCK_STREAM);
-	if (!socket_.good())
+	endpoint_.socket(SOCK_STREAM);
+	if (!endpoint_.good())
 	{
 		ERROR_MSG("NetworkInterface::recreateListeningSocket: couldn't create a socket\n");
 		return false;
 	}
 
-	this->dispatcher().registerFileDescriptor(socket_, pListenerReceiver_);
+	this->dispatcher().registerFileDescriptor(endpoint_, pListenerReceiver_);
 	
 	char ifname[IFNAMSIZ];
 	u_int32_t ifaddr = INADDR_ANY;
@@ -123,12 +123,12 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 		
 		// 没有实现, 向KBEMachined查询接口
 	}
-	else if (socket_.findIndicatedInterface( listeningInterface, ifname ) == 0)
+	else if (endpoint_.findIndicatedInterface( listeningInterface, ifname ) == 0)
 	{
 		INFO_MSG( "NetworkInterface::recreateListeningSocket: "
 				"Creating on interface '%s' (= %s)\n",
 			listeningInterface, ifname );
-		if (socket_.getInterfaceAddress( ifname, ifaddr ) != 0)
+		if (endpoint_.getInterfaceAddress( ifname, ifaddr ) != 0)
 		{
 			WARNING_MSG( "NetworkInterface::recreateListeningSocket: "
 				"Couldn't get addr of interface %s so using all interfaces\n",
@@ -142,31 +142,31 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 			listeningInterface );
 	}
 	
-	if (socket_.bind(listeningPort, ifaddr) != 0)
+	if (endpoint_.bind(listeningPort, ifaddr) != 0)
 	{
 		ERROR_MSG("NetworkInterface::recreateListeningSocket: "
 				"Couldn't bind the socket to %s (%s)\n",
 			address_.c_str(), strerror(errno));
 		
-		socket_.close();
-		socket_.detach();
+		endpoint_.close();
+		endpoint_.detach();
 		return false;
 	}
 	
-	socket_.getlocaladdress( (u_int16_t*)&address_.port,
+	endpoint_.getlocaladdress( (u_int16_t*)&address_.port,
 		(u_int32_t*)&address_.ip );
 
 	if (address_.ip == 0)
 	{
-		if (socket_.findDefaultInterface( ifname ) != 0 ||
-			socket_.getInterfaceAddress( ifname,
+		if (endpoint_.findDefaultInterface( ifname ) != 0 ||
+			endpoint_.getInterfaceAddress( ifname,
 				(u_int32_t&)address_.ip ) != 0)
 		{
 			ERROR_MSG( "NetworkInterface::recreateListeningSocket: "
 				"Couldn't determine ip addr of default interface\n" );
 
-			socket_.close();
-			socket_.detach();
+			endpoint_.close();
+			endpoint_.detach();
 			return false;
 		}
 
@@ -176,27 +176,27 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 			ifname, address_.c_str() );
 	}
 	
-	socket_.setnonblocking(true);
-	socket_.setnodelay(true);
-	socket_.addr(address_);
+	endpoint_.setnonblocking(true);
+	endpoint_.setnodelay(true);
+	endpoint_.addr(address_);
 	
 #ifdef KBE_SERVER
-	if (!socket_.setBufferSize(SO_RCVBUF, RECV_BUFFER_SIZE))
+	if (!endpoint_.setBufferSize(SO_RCVBUF, RECV_BUFFER_SIZE))
 	{
 		WARNING_MSG("NetworkInterface::recreateListeningSocket: "
 			"Operating with a receive buffer of only %d bytes (instead of %d)\n",
-			socket_.getBufferSize(SO_RCVBUF), RECV_BUFFER_SIZE);
+			endpoint_.getBufferSize(SO_RCVBUF), RECV_BUFFER_SIZE);
 	}
 #endif
 
-	if(socket_.listen(5) == -1)
+	if(endpoint_.listen(5) == -1)
 	{
 		ERROR_MSG("NetworkInterface::recreateListeningSocket: "
 			"listen to %s (%s)\n",
 			address_.c_str(), strerror(errno));
 
-		socket_.close();
-		socket_.detach();
+		endpoint_.close();
+		endpoint_.detach();
 		return false;
 	}
 	
@@ -217,34 +217,34 @@ void NetworkInterface::handleTimeout(TimerHandle handle, void * arg)
 }
 
 //-------------------------------------------------------------------------------------
-Channel * NetworkInterface::findChannel(KBESOCKET s)
+Channel * NetworkInterface::findChannel(const Address & addr)
 {
-	if (s <= 0)
+	if (addr.ip == 0)
 		return NULL;
 
-	ChannelMap::iterator iter = channelMap_.find(s);
-	Channel * pChannel = iter != channelMap_.end() ? iter->second : NULL;
+	ChannelMap::iterator iter = channelMap_.find(addr);
+	Channel * pChannel = (iter != channelMap_.end()) ? iter->second : NULL;
 	return pChannel;
 }
 
 //-------------------------------------------------------------------------------------
 bool NetworkInterface::registerChannel(Channel* channel)
 {
-	KBE_ASSERT(channel->socket() != NULL);
+	const Address & addr = channel->addr();
+	KBE_ASSERT(addr.ip != 0);
 	KBE_ASSERT(&channel->networkInterface() == this);
-	KBESOCKET s = *channel->socket();
-	ChannelMap::iterator iter = channelMap_.find(s);
+	ChannelMap::iterator iter = channelMap_.find(addr);
 	Channel * pExisting = iter != channelMap_.end() ? iter->second : NULL;
 
 	if(pExisting)
 	{
-		CRITICAL_MSG("NetworkInterface::registerChannel: channel %s is exist. socketID: %d\n", \
-		channel->addr().c_str(), s);
+		CRITICAL_MSG("NetworkInterface::registerChannel: channel %s is exist.\n", \
+		channel->addr().c_str());
 		return false;
 	}
 
-	channelMap_[s] = channel;
-	INFO_MSG("NetworkInterface::registerChannel: new channel: %s, socketID: %d\n", channel->addr().c_str(), s);
+	channelMap_[addr] = channel;
+	INFO_MSG("NetworkInterface::registerChannel: new channel: %s.\n", channel->addr().c_str());
 	return true;
 }
 
@@ -252,9 +252,9 @@ bool NetworkInterface::registerChannel(Channel* channel)
 bool NetworkInterface::deregisterChannel(Channel* channel)
 {
 	const Address & addr = channel->addr();
-	KBE_ASSERT(channel->socket() != NULL);
+	KBE_ASSERT(channel->endpoint() != NULL);
 
-	if (!channelMap_.erase(*channel->socket()))
+	if (!channelMap_.erase(addr))
 	{
 		CRITICAL_MSG( "NetworkInterface::deregisterChannel: "
 				"Channel not found %s!\n",

@@ -4,6 +4,7 @@
 #endif
 #include "network/bundle.hpp"
 #include "network/network_interface.hpp"
+#include "network/tcp_packet_receiver.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -14,7 +15,7 @@ const int INDEXED_CHANNEL_SIZE = 512;
 
 
 Channel::Channel(NetworkInterface & networkInterface,
-		const Socket * socket, Traits traits,
+		const EndPoint * endpoint, Traits traits,
 		PacketFilterPtr pFilter, ChannelID id):
 	pNetworkInterface_(&networkInterface),
 	traits_(traits),
@@ -38,7 +39,7 @@ Channel::Channel(NetworkInterface & networkInterface,
 	numBytesSent_(0),
 	numBytesReceived_(0),
 	pFilter_(pFilter),
-	pSocket_(NULL),
+	pEndPoint_(NULL),
 	pPacketReceiver_(NULL)
 {
 	// This corresponds to the decRef in Channel::destroy.
@@ -52,32 +53,33 @@ Channel::Channel(NetworkInterface & networkInterface,
 	}
 
 	this->clearBundle();
-	this->socket(socket);
+	this->endpoint(endpoint);
 	
-	pPacketReceiver_ = new PacketReceiver(*pSocket_, networkInterface);
+	pPacketReceiver_ = new TCPPacketReceiver(*pEndPoint_, networkInterface);
+	pNetworkInterface_->dispatcher().registerFileDescriptor(*pEndPoint_, pPacketReceiver_);
 }
 
 //-------------------------------------------------------------------------------------
 Channel * Channel::get(NetworkInterface & networkInterface,
-			KBESOCKET s)
+			const Address& addr)
 {
-	return networkInterface.findChannel(s);
+	return networkInterface.findChannel(addr);
 }
 
 //-------------------------------------------------------------------------------------
 Channel * get(NetworkInterface & networkInterface,
-		const Socket* pSocket)
+		const EndPoint* pSocket)
 {
-	return networkInterface.findChannel(*pSocket);
+	return networkInterface.findChannel(pSocket->addr());
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::socket(const Socket* socket)
+void Channel::endpoint(const EndPoint* endpoint)
 {
-	if (socket && pSocket_ != socket)
+	if (endpoint && pEndPoint_ != endpoint)
 	{
 		lastReceivedTime_ = timestamp();
-		pSocket_ = const_cast<Socket*>(socket);
+		pEndPoint_ = const_cast<EndPoint*>(endpoint);
 	}
 }
 
@@ -85,12 +87,13 @@ void Channel::socket(const Socket* socket)
 Channel::~Channel()
 {
 	pNetworkInterface_->onChannelGone(this);
-	pSocket_->close();
-	pSocket_->detach();
+	pNetworkInterface_->dispatcher().deregisterFileDescriptor(*pEndPoint_);
+	pEndPoint_->close();
+	pEndPoint_->detach();
 	
 	SAFE_RELEASE(pPacketReceiver_);
 	SAFE_RELEASE(pBundle_);
-	SAFE_RELEASE(pSocket_);
+	SAFE_RELEASE(pEndPoint_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -161,7 +164,7 @@ const char * Channel::c_str() const
 {
 	static char dodgyString[ 40 ];
 
-	int length = pSocket_->addr().writeToString(dodgyString, sizeof(dodgyString));
+	int length = pEndPoint_->addr().writeToString(dodgyString, sizeof(dodgyString));
 
 	length += kbe_snprintf(dodgyString + length,
 		sizeof(dodgyString) - length,	"/%d", id_);
@@ -216,17 +219,17 @@ void Channel::handleTimeout(TimerHandle, void * arg)
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::reset(const Socket* socket, bool warnOnDiscard)
+void Channel::reset(const EndPoint* endpoint, bool warnOnDiscard)
 {
 	// Don't do anything if the address hasn't changed.
-	if (socket == pSocket_)
+	if (endpoint == pEndPoint_)
 	{
 		return;
 	}
 
 	// This handles registering this channel (deregistering done in
 	// clearState above).
-	this->socket(socket);
+	this->endpoint(endpoint);
 
 	// If we're establishing this channel, call the bundle primer, since
 	// we just cleared the bundle.

@@ -25,7 +25,14 @@ namespace Mercury
 
 typedef uint8 MessageType;
 
-#define PACKET_MAX_SIZE 1472
+namespace udp{
+}
+
+namespace tcp{
+}
+
+#define TCP_PACKET_MAX_SIZE 1460
+#define UDP_PACKET_MAX_SIZE 1472
 
 typedef int32 ChannelID;
 const ChannelID CHANNEL_ID_NULL = 0;

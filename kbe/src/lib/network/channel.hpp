@@ -16,7 +16,7 @@ same license as the rest of the engine.
 #include "helper/debug_helper.hpp"
 #include "network/address.hpp"
 #include "network/event_dispatcher.hpp"
-#include "network/socket.hpp"
+#include "network/endpoint.hpp"
 #include "network/packet.hpp"
 #include "network/common.hpp"
 #include "network/bundle.hpp"
@@ -46,15 +46,15 @@ public:
 		EXTERNAL = 1,
 	};
 public:
-	Channel(NetworkInterface & networkInterface, const Socket * socket, Traits traits, PacketFilterPtr pFilter = NULL, ChannelID id = CHANNEL_ID_NULL);
+	Channel(NetworkInterface & networkInterface, const EndPoint * endpoint, Traits traits, PacketFilterPtr pFilter = NULL, ChannelID id = CHANNEL_ID_NULL);
 
 	virtual ~Channel();
 	
 	static Channel * get(NetworkInterface & networkInterface,
-			KBESOCKET s);
+			const Address& addr);
 	
 	static Channel * get(NetworkInterface & networkInterface,
-			const Socket* pSocket);
+			const EndPoint* pSocket);
 	
 	PacketFilterPtr pFilter() const { return pFilter_; }
 	void pFilter(PacketFilterPtr pFilter) { pFilter_ = pFilter; }
@@ -73,8 +73,8 @@ public:
 	NetworkInterface & networkInterface()			{ return *pNetworkInterface_; }
 		
 	INLINE const Address& addr() const;
-	void socket(const Socket* socket);
-	INLINE const Socket * socket() const;
+	void endpoint(const EndPoint* endpoint);
+	INLINE const EndPoint * endpoint() const;
 	Bundle & bundle();
 	const Bundle & bundle() const;
 	bool hasUnsentData() const;
@@ -84,7 +84,7 @@ public:
 	void send(Bundle * pBundle = NULL);
 	void delayedSend();
 
-	void reset(const Socket* socket, bool warnOnDiscard = true);
+	void reset(const EndPoint* endpoint, bool warnOnDiscard = true);
 	
 	void dropNextSend() { shouldDropNextSend_ = true; }
 
@@ -144,7 +144,7 @@ private:
 
 	PacketFilterPtr				pFilter_;
 	
-	Socket *					pSocket_;
+	EndPoint *					pEndPoint_;
 	PacketReceiver*				pPacketReceiver_;
 };
 

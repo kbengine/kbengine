@@ -16,7 +16,7 @@ same license as the rest of the engine.
 #include "helper/debug_helper.hpp"
 #include "network/common.hpp"
 #include "network/interfaces.hpp"
-#include "network/packet.hpp"
+#include "network/tcp_packet.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -30,26 +30,19 @@ class EventDispatcher;
 class PacketReceiver : public InputNotificationHandler
 {
 public:
-	PacketReceiver(Socket & socket, NetworkInterface & networkInterface);
-	~PacketReceiver();
+	PacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
+	virtual ~PacketReceiver();
 
-	Reason processPacket(Packet * p);
-	Reason processFilteredPacket(Packet * p);
-
-private:
+	virtual Reason processPacket(Packet * p);
+	virtual Reason processFilteredPacket(Packet * p) = 0;
+	EventDispatcher& dispatcher();
+protected:
 	virtual int handleInputNotification(int fd);
-	bool processSocket(bool expectingPacket);
-	bool checkSocketErrors(int len, bool expectingPacket);
-
-	Reason processOrderedPacket(Packet * p,
-		Channel * pChannel);
-
-	bool processPiggybacks(Packet * p);
-	EventDispatcher & dispatcher();
-private:
-	Socket & socket_;
+	virtual bool processSocket(bool expectingPacket) = 0;
+	virtual bool checkSocketErrors(int len, bool expectingPacket) = 0;
+protected:
+	EndPoint & endpoint_;
 	NetworkInterface & networkInterface_;
-	PacketPtr pNextPacket_;
 };
 
 }

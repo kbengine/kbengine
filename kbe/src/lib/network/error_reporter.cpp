@@ -5,7 +5,7 @@
 
 #include "network/address.hpp"
 #include "network/event_dispatcher.hpp"
-#include "network/socket.hpp"
+#include "network/endpoint.hpp"
 
 namespace KBEngine { 
 namespace Mercury

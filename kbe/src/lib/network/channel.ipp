@@ -4,12 +4,12 @@ namespace Mercury
 
 INLINE const Address & Channel::addr() const
 {
-	return pSocket_->addr();
+	return pEndPoint_->addr();
 }
 
-INLINE const Socket * Channel::socket() const
+INLINE const EndPoint * Channel::endpoint() const
 {
-	return pSocket_;
+	return pEndPoint_;
 }
 
 INLINE int Channel::windowSize() const

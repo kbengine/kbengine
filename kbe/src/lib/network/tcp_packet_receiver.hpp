@@ -8,15 +8,16 @@ Also see acknowledgements in Readme.html
 You may use this sample code for anything you like, it is not covered by the
 same license as the rest of the engine.
 */
-#ifndef __NETWORKLISTENER_RECEIVER__
-#define __NETWORKLISTENER_RECEIVER__
+#ifndef __NETWORKTCPPACKET_RECEIVER__
+#define __NETWORKTCPPACKET_RECEIVER__
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/common.hpp"
 #include "network/interfaces.hpp"
-#include "network/packet.hpp"
+#include "network/tcp_packet.hpp"
+#include "network/packet_receiver.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -27,24 +28,24 @@ class Address;
 class NetworkInterface;
 class EventDispatcher;
 
-class ListenerReceiver : public InputNotificationHandler
+class TCPPacketReceiver : public PacketReceiver
 {
 public:
-	ListenerReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
-	~ListenerReceiver();
+	TCPPacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
+	~TCPPacketReceiver();
 
-private:
-	virtual int handleInputNotification(int fd);
-	EventDispatcher & dispatcher();
-private:
-	EndPoint & endpoint_;
-	NetworkInterface & networkInterface_;
+	Reason processFilteredPacket(Packet * p);
+
+protected:
+	bool processSocket(bool expectingPacket);
+	bool checkSocketErrors(int len, bool expectingPacket);
+protected:
+	TCPPacketPtr pNextPacket_;
 };
-
 }
 }
 
 #ifdef CODE_INLINE
-#include "listener_receiver.ipp"
+#include "tcp_packet_receiver.ipp"
 #endif
-#endif // __NETWORKLISTENER_RECEIVER__
+#endif // __NETWORKTCPPACKET_RECEIVER__

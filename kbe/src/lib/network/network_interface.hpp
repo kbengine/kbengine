@@ -19,7 +19,7 @@ same license as the rest of the engine.
 #include "network/event_dispatcher.hpp"
 #include "network/packet_receiver.hpp"
 #include "network/listener_receiver.hpp"
-#include "network/socket.hpp"
+#include "network/endpoint.hpp"
 #include "network/common.hpp"
 #include "network/channel.hpp"
 #include "network/packet.hpp"
@@ -52,7 +52,7 @@ public:
 	bool registerChannel(Channel* channel);
 	bool deregisterChannel(Channel* channel);
 	
-	Channel * findChannel(KBESOCKET s);
+	Channel * findChannel(const Address & addr);
 	
 	void onChannelGone(Channel * pChannel);
 	void onChannelTimeOut(Channel * pChannel);
@@ -71,9 +71,9 @@ public:
 	bool isVerbose() const				{ return isVerbose_; }
 	void isVerbose(bool value)			{ isVerbose_ = value; }
 
-	Socket & socket()					{ return socket_; }
+	EndPoint & endpoint()				{ return endpoint_; }
 
-	const char * c_str() const { return socket_.c_str(); }
+	const char * c_str() const { return endpoint_.c_str(); }
 
 	void * pExtensionData() const			{ return pExtensionData_; }
 	void pExtensionData(void * pData)		{ pExtensionData_ = pData; }
@@ -86,7 +86,7 @@ public:
 
 	bool isGood() const
 	{
-		return (socket_ != -1) && !address_.isNone();
+		return (endpoint_ != -1) && !address_.isNone();
 	}
 
 	void onPacketIn(const Packet & packet);
@@ -97,11 +97,11 @@ private:
 
 	void closeSocket();
 private:
-	Socket		socket_;
+	EndPoint	endpoint_;
 
 	Address	address_;
 
-	typedef std::map<KBESOCKET, Channel *>	ChannelMap;
+	typedef std::map<Address, Channel *>	ChannelMap;
 	ChannelMap					channelMap_;
 
 	const bool isExternal_;

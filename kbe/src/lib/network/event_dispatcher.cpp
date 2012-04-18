@@ -25,8 +25,8 @@ EventDispatcher::EventDispatcher() :
 //-------------------------------------------------------------------------------------
 EventDispatcher::~EventDispatcher()
 {
-	delete m_pFrequentTasks_;
-	delete m_pPoller_;
+	SAFE_RELEASE(m_pFrequentTasks_);
+	SAFE_RELEASE(m_pPoller_);
 	
 	if (!m_pTimes_->empty())
 	{
@@ -35,7 +35,8 @@ EventDispatcher::~EventDispatcher()
 	}
 
 	m_pTimes_->clear(false);
-	delete m_pTimes_;
+	SAFE_RELEASE(m_pTimes_);
+	SAFE_RELEASE(m_pErrorReporter_);
 }
 
 //-------------------------------------------------------------------------------------

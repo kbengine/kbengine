@@ -10,26 +10,26 @@ same license as the rest of the engine.
 */
 #include "cstdkbe/cstdkbe.hpp"
 #include "network/address.hpp"
-#include "network/socket.hpp"
+#include "network/endpoint.hpp"
 #include "network/event_poller.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/interfaces.hpp"
-#include "network/Packet.hpp"
+#include "network/tcp_packet.hpp"
 
 using namespace KBEngine;
 using namespace KBEngine::Mercury;
 Address address;
-Socket mysocket;
+EndPoint mysocket;
 EventDispatcher gdispatcher;
 
 
 class MyPacketReceiver : public InputNotificationHandler
 {
 public:
-	MyPacketReceiver(Socket & mysocket):
+	MyPacketReceiver(EndPoint & mysocket):
 	socket_(mysocket),
-	pNextPacket_(new Packet())
+	pNextPacket_(new TCPPacket())
 	{
 	}
 	
@@ -61,7 +61,7 @@ private:
 		}
 
 		PacketPtr curPacket = pNextPacket_;
-		pNextPacket_ = new Packet();
+		pNextPacket_ = new TCPPacket();
 		Address srcAddr = socket_.getRemoteAddress();
 		Reason ret = this->processPacket(srcAddr, curPacket.get());
 
@@ -168,7 +168,7 @@ private:
 		return true;
 	}
 private:
-	Socket & socket_;
+	EndPoint & socket_;
 	PacketPtr pNextPacket_;
 };
 
@@ -199,6 +199,7 @@ void init_network(void)
 		if(mysocket.connect(htons(port), address) == -1)
 		{
 			ERROR_MSG("NetworkInterface::recreateListeningSocket: connect server is error(%s)!\n", strerror(errno));
+			port = 0;
 			continue;
 		}
 		

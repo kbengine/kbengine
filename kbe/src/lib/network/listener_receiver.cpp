@@ -6,7 +6,7 @@
 #include "network/address.hpp"
 #include "network/bundle.hpp"
 #include "network/channel.hpp"
-#include "network/socket.hpp"
+#include "network/endpoint.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
 #include "network/packet_receiver.hpp"
@@ -15,9 +15,9 @@ namespace KBEngine {
 namespace Mercury
 {
 //-------------------------------------------------------------------------------------
-ListenerReceiver::ListenerReceiver(Socket & socket,
+ListenerReceiver::ListenerReceiver(EndPoint & endpoint,
 	   NetworkInterface & networkInterface	) :
-	socket_(socket),
+	endpoint_(endpoint),
 	networkInterface_(networkInterface)
 {
 }
@@ -30,9 +30,9 @@ ListenerReceiver::~ListenerReceiver()
 //-------------------------------------------------------------------------------------
 int ListenerReceiver::handleInputNotification(int fd)
 {
-	Socket* pNewSocket = socket_.accept();
-	if(pNewSocket == NULL){
-		WARNING_MSG("PacketReceiver::handleInputNotification: accept socketID(%d) %s!\n",
+	EndPoint* pNewEndPoint = endpoint_.accept();
+	if(pNewEndPoint == NULL){
+		WARNING_MSG("PacketReceiver::handleInputNotification: accept endpoint(%d) %s!\n",
 			 fd, strerror(errno));
 		
 		this->dispatcher().errorReporter().reportException(
@@ -40,11 +40,9 @@ int ListenerReceiver::handleInputNotification(int fd)
 	}
 	else
 	{
-		Channel* pchannel = new Channel(networkInterface_, pNewSocket, Channel::INTERNAL);
-		
+		Channel* pchannel = new Channel(networkInterface_, pNewEndPoint, Channel::INTERNAL);
 		if(networkInterface_.registerChannel(pchannel))
 		{
-			networkInterface_.dispatcher().registerFileDescriptor(*pNewSocket, pchannel->packetReceiver());
 		}
 	}
 	return 0;

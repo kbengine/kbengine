@@ -462,8 +462,8 @@ bool EntityDef::loadDetailLevelInfo(std::string& defFilePath, std::string& modul
 		return false;
 	}
 	
-	dlInfo.level[DETAIL_LEVEL_NEAR]->radius = defxml->getValFloat(radiusNode);
-	dlInfo.level[DETAIL_LEVEL_NEAR]->hyst = defxml->getValFloat(hystNode);
+	dlInfo.level[DETAIL_LEVEL_NEAR]->radius = (float)defxml->getValFloat(radiusNode);
+	dlInfo.level[DETAIL_LEVEL_NEAR]->hyst = (float)defxml->getValFloat(hystNode);
 	
 	node = defxml->enterNode(detailLevelNode, "MEDIUM");
 	radiusNode = defxml->enterNode(node, "radius");
@@ -474,9 +474,9 @@ bool EntityDef::loadDetailLevelInfo(std::string& defFilePath, std::string& modul
 		return false;
 	}
 	
-	dlInfo.level[DETAIL_LEVEL_MEDIUM]->radius = defxml->getValFloat(radiusNode);
+	dlInfo.level[DETAIL_LEVEL_MEDIUM]->radius = (float)defxml->getValFloat(radiusNode);
 	dlInfo.level[DETAIL_LEVEL_MEDIUM]->radius += dlInfo.level[DETAIL_LEVEL_NEAR]->radius + dlInfo.level[DETAIL_LEVEL_NEAR]->hyst;
-	dlInfo.level[DETAIL_LEVEL_MEDIUM]->hyst = defxml->getValFloat(hystNode);
+	dlInfo.level[DETAIL_LEVEL_MEDIUM]->hyst = (float)defxml->getValFloat(hystNode);
 	
 	node = defxml->enterNode(detailLevelNode, "FAR");
 	radiusNode = defxml->enterNode(node, "radius");
@@ -487,9 +487,9 @@ bool EntityDef::loadDetailLevelInfo(std::string& defFilePath, std::string& modul
 		return false;
 	}
 	
-	dlInfo.level[DETAIL_LEVEL_FAR]->radius = defxml->getValFloat(radiusNode);
+	dlInfo.level[DETAIL_LEVEL_FAR]->radius = (float)defxml->getValFloat(radiusNode);
 	dlInfo.level[DETAIL_LEVEL_FAR]->radius += dlInfo.level[DETAIL_LEVEL_MEDIUM]->radius + dlInfo.level[DETAIL_LEVEL_MEDIUM]->hyst;
-	dlInfo.level[DETAIL_LEVEL_FAR]->hyst = defxml->getValFloat(hystNode);
+	dlInfo.level[DETAIL_LEVEL_FAR]->hyst = (float)defxml->getValFloat(hystNode);
 	return true;
 
 }

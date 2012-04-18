@@ -30,9 +30,7 @@ public:
 	int writeToString(char * str, int length) const;
 	
 	operator char*() const	{ return this->c_str(); }
-	bool operator==(const Address & b);
-	bool operator!=(const Address & b);
-	
+
 	char * c_str() const;
 	const char * ipAsString() const;
 	bool isNone() const			{ return this->ip == 0; }
@@ -52,14 +50,26 @@ inline Address::Address(uint32 ipArg, uint16 portArg) :
 {
 }
 
-inline bool Address::operator==(const Address & b)
+inline bool operator==(const Mercury::Address & a, const Mercury::Address & b)
 {
-	return (ip == b.ip) && (port == b.port);
+	return (a.ip == b.ip) && (a.port == b.port);
 }
 
-inline bool Address::operator!=(const Address & b)
+
+inline bool operator!=(const Mercury::Address & a, const Mercury::Address & b)
 {
-	return (ip != b.ip) || (port != b.port);
+	return (a.ip != b.ip) || (a.port != b.port);
+}
+
+/**
+ * 	This operator compares two addresses. It is needed
+ * 	for using an address as a key in an STL map.
+ *
+ * 	@return true if a is less than b, false otherwise.
+ */
+inline bool operator<(const Mercury::Address & a, const Mercury::Address & b)
+{
+	return (a.ip < b.ip) || (a.ip == b.ip && (a.port < b.port));
 }
 
 

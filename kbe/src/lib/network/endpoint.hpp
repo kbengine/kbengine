@@ -8,8 +8,8 @@ Also see acknowledgements in Readme.html
 You may use this sample code for anything you like, it is not covered by the
 same license as the rest of the engine.
 */
-#ifndef __KBESOCKET__
-#define __KBESOCKET__
+#ifndef __KBEENDPOINT__
+#define __KBEENDPOINT__
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
@@ -20,11 +20,11 @@ namespace KBEngine {
 namespace Mercury
 {
 
-class Socket
+class EndPoint
 {
 public:
-	Socket(u_int32_t networkAddr = 0, u_int16_t networkPort = 0);
-	virtual ~Socket();
+	EndPoint(u_int32_t networkAddr = 0, u_int16_t networkPort = 0);
+	virtual ~EndPoint();
 	operator KBESOCKET() const;
 	static void initNetwork();
 	bool good() const;
@@ -47,7 +47,7 @@ public:
 	int bind(u_int16_t networkPort = 0, u_int32_t networkAddr = INADDR_ANY);
 	int listen(int backlog = 5);
 	int connect(u_int16_t networkPort, u_int32_t networkAddr = INADDR_BROADCAST);
-	Socket* accept(u_int16_t * networkPort = NULL, u_int32_t * networkAddr = NULL);
+	EndPoint* accept(u_int16_t * networkPort = NULL, u_int32_t * networkAddr = NULL);
 	
 	INLINE int send(const void * gramData, int gramSize);
 	int recv(void * gramData, int gramSize);
@@ -96,6 +96,6 @@ protected:
 }
 
 #ifdef CODE_INLINE
-#include "socket.ipp"
+#include "endpoint.ipp"
 #endif
-#endif // __KBESOCKET__
+#endif // __KBEENDPOINT__

@@ -16,7 +16,7 @@ same license as the rest of the engine.
 #include "helper/debug_helper.hpp"
 #include "network/address.hpp"
 #include "network/event_dispatcher.hpp"
-#include "network/socket.hpp"
+#include "network/endpoint.hpp"
 #include "network/common.hpp"
 #include "network/packet.hpp"
 

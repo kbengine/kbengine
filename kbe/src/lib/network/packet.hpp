@@ -29,35 +29,19 @@ same license as the rest of the engine.
 namespace KBEngine{
 namespace Mercury
 {
-class Socket;
-class Packet;
-typedef SmartPointer<Packet> PacketPtr;
+class EndPoint;
 
 class Packet : public RefCountable
 {
 public:
-    Packet();
-	virtual ~Packet(void);
+	Packet(){};
+	virtual ~Packet(void){};
 	
-	int recvFromEndPoint(Socket & ep);
-
-	int msgEndOffset() const	{ return msgEndOffset_; }
-	void msgEndOffset(int offset)		{ msgEndOffset_ = offset; }
-	int totalSize() const		{ return 1; }
-protected:
-	int			msgEndOffset_;
-
-
-#ifdef _WIN32
-	#pragma warning (push)
-	#pragma warning (disable: 4200)
-#endif
-	/// The variable-length data follows the packet header in memory.
-	char			data_[PACKET_MAX_SIZE];
-#ifdef _WIN32
-	#pragma warning (pop)
-#endif
+	virtual int recvFromEndPoint(EndPoint & ep) = 0;
+	virtual int totalSize() const { return 0; }
 };
+
+typedef SmartPointer<Packet> PacketPtr;
 }
 }
 #endif
