@@ -42,18 +42,18 @@ namespace KBEngine{ namespace thread{
 class ThreadGuard
 {
 public:
-	explicit ThreadGuard(ThreadMutex* mutexPtr):m_mutexPtr_(mutexPtr)
+	explicit ThreadGuard(ThreadMutex* mutexPtr):mutexPtr_(mutexPtr)
 	{
-		m_mutexPtr_->lockMutex();
+		mutexPtr_->lockMutex();
 	}
 
 	virtual ~ThreadGuard(void) 
 	{ 
-		m_mutexPtr_->unlockMutex();
+		mutexPtr_->unlockMutex();
 	}	
 	
 protected:
-	ThreadMutex* m_mutexPtr_;
+	ThreadMutex* mutexPtr_;
 };
 
 }

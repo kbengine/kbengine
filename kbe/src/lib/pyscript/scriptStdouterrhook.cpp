@@ -25,8 +25,8 @@ ScriptStdOutErrHook::~ScriptStdOutErrHook()
 //-------------------------------------------------------------------------------------
 void ScriptStdOutErrHook::onPrint(const char* msg)
 {
-	if(m_buffer_)
-		(*m_buffer_) += msg;
+	if(buffer_)
+		(*buffer_) += msg;
 	ScriptStdOutErr::onPrint(msg);
 }
 

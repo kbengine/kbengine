@@ -38,15 +38,15 @@ public:
 	/** 安装和卸载这个模块 */
 	bool install(void);
 	bool uninstall(void);
-	bool isInstall(void)const{ return m_isInstall_; }
+	bool isInstall(void)const{ return isInstall_; }
 
 	virtual void onPrint(const char* msg);
 protected:
-	char m_softspace_;
-	PyObject* m_sysModule_;
-	PyObject* m_prevStderr_;
-	PyObject* m_prevStdout_;
-	bool m_isInstall_;
+	char softspace_;
+	PyObject* sysModule_;
+	PyObject* prevStderr_;
+	PyObject* prevStdout_;
+	bool isInstall_;
 } ;
 
 }

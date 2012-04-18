@@ -27,13 +27,13 @@ public:
 	static void finalise(void);
 	
 	/** 获取unpickle函数表模块对象 */
-	static PyObject* getUnpickleFuncTableModule(void){ return m_pyPickleFuncTableModule_; }
-	static PyObject* getUnpickleFunc(const char* funcName){ return PyObject_GetAttrString(m_pyPickleFuncTableModule_, funcName); }
+	static PyObject* getUnpickleFuncTableModule(void){ return pyPickleFuncTableModule_; }
+	static PyObject* getUnpickleFunc(const char* funcName){ return PyObject_GetAttrString(pyPickleFuncTableModule_, funcName); }
 	static void registerUnpickleFunc(PyObject* pyFunc, const char* funcName);
 private:
-	static PyObject* m_picklerMethod_;						// cPicket.dumps方法指针
-	static PyObject* m_unPicklerMethod_;					// cPicket.loads方法指针
-	static PyObject* m_pyPickleFuncTableModule_;			// unpickle函数表模块对象 所有自定义类的unpickle函数都需要在此注册
+	static PyObject* picklerMethod_;						// cPicket.dumps方法指针
+	static PyObject* unPicklerMethod_;						// cPicket.loads方法指针
+	static PyObject* pyPickleFuncTableModule_;				// unpickle函数表模块对象 所有自定义类的unpickle函数都需要在此注册
 	static bool	isInit;										// 是否已经被初始化
 } ;
 

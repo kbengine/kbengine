@@ -101,8 +101,8 @@ SCRIPT_INIT(ScriptVector3, 0, &ScriptVector3::seqMethods, 0, 0, 0)
 //-------------------------------------------------------------------------------------
 ScriptVector3::ScriptVector3(Vector3* v):
 ScriptObject(getScriptType(), false),
-m_val_(v),
-m_isCopy_(true)
+val_(v),
+isCopy_(true)
 {
 }
 
@@ -110,25 +110,25 @@ m_isCopy_(true)
 //-------------------------------------------------------------------------------------
 ScriptVector3::ScriptVector3(Vector3 v):
 ScriptObject(getScriptType(), false),
-m_isCopy_(false)
+isCopy_(false)
 {
-	m_val_ = new Vector3(v);
+	val_ = new Vector3(v);
 }
 
 //-------------------------------------------------------------------------------------
 ScriptVector3::ScriptVector3(float x, float y, float z):
 ScriptObject(getScriptType(), false),
-m_isCopy_(false)
+isCopy_(false)
 {
-	m_val_ = new Vector3(x, y, z);
+	val_ = new Vector3(x, y, z);
 
 }
 
 //-------------------------------------------------------------------------------------
 ScriptVector3::~ScriptVector3()
 {
-	if(!m_isCopy_)
-		delete m_val_;
+	if(!isCopy_)
+		delete val_;
 }
 
 //-------------------------------------------------------------------------------------

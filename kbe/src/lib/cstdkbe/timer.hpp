@@ -23,23 +23,23 @@ class TimeBase;
 class TimerHandle
 {
 public:
-	explicit TimerHandle(TimeBase * pTime = NULL) : m_pTime_( pTime ) {}
+	explicit TimerHandle(TimeBase * pTime = NULL) : pTime_( pTime ) {}
 
 	void cancel();
-	void clearWithoutCancel()	{ m_pTime_ = NULL; }
+	void clearWithoutCancel()	{ pTime_ = NULL; }
 
-	bool isSet() const		{ return m_pTime_ != NULL; }
+	bool isSet() const		{ return pTime_ != NULL; }
 
 	friend bool operator==( TimerHandle h1, TimerHandle h2 );
-	TimeBase * time() const	{ return m_pTime_; }
+	TimeBase * time() const	{ return pTime_; }
 
 private:
-	TimeBase * m_pTime_;
+	TimeBase * pTime_;
 };
 
 inline bool operator==( TimerHandle h1, TimerHandle h2 )
 {
-	return h1.m_pTime_ == h2.m_pTime_;
+	return h1.pTime_ == h2.pTime_;
 }
 
 
@@ -50,10 +50,10 @@ inline bool operator==( TimerHandle h1, TimerHandle h2 )
 class TimerHandler
 {
 public:
-	TimerHandler() : m_numTimesRegistered_( 0 ) {}
+	TimerHandler() : numTimesRegistered_( 0 ) {}
 	virtual ~TimerHandler()
 	{
-		KBE_ASSERT( m_numTimesRegistered_ == 0 );
+		KBE_ASSERT( numTimesRegistered_ == 0 );
 	};
 
 	virtual void handleTimeout(TimerHandle handle, void * pUser) = 0;
@@ -63,15 +63,15 @@ protected:
 
 private:
 	friend class TimeBase;
-	void incTimerRegisterCount() { ++m_numTimesRegistered_; }
-	void decTimerRegisterCount() { --m_numTimesRegistered_; }
+	void incTimerRegisterCount() { ++numTimesRegistered_; }
+	void decTimerRegisterCount() { --numTimesRegistered_; }
 	void release( TimerHandle handle, void * pUser )
 	{
 		this->decTimerRegisterCount();
 		this->onRelease( handle, pUser );
 	}
 
-	int m_numTimesRegistered_;
+	int numTimesRegistered_;
 };
 
 class TimeBase
@@ -79,9 +79,9 @@ class TimeBase
 public:
 	TimeBase(TimesBase &owner, TimerHandler * pHandler, void * pUserData);
 	void cancel();
-	void * getUserData()const	{ return m_pUserData_; }
-	bool isCancelled()const{ return m_state_ == TIME_CANCELLED; }
-	bool isExecuting()const{ return m_state_ == TIME_EXECUTING; }
+	void * getUserData()const	{ return pUserData_; }
+	bool isCancelled()const{ return state_ == TIME_CANCELLED; }
+	bool isExecuting()const{ return state_ == TIME_EXECUTING; }
 protected:
 	enum TimeState
 	{
@@ -90,10 +90,10 @@ protected:
 		TIME_CANCELLED
 	};
 
-	TimesBase& m_owner_;
-	TimerHandler * m_pHandler_;
-	void *m_pUserData_;
-	TimeState m_state_;
+	TimesBase& owner_;
+	TimerHandler * pHandler_;
+	void *pUserData_;
+	TimeState state_;
 };
 
 class TimesBase
@@ -111,8 +111,8 @@ public:
 	TimesT();
 	~TimesT();
 	
-	inline uint32 size() const	{ return m_timeQueue_.size(); }
-	inline bool empty() const	{ return m_timeQueue_.empty(); }
+	inline uint32 size() const	{ return timeQueue_.size(); }
+	inline bool empty() const	{ return timeQueue_.empty(); }
 	
 	int	process(TimeStamp now);
 	bool legal( TimerHandle handle ) const;
@@ -142,17 +142,17 @@ private:
 		Time( TimesBase & owner, TimeStamp startTime, TimeStamp interval,
 			TimerHandler * pHandler, void * pUser );
 
-		TIME_STAMP time() const			{ return m_time_; }
-		TIME_STAMP interval() const		{ return m_interval_; }
-		TIME_STAMP &intervalRef()		{ return m_interval_; }
+		TIME_STAMP time() const			{ return time_; }
+		TIME_STAMP interval() const		{ return interval_; }
+		TIME_STAMP &intervalRef()		{ return interval_; }
 
 		TIME_STAMP deliveryTime() const;
 
 		void triggerTimer();
 
 	private:
-		TimeStamp			m_time_;
-		TimeStamp			m_interval_;
+		TimeStamp			time_;
+		TimeStamp			interval_;
 
 		Time( const Time & );
 		Time & operator=( const Time & );
@@ -212,10 +212,10 @@ private:
 		Container container_;
 	};
 	
-	PriorityQueue	m_timeQueue_;
-	Time * 			m_pProcessingNode_;
-	TimeStamp 		m_lastProcessTime_;
-	int				m_numCancelled_;
+	PriorityQueue	timeQueue_;
+	Time * 			pProcessingNode_;
+	TimeStamp 		lastProcessTime_;
+	int				numCancelled_;
 
 	TimesT( const TimesT & );
 	TimesT & operator=( const TimesT & );

@@ -37,7 +37,7 @@ public:
 	virtual bool uninstall(void);
 	
 	/** 获取脚本基础模块 */
-	PyObject* getModule(void)const { return m_module_; }
+	PyObject* getModule(void)const { return module_; }
 
 	int Run_SimpleString(std::string command, std::string* retBufferPtr);
 
@@ -49,9 +49,9 @@ public:
 	static void acquireLock();
 	static void releaseLock();
 protected:
-	PyObject* 					m_module_;
-	ScriptStdOutErr*			m_pyStdouterr_;
-	ScriptStdOutErrHook*		m_pyStdouterrHook_;	// 提供telnet 执行脚本回显用
+	PyObject* 					module_;
+	ScriptStdOutErr*			pyStdouterr_;
+	ScriptStdOutErrHook*		pyStdouterrHook_;	// 提供telnet 执行脚本回显用
 } ;
 
 }

@@ -19,12 +19,12 @@ class ServerInfos : public Singleton<ServerInfos>
 public:
 	ServerInfos();
 
-	const std::string & serverName() const { return m_serverName_; }
-	const std::string & cpuInfo() const { return m_cpuInfo_; }
-	const std::vector<float>& cpuSpeeds() const { return m_cpuSpeeds_; }
-	const std::string & memInfo() const { return m_memInfo_; }
-	const uint64 memTotal() const { return m_memTotal_; }
-	const uint64 memUsed() const { return m_memUsed_; }
+	const std::string & serverName() const { return serverName_; }
+	const std::string & cpuInfo() const { return cpuInfo_; }
+	const std::vector<float>& cpuSpeeds() const { return cpuSpeeds_; }
+	const std::string & memInfo() const { return memInfo_; }
+	const uint64 memTotal() const { return memTotal_; }
+	const uint64 memUsed() const { return memUsed_; }
 	void updateMem();
 private:
 
@@ -33,14 +33,14 @@ private:
 	void fetchLinuxMemInfo();
 #endif
 
-	std::string m_serverName_;
+	std::string serverName_;
 
-	std::string m_cpuInfo_;
-	std::vector<float> m_cpuSpeeds_;
+	std::string cpuInfo_;
+	std::vector<float> cpuSpeeds_;
 
-	std::string m_memInfo_;
-	uint64 m_memTotal_;
-	uint64 m_memUsed_;
+	std::string memInfo_;
+	uint64 memTotal_;
+	uint64 memUsed_;
 };
 }
 #endif // __SERVER_INFOS_HPP__

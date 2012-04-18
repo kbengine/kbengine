@@ -29,19 +29,19 @@ SCRIPT_INIT(Map, 0, 0, &Map::mappingMethods, 0, 0)
 Map::Map(PyTypeObject* pyType, bool isInitialised):
 ScriptObject(pyType, isInitialised)
 {
-	m_pyDict_ = PyDict_New();
+	pyDict_ = PyDict_New();
 }
 
 //-------------------------------------------------------------------------------------
 Map::~Map()
 {
-	Py_DECREF(m_pyDict_);
+	Py_DECREF(pyDict_);
 }
 
 //-------------------------------------------------------------------------------------
 int Map::mp_length(PyObject* self)
 {
-	return PyDict_Size(static_cast<Map*>(self)->m_pyDict_);
+	return PyDict_Size(static_cast<Map*>(self)->pyDict_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -55,11 +55,11 @@ int Map::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 	{
 		sval = "";
 		lpScriptData->onDataChanged(skey, sval, true);
-		return PyDict_DelItem(lpScriptData->m_pyDict_, key);
+		return PyDict_DelItem(lpScriptData->pyDict_, key);
 	}
 	
 	lpScriptData->onDataChanged(sval, sval);
-	return PyDict_SetItem(lpScriptData->m_pyDict_, key, value);
+	return PyDict_SetItem(lpScriptData->pyDict_, key, value);
 }
 
 //-------------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ PyObject* Map::mp_subscript(PyObject* self, PyObject* key)
 {
 	Map* lpScriptData = static_cast<Map*>(self);
 
-	PyObject* pyObj = PyDict_GetItem(lpScriptData->m_pyDict_, key);
+	PyObject* pyObj = PyDict_GetItem(lpScriptData->pyDict_, key);
 	if (!pyObj)
 		PyErr_SetObject(PyExc_KeyError, key);
 	else
@@ -85,31 +85,31 @@ PyObject* Map::_has_key(PyObject* self, PyObject* args)
 {
 	char key[] = {"has_key\0"}; // ∑¿÷πgcc -Werror±®¥Ì
 	char fmt[] = {"0\0"};
-	return PyObject_CallMethod(static_cast<Map*>(self)->m_pyDict_, key, fmt, args);
+	return PyObject_CallMethod(static_cast<Map*>(self)->pyDict_, key, fmt, args);
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* Map::_keys(PyObject* self, PyObject* args)
 {
-	return PyDict_Keys(static_cast<Map*>(self)->m_pyDict_);
+	return PyDict_Keys(static_cast<Map*>(self)->pyDict_);
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* Map::_values(PyObject* self, PyObject* args)
 {
-	return PyDict_Values(static_cast<Map*>(self)->m_pyDict_);
+	return PyDict_Values(static_cast<Map*>(self)->pyDict_);
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* Map::_items(PyObject* self, PyObject* args)
 {
-	return PyDict_Items(static_cast<Map*>(self)->m_pyDict_);
+	return PyDict_Items(static_cast<Map*>(self)->pyDict_);
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* Map::_update(PyObject* self, PyObject* args)
 {
-	PyDict_Update(static_cast<Map*>(self)->m_pyDict_, args);
+	PyDict_Update(static_cast<Map*>(self)->pyDict_, args);
 	S_Return; 
 }
 

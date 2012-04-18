@@ -35,13 +35,13 @@ public:
 	static PyObject* seq_inplace_concat(PyObject* self, PyObject* oterSeq);
 	static PyObject* seq_inplace_repeat(PyObject * self, int n);
 	
-	int length(void){ return m_values_.size(); }
-	std::vector<PyObject*>& getValues(void){ return m_values_; }
+	int length(void){ return values_.size(); }
+	std::vector<PyObject*>& getValues(void){ return values_; }
 	int findFrom(uint32 startIndex, PyObject* value);
 	
 	virtual bool isSameType(PyObject* pyValue);
 protected:
-	std::vector<PyObject*>				m_values_;
+	std::vector<PyObject*>				values_;
 } ;
 
 }

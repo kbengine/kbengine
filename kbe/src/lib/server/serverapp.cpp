@@ -1,15 +1,15 @@
 #include "serverapp.hpp"
 namespace KBEngine{
-template<> ServerApp* Singleton<ServerApp>::m_singleton_ = 0;
+template<> ServerApp* Singleton<ServerApp>::singleton_ = 0;
 
 //-------------------------------------------------------------------------------------
 ServerApp::ServerApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
-m_componentType_(componentType),
-m_componentID_(0),
-m_mainDispatcher_(dispatcher),
-m_networkInterface_(ninterface)
+componentType_(componentType),
+componentID_(0),
+mainDispatcher_(dispatcher),
+networkInterface_(ninterface)
 {
-	m_networkInterface_.pExtensionData( this );
+	networkInterface_.pExtensionData( this );
 }
 
 //-------------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ bool ServerApp::installPyScript()
 {
 	std::wstring pyPaths = L"../../../demo/res/scripts/common;";
 
-	switch(m_componentType_)
+	switch(componentType_)
 	{
 	case BASEAPP_TYPE:
 		pyPaths += L"../../../demo/res/scripts/base;";
@@ -45,7 +45,7 @@ bool ServerApp::installPyScript()
 	};
 	
 	wchar_t pyhomePath[] = L"../../res/script/common";
-	return getScript().install(pyhomePath, pyPaths, "KBEngine", m_componentType_);
+	return getScript().install(pyhomePath, pyPaths, "KBEngine", componentType_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ bool ServerApp::uninstallPyModules()
 //-------------------------------------------------------------------------------------
 void ServerApp::registerScript(PyTypeObject* pto)
 {
-	m_scriptBaseTypes_.push_back(pto);
+	scriptBaseTypes_.push_back(pto);
 }
 
 //-------------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ bool ServerApp::installEntityDef()
 		return false;
 
 	// 初始化所有扩展模块
-	if(!EntityDef::initialize("../../../demo/res/scripts/", m_scriptBaseTypes_, CELLAPP_TYPE)){
+	if(!EntityDef::initialize("../../../demo/res/scripts/", scriptBaseTypes_, CELLAPP_TYPE)){
 		return false;
 	}
 
@@ -121,7 +121,7 @@ void ServerApp::finalise(void)
 //-------------------------------------------------------------------------------------		
 bool ServerApp::run(void)
 {
-	m_mainDispatcher_.processUntilBreak();
+	mainDispatcher_.processUntilBreak();
 	return true;
 }
 

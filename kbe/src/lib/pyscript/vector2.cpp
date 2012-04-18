@@ -98,8 +98,8 @@ SCRIPT_INIT(ScriptVector2, 0, &ScriptVector2::seqMethods, 0, 0, 0)
 //-------------------------------------------------------------------------------------
 ScriptVector2::ScriptVector2(Vector2* v):
 ScriptObject(getScriptType(), false),
-m_val_(v),
-m_isCopy_(true)
+val_(v),
+isCopy_(true)
 {
 }
 
@@ -107,25 +107,25 @@ m_isCopy_(true)
 //-------------------------------------------------------------------------------------
 ScriptVector2::ScriptVector2(Vector2 v):
 ScriptObject(getScriptType(), false),
-m_isCopy_(false)
+isCopy_(false)
 {
-	m_val_ = new Vector2(v);
+	val_ = new Vector2(v);
 }
 
 //-------------------------------------------------------------------------------------
 ScriptVector2::ScriptVector2(float x, float y):
 ScriptObject(getScriptType(), false),
-m_isCopy_(false)
+isCopy_(false)
 {
-	m_val_ = new Vector2(x, y);
+	val_ = new Vector2(x, y);
 
 }
 
 //-------------------------------------------------------------------------------------
 ScriptVector2::~ScriptVector2()
 {
-	if(!m_isCopy_)
-		delete m_val_;
+	if(!isCopy_)
+		delete val_;
 }
 
 //-------------------------------------------------------------------------------------

@@ -82,7 +82,7 @@ public:
 	void destroy();
 	
 	/** 判断自身是否是一个realEntity */
-	inline bool isReal(void)const{ return m_isReal_; }
+	inline bool isReal(void)const{ return isReal_; }
 	
 	/** 脚本请求设置属性或者方法 */
 	int onScriptSetAttribute(PyObject* attr, PyObject * value);	
@@ -97,10 +97,10 @@ public:
 	//void onTimer(const TIMER_ID& timerID, TimerArgsBase* args);
 	
 	/** 获得脚本名称 */
-	const char* getScriptModuleName(void)const{ return m_scriptModule_->getScriptType()->tp_name; }	
+	const char* getScriptModuleName(void)const{ return scriptModule_->getScriptType()->tp_name; }	
 	
 	/** 获取这个entity的脚本模块封装对象 */
-	ScriptModule* getScriptModule(void)const{ return m_scriptModule_; }
+	ScriptModule* getScriptModule(void)const{ return scriptModule_; }
 	
 	/** 支持pickler 方法 */
 	static PyObject* __reduce_ex__(PyObject* self, PyObject* protocol);
@@ -109,13 +109,13 @@ public:
 	void onDefDataChanged(PropertyDescription* propertyDescription, PyObject* pyData);
 public:
 	/** 获得entity的ID */
-	ENTITY_ID getID()const{ return m_id_; }
-	void setID(const int& id){ m_id_ = id; }
+	ENTITY_ID getID()const{ return id_; }
+	void setID(const int& id){ id_ = id; }
 	static PyObject* pyGetID(Entity *self, void *closure){ return PyLong_FromLong(self->getID()); }
 
 	/** 获得entity的所在space的ID */
-	uint32 getSpaceID()const{ return m_spaceID_; }
-	void setSpaceID(int id){ m_spaceID_ = id; }
+	uint32 getSpaceID()const{ return spaceID_; }
+	void setSpaceID(int id){ spaceID_ = id; }
 	static PyObject* pyGetSpaceID(Entity *self, void *closure){ return PyLong_FromLong(self->getSpaceID()); }
 
 	/** 脚本请求销毁实体 */
@@ -124,27 +124,27 @@ public:
 	
 	/** 脚本获取mailbox */
 	/*
-	EntityMailbox* getBaseMailbox()const{ return m_baseMailbox_; }
+	EntityMailbox* getBaseMailbox()const{ return baseMailbox_; }
 	static PyObject* pyGetBaseMailbox(Entity *self, void *closure);
-	void setBaseMailbox(EntityMailbox* mailbox){ m_baseMailbox_ = mailbox; }
+	void setBaseMailbox(EntityMailbox* mailbox){ baseMailbox_ = mailbox; }
 	*/
 	/** 脚本获取mailbox */
 	/*
-	EntityMailbox* getClientMailbox()const{ return m_clientMailbox_; }
+	EntityMailbox* getClientMailbox()const{ return clientMailbox_; }
 	static PyObject* pyGetClientMailbox(Entity *self, void *closure);
-	void setClientMailbox(EntityMailbox* mailbox){ m_clientMailbox_ = mailbox; if(m_clientMailbox_!= NULL) onGetWitness(); else onLoseWitness(); }
+	void setClientMailbox(EntityMailbox* mailbox){ clientMailbox_ = mailbox; if(clientMailbox_!= NULL) onGetWitness(); else onLoseWitness(); }
 	*/
 	/** 脚本获取和设置entity的position */
-	Position3D& getPosition(){ return m_position_; }
+	Position3D& getPosition(){ return position_; }
 	static PyObject* pyGetPosition(Entity *self, void *closure);
 	static int pySetPosition(Entity *self, PyObject *value, void *closure);
 	void setPosition(Position3D& pos);
 
 	/** 脚本获取和设置entity的方向 */
-	Direction3D& getDirection(){ return m_direction_; }
+	Direction3D& getDirection(){ return direction_; }
 	static PyObject* pyGetDirection(Entity *self, void *closure);
 	static int pySetDirection(Entity *self, PyObject *value, void *closure);
-	void setDirection(Direction3D& dir){ m_direction_ = dir; }
+	void setDirection(Direction3D& dir){ direction_ = dir; }
 	
 	/** 设置entity方向和位置 */
 	void setPositionAndDirection(Position3D& position, Direction3D& direction);
@@ -160,15 +160,15 @@ public:
 
 	/** 当前entity设置自身的Aoi半径范围 */
 	PyObject* setAoiRadius(float radius, float hyst);
-	float getAoiRadius(void)const{ return m_aoiRadius_; }
-	float getAoiHystArea(void)const{ return m_aoiHysteresisArea_; }
+	float getAoiRadius(void)const{ return aoiRadius_; }
+	float getAoiHystArea(void)const{ return aoiHysteresisArea_; }
 	static PyObject* pySetAoiRadius(PyObject* self, PyObject* args, PyObject* kwds);
 	
 	/** 当前entity是否为real */
 	static PyObject* pyIsReal(PyObject* self, PyObject* args, PyObject* kwds);
 	
 	/** 脚本获得当前entity是否为将要销毁的entity */
-	bool isDestroyed(){ return m_isDestroyed_; }
+	bool isDestroyed(){ return isDestroyed_; }
 	static PyObject* pyGetIsDestroyed(Entity *self, void *closure);
 	
 	/** entity移动导航 */
@@ -186,16 +186,16 @@ public:
 
 	
 	/** 脚本获取和设置entity的最高xz移动速度 */
-	float getTopSpeed()const{ return m_topSpeed_; }
+	float getTopSpeed()const{ return topSpeed_; }
 	static PyObject* pyGetTopSpeed(Entity *self, void *closure){ return PyFloat_FromDouble(self->getTopSpeed()); };
 	static int pySetTopSpeed(Entity *self, PyObject *value, void *closure){ self->setTopSpeed(float(PyFloat_AsDouble(PySequence_GetItem(value, 0)))); return 0; };
-	void setTopSpeed(float speed){ m_topSpeed_ = speed; }
+	void setTopSpeed(float speed){ topSpeed_ = speed; }
 	
 	/** 脚本获取和设置entity的最高y移动速度 */
-	float getTopSpeedY()const{ return m_topSpeedY_; }
+	float getTopSpeedY()const{ return topSpeedY_; }
 	static PyObject* pyGetTopSpeedY(Entity *self, void *closure){ return PyFloat_FromDouble(self->getTopSpeedY()); };
 	static int pySetTopSpeedY(Entity *self, PyObject *value, void *closure){ self->setTopSpeedY(float(PyFloat_AsDouble(PySequence_GetItem(value, 0)))); return 0; };
-	void setTopSpeedY(float speed){ m_topSpeedY_ = speed; }
+	void setTopSpeedY(float speed){ topSpeedY_ = speed; }
 	
 	/** 脚本请求获得一定范围类的某种类型的entities */
 	static PyObject* pyEntitiesInRange(PyObject* self, PyObject* args, PyObject* kwds);
@@ -206,17 +206,17 @@ public:
 	//void onReceiveMail(MAIL_TYPE& mailType, SocketPacket& recvPacket);
 
 	/** 设置这个entity当前所在chunk的ID */
-	//void setCurrentChunk(Chunk* chunk){ Chunk* oldchunk = m_currChunk_; m_currChunk_ = chunk; onCurrentChunkChanged(oldchunk); }
+	//void setCurrentChunk(Chunk* chunk){ Chunk* oldchunk = currChunk_; currChunk_ = chunk; onCurrentChunkChanged(oldchunk); }
 	/** 当前chunk被改变 */
 	//void onCurrentChunkChanged(Chunk* oldChunk);
 	/** 获得这个entity当前所在chunk的ID */
-	//Chunk* getAtChunk(void)const{ return m_currChunk_; }
+	//Chunk* getAtChunk(void)const{ return currChunk_; }
 
 	/** 是否被任何proxy监视到, 如果这个entity没有客户端， 则这个值有效 */
-	bool isWitnessed(void)const{ return m_isWitnessed_; }
+	bool isWitnessed(void)const{ return isWitnessed_; }
 	static PyObject* pyIsWitnessed(Entity *self, void *closure);
 	/** entity是否是一个观察者 */
-	bool hasWitness(void)const{ return m_hasWitness_; }
+	bool hasWitness(void)const{ return hasWitness_; }
 	static PyObject* pyHasWitness(Entity *self, void *closure);
 	/** 自身被一个观察者观察到了 */
 	void onWitnessed(Entity* entity, const float& range);
@@ -227,9 +227,9 @@ public:
 	/** entity丢失了观察者身份 */
 	void onLoseWitness(void);
 	/** 获得所观察到的entities列表 */
-	std::map<ENTITY_ID, Entity*>& getViewEntities(void){ return m_viewEntities_; }
+	std::map<ENTITY_ID, Entity*>& getViewEntities(void){ return viewEntities_; }
 	/** 获得所有观察到我的观察者 */
-	WITNESSENTITY_DETAILLEVEL_MAP& getWitnessEntities(void){ return m_witnessEntityDetailLevelMap_; }
+	WITNESSENTITY_DETAILLEVEL_MAP& getWitnessEntities(void){ return witnessEntityDetailLevelMap_; }
 	/** 更新witness的状态 */
 	void onUpdateWitness(Entity* entity, const float& range);
 	/** 一个新进入视野范围的entity */
@@ -254,34 +254,34 @@ public:
 	/** 当entity跳到一个新的space上去后，离开陷阱陷阱事件将触发这个接口 */
 	void onLeaveTrapID(const ENTITY_ID& entityID, const float& range, const int& controllerID);
 	/** 获得陷阱管理器 */
-//	ProximityMgr& getTrapMgr(void){ return m_trapMgr_; }
+//	ProximityMgr& getTrapMgr(void){ return trapMgr_; }
 
 	/** entity的一次移动完成 */
 	void onMove(PyObject* userData);
 protected:
-	ENTITY_ID								m_id_;								// id号码
-	ScriptModule*							m_scriptModule_;					// 该entity所使用的脚本模块对象
-	ScriptModule::PROPERTYDESCRIPTION_MAP*	m_lpPropertyDescrs_;				// 属于这个entity的属性描述
-	uint32									m_spaceID_;							// 这个entity所在space的ID
-	//EntityMailbox*							m_clientMailbox_;					// 这个entity的客户端mailbox
-	//EntityMailbox*							m_baseMailbox_;						// 这个entity的baseapp mailbox
-	Position3D								m_position_;						// entity的当前位置
-	Direction3D								m_direction_;						// entity的当前方向
-//	TimerFunc								m_TimerFunc_;						// onTimer函数地址
-//	Timer									m_timers_;							// timers管理器
-//	Chunk*									m_currChunk_;						// 这个当前entity所在的chunk
-	bool									m_isReal_;							// 自己是否是一个realEntity
-	bool									m_isDestroyed_;						// 自身是否将要销毁
-	float									m_aoiRadius_;						// 当前entity的aoi半径
-	float									m_aoiHysteresisArea_;				// 当前entityAoi的一个滞后范围
-	bool									m_isWitnessed_;						// 是否被任何观察者监视到
-	bool									m_hasWitness_;						// 这个entity是否是一个观察者
-	std::map<ENTITY_ID, Entity*>			m_viewEntities_;					// 自身视野范围内的entityID， entity必须是一个观察者才有这个属性存在
-	WITNESSENTITY_DETAILLEVEL_MAP			m_witnessEntityDetailLevelMap_;		// 这个变量记录了一个观察者在当前entity的详情级别
-	std::map<ENTITY_ID, Entity*>			m_witnessEntities_[4];				// 观察者entity的ID列表， 被保存在一个详情级别队列里，详情级别总共4级， 分：近中远, 超远
-//	ProximityMgr							m_trapMgr_;							// entity陷阱管理器
-	float									m_topSpeed_;						// entity x,z轴最高移动速度
-	float									m_topSpeedY_;						// entity y轴最高移动速度
+	ENTITY_ID								id_;								// id号码
+	ScriptModule*							scriptModule_;					// 该entity所使用的脚本模块对象
+	ScriptModule::PROPERTYDESCRIPTION_MAP*	lpPropertyDescrs_;				// 属于这个entity的属性描述
+	uint32									spaceID_;							// 这个entity所在space的ID
+	//EntityMailbox*							clientMailbox_;					// 这个entity的客户端mailbox
+	//EntityMailbox*							baseMailbox_;						// 这个entity的baseapp mailbox
+	Position3D								position_;						// entity的当前位置
+	Direction3D								direction_;						// entity的当前方向
+//	TimerFunc								TimerFunc_;						// onTimer函数地址
+//	Timer									timers_;							// timers管理器
+//	Chunk*									currChunk_;						// 这个当前entity所在的chunk
+	bool									isReal_;							// 自己是否是一个realEntity
+	bool									isDestroyed_;						// 自身是否将要销毁
+	float									aoiRadius_;						// 当前entity的aoi半径
+	float									aoiHysteresisArea_;				// 当前entityAoi的一个滞后范围
+	bool									isWitnessed_;						// 是否被任何观察者监视到
+	bool									hasWitness_;						// 这个entity是否是一个观察者
+	std::map<ENTITY_ID, Entity*>			viewEntities_;					// 自身视野范围内的entityID， entity必须是一个观察者才有这个属性存在
+	WITNESSENTITY_DETAILLEVEL_MAP			witnessEntityDetailLevelMap_;		// 这个变量记录了一个观察者在当前entity的详情级别
+	std::map<ENTITY_ID, Entity*>			witnessEntities_[4];				// 观察者entity的ID列表， 被保存在一个详情级别队列里，详情级别总共4级， 分：近中远, 超远
+//	ProximityMgr							trapMgr_;							// entity陷阱管理器
+	float									topSpeed_;						// entity x,z轴最高移动速度
+	float									topSpeedY_;						// entity y轴最高移动速度
 };
 
 }

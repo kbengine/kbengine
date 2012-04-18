@@ -55,53 +55,27 @@ public:
 	typedef std::map<std::string, MethodDescription*> METHODDESCRIPTION_MAP;
 	typedef std::map<uint32, PropertyDescription*> PROPERTYDESCRIPTION_UIDMAP;
 	typedef std::map<uint32, MethodDescription*> METHODDESCRIPTION_UIDMAP;
-protected:
-	PyTypeObject*						m_scriptType_;							// 脚本类别
-	uint16								m_uType_;								// 数字类别  主要用于方便查找和网络间传输识别这个脚本模块
-	
-	PROPERTYDESCRIPTION_MAP				m_cellPropertyDescr;					// 这个脚本cell部分所拥有的所有属性描述
-	PROPERTYDESCRIPTION_MAP				m_cellDetailLevelPropertyDescrs[3];		// cell近中远级别属性描述
-	PROPERTYDESCRIPTION_MAP				m_basePropertyDescr;					// 这个脚本base部分所拥有的属性描述
-	PROPERTYDESCRIPTION_MAP				m_clientPropertyDescr;					// 这个脚本client部分所拥有的属性描述
-	
-	PROPERTYDESCRIPTION_UIDMAP			m_cellPropertyDescr_uidmap;				// 这个脚本所拥有的属性描述uid映射
-	PROPERTYDESCRIPTION_UIDMAP			m_basePropertyDescr_uidmap;				// 这个脚本所拥有的属性描述uid映射
-	PROPERTYDESCRIPTION_UIDMAP			m_clientPropertyDescr_uidmap;			// 这个脚本所拥有的属性描述uid映射
-	
-	METHODDESCRIPTION_MAP				m_methodCellDescr;						// 这个脚本所拥有的方法描述
-	METHODDESCRIPTION_MAP				m_methodBaseDescr;						// 这个脚本所拥有的方法描述
-	METHODDESCRIPTION_MAP				m_methodClientDescr;					// 这个脚本所拥有的方法描述
-	
-	METHODDESCRIPTION_UIDMAP			m_methodCellDescr_uidmap;				// 这个脚本所拥有的方法描述uid映射
-	METHODDESCRIPTION_UIDMAP			m_methodBaseDescr_uidmap;				// 这个脚本所拥有的方法描述uid映射
-	METHODDESCRIPTION_UIDMAP			m_methodClientDescr_uidmap;				// 这个脚本所拥有的方法描述uid映射
-	
-	bool								m_hasCell_;								// 是否有cell部分
-	bool								m_hasBase_;								// 是否有base部分
-	bool								m_hasClient_;							// 是否有client部分
-	
-	DetailLevel							m_detailLevel_;							// entity的详情级别数据
 public:	
 	ScriptModule();
 	~ScriptModule();	
 
 	uint16 getUType(void);
-	void setUType(uint16 utype){ m_uType_ = utype; }
+	void setUType(uint16 utype){ uType_ = utype; }
 	PyTypeObject* getScriptType(void);
-	void setScriptType(PyTypeObject* scriptType){ m_scriptType_ = scriptType; }
+	void setScriptType(PyTypeObject* scriptType){ scriptType_ = scriptType; }
 
-	DetailLevel& getDetailLevel(void){ return m_detailLevel_; }
+	DetailLevel& getDetailLevel(void){ return detailLevel_; }
 	
 	PyObject* createObject(void);
 	PyObject* getInitDict(void);
 
-	void setCell(bool have){ m_hasCell_ = have; }
-	void setBase(bool have){ m_hasBase_ = have; }
-	void setClient(bool have){ m_hasClient_ = have; }
+	void setCell(bool have){ hasCell_ = have; }
+	void setBase(bool have){ hasBase_ = have; }
+	void setClient(bool have){ hasClient_ = have; }
 
-	bool hasCell(void)const{ return m_hasCell_; }
-	bool hasBase(void)const{ return m_hasBase_; }
-	bool hasClient(void)const{ return m_hasClient_; }
+	bool hasCell(void)const{ return hasCell_; }
+	bool hasBase(void)const{ return hasBase_; }
+	bool hasClient(void)const{ return hasClient_; }
 
 	PropertyDescription* findCellPropertyDescription(const char* attrName);
 	PropertyDescription* findBasePropertyDescription(const char* attrName);
@@ -110,13 +84,13 @@ public:
 	PropertyDescription* findBasePropertyDescription(const uint32& utype);
 	PropertyDescription* findClientPropertyDescription(const uint32& utype);
 
-	PROPERTYDESCRIPTION_MAP& getCellPropertyDescriptions(){ return m_cellPropertyDescr; }
-	PROPERTYDESCRIPTION_MAP& getCellPropertyDescriptionsByDetailLevel(const int8& detailLevel){ return m_cellDetailLevelPropertyDescrs[detailLevel]; }
-	PROPERTYDESCRIPTION_MAP& getBasePropertyDescriptions(){ return m_basePropertyDescr; }
-	PROPERTYDESCRIPTION_MAP& getClientPropertyDescriptions(){ return m_clientPropertyDescr; }
-	PROPERTYDESCRIPTION_UIDMAP& getCellPropertyDescriptions_uidmap(){ return m_cellPropertyDescr_uidmap; }
-	PROPERTYDESCRIPTION_UIDMAP& getBasePropertyDescriptions_uidmap(){ return m_basePropertyDescr_uidmap; }
-	PROPERTYDESCRIPTION_UIDMAP& getClientPropertyDescriptions_uidmap(){ return m_clientPropertyDescr_uidmap; }
+	PROPERTYDESCRIPTION_MAP& getCellPropertyDescriptions(){ return cellPropertyDescr_; }
+	PROPERTYDESCRIPTION_MAP& getCellPropertyDescriptionsByDetailLevel(const int8& detailLevel){ return cellDetailLevelPropertyDescrs_[detailLevel]; }
+	PROPERTYDESCRIPTION_MAP& getBasePropertyDescriptions(){ return basePropertyDescr_; }
+	PROPERTYDESCRIPTION_MAP& getClientPropertyDescriptions(){ return clientPropertyDescr_; }
+	PROPERTYDESCRIPTION_UIDMAP& getCellPropertyDescriptions_uidmap(){ return cellPropertyDescr_uidmap_; }
+	PROPERTYDESCRIPTION_UIDMAP& getBasePropertyDescriptions_uidmap(){ return basePropertyDescr_uidmap_; }
+	PROPERTYDESCRIPTION_UIDMAP& getClientPropertyDescriptions_uidmap(){ return clientPropertyDescr_uidmap_; }
 
 	bool addPropertyDescription(const char* attrName, PropertyDescription* propertyDescription, COMPONENT_TYPE propertyType);
 
@@ -124,17 +98,43 @@ public:
 	MethodDescription* findCellMethodDescription(const char* attrName);
 	MethodDescription* findCellMethodDescription(uint32 utype);
 	bool addCellMethodDescription(const char* attrName, MethodDescription* methodDescription);
-	METHODDESCRIPTION_MAP& getCellMethodDescriptions(void){ return m_methodCellDescr; }
+	METHODDESCRIPTION_MAP& getCellMethodDescriptions(void){ return methodCellDescr_; }
 	
 	MethodDescription* findBaseMethodDescription(const char* attrName);
 	MethodDescription* findBaseMethodDescription(uint32 utype);
 	bool addBaseMethodDescription(const char* attrName, MethodDescription* methodDescription);
-	METHODDESCRIPTION_MAP& getBaseMethodDescriptions(void){ return m_methodBaseDescr; }
+	METHODDESCRIPTION_MAP& getBaseMethodDescriptions(void){ return methodBaseDescr_; }
 	
 	MethodDescription* findClientMethodDescription(const char* attrName);
 	MethodDescription* findClientMethodDescription(uint32 utype);
 	bool addClientMethodDescription(const char* attrName, MethodDescription* methodDescription);
-	METHODDESCRIPTION_MAP& getClientMethodDescriptions(void){ return m_methodClientDescr; }		
+	METHODDESCRIPTION_MAP& getClientMethodDescriptions(void){ return methodClientDescr_; }		
+protected:
+	PyTypeObject*						scriptType_;							// 脚本类别
+	uint16								uType_;									// 数字类别  主要用于方便查找和网络间传输识别这个脚本模块
+	
+	PROPERTYDESCRIPTION_MAP				cellPropertyDescr_;						// 这个脚本cell部分所拥有的所有属性描述
+	PROPERTYDESCRIPTION_MAP				cellDetailLevelPropertyDescrs_[3];		// cell近中远级别属性描述
+	PROPERTYDESCRIPTION_MAP				basePropertyDescr_;						// 这个脚本base部分所拥有的属性描述
+	PROPERTYDESCRIPTION_MAP				clientPropertyDescr_;					// 这个脚本client部分所拥有的属性描述
+	
+	PROPERTYDESCRIPTION_UIDMAP			cellPropertyDescr_uidmap_;				// 这个脚本所拥有的属性描述uid映射
+	PROPERTYDESCRIPTION_UIDMAP			basePropertyDescr_uidmap_;				// 这个脚本所拥有的属性描述uid映射
+	PROPERTYDESCRIPTION_UIDMAP			clientPropertyDescr_uidmap_;				// 这个脚本所拥有的属性描述uid映射
+	
+	METHODDESCRIPTION_MAP				methodCellDescr_;						// 这个脚本所拥有的方法描述
+	METHODDESCRIPTION_MAP				methodBaseDescr_;						// 这个脚本所拥有的方法描述
+	METHODDESCRIPTION_MAP				methodClientDescr_;						// 这个脚本所拥有的方法描述
+	
+	METHODDESCRIPTION_UIDMAP			methodCellDescr_uidmap_;				// 这个脚本所拥有的方法描述uid映射
+	METHODDESCRIPTION_UIDMAP			methodBaseDescr_uidmap_;				// 这个脚本所拥有的方法描述uid映射
+	METHODDESCRIPTION_UIDMAP			methodClientDescr_uidmap_;				// 这个脚本所拥有的方法描述uid映射
+	
+	bool								hasCell_;								// 是否有cell部分
+	bool								hasBase_;								// 是否有base部分
+	bool								hasClient_;								// 是否有client部分
+	
+	DetailLevel							detailLevel_;							// entity的详情级别数据
 };
 
 class EntityDef

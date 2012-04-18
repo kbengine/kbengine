@@ -26,7 +26,7 @@ public:
 	Array(DataType* dataType, std::string& strInitData);
 	virtual ~Array();
 
-	const DataType* getDataType(void){ return _m_dataType; }
+	const DataType* getDataType(void){ return _dataType; }
 	
 	/** ³õÊ¼»¯¹Ì¶¨×Öµä*/
 	void initialize(std::string strInitData);
@@ -50,7 +50,7 @@ public:
 	
 	bool isSameType(PyObject* pyValue);
 protected:
-	ArrayType* _m_dataType;
+	ArrayType* _dataType;
 } ;
 
 }

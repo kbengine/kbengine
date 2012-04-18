@@ -50,7 +50,7 @@ bool PacketReceiver::processSocket(bool expectingPacket)
 	{
 		return this->checkSocketErrors(len, expectingPacket);
 	}
-	else if(len == 0)
+	else if(len == 0) // 客户端正常退出
 	{
 		Channel* pChannel = networkInterface_.findChannel(socket_);
 		KBE_ASSERT(pChannel != NULL);
@@ -63,12 +63,9 @@ bool PacketReceiver::processSocket(bool expectingPacket)
 	pNextPacket_ = new Packet();
 	Reason ret = this->processPacket(curPacket.get());
 
-	if ((ret != REASON_SUCCESS) &&
-			networkInterface_.isVerbose())
-	{
+	if(ret != REASON_SUCCESS)
 		this->dispatcher().errorReporter().reportException(ret, socket_.addr());
-	}
-
+	
 	return true;
 }
 
@@ -153,7 +150,7 @@ bool PacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 //-------------------------------------------------------------------------------------
 Reason PacketReceiver::processPacket(Packet * p)
 {
-	Channel * pChannel = networkInterface_.findChannel(&socket_);
+	Channel * pChannel = networkInterface_.findChannel(socket_);
 
 	if (pChannel != NULL)
 	{

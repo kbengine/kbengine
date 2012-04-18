@@ -32,54 +32,54 @@ public:
 	enum REF_TAG {STEAL_REF, NEW_REF};
 	
 	ConstSmartPointer(const T* obj = 0, REF_TAG tag = ConstSmartPointer::NEW_REF):
-	m_obj_(obj)
+	obj_(obj)
 	{
 		if(tag == ConstSmartPointer::STEAL_REF)
 		{
-			incrementReferenceCount(m_obj_);
+			incrementReferenceCount(obj_);
 		}
 	}
 
 	ConstSmartPointer( const ConstSmartPointer<T>& P )
 	{
-		m_obj_ = P.get();
-		if (m_obj_) 
-			incrementReferenceCount( *m_obj_ );
+		obj_ = P.get();
+		if (obj_) 
+			incrementReferenceCount( *obj_ );
 	}
 
 	~ConstSmartPointer()
 	{
-		if (m_obj_)
-			decrementReferenceCount(*m_obj_);
+		if (obj_)
+			decrementReferenceCount(*obj_);
 
-		m_obj_ = 0;
+		obj_ = 0;
 	}
 	
 	void clear()
 	{
-		if (m_obj_)
-			decrementReferenceCount(m_obj_);
+		if (obj_)
+			decrementReferenceCount(obj_);
 		
-		m_obj_ = 0;
+		obj_ = 0;
 	}
 	
 	const T* get()const
 	{
-		return m_obj_;
+		return obj_;
 	}
 
 	const T* operator()()
 	{
-		return m_obj_;
+		return obj_;
 	}
 
 	ConstSmartPointer<T>& operator=( const ConstSmartPointer<T>& X )
 	{
-		if (m_obj_ != X.get())
+		if (obj_ != X.get())
 		{
-			const T* pOldObj = m_obj_;
-			m_obj_ = X.get();
-			if (m_obj_) incrementReferenceCount( *m_obj_ );
+			const T* pOldObj = obj_;
+			obj_ = X.get();
+			if (obj_) incrementReferenceCount( *obj_ );
 			if (pOldObj) decrementReferenceCount( *pOldObj );
 		}
 		return *this;
@@ -87,21 +87,21 @@ public:
 
 	const T* operator->() const
 	{
-		return m_obj_;
+		return obj_;
 	}
 
 	const T& operator*() const
 	{
-		return *m_obj_;
+		return *obj_;
 	}
 
 	typedef const T * ConstSmartPointer<T>::*unspecified_bool_type;
 	operator unspecified_bool_type() const
 	{
-		return m_obj_ == 0? 0 : &ConstSmartPointer<T>::m_obj_;
+		return obj_ == 0? 0 : &ConstSmartPointer<T>::obj_;
 	}
 protected:
-	const T* m_obj_;
+	const T* obj_;
 };
 
 template <class T>
@@ -138,17 +138,17 @@ public:
 
 	T * get() const
 	{
-		return const_cast<T *>( this->m_obj_ );
+		return const_cast<T *>( this->obj_ );
 	}
 
 	T* operator->()const
 	{
-		return const_cast<T *>( this->m_obj_ );
+		return const_cast<T *>( this->obj_ );
 	}
 
 	T& operator*() const
 	{
-		return *const_cast<T *>( this->m_obj_ );
+		return *const_cast<T *>( this->obj_ );
 	}
 };
 

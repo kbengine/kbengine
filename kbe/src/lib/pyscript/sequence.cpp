@@ -45,11 +45,11 @@ bool Sequence::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 int Sequence::findFrom(uint32 startIndex, PyObject* value)
 {
-	for (uint32 i = startIndex; i < m_values_.size(); ++i)
-		if (value == &*m_values_[i]) return i;
+	for (uint32 i = startIndex; i < values_.size(); ++i)
+		if (value == &*values_[i]) return i;
 
-	for (uint32 i = startIndex; i < m_values_.size(); ++i)
-		if(PyObject_RichCompareBool(value, &*m_values_[i], Py_EQ)) 
+	for (uint32 i = startIndex; i < values_.size(); ++i)
+		if(PyObject_RichCompareBool(value, &*values_[i], Py_EQ)) 
 			return i;
 	return -1;
 }

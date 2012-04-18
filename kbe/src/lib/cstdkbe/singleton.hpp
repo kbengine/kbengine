@@ -15,7 +15,7 @@ same license as the rest of the engine.
 		{
 		};
 		在cpp文件中:
-		template<> A* Singleton<A>::m_singleton_ = 0;
+		template<> A* Singleton<A>::singleton_ = 0;
 */
 #ifndef __SINGLETON_H__
 #define __SINGLETON_H__
@@ -41,23 +41,23 @@ template <typename T>
 class Singleton
 {
 protected:
-	static T* m_singleton_;
+	static T* singleton_;
 public:
 	Singleton(void)
 	{
-		assert(!m_singleton_);
+		assert(!singleton_);
 #if defined(_MSC_VER) && _MSC_VER < 1200	 
 		int offset = (int)(T*)1 - (int)(Singleton <T>*)(T*)1;
-		m_singleton_ = (T*)((int)this + offset);
+		singleton_ = (T*)((int)this + offset);
 #else
-		m_singleton_ = static_cast< T* >(this);
+		singleton_ = static_cast< T* >(this);
 #endif
 	}
 	
 	
-	~Singleton(void){  assert(m_singleton_);  m_singleton_ = 0; }
-	static T& getSingleton(void) { assert(m_singleton_);  return (*m_singleton_); }
-	static T* getSingletonPtr(void){ return m_singleton_; }
+	~Singleton(void){  assert(singleton_);  singleton_ = 0; }
+	static T& getSingleton(void) { assert(singleton_);  return (*singleton_); }
+	static T* getSingletonPtr(void){ return singleton_; }
 };
 
 }

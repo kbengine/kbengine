@@ -38,12 +38,12 @@ public:
 	static int mp_length(PyObject* self);
 
 	/** 获取字典对象 */
-	PyObject* getDictObject(void)const{ return m_pyDict_;}
+	PyObject* getDictObject(void)const{ return pyDict_;}
 	
 	/** 数据改变通知 */
 	virtual void onDataChanged(std::string& key, std::string& value, bool isDelete = false);
 protected:
-	PyObject* m_pyDict_;											// 字典数据， 所有的数据都往这里面写
+	PyObject* pyDict_;											// 字典数据， 所有的数据都往这里面写
 } ;
 
 }

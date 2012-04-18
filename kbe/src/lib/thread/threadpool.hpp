@@ -33,6 +33,7 @@ same license as the rest of the engine.
 #include <queue>
 #include <algorithm>
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/tasks.hpp"
 #include "helper/debug_helper.hpp"
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -59,44 +60,19 @@ same license as the rest of the engine.
 	
 namespace KBEngine{ namespace thread{
 
-		
-/*
-	线程池的任务抽象类
-*/
-class TPTask
-{
-protected:	
-public:	
-	TPTask(){}
-	virtual ~TPTask(){}
-
-	/*
-		具体任务处理接口，  需要继承类完成具体实现
-	*/
-	virtual void onHandle(void) = 0;
-};
-
 /*
 	线程池的线程基类
 */
 class ThreadPool;
 class TPThread
 {
-protected:
-	THREAD_SINGNAL m_cond;			// 线程信号量
-	THREAD_MUTEX m_mutex;			// 线程互诉体
-	int m_threadWaitSecond;			// 线程空闲状态超过这个秒数则线程退出， 小于0为永久线程 秒单位
-	TPTask * m_currTask;			// 该线程的当前执行的任务
-	THREAD_ID m_tidp;				// 本线程的ID
-	ThreadPool* m_threadPool;		// 线程池指针
-	int m_state;					// 线程状态 -1还未启动, 0睡眠， 1繁忙中
 public:
 	TPThread(ThreadPool* threadPool, int threadWaitSecond = 0) : \
-	m_threadWaitSecond(threadWaitSecond), 
-	m_currTask(NULL), 
-	m_threadPool(threadPool)
+	threadWaitSecond_(threadWaitSecond), 
+	currTask_(NULL), 
+	threadPool_(threadPool)
 	{
-		m_state = 0;
+		state_ = 0;
 		initCond();
 		initMutex();
 	}
@@ -108,62 +84,62 @@ public:
 	}
 	
 	THREAD_ID getID(void)const{
-		return m_tidp;
+		return tidp_;
 	}
 	
 	void setID(THREAD_ID tidp){
-		m_tidp = tidp;
+		tidp_ = tidp;
 	}
 	
 	/**创建一个线程， 并将自己与该线程绑定*/
 	THREAD_ID createThread(void);
 	
 	virtual void initCond(void){
-		THREAD_SINGNAL_INIT(m_cond);
+		THREAD_SINGNAL_INIT(cond_);
 	}
 
 	virtual void initMutex(void){
-		THREAD_MUTEX_INIT(m_mutex);	
+		THREAD_MUTEX_INIT(mutex_);	
 	}
 
 	virtual void uninitCond(void){
-		THREAD_SINGNAL_DELETE(m_cond);
+		THREAD_SINGNAL_DELETE(cond_);
 	}
 	
 	virtual void uninitMutex(void){
-		THREAD_MUTEX_DELETE(m_mutex);
+		THREAD_MUTEX_DELETE(mutex_);
 	}
 
 	virtual void lock(void){
-		THREAD_MUTEX_LOCK(m_mutex); 
+		THREAD_MUTEX_LOCK(mutex_); 
 	}
 	
 	virtual void unlock(void){
-		THREAD_MUTEX_UNLOCK(m_mutex); 
+		THREAD_MUTEX_UNLOCK(mutex_); 
 	}	
 
-	virtual TPTask* tryGetTask(void);
+	virtual Task* tryGetTask(void);
 	
 	/**发送条件信号*/
 	int sendCondSignal(void){
-		return THREAD_SINGNAL_SET(m_cond);
+		return THREAD_SINGNAL_SET(cond_);
 	}
 	
 	/**线程通知 等待条件信号*/
 	bool onWaitCondSignal(void);
 
 	/**获取本线程要处理的任务*/
-	TPTask* getTask(void)const{
-		return m_currTask;
+	Task* getTask(void)const{
+		return currTask_;
 	}
 
 	/**设置本线程要处理的任务*/
-	void setTask(TPTask* tpt){
-		m_currTask = tpt;
+	void setTask(Task* tpt){
+		currTask_ = tpt;
 	}
 
 	int getState(void)const{
-		return m_state;
+		return state_;
 	}
 	
 	/**本线程要处理的任务已经处理完毕 我们决定删除这个废弃的任务*/
@@ -185,13 +161,13 @@ public:
 		while(isRun)
 		{
 			isRun = tptd->onWaitCondSignal();
-			tptd->m_state = 1;
-			TPTask * task = tptd->getTask();
+			tptd->state_ = 1;
+			Task * task = tptd->getTask();
 			
 			while(task)
 			{
-				task->onHandle();									// 处理该任务
-				TPTask * task1 = tptd->tryGetTask();				// 尝试继续从任务队列里取出一个繁忙的未处理的任务
+				task->process();									// 处理该任务
+				Task * task1 = tptd->tryGetTask();				// 尝试继续从任务队列里取出一个繁忙的未处理的任务
 
 				if(!task1){
 					tptd->onTaskComplete();
@@ -214,27 +190,19 @@ public:
 		return NULL;
 #endif		
 	}
-	
+protected:
+	THREAD_SINGNAL cond_;			// 线程信号量
+	THREAD_MUTEX mutex_;			// 线程互诉体
+	int threadWaitSecond_;			// 线程空闲状态超过这个秒数则线程退出， 小于0为永久线程 秒单位
+	Task * currTask_;				// 该线程的当前执行的任务
+	THREAD_ID tidp_;				// 本线程的ID
+	ThreadPool* threadPool_;		// 线程池指针
+	int state_;						// 线程状态 -1还未启动, 0睡眠， 1繁忙中
 };
 
 
 class ThreadPool : public Singleton<ThreadPool>
-{
-protected:
-	bool m_isInitialize;											// 线程池是否被初始化过
-	std::queue<TPTask*> m_busyTaskList;								// 系统处于繁忙时还未处理的任务列表
-	THREAD_MUTEX busyTaskList_mutex;								// 处理m_busyTaskList互斥锁
-	THREAD_MUTEX threadStateList_mutex;								// 处理m_busyThreadList and m_freeThreadList互斥锁
-	std::list<TPThread*> m_busyThreadList;							// 繁忙的线程列表
-	std::list<TPThread*> m_freeThreadList;							// 闲置的线程列表
-	std::list<TPThread*> m_allThreadList;							// 所有的线程列表
-	unsigned int m_maxThreadCount;									// 最大线程总数
-	unsigned int m_extraNewAddThreadCount;							// 如果m_normalThreadCount不足够使用则会新创建这么多线程
-	unsigned int m_currentThreadCount;								// 当前线程数
-	unsigned int m_currentFreeThreadCount;							// 当前闲置的线程数
-	unsigned int m_normalThreadCount;								// 标准状态下的线程总数 即：默认情况下一启动服务器就开启这么多线程
-																	// 如果线程不足够，则会新创建一些线程， 最大能够到maxThreadNum.
-																	
+{																	
 protected:
 	/**创建一个线程池线程*/														
 	TPThread* createThread(int threadWaitSecond = 0);													
@@ -242,17 +210,17 @@ public:
 	
 	ThreadPool()
 	{		
-		m_extraNewAddThreadCount = m_currentThreadCount = m_currentFreeThreadCount = m_normalThreadCount = 0;
-		THREAD_MUTEX_INIT(threadStateList_mutex);	
-		THREAD_MUTEX_INIT(busyTaskList_mutex);
+		extraNewAddThreadCount_ = currentThreadCount_ = currentFreeThreadCount_ = normalThreadCount_ = 0;
+		THREAD_MUTEX_INIT(threadStateList_mutex_);	
+		THREAD_MUTEX_INIT(busyTaskList_mutex_);
 	}
 
 	virtual ~ThreadPool()
 	{
-		THREAD_MUTEX_DELETE(threadStateList_mutex);
-		THREAD_MUTEX_DELETE(busyTaskList_mutex);
-		std::list<TPThread*>::iterator itr = m_allThreadList.begin();
-		for(; itr != m_allThreadList.end(); itr++)
+		THREAD_MUTEX_DELETE(threadStateList_mutex_);
+		THREAD_MUTEX_DELETE(busyTaskList_mutex_);
+		std::list<TPThread*>::iterator itr = allThreadList_.begin();
+		for(; itr != allThreadList_.end(); itr++)
 		{
 			if((*itr))
 			{
@@ -264,12 +232,12 @@ public:
 	
 	/**获取当前线程总数*/	
 	unsigned int getCurrentThreadCount(void)const{ 
-		return m_currentThreadCount; 
+		return currentThreadCount_; 
 	}
 	
 	/**获取当前空闲线程总数*/		
 	unsigned int getCurrentFreeThreadCount(void)const{ 
-		return m_currentFreeThreadCount; 
+		return currentFreeThreadCount_; 
 	}
 	
 	/**
@@ -290,11 +258,11 @@ public:
 	bool removeHangThread(TPThread* tptd);
 	
 	/**向线程池添加一个任务*/		
-	bool addTask(TPTask* tptask);
+	bool addTask(Task* tptask);
 	
 	/**线程数量是否到达最大个数*/
 	bool isThreadCountMax(void)const{
-		return m_currentThreadCount >= m_maxThreadCount;	
+		return currentThreadCount_ >= maxThreadCount_;	
 	}
 	
 	/**
@@ -302,19 +270,33 @@ public:
 		未处理任务是否非常多   说明线程很繁忙
 	*/
 	bool isBusy(void)const{
-		return m_busyTaskList.size() > 32;
+		return busyTaskList_.size() > 32;
 	}	
 
 	/**将某个任务保存到未处理列表*/
-	void saveToBusyTaskList(TPTask* tptask);
+	void saveToBusyTaskList(Task* tptask);
 
 	/**从未处理列表取出一个任务 并从列表中删除*/
-	TPTask* popBusyTaskList(void);
+	Task* popBusyTaskList(void);
 	
 	/** 线程池是否已经被初始化 */
 	bool isInitialize(void)const{ 
-		return m_isInitialize; 
+		return isInitialize_; 
 	}
+protected:
+	bool isInitialize_;												// 线程池是否被初始化过
+	std::queue<Task*> busyTaskList_;								// 系统处于繁忙时还未处理的任务列表
+	THREAD_MUTEX busyTaskList_mutex_;								// 处理busyTaskList_互斥锁
+	THREAD_MUTEX threadStateList_mutex_;							// 处理busyThreadList_ and freeThreadList_互斥锁
+	std::list<TPThread*> busyThreadList_;							// 繁忙的线程列表
+	std::list<TPThread*> freeThreadList_;							// 闲置的线程列表
+	std::list<TPThread*> allThreadList_;							// 所有的线程列表
+	unsigned int maxThreadCount_;									// 最大线程总数
+	unsigned int extraNewAddThreadCount_;							// 如果normalThreadCount_不足够使用则会新创建这么多线程
+	unsigned int currentThreadCount_;								// 当前线程数
+	unsigned int currentFreeThreadCount_;							// 当前闲置的线程数
+	unsigned int normalThreadCount_;								// 标准状态下的线程总数 即：默认情况下一启动服务器就开启这么多线程
+																	// 如果线程不足够，则会新创建一些线程， 最大能够到maxThreadNum.
 };
 
 }

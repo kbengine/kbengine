@@ -3,7 +3,7 @@
 #include "thread/ThreadGuard.hpp"
 
 namespace KBEngine{
-template<> DebugHelper* Singleton<DebugHelper>::m_singleton_ = 0;
+template<> DebugHelper* Singleton<DebugHelper>::singleton_ = 0;
 DebugHelper dbghelper;
 
 #ifdef KBE_USE_ASSERTS
@@ -70,14 +70,14 @@ void DebugHelper::print_msg(const char * str, ...)
     vutf8printf(stdout, str, &ap);
     va_end(ap);
 
-    if(_m_logfile)
+    if(_logfile)
     {
-        outTimestamp(_m_logfile);
+        outTimestamp(_logfile);
         va_start(ap, str);
-        vfprintf(_m_logfile, str, ap);
-        fprintf(_m_logfile, "\n");
+        vfprintf(_logfile, str, ap);
+        fprintf(_logfile, "\n");
         va_end(ap);
-        fflush(_m_logfile);
+        fflush(_logfile);
     }
 
     fflush(stdout);
@@ -99,17 +99,17 @@ void DebugHelper::error_msg(const char * err, ...)
     vutf8printf(stderr, err, &ap);
     va_end(ap);
 
-    if(_m_logfile)
+    if(_logfile)
     {
-        outTimestamp(_m_logfile);
-        fprintf(_m_logfile, "ERROR:");
+        outTimestamp(_logfile);
+        fprintf(_logfile, "ERROR:");
 
         va_start(ap, err);
-        vfprintf(_m_logfile, err, ap);
+        vfprintf(_logfile, err, ap);
         va_end(ap);
 
-        fprintf(_m_logfile, "\n");
-        fflush(_m_logfile);
+        fprintf(_logfile, "\n");
+        fflush(_logfile);
     }
 
     fflush(stderr);
@@ -131,17 +131,17 @@ void DebugHelper::info_msg(const char * info, ...)
     vutf8printf(stdout, info, &ap);
     va_end(ap);
 
-    if(_m_logfile)
+    if(_logfile)
     {
-        outTimestamp(_m_logfile);
-        fprintf(_m_logfile, "INFO:");
+        outTimestamp(_logfile);
+        fprintf(_logfile, "INFO:");
 
         va_start(ap, info);
-        vfprintf(_m_logfile, info, ap);
+        vfprintf(_logfile, info, ap);
         va_end(ap);
 
-        fprintf(_m_logfile, "\n");
-        fflush(_m_logfile);
+        fprintf(_logfile, "\n");
+        fflush(_logfile);
     }
 
     fflush(stdout);
@@ -163,17 +163,17 @@ void DebugHelper::debug_msg(const char * str, ...)
     vutf8printf(stdout, str, &ap);
     va_end(ap);
 
-    if(_m_logfile)
+    if(_logfile)
     {
-        outTimestamp(_m_logfile);
-        fprintf(_m_logfile, "DEBUG:");
+        outTimestamp(_logfile);
+        fprintf(_logfile, "DEBUG:");
 
         va_start(ap, str);
-        vfprintf(_m_logfile, str, ap);
+        vfprintf(_logfile, str, ap);
         va_end(ap);
 
-        fprintf(_m_logfile, "\n");
-        fflush(_m_logfile);
+        fprintf(_logfile, "\n");
+        fflush(_logfile);
     }
 
     fflush(stdout);
@@ -195,17 +195,17 @@ void DebugHelper::warning_msg(const char * str, ...)
     vutf8printf(stdout, str, &ap);
     va_end(ap);
 
-    if(_m_logfile)
+    if(_logfile)
     {
-        outTimestamp(_m_logfile);
-        fprintf(_m_logfile, "WARNING:");
+        outTimestamp(_logfile);
+        fprintf(_logfile, "WARNING:");
 
         va_start(ap, str);
-        vfprintf(_m_logfile, str, ap);
+        vfprintf(_logfile, str, ap);
         va_end(ap);
 
-        fprintf(_m_logfile, "\n");
-        fflush(_m_logfile);
+        fprintf(_logfile, "\n");
+        fflush(_logfile);
     }
 
     fflush(stdout);
@@ -219,24 +219,24 @@ void DebugHelper::critical_msg(const char * str, ...)
         return;
 
     outTime();
-	fprintf(stdout, "CRITICAL:%s(%d)\n\t", _m_currFile.c_str(), _m_currLine);
+	fprintf(stdout, "CRITICAL:%s(%d)\n\t", _currFile.c_str(), _currLine);
 
     va_list ap;
     va_start(ap, str);
     vutf8printf(stdout, str, &ap);
     va_end(ap);
 
-    if(_m_logfile)
+    if(_logfile)
     {
-        outTimestamp(_m_logfile);
-		fprintf(_m_logfile, "CRITICAL:%s(%d)\n\t", _m_currFile.c_str(), _m_currLine);
+        outTimestamp(_logfile);
+		fprintf(_logfile, "CRITICAL:%s(%d)\n\t", _currFile.c_str(), _currLine);
 
         va_start(ap, str);
-        vfprintf(_m_logfile, str, ap);
+        vfprintf(_logfile, str, ap);
         va_end(ap);
 
-        fprintf(_m_logfile, "\n");
-        fflush(_m_logfile);
+        fprintf(_logfile, "\n");
+        fflush(_logfile);
     }
 
     fflush(stdout);

@@ -100,8 +100,8 @@ SCRIPT_INIT(ScriptVector4, 0, &ScriptVector4::seqMethods, 0, 0, 0)
 //-------------------------------------------------------------------------------------
 ScriptVector4::ScriptVector4(Vector4* v):
 ScriptObject(getScriptType(), false),
-m_val_(v),
-m_isCopy_(true)
+val_(v),
+isCopy_(true)
 {
 }
 
@@ -109,25 +109,25 @@ m_isCopy_(true)
 //-------------------------------------------------------------------------------------
 ScriptVector4::ScriptVector4(Vector4 v):
 ScriptObject(getScriptType(), false),
-m_isCopy_(false)
+isCopy_(false)
 {
-	m_val_ = new Vector4(v);
+	val_ = new Vector4(v);
 }
 
 //-------------------------------------------------------------------------------------
 ScriptVector4::ScriptVector4(float x, float y, float z, float w):
 ScriptObject(getScriptType(), false),
-m_isCopy_(false)
+isCopy_(false)
 {
-	m_val_ = new Vector4(x, y, z, w);
+	val_ = new Vector4(x, y, z, w);
 
 }
 
 //-------------------------------------------------------------------------------------
 ScriptVector4::~ScriptVector4()
 {
-	if(!m_isCopy_)
-		delete m_val_;
+	if(!isCopy_)
+		delete val_;
 }
 
 //-------------------------------------------------------------------------------------

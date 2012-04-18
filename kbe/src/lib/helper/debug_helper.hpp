@@ -25,15 +25,15 @@ void utf8printf(FILE *out, const char *str, ...);
 class DebugHelper : public Singleton<DebugHelper>
 {
 private:
-	FILE* _m_logfile;
-	std::string _m_currFile;
-	uint32 _m_currLine;
+	FILE* _logfile;
+	std::string _currFile;
+	uint32 _currLine;
 public:
 	KBEngine::thread::ThreadMutex logMutex;
 public:
 	DebugHelper()
 	{
-		_m_logfile = NULL;
+		_logfile = NULL;
 	}
 
 	~DebugHelper()
@@ -41,8 +41,8 @@ public:
 	}	
 	
 	void setFile(std::string file, uint32 line){
-		_m_currFile = file;
-		_m_currLine = line;
+		_currFile = file;
+		_currLine = line;
 	}
 
 	void outTime();

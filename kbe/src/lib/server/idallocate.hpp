@@ -70,10 +70,10 @@ template< typename T >
 class IDAllocate
 {
 protected:
-	typename std::queue< T > m_idList_;						// id列表， 所有ID都存在这个列表里
-	T m_lastID_;											// 最后一次申请到的ID
+	typename std::queue< T > idList_;						// id列表， 所有ID都存在这个列表里
+	T lastID_;											// 最后一次申请到的ID
 public:
-	IDAllocate(): m_lastID_(0)
+	IDAllocate(): lastID_(0)
 	{
 	}
 
@@ -84,20 +84,20 @@ public:
 	/** 分配一个id */
 	T alloc(void)
 	{
-		if(m_idList_.size() > 0)
+		if(idList_.size() > 0)
 		{
-			T n = m_idList_.front();
-			m_idList_.pop();
+			T n = idList_.front();
+			idList_.pop();
 			return n;
 		}
 		
-		return ++m_lastID_;
+		return ++lastID_;
 	}
 	
 	/** 回收一个id */
 	void reclaim(T id)
 	{
-		m_idList_.push(id);
+		idList_.push(id);
 	}
 	
 };
@@ -107,12 +107,12 @@ template< typename T >
 class IDServer
 {
 protected:
-	T m_lastIDRange_begin_;										// 最后一次申请到的ID段的起始位置
-	T m_rangeStep_;												// id段的一个段长度
+	T lastIDRange_begin_;										// 最后一次申请到的ID段的起始位置
+	T rangeStep_;												// id段的一个段长度
 public:
 	IDServer(T idBegin, T rangeStep): 
-	m_lastIDRange_begin_(idBegin), 
-	m_rangeStep_(rangeStep)
+	lastIDRange_begin_(idBegin), 
+	rangeStep_(rangeStep)
 	{
 	}
 
@@ -123,22 +123,18 @@ public:
 	/** 分配一个id段 */
 	std::pair< T, T > allocRange(void)
 	{
-		DEBUG_MSG("IDServer::allocRange: %d-%d.\n", m_lastIDRange_begin_, m_lastIDRange_begin_ + m_rangeStep_);
-		std::pair< T, T > p = std::make_pair(m_lastIDRange_begin_, m_lastIDRange_begin_ + m_rangeStep_);
-		m_lastIDRange_begin_ += m_rangeStep_;
+		DEBUG_MSG("IDServer::allocRange: %d-%d.\n", lastIDRange_begin_, lastIDRange_begin_ + rangeStep_);
+		std::pair< T, T > p = std::make_pair(lastIDRange_begin_, lastIDRange_begin_ + rangeStep_);
+		lastIDRange_begin_ += rangeStep_;
 		return p;
 	}
 };
 
 template< typename T >
 class IDClient
-{
-protected:
-	typename std::queue< std::pair< T, T > > m_idList_;					// id列表， 所有ID都存在这个列表里
-	T m_lastIDRange_begin_;												// 最后一次申请到的ID段的起始位置
-	T m_lastIDRange_end_;												
+{										
 public:
-	IDClient():m_lastIDRange_begin_(0), m_lastIDRange_end_(0)
+	IDClient():lastIDRange_begin_(0), lastIDRange_end_(0)
 	{
 	}
 	
@@ -147,7 +143,7 @@ public:
 	{
 	}	
 	
-	size_t getSize()const{ return m_lastIDRange_end_ - m_lastIDRange_begin_; }
+	size_t getSize()const{ return lastIDRange_end_ - lastIDRange_begin_; }
 	
 	/** idserver 分配过来的一个id段 */
 	void onAddRange(T idBegin, T idEnd)
@@ -155,12 +151,12 @@ public:
 		DEBUG_MSG("IDClient::onAddRange: number of ids increased from %d to %d.\n", idBegin, idEnd);
 		if(getSize() <= 0)
 		{
-			m_lastIDRange_begin_ = idBegin;
-			m_lastIDRange_end_ = idEnd;
+			lastIDRange_begin_ = idBegin;
+			lastIDRange_end_ = idEnd;
 		}
 		else
 		{
-			m_idList_.push(std::make_pair(idBegin, idEnd));
+			idList_.push(std::make_pair(idBegin, idEnd));
 		}
 	}
 	
@@ -168,20 +164,20 @@ public:
 	T alloc(void)
 	{
 		assert(getSize() > 0 && "IDClient:: alloc:no usable of the id.\n");
-		T id = m_lastIDRange_begin_;
-		m_lastIDRange_begin_ ++;
-		if(m_lastIDRange_begin_ > m_lastIDRange_end_)
+		T id = lastIDRange_begin_;
+		lastIDRange_begin_ ++;
+		if(lastIDRange_begin_ > lastIDRange_end_)
 		{
-			if(m_idList_.size() > 0)
+			if(idList_.size() > 0)
 			{
-				std::pair< T, T > n = m_idList_.front();
-				m_lastIDRange_begin_ = n.first;
-				m_lastIDRange_end_ = n.second;
-				m_idList_.pop();
+				std::pair< T, T > n = idList_.front();
+				lastIDRange_begin_ = n.first;
+				lastIDRange_end_ = n.second;
+				idList_.pop();
 			}
 			else
 			{
-				m_lastIDRange_begin_ = m_lastIDRange_end_ = 0;
+				lastIDRange_begin_ = lastIDRange_end_ = 0;
 			}
 		}
 		return id;
@@ -191,6 +187,11 @@ public:
 	void onReclaim(T id)
 	{
 	}
+	
+protected:
+	typename std::queue< std::pair< T, T > > idList_;					// id列表， 所有ID都存在这个列表里
+	T lastIDRange_begin_;												// 最后一次申请到的ID段的起始位置
+	T lastIDRange_end_;		
 };
 
 

@@ -2,20 +2,20 @@
 #include "serverinfos.hpp"
 
 namespace KBEngine{
-template<> ServerInfos* Singleton<ServerInfos>::m_singleton_ = 0;
+template<> ServerInfos* Singleton<ServerInfos>::singleton_ = 0;
 
 //-------------------------------------------------------------------------------------
 ServerInfos::ServerInfos()
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
 
-	m_serverName_ = "Not yet implemented";
+	serverName_ = "Not yet implemented";
 
-	m_cpuInfo_ = "Not yet implemented";
-	m_memUsed_ = 0;
-	m_memTotal_ = 0;
+	cpuInfo_ = "Not yet implemented";
+	memUsed_ = 0;
+	memTotal_ = 0;
 
-	m_cpuSpeeds_.push_back( 1.0 );
+	cpuSpeeds_.push_back( 1.0 );
 
 #else 
 
@@ -28,7 +28,7 @@ ServerInfos::ServerInfos()
 	{
 		*firstDot = '\0';
 	}
-	m_serverName_ = hostName;
+	serverName_ = hostName;
 
 	fetchLinuxCpuInfo();
 	fetchLinuxMemInfo();
@@ -36,8 +36,8 @@ ServerInfos::ServerInfos()
 #endif
 
 	std::stringstream memInfoBuf;
-	memInfoBuf << ( m_memTotal_ >> 10 ) << "kB";
-	m_memInfo_ = memInfoBuf.str();
+	memInfoBuf << ( memTotal_ >> 10 ) << "kB";
+	memInfo_ = memInfoBuf.str();
 }
 
 //-------------------------------------------------------------------------------------
@@ -100,7 +100,7 @@ void ServerInfos::fetchLinuxCpuInfo()
 			if (!strcmp( procLine, "cpu MHz" ) )
 			{
 				sscanf( pInterest, "%f", &mhz );
-				m_cpuSpeeds_.push_back( mhz );
+				cpuSpeeds_.push_back( mhz );
 			}
 			else
 			if ( !strcmp( procLine, "model name" ) )
@@ -141,7 +141,7 @@ void ServerInfos::fetchLinuxCpuInfo()
 		}
 	}
 
-	m_cpuInfo_ = cpuInfoBuf.str();
+	cpuInfo_ = cpuInfoBuf.str();
 
 }
 
@@ -191,8 +191,8 @@ void ServerInfos::fetchLinuxMemInfo()
 
 	fclose( pProcMem );
 
-	m_memTotal_ = memTotal << 10;
-	m_memUsed_ = ( memTotal - memFree - buffers - cached - slab ) << 10;
+	memTotal_ = memTotal << 10;
+	memUsed_ = ( memTotal - memFree - buffers - cached - slab ) << 10;
 }
 
 

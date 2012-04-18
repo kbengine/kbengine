@@ -8,7 +8,7 @@ SCRIPT_METHOD_DECLARE_END()
 
 
 SCRIPT_MEMBER_DECLARE_BEGIN(ScriptStdOutErr)
-SCRIPT_MEMBER_DECLARE("softspace",			m_softspace_,		T_CHAR,					0,			0)	
+SCRIPT_MEMBER_DECLARE("softspace",			softspace_,		T_CHAR,					0,			0)	
 SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(ScriptStdOutErr)
@@ -19,9 +19,9 @@ SCRIPT_INIT(ScriptStdOutErr, 0, 0, 0, 0, 0)
 ScriptStdOutErr::ScriptStdOutErr():
 ScriptObject(getScriptType(), false)
 {
-	m_softspace_ = 0;
-	m_isInstall_ = false;
-	m_sysModule_ = m_prevStdout_ = m_prevStderr_ = NULL;
+	softspace_ = 0;
+	isInstall_ = false;
+	sysModule_ = prevStdout_ = prevStderr_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -59,42 +59,42 @@ void ScriptStdOutErr::onPrint(const char* msg)
 //-------------------------------------------------------------------------------------
 bool ScriptStdOutErr::install(void)
 {
-	m_sysModule_ = PyImport_ImportModule("sys");
-	if (!m_sysModule_)
+	sysModule_ = PyImport_ImportModule("sys");
+	if (!sysModule_)
 	{
 		ERROR_MSG("ScriptStdOut: Failed to import sys module\n");
 		return false;
 	}
 
-	m_prevStderr_ = PyObject_GetAttrString(m_sysModule_, "stderr");
-	m_prevStdout_ = PyObject_GetAttrString(m_sysModule_, "stdout");
+	prevStderr_ = PyObject_GetAttrString(sysModule_, "stderr");
+	prevStdout_ = PyObject_GetAttrString(sysModule_, "stdout");
 
-	PyObject_SetAttrString(m_sysModule_, "stdout", (PyObject *)this);
-	PyObject_SetAttrString(m_sysModule_, "stderr", (PyObject *)this);
-	m_isInstall_ = true;
+	PyObject_SetAttrString(sysModule_, "stdout", (PyObject *)this);
+	PyObject_SetAttrString(sysModule_, "stderr", (PyObject *)this);
+	isInstall_ = true;
 	return true;	
 }
 
 //-------------------------------------------------------------------------------------
 bool ScriptStdOutErr::uninstall(void)
 {
-	if (m_prevStderr_)
+	if (prevStderr_)
 	{
-		PyObject_SetAttrString(m_sysModule_, "stderr", m_prevStderr_);
-		Py_DECREF(m_prevStderr_);
-		m_prevStderr_ = NULL;
+		PyObject_SetAttrString(sysModule_, "stderr", prevStderr_);
+		Py_DECREF(prevStderr_);
+		prevStderr_ = NULL;
 	}
 
-	if (m_prevStdout_)
+	if (prevStdout_)
 	{
-		PyObject_SetAttrString(m_sysModule_, "stdout", m_prevStdout_);
-		Py_DECREF(m_prevStdout_);
-		m_prevStdout_ = NULL;
+		PyObject_SetAttrString(sysModule_, "stdout", prevStdout_);
+		Py_DECREF(prevStdout_);
+		prevStdout_ = NULL;
 	}
 
-	Py_DECREF(m_sysModule_);
-	m_sysModule_ = NULL;
-	m_isInstall_ = false;
+	Py_DECREF(sysModule_);
+	sysModule_ = NULL;
+	isInstall_ = false;
 	return true;	
 }
 

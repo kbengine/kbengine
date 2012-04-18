@@ -1,9 +1,9 @@
 #include "pickler.hpp"
 namespace KBEngine{ 
 namespace script{
-PyObject* Pickler::m_picklerMethod_ = NULL;
-PyObject* Pickler::m_unPicklerMethod_ = NULL;
-PyObject* Pickler::m_pyPickleFuncTableModule_ = NULL;
+PyObject* Pickler::picklerMethod_ = NULL;
+PyObject* Pickler::unPicklerMethod_ = NULL;
+PyObject* Pickler::pyPickleFuncTableModule_ = NULL;
 bool Pickler::isInit = false;
 
 
@@ -17,15 +17,15 @@ bool Pickler::initialize(void)
 
 	if(cPickleModule)
 	{
-		m_picklerMethod_ = PyObject_GetAttrString(cPickleModule, "dumps");
-		if (!m_picklerMethod_)
+		picklerMethod_ = PyObject_GetAttrString(cPickleModule, "dumps");
+		if (!picklerMethod_)
 		{
 			ERROR_MSG("Pickler::initialize:get dumps is error!\n");
 			PyErr_PrintEx(0);
 		}
 
-		m_unPicklerMethod_ = PyObject_GetAttrString(cPickleModule, "loads");
-		if(!m_unPicklerMethod_)
+		unPicklerMethod_ = PyObject_GetAttrString(cPickleModule, "loads");
+		if(!unPicklerMethod_)
 		{
 			ERROR_MSG("Pickler::init: get loads is error!\n");
 			PyErr_PrintEx(0);
@@ -39,10 +39,10 @@ bool Pickler::initialize(void)
 		PyErr_PrintEx(0);
 	}
 	
-	isInit = m_picklerMethod_ && m_unPicklerMethod_;
+	isInit = picklerMethod_ && unPicklerMethod_;
 	
 	// 初始化一个unpickle函数表模块， 所有自定义类的unpickle函数都需要在此注册
-	m_pyPickleFuncTableModule_ = PyImport_AddModule("_upf");
+	pyPickleFuncTableModule_ = PyImport_AddModule("_upf");
 
 	static struct PyModuleDef moduleDesc =   
 	{  
@@ -60,12 +60,12 @@ bool Pickler::initialize(void)
 //-------------------------------------------------------------------------------------
 void Pickler::finalise(void)
 {
-	Py_XDECREF(m_picklerMethod_);
-	Py_XDECREF(m_unPicklerMethod_);
+	Py_XDECREF(picklerMethod_);
+	Py_XDECREF(unPicklerMethod_);
 	
-	m_picklerMethod_ = NULL;
-	m_unPicklerMethod_ = NULL;	
-	m_pyPickleFuncTableModule_ = NULL;
+	picklerMethod_ = NULL;
+	unPicklerMethod_ = NULL;	
+	pyPickleFuncTableModule_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -79,7 +79,7 @@ std::string Pickler::pickle(PyObject* pyobj, int8 protocol)
 {
 	PyObject* pyRet;
 	char fmt[] = "(Oi)";
-	pyRet = PyObject_CallFunction(m_picklerMethod_, fmt, pyobj, protocol);
+	pyRet = PyObject_CallFunction(picklerMethod_, fmt, pyobj, protocol);
 	SCRIPT_ERROR_CHECK();
 	
 	if(pyRet)
@@ -98,7 +98,7 @@ PyObject* Pickler::unpickle(const std::string& str)
 {
 	PyObject* pyRet = NULL;
 	char fmt[] = "(s#)";
-	pyRet = PyObject_CallFunction(m_unPicklerMethod_, fmt, str.data(), str.length());
+	pyRet = PyObject_CallFunction(unPicklerMethod_, fmt, str.data(), str.length());
 	if (!pyRet)
 	{
 		ERROR_MSG("Pickler::unpickle: failed to unpickle[%s] len=%d.\n", str.c_str(), str.length());
@@ -111,7 +111,7 @@ PyObject* Pickler::unpickle(const std::string& str)
 //-------------------------------------------------------------------------------------
 void Pickler::registerUnpickleFunc(PyObject* pyFunc, const char* funcName)
 {
-	if(PyObject_SetAttrString(m_pyPickleFuncTableModule_, funcName, pyFunc) == -1){
+	if(PyObject_SetAttrString(pyPickleFuncTableModule_, funcName, pyFunc) == -1){
 		PyErr_PrintEx(0);
 		return;
 	}

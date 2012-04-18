@@ -68,7 +68,7 @@ Channel * Channel::get(NetworkInterface & networkInterface,
 Channel * get(NetworkInterface & networkInterface,
 		const Socket* pSocket)
 {
-	return networkInterface.findChannel(pSocket);
+	return networkInterface.findChannel(*pSocket);
 }
 
 //-------------------------------------------------------------------------------------

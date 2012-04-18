@@ -94,10 +94,10 @@ namespace KBEngine{
 class  XmlPlus : public RefCountable
 {
 protected:
-	TiXmlDocument* m_txdoc_;
-	TiXmlElement* m_rootElement_;
+	TiXmlDocument* txdoc_;
+	TiXmlElement* rootElement_;
 public:
-	XmlPlus(void):m_txdoc_(NULL),m_rootElement_(NULL)
+	XmlPlus(void):txdoc_(NULL),rootElement_(NULL)
 	{
 	}
 	XmlPlus(const char* xmlFile){
@@ -105,11 +105,11 @@ public:
 	}
 	
 	~XmlPlus(void){
-		if(m_txdoc_){
-			m_txdoc_->Clear();
-			delete m_txdoc_;
-			m_txdoc_ = NULL;
-			m_rootElement_ = NULL;
+		if(txdoc_){
+			txdoc_->Clear();
+			delete txdoc_;
+			txdoc_ = NULL;
+			rootElement_ = NULL;
 		}
 	}
 
@@ -118,25 +118,25 @@ public:
 		char pathbuf[255];
 		sprintf(pathbuf, "%s", xmlFile);
 
-		m_txdoc_ = new TiXmlDocument((char*)&pathbuf);
-		if(!m_txdoc_->LoadFile()){
+		txdoc_ = new TiXmlDocument((char*)&pathbuf);
+		if(!txdoc_->LoadFile()){
 			ERROR_MSG("load xml from %s is error!\n", pathbuf);
 			return NULL;
 		}
 
-		m_rootElement_ = m_txdoc_->RootElement();
+		rootElement_ = txdoc_->RootElement();
 		return getRootNode();
 	}
 
 	/**获取根元素*/
-	TiXmlElement* getRootElement(void){return m_rootElement_;}
+	TiXmlElement* getRootElement(void){return rootElement_;}
 
 	/**获取根节点， 带参数key为范围根节点下的某个子节点根*/
 	TiXmlNode* getRootNode(const char* key = "")
 	{
 		if(strlen(key) > 0)
-			return m_rootElement_->FirstChild(key)->FirstChild();
-		return m_rootElement_->FirstChild();
+			return rootElement_->FirstChild(key)->FirstChild();
+		return rootElement_->FirstChild();
 	}
 
 	/**直接返回要进入的key节点指针*/

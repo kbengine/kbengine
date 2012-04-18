@@ -141,35 +141,35 @@ PyObject* Entities::_items(PyObject* self, PyObject *args)
 //-------------------------------------------------------------------------------------
 void Entities::add(ENTITY_ID id, Entity* entity)
 { 
-	ENTITYS_MAP::const_iterator iter = _m_entities.find(id);
-	if(iter != _m_entities.end())
+	ENTITYS_MAP::const_iterator iter = _entities.find(id);
+	if(iter != _entities.end())
 	{
 		ERROR_MSG("Bases::add::exist the entityID:%d", id);
 		return;
 	}
 
-	_m_entities[id] = entity; 
+	_entities[id] = entity; 
 }
 
 //-------------------------------------------------------------------------------------
 void Entities::clear(void)
 {
-	ENTITYS_MAP::const_iterator iter = _m_entities.begin();
-	while (iter != _m_entities.end())
+	ENTITYS_MAP::const_iterator iter = _entities.begin();
+	while (iter != _entities.end())
 	{
 		Entity* entity = iter->second;
 		entity->destroy();
 		iter++;
 	}
 
-	_m_entities.clear();
+	_entities.clear();
 }
 
 //-------------------------------------------------------------------------------------
 Entity* Entities::find(ENTITY_ID id)
 {
-	ENTITYS_MAP::const_iterator iter = _m_entities.find(id);
-	if(iter != _m_entities.end())
+	ENTITYS_MAP::const_iterator iter = _entities.find(id);
+	if(iter != _entities.end())
 	{
 		return iter->second;
 	}
@@ -180,11 +180,11 @@ Entity* Entities::find(ENTITY_ID id)
 //-------------------------------------------------------------------------------------
 bool Entities::destroy(ENTITY_ID id)
 {
-	ENTITYS_MAP::iterator iter = _m_entities.find(id);
-	if(iter != _m_entities.end())
+	ENTITYS_MAP::iterator iter = _entities.find(id);
+	if(iter != _entities.end())
 	{
 		Entity* entity = iter->second;
-		_m_entities.erase(iter);
+		_entities.erase(iter);
 		entity->destroy();
 		return true;
 	}

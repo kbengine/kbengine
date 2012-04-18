@@ -14,8 +14,8 @@ static PyThreadState* s_defaultContext;
 
 //-------------------------------------------------------------------------------------
 Script::Script():
-m_module_(NULL),
-m_pyStdouterr_(NULL)
+module_(NULL),
+pyStdouterr_(NULL)
 {
 }
 
@@ -29,16 +29,16 @@ int Script::Run_SimpleString(std::string command, std::string* retBufferPtr)
 {
 	if(retBufferPtr != NULL)
 	{
-		if(!m_pyStdouterrHook_->install()){												
-			ERROR_MSG("Script::Run_SimpleString::m_pyStdouterrHook_->install() is failed!\n");
+		if(!pyStdouterrHook_->install()){												
+			ERROR_MSG("Script::Run_SimpleString::pyStdouterrHook_->install() is failed!\n");
 			SCRIPT_ERROR_CHECK();
 			return -1;
 		}
 			
-		m_pyStdouterrHook_->setHookBuffer(retBufferPtr);
+		pyStdouterrHook_->setHookBuffer(retBufferPtr);
 		PyRun_SimpleString(command.c_str());
 		SCRIPT_ERROR_CHECK();														// 检查是否有错误产生
-		m_pyStdouterrHook_->uninstall();
+		pyStdouterrHook_->uninstall();
 		return 0;
 	}
 
@@ -87,13 +87,13 @@ bool Script::install(wchar_t* pythonHomeDir, std::wstring pyPaths, const char* m
 	PySys_SetPath(pyPaths.c_str());
 	PyObject *m = PyImport_AddModule("__main__");
 
-	m_module_ = PyImport_AddModule(moduleName);										// 添加一个脚本基础模块
-	if (m_module_ == NULL)
+	module_ = PyImport_AddModule(moduleName);										// 添加一个脚本基础模块
+	if (module_ == NULL)
 		return false;
 	
 	const char* componentName = COMPONENT_NAME[componentType];
 	PyObject* pStr = PyUnicode_FromString(componentName);
-	if (PyObject_SetAttrString(m_module_, "component", pStr) == -1)
+	if (PyObject_SetAttrString(module_, "component", pStr) == -1)
 	{
 		ERROR_MSG( "Script::init: Unable to set KBEngine.component to %s\n",
 			componentName );
@@ -123,13 +123,13 @@ bool Script::install(wchar_t* pythonHomeDir, std::wstring pyPaths, const char* m
 	};  
 
 	PyModule_Create(&moduleDesc);													// 初始化基础模块
-	PyObject_SetAttrString(m, moduleName, m_module_);								// 将模块对象加入main
+	PyObject_SetAttrString(m, moduleName, module_);									// 将模块对象加入main
 
-	m_pyStdouterr_ = new ScriptStdOutErr();											// 重定向python输出
-	m_pyStdouterrHook_ = new ScriptStdOutErrHook();
+	pyStdouterr_ = new ScriptStdOutErr();											// 重定向python输出
+	pyStdouterrHook_ = new ScriptStdOutErrHook();
 	
-	if(!m_pyStdouterr_->install()){													// 安装py重定向脚本模块
-		ERROR_MSG("Script::install::m_pyStdouterr_->install() is failed!\n");
+	if(!pyStdouterr_->install()){													// 安装py重定向脚本模块
+		ERROR_MSG("Script::install::pyStdouterr_->install() is failed!\n");
 		SCRIPT_ERROR_CHECK();
 		return false;
 	}
@@ -147,15 +147,15 @@ bool Script::uninstall()
 	Pickler::finalise();
 	SCRIPT_ERROR_CHECK();															// 检查是否有错误产生
 
-	if(m_pyStdouterr_->isInstall() && !m_pyStdouterr_->uninstall())					// 卸载py重定向脚本模块
-		ERROR_MSG("Script::uninstall::m_pyStdouterr_->uninstall() is failed!\n");
+	if(pyStdouterr_->isInstall() && !pyStdouterr_->uninstall())						// 卸载py重定向脚本模块
+		ERROR_MSG("Script::uninstall::pyStdouterr_->uninstall() is failed!\n");
 	else
-		Py_DECREF(m_pyStdouterr_);
+		Py_DECREF(pyStdouterr_);
 
-	if(m_pyStdouterrHook_->isInstall() && !m_pyStdouterrHook_->uninstall())
-		ERROR_MSG("Script::uninstall::m_pyStdouterrHook_->uninstall() is failed!\n");
+	if(pyStdouterrHook_->isInstall() && !pyStdouterrHook_->uninstall())
+		ERROR_MSG("Script::uninstall::pyStdouterrHook_->uninstall() is failed!\n");
 	else
-		Py_DECREF(m_pyStdouterrHook_);
+		Py_DECREF(pyStdouterrHook_);
 
 	ScriptStdOutErr::uninstallScript();	
 	ScriptStdOutErrHook::uninstallScript();
@@ -176,7 +176,7 @@ bool Script::uninstall()
 //-------------------------------------------------------------------------------------
 int Script::registerToModule(const char* attrName, PyObject* pyObj)
 {
-	return PyObject_SetAttrString(m_module_, attrName, pyObj);
+	return PyObject_SetAttrString(module_, attrName, pyObj);
 }
 
 //-------------------------------------------------------------------------------------

@@ -10,75 +10,75 @@ COMPONENT_TYPE EntityDef::__loadComponentType;
 	
 //-------------------------------------------------------------------------------------
 ScriptModule::ScriptModule():
-m_scriptType_(NULL),
-m_uType_(0),
-m_hasCell_(false),
-m_hasBase_(false),
-m_hasClient_(false)
+scriptType_(NULL),
+uType_(0),
+hasCell_(false),
+hasBase_(false),
+hasClient_(false)
 {
-	m_detailLevel_.level[DETAIL_LEVEL_NEAR] = new DetailLevel::Level();
-	m_detailLevel_.level[DETAIL_LEVEL_MEDIUM] = new DetailLevel::Level();
-	m_detailLevel_.level[DETAIL_LEVEL_FAR] = new DetailLevel::Level();
-	m_detailLevel_.level[DETAIL_LEVEL_UNKNOW] = new DetailLevel::Level();
+	detailLevel_.level[DETAIL_LEVEL_NEAR] = new DetailLevel::Level();
+	detailLevel_.level[DETAIL_LEVEL_MEDIUM] = new DetailLevel::Level();
+	detailLevel_.level[DETAIL_LEVEL_FAR] = new DetailLevel::Level();
+	detailLevel_.level[DETAIL_LEVEL_UNKNOW] = new DetailLevel::Level();
 	
-	m_detailLevel_.level[DETAIL_LEVEL_NEAR]->radius = CELL_BORDER_WIDTH;
-	m_detailLevel_.level[DETAIL_LEVEL_NEAR]->hyst = 0.0f;
+	detailLevel_.level[DETAIL_LEVEL_NEAR]->radius = CELL_BORDER_WIDTH;
+	detailLevel_.level[DETAIL_LEVEL_NEAR]->hyst = 0.0f;
 	
-	m_detailLevel_.level[DETAIL_LEVEL_MEDIUM]->radius = 0.0f;
-	m_detailLevel_.level[DETAIL_LEVEL_MEDIUM]->hyst = 0.0f;
+	detailLevel_.level[DETAIL_LEVEL_MEDIUM]->radius = 0.0f;
+	detailLevel_.level[DETAIL_LEVEL_MEDIUM]->hyst = 0.0f;
 	
-	m_detailLevel_.level[DETAIL_LEVEL_FAR]->radius = 0.0f;
-	m_detailLevel_.level[DETAIL_LEVEL_FAR]->hyst = 0.0f;
+	detailLevel_.level[DETAIL_LEVEL_FAR]->radius = 0.0f;
+	detailLevel_.level[DETAIL_LEVEL_FAR]->hyst = 0.0f;
 	
-	m_detailLevel_.level[DETAIL_LEVEL_UNKNOW]->radius = 999999999.0f;
-	m_detailLevel_.level[DETAIL_LEVEL_UNKNOW]->hyst = 0.0f;
+	detailLevel_.level[DETAIL_LEVEL_UNKNOW]->radius = 999999999.0f;
+	detailLevel_.level[DETAIL_LEVEL_UNKNOW]->hyst = 0.0f;
 }
 
 //-------------------------------------------------------------------------------------
 ScriptModule::~ScriptModule()
 {
-	S_RELEASE(m_scriptType_);
-	PROPERTYDESCRIPTION_MAP::iterator iter1 = m_cellPropertyDescr.begin();
-	for(; iter1 != m_cellPropertyDescr.end(); iter1++)
+	S_RELEASE(scriptType_);
+	PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
+	for(; iter1 != cellPropertyDescr_.end(); iter1++)
 		iter1->second->decRef();
 
-	iter1 = m_basePropertyDescr.begin();
-	for(; iter1 != m_basePropertyDescr.end(); iter1++)
+	iter1 = basePropertyDescr_.begin();
+	for(; iter1 != basePropertyDescr_.end(); iter1++)
 		iter1->second->decRef();
 
-	iter1 = m_clientPropertyDescr.begin();
-	for(; iter1 != m_clientPropertyDescr.end(); iter1++)
+	iter1 = clientPropertyDescr_.begin();
+	for(; iter1 != clientPropertyDescr_.end(); iter1++)
 		iter1->second->decRef();
 
-	METHODDESCRIPTION_MAP::iterator iter2 = m_methodCellDescr.begin();
-	for(; iter2 != m_methodCellDescr.end(); iter2++)
+	METHODDESCRIPTION_MAP::iterator iter2 = methodCellDescr_.begin();
+	for(; iter2 != methodCellDescr_.end(); iter2++)
 		SAFE_RELEASE(iter2->second);
 		
-	METHODDESCRIPTION_MAP::iterator iter3 = m_methodBaseDescr.begin();
-	for(; iter3 != m_methodBaseDescr.end(); iter3++)
+	METHODDESCRIPTION_MAP::iterator iter3 = methodBaseDescr_.begin();
+	for(; iter3 != methodBaseDescr_.end(); iter3++)
 		SAFE_RELEASE(iter3->second);
 		
-	METHODDESCRIPTION_MAP::iterator iter4 = m_methodClientDescr.begin();
-	for(; iter4 != m_methodClientDescr.end(); iter4++)
+	METHODDESCRIPTION_MAP::iterator iter4 = methodClientDescr_.begin();
+	for(; iter4 != methodClientDescr_.end(); iter4++)
 		SAFE_RELEASE(iter4->second);
 }
 
 //-------------------------------------------------------------------------------------
 uint16 ScriptModule::getUType(void)
 {
-	return m_uType_;
+	return uType_;
 }
 
 //-------------------------------------------------------------------------------------
 PyTypeObject* ScriptModule::getScriptType(void)
 {
-	return m_scriptType_;
+	return scriptType_;
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* ScriptModule::createObject(void)
 {
-	PyObject * pObject = PyType_GenericAlloc(m_scriptType_, 0);
+	PyObject * pObject = PyType_GenericAlloc(scriptType_, 0);
 	if (pObject == NULL)
 	{
 		PyErr_Print();
@@ -109,7 +109,7 @@ bool ScriptModule::addPropertyDescription(const char* attrName, PropertyDescript
 			
 			// 判断他们是什么级别的属性， 将其保存到对应detailLevel的地方
 			if((propertyDescription->getFlags() & ENTITY_CLIENT_DATA_FLAGS) > 0){
-				m_cellDetailLevelPropertyDescrs[propertyDescription->getDetailLevel()][attrName] = propertyDescription;
+				cellDetailLevelPropertyDescrs_[propertyDescription->getDetailLevel()][attrName] = propertyDescription;
 			}
 			break;
 	case BASEAPP_TYPE:
@@ -139,8 +139,8 @@ bool ScriptModule::addPropertyDescription(const char* attrName, PropertyDescript
 //-------------------------------------------------------------------------------------
 PropertyDescription* ScriptModule::findCellPropertyDescription(const char* attrName)
 {
-	PROPERTYDESCRIPTION_MAP::iterator iter = m_cellPropertyDescr.find(attrName);
-	if(iter == m_cellPropertyDescr.end())
+	PROPERTYDESCRIPTION_MAP::iterator iter = cellPropertyDescr_.find(attrName);
+	if(iter == cellPropertyDescr_.end())
 	{
 		//ERROR_MSG("ScriptModule::findCellPropertyDescription: [%s] not found!\n", attrName);
 		return NULL;
@@ -151,8 +151,8 @@ PropertyDescription* ScriptModule::findCellPropertyDescription(const char* attrN
 //-------------------------------------------------------------------------------------
 PropertyDescription* ScriptModule::findBasePropertyDescription(const char* attrName)
 {
-	PROPERTYDESCRIPTION_MAP::iterator iter = m_basePropertyDescr.find(attrName);
-	if(iter == m_basePropertyDescr.end())
+	PROPERTYDESCRIPTION_MAP::iterator iter = basePropertyDescr_.find(attrName);
+	if(iter == basePropertyDescr_.end())
 	{
 		//ERROR_MSG("ScriptModule::findBasePropertyDescription: [%s] not found!\n", attrName);
 		return NULL;
@@ -163,8 +163,8 @@ PropertyDescription* ScriptModule::findBasePropertyDescription(const char* attrN
 //-------------------------------------------------------------------------------------
 PropertyDescription* ScriptModule::findClientPropertyDescription(const char* attrName)
 {
-	PROPERTYDESCRIPTION_MAP::iterator iter = m_clientPropertyDescr.find(attrName);
-	if(iter == m_clientPropertyDescr.end())
+	PROPERTYDESCRIPTION_MAP::iterator iter = clientPropertyDescr_.find(attrName);
+	if(iter == clientPropertyDescr_.end())
 	{
 		//ERROR_MSG("ScriptModule::findClientPropertyDescription: [%s] not found!\n", attrName);
 		return NULL;
@@ -175,9 +175,9 @@ PropertyDescription* ScriptModule::findClientPropertyDescription(const char* att
 //-------------------------------------------------------------------------------------
 PropertyDescription* ScriptModule::findCellPropertyDescription(const uint32& utype)
 {
-	PROPERTYDESCRIPTION_UIDMAP::iterator iter = m_cellPropertyDescr_uidmap.find(utype);
+	PROPERTYDESCRIPTION_UIDMAP::iterator iter = cellPropertyDescr_uidmap_.find(utype);
 
-	if(iter == m_cellPropertyDescr_uidmap.end())
+	if(iter == cellPropertyDescr_uidmap_.end())
 	{
 		//ERROR_MSG("ScriptModule::findCellPropertyDescription: [%ld] not found!\n", utype);
 		return NULL;
@@ -189,9 +189,9 @@ PropertyDescription* ScriptModule::findCellPropertyDescription(const uint32& uty
 //-------------------------------------------------------------------------------------
 PropertyDescription* ScriptModule::findBasePropertyDescription(const uint32& utype)
 {
-	PROPERTYDESCRIPTION_UIDMAP::iterator iter = m_basePropertyDescr_uidmap.find(utype);
+	PROPERTYDESCRIPTION_UIDMAP::iterator iter = basePropertyDescr_uidmap_.find(utype);
 
-	if(iter == m_basePropertyDescr_uidmap.end())
+	if(iter == basePropertyDescr_uidmap_.end())
 	{
 		//ERROR_MSG("ScriptModule::findBasePropertyDescription: [%ld] not found!\n", utype);
 		return NULL;
@@ -203,9 +203,9 @@ PropertyDescription* ScriptModule::findBasePropertyDescription(const uint32& uty
 //-------------------------------------------------------------------------------------
 PropertyDescription* ScriptModule::findClientPropertyDescription(const uint32& utype)
 {
-	PROPERTYDESCRIPTION_UIDMAP::iterator iter = m_clientPropertyDescr_uidmap.find(utype);
+	PROPERTYDESCRIPTION_UIDMAP::iterator iter = clientPropertyDescr_uidmap_.find(utype);
 
-	if(iter == m_clientPropertyDescr_uidmap.end())
+	if(iter == clientPropertyDescr_uidmap_.end())
 	{
 		//ERROR_MSG("ScriptModule::findClientPropertyDescription: [%ld] not found!\n", utype);
 		return NULL;
@@ -217,8 +217,8 @@ PropertyDescription* ScriptModule::findClientPropertyDescription(const uint32& u
 //-------------------------------------------------------------------------------------
 MethodDescription* ScriptModule::findCellMethodDescription(const char* attrName)
 {
-	METHODDESCRIPTION_MAP::iterator iter = m_methodCellDescr.find(attrName);
-	if(iter == m_methodCellDescr.end())
+	METHODDESCRIPTION_MAP::iterator iter = methodCellDescr_.find(attrName);
+	if(iter == methodCellDescr_.end())
 	{
 		//ERROR_MSG("ScriptModule::findCellMethodDescription: [%s] not found!\n", attrName);
 		return NULL;
@@ -229,8 +229,8 @@ MethodDescription* ScriptModule::findCellMethodDescription(const char* attrName)
 //-------------------------------------------------------------------------------------
 MethodDescription* ScriptModule::findCellMethodDescription(uint32 utype)
 {
-	METHODDESCRIPTION_UIDMAP::iterator iter = m_methodCellDescr_uidmap.find(utype);
-	if(iter == m_methodCellDescr_uidmap.end())
+	METHODDESCRIPTION_UIDMAP::iterator iter = methodCellDescr_uidmap_.find(utype);
+	if(iter == methodCellDescr_uidmap_.end())
 	{
 		//ERROR_MSG("ScriptModule::findCellMethodDescription: [%ld] not found!\n", utype);
 		return NULL;
@@ -248,16 +248,16 @@ bool ScriptModule::addCellMethodDescription(const char* attrName, MethodDescript
 		return false;
 	}
 
-	m_methodCellDescr[attrName] = methodDescription;
-	m_methodCellDescr_uidmap[methodDescription->getUType()] = methodDescription;
+	methodCellDescr_[attrName] = methodDescription;
+	methodCellDescr_uidmap_[methodDescription->getUType()] = methodDescription;
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 MethodDescription* ScriptModule::findBaseMethodDescription(const char* attrName)
 {
-	METHODDESCRIPTION_MAP::iterator iter = m_methodBaseDescr.find(attrName);
-	if(iter == m_methodBaseDescr.end())
+	METHODDESCRIPTION_MAP::iterator iter = methodBaseDescr_.find(attrName);
+	if(iter == methodBaseDescr_.end())
 	{
 		//ERROR_MSG("ScriptModule::findBaseMethodDescription: [%s] not found!\n", attrName);
 		return NULL;
@@ -268,8 +268,8 @@ MethodDescription* ScriptModule::findBaseMethodDescription(const char* attrName)
 //-------------------------------------------------------------------------------------
 MethodDescription* ScriptModule::findBaseMethodDescription(uint32 utype)
 {
-	METHODDESCRIPTION_UIDMAP::iterator iter = m_methodBaseDescr_uidmap.find(utype);
-	if(iter == m_methodBaseDescr_uidmap.end())
+	METHODDESCRIPTION_UIDMAP::iterator iter = methodBaseDescr_uidmap_.find(utype);
+	if(iter == methodBaseDescr_uidmap_.end())
 	{
 		//ERROR_MSG("ScriptModule::findBaseMethodDescription: [%ld] not found!\n", utype);
 		return NULL;
@@ -287,16 +287,16 @@ bool ScriptModule::addBaseMethodDescription(const char* attrName, MethodDescript
 		return false;
 	}
 
-	m_methodBaseDescr[attrName] = methodDescription;
-	m_methodBaseDescr_uidmap[methodDescription->getUType()] = methodDescription;
+	methodBaseDescr_[attrName] = methodDescription;
+	methodBaseDescr_uidmap_[methodDescription->getUType()] = methodDescription;
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 MethodDescription* ScriptModule::findClientMethodDescription(const char* attrName)
 {
-	METHODDESCRIPTION_MAP::iterator iter = m_methodClientDescr.find(attrName);
-	if(iter == m_methodClientDescr.end())
+	METHODDESCRIPTION_MAP::iterator iter = methodClientDescr_.find(attrName);
+	if(iter == methodClientDescr_.end())
 	{
 		//ERROR_MSG("ScriptModule::findClientMethodDescription: [%s] not found!\n", attrName);
 		return NULL;
@@ -307,8 +307,8 @@ MethodDescription* ScriptModule::findClientMethodDescription(const char* attrNam
 //-------------------------------------------------------------------------------------
 MethodDescription* ScriptModule::findClientMethodDescription(uint32 utype)
 {
-	METHODDESCRIPTION_UIDMAP::iterator iter = m_methodClientDescr_uidmap.find(utype);
-	if(iter == m_methodClientDescr_uidmap.end())
+	METHODDESCRIPTION_UIDMAP::iterator iter = methodClientDescr_uidmap_.find(utype);
+	if(iter == methodClientDescr_uidmap_.end())
 	{
 		//ERROR_MSG("ScriptModule::findClientMethodDescription: [%ld] not found!\n", utype);
 		return NULL;
@@ -326,8 +326,8 @@ bool ScriptModule::addClientMethodDescription(const char* attrName, MethodDescri
 		return false;
 	}
 
-	m_methodClientDescr[attrName] = methodDescription;
-	m_methodClientDescr_uidmap[methodDescription->getUType()] = methodDescription;
+	methodClientDescr_[attrName] = methodDescription;
+	methodClientDescr_uidmap_[methodDescription->getUType()] = methodDescription;
 	return true;
 }
 

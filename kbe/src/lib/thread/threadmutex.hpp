@@ -50,25 +50,25 @@ class ThreadMutex
 public:
 	ThreadMutex(void)
 	{
-		THREAD_MUTEX_INIT(m_mutex_);
+		THREAD_MUTEX_INIT(mutex_);
 	}
 
 	virtual ~ThreadMutex(void) 
 	{ 
-		THREAD_MUTEX_DELETE(m_mutex_);
+		THREAD_MUTEX_DELETE(mutex_);
 	}	
 	
 	void lockMutex(void)
 	{
-		THREAD_MUTEX_LOCK(m_mutex_);
+		THREAD_MUTEX_LOCK(mutex_);
 	}
 
 	void unlockMutex(void)
 	{
-		THREAD_MUTEX_UNLOCK(m_mutex_);
+		THREAD_MUTEX_UNLOCK(mutex_);
 	}
 protected:
-	THREAD_MUTEX m_mutex_;
+	THREAD_MUTEX mutex_;
 };
 
 }

@@ -47,10 +47,10 @@ public:
 	ServerApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
 	~ServerApp();
 	
-	KBEngine::script::Script& getScript(){ return m_script_; }
+	KBEngine::script::Script& getScript(){ return script_; }
 
 	void registerScript(PyTypeObject*);
-	int registerPyObjectToScript(const char* attrName, PyObject* pyObj){ return m_script_.registerToModule(attrName, pyObj); };
+	int registerPyObjectToScript(const char* attrName, PyObject* pyObj){ return script_.registerToModule(attrName, pyObj); };
 
 	bool initialize();
 	virtual bool initializeBegin(){return true;};
@@ -65,17 +65,17 @@ public:
 	bool uninstallPyScript();
 
 	virtual bool loadConfig();
-	const char* name(){return COMPONENT_NAME[m_componentType_];}
+	const char* name(){return COMPONENT_NAME[componentType_];}
 
-	Mercury::EventDispatcher & getMainDispatcher()				{ return m_mainDispatcher_; }
-	Mercury::NetworkInterface & getNetworkInterface()			{ return m_networkInterface_; }
+	Mercury::EventDispatcher & getMainDispatcher()				{ return mainDispatcher_; }
+	Mercury::NetworkInterface & getNetworkInterface()			{ return networkInterface_; }
 protected:
-	COMPONENT_TYPE											m_componentType_;
-	COMPONENT_ID											m_componentID_;									// 本组件的ID
-	KBEngine::script::Script								m_script_;
-	std::vector<PyTypeObject*>								m_scriptBaseTypes_;
-	Mercury::EventDispatcher& 								m_mainDispatcher_;	
-	Mercury::NetworkInterface&								m_networkInterface_;
+	COMPONENT_TYPE											componentType_;
+	COMPONENT_ID											componentID_;									// 本组件的ID
+	KBEngine::script::Script								script_;
+	std::vector<PyTypeObject*>								scriptBaseTypes_;
+	Mercury::EventDispatcher& 								mainDispatcher_;	
+	Mercury::NetworkInterface&								networkInterface_;
 };
 
 }

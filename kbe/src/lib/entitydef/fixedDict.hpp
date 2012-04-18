@@ -30,7 +30,7 @@ public:
 	FixedDict(DataType* dataType, std::string& strDictInitData);
 	virtual ~FixedDict();
 
-	const DataType* getDataType(void){ return _m_dataType; }
+	const DataType* getDataType(void){ return _dataType; }
 
 	/** 支持pickler 方法 */
 	static PyObject* __reduce_ex__(PyObject* self, PyObject* protocol);
@@ -53,7 +53,7 @@ public:
 	/** 更新字典数据到自己的数据中 */
 	PyObject* update(PyObject* args);
 protected:
-	FixedDictType* _m_dataType;
+	FixedDictType* _dataType;
 } ;
 
 }

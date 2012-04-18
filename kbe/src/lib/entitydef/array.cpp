@@ -25,8 +25,8 @@ SCRIPT_INIT(Array, 0, &Sequence::seqMethods, 0, 0, 0)
 Array::Array(DataType* dataType, std::string& strInitData):
 Sequence(getScriptType(), false)
 {
-	_m_dataType = static_cast<ArrayType*>(dataType);
-	_m_dataType->incRef();
+	_dataType = static_cast<ArrayType*>(dataType);
+	_dataType->incRef();
 	initialize(strInitData);
 }
 
@@ -34,8 +34,8 @@ Sequence(getScriptType(), false)
 Array::Array(DataType* dataType):
 Sequence(getScriptType(), false)
 {
-	_m_dataType = static_cast<ArrayType*>(dataType);
-	_m_dataType->incRef();
+	_dataType = static_cast<ArrayType*>(dataType);
+	_dataType->incRef();
 	initialize("");
 }
 
@@ -43,7 +43,7 @@ Sequence(getScriptType(), false)
 //-------------------------------------------------------------------------------------
 Array::~Array()
 {
-	_m_dataType->decRef();
+	_dataType->decRef();
 }
 
 //-------------------------------------------------------------------------------------
@@ -112,7 +112,7 @@ void Array::onInstallScript(PyObject* mod)
 //-------------------------------------------------------------------------------------
 bool Array::isSameType(PyObject* pyValue)
 {
-	return _m_dataType->isSameType(pyValue);
+	return _dataType->isSameType(pyValue);
 }
 
 //-------------------------------------------------------------------------------------

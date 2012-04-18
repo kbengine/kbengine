@@ -16,20 +16,20 @@ SCRIPT_INIT(RemoteEntityMethod, tp_call, 0, 0, 0, 0)
 	
 //-------------------------------------------------------------------------------------
 MethodDescription::MethodDescription(std::string name, bool isExposed):
-m_name_(name),
-m_isExposed_(isExposed)
+name_(name),
+isExposed_(isExposed)
 {
 	MethodDescription::methodDescriptionCount_++;
-	m_utype_ = MethodDescription::methodDescriptionCount_;
+	utype_ = MethodDescription::methodDescriptionCount_;
 }
 
 //-------------------------------------------------------------------------------------
 MethodDescription::~MethodDescription()
 {
-	std::vector<DataType*>::iterator iter = m_argTypes_.begin();
-	for(; iter != m_argTypes_.end(); iter++)
+	std::vector<DataType*>::iterator iter = argTypes_.begin();
+	for(; iter != argTypes_.end(); iter++)
 		(*iter)->decRef();
-	m_argTypes_.clear();
+	argTypes_.clear();
 }
 
 //-------------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ bool MethodDescription::pushArgType(DataType* dataType)
 	}
 
 	dataType->incRef();
-	m_argTypes_.push_back(dataType);
+	argTypes_.push_back(dataType);
 	return true;
 }
 
@@ -57,7 +57,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 	}
 	
 	int offset = (isExposed() == true) ? 1 : 0;
-	uint8 argsSize = m_argTypes_.size();
+	uint8 argsSize = argTypes_.size();
 	uint8 giveArgsSize = PyTuple_Size(args);
 
 	if (giveArgsSize != argsSize + offset)
@@ -98,9 +98,9 @@ bool MethodDescription::checkArgs(PyObject* args)
 	for(uint8 i=0; i <argsSize; i++)
 	{
 		PyObject* pyArg = PyTuple_GetItem(args, i + offset);
-		if (!m_argTypes_[i]->isSameType(pyArg))
+		if (!argTypes_[i]->isSameType(pyArg))
 		{
-			PyObject* pExample = m_argTypes_[i]->createObject(NULL);
+			PyObject* pExample = argTypes_[i]->createObject(NULL);
 			PyErr_Format(PyExc_TypeError,
 				"Method::checkArgs: method[%s] argument %d: Expected %s, %s found",
 				getName().c_str(),
@@ -119,11 +119,11 @@ bool MethodDescription::checkArgs(PyObject* args)
 //-------------------------------------------------------------------------------------
 void MethodDescription::addToStream(MemoryStream* mstream, PyObject* args)
 {
-	uint8 argsSize = m_argTypes_.size();
+	uint8 argsSize = argTypes_.size();
 	int offset = 0;
 
 	// 将utype放进去，方便对端识别这个方法
-	(*mstream) << (uint32)m_utype_;
+	(*mstream) << (uint32)utype_;
 
 	// 如果是exposed方法则先将entityID打包进去
 	if(isExposed())
@@ -136,7 +136,7 @@ void MethodDescription::addToStream(MemoryStream* mstream, PyObject* args)
 	for(uint8 i=0; i <argsSize; i++)
 	{
 		PyObject* pyArg = PyTuple_GetItem(args, i + offset);
-		m_argTypes_[i]->addToStream(mstream, pyArg);
+		argTypes_[i]->addToStream(mstream, pyArg);
 	}	
 }
 
@@ -161,7 +161,7 @@ PyObject* MethodDescription::createFromStream(MemoryStream* mstream)
 
 	for(size_t index=0; index<argSize; index++)
 	{
-		PyTuple_SET_ITEM(&*pyArgsTuple, index + offset, m_argTypes_[index]->createFromStream(mstream));
+		PyTuple_SET_ITEM(&*pyArgsTuple, index + offset, argTypes_[index]->createFromStream(mstream));
 	}
 	
 	return pyArgsTuple;
@@ -170,7 +170,7 @@ PyObject* MethodDescription::createFromStream(MemoryStream* mstream)
 //-------------------------------------------------------------------------------------
 size_t MethodDescription::getArgSize(void)
 {
-	return m_argTypes_.size();
+	return argTypes_.size();
 }
 
 //-------------------------------------------------------------------------------------
@@ -195,16 +195,16 @@ PyObject* MethodDescription::call(PyObject* func, PyObject* args)
 //-------------------------------------------------------------------------------------
 RemoteEntityMethod::RemoteEntityMethod(MethodDescription* methodDescription, EntityMailboxAbstract* mailbox):
 script::ScriptObject(getScriptType(), false),
-m_methodDescription_(methodDescription),
-m_pMailbox_(mailbox)
+methodDescription_(methodDescription),
+pMailbox_(mailbox)
 {
-	Py_INCREF(m_pMailbox_);
+	Py_INCREF(pMailbox_);
 }
 
 //-------------------------------------------------------------------------------------
 RemoteEntityMethod::~RemoteEntityMethod()
 {
-	Py_DECREF(m_pMailbox_);
+	Py_DECREF(pMailbox_);
 }
 
 //-------------------------------------------------------------------------------------

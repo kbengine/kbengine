@@ -88,8 +88,8 @@ public:
 	static void onInstallScript(PyObject* mod);
 	
 	int length(void){ return VECTOR_SIZE; }
-	Vector3& getVector(void){ return *m_val_; }
-	void setVector(const Vector3& v){ *m_val_ = v; }
+	Vector3& getVector(void){ return *val_; }
+	void setVector(const Vector3& v){ *val_ = v; }
 	
 	/** 检查某个python对象是否可以转换为本类型 */
 	static bool check(PyObject* value, bool isPrintErr = true);
@@ -97,9 +97,9 @@ public:
 	/** 将某个经过check检查过的python对象转换为vector3 */
 	static void convertPyObjectToVector3(Vector3& v, PyObject* obj);
 private:
-	Vector3*			m_val_;
-	bool				m_isCopy_;
-	bool				m_isReadOnly_;
+	Vector3*			val_;
+	bool				isCopy_;
+	bool				isReadOnly_;
 	static const int 	VECTOR_SIZE;
 } ;
 

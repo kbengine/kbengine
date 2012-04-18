@@ -31,8 +31,8 @@ SCRIPT_INIT(FixedDict, 0, 0, &FixedDict::mappingMethods, 0, 0)
 FixedDict::FixedDict(DataType* dataType, std::string& strDictInitData):
 Map(getScriptType(), false)
 {
-	_m_dataType = static_cast<FixedDictType*>(dataType);
-	_m_dataType->incRef();
+	_dataType = static_cast<FixedDictType*>(dataType);
+	_dataType->incRef();
 	initialize(strDictInitData);
 }
 
@@ -40,8 +40,8 @@ Map(getScriptType(), false)
 FixedDict::FixedDict(DataType* dataType):
 Map(getScriptType(), false)
 {
-	_m_dataType = static_cast<FixedDictType*>(dataType);
-	_m_dataType->incRef();
+	_dataType = static_cast<FixedDictType*>(dataType);
+	_dataType->incRef();
 	initialize("");
 }
 
@@ -49,17 +49,17 @@ Map(getScriptType(), false)
 //-------------------------------------------------------------------------------------
 FixedDict::~FixedDict()
 {
-	_m_dataType->decRef();
+	_dataType->decRef();
 }
 
 //-------------------------------------------------------------------------------------
 void FixedDict::initialize(std::string strDictInitData)
 {
-	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = _m_dataType->getKeyTypes();
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = _dataType->getKeyTypes();
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes.begin();
 	for(; iter != keyTypes.end(); iter++)
 	{
-		PyDict_SetItem(m_pyDict_, PyUnicode_FromString(iter->first.c_str()), iter->second->createObject(NULL));
+		PyDict_SetItem(pyDict_, PyUnicode_FromString(iter->first.c_str()), iter->second->createObject(NULL));
 	}
 }
 
@@ -115,7 +115,7 @@ void FixedDict::onInstallScript(PyObject* mod)
 //-------------------------------------------------------------------------------------
 int FixedDict::mp_length(PyObject* self)
 {
-	return PyDict_Size(static_cast<FixedDict*>(self)->m_pyDict_);
+	return PyDict_Size(static_cast<FixedDict*>(self)->pyDict_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -127,18 +127,18 @@ int FixedDict::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 	{
 		if(!fixedDict->checkDataChanged(dictKeyName, value, true))
 			return 0;
-		return PyDict_DelItem(fixedDict->m_pyDict_, key);
+		return PyDict_DelItem(fixedDict->pyDict_, key);
 	}
 	
 	if(!fixedDict->checkDataChanged(dictKeyName, value))
 		return 0;
-	return PyDict_SetItem(fixedDict->m_pyDict_, key, value);
+	return PyDict_SetItem(fixedDict->pyDict_, key, value);
 }
 
 //-------------------------------------------------------------------------------------
 bool FixedDict::checkDataChanged(const char* keyName, PyObject* value, bool isDelete)
 {
-	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = _m_dataType->getKeyTypes();
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = _dataType->getKeyTypes();
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes.find(keyName);
 	if(iter != keyTypes.end())
 	{
@@ -174,7 +174,7 @@ PyObject* FixedDict::mp_subscript(PyObject* self, PyObject* key)
 {
 	FixedDict* fixedDict = static_cast<FixedDict*>(self);
 
-	PyObject* pyObj = PyDict_GetItem(fixedDict->m_pyDict_, key);
+	PyObject* pyObj = PyDict_GetItem(fixedDict->pyDict_, key);
 	if (!pyObj)
 		PyErr_SetObject(PyExc_KeyError, key);
 	else

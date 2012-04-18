@@ -44,7 +44,7 @@ int ListenerReceiver::handleInputNotification(int fd)
 		
 		if(networkInterface_.registerChannel(pchannel))
 		{
-			networkInterface_.dispatcher().registerFileDescriptor(pNewSocket->get(), pchannel->packetReceiver());
+			networkInterface_.dispatcher().registerFileDescriptor(*pNewSocket, pchannel->packetReceiver());
 		}
 	}
 	return 0;

@@ -50,23 +50,17 @@ namespace KBEngine{
 
 class MethodDescription
 {
-protected:	
-	static uint32				methodDescriptionCount_;						// 所有的属性描述的数量
-	std::string					m_name_;										// 这个方法的名称
-	uint32						m_utype_;										// 这个方法的数字类别， 用于网络上传输识别
-	std::vector<DataType*>		m_argTypes_;									// 这个属性的参数类别列表
-	bool						m_isExposed_;									// 是否是一个暴露方法
 public:	
 	MethodDescription(std::string name, bool isExposed = false);
 	virtual ~MethodDescription();
 	
-	std::string& getName(void){ return m_name_; };
-	uint32 getUType(void)const{ return m_utype_; }
+	std::string& getName(void){ return name_; };
+	uint32 getUType(void)const{ return utype_; }
 	static uint32 getDescriptionCount(void){ return methodDescriptionCount_; }
-	bool isExposed(void)const{ return m_isExposed_; }
-	void setExposed(void){ m_isExposed_ = true; }
+	bool isExposed(void)const{ return isExposed_; }
+	void setExposed(void){ isExposed_ = true; }
 	bool pushArgType(DataType* dataType);
-	std::vector<DataType*>& getArgTypes(void){ return m_argTypes_; }
+	std::vector<DataType*>& getArgTypes(void){ return argTypes_; }
 	size_t getArgSize(void);
 	
 	/** 检查一个call是否合法 */
@@ -79,22 +73,28 @@ public:
 	
 	/** 呼叫一个方法 */
 	PyObject* call(PyObject* func, PyObject* args);	
+protected:	
+	static uint32				methodDescriptionCount_;					// 所有的属性描述的数量
+	std::string					name_;										// 这个方法的名称
+	uint32						utype_;										// 这个方法的数字类别， 用于网络上传输识别
+	std::vector<DataType*>		argTypes_;									// 这个属性的参数类别列表
+	bool						isExposed_;									// 是否是一个暴露方法
 };
 
 class RemoteEntityMethod : public script::ScriptObject
 {
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(RemoteEntityMethod, script::ScriptObject)	
-protected:	
-	MethodDescription*		m_methodDescription_;					// 这个方法的描述
-	EntityMailboxAbstract*	m_pMailbox_;							// 这个方法所属的mailbox
 public:	
 	RemoteEntityMethod(MethodDescription* methodDescription, EntityMailboxAbstract* mailbox);
 	virtual ~RemoteEntityMethod();
-	std::string& getName(void){ return m_methodDescription_->getName(); };
-	MethodDescription* getDescription(void)const{ return m_methodDescription_; }
+	std::string& getName(void){ return methodDescription_->getName(); };
+	MethodDescription* getDescription(void)const{ return methodDescription_; }
 	static PyObject* tp_call(PyObject* self, PyObject* args, PyObject* kwds);
-	EntityMailboxAbstract* getMailbox(void)const { return m_pMailbox_; }
+	EntityMailboxAbstract* getMailbox(void)const { return pMailbox_; }
+protected:	
+	MethodDescription*		methodDescription_;					// 这个方法的描述
+	EntityMailboxAbstract*	pMailbox_;							// 这个方法所属的mailbox
 };
 }
 #endif

@@ -48,7 +48,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType)
 	SERVER_APP app(dispatcher, networkInterface, componentType);
 	START_MSG(COMPONENT_NAME[componentType]);
 	if(!app.initialize()){
-		ERROR_MSG("app::initialize is error!");
+		ERROR_MSG("app::initialize is error!\n");
 		return -1;
 	}
 	

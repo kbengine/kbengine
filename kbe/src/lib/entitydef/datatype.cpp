@@ -271,7 +271,7 @@ PyObject* FloatType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-VectorType::VectorType(int elemCount):m_elemCount_(elemCount)
+VectorType::VectorType(int elemCount):elemCount_(elemCount)
 {
 }
 
@@ -283,9 +283,9 @@ VectorType::~VectorType()
 //-------------------------------------------------------------------------------------
 bool VectorType::isSameType(PyObject* pyValue)
 {
-	if(!PySequence_Check(pyValue) || PySequence_Size(pyValue) != m_elemCount_)
+	if(!PySequence_Check(pyValue) || PySequence_Size(pyValue) != elemCount_)
 	{
-		PyErr_Format(PyExc_TypeError, "must be set to a VECTOR%d type.", m_elemCount_);
+		PyErr_Format(PyExc_TypeError, "must be set to a VECTOR%d type.", elemCount_);
 		PyErr_PrintEx(0);
 		return false;
 	}
@@ -297,7 +297,7 @@ bool VectorType::isSameType(PyObject* pyValue)
 PyObject* VectorType::createObject(MemoryStream* defaultVal)
 {
 	float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
-	switch(m_elemCount_)
+	switch(elemCount_)
 	{
 		case 2:
 			if(defaultVal)
@@ -326,7 +326,7 @@ MemoryStream* VectorType::parseDefaultStr(std::string defaultVal)
 		stream << defaultVal;
 		float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
 		bs = new MemoryStream();
-		switch(m_elemCount_)
+		switch(elemCount_)
 		{
 			case 2:
 				stream >> x >> y;
@@ -349,7 +349,7 @@ MemoryStream* VectorType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void VectorType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	for(int index=0; index<m_elemCount_; index++)
+	for(int index=0; index<elemCount_; index++)
 	{
 		PyObject* pyVal = PySequence_GetItem(pyValue, index);
 		(*mstream) << (float)PyFloat_AsDouble(pyVal);
@@ -552,7 +552,7 @@ ArrayType::ArrayType()
 //-------------------------------------------------------------------------------------
 ArrayType::~ArrayType()
 {
-	m_dataType_->decRef();
+	dataType_->decRef();
 }
 
 //-------------------------------------------------------------------------------------
@@ -566,16 +566,16 @@ bool ArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 	{
 		ArrayType* dataType = new ArrayType();
 		if(dataType->initialize(xmlplus, arrayNode)){
-			m_dataType_ = dataType;
-			m_dataType_->incRef();
+			dataType_ = dataType;
+			dataType_->incRef();
 		}
 	}
 	else
 	{
 		DataType* dataType = DataTypes::getDataType(strType);
 		if(dataType != NULL){
-			m_dataType_ = dataType;
-			m_dataType_->incRef();
+			dataType_ = dataType;
+			dataType_->incRef();
 		}
 		else
 		{
@@ -593,7 +593,7 @@ bool ArrayType::isSameType(PyObject* pyValue)
 	for(int i=0; i<size; i++)
 	{
 		PyObject* pyVal = PySequence_GetItem(pyValue, i);
-		bool ok = m_dataType_->isSameType(pyVal);
+		bool ok = dataType_->isSameType(pyVal);
 		Py_DECREF(pyVal);
 		if(!ok)
 			return false;
@@ -636,20 +636,20 @@ FixedDictType::FixedDictType()
 //-------------------------------------------------------------------------------------
 FixedDictType::~FixedDictType()
 {
-	FIXEDDICT_KEYTYPE_MAP::iterator iter = m_keyTypes_.begin();
-	for(; iter != m_keyTypes_.end(); iter++)
+	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
+	for(; iter != keyTypes_.end(); iter++)
 	{
 		iter->second->decRef();
 	}
-	m_keyTypes_.clear();
+	keyTypes_.clear();
 }
 
 //-------------------------------------------------------------------------------------
 std::string FixedDictType::getKeyNames(void)
 {
 	std::string keyNames = "";
-	FIXEDDICT_KEYTYPE_MAP::iterator iter = m_keyTypes_.begin();
-	for(; iter != m_keyTypes_.end(); iter++)
+	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
+	for(; iter != keyTypes_.end(); iter++)
 	{
 		keyNames += iter->first + ",";
 	}
@@ -676,7 +676,7 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 			{
 				ArrayType* dataType = new ArrayType();
 				if(dataType->initialize(xmlplus, typeNode)){
-					m_keyTypes_[typeName] = dataType;
+					keyTypes_[typeName] = dataType;
 					dataType->incRef();
 				}
 				else
@@ -686,7 +686,7 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 			{
 				DataType* dataType = DataTypes::getDataType(strType);
 				if(dataType != NULL){
-					m_keyTypes_[typeName] = dataType;
+					keyTypes_[typeName] = dataType;
 					dataType->incRef();
 				}
 				else
@@ -711,16 +711,16 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 	}
 	
 	Py_ssize_t dictSize = PyDict_Size(pyValue);
-	if(dictSize != (Py_ssize_t)m_keyTypes_.size())
+	if(dictSize != (Py_ssize_t)keyTypes_.size())
 	{
 		PyErr_Format(PyExc_TypeError, "FIXED_DICT key no match. size:%d-%d, keyNames=[%s].", 
-			dictSize, m_keyTypes_.size(), getKeyNames().c_str());
+			dictSize, keyTypes_.size(), getKeyNames().c_str());
 		PyErr_PrintEx(0);
 		return false;
 	}
 
-	FIXEDDICT_KEYTYPE_MAP::iterator iter = m_keyTypes_.begin();
-	for(; iter != m_keyTypes_.end(); iter++)
+	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
+	for(; iter != keyTypes_.end(); iter++)
 	{
 		PyObject* pyObject = PyDict_GetItemString(pyValue, const_cast<char*>(iter->first.c_str()));
 		if(pyObject == NULL || !iter->second->isSameType(pyObject))

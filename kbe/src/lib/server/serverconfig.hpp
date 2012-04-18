@@ -51,17 +51,6 @@ typedef struct EngineComponentInfo{
 
 class ServerConfig : public Singleton<ServerConfig>
 {
-private:
-	ENGINE_COMPONENT_INFO _m_cellAppInfo;
-	ENGINE_COMPONENT_INFO _m_baseAppInfo;
-	ENGINE_COMPONENT_INFO _m_dbmgrInfo;
-	ENGINE_COMPONENT_INFO _m_loginAppInfo;
-	ENGINE_COMPONENT_INFO _m_cellAppMgrInfo;
-	ENGINE_COMPONENT_INFO _m_baseAppMgrInfo;
-	ENGINE_COMPONENT_INFO _m_kbMachineInfo;
-	ENGINE_COMPONENT_INFO _m_kbCenterInfo;
-public:
-	KBEngine::thread::ThreadMutex myMutex;
 public:
 	ServerConfig();
 	~ServerConfig();
@@ -78,6 +67,17 @@ public:
 	ENGINE_COMPONENT_INFO& getKBCenter(void);
 
 	ENGINE_COMPONENT_INFO& getComponent(COMPONENT_TYPE ComponentType);
+private:
+	ENGINE_COMPONENT_INFO _cellAppInfo;
+	ENGINE_COMPONENT_INFO _baseAppInfo;
+	ENGINE_COMPONENT_INFO _dbmgrInfo;
+	ENGINE_COMPONENT_INFO _loginAppInfo;
+	ENGINE_COMPONENT_INFO _cellAppMgrInfo;
+	ENGINE_COMPONENT_INFO _baseAppMgrInfo;
+	ENGINE_COMPONENT_INFO _kbMachineInfo;
+	ENGINE_COMPONENT_INFO _kbCenterInfo;
+public:
+	KBEngine::thread::ThreadMutex myMutex;
 };
 
 }

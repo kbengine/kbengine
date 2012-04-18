@@ -9,32 +9,32 @@ uint32	PropertyDescription::propertyDescriptionCount_ = 0;
 //-------------------------------------------------------------------------------------
 PropertyDescription::PropertyDescription(std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
 	DataType* dataType, bool isIdentifier, uint32 databaseLength, std::string defaultStr, uint8 detailLevel):
-	m_name_(name),
-	m_dataTypeName_(dataTypeName),
-	m_flags_(flags),
-	m_isPersistent_(isPersistent),
-	m_dataType_(dataType),
-	m_isIdentifier_(isIdentifier),
-	m_databaseLength_(databaseLength),
-	m_detailLevel_(detailLevel)
+	name_(name),
+	dataTypeName_(dataTypeName),
+	flags_(flags),
+	isPersistent_(isPersistent),
+	dataType_(dataType),
+	isIdentifier_(isIdentifier),
+	databaseLength_(databaseLength),
+	detailLevel_(detailLevel)
 {
-	m_dataType_->incRef();
+	dataType_->incRef();
 	
 	PropertyDescription::propertyDescriptionCount_++;
-	m_utype_ = PropertyDescription::propertyDescriptionCount_;
+	utype_ = PropertyDescription::propertyDescriptionCount_;
 
 	if(dataType != NULL)
-		m_defaultVal_ = dataType->parseDefaultStr(defaultStr);
+		defaultVal_ = dataType->parseDefaultStr(defaultStr);
 	else
 		ERROR_MSG("PropertyDescription::PropertyDescription: %s DataType is NULL, in property[%s].\n", 
-			dataTypeName.c_str(), m_name_.c_str());
+			dataTypeName.c_str(), name_.c_str());
 }
 
 //-------------------------------------------------------------------------------------
 PropertyDescription::~PropertyDescription()
 {
-	SAFE_RELEASE(m_defaultVal_);
-	m_dataType_->decRef();
+	SAFE_RELEASE(defaultVal_);
+	dataType_->decRef();
 }
 
 //-------------------------------------------------------------------------------------
@@ -139,7 +139,7 @@ int ArrayDescription::onSetValue(PyObject* parentObj, PyObject* value)
 VectorDescription::VectorDescription(std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
 	DataType* dataType, bool isIdentifier, uint32 databaseLength, std::string defaultStr, uint8 detailLevel, uint8 elemCount):
 	PropertyDescription(dataTypeName, name, flags, isPersistent, dataType, isIdentifier, databaseLength, defaultStr, detailLevel),
-	m_elemCount_(elemCount)
+	elemCount_(elemCount)
 {
 }
 
@@ -151,7 +151,7 @@ VectorDescription::~VectorDescription()
 //-------------------------------------------------------------------------------------
 int VectorDescription::onSetValue(PyObject* parentObj, PyObject* value)
 {
-	switch(m_elemCount_)
+	switch(elemCount_)
 	{
 	case 2:
 		{

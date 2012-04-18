@@ -53,13 +53,13 @@ class RefCountable
 public:
 	int incRef(void) 
 	{
-		return ++m_refCount_;
+		return ++refCount_;
 	}
 
 	int decRef(void) 
 	{
 		
-		int currRef = --m_refCount_;
+		int currRef = --refCount_;
 		assert(currRef >= 0 && "RefCountable:currRef maybe a error!");
 		if (0 >= currRef)
 			onRefOver();											// 引用结束了
@@ -74,26 +74,26 @@ public:
 
 	void setRefCount(int n)
 	{
-		m_refCount_ = n;
+		refCount_ = n;
 	}
 
 	int getRefCount(void) const 
 	{ 
-		return m_refCount_; 
+		return refCount_; 
 	}
 
 protected:
-	RefCountable(void) : m_refCount_(0) 
+	RefCountable(void) : refCount_(0) 
 	{
 	}
 
 	virtual ~RefCountable(void) 
 	{ 
-		assert(0 == m_refCount_ && "RefCountable:currRef maybe a error!"); 
+		assert(0 == refCount_ && "RefCountable:currRef maybe a error!"); 
 	}
 
 protected:
-	int m_refCount_;
+	int refCount_;
 };
 
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -102,13 +102,13 @@ class SafeRefCountable
 public:
 	int incRef(void) 
 	{
-		return ::InterlockedIncrement(&m_refCount_);
+		return ::InterlockedIncrement(&refCount_);
 	}
 
 	int decRef(void) 
 	{
 		
-		long currRef =::InterlockedDecrement(&m_refCount_);
+		long currRef =::InterlockedDecrement(&refCount_);
 		assert(currRef >= 0 && "RefCountable:currRef maybe a error!");
 		if (0 >= currRef)
 			onRefOver();											// 引用结束了
@@ -123,26 +123,26 @@ public:
 
 	void setRefCount(long n)
 	{
-		InterlockedExchange((long *)&m_refCount_, n);
+		InterlockedExchange((long *)&refCount_, n);
 	}
 
 	int getRefCount(void) const 
 	{ 
-		return InterlockedExchange((long *)&m_refCount_, m_refCount_);
+		return InterlockedExchange((long *)&refCount_, refCount_);
 	}
 
 protected:
-	SafeRefCountable(void) : m_refCount_(0) 
+	SafeRefCountable(void) : refCount_(0) 
 	{
 	}
 
 	virtual ~SafeRefCountable(void) 
 	{ 
-		assert(0 == m_refCount_ && "SafeRefCountable:currRef maybe a error!"); 
+		assert(0 == refCount_ && "SafeRefCountable:currRef maybe a error!"); 
 	}
 
 protected:
-	long m_refCount_;
+	long refCount_;
 };
 #else
 class SafeRefCountable 
@@ -153,10 +153,10 @@ public:
 		__asm__ volatile (
 			"lock addl $1, %0"
 			:						// no output
-			: "m"	(this->m_refCount_) 	// input: this->count_
+			: "m"	(this->refCount_) 	// input: this->count_
 			: "memory" 				// clobbers memory
 		);
-		return this->m_refCount_;
+		return this->refCount_;
 	}
 
 	int decRef(void) 
@@ -177,27 +177,27 @@ public:
 
 	void setRefCount(long n)
 	{
-		//InterlockedExchange((long *)&m_refCount_, n);
+		//InterlockedExchange((long *)&refCount_, n);
 	}
 
 	int getRefCount(void) const 
 	{ 
-		//return InterlockedExchange((long *)&m_refCount_, m_refCount_);
-		return m_refCount_;
+		//return InterlockedExchange((long *)&refCount_, refCount_);
+		return refCount_;
 	}
 
 protected:
-	SafeRefCountable(void) : m_refCount_(0) 
+	SafeRefCountable(void) : refCount_(0) 
 	{
 	}
 
 	virtual ~SafeRefCountable(void) 
 	{ 
-		assert(0 == m_refCount_ && "SafeRefCountable:currRef maybe a error!"); 
+		assert(0 == refCount_ && "SafeRefCountable:currRef maybe a error!"); 
 	}
 
 protected:
-	long m_refCount_;
+	long refCount_;
 private:
 	/**
 	 *	This private method decreases the reference count by 1.
@@ -209,7 +209,7 @@ private:
 			"mov $-1, %0  \n\t"
 			"lock xadd %0, %1"
 			: "=&a"	(ret)				// output only and early clobber
-			: "m"	(this->m_refCount_)		// input (memory)
+			: "m"	(this->refCount_)		// input (memory)
 			: "memory"
 		);
 		return ret;
@@ -221,27 +221,27 @@ template<class T>
 class RefCountedPtr 
 {
 public:
-	RefCountedPtr(T* ptr):m_ptr_(ptr) 
+	RefCountedPtr(T* ptr):ptr_(ptr) 
 	{
-		if (m_ptr_)
-			m_ptr_->addRef();
+		if (ptr_)
+			ptr_->addRef();
 	}
 
-	RefCountedPtr(RefCountedPtr<T>* refptr):m_ptr_(refptr->getObject()) 
+	RefCountedPtr(RefCountedPtr<T>* refptr):ptr_(refptr->getObject()) 
 	{
-		if (m_ptr_)
-			m_ptr_->addRef();
+		if (ptr_)
+			ptr_->addRef();
 	}
 	
 	~RefCountedPtr(void) 
 	{
-		if (0 != m_ptr_)
-			m_ptr_->decRef();
+		if (0 != ptr_)
+			ptr_->decRef();
 	}
 
 	T& operator*()const 
 	{ 
-		return *m_ptr_; 
+		return *ptr_; 
 	}
 
 	T* operator->()const 
@@ -251,10 +251,10 @@ public:
 
 	T* getObject(void) const 
 	{ 
-		return m_ptr_; 
+		return ptr_; 
 	}
 private:
-	T* m_ptr_;
+	T* ptr_;
 };
 
 }

@@ -22,7 +22,7 @@ INLINE bool Socket::good() const
 	return socket_ != -1;
 }
 
-INLINE Socket::operator int() const
+INLINE Socket::operator KBESOCKET() const
 {
 	return socket_;
 }

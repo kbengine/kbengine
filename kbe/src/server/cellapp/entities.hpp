@@ -55,13 +55,13 @@ public:
 	static PyObject *	mp_subscript(PyObject * self, PyObject * key);
 	static int mp_length(PyObject * self);
 
-	ENTITYS_MAP& getEntities(void){ return _m_entities; }
+	ENTITYS_MAP& getEntities(void){ return _entities; }
 	void add(ENTITY_ID id, Entity* entity);
 	void clear(void);
 	bool destroy(ENTITY_ID id);
 	Entity* find(ENTITY_ID id);
 private:
-	ENTITYS_MAP _m_entities;
+	ENTITYS_MAP _entities;
 };
 
 }

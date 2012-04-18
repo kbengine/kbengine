@@ -18,8 +18,8 @@ using namespace KBEngine;
 class App: public ServerApp
 {
 protected:
-	IDClient<ENTITY_ID>*		m_idClient_;
-	Entities*					m_entities_;									// 存储所有的entity的容器
+	IDClient<ENTITY_ID>*		idClient_;
+	Entities*					entities_;									// 存储所有的entity的容器
 public:
 	App(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
 	  ServerApp(dispatcher, ninterface, componentType)
@@ -38,8 +38,8 @@ public:
 
 		registerScript(Entity::getScriptType());
 		
-		 m_entities_ = new Entities();
-		registerPyObjectToScript("entities", m_entities_);
+		 entities_ = new Entities();
+		registerPyObjectToScript("entities", entities_);
 		return true;
 	}
 
@@ -53,7 +53,7 @@ public:
 
 	bool run()
 	{
-		m_idClient_->onAddRange(1, 500);
+		idClient_->onAddRange(1, 500);
 		Entity* e = createEntity("Avatar", NULL);
 		registerPyObjectToScript("avatar", e);
 		PyRun_SimpleString("print ('888888888888888888888', KBEngine.avatar.id)");
@@ -68,7 +68,7 @@ public:
 	
 	bool initializeBegin()
 	{
-		 m_idClient_ = new IDClient<ENTITY_ID>;
+		 idClient_ = new IDClient<ENTITY_ID>;
 		return true;
 	}
 
@@ -83,7 +83,7 @@ public:
 Entity* App::createEntity(const char* entityType, PyObject* params, bool isInitializeScript, ENTITY_ID eid)
 {
 	// 检查ID是否足够, 不足返回NULL
-	if(eid <= 0 && m_idClient_->getSize() == 0)
+	if(eid <= 0 && idClient_->getSize() == 0)
 	{
 		PyErr_SetString(PyExc_SystemError, "App::createEntity: is Failed. not enough entityIDs.");
 		PyErr_PrintEx(0);
@@ -103,7 +103,7 @@ Entity* App::createEntity(const char* entityType, PyObject* params, bool isIniti
 	// 判断是否要分配一个新的id
 	ENTITY_ID id = eid;
 	if(id <= 0)
-		id = m_idClient_->alloc();
+		id = idClient_->alloc();
 
 	// 执行Entity的构造函数
 	Entity* entity = new(obj) Entity(id, sm);
@@ -112,7 +112,7 @@ Entity* App::createEntity(const char* entityType, PyObject* params, bool isIniti
 	entity->createNamespace(params);
 
 	// 将entity加入entities
-	m_entities_->add(id, entity); 
+	entities_->add(id, entity); 
 	
 	// 检查ID的足够性，不足则申请
 	//checkEntityIDEnough();
@@ -125,7 +125,7 @@ Entity* App::createEntity(const char* entityType, PyObject* params, bool isIniti
 	return entity;
 }
 
-template<> App* Singleton<App>::m_singleton_ = 0;
+template<> App* Singleton<App>::singleton_ = 0;
 
 int KBENGINE_MAIN(int argc, char* argv[])
 {

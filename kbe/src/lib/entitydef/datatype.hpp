@@ -242,7 +242,7 @@ public:
 class VectorType : public DataType
 {
 protected:
-	int m_elemCount_;
+	int elemCount_;
 public:	
 	VectorType(int elemCount);
 	virtual ~VectorType();	
@@ -303,7 +303,7 @@ public:
 class ArrayType : public DataType
 {
 protected:
-	DataType*			m_dataType_;		// 这个数组所处理的类别
+	DataType*			dataType_;		// 这个数组所处理的类别
 public:	
 	ArrayType();
 	virtual ~ArrayType();	
@@ -322,13 +322,13 @@ class FixedDictType : public DataType
 public:
 	typedef std::map<std::string, DataType*> FIXEDDICT_KEYTYPE_MAP;
 protected:
-	FIXEDDICT_KEYTYPE_MAP			m_keyTypes_;		// 这个固定字典里的各个key的类型
+	FIXEDDICT_KEYTYPE_MAP			keyTypes_;		// 这个固定字典里的各个key的类型
 public:	
 	FixedDictType();
 	virtual ~FixedDictType();
 	
 	/** 获得这个固定字典的key类别 */	
-	FIXEDDICT_KEYTYPE_MAP& getKeyTypes(void){ return m_keyTypes_; }
+	FIXEDDICT_KEYTYPE_MAP& getKeyTypes(void){ return keyTypes_; }
 	std::string getName(void){ return "FIXED_DICT";}
 	bool isSameType(PyObject* pyValue);
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);

@@ -53,7 +53,6 @@ public:
 	bool deregisterChannel(Channel* channel);
 	
 	Channel * findChannel(KBESOCKET s);
-	Channel * findChannel(const Socket* pSocket);
 	
 	void onChannelGone(Channel * pChannel);
 	void onChannelTimeOut(Channel * pChannel);

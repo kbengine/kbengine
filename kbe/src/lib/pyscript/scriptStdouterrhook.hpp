@@ -33,9 +33,9 @@ public:
 	ScriptStdOutErrHook();
 	~ScriptStdOutErrHook();
 	void onPrint(const char* msg);
-	void setHookBuffer(std::string* buffer){ m_buffer_ = buffer; };
+	void setHookBuffer(std::string* buffer){ buffer_ = buffer; };
 protected:
-	std::string* m_buffer_;
+	std::string* buffer_;
 } ;
 
 }

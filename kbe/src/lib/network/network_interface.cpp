@@ -113,7 +113,7 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 	bool listeningInterfaceEmpty =
 		(listeningInterface == NULL || listeningInterface[0] == 0);
 
-	// Query bwmachined over the local interface (dev: lo) for what it
+	// Query kbemachined over the local interface (dev: lo) for what it
 	// believes the internal interface is.
 	if (listeningInterface &&
 		(strcmp( listeningInterface, USE_KBEMACHINED ) == 0))
@@ -121,7 +121,7 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 		INFO_MSG( "NetworkInterface::recreateListeningSocket: "
 				"Querying KBEMachined for interface\n" );
 		
-		// 没有实现
+		// 没有实现, 向KBEMachined查询接口
 	}
 	else if (socket_.findIndicatedInterface( listeningInterface, ifname ) == 0)
 	{
@@ -220,27 +220,10 @@ void NetworkInterface::handleTimeout(TimerHandle handle, void * arg)
 Channel * NetworkInterface::findChannel(KBESOCKET s)
 {
 	if (s <= 0)
-	{
 		return NULL;
-	}
 
 	ChannelMap::iterator iter = channelMap_.find(s);
 	Channel * pChannel = iter != channelMap_.end() ? iter->second : NULL;
-
-	return pChannel;
-}
-
-Channel * NetworkInterface::findChannel(const Socket* pSocket)
-{
-	KBESOCKET s = pSocket->get();
-	if (s <= 0)
-	{
-		return NULL;
-	}
-
-	ChannelMap::iterator iter = channelMap_.find(s);
-	Channel * pChannel = iter != channelMap_.end() ? iter->second : NULL;
-
 	return pChannel;
 }
 
@@ -249,7 +232,7 @@ bool NetworkInterface::registerChannel(Channel* channel)
 {
 	KBE_ASSERT(channel->socket() != NULL);
 	KBE_ASSERT(&channel->networkInterface() == this);
-	KBESOCKET s = channel->socket()->get();
+	KBESOCKET s = *channel->socket();
 	ChannelMap::iterator iter = channelMap_.find(s);
 	Channel * pExisting = iter != channelMap_.end() ? iter->second : NULL;
 
@@ -271,7 +254,7 @@ bool NetworkInterface::deregisterChannel(Channel* channel)
 	const Address & addr = channel->addr();
 	KBE_ASSERT(channel->socket() != NULL);
 
-	if (!channelMap_.erase(channel->socket()->get()))
+	if (!channelMap_.erase(*channel->socket()))
 	{
 		CRITICAL_MSG( "NetworkInterface::deregisterChannel: "
 				"Channel not found %s!\n",

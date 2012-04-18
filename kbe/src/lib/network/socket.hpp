@@ -25,7 +25,7 @@ class Socket
 public:
 	Socket(u_int32_t networkAddr = 0, u_int16_t networkPort = 0);
 	virtual ~Socket();
-	operator int() const;
+	operator KBESOCKET() const;
 	static void initNetwork();
 	bool good() const;
 		
@@ -84,7 +84,6 @@ public:
 	INLINE int recvfrom(void * gramData, int gramSize, u_int16_t * networkPort, u_int32_t * networkAddr);
 	INLINE int recvfrom(void * gramData, int gramSize, struct sockaddr_in & sin);
 	
-	KBESOCKET get()const{ return socket_; }
 	INLINE const Address& addr() const;
 	void addr(const Address& newAddress);
 	void addr(u_int16_t port, u_int32_t newAddress);
