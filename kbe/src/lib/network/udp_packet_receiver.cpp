@@ -41,7 +41,7 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 		Channel* pChannel = networkInterface_.findChannel(endpoint_.addr());
 		KBE_ASSERT(pChannel != NULL);
 		networkInterface_.deregisterChannel(pChannel);
-		pChannel->decRef();
+		pChannel->destroy();
 		return false;
 	}
 	
