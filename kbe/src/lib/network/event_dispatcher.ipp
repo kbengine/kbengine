@@ -25,22 +25,22 @@ INLINE TimerHandle EventDispatcher::addOnceOffTimer(int64 microseconds,
 
 INLINE void EventDispatcher::breakProcessing(bool breakState)
 {
-	m_breakProcessing_ = breakState;
+	breakProcessing_ = breakState;
 }
 
 INLINE bool EventDispatcher::processingBroken() const
 {
-	return m_breakProcessing_;
+	return breakProcessing_;
 }
 
 INLINE double EventDispatcher::maxWait() const
 {
-	return m_maxWait_;
+	return maxWait_;
 }
 
 INLINE void EventDispatcher::maxWait(double seconds)
 {
-	m_maxWait_ = seconds;
+	maxWait_ = seconds;
 }
 
 } // namespace Mercury

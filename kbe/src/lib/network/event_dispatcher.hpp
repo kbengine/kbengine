@@ -20,8 +20,6 @@ same license as the rest of the engine.
 namespace KBEngine { 
 namespace Mercury
 {
-
-typedef TimesT<uint64> Times64;
 class DispatcherCoupling;
 class ErrorReporter;
 class EventPoller;
@@ -66,7 +64,7 @@ public:
 	void clearSpareTime();
 	double proportionalSpareTime() const;
 
-	ErrorReporter & errorReporter()	{ return *m_pErrorReporter_; }
+	ErrorReporter & errorReporter()	{ return *pErrorReporter_; }
 
 	INLINE EventPoller* createPoller();
 private:
@@ -89,21 +87,21 @@ private:
 	ChildDispatchers childDispatchers_;
 
 protected:
-	bool m_breakProcessing_;
-	double m_maxWait_;
-	uint32 m_numTimerCalls_;
+	bool breakProcessing_;
+	double maxWait_;
+	uint32 numTimerCalls_;
 	
 	// Statistics
-	TimeStamp		m_accSpareTime_;
-	TimeStamp		m_oldSpareTime_;
-	TimeStamp		m_totSpareTime_;
-	TimeStamp		m_lastStatisticsGathered_;
+	TimeStamp		accSpareTime_;
+	TimeStamp		oldSpareTime_;
+	TimeStamp		totSpareTime_;
+	TimeStamp		lastStatisticsGathered_;
 	
-	Tasks* m_pFrequentTasks_;
-	ErrorReporter * m_pErrorReporter_;
-	Times64* m_pTimes_;
-	EventPoller* m_pPoller_;
-	DispatcherCoupling * m_pCouplingToParent_;
+	Tasks* pFrequentTasks_;
+	ErrorReporter * pErrorReporter_;
+	Timers64* pTimers_;
+	EventPoller* pPoller_;
+	DispatcherCoupling * pCouplingToParent_;
 };
 
 

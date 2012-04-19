@@ -201,6 +201,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\packet_sender.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\tcp_packet.cpp"
 				>
 			</File>
@@ -291,6 +295,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\packet_sender.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\tcp_packet.hpp"
 				>
 			</File>
@@ -347,6 +355,10 @@
 		</File>
 		<File
 			RelativePath=".\packet_receiver.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\packet_sender.ipp"
 			>
 		</File>
 		<File

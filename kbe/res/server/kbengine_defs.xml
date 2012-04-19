@@ -1,4 +1,6 @@
 <root>
+	<gameUpdateHertz> 10 </gameUpdateHertz>
+	
 	<dbmgr>
 		<ip>						127.0.0.1					</ip>
 		<port>						30000						</port>

@@ -17,7 +17,7 @@ namespace Mercury
 class Bundle;
 class Channel;
 
-/** 此类接口用于接收普通的Mercury消息
+/** 此类接口用于接收普通的Mercury输入消息
 */
 class InputNotificationHandler
 {
@@ -26,6 +26,17 @@ public:
 	virtual int handleInputNotification(int fd) = 0;
 };
 
+/** 此类接口用于接收普通的Mercury输出消息
+*/
+class OutputNotificationHandler
+{
+public:
+	virtual ~OutputNotificationHandler() {};
+	virtual int handleOutputNotification(int fd) = 0;
+};
+
+/** 此类接口用于接收一个网络通道超时消息
+*/
 class ChannelTimeOutHandler
 {
 public:

@@ -11,7 +11,7 @@ same license as the rest of the engine.
 namespace KBEngine { 
 
 template<class TIME_STAMP>
-TimesT<TIME_STAMP>::TimesT():
+TimersT<TIME_STAMP>::TimersT():
 	timeQueue_(),
 	pProcessingNode_( NULL ),
 	lastProcessTime_( 0 ),
@@ -20,13 +20,13 @@ TimesT<TIME_STAMP>::TimesT():
 }
 
 template<class TIME_STAMP>
-TimesT<TIME_STAMP>::~TimesT()
+TimersT<TIME_STAMP>::~TimersT()
 {
 	this->clear();
 }
 
 template <class TIME_STAMP>
-TimerHandle TimesT< TIME_STAMP >::add( TimeStamp startTime,
+TimerHandle TimersT< TIME_STAMP >::add( TimeStamp startTime,
 		TimeStamp interval, TimerHandler * pHandler, void * pUser )
 {
 	Time * pTime = new Time( *this, startTime, interval, pHandler, pUser );
@@ -35,7 +35,7 @@ TimerHandle TimesT< TIME_STAMP >::add( TimeStamp startTime,
 }
 
 template <class TIME_STAMP>
-void TimesT< TIME_STAMP >::onCancel()
+void TimersT< TIME_STAMP >::onCancel()
 {
 	++numCancelled_;
 
@@ -49,7 +49,7 @@ void TimesT< TIME_STAMP >::onCancel()
 }
 
 template <class TIME_STAMP>
-void TimesT< TIME_STAMP >::clear(bool shouldCallCancel)
+void TimersT< TIME_STAMP >::clear(bool shouldCallCancel)
 {
 	int maxLoopCount = timeQueue_.size();
 
@@ -89,7 +89,7 @@ public:
 };
 
 template <class TIME_STAMP>
-void TimesT< TIME_STAMP >::purgeCancelledTimes()
+void TimersT< TIME_STAMP >::purgeCancelledTimes()
 {
 	typename PriorityQueue::Container & container = timeQueue_.container();
 	typename PriorityQueue::Container::iterator newEnd =
@@ -112,7 +112,7 @@ void TimesT< TIME_STAMP >::purgeCancelledTimes()
 }
 
 template <class TIME_STAMP>
-int TimesT< TIME_STAMP >::process(TimeStamp now)
+int TimersT< TIME_STAMP >::process(TimeStamp now)
 {
 	int numFired = 0;
 
@@ -148,7 +148,7 @@ int TimesT< TIME_STAMP >::process(TimeStamp now)
 }
 
 template <class TIME_STAMP>
-bool TimesT< TIME_STAMP >::legal(TimerHandle handle) const
+bool TimersT< TIME_STAMP >::legal(TimerHandle handle) const
 {
 	typedef Time * const * TimeIter;
 	Time * pTime = static_cast< Time* >( handle.time() );
@@ -178,7 +178,7 @@ bool TimesT< TIME_STAMP >::legal(TimerHandle handle) const
 }
 
 template <class TIME_STAMP>
-TIME_STAMP TimesT< TIME_STAMP >::nextExp(TimeStamp now) const
+TIME_STAMP TimersT< TIME_STAMP >::nextExp(TimeStamp now) const
 {
 	if (timeQueue_.empty() ||
 		now > timeQueue_.top()->time())
@@ -190,7 +190,7 @@ TIME_STAMP TimesT< TIME_STAMP >::nextExp(TimeStamp now) const
 }
 
 template <class TIME_STAMP>
-bool TimesT< TIME_STAMP >::getTimerInfo( TimerHandle handle,
+bool TimersT< TIME_STAMP >::getTimerInfo( TimerHandle handle,
 					TimeStamp &			time,
 					TimeStamp &			interval,
 					void * &			pUser ) const
@@ -211,7 +211,7 @@ bool TimesT< TIME_STAMP >::getTimerInfo( TimerHandle handle,
 
 template <class TIME_STAMP>
 TIME_STAMP
-	TimesT< TIME_STAMP >::timerDeliveryTime(TimerHandle handle) const
+	TimersT< TIME_STAMP >::timerDeliveryTime(TimerHandle handle) const
 {
 	Time * pTime = static_cast< Time * >( handle.time() );
 	return pTime->deliveryTime();
@@ -219,21 +219,21 @@ TIME_STAMP
 
 template <class TIME_STAMP>
 TIME_STAMP
-	TimesT< TIME_STAMP >::timerIntervalTime(TimerHandle handle) const
+	TimersT< TIME_STAMP >::timerIntervalTime(TimerHandle handle) const
 {
 	Time * pTime = static_cast< Time * >( handle.time() );
 	return pTime->interval();
 }
 
 template <class TIME_STAMP>
-TIME_STAMP & TimesT< TIME_STAMP >::timerIntervalTime( TimerHandle handle )
+TIME_STAMP & TimersT< TIME_STAMP >::timerIntervalTime( TimerHandle handle )
 {
 	Time * pTime = static_cast< Time * >( handle.time() );
 	return pTime->intervalRef();
 }
 
 
-inline TimeBase::TimeBase(TimesBase & owner, TimerHandler * pHandler, void * pUserData) :
+inline TimeBase::TimeBase(TimersBase & owner, TimerHandler * pHandler, void * pUserData) :
 	owner_( owner ),
 	pHandler_( pHandler ),
 	pUserData_(pUserData),
@@ -261,7 +261,7 @@ inline void TimeBase::cancel()
 
 
 template <class TIME_STAMP>
-TimesT< TIME_STAMP >::Time::Time( TimesBase & owner,
+TimersT< TIME_STAMP >::Time::Time( TimersBase & owner,
 		TimeStamp startTime, TimeStamp interval,
 		TimerHandler * _pHandler, void * _pUser ) :
 	TimeBase( owner, _pHandler, _pUser ),
@@ -271,14 +271,14 @@ TimesT< TIME_STAMP >::Time::Time( TimesBase & owner,
 }
 
 template <class TIME_STAMP>
-TIME_STAMP TimesT< TIME_STAMP >::Time::deliveryTime() const
+TIME_STAMP TimersT< TIME_STAMP >::Time::deliveryTime() const
 {
 	return this->isExecuting() ?  (time_ + interval_) : time_;
 }
 
 
 template <class TIME_STAMP>
-void TimesT< TIME_STAMP >::Time::triggerTimer()
+void TimersT< TIME_STAMP >::Time::triggerTimer()
 {
 	if (!this->isCancelled())
 	{

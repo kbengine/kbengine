@@ -66,7 +66,9 @@ public:
 	ENGINE_COMPONENT_INFO& getKBMachine(void);
 	ENGINE_COMPONENT_INFO& getKBCenter(void);
 
-	ENGINE_COMPONENT_INFO& getComponent(COMPONENT_TYPE ComponentType);
+	inline ENGINE_COMPONENT_INFO& getComponent(COMPONENT_TYPE ComponentType);
+ 
+	inline int16 gameUpdateHertz(void)const { return gameUpdateHertz_;}
 private:
 	ENGINE_COMPONENT_INFO _cellAppInfo;
 	ENGINE_COMPONENT_INFO _baseAppInfo;
@@ -77,8 +79,10 @@ private:
 	ENGINE_COMPONENT_INFO _kbMachineInfo;
 	ENGINE_COMPONENT_INFO _kbCenterInfo;
 public:
-	KBEngine::thread::ThreadMutex myMutex;
+	KBEngine::thread::ThreadMutex myMutex_;
+	int16 gameUpdateHertz_;
 };
 
+#define g_kbeSrvConfig ServerConfig::getSingleton()
 }
 #endif

@@ -1,4 +1,6 @@
 #include "serverapp.hpp"
+#include "server/serverconfig.hpp"
+
 namespace KBEngine{
 template<> ServerApp* Singleton<ServerApp>::singleton_ = 0;
 
@@ -7,7 +9,8 @@ ServerApp::ServerApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInter
 componentType_(componentType),
 componentID_(0),
 mainDispatcher_(dispatcher),
-networkInterface_(ninterface)
+networkInterface_(ninterface),
+time_(0)
 {
 	networkInterface_.pExtensionData( this );
 }
@@ -20,9 +23,8 @@ ServerApp::~ServerApp()
 //-------------------------------------------------------------------------------------
 bool ServerApp::loadConfig()
 {
-	ServerConfig sc;
-	sc.loadConfig("../../res/server/kbengine_defs.xml");
-	sc.loadConfig("../../../demo/res/server/kbengine.xml");
+	g_kbeSrvConfig.loadConfig("../../res/server/kbengine_defs.xml");
+	g_kbeSrvConfig.loadConfig("../../../demo/res/server/kbengine.xml");
 	return true;
 }
 
@@ -116,6 +118,12 @@ bool ServerApp::initialize()
 void ServerApp::finalise(void)
 {
 	uninstallPyScript();
+}
+
+//-------------------------------------------------------------------------------------		
+double ServerApp::gameTimeInSeconds() const
+{
+	return double(time_) / g_kbeSrvConfig.gameUpdateHertz();
 }
 
 //-------------------------------------------------------------------------------------		

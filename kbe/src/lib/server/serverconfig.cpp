@@ -18,64 +18,159 @@ bool ServerConfig::loadConfig(std::string fileName)
 	TiXmlNode* node = NULL, *rootNode = NULL;
 	XmlPlus* xml = new XmlPlus(fileName.c_str());
 
+	rootNode = xml->getRootNode("gameUpdateHertz");
+	if(rootNode != NULL){
+		gameUpdateHertz_ = xml->getValInt(rootNode);
+		rootNode = NULL;
+	}
+
 	rootNode = xml->getRootNode("cellapp");
-	node = xml->enterNode(rootNode, "port");	
-	_cellAppInfo.port = xml->getValInt(node);
-	node = xml->enterNode(rootNode, "ip");	
-	strncpy((char*)&_cellAppInfo.ip, xml->getValStr(node).c_str(), 50);
-	node = xml->enterNode(rootNode, "entryScriptFile");	
-	strncpy((char*)&_cellAppInfo.entryScriptFile, xml->getValStr(node).c_str(), 255);
-	TiXmlNode* aoiNode = xml->enterNode(rootNode, "defaultAoIRadius");
-	node = xml->enterNode(aoiNode, "radius");
-	_cellAppInfo.defaultAoIRadius = float(xml->getValFloat(node));
-	node = xml->enterNode(aoiNode, "hysteresisArea");
-	_cellAppInfo.defaultAoIHysteresisArea = float(xml->getValFloat(node));
+	if(rootNode != NULL)
+	{
+		node = xml->enterNode(rootNode, "port");
+		if(node != NULL)
+			_cellAppInfo.port = xml->getValInt(node);
+		
+		node = NULL;
+		node = xml->enterNode(rootNode, "ip");	
+		if(node != NULL)
+			strncpy((char*)&_cellAppInfo.ip, xml->getValStr(node).c_str(), 50);
+		
+		node = NULL;
+		node = xml->enterNode(rootNode, "entryScriptFile");	
+		if(node != NULL)
+			strncpy((char*)&_cellAppInfo.entryScriptFile, xml->getValStr(node).c_str(), 255);
+		
+		node = NULL;
+		TiXmlNode* aoiNode = xml->enterNode(rootNode, "defaultAoIRadius");
+		if(aoiNode != NULL)
+		{
+			node = NULL;
+			node = xml->enterNode(aoiNode, "radius");
+			if(node != NULL)
+				_cellAppInfo.defaultAoIRadius = float(xml->getValFloat(node));
+			
+			node = NULL;			
+			node = xml->enterNode(aoiNode, "hysteresisArea");
+			if(node != NULL)
+				_cellAppInfo.defaultAoIHysteresisArea = float(xml->getValFloat(node));
+		}
+	}
 	
+	rootNode = NULL;
 	rootNode = xml->getRootNode("baseapp");
-	node = xml->enterNode(rootNode, "port");	
-	_baseAppInfo.port = xml->getValInt(node);
-	node = xml->enterNode(rootNode, "ip");
-	strncpy((char*)&_baseAppInfo.ip, xml->getValStr(node).c_str(), 50);
-	node = xml->enterNode(rootNode, "entryScriptFile");	
-	strncpy((char*)&_baseAppInfo.entryScriptFile, xml->getValStr(node).c_str(), 255);
-	
+	if(rootNode != NULL)
+	{
+		node = NULL;
+		node = xml->enterNode(rootNode, "port");
+		if(node != NULL)	
+			_baseAppInfo.port = xml->getValInt(node);
+		
+		node = NULL;
+		node = xml->enterNode(rootNode, "ip");
+		if(node != NULL)	
+			strncpy((char*)&_baseAppInfo.ip, xml->getValStr(node).c_str(), 50);
+		
+		node = NULL;
+		node = xml->enterNode(rootNode, "entryScriptFile");	
+		if(node != NULL)
+			strncpy((char*)&_baseAppInfo.entryScriptFile, xml->getValStr(node).c_str(), 255);
+	}
+
+	rootNode = NULL;
 	rootNode = xml->getRootNode("dbmgr");
-	node = xml->enterNode(rootNode, "port");	
-	_dbmgrInfo.port = xml->getValInt(node);
-	node = xml->enterNode(rootNode, "ip");
-	strncpy((char*)&_dbmgrInfo.ip, xml->getValStr(node).c_str(), 50);
-	node = xml->enterNode(rootNode, "dbAccountEntityScriptType");	
-	strncpy((char*)&_dbmgrInfo.dbAccountEntityScriptType, xml->getValStr(node).c_str(), 255);
-	
+	if(rootNode != NULL)
+	{
+		node = NULL;
+		node = xml->enterNode(rootNode, "port");	
+		if(node != NULL)
+			_dbmgrInfo.port = xml->getValInt(node);
+		
+		node = NULL;
+		node = xml->enterNode(rootNode, "ip");
+		if(node != NULL)
+			strncpy((char*)&_dbmgrInfo.ip, xml->getValStr(node).c_str(), 50);
+		
+		node = NULL;
+		node = xml->enterNode(rootNode, "dbAccountEntityScriptType");	
+		if(node != NULL)
+			strncpy((char*)&_dbmgrInfo.dbAccountEntityScriptType, xml->getValStr(node).c_str(), 255);
+	}
+
+	rootNode = NULL;
 	rootNode = xml->getRootNode("loginapp");
-	node = xml->enterNode(rootNode, "port");
-	_loginAppInfo.port = xml->getValInt(node);
-	node = xml->enterNode(rootNode, "ip");
-	strncpy((char*)&_loginAppInfo.ip, xml->getValStr(node).c_str(), 50);
+	if(rootNode != NULL)
+	{
+		node = NULL;
+		node = xml->enterNode(rootNode, "port");
+		if(node != NULL)
+			_loginAppInfo.port = xml->getValInt(node);
+		
+		node = NULL;
+		node = xml->enterNode(rootNode, "ip");
+		if(node != NULL)
+			strncpy((char*)&_loginAppInfo.ip, xml->getValStr(node).c_str(), 50);
+	}
 	
+	rootNode = NULL;
 	rootNode = xml->getRootNode("cellappmgr");
-	node = xml->enterNode(rootNode, "port");
-	_cellAppMgrInfo.port = xml->getValInt(node);
-	node = xml->enterNode(rootNode, "ip");
-	strncpy((char*)&_cellAppMgrInfo.ip, xml->getValStr(node).c_str(), 50);
+	if(rootNode != NULL)
+	{
+		node = NULL;
+		node = xml->enterNode(rootNode, "port");
+		if(node != NULL)
+			_cellAppMgrInfo.port = xml->getValInt(node);
+		
+		node = NULL;
+		node = xml->enterNode(rootNode, "ip");
+		if(node != NULL)
+			strncpy((char*)&_cellAppMgrInfo.ip, xml->getValStr(node).c_str(), 50);
+	}
 	
+	rootNode = NULL;
 	rootNode = xml->getRootNode("baseappmgr");
-	node = xml->enterNode(rootNode, "port");
-	_baseAppMgrInfo.port = xml->getValInt(node);
-	node = xml->enterNode(rootNode, "ip");
-	strncpy((char*)&_baseAppMgrInfo.ip, xml->getValStr(node).c_str(), 50);
-
+	if(rootNode != NULL)
+	{
+		node = NULL;
+		node = xml->enterNode(rootNode, "port");
+		if(node != NULL)
+			_baseAppMgrInfo.port = xml->getValInt(node);
+		
+		node = NULL;
+		node = xml->enterNode(rootNode, "ip");
+		if(node != NULL)
+			strncpy((char*)&_baseAppMgrInfo.ip, xml->getValStr(node).c_str(), 50);
+	}
+	
+	rootNode = NULL;
 	rootNode = xml->getRootNode("kbmachine");
-	node = xml->enterNode(rootNode, "port");
-	_kbMachineInfo.port = xml->getValInt(node);
-	node = xml->enterNode(rootNode, "ip");
-	strncpy((char*)&_kbMachineInfo.ip, xml->getValStr(node).c_str(), 50);
+	if(rootNode != NULL)
+	{
+		node = NULL;
+		node = xml->enterNode(rootNode, "port");
+		if(node != NULL)
+			_kbMachineInfo.port = xml->getValInt(node);
+		
+		node = NULL;
+		node = xml->enterNode(rootNode, "ip");
+		if(node != NULL)
+			strncpy((char*)&_kbMachineInfo.ip, xml->getValStr(node).c_str(), 50);
+	}
 
+	rootNode = NULL;
 	rootNode = xml->getRootNode("kbcenter");
-	node = xml->enterNode(rootNode, "port");
-	_kbCenterInfo.port = xml->getValInt(node);
-	node = xml->enterNode(rootNode, "ip");
-	strncpy((char*)&_kbCenterInfo.ip, xml->getValStr(node).c_str(), 50);
+	if(rootNode != NULL)
+	{
+		node = NULL;
+		node = xml->enterNode(rootNode, "port");
+		if(node != NULL)
+			_kbCenterInfo.port = xml->getValInt(node);
+		
+		node = NULL;
+		node = xml->enterNode(rootNode, "ip");
+		if(node != NULL)
+			strncpy((char*)&_kbCenterInfo.ip, xml->getValStr(node).c_str(), 50);
+	}
 	
 	SAFE_RELEASE(xml);
 	return true;

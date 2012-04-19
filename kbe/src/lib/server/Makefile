@@ -1,6 +1,7 @@
 LIB =	server
 
 SRCS =				\
+	entity_app		\
 	serverapp		\
 	serverconfig		\
 	serverinfos

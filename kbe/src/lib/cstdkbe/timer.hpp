@@ -17,7 +17,7 @@ same license as the rest of the engine.
 
 namespace KBEngine
 {
-class TimesBase;
+class TimersBase;
 class TimeBase;
 
 class TimerHandle
@@ -77,7 +77,7 @@ private:
 class TimeBase
 {
 public:
-	TimeBase(TimesBase &owner, TimerHandler * pHandler, void * pUserData);
+	TimeBase(TimersBase &owner, TimerHandler * pHandler, void * pUserData);
 	void cancel();
 	void * getUserData()const	{ return pUserData_; }
 	bool isCancelled()const{ return state_ == TIME_CANCELLED; }
@@ -90,26 +90,26 @@ protected:
 		TIME_CANCELLED
 	};
 
-	TimesBase& owner_;
+	TimersBase& owner_;
 	TimerHandler * pHandler_;
 	void *pUserData_;
 	TimeState state_;
 };
 
-class TimesBase
+class TimersBase
 {
 public:
 	virtual void onCancel() = 0;
 };
 
 template<class TIME_STAMP>
-class TimesT : public TimesBase
+class TimersT : public TimersBase
 {
 public:
 	typedef TIME_STAMP TimeStamp;
 
-	TimesT();
-	~TimesT();
+	TimersT();
+	~TimersT();
 	
 	inline uint32 size() const	{ return timeQueue_.size(); }
 	inline bool empty() const	{ return timeQueue_.empty(); }
@@ -139,7 +139,7 @@ private:
 	class Time : public TimeBase
 	{
 	public:
-		Time( TimesBase & owner, TimeStamp startTime, TimeStamp interval,
+		Time( TimersBase & owner, TimeStamp startTime, TimeStamp interval,
 			TimerHandler * pHandler, void * pUser );
 
 		TIME_STAMP time() const			{ return time_; }
@@ -217,11 +217,13 @@ private:
 	TimeStamp 		lastProcessTime_;
 	int				numCancelled_;
 
-	TimesT( const TimesT & );
-	TimesT & operator=( const TimesT & );
+	TimersT( const TimersT & );
+	TimersT & operator=( const TimersT & );
 
 };
 
+typedef TimersT<uint32> Timers;
+typedef TimersT<uint64> Timers64;
 }
 
 #ifdef CODE_INLINE

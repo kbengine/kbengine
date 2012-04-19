@@ -7,45 +7,45 @@ namespace Mercury
 {
 
 EventDispatcher::EventDispatcher() :
-	m_breakProcessing_(false),
-	m_maxWait_(0.1),
-	m_numTimerCalls_(0),
-	m_accSpareTime_(0),
-	m_oldSpareTime_(0),
-	m_totSpareTime_(0),
-	m_lastStatisticsGathered_(0),
-	m_pFrequentTasks_(new Tasks),
-	m_pErrorReporter_(NULL),
-	m_pTimes_(new Times64),
-	m_pCouplingToParent_(NULL)
+	breakProcessing_(false),
+	maxWait_(0.1),
+	numTimerCalls_(0),
+	accSpareTime_(0),
+	oldSpareTime_(0),
+	totSpareTime_(0),
+	lastStatisticsGathered_(0),
+	pFrequentTasks_(new Tasks),
+	pErrorReporter_(NULL),
+	pTimers_(new Timers64),
+	pCouplingToParent_(NULL)
 	
 {
-	m_pPoller_ = EventPoller::create();
-	m_pErrorReporter_ = new ErrorReporter(*this);
+	pPoller_ = EventPoller::create();
+	pErrorReporter_ = new ErrorReporter(*this);
 }
 
 //-------------------------------------------------------------------------------------
 EventDispatcher::~EventDispatcher()
 {
-	SAFE_RELEASE(m_pFrequentTasks_);
-	SAFE_RELEASE(m_pPoller_);
+	SAFE_RELEASE(pErrorReporter_);
+	SAFE_RELEASE(pFrequentTasks_);
+	SAFE_RELEASE(pPoller_);
 	
-	if (!m_pTimes_->empty())
+	if (!pTimers_->empty())
 	{
 		INFO_MSG("EventDispatcher()::~EventDispatcher: Num timers = %d\n",
-			m_pTimes_->size());
+			pTimers_->size());
 	}
 
-	m_pTimes_->clear(false);
-	SAFE_RELEASE(m_pTimes_);
-	SAFE_RELEASE(m_pErrorReporter_);
+	pTimers_->clear(false);
+	SAFE_RELEASE(pTimers_);
 }
 
 //-------------------------------------------------------------------------------------
 EventPoller* EventDispatcher::createPoller()
 {
-	m_pPoller_ = EventPoller::create();
-	return m_pPoller_;
+	pPoller_ = EventPoller::create();
+	return pPoller_;
 }
 
 //-------------------------------------------------------------------------------------
@@ -58,15 +58,15 @@ void EventDispatcher::attach(EventDispatcher & childDispatcher)
 //-------------------------------------------------------------------------------------
 void EventDispatcher::attachTo(EventDispatcher & parentDispatcher)
 {
-	KBE_ASSERT(m_pCouplingToParent_ == NULL);
-	m_pCouplingToParent_ = new DispatcherCoupling(parentDispatcher, *this);
+	KBE_ASSERT(pCouplingToParent_ == NULL);
+	pCouplingToParent_ = new DispatcherCoupling(parentDispatcher, *this);
 
-	int fd = m_pPoller_->getFileDescriptor();
+	int fd = pPoller_->getFileDescriptor();
 
 	if (fd != -1)
 	{
-		parentDispatcher.registerFileDescriptor(fd, m_pPoller_);
-		parentDispatcher.registerWriteFileDescriptor(fd, m_pPoller_);
+		parentDispatcher.registerFileDescriptor(fd, pPoller_);
+		parentDispatcher.registerWriteFileDescriptor(fd, pPoller_);
 	}
 }
 
@@ -82,7 +82,7 @@ void EventDispatcher::detach(EventDispatcher & childDispatcher)
 //-------------------------------------------------------------------------------------
 void EventDispatcher::detachFrom(EventDispatcher & parentDispatcher)
 {
-	int fd = m_pPoller_->getFileDescriptor();
+	int fd = pPoller_->getFileDescriptor();
 
 	if (fd != -1)
 	{
@@ -90,35 +90,35 @@ void EventDispatcher::detachFrom(EventDispatcher & parentDispatcher)
 		parentDispatcher.deregisterWriteFileDescriptor(fd);
 	}
 
-	KBE_ASSERT(m_pCouplingToParent_ != NULL);
-	delete m_pCouplingToParent_;
-	m_pCouplingToParent_ = NULL;
+	KBE_ASSERT(pCouplingToParent_ != NULL);
+	delete pCouplingToParent_;
+	pCouplingToParent_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
 bool EventDispatcher::registerFileDescriptor(int fd,
 	InputNotificationHandler * handler)
 {
-	return m_pPoller_->registerForRead(fd, handler);
+	return pPoller_->registerForRead(fd, handler);
 }
 
 //-------------------------------------------------------------------------------------
 bool EventDispatcher::registerWriteFileDescriptor(int fd,
 	InputNotificationHandler * handler)
 {
-	return m_pPoller_->registerForWrite(fd, handler);
+	return pPoller_->registerForWrite(fd, handler);
 }
 
 //-------------------------------------------------------------------------------------
 bool EventDispatcher::deregisterFileDescriptor(int fd)
 {
-	return m_pPoller_->deregisterForRead(fd);
+	return pPoller_->deregisterForRead(fd);
 }
 
 //-------------------------------------------------------------------------------------
 bool EventDispatcher::deregisterWriteFileDescriptor(int fd)
 {
-	return m_pPoller_->deregisterForWrite(fd);
+	return pPoller_->deregisterForWrite(fd);
 }
 
 //-------------------------------------------------------------------------------------
@@ -135,7 +135,7 @@ TimerHandle EventDispatcher::addTimerCommon(int64 microseconds,
 	uint64 interval = int64(
 		(((double)microseconds)/1000000.0) * stampsPerSecondD());
 
-	TimerHandle handle = m_pTimes_->add(timestamp() + interval,
+	TimerHandle handle = pTimers_->add(timestamp() + interval,
 			recurrent ? interval : 0,
 			handler, arg);
 
@@ -145,37 +145,37 @@ TimerHandle EventDispatcher::addTimerCommon(int64 microseconds,
 //-------------------------------------------------------------------------------------
 uint64 EventDispatcher::getSpareTime() const
 {
-	return m_pPoller_->spareTime();
+	return pPoller_->spareTime();
 }
 
 //-------------------------------------------------------------------------------------
 void EventDispatcher::clearSpareTime()
 {
-	m_accSpareTime_ += m_pPoller_->spareTime();
-	m_pPoller_->clearSpareTime();
+	accSpareTime_ += pPoller_->spareTime();
+	pPoller_->clearSpareTime();
 }
 
 uint64 EventDispatcher::timerDeliveryTime(TimerHandle handle) const
 {
-	return m_pTimes_->timerDeliveryTime(handle);
+	return pTimers_->timerDeliveryTime(handle);
 }
 
 //-------------------------------------------------------------------------------------
 uint64 EventDispatcher::timerIntervalTime(TimerHandle handle) const
 {
-	return m_pTimes_->timerIntervalTime(handle);
+	return pTimers_->timerIntervalTime(handle);
 }
 
 //-------------------------------------------------------------------------------------
 uint64 & EventDispatcher::timerIntervalTime(TimerHandle handle)
 {
-	return m_pTimes_->timerIntervalTime(handle);
+	return pTimers_->timerIntervalTime(handle);
 }
 
 //-------------------------------------------------------------------------------------
 double EventDispatcher::proportionalSpareTime() const
 {
-	double ret = (double)(int64)(m_totSpareTime_ - m_oldSpareTime_);
+	double ret = (double)(int64)(totSpareTime_ - oldSpareTime_);
 	return ret / stampsPerSecondD();
 	return 0;
 }
@@ -183,24 +183,24 @@ double EventDispatcher::proportionalSpareTime() const
 //-------------------------------------------------------------------------------------
 void EventDispatcher::addFrequentTask(Task * pTask)
 {
-	m_pFrequentTasks_->add(pTask);
+	pFrequentTasks_->add(pTask);
 }
 
 //-------------------------------------------------------------------------------------
 bool EventDispatcher::cancelFrequentTask(Task * pTask)
 {
-	return m_pFrequentTasks_->cancel(pTask);
+	return pFrequentTasks_->cancel(pTask);
 }
 
 //-------------------------------------------------------------------------------------
 double EventDispatcher::calculateWait() const
 {
-	double maxWait = m_maxWait_;
+	double maxWait = maxWait_;
 
-	if (!m_pTimes_->empty())
+	if (!pTimers_->empty())
 	{
 		maxWait = std::min(maxWait,
-			m_pTimes_->nextExp(timestamp()) / stampsPerSecondD());
+			pTimers_->nextExp(timestamp()) / stampsPerSecondD());
 	}
 
 	ChildDispatchers::const_iterator iter = childDispatchers_.begin();
@@ -217,24 +217,24 @@ double EventDispatcher::calculateWait() const
 //-------------------------------------------------------------------------------------
 void EventDispatcher::processFrequentTasks()
 {
-	m_pFrequentTasks_->process();
+	pFrequentTasks_->process();
 }
 
 //-------------------------------------------------------------------------------------
 void EventDispatcher::processTimers()
 {
-	m_numTimerCalls_ += m_pTimes_->process(timestamp());
+	numTimerCalls_ += pTimers_->process(timestamp());
 }
 
 //-------------------------------------------------------------------------------------
 void EventDispatcher::processStats()
 {
-	if (timestamp() - m_lastStatisticsGathered_ >= stampsPerSecond())
+	if (timestamp() - lastStatisticsGathered_ >= stampsPerSecond())
 	{
-		m_oldSpareTime_ = m_totSpareTime_;
-		m_totSpareTime_ = m_accSpareTime_ + m_pPoller_->spareTime();
+		oldSpareTime_ = totSpareTime_;
+		totSpareTime_ = accSpareTime_ + pPoller_->spareTime();
 
-		m_lastStatisticsGathered_ = timestamp();
+		lastStatisticsGathered_ = timestamp();
 	}
 }
 
@@ -242,7 +242,7 @@ void EventDispatcher::processStats()
 int EventDispatcher::processNetwork(bool shouldIdle)
 {
 	double maxWait = shouldIdle ? this->calculateWait() : 0.0;
-	return m_pPoller_->processPendingEvents(maxWait);
+	return pPoller_->processPendingEvents(maxWait);
 }
 
 //-------------------------------------------------------------------------------------
@@ -254,8 +254,8 @@ void EventDispatcher::processUntilBreak()
 //-------------------------------------------------------------------------------------
 void EventDispatcher::processContinuously()
 {
-	m_breakProcessing_ = false;
-	while(!m_breakProcessing_)
+	breakProcessing_ = false;
+	while(!breakProcessing_)
 	{
 		this->processOnce(true);
 	}
@@ -264,15 +264,15 @@ void EventDispatcher::processContinuously()
 //-------------------------------------------------------------------------------------
 int EventDispatcher::processOnce(bool shouldIdle)
 {
-	m_breakProcessing_ = false;
+	breakProcessing_ = false;
 	this->processFrequentTasks();
-	if(!m_breakProcessing_){
+	if(!breakProcessing_){
 		this->processTimers();
 	}
 
 	this->processStats();
 	
-	if(!m_breakProcessing_){
+	if(!breakProcessing_){
 		return this->processNetwork(shouldIdle);
 	}
 

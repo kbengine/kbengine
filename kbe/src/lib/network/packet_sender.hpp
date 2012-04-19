@@ -8,38 +8,34 @@ Also see acknowledgements in Readme.html
 You may use this sample code for anything you like, it is not covered by the
 same license as the rest of the engine.
 */
-#ifndef __NETWORKPACKET_RECEIVER__
-#define __NETWORKPACKET_RECEIVER__
+#ifndef __NETWORKPACKET_SENDER__
+#define __NETWORKPACKET_SENDER__
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/common.hpp"
 #include "network/interfaces.hpp"
-#include "network/tcp_packet.hpp"
 
 namespace KBEngine { 
 namespace Mercury
 {
+class Packet;
 class EndPoint;
 class Channel;
 class Address;
 class NetworkInterface;
 class EventDispatcher;
 
-class PacketReceiver : public InputNotificationHandler
+class PacketSender : public OutputNotificationHandler
 {
 public:
-	PacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
-	virtual ~PacketReceiver();
+	PacketSender(EndPoint & endpoint, NetworkInterface & networkInterface);
+	virtual ~PacketSender();
 
-	virtual Reason processPacket(Packet * p);
-	virtual Reason processFilteredPacket(Packet * p) = 0;
 	EventDispatcher& dispatcher();
 protected:
-	virtual int handleInputNotification(int fd);
-	virtual bool processSocket(bool expectingPacket) = 0;
-	virtual bool checkSocketErrors(int len, bool expectingPacket) = 0;
+	virtual int handleOutputNotification(int fd);
 protected:
 	EndPoint & endpoint_;
 	NetworkInterface & networkInterface_;
@@ -49,6 +45,6 @@ protected:
 }
 
 #ifdef CODE_INLINE
-#include "packet_receiver.ipp"
+#include "packet_sender.ipp"
 #endif
 #endif // __NETWORKPACKET_RECEIVER__

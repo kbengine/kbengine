@@ -55,7 +55,7 @@ public:
 	bool initialize();
 	virtual bool initializeBegin(){return true;};
 	virtual bool initializeEnd(){return true;};
-	void finalise();
+	virtual void finalise();
 	virtual bool run();
 
 	bool installPyScript();
@@ -66,7 +66,10 @@ public:
 
 	virtual bool loadConfig();
 	const char* name(){return COMPONENT_NAME[componentType_];}
-
+	
+	GAME_TIME time() const { return time_; }
+	double gameTimeInSeconds() const;
+		
 	Mercury::EventDispatcher & getMainDispatcher()				{ return mainDispatcher_; }
 	Mercury::NetworkInterface & getNetworkInterface()			{ return networkInterface_; }
 protected:
@@ -76,6 +79,7 @@ protected:
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
 	Mercury::EventDispatcher& 								mainDispatcher_;	
 	Mercury::NetworkInterface&								networkInterface_;
+	GAME_TIME												time_;
 };
 
 }
