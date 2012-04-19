@@ -10,6 +10,7 @@
 #include "network/channel.hpp"
 #include "network/packet.hpp"
 #include "network/delayed_channels.hpp"
+#include "network/interfaces.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -29,7 +30,8 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 	pMainDispatcher_(NULL),
 	pExtensionData_(NULL),
 	pListenerReceiver_(NULL),
-	pDelayedChannels_(new DelayedChannels())
+	pDelayedChannels_(new DelayedChannels()),
+	pChannelTimeOutHandler_(NULL)
 {
 	pListenerReceiver_ = new ListenerReceiver(endpoint_, *this);
 	this->recreateListeningSocket(listeningPort, listeningInterface);
@@ -297,8 +299,16 @@ void NetworkInterface::onChannelGone(Channel * pChannel)
 //-------------------------------------------------------------------------------------
 void NetworkInterface::onChannelTimeOut(Channel * pChannel)
 {
-	ERROR_MSG("NetworkInterface::onChannelTimeOut: Channel %s timed out.\n",
-			pChannel->c_str());
+	if (pChannelTimeOutHandler_)
+	{
+		pChannelTimeOutHandler_->onTimeOut( pChannel );
+	}
+	else
+	{
+		ERROR_MSG( "NetworkInterface::onChannelTimeOut: "
+					"Channel %s timed out but no handler is registered.\n",
+				pChannel->c_str() );
+	}
 }
 
 //-------------------------------------------------------------------------------------

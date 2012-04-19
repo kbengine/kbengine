@@ -15,6 +15,7 @@ namespace KBEngine {
 namespace Mercury
 {
 class Bundle;
+class Channel;
 
 /** 此类接口用于接收普通的Mercury消息
 */
@@ -25,6 +26,11 @@ public:
 	virtual int handleInputNotification(int fd) = 0;
 };
 
+class ChannelTimeOutHandler
+{
+public:
+	virtual void onTimeOut(Channel * pChannel) = 0;
+};
 
 }
 }

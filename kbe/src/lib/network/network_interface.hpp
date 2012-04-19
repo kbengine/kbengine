@@ -30,6 +30,7 @@ enum NetworkInterfaceType
 class Address;
 class Bundle;
 class Channel;
+class ChannelTimeOutHandler;
 class DelayedChannels;
 class ListenerReceiver;
 class Packet;
@@ -54,6 +55,11 @@ public:
 	bool deregisterChannel(Channel* channel);
 	Channel * findChannel(const Address & addr);
 
+	ChannelTimeOutHandler * pChannelTimeOutHandler() const
+		{ return pChannelTimeOutHandler_; }
+	void pChannelTimeOutHandler( ChannelTimeOutHandler * pHandler )
+		{ pChannelTimeOutHandler_ = pHandler; }
+		
 	EventDispatcher & dispatcher()			{ return *pDispatcher_; }
 	EventDispatcher & mainDispatcher()		{ return *pMainDispatcher_; }
 
@@ -102,6 +108,8 @@ private:
 	ListenerReceiver *						pListenerReceiver_;
 	
 	DelayedChannels * 						pDelayedChannels_;
+	
+	ChannelTimeOutHandler *					pChannelTimeOutHandler_;	// 超时的通道可被这个句柄捕捉， 例如告知上层client断开
 };
 
 }
