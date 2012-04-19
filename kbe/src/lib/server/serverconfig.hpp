@@ -67,7 +67,9 @@ public:
 	ENGINE_COMPONENT_INFO& getKBCenter(void);
 
 	inline ENGINE_COMPONENT_INFO& getComponent(COMPONENT_TYPE ComponentType);
- 
+ 	
+ 	void printCellapp(void);
+ 	
 	inline int16 gameUpdateHertz(void)const { return gameUpdateHertz_;}
 private:
 	ENGINE_COMPONENT_INFO _cellAppInfo;

@@ -53,7 +53,6 @@ public:
 	bool initializeEnd();
 	void finalise();
 	
-	void printConfig(void);
 	Entity* createEntity(const char* entityType, PyObject* params, bool isInitializeScript = true, ENTITY_ID eid = 0);
 protected:
 	IDClient<ENTITY_ID>*		idClient_;

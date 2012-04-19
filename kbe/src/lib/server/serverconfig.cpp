@@ -252,5 +252,16 @@ ENGINE_COMPONENT_INFO& ServerConfig::getComponent(COMPONENT_TYPE componentType)
 	return getBaseApp();	
 }
 
+//-------------------------------------------------------------------------------------	
+void ServerConfig::printCellapp(void)
+{
+	ENGINE_COMPONENT_INFO info = getCellApp();
+	INFO_MSG("server-configs:\n");
+	INFO_MSG("\tgameUpdateHertz : %d\n", gameUpdateHertz());
+	INFO_MSG("\tdefaultAoIRadius : %f\n", info.defaultAoIRadius);
+	INFO_MSG("\tdefaultAoIHysteresisArea : %f\n", info.defaultAoIHysteresisArea);
+	INFO_MSG("\tentryScriptFile : %s\n", info.entryScriptFile);
+}
+
 //-------------------------------------------------------------------------------------		
 }

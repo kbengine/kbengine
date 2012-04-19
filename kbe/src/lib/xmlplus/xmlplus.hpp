@@ -134,8 +134,12 @@ public:
 	/**获取根节点， 带参数key为范围根节点下的某个子节点根*/
 	TiXmlNode* getRootNode(const char* key = "")
 	{
-		if(strlen(key) > 0)
-			return rootElement_->FirstChild(key)->FirstChild();
+		if(strlen(key) > 0){
+			TiXmlNode* node = rootElement_->FirstChild(key);
+			if(node == NULL)
+				return NULL;
+			return node->FirstChild();
+		}
 		return rootElement_->FirstChild();
 	}
 

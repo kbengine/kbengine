@@ -89,19 +89,8 @@ bool CellApp::initializeEnd()
 	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 	
-	printConfig();
+	g_kbeSrvConfig.printCellapp();
 	return true;
-}
-
-//-------------------------------------------------------------------------------------
-void CellApp::printConfig(void)
-{
-	ENGINE_COMPONENT_INFO info = g_kbeSrvConfig.getCellApp();
-	INFO_MSG("server-configs:\n");
-	INFO_MSG("\tgameUpdateHertz : %d\n", g_kbeSrvConfig.gameUpdateHertz());
-	INFO_MSG("\tdefaultAoIRadius : %f\n", info.defaultAoIRadius);
-	INFO_MSG("\tdefaultAoIHysteresisArea : %f\n", info.defaultAoIHysteresisArea);
-	INFO_MSG("\tentryScriptFile : %s\n", info.entryScriptFile);
 }
 
 //-------------------------------------------------------------------------------------
