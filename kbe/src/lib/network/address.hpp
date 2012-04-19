@@ -48,15 +48,15 @@ inline Address::Address(uint32 ipArg, uint16 portArg) :
 	ip(ipArg),
 	port(portArg)
 {
-}
+} 
 
-inline bool operator==(const Mercury::Address & a, const Mercury::Address & b)
+inline bool operator==(const Address & a, const Address & b)
 {
 	return (a.ip == b.ip) && (a.port == b.port);
 }
 
 
-inline bool operator!=(const Mercury::Address & a, const Mercury::Address & b)
+inline bool operator!=(const Address & a, const Address & b)
 {
 	return (a.ip != b.ip) || (a.port != b.port);
 }
@@ -67,7 +67,7 @@ inline bool operator!=(const Mercury::Address & a, const Mercury::Address & b)
  *
  * 	@return true if a is less than b, false otherwise.
  */
-inline bool operator<(const Mercury::Address & a, const Mercury::Address & b)
+inline bool operator<(const Address & a, const Address & b)
 {
 	return (a.ip < b.ip) || (a.ip == b.ip && (a.port < b.port));
 }

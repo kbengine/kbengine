@@ -15,8 +15,6 @@ same license as the rest of the engine.
 #include "cstdkbe/tasks.hpp"
 #include "cstdkbe/timer.hpp"
 #include "network/interfaces.hpp"
-#include "network/event_poller.hpp"
-#include "network/error_reporter.hpp"
 #include "network/common.hpp"
 
 namespace KBEngine { 
@@ -25,7 +23,8 @@ namespace Mercury
 
 typedef TimesT<uint64> Times64;
 class DispatcherCoupling;
-
+class ErrorReporter;
+class EventPoller;
 
 class EventDispatcher
 {

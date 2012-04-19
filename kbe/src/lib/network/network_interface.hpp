@@ -12,17 +12,11 @@ same license as the rest of the engine.
 #define __NETWORK_INTERFACE__
 
 #include "memorystream.hpp"
+#include "network/common.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
 #include "helper/debug_helper.hpp"
-#include "network/address.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/packet_receiver.hpp"
-#include "network/listener_receiver.hpp"
 #include "network/endpoint.hpp"
-#include "network/common.hpp"
-#include "network/channel.hpp"
-#include "network/packet.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -32,6 +26,14 @@ enum NetworkInterfaceType
 	NETWORK_INTERFACE_INTERNAL,
 	NETWORK_INTERFACE_EXTERNAL
 };
+
+class Address;
+class Bundle;
+class Channel;
+class DelayedChannels;
+class ListenerReceiver;
+class Packet;
+class EventDispatcher;
 
 class NetworkInterface : public TimerHandler
 {
@@ -83,9 +85,9 @@ public:
 	Reason send(Bundle & bundle, Channel * pChannel = NULL);
 	
 	Reason sendPacket(Packet * pPacket, Channel * pChannel = NULL);
-
-	bool isGood() const
-	{
+	void sendIfDelayed(Channel & channel);
+	
+	bool isGood() const{
 		return (endpoint_ != -1) && !address_.isNone();
 	}
 
@@ -114,6 +116,8 @@ private:
 	void * pExtensionData_;
 	
 	ListenerReceiver * pListenerReceiver_;
+	
+	DelayedChannels * 			pDelayedChannels_;
 };
 
 }

@@ -95,6 +95,96 @@ public:
 		return *obj_;
 	}
 
+	/**
+	 *	These functions return whether or not the input objects refer to the same
+	 *	object.
+	 */
+	friend bool operator==( const ConstSmartPointer<T>& A,
+		const ConstSmartPointer<T>& B )
+	{
+		return A.obj_ == B.obj_;
+	}
+
+	friend bool operator==( const ConstSmartPointer<T>& A,
+		const T* B )
+	{
+		return A.obj_ == B;
+	}
+
+	friend bool operator==( const T* A,
+		const ConstSmartPointer<T>& B )
+	{
+		return A == B.obj_;
+	}
+	/**
+	 *	These functions return not or whether the input objects refer to the same
+	 *	object.
+	 */
+	friend bool operator!=( const ConstSmartPointer<T>& A,
+		const ConstSmartPointer<T>& B )
+	{
+		return A.obj_ != B.obj_;
+	}
+
+	friend bool operator!=( const ConstSmartPointer<T>& A,
+		const T* B )
+	{
+		return A.obj_ != B;
+	}
+
+	friend bool operator!=( const T* A,
+		const ConstSmartPointer<T>& B )
+	{
+		return A != B.obj_;
+	}
+
+	/**
+	 *	These functions give an ordering on smart pointers so that they can be
+	 *	placed in sorted containers.
+	 */
+	friend bool operator<( const ConstSmartPointer<T>& A,
+		const ConstSmartPointer<T>& B )
+	{
+		return A.obj_ < B.obj_;
+	}
+
+	friend bool operator<( const ConstSmartPointer<T>& A,
+		const T* B )
+	{
+		return A.obj_ < B;
+	}
+
+	friend bool operator<( const T* A,
+		const ConstSmartPointer<T>& B )
+	{
+		return A < B.obj_;
+	}
+
+	/**
+	 *	These functions give an ordering on smart pointers so that they can be
+	 *	compared.
+	 */
+	friend bool operator>( const ConstSmartPointer<T>& A,
+		const ConstSmartPointer<T>& B )
+	{
+		return A.obj_ > B.obj_;
+	}
+
+	friend bool operator>( const ConstSmartPointer<T>& A,
+		const T* B )
+	{
+		return A.obj_ > B;
+	}
+
+	friend bool operator>( const T* A,
+		const ConstSmartPointer<T>& B )
+	{
+		return A > B.obj_;
+	}
+
+	/**
+	 *	This method returns whether or not this pointers points to anything.
+	 */
 	typedef const T * ConstSmartPointer<T>::*unspecified_bool_type;
 	operator unspecified_bool_type() const
 	{

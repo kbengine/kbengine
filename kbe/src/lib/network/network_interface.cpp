@@ -3,6 +3,14 @@
 #include "network_interface.ipp"
 #endif
 
+#include "network/address.hpp"
+#include "network/event_dispatcher.hpp"
+#include "network/packet_receiver.hpp"
+#include "network/listener_receiver.hpp"
+#include "network/channel.hpp"
+#include "network/packet.hpp"
+#include "network/delayed_channels.hpp"
+
 namespace KBEngine { 
 namespace Mercury
 {
@@ -21,7 +29,8 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 	pDispatcher_(new EventDispatcher),
 	pMainDispatcher_(NULL),
 	pExtensionData_(NULL),
-	pListenerReceiver_(NULL)
+	pListenerReceiver_(NULL),
+	pDelayedChannels_(new DelayedChannels())
 {
 	pListenerReceiver_ = new ListenerReceiver(endpoint_, *this);
 	this->recreateListeningSocket(listeningPort, listeningInterface);
@@ -59,6 +68,12 @@ NetworkInterface::~NetworkInterface()
 
 	delete pDispatcher_;
 	pDispatcher_ = NULL;
+	
+	delete pDelayedChannels_;
+	pDelayedChannels_ = NULL;
+	
+	delete pListenerReceiver_;
+	pListenerReceiver_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -67,6 +82,8 @@ void NetworkInterface::attach(EventDispatcher & mainDispatcher)
 	KBE_ASSERT(pMainDispatcher_ == NULL);
 	pMainDispatcher_ = &mainDispatcher;
 	mainDispatcher.attach(this->dispatcher());
+	
+	pDelayedChannels_->init(this->mainDispatcher());
 }
 
 //-------------------------------------------------------------------------------------
@@ -74,6 +91,7 @@ void NetworkInterface::detach()
 {
 	if (pMainDispatcher_ != NULL)
 	{
+		pDelayedChannels_->fini( this->mainDispatcher() );
 		pMainDispatcher_->detach(this->dispatcher());
 		pMainDispatcher_ = NULL;
 	}
@@ -207,7 +225,13 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 //-------------------------------------------------------------------------------------
 void NetworkInterface::delayedSend(Channel & channel)
 {
-	//pDelayedChannels_->add(channel);
+	pDelayedChannels_->add(channel);
+}
+
+//-------------------------------------------------------------------------------------
+void NetworkInterface::sendIfDelayed(Channel & channel)
+{
+	pDelayedChannels_->sendIfDelayed(channel);
 }
 
 //-------------------------------------------------------------------------------------

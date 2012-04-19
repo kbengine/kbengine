@@ -10,6 +10,7 @@
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
 #include "network/packet_receiver.hpp"
+#include "network/error_reporter.hpp"
 
 namespace KBEngine { 
 namespace Mercury

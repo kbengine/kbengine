@@ -4,6 +4,7 @@ SRCS =				\
 	address			\
 	bundle			\
 	channel			\
+	delayed_channels	\
 	error_reporter		\
 	event_dispatcher	\
 	event_poller		\

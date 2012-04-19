@@ -25,13 +25,6 @@ public:
 	virtual int handleInputNotification(int fd) = 0;
 };
 
-class BundlePrimer
-{
-public:
-	virtual ~BundlePrimer() {}
-	virtual void primeBundle(Bundle & bundle) = 0;
-	virtual int numUnreliableMessages() const = 0;
-};
 
 }
 }

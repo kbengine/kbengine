@@ -77,8 +77,6 @@ public:
 	INLINE const EndPoint * endpoint() const;
 	Bundle & bundle();
 	const Bundle & bundle() const;
-	bool hasUnsentData() const;
-	void bundlePrimer(BundlePrimer & primer);
 	void clearBundle();
 
 	void send(Bundle * pBundle = NULL);
@@ -133,7 +131,6 @@ private:
 	uint32						numBufferedReceives_;
 	
 	bool						isDestroyed_;
-	BundlePrimer*				pBundlePrimer_;
 	bool						shouldDropNextSend_;
 	
 	// Statistics

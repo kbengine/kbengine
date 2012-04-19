@@ -31,7 +31,6 @@ Channel::Channel(NetworkInterface & networkInterface,
 	bufferedReceives_(windowSize_),
 	numBufferedReceives_(0),
 	isDestroyed_(false),
-	pBundlePrimer_(NULL),
 	shouldDropNextSend_(false),
 	// Stats
 	numPacketsSent_(0),
@@ -183,23 +182,6 @@ void Channel::clearBundle()
 	{
 		pBundle_->clear();
 	}
-
-	// If we have a bundle primer, now's the time to call it!
-	if (pBundlePrimer_)
-	{
-		pBundlePrimer_->primeBundle(*pBundle_);
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void Channel::bundlePrimer(BundlePrimer & primer)
-{
-	pBundlePrimer_ = &primer;
-
-	if (pBundlePrimer_ && (pBundle_->numMessages() == 0))
-	{
-		pBundlePrimer_->primeBundle(*pBundle_);
-	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -231,12 +213,6 @@ void Channel::reset(const EndPoint* endpoint, bool warnOnDiscard)
 	// clearState above).
 	this->endpoint(endpoint);
 
-	// If we're establishing this channel, call the bundle primer, since
-	// we just cleared the bundle.
-	if (pBundlePrimer_)
-	{
-		this->bundlePrimer(*pBundlePrimer_);
-	}
 }
 
 //-------------------------------------------------------------------------------------

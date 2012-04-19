@@ -165,6 +165,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\delayed_channels.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\endpoint.cpp"
 				>
 			</File>
@@ -236,6 +240,10 @@
 			</File>
 			<File
 				RelativePath=".\common.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\delayed_channels.hpp"
 				>
 			</File>
 			<File

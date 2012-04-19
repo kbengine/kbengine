@@ -16,6 +16,7 @@ same license as the rest of the engine.
 #include "network/event_dispatcher.hpp"
 #include "network/interfaces.hpp"
 #include "network/tcp_packet.hpp"
+#include "network/error_reporter.hpp"
 
 using namespace KBEngine;
 using namespace KBEngine::Mercury;
