@@ -41,6 +41,7 @@ class NetworkInterface : public TimerHandler
 public:
 	static const int RECV_BUFFER_SIZE;
 	static const char * USE_KBEMACHINED;
+	typedef std::map<Address, Channel *>	ChannelMap;
 	
 	NetworkInterface(EventDispatcher * pMainDispatcher, NetworkInterfaceType interfaceType,
 		uint16 listeningPort = 0, const char * listeningInterface = "");
@@ -70,9 +71,11 @@ public:
 
 	const char * c_str() const { return endpoint_.c_str(); }
 
-	void * pExtensionData() const			{ return pExtensionData_; }
-	void pExtensionData(void * pData)		{ pExtensionData_ = pData; }
+	void * pExtensionData() const		{ return pExtensionData_; }
+	void pExtensionData(void * pData)	{ pExtensionData_ = pData; }
 	
+	const ChannelMap& channels(void) { return channelMap_; }
+		
 	/** ∑¢ÀÕœ‡πÿ */
 	Reason send(Bundle & bundle, Channel * pChannel = NULL);
 	Reason sendPacket(Packet * pPacket, Channel * pChannel = NULL);
@@ -95,7 +98,6 @@ private:
 
 	Address									address_;
 
-	typedef std::map<Address, Channel *>	ChannelMap;
 	ChannelMap								channelMap_;
 
 	const bool								isExternal_;

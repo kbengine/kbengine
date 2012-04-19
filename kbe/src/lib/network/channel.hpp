@@ -77,7 +77,7 @@ public:
 		
 	INLINE const Address& addr() const;
 	void endpoint(const EndPoint* endpoint);
-	INLINE const EndPoint * endpoint() const;
+	INLINE EndPoint * endpoint() const;
 	Bundle & bundle();
 	const Bundle & bundle() const;
 	void clearBundle();

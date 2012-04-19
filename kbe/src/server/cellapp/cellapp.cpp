@@ -73,6 +73,14 @@ void CellApp::handleTimeout(TimerHandle handle, void * arg)
 void CellApp::handleGameTick()
 {
 	time_++;
+	const Mercury::NetworkInterface::ChannelMap& channels = getNetworkInterface().channels();
+	Mercury::NetworkInterface::ChannelMap::const_iterator iter = channels.begin();
+	for(; iter != channels.end(); iter++)
+	{
+		Mercury::Channel* channel = iter->second;
+		Mercury::EndPoint * endpoint = channel->endpoint();
+		endpoint->send("kebiao", 6);
+	}
 }
 
 //-------------------------------------------------------------------------------------

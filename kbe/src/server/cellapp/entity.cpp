@@ -55,7 +55,8 @@ aoiHysteresisArea_(0.0f),
 isWitnessed_(false),
 hasWitness_(false),
 topSpeed_(-0.1f),
-topSpeedY_(-0.1f)
+topSpeedY_(-0.1f),
+pChannel_(NULL)
 {
 	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
 	ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();

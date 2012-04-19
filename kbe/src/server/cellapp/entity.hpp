@@ -21,6 +21,7 @@ same license as the rest of the engine.
 #include "pyscript/scriptobject.hpp"
 #include "entitydef/datatypes.hpp"	
 #include "entitydef/entitydef.hpp"	
+#include "network/channel.hpp"	
 //#define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -107,6 +108,9 @@ public:
 	
 	/** 定义属性数据被改变了 */
 	void onDefDataChanged(PropertyDescription* propertyDescription, PyObject* pyData);
+	
+	void pChannel(Mercury::Channel* pchannel){ pChannel_ = pchannel; }
+	Mercury::Channel* pChannel(void)const { return pChannel_; }
 public:
 	/** 获得entity的ID */
 	ENTITY_ID getID()const{ return id_; }
@@ -282,6 +286,7 @@ protected:
 //	ProximityMgr							trapMgr_;							// entity陷阱管理器
 	float									topSpeed_;						// entity x,z轴最高移动速度
 	float									topSpeedY_;						// entity y轴最高移动速度
+	Mercury::Channel *						pChannel_;						// 该entity的通信频道
 };
 
 }

@@ -7,7 +7,7 @@ INLINE const Address & Channel::addr() const
 	return pEndPoint_->addr();
 }
 
-INLINE const EndPoint * Channel::endpoint() const
+INLINE EndPoint * Channel::endpoint() const
 {
 	return pEndPoint_;
 }
