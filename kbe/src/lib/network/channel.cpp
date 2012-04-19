@@ -13,6 +13,7 @@ const int EXTERNAL_CHANNEL_SIZE = 256;
 const int INTERNAL_CHANNEL_SIZE = 4096;
 const int INDEXED_CHANNEL_SIZE = 512;
 
+const float INACTIVITY_TIMEOUT_DEFAULT = 60.0;
 
 Channel::Channel(NetworkInterface & networkInterface,
 		const EndPoint * endpoint, Traits traits,
@@ -56,6 +57,22 @@ Channel::Channel(NetworkInterface & networkInterface,
 	
 	pPacketReceiver_ = new TCPPacketReceiver(*pEndPoint_, networkInterface);
 	pNetworkInterface_->dispatcher().registerFileDescriptor(*pEndPoint_, pPacketReceiver_);
+	startInactivityDetection( INACTIVITY_TIMEOUT_DEFAULT );
+}
+
+//-------------------------------------------------------------------------------------
+Channel::~Channel()
+{
+	pNetworkInterface_->onChannelGone(this);
+	pNetworkInterface_->dispatcher().deregisterFileDescriptor(*pEndPoint_);
+	pEndPoint_->close();
+	pEndPoint_->detach();
+	
+	this->clearState();
+	
+	SAFE_RELEASE(pPacketReceiver_);
+	SAFE_RELEASE(pBundle_);
+	SAFE_RELEASE(pEndPoint_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -73,9 +90,22 @@ Channel * get(NetworkInterface & networkInterface,
 }
 
 //-------------------------------------------------------------------------------------
+void Channel::startInactivityDetection( float period, float checkPeriod )
+{
+	inactivityTimerHandle_.cancel();
+
+	inactivityExceptionPeriod_ = uint64( period * stampsPerSecond() );
+	lastReceivedTime_ = timestamp();
+
+	inactivityTimerHandle_ =
+		this->dispatcher().addTimer( int( checkPeriod * 1000000 ),
+									this, (void *)TIMEOUT_INACTIVITY_CHECK );
+}
+
+//-------------------------------------------------------------------------------------
 void Channel::endpoint(const EndPoint* endpoint)
 {
-	if (endpoint && pEndPoint_ != endpoint)
+	if (pEndPoint_ != endpoint)
 	{
 		lastReceivedTime_ = timestamp();
 		pEndPoint_ = const_cast<EndPoint*>(endpoint);
@@ -83,22 +113,9 @@ void Channel::endpoint(const EndPoint* endpoint)
 }
 
 //-------------------------------------------------------------------------------------
-Channel::~Channel()
-{
-	pNetworkInterface_->onChannelGone(this);
-	pNetworkInterface_->dispatcher().deregisterFileDescriptor(*pEndPoint_);
-	pEndPoint_->close();
-	pEndPoint_->detach();
-	
-	SAFE_RELEASE(pPacketReceiver_);
-	SAFE_RELEASE(pBundle_);
-	SAFE_RELEASE(pEndPoint_);
-}
-
-//-------------------------------------------------------------------------------------
 void Channel::destroy()
 {
-	if(!isDestroyed_)
+	if(isDestroyed_)
 	{
 		CRITICAL_MSG("is channel has Destroyed!");
 		return;
@@ -106,6 +123,24 @@ void Channel::destroy()
 
 	isDestroyed_ = true;
 	this->decRef();
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::clearState( bool warnOnDiscard /*=false*/ )
+{
+	lastReceivedTime_ = timestamp();
+	roundTripTime_ =
+		this->isInternal() ? stampsPerSecond() / 10 : stampsPerSecond();
+
+	shouldDropNextSend_ = false;
+	numPacketsSent_ = 0;
+	numPacketsReceived_ = 0;
+	numBytesSent_ = 0;
+	numBytesReceived_ = 0;
+
+
+	inactivityTimerHandle_.cancel();
+	this->endpoint(NULL);
 }
 
 //-------------------------------------------------------------------------------------
@@ -209,6 +244,12 @@ void Channel::reset(const EndPoint* endpoint, bool warnOnDiscard)
 		return;
 	}
 
+	// Send it now if the network interface has it registered for delayed
+	// sending. 
+	pNetworkInterface_->sendIfDelayed( *this );
+	
+	this->clearState(warnOnDiscard);
+	
 	// This handles registering this channel (deregistering done in
 	// clearState above).
 	this->endpoint(endpoint);

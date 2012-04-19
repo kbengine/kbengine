@@ -56,6 +56,9 @@ public:
 	static Channel * get(NetworkInterface & networkInterface,
 			const EndPoint* pSocket);
 	
+	void startInactivityDetection( float inactivityPeriod,
+			float checkPeriod = 1.f );
+	
 	PacketFilterPtr pFilter() const { return pFilter_; }
 	void pFilter(PacketFilterPtr pFilter) { pFilter_ = pFilter; }
 
@@ -108,10 +111,10 @@ private:
 		TIMEOUT_INACTIVITY_CHECK
 	};
 
-	virtual void handleTimeout(TimerHandle, void *);
-	
+	virtual void handleTimeout(TimerHandle, void * pUser);
+	void clearState( bool warnOnDiscard = false );
 	EventDispatcher & dispatcher();
-
+private:
 	NetworkInterface * 			pNetworkInterface_;
 	Traits						traits_;
 

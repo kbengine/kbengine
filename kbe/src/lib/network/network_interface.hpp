@@ -48,76 +48,60 @@ public:
 	void attach(EventDispatcher & mainDispatcher);
 	void detach();
 
-	bool recreateListeningSocket(uint16 listeningPort,
-							const char * listeningInterface);
+	bool recreateListeningSocket(uint16 listeningPort, const char * listeningInterface);
 
 	bool registerChannel(Channel* channel);
 	bool deregisterChannel(Channel* channel);
-	
 	Channel * findChannel(const Address & addr);
-	
-	void onChannelGone(Channel * pChannel);
-	void onChannelTimeOut(Channel * pChannel);
-
-	Reason processPacketFromStream(const Address & addr,
-		MemoryStream & data);
 
 	EventDispatcher & dispatcher()			{ return *pDispatcher_; }
 	EventDispatcher & mainDispatcher()		{ return *pMainDispatcher_; }
 
-	INLINE const Address & address() const;
-	
-	void delayedSend(Channel & channel);
-
 	bool isExternal() const				{ return isExternal_; }
-	bool isVerbose() const				{ return isVerbose_; }
-	void isVerbose(bool value)			{ isVerbose_ = value; }
 
+	INLINE const Address & address() const;
 	EndPoint & endpoint()				{ return endpoint_; }
 
 	const char * c_str() const { return endpoint_.c_str(); }
 
 	void * pExtensionData() const			{ return pExtensionData_; }
 	void pExtensionData(void * pData)		{ pExtensionData_ = pData; }
-
-	unsigned int numBytesReceivedForMessage(uint8 msgID) const;
-
-	Reason send(Bundle & bundle, Channel * pChannel = NULL);
 	
+	/** ∑¢ÀÕœ‡πÿ */
+	Reason send(Bundle & bundle, Channel * pChannel = NULL);
 	Reason sendPacket(Packet * pPacket, Channel * pChannel = NULL);
 	void sendIfDelayed(Channel & channel);
+	void delayedSend(Channel & channel);
 	
-	bool isGood() const{
-		return (endpoint_ != -1) && !address_.isNone();
-	}
+	bool isGood() const{ return (endpoint_ != -1) && !address_.isNone();}
 
 	void onPacketIn(const Packet & packet);
 	void onPacketOut(const Packet & packet);
 
+	void onChannelGone(Channel * pChannel);
+	void onChannelTimeOut(Channel * pChannel);
 private:
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 
 	void closeSocket();
 private:
-	EndPoint	endpoint_;
+	EndPoint								endpoint_;
 
-	Address	address_;
+	Address									address_;
 
 	typedef std::map<Address, Channel *>	ChannelMap;
-	ChannelMap					channelMap_;
+	ChannelMap								channelMap_;
 
-	const bool isExternal_;
+	const bool								isExternal_;
 
-	bool isVerbose_;
+	EventDispatcher *						pDispatcher_;
+	EventDispatcher *						pMainDispatcher_;
 
-	EventDispatcher * pDispatcher_;
-	EventDispatcher * pMainDispatcher_;
-
-	void * pExtensionData_;
+	void *									pExtensionData_;
 	
-	ListenerReceiver * pListenerReceiver_;
+	ListenerReceiver *						pListenerReceiver_;
 	
-	DelayedChannels * 			pDelayedChannels_;
+	DelayedChannels * 						pDelayedChannels_;
 };
 
 }
