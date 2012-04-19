@@ -264,12 +264,12 @@ bool NetworkInterface::registerChannel(Channel* channel)
 	if(pExisting)
 	{
 		CRITICAL_MSG("NetworkInterface::registerChannel: channel %s is exist.\n", \
-		channel->addr().c_str());
+		channel->c_str());
 		return false;
 	}
 
 	channelMap_[addr] = channel;
-	INFO_MSG("NetworkInterface::registerChannel: new channel: %s.\n", channel->addr().c_str());
+	INFO_MSG("NetworkInterface::registerChannel: new channel: %s.\n", channel->c_str());
 	return true;
 }
 
@@ -283,11 +283,11 @@ bool NetworkInterface::deregisterChannel(Channel* channel)
 	{
 		CRITICAL_MSG( "NetworkInterface::deregisterChannel: "
 				"Channel not found %s!\n",
-			addr.c_str() );
+			channel->c_str() );
 		return false;
 	}
 	
-	INFO_MSG("NetworkInterface::deregisterChannel: del channel: %s\n", addr.c_str());
+	INFO_MSG("NetworkInterface::deregisterChannel: del channel: %s\n", channel->c_str());
 	return true;
 }
 
