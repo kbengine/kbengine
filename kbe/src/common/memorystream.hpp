@@ -77,22 +77,22 @@ class MemoryStream
 {
     public:
         const static size_t DEFAULT_SIZE = 0x1000;
-        MemoryStream(): m_rpos_(0), m_wpos_(0)
+        MemoryStream(): rpos_(0), wpos_(0)
         {
-            m_storage_.reserve(DEFAULT_SIZE);
+            data_.reserve(DEFAULT_SIZE);
         }
 
-        MemoryStream(size_t res): m_rpos_(0), m_wpos_(0)
+        MemoryStream(size_t res): rpos_(0), wpos_(0)
         {
-            m_storage_.reserve(res);
+            data_.reserve(res);
         }
 
-        MemoryStream(const MemoryStream &buf): m_rpos_(buf.m_rpos_), m_wpos_(buf.m_wpos_), m_storage_(buf.m_storage_) { }
+        MemoryStream(const MemoryStream &buf): rpos_(buf.rpos_), wpos_(buf.wpos_), data_(buf.data_) { }
 
         void clear()
         {
-            m_storage_.clear();
-            m_rpos_ = m_wpos_ = 0;
+            data_.clear();
+            rpos_ = wpos_ = 0;
         }
 
         template <typename T> void append(T value)
@@ -265,20 +265,20 @@ class MemoryStream
             return read<uint8>(pos);
         }
 
-        size_t rpos() const { return m_rpos_; }
+        size_t rpos() const { return rpos_; }
 
-        size_t rpos(size_t rpos_)
+        size_t rpos(size_t rpos)
         {
-            m_rpos_ = rpos_;
-            return m_rpos_;
+            rpos_ = rpos;
+            return rpos_;
         }
 
-        size_t wpos() const { return m_wpos_; }
+        size_t wpos() const { return wpos_; }
 
-        size_t wpos(size_t wpos_)
+        size_t wpos(size_t wpos)
         {
-            m_wpos_ = wpos_;
-            return m_wpos_;
+            wpos_ = wpos;
+            return wpos_;
         }
 
         template<typename T>
@@ -286,15 +286,15 @@ class MemoryStream
 
         void read_skip(size_t skip)
         {
-            if(m_rpos_ + skip > size())
-                throw MemoryStreamException(false, m_rpos_, skip, size());
-            m_rpos_ += skip;
+            if(rpos_ + skip > size())
+                throw MemoryStreamException(false, rpos_, skip, size());
+            rpos_ += skip;
         }
 
         template <typename T> T read()
         {
-            T r = read<T>(m_rpos_);
-            m_rpos_ += sizeof(T);
+            T r = read<T>(rpos_);
+            rpos_ += sizeof(T);
             return r;
         }
 
@@ -302,17 +302,17 @@ class MemoryStream
         {
             if(pos + sizeof(T) > size())
                 throw MemoryStreamException(false, pos, sizeof(T), size());
-            T val = *((T const*)&m_storage_[pos]);
+            T val = *((T const*)&data_[pos]);
             EndianConvert(val);
             return val;
         }
 
         void read(uint8 *dest, size_t len)
         {
-            if(m_rpos_  + len > size())
-               throw MemoryStreamException(false, m_rpos_, len, size());
-            memcpy(dest, &m_storage_[m_rpos_], len);
-            m_rpos_ += len;
+            if(rpos_  + len > size())
+               throw MemoryStreamException(false, rpos_, len, size());
+            memcpy(dest, &data_[rpos_], len);
+            rpos_ += len;
         }
 
         bool readPackGUID(uint64& guid)
@@ -341,22 +341,22 @@ class MemoryStream
             return true;
         }
 
-        const uint8 *contents() const { return &m_storage_[0]; }
+        const uint8 *contents() const { return &data_[0]; }
 
-        size_t size() const { return m_storage_.size(); }
-        bool empty() const { return m_storage_.empty(); }
+        size_t size() const { return data_.size(); }
+        bool empty() const { return data_.empty(); }
 
         void resize(size_t newsize)
         {
-            m_storage_.resize(newsize);
-            m_rpos_ = 0;
-            m_wpos_ = size();
+            data_.resize(newsize);
+            rpos_ = 0;
+            wpos_ = size();
         }
 
         void reserve(size_t ressize)
         {
             if (ressize > size())
-                m_storage_.reserve(ressize);
+                data_.reserve(ressize);
         }
 
         void append(const std::string& str)
@@ -381,10 +381,10 @@ class MemoryStream
 
             assert(size() < 10000000);
 
-            if (m_storage_.size() < m_wpos_ + cnt)
-                m_storage_.resize(m_wpos_ + cnt);
-            memcpy(&m_storage_[m_wpos_], src, cnt);
-            m_wpos_ += cnt;
+            if (data_.size() < wpos_ + cnt)
+                data_.resize(wpos_ + cnt);
+            memcpy(&data_[wpos_], src, cnt);
+            wpos_ += cnt;
         }
 
         void append(const MemoryStream& buffer)
@@ -405,8 +405,8 @@ class MemoryStream
 
         void appendPackGUID(uint64 guid)
         {
-            if (m_storage_.size() < m_wpos_ + sizeof(guid) + 1)
-                m_storage_.resize(m_wpos_ + sizeof(guid) + 1);
+            if (data_.size() < wpos_ + sizeof(guid) + 1)
+                data_.resize(wpos_ + sizeof(guid) + 1);
 
             size_t mask_position = wpos();
             *this << uint8(0);
@@ -414,7 +414,7 @@ class MemoryStream
             {
                 if(guid & 0xFF)
                 {
-                    m_storage_[mask_position] |= uint8(1 << i);
+                    data_[mask_position] |= uint8(1 << i);
                     *this << uint8(guid & 0xFF);
                 }
 
@@ -426,7 +426,7 @@ class MemoryStream
         {
             if(pos + cnt > size())
                throw MemoryStreamException(true, pos, cnt, size());
-            memcpy(&m_storage_[pos], src, cnt);
+            memcpy(&data_[pos], src, cnt);
         }
 
 		/** 输出流数据 */
@@ -497,8 +497,8 @@ class MemoryStream
             PRINT_MSG("\n");
         }
     protected:
-        size_t m_rpos_, m_wpos_;
-        std::vector<uint8> m_storage_;
+        size_t rpos_, wpos_;
+        std::vector<uint8> data_;
 };
 
 template <typename T>
