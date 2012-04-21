@@ -81,6 +81,8 @@ public:
 	Reason sendPacket(Packet * pPacket, Channel * pChannel = NULL);
 	void sendIfDelayed(Channel & channel);
 	void delayedSend(Channel & channel);
+	Reason basicSendSingleTry(Channel * pChannel, Packet * pPacket);
+	Reason basicSendWithRetries(Channel * pChannel, Packet * pPacket);
 	
 	bool isGood() const{ return (endpoint_ != -1) && !address_.isNone();}
 

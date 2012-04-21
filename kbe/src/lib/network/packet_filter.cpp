@@ -12,9 +12,9 @@ namespace KBEngine {
 namespace Mercury
 {
 //-------------------------------------------------------------------------------------
-Reason PacketFilter::send(NetworkInterface & networkInterface, Packet * pPacket)
+Reason PacketFilter::send(NetworkInterface & networkInterface, Channel * pChannel, Packet * pPacket)
 {
-	return networkInterface.sendPacket(pPacket);
+	return networkInterface.basicSendWithRetries(pChannel, pPacket);
 }
 
 //-------------------------------------------------------------------------------------

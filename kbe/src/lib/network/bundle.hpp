@@ -29,21 +29,27 @@ class Channel;
 class Bundle
 {
 public:
-	Bundle(uint8 spareSize = 0, Channel * pChannel = NULL);
+	typedef std::vector<Packet*> Packets;
+
+	Bundle(Channel * pChannel = NULL);
 
 	Bundle(Packet * packetChain);
 	virtual ~Bundle();
 
 	void send(NetworkInterface & networkInterface, Channel * pChannel);
 
-	void clear(bool newBundle = false);
+	void clear();
 	bool isEmpty() const;
 	int size() const;
-
-	int numMessages() const		{ return numMessages_; }
+	int sizeInPackets();
+	
+	const Packets& packets() { return packets_; }
 private:
 	Channel * pChannel_;
 	int		numMessages_;
+
+	Packets packets_;
+
 };
 
 }

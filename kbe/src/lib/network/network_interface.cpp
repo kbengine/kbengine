@@ -314,13 +314,145 @@ void NetworkInterface::onChannelTimeOut(Channel * pChannel)
 //-------------------------------------------------------------------------------------
 Reason NetworkInterface::send(Bundle & bundle, Channel * pChannel)
 {
+	const Bundle::Packets& pakcets = bundle.packets();
+	Bundle::Packets::const_iterator iter = pakcets.begin();
+	for (; iter != pakcets.end(); iter++)
+	{
+		this->sendPacket((*iter), pChannel);
+	}
+	
 	return REASON_SUCCESS;
 }
 
 //-------------------------------------------------------------------------------------
 Reason NetworkInterface::sendPacket(Packet * pPacket, Channel * pChannel)
 {
+	PacketFilterPtr pFilter = pChannel ? pChannel->pFilter() : NULL;
+	this->onPacketOut(*pPacket);
+	
+	if (pFilter)
+	{
+		pFilter->send(*this, pChannel, pPacket);
+	}
+	else
+	{
+		this->basicSendWithRetries(pChannel, pPacket);
+	}
+	
 	return REASON_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------
+Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPacket)
+{
+	// 尝试发送的次数
+	int retries = 0;
+	Reason reason;
+
+	while(true)
+	{
+		retries++;
+
+		reason = this->basicSendSingleTry(pChannel, pPacket);
+
+		if (reason == REASON_SUCCESS)
+			return reason;
+
+		// 如果发送出现错误那么我们可以继续尝试一次， 超过3次退出
+		if (reason == REASON_NO_SUCH_PORT && retries <= 3)
+		{
+			continue;
+		}
+
+		// 如果系统发送缓冲已经满了，则我们等待10ms
+		if (reason == REASON_RESOURCE_UNAVAILABLE && retries <= 3)
+		{
+			fd_set	fds;
+			struct timeval tv = { 0, 10000 };
+			FD_ZERO( &fds );
+			FD_SET(*pChannel->endpoint(), &fds);
+
+			WARNING_MSG( "NetworkInterface::basicSendWithRetries: "
+				"Transmit queue full, waiting for space... (%d)\n",
+				retries );
+
+			select(*pChannel->endpoint() + 1, NULL, &fds, NULL, &tv);
+			continue;
+		}
+
+		// 其他错误退出尝试
+		break;
+	}
+
+	return reason;
+}
+
+//-------------------------------------------------------------------------------------
+Reason NetworkInterface::basicSendSingleTry(Channel * pChannel, Packet * pPacket)
+{
+	EndPoint * endpoint = pChannel->endpoint();
+	int len = endpoint->send(pPacket->data(), pPacket->size());
+
+	if (len == (int)pPacket->size())
+	{
+		return REASON_SUCCESS;
+	}
+	else
+	{
+		int err;
+		Reason reason;
+
+		#ifdef unix
+			err = errno;
+
+			switch (err)
+			{
+				case ECONNREFUSED:	reason = REASON_NO_SUCH_PORT; break;
+				case EAGAIN:		reason = REASON_RESOURCE_UNAVAILABLE; break;
+				case ENOBUFS:		reason = REASON_TRANSMIT_QUEUE_FULL; break;
+				default:			reason = REASON_GENERAL_NETWORK; break;
+			}
+		#else
+			err = WSAGetLastError();
+
+			if (err == WSAEWOULDBLOCK || err == WSAEINTR)
+			{
+				reason = REASON_RESOURCE_UNAVAILABLE;
+			}
+			else
+			{
+				reason = REASON_GENERAL_NETWORK;
+			}
+		#endif
+
+		if (len == -1)
+		{
+			if (reason != REASON_NO_SUCH_PORT)
+			{
+				ERROR_MSG( "NetworkInterface::basicSendSingleTry( %s ): "
+						"Could not send packet: %s\n",
+					endpoint->addr().c_str(), strerror( err ) );
+			}
+		}
+		else
+		{
+			WARNING_MSG( "NetworkInterface::basicSendSingleTry( %s ): "
+				"Packet length %d does not match sent length %d (err = %s)\n",
+				endpoint->addr().c_str(), pPacket->size(), len, strerror( err ) );
+		}
+
+		return reason;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void NetworkInterface::onPacketIn(const Packet & packet)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void NetworkInterface::onPacketOut(const Packet & packet)
+{
 }
 
 //-------------------------------------------------------------------------------------

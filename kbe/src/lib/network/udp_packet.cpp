@@ -10,8 +10,10 @@ namespace KBEngine {
 namespace Mercury
 {
 //-------------------------------------------------------------------------------------
-UDPPacket::UDPPacket()
+UDPPacket::UDPPacket(PacketHeaders ph, size_t res):
+Packet(ph, res)
 {
+	resize(PACKET_MAX_SIZE_UDP);
 }
 
 //-------------------------------------------------------------------------------------
@@ -22,12 +24,7 @@ UDPPacket::~UDPPacket(void)
 //-------------------------------------------------------------------------------------
 int UDPPacket::recvFromEndPoint(EndPoint & ep)
 {
-	int len = ep.recv(data_, UDP_PACKET_MAX_SIZE);
-
-	if (len >= 0)
-	{
-		this->msgEndOffset(len);
-	}
+	int len = ep.recv(data(), PACKET_MAX_SIZE_UDP);
 	return len;
 }
 

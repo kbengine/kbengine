@@ -211,7 +211,7 @@ void Channel::clearBundle()
 {
 	if (!pBundle_)
 	{
-		pBundle_ = new Bundle(pFilter_ ? pFilter_->maxSpareSize() : 0, this);
+		pBundle_ = new Bundle(this);
 	}
 	else
 	{

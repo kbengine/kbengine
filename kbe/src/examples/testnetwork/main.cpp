@@ -175,6 +175,7 @@ private:
 
 MyPacketReceiver* packetReceiver;
 
+
 void init_network(void)
 {
 	while(1)
@@ -210,11 +211,23 @@ void init_network(void)
 		int ii = 0;
 		while(ii ++ <= 2)
 		{
-			char data[1024];
-			memset(data, 0, 1024);
-			mysocket.send("sss", 3);
-			int len = mysocket.recv(data, 1024);
-			printf("data(%d): [%s]\n", len, data);
+			TCPPacket packet;
+
+			std::string sss = "aaa";
+			packet << sss;
+			int io = 9993;
+			
+			packet << io;
+			packet.hexlike();
+			mysocket.send(packet.data(), packet.size());
+			
+			packet.clear();
+			packet.resize(1024);
+			int len = mysocket.recv(packet.data(), 1024);
+			packet.wpos(len);
+			std::string ss;
+			packet >> ss;
+			printf("data(%d): [%s]\n", len, ss.c_str());
 			KBEngine::sleep(10000);
 			
 		};

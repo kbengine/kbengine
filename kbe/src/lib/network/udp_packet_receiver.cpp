@@ -60,6 +60,7 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 //-------------------------------------------------------------------------------------
 Reason UDPPacketReceiver::processFilteredPacket(Packet * p)
 {
+	networkInterface_.onPacketIn(*p);
 	return REASON_SUCCESS;
 }
 

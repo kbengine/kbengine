@@ -60,6 +60,7 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 //-------------------------------------------------------------------------------------
 Reason TCPPacketReceiver::processFilteredPacket(Packet * p)
 {
+	networkInterface_.onPacketIn(*p);
 	return REASON_SUCCESS;
 }
 

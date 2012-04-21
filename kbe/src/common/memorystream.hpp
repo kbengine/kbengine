@@ -341,10 +341,11 @@ class MemoryStream
             return true;
         }
 
-        const uint8 *contents() const { return &data_[0]; }
-
-        size_t size() const { return data_.size(); }
-        bool empty() const { return data_.empty(); }
+        uint8 *data() { return &data_[0]; }
+		const uint8 *data()const { return &data_[0]; }
+			
+        virtual size_t size() const { return data_.size(); }
+        virtual bool empty() const { return data_.empty(); }
 
         void resize(size_t newsize)
         {
@@ -389,8 +390,9 @@ class MemoryStream
 
         void append(const MemoryStream& buffer)
         {
-            if(buffer.wpos())
-                append(buffer.contents(), buffer.wpos());
+            if(buffer.wpos()){
+                append(buffer.data(), buffer.wpos());
+            }
         }
 
         /** 将一个坐标信息加入到流 */

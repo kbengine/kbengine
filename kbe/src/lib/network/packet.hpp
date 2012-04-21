@@ -15,8 +15,8 @@ same license as the rest of the engine.
 #include "memorystream.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "network/common.hpp"
-#include "network/address.hpp"
 #include "cstdkbe/smartpointer.hpp"	
+
 //#define NDEBUG
 #include <assert.h>
 // windows include	
@@ -31,14 +31,26 @@ namespace Mercury
 {
 class EndPoint;
 
-class Packet : public RefCountable
+class Packet : public MemoryStream, public RefCountable
 {
 public:
-	Packet(){};
-	virtual ~Packet(void){};
+	Packet(PacketHeaders ph = PACKET_HEADER_UNKOWN, size_t res = 200):
+	MemoryStream(res),
+	headerFlags_(PACKET_HEADER_UNKOWN)
+	{
+	};
+	
+	virtual ~Packet(void)
+	{
+	};
 	
 	virtual int recvFromEndPoint(EndPoint & ep) = 0;
-	virtual int totalSize() const { return 0; }
+	
+    virtual size_t size() const { return wpos(); }
+    virtual bool empty() const { return size() > 0; }
+protected:
+	PacketHeaders headerFlags_;
+
 };
 
 typedef SmartPointer<Packet> PacketPtr;

@@ -79,7 +79,7 @@ void CellApp::handleGameTick()
 	{
 		Mercury::Channel* channel = iter->second;
 		Mercury::EndPoint * endpoint = channel->endpoint();
-		endpoint->send("kebiao", 6);
+		endpoint->send("aaa", 3);
 	}
 }
 

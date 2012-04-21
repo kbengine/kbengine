@@ -28,27 +28,10 @@ namespace Mercury
 class UDPPacket : public Packet
 {
 public:
-    UDPPacket();
+    UDPPacket(PacketHeaders ph = PACKET_HEADER_UNKOWN, size_t res = 0);
 	virtual ~UDPPacket(void);
 	
 	int recvFromEndPoint(EndPoint & ep);
-
-	int msgEndOffset() const	{ return msgEndOffset_; }
-	void msgEndOffset(int offset)		{ msgEndOffset_ = offset; }
-	int totalSize() const		{ return 1; }
-protected:
-	int			msgEndOffset_;
-
-
-#ifdef _WIN32
-	#pragma warning (push)
-	#pragma warning (disable: 4200)
-#endif
-	/// The variable-length data follows the packet header in memory.
-	char			data_[UDP_PACKET_MAX_SIZE];
-#ifdef _WIN32
-	#pragma warning (pop)
-#endif
 };
 
 typedef SmartPointer<UDPPacket> UDPPacketPtr;

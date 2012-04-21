@@ -27,6 +27,11 @@ INLINE EndPoint::operator KBESOCKET() const
 	return socket_;
 }
 
+INLINE KBESOCKET EndPoint::socket() const
+{
+	return socket_;
+}
+
 INLINE void EndPoint::setFileDescriptor(int fd)
 {
 	socket_ = fd;

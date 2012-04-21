@@ -26,10 +26,13 @@ public:
 	EndPoint(u_int32_t networkAddr = 0, u_int16_t networkPort = 0);
 	virtual ~EndPoint();
 	operator KBESOCKET() const;
+	
 	static void initNetwork();
 	bool good() const;
 		
 	void socket(int type);
+	KBESOCKET socket() const;
+	
 	void setFileDescriptor(int fd);
 
 	int joinMulticastGroup(u_int32_t networkAddr);
