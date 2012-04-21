@@ -18,9 +18,9 @@ Reason PacketFilter::send(NetworkInterface & networkInterface, Channel * pChanne
 }
 
 //-------------------------------------------------------------------------------------
-Reason PacketFilter::recv(PacketReceiver & receiver, Packet * pPacket)
+Reason PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket)
 {
-	return receiver.processFilteredPacket(pPacket);
+	return receiver.processFilteredPacket(pChannel, pPacket);
 }
 
 //-------------------------------------------------------------------------------------

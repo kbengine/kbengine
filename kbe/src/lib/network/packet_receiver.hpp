@@ -34,7 +34,7 @@ public:
 	virtual ~PacketReceiver();
 
 	virtual Reason processPacket(Packet * p);
-	virtual Reason processFilteredPacket(Packet * p) = 0;
+	virtual Reason processFilteredPacket(Channel* pChannel, Packet * p) = 0;
 	EventDispatcher& dispatcher();
 protected:
 	virtual int handleInputNotification(int fd);

@@ -35,7 +35,7 @@ public:
 
 	virtual Reason send(NetworkInterface & networkInterface, Channel * pChannel, Packet * pPacket);
 
-	virtual Reason recv(PacketReceiver & receiver, Packet * pPacket);
+	virtual Reason recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket);
 };
 
 typedef SmartPointer< PacketFilter > PacketFilterPtr;

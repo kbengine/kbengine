@@ -29,8 +29,7 @@ Channel::Channel(NetworkInterface & networkInterface,
 					(id == CHANNEL_ID_NULL) ? INTERNAL_CHANNEL_SIZE :
 											  INDEXED_CHANNEL_SIZE),
 
-	bufferedReceives_(windowSize_),
-	numBufferedReceives_(0),
+	bufferedReceives_(),
 	isDestroyed_(false),
 	shouldDropNextSend_(false),
 	// Stats
@@ -42,9 +41,10 @@ Channel::Channel(NetworkInterface & networkInterface,
 	pEndPoint_(NULL),
 	pPacketReceiver_(NULL)
 {
-	// This corresponds to the decRef in Channel::destroy.
 	this->incRef();
-
+	
+	bufferedReceives_.reserve(windowSize_);
+	
 	if (pFilter_ && id_ != CHANNEL_ID_NULL)
 	{
 		CRITICAL_MSG("Channel::Channel: "
@@ -128,6 +128,19 @@ void Channel::destroy()
 //-------------------------------------------------------------------------------------
 void Channel::clearState( bool warnOnDiscard /*=false*/ )
 {
+	// 清空未处理的接受包缓存
+	if (bufferedReceives_.size() > 0)
+	{
+		if (warnOnDiscard)
+		{
+			WARNING_MSG( "Channel::clearState( %s ): "
+				"Discarding %u buffered packet(s)\n",
+				this->c_str(), bufferedReceives_.size() );
+		}
+		
+		bufferedReceives_.clear();
+	}
+	
 	lastReceivedTime_ = timestamp();
 	roundTripTime_ =
 		this->isInternal() ? stampsPerSecond() / 10 : stampsPerSecond();
@@ -262,6 +275,13 @@ void Channel::onPacketReceived(int bytes)
 	lastReceivedTime_ = timestamp();
 	++numPacketsReceived_;
 	numBytesReceived_ += bytes;
+}
+
+//-------------------------------------------------------------------------------------
+Channel::AddToReceiveWindowResult Channel::addToReceiveWindow(Packet * p)
+{
+	bufferedReceives_.push_back(p);
+	return SHOULD_NOT_PROCESS;
 }
 
 //-------------------------------------------------------------------------------------

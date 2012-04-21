@@ -51,11 +51,11 @@ Reason PacketReceiver::processPacket(Packet * p)
 
 		if (pChannel->pFilter())
 		{
-			return pChannel->pFilter()->recv(*this, p);
+			return pChannel->pFilter()->recv(pChannel, *this, p);
 		}
 	}
 
-	return this->processFilteredPacket(p);
+	return this->processFilteredPacket(pChannel, p);
 }
 
 //-------------------------------------------------------------------------------------

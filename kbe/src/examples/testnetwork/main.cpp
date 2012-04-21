@@ -228,7 +228,7 @@ void init_network(void)
 			std::string ss;
 			packet >> ss;
 			printf("data(%d): [%s]\n", len, ss.c_str());
-			KBEngine::sleep(10000);
+			KBEngine::sleep(10);
 			
 		};
 	};

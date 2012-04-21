@@ -45,6 +45,13 @@ public:
 		/// This describes the properties of a channel from client to server.
 		EXTERNAL = 1,
 	};
+	
+	enum AddToReceiveWindowResult
+	{
+		SHOULD_PROCESS,
+		SHOULD_NOT_PROCESS,
+		PACKET_IS_CORRUPT
+	};
 public:
 	Channel(NetworkInterface & networkInterface, const EndPoint * endpoint, Traits traits, PacketFilterPtr pFilter = NULL, ChannelID id = CHANNEL_ID_NULL);
 
@@ -94,7 +101,9 @@ public:
 	bool isInternal() const { return traits_ == INTERNAL; }
 		
 	void onPacketReceived(int bytes);
-
+	
+	AddToReceiveWindowResult addToReceiveWindow(Packet * p);
+	
 	const char * c_str() const;
 	int windowSize() const;
 	ChannelID id() const	{ return id_; }
@@ -130,8 +139,8 @@ private:
 	uint32						windowSize_;
 	uint64						roundTripTime_;
 	
-	CircularBuffer<PacketPtr>	bufferedReceives_;
-	uint32						numBufferedReceives_;
+	typedef std::vector<PacketPtr> BufferedReceives;
+	std::vector<PacketPtr>		bufferedReceives_;
 	
 	bool						isDestroyed_;
 	bool						shouldDropNextSend_;

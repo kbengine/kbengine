@@ -19,7 +19,7 @@ namespace Mercury
 UDPPacketReceiver::UDPPacketReceiver(EndPoint & endpoint,
 	   NetworkInterface & networkInterface	) :
 	PacketReceiver(endpoint, networkInterface),
-	pNextPacket_(new TCPPacket())
+	pNextPacket_(new UDPPacket())
 {
 }
 
@@ -48,7 +48,7 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 	}
 	
 	PacketPtr curPacket = pNextPacket_;
-	pNextPacket_ = new TCPPacket();
+	pNextPacket_ = new UDPPacket();
 	Reason ret = this->processPacket(curPacket.get());
 
 	if(ret != REASON_SUCCESS)
@@ -58,9 +58,12 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 }
 
 //-------------------------------------------------------------------------------------
-Reason UDPPacketReceiver::processFilteredPacket(Packet * p)
+Reason UDPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * p)
 {
 	networkInterface_.onPacketIn(*p);
+	
+	Channel::AddToReceiveWindowResult result =
+		pChannel->addToReceiveWindow(p);
 	return REASON_SUCCESS;
 }
 

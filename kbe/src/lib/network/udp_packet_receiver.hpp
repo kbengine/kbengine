@@ -34,13 +34,13 @@ public:
 	UDPPacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
 	~UDPPacketReceiver();
 
-	Reason processFilteredPacket(Packet * p);
-
+	Reason processFilteredPacket(Channel* pChannel, Packet * p);
+	
 protected:
 	bool processSocket(bool expectingPacket);
 	bool checkSocketErrors(int len, bool expectingPacket);
 protected:
-	TCPPacketPtr pNextPacket_;
+	UDPPacketPtr pNextPacket_;
 };
 
 }

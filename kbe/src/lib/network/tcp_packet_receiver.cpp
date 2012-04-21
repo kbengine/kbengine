@@ -58,9 +58,12 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 }
 
 //-------------------------------------------------------------------------------------
-Reason TCPPacketReceiver::processFilteredPacket(Packet * p)
+Reason TCPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * p)
 {
 	networkInterface_.onPacketIn(*p);
+	
+	Channel::AddToReceiveWindowResult result =
+		pChannel->addToReceiveWindow(p);
 	return REASON_SUCCESS;
 }
 
