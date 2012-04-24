@@ -1,6 +1,7 @@
 BIN  = cellapp
 SRCS =						\
 	cellapp					\
+	cellapp_interface			\
 	entities				\
 	entity					\
 	main

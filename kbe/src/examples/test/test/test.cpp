@@ -123,7 +123,7 @@ Entity* TestApp::createEntity(const char* entityType, PyObject* params, bool isI
 	return entity;
 }
 
-template<> TestApp* Singleton<TestApp>::singleton_ = 0;
+KBE_SINGLETON_INIT(TestApp);
 
 int KBENGINE_MAIN(int argc, char* argv[])
 {

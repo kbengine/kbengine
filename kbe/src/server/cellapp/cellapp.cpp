@@ -1,7 +1,13 @@
 #include "cellapp.hpp"
+#include "entity.hpp"
+#include "entities.hpp"
+#include "cellapp_interface.hpp"
+#include "network/tcp_packet.hpp"
+
 namespace KBEngine{
+	
 ServerConfig g_serverConfig;
-template<> CellApp* Singleton<CellApp>::singleton_ = 0;
+KBE_SINGLETON_INIT(CellApp);
 
 //-------------------------------------------------------------------------------------
 CellApp::CellApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
@@ -81,6 +87,14 @@ void CellApp::handleGameTick()
 		Mercury::EndPoint * endpoint = channel->endpoint();
 		endpoint->send("aaa", 3);
 	}
+
+	Mercury::TCPPacket p;
+	p << 1;
+	std::string name = "kebiao";
+	p << name;
+
+	Mercury::MessageHandler* mh = CellAppInterface::messageHandlers.find(1);
+	mh->handle(p);
 }
 
 //-------------------------------------------------------------------------------------
@@ -153,7 +167,13 @@ Entity* CellApp::createEntity(const char* entityType, PyObject* params, bool isI
 	INFO_MSG("App::createEntity: new %s (%ld).\n", entityType, id);
 	return entity;
 }
-	
+
+//-------------------------------------------------------------------------------------
+Entity* CellApp::findEntity(ENTITY_ID eid)
+{
+	return entities_->find(eid);
+}
+
 //-------------------------------------------------------------------------------------
 
 }

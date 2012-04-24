@@ -8,6 +8,8 @@ SRCS =				\
 	error_reporter		\
 	event_dispatcher	\
 	event_poller		\
+	interface_defs		\
+	message_handler		\
 	listener_receiver	\
 	network_interface	\
 	packet_filter		\

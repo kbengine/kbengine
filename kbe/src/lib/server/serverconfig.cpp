@@ -1,6 +1,6 @@
 #include "serverconfig.hpp"
 namespace KBEngine{
-template<> ServerConfig* Singleton<ServerConfig>::singleton_ = 0;
+KBE_SINGLETON_INIT(ServerConfig);
 
 //-------------------------------------------------------------------------------------
 ServerConfig::ServerConfig()

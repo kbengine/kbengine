@@ -41,7 +41,7 @@ same license as the rest of the engine.
 	
 namespace KBEngine{
 
-class ServerApp : public Singleton<ServerApp>
+class ServerApp
 {
 public:
 	ServerApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);

@@ -40,6 +40,7 @@ same license as the rest of the engine.
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h> 
 #include <unordered_map>
+#include <functional>
 #else
 // linux include
 #include <errno.h>
@@ -57,6 +58,7 @@ same license as the rest of the engine.
 #include <netdb.h>
 #include <stdint.h>
 #include <tr1/unordered_map>
+#include <tr1/functional>
 #include <langinfo.h>   /* CODESET */
 #include <linux/errqueue.h>
 #include <signal.h>

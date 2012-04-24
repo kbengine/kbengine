@@ -23,7 +23,7 @@ namespace KBEngine {
 namespace Mercury
 {
 
-typedef uint8 MessageType;
+typedef uint8 MessageID;
 typedef uint16 PacketHeaderType;
 
 typedef int32 ChannelID;
@@ -40,7 +40,7 @@ namespace tcp{
 #define PACKET_MAX_SIZE_UDP 1472
 
 #define PACKET_HEADER_SIZE sizeof(PacketHeaderType)
-#define MESSAGE_TYPE_SIZE sizeof(MessageType)
+#define MESSAGE_ID_SIZE sizeof(MessageID)
 
 enum PacketHeaders
 {

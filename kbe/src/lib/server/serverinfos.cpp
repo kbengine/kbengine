@@ -2,7 +2,7 @@
 #include "serverinfos.hpp"
 
 namespace KBEngine{
-template<> ServerInfos* Singleton<ServerInfos>::singleton_ = 0;
+KBE_SINGLETON_INIT(ServerInfos);
 
 //-------------------------------------------------------------------------------------
 ServerInfos::ServerInfos()

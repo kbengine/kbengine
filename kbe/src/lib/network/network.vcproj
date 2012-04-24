@@ -185,7 +185,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\interface_defs.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\listener_receiver.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\message_handler.cpp"
 				>
 			</File>
 			<File
@@ -267,11 +275,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\interface_defs.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\interfaces.hpp"
 				>
 			</File>
 			<File
 				RelativePath=".\listener_receiver.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\message_handler.hpp"
 				>
 			</File>
 			<File

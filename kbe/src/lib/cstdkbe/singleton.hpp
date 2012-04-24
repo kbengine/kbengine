@@ -60,5 +60,8 @@ public:
 	static T* getSingletonPtr(void){ return singleton_; }
 };
 
+#define KBE_SINGLETON_INIT( TYPE )							\
+template <>	 TYPE * Singleton< TYPE >::singleton_ = 0;	\
+	
 }
 #endif // __SINGLETON_H__

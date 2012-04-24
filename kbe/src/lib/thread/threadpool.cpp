@@ -1,7 +1,6 @@
 #include "threadPool.hpp"
 namespace KBEngine{ 
-
-template<> KBEngine::thread::ThreadPool* Singleton<KBEngine::thread::ThreadPool>::singleton_ = 0;
+KBE_SINGLETON_INIT(KBEngine::thread::ThreadPool);
 namespace thread{
 
 // 全局数据的定义

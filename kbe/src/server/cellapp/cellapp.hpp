@@ -17,8 +17,7 @@ same license as the rest of the engine.
 #include "server/idallocate.hpp"
 #include "server/serverconfig.hpp"
 #include "cstdkbe/timer.hpp"
-#include "entity.hpp"
-#include "entities.hpp"
+
 //#define NDEBUG
 #include <map>	
 // windows include	
@@ -28,6 +27,8 @@ same license as the rest of the engine.
 #endif
 	
 namespace KBEngine{
+class Entity;
+class Entities;
 
 class CellApp: public EntityApp, public TimerHandler, public Singleton<CellApp>
 {
@@ -54,6 +55,7 @@ public:
 	void finalise();
 	
 	Entity* createEntity(const char* entityType, PyObject* params, bool isInitializeScript = true, ENTITY_ID eid = 0);
+	Entity* findEntity(ENTITY_ID eid);
 protected:
 	IDClient<ENTITY_ID>*		idClient_;
 	Entities*					entities_;									// 存储所有的entity的容器

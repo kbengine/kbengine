@@ -3,7 +3,9 @@
 #include "thread/ThreadGuard.hpp"
 
 namespace KBEngine{
-template<> DebugHelper* Singleton<DebugHelper>::singleton_ = 0;
+	
+KBE_SINGLETON_INIT(DebugHelper);
+
 DebugHelper dbghelper;
 
 #ifdef KBE_USE_ASSERTS

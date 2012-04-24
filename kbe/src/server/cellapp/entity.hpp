@@ -22,6 +22,7 @@ same license as the rest of the engine.
 #include "entitydef/datatypes.hpp"	
 #include "entitydef/entitydef.hpp"	
 #include "network/channel.hpp"	
+
 //#define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -66,7 +67,10 @@ public:
 public:
 	Entity(ENTITY_ID id, ScriptModule* scriptModule);
 	~Entity();
-
+	
+	// 测试网络接口
+	void test(std::string name);
+	
 	/** entity脚本初始化 */
 	void initializeScript();
 

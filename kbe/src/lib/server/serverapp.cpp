@@ -2,7 +2,6 @@
 #include "server/serverconfig.hpp"
 
 namespace KBEngine{
-template<> ServerApp* Singleton<ServerApp>::singleton_ = 0;
 
 //-------------------------------------------------------------------------------------
 ServerApp::ServerApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
