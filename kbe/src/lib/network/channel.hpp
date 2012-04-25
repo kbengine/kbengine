@@ -52,6 +52,8 @@ public:
 		SHOULD_NOT_PROCESS,
 		PACKET_IS_CORRUPT
 	};
+
+	typedef std::vector<PacketPtr> BufferedReceives;
 public:
 	Channel(NetworkInterface & networkInterface, const EndPoint * endpoint, Traits traits, PacketFilterPtr pFilter = NULL, ChannelID id = CHANNEL_ID_NULL);
 
@@ -114,6 +116,8 @@ public:
 	uint32	numBytesReceived() const	{ return numBytesReceived_; }
 		
 	PacketReceiver* packetReceiver()const { return pPacketReceiver_; }
+
+	BufferedReceives& bufferedReceives(){ return bufferedReceives_; }
 private:
 	enum TimeOutType
 	{
@@ -139,7 +143,6 @@ private:
 	uint32						windowSize_;
 	uint64						roundTripTime_;
 	
-	typedef std::vector<PacketPtr> BufferedReceives;
 	std::vector<PacketPtr>		bufferedReceives_;
 	
 	bool						isDestroyed_;

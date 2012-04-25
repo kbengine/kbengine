@@ -3,6 +3,7 @@
 #include "entities.hpp"
 #include "cellapp_interface.hpp"
 #include "network/tcp_packet.hpp"
+#include "network/udp_packet.hpp"
 
 namespace KBEngine{
 	
@@ -85,16 +86,22 @@ void CellApp::handleGameTick()
 	{
 		Mercury::Channel* channel = iter->second;
 		Mercury::EndPoint * endpoint = channel->endpoint();
-		endpoint->send("aaa", 3);
+		endpoint->send("hello", 5);
+
+		Mercury::Channel::BufferedReceives& bufferedReceives = channel->bufferedReceives();
+		Mercury::Channel::BufferedReceives::iterator briter = bufferedReceives.begin();
+		Mercury::MessageID msgID = 0;
+
+		for(; briter != bufferedReceives.end(); briter++)
+		{
+			Mercury::Packet* pPacket = briter->get();
+			(*pPacket) >> msgID;
+			Mercury::MessageHandler* pMsgHandler = CellAppInterface::messageHandlers.find(msgID);
+			pMsgHandler->handle(*pPacket);
+		}
+
+		bufferedReceives.clear();
 	}
-
-	Mercury::TCPPacket p;
-	p << 1;
-	std::string name = "kebiao";
-	p << name;
-
-	Mercury::MessageHandler* mh = CellAppInterface::messageHandlers.find(1);
-	mh->handle(p);
 }
 
 //-------------------------------------------------------------------------------------

@@ -34,6 +34,7 @@ class EndPoint;
 class Packet : public MemoryStream, public RefCountable
 {
 public:
+
 	Packet(PacketHeaders ph = PACKET_HEADER_UNKOWN, size_t res = 200):
 	MemoryStream(res),
 	headerFlags_(PACKET_HEADER_UNKOWN)

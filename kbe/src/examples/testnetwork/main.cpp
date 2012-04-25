@@ -17,7 +17,7 @@ same license as the rest of the engine.
 #include "network/interfaces.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/error_reporter.hpp"
-
+#include "network/bundle.hpp"
 
 #include "cellapp/cellapp_interface.hpp"
 #define DEFINE_IN_INTERFACE
@@ -183,7 +183,6 @@ MyPacketReceiver* packetReceiver;
 
 void init_network(void)
 {
-	int i = CellAppInterface::test.msgID;
 	while(1)
 	{
 		mysocket.close();
@@ -219,13 +218,12 @@ void init_network(void)
 		{
 			TCPPacket packet;
 
-			std::string sss = "aaa";
-			packet << sss;
-			int io = 9993;
-			
-			packet << io;
-			packet.hexlike();
-			mysocket.send(packet.data(), packet.size());
+			Bundle bundle;
+			bundle.newMessage(CellAppInterface::test);
+			bundle << 1;
+			std::string sss = "test";
+			bundle << sss;
+			bundle.send(mysocket);
 			
 			packet.clear();
 			packet.resize(1024);

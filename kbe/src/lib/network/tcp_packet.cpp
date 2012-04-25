@@ -26,16 +26,6 @@ int TCPPacket::recvFromEndPoint(EndPoint & ep)
 {
 	int len = ep.recv(data(), PACKET_MAX_SIZE_TCP);
 	wpos(len);
-	std::string s;
-	int io = 0;
-	if(len > 0)
-	{
-		hexlike();
-		(*this) >> s;
-		(*this) >> io;
-	}
-
-	printf("---------------------------[%s-%d]%d--%d-wpo1s=%d\n",s.c_str(), io, len, data_.size(), wpos());
 	return len;
 }
 

@@ -14,7 +14,6 @@ same license as the rest of the engine.
 namespace KBEngine { 
 namespace Mercury
 {
-class Bundle;
 class Channel;
 
 /** 此类接口用于接收普通的Mercury输入消息
