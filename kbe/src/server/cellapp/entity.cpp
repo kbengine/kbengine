@@ -93,7 +93,8 @@ Entity::~Entity()
 //-------------------------------------------------------------------------------------
 void Entity::test(std::string name)
 {
-	DEBUG_MSG("Entity::test:=========>name=%s\n", name.c_str());
+	time_t t = time(NULL);
+	DEBUG_MSG("Entity::test[%d]:=========>name=%s\n", t, name.c_str());
 }
 
 //-------------------------------------------------------------------------------------

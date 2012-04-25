@@ -79,6 +79,9 @@ void CellApp::handleTimeout(TimerHandle handle, void * arg)
 //-------------------------------------------------------------------------------------
 void CellApp::handleGameTick()
 {
+	// time_t t = ::time(NULL);
+	// DEBUG_MSG("CellApp::handleGameTick[%d]:%d\n", t, time_);
+	
 	time_++;
 	const Mercury::NetworkInterface::ChannelMap& channels = getNetworkInterface().channels();
 	Mercury::NetworkInterface::ChannelMap::const_iterator iter = channels.begin();
