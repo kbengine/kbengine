@@ -18,6 +18,11 @@ same license as the rest of the engine.
 #include "network/tcp_packet.hpp"
 #include "network/error_reporter.hpp"
 
+
+#include "cellapp/cellapp_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "cellapp/cellapp_interface.hpp"
+
 using namespace KBEngine;
 using namespace KBEngine::Mercury;
 Address address;
@@ -178,6 +183,7 @@ MyPacketReceiver* packetReceiver;
 
 void init_network(void)
 {
+	int i = CellAppInterface::test.msgID;
 	while(1)
 	{
 		mysocket.close();

@@ -17,8 +17,10 @@ same license as the rest of the engine.
 #define __CELLAPP_INTERFACE_H__
 
 // common include	
+#if defined(CELLAPP)
 #include "entity.hpp"
 #include "cellapp.hpp"
+#endif
 #include "network/interface_defs.hpp"
 //#define NDEBUG
 // windows include	
@@ -34,21 +36,28 @@ namespace KBEngine{
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
-
-#define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME)					\
+#if defined(CELLAPP)
+#define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
 	void NAME##EntityMessagehandler::handle(KBEngine::MemoryStream& s)			\
 	{																			\
 			ENTITY_ID eid;														\
 			s >> eid;															\
 			KBEngine::Entity* e =												\
 					KBEngine::CellApp::getSingleton().findEntity(eid);			\
-			ARG_TYPE1 ARG_NAME;													\
-			s >> ARG_NAME;														\
-			e->NAME(ARG_NAME);													\
+			ARG_TYPE1 ARG_NAME1;												\
+			s >> ARG_NAME1;														\
+			e->NAME(ARG_NAME1);													\
 	}																			\
 
 #else
-#define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME)					\
+#define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
+	void NAME##EntityMessagehandler::handle(KBEngine::MemoryStream& s)			\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
 	class NAME##EntityMessagehandler : public Mercury::MessageHandler			\
 	{																			\
 	public:																		\
@@ -71,6 +80,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellAppInterface)
 	)
 	
 NETWORK_INTERFACE_DECLARE_END()
-	
+
+#ifdef DEFINE_IN_INTERFACE
+	#undef DEFINE_IN_INTERFACE
+#endif
+
 }
 #endif

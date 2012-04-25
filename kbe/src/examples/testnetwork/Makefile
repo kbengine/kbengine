@@ -1,6 +1,6 @@
 BIN  = testnetwork
 SRCS =				\
-	main
+	main				
 
 ASMS =
 
