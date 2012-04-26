@@ -220,7 +220,8 @@ void init_network(void)
 
 			Bundle bundle;
 			bundle.newMessage(CellAppInterface::test);
-			bundle << 1;
+			ENTITY_ID eid = 1;
+			bundle << eid;
 			std::string sss = "test";
 			bundle << sss;
 			bundle.send(mysocket);
