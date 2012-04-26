@@ -5,13 +5,14 @@
 #include "network/bundle.hpp"
 #include "network/endpoint.hpp"
 #include "network/network_interface.hpp"
+#include "network/message_handler.hpp"
 
 namespace KBEngine { 
 namespace Mercury
 {
 //-------------------------------------------------------------------------------------
-UDPPacket::UDPPacket(PacketHeaders ph, size_t res):
-Packet(ph, res)
+UDPPacket::UDPPacket(MessageID msgID, size_t res):
+Packet(msgID, res)
 {
 	resize(PACKET_MAX_SIZE_UDP);
 }

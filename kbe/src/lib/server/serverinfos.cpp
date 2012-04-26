@@ -49,14 +49,12 @@ ServerInfos::ServerInfos()
 #if KBE_PLATFORM == PLATFORM_WIN32
 
 	DWORD dwSize = MAX_PATH;
-	TCHAR szName[MAX_PATH] = {0};
-	memset((TCHAR*)&szName, 0, MAX_PATH);
-	if (!GetUserName((TCHAR*)&szName, &dwSize))
-	{
+	char szName[MAX_PATH] = {0};
+	memset((char*)&szName, 0, MAX_PATH);
+	if (!::GetUserNameA((char*)&szName, &dwSize))
 		serverName_ = "Not yet implemented";
-	}
-	
-	serverName_ = wchar2char(szName);
+	else
+		serverName_ = szName;
 
 	fetchWindowsCpuInfo();
 	fetchWindowsMemInfo();

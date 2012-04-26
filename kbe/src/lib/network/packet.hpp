@@ -35,9 +35,9 @@ class Packet : public MemoryStream, public RefCountable
 {
 public:
 
-	Packet(PacketHeaders ph = PACKET_HEADER_UNKOWN, size_t res = 200):
+	Packet(MessageID msgID = 0, size_t res = 200):
 	MemoryStream(res),
-	headerFlags_(PACKET_HEADER_UNKOWN)
+	msgID_(msgID)
 	{
 	};
 	
@@ -49,8 +49,19 @@ public:
 	
     virtual size_t size() const { return wpos(); }
     virtual bool empty() const { return size() > 0; }
+
+	inline void messageID(MessageID msgID) { 
+		msgID_ = msgID; 
+		(*this) << msgID;
+	}
+
+	inline MessageID messageID() const { return msgID_; }
+
+	virtual void setPacketLength(MessageLength length)
+	{
+	}
 protected:
-	PacketHeaders headerFlags_;
+	MessageID msgID_;
 
 };
 

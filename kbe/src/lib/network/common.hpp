@@ -25,7 +25,6 @@ namespace Mercury
 
 typedef uint8 MessageID;
 typedef uint8 MessageLength;
-typedef uint16 PacketHeaderType;
 
 typedef int32 ChannelID;
 const ChannelID CHANNEL_ID_NULL = 0;
@@ -40,22 +39,7 @@ namespace tcp{
 #define PACKET_MAX_SIZE_TCP 1460
 #define PACKET_MAX_SIZE_UDP 1472
 
-#define PACKET_HEADER_SIZE sizeof(PacketHeaderType)
 #define MESSAGE_ID_SIZE sizeof(MessageID)
-
-enum PacketHeaders
-{
-	PACKET_HEADER_UNKOWN,					///< 未知.
-	PACKET_HEADER_WORLD,					///< 世界逻辑.
-	PACKET_HEADER_LOGIN,					///< 登录.
-	PACKET_HEADER_LOGOUT,					///< 离线.
-};
-
-enum MessageTypes
-{
-	MESSAGE_TYPE_UNKNOWN,
-	MESSAGE_TYPE_POSITION_ROLL_YAW_PITCH,	///< 同步位置.
-};
 
 enum Reason
 {

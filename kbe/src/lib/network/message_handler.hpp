@@ -51,6 +51,7 @@ public:
 class MessageHandlers
 {
 public:
+	static Mercury::MessageHandlers* pMainMessageHandlers;
 	typedef std::map<MessageID, MessageHandler*> MessageHandlerMap;
 	MessageHandlers();
 	~MessageHandlers();

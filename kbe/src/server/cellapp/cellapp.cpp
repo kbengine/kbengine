@@ -4,6 +4,7 @@
 #include "cellapp_interface.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
+#include "network/message_handler.hpp"
 
 namespace KBEngine{
 	
@@ -17,6 +18,7 @@ CellApp::CellApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface
     entities_(NULL),
     gameTimer_()
 {
+	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &CellAppInterface::messageHandlers;	
 }
 
 //-------------------------------------------------------------------------------------

@@ -67,6 +67,14 @@ same license as the rest of the engine.
 #include <net/if.h>
 #endif
 
+#ifndef TCHAR
+#ifdef _UNICODE
+	typedef wchar_t												TCHAR;
+#else
+	typedef char												TCHAR;
+#endif
+#endif
+
 /** 定义引擎名字空间 */
 namespace KBEngine{ 
 /** 定义引擎字节序 */
@@ -159,10 +167,10 @@ namespace KBEngine{
 /*---------------------------------------------------------------------------------
 	类型定义
 ---------------------------------------------------------------------------------*/
-typedef unsigned char	uchar;
-typedef unsigned short	ushort;
-typedef unsigned int	uint;
-typedef unsigned long	ulong;
+typedef unsigned char											uchar;
+typedef unsigned short											ushort;
+typedef unsigned int											uint;
+typedef unsigned long											ulong;
 
 /* Use correct types for x64 platforms, too */
 #if KBE_COMPILER != COMPILER_GNU
@@ -590,29 +598,21 @@ static inline int long2int32(const double value)
 #endif
 
 
-inline char* wchar2char(TCHAR* ts)
+inline char* wchar2char(wchar_t* ts)
 {
-
-#ifdef _UNICODE
 	int len = (wcslen(ts) + 1) * 2;
 	char* ccattr =(char *)malloc(len);
     wcstombs(ccattr, ts, len);
 	return ccattr;
-#else
-	return ts;
-#endif
 };
 
-inline TCHAR* char2wchar(char* cs)
+inline wchar_t* char2wchar(char* cs)
 {
-#ifdef _UNICODE
 	int len = (strlen(cs) + 1) * 2;
-	TCHAR* ccattr =(TCHAR *)malloc(len);
+	wchar_t* ccattr =(wchar_t *)malloc(len);
     mbstowcs(ccattr, cs, len);
 	return ccattr;
-#else
-	return cs;
-#endif
 };
+
 }
 #endif

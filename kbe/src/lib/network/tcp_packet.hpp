@@ -28,7 +28,7 @@ namespace Mercury
 class TCPPacket : public Packet
 {
 public:
-    TCPPacket(PacketHeaders ph = PACKET_HEADER_UNKOWN, size_t res = 0);
+    TCPPacket(MessageID msgID = 0, size_t res = 0);
 	virtual ~TCPPacket(void);
 	
 	int recvFromEndPoint(EndPoint & ep);

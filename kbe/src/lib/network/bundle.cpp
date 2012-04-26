@@ -16,20 +16,14 @@ namespace Mercury
 Bundle::Bundle(Channel * pChannel, PacketType pt):
 	pChannel_(pChannel),
 	pCurrPacket_(NULL),
+	currMsgID_(0),
+	currMsgPacketCount_(0),
+	currMsgLength_(0),
+	currMsgHandlerLength_(0),
 	packets_(),
 	isTCPPacket_(pt == TCP_PACKET)
 {
 	 newPacket();
-}
-
-//-------------------------------------------------------------------------------------
-Bundle::Bundle(Packet * p, PacketType pt):
-	pChannel_(NULL),
-	pCurrPacket_(NULL),
-	packets_(),
-	isTCPPacket_(pt == TCP_PACKET)
-{
-	pCurrPacket_ = p;
 }
 
 //-------------------------------------------------------------------------------------
@@ -53,8 +47,17 @@ Packet* Bundle::newPacket()
 //-------------------------------------------------------------------------------------
 void Bundle::finish(void)
 {
+	currMsgLength_ += pCurrPacket_->size();
 	packets_.push_back(pCurrPacket_);
+
+	// 此处对于非固定长度的消息来说需要设置它的最终长度信息
+	if(currMsgHandlerLength_ == 0)
+		packets_[packets_.size() - currMsgPacketCount_]->setPacketLength(currMsgLength_);
+
 	pCurrPacket_ = NULL;
+	currMsgID_ = 0;
+	currMsgPacketCount_ = 0;
+	currMsgLength_ = 0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -66,6 +69,9 @@ void Bundle::clear()
 	
 	packets_.clear();
 	SAFE_RELEASE(pCurrPacket_);
+
+	currMsgID_ = 0;
+	currMsgPacketCount_ = 0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -95,9 +101,13 @@ void Bundle::send(EndPoint& ep)
 void Bundle::newMessage(const MessageHandler& msgHandler)
 {
 	KBE_ASSERT(pCurrPacket_ != NULL);
-	
-	(*pCurrPacket_) << msgHandler.msgID;
+
+	pCurrPacket_->messageID(msgHandler.msgID);
+
 	numMessages_++;
+	currMsgID_ = msgHandler.msgID;
+	currMsgPacketCount_ = 1;
+	currMsgHandlerLength_ = msgHandler.msgLen;
 }
 
 //-------------------------------------------------------------------------------------

@@ -38,8 +38,6 @@ public:
 	typedef std::vector<Packet*> Packets;
 
 	Bundle(Channel * pChannel = NULL, PacketType pt = TCP_PACKET);
-
-	Bundle(Packet * packetChain, PacketType pt = TCP_PACKET);
 	virtual ~Bundle();
 	
 	void newMessage(const MessageHandler& msgHandler);
@@ -68,6 +66,8 @@ public:
 		if(pCurrPacket_->size() + size > packetmaxsize)
 		{
 			packets_.push_back(pCurrPacket_);
+			currMsgPacketCount_++;
+			currMsgLength_ += pCurrPacket_->size();
 			newPacket();
 		}
 	}
@@ -232,7 +232,11 @@ private:
 	int		numMessages_;
 	
 	Packet* pCurrPacket_;
-		
+	MessageID currMsgID_;
+	uint8 currMsgPacketCount_;
+	MessageLength currMsgLength_;
+	MessageLength currMsgHandlerLength_;
+
 	Packets packets_;
 	
 	bool isTCPPacket_;

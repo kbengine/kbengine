@@ -28,7 +28,7 @@ namespace Mercury
 class UDPPacket : public Packet
 {
 public:
-    UDPPacket(PacketHeaders ph = PACKET_HEADER_UNKOWN, size_t res = 0);
+    UDPPacket(MessageID msgID = 0, size_t res = 0);
 	virtual ~UDPPacket(void);
 	
 	int recvFromEndPoint(EndPoint & ep);

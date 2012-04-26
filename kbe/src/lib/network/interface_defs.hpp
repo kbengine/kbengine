@@ -48,6 +48,8 @@ namespace Mercury
 	#undef SET_MESSAGE_FUNC
 #endif
 
+
+
 #ifdef DEFINE_IN_INTERFACE
 	//#undef DEFINE_IN_INTERFACE
 	

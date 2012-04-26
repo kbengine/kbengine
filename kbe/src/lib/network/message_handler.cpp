@@ -7,6 +7,8 @@
 namespace KBEngine { 
 namespace Mercury
 {
+Mercury::MessageHandlers* MessageHandlers::pMainMessageHandlers = 0;
+
 //-------------------------------------------------------------------------------------
 MessageHandlers::MessageHandlers():
 msgHandlers_(),
