@@ -34,7 +34,7 @@ public:
 	TCPPacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
 	~TCPPacketReceiver();
 
-	Reason processFilteredPacket(Channel* pChannel, Packet * p);
+	Reason processFilteredPacket(Channel* pChannel, Packet * pPacket);
 
 protected:
 	bool processSocket(bool expectingPacket);

@@ -15,6 +15,7 @@ UDPPacket::UDPPacket(MessageID msgID, size_t res):
 Packet(msgID, res)
 {
 	resize(PACKET_MAX_SIZE_UDP);
+	wpos(0);
 }
 
 //-------------------------------------------------------------------------------------

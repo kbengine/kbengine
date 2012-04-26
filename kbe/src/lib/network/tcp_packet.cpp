@@ -15,6 +15,7 @@ TCPPacket::TCPPacket(MessageID msgID, size_t res):
 Packet(msgID, res)
 {
 	resize(PACKET_MAX_SIZE_TCP);
+	wpos(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -29,6 +30,8 @@ int TCPPacket::recvFromEndPoint(EndPoint & ep)
 
 	int len = ep.recv(data(), PACKET_MAX_SIZE_TCP);
 	wpos(len);
+	if(len > 0)
+		assert((len % 10) == 0);
 	return len;
 }
 

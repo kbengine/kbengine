@@ -33,8 +33,8 @@ public:
 	PacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
 	virtual ~PacketReceiver();
 
-	virtual Reason processPacket(Packet * p);
-	virtual Reason processFilteredPacket(Channel* pChannel, Packet * p) = 0;
+	virtual Reason processPacket(Packet * pPacket);
+	virtual Reason processFilteredPacket(Channel* pChannel, Packet * pPacket) = 0;
 	EventDispatcher& dispatcher();
 protected:
 	virtual int handleInputNotification(int fd);

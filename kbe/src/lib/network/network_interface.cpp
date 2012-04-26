@@ -391,9 +391,9 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 Reason NetworkInterface::basicSendSingleTry(Channel * pChannel, Packet * pPacket)
 {
 	EndPoint * endpoint = pChannel->endpoint();
-	int len = endpoint->send(pPacket->data(), pPacket->size());
+	int len = endpoint->send(pPacket->data(), pPacket->totalSize());
 
-	if (len == (int)pPacket->size())
+	if (len == (int)pPacket->totalSize())
 	{
 		return REASON_SUCCESS;
 	}
@@ -438,7 +438,7 @@ Reason NetworkInterface::basicSendSingleTry(Channel * pChannel, Packet * pPacket
 		{
 			WARNING_MSG( "NetworkInterface::basicSendSingleTry( %s ): "
 				"Packet length %d does not match sent length %d (err = %s)\n",
-				endpoint->addr().c_str(), pPacket->size(), len, strerror( err ) );
+				endpoint->addr().c_str(), pPacket->totalSize(), len, strerror( err ) );
 		}
 
 		return reason;

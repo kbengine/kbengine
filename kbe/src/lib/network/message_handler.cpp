@@ -28,7 +28,7 @@ MessageHandlers::~MessageHandlers()
 
 //-------------------------------------------------------------------------------------
 MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args, 
-	MessageLength msgLen, MessageHandler* msgHandler)
+	int32 msgLen, MessageHandler* msgHandler)
 {
 	if(msgID_ == 1)
 		printf("message_handlers begin:\n");

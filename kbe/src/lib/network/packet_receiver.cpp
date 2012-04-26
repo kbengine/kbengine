@@ -41,21 +41,21 @@ int PacketReceiver::handleInputNotification(int fd)
 }
 
 //-------------------------------------------------------------------------------------
-Reason PacketReceiver::processPacket(Packet * p)
+Reason PacketReceiver::processPacket(Packet * pPacket)
 {
 	Channel * pChannel = networkInterface_.findChannel(endpoint_.addr());
 
 	if (pChannel != NULL)
 	{
-		pChannel->onPacketReceived(p->size());
+		pChannel->onPacketReceived(pPacket->totalSize());
 
 		if (pChannel->pFilter())
 		{
-			return pChannel->pFilter()->recv(pChannel, *this, p);
+			return pChannel->pFilter()->recv(pChannel, *this, pPacket);
 		}
 	}
 
-	return this->processFilteredPacket(pChannel, p);
+	return this->processFilteredPacket(pChannel, pPacket);
 }
 
 //-------------------------------------------------------------------------------------

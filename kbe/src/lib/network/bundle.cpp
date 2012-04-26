@@ -47,11 +47,11 @@ Packet* Bundle::newPacket()
 //-------------------------------------------------------------------------------------
 void Bundle::finish(void)
 {
-	currMsgLength_ += pCurrPacket_->size();
+	currMsgLength_ += pCurrPacket_->totalSize();
 	packets_.push_back(pCurrPacket_);
 
 	// 此处对于非固定长度的消息来说需要设置它的最终长度信息
-	if(currMsgHandlerLength_ == 0)
+	if(currMsgHandlerLength_ < 0)
 		packets_[packets_.size() - currMsgPacketCount_]->setPacketLength(currMsgLength_);
 
 	pCurrPacket_ = NULL;
@@ -90,7 +90,7 @@ void Bundle::send(EndPoint& ep)
 	for (; iter != packets_.end(); iter++)
 	{
 		Packet* pPacket = (*iter);
-		ep.send(pPacket->data(), pPacket->size());
+		ep.send(pPacket->data(), pPacket->totalSize());
 		delete pPacket;
 	}
 	

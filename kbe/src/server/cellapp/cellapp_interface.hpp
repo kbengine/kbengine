@@ -75,7 +75,7 @@ namespace KBEngine{
 
 NETWORK_INTERFACE_DECLARE_BEGIN(CellAppInterface)
 	
-	ENTITY_MESSAGE_DECLARE_ARGS1(test, 0,
+	ENTITY_MESSAGE_DECLARE_ARGS1(test, -1,
 								std::string, name
 	)
 	

@@ -58,12 +58,12 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 }
 
 //-------------------------------------------------------------------------------------
-Reason UDPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * p)
+Reason UDPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * pPacket)
 {
-	networkInterface_.onPacketIn(*p);
+	networkInterface_.onPacketIn(*pPacket);
 	
 	Channel::AddToReceiveWindowResult result =
-		pChannel->addToReceiveWindow(p);
+		pChannel->addToReceiveWindow(pPacket);
 	return REASON_SUCCESS;
 }
 

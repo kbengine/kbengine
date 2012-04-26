@@ -100,9 +100,12 @@ void CellApp::handleGameTick()
 		for(; briter != bufferedReceives.end(); briter++)
 		{
 			Mercury::Packet* pPacket = briter->get();
-			(*pPacket) >> msgID;
-			Mercury::MessageHandler* pMsgHandler = CellAppInterface::messageHandlers.find(msgID);
-			pMsgHandler->handle(*pPacket);
+			while(pPacket->totalSize() > 0)
+			{
+				(*pPacket) >> msgID;
+				Mercury::MessageHandler* pMsgHandler = CellAppInterface::messageHandlers.find(msgID);
+				pMsgHandler->handle(*pPacket);
+			}
 		}
 
 		bufferedReceives.clear();

@@ -186,7 +186,7 @@ void Channel::send(Bundle * pBundle)
 
 	// Update our stats
 	++numPacketsSent_;
-	numBytesSent_ += pBundle->size();
+	numBytesSent_ += pBundle->totalSize();
 
 
 	// Clear the bundle

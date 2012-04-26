@@ -257,6 +257,7 @@ class MemoryStream
                     break;
                 value += c;
             }
+            
             return *this;
         }
 

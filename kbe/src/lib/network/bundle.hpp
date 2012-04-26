@@ -49,7 +49,7 @@ public:
 	
 	void clear();
 	bool isEmpty() const;
-	int size() const;
+	int totalSize() const;
 	int sizeInPackets();
 	
 	const Packets& packets() { return packets_; }
@@ -63,11 +63,11 @@ public:
 		if(isTCPPacket_ != TCP_PACKET)
 			packetmaxsize = PACKET_MAX_SIZE_UDP;
 
-		if(pCurrPacket_->size() + size > packetmaxsize)
+		if(pCurrPacket_->totalSize() + size > packetmaxsize)
 		{
 			packets_.push_back(pCurrPacket_);
 			currMsgPacketCount_++;
-			currMsgLength_ += pCurrPacket_->size();
+			currMsgLength_ += pCurrPacket_->totalSize();
 			newPacket();
 		}
 	}
@@ -235,7 +235,7 @@ private:
 	MessageID currMsgID_;
 	uint8 currMsgPacketCount_;
 	MessageLength currMsgLength_;
-	MessageLength currMsgHandlerLength_;
+	int32 currMsgHandlerLength_;
 
 	Packets packets_;
 	

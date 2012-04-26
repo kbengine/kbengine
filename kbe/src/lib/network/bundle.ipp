@@ -4,10 +4,10 @@ namespace Mercury
 
 INLINE bool Bundle::isEmpty() const
 {
-	return size() == 0;
+	return totalSize() == 0;
 }
 
-INLINE int Bundle::size() const
+INLINE int Bundle::totalSize() const
 {
 	return packets_.size();
 }

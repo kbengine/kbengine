@@ -183,6 +183,19 @@ MyPacketReceiver* packetReceiver;
 
 void init_network(void)
 {
+			Bundle bundle;
+			bundle.newMessage(CellAppInterface::test);
+			ENTITY_ID eid = 1;
+			bundle << eid;
+			std::string sss = "test";
+			bundle << sss;
+			
+			MessageID msgID;
+			bundle >> msgID;
+
+			bundle >> eid;
+			bundle >> sss;
+
 	while(1)
 	{
 		mysocket.close();
@@ -214,7 +227,7 @@ void init_network(void)
 		mysocket.setnonblocking(true);
 
 		int ii = 0;
-		while(ii ++ <= 2)
+		while(ii ++ <= 100)
 		{
 			TCPPacket packet;
 
@@ -233,7 +246,7 @@ void init_network(void)
 			std::string ss;
 			packet >> ss;
 			printf("data(%d): [%s]\n", len, ss.c_str());
-			KBEngine::sleep(10);
+			KBEngine::sleep(100);
 			
 		};
 	};

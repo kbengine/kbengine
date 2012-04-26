@@ -34,7 +34,7 @@ public:
 	UDPPacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
 	~UDPPacketReceiver();
 
-	Reason processFilteredPacket(Channel* pChannel, Packet * p);
+	Reason processFilteredPacket(Channel* pChannel, Packet * pPacket);
 	
 protected:
 	bool processSocket(bool expectingPacket);

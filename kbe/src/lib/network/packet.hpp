@@ -47,8 +47,8 @@ public:
 	
 	virtual int recvFromEndPoint(EndPoint & ep) = 0;
 	
-    virtual size_t size() const { return wpos(); }
-    virtual bool empty() const { return size() > 0; }
+    virtual size_t totalSize() const { return wpos() - rpos(); }
+    virtual bool empty() const { return totalSize() > 0; }
 
 	inline void messageID(MessageID msgID) { 
 		msgID_ = msgID; 
