@@ -31,6 +31,9 @@ private:
 #if KBE_PLATFORM != PLATFORM_WIN32
 	void fetchLinuxCpuInfo();
 	void fetchLinuxMemInfo();
+#else
+	void fetchWindowsCpuInfo();
+	void fetchWindowsMemInfo();
 #endif
 
 	std::string serverName_;

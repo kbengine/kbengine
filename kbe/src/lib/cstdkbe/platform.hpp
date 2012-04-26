@@ -590,18 +590,29 @@ static inline int long2int32(const double value)
 #endif
 
 
-inline char* wchar2char(wchar_t* ts)
+inline char* wchar2char(TCHAR* ts)
 {
-	char* ccattr =(char *)malloc(MB_CUR_MAX);
-    wcstombs(ccattr, ts, MB_CUR_MAX);
+
+#ifdef _UNICODE
+	int len = (wcslen(ts) + 1) * 2;
+	char* ccattr =(char *)malloc(len);
+    wcstombs(ccattr, ts, len);
 	return ccattr;
+#else
+	return ts;
+#endif
 };
 
-inline wchar_t* char2wchar(char* cs)
+inline TCHAR* char2wchar(char* cs)
 {
-	wchar_t* ccattr =(wchar_t *)malloc(MB_CUR_MAX);
-    mbstowcs(ccattr, cs, MB_CUR_MAX);
+#ifdef _UNICODE
+	int len = (strlen(cs) + 1) * 2;
+	TCHAR* ccattr =(TCHAR *)malloc(len);
+    mbstowcs(ccattr, cs, len);
 	return ccattr;
+#else
+	return cs;
+#endif
 };
 }
 #endif
