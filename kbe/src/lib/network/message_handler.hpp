@@ -38,6 +38,7 @@ public:
 	std::string name;
 	MessageID msgID;
 	MessageArgs* pArgs;
+	MessageLength msgLen;				// 如果长度为0则为非固定长度消息
 	
 	virtual void handle(MemoryStream& s)
 	{
@@ -54,7 +55,9 @@ public:
 	MessageHandlers();
 	~MessageHandlers();
 	
-	MessageHandler* add(std::string ihName, MessageArgs* args, MessageHandler* msgHandler);
+	MessageHandler* add(std::string ihName, MessageArgs* args, MessageLength msgLen, 
+						MessageHandler* msgHandler);
+	
 	MessageHandler* find(MessageID msgID);
 	
 	MessageID lastMsgID() {return msgID_ - 1;}

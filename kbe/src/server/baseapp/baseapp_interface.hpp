@@ -66,16 +66,16 @@ namespace KBEngine{
 
 #endif
 
-#define ENTITY_MESSAGE_DECLARE_ARGS1(NAME, ARG_TYPE1, ARG_NAME)					\
+#define ENTITY_MESSAGE_DECLARE_ARGS1(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME)		\
 	ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME)						\
 	NETWORK_MESSAGE_DECLARE_ARGS1(Entity, NAME,									\
-				NAME##EntityMessagehandler, ARG_TYPE1, ARG_NAME)				\
+				NAME##EntityMessagehandler, MSG_LENGTH, ARG_TYPE1, ARG_NAME)	\
 																				\
 
 
 NETWORK_INTERFACE_DECLARE_BEGIN(BaseAppInterface)
 	
-	ENTITY_MESSAGE_DECLARE_ARGS1(test,
+	ENTITY_MESSAGE_DECLARE_ARGS1(test, 0,
 								std::string, name
 	)
 	

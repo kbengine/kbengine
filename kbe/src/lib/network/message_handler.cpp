@@ -25,16 +25,21 @@ MessageHandlers::~MessageHandlers()
 }
 
 //-------------------------------------------------------------------------------------
-MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args, MessageHandler* msgHandler)
+MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args, 
+	MessageLength msgLen, MessageHandler* msgHandler)
 {
 	if(msgID_ == 1)
 		printf("message_handlers begin:\n");
 	
 	msgHandler->msgID = msgID_++;
 	msgHandler->name = ihName;					
-	msgHandler->pArgs = args;			
+	msgHandler->pArgs = args;
+	msgHandler->msgLen = msgLen;			
 	msgHandlers_[msgHandler->msgID] = msgHandler;
-	printf("\tMessageHandlers::add: name=%s, msgID=%d.\n", ihName.c_str(), msgHandler->msgID);
+	
+	printf("\tMessageHandlers::add: name=%s, msgID=%d, msgLen=%d.\n", 
+			ihName.c_str(), msgHandler->msgID, msgLen);
+	
 	return msgHandlers_[msgHandler->msgID];
 }
 

@@ -24,6 +24,7 @@ namespace Mercury
 {
 
 typedef uint8 MessageID;
+typedef uint8 MessageLength;
 typedef uint16 PacketHeaderType;
 
 typedef int32 ChannelID;
