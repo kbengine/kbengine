@@ -28,10 +28,21 @@ int TCPPacket::recvFromEndPoint(EndPoint & ep)
 {
 	//KBE_ASSERT(MessageHandlers::pMainMessageHandlers != NULL && "Must set up a MainMessageHandlers!\n");
 
-	int len = ep.recv(data(), PACKET_MAX_SIZE_TCP);
-	wpos(len);
-	if(len > 0)
-		assert((len % 10) == 0);
+	int len = 0;
+	int i = 1;
+
+	while(true)
+	{
+		len = ep.recv(data() + (i * PACKET_MAX_SIZE_TCP), PACKET_MAX_SIZE_TCP);
+		wpos(len);
+		i++;
+
+		if(len != PACKET_MAX_SIZE_TCP)
+			break;
+
+		data_resize(i * PACKET_MAX_SIZE_TCP);
+	};
+	
 	return len;
 }
 

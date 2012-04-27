@@ -27,6 +27,8 @@ namespace Mercury
 class NetworkInterface;
 class Channel;
 
+#define PACKET_MAX_CHUNK_SIZE() isTCPPacket_ ? PACKET_MAX_SIZE_TCP : PACKET_MAX_SIZE_UDP;
+
 class Bundle
 {
 public:
@@ -57,19 +59,20 @@ public:
 	Packet* newPacket();
 	
 public:
-	void onPacketAppend(size_t size)
+	int32 onPacketAppend(int32 size)
 	{
-		size_t packetmaxsize = PACKET_MAX_SIZE_TCP;
-		if(isTCPPacket_ != TCP_PACKET)
-			packetmaxsize = PACKET_MAX_SIZE_UDP;
-
-		if(pCurrPacket_->totalSize() + size > packetmaxsize)
+		int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
+		
+		int32 totalsize = (int32)pCurrPacket_->totalSize();
+		if((totalsize > 0) && (totalsize + size > packetmaxsize))
 		{
 			packets_.push_back(pCurrPacket_);
 			currMsgPacketCount_++;
 			currMsgLength_ += pCurrPacket_->totalSize();
 			newPacket();
 		}
+
+		return size - packetmaxsize;
 	}
 
     Bundle &operator<<(uint8 value)
@@ -144,18 +147,72 @@ public:
         
     Bundle &operator<<(const std::string &value)
     {
-		onPacketAppend(value.size());
-        (*pCurrPacket_) << value;
+		int32 len = (int32)value.size();
+		int32 i = 0;
+		int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
+
+		while(true)
+		{
+			len = onPacketAppend(len);
+			if(len > 0)
+			{
+				pCurrPacket_->append(value.c_str() + (i++ * packetmaxsize), packetmaxsize);
+			}
+			else
+			{
+				pCurrPacket_->append(value.c_str() + (i++ * packetmaxsize), packetmaxsize + len);
+				break;
+			}
+		}
+
         return *this;
     }
-    
+	
     Bundle &operator<<(const char *str)
     {
-		onPacketAppend(strlen(str));
-        (*pCurrPacket_) << str;
+		int32 len = (int32)strlen(str);
+		int32 i = 0;
+		int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
+
+		while(true)
+		{
+			len = onPacketAppend(len);
+			if(len > 0)
+			{
+				pCurrPacket_->append(str + (i++ * packetmaxsize), packetmaxsize);
+			}
+			else
+			{
+				pCurrPacket_->append(str + (i++ * packetmaxsize), packetmaxsize + len);
+				break;
+			}
+		}
+
         return *this;
     }
     
+	Bundle &assign(const char *str, int n)
+	{
+		int32 len = (int32)n;
+		int32 i = 0;
+		int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
+
+		while(true)
+		{
+			len = onPacketAppend(len);
+			if(len > 0)
+			{
+				pCurrPacket_->append((uint8*)str + (i++ * packetmaxsize), packetmaxsize);
+			}
+			else
+			{
+				pCurrPacket_->append((uint8*)str + (i++ * packetmaxsize), packetmaxsize + len);
+				break;
+			}
+		}
+		return *this;
+	}
+
     Bundle &operator>>(bool &value)
     {
         (*pCurrPacket_) >> value;

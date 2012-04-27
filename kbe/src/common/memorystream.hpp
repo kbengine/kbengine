@@ -355,6 +355,11 @@ class MemoryStream
             wpos_ = size();
         }
 
+        void data_resize(size_t newsize)
+        {
+            data_.resize(newsize);
+        }
+
         void reserve(size_t ressize)
         {
             if (ressize > size())

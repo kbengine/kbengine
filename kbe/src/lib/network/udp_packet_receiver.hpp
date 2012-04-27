@@ -49,4 +49,4 @@ protected:
 #ifdef CODE_INLINE
 #include "udp_packet_receiver.ipp"
 #endif
-#endif // __NETWORKTCPPACKET_RECEIVER__
+#endif // __NETWORKUDPPACKET_RECEIVER__

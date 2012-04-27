@@ -36,8 +36,8 @@ namespace tcp{
 }
 
 #define PACKET_MAX_SIZE		1500
-#define PACKET_MAX_SIZE_TCP 1460
-#define PACKET_MAX_SIZE_UDP 1472
+#define PACKET_MAX_SIZE_TCP 5
+#define PACKET_MAX_SIZE_UDP 8
 
 #define MESSAGE_ID_SIZE sizeof(MessageID)
 
