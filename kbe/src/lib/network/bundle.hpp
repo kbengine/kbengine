@@ -29,25 +29,31 @@ class Channel;
 
 #define PACKET_MAX_CHUNK_SIZE() isTCPPacket_ ? PACKET_MAX_SIZE_TCP : PACKET_MAX_SIZE_UDP;
 
+#define PACKET_OUT_VALUE(v)						\
+		if(packets_.size() <= 0)				\
+			return *this;						\
+												\
+        (*packets_[0]) >> v;					\
+		if(packets_[0]->opsize() == 0)			\
+			packets_.erase(packets_.begin());	\
+												\
+		return *this;							\
+
 class Bundle
 {
 public:
-	enum PacketType{
-		UDP_PACKET,
-		TCP_PACKET,
-	};
-	
 	typedef std::vector<Packet*> Packets;
 
-	Bundle(Channel * pChannel = NULL, PacketType pt = TCP_PACKET);
+	Bundle(Channel * pChannel = NULL, ProtocolType pt = PROTOCOL_TCP);
 	virtual ~Bundle();
 	
 	void newMessage(const MessageHandler& msgHandler);
 	
-	void finish(void);
+	void finish(bool issend = true);
 
 	void send(NetworkInterface & networkInterface, Channel * pChannel);
 	void send(EndPoint& ep);
+	void onSendComplete();
 	
 	void clear();
 	bool isEmpty() const;
@@ -147,7 +153,7 @@ public:
         
     Bundle &operator<<(const std::string &value)
     {
-		int32 len = (int32)value.size();
+		int32 len = (int32)value.size() + 1;
 		int32 i = 0;
 		int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
 
@@ -170,7 +176,7 @@ public:
 	
     Bundle &operator<<(const char *str)
     {
-		int32 len = (int32)strlen(str);
+		int32 len = (int32)strlen(str) + 1;
 		int32 i = 0;
 		int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
 
@@ -215,74 +221,62 @@ public:
 
     Bundle &operator>>(bool &value)
     {
-        (*pCurrPacket_) >> value;
-        return *this;
+        PACKET_OUT_VALUE(value);
     }
 
     Bundle &operator>>(uint8 &value)
     {
-        (*pCurrPacket_) >> value;
-        return *this;
+        PACKET_OUT_VALUE(value);
     }
 
     Bundle &operator>>(uint16 &value)
     {
-        (*pCurrPacket_) >> value;
-        return *this;
+        PACKET_OUT_VALUE(value);
     }
 
     Bundle &operator>>(uint32 &value)
     {
-        (*pCurrPacket_) >> value;
-        return *this;
+        PACKET_OUT_VALUE(value);
     }
 
     Bundle &operator>>(uint64 &value)
     {
-        (*pCurrPacket_) >> value;
-        return *this;
+        PACKET_OUT_VALUE(value);
     }
 
     Bundle &operator>>(int8 &value)
     {
-        (*pCurrPacket_) >> value;
-        return *this;
+        PACKET_OUT_VALUE(value);
     }
 
     Bundle &operator>>(int16 &value)
     {
-        (*pCurrPacket_) >> value;
-        return *this;
+        PACKET_OUT_VALUE(value);
     }
 
     Bundle &operator>>(int32 &value)
     {
-        (*pCurrPacket_) >> value;
-        return *this;
+        PACKET_OUT_VALUE(value);
     }
 
     Bundle &operator>>(int64 &value)
     {
-        (*pCurrPacket_) >> value;
-        return *this;
+        PACKET_OUT_VALUE(value);
     }
 
     Bundle &operator>>(float &value)
     {
-        (*pCurrPacket_) >> value;
-        return *this;
+        PACKET_OUT_VALUE(value);
     }
 
     Bundle &operator>>(double &value)
     {
-        (*pCurrPacket_) >> value;
-        return *this;
+        PACKET_OUT_VALUE(value);
     }
 
     Bundle &operator>>(std::string& value)
     {
-        (*pCurrPacket_) >> value;
-        return *this;
+        PACKET_OUT_VALUE(value);
     }
 private:
 	Channel * pChannel_;
@@ -293,6 +287,7 @@ private:
 	uint8 currMsgPacketCount_;
 	MessageLength currMsgLength_;
 	int32 currMsgHandlerLength_;
+	size_t currMsgLengthPos_;
 
 	Packets packets_;
 	

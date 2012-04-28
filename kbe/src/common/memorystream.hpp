@@ -89,9 +89,10 @@ class MemoryStream
 
         MemoryStream(const MemoryStream &buf): rpos_(buf.rpos_), wpos_(buf.wpos_), data_(buf.data_) { }
 
-        void clear()
+        void clear(bool clearData)
         {
-            data_.clear();
+        	if(clearData)
+          	  data_.clear();
             rpos_ = wpos_ = 0;
         }
 
@@ -347,7 +348,8 @@ class MemoryStream
 			
         virtual size_t size() const { return data_.size(); }
         virtual bool empty() const { return data_.empty(); }
-
+		size_t opsize() { return wpos() - rpos(); }
+		
         void resize(size_t newsize)
         {
             data_.resize(newsize);

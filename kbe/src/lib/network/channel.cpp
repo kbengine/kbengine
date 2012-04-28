@@ -5,6 +5,10 @@
 #include "network/bundle.hpp"
 #include "network/network_interface.hpp"
 #include "network/tcp_packet_receiver.hpp"
+#include "network/udp_packet_receiver.hpp"
+#include "network/tcp_packet.hpp"
+#include "network/udp_packet.hpp"
+#include "network/message_handler.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -16,10 +20,11 @@ const int INDEXED_CHANNEL_SIZE = 512;
 const float INACTIVITY_TIMEOUT_DEFAULT = 60.0;
 
 Channel::Channel(NetworkInterface & networkInterface,
-		const EndPoint * endpoint, Traits traits,
+		const EndPoint * endpoint, Traits traits, ProtocolType pt,
 		PacketFilterPtr pFilter, ChannelID id):
 	pNetworkInterface_(&networkInterface),
 	traits_(traits),
+	protocoltype_(pt),
 	id_(id),
 	inactivityTimerHandle_(),
 	inactivityExceptionPeriod_(0),
@@ -30,6 +35,14 @@ Channel::Channel(NetworkInterface & networkInterface,
 											  INDEXED_CHANNEL_SIZE),
 
 	bufferedReceives_(),
+	currbufferedIdx_(0),
+	pFragmentDatas_(NULL),
+	pFragmentDatasWpos_(0),
+	pFragmentDatasRemain_(0),
+	fragmentDatasFlag_(0),
+	pFragmentStream_(NULL),
+	currMsgID_(0),
+	currMsgLen_(0),
 	isDestroyed_(false),
 	shouldDropNextSend_(false),
 	// Stats
@@ -43,19 +56,25 @@ Channel::Channel(NetworkInterface & networkInterface,
 {
 	this->incRef();
 	
-	bufferedReceives_.reserve(windowSize_);
-	
-	if (pFilter_ && id_ != CHANNEL_ID_NULL)
+	if(protocoltype_ == PROTOCOL_TCP)
 	{
-		CRITICAL_MSG("Channel::Channel: "
-			"PacketFilters are not supported on indexed channels (id:%d)\n",
-			id_);
+		bufferedReceives_.push_back(new TCPPacket);
+		bufferedReceives_.push_back(new TCPPacket);
 	}
-
+	else
+	{
+		bufferedReceives_.push_back(new UDPPacket);
+		bufferedReceives_.push_back(new UDPPacket);
+	}
+	
 	this->clearBundle();
 	this->endpoint(endpoint);
 	
-	pPacketReceiver_ = new TCPPacketReceiver(*pEndPoint_, networkInterface);
+	if(protocoltype_ == PROTOCOL_TCP)
+		pPacketReceiver_ = new TCPPacketReceiver(*pEndPoint_, networkInterface);
+	else
+		pPacketReceiver_ = new UDPPacketReceiver(*pEndPoint_, networkInterface);
+	
 	pNetworkInterface_->dispatcher().registerFileDescriptor(*pEndPoint_, pPacketReceiver_);
 	startInactivityDetection( INACTIVITY_TIMEOUT_DEFAULT );
 }
@@ -131,14 +150,25 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	// 清空未处理的接受包缓存
 	if (bufferedReceives_.size() > 0)
 	{
-		if (warnOnDiscard)
+		int hasDiscard = 0;
+		
+		Packet* pPacket = bufferedReceives_[0].get();
+		if(pPacket->opsize() > 0)
+			hasDiscard++;
+		
+		pPacket->clear(false);
+		pPacket = bufferedReceives_[1].get();
+		if(pPacket->opsize() > 0)
+			hasDiscard++;
+		
+		pPacket->clear(false);
+		
+		if (hasDiscard > 0 && warnOnDiscard)
 		{
 			WARNING_MSG( "Channel::clearState( %s ): "
 				"Discarding %u buffered packet(s)\n",
-				this->c_str(), bufferedReceives_.size() );
+				this->c_str(), hasDiscard );
 		}
-		
-		bufferedReceives_.clear();
 	}
 	
 	lastReceivedTime_ = timestamp();
@@ -150,7 +180,14 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	numPacketsReceived_ = 0;
 	numBytesSent_ = 0;
 	numBytesReceived_ = 0;
-
+	currbufferedIdx_ = 0;
+	fragmentDatasFlag_ = 0;
+	pFragmentDatasWpos_ = 0;
+	pFragmentDatasRemain_ = 0;
+	currMsgID_ = 0;
+	currMsgLen_ = 0;
+	SAFE_RELEASE_ARRAY(pFragmentDatas_);
+	SAFE_RELEASE(pFragmentStream_);
 
 	inactivityTimerHandle_.cancel();
 	this->endpoint(NULL);
@@ -278,10 +315,146 @@ void Channel::onPacketReceived(int bytes)
 }
 
 //-------------------------------------------------------------------------------------
-Channel::AddToReceiveWindowResult Channel::addToReceiveWindow(Packet * p)
+Packet* Channel::receiveWindow()
 {
-	bufferedReceives_.push_back(p);
-	return SHOULD_NOT_PROCESS;
+	return bufferedReceives_[currbufferedIdx_].get();
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::processReceiveWindow(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
+{
+	uint8 nextbufferedIdx = (currbufferedIdx_ == 0) ? 1 : 0;
+	Mercury::Packet* pPacket = receiveWindow();
+	
+	
+	while(pPacket->totalSize() > 0)
+	{
+		if(fragmentDatasFlag_ == 0)
+		{
+			if(MESSAGE_ID_SIZE > 1 && pPacket->opsize() < MESSAGE_ID_SIZE)
+			{
+				writeFragment(1, pPacket, MESSAGE_ID_SIZE);
+				break;
+			}
+			
+			if(currMsgID_ == 0)
+				(*pPacket) >> currMsgID_;
+
+			Mercury::MessageHandler* pMsgHandler = pMsgHandlers->find(currMsgID_);
+			assert(pMsgHandler != NULL);
+
+			if(pMsgHandler == NULL)
+			{
+				INFO_MSG("Channel::processReceiveWindow: invalide msgID = %d\n", currMsgID_);
+				break;
+			}
+			
+			// 如果没有可操作的数据了则退出等待下一个包处理。
+			if(pPacket->opsize() == 0)
+				break;
+			
+			if(currMsgLen_ == 0)
+			{
+				if(pMsgHandler->msgLen < 0)
+				{
+					// 如果长度信息不完整， 则等待下一个包处理
+					if(pPacket->opsize() < MESSAGE_LENGTH_SIZE)
+					{
+						writeFragment(2, pPacket, MESSAGE_LENGTH_SIZE);
+						break;
+					}
+					else
+						(*pPacket) >> currMsgLen_;
+				}
+				else
+					currMsgLen_ = pMsgHandler->msgLen;
+			}
+
+			if(pPacket->opsize() < currMsgLen_)
+			{
+				writeFragment(3, pPacket, currMsgLen_);
+				break;
+			}
+
+			currMsgID_ = 0;
+			currMsgLen_ = 0;
+			
+			if(pFragmentStream_ != NULL)
+			{
+				pMsgHandler->handle(*pFragmentStream_);
+				SAFE_RELEASE(pFragmentStream_);
+			}
+			else
+			{
+				pMsgHandler->handle(*pPacket);
+			}
+		}
+		else
+		{
+			mergeFragment(pPacket);
+		}
+	}
+
+	pPacket->resetPacket();
+	currbufferedIdx_ = nextbufferedIdx;
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::writeFragment(uint8 fragmentDatasFlag, Packet* pPacket, uint32 datasize)
+{
+	KBE_ASSERT(pFragmentDatas_ == NULL);
+	size_t opsize = pPacket->opsize();
+	pFragmentDatasRemain_ = datasize - opsize;
+	pFragmentDatas_ = new uint8[opsize + pFragmentDatasRemain_ + 1];
+	memcpy(pFragmentDatas_, pPacket->data() + pPacket->rpos(), opsize);
+	fragmentDatasFlag_ = fragmentDatasFlag;
+	pFragmentDatasWpos_ = opsize;
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::mergeFragment(Packet* pPacket)
+{
+	size_t opsize = pPacket->opsize();
+
+	if(pPacket->opsize() >= pFragmentDatasRemain_)
+	{
+		pPacket->rpos(pPacket->rpos() + pFragmentDatasRemain_);
+		memcpy(pFragmentDatas_ + pFragmentDatasWpos_, pPacket->data(), pFragmentDatasRemain_);
+		
+
+		switch(fragmentDatasFlag_)
+		{
+		case 1:		// 消息ID信息不全
+			memcpy(&currMsgLen_, pFragmentDatas_, MESSAGE_ID_SIZE);
+			break;
+
+		case 2:		// 消息长度信息不全
+			memcpy(&currMsgLen_, pFragmentDatas_, MESSAGE_LENGTH_SIZE);
+			break;
+
+		case 3:		// 消息内容信息不全
+			pFragmentStream_ = new MemoryStream;
+			pFragmentStream_->data_resize(currMsgLen_);
+			pFragmentStream_->wpos(currMsgLen_);
+			memcpy(pFragmentStream_->data(), pFragmentDatas_, currMsgLen_);
+			break;
+
+		default:
+			break;
+		};
+
+		fragmentDatasFlag_ = 0;
+		pFragmentDatasRemain_ = 0;
+	}
+	else
+	{
+		memcpy(pFragmentDatas_ + pFragmentDatasWpos_, pPacket->data(), opsize);
+		pFragmentDatasRemain_ -= opsize;
+		pPacket->rpos(pPacket->rpos() + opsize);
+	}
+
+	if(fragmentDatasFlag_ == 0)
+		SAFE_RELEASE_ARRAY(pFragmentDatas_);
 }
 
 //-------------------------------------------------------------------------------------

@@ -41,10 +41,8 @@ int PacketReceiver::handleInputNotification(int fd)
 }
 
 //-------------------------------------------------------------------------------------
-Reason PacketReceiver::processPacket(Packet * pPacket)
+Reason PacketReceiver::processPacket(Channel* pChannel, Packet * pPacket)
 {
-	Channel * pChannel = networkInterface_.findChannel(endpoint_.addr());
-
 	if (pChannel != NULL)
 	{
 		pChannel->onPacketReceived(pPacket->totalSize());

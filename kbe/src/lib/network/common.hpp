@@ -23,10 +23,10 @@ namespace KBEngine {
 namespace Mercury
 {
 
-typedef uint8 MessageID;
-typedef uint8 MessageLength;
+typedef uint8	MessageID;
+typedef uint16	MessageLength; // ×î´ó65535
 
-typedef int32 ChannelID;
+typedef int32	ChannelID;
 const ChannelID CHANNEL_ID_NULL = 0;
 
 namespace udp{
@@ -35,11 +35,19 @@ namespace udp{
 namespace tcp{
 }
 
-#define PACKET_MAX_SIZE		1500
-#define PACKET_MAX_SIZE_TCP 5
-#define PACKET_MAX_SIZE_UDP 8
+#define PACKET_MAX_SIZE			1500
+#define PACKET_MAX_SIZE_TCP		1460
+#define PACKET_MAX_SIZE_UDP		1472
 
-#define MESSAGE_ID_SIZE sizeof(MessageID)
+#define MESSAGE_ID_SIZE			sizeof(Mercury::MessageID)
+#define MESSAGE_LENGTH_SIZE		sizeof(Mercury::MessageLength)
+#define MESSAGE_MAX_SIZE		65535
+
+enum ProtocolType
+{
+	PROTOCOL_TCP = 0,
+	PROTOCOL_UDP = 1,
+};
 
 enum Reason
 {

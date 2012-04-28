@@ -18,8 +18,7 @@ namespace Mercury
 //-------------------------------------------------------------------------------------
 TCPPacketReceiver::TCPPacketReceiver(EndPoint & endpoint,
 	   NetworkInterface & networkInterface	) :
-	PacketReceiver(endpoint, networkInterface),
-	pNextPacket_(new TCPPacket())
+	PacketReceiver(endpoint, networkInterface)
 {
 }
 
@@ -32,7 +31,11 @@ TCPPacketReceiver::~TCPPacketReceiver()
 //-------------------------------------------------------------------------------------
 bool TCPPacketReceiver::processSocket(bool expectingPacket)
 {
-	int len = pNextPacket_->recvFromEndPoint(endpoint_);
+	Channel* pChannel = networkInterface_.findChannel(endpoint_.addr());
+	KBE_ASSERT(pChannel != NULL);
+	
+	Packet* pReceiveWindow = pChannel->receiveWindow();
+	int len = pReceiveWindow->recvFromEndPoint(endpoint_);
 
 	if (len < 0)
 	{
@@ -40,16 +43,12 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 	}
 	else if(len == 0) // 客户端正常退出
 	{
-		Channel* pChannel = networkInterface_.findChannel(endpoint_.addr());
-		KBE_ASSERT(pChannel != NULL);
 		networkInterface_.deregisterChannel(pChannel);
 		pChannel->destroy();
 		return false;
 	}
 	
-	PacketPtr curPacket = pNextPacket_;
-	pNextPacket_ = new TCPPacket();
-	Reason ret = this->processPacket(curPacket.get());
+	Reason ret = this->processPacket(pChannel, pReceiveWindow);
 
 	if(ret != REASON_SUCCESS)
 		this->dispatcher().errorReporter().reportException(ret, endpoint_.addr());
@@ -61,9 +60,6 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 Reason TCPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * pPacket)
 {
 	networkInterface_.onPacketIn(*pPacket);
-	
-	Channel::AddToReceiveWindowResult result =
-		pChannel->addToReceiveWindow(pPacket);
 	return REASON_SUCCESS;
 }
 
@@ -92,40 +88,14 @@ bool TCPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 		errno == ECONNREFUSED ||
 		errno == EHOSTUNREACH)
 	{
-#if defined(PLAYSTATION3)
 		this->dispatcher().errorReporter().reportException(
 				REASON_NO_SUCH_PORT);
-		return true;
-#else
-		Mercury::Address offender;
-
-		if (endpoint_.getClosedPort(offender))
-		{
-			// If we got a NO_SUCH_PORT error and there is an internal
-			// channel to this address, mark it as remote failed.  The logic
-			// for dropping external channels that get NO_SUCH_PORT
-			// exceptions is built into BaseApp::onClientNoSuchPort().
-			if (errno == ECONNREFUSED)
-			{
-				// 未实现
-			}
-
-			this->dispatcher().errorReporter().reportException(
-					REASON_NO_SUCH_PORT, offender);
-
-			return true;
-		}
-		else
-		{
-			WARNING_MSG("TCPPacketReceiver::processPendingEvents: "
-				"getClosedPort() failed\n");
-		}
-#endif
+		return false;
 	}
 #else
 	if (wsaErr == WSAECONNRESET)
 	{
-		return true;
+		return false;
 	}
 #endif // unix
 

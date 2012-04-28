@@ -69,7 +69,7 @@ public:
 	~Entity();
 	
 	// 测试网络接口
-	void test(std::string name);
+	void test(const std::string& name);
 	
 	/** entity脚本初始化 */
 	void initializeScript();

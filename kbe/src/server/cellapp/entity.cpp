@@ -91,10 +91,10 @@ Entity::~Entity()
 }	
 
 //-------------------------------------------------------------------------------------
-void Entity::test(std::string name)
+void Entity::test(const std::string& name)
 {
 	time_t t = time(NULL);
-	DEBUG_MSG("Entity::test[%d]:=========>name=%s\n", t, name.c_str());
+	DEBUG_MSG("Entity::test[%"PRI64"]:=========>name=%s\n", t, name.c_str());
 }
 
 //-------------------------------------------------------------------------------------

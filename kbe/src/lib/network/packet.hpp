@@ -47,19 +47,21 @@ public:
 	
 	virtual int recvFromEndPoint(EndPoint & ep) = 0;
 	
-    virtual size_t totalSize() const { return wpos() - rpos(); }
+	virtual size_t totalSize() const { return wpos() - rpos(); }
     virtual bool empty() const { return totalSize() > 0; }
-
+	
+	void resetPacket(void)
+	{
+		wpos(0);
+		rpos(0);
+		// memset(data(), 0, size());
+	};
+	
 	inline void messageID(MessageID msgID) { 
 		msgID_ = msgID; 
-		(*this) << msgID;
 	}
 
 	inline MessageID messageID() const { return msgID_; }
-
-	virtual void setPacketLength(MessageLength length)
-	{
-	}
 protected:
 	MessageID msgID_;
 

@@ -35,6 +35,7 @@ class DelayedChannels;
 class ListenerReceiver;
 class Packet;
 class EventDispatcher;
+class MessageHandlers;
 
 class NetworkInterface : public TimerHandler
 {
@@ -91,6 +92,8 @@ public:
 
 	void onChannelGone(Channel * pChannel);
 	void onChannelTimeOut(Channel * pChannel);
+	
+	void handleChannels(KBEngine::Mercury::MessageHandlers* pMsgHandlers);
 private:
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 

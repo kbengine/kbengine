@@ -18,7 +18,7 @@ CellApp::CellApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface
     entities_(NULL),
     gameTimer_()
 {
-	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &CellAppInterface::messageHandlers;	
+	// KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &CellAppInterface::messageHandlers;	
 }
 
 //-------------------------------------------------------------------------------------
@@ -82,34 +82,11 @@ void CellApp::handleTimeout(TimerHandle handle, void * arg)
 void CellApp::handleGameTick()
 {
 	// time_t t = ::time(NULL);
-	// DEBUG_MSG("CellApp::handleGameTick[%d]:%d\n", t, time_);
+	// DEBUG_MSG("CellApp::handleGameTick[%"PRI64"]:%d\n", t, time_);
 	
 	time_++;
-	const Mercury::NetworkInterface::ChannelMap& channels = getNetworkInterface().channels();
-	Mercury::NetworkInterface::ChannelMap::const_iterator iter = channels.begin();
-	for(; iter != channels.end(); iter++)
-	{
-		Mercury::Channel* channel = iter->second;
-		Mercury::EndPoint * endpoint = channel->endpoint();
-		endpoint->send("hello", 5);
-
-		Mercury::Channel::BufferedReceives& bufferedReceives = channel->bufferedReceives();
-		Mercury::Channel::BufferedReceives::iterator briter = bufferedReceives.begin();
-		Mercury::MessageID msgID = 0;
-
-		for(; briter != bufferedReceives.end(); briter++)
-		{
-			Mercury::Packet* pPacket = briter->get();
-			while(pPacket->totalSize() > 0)
-			{
-				(*pPacket) >> msgID;
-				Mercury::MessageHandler* pMsgHandler = CellAppInterface::messageHandlers.find(msgID);
-				pMsgHandler->handle(*pPacket);
-			}
-		}
-
-		bufferedReceives.clear();
-	}
+	
+	getNetworkInterface().handleChannels(&CellAppInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------

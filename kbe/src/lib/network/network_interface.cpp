@@ -11,6 +11,7 @@
 #include "network/packet.hpp"
 #include "network/delayed_channels.hpp"
 #include "network/interfaces.hpp"
+#include "network/message_handler.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -321,6 +322,7 @@ Reason NetworkInterface::send(Bundle & bundle, Channel * pChannel)
 		this->sendPacket((*iter), pChannel);
 	}
 	
+	bundle.onSendComplete();
 	return REASON_SUCCESS;
 }
 
@@ -455,6 +457,16 @@ void NetworkInterface::onPacketOut(const Packet & packet)
 {
 }
 
+//-------------------------------------------------------------------------------------
+void NetworkInterface::handleChannels(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
+{
+	ChannelMap::iterator iter = channelMap_.begin();
+	for(; iter != channelMap_.end(); iter++)
+	{
+		Mercury::Channel* pChannel = iter->second;
+		pChannel->processReceiveWindow(pMsgHandlers);
+	}
+}
 //-------------------------------------------------------------------------------------
 }
 }

@@ -33,6 +33,7 @@ namespace Mercury
 
 class Bundle;
 class NetworkInterface;
+class MessageHandlers;
 
 class Channel : public TimerHandler, public RefCountable
 {
@@ -55,7 +56,7 @@ public:
 
 	typedef std::vector<PacketPtr> BufferedReceives;
 public:
-	Channel(NetworkInterface & networkInterface, const EndPoint * endpoint, Traits traits, PacketFilterPtr pFilter = NULL, ChannelID id = CHANNEL_ID_NULL);
+	Channel(NetworkInterface & networkInterface, const EndPoint * endpoint, Traits traits, ProtocolType pt = PROTOCOL_TCP, PacketFilterPtr pFilter = NULL, ChannelID id = CHANNEL_ID_NULL);
 
 	virtual ~Channel();
 	
@@ -104,8 +105,6 @@ public:
 		
 	void onPacketReceived(int bytes);
 	
-	AddToReceiveWindowResult addToReceiveWindow(Packet * p);
-	
 	const char * c_str() const;
 	int windowSize() const;
 	ChannelID id() const	{ return id_; }
@@ -116,8 +115,12 @@ public:
 	uint32	numBytesReceived() const	{ return numBytesReceived_; }
 		
 	PacketReceiver* packetReceiver()const { return pPacketReceiver_; }
-
+		
+	Packet* receiveWindow();
+	
 	BufferedReceives& bufferedReceives(){ return bufferedReceives_; }
+		
+	void processReceiveWindow(KBEngine::Mercury::MessageHandlers* pMsgHandlers);
 private:
 	enum TimeOutType
 	{
@@ -127,10 +130,14 @@ private:
 	virtual void handleTimeout(TimerHandle, void * pUser);
 	void clearState( bool warnOnDiscard = false );
 	EventDispatcher & dispatcher();
+
+	void writeFragment(uint8 fragmentDatasFlag, Packet* pPacket, uint32 datasize);
+	void mergeFragment(Packet* pPacket);
 private:
 	NetworkInterface * 			pNetworkInterface_;
 	Traits						traits_;
-
+	ProtocolType				protocoltype_;
+		
 	ChannelID					id_;
 	
 	TimerHandle					inactivityTimerHandle_;
@@ -144,7 +151,15 @@ private:
 	uint64						roundTripTime_;
 	
 	std::vector<PacketPtr>		bufferedReceives_;
-	
+	uint8						currbufferedIdx_;
+	uint8*						pFragmentDatas_;
+	uint32						pFragmentDatasWpos_;
+	uint32						pFragmentDatasRemain_;
+	uint8						fragmentDatasFlag_;
+	MemoryStream*				pFragmentStream_;
+	Mercury::MessageID			currMsgID_;
+	Mercury::MessageLength		currMsgLen_;
+
 	bool						isDestroyed_;
 	bool						shouldDropNextSend_;
 	

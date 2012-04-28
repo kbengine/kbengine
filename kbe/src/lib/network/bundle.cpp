@@ -13,15 +13,16 @@ namespace KBEngine {
 namespace Mercury
 {
 //-------------------------------------------------------------------------------------
-Bundle::Bundle(Channel * pChannel, PacketType pt):
+Bundle::Bundle(Channel * pChannel, ProtocolType pt):
 	pChannel_(pChannel),
 	pCurrPacket_(NULL),
 	currMsgID_(0),
 	currMsgPacketCount_(0),
 	currMsgLength_(0),
 	currMsgHandlerLength_(0),
+	currMsgLengthPos_(0),
 	packets_(),
-	isTCPPacket_(pt == TCP_PACKET)
+	isTCPPacket_(pt == PROTOCOL_TCP)
 {
 	 newPacket();
 }
@@ -36,7 +37,7 @@ Bundle::~Bundle()
 //-------------------------------------------------------------------------------------
 Packet* Bundle::newPacket()
 {
-	if(isTCPPacket_ == TCP_PACKET)
+	if(isTCPPacket_)
 		pCurrPacket_ = new TCPPacket;
 	else
 		pCurrPacket_ = new UDPPacket;
@@ -45,19 +46,36 @@ Packet* Bundle::newPacket()
 }
 
 //-------------------------------------------------------------------------------------
-void Bundle::finish(void)
+void Bundle::finish(bool issend)
 {
+	if(issend)
+	{
+		currMsgPacketCount_++;
+		packets_.push_back(pCurrPacket_);
+	}
+
 	currMsgLength_ += pCurrPacket_->totalSize();
-	packets_.push_back(pCurrPacket_);
 
 	// 此处对于非固定长度的消息来说需要设置它的最终长度信息
 	if(currMsgHandlerLength_ < 0)
-		packets_[packets_.size() - currMsgPacketCount_]->setPacketLength(currMsgLength_);
+	{
+		Packet* pPacket = packets_[packets_.size() - currMsgPacketCount_];
 
-	pCurrPacket_ = NULL;
+		currMsgLength_ -= MESSAGE_ID_SIZE;
+		currMsgLength_ -= MESSAGE_LENGTH_SIZE;
+
+		memcpy(&pPacket->data()[currMsgLengthPos_], 
+			(uint8*)&currMsgLength_, MESSAGE_LENGTH_SIZE);
+
+	}
+	
+	if(issend)
+		pCurrPacket_ = NULL;
+
 	currMsgID_ = 0;
 	currMsgPacketCount_ = 0;
 	currMsgLength_ = 0;
+	currMsgLengthPos_ = 0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -72,6 +90,8 @@ void Bundle::clear()
 
 	currMsgID_ = 0;
 	currMsgPacketCount_ = 0;
+	currMsgLength_ = 0;
+	currMsgLengthPos_ = 0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -94,19 +114,35 @@ void Bundle::send(EndPoint& ep)
 		delete pPacket;
 	}
 	
+	onSendComplete();
+}
+
+//-------------------------------------------------------------------------------------
+void Bundle::onSendComplete()
+{
 	packets_.clear();
 }
 
 //-------------------------------------------------------------------------------------
 void Bundle::newMessage(const MessageHandler& msgHandler)
 {
+	finish(false);
 	KBE_ASSERT(pCurrPacket_ != NULL);
-
+	
+	(*this) << msgHandler.msgID;
 	pCurrPacket_->messageID(msgHandler.msgID);
+
+	// 此处对于非固定长度的消息来说需要先设置它的消息长度位为0， 到最后需要填充长度
+	if(msgHandler.msgLen < 0)
+	{
+		MessageLength msglen = 0;
+		currMsgLengthPos_ = pCurrPacket_->wpos();
+		(*this) << msglen;
+	}
 
 	numMessages_++;
 	currMsgID_ = msgHandler.msgID;
-	currMsgPacketCount_ = 1;
+	currMsgPacketCount_ = 0;
 	currMsgHandlerLength_ = msgHandler.msgLen;
 }
 

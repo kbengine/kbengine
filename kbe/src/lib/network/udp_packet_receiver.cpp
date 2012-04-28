@@ -18,8 +18,7 @@ namespace Mercury
 //-------------------------------------------------------------------------------------
 UDPPacketReceiver::UDPPacketReceiver(EndPoint & endpoint,
 	   NetworkInterface & networkInterface	) :
-	PacketReceiver(endpoint, networkInterface),
-	pNextPacket_(new UDPPacket())
+	PacketReceiver(endpoint, networkInterface)
 {
 }
 
@@ -32,7 +31,11 @@ UDPPacketReceiver::~UDPPacketReceiver()
 //-------------------------------------------------------------------------------------
 bool UDPPacketReceiver::processSocket(bool expectingPacket)
 {
-	int len = pNextPacket_->recvFromEndPoint(endpoint_);
+	Channel* pChannel = networkInterface_.findChannel(endpoint_.addr());
+	KBE_ASSERT(pChannel != NULL);
+	
+	Packet* pReceiveWindow = pChannel->receiveWindow();
+	int len = pReceiveWindow->recvFromEndPoint(endpoint_);
 
 	if (len < 0)
 	{
@@ -40,16 +43,12 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 	}
 	else if(len == 0) // 客户端正常退出
 	{
-		Channel* pChannel = networkInterface_.findChannel(endpoint_.addr());
-		KBE_ASSERT(pChannel != NULL);
 		networkInterface_.deregisterChannel(pChannel);
 		pChannel->destroy();
 		return false;
 	}
 	
-	PacketPtr curPacket = pNextPacket_;
-	pNextPacket_ = new UDPPacket();
-	Reason ret = this->processPacket(curPacket.get());
+	Reason ret = this->processPacket(pChannel, pReceiveWindow);
 
 	if(ret != REASON_SUCCESS)
 		this->dispatcher().errorReporter().reportException(ret, endpoint_.addr());
@@ -61,9 +60,6 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 Reason UDPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * pPacket)
 {
 	networkInterface_.onPacketIn(*pPacket);
-	
-	Channel::AddToReceiveWindowResult result =
-		pChannel->addToReceiveWindow(pPacket);
 	return REASON_SUCCESS;
 }
 

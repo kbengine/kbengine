@@ -33,7 +33,7 @@ public:
 	PacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
 	virtual ~PacketReceiver();
 
-	virtual Reason processPacket(Packet * pPacket);
+	virtual Reason processPacket(Channel* pChannel, Packet * pPacket);
 	virtual Reason processFilteredPacket(Channel* pChannel, Packet * pPacket) = 0;
 	EventDispatcher& dispatcher();
 protected:

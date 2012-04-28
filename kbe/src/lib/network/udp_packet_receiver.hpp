@@ -40,7 +40,7 @@ protected:
 	bool processSocket(bool expectingPacket);
 	bool checkSocketErrors(int len, bool expectingPacket);
 protected:
-	UDPPacketPtr pNextPacket_;
+
 };
 
 }
