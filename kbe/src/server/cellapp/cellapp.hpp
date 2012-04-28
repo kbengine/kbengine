@@ -56,6 +56,8 @@ public:
 	
 	Entity* createEntity(const char* entityType, PyObject* params, bool isInitializeScript = true, ENTITY_ID eid = 0);
 	Entity* findEntity(ENTITY_ID eid);
+	virtual bool destroyEntity(ENTITY_ID entityID);
+	
 protected:
 	IDClient<ENTITY_ID>*		idClient_;
 	Entities*					entities_;									// 存储所有的entity的容器

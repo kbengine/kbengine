@@ -1,6 +1,7 @@
 LIB =	server
 
 SRCS =				\
+	engine_componentmgr	\
 	entity_app		\
 	serverapp		\
 	serverconfig		\

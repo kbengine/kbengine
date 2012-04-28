@@ -21,7 +21,6 @@ same license as the rest of the engine.
 #include "pyscript/scriptobject.hpp"
 #include "entitydef/datatypes.hpp"	
 #include "entitydef/entitydef.hpp"	
-#include "network/channel.hpp"	
 
 //#define NDEBUG
 // windows include	
@@ -34,6 +33,12 @@ same license as the rest of the engine.
 namespace KBEngine{
 class Chunk;
 class Entity;
+class EntityMailbox;
+
+namespace Mercury
+{
+class Channel;
+}
 
 /** 观察者信息结构 */
 struct WitnessInfo
@@ -131,17 +136,16 @@ public:
 	static PyObject* pyDestroyEntity(PyObject* self, PyObject* args, PyObject* kwds);
 	
 	/** 脚本获取mailbox */
-	/*
+
 	EntityMailbox* getBaseMailbox()const{ return baseMailbox_; }
 	static PyObject* pyGetBaseMailbox(Entity *self, void *closure);
 	void setBaseMailbox(EntityMailbox* mailbox){ baseMailbox_ = mailbox; }
-	*/
+
 	/** 脚本获取mailbox */
-	/*
 	EntityMailbox* getClientMailbox()const{ return clientMailbox_; }
 	static PyObject* pyGetClientMailbox(Entity *self, void *closure);
 	void setClientMailbox(EntityMailbox* mailbox){ clientMailbox_ = mailbox; if(clientMailbox_!= NULL) onGetWitness(); else onLoseWitness(); }
-	*/
+
 	/** 脚本获取和设置entity的position */
 	Position3D& getPosition(){ return position_; }
 	static PyObject* pyGetPosition(Entity *self, void *closure);
@@ -271,8 +275,8 @@ protected:
 	ScriptModule*							scriptModule_;					// 该entity所使用的脚本模块对象
 	ScriptModule::PROPERTYDESCRIPTION_MAP*	lpPropertyDescrs_;				// 属于这个entity的属性描述
 	uint32									spaceID_;							// 这个entity所在space的ID
-	//EntityMailbox*							clientMailbox_;					// 这个entity的客户端mailbox
-	//EntityMailbox*							baseMailbox_;						// 这个entity的baseapp mailbox
+	EntityMailbox*							clientMailbox_;					// 这个entity的客户端mailbox
+	EntityMailbox*							baseMailbox_;						// 这个entity的baseapp mailbox
 	Position3D								position_;						// entity的当前位置
 	Direction3D								direction_;						// entity的当前方向
 //	TimerFunc								TimerFunc_;						// onTimer函数地址

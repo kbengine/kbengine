@@ -68,16 +68,12 @@ const char COMPONENT_NAME[][12] = {
 	"kbmachine",
 	"kbcenter",
 };
+
 /** 一个cell边界能够看到另一个cell边界的最大范围 */
 #define CELL_BORDER_WIDTH 500
 	
 /** 一个空间的一个chunk大小 */
 #define SPACE_CHUNK_SIZE 100
 
-/** 属性的lod广播级别范围的定义 */
-#define DETAIL_LEVEL_NEAR													0	// lod级别：近						
-#define DETAIL_LEVEL_MEDIUM													1	// lod级别：中
-#define DETAIL_LEVEL_FAR													2	// lod级别：远	
-#define DETAIL_LEVEL_UNKNOW													3	// lod级别：非常的远 (通常在这个级别内的entity不会对他广播任何属性（不包括位置方向等）)	
 }
 #endif // __CSTDKBE__

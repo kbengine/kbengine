@@ -5,6 +5,7 @@ SRCS =				\
 	common			\
 	datatype		\
 	datatypes		\
+	entity_mailbox		\
 	entitydef		\
 	entitymailboxabstract	\
 	fixedDict		\

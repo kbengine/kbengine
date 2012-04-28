@@ -1,7 +1,11 @@
-//#include "app.hpp"
+#include "cellapp.hpp"
 #include "entity.hpp"
 //#include "chunk.hpp"
 //#include "space.hpp"
+
+#include "entitydef/entity_mailbox.hpp"
+#include "network/channel.hpp"	
+
 namespace KBEngine{
 
 SCRIPT_METHOD_DECLARE_BEGIN(Entity)
@@ -26,8 +30,8 @@ SCRIPT_MEMBER_DECLARE_END()
 SCRIPT_GETSET_DECLARE_BEGIN(Entity)
 SCRIPT_GET_DECLARE(	"id",							pyGetID,						0,					0)
 SCRIPT_GET_DECLARE("spaceID",						pyGetSpaceID,					0,					0)
-//SCRIPT_GET_DECLARE("base",							pyGetBaseMailbox,				0,					0)
-//SCRIPT_GET_DECLARE("client",						pyGetClientMailbox,				0,					0)
+SCRIPT_GET_DECLARE("base",							pyGetBaseMailbox,				0,					0)
+SCRIPT_GET_DECLARE("client",						pyGetClientMailbox,				0,					0)
 SCRIPT_GET_DECLARE("isDestroyed",					pyGetIsDestroyed,				0,					0)
 SCRIPT_GET_DECLARE("isWitnessed",					pyIsWitnessed,					0,					0)
 SCRIPT_GET_DECLARE("hasWitness",					pyHasWitness,					0,					0)
@@ -45,8 +49,8 @@ id_(id),
 scriptModule_(scriptModule),
 lpPropertyDescrs_(NULL),
 spaceID_(0),
-//baseMailbox_(NULL),
-//clientMailbox_(NULL),
+baseMailbox_(NULL),
+clientMailbox_(NULL),
 //currChunk_(NULL),
 isReal_(true),
 isDestroyed_(false),
@@ -102,8 +106,8 @@ void Entity::destroy()
 {
 	isDestroyed_ = true;
 	onDestroy();
-//	S_RELEASE(clientMailbox_);
-//	S_RELEASE(baseMailbox_);
+	S_RELEASE(clientMailbox_);
+	S_RELEASE(baseMailbox_);
 	Py_DECREF(this);
 }
 
@@ -231,7 +235,7 @@ PyObject* Entity::__reduce_ex__(PyObject* self, PyObject* protocol)
 	PyTuple_SET_ITEM(args1, 0, PyLong_FromUnsignedLong(entity->getID()));
 //	PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLong(App::getSingleton().getComponentID()));
 	PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(entity->getScriptModule()->getUType()));
-//	PyTuple_SET_ITEM(args1, 3, PyLong_FromUnsignedLong(MAILBOX_TYPE_BASE));
+	PyTuple_SET_ITEM(args1, 3, PyLong_FromUnsignedLong(MAILBOX_TYPE_BASE));
 	PyTuple_SET_ITEM(args, 1, args1);
 
 	if(unpickleMethod == NULL){
@@ -240,7 +244,7 @@ PyObject* Entity::__reduce_ex__(PyObject* self, PyObject* protocol)
 	}
 	return args;
 }
-/*
+
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetBaseMailbox(Entity *self, void *closure)
 { 
@@ -262,7 +266,7 @@ PyObject* Entity::pyGetClientMailbox(Entity *self, void *closure)
 	Py_INCREF(mailbox);
 	return mailbox; 
 }
-*/
+
 //-------------------------------------------------------------------------------------
 int Entity::onScriptSetAttribute(PyObject* attr, PyObject* value)
 {
@@ -479,7 +483,7 @@ PyObject* Entity::pyGetIsDestroyed(Entity *self, void *closure)
 //-------------------------------------------------------------------------------------
 void Entity::destroyEntity(void)
 {
-//	App::getSingleton().destroyEntity(id_);
+	CellApp::getSingleton().destroyEntity(id_);
 }
 
 //-------------------------------------------------------------------------------------

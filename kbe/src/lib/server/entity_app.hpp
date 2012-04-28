@@ -32,6 +32,8 @@ class EntityApp : public ServerApp
 public:
 	EntityApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
 	~EntityApp();
+	
+	virtual bool destroyEntity(ENTITY_ID entityID) = 0;
 protected:
 	Timers timers_;
 };

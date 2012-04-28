@@ -169,6 +169,9 @@ public:
 	/** 通过标记来寻找到对应的脚本模块对象 */
 	static ScriptModule* findScriptModule(uint16 utype);
 	static ScriptModule* findScriptModule(const char* scriptName);
+
+	static bool installScript(PyObject* mod);
+	static bool uninstallScript();
 };
 
 }

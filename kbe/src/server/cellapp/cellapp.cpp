@@ -167,5 +167,11 @@ Entity* CellApp::findEntity(ENTITY_ID eid)
 }
 
 //-------------------------------------------------------------------------------------
+bool CellApp::destroyEntity(ENTITY_ID entityID)
+{
+	return entities_->destroy(entityID);
+}
+
+//-------------------------------------------------------------------------------------
 
 }

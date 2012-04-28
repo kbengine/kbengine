@@ -185,5 +185,11 @@ Entity* BaseApp::findEntity(ENTITY_ID eid)
 }
 
 //-------------------------------------------------------------------------------------
+bool BaseApp::destroyEntity(ENTITY_ID entityID)
+{
+	return entities_->destroy(entityID);
+}
+
+//-------------------------------------------------------------------------------------
 
 }

@@ -2,6 +2,7 @@
 #include "dataTypes.hpp"
 #include "common.hpp"
 #include "cstdkbe/smartpointer.hpp"
+#include "entitydef/entity_mailbox.hpp"
 
 namespace KBEngine{
 std::vector<ScriptModule *>	EntityDef::__scriptModules;
@@ -1049,6 +1050,20 @@ ScriptModule* EntityDef::findScriptModule(const char* scriptName)
 	}
 
 	return findScriptModule(iter->second);
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityDef::installScript(PyObject* mod)
+{
+	EntityMailbox::installScript(mod);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityDef::uninstallScript()
+{
+	EntityMailbox::uninstallScript();
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

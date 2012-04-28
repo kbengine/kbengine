@@ -117,6 +117,11 @@ const char ENTITY_MAILBOX_TYPE_TO_NAME_TABLE[][8] =
 #define MAIL_TYPE_UPDATE_PROPERTY									0x00000007	// 更新某个entity的某个属性到客户端
 #define MAIL_TYPE_SEEK												0x00000008	// 某个player的客户端请求移动player
 
+/** 属性的lod广播级别范围的定义 */
+#define DETAIL_LEVEL_NEAR													0	// lod级别：近						
+#define DETAIL_LEVEL_MEDIUM													1	// lod级别：中
+#define DETAIL_LEVEL_FAR													2	// lod级别：远	
+#define DETAIL_LEVEL_UNKNOW													3	// lod级别：非常的远 (通常在这个级别内的entity不会对他广播任何属性（不包括位置方向等）)	
 
 typedef std::map<std::string, EntityDataFlags> ENTITYFLAGMAP;
 extern ENTITYFLAGMAP g_entityFlagMapping;										// entity 的flag字符串映射表

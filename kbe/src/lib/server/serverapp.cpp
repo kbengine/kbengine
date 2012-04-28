@@ -2,6 +2,7 @@
 #include "server/serverconfig.hpp"
 
 namespace KBEngine{
+COMPONENT_TYPE g_componentType;
 
 //-------------------------------------------------------------------------------------
 ServerApp::ServerApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
@@ -11,7 +12,8 @@ mainDispatcher_(dispatcher),
 networkInterface_(ninterface),
 time_(0)
 {
-	networkInterface_.pExtensionData( this );
+	g_componentType = componentType;
+	networkInterface_.pExtensionData(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -54,6 +56,7 @@ bool ServerApp::installPyModules()
 {
 	//Entities::installScript(NULL);
 	//Entity::installScript(g_script.getModule());
+	EntityDef::installScript(NULL);
 	return true;
 }
 
@@ -62,6 +65,7 @@ bool ServerApp::uninstallPyModules()
 {
 	//Entities::uninstallScript();
 	//Entity::uninstallScript();
+	EntityDef::uninstallScript();
 	return true;
 }
 
