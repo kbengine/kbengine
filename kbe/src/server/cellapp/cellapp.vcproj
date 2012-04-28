@@ -233,6 +233,10 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\entity.ipp"
+			>
+		</File>
+		<File
 			RelativePath=".\ReadMe.txt"
 			>
 		</File>

@@ -6,6 +6,10 @@
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 
+#ifdef CODE_INLINE
+//#include "entity.ipp"
+#endif
+
 namespace KBEngine{
 
 SCRIPT_METHOD_DECLARE_BEGIN(Entity)
