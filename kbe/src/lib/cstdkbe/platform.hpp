@@ -190,6 +190,7 @@ typedef UINT_PTR        										uintptr;
 #define PRIX64													"llX"
 #define PRIzu													"lu"
 #define PRIzd													"ld"
+#define PRTime													"lld"
 #else
 typedef int64_t													int64;
 typedef int32_t													int32;
@@ -216,6 +217,7 @@ typedef uint32													uintptr;
 #define PRIu64													"llu"
 #define PRIx64													"llx"
 #define PRIX64													"llX"
+#define PRTime													"d"
 #endif
 
 #ifndef PRIzd

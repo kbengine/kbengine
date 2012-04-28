@@ -82,7 +82,7 @@ void CellApp::handleTimeout(TimerHandle handle, void * arg)
 void CellApp::handleGameTick()
 {
 	// time_t t = ::time(NULL);
-	// DEBUG_MSG("CellApp::handleGameTick[%"PRI64"]:%d\n", t, time_);
+	// DEBUG_MSG("CellApp::handleGameTick[%"PRTime"]:%d\n", t, time_);
 	
 	time_++;
 	

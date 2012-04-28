@@ -31,7 +31,10 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	int32 msgLen, MessageHandler* msgHandler)
 {
 	if(msgID_ == 1)
-		printf("message_handlers begin:\n");
+	{
+		printf("\n------------------------------------------------------------------\n");
+		printf("KBEMessage_handlers begin:\n");
+	}
 	
 	msgHandler->msgID = msgID_++;
 	msgHandler->name = ihName;					
@@ -39,9 +42,16 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	msgHandler->msgLen = msgLen;			
 	msgHandlers_[msgHandler->msgID] = msgHandler;
 	
-	printf("\tMessageHandlers::add: name=%s, msgID=%d, msgLen=%d.\n", 
-			ihName.c_str(), msgHandler->msgID, msgLen);
-	
+	if(msgLen == -1)
+	{
+		printf("\tMessageHandlers::add: name=%s, msgID=%d, size=Variable.\n", 
+				ihName.c_str(), msgHandler->msgID);
+	}
+	else
+	{
+		printf("\tMessageHandlers::add: name=%s, msgID=%d, size=Fixed(%d).\n", 
+				ihName.c_str(), msgHandler->msgID, msgLen);
+	}
 	return msgHandlers_[msgHandler->msgID];
 }
 
