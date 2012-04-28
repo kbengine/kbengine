@@ -321,7 +321,7 @@ Packet* Channel::receiveWindow()
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::processReceiveWindow(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
+void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 {
 	uint8 nextbufferedIdx = (currbufferedIdx_ == 0) ? 1 : 0;
 	Mercury::Packet* pPacket = receiveWindow();
@@ -333,7 +333,7 @@ void Channel::processReceiveWindow(KBEngine::Mercury::MessageHandlers* pMsgHandl
 		{
 			if(MESSAGE_ID_SIZE > 1 && pPacket->opsize() < MESSAGE_ID_SIZE)
 			{
-				writeFragment(1, pPacket, MESSAGE_ID_SIZE);
+				writeFragmentMessage(1, pPacket, MESSAGE_ID_SIZE);
 				break;
 			}
 			
@@ -360,7 +360,7 @@ void Channel::processReceiveWindow(KBEngine::Mercury::MessageHandlers* pMsgHandl
 					// 如果长度信息不完整， 则等待下一个包处理
 					if(pPacket->opsize() < MESSAGE_LENGTH_SIZE)
 					{
-						writeFragment(2, pPacket, MESSAGE_LENGTH_SIZE);
+						writeFragmentMessage(2, pPacket, MESSAGE_LENGTH_SIZE);
 						break;
 					}
 					else
@@ -372,7 +372,7 @@ void Channel::processReceiveWindow(KBEngine::Mercury::MessageHandlers* pMsgHandl
 
 			if(pPacket->opsize() < currMsgLen_)
 			{
-				writeFragment(3, pPacket, currMsgLen_);
+				writeFragmentMessage(3, pPacket, currMsgLen_);
 				break;
 			}
 
@@ -391,7 +391,7 @@ void Channel::processReceiveWindow(KBEngine::Mercury::MessageHandlers* pMsgHandl
 		}
 		else
 		{
-			mergeFragment(pPacket);
+			mergeFragmentMessage(pPacket);
 		}
 	}
 
@@ -400,7 +400,7 @@ void Channel::processReceiveWindow(KBEngine::Mercury::MessageHandlers* pMsgHandl
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::writeFragment(uint8 fragmentDatasFlag, Packet* pPacket, uint32 datasize)
+void Channel::writeFragmentMessage(uint8 fragmentDatasFlag, Packet* pPacket, uint32 datasize)
 {
 	KBE_ASSERT(pFragmentDatas_ == NULL);
 	size_t opsize = pPacket->opsize();
@@ -412,7 +412,7 @@ void Channel::writeFragment(uint8 fragmentDatasFlag, Packet* pPacket, uint32 dat
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::mergeFragment(Packet* pPacket)
+void Channel::mergeFragmentMessage(Packet* pPacket)
 {
 	size_t opsize = pPacket->opsize();
 

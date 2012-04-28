@@ -187,16 +187,17 @@ void init_network(void)
 			bundle.newMessage(CellAppInterface::test);
 			ENTITY_ID eid = 1;
 			bundle << eid;
-			char xxa[12] = {"kebiao12345"};
-			std::string sss;
-			sss = xxa;
-			bundle.assign( xxa, 11);
+			char xxa[12]={"kebiao12345"};
+			std::string sss = xxa;
+			bundle << sss;
 			
+			bundle.finish();
+
 			MessageID msgID;
 			bundle >> msgID;
 
-			bundle >> eid;
-			
+			MessageLength len;
+			bundle >> len;
 			bundle >> sss;
 
 	while(1)
@@ -238,13 +239,12 @@ void init_network(void)
 			bundle.newMessage(CellAppInterface::test);
 			ENTITY_ID eid = 1;
 			bundle << eid;
-			char xxa[4000];
-			memset(xxa, 'b', 4000);
+			char xxa[12]={"kebiao12345"};
 			std::string sss = xxa;
 			bundle << sss;
 			bundle.send(mysocket);
 			
-			packet.clear();
+			packet.clear(false);
 			packet.resize(1024);
 			int len = mysocket.recv(packet.data(), 1024);
 			packet.wpos(len);

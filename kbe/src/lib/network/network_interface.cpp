@@ -464,7 +464,7 @@ void NetworkInterface::handleChannels(KBEngine::Mercury::MessageHandlers* pMsgHa
 	for(; iter != channelMap_.end(); iter++)
 	{
 		Mercury::Channel* pChannel = iter->second;
-		pChannel->processReceiveWindow(pMsgHandlers);
+		pChannel->handleMessage(pMsgHandlers);
 	}
 }
 //-------------------------------------------------------------------------------------

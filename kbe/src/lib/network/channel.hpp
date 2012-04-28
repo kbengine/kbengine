@@ -120,7 +120,7 @@ public:
 	
 	BufferedReceives& bufferedReceives(){ return bufferedReceives_; }
 		
-	void processReceiveWindow(KBEngine::Mercury::MessageHandlers* pMsgHandlers);
+	void handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers);
 private:
 	enum TimeOutType
 	{
@@ -131,8 +131,8 @@ private:
 	void clearState( bool warnOnDiscard = false );
 	EventDispatcher & dispatcher();
 
-	void writeFragment(uint8 fragmentDatasFlag, Packet* pPacket, uint32 datasize);
-	void mergeFragment(Packet* pPacket);
+	void writeFragmentMessage(uint8 fragmentDatasFlag, Packet* pPacket, uint32 datasize);
+	void mergeFragmentMessage(Packet* pPacket);
 private:
 	NetworkInterface * 			pNetworkInterface_;
 	Traits						traits_;
