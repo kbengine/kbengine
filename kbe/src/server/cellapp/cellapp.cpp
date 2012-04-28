@@ -5,6 +5,7 @@
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
+#include "entitydef/entity_mailbox.hpp"
 
 namespace KBEngine{
 	
@@ -19,6 +20,9 @@ CellApp::CellApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface
     gameTimer_()
 {
 	// KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &CellAppInterface::messageHandlers;	
+
+	// 初始化mailbox模块获取entity实体函数地址
+	EntityMailbox::setGetEntityFunc(std::tr1::bind(&CellApp::tryGetEntityByMailbox, this, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
 }
 
 //-------------------------------------------------------------------------------------
@@ -164,6 +168,21 @@ Entity* CellApp::createEntity(const char* entityType, PyObject* params, bool isI
 Entity* CellApp::findEntity(ENTITY_ID eid)
 {
 	return entities_->find(eid);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* CellApp::tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_ID eid)
+{
+	if(componentID != componentID_)
+		return NULL;
+	
+	Entity* entity = entities_->find(eid);
+	if(entity == NULL){
+		ERROR_MSG("CellApp::tryGetEntityByMailbox: can't found entity:%ld.\n", eid);
+		return NULL;
+	}
+
+	return entity;
 }
 
 //-------------------------------------------------------------------------------------

@@ -233,7 +233,7 @@ PyObject* Entity::__reduce_ex__(PyObject* self, PyObject* protocol)
 	PyTuple_SET_ITEM(args, 0, unpickleMethod);
 	PyObject* args1 = PyTuple_New(4);
 	PyTuple_SET_ITEM(args1, 0, PyLong_FromUnsignedLong(entity->getID()));
-//	PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLong(App::getSingleton().getComponentID()));
+	PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLong(CellApp::getSingleton().componentID()));
 	PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(entity->getScriptModule()->getUType()));
 	PyTuple_SET_ITEM(args1, 3, PyLong_FromUnsignedLong(MAILBOX_TYPE_BASE));
 	PyTuple_SET_ITEM(args, 1, args1);

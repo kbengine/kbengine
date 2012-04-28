@@ -42,10 +42,6 @@ class EntityMailbox : public EntityMailboxAbstract
 {
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(EntityMailbox, EntityMailboxAbstract)
-private:
-	static GetEntityFunc					__getEntityFunc;		// 获得一个entity的实体的函数地址
-protected:
-	ScriptModule*							m_scriptModule_;		// 该entity所使用的脚本模块对象
 public:
 	EntityMailbox(Mercury::Channel* pChannel, ScriptModule* scriptModule, COMPONENT_ID componentID, ENTITY_ID& eid, ENTITY_MAILBOX_TYPE type);
 	~EntityMailbox();
@@ -65,6 +61,10 @@ public:
 
 	/** 设置mailbox的__getEntityFunc函数地址 */
 	static void setGetEntityFunc(GetEntityFunc func){ __getEntityFunc = func; };
+private:
+	static GetEntityFunc					__getEntityFunc;		// 获得一个entity的实体的函数地址
+protected:
+	ScriptModule*							m_scriptModule_;		// 该entity所使用的脚本模块对象
 };
 
 }

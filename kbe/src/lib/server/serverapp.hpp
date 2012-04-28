@@ -72,6 +72,9 @@ public:
 		
 	Mercury::EventDispatcher & getMainDispatcher()				{ return mainDispatcher_; }
 	Mercury::NetworkInterface & getNetworkInterface()			{ return networkInterface_; }
+
+	COMPONENT_ID componentID()const	{ return componentID_; }
+	COMPONENT_TYPE componentType()const	{ return componentType_; }
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID
