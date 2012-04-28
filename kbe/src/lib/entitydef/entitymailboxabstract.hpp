@@ -49,18 +49,18 @@ public:
 	virtual ~EntityMailboxAbstract();
 
 	/** 获取entityID */
-	ENTITY_ID getID()const{ return m_id_; }
-	void setID(int id){ m_id_ = id; }
+	ENTITY_ID getID()const{ return id_; }
+	void setID(int id){ id_ = id; }
 	static PyObject* pyGetID(PyObject *self, void *closure){ return PyLong_FromLong(static_cast<EntityMailboxAbstract*>(self)->getID()); }
 
 	/** 获得组件ID */
-	COMPONENT_ID getComponentID(void)const{ return m_componentID_; }
+	COMPONENT_ID getComponentID(void)const{ return componentID_; }
 
 	/** 获得utype */
-	uint16 getUType(void)const{ return m_utype_; }
+	uint16 getUType(void)const{ return utype_; }
 
 	/** 获得type */
-	ENTITY_MAILBOX_TYPE getType(void)const{ return m_type_; }
+	ENTITY_MAILBOX_TYPE getType(void)const{ return type_; }
 	
 	/** 发送一个数据流到entity所在机器上 */
 //	virtual SocketPacket* createStream(Opcodes code);
@@ -71,14 +71,14 @@ public:
 	static PyObject* __reduce_ex__(PyObject* self, PyObject* protocol);
 	
 	/** 设置这个mailbox所关联的socket频道 在proxy进行giveClientTo操作时， 允许被设置为NULL*/
-	void setChannel(Mercury::Channel* lpChannel){ m_channelPtr_ = lpChannel; };
-	Mercury::Channel* getChannel(void)const{ return m_channelPtr_; }
+	void setChannel(Mercury::Channel* pChannel){ pChannelPtr_ = pChannel; };
+	Mercury::Channel* getChannel(void)const{ return pChannelPtr_; }
 protected:
-	Mercury::Channel*						m_channelPtr_;			// 该mailbox所关联的远端机器通信通道
-	COMPONENT_ID							m_componentID_;			// 远端机器组件的ID
-	ENTITY_MAILBOX_TYPE						m_type_;				// 该mailbox的类型
-	ENTITY_ID								m_id_;					// entityID
-	uint16									m_utype_;				// entity的utype  按照entities.xml中的定义顺序
+	Mercury::Channel*						pChannelPtr_;			// 该mailbox所关联的远端机器通信通道
+	COMPONENT_ID							componentID_;			// 远端机器组件的ID
+	ENTITY_MAILBOX_TYPE						type_;					// 该mailbox的类型
+	ENTITY_ID								id_;					// entityID
+	uint16									utype_;					// entity的utype  按照entities.xml中的定义顺序
 };
 
 }

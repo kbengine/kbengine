@@ -61,24 +61,24 @@ EngineComponentMgr::COMPONENT_MAP& EngineComponentMgr::getComponents(COMPONENT_T
 	switch(componentType)
 	{
 	case DBMGR_TYPE:
-		return _m_dbmgrs;
+		return _dbmgrs;
 	case LOGINAPP_TYPE:
-		return _m_loginapps;
+		return _loginapps;
 	case BASEAPPMGR_TYPE:
-		return _m_baseappmgrs;
+		return _baseappmgrs;
 	case CELLAPPMGR_TYPE:
-		return _m_cellappmgrs;
+		return _cellappmgrs;
 	case CELLAPP_TYPE:
-		return _m_cellapps;
+		return _cellapps;
 	case BASEAPP_TYPE:
-		return _m_baseapps;
+		return _baseapps;
 	case MACHINE_TYPE:
-		return _m_machines;
+		return _machines;
 	case CENTER_TYPE:
-		return _m_centers;		
+		return _centers;		
 	};
 
-	return _m_baseapps;
+	return _baseapps;
 }
 
 //-------------------------------------------------------------------------------------		

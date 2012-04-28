@@ -22,7 +22,7 @@ SCRIPT_INIT(EntityMailbox, 0, 0, 0, 0, 0)
 EntityMailbox::EntityMailbox(Mercury::Channel* pChannel, ScriptModule* scriptModule, COMPONENT_ID componentID, 
 ENTITY_ID& eid, ENTITY_MAILBOX_TYPE type):
 EntityMailboxAbstract(getScriptType(), pChannel, componentID, eid, scriptModule->getUType(), type),
-m_scriptModule_(scriptModule)
+scriptModule_(scriptModule)
 {
 }
 
@@ -38,28 +38,28 @@ PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 
 	MethodDescription* md = NULL;
 
-	switch(m_type_)
+	switch(type_)
 	{
 	case MAILBOX_TYPE_CELL:
-		md = m_scriptModule_->findCellMethodDescription(ccattr);
+		md = scriptModule_->findCellMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_BASE:
-		md = m_scriptModule_->findBaseMethodDescription(ccattr);
+		md = scriptModule_->findBaseMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_CLIENT:
-		md = m_scriptModule_->findClientMethodDescription(ccattr);
+		md = scriptModule_->findClientMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_CELL_VIA_BASE:
-		md = m_scriptModule_->findCellMethodDescription(ccattr);
+		md = scriptModule_->findCellMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_BASE_VIA_CELL:
-		md = m_scriptModule_->findBaseMethodDescription(ccattr);
+		md = scriptModule_->findBaseMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_CLIENT_VIA_CELL:
-		md = m_scriptModule_->findClientMethodDescription(ccattr);
+		md = scriptModule_->findClientMethodDescription(ccattr);
 		break;
 	case MAILBOX_TYPE_CLIENT_VIA_BASE:
-		md = m_scriptModule_->findClientMethodDescription(ccattr);
+		md = scriptModule_->findClientMethodDescription(ccattr);
 		break;
 	default:
 		break;
@@ -72,36 +72,36 @@ PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 	}
 
 	// 首先要求名称不能为自己  比如：自身是一个cell， 不能使用cell.cell
-	if(strcmp(ccattr, ENTITY_MAILBOX_TYPE_TO_NAME_TABLE[m_type_]) != 0)
+	if(strcmp(ccattr, ENTITY_MAILBOX_TYPE_TO_NAME_TABLE[type_]) != 0)
 	{
 		int8 mbtype = -1;
 
 		if(strcmp(ccattr, "cell") == 0)
 		{
-			if(m_type_ == MAILBOX_TYPE_BASE_VIA_CELL)
+			if(type_ == MAILBOX_TYPE_BASE_VIA_CELL)
 				mbtype = MAILBOX_TYPE_CELL;
 			else
 				mbtype = MAILBOX_TYPE_CELL_VIA_BASE;
 		}
 		else if(strcmp(ccattr, "base") == 0)
 		{
-			if(m_type_ == MAILBOX_TYPE_CELL_VIA_BASE)
+			if(type_ == MAILBOX_TYPE_CELL_VIA_BASE)
 				mbtype = MAILBOX_TYPE_BASE;
 			else
 				mbtype = MAILBOX_TYPE_BASE_VIA_CELL;
 		}
 		else if(strcmp(ccattr, "client") == 0)
 		{
-			if(m_type_ == MAILBOX_TYPE_BASE)
+			if(type_ == MAILBOX_TYPE_BASE)
 				mbtype = MAILBOX_TYPE_CLIENT_VIA_BASE;
-			else if(m_type_ == MAILBOX_TYPE_CELL)
+			else if(type_ == MAILBOX_TYPE_CELL)
 				mbtype = MAILBOX_TYPE_CLIENT_VIA_CELL;
 		}
 		
 		if(mbtype != -1)
 		{
 			delete ccattr;
-			return new EntityMailbox(m_channelPtr_, m_scriptModule_, m_componentID_, m_id_, (ENTITY_MAILBOX_TYPE)mbtype);
+			return new EntityMailbox(pChannelPtr_, scriptModule_, componentID_, id_, (ENTITY_MAILBOX_TYPE)mbtype);
 		}
 	}
 	
@@ -115,17 +115,17 @@ PyObject* EntityMailbox::tp_repr()
 	char s[1024];
 	
 	const char * mailboxName =
-		(m_type_ == MAILBOX_TYPE_CELL)				? "Cell" :
-		(m_type_ == MAILBOX_TYPE_BASE)				? "Base" :
-		(m_type_ == MAILBOX_TYPE_CLIENT)			? "Client" :
-		(m_type_ == MAILBOX_TYPE_BASE_VIA_CELL)		? "BaseViaCell" :
-		(m_type_ == MAILBOX_TYPE_CLIENT_VIA_CELL)	? "ClientViaCell" :
-		(m_type_ == MAILBOX_TYPE_CELL_VIA_BASE)		? "CellViaBase" :
-		(m_type_ == MAILBOX_TYPE_CLIENT_VIA_BASE)	? "ClientViaBase" : "???";
+		(type_ == MAILBOX_TYPE_CELL)				? "Cell" :
+		(type_ == MAILBOX_TYPE_BASE)				? "Base" :
+		(type_ == MAILBOX_TYPE_CLIENT)				? "Client" :
+		(type_ == MAILBOX_TYPE_BASE_VIA_CELL)		? "BaseViaCell" :
+		(type_ == MAILBOX_TYPE_CLIENT_VIA_CELL)		? "ClientViaCell" :
+		(type_ == MAILBOX_TYPE_CELL_VIA_BASE)		? "CellViaBase" :
+		(type_ == MAILBOX_TYPE_CLIENT_VIA_BASE)		? "ClientViaBase" : "???";
 	
-	sprintf(s, "%s mailbox id:%d, component=%s%d, addr: %s.", mailboxName, m_id_, 
-		COMPONENT_NAME[ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[m_type_]], 
-			m_componentID_, m_channelPtr_->addr().c_str());
+	sprintf(s, "%s mailbox id:%d, component=%s%d, addr: %s.", mailboxName, id_, 
+		COMPONENT_NAME[ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[type_]], 
+			componentID_, pChannelPtr_->addr().c_str());
 
 	return PyUnicode_FromString(s);
 }

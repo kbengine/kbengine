@@ -51,14 +51,14 @@ public:
 	Mercury::Channel* findComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID);
 
 private:
-	COMPONENT_MAP			_m_baseapps;
-	COMPONENT_MAP			_m_cellapps;
-	COMPONENT_MAP			_m_dbmgrs;
-	COMPONENT_MAP			_m_loginapps;
-	COMPONENT_MAP			_m_cellappmgrs;
-	COMPONENT_MAP			_m_baseappmgrs;
-	COMPONENT_MAP			_m_machines;
-	COMPONENT_MAP			_m_centers;
+	COMPONENT_MAP			_baseapps;
+	COMPONENT_MAP			_cellapps;
+	COMPONENT_MAP			_dbmgrs;
+	COMPONENT_MAP			_loginapps;
+	COMPONENT_MAP			_cellappmgrs;
+	COMPONENT_MAP			_baseappmgrs;
+	COMPONENT_MAP			_machines;
+	COMPONENT_MAP			_centers;
 };
 
 }

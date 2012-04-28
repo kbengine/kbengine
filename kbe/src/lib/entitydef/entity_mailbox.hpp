@@ -64,7 +64,7 @@ public:
 private:
 	static GetEntityFunc					__getEntityFunc;		// 获得一个entity的实体的函数地址
 protected:
-	ScriptModule*							m_scriptModule_;		// 该entity所使用的脚本模块对象
+	ScriptModule*							scriptModule_;		// 该entity所使用的脚本模块对象
 };
 
 }

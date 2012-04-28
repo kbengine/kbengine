@@ -23,11 +23,11 @@ SCRIPT_INIT(EntityMailboxAbstract, 0, 0, 0, 0, 0)
 EntityMailboxAbstract::EntityMailboxAbstract(PyTypeObject* scriptType, Mercury::Channel* pChannel, 
 COMPONENT_ID componentID, ENTITY_ID eid, uint16 utype, ENTITY_MAILBOX_TYPE type):
 ScriptObject(scriptType, false),
-m_channelPtr_(pChannel),
-m_componentID_(componentID),
-m_type_(type),
-m_id_(eid),
-m_utype_(utype)
+pChannelPtr_(pChannel),
+componentID_(componentID),
+type_(type),
+id_(eid),
+utype_(utype)
 {
 }
 
@@ -40,15 +40,15 @@ EntityMailboxAbstract::~EntityMailboxAbstract()
 /*
 void EntityMailboxAbstract::post(SocketPacket* sp)
 {
-	if(sp != NULL && m_channelPtr_ != NULL && !m_channelPtr_->isClosed())
-		m_channelPtr_->sendPacket(sp);
+	if(sp != NULL && pChannelPtr_ != NULL && !pChannelPtr_->isClosed())
+		pChannelPtr_->sendPacket(sp);
 }
 
 //-------------------------------------------------------------------------------------
 SocketPacket* EntityMailboxAbstract::createStream(Opcodes code)
 {
 	SocketPacket* sp = new SocketPacket(code, 32);
-	(*sp) << (ENTITY_ID)m_id_;
+	(*sp) << (ENTITY_ID)id_;
 	return sp;
 }
 
@@ -56,8 +56,8 @@ SocketPacket* EntityMailboxAbstract::createStream(Opcodes code)
 SocketPacket* EntityMailboxAbstract::createMail(MAIL_TYPE mailType)
 {
 	SocketPacket* sp = new SocketPacket(OP_ENTITY_MAIL, 64);
-	(*sp) << (ENTITY_ID)m_id_;
-	(*sp) << (uint8)m_type_;
+	(*sp) << (ENTITY_ID)id_;
+	(*sp) << (uint8)type_;
 	(*sp) << (MAIL_TYPE)mailType;
 	return sp;
 }

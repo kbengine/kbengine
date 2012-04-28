@@ -118,7 +118,7 @@ void Entity::onDestroy(void)
 		Py_DECREF(pyResult);
 	else
 		PyErr_Clear();	
-	/*
+	
 	if(baseMailbox_ != NULL)
 	{
 		PyObject* cellData = getCellDataByFlags(ENTITY_CELL_DATA_FLAGS);
@@ -139,7 +139,7 @@ void Entity::onDestroy(void)
 		std::string strCellData = script::Pickler::pickle(cellData);
 		uint32 cellDataLength = strCellData.length();
 		Py_DECREF(cellData);
-		
+		/*
 		// 将当前的cell部分数据打包 一起发送给base部分备份
 		SocketPacket* sp = new SocketPacket(OP_ENTITY_LOSE_CELL);
 		(*sp) << id_;
@@ -147,8 +147,8 @@ void Entity::onDestroy(void)
 		if(cellDataLength > 0)
 			sp->append(strCellData.c_str(), cellDataLength);
 			
-		baseMailbox_->post(sp);
-	}*/
+		baseMailbox_->post(sp);*/
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -870,7 +870,7 @@ PyObject* Entity::pyAddTimer(PyObject* self, PyObject* args, PyObject* kwds)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::delTimer(TIMER_ID timerID)
 {return 0;
-//	return PyInt_FromLong(timers_.delTimer(timerID));
+//	return PyLong_FromLong(timers_.delTimer(timerID));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1051,8 +1051,11 @@ PyObject* Entity::pySetAoiRadius(PyObject* self, PyObject* args, PyObject* kwds)
 bool Entity::navigateStep(Position3D& destination, float& velocity, float& maxMoveDistance, float& maxDistance, 
 	bool faceMovement, float& girth, PyObject* userData)
 {
-	DEBUG_MSG("Entity[%s:%d]:destination=(%f,%f,%f), velocity=%f, maxMoveDistance=%f, maxDistance=%f, faceMovement=%d, girth=%f, userData=%x.\n",
-	getScriptModuleName(), id_, destination.x, destination.y, destination.z, velocity, maxMoveDistance, maxDistance, faceMovement, girth, userData);
+	DEBUG_MSG("Entity[%s:%d]:destination=(%f,%f,%f), velocity=%f, maxMoveDistance=%f, "
+		"maxDistance=%f, faceMovement=%d, girth=%f, userData=%x.\n",
+
+	getScriptModuleName(), id_, destination.x, destination.y, destination.z, velocity, maxMoveDistance, 
+	maxDistance, faceMovement, girth, userData);
 	return true;
 }
 
@@ -1068,7 +1071,8 @@ PyObject* Entity::pyNavigateStep(PyObject* self, PyObject* args, PyObject* kwds)
 
 	if(PyTuple_Size(args) == 7)
 	{
-		if(!PyArg_ParseTuple(args, "O|f|f|f|i|f|O", &pyDestination, &velocity, &maxMoveDistance, &maxDistance, &faceMovement, &girth, &userData))
+		if(!PyArg_ParseTuple(args, "O|f|f|f|i|f|O", &pyDestination, &velocity, &maxMoveDistance, &maxDistance, 
+			&faceMovement, &girth, &userData))
 		{
 			ERROR_MSG("Entity::navigateStep: args is error!\n");
 			Py_RETURN_FALSE;
@@ -1079,7 +1083,8 @@ PyObject* Entity::pyNavigateStep(PyObject* self, PyObject* args, PyObject* kwds)
 	}
 	else
 	{
-		ERROR_MSG("Entity::navigateStep: is error, args!=(destination, velocity, maxMoveDistance, maxDistance, faceMovement, girth, userData)!\n");
+		ERROR_MSG("Entity::navigateStep: is error, args!=(destination, velocity, maxMoveDistance, "
+			"maxDistance, faceMovement, girth, userData)!\n");
 		Py_RETURN_FALSE;
 	}
 	
@@ -1122,11 +1127,14 @@ PyObject* Entity::pyMoveToPoint(PyObject* self, PyObject* args, PyObject* kwds)
 	}
 	else
 	{
-		ERROR_MSG("Entity::moveToPoint: is error, args!=(destination, velocity, maxMoveDistance, maxDistance, faceMovement, girth, userData)!\n");
+		ERROR_MSG("Entity::moveToPoint: is error, args!=(destination, velocity, maxMoveDistance, "
+			"maxDistance, faceMovement, girth, userData)!\n");
+
 		Py_RETURN_FALSE;
 	}
 	
 	Py_INCREF(userData);
+
 	if(entity->moveToPoint(destination, velocity, userData, faceMovement, moveVertically)){
 		Py_RETURN_TRUE;
 	}
