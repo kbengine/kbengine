@@ -121,7 +121,6 @@ bool BaseApp::initializeEnd()
 	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 	
-	g_kbeSrvConfig.printCellapp();
 	return true;
 }
 

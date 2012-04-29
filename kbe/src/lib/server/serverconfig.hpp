@@ -38,15 +38,23 @@ same license as the rest of the engine.
 #endif
 	
 namespace KBEngine{
+namespace Mercury
+{
+class Address;
+}
 
 // 引擎组件信息结构体
-typedef struct EngineComponentInfo{
+typedef struct EngineComponentInfo
+{
 	uint32 port;											// 组件的监听端口
 	char ip[50];											// 组件的ip地址
 	char entryScriptFile[255];								// 组件的入口脚本文件
 	char dbAccountEntityScriptType[255];					// 数据库帐号脚本类别
 	float defaultAoIRadius;									// 配置在cellapp节点中的player的aoi半径大小
 	float defaultAoIHysteresisArea;							// 配置在cellapp节点中的player的aoi的滞后范围
+	Mercury::Address* externalAddr;							// 外部地址
+	Mercury::Address* internalAddr;							// 内部地址
+	COMPONENT_ID componentID;
 }ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>
@@ -68,7 +76,8 @@ public:
 
 	inline ENGINE_COMPONENT_INFO& getComponent(COMPONENT_TYPE ComponentType);
  	
- 	void printCellapp(void);
+ 	void updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
+ 				const Mercury::Address& internalAddr, const Mercury::Address& externalAddr);
  	
 	inline int16 gameUpdateHertz(void)const { return gameUpdateHertz_;}
 private:

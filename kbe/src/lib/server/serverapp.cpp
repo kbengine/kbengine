@@ -113,7 +113,8 @@ bool ServerApp::initialize()
 
 	if(!installEntityDef())
 		return false;
-
+	
+	g_kbeSrvConfig.updateInfos(true, componentType_, componentID_, getNetworkInterface().addr(), getNetworkInterface().addr());
 	return initializeEnd();
 }
 

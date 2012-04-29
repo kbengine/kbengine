@@ -1,4 +1,6 @@
 #include "serverconfig.hpp"
+#include "network/address.hpp"
+
 namespace KBEngine{
 KBE_SINGLETON_INIT(ServerConfig);
 
@@ -253,14 +255,45 @@ ENGINE_COMPONENT_INFO& ServerConfig::getComponent(COMPONENT_TYPE componentType)
 }
 
 //-------------------------------------------------------------------------------------	
-void ServerConfig::printCellapp(void)
+void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
+							   const Mercury::Address& internalAddr, const Mercury::Address& externalAddr)
 {
-	ENGINE_COMPONENT_INFO info = getCellApp();
-	INFO_MSG("server-configs:\n");
-	INFO_MSG("\tgameUpdateHertz : %d\n", gameUpdateHertz());
-	INFO_MSG("\tdefaultAoIRadius : %f\n", info.defaultAoIRadius);
-	INFO_MSG("\tdefaultAoIHysteresisArea : %f\n", info.defaultAoIHysteresisArea);
-	INFO_MSG("\tentryScriptFile : %s\n", info.entryScriptFile);
+	if(componentType == CELLAPP_TYPE)
+	{
+		ENGINE_COMPONENT_INFO info = getCellApp();
+		//info.internalAddr = &internalAddr;
+		//info.externalAddr = &externalAddr;
+		info.componentID = componentID;
+		if(isPrint)
+		{
+			INFO_MSG("server-configs:\n");
+			INFO_MSG("\tgameUpdateHertz : %d\n", gameUpdateHertz());
+			INFO_MSG("\tdefaultAoIRadius : %f\n", info.defaultAoIRadius);
+			INFO_MSG("\tdefaultAoIHysteresisArea : %f\n", info.defaultAoIHysteresisArea);
+			INFO_MSG("\tentryScriptFile : %s\n", info.entryScriptFile);
+			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
+			INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
+			INFO_MSG("\tcomponentID : %d\n", info.componentID);
+		}
+	}
+	else if (componentType == BASEAPP_TYPE)
+	{
+		ENGINE_COMPONENT_INFO info = getBaseApp();
+		//info.internalAddr = &internalAddr;
+		//info.externalAddr = &externalAddr;
+		info.componentID = componentID;
+		if(isPrint)
+		{
+			INFO_MSG("server-configs:\n");
+			INFO_MSG("\tgameUpdateHertz : %d\n", gameUpdateHertz());
+			INFO_MSG("\tdefaultAoIRadius : %f\n", info.defaultAoIRadius);
+			INFO_MSG("\tdefaultAoIHysteresisArea : %f\n", info.defaultAoIHysteresisArea);
+			INFO_MSG("\tentryScriptFile : %s\n", info.entryScriptFile);
+			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
+			INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
+			INFO_MSG("\tcomponentID : %d\n", info.componentID);
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------		

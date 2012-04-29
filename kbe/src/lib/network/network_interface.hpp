@@ -67,7 +67,7 @@ public:
 
 	bool isExternal() const				{ return isExternal_; }
 
-	INLINE const Address & address() const;
+	INLINE const Address & addr() const;
 	EndPoint & endpoint()				{ return endpoint_; }
 
 	const char * c_str() const { return endpoint_.c_str(); }

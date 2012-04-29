@@ -486,6 +486,7 @@ void Entity::onRemoteMethodCall(MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+/*
 void Entity::onCurrentChunkChanged(Chunk* oldChunk)
 {
 }
