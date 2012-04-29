@@ -105,7 +105,7 @@ public:
 	/** 
 		判断自身是否是一个realEntity 
 	*/
-	inline bool isReal(void)const{ return isReal_; }
+	INLINE bool isReal(void)const;
 	
 	/** 
 		脚本请求设置属性或者方法 
@@ -130,12 +130,12 @@ public:
 	/** 
 		获得脚本名称 
 	*/
-	const char* getScriptModuleName(void)const{ return scriptModule_->getScriptType()->tp_name; }	
+	INLINE const char* getScriptModuleName(void)const;
 	
 	/** 
 		获取这个entity的脚本模块封装对象 
 	*/
-	ScriptModule* getScriptModule(void)const{ return scriptModule_; }
+	INLINE ScriptModule* getScriptModule(void)const;
 	
 	/** 
 		支持pickler 方法 
@@ -150,22 +150,22 @@ public:
 	/** 
 		该entity通信通道
 	*/
-	void pChannel(Mercury::Channel* pchannel){ pChannel_ = pchannel; }
-	Mercury::Channel* pChannel(void)const { return pChannel_; }
+	INLINE void pChannel(Mercury::Channel* pchannel);
+	INLINE Mercury::Channel* pChannel(void)const ;
 public:
 	/** 
 		获得entity的ID
 	*/
-	ENTITY_ID getID()const{ return id_; }
-	void setID(const int& id){ id_ = id; }
-	static PyObject* pyGetID(Entity *self, void *closure){ return PyLong_FromLong(self->getID()); }
+	INLINE ENTITY_ID getID()const;
+	INLINE void setID(const int& id);
+	static PyObject* pyGetID(Entity *self, void *closure);
 
 	/** 
 		获得entity的所在space的ID
 	*/
-	uint32 getSpaceID()const{ return spaceID_; }
-	void setSpaceID(int id){ spaceID_ = id; }
-	static PyObject* pyGetSpaceID(Entity *self, void *closure){ return PyLong_FromLong(self->getSpaceID()); }
+	INLINE uint32 getSpaceID()const;
+	INLINE void setSpaceID(int id);
+	static PyObject* pyGetSpaceID(Entity *self, void *closure);
 
 	/** 
 		脚本请求销毁实体
@@ -176,22 +176,18 @@ public:
 	/** 
 		mailbox section
 	*/
-	EntityMailbox* getBaseMailbox()const{ return baseMailbox_; }
-
+	INLINE EntityMailbox* getBaseMailbox()const;
 	static PyObject* pyGetBaseMailbox(Entity *self, void *closure);
-
-	void setBaseMailbox(EntityMailbox* mailbox){ baseMailbox_ = mailbox; }
-
-	EntityMailbox* getClientMailbox()const{ return clientMailbox_; }
-
+	INLINE void setBaseMailbox(EntityMailbox* mailbox);
+	
+	INLINE EntityMailbox* getClientMailbox()const;
 	static PyObject* pyGetClientMailbox(Entity *self, void *closure);
-
 	INLINE void setClientMailbox(EntityMailbox* mailbox);
 
 	/** 
 		脚本获取和设置entity的position 
 	*/
-	Position3D& getPosition(){ return position_; }
+	INLINE Position3D& getPosition();
 	static PyObject* pyGetPosition(Entity *self, void *closure);
 	static int pySetPosition(Entity *self, PyObject *value, void *closure);
 	void setPosition(Position3D& pos);
@@ -199,10 +195,10 @@ public:
 	/** 
 		脚本获取和设置entity的方向 
 	*/
-	Direction3D& getDirection(){ return direction_; }
+	INLINE Direction3D& getDirection();
 	static PyObject* pyGetDirection(Entity *self, void *closure);
 	static int pySetDirection(Entity *self, PyObject *value, void *closure);
-	void setDirection(Direction3D& dir){ direction_ = dir; }
+	INLINE void setDirection(Direction3D& dir);
 	
 	/** 
 		设置entity方向和位置 
@@ -226,8 +222,8 @@ public:
 		当前entity设置自身的Aoi半径范围 
 	*/
 	PyObject* setAoiRadius(float radius, float hyst);
-	float getAoiRadius(void)const{ return aoiRadius_; }
-	float getAoiHystArea(void)const{ return aoiHysteresisArea_; }
+	INLINE float getAoiRadius(void)const;
+	INLINE float getAoiHystArea(void)const;
 	static PyObject* pySetAoiRadius(PyObject* self, PyObject* args, PyObject* kwds);
 	
 	/** 
@@ -238,7 +234,7 @@ public:
 	/** 
 		脚本获得当前entity是否为将要销毁的entity 
 	*/
-	bool isDestroyed(){ return isDestroyed_; }
+	INLINE bool isDestroyed();
 	static PyObject* pyGetIsDestroyed(Entity *self, void *closure);
 	
 	/** 
@@ -266,17 +262,17 @@ public:
 		脚本获取和设置entity的最高xz移动速度 
 	*/
 	float getTopSpeed()const{ return topSpeed_; }
-	static PyObject* pyGetTopSpeed(Entity *self, void *closure){ return PyFloat_FromDouble(self->getTopSpeed()); };
-	static int pySetTopSpeed(Entity *self, PyObject *value, void *closure){ self->setTopSpeed(float(PyFloat_AsDouble(PySequence_GetItem(value, 0)))); return 0; };
-	void setTopSpeed(float speed){ topSpeed_ = speed; }
+	static PyObject* pyGetTopSpeed(Entity *self, void *closure);
+	static int pySetTopSpeed(Entity *self, PyObject *value, void *closure);
+	INLINE void setTopSpeed(float speed);
 	
 	/** 
 		脚本获取和设置entity的最高y移动速度 
 	*/
-	float getTopSpeedY()const{ return topSpeedY_; }
-	static PyObject* pyGetTopSpeedY(Entity *self, void *closure){ return PyFloat_FromDouble(self->getTopSpeedY()); };
-	static int pySetTopSpeedY(Entity *self, PyObject *value, void *closure){ self->setTopSpeedY(float(PyFloat_AsDouble(PySequence_GetItem(value, 0)))); return 0; };
-	void setTopSpeedY(float speed){ topSpeedY_ = speed; }
+	INLINE float getTopSpeedY()const;
+	static PyObject* pyGetTopSpeedY(Entity *self, void *closure);
+	static int pySetTopSpeedY(Entity *self, PyObject *value, void *closure);
+	INLINE void setTopSpeedY(float speed);
 	
 	/** 
 		脚本请求获得一定范围类的某种类型的entities 
@@ -311,13 +307,13 @@ public:
 	/** 
 		是否被任何proxy监视到, 如果这个entity没有客户端， 则这个值有效 
 	*/
-	bool isWitnessed(void)const{ return isWitnessed_; }
+	INLINE bool isWitnessed(void)const;
 	static PyObject* pyIsWitnessed(Entity *self, void *closure);
 
 	/** 
 		entity是否是一个观察者 
 	*/
-	bool hasWitness(void)const{ return hasWitness_; }
+	INLINE bool hasWitness(void)const;
 	static PyObject* pyHasWitness(Entity *self, void *closure);
 
 	/** 

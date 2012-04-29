@@ -272,6 +272,44 @@ PyObject* Entity::pyGetClientMailbox(Entity *self, void *closure)
 }
 
 //-------------------------------------------------------------------------------------
+int Entity::pySetTopSpeedY(Entity *self, PyObject *value, void *closure)
+{
+	self->setTopSpeedY(float(PyFloat_AsDouble(PySequence_GetItem(value, 0)))); 
+	return 0; 
+};
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetTopSpeedY(Entity *self, void *closure)
+{ 
+	return PyFloat_FromDouble(self->getTopSpeedY()); 
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetTopSpeed(Entity *self, void *closure)
+{ 
+	return PyFloat_FromDouble(self->getTopSpeed()); 
+}
+
+//-------------------------------------------------------------------------------------
+int Entity::pySetTopSpeed(Entity *self, PyObject *value, void *closure)
+{ 
+	self->setTopSpeed(float(PyFloat_AsDouble(PySequence_GetItem(value, 0)))); 
+	return 0; 
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetSpaceID(Entity *self, void *closure)
+{ 
+	return PyLong_FromLong(self->getSpaceID()); 
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetID(Entity *self, void *closure)
+{
+	return PyLong_FromLong(self->getID()); 
+}
+
+//-------------------------------------------------------------------------------------
 int Entity::onScriptSetAttribute(PyObject* attr, PyObject* value)
 {
 	char* ccattr = wchar2char(PyUnicode_AsWideCharString(attr, NULL));
