@@ -33,6 +33,7 @@ namespace Mercury
 {
 #ifdef NETWORK_INTERFACE_DECLARE_BEGIN
 	#undef NETWORK_INTERFACE_DECLARE_BEGIN
+	#undef NETWORK_MESSAGE_DECLARE_STREAM
 	#undef NETWORK_MESSAGE_DECLARE_ARGS1
 	#undef NETWORK_MESSAGE_DECLARE_ARGS2
 	#undef NETWORK_MESSAGE_DECLARE_ARGS3
@@ -40,6 +41,7 @@ namespace Mercury
 	#undef NETWORK_MESSAGE_DECLARE_ARGS5
 	#undef NETWORK_MESSAGE_HANDLER
 	#undef NETWORK_INTERFACE_DECLARE_END
+	#undef MESSAGE_STREAM
 	#undef MESSAGE_ARGS1
 	#undef MESSAGE_ARGS2
 	#undef MESSAGE_ARGS3
@@ -81,6 +83,31 @@ namespace Mercury
 #endif
 
 #define NETWORK_INTERFACE_DECLARE_END() }
+
+/**---------------------------------------------------------------------
+/		流消息 接收消息的接口参数为memorystream, 自己处理
+-----------------------------------------------------------------------*/
+#ifdef DEFINE_IN_INTERFACE
+#define MESSAGE_STREAM(NAME)
+#else
+#define MESSAGE_STREAM(NAME)										\
+	class NAME##Args : public Mercury::MessageArgs					\
+	{																\
+	public:															\
+		NAME##Args():Mercury::MessageArgs(){}						\
+		~NAME##Args(){}												\
+																	\
+		virtual void createFromStream(MemoryStream& s)				\
+		{															\
+		}															\
+	};																\
+				
+#endif
+
+#define NETWORK_MESSAGE_DECLARE_STREAM(DOMAIN, NAME, MSGHANDLER,	\
+											MSG_LENGTH)				\
+	NETWORK_MESSAGE_HANDLER(DOMAIN, NAME, MSGHANDLER, MSG_LENGTH)	\
+	MESSAGE_STREAM(NAME)											\
 
 /**---------------------------------------------------------------------
 /		一个参数的消息

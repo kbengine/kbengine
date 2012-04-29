@@ -466,42 +466,23 @@ void Entity::onDefDataChanged(PropertyDescription* propertyDescription, PyObject
 }
 
 //-------------------------------------------------------------------------------------
-/*
-void Entity::onRemoteMethodCall(SocketPacket& recvPacket)
+void Entity::onRemoteMethodCall(MemoryStream& s)
 {
 	uint32 utype = 0;
-	recvPacket >> (uint32)utype;
-	DEBUG_MSG("Entity::onRemoteMethodCall: entityID %d, methodType %ld.\n", id_, utype);
+	s >> utype;
+	
+	DEBUG_MSG("Entity::onRemoteMethodCall: entityID %d, methodType %ld.\n", 
+				id_, utype);
+	
 	MethodDescription* md = scriptModule_->findCellMethodDescription(utype);
-	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>(md->getName().c_str()));
+	
+	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
+						(md->getName().c_str()));
+
 	if(md != NULL)
-		md->call(pyFunc, md->createFromStream(&recvPacket));
+		md->call(pyFunc, md->createFromStream(&s));
 	
 	Py_XDECREF(pyFunc);
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::onReceiveMail(MAIL_TYPE& mailType, SocketPacket& recvPacket)
-{
-	DEBUG_MSG("Entity::onReceiveMail: entityID %d, mailType %ld.\n", id_, mailType);
-	switch(mailType)
-	{
-		case MAIL_TYPE_REMOTE_CALL:
-			onRemoteMethodCall(recvPacket);
-			break;
-		case MAIL_TYPE_SEEK:
-		{
-			Position3D pos;
-			float verticalRange;
-			float moveSpeed;
-			recvPacket >> pos.x >> pos.y >> pos.z;
-			recvPacket >> moveSpeed;
-			recvPacket >> verticalRange;
-			Py_INCREF(Py_None);
-			moveToPoint(pos, moveSpeed, Py_None, true, true);
-			break;
-		}
-	};
 }
 
 //-------------------------------------------------------------------------------------

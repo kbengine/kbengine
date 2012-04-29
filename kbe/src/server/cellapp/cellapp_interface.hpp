@@ -30,7 +30,51 @@ same license as the rest of the engine.
 #endif
 	
 namespace KBEngine{
+/**
+	Entity消息宏，  只有一个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef ENTITY_MESSAGE_HANDLER_STREAM
+#endif
 
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(CELLAPP)
+#define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
+	void NAME##EntityMessagehandler::handle(KBEngine::MemoryStream& s)			\
+	{																			\
+			ENTITY_ID eid;														\
+			s >> eid;															\
+			KBEngine::Entity* e =												\
+					KBEngine::CellApp::getSingleton().findEntity(eid);			\
+			e->NAME(s);															\
+	}																			\
+
+#else
+#define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
+	void NAME##EntityMessagehandler::handle(KBEngine::MemoryStream& s)			\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
+	class NAME##EntityMessagehandler : public Mercury::MessageHandler			\
+	{																			\
+	public:																		\
+		virtual void handle(KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define ENTITY_MESSAGE_DECLARE_STREAM(NAME, MSG_LENGTH)							\
+	ENTITY_MESSAGE_HANDLER_STREAM(NAME)											\
+	NETWORK_MESSAGE_DECLARE_STREAM(Entity, NAME,								\
+				NAME##EntityMessagehandler, MSG_LENGTH)							\
+																				\
+
+/**
+	Entity消息宏，  只有一个参数的消息
+*/
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
 	#undef ENTITY_MESSAGE_HANDLER_ARGS1
 #endif
@@ -73,11 +117,20 @@ namespace KBEngine{
 																				\
 
 
+
+/**
+	cellapp所有消息接口在此定义
+*/
 NETWORK_INTERFACE_DECLARE_BEGIN(CellAppInterface)
 	
 	ENTITY_MESSAGE_DECLARE_ARGS1(test, -1,
 								std::string, name
 	)
+	
+	/**
+		远程呼叫entity方法
+	*/
+	ENTITY_MESSAGE_DECLARE_STREAM(onRemoteMethodCall, -1)
 	
 NETWORK_INTERFACE_DECLARE_END()
 

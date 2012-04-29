@@ -75,7 +75,7 @@ public:
 	
 	// 测试网络接口
 	void test(const std::string& name);
-	
+
 	/** 
 		entity脚本初始化 
 	*/
@@ -94,7 +94,8 @@ public:
 	/** 
 		获得这个entity cell部分定义的指定详情级别的所有属性的数据 
 	*/
-	void getCellDataByDetailLevel(const int8& detailLevel, MemoryStream* mstream);
+	void getCellDataByDetailLevel(const int8& detailLevel, 
+			MemoryStream* mstream);
 	
 	/** 
 		销毁这个entity 
@@ -140,12 +141,14 @@ public:
 	/** 
 		支持pickler 方法 
 	*/
-	static PyObject* __reduce_ex__(PyObject* self, PyObject* protocol);
+	static PyObject* __reduce_ex__(PyObject* self, 
+			PyObject* protocol);
 	
 	/** 
 		定义属性数据被改变了 
 	*/
-	void onDefDataChanged(PropertyDescription* propertyDescription, PyObject* pyData);
+	void onDefDataChanged(PropertyDescription* propertyDescription, 
+			PyObject* pyData);
 	
 	/** 
 		该entity通信通道
@@ -171,7 +174,8 @@ public:
 		脚本请求销毁实体
 	*/
 	void destroyEntity(void);
-	static PyObject* pyDestroyEntity(PyObject* self, PyObject* args, PyObject* kwds);
+	static PyObject* pyDestroyEntity(PyObject* self, 
+		PyObject* args, PyObject* kwds);
 	
 	/** 
 		mailbox section
@@ -203,20 +207,27 @@ public:
 	/** 
 		设置entity方向和位置 
 	*/
-	void setPositionAndDirection(Position3D& position, Direction3D& direction);
+	void setPositionAndDirection(Position3D& position, 
+		Direction3D& direction);
 
 	/** 
 		添加和删除一个timer 
 	*/
-	PyObject* addTimer(uint32 startTrrigerIntervalTime, uint32 loopTrrigerIntervalTime, PyObject* args);
+	PyObject* addTimer(uint32 startTrrigerIntervalTime, 
+		uint32 loopTrrigerIntervalTime, PyObject* args);
+	
 	PyObject* delTimer(TIMER_ID timerID);
-	static PyObject* pyAddTimer(PyObject* self, PyObject* args, PyObject* kwds);
-	static PyObject* pyDelTimer(PyObject* self, PyObject* args, PyObject* kwds);
+	static PyObject* pyAddTimer(PyObject* self, 
+		PyObject* args, PyObject* kwds);
+	
+	static PyObject* pyDelTimer(PyObject* self, 
+		PyObject* args, PyObject* kwds);
 	
 	/** 
 		脚本请求为当前所在space设置一个几何映射 
 	*/
-	static PyObject* pyAddSpaceGeometryMapping(PyObject* self, PyObject* args, PyObject* kwds);
+	static PyObject* pyAddSpaceGeometryMapping(PyObject* self, 
+		PyObject* args, PyObject* kwds);
 
 	/** 
 		当前entity设置自身的Aoi半径范围 
@@ -224,12 +235,14 @@ public:
 	PyObject* setAoiRadius(float radius, float hyst);
 	INLINE float getAoiRadius(void)const;
 	INLINE float getAoiHystArea(void)const;
-	static PyObject* pySetAoiRadius(PyObject* self, PyObject* args, PyObject* kwds);
+	static PyObject* pySetAoiRadius(PyObject* self, 
+		PyObject* args, PyObject* kwds);
 	
 	/** 
 		当前entity是否为real 
 	*/
-	static PyObject* pyIsReal(PyObject* self, PyObject* args, PyObject* kwds);
+	static PyObject* pyIsReal(PyObject* self, 
+		PyObject* args, PyObject* kwds);
 	
 	/** 
 		脚本获得当前entity是否为将要销毁的entity 
@@ -240,22 +253,28 @@ public:
 	/** 
 		entity移动导航 
 	*/
-	bool navigateStep(Position3D& destination, float& velocity, float& maxMoveDistance, float& maxDistance, 
+	bool navigateStep(Position3D& destination, float& velocity, 
+					float& maxMoveDistance, float& maxDistance, 
 					bool faceMovement, float& girth, PyObject* userData);
 
-	static PyObject* pyNavigateStep(PyObject* self, PyObject* args, PyObject* kwds);
+	static PyObject* pyNavigateStep(PyObject* self, 
+					PyObject* args, PyObject* kwds);
 	
 	/** 
 		停止任何方式的移动行为 
 	*/
 	bool stopMove();
-	static PyObject* pyStopMove(PyObject* self, PyObject* args, PyObject* kwds);
+	static PyObject* pyStopMove(PyObject* self, 
+			PyObject* args, PyObject* kwds);
 
 	/** 
 		entity移动到某个点 
 	*/
-	bool moveToPoint(Position3D& destination, float& velocity, PyObject* userData, bool faceMovement, bool moveVertically);
-	static PyObject* pyMoveToPoint(PyObject* self, PyObject* args, PyObject* kwds);
+	bool moveToPoint(Position3D& destination, float& velocity, 
+			PyObject* userData, bool faceMovement, bool moveVertically);
+	
+	static PyObject* pyMoveToPoint(PyObject* self, 
+			PyObject* args, PyObject* kwds);
 
 	
 	/** 
@@ -277,17 +296,13 @@ public:
 	/** 
 		脚本请求获得一定范围类的某种类型的entities 
 	*/
-	static PyObject* pyEntitiesInRange(PyObject* self, PyObject* args, PyObject* kwds);
+	static PyObject* pyEntitiesInRange(PyObject* self, PyObject* args, 
+										PyObject* kwds);
 public:
 	/** 
 		远程呼叫本entity的方法 
 	*/
-	//void onRemoteMethodCall(SocketPacket& recvPacket);
-
-	/** 
-		收到邮件 
-	*/
-	//void onReceiveMail(MAIL_TYPE& mailType, SocketPacket& recvPacket);
+	void onRemoteMethodCall(MemoryStream& s);
 
 	/** 
 		设置这个entity当前所在chunk的ID 
@@ -381,28 +396,33 @@ public:
 	*/
 	uint16 addProximity(float range);
 
-	static PyObject* pyAddProximity(PyObject* self, PyObject* args, PyObject* kwds);
+	static PyObject* pyAddProximity(PyObject* self, 
+		PyObject* args, PyObject* kwds);
 
 	/** 
 		删除一个陷阱 
 	*/
 	void delProximity(const uint16& id);
-	static PyObject* pyDelProximity(PyObject* self, PyObject* args, PyObject* kwds);
+	static PyObject* pyDelProximity(PyObject* self, 
+		PyObject* args, PyObject* kwds);
 
 	/** 
 		一个entity进入了这个entity的某个陷阱 
 	*/
-	void onEnterTrap(Entity* entity, const float& range, const int& controllerID);
+	void onEnterTrap(Entity* entity, const float& range, 
+							const int& controllerID);
 
 	/** 
 		一个entity离开了这个entity的某个陷阱 
 	*/
-	void onLeaveTrap(Entity* entity, const float& range, const int& controllerID);
+	void onLeaveTrap(Entity* entity, const float& range, 
+							const int& controllerID);
 
 	/** 
 		当entity跳到一个新的space上去后，离开陷阱陷阱事件将触发这个接口 
 	*/
-	void onLeaveTrapID(const ENTITY_ID& entityID, const float& range, const int& controllerID);
+	void onLeaveTrapID(const ENTITY_ID& entityID, 
+					const float& range, const int& controllerID);
 
 	/** 
 		获得陷阱管理器 
