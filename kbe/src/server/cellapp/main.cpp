@@ -16,6 +16,5 @@ using namespace KBEngine;
 int KBENGINE_MAIN(int argc, char* argv[])
 {
 	int ret = kbeMainT<CellApp>(argc, argv, CELLAPP_TYPE);
-	getchar();
 	return ret; 
 }
