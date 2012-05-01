@@ -49,7 +49,8 @@ public:
 	
 	void handleTimeout(TimerHandle handle, void * arg);
 	void handleGameTick();
-	
+	void handleTimers();
+
 	bool initializeBegin();
 	bool initializeEnd();
 	void finalise();

@@ -84,13 +84,19 @@ void CellApp::handleTimeout(TimerHandle handle, void * arg)
 }
 
 //-------------------------------------------------------------------------------------
+void CellApp::handleTimers()
+{
+	timers().process(time_);
+}
+
+//-------------------------------------------------------------------------------------
 void CellApp::handleGameTick()
 {
 	// time_t t = ::time(NULL);
 	// DEBUG_MSG("CellApp::handleGameTick[%"PRTime"]:%d\n", t, time_);
 	
 	time_++;
-	
+	handleTimers();
 	getNetworkInterface().handleChannels(&CellAppInterface::messageHandlers);
 }
 
