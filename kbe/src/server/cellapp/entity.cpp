@@ -1159,7 +1159,7 @@ PyObject* Entity::pyNavigateStep(PyObject* self, PyObject* args, PyObject* kwds)
 	}
 	
 	Py_INCREF(userData);
-	if(entity->navigateStep(destination, velocity, maxMoveDistance, maxDistance, faceMovement, girth, userData)){
+	if(entity->navigateStep(destination, velocity, maxMoveDistance, maxDistance, faceMovement > 0, girth, userData)){
 		Py_RETURN_TRUE;
 	}
 	
@@ -1205,7 +1205,7 @@ PyObject* Entity::pyMoveToPoint(PyObject* self, PyObject* args, PyObject* kwds)
 	
 	Py_INCREF(userData);
 
-	if(entity->moveToPoint(destination, velocity, userData, faceMovement, moveVertically)){
+	if(entity->moveToPoint(destination, velocity, userData, faceMovement > 0, moveVertically > 0)){
 		Py_RETURN_TRUE;
 	}
 
