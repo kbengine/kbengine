@@ -12,6 +12,33 @@
 
 namespace KBEngine{
 
+class EntityScriptTimerHandler : public TimerHandler
+{
+public:
+	EntityScriptTimerHandler(Entity * entity ) : pEntity_( entity ) 
+	{
+	}
+
+private:
+	virtual void handleTimeout(TimerHandle handle, void * pUser)
+	{
+		ScriptTimers* scriptTimers = &pEntity_->scriptTimers();
+		int id = ScriptTimersUtil::getIDForHandle( scriptTimers, handle );
+		pEntity_->onTimer(id, intptr( pUser ));
+	}
+
+	virtual void onRelease( TimerHandle handle, void * /*pUser*/ )
+	{
+		ScriptTimers* scriptTimers = &pEntity_->scriptTimers();
+		ScriptTimersUtil::releaseTimer( &scriptTimers, handle );
+		delete this;
+	}
+
+	Entity* pEntity_;
+};
+
+
+//-------------------------------------------------------------------------------------
 SCRIPT_METHOD_DECLARE_BEGIN(Entity)
 SCRIPT_METHOD_DECLARE("__reduce_ex__",				__reduce_ex__,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("addTimer",					pyAddTimer,						METH_VARARGS,				0)
@@ -64,7 +91,8 @@ isWitnessed_(false),
 hasWitness_(false),
 topSpeed_(-0.1f),
 topSpeedY_(-0.1f),
-pChannel_(NULL)
+pChannel_(NULL),
+scriptTimers_()
 {
 	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
 	ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();
@@ -859,42 +887,61 @@ void Entity::onLeaveTrapID(const ENTITY_ID& entityID, const float& range, const 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::addTimer(uint32 startTrrigerIntervalTime, uint32 loopTrrigerIntervalTime, PyObject* args)
-{return 0;
-//	return PyLong_FromLong(timers_.addTimer(&TimerFunc_, startTrrigerIntervalTime, loopTrrigerIntervalTime, new TimerArgsPyObject(args)));
+PyObject* Entity::addTimer(float interval, float repeat, int userArg)
+{
+	EntityScriptTimerHandler* pHandler = new EntityScriptTimerHandler(this);
+	ScriptTimers * pTimers = &scriptTimers_;
+	int id = ScriptTimersUtil::addTimer( &pTimers,
+			interval, repeat,
+			userArg, pHandler );
+
+	if (id == 0)
+	{
+		PyErr_SetString( PyExc_ValueError, "Unable to add timer" );
+		delete pHandler;
+
+		return NULL;
+	}
+
+	return PyLong_FromLong( id );
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyAddTimer(PyObject* self, PyObject* args, PyObject* kwds)
 {
 	Entity* entity = static_cast<Entity*>(self);
-	uint32 startTrrigerIntervalTime = 0;
-	uint32 loopTrrigerIntervalTime = 0;
-	PyObject* timerArgs;
+	float interval = 0;
+	float repeat = 0;
+	int userArg;
 
 	if(PyTuple_Size(args) == 3)
 	{
-		if(!PyArg_ParseTuple(args, "k|k|O", &startTrrigerIntervalTime, &loopTrrigerIntervalTime, &timerArgs))
+		if(!PyArg_ParseTuple(args, "f|f|i", &interval, &repeat, &userArg))
 		{
 			ERROR_MSG("Entity::addTimer: args is error!\n");
-			return NULL;
+			S_Return;
 		}
 	}
 	else
 	{
 		ERROR_MSG("Entity::addTimer: args require 3 args, gived %d! entity[%s:%ld].\n", 
 			PyTuple_Size(args), entity->getScriptModuleName(), entity->getID());
-		return NULL;
+
+		S_Return;
 	}
 	
-	Py_INCREF(timerArgs);
-	return entity->addTimer(startTrrigerIntervalTime, loopTrrigerIntervalTime, timerArgs);
+	return entity->addTimer(interval, repeat, userArg);
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::delTimer(TIMER_ID timerID)
-{return 0;
-//	return PyLong_FromLong(timers_.delTimer(timerID));
+PyObject* Entity::delTimer(ScriptID timerID)
+{
+	if(!ScriptTimersUtil::delTimer(&scriptTimers_, timerID))
+	{
+		return PyLong_FromLong(-1);
+	}
+
+	return PyLong_FromLong(timerID);
 }
 
 //-------------------------------------------------------------------------------------
@@ -921,15 +968,14 @@ PyObject* Entity::pyDelTimer(PyObject* self, PyObject* args, PyObject* kwds)
 }
 
 //-------------------------------------------------------------------------------------
-/*
-void Entity::onTimer(const TIMER_ID& timerID, TimerArgsBase* args)
+void Entity::onTimer(ScriptID timerID, int useraAgs)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onTimer", "IO", timerID, static_cast<TimerArgsPyObject*>(args)->getArgs());
+	PyObject* pyResult = PyObject_CallMethod(this, "onTimer", "Ii", timerID, useraAgs);
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
 		SCRIPT_ERROR_CHECK();
-}*/
+}
 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyAddSpaceGeometryMapping(PyObject* self, PyObject* args, PyObject* kwds)

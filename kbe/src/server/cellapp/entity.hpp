@@ -21,6 +21,7 @@ same license as the rest of the engine.
 #include "pyscript/scriptobject.hpp"
 #include "entitydef/datatypes.hpp"	
 #include "entitydef/entitydef.hpp"	
+#include "server/script_timers.hpp"	
 
 //#define NDEBUG
 // windows include	
@@ -122,11 +123,6 @@ public:
 		脚本请求删除一个属性 
 	*/
 	int onScriptDelAttribute(PyObject* attr);
-
-	/** 
-		onTimer被触发 
-	*/
-	//void onTimer(const TIMER_ID& timerID, TimerArgsBase* args);
 	
 	/** 
 		获得脚本名称 
@@ -213,16 +209,19 @@ public:
 	/** 
 		添加和删除一个timer 
 	*/
-	PyObject* addTimer(uint32 startTrrigerIntervalTime, 
-		uint32 loopTrrigerIntervalTime, PyObject* args);
+	PyObject* addTimer(float interval, 
+		float repeat, int userArg);
 	
-	PyObject* delTimer(TIMER_ID timerID);
+	PyObject* delTimer(ScriptID timerID);
 	static PyObject* pyAddTimer(PyObject* self, 
 		PyObject* args, PyObject* kwds);
 	
 	static PyObject* pyDelTimer(PyObject* self, 
 		PyObject* args, PyObject* kwds);
 	
+	void onTimer(ScriptID timerID, int useraAgs);
+
+	ScriptTimers& scriptTimers(){ return scriptTimers_; }
 	/** 
 		脚本请求为当前所在space设置一个几何映射 
 	*/
@@ -456,6 +455,7 @@ protected:
 	float									topSpeed_;							// entity x,z轴最高移动速度
 	float									topSpeedY_;							// entity y轴最高移动速度
 	Mercury::Channel *						pChannel_;							// 该entity的通信频道
+	ScriptTimers							scriptTimers_;
 };
 
 }

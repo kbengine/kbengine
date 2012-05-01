@@ -1,11 +1,13 @@
 #include "script_timers.hpp"
 #include "server/entity_app.hpp"
-
+#include "pyscript/script.hpp"
+#include "cstdkbe/smartpointer.hpp"
 
 namespace KBEngine
 {
 
 EntityApp * g_pApp = NULL;
+ScriptTimers * g_pTimers = NULL;
 
 //-------------------------------------------------------------------------------------
 void ScriptTimers::initialize(EntityApp & app)
@@ -293,6 +295,113 @@ ScriptID getIDForHandle( ScriptTimers * pTimers,
 
 //-------------------------------------------------------------------------------------
 
+}
+
+//-------------------------------------------------------------------------------------
+
+class ScriptTimerHandler : public TimerHandler
+{
+public:
+	ScriptTimerHandler( PyObject * pObject ) : pObject_( pObject ) 
+	{
+	}
+
+private:
+	virtual void handleTimeout( TimerHandle handle, void * pUser )
+	{
+		int id = ScriptTimersUtil::getIDForHandle( g_pTimers, handle );
+
+		PyObject * pObject = pObject_.get();
+
+		Py_INCREF( pObject );
+
+		PyObject * pResult =
+			PyObject_CallFunction( pObject, "ik", id, uintptr( pUser ) );
+
+		SCRIPT_ERROR_CHECK();
+		Py_XDECREF( pResult );
+
+		Py_DECREF( pObject );
+	}
+
+	virtual void onRelease( TimerHandle handle, void * /*pUser*/ )
+	{
+		ScriptTimersUtil::releaseTimer( &g_pTimers, handle );
+		delete this;
+	}
+
+	SmartPointer<PyObject> pObject_;
+};
+
+//-------------------------------------------------------------------------------------
+PyObject * py_addTimer( PyObject * args )
+{
+	PyObject * pObject;
+	float initialOffset;
+	float repeatOffset = 0.f;
+	int userArg = 0;
+
+	if (!PyArg_ParseTuple( args, "Of|fi:addTimer",
+				&pObject, &initialOffset, &repeatOffset, &userArg ))
+	{
+		return NULL;
+	}
+
+	Py_INCREF( pObject );
+
+	if (!PyCallable_Check( pObject ))
+	{
+		// For backward compatibility
+		PyObject * pOnTimer = PyObject_GetAttrString( pObject, "onTimer" );
+
+		Py_DECREF( pObject );
+
+		if (pOnTimer == NULL)
+		{
+			PyErr_SetString( PyExc_TypeError,
+					"Callback function is not callable" );
+			return NULL;
+		}
+
+		pObject = pOnTimer;
+	}
+
+	TimerHandler * pHandler = new ScriptTimerHandler( pObject );
+
+	Py_DECREF( pObject );
+
+	int id = ScriptTimersUtil::addTimer( &g_pTimers,
+			initialOffset, repeatOffset,
+			userArg, pHandler );
+
+	if (id == 0)
+	{
+		PyErr_SetString( PyExc_ValueError, "Unable to add timer" );
+		delete pHandler;
+
+		return NULL;
+	}
+
+	return PyLong_FromLong( id );
+}
+
+//-------------------------------------------------------------------------------------
+PyObject * py_delTimer( PyObject * args )
+{
+	int timerID;
+
+	if (!PyArg_ParseTuple( args, "i", &timerID ))
+	{
+		return NULL;
+	}
+
+	if (!ScriptTimersUtil::delTimer( g_pTimers, timerID ))
+	{
+		ERROR_MSG( "KBEngine.delTimer: Unable to cancel timer %d\n",
+				timerID );
+	}
+
+	S_Return;
 }
 
 }
