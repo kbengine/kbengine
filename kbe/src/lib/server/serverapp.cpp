@@ -1,11 +1,37 @@
 #include "serverapp.hpp"
 #include "server/serverconfig.hpp"
+#include "server/signal_handler.hpp"
 
 namespace KBEngine{
 COMPONENT_TYPE g_componentType;
+SignalHandlers g_signalHandlers;
+
+void signalHandler(int signum)
+{
+	DEBUG_MSG("SignalHandlers: receive sigNum %d.\n", signum);
+	g_signalHandlers.onSignalled(signum);
+};
+
+class ServerSignalHandler : public SignalHandler
+{
+	virtual void onHandle(int sigNum)
+	{
+		switch(sigNum)
+		{
+		case SIGINT:
+			exit( 1 );
+			break;
+		default:
+			break;
+		};
+	};
+};
+
+ServerSignalHandler g_pServerSignalHandler;
 
 //-------------------------------------------------------------------------------------
-ServerApp::ServerApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
+ServerApp::ServerApp(Mercury::EventDispatcher& dispatcher, 
+					 Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
 componentType_(componentType),
 componentID_(0),
 mainDispatcher_(dispatcher),
@@ -14,6 +40,9 @@ time_(0)
 {
 	g_componentType = componentType;
 	networkInterface_.pExtensionData(this);
+	
+	g_signalHandlers.addSignal(SIGINT, &g_pServerSignalHandler);
+	mainDispatcher_.addFrequentTask(&g_signalHandlers);
 }
 
 //-------------------------------------------------------------------------------------
@@ -97,6 +126,23 @@ bool ServerApp::uninstallPyScript()
 }
 
 //-------------------------------------------------------------------------------------		
+bool ServerApp::installSingnal(int sigNum)
+{
+#if KBE_PLATFORM != PLATFORM_WIN32
+	struct sigaction act;
+	
+	act.sa_handler = signalHandler;
+	sigemptyset( &act.sa_mask ); 
+	if( sigaction(sigNum, &act, NULL) < 0 )
+	{
+		ERROR_MSG("install sigal SIGINT error!\n");
+		return false;
+	}	
+#endif
+	return true;
+}
+
+//-------------------------------------------------------------------------------------		
 bool ServerApp::initialize()
 {
 	if(!initializeBegin())
@@ -135,6 +181,26 @@ bool ServerApp::run(void)
 {
 	mainDispatcher_.processUntilBreak();
 	return true;
+}
+
+//-------------------------------------------------------------------------------------	
+void ServerApp::shutDown()
+{
+	INFO_MSG( "ServerApp::shutDown: shutting down\n" );
+	mainDispatcher_.breakProcessing();
+}
+
+//-------------------------------------------------------------------------------------	
+void ServerApp::onSignalled(int sigNum)
+{
+	switch (sigNum)
+	{
+	case SIGINT:
+	case SIGHUP:
+		this->shutDown();
+	default:
+		break;
+	}
 }
 
 //-------------------------------------------------------------------------------------		

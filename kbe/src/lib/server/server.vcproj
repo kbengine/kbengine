@@ -161,6 +161,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\script_timers.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\serverapp.cpp"
 				>
 			</File>
@@ -170,6 +174,10 @@
 			</File>
 			<File
 				RelativePath=".\serverinfos.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\signal_handler.cpp"
 				>
 			</File>
 		</Filter>
@@ -195,6 +203,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\script_timers.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\serverapp.hpp"
 				>
 			</File>
@@ -204,6 +216,10 @@
 			</File>
 			<File
 				RelativePath=".\serverinfos.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\signal_handler.hpp"
 				>
 			</File>
 		</Filter>

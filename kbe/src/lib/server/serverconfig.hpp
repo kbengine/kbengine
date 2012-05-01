@@ -52,8 +52,8 @@ typedef struct EngineComponentInfo
 	char dbAccountEntityScriptType[255];					// 数据库帐号脚本类别
 	float defaultAoIRadius;									// 配置在cellapp节点中的player的aoi半径大小
 	float defaultAoIHysteresisArea;							// 配置在cellapp节点中的player的aoi的滞后范围
-	Mercury::Address* externalAddr;							// 外部地址
-	Mercury::Address* internalAddr;							// 内部地址
+	const Mercury::Address* externalAddr;					// 外部地址
+	const Mercury::Address* internalAddr;					// 内部地址
 	COMPONENT_ID componentID;
 }ENGINE_COMPONENT_INFO;
 

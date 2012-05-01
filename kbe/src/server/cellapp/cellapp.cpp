@@ -6,6 +6,7 @@
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
 #include "entitydef/entity_mailbox.hpp"
+#include "thread/threadpool.hpp"
 
 namespace KBEngine{
 	
@@ -96,6 +97,9 @@ void CellApp::handleGameTick()
 //-------------------------------------------------------------------------------------
 bool CellApp::initializeBegin()
 {
+	if(thread::ThreadPool::getSingletonPtr() && !thread::ThreadPool::getSingleton().isInitialize() )
+		thread::ThreadPool::getSingleton().createThreadPool( 16, 16, 256 );
+
 	return true;
 }
 

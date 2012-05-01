@@ -34,6 +34,10 @@ public:
 	~EntityApp();
 	
 	virtual bool destroyEntity(ENTITY_ID entityID) = 0;
+	
+	Timers & timers() { return timers_; }
+		
+	virtual void onSignalled(int sigNum);
 protected:
 	Timers timers_;
 };

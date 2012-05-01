@@ -201,7 +201,7 @@ bool TimersT< TIME_STAMP >::getTimerInfo( TimerHandle handle,
 	{
 		time = pTime->time();
 		interval = pTime->interval();
-		pUser = pTime->pUserData();
+		pUser = pTime->getUserData();
 
 		return true;
 	}

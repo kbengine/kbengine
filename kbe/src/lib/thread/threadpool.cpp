@@ -10,9 +10,12 @@ ThreadPool g_stp;
 THREAD_ID TPThread::createThread(void)
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
-	tidp_ = (THREAD_ID)_beginthreadex(NULL, 0, &TPThread::threadFunc, (void*)this, NULL, 0);
+	tidp_ = (THREAD_ID)_beginthreadex(NULL, 0, 
+		&TPThread::threadFunc, (void*)this, NULL, 0);
 #else	
-	assert(pthread_create(&tidp_, NULL, TPThread::threadFunc, (void*)this)== 0 && "createThread is error!");
+	if(pthread_create(&tidp_, NULL, TPThread::threadFunc, 
+		(void*)this)!= 0)
+		ERROR_MSG("createThread is error!");
 #endif
 	return tidp_;
 }
@@ -33,10 +36,11 @@ Task* ThreadPool::popBusyTaskList(void)
 }
 
 //-------------------------------------------------------------------------------------
-bool ThreadPool::createThreadPool(unsigned int inewThreadCount, unsigned int inormalMaxThreadCount, unsigned int imaxThreadCount)
+bool ThreadPool::createThreadPool(unsigned int inewThreadCount, 
+	unsigned int inormalMaxThreadCount, unsigned int imaxThreadCount)
 {
-	assert(!isInitialize_ && "ThreadPool is exist initialize!");
-	INFO_MSG("ThreadPool::start to create the pool of Thread...\n");
+	assert(!isInitialize_ && "ThreadPool is exist!");
+	INFO_MSG("ThreadPool::creating  Threadpool...\n");
 	
 	extraNewAddThreadCount_ = inewThreadCount;
 	normalThreadCount_ = inormalMaxThreadCount;
@@ -54,7 +58,8 @@ bool ThreadPool::createThreadPool(unsigned int inewThreadCount, unsigned int ino
 		allThreadList_.push_back(tptd);										// 所有的线程列表
 	}
 	
-	INFO_MSG("ThreadPool::createThreadPool is successfully(%d), newThreadCount=%d, normalMaxThreadCount=%d, maxThreadCount=%d\n", \
+	INFO_MSG("ThreadPool::createThreadPool is successfully(%d), "
+		"newThreadCount=%d, normalMaxThreadCount=%d, maxThreadCount=%d\n", \
 			currentThreadCount_, extraNewAddThreadCount_, normalThreadCount_, maxThreadCount_);
 
 	isInitialize_ = true;
@@ -91,7 +96,8 @@ bool ThreadPool::moveThreadToFreeList(TPThread* tptd)
 	else
 	{
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
-		ERROR_MSG("ThreadPool::moveThreadToFreeList: busyThreadList_ not found thread.%u\n", (unsigned int)tptd->getID());
+		ERROR_MSG("ThreadPool::moveThreadToFreeList: busyThreadList_ not found thread.%u\n",
+		 (unsigned int)tptd->getID());
 		return false;
 	}
 		
@@ -113,7 +119,10 @@ bool ThreadPool::moveThreadToBusyList(TPThread* tptd)
 	else
 	{
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
-		ERROR_MSG("ThreadPool::moveThreadToBusyList: freeThreadList_ not found thread.%u\n", (unsigned int)tptd->getID());
+		ERROR_MSG("ThreadPool::moveThreadToBusyList: freeThreadList_ not "
+					"found thread.%u\n", 
+					(unsigned int)tptd->getID());
+		
 		return false;
 	}
 		
@@ -137,14 +146,19 @@ bool ThreadPool::removeHangThread(TPThread* tptd)
 		allThreadList_.erase(itr1);
 		currentThreadCount_--;
 		currentFreeThreadCount_--;
-		INFO_MSG("ThreadPool::removeHangThread: thread.%u is destroy. currentFreeThreadCount:%d, currentThreadCount:%d\n", \
+		INFO_MSG("ThreadPool::removeHangThread: thread.%u is destroy. "
+			"currentFreeThreadCount:%d, currentThreadCount:%d\n", \
 		(unsigned int)tptd->getID(), currentFreeThreadCount_, currentThreadCount_);
+		
 		SAFE_RELEASE(tptd);
 	}
 	else
 	{
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);		
-		ERROR_MSG("ThreadPool::removeHangThread: not found thread.%u\n", (unsigned int)tptd->getID());
+		
+		ERROR_MSG("ThreadPool::removeHangThread: not found thread.%u\n", 
+			(unsigned int)tptd->getID());
+		
 		return false;
 	}
 	
@@ -156,13 +170,17 @@ bool ThreadPool::removeHangThread(TPThread* tptd)
 bool ThreadPool::addTask(Task* tptask)
 {
 	THREAD_MUTEX_LOCK(threadStateList_mutex_);
-	if(currentFreeThreadCount_ > 0){
+	if(currentFreeThreadCount_ > 0)
+	{
 		std::list<TPThread*>::iterator itr = freeThreadList_.begin();
 		TPThread* tptd = (TPThread*)(*itr);
 		freeThreadList_.erase(itr);
 		busyThreadList_.push_back(tptd);
 		currentFreeThreadCount_--;
-		INFO_MSG("ThreadPool::currFree:%d, currThreadCount:%d, busy:[%d]\n", currentFreeThreadCount_, currentThreadCount_, busyThreadList_.size());
+		
+		INFO_MSG("ThreadPool::currFree:%d, currThreadCount:%d, busy:[%d]\n",
+				 currentFreeThreadCount_, currentThreadCount_, busyThreadList_.size());
+		
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 		
 		tptd->setTask(tptask);												// 给线程设置新任务	

@@ -261,8 +261,8 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 	if(componentType == CELLAPP_TYPE)
 	{
 		ENGINE_COMPONENT_INFO info = getCellApp();
-		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
-		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.internalAddr = &internalAddr;
+		info.externalAddr = &externalAddr;
 		info.componentID = componentID;
 		if(isPrint)
 		{

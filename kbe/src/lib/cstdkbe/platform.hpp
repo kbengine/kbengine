@@ -67,6 +67,20 @@ same license as the rest of the engine.
 #include <net/if.h>
 #endif
 
+#if !defined( PLAYSTATION3 )
+#include <signal.h>
+#endif
+
+#if !defined( _WIN32 ) && !defined( PLAYSTATION3 )
+# include <pwd.h>
+#else
+#define SIGHUP	1
+#define SIGINT	2
+#define SIGQUIT 3
+#define SIGUSR1 10
+#define SIGSYS	32
+#endif
+
 #ifndef TCHAR
 #ifdef _UNICODE
 	typedef wchar_t												TCHAR;
@@ -238,6 +252,8 @@ typedef uint32													COMPONENT_ID;											// 一个服务器组件的id
 typedef	uint32													TIMER_ID;												// 一个timer的id类型
 typedef uint8													MAIL_TYPE;												// mailbox 所投递的mail类别的类别
 typedef uint32													GAME_TIME;
+typedef uint32													GameTime;
+typedef int32													ScriptID;
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	#define IFNAMSIZ											16

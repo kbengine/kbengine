@@ -210,7 +210,9 @@ public:
 	
 	ThreadPool()
 	{		
-		extraNewAddThreadCount_ = currentThreadCount_ = currentFreeThreadCount_ = normalThreadCount_ = 0;
+		extraNewAddThreadCount_ = currentThreadCount_ = 
+		currentFreeThreadCount_ = normalThreadCount_ = 0;
+		
 		THREAD_MUTEX_INIT(threadStateList_mutex_);	
 		THREAD_MUTEX_INIT(busyTaskList_mutex_);
 	}
@@ -246,7 +248,8 @@ public:
 		@param inormalMaxThreadCount	: 线程池会一直保持这么多个数的线程
 		@param imaxThreadCount			: 线程池最多只能有这么多个线程
 	*/
-	bool createThreadPool(unsigned int inewThreadCount, unsigned int inormalMaxThreadCount, unsigned int imaxThreadCount);
+	bool createThreadPool(unsigned int inewThreadCount, 
+	unsigned int inormalMaxThreadCount, unsigned int imaxThreadCount);
 
 	/**移动一个线程到空闲列表*/
 	bool moveThreadToFreeList(TPThread* tptd);
