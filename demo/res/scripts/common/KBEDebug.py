@@ -38,7 +38,6 @@ def printMsg(keyword, args, isPrintPath):
 
 	#print "%s:%s%s: " % ( keyword, getClassName( f ), f.f_code.co_name ),
 	for m in args:print (m)
-	print ()
 
 def TRACE_MSG(*args): 
 	printMsg("Trace:",   args, False)
