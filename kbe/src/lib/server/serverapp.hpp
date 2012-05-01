@@ -32,6 +32,8 @@ same license as the rest of the engine.
 #include "entitydef/entitydef.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
+#include "server/signal_handler.hpp"
+
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
@@ -41,7 +43,7 @@ same license as the rest of the engine.
 	
 namespace KBEngine{
 
-class ServerApp
+class ServerApp : public SignalHandler
 {
 public:
 	ServerApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
@@ -58,7 +60,7 @@ public:
 	virtual void finalise();
 	virtual bool run();
 	
-	bool installSingnal(int sigNum);
+	bool installSingnals();
 	bool installPyScript();
 	bool installEntityDef();
 	virtual bool installPyModules();

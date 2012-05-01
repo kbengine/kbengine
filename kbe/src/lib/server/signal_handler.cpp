@@ -1,5 +1,6 @@
 #include "signal_handler.hpp"
 #include "helper/debug_helper.hpp"
+#include "server/serverapp.hpp"
 
 namespace KBEngine{
 KBE_SINGLETON_INIT(SignalHandlers);
@@ -43,9 +44,19 @@ const char * SIGNAL_NAMES[] =
 	"SIGSYS"
 };
 
+SignalHandlers g_signalHandlers;
+
+void signalHandler(int signum)
+{
+	DEBUG_MSG("SignalHandlers: receive sigNum %s.\n", SIGNAL_NAMES[signum]);
+	g_signalHandlers.onSignalled(signum);
+};
 
 //-------------------------------------------------------------------------------------
-SignalHandlers::SignalHandlers()
+SignalHandlers::SignalHandlers():
+singnalHandlerMap_(),
+signalledVec_(),
+papp_(NULL)
 {
 }
 
@@ -53,14 +64,39 @@ SignalHandlers::SignalHandlers()
 SignalHandlers::~SignalHandlers()
 {
 }
-	
+
+//-------------------------------------------------------------------------------------
+void SignalHandlers::attachApp(ServerApp* app)
+{ 
+	papp_ = app; 
+	app->getMainDispatcher().addFrequentTask(this);
+}
+
 //-------------------------------------------------------------------------------------	
 SignalHandler* SignalHandlers::addSignal(int sigNum, 
-	SignalHandler* pSignalHandler)
+	SignalHandler* pSignalHandler, int flags)
 {
 	SignalHandlerMap::iterator iter = singnalHandlerMap_.find(sigNum);
 	KBE_ASSERT(iter == singnalHandlerMap_.end());
 	singnalHandlerMap_[sigNum] = pSignalHandler;
+
+#if KBE_PLATFORM != PLATFORM_WIN32
+	struct sigaction action;
+	action.sa_handler = &signalHandler;
+	sigfillset( &(action.sa_mask) );
+
+	if (flags & SA_SIGINFO)
+	{
+		ERROR_MSG( "ServerApp::installSingnal: "
+				"SA_SIGINFO is not supported, ignoring\n" );
+		flags &= ~SA_SIGINFO;
+	}
+
+	action.sa_flags = flags;
+
+	::sigaction( sigNum, &action, NULL );
+#endif
+
 	return pSignalHandler;
 }
 	
@@ -93,16 +129,19 @@ void SignalHandlers::process()
 	for(; iter != signalledVec_.end(); iter++)
 	{
 		int sigNum = (*iter);
-		SignalHandlerMap::iterator iter = singnalHandlerMap_.find(sigNum);
-		if(iter == singnalHandlerMap_.end())
+		SignalHandlerMap::iterator iter1 = singnalHandlerMap_.find(sigNum);
+		if(iter1 == singnalHandlerMap_.end())
 		{
-			DEBUG_MSG("SignalHandlers::process: sigNum %d unhandled.\n", sigNum);
+			DEBUG_MSG("SignalHandlers::process: sigNum %s unhandled, singnalHandlerMap(%u).\n", 
+				SIGNAL_NAMES[sigNum], singnalHandlerMap_.size());
 			continue;
 		}
 		
-		iter->second->onHandle(sigNum);
-		DEBUG_MSG("SignalHandlers::process: sigNum %d handled.\n", sigNum);
+		DEBUG_MSG("SignalHandlers::process: sigNum %s handle.\n", SIGNAL_NAMES[sigNum]);
+		iter1->second->onSignalled(sigNum);
 	}
+
+	signalledVec_.clear();
 }
 
 //-------------------------------------------------------------------------------------		

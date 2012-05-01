@@ -22,11 +22,12 @@ same license as the rest of the engine.
 #endif
 	
 namespace KBEngine{
+class ServerApp;
 
 class SignalHandler
 {
 public:
-	virtual void onHandle(int sigNum) = 0;
+	virtual void onSignalled(int sigNum) = 0;
 };
 
 class SignalHandlers : public Singleton<SignalHandlers>, public Task
@@ -36,7 +37,7 @@ public:
 	~SignalHandlers();
 	
 	SignalHandler* addSignal(int sigNum, 
-		SignalHandler* pSignalHandler);
+		SignalHandler* pSignalHandler, int flags = 0);
 	
 	SignalHandler* delSignal(int sigNum);
 	
@@ -45,13 +46,18 @@ public:
 	void onSignalled(int sigNum);
 	
 	virtual void process();
+
+	void attachApp(ServerApp* app);
+
+	ServerApp* getApp(){ return papp_; }
 private:
 	typedef std::map<int, SignalHandler*> SignalHandlerMap;
 	SignalHandlerMap singnalHandlerMap_;
 	
 	std::vector<int> signalledVec_;
+	ServerApp* papp_;
 };
 
-#define g_kbeSignal SignalHandlers::getSingleton()
+#define g_kbeSignalHandlers SignalHandlers::getSingleton()
 }
 #endif
