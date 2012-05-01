@@ -75,5 +75,8 @@ const char COMPONENT_NAME[][12] = {
 /** 一个空间的一个chunk大小 */
 #define SPACE_CHUNK_SIZE 100
 
+/** kbe machine端口 */
+#define KBE_MACHINE_PORT 20086
+
 }
 #endif // __CSTDKBE__
