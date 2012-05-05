@@ -76,6 +76,8 @@ EngineComponentMgr::COMPONENT_MAP& EngineComponentMgr::getComponents(COMPONENT_T
 		return _machines;
 	case CENTER_TYPE:
 		return _centers;		
+	default:
+		break;
 	};
 
 	return _baseapps;
