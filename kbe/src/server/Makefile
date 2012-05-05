@@ -27,6 +27,7 @@ endif
 #endif
 #	$(MAKE) -C dbmgr $@
 #	$(MAKE) -C loginapp $@
+#	$(MAKE) -C machine $@
 #	$(MAKE) -C reviver $@
 #	$(MAKE) -C tools $@
 
