@@ -42,7 +42,7 @@ public:
 
 	virtual void onPrint(const char* msg);
 protected:
-	char softspace_;
+	bool softspace_;
 	PyObject* sysModule_;
 	PyObject* prevStderr_;
 	PyObject* prevStdout_;

@@ -495,9 +495,9 @@ public:																						\
 /** 定义暴露给脚本的getset属性宏
 */
 #define SCRIPT_GETSET_DECLARE_BEGIN(CLASS)											PyGetSetDef CLASS::_##CLASS##_scriptGetSeters[] =	{
-#define SCRIPT_GETSET_DECLARE(NAME, GET, SET, DOC, CLOSURE)							{NAME, (getter)GET, (setter)SET, DOC, CLOSURE},
-#define SCRIPT_GET_DECLARE(NAME, GET, DOC, CLOSURE)									{NAME, (getter)GET, (setter)__py_readonly_descr, DOC, CLOSURE},
-#define SCRIPT_SET_DECLARE(NAME, GET, DOC, CLOSURE)									{NAME, (getter)GET, (setter)__py_writeonly_descr, DOC, CLOSURE},
+#define SCRIPT_GETSET_DECLARE(NAME, GET, SET, DOC, CLOSURE)							{const_cast<char*>(NAME), (getter)GET, (setter)SET, DOC, CLOSURE},
+#define SCRIPT_GET_DECLARE(NAME, GET, DOC, CLOSURE)									{const_cast<char*>(NAME), (getter)GET, (setter)__py_readonly_descr, DOC, CLOSURE},
+#define SCRIPT_SET_DECLARE(NAME, GET, DOC, CLOSURE)									{const_cast<char*>(NAME), (getter)GET, (setter)__py_writeonly_descr, DOC, CLOSURE},
 #define SCRIPT_GETSET_DECLARE_END()													{NULL, NULL, NULL, NULL, NULL}};
 
 

@@ -7,7 +7,7 @@ SRCS =				\
 	script			\
 	scriptobject		\
 	scriptstdouterr		\
-	scriptStdouterrhook	\
+	scriptstdouterrhook	\
 	sequence		\
 	vector2			\
 	vector3			\
