@@ -43,11 +43,6 @@ bool Machine::run()
 //-------------------------------------------------------------------------------------
 void Machine::handleTimeout(TimerHandle handle, void * arg)
 {
-	switch (reinterpret_cast<uintptr>(arg))
-	{
-		default:
-			break;
-	}
 }
 
 //-------------------------------------------------------------------------------------

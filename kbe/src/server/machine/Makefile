@@ -7,15 +7,16 @@ SRCS =						\
 ASMS =
 
 MY_LIBS =		\
-	pyscript	\
 	server		\
+	pyscript	\
 	network		\
 	thread
 	
 
 BUILD_TIME_FILE = main
 USE_PYTHON = 1
-	
+USE_G3DMATH=1
+
 ifndef USE_OPENSSL
 	USE_OPENSSL = 0
 endif

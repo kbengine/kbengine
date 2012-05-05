@@ -51,7 +51,7 @@ public:
 	KBEngine::script::Script& getScript(){ return script_; }
 
 	void registerScript(PyTypeObject*);
-	int registerPyObjectToScript(const char* attrName, PyObject* pyObj){ return script_.registerToModule(attrName, pyObj); };
+	int registerPyObjectToScript(const char* attrName, PyObject* pyObj);
 
 	bool initialize();
 	virtual bool initializeBegin(){return true;};

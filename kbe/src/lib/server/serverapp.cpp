@@ -24,6 +24,12 @@ ServerApp::~ServerApp()
 }
 
 //-------------------------------------------------------------------------------------
+int ServerApp::registerPyObjectToScript(const char* attrName, PyObject* pyObj)
+{ 
+	return script_.registerToModule(attrName, pyObj); 
+}
+
+//-------------------------------------------------------------------------------------
 bool ServerApp::loadConfig()
 {
 	g_kbeSrvConfig.loadConfig("../../res/server/kbengine_defs.xml");

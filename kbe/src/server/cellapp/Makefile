@@ -10,8 +10,8 @@ ASMS =
 
 MY_LIBS =		\
 	entitydef	\
-	pyscript	\
 	server		\
+	pyscript	\
 	network		\
 	thread
 	

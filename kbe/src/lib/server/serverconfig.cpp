@@ -20,6 +20,13 @@ bool ServerConfig::loadConfig(std::string fileName)
 	TiXmlNode* node = NULL, *rootNode = NULL;
 	XmlPlus* xml = new XmlPlus(fileName.c_str());
 
+	if(!xml->isGood())
+	{
+		ERROR_MSG(" ServerConfig::loadConfig: load %s is failed!", fileName.c_str());
+		SAFE_RELEASE(xml);
+		return false;
+	}
+
 	rootNode = xml->getRootNode("gameUpdateHertz");
 	if(rootNode != NULL){
 		gameUpdateHertz_ = xml->getValInt(rootNode);

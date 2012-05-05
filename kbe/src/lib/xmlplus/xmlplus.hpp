@@ -93,15 +93,16 @@ namespace KBEngine{
 			
 class  XmlPlus : public RefCountable
 {
-protected:
-	TiXmlDocument* txdoc_;
-	TiXmlElement* rootElement_;
 public:
-	XmlPlus(void):txdoc_(NULL),rootElement_(NULL)
+	XmlPlus(void):
+		txdoc_(NULL),
+		rootElement_(NULL),
+		isGood_(false)
 	{
 	}
+
 	XmlPlus(const char* xmlFile){
-		openSection(xmlFile);
+		isGood_ = openSection(xmlFile) != NULL;
 	}
 	
 	~XmlPlus(void){
@@ -112,6 +113,8 @@ public:
 			rootElement_ = NULL;
 		}
 	}
+
+	bool isGood()const{ return isGood_; }
 
 	TiXmlNode* openSection(const char* xmlFile)
 	{
@@ -169,6 +172,10 @@ public:
 	std::string getValStr(const TiXmlNode* node){return node->ToText()->Value();}
 	int getValInt(const TiXmlNode* node){return atoi(node->ToText()->Value());}
 	double getValFloat(const TiXmlNode* node){return atof(node->ToText()->Value());}
+protected:
+	TiXmlDocument* txdoc_;
+	TiXmlElement* rootElement_;
+	bool isGood_;
 };
 
 }
