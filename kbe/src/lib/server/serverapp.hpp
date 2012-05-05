@@ -29,7 +29,6 @@ same license as the rest of the engine.
 #include "server/serverconfig.hpp"
 #include "cstdkbe/smartpointer.hpp"
 #include "pyscript/pyobject_pointer.hpp"
-#include "entitydef/entitydef.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
 #include "server/signal_handler.hpp"
@@ -62,7 +61,6 @@ public:
 	
 	bool installSingnals();
 	bool installPyScript();
-	bool installEntityDef();
 	virtual bool installPyModules();
 	virtual bool uninstallPyModules();
 	bool uninstallPyScript();

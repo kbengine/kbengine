@@ -58,7 +58,6 @@ bool ServerApp::installPyModules()
 {
 	//Entities::installScript(NULL);
 	//Entity::installScript(g_script.getModule());
-	EntityDef::installScript(NULL);
 	return true;
 }
 
@@ -67,7 +66,6 @@ bool ServerApp::uninstallPyModules()
 {
 	//Entities::uninstallScript();
 	//Entity::uninstallScript();
-	EntityDef::uninstallScript();
 	return true;
 }
 
@@ -75,21 +73,6 @@ bool ServerApp::uninstallPyModules()
 void ServerApp::registerScript(PyTypeObject* pto)
 {
 	scriptBaseTypes_.push_back(pto);
-}
-
-//-------------------------------------------------------------------------------------
-bool ServerApp::installEntityDef()
-{
-	// 初始化数据类别
-	if(!DataTypes::initialize("../../../demo/res/scripts/entity_defs/alias.xml"))
-		return false;
-
-	// 初始化所有扩展模块
-	if(!EntityDef::initialize("../../../demo/res/scripts/", scriptBaseTypes_, CELLAPP_TYPE)){
-		return false;
-	}
-
-	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -123,9 +106,6 @@ bool ServerApp::initialize()
 		return false;
 
 	if(!installPyModules())
-		return false;
-
-	if(!installEntityDef())
 		return false;
 	
 	g_kbeSrvConfig.updateInfos(true, componentType_, componentID_, getNetworkInterface().addr(), getNetworkInterface().addr());

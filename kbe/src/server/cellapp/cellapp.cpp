@@ -41,7 +41,7 @@ bool CellApp::installPyModules()
 	
 	entities_ = new Entities();
 	registerPyObjectToScript("entities", entities_);
-	return true;
+	return EntityApp::installPyModules();
 }
 
 //-------------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ bool CellApp::uninstallPyModules()
 	S_RELEASE(entities_);
 	Entities::uninstallScript();
 	Entity::uninstallScript();
-	return true;
+	return EntityApp::uninstallPyModules();
 }
 
 //-------------------------------------------------------------------------------------
@@ -77,9 +77,9 @@ void CellApp::handleTimeout(TimerHandle handle, void * arg)
 			this->handleGameTick();
 			break;
 		case TIMEOUT_LOADING_TICK:
-		{
 			break;
-		}
+		default:
+			break;
 	}
 }
 

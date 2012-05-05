@@ -35,6 +35,10 @@ public:
 	
 	virtual bool destroyEntity(ENTITY_ID entityID) = 0;
 	
+	virtual bool installPyModules();
+	virtual bool uninstallPyModules();
+	bool installEntityDef();
+	
 	Timers & timers() { return timers_; }
 		
 	virtual void onSignalled(int sigNum);

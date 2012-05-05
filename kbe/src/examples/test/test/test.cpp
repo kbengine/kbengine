@@ -41,7 +41,7 @@ public:
 		
 		 m_entities_ = new Entities();
 		registerPyObjectToScript("entities", m_entities_);
-		return true;
+		return ServerApp::installPyModules();
 	}
 
 	//-------------------------------------------------------------------------------------
@@ -49,7 +49,7 @@ public:
 	{
 		Entities::uninstallScript();
 		Entity::uninstallScript();
-		return true;
+		return ServerApp::uninstallPyModules();
 	}
 
 	bool run()

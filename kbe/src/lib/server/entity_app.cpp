@@ -1,6 +1,7 @@
 #include "entity_app.hpp"
 #include "helper/debug_helper.hpp"
 #include "server/script_timers.hpp"
+#include "entitydef/entitydef.hpp"
 
 namespace KBEngine{
 
@@ -15,6 +16,38 @@ ServerApp(dispatcher, ninterface, componentType)
 EntityApp::~EntityApp()
 {
 	ScriptTimers::finalise(*this);
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityApp::installEntityDef()
+{
+	// 初始化数据类别
+	if(!DataTypes::initialize("../../../demo/res/scripts/entity_defs/alias.xml"))
+		return false;
+
+	// 初始化所有扩展模块
+	if(!EntityDef::initialize("../../../demo/res/scripts/", scriptBaseTypes_, componentType_)){
+		return false;
+	}
+
+	return EntityDef::installScript(NULL);
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityApp::installPyModules()
+{
+	//Entities::installScript(NULL);
+	//Entity::installScript(g_script.getModule());
+	return installEntityDef();
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityApp::uninstallPyModules()
+{
+	//Entities::uninstallScript();
+	//Entity::uninstallScript();
+	EntityDef::uninstallScript();
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
