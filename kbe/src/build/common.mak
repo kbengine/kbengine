@@ -255,7 +255,8 @@ CXXFLAGS = $(ARCHFLAGS) -pipe
 CXXFLAGS += -Wall -Wno-deprecated
 CXXFLAGS += -Wno-uninitialized -Wno-char-subscripts
 CXXFLAGS += -fno-strict-aliasing -Wno-non-virtual-dtor
-#CXXFLAGS += -Werror
+CXXFLAGS += -Wno-invalid-offsetof
+CXXFLAGS += -Werror
 
 CPPFLAGS += -DKBE_SERVER -MMD -DKBE_CONFIG=\"${KBE_CONFIG}\"
 

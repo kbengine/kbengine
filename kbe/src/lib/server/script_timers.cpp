@@ -315,9 +315,8 @@ private:
 
 		Py_INCREF( pObject );
 		
-		char cargs[] = {"ik"};
 		PyObject * pResult =
-			PyObject_CallFunction( pObject, cargs, id, uintptr( pUser ) );
+			PyObject_CallFunction( pObject, const_cast<char*>("ik"), id, uintptr( pUser ) );
 
 		SCRIPT_ERROR_CHECK();
 		Py_XDECREF( pResult );

@@ -145,7 +145,7 @@ void Entity::destroy()
 
 void Entity::onDestroy(void)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onDestroy", "");
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onDestroy"), const_cast<char*>(""));
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -165,11 +165,11 @@ void Entity::onDestroy(void)
 		PyTuple_SET_ITEM(pyDirection, 1, PyFloat_FromDouble(direction_.pitch));
 		PyTuple_SET_ITEM(pyDirection, 2, PyFloat_FromDouble(direction_.yaw));
 		
-		PyDict_SetItemString(cellData, "position", pyPosition);
-		PyDict_SetItemString(cellData, "direction", pyDirection);
+		PyDict_SetItemString(cellData, const_cast<char*>("position"), pyPosition);
+		PyDict_SetItemString(cellData, const_cast<char*>("direction"), pyDirection);
 		
 		std::string strCellData = script::Pickler::pickle(cellData);
-		uint32 cellDataLength = strCellData.length();
+		//uint32 cellDataLength = strCellData.length();
 		Py_DECREF(cellData);
 		/*
 		// 将当前的cell部分数据打包 一起发送给base部分备份
@@ -187,7 +187,7 @@ void Entity::onDestroy(void)
 void Entity::initializeScript()
 {
 	// 调用脚本的__init__初始化脚本
-	PyObject* pyResult = PyObject_CallMethod(this, "__init__", "");
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("__init__"), const_cast<char*>(""));
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -596,7 +596,7 @@ void Entity::onRemoveWitness(Entity* entity)
 	if(witnessEntityDetailLevelMap_.size() <= 0)
 	{
 		isWitnessed_ = false;
-		PyObject* pyResult = PyObject_CallMethod(this, "onWitnessed", "O", PyBool_FromLong(0));
+		PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onWitnessed"), const_cast<char*>("O"), PyBool_FromLong(0));
 		if(pyResult != NULL)
 			Py_DECREF(pyResult);
 		else
@@ -744,7 +744,9 @@ void Entity::onEntityDetailLevelChanged(WitnessInfo* witnessInfo, const int8& ol
 //-------------------------------------------------------------------------------------
 void Entity::onGetWitness(void)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onGetWitness", "");
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onGetWitness"), 
+										const_cast<char*>(""));
+	
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -756,7 +758,9 @@ void Entity::onGetWitness(void)
 //-------------------------------------------------------------------------------------
 void Entity::onLoseWitness(void)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onLoseWitness", "");
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLoseWitness"), 
+						const_cast<char*>(""));
+	
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -859,7 +863,9 @@ PyObject* Entity::pyDelProximity(PyObject* self, PyObject* args, PyObject* kwds)
 //-------------------------------------------------------------------------------------
 void Entity::onEnterTrap(Entity* entity, const float& range, const int& controllerID)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onEnterTrap", "Ofi", entity, range, controllerID);
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onEnterTrap"), 
+					const_cast<char*>("Ofi"), entity, range, controllerID);
+	
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -869,7 +875,9 @@ void Entity::onEnterTrap(Entity* entity, const float& range, const int& controll
 //-------------------------------------------------------------------------------------
 void Entity::onLeaveTrap(Entity* entity, const float& range, const int& controllerID)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onLeaveTrap", "Ofi", entity, range, controllerID);
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLeaveTrap"), 
+			const_cast<char*>("Ofi"), entity, range, controllerID);
+	
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -879,7 +887,9 @@ void Entity::onLeaveTrap(Entity* entity, const float& range, const int& controll
 //-------------------------------------------------------------------------------------
 void Entity::onLeaveTrapID(const ENTITY_ID& entityID, const float& range, const int& controllerID)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onLeaveTrapID", "kfi", entityID, range, controllerID);
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLeaveTrapID"), 
+	const_cast<char*>("kfi"), entityID, range, controllerID);
+	
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -897,7 +907,7 @@ PyObject* Entity::addTimer(float interval, float repeat, int userArg)
 
 	if (id == 0)
 	{
-		PyErr_SetString( PyExc_ValueError, "Unable to add timer" );
+		PyErr_SetString(PyExc_ValueError, "Unable to add timer");
 		delete pHandler;
 
 		return NULL;
@@ -970,7 +980,9 @@ PyObject* Entity::pyDelTimer(PyObject* self, PyObject* args, PyObject* kwds)
 //-------------------------------------------------------------------------------------
 void Entity::onTimer(ScriptID timerID, int useraAgs)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onTimer", "Ii", timerID, useraAgs);
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTimer"), 
+		const_cast<char*>("Ii"), timerID, useraAgs);
+	
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -1228,7 +1240,9 @@ PyObject* Entity::pyStopMove(PyObject* self, PyObject* args, PyObject* kwds)
 //-------------------------------------------------------------------------------------
 void Entity::onMove(PyObject* userData)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onMove", "O", userData);
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onMove"), 
+		const_cast<char*>("O"), userData);
+	
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -1238,12 +1252,12 @@ void Entity::onMove(PyObject* userData)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyEntitiesInRange(PyObject* self, PyObject* args, PyObject* kwds)
 {
-	PyObject* pyPosition = NULL;
+	/*PyObject* pyPosition = NULL;
 	PyObject* pyEntityType = NULL;
 	std::string entityType = "";
 	float radius = 0.0f;
 	Position3D pos;
-	/*
+	
 	if(PyTuple_Size(args) == 3)
 	{
 		if(!PyArg_ParseTuple(args, "f|O|O", &radius, &pyEntityType, &pyPosition))

@@ -77,9 +77,9 @@ std::string Pickler::pickle(PyObject* pyobj)
 //-------------------------------------------------------------------------------------
 std::string Pickler::pickle(PyObject* pyobj, int8 protocol)
 {
-	PyObject* pyRet;
-	char fmt[] = "(Oi)";
-	pyRet = PyObject_CallFunction(picklerMethod_, fmt, pyobj, protocol);
+	PyObject* pyRet = PyObject_CallFunction(picklerMethod_, 
+		const_cast<char*>("(Oi)"), pyobj, protocol);
+	
 	SCRIPT_ERROR_CHECK();
 	
 	if(pyRet)
@@ -96,9 +96,9 @@ std::string Pickler::pickle(PyObject* pyobj, int8 protocol)
 //-------------------------------------------------------------------------------------
 PyObject* Pickler::unpickle(const std::string& str)
 {
-	PyObject* pyRet = NULL;
-	char fmt[] = "(s#)";
-	pyRet = PyObject_CallFunction(unPicklerMethod_, fmt, str.data(), str.length());
+	PyObject* pyRet = PyObject_CallFunction(unPicklerMethod_, 
+			const_cast<char*>("(s#)"), str.data(), str.length());
+	
 	if (!pyRet)
 	{
 		ERROR_MSG("Pickler::unpickle: failed to unpickle[%s] len=%d.\n", str.c_str(), str.length());

@@ -83,9 +83,8 @@ PyObject* Map::mp_subscript(PyObject* self, PyObject* key)
 //-------------------------------------------------------------------------------------
 PyObject* Map::_has_key(PyObject* self, PyObject* args)
 {
-	char key[] = {"has_key\0"}; // ∑¿÷πgcc -Werror±®¥Ì
-	char fmt[] = {"0\0"};
-	return PyObject_CallMethod(static_cast<Map*>(self)->pyDict_, key, fmt, args);
+	return PyObject_CallMethod(static_cast<Map*>(self)->pyDict_, 
+		const_cast<char*>("has_key"), const_cast<char*>("O"), args);
 }
 
 //-------------------------------------------------------------------------------------

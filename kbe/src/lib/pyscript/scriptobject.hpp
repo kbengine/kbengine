@@ -489,7 +489,7 @@ public:																						\
 /** 定义暴露给脚本的属性宏
 */
 #define SCRIPT_MEMBER_DECLARE_BEGIN(CLASS)											PyMemberDef CLASS::_##CLASS##_scriptMembers[] =	{
-#define SCRIPT_MEMBER_DECLARE(MEMBER_NAME, MEMBER_REF, MEMBER_TYPE, FLAGS, DOC)		{MEMBER_NAME, MEMBER_TYPE, offsetof(ThisClass, MEMBER_REF), FLAGS, DOC},
+#define SCRIPT_MEMBER_DECLARE(MEMBER_NAME, MEMBER_REF, MEMBER_TYPE, FLAGS, DOC)		{const_cast<char*>(MEMBER_NAME), MEMBER_TYPE, offsetof(ThisClass, MEMBER_REF), FLAGS, DOC},
 #define SCRIPT_MEMBER_DECLARE_END()													{NULL, NULL, NULL, NULL, NULL}};
 
 /** 定义暴露给脚本的getset属性宏

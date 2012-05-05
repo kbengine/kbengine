@@ -55,8 +55,7 @@ bool ServerApp::installPyScript()
 		break;
 	};
 	
-	wchar_t pyhomePath[] = L"../../res/script/common";
-	return getScript().install(pyhomePath, pyPaths, "KBEngine", componentType_);
+	return getScript().install(L"../../res/script/common", pyPaths, "KBEngine", componentType_);
 }
 
 //-------------------------------------------------------------------------------------
