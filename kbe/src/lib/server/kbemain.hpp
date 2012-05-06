@@ -40,10 +40,12 @@ inline void START_MSG(const char * name)
 }
 
 template <class SERVER_APP>
-int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType)
+int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType, 
+			 uint16 listeningPort = 0, const char * listeningInterface = "")
 {
 	Mercury::EventDispatcher dispatcher;
-	Mercury::NetworkInterface networkInterface(&dispatcher, Mercury::NETWORK_INTERFACE_INTERNAL, 0, "");
+	Mercury::NetworkInterface networkInterface(&dispatcher, 
+		Mercury::NETWORK_INTERFACE_INTERNAL, htons(listeningPort), listeningInterface);
 
 	SERVER_APP app(dispatcher, networkInterface, componentType);
 	START_MSG(COMPONENT_NAME[componentType]);

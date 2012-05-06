@@ -17,6 +17,8 @@ same license as the rest of the engine.
 #include "server/idallocate.hpp"
 #include "server/serverconfig.hpp"
 #include "cstdkbe/timer.hpp"
+#include "network/endpoint.hpp"
+#include "network/udp_packet_receiver.hpp"
 
 //#define NDEBUG
 #include <map>	
@@ -30,6 +32,7 @@ namespace KBEngine{
 
 class Machine:	public ServerApp, 
 				public TimerHandler, 
+				public Mercury::UDPPacketReceiver,
 				public Singleton<Machine>
 {
 public:
@@ -50,8 +53,11 @@ public:
 	bool inInitialize();
 	bool initializeEnd();
 	void finalise();
-	
+	bool initNetwork();
 protected:
+	// udpπ„≤•µÿ÷∑
+	u_int32_t broadcastAddr_;
+	Mercury::EndPoint epBroadcast_;
 };
 
 }

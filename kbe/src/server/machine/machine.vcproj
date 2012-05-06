@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="d3dx9.lib python32_d.lib server_d.lib pyscript_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib math_d.lib network_d.lib vldmt.lib thread_d.lib ws2_32.lib"
+				AdditionalDependencies="d3dx9.lib server_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib math_d.lib network_d.lib vldmt.lib thread_d.lib ws2_32.lib"
 				OutputFile="../../../bin/Hybrid\$(ProjectName).exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../../libs"
@@ -138,7 +138,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="d3dx9.lib python32.lib server.lib pyscript.lib xmlplus.lib cstdkbe.lib helper.lib math.lib network.lib vldmt.lib thread.lib ws2_32.lib"
+				AdditionalDependencies="d3dx9.lib server.lib xmlplus.lib cstdkbe.lib helper.lib math.lib network.lib vldmt.lib thread.lib ws2_32.lib"
 				OutputFile="../../../bin/Hybrid\$(ProjectName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../../libs"
@@ -179,10 +179,6 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
-			<File
-				RelativePath="..\..\lib\python\Modules\getbuildinfo.c"
-				>
-			</File>
 			<File
 				RelativePath=".\machine.cpp"
 				>
