@@ -82,7 +82,7 @@ public:
 
 	bool getClosedPort(Mercury::Address & closedPort);
 	
-	int sendto(void * gramData, int gramSize, u_int16_t networkPort, u_int32_t networkAddr = INADDR_BROADCAST);
+	int sendto(void * gramData, int gramSize, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
 	INLINE int sendto(void * gramData, int gramSize, struct sockaddr_in & sin);
 	INLINE int recvfrom(void * gramData, int gramSize, u_int16_t * networkPort, u_int32_t * networkAddr);
 	INLINE int recvfrom(void * gramData, int gramSize, struct sockaddr_in & sin);

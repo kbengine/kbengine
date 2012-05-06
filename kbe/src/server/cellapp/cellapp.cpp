@@ -103,8 +103,9 @@ void CellApp::handleGameTick()
 //-------------------------------------------------------------------------------------
 bool CellApp::initializeBegin()
 {
-	if(thread::ThreadPool::getSingletonPtr() && !thread::ThreadPool::getSingleton().isInitialize() )
-		thread::ThreadPool::getSingleton().createThreadPool( 16, 16, 256 );
+	if(thread::ThreadPool::getSingletonPtr() && 
+		!thread::ThreadPool::getSingleton().isInitialize())
+		thread::ThreadPool::getSingleton().createThreadPool(16, 16, 256);
 
 	return true;
 }

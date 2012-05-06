@@ -118,6 +118,22 @@ void Bundle::send(EndPoint& ep)
 }
 
 //-------------------------------------------------------------------------------------
+void Bundle::sendto(EndPoint& ep, u_int16_t networkPort, u_int32_t networkAddr)
+{
+	finish();
+
+	Packets::iterator iter = packets_.begin();
+	for (; iter != packets_.end(); iter++)
+	{
+		Packet* pPacket = (*iter);
+		ep.sendto(pPacket->data(), pPacket->totalSize(), networkPort, networkAddr);
+		delete pPacket;
+	}
+	
+	onSendComplete();
+}
+
+//-------------------------------------------------------------------------------------
 void Bundle::onSendComplete()
 {
 	packets_.clear();

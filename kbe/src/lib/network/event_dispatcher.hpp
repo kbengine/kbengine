@@ -34,6 +34,8 @@ public:
 	int  processOnce(bool shouldIdle = false);
 	void processUntilBreak();
 
+	bool isBreakProcessing()const { return breakProcessing_; }
+
 	void breakProcessing(bool breakState = true);
 	bool processingBroken()const;
 	

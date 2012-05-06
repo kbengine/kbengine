@@ -47,6 +47,8 @@ public:
 	
 	bool run();
 	
+	bool findBroadcastInterface();
+
 	void handleTimeout(TimerHandle handle, void * arg);
 
 	bool initializeBegin();
@@ -57,7 +59,10 @@ public:
 protected:
 	// udpπ„≤•µÿ÷∑
 	u_int32_t broadcastAddr_;
+	Mercury::EndPoint ep_;
 	Mercury::EndPoint epBroadcast_;
+
+	Mercury::EndPoint epLocal_;
 };
 
 }

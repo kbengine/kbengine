@@ -31,11 +31,12 @@ UDPPacketReceiver::~UDPPacketReceiver()
 //-------------------------------------------------------------------------------------
 bool UDPPacketReceiver::processSocket(bool expectingPacket)
 {
-	Channel* pChannel = networkInterface_.findChannel(endpoint_.addr());
-	KBE_ASSERT(pChannel != NULL);
+//	Channel* pChannel = networkInterface_.findChannel(endpoint_.addr());
+//	KBE_ASSERT(pChannel != NULL);
 	
-	Packet* pReceiveWindow = pChannel->receiveWindow();
-
+//	Packet* pReceiveWindow = pChannel->receiveWindow();
+	Packet* pReceiveWindow = new UDPPacket;
+	
 	Address	srcAddr;
 	int len = pReceiveWindow->recvFromEndPoint(endpoint_, &srcAddr);
 

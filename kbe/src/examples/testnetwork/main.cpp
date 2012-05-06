@@ -183,6 +183,19 @@ MyPacketReceiver* packetReceiver;
 
 void init_network(void)
 {
+	mysocket.close();
+	mysocket.socket(SOCK_DGRAM);
+	mysocket.setbroadcast(true);
+	if (!mysocket.good())
+	{
+		ERROR_MSG("NetworkInterface::recreateListeningSocket: couldn't create a socket\n");
+		return;
+	}
+	
+	while(1)
+	{
+			TCPPacket packet;
+
 			Bundle bundle;
 			bundle.newMessage(CellAppInterface::test);
 			ENTITY_ID eid = 1;
@@ -190,15 +203,8 @@ void init_network(void)
 			char xxa[12]={"kebiao12345"};
 			std::string sss = xxa;
 			bundle << sss;
-			
-			bundle.finish();
-
-			MessageID msgID;
-			bundle >> msgID;
-
-			MessageLength len;
-			bundle >> len;
-			bundle >> sss;
+			bundle.sendto(mysocket, htons(KBE_MACHINE_BRAODCAST_PORT), Mercury::BROADCAST);
+	}
 
 	while(1)
 	{

@@ -22,6 +22,6 @@ int KBENGINE_MAIN(int argc, char* argv[])
 	setrlimit(RLIMIT_CORE, &rlimitData);
 #endif
 
-	int ret = kbeMainT<Machine>(argc, argv, MACHINE_TYPE, KBE_MACHINE_TCP_PORT);
+	int ret = kbeMainT<Machine>(argc, argv, MACHINE_TYPE);
 	return ret; 
 }

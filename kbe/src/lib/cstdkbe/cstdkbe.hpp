@@ -70,14 +70,15 @@ const char COMPONENT_NAME[][12] = {
 };
 
 /** 一个cell边界能够看到另一个cell边界的最大范围 */
-#define CELL_BORDER_WIDTH			500
+#define CELL_BORDER_WIDTH				500
 	
 /** 一个空间的一个chunk大小 */
-#define SPACE_CHUNK_SIZE			100
+#define SPACE_CHUNK_SIZE				100
 
 /** kbe machine端口 */
-#define KBE_MACHINE_BRAODCAST_PORT	20086
-#define KBE_MACHINE_TCP_PORT		20088
+#define KBE_MACHINE_BRAODCAST_PORT		20086
+#define KBE_PORT_BROADCAST_DISCOVERY	20087
+#define KBE_MACHINE_TCP_PORT			20088
 
 }
 #endif // __CSTDKBE__
