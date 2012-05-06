@@ -41,7 +41,7 @@ int ListenerReceiver::handleInputNotification(int fd)
 	}
 	else
 	{
-		Channel* pchannel = new Channel(networkInterface_, pNewEndPoint, Channel::INTERNAL);
+		Channel* pchannel = new Channel(networkInterface_, pNewEndPoint, Channel::EXTERNAL);
 		if(networkInterface_.registerChannel(pchannel))
 		{
 		}

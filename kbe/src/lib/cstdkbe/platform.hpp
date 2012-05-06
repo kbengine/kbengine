@@ -45,26 +45,27 @@ same license as the rest of the engine.
 // linux include
 #include <errno.h>
 #include <pthread.h>	
+#include <fcntl.h>
+#include <unistd.h>
+#include <signal.h>
+#include <netdb.h>
+#include <langinfo.h>   /* CODESET */
+#include <stdint.h>
+#include <signal.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h> 
+#include <netinet/ip.h>
+#include <arpa/inet.h>
+#include <tr1/unordered_map>
+#include <tr1/functional>
+#include <linux/errqueue.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <fcntl.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h> 
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <signal.h>
-#include <netdb.h>
-#include <stdint.h>
-#include <tr1/unordered_map>
-#include <tr1/functional>
-#include <langinfo.h>   /* CODESET */
-#include <linux/errqueue.h>
-#include <signal.h>
 #include <sys/uio.h>
-#include <netinet/ip.h>
-#include <net/if.h>
+#include <sys/resource.h> 
 #endif
 
 #if !defined( PLAYSTATION3 )

@@ -35,20 +35,23 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 	KBE_ASSERT(pChannel != NULL);
 	
 	Packet* pReceiveWindow = pChannel->receiveWindow();
-	int len = pReceiveWindow->recvFromEndPoint(endpoint_);
 
-	if (len < 0)
+	Address	srcAddr;
+	int len = pReceiveWindow->recvFromEndPoint(endpoint_, &srcAddr);
+
+	if (len <= 0)
 	{
-		return this->checkSocketErrors(len, expectingPacket);
-	}
-	else if(len == 0) // 客户端正常退出
-	{
-		networkInterface_.deregisterChannel(pChannel);
-		pChannel->destroy();
-		return false;
+		return this->checkSocketErrors( len, expectingPacket );
 	}
 	
-	Reason ret = this->processPacket(pChannel, pReceiveWindow);
+	Channel* pSrcChannel = networkInterface_.findChannel(srcAddr);
+	if(pSrcChannel == NULL) 
+	{
+		EndPoint* pNewEndPoint = new EndPoint(srcAddr.ip, srcAddr.port);
+		pSrcChannel = new Channel(networkInterface_, pNewEndPoint, Channel::EXTERNAL, PROTOCOL_UDP);
+	}
+	
+	Reason ret = this->processPacket(pSrcChannel, pReceiveWindow);
 
 	if(ret != REASON_SUCCESS)
 		this->dispatcher().errorReporter().reportException(ret, endpoint_.addr());
@@ -66,6 +69,18 @@ Reason UDPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * pPac
 //-------------------------------------------------------------------------------------
 bool UDPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 {
+	if (len == 0)
+	{
+		WARNING_MSG( "PacketReceiver::processPendingEvents: "
+			"Throwing REASON_GENERAL_NETWORK (1)- %s\n",
+			strerror( errno ) );
+
+		this->dispatcher().errorReporter().reportException(
+				REASON_GENERAL_NETWORK );
+
+		return true;
+	}
+	
 #ifdef _WIN32
 	DWORD wsaErr = WSAGetLastError();
 #endif //def _WIN32

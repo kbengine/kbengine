@@ -30,6 +30,7 @@ namespace KBEngine{
 namespace Mercury
 {
 class EndPoint;
+class Address;
 
 class Packet : public MemoryStream, public RefCountable
 {
@@ -45,7 +46,7 @@ public:
 	{
 	};
 	
-	virtual int recvFromEndPoint(EndPoint & ep) = 0;
+	virtual int recvFromEndPoint(EndPoint & ep, Address* pAddr = NULL) = 0;
 	
 	virtual size_t totalSize() const { return wpos() - rpos(); }
     virtual bool empty() const { return totalSize() > 0; }

@@ -8,6 +8,7 @@ Also see acknowledgements in Readme.html
 You may use this sample code for anything you like, it is not covered by the
 same license as the rest of the engine.
 */
+#include "cstdkbe/cstdkbe.hpp"
 #include "server/kbemain.hpp"
 #include "machine.hpp"
 

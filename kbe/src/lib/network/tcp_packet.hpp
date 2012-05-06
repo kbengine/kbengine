@@ -31,7 +31,7 @@ public:
     TCPPacket(MessageID msgID = 0, size_t res = 0);
 	virtual ~TCPPacket(void);
 	
-	int recvFromEndPoint(EndPoint & ep);
+	int recvFromEndPoint(EndPoint & ep, Address* pAddr = NULL);
 };
 
 typedef SmartPointer<TCPPacket> TCPPacketPtr;

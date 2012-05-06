@@ -24,7 +24,7 @@ TCPPacket::~TCPPacket(void)
 }
 
 //-------------------------------------------------------------------------------------
-int TCPPacket::recvFromEndPoint(EndPoint & ep)
+int TCPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 {
 	//KBE_ASSERT(MessageHandlers::pMainMessageHandlers != NULL && "Must set up a MainMessageHandlers!\n");
 

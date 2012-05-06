@@ -55,37 +55,36 @@ Channel::Channel(NetworkInterface & networkInterface,
 	pPacketReceiver_(NULL)
 {
 	this->incRef();
-	
-	if(protocoltype_ == PROTOCOL_TCP)
-	{
-		bufferedReceives_.push_back(new TCPPacket);
-		bufferedReceives_.push_back(new TCPPacket);
-	}
-	else
-	{
-		bufferedReceives_.push_back(new UDPPacket);
-		bufferedReceives_.push_back(new UDPPacket);
-	}
-	
 	this->clearBundle();
 	this->endpoint(endpoint);
 	
 	if(protocoltype_ == PROTOCOL_TCP)
+	{
+		bufferedReceives_.push_back(new TCPPacket);
+		bufferedReceives_.push_back(new TCPPacket);
 		pPacketReceiver_ = new TCPPacketReceiver(*pEndPoint_, networkInterface);
+		pNetworkInterface_->dispatcher().registerFileDescriptor(*pEndPoint_, pPacketReceiver_);
+	}
 	else
+	{
+		bufferedReceives_.push_back(new UDPPacket);
+		bufferedReceives_.push_back(new UDPPacket);
 		pPacketReceiver_ = new UDPPacketReceiver(*pEndPoint_, networkInterface);
+	}
 	
-	pNetworkInterface_->dispatcher().registerFileDescriptor(*pEndPoint_, pPacketReceiver_);
-	startInactivityDetection( INACTIVITY_TIMEOUT_DEFAULT );
+	startInactivityDetection(INACTIVITY_TIMEOUT_DEFAULT);
 }
 
 //-------------------------------------------------------------------------------------
 Channel::~Channel()
 {
 	pNetworkInterface_->onChannelGone(this);
-	pNetworkInterface_->dispatcher().deregisterFileDescriptor(*pEndPoint_);
-	pEndPoint_->close();
-	pEndPoint_->detach();
+	if(protocoltype_ == PROTOCOL_TCP)
+	{
+		pNetworkInterface_->dispatcher().deregisterFileDescriptor(*pEndPoint_);
+		pEndPoint_->close();
+		pEndPoint_->detach();
+	}
 	
 	this->clearState();
 	
@@ -126,9 +125,10 @@ void Channel::endpoint(const EndPoint* endpoint)
 {
 	if (pEndPoint_ != endpoint)
 	{
-		lastReceivedTime_ = timestamp();
 		pEndPoint_ = const_cast<EndPoint*>(endpoint);
 	}
+	
+	lastReceivedTime_ = timestamp();
 }
 
 //-------------------------------------------------------------------------------------

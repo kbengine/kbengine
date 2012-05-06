@@ -24,9 +24,12 @@ UDPPacket::~UDPPacket(void)
 }
 
 //-------------------------------------------------------------------------------------
-int UDPPacket::recvFromEndPoint(EndPoint & ep)
+int UDPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 {
-	int len = ep.recv(data(), PACKET_MAX_SIZE_UDP);
+	int len = ep.recvfrom(data(), PACKET_MAX_SIZE_UDP,
+		(u_int16_t*)&pAddr->port, (u_int32_t*)&pAddr->ip);
+
+	wpos(len);
 	return len;
 }
 
