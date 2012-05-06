@@ -42,7 +42,9 @@ namespace KBEngine{
 class ServerApp : public SignalHandler
 {
 public:
-	ServerApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
+	ServerApp(Mercury::EventDispatcher& dispatcher, 
+			Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
+
 	~ServerApp();
 
 	virtual bool initialize();
