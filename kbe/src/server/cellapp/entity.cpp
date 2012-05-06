@@ -29,8 +29,6 @@ private:
 
 	virtual void onRelease( TimerHandle handle, void * /*pUser*/ )
 	{
-		ScriptTimers* scriptTimers = &pEntity_->scriptTimers();
-		ScriptTimersUtil::releaseTimer( &scriptTimers, handle );
 		delete this;
 	}
 
