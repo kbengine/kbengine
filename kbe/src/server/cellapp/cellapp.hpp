@@ -30,7 +30,9 @@ namespace KBEngine{
 class Entity;
 class Entities;
 
-class CellApp: public EntityApp, public TimerHandler, public Singleton<CellApp>
+class CellApp:	public EntityApp, 
+				public TimerHandler, 
+				public Singleton<CellApp>
 {
 public:
 	enum TimeOutType

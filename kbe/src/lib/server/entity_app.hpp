@@ -11,6 +11,10 @@ same license as the rest of the engine.
 #ifndef __ENTITY_APP_H__
 #define __ENTITY_APP_H__
 // common include
+#include "Python.h"
+#include "pyscript/script.hpp"
+#include "cstdkbe/smartpointer.hpp"
+#include "pyscript/pyobject_pointer.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -34,16 +38,31 @@ public:
 	~EntityApp();
 	
 	virtual bool destroyEntity(ENTITY_ID entityID) = 0;
+
+	KBEngine::script::Script& getScript(){ return script_; }
 	
+	void registerScript(PyTypeObject*);
+	int registerPyObjectToScript(const char* attrName, PyObject* pyObj);
+	
+	bool installPyScript();
 	virtual bool installPyModules();
 	virtual bool uninstallPyModules();
+	bool uninstallPyScript();
 	bool installEntityDef();
+	
+	virtual void finalise();
+	
+	virtual bool inInitialize();
 	
 	Timers & timers() { return timers_; }
 		
 	virtual void onSignalled(int sigNum);
 protected:
 	Timers timers_;
+
+	KBEngine::script::Script								script_;
+	std::vector<PyTypeObject*>								scriptBaseTypes_;
+	
 };
 
 }

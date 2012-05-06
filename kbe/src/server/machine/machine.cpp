@@ -22,18 +22,6 @@ Machine::~Machine()
 }
 
 //-------------------------------------------------------------------------------------
-bool Machine::installPyModules()
-{
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
-bool Machine::uninstallPyModules()
-{	
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
 bool Machine::run()
 {
 	CRITICAL_MSG("hahahah %d\n", 1111);
@@ -47,6 +35,12 @@ void Machine::handleTimeout(TimerHandle handle, void * arg)
 
 //-------------------------------------------------------------------------------------
 bool Machine::initializeBegin()
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool Machine::inInitialize()
 {
 	return true;
 }

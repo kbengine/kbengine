@@ -61,7 +61,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths, const c
 	// Py_TabcheckFlag = 1;
 	Py_NoSiteFlag = 1;
 	Py_IgnoreEnvironmentFlag = 1;
-	Py_Initialize();                      											// python解释器的初始化  
+	Py_Initialize();                      												// python解释器的初始化  
     if (!Py_IsInitialized())
     {
     	ERROR_MSG("Script::install::Py_Initialize is failed!\n");

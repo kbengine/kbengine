@@ -21,14 +21,11 @@ same license as the rest of the engine.
 #include <assert.h>
 #include <iostream>	
 #include <stdarg.h> 
-#include "Python.h"
 #include "helper/debug_helper.hpp"
-#include "pyscript/script.hpp"
 #include "xmlplus/xmlplus.hpp"	
 #include "cstdkbe/singleton.hpp"
 #include "server/serverconfig.hpp"
 #include "cstdkbe/smartpointer.hpp"
-#include "pyscript/pyobject_pointer.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
 #include "server/signal_handler.hpp"
@@ -47,23 +44,15 @@ class ServerApp : public SignalHandler
 public:
 	ServerApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
 	~ServerApp();
-	
-	KBEngine::script::Script& getScript(){ return script_; }
 
-	void registerScript(PyTypeObject*);
-	int registerPyObjectToScript(const char* attrName, PyObject* pyObj);
-
-	bool initialize();
+	virtual bool initialize();
 	virtual bool initializeBegin(){return true;};
+	virtual bool inInitialize(){ return true; }
 	virtual bool initializeEnd(){return true;};
 	virtual void finalise();
 	virtual bool run();
 	
 	bool installSingnals();
-	bool installPyScript();
-	virtual bool installPyModules();
-	virtual bool uninstallPyModules();
-	bool uninstallPyScript();
 
 	virtual bool loadConfig();
 	const char* name(){return COMPONENT_NAME[componentType_];}
@@ -83,10 +72,10 @@ public:
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID
-	KBEngine::script::Script								script_;
-	std::vector<PyTypeObject*>								scriptBaseTypes_;
+
 	Mercury::EventDispatcher& 								mainDispatcher_;	
 	Mercury::NetworkInterface&								networkInterface_;
+	
 	GAME_TIME												time_;
 };
 

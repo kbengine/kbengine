@@ -19,6 +19,25 @@ EntityApp::~EntityApp()
 }
 
 //-------------------------------------------------------------------------------------
+bool EntityApp::inInitialize()
+{
+	if(!installPyScript())
+		return false;
+
+	if(!installPyModules())
+		return false;
+	
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityApp::finalise(void)
+{
+	uninstallPyScript();
+	ServerApp::finalise();
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityApp::installEntityDef()
 {
 	// 初始化数据类别
@@ -31,6 +50,45 @@ bool EntityApp::installEntityDef()
 	}
 
 	return EntityDef::installScript(NULL);
+}
+
+//-------------------------------------------------------------------------------------
+int EntityApp::registerPyObjectToScript(const char* attrName, PyObject* pyObj)
+{ 
+	return script_.registerToModule(attrName, pyObj); 
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityApp::installPyScript()
+{
+	std::wstring pyPaths = L"../../../demo/res/scripts/common;";
+
+	switch(componentType_)
+	{
+	case BASEAPP_TYPE:
+		pyPaths += L"../../../demo/res/scripts/base;";
+		break;
+	case CELLAPP_TYPE:
+		pyPaths += L"../../../demo/res/scripts/cell;";
+		break;
+	default:
+		pyPaths += L"../../../demo/res/scripts/client;";
+		break;
+	};
+	
+	return getScript().install(L"../../res/script/common", pyPaths, "KBEngine", componentType_);
+}
+
+//-------------------------------------------------------------------------------------
+void EntityApp::registerScript(PyTypeObject* pto)
+{
+	scriptBaseTypes_.push_back(pto);
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityApp::uninstallPyScript()
+{
+	return uninstallPyModules() && getScript().uninstall();
 }
 
 //-------------------------------------------------------------------------------------

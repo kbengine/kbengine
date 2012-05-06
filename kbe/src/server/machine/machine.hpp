@@ -27,10 +27,10 @@ same license as the rest of the engine.
 #endif
 	
 namespace KBEngine{
-class Entity;
-class Entities;
 
-class Machine: public ServerApp, public TimerHandler, public Singleton<Machine>
+class Machine:	public ServerApp, 
+				public TimerHandler, 
+				public Singleton<Machine>
 {
 public:
 	enum TimeOutType
@@ -41,15 +41,13 @@ public:
 	
 	Machine(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
 	~Machine();
-
-	bool installPyModules();
-	bool uninstallPyModules();
 	
 	bool run();
 	
 	void handleTimeout(TimerHandle handle, void * arg);
 
 	bool initializeBegin();
+	bool inInitialize();
 	bool initializeEnd();
 	void finalise();
 	
