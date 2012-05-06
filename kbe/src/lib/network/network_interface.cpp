@@ -22,7 +22,7 @@ const char * NetworkInterface::USE_KBEMACHINED = "kbemachined";
 //-------------------------------------------------------------------------------------
 NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 		NetworkInterfaceType networkInterfaceType,
-		uint16 listeningPort, const char * listeningInterface) :
+		int32 listeningPort, const char * listeningInterface) :
 	endpoint_(),
 	address_(Address::NONE),
 	channelMap_(),
@@ -34,8 +34,11 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 	pDelayedChannels_(new DelayedChannels()),
 	pChannelTimeOutHandler_(NULL)
 {
-	pListenerReceiver_ = new ListenerReceiver(endpoint_, *this);
-	this->recreateListeningSocket(listeningPort, listeningInterface);
+	if(listeningPort != -1)
+	{
+		pListenerReceiver_ = new ListenerReceiver(endpoint_, *this);
+		this->recreateListeningSocket(listeningPort, listeningInterface);
+	}
 
 	if (pMainDispatcher != NULL)
 	{
@@ -74,7 +77,8 @@ NetworkInterface::~NetworkInterface()
 	delete pDelayedChannels_;
 	pDelayedChannels_ = NULL;
 	
-	delete pListenerReceiver_;
+	if(pListenerReceiver_ != NULL)
+		delete pListenerReceiver_;
 	pListenerReceiver_ = NULL;
 }
 

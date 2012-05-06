@@ -45,7 +45,7 @@ public:
 	typedef std::map<Address, Channel *>	ChannelMap;
 	
 	NetworkInterface(EventDispatcher * pMainDispatcher, NetworkInterfaceType interfaceType,
-		uint16 listeningPort = 0, const char * listeningInterface = "");
+		int32 listeningPort = 0, const char * listeningInterface = "");
 	~NetworkInterface();
 	
 	void attach(EventDispatcher & mainDispatcher);
