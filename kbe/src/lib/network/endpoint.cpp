@@ -116,9 +116,27 @@ bool EndPoint::getClosedPort(Mercury::Address & closedPort)
 bool EndPoint::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 {
 #ifdef _WIN32
-	ERROR_MSG("EndPoint::getInterfaces: Not implemented for Windows.\n");
-	return false;
+	int i,count = 0;
+	char hostname[1024];
+	struct hostent* inaddrs;
 
+	if(gethostname(hostname, 1024) == 0)
+	{
+		inaddrs = gethostbyname(hostname);
+		if(inaddrs)
+		{
+			count = inaddrs->h_length / sizeof(in_addr);
+			for(i=0; i<count; i++)
+			{
+				unsigned long addrs = *(unsigned long*)inaddrs->h_addr_list[i];
+				interfaces[addrs] = "eth0";
+				char *ip = inet_ntoa (*(struct in_addr *)*inaddrs->h_addr_list);
+				DEBUG_MSG("==>found eth0 %s\n", ip);
+			}
+		}
+	}
+
+	return true;
 #else
 	struct ifconf ifc;
 	char          buf[1024];
