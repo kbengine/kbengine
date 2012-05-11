@@ -141,24 +141,6 @@ bool Machine::initNetwork()
 		return false;
 	}
 
-	if(!this->getMainDispatcher().registerFileDescriptor(ep_, this))
-	{
-		ERROR_MSG("registerFileDescriptor ep is failed!\n");
-		return false;
-	}
-
-	if(!this->getMainDispatcher().registerFileDescriptor(epBroadcast_, this))
-	{
-		ERROR_MSG("registerFileDescriptor epBroadcast is failed!\n");
-		return false;
-	}
-
-	if(!this->getMainDispatcher().registerFileDescriptor(epLocal_, this))
-	{
-		ERROR_MSG("registerFileDescriptor epLocal is failed!\n");
-		return false;
-	}
-
 	if (!ep_.good() ||
 		 ep_.bind(htons(KBE_MACHINE_BRAODCAST_PORT), broadcastAddr_) == -1)
 	{
@@ -174,6 +156,12 @@ bool Machine::initNetwork()
 	ep_.setnonblocking(true);
 	ep_.addr(address);
 
+	if(!this->getMainDispatcher().registerFileDescriptor(ep_, this))
+	{
+		ERROR_MSG("registerFileDescriptor ep is failed!\n");
+		return false;
+	}
+
 	if (!epBroadcast_.good() ||
 		epBroadcast_.bind(htons(KBE_MACHINE_BRAODCAST_PORT), Mercury::BROADCAST) == -1)
 	{
@@ -182,11 +170,20 @@ bool Machine::initNetwork()
 							kbe_strerror());
 		return false;
 	}
+	else
+	{
+		address.ip = Mercury::BROADCAST;
+		address.port = htons(KBE_MACHINE_BRAODCAST_PORT);
+		epBroadcast_.setnonblocking(true);
+		epBroadcast_.addr(address);
 
-	address.ip = Mercury::BROADCAST;
-	address.port = htons(KBE_MACHINE_BRAODCAST_PORT);
-	epBroadcast_.setnonblocking(true);
-	epBroadcast_.addr(address);
+		if(!this->getMainDispatcher().registerFileDescriptor(epBroadcast_, this))
+		{
+			ERROR_MSG("registerFileDescriptor epBroadcast is failed!\n");
+			return false;
+		}
+
+	}
 
 	if (!epLocal_.good() ||
 		 epLocal_.bind(htons(KBE_MACHINE_BRAODCAST_PORT), Mercury::LOCALHOST) == -1)
@@ -201,7 +198,13 @@ bool Machine::initNetwork()
 	epLocal_.setnonblocking(true);
 	epLocal_.addr(address);
 
-	INFO_MSG("bind broadcast successfully! addr:%s\n", epBroadcast_.addr().c_str());
+	if(!this->getMainDispatcher().registerFileDescriptor(epLocal_, this))
+	{
+		ERROR_MSG("registerFileDescriptor epLocal is failed!\n");
+		return false;
+	}
+
+	INFO_MSG("bind broadcast successfully! addr:%s\n", ep_.addr().c_str());
 	return true;
 }
 
