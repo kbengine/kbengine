@@ -20,6 +20,7 @@ same license as the rest of the engine.
 namespace KBEngine{
 namespace Mercury
 {
+
 /** 一个消息的参数抽象类 */
 class MessageArgs
 {
@@ -27,6 +28,7 @@ public:
 	MessageArgs(){};
 	virtual ~MessageArgs(){};
 	virtual void createFromStream(MemoryStream& s) = 0;
+	virtual void writeToStream(MemoryStream& s)	= 0;
 };
 
 class MessageHandler

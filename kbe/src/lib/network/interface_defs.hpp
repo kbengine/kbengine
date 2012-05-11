@@ -97,6 +97,9 @@ namespace Mercury
 		NAME##Args_stream():Mercury::MessageArgs(){}				\
 		~NAME##Args_stream(){}										\
 																	\
+		virtual void writeToStream(MemoryStream& s)					\
+		{															\
+		}															\
 		virtual void createFromStream(MemoryStream& s)				\
 		{															\
 		}															\
@@ -123,8 +126,16 @@ namespace Mercury
 		ARG_TYPE1 ARG_NAME1;										\
 	public:															\
 		NAME##Args1():Mercury::MessageArgs(){}						\
+		NAME##Args1(ARG_TYPE1 init_##ARG_NAME1):					\
+		Mercury::MessageArgs(),										\
+		ARG_NAME1(init_##ARG_NAME1)									\
+		{}															\
 		~NAME##Args1(){}											\
 																	\
+		virtual void writeToStream(MemoryStream& s)					\
+		{															\
+			s << ARG_NAME1;											\
+		}															\
 		virtual void createFromStream(MemoryStream& s)				\
 		{															\
 			s >> ARG_NAME1;											\
@@ -156,8 +167,19 @@ namespace Mercury
 		ARG_TYPE2 ARG_NAME2;										\
 	public:															\
 		NAME##Args2():Mercury::MessageArgs(){}						\
+		NAME##Args2(ARG_TYPE1 init_##ARG_NAME1, 					\
+		ARG_TYPE2 init_##ARG_NAME2):								\
+		Mercury::MessageArgs(),										\
+		ARG_NAME1(init_##ARG_NAME1),								\
+		ARG_NAME2(init_##ARG_NAME2)									\
+		{}															\
 		~NAME##Args2(){}											\
 																	\
+		virtual void writeToStream(MemoryStream& s)					\
+		{															\
+			s << ARG_NAME1;											\
+			s << ARG_NAME2;											\
+		}															\
 		virtual void createFromStream(MemoryStream& s)				\
 		{															\
 			s >> ARG_NAME1;											\
@@ -195,8 +217,22 @@ namespace Mercury
 		ARG_TYPE3 ARG_NAME3;										\
 	public:															\
 		NAME##Args3():Mercury::MessageArgs(){}						\
+		NAME##Args3(ARG_TYPE1 init_##ARG_NAME1, 					\
+		ARG_TYPE2 init_##ARG_NAME2,									\
+		ARG_TYPE3 init_##ARG_NAME3):								\
+		Mercury::MessageArgs(),										\
+		ARG_NAME1(init_##ARG_NAME1),								\
+		ARG_NAME2(init_##ARG_NAME2),								\
+		ARG_NAME3(init_##ARG_NAME3)									\
+		{}															\
 		~NAME##Args3(){}											\
 																	\
+		virtual void writeToStream(MemoryStream& s)					\
+		{															\
+			s << ARG_NAME1;											\
+			s << ARG_NAME2;											\
+			s << ARG_NAME3;											\
+		}															\
 		virtual void createFromStream(MemoryStream& s)				\
 		{															\
 			s >> ARG_NAME1;											\
@@ -241,8 +277,25 @@ namespace Mercury
 		ARG_TYPE4 ARG_NAME4;										\
 	public:															\
 		NAME##Args4():Mercury::MessageArgs(){}						\
+		NAME##Args4(ARG_TYPE1 init_##ARG_NAME1, 					\
+		ARG_TYPE2 init_##ARG_NAME2,									\
+		ARG_TYPE3 init_##ARG_NAME3,									\
+		ARG_TYPE4 init_##ARG_NAME4):								\
+		Mercury::MessageArgs(),										\
+		ARG_NAME1(init_##ARG_NAME1),								\
+		ARG_NAME2(init_##ARG_NAME2),								\
+		ARG_NAME3(init_##ARG_NAME3),								\
+		ARG_NAME4(init_##ARG_NAME4)									\
+		{}															\
 		~NAME##Args4(){}											\
 																	\
+		virtual void writeToStream(MemoryStream& s)					\
+		{															\
+			s << ARG_NAME1;											\
+			s << ARG_NAME2;											\
+			s << ARG_NAME3;											\
+			s << ARG_NAME4;											\
+		}															\
 		virtual void createFromStream(MemoryStream& s)				\
 		{															\
 			s >> ARG_NAME1;											\
@@ -293,8 +346,28 @@ namespace Mercury
 		ARG_TYPE5 ARG_NAME5;										\
 	public:															\
 		NAME##Args5():Mercury::MessageArgs(){}						\
+		NAME##Args5(ARG_TYPE1 init_##ARG_NAME1, 					\
+		ARG_TYPE2 init_##ARG_NAME2,									\
+		ARG_TYPE3 init_##ARG_NAME3,									\
+		ARG_TYPE4 init_##ARG_NAME4,									\
+		ARG_TYPE4 init_##ARG_NAME4):								\
+		Mercury::MessageArgs(),										\
+		ARG_NAME1(init_##ARG_NAME1),								\
+		ARG_NAME2(init_##ARG_NAME2),								\
+		ARG_NAME3(init_##ARG_NAME3),								\
+		ARG_NAME4(init_##ARG_NAME4),								\
+		ARG_NAME5(init_##ARG_NAME5)									\
+		{}															\
 		~NAME##Args5(){}											\
 																	\
+		virtual void writeToStream(MemoryStream& s)					\
+		{															\
+			s << ARG_NAME1;											\
+			s << ARG_NAME2;											\
+			s << ARG_NAME3;											\
+			s << ARG_NAME4;											\
+			s << ARG_NAME5;											\
+		}															\
 		virtual void createFromStream(MemoryStream& s)				\
 		{															\
 			s >> ARG_NAME1;											\

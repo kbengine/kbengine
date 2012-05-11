@@ -1,5 +1,4 @@
 #include "message_handler.hpp"
-
 #include "network/channel.hpp"
 #include "network/network_interface.hpp"
 #include "network/packet_receiver.hpp"

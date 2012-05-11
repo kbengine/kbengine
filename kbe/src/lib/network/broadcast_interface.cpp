@@ -13,6 +13,8 @@
 #include "network/error_reporter.hpp"
 #include "network/udp_packet.hpp"
 
+#include "../server/machine/machine_interface.hpp"
+
 namespace KBEngine { 
 namespace Mercury
 {
@@ -42,8 +44,9 @@ EventDispatcher & BroadcastInterface::dispatcher()
 void BroadcastInterface::process()
 {
 	Bundle bundle(NULL, PROTOCOL_UDP);
-	//bundle.newMessage(MachineInterface::test);
-	//bundle.sendto(mysocket, htons(KBE_MACHINE_BRAODCAST_PORT), Mercury::BROADCAST);
+	bundle.newMessage(MachineInterface::onBroadcastInterface);
+	MachineInterface::onBroadcastInterfaceArgs4 args;
+	bundle.sendto(epBroadcast_, htons(KBE_MACHINE_BRAODCAST_PORT), Mercury::BROADCAST);
 }
 
 //-------------------------------------------------------------------------------------
