@@ -20,7 +20,7 @@ same license as the rest of the engine.
 #include "fixeddict.hpp"
 #include "datatype.hpp"
 #include "cstdkbe/refcountable.hpp"
-#include "memorystream.hpp"
+#include "cstdkbe/memorystream.hpp"
 //#define NDEBUG
 #include <stdio.h>
 #include <stdlib.h>

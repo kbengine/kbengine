@@ -12,7 +12,7 @@ same license as the rest of the engine.
 #ifndef __MESSAGE_HANDLER_HPP__
 #define __MESSAGE_HANDLER_HPP__
 
-#include "memorystream.hpp"
+#include "cstdkbe/memorystream.hpp"
 #include "cstdkbe/smartpointer.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/common.hpp"
