@@ -90,7 +90,7 @@ private:
 		{
 			WARNING_MSG("PacketReceiver::processPendingEvents: "
 				"Throwing REASON_GENERAL_NETWORK (1)- %s\n",
-				strerror(errno));
+				kbe_strerror());
 
 			this->dispatcher().errorReporter().reportException(
 					REASON_GENERAL_NETWORK);
@@ -166,7 +166,7 @@ private:
 	#else
 		WARNING_MSG("PacketReceiver::processPendingEvents: "
 					"Throwing REASON_GENERAL_NETWORK - %s\n",
-				strerror(errno));
+				kbe_strerror());
 	#endif
 		this->dispatcher().errorReporter().reportException(
 				REASON_GENERAL_NETWORK);
@@ -228,7 +228,7 @@ void init_network(void)
 		mysocket.convertAddress("192.168.1.104", address );
 		if(mysocket.connect(htons(port), address) == -1)
 		{
-			ERROR_MSG("NetworkInterface::recreateListeningSocket: connect server is error(%s)!\n", strerror(errno));
+			ERROR_MSG("NetworkInterface::recreateListeningSocket: connect server is error(%s)!\n", kbe_strerror());
 			port = 0;
 			continue;
 		}

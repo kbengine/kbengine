@@ -288,7 +288,7 @@ int SelectPoller::processPendingEvents(double maxWait)
 		// if (!breakProcessing_)
 		{
 			WARNING_MSG("EventDispatcher::processContinuously: "
-				"error in select(): %s\n", strerror(errno));
+				"error in select(): %s\n", kbe_strerror());
 		}
 	}
 
@@ -450,7 +450,7 @@ EPoller::EPoller(int expectedSize) :
 	if (epfd_ == -1)
 	{
 		ERROR_MSG("EPoller::EPoller: epoll_create failed: %s\n",
-				strerror(errno));
+				kbe_strerror());
 	}
 };
 
@@ -498,7 +498,7 @@ bool EPoller::doRegister(int fd, bool isRead, bool isRegister)
 					isRegister ? "add" : "remove",
 					isRead ? "read" : "write",
 					fd,
-					strerror(errno));
+					kbe_strerror());
 		}
 		else
 		{
@@ -506,7 +506,7 @@ bool EPoller::doRegister(int fd, bool isRead, bool isRegister)
 					isRegister ? "add" : "remove",
 					isRead ? "read" : "write",
 					fd,
-					strerror(errno));
+					kbe_strerror());
 		}
 
 		return false;

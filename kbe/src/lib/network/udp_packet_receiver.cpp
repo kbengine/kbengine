@@ -149,7 +149,7 @@ bool UDPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 #else
 	WARNING_MSG("UDPPacketReceiver::processPendingEvents: "
 				"Throwing REASON_GENERAL_NETWORK - %s\n",
-			strerror(errno));
+			kbe_strerror());
 #endif
 	this->dispatcher().errorReporter().reportException(
 			REASON_GENERAL_NETWORK);

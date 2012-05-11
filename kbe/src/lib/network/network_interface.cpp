@@ -170,7 +170,7 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 	{
 		ERROR_MSG("NetworkInterface::recreateListeningSocket: "
 				"Couldn't bind the socket to %s (%s)\n",
-			address_.c_str(), strerror(errno));
+			address_.c_str(), kbe_strerror());
 		
 		endpoint_.close();
 		endpoint_.detach();
@@ -217,7 +217,7 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 	{
 		ERROR_MSG("NetworkInterface::recreateListeningSocket: "
 			"listen to %s (%s)\n",
-			address_.c_str(), strerror(errno));
+			address_.c_str(), kbe_strerror());
 
 		endpoint_.close();
 		endpoint_.detach();

@@ -61,7 +61,7 @@ bool Machine::findBroadcastInterface()
 	
 	if (epListen.sendto(data, 1, htons( KBE_PORT_BROADCAST_DISCOVERY ), Mercury::BROADCAST ) != 1)
 	{
-		ERROR_MSG("Failed to send broadcast discovery message. error:%s\n", strerror(errno));
+		ERROR_MSG("Failed to send broadcast discovery message. error:%s\n", kbe_strerror());
 		return false;
 	}
 
@@ -82,7 +82,7 @@ bool Machine::findBroadcastInterface()
 		else if (selgot == -1)
 		{
 			ERROR_MSG("Broadcast discovery select error. %s.\n",
-					strerror(errno) );
+					kbe_strerror());
 			return false;
 		}
 		else
@@ -94,7 +94,7 @@ bool Machine::findBroadcastInterface()
 			if (len == -1)
 			{
 				ERROR_MSG("Broadcast discovery recvfrom error. %s.\n",
-						strerror( errno ) );
+						kbe_strerror());
 				continue;
 			}
 
@@ -164,7 +164,7 @@ bool Machine::initNetwork()
 	{
 		ERROR_MSG("Failed to bind socket to '%s'. %s.\n",
 							inet_ntoa((struct in_addr &)broadcastAddr_),
-							strerror(errno));
+							kbe_strerror());
 		return false;
 	}
 
@@ -179,7 +179,7 @@ bool Machine::initNetwork()
 	{
 		ERROR_MSG("Failed to bind socket to '%s'. %s.\n",
 							inet_ntoa((struct in_addr &)Mercury::BROADCAST),
-							strerror(errno) );
+							kbe_strerror());
 		return false;
 	}
 
@@ -192,7 +192,7 @@ bool Machine::initNetwork()
 		 epLocal_.bind(htons(KBE_MACHINE_BRAODCAST_PORT), Mercury::LOCALHOST) == -1)
 	{
 		ERROR_MSG("Failed to bind socket to (lo). %s.\n",
-							strerror(errno) );
+							kbe_strerror() );
 		return false;
 	}
 

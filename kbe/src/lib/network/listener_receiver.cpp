@@ -34,7 +34,7 @@ int ListenerReceiver::handleInputNotification(int fd)
 	EndPoint* pNewEndPoint = endpoint_.accept();
 	if(pNewEndPoint == NULL){
 		WARNING_MSG("PacketReceiver::handleInputNotification: accept endpoint(%d) %s!\n",
-			 fd, strerror(errno));
+			 fd, kbe_strerror());
 		
 		this->dispatcher().errorReporter().reportException(
 				REASON_GENERAL_NETWORK);

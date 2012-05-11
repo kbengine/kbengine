@@ -205,7 +205,7 @@ int EndPoint::findDefaultInterface(char * name)
 	{
 		ERROR_MSG("EndPoint::findDefaultInterface: "
 							"if_nameindex returned NULL (%s)\n",
-						strerror(errno));
+						kbe_strerror());
 	}
 
 	return ret;
@@ -364,7 +364,7 @@ int EndPoint::getQueueSizes(int & tx, int & rx) const
 	{
 		ERROR_MSG("Endpoint::getQueueSizes: "
 				"could not open /proc/net/udp: %s\n",
-			strerror(errno));
+			kbe_strerror());
 		return -1;
 	}
 
@@ -420,7 +420,7 @@ int EndPoint::getBufferSize(int optname) const
 		ERROR_MSG("EndPoint::getBufferSize: "
 			"Failed to read option %s: %s\n",
 			optname == SO_SNDBUF ? "SO_SNDBUF" : "SO_RCVBUF",
-			strerror(errno));
+			kbe_strerror());
 
 		return -1;
 	}
@@ -457,7 +457,7 @@ bool EndPoint::recvAll(void * gramData, int gramSize)
 			else
 			{
 				WARNING_MSG("EndPoint::recvAll: Got error '%s'\n",
-					strerror(errno));
+					kbe_strerror());
 			}
 
 			return false;

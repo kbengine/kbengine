@@ -436,6 +436,35 @@ inline const T & max( const T & a, const T & b )
 #define kbe_va_copy( dst, src) dst = src
 #endif // unix
 
+inline char* kbe_strerror(int ierrorno = 0)
+{
+#if KBE_PLATFORM == PLATFORM_WIN32
+	if(ierrorno == 0)
+		ierrorno = GetLastError();
+
+	static char lpMsgBuf[256] = {0};
+	
+	/*
+	FormatMessage(
+		FORMAT_MESSAGE_FROM_SYSTEM |
+		FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL,
+		ierrorno,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+		(LPTSTR) &lpMsgBuf,
+		1024,
+		NULL
+	); 
+	*/
+	sprintf(lpMsgBuf, "errorno=%d",  ierrorno);
+	return lpMsgBuf;
+#else
+	if(ierrorno != 0)
+		return strerror(ierrorno);
+	return strerror(errno);
+#endif
+}
+
 /** 获取用户UID */
 inline int getUserUID()
 {

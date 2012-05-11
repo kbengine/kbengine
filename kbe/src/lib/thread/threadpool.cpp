@@ -212,7 +212,7 @@ bool ThreadPool::addTask(Task* tptask)
 #if KBE_PLATFORM == PLATFORM_WIN32		
 			ERROR_MSG(">>ThreadPool create new Thread error! ... \n");
 #else
-			ERROR_MSG(">>ThreadPool create new Thread error:%s ... \n", strerror(errno));
+			ERROR_MSG(">>ThreadPool create new Thread error:%s ... \n", kbe_strerror());
 #endif				
 		}
 
@@ -278,7 +278,7 @@ bool TPThread::onWaitCondSignal(void)
 			return false;
 		}
 		else if(ret != 0){
-			ERROR_MSG("pthread_cond_timedwait is error, %s\n", strerror(errno));
+			ERROR_MSG("pthread_cond_timedwait is error, %s\n", kbe_strerror());
 		}
 	}
 #endif
