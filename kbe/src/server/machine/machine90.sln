@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "machine", "machine.vcproj", "{89DA21A1-625B-4482-B386-D7C0AF97E477}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "machine", "machine90.vcproj", "{89DA21A1-625B-4482-B386-D7C0AF97E477}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pyscript", "pyscript.vcproj", "{7A411D5D-DA3B-474D-B08B-3DD787A1F375}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pyscript", "pyscript90.vcproj", "{7A411D5D-DA3B-474D-B08B-3DD787A1F375}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
