@@ -28,6 +28,12 @@ Machine::~Machine()
 }
 
 //-------------------------------------------------------------------------------------
+void Machine::onBroadcastInterface(int8 component_type, int32 component_id, 
+								   uint32 addr, uint16 port)
+{
+}
+
+//-------------------------------------------------------------------------------------
 bool Machine::findBroadcastInterface()
 {
 

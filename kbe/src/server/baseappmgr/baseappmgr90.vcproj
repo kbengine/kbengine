@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="cstdkbe"
-	ProjectGUID="{A04109A7-46C9-42F9-AB29-8E3D84450172}"
-	RootNamespace="cstdkbe"
+	Name="baseappmgr"
+	ProjectGUID="{1BAD0518-F2BB-42F5-83E7-9E1804FAD7C1}"
+	RootNamespace="baseappmgr"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -20,7 +20,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="..\..\_objs\$(ProjectName)\$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="1"
 			CharacterSet="1"
 			>
 			<Tool
@@ -41,8 +41,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../common;../../lib"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS"
+				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/third_party/g3dlite;../../server"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -60,11 +60,21 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="../../libs\$(ProjectName)_d.lib"
+				Name="VCLinkerTool"
+				AdditionalDependencies="d3dx9.lib server_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib math_d.lib network_d.lib vldmt.lib thread_d.lib ws2_32.lib"
+				OutputFile="../../../bin/Hybrid\$(ProjectName).exe"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories="../../libs"
+				IgnoreDefaultLibraryNames=""
+				GenerateDebugInformation="true"
+				SubSystem="1"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -76,6 +86,9 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -83,7 +96,7 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="..\..\_objs\$(ProjectName)\$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -106,8 +119,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../common;../../lib"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS"
+				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/third_party/g3dlite;../../server"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -124,11 +137,22 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="../../libs\$(ProjectName).lib"
+				Name="VCLinkerTool"
+				AdditionalDependencies="d3dx9.lib server.lib xmlplus.lib cstdkbe.lib helper.lib math.lib network.lib vldmt.lib thread.lib ws2_32.lib"
+				OutputFile="../../../bin/Hybrid\$(ProjectName).exe"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="../../libs"
+				GenerateDebugInformation="true"
+				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -138,6 +162,9 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -153,29 +180,23 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\crashhandler.cpp"
+				RelativePath=".\baseappmgr.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\cstdkbe.cpp"
+				RelativePath=".\baseappmgr_interface.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\kbeversion.cpp"
+				RelativePath="main.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\tasks.cpp"
+			<Filter
+				Name="Resource Files"
+				Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
+				UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 				>
-			</File>
-			<File
-				RelativePath=".\timer.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\timestamp.cpp"
-				>
-			</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -183,66 +204,16 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\crashhandler.hpp"
+				RelativePath=".\baseappmgr.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\cstdkbe.hpp"
+				RelativePath=".\baseappmgr_interface.hpp"
 				>
 			</File>
-			<File
-				RelativePath=".\kbeversion.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\memorystream.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\memorystream_converter.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\platform.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\refcountable.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\singleton.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\smartpointer.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\tasks.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\timer.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\timestamp.hpp"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
-			>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
-			>
-		</File>
-		<File
-			RelativePath=".\timer.ipp"
 			>
 		</File>
 	</Files>

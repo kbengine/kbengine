@@ -12,7 +12,7 @@ same license as the rest of the engine.
 #define __SOCKETPACKET_H__
 	
 // common include
-#include "memorystream.hpp"
+#include "cstdkbe/memorystream.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "network/common.hpp"
 #include "cstdkbe/smartpointer.hpp"	

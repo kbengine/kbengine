@@ -11,7 +11,7 @@ same license as the rest of the engine.
 #ifndef __NETWORK_INTERFACE__
 #define __NETWORK_INTERFACE__
 
-#include "memorystream.hpp"
+#include "cstdkbe/memorystream.hpp"
 #include "network/common.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"

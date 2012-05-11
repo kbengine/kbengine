@@ -157,6 +157,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\broadcast_interface.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\bundle.cpp"
 				>
 			</File>
@@ -236,6 +240,10 @@
 			>
 			<File
 				RelativePath=".\address.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\broadcast_interface.hpp"
 				>
 			</File>
 			<File

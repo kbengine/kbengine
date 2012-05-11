@@ -31,7 +31,7 @@ same license as the rest of the engine.
 	
 namespace KBEngine{
 /**
-	Entity消息宏，  只有一个参数的消息
+	Entity消息宏，  参数为流， 需要自己解开
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
 	#undef ENTITY_MESSAGE_HANDLER_STREAM
@@ -40,7 +40,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(CELLAPP)
 #define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
-	void NAME##EntityMessagehandler::handle(KBEngine::MemoryStream& s)			\
+	void NAME##EntityMessagehandler_stream::handle(KBEngine::MemoryStream& s)	\
 	{																			\
 			ENTITY_ID eid;														\
 			s >> eid;															\
@@ -51,14 +51,14 @@ namespace KBEngine{
 
 #else
 #define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
-	void NAME##EntityMessagehandler::handle(KBEngine::MemoryStream& s)			\
+	void NAME##EntityMessagehandler_stream::handle(KBEngine::MemoryStream& s)	\
 	{																			\
 	}																			\
 		
 #endif
 #else
 #define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
-	class NAME##EntityMessagehandler : public Mercury::MessageHandler			\
+	class NAME##EntityMessagehandler_stream : public Mercury::MessageHandler	\
 	{																			\
 	public:																		\
 		virtual void handle(KBEngine::MemoryStream& s);							\
@@ -69,7 +69,7 @@ namespace KBEngine{
 #define ENTITY_MESSAGE_DECLARE_STREAM(NAME, MSG_LENGTH)							\
 	ENTITY_MESSAGE_HANDLER_STREAM(NAME)											\
 	NETWORK_MESSAGE_DECLARE_STREAM(Entity, NAME,								\
-				NAME##EntityMessagehandler, MSG_LENGTH)							\
+				NAME##EntityMessagehandler_stream, MSG_LENGTH)					\
 																				\
 
 /**
@@ -82,7 +82,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(CELLAPP)
 #define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	void NAME##EntityMessagehandler::handle(KBEngine::MemoryStream& s)			\
+	void NAME##EntityMessagehandler1::handle(KBEngine::MemoryStream& s)			\
 	{																			\
 			ENTITY_ID eid;														\
 			s >> eid;															\
@@ -95,14 +95,14 @@ namespace KBEngine{
 
 #else
 #define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	void NAME##EntityMessagehandler::handle(KBEngine::MemoryStream& s)			\
+	void NAME##EntityMessagehandler1::handle(KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
 		
 #endif
 #else
 #define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	class NAME##EntityMessagehandler : public Mercury::MessageHandler			\
+	class NAME##EntityMessagehandler1 : public Mercury::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(KBEngine::MemoryStream& s);							\
@@ -110,10 +110,10 @@ namespace KBEngine{
 
 #endif
 
-#define ENTITY_MESSAGE_DECLARE_ARGS1(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME)		\
-	ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME)						\
+#define ENTITY_MESSAGE_DECLARE_ARGS1(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
+	ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
 	NETWORK_MESSAGE_DECLARE_ARGS1(Entity, NAME,									\
-				NAME##EntityMessagehandler, MSG_LENGTH, ARG_TYPE1, ARG_NAME)	\
+				NAME##EntityMessagehandler1, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
 																				\
 
 

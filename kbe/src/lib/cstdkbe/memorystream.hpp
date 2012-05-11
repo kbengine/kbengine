@@ -42,7 +42,7 @@ same license as the rest of the engine.
 #include <assert.h>
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
-#include "memorystream_converter.hpp"
+#include "cstdkbe/memorystream_converter.hpp"
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #include <windows.h>

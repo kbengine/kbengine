@@ -19,7 +19,7 @@ same license as the rest of the engine.
 #pragma warning (disable : 4661)
 #endif
 #include "cstdkbe/refcountable.hpp"
-#include "memorystream.hpp"
+#include "cstdkbe/memorystream.hpp"
 #include "pyscript/scriptobject.hpp"
 #include "pyscript/pickler.hpp"
 #include "xmlplus/xmlplus.hpp"	

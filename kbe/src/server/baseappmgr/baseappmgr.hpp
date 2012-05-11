@@ -8,8 +8,8 @@ Also see acknowledgements in Readme.html
 You may use this sample code for anything you like, it is not covered by the
 same license as the rest of the engine.
 */
-#ifndef __MACHINE_H__
-#define __MACHINE_H__
+#ifndef __BASEAPPMGR_H__
+#define __BASEAPPMGR_H__
 	
 // common include	
 #include "server/kbemain.hpp"
@@ -18,9 +18,7 @@ same license as the rest of the engine.
 #include "server/serverconfig.hpp"
 #include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
-#include "network/udp_packet_receiver.hpp"
-#include "network/common.hpp"
-
+#include "network/broadcast_interface.hpp"
 //#define NDEBUG
 #include <map>	
 // windows include	
@@ -31,10 +29,9 @@ same license as the rest of the engine.
 	
 namespace KBEngine{
 
-class Machine:	public ServerApp, 
-				public TimerHandler, 
-				public Mercury::UDPPacketReceiver,
-				public Singleton<Machine>
+class Baseappmgr :	public ServerApp, 
+					public TimerHandler, 
+					public Singleton<Baseappmgr>
 {
 public:
 	enum TimeOutType
@@ -43,29 +40,18 @@ public:
 		TIMEOUT_LOADING_TICK
 	};
 	
-	Machine(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
-	~Machine();
+	Baseappmgr(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
+	~Baseappmgr();
 	
 	bool run();
 	
-	bool findBroadcastInterface();
-	void onBroadcastInterface(int8 component_type, int32 component_id, 
-		uint32 addr, uint16 port);
-
 	void handleTimeout(TimerHandle handle, void * arg);
 
 	bool initializeBegin();
 	bool inInitialize();
 	bool initializeEnd();
 	void finalise();
-	bool initNetwork();
 protected:
-	// udpπ„≤•µÿ÷∑
-	u_int32_t broadcastAddr_;
-	Mercury::EndPoint ep_;
-	Mercury::EndPoint epBroadcast_;
-
-	Mercury::EndPoint epLocal_;
 };
 
 }
