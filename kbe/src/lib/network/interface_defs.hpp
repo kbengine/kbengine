@@ -16,7 +16,7 @@ same license as the rest of the engine.
 #include "cstdkbe/smartpointer.hpp"
 #include "network/common.hpp"
 #include "network/message_handler.hpp"
-
+#include "network/bundle.hpp"
 //#define NDEBUG
 #include <assert.h>
 // windows include	
@@ -97,7 +97,7 @@ namespace Mercury
 		NAME##Args_stream():Mercury::MessageArgs(){}				\
 		~NAME##Args_stream(){}										\
 																	\
-		virtual void writeToStream(MemoryStream& s)					\
+		virtual void addToStream(MemoryStream& s)					\
 		{															\
 		}															\
 		virtual void createFromStream(MemoryStream& s)				\
@@ -132,7 +132,17 @@ namespace Mercury
 		{}															\
 		~NAME##Args1(){}											\
 																	\
-		virtual void writeToStream(MemoryStream& s)					\
+		static void staticAddToBundle(Mercury::Bundle& s,			\
+								ARG_TYPE1 init_##ARG_NAME1)			\
+		{															\
+			s << init_##ARG_NAME1;									\
+		}															\
+		static void staticAddToStream(MemoryStream& s,				\
+								ARG_TYPE1 init_##ARG_NAME1)			\
+		{															\
+			s << init_##ARG_NAME1;									\
+		}															\
+		virtual void addToStream(MemoryStream& s)					\
 		{															\
 			s << ARG_NAME1;											\
 		}															\
@@ -175,7 +185,21 @@ namespace Mercury
 		{}															\
 		~NAME##Args2(){}											\
 																	\
-		virtual void writeToStream(MemoryStream& s)					\
+		static void staticAddToBundle(Mercury::Bundle& s,			\
+								ARG_TYPE1 init_##ARG_NAME1,			\
+								ARG_TYPE2 init_##ARG_NAME2,)		\
+		{															\
+			s << init_##ARG_NAME1;									\
+			s << init_##ARG_NAME2;									\
+		}															\
+		static void staticAddToStream(MemoryStream& s,				\
+								ARG_TYPE1 init_##ARG_NAME1,			\
+								ARG_TYPE2 init_##ARG_NAME2,)		\
+		{															\
+			s << init_##ARG_NAME1;									\
+			s << init_##ARG_NAME2;									\
+		}															\
+		virtual void addToStream(MemoryStream& s)					\
 		{															\
 			s << ARG_NAME1;											\
 			s << ARG_NAME2;											\
@@ -227,7 +251,25 @@ namespace Mercury
 		{}															\
 		~NAME##Args3(){}											\
 																	\
-		virtual void writeToStream(MemoryStream& s)					\
+		static void staticAddToBundle(Mercury::Bundle& s,			\
+								ARG_TYPE1 init_##ARG_NAME1,			\
+								ARG_TYPE2 init_##ARG_NAME2,			\
+								ARG_TYPE3 init_##ARG_NAME3)			\
+		{															\
+			s << init_##ARG_NAME1;									\
+			s << init_##ARG_NAME2;									\
+			s << init_##ARG_NAME3;									\
+		}															\
+		static void staticAddToStream(MemoryStream& s,				\
+								ARG_TYPE1 init_##ARG_NAME1,			\
+								ARG_TYPE2 init_##ARG_NAME2,			\
+								ARG_TYPE3 init_##ARG_NAME3)			\
+		{															\
+			s << init_##ARG_NAME1;									\
+			s << init_##ARG_NAME2;									\
+			s << init_##ARG_NAME3;									\
+		}															\
+		virtual void addToStream(MemoryStream& s)					\
 		{															\
 			s << ARG_NAME1;											\
 			s << ARG_NAME2;											\
@@ -289,7 +331,29 @@ namespace Mercury
 		{}															\
 		~NAME##Args4(){}											\
 																	\
-		virtual void writeToStream(MemoryStream& s)					\
+		static void staticAddToBundle(Mercury::Bundle& s,			\
+								ARG_TYPE1 init_##ARG_NAME1,			\
+								ARG_TYPE2 init_##ARG_NAME2,			\
+								ARG_TYPE3 init_##ARG_NAME3,			\
+								ARG_TYPE4 init_##ARG_NAME4)			\
+		{															\
+			s << init_##ARG_NAME1;									\
+			s << init_##ARG_NAME2;									\
+			s << init_##ARG_NAME3;									\
+			s << init_##ARG_NAME4;									\
+		}															\
+		static void staticAddToStream(MemoryStream& s,				\
+								ARG_TYPE1 init_##ARG_NAME1,			\
+								ARG_TYPE2 init_##ARG_NAME2,			\
+								ARG_TYPE3 init_##ARG_NAME3,			\
+								ARG_TYPE4 init_##ARG_NAME4)			\
+		{															\
+			s << init_##ARG_NAME1;									\
+			s << init_##ARG_NAME2;									\
+			s << init_##ARG_NAME3;									\
+			s << init_##ARG_NAME4;									\
+		}															\
+		virtual void addToStream(MemoryStream& s)					\
 		{															\
 			s << ARG_NAME1;											\
 			s << ARG_NAME2;											\
@@ -360,7 +424,33 @@ namespace Mercury
 		{}															\
 		~NAME##Args5(){}											\
 																	\
-		virtual void writeToStream(MemoryStream& s)					\
+		static void staticAddToBundle(Mercury::Bundle& s,			\
+								ARG_TYPE1 init_##ARG_NAME1,			\
+								ARG_TYPE2 init_##ARG_NAME2,			\
+								ARG_TYPE3 init_##ARG_NAME3,			\
+								ARG_TYPE4 init_##ARG_NAME4,			\
+								ARG_TYPE5 init_##ARG_NAME5)			\
+		{															\
+			s << init_##ARG_NAME1;									\
+			s << init_##ARG_NAME2;									\
+			s << init_##ARG_NAME3;									\
+			s << init_##ARG_NAME4;									\
+			s << init_##ARG_NAME5;									\
+		}															\
+		static void staticAddToStream(MemoryStream& s,				\
+								ARG_TYPE1 init_##ARG_NAME1,			\
+								ARG_TYPE2 init_##ARG_NAME2,			\
+								ARG_TYPE3 init_##ARG_NAME3,			\
+								ARG_TYPE4 init_##ARG_NAME4,			\
+								ARG_TYPE5 init_##ARG_NAME5)			\
+		{															\
+			s << init_##ARG_NAME1;									\
+			s << init_##ARG_NAME2;									\
+			s << init_##ARG_NAME3;									\
+			s << init_##ARG_NAME4;									\
+			s << init_##ARG_NAME5;									\
+		}															\
+		virtual void addToStream(MemoryStream& s)					\
 		{															\
 			s << ARG_NAME1;											\
 			s << ARG_NAME2;											\

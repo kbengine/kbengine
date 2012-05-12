@@ -28,7 +28,7 @@ public:
 	MessageArgs(){};
 	virtual ~MessageArgs(){};
 	virtual void createFromStream(MemoryStream& s) = 0;
-	virtual void writeToStream(MemoryStream& s)	= 0;
+	virtual void addToStream(MemoryStream& s)	= 0;
 };
 
 class MessageHandler

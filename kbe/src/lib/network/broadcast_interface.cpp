@@ -19,10 +19,14 @@ namespace KBEngine {
 namespace Mercury
 {
 //-------------------------------------------------------------------------------------
-BroadcastInterface::BroadcastInterface(NetworkInterface & networkInterface) :
+BroadcastInterface::BroadcastInterface(NetworkInterface & networkInterface, 
+									   COMPONENT_TYPE componentType, COMPONENT_ID componentID) :
+	Task(),
 	Mercury::UDPPacketReceiver(epBroadcast_, networkInterface),
 	epBroadcast_(),
-	networkInterface_(networkInterface)
+	networkInterface_(networkInterface),
+	componentType_(componentType),
+	componentID_(componentID)
 {
 	epBroadcast_.socket(SOCK_DGRAM);
 	epBroadcast_.setbroadcast(true);
@@ -44,8 +48,12 @@ EventDispatcher & BroadcastInterface::dispatcher()
 void BroadcastInterface::process()
 {
 	Bundle bundle(NULL, PROTOCOL_UDP);
+
 	bundle.newMessage(MachineInterface::onBroadcastInterface);
-	MachineInterface::onBroadcastInterfaceArgs4 args;
+
+	MachineInterface::onBroadcastInterfaceArgs4::staticAddToBundle(bundle, componentType_, componentID_, 
+		networkInterface_.addr().ip, networkInterface_.addr().port);
+
 	bundle.sendto(epBroadcast_, htons(KBE_MACHINE_BRAODCAST_PORT), Mercury::BROADCAST);
 }
 

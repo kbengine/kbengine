@@ -30,7 +30,8 @@ class UDPPacket;
 class BroadcastInterface : public Task, public UDPPacketReceiver
 {
 public:
-	BroadcastInterface(NetworkInterface & networkInterface);
+	BroadcastInterface(NetworkInterface & networkInterface, 
+			COMPONENT_TYPE componentType, COMPONENT_ID componentID);
 	~BroadcastInterface();
 
 private:
@@ -39,6 +40,8 @@ private:
 private:
 	EndPoint epBroadcast_;
 	NetworkInterface & networkInterface_;
+	COMPONENT_TYPE componentType_;
+	COMPONENT_ID componentID_;									// 本组件的ID
 };
 
 }
