@@ -20,7 +20,7 @@ endif
 
 	$(MAKE) -C ../lib $@
 #	$(MAKE) -C baseapp $@
-#	$(MAKE) -C baseappmgr $@
+	$(MAKE) -C baseappmgr $@
 	$(MAKE) -C cellapp $@
 #ifndef LICENSE_SERVER
 #	$(MAKE) -C cellappmgr $@

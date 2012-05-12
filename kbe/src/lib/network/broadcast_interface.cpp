@@ -26,16 +26,20 @@ BroadcastInterface::BroadcastInterface(NetworkInterface & networkInterface,
 	epBroadcast_(),
 	networkInterface_(networkInterface),
 	componentType_(componentType),
-	componentID_(componentID)
+	componentID_(componentID),
+	broadcastCount_(3)
 {
 	epBroadcast_.socket(SOCK_DGRAM);
 	epBroadcast_.setbroadcast(true);
+
+	dispatcher().addFrequentTask(this);
 }
 
 //-------------------------------------------------------------------------------------
 BroadcastInterface::~BroadcastInterface()
 {
 	epBroadcast_.close();
+	dispatcher().cancelFrequentTask(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -55,6 +59,11 @@ void BroadcastInterface::process()
 		networkInterface_.addr().ip, networkInterface_.addr().port);
 
 	bundle.sendto(epBroadcast_, htons(KBE_MACHINE_BRAODCAST_PORT), Mercury::BROADCAST);
+
+	broadcastCount_--;
+
+	if(broadcastCount_ <= 0)
+		delete this;
 }
 
 //-------------------------------------------------------------------------------------

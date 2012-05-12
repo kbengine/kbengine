@@ -26,6 +26,7 @@ all install clean full:
 	cd math && $(MAKE) $@
 	cd pyscript && $(MAKE) $@
 	cd server && $(MAKE) $@
+	cd network && $(MAKE) $@
 	cd helper && $(MAKE) $@
 	cd thread && $(MAKE) $@
 	cd xmlplus && $(MAKE) $@
