@@ -17,7 +17,5 @@ using namespace KBEngine;
 
 int KBENGINE_MAIN(int argc, char* argv[])
 {
-	int ret = kbeMainT<Baseappmgr>(argc, argv, BASEAPPMGR_TYPE);
-	getchar();
-	return ret; 
+	return kbeMainT<Baseappmgr>(argc, argv, BASEAPPMGR_TYPE);
 }
