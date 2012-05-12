@@ -5,6 +5,7 @@
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
+#include "network/broadcast_interface.hpp"
 
 namespace KBEngine{
 	
@@ -56,6 +57,11 @@ bool Baseappmgr::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Baseappmgr::initializeEnd()
 {
+	// 广播自己的地址给网上上的所有kbemachine
+	// 无需关心new 对象的释放， 内部会自动释放。
+	new Mercury::BroadcastInterface(getNetworkInterface(), 
+		componentType(), componentID());
+
 	return true;
 }
 

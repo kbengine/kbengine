@@ -10,7 +10,9 @@ same license as the rest of the engine.
 */
 #include "server/kbemain.hpp"
 #include "baseappmgr.hpp"
-
+#include "machine/machine_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "machine/machine_interface.hpp"
 using namespace KBEngine;
 
 int KBENGINE_MAIN(int argc, char* argv[])

@@ -42,8 +42,10 @@ void Tasks::process()
 	while (iter != container_.end())
 	{
 		Task * pTask = *iter;
-		pTask->process();
-		++iter;
+		if(!pTask->process())
+			iter = container_.erase(iter);
+		else
+			++iter;
 	}
 }
 

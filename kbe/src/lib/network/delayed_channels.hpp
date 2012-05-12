@@ -34,7 +34,7 @@ public:
 	void sendIfDelayed(Channel & channel);
 
 private:
-	virtual void process();
+	virtual bool process();
 
 	typedef std::set<ChannelPtr> Channels;
 	Channels channels_;

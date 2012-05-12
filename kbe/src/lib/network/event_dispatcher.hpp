@@ -124,9 +124,10 @@ public:
 	}
 
 private:
-	void process()
+	bool process()
 	{
 		childDispatcher_.processOnce();
+		return true;
 	}
 
 	EventDispatcher & mainDispatcher_;

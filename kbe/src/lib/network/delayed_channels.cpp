@@ -33,7 +33,7 @@ void DelayedChannels::sendIfDelayed( Channel & channel )
 }
 
 //-------------------------------------------------------------------------------------
-void DelayedChannels::process()
+bool DelayedChannels::process()
 {
 	Channels::iterator iter = channels_.begin();
 
@@ -50,6 +50,7 @@ void DelayedChannels::process()
 	}
 
 	channels_.clear();
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

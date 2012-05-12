@@ -123,7 +123,7 @@ void SignalHandlers::onSignalled(int sigNum)
 }
 
 //-------------------------------------------------------------------------------------	
-void SignalHandlers::process()
+bool SignalHandlers::process()
 {
 	std::vector<int>::iterator iter = signalledVec_.begin();
 	for(; iter != signalledVec_.end(); iter++)
@@ -142,6 +142,7 @@ void SignalHandlers::process()
 	}
 
 	signalledVec_.clear();
+	return true;
 }
 
 //-------------------------------------------------------------------------------------		

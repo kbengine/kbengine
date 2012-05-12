@@ -97,7 +97,7 @@ void NetworkInterface::detach()
 {
 	if (pMainDispatcher_ != NULL)
 	{
-		pDelayedChannels_->fini( this->mainDispatcher() );
+		pDelayedChannels_->fini(this->mainDispatcher());
 		pMainDispatcher_->detach(this->dispatcher());
 		pMainDispatcher_ = NULL;
 	}

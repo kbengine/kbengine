@@ -39,7 +39,8 @@ BroadcastInterface::BroadcastInterface(NetworkInterface & networkInterface,
 BroadcastInterface::~BroadcastInterface()
 {
 	epBroadcast_.close();
-	dispatcher().cancelFrequentTask(this);
+	//dispatcher().cancelFrequentTask(this);
+	DEBUG_MSG("broadcast interface(componentType=%d, componentID=%d) is completed!\n", componentType_, componentID_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -49,7 +50,7 @@ EventDispatcher & BroadcastInterface::dispatcher()
 }
 
 //-------------------------------------------------------------------------------------
-void BroadcastInterface::process()
+bool BroadcastInterface::process()
 {
 	Bundle bundle(NULL, PROTOCOL_UDP);
 
@@ -63,7 +64,12 @@ void BroadcastInterface::process()
 	broadcastCount_--;
 
 	if(broadcastCount_ <= 0)
+	{
 		delete this;
+		return false;
+	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

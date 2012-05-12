@@ -45,7 +45,7 @@ public:
 	
 	void onSignalled(int sigNum);
 	
-	virtual void process();
+	virtual bool process();
 
 	void attachApp(ServerApp* app);
 

@@ -174,7 +174,7 @@ bool Machine::initNetwork()
 		ERROR_MSG("Failed to bind socket to '%s'. %s.\n",
 							inet_ntoa((struct in_addr &)Mercury::BROADCAST),
 							kbe_strerror());
-		return false;
+//		return false;
 	}
 	else
 	{

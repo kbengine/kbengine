@@ -35,7 +35,7 @@ public:
 	~BroadcastInterface();
 
 private:
-	virtual void process();
+	virtual bool process();
 	EventDispatcher & dispatcher();
 private:
 	EndPoint epBroadcast_;

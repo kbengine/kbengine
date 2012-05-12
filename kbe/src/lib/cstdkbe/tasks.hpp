@@ -24,7 +24,7 @@ class Task
 public:
 	virtual ~Task() {}
 
-	virtual void process() = 0;
+	virtual bool process() = 0;
 };
 
 
