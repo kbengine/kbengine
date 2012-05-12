@@ -22,9 +22,9 @@ endif
 #	$(MAKE) -C baseapp $@
 	$(MAKE) -C baseappmgr $@
 	$(MAKE) -C cellapp $@
-#ifndef LICENSE_SERVER
-#	$(MAKE) -C cellappmgr $@
-#endif
+ifndef LICENSE_SERVER
+	$(MAKE) -C cellappmgr $@
+endif
 #	$(MAKE) -C dbmgr $@
 #	$(MAKE) -C loginapp $@
 	$(MAKE) -C machine $@
