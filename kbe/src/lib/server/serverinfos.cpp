@@ -47,15 +47,7 @@ KBE_SINGLETON_INIT(ServerInfos);
 ServerInfos::ServerInfos()
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
-
-	DWORD dwSize = MAX_PATH;
-	char szName[MAX_PATH] = {0};
-	memset((char*)&szName, 0, MAX_PATH);
-	if (!::GetUserNameA((char*)&szName, &dwSize))
-		serverName_ = "Not yet implemented";
-	else
-		serverName_ = szName;
-
+	serverName_ = getUsername();
 	fetchWindowsCpuInfo();
 	fetchWindowsMemInfo();
 #else 

@@ -492,7 +492,11 @@ inline int32 getUserUID()
 inline const char * getUsername()
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
-	return "";
+	DWORD dwSize = MAX_PATH;
+	static char username[MAX_PATH];
+	memset(username, 0, MAX_PATH);
+	::GetUserNameA(username, &dwSize);	
+	return username;
 #else
 	char * pUsername = cuserid( NULL );
 	return pUsername ? pUsername : "";

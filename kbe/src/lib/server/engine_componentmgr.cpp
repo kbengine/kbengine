@@ -27,15 +27,17 @@ uint32 EngineComponentMgr::allocComponentID(void)
 
 //-------------------------------------------------------------------------------------		
 void EngineComponentMgr::addComponent(int32 uid, const char* username, 
-			COMPONENT_TYPE componentType, COMPONENT_ID componentID, Mercury::Channel* lpChannel)
+			COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
+			Mercury::Channel* lpChannel)
 {
 	KBEngine::thread::ThreadGuard tg(&this->myMutex); 
 	COMPONENT_MAP& components = getComponents(componentType);
 	COMPONENT_MAP::iterator iter = components.find(componentID);
 	if(iter != components.end())
 	{
-		ERROR_MSG("EngineComponentMgr::addComponent: uid:%d, componentID:%ld is exist!\n", 
-			uid, componentID);
+		ERROR_MSG("EngineComponentMgr::addComponent: uid:%d, username:%s, "
+			"componentType:%d, componentID:%ld is exist!\n", 
+			uid, username, (int32)componentType, componentID);
 		return;
 	}
 	
@@ -45,8 +47,9 @@ void EngineComponentMgr::addComponent(int32 uid, const char* username,
 	strncpy(componentInfos.username, username, 256);
 	components[componentID] = componentInfos;
 
-	INFO_MSG("EngineComponentMgr::addComponent[%s], uid:%d, componentID:%ld, totalcount=%d\n", 
-		uid, COMPONENT_NAME[(uint8)componentType], 
+	INFO_MSG("EngineComponentMgr::addComponent[%s], uid:%d, "
+		"componentID:%ld, totalcount=%d\n", 
+			uid, COMPONENT_NAME[(uint8)componentType], 
 			componentID, components.size());
 }
 
