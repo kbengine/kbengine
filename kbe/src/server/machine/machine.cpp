@@ -40,6 +40,15 @@ void Machine::onBroadcastInterface(int32 uid, std::string& username,
 								   int8 componentType, int32 componentID, 
 								   uint32 addr, uint16 port)
 {
+	if(componentType == MACHINE_TYPE)
+	{
+		if(uid == getUserUID() && 
+			addr == this->getNetworkInterface().addr().ip)
+		{
+			return;
+		}
+	}
+
 	INFO_MSG("Machine::onBroadcastInterface: uid:%d, username:%s, componentType:%s, "
 			"componentID:%d, addr:%u, port:%u\n", 
 		uid, username.c_str(), COMPONENT_NAME[componentType], componentID, addr, port);

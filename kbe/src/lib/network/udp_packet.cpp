@@ -30,7 +30,6 @@ int UDPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 		(u_int16_t*)&pAddr->port, (u_int32_t*)&pAddr->ip);
 
 	wpos(len);
-	printf("*******************************%d\n", len);
 	return len;
 }
 

@@ -49,7 +49,7 @@ void Components::addComponent(int32 uid, const char* username,
 
 	INFO_MSG("Components::addComponent[%s], uid:%d, "
 		"componentID:%ld, totalcount=%d\n", 
-			uid, COMPONENT_NAME[(uint8)componentType], 
+			COMPONENT_NAME[(uint8)componentType], uid, 
 			componentID, components.size());
 }
 
