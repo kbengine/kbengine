@@ -181,7 +181,7 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 		EngineComponentMgr::COMPONENT_MAP::iterator iter = components.find(componentID);
 		if(iter != components.end())
 		{
-			pChannel = iter->second;
+			pChannel = iter->second.pChannel;
 		}
 		else
 		{
