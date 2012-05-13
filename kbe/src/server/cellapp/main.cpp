@@ -10,6 +10,9 @@ same license as the rest of the engine.
 */
 #include "server/kbemain.hpp"
 #include "cellapp.hpp"
+#include "machine/machine_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "machine/machine_interface.hpp"
 
 using namespace KBEngine;
 

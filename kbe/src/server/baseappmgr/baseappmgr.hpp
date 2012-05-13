@@ -18,7 +18,7 @@ same license as the rest of the engine.
 #include "server/serverconfig.hpp"
 #include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
-#include "network/broadcast_interface.hpp"
+
 //#define NDEBUG
 #include <map>	
 // windows include	

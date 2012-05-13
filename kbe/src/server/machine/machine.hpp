@@ -53,6 +53,9 @@ public:
 	void onBroadcastInterface(int32 uid, std::string& username, 
 							int8 componentType, int32 componentID, 
 							uint32 addr, uint16 port);
+	
+	void onFindInterfaceAddr(int32 uid, std::string& username, 
+		int8 componentType, int8 findComponentType);
 
 	void handleTimeout(TimerHandle handle, void * arg);
 

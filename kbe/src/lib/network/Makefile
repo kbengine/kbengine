@@ -2,7 +2,6 @@ LIB =	network
 
 SRCS =				\
 	address			\
-	broadcast_interface	\
 	bundle			\
 	channel			\
 	delayed_channels	\

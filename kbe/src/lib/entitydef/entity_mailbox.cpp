@@ -1,7 +1,7 @@
 #include "entity_mailbox.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/channel.hpp"	
-#include "server/engine_componentmgr.hpp"
+#include "server/components.hpp"
 
 namespace KBEngine
 {
@@ -177,8 +177,8 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 	}
 	else
 	{
-		EngineComponentMgr::COMPONENT_MAP& components = EngineComponentMgr::getSingleton().getComponents(componentType);
-		EngineComponentMgr::COMPONENT_MAP::iterator iter = components.find(componentID);
+		Components::COMPONENT_MAP& components = Components::getSingleton().getComponents(componentType);
+		Components::COMPONENT_MAP::iterator iter = components.find(componentID);
 		if(iter != components.end())
 		{
 			pChannel = iter->second.pChannel;

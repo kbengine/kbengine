@@ -7,6 +7,7 @@
 #include "network/message_handler.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "thread/threadpool.hpp"
+#include "server/componentbridge.hpp"
 
 namespace KBEngine{
 	

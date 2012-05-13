@@ -1,5 +1,6 @@
 #include "serverapp.hpp"
 #include "server/serverconfig.hpp"
+#include "server/componentbridge.hpp"
 
 namespace KBEngine{
 COMPONENT_TYPE g_componentType;
@@ -58,6 +59,10 @@ bool ServerApp::initialize()
 	if(!inInitialize())
 		return false;
 	
+	// 广播自己的地址给网上上的所有kbemachine
+	// 并且从kbemachine获取basappmgr和cellappmgr以及dbmgr地址
+	this->getMainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
+
 	return initializeEnd();
 }
 

@@ -256,6 +256,7 @@ namespace KBEngine{
 	machine所有消息接口在此定义
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
+	// 其他组件向app广播自己的接口地址
 	MACHINE_MESSAGE_DECLARE_ARGS6(onBroadcastInterface,	-1,
 									int32,				uid, 
 									std::string,		username,
@@ -263,6 +264,14 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 									int32,				componentID, 
 									uint32,				addr, 
 									uint16,				port)
+	
+	// 其他组件向app请求获取某个组件类别的地址
+	MACHINE_MESSAGE_DECLARE_ARGS4(onFindInterfaceAddr,	-1,
+									int32,				uid, 
+									std::string,		username,
+									int8,				componentType, 
+									int8,				findComponentType)
+									
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

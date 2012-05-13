@@ -31,7 +31,7 @@ namespace Mercury
 class Channel;
 }
 
-class EngineComponentMgr : public Singleton<EngineComponentMgr>
+class Components : public Singleton<Components>
 {
 public:
 	struct ComponentInfos
@@ -45,8 +45,8 @@ public:
 	typedef std::map<COMPONENT_ID, ComponentInfos> COMPONENT_MAP;
 
 public:
-	EngineComponentMgr();
-	~EngineComponentMgr();
+	Components();
+	~Components();
 
 	uint32 allocComponentID(void);
 
@@ -55,9 +55,9 @@ public:
 
 	void delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT_ID componentID);
 
-	EngineComponentMgr::COMPONENT_MAP& getComponents(COMPONENT_TYPE componentType);
+	Components::COMPONENT_MAP& getComponents(COMPONENT_TYPE componentType);
 
-	const EngineComponentMgr::ComponentInfos* findComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID);
+	const Components::ComponentInfos* findComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID);
 
 private:
 	COMPONENT_MAP			_baseapps;

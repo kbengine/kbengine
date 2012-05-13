@@ -5,7 +5,7 @@
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
-#include "server/engine_componentmgr.hpp"
+#include "server/componentbridge.hpp"
 
 namespace KBEngine{
 	
@@ -40,23 +40,31 @@ void Machine::onBroadcastInterface(int32 uid, std::string& username,
 								   int8 componentType, int32 componentID, 
 								   uint32 addr, uint16 port)
 {
-	INFO_MSG("Machine::onBroadcastInterface: uid:%d, username:%s, componentType:%d, "
+	INFO_MSG("Machine::onBroadcastInterface: uid:%d, username:%s, componentType:%s, "
 			"componentID:%d, addr:%u, port:%u\n", 
-		uid, username.c_str(), componentType, componentID, addr, port);
+		uid, username.c_str(), COMPONENT_NAME[componentType], componentID, addr, port);
 
-	EngineComponentMgr::getSingleton().addComponent(uid, username.c_str(), 
+	Componentbridge::getComponents().addComponent(uid, username.c_str(), 
 		(KBEngine::COMPONENT_TYPE)componentType, componentID, NULL);
+}
+
+//-------------------------------------------------------------------------------------
+void Machine::onFindInterfaceAddr(int32 uid, std::string& username, int8 componentType, int8 findComponentType)
+{
+	INFO_MSG("Machine::onFindInterfaceAddr: uid:%d, username:%s, componentType:%d, "
+			"find:%s\n", 
+		uid, username.c_str(), COMPONENT_NAME[componentType],  COMPONENT_NAME[findComponentType]);
 }
 
 //-------------------------------------------------------------------------------------
 bool Machine::findBroadcastInterface()
 {
 
-	std::map< u_int32_t, std::string > interfaces;
+	std::map<u_int32_t, std::string> interfaces;
 	Mercury::EndPoint epListen;
 	struct timeval tv;
 	fd_set fds;
-	char streamBuf[ 4096 ];
+	char streamBuf[4096];
 
 	// Initialise the endpoint
 	epListen.socket(SOCK_DGRAM);
@@ -68,10 +76,10 @@ bool Machine::findBroadcastInterface()
 		return false;
 	}
 
-	epListen.setbroadcast( true );
+	epListen.setbroadcast(true);
 
 	// Perform a discovery of all network interfaces on this host
-	if (!epListen.getInterfaces( interfaces ))
+	if (!epListen.getInterfaces(interfaces))
 	{
 		ERROR_MSG("Failed to discover network interfaces\n");
 		return false;

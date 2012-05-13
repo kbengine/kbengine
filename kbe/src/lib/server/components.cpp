@@ -1,32 +1,32 @@
-#include "engine_componentmgr.hpp"
+#include "components.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/channel.hpp"	
 
 namespace KBEngine
 {
 	
-KBE_SINGLETON_INIT(EngineComponentMgr);
-EngineComponentMgr _g_engineComponentMgr;
+KBE_SINGLETON_INIT(Components);
+Components _g_components;
 
 //-------------------------------------------------------------------------------------
-EngineComponentMgr::EngineComponentMgr()
+Components::Components()
 {
 }
 
 //-------------------------------------------------------------------------------------
-EngineComponentMgr::~EngineComponentMgr()
+Components::~Components()
 {
 }
 
 //-------------------------------------------------------------------------------------
-uint32 EngineComponentMgr::allocComponentID(void)
+uint32 Components::allocComponentID(void)
 {
 	static COMPONENT_ID componentID = 1;
 	return componentID++;
 }
 
 //-------------------------------------------------------------------------------------		
-void EngineComponentMgr::addComponent(int32 uid, const char* username, 
+void Components::addComponent(int32 uid, const char* username, 
 			COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
 			Mercury::Channel* lpChannel)
 {
@@ -35,7 +35,7 @@ void EngineComponentMgr::addComponent(int32 uid, const char* username,
 	COMPONENT_MAP::iterator iter = components.find(componentID);
 	if(iter != components.end())
 	{
-		ERROR_MSG("EngineComponentMgr::addComponent: uid:%d, username:%s, "
+		ERROR_MSG("Components::addComponent: uid:%d, username:%s, "
 			"componentType:%d, componentID:%ld is exist!\n", 
 			uid, username, (int32)componentType, componentID);
 		return;
@@ -47,20 +47,20 @@ void EngineComponentMgr::addComponent(int32 uid, const char* username,
 	strncpy(componentInfos.username, username, 256);
 	components[componentID] = componentInfos;
 
-	INFO_MSG("EngineComponentMgr::addComponent[%s], uid:%d, "
+	INFO_MSG("Components::addComponent[%s], uid:%d, "
 		"componentID:%ld, totalcount=%d\n", 
 			uid, COMPONENT_NAME[(uint8)componentType], 
 			componentID, components.size());
 }
 
 //-------------------------------------------------------------------------------------		
-void EngineComponentMgr::delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT_ID componentID)
+void Components::delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT_ID componentID)
 {
 	KBEngine::thread::ThreadGuard tg(&this->myMutex); 
 	COMPONENT_MAP& components = getComponents(componentType);
 	if(components.erase(componentID))
 	{
-		INFO_MSG("EngineComponentMgr::delComponent[%s] component:totalcount=%d\n", 
+		INFO_MSG("Components::delComponent[%s] component:totalcount=%d\n", 
 			COMPONENT_NAME[(uint8)componentType], components.size());
 		return;
 	}
@@ -70,7 +70,7 @@ void EngineComponentMgr::delComponent(int32 uid, COMPONENT_TYPE componentType, C
 }
 
 //-------------------------------------------------------------------------------------		
-EngineComponentMgr::COMPONENT_MAP& EngineComponentMgr::getComponents(COMPONENT_TYPE componentType)
+Components::COMPONENT_MAP& Components::getComponents(COMPONENT_TYPE componentType)
 {
 	switch(componentType)
 	{
@@ -98,7 +98,7 @@ EngineComponentMgr::COMPONENT_MAP& EngineComponentMgr::getComponents(COMPONENT_T
 }
 
 //-------------------------------------------------------------------------------------		
-const EngineComponentMgr::ComponentInfos* EngineComponentMgr::findComponent(COMPONENT_TYPE componentType, 
+const Components::ComponentInfos* Components::findComponent(COMPONENT_TYPE componentType, 
 																			COMPONENT_ID componentID)
 {
 	COMPONENT_MAP& components = getComponents(componentType);

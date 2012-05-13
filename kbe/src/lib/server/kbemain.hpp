@@ -16,6 +16,7 @@ same license as the rest of the engine.
 #include "server/serverinfos.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
+#include "server/componentbridge.hpp"
 
 namespace KBEngine{
 
@@ -46,16 +47,19 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	Mercury::EventDispatcher dispatcher;
 	Mercury::NetworkInterface networkInterface(&dispatcher, 
 		Mercury::NETWORK_INTERFACE_INTERNAL, htons(listeningPort), listeningInterface);
-
+	
+	Componentbridge* pComponentbridge = new Componentbridge(networkInterface, componentType, 0);
 	SERVER_APP app(dispatcher, networkInterface, componentType);
 	START_MSG(COMPONENT_NAME[componentType]);
 	if(!app.initialize()){
 		ERROR_MSG("app::initialize is error!\n");
+		delete pComponentbridge;
 		return -1;
 	}
 	
 	INFO_MSG( "---- %s is running ----\n", COMPONENT_NAME[componentType]);
 	int ret = app.run();
+	delete pComponentbridge;
 	app.finalise();
 	INFO_MSG("%s has shut down.\n", COMPONENT_NAME[componentType]);
 	return ret;

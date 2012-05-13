@@ -20,7 +20,7 @@ same license as the rest of the engine.
 #include "entitydef/entitydef.hpp"
 	
 #ifdef KBE_SERVER
-#include "server/engine_componentmgr.hpp"
+#include "server/components.hpp"
 #endif
 //#define NDEBUG
 // windows include	

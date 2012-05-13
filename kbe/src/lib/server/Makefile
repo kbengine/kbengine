@@ -1,13 +1,14 @@
 LIB =	server
 
 SRCS =				\
-	engine_componentmgr	\
+	componentbridge		\
+	components		\
 	entity_app		\
 	script_timers		\
 	serverapp		\
 	serverconfig		\
 	serverinfos		\
-	signal_handler
+	signal_handler		
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))
