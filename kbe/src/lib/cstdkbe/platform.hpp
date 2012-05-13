@@ -466,7 +466,7 @@ inline char* kbe_strerror(int ierrorno = 0)
 }
 
 /** 获取用户UID */
-inline int getUserUID()
+inline int32 getUserUID()
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
 	// VS2005:
@@ -501,12 +501,12 @@ inline const char * getUsername()
 
 
 /** 获取进程ID */
-inline int getProcessPID()
+inline int32 getProcessPID()
 {
 #if KBE_PLATFORM != PLATFORM_WIN32
 	return getpid();
 #else
-	return (int) GetCurrentProcessId();
+	return (int32) GetCurrentProcessId();
 #endif
 }
 

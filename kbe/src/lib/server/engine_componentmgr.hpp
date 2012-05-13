@@ -34,8 +34,15 @@ class Channel;
 class EngineComponentMgr : public Singleton<EngineComponentMgr>
 {
 public:
+	struct ComponentInfos
+	{
+		Mercury::Channel* pChannel;
+		int32 uid;
+		char username[256];
+	};
+
 	KBEngine::thread::ThreadMutex myMutex;
-	typedef std::map<COMPONENT_ID, Mercury::Channel*> COMPONENT_MAP;
+	typedef std::map<COMPONENT_ID, ComponentInfos> COMPONENT_MAP;
 
 public:
 	EngineComponentMgr();
@@ -43,12 +50,14 @@ public:
 
 	uint32 allocComponentID(void);
 
-	void addComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID, Mercury::Channel* lpChannel);
-	void delComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID);
+	void addComponent(int32 uid, const char* username, 
+		COMPONENT_TYPE componentType, COMPONENT_ID componentID, Mercury::Channel* lpChannel);
+
+	void delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT_ID componentID);
 
 	EngineComponentMgr::COMPONENT_MAP& getComponents(COMPONENT_TYPE componentType);
 
-	Mercury::Channel* findComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID);
+	const EngineComponentMgr::ComponentInfos* findComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID);
 
 private:
 	COMPONENT_MAP			_baseapps;

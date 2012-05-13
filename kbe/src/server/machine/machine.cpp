@@ -5,6 +5,7 @@
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
+#include "server/engine_componentmgr.hpp"
 
 namespace KBEngine{
 	
@@ -12,25 +13,39 @@ ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Machine);
 
 //-------------------------------------------------------------------------------------
-Machine::Machine(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
+Machine::Machine(Mercury::EventDispatcher& dispatcher, 
+				 Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
 	ServerApp(dispatcher, ninterface, componentType),
-	Mercury::UDPPacketReceiver(epBroadcast_, ninterface),
 	broadcastAddr_(0),
 	ep_(),
 	epBroadcast_(),
-	epLocal_()
+	epLocal_(),
+	pEPPacketReceiver_(NULL),
+	pEBPacketReceiver_(NULL),
+	pEPLocalPacketReceiver_(NULL)
+
 {
 }
 
 //-------------------------------------------------------------------------------------
 Machine::~Machine()
 {
+	SAFE_RELEASE(pEPPacketReceiver_);
+	SAFE_RELEASE(pEBPacketReceiver_);
+	SAFE_RELEASE(pEPLocalPacketReceiver_);
 }
 
 //-------------------------------------------------------------------------------------
-void Machine::onBroadcastInterface(int8 component_type, int32 component_id, 
+void Machine::onBroadcastInterface(int32 uid, std::string& username,
+								   int8 componentType, int32 componentID, 
 								   uint32 addr, uint16 port)
 {
+	INFO_MSG("Machine::onBroadcastInterface: uid:%d, username:%s, componentType:%d, "
+			"componentID:%d, addr:%u, port:%u\n", 
+		uid, username.c_str(), componentType, componentID, addr, port);
+
+	EngineComponentMgr::getSingleton().addComponent(uid, username.c_str(), 
+		(KBEngine::COMPONENT_TYPE)componentType, componentID, NULL);
 }
 
 //-------------------------------------------------------------------------------------
@@ -161,8 +176,9 @@ bool Machine::initNetwork()
 	ep_.setbroadcast( true );
 	ep_.setnonblocking(true);
 	ep_.addr(address);
+	pEPPacketReceiver_ = new Mercury::UDPPacketReceiver(ep_, this->getNetworkInterface());
 
-	if(!this->getMainDispatcher().registerFileDescriptor(ep_, this))
+	if(!this->getMainDispatcher().registerFileDescriptor(ep_, pEPPacketReceiver_))
 	{
 		ERROR_MSG("registerFileDescriptor ep is failed!\n");
 		return false;
@@ -182,8 +198,9 @@ bool Machine::initNetwork()
 		address.port = htons(KBE_MACHINE_BRAODCAST_PORT);
 		epBroadcast_.setnonblocking(true);
 		epBroadcast_.addr(address);
-
-		if(!this->getMainDispatcher().registerFileDescriptor(epBroadcast_, this))
+		pEBPacketReceiver_ = new Mercury::UDPPacketReceiver(epBroadcast_, this->getNetworkInterface());
+	
+		if(!this->getMainDispatcher().registerFileDescriptor(epBroadcast_, pEBPacketReceiver_))
 		{
 			ERROR_MSG("registerFileDescriptor epBroadcast is failed!\n");
 			return false;
@@ -203,8 +220,9 @@ bool Machine::initNetwork()
 	address.port = htons(KBE_MACHINE_BRAODCAST_PORT);
 	epLocal_.setnonblocking(true);
 	epLocal_.addr(address);
+	pEPLocalPacketReceiver_ = new Mercury::UDPPacketReceiver(epLocal_, this->getNetworkInterface());
 
-	if(!this->getMainDispatcher().registerFileDescriptor(epLocal_, this))
+	if(!this->getMainDispatcher().registerFileDescriptor(epLocal_, pEPLocalPacketReceiver_))
 	{
 		ERROR_MSG("registerFileDescriptor epLocal is failed!\n");
 		return false;
@@ -222,6 +240,7 @@ bool Machine::run()
 	while(!this->getMainDispatcher().isBreakProcessing())
 	{
 		this->getMainDispatcher().processOnce(false);
+		getNetworkInterface().handleChannels(&MachineInterface::messageHandlers);
 		KBEngine::sleep(100);
 	};
 

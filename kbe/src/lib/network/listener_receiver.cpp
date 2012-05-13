@@ -44,6 +44,8 @@ int ListenerReceiver::handleInputNotification(int fd)
 		Channel* pchannel = new Channel(networkInterface_, pNewEndPoint, Channel::EXTERNAL);
 		if(networkInterface_.registerChannel(pchannel))
 		{
+			ERROR_MSG("ListenerReceiver::handleInputNotification:registerChannel(%s) is failed!\n",
+				pchannel->c_str());
 		}
 	}
 	return 0;

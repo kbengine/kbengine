@@ -33,7 +33,6 @@ namespace KBEngine{
 
 class Machine:	public ServerApp, 
 				public TimerHandler, 
-				public Mercury::UDPPacketReceiver,
 				public Singleton<Machine>
 {
 public:
@@ -43,14 +42,17 @@ public:
 		TIMEOUT_LOADING_TICK
 	};
 	
-	Machine(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
+	Machine(Mercury::EventDispatcher& dispatcher, 
+		Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
 	~Machine();
 	
 	bool run();
 	
 	bool findBroadcastInterface();
-	void onBroadcastInterface(int8 component_type, int32 component_id, 
-		uint32 addr, uint16 port);
+
+	void onBroadcastInterface(int32 uid, std::string& username, 
+							int8 componentType, int32 componentID, 
+							uint32 addr, uint16 port);
 
 	void handleTimeout(TimerHandle handle, void * arg);
 
@@ -66,6 +68,10 @@ protected:
 	Mercury::EndPoint epBroadcast_;
 
 	Mercury::EndPoint epLocal_;
+
+	Mercury::UDPPacketReceiver* pEPPacketReceiver_;
+	Mercury::UDPPacketReceiver* pEBPacketReceiver_;
+	Mercury::UDPPacketReceiver* pEPLocalPacketReceiver_;
 };
 
 }

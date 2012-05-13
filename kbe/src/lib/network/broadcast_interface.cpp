@@ -56,7 +56,8 @@ bool BroadcastInterface::process()
 
 	bundle.newMessage(MachineInterface::onBroadcastInterface);
 
-	MachineInterface::onBroadcastInterfaceArgs4::staticAddToBundle(bundle, componentType_, componentID_, 
+	MachineInterface::onBroadcastInterfaceArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+		componentType_, componentID_, 
 		networkInterface_.addr().ip, networkInterface_.addr().port);
 
 	bundle.sendto(epBroadcast_, htons(KBE_MACHINE_BRAODCAST_PORT), Mercury::BROADCAST);

@@ -6,6 +6,7 @@ namespace KBEngine
 {
 	
 KBE_SINGLETON_INIT(EngineComponentMgr);
+EngineComponentMgr _g_engineComponentMgr;
 
 //-------------------------------------------------------------------------------------
 EngineComponentMgr::EngineComponentMgr()
@@ -25,34 +26,44 @@ uint32 EngineComponentMgr::allocComponentID(void)
 }
 
 //-------------------------------------------------------------------------------------		
-void EngineComponentMgr::addComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID, Mercury::Channel* lpChannel)
+void EngineComponentMgr::addComponent(int32 uid, const char* username, 
+			COMPONENT_TYPE componentType, COMPONENT_ID componentID, Mercury::Channel* lpChannel)
 {
 	KBEngine::thread::ThreadGuard tg(&this->myMutex); 
 	COMPONENT_MAP& components = getComponents(componentType);
 	COMPONENT_MAP::iterator iter = components.find(componentID);
 	if(iter != components.end())
 	{
-		ERROR_MSG("EngineComponentMgr::addComponent: componentID %ld is exist!\n", componentID);
+		ERROR_MSG("EngineComponentMgr::addComponent: uid:%d, componentID:%ld is exist!\n", 
+			uid, componentID);
 		return;
 	}
 	
-	components[componentID] = lpChannel;
-	INFO_MSG("EngineComponentMgr::addComponent[%s], component: id=%ld, totalcount=%d\n", COMPONENT_NAME[(uint8)componentType], 
+	ComponentInfos componentInfos;
+	componentInfos.pChannel = lpChannel;
+	componentInfos.uid = uid;
+	strncpy(componentInfos.username, username, 256);
+	components[componentID] = componentInfos;
+
+	INFO_MSG("EngineComponentMgr::addComponent[%s], uid:%d, componentID:%ld, totalcount=%d\n", 
+		uid, COMPONENT_NAME[(uint8)componentType], 
 			componentID, components.size());
 }
 
 //-------------------------------------------------------------------------------------		
-void EngineComponentMgr::delComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID)
+void EngineComponentMgr::delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT_ID componentID)
 {
 	KBEngine::thread::ThreadGuard tg(&this->myMutex); 
 	COMPONENT_MAP& components = getComponents(componentType);
 	if(components.erase(componentID))
 	{
-		INFO_MSG("EngineComponentMgr::delComponent[%s] component:totalcount=%d\n", COMPONENT_NAME[(uint8)componentType], components.size());
+		INFO_MSG("EngineComponentMgr::delComponent[%s] component:totalcount=%d\n", 
+			COMPONENT_NAME[(uint8)componentType], components.size());
 		return;
 	}
 	
-	ERROR_MSG("EngineComponentMgr::delComponent::not found [%s] component:totalcount:%d\n", COMPONENT_NAME[(uint8)componentType], components.size());
+	ERROR_MSG("EngineComponentMgr::delComponent::not found [%s] component:totalcount:%d\n", 
+		COMPONENT_NAME[(uint8)componentType], components.size());
 }
 
 //-------------------------------------------------------------------------------------		
@@ -84,12 +95,13 @@ EngineComponentMgr::COMPONENT_MAP& EngineComponentMgr::getComponents(COMPONENT_T
 }
 
 //-------------------------------------------------------------------------------------		
-Mercury::Channel* EngineComponentMgr::findComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID)
+const EngineComponentMgr::ComponentInfos* EngineComponentMgr::findComponent(COMPONENT_TYPE componentType, 
+																			COMPONENT_ID componentID)
 {
 	COMPONENT_MAP& components = getComponents(componentType);
 	COMPONENT_MAP::iterator iter = components.find(componentID);
 	if(iter != components.end())
-		return iter->second;
+		return &iter->second;
 
 	return NULL;
 }

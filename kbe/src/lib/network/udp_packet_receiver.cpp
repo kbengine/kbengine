@@ -15,6 +15,7 @@
 namespace KBEngine { 
 namespace Mercury
 {
+UDPPacket _g_receiveWindow;
 //-------------------------------------------------------------------------------------
 UDPPacketReceiver::UDPPacketReceiver(EndPoint & endpoint,
 	   NetworkInterface & networkInterface	) :
@@ -34,15 +35,12 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 //	Channel* pChannel = networkInterface_.findChannel(endpoint_.addr());
 //	KBE_ASSERT(pChannel != NULL);
 	
-//	Packet* pReceiveWindow = pChannel->receiveWindow();
-	Packet* pReceiveWindow = new UDPPacket;
-	
 	Address	srcAddr;
-	int len = pReceiveWindow->recvFromEndPoint(endpoint_, &srcAddr);
+	int len = _g_receiveWindow.recvFromEndPoint(endpoint_, &srcAddr);
 
 	if (len <= 0)
 	{
-		return this->checkSocketErrors( len, expectingPacket );
+		return this->checkSocketErrors(len, expectingPacket);
 	}
 	
 	Channel* pSrcChannel = networkInterface_.findChannel(srcAddr);
@@ -50,9 +48,17 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 	{
 		EndPoint* pNewEndPoint = new EndPoint(srcAddr.ip, srcAddr.port);
 		pSrcChannel = new Channel(networkInterface_, pNewEndPoint, Channel::EXTERNAL, PROTOCOL_UDP);
+		if(networkInterface_.registerChannel(pSrcChannel))
+		{
+			ERROR_MSG("UDPPacketReceiver::processSocket:registerChannel(%s) is failed!\n",
+				pSrcChannel->c_str());
+			return false;
+		}
 	}
 	
-	Reason ret = this->processPacket(pSrcChannel, pReceiveWindow);
+	Packet* pChannelReceiveWindow = pSrcChannel->receiveWindow();
+	pChannelReceiveWindow->append(_g_receiveWindow.data(), _g_receiveWindow.wpos());
+	Reason ret = this->processPacket(pSrcChannel, pChannelReceiveWindow);
 
 	if(ret != REASON_SUCCESS)
 		this->dispatcher().errorReporter().reportException(ret, endpoint_.addr());
