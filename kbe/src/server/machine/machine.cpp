@@ -60,7 +60,7 @@ void Machine::onBroadcastInterface(int32 uid, std::string& username,
 //-------------------------------------------------------------------------------------
 void Machine::onFindInterfaceAddr(int32 uid, std::string& username, int8 componentType, int8 findComponentType)
 {
-	INFO_MSG("Machine::onFindInterfaceAddr: uid:%d, username:%s, componentType:%d, "
+	INFO_MSG("Machine::onFindInterfaceAddr: uid:%d, username:%s, componentType:%s, "
 			"find:%s\n", 
 		uid, username.c_str(), COMPONENT_NAME[componentType],  COMPONENT_NAME[findComponentType]);
 }

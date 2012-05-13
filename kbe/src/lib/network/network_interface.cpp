@@ -306,7 +306,7 @@ void NetworkInterface::onChannelTimeOut(Channel * pChannel)
 {
 	if (pChannelTimeOutHandler_)
 	{
-		pChannelTimeOutHandler_->onTimeOut( pChannel );
+		pChannelTimeOutHandler_->onTimeOut(pChannel);
 	}
 	else
 	{

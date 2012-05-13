@@ -35,7 +35,7 @@ void Components::addComponent(int32 uid, const char* username,
 	COMPONENT_MAP::iterator iter = components.find(componentID);
 	if(iter != components.end())
 	{
-		ERROR_MSG("Components::addComponent: uid:%d, username:%s, "
+		WARNING_MSG("Components::addComponent: uid:%d, username:%s, "
 			"componentType:%d, componentID:%ld is exist!\n", 
 			uid, username, (int32)componentType, componentID);
 		return;

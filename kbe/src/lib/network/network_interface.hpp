@@ -59,7 +59,7 @@ public:
 
 	ChannelTimeOutHandler * pChannelTimeOutHandler() const
 		{ return pChannelTimeOutHandler_; }
-	void pChannelTimeOutHandler( ChannelTimeOutHandler * pHandler )
+	void pChannelTimeOutHandler(ChannelTimeOutHandler * pHandler)
 		{ pChannelTimeOutHandler_ = pHandler; }
 		
 	EventDispatcher & dispatcher()			{ return *pDispatcher_; }

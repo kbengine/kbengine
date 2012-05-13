@@ -54,7 +54,7 @@ private:
 	Mercury::NetworkInterface & networkInterface_;
 	COMPONENT_TYPE componentType_;
 	COMPONENT_ID componentID_;									// 本组件的ID
-	uint8 broadcastCount_;
+	int8 broadcastCount_;
 };
 
 }
