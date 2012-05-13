@@ -44,10 +44,12 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 	}
 	
 	Channel* pSrcChannel = networkInterface_.findChannel(srcAddr);
+
 	if(pSrcChannel == NULL) 
 	{
 		EndPoint* pNewEndPoint = new EndPoint(srcAddr.ip, srcAddr.port);
 		pSrcChannel = new Channel(networkInterface_, pNewEndPoint, Channel::EXTERNAL, PROTOCOL_UDP);
+
 		if(!networkInterface_.registerChannel(pSrcChannel))
 		{
 			ERROR_MSG("UDPPacketReceiver::processSocket:registerChannel(%s) is failed!\n",
@@ -57,8 +59,12 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 	}
 	
 	KBE_ASSERT(pSrcChannel != NULL);
+
 	Packet* pChannelReceiveWindow = pSrcChannel->receiveWindow();
 	pChannelReceiveWindow->append(_g_receiveWindow.data(), _g_receiveWindow.wpos());
+
+	_g_receiveWindow.resetPacket();
+
 	Reason ret = this->processPacket(pSrcChannel, pChannelReceiveWindow);
 
 	if(ret != REASON_SUCCESS)
