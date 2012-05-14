@@ -157,6 +157,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\broadcast_handler.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\bundle.cpp"
 				>
 			</File>
@@ -236,6 +240,10 @@
 			>
 			<File
 				RelativePath=".\address.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\broadcast_handler.hpp"
 				>
 			</File>
 			<File
@@ -337,6 +345,10 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
+		<File
+			RelativePath=".\broadcast_handler.ipp"
+			>
+		</File>
 		<File
 			RelativePath=".\bundle.ipp"
 			>

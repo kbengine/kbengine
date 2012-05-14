@@ -4,6 +4,7 @@
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
+#include "network/broadcast_handler.hpp"
 #include "thread/threadpool.hpp"
 #include "server/componentbridge.hpp"
 
@@ -70,94 +71,49 @@ bool Machine::findBroadcastInterface()
 {
 
 	std::map<u_int32_t, std::string> interfaces;
-	Mercury::EndPoint epListen;
-	struct timeval tv;
-	fd_set fds;
-	char streamBuf[4096];
-
-	// Initialise the endpoint
-	epListen.socket(SOCK_DGRAM);
-	if (!epListen.good() ||
-		 epListen.bind(htons(KBE_PORT_BROADCAST_DISCOVERY)) == -1)
-	{
-		ERROR_MSG("Couldn't bind broadcast listener socket to port %d\n",
-				KBE_PORT_BROADCAST_DISCOVERY);
-		return false;
-	}
-
-	epListen.setbroadcast(true);
+	Mercury::BroadcastHandler bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
 
 	// Perform a discovery of all network interfaces on this host
-	if (!epListen.getInterfaces(interfaces))
+	if (!bhandler.epListen().getInterfaces(interfaces))
 	{
 		ERROR_MSG("Failed to discover network interfaces\n");
 		return false;
 	}
 
 
-	char data[1] = {1};
-	
-	if (epListen.sendto(data, 1, htons( KBE_PORT_BROADCAST_DISCOVERY ), Mercury::BROADCAST ) != 1)
+	uint8 data = 1;
+	bhandler << data;
+	if (!bhandler.broadcast(KBE_PORT_BROADCAST_DISCOVERY))
 	{
 		ERROR_MSG("Failed to send broadcast discovery message. error:%s\n", kbe_strerror());
 		return false;
 	}
+	
+	sockaddr_in	sin;
 
-	tv.tv_sec = 1;
-	tv.tv_usec = 0;
-
-	// Listen for the message we just sent to come back to ourselves.
-	while (1)
+	if(bhandler.receive(NULL, &sin))
 	{
-		FD_ZERO( &fds );
-		FD_SET( (int)epListen, &fds );
-		int selgot = select( epListen+1, &fds, NULL, NULL, &tv );
-		if (selgot == 0)
-		{
-			ERROR_MSG("Timed out before receiving any broadcast discovery responses\n");
-			return false;
-		}
-		else if (selgot == -1)
-		{
-			ERROR_MSG("Broadcast discovery select error. %s.\n",
-					kbe_strerror());
-			return false;
-		}
-		else
-		{
-			sockaddr_in	sin;
-
-			// Read packet into buffer
-			int len = epListen.recvfrom( &streamBuf, sizeof( streamBuf ), sin );
-			if (len == -1)
-			{
-				ERROR_MSG("Broadcast discovery recvfrom error. %s.\n",
-						kbe_strerror());
-				continue;
-			}
-
-			INFO_MSG("Broadcast discovery receipt from %s.\n",
+		INFO_MSG("Broadcast discovery receipt from %s.\n",
 					inet_ntoa((struct in_addr&)sin.sin_addr.s_addr) );
 
-			// check messages received against the list of our interfaces
-			std::map< u_int32_t, std::string >::iterator iter;
+		// check messages received against the list of our interfaces
+		std::map< u_int32_t, std::string >::iterator iter;
 
-			iter = interfaces.find( (u_int32_t &)sin.sin_addr.s_addr );
-			if (iter != interfaces.end())
-			{
-				INFO_MSG("Confirmed %s (%s) as default broadcast route interface.\n",
-					inet_ntoa((struct in_addr&)sin.sin_addr.s_addr),
-					iter->second.c_str() );
-				broadcastAddr_ = sin.sin_addr.s_addr;
-				break;
-			}
-
-			ERROR_MSG("Broadcast discovery %s not a valid interface.\n",
-					inet_ntoa((struct in_addr&)sin.sin_addr.s_addr) );
+		iter = interfaces.find( (u_int32_t &)sin.sin_addr.s_addr );
+		if (iter != interfaces.end())
+		{
+			INFO_MSG("Confirmed %s (%s) as default broadcast route interface.\n",
+				inet_ntoa((struct in_addr&)sin.sin_addr.s_addr),
+				iter->second.c_str() );
+			broadcastAddr_ = sin.sin_addr.s_addr;
+			return true;
 		}
 	}
+	
+	ERROR_MSG("Broadcast discovery %s not a valid interface.\n",
+			inet_ntoa((struct in_addr&)sin.sin_addr.s_addr) );
 
-	return true;
+	return false;
 }
 
 //-------------------------------------------------------------------------------------

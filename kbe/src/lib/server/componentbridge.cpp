@@ -2,7 +2,7 @@
 #ifndef CODE_INLINE
 #include "componentbridge.ipp"
 #endif
-
+#include "network/broadcast_handler.hpp"
 #include "network/address.hpp"
 #include "network/bundle.hpp"
 #include "network/channel.hpp"
@@ -86,82 +86,38 @@ bool Componentbridge::findInterfaces()
 	};
 
 	int ifind = 0;
+	
 
 	while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)
 	{
 		int8 findComponentType = findComponentTypes[ifind];
 		ifind++;
 
-		Mercury::EndPoint epListen;
-		struct timeval tv;
-		fd_set fds;
-		Mercury::UDPPacket streamBuf;
-		// Initialise the endpoint
-		epListen.socket(SOCK_DGRAM);
-		if (!epListen.good() ||
-			 epListen.bind(htons(0)) == -1)
+		Mercury::BroadcastHandler bhandler(networkInterface_);
+		bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
+
+		MachineInterface::onFindInterfaceAddrArgs4::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+			componentType_, findComponentType);
+
+		if(!bhandler.broadcast())
 		{
-			ERROR_MSG("Componentbridge::process:Couldn't bind listener socket to port %d\n",
-					0);
+			ERROR_MSG("Componentbridge::process: broadcast error!\n");
+			return false;
+		}
+	
+		MachineInterface::onBroadcastInterfaceArgs6 args;
+		if(bhandler.receive(&args, 0))
+		{
+			INFO_MSG("Componentbridge::process: found %s, addr:%s:.\n",
+				COMPONENT_NAME[args.componentType], inet_ntoa((struct in_addr&)args.addr), args.port);
+		}
+		else
+		{
+			ERROR_MSG("Componentbridge::process: receive error!\n");
 			return false;
 		}
 
-		epListen.setbroadcast(true);
-
-		tv.tv_sec = 1;
-		tv.tv_usec = 0;
-
-
-		Mercury::Bundle bundle(NULL, Mercury::PROTOCOL_UDP);
-
-		bundle.newMessage(MachineInterface::onFindInterfaceAddr);
-
-		MachineInterface::onFindInterfaceAddrArgs4::staticAddToBundle(bundle, getUserUID(), getUsername(), 
-			componentType_, findComponentType);
-
-		bundle.sendto(epListen, htons(KBE_MACHINE_BRAODCAST_PORT), Mercury::BROADCAST);
-
-		// Listen for the message we just sent to come back to ourselves.
-		while (1)
-		{
-			FD_ZERO( &fds );
-			FD_SET((int)epListen, &fds);
-			int selgot = select(epListen+1, &fds, NULL, NULL, &tv);
-			if (selgot == 0)
-			{
-				DEBUG_MSG("Componentbridge::process:find %s...\n", COMPONENT_NAME[findComponentType]);
-				continue;
-			}
-			else if (selgot == -1)
-			{
-				ERROR_MSG("Componentbridge::process:Broadcast discovery select error. %s.\n",
-						kbe_strerror());
-				return false;
-			}
-			else
-			{
-				sockaddr_in	sin;
-
-				// Read packet into buffer
-				int len = epListen.recvfrom(streamBuf.data(), 4096, sin);
-				if (len == -1)
-				{
-					ERROR_MSG("Componentbridge::process:Broadcast discovery recvfrom error. %s.\n",
-							kbe_strerror());
-					continue;
-				}
-				
-				streamBuf.wpos(len);
-
-				MachineInterface::onBroadcastInterfaceArgs6 args;
-				args.createFromStream(streamBuf);
-				
-
-				INFO_MSG("Componentbridge::process: found %s, addr:%s:.\n",
-					COMPONENT_NAME[args.componentType], inet_ntoa((struct in_addr&)args.addr), args.port);
-
-			}
-		}
+		break;
 	}
 
 	return true;
@@ -170,16 +126,13 @@ bool Componentbridge::findInterfaces()
 bool Componentbridge::process()
 {
 	// 如果是cellappmgr或者baseapmgrp则向machine请求获得dbmgr的地址
-	Mercury::Bundle bundle(NULL, Mercury::PROTOCOL_UDP);
-
-	bundle.newMessage(MachineInterface::onBroadcastInterface);
-
-	MachineInterface::onBroadcastInterfaceArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+	Mercury::BroadcastHandler bhandler(networkInterface_);
+	bhandler.newMessage(MachineInterface::onBroadcastInterface);
+	MachineInterface::onBroadcastInterfaceArgs6::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
 		componentType_, componentID_, 
 		networkInterface_.addr().ip, networkInterface_.addr().port);
-
-	bundle.sendto(epBroadcast_, htons(KBE_MACHINE_BRAODCAST_PORT), Mercury::BROADCAST);
-
+	
+	bhandler.broadcast();
 	broadcastCount_--;
 
 	if(broadcastCount_ <= 0)

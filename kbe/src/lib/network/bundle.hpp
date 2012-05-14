@@ -62,6 +62,7 @@ public:
 	int sizeInPackets();
 	
 	const Packets& packets() { return packets_; }
+	Packet* pCurrPacket() { return pCurrPacket_; }
 		
 	Packet* newPacket();
 	
