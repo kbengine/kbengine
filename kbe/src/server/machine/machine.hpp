@@ -55,7 +55,7 @@ public:
 							uint32 addr, uint16 port);
 	
 	void onFindInterfaceAddr(int32 uid, std::string& username, 
-		int8 componentType, int8 findComponentType);
+		int8 componentType, int8 findComponentType, uint32 finderAddr, uint16 finderRecvPort);
 
 	void handleTimeout(TimerHandle handle, void * arg);
 

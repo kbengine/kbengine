@@ -41,7 +41,7 @@ public:
 
 	Mercury::EndPoint& epListen() { return epListen_; }
 protected:
-	Mercury::EndPoint epListen_;
+	Mercury::EndPoint epListen_, epBroadcast_;
 	NetworkInterface & networkInterface_;
 	uint32 recvWindowSize_;
 };

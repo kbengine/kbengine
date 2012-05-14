@@ -28,12 +28,13 @@ uint32 Components::allocComponentID(void)
 //-------------------------------------------------------------------------------------		
 void Components::addComponent(int32 uid, const char* username, 
 			COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
-			Mercury::Channel* lpChannel)
+			uint32 addr, uint16 port)
 {
 	KBEngine::thread::ThreadGuard tg(&this->myMutex); 
-	COMPONENT_MAP& components = getComponents(componentType);
-	COMPONENT_MAP::iterator iter = components.find(componentID);
-	if(iter != components.end())
+	COMPONENTS& components = getComponents(componentType);
+
+	ComponentInfos* cinfos = findComponent(componentType, uid, componentID);
+	if(cinfos != NULL)
 	{
 		WARNING_MSG("Components::addComponent: uid:%d, username:%s, "
 			"componentType:%d, componentID:%ld is exist!\n", 
@@ -42,10 +43,17 @@ void Components::addComponent(int32 uid, const char* username,
 	}
 	
 	ComponentInfos componentInfos;
-	componentInfos.pChannel = lpChannel;
 	componentInfos.uid = uid;
+	componentInfos.addr = addr;
+	componentInfos.port = port;
+	componentInfos.cid = componentID;
+	
 	strncpy(componentInfos.username, username, 256);
-	components[componentID] = componentInfos;
+
+	if(cinfos == NULL)
+		components.push_back(componentInfos);
+	else
+		*cinfos = componentInfos;
 
 	INFO_MSG("Components::addComponent[%s], uid:%d, "
 		"componentID:%ld, totalcount=%d\n", 
@@ -54,23 +62,41 @@ void Components::addComponent(int32 uid, const char* username,
 }
 
 //-------------------------------------------------------------------------------------		
-void Components::delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT_ID componentID)
+void Components::delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT_ID componentID, bool ignoreComponentID)
 {
 	KBEngine::thread::ThreadGuard tg(&this->myMutex); 
-	COMPONENT_MAP& components = getComponents(componentType);
-	if(components.erase(componentID))
+
+	COMPONENTS& components = getComponents(componentType);
+	COMPONENTS::iterator iter = components.begin();
+	for(; iter != components.end(); iter++)
 	{
-		INFO_MSG("Components::delComponent[%s] component:totalcount=%d\n", 
-			COMPONENT_NAME[(uint8)componentType], components.size());
-		return;
+		if((*iter).uid == uid && (ignoreComponentID == true || (*iter).cid == componentID))
+		{
+			components.erase(iter);
+			INFO_MSG("Components::delComponent[%s] component:totalcount=%d\n", 
+				COMPONENT_NAME[(uint8)componentType], components.size());
+			return;
+		}
 	}
-	
+
 	ERROR_MSG("EngineComponentMgr::delComponent::not found [%s] component:totalcount:%d\n", 
 		COMPONENT_NAME[(uint8)componentType], components.size());
 }
 
 //-------------------------------------------------------------------------------------		
-Components::COMPONENT_MAP& Components::getComponents(COMPONENT_TYPE componentType)
+void Components::clear(int32 uid)
+{
+	KBEngine::thread::ThreadGuard tg(&this->myMutex); 
+
+	delComponent(uid, DBMGR_TYPE, 0, true);
+	delComponent(uid, BASEAPPMGR_TYPE, 0, true);
+	delComponent(uid, CELLAPPMGR_TYPE, 0, true);
+	delComponent(uid, CELLAPP_TYPE, 0, true);
+	delComponent(uid, BASEAPP_TYPE, 0, true);
+}
+
+//-------------------------------------------------------------------------------------		
+Components::COMPONENTS& Components::getComponents(COMPONENT_TYPE componentType)
 {
 	switch(componentType)
 	{
@@ -98,13 +124,16 @@ Components::COMPONENT_MAP& Components::getComponents(COMPONENT_TYPE componentTyp
 }
 
 //-------------------------------------------------------------------------------------		
-const Components::ComponentInfos* Components::findComponent(COMPONENT_TYPE componentType, 
+Components::ComponentInfos* Components::findComponent(COMPONENT_TYPE componentType, int32 uid,
 																			COMPONENT_ID componentID)
 {
-	COMPONENT_MAP& components = getComponents(componentType);
-	COMPONENT_MAP::iterator iter = components.find(componentID);
-	if(iter != components.end())
-		return &iter->second;
+	COMPONENTS& components = getComponents(componentType);
+	COMPONENTS::iterator iter = components.begin();
+	for(; iter != components.end(); iter++)
+	{
+		if((*iter).uid == uid && (*iter).cid == componentID)
+			return &(*iter);
+	}
 
 	return NULL;
 }

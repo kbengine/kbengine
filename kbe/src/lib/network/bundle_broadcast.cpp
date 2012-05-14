@@ -22,9 +22,10 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 {
 	// Initialise the endpoint
 	epListen_.socket(SOCK_DGRAM);
+	epBroadcast_.socket(SOCK_DGRAM);
 
 	if (!epListen_.good() ||
-		 epListen_.bind(htons(bindPort)) == -1)
+		epListen_.bind(htons(bindPort), networkInterface_.addr().ip) == -1)
 	{
 		ERROR_MSG("BundleBroadcast::receive: Couldn't bind listener socket to port %d, %s\n", 
 			bindPort, kbe_strerror());
@@ -32,7 +33,14 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 	}
 	else
 	{
-		epListen_.setbroadcast(true);
+		Address addr;
+		epListen_.getlocaladdress( (u_int16_t*)&addr.port,
+			(u_int32_t*)&addr.ip );
+		
+		epListen_.addr(addr);
+
+		// DEBUG_MSG("BundleBroadcast::BundleBroadcast: epListen %s\n", epListen_.c_str());
+		epBroadcast_.setbroadcast(true);
 	}
 }
 
@@ -50,12 +58,14 @@ EventDispatcher & BundleBroadcast::dispatcher()
 //-------------------------------------------------------------------------------------
 bool BundleBroadcast::broadcast(uint16 port)
 {
-	if (!epListen_.good())
+	if (!epBroadcast_.good())
 		return false;
 	
 	if(port == 0)
 		port = KBE_MACHINE_BRAODCAST_PORT;
-	this->sendto(epListen_, htons(port), Mercury::BROADCAST);
+
+	
+	this->sendto(epBroadcast_, htons(port), Mercury::BROADCAST);
 	return true;
 }
 
@@ -80,9 +90,10 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin)
 		FD_ZERO( &fds );
 		FD_SET((int)epListen_, &fds);
 		int selgot = select(epListen_+1, &fds, NULL, NULL, &tv);
+
 		if (selgot == 0)
 		{
-			DEBUG_MSG("BundleBroadcast::receive: waiting(%d) ...\n", icount++);
+			DEBUG_MSG("BundleBroadcast::receive: waiting(%d), listen(%s) ...\n", icount++, epListen_.addr().c_str());
 			continue;
 		}
 		else if (selgot == -1)

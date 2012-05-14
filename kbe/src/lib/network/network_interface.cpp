@@ -140,14 +140,14 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 	// Query kbemachined over the local interface (dev: lo) for what it
 	// believes the internal interface is.
 	if (listeningInterface &&
-		(strcmp( listeningInterface, USE_KBEMACHINED ) == 0))
+		(strcmp(listeningInterface, USE_KBEMACHINED) == 0))
 	{
 		INFO_MSG( "NetworkInterface::recreateListeningSocket: "
 				"Querying KBEMachined for interface\n" );
 		
 		// 没有实现, 向KBEMachined查询接口
 	}
-	else if (endpoint_.findIndicatedInterface( listeningInterface, ifname ) == 0)
+	else if (endpoint_.findIndicatedInterface(listeningInterface, ifname) == 0)
 	{
 		INFO_MSG( "NetworkInterface::recreateListeningSocket: "
 				"Creating on interface '%s' (= %s)\n",
@@ -182,9 +182,9 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 
 	if (address_.ip == 0)
 	{
-		if (endpoint_.findDefaultInterface( ifname ) != 0 ||
-			endpoint_.getInterfaceAddress( ifname,
-				(u_int32_t&)address_.ip ) != 0)
+		if (endpoint_.findDefaultInterface(ifname) != 0 ||
+			endpoint_.getInterfaceAddress(ifname,
+				(u_int32_t&)address_.ip) != 0)
 		{
 			ERROR_MSG( "NetworkInterface::recreateListeningSocket: "
 				"Couldn't determine ip addr of default interface\n" );

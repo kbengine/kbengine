@@ -49,21 +49,55 @@ void Machine::onBroadcastInterface(int32 uid, std::string& username,
 			return;
 		}
 	}
+	else if(componentType == DBMGR_TYPE) // 如果是dbmgr重启了则清空所有这个uid的记录。
+	{
+		Componentbridge::getComponents().clear(uid);
+	}
 
 	INFO_MSG("Machine::onBroadcastInterface: uid:%d, username:%s, componentType:%s, "
-			"componentID:%d, addr:%u, port:%u\n", 
-		uid, username.c_str(), COMPONENT_NAME[componentType], componentID, addr, port);
+			"componentID:%d, addr:%s, port:%u\n", 
+		uid, username.c_str(), COMPONENT_NAME[componentType], componentID, inet_ntoa((struct in_addr&)addr), ntohs(port));
 
 	Componentbridge::getComponents().addComponent(uid, username.c_str(), 
-		(KBEngine::COMPONENT_TYPE)componentType, componentID, NULL);
+		(KBEngine::COMPONENT_TYPE)componentType, componentID, addr, port);
 }
 
 //-------------------------------------------------------------------------------------
-void Machine::onFindInterfaceAddr(int32 uid, std::string& username, int8 componentType, int8 findComponentType)
+void Machine::onFindInterfaceAddr(int32 uid, std::string& username, int8 componentType, 
+								  int8 findComponentType, uint32 finderAddr, uint16 finderRecvPort)
 {
 	INFO_MSG("Machine::onFindInterfaceAddr: uid:%d, username:%s, componentType:%s, "
-			"find:%s\n", 
-		uid, username.c_str(), COMPONENT_NAME[componentType],  COMPONENT_NAME[findComponentType]);
+		"find:%s, finderaddr:%s, finderRecvPort:%u\n", 
+		uid, username.c_str(), COMPONENT_NAME[componentType],  COMPONENT_NAME[findComponentType], 
+		inet_ntoa((struct in_addr&)finderAddr), ntohs(finderRecvPort));
+
+	Mercury::EndPoint ep;
+	ep.socket(SOCK_DGRAM);
+
+	if (!ep.good())
+	{
+		ERROR_MSG("Machine::onFindInterfaceAddr: Failed to create socket.\n");
+		return;
+	}
+	
+	const Components::ComponentInfos* pinfos = 
+		Componentbridge::getComponents().findComponent((KBEngine::COMPONENT_TYPE)findComponentType, uid, 0);
+	
+	Mercury::Bundle bundle;
+
+	if(pinfos == NULL)
+	{
+		WARNING_MSG("Machine::onFindInterfaceAddr: %s not found %s.\n", COMPONENT_NAME[componentType], 
+			COMPONENT_NAME[findComponentType]);
+
+		MachineInterface::onBroadcastInterfaceArgs6::staticAddToBundle(bundle, 0, 
+			"", UNKNOWN_COMPONENT_TYPE, 0, 0, 0);
+	}
+	else
+		MachineInterface::onBroadcastInterfaceArgs6::staticAddToBundle(bundle, pinfos->uid, 
+			pinfos->username, findComponentType, 0, pinfos->addr, pinfos->port);
+
+	bundle.sendto(ep, finderRecvPort, finderAddr);
 }
 
 //-------------------------------------------------------------------------------------
@@ -96,7 +130,6 @@ bool Machine::findBroadcastInterface()
 		INFO_MSG("Broadcast discovery receipt from %s.\n",
 					inet_ntoa((struct in_addr&)sin.sin_addr.s_addr) );
 
-		// check messages received against the list of our interfaces
 		std::map< u_int32_t, std::string >::iterator iter;
 
 		iter = interfaces.find( (u_int32_t &)sin.sin_addr.s_addr );

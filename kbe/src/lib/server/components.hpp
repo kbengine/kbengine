@@ -36,13 +36,15 @@ class Components : public Singleton<Components>
 public:
 	struct ComponentInfos
 	{
-		Mercury::Channel* pChannel;
+		uint32 addr;
+		uint16 port;
 		int32 uid;
+		COMPONENT_ID cid;
 		char username[256];
 	};
 
 	KBEngine::thread::ThreadMutex myMutex;
-	typedef std::map<COMPONENT_ID, ComponentInfos> COMPONENT_MAP;
+	typedef std::vector<ComponentInfos> COMPONENTS;
 
 public:
 	Components();
@@ -51,23 +53,24 @@ public:
 	uint32 allocComponentID(void);
 
 	void addComponent(int32 uid, const char* username, 
-		COMPONENT_TYPE componentType, COMPONENT_ID componentID, Mercury::Channel* lpChannel);
+		COMPONENT_TYPE componentType, COMPONENT_ID componentID, uint32 addr, uint16 port);
 
-	void delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT_ID componentID);
+	void delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT_ID componentID, bool ignoreComponentID = false);
+	void clear(int32 uid);
 
-	Components::COMPONENT_MAP& getComponents(COMPONENT_TYPE componentType);
+	Components::COMPONENTS& getComponents(COMPONENT_TYPE componentType);
 
-	const Components::ComponentInfos* findComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID);
-
+	Components::ComponentInfos* findComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID);
+	//const Components::ComponentInfos findComponent(COMPONENT_TYPE componentType, int32 uid);
 private:
-	COMPONENT_MAP			_baseapps;
-	COMPONENT_MAP			_cellapps;
-	COMPONENT_MAP			_dbmgrs;
-	COMPONENT_MAP			_loginapps;
-	COMPONENT_MAP			_cellappmgrs;
-	COMPONENT_MAP			_baseappmgrs;
-	COMPONENT_MAP			_machines;
-	COMPONENT_MAP			_centers;
+	COMPONENTS			_baseapps;
+	COMPONENTS			_cellapps;
+	COMPONENTS			_dbmgrs;
+	COMPONENTS			_loginapps;
+	COMPONENTS			_cellappmgrs;
+	COMPONENTS			_baseappmgrs;
+	COMPONENTS			_machines;
+	COMPONENTS			_centers;
 };
 
 }

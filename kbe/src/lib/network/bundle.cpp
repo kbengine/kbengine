@@ -15,6 +15,7 @@ namespace Mercury
 //-------------------------------------------------------------------------------------
 Bundle::Bundle(Channel * pChannel, ProtocolType pt):
 	pChannel_(pChannel),
+	numMessages_(0),
 	pCurrPacket_(NULL),
 	currMsgID_(0),
 	currMsgPacketCount_(0),
@@ -70,7 +71,10 @@ void Bundle::finish(bool issend)
 	}
 	
 	if(issend)
+	{
+		currMsgHandlerLength_ = 0;
 		pCurrPacket_ = NULL;
+	}
 
 	currMsgID_ = 0;
 	currMsgPacketCount_ = 0;
@@ -92,6 +96,7 @@ void Bundle::clear()
 	currMsgPacketCount_ = 0;
 	currMsgLength_ = 0;
 	currMsgLengthPos_ = 0;
+	currMsgHandlerLength_ = 0;
 }
 
 //-------------------------------------------------------------------------------------

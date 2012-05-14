@@ -87,17 +87,23 @@ bool Componentbridge::findInterfaces()
 
 	int ifind = 0;
 	
+	Mercury::BundleBroadcast bhandler(networkInterface_);
 
 	while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)
 	{
 		int8 findComponentType = findComponentTypes[ifind];
-		ifind++;
 
-		Mercury::BundleBroadcast bhandler(networkInterface_);
+		INFO_MSG("Componentbridge::process: starting find %s...\n",
+			COMPONENT_NAME[findComponentType]);
+		
+		if(bhandler.pCurrPacket() != NULL)
+		{
+			bhandler.pCurrPacket()->resetPacket();
+		}
+
 		bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
-
-		MachineInterface::onFindInterfaceAddrArgs4::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
-			componentType_, findComponentType);
+		MachineInterface::onFindInterfaceAddrArgs6::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+			componentType_, findComponentType, bhandler.epListen().addr().ip, bhandler.epListen().addr().port);
 
 		if(!bhandler.broadcast())
 		{
@@ -108,8 +114,19 @@ bool Componentbridge::findInterfaces()
 		MachineInterface::onBroadcastInterfaceArgs6 args;
 		if(bhandler.receive(&args, 0))
 		{
-			INFO_MSG("Componentbridge::process: found %s, addr:%s:.\n",
-				COMPONENT_NAME[args.componentType], inet_ntoa((struct in_addr&)args.addr), args.port);
+			if(args.componentType == UNKNOWN_COMPONENT_TYPE)
+			{
+				INFO_MSG("Componentbridge::process: not found %s, try again...\n",
+					COMPONENT_NAME[findComponentType]);
+				
+				KBEngine::sleep(1000);
+				continue;
+			}
+
+			INFO_MSG("Componentbridge::process: found %s, addr:%s:%u\n",
+				COMPONENT_NAME[args.componentType], inet_ntoa((struct in_addr&)args.addr), ntohs(args.port));
+
+			ifind++;
 		}
 		else
 		{

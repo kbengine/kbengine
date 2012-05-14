@@ -172,6 +172,79 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4)				\
 
 /**
+	Machine消息宏，  只有五个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef MACHINE_MESSAGE_HANDLER_ARGS5
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(MACHINE)
+#define MACHINE_MESSAGE_HANDLER_ARGS5(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5)				\
+	void NAME##MachineMessagehandler5::handle(KBEngine::MemoryStream& s)		\
+	{																			\
+			ARG_TYPE1 ARG_NAME1;												\
+			s >> ARG_NAME1;														\
+			ARG_TYPE2 ARG_NAME2;												\
+			s >> ARG_NAME2;														\
+			ARG_TYPE3 ARG_NAME3;												\
+			s >> ARG_NAME3;														\
+			ARG_TYPE4 ARG_NAME4;												\
+			s >> ARG_NAME4;														\
+			ARG_TYPE5 ARG_NAME5;												\
+			s >> ARG_NAME5;														\
+			KBEngine::Machine::getSingleton().NAME(ARG_NAME1, ARG_NAME2, 		\
+				ARG_NAME3, ARG_NAME4, ARG_NAME5);								\
+	}																			\
+
+#else
+#define MACHINE_MESSAGE_HANDLER_ARGS5(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5)				\
+	void NAME##MachineMessagehandler5::handle(KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define MACHINE_MESSAGE_HANDLER_ARGS5(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5)				\
+	class NAME##MachineMessagehandler5 : public Mercury::MessageHandler			\
+	{																			\
+	public:																		\
+		virtual void handle(KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define MACHINE_MESSAGE_DECLARE_ARGS5(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5)				\
+	MACHINE_MESSAGE_HANDLER_ARGS5(NAME, ARG_TYPE1, ARG_NAME1, 					\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5)				\
+	NETWORK_MESSAGE_DECLARE_ARGS5(Machine, NAME,								\
+				NAME##MachineMessagehandler5, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5)				\
+
+
+/**
 	Machine消息宏，  只有六个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
@@ -266,11 +339,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 									uint16,				port)
 	
 	// 其他组件向app请求获取某个组件类别的地址
-	MACHINE_MESSAGE_DECLARE_ARGS4(onFindInterfaceAddr,	-1,
+	MACHINE_MESSAGE_DECLARE_ARGS6(onFindInterfaceAddr,	-1,
 									int32,				uid, 
 									std::string,		username,
 									int8,				componentType, 
-									int8,				findComponentType)
+									int8,				findComponentType,
+									uint32,				addr, 
+									uint16,				finderRecvPort)
 									
 NETWORK_INTERFACE_DECLARE_END()
 
