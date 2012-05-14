@@ -157,11 +157,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\broadcast_handler.cpp"
+				RelativePath=".\bundle.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\bundle.cpp"
+				RelativePath=".\bundle_broadcast.cpp"
 				>
 			</File>
 			<File
@@ -243,11 +243,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\broadcast_handler.hpp"
+				RelativePath=".\bundle.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\bundle.hpp"
+				RelativePath=".\bundle_broadcast.hpp"
 				>
 			</File>
 			<File
@@ -351,6 +351,10 @@
 		</File>
 		<File
 			RelativePath=".\bundle.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\bundle_broadcast.ipp"
 			>
 		</File>
 		<File

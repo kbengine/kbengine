@@ -2,7 +2,7 @@
 #ifndef CODE_INLINE
 #include "componentbridge.ipp"
 #endif
-#include "network/broadcast_handler.hpp"
+#include "network/bundle_broadcast.hpp"
 #include "network/address.hpp"
 #include "network/bundle.hpp"
 #include "network/channel.hpp"
@@ -93,7 +93,7 @@ bool Componentbridge::findInterfaces()
 		int8 findComponentType = findComponentTypes[ifind];
 		ifind++;
 
-		Mercury::BroadcastHandler bhandler(networkInterface_);
+		Mercury::BundleBroadcast bhandler(networkInterface_);
 		bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
 
 		MachineInterface::onFindInterfaceAddrArgs4::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
@@ -126,7 +126,7 @@ bool Componentbridge::findInterfaces()
 bool Componentbridge::process()
 {
 	// 如果是cellappmgr或者baseapmgrp则向machine请求获得dbmgr的地址
-	Mercury::BroadcastHandler bhandler(networkInterface_);
+	Mercury::BundleBroadcast bhandler(networkInterface_);
 	bhandler.newMessage(MachineInterface::onBroadcastInterface);
 	MachineInterface::onBroadcastInterfaceArgs6::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
 		componentType_, componentID_, 

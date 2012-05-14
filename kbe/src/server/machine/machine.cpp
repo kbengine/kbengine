@@ -4,7 +4,7 @@
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
-#include "network/broadcast_handler.hpp"
+#include "network/bundle_broadcast.hpp"
 #include "thread/threadpool.hpp"
 #include "server/componentbridge.hpp"
 
@@ -71,7 +71,7 @@ bool Machine::findBroadcastInterface()
 {
 
 	std::map<u_int32_t, std::string> interfaces;
-	Mercury::BroadcastHandler bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
+	Mercury::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
 
 	// Perform a discovery of all network interfaces on this host
 	if (!bhandler.epListen().getInterfaces(interfaces))

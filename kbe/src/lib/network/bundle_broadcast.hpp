@@ -8,8 +8,8 @@ Also see acknowledgements in Readme.html
 You may use this sample code for anything you like, it is not covered by the
 same license as the rest of the engine.
 */
-#ifndef __BROADCAST_HANDLER__
-#define __BROADCAST_HANDLER__
+#ifndef __BUNDLE_BROADCAST__
+#define __BUNDLE_BROADCAST__
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
@@ -27,12 +27,12 @@ class NetworkInterface;
 /*
 	可以方便的处理如:向局域网内广播某些信息， 并处理收集相关信息。
 */
-class BroadcastHandler : public Bundle
+class BundleBroadcast : public Bundle
 {
 public:
-	BroadcastHandler(NetworkInterface & networkInterface, uint16 bindPort = 0, 
+	BundleBroadcast(NetworkInterface & networkInterface, uint16 bindPort = 0, 
 		uint32 recvWindowSize = 4096);
-	virtual ~BroadcastHandler();
+	virtual ~BundleBroadcast();
 
 	EventDispatcher& dispatcher();
 	
@@ -50,6 +50,6 @@ protected:
 }
 
 #ifdef CODE_INLINE
-#include "broadcast_handler.ipp"
+#include "bundle_broadcast.ipp"
 #endif
-#endif // __NETWORKPACKET_RECEIVER__
+#endif // __BUNDLE_BROADCAST__

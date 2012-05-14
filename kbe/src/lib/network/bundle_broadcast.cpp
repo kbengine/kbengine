@@ -1,6 +1,6 @@
-#include "broadcast_handler.hpp"
+#include "bundle_broadcast.hpp"
 #ifndef CODE_INLINE
-#include "broadcast_handler.ipp"
+#include "bundle_broadcast.ipp"
 #endif
 
 #include "network/address.hpp"
@@ -13,7 +13,7 @@ namespace KBEngine {
 namespace Mercury
 {
 //-------------------------------------------------------------------------------------
-BroadcastHandler::BroadcastHandler(NetworkInterface & networkInterface, 
+BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface, 
 								   uint16 bindPort, uint32 recvWindowSize):
 	Bundle(NULL, Mercury::PROTOCOL_UDP),
 	epListen_(),
@@ -26,7 +26,7 @@ BroadcastHandler::BroadcastHandler(NetworkInterface & networkInterface,
 	if (!epListen_.good() ||
 		 epListen_.bind(htons(bindPort)) == -1)
 	{
-		ERROR_MSG("BroadcastHandler::receive: Couldn't bind listener socket to port %d, %s\n", 
+		ERROR_MSG("BundleBroadcast::receive: Couldn't bind listener socket to port %d, %s\n", 
 			bindPort, kbe_strerror());
 		networkInterface.mainDispatcher().breakProcessing();
 	}
@@ -37,18 +37,18 @@ BroadcastHandler::BroadcastHandler(NetworkInterface & networkInterface,
 }
 
 //-------------------------------------------------------------------------------------
-BroadcastHandler::~BroadcastHandler()
+BundleBroadcast::~BundleBroadcast()
 {
 }
 
 //-------------------------------------------------------------------------------------
-EventDispatcher & BroadcastHandler::dispatcher()
+EventDispatcher & BundleBroadcast::dispatcher()
 {
 	return networkInterface_.dispatcher();
 }
 
 //-------------------------------------------------------------------------------------
-bool BroadcastHandler::broadcast(uint16 port)
+bool BundleBroadcast::broadcast(uint16 port)
 {
 	if (!epListen_.good())
 		return false;
@@ -60,7 +60,7 @@ bool BroadcastHandler::broadcast(uint16 port)
 }
 
 //-------------------------------------------------------------------------------------
-bool BroadcastHandler::receive(MessageArgs* recvArgs, sockaddr_in* psin)
+bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin)
 {
 	if (!epListen_.good())
 		return false;
@@ -82,12 +82,12 @@ bool BroadcastHandler::receive(MessageArgs* recvArgs, sockaddr_in* psin)
 		int selgot = select(epListen_+1, &fds, NULL, NULL, &tv);
 		if (selgot == 0)
 		{
-			DEBUG_MSG("BroadcastHandler::receive: waiting(%d) ...\n", icount++);
+			DEBUG_MSG("BundleBroadcast::receive: waiting(%d) ...\n", icount++);
 			continue;
 		}
 		else if (selgot == -1)
 		{
-			ERROR_MSG("BroadcastHandler::receive: select error. %s.\n",
+			ERROR_MSG("BundleBroadcast::receive: select error. %s.\n",
 					kbe_strerror());
 			return false;
 		}
@@ -102,7 +102,7 @@ bool BroadcastHandler::receive(MessageArgs* recvArgs, sockaddr_in* psin)
 			int len = epListen_.recvfrom(pCurrPacket()->data(), recvWindowSize_, *psin);
 			if (len == -1)
 			{
-				ERROR_MSG("BroadcastHandler::receive: recvfrom error. %s.\n",
+				ERROR_MSG("BundleBroadcast::receive: recvfrom error. %s.\n",
 						kbe_strerror());
 				continue;
 			}
