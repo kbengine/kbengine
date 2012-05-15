@@ -62,11 +62,11 @@ void Bundle::finish(bool issend)
 	{
 		Packet* pPacket = packets_[packets_.size() - currMsgPacketCount_];
 
-		currMsgLength_ -= MESSAGE_ID_SIZE;
-		currMsgLength_ -= MESSAGE_LENGTH_SIZE;
+		currMsgLength_ -= MERCURY_MESSAGE_ID_SIZE;
+		currMsgLength_ -= MERCURY_MESSAGE_LENGTH_SIZE;
 
 		memcpy(&pPacket->data()[currMsgLengthPos_], 
-			(uint8*)&currMsgLength_, MESSAGE_LENGTH_SIZE);
+			(uint8*)&currMsgLength_, MERCURY_MESSAGE_LENGTH_SIZE);
 
 	}
 	
@@ -154,7 +154,7 @@ void Bundle::newMessage(const MessageHandler& msgHandler)
 	pCurrPacket_->messageID(msgHandler.msgID);
 
 	// 此处对于非固定长度的消息来说需要先设置它的消息长度位为0， 到最后需要填充长度
-	if(msgHandler.msgLen < 0)
+	if(msgHandler.msgLen == MERCURY_VARIABLE_MESSAGE)
 	{
 		MessageLength msglen = 0;
 		currMsgLengthPos_ = pCurrPacket_->wpos();

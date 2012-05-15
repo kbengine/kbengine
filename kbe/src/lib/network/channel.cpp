@@ -331,9 +331,9 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 	{
 		if(fragmentDatasFlag_ == 0)
 		{
-			if(MESSAGE_ID_SIZE > 1 && pPacket->opsize() < MESSAGE_ID_SIZE)
+			if(MERCURY_MESSAGE_ID_SIZE > 1 && pPacket->opsize() < MERCURY_MESSAGE_ID_SIZE)
 			{
-				writeFragmentMessage(1, pPacket, MESSAGE_ID_SIZE);
+				writeFragmentMessage(1, pPacket, MERCURY_MESSAGE_ID_SIZE);
 				break;
 			}
 			
@@ -355,12 +355,12 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 			
 			if(currMsgLen_ == 0)
 			{
-				if(pMsgHandler->msgLen < 0)
+				if(pMsgHandler->msgLen == MERCURY_VARIABLE_MESSAGE)
 				{
 					// 如果长度信息不完整， 则等待下一个包处理
-					if(pPacket->opsize() < MESSAGE_LENGTH_SIZE)
+					if(pPacket->opsize() < MERCURY_MESSAGE_LENGTH_SIZE)
 					{
-						writeFragmentMessage(2, pPacket, MESSAGE_LENGTH_SIZE);
+						writeFragmentMessage(2, pPacket, MERCURY_MESSAGE_LENGTH_SIZE);
 						break;
 					}
 					else
@@ -425,11 +425,11 @@ void Channel::mergeFragmentMessage(Packet* pPacket)
 		switch(fragmentDatasFlag_)
 		{
 		case 1:		// 消息ID信息不全
-			memcpy(&currMsgLen_, pFragmentDatas_, MESSAGE_ID_SIZE);
+			memcpy(&currMsgLen_, pFragmentDatas_, MERCURY_MESSAGE_ID_SIZE);
 			break;
 
 		case 2:		// 消息长度信息不全
-			memcpy(&currMsgLen_, pFragmentDatas_, MESSAGE_LENGTH_SIZE);
+			memcpy(&currMsgLen_, pFragmentDatas_, MERCURY_MESSAGE_LENGTH_SIZE);
 			break;
 
 		case 3:		// 消息内容信息不全

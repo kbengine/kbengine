@@ -41,9 +41,21 @@ namespace tcp{
 #define PACKET_MAX_SIZE_TCP		1460
 #define PACKET_MAX_SIZE_UDP		1472
 
-#define MESSAGE_ID_SIZE			sizeof(Mercury::MessageID)
-#define MESSAGE_LENGTH_SIZE		sizeof(Mercury::MessageLength)
-#define MESSAGE_MAX_SIZE		65535
+#define MERCURY_MESSAGE_ID_SIZE			sizeof(Mercury::MessageID)
+#define MERCURY_MESSAGE_LENGTH_SIZE		sizeof(Mercury::MessageLength)
+#define MERCURY_MESSAGE_MAX_SIZE		65535
+
+/*
+	网络消息类型， 定长或者变长。
+	如果需要自定义长度则在NETWORK_INTERFACE_DECLARE_BEGIN中声明时填入长度即可。
+*/
+#ifndef MERCURY_FIXED_MESSAGE
+#define MERCURY_FIXED_MESSAGE 0
+#endif
+
+#ifndef MERCURY_VARIABLE_MESSAGE
+#define MERCURY_VARIABLE_MESSAGE -1
+#endif
 
 enum ProtocolType
 {

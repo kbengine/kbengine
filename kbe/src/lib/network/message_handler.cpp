@@ -2,7 +2,6 @@
 #include "network/channel.hpp"
 #include "network/network_interface.hpp"
 #include "network/packet_receiver.hpp"
-#include "network/interface_defs.hpp"
 
 namespace KBEngine { 
 namespace Mercury
