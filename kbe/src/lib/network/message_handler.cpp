@@ -28,7 +28,7 @@ MessageHandlers::~MessageHandlers()
 
 //-------------------------------------------------------------------------------------
 MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args, 
-	int32 msgLen, int32 fixMsgLen, MessageHandler* msgHandler)
+	int32 msgLen, MessageHandler* msgHandler)
 {
 	if(msgID_ == 1)
 	{
@@ -50,7 +50,7 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	else
 	{
 		if(msgLen == 0)
-			msgHandler->msgLen = fixMsgLen;
+			msgHandler->msgLen = args->msgsize();
 		
 		printf("\tMessageHandlers::add: name=%s, msgID=%d, size=Fixed(%d).\n", 
 				ihName.c_str(), msgHandler->msgID, msgHandler->msgLen);

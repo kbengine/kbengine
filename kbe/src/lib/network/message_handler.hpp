@@ -28,7 +28,8 @@ public:
 	MessageArgs(){};
 	virtual ~MessageArgs(){};
 	virtual void createFromStream(MemoryStream& s) = 0;
-	virtual void addToStream(MemoryStream& s)	= 0;
+	virtual void addToStream(MemoryStream& s) = 0;
+	virtual int32 msgsize(void) = 0;
 };
 
 class MessageHandler
@@ -59,7 +60,7 @@ public:
 	~MessageHandlers();
 	
 	MessageHandler* add(std::string ihName, MessageArgs* args, int32 msgLen, 
-						int32 fixMsgLen, MessageHandler* msgHandler);
+						MessageHandler* msgHandler);
 	
 	MessageHandler* find(MessageID msgID);
 	

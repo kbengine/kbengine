@@ -79,8 +79,7 @@ namespace Mercury
 	
 	#define NETWORK_MESSAGE_HANDLER(DOMAIN, NAME, HANDLER_TYPE, MSG_LENGTH, ARG_N)						\
 		HANDLER_TYPE* p##NAME = static_cast<HANDLER_TYPE*>(messageHandlers.add(#DOMAIN"::"#NAME,		\
-						 new NAME##Args##ARG_N, MSG_LENGTH, sizeof(NAME##Args##ARG_N), 					\
-															new HANDLER_TYPE));							\
+						 new NAME##Args##ARG_N, MSG_LENGTH, new HANDLER_TYPE));							\
 		const HANDLER_TYPE& NAME = *p##NAME;															\
 			
 		
@@ -120,6 +119,10 @@ namespace Mercury
 		NAME##Args_stream():Mercury::MessageArgs(){}				\
 		~NAME##Args_stream(){}										\
 																	\
+		virtual int32 msgsize(void)									\
+		{															\
+			return MERCURY_VARIABLE_MESSAGE;						\
+		}															\
 		virtual void addToStream(MemoryStream& s)					\
 		{															\
 		}															\
@@ -164,6 +167,10 @@ namespace Mercury
 								ARG_TYPE1 init_##ARG_NAME1)			\
 		{															\
 			s << init_##ARG_NAME1;									\
+		}															\
+		virtual int32 msgsize(void)									\
+		{															\
+			return sizeof(ARG_TYPE1);								\
 		}															\
 		virtual void addToStream(MemoryStream& s)					\
 		{															\
@@ -221,6 +228,11 @@ namespace Mercury
 		{															\
 			s << init_##ARG_NAME1;									\
 			s << init_##ARG_NAME2;									\
+		}															\
+		virtual int32 msgsize(void)									\
+		{															\
+			return	sizeof(ARG_TYPE1) +								\
+					sizeof(ARG_TYPE2);								\
 		}															\
 		virtual void addToStream(MemoryStream& s)					\
 		{															\
@@ -291,6 +303,12 @@ namespace Mercury
 			s << init_##ARG_NAME1;									\
 			s << init_##ARG_NAME2;									\
 			s << init_##ARG_NAME3;									\
+		}															\
+		virtual int32 msgsize(void)									\
+		{															\
+			return	sizeof(ARG_TYPE1) +								\
+					sizeof(ARG_TYPE2) +								\
+					sizeof(ARG_TYPE3);								\
 		}															\
 		virtual void addToStream(MemoryStream& s)					\
 		{															\
@@ -375,6 +393,13 @@ namespace Mercury
 			s << init_##ARG_NAME2;									\
 			s << init_##ARG_NAME3;									\
 			s << init_##ARG_NAME4;									\
+		}															\
+		virtual int32 msgsize(void)									\
+		{															\
+			return	sizeof(ARG_TYPE1) +								\
+					sizeof(ARG_TYPE2) +								\
+					sizeof(ARG_TYPE3) +								\
+					sizeof(ARG_TYPE4);								\
 		}															\
 		virtual void addToStream(MemoryStream& s)					\
 		{															\
@@ -472,6 +497,14 @@ namespace Mercury
 			s << init_##ARG_NAME3;									\
 			s << init_##ARG_NAME4;									\
 			s << init_##ARG_NAME5;									\
+		}															\
+		virtual int32 msgsize(void)									\
+		{															\
+			return	sizeof(ARG_TYPE1) +								\
+					sizeof(ARG_TYPE2) +								\
+					sizeof(ARG_TYPE3) +								\
+					sizeof(ARG_TYPE4) +								\
+					sizeof(ARG_TYPE5);								\
 		}															\
 		virtual void addToStream(MemoryStream& s)					\
 		{															\
@@ -581,6 +614,15 @@ namespace Mercury
 			s << init_##ARG_NAME4;									\
 			s << init_##ARG_NAME5;									\
 			s << init_##ARG_NAME6;									\
+		}															\
+		virtual int32 msgsize(void)									\
+		{															\
+			return	sizeof(ARG_TYPE1) +								\
+					sizeof(ARG_TYPE2) +								\
+					sizeof(ARG_TYPE3) +								\
+					sizeof(ARG_TYPE4) +								\
+					sizeof(ARG_TYPE5) +								\
+					sizeof(ARG_TYPE6);								\
 		}															\
 		virtual void addToStream(MemoryStream& s)					\
 		{															\
@@ -703,6 +745,16 @@ namespace Mercury
 			s << init_##ARG_NAME5;									\
 			s << init_##ARG_NAME6;									\
 			s << init_##ARG_NAME7;									\
+		}															\
+		virtual int32 msgsize(void)									\
+		{															\
+			return	sizeof(ARG_TYPE1) +								\
+					sizeof(ARG_TYPE2) +								\
+					sizeof(ARG_TYPE3) +								\
+					sizeof(ARG_TYPE4) +								\
+					sizeof(ARG_TYPE5) +								\
+					sizeof(ARG_TYPE6) +								\
+					sizeof(ARG_TYPE7);								\
 		}															\
 		virtual void addToStream(MemoryStream& s)					\
 		{															\
@@ -838,6 +890,17 @@ namespace Mercury
 			s << init_##ARG_NAME6;									\
 			s << init_##ARG_NAME7;									\
 			s << init_##ARG_NAME8;									\
+		}															\
+		virtual int32 msgsize(void)									\
+		{															\
+			return	sizeof(ARG_TYPE1) +								\
+					sizeof(ARG_TYPE2) +								\
+					sizeof(ARG_TYPE3) +								\
+					sizeof(ARG_TYPE4) +								\
+					sizeof(ARG_TYPE5) +								\
+					sizeof(ARG_TYPE6) +								\
+					sizeof(ARG_TYPE7) +								\
+					sizeof(ARG_TYPE8);								\
 		}															\
 		virtual void addToStream(MemoryStream& s)					\
 		{															\
@@ -987,6 +1050,18 @@ namespace Mercury
 			s << init_##ARG_NAME7;									\
 			s << init_##ARG_NAME8;									\
 			s << init_##ARG_NAME9;									\
+		}															\
+		virtual int32 msgsize(void)									\
+		{															\
+			return	sizeof(ARG_TYPE1) +								\
+					sizeof(ARG_TYPE2) +								\
+					sizeof(ARG_TYPE3) +								\
+					sizeof(ARG_TYPE4) +								\
+					sizeof(ARG_TYPE5) +								\
+					sizeof(ARG_TYPE6) +								\
+					sizeof(ARG_TYPE7) +								\
+					sizeof(ARG_TYPE8) +								\
+					sizeof(ARG_TYPE9);								\
 		}															\
 		virtual void addToStream(MemoryStream& s)					\
 		{															\
@@ -1149,6 +1224,19 @@ namespace Mercury
 			s << init_##ARG_NAME8;									\
 			s << init_##ARG_NAME9;									\
 			s << init_##ARG_NAME10;									\
+		}															\
+		virtual int32 msgsize(void)									\
+		{															\
+			return	sizeof(ARG_TYPE1) +								\
+					sizeof(ARG_TYPE2) +								\
+					sizeof(ARG_TYPE3) +								\
+					sizeof(ARG_TYPE4) +								\
+					sizeof(ARG_TYPE5) +								\
+					sizeof(ARG_TYPE6) +								\
+					sizeof(ARG_TYPE7) +								\
+					sizeof(ARG_TYPE8) +								\
+					sizeof(ARG_TYPE9) +								\
+					sizeof(ARG_TYPE10);								\
 		}															\
 		virtual void addToStream(MemoryStream& s)					\
 		{															\
