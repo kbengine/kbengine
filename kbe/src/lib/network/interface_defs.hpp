@@ -62,14 +62,25 @@ namespace Mercury
 	#undef SET_MESSAGE_FUNC
 #endif
 
+/*
+	网络消息类型， 定长或者变长。
+	如果需要自定义长度则在NETWORK_INTERFACE_DECLARE_BEGIN中声明时填入长度即可。
+*/
+#ifndef MERCURY_FIXED_MESSAGE
+#define MERCURY_FIXED_MESSAGE 0
+#endif
 
+#ifndef MERCURY_VARIABLE_MESSAGE
+#define MERCURY_VARIABLE_MESSAGE -1
+#endif
 
 #ifdef DEFINE_IN_INTERFACE
 	//#undef DEFINE_IN_INTERFACE
 	
 	#define NETWORK_MESSAGE_HANDLER(DOMAIN, NAME, HANDLER_TYPE, MSG_LENGTH, ARG_N)						\
 		HANDLER_TYPE* p##NAME = static_cast<HANDLER_TYPE*>(messageHandlers.add(#DOMAIN"::"#NAME,		\
-						 new NAME##Args##ARG_N, MSG_LENGTH, new HANDLER_TYPE));							\
+						 new NAME##Args##ARG_N, MSG_LENGTH, sizeof(NAME##Args##ARG_N), 					\
+															new HANDLER_TYPE));							\
 		const HANDLER_TYPE& NAME = *p##NAME;															\
 			
 		

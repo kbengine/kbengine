@@ -59,7 +59,7 @@ public:
 	~MessageHandlers();
 	
 	MessageHandler* add(std::string ihName, MessageArgs* args, int32 msgLen, 
-						MessageHandler* msgHandler);
+						int32 fixMsgLen, MessageHandler* msgHandler);
 	
 	MessageHandler* find(MessageID msgID);
 	

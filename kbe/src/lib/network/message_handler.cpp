@@ -2,6 +2,7 @@
 #include "network/channel.hpp"
 #include "network/network_interface.hpp"
 #include "network/packet_receiver.hpp"
+#include "network/interface_defs.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -27,7 +28,7 @@ MessageHandlers::~MessageHandlers()
 
 //-------------------------------------------------------------------------------------
 MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args, 
-	int32 msgLen, MessageHandler* msgHandler)
+	int32 msgLen, int32 fixMsgLen, MessageHandler* msgHandler)
 {
 	if(msgID_ == 1)
 	{
@@ -41,15 +42,18 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	msgHandler->msgLen = msgLen;			
 	msgHandlers_[msgHandler->msgID] = msgHandler;
 	
-	if(msgLen == -1)
+	if(msgLen == MERCURY_VARIABLE_MESSAGE)
 	{
 		printf("\tMessageHandlers::add: name=%s, msgID=%d, size=Variable.\n", 
 				ihName.c_str(), msgHandler->msgID);
 	}
 	else
 	{
+		if(msgLen == 0)
+			msgHandler->msgLen = fixMsgLen;
+		
 		printf("\tMessageHandlers::add: name=%s, msgID=%d, size=Fixed(%d).\n", 
-				ihName.c_str(), msgHandler->msgID, msgLen);
+				ihName.c_str(), msgHandler->msgID, msgHandler->msgLen);
 	}
 	return msgHandlers_[msgHandler->msgID];
 }
