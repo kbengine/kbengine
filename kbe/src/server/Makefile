@@ -25,7 +25,7 @@ endif
 ifndef LICENSE_SERVER
 	$(MAKE) -C cellappmgr $@
 endif
-#	$(MAKE) -C dbmgr $@
+	$(MAKE) -C dbmgr $@
 #	$(MAKE) -C loginapp $@
 	$(MAKE) -C machine $@
 #	$(MAKE) -C reviver $@
