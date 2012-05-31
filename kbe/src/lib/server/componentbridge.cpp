@@ -97,7 +97,7 @@ bool Componentbridge::findInterfaces()
 	{
 		int8 findComponentType = findComponentTypes[ifind];
 
-		INFO_MSG("Componentbridge::process: starting find %s...\n",
+		INFO_MSG("Componentbridge::process: finding %s...\n",
 			COMPONENT_NAME[findComponentType]);
 		
 		if(bhandler.pCurrPacket() != NULL)
@@ -120,8 +120,8 @@ bool Componentbridge::findInterfaces()
 		{
 			if(args.componentType == UNKNOWN_COMPONENT_TYPE)
 			{
-				INFO_MSG("Componentbridge::process: not found %s, try again...\n",
-					COMPONENT_NAME[findComponentType]);
+				//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
+				//	COMPONENT_NAME[findComponentType]);
 				
 				KBEngine::sleep(1000);
 				continue;
