@@ -131,14 +131,15 @@ bool Componentbridge::findInterfaces()
 				COMPONENT_NAME[args.componentType], inet_ntoa((struct in_addr&)args.addr), ntohs(args.port));
 
 			ifind++;
+			
+			Componentbridge::getComponents().addComponent(args.uid, args.username.c_str(), 
+				(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.addr, args.port);
 		}
 		else
 		{
 			ERROR_MSG("Componentbridge::process: receive error!\n");
 			return false;
 		}
-
-		break;
 	}
 
 	return true;
