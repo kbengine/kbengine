@@ -81,6 +81,10 @@ bool Componentbridge::findInterfaces()
 		findComponentTypes[0] = BASEAPPMGR_TYPE;
 		findComponentTypes[1] = DBMGR_TYPE;
 		break;
+	case LOGINAPP_TYPE:
+		findComponentTypes[0] = BASEAPPMGR_TYPE;
+		findComponentTypes[1] = DBMGR_TYPE;
+		break;
 	default:
 		break;
 	};
