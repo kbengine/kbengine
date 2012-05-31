@@ -19,14 +19,14 @@ endif
 endif
 
 	$(MAKE) -C ../lib $@
-#	$(MAKE) -C baseapp $@
+	$(MAKE) -C baseapp $@
 	$(MAKE) -C baseappmgr $@
 	$(MAKE) -C cellapp $@
 ifndef LICENSE_SERVER
 	$(MAKE) -C cellappmgr $@
 endif
 	$(MAKE) -C dbmgr $@
-#	$(MAKE) -C loginapp $@
+	$(MAKE) -C loginapp $@
 	$(MAKE) -C machine $@
 #	$(MAKE) -C reviver $@
 #	$(MAKE) -C tools $@

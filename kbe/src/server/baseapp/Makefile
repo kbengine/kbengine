@@ -1,15 +1,13 @@
-BIN  = dbmgr
+BIN  = baseapp
 SRCS =						\
-	dbmgr					\
-	dbmgr_interface				\
+	baseapp					\
+	baseapp_interface			\
 	main
 
 ASMS =
 
 MY_LIBS =		\
-	entitydef	\
 	server		\
-	pyscript	\
 	network		\
 	thread
 	
