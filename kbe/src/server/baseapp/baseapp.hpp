@@ -13,7 +13,7 @@ same license as the rest of the engine.
 	
 // common include	
 #include "server/kbemain.hpp"
-#include "server/serverapp.hpp"
+#include "server/entity_app.hpp"
 #include "server/idallocate.hpp"
 #include "server/serverconfig.hpp"
 #include "cstdkbe/timer.hpp"
@@ -29,7 +29,7 @@ same license as the rest of the engine.
 	
 namespace KBEngine{
 
-class Baseapp :	public ServerApp, 
+class Baseapp :	public EntityApp, 
 					public TimerHandler, 
 					public Singleton<Baseapp>
 {
@@ -51,6 +51,8 @@ public:
 	bool inInitialize();
 	bool initializeEnd();
 	void finalise();
+	
+	virtual bool destroyEntity(ENTITY_ID entityID);
 protected:
 };
 

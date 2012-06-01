@@ -7,7 +7,9 @@ SRCS =						\
 ASMS =
 
 MY_LIBS =		\
+	entitydef	\
 	server		\
+	pyscript	\
 	network		\
 	thread
 	

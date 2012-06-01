@@ -14,7 +14,7 @@ KBE_SINGLETON_INIT(Baseapp);
 
 //-------------------------------------------------------------------------------------
 Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
-	ServerApp(dispatcher, ninterface, componentType)
+	EntityApp(dispatcher, ninterface, componentType)
 {
 }
 
@@ -67,6 +67,12 @@ bool Baseapp::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Baseapp::finalise()
 {
+}
+
+//-------------------------------------------------------------------------------------
+bool Baseapp::destroyEntity(ENTITY_ID entityID)
+{
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
