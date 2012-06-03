@@ -262,6 +262,20 @@ class MemoryStream
             return *this;
         }
 
+        MemoryStream &operator>>(char *value)
+        {
+            while (rpos() < size())
+            {
+                char c = read<char>();
+                if (c == 0)
+                    break;
+                *(value++) = c;
+            }
+
+			*value = '\0';
+            return *this;
+        }
+        
         uint8 operator[](size_t pos) const
         {
             return read<uint8>(pos);
