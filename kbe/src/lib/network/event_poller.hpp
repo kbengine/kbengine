@@ -25,7 +25,7 @@ namespace Mercury
 class InputNotificationHandler;
 typedef std::map<int, InputNotificationHandler *> FDHandlers;
 
-class EventPoller:public InputNotificationHandler
+class EventPoller : public InputNotificationHandler
 {
 public:
 	EventPoller();
