@@ -32,8 +32,8 @@ same license as the rest of the engine.
 			stream >> a;
 			printf("»¹Ô­: %lld, %d, %d, %s", x, n, n1, a.c_str());
 */
-#ifndef __BYTESTREAM_H__
-#define __BYTESTREAM_H__
+#ifndef __MEMORYSTREAM_H__
+#define __MEMORYSTREAM_H__
 // common include	
 #include <iostream>
 #include <vector>
