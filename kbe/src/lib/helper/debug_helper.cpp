@@ -13,7 +13,7 @@ log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger("default"));
 char _g_buf[DBG_PT_SIZE];
 
 #ifdef KBE_USE_ASSERTS
-void myassert(const char * exp, const char * func, const char * exp, const char * file, unsigned int line)
+void myassert(const char * exp, const char * func, const char * file, unsigned int line)
 {
 	sprintf(_g_buf, "assertion failed: %s, file %s, line %d, at: %s\n", exp, file, line, func);
     dbghelper.print_msg(_g_buf);
