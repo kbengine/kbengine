@@ -14,8 +14,9 @@ THREAD_ID TPThread::createThread(void)
 		&TPThread::threadFunc, (void*)this, NULL, 0);
 #else	
 	if(pthread_create(&tidp_, NULL, TPThread::threadFunc, 
-		(void*)this)!= 0)
+		(void*)this)!= 0){
 		ERROR_MSG("createThread is error!");
+	}
 #endif
 	return tidp_;
 }
@@ -49,9 +50,10 @@ bool ThreadPool::createThreadPool(unsigned int inewThreadCount,
 	for(unsigned int i=0; i<normalThreadCount_; i++)
 	{
 		TPThread* tptd = createThread();
-		if(!tptd)
+		if(!tptd){
 			ERROR_MSG("ThreadPool:: create Thread error! \n");
-		
+		}
+
 		currentFreeThreadCount_++;	
 		currentThreadCount_++;
 		freeThreadList_.push_back(tptd);										// 闲置的线程列表
@@ -141,11 +143,13 @@ bool ThreadPool::removeHangThread(TPThread* tptd)
 	itr = find(freeThreadList_.begin(), freeThreadList_.end(), tptd);
 	itr1 = find(allThreadList_.begin(), allThreadList_.end(), tptd);
 	
-	if(itr != freeThreadList_.end()&& itr1 != allThreadList_.end()){
+	if(itr != freeThreadList_.end()&& itr1 != allThreadList_.end())
+	{
 		freeThreadList_.erase(itr);
 		allThreadList_.erase(itr1);
 		currentThreadCount_--;
 		currentFreeThreadCount_--;
+
 		INFO_MSG("ThreadPool::removeHangThread: thread.%u is destroy. "
 			"currentFreeThreadCount:%d, currentThreadCount:%d\n", \
 		(unsigned int)tptd->getID(), currentFreeThreadCount_, currentThreadCount_);
@@ -247,7 +251,8 @@ bool TPThread::onWaitCondSignal(void)
 			threadPool_->removeHangThread(this);							// 通知ThreadPool注销自己
 			return false;
 		}
-		else if(ret != WAIT_OBJECT_0){
+		else if(ret != WAIT_OBJECT_0)
+		{
 			ERROR_MSG("WaitForSingleObject is error, ret=%d\n", ret);
 		}
 	}	

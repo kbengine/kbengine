@@ -26,8 +26,10 @@ PropertyDescription::PropertyDescription(std::string dataTypeName, std::string n
 	if(dataType != NULL)
 		defaultVal_ = dataType->parseDefaultStr(defaultStr);
 	else
+	{
 		ERROR_MSG("PropertyDescription::PropertyDescription: %s DataType is NULL, in property[%s].\n", 
 			dataTypeName.c_str(), name_.c_str());
+	}
 }
 
 //-------------------------------------------------------------------------------------
