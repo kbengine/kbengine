@@ -109,7 +109,9 @@ scriptTimers_()
 				ms->rpos(0);
 		}
 		else
-			ERROR_MSG("Entity::Entity: %s PropertyDescription the dataType is NULL.\n", propertyDescription->getName().c_str());		
+		{
+			ERROR_MSG("Entity::Entity: %s PropertyDescription the dataType is NULL.\n", propertyDescription->getName().c_str());
+		}
 	}
 
 	lpPropertyDescrs_ = &propertyDescrs;
