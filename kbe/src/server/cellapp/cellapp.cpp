@@ -66,7 +66,6 @@ bool CellApp::run()
 	testsmartpointer.clear();
 
 	CRITICAL_MSG("hahahah %d\n", 1111);
-	KBE_ASSERT(false && "sdfdsfdafdsafdsafsa");
 	return ServerApp::run();
 }
 
