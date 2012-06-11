@@ -31,7 +31,7 @@ class DebugHelper : public Singleton<DebugHelper>
 {
 private:
 	FILE* _logfile;
-	std::string _currFile;
+	std::string _currFile, _currFuncName;
 	uint32 _currLine;
 public:
 	KBEngine::thread::ThreadMutex logMutex;
@@ -42,9 +42,10 @@ public:
 	
 	static void initHelper(COMPONENT_TYPE componentType);
 
-	void setFile(std::string file, uint32 line){
+	void setFile(std::string funcname, std::string file, uint32 line){
 		_currFile = file;
 		_currLine = line;
+		_currFuncName = funcname;
 	}
 
 	void outTime();
@@ -62,19 +63,26 @@ public:
 	调试信息输出接口
 ---------------------------------------------------------------------------------*/
 #define PRINT_MSG					DebugHelper::getSingleton().print_msg									// 输出任何信息
-#define ERROR_MSG					DebugHelper::getSingleton().error_msg									// 输出一个错误
-#define DEBUG_MSG					DebugHelper::getSingleton().debug_msg									// 输出一个debug信息
+#define ERROR_MSG					DebugHelper::getSingleton().setFile(__FUNCTION__, \
+									__FILE__, __LINE__); \
+									DebugHelper::getSingleton().error_msg									// 输出一个错误
+#define DEBUG_MSG					DebugHelper::getSingleton().setFile(__FUNCTION__, \
+									__FILE__, __LINE__); \
+									DebugHelper::getSingleton().debug_msg									// 输出一个debug信息
 #define INFO_MSG					DebugHelper::getSingleton().info_msg									// 输出一个info信息
-#define WARNING_MSG					DebugHelper::getSingleton().warning_msg									// 输出一个警告信息
-#define CRITICAL_MSG				DebugHelper::getSingleton().setFile(__FILE__, __LINE__); \
+#define WARNING_MSG					DebugHelper::getSingleton().setFile(__FUNCTION__, \
+									__FILE__, __LINE__); \
+									DebugHelper::getSingleton().warning_msg									// 输出一个警告信息
+#define CRITICAL_MSG				DebugHelper::getSingleton().setFile(__FUNCTION__, \
+									__FILE__, __LINE__); \
 									DebugHelper::getSingleton().critical_msg
 
 /*---------------------------------------------------------------------------------
 	调试宏
 ---------------------------------------------------------------------------------*/
 #ifdef KBE_USE_ASSERTS
-void myassert(const char* exp, const char * file, unsigned int line);
-#define KBE_ASSERT(exp) if(!(exp))myassert(#exp, __FILE__, __LINE__);
+void myassert(const char* exp, const char * func, const char * file, unsigned int line);
+#define KBE_ASSERT(exp) if(!(exp))myassert(#exp, __FUNCTION__, __FILE__, __LINE__);
 #else
 #define KBE_ASSERT(exp) NULL;
 #endif

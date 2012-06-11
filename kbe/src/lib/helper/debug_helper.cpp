@@ -13,10 +13,12 @@ log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger("default"));
 char _g_buf[DBG_PT_SIZE];
 
 #ifdef KBE_USE_ASSERTS
-void myassert(const char * exp, const char * file, unsigned int line)
+void myassert(const char * exp, const char * func, const char * exp, const char * file, unsigned int line)
 {
-    dbghelper.print_msg("assertion failed: %s, file %s, line %d\n", exp, file, line);
-    assert(false && exp);
+	sprintf(_g_buf, "assertion failed: %s, file %s, line %d, at: %s\n", exp, file, line, func);
+    dbghelper.print_msg(_g_buf);
+	printf(_g_buf);
+    abort();
 }
 #endif
 
@@ -313,11 +315,13 @@ void DebugHelper::critical_msg(const char * str, ...)
     va_start(ap, str);
     _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
     va_end(ap);
-	// printf("CRITICAL:%s(%d)\n\t%s\n", _currFile.c_str(), _currLine, _g_buf);
-	LOG4CXX_FATAL(g_logger, _g_buf);
+	char buf[DBG_PT_SIZE];
+	sprintf(buf, "%s(%d) -> %s\n\t%s\n", _currFile.c_str(), _currLine, _currFuncName.c_str(), _g_buf);
+	// printf(buf);
+	LOG4CXX_FATAL(g_logger, buf);
 #endif
 
-	setFile("", 0);
+	setFile("", "", 0);
 }
 //-------------------------------------------------------------------------------------
 

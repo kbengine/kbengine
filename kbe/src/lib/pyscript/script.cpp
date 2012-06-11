@@ -147,13 +147,15 @@ bool Script::uninstall()
 	Pickler::finalise();
 	SCRIPT_ERROR_CHECK();															// 检查是否有错误产生
 
-	if(pyStdouterr_->isInstall() && !pyStdouterr_->uninstall())						// 卸载py重定向脚本模块
+	if(pyStdouterr_->isInstall() && !pyStdouterr_->uninstall())	{					// 卸载py重定向脚本模块
 		ERROR_MSG("Script::uninstall::pyStdouterr_->uninstall() is failed!\n");
+	}
 	else
 		Py_DECREF(pyStdouterr_);
 
-	if(pyStdouterrHook_->isInstall() && !pyStdouterrHook_->uninstall())
+	if(pyStdouterrHook_->isInstall() && !pyStdouterrHook_->uninstall()){
 		ERROR_MSG("Script::uninstall::pyStdouterrHook_->uninstall() is failed!\n");
+	}
 	else
 		Py_DECREF(pyStdouterrHook_);
 

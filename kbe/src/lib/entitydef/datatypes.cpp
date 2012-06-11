@@ -112,7 +112,9 @@ void DataTypes::delDataType(std::string name)
 {
 	DATATYPE_MAP::iterator iter = dataTypes_.find(name);
 	if (iter == dataTypes_.end())
+	{
 		ERROR_MSG("DataTypes::delDataType:not found type %s.\n", name.c_str());
+	}
 	else
 	{
 		iter->second->decRef();

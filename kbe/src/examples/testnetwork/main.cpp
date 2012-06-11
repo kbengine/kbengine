@@ -270,7 +270,7 @@ void init_network(void)
 int main(int argc, char* argv[])
 {
 	DebugHelper::initHelper(UNKNOWN_COMPONENT_TYPE);
-    INFO_MSG("ÄãºÃ£¬log4cxx---%d!", 1);
+    INFO_MSG("ÄãºÃ£¬log4cxx---%d!---%s", 1, __FUNCTION__);
 	//LOG4CXX_INFO("Attempted to " << " in MemoryStream (pos:" << 111 <<  "size: " << 222 << ").\n");
 	init_network();
 	gdispatcher.processUntilBreak();
