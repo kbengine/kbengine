@@ -22,6 +22,8 @@ ifndef USE_OPENSSL
 	USE_OPENSSL = 0
 endif
 
+CPPFLAGS += -DKBE_BASEAPP
+
 #HAS_PCH = 1
 
 ifndef KBE_ROOT

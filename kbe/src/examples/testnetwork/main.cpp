@@ -23,11 +23,15 @@ same license as the rest of the engine.
 #define DEFINE_IN_INTERFACE
 #include "cellapp/cellapp_interface.hpp"
 
+#include "log4cxx/logger.h"
+#include "log4cxx/propertyconfigurator.h"
+
 using namespace KBEngine;
 using namespace KBEngine::Mercury;
 Address address;
 EndPoint mysocket;
 EventDispatcher gdispatcher;
+
 
 
 class MyPacketReceiver : public InputNotificationHandler
@@ -265,6 +269,9 @@ void init_network(void)
 
 int main(int argc, char* argv[])
 {
+	DebugHelper::initHelper(UNKNOWN_COMPONENT_TYPE);
+    INFO_MSG("ÄãºÃ£¬log4cxx---%d!", 1);
+	//LOG4CXX_INFO("Attempted to " << " in MemoryStream (pos:" << 111 <<  "size: " << 222 << ").\n");
 	init_network();
 	gdispatcher.processUntilBreak();
 	getchar();

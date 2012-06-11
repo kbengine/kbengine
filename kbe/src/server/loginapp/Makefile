@@ -21,6 +21,7 @@ ifndef USE_OPENSSL
 endif
 
 #HAS_PCH = 1
+CPPFLAGS += -DKBE_LOGINAPP
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/server/$(BIN),,$(CURDIR))

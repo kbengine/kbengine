@@ -16,6 +16,11 @@ same license as the rest of the engine.
 #include <stdarg.h> 
 #include "cstdkbe/singleton.hpp"
 #include "thread/ThreadMutex.hpp"
+#ifndef NO_USE_LOG4CXX
+#include "log4cxx/logger.h"
+#include "log4cxx/propertyconfigurator.h"
+#endif
+
 namespace KBEngine{
 
 /** 支持uft-8编码字符串输出 */
@@ -31,15 +36,12 @@ private:
 public:
 	KBEngine::thread::ThreadMutex logMutex;
 public:
-	DebugHelper()
-	{
-		_logfile = NULL;
-	}
+	DebugHelper();
 
-	~DebugHelper()
-	{
-	}	
+	~DebugHelper();
 	
+	static void initHelper(COMPONENT_TYPE componentType);
+
 	void setFile(std::string file, uint32 line){
 		_currFile = file;
 		_currLine = line;
@@ -59,13 +61,14 @@ public:
 /*---------------------------------------------------------------------------------
 	调试信息输出接口
 ---------------------------------------------------------------------------------*/
-#define PRINT_MSG			DebugHelper::getSingleton().print_msg									// 输出任何信息
-#define ERROR_MSG			DebugHelper::getSingleton().error_msg									// 输出一个错误
-#define DEBUG_MSG			DebugHelper::getSingleton().debug_msg									// 输出一个debug信息
-#define INFO_MSG			DebugHelper::getSingleton().info_msg									// 输出一个info信息
-#define WARNING_MSG			DebugHelper::getSingleton().warning_msg									// 输出一个警告信息
-#define CRITICAL_MSG		DebugHelper::getSingleton().setFile(__FILE__, __LINE__); \
-							DebugHelper::getSingleton().critical_msg
+#define PRINT_MSG					DebugHelper::getSingleton().print_msg									// 输出任何信息
+#define ERROR_MSG					DebugHelper::getSingleton().error_msg									// 输出一个错误
+#define DEBUG_MSG					DebugHelper::getSingleton().debug_msg									// 输出一个debug信息
+#define INFO_MSG					DebugHelper::getSingleton().info_msg									// 输出一个info信息
+#define WARNING_MSG					DebugHelper::getSingleton().warning_msg									// 输出一个警告信息
+#define CRITICAL_MSG				DebugHelper::getSingleton().setFile(__FILE__, __LINE__); \
+									DebugHelper::getSingleton().critical_msg
+
 /*---------------------------------------------------------------------------------
 	调试宏
 ---------------------------------------------------------------------------------*/

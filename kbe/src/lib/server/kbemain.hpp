@@ -44,6 +44,9 @@ template <class SERVER_APP>
 int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType, 
 			 uint16 listeningPort = 0, const char * listeningInterface = "")
 {
+
+	DebugHelper::initHelper(componentType);
+
 	Mercury::EventDispatcher dispatcher;
 	Mercury::NetworkInterface networkInterface(&dispatcher, 
 		Mercury::NETWORK_INTERFACE_INTERNAL, htons(listeningPort), listeningInterface);

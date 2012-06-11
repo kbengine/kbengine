@@ -7,12 +7,16 @@ namespace KBEngine{
 KBE_SINGLETON_INIT(DebugHelper);
 
 DebugHelper dbghelper;
+log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger("default"));
+
+#define DBG_PT_SIZE 1024 * 4
+char _g_buf[DBG_PT_SIZE];
 
 #ifdef KBE_USE_ASSERTS
 void myassert(const char * exp, const char * file, unsigned int line)
 {
-    printf("assertion failed: %s, file %s, line %d\n",exp, file, line);
-    abort();
+    dbghelper.print_msg("assertion failed: %s, file %s, line %d\n", exp, file, line);
+    assert(false && exp);
 }
 #endif
 
@@ -29,6 +33,26 @@ void utf8printf(FILE *out, const char *str, ...)
 void vutf8printf(FILE *out, const char *str, va_list* ap)
 {
     vfprintf(out, str, *ap);
+}
+
+//-------------------------------------------------------------------------------------
+DebugHelper::DebugHelper():
+_logfile(NULL)
+{
+}
+
+//-------------------------------------------------------------------------------------
+DebugHelper::~DebugHelper()
+{
+}	
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::initHelper(COMPONENT_TYPE componentType)
+{
+	g_logger = log4cxx::Logger::getLogger(COMPONENT_NAME[componentType]);
+	char helpConfig[256];
+	sprintf(helpConfig, "../../res/server/log4cxx_properties/%s.properties", COMPONENT_NAME[componentType]);
+	log4cxx::PropertyConfigurator::configure(helpConfig);
 }
 
 //-------------------------------------------------------------------------------------
@@ -62,10 +86,11 @@ void DebugHelper::outTime()
 //-------------------------------------------------------------------------------------
 void DebugHelper::print_msg(const char * str, ...)
 {
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
-
-    if(!str)
+    if(str == NULL)
         return;
+
+#ifdef NO_USE_LOG4CXX
+	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
     va_list ap;
     va_start(ap, str);
@@ -83,15 +108,23 @@ void DebugHelper::print_msg(const char * str, ...)
     }
 
     fflush(stdout);
+#else
+    va_list ap;
+    va_start(ap, str);
+    _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+    va_end(ap);
+	LOG4CXX_INFO(g_logger, _g_buf);
+#endif
 }
 
 //-------------------------------------------------------------------------------------
 void DebugHelper::error_msg(const char * err, ...)
 {
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
-
-    if(!err)
+    if(err == NULL)
         return;
+
+#ifdef NO_USE_LOG4CXX
+	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
     outTime();
 	fprintf(stderr, "ERROR:");
@@ -115,15 +148,23 @@ void DebugHelper::error_msg(const char * err, ...)
     }
 
     fflush(stderr);
+#else
+    va_list ap;
+    va_start(ap, err);
+    _vsnprintf(_g_buf, DBG_PT_SIZE, err, ap);
+    va_end(ap);
+	LOG4CXX_ERROR(g_logger, _g_buf);
+#endif
 }
 
 //-------------------------------------------------------------------------------------
 void DebugHelper::info_msg(const char * info, ...)
 {
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
-
-    if(!info)
+    if(info == NULL)
         return;
+
+#ifdef NO_USE_LOG4CXX
+	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
     outTime();
 	fprintf(stdout, "INFO:");
@@ -147,15 +188,23 @@ void DebugHelper::info_msg(const char * info, ...)
     }
 
     fflush(stdout);
+#else
+    va_list ap;
+    va_start(ap, info);
+    _vsnprintf(_g_buf, DBG_PT_SIZE, info, ap);
+    va_end(ap);
+	LOG4CXX_INFO(g_logger, _g_buf);
+#endif
 }
 
 //-------------------------------------------------------------------------------------
 void DebugHelper::debug_msg(const char * str, ...)
 {
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
-
-    if(!str)
+    if(str == NULL)
         return;
+
+#ifdef NO_USE_LOG4CXX
+	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
     outTime();
 	fprintf(stdout, "DEBUG:");
@@ -179,15 +228,23 @@ void DebugHelper::debug_msg(const char * str, ...)
     }
 
     fflush(stdout);
+#else 
+    va_list ap;
+    va_start(ap, str);
+    _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+    va_end(ap);
+	LOG4CXX_DEBUG(g_logger, _g_buf);
+#endif
 }
 
 //-------------------------------------------------------------------------------------
 void DebugHelper::warning_msg(const char * str, ...)
 {
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
-
-    if(!str)
+    if(str == NULL)
         return;
+
+#ifdef NO_USE_LOG4CXX
+	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
     outTime();
 	fprintf(stdout, "WARNING:");
@@ -211,14 +268,23 @@ void DebugHelper::warning_msg(const char * str, ...)
     }
 
     fflush(stdout);
+#else
+    va_list ap;
+    va_start(ap, str);
+    _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+    va_end(ap);
+	// printf("CRITICAL:%s(%d)\n\t%s\n", _currFile.c_str(), _currLine, _g_buf);
+	LOG4CXX_WARN(g_logger, _g_buf);
+#endif
 }
 
 void DebugHelper::critical_msg(const char * str, ...)
 {
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
-
-    if(!str)
+    if(str == NULL)
         return;
+
+#ifdef NO_USE_LOG4CXX
+	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
     outTime();
 	fprintf(stdout, "CRITICAL:%s(%d)\n\t", _currFile.c_str(), _currLine);
@@ -242,6 +308,14 @@ void DebugHelper::critical_msg(const char * str, ...)
     }
 
     fflush(stdout);
+#else
+    va_list ap;
+    va_start(ap, str);
+    _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+    va_end(ap);
+	// printf("CRITICAL:%s(%d)\n\t%s\n", _currFile.c_str(), _currLine, _g_buf);
+	LOG4CXX_FATAL(g_logger, _g_buf);
+#endif
 
 	setFile("", 0);
 }
