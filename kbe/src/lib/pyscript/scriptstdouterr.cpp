@@ -17,11 +17,14 @@ SCRIPT_INIT(ScriptStdOutErr, 0, 0, 0, 0, 0)
 
 //-------------------------------------------------------------------------------------
 ScriptStdOutErr::ScriptStdOutErr():
-ScriptObject(getScriptType(), false)
+ScriptObject(getScriptType(), false),
+softspace_(0),
+sysModule_(NULL),
+prevStdout_(NULL),
+prevStderr_(NULL),
+isInstall_(false),
+sbuffer_()
 {
-	softspace_ = 0;
-	isInstall_ = false;
-	sysModule_ = prevStdout_ = prevStderr_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -53,7 +56,12 @@ PyObject* ScriptStdOutErr::flush(PyObject* self, PyObject *args)
 //-------------------------------------------------------------------------------------
 void ScriptStdOutErr::onPrint(const char* msg)
 {
-	PRINT_MSG("%s", msg);
+	sbuffer_ += msg;
+	if(msg[0] == '\n')
+	{
+		PRINT_MSG("%s", sbuffer_.c_str());
+		sbuffer_ = "";
+	}
 }
 
 //-------------------------------------------------------------------------------------

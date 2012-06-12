@@ -47,6 +47,7 @@ protected:
 	PyObject* prevStderr_;
 	PyObject* prevStdout_;
 	bool isInstall_;
+	std::string sbuffer_;
 } ;
 
 }
