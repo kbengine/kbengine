@@ -10,6 +10,18 @@ EntityApp * g_pApp = NULL;
 ScriptTimers * g_pTimers = NULL;
 
 //-------------------------------------------------------------------------------------
+ScriptTimers::ScriptTimers()
+{
+}
+
+//-------------------------------------------------------------------------------------
+ScriptTimers::~ScriptTimers()
+{
+	// DEBUG_MSG("ScriptTimers::~ScriptTimers: timers_size(%d).\n", map_.size());
+	cancelAll();
+}
+
+//-------------------------------------------------------------------------------------
 void ScriptTimers::initialize(EntityApp & app)
 {
 	KBE_ASSERT(g_pApp == NULL);

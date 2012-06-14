@@ -114,18 +114,6 @@ INLINE uint32 Entity::getSpaceID()const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE ENTITY_ID Entity::getID()const
-{ 
-	return id_; 
-}
-
-//-------------------------------------------------------------------------------------
-INLINE void Entity::setID(int id)
-{ 
-	id_ = id; 
-}
-
-//-------------------------------------------------------------------------------------
 INLINE void Entity::pChannel(Mercury::Channel* pchannel)
 { 
 	pChannel_ = pchannel; 
@@ -135,18 +123,6 @@ INLINE void Entity::pChannel(Mercury::Channel* pchannel)
 INLINE Mercury::Channel* Entity::pChannel(void)const 
 { 
 	return pChannel_; 
-}
-
-//-------------------------------------------------------------------------------------
-INLINE const char* Entity::getScriptModuleName(void)const
-{ 
-	return scriptModule_->getScriptType()->tp_name; 
-}	
-
-//-------------------------------------------------------------------------------------
-INLINE ScriptModule* Entity::getScriptModule(void)const
-{ 
-	return scriptModule_; 
 }
 
 //-------------------------------------------------------------------------------------

@@ -215,6 +215,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\entity_macro.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\entity_mailbox.hpp"
 				>
 			</File>

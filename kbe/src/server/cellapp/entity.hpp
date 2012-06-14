@@ -21,6 +21,7 @@ same license as the rest of the engine.
 #include "pyscript/scriptobject.hpp"
 #include "entitydef/datatypes.hpp"	
 #include "entitydef/entitydef.hpp"	
+#include "entitydef/entity_macro.hpp"	
 #include "server/script_timers.hpp"	
 
 //#define NDEBUG
@@ -68,6 +69,7 @@ class Entity : public script::ScriptObject
 {
 	/** 子类化 将一些py操作填充进派生类 */
 	BASE_SCRIPT_HREADER(Entity, ScriptObject)	
+	ENTITY_HEADER(Entity)
 public:
 	typedef std::map<ENTITY_ID, WitnessInfo*>	WITNESSENTITY_DETAILLEVEL_MAP;
 public:
@@ -77,27 +79,7 @@ public:
 	// 测试网络接口
 	void test(const std::string& name);
 
-	/** 
-		entity脚本初始化 
-	*/
-	void initializeScript();
 
-	/** 
-		创建这个entity的名字空间内的字典数据 
-	*/
-	void createNamespace(PyObject* dictData);
-
-	/** 
-		获得这个entity cell部分定义的指定flags所有属性的数据, 返回值是一个pyDict 
-	*/
-	PyObject* getCellDataByFlags(uint32 flags);
-
-	/** 
-		获得这个entity cell部分定义的指定详情级别的所有属性的数据 
-	*/
-	void getCellDataByDetailLevel(int8 detailLevel, 
-			MemoryStream* mstream);
-	
 	/** 
 		销毁这个entity 
 	*/
@@ -125,25 +107,9 @@ public:
 	int onScriptDelAttribute(PyObject* attr);
 	
 	/** 
-		获得脚本名称 
-	*/
-	INLINE const char* getScriptModuleName(void)const;
-	
-	/** 
-		获取这个entity的脚本模块封装对象 
-	*/
-	INLINE ScriptModule* getScriptModule(void)const;
-	
-	/** 
-		支持pickler 方法 
-	*/
-	static PyObject* __reduce_ex__(PyObject* self, 
-			PyObject* protocol);
-	
-	/** 
 		定义属性数据被改变了 
 	*/
-	void onDefDataChanged(PropertyDescription* propertyDescription, 
+	void onDefDataChanged(const PropertyDescription* propertyDescription, 
 			PyObject* pyData);
 	
 	/** 
@@ -152,13 +118,6 @@ public:
 	INLINE void pChannel(Mercury::Channel* pchannel);
 	INLINE Mercury::Channel* pChannel(void)const ;
 public:
-	/** 
-		获得entity的ID
-	*/
-	INLINE ENTITY_ID getID()const;
-	INLINE void setID(int id);
-	static PyObject* pyGetID(Entity *self, void *closure);
-
 	/** 
 		获得entity的所在space的ID
 	*/
@@ -431,9 +390,6 @@ public:
 	/** entity的一次移动完成 */
 	void onMove(PyObject* userData);
 protected:
-	ENTITY_ID								id_;								// id号码
-	ScriptModule*							scriptModule_;						// 该entity所使用的脚本模块对象
-	ScriptModule::PROPERTYDESCRIPTION_MAP*	lpPropertyDescrs_;					// 属于这个entity的属性描述
 	uint32									spaceID_;							// 这个entity所在space的ID
 	EntityMailbox*							clientMailbox_;						// 这个entity的客户端mailbox
 	EntityMailbox*							baseMailbox_;						// 这个entity的baseapp mailbox
@@ -456,7 +412,9 @@ protected:
 	float									topSpeedY_;							// entity y轴最高移动速度
 	Mercury::Channel *						pChannel_;							// 该entity的通信频道
 	ScriptTimers							scriptTimers_;
-};
+
+	};																										
+																											
 
 }
 

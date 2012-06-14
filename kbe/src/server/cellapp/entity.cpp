@@ -37,8 +37,7 @@ private:
 
 
 //-------------------------------------------------------------------------------------
-SCRIPT_METHOD_DECLARE_BEGIN(Entity)
-SCRIPT_METHOD_DECLARE("__reduce_ex__",				__reduce_ex__,					METH_VARARGS,				0)
+ENTITY_METHOD_DECLARE_BEGIN(Entity)
 SCRIPT_METHOD_DECLARE("addTimer",					pyAddTimer,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("delTimer",					pyDelTimer,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("addSpaceGeometryMapping",	pyAddSpaceGeometryMapping,		METH_VARARGS,				0)
@@ -51,13 +50,12 @@ SCRIPT_METHOD_DECLARE("navigateStep",				pyNavigateStep,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("stopMove",					pyStopMove,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInRange",			pyEntitiesInRange,				METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE_END()
+ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
 SCRIPT_MEMBER_DECLARE_END()
 
-SCRIPT_GETSET_DECLARE_BEGIN(Entity)
-SCRIPT_GET_DECLARE(	"id",							pyGetID,						0,					0)
+ENTITY_GETSET_DECLARE_BEGIN(Entity)
 SCRIPT_GET_DECLARE("spaceID",						pyGetSpaceID,					0,					0)
 SCRIPT_GET_DECLARE("base",							pyGetBaseMailbox,				0,					0)
 SCRIPT_GET_DECLARE("client",						pyGetClientMailbox,				0,					0)
@@ -68,7 +66,7 @@ SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,		0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,		0,		0)
 SCRIPT_GETSET_DECLARE("topSpeed",					pyGetTopSpeed,					pySetTopSpeed,		0,		0)
 SCRIPT_GETSET_DECLARE("topSpeedY",					pyGetTopSpeedY,					pySetTopSpeedY,		0,		0)
-SCRIPT_GETSET_DECLARE_END()
+ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
@@ -76,7 +74,7 @@ Entity::Entity(ENTITY_ID id, ScriptModule* scriptModule):
 ScriptObject(getScriptType(), true),
 id_(id),
 scriptModule_(scriptModule),
-lpPropertyDescrs_(NULL),
+lpPropertyDescrs_(getPropertyDescrsPtr()),
 spaceID_(0),
 clientMailbox_(NULL),
 baseMailbox_(NULL),
@@ -92,9 +90,8 @@ topSpeedY_(-0.1f),
 pChannel_(NULL),
 scriptTimers_()
 {
-	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
-	ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();
-	for(; iter != propertyDescrs.end(); iter++)
+	ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->begin();
+	for(; iter != lpPropertyDescrs_->end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;
 		DataType* dataType = propertyDescription->getDataType();
@@ -103,18 +100,19 @@ scriptTimers_()
 		{
 			MemoryStream* ms = propertyDescription->getDefaultVal();
 			PyObject* pyVal = dataType->createObject(ms);
-			PyObject_SetAttrString(this, propertyDescription->getName().c_str(), pyVal);
+			PyObject_SetAttrString(static_cast<PyObject*>(this), propertyDescription->getName().c_str(), pyVal);
 			Py_DECREF(pyVal);
+
+			// DEBUG_MSG("EntityBase::EntityBase: added [%s] property.\n", propertyDescription->getName().c_str());
 			if(ms)
 				ms->rpos(0);
 		}
 		else
 		{
-			ERROR_MSG("Entity::Entity: %s PropertyDescription the dataType is NULL.\n", propertyDescription->getName().c_str());
+			ERROR_MSG("EntityBase::EntityBase: %s PropertyDescription the dataType is NULL.\n", 
+				propertyDescription->getName().c_str());
 		}
 	}
-
-	lpPropertyDescrs_ = &propertyDescrs;
 	// 获得onTimer函数地址
 //	TimerFunc_ = std::tr1::bind(&Entity::onTimer, this, _1, _2);
 }
@@ -184,100 +182,6 @@ void Entity::onDestroy(void)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::initializeScript()
-{
-	// 调用脚本的__init__初始化脚本
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("__init__"), const_cast<char*>(""));
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::createNamespace(PyObject* dictData)
-{
-	if(dictData == NULL)
-		return;
-
-	if(!PyDict_Check(dictData)){
-		ERROR_MSG("Entity::createNamespace: createEntity[%s:%ld] args is not a dict.\n", getScriptModuleName(), id_);
-		return;
-	}
-	
-	PyObject *key, *value;
-	int pos = 0;
-
-	while(PyDict_Next(dictData, &pos, &key, &value))
-	{
-	    PyObject_SetAttr(this, key, value);
-	}
-
-	SCRIPT_ERROR_CHECK();
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::getCellDataByFlags(uint32 flags)
-{
-	PyObject* cellData = PyDict_New();
-	PyObject* pydict = PyObject_GetAttrString(this, "__dict__");
-
-	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
-	ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();
-	for(; iter != propertyDescrs.end(); iter++)
-	{
-		PropertyDescription* propertyDescription = iter->second;
-		if((flags & propertyDescription->getFlags()) > 0)
-		{
-			PyObject* pyVal = PyDict_GetItemString(pydict, propertyDescription->getName().c_str());
-			PyDict_SetItemString(cellData, propertyDescription->getName().c_str(), pyVal);
-		}
-	}
-
-	Py_XDECREF(pydict);
-	return cellData;
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::getCellDataByDetailLevel(int8 detailLevel, MemoryStream* mstream)
-{
-	PyObject* cellData = PyObject_GetAttrString(this, "__dict__");
-
-	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptionsByDetailLevel(detailLevel);
-	ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();
-	for(; iter != propertyDescrs.end(); iter++)
-	{
-		PropertyDescription* propertyDescription = iter->second;
-		PyObject* pyVal = PyDict_GetItemString(cellData, propertyDescription->getName().c_str());
-		(*mstream) << (uint32)propertyDescription->getUType();
-		propertyDescription->getDataType()->addToStream(mstream, pyVal);
-	}
-
-	Py_XDECREF(cellData);
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::__reduce_ex__(PyObject* self, PyObject* protocol)
-{
-	Entity* entity = static_cast<Entity*>(self);
-	PyObject* args = PyTuple_New(2);
-	PyObject* unpickleMethod = script::Pickler::getUnpickleFunc("Mailbox");
-	PyTuple_SET_ITEM(args, 0, unpickleMethod);
-	PyObject* args1 = PyTuple_New(4);
-	PyTuple_SET_ITEM(args1, 0, PyLong_FromUnsignedLong(entity->getID()));
-	PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLong(CellApp::getSingleton().componentID()));
-	PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(entity->getScriptModule()->getUType()));
-	PyTuple_SET_ITEM(args1, 3, PyLong_FromUnsignedLong(MAILBOX_TYPE_BASE));
-	PyTuple_SET_ITEM(args, 1, args1);
-
-	if(unpickleMethod == NULL){
-		Py_DECREF(args);
-		return NULL;
-	}
-	return args;
-}
-
-//-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetBaseMailbox(Entity *self, void *closure)
 { 
 	EntityMailbox* mailbox = self->getBaseMailbox();
@@ -332,19 +236,13 @@ PyObject* Entity::pyGetSpaceID(Entity *self, void *closure)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetID(Entity *self, void *closure)
-{
-	return PyLong_FromLong(self->getID()); 
-}
-
-//-------------------------------------------------------------------------------------
 int Entity::onScriptSetAttribute(PyObject* attr, PyObject* value)
 {
 	char* ccattr = wchar2char(PyUnicode_AsWideCharString(attr, NULL));
 
 	if(lpPropertyDescrs_)
 	{
-		ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = lpPropertyDescrs_->find(ccattr);
+		ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->find(ccattr);
 		if(iter != lpPropertyDescrs_->end())
 		{
 			PropertyDescription* propertyDescription = iter->second;
@@ -386,7 +284,7 @@ int Entity::onScriptDelAttribute(PyObject* attr)
 	if(lpPropertyDescrs_)
 	{
 
-		ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = lpPropertyDescrs_->find(ccattr);
+		ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->find(ccattr);
 		if(iter != lpPropertyDescrs_->end())
 		{
 			char err[255];
@@ -413,7 +311,7 @@ int Entity::onScriptDelAttribute(PyObject* attr)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onDefDataChanged(PropertyDescription* propertyDescription, PyObject* pyData)
+void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, PyObject* pyData)
 {
 	/*
 	// 如果不是一个realEntity则不理会

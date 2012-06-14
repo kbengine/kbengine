@@ -24,6 +24,9 @@ class EntityApp;
 class ScriptTimers
 {
 public:
+	ScriptTimers();
+	~ScriptTimers();
+
 	static void initialize(EntityApp & app);
 	static void finalise(EntityApp & app);
 
