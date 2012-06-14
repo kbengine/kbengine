@@ -22,7 +22,7 @@ ScriptObject::ScriptObject(PyTypeObject* pyType, bool isInitialised)
 
 	if (!isInitialised)
 	{
-		PyObject_INIT(this, pyType);
+		PyObject_INIT(static_cast<PyObject*>(this), pyType);
 	}
 }
 
@@ -31,6 +31,11 @@ ScriptObject::~ScriptObject()
 {
 	assert(this->ob_refcnt == 0);
 }
+
+PyObject* ScriptObject::tp_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
+{
+	return type->tp_alloc(type, 0); 
+};
 
 //-------------------------------------------------------------------------------------
 PyObject* ScriptObject::onScriptGetAttribute(PyObject* attr)
@@ -41,7 +46,7 @@ PyObject* ScriptObject::onScriptGetAttribute(PyObject* attr)
 //-------------------------------------------------------------------------------------
 int ScriptObject::onScriptSetAttribute(PyObject* attr, PyObject* value)
 {
-	return PyObject_GenericSetAttr(this, attr, value);
+	return PyObject_GenericSetAttr(static_cast<PyObject*>(this), attr, value);
 }
 
 //-------------------------------------------------------------------------------------

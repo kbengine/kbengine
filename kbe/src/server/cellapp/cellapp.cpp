@@ -60,12 +60,15 @@ bool CellApp::run()
 	idClient_->onAddRange(1, 500);
 	Entity* e = createEntity("Avatar", NULL);
 	registerPyObjectToScript("avatar", e);
-	PyRun_SimpleString("print ('888888888888888888888', KBEngine.avatar.id)");
+	PyRun_SimpleString("print (dir(KBEngine.avatar))");
+	PyRun_SimpleString("print ('888888888888888888888', KBEngine.avatar.id, KBEngine.avatar.name)");
 	DEBUG_MSG("kbe:python is init successfully!!! %d\n", 88);
 	SmartPointer<PyObject> testsmartpointer(::PyBytes_FromString("test"));
 	testsmartpointer.clear();
 
 	CRITICAL_MSG("hahahah %d\n", 1111);
+	unregisterPyObjectToScript("avatar");
+	entities_->destroy(e->getID());
 	return ServerApp::run();
 }
 
@@ -170,7 +173,8 @@ Entity* CellApp::createEntity(const char* entityType, PyObject* params, bool isI
 	// ³õÊ¼»¯½Å±¾
 	if(isInitializeScript)
 		entity->initializeScript();
-	
+
+	SCRIPT_ERROR_CHECK();
 	INFO_MSG("App::createEntity: new %s (%ld).\n", entityType, id);
 	return entity;
 }

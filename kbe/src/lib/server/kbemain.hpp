@@ -44,7 +44,7 @@ template <class SERVER_APP>
 int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType, 
 			 uint16 listeningPort = 0, const char * listeningInterface = "")
 {
-
+	g_componentType = componentType;
 	DebugHelper::initHelper(componentType);
 
 	Mercury::EventDispatcher dispatcher;

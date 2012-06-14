@@ -120,7 +120,7 @@ INLINE ENTITY_ID Entity::getID()const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setID(const int& id)
+INLINE void Entity::setID(int id)
 { 
 	id_ = id; 
 }

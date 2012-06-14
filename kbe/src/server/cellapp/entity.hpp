@@ -95,7 +95,7 @@ public:
 	/** 
 		获得这个entity cell部分定义的指定详情级别的所有属性的数据 
 	*/
-	void getCellDataByDetailLevel(const int8& detailLevel, 
+	void getCellDataByDetailLevel(int8 detailLevel, 
 			MemoryStream* mstream);
 	
 	/** 
@@ -156,7 +156,7 @@ public:
 		获得entity的ID
 	*/
 	INLINE ENTITY_ID getID()const;
-	INLINE void setID(const int& id);
+	INLINE void setID(int id);
 	static PyObject* pyGetID(Entity *self, void *closure);
 
 	/** 
@@ -252,9 +252,9 @@ public:
 	/** 
 		entity移动导航 
 	*/
-	bool navigateStep(Position3D& destination, float& velocity, 
-					float& maxMoveDistance, float& maxDistance, 
-					bool faceMovement, float& girth, PyObject* userData);
+	bool navigateStep(const Position3D& destination, float velocity, 
+					float maxMoveDistance, float maxDistance, 
+					bool faceMovement, float girth, PyObject* userData);
 
 	static PyObject* pyNavigateStep(PyObject* self, 
 					PyObject* args, PyObject* kwds);
@@ -269,7 +269,7 @@ public:
 	/** 
 		entity移动到某个点 
 	*/
-	bool moveToPoint(Position3D& destination, float& velocity, 
+	bool moveToPoint(const Position3D& destination, float velocity, 
 			PyObject* userData, bool faceMovement, bool moveVertically);
 	
 	static PyObject* pyMoveToPoint(PyObject* self, 
@@ -333,7 +333,7 @@ public:
 	/** 
 		自身被一个观察者观察到了 
 	*/
-	void onWitnessed(Entity* entity, const float& range);
+	void onWitnessed(Entity* entity, float range);
 
 	/** 
 		移除一个观察自身的观察者 
@@ -366,7 +366,7 @@ public:
 	/** 
 		更新witness的状态 
 	*/
-	void onUpdateWitness(Entity* entity, const float& range);
+	void onUpdateWitness(Entity* entity, float range);
 
 	/** 
 		一个新进入视野范围的entity 
@@ -386,8 +386,8 @@ public:
 	/** 
 		一个entity因为移动改变了它在本entity的detailLevel的级别 
 	*/
-	void onEntityDetailLevelChanged(WitnessInfo* witnessInfo, 
-		const int8& oldDetailLevel, const int8& newDetailLevel);
+	void onEntityDetailLevelChanged(const WitnessInfo* witnessInfo, 
+		int8 oldDetailLevel, int8 newDetailLevel);
 	
 
 	/** 
@@ -401,27 +401,27 @@ public:
 	/** 
 		删除一个陷阱 
 	*/
-	void delProximity(const uint16& id);
+	void delProximity(uint16 id);
 	static PyObject* pyDelProximity(PyObject* self, 
 		PyObject* args, PyObject* kwds);
 
 	/** 
 		一个entity进入了这个entity的某个陷阱 
 	*/
-	void onEnterTrap(Entity* entity, const float& range, 
-							const int& controllerID);
+	void onEnterTrap(Entity* entity, float range, 
+							int controllerID);
 
 	/** 
 		一个entity离开了这个entity的某个陷阱 
 	*/
-	void onLeaveTrap(Entity* entity, const float& range, 
-							const int& controllerID);
+	void onLeaveTrap(Entity* entity, float range, 
+							int controllerID);
 
 	/** 
 		当entity跳到一个新的space上去后，离开陷阱陷阱事件将触发这个接口 
 	*/
-	void onLeaveTrapID(const ENTITY_ID& entityID, 
-					const float& range, const int& controllerID);
+	void onLeaveTrapID(ENTITY_ID entityID, 
+							float range, int controllerID);
 
 	/** 
 		获得陷阱管理器 

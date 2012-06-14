@@ -239,7 +239,7 @@ PyObject* Entity::getCellDataByFlags(uint32 flags)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::getCellDataByDetailLevel(const int8& detailLevel, MemoryStream* mstream)
+void Entity::getCellDataByDetailLevel(int8 detailLevel, MemoryStream* mstream)
 {
 	PyObject* cellData = PyObject_GetAttrString(this, "__dict__");
 
@@ -547,7 +547,7 @@ PyObject* Entity::pyDestroyEntity(PyObject* self, PyObject* args, PyObject* kwds
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onWitnessed(Entity* entity, const float& range)
+void Entity::onWitnessed(Entity* entity, float range)
 {/*
 	int8 detailLevel = scriptModule_->getDetailLevel().getLevelByRange(range);
 	WitnessInfo* info = new WitnessInfo(detailLevel, entity, range);
@@ -605,7 +605,7 @@ void Entity::onRemoveWitness(Entity* entity)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onUpdateWitness(Entity* entity, const float& range)
+void Entity::onUpdateWitness(Entity* entity, float range)
 {/*
 	ENTITY_ID id = entity->getID();
 	WITNESSENTITY_DETAILLEVEL_MAP::iterator iter = witnessEntityDetailLevelMap_.find(id);
@@ -693,7 +693,7 @@ void Entity::onEntityInitDetailLevel(Entity* entity, int8 detailLevel)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onEntityDetailLevelChanged(WitnessInfo* witnessInfo, const int8& oldDetailLevel, const int8& newDetailLevel)
+void Entity::onEntityDetailLevelChanged(const WitnessInfo* witnessInfo, int8 oldDetailLevel, int8 newDetailLevel)
 {/*
 	// 自身没有客户端部分则无需做相关操作
 	if(!scriptModule_->hasClient())
@@ -826,7 +826,7 @@ PyObject* Entity::pyAddProximity(PyObject* self, PyObject* args, PyObject* kwds)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::delProximity(const uint16& id)
+void Entity::delProximity(uint16 id)
 {
 //	if(!trapMgr_.delProximity(id))
 //		ERROR_MSG("Entity::delProximity: not found proximity %ld.\n", id);
@@ -861,7 +861,7 @@ PyObject* Entity::pyDelProximity(PyObject* self, PyObject* args, PyObject* kwds)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onEnterTrap(Entity* entity, const float& range, const int& controllerID)
+void Entity::onEnterTrap(Entity* entity, float range, int controllerID)
 {
 	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onEnterTrap"), 
 					const_cast<char*>("Ofi"), entity, range, controllerID);
@@ -873,7 +873,7 @@ void Entity::onEnterTrap(Entity* entity, const float& range, const int& controll
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onLeaveTrap(Entity* entity, const float& range, const int& controllerID)
+void Entity::onLeaveTrap(Entity* entity, float range, int controllerID)
 {
 	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLeaveTrap"), 
 			const_cast<char*>("Ofi"), entity, range, controllerID);
@@ -885,7 +885,7 @@ void Entity::onLeaveTrap(Entity* entity, const float& range, const int& controll
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onLeaveTrapID(const ENTITY_ID& entityID, const float& range, const int& controllerID)
+void Entity::onLeaveTrapID(ENTITY_ID entityID, float range, int controllerID)
 {
 	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLeaveTrapID"), 
 	const_cast<char*>("kfi"), entityID, range, controllerID);
@@ -1130,8 +1130,8 @@ PyObject* Entity::pySetAoiRadius(PyObject* self, PyObject* args, PyObject* kwds)
 }
 
 //-------------------------------------------------------------------------------------
-bool Entity::navigateStep(Position3D& destination, float& velocity, float& maxMoveDistance, float& maxDistance, 
-	bool faceMovement, float& girth, PyObject* userData)
+bool Entity::navigateStep(const Position3D& destination, float velocity, float maxMoveDistance, float maxDistance, 
+	bool faceMovement, float girth, PyObject* userData)
 {
 	DEBUG_MSG("Entity[%s:%d]:destination=(%f,%f,%f), velocity=%f, maxMoveDistance=%f, "
 		"maxDistance=%f, faceMovement=%d, girth=%f, userData=%x.\n",
@@ -1171,7 +1171,9 @@ PyObject* Entity::pyNavigateStep(PyObject* self, PyObject* args, PyObject* kwds)
 	}
 	
 	Py_INCREF(userData);
-	if(entity->navigateStep(destination, velocity, maxMoveDistance, maxDistance, faceMovement > 0, girth, userData)){
+	if(entity->navigateStep(destination, velocity, maxMoveDistance, 
+		maxDistance, faceMovement > 0, girth, userData))
+	{
 		Py_RETURN_TRUE;
 	}
 	
@@ -1179,7 +1181,8 @@ PyObject* Entity::pyNavigateStep(PyObject* self, PyObject* args, PyObject* kwds)
 }
 
 //-------------------------------------------------------------------------------------
-bool Entity::moveToPoint(Position3D& destination, float& velocity, PyObject* userData, bool faceMovement, bool moveVertically)
+bool Entity::moveToPoint(const Position3D& destination, float velocity, PyObject* userData, 
+						 bool faceMovement, bool moveVertically)
 {
 //	EntityMoveControllerMgr::addMovement(id_, new EntityMoveToPointController(this, destination, velocity, userData, faceMovement, moveVertically));
 	return true;

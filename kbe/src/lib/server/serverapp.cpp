@@ -15,7 +15,6 @@ mainDispatcher_(dispatcher),
 networkInterface_(ninterface),
 time_(0)
 {
-	g_componentType = componentType;
 	networkInterface_.pExtensionData(this);
 }
 

@@ -59,6 +59,12 @@ int EntityApp::registerPyObjectToScript(const char* attrName, PyObject* pyObj)
 }
 
 //-------------------------------------------------------------------------------------
+int EntityApp::unregisterPyObjectToScript(const char* attrName)
+{ 
+	return script_.unregisterToModule(attrName); 
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityApp::installPyScript()
 {
 	std::wstring pyPaths = L"../../../demo/res/scripts/common;";

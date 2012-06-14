@@ -43,7 +43,8 @@ public:
 	
 	void registerScript(PyTypeObject*);
 	int registerPyObjectToScript(const char* attrName, PyObject* pyObj);
-	
+	int unregisterPyObjectToScript(const char* attrName);
+
 	bool installPyScript();
 	virtual bool installPyModules();
 	virtual bool uninstallPyModules();

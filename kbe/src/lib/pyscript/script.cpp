@@ -182,6 +182,12 @@ int Script::registerToModule(const char* attrName, PyObject* pyObj)
 }
 
 //-------------------------------------------------------------------------------------
+int Script::unregisterToModule(const char* attrName)
+{
+	return PyObject_DelAttrString(module_, attrName);
+}
+
+//-------------------------------------------------------------------------------------
 void Script::acquireLock()
 {
 #ifndef KBE_SINGLE_THREADED

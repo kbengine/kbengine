@@ -214,6 +214,19 @@ public:																						\
 	{																						\
 		return &_scriptType;																\
 	}																						\
+	static PyTypeObject* getBaseScriptType(void)											\
+	{																						\
+		if(strcmp("ScriptObject", #SUPERCLASS) == 0)										\
+			return 0;																		\
+		return SUPERCLASS::getScriptType();													\
+	}																						\
+																							\
+	static long calcDictOffset(void)														\
+	{																						\
+		if(strcmp("ScriptObject", #SUPERCLASS) == 0)										\
+			return 0;																		\
+		return -(long)sizeof(PyObject *) - SUPERCLASS::calcDictOffset();					\
+	}																						\
 																							\
 	static std::string getScriptName(void)													\
 	{																						\
@@ -408,18 +421,18 @@ public:																						\
 		0,														/* tp_methods         */	\
 		0,														/* tp_members         */	\
 		0,														/* tp_getset          */	\
-		0,														/* tp_base            */	\
+		CLASS::getBaseScriptType(),								/* tp_base            */	\
 		0,														/* tp_dict            */	\
 		0,														/* tp_descr_get       */	\
 		0,														/* tp_descr_set       */	\
-		0,														/* tp_dictoffset      */	\
+		CLASS::calcDictOffset(),								/* tp_dictoffset      */	\
 		(initproc)CLASS::_tp_init,								/* tp_init            */	\
 		0,														/* tp_alloc           */	\
 		CLASS::_tp_new,											/* tp_new             */	\
 		PyObject_GC_Del,										/* tp_free            */	\
 	};																						\
 
-// BASE_SCRIPT_HREADER基础类脚本初始化
+// BASE_SCRIPT_HREADER基础类脚本初始化, 该类由脚本继承
 #define BASE_SCRIPT_INIT(CLASS, CALL, SEQ, MAP, ITER, ITERNEXT)								\
 	PyMethodDef* CLASS::_##CLASS##_lpScriptmethods = NULL;									\
 	PyMemberDef* CLASS::_##CLASS##_lpScriptmembers = NULL;									\
@@ -457,11 +470,11 @@ public:																						\
 		0,														/* tp_methods         */	\
 		0,														/* tp_members         */	\
 		0,														/* tp_getset          */	\
-		0,														/* tp_base            */	\
+		CLASS::getBaseScriptType(),								/* tp_base            */	\
 		0,														/* tp_dict            */	\
 		0,														/* tp_descr_get       */	\
 		0,														/* tp_descr_set       */	\
-		0,														/* tp_dictoffset      */	\
+		CLASS::calcDictOffset(),								/* tp_dictoffset      */	\
 		0,														/* tp_init            */	\
 		0,														/* tp_alloc           */	\
 		0,														/* tp_new             */	\
@@ -519,7 +532,7 @@ public:
 	PyObject* tp_str();
 
 	/** 脚本请求创建一个该对象 */
-	static PyObject* tp_new(PyTypeObject* type, PyObject* args, PyObject* kwds){ return type->tp_alloc(type, 0); };
+	static PyObject* tp_new(PyTypeObject* type, PyObject* args, PyObject* kwds);
 
 	/** 脚本请求获取属性或者方法 */
 	PyObject* onScriptGetAttribute(PyObject* attr);						
