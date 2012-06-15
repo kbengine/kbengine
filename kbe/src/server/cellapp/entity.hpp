@@ -92,21 +92,6 @@ public:
 	INLINE bool isReal(void)const;
 	
 	/** 
-		脚本请求设置属性或者方法 
-	*/
-	int onScriptSetAttribute(PyObject* attr, PyObject * value);	
-	
-	/** 
-		脚本请求获取属性或者方法 
-	*/
-	PyObject* onScriptGetAttribute(PyObject* attr);	
-			
-	/** 
-		脚本请求删除一个属性 
-	*/
-	int onScriptDelAttribute(PyObject* attr);
-	
-	/** 
 		定义属性数据被改变了 
 	*/
 	void onDefDataChanged(const PropertyDescription* propertyDescription, 

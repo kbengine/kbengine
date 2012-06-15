@@ -84,6 +84,9 @@ public:
 	PropertyDescription* findBasePropertyDescription(const uint32& utype);
 	PropertyDescription* findClientPropertyDescription(const uint32& utype);
 
+	PropertyDescription* findPropertyDescription(const char* attrName, COMPONENT_TYPE componentType);
+	PropertyDescription* findPropertyDescription(uint32 utype, COMPONENT_TYPE componentType);
+
 	PROPERTYDESCRIPTION_MAP& getCellPropertyDescriptions(){ return cellPropertyDescr_; }
 	PROPERTYDESCRIPTION_MAP& getCellPropertyDescriptionsByDetailLevel(const int8& detailLevel){ return cellDetailLevelPropertyDescrs_[detailLevel]; }
 	PROPERTYDESCRIPTION_MAP& getBasePropertyDescriptions(){ return basePropertyDescr_; }
@@ -92,7 +95,8 @@ public:
 	PROPERTYDESCRIPTION_UIDMAP& getBasePropertyDescriptions_uidmap(){ return basePropertyDescr_uidmap_; }
 	PROPERTYDESCRIPTION_UIDMAP& getClientPropertyDescriptions_uidmap(){ return clientPropertyDescr_uidmap_; }
 
-	bool addPropertyDescription(const char* attrName, PropertyDescription* propertyDescription, COMPONENT_TYPE propertyType);
+	ScriptModule::PROPERTYDESCRIPTION_MAP& getPropertyDescrs();
+	bool addPropertyDescription(const char* attrName, PropertyDescription* propertyDescription, COMPONENT_TYPE componentType);
 
 	
 	MethodDescription* findCellMethodDescription(const char* attrName);
@@ -109,6 +113,10 @@ public:
 	MethodDescription* findClientMethodDescription(uint32 utype);
 	bool addClientMethodDescription(const char* attrName, MethodDescription* methodDescription);
 	METHODDESCRIPTION_MAP& getClientMethodDescriptions(void){ return methodClientDescr_; }		
+
+	MethodDescription* findMethodDescription(const char* attrName, COMPONENT_TYPE componentType);
+	MethodDescription* findMethodDescription(uint32 utype, COMPONENT_TYPE componentType);
+
 protected:
 	PyTypeObject*						scriptType_;							// 脚本类别
 	uint16								uType_;									// 数字类别  主要用于方便查找和网络间传输识别这个脚本模块

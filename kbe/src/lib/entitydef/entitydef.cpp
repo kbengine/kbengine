@@ -95,13 +95,14 @@ PyObject* ScriptModule::getInitDict(void)
 }
 
 //-------------------------------------------------------------------------------------
-bool ScriptModule::addPropertyDescription(const char* attrName, PropertyDescription* propertyDescription, COMPONENT_TYPE propertyType)
+bool ScriptModule::addPropertyDescription(const char* attrName, 
+										  PropertyDescription* propertyDescription, COMPONENT_TYPE componentType)
 {
 	PropertyDescription* f_propertyDescription = NULL;
 	PROPERTYDESCRIPTION_MAP*  propertyDescr;
 	PROPERTYDESCRIPTION_UIDMAP*  propertyDescr_uidmap;
 
-	switch(propertyType)
+	switch(componentType)
 	{
 	case CELLAPP_TYPE:
 			f_propertyDescription = findCellPropertyDescription(attrName);
@@ -127,7 +128,7 @@ bool ScriptModule::addPropertyDescription(const char* attrName, PropertyDescript
 
 	if(f_propertyDescription)
 	{
-		ERROR_MSG("ScriptModule::addPropertyDescription: [%s] is exist! propertyType=%d.\n", attrName, propertyType);
+		ERROR_MSG("ScriptModule::addPropertyDescription: [%s] is exist! componentType=%d.\n", attrName, componentType);
 		return false;
 	}
 
@@ -213,6 +214,82 @@ PropertyDescription* ScriptModule::findClientPropertyDescription(const uint32& u
 	}
 
 	return iter->second;
+}
+
+//-------------------------------------------------------------------------------------
+PropertyDescription* ScriptModule::findPropertyDescription(const char* attrName, COMPONENT_TYPE componentType)
+{
+	switch(componentType)
+	{
+	case CELLAPP_TYPE:
+			return findCellPropertyDescription(attrName);
+			break;
+	case BASEAPP_TYPE:
+			return findBasePropertyDescription(attrName);
+			break;
+	default:
+			return findClientPropertyDescription(attrName);
+			break;
+	};
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+PropertyDescription* ScriptModule::findPropertyDescription(uint32 utype, COMPONENT_TYPE componentType)
+{
+	switch(componentType)
+	{
+	case CELLAPP_TYPE:
+			return findCellPropertyDescription(utype);
+			break;
+	case BASEAPP_TYPE:
+			return findBasePropertyDescription(utype);
+			break;
+	default:
+			return findClientPropertyDescription(utype);
+			break;
+	};
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+MethodDescription* ScriptModule::findMethodDescription(const char* attrName, COMPONENT_TYPE componentType)
+{
+	switch(componentType)
+	{
+	case CELLAPP_TYPE:
+			return findCellMethodDescription(attrName);
+			break;
+	case BASEAPP_TYPE:
+			return findBaseMethodDescription(attrName);
+			break;
+	default:
+			return findClientMethodDescription(attrName);
+			break;
+	};
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+MethodDescription* ScriptModule::findMethodDescription(uint32 utype, COMPONENT_TYPE componentType)
+{
+	switch(componentType)
+	{
+	case CELLAPP_TYPE:
+			return findCellMethodDescription(utype);
+			break;
+	case BASEAPP_TYPE:
+			return findBaseMethodDescription(utype);
+			break;
+	default:
+			return findClientMethodDescription(utype);
+			break;
+	};
+
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -331,6 +408,26 @@ bool ScriptModule::addClientMethodDescription(const char* attrName, MethodDescri
 	methodClientDescr_uidmap_[methodDescription->getUType()] = methodDescription;
 	return true;
 }
+
+ScriptModule::PROPERTYDESCRIPTION_MAP& ScriptModule::getPropertyDescrs()										
+{																										
+	ScriptModule::PROPERTYDESCRIPTION_MAP* lpPropertyDescrs = NULL;										
+																										
+	switch(g_componentType)																				
+	{																									
+		case CELLAPP_TYPE:																				
+			lpPropertyDescrs = &getCellPropertyDescriptions();							
+			break;																						
+		case BASEAPP_TYPE:																				
+			lpPropertyDescrs = &getBasePropertyDescriptions();							
+			break;																						
+		default:																						
+			lpPropertyDescrs = &getClientPropertyDescriptions();							
+			break;																						
+	};																									
+																									
+	return *lpPropertyDescrs;																			
+}																										
 
 //-------------------------------------------------------------------------------------
 EntityDef::EntityDef()

@@ -72,9 +72,7 @@ BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)
 //-------------------------------------------------------------------------------------
 Entity::Entity(ENTITY_ID id, ScriptModule* scriptModule):
 ScriptObject(getScriptType(), true),
-id_(id),
-scriptModule_(scriptModule),
-lpPropertyDescrs_(getPropertyDescrsPtr()),
+ENTITY_CONSTRUCTION(Entity),
 spaceID_(0),
 clientMailbox_(NULL),
 baseMailbox_(NULL),
@@ -90,29 +88,8 @@ topSpeedY_(-0.1f),
 pChannel_(NULL),
 scriptTimers_()
 {
-	ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->begin();
-	for(; iter != lpPropertyDescrs_->end(); iter++)
-	{
-		PropertyDescription* propertyDescription = iter->second;
-		DataType* dataType = propertyDescription->getDataType();
-		
-		if(dataType)
-		{
-			MemoryStream* ms = propertyDescription->getDefaultVal();
-			PyObject* pyVal = dataType->createObject(ms);
-			PyObject_SetAttrString(static_cast<PyObject*>(this), propertyDescription->getName().c_str(), pyVal);
-			Py_DECREF(pyVal);
+	ENTITY_INIT_PROPERTYS(Entity);
 
-			// DEBUG_MSG("EntityBase::EntityBase: added [%s] property.\n", propertyDescription->getName().c_str());
-			if(ms)
-				ms->rpos(0);
-		}
-		else
-		{
-			ERROR_MSG("EntityBase::EntityBase: %s PropertyDescription the dataType is NULL.\n", 
-				propertyDescription->getName().c_str());
-		}
-	}
 	// 获得onTimer函数地址
 //	TimerFunc_ = std::tr1::bind(&Entity::onTimer, this, _1, _2);
 }
@@ -120,8 +97,7 @@ scriptTimers_()
 //-------------------------------------------------------------------------------------
 Entity::~Entity()
 {
-	DEBUG_MSG("Entity::~Entity(): %s %ld\n", getScriptModuleName(), id_);
-	scriptModule_ = NULL;
+	ENTITY_DECONSTRUCTION(Entity);
 }	
 
 //-------------------------------------------------------------------------------------
@@ -233,81 +209,6 @@ int Entity::pySetTopSpeed(Entity *self, PyObject *value, void *closure)
 PyObject* Entity::pyGetSpaceID(Entity *self, void *closure)
 { 
 	return PyLong_FromLong(self->getSpaceID()); 
-}
-
-//-------------------------------------------------------------------------------------
-int Entity::onScriptSetAttribute(PyObject* attr, PyObject* value)
-{
-	char* ccattr = wchar2char(PyUnicode_AsWideCharString(attr, NULL));
-
-	if(lpPropertyDescrs_)
-	{
-		ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->find(ccattr);
-		if(iter != lpPropertyDescrs_->end())
-		{
-			PropertyDescription* propertyDescription = iter->second;
-			DataType* dataType = propertyDescription->getDataType();
-			
-			if(!dataType->isSameType(value)){
-				delete ccattr;
-				return 0;
-			}
-			else
-			{
-				int result = propertyDescription->onSetValue(this, value);
-				
-				// 如果def属性数据有改变， 那么可能需要广播
-				if(result != -1)
-					onDefDataChanged(propertyDescription, value);
-				
-				delete ccattr;
-				return result;
-			}
-		}
-	}
-
-	delete ccattr;
-	return ScriptObject::onScriptSetAttribute(attr, value);
-}
-
-//-------------------------------------------------------------------------------------
-PyObject * Entity::onScriptGetAttribute(PyObject* attr)
-{
-	return ScriptObject::onScriptGetAttribute(attr);
-}
-
-//-------------------------------------------------------------------------------------
-int Entity::onScriptDelAttribute(PyObject* attr)
-{
-	char* ccattr = wchar2char(PyUnicode_AsWideCharString(attr, NULL));
-
-	if(lpPropertyDescrs_)
-	{
-
-		ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->find(ccattr);
-		if(iter != lpPropertyDescrs_->end())
-		{
-			char err[255];
-			sprintf((char*)&err, "property[%s] is in [%s] def. can't to del.", ccattr, getScriptModuleName());
-			PyErr_SetString(PyExc_TypeError, err);			
-			PyErr_PrintEx(0);
-			delete ccattr;
-			return 0;
-		}
-	}
-
-	if(scriptModule_->findCellMethodDescription(ccattr) != NULL)
-	{
-		char err[255];
-		sprintf((char*)&err, "method[%s] is in [%s] def. can't to del.", ccattr, getScriptModuleName());
-		PyErr_SetString(PyExc_TypeError, err);			
-		PyErr_PrintEx(0);
-		delete ccattr;
-		return 0;
-	}
-	
-	delete ccattr;
-	return ScriptObject::onScriptDelAttribute(attr);
 }
 
 //-------------------------------------------------------------------------------------
