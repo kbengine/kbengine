@@ -513,6 +513,14 @@ public:																						\
 #define SCRIPT_SET_DECLARE(NAME, GET, DOC, CLOSURE)									{const_cast<char*>(NAME), (getter)GET, (setter)__py_writeonly_descr, DOC, CLOSURE},
 #define SCRIPT_GETSET_DECLARE_END()													{NULL, NULL, NULL, NULL, NULL}};
 
+/* 声明一个脚本get方法 */
+#define DECLARE_PY_GET_MOTHOD(MNAME)												\
+	PyObject* MNAME();																\
+	static PyObject* py##MNAME(PyObject *self, void *closure)						\
+	{																				\
+		return static_cast<ThisClass*>(self)->MNAME();								\
+	}																				\
+
 
 class ScriptObject: public PyObject
 {

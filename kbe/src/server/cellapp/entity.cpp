@@ -56,12 +56,11 @@ SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
 SCRIPT_MEMBER_DECLARE_END()
 
 ENTITY_GETSET_DECLARE_BEGIN(Entity)
-SCRIPT_GET_DECLARE("spaceID",						pyGetSpaceID,					0,					0)
-SCRIPT_GET_DECLARE("base",							pyGetBaseMailbox,				0,					0)
-SCRIPT_GET_DECLARE("client",						pyGetClientMailbox,				0,					0)
-SCRIPT_GET_DECLARE("isDestroyed",					pyGetIsDestroyed,				0,					0)
-SCRIPT_GET_DECLARE("isWitnessed",					pyIsWitnessed,					0,					0)
-SCRIPT_GET_DECLARE("hasWitness",					pyHasWitness,					0,					0)
+SCRIPT_GET_DECLARE("base",							pypyGetBaseMailbox,				0,					0)
+SCRIPT_GET_DECLARE("client",						pypyGetClientMailbox,			0,					0)
+SCRIPT_GET_DECLARE("isDestroyed",					pypyGetIsDestroyed,				0,					0)
+SCRIPT_GET_DECLARE("isWitnessed",					pypyIsWitnessed,				0,					0)
+SCRIPT_GET_DECLARE("hasWitness",					pypyHasWitness,					0,					0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,		0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,		0,		0)
 SCRIPT_GETSET_DECLARE("topSpeed",					pyGetTopSpeed,					pySetTopSpeed,		0,		0)
@@ -158,9 +157,9 @@ void Entity::onDestroy(void)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetBaseMailbox(Entity *self, void *closure)
+PyObject* Entity::pyGetBaseMailbox()
 { 
-	EntityMailbox* mailbox = self->getBaseMailbox();
+	EntityMailbox* mailbox = getBaseMailbox();
 	if(mailbox == NULL)
 		S_Return;
 
@@ -169,9 +168,9 @@ PyObject* Entity::pyGetBaseMailbox(Entity *self, void *closure)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetClientMailbox(Entity *self, void *closure)
+PyObject* Entity::pyGetClientMailbox()
 { 
-	EntityMailbox* mailbox = self->getClientMailbox();
+	EntityMailbox* mailbox = getClientMailbox();
 	if(mailbox == NULL)
 		S_Return;
 
@@ -203,12 +202,6 @@ int Entity::pySetTopSpeed(Entity *self, PyObject *value, void *closure)
 { 
 	self->setTopSpeed(float(PyFloat_AsDouble(PySequence_GetItem(value, 0)))); 
 	return 0; 
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetSpaceID(Entity *self, void *closure)
-{ 
-	return PyLong_FromLong(self->getSpaceID()); 
 }
 
 //-------------------------------------------------------------------------------------
@@ -326,9 +319,9 @@ PyObject* Entity::pyIsReal(PyObject* self, PyObject* args, PyObject* kwds)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetIsDestroyed(Entity *self, void *closure)
+PyObject* Entity::pyGetIsDestroyed()
 {
-	return PyBool_FromLong(self->isDestroyed());
+	return PyBool_FromLong(isDestroyed());
 }
 
 //-------------------------------------------------------------------------------------
@@ -569,15 +562,15 @@ void Entity::onLoseWitness(void)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyIsWitnessed(Entity *self, void *closure)
+PyObject* Entity::pyIsWitnessed()
 {
-	return PyBool_FromLong(self->isWitnessed());
+	return PyBool_FromLong(isWitnessed());
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyHasWitness(Entity *self, void *closure)
+PyObject* Entity::pyHasWitness()
 {
-	return PyBool_FromLong(self->hasWitness());
+	return PyBool_FromLong(hasWitness());
 }
 
 //-------------------------------------------------------------------------------------

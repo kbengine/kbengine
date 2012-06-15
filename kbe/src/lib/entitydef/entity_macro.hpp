@@ -25,6 +25,7 @@ namespace KBEngine{
 #define ENTITY_GETSET_DECLARE_BEGIN(CLASS)																	\
 	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
 	SCRIPT_GET_DECLARE(	"id",				pyGetID,						0,						0)		\
+	SCRIPT_GET_DECLARE("spaceID",			pyGetSpaceID,					0,						0)		\
 
 
 #define ENTITY_GETSET_DECLARE_END()																			\
@@ -145,6 +146,19 @@ public:																										\
 		id_ = id; 																							\
 	}																										\
 																											\
+	inline uint32 getSpaceID()const																			\
+	{																										\
+		return spaceID_;																					\
+	}																										\
+	inline void setSpaceID(int id)																			\
+	{																										\
+		spaceID_ = id;																						\
+	}																										\
+	static PyObject* pyGetSpaceID(Entity *self, void *closure)												\
+	{																										\
+		return PyLong_FromLong(self->getSpaceID());															\
+	}																										\
+																											\
 	inline const char* getScriptModuleName(void)const														\
 	{																										\
 		return scriptModule_->getScriptType()->tp_name; 													\
@@ -235,7 +249,7 @@ public:																										\
 	lpPropertyDescrs_(&scriptModule->getPropertyDescrs())													\
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
-	INFO_MSG(#CLASS"::("#CLASS"): %s %ld\n", getScriptModuleName(), id_);									\
+	INFO_MSG(#CLASS"::~"#CLASS"(): %s %ld\n", getScriptModuleName(), id_);									\
 	scriptModule_ = NULL;																					\
 
 

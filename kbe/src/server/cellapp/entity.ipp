@@ -102,18 +102,6 @@ INLINE EntityMailbox* Entity::getClientMailbox()const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setSpaceID(int id)
-{ 
-	spaceID_ = id; 
-}
-
-//-------------------------------------------------------------------------------------
-INLINE uint32 Entity::getSpaceID()const
-{ 
-	return spaceID_; 
-}
-
-//-------------------------------------------------------------------------------------
 INLINE void Entity::pChannel(Mercury::Channel* pchannel)
 { 
 	pChannel_ = pchannel; 

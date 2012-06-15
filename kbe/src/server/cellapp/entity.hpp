@@ -104,13 +104,6 @@ public:
 	INLINE Mercury::Channel* pChannel(void)const ;
 public:
 	/** 
-		获得entity的所在space的ID
-	*/
-	INLINE uint32 getSpaceID()const;
-	INLINE void setSpaceID(int id);
-	static PyObject* pyGetSpaceID(Entity *self, void *closure);
-
-	/** 
 		脚本请求销毁实体
 	*/
 	void destroyEntity(void);
@@ -121,11 +114,11 @@ public:
 		mailbox section
 	*/
 	INLINE EntityMailbox* getBaseMailbox()const;
-	static PyObject* pyGetBaseMailbox(Entity *self, void *closure);
+	DECLARE_PY_GET_MOTHOD(pyGetBaseMailbox);
 	INLINE void setBaseMailbox(EntityMailbox* mailbox);
 	
 	INLINE EntityMailbox* getClientMailbox()const;
-	static PyObject* pyGetClientMailbox(Entity *self, void *closure);
+	DECLARE_PY_GET_MOTHOD(pyGetClientMailbox);
 	INLINE void setClientMailbox(EntityMailbox* mailbox);
 
 	/** 
@@ -191,7 +184,7 @@ public:
 		脚本获得当前entity是否为将要销毁的entity 
 	*/
 	INLINE bool isDestroyed();
-	static PyObject* pyGetIsDestroyed(Entity *self, void *closure);
+	DECLARE_PY_GET_MOTHOD(pyGetIsDestroyed);
 	
 	/** 
 		entity移动导航 
@@ -266,13 +259,13 @@ public:
 		是否被任何proxy监视到, 如果这个entity没有客户端， 则这个值有效 
 	*/
 	INLINE bool isWitnessed(void)const;
-	static PyObject* pyIsWitnessed(Entity *self, void *closure);
+	DECLARE_PY_GET_MOTHOD(pyIsWitnessed);
 
 	/** 
 		entity是否是一个观察者 
 	*/
 	INLINE bool hasWitness(void)const;
-	static PyObject* pyHasWitness(Entity *self, void *closure);
+	DECLARE_PY_GET_MOTHOD(pyHasWitness);
 
 	/** 
 		自身被一个观察者观察到了 
