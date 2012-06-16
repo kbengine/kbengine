@@ -74,6 +74,7 @@ same license as the rest of the engine.
 #define __SCRIPTOBJECT_H__
 #include <vector>	
 #include "Python.h"     
+#include "pyattr_macro.hpp"     
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include <structmember.h>
@@ -487,54 +488,6 @@ public:																						\
 		0,														/* tp_weaklist        */	\
 		0,														/* tp_del			  */	\
 	};																						\
-			
-/** 定义暴露给脚本的方法宏
-*/
-#define SCRIPT_METHOD_DECLARE_BEGIN(CLASS)											PyMethodDef CLASS::_##CLASS##_scriptMethods[] = {			
-#define SCRIPT_METHOD_DECLARE(METHOD_NAME, METHOD_FUNC, FLAGS, DOC)					{METHOD_NAME, (PyCFunction)&METHOD_FUNC, FLAGS, DOC},
-#define SCRIPT_METHOD_DECLARE_END()													{NULL, NULL, 0, NULL}};
-
-// 向模块追加方法
-#define APPEND_SCRIPT_MODULE_METHOD(MODULE, NAME, FUNC, FLAGS, SELF)						\
-	static PyMethodDef __pymethod_NAME = {#NAME, (PyCFunction) FUNC, FLAGS, NULL};			\
-	PyModule_AddObject(MODULE, #NAME, PyCFunction_New(&__pymethod_##NAME, SELF));
-
-/** 定义暴露给脚本的属性宏
-*/
-#define SCRIPT_MEMBER_DECLARE_BEGIN(CLASS)											PyMemberDef CLASS::_##CLASS##_scriptMembers[] =	{
-#define SCRIPT_MEMBER_DECLARE(MEMBER_NAME, MEMBER_REF, MEMBER_TYPE, FLAGS, DOC)		{const_cast<char*>(MEMBER_NAME), MEMBER_TYPE, offsetof(ThisClass, MEMBER_REF), FLAGS, DOC},
-#define SCRIPT_MEMBER_DECLARE_END()													{NULL, NULL, NULL, NULL, NULL}};
-
-/** 定义暴露给脚本的getset属性宏
-*/
-#define SCRIPT_GETSET_DECLARE_BEGIN(CLASS)											PyGetSetDef CLASS::_##CLASS##_scriptGetSeters[] =	{
-#define SCRIPT_GETSET_DECLARE(NAME, GET, SET, DOC, CLOSURE)							{const_cast<char*>(NAME), (getter)__pyget_##GET, (setter)__pyset_##SET, DOC, CLOSURE},
-#define SCRIPT_GET_DECLARE(NAME, GET, DOC, CLOSURE)									{const_cast<char*>(NAME), (getter)__pyget_##GET, (setter)__py_readonly_descr, DOC, CLOSURE},
-#define SCRIPT_SET_DECLARE(NAME, SET, DOC, CLOSURE)									{const_cast<char*>(NAME), (getter)__pyset_##SET, (setter)__py_writeonly_descr, DOC, CLOSURE},
-#define SCRIPT_GETSET_DECLARE_END()													{NULL, NULL, NULL, NULL, NULL}};
-
-/* 声明一个脚本get方法 */
-#define DECLARE_PY_GET_MOTHOD(MNAME)												\
-	PyObject* MNAME();																\
-	static PyObject* __pyget_##MNAME(PyObject *self, void *closure)					\
-	{																				\
-		return static_cast<ThisClass*>(self)->MNAME();								\
-	}																				\
-
-
-/* 声明一个脚本set方法 */
-#define DECLARE_PY_SET_MOTHOD(MNAME)												\
-	int MNAME(PyObject *value);														\
-	static int __pyset_##MNAME(PyObject *self,										\
-									PyObject *value, void *closure)					\
-	{																				\
-		return static_cast<ThisClass*>(self)->MNAME(value);							\
-	}																				\
-
-/* 声明一个脚本getset方法 */
-#define DECLARE_PY_GETSET_MOTHOD(GETNAME, SETNAME)									\
-	DECLARE_PY_GET_MOTHOD(GETNAME)													\
-	DECLARE_PY_SET_MOTHOD(SETNAME)													\
 
 
 class ScriptObject: public PyObject

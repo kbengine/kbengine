@@ -187,6 +187,11 @@ typedef unsigned short											ushort;
 typedef unsigned int											uint;
 typedef unsigned long											ulong;
 
+#define charptr													char*
+#define const_charptr											const char*
+#define PyObject_ptr											PyObject*
+
+
 /* Use correct types for x64 platforms, too */
 #if KBE_COMPILER != COMPILER_GNU
 typedef signed __int64											int64;

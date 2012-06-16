@@ -217,6 +217,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\pyattr_macro.hpp"
+				>
+			</File>
+			<File
 				RelativePath="pyobject_pointer.hpp"
 				>
 			</File>

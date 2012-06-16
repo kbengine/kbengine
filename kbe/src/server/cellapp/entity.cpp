@@ -38,18 +38,18 @@ private:
 
 //-------------------------------------------------------------------------------------
 ENTITY_METHOD_DECLARE_BEGIN(Entity)
-SCRIPT_METHOD_DECLARE("addTimer",					pyAddTimer,						METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("delTimer",					pyDelTimer,						METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("addSpaceGeometryMapping",	pyAddSpaceGeometryMapping,		METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("setAoiRadius",				pySetAoiRadius,					METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("isReal",						pyIsReal,						METH_VARARGS,				0)	
-SCRIPT_METHOD_DECLARE("addProximity",				pyAddProximity,					METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("delProximity",				pyDelProximity,					METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("destroy",					pyDestroyEntity,				METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("navigateStep",				pyNavigateStep,					METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("stopMove",					pyStopMove,						METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("entitiesInRange",			pyEntitiesInRange,				METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("addTimer",					__py_pyAddTimer,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("delTimer",					__py_pyDelTimer,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("addSpaceGeometryMapping",	__py_pyAddSpaceGeometryMapping,		METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("setAoiRadius",				__py_pySetAoiRadius,				METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("isReal",						__py_pyIsReal,						METH_VARARGS,				0)	
+SCRIPT_METHOD_DECLARE("addProximity",				__py_pyAddProximity,				METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("delProximity",				__py_pyDelProximity,				METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("destroy",					__py_pyDestroyEntity,				METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("navigateStep",				__py_pyNavigateStep,				METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("moveToPoint",				__py_pyMoveToPoint,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("stopMove",					__py_pyStopMove,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("entitiesInRange",			__py_pyEntitiesInRange,				METH_VARARGS,				0)
 ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
@@ -312,10 +312,9 @@ void Entity::onCurrentChunkChanged(Chunk* oldChunk)
 }
 */
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyIsReal(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* Entity::pyIsReal()
 {
-	Entity* entity = static_cast<Entity*>(self);
-	return PyBool_FromLong(entity->isReal());
+	return PyBool_FromLong(isReal());
 }
 
 //-------------------------------------------------------------------------------------
@@ -331,10 +330,9 @@ void Entity::destroyEntity(void)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyDestroyEntity(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* Entity::pyDestroyEntity()
 {
-	Entity* entity = static_cast<Entity*>(self);
-	entity->destroyEntity();
+	destroyEntity();
 	S_Return;
 }
 
@@ -595,26 +593,9 @@ uint16 Entity::addProximity(float range)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyAddProximity(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* Entity::pyAddProximity(float range)
 {
-	Entity* entity = static_cast<Entity*>(self);
-	float range = 0.0f;
-
-	if(PyTuple_Size(args) == 1)
-	{
-		if(!PyArg_ParseTuple(args, "f", &range))
-		{
-			ERROR_MSG("Entity::addProximity: args is error!\n");
-			return NULL;
-		}
-	}
-	else
-	{
-		ERROR_MSG("Entity::addProximity: args require 1 args, gived %d! entity[%s:%ld]\n", PyTuple_Size(args), entity->getScriptModuleName(), entity->getID());
-		return NULL;
-	}
-
-	return PyLong_FromLong(entity->addProximity(range));
+	return PyLong_FromLong(addProximity(range));
 }
 
 //-------------------------------------------------------------------------------------
@@ -628,27 +609,9 @@ void Entity::delProximity(uint16 id)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyDelProximity(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* Entity::pyDelProximity(uint16 id)
 {
-	Entity* entity = static_cast<Entity*>(self);
-	uint16 id = 0;
-
-	if(PyTuple_Size(args) == 1)
-	{
-		if(!PyArg_ParseTuple(args, "I", &id))
-		{
-			ERROR_MSG("Entity::delProximity: args is error!\n");
-			return NULL;
-		}
-	}
-	else
-	{
-		ERROR_MSG("Entity::delProximity: args require 1 args, gived %d! entity[%s:%ld].\n", 
-				PyTuple_Size(args), entity->getScriptModuleName(), entity->getID());
-		return NULL;
-	}
-
-	entity->delProximity(id);
+	delProximity(id);
 	S_Return;
 }
 
@@ -689,13 +652,13 @@ void Entity::onLeaveTrapID(ENTITY_ID entityID, float range, int controllerID)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::addTimer(float interval, float repeat, int userArg)
+PyObject* Entity::pyAddTimer(float interval, float repeat, int32 userArg)
 {
 	EntityScriptTimerHandler* pHandler = new EntityScriptTimerHandler(this);
 	ScriptTimers * pTimers = &scriptTimers_;
-	int id = ScriptTimersUtil::addTimer( &pTimers,
+	int id = ScriptTimersUtil::addTimer(&pTimers,
 			interval, repeat,
-			userArg, pHandler );
+			userArg, pHandler);
 
 	if (id == 0)
 	{
@@ -705,38 +668,11 @@ PyObject* Entity::addTimer(float interval, float repeat, int userArg)
 		return NULL;
 	}
 
-	return PyLong_FromLong( id );
+	return PyLong_FromLong(id);
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyAddTimer(PyObject* self, PyObject* args, PyObject* kwds)
-{
-	Entity* entity = static_cast<Entity*>(self);
-	float interval = 0;
-	float repeat = 0;
-	int userArg;
-
-	if(PyTuple_Size(args) == 3)
-	{
-		if(!PyArg_ParseTuple(args, "f|f|i", &interval, &repeat, &userArg))
-		{
-			ERROR_MSG("Entity::addTimer: args is error!\n");
-			S_Return;
-		}
-	}
-	else
-	{
-		ERROR_MSG("Entity::addTimer: args require 3 args, gived %d! entity[%s:%ld].\n", 
-			PyTuple_Size(args), entity->getScriptModuleName(), entity->getID());
-
-		S_Return;
-	}
-	
-	return entity->addTimer(interval, repeat, userArg);
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::delTimer(ScriptID timerID)
+PyObject* Entity::pyDelTimer(ScriptID timerID)
 {
 	if(!ScriptTimersUtil::delTimer(&scriptTimers_, timerID))
 	{
@@ -744,29 +680,6 @@ PyObject* Entity::delTimer(ScriptID timerID)
 	}
 
 	return PyLong_FromLong(timerID);
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::pyDelTimer(PyObject* self, PyObject* args, PyObject* kwds)
-{
-	TIMER_ID timerID = 0;
-	Entity* entity = static_cast<Entity*>(self);
-
-	if(PyTuple_Size(args) == 1)
-	{
-		if(!PyArg_ParseTuple(args, "k", &timerID))
-		{
-			ERROR_MSG("Entity::delTimer: args is error!\n");
-			return NULL;
-		}
-	}
-	else
-	{
-		ERROR_MSG("Entity::delTimer: args != 1!\n");
-		return NULL;
-	}
-
-	return entity->delTimer(timerID);
 }
 
 //-------------------------------------------------------------------------------------
@@ -782,24 +695,9 @@ void Entity::onTimer(ScriptID timerID, int useraAgs)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyAddSpaceGeometryMapping(PyObject* self, PyObject* args, PyObject* kwds)
-{/*
-	SPACE_ID spaceID;
-	char* path;
-	
-	if(PyTuple_Size(args) == 2)
-	{
-		if(!PyArg_ParseTuple(args, "k|s", &spaceID, &path))
-		{
-			ERROR_MSG("Entity::addSpaceGeometryMapping: args is error!\n");
-			S_Return;
-		}
-		
-		App::getSingleton().addSpaceGeometryMapping(spaceID, path);
-		S_Return;
-	}
-	
-	ERROR_MSG("Entity::addSpaceGeometryMapping: args is count != 2(spaceID, path)!\n");*/
+PyObject* Entity::pyAddSpaceGeometryMapping(SPACE_ID spaceID, const_charptr path)
+{
+	//App::getSingleton().addSpaceGeometryMapping(spaceID, path);
 	S_Return;
 }
 
@@ -868,16 +766,16 @@ void Entity::setPositionAndDirection(Position3D& position, Direction3D& directio
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::setAoiRadius(float radius, float hyst)
+int32 Entity::setAoiRadius(float radius, float hyst)
 {/*
 	if(!hasWitness_)
 	{
 		ERROR_MSG("Entity::setAoiRadius:%s %ld no has witness.\n", getScriptModuleName(), id_);
-		return PyLong_FromLong(0);
+		return 0;
 	}
 
 	if(clientMailbox_ == NULL || clientMailbox_ == Py_None)
-		return PyLong_FromLong(0);
+		return 0;
 
 	aoiRadius_ = radius;
 	aoiHysteresisArea_ = hyst;
@@ -894,30 +792,13 @@ PyObject* Entity::setAoiRadius(float radius, float hyst)
 	if(currChunk_ != NULL)
 		currChunk_->getSpace()->placeProximity(currChunk_, p);
 */
-	return PyLong_FromLong(1);
+	return 1;
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pySetAoiRadius(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* Entity::pySetAoiRadius(float radius, float hyst)
 {
-	float radius = 0.0f, hyst = 0.0f;
-	Entity* entity = static_cast<Entity*>(self);
-
-	if(PyTuple_Size(args) == 2)
-	{
-		if(!PyArg_ParseTuple(args, "f|f", &radius, &hyst))
-		{
-			ERROR_MSG("Entity::setAoiRadius: args is error!\n");
-			return NULL;
-		}
-	}
-	else
-	{
-		ERROR_MSG("Entity::setAoiRadius: is error, args!=(float radius, float hyst)!\n");
-		return PyLong_FromLong(0);
-	}
-
-	return entity->setAoiRadius(radius, hyst);
+	return PyLong_FromLong(setAoiRadius(radius, hyst));
 }
 
 //-------------------------------------------------------------------------------------
@@ -933,36 +814,15 @@ bool Entity::navigateStep(const Position3D& destination, float velocity, float m
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyNavigateStep(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* Entity::pyNavigateStep(PyObject_ptr pyDestination, float velocity, float maxMoveDistance, float maxDistance,
+								 int8 faceMovement, float girth, PyObject_ptr userData)
 {
-	Entity* entity = static_cast<Entity*>(self);
-	float velocity = 0.0f, maxMoveDistance = 0.0f, maxDistance = 0.0f, girth = 0.0f;
-	PyObject* userData = NULL;
 	Position3D destination;
-	PyObject* pyDestination = NULL;
-	int faceMovement = 0;
-
-	if(PyTuple_Size(args) == 7)
-	{
-		if(!PyArg_ParseTuple(args, "O|f|f|f|i|f|O", &pyDestination, &velocity, &maxMoveDistance, &maxDistance, 
-			&faceMovement, &girth, &userData))
-		{
-			ERROR_MSG("Entity::navigateStep: args is error!\n");
-			Py_RETURN_FALSE;
-		}
-		
-		// 将坐标信息提取出来
-		script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
-	}
-	else
-	{
-		ERROR_MSG("Entity::navigateStep: is error, args!=(destination, velocity, maxMoveDistance, "
-			"maxDistance, faceMovement, girth, userData)!\n");
-		Py_RETURN_FALSE;
-	}
+	// 将坐标信息提取出来
+	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
 	
 	Py_INCREF(userData);
-	if(entity->navigateStep(destination, velocity, maxMoveDistance, 
+	if(navigateStep(destination, velocity, maxMoveDistance, 
 		maxDistance, faceMovement > 0, girth, userData))
 	{
 		Py_RETURN_TRUE;
@@ -980,38 +840,16 @@ bool Entity::moveToPoint(const Position3D& destination, float velocity, PyObject
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyMoveToPoint(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, PyObject_ptr userData,
+								 int32 faceMovement, int32 moveVertically)
 {
-	Entity* entity = static_cast<Entity*>(self);
-	float velocity = 0.0f;
-	PyObject* userData = NULL;
 	Position3D destination;
-	PyObject* pyDestination = NULL;
-	int faceMovement = 0;
-	int moveVertically = 0;
-	
-	if(PyTuple_Size(args) == 5)
-	{
-		if(!PyArg_ParseTuple(args, "O|f|O|i|i", &pyDestination, &velocity, &userData, &faceMovement, &moveVertically))
-		{
-			ERROR_MSG("Entity::moveToPoint: args is error!\n");
-			Py_RETURN_FALSE;
-		}
-		
-		// 将坐标信息提取出来
-		script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
-	}
-	else
-	{
-		ERROR_MSG("Entity::moveToPoint: is error, args!=(destination, velocity, maxMoveDistance, "
-			"maxDistance, faceMovement, girth, userData)!\n");
-
-		Py_RETURN_FALSE;
-	}
+	// 将坐标信息提取出来
+	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
 	
 	Py_INCREF(userData);
 
-	if(entity->moveToPoint(destination, velocity, userData, faceMovement > 0, moveVertically > 0)){
+	if(moveToPoint(destination, velocity, userData, faceMovement > 0, moveVertically > 0)){
 		Py_RETURN_TRUE;
 	}
 
@@ -1025,10 +863,9 @@ bool Entity::stopMove()
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyStopMove(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* Entity::pyStopMove()
 {
-	Entity* entity = static_cast<Entity*>(self);
-	return PyBool_FromLong(entity->stopMove());
+	return PyBool_FromLong(stopMove());
 }
 
 //-------------------------------------------------------------------------------------
@@ -1044,33 +881,17 @@ void Entity::onMove(PyObject* userData)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyEntitiesInRange(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* Entity::pyEntitiesInRange(float radius, PyObject_ptr pyEntityType, PyObject_ptr pyPosition)
 {
-	/*PyObject* pyPosition = NULL;
-	PyObject* pyEntityType = NULL;
+	/*
 	std::string entityType = "";
-	float radius = 0.0f;
 	Position3D pos;
 	
-	if(PyTuple_Size(args) == 3)
+	// 将坐标信息提取出来
+	script::ScriptVector3::convertPyObjectToVector3(pos, pyPosition);
+	if(pyEntityType != Py_None)
 	{
-		if(!PyArg_ParseTuple(args, "f|O|O", &radius, &pyEntityType, &pyPosition))
-		{
-			ERROR_MSG("Entity::entitiesInRange: args is error!\n");
-			return 0;
-		}
-		
-		// 将坐标信息提取出来
-		script::ScriptVector3::convertPyObjectToVector3(pos, pyPosition);
-		if(pyEntityType != Py_None)
-		{
-			entityType = PyString_AsString(pyEntityType);
-		}
-	}
-	else
-	{
-		ERROR_MSG("Entity::entitiesInRange: args is error! args != 3.\n");
-		return 0;
+		entityType = PyString_AsString(pyEntityType);
 	}
 	
 	int i = 0, entityUType = -1;

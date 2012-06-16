@@ -107,8 +107,8 @@ public:
 		脚本请求销毁实体
 	*/
 	void destroyEntity(void);
-	static PyObject* pyDestroyEntity(PyObject* self, 
-		PyObject* args, PyObject* kwds);
+	DECLARE_PY_MOTHOD_ARG0(pyDestroyEntity);
+
 	
 	/** 
 		mailbox section
@@ -144,40 +144,31 @@ public:
 	/** 
 		添加和删除一个timer 
 	*/
-	PyObject* addTimer(float interval, 
-		float repeat, int userArg);
-	
-	PyObject* delTimer(ScriptID timerID);
-	static PyObject* pyAddTimer(PyObject* self, 
-		PyObject* args, PyObject* kwds);
-	
-	static PyObject* pyDelTimer(PyObject* self, 
-		PyObject* args, PyObject* kwds);
+	DECLARE_PY_MOTHOD_ARG3(pyAddTimer, float, float, int32);
+	DECLARE_PY_MOTHOD_ARG1(pyDelTimer, ScriptID);
 	
 	void onTimer(ScriptID timerID, int useraAgs);
 
 	ScriptTimers& scriptTimers(){ return scriptTimers_; }
+
 	/** 
 		脚本请求为当前所在space设置一个几何映射 
 	*/
-	static PyObject* pyAddSpaceGeometryMapping(PyObject* self, 
-		PyObject* args, PyObject* kwds);
+	DECLARE_PY_MOTHOD_ARG2(pyAddSpaceGeometryMapping, SPACE_ID, const_charptr);
 
 	/** 
 		当前entity设置自身的Aoi半径范围 
 	*/
-	PyObject* setAoiRadius(float radius, float hyst);
+	int32 setAoiRadius(float radius, float hyst);
 	INLINE float getAoiRadius(void)const;
 	INLINE float getAoiHystArea(void)const;
-	static PyObject* pySetAoiRadius(PyObject* self, 
-		PyObject* args, PyObject* kwds);
+	DECLARE_PY_MOTHOD_ARG2(pySetAoiRadius, float, float);
 	
 	/** 
 		当前entity是否为real 
 	*/
-	static PyObject* pyIsReal(PyObject* self, 
-		PyObject* args, PyObject* kwds);
-	
+	DECLARE_PY_MOTHOD_ARG0(pyIsReal);
+
 	/** 
 		脚本获得当前entity是否为将要销毁的entity 
 	*/
@@ -191,15 +182,13 @@ public:
 					float maxMoveDistance, float maxDistance, 
 					bool faceMovement, float girth, PyObject* userData);
 
-	static PyObject* pyNavigateStep(PyObject* self, 
-					PyObject* args, PyObject* kwds);
+	DECLARE_PY_MOTHOD_ARG7(pyNavigateStep, PyObject_ptr, float, float, float, int8, float, PyObject_ptr);
 	
 	/** 
 		停止任何方式的移动行为 
 	*/
 	bool stopMove();
-	static PyObject* pyStopMove(PyObject* self, 
-			PyObject* args, PyObject* kwds);
+	DECLARE_PY_MOTHOD_ARG0(pyStopMove);
 
 	/** 
 		entity移动到某个点 
@@ -207,8 +196,7 @@ public:
 	bool moveToPoint(const Position3D& destination, float velocity, 
 			PyObject* userData, bool faceMovement, bool moveVertically);
 	
-	static PyObject* pyMoveToPoint(PyObject* self, 
-			PyObject* args, PyObject* kwds);
+	DECLARE_PY_MOTHOD_ARG5(pyMoveToPoint, PyObject_ptr, float, PyObject_ptr, int32, int32);
 
 	
 	/** 
@@ -228,8 +216,7 @@ public:
 	/** 
 		脚本请求获得一定范围类的某种类型的entities 
 	*/
-	static PyObject* pyEntitiesInRange(PyObject* self, PyObject* args, 
-										PyObject* kwds);
+	DECLARE_PY_MOTHOD_ARG3(pyEntitiesInRange, float, PyObject_ptr, PyObject_ptr);
 public:
 	/** 
 		远程呼叫本entity的方法 
@@ -327,16 +314,13 @@ public:
 		添加一个陷阱 
 	*/
 	uint16 addProximity(float range);
-
-	static PyObject* pyAddProximity(PyObject* self, 
-		PyObject* args, PyObject* kwds);
+	DECLARE_PY_MOTHOD_ARG1(pyAddProximity, float);
 
 	/** 
 		删除一个陷阱 
 	*/
 	void delProximity(uint16 id);
-	static PyObject* pyDelProximity(PyObject* self, 
-		PyObject* args, PyObject* kwds);
+	DECLARE_PY_MOTHOD_ARG1(pyDelProximity, uint16);
 
 	/** 
 		一个entity进入了这个entity的某个陷阱 
