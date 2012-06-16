@@ -278,37 +278,29 @@ int ScriptVector2::seq_ass_item(PyObject* self, int index, PyObject* value)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector2::pySetX(PyObject *self, PyObject *value, void *closure)
+int ScriptVector2::pySetX(PyObject *value)
 { 
-	ScriptVector2* sv = static_cast<ScriptVector2*>(self);
-	Vector2& v = sv->getVector();
-	v.x = float(PyFloat_AsDouble(value)); 
+	getVector().x = float(PyFloat_AsDouble(value)); 
 	return 0; 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector2::pyGetX(PyObject *self, void *closure)
+PyObject* ScriptVector2::pyGetX()
 { 
-	ScriptVector2* sv = static_cast<ScriptVector2*>(self);
-	Vector2& v = sv->getVector();
-	return PyFloat_FromDouble(v.x); 
+	return PyFloat_FromDouble(getVector().x); 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector2::pySetY(PyObject *self, PyObject *value, void *closure)
+int ScriptVector2::pySetY(PyObject *value)
 { 
-	ScriptVector2* sv = static_cast<ScriptVector2*>(self);
-	Vector2& v = sv->getVector();
-	v.y = float(PyFloat_AsDouble(value)); 
+	getVector().y = float(PyFloat_AsDouble(value)); 
 	return 0; 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector2::pyGetY(PyObject *self, void *closure)
+PyObject* ScriptVector2::pyGetY()
 { 
-	ScriptVector2* sv = static_cast<ScriptVector2*>(self);
-	Vector2& v = sv->getVector();
-	return PyFloat_FromDouble(v.y); 
+	return PyFloat_FromDouble(getVector().y); 
 }
 
 //-------------------------------------------------------------------------------------

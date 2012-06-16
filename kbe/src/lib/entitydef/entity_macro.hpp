@@ -131,7 +131,7 @@ public:																										\
 		return args;																						\
 	}																										\
 																											\
-	static PyObject* __pyGetID(Entity *self, void *closure)													\
+	static PyObject* __pyget_pyGetID(Entity *self, void *closure)											\
 	{																										\
 		return PyLong_FromLong(self->getID());																\
 	}																										\
@@ -154,7 +154,7 @@ public:																										\
 	{																										\
 		spaceID_ = id;																						\
 	}																										\
-	static PyObject* __pyGetSpaceID(Entity *self, void *closure)											\
+	static PyObject* __pyget_pyGetSpaceID(Entity *self, void *closure)										\
 	{																										\
 		return PyLong_FromLong(self->getSpaceID());															\
 	}																										\

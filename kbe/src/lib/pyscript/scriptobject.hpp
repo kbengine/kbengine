@@ -508,18 +508,33 @@ public:																						\
 /** 定义暴露给脚本的getset属性宏
 */
 #define SCRIPT_GETSET_DECLARE_BEGIN(CLASS)											PyGetSetDef CLASS::_##CLASS##_scriptGetSeters[] =	{
-#define SCRIPT_GETSET_DECLARE(NAME, GET, SET, DOC, CLOSURE)							{const_cast<char*>(NAME), (getter)GET, (setter)SET, DOC, CLOSURE},
-#define SCRIPT_GET_DECLARE(NAME, GET, DOC, CLOSURE)									{const_cast<char*>(NAME), (getter)__##GET, (setter)__py_readonly_descr, DOC, CLOSURE},
-#define SCRIPT_SET_DECLARE(NAME, GET, DOC, CLOSURE)									{const_cast<char*>(NAME), (getter)GET, (setter)__py_writeonly_descr, DOC, CLOSURE},
+#define SCRIPT_GETSET_DECLARE(NAME, GET, SET, DOC, CLOSURE)							{const_cast<char*>(NAME), (getter)__pyget_##GET, (setter)__pyset_##SET, DOC, CLOSURE},
+#define SCRIPT_GET_DECLARE(NAME, GET, DOC, CLOSURE)									{const_cast<char*>(NAME), (getter)__pyget_##GET, (setter)__py_readonly_descr, DOC, CLOSURE},
+#define SCRIPT_SET_DECLARE(NAME, SET, DOC, CLOSURE)									{const_cast<char*>(NAME), (getter)__pyset_##SET, (setter)__py_writeonly_descr, DOC, CLOSURE},
 #define SCRIPT_GETSET_DECLARE_END()													{NULL, NULL, NULL, NULL, NULL}};
 
 /* 声明一个脚本get方法 */
 #define DECLARE_PY_GET_MOTHOD(MNAME)												\
 	PyObject* MNAME();																\
-	static PyObject* __##MNAME(PyObject *self, void *closure)						\
+	static PyObject* __pyget_##MNAME(PyObject *self, void *closure)					\
 	{																				\
 		return static_cast<ThisClass*>(self)->MNAME();								\
 	}																				\
+
+
+/* 声明一个脚本set方法 */
+#define DECLARE_PY_SET_MOTHOD(MNAME)												\
+	int MNAME(PyObject *value);														\
+	static int __pyset_##MNAME(PyObject *self,										\
+									PyObject *value, void *closure)					\
+	{																				\
+		return static_cast<ThisClass*>(self)->MNAME(value);							\
+	}																				\
+
+/* 声明一个脚本getset方法 */
+#define DECLARE_PY_GETSET_MOTHOD(GETNAME, SETNAME)									\
+	DECLARE_PY_GET_MOTHOD(GETNAME)													\
+	DECLARE_PY_SET_MOTHOD(SETNAME)													\
 
 
 class ScriptObject: public PyObject

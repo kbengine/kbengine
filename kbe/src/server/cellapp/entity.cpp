@@ -179,28 +179,28 @@ PyObject* Entity::pyGetClientMailbox()
 }
 
 //-------------------------------------------------------------------------------------
-int Entity::pySetTopSpeedY(Entity *self, PyObject *value, void *closure)
+int Entity::pySetTopSpeedY(PyObject *value)
 {
-	self->setTopSpeedY(float(PyFloat_AsDouble(PySequence_GetItem(value, 0)))); 
+	setTopSpeedY(float(PyFloat_AsDouble(PySequence_GetItem(value, 0)))); 
 	return 0; 
 };
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetTopSpeedY(Entity *self, void *closure)
+PyObject* Entity::pyGetTopSpeedY()
 { 
-	return PyFloat_FromDouble(self->getTopSpeedY()); 
+	return PyFloat_FromDouble(getTopSpeedY()); 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetTopSpeed(Entity *self, void *closure)
+PyObject* Entity::pyGetTopSpeed()
 { 
-	return PyFloat_FromDouble(self->getTopSpeed()); 
+	return PyFloat_FromDouble(getTopSpeed()); 
 }
 
 //-------------------------------------------------------------------------------------
-int Entity::pySetTopSpeed(Entity *self, PyObject *value, void *closure)
+int Entity::pySetTopSpeed(PyObject *value)
 { 
-	self->setTopSpeed(float(PyFloat_AsDouble(PySequence_GetItem(value, 0)))); 
+	setTopSpeed(float(PyFloat_AsDouble(PySequence_GetItem(value, 0)))); 
 	return 0; 
 }
 
@@ -804,24 +804,23 @@ PyObject* Entity::pyAddSpaceGeometryMapping(PyObject* self, PyObject* args, PyOb
 }
 
 //-------------------------------------------------------------------------------------
-int Entity::pySetPosition(Entity *self, PyObject *value, void *closure)
+int Entity::pySetPosition(PyObject *value)
 {
 	if(!script::ScriptVector3::check(value))
 		return -1;
 
-	Position3D& pos = self->getPosition();
-	script::ScriptVector3::convertPyObjectToVector3(pos, value);
+	script::ScriptVector3::convertPyObjectToVector3(getPosition(), value);
 	return 0;
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetPosition(Entity *self, void *closure)
+PyObject* Entity::pyGetPosition()
 {
-	return new script::ScriptVector3(&self->getPosition());
+	return new script::ScriptVector3(&getPosition());
 }
 
 //-------------------------------------------------------------------------------------
-int Entity::pySetDirection(Entity *self, PyObject *value, void *closure)
+int Entity::pySetDirection(PyObject *value)
 {
 	if(PySequence_Check(value) <= 0)
 	{
@@ -838,7 +837,7 @@ int Entity::pySetDirection(Entity *self, PyObject *value, void *closure)
 		return -1;
 	}
 
-	Direction3D& dir = self->getDirection();
+	Direction3D& dir = getDirection();
 	dir.roll	= float(PyFloat_AsDouble(PySequence_GetItem(value, 0)));
 	dir.pitch	= float(PyFloat_AsDouble(PySequence_GetItem(value, 1)));
 	dir.yaw		= float(PyFloat_AsDouble(PySequence_GetItem(value, 2)));
@@ -846,9 +845,9 @@ int Entity::pySetDirection(Entity *self, PyObject *value, void *closure)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetDirection(Entity *self, void *closure)
+PyObject* Entity::pyGetDirection()
 {
-	return new script::ScriptVector3(self->getDirection().asVector3());
+	return new script::ScriptVector3(getDirection().asVector3());
 }
 
 //-------------------------------------------------------------------------------------

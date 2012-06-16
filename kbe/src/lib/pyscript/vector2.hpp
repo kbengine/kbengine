@@ -59,10 +59,6 @@ public:
 	static PyObject* py_inplace_divide(PyObject *self, PyObject *b);
 	
 	/** 暴漏一些方法 */
-	static PyObject* pySetX(PyObject *self, PyObject *value, void *closure);
-	static PyObject* pyGetX(PyObject *self, void *closure);
-	static PyObject* pySetY(PyObject *self, PyObject *value, void *closure);
-	static PyObject* pyGetY(PyObject *self, void *closure);
 	static PyObject* pyDistTo(PyObject* self, PyObject* args);
 	static PyObject* pyDistSqrTo(PyObject* self, PyObject* args);
 	static PyObject* pyCross2D(PyObject* self, PyObject* args);
@@ -75,6 +71,9 @@ public:
 	
 	DECLARE_PY_GET_MOTHOD(pyGetVectorLength);
 	DECLARE_PY_GET_MOTHOD(pyGetVectorLengthSquared);
+	
+	DECLARE_PY_GETSET_MOTHOD(pyGetX, pySetX);
+	DECLARE_PY_GETSET_MOTHOD(pyGetY, pySetY);
 	
 	/** 支持pickler 方法 */
 	static PyObject* __reduce_ex__(PyObject* self, PyObject* protocol);

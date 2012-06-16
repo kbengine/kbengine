@@ -280,71 +280,55 @@ int ScriptVector4::seq_ass_item(PyObject* self, int index, PyObject* value)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::pySetX(PyObject *self, PyObject *value, void *closure)
+int ScriptVector4::pySetX(PyObject *value)
 { 
-	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
-	Vector4& v = sv->getVector();
-	v.x = float(PyFloat_AsDouble(value)); 
+	getVector().x = float(PyFloat_AsDouble(value)); 
 	return 0; 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::pyGetX(PyObject *self, void *closure)
+PyObject* ScriptVector4::pyGetX()
 { 
-	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
-	Vector4& v = sv->getVector();
-	return PyFloat_FromDouble(v.x); 
+	return PyFloat_FromDouble(getVector().x); 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::pySetY(PyObject *self, PyObject *value, void *closure)
+int ScriptVector4::pySetY(PyObject *value)
 { 
-	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
-	Vector4& v = sv->getVector();
-	v.y = float(PyFloat_AsDouble(value)); 
+	getVector().y = float(PyFloat_AsDouble(value)); 
 	return 0; 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::pyGetY(PyObject *self, void *closure)
+PyObject* ScriptVector4::pyGetY()
 { 
-	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
-	Vector4& v = sv->getVector();
-	return PyFloat_FromDouble(v.y); 
+	return PyFloat_FromDouble(getVector().y); 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::pySetZ(PyObject *self, PyObject *value, void *closure)
-{ 
-	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
-	Vector4& v = sv->getVector();
-	v.z = float(PyFloat_AsDouble(value)); 
+int ScriptVector4::pySetZ(PyObject *value)
+{
+	getVector().z = float(PyFloat_AsDouble(value)); 
 	return 0; 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::pyGetZ(PyObject *self, void *closure)
+PyObject* ScriptVector4::pyGetZ()
 { 
-	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
-	Vector4& v = sv->getVector();
-	return PyFloat_FromDouble(v.z); 
+	return PyFloat_FromDouble(getVector().z); 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::pySetW(PyObject *self, PyObject *value, void *closure)
+int ScriptVector4::pySetW(PyObject *value)
 { 
-	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
-	Vector4& v = sv->getVector();
-	v.w = float(PyFloat_AsDouble(value)); 
+	getVector().w = float(PyFloat_AsDouble(value)); 
 	return 0; 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::pyGetW(PyObject *self, void *closure)
-{ 
-	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
-	Vector4& v = sv->getVector();
-	return PyFloat_FromDouble(v.w); 
+PyObject* ScriptVector4::pyGetW()
+{
+	return PyFloat_FromDouble(getVector().w); 
 }
 
 //-------------------------------------------------------------------------------------

@@ -125,17 +125,15 @@ public:
 		脚本获取和设置entity的position 
 	*/
 	INLINE Position3D& getPosition();
-	static PyObject* pyGetPosition(Entity *self, void *closure);
-	static int pySetPosition(Entity *self, PyObject *value, void *closure);
 	void setPosition(Position3D& pos);
+	DECLARE_PY_GETSET_MOTHOD(pyGetPosition, pySetPosition);
 
 	/** 
 		脚本获取和设置entity的方向 
 	*/
 	INLINE Direction3D& getDirection();
-	static PyObject* pyGetDirection(Entity *self, void *closure);
-	static int pySetDirection(Entity *self, PyObject *value, void *closure);
 	INLINE void setDirection(Direction3D& dir);
+	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
 	
 	/** 
 		设置entity方向和位置 
@@ -217,17 +215,15 @@ public:
 		脚本获取和设置entity的最高xz移动速度 
 	*/
 	float getTopSpeed()const{ return topSpeed_; }
-	static PyObject* pyGetTopSpeed(Entity *self, void *closure);
-	static int pySetTopSpeed(Entity *self, PyObject *value, void *closure);
 	INLINE void setTopSpeed(float speed);
+	DECLARE_PY_GETSET_MOTHOD(pyGetTopSpeed, pySetTopSpeed);
 	
 	/** 
 		脚本获取和设置entity的最高y移动速度 
 	*/
 	INLINE float getTopSpeedY()const;
-	static PyObject* pyGetTopSpeedY(Entity *self, void *closure);
-	static int pySetTopSpeedY(Entity *self, PyObject *value, void *closure);
 	INLINE void setTopSpeedY(float speed);
+	DECLARE_PY_GETSET_MOTHOD(pyGetTopSpeedY, pySetTopSpeedY);
 	
 	/** 
 		脚本请求获得一定范围类的某种类型的entities 
