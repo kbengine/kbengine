@@ -76,8 +76,9 @@ public:
 	static PyObject* pyTuple(PyObject* self, PyObject* args);
 	static PyObject* pyList(PyObject* self, PyObject* args);
 	static PyObject* pySet(PyObject* self, PyObject* args);
-	static PyObject* pyGetVectorLength(PyObject *self, void *closure);
-	static PyObject* pyGetVectorLengthSquared(PyObject *self, void *closure);
+
+	DECLARE_PY_GET_MOTHOD(pyGetVectorLength);
+	DECLARE_PY_GET_MOTHOD(pyGetVectorLengthSquared);
 	
 	/** 支持pickler 方法 */
 	static PyObject* __reduce_ex__(PyObject* self, PyObject* protocol);

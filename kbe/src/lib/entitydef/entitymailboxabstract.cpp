@@ -84,5 +84,11 @@ PyObject* EntityMailboxAbstract::__reduce_ex__(PyObject* self, PyObject* protoco
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* EntityMailboxAbstract::pyGetID()
+{ 
+	return PyLong_FromLong(getID()); 
+}
+
+//-------------------------------------------------------------------------------------
 
 }

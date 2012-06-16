@@ -51,7 +51,7 @@ public:
 	/** 获取entityID */
 	ENTITY_ID getID()const{ return id_; }
 	void setID(int id){ id_ = id; }
-	static PyObject* pyGetID(PyObject *self, void *closure){ return PyLong_FromLong(static_cast<EntityMailboxAbstract*>(self)->getID()); }
+	DECLARE_PY_GET_MOTHOD(pyGetID);
 
 	/** 获得组件ID */
 	COMPONENT_ID getComponentID(void)const{ return componentID_; }

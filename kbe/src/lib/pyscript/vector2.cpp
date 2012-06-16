@@ -165,19 +165,15 @@ PyObject* ScriptVector2::tp_repr()
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector2::pyGetVectorLength(PyObject *self, void *closure)
+PyObject* ScriptVector2::pyGetVectorLength()
 { 
-	ScriptVector2* sv = static_cast<ScriptVector2*>(self);
-	Vector2& v = sv->getVector();
-	return PyFloat_FromDouble(KBEVec2Length(&v)); 
+	return PyFloat_FromDouble(KBEVec2Length(&getVector())); 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector2::pyGetVectorLengthSquared(PyObject *self, void *closure)
+PyObject* ScriptVector2::pyGetVectorLengthSquared()
 { 
-	ScriptVector2* sv = static_cast<ScriptVector2*>(self);
-	Vector2& v = sv->getVector();
-	return PyFloat_FromDouble(KBEVec2LengthSq(&v));
+	return PyFloat_FromDouble(KBEVec2LengthSq(&getVector()));
 }
 
 //-------------------------------------------------------------------------------------
