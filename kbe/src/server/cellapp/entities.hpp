@@ -46,10 +46,10 @@ public:
 	}	
 
 	/** 暴露一些字典方法给python */
-	static PyObject* _has_key(PyObject* self, PyObject *args);
-	static PyObject* _keys(PyObject* self, PyObject *args);
-	static PyObject* _values(PyObject* self, PyObject *args);
-	static PyObject* _items(PyObject* self, PyObject *args);
+	DECLARE_PY_MOTHOD_ARG1(pyHas_key, ENTITY_ID);
+	DECLARE_PY_MOTHOD_ARG0(pyKeys);
+	DECLARE_PY_MOTHOD_ARG0(pyValues);
+	DECLARE_PY_MOTHOD_ARG0(pyItems);
 
 	/** map操作函数相关 */
 	static PyObject *	mp_subscript(PyObject * self, PyObject * key);

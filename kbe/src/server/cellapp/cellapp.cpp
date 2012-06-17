@@ -60,7 +60,7 @@ bool CellApp::run()
 	idClient_->onAddRange(1, 500);
 	Entity* e = createEntity("Avatar", NULL);
 	registerPyObjectToScript("avatar", e);
-	PyRun_SimpleString("print (dir(KBEngine.avatar))");
+	PyRun_SimpleString("print (dir(KBEngine.avatar), KBEngine.entities.has_key(1))");
 	PyRun_SimpleString("print ('888888888888888888888', KBEngine.avatar.id, KBEngine.avatar.name)");
 	DEBUG_MSG("kbe:python is init successfully!!! %d\n", 88);
 	SmartPointer<PyObject> testsmartpointer(::PyBytes_FromString("test"));

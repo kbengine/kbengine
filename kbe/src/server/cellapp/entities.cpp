@@ -11,10 +11,10 @@ PyMappingMethods g_mappingMethods =
 
 
 SCRIPT_METHOD_DECLARE_BEGIN(Entities)
-SCRIPT_METHOD_DECLARE("has_key",			_has_key,		METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("keys",				_keys,			METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("values",				_values,		METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("items",				_items,			METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("has_key",			__py_pyHas_key,		METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("keys",				__py_pyKeys,		METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("values",				__py_pyValues,		METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("items",				__py_pyItems,		METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE_END()
 
 
@@ -59,23 +59,16 @@ PyObject * Entities::mp_subscript(PyObject* self, PyObject* key /*entityID*/)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entities::_has_key(PyObject* self, PyObject *args)
+PyObject* Entities::pyHas_key(ENTITY_ID entityID)
 {
-	Entities* lpEntities = static_cast<Entities*>(self);
-
-	long entityID;
-	if (!PyArg_ParseTuple(args, "i", &entityID))
-		return NULL;
-
-	ENTITYS_MAP& entities = lpEntities->getEntities();
+	ENTITYS_MAP& entities = getEntities();
 	return PyLong_FromLong((entities.find(entityID) != entities.end()));
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entities::_keys(PyObject* self, PyObject *args)
+PyObject* Entities::pyKeys()
 {
-	Entities* lpEntities = static_cast<Entities*>(self);
-	ENTITYS_MAP& entities = lpEntities->getEntities();
+	ENTITYS_MAP& entities = getEntities();
 	PyObject* pyList = PyList_New(entities.size());
 	int i = 0;
 
@@ -93,10 +86,9 @@ PyObject* Entities::_keys(PyObject* self, PyObject *args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entities::_values(PyObject* self, PyObject *args)
+PyObject* Entities::pyValues()
 {
-	Entities* lpEntities = static_cast<Entities*>(self);
-	ENTITYS_MAP& entities = lpEntities->getEntities();
+	ENTITYS_MAP& entities = getEntities();
 	PyObject* pyList = PyList_New(entities.size());
 	int i = 0;
 
@@ -114,10 +106,9 @@ PyObject* Entities::_values(PyObject* self, PyObject *args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entities::_items(PyObject* self, PyObject *args)
+PyObject* Entities::pyItems()
 {
-	Entities* lpEntities = static_cast<Entities*>(self);
-	ENTITYS_MAP& entities = lpEntities->getEntities();
+	ENTITYS_MAP& entities = getEntities();
 	PyObject* pyList = PyList_New(entities.size());
 	int i = 0;
 

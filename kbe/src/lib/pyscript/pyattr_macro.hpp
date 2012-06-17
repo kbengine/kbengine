@@ -83,7 +83,11 @@ namespace KBEngine{ namespace script{
 #define PY_METHOD_ARG_SPACE_ID							SPACE_ID
 #define PY_METHOD_ARG_SPACE_ID_ARG						SPACE_ID
 #define PY_METHOD_ARG_SPACE_ID_PYARGTYPE				"I"
-	
+
+#define PY_METHOD_ARG_ENTITY_ID							ENTITY_ID
+#define PY_METHOD_ARG_ENTITY_ID_ARG						ENTITY_ID
+#define PY_METHOD_ARG_ENTITY_ID_PYARGTYPE				"i"
+
 //-----------------------------------------------------------------------------------------------------------
 /** 定义暴露给脚本的方法宏
 */
@@ -166,7 +170,7 @@ namespace KBEngine{ namespace script{
 		else																														\
 		{																															\
 			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptModuleName());																\
+				argsSize, currargsSize, pobj->getScriptName());																		\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -202,7 +206,7 @@ namespace KBEngine{ namespace script{
 		else																														\
 		{																															\
 			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptModuleName());																\
+				argsSize, currargsSize, pobj->getScriptName());																		\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -241,7 +245,7 @@ namespace KBEngine{ namespace script{
 		else																														\
 		{																															\
 			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptModuleName());																\
+				argsSize, currargsSize, pobj->getScriptName());																		\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -282,7 +286,7 @@ namespace KBEngine{ namespace script{
 		else																														\
 		{																															\
 			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptModuleName());																\
+				argsSize, currargsSize, pobj->getScriptName());																		\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -327,7 +331,7 @@ namespace KBEngine{ namespace script{
 		else																														\
 		{																															\
 			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptModuleName());																\
+				argsSize, currargsSize, pobj->getScriptName());																		\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -375,7 +379,7 @@ namespace KBEngine{ namespace script{
 		else																														\
 		{																															\
 			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptModuleName());																\
+				argsSize, currargsSize, pobj->getScriptName());																		\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -426,7 +430,7 @@ namespace KBEngine{ namespace script{
 		else																														\
 		{																															\
 			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptModuleName());																\
+				argsSize, currargsSize, pobj->getScriptName());																		\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -480,7 +484,7 @@ namespace KBEngine{ namespace script{
 		else																														\
 		{																															\
 			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptModuleName());																\
+				argsSize, currargsSize, pobj->getScriptName());																		\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -538,7 +542,7 @@ namespace KBEngine{ namespace script{
 		else																														\
 		{																															\
 			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptModuleName());																\
+				argsSize, currargsSize, pobj->getScriptName());																		\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -599,7 +603,7 @@ namespace KBEngine{ namespace script{
 		else																														\
 		{																															\
 			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptModuleName());																\
+				argsSize, currargsSize, pobj->getScriptName());																		\
 																																	\
 			S_Return;																												\
 		}																															\

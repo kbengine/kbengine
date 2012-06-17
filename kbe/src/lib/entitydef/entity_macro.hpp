@@ -161,7 +161,7 @@ public:																										\
 																											\
 	inline const char* getScriptModuleName(void)const														\
 	{																										\
-		return scriptModule_->getScriptType()->tp_name; 													\
+		return getScriptName();																				\
 	}																										\
 																											\
 	inline ScriptModule* getScriptModule(void)const															\

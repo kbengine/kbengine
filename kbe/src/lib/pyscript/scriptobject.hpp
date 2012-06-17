@@ -137,7 +137,6 @@ namespace KBEngine{ namespace script{
 	/* 当前脚本模块的类别 */																\
 	static PyTypeObject _scriptType;														\
 	typedef CLASS ThisClass;																\
-	static std::string _classname;															\
 																							\
 	static PyObject* _tp_repr(PyObject* self)												\
 	{																						\
@@ -229,9 +228,9 @@ public:																						\
 		return -(long)sizeof(PyObject *) - SUPERCLASS::calcDictOffset();					\
 	}																						\
 																							\
-	static std::string getScriptName(void)													\
+	static const char* getScriptName(void)													\
 	{																						\
-		return _classname;																	\
+		return getScriptType()->tp_name;													\
 	}																						\
 	/** 计算所有继承模块的暴露方法个数 
 	*/																						\
@@ -388,7 +387,6 @@ public:																						\
 	PyMethodDef* CLASS::_##CLASS##_lpScriptmethods = NULL;									\
 	PyMemberDef* CLASS::_##CLASS##_lpScriptmembers = NULL;									\
 	PyGetSetDef* CLASS::_##CLASS##_lpgetseters = NULL;										\
-	std::string CLASS::_classname = #CLASS;													\
 																							\
 	PyTypeObject CLASS::_scriptType =														\
 	{																						\
