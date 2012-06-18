@@ -33,7 +33,7 @@ ScriptStdOutErr::~ScriptStdOutErr()
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptStdOutErr::write(PyObject* self, PyObject *args)
+PyObject* ScriptStdOutErr::__py_write(PyObject* self, PyObject *args)
 {
 	char * msg;
 	Py_ssize_t msglen;
@@ -48,7 +48,7 @@ PyObject* ScriptStdOutErr::write(PyObject* self, PyObject *args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptStdOutErr::flush(PyObject* self, PyObject *args)
+PyObject* ScriptStdOutErr::__py_flush(PyObject* self, PyObject *args)
 {
 	S_Return;
 }

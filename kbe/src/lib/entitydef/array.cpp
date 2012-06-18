@@ -3,14 +3,14 @@
 namespace KBEngine{ 
 
 SCRIPT_METHOD_DECLARE_BEGIN(Array)
-SCRIPT_METHOD_DECLARE("__reduce_ex__", __reduce_ex__, METH_VARARGS, 0)
-SCRIPT_METHOD_DECLARE("append", _append, METH_VARARGS, 0)
-SCRIPT_METHOD_DECLARE("count", _count, METH_VARARGS, 0)
-SCRIPT_METHOD_DECLARE("extend", _extend, METH_VARARGS, 0)
-SCRIPT_METHOD_DECLARE("index", _index, METH_VARARGS, 0)
-SCRIPT_METHOD_DECLARE("insert", _insert, METH_VARARGS, 0)
-SCRIPT_METHOD_DECLARE("pop", _pop, METH_VARARGS, 0)
-SCRIPT_METHOD_DECLARE("remove", _remove, METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("__reduce_ex__", reduce_ex__, METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("append", append, METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("count", count, METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("extend", extend, METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("index", index, METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("insert", insert, METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("pop", pop, METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("remove", remove, METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE_END()
 
 
@@ -52,7 +52,7 @@ void Array::initialize(std::string strInitData)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Array::__reduce_ex__(PyObject* self, PyObject* protocol)
+PyObject* Array::__py_reduce_ex__(PyObject* self, PyObject* protocol)
 {
 	Array* arr = static_cast<Array*>(self);
 	PyObject* args = PyTuple_New(2);
@@ -116,7 +116,7 @@ bool Array::isSameType(PyObject* pyValue)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Array::_append(PyObject* self, PyObject* args, PyObject* kwargs)
+PyObject* Array::__py_append(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	Array* ary = static_cast<Array*>(self);
 	uint32 seq_size = ary->length();
@@ -124,7 +124,7 @@ PyObject* Array::_append(PyObject* self, PyObject* args, PyObject* kwargs)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Array::_count(PyObject* self, PyObject* args, PyObject* kwargs)
+PyObject* Array::__py_count(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	Array* ary = static_cast<Array*>(self);
 	PyObject* pyItem = PyTuple_GetItem(args, 0);
@@ -135,7 +135,7 @@ PyObject* Array::_count(PyObject* self, PyObject* args, PyObject* kwargs)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Array::_extend(PyObject* self, PyObject* args, PyObject* kwargs)
+PyObject* Array::__py_extend(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	Array* ary = static_cast<Array*>(self);
 	uint32 seq_size = ary->length();
@@ -144,7 +144,7 @@ PyObject* Array::_extend(PyObject* self, PyObject* args, PyObject* kwargs)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Array::_index(PyObject* self, PyObject* args, PyObject* kwargs)
+PyObject* Array::__py_index(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	Array* ary = static_cast<Array*>(self);
 	PyObject* pyItem = PyTuple_GetItem(args, 0);
@@ -158,7 +158,7 @@ PyObject* Array::_index(PyObject* self, PyObject* args, PyObject* kwargs)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Array::_insert(PyObject* self, PyObject* args, PyObject* kwargs)
+PyObject* Array::__py_insert(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	int before = PyLong_AsLong(PyTuple_GetItem(args, 0));
 	PyObject* pyobj = PyTuple_GetItem(args, 1);
@@ -178,7 +178,7 @@ PyObject* Array::_insert(PyObject* self, PyObject* args, PyObject* kwargs)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Array::_pop(PyObject* self, PyObject* args, PyObject* kwargs)
+PyObject* Array::__py_pop(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	Array* ary = static_cast<Array*>(self);
 	std::vector<PyObject*>& values = ary->getValues();
@@ -208,7 +208,7 @@ PyObject* Array::_pop(PyObject* self, PyObject* args, PyObject* kwargs)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Array::_remove(PyObject* self, PyObject* args, PyObject* kwargs)
+PyObject* Array::__py_remove(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	Array* ary = static_cast<Array*>(self);
 	PyObject* pyItem = PyTuple_GetItem(args, 0);

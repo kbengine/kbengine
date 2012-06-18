@@ -12,11 +12,11 @@ PyMappingMethods FixedDict::mappingMethods =
 
 
 SCRIPT_METHOD_DECLARE_BEGIN(FixedDict)
-SCRIPT_METHOD_DECLARE("__reduce_ex__", __reduce_ex__, METH_VARARGS, 0)
-SCRIPT_METHOD_DECLARE("has_key", _has_key, METH_VARARGS, 0)
-SCRIPT_METHOD_DECLARE("keys", _keys, METH_VARARGS, 0)
-SCRIPT_METHOD_DECLARE("values", _values, METH_VARARGS, 0)
-SCRIPT_METHOD_DECLARE("items", _items, METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__, METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("has_key",		has_key, METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("keys",			keys, METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("values",			values, METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("items",			items, METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE_END()
 
 
@@ -64,7 +64,7 @@ void FixedDict::initialize(std::string strDictInitData)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* FixedDict::__reduce_ex__(PyObject* self, PyObject* protocol)
+PyObject* FixedDict::__py_reduce_ex__(PyObject* self, PyObject* protocol)
 {
 	FixedDict* fixedDict = static_cast<FixedDict*>(self);
 	PyObject* args = PyTuple_New(2);
@@ -185,7 +185,7 @@ PyObject* FixedDict::mp_subscript(PyObject* self, PyObject* key)
 //-------------------------------------------------------------------------------------
 PyObject* FixedDict::update(PyObject* args)
 {
-	return script::Map::_update(this, args);
+	return script::Map::__py_update(this, args);
 }
 	
 //-------------------------------------------------------------------------------------

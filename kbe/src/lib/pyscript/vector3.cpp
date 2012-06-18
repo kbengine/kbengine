@@ -138,7 +138,7 @@ PyObject* ScriptVector3::tp_new(PyTypeObject* type, PyObject* args, PyObject* kw
 
 	if(PyTuple_Size(args) > 0)
 	{
-		PyObject* pyResult = v->pySet((PyObject*)v, args);
+		PyObject* pyResult = v->__py_pySet((PyObject*)v, args);
 
 		if(pyResult)
 			Py_DECREF(pyResult);
@@ -576,7 +576,7 @@ PyObject* ScriptVector3::py_inplace_divide(PyObject *self, PyObject *b)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector3::pyFlatDistSqrTo(PyObject* self, PyObject* args)
+PyObject* ScriptVector3::__py_pyFlatDistSqrTo(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 1)
 	{
@@ -597,7 +597,7 @@ PyObject* ScriptVector3::pyFlatDistSqrTo(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector3::pyFlatDistTo(PyObject* self, PyObject* args)
+PyObject* ScriptVector3::__py_pyFlatDistTo(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 1)
 	{
@@ -615,7 +615,7 @@ PyObject* ScriptVector3::pyFlatDistTo(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector3::pyDistTo(PyObject* self, PyObject* args)
+PyObject* ScriptVector3::__py_pyDistTo(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 1)
 	{
@@ -635,7 +635,7 @@ PyObject* ScriptVector3::pyDistTo(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector3::pyDistSqrTo(PyObject* self, PyObject* args)
+PyObject* ScriptVector3::__py_pyDistSqrTo(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 1)
 	{
@@ -655,12 +655,12 @@ PyObject* ScriptVector3::pyDistSqrTo(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector3::pyCross2D(PyObject* self, PyObject* args)
+PyObject* ScriptVector3::__py_pyCross2D(PyObject* self, PyObject* args)
 {
 	ScriptVector3* v = new ScriptVector3(0,0,0);
 	ScriptVector3* sv = static_cast<ScriptVector3*>(self);
 
-	PyObject* pyResult = v->pySet((PyObject*)v, args);
+	PyObject* pyResult = v->__py_pySet((PyObject*)v, args);
 	if(pyResult)
 		Py_DECREF(pyResult);
 
@@ -672,7 +672,7 @@ PyObject* ScriptVector3::pyCross2D(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector3::pyScale(PyObject* self, PyObject* args)
+PyObject* ScriptVector3::__py_pyScale(PyObject* self, PyObject* args)
 {
 	if(PyTuple_Size(args) == 1)
 	{
@@ -688,11 +688,11 @@ PyObject* ScriptVector3::pyScale(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector3::pyDot(PyObject* self, PyObject* args)
+PyObject* ScriptVector3::__py_pyDot(PyObject* self, PyObject* args)
 {
 	ScriptVector3* v = new ScriptVector3(0,0,0);
 
-	PyObject* pyResult = v->pySet((PyObject*)v, args);
+	PyObject* pyResult = v->__py_pySet((PyObject*)v, args);
 	if(pyResult)
 		Py_DECREF(pyResult);
 
@@ -703,7 +703,7 @@ PyObject* ScriptVector3::pyDot(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector3::pyNormalise(PyObject* self, PyObject* args)
+PyObject* ScriptVector3::__py_pyNormalise(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 0)
 	{
@@ -719,7 +719,7 @@ PyObject* ScriptVector3::pyNormalise(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector3::pyTuple(PyObject* self, PyObject* args)
+PyObject* ScriptVector3::__py_pyTuple(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 0)
 	{
@@ -739,7 +739,7 @@ PyObject* ScriptVector3::pyTuple(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector3::pyList(PyObject* self, PyObject* args)
+PyObject* ScriptVector3::__py_pyList(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 0)
 	{
@@ -759,7 +759,7 @@ PyObject* ScriptVector3::pyList(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector3::pySet(PyObject* self, PyObject* args)
+PyObject* ScriptVector3::__py_pySet(PyObject* self, PyObject* args)
 {
 	ScriptVector3* sv = static_cast<ScriptVector3*>(self);
 	bool good = false;

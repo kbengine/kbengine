@@ -32,8 +32,8 @@ public:
 	virtual ~ScriptStdOutErr();
 
 	/** python执行写操作 */
-	static PyObject* write(PyObject* self, PyObject *args);	
-	static PyObject* flush(PyObject* self, PyObject *args);
+	static PyObject* __py_write(PyObject* self, PyObject *args);	
+	static PyObject* __py_flush(PyObject* self, PyObject *args);
 
 	/** 安装和卸载这个模块 */
 	bool install(void);

@@ -11,11 +11,11 @@ PyMappingMethods Map::mappingMethods =
 
 
 SCRIPT_METHOD_DECLARE_BEGIN(Map)
-SCRIPT_METHOD_DECLARE("has_key",			_has_key,			METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("keys",				_keys,				METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("values",				_values,			METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("items",				_items,				METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("update",				_update,			METH_VARARGS,		0)	
+SCRIPT_METHOD_DECLARE("has_key",			has_key,			METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("keys",				keys,				METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("values",				values,				METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("items",				items,				METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("update",				update,				METH_VARARGS,		0)	
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Map)
@@ -81,32 +81,32 @@ PyObject* Map::mp_subscript(PyObject* self, PyObject* key)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Map::_has_key(PyObject* self, PyObject* args)
+PyObject* Map::__py_has_key(PyObject* self, PyObject* args)
 {
 	return PyObject_CallMethod(static_cast<Map*>(self)->pyDict_, 
 		const_cast<char*>("has_key"), const_cast<char*>("O"), args);
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Map::_keys(PyObject* self, PyObject* args)
+PyObject* Map::__py_keys(PyObject* self, PyObject* args)
 {
 	return PyDict_Keys(static_cast<Map*>(self)->pyDict_);
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Map::_values(PyObject* self, PyObject* args)
+PyObject* Map::__py_values(PyObject* self, PyObject* args)
 {
 	return PyDict_Values(static_cast<Map*>(self)->pyDict_);
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Map::_items(PyObject* self, PyObject* args)
+PyObject* Map::__py_items(PyObject* self, PyObject* args)
 {
 	return PyDict_Items(static_cast<Map*>(self)->pyDict_);
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Map::_update(PyObject* self, PyObject* args)
+PyObject* Map::__py_update(PyObject* self, PyObject* args)
 {
 	PyDict_Update(static_cast<Map*>(self)->pyDict_, args);
 	S_Return; 

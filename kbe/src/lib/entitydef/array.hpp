@@ -32,7 +32,7 @@ public:
 	void initialize(std::string strInitData);
 
 	/** 支持pickler 方法 */
-	static PyObject* __reduce_ex__(PyObject* self, PyObject* protocol);
+	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol);
 	/** unpickle方法 */
 	static PyObject* __unpickle__(PyObject* self, PyObject* args);
 	
@@ -40,13 +40,13 @@ public:
 	static void onInstallScript(PyObject* mod);
 	
 	/** 一下为一个list所需的操作接口 */
-	static PyObject* _append(PyObject* self, PyObject* args, PyObject* kwargs);	
-	static PyObject* _count(PyObject* self, PyObject* args, PyObject* kwargs);
-	static PyObject* _extend(PyObject* self, PyObject* args, PyObject* kwargs);	
-	static PyObject* _index(PyObject* self, PyObject* args, PyObject* kwargs);
-	static PyObject* _insert(PyObject* self, PyObject* args, PyObject* kwargs);	
-	static PyObject* _pop(PyObject* self, PyObject* args, PyObject* kwargs);
-	static PyObject* _remove(PyObject* self, PyObject* args, PyObject* kwargs);
+	static PyObject* __py_append(PyObject* self, PyObject* args, PyObject* kwargs);	
+	static PyObject* __py_count(PyObject* self, PyObject* args, PyObject* kwargs);
+	static PyObject* __py_extend(PyObject* self, PyObject* args, PyObject* kwargs);	
+	static PyObject* __py_index(PyObject* self, PyObject* args, PyObject* kwargs);
+	static PyObject* __py_insert(PyObject* self, PyObject* args, PyObject* kwargs);	
+	static PyObject* __py_pop(PyObject* self, PyObject* args, PyObject* kwargs);
+	static PyObject* __py_remove(PyObject* self, PyObject* args, PyObject* kwargs);
 	
 	bool isSameType(PyObject* pyValue);
 protected:

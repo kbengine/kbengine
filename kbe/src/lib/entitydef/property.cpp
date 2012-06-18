@@ -168,7 +168,7 @@ int VectorDescription::onSetValue(PyObject* parentObj, PyObject* value)
 					return -1;
 
 				script::ScriptVector2* v = static_cast<script::ScriptVector2*>(pyobj);
-				v->pySet(v, value);
+				v->__py_pySet(v, value);
 				Py_XDECREF(pyobj);
 			}
 		}
@@ -186,7 +186,7 @@ int VectorDescription::onSetValue(PyObject* parentObj, PyObject* value)
 					return -1;
 
 				script::ScriptVector3* v = static_cast<script::ScriptVector3*>(pyobj);
-				v->pySet(v, value);
+				v->__py_pySet(v, value);
 				Py_XDECREF(pyobj);
 			}
 		}
@@ -204,7 +204,7 @@ int VectorDescription::onSetValue(PyObject* parentObj, PyObject* value)
 					return -1;
 
 				script::ScriptVector4* v = static_cast<script::ScriptVector4*>(pyobj);
-				v->pySet(v, value);
+				v->__py_pySet(v, value);
 				Py_XDECREF(pyobj);
 			}
 		}

@@ -33,7 +33,7 @@ public:
 	const DataType* getDataType(void){ return _dataType; }
 
 	/** 支持pickler 方法 */
-	static PyObject* __reduce_ex__(PyObject* self, PyObject* protocol);
+	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol);
 	/** unpickle方法 */
 	static PyObject* __unpickle__(PyObject* self, PyObject* args);
 	

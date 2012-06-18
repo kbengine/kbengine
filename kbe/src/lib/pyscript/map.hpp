@@ -26,11 +26,11 @@ public:
 	virtual ~Map();
 
 	/** 暴露一些字典方法给python */
-	static PyObject* _has_key(PyObject* self, PyObject* args);
-	static PyObject* _keys(PyObject* self, PyObject* args);
-	static PyObject* _values(PyObject* self, PyObject* args);
-	static PyObject* _items(PyObject* self, PyObject* args);
-	static PyObject* _update(PyObject* self, PyObject* args);
+	static PyObject* __py_has_key(PyObject* self, PyObject* args);
+	static PyObject* __py_keys(PyObject* self, PyObject* args);
+	static PyObject* __py_values(PyObject* self, PyObject* args);
+	static PyObject* __py_items(PyObject* self, PyObject* args);
+	static PyObject* __py_update(PyObject* self, PyObject* args);
 	
 	/** map操作函数相关 */
 	static PyObject* mp_subscript(PyObject* self, PyObject* key);

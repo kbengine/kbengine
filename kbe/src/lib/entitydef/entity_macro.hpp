@@ -16,7 +16,7 @@ namespace KBEngine{
 
 #define ENTITY_METHOD_DECLARE_BEGIN(CLASS)																	\
 	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																		\
-	SCRIPT_METHOD_DECLARE("__reduce_ex__",	__reduce_ex__,					METH_VARARGS,			0)		\
+	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,			0)		\
 
 
 #define ENTITY_METHOD_DECLARE_END()																			\
@@ -111,7 +111,7 @@ public:																										\
 		Py_XDECREF(cellData);																				\
 	}																										\
 																											\
-	static PyObject* __reduce_ex__(PyObject* self, PyObject* protocol)										\
+	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol)									\
 	{																										\
 		CLASS* entity = static_cast<CLASS*>(self);															\
 		PyObject* args = PyTuple_New(2);																	\

@@ -7,7 +7,7 @@ namespace KBEngine{
 
 
 SCRIPT_METHOD_DECLARE_BEGIN(EntityMailboxAbstract)
-SCRIPT_METHOD_DECLARE("__reduce_ex__",				__reduce_ex__,			METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("__reduce_ex__",				reduce_ex__,			METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE_END()
 
 
@@ -63,7 +63,7 @@ SocketPacket* EntityMailboxAbstract::createMail(MAIL_TYPE mailType)
 }
 */
 //-------------------------------------------------------------------------------------
-PyObject* EntityMailboxAbstract::__reduce_ex__(PyObject* self, PyObject* protocol)
+PyObject* EntityMailboxAbstract::__py_reduce_ex__(PyObject* self, PyObject* protocol)
 {
 	EntityMailboxAbstract* emailbox = static_cast<EntityMailboxAbstract*>(self);
 	PyObject* args = PyTuple_New(2);

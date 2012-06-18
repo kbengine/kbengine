@@ -137,7 +137,7 @@ PyObject* ScriptVector4::tp_new(PyTypeObject* type, PyObject* args, PyObject* kw
 
 	if(PyTuple_Size(args) > 0)
 	{
-		PyObject* pyResult = v->pySet((PyObject*)v, args);
+		PyObject* pyResult = v->__py_pySet((PyObject*)v, args);
 
 		if(pyResult)
 			Py_DECREF(pyResult);
@@ -581,7 +581,7 @@ PyObject* ScriptVector4::py_inplace_divide(PyObject *self, PyObject *b)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::pyDistTo(PyObject* self, PyObject* args)
+PyObject* ScriptVector4::__py_pyDistTo(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 1)
 	{
@@ -601,7 +601,7 @@ PyObject* ScriptVector4::pyDistTo(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::pyDistSqrTo(PyObject* self, PyObject* args)
+PyObject* ScriptVector4::__py_pyDistSqrTo(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 1)
 	{
@@ -621,7 +621,7 @@ PyObject* ScriptVector4::pyDistSqrTo(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::pyScale(PyObject* self, PyObject* args)
+PyObject* ScriptVector4::__py_pyScale(PyObject* self, PyObject* args)
 {
 	if(PyTuple_Size(args) == 1)
 	{
@@ -637,11 +637,11 @@ PyObject* ScriptVector4::pyScale(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::pyDot(PyObject* self, PyObject* args)
+PyObject* ScriptVector4::__py_pyDot(PyObject* self, PyObject* args)
 {
 	ScriptVector4* v = new ScriptVector4(0,0,0,0);
 
-	PyObject* pyResult = v->pySet((PyObject*)v, args);
+	PyObject* pyResult = v->__py_pySet((PyObject*)v, args);
 	if(pyResult)
 		Py_DECREF(pyResult);
 
@@ -652,7 +652,7 @@ PyObject* ScriptVector4::pyDot(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::pyNormalise(PyObject* self, PyObject* args)
+PyObject* ScriptVector4::__py_pyNormalise(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 0)
 	{
@@ -668,7 +668,7 @@ PyObject* ScriptVector4::pyNormalise(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::pyTuple(PyObject* self, PyObject* args)
+PyObject* ScriptVector4::__py_pyTuple(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 0)
 	{
@@ -688,7 +688,7 @@ PyObject* ScriptVector4::pyTuple(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::pyList(PyObject* self, PyObject* args)
+PyObject* ScriptVector4::__py_pyList(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 0)
 	{
@@ -708,7 +708,7 @@ PyObject* ScriptVector4::pyList(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::pySet(PyObject* self, PyObject* args)
+PyObject* ScriptVector4::__py_pySet(PyObject* self, PyObject* args)
 {
 	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
 	bool good = false;

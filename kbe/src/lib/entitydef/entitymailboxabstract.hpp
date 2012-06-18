@@ -68,7 +68,7 @@ public:
 //	virtual void post(Packet* sp);
 
 	/** 支持pickler 方法 */
-	static PyObject* __reduce_ex__(PyObject* self, PyObject* protocol);
+	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol);
 	
 	/** 设置这个mailbox所关联的socket频道 在proxy进行giveClientTo操作时， 允许被设置为NULL*/
 	void setChannel(Mercury::Channel* pChannel){ pChannelPtr_ = pChannel; };

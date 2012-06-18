@@ -11,10 +11,10 @@ PyMappingMethods g_mappingMethods =
 
 
 SCRIPT_METHOD_DECLARE_BEGIN(Entities)
-SCRIPT_METHOD_DECLARE("has_key",			__py_pyHas_key,		METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("keys",				__py_pyKeys,		METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("values",				__py_pyValues,		METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("items",				__py_pyItems,		METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("has_key",			pyHas_key,		METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("keys",				pyKeys,			METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("values",				pyValues,		METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("items",				pyItems,		METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE_END()
 
 

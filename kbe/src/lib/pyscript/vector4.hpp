@@ -59,14 +59,14 @@ public:
 	static PyObject* py_inplace_divide(PyObject *self, PyObject *b);
 	
 	/** 暴漏一些方法 */
-	static PyObject* pyDistTo(PyObject* self, PyObject* args);
-	static PyObject* pyDistSqrTo(PyObject* self, PyObject* args);
-	static PyObject* pyScale(PyObject* self, PyObject* args);
-	static PyObject* pyDot(PyObject* self, PyObject* args);
-	static PyObject* pyNormalise(PyObject* self, PyObject* args);
-	static PyObject* pyTuple(PyObject* self, PyObject* args);
-	static PyObject* pyList(PyObject* self, PyObject* args);
-	static PyObject* pySet(PyObject* self, PyObject* args);
+	static PyObject* __py_pyDistTo(PyObject* self, PyObject* args);
+	static PyObject* __py_pyDistSqrTo(PyObject* self, PyObject* args);
+	static PyObject* __py_pyScale(PyObject* self, PyObject* args);
+	static PyObject* __py_pyDot(PyObject* self, PyObject* args);
+	static PyObject* __py_pyNormalise(PyObject* self, PyObject* args);
+	static PyObject* __py_pyTuple(PyObject* self, PyObject* args);
+	static PyObject* __py_pyList(PyObject* self, PyObject* args);
+	static PyObject* __py_pySet(PyObject* self, PyObject* args);
 
 	DECLARE_PY_GET_MOTHOD(pyGetVectorLength);
 	DECLARE_PY_GET_MOTHOD(pyGetVectorLengthSquared);

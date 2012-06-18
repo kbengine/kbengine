@@ -92,7 +92,7 @@ namespace KBEngine{ namespace script{
 /** 定义暴露给脚本的方法宏
 */
 #define SCRIPT_METHOD_DECLARE_BEGIN(CLASS)											PyMethodDef CLASS::_##CLASS##_scriptMethods[] = {			
-#define SCRIPT_METHOD_DECLARE(METHOD_NAME, METHOD_FUNC, FLAGS, DOC)					{METHOD_NAME, (PyCFunction)&METHOD_FUNC, FLAGS, DOC},
+#define SCRIPT_METHOD_DECLARE(METHOD_NAME, METHOD_FUNC, FLAGS, DOC)					{METHOD_NAME, (PyCFunction)&__py_##METHOD_FUNC, FLAGS, DOC},
 #define SCRIPT_METHOD_DECLARE_END()													{NULL, NULL, 0, NULL}};
 
 // 向模块追加方法
