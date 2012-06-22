@@ -65,6 +65,11 @@ namespace log4cxx
                 {
                 public:
                         DECLARE_ABSTRACT_LOG4CXX_OBJECT(ErrorHandler)
+                         BEGIN_LOG4CXX_CAST_MAP()
+                                LOG4CXX_CAST_ENTRY(ErrorHandler)
+                                LOG4CXX_CAST_ENTRY(OptionHandler)
+                        END_LOG4CXX_CAST_MAP()
+                       
                         virtual ~ErrorHandler() {}
 
                                 /**

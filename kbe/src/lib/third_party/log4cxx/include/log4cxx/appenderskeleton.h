@@ -81,6 +81,7 @@ namespace log4cxx
         public:
                 DECLARE_ABSTRACT_LOG4CXX_OBJECT(AppenderSkeleton)
                 BEGIN_LOG4CXX_CAST_MAP()
+                        LOG4CXX_CAST_ENTRY(AppenderSkeleton)
                         LOG4CXX_CAST_ENTRY(Appender)
                         LOG4CXX_CAST_ENTRY(spi::OptionHandler)
                 END_LOG4CXX_CAST_MAP()

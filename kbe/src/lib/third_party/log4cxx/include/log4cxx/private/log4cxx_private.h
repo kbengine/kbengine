@@ -18,67 +18,39 @@
 #ifndef LOG4CXX_PRIVATE_LOG4CXX_H
 #define LOG4CXX_PRIVATE_LOG4CXX_H
 
-
-/* GENERATED FILE WARNING!  DO NOT EDIT log4cxx.h
+/* GENERATED FILE WARNING!  DO NOT EDIT log4cxx_private.h
  *
- * You must modify log4cxx.hw instead.
+ * You must modify log4cxx_private.h.in instead.
  *
- *
- * This is the Win32 specific version of log4cxx.h.
  */
 
 #include <log4cxx/log4cxx.h>
 
 #if !defined(LOG4CXX) && !defined(LOG4CXX_TEST)
-#error "log4cxx/private/log4cxx.h should only be used within log4cxx and tests implementation"
+#error "log4cxx/private/log4cxx_private.h should only be used within log4cxx implementation or tests"
 #endif
 
-
-#if !defined(__BORLANDC__)
-#define LOG4CXX_RETURN_AFTER_THROW 1
-#else
 #define LOG4CXX_RETURN_AFTER_THROW 0
-#endif
 
-#if defined(_WIN32_WCE)
-#define LOG4CXX_HAS_STD_LOCALE 0
-#else
 #define LOG4CXX_HAS_STD_LOCALE 1
-#endif
-
-#define LOG4CXX_FORCE_WIDE_CONSOLE 1
+#define LOG4CXX_FORCE_WIDE_CONSOLE 0
 #define LOG4CXX_FORCE_BYTE_CONSOLE 0
-
-
-#if defined(_MSC_VER)
-#define LOG4CXX_MEMSET_IOS_BASE 1
-#endif
-
-#if !defined(_WIN32_WCE)
-#define LOG4CXX_HAVE_ODBC 1
-#if defined(__BORLANDC__)
-#define LOG4CXX_HAS_MBSRTOWCS 0
-#else
-#define LOG4CXX_HAS_MBSRTOWCS 1
-#endif
-#else
+#define LOG4CXX_MEMSET_IOS_BASE 0
 #define LOG4CXX_HAVE_ODBC 0
-#define LOG4CXX_HAS_MBSRTOWCS 0
-#endif
-
-#define LOG4CXX_HAS_FWIDE 1
+#define LOG4CXX_HAS_MBSRTOWCS 1
 #define LOG4CXX_HAS_WCSTOMBS 1
+#define LOG4CXX_HAS_FWIDE 1
 
 #define LOG4CXX_CHARSET_UTF8 0
 #define LOG4CXX_CHARSET_ISO88591 0
 #define LOG4CXX_CHARSET_USASCII 0
 #define LOG4CXX_CHARSET_EBCDIC 0
 
-
 #define LOG4CXX_HAVE_LIBESMTP 0
-#define LOG4CXX_HAVE_SYSLOG 0
+#define LOG4CXX_HAVE_SYSLOG 1
 
 #define LOG4CXX_WIN32_THREAD_FMTSPEC "0x%.8x"
 #define LOG4CXX_APR_THREAD_FMTSPEC "0x%pt"
+
 
 #endif

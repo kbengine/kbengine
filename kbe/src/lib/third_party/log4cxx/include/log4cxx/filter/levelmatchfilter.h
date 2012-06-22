@@ -99,4 +99,4 @@ namespace log4cxx
 #pragma warning ( pop )
 #endif
 
-#endif // _LOG4CXX_FILTER_STRING_MATCH_FILTER_H
+#endif // _LOG4CXX_FILTER_LEVEL_MATCH_FILTER_H

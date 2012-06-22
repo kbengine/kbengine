@@ -49,8 +49,8 @@ namespace log4cxx
                 public:
                         DECLARE_LOG4CXX_OBJECT(FallbackErrorHandler)
                         BEGIN_LOG4CXX_CAST_MAP()
-                                LOG4CXX_CAST_ENTRY(spi::OptionHandler)
-                                LOG4CXX_CAST_ENTRY(spi::ErrorHandler)
+                                LOG4CXX_CAST_ENTRY(FallbackErrorHandler)
+                                LOG4CXX_CAST_ENTRY_CHAIN(spi::ErrorHandler)
                         END_LOG4CXX_CAST_MAP()
 
                         FallbackErrorHandler();
@@ -109,6 +109,8 @@ namespace log4cxx
                         */
                         void setBackupAppender(const AppenderPtr& backup);
                 };
+                LOG4CXX_PTR_DEF(FallbackErrorHandler);
+                
         }  // namespace varia
 } // namespace log4cxx
 

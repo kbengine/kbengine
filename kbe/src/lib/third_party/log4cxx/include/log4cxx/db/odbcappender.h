@@ -279,6 +279,10 @@ namespace log4cxx
                 private:
                         ODBCAppender(const ODBCAppender&);
                         ODBCAppender& operator=(const ODBCAppender&);
+                        static void encode(wchar_t** dest, const LogString& src, 
+                             log4cxx::helpers::Pool& p);
+                        static void encode(unsigned short** dest, const LogString& src, 
+                             log4cxx::helpers::Pool& p);
                 }; // class ODBCAppender
                 LOG4CXX_PTR_DEF(ODBCAppender);
                 

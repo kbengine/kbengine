@@ -162,7 +162,7 @@ namespace log4cxx
                         <code>reconnectionDelay</code> milliseconds.
 
                         <p>It stops trying whenever a connection is established. It will
-                        restart to try reconnect to the server when previpously open
+                        restart to try reconnect to the server when previously open
                         connection is droppped.
                         */
 

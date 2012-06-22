@@ -31,6 +31,8 @@
 
 extern "C" {
     typedef struct apr_thread_t apr_thread_t;
+    typedef struct apr_thread_cond_t apr_thread_cond_t;
+    typedef struct apr_thread_mutex_t apr_thread_mutex_t;
 }
 
 
@@ -41,7 +43,11 @@ namespace log4cxx
                 class Pool;
                 class ThreadLocal;
 
-            typedef void* (LOG4CXX_THREAD_FUNC *Runnable)(apr_thread_t* thread, void* data);
+                typedef void* (LOG4CXX_THREAD_FUNC *Runnable)(apr_thread_t* thread, void* data);
+                namespace ThreadLaunch {
+		    extern "C" void* LOG4CXX_THREAD_FUNC launcher(apr_thread_t* thread, void* data);
+                }
+
                 /**
                  *  This class implements an approximation of java.util.Thread.
                  */
@@ -96,87 +102,11 @@ namespace log4cxx
                         apr_thread_t* thread;
                         volatile unsigned int alive;
                         volatile unsigned int interruptedStatus;
+                        apr_thread_mutex_t* interruptedMutex;
+                        apr_thread_cond_t* interruptedCondition;
                         Thread(const Thread&);
                         Thread& operator=(const Thread&);
-                        
-                        /**
-                         *   This class is used to encapsulate the parameters to
-                         *   Thread::run when they are passed to Thread::launcher.
-                         *
-                         */
-                        class LaunchPackage {
-                        public:
-                            /**
-                             *  Placement new to create LaunchPackage in specified pool.
-                             *  LaunchPackage needs to be dynamically allocated since
-                             *  since a stack allocated instance may go out of scope
-                             *  before thread is launched.
-                             */
-                            static void* operator new(size_t, Pool& p);
-                            /**
-                            *  operator delete would be called if exception during construction.
-                     */
-                            static void operator delete(void*, Pool& p);
-                            /**
-                             *  Create new instance.
-                             */
-                            LaunchPackage(Thread* thread, Runnable runnable, void* data);
-                            /**
-                             * Gets thread parameter.
-                             * @return thread.
-                             */
-                            Thread* getThread() const;
-                            /**
-                             *  Gets runnable parameter.
-                             *  @return runnable.
-                             */
-                            Runnable getRunnable() const;
-                            /**
-                             *  gets data parameter.
-                             *  @return thread.
-                             */
-                            void* getData() const;
-                        private:
-                            LaunchPackage(const LaunchPackage&);
-                            LaunchPackage& operator=(const LaunchPackage&);
-                            Thread* thread;
-                            Runnable runnable; 
-                            void* data;
-                        };
-                        
-                        /**
-                         *  This object atomically sets the specified memory location
-                         *  to non-zero on construction and to zero on destruction.  
-                         *  Used to maintain Thread.alive.
-                         */
-                        class LaunchStatus {
-                        public:
-                            /*
-                             *  Construct new instance.
-                             *  @param p address of memory to set to non-zero on construction, zero on destruction.
-                             */
-                            LaunchStatus(volatile unsigned int* p);
-                            /**
-                             *  Destructor.
-                             */
-                            ~LaunchStatus();
-                        private:
-                            LaunchStatus(const LaunchStatus&);
-                            LaunchStatus& operator=(const LaunchStatus&);
-                            volatile unsigned int* alive;
-                        };
-                        
-                        /**
-                         *  This method runs on the created thread and sets up thread-local storage
-                         *  used to keep the reference to the corresponding Thread object and
-                         *  is responsible for maintaining Thread.alive.
-                         */
-                        static void* LOG4CXX_THREAD_FUNC launcher(apr_thread_t* thread, void* data);
-                        /**
-                         *   Get a key to the thread local storage used to hold the reference to
-                         *   the corresponding Thread object.
-                         */                        
-                        static ThreadLocal& getThreadLocal();
+                        friend void* LOG4CXX_THREAD_FUNC ThreadLaunch::launcher(apr_thread_t* thread, void* data); 
                 };
         } // namespace helpers
 } // namespace log4cxx
