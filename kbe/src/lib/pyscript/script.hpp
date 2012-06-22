@@ -43,7 +43,7 @@ public:
 
 
 	int registerToModule(const char* attrName, PyObject* pyObj);
-	int Script::unregisterToModule(const char* attrName);
+	int unregisterToModule(const char* attrName);
 
 	void initThread( bool plusOwnInterpreter = false );
 	void finiThread( bool plusOwnInterpreter = false );

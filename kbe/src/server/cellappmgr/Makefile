@@ -20,6 +20,10 @@ ifndef USE_OPENSSL
 	USE_OPENSSL = 0
 endif
 
+ifndef NO_USE_LOG4CXX
+	NO_USE_LOG4CXX = 0
+endif
+
 #HAS_PCH = 1
 CPPFLAGS += -DKBE_CELLAPPMGR
 

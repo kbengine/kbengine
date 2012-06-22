@@ -162,15 +162,16 @@ namespace KBEngine{ namespace script{
 			if(!PyArg_ParseTuple(args, PY_METHOD_ARG_##ARG_TYPE1##_PYARGTYPE,														\
 										&arg1))																						\
 			{																														\
-				ERROR_MSG(__FUNCTION__": args is error!\n");																		\
+				ERROR_MSG("%s: args is error!\n", __FUNCTION__);																	\
 				PyErr_Clear();																										\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptName());																		\
+			ERROR_MSG("%s: args require %d args, gived %d! is script[%s].\n",														\
+				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
+																																	\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -198,15 +199,15 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE2##_PYARGTYPE,														\
 										&arg1, &arg2))																				\
 			{																														\
-				ERROR_MSG(__FUNCTION__": args is error!\n");																		\
+				ERROR_MSG("%s: args is error!\n", __FUNCTION__);																	\
 				PyErr_Clear();																										\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptName());																		\
+			ERROR_MSG("%s: args require %d args, gived %d! is script[%s].\n",														\
+				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -237,15 +238,15 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE3##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3))																		\
 			{																														\
-				ERROR_MSG(__FUNCTION__": args is error!\n");																		\
+				ERROR_MSG("%s: args is error!\n", __FUNCTION__);																	\
 				PyErr_Clear();																										\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptName());																		\
+			ERROR_MSG("%s: args require %d args, gived %d! is script[%s].\n",														\
+				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -278,15 +279,15 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE4##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4))																\
 			{																														\
-				ERROR_MSG(__FUNCTION__": args is error!\n");																		\
+				ERROR_MSG("%s: args is error!\n", __FUNCTION__);																	\
 				PyErr_Clear();																										\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptName());																		\
+			ERROR_MSG("%s: args require %d args, gived %d! is script[%s].\n",														\
+				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -323,15 +324,15 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE5##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5))															\
 			{																														\
-				ERROR_MSG(__FUNCTION__": args is error!\n");																		\
+				ERROR_MSG("%s: args is error!\n", __FUNCTION__);																	\
 				PyErr_Clear();																										\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptName());																		\
+			ERROR_MSG("%s: args require %d args, gived %d! is script[%s].\n",														\
+				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -371,15 +372,15 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE6##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5, &arg6))													\
 			{																														\
-				ERROR_MSG(__FUNCTION__": args is error!\n");																		\
+				ERROR_MSG("%s: args is error!\n", __FUNCTION__);																	\
 				PyErr_Clear();																										\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptName());																		\
+			ERROR_MSG("%s: args require %d args, gived %d! is script[%s].\n",														\
+				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -422,15 +423,15 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE7##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7))											\
 			{																														\
-				ERROR_MSG(__FUNCTION__": args is error!\n");																		\
+				ERROR_MSG("%s: args is error!\n", __FUNCTION__);																	\
 				PyErr_Clear();																										\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptName());																		\
+			ERROR_MSG("%s: args require %d args, gived %d! is script[%s].\n",														\
+				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -476,15 +477,15 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE8##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7, &arg8))									\
 			{																														\
-				ERROR_MSG(__FUNCTION__": args is error!\n");																		\
+				ERROR_MSG("%s: args is error!\n", __FUNCTION__);																	\
 				PyErr_Clear();																										\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptName());																		\
+			ERROR_MSG("%s: args require %d args, gived %d! is script[%s].\n",														\
+				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -534,15 +535,15 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE9##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7, &arg8, &arg9))								\
 			{																														\
-				ERROR_MSG(__FUNCTION__": args is error!\n");																		\
+				ERROR_MSG("%s: args is error!\n", __FUNCTION__);																	\
 				PyErr_Clear();																										\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptName());																		\
+			ERROR_MSG("%s: args require %d args, gived %d! is script[%s].\n",														\
+				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
 																																	\
 			S_Return;																												\
 		}																															\
@@ -595,15 +596,15 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE10##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7, &arg8, &arg9, &arg10))						\
 			{																														\
-				ERROR_MSG(__FUNCTION__": args is error!\n");																		\
+				ERROR_MSG("%s: args is error!\n", __FUNCTION__);																	\
 				PyErr_Clear();																										\
 				S_Return;																											\
 			}																														\
 		}																															\
 		else																														\
 		{																															\
-			ERROR_MSG(__FUNCTION__": args require %d args, gived %d! is script[%s].\n",												\
-				argsSize, currargsSize, pobj->getScriptName());																		\
+			ERROR_MSG("%s: args require %d args, gived %d! is script[%s].\n",														\
+				__FUNCTION__, argsSize, currargsSize, pobj->getScriptName());														\
 																																	\
 			S_Return;																												\
 		}																															\

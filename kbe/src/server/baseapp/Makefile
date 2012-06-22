@@ -7,8 +7,8 @@ SRCS =						\
 ASMS =
 
 MY_LIBS =		\
-	entitydef	\
 	server		\
+	entitydef	\
 	pyscript	\
 	network		\
 	thread
@@ -20,6 +20,10 @@ USE_G3DMATH=1
 	
 ifndef USE_OPENSSL
 	USE_OPENSSL = 0
+endif
+
+ifndef NO_USE_LOG4CXX
+	NO_USE_LOG4CXX = 0
 endif
 
 CPPFLAGS += -DKBE_BASEAPP

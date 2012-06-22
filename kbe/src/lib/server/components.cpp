@@ -139,4 +139,18 @@ Components::ComponentInfos* Components::findComponent(COMPONENT_TYPE componentTy
 }
 
 //-------------------------------------------------------------------------------------		
+Components::ComponentInfos* Components::findComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID)
+{
+	COMPONENTS& components = getComponents(componentType);
+	COMPONENTS::iterator iter = components.begin();
+	for(; iter != components.end(); iter++)
+	{
+		if((*iter).cid == componentID)
+			return &(*iter);
+	}
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------		
 }

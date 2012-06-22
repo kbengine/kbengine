@@ -20,8 +20,8 @@ ScriptStdOutErr::ScriptStdOutErr():
 ScriptObject(getScriptType(), false),
 softspace_(0),
 sysModule_(NULL),
-prevStdout_(NULL),
 prevStderr_(NULL),
+prevStdout_(NULL),
 isInstall_(false),
 sbuffer_()
 {

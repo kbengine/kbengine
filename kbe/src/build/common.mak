@@ -187,6 +187,14 @@ LDFLAGS += -export-dynamic
 
 # The OpenSSL redist is used for all builds as cstdkbe/md5.[ch]pp depends
 # on the OpenSSL MD5 implementation.
+
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party/log4cxx/include
+ifeq ($(NO_USE_LOG4CXX),0)
+LDLIBS += -llog4cxx -lapr-1 -laprutil-1 -lexpat
+else
+CPPFLAGS += -DNO_USE_LOG4CXX
+endif
+
 OPENSSL_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/openssl
 KBE_INCLUDES += -I$(OPENSSL_DIR)/include
 ifeq ($(USE_OPENSSL),1)

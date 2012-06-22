@@ -61,6 +61,7 @@ public:
 	Components::COMPONENTS& getComponents(COMPONENT_TYPE componentType);
 
 	Components::ComponentInfos* findComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID);
+	Components::ComponentInfos* findComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID);
 	//const Components::ComponentInfos findComponent(COMPONENT_TYPE componentType, int32 uid);
 private:
 	COMPONENTS			_baseapps;

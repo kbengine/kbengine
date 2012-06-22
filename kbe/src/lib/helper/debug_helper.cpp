@@ -113,7 +113,11 @@ void DebugHelper::print_msg(const char * str, ...)
 #else
     va_list ap;
     va_start(ap, str);
-    _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+#if KBE_PLATFORM == PLATFORM_WIN32
+	_vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+#else
+    vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+#endif
     va_end(ap);
 	LOG4CXX_INFO(g_logger, _g_buf);
 #endif
@@ -153,7 +157,11 @@ void DebugHelper::error_msg(const char * err, ...)
 #else
     va_list ap;
     va_start(ap, err);
-    _vsnprintf(_g_buf, DBG_PT_SIZE, err, ap);
+#if KBE_PLATFORM == PLATFORM_WIN32
+	_vsnprintf(_g_buf, DBG_PT_SIZE, err, ap);
+#else
+    vsnprintf(_g_buf, DBG_PT_SIZE, err, ap);
+#endif
     va_end(ap);
 	LOG4CXX_ERROR(g_logger, _g_buf);
 #endif
@@ -193,7 +201,11 @@ void DebugHelper::info_msg(const char * info, ...)
 #else
     va_list ap;
     va_start(ap, info);
-    _vsnprintf(_g_buf, DBG_PT_SIZE, info, ap);
+#if KBE_PLATFORM == PLATFORM_WIN32
+	_vsnprintf(_g_buf, DBG_PT_SIZE, info, ap);
+#else
+    vsnprintf(_g_buf, DBG_PT_SIZE, info, ap);
+#endif
     va_end(ap);
 	LOG4CXX_INFO(g_logger, _g_buf);
 #endif
@@ -233,7 +245,11 @@ void DebugHelper::debug_msg(const char * str, ...)
 #else 
     va_list ap;
     va_start(ap, str);
-    _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+#if KBE_PLATFORM == PLATFORM_WIN32
+	_vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+#else
+    vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+#endif
     va_end(ap);
 	LOG4CXX_DEBUG(g_logger, _g_buf);
 #endif
@@ -273,7 +289,11 @@ void DebugHelper::warning_msg(const char * str, ...)
 #else
     va_list ap;
     va_start(ap, str);
-    _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+#if KBE_PLATFORM == PLATFORM_WIN32
+	_vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+#else
+    vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+#endif
     va_end(ap);
 	// printf("CRITICAL:%s(%d)\n\t%s\n", _currFile.c_str(), _currLine, _g_buf);
 	LOG4CXX_WARN(g_logger, _g_buf);
@@ -313,7 +333,11 @@ void DebugHelper::critical_msg(const char * str, ...)
 #else
     va_list ap;
     va_start(ap, str);
-    _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+#if KBE_PLATFORM == PLATFORM_WIN32
+	_vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+#else
+    vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+#endif
     va_end(ap);
 	char buf[DBG_PT_SIZE];
 	sprintf(buf, "%s(%d) -> %s\n\t%s\n", _currFile.c_str(), _currLine, _currFuncName.c_str(), _g_buf);
