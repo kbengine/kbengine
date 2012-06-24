@@ -1,6 +1,5 @@
 #include "cellapp.hpp"
 #include "entity.hpp"
-#include "entities.hpp"
 #include "cellapp_interface.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
@@ -18,7 +17,7 @@ KBE_SINGLETON_INIT(CellApp);
 CellApp::CellApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
   EntityApp(dispatcher, ninterface, componentType),
     idClient_(NULL),
-    entities_(NULL),
+    pEntities_(NULL),
     gameTimer_()
 {
 	// KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &CellAppInterface::messageHandlers;	
@@ -35,21 +34,22 @@ CellApp::~CellApp()
 //-------------------------------------------------------------------------------------
 bool CellApp::installPyModules()
 {
-	Entities::installScript(NULL);
+	Entities<Entity>::installScript(NULL);
 	Entity::installScript(getScript().getModule());
 
 	registerScript(Entity::getScriptType());
 	
-	entities_ = new Entities();
-	registerPyObjectToScript("entities", entities_);
+	pEntities_ = new Entities<Entity>();
+	registerPyObjectToScript("entities", pEntities_);
 	return EntityApp::installPyModules();
 }
 
 //-------------------------------------------------------------------------------------
 bool CellApp::uninstallPyModules()
 {	
-	S_RELEASE(entities_);
-	Entities::uninstallScript();
+	S_RELEASE(pEntities_);
+	unregisterPyObjectToScript("entities");
+	Entities<Entity>::uninstallScript();
 	Entity::uninstallScript();
 	return EntityApp::uninstallPyModules();
 }
@@ -68,8 +68,8 @@ bool CellApp::run()
 
 	CRITICAL_MSG("hahahah %d\n", 1111);
 	unregisterPyObjectToScript("avatar");
-	entities_->destroy(e->getID());
-	return ServerApp::run();
+	destroyEntity(e->getID());
+	return false;
 }
 
 //-------------------------------------------------------------------------------------
@@ -130,6 +130,7 @@ void CellApp::finalise()
 {
 	SAFE_RELEASE(idClient_);
 	gameTimer_.cancel();
+	uninstallPyModules();
 }
 
 //-------------------------------------------------------------------------------------
@@ -165,7 +166,7 @@ Entity* CellApp::createEntity(const char* entityType, PyObject* params, bool isI
 	entity->createNamespace(params);
 
 	// 将entity加入entities
-	entities_->add(id, entity); 
+	pEntities_->add(id, entity); 
 	
 	// 检查ID的足够性，不足则申请
 	//checkEntityIDEnough();
@@ -182,7 +183,7 @@ Entity* CellApp::createEntity(const char* entityType, PyObject* params, bool isI
 //-------------------------------------------------------------------------------------
 Entity* CellApp::findEntity(ENTITY_ID eid)
 {
-	return entities_->find(eid);
+	return pEntities_->find(eid);
 }
 
 //-------------------------------------------------------------------------------------
@@ -191,7 +192,7 @@ PyObject* CellApp::tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_ID eid
 	if(componentID != componentID_)
 		return NULL;
 	
-	Entity* entity = entities_->find(eid);
+	Entity* entity = pEntities_->find(eid);
 	if(entity == NULL){
 		ERROR_MSG("CellApp::tryGetEntityByMailbox: can't found entity:%ld.\n", eid);
 		return NULL;
@@ -203,7 +204,14 @@ PyObject* CellApp::tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_ID eid
 //-------------------------------------------------------------------------------------
 bool CellApp::destroyEntity(ENTITY_ID entityID)
 {
-	return entities_->destroy(entityID);
+	Entity* entity = pEntities_->erase(entityID);
+	if(entity != NULL)
+	{
+		entity->destroy();
+		return true;
+	}
+
+	return false;
 }
 
 //-------------------------------------------------------------------------------------

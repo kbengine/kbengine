@@ -384,28 +384,34 @@ public:																						\
 /** 这个宏正式的初始化一个脚本模块， 将一些必要的信息填充到python的type对象中
 */
 #define SCRIPT_INIT(CLASS, CALL, SEQ, MAP, ITER, ITERNEXT)									\
-	PyMethodDef* CLASS::_##CLASS##_lpScriptmethods = NULL;									\
-	PyMemberDef* CLASS::_##CLASS##_lpScriptmembers = NULL;									\
-	PyGetSetDef* CLASS::_##CLASS##_lpgetseters = NULL;										\
+		TEMPLATE_SCRIPT_INIT(;,CLASS, CLASS, CALL, SEQ, MAP, ITER, ITERNEXT)				\
+
+
+#define TEMPLATE_SCRIPT_INIT(TEMPLATE_HEADER, TEMPLATE_CLASS,								\
+	CLASS, CALL, SEQ, MAP, ITER, ITERNEXT)													\
+	TEMPLATE_HEADER PyMethodDef* TEMPLATE_CLASS::_##CLASS##_lpScriptmethods = NULL;			\
+	TEMPLATE_HEADER PyMemberDef* TEMPLATE_CLASS::_##CLASS##_lpScriptmembers = NULL;			\
+	TEMPLATE_HEADER PyGetSetDef* TEMPLATE_CLASS::_##CLASS##_lpgetseters = NULL;				\
 																							\
-	PyTypeObject CLASS::_scriptType =														\
+	TEMPLATE_HEADER																			\
+	PyTypeObject TEMPLATE_CLASS::_scriptType =												\
 	{																						\
 		PyVarObject_HEAD_INIT(&PyType_Type, 0)												\
 		#CLASS,													/* tp_name            */	\
-		sizeof(CLASS),											/* tp_basicsize       */	\
+		sizeof(TEMPLATE_CLASS),									/* tp_basicsize       */	\
 		0,														/* tp_itemsize        */	\
-		(destructor)CLASS::_tp_dealloc,							/* tp_dealloc         */	\
+		(destructor)TEMPLATE_CLASS::_tp_dealloc,				/* tp_dealloc         */	\
 		0,														/* tp_print           */	\
 		0,														/* tp_getattr         */	\
 		0,														/* tp_setattr         */	\
 		0,														/* tp_compare         */	\
-		CLASS::_tp_repr,										/* tp_repr            */	\
+		TEMPLATE_CLASS::_tp_repr,								/* tp_repr            */	\
 		0,														/* tp_as_number       */	\
 		SEQ,													/* tp_as_sequence     */	\
 		MAP,													/* tp_as_mapping      */	\
 		0,														/* tp_hash            */	\
 		CALL,													/* tp_call            */	\
-		CLASS::_tp_str,											/* tp_str             */	\
+		TEMPLATE_CLASS::_tp_str,								/* tp_str             */	\
 		(getattrofunc)CLASS::_tp_getattro,						/* tp_getattro        */	\
 		(setattrofunc)CLASS::_tp_setattro,						/* tp_setattro        */	\
 		0,														/* tp_as_buffer       */	\
@@ -420,14 +426,14 @@ public:																						\
 		0,														/* tp_methods         */	\
 		0,														/* tp_members         */	\
 		0,														/* tp_getset          */	\
-		CLASS::getBaseScriptType(),								/* tp_base            */	\
+		TEMPLATE_CLASS::getBaseScriptType(),					/* tp_base            */	\
 		0,														/* tp_dict            */	\
 		0,														/* tp_descr_get       */	\
 		0,														/* tp_descr_set       */	\
-		CLASS::calcDictOffset(),								/* tp_dictoffset      */	\
-		(initproc)CLASS::_tp_init,								/* tp_init            */	\
+		TEMPLATE_CLASS::calcDictOffset(),						/* tp_dictoffset      */	\
+		(initproc)TEMPLATE_CLASS::_tp_init,						/* tp_init            */	\
 		0,														/* tp_alloc           */	\
-		CLASS::_tp_new,											/* tp_new             */	\
+		TEMPLATE_CLASS::_tp_new,								/* tp_new             */	\
 		PyObject_GC_Del,										/* tp_free            */	\
 	};																						\
 

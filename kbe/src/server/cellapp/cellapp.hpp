@@ -16,6 +16,7 @@ same license as the rest of the engine.
 #include "server/entity_app.hpp"
 #include "server/idallocate.hpp"
 #include "server/serverconfig.hpp"
+#include "entitydef/entities.hpp"
 #include "cstdkbe/timer.hpp"
 
 //#define NDEBUG
@@ -28,7 +29,6 @@ same license as the rest of the engine.
 	
 namespace KBEngine{
 class Entity;
-class Entities;
 
 class CellApp:	public EntityApp, 
 				public TimerHandler, 
@@ -58,13 +58,16 @@ public:
 	void finalise();
 	
 	Entity* createEntity(const char* entityType, PyObject* params, bool isInitializeScript = true, ENTITY_ID eid = 0);
+
 	Entity* findEntity(ENTITY_ID eid);
+
 	PyObject* tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_ID eid);
+
 	virtual bool destroyEntity(ENTITY_ID entityID);
 	
 protected:
 	IDClient<ENTITY_ID>*		idClient_;
-	Entities*					entities_;									// 存储所有的entity的容器
+	Entities<Entity>*			pEntities_;									// 存储所有的entity的容器
 	TimerHandle					gameTimer_;
 };
 

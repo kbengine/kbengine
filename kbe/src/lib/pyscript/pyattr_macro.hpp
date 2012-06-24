@@ -91,9 +91,10 @@ namespace KBEngine{ namespace script{
 //-----------------------------------------------------------------------------------------------------------
 /** 定义暴露给脚本的方法宏
 */
-#define SCRIPT_METHOD_DECLARE_BEGIN(CLASS)											PyMethodDef CLASS::_##CLASS##_scriptMethods[] = {			
-#define SCRIPT_METHOD_DECLARE(METHOD_NAME, METHOD_FUNC, FLAGS, DOC)					{METHOD_NAME, (PyCFunction)&__py_##METHOD_FUNC, FLAGS, DOC},
-#define SCRIPT_METHOD_DECLARE_END()													{NULL, NULL, 0, NULL}};
+#define SCRIPT_METHOD_DECLARE_BEGIN(CLASS)													PyMethodDef CLASS::_##CLASS##_scriptMethods[] = {
+#define TEMPLATE_SCRIPT_METHOD_DECLARE_BEGIN(TEMPLATE_HEADER, TEMPLATE_CLASS, CLASSNAME)	TEMPLATE_HEADER PyMethodDef TEMPLATE_CLASS::_##CLASSNAME##_scriptMethods[] = {
+#define SCRIPT_METHOD_DECLARE(METHOD_NAME, METHOD_FUNC, FLAGS, DOC)							{METHOD_NAME, (PyCFunction)&__py_##METHOD_FUNC, FLAGS, DOC},
+#define SCRIPT_METHOD_DECLARE_END()															{NULL, NULL, 0, NULL}};
 
 // 向模块追加方法
 #define APPEND_SCRIPT_MODULE_METHOD(MODULE, NAME, FUNC, FLAGS, SELF)						\
@@ -102,17 +103,19 @@ namespace KBEngine{ namespace script{
 
 /** 定义暴露给脚本的属性宏
 */
-#define SCRIPT_MEMBER_DECLARE_BEGIN(CLASS)											PyMemberDef CLASS::_##CLASS##_scriptMembers[] =	{
-#define SCRIPT_MEMBER_DECLARE(MEMBER_NAME, MEMBER_REF, MEMBER_TYPE, FLAGS, DOC)		{const_cast<char*>(MEMBER_NAME), MEMBER_TYPE, offsetof(ThisClass, MEMBER_REF), FLAGS, DOC},
-#define SCRIPT_MEMBER_DECLARE_END()													{NULL, NULL, NULL, NULL, NULL}};
+#define SCRIPT_MEMBER_DECLARE_BEGIN(CLASS)													PyMemberDef CLASS::_##CLASS##_scriptMembers[] =	{
+#define TEMPLATE_SCRIPT_MEMBER_DECLARE_BEGIN(TEMPLATE_HEADER, TEMPLATE_CLASS, CLASSNAME)	TEMPLATE_HEADER PyMemberDef TEMPLATE_CLASS::_##CLASSNAME##_scriptMembers[] =	{
+#define SCRIPT_MEMBER_DECLARE(MEMBER_NAME, MEMBER_REF, MEMBER_TYPE, FLAGS, DOC)				{const_cast<char*>(MEMBER_NAME), MEMBER_TYPE, offsetof(ThisClass, MEMBER_REF), FLAGS, DOC},
+#define SCRIPT_MEMBER_DECLARE_END()															{NULL, NULL, NULL, NULL, NULL}};
 
 /** 定义暴露给脚本的getset属性宏
 */
-#define SCRIPT_GETSET_DECLARE_BEGIN(CLASS)											PyGetSetDef CLASS::_##CLASS##_scriptGetSeters[] =	{
-#define SCRIPT_GETSET_DECLARE(NAME, GET, SET, DOC, CLOSURE)							{const_cast<char*>(NAME), (getter)__pyget_##GET, (setter)__pyset_##SET, DOC, CLOSURE},
-#define SCRIPT_GET_DECLARE(NAME, GET, DOC, CLOSURE)									{const_cast<char*>(NAME), (getter)__pyget_##GET, (setter)__py_readonly_descr, DOC, CLOSURE},
-#define SCRIPT_SET_DECLARE(NAME, SET, DOC, CLOSURE)									{const_cast<char*>(NAME), (getter)__pyset_##SET, (setter)__py_writeonly_descr, DOC, CLOSURE},
-#define SCRIPT_GETSET_DECLARE_END()													{NULL, NULL, NULL, NULL, NULL}};
+#define SCRIPT_GETSET_DECLARE_BEGIN(CLASS)													PyGetSetDef CLASS::_##CLASS##_scriptGetSeters[] =	{
+#define TEMPLATE_SCRIPT_GETSET_DECLARE_BEGIN(TEMPLATE_HEADER, TEMPLATE_CLASS, CLASSNAME)	TEMPLATE_HEADER PyGetSetDef TEMPLATE_CLASS::_##CLASSNAME##_scriptGetSeters[] =	{
+#define SCRIPT_GETSET_DECLARE(NAME, GET, SET, DOC, CLOSURE)									{const_cast<char*>(NAME), (getter)__pyget_##GET, (setter)__pyset_##SET, DOC, CLOSURE},
+#define SCRIPT_GET_DECLARE(NAME, GET, DOC, CLOSURE)											{const_cast<char*>(NAME), (getter)__pyget_##GET, (setter)__py_readonly_descr, DOC, CLOSURE},
+#define SCRIPT_SET_DECLARE(NAME, SET, DOC, CLOSURE)											{const_cast<char*>(NAME), (getter)__pyset_##SET, (setter)__py_writeonly_descr, DOC, CLOSURE},
+#define SCRIPT_GETSET_DECLARE_END()															{NULL, NULL, NULL, NULL, NULL}};
 
 //-----------------------------------------------------------------------------------------------------------
 /* 声明一个脚本get方法 */

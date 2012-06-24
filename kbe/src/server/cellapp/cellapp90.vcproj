@@ -188,10 +188,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\entities.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\entity.cpp"
 				>
 			</File>
@@ -221,10 +217,6 @@
 			</File>
 			<File
 				RelativePath=".\cellapp_interface.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\entities.hpp"
 				>
 			</File>
 			<File

@@ -165,6 +165,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\entities.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\entity_mailbox.cpp"
 				>
 			</File>
@@ -212,6 +216,10 @@
 			</File>
 			<File
 				RelativePath=".\datatypes.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\entities.hpp"
 				>
 			</File>
 			<File
