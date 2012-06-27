@@ -48,7 +48,7 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 	if (!epListen_.good() ||
 		epListen_.bind(htons(bindPort), networkInterface_.addr().ip) == -1)
 	{
-		ERROR_MSG("BundleBroadcast::receive: Couldn't bind listener socket to port %d, %s\n", 
+		ERROR_MSG("BundleBroadcast::BundleBroadcast: Couldn't bind listener socket to port %d, %s\n", 
 			bindPort, kbe_strerror());
 		networkInterface.mainDispatcher().breakProcessing();
 	}
@@ -61,7 +61,12 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 		epListen_.addr(addr);
 
 		// DEBUG_MSG("BundleBroadcast::BundleBroadcast: epListen %s\n", epListen_.c_str());
-		epBroadcast_.setbroadcast(true);
+		if(epBroadcast_.setbroadcast(true) != 0)
+		{
+			ERROR_MSG("BundleBroadcast::BundleBroadcast: Couldn't broadcast socket, port %d, %s\n", 
+				bindPort, kbe_strerror());
+			networkInterface.mainDispatcher().breakProcessing();
+		}
 	}
 }
 
