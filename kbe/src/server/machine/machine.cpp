@@ -131,7 +131,7 @@ bool Machine::findBroadcastInterface()
 	// Perform a discovery of all network interfaces on this host
 	if (!bhandler.epListen().getInterfaces(interfaces))
 	{
-		ERROR_MSG("Failed to discover network interfaces\n");
+		ERROR_MSG("Machine::findBroadcastInterface: Failed to discover network interfaces\n");
 		return false;
 	}
 
@@ -140,7 +140,7 @@ bool Machine::findBroadcastInterface()
 	bhandler << data;
 	if (!bhandler.broadcast(KBE_PORT_BROADCAST_DISCOVERY))
 	{
-		ERROR_MSG("Failed to send broadcast discovery message. error:%s\n", kbe_strerror());
+		ERROR_MSG("Machine::findBroadcastInterface:Failed to send broadcast discovery message. error:%s\n", kbe_strerror());
 		return false;
 	}
 	
@@ -148,7 +148,7 @@ bool Machine::findBroadcastInterface()
 
 	if(bhandler.receive(NULL, &sin))
 	{
-		INFO_MSG("Broadcast discovery receipt from %s.\n",
+		INFO_MSG("Machine::findBroadcastInterface:Machine::findBroadcastInterface: Broadcast discovery receipt from %s.\n",
 					inet_ntoa((struct in_addr&)sin.sin_addr.s_addr) );
 
 		std::map< u_int32_t, std::string >::iterator iter;
@@ -156,7 +156,7 @@ bool Machine::findBroadcastInterface()
 		iter = interfaces.find( (u_int32_t &)sin.sin_addr.s_addr );
 		if (iter != interfaces.end())
 		{
-			INFO_MSG("Confirmed %s (%s) as default broadcast route interface.\n",
+			INFO_MSG("Machine::findBroadcastInterface: Confirmed %s (%s) as default broadcast route interface.\n",
 				inet_ntoa((struct in_addr&)sin.sin_addr.s_addr),
 				iter->second.c_str() );
 			broadcastAddr_ = sin.sin_addr.s_addr;
@@ -173,7 +173,7 @@ bool Machine::findBroadcastInterface()
 	}
 
 	sinterface += "]";
-	ERROR_MSG("Broadcast discovery [%s] not a valid interface. available interfaces:%s\n",
+	ERROR_MSG("Machine::findBroadcastInterface: Broadcast discovery [%s] not a valid interface. available interfaces:%s\n",
 		inet_ntoa((struct in_addr&)sin.sin_addr.s_addr), sinterface.c_str());
 
 	return false;
@@ -192,7 +192,7 @@ bool Machine::initNetwork()
 
 	if (broadcastAddr_ == 0 && !this->findBroadcastInterface())
 	{
-		ERROR_MSG("Failed to determine default broadcast interface. "
+		ERROR_MSG("Machine::initNetwork: Failed to determine default broadcast interface. "
 				"Make sure that your broadcast route is set correctly. "
 				"e.g. /sbin/ip route add broadcast 255.255.255.255 dev eth0\n" );
 		return false;
@@ -201,7 +201,7 @@ bool Machine::initNetwork()
 	if (!ep_.good() ||
 		 ep_.bind(htons(KBE_MACHINE_BRAODCAST_PORT), broadcastAddr_) == -1)
 	{
-		ERROR_MSG("Failed to bind socket to '%s'. %s.\n",
+		ERROR_MSG("Machine::initNetwork: Failed to bind socket to '%s'. %s.\n",
 							inet_ntoa((struct in_addr &)broadcastAddr_),
 							kbe_strerror());
 		return false;
@@ -216,14 +216,14 @@ bool Machine::initNetwork()
 
 	if(!this->getMainDispatcher().registerFileDescriptor(ep_, pEPPacketReceiver_))
 	{
-		ERROR_MSG("registerFileDescriptor ep is failed!\n");
+		ERROR_MSG("Machine::initNetwork: registerFileDescriptor ep is failed!\n");
 		return false;
 	}
 
 	if (!epBroadcast_.good() ||
 		epBroadcast_.bind(htons(KBE_MACHINE_BRAODCAST_PORT), Mercury::BROADCAST) == -1)
 	{
-		ERROR_MSG("Failed to bind socket to '%s'. %s.\n",
+		ERROR_MSG("Machine::initNetwork: Failed to bind socket to '%s'. %s.\n",
 							inet_ntoa((struct in_addr &)Mercury::BROADCAST),
 							kbe_strerror());
 //		return false;
@@ -238,7 +238,7 @@ bool Machine::initNetwork()
 	
 		if(!this->getMainDispatcher().registerFileDescriptor(epBroadcast_, pEBPacketReceiver_))
 		{
-			ERROR_MSG("registerFileDescriptor epBroadcast is failed!\n");
+			ERROR_MSG("Machine::initNetwork: registerFileDescriptor epBroadcast is failed!\n");
 			return false;
 		}
 
@@ -247,7 +247,7 @@ bool Machine::initNetwork()
 	if (!epLocal_.good() ||
 		 epLocal_.bind(htons(KBE_MACHINE_BRAODCAST_PORT), Mercury::LOCALHOST) == -1)
 	{
-		ERROR_MSG("Failed to bind socket to (lo). %s.\n",
+		ERROR_MSG("Machine::initNetwork: Failed to bind socket to (lo). %s.\n",
 							kbe_strerror() );
 		return false;
 	}
@@ -260,11 +260,11 @@ bool Machine::initNetwork()
 
 	if(!this->getMainDispatcher().registerFileDescriptor(epLocal_, pEPLocalPacketReceiver_))
 	{
-		ERROR_MSG("registerFileDescriptor epLocal is failed!\n");
+		ERROR_MSG("Machine::initNetwork: registerFileDescriptor epLocal is failed!\n");
 		return false;
 	}
 
-	INFO_MSG("bind broadcast successfully! addr:%s\n", ep_.addr().c_str());
+	INFO_MSG("Machine::initNetwork: bind broadcast successfully! addr:%s\n", ep_.addr().c_str());
 	return true;
 }
 
