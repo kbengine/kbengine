@@ -164,8 +164,17 @@ bool Machine::findBroadcastInterface()
 		}
 	}
 	
-	ERROR_MSG("Broadcast discovery %s not a valid interface.\n",
-			inet_ntoa((struct in_addr&)sin.sin_addr.s_addr) );
+	std::string sinterface = "\t[";
+	std::map< u_int32_t, std::string >::iterator iter = interfaces.begin();
+	for(; iter != interfaces.end(); iter++)
+	{
+		sinterface += inet_ntoa((struct in_addr&)iter->first);
+		sinterface += ", ";
+	}
+
+	sinterface += "]";
+	ERROR_MSG("Broadcast discovery [%s] not a valid interface. available interfaces:%s\n",
+		inet_ntoa((struct in_addr&)sin.sin_addr.s_addr), sinterface.c_str());
 
 	return false;
 }
