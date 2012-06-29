@@ -5,6 +5,7 @@ SRCS =				\
 ASMS =
 
 MY_LIBS =		\
+	cstdkbe		\
 	network		\
 	thread
 	
@@ -15,6 +16,10 @@ USE_G3DMATH=1
 	
 ifndef USE_OPENSSL
 	USE_OPENSSL = 0
+endif
+
+ifndef NO_USE_LOG4CXX
+	NO_USE_LOG4CXX = 0
 endif
 
 #HAS_PCH = 1
