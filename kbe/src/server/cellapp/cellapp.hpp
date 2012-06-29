@@ -77,7 +77,7 @@ public:
 	
 protected:
 	IDClient<ENTITY_ID>*		idClient_;
-	Entities<Entity>*			pEntities_;									// 存储所有的entity的容器
+	Entities*					pEntities_;									// 存储所有的entity的容器
 	TimerHandle					gameTimer_;
 };
 

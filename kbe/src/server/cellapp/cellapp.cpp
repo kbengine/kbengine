@@ -55,12 +55,12 @@ CellApp::~CellApp()
 //-------------------------------------------------------------------------------------
 bool CellApp::installPyModules()
 {
-	Entities<Entity>::installScript(NULL);
+	Entities::installScript(NULL);
 	Entity::installScript(getScript().getModule());
 
 	registerScript(Entity::getScriptType());
 	
-	pEntities_ = new Entities<Entity>();
+	pEntities_ = new Entities();
 	registerPyObjectToScript("entities", pEntities_);
 	return EntityApp::installPyModules();
 }
@@ -70,7 +70,7 @@ bool CellApp::uninstallPyModules()
 {	
 	S_RELEASE(pEntities_);
 	unregisterPyObjectToScript("entities");
-	Entities<Entity>::uninstallScript();
+	Entities::uninstallScript();
 	Entity::uninstallScript();
 	return EntityApp::uninstallPyModules();
 }
