@@ -46,7 +46,7 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 	epBroadcast_.socket(SOCK_DGRAM);
 
 	if (!epListen_.good() ||
-		epListen_.bind(htons(bindPort), networkInterface_.addr().ip) == -1)
+		epListen_.bind(htons(bindPort), htonl(INADDR_ANY)) == -1)
 	{
 		ERROR_MSG("BundleBroadcast::BundleBroadcast: Couldn't bind listener socket to port %d, %s\n", 
 			bindPort, kbe_strerror());
