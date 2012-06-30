@@ -63,7 +63,7 @@ Machine::~Machine()
 
 //-------------------------------------------------------------------------------------
 void Machine::onBroadcastInterface(int32 uid, std::string& username,
-								   int8 componentType, int32 componentID, 
+								   int8 componentType, uint64 componentID, 
 								   uint32 addr, uint16 port)
 {
 	if(componentType == MACHINE_TYPE)
@@ -80,7 +80,7 @@ void Machine::onBroadcastInterface(int32 uid, std::string& username,
 	}
 
 	INFO_MSG("Machine::onBroadcastInterface: uid:%d, username:%s, componentType:%s, "
-			"componentID:%d, addr:%s, port:%u\n", 
+			"componentID:%"PRIu64", addr:%s, port:%u\n", 
 		uid, username.c_str(), COMPONENT_NAME[componentType], componentID, inet_ntoa((struct in_addr&)addr), ntohs(port));
 
 	Componentbridge::getComponents().addComponent(uid, username.c_str(), 
@@ -120,7 +120,7 @@ void Machine::onFindInterfaceAddr(int32 uid, std::string& username, int8 compone
 	}
 	else
 		MachineInterface::onBroadcastInterfaceArgs6::staticAddToBundle(bundle, pinfos->uid, 
-			pinfos->username, findComponentType, 0, pinfos->addr, pinfos->port);
+			pinfos->username, findComponentType, pinfos->cid, pinfos->addr, pinfos->port);
 
 	bundle.sendto(ep, finderRecvPort, finderAddr);
 }

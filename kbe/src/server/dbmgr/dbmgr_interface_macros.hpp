@@ -110,6 +110,12 @@ namespace KBEngine{
 
 #endif
 
+#define DBMGR_MESSAGE_DECLARE_ARGS0(NAME, MSG_LENGTH)							\
+	DBMGR_MESSAGE_HANDLER_ARGS0(NAME)											\
+	NETWORK_MESSAGE_DECLARE_ARGS0(Dbmgr, NAME,									\
+				NAME##DbmgrMessagehandler0, MSG_LENGTH)							\
+																				\
+
 /**
 	Dbmgr消息宏，  只有一个参数的消息
 */

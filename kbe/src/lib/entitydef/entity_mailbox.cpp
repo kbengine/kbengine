@@ -146,7 +146,7 @@ PyObject* EntityMailbox::tp_repr()
 		(type_ == MAILBOX_TYPE_CELL_VIA_BASE)		? "CellViaBase" :
 		(type_ == MAILBOX_TYPE_CLIENT_VIA_BASE)		? "ClientViaBase" : "???";
 	
-	sprintf(s, "%s mailbox id:%d, component=%s%d, addr: %s.", mailboxName, id_, 
+	sprintf(s, "%s mailbox id:%d, component=%s[%"PRIu64"], addr: %s.", mailboxName, id_, 
 		COMPONENT_NAME[ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[type_]], 
 			componentID_, pChannelPtr_->addr().c_str());
 

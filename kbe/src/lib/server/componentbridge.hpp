@@ -59,6 +59,8 @@ private:
 	Mercury:: EventDispatcher & dispatcher();
 
 	bool findInterfaces();
+	
+	void componentID(COMPONENT_ID id){ componentID_ = id; }
 private:
 	Mercury::EndPoint epBroadcast_;
 	Mercury::NetworkInterface & networkInterface_;

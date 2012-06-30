@@ -61,7 +61,7 @@ public:
 	bool findBroadcastInterface();
 
 	void onBroadcastInterface(int32 uid, std::string& username, 
-							int8 componentType, int32 componentID, 
+							int8 componentType, uint64 componentID, 
 							uint32 addr, uint16 port);
 	
 	void onFindInterfaceAddr(int32 uid, std::string& username, 

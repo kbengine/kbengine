@@ -263,7 +263,7 @@ typedef uint16													ENTITY_TYPE;											// entity的类别类型定义支持0-6
 typedef int32													ENTITY_ID;												// entityID的类型
 typedef uint32													SPACE_ID;												// 一个space的id
 typedef uint32													CALLBACK_ID;											// 一个callback由CallbackMgr分配的id
-typedef uint32													COMPONENT_ID;											// 一个服务器组件的id										
+typedef uint64													COMPONENT_ID;											// 一个服务器组件的id										
 typedef	uint32													TIMER_ID;												// 一个timer的id类型
 typedef uint8													MAIL_TYPE;												// mailbox 所投递的mail类别的类别
 typedef uint32													GAME_TIME;

@@ -51,7 +51,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 									int32,				uid, 
 									std::string,		username,
 									int8,				componentType, 
-									int32,				componentID, 
+									uint64,				componentID, 
 									uint32,				addr, 
 									uint16,				port)
 	
