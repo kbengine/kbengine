@@ -1,4 +1,4 @@
-BIN  = kbemachine
+BIN  = kbmachine
 SRCS =						\
 	machine					\
 	machine_interface			\
