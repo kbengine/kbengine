@@ -211,6 +211,10 @@
 				RelativePath=".\cellappmgr_interface.hpp"
 				>
 			</File>
+			<File
+				RelativePath=".\cellappmgr_interface_macros.hpp"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"

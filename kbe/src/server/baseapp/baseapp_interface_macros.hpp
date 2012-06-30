@@ -20,20 +20,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __DBMGR_INTERFACE_H__
+	#undef __BASEAPP_INTERFACE_MACRO_H__
 #endif
 
 
-#ifndef __DBMGR_INTERFACE_H__
-#define __DBMGR_INTERFACE_H__
+#ifndef __BASEAPP_INTERFACE_MACRO_H__
+#define __BASEAPP_INTERFACE_MACRO_H__
 
 // common include	
-#if defined(DBMGR)
-#include "dbmgr.hpp"
-#endif
-#include "dbmgr_interface_macros.hpp"
 #include "network/interface_defs.hpp"
-//#define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
@@ -41,21 +36,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 	
 namespace KBEngine{
-
-/**
-	Dbmgr消息宏，  参数为流， 需要自己解开
-*/
-
-/**
-	DBMGR所有消息接口在此定义
-*/
-NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
-	DBMGR_MESSAGE_HANDLER_ARGS0(reqGetAppID)
-NETWORK_INTERFACE_DECLARE_END()
-
-#ifdef DEFINE_IN_INTERFACE
-	#undef DEFINE_IN_INTERFACE
-#endif
 
 }
 #endif

@@ -31,6 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #if defined(BASEAPP)
 #include "baseapp.hpp"
 #endif
+#include "baseapp_interface_macros.hpp"
 #include "network/interface_defs.hpp"
 //#define NDEBUG
 // windows include	

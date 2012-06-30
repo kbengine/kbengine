@@ -215,6 +215,10 @@
 				RelativePath=".\baseapp_interface.hpp"
 				>
 			</File>
+			<File
+				RelativePath=".\baseapp_interface_macros.hpp"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"

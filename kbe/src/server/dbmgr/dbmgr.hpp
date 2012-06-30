@@ -61,6 +61,8 @@ public:
 	bool inInitialize();
 	bool initializeEnd();
 	void finalise();
+	
+	void reqGetAppID(){}
 protected:
 };
 

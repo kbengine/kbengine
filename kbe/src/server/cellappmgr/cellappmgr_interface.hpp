@@ -30,6 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #if defined(CELLAPPMGR)
 #include "cellappmgr.hpp"
 #endif
+#include "cellappmgr_interface_macros.hpp"
 #include "network/interface_defs.hpp"
 //#define NDEBUG
 // windows include	

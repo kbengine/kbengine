@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 #include "network/message_handler.hpp"
 #include "network/bundle.hpp"
+#include "network/channel.hpp"
 //#define NDEBUG
 #include <assert.h>
 // windows include	
@@ -44,6 +45,7 @@ namespace Mercury
 #ifdef NETWORK_INTERFACE_DECLARE_BEGIN
 	#undef NETWORK_INTERFACE_DECLARE_BEGIN
 	#undef NETWORK_MESSAGE_DECLARE_STREAM
+	#undef NETWORK_MESSAGE_DECLARE_ARGS0
 	#undef NETWORK_MESSAGE_DECLARE_ARGS1
 	#undef NETWORK_MESSAGE_DECLARE_ARGS2
 	#undef NETWORK_MESSAGE_DECLARE_ARGS3
@@ -59,6 +61,7 @@ namespace Mercury
 	#undef NETWORK_INTERFACE_DECLARE_END
 	
 	#undef MESSAGE_STREAM
+	#undef MESSAGE_ARGS0
 	#undef MESSAGE_ARGS1
 	#undef MESSAGE_ARGS2
 	#undef MESSAGE_ARGS3
@@ -82,8 +85,8 @@ namespace Mercury
 			
 		
 #else
-	#define NETWORK_MESSAGE_HANDLER(DOMAIN, NAME, HANDLER_TYPE, MSG_LENGTH, ARG_N)			\
-		extern const HANDLER_TYPE& NAME;													\
+	#define NETWORK_MESSAGE_HANDLER(DOMAIN, NAME, HANDLER_TYPE, MSG_LENGTH, ARG_N)						\
+		extern const HANDLER_TYPE& NAME;																\
 	
 #endif
 
@@ -136,6 +139,47 @@ namespace Mercury
 	NETWORK_MESSAGE_HANDLER(DOMAIN, NAME, MSGHANDLER, MSG_LENGTH, 	\
 														_stream)	\
 	MESSAGE_STREAM(NAME)											\
+
+/**---------------------------------------------------------------------
+/		零个参数的消息
+-----------------------------------------------------------------------*/
+#ifdef DEFINE_IN_INTERFACE
+#define MESSAGE_ARGS0(NAME)
+#else
+#define MESSAGE_ARGS0(NAME)											\
+	class NAME##Args0 : public Mercury::MessageArgs					\
+	{																\
+	public:															\
+		NAME##Args0():Mercury::MessageArgs(){}						\
+		NAME##Args0():												\
+		Mercury::MessageArgs(),										\
+		{}															\
+		~NAME##Args0(){}											\
+																	\
+		static void staticAddToBundle(Mercury::Bundle& s)			\
+		{															\
+		}															\
+		static void staticAddToStream(MemoryStream& s)				\
+		{															\
+		}															\
+		virtual int32 msgsize(void)									\
+		{															\
+			return 0;												\
+		}															\
+		virtual void addToStream(MemoryStream& s)					\
+		{															\
+		}															\
+		virtual void createFromStream(MemoryStream& s)				\
+		{															\
+		}															\
+	};																\
+				
+#endif
+
+#define NETWORK_MESSAGE_DECLARE_ARGS0(DOMAIN, NAME, MSGHANDLER,		\
+											MSG_LENGTH)				\
+	NETWORK_MESSAGE_HANDLER(DOMAIN, NAME, MSGHANDLER, MSG_LENGTH, 0)\
+	MESSAGE_ARGS0(NAME)												\
 
 /**---------------------------------------------------------------------
 /		一个参数的消息

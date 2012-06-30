@@ -220,7 +220,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\cellapp_interface_macros.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\entity.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\entity_interface_macros.hpp"
 				>
 			</File>
 		</Filter>

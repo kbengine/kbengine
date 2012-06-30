@@ -402,12 +402,12 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 			
 			if(pFragmentStream_ != NULL)
 			{
-				pMsgHandler->handle(*pFragmentStream_);
+				pMsgHandler->handle(this, *pFragmentStream_);
 				SAFE_RELEASE(pFragmentStream_);
 			}
 			else
 			{
-				pMsgHandler->handle(*pPacket);
+				pMsgHandler->handle(this, *pPacket);
 			}
 		}
 		else

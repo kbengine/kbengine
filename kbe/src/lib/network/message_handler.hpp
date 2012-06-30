@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 namespace Mercury
 {
+class Channel;
 
 /** 一个消息的参数抽象类 */
 class MessageArgs
@@ -52,7 +53,7 @@ public:
 	MessageArgs* pArgs;
 	int32 msgLen;					// 如果长度为-1则为非固定长度消息
 	
-	virtual void handle(MemoryStream& s)
+	virtual void handle(Channel* pChannel, MemoryStream& s)
 	{
 		pArgs->createFromStream(s);
 		

@@ -31,6 +31,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entity.hpp"
 #include "cellapp.hpp"
 #endif
+#include "cellapp_interface_macros.hpp"
+#include "entity_interface_macros.hpp"
 #include "network/interface_defs.hpp"
 //#define NDEBUG
 // windows include	
@@ -40,93 +42,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 	
 namespace KBEngine{
-/**
-	Entity消息宏，  参数为流， 需要自己解开
-*/
-#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef ENTITY_MESSAGE_HANDLER_STREAM
-#endif
-
-#if defined(DEFINE_IN_INTERFACE)
-#if defined(CELLAPP)
-#define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
-	void NAME##EntityMessagehandler_stream::handle(KBEngine::MemoryStream& s)	\
-	{																			\
-			ENTITY_ID eid;														\
-			s >> eid;															\
-			KBEngine::Entity* e =												\
-					KBEngine::CellApp::getSingleton().findEntity(eid);			\
-			e->NAME(s);															\
-	}																			\
-
-#else
-#define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
-	void NAME##EntityMessagehandler_stream::handle(KBEngine::MemoryStream& s)	\
-	{																			\
-	}																			\
-		
-#endif
-#else
-#define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
-	class NAME##EntityMessagehandler_stream : public Mercury::MessageHandler	\
-	{																			\
-	public:																		\
-		virtual void handle(KBEngine::MemoryStream& s);							\
-	};																			\
-
-#endif
-
-#define ENTITY_MESSAGE_DECLARE_STREAM(NAME, MSG_LENGTH)							\
-	ENTITY_MESSAGE_HANDLER_STREAM(NAME)											\
-	NETWORK_MESSAGE_DECLARE_STREAM(Entity, NAME,								\
-				NAME##EntityMessagehandler_stream, MSG_LENGTH)					\
-																				\
-
-/**
-	Entity消息宏，  只有一个参数的消息
-*/
-#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef ENTITY_MESSAGE_HANDLER_ARGS1
-#endif
-
-#if defined(DEFINE_IN_INTERFACE)
-#if defined(CELLAPP)
-#define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	void NAME##EntityMessagehandler1::handle(KBEngine::MemoryStream& s)			\
-	{																			\
-			ENTITY_ID eid;														\
-			s >> eid;															\
-			KBEngine::Entity* e =												\
-					KBEngine::CellApp::getSingleton().findEntity(eid);			\
-			ARG_TYPE1 ARG_NAME1;												\
-			s >> ARG_NAME1;														\
-			e->NAME(ARG_NAME1);													\
-	}																			\
-
-#else
-#define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	void NAME##EntityMessagehandler1::handle(KBEngine::MemoryStream& s)			\
-	{																			\
-	}																			\
-		
-#endif
-#else
-#define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	class NAME##EntityMessagehandler1 : public Mercury::MessageHandler			\
-	{																			\
-	public:																		\
-		virtual void handle(KBEngine::MemoryStream& s);							\
-	};																			\
-
-#endif
-
-#define ENTITY_MESSAGE_DECLARE_ARGS1(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
-	ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
-	NETWORK_MESSAGE_DECLARE_ARGS1(Entity, NAME,									\
-				NAME##EntityMessagehandler1, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
-																				\
-
-
 
 /**
 	cellapp所有消息接口在此定义
