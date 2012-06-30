@@ -90,7 +90,7 @@ bool CellApp::run()
 	CRITICAL_MSG("hahahah %d\n", 1111);
 	unregisterPyObjectToScript("avatar");
 	destroyEntity(e->getID());
-	return false;
+	return ServerApp::run();
 }
 
 //-------------------------------------------------------------------------------------
