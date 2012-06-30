@@ -144,6 +144,7 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin)
 				continue;
 			}
 			
+			DEBUG_MSG("BundleBroadcast::receive: from %s, datalen=%d.\n", inet_ntoa((struct in_addr&)psin->sin_addr.s_addr), len);
 			pCurrPacket()->wpos(len);
 			if(recvArgs != NULL)
 				recvArgs->createFromStream(*pCurrPacket());
