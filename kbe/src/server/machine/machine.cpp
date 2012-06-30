@@ -219,18 +219,24 @@ bool Machine::initNetwork()
 		ERROR_MSG("Machine::initNetwork: registerFileDescriptor ep is failed!\n");
 		return false;
 	}
+	
+#if KBE_PLATFORM == PLATFORM_WIN32
+	u_int32_t baddr = INADDR_ANY;
+#else
+	u_int32_t baddr = Mercury::BROADCAST;
+#endif
 
 	if (!epBroadcast_.good() ||
-		epBroadcast_.bind(htons(KBE_MACHINE_BRAODCAST_PORT), Mercury::BROADCAST) == -1)
+		epBroadcast_.bind(htons(KBE_MACHINE_BRAODCAST_PORT), baddr) == -1)
 	{
 		ERROR_MSG("Machine::initNetwork: Failed to bind socket to '%s'. %s.\n",
-							inet_ntoa((struct in_addr &)Mercury::BROADCAST),
+							inet_ntoa((struct in_addr &)baddr),
 							kbe_strerror());
-//		return false;
+		return false;
 	}
 	else
 	{
-		address.ip = Mercury::BROADCAST;
+		address.ip = baddr;
 		address.port = htons(KBE_MACHINE_BRAODCAST_PORT);
 		epBroadcast_.setnonblocking(true);
 		epBroadcast_.addr(address);
