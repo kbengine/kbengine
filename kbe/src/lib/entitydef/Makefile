@@ -7,7 +7,6 @@ SRCS =				\
 	datatypes		\
 	entity_mailbox		\
 	entitydef		\
-	entities		\
 	entitymailboxabstract	\
 	fixedDict		\
 	method			\

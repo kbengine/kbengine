@@ -165,10 +165,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\entities.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\entity_mailbox.cpp"
 				>
 			</File>

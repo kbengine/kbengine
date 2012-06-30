@@ -38,7 +38,7 @@ KBE_SINGLETON_INIT(CellApp);
 CellApp::CellApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
   EntityApp(dispatcher, ninterface, componentType),
     idClient_(NULL),
-    pEntities_(NULL),
+	pEntities_(NULL),
     gameTimer_()
 {
 	// KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &CellAppInterface::messageHandlers;	
@@ -55,12 +55,12 @@ CellApp::~CellApp()
 //-------------------------------------------------------------------------------------
 bool CellApp::installPyModules()
 {
-	Entities::installScript(NULL);
+	Entities<Entity>::installScript(NULL);
 	Entity::installScript(getScript().getModule());
 
 	registerScript(Entity::getScriptType());
 	
-	pEntities_ = new Entities();
+	pEntities_ = new Entities<Entity>();
 	registerPyObjectToScript("entities", pEntities_);
 	return EntityApp::installPyModules();
 }
@@ -70,7 +70,7 @@ bool CellApp::uninstallPyModules()
 {	
 	S_RELEASE(pEntities_);
 	unregisterPyObjectToScript("entities");
-	Entities::uninstallScript();
+	Entities<Entity>::uninstallScript();
 	Entity::uninstallScript();
 	return EntityApp::uninstallPyModules();
 }

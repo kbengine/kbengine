@@ -18,7 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef __ENTITIES_H__
 #define __ENTITIES_H__
 	
@@ -26,7 +25,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "pyscript/scriptobject.hpp"
-#include "../../server/cellapp/entity.hpp"
 //#define NDEBUG
 #include <map>	
 // windows include	
@@ -40,12 +38,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
+template<typename T>
 class Entities : public script::ScriptObject
 {
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(Entities, ScriptObject)	
 public:
-	typedef std::tr1::unordered_map<ENTITY_ID, Entity*> ENTITYS_MAP;
+	typedef std::tr1::unordered_map<ENTITY_ID, PyObject*> ENTITYS_MAP;
 
 	Entities():
 	ScriptObject(getScriptType(), false)
@@ -68,13 +67,203 @@ public:
 	static PyMappingMethods mappingMethods;
 
 	ENTITYS_MAP& getEntities(void){ return _entities; }
-	void add(ENTITY_ID id, Entity* entity);
+	void add(ENTITY_ID id, T* entity);
 	void clear(void);
-	Entity* erase(ENTITY_ID id);
-	Entity* find(ENTITY_ID id);
+	T* erase(ENTITY_ID id);
+	T* find(ENTITY_ID id);
 private:
 	ENTITYS_MAP _entities;
 };
+
+/** python Entities操作所需要的方法表 */
+
+template<typename T>
+PyMappingMethods Entities<T>::mappingMethods =
+{
+	(lenfunc)mp_length,					// mp_length
+	(binaryfunc)mp_subscript,				// mp_subscript
+	NULL											// mp_ass_subscript
+};
+
+TEMPLATE_SCRIPT_METHOD_DECLARE_BEGIN(template<typename T>, Entities<T>, Entities)
+SCRIPT_METHOD_DECLARE("has_key",			pyHas_key,		METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("keys",				pyKeys,			METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("values",				pyValues,		METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("items",				pyItems,		METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE_END()
+
+TEMPLATE_SCRIPT_MEMBER_DECLARE_BEGIN(template<typename T>, Entities<T>, Entities)
+SCRIPT_MEMBER_DECLARE_END()
+
+TEMPLATE_SCRIPT_GETSET_DECLARE_BEGIN(template<typename T>, Entities<T>, Entities)
+SCRIPT_GETSET_DECLARE_END()
+TEMPLATE_SCRIPT_INIT(template<typename T>, Entities<T>, Entities, 0, 0, &Entities<T>::mappingMethods, 0, 0)	
+
+
+//-------------------------------------------------------------------------------------
+template<typename T>
+int Entities<T>::mp_length(PyObject * self)
+{
+	return static_cast<Entities*>(self)->getEntities().size();
+}
+	
+//-------------------------------------------------------------------------------------
+template<typename T>
+PyObject * Entities<T>::mp_subscript(PyObject* self, PyObject* key /*entityID*/)
+{
+	Entities* lpEntities = static_cast<Entities*>(self);
+	ENTITY_ID entityID = PyLong_AsLong(key);
+	if (PyErr_Occurred())
+		return NULL;
+
+	PyObject * pyEntity = NULL;
+
+	ENTITYS_MAP& entities = lpEntities->getEntities();
+	Entities<T>::ENTITYS_MAP::const_iterator iter = entities.find(entityID);
+	if (iter != entities.end())
+		pyEntity = iter->second;
+
+	if(pyEntity == NULL)
+	{
+		PyErr_Format(PyExc_KeyError, "%d", entityID);
+		return NULL;
+	}
+
+	Py_INCREF(pyEntity);
+	return pyEntity;
+}
+
+//-------------------------------------------------------------------------------------
+template<typename T>
+PyObject* Entities<T>::pyHas_key(ENTITY_ID entityID)
+{
+	ENTITYS_MAP& entities = getEntities();
+	return PyLong_FromLong((entities.find(entityID) != entities.end()));
+}
+
+//-------------------------------------------------------------------------------------
+template<typename T>
+PyObject* Entities<T>::pyKeys()
+{
+	ENTITYS_MAP& entities = getEntities();
+	PyObject* pyList = PyList_New(entities.size());
+	int i = 0;
+
+	ENTITYS_MAP::const_iterator iter = entities.begin();
+	while (iter != entities.end())
+	{
+		PyObject* entityID = PyLong_FromLong(iter->first);
+		PyList_SET_ITEM(pyList, i, entityID);
+
+		i++;
+		iter++;
+	}
+
+	return pyList;
+}
+
+//-------------------------------------------------------------------------------------
+template<typename T>
+PyObject* Entities<T>::pyValues()
+{
+	ENTITYS_MAP& entities = getEntities();
+	PyObject* pyList = PyList_New(entities.size());
+	int i = 0;
+
+	ENTITYS_MAP::const_iterator iter = entities.begin();
+	while (iter != entities.end())
+	{
+		Py_INCREF(iter->second);							// PyObject Entity* 增加一个引用
+		PyList_SET_ITEM(pyList, i, iter->second);
+
+		i++;
+		iter++;
+	}
+
+	return pyList;
+}
+
+//-------------------------------------------------------------------------------------
+template<typename T>
+PyObject* Entities<T>::pyItems()
+{
+	ENTITYS_MAP& entities = getEntities();
+	PyObject* pyList = PyList_New(entities.size());
+	int i = 0;
+
+	ENTITYS_MAP::const_iterator iter = entities.begin();
+	while (iter != entities.end())
+	{
+		PyObject * pTuple = PyTuple_New(2);
+		PyObject* entityID = PyLong_FromLong(iter->first);
+		Py_INCREF(iter->second);							// PyObject Entity* 增加一个引用
+
+		PyTuple_SET_ITEM(pTuple, 0, entityID);
+		PyTuple_SET_ITEM(pTuple, 1, iter->second);
+		PyList_SET_ITEM(pyList, i, pTuple);
+		i++;
+		iter++;
+	}
+
+	return pyList;
+}
+
+//-------------------------------------------------------------------------------------
+template<typename T>
+void Entities<T>::add(ENTITY_ID id, T* entity)
+{ 
+	ENTITYS_MAP::const_iterator iter = _entities.find(id);
+	if(iter != _entities.end())
+	{
+		ERROR_MSG("Entities::add: entityID:%d has exist\n.", id);
+		return;
+	}
+
+	_entities[id] = entity; 
+}
+
+//-------------------------------------------------------------------------------------
+template<typename T>
+void Entities<T>::clear(void)
+{
+	ENTITYS_MAP::const_iterator iter = _entities.begin();
+	while (iter != _entities.end())
+	{
+		T* entity = iter->second;
+		entity->destroy();
+		iter++;
+	}
+
+	_entities.clear();
+}
+
+//-------------------------------------------------------------------------------------
+template<typename T>
+T* Entities<T>::find(ENTITY_ID id)
+{
+	ENTITYS_MAP::const_iterator iter = _entities.find(id);
+	if(iter != _entities.end())
+	{
+		return static_cast<T*>(iter->second);
+	}
+	
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+template<typename T>
+T* Entities<T>::erase(ENTITY_ID id)
+{
+	ENTITYS_MAP::iterator iter = _entities.find(id);
+	if(iter != _entities.end())
+	{
+		T* entity = static_cast<T*>(iter->second);
+		_entities.erase(iter);
+		return entity;
+	}
+	
+	return NULL;
+}
 
 }
 #endif
