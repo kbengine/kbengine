@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "script.hpp"
 #include "math.hpp"
 #include "pickler.hpp"
+#include "uuid.hpp"
 #include "thread/concurrency.hpp"
 
 namespace KBEngine{ 
@@ -156,6 +157,8 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths, const c
 	}
 	
 	Pickler::initialize();
+	Uuid::initialize();
+
 	math::installModule("Math");
 	INFO_MSG("Script::install is successfully!\n");
 	return true;
@@ -166,6 +169,7 @@ bool Script::uninstall()
 {
 	math::uninstallModule();
 	Pickler::finalise();
+	Uuid::finalise();
 	SCRIPT_ERROR_CHECK();															// 检查是否有错误产生
 
 	if(pyStdouterr_->isInstall() && !pyStdouterr_->uninstall())	{					// 卸载py重定向脚本模块

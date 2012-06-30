@@ -9,6 +9,7 @@ SRCS =				\
 	scriptstdouterr		\
 	scriptstdouterrhook	\
 	sequence		\
+	uuid			\
 	vector2			\
 	vector3			\
 	vector4
