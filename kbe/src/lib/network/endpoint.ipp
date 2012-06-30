@@ -56,7 +56,6 @@ INLINE KBESOCKET EndPoint::socket() const
 INLINE void EndPoint::setFileDescriptor(int fd)
 {
 	socket_ = fd;
-	addr();
 }
 
 INLINE void EndPoint::socket(int type)

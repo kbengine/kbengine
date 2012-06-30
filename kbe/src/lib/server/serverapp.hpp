@@ -37,6 +37,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/singleton.hpp"
 #include "server/serverconfig.hpp"
 #include "cstdkbe/smartpointer.hpp"
+#include "network/interfaces.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
 #include "server/signal_handler.hpp"
@@ -50,7 +51,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
-class ServerApp : public SignalHandler
+class ServerApp : 
+	public SignalHandler, 
+	public Mercury::ChannelTimeOutHandler
 {
 public:
 	ServerApp(Mercury::EventDispatcher& dispatcher, 
@@ -80,7 +83,8 @@ public:
 	COMPONENT_TYPE componentType()const	{ return componentType_; }
 		
 	virtual void onSignalled(int sigNum);
-	
+	virtual void onChannelTimeOut(Mercury::Channel * pChannel);
+
 	void shutDown();
 protected:
 	COMPONENT_TYPE											componentType_;

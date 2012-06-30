@@ -49,7 +49,7 @@ public:
 class ChannelTimeOutHandler
 {
 public:
-	virtual void onTimeOut(Channel * pChannel) = 0;
+	virtual void onChannelTimeOut(Channel * pChannel) = 0;
 };
 
 }

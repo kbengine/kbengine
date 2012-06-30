@@ -52,6 +52,10 @@ Machine::Machine(Mercury::EventDispatcher& dispatcher,
 //-------------------------------------------------------------------------------------
 Machine::~Machine()
 {
+	ep_.close();
+	epBroadcast_.close();
+	epLocal_.close();
+
 	SAFE_RELEASE(pEPPacketReceiver_);
 	SAFE_RELEASE(pEBPacketReceiver_);
 	SAFE_RELEASE(pEPLocalPacketReceiver_);

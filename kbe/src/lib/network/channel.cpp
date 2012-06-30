@@ -99,12 +99,12 @@ Channel::Channel(NetworkInterface & networkInterface,
 //-------------------------------------------------------------------------------------
 Channel::~Channel()
 {
+	DEBUG_MSG("Channel::~Channel(): %s\n", this->c_str());
 	pNetworkInterface_->onChannelGone(this);
 	if(protocoltype_ == PROTOCOL_TCP)
 	{
 		pNetworkInterface_->dispatcher().deregisterFileDescriptor(*pEndPoint_);
 		pEndPoint_->close();
-		pEndPoint_->detach();
 	}
 	
 	this->clearState();

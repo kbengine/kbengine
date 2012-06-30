@@ -73,6 +73,8 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 //-------------------------------------------------------------------------------------
 BundleBroadcast::~BundleBroadcast()
 {
+	epListen_.close();
+	epBroadcast_.close();
 }
 
 //-------------------------------------------------------------------------------------

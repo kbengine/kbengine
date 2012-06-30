@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "serverapp.hpp"
 #include "server/serverconfig.hpp"
 #include "server/componentbridge.hpp"
+#include "network/channel.hpp"
 
 namespace KBEngine{
 COMPONENT_TYPE g_componentType;
@@ -37,6 +38,7 @@ networkInterface_(ninterface),
 time_(0)
 {
 	networkInterface_.pExtensionData(this);
+	networkInterface_.pChannelTimeOutHandler(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -122,6 +124,16 @@ void ServerApp::onSignalled(int sigNum)
 	default:
 		break;
 	}
+}
+
+//-------------------------------------------------------------------------------------	
+void ServerApp::onChannelTimeOut(Mercury::Channel * pChannel)
+{
+	INFO_MSG( "ServerApp::onChannelTimeOut: "
+		"Channel %s timed out.\n", pChannel->c_str());
+
+	networkInterface_.deregisterChannel(pChannel);
+	pChannel->decRef();
 }
 
 //-------------------------------------------------------------------------------------		
