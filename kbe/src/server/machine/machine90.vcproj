@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="machine"
+	Name="kbmachine"
 	ProjectGUID="{89DA21A1-625B-4482-B386-D7C0AF97E477}"
 	RootNamespace="machine"
 	Keyword="Win32Proj"
