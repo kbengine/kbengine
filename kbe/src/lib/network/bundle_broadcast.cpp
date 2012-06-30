@@ -121,7 +121,19 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin)
 
 		if (selgot == 0)
 		{
-			DEBUG_MSG("BundleBroadcast::receive: waiting(%d), listen(%s) ...\n", icount++, epListen_.addr().c_str());
+			if(icount > 15)
+			{
+				DEBUG_MSG("BundleBroadcast::receive: retry(%d > 15), listen(%s), the app will be terminated.\n", 
+					icount, epListen_.addr().c_str());
+				networkInterface_.mainDispatcher().breakProcessing();
+				return false;
+			}
+			else
+			{
+				DEBUG_MSG("BundleBroadcast::receive: retry(%d), listen(%s) ...\n", icount, epListen_.addr().c_str());
+			}
+
+			icount++;
 			continue;
 		}
 		else if (selgot == -1)
