@@ -39,13 +39,6 @@ Components::~Components()
 {
 }
 
-//-------------------------------------------------------------------------------------
-uint32 Components::allocComponentID(void)
-{
-	static COMPONENT_ID componentID = 1;
-	return componentID++;
-}
-
 //-------------------------------------------------------------------------------------		
 void Components::addComponent(int32 uid, const char* username, 
 			COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
@@ -58,7 +51,7 @@ void Components::addComponent(int32 uid, const char* username,
 	if(cinfos != NULL)
 	{
 		WARNING_MSG("Components::addComponent: uid:%d, username:%s, "
-			"componentType:%d, componentID:%ld is exist!\n", 
+			"componentType:%d, componentID:%"PRAppID" is exist!\n", 
 			uid, username, (int32)componentType, componentID);
 		return;
 	}
@@ -69,7 +62,7 @@ void Components::addComponent(int32 uid, const char* username,
 	componentInfos.port = port;
 	componentInfos.cid = componentID;
 	
-	strncpy(componentInfos.username, username, 256);
+	strncpy(componentInfos.username, username, MAX_NAME);
 
 	if(cinfos == NULL)
 		components.push_back(componentInfos);
@@ -77,7 +70,7 @@ void Components::addComponent(int32 uid, const char* username,
 		*cinfos = componentInfos;
 
 	INFO_MSG("Components::addComponent[%s], uid:%d, "
-		"componentID:%ld, totalcount=%d\n", 
+		"componentID:%"PRAppID", totalcount=%d\n", 
 			COMPONENT_NAME[(uint8)componentType], uid, 
 			componentID, components.size());
 }

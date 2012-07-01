@@ -61,7 +61,7 @@ Componentbridge::~Componentbridge()
 {
 	epBroadcast_.close();
 	//dispatcher().cancelFrequentTask(this);
-	DEBUG_MSG("broadcast interface(componentType=%d, componentID=%d) is completed!\n", componentType_, componentID_);
+	DEBUG_MSG("broadcast interface(componentType=%d, componentID=%"PRAppID") is completed!\n", componentType_, componentID_);
 }
 
 //-------------------------------------------------------------------------------------

@@ -27,8 +27,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-EntityApp::EntityApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
-ServerApp(dispatcher, ninterface, componentType)
+EntityApp::EntityApp(Mercury::EventDispatcher& dispatcher, 
+					 Mercury::NetworkInterface& ninterface, 
+					 COMPONENT_TYPE componentType,
+					 COMPONENT_ID componentID):
+ServerApp(dispatcher, ninterface, componentType, componentID)
 {
 	ScriptTimers::initialize(*this);
 }

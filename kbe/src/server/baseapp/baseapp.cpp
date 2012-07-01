@@ -34,8 +34,11 @@ ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Baseapp);
 
 //-------------------------------------------------------------------------------------
-Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
-	EntityApp(dispatcher, ninterface, componentType)
+Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher, 
+			 Mercury::NetworkInterface& ninterface, 
+			 COMPONENT_TYPE componentType,
+			 COMPONENT_ID componentID):
+	EntityApp(dispatcher, ninterface, componentType, componentID)
 {
 }
 

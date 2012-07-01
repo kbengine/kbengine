@@ -51,7 +51,11 @@ public:
 		TIMEOUT_LOADING_TICK
 	};
 	
-	Loginapp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
+	Loginapp(Mercury::EventDispatcher& dispatcher, 
+		Mercury::NetworkInterface& ninterface, 
+		COMPONENT_TYPE componentType,
+		COMPONENT_ID componentID);
+
 	~Loginapp();
 	
 	bool run();

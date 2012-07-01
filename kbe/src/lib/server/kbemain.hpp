@@ -30,7 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-inline void START_MSG(const char * name)
+inline void START_MSG(const char * name, uint64 appuid)
 {
 	ServerInfos serverInfo;
 	
@@ -38,11 +38,12 @@ inline void START_MSG(const char * name)
 			"Version: %s. "
 			"Config: %s. "
 			"Built: %s %s. "
+			"AppUID: %"PRAppID
 			"UID: %d. "
 			"PID: %d ----\n",
 		name, KBEVersion::versionString().c_str(),
 		KBE_CONFIG, __TIME__, __DATE__, 
-		getUserUID(), getProcessPID() );
+		appuid, getUserUID(), getProcessPID() );
 	
 	INFO_MSG( "Server %s: %s with %s RAM\n",
 		serverInfo.serverName().c_str(),
@@ -61,9 +62,10 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	Mercury::NetworkInterface networkInterface(&dispatcher, 
 		Mercury::NETWORK_INTERFACE_INTERNAL, htons(listeningPort), listeningInterface);
 	
-	Componentbridge* pComponentbridge = new Componentbridge(networkInterface, componentType, 0);
-	SERVER_APP app(dispatcher, networkInterface, componentType);
-	START_MSG(COMPONENT_NAME[componentType]);
+	uint64 appuid = genUUID();
+	Componentbridge* pComponentbridge = new Componentbridge(networkInterface, componentType, appuid);
+	SERVER_APP app(dispatcher, networkInterface, componentType, appuid);
+	START_MSG(COMPONENT_NAME[componentType], appuid);
 	if(!app.initialize()){
 		ERROR_MSG("app::initialize is error!\n");
 		delete pComponentbridge;

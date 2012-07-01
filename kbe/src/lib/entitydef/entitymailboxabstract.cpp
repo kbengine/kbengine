@@ -92,7 +92,7 @@ PyObject* EntityMailboxAbstract::__py_reduce_ex__(PyObject* self, PyObject* prot
 	PyTuple_SET_ITEM(args, 0, unpickleMethod);
 	PyObject* args1 = PyTuple_New(4);
 	PyTuple_SET_ITEM(args1, 0, PyLong_FromUnsignedLong(emailbox->getID()));
-	PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLong(emailbox->getComponentID()));
+	PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLongLong(emailbox->getComponentID()));
 	PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(emailbox->getUType()));
 	PyTuple_SET_ITEM(args1, 3, PyLong_FromUnsignedLong(emailbox->getType()));
 	PyTuple_SET_ITEM(args, 1, args1);

@@ -53,7 +53,10 @@ public:
 	};
 	
 	Machine(Mercury::EventDispatcher& dispatcher, 
-		Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
+		Mercury::NetworkInterface& ninterface, 
+		COMPONENT_TYPE componentType,
+		COMPONENT_ID componentID);
+
 	~Machine();
 	
 	bool run();

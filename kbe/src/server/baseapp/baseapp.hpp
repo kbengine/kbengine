@@ -51,7 +51,10 @@ public:
 		TIMEOUT_LOADING_TICK
 	};
 	
-	Baseapp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
+	Baseapp(Mercury::EventDispatcher& dispatcher, 
+		Mercury::NetworkInterface& ninterface, 
+		COMPONENT_TYPE componentType,
+		COMPONENT_ID componentID);
 	~Baseapp();
 	
 	bool run();

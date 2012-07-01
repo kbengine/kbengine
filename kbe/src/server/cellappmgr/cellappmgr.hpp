@@ -51,8 +51,11 @@ public:
 		TIMEOUT_LOADING_TICK
 	};
 	
-	Cellappmgr(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, 
-					COMPONENT_TYPE componentType);
+	Cellappmgr(Mercury::EventDispatcher& dispatcher, 
+		Mercury::NetworkInterface& ninterface, 
+		COMPONENT_TYPE componentType,
+		COMPONENT_ID componentID);
+
 	~Cellappmgr();
 	
 	bool run();

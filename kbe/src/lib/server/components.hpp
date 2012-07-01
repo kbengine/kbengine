@@ -50,7 +50,7 @@ public:
 		uint16 port;
 		int32 uid;
 		COMPONENT_ID cid;
-		char username[256];
+		char username[MAX_NAME + 1];
 	};
 
 	KBEngine::thread::ThreadMutex myMutex;
@@ -59,8 +59,6 @@ public:
 public:
 	Components();
 	~Components();
-
-	uint32 allocComponentID(void);
 
 	void addComponent(int32 uid, const char* username, 
 		COMPONENT_TYPE componentType, COMPONENT_ID componentID, uint32 addr, uint16 port);

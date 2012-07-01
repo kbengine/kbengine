@@ -64,12 +64,12 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = NULL;
 		node = xml->enterNode(rootNode, "ip");	
 		if(node != NULL)
-			strncpy((char*)&_cellAppInfo.ip, xml->getValStr(node).c_str(), 50);
+			strncpy((char*)&_cellAppInfo.ip, xml->getValStr(node).c_str(), MAX_IP);
 		
 		node = NULL;
 		node = xml->enterNode(rootNode, "entryScriptFile");	
 		if(node != NULL)
-			strncpy((char*)&_cellAppInfo.entryScriptFile, xml->getValStr(node).c_str(), 255);
+			strncpy((char*)&_cellAppInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
 		
 		node = NULL;
 		TiXmlNode* aoiNode = xml->enterNode(rootNode, "defaultAoIRadius");
@@ -99,12 +99,12 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = NULL;
 		node = xml->enterNode(rootNode, "ip");
 		if(node != NULL)	
-			strncpy((char*)&_baseAppInfo.ip, xml->getValStr(node).c_str(), 50);
+			strncpy((char*)&_baseAppInfo.ip, xml->getValStr(node).c_str(), MAX_IP);
 		
 		node = NULL;
 		node = xml->enterNode(rootNode, "entryScriptFile");	
 		if(node != NULL)
-			strncpy((char*)&_baseAppInfo.entryScriptFile, xml->getValStr(node).c_str(), 255);
+			strncpy((char*)&_baseAppInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
 	}
 
 	rootNode = NULL;
@@ -119,12 +119,12 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = NULL;
 		node = xml->enterNode(rootNode, "ip");
 		if(node != NULL)
-			strncpy((char*)&_dbmgrInfo.ip, xml->getValStr(node).c_str(), 50);
+			strncpy((char*)&_dbmgrInfo.ip, xml->getValStr(node).c_str(), MAX_IP);
 		
 		node = NULL;
 		node = xml->enterNode(rootNode, "dbAccountEntityScriptType");	
 		if(node != NULL)
-			strncpy((char*)&_dbmgrInfo.dbAccountEntityScriptType, xml->getValStr(node).c_str(), 255);
+			strncpy((char*)&_dbmgrInfo.dbAccountEntityScriptType, xml->getValStr(node).c_str(), MAX_NAME);
 	}
 
 	rootNode = NULL;
@@ -139,7 +139,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = NULL;
 		node = xml->enterNode(rootNode, "ip");
 		if(node != NULL)
-			strncpy((char*)&_loginAppInfo.ip, xml->getValStr(node).c_str(), 50);
+			strncpy((char*)&_loginAppInfo.ip, xml->getValStr(node).c_str(), MAX_IP);
 	}
 	
 	rootNode = NULL;
@@ -154,7 +154,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = NULL;
 		node = xml->enterNode(rootNode, "ip");
 		if(node != NULL)
-			strncpy((char*)&_cellAppMgrInfo.ip, xml->getValStr(node).c_str(), 50);
+			strncpy((char*)&_cellAppMgrInfo.ip, xml->getValStr(node).c_str(), MAX_IP);
 	}
 	
 	rootNode = NULL;
@@ -169,7 +169,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = NULL;
 		node = xml->enterNode(rootNode, "ip");
 		if(node != NULL)
-			strncpy((char*)&_baseAppMgrInfo.ip, xml->getValStr(node).c_str(), 50);
+			strncpy((char*)&_baseAppMgrInfo.ip, xml->getValStr(node).c_str(), MAX_IP);
 	}
 	
 	rootNode = NULL;
@@ -184,7 +184,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = NULL;
 		node = xml->enterNode(rootNode, "ip");
 		if(node != NULL)
-			strncpy((char*)&_kbMachineInfo.ip, xml->getValStr(node).c_str(), 50);
+			strncpy((char*)&_kbMachineInfo.ip, xml->getValStr(node).c_str(), MAX_IP);
 	}
 
 	rootNode = NULL;
@@ -199,7 +199,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = NULL;
 		node = xml->enterNode(rootNode, "ip");
 		if(node != NULL)
-			strncpy((char*)&_kbCenterInfo.ip, xml->getValStr(node).c_str(), 50);
+			strncpy((char*)&_kbCenterInfo.ip, xml->getValStr(node).c_str(), MAX_IP);
 	}
 	
 	SAFE_RELEASE(xml);

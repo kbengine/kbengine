@@ -44,7 +44,10 @@ namespace KBEngine{
 class EntityApp : public ServerApp
 {
 public:
-	EntityApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
+	EntityApp(Mercury::EventDispatcher& dispatcher, 
+		Mercury::NetworkInterface& ninterface, 
+		COMPONENT_TYPE componentType,
+		COMPONENT_ID componentID);
 	~EntityApp();
 	
 	virtual bool destroyEntity(ENTITY_ID entityID) = 0;

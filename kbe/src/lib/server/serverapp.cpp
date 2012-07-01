@@ -29,10 +29,12 @@ COMPONENT_TYPE g_componentType;
 
 //-------------------------------------------------------------------------------------
 ServerApp::ServerApp(Mercury::EventDispatcher& dispatcher, 
-					 Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
+					 Mercury::NetworkInterface& ninterface, 
+					 COMPONENT_TYPE componentType,
+					 COMPONENT_ID componentID):
 SignalHandler(),
 componentType_(componentType),
-componentID_(0),
+componentID_(componentID),
 mainDispatcher_(dispatcher),
 networkInterface_(ninterface),
 time_(0)

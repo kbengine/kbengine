@@ -50,7 +50,11 @@ public:
 		TIMEOUT_LOADING_TICK
 	};
 	
-	Dbmgr(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
+	Dbmgr(Mercury::EventDispatcher& dispatcher, 
+		Mercury::NetworkInterface& ninterface, 
+		COMPONENT_TYPE componentType,
+		COMPONENT_ID componentID);
+
 	~Dbmgr();
 	
 	bool run();

@@ -51,7 +51,11 @@ public:
 		TIMEOUT_LOADING_TICK
 	};
 	
-	CellApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType);
+	CellApp(Mercury::EventDispatcher& dispatcher, 
+		Mercury::NetworkInterface& ninterface, 
+		COMPONENT_TYPE componentType,
+		COMPONENT_ID componentID);
+
 	~CellApp();
 
 	bool installPyModules();

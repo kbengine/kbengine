@@ -36,8 +36,10 @@ KBE_SINGLETON_INIT(Machine);
 
 //-------------------------------------------------------------------------------------
 Machine::Machine(Mercury::EventDispatcher& dispatcher, 
-				 Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
-	ServerApp(dispatcher, ninterface, componentType),
+				 Mercury::NetworkInterface& ninterface, 
+				 COMPONENT_TYPE componentType,
+				 COMPONENT_ID componentID):
+	ServerApp(dispatcher, ninterface, componentType, componentID),
 	broadcastAddr_(0),
 	ep_(),
 	epBroadcast_(),
@@ -80,7 +82,7 @@ void Machine::onBroadcastInterface(int32 uid, std::string& username,
 	}
 
 	INFO_MSG("Machine::onBroadcastInterface: uid:%d, username:%s, componentType:%s, "
-			"componentID:%"PRIu64", addr:%s, port:%u\n", 
+			"componentID:%"PRAppID", addr:%s, port:%u\n", 
 		uid, username.c_str(), COMPONENT_NAME[componentType], componentID, inet_ntoa((struct in_addr&)addr), ntohs(port));
 
 	Componentbridge::getComponents().addComponent(uid, username.c_str(), 

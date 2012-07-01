@@ -57,9 +57,9 @@ class Address;
 typedef struct EngineComponentInfo
 {
 	uint32 port;											// 组件的监听端口
-	char ip[50];											// 组件的ip地址
-	char entryScriptFile[255];								// 组件的入口脚本文件
-	char dbAccountEntityScriptType[255];					// 数据库帐号脚本类别
+	char ip[MAX_IP];										// 组件的ip地址
+	char entryScriptFile[MAX_NAME];							// 组件的入口脚本文件
+	char dbAccountEntityScriptType[MAX_NAME];				// 数据库帐号脚本类别
 	float defaultAoIRadius;									// 配置在cellapp节点中的player的aoi半径大小
 	float defaultAoIHysteresisArea;							// 配置在cellapp节点中的player的aoi的滞后范围
 	const Mercury::Address* externalAddr;					// 外部地址

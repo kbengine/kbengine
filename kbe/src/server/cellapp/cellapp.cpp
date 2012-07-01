@@ -35,8 +35,11 @@ ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(CellApp);
 
 //-------------------------------------------------------------------------------------
-CellApp::CellApp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
-  EntityApp(dispatcher, ninterface, componentType),
+CellApp::CellApp(Mercury::EventDispatcher& dispatcher, 
+			 Mercury::NetworkInterface& ninterface, 
+			 COMPONENT_TYPE componentType,
+			 COMPONENT_ID componentID):
+	EntityApp(dispatcher, ninterface, componentType, componentID),
     idClient_(NULL),
 	pEntities_(NULL),
     gameTimer_()

@@ -91,14 +91,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define SIGSYS	32
 #endif
 
-#ifndef TCHAR
-#ifdef _UNICODE
-	typedef wchar_t												TCHAR;
-#else
-	typedef char												TCHAR;
-#endif
-#endif
-
 /** 定义引擎名字空间 */
 namespace KBEngine{ 
 /** 定义引擎字节序 */
@@ -191,6 +183,14 @@ namespace KBEngine{
 /*---------------------------------------------------------------------------------
 	类型定义
 ---------------------------------------------------------------------------------*/
+#ifndef TCHAR
+#ifdef _UNICODE
+	typedef wchar_t												TCHAR;
+#else
+	typedef char												TCHAR;
+#endif
+#endif
+
 typedef unsigned char											uchar;
 typedef unsigned short											ushort;
 typedef unsigned int											uint;
@@ -219,7 +219,6 @@ typedef UINT_PTR        										uintptr;
 #define PRIX64													"llX"
 #define PRIzu													"lu"
 #define PRIzd													"ld"
-#define PRTime													"lld"
 #else
 typedef int64_t													int64;
 typedef int32_t													int32;
@@ -235,10 +234,10 @@ typedef uint32_t												DWORD;
 #ifdef _LP64
 typedef int64													intptr;
 typedef uint64													uintptr;
-#define PRI64 "ld"
-#define PRIu64 "lu"
-#define PRIx64 "lx"
-#define PRIX64 "lX"
+#define PRI64													"ld"
+#define PRIu64													"lu"
+#define PRIx64													"lx"
+#define PRIX64													"lX"
 #else
 typedef int32													intptr;
 typedef uint32													uintptr;
@@ -246,7 +245,6 @@ typedef uint32													uintptr;
 #define PRIu64													"llu"
 #define PRIx64													"llx"
 #define PRIX64													"llX"
-#define PRTime													"d"
 #endif
 
 #ifndef PRIzd
@@ -258,6 +256,9 @@ typedef uint32													uintptr;
 #endif
 
 #endif
+
+#define PRTime													"d"
+#define PRAppID													PRIu64
 
 typedef uint16													ENTITY_TYPE;											// entity的类别类型定义支持0-65535个类别
 typedef int32													ENTITY_ID;												// entityID的类型
@@ -422,6 +423,11 @@ inline const T & max( const T & a, const T & b )
 
 #endif
 
+// 所有名称字符串的最大长度
+#define MAX_NAME 256	
+// ip字符串的最大长度
+#define MAX_IP 50	
+
 /*---------------------------------------------------------------------------------
 	跨平台接口定义
 ---------------------------------------------------------------------------------*/
@@ -501,14 +507,13 @@ inline int32 getUserUID()
 #endif
 }
 
-
 /** 获取用户名 */
 inline const char * getUsername()
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
-	DWORD dwSize = MAX_PATH;
-	static char username[MAX_PATH];
-	memset(username, 0, MAX_PATH);
+	DWORD dwSize = MAX_NAME;
+	static char username[MAX_NAME];
+	memset(username, 0, MAX_NAME);
 	::GetUserNameA(username, &dwSize);	
 	return username;
 #else
@@ -516,7 +521,6 @@ inline const char * getUsername()
 	return pUsername ? pUsername : "";
 #endif
 }
-
 
 /** 获取进程ID */
 inline int32 getProcessPID()
@@ -532,6 +536,7 @@ inline int32 getProcessPID()
 #if KBE_PLATFORM == PLATFORM_WIN32
 	inline uint32 getSystemTime() 
 	{ 
+		// 注意这个函数windows上只能正确位置49天。
 		return ::GetTickCount(); 
 	};
 #else
@@ -552,6 +557,21 @@ inline uint32 getSystemTimeDiff(uint32 oldTime, uint32 newTime)
         return (0xFFFFFFFF - oldTime) + newTime;
     else
         return newTime - oldTime;
+}
+
+/* 产生一个64位的uuid 
+	8位:	app类型
+	8位:	0-255随机数
+	32位:	时间戳
+	16位:	递增数(如果当前时间戳和上一次调用此接口时间戳一致则递增数增加， 最大65535)
+*/
+inline uint64 genUUID()
+{
+	srand((unsigned) time(NULL));
+	uint32 rnd = rand() % 255;
+	static uint16 lastNum = rand() % 65535;
+	uint64 tv = getSystemTime();
+	return (tv << 32) + (rnd << (24)) + lastNum++;
 }
 
 /** sleep 跨平台 */

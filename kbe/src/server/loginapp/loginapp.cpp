@@ -34,8 +34,11 @@ ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Loginapp);
 
 //-------------------------------------------------------------------------------------
-Loginapp::Loginapp(Mercury::EventDispatcher& dispatcher, Mercury::NetworkInterface& ninterface, COMPONENT_TYPE componentType):
-	ServerApp(dispatcher, ninterface, componentType)
+Loginapp::Loginapp(Mercury::EventDispatcher& dispatcher, 
+			 Mercury::NetworkInterface& ninterface, 
+			 COMPONENT_TYPE componentType,
+			 COMPONENT_ID componentID):
+	ServerApp(dispatcher, ninterface, componentType, componentID)
 {
 }
 
