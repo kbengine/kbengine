@@ -38,7 +38,7 @@ inline void START_MSG(const char * name, uint64 appuid)
 			"Version: %s. "
 			"Config: %s. "
 			"Built: %s %s. "
-			"AppUID: %"PRAppID
+			"AppUID: %"PRAppID". "
 			"UID: %d. "
 			"PID: %d ----\n",
 		name, KBEVersion::versionString().c_str(),
