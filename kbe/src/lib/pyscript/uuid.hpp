@@ -29,10 +29,10 @@ namespace KBEngine{ namespace script{
 class Uuid
 {						
 public:	
-	/** 代理 cPicket.dumps */
+	/** 这里返回值是不对的， uuid为128位。 目前这个模块没有被使用到暂时不做解决方案。 */
 	static uint64 uuid();
 
-	/** 初始化pickler */
+	/** 初始化 */
 	static bool initialize(void);
 	static void finalise(void);
 private:
