@@ -81,10 +81,6 @@ bool Dbmgr::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Dbmgr::initializeEnd()
 {
-	// 广播自己的地址给网上上的所有kbemachine
-	// 无需关心new 对象的释放， 内部会自动释放。
-	this->getMainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
-
 	return true;
 }
 

@@ -225,7 +225,7 @@ bool Machine::initNetwork()
 	}
 	
 #if KBE_PLATFORM == PLATFORM_WIN32
-	u_int32_t baddr = INADDR_ANY;
+	u_int32_t baddr = htonl(INADDR_ANY);
 #else
 	u_int32_t baddr = Mercury::BROADCAST;
 #endif
@@ -236,7 +236,9 @@ bool Machine::initNetwork()
 		ERROR_MSG("Machine::initNetwork: Failed to bind socket to '%s'. %s.\n",
 							inet_ntoa((struct in_addr &)baddr),
 							kbe_strerror());
+#if KBE_PLATFORM != PLATFORM_WIN32
 		return false;
+#endif
 	}
 	else
 	{
