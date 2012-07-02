@@ -61,8 +61,8 @@ Componentbridge::~Componentbridge()
 {
 	epBroadcast_.close();
 	//dispatcher().cancelFrequentTask(this);
-	DEBUG_MSG("Componentbridge::~Componentbridge(): local interface(componentType=%s, componentID=%"PRAppID")!\n", 
-		COMPONENT_NAME[componentType_], componentID_);
+	//DEBUG_MSG("Componentbridge::~Componentbridge(): local interface(componentType=%s, componentID=%"PRAppID")!\n", 
+	//	COMPONENT_NAME[componentType_], componentID_);
 }
 
 //-------------------------------------------------------------------------------------
