@@ -70,6 +70,8 @@ Packet* Bundle::newPacket()
 //-------------------------------------------------------------------------------------
 void Bundle::finish(bool issend)
 {
+	KBE_ASSERT(pCurrPacket_ != NULL);
+
 	if(issend)
 	{
 		currMsgPacketCount_++;
@@ -136,7 +138,8 @@ void Bundle::send(EndPoint& ep)
 	for (; iter != packets_.end(); iter++)
 	{
 		Packet* pPacket = (*iter);
-		ep.send(pPacket->data(), pPacket->totalSize());
+		int slen = ep.send(pPacket->data(), pPacket->totalSize());
+		KBE_ASSERT(slen == pPacket->totalSize());
 		delete pPacket;
 	}
 	
@@ -152,7 +155,8 @@ void Bundle::sendto(EndPoint& ep, u_int16_t networkPort, u_int32_t networkAddr)
 	for (; iter != packets_.end(); iter++)
 	{
 		Packet* pPacket = (*iter);
-		ep.sendto(pPacket->data(), pPacket->totalSize(), networkPort, networkAddr);
+		int slen = ep.sendto(pPacket->data(), pPacket->totalSize(), networkPort, networkAddr);
+		KBE_ASSERT(slen == pPacket->totalSize());
 		delete pPacket;
 	}
 	
