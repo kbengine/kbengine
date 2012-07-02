@@ -34,6 +34,11 @@ static PyThreadState * s_pMainThreadState;
 static PyThreadState* s_defaultContext;
 #endif
 
+static PyObject* __py_genUUID64(PyObject *self, void *closure)	
+{
+	return PyLong_FromUnsignedLongLong(genUUID64());
+}
+			
 //-------------------------------------------------------------------------------------
 Script::Script():
 module_(NULL),
@@ -114,14 +119,16 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths, const c
 		return false;
 	
 	const char* componentName = COMPONENT_NAME[componentType];
-	PyObject* pStr = PyUnicode_FromString(componentName);
-	if (PyObject_SetAttrString(module_, "component", pStr) == -1)
+	if (PyModule_AddStringConstant(module_, "component", componentName))
 	{
 		ERROR_MSG( "Script::init: Unable to set KBEngine.component to %s\n",
 			componentName );
+		return false;
 	}
-	Py_XDECREF(pStr);
-
+	
+	// 注册产生uuid方法到py
+	APPEND_SCRIPT_MODULE_METHOD(module_,		genUUID64,			__py_genUUID64,					METH_VARARGS,			0);
+	
 #ifndef KBE_SINGLE_THREADED
 	s_pOurInitTimeModules = PyDict_Copy( PySys_GetObject( "modules" ) );
 	s_pMainThreadState = PyThreadState_Get();

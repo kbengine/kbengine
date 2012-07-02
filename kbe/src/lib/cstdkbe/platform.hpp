@@ -565,7 +565,7 @@ inline uint32 getSystemTimeDiff(uint32 oldTime, uint32 newTime)
 	32位:	时间戳
 	16位:	递增数(如果当前时间戳和上一次调用此接口时间戳一致则递增数增加， 最大65535)
 */
-inline uint64 genUUID()
+inline uint64 genUUID64()
 {
 	srand((unsigned) time(NULL));
 	uint32 rnd = rand() % 255;

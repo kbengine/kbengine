@@ -108,9 +108,13 @@ namespace KBEngine{ namespace script{
 
 // 向模块追加方法
 #define APPEND_SCRIPT_MODULE_METHOD(MODULE, NAME, FUNC, FLAGS, SELF)						\
-	static PyMethodDef __pymethod_NAME = {#NAME, (PyCFunction) FUNC, FLAGS, NULL};			\
-	PyModule_AddObject(MODULE, #NAME, PyCFunction_New(&__pymethod_##NAME, SELF));
-
+	static PyMethodDef __pymethod_##NAME = {#NAME, (PyCFunction) FUNC, FLAGS, NULL};		\
+	if(PyModule_AddObject(MODULE, #NAME, PyCFunction_New(&__pymethod_##NAME, SELF)) != 0)	\
+	{																						\
+		SCRIPT_ERROR_CHECK();																\
+		ERROR_MSG("append " #NAME " to pyscript is error!\n");								\
+	}																						\
+	
 /** 定义暴露给脚本的属性宏
 */
 #define SCRIPT_MEMBER_DECLARE_BEGIN(CLASS)													PyMemberDef CLASS::_##CLASS##_scriptMembers[] =	{

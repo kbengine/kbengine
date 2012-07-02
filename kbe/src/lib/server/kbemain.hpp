@@ -62,7 +62,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	Mercury::NetworkInterface networkInterface(&dispatcher, 
 		Mercury::NETWORK_INTERFACE_INTERNAL, htons(listeningPort), listeningInterface);
 	
-	uint64 appuid = genUUID();
+	uint64 appuid = genUUID64();
 	Componentbridge* pComponentbridge = new Componentbridge(networkInterface, componentType, appuid);
 	SERVER_APP app(dispatcher, networkInterface, componentType, appuid);
 	START_MSG(COMPONENT_NAME[componentType], appuid);
