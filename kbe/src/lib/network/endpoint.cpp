@@ -152,7 +152,7 @@ bool EndPoint::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 				unsigned long addrs = *(unsigned long*)inaddrs->h_addr_list[i];
 				interfaces[addrs] = "eth0";
 				char *ip = inet_ntoa (*(struct in_addr *)*inaddrs->h_addr_list);
-				DEBUG_MSG("==>found eth0 %s\n", ip);
+				DEBUG_MSG("EndPoint::getInterfaces: found eth0 %s\n", ip);
 			}
 		}
 	}
