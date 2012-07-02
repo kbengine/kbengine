@@ -73,6 +73,12 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 //-------------------------------------------------------------------------------------
 BundleBroadcast::~BundleBroadcast()
 {
+	close();
+}
+
+//-------------------------------------------------------------------------------------
+void BundleBroadcast::close()
+{
 	epListen_.close();
 	epBroadcast_.close();
 }
@@ -90,7 +96,7 @@ bool BundleBroadcast::broadcast(uint16 port)
 		return false;
 	
 	if(port == 0)
-		port = KBE_MACHINE_BRAODCAST_PORT;
+		port = KBE_MACHINE_BRAODCAST_SEND_PORT;
 
 	
 	this->sendto(epBroadcast_, htons(port), Mercury::BROADCAST);

@@ -40,7 +40,7 @@ class NetworkInterface;
 class BundleBroadcast : public Bundle
 {
 public:
-	BundleBroadcast(NetworkInterface & networkInterface, uint16 bindPort = 0, 
+	BundleBroadcast(NetworkInterface & networkInterface, uint16 bindPort = KBE_PORT_BROADCAST_DISCOVERY, 
 		uint32 recvWindowSize = 4096);
 	virtual ~BundleBroadcast();
 
@@ -50,6 +50,8 @@ public:
 	bool receive(MessageArgs* recvArgs, sockaddr_in* psin = NULL);
 
 	Mercury::EndPoint& epListen() { return epListen_; }
+
+	void close();
 protected:
 	Mercury::EndPoint epListen_, epBroadcast_;
 	NetworkInterface & networkInterface_;

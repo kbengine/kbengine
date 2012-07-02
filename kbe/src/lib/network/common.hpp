@@ -47,13 +47,18 @@ namespace udp{
 namespace tcp{
 }
 
-#define PACKET_MAX_SIZE			1500
-#define PACKET_MAX_SIZE_TCP		1460
-#define PACKET_MAX_SIZE_UDP		1472
+#define PACKET_MAX_SIZE						1500
+#define PACKET_MAX_SIZE_TCP					1460
+#define PACKET_MAX_SIZE_UDP					1472
 
-#define MERCURY_MESSAGE_ID_SIZE			sizeof(Mercury::MessageID)
-#define MERCURY_MESSAGE_LENGTH_SIZE		sizeof(Mercury::MessageLength)
-#define MERCURY_MESSAGE_MAX_SIZE		65535
+#define MERCURY_MESSAGE_ID_SIZE				sizeof(Mercury::MessageID)
+#define MERCURY_MESSAGE_LENGTH_SIZE			sizeof(Mercury::MessageLength)
+#define MERCURY_MESSAGE_MAX_SIZE			65535
+
+/** kbe machine端口 */
+#define KBE_MACHINE_BRAODCAST_SEND_PORT		20086	// machine接收广播的端口
+#define KBE_PORT_BROADCAST_DISCOVERY		20087
+#define KBE_MACHINE_TCP_PORT				20088
 
 /*
 	网络消息类型， 定长或者变长。

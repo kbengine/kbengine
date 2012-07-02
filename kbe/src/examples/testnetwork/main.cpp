@@ -207,7 +207,7 @@ void init_network(void)
 			char xxa[12]={"kebiao12345"};
 			std::string sss = xxa;
 			bundle << sss;
-			bundle.sendto(mysocket, htons(KBE_MACHINE_BRAODCAST_PORT), Mercury::BROADCAST);
+			bundle.sendto(mysocket, htons(KBE_MACHINE_BRAODCAST_SEND_PORT), Mercury::BROADCAST);
 	}
 
 	while(1)

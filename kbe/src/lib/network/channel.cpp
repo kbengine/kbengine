@@ -362,11 +362,11 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 				(*pPacket) >> currMsgID_;
 
 			Mercury::MessageHandler* pMsgHandler = pMsgHandlers->find(currMsgID_);
-			assert(pMsgHandler != NULL);
 
 			if(pMsgHandler == NULL)
 			{
-				INFO_MSG("Channel::processReceiveWindow: invalide msgID = %d\n", currMsgID_);
+				INFO_MSG("Channel::handleMessage: invalide msgID=%d, msglen=%d\n, from %s", 
+					currMsgID_, pPacket->totalSize(), c_str());
 				break;
 			}
 			

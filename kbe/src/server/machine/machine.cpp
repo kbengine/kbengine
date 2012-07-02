@@ -203,16 +203,16 @@ bool Machine::initNetwork()
 	}
 
 	if (!ep_.good() ||
-		 ep_.bind(htons(KBE_MACHINE_BRAODCAST_PORT), broadcastAddr_) == -1)
+		 ep_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), broadcastAddr_) == -1)
 	{
-		ERROR_MSG("Machine::initNetwork: Failed to bind socket to '%s'. %s.\n",
-							inet_ntoa((struct in_addr &)broadcastAddr_),
+		ERROR_MSG("Machine::initNetwork: Failed to bind socket to '%s:%d'. %s.\n",
+							inet_ntoa((struct in_addr &)broadcastAddr_), KBE_MACHINE_BRAODCAST_SEND_PORT,
 							kbe_strerror());
 		return false;
 	}
 
 	address.ip = broadcastAddr_;
-	address.port = htons(KBE_MACHINE_BRAODCAST_PORT);
+	address.port = htons(KBE_MACHINE_BRAODCAST_SEND_PORT);
 	ep_.setbroadcast( true );
 	ep_.setnonblocking(true);
 	ep_.addr(address);
@@ -231,10 +231,10 @@ bool Machine::initNetwork()
 #endif
 
 	if (!epBroadcast_.good() ||
-		epBroadcast_.bind(htons(KBE_MACHINE_BRAODCAST_PORT), baddr) == -1)
+		epBroadcast_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), baddr) == -1)
 	{
-		ERROR_MSG("Machine::initNetwork: Failed to bind socket to '%s'. %s.\n",
-							inet_ntoa((struct in_addr &)baddr),
+		ERROR_MSG("Machine::initNetwork: Failed to bind socket to '%s:%d'. %s.\n",
+							inet_ntoa((struct in_addr &)baddr), KBE_MACHINE_BRAODCAST_SEND_PORT,
 							kbe_strerror());
 #if KBE_PLATFORM != PLATFORM_WIN32
 		return false;
@@ -243,7 +243,7 @@ bool Machine::initNetwork()
 	else
 	{
 		address.ip = baddr;
-		address.port = htons(KBE_MACHINE_BRAODCAST_PORT);
+		address.port = htons(KBE_MACHINE_BRAODCAST_SEND_PORT);
 		epBroadcast_.setnonblocking(true);
 		epBroadcast_.addr(address);
 		pEBPacketReceiver_ = new Mercury::UDPPacketReceiver(epBroadcast_, this->getNetworkInterface());
@@ -257,7 +257,7 @@ bool Machine::initNetwork()
 	}
 
 	if (!epLocal_.good() ||
-		 epLocal_.bind(htons(KBE_MACHINE_BRAODCAST_PORT), Mercury::LOCALHOST) == -1)
+		 epLocal_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), Mercury::LOCALHOST) == -1)
 	{
 		ERROR_MSG("Machine::initNetwork: Failed to bind socket to (lo). %s.\n",
 							kbe_strerror() );
@@ -265,7 +265,7 @@ bool Machine::initNetwork()
 	}
 
 	address.ip = Mercury::LOCALHOST;
-	address.port = htons(KBE_MACHINE_BRAODCAST_PORT);
+	address.port = htons(KBE_MACHINE_BRAODCAST_SEND_PORT);
 	epLocal_.setnonblocking(true);
 	epLocal_.addr(address);
 	pEPLocalPacketReceiver_ = new Mercury::UDPPacketReceiver(epLocal_, this->getNetworkInterface());

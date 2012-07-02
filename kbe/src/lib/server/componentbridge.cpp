@@ -170,7 +170,8 @@ bool Componentbridge::findInterfaces()
 bool Componentbridge::process()
 {
 	// 如果是cellappmgr或者baseapmgrp则向machine请求获得dbmgr的地址
-	Mercury::BundleBroadcast bhandler(networkInterface_);
+	Mercury::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
+
 	bhandler.newMessage(MachineInterface::onBroadcastInterface);
 	MachineInterface::onBroadcastInterfaceArgs6::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
 		componentType_, componentID_, 
@@ -181,7 +182,9 @@ bool Componentbridge::process()
 
 	if(broadcastCount_ <= 0)
 	{
-		findInterfaces();
+		bhandler.close();
+		if(componentType_ != MACHINE_TYPE)
+			findInterfaces();
 		return false;
 	}
 
