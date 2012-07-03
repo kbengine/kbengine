@@ -52,6 +52,8 @@ public:
 	Mercury::EndPoint& epListen() { return epListen_; }
 
 	void close();
+
+	bool good()const { return epListen_.good(); }
 protected:
 	Mercury::EndPoint epListen_, epBroadcast_;
 	NetworkInterface & networkInterface_;

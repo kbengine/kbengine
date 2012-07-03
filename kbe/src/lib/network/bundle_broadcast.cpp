@@ -41,31 +41,49 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 	networkInterface_(networkInterface),
 	recvWindowSize_(recvWindowSize)
 {
-	// Initialise the endpoint
 	epListen_.socket(SOCK_DGRAM);
 	epBroadcast_.socket(SOCK_DGRAM);
 
-	if (!epListen_.good() ||
-		epListen_.bind(htons(bindPort), htonl(INADDR_ANY)) == -1)
+	if (!epListen_.good() || !epBroadcast_.good())
 	{
-		ERROR_MSG("BundleBroadcast::BundleBroadcast: Couldn't bind listener socket to port %d, %s\n", 
-			bindPort, kbe_strerror());
-		networkInterface.mainDispatcher().breakProcessing();
+		ERROR_MSG("BundleBroadcast::BundleBroadcast: init socket is error, %s\n", 
+			kbe_strerror());
+		networkInterface_.mainDispatcher().breakProcessing();
 	}
 	else
 	{
-		Address addr;
-		epListen_.getlocaladdress( (u_int16_t*)&addr.port,
-			(u_int32_t*)&addr.ip );
-		
-		epListen_.addr(addr);
+		struct timeval tv;
+		tv.tv_sec = 1;
+		tv.tv_usec = 0;
+		int count = 0;
 
-		// DEBUG_MSG("BundleBroadcast::BundleBroadcast: epListen %s\n", epListen_.c_str());
-		if(epBroadcast_.setbroadcast(true) != 0)
+		while(true)
 		{
-			ERROR_MSG("BundleBroadcast::BundleBroadcast: Couldn't broadcast socket, port %d, %s\n", 
-				bindPort, kbe_strerror());
-			networkInterface.mainDispatcher().breakProcessing();
+			if (epListen_.bind(htons(bindPort), htonl(INADDR_ANY)) != 0)
+			{
+				WARNING_MSG("BundleBroadcast::BundleBroadcast: Couldn't bind listener socket to port %d, %s\n", 
+					bindPort, kbe_strerror());
+				
+				select(0, NULL, NULL, NULL, &tv);
+				count++;
+				if(count > 5)
+				{
+					break;
+				}
+			}
+			else
+			{
+				epListen_.addr(htons(bindPort), htonl(INADDR_ANY));
+
+				// DEBUG_MSG("BundleBroadcast::BundleBroadcast: epListen %s\n", epListen_.c_str());
+				if(epBroadcast_.setbroadcast(true) != 0)
+				{
+					ERROR_MSG("BundleBroadcast::BundleBroadcast: Couldn't broadcast socket, port %d, %s\n", 
+						bindPort, kbe_strerror());
+					networkInterface.mainDispatcher().breakProcessing();
+				}
+				break;
+			}
 		}
 	}
 }
@@ -79,6 +97,7 @@ BundleBroadcast::~BundleBroadcast()
 //-------------------------------------------------------------------------------------
 void BundleBroadcast::close()
 {
+	DEBUG_MSG("BundleBroadcast::close()\n");
 	epListen_.close();
 	epBroadcast_.close();
 }
@@ -113,7 +132,7 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin)
 	fd_set fds;
 	
 	int icount = 1;
-	tv.tv_sec = 1;
+	tv.tv_sec = 10;
 	tv.tv_usec = 0;
 	
 	if(!pCurrPacket())
@@ -129,7 +148,7 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin)
 		{
 			if(icount > 15)
 			{
-				DEBUG_MSG("BundleBroadcast::receive: retry(%d > 15), listen(%s), the app will be terminated.\n", 
+				DEBUG_MSG("BundleBroadcast::receive: retry is failed, the app will be terminated.\n", 
 					icount, epListen_.addr().c_str());
 				networkInterface_.mainDispatcher().breakProcessing();
 				return false;

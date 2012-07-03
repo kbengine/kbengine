@@ -43,23 +43,17 @@ KBE_SINGLETON_INIT(Componentbridge);
 Componentbridge::Componentbridge(Mercury::NetworkInterface & networkInterface, 
 									   COMPONENT_TYPE componentType, COMPONENT_ID componentID) :
 	Task(),
-	Mercury::UDPPacketReceiver(epBroadcast_, networkInterface),
-	epBroadcast_(),
 	networkInterface_(networkInterface),
 	componentType_(componentType),
 	componentID_(componentID),
-	broadcastCount_(3)
+	broadcastCount_(1)
 {
-	epBroadcast_.socket(SOCK_DGRAM);
-	epBroadcast_.setbroadcast(true);
-
 	// dispatcher().addFrequentTask(this);
 }
 
 //-------------------------------------------------------------------------------------
 Componentbridge::~Componentbridge()
 {
-	epBroadcast_.close();
 	//dispatcher().cancelFrequentTask(this);
 	//DEBUG_MSG("Componentbridge::~Componentbridge(): local interface(componentType=%s, componentID=%"PRAppID")!\n", 
 	//	COMPONENT_NAME[componentType_], componentID_);
@@ -113,7 +107,6 @@ bool Componentbridge::findInterfaces()
 
 	int ifind = 0;
 	
-	Mercury::BundleBroadcast bhandler(networkInterface_);
 
 	while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)
 	{
@@ -122,6 +115,12 @@ bool Componentbridge::findInterfaces()
 		INFO_MSG("Componentbridge::process: finding %s...\n",
 			COMPONENT_NAME[findComponentType]);
 		
+		srand((unsigned int)time(NULL));
+		uint16 nport = KBE_PORT_START + (rand() % 1000);
+		Mercury::BundleBroadcast bhandler(networkInterface_, nport);
+		if(!bhandler.good())
+			continue;
+
 		if(bhandler.pCurrPacket() != NULL)
 		{
 			bhandler.pCurrPacket()->resetPacket();
@@ -129,7 +128,7 @@ bool Componentbridge::findInterfaces()
 
 		bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
 		MachineInterface::onFindInterfaceAddrArgs6::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
-			componentType_, findComponentType, bhandler.epListen().addr().ip, bhandler.epListen().addr().port);
+			componentType_, findComponentType, networkInterface_.addr().ip, bhandler.epListen().addr().port);
 
 		if(!bhandler.broadcast())
 		{

@@ -45,7 +45,6 @@ class UDPPacket;
 	它的职责主要是让当前app组件能够比较方便的与其他组件进行交互。
 */
 class Componentbridge : public Task, 
-						public Mercury::UDPPacketReceiver,
 						public Singleton<Componentbridge>
 {
 public:
@@ -62,7 +61,6 @@ private:
 	
 	void componentID(COMPONENT_ID id){ componentID_ = id; }
 private:
-	Mercury::EndPoint epBroadcast_;
 	Mercury::NetworkInterface & networkInterface_;
 	COMPONENT_TYPE componentType_;
 	COMPONENT_ID componentID_;									// 本组件的ID

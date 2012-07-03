@@ -56,6 +56,7 @@ namespace tcp{
 #define MERCURY_MESSAGE_MAX_SIZE			65535
 
 /** kbe machine端口 */
+#define KBE_PORT_START						20000
 #define KBE_MACHINE_BRAODCAST_SEND_PORT		20086	// machine接收广播的端口
 #define KBE_PORT_BROADCAST_DISCOVERY		20087
 #define KBE_MACHINE_TCP_PORT				20088

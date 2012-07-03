@@ -87,7 +87,7 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT
 		if((*iter).uid == uid && (ignoreComponentID == true || (*iter).cid == componentID))
 		{
 			components.erase(iter);
-			INFO_MSG("Components::delComponent[%s] componentID=%" PRAppID "component:totalcount=%d\n", 
+			INFO_MSG("Components::delComponent[%s] componentID=%" PRAppID ", component:totalcount=%d.\n", 
 				COMPONENT_NAME[(uint8)componentType], componentID, components.size());
 			return;
 		}
