@@ -78,7 +78,9 @@ void Machine::onBroadcastInterface(int32 uid, std::string& username,
 	}
 	else if(componentType == DBMGR_TYPE) // 如果是dbmgr重启了则清空所有这个uid的记录。
 	{
+		INFO_MSG("Machine::onBroadcastInterface: /-----------------------------reset kbengine.-------------------------/\n");
 		Componentbridge::getComponents().clear(uid);
+		INFO_MSG("Machine::onBroadcastInterface: /-----------------------------end reset kbengine.---------------------/\n");
 	}
 
 	INFO_MSG("Machine::onBroadcastInterface: uid:%d, username:%s, componentType:%s, "
@@ -134,7 +136,7 @@ bool Machine::findBroadcastInterface()
 	std::map<u_int32_t, std::string> interfaces;
 	Mercury::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
 
-	if (!bhandler.epListen().getInterfaces(interfaces))
+	if (!Mercury::EndPoint::getInterfaces(interfaces))
 	{
 		ERROR_MSG("Machine::findBroadcastInterface: Failed to discover network interfaces\n");
 		return false;
