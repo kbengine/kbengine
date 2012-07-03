@@ -165,6 +165,8 @@ bool Componentbridge::findInterfaces()
 		}
 	}
 
+	// 是baseapp就去连接baseappmgr
+	// 是cellapp去连接cellappmgr
 	return true;
 }
 //-------------------------------------------------------------------------------------

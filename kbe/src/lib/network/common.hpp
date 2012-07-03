@@ -57,9 +57,9 @@ namespace tcp{
 
 /** kbe machine端口 */
 #define KBE_PORT_START						20000
-#define KBE_MACHINE_BRAODCAST_SEND_PORT		20086	// machine接收广播的端口
-#define KBE_PORT_BROADCAST_DISCOVERY		20087
-#define KBE_MACHINE_TCP_PORT				20088
+#define KBE_MACHINE_BRAODCAST_SEND_PORT		KBE_PORT_START + 86	// machine接收广播的端口
+#define KBE_PORT_BROADCAST_DISCOVERY		KBE_PORT_START + 87
+#define KBE_MACHINE_TCP_PORT				KBE_PORT_START + 88
 
 /*
 	网络消息类型， 定长或者变长。
