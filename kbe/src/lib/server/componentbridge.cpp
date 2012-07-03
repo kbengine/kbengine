@@ -106,7 +106,8 @@ bool Componentbridge::findInterfaces()
 	};
 
 	int ifind = 0;
-	
+	srand((unsigned int)time(NULL));
+	uint16 nport = KBE_PORT_START + (rand() % 1000);
 
 	while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)
 	{
@@ -115,11 +116,12 @@ bool Componentbridge::findInterfaces()
 		INFO_MSG("Componentbridge::process: finding %s...\n",
 			COMPONENT_NAME[findComponentType]);
 		
-		srand((unsigned int)time(NULL));
-		uint16 nport = KBE_PORT_START + (rand() % 1000);
 		Mercury::BundleBroadcast bhandler(networkInterface_, nport);
 		if(!bhandler.good())
+		{
+			nport = KBE_PORT_START + (rand() % 1000);
 			continue;
+		}
 
 		if(bhandler.pCurrPacket() != NULL)
 		{

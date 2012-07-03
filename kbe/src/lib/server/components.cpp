@@ -145,7 +145,7 @@ Components::ComponentInfos* Components::findComponent(COMPONENT_TYPE componentTy
 	COMPONENTS::iterator iter = components.begin();
 	for(; iter != components.end(); iter++)
 	{
-		if((*iter).uid == uid && (*iter).cid == componentID)
+		if((*iter).uid == uid && (componentID == 0 || (*iter).cid == componentID))
 			return &(*iter);
 	}
 
@@ -159,7 +159,7 @@ Components::ComponentInfos* Components::findComponent(COMPONENT_TYPE componentTy
 	COMPONENTS::iterator iter = components.begin();
 	for(; iter != components.end(); iter++)
 	{
-		if((*iter).cid == componentID)
+		if(componentID == 0 || (*iter).cid == componentID)
 			return &(*iter);
 	}
 

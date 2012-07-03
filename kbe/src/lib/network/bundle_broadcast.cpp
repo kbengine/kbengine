@@ -97,7 +97,7 @@ BundleBroadcast::~BundleBroadcast()
 //-------------------------------------------------------------------------------------
 void BundleBroadcast::close()
 {
-	DEBUG_MSG("BundleBroadcast::close()\n");
+	// DEBUG_MSG("BundleBroadcast::close()\n");
 	epListen_.close();
 	epBroadcast_.close();
 }
