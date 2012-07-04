@@ -117,7 +117,7 @@ bool BundleBroadcast::broadcast(uint16 port)
 	if(port == 0)
 		port = KBE_MACHINE_BRAODCAST_SEND_PORT;
 
-	
+	epBroadcast_.addr(port, Mercury::BROADCAST);
 	this->sendto(epBroadcast_, htons(port), Mercury::BROADCAST);
 	return true;
 }
@@ -155,7 +155,7 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin)
 			}
 			else
 			{
-				DEBUG_MSG("BundleBroadcast::receive: retry(%d), listen(%s) ...\n", icount, epListen_.addr().c_str());
+				DEBUG_MSG("BundleBroadcast::receive: retries(%d), bind_addr(%s) ...\n", icount, epListen_.addr().c_str());
 			}
 
 			icount++;

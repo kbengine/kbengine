@@ -30,6 +30,59 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "bundle.ipp"
 #endif
 
+#define BUNDLE_SEND_OP(op)																					\
+	finish();																								\
+																											\
+	Packets::iterator iter = packets_.begin();																\
+	for (; iter != packets_.end(); iter++)																	\
+	{																										\
+		Packet* pPacket = (*iter);																			\
+		int retries = 0;																					\
+		Reason reason;																						\
+																											\
+		while(true)																							\
+		{																									\
+			retries++;																						\
+			int slen = op;																					\
+																											\
+			if(slen != (int)pPacket->totalSize())															\
+			{																								\
+				reason = NetworkInterface::getSendErrorReason(&ep, slen, pPacket->totalSize());				\
+				/* 如果发送出现错误那么我们可以继续尝试一次， 超过3次退出	*/								\
+				if (reason == REASON_NO_SUCH_PORT && retries <= 3)											\
+				{																							\
+					continue;																				\
+				}																							\
+																											\
+				/* 如果系统发送缓冲已经满了，则我们等待10ms	*/												\
+				if (reason == REASON_RESOURCE_UNAVAILABLE && retries <= 3)									\
+				{																							\
+					fd_set	fds;																			\
+					struct timeval tv = { 0, 10000 };														\
+					FD_ZERO( &fds );																		\
+					FD_SET(ep, &fds);																		\
+																											\
+					WARNING_MSG( "%s: "																		\
+						"Transmit queue full, waiting for space... (%d)\n",									\
+						__FUNCTION__, retries );															\
+																											\
+					select(ep + 1, NULL, &fds, NULL, &tv);													\
+					continue;																				\
+				}																							\
+			}																								\
+			else																							\
+			{																								\
+				break;																						\
+			}																								\
+		}																									\
+																											\
+		delete pPacket;																						\
+	}																										\
+																											\
+	onSendComplete();																						\
+																											\
+
+
 namespace KBEngine { 
 namespace Mercury
 {
@@ -132,35 +185,13 @@ void Bundle::send(NetworkInterface & networkInterface, Channel * pChannel)
 //-------------------------------------------------------------------------------------
 void Bundle::send(EndPoint& ep)
 {
-	finish();
-
-	Packets::iterator iter = packets_.begin();
-	for (; iter != packets_.end(); iter++)
-	{
-		Packet* pPacket = (*iter);
-		int slen = ep.send(pPacket->data(), pPacket->totalSize());
-		KBE_ASSERT(slen == (int)pPacket->totalSize());
-		delete pPacket;
-	}
-	
-	onSendComplete();
+	BUNDLE_SEND_OP(ep.send(pPacket->data(), pPacket->totalSize()));
 }
 
 //-------------------------------------------------------------------------------------
 void Bundle::sendto(EndPoint& ep, u_int16_t networkPort, u_int32_t networkAddr)
 {
-	finish();
-
-	Packets::iterator iter = packets_.begin();
-	for (; iter != packets_.end(); iter++)
-	{
-		Packet* pPacket = (*iter);
-		int slen = ep.sendto(pPacket->data(), pPacket->totalSize(), networkPort, networkAddr);
-		KBE_ASSERT(slen == (int)pPacket->totalSize());
-		delete pPacket;
-	}
-	
-	onSendComplete();
+	BUNDLE_SEND_OP(ep.sendto(pPacket->data(), pPacket->totalSize(), networkPort, networkAddr));
 }
 
 //-------------------------------------------------------------------------------------

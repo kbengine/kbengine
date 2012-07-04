@@ -141,7 +141,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		}
 		else
 		{
-			Mercury::Bundle bundle;
+			Mercury::Bundle bundle(pComponentInfos->pChannel);
 			if(componentType == BASEAPPMGR_TYPE)
 			{
 				bundle.newMessage(BaseappmgrInterface::onRegisterNewApp);
@@ -186,6 +186,8 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 			{
 				KBE_ASSERT(false && "invalid componentType.\n");
 			}
+
+			bundle.send(*pNetworkInterface_, pComponentInfos->pChannel);
 		}
 	}
 	else

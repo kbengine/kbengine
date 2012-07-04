@@ -426,50 +426,57 @@ Reason NetworkInterface::basicSendSingleTry(Channel * pChannel, Packet * pPacket
 	}
 	else
 	{
-		int err;
-		Reason reason;
+		return NetworkInterface::getSendErrorReason(endpoint, len, pPacket->totalSize());
+	}
+}
 
-		#ifdef unix
-			err = errno;
+//-------------------------------------------------------------------------------------
+Reason NetworkInterface::getSendErrorReason(const EndPoint * endpoint, 
+											int retSendSize, int packetTotalSize)
+{
+	int err;
+	Reason reason;
 
-			switch (err)
-			{
-				case ECONNREFUSED:	reason = REASON_NO_SUCH_PORT; break;
-				case EAGAIN:		reason = REASON_RESOURCE_UNAVAILABLE; break;
-				case ENOBUFS:		reason = REASON_TRANSMIT_QUEUE_FULL; break;
-				default:			reason = REASON_GENERAL_NETWORK; break;
-			}
-		#else
-			err = WSAGetLastError();
+	#ifdef unix
+		err = errno;
 
-			if (err == WSAEWOULDBLOCK || err == WSAEINTR)
-			{
-				reason = REASON_RESOURCE_UNAVAILABLE;
-			}
-			else
-			{
-				reason = REASON_GENERAL_NETWORK;
-			}
-		#endif
-
-		if (len == -1)
+		switch (err)
 		{
-			if (reason != REASON_NO_SUCH_PORT)
-			{
-				ERROR_MSG( "NetworkInterface::basicSendSingleTry( %s ): "
-						"Could not send packet: %s\n",
-					endpoint->addr().c_str(), strerror( err ) );
-			}
+			case ECONNREFUSED:	reason = REASON_NO_SUCH_PORT; break;
+			case EAGAIN:		reason = REASON_RESOURCE_UNAVAILABLE; break;
+			case ENOBUFS:		reason = REASON_TRANSMIT_QUEUE_FULL; break;
+			default:			reason = REASON_GENERAL_NETWORK; break;
+		}
+	#else
+		err = WSAGetLastError();
+
+		if (err == WSAEWOULDBLOCK || err == WSAEINTR)
+		{
+			reason = REASON_RESOURCE_UNAVAILABLE;
 		}
 		else
 		{
-			WARNING_MSG( "NetworkInterface::basicSendSingleTry( %s ): "
-				"Packet length %d does not match sent length %d (err = %s)\n",
-				endpoint->addr().c_str(), pPacket->totalSize(), len, strerror( err ) );
+			reason = REASON_GENERAL_NETWORK;
 		}
+	#endif
 
-		return reason;
+	if (retSendSize == -1)
+	{
+		if (reason != REASON_NO_SUCH_PORT)
+		{
+			ERROR_MSG( "NetworkInterface::getSendErrorReason( %s ): "
+					"Could not send packet: %s\n",
+				endpoint->addr().c_str(), kbe_strerror( err ) );
+		}
 	}
+	else
+	{
+		WARNING_MSG( "NetworkInterface::getSendErrorReason( %s ): "
+			"Packet length %d does not match sent length %d (err = %s)\n",
+			endpoint->addr().c_str(), packetTotalSize, retSendSize, kbe_strerror( err ) );
+	}
+
+	return reason;
 }
 
 //-------------------------------------------------------------------------------------

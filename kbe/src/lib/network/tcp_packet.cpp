@@ -58,7 +58,8 @@ int TCPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 		len = ep.recv(data() + wpos(), PACKET_MAX_SIZE_TCP);
 		if(len >= 0)
 			wpos(wpos() + len);
-
+		
+		DEBUG_MSG("TCPPacket::recvFromEndPoint: datasize=%d.\n", len);
 		if(len <= 0 || len != PACKET_MAX_SIZE_TCP)
 			break;
 		

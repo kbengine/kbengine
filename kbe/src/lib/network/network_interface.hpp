@@ -104,6 +104,9 @@ public:
 	void onChannelTimeOut(Channel * pChannel);
 	
 	void handleChannels(KBEngine::Mercury::MessageHandlers* pMsgHandlers);
+
+	/* 获取一次send或者sendto操作产生错误的原因 */
+	static Reason getSendErrorReason(const EndPoint * endpoint, int retSendSize, int packetTotalSize);
 private:
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 
