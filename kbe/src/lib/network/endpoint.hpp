@@ -69,7 +69,7 @@ public:
 	int getInterfaceFlags(char * name, int & flags);
 	int getInterfaceAddress(const char * name, u_int32_t & address);
 	int getInterfaceNetmask(const char * name, u_int32_t & netmask);
-	static bool getInterfaces(std::map< u_int32_t, std::string > &interfaces);
+	bool getInterfaces(std::map< u_int32_t, std::string > &interfaces);
 	int findDefaultInterface(char * name);
 	int findIndicatedInterface(const char * spec, char * name);
 	static int convertAddress(const char * string, u_int32_t & address);

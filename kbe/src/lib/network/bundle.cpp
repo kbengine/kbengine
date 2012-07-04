@@ -139,7 +139,7 @@ void Bundle::send(EndPoint& ep)
 	{
 		Packet* pPacket = (*iter);
 		int slen = ep.send(pPacket->data(), pPacket->totalSize());
-		KBE_ASSERT(slen == pPacket->totalSize());
+		KBE_ASSERT(slen == (int)pPacket->totalSize());
 		delete pPacket;
 	}
 	
@@ -156,7 +156,7 @@ void Bundle::sendto(EndPoint& ep, u_int16_t networkPort, u_int32_t networkAddr)
 	{
 		Packet* pPacket = (*iter);
 		int slen = ep.sendto(pPacket->data(), pPacket->totalSize(), networkPort, networkAddr);
-		KBE_ASSERT(slen == pPacket->totalSize());
+		KBE_ASSERT(slen == (int)pPacket->totalSize());
 		delete pPacket;
 	}
 	
