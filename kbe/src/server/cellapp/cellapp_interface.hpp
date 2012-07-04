@@ -46,8 +46,16 @@ namespace KBEngine{
 /**
 	cellapp所有消息接口在此定义
 */
-NETWORK_INTERFACE_DECLARE_BEGIN(CellAppInterface)
-	
+NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
+	// 某app注册自己的接口地址到本app
+	CELLAPP_MESSAGE_DECLARE_ARGS6(onRegisterNewApp,	MERCURY_VARIABLE_MESSAGE,
+									int32,				uid, 
+									std::string,		username,
+									int8,				componentType, 
+									uint64,				componentID, 
+									uint32,				addr, 
+									uint16,				port)
+
 	ENTITY_MESSAGE_DECLARE_ARGS1(test, MERCURY_VARIABLE_MESSAGE,
 								std::string, name
 	)

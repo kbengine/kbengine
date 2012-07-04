@@ -88,6 +88,13 @@ public:
 	virtual void onChannelTimeOut(Mercury::Channel * pChannel);
 
 	void shutDown();
+
+	/* 注册一个新激活的baseapp或者cellapp或者dbmgr
+		通常是一个新的app被启动了， 它需要向某些组件注册自己。
+	*/
+	virtual void onRegisterNewApp(int32 uid, std::string& username, 
+							int8 componentType, uint64 componentID, 
+							uint32 addr, uint16 port);
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID

@@ -53,13 +53,16 @@ public:
 	~Componentbridge();
 
 	static Components& getComponents();
+
+	void componentID(COMPONENT_ID id){ componentID_ = id; }
+	COMPONENT_ID componentID()const { return componentID_; }
+	void componentType(COMPONENT_TYPE t){ componentType_ = t; }
+	COMPONENT_TYPE componentType()const { return componentType_; }
+
+	Mercury:: EventDispatcher & dispatcher();
 private:
 	virtual bool process();
-	Mercury:: EventDispatcher & dispatcher();
-
 	bool findInterfaces();
-	
-	void componentID(COMPONENT_ID id){ componentID_ = id; }
 private:
 	Mercury::NetworkInterface & networkInterface_;
 	COMPONENT_TYPE componentType_;

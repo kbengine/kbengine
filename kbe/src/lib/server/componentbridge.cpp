@@ -34,7 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/error_reporter.hpp"
 #include "network/udp_packet.hpp"
 
-#include "../server/machine/machine_interface.hpp"
+#include "../../server/machine/machine_interface.hpp"
 
 namespace KBEngine { 
 KBE_SINGLETON_INIT(Componentbridge);
@@ -49,6 +49,7 @@ Componentbridge::Componentbridge(Mercury::NetworkInterface & networkInterface,
 	broadcastCount_(1)
 {
 	// dispatcher().addFrequentTask(this);
+	getComponents().pNetworkInterface(&networkInterface);
 }
 
 //-------------------------------------------------------------------------------------
@@ -77,17 +78,21 @@ bool Componentbridge::findInterfaces()
 	int8 findComponentTypes[] = {UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, 
 								UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE};
 	
+	COMPONENT_TYPE connectToCType = UNKNOWN_COMPONENT_TYPE;
+
 	switch(componentType_)
 	{
 	case CELLAPP_TYPE:
 		findComponentTypes[0] = BASEAPPMGR_TYPE;
 		findComponentTypes[1] = CELLAPPMGR_TYPE;
 		findComponentTypes[2] = DBMGR_TYPE;
+		connectToCType = CELLAPPMGR_TYPE;
 		break;
 	case BASEAPP_TYPE:
 		findComponentTypes[0] = BASEAPPMGR_TYPE;
 		findComponentTypes[1] = CELLAPPMGR_TYPE;
 		findComponentTypes[2] = DBMGR_TYPE;
+		connectToCType = BASEAPPMGR_TYPE;
 		break;
 	case BASEAPPMGR_TYPE:
 		findComponentTypes[0] = CELLAPPMGR_TYPE;
@@ -167,6 +172,12 @@ bool Componentbridge::findInterfaces()
 
 	// 是baseapp就去连接baseappmgr
 	// 是cellapp去连接cellappmgr
+	if(connectToCType != UNKNOWN_COMPONENT_TYPE)
+	{
+		if(getComponents().connectComponent(connectToCType, getUserUID(), 0) != 0)
+			return false;
+	}
+
 	return true;
 }
 //-------------------------------------------------------------------------------------

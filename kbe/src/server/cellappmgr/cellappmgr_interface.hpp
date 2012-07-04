@@ -45,7 +45,14 @@ namespace KBEngine{
 	BASEAPPMGR所有消息接口在此定义
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(CellappmgrInterface)
-
+	// 某app注册自己的接口地址到本app
+	CELLAPPMGR_MESSAGE_DECLARE_ARGS6(onRegisterNewApp,	MERCURY_VARIABLE_MESSAGE,
+									int32,				uid, 
+									std::string,		username,
+									int8,				componentType, 
+									uint64,				componentID, 
+									uint32,				addr, 
+									uint16,				port)
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

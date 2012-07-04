@@ -125,7 +125,7 @@ void CellApp::handleGameTick()
 	
 	time_++;
 	handleTimers();
-	getNetworkInterface().handleChannels(&CellAppInterface::messageHandlers);
+	getNetworkInterface().handleChannels(&CellappInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------

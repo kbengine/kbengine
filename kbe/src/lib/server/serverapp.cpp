@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverconfig.hpp"
 #include "server/componentbridge.hpp"
 #include "network/channel.hpp"
+#include "server/componentbridge.hpp"
 
 namespace KBEngine{
 COMPONENT_TYPE g_componentType;
@@ -136,6 +137,19 @@ void ServerApp::onChannelTimeOut(Mercury::Channel * pChannel)
 
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->decRef();
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::onRegisterNewApp(int32 uid, std::string& username, 
+						int8 componentType, uint64 componentID, 
+						uint32 addr, uint16 port)
+{
+	INFO_MSG("ServerApp::onRegisterNewApp: uid:%d, username:%s, componentType:%s, "
+			"componentID:%"PRAppID", addr:%s, port:%u\n", 
+		uid, username.c_str(), COMPONENT_NAME[componentType], componentID, inet_ntoa((struct in_addr&)addr), ntohs(port));
+
+	Componentbridge::getComponents().addComponent(uid, username.c_str(), 
+		(KBEngine::COMPONENT_TYPE)componentType, componentID, addr, port);
 }
 
 //-------------------------------------------------------------------------------------		

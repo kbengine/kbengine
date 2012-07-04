@@ -301,7 +301,7 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 			INFO_MSG("\tentryScriptFile : %s\n", info.entryScriptFile);
 			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
 			INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG("\tcomponentID : %d\n", info.componentID);
+			INFO_MSG("\tcomponentID : %"PRAppID"\n", info.componentID);
 		}
 	}
 	else if (componentType == BASEAPP_TYPE)
@@ -319,7 +319,7 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 			INFO_MSG("\tentryScriptFile : %s\n", info.entryScriptFile);
 			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
 			INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG("\tcomponentID : %d\n", info.componentID);
+			INFO_MSG("\tcomponentID : %"PRAppID"\n", info.componentID);
 		}
 	}
 }

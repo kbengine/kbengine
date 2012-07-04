@@ -124,7 +124,7 @@ void Machine::onFindInterfaceAddr(int32 uid, std::string& username, int8 compone
 	}
 	else
 		MachineInterface::onBroadcastInterfaceArgs6::staticAddToBundle(bundle, pinfos->uid, 
-			pinfos->username, findComponentType, pinfos->cid, pinfos->addr, pinfos->port);
+			pinfos->username, findComponentType, pinfos->cid, pinfos->pAddr->ip, pinfos->pAddr->port);
 
 	bundle.sendto(ep, finderRecvPort, finderAddr);
 }

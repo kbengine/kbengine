@@ -66,7 +66,12 @@ public:
 
 	typedef std::vector<PacketPtr> BufferedReceives;
 public:
-	Channel(NetworkInterface & networkInterface, const EndPoint * endpoint, Traits traits, ProtocolType pt = PROTOCOL_TCP, PacketFilterPtr pFilter = NULL, ChannelID id = CHANNEL_ID_NULL);
+	Channel(NetworkInterface & networkInterface, 
+		const EndPoint * endpoint, 
+		Traits traits, 
+		ProtocolType pt = PROTOCOL_TCP, 
+		PacketFilterPtr pFilter = NULL, 
+		ChannelID id = CHANNEL_ID_NULL);
 
 	virtual ~Channel();
 	

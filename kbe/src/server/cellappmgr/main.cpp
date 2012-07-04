@@ -23,6 +23,27 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "machine/machine_interface.hpp"
 #define DEFINE_IN_INTERFACE
 #include "machine/machine_interface.hpp"
+
+#undef DEFINE_IN_INTERFACE
+#include "baseappmgr/baseappmgr_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "baseappmgr/baseappmgr_interface.hpp"
+
+#undef DEFINE_IN_INTERFACE
+#include "cellapp/cellapp_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "cellapp/cellapp_interface.hpp"
+
+#undef DEFINE_IN_INTERFACE
+#include "baseapp/baseapp_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "baseapp/baseapp_interface.hpp"
+
+#undef DEFINE_IN_INTERFACE
+#include "dbmgr/dbmgr_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "dbmgr/dbmgr_interface.hpp"
+
 using namespace KBEngine;
 
 int KBENGINE_MAIN(int argc, char* argv[])

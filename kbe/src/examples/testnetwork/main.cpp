@@ -201,7 +201,7 @@ void init_network(void)
 			TCPPacket packet;
 
 			Bundle bundle;
-			bundle.newMessage(CellAppInterface::test);
+			bundle.newMessage(CellappInterface::test);
 			ENTITY_ID eid = 1;
 			bundle << eid;
 			char xxa[12]={"kebiao12345"};
@@ -246,7 +246,7 @@ void init_network(void)
 			TCPPacket packet;
 
 			Bundle bundle;
-			bundle.newMessage(CellAppInterface::test);
+			bundle.newMessage(CellappInterface::test);
 			ENTITY_ID eid = 1;
 			bundle << eid;
 			char xxa[12]={"kebiao12345"};

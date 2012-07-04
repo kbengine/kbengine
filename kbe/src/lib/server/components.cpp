@@ -20,8 +20,18 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "components.hpp"
+#include "componentbridge.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/channel.hpp"	
+#include "network/address.hpp"	
+#include "network/bundle.hpp"	
+#include "network/network_interface.hpp"
+
+#include "../../server/baseappmgr/baseappmgr_interface.hpp"
+#include "../../server/cellappmgr/cellappmgr_interface.hpp"
+#include "../../server/baseapp/baseapp_interface.hpp"
+#include "../../server/cellapp/cellapp_interface.hpp"
+#include "../../server/dbmgr/dbmgr_interface.hpp"
 
 namespace KBEngine
 {
@@ -30,7 +40,8 @@ KBE_SINGLETON_INIT(Components);
 Components _g_components;
 
 //-------------------------------------------------------------------------------------
-Components::Components()
+Components::Components():
+pNetworkInterface_(NULL)
 {
 }
 
@@ -42,7 +53,7 @@ Components::~Components()
 //-------------------------------------------------------------------------------------		
 void Components::addComponent(int32 uid, const char* username, 
 			COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
-			uint32 addr, uint16 port)
+			uint32 addr, uint16 port, Mercury::Channel* pChannel)
 {
 	KBEngine::thread::ThreadGuard tg(&this->myMutex); 
 	COMPONENTS& components = getComponents(componentType);
@@ -57,11 +68,12 @@ void Components::addComponent(int32 uid, const char* username,
 	}
 	
 	ComponentInfos componentInfos;
+
+	componentInfos.pAddr = new Mercury::Address(addr, port);
 	componentInfos.uid = uid;
-	componentInfos.addr = addr;
-	componentInfos.port = port;
 	componentInfos.cid = componentID;
-	
+	componentInfos.pChannel = pChannel;
+
 	strncpy(componentInfos.username, username, MAX_NAME);
 
 	if(cinfos == NULL)
@@ -86,15 +98,103 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT
 	{
 		if((*iter).uid == uid && (ignoreComponentID == true || (*iter).cid == componentID))
 		{
+			SAFE_RELEASE((*iter).pAddr);
+			SAFE_RELEASE((*iter).pChannel);
 			components.erase(iter);
 			INFO_MSG("Components::delComponent[%s] componentID=%" PRAppID ", component:totalcount=%d.\n", 
 				COMPONENT_NAME[(uint8)componentType], componentID, components.size());
-			return;
+
+			if(!ignoreComponentID)
+				return;
 		}
 	}
 
 	ERROR_MSG("Components::delComponent::not found [%s] component:totalcount:%d\n", 
 		COMPONENT_NAME[(uint8)componentType], components.size());
+}
+
+//-------------------------------------------------------------------------------------		
+int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID)
+{
+	Components::ComponentInfos* pComponentInfos = findComponent(componentType, uid, componentID);
+	KBE_ASSERT(pComponentInfos != NULL);
+
+	Mercury::EndPoint * pEndpoint = new Mercury::EndPoint;
+	pEndpoint->socket(SOCK_STREAM);
+	if (!pEndpoint->good())
+	{
+		ERROR_MSG("Components::connectComponent: couldn't create a socket\n");
+		return -1;
+	}
+
+	pEndpoint->addr(*pComponentInfos->pAddr);
+	int ret = pEndpoint->connect(pComponentInfos->pAddr->port, pComponentInfos->pAddr->ip);
+
+	if(ret == 0)
+	{
+		pComponentInfos->pChannel = new Mercury::Channel(*pNetworkInterface_, pEndpoint, Mercury::Channel::INTERNAL);
+		if(!pNetworkInterface_->registerChannel(pComponentInfos->pChannel))
+		{
+			ERROR_MSG("Components::connectComponent: registerChannel(%s) is failed!\n",
+				pComponentInfos->pChannel->c_str());
+			return -1;
+		}
+		else
+		{
+			Mercury::Bundle bundle;
+			if(componentType == BASEAPPMGR_TYPE)
+			{
+				bundle.newMessage(BaseappmgrInterface::onRegisterNewApp);
+				
+				BaseappmgrInterface::onRegisterNewAppArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					pNetworkInterface_->addr().ip, pNetworkInterface_->addr().port);
+			}
+			else if(componentType == CELLAPPMGR_TYPE)
+			{
+				bundle.newMessage(CellappmgrInterface::onRegisterNewApp);
+				
+				CellappmgrInterface::onRegisterNewAppArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					pNetworkInterface_->addr().ip, pNetworkInterface_->addr().port);
+			}
+			else if(componentType == CELLAPP_TYPE)
+			{
+				bundle.newMessage(CellappInterface::onRegisterNewApp);
+				
+				CellappInterface::onRegisterNewAppArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					pNetworkInterface_->addr().ip, pNetworkInterface_->addr().port);
+			}
+			else if(componentType == BASEAPP_TYPE)
+			{
+				bundle.newMessage(BaseappInterface::onRegisterNewApp);
+				
+				BaseappInterface::onRegisterNewAppArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					pNetworkInterface_->addr().ip, pNetworkInterface_->addr().port);
+			}
+			else if(componentType == DBMGR_TYPE)
+			{
+				bundle.newMessage(DbmgrInterface::onRegisterNewApp);
+				
+				DbmgrInterface::onRegisterNewAppArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					pNetworkInterface_->addr().ip, pNetworkInterface_->addr().port);
+			}
+			else
+			{
+				KBE_ASSERT(false && "invalid componentType.\n");
+			}
+		}
+	}
+	else
+	{
+			ERROR_MSG("Components::connectComponent: connect(%s) is failed! %s.\n",
+				pComponentInfos->pChannel->c_str(), kbe_strerror());
+	}
+
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------		
