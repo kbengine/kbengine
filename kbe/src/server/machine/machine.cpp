@@ -136,7 +136,7 @@ bool Machine::findBroadcastInterface()
 	std::map<u_int32_t, std::string> interfaces;
 	Mercury::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
 
-	if (!Mercury::EndPoint::getInterfaces(interfaces))
+	if (!bhandler.epListen().getInterfaces(interfaces))
 	{
 		ERROR_MSG("Machine::findBroadcastInterface: Failed to discover network interfaces\n");
 		return false;
