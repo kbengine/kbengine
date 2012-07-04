@@ -53,11 +53,12 @@ public:
 
 	void close();
 
-	bool good()const { return epListen_.good(); }
+	bool good()const { return epListen_.good() && good_; }
 protected:
 	Mercury::EndPoint epListen_, epBroadcast_;
 	NetworkInterface & networkInterface_;
 	uint32 recvWindowSize_;
+	bool good_;
 };
 
 }

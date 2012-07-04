@@ -39,7 +39,8 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 	Bundle(NULL, Mercury::PROTOCOL_UDP),
 	epListen_(),
 	networkInterface_(networkInterface),
-	recvWindowSize_(recvWindowSize)
+	recvWindowSize_(recvWindowSize),
+	good_(false)
 {
 	epListen_.socket(SOCK_DGRAM);
 	epBroadcast_.socket(SOCK_DGRAM);
@@ -74,14 +75,8 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 			else
 			{
 				epListen_.addr(htons(bindPort), htonl(INADDR_ANY));
-
-				// DEBUG_MSG("BundleBroadcast::BundleBroadcast: epListen %s\n", epListen_.c_str());
-				if(epBroadcast_.setbroadcast(true) != 0)
-				{
-					ERROR_MSG("BundleBroadcast::BundleBroadcast: Couldn't broadcast socket, port %d, %s\n", 
-						bindPort, kbe_strerror());
-					networkInterface.mainDispatcher().breakProcessing();
-				}
+				good_ = true;
+				DEBUG_MSG("BundleBroadcast::BundleBroadcast: epListen %s\n", epListen_.c_str());
 				break;
 			}
 		}
@@ -118,6 +113,15 @@ bool BundleBroadcast::broadcast(uint16 port)
 		port = KBE_MACHINE_BRAODCAST_SEND_PORT;
 
 	epBroadcast_.addr(port, Mercury::BROADCAST);
+
+	if(epBroadcast_.setbroadcast(true) != 0)
+	{
+		ERROR_MSG("BundleBroadcast::broadcast: Couldn't broadcast socket, port %d, %s\n", 
+			port, kbe_strerror());
+		networkInterface_.mainDispatcher().breakProcessing();
+		return false;
+	}
+
 	this->sendto(epBroadcast_, htons(port), Mercury::BROADCAST);
 	return true;
 }
@@ -132,7 +136,7 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin)
 	fd_set fds;
 	
 	int icount = 1;
-	tv.tv_sec = 10;
+	tv.tv_sec = 1;
 	tv.tv_usec = 0;
 	
 	if(!pCurrPacket())
@@ -146,9 +150,9 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin)
 
 		if (selgot == 0)
 		{
-			if(icount > 15)
+			if(icount > 5)
 			{
-				DEBUG_MSG("BundleBroadcast::receive: retry is failed, the app will be terminated.\n", 
+				DEBUG_MSG("BundleBroadcast::receive: is failed, the app will be terminated.\n", 
 					icount, epListen_.addr().c_str());
 				networkInterface_.mainDispatcher().breakProcessing();
 				return false;
