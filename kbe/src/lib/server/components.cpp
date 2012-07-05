@@ -97,20 +97,23 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT
 
 	COMPONENTS& components = getComponents(componentType);
 	COMPONENTS::iterator iter = components.begin();
-	for(; iter != components.end(); iter++)
+	for(; iter != components.end();)
 	{
 		if((*iter).uid == uid && (ignoreComponentID == true || (*iter).cid == componentID))
 		{
+			INFO_MSG("Components::delComponent[%s] componentID=%" PRAppID ", component:totalcount=%d.\n", 
+				COMPONENT_NAME[(uint8)componentType], componentID, components.size());
+
 			SAFE_RELEASE((*iter).pIntAddr);
 			SAFE_RELEASE((*iter).pExtAddr);
 			SAFE_RELEASE((*iter).pChannel);
-			components.erase(iter);
-			INFO_MSG("Components::delComponent[%s] componentID=%" PRAppID ", component:totalcount=%d.\n", 
-				COMPONENT_NAME[(uint8)componentType], componentID, components.size());
+			iter = components.erase(iter);
 
 			if(!ignoreComponentID)
 				return;
 		}
+		else
+			iter++;
 	}
 
 	ERROR_MSG("Components::delComponent::not found [%s] component:totalcount:%d\n", 

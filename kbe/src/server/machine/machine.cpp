@@ -88,7 +88,7 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 			"componentID:%"PRAppID", intaddr:%s, intport:%u, extaddr:%s, extport:%u.\n", 
 		uid, username.c_str(), COMPONENT_NAME[componentType], componentID, 
 		inet_ntoa((struct in_addr&)intaddr), ntohs(intport),
-		inet_ntoa((struct in_addr&)extaddr), ntohs(extport));
+		extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport", ntohs(extport));
 
 	Componentbridge::getComponents().addComponent(uid, username.c_str(), 
 		(KBEngine::COMPONENT_TYPE)componentType, componentID, intaddr, intport, extaddr, extport);
