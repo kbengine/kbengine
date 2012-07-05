@@ -4,3 +4,4 @@ start baseappmgr.exe
 start cellappmgr.exe
 start baseapp.exe
 start cellapp.exe
+start loginapp.exe

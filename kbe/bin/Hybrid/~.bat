@@ -4,3 +4,4 @@ taskkill /f /t /im baseappmgr.exe
 taskkill /f /t /im cellappmgr.exe
 taskkill /f /t /im baseapp.exe
 taskkill /f /t /im cellapp.exe
+taskkill /f /t /im loginapp.exe
