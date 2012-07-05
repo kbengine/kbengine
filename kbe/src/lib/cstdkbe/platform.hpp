@@ -231,7 +231,7 @@ typedef uint16_t												uint16;
 typedef uint8_t													uint8;
 typedef uint16_t												WORD;
 typedef uint32_t												DWORD;
-#define PRTime													"d"
+
 #ifdef _LP64
 typedef int64													intptr;
 typedef uint64													uintptr;
@@ -239,6 +239,7 @@ typedef uint64													uintptr;
 #define PRIu64													"lu"
 #define PRIx64													"lx"
 #define PRIX64													"lX"
+#define PRTime													PRI64
 #else
 typedef int32													intptr;
 typedef uint32													uintptr;
@@ -246,7 +247,7 @@ typedef uint32													uintptr;
 #define PRIu64													"llu"
 #define PRIx64													"llx"
 #define PRIX64													"llX"
-#define PRTime													PRI64
+#define PRTime													"d"
 #endif
 
 #ifndef PRIzd

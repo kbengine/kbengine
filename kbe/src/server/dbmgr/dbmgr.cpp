@@ -38,7 +38,9 @@ Dbmgr::Dbmgr(Mercury::EventDispatcher& dispatcher,
 			 Mercury::NetworkInterface& ninterface, 
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
-	ServerApp(dispatcher, ninterface, componentType, componentID)
+	ServerApp(dispatcher, ninterface, componentType, componentID),
+	loopCheckTimerHandle_(),
+	mainProcessTimer_()
 {
 }
 
@@ -50,19 +52,37 @@ Dbmgr::~Dbmgr()
 //-------------------------------------------------------------------------------------
 bool Dbmgr::run()
 {
-	bool ret = true;
-
-	while(!this->getMainDispatcher().isBreakProcessing())
-	{
-		this->getMainDispatcher().processOnce(false);
-		KBEngine::sleep(100);
-	};
-
-	return ret;
+	return ServerApp::run();
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::handleTimeout(TimerHandle handle, void * arg)
+{
+	switch (reinterpret_cast<uintptr>(arg))
+	{
+		case TIMEOUT_TICK:
+			this->handleMainTick();
+			break;
+		case TIMEOUT_CHECK_STATUS:
+			this->handleCheckStatusTick();
+			break;
+		default:
+			break;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::handleMainTick()
+{
+	 time_t t = ::time(NULL);
+	 DEBUG_MSG("Dbmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
+	
+	time_++;
+	getNetworkInterface().handleChannels(&DbmgrInterface::messageHandlers);
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::handleCheckStatusTick()
 {
 }
 
@@ -81,12 +101,20 @@ bool Dbmgr::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Dbmgr::initializeEnd()
 {
+	// 添加一个timer， 每秒检查一些状态
+	loopCheckTimerHandle_ = this->getMainDispatcher().addTimer(1000000, this,
+							reinterpret_cast<void *>(TIMEOUT_CHECK_STATUS));
+
+	mainProcessTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+							reinterpret_cast<void *>(TIMEOUT_TICK));
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::finalise()
 {
+	loopCheckTimerHandle_.cancel();
+	mainProcessTimer_.cancel();
 }
 
 //-------------------------------------------------------------------------------------

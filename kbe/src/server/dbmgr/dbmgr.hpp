@@ -46,8 +46,8 @@ class Dbmgr :	public ServerApp,
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_GAME_TICK,
-		TIMEOUT_LOADING_TICK
+		TIMEOUT_TICK,
+		TIMEOUT_CHECK_STATUS
 	};
 	
 	Dbmgr(Mercury::EventDispatcher& dispatcher, 
@@ -60,6 +60,8 @@ public:
 	bool run();
 	
 	void handleTimeout(TimerHandle handle, void * arg);
+	void handleMainTick();
+	void handleCheckStatusTick();
 
 	bool initializeBegin();
 	bool inInitialize();
@@ -67,6 +69,8 @@ public:
 	void finalise();
 
 protected:
+	TimerHandle				loopCheckTimerHandle_;
+	TimerHandle				mainProcessTimer_;
 };
 
 }
