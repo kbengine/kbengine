@@ -39,18 +39,20 @@ public:
 
 	int writeToString(char * str, int length) const;
 	
-	operator char*() const	{ return this->c_str(); }
+	operator char*() const { return this->c_str(); }
 
 	char * c_str() const;
 	const char * ipAsString() const;
-	bool isNone() const			{ return this->ip == 0; }
+	bool isNone() const	{ return this->ip == 0; }
 private:
 	static char s_stringBuf[ 2 ][32];
 	static int s_currStringBuf;
 	static char * nextStringBuf();
 };
 
-inline Address::Address()
+inline Address::Address():
+ip(0),
+port(0)
 {
 }
 

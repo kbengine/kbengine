@@ -49,7 +49,7 @@ class Components : public Singleton<Components>
 public:
 	struct ComponentInfos
 	{
-		Mercury::Address* pAddr;
+		Mercury::Address* pIntAddr, *pExtAddr; // 内部和外部地址
 		int32 uid;
 		COMPONENT_ID cid;
 		char username[MAX_NAME + 1];
@@ -66,8 +66,10 @@ public:
 	void pNetworkInterface(Mercury::NetworkInterface * networkInterface){ pNetworkInterface_ = networkInterface; }
 
 	void addComponent(int32 uid, const char* username, 
-		COMPONENT_TYPE componentType, COMPONENT_ID componentID, uint32 addr, 
-		uint16 port, Mercury::Channel* pChannel = NULL);
+		COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
+		uint32 intaddr, uint16 intport, 
+		uint32 extaddr, uint16 extport, 
+		Mercury::Channel* pChannel = NULL);
 
 	void delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT_ID componentID, bool ignoreComponentID = false);
 	void clear(int32 uid);

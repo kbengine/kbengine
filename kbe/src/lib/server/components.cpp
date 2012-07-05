@@ -53,7 +53,9 @@ Components::~Components()
 //-------------------------------------------------------------------------------------		
 void Components::addComponent(int32 uid, const char* username, 
 			COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
-			uint32 addr, uint16 port, Mercury::Channel* pChannel)
+			uint32 intaddr, uint16 intport, 
+			uint32 extaddr, uint16 extport, 
+			Mercury::Channel* pChannel)
 {
 	KBEngine::thread::ThreadGuard tg(&this->myMutex); 
 	COMPONENTS& components = getComponents(componentType);
@@ -69,7 +71,8 @@ void Components::addComponent(int32 uid, const char* username,
 	
 	ComponentInfos componentInfos;
 
-	componentInfos.pAddr = new Mercury::Address(addr, port);
+	componentInfos.pIntAddr = new Mercury::Address(intaddr, intport);
+	componentInfos.pExtAddr = new Mercury::Address(extaddr, extport);
 	componentInfos.uid = uid;
 	componentInfos.cid = componentID;
 	componentInfos.pChannel = pChannel;
@@ -98,7 +101,8 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT
 	{
 		if((*iter).uid == uid && (ignoreComponentID == true || (*iter).cid == componentID))
 		{
-			SAFE_RELEASE((*iter).pAddr);
+			SAFE_RELEASE((*iter).pIntAddr);
+			SAFE_RELEASE((*iter).pExtAddr);
 			SAFE_RELEASE((*iter).pChannel);
 			components.erase(iter);
 			INFO_MSG("Components::delComponent[%s] componentID=%" PRAppID ", component:totalcount=%d.\n", 
@@ -127,8 +131,8 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		return -1;
 	}
 
-	pEndpoint->addr(*pComponentInfos->pAddr);
-	int ret = pEndpoint->connect(pComponentInfos->pAddr->port, pComponentInfos->pAddr->ip);
+	pEndpoint->addr(*pComponentInfos->pIntAddr);
+	int ret = pEndpoint->connect(pComponentInfos->pIntAddr->port, pComponentInfos->pIntAddr->ip);
 
 	if(ret == 0)
 	{
@@ -146,41 +150,46 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 			{
 				bundle.newMessage(BaseappmgrInterface::onRegisterNewApp);
 				
-				BaseappmgrInterface::onRegisterNewAppArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+				BaseappmgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port);
+					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port,
+					pNetworkInterface_->extaddr().ip, pNetworkInterface_->extaddr().port);
 			}
 			else if(componentType == CELLAPPMGR_TYPE)
 			{
 				bundle.newMessage(CellappmgrInterface::onRegisterNewApp);
 				
-				CellappmgrInterface::onRegisterNewAppArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+				CellappmgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port);
+					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port,
+					pNetworkInterface_->extaddr().ip, pNetworkInterface_->extaddr().port);
 			}
 			else if(componentType == CELLAPP_TYPE)
 			{
 				bundle.newMessage(CellappInterface::onRegisterNewApp);
 				
-				CellappInterface::onRegisterNewAppArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+				CellappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port);
+						pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port,
+					pNetworkInterface_->extaddr().ip, pNetworkInterface_->extaddr().port);
 			}
 			else if(componentType == BASEAPP_TYPE)
 			{
 				bundle.newMessage(BaseappInterface::onRegisterNewApp);
 				
-				BaseappInterface::onRegisterNewAppArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+				BaseappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port);
+					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port,
+					pNetworkInterface_->extaddr().ip, pNetworkInterface_->extaddr().port);
 			}
 			else if(componentType == DBMGR_TYPE)
 			{
 				bundle.newMessage(DbmgrInterface::onRegisterNewApp);
 				
-				DbmgrInterface::onRegisterNewAppArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+				DbmgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port);
+					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port,
+					pNetworkInterface_->extaddr().ip, pNetworkInterface_->extaddr().port);
 			}
 			else
 			{
@@ -209,6 +218,7 @@ void Components::clear(int32 uid)
 	delComponent(uid, CELLAPPMGR_TYPE, 0, true);
 	delComponent(uid, CELLAPP_TYPE, 0, true);
 	delComponent(uid, BASEAPP_TYPE, 0, true);
+	delComponent(uid, LOGINAPP_TYPE, 0, true);
 }
 
 //-------------------------------------------------------------------------------------		

@@ -140,7 +140,7 @@ bool Componentbridge::findInterfaces()
 			return false;
 		}
 	
-		MachineInterface::onBroadcastInterfaceArgs6 args;
+		MachineInterface::onBroadcastInterfaceArgs8 args;
 		if(bhandler.receive(&args, 0))
 		{
 			if(args.componentType == UNKNOWN_COMPONENT_TYPE)
@@ -153,12 +153,12 @@ bool Componentbridge::findInterfaces()
 			}
 
 			INFO_MSG("Componentbridge::process: found %s, addr:%s:%u\n",
-				COMPONENT_NAME[args.componentType], inet_ntoa((struct in_addr&)args.addr), ntohs(args.port));
+				COMPONENT_NAME[args.componentType], inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intaddr));
 
 			ifind++;
 			
 			Componentbridge::getComponents().addComponent(args.uid, args.username.c_str(), 
-				(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.addr, args.port);
+				(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
 		}
 		else
 		{
@@ -196,9 +196,10 @@ bool Componentbridge::process()
 	Mercury::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
 
 	bhandler.newMessage(MachineInterface::onBroadcastInterface);
-	MachineInterface::onBroadcastInterfaceArgs6::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+	MachineInterface::onBroadcastInterfaceArgs8::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
 		componentType_, componentID_, 
-		networkInterface_.intaddr().ip, networkInterface_.intaddr().port);
+		networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
+		networkInterface_.extaddr().ip, networkInterface_.extaddr().port);
 	
 	bhandler.broadcast();
 	broadcastCount_--;

@@ -142,12 +142,14 @@ void ServerApp::onChannelTimeOut(Mercury::Channel * pChannel)
 //-------------------------------------------------------------------------------------
 void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string& username, 
 						int8 componentType, uint64 componentID, 
-						uint32 addr, uint16 port)
+						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
 {
 	INFO_MSG("ServerApp::onRegisterNewApp: uid:%d, username:%s, componentType:%s, "
-			"componentID:%"PRAppID", addr:%s, port:%u, from %s.\n", 
+			"componentID:%"PRAppID", intaddr:%s, intport:%u, extaddr:%s, extport:%u,  from %s.\n", 
 			uid, username.c_str(), COMPONENT_NAME[componentType], componentID, 
-			inet_ntoa((struct in_addr&)addr), ntohs(port), pChannel->c_str());
+			inet_ntoa((struct in_addr&)intaddr), ntohs(intport), 
+			inet_ntoa((struct in_addr&)extaddr), ntohs(extport),
+			pChannel->c_str());
 
 	Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent((
 		KBEngine::COMPONENT_TYPE)componentType, uid, componentID);
@@ -155,11 +157,11 @@ void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::str
 	if(cinfos == NULL)
 	{
 		Componentbridge::getComponents().addComponent(uid, username.c_str(), 
-			(KBEngine::COMPONENT_TYPE)componentType, componentID, addr, port, pChannel);
+			(KBEngine::COMPONENT_TYPE)componentType, componentID, intaddr, intport, extaddr, extport, pChannel);
 	}
 	else
 	{
-		KBE_ASSERT(cinfos->pAddr->ip == addr && cinfos->pAddr->port == port);
+		KBE_ASSERT(cinfos->pIntAddr->ip == intaddr && cinfos->pIntAddr->port == intport);
 		cinfos->pChannel = pChannel;
 	}
 }

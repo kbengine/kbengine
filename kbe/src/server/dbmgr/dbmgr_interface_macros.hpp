@@ -388,6 +388,107 @@ namespace KBEngine{
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
 
+/**
+	Dbmgr消息宏，  只有八个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef DBMGR_MESSAGE_HANDLER_ARGS8
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(DBMGR)
+#define DBMGR_MESSAGE_HANDLER_ARGS8(NAME, ARG_TYPE1, ARG_NAME1,					\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8)				\
+	void NAME##DbmgrMessagehandler8::handle(Mercury::Channel* pChannel,			\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			ARG_TYPE1 ARG_NAME1;												\
+			s >> ARG_NAME1;														\
+			ARG_TYPE2 ARG_NAME2;												\
+			s >> ARG_NAME2;														\
+			ARG_TYPE3 ARG_NAME3;												\
+			s >> ARG_NAME3;														\
+			ARG_TYPE4 ARG_NAME4;												\
+			s >> ARG_NAME4;														\
+			ARG_TYPE5 ARG_NAME5;												\
+			s >> ARG_NAME5;														\
+			ARG_TYPE6 ARG_NAME6;												\
+			s >> ARG_NAME6;														\
+			ARG_TYPE7 ARG_NAME7;												\
+			s >> ARG_NAME7;														\
+			ARG_TYPE8 ARG_NAME8;												\
+			s >> ARG_NAME8;														\
+			KBEngine::Dbmgr::getSingleton().NAME(pChannel,						\
+										ARG_NAME1, ARG_NAME2, ARG_NAME3, 		\
+										ARG_NAME4, ARG_NAME5, ARG_NAME6,		\
+										ARG_NAME7, ARG_NAME8);					\
+	}																			\
+
+#else
+#define DBMGR_MESSAGE_HANDLER_ARGS8(NAME, ARG_TYPE1, ARG_NAME1,					\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8)				\
+	void NAME##DbmgrMessagehandler8::handle(Mercury::Channel* pChannel,			\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define DBMGR_MESSAGE_HANDLER_ARGS8(NAME, ARG_TYPE1, ARG_NAME1,					\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8)				\
+	class NAME##DbmgrMessagehandler8 : public Mercury::MessageHandler			\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define DBMGR_MESSAGE_DECLARE_ARGS8(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,		\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8)				\
+	DBMGR_MESSAGE_HANDLER_ARGS8(NAME, ARG_TYPE1, ARG_NAME1, 					\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8)				\
+	NETWORK_MESSAGE_DECLARE_ARGS8(Dbmgr, NAME,									\
+				NAME##DbmgrMessagehandler8, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8)				\
+
 
 }
 #endif

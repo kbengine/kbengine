@@ -65,7 +65,8 @@ public:
 
 	void onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::string& username, 
 							int8 componentType, uint64 componentID, 
-							uint32 addr, uint16 port);
+							uint32 intaddr, uint16 intport,
+							uint32 extaddr, uint16 extport);
 	
 	void onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::string& username, 
 		int8 componentType, int8 findComponentType, uint32 finderAddr, uint16 finderRecvPort);
