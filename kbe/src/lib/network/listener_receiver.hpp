@@ -27,12 +27,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 #include "network/interfaces.hpp"
 #include "network/packet.hpp"
+#include "network/channel.hpp"
 
 namespace KBEngine { 
 namespace Mercury
 {
 class EndPoint;
-class Channel;
 class Address;
 class NetworkInterface;
 class EventDispatcher;
@@ -40,7 +40,7 @@ class EventDispatcher;
 class ListenerReceiver : public InputNotificationHandler
 {
 public:
-	ListenerReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
+	ListenerReceiver(EndPoint & endpoint, Channel::Traits traits, NetworkInterface & networkInterface);
 	~ListenerReceiver();
 
 private:
@@ -48,6 +48,7 @@ private:
 	EventDispatcher & dispatcher();
 private:
 	EndPoint & endpoint_;
+	Channel::Traits traits_;
 	NetworkInterface & networkInterface_;
 };
 

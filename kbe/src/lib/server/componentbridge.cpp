@@ -132,7 +132,7 @@ bool Componentbridge::findInterfaces()
 
 		bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
 		MachineInterface::onFindInterfaceAddrArgs6::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
-			componentType_, findComponentType, networkInterface_.addr().ip, bhandler.epListen().addr().port);
+			componentType_, findComponentType, networkInterface_.intaddr().ip, bhandler.epListen().addr().port);
 
 		if(!bhandler.broadcast())
 		{
@@ -198,7 +198,7 @@ bool Componentbridge::process()
 	bhandler.newMessage(MachineInterface::onBroadcastInterface);
 	MachineInterface::onBroadcastInterfaceArgs6::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
 		componentType_, componentID_, 
-		networkInterface_.addr().ip, networkInterface_.addr().port);
+		networkInterface_.intaddr().ip, networkInterface_.intaddr().port);
 	
 	bhandler.broadcast();
 	broadcastCount_--;

@@ -71,7 +71,7 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 	if(componentType == MACHINE_TYPE)
 	{
 		if(uid == getUserUID() && 
-			addr == this->getNetworkInterface().addr().ip)
+			addr == this->getNetworkInterface().intaddr().ip)
 		{
 			return;
 		}

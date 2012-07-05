@@ -55,7 +55,7 @@ bool ServerApp::loadConfig()
 	g_kbeSrvConfig.loadConfig("../../res/server/kbengine_defs.xml");
 	g_kbeSrvConfig.loadConfig("../../../demo/res/server/kbengine.xml");
 	g_kbeSrvConfig.updateInfos(true, componentType_, componentID_, 
-			getNetworkInterface().addr(), getNetworkInterface().addr());
+			getNetworkInterface().intaddr(), getNetworkInterface().extaddr());
 	
 	return true;
 }

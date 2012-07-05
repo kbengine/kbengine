@@ -53,5 +53,5 @@ using namespace KBEngine;
 
 int KBENGINE_MAIN(int argc, char* argv[])
 {
-	return kbeMainT<Loginapp>(argc, argv, LOGINAPP_TYPE);
+	return kbeMainT<Loginapp>(argc, argv, LOGINAPP_TYPE, 0);
 }

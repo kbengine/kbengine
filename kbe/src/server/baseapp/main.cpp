@@ -49,5 +49,5 @@ using namespace KBEngine;
 
 int KBENGINE_MAIN(int argc, char* argv[])
 {
-	return kbeMainT<Baseapp>(argc, argv, BASEAPP_TYPE);
+	return kbeMainT<Baseapp>(argc, argv, BASEAPP_TYPE, 0);
 }

@@ -53,15 +53,16 @@ inline void START_MSG(const char * name, uint64 appuid)
 
 template <class SERVER_APP>
 int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType, 
-			 int32 listeningPort = 0, const char * listeningInterface = "")
+			 int32 extlisteningPort = -1, const char * extlisteningInterface = "",
+			 int32 intlisteningPort = 0, const char * intlisteningInterface = "")
 {
 	g_componentType = componentType;
 	DebugHelper::initHelper(componentType);
 
 	Mercury::EventDispatcher dispatcher;
 	Mercury::NetworkInterface networkInterface(&dispatcher, 
-		Mercury::NETWORK_INTERFACE_INTERNAL, (listeningPort != -1) ? htons(listeningPort) : -1, 
-		listeningInterface);
+		(extlisteningPort != -1) ? htons(extlisteningPort) : -1, extlisteningInterface,
+		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface);
 	
 	uint64 appuid = genUUID64();
 	Componentbridge* pComponentbridge = new Componentbridge(networkInterface, componentType, appuid);

@@ -23,9 +23,14 @@ namespace KBEngine {
 namespace Mercury
 {
 
-INLINE const Address & NetworkInterface::addr() const
+INLINE const Address & NetworkInterface::extaddr() const
 {
-	return endpoint_.addr();
+	return extEndpoint_.addr();
+}
+
+INLINE const Address & NetworkInterface::intaddr() const
+{
+	return intEndpoint_.addr();
 }
 
 }

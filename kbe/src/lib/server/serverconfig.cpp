@@ -300,7 +300,7 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 			INFO_MSG("\tdefaultAoIHysteresisArea : %f\n", info.defaultAoIHysteresisArea);
 			INFO_MSG("\tentryScriptFile : %s\n", info.entryScriptFile);
 			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
-			INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
+			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
 			INFO_MSG("\tcomponentID : %"PRAppID"\n", info.componentID);
 		}
 	}
@@ -319,6 +319,76 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 			INFO_MSG("\tentryScriptFile : %s\n", info.entryScriptFile);
 			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
 			INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
+			INFO_MSG("\tcomponentID : %"PRAppID"\n", info.componentID);
+		}
+	}
+	else if (componentType == BASEAPPMGR_TYPE)
+	{
+		ENGINE_COMPONENT_INFO info = getBaseAppMgr();
+		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.componentID = componentID;
+		if(isPrint)
+		{
+			INFO_MSG("server-configs:\n");
+			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
+			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
+			INFO_MSG("\tcomponentID : %"PRAppID"\n", info.componentID);
+		}
+	}
+	else if (componentType == CELLAPPMGR_TYPE)
+	{
+		ENGINE_COMPONENT_INFO info = getCellAppMgr();
+		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.componentID = componentID;
+		if(isPrint)
+		{
+			INFO_MSG("server-configs:\n");
+			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
+			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
+			INFO_MSG("\tcomponentID : %"PRAppID"\n", info.componentID);
+		}
+	}
+	else if (componentType == DBMGR_TYPE)
+	{
+		ENGINE_COMPONENT_INFO info = getDBMgr();
+		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.componentID = componentID;
+		if(isPrint)
+		{
+			INFO_MSG("server-configs:\n");
+			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
+			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
+			INFO_MSG("\tcomponentID : %"PRAppID"\n", info.componentID);
+		}
+	}
+	else if (componentType == LOGINAPP_TYPE)
+	{
+		ENGINE_COMPONENT_INFO info = getLoginApp();
+		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.componentID = componentID;
+		if(isPrint)
+		{
+			INFO_MSG("server-configs:\n");
+			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
+			INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
+			INFO_MSG("\tcomponentID : %"PRAppID"\n", info.componentID);
+		}
+	}
+	else if (componentType == MACHINE_TYPE)
+	{
+		ENGINE_COMPONENT_INFO info = getKBMachine();
+		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.componentID = componentID;
+		if(isPrint)
+		{
+			INFO_MSG("server-configs:\n");
+			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
+			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
 			INFO_MSG("\tcomponentID : %"PRAppID"\n", info.componentID);
 		}
 	}

@@ -42,24 +42,33 @@ const char * NetworkInterface::USE_KBEMACHINED = "kbemachined";
 
 //-------------------------------------------------------------------------------------
 NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
-		NetworkInterfaceType networkInterfaceType,
-		int32 listeningPort, const char * listeningInterface) :
-	endpoint_(),
-	address_(Address::NONE),
+		int32 extlisteningPort, const char * extlisteningInterface,
+		int32 intlisteningPort, const char * intlisteningInterface):
+	extEndpoint_(),
+	intEndpoint_(),
 	channelMap_(),
-	isExternal_(networkInterfaceType == NETWORK_INTERFACE_EXTERNAL),
 	pDispatcher_(new EventDispatcher),
 	pMainDispatcher_(NULL),
 	pExtensionData_(NULL),
-	pListenerReceiver_(NULL),
+	pExtListenerReceiver_(NULL),
+	pIntListenerReceiver_(NULL),
 	pDelayedChannels_(new DelayedChannels()),
-	pChannelTimeOutHandler_(NULL)
+	pChannelTimeOutHandler_(NULL),
+	isExternal_(extlisteningPort != -1)
 {
-	if(listeningPort != -1)
+	if(isExternal())
 	{
-		pListenerReceiver_ = new ListenerReceiver(endpoint_, *this);
-		this->recreateListeningSocket(listeningPort, listeningInterface);
+		pExtListenerReceiver_ = new ListenerReceiver(extEndpoint_, Channel::EXTERNAL, *this);
+		this->recreateListeningSocket("EXTERNAL", extlisteningPort, extlisteningInterface, &extEndpoint_, pExtListenerReceiver_);
 	}
+
+	if(intlisteningPort != -1)
+	{
+		pIntListenerReceiver_ = new ListenerReceiver(intEndpoint_, Channel::INTERNAL, *this);
+		this->recreateListeningSocket("INTERNAL", intlisteningPort, intlisteningInterface, &intEndpoint_, pIntListenerReceiver_);
+	}
+
+	KBE_ASSERT(good());
 
 	if (pMainDispatcher != NULL)
 	{
@@ -89,18 +98,12 @@ NetworkInterface::~NetworkInterface()
 	}
 
 	this->detach();
-
 	this->closeSocket();
 
-	delete pDispatcher_;
-	pDispatcher_ = NULL;
-	
-	delete pDelayedChannels_;
-	pDelayedChannels_ = NULL;
-	
-	if(pListenerReceiver_ != NULL)
-		delete pListenerReceiver_;
-	pListenerReceiver_ = NULL;
+	SAFE_RELEASE(pDispatcher_);
+	SAFE_RELEASE(pDelayedChannels_);
+	SAFE_RELEASE(pExtListenerReceiver_);
+	SAFE_RELEASE(pIntListenerReceiver_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -127,31 +130,47 @@ void NetworkInterface::detach()
 //-------------------------------------------------------------------------------------
 void NetworkInterface::closeSocket()
 {
-	if (endpoint_.good())
+	if (extEndpoint_.good())
 	{
-		this->dispatcher().deregisterFileDescriptor(endpoint_);
-		endpoint_.close();
-		endpoint_.detach();
+		this->dispatcher().deregisterFileDescriptor(extEndpoint_);
+		extEndpoint_.close();
+		extEndpoint_.detach();
+	}
+
+	if (intEndpoint_.good())
+	{
+		this->dispatcher().deregisterFileDescriptor(intEndpoint_);
+		intEndpoint_.close();
+		intEndpoint_.detach();
 	}
 }
 
 //-------------------------------------------------------------------------------------
-bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
-	const char * listeningInterface)
+bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16 listeningPort,
+	const char * listeningInterface, EndPoint* pEP, ListenerReceiver* pLR)
 {
-	this->closeSocket();
+	KBE_ASSERT(listeningInterface && pEP && pLR);
 
-	address_.ip = 0;
-	address_.port = 0;
-
-	endpoint_.socket(SOCK_STREAM);
-	if (!endpoint_.good())
+	if (pEP->good())
 	{
-		ERROR_MSG("NetworkInterface::recreateListeningSocket: couldn't create a socket\n");
+		this->dispatcher().deregisterFileDescriptor(*pEP);
+		pEP->close();
+		pEP->detach();
+	}
+
+	Address address;
+	address.ip = 0;
+	address.port = 0;
+
+	pEP->socket(SOCK_STREAM);
+	if (!pEP->good())
+	{
+		ERROR_MSG("NetworkInterface::recreateListeningSocket(%s): couldn't create a socket\n", 
+			pEndPointName);
 		return false;
 	}
 
-	this->dispatcher().registerFileDescriptor(endpoint_, pListenerReceiver_);
+	this->dispatcher().registerFileDescriptor(*pEP, pLR);
 	
 	char ifname[IFNAMSIZ];
 	u_int32_t ifaddr = INADDR_ANY;
@@ -163,89 +182,89 @@ bool NetworkInterface::recreateListeningSocket(uint16 listeningPort,
 	if (listeningInterface &&
 		(strcmp(listeningInterface, USE_KBEMACHINED) == 0))
 	{
-		INFO_MSG( "NetworkInterface::recreateListeningSocket: "
-				"Querying KBEMachined for interface\n" );
+		INFO_MSG( "NetworkInterface::recreateListeningSocket(%s): "
+				"Querying KBEMachined for interface\n", pEndPointName);
 		
 		// 没有实现, 向KBEMachined查询接口
 	}
-	else if (endpoint_.findIndicatedInterface(listeningInterface, ifname) == 0)
+	else if (pEP->findIndicatedInterface(listeningInterface, ifname) == 0)
 	{
-		INFO_MSG( "NetworkInterface::recreateListeningSocket: "
+		INFO_MSG( "NetworkInterface::recreateListeningSocket(%s): "
 				"Creating on interface '%s' (= %s)\n",
-			listeningInterface, ifname );
-		if (endpoint_.getInterfaceAddress( ifname, ifaddr ) != 0)
+			pEndPointName, listeningInterface, ifname );
+		if (pEP->getInterfaceAddress( ifname, ifaddr ) != 0)
 		{
-			WARNING_MSG( "NetworkInterface::recreateListeningSocket: "
+			WARNING_MSG( "NetworkInterface::recreateListeningSocket(%s): "
 				"Couldn't get addr of interface %s so using all interfaces\n",
-				ifname );
+				pEndPointName, ifname );
 		}
 	}
 	else if (!listeningInterfaceEmpty)
 	{
-		WARNING_MSG( "NetworkInterface::recreateListeningSocket: "
+		WARNING_MSG( "NetworkInterface::recreateListeningSocket(%s): "
 				"Couldn't parse interface spec '%s' so using all interfaces\n",
-			listeningInterface );
+			pEndPointName, listeningInterface );
 	}
 	
-	if (endpoint_.bind(listeningPort, ifaddr) != 0)
+	if (pEP->bind(listeningPort, ifaddr) != 0)
 	{
-		ERROR_MSG("NetworkInterface::recreateListeningSocket: "
+		ERROR_MSG("NetworkInterface::recreateListeningSocket(%s): "
 				"Couldn't bind the socket to %s (%s)\n",
-			address_.c_str(), kbe_strerror());
+			pEndPointName, address.c_str(), kbe_strerror());
 		
-		endpoint_.close();
-		endpoint_.detach();
+		pEP->close();
+		pEP->detach();
 		return false;
 	}
-	
-	endpoint_.getlocaladdress( (u_int16_t*)&address_.port,
-		(u_int32_t*)&address_.ip );
 
-	if (address_.ip == 0)
+	pEP->getlocaladdress( (u_int16_t*)&address.port,
+		(u_int32_t*)&address.ip );
+
+	if (address.ip == 0)
 	{
-		if (endpoint_.findDefaultInterface(ifname) != 0 ||
-			endpoint_.getInterfaceAddress(ifname,
-				(u_int32_t&)address_.ip) != 0)
+		if (pEP->findDefaultInterface(ifname) != 0 ||
+			pEP->getInterfaceAddress(ifname,
+				(u_int32_t&)address.ip) != 0)
 		{
-			ERROR_MSG( "NetworkInterface::recreateListeningSocket: "
-				"Couldn't determine ip addr of default interface\n" );
+			ERROR_MSG( "NetworkInterface::recreateListeningSocket(%s): "
+				"Couldn't determine ip addr of default interface\n", pEndPointName );
 
-			endpoint_.close();
-			endpoint_.detach();
+			pEP->close();
+			pEP->detach();
 			return false;
 		}
 
-		INFO_MSG( "NetworkInterface::recreateListeningSocket: "
+		INFO_MSG( "NetworkInterface::recreateListeningSocket(%s): "
 				"bound to all interfaces with default route "
 				"interface on %s ( %s )\n",
-			ifname, address_.c_str() );
+			pEndPointName, ifname, address.c_str() );
 	}
 	
-	endpoint_.setnonblocking(true);
-	endpoint_.setnodelay(true);
-	endpoint_.addr(address_);
+	pEP->setnonblocking(true);
+	pEP->setnodelay(true);
+	pEP->addr(address);
 	
 #ifdef KBE_SERVER
-	if (!endpoint_.setBufferSize(SO_RCVBUF, RECV_BUFFER_SIZE))
+	if (!pEP->setBufferSize(SO_RCVBUF, RECV_BUFFER_SIZE))
 	{
-		WARNING_MSG("NetworkInterface::recreateListeningSocket: "
+		WARNING_MSG("NetworkInterface::recreateListeningSocket(%s): "
 			"Operating with a receive buffer of only %d bytes (instead of %d)\n",
-			endpoint_.getBufferSize(SO_RCVBUF), RECV_BUFFER_SIZE);
+			pEndPointName, pEP->getBufferSize(SO_RCVBUF), RECV_BUFFER_SIZE);
 	}
 #endif
 
-	if(endpoint_.listen(5) == -1)
+	if(pEP->listen(5) == -1)
 	{
-		ERROR_MSG("NetworkInterface::recreateListeningSocket: "
+		ERROR_MSG("NetworkInterface::recreateListeningSocket(%s): "
 			"listen to %s (%s)\n",
-			address_.c_str(), kbe_strerror());
+			pEndPointName, address.c_str(), kbe_strerror());
 
-		endpoint_.close();
-		endpoint_.detach();
+		pEP->close();
+		pEP->detach();
 		return false;
 	}
 	
-	INFO_MSG("NetworkInterface::recreateListeningSocket: address %s\n", address_.c_str());
+	INFO_MSG("NetworkInterface::recreateListeningSocket(%s): address %s\n", pEndPointName, address.c_str());
 	return true;
 }
 
@@ -264,7 +283,8 @@ void NetworkInterface::sendIfDelayed(Channel & channel)
 //-------------------------------------------------------------------------------------
 void NetworkInterface::handleTimeout(TimerHandle handle, void * arg)
 {
-	INFO_MSG("NetworkInterface::handleTimeout: address %s\n", address_.c_str());
+	INFO_MSG("NetworkInterface::handleTimeout: EXTERNAL(%s), INTERNAL(%s).\n", 
+		extaddr().c_str(), intaddr().c_str());
 }
 
 //-------------------------------------------------------------------------------------

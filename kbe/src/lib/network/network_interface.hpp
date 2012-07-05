@@ -31,12 +31,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 namespace Mercury
 {
-enum NetworkInterfaceType
-{
-	NETWORK_INTERFACE_INTERNAL,
-	NETWORK_INTERFACE_EXTERNAL
-};
-
 class Address;
 class Bundle;
 class Channel;
@@ -54,14 +48,19 @@ public:
 	static const char * USE_KBEMACHINED;
 	typedef std::map<Address, Channel *>	ChannelMap;
 	
-	NetworkInterface(EventDispatcher * pMainDispatcher, NetworkInterfaceType interfaceType,
-		int32 listeningPort = 0, const char * listeningInterface = "");
+	NetworkInterface(EventDispatcher * pMainDispatcher,
+		int32 extlisteningPort = 0, const char * extlisteningInterface = "",
+		int32 intlisteningPort = 0, const char * intlisteningInterface = "");
 	~NetworkInterface();
 	
 	void attach(EventDispatcher & mainDispatcher);
 	void detach();
 
-	bool recreateListeningSocket(uint16 listeningPort, const char * listeningInterface);
+	INLINE const Address & extaddr() const;
+	INLINE const Address & intaddr() const;
+
+	bool recreateListeningSocket(const char* pEndPointName, uint16 listeningPort, 
+		const char * listeningInterface, EndPoint* pEP, ListenerReceiver* pLR);
 
 	bool registerChannel(Channel* channel);
 	bool deregisterChannel(Channel* channel);
@@ -75,12 +74,13 @@ public:
 	EventDispatcher & dispatcher()			{ return *pDispatcher_; }
 	EventDispatcher & mainDispatcher()		{ return *pMainDispatcher_; }
 
+	/* 外部网点和内部网点 */
+	EndPoint & extEndpoint()				{ return extEndpoint_; }
+	EndPoint & intEndpoint()				{ return intEndpoint_; }
+	
 	bool isExternal() const				{ return isExternal_; }
 
-	INLINE const Address & addr() const;
-	EndPoint & endpoint()				{ return endpoint_; }
-
-	const char * c_str() const { return endpoint_.c_str(); }
+	const char * c_str() const { return extEndpoint_.c_str(); }
 
 	void * pExtensionData() const		{ return pExtensionData_; }
 	void pExtensionData(void * pData)	{ pExtensionData_ = pData; }
@@ -95,7 +95,7 @@ public:
 	Reason basicSendSingleTry(Channel * pChannel, Packet * pPacket);
 	Reason basicSendWithRetries(Channel * pChannel, Packet * pPacket);
 	
-	bool isGood() const{ return (endpoint_ != -1) && !address_.isNone();}
+	bool good() const{ return (!isExternal() || extEndpoint_ != -1) && (intEndpoint_ != -1); }
 
 	void onPacketIn(const Packet & packet);
 	void onPacketOut(const Packet & packet);
@@ -112,24 +112,23 @@ private:
 
 	void closeSocket();
 private:
-	EndPoint								endpoint_;
-
-	Address									address_;
+	EndPoint								extEndpoint_, intEndpoint_;
 
 	ChannelMap								channelMap_;
-
-	const bool								isExternal_;
 
 	EventDispatcher *						pDispatcher_;
 	EventDispatcher *						pMainDispatcher_;
 
 	void *									pExtensionData_;
 	
-	ListenerReceiver *						pListenerReceiver_;
+	ListenerReceiver *						pExtListenerReceiver_;
+	ListenerReceiver *						pIntListenerReceiver_;
 	
 	DelayedChannels * 						pDelayedChannels_;
 	
 	ChannelTimeOutHandler *					pChannelTimeOutHandler_;	// 超时的通道可被这个句柄捕捉， 例如告知上层client断开
+
+	const bool								isExternal_;
 };
 
 }

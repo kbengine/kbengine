@@ -26,7 +26,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "network/address.hpp"
 #include "network/bundle.hpp"
-#include "network/channel.hpp"
 #include "network/endpoint.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
@@ -38,7 +37,8 @@ namespace Mercury
 {
 //-------------------------------------------------------------------------------------
 ListenerReceiver::ListenerReceiver(EndPoint & endpoint,
-	   NetworkInterface & networkInterface	) :
+								   Channel::Traits traits, 
+									NetworkInterface & networkInterface	) :
 	endpoint_(endpoint),
 	networkInterface_(networkInterface)
 {
@@ -62,7 +62,7 @@ int ListenerReceiver::handleInputNotification(int fd)
 	}
 	else
 	{
-		Channel* pchannel = new Channel(networkInterface_, pNewEndPoint, Channel::EXTERNAL);
+		Channel* pchannel = new Channel(networkInterface_, pNewEndPoint, traits_);
 		if(!networkInterface_.registerChannel(pchannel))
 		{
 			ERROR_MSG("ListenerReceiver::handleInputNotification:registerChannel(%s) is failed!\n",

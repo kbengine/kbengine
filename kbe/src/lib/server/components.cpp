@@ -148,7 +148,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				
 				BaseappmgrInterface::onRegisterNewAppArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-					pNetworkInterface_->addr().ip, pNetworkInterface_->addr().port);
+					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port);
 			}
 			else if(componentType == CELLAPPMGR_TYPE)
 			{
@@ -156,7 +156,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				
 				CellappmgrInterface::onRegisterNewAppArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-					pNetworkInterface_->addr().ip, pNetworkInterface_->addr().port);
+					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port);
 			}
 			else if(componentType == CELLAPP_TYPE)
 			{
@@ -164,7 +164,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				
 				CellappInterface::onRegisterNewAppArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-					pNetworkInterface_->addr().ip, pNetworkInterface_->addr().port);
+					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port);
 			}
 			else if(componentType == BASEAPP_TYPE)
 			{
@@ -172,7 +172,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				
 				BaseappInterface::onRegisterNewAppArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-					pNetworkInterface_->addr().ip, pNetworkInterface_->addr().port);
+					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port);
 			}
 			else if(componentType == DBMGR_TYPE)
 			{
@@ -180,7 +180,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				
 				DbmgrInterface::onRegisterNewAppArgs6::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-					pNetworkInterface_->addr().ip, pNetworkInterface_->addr().port);
+					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port);
 			}
 			else
 			{

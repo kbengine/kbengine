@@ -24,7 +24,11 @@ namespace Mercury
 {
 
 INLINE EndPoint::EndPoint(u_int32_t networkAddr, u_int16_t networkPort):
+#if KBE_PLATFORM == PLATFORM_WIN32
+socket_(INVALID_SOCKET)
+#else
 socket_(-1)
+#endif
 {
 	if(networkAddr)
 	{
@@ -40,7 +44,11 @@ INLINE EndPoint::~EndPoint()
 
 INLINE bool EndPoint::good() const
 {
+#if KBE_PLATFORM == PLATFORM_WIN32
+	return socket_ != INVALID_SOCKET;
+#else
 	return socket_ != -1;
+#endif
 }
 
 INLINE EndPoint::operator KBESOCKET() const
