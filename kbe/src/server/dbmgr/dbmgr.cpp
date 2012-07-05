@@ -74,8 +74,8 @@ void Dbmgr::handleTimeout(TimerHandle handle, void * arg)
 //-------------------------------------------------------------------------------------
 void Dbmgr::handleMainTick()
 {
-	 time_t t = ::time(NULL);
-	 DEBUG_MSG("Dbmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
+	 //time_t t = ::time(NULL);
+	 //DEBUG_MSG("Dbmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
 	time_++;
 	getNetworkInterface().handleChannels(&DbmgrInterface::messageHandlers);

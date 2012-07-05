@@ -53,9 +53,6 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 	}
 	else
 	{
-		struct timeval tv;
-		tv.tv_sec = 1;
-		tv.tv_usec = 0;
 		int count = 0;
 
 		while(true)
@@ -66,7 +63,7 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 				WARNING_MSG("BundleBroadcast::BundleBroadcast: Couldn't bind listener socket to port %d, %s\n", 
 					bindPort, kbe_strerror());
 				
-				select(0, NULL, NULL, NULL, &tv);
+				KBEngine::sleep(100);
 				count++;
 				if(count > 3)
 				{

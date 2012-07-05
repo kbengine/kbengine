@@ -120,7 +120,7 @@ bool Componentbridge::findInterfaces()
 		Mercury::BundleBroadcast bhandler(networkInterface_, nport);
 		if(!bhandler.good())
 		{
-
+			KBEngine::sleep(10);
 			nport = KBE_PORT_START + (rand() % 1000);
 			continue;
 		}

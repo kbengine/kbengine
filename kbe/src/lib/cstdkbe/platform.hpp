@@ -247,7 +247,7 @@ typedef uint32													uintptr;
 #define PRIu64													"llu"
 #define PRIx64													"llx"
 #define PRIX64													"llX"
-#define PRTime													"d"
+#define PRTime													"ld"
 #endif
 
 #ifndef PRIzd
@@ -587,9 +587,18 @@ inline uint64 genUUID64()
 
 /** sleep 跨平台 */
 #if KBE_PLATFORM == PLATFORM_WIN32
-inline void sleep(uint32 ms){ ::Sleep(ms); }
+	inline void sleep(uint32 ms)
+	{ 
+		::Sleep(ms); 
+	}
 #else
-inline void sleep(uint32 ms){ usleep(1000 * ms);}	
+	inline void sleep(uint32 ms)
+	{ 
+	  struct timeval tval;
+	  tval.tv_sec	= ms / 1000;
+	  tval.tv_usec	= ( ms * 1000) % 1000000;
+	  select(0, NULL, NULL, NULL, &tval);
+	}	
 #endif
 
 /** 判断平台是否为小端字节序 */
