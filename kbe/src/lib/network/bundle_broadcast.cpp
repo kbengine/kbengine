@@ -62,12 +62,13 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 		{
 			if (epListen_.bind(htons(bindPort), htonl(INADDR_ANY)) != 0)
 			{
+				good_ = false;
 				WARNING_MSG("BundleBroadcast::BundleBroadcast: Couldn't bind listener socket to port %d, %s\n", 
 					bindPort, kbe_strerror());
 				
 				select(0, NULL, NULL, NULL, &tv);
 				count++;
-				if(count > 5)
+				if(count > 3)
 				{
 					break;
 				}
