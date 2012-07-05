@@ -47,7 +47,7 @@ namespace KBEngine{
 	void NAME##CellAppMessagehandler_stream::handle(Mercury::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
-			KBEngine::CellApp::getSingleton().NAME(s);							\
+			KBEngine::CellApp::getSingleton().NAME(pChannel, s);				\
 	}																			\
 
 #else
@@ -88,7 +88,7 @@ namespace KBEngine{
 	void NAME##CellAppMessagehandler0::handle(Mercury::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
-			KBEngine::CellApp::getSingleton().NAME();							\
+			KBEngine::CellApp::getSingleton().NAME(pChannel);					\
 	}																			\
 
 #else
@@ -125,7 +125,7 @@ namespace KBEngine{
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
 			s >> ARG_NAME1;														\
-			KBEngine::CellApp::getSingleton().NAME(ARG_NAME1);					\
+			KBEngine::CellApp::getSingleton().NAME(pChannel, ARG_NAME1);		\
 	}																			\
 
 #else
@@ -177,7 +177,8 @@ namespace KBEngine{
 			s >> ARG_NAME3;														\
 			ARG_TYPE4 ARG_NAME4;												\
 			s >> ARG_NAME4;														\
-			KBEngine::CellApp::getSingleton().NAME(ARG_NAME1, ARG_NAME2, 		\
+			KBEngine::CellApp::getSingleton().NAME(pChannel,					\
+				ARG_NAME1, ARG_NAME2, 											\
 				ARG_NAME3, ARG_NAME4);											\
 	}																			\
 
@@ -247,7 +248,8 @@ namespace KBEngine{
 			s >> ARG_NAME4;														\
 			ARG_TYPE5 ARG_NAME5;												\
 			s >> ARG_NAME5;														\
-			KBEngine::CellApp::getSingleton().NAME(ARG_NAME1, ARG_NAME2, 		\
+			KBEngine::CellApp::getSingleton().NAME(pChannel,					\
+													ARG_NAME1, ARG_NAME2, 		\
 				ARG_NAME3, ARG_NAME4, ARG_NAME5);								\
 	}																			\
 
@@ -326,7 +328,8 @@ namespace KBEngine{
 			s >> ARG_NAME5;														\
 			ARG_TYPE6 ARG_NAME6;												\
 			s >> ARG_NAME6;														\
-			KBEngine::CellApp::getSingleton().NAME(ARG_NAME1, ARG_NAME2, 		\
+			KBEngine::CellApp::getSingleton().NAME(pChannel,					\
+													ARG_NAME1, ARG_NAME2, 		\
 				ARG_NAME3, ARG_NAME4, ARG_NAME5, ARG_NAME6);					\
 	}																			\
 

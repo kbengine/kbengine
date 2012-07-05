@@ -47,8 +47,7 @@ class Baseapp :	public EntityApp,
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_GAME_TICK,
-		TIMEOUT_LOADING_TICK
+		TIMEOUT_GAME_TICK
 	};
 	
 	Baseapp(Mercury::EventDispatcher& dispatcher, 
@@ -57,17 +56,24 @@ public:
 		COMPONENT_ID componentID);
 	~Baseapp();
 	
+	bool installPyModules();
+	bool uninstallPyModules();
+
 	bool run();
 	
 	void handleTimeout(TimerHandle handle, void * arg);
+	void handleGameTick();
+	void handleTimers();
 
 	bool initializeBegin();
-	bool inInitialize();
 	bool initializeEnd();
 	void finalise();
 	
 	virtual bool destroyEntity(ENTITY_ID entityID);
 protected:
+	IDClient<ENTITY_ID>*		idClient_;
+	//Entities<Entity>*			pEntities_;									// 存储所有的entity的容器
+	TimerHandle					gameTimer_;
 };
 
 }

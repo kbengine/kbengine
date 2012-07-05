@@ -77,8 +77,6 @@ bool Componentbridge::findInterfaces()
 {
 	int8 findComponentTypes[] = {UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, 
 								UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE};
-	
-	COMPONENT_TYPE connectToCType = UNKNOWN_COMPONENT_TYPE;
 
 	switch(componentType_)
 	{
@@ -86,13 +84,11 @@ bool Componentbridge::findInterfaces()
 		findComponentTypes[0] = BASEAPPMGR_TYPE;
 		findComponentTypes[1] = CELLAPPMGR_TYPE;
 		findComponentTypes[2] = DBMGR_TYPE;
-		connectToCType = CELLAPPMGR_TYPE;
 		break;
 	case BASEAPP_TYPE:
 		findComponentTypes[0] = BASEAPPMGR_TYPE;
 		findComponentTypes[1] = CELLAPPMGR_TYPE;
 		findComponentTypes[2] = DBMGR_TYPE;
-		connectToCType = BASEAPPMGR_TYPE;
 		break;
 	case BASEAPPMGR_TYPE:
 		findComponentTypes[0] = CELLAPPMGR_TYPE;
@@ -170,13 +166,25 @@ bool Componentbridge::findInterfaces()
 			return false;
 		}
 	}
+	
+	ifind = 0;
+	// 开始注册到所有的组件
 
-	// 是baseapp就去连接baseappmgr
-	// 是cellapp去连接cellappmgr
-	if(connectToCType != UNKNOWN_COMPONENT_TYPE)
+	while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)
 	{
-		if(getComponents().connectComponent(connectToCType, getUserUID(), 0) != 0)
+		int8 findComponentType = findComponentTypes[ifind++];
+
+		INFO_MSG("Componentbridge::process: register self to %s...\n",
+			COMPONENT_NAME[findComponentType]);
+
+		if(getComponents().connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
+		{
+			ERROR_MSG("Componentbridge::register self to %s is error!\n",
+			COMPONENT_NAME[findComponentType]);
+
+			dispatcher().breakProcessing();
 			return false;
+		}
 	}
 
 	return true;

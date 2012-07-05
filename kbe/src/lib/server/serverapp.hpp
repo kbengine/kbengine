@@ -51,6 +51,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
+namespace Mercury
+{
+
+class Channel;
+}
+
 class ServerApp : 
 	public SignalHandler, 
 	public Mercury::ChannelTimeOutHandler
@@ -92,7 +98,9 @@ public:
 	/* 注册一个新激活的baseapp或者cellapp或者dbmgr
 		通常是一个新的app被启动了， 它需要向某些组件注册自己。
 	*/
-	virtual void onRegisterNewApp(int32 uid, std::string& username, 
+	virtual void onRegisterNewApp(Mercury::Channel* pChannel, 
+							int32 uid, 
+							std::string& username, 
 							int8 componentType, uint64 componentID, 
 							uint32 addr, uint16 port);
 protected:

@@ -64,7 +64,7 @@ Machine::~Machine()
 }
 
 //-------------------------------------------------------------------------------------
-void Machine::onBroadcastInterface(int32 uid, std::string& username,
+void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::string& username,
 								   int8 componentType, uint64 componentID, 
 								   uint32 addr, uint16 port)
 {
@@ -92,7 +92,7 @@ void Machine::onBroadcastInterface(int32 uid, std::string& username,
 }
 
 //-------------------------------------------------------------------------------------
-void Machine::onFindInterfaceAddr(int32 uid, std::string& username, int8 componentType, 
+void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::string& username, int8 componentType, 
 								  int8 findComponentType, uint32 finderAddr, uint16 finderRecvPort)
 {
 	INFO_MSG("Machine::onFindInterfaceAddr: uid:%d, username:%s, componentType:%s, "

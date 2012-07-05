@@ -87,7 +87,7 @@ public:
 	~Entity();
 	
 	// 测试网络接口
-	void test(const std::string& name);
+	void test(Mercury::Channel* pChannel, const std::string& name);
 
 
 	/** 
@@ -231,7 +231,7 @@ public:
 	/** 
 		远程呼叫本entity的方法 
 	*/
-	void onRemoteMethodCall(MemoryStream& s);
+	void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 
 		设置这个entity当前所在chunk的ID 

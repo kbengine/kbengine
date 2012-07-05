@@ -121,7 +121,7 @@ Entity::~Entity()
 }	
 
 //-------------------------------------------------------------------------------------
-void Entity::test(const std::string& name)
+void Entity::test(Mercury::Channel* pChannel, const std::string& name)
 {
 	time_t t = time(NULL);
 	DEBUG_MSG("Entity::test[%"PRTime"]:=========>name=%s\n", t, name.c_str());
@@ -307,7 +307,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onRemoteMethodCall(MemoryStream& s)
+void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	uint32 utype = 0;
 	s >> utype;
