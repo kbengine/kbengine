@@ -121,7 +121,7 @@ void CellApp::handleTimers()
 void CellApp::handleGameTick()
 {
 	// time_t t = ::time(NULL);
-	// DEBUG_MSG("CellApp::handleGameTick[%"PRTime"]:%d\n", t, time_);
+	// DEBUG_MSG("CellApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
 	time_++;
 	handleTimers();

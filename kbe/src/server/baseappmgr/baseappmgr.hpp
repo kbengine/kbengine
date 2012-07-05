@@ -47,8 +47,7 @@ class Baseappmgr :	public ServerApp,
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_GAME_TICK,
-		TIMEOUT_LOADING_TICK
+		TIMEOUT_GAME_TICK
 	};
 	
 	Baseappmgr(Mercury::EventDispatcher& dispatcher, 
@@ -61,12 +60,14 @@ public:
 	bool run();
 	
 	void handleTimeout(TimerHandle handle, void * arg);
+	void handleGameTick();
 
 	bool initializeBegin();
 	bool inInitialize();
 	bool initializeEnd();
 	void finalise();
 protected:
+	TimerHandle					gameTimer_;
 };
 
 }

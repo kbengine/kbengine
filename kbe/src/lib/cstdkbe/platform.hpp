@@ -219,6 +219,7 @@ typedef UINT_PTR        										uintptr;
 #define PRIX64													"llX"
 #define PRIzu													"lu"
 #define PRIzd													"ld"
+#define PRTime													PRI64
 #else
 typedef int64_t													int64;
 typedef int32_t													int32;
@@ -230,7 +231,7 @@ typedef uint16_t												uint16;
 typedef uint8_t													uint8;
 typedef uint16_t												WORD;
 typedef uint32_t												DWORD;
-
+#define PRTime													"d"
 #ifdef _LP64
 typedef int64													intptr;
 typedef uint64													uintptr;
@@ -245,6 +246,7 @@ typedef uint32													uintptr;
 #define PRIu64													"llu"
 #define PRIx64													"llx"
 #define PRIX64													"llX"
+#define PRTime													PRI64
 #endif
 
 #ifndef PRIzd
@@ -257,7 +259,6 @@ typedef uint32													uintptr;
 
 #endif
 
-#define PRTime													"d"
 #define PRAppID													PRIu64
 
 typedef uint16													ENTITY_TYPE;											// entity的类别类型定义支持0-65535个类别
@@ -482,6 +483,15 @@ inline char* kbe_strerror(int ierrorno = 0)
 	if(ierrorno != 0)
 		return strerror(ierrorno);
 	return strerror(errno);
+#endif
+}
+
+inline int kbe_lasterror()
+{
+#if KBE_PLATFORM == PLATFORM_WIN32
+	return GetLastError();
+#else
+	return errno;
 #endif
 }
 

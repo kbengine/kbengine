@@ -120,10 +120,9 @@ bool UDPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 	DWORD wsaErr = WSAGetLastError();
 #endif //def _WIN32
 
-	// is the buffer empty?
 	if (
 #ifdef _WIN32
-		wsaErr == WSAEWOULDBLOCK
+		wsaErr == WSAEWOULDBLOCK && !expectingPacket
 #else
 		errno == EAGAIN && !expectingPacket
 #endif
@@ -133,7 +132,6 @@ bool UDPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 	}
 
 #ifdef unix
-	// is it telling us there's an error?
 	if (errno == EAGAIN ||
 		errno == ECONNREFUSED ||
 		errno == EHOSTUNREACH)
@@ -175,7 +173,6 @@ bool UDPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 	}
 #endif // unix
 
-	// ok, I give up, something's wrong
 #ifdef _WIN32
 	WARNING_MSG("UDPPacketReceiver::processPendingEvents: "
 				"Throwing REASON_GENERAL_NETWORK - %d\n",

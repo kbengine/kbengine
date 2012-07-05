@@ -38,7 +38,8 @@ Baseappmgr::Baseappmgr(Mercury::EventDispatcher& dispatcher,
 			 Mercury::NetworkInterface& ninterface, 
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
-	ServerApp(dispatcher, ninterface, componentType, componentID)
+	ServerApp(dispatcher, ninterface, componentType, componentID),
+	gameTimer_()
 {
 }
 
@@ -50,20 +51,30 @@ Baseappmgr::~Baseappmgr()
 //-------------------------------------------------------------------------------------
 bool Baseappmgr::run()
 {
-	bool ret = true;
-
-	while(!this->getMainDispatcher().isBreakProcessing())
-	{
-		this->getMainDispatcher().processOnce(false);
-		KBEngine::sleep(100);
-	};
-
-	return ret;
+	return ServerApp::run();
 }
 
 //-------------------------------------------------------------------------------------
 void Baseappmgr::handleTimeout(TimerHandle handle, void * arg)
 {
+	switch (reinterpret_cast<uintptr>(arg))
+	{
+		case TIMEOUT_GAME_TICK:
+			this->handleGameTick();
+			break;
+		default:
+			break;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Baseappmgr::handleGameTick()
+{
+	 //time_t t = ::time(NULL);
+	 //DEBUG_MSG("CellApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
+	
+	time_++;
+	getNetworkInterface().handleChannels(&BaseappmgrInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------
@@ -81,12 +92,15 @@ bool Baseappmgr::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Baseappmgr::initializeEnd()
 {
+	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 void Baseappmgr::finalise()
 {
+	gameTimer_.cancel();
 }
 
 //-------------------------------------------------------------------------------------

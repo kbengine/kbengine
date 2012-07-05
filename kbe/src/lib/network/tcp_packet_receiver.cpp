@@ -93,7 +93,7 @@ bool TCPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 
 	if (
 #ifdef _WIN32
-		wsaErr == WSAEWOULDBLOCK					// send出错大概是缓冲区满了, recv出错已经无数据可读了
+		wsaErr == WSAEWOULDBLOCK && !expectingPacket// send出错大概是缓冲区满了, recv出错已经无数据可读了
 #else
 		errno == EAGAIN && !expectingPacket			// recv缓冲区已经无数据可读了
 #endif
@@ -120,6 +120,8 @@ bool TCPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 	*/
 	if (wsaErr == WSAECONNRESET)
 	{
+		WARNING_MSG("TCPPacketReceiver::processPendingEvents: "
+					"Throwing REASON_GENERAL_NETWORK - WSAECONNRESET\n");
 		return false;
 	}
 #endif // unix
