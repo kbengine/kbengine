@@ -91,12 +91,11 @@ bool TCPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 	DWORD wsaErr = WSAGetLastError();
 #endif //def _WIN32
 
-	// is the buffer empty?
 	if (
 #ifdef _WIN32
-		wsaErr == WSAEWOULDBLOCK
+		wsaErr == WSAEWOULDBLOCK					// send出错大概是缓冲区满了, recv出错已经无数据可读了
 #else
-		errno == EAGAIN && !expectingPacket
+		errno == EAGAIN && !expectingPacket			// recv缓冲区已经无数据可读了
 #endif
 		)
 	{
@@ -104,23 +103,27 @@ bool TCPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 	}
 
 #ifdef unix
-	// is it telling us there's an error?
-	if (errno == EAGAIN ||
-		errno == ECONNREFUSED ||
-		errno == EHOSTUNREACH)
+	if (errno == EAGAIN ||							// 已经无数据可读了
+		errno == ECONNREFUSED ||					// 连接被服务器拒绝
+		errno == EHOSTUNREACH)						// 目的地址不可到达
 	{
 		this->dispatcher().errorReporter().reportException(
 				REASON_NO_SUCH_PORT);
 		return false;
 	}
 #else
+	/*
+	存在的连接被远程主机强制关闭。通常原因为：远程主机上对等方应用程序突然停止运行，或远程主机重新启动，
+	或远程主机在远程方套接字上使用了“强制”关闭（参见setsockopt(SO_LINGER)）。
+	另外，在一个或多个操作正在进行时，如果连接因“keep-alive”活动检测到一个失败而中断，也可能导致此错误。
+	此时，正在进行的操作以错误码WSAENETRESET失败返回，后续操作将失败返回错误码WSAECONNRESET
+	*/
 	if (wsaErr == WSAECONNRESET)
 	{
 		return false;
 	}
 #endif // unix
 
-	// ok, I give up, something's wrong
 #ifdef _WIN32
 	WARNING_MSG("TCPPacketReceiver::processPendingEvents: "
 				"Throwing REASON_GENERAL_NETWORK - %d\n",
