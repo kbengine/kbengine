@@ -63,11 +63,17 @@ public:
 	
 	bool findBroadcastInterface();
 
+	/** 网络接口
+		某个app广播了自己的地址
+	*/
 	void onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::string& username, 
 							int8 componentType, uint64 componentID, 
 							uint32 intaddr, uint16 intport,
 							uint32 extaddr, uint16 extport);
 	
+	/** 网络接口
+		某个app寻找另一个app的地址
+	*/
 	void onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::string& username, 
 		int8 componentType, int8 findComponentType, uint32 finderAddr, uint16 finderRecvPort);
 

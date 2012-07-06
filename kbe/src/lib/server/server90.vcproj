@@ -165,6 +165,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\idallocate.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\script_timers.cpp"
 				>
 			</File>

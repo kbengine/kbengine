@@ -309,22 +309,16 @@ void Channel::handleTimeout(TimerHandle, void * arg)
 //-------------------------------------------------------------------------------------
 void Channel::reset(const EndPoint* endpoint, bool warnOnDiscard)
 {
-	// Don't do anything if the address hasn't changed.
+	// 如果地址没有改变则不重置
 	if (endpoint == pEndPoint_)
 	{
 		return;
 	}
 
-	// Send it now if the network interface has it registered for delayed
-	// sending. 
+	// 让网络接口下一个tick处理自己
 	pNetworkInterface_->sendIfDelayed( *this );
-	
 	this->clearState(warnOnDiscard);
-	
-	// This handles registering this channel (deregistering done in
-	// clearState above).
 	this->endpoint(endpoint);
-
 }
 
 //-------------------------------------------------------------------------------------
@@ -347,75 +341,83 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 	uint8 nextbufferedIdx = (currbufferedIdx_ == 0) ? 1 : 0;
 	Mercury::Packet* pPacket = receiveWindow();
 	
-	
-	while(pPacket->totalSize() > 0)
+	try
 	{
-		if(fragmentDatasFlag_ == 0)
+		while(pPacket->totalSize() > 0)
 		{
-			if(MERCURY_MESSAGE_ID_SIZE > 1 && pPacket->opsize() < MERCURY_MESSAGE_ID_SIZE)
+			if(fragmentDatasFlag_ == 0)
 			{
-				writeFragmentMessage(1, pPacket, MERCURY_MESSAGE_ID_SIZE);
-				break;
-			}
-			
-			if(currMsgID_ == 0)
-				(*pPacket) >> currMsgID_;
-
-			Mercury::MessageHandler* pMsgHandler = pMsgHandlers->find(currMsgID_);
-
-			if(pMsgHandler == NULL)
-			{
-				INFO_MSG("Channel::handleMessage: invalide msgID=%d, msglen=%d\n, from %s", 
-					currMsgID_, pPacket->totalSize(), c_str());
-				break;
-			}
-			
-			// 如果没有可操作的数据了则退出等待下一个包处理。
-			if(pPacket->opsize() == 0)
-				break;
-			
-			if(currMsgLen_ == 0)
-			{
-				if(pMsgHandler->msgLen == MERCURY_VARIABLE_MESSAGE)
+				if(MERCURY_MESSAGE_ID_SIZE > 1 && pPacket->opsize() < MERCURY_MESSAGE_ID_SIZE)
 				{
-					// 如果长度信息不完整， 则等待下一个包处理
-					if(pPacket->opsize() < MERCURY_MESSAGE_LENGTH_SIZE)
+					writeFragmentMessage(1, pPacket, MERCURY_MESSAGE_ID_SIZE);
+					break;
+				}
+				
+				if(currMsgID_ == 0)
+					(*pPacket) >> currMsgID_;
+
+				Mercury::MessageHandler* pMsgHandler = pMsgHandlers->find(currMsgID_);
+
+				if(pMsgHandler == NULL)
+				{
+					INFO_MSG("Channel::handleMessage: invalide msgID=%d, msglen=%d\n, from %s", 
+						currMsgID_, pPacket->totalSize(), c_str());
+					break;
+				}
+				
+				// 如果没有可操作的数据了则退出等待下一个包处理。
+				if(pPacket->opsize() == 0)
+					break;
+				
+				if(currMsgLen_ == 0)
+				{
+					if(pMsgHandler->msgLen == MERCURY_VARIABLE_MESSAGE)
 					{
-						writeFragmentMessage(2, pPacket, MERCURY_MESSAGE_LENGTH_SIZE);
-						break;
+						// 如果长度信息不完整， 则等待下一个包处理
+						if(pPacket->opsize() < MERCURY_MESSAGE_LENGTH_SIZE)
+						{
+							writeFragmentMessage(2, pPacket, MERCURY_MESSAGE_LENGTH_SIZE);
+							break;
+						}
+						else
+							(*pPacket) >> currMsgLen_;
 					}
 					else
-						(*pPacket) >> currMsgLen_;
+						currMsgLen_ = pMsgHandler->msgLen;
+				}
+
+				if(pPacket->opsize() < currMsgLen_)
+				{
+					writeFragmentMessage(3, pPacket, currMsgLen_);
+					break;
+				}
+
+				currMsgID_ = 0;
+				currMsgLen_ = 0;
+				
+				if(pFragmentStream_ != NULL)
+				{
+					pMsgHandler->handle(this, *pFragmentStream_);
+					SAFE_RELEASE(pFragmentStream_);
 				}
 				else
-					currMsgLen_ = pMsgHandler->msgLen;
-			}
-
-			if(pPacket->opsize() < currMsgLen_)
-			{
-				writeFragmentMessage(3, pPacket, currMsgLen_);
-				break;
-			}
-
-			currMsgID_ = 0;
-			currMsgLen_ = 0;
-			
-			if(pFragmentStream_ != NULL)
-			{
-				pMsgHandler->handle(this, *pFragmentStream_);
-				SAFE_RELEASE(pFragmentStream_);
+				{
+					pMsgHandler->handle(this, *pPacket);
+				}
 			}
 			else
 			{
-				pMsgHandler->handle(this, *pPacket);
+				mergeFragmentMessage(pPacket);
 			}
 		}
-		else
-		{
-			mergeFragmentMessage(pPacket);
-		}
+	}catch(MemoryStreamException &)
+	{
+		ERROR_MSG("Channel::handleMessage: packet invalid. currMsgID=%d, currMsgLen=%d\n", 
+																	currMsgID_, currMsgLen_);
+		currMsgID_ = 0;
+		currMsgLen_ = 0;
 	}
-
+	
 	pPacket->resetPacket();
 	currbufferedIdx_ = nextbufferedIdx;
 }

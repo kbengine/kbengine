@@ -28,6 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverconfig.hpp"
 #include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
+#include "server/idallocate.hpp"
 
 //#define NDEBUG
 #include <map>	
@@ -68,9 +69,18 @@ public:
 	bool initializeEnd();
 	void finalise();
 
+	/** 获取ID服务器指针 */
+	IDServer<ENTITY_ID>& idServer(void){ return idServer_; }
+
+	/** 网络接口
+		请求分配一个ENTITY_ID段
+	*/
+	void onReqAllocEntityID(Mercury::Channel* pChannel, int8 componentType, COMPONENT_ID componentID);
 protected:
 	TimerHandle				loopCheckTimerHandle_;
 	TimerHandle				mainProcessTimer_;
+
+	IDServer<ENTITY_ID>		idServer_;									// entityID分配服务端
 };
 
 }

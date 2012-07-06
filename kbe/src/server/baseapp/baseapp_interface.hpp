@@ -56,6 +56,14 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									uint16,				intport,
 									uint32,				extaddr, 
 									uint16,				extport)
+
+
+	// 某app请求获取一个entityID段的回调
+	BASEAPP_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,	MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,			startID,
+									ENTITY_ID,			endID)
+
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

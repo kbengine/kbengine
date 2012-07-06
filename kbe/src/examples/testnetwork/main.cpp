@@ -195,20 +195,6 @@ void init_network(void)
 		ERROR_MSG("NetworkInterface::recreateListeningSocket: couldn't create a socket\n");
 		return;
 	}
-	
-	while(1)
-	{
-			TCPPacket packet;
-
-			Bundle bundle;
-			bundle.newMessage(CellappInterface::test);
-			ENTITY_ID eid = 1;
-			bundle << eid;
-			char xxa[12]={"kebiao12345"};
-			std::string sss = xxa;
-			bundle << sss;
-			bundle.sendto(mysocket, htons(KBE_MACHINE_BRAODCAST_SEND_PORT), Mercury::BROADCAST);
-	}
 
 	while(1)
 	{
@@ -244,24 +230,6 @@ void init_network(void)
 		while(ii ++ <= 100)
 		{
 			TCPPacket packet;
-
-			Bundle bundle;
-			bundle.newMessage(CellappInterface::test);
-			ENTITY_ID eid = 1;
-			bundle << eid;
-			char xxa[12]={"kebiao12345"};
-			std::string sss = xxa;
-			bundle << sss;
-			bundle.send(mysocket);
-			
-			packet.clear(false);
-			packet.resize(1024);
-			int len = mysocket.recv(packet.data(), 1024);
-			packet.wpos(len);
-			std::string ss;
-			packet >> ss;
-			printf("data(%d): [%s]\n", len, ss.c_str());
-			KBEngine::sleep(100);
 			
 		};
 	};

@@ -121,13 +121,6 @@ Entity::~Entity()
 }	
 
 //-------------------------------------------------------------------------------------
-void Entity::test(Mercury::Channel* pChannel, const std::string& name)
-{
-	time_t t = time(NULL);
-	DEBUG_MSG("Entity::test[%"PRTime"]:=========>name=%s\n", t, name.c_str());
-}
-
-//-------------------------------------------------------------------------------------
 void Entity::destroy()
 {
 	isDestroyed_ = true;

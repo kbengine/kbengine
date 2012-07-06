@@ -58,14 +58,17 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									uint32,				extaddr, 
 									uint16,				extport)
 
-	ENTITY_MESSAGE_DECLARE_ARGS1(test, MERCURY_VARIABLE_MESSAGE,
-								std::string, name
-	)
-	
+	// 某app请求获取一个entityID段的回调
+	CELLAPP_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,	MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,			startID,
+									ENTITY_ID,			endID)
+
 	/**
 		远程呼叫entity方法
 	*/
 	ENTITY_MESSAGE_DECLARE_STREAM(onRemoteMethodCall, MERCURY_FIXED_MESSAGE)
+
+
 	
 NETWORK_INTERFACE_DECLARE_END()
 

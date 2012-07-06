@@ -70,7 +70,9 @@ public:
 	bool initializeBegin();
 	bool initializeEnd();
 	void finalise();
-	
+
+
+	/* 创建一个entity */
 	Entity* createEntity(const char* entityType, PyObject* params, bool isInitializeScript = true, ENTITY_ID eid = 0);
 
 	Entity* findEntity(ENTITY_ID eid);
@@ -79,8 +81,12 @@ public:
 
 	virtual bool destroyEntity(ENTITY_ID entityID);
 	
+	/** 网络接口
+		请求分配一个ENTITY_ID段的回调
+	*/
+	void onReqAllocEntityID(Mercury::Channel* pChannel, int32 startID, int32 endID);
 protected:
-	IDClient<ENTITY_ID>*		idClient_;
+	EntityIDClient				idClient_;
 	Entities<Entity>*			pEntities_;									// 存储所有的entity的容器
 	TimerHandle					gameTimer_;
 };

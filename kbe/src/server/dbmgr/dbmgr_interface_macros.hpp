@@ -116,6 +116,7 @@ namespace KBEngine{
 				NAME##DbmgrMessagehandler0, MSG_LENGTH)							\
 																				\
 
+
 /**
 	Dbmgr消息宏，  只有一个参数的消息
 */
@@ -159,6 +160,58 @@ namespace KBEngine{
 				NAME##DbmgrMessagehandler1, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
 																				\
 	
+/**
+	Dbmgr消息宏，  只有二个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef DBMGR_MESSAGE_HANDLER_ARGS2
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(DBMGR)
+#define DBMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,					\
+											ARG_TYPE2, ARG_NAME2)				\
+	void NAME##DbmgrMessagehandler2::handle(Mercury::Channel* pChannel,			\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			ARG_TYPE1 ARG_NAME1;												\
+			s >> ARG_NAME1;														\
+			ARG_TYPE2 ARG_NAME2;												\
+			s >> ARG_NAME2;														\
+			KBEngine::Dbmgr::getSingleton().NAME(pChannel,						\
+													ARG_NAME1, ARG_NAME2);		\
+	}																			\
+
+#else
+#define DBMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,					\
+											ARG_TYPE2, ARG_NAME2)				\
+	void NAME##DbmgrMessagehandler2::handle(Mercury::Channel* pChannel,			\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define DBMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,					\
+											ARG_TYPE2, ARG_NAME2)				\
+	class NAME##DbmgrMessagehandler2 : public Mercury::MessageHandler			\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define DBMGR_MESSAGE_DECLARE_ARGS2(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,		\
+											ARG_TYPE2, ARG_NAME2)				\
+	DBMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1, 					\
+											ARG_TYPE2, ARG_NAME2)				\
+	NETWORK_MESSAGE_DECLARE_ARGS2(Dbmgr, NAME,									\
+				NAME##DbmgrMessagehandler2, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+											ARG_TYPE2, ARG_NAME2)				\
+
+
 /**
 	Dbmgr消息宏，  只有四个参数的消息
 */

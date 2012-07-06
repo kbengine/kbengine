@@ -60,6 +60,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									uint16,				intport,
 									uint32,				extaddr, 
 									uint16,				extport)
+
+	// 某app请求获取一个entityID段 
+	DBMGR_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,	MERCURY_FIXED_MESSAGE,
+								int8,				componentType,
+								COMPONENT_ID,		componentID)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

@@ -29,6 +29,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.hpp"
 #include "server/componentbridge.hpp"
 
+#include "dbmgr/dbmgr_interface.hpp"
+
 namespace KBEngine{
 	
 ServerConfig g_serverConfig;
@@ -40,7 +42,7 @@ CellApp::CellApp(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
 	EntityApp(dispatcher, ninterface, componentType, componentID),
-    idClient_(NULL),
+	idClient_(),
 	pEntities_(NULL),
     gameTimer_()
 {
@@ -48,6 +50,8 @@ CellApp::CellApp(Mercury::EventDispatcher& dispatcher,
 
 	// 初始化mailbox模块获取entity实体函数地址
 	EntityMailbox::setGetEntityFunc(std::tr1::bind(&CellApp::tryGetEntityByMailbox, this, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+
+	idClient_.pApp(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -81,7 +85,6 @@ bool CellApp::uninstallPyModules()
 //-------------------------------------------------------------------------------------
 bool CellApp::run()
 {
-	idClient_->onAddRange(1, 500);
 	Entity* e = createEntity("Avatar", NULL);
 	registerPyObjectToScript("avatar", e);
 	PyRun_SimpleString("print (dir(KBEngine.avatar), KBEngine.entities.has_key(1))");
@@ -141,8 +144,6 @@ bool CellApp::initializeBegin()
 //-------------------------------------------------------------------------------------
 bool CellApp::initializeEnd()
 {
-	idClient_ = new IDClient<ENTITY_ID>;
-	
 	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 	
@@ -152,7 +153,6 @@ bool CellApp::initializeEnd()
 //-------------------------------------------------------------------------------------
 void CellApp::finalise()
 {
-	SAFE_RELEASE(idClient_);
 	gameTimer_.cancel();
 	uninstallPyModules();
 }
@@ -161,9 +161,9 @@ void CellApp::finalise()
 Entity* CellApp::createEntity(const char* entityType, PyObject* params, bool isInitializeScript, ENTITY_ID eid)
 {
 	// 检查ID是否足够, 不足返回NULL
-	if(eid <= 0 && idClient_->getSize() == 0)
+	if(eid <= 0 && idClient_.getSize() == 0)
 	{
-		PyErr_SetString(PyExc_SystemError, "App::createEntity: is Failed. not enough entityIDs.");
+		PyErr_SetString(PyExc_SystemError, "CellApp::createEntity: is Failed. not enough entityIDs.");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -171,7 +171,7 @@ Entity* CellApp::createEntity(const char* entityType, PyObject* params, bool isI
 	ScriptModule* sm = EntityDef::findScriptModule(entityType);
 	if(sm == NULL || !sm->hasCell())
 	{
-		PyErr_Format(PyExc_TypeError, "App::createEntity: entityType [%s] not found.\n", entityType);
+		PyErr_Format(PyExc_TypeError, "CellApp::createEntity: entity [%s] not found.\n", entityType);
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -181,7 +181,7 @@ Entity* CellApp::createEntity(const char* entityType, PyObject* params, bool isI
 	// 判断是否要分配一个新的id
 	ENTITY_ID id = eid;
 	if(id <= 0)
-		id = idClient_->alloc();
+		id = idClient_.alloc();
 
 	// 执行Entity的构造函数
 	Entity* entity = new(obj) Entity(id, sm);
@@ -191,16 +191,13 @@ Entity* CellApp::createEntity(const char* entityType, PyObject* params, bool isI
 
 	// 将entity加入entities
 	pEntities_->add(id, entity); 
-	
-	// 检查ID的足够性，不足则申请
-	//checkEntityIDEnough();
 
 	// 初始化脚本
 	if(isInitializeScript)
 		entity->initializeScript();
 
 	SCRIPT_ERROR_CHECK();
-	INFO_MSG("App::createEntity: new %s (%ld).\n", entityType, id);
+	INFO_MSG("CellApp::createEntity: new %s (%ld).\n", entityType, id);
 	return entity;
 }
 
@@ -236,6 +233,12 @@ bool CellApp::destroyEntity(ENTITY_ID entityID)
 	}
 
 	return false;
+}
+
+//-------------------------------------------------------------------------------------
+void CellApp::onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID)
+{
+	idClient_.onAddRange(startID, endID);
 }
 
 //-------------------------------------------------------------------------------------

@@ -4,6 +4,7 @@ SRCS =				\
 	componentbridge		\
 	components		\
 	entity_app		\
+	idallocate		\
 	script_timers		\
 	serverapp		\
 	serverconfig		\

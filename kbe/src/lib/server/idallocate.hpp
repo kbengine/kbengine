@@ -76,6 +76,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
+// 当本地ID数量小于这个数量时向服务端申请
+#define ID_ENOUGH_LIMIT 500
+
+class ServerApp;
+
 template< typename T >
 class IDAllocate
 {
@@ -144,16 +149,27 @@ template< typename T >
 class IDClient
 {										
 public:
-	IDClient():lastIDRange_begin_(0), lastIDRange_end_(0)
+	IDClient():
+	  lastIDRange_begin_(0), 
+	lastIDRange_end_(0),
+	m_hasRequestedIDServerAlloc_(false)
 	{
 	}
 	
 	/** 析构时不会通知IDServer进行回收， 请使用者自己进行这方面的维护 */
-	~IDClient()
+	virtual ~IDClient()
 	{
 	}	
 	
+	bool hasReqServerAlloc()const { return m_hasRequestedIDServerAlloc_; }
+	void setReqServerAllocFlag(bool has){ m_hasRequestedIDServerAlloc_ = has; }
+
 	size_t getSize()const{ return lastIDRange_end_ - lastIDRange_begin_; }
+	
+	/* 检查entityID是否够用 
+		注意：一个tick内使用ID数量不要超过ID_ENOUGH_LIMIT
+	*/
+	virtual void onAlloc(void) {};
 	
 	/** idserver 分配过来的一个id段 */
 	void onAddRange(T idBegin, T idEnd)
@@ -190,6 +206,8 @@ public:
 				lastIDRange_begin_ = lastIDRange_end_ = 0;
 			}
 		}
+		
+		onAlloc();
 		return id;
 	}
 	
@@ -202,8 +220,28 @@ protected:
 	typename std::queue< std::pair< T, T > > idList_;					// id列表， 所有ID都存在这个列表里
 	T lastIDRange_begin_;												// 最后一次申请到的ID段的起始位置
 	T lastIDRange_end_;		
+	bool m_hasRequestedIDServerAlloc_;									// 是否已经请求ID服务端分配ID
 };
 
+class EntityIDClient : public IDClient<ENTITY_ID>
+{
+public:
+	EntityIDClient():
+	IDClient<ENTITY_ID>(),
+	pApp_(NULL)
+	{
+	}
+	
+	virtual ~EntityIDClient()
+	{
+	}	
+
+	virtual void onAlloc(void);
+	
+	void pApp(ServerApp* pApp){ pApp_ = pApp; }
+protected:
+	ServerApp* pApp_;
+};
 
 }
 #endif

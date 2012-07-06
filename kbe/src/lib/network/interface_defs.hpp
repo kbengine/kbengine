@@ -151,9 +151,6 @@ namespace Mercury
 	{																\
 	public:															\
 		NAME##Args0():Mercury::MessageArgs(){}						\
-		NAME##Args0():												\
-		Mercury::MessageArgs(),										\
-		{}															\
 		~NAME##Args0(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s)			\
@@ -259,14 +256,14 @@ namespace Mercury
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
 								ARG_TYPE1 init_##ARG_NAME1,			\
-								ARG_TYPE2 init_##ARG_NAME2,)		\
+								ARG_TYPE2 init_##ARG_NAME2)			\
 		{															\
 			s << init_##ARG_NAME1;									\
 			s << init_##ARG_NAME2;									\
 		}															\
 		static void staticAddToStream(MemoryStream& s,				\
 								ARG_TYPE1 init_##ARG_NAME1,			\
-								ARG_TYPE2 init_##ARG_NAME2,)		\
+								ARG_TYPE2 init_##ARG_NAME2)			\
 		{															\
 			s << init_##ARG_NAME1;									\
 			s << init_##ARG_NAME2;									\

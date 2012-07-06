@@ -86,10 +86,6 @@ public:
 	Entity(ENTITY_ID id, ScriptModule* scriptModule);
 	~Entity();
 	
-	// 测试网络接口
-	void test(Mercury::Channel* pChannel, const std::string& name);
-
-
 	/** 
 		销毁这个entity 
 	*/

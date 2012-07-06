@@ -40,7 +40,7 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
 	EntityApp(dispatcher, ninterface, componentType, componentID),
-    idClient_(NULL),
+    idClient_(),
 //	pEntities_(NULL),
     gameTimer_()
 {
@@ -48,6 +48,8 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 
 	// 初始化mailbox模块获取entity实体函数地址
 	// EntityMailbox::setGetEntityFunc(std::tr1::bind(&CellApp::tryGetEntityByMailbox, this, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+
+	idClient_.pApp(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -127,8 +129,6 @@ bool Baseapp::initializeBegin()
 //-------------------------------------------------------------------------------------
 bool Baseapp::initializeEnd()
 {
-	idClient_ = new IDClient<ENTITY_ID>;
-	
 	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 	
@@ -138,7 +138,6 @@ bool Baseapp::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Baseapp::finalise()
 {
-	SAFE_RELEASE(idClient_);
 	gameTimer_.cancel();
 	uninstallPyModules();
 }
@@ -147,6 +146,12 @@ void Baseapp::finalise()
 bool Baseapp::destroyEntity(ENTITY_ID entityID)
 {
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID)
+{
+	idClient_.onAddRange(startID, endID);
 }
 
 //-------------------------------------------------------------------------------------

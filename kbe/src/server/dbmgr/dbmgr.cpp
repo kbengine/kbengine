@@ -28,6 +28,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.hpp"
 #include "server/componentbridge.hpp"
 
+#include "baseapp/baseapp_interface.hpp"
+#include "cellapp/cellapp_interface.hpp"
+
 namespace KBEngine{
 	
 ServerConfig g_serverConfig;
@@ -40,7 +43,8 @@ Dbmgr::Dbmgr(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_ID componentID):
 	ServerApp(dispatcher, ninterface, componentType, componentID),
 	loopCheckTimerHandle_(),
-	mainProcessTimer_()
+	mainProcessTimer_(),
+	idServer_(1, 1024)
 {
 }
 
@@ -115,6 +119,25 @@ void Dbmgr::finalise()
 {
 	loopCheckTimerHandle_.cancel();
 	mainProcessTimer_.cancel();
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::onReqAllocEntityID(Mercury::Channel* pChannel, int8 componentType, COMPONENT_ID componentID)
+{
+	KBEngine::COMPONENT_TYPE ct = static_cast<KBEngine::COMPONENT_TYPE>(componentType);
+
+	// 获取一个id段 并传输给IDClient
+	std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
+	Mercury::Bundle bundle(pChannel);
+
+	if(ct == BASEAPP_TYPE)
+		bundle.newMessage(BaseappInterface::onReqAllocEntityID);
+	else	
+		bundle.newMessage(CellappInterface::onReqAllocEntityID);
+
+	bundle << idRange.first;
+	bundle << idRange.second;
+	bundle.send(this->getNetworkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------
