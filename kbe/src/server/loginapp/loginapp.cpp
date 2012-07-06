@@ -55,6 +55,7 @@ bool Loginapp::run()
 	while(!this->getMainDispatcher().isBreakProcessing())
 	{
 		this->getMainDispatcher().processOnce(false);
+		getNetworkInterface().handleChannels(&LoginappInterface::messageHandlers);
 		KBEngine::sleep(100);
 	};
 

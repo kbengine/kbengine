@@ -340,7 +340,7 @@ PyObject* Entity::pyGetIsDestroyed()
 //-------------------------------------------------------------------------------------
 void Entity::destroyEntity(void)
 {
-	CellApp::getSingleton().destroyEntity(id_);
+	Cellapp::getSingleton().destroyEntity(id_);
 }
 
 //-------------------------------------------------------------------------------------

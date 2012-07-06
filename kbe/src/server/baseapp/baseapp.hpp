@@ -65,6 +65,7 @@ public:
 	void handleGameTick();
 	void handleTimers();
 
+	/* 初始化相关接口 */
 	bool initializeBegin();
 	bool initializeEnd();
 	void finalise();

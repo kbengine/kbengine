@@ -53,7 +53,7 @@ namespace KBEngine{
 			ENTITY_ID eid;														\
 			s >> eid;															\
 			KBEngine::Entity* e =												\
-					KBEngine::CellApp::getSingleton().findEntity(eid);			\
+					KBEngine::Cellapp::getSingleton().findEntity(eid);			\
 			e->NAME(pChannel, s);												\
 	}																			\
 
@@ -98,7 +98,7 @@ namespace KBEngine{
 			ENTITY_ID eid;														\
 			s >> eid;															\
 			KBEngine::Entity* e =												\
-					KBEngine::CellApp::getSingleton().findEntity(eid);			\
+					KBEngine::Cellapp::getSingleton().findEntity(eid);			\
 			ARG_TYPE1 ARG_NAME1;												\
 			s >> ARG_NAME1;														\
 			e->NAME(pChannel, ARG_NAME1);										\

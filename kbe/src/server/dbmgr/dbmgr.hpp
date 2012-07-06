@@ -64,6 +64,7 @@ public:
 	void handleMainTick();
 	void handleCheckStatusTick();
 
+	/* 初始化相关接口 */
 	bool initializeBegin();
 	bool inInitialize();
 	bool initializeEnd();

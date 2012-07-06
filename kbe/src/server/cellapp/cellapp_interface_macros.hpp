@@ -47,7 +47,7 @@ namespace KBEngine{
 	void NAME##CellAppMessagehandler_stream::handle(Mercury::Channel* pChannel,	\
 												KBEngine::MemoryStream& s)		\
 	{																			\
-			KBEngine::CellApp::getSingleton().NAME(pChannel, s);				\
+			KBEngine::Cellapp::getSingleton().NAME(pChannel, s);				\
 	}																			\
 
 #else
@@ -71,12 +71,12 @@ namespace KBEngine{
 
 #define CELLAPP_MESSAGE_DECLARE_STREAM(NAME, MSG_LENGTH)						\
 	CELLAPP_MESSAGE_HANDLER_STREAM(NAME)										\
-	NETWORK_MESSAGE_DECLARE_STREAM(CellApp, NAME,								\
+	NETWORK_MESSAGE_DECLARE_STREAM(Cellapp, NAME,								\
 				NAME##CellAppMessagehandler_stream, MSG_LENGTH)					\
 																				\
 
 /**
-	CellApp消息宏，  只有零个参数的消息
+	Cellapp消息宏，  只有零个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
 	#undef CELLAPP_MESSAGE_HANDLER_ARGS0
@@ -88,7 +88,7 @@ namespace KBEngine{
 	void NAME##CellAppMessagehandler0::handle(Mercury::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
-			KBEngine::CellApp::getSingleton().NAME(pChannel);					\
+			KBEngine::Cellapp::getSingleton().NAME(pChannel);					\
 	}																			\
 
 #else
@@ -111,7 +111,7 @@ namespace KBEngine{
 #endif
 
 /**
-	CellApp消息宏，  只有一个参数的消息
+	Cellapp消息宏，  只有一个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
 	#undef CELLAPP_MESSAGE_HANDLER_ARGS1
@@ -125,7 +125,7 @@ namespace KBEngine{
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
 			s >> ARG_NAME1;														\
-			KBEngine::CellApp::getSingleton().NAME(pChannel, ARG_NAME1);		\
+			KBEngine::Cellapp::getSingleton().NAME(pChannel, ARG_NAME1);		\
 	}																			\
 
 #else
@@ -149,7 +149,7 @@ namespace KBEngine{
 
 #define CELLAPP_MESSAGE_DECLARE_ARGS1(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
 	CELLAPP_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
-	NETWORK_MESSAGE_DECLARE_ARGS1(CellApp, NAME,								\
+	NETWORK_MESSAGE_DECLARE_ARGS1(Cellapp, NAME,								\
 				NAME##CellAppMessagehandler1, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
 																				\
 
@@ -171,7 +171,7 @@ namespace KBEngine{
 			s >> ARG_NAME1;														\
 			ARG_TYPE2 ARG_NAME2;												\
 			s >> ARG_NAME2;														\
-			KBEngine::CellApp::getSingleton().NAME(pChannel,					\
+			KBEngine::Cellapp::getSingleton().NAME(pChannel,					\
 													ARG_NAME1, ARG_NAME2);		\
 	}																			\
 
@@ -206,7 +206,7 @@ namespace KBEngine{
 
 
 /**
-	CellApp消息宏，  只有四个参数的消息
+	Cellapp消息宏，  只有四个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
 	#undef CELLAPP_MESSAGE_HANDLER_ARGS4
@@ -229,7 +229,7 @@ namespace KBEngine{
 			s >> ARG_NAME3;														\
 			ARG_TYPE4 ARG_NAME4;												\
 			s >> ARG_NAME4;														\
-			KBEngine::CellApp::getSingleton().NAME(pChannel,					\
+			KBEngine::Cellapp::getSingleton().NAME(pChannel,					\
 				ARG_NAME1, ARG_NAME2, 											\
 				ARG_NAME3, ARG_NAME4);											\
 	}																			\
@@ -267,14 +267,14 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
-	NETWORK_MESSAGE_DECLARE_ARGS4(CellApp, NAME,								\
+	NETWORK_MESSAGE_DECLARE_ARGS4(Cellapp, NAME,								\
 				NAME##CellAppMessagehandler4, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4)				\
 
 /**
-	CellApp消息宏，  只有五个参数的消息
+	Cellapp消息宏，  只有五个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
 	#undef CELLAPP_MESSAGE_HANDLER_ARGS5
@@ -300,7 +300,7 @@ namespace KBEngine{
 			s >> ARG_NAME4;														\
 			ARG_TYPE5 ARG_NAME5;												\
 			s >> ARG_NAME5;														\
-			KBEngine::CellApp::getSingleton().NAME(pChannel,					\
+			KBEngine::Cellapp::getSingleton().NAME(pChannel,					\
 													ARG_NAME1, ARG_NAME2, 		\
 				ARG_NAME3, ARG_NAME4, ARG_NAME5);								\
 	}																			\
@@ -342,7 +342,7 @@ namespace KBEngine{
 											ARG_TYPE3, ARG_NAME3,				\
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5)				\
-	NETWORK_MESSAGE_DECLARE_ARGS5(CellApp, NAME,								\
+	NETWORK_MESSAGE_DECLARE_ARGS5(Cellapp, NAME,								\
 				NAME##CellAppMessagehandler5, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
@@ -351,7 +351,7 @@ namespace KBEngine{
 
 
 /**
-	CellApp消息宏，  只有六个参数的消息
+	Cellapp消息宏，  只有六个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
 	#undef CELLAPP_MESSAGE_HANDLER_ARGS6
@@ -380,7 +380,7 @@ namespace KBEngine{
 			s >> ARG_NAME5;														\
 			ARG_TYPE6 ARG_NAME6;												\
 			s >> ARG_NAME6;														\
-			KBEngine::CellApp::getSingleton().NAME(pChannel,					\
+			KBEngine::Cellapp::getSingleton().NAME(pChannel,					\
 													ARG_NAME1, ARG_NAME2, 		\
 				ARG_NAME3, ARG_NAME4, ARG_NAME5, ARG_NAME6);					\
 	}																			\
@@ -426,7 +426,7 @@ namespace KBEngine{
 											ARG_TYPE4, ARG_NAME4,				\
 											ARG_TYPE5, ARG_NAME5,				\
 											ARG_TYPE6, ARG_NAME6)				\
-	NETWORK_MESSAGE_DECLARE_ARGS6(CellApp, NAME,								\
+	NETWORK_MESSAGE_DECLARE_ARGS6(Cellapp, NAME,								\
 				NAME##CellAppMessagehandler6, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\
@@ -435,7 +435,7 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6)				\
 
 /**
-	CellApp消息宏，  只有八个参数的消息
+	Cellapp消息宏，  只有八个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
 	#undef CELLAPP_MESSAGE_HANDLER_ARGS8
@@ -470,7 +470,7 @@ namespace KBEngine{
 			s >> ARG_NAME7;														\
 			ARG_TYPE8 ARG_NAME8;												\
 			s >> ARG_NAME8;														\
-			KBEngine::CellApp::getSingleton().NAME(pChannel,					\
+			KBEngine::Cellapp::getSingleton().NAME(pChannel,					\
 										ARG_NAME1, ARG_NAME2, ARG_NAME3, 		\
 										ARG_NAME4, ARG_NAME5, ARG_NAME6,		\
 										ARG_NAME7, ARG_NAME8);					\
@@ -525,7 +525,7 @@ namespace KBEngine{
 											ARG_TYPE6, ARG_NAME6,				\
 											ARG_TYPE7, ARG_NAME7,				\
 											ARG_TYPE8, ARG_NAME8)				\
-	NETWORK_MESSAGE_DECLARE_ARGS8(CellApp, NAME,								\
+	NETWORK_MESSAGE_DECLARE_ARGS8(Cellapp, NAME,								\
 				NAME##CellAppMessagehandler8, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 											ARG_TYPE2, ARG_NAME2,				\
 											ARG_TYPE3, ARG_NAME3,				\

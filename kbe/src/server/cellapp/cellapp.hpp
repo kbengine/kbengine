@@ -40,9 +40,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 class Entity;
 
-class CellApp:	public EntityApp, 
+class Cellapp:	public EntityApp, 
 				public TimerHandler, 
-				public Singleton<CellApp>
+				public Singleton<Cellapp>
 {
 public:
 	enum TimeOutType
@@ -51,22 +51,24 @@ public:
 		TIMEOUT_LOADING_TICK
 	};
 	
-	CellApp(Mercury::EventDispatcher& dispatcher, 
+	Cellapp(Mercury::EventDispatcher& dispatcher, 
 		Mercury::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
 		COMPONENT_ID componentID);
 
-	~CellApp();
+	~Cellapp();
 
 	bool installPyModules();
 	bool uninstallPyModules();
 	
 	bool run();
 	
+	/* 相关处理接口 */
 	void handleTimeout(TimerHandle handle, void * arg);
 	void handleGameTick();
 	void handleTimers();
 
+	/* 初始化相关接口 */
 	bool initializeBegin();
 	bool initializeEnd();
 	void finalise();
@@ -74,11 +76,16 @@ public:
 
 	/* 创建一个entity */
 	Entity* createEntity(const char* entityType, PyObject* params, bool isInitializeScript = true, ENTITY_ID eid = 0);
-
+	
+	/* 通过entityID寻找到对应的实例 */
 	Entity* findEntity(ENTITY_ID eid);
-
+	
+	/* 由mailbox来尝试获取一个entity的实例
+		因为这个组件上不一定存在这个entity。
+	*/
 	PyObject* tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_ID eid);
 
+	/* 通过entityID销毁一个entity */
 	virtual bool destroyEntity(ENTITY_ID entityID);
 	
 	/** 网络接口

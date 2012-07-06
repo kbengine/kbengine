@@ -34,10 +34,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 	
 ServerConfig g_serverConfig;
-KBE_SINGLETON_INIT(CellApp);
+KBE_SINGLETON_INIT(Cellapp);
 
 //-------------------------------------------------------------------------------------
-CellApp::CellApp(Mercury::EventDispatcher& dispatcher, 
+Cellapp::Cellapp(Mercury::EventDispatcher& dispatcher, 
 			 Mercury::NetworkInterface& ninterface, 
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
@@ -49,18 +49,18 @@ CellApp::CellApp(Mercury::EventDispatcher& dispatcher,
 	// KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &CellAppInterface::messageHandlers;	
 
 	// 初始化mailbox模块获取entity实体函数地址
-	EntityMailbox::setGetEntityFunc(std::tr1::bind(&CellApp::tryGetEntityByMailbox, this, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+	EntityMailbox::setGetEntityFunc(std::tr1::bind(&Cellapp::tryGetEntityByMailbox, this, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
 
 	idClient_.pApp(this);
 }
 
 //-------------------------------------------------------------------------------------
-CellApp::~CellApp()
+Cellapp::~Cellapp()
 {
 }
 
 //-------------------------------------------------------------------------------------
-bool CellApp::installPyModules()
+bool Cellapp::installPyModules()
 {
 	Entities<Entity>::installScript(NULL);
 	Entity::installScript(getScript().getModule());
@@ -73,7 +73,7 @@ bool CellApp::installPyModules()
 }
 
 //-------------------------------------------------------------------------------------
-bool CellApp::uninstallPyModules()
+bool Cellapp::uninstallPyModules()
 {	
 	S_RELEASE(pEntities_);
 	unregisterPyObjectToScript("entities");
@@ -83,7 +83,7 @@ bool CellApp::uninstallPyModules()
 }
 
 //-------------------------------------------------------------------------------------
-bool CellApp::run()
+bool Cellapp::run()
 {
 	Entity* e = createEntity("Avatar", NULL);
 	//registerPyObjectToScript("avatar", e);
@@ -100,7 +100,7 @@ bool CellApp::run()
 }
 
 //-------------------------------------------------------------------------------------
-void CellApp::handleTimeout(TimerHandle handle, void * arg)
+void Cellapp::handleTimeout(TimerHandle handle, void * arg)
 {
 	switch (reinterpret_cast<uintptr>(arg))
 	{
@@ -115,16 +115,16 @@ void CellApp::handleTimeout(TimerHandle handle, void * arg)
 }
 
 //-------------------------------------------------------------------------------------
-void CellApp::handleTimers()
+void Cellapp::handleTimers()
 {
 	timers().process(time_);
 }
 
 //-------------------------------------------------------------------------------------
-void CellApp::handleGameTick()
+void Cellapp::handleGameTick()
 {
 	// time_t t = ::time(NULL);
-	// DEBUG_MSG("CellApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
+	// DEBUG_MSG("Cellapp::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
 	time_++;
 	handleTimers();
@@ -132,7 +132,7 @@ void CellApp::handleGameTick()
 }
 
 //-------------------------------------------------------------------------------------
-bool CellApp::initializeBegin()
+bool Cellapp::initializeBegin()
 {
 	if(thread::ThreadPool::getSingletonPtr() && 
 		!thread::ThreadPool::getSingleton().isInitialize())
@@ -142,7 +142,7 @@ bool CellApp::initializeBegin()
 }
 
 //-------------------------------------------------------------------------------------
-bool CellApp::initializeEnd()
+bool Cellapp::initializeEnd()
 {
 	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
@@ -151,19 +151,19 @@ bool CellApp::initializeEnd()
 }
 
 //-------------------------------------------------------------------------------------
-void CellApp::finalise()
+void Cellapp::finalise()
 {
 	gameTimer_.cancel();
 	uninstallPyModules();
 }
 
 //-------------------------------------------------------------------------------------
-Entity* CellApp::createEntity(const char* entityType, PyObject* params, bool isInitializeScript, ENTITY_ID eid)
+Entity* Cellapp::createEntity(const char* entityType, PyObject* params, bool isInitializeScript, ENTITY_ID eid)
 {
 	// 检查ID是否足够, 不足返回NULL
 	if(eid <= 0 && idClient_.getSize() == 0)
 	{
-		PyErr_SetString(PyExc_SystemError, "CellApp::createEntity: is Failed. not enough entityIDs.");
+		PyErr_SetString(PyExc_SystemError, "Cellapp::createEntity: is Failed. not enough entityIDs.");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -171,7 +171,7 @@ Entity* CellApp::createEntity(const char* entityType, PyObject* params, bool isI
 	ScriptModule* sm = EntityDef::findScriptModule(entityType);
 	if(sm == NULL || !sm->hasCell())
 	{
-		PyErr_Format(PyExc_TypeError, "CellApp::createEntity: entity [%s] not found.\n", entityType);
+		PyErr_Format(PyExc_TypeError, "Cellapp::createEntity: entity [%s] not found.\n", entityType);
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -197,25 +197,25 @@ Entity* CellApp::createEntity(const char* entityType, PyObject* params, bool isI
 		entity->initializeScript();
 
 	SCRIPT_ERROR_CHECK();
-	INFO_MSG("CellApp::createEntity: new %s (%ld).\n", entityType, id);
+	INFO_MSG("Cellapp::createEntity: new %s (%ld).\n", entityType, id);
 	return entity;
 }
 
 //-------------------------------------------------------------------------------------
-Entity* CellApp::findEntity(ENTITY_ID eid)
+Entity* Cellapp::findEntity(ENTITY_ID eid)
 {
 	return pEntities_->find(eid);
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* CellApp::tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_ID eid)
+PyObject* Cellapp::tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_ID eid)
 {
 	if(componentID != componentID_)
 		return NULL;
 	
 	Entity* entity = pEntities_->find(eid);
 	if(entity == NULL){
-		ERROR_MSG("CellApp::tryGetEntityByMailbox: can't found entity:%ld.\n", eid);
+		ERROR_MSG("Cellapp::tryGetEntityByMailbox: can't found entity:%ld.\n", eid);
 		return NULL;
 	}
 
@@ -223,7 +223,7 @@ PyObject* CellApp::tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_ID eid
 }
 
 //-------------------------------------------------------------------------------------
-bool CellApp::destroyEntity(ENTITY_ID entityID)
+bool Cellapp::destroyEntity(ENTITY_ID entityID)
 {
 	Entity* entity = pEntities_->erase(entityID);
 	if(entity != NULL)
@@ -236,16 +236,16 @@ bool CellApp::destroyEntity(ENTITY_ID entityID)
 }
 
 //-------------------------------------------------------------------------------------
-void CellApp::onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID)
+void Cellapp::onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID)
 {
 	idClient_.onAddRange(startID, endID);
 }
 
 //-------------------------------------------------------------------------------------
-void CellApp::onDbmgrInit(Mercury::Channel* pChannel, 
+void Cellapp::onDbmgrInit(Mercury::Channel* pChannel, 
 		ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
 {
-	INFO_MSG("CellApp::onDbmgrInit: entityID alloc(%d-%d), startGlobalOrder=%d, startGroupOrder=%d.\n",
+	INFO_MSG("Cellapp::onDbmgrInit: entityID alloc(%d-%d), startGlobalOrder=%d, startGroupOrder=%d.\n",
 		startID, endID, startGlobalOrder, startGroupOrder);
 }
 

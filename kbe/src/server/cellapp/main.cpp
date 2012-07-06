@@ -53,6 +53,6 @@ using namespace KBEngine;
 
 int KBENGINE_MAIN(int argc, char* argv[])
 {
-	int ret = kbeMainT<CellApp>(argc, argv, CELLAPP_TYPE);
+	int ret = kbeMainT<Cellapp>(argc, argv, CELLAPP_TYPE);
 	return ret; 
 }
