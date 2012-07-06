@@ -325,17 +325,23 @@ INLINE int EndPoint::listen(int backlog)
 	return ::listen(socket_, backlog);
 }
 
-INLINE int EndPoint::connect(u_int16_t networkPort, u_int32_t networkAddr)
+INLINE int EndPoint::connect(u_int16_t networkPort, u_int32_t networkAddr, bool autosetflags)
 {
 	sockaddr_in	sin;
 	sin.sin_family = AF_INET;
 	sin.sin_port = networkPort;
 	sin.sin_addr.s_addr = networkAddr;
 
-	return ::connect(socket_, (sockaddr*)&sin, sizeof(sin));
+	int ret = ::connect(socket_, (sockaddr*)&sin, sizeof(sin));
+	if(autosetflags)
+	{
+		setnonblocking(true);
+		setnodelay(true);
+	}
+	return ret;
 }
 
-INLINE EndPoint * EndPoint::accept(u_int16_t * networkPort, u_int32_t * networkAddr)
+INLINE EndPoint * EndPoint::accept(u_int16_t * networkPort, u_int32_t * networkAddr, bool autosetflags)
 {
 	sockaddr_in		sin;
 	socklen_t		sinLen = sizeof(sin);
@@ -349,9 +355,13 @@ INLINE EndPoint * EndPoint::accept(u_int16_t * networkPort, u_int32_t * networkA
 	EndPoint * pNew = new EndPoint();
 	pNew->setFileDescriptor(ret);
 	pNew->addr(sin.sin_port, sin.sin_addr.s_addr);
-	pNew->setnonblocking(true);
-	pNew->setnodelay(true);
-
+	
+	if(autosetflags)
+	{
+		pNew->setnonblocking(true);
+		pNew->setnodelay(true);
+	}
+	
 	if (networkPort != NULL) *networkPort = sin.sin_port;
 	if (networkAddr != NULL) *networkAddr = sin.sin_addr.s_addr;
 

@@ -30,6 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "baseapp/baseapp_interface.hpp"
 #include "cellapp/cellapp_interface.hpp"
+#include "loginapp/loginapp_interface.hpp"
 
 namespace KBEngine{
 	
@@ -138,6 +139,63 @@ void Dbmgr::onReqAllocEntityID(Mercury::Channel* pChannel, int8 componentType, C
 	bundle << idRange.first;
 	bundle << idRange.second;
 	bundle.send(this->getNetworkInterface(), pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string& username, 
+						int8 componentType, uint64 componentID, 
+						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
+{
+	ServerApp::onRegisterNewApp(pChannel, uid, username, componentType, componentID, 
+						intaddr, intport, extaddr, extport);
+
+	// 下一步:
+	// 如果是连接到dbmgr则需要等待接收app初始信息
+	// 例如：初始会分配entityID段以及这个app启动的顺序信息（是否第一个baseapp启动）
+	if((KBEngine::COMPONENT_TYPE)componentType == BASEAPP_TYPE || 
+		(KBEngine::COMPONENT_TYPE)componentType == CELLAPP_TYPE || 
+		(KBEngine::COMPONENT_TYPE)componentType == LOGINAPP_TYPE)
+	{
+		Mercury::Bundle bundle;
+		ENTITY_ID startID = 0;
+		ENTITY_ID endID = 0;
+		int32 startGlobalOrder = Componentbridge::getComponents().getGlobalOrderLog()[getUserUID()];
+		int32 startGroupOrder = 0;
+
+		switch((KBEngine::COMPONENT_TYPE)componentType)
+		{
+		case BASEAPP_TYPE:
+			{
+				startGroupOrder = Componentbridge::getComponents().getBaseappGroupOrderLog()[getUserUID()];
+
+				std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
+				bundle.newMessage(BaseappInterface::onDbmgrInit);
+				BaseappInterface::onDbmgrInitArgs4::staticAddToBundle(bundle, idRange.first, 
+					idRange.second, startGlobalOrder, startGroupOrder);
+			}
+			break;
+		case CELLAPP_TYPE:
+			{
+				startGroupOrder = Componentbridge::getComponents().getCellappGroupOrderLog()[getUserUID()];
+
+				std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
+				bundle.newMessage(CellappInterface::onDbmgrInit);
+				CellappInterface::onDbmgrInitArgs4::staticAddToBundle(bundle, idRange.first, 
+					idRange.second, startGlobalOrder, startGroupOrder);
+			}
+			break;
+		case LOGINAPP_TYPE:
+			startGroupOrder = Componentbridge::getComponents().getLoginappGroupOrderLog()[getUserUID()];
+
+			bundle.newMessage(LoginappInterface::onDbmgrInit);
+			LoginappInterface::onDbmgrInitArgs2::staticAddToBundle(bundle, startGlobalOrder, startGroupOrder);
+			break;
+		default:
+			break;
+		}
+
+		bundle.send(networkInterface_, pChannel);
+	}
 }
 
 //-------------------------------------------------------------------------------------

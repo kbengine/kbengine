@@ -155,5 +155,13 @@ void Baseapp::onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID startID, 
 }
 
 //-------------------------------------------------------------------------------------
+void Baseapp::onDbmgrInit(Mercury::Channel* pChannel, 
+		ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
+{
+	INFO_MSG("Baseapp::onDbmgrInit: entityID alloc(%d-%d), startGlobalOrder=%d, startGroupOrder=%d.\n",
+		startID, endID, startGlobalOrder, startGroupOrder);
+}
+
+//-------------------------------------------------------------------------------------
 
 }

@@ -30,6 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #if defined(LOGINAPP)
 #include "loginapp.hpp"
 #endif
+#include "loginapp_interface_macros.hpp"
 #include "network/interface_defs.hpp"
 //#define NDEBUG
 // windows include	
@@ -44,6 +45,11 @@ namespace KBEngine{
 	LOGINAPP所有消息接口在此定义
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
+
+	// 某app请求获取一个entityID段的回调
+	LOGINAPP_MESSAGE_DECLARE_ARGS2(onDbmgrInit,			MERCURY_FIXED_MESSAGE,
+									int32,				startGlobalOrder,
+									int32,				startGroupOrder)
 
 NETWORK_INTERFACE_DECLARE_END()
 

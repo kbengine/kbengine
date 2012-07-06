@@ -41,7 +41,7 @@ Components _g_components;
 
 //-------------------------------------------------------------------------------------
 Components::Components():
-pNetworkInterface_(NULL)
+_pNetworkInterface(NULL)
 {
 }
 
@@ -83,6 +83,23 @@ void Components::addComponent(int32 uid, const char* username,
 		components.push_back(componentInfos);
 	else
 		*cinfos = componentInfos;
+
+	_globalOrderLog[uid]++;
+
+	switch(componentType)
+	{
+	case BASEAPP_TYPE:
+		_baseappGrouplOrderLog[uid]++;
+		break;
+	case CELLAPP_TYPE:
+		_cellappGrouplOrderLog[uid]++;
+		break;
+	case LOGINAPP_TYPE:
+		_loginappGrouplOrderLog[uid]++;
+		break;
+	default:
+		break;
+	};
 
 	INFO_MSG("Components::addComponent[%s], uid:%d, "
 		"componentID:%"PRAppID", totalcount=%d\n", 
@@ -139,8 +156,8 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 
 	if(ret == 0)
 	{
-		pComponentInfos->pChannel = new Mercury::Channel(*pNetworkInterface_, pEndpoint, Mercury::Channel::INTERNAL);
-		if(!pNetworkInterface_->registerChannel(pComponentInfos->pChannel))
+		pComponentInfos->pChannel = new Mercury::Channel(*_pNetworkInterface, pEndpoint, Mercury::Channel::INTERNAL);
+		if(!_pNetworkInterface->registerChannel(pComponentInfos->pChannel))
 		{
 			ERROR_MSG("Components::connectComponent: registerChannel(%s) is failed!\n",
 				pComponentInfos->pChannel->c_str());
@@ -155,8 +172,8 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				
 				BaseappmgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port,
-					pNetworkInterface_->extaddr().ip, pNetworkInterface_->extaddr().port);
+					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
+					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
 			else if(componentType == CELLAPPMGR_TYPE)
 			{
@@ -164,8 +181,8 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				
 				CellappmgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port,
-					pNetworkInterface_->extaddr().ip, pNetworkInterface_->extaddr().port);
+					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
+					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
 			else if(componentType == CELLAPP_TYPE)
 			{
@@ -173,8 +190,8 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				
 				CellappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-						pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port,
-					pNetworkInterface_->extaddr().ip, pNetworkInterface_->extaddr().port);
+						_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
+					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
 			else if(componentType == BASEAPP_TYPE)
 			{
@@ -182,8 +199,8 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				
 				BaseappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port,
-					pNetworkInterface_->extaddr().ip, pNetworkInterface_->extaddr().port);
+					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
+					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
 			else if(componentType == DBMGR_TYPE)
 			{
@@ -191,15 +208,15 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				
 				DbmgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-					pNetworkInterface_->intaddr().ip, pNetworkInterface_->intaddr().port,
-					pNetworkInterface_->extaddr().ip, pNetworkInterface_->extaddr().port);
+					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
+					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
 			else
 			{
 				KBE_ASSERT(false && "invalid componentType.\n");
 			}
 
-			bundle.send(*pNetworkInterface_, pComponentInfos->pChannel);
+			bundle.send(*_pNetworkInterface, pComponentInfos->pChannel);
 		}
 	}
 	else

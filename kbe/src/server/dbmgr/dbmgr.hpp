@@ -76,6 +76,16 @@ public:
 		请求分配一个ENTITY_ID段
 	*/
 	void onReqAllocEntityID(Mercury::Channel* pChannel, int8 componentType, COMPONENT_ID componentID);
+
+	/* 网络接口
+		注册一个新激活的baseapp或者cellapp或者dbmgr
+		通常是一个新的app被启动了， 它需要向某些组件注册自己。
+	*/
+	virtual void onRegisterNewApp(Mercury::Channel* pChannel, 
+							int32 uid, 
+							std::string& username, 
+							int8 componentType, uint64 componentID, 
+							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport);
 protected:
 	TimerHandle				loopCheckTimerHandle_;
 	TimerHandle				mainProcessTimer_;

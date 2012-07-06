@@ -63,6 +63,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									ENTITY_ID,			startID,
 									ENTITY_ID,			endID)
 
+	// 某app请求获取一个entityID段的回调
+	CELLAPP_MESSAGE_DECLARE_ARGS4(onDbmgrInit,	MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,			startID,
+									ENTITY_ID,			endID,
+									int32,				startGlobalOrder,
+									int32,				startGroupOrder)
+
 	/**
 		远程呼叫entity方法
 	*/

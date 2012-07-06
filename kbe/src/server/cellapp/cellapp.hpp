@@ -84,7 +84,17 @@ public:
 	/** 网络接口
 		请求分配一个ENTITY_ID段的回调
 	*/
-	void onReqAllocEntityID(Mercury::Channel* pChannel, int32 startID, int32 endID);
+	void onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID);
+
+	/** 网络接口
+		dbmgr发送初始信息
+		startID: 初始分配ENTITY_ID 段起始位置
+		endID: 初始分配ENTITY_ID 段结束位置
+		startGlobalOrder: 全局启动顺序 包括各种不同组件
+		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
+	*/
+	void onDbmgrInit(Mercury::Channel* pChannel, 
+		ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder);
 protected:
 	EntityIDClient				idClient_;
 	Entities<Entity>*			pEntities_;									// 存储所有的entity的容器

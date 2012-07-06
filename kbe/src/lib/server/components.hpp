@@ -63,7 +63,7 @@ public:
 	Components();
 	~Components();
 
-	void pNetworkInterface(Mercury::NetworkInterface * networkInterface){ pNetworkInterface_ = networkInterface; }
+	void pNetworkInterface(Mercury::NetworkInterface * networkInterface){ _pNetworkInterface = networkInterface; }
 
 	void addComponent(int32 uid, const char* username, 
 		COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
@@ -81,16 +81,30 @@ public:
 	//const Components::ComponentInfos findComponent(COMPONENT_TYPE componentType, int32 uid);
 
 	int connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID);
+
+	typedef std::map<int32/*uid*/, int32/*lastorder*/> ORDER_LOG;
+	ORDER_LOG& getGlobalOrderLog(){ return _globalOrderLog; }
+	ORDER_LOG& getBaseappGroupOrderLog(){ return _baseappGrouplOrderLog; }
+	ORDER_LOG& getCellappGroupOrderLog(){ return _cellappGrouplOrderLog; }
+	ORDER_LOG& getLoginappGroupOrderLog(){ return _loginappGrouplOrderLog; }
 private:
-	COMPONENTS					_baseapps;
-	COMPONENTS					_cellapps;
-	COMPONENTS					_dbmgrs;
-	COMPONENTS					_loginapps;
-	COMPONENTS					_cellappmgrs;
-	COMPONENTS					_baseappmgrs;
-	COMPONENTS					_machines;
-	COMPONENTS					_centers;
-	Mercury::NetworkInterface* 	pNetworkInterface_;
+	COMPONENTS								_baseapps;
+	COMPONENTS								_cellapps;
+	COMPONENTS								_dbmgrs;
+	COMPONENTS								_loginapps;
+	COMPONENTS								_cellappmgrs;
+	COMPONENTS								_baseappmgrs;
+	COMPONENTS								_machines;
+	COMPONENTS								_centers;
+
+	Mercury::NetworkInterface*				_pNetworkInterface;
+
+	// 组件的全局启动次序log和组(相同的组件为一组， 如：所有baseapp为一个组)启动次序log
+	// 注意:中途有死掉的app组件这里log并不去做减操作, 从使用意图来看也没有必要做这个匹配。
+	ORDER_LOG								_globalOrderLog;
+	ORDER_LOG								_baseappGrouplOrderLog;
+	ORDER_LOG								_cellappGrouplOrderLog;
+	ORDER_LOG								_loginappGrouplOrderLog;
 };
 
 }
