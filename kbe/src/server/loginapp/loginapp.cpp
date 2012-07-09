@@ -95,6 +95,9 @@ void Loginapp::onDbmgrInit(Mercury::Channel* pChannel, int32 startGlobalOrder, i
 {
 	INFO_MSG("Loginapp::onDbmgrInit:startGlobalOrder=%d, startGroupOrder=%d.\n",
 		startGlobalOrder, startGroupOrder);
+
+	startGlobalOrder_ = startGlobalOrder;
+	startGroupOrder_ = startGroupOrder;
 }
 
 //-------------------------------------------------------------------------------------

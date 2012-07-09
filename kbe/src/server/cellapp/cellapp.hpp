@@ -75,6 +75,7 @@ public:
 
 
 	/* 创建一个entity */
+	static PyObject* __py_createEntity(PyObject* self, PyObject* args);
 	Entity* createEntity(const char* entityType, PyObject* params, bool isInitializeScript = true, ENTITY_ID eid = 0);
 	
 	/* 通过entityID寻找到对应的实例 */

@@ -160,6 +160,22 @@ void Baseapp::onDbmgrInit(Mercury::Channel* pChannel,
 {
 	INFO_MSG("Baseapp::onDbmgrInit: entityID alloc(%d-%d), startGlobalOrder=%d, startGroupOrder=%d.\n",
 		startID, endID, startGlobalOrder, startGroupOrder);
+
+	startGlobalOrder_ = startGlobalOrder;
+	startGroupOrder_ = startGroupOrder;
+
+	idClient_.onAddRange(startID, endID);
+
+	// 所有脚本都加载完毕
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onBaseAppReady"), 
+										const_cast<char*>("i"), 
+										startGroupOrder == 1 ? 1 : 0);
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		SCRIPT_ERROR_CHECK();
 }
 
 //-------------------------------------------------------------------------------------

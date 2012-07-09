@@ -69,6 +69,10 @@ bool Cellapp::installPyModules()
 	
 	pEntities_ = new Entities<Entity>();
 	registerPyObjectToScript("entities", pEntities_);
+
+	// 注册创建entity的方法到py
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createEntity,			__py_createEntity,					METH_VARARGS,			0);
+
 	return EntityApp::installPyModules();
 }
 
@@ -85,17 +89,6 @@ bool Cellapp::uninstallPyModules()
 //-------------------------------------------------------------------------------------
 bool Cellapp::run()
 {
-	Entity* e = createEntity("Avatar", NULL);
-	//registerPyObjectToScript("avatar", e);
-	PyRun_SimpleString("print (dir(KBEngine.avatar), KBEngine.entities.has_key(1))");
-	PyRun_SimpleString("print ('888888888888888888888', KBEngine.avatar.id, KBEngine.avatar.name)");
-	DEBUG_MSG("kbe:python is init successfully!!! %d\n", 88);
-	SmartPointer<PyObject> testsmartpointer(::PyBytes_FromString("test"));
-	testsmartpointer.clear();
-
-	CRITICAL_MSG("hahahah %d\n", 1111);
-	//unregisterPyObjectToScript("avatar");
-	//destroyEntity(e->getID());
 	return ServerApp::run();
 }
 
@@ -158,6 +151,47 @@ void Cellapp::finalise()
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
+{
+	PyObject* params = NULL;
+	char* entityType = NULL;
+	SPACE_ID spaceID;
+	PyObject* position, *direction;
+	
+	if(!PyArg_ParseTuple(args, "s|I|O|O|O", &entityType, &spaceID, &position, &direction, &params))
+	{
+		PyErr_Format(PyExc_TypeError, 
+			"KBEngine::createEntity: args is error! args[scriptName, spaceID, position, direction, states].");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	
+	//Space* space = SpaceManager::findSpace(spaceID);
+	//if(space == NULL)
+	//{
+	//	PyErr_Format(PyExc_TypeError, "KBEngine::createEntity: spaceID %ld not found.", spaceID);
+	//	PyErr_PrintEx(0);
+	//	S_Return;
+	//}
+	
+	// 创建entity
+	Entity* pEntity = Cellapp::getSingleton().createEntity(entityType, params, false, 0);
+
+	if(pEntity != NULL)
+	{
+		Py_INCREF(pEntity);
+		pEntity->pySetPosition(position);
+		pEntity->pySetDirection(direction);	
+		pEntity->initializeScript();
+
+		// 添加到space
+		//space->addEntity(pEntity);
+	}
+	
+	return pEntity;
+}
+
 Entity* Cellapp::createEntity(const char* entityType, PyObject* params, bool isInitializeScript, ENTITY_ID eid)
 {
 	// 检查ID是否足够, 不足返回NULL
@@ -247,6 +281,22 @@ void Cellapp::onDbmgrInit(Mercury::Channel* pChannel,
 {
 	INFO_MSG("Cellapp::onDbmgrInit: entityID alloc(%d-%d), startGlobalOrder=%d, startGroupOrder=%d.\n",
 		startID, endID, startGlobalOrder, startGroupOrder);
+
+	startGlobalOrder_ = startGlobalOrder;
+	startGroupOrder_ = startGroupOrder;
+
+	idClient_.onAddRange(startID, endID);
+	
+	// 所有脚本都加载完毕
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onInitialize"), 
+										const_cast<char*>("i"), 
+										0);
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		SCRIPT_ERROR_CHECK();
 }
 
 //-------------------------------------------------------------------------------------

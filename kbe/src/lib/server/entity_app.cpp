@@ -126,6 +126,32 @@ bool EntityApp::installPyModules()
 {
 	//Entities::installScript(NULL);
 	//Entity::installScript(g_script.getModule());
+
+	// 安装入口模块
+	PyObject *entryScriptFileName = NULL;
+	if(componentType() == BASEAPP_TYPE)
+	{
+		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getBaseApp();
+		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
+	}
+	else if(componentType() == CELLAPP_TYPE)
+	{
+		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getCellApp();
+		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
+	}
+
+	if(entryScriptFileName != NULL)
+	{
+		entryScript_ = PyImport_Import(entryScriptFileName);
+		SCRIPT_ERROR_CHECK();
+		S_RELEASE(entryScriptFileName);
+
+		if(entryScript_.get() == NULL)
+		{
+			return false;
+		}
+	}
+
 	return installEntityDef();
 }
 
