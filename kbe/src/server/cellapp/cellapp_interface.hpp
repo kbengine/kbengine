@@ -70,6 +70,16 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									int32,				startGlobalOrder,
 									int32,				startGroupOrder)
 
+	// global数据改变
+	CELLAPP_MESSAGE_DECLARE_ARGS3(onBroadcastGlobalDataChange,	MERCURY_VARIABLE_MESSAGE,
+									std::string,		key,
+									std::string,		value,
+									bool,				isDelete)
+	CELLAPP_MESSAGE_DECLARE_ARGS3(onBroadcastCellAppDataChange,	MERCURY_VARIABLE_MESSAGE,
+									std::string,		key,
+									std::string,		value,
+									bool,				isDelete)
+
 	/**
 		远程呼叫entity方法
 	*/

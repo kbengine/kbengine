@@ -4,6 +4,8 @@ SRCS =				\
 	componentbridge		\
 	components		\
 	entity_app		\
+	globaldata_client	\
+	globaldata_server	\
 	idallocate		\
 	script_timers		\
 	serverapp		\

@@ -71,6 +71,16 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									int32,				startGlobalOrder,
 									int32,				startGroupOrder)
 
+	// global数据改变
+	BASEAPP_MESSAGE_DECLARE_ARGS3(onBroadcastGlobalDataChange,	MERCURY_VARIABLE_MESSAGE,
+									std::string,		key,
+									std::string,		value,
+									bool,				isDelete)
+	BASEAPP_MESSAGE_DECLARE_ARGS3(onBroadcastGlobalBasesChange,	MERCURY_VARIABLE_MESSAGE,
+									std::string,		key,
+									std::string,		value,
+									bool,				isDelete)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

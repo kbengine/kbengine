@@ -27,6 +27,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/entity_app.hpp"
 #include "server/idallocate.hpp"
 #include "server/serverconfig.hpp"
+#include "server/globaldata_client.hpp"
+#include "server/globaldata_server.hpp"
 #include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
 
@@ -86,10 +88,20 @@ public:
 	*/
 	void onDbmgrInit(Mercury::Channel* pChannel, 
 		ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder);
+
+	/** 网络接口
+		dbmgr广播global数据的改变
+	*/
+	void onBroadcastGlobalDataChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete);
+	void onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete);
+
 protected:
-	EntityIDClient				idClient_;
-	//Entities<Entity>*			pEntities_;									// 存储所有的entity的容器
-	TimerHandle					gameTimer_;
+	EntityIDClient						idClient_;
+	//Entities<Entity>*					pEntities_;									// 存储所有的entity的容器
+	TimerHandle							gameTimer_;
+
+	GlobalDataClient*					pGlobalData_;								// globalData
+	GlobalDataClient*					pGlobalBases_;								// globalBases
 };
 
 }

@@ -44,7 +44,9 @@ Cellapp::Cellapp(Mercury::EventDispatcher& dispatcher,
 	EntityApp(dispatcher, ninterface, componentType, componentID),
 	idClient_(),
 	pEntities_(NULL),
-    gameTimer_()
+    gameTimer_(),
+	pGlobalData_(NULL),
+	pCellAppData_(NULL)
 {
 	// KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &CellAppInterface::messageHandlers;	
 
@@ -70,6 +72,13 @@ bool Cellapp::installPyModules()
 	pEntities_ = new Entities<Entity>();
 	registerPyObjectToScript("entities", pEntities_);
 
+	// 添加globalData, cellAppData支持
+	pGlobalData_	= new GlobalDataClient(BASEAPPMGR_TYPE);
+	pCellAppData_	= new GlobalDataClient(CELLAPPMGR_TYPE);
+	registerPyObjectToScript("globalData", pGlobalData_);
+	registerPyObjectToScript("cellAppData", pCellAppData_);
+
+
 	// 注册创建entity的方法到py
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createEntity,			__py_createEntity,					METH_VARARGS,			0);
 
@@ -79,6 +88,11 @@ bool Cellapp::installPyModules()
 //-------------------------------------------------------------------------------------
 bool Cellapp::uninstallPyModules()
 {	
+	unregisterPyObjectToScript("globalData");
+	unregisterPyObjectToScript("cellAppData");
+	S_RELEASE(pGlobalData_); 
+	S_RELEASE(pCellAppData_); 
+
 	S_RELEASE(pEntities_);
 	unregisterPyObjectToScript("entities");
 	Entities<Entity>::uninstallScript();
@@ -297,6 +311,24 @@ void Cellapp::onDbmgrInit(Mercury::Channel* pChannel,
 		Py_DECREF(pyResult);
 	else
 		SCRIPT_ERROR_CHECK();
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete)
+{
+	if(isDelete)
+		pGlobalData_->del(key);
+	else
+		pGlobalData_->write(key, value);
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete)
+{
+	if(isDelete)
+		pCellAppData_->del(key);
+	else
+		pCellAppData_->write(key, value);
 }
 
 //-------------------------------------------------------------------------------------

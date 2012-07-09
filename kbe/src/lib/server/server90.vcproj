@@ -165,6 +165,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\globaldata_client.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\globaldata_server.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\idallocate.cpp"
 				>
 			</File>
@@ -204,6 +212,14 @@
 			</File>
 			<File
 				RelativePath=".\entity_app.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\globaldata_client.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\globaldata_server.hpp"
 				>
 			</File>
 			<File

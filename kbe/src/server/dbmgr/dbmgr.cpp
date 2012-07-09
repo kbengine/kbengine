@@ -45,7 +45,10 @@ Dbmgr::Dbmgr(Mercury::EventDispatcher& dispatcher,
 	ServerApp(dispatcher, ninterface, componentType, componentID),
 	loopCheckTimerHandle_(),
 	mainProcessTimer_(),
-	idServer_(1, 1024)
+	idServer_(1, 1024),
+	pGlobalData_(NULL),
+	pGlobalBases_(NULL),
+	pCellAppData_(NULL)
 {
 }
 
@@ -112,6 +115,15 @@ bool Dbmgr::initializeEnd()
 
 	mainProcessTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_TICK));
+
+	// Ìí¼ÓglobalData, globalBases, cellAppDataÖ§³Ö
+	pGlobalData_ = new GlobalDataServer();
+	pGlobalBases_ = new GlobalDataServer();
+	pCellAppData_ = new GlobalDataServer();
+	pGlobalData_->addConcernComponentType(CELLAPP_TYPE);
+	pGlobalData_->addConcernComponentType(BASEAPP_TYPE);
+	pGlobalBases_->addConcernComponentType(BASEAPP_TYPE);
+	pCellAppData_->addConcernComponentType(CELLAPP_TYPE);
 	return true;
 }
 
@@ -120,6 +132,10 @@ void Dbmgr::finalise()
 {
 	loopCheckTimerHandle_.cancel();
 	mainProcessTimer_.cancel();
+
+	SAFE_RELEASE(pGlobalData_);
+	SAFE_RELEASE(pGlobalBases_);
+	SAFE_RELEASE(pCellAppData_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -196,6 +212,55 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 
 		bundle.send(networkInterface_, pChannel);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::onGlobalDataClientLogon(Mercury::Channel* pChannel, COMPONENT_TYPE componentType)
+{
+	if(BASEAPP_TYPE == componentType)
+	{
+		pGlobalBases_->onGlobalDataClientLogon(pChannel);
+		pGlobalData_->onGlobalDataClientLogon(pChannel);
+	}
+	else if(CELLAPP_TYPE == componentType)
+	{
+		pGlobalData_->onGlobalDataClientLogon(pChannel);
+		pCellAppData_->onGlobalDataClientLogon(pChannel);
+	}
+	else
+	{
+		ERROR_MSG("Dbmgr::onGlobalDataClientLogon: nonsupport %s!\n", COMPONENT_NAME[componentType]);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, 
+											  std::string& key, std::string& value, bool isDelete)
+{
+	if(isDelete)
+		pGlobalData_->del(pChannel, key);
+	else
+		pGlobalData_->write(pChannel, key, value);
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, 
+											   std::string& key, std::string& value, bool isDelete)
+{
+	if(isDelete)
+		pGlobalBases_->del(pChannel, key);
+	else
+		pGlobalBases_->write(pChannel, key, value);
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, 
+									   std::string& key, std::string& value, bool isDelete)
+{
+	if(isDelete)
+		pCellAppData_->del(pChannel, key);
+	else
+		pCellAppData_->write(pChannel, key, value);
 }
 
 //-------------------------------------------------------------------------------------

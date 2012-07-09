@@ -26,6 +26,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverapp.hpp"
 #include "server/idallocate.hpp"
 #include "server/serverconfig.hpp"
+#include "server/globaldata_client.hpp"
+#include "server/globaldata_server.hpp"
 #include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
 #include "server/idallocate.hpp"
@@ -87,11 +89,24 @@ public:
 							std::string& username, 
 							int8 componentType, uint64 componentID, 
 							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport);
+
+
+	/** 网络接口
+		dbmgr广播global数据的改变
+	*/
+	void onGlobalDataClientLogon(Mercury::Channel* pChannel, COMPONENT_TYPE componentType);
+	void onBroadcastGlobalDataChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete);
+	void onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete);
+	void onBroadcastCellAppDataChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete);
 protected:
 	TimerHandle				loopCheckTimerHandle_;
 	TimerHandle				mainProcessTimer_;
 
 	IDServer<ENTITY_ID>		idServer_;									// entityID分配服务端
+
+	GlobalDataServer*					pGlobalData_;								// globalData
+	GlobalDataServer*					pGlobalBases_;								// globalBases
+	GlobalDataServer*					pCellAppData_;								// cellAppData
 };
 
 }

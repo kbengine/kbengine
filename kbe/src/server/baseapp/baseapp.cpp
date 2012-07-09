@@ -42,7 +42,9 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 	EntityApp(dispatcher, ninterface, componentType, componentID),
     idClient_(),
 //	pEntities_(NULL),
-    gameTimer_()
+    gameTimer_(),
+	pGlobalData_(NULL),
+	pGlobalBases_(NULL)
 {
 	// KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &CellAppInterface::messageHandlers;	
 
@@ -67,12 +69,24 @@ bool Baseapp::installPyModules()
 	
 	//pEntities_ = new Entities<Entity>();
 	//registerPyObjectToScript("entities", pEntities_);
+
+	// ÃÌº”globalData, globalBases÷ß≥÷
+	pGlobalData_ = new GlobalDataClient(BASEAPPMGR_TYPE);
+	pGlobalBases_ = new GlobalDataClient(BASEAPPMGR_TYPE);
+	registerPyObjectToScript("globalData", pGlobalData_);
+	registerPyObjectToScript("globalBases", pGlobalBases_);
+
 	return EntityApp::installPyModules();
 }
 
 //-------------------------------------------------------------------------------------
 bool Baseapp::uninstallPyModules()
 {	
+	unregisterPyObjectToScript("globalData");
+	unregisterPyObjectToScript("globalBases");
+	S_RELEASE(pGlobalData_); 
+	S_RELEASE(pGlobalBases_); 
+
 	//S_RELEASE(pEntities_);
 	//unregisterPyObjectToScript("entities");
 	//Entities<Entity>::uninstallScript();
@@ -176,6 +190,24 @@ void Baseapp::onDbmgrInit(Mercury::Channel* pChannel,
 		Py_DECREF(pyResult);
 	else
 		SCRIPT_ERROR_CHECK();
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete)
+{
+	if(isDelete)
+		pGlobalData_->del(key);
+	else
+		pGlobalData_->write(key, value);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete)
+{
+	if(isDelete)
+		pGlobalBases_->del(key);
+	else
+		pGlobalBases_->write(key, value);
 }
 
 //-------------------------------------------------------------------------------------
