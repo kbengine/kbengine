@@ -57,15 +57,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("cellapp");
 	if(rootNode != NULL)
 	{
-		node = xml->enterNode(rootNode, "port");
-		if(node != NULL)
-			_cellAppInfo.port = xml->getValInt(node);
-		
 		node = NULL;
-		node = xml->enterNode(rootNode, "ip");	
+		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
-			strncpy((char*)&_cellAppInfo.ip, xml->getValStr(node).c_str(), MAX_IP);
-		
+			strncpy((char*)&_cellAppInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
 		node = NULL;
 		node = xml->enterNode(rootNode, "entryScriptFile");	
 		if(node != NULL)
@@ -92,19 +88,34 @@ bool ServerConfig::loadConfig(std::string fileName)
 	if(rootNode != NULL)
 	{
 		node = NULL;
-		node = xml->enterNode(rootNode, "port");
-		if(node != NULL)	
-			_baseAppInfo.port = xml->getValInt(node);
-		
-		node = NULL;
-		node = xml->enterNode(rootNode, "ip");
-		if(node != NULL)	
-			strncpy((char*)&_baseAppInfo.ip, xml->getValStr(node).c_str(), MAX_IP);
-		
-		node = NULL;
 		node = xml->enterNode(rootNode, "entryScriptFile");	
 		if(node != NULL)
 			strncpy((char*)&_baseAppInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "internalInterface");	
+		if(node != NULL)
+			strncpy((char*)&_baseAppInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "externalInterface");	
+		if(node != NULL)
+			strncpy((char*)&_baseAppInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "externalPorts_min");
+		if(node != NULL)	
+			_baseAppInfo.externalPorts_min = xml->getValInt(node);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "externalPorts_max");
+		if(node != NULL)	
+			_baseAppInfo.externalPorts_max = xml->getValInt(node);
+
+		if(_baseAppInfo.externalPorts_min < 0)
+			_baseAppInfo.externalPorts_min = 0;
+		if(_baseAppInfo.externalPorts_max < _baseAppInfo.externalPorts_min)
+			_baseAppInfo.externalPorts_max = _baseAppInfo.externalPorts_min;
 	}
 
 	rootNode = NULL;
@@ -112,15 +123,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 	if(rootNode != NULL)
 	{
 		node = NULL;
-		node = xml->enterNode(rootNode, "port");	
+		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
-			_dbmgrInfo.port = xml->getValInt(node);
-		
-		node = NULL;
-		node = xml->enterNode(rootNode, "ip");
-		if(node != NULL)
-			strncpy((char*)&_dbmgrInfo.ip, xml->getValStr(node).c_str(), MAX_IP);
-		
+			strncpy((char*)&_dbmgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
 		node = NULL;
 		node = xml->enterNode(rootNode, "dbAccountEntityScriptType");	
 		if(node != NULL)
@@ -132,14 +138,29 @@ bool ServerConfig::loadConfig(std::string fileName)
 	if(rootNode != NULL)
 	{
 		node = NULL;
-		node = xml->enterNode(rootNode, "port");
+		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
-			_loginAppInfo.port = xml->getValInt(node);
-		
+			strncpy((char*)&_loginAppInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
 		node = NULL;
-		node = xml->enterNode(rootNode, "ip");
+		node = xml->enterNode(rootNode, "externalInterface");	
 		if(node != NULL)
-			strncpy((char*)&_loginAppInfo.ip, xml->getValStr(node).c_str(), MAX_IP);
+			strncpy((char*)&_loginAppInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "externalPorts_min");
+		if(node != NULL)	
+			_loginAppInfo.externalPorts_min = xml->getValInt(node);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "externalPorts_max");
+		if(node != NULL)	
+			_loginAppInfo.externalPorts_max = xml->getValInt(node);
+
+		if(_loginAppInfo.externalPorts_min < 0)
+			_loginAppInfo.externalPorts_min = 0;
+		if(_loginAppInfo.externalPorts_max < _loginAppInfo.externalPorts_min)
+			_loginAppInfo.externalPorts_max = _loginAppInfo.externalPorts_min;
 	}
 	
 	rootNode = NULL;
@@ -147,14 +168,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 	if(rootNode != NULL)
 	{
 		node = NULL;
-		node = xml->enterNode(rootNode, "port");
+		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
-			_cellAppMgrInfo.port = xml->getValInt(node);
-		
-		node = NULL;
-		node = xml->enterNode(rootNode, "ip");
-		if(node != NULL)
-			strncpy((char*)&_cellAppMgrInfo.ip, xml->getValStr(node).c_str(), MAX_IP);
+			strncpy((char*)&_cellAppMgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 	}
 	
 	rootNode = NULL;
@@ -162,14 +178,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 	if(rootNode != NULL)
 	{
 		node = NULL;
-		node = xml->enterNode(rootNode, "port");
+		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
-			_baseAppMgrInfo.port = xml->getValInt(node);
-		
-		node = NULL;
-		node = xml->enterNode(rootNode, "ip");
-		if(node != NULL)
-			strncpy((char*)&_baseAppMgrInfo.ip, xml->getValStr(node).c_str(), MAX_IP);
+			strncpy((char*)&_baseAppMgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 	}
 	
 	rootNode = NULL;
@@ -177,14 +188,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 	if(rootNode != NULL)
 	{
 		node = NULL;
-		node = xml->enterNode(rootNode, "port");
+		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
-			_kbMachineInfo.port = xml->getValInt(node);
-		
-		node = NULL;
-		node = xml->enterNode(rootNode, "ip");
-		if(node != NULL)
-			strncpy((char*)&_kbMachineInfo.ip, xml->getValStr(node).c_str(), MAX_IP);
+			strncpy((char*)&_kbMachineInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 	}
 
 	rootNode = NULL;
@@ -192,14 +198,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 	if(rootNode != NULL)
 	{
 		node = NULL;
-		node = xml->enterNode(rootNode, "port");
+		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
-			_kbCenterInfo.port = xml->getValInt(node);
-		
-		node = NULL;
-		node = xml->enterNode(rootNode, "ip");
-		if(node != NULL)
-			strncpy((char*)&_kbCenterInfo.ip, xml->getValStr(node).c_str(), MAX_IP);
+			strncpy((char*)&_kbCenterInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 	}
 	
 	SAFE_RELEASE(xml);

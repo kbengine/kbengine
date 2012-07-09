@@ -54,5 +54,7 @@ using namespace KBEngine;
 
 int KBENGINE_MAIN(int argc, char* argv[])
 {
-	return kbeMainT<Baseapp>(argc, argv, BASEAPP_TYPE, 0);
+	ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getBaseApp();
+	return kbeMainT<Baseapp>(argc, argv, BASEAPP_TYPE, info.externalPorts_min, 
+		info.externalPorts_max, info.externalInterface, 0, info.internalInterface);
 }

@@ -160,8 +160,12 @@ public:
 	TiXmlNode* enterNode(TiXmlNode* node, const char* key)
 	{
 		do{
+			if(node->Type() != TiXmlNode::TINYXML_ELEMENT)
+				continue;
+
 			if(getKey(node) == key)
 				return node->FirstChild();
+
 		}while((node = node->NextSibling()));
 
 		return NULL;
@@ -171,17 +175,21 @@ public:
 	bool hasNode(TiXmlNode* node, const char* key)
 	{
 		do{
+			if(node->Type() != TiXmlNode::TINYXML_ELEMENT)
+				continue;
+
 			if(getKey(node) == key)
 				return true;
+
 		}while((node = node->NextSibling()));
 
 		return false;	
 	}
 
-	std::string getKey(const TiXmlNode* node){return node->Value();}
-	std::string getValStr(const TiXmlNode* node){return node->ToText()->Value();}
-	int getValInt(const TiXmlNode* node){return atoi(node->ToText()->Value());}
-	double getValFloat(const TiXmlNode* node){return atof(node->ToText()->Value());}
+	std::string getKey(const TiXmlNode* node){return kbe_trim(node->Value());}
+	std::string getValStr(const TiXmlNode* node){return kbe_trim(node->ToText()->Value());}
+	int getValInt(const TiXmlNode* node){return atoi(kbe_trim(node->ToText()->Value()).c_str());}
+	double getValFloat(const TiXmlNode* node){return atof(kbe_trim(node->ToText()->Value()).c_str());}
 protected:
 	TiXmlDocument* txdoc_;
 	TiXmlElement* rootElement_;

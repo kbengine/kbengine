@@ -54,5 +54,6 @@ using namespace KBEngine;
 
 int KBENGINE_MAIN(int argc, char* argv[])
 {
-	return kbeMainT<Baseappmgr>(argc, argv, BASEAPPMGR_TYPE);
+	ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getBaseAppMgr();
+	return kbeMainT<Baseappmgr>(argc, argv, BASEAPPMGR_TYPE, -1, -1, "", 0, info.internalInterface);
 }

@@ -42,7 +42,7 @@ const char * NetworkInterface::USE_KBEMACHINED = "kbemachined";
 
 //-------------------------------------------------------------------------------------
 NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
-		int32 extlisteningPort, const char * extlisteningInterface,
+		int32 extlisteningPort_min, int32 extlisteningPort_max, const char * extlisteningInterface,
 		int32 intlisteningPort, const char * intlisteningInterface):
 	extEndpoint_(),
 	intEndpoint_(),
@@ -54,18 +54,20 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 	pIntListenerReceiver_(NULL),
 	pDelayedChannels_(new DelayedChannels()),
 	pChannelTimeOutHandler_(NULL),
-	isExternal_(extlisteningPort != -1)
+	isExternal_(extlisteningPort_min != -1)
 {
 	if(isExternal())
 	{
 		pExtListenerReceiver_ = new ListenerReceiver(extEndpoint_, Channel::EXTERNAL, *this);
-		this->recreateListeningSocket("EXTERNAL", extlisteningPort, extlisteningInterface, &extEndpoint_, pExtListenerReceiver_);
+		this->recreateListeningSocket("EXTERNAL", htons(extlisteningPort_min), htons(extlisteningPort_max), 
+			extlisteningInterface, &extEndpoint_, pExtListenerReceiver_);
 	}
 
 	if(intlisteningPort != -1)
 	{
 		pIntListenerReceiver_ = new ListenerReceiver(intEndpoint_, Channel::INTERNAL, *this);
-		this->recreateListeningSocket("INTERNAL", intlisteningPort, intlisteningInterface, &intEndpoint_, pIntListenerReceiver_);
+		this->recreateListeningSocket("INTERNAL", intlisteningPort, intlisteningPort, 
+			intlisteningInterface, &intEndpoint_, pIntListenerReceiver_);
 	}
 
 	KBE_ASSERT(good());
@@ -146,8 +148,8 @@ void NetworkInterface::closeSocket()
 }
 
 //-------------------------------------------------------------------------------------
-bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16 listeningPort,
-	const char * listeningInterface, EndPoint* pEP, ListenerReceiver* pLR)
+bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16 listeningPort_min, uint16 listeningPort_max, 
+										const char * listeningInterface, EndPoint* pEP, ListenerReceiver* pLR)
 {
 	KBE_ASSERT(listeningInterface && pEP && pLR);
 
@@ -206,7 +208,32 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 			pEndPointName, listeningInterface );
 	}
 	
-	if (pEP->bind(listeningPort, ifaddr) != 0)
+	bool foundport = false;
+	uint32 listeningPort = listeningPort_min;
+	if(listeningPort_min != listeningPort_max)
+	{
+		for(int lpIdx=listeningPort_min; lpIdx<listeningPort_max; lpIdx++)
+		{
+			if (pEP->bind(lpIdx, ifaddr) != 0)
+			{
+				continue;
+			}
+			else
+			{
+				foundport = true;
+				break;
+			}
+		}
+	}
+	else
+	{
+		if (pEP->bind(listeningPort, ifaddr) == 0)
+		{
+			foundport = true;
+		}
+	}
+
+	if(!foundport)
 	{
 		ERROR_MSG("NetworkInterface::recreateListeningSocket(%s): "
 				"Couldn't bind the socket to %s (%s)\n",

@@ -56,8 +56,9 @@ class Address;
 // 引擎组件信息结构体
 typedef struct EngineComponentInfo
 {
-	uint32 port;											// 组件的监听端口
-	char ip[MAX_IP];										// 组件的ip地址
+	uint32 port;											// 组件的运行后监听的端口
+	char ip[MAX_IP];										// 组件的运行期ip地址
+
 	char entryScriptFile[MAX_NAME];							// 组件的入口脚本文件
 	char dbAccountEntityScriptType[MAX_NAME];				// 数据库帐号脚本类别
 	float defaultAoIRadius;									// 配置在cellapp节点中的player的aoi半径大小
@@ -65,6 +66,11 @@ typedef struct EngineComponentInfo
 	const Mercury::Address* externalAddr;					// 外部地址
 	const Mercury::Address* internalAddr;					// 内部地址
 	COMPONENT_ID componentID;
+
+	char internalInterface[MAX_NAME];						// 内部网卡接口名称
+	char externalInterface[MAX_NAME];						// 外部网卡接口名称
+	int32 externalPorts_min;								// 对外socket端口使用指定范围
+	int32 externalPorts_max;
 }ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>

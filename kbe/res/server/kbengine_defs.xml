@@ -3,6 +3,8 @@
 	
 	<dbmgr>
 		<dbAccountEntityScriptType>	Account						</dbAccountEntityScriptType>
+		
+		<internalInterface>  </internalInterface>
 	</dbmgr>
 	
 	<cellapp>
@@ -12,24 +14,39 @@
 			<radius>				80.0						</radius>
 			<hysteresisArea>		5.0							</hysteresisArea>
 		</defaultAoIRadius>
+		
+		<internalInterface>  </internalInterface>
 	</cellapp>
 	
 	<baseapp>
 		<entryScriptFile>			kbengine					</entryScriptFile>
+		
+		<internalInterface>  </internalInterface>
+		<externalInterface>  </externalInterface>	<!-- Type: String -->
+		<externalPorts_min> 20015 </externalPorts_min>	<!-- Type: Integer -->
+		<externalPorts_max> 20019 </externalPorts_max>	<!-- Type: Integer -->
 	</baseapp>
 	
 	<cellappmgr>
+		<internalInterface>  </internalInterface>
 	</cellappmgr>
 	
 	<baseappmgr>
+		<internalInterface>  </internalInterface>
 	</baseappmgr>
 	
 	<loginapp>
+		<internalInterface>  </internalInterface>
+		<externalInterface>  </externalInterface>	<!-- Type: String -->
+		<externalPorts_min> 20013 </externalPorts_min>	<!-- Type: Integer -->
+		<externalPorts_max> 0 </externalPorts_max>	<!-- Type: Integer -->
 	</loginapp>		
 	
 	<kbmachine>
+		<internalInterface>  </internalInterface>
 	</kbmachine>
 	
 	<kbcenter>
+		<internalInterface>  </internalInterface>
 	</kbcenter>
 </root>

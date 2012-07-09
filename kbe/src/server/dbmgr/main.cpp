@@ -53,5 +53,6 @@ using namespace KBEngine;
 
 int KBENGINE_MAIN(int argc, char* argv[])
 {
-	return kbeMainT<Dbmgr>(argc, argv, DBMGR_TYPE);
+	ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getDBMgr();
+	return kbeMainT<Dbmgr>(argc, argv, DBMGR_TYPE, -1, -1, "", 0, info.internalInterface);
 }

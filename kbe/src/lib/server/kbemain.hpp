@@ -53,18 +53,21 @@ inline void START_MSG(const char * name, uint64 appuid)
 
 template <class SERVER_APP>
 int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType, 
-			 int32 extlisteningPort = -1, const char * extlisteningInterface = "",
+			 int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
 			 int32 intlisteningPort = 0, const char * intlisteningInterface = "")
 {
+	uint64 appuid = genUUID64();
 	g_componentType = componentType;
 	DebugHelper::initHelper(componentType);
 
 	Mercury::EventDispatcher dispatcher;
 	Mercury::NetworkInterface networkInterface(&dispatcher, 
-		(extlisteningPort != -1) ? htons(extlisteningPort) : -1, extlisteningInterface,
+		extlisteningPort_min, extlisteningPort_max, extlisteningInterface,
 		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface);
 	
-	uint64 appuid = genUUID64();
+	g_kbeSrvConfig.updateInfos(true, componentType, appuid, 
+			networkInterface.intaddr(), networkInterface.extaddr());
+	
 	Componentbridge* pComponentbridge = new Componentbridge(networkInterface, componentType, appuid);
 	SERVER_APP app(dispatcher, networkInterface, componentType, appuid);
 	START_MSG(COMPONENT_NAME[componentType], appuid);
@@ -82,12 +85,14 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	return ret;
 }
 
-#define KBENGINE_MAIN										\
-kbeMain(int argc, char* argv[]);							\
-int main(int argc, char* argv[])							\
-{															\
-	return kbeMain(argc, argv);								\
-}															\
+#define KBENGINE_MAIN														\
+kbeMain(int argc, char* argv[]);											\
+int main(int argc, char* argv[])											\
+{																			\
+	g_kbeSrvConfig.loadConfig("../../res/server/kbengine_defs.xml");		\
+	g_kbeSrvConfig.loadConfig("../../../demo/res/server/kbengine.xml");		\
+	return kbeMain(argc, argv);												\
+}																			\
 int kbeMain
 
 }

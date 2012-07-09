@@ -49,7 +49,7 @@ public:
 	typedef std::map<Address, Channel *>	ChannelMap;
 	
 	NetworkInterface(EventDispatcher * pMainDispatcher,
-		int32 extlisteningPort = 0, const char * extlisteningInterface = "",
+		int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
 		int32 intlisteningPort = 0, const char * intlisteningInterface = "");
 	~NetworkInterface();
 	
@@ -59,7 +59,7 @@ public:
 	INLINE const Address & extaddr() const;
 	INLINE const Address & intaddr() const;
 
-	bool recreateListeningSocket(const char* pEndPointName, uint16 listeningPort, 
+	bool recreateListeningSocket(const char* pEndPointName, uint16 listeningPort_min, uint16 listeningPort_max, 
 		const char * listeningInterface, EndPoint* pEP, ListenerReceiver* pLR);
 
 	bool registerChannel(Channel* channel);

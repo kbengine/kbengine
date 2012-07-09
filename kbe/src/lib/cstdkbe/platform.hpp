@@ -37,6 +37,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <limits>
 #include <algorithm>
 #include <utility>
+#include <functional>
+#include <cctype>
 // windows include	
 #if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
 #pragma warning(disable:4996)
@@ -458,6 +460,31 @@ inline const T & max( const T & a, const T & b )
 #define kbe_va_copy( dst, src) dst = src
 #endif // unix
 
+// 去掉字符串前面或者后面的空格
+inline std::string &kbe_ltrim(std::string &s) 
+{
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+	return s;
+}
+
+inline std::string &kbe_rtrim(std::string &s) 
+{
+	s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+	return s;
+}
+
+inline std::string &kbe_trim(std::string &s) 
+{
+	return kbe_ltrim(kbe_rtrim(s));
+}
+
+inline std::string kbe_trim(std::string s) 
+{
+	return kbe_ltrim(kbe_rtrim(s));
+}
+
+
+// 获得系统产生的最后一次错误描述
 inline char* kbe_strerror(int ierrorno = 0)
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
