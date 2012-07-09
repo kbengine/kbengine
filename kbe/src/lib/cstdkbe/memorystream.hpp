@@ -192,6 +192,12 @@ class MemoryStream
             return *this;
         }
 
+        MemoryStream &operator<<(COMPONENT_TYPE value)
+        {
+            append<int8>(value);
+            return *this;
+        }
+
         MemoryStream &operator>>(bool &value)
         {
             value = read<char>() > 0 ? true : false;
@@ -286,6 +292,12 @@ class MemoryStream
             return *this;
         }
         
+        MemoryStream &operator>>(COMPONENT_TYPE &value)
+        {
+            value = static_cast<COMPONENT_TYPE>(read<int8>());
+            return *this;
+        }
+
         uint8 operator[](size_t pos) const
         {
             return read<uint8>(pos);

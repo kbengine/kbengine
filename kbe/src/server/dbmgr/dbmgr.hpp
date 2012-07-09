@@ -95,9 +95,8 @@ public:
 		dbmgr广播global数据的改变
 	*/
 	void onGlobalDataClientLogon(Mercury::Channel* pChannel, COMPONENT_TYPE componentType);
-	void onBroadcastGlobalDataChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete);
-	void onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete);
-	void onBroadcastCellAppDataChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete);
+	void onBroadcastGlobalDataChange(Mercury::Channel* pChannel, uint8 dataType, 
+										std::string& key, std::string& value, bool isDelete, COMPONENT_TYPE componentType);
 protected:
 	TimerHandle				loopCheckTimerHandle_;
 	TimerHandle				mainProcessTimer_;

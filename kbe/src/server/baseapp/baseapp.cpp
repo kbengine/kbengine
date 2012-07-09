@@ -71,8 +71,8 @@ bool Baseapp::installPyModules()
 	//registerPyObjectToScript("entities", pEntities_);
 
 	// ÃÌº”globalData, globalBases÷ß≥÷
-	pGlobalData_ = new GlobalDataClient(BASEAPPMGR_TYPE);
-	pGlobalBases_ = new GlobalDataClient(BASEAPPMGR_TYPE);
+	pGlobalData_ = new GlobalDataClient(BASEAPPMGR_TYPE, GlobalDataServer::GLOBAL_DATA);
+	pGlobalBases_ = new GlobalDataClient(BASEAPPMGR_TYPE, GlobalDataServer::GLOBAL_BASES);
 	registerPyObjectToScript("globalData", pGlobalData_);
 	registerPyObjectToScript("globalBases", pGlobalBases_);
 
@@ -169,10 +169,10 @@ void Baseapp::onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID startID, 
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onDbmgrInit(Mercury::Channel* pChannel, 
+void Baseapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, 
 		ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
 {
-	INFO_MSG("Baseapp::onDbmgrInit: entityID alloc(%d-%d), startGlobalOrder=%d, startGroupOrder=%d.\n",
+	INFO_MSG("Baseapp::onDbmgrInitCompleted: entityID alloc(%d-%d), startGlobalOrder=%d, startGroupOrder=%d.\n",
 		startID, endID, startGlobalOrder, startGroupOrder);
 
 	startGlobalOrder_ = startGlobalOrder;

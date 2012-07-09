@@ -66,6 +66,14 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 								int8,				componentType,
 								COMPONENT_ID,		componentID)
 
+	// global数据改变
+	DBMGR_MESSAGE_DECLARE_ARGS5(onBroadcastGlobalDataChange,	MERCURY_VARIABLE_MESSAGE,
+									uint8,				dataType,
+									std::string,		key,
+									std::string,		value,
+									bool,				isDelete,
+									COMPONENT_TYPE,		componentType)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

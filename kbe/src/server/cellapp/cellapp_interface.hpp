@@ -64,7 +64,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									ENTITY_ID,			endID)
 
 	// 某app请求获取一个entityID段的回调
-	CELLAPP_MESSAGE_DECLARE_ARGS4(onDbmgrInit,	MERCURY_FIXED_MESSAGE,
+	CELLAPP_MESSAGE_DECLARE_ARGS4(onDbmgrInitCompleted,	MERCURY_FIXED_MESSAGE,
 									ENTITY_ID,			startID,
 									ENTITY_ID,			endID,
 									int32,				startGlobalOrder,

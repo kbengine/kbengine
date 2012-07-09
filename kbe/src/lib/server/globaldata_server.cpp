@@ -21,10 +21,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "components.hpp"
 #include "network/channel.hpp"
 
+#include "../../server/cellapp/cellapp_interface.hpp"
+#include "../../server/baseapp/baseapp_interface.hpp"
+
 namespace KBEngine{ 
 		
 //-------------------------------------------------------------------------------------
-GlobalDataServer::GlobalDataServer()
+GlobalDataServer::GlobalDataServer(DATA_TYPE dataType):
+dataType_(dataType)
 {
 }
 
@@ -34,11 +38,11 @@ GlobalDataServer::~GlobalDataServer()
 }
 
 //-------------------------------------------------------------------------------------
-bool GlobalDataServer::write(Mercury::Channel* handler, 
+bool GlobalDataServer::write(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, 
 	const std::string& key, const std::string& value)
 {
 	// 广播所做的改变
-	broadcastDataChange(handler, key, value);
+	broadcastDataChange(pChannel, componentType, key, value);
 
 	DATA_MAP_KEY iter = dict_.find(key);
 	if(iter != dict_.end()){
@@ -51,19 +55,19 @@ bool GlobalDataServer::write(Mercury::Channel* handler,
 }
 
 //-------------------------------------------------------------------------------------
-bool GlobalDataServer::del(Mercury::Channel* handler, const std::string& key)
+bool GlobalDataServer::del(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key)
 {
 	if(!dict_.erase(key)){
 		ERROR_MSG("GlobalDataServer::del: not found the key:[%s]\n", key.c_str());
 		return false;
 	}
 
-	broadcastDataChange(handler, key, "", true);
+	broadcastDataChange(pChannel, componentType, key, "", true);
 	return true;	
 }
 
 //-------------------------------------------------------------------------------------
-void GlobalDataServer::broadcastDataChange(Mercury::Channel* handler, 
+void GlobalDataServer::broadcastDataChange(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, 
 										const std::string& key, const std::string& value, bool isDelete)
 {
 	std::vector<COMPONENT_TYPE>::iterator iter = concernComponentTypes_.begin();
@@ -78,32 +82,90 @@ void GlobalDataServer::broadcastDataChange(Mercury::Channel* handler,
 			Mercury::Channel* lpChannel = iter1->pChannel;
 			KBE_ASSERT(lpChannel != NULL);
 
-			if(handler == lpChannel)
+			if(pChannel == lpChannel)
 				continue;
 
-			//SocketPacket* sp = new SocketPacket(m_protocol_, 10);
-			//(*sp) << (uint8)isDelete;
-			//(*sp) << key;
+			Mercury::Bundle bundle;
 
-			//if(!isDelete)
-			//	(*sp) << value;
+			switch(dataType_)
+			{
+			case GLOBAL_DATA:
+				if(componentType == CELLAPP_TYPE)
+				{
+					bundle.newMessage(CellappInterface::onBroadcastGlobalDataChange);
+				}
+				else if(componentType == BASEAPP_TYPE)
+				{
+					bundle.newMessage(BaseappInterface::onBroadcastGlobalDataChange);
+				}
+				else
+				{
+					KBE_ASSERT(false && "componentType is error!\n");
+				}
+				break;
+			case GLOBAL_BASES:
+				bundle.newMessage(BaseappInterface::onBroadcastGlobalBasesChange);
+				break;
+			case CELLAPP_DATA:
+				bundle.newMessage(CellappInterface::onBroadcastCellAppDataChange);
+				break;
+			default:
+				KBE_ASSERT(false && "dataType is error!\n");
+				break;
+			};
+
 			
-			//lpChannel->sendPacket(sp);
+			bundle << isDelete;
+			bundle << key;
+			if(!isDelete)
+				bundle << value;
+
+			bundle.send(*pChannel->endpoint());
 		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client)
+void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONENT_TYPE componentType)
 {
+	bool isDelete = false;
+
 	DATA_MAP_KEY iter = dict_.begin();
 	for(; iter != dict_.end(); iter++)
 	{
-		//SocketPacket* sp = new SocketPacket(m_protocol_, 10);
-		//(*sp) << (uint8)0;
-		//(*sp) << iter->first.c_str();
-		//(*sp) << iter->second.c_str();
-	//	client->sendPacket(sp);
+		Mercury::Bundle bundle;
+		
+		switch(dataType_)
+		{
+		case GLOBAL_DATA:
+			if(componentType == CELLAPP_TYPE)
+			{
+				bundle.newMessage(CellappInterface::onBroadcastGlobalDataChange);
+			}
+			else if(componentType == BASEAPP_TYPE)
+			{
+				bundle.newMessage(BaseappInterface::onBroadcastGlobalDataChange);
+			}
+			else
+			{
+				KBE_ASSERT(false && "componentType is error!\n");
+			}
+			break;
+		case GLOBAL_BASES:
+			bundle.newMessage(BaseappInterface::onBroadcastGlobalDataChange);
+			break;
+		case CELLAPP_DATA:
+			bundle.newMessage(CellappInterface::onBroadcastGlobalDataChange);
+			break;
+		default:
+			KBE_ASSERT(false && "dataType is error!\n");
+			break;
+		};
+
+		bundle << isDelete;
+		bundle << iter->first.c_str();
+		bundle << iter->second.c_str();
+		bundle.send(*client->endpoint());
 	}
 }
 

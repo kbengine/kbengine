@@ -47,7 +47,7 @@ namespace KBEngine{
 NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 
 	// 某app请求获取一个entityID段的回调
-	LOGINAPP_MESSAGE_DECLARE_ARGS2(onDbmgrInit,			MERCURY_FIXED_MESSAGE,
+	LOGINAPP_MESSAGE_DECLARE_ARGS2(onDbmgrInitCompleted, MERCURY_FIXED_MESSAGE,
 									int32,				startGlobalOrder,
 									int32,				startGroupOrder)
 

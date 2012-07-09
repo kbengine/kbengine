@@ -117,9 +117,9 @@ bool Dbmgr::initializeEnd()
 							reinterpret_cast<void *>(TIMEOUT_TICK));
 
 	// Ìí¼ÓglobalData, globalBases, cellAppDataÖ§³Ö
-	pGlobalData_ = new GlobalDataServer();
-	pGlobalBases_ = new GlobalDataServer();
-	pCellAppData_ = new GlobalDataServer();
+	pGlobalData_ = new GlobalDataServer(GlobalDataServer::GLOBAL_DATA);
+	pGlobalBases_ = new GlobalDataServer(GlobalDataServer::GLOBAL_BASES);
+	pCellAppData_ = new GlobalDataServer(GlobalDataServer::CELLAPP_DATA);
 	pGlobalData_->addConcernComponentType(CELLAPP_TYPE);
 	pGlobalData_->addConcernComponentType(BASEAPP_TYPE);
 	pGlobalBases_->addConcernComponentType(BASEAPP_TYPE);
@@ -183,28 +183,32 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 		case BASEAPP_TYPE:
 			{
 				startGroupOrder = Componentbridge::getComponents().getBaseappGroupOrderLog()[getUserUID()];
+				
+				onGlobalDataClientLogon(pChannel, BASEAPP_TYPE);
 
 				std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
-				bundle.newMessage(BaseappInterface::onDbmgrInit);
-				BaseappInterface::onDbmgrInitArgs4::staticAddToBundle(bundle, idRange.first, 
+				bundle.newMessage(BaseappInterface::onDbmgrInitCompleted);
+				BaseappInterface::onDbmgrInitCompletedArgs4::staticAddToBundle(bundle, idRange.first, 
 					idRange.second, startGlobalOrder, startGroupOrder);
 			}
 			break;
 		case CELLAPP_TYPE:
 			{
 				startGroupOrder = Componentbridge::getComponents().getCellappGroupOrderLog()[getUserUID()];
+				
+				onGlobalDataClientLogon(pChannel, CELLAPP_TYPE);
 
 				std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
-				bundle.newMessage(CellappInterface::onDbmgrInit);
-				CellappInterface::onDbmgrInitArgs4::staticAddToBundle(bundle, idRange.first, 
+				bundle.newMessage(CellappInterface::onDbmgrInitCompleted);
+				CellappInterface::onDbmgrInitCompletedArgs4::staticAddToBundle(bundle, idRange.first, 
 					idRange.second, startGlobalOrder, startGroupOrder);
 			}
 			break;
 		case LOGINAPP_TYPE:
 			startGroupOrder = Componentbridge::getComponents().getLoginappGroupOrderLog()[getUserUID()];
 
-			bundle.newMessage(LoginappInterface::onDbmgrInit);
-			LoginappInterface::onDbmgrInitArgs2::staticAddToBundle(bundle, startGlobalOrder, startGroupOrder);
+			bundle.newMessage(LoginappInterface::onDbmgrInitCompleted);
+			LoginappInterface::onDbmgrInitCompletedArgs2::staticAddToBundle(bundle, startGlobalOrder, startGroupOrder);
 			break;
 		default:
 			break;
@@ -219,13 +223,13 @@ void Dbmgr::onGlobalDataClientLogon(Mercury::Channel* pChannel, COMPONENT_TYPE c
 {
 	if(BASEAPP_TYPE == componentType)
 	{
-		pGlobalBases_->onGlobalDataClientLogon(pChannel);
-		pGlobalData_->onGlobalDataClientLogon(pChannel);
+		pGlobalBases_->onGlobalDataClientLogon(pChannel, componentType);
+		pGlobalData_->onGlobalDataClientLogon(pChannel, componentType);
 	}
 	else if(CELLAPP_TYPE == componentType)
 	{
-		pGlobalData_->onGlobalDataClientLogon(pChannel);
-		pCellAppData_->onGlobalDataClientLogon(pChannel);
+		pGlobalData_->onGlobalDataClientLogon(pChannel, componentType);
+		pCellAppData_->onGlobalDataClientLogon(pChannel, componentType);
 	}
 	else
 	{
@@ -234,33 +238,34 @@ void Dbmgr::onGlobalDataClientLogon(Mercury::Channel* pChannel, COMPONENT_TYPE c
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, 
-											  std::string& key, std::string& value, bool isDelete)
+void Dbmgr::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, uint8 dataType,
+											  std::string& key, std::string& value, bool isDelete,
+											  COMPONENT_TYPE componentType)
 {
-	if(isDelete)
-		pGlobalData_->del(pChannel, key);
-	else
-		pGlobalData_->write(pChannel, key, value);
-}
-
-//-------------------------------------------------------------------------------------
-void Dbmgr::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, 
-											   std::string& key, std::string& value, bool isDelete)
-{
-	if(isDelete)
-		pGlobalBases_->del(pChannel, key);
-	else
-		pGlobalBases_->write(pChannel, key, value);
-}
-
-//-------------------------------------------------------------------------------------
-void Dbmgr::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, 
-									   std::string& key, std::string& value, bool isDelete)
-{
-	if(isDelete)
-		pCellAppData_->del(pChannel, key);
-	else
-		pCellAppData_->write(pChannel, key, value);
+	switch(dataType)
+	{
+	case GlobalDataServer::GLOBAL_DATA:
+		if(isDelete)
+			pGlobalData_->del(pChannel, componentType, key);
+		else
+			pGlobalData_->write(pChannel, componentType, key, value);
+		break;
+	case GlobalDataServer::GLOBAL_BASES:
+		if(isDelete)
+			pGlobalBases_->del(pChannel, componentType, key);
+		else
+			pGlobalBases_->write(pChannel, componentType, key, value);
+		break;
+	case GlobalDataServer::CELLAPP_DATA:
+		if(isDelete)
+			pCellAppData_->del(pChannel, componentType, key);
+		else
+			pCellAppData_->write(pChannel, componentType, key, value);
+		break;
+	default:
+		KBE_ASSERT(false && "dataType is error!\n");
+		break;
+	};
 }
 
 //-------------------------------------------------------------------------------------

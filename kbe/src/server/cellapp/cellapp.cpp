@@ -73,8 +73,8 @@ bool Cellapp::installPyModules()
 	registerPyObjectToScript("entities", pEntities_);
 
 	// ÃÌº”globalData, cellAppData÷ß≥÷
-	pGlobalData_	= new GlobalDataClient(BASEAPPMGR_TYPE);
-	pCellAppData_	= new GlobalDataClient(CELLAPPMGR_TYPE);
+	pGlobalData_	= new GlobalDataClient(BASEAPPMGR_TYPE, GlobalDataServer::GLOBAL_DATA);
+	pCellAppData_	= new GlobalDataClient(CELLAPPMGR_TYPE, GlobalDataServer::CELLAPP_DATA);
 	registerPyObjectToScript("globalData", pGlobalData_);
 	registerPyObjectToScript("cellAppData", pCellAppData_);
 
@@ -290,10 +290,10 @@ void Cellapp::onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID startID, 
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::onDbmgrInit(Mercury::Channel* pChannel, 
+void Cellapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, 
 		ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
 {
-	INFO_MSG("Cellapp::onDbmgrInit: entityID alloc(%d-%d), startGlobalOrder=%d, startGroupOrder=%d.\n",
+	INFO_MSG("Cellapp::onDbmgrInitCompleted: entityID alloc(%d-%d), startGlobalOrder=%d, startGroupOrder=%d.\n",
 		startID, endID, startGlobalOrder, startGroupOrder);
 
 	startGlobalOrder_ = startGlobalOrder;

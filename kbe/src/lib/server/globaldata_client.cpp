@@ -21,6 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "components.hpp"
 #include "network/channel.hpp"
 
+#include "../../server/dbmgr/dbmgr_interface.hpp"
+
 namespace KBEngine{ 
 
 
@@ -36,9 +38,10 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(GlobalDataClient, 0, 0, &Map::mappingMethods, 0, 0)
 	
 //-------------------------------------------------------------------------------------
-GlobalDataClient::GlobalDataClient(COMPONENT_TYPE componentType):
+GlobalDataClient::GlobalDataClient(COMPONENT_TYPE componentType, GlobalDataServer::DATA_TYPE dataType):
 script::Map(getScriptType(), false),
-serverComponentType_(componentType)
+serverComponentType_(componentType),
+dataType_(dataType)
 {
 }
 
@@ -108,20 +111,26 @@ void GlobalDataClient::onDataChanged(std::string& key, std::string& value, bool 
 {
 	Components::COMPONENTS& channels = Components::getSingleton().getComponents(serverComponentType_);
 	Components::COMPONENTS::iterator iter1 = channels.begin();
-	
+	uint8 dataType = dataType_;
+
 	for(; iter1 != channels.end(); iter1++)
 	{
 		Mercury::Channel* lpChannel = iter1->pChannel;
 		KBE_ASSERT(lpChannel != NULL);
+		
+		Mercury::Bundle bundle;
+		
+		bundle.newMessage(DbmgrInterface::onBroadcastGlobalDataChange);
+		
+		bundle << dataType;
+		bundle << isDelete;
+		bundle << key;
 
-		//SocketPacket* sp = new SocketPacket(m_protocol_, 0);
-		//(*sp) << (uint8)isDelete;
-		//(*sp) << key;
-
-		//if(!isDelete)
-		//	(*sp) << value;
-
-		//lpChannel->sendPacket(sp);
+		if(!isDelete)
+			bundle << value;
+		
+		bundle << g_componentType;
+		bundle.send(*lpChannel->endpoint());
 	}
 }
 

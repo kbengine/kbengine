@@ -30,27 +30,36 @@ namespace Mercury
 }
 
 class GlobalDataServer
-{	
+{
 public:	
-	GlobalDataServer();
+	enum DATA_TYPE
+	{
+		GLOBAL_DATA,
+		GLOBAL_BASES,
+		CELLAPP_DATA
+	};
+public:	
+	GlobalDataServer(DATA_TYPE dataType);
 	~GlobalDataServer();
 			
 	/** 写数据 */
-	bool write(Mercury::Channel* handler, const std::string& key, const std::string& value);
+	bool write(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key, const std::string& value);
 	
 	/** 删除数据 */
-	bool del(Mercury::Channel* handler, const std::string& key);	
+	bool del(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key);	
 	
 	/** 添加该服务器所需要关心的组件类别 */
 	void addConcernComponentType(COMPONENT_TYPE ct){ concernComponentTypes_.push_back(ct); }
 	
 	/** 广播一个数据的改变给所关心的组件 */
-	void broadcastDataChange(Mercury::Channel* handler, const std::string& key, 
+	void broadcastDataChange(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key, 
 							const std::string& value, bool isDelete = false);
 	
 	/** 一个新的客户端登陆 */
-	void onGlobalDataClientLogon(Mercury::Channel* client);
+	void onGlobalDataClientLogon(Mercury::Channel* client, COMPONENT_TYPE componentType);
 private:
+	DATA_TYPE dataType_;
+
 	std::vector<COMPONENT_TYPE> concernComponentTypes_;						// 该GlobalDataServer所需要关心的组件类别
 	typedef std::map<std::string, std::string> DATA_MAP;
 	typedef DATA_MAP::iterator DATA_MAP_KEY;
