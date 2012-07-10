@@ -212,9 +212,10 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	uint32 listeningPort = listeningPort_min;
 	if(listeningPort_min != listeningPort_max)
 	{
-		for(int lpIdx=listeningPort_min; lpIdx<listeningPort_max; lpIdx++)
+		for(int lpIdx=ntohs(listeningPort_min); lpIdx<ntohs(listeningPort_max); lpIdx++)
 		{
-			if (pEP->bind(lpIdx, ifaddr) != 0)
+			listeningPort = htons(lpIdx);
+			if (pEP->bind(listeningPort, ifaddr) != 0)
 			{
 				continue;
 			}
