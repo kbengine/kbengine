@@ -173,8 +173,6 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 		(KBEngine::COMPONENT_TYPE)componentType == LOGINAPP_TYPE)
 	{
 		Mercury::Bundle bundle;
-		ENTITY_ID startID = 0;
-		ENTITY_ID endID = 0;
 		int32 startGlobalOrder = Componentbridge::getComponents().getGlobalOrderLog()[getUserUID()];
 		int32 startGroupOrder = 0;
 
