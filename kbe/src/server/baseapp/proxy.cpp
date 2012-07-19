@@ -28,7 +28,8 @@ Proxy::~Proxy()
 //-------------------------------------------------------------------------------------
 void Proxy::onEntitiesEnabled(void)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onEntitiesEnabled", "");
+	PyObject* pyResult = PyObject_CallMethod(this, 
+		const_cast<char*>("onEntitiesEnabled"), const_cast<char*>(""));
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -38,7 +39,8 @@ void Proxy::onEntitiesEnabled(void)
 //-------------------------------------------------------------------------------------
 void Proxy::onLogOnAttempt(std::string& addr, uint32& port, std::string& password)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onLogOnAttempt", "sk", 
+	PyObject* pyResult = PyObject_CallMethod(this, 
+		const_cast<char*>("onLogOnAttempt"), const_cast<char*>("sk"), 
 		PyBytes_FromString(addr.c_str()), 
 		PyLong_FromLong(port),
 		PyBytes_FromString(password.c_str())
@@ -53,7 +55,8 @@ void Proxy::onLogOnAttempt(std::string& addr, uint32& port, std::string& passwor
 //-------------------------------------------------------------------------------------
 void Proxy::onClientDeath(void)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onClientDeath", "");
+	PyObject* pyResult = PyObject_CallMethod(this, 
+		const_cast<char*>("onClientDeath"), const_cast<char*>(""));
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -63,7 +66,8 @@ void Proxy::onClientDeath(void)
 //-------------------------------------------------------------------------------------
 void Proxy::onClientGetCell(void)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onClientGetCell", "");
+	PyObject* pyResult = PyObject_CallMethod(this, 
+		const_cast<char*>("onClientGetCell"), const_cast<char*>(""));
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else

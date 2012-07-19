@@ -20,14 +20,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "script_timers.hpp"
-#include "server/entity_app.hpp"
+#include "server/serverapp.hpp"
 #include "pyscript/script.hpp"
 #include "cstdkbe/smartpointer.hpp"
 
 namespace KBEngine
 {
 
-EntityApp * g_pApp = NULL;
+ServerApp * g_pApp = NULL;
 ScriptTimers * g_pTimers = NULL;
 
 //-------------------------------------------------------------------------------------
@@ -43,14 +43,14 @@ ScriptTimers::~ScriptTimers()
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptTimers::initialize(EntityApp & app)
+void ScriptTimers::initialize(ServerApp & app)
 {
 	KBE_ASSERT(g_pApp == NULL);
 	g_pApp = &app;
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptTimers::finalise(EntityApp & app)
+void ScriptTimers::finalise(ServerApp & app)
 {
 	KBE_ASSERT(g_pApp == &app);
 	g_pApp = NULL;

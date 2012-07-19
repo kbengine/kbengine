@@ -30,8 +30,8 @@ BASE_SCRIPT_INIT(Base, 0, 0, 0, 0, 0)
 Base::Base(ENTITY_ID id, ScriptModule* scriptModule, PyTypeObject* pyType, bool isInitialised):
 ScriptObject(pyType, isInitialised),
 ENTITY_CONSTRUCTION(Base),
-cellMailbox_(NULL),
 clientMailbox_(NULL),
+cellMailbox_(NULL),
 cellDataDict_(NULL)
 {
 	ENTITY_INIT_PROPERTYS(Base);
@@ -95,17 +95,17 @@ void Base::createCellData(void)
 	{
 		PropertyDescription* propertyDescription = iter->second;
 		DataType* dataType = propertyDescription->getDataType();
-		/*
+		
 		if(dataType)
 		{
-			ByteStream* bs = propertyDescription->getDefaultVal();
-			PyDict_SetItemString(cellDataDict_, propertyDescription->getName().c_str(), dataType->createObject(bs));
-			if(bs)
-				bs->rpos(0);
+			//ByteStream* bs = propertyDescription->getDefaultVal();
+			//PyDict_SetItemString(cellDataDict_, propertyDescription->getName().c_str(), dataType->createObject(bs));
+			//if(bs)
+			//	bs->rpos(0);
 		}
 		else
 			ERROR_MSG("Base::createCellData: %s PropertyDescription the dataType is NULL.", propertyDescription->getName().c_str());		
-			*/
+			
 	}
 	
 	// 初始化cellEntity的位置和方向变量
@@ -227,7 +227,8 @@ PyObject* Base::pyGetClientMailbox()
 //-------------------------------------------------------------------------------------
 void Base::onCreateCellFailure(void)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onCreateCellFailure", "");
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onCreateCellFailure"), 
+																		const_cast<char*>(""));
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -242,7 +243,8 @@ void Base::onGetCell(Mercury::Channel* handler, COMPONENT_ID componentID)
 	
 	// 回调给脚本，获得了cell
 	cellMailbox_ = new EntityMailbox(handler, scriptModule_, componentID, id_, MAILBOX_TYPE_CELL);
-	PyObject* pyResult = PyObject_CallMethod(this, "onGetCell", "");
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onGetCell"), 
+																	const_cast<char*>(""));
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -252,7 +254,8 @@ void Base::onGetCell(Mercury::Channel* handler, COMPONENT_ID componentID)
 //-------------------------------------------------------------------------------------
 void Base::onClientGetCell()
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onClientGetCell", "");
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onClientGetCell"), 
+																		const_cast<char*>(""));
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -262,7 +265,8 @@ void Base::onClientGetCell()
 //-------------------------------------------------------------------------------------
 void Base::onClientDeath()
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onClientDeath", "");
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onClientDeath"), 
+																		const_cast<char*>(""));
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -275,7 +279,8 @@ void Base::onLoseCell(PyObject* cellData)
 	S_RELEASE(cellMailbox_);
 	installCellDataAttr(cellData);
 	
-	PyObject* pyResult = PyObject_CallMethod(this, "onLoseCell", "");
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLoseCell"), 
+																		const_cast<char*>(""));
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -285,7 +290,9 @@ void Base::onLoseCell(PyObject* cellData)
 //-------------------------------------------------------------------------------------
 void Base::onWriteToDB(PyObject* cellData)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, "onWriteToDB", "O", cellData);
+	PyObject* pyResult = PyObject_CallMethod(this, 
+		const_cast<char*>("onWriteToDB"), const_cast<char*>("O"), cellData);
+
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else

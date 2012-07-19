@@ -23,15 +23,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __BASEAPP_H__
 	
 // common include	
-#include "server/kbemain.hpp"
+#include "base.hpp"
 #include "server/entity_app.hpp"
-#include "server/idallocate.hpp"
-#include "server/serverconfig.hpp"
-#include "server/globaldata_client.hpp"
-#include "server/globaldata_server.hpp"
-#include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
-#include "entitydef/entities.hpp"
 
 //#define NDEBUG
 // windows include	
@@ -42,15 +36,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
-class Base;
-class Baseapp :	public EntityApp, 
-					public TimerHandler, 
+class Baseapp :	public EntityApp<Base>, 
 					public Singleton<Baseapp>
 {
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_GAME_TICK
 	};
 	
 	Baseapp(Mercury::EventDispatcher& dispatcher, 
@@ -64,21 +55,15 @@ public:
 
 	bool run();
 	
-	void handleTimeout(TimerHandle handle, void * arg);
-	void handleGameTick();
-	void handleTimers();
+	/* 相关处理接口 */
+	virtual void handleTimeout(TimerHandle handle, void * arg);
+	virtual void handleGameTick();
 
 	/* 初始化相关接口 */
 	bool initializeBegin();
 	bool initializeEnd();
 	void finalise();
 	
-	virtual bool destroyEntity(ENTITY_ID entityID);
-
-	/** 网络接口
-		请求分配一个ENTITY_ID段的回调
-	*/
-	void onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID);
 
 	/** 网络接口
 		dbmgr发送初始信息
@@ -93,15 +78,9 @@ public:
 	/** 网络接口
 		dbmgr广播global数据的改变
 	*/
-	void onBroadcastGlobalDataChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete);
 	void onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete);
 
 protected:
-	EntityIDClient						idClient_;
-	Entities<Base>*						pBases_;									// 存储所有的base的容器
-	TimerHandle							gameTimer_;
-
-	GlobalDataClient*					pGlobalData_;								// globalData
 	GlobalDataClient*					pGlobalBases_;								// globalBases
 };
 

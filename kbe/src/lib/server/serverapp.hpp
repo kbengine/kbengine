@@ -37,6 +37,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/singleton.hpp"
 #include "server/serverconfig.hpp"
 #include "cstdkbe/smartpointer.hpp"
+#include "cstdkbe/timer.hpp"
 #include "network/interfaces.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
@@ -82,8 +83,10 @@ public:
 	const char* name(){return COMPONENT_NAME[componentType_];}
 	
 	GAME_TIME time() const { return time_; }
+	Timers & timers() { return timers_; }
 	double gameTimeInSeconds() const;
-		
+	void handleTimers();
+
 	Mercury::EventDispatcher & getMainDispatcher()				{ return mainDispatcher_; }
 	Mercury::NetworkInterface & getNetworkInterface()			{ return networkInterface_; }
 
@@ -115,7 +118,8 @@ protected:
 	Mercury::NetworkInterface&								networkInterface_;
 	
 	GAME_TIME												time_;
-	
+	Timers													timers_;
+
 	// app启动顺序， global为全局(如dbmgr，cellapp的顺序)启动顺序， 
 	// group为组启动顺序(如:所有baseapp为一组)
 	int32													startGlobalOrder_;

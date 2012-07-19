@@ -27,7 +27,7 @@ namespace KBEngine
 {
 
 class MemoryStream;
-class EntityApp;
+class ServerApp;
 
 class ScriptTimers
 {
@@ -35,8 +35,8 @@ public:
 	ScriptTimers();
 	~ScriptTimers();
 
-	static void initialize(EntityApp & app);
-	static void finalise(EntityApp & app);
+	static void initialize(ServerApp & app);
+	static void finalise(ServerApp & app);
 
 	ScriptID addTimer(float initialOffset, float repeatOffset, int userArg,
 			TimerHandler * pHandler);

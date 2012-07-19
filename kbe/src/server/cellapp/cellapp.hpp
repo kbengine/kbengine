@@ -22,17 +22,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __CELLAPP_H__
 	
 // common include	
-#include "server/kbemain.hpp"
+#include "entity.hpp"
 #include "server/entity_app.hpp"
-#include "server/idallocate.hpp"
-#include "server/serverconfig.hpp"
-#include "server/globaldata_client.hpp"
-#include "server/globaldata_server.hpp"
-#include "entitydef/entities.hpp"
-#include "cstdkbe/timer.hpp"
 
 //#define NDEBUG
-#include <map>	
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
@@ -40,17 +33,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 	
 namespace KBEngine{
-class Entity;
 
-class Cellapp:	public EntityApp, 
-				public TimerHandler, 
+class Cellapp:	public EntityApp<Entity>, 
 				public Singleton<Cellapp>
 {
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_GAME_TICK,
-		TIMEOUT_LOADING_TICK
+		TIMEOUT_LOADING_TICK = TIMEOUT_BASE_MAX
 	};
 	
 	Cellapp(Mercury::EventDispatcher& dispatcher, 
@@ -66,9 +56,8 @@ public:
 	bool run();
 	
 	/* 相关处理接口 */
-	void handleTimeout(TimerHandle handle, void * arg);
-	void handleGameTick();
-	void handleTimers();
+	virtual void handleTimeout(TimerHandle handle, void * arg);
+	virtual void handleGameTick();
 
 	/* 初始化相关接口 */
 	bool initializeBegin();
@@ -78,23 +67,6 @@ public:
 
 	/* 创建一个entity */
 	static PyObject* __py_createEntity(PyObject* self, PyObject* args);
-	Entity* createEntity(const char* entityType, PyObject* params, bool isInitializeScript = true, ENTITY_ID eid = 0);
-	
-	/* 通过entityID寻找到对应的实例 */
-	Entity* findEntity(ENTITY_ID eid);
-	
-	/* 由mailbox来尝试获取一个entity的实例
-		因为这个组件上不一定存在这个entity。
-	*/
-	PyObject* tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_ID eid);
-
-	/* 通过entityID销毁一个entity */
-	virtual bool destroyEntity(ENTITY_ID entityID);
-	
-	/** 网络接口
-		请求分配一个ENTITY_ID段的回调
-	*/
-	void onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID);
 
 	/** 网络接口
 		dbmgr发送初始信息
@@ -109,14 +81,8 @@ public:
 	/** 网络接口
 		dbmgr广播global数据的改变
 	*/
-	void onBroadcastGlobalDataChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete);
 	void onBroadcastCellAppDataChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete);
 protected:
-	EntityIDClient				idClient_;
-	Entities<Entity>*			pEntities_;										// 存储所有的entity的容器
-	TimerHandle					gameTimer_;
-
-	GlobalDataClient*			pGlobalData_;									// globalData
 	GlobalDataClient*			pCellAppData_;									// cellAppData
 };
 

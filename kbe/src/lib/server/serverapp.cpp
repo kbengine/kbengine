@@ -38,7 +38,10 @@ componentType_(componentType),
 componentID_(componentID),
 mainDispatcher_(dispatcher),
 networkInterface_(ninterface),
-time_(0)
+time_(0),
+timers_(),
+startGlobalOrder_(-1),
+startGroupOrder_(-1)
 {
 	networkInterface_.pExtensionData(this);
 	networkInterface_.pChannelTimeOutHandler(this);
@@ -95,6 +98,12 @@ void ServerApp::finalise(void)
 double ServerApp::gameTimeInSeconds() const
 {
 	return double(time_) / g_kbeSrvConfig.gameUpdateHertz();
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::handleTimers()
+{
+	timers().process(time_);
 }
 
 //-------------------------------------------------------------------------------------		
