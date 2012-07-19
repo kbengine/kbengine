@@ -237,6 +237,10 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\base.ipp"
+			>
+		</File>
+		<File
 			RelativePath=".\ReadMe.txt"
 			>
 		</File>

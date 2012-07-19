@@ -75,17 +75,13 @@ public:
 	
 	/** 脚本获取mailbox */
 	DECLARE_PY_GET_MOTHOD(pyGetCellMailbox);
-	EntityMailbox* getCellMailbox(void)const{ return cellMailbox_; }
-	void setCellMailbox(EntityMailbox* mailbox){ cellMailbox_ = mailbox; }
+	EntityMailbox* getCellMailbox(void)const;
+	void setCellMailbox(EntityMailbox* mailbox);
 	
 	/** 脚本获取mailbox */
 	DECLARE_PY_GET_MOTHOD(pyGetClientMailbox);
-	EntityMailbox* getClientMailbox()const{ return clientMailbox_; }
-	void setClientMailbox(EntityMailbox* mailbox){ clientMailbox_ = mailbox; }
-	
-	/** 添加和删除一个timer */
-	DECLARE_PY_MOTHOD_ARG3(addTimer, uint32, uint32, PyObject_ptr);
-	DECLARE_PY_MOTHOD_ARG1(delTimer, TIMER_ID);
+	EntityMailbox* getClientMailbox()const;
+	void setClientMailbox(EntityMailbox* mailbox);
 
 	/** cellData部分 */
 	bool installCellDataAttr(PyObject* dictData = NULL);
@@ -93,8 +89,8 @@ public:
 	void destroyCellData(void);
 	void getCellDataByFlags(uint32 flags, MemoryStream* s);
 	PyObject* createCellDataDictByFlags(uint32 flags);
-	PyObject* getCellData(void)const{ return cellDataDict_; }
-public:
+	INLINE PyObject* getCellData(void)const;
+
 	/** 创建cell失败回调 */
 	void onCreateCellFailure(void);
 
@@ -109,9 +105,6 @@ public:
 
 	/** 客户端丢失 */
 	void onClientDeath();
-
-	/** onTimer被触发 */
-//	void onTimer(TIMER_ID& timerID, TimerArgsBase* args);
 
 	/** 将要保存到数据库之前的通知 */
 	void onWriteToDB(PyObject* cellData);
@@ -135,9 +128,13 @@ protected:
 	EntityMailbox*							clientMailbox_;			// 这个entity的客户端mailbox
 	EntityMailbox*							cellMailbox_;			// 这个entity的cellapp mailbox
 	PyObject*								cellDataDict_;			// entity创建后，在cell部分未创建时，将一些cell属性数据保存在这里
-//	TimerFunc								TimerFunc_;				// onTimer函数地址
-//	Timer									timers_;				// timers管理器
 };
 
 }
+
+
+#ifdef CODE_INLINE
+#include "base.ipp"
+#endif
+
 #endif

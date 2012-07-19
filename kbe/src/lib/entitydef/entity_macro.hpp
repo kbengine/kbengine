@@ -26,9 +26,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 #define ENTITY_METHOD_DECLARE_BEGIN(CLASS)																	\
+	ENTITY_CPP_IMPL(CLASS)																					\
 	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																		\
 	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,			0)		\
-
+	SCRIPT_METHOD_DECLARE("addTimer",		pyAddTimer,						METH_VARARGS,			0)		\
+	SCRIPT_METHOD_DECLARE("delTimer",		pyDelTimer,						METH_VARARGS,			0)		\
 
 #define ENTITY_METHOD_DECLARE_END()																			\
 	SCRIPT_METHOD_DECLARE_END()																				\
@@ -49,7 +51,8 @@ protected:																									\
 	ENTITY_ID		id_;																					\
 	ScriptModule*	scriptModule_;																			\
 	const ScriptModule::PROPERTYDESCRIPTION_MAP*	lpPropertyDescrs_;										\
-	uint32	spaceID_;																						\
+	uint32 spaceID_;																						\
+	ScriptTimers scriptTimers_;																				\
 public:																										\
 	void initializeScript()																					\
 	{																										\
@@ -141,6 +144,18 @@ public:																										\
 			return NULL;																					\
 		}																									\
 		return args;																						\
+	}																										\
+																											\
+	inline ScriptTimers& scriptTimers(){ return scriptTimers_; }											\
+	void onTimer(ScriptID timerID, int useraAgs)															\
+	{																										\
+		PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTimer"),						\
+			const_cast<char*>("Ii"), timerID, useraAgs);													\
+																											\
+		if(pyResult != NULL)																				\
+			Py_DECREF(pyResult);																			\
+		else																								\
+			SCRIPT_ERROR_CHECK();																			\
 	}																										\
 																											\
 	static PyObject* __pyget_pyGetID(CLASS *self, void *closure)											\
@@ -253,14 +268,70 @@ public:																										\
 		return ScriptObject::onScriptGetAttribute(attr);													\
 	}																										\
 																											\
+	DECLARE_PY_MOTHOD_ARG3(pyAddTimer, float, float, int32);												\
+	DECLARE_PY_MOTHOD_ARG1(pyDelTimer, ScriptID);															\
+
+
+#define ENTITY_CPP_IMPL(CLASS)																				\
+	class EntityScriptTimerHandler : public TimerHandler													\
+	{																										\
+	public:																									\
+		EntityScriptTimerHandler(CLASS * entity ) : pEntity_( entity )										\
+		{																									\
+		}																									\
+																											\
+	private:																								\
+		virtual void handleTimeout(TimerHandle handle, void * pUser)										\
+		{																									\
+			ScriptTimers* scriptTimers = &pEntity_->scriptTimers();											\
+			int id = ScriptTimersUtil::getIDForHandle( scriptTimers, handle );								\
+			pEntity_->onTimer(id, intptr( pUser ));															\
+		}																									\
+																											\
+		virtual void onRelease( TimerHandle handle, void * /*pUser*/ )										\
+		{																									\
+			delete this;																					\
+		}																									\
+																											\
+		CLASS* pEntity_;																					\
+	};																										\
+																											\
+	PyObject* CLASS::pyAddTimer(float interval, float repeat, int32 userArg)								\
+	{																										\
+		EntityScriptTimerHandler* pHandler = new EntityScriptTimerHandler(this);							\
+		ScriptTimers * pTimers = &scriptTimers_;															\
+		int id = ScriptTimersUtil::addTimer(&pTimers,														\
+				interval, repeat,																			\
+				userArg, pHandler);																			\
+																											\
+		if (id == 0)																						\
+		{																									\
+			PyErr_SetString(PyExc_ValueError, "Unable to add timer");										\
+			delete pHandler;																				\
+																											\
+			return NULL;																					\
+		}																									\
+																											\
+		return PyLong_FromLong(id);																			\
+	}																										\
+																											\
+	PyObject* CLASS::pyDelTimer(ScriptID timerID)															\
+	{																										\
+		if(!ScriptTimersUtil::delTimer(&scriptTimers_, timerID))											\
+		{																									\
+			return PyLong_FromLong(-1);																		\
+		}																									\
+																											\
+		return PyLong_FromLong(timerID);																	\
+	}																										\
 
 
 #define ENTITY_CONSTRUCTION(CLASS)																			\
 	id_(id),																								\
 	scriptModule_(scriptModule),																			\
 	lpPropertyDescrs_(&scriptModule->getPropertyDescrs()),													\
-	spaceID_(0)																								\
-	
+	spaceID_(0),																							\
+	scriptTimers_()																							\
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
 	INFO_MSG(#CLASS"::~"#CLASS"(): %s %ld\n", getScriptModuleName(), id_);									\

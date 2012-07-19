@@ -39,7 +39,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
 // linux include
-#include <errno.h>
 #endif
 	
 namespace KBEngine{
@@ -146,16 +145,6 @@ public:
 	*/
 	void setPositionAndDirection(Position3D& position, 
 		Direction3D& direction);
-
-	/** 
-		添加和删除一个timer 
-	*/
-	DECLARE_PY_MOTHOD_ARG3(pyAddTimer, float, float, int32);
-	DECLARE_PY_MOTHOD_ARG1(pyDelTimer, ScriptID);
-	
-	void onTimer(ScriptID timerID, int useraAgs);
-
-	ScriptTimers& scriptTimers(){ return scriptTimers_; }
 
 	/** 
 		脚本请求为当前所在space设置一个几何映射 
@@ -358,8 +347,6 @@ protected:
 	EntityMailbox*							baseMailbox_;						// 这个entity的baseapp mailbox
 	Position3D								position_;							// entity的当前位置
 	Direction3D								direction_;							// entity的当前方向
-//	TimerFunc								TimerFunc_;							// onTimer函数地址
-//	Timer									timers_;							// timers管理器
 //	Chunk*									currChunk_;							// 这个当前entity所在的chunk
 	bool									isReal_;							// 自己是否是一个realEntity
 	bool									isDestroyed_;						// 自身是否将要销毁
@@ -374,7 +361,6 @@ protected:
 	float									topSpeed_;							// entity x,z轴最高移动速度
 	float									topSpeedY_;							// entity y轴最高移动速度
 	Mercury::Channel *						pChannel_;							// 该entity的通信频道
-	ScriptTimers							scriptTimers_;
 
 	};																										
 																											

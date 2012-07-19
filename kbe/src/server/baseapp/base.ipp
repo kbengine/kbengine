@@ -41,4 +41,9 @@ INLINE void Base::setClientMailbox(EntityMailbox* mailbox)
 	clientMailbox_ = mailbox; 
 }
 
+INLINE PyObject* Base::getCellData(void)const
+{ 
+	return cellDataDict_; 
+}
+
 }

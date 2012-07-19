@@ -13,8 +13,6 @@ namespace KBEngine{
 ENTITY_METHOD_DECLARE_BEGIN(Base)
 SCRIPT_METHOD_DECLARE("createCellEntity",				createCellEntity,				METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE("createInNewSpace",				createInNewSpace,				METH_VARARGS,			0)
-SCRIPT_METHOD_DECLARE("addTimer",						addTimer,						METH_VARARGS,			0)
-SCRIPT_METHOD_DECLARE("delTimer",						delTimer,						METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE("destroyCellEntity",				pyDestroyCellEntity,			METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE("destroy",						pyDestroyBase,					METH_VARARGS,			0)
 ENTITY_METHOD_DECLARE_END()
@@ -40,9 +38,6 @@ cellDataDict_(NULL)
 
 	// 创建并初始化cellData
 	createCellData();
-
-	// 获得onTimer函数地址
-	//TimerFunc_ = std::tr1::bind(&Base::onTimer, this, _1, _2);
 }
 
 //-------------------------------------------------------------------------------------
@@ -287,30 +282,6 @@ void Base::onLoseCell(PyObject* cellData)
 		PyErr_Clear();
 }
 
-//-------------------------------------------------------------------------------------
-PyObject* Base::addTimer(uint32 startTrrigerIntervalTime, uint32 loopTrrigerIntervalTime, PyObject* args)
-{
-	Py_INCREF(args);
-return NULL;//	return PyLong_FromLong(timers_.addTimer(&TimerFunc_, startTrrigerIntervalTime, loopTrrigerIntervalTime, new TimerArgsPyObject(args)));
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Base::delTimer(TIMER_ID timerID)
-{
-	return NULL;//PyLong_FromLong(timers_.delTimer(timerID));
-}
-
-//-------------------------------------------------------------------------------------
-/*
-void Base::onTimer(TIMER_ID& timerID, TimerArgsBase* args)
-{
-	PyObject* pyResult = PyObject_CallMethod(this, "onTimer", "IO", timerID, static_cast<TimerArgsPyObject*>(args)->getArgs());
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
-}
-*/
 //-------------------------------------------------------------------------------------
 void Base::onWriteToDB(PyObject* cellData)
 {

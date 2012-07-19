@@ -33,34 +33,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-class EntityScriptTimerHandler : public TimerHandler
-{
-public:
-	EntityScriptTimerHandler(Entity * entity ) : pEntity_( entity ) 
-	{
-	}
-
-private:
-	virtual void handleTimeout(TimerHandle handle, void * pUser)
-	{
-		ScriptTimers* scriptTimers = &pEntity_->scriptTimers();
-		int id = ScriptTimersUtil::getIDForHandle( scriptTimers, handle );
-		pEntity_->onTimer(id, intptr( pUser ));
-	}
-
-	virtual void onRelease( TimerHandle handle, void * /*pUser*/ )
-	{
-		delete this;
-	}
-
-	Entity* pEntity_;
-};
-
-
 //-------------------------------------------------------------------------------------
 ENTITY_METHOD_DECLARE_BEGIN(Entity)
-SCRIPT_METHOD_DECLARE("addTimer",					pyAddTimer,						METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("delTimer",					pyDelTimer,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("addSpaceGeometryMapping",	pyAddSpaceGeometryMapping,		METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("setAoiRadius",				pySetAoiRadius,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("isReal",						pyIsReal,						METH_VARARGS,				0)	
@@ -104,13 +78,9 @@ isWitnessed_(false),
 hasWitness_(false),
 topSpeed_(-0.1f),
 topSpeedY_(-0.1f),
-pChannel_(NULL),
-scriptTimers_()
+pChannel_(NULL)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
-
-	// 获得onTimer函数地址
-//	TimerFunc_ = std::tr1::bind(&Entity::onTimer, this, _1, _2);
 }
 
 //-------------------------------------------------------------------------------------
@@ -662,49 +632,6 @@ void Entity::onLeaveTrapID(ENTITY_ID entityID, float range, int controllerID)
 		Py_DECREF(pyResult);
 	else
 		PyErr_Clear();
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::pyAddTimer(float interval, float repeat, int32 userArg)
-{
-	EntityScriptTimerHandler* pHandler = new EntityScriptTimerHandler(this);
-	ScriptTimers * pTimers = &scriptTimers_;
-	int id = ScriptTimersUtil::addTimer(&pTimers,
-			interval, repeat,
-			userArg, pHandler);
-
-	if (id == 0)
-	{
-		PyErr_SetString(PyExc_ValueError, "Unable to add timer");
-		delete pHandler;
-
-		return NULL;
-	}
-
-	return PyLong_FromLong(id);
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::pyDelTimer(ScriptID timerID)
-{
-	if(!ScriptTimersUtil::delTimer(&scriptTimers_, timerID))
-	{
-		return PyLong_FromLong(-1);
-	}
-
-	return PyLong_FromLong(timerID);
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::onTimer(ScriptID timerID, int useraAgs)
-{
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTimer"), 
-		const_cast<char*>("Ii"), timerID, useraAgs);
-	
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
 }
 
 //-------------------------------------------------------------------------------------
