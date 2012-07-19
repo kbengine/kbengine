@@ -1,8 +1,10 @@
 BIN  = baseapp
 SRCS =						\
+	base					\
 	baseapp					\
 	baseapp_interface			\
-	main
+	main					\
+	proxy
 
 ASMS =
 

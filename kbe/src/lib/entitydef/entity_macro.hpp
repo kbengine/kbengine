@@ -49,6 +49,7 @@ protected:																									\
 	ENTITY_ID		id_;																					\
 	ScriptModule*	scriptModule_;																			\
 	const ScriptModule::PROPERTYDESCRIPTION_MAP*	lpPropertyDescrs_;										\
+	uint32	spaceID_;																						\
 public:																										\
 	void initializeScript()																					\
 	{																										\
@@ -142,7 +143,7 @@ public:																										\
 		return args;																						\
 	}																										\
 																											\
-	static PyObject* __pyget_pyGetID(Entity *self, void *closure)											\
+	static PyObject* __pyget_pyGetID(CLASS *self, void *closure)											\
 	{																										\
 		return PyLong_FromLong(self->getID());																\
 	}																										\
@@ -165,7 +166,7 @@ public:																										\
 	{																										\
 		spaceID_ = id;																						\
 	}																										\
-	static PyObject* __pyget_pyGetSpaceID(Entity *self, void *closure)										\
+	static PyObject* __pyget_pyGetSpaceID(CLASS *self, void *closure)										\
 	{																										\
 		return PyLong_FromLong(self->getSpaceID());															\
 	}																										\
@@ -257,7 +258,9 @@ public:																										\
 #define ENTITY_CONSTRUCTION(CLASS)																			\
 	id_(id),																								\
 	scriptModule_(scriptModule),																			\
-	lpPropertyDescrs_(&scriptModule->getPropertyDescrs())													\
+	lpPropertyDescrs_(&scriptModule->getPropertyDescrs()),													\
+	spaceID_(0)																								\
+	
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
 	INFO_MSG(#CLASS"::~"#CLASS"(): %s %ld\n", getScriptModuleName(), id_);									\

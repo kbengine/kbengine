@@ -354,7 +354,6 @@ public:
 	/** entity的一次移动完成 */
 	void onMove(PyObject* userData);
 protected:
-	uint32									spaceID_;							// 这个entity所在space的ID
 	EntityMailbox*							clientMailbox_;						// 这个entity的客户端mailbox
 	EntityMailbox*							baseMailbox_;						// 这个entity的baseapp mailbox
 	Position3D								position_;							// entity的当前位置

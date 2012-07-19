@@ -31,9 +31,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/globaldata_server.hpp"
 #include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
+#include "entitydef/entities.hpp"
 
 //#define NDEBUG
-#include <map>	
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
@@ -42,6 +42,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
+class Base;
 class Baseapp :	public EntityApp, 
 					public TimerHandler, 
 					public Singleton<Baseapp>
@@ -97,7 +98,7 @@ public:
 
 protected:
 	EntityIDClient						idClient_;
-	//Entities<Entity>*					pEntities_;									// 存储所有的entity的容器
+	Entities<Base>*						pBases_;									// 存储所有的base的容器
 	TimerHandle							gameTimer_;
 
 	GlobalDataClient*					pGlobalData_;								// globalData

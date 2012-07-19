@@ -79,6 +79,8 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths, const c
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
 	Py_SetPythonHome(const_cast<wchar_t*>(pythonHomeDir));								// 先设置python的环境变量
+#else
+	Py_SetPath(pythonHomeDir); 
 #endif
 	// Initialise python
 	// Py_VerboseFlag = 2;

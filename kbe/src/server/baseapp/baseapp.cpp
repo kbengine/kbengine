@@ -20,6 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "baseapp.hpp"
+#include "base.hpp"
+#include "proxy.hpp"
 #include "baseapp_interface.hpp"
 #include "network/common.hpp"
 #include "network/tcp_packet.hpp"
@@ -41,12 +43,12 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_ID componentID):
 	EntityApp(dispatcher, ninterface, componentType, componentID),
     idClient_(),
-//	pEntities_(NULL),
+	pBases_(NULL),
     gameTimer_(),
 	pGlobalData_(NULL),
 	pGlobalBases_(NULL)
 {
-	// KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &CellAppInterface::messageHandlers;	
+	// KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;	
 
 	// 初始化mailbox模块获取entity实体函数地址
 	// EntityMailbox::setGetEntityFunc(std::tr1::bind(&CellApp::tryGetEntityByMailbox, this, std::tr1::placeholders::_1, std::tr1::placeholders::_2));
@@ -62,13 +64,15 @@ Baseapp::~Baseapp()
 //-------------------------------------------------------------------------------------
 bool Baseapp::installPyModules()
 {
-	//Entities<Entity>::installScript(NULL);
-	//Entity::installScript(getScript().getModule());
-
-	//registerScript(Entity::getScriptType());
+	Entities<Base>::installScript(NULL);
+	Base::installScript(getScript().getModule());
+	Proxy::installScript(getScript().getModule());
 	
-	//pEntities_ = new Entities<Entity>();
-	//registerPyObjectToScript("entities", pEntities_);
+	registerScript(Base::getScriptType());
+	registerScript(Proxy::getScriptType());
+	
+	pBases_ = new Entities<Base>();
+	registerPyObjectToScript("entities", pBases_);
 
 	// 添加globalData, globalBases支持
 	pGlobalData_ = new GlobalDataClient(BASEAPPMGR_TYPE, GlobalDataServer::GLOBAL_DATA);
@@ -87,10 +91,11 @@ bool Baseapp::uninstallPyModules()
 	S_RELEASE(pGlobalData_); 
 	S_RELEASE(pGlobalBases_); 
 
-	//S_RELEASE(pEntities_);
-	//unregisterPyObjectToScript("entities");
-	//Entities<Entity>::uninstallScript();
-	//Entity::uninstallScript();
+	S_RELEASE(pBases_);
+	unregisterPyObjectToScript("entities");
+	Entities<Base>::uninstallScript();
+	Base::uninstallScript();
+	Proxy::uninstallScript();
 	return EntityApp::uninstallPyModules();
 }
 

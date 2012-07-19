@@ -93,7 +93,6 @@ BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)
 Entity::Entity(ENTITY_ID id, ScriptModule* scriptModule):
 ScriptObject(getScriptType(), true),
 ENTITY_CONSTRUCTION(Entity),
-spaceID_(0),
 clientMailbox_(NULL),
 baseMailbox_(NULL),
 //currChunk_(NULL),
