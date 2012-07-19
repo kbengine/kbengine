@@ -77,10 +77,24 @@ int Script::Run_SimpleString(std::string command, std::string* retBufferPtr)
 //-------------------------------------------------------------------------------------
 bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths, const char* moduleName, COMPONENT_TYPE componentType)
 {
+	pyPaths += SCRIPT_PATH;
+
+
 #if KBE_PLATFORM == PLATFORM_WIN32
 	Py_SetPythonHome(const_cast<wchar_t*>(pythonHomeDir));								// 先设置python的环境变量
 #else
-	Py_SetPath(pythonHomeDir); 
+	std::wstring fs = L";";
+	std::wstring rs = L":";
+	size_t pos = 0; 
+
+	while(true)
+	{ 
+		pos = pyPaths.find(fs, pos);
+		if (pos == std::wstring::npos) break;
+		pyPaths.replace(pos, fs.length(), rs);
+	}  
+
+	Py_SetPath(pyPaths.c_str()); 
 #endif
 	// Initialise python
 	// Py_VerboseFlag = 2;
@@ -97,23 +111,10 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths, const c
         return false;
     } 
 
-	pyPaths += SCRIPT_PATH;
-
-	
-#if KBE_PLATFORM != PLATFORM_WIN32
-		std::wstring fs = L";";
-		std::wstring rs = L":";
-		size_t pos = 0; 
-
-		while(true)
-		{ 
-			pos = pyPaths.find(fs, pos);
-			if (pos == std::wstring::npos) break;
-			pyPaths.replace(pos, fs.length(), rs);
-		}   
+#if KBE_PLATFORM == PLATFORM_WIN32
+	PySys_SetPath(pyPaths.c_str());
 #endif
 
-	PySys_SetPath(pyPaths.c_str());
 	PyObject *m = PyImport_AddModule("__main__");
 
 	module_ = PyImport_AddModule(moduleName);										// 添加一个脚本基础模块

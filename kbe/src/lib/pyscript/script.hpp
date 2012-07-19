@@ -31,9 +31,9 @@ namespace KBEngine{ namespace script{
 
 /** 脚本系统路径 */
 #define SCRIPT_PATH												\
-					L"../../res/script:"						\
-					L"../../res/script/common:"					\
-					L"../../res/script/common/lib-dynload:"		\
+					L"../../res/script;"						\
+					L"../../res/script/common;"					\
+					L"../../res/script/common/lib-dynload;"		\
 					L"../../res/script/common/Lib"
 
 class Script
