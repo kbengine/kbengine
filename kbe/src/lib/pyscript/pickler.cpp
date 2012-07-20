@@ -62,19 +62,27 @@ bool Pickler::initialize(void)
 	
 	isInit = picklerMethod_ && unPicklerMethod_;
 	
-	// 初始化一个unpickle函数表模块， 所有自定义类的unpickle函数都需要在此注册
-	pyPickleFuncTableModule_ = PyImport_AddModule("_upf");
+	if(isInit)
+	{
+		// 初始化一个unpickle函数表模块， 所有自定义类的unpickle函数都需要在此注册
+		pyPickleFuncTableModule_ = PyImport_AddModule("_upf");
 
-	static struct PyModuleDef moduleDesc =   
-	{  
-			 PyModuleDef_HEAD_INIT,  
-			 "_upf",  
-			 "This module is created by KBEngine!",  
-			 -1,  
-			 NULL  
-	};  
+		static struct PyModuleDef moduleDesc =   
+		{  
+				 PyModuleDef_HEAD_INIT,  
+				 "_upf",  
+				 "This module is created by KBEngine!",  
+				 -1,  
+				 NULL  
+		};  
 
-	PyModule_Create(&moduleDesc);	
+		PyObject* m = PyModule_Create(&moduleDesc);	
+		if(m == NULL)
+		{
+			isInit = false;
+		}
+	}
+
 	return isInit;
 }
 
@@ -87,6 +95,18 @@ void Pickler::finalise(void)
 	picklerMethod_ = NULL;
 	unPicklerMethod_ = NULL;	
 	pyPickleFuncTableModule_ = NULL;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Pickler::getUnpickleFunc(const char* funcName)
+{ 
+	PyObject* pyfunc = PyObject_GetAttrString(pyPickleFuncTableModule_, funcName); 
+	if(pyfunc == NULL)
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+
+	return pyfunc;
 }
 
 //-------------------------------------------------------------------------------------

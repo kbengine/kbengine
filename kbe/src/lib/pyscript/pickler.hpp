@@ -38,7 +38,7 @@ public:
 	
 	/** 获取unpickle函数表模块对象 */
 	static PyObject* getUnpickleFuncTableModule(void){ return pyPickleFuncTableModule_; }
-	static PyObject* getUnpickleFunc(const char* funcName){ return PyObject_GetAttrString(pyPickleFuncTableModule_, funcName); }
+	static PyObject* getUnpickleFunc(const char* funcName);
 	static void registerUnpickleFunc(PyObject* pyFunc, const char* funcName);
 private:
 	static PyObject* picklerMethod_;						// cPicket.dumps方法指针

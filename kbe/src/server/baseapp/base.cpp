@@ -75,7 +75,7 @@ bool Base::installCellDataAttr(PyObject* dictData)
 	
 	if(PyObject_SetAttrString(this, "cellData", cellDataDict_) == -1)
 	{
-		ERROR_MSG("Base::installCellDataAttr: set property cellData is error!");
+		ERROR_MSG("Base::installCellDataAttr: set property cellData is error!\n");
 		SCRIPT_ERROR_CHECK();
 		S_RELEASE(cellDataDict_);
 		return false;
@@ -104,7 +104,9 @@ void Base::createCellData(void)
 			//	bs->rpos(0);
 		}
 		else
-			ERROR_MSG("Base::createCellData: %s PropertyDescription the dataType is NULL.", propertyDescription->getName().c_str());		
+		{
+			ERROR_MSG("Base::createCellData: %s PropertyDescription the dataType is NULL.\n", propertyDescription->getName().c_str());	
+		}
 			
 	}
 	
@@ -165,7 +167,7 @@ void Base::destroyCellData(void)
 	S_RELEASE(cellDataDict_);
 	if(PyObject_DelAttrString(this, "cellData") == -1)
 	{
-		ERROR_MSG("Base::destroyCellData: del property cellData is error!");
+		ERROR_MSG("Base::destroyCellData: del property cellData is error!\n");
 		SCRIPT_ERROR_CHECK();
 	}
 }
