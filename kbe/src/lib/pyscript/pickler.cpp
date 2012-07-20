@@ -156,21 +156,6 @@ void Pickler::registerUnpickleFunc(PyObject* pyFunc, const char* funcName)
 		PyErr_PrintEx(0);
 		return;
 	}
-
-	// 这是一段看起来比较奇怪, dir函数会寻找对象的__dict__，当发现没有__dict则会建立, 那么后面的__module__才可以设置成功
-	PyObject_Dir(pyFunc);
-	
-	// 研究cPickle代码发现必须设置这个函数对象的__module__名称为当前模块名称， 否则无法pickle
-	PyObject* pyupf = PyBytes_FromString("_upf");
-	if(PyObject_SetAttrString(pyFunc, "__module__", pyupf) == -1)
-	{
-		ERROR_MSG("Pickler::registerUnpickleFunc: set __module__ from unpickleFunc[%s] is error!\n", funcName);
-		SCRIPT_ERROR_CHECK();
-		Py_DECREF(pyupf);
-		return;
-	}
-	
-	Py_DECREF(pyupf);
 }
 
 //-------------------------------------------------------------------------------------
