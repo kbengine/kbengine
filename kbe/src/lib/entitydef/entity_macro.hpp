@@ -37,7 +37,7 @@ namespace KBEngine{
 
 #define ENTITY_GETSET_DECLARE_BEGIN(CLASS)																	\
 	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
-	SCRIPT_GET_DECLARE(	"id",				pyGetID,						0,						0)		\
+	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
 	SCRIPT_GET_DECLARE("spaceID",			pyGetSpaceID,					0,						0)		\
 
 
