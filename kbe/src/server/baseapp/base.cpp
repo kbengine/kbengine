@@ -192,7 +192,7 @@ PyObject* Base::pyDestroyCellEntity()
 //-------------------------------------------------------------------------------------
 void Base::destroyBase(void)
 {
-	//Baseapp::getSingleton().destroyBase(id_);
+	Baseapp::getSingleton().destroyEntity(id_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -317,14 +317,14 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 		S_Return;
 	}
 	
-	//Baseapp::getSingleton().createCellEntity(cellMailbox, base);
+	Baseapp::getSingleton().createCellEntity(cellMailbox, this);
 	S_Return;
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* Base::createInNewSpace(PyObject* params)
 {
-	//Baseapp::getSingleton().createInNewSpace(base, params);
+	Baseapp::getSingleton().createInNewSpace(this, params);
 	S_Return;
 }
 

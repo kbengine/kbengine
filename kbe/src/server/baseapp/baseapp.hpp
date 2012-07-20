@@ -36,8 +36,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
+namespace Mercury{
+	class Channel;
+}
+
 class Baseapp :	public EntityApp<Base>, 
-					public Singleton<Baseapp>
+				public Singleton<Baseapp>
 {
 public:
 	enum TimeOutType
@@ -48,6 +52,7 @@ public:
 		Mercury::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
 		COMPONENT_ID componentID);
+
 	~Baseapp();
 	
 	bool installPyModules();
@@ -64,6 +69,35 @@ public:
 	bool initializeEnd();
 	void finalise();
 	
+	virtual Base* onCreateEntityCommon(PyObject* pyEntity, ScriptModule* sm, ENTITY_ID eid);
+
+	/* 创建一个entity */
+	static PyObject* __py_createBase(PyObject* self, PyObject* args);
+	static PyObject* __py_createBaseAnywhere(PyObject* self, PyObject* args);
+
+	/** 创建一个新的space */
+	void createInNewSpace(Base* base, PyObject* cell);
+
+	/** 在一个负载较低的baseapp上创建一个baseEntity */
+	void createBaseAnywhere(const char* entityType, PyObject* params, PyObject* pyCallback);
+
+	/** 收到baseappmgr决定将某个baseapp要求createBaseAnywhere的请求在本baseapp上执行 
+		@param entityType	: entity的类别， entities.xml中的定义的。
+		@param strInitData	: 这个entity被创建后应该给他初始化的一些数据， 需要使用pickle.loads解包.
+		@param componentID	: 请求创建entity的baseapp的组件ID
+	*/
+	void onCreateBaseAnywhere(std::string& entityType, std::string& strInitData, 
+		COMPONENT_ID componentID, CALLBACK_ID callbackID);
+
+	/** baseapp 的createBaseAnywhere的回调 */
+	void onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK_ID callbackID, 
+		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
+
+	/** 为一个baseEntity在制定的cell上创建一个cellEntity */
+	void createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base* base);
+
+	/** 通知客户端创建一个proxy对应的实体 */
+	bool createClientProxyEntity(Mercury::Channel* pChannel, Base* base);
 
 	/** 网络接口
 		dbmgr发送初始信息

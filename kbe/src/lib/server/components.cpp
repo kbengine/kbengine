@@ -63,9 +63,9 @@ void Components::addComponent(int32 uid, const char* username,
 	ComponentInfos* cinfos = findComponent(componentType, uid, componentID);
 	if(cinfos != NULL)
 	{
-		WARNING_MSG("Components::addComponent: uid:%d, username:%s, "
+		WARNING_MSG("Components::addComponent[%s]: uid:%d, username:%s, "
 			"componentType:%d, componentID:%"PRAppID" is exist!\n", 
-			uid, username, (int32)componentType, componentID);
+			COMPONENT_NAME[(uint8)componentType], uid, username, (int32)componentType, componentID);
 		return;
 	}
 	

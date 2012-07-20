@@ -105,6 +105,8 @@ public:
 	E* createEntityCommon(const char* entityType, PyObject* params, 
 		bool isInitializeScript = true, ENTITY_ID eid = 0);
 
+	virtual E* onCreateEntityCommon(PyObject* pyEntity, ScriptModule* sm, ENTITY_ID eid);
+
 	/** 网络接口
 		请求分配一个ENTITY_ID段的回调
 	*/
@@ -328,15 +330,15 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 	// 检查ID是否足够, 不足返回NULL
 	if(eid <= 0 && idClient_.getSize() == 0)
 	{
-		PyErr_SetString(PyExc_SystemError, "EntityApp::createEntity: is Failed. not enough entityIDs.");
+		PyErr_SetString(PyExc_SystemError, "EntityApp::createEntityCommon: is Failed. not enough entityIDs.");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
 	
 	ScriptModule* sm = EntityDef::findScriptModule(entityType);
-	if(sm == NULL || !sm->hasCell())
+	if(sm == NULL || componentID_ == CELLAPP_TYPE ? !sm->hasCell() : !sm->hasBase())
 	{
-		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: entity [%s] not found.\n", entityType);
+		PyErr_Format(PyExc_TypeError, "EntityApp::createEntityCommon: entity [%s] not found.\n", entityType);
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -347,9 +349,8 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 	ENTITY_ID id = eid;
 	if(id <= 0)
 		id = idClient_.alloc();
-
-	// 执行Entity的构造函数
-	E* entity = new(obj) E(id, sm);
+	
+	E* entity = onCreateEntityCommon(obj, sm, eid);
 
 	// 创建名字空间
 	entity->createNamespace(params);
@@ -362,8 +363,15 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 		entity->initializeScript();
 
 	SCRIPT_ERROR_CHECK();
-	INFO_MSG("EntityApp::createEntity: new %s (%ld).\n", entityType, id);
+	INFO_MSG("EntityApp::createEntityCommon: new %s (%ld).\n", entityType, id);
 	return entity;
+}
+
+template<class E>
+E* EntityApp<E>::onCreateEntityCommon(PyObject* pyEntity, ScriptModule* sm, ENTITY_ID eid)
+{
+	// 执行Entity的构造函数
+	return new(pyEntity) E(eid, sm);
 }
 
 template<class E>
