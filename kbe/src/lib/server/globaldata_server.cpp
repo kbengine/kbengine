@@ -70,6 +70,9 @@ bool GlobalDataServer::del(Mercury::Channel* pChannel, COMPONENT_TYPE componentT
 void GlobalDataServer::broadcastDataChange(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, 
 										const std::string& key, const std::string& value, bool isDelete)
 {
+	INFO_MSG("GlobalDataServer::broadcastDataChange: writer(%s), key_size=%d, val_size=%d, isdelete=%d.\n", 
+		COMPONENT_NAME[componentType], key.size(), value.size(), (int)isDelete);
+
 	std::vector<COMPONENT_TYPE>::iterator iter = concernComponentTypes_.begin();
 	for(; iter != concernComponentTypes_.end(); iter++)
 	{
@@ -116,9 +119,16 @@ void GlobalDataServer::broadcastDataChange(Mercury::Channel* pChannel, COMPONENT
 
 			
 			bundle << isDelete;
-			bundle << key;
+			int32 slen = key.size();
+			bundle << slen;
+			bundle.assign(key.data(), slen);
+
 			if(!isDelete)
-				bundle << value;
+			{
+				slen = value.size();
+				bundle << slen;
+				bundle.assign(value.data(), slen);
+			}
 
 			bundle.send(*pChannel->endpoint());
 		}
@@ -163,8 +173,15 @@ void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONE
 		};
 
 		bundle << isDelete;
-		bundle << iter->first.c_str();
-		bundle << iter->second.c_str();
+
+		int32 slen = iter->first.size();
+		bundle << slen;
+		bundle.assign(iter->first.data(), slen);
+
+		slen = iter->second.size();
+		bundle << slen;
+		bundle.assign(iter->second.data(), slen);
+
 		bundle.send(*client->endpoint());
 	}
 }

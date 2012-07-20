@@ -47,39 +47,33 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// 某app注册自己的接口地址到本app
-	BASEAPP_MESSAGE_DECLARE_ARGS8(onRegisterNewApp,	MERCURY_VARIABLE_MESSAGE,
-									int32,				uid, 
-									std::string,		username,
-									int8,				componentType, 
-									uint64,				componentID, 
-									uint32,				intaddr, 
-									uint16,				intport,
-									uint32,				extaddr, 
-									uint16,				extport)
+	BASEAPP_MESSAGE_DECLARE_ARGS8(onRegisterNewApp,					MERCURY_VARIABLE_MESSAGE,
+									int32,							uid, 
+									std::string,					username,
+									int8,							componentType, 
+									uint64,							componentID, 
+									uint32,							intaddr, 
+									uint16,							intport,
+									uint32,							extaddr, 
+									uint16,							extport)
 
 
 	// 某app请求获取一个entityID段的回调
-	BASEAPP_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,	MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,			startID,
-									ENTITY_ID,			endID)
+	BASEAPP_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,				MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,						startID,
+									ENTITY_ID,						endID)
 
 
 	// 某app请求获取一个entityID段的回调
-	BASEAPP_MESSAGE_DECLARE_ARGS4(onDbmgrInitCompleted,	MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,			startID,
-									ENTITY_ID,			endID,
-									int32,				startGlobalOrder,
-									int32,				startGroupOrder)
+	BASEAPP_MESSAGE_DECLARE_ARGS4(onDbmgrInitCompleted,				MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,						startID,
+									ENTITY_ID,						endID,
+									int32,							startGlobalOrder,
+									int32,							startGroupOrder)
 
 	// global数据改变
-	BASEAPP_MESSAGE_DECLARE_ARGS3(onBroadcastGlobalDataChange,	MERCURY_VARIABLE_MESSAGE,
-									std::string,		key,
-									std::string,		value,
-									bool,				isDelete)
-	BASEAPP_MESSAGE_DECLARE_ARGS3(onBroadcastGlobalBasesChange,	MERCURY_VARIABLE_MESSAGE,
-									std::string,		key,
-									std::string,		value,
-									bool,				isDelete)
+	BASEAPP_MESSAGE_DECLARE_STREAM(onBroadcastGlobalDataChange,		MERCURY_VARIABLE_MESSAGE)
+	BASEAPP_MESSAGE_DECLARE_STREAM(onBroadcastGlobalBasesChange,	MERCURY_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 

@@ -118,12 +118,21 @@ bool TCPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 	另外，在一个或多个操作正在进行时，如果连接因“keep-alive”活动检测到一个失败而中断，也可能导致此错误。
 	此时，正在进行的操作以错误码WSAENETRESET失败返回，后续操作将失败返回错误码WSAECONNRESET
 	*/
-	if (wsaErr == WSAECONNRESET)
+	switch(wsaErr)
 	{
+	case WSAECONNRESET:
 		WARNING_MSG("TCPPacketReceiver::processPendingEvents: "
 					"Throwing REASON_GENERAL_NETWORK - WSAECONNRESET\n");
 		return false;
-	}
+	case WSAECONNABORTED:
+		WARNING_MSG("TCPPacketReceiver::processPendingEvents: "
+					"Throwing REASON_GENERAL_NETWORK - WSAECONNABORTED\n");
+		return false;
+	default:
+		break;
+
+	};
+
 #endif // unix
 
 #ifdef _WIN32

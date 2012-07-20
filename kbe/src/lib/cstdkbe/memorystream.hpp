@@ -198,6 +198,12 @@ class MemoryStream
             return *this;
         }
 
+        MemoryStream &operator<<(bool value)
+        {
+            append<int8>(value);
+            return *this;
+        }
+
         MemoryStream &operator>>(bool &value)
         {
             value = read<char>() > 0 ? true : false;

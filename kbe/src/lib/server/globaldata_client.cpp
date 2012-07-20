@@ -112,6 +112,7 @@ void GlobalDataClient::onDataChanged(std::string& key, std::string& value, bool 
 	Components::COMPONENTS& channels = Components::getSingleton().getComponents(serverComponentType_);
 	Components::COMPONENTS::iterator iter1 = channels.begin();
 	uint8 dataType = dataType_;
+	int32 slen = 0;
 
 	for(; iter1 != channels.end(); iter1++)
 	{
@@ -124,12 +125,20 @@ void GlobalDataClient::onDataChanged(std::string& key, std::string& value, bool 
 		
 		bundle << dataType;
 		bundle << isDelete;
-		bundle << key;
+
+		slen = key.size();
+		bundle << slen;
+		bundle.assign(key.data(), slen);
 
 		if(!isDelete)
-			bundle << value;
-		
+		{
+			slen = value.size();
+			bundle << slen;
+			bundle.assign(value.data(), slen);
+		}
+
 		bundle << g_componentType;
+
 		bundle.send(*lpChannel->endpoint());
 	}
 }

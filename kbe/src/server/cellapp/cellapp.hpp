@@ -81,7 +81,7 @@ public:
 	/** 网络接口
 		dbmgr广播global数据的改变
 	*/
-	void onBroadcastCellAppDataChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete);
+	void onBroadcastCellAppDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	GlobalDataClient*			pCellAppData_;									// cellAppData
 };

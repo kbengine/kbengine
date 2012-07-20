@@ -58,7 +58,7 @@ bool Baseapp::installPyModules()
 	registerScript(Proxy::getScriptType());
 
 	// 添加globalData, globalBases支持
-	pGlobalBases_ = new GlobalDataClient(BASEAPPMGR_TYPE, GlobalDataServer::GLOBAL_BASES);
+	pGlobalBases_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_BASES);
 	registerPyObjectToScript("globalBases", pGlobalBases_);
 
 	// 注册创建entity的方法到py
@@ -410,8 +410,24 @@ void Baseapp::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete)
+void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	int32 slen;
+	std::string key, value;
+	bool isDelete;
+	
+	s >> isDelete;
+	s >> slen;
+	key.assign((char*)(s.data() + s.rpos()), slen);
+	s.read_skip(slen);
+
+	if(!isDelete)
+	{
+		s >> slen;
+		value.assign((char*)(s.data() + s.rpos()), slen);
+		s.read_skip(slen);
+	}
+
 	if(isDelete)
 		pGlobalBases_->del(key);
 	else

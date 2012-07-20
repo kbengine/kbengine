@@ -162,7 +162,21 @@ public:
         (*pCurrPacket_) << value;
         return *this;
     }
-        
+
+    Bundle &operator<<(COMPONENT_TYPE value)
+    {
+		onPacketAppend(sizeof(int8));
+        (*pCurrPacket_) << value;
+        return *this;
+    }
+
+    Bundle &operator<<(bool value)
+    {
+		onPacketAppend(sizeof(int8));
+        (*pCurrPacket_) << value;
+        return *this;
+    }
+
     Bundle &operator<<(const std::string &value)
     {
 		int32 len = (int32)value.size() + 1;
@@ -282,6 +296,11 @@ public:
     }
 
     Bundle &operator>>(double &value)
+    {
+        PACKET_OUT_VALUE(value);
+    }
+
+    Bundle &operator>>(COMPONENT_TYPE &value)
     {
         PACKET_OUT_VALUE(value);
     }

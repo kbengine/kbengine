@@ -174,7 +174,7 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 		S_Return;
 	}
 
-	if(!PyArg_ParseTuple(args, "llHH", &eid, &componentID, &utype, &type))
+	if(!PyArg_ParseTuple(args, "ilHH", &eid, &componentID, &utype, &type))
 	{
 		ERROR_MSG("EntityMailbox::__unpickle__: args is error!");
 		S_Return;

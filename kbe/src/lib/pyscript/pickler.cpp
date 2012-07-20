@@ -138,7 +138,7 @@ std::string Pickler::pickle(PyObject* pyobj, int8 protocol)
 PyObject* Pickler::unpickle(const std::string& str)
 {
 	PyObject* pyRet = PyObject_CallFunction(unPicklerMethod_, 
-			const_cast<char*>("(s#)"), str.data(), str.length());
+			const_cast<char*>("(y#)"), str.data(), str.length());
 	
 	if (!pyRet)
 	{

@@ -48,42 +48,36 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// 某app注册自己的接口地址到本app
-	CELLAPP_MESSAGE_DECLARE_ARGS8(onRegisterNewApp,	MERCURY_VARIABLE_MESSAGE,
-									int32,				uid, 
-									std::string,		username,
-									int8,				componentType, 
-									uint64,				componentID, 
-									uint32,				intaddr, 
-									uint16,				intport,
-									uint32,				extaddr, 
-									uint16,				extport)
+	CELLAPP_MESSAGE_DECLARE_ARGS8(onRegisterNewApp,					MERCURY_VARIABLE_MESSAGE,
+									int32,							uid, 
+									std::string,					username,
+									int8,							componentType, 
+									uint64,							componentID, 
+									uint32,							intaddr, 
+									uint16,							intport,
+									uint32,							extaddr, 
+									uint16,							extport)
 
 	// 某app请求获取一个entityID段的回调
-	CELLAPP_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,	MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,			startID,
-									ENTITY_ID,			endID)
+	CELLAPP_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,				MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,						startID,
+									ENTITY_ID,						endID)
 
 	// 某app请求获取一个entityID段的回调
-	CELLAPP_MESSAGE_DECLARE_ARGS4(onDbmgrInitCompleted,	MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,			startID,
-									ENTITY_ID,			endID,
-									int32,				startGlobalOrder,
-									int32,				startGroupOrder)
+	CELLAPP_MESSAGE_DECLARE_ARGS4(onDbmgrInitCompleted,				MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,						startID,
+									ENTITY_ID,						endID,
+									int32,							startGlobalOrder,
+									int32,							startGroupOrder)
 
 	// global数据改变
-	CELLAPP_MESSAGE_DECLARE_ARGS3(onBroadcastGlobalDataChange,	MERCURY_VARIABLE_MESSAGE,
-									std::string,		key,
-									std::string,		value,
-									bool,				isDelete)
-	CELLAPP_MESSAGE_DECLARE_ARGS3(onBroadcastCellAppDataChange,	MERCURY_VARIABLE_MESSAGE,
-									std::string,		key,
-									std::string,		value,
-									bool,				isDelete)
+	CELLAPP_MESSAGE_DECLARE_STREAM(onBroadcastGlobalDataChange,		MERCURY_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(onBroadcastCellAppDataChange,	MERCURY_VARIABLE_MESSAGE)
 
 	/**
 		远程呼叫entity方法
 	*/
-	ENTITY_MESSAGE_DECLARE_STREAM(onRemoteMethodCall, MERCURY_FIXED_MESSAGE)
+	ENTITY_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,				MERCURY_FIXED_MESSAGE)
 
 
 	

@@ -79,7 +79,7 @@ int Map::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 		return PyDict_DelItem(lpScriptData->pyDict_, key);
 	}
 	
-	lpScriptData->onDataChanged(sval, sval);
+	lpScriptData->onDataChanged(skey, sval);
 	return PyDict_SetItem(lpScriptData->pyDict_, key, value);
 }
 

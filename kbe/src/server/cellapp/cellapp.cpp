@@ -55,7 +55,7 @@ bool Cellapp::installPyModules()
 	
 
 	// Ìí¼ÓglobalData, cellAppDataÖ§³Ö
-	pCellAppData_	= new GlobalDataClient(CELLAPPMGR_TYPE, GlobalDataServer::CELLAPP_DATA);
+	pCellAppData_	= new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::CELLAPP_DATA);
 	registerPyObjectToScript("cellAppData", pCellAppData_);
 
 
@@ -180,8 +180,24 @@ void Cellapp::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, std::string& key, std::string& value, bool isDelete)
+void Cellapp::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	int32 slen;
+	std::string key, value;
+	bool isDelete;
+	
+	s >> isDelete;
+	s >> slen;
+	key.assign((char*)(s.data() + s.rpos()), slen);
+	s.read_skip(slen);
+
+	if(!isDelete)
+	{
+		s >> slen;
+		value.assign((char*)(s.data() + s.rpos()), slen);
+		s.read_skip(slen);
+	}
+
 	if(isDelete)
 		pCellAppData_->del(key);
 	else

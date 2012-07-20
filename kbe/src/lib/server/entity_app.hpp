@@ -125,8 +125,7 @@ public:
 	/** 网络接口
 		dbmgr广播global数据的改变
 	*/
-	void onBroadcastGlobalDataChange(Mercury::Channel* pChannel, 
-		std::string& key, std::string& value, bool isDelete);
+	void onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	KBEngine::script::Script								script_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
@@ -277,7 +276,7 @@ bool EntityApp<E>::installPyModules()
 	registerPyObjectToScript("entities", pEntities_);
 
 	// 添加globalData, globalBases支持
-	pGlobalData_ = new GlobalDataClient(BASEAPPMGR_TYPE, GlobalDataServer::GLOBAL_DATA);
+	pGlobalData_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_DATA);
 	registerPyObjectToScript("globalData", pGlobalData_);
 
 	// 安装入口模块
@@ -474,9 +473,24 @@ void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 }
 
 template<class E>
-void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, 
-											   std::string& key, std::string& value, bool isDelete)
+void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	int32 slen;
+	std::string key, value;
+	bool isDelete;
+	
+	s >> isDelete;
+	s >> slen;
+	key.assign((char*)(s.data() + s.rpos()), slen);
+	s.read_skip(slen);
+
+	if(!isDelete)
+	{
+		s >> slen;
+		value.assign((char*)(s.data() + s.rpos()), slen);
+		s.read_skip(slen);
+	}
+
 	if(isDelete)
 		pGlobalData_->del(key);
 	else
