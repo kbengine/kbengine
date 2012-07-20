@@ -349,7 +349,7 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 	if(id <= 0)
 		id = idClient_.alloc();
 	
-	E* entity = onCreateEntityCommon(obj, sm, eid);
+	E* entity = onCreateEntityCommon(obj, sm, id);
 
 	// 创建名字空间
 	entity->createNamespace(params);
