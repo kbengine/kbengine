@@ -57,10 +57,6 @@ bool Baseapp::installPyModules()
 	registerScript(Base::getScriptType());
 	registerScript(Proxy::getScriptType());
 
-	// 添加globalData, globalBases支持
-	pGlobalBases_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_BASES);
-	registerPyObjectToScript("globalBases", pGlobalBases_);
-
 	// 注册创建entity的方法到py
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createBase,			__py_createBase,					METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createBaseLocally,	__py_createBase,					METH_VARARGS,			0);
@@ -68,6 +64,14 @@ bool Baseapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		createBaseAnywhere, __py_createBaseAnywhere,			METH_VARARGS,			0);
 
 	return EntityApp<Base>::installPyModules();
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onInstallPyModules()
+{
+	// 添加globalData, globalBases支持
+	pGlobalBases_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_BASES, getEntryScript().get());
+	registerPyObjectToScript("globalBases", pGlobalBases_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -397,8 +401,18 @@ void Baseapp::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 {
 	EntityApp<Base>::onDbmgrInitCompleted(pChannel, startID, endID, startGlobalOrder, startGroupOrder);
 
-	// 所有脚本都加载完毕
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onInit"), 
+										const_cast<char*>("i"), 
+										0);
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		SCRIPT_ERROR_CHECK();
+
+	// 所有脚本都加载完毕
+	pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onBaseAppReady"), 
 										const_cast<char*>("i"), 
 										startGroupOrder == 1 ? 1 : 0);

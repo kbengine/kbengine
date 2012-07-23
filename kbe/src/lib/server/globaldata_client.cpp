@@ -19,6 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "globaldata_client.hpp"
 #include "components.hpp"
+#include "serverapp.hpp"
 #include "network/channel.hpp"
 
 #include "../../server/dbmgr/dbmgr_interface.hpp"
@@ -38,10 +39,11 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(GlobalDataClient, 0, 0, &Map::mappingMethods, 0, 0)
 	
 //-------------------------------------------------------------------------------------
-GlobalDataClient::GlobalDataClient(COMPONENT_TYPE componentType, GlobalDataServer::DATA_TYPE dataType):
+GlobalDataClient::GlobalDataClient(COMPONENT_TYPE componentType, GlobalDataServer::DATA_TYPE dataType, PyObject* pPyEntryMod):
 script::Map(getScriptType(), false),
 serverComponentType_(componentType),
-dataType_(dataType)
+dataType_(dataType),
+pPyEntryMod_(pPyEntryMod)
 {
 }
 
@@ -66,6 +68,17 @@ bool GlobalDataClient::write(const std::string& key, const std::string& value)
 		else
 		{
 			ret = true;
+			
+			// 通知脚本
+			PyObject* pyResult = PyObject_CallMethod(pPyEntryMod_, 
+												const_cast<char*>("onGlobalData"), 
+												const_cast<char*>("OO"), 
+												pyKey, pyValue);
+
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
 		}
 	}
 	else
@@ -93,8 +106,19 @@ bool GlobalDataClient::del(const std::string& key)
 			PyErr_Clear();
 		}
 		else
+		{
 			ret = true;
-		
+			// 通知脚本
+			PyObject* pyResult = PyObject_CallMethod(pPyEntryMod_, 
+												const_cast<char*>("onGlobalDataDel"), 
+												const_cast<char*>("O"), 
+												pyKey);
+
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+		}
 		Py_DECREF(pyKey);
 	}
 	else

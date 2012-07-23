@@ -91,6 +91,7 @@ public:
 
 	bool installPyScript();
 	virtual bool installPyModules();
+	virtual void onInstallPyModules() {};
 	virtual bool uninstallPyModules();
 	bool uninstallPyScript();
 	bool installEntityDef();
@@ -179,7 +180,7 @@ bool EntityApp<E>::inInitialize()
 	if(!installPyModules())
 		return false;
 	
-	return true;
+	return installEntityDef();
 }
 
 template<class E>
@@ -275,10 +276,6 @@ bool EntityApp<E>::installPyModules()
 	pEntities_ = new Entities<E>();
 	registerPyObjectToScript("entities", pEntities_);
 
-	// 添加globalData, globalBases支持
-	pGlobalData_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_DATA);
-	registerPyObjectToScript("globalData", pGlobalData_);
-
 	// 安装入口模块
 	PyObject *entryScriptFileName = NULL;
 	if(componentType() == BASEAPP_TYPE)
@@ -304,7 +301,11 @@ bool EntityApp<E>::installPyModules()
 		}
 	}
 
-	return installEntityDef();
+	// 添加globalData, globalBases支持
+	pGlobalData_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_DATA, getEntryScript().get());
+	registerPyObjectToScript("globalData", pGlobalData_);
+
+	return true;
 }
 
 template<class E>

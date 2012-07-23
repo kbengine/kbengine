@@ -55,8 +55,9 @@ public:
 
 	~Baseapp();
 	
-	bool installPyModules();
-	bool uninstallPyModules();
+	virtual bool installPyModules();
+	virtual void onInstallPyModules();
+	virtual bool uninstallPyModules();
 
 	bool run();
 	

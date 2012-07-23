@@ -52,17 +52,19 @@ bool Cellapp::installPyModules()
 {
 	Entity::installScript(getScript().getModule());
 	registerScript(Entity::getScriptType());
-	
-
-	// 添加globalData, cellAppData支持
-	pCellAppData_	= new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::CELLAPP_DATA);
-	registerPyObjectToScript("cellAppData", pCellAppData_);
-
 
 	// 注册创建entity的方法到py
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createEntity,			__py_createEntity,					METH_VARARGS,			0);
 
 	return EntityApp<Entity>::installPyModules();
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::onInstallPyModules()
+{
+	// 添加globalData, cellAppData支持
+	pCellAppData_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::CELLAPP_DATA, getEntryScript().get());
+	registerPyObjectToScript("cellAppData", pCellAppData_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -169,7 +171,7 @@ void Cellapp::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 	
 	// 所有脚本都加载完毕
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-										const_cast<char*>("onInitialize"), 
+										const_cast<char*>("onInit"), 
 										const_cast<char*>("i"), 
 										0);
 

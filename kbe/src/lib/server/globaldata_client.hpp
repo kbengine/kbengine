@@ -32,7 +32,7 @@ class GlobalDataClient : public script::Map
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(GlobalDataClient, script::Map)
 public:	
-	GlobalDataClient(COMPONENT_TYPE componentType, GlobalDataServer::DATA_TYPE dataType);
+	GlobalDataClient(COMPONENT_TYPE componentType, GlobalDataServer::DATA_TYPE dataType, PyObject* pPyEntryMod);
 	~GlobalDataClient();
 	
 	/** 写数据 */
@@ -50,6 +50,7 @@ public:
 private:
 	COMPONENT_TYPE serverComponentType_;				// GlobalDataServer所在服务器组件的类型
 	GlobalDataServer::DATA_TYPE dataType_;
+	PyObject* pPyEntryMod_;
 } ;
 
 }
