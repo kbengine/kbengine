@@ -130,7 +130,7 @@ void GlobalDataServer::broadcastDataChange(Mercury::Channel* pChannel, COMPONENT
 				bundle.assign(value.data(), slen);
 			}
 
-			bundle.send(*pChannel->endpoint());
+			bundle.send(*lpChannel->endpoint());
 		}
 	}
 }

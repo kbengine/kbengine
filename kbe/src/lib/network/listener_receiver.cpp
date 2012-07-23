@@ -40,6 +40,7 @@ ListenerReceiver::ListenerReceiver(EndPoint & endpoint,
 								   Channel::Traits traits, 
 									NetworkInterface & networkInterface	) :
 	endpoint_(endpoint),
+	traits_(traits),
 	networkInterface_(networkInterface)
 {
 }
