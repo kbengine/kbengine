@@ -173,7 +173,7 @@ void Components::removeComponentFromChannel(Mercury::Channel * pChannel)
 		}
 	}
 
-	KBE_ASSERT(false && "channel is not found!\n");
+	// KBE_ASSERT(false && "channel is not found!\n");
 }
 
 //-------------------------------------------------------------------------------------		
