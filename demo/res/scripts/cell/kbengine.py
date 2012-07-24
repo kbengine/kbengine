@@ -14,6 +14,12 @@ def onGlobalData(key, value):
 	
 def onGlobalDataDel(key):
 	DEBUG_MSG('onDelGlobalData: %s' % key)
+
+def onCellAppData(key, value):
+	DEBUG_MSG('onCellAppData: %s' % key)
+	
+def onCellAppDataDel(key):
+	DEBUG_MSG('onCellAppDataDel: %s' % key)
 	
 def onSpaceData( spaceID, entryID, key, value ):
 	pass
