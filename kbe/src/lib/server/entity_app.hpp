@@ -421,6 +421,7 @@ void EntityApp<E>::handleTimeout(TimerHandle handle, void * arg)
 			break;
 	}
 
+	ServerApp::handleTimeout(handle, arg);
 }
 
 template<class E>
