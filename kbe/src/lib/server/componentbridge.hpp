@@ -60,6 +60,8 @@ public:
 	COMPONENT_TYPE componentType()const { return componentType_; }
 
 	Mercury:: EventDispatcher & dispatcher();
+
+	void onChannelTimeOut(Mercury::Channel * pChannel);
 private:
 	virtual bool process();
 	bool findInterfaces();

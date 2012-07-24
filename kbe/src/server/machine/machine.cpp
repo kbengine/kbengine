@@ -325,6 +325,7 @@ bool Machine::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Machine::initializeEnd()
 {
+	pActiveTimerHandle_.cancel(); // machine不需要与其他组件保持活动状态关系
 	return true;
 }
 

@@ -73,6 +73,13 @@ Components& Componentbridge::getComponents()
 }
 
 //-------------------------------------------------------------------------------------
+void Componentbridge::onChannelTimeOut(Mercury::Channel * pChannel)
+{
+	ERROR_MSG("Componentbridge::onChannelTimeOut: internal-channel is timeout.\n");
+	getComponents().removeComponentFromChannel(pChannel);
+}
+
+//-------------------------------------------------------------------------------------
 bool Componentbridge::findInterfaces()
 {
 	int8 findComponentTypes[] = {UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, 

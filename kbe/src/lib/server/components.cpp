@@ -49,6 +49,7 @@ _pNetworkInterface(NULL)
 //-------------------------------------------------------------------------------------
 Components::~Components()
 {
+	clear();
 }
 
 
@@ -125,7 +126,7 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT
 
 			SAFE_RELEASE((*iter).pIntAddr);
 			SAFE_RELEASE((*iter).pExtAddr);
-			SAFE_RELEASE((*iter).pChannel);
+			//(*iter).pChannel->decRef();
 			iter = components.erase(iter);
 
 			if(!ignoreComponentID)
@@ -137,6 +138,38 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT
 
 	ERROR_MSG("Components::delComponent::not found [%s] component:totalcount:%d\n", 
 		COMPONENT_NAME[(uint8)componentType], components.size());
+}
+
+//-------------------------------------------------------------------------------------		
+void Components::removeComponentFromChannel(Mercury::Channel * pChannel)
+{
+	int8 findComponentTypes[] = {BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, DBMGR_TYPE, CELLAPP_TYPE, 
+						BASEAPP_TYPE, LOGINAPP_TYPE, MACHINE_TYPE, UNKNOWN_COMPONENT_TYPE};
+	
+	int ifind = 0;
+	while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)
+	{
+		COMPONENT_TYPE componentType = (COMPONENT_TYPE)findComponentTypes[ifind++];
+		COMPONENTS& components = getComponents(componentType);
+		COMPONENTS::iterator iter = components.begin();
+
+		for(; iter != components.end();)
+		{
+			if((*iter).pChannel == pChannel)
+			{
+				SAFE_RELEASE((*iter).pIntAddr);
+				SAFE_RELEASE((*iter).pExtAddr);
+				// (*iter).pChannel->decRef();
+
+				iter = components.erase(iter);
+				return;
+			}
+			else
+				iter++;
+		}
+	}
+
+	KBE_ASSERT(false && "channel is not found!\n");
 }
 
 //-------------------------------------------------------------------------------------		
@@ -235,12 +268,12 @@ void Components::clear(int32 uid)
 {
 	KBEngine::thread::ThreadGuard tg(&this->myMutex); 
 
-	delComponent(uid, DBMGR_TYPE, 0, true);
-	delComponent(uid, BASEAPPMGR_TYPE, 0, true);
-	delComponent(uid, CELLAPPMGR_TYPE, 0, true);
-	delComponent(uid, CELLAPP_TYPE, 0, true);
-	delComponent(uid, BASEAPP_TYPE, 0, true);
-	delComponent(uid, LOGINAPP_TYPE, 0, true);
+	delComponent(uid, DBMGR_TYPE, uid, true);
+	delComponent(uid, BASEAPPMGR_TYPE, uid, true);
+	delComponent(uid, CELLAPPMGR_TYPE, uid, true);
+	delComponent(uid, CELLAPP_TYPE, uid, true);
+	delComponent(uid, BASEAPP_TYPE, uid, true);
+	delComponent(uid, LOGINAPP_TYPE, uid, true);
 }
 
 //-------------------------------------------------------------------------------------		

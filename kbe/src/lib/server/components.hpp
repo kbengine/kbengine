@@ -77,7 +77,9 @@ public:
 	void delComponent(int32 uid, COMPONENT_TYPE componentType, 
 		COMPONENT_ID componentID, bool ignoreComponentID = false);
 
-	void clear(int32 uid);
+	void removeComponentFromChannel(Mercury::Channel * pChannel);
+
+	void clear(int32 uid = 0);
 
 	Components::COMPONENTS& getComponents(COMPONENT_TYPE componentType);
 

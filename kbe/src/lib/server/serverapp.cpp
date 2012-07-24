@@ -122,7 +122,7 @@ void ServerApp::handleTimeout(TimerHandle, void * arg)
 		case TIMEOUT_ACTIVE_TICK:
 		{
 			int8 findComponentTypes[] = {BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, DBMGR_TYPE, CELLAPP_TYPE, 
-								BASEAPP_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE};
+								BASEAPP_TYPE, LOGINAPP_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE};
 			
 			int ifind = 0;
 			while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)
@@ -131,7 +131,7 @@ void ServerApp::handleTimeout(TimerHandle, void * arg)
 
 				Components::COMPONENTS& components = Components::getSingleton().getComponents(componentType);
 				Components::COMPONENTS::iterator iter = components.begin();
-				for(; iter != components.end();)
+				for(; iter != components.end(); iter++)
 				{
 					Mercury::Bundle bundle;
 					COMMON_MERCURY_MESSAGE(componentType, bundle, onAppActiveTick);
@@ -197,6 +197,12 @@ void ServerApp::onChannelTimeOut(Mercury::Channel * pChannel)
 		"Channel %s timed out.\n", pChannel->c_str());
 
 	networkInterface_.deregisterChannel(pChannel);
+
+	if(pChannel->isInternal())
+	{
+		Componentbridge::getSingleton().onChannelTimeOut(pChannel);
+	}
+
 	pChannel->decRef();
 }
 
