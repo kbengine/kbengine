@@ -22,6 +22,7 @@ class Spaces(GameObject):
 		@param id		: addTimer 的返回值ID
 		@param userArg	: addTimer 最后一个参数所给入的数据
 		"""
+		DEBUG_MSG(id, userArg)
 		if userArg == 1:
 			if len(SPACE_NAMES) > 0:
 				spaceName = SPACE_NAMES.pop(0)

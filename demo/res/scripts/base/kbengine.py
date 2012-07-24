@@ -45,3 +45,9 @@ def onGlobalData(key, value):
 	
 def onGlobalDataDel(key):
 	DEBUG_MSG('onDelGlobalData: %s' % key)
+	
+def onGlobalBases(key, value):
+	DEBUG_MSG('onGlobalBases: %s' % key)
+	
+def onGlobalBasesDel(key):
+	DEBUG_MSG('onGlobalBasesDel: %s' % key)
