@@ -256,8 +256,10 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 	}
 	else
 	{
-			ERROR_MSG("Components::connectComponent: connect(%s) is failed! %s.\n",
-				pComponentInfos->pChannel->c_str(), kbe_strerror());
+		ERROR_MSG("Components::connectComponent: connect(%s) is failed! %s.\n",
+			pComponentInfos->pIntAddr->c_str(), kbe_strerror());
+
+		return -1;
 	}
 
 	return ret;
