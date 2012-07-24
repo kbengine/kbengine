@@ -57,7 +57,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappmgrInterface)
 									uint16,				extport)
 
 	// 某个app向本app告知处于活动状态。
-	CELLAPPMGR_MESSAGE_DECLARE_ARGS0(onAppActiveTick,	MERCURY_FIXED_MESSAGE)
+	CELLAPPMGR_MESSAGE_DECLARE_ARGS2(onAppActiveTick,	MERCURY_FIXED_MESSAGE,
+									COMPONENT_TYPE,		componentType, 
+									COMPONENT_ID,		componentID)
 
 NETWORK_INTERFACE_DECLARE_END()
 

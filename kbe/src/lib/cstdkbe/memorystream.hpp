@@ -194,7 +194,7 @@ class MemoryStream
 
         MemoryStream &operator<<(COMPONENT_TYPE value)
         {
-            append<int8>(value);
+            append<int32>(value);
             return *this;
         }
 
@@ -300,7 +300,7 @@ class MemoryStream
         
         MemoryStream &operator>>(COMPONENT_TYPE &value)
         {
-            value = static_cast<COMPONENT_TYPE>(read<int8>());
+            value = static_cast<COMPONENT_TYPE>(read<int32>());
             return *this;
         }
 

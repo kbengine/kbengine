@@ -119,6 +119,57 @@ namespace KBEngine{
 				NAME##CellappmgrMessagehandler0, MSG_LENGTH)					\
 																				\
 
+/**
+	Cellappmgr消息宏，  只有二个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef CELLAPPMGR_MESSAGE_HANDLER_ARGS2
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(CELLAPPMGR)
+#define CELLAPPMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2)				\
+	void NAME##CellappmgrMessagehandler2::handle(Mercury::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			ARG_TYPE1 ARG_NAME1;												\
+			s >> ARG_NAME1;														\
+			ARG_TYPE2 ARG_NAME2;												\
+			s >> ARG_NAME2;														\
+			KBEngine::Cellappmgr::getSingleton().NAME(pChannel,					\
+													ARG_NAME1, ARG_NAME2);		\
+	}																			\
+
+#else
+#define CELLAPPMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2)				\
+	void NAME##CellappmgrMessagehandler2::handle(Mercury::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define CELLAPPMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2)				\
+	class NAME##CellappmgrMessagehandler2 : public Mercury::MessageHandler		\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define CELLAPPMGR_MESSAGE_DECLARE_ARGS2(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+											ARG_TYPE2, ARG_NAME2)				\
+	CELLAPPMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1, 				\
+											ARG_TYPE2, ARG_NAME2)				\
+	NETWORK_MESSAGE_DECLARE_ARGS2(Cellappmgr, NAME,								\
+				NAME##CellappmgrMessagehandler2, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+											ARG_TYPE2, ARG_NAME2)				\
+
 
 /**
 	Cellappmgr消息宏，  只有一个参数的消息

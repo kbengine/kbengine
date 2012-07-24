@@ -75,7 +75,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	CELLAPP_MESSAGE_DECLARE_STREAM(onBroadcastCellAppDataChange,	MERCURY_VARIABLE_MESSAGE)
 
 	// 某个app向本app告知处于活动状态。
-	CELLAPP_MESSAGE_DECLARE_ARGS0(onAppActiveTick,					MERCURY_FIXED_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_ARGS2(onAppActiveTick,					MERCURY_FIXED_MESSAGE,
+									COMPONENT_TYPE,					componentType, 
+									COMPONENT_ID,					componentID)
 
 	/**
 		远程呼叫entity方法

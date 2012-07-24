@@ -129,6 +129,9 @@ public:
 	uint32	numBytesSent() const		{ return numBytesSent_; }
 	uint32	numBytesReceived() const	{ return numBytesReceived_; }
 		
+	uint64 lastReceivedTime()const		{ return lastReceivedTime_; }
+	void updateLastReceivedTime()		{ lastReceivedTime_ = timestamp(); }
+
 	PacketReceiver* packetReceiver()const { return pPacketReceiver_; }
 		
 	Packet* receiveWindow();

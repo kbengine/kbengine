@@ -56,21 +56,22 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 			 int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
 			 int32 intlisteningPort = 0, const char * intlisteningInterface = "")
 {
-	uint64 appuid = genUUID64();
+	g_componentID = genUUID64();
 	g_componentType = componentType;
 	DebugHelper::initHelper(componentType);
+	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
 
 	Mercury::EventDispatcher dispatcher;
 	Mercury::NetworkInterface networkInterface(&dispatcher, 
 		extlisteningPort_min, extlisteningPort_max, extlisteningInterface,
 		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface);
 	
-	g_kbeSrvConfig.updateInfos(true, componentType, appuid, 
+	g_kbeSrvConfig.updateInfos(true, componentType, g_componentID, 
 			networkInterface.intaddr(), networkInterface.extaddr());
 	
-	Componentbridge* pComponentbridge = new Componentbridge(networkInterface, componentType, appuid);
-	SERVER_APP app(dispatcher, networkInterface, componentType, appuid);
-	START_MSG(COMPONENT_NAME[componentType], appuid);
+	Componentbridge* pComponentbridge = new Componentbridge(networkInterface, componentType, g_componentID);
+	SERVER_APP app(dispatcher, networkInterface, componentType, g_componentID);
+	START_MSG(COMPONENT_NAME[componentType], g_componentID);
 	if(!app.initialize()){
 		ERROR_MSG("app::initialize is error!\n");
 		SAFE_RELEASE(pComponentbridge);
@@ -85,14 +86,14 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	return ret;
 }
 
-#define KBENGINE_MAIN														\
-kbeMain(int argc, char* argv[]);											\
-int main(int argc, char* argv[])											\
-{																			\
-	g_kbeSrvConfig.loadConfig("../../res/server/kbengine_defs.xml");		\
-	g_kbeSrvConfig.loadConfig("../../../demo/res/server/kbengine.xml");		\
-	return kbeMain(argc, argv);												\
-}																			\
+#define KBENGINE_MAIN																									\
+kbeMain(int argc, char* argv[]);																						\
+int main(int argc, char* argv[])																						\
+{																														\
+	g_kbeSrvConfig.loadConfig("../../res/server/kbengine_defs.xml");													\
+	g_kbeSrvConfig.loadConfig("../../../demo/res/server/kbengine.xml");													\
+	return kbeMain(argc, argv);																							\
+}																														\
 int kbeMain
 
 }

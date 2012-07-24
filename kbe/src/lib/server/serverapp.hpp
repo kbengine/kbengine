@@ -124,7 +124,7 @@ public:
 	/* 网络接口
 		某个app向本app告知处于活动状态。
 	*/
-	void onAppActiveTick(Mercury::Channel* pChannel);
+	void onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID);
 
 protected:
 	COMPONENT_TYPE											componentType_;

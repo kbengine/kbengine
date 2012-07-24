@@ -61,9 +61,10 @@ enum COMPONENT_TYPE
 	CENTER_TYPE		= 9
 };
 
-/** 当前服务器组件类别 */
+/** 当前服务器组件类别和ID */
 extern COMPONENT_TYPE g_componentType;
-	
+extern COMPONENT_ID g_componentID;
+
 /** 定义服务器各组件名称 */
 const char COMPONENT_NAME[][12] = {
 	"unknown",

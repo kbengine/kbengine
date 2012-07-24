@@ -34,6 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 COMPONENT_TYPE g_componentType;
+COMPONENT_ID g_componentID;
 
 const float ACTIVE_TICK_TIMEOUT_DEFAULT = 30.0;
 
@@ -135,7 +136,9 @@ void ServerApp::handleTimeout(TimerHandle, void * arg)
 				{
 					Mercury::Bundle bundle;
 					COMMON_MERCURY_MESSAGE(componentType, bundle, onAppActiveTick);
-
+					
+					bundle << g_componentType;
+					bundle << componentID_;
 					if((*iter).pChannel != NULL)
 						bundle.send(getNetworkInterface(), (*iter).pChannel);
 				}
@@ -234,10 +237,16 @@ void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::str
 }
 
 //-------------------------------------------------------------------------------------
-void ServerApp::onAppActiveTick(Mercury::Channel* pChannel)
+void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID)
 {
-	// 什么也不用做， 频道收到一次通信后就会更新最后一次通信时间， 那么app就不会超时注销此频道。
-	DEBUG_MSG("ServerApp::onAppActiveTick: %s.\n", pChannel->c_str());
+	Components::ComponentInfos* cinfos = 
+		Componentbridge::getComponents().findComponent(componentType, KBEngine::getUserUID(), componentID);
+
+	KBE_ASSERT(cinfos != NULL);
+	cinfos->pChannel->updateLastReceivedTime();
+
+	DEBUG_MSG("ServerApp::onAppActiveTick[%x]: %s:%"PRAppID" lastReceivedTime:%"PRIu64" at %s.\n", 
+		pChannel, COMPONENT_NAME[componentType], componentID, pChannel->lastReceivedTime(), cinfos->pChannel->c_str());
 }
 
 //-------------------------------------------------------------------------------------		

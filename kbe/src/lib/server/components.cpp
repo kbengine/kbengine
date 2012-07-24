@@ -49,7 +49,6 @@ _pNetworkInterface(NULL)
 //-------------------------------------------------------------------------------------
 Components::~Components()
 {
-	clear();
 }
 
 
@@ -111,7 +110,8 @@ void Components::addComponent(int32 uid, const char* username,
 }
 
 //-------------------------------------------------------------------------------------		
-void Components::delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT_ID componentID, bool ignoreComponentID)
+void Components::delComponent(int32 uid, COMPONENT_TYPE componentType, 
+							  COMPONENT_ID componentID, bool ignoreComponentID, bool shouldShowLog)
 {
 	KBEngine::thread::ThreadGuard tg(&this->myMutex); 
 
@@ -136,8 +136,11 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT
 			iter++;
 	}
 
-	ERROR_MSG("Components::delComponent::not found [%s] component:totalcount:%d\n", 
-		COMPONENT_NAME[(uint8)componentType], components.size());
+	if(shouldShowLog)
+	{
+		ERROR_MSG("Components::delComponent::not found [%s] component:totalcount:%d\n", 
+			COMPONENT_NAME[(uint8)componentType], components.size());
+	}
 }
 
 //-------------------------------------------------------------------------------------		
@@ -161,6 +164,7 @@ void Components::removeComponentFromChannel(Mercury::Channel * pChannel)
 				SAFE_RELEASE((*iter).pExtAddr);
 				// (*iter).pChannel->decRef();
 
+				WARNING_MSG("Components::removeComponentFromChannel: %s : %"PRAppID".\n", COMPONENT_NAME[componentType], (*iter).cid);
 				iter = components.erase(iter);
 				return;
 			}
@@ -266,16 +270,16 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 }
 
 //-------------------------------------------------------------------------------------		
-void Components::clear(int32 uid)
+void Components::clear(int32 uid, bool shouldShowLog)
 {
 	KBEngine::thread::ThreadGuard tg(&this->myMutex); 
 
-	delComponent(uid, DBMGR_TYPE, uid, true);
-	delComponent(uid, BASEAPPMGR_TYPE, uid, true);
-	delComponent(uid, CELLAPPMGR_TYPE, uid, true);
-	delComponent(uid, CELLAPP_TYPE, uid, true);
-	delComponent(uid, BASEAPP_TYPE, uid, true);
-	delComponent(uid, LOGINAPP_TYPE, uid, true);
+	delComponent(uid, DBMGR_TYPE, uid, true, shouldShowLog);
+	delComponent(uid, BASEAPPMGR_TYPE, uid, true, shouldShowLog);
+	delComponent(uid, CELLAPPMGR_TYPE, uid, true, shouldShowLog);
+	delComponent(uid, CELLAPP_TYPE, uid, true, shouldShowLog);
+	delComponent(uid, BASEAPP_TYPE, uid, true, shouldShowLog);
+	delComponent(uid, LOGINAPP_TYPE, uid, true, shouldShowLog);
 }
 
 //-------------------------------------------------------------------------------------		

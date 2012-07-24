@@ -58,6 +58,8 @@ Componentbridge::~Componentbridge()
 	//dispatcher().cancelFrequentTask(this);
 	//DEBUG_MSG("Componentbridge::~Componentbridge(): local interface(componentType=%s, componentID=%"PRAppID")!\n", 
 	//	COMPONENT_NAME[componentType_], componentID_);
+
+	getComponents().clear(0, false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -75,7 +77,6 @@ Components& Componentbridge::getComponents()
 //-------------------------------------------------------------------------------------
 void Componentbridge::onChannelTimeOut(Mercury::Channel * pChannel)
 {
-	ERROR_MSG("Componentbridge::onChannelTimeOut: internal-channel is timeout.\n");
 	getComponents().removeComponentFromChannel(pChannel);
 }
 

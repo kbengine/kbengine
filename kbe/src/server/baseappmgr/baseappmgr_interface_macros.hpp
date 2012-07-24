@@ -161,7 +161,59 @@ namespace KBEngine{
 	NETWORK_MESSAGE_DECLARE_ARGS1(Baseappmgr, NAME,								\
 				NAME##BaseappmgrMessagehandler1, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)\
 																				\
-	
+
+/**
+	Baseappmgr消息宏，  只有二个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef BASEAPPMGR_MESSAGE_HANDLER_ARGS2
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(BASEAPPMGR)
+#define BASEAPPMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2)				\
+	void NAME##BaseappmgrMessagehandler2::handle(Mercury::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			ARG_TYPE1 ARG_NAME1;												\
+			s >> ARG_NAME1;														\
+			ARG_TYPE2 ARG_NAME2;												\
+			s >> ARG_NAME2;														\
+			KBEngine::Baseappmgr::getSingleton().NAME(pChannel,					\
+													ARG_NAME1, ARG_NAME2);		\
+	}																			\
+
+#else
+#define BASEAPPMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2)				\
+	void NAME##BaseappmgrMessagehandler2::handle(Mercury::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define BASEAPPMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2)				\
+	class NAME##BaseappmgrMessagehandler2 : public Mercury::MessageHandler		\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define BASEAPPMGR_MESSAGE_DECLARE_ARGS2(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+											ARG_TYPE2, ARG_NAME2)				\
+	BASEAPPMGR_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1, 				\
+											ARG_TYPE2, ARG_NAME2)				\
+	NETWORK_MESSAGE_DECLARE_ARGS2(Baseappmgr, NAME,								\
+				NAME##BaseappmgrMessagehandler2, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+											ARG_TYPE2, ARG_NAME2)				\
+
+
 /**
 	Baseappmgr消息宏，  只有四个参数的消息
 */

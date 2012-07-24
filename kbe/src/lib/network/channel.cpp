@@ -428,12 +428,16 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 void Channel::writeFragmentMessage(uint8 fragmentDatasFlag, Packet* pPacket, uint32 datasize)
 {
 	KBE_ASSERT(pFragmentDatas_ == NULL);
+
 	size_t opsize = pPacket->opsize();
 	pFragmentDatasRemain_ = datasize - opsize;
 	pFragmentDatas_ = new uint8[opsize + pFragmentDatasRemain_ + 1];
 	memcpy(pFragmentDatas_, pPacket->data() + pPacket->rpos(), opsize);
 	fragmentDatasFlag_ = fragmentDatasFlag;
 	pFragmentDatasWpos_ = opsize;
+
+	DEBUG_MSG("Channel::writeFragmentMessage: fragmentDatasFlag=%u, remainsize=%u.\n", 
+		fragmentDatasFlag, pFragmentDatasRemain_);
 }
 
 //-------------------------------------------------------------------------------------

@@ -52,7 +52,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 									int32,						startGroupOrder)
 
 	// 某个app向本app告知处于活动状态。
-	LOGINAPP_MESSAGE_DECLARE_ARGS0(onAppActiveTick,				MERCURY_FIXED_MESSAGE)
+	LOGINAPP_MESSAGE_DECLARE_ARGS2(onAppActiveTick,				MERCURY_FIXED_MESSAGE,
+									COMPONENT_TYPE,				componentType, 
+									COMPONENT_ID,				componentID)
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE
