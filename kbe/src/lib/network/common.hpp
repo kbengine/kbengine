@@ -35,7 +35,7 @@ namespace Mercury
 const uint32 BROADCAST = 0xFFFFFFFF;
 const uint32 LOCALHOST = 0x0100007F;
 
-typedef uint8	MessageID;
+typedef uint16	MessageID;
 typedef uint16	MessageLength; // ×î´ó65535
 
 typedef int32	ChannelID;
@@ -125,6 +125,9 @@ const char * reasonToString(Reason reason)
 
 	return "REASON_UNKNOWN";
 }
+
+
+
 
 }
 }

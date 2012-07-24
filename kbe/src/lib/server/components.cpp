@@ -32,6 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/baseapp/baseapp_interface.hpp"
 #include "../../server/cellapp/cellapp_interface.hpp"
 #include "../../server/dbmgr/dbmgr_interface.hpp"
+#include "../../server/loginapp/loginapp_interface.hpp"
 
 namespace KBEngine
 {
@@ -49,6 +50,7 @@ _pNetworkInterface(NULL)
 Components::~Components()
 {
 }
+
 
 //-------------------------------------------------------------------------------------		
 void Components::addComponent(int32 uid, const char* username, 

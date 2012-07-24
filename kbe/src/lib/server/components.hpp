@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 // common include
 //#define NDEBUG
+#include "cstdkbe/timer.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "thread/threadmutex.hpp"
@@ -58,12 +59,14 @@ public:
 
 	KBEngine::thread::ThreadMutex myMutex;
 	typedef std::vector<ComponentInfos> COMPONENTS;
-
 public:
 	Components();
 	~Components();
 
-	void pNetworkInterface(Mercury::NetworkInterface * networkInterface){ _pNetworkInterface = networkInterface; }
+	INLINE void pNetworkInterface(Mercury::NetworkInterface * networkInterface){ 
+		KBE_ASSERT(networkInterface != NULL); 
+		_pNetworkInterface = networkInterface; 
+	}
 
 	void addComponent(int32 uid, const char* username, 
 		COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
@@ -71,7 +74,9 @@ public:
 		uint32 extaddr, uint16 extport, 
 		Mercury::Channel* pChannel = NULL);
 
-	void delComponent(int32 uid, COMPONENT_TYPE componentType, COMPONENT_ID componentID, bool ignoreComponentID = false);
+	void delComponent(int32 uid, COMPONENT_TYPE componentType, 
+		COMPONENT_ID componentID, bool ignoreComponentID = false);
+
 	void clear(int32 uid);
 
 	Components::COMPONENTS& getComponents(COMPONENT_TYPE componentType);
@@ -87,6 +92,7 @@ public:
 	ORDER_LOG& getBaseappGroupOrderLog(){ return _baseappGrouplOrderLog; }
 	ORDER_LOG& getCellappGroupOrderLog(){ return _cellappGrouplOrderLog; }
 	ORDER_LOG& getLoginappGroupOrderLog(){ return _loginappGrouplOrderLog; }
+	
 private:
 	COMPONENTS								_baseapps;
 	COMPONENTS								_cellapps;
@@ -98,7 +104,7 @@ private:
 	COMPONENTS								_centers;
 
 	Mercury::NetworkInterface*				_pNetworkInterface;
-
+	
 	// 组件的全局启动次序log和组(相同的组件为一组， 如：所有baseapp为一个组)启动次序log
 	// 注意:中途有死掉的app组件这里log并不去做减操作, 从使用意图来看也没有必要做这个匹配。
 	ORDER_LOG								_globalOrderLog;

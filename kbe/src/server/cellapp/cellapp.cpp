@@ -63,7 +63,7 @@ bool Cellapp::installPyModules()
 void Cellapp::onInstallPyModules()
 {
 	// 添加globalData, cellAppData支持
-	pCellAppData_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::CELLAPP_DATA, getEntryScript().get());
+	pCellAppData_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::CELLAPP_DATA);
 	registerPyObjectToScript("cellAppData", pCellAppData_);
 }
 
@@ -200,10 +200,42 @@ void Cellapp::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, KBEngine:
 		s.read_skip(slen);
 	}
 
+	PyObject * pyKey = script::Pickler::unpickle(key);
+
 	if(isDelete)
-		pCellAppData_->del(key);
+	{
+		if(pCellAppData_->del(pyKey))
+		{
+			// 通知脚本
+			PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+												const_cast<char*>("onCellAppDataDel"), 
+												const_cast<char*>("O"), 
+												pyKey);
+
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+		}
+	}
 	else
-		pCellAppData_->write(key, value);
+	{
+		PyObject * pyValue = script::Pickler::unpickle(value);
+		if(pCellAppData_->write(pyKey, pyValue))
+		{
+			// 通知脚本
+			PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+												const_cast<char*>("onCellAppData"), 
+												const_cast<char*>("OO"), 
+												pyKey, pyValue);
+
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+		}
+	}
+
 }
 
 //-------------------------------------------------------------------------------------

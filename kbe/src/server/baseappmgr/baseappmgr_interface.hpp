@@ -56,6 +56,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 									uint16,				intport,
 									uint32,				extaddr, 
 									uint16,				extport)
+
+	// 某个app向本app告知处于活动状态。
+	BASEAPPMGR_MESSAGE_DECLARE_ARGS0(onAppActiveTick,	MERCURY_FIXED_MESSAGE)
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

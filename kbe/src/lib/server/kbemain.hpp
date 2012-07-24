@@ -73,13 +73,13 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	START_MSG(COMPONENT_NAME[componentType], appuid);
 	if(!app.initialize()){
 		ERROR_MSG("app::initialize is error!\n");
-		delete pComponentbridge;
+		SAFE_RELEASE(pComponentbridge);
 		return -1;
 	}
 	
 	INFO_MSG( "---- %s is running ----\n", COMPONENT_NAME[componentType]);
 	int ret = app.run();
-	delete pComponentbridge;
+	SAFE_RELEASE(pComponentbridge);
 	app.finalise();
 	INFO_MSG("%s has shut down.\n", COMPONENT_NAME[componentType]);
 	return ret;

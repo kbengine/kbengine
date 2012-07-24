@@ -32,14 +32,14 @@ class GlobalDataClient : public script::Map
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(GlobalDataClient, script::Map)
 public:	
-	GlobalDataClient(COMPONENT_TYPE componentType, GlobalDataServer::DATA_TYPE dataType, PyObject* pPyEntryMod);
+	GlobalDataClient(COMPONENT_TYPE componentType, GlobalDataServer::DATA_TYPE dataType);
 	~GlobalDataClient();
 	
 	/** 写数据 */
-	bool write(const std::string& key, const std::string& value);
+	bool write(PyObject* pyKey, PyObject* pyValue);
 	
 	/** 删除数据 */
-	bool del(const std::string& key);
+	bool del(PyObject* pyKey);
 	
 	/** 数据改变通知 */
 	void onDataChanged(std::string& key, std::string& value, bool isDelete = false);
@@ -50,7 +50,6 @@ public:
 private:
 	COMPONENT_TYPE serverComponentType_;				// GlobalDataServer所在服务器组件的类型
 	GlobalDataServer::DATA_TYPE dataType_;
-	PyObject* pPyEntryMod_;
 } ;
 
 }

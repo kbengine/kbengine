@@ -25,8 +25,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/channel.hpp"
 #include "server/componentbridge.hpp"
 
+#include "../../server/baseappmgr/baseappmgr_interface.hpp"
+#include "../../server/cellappmgr/cellappmgr_interface.hpp"
+#include "../../server/baseapp/baseapp_interface.hpp"
+#include "../../server/cellapp/cellapp_interface.hpp"
+#include "../../server/dbmgr/dbmgr_interface.hpp"
+#include "../../server/loginapp/loginapp_interface.hpp"
+
 namespace KBEngine{
 COMPONENT_TYPE g_componentType;
+
+const float ACTIVE_TICK_TIMEOUT_DEFAULT = 30.0;
 
 //-------------------------------------------------------------------------------------
 ServerApp::ServerApp(Mercury::EventDispatcher& dispatcher, 
@@ -34,6 +43,8 @@ ServerApp::ServerApp(Mercury::EventDispatcher& dispatcher,
 					 COMPONENT_TYPE componentType,
 					 COMPONENT_ID componentID):
 SignalHandler(),
+TimerHandler(),
+Mercury::ChannelTimeOutHandler(),
 componentType_(componentType),
 componentID_(componentID),
 mainDispatcher_(dispatcher),
@@ -41,10 +52,12 @@ networkInterface_(ninterface),
 time_(0),
 timers_(),
 startGlobalOrder_(-1),
-startGroupOrder_(-1)
+startGroupOrder_(-1),
+pActiveTimerHandle_()
 {
 	networkInterface_.pExtensionData(this);
 	networkInterface_.pChannelTimeOutHandler(this);
+	startActiveTick(ACTIVE_TICK_TIMEOUT_DEFAULT);
 }
 
 //-------------------------------------------------------------------------------------
@@ -92,12 +105,56 @@ bool ServerApp::initialize()
 //-------------------------------------------------------------------------------------		
 void ServerApp::finalise(void)
 {
+	pActiveTimerHandle_.cancel();
 }
 
 //-------------------------------------------------------------------------------------		
 double ServerApp::gameTimeInSeconds() const
 {
 	return double(time_) / g_kbeSrvConfig.gameUpdateHertz();
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::handleTimeout(TimerHandle, void * arg)
+{
+	switch (reinterpret_cast<uintptr>(arg))
+	{
+		case TIMEOUT_ACTIVE_TICK:
+		{
+			int8 findComponentTypes[] = {BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, DBMGR_TYPE, CELLAPP_TYPE, 
+								BASEAPP_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE};
+			
+			int ifind = 0;
+			while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)
+			{
+				COMPONENT_TYPE componentType = (COMPONENT_TYPE)findComponentTypes[ifind];
+
+				Components::COMPONENTS& components = Components::getSingleton().getComponents(componentType);
+				Components::COMPONENTS::iterator iter = components.begin();
+				for(; iter != components.end();)
+				{
+					Mercury::Bundle bundle;
+					COMMON_MERCURY_MESSAGE(componentType, bundle, onAppActiveTick);
+
+					if((*iter).pChannel != NULL)
+						bundle.send(getNetworkInterface(), (*iter).pChannel);
+				}
+
+				ifind++;
+			}
+			break;
+		}
+		default:
+			break;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::startActiveTick(float period)
+{
+	pActiveTimerHandle_.cancel();
+	pActiveTimerHandle_ = getMainDispatcher().addTimer(int(period * 1000000),
+									this, (void *)TIMEOUT_ACTIVE_TICK);
 }
 
 //-------------------------------------------------------------------------------------
@@ -168,6 +225,13 @@ void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::str
 		KBE_ASSERT(cinfos->pIntAddr->ip == intaddr && cinfos->pIntAddr->port == intport);
 		cinfos->pChannel = pChannel;
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::onAppActiveTick(Mercury::Channel* pChannel)
+{
+	// 什么也不用做， 频道收到一次通信后就会更新最后一次通信时间， 那么app就不会超时注销此频道。
+	DEBUG_MSG("ServerApp::onAppActiveTick: %s.\n", pChannel->c_str());
 }
 
 //-------------------------------------------------------------------------------------		

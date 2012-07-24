@@ -85,7 +85,7 @@ namespace KBEngine{
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(CELLAPP)
 #define CELLAPP_MESSAGE_HANDLER_ARGS0(NAME)										\
-	void NAME##CellAppMessagehandler0::handle(Mercury::Channel* pChannel,		\
+	void NAME##CellappMessagehandler0::handle(Mercury::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 			KBEngine::Cellapp::getSingleton().NAME(pChannel);					\
@@ -93,7 +93,7 @@ namespace KBEngine{
 
 #else
 #define CELLAPP_MESSAGE_HANDLER_ARGS0(NAME)										\
-	void NAME##CellAppMessagehandler0::handle(Mercury::Channel* pChannel,		\
+	void NAME##CellappMessagehandler0::handle(Mercury::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
 	}																			\
@@ -101,7 +101,7 @@ namespace KBEngine{
 #endif
 #else
 #define CELLAPP_MESSAGE_HANDLER_ARGS0(NAME)										\
-	class NAME##CellAppMessagehandler0 : public Mercury::MessageHandler			\
+	class NAME##CellappMessagehandler0 : public Mercury::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(Mercury::Channel* pChannel,							\
@@ -109,6 +109,12 @@ namespace KBEngine{
 	};																			\
 
 #endif
+
+#define CELLAPP_MESSAGE_DECLARE_ARGS0(NAME, MSG_LENGTH)							\
+	CELLAPP_MESSAGE_HANDLER_ARGS0(NAME)											\
+	NETWORK_MESSAGE_DECLARE_ARGS0(Cellapp, NAME,								\
+				NAME##CellappMessagehandler0, MSG_LENGTH)						\
+																				\
 
 /**
 	Cellapp消息宏，  只有一个参数的消息

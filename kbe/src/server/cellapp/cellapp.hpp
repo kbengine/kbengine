@@ -40,7 +40,7 @@ class Cellapp:	public EntityApp<Entity>,
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_LOADING_TICK = TIMEOUT_BASE_MAX
+		TIMEOUT_LOADING_TICK = TIMEOUT_ENTITYAPP_MAX + 1
 	};
 	
 	Cellapp(Mercury::EventDispatcher& dispatcher, 

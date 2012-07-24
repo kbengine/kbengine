@@ -79,6 +79,47 @@ namespace KBEngine{
 																				\
 
 /**
+	Baseappmgr消息宏，  只有零个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef BASEAPPMGR_MESSAGE_HANDLER_ARGS0
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(BASEAPPMGR)
+#define BASEAPPMGR_MESSAGE_HANDLER_ARGS0(NAME)									\
+	void NAME##BaseappmgrMessagehandler0::handle(Mercury::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			KBEngine::Baseappmgr::getSingleton().NAME(pChannel);				\
+	}																			\
+
+#else
+#define BASEAPPMGR_MESSAGE_HANDLER_ARGS0(NAME)									\
+	void NAME##BaseappmgrMessagehandler0::handle(Mercury::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define BASEAPPMGR_MESSAGE_HANDLER_ARGS0(NAME)									\
+	class NAME##BaseappmgrMessagehandler0 : public Mercury::MessageHandler		\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+												KBEngine::MemoryStream& s);		\
+	};																			\
+
+#endif
+
+#define BASEAPPMGR_MESSAGE_DECLARE_ARGS0(NAME, MSG_LENGTH)						\
+	BASEAPPMGR_MESSAGE_HANDLER_ARGS0(NAME)										\
+	NETWORK_MESSAGE_DECLARE_ARGS0(Baseappmgr, NAME,								\
+				NAME##BaseappmgrMessagehandler0, MSG_LENGTH)					\
+																				\
+
+/**
 	Baseappmgr消息宏，  只有一个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)

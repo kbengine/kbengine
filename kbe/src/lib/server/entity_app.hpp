@@ -51,14 +51,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 template<class E>
-class EntityApp : public ServerApp,
-				public TimerHandler
+class EntityApp : public ServerApp
 {
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_GAME_TICK,
-		TIMEOUT_BASE_MAX
+		TIMEOUT_GAME_TICK = TIMEOUT_SERVERAPP_MAX + 1,
+		TIMEOUT_ENTITYAPP_MAX
 	};
 public:
 	EntityApp(Mercury::EventDispatcher& dispatcher, 
@@ -302,7 +301,7 @@ bool EntityApp<E>::installPyModules()
 	}
 
 	// 添加globalData, globalBases支持
-	pGlobalData_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_DATA, getEntryScript().get());
+	pGlobalData_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_DATA);
 	registerPyObjectToScript("globalData", pGlobalData_);
 
 	return true;
@@ -421,6 +420,7 @@ void EntityApp<E>::handleTimeout(TimerHandle handle, void * arg)
 		default:
 			break;
 	}
+
 }
 
 template<class E>
@@ -492,10 +492,41 @@ void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEng
 		s.read_skip(slen);
 	}
 
+	PyObject * pyKey = script::Pickler::unpickle(key);
+	
 	if(isDelete)
-		pGlobalData_->del(key);
+	{
+		if(pGlobalData_->del(pyKey))
+		{
+			// 通知脚本
+			PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+												const_cast<char*>("onGlobalDataDel"), 
+												const_cast<char*>("O"), 
+												pyKey);
+
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+		}
+	}
 	else
-		pGlobalData_->write(key, value);
+	{
+		PyObject * pyValue = script::Pickler::unpickle(value);
+		if(pGlobalData_->write(pyKey, pyValue))
+		{
+			// 通知脚本
+			PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+												const_cast<char*>("onGlobalData"), 
+												const_cast<char*>("OO"), 
+												pyKey, pyValue);
+
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+		}
+	}
 }
 
 }

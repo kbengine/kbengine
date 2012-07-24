@@ -39,11 +39,10 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(GlobalDataClient, 0, 0, &Map::mappingMethods, 0, 0)
 	
 //-------------------------------------------------------------------------------------
-GlobalDataClient::GlobalDataClient(COMPONENT_TYPE componentType, GlobalDataServer::DATA_TYPE dataType, PyObject* pPyEntryMod):
+GlobalDataClient::GlobalDataClient(COMPONENT_TYPE componentType, GlobalDataServer::DATA_TYPE dataType):
 script::Map(getScriptType(), false),
 serverComponentType_(componentType),
-dataType_(dataType),
-pPyEntryMod_(pPyEntryMod)
+dataType_(dataType)
 {
 }
 
@@ -53,37 +52,23 @@ GlobalDataClient::~GlobalDataClient()
 }
 
 //-------------------------------------------------------------------------------------
-bool GlobalDataClient::write(const std::string& key, const std::string& value)
+bool GlobalDataClient::write(PyObject* pyKey, PyObject* pyValue)
 {
-	PyObject * pyKey = script::Pickler::unpickle(key);
-	PyObject * pyValue = script::Pickler::unpickle(value);
-
 	bool ret = false;
 	if(pyKey && pyValue)
 	{
 		if (PyDict_SetItem(pyDict_, pyKey, pyValue) == -1)
 		{
-			ERROR_MSG("Map::write: is eror! key=%s, val=%s\n", key.c_str(), value.c_str());
+			ERROR_MSG("Map::write: is eror! key=%s, val=%s\n", PyBytes_AsString(pyKey), PyBytes_AsString(pyValue));
 		}
 		else
 		{
 			ret = true;
-			
-			// 通知脚本
-			PyObject* pyResult = PyObject_CallMethod(pPyEntryMod_, 
-												const_cast<char*>("onGlobalData"), 
-												const_cast<char*>("OO"), 
-												pyKey, pyValue);
-
-			if(pyResult != NULL)
-				Py_DECREF(pyResult);
-			else
-				SCRIPT_ERROR_CHECK();
 		}
 	}
 	else
 	{
-		ERROR_MSG("Map::write:unpickle is error. key=%s, val=%s\n", key.c_str(), value.c_str());
+		ERROR_MSG("Map::write:unpickle is error. key=%s, val=%s\n", PyBytes_AsString(pyKey), PyBytes_AsString(pyValue));
 		PyErr_Print();
 	}
 
@@ -93,37 +78,26 @@ bool GlobalDataClient::write(const std::string& key, const std::string& value)
 }
 
 //-------------------------------------------------------------------------------------
-bool GlobalDataClient::del(const std::string& key)
+bool GlobalDataClient::del(PyObject* pyKey)
 {
-	PyObject * pyKey = script::Pickler::unpickle(key);
 	bool ret = false;
 
 	if(pyKey)
 	{
 		if (PyDict_GetItem(pyDict_, pyKey) && PyDict_DelItem(pyDict_, pyKey) == -1)
 		{
-			ERROR_MSG("Map::del: delete key is failed! key=%s.\n", key.c_str());
+			ERROR_MSG("Map::del: delete key is failed! key=%s.\n", PyBytes_AsString(pyKey));
 			PyErr_Clear();
 		}
 		else
 		{
 			ret = true;
-			// 通知脚本
-			PyObject* pyResult = PyObject_CallMethod(pPyEntryMod_, 
-												const_cast<char*>("onGlobalDataDel"), 
-												const_cast<char*>("O"), 
-												pyKey);
-
-			if(pyResult != NULL)
-				Py_DECREF(pyResult);
-			else
-				SCRIPT_ERROR_CHECK();
 		}
 		Py_DECREF(pyKey);
 	}
 	else
 	{
-		ERROR_MSG("Map::del: delete key is error! key=%s.\n", key.c_str());
+		ERROR_MSG("Map::del: delete key is error! key=%s.\n", PyBytes_AsString(pyKey));
 		PyErr_Print();
 	}
 

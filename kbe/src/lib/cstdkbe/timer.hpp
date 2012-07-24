@@ -68,7 +68,6 @@ public:
 
 protected:
 	virtual void onRelease( TimerHandle handle, void * pUser ) {}
-
 private:
 	friend class TimeBase;
 	void incTimerRegisterCount() { ++numTimesRegistered_; }

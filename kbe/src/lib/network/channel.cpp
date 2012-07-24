@@ -303,6 +303,8 @@ void Channel::handleTimeout(TimerHandle, void * arg)
 			}
 			break;
 		}
+		default:
+			break;
 	}
 }
 

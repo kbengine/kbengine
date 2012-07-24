@@ -46,6 +46,7 @@ class Baseapp :	public EntityApp<Base>,
 public:
 	enum TimeOutType
 	{
+		TIMEOUT_MAX = TIMEOUT_ENTITYAPP_MAX + 1
 	};
 	
 	Baseapp(Mercury::EventDispatcher& dispatcher, 

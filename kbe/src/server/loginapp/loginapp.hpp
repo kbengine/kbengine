@@ -41,14 +41,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class Loginapp :	public ServerApp, 
-					public TimerHandler, 
 					public Singleton<Loginapp>
 {
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_GAME_TICK,
-		TIMEOUT_LOADING_TICK
+		TIMEOUT_GAME_TICK = TIMEOUT_SERVERAPP_MAX + 1
 	};
 	
 	Loginapp(Mercury::EventDispatcher& dispatcher, 
@@ -60,7 +58,7 @@ public:
 	
 	bool run();
 	
-	void handleTimeout(TimerHandle handle, void * arg);
+	virtual void handleTimeout(TimerHandle handle, void * arg);
 
 	/* 初始化相关接口 */
 	bool initializeBegin();

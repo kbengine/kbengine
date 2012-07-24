@@ -42,14 +42,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class Machine:	public ServerApp, 
-				public TimerHandler, 
 				public Singleton<Machine>
 {
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_GAME_TICK,
-		TIMEOUT_LOADING_TICK
+		TIMEOUT_GAME_TICK = TIMEOUT_SERVERAPP_MAX + 1
 	};
 	
 	Machine(Mercury::EventDispatcher& dispatcher, 

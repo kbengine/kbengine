@@ -60,8 +60,15 @@ class Channel;
 
 class ServerApp : 
 	public SignalHandler, 
+	public TimerHandler, 
 	public Mercury::ChannelTimeOutHandler
 {
+public:
+	enum TimeOutType
+	{
+		TIMEOUT_ACTIVE_TICK,
+		TIMEOUT_SERVERAPP_MAX
+	};
 public:
 	ServerApp(Mercury::EventDispatcher& dispatcher, 
 			Mercury::NetworkInterface& ninterface, 
@@ -82,6 +89,9 @@ public:
 	virtual bool loadConfig();
 	const char* name(){return COMPONENT_NAME[componentType_];}
 	
+	void startActiveTick(float period);
+	virtual void handleTimeout(TimerHandle, void * pUser);
+
 	GAME_TIME time() const { return time_; }
 	Timers & timers() { return timers_; }
 	double gameTimeInSeconds() const;
@@ -110,6 +120,12 @@ public:
 							std::string& username, 
 							int8 componentType, uint64 componentID, 
 							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport);
+
+	/* 网络接口
+		某个app向本app告知处于活动状态。
+	*/
+	void onAppActiveTick(Mercury::Channel* pChannel);
+
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID
@@ -124,6 +140,8 @@ protected:
 	// group为组启动顺序(如:所有baseapp为一组)
 	int32													startGlobalOrder_;
 	int32													startGroupOrder_;
+
+	TimerHandle												pActiveTimerHandle_;
 };
 
 }

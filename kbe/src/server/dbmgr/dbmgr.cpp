@@ -77,6 +77,8 @@ void Dbmgr::handleTimeout(TimerHandle handle, void * arg)
 		default:
 			break;
 	}
+
+	ServerApp::handleTimeout(handle, arg);
 }
 
 //-------------------------------------------------------------------------------------

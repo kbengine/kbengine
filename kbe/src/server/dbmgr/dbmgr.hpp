@@ -43,13 +43,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class Dbmgr :	public ServerApp, 
-					public TimerHandler, 
 					public Singleton<Dbmgr>
 {
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_TICK,
+		TIMEOUT_TICK = TIMEOUT_SERVERAPP_MAX + 1,
 		TIMEOUT_CHECK_STATUS
 	};
 	

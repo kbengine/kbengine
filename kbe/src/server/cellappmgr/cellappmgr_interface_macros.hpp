@@ -79,6 +79,48 @@ namespace KBEngine{
 																				\
 
 /**
+	Cellappmgr消息宏，  只有零个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef CELLAPPMGR_MESSAGE_HANDLER_ARGS0
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(CELLAPPMGR)
+#define CELLAPPMGR_MESSAGE_HANDLER_ARGS0(NAME)									\
+	void NAME##CellappmgrMessagehandler0::handle(Mercury::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			KBEngine::Cellappmgr::getSingleton().NAME(pChannel);				\
+	}																			\
+
+#else
+#define CELLAPPMGR_MESSAGE_HANDLER_ARGS0(NAME)									\
+	void NAME##CellappmgrMessagehandler0::handle(Mercury::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define CELLAPPMGR_MESSAGE_HANDLER_ARGS0(NAME)									\
+	class NAME##CellappmgrMessagehandler0 : public Mercury::MessageHandler		\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+												KBEngine::MemoryStream& s);		\
+	};																			\
+
+#endif
+
+#define CELLAPPMGR_MESSAGE_DECLARE_ARGS0(NAME, MSG_LENGTH)						\
+	CELLAPPMGR_MESSAGE_HANDLER_ARGS0(NAME)										\
+	NETWORK_MESSAGE_DECLARE_ARGS0(Cellappmgr, NAME,								\
+				NAME##CellappmgrMessagehandler0, MSG_LENGTH)					\
+																				\
+
+
+/**
 	Cellappmgr消息宏，  只有一个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)

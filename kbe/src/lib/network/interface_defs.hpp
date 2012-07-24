@@ -42,6 +42,45 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 namespace Mercury
 {
+#define COMMON_MERCURY_MESSAGE(COMPONENTTYPE, BUNDLE, MESSAGENAME)											\
+		switch(COMPONENTTYPE)																				\
+		{																									\
+		case CELLAPPMGR_TYPE:																				\
+			{																								\
+				BUNDLE.newMessage(CellappmgrInterface::MESSAGENAME);										\
+			}																								\
+			break;																							\
+		case BASEAPPMGR_TYPE:																				\
+			{																								\
+				BUNDLE.newMessage(BaseappmgrInterface::MESSAGENAME);										\
+			}																								\
+			break;																							\
+		case DBMGR_TYPE:																					\
+			{																								\
+				BUNDLE.newMessage(DbmgrInterface::MESSAGENAME);												\
+			}																								\
+			break;																							\
+		case CELLAPP_TYPE:																					\
+			{																								\
+				BUNDLE.newMessage(CellappInterface::MESSAGENAME);											\
+			}																								\
+			break;																							\
+		case BASEAPP_TYPE:																					\
+			{																								\
+				BUNDLE.newMessage(BaseappInterface::MESSAGENAME);											\
+			}																								\
+			break;																							\
+		case LOGINAPP_TYPE:																					\
+			{																								\
+				BUNDLE.newMessage(LoginappInterface::MESSAGENAME);											\
+			}																								\
+			break;																							\
+		default:																							\
+			break;																							\
+		};																									\
+
+
+
 #ifdef NETWORK_INTERFACE_DECLARE_BEGIN
 	#undef NETWORK_INTERFACE_DECLARE_BEGIN
 	#undef NETWORK_MESSAGE_DECLARE_STREAM

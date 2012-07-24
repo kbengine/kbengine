@@ -70,7 +70,7 @@ bool Baseapp::installPyModules()
 void Baseapp::onInstallPyModules()
 {
 	// 添加globalData, globalBases支持
-	pGlobalBases_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_BASES, getEntryScript().get());
+	pGlobalBases_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_BASES);
 	registerPyObjectToScript("globalBases", pGlobalBases_);
 }
 
@@ -442,10 +442,41 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 		s.read_skip(slen);
 	}
 
+	PyObject * pyKey = script::Pickler::unpickle(key);
+
 	if(isDelete)
-		pGlobalBases_->del(key);
+	{
+		if(pGlobalBases_->del(pyKey))
+		{
+			// 通知脚本
+			PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+												const_cast<char*>("onGlobalBasesDel"), 
+												const_cast<char*>("O"), 
+												pyKey);
+
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+		}
+	}
 	else
-		pGlobalBases_->write(key, value);
+	{
+		PyObject * pyValue = script::Pickler::unpickle(value);
+		if(pGlobalBases_->write(pyKey, pyValue))
+		{
+			// 通知脚本
+			PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+												const_cast<char*>("onGlobalBases"), 
+												const_cast<char*>("OO"), 
+												pyKey, pyValue);
+
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------

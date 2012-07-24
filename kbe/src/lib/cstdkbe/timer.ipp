@@ -244,10 +244,10 @@ TIME_STAMP & TimersT< TIME_STAMP >::timerIntervalTime( TimerHandle handle )
 
 
 inline TimeBase::TimeBase(TimersBase & owner, TimerHandler * pHandler, void * pUserData) :
-	owner_( owner ),
-	pHandler_( pHandler ),
+	owner_(owner),
+	pHandler_(pHandler),
 	pUserData_(pUserData),
-	state_(TIME_PENDING )
+	state_(TIME_PENDING)
 {
 	pHandler->incTimerRegisterCount();
 }
@@ -258,7 +258,7 @@ inline void TimeBase::cancel()
 		return;
 	}
 
-	KBE_ASSERT( (state_ == TIME_PENDING) || (state_ == TIME_EXECUTING) );
+	KBE_ASSERT((state_ == TIME_PENDING) || (state_ == TIME_EXECUTING));
 	state_ = TIME_CANCELLED;
 
 	if (pHandler_){
@@ -274,9 +274,9 @@ template <class TIME_STAMP>
 TimersT< TIME_STAMP >::Time::Time( TimersBase & owner,
 		TimeStamp startTime, TimeStamp interval,
 		TimerHandler * _pHandler, void * _pUser ) :
-	TimeBase( owner, _pHandler, _pUser ),
-	time_( startTime ),
-	interval_( interval )
+	TimeBase(owner, _pHandler, _pUser),
+	time_(startTime),
+	interval_(interval)
 {
 }
 

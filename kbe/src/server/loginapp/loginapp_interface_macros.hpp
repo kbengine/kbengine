@@ -79,6 +79,47 @@ namespace KBEngine{
 																				\
 
 /**
+	Loginapp消息宏，  只有零个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef LOGINAPP_MESSAGE_HANDLER_ARGS0
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(LOGINAPP)
+#define LOGINAPP_MESSAGE_HANDLER_ARGS0(NAME)									\
+	void NAME##LoginappMessagehandler0::handle(Mercury::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			KBEngine::Loginapp::getSingleton().NAME(pChannel);					\
+	}																			\
+
+#else
+#define LOGINAPP_MESSAGE_HANDLER_ARGS0(NAME)									\
+	void NAME##LoginappMessagehandler0::handle(Mercury::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define LOGINAPP_MESSAGE_HANDLER_ARGS0(NAME)									\
+	class NAME##LoginappMessagehandler0 : public Mercury::MessageHandler		\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+												KBEngine::MemoryStream& s);		\
+	};																			\
+
+#endif
+
+#define LOGINAPP_MESSAGE_DECLARE_ARGS0(NAME, MSG_LENGTH)						\
+	LOGINAPP_MESSAGE_HANDLER_ARGS0(NAME)										\
+	NETWORK_MESSAGE_DECLARE_ARGS0(Loginapp, NAME,								\
+				NAME##LoginappMessagehandler0, MSG_LENGTH)						\
+																				\
+
+/**
 	Loginapp消息宏，  只有一个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)

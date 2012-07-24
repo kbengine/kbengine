@@ -65,6 +65,8 @@ void Cellappmgr::handleTimeout(TimerHandle handle, void * arg)
 		default:
 			break;
 	}
+
+	ServerApp::handleTimeout(handle, arg);
 }
 
 //-------------------------------------------------------------------------------------
@@ -101,6 +103,7 @@ bool Cellappmgr::initializeEnd()
 void Cellappmgr::finalise()
 {
 	gameTimer_.cancel();
+	ServerApp::finalise();
 }
 
 //-------------------------------------------------------------------------------------

@@ -79,6 +79,47 @@ namespace KBEngine{
 																				\
 
 /**
+	Baseapp消息宏，  只有零个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef BASEAPP_MESSAGE_HANDLER_ARGS0
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(BASEAPP)
+#define BASEAPP_MESSAGE_HANDLER_ARGS0(NAME)										\
+	void NAME##BaseappMessagehandler0::handle(Mercury::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			KBEngine::Baseapp::getSingleton().NAME(pChannel);					\
+	}																			\
+
+#else
+#define BASEAPP_MESSAGE_HANDLER_ARGS0(NAME)										\
+	void NAME##BaseappMessagehandler0::handle(Mercury::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define BASEAPP_MESSAGE_HANDLER_ARGS0(NAME)										\
+	class NAME##BaseappMessagehandler0 : public Mercury::MessageHandler			\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+												KBEngine::MemoryStream& s);		\
+	};																			\
+
+#endif
+
+#define BASEAPP_MESSAGE_DECLARE_ARGS0(NAME, MSG_LENGTH)							\
+	BASEAPP_MESSAGE_HANDLER_ARGS0(NAME)											\
+	NETWORK_MESSAGE_DECLARE_ARGS0(Baseapp, NAME,								\
+				NAME##BaseappMessagehandler0, MSG_LENGTH)						\
+																				\
+
+/**
 	Baseapp消息宏，  只有一个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)

@@ -65,6 +65,8 @@ void Baseappmgr::handleTimeout(TimerHandle handle, void * arg)
 		default:
 			break;
 	}
+
+	ServerApp::handleTimeout(handle, arg);
 }
 
 //-------------------------------------------------------------------------------------
@@ -101,6 +103,7 @@ bool Baseappmgr::initializeEnd()
 void Baseappmgr::finalise()
 {
 	gameTimer_.cancel();
+	ServerApp::finalise();
 }
 
 //-------------------------------------------------------------------------------------
