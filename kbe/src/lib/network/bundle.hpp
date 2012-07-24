@@ -223,6 +223,11 @@ public:
         return *this;
     }
     
+	Bundle &append(const char *str, int n)
+	{
+		return assign(str, n);
+	}
+
 	Bundle &assign(const char *str, int n)
 	{
 		int32 len = (int32)n;

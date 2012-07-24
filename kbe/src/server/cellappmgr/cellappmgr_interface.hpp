@@ -46,20 +46,23 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(CellappmgrInterface)
 	// 某app注册自己的接口地址到本app
-	CELLAPPMGR_MESSAGE_DECLARE_ARGS8(onRegisterNewApp,	MERCURY_VARIABLE_MESSAGE,
-									int32,				uid, 
-									std::string,		username,
-									int8,				componentType, 
-									uint64,				componentID, 
-									uint32,				intaddr, 
-									uint16,				intport,
-									uint32,				extaddr, 
-									uint16,				extport)
+	CELLAPPMGR_MESSAGE_DECLARE_ARGS8(onRegisterNewApp,			MERCURY_VARIABLE_MESSAGE,
+									int32,						uid, 
+									std::string,				username,
+									int8,						componentType, 
+									uint64,						componentID, 
+									uint32,						intaddr, 
+									uint16,						intport,
+									uint32,						extaddr, 
+									uint16,						extport)
 
 	// 某个app向本app告知处于活动状态。
-	CELLAPPMGR_MESSAGE_DECLARE_ARGS2(onAppActiveTick,	MERCURY_FIXED_MESSAGE,
-									COMPONENT_TYPE,		componentType, 
-									COMPONENT_ID,		componentID)
+	CELLAPPMGR_MESSAGE_DECLARE_ARGS2(onAppActiveTick,			MERCURY_FIXED_MESSAGE,
+									COMPONENT_TYPE,				componentType, 
+									COMPONENT_ID,				componentID)
+
+	// baseEntity请求创建在一个新的space中。
+	CELLAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateInNewSpace,		MERCURY_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 

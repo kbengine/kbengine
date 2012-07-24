@@ -27,6 +27,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/udp_packet.hpp"
 #include "server/componentbridge.hpp"
 
+#include "../../server/baseappmgr/baseappmgr_interface.hpp"
+#include "../../server/cellappmgr/cellappmgr_interface.hpp"
+#include "../../server/baseapp/baseapp_interface.hpp"
+#include "../../server/cellapp/cellapp_interface.hpp"
+#include "../../server/dbmgr/dbmgr_interface.hpp"
+#include "../../server/loginapp/loginapp_interface.hpp"
+
 namespace KBEngine{
 	
 ServerConfig g_serverConfig;
@@ -200,38 +207,38 @@ PyObject* Baseapp::__py_createBaseAnywhere(PyObject* self, PyObject* args)
 
 //-------------------------------------------------------------------------------------
 void Baseapp::createInNewSpace(Base* base, PyObject* cell)
-{/*
-	SocketPacket* sp = new SocketPacket(OP_CREATE_IN_NEW_SPACE, 10);
+{
 	ENTITY_ID id = base->getID();
 	std::string entityType = base->ob_type->tp_name;
 	std::string strCellData = script::Pickler::pickle(base->getCellData());
 	uint32 cellDataLength = strCellData.length();
 	
-	(*sp) << entityType;
-	(*sp) << (ENTITY_ID)id;
-	(*sp) << (COMPONENT_ID)m_componentID_;
-	(*sp) << (uint32)cellDataLength;
+	Mercury::Bundle bundle;
+
+	bundle.newMessage(CellappmgrInterface::reqCreateInNewSpace);
+
+	bundle << entityType;
+	bundle << id;
+	bundle << componentID_;
+	bundle << cellDataLength;
+
 	if(cellDataLength > 0)
-		sp->append(strCellData.c_str(), cellDataLength);
+		bundle.append(strCellData.data(), cellDataLength);
 	
-	COMPONENT_MAP& components = EngineComponentMgr::getSingleton().getComponents(CELLAPPMGR_TYPE);
-	COMPONENT_MAP::iterator iter = components.begin();
+	Components::COMPONENTS& components = Components::getSingleton().getComponents(CELLAPPMGR_TYPE);
+	Components::COMPONENTS::iterator iter = components.begin();
 	if(iter != components.end())
 	{
-		NSChannel* lpChannel = static_cast<NSChannel*>(iter->second);
-		lpChannel->sendPacket(sp);
+		bundle.send(this->getNetworkInterface(), (*iter).pChannel);
 		return;
 	}
-	*/
-	ERROR_MSG("App::createInNewSpace: not found cellappmgr.\n");
+	
+	ERROR_MSG("Baseapp::createInNewSpace: not found cellappmgr.\n");
 }
 
 //-------------------------------------------------------------------------------------
 void Baseapp::createBaseAnywhere(const char* entityType, PyObject* params, PyObject* pyCallback)
 {
-	/*
-	SocketPacket* sp = new SocketPacket(OP_CREATE_BASE_ANY_WHERE, 10);
-	
 	std::string strInitData = "";
 	uint32 initDataLength = 0;
 	if(params != NULL && PyDict_Check(params))
@@ -240,32 +247,26 @@ void Baseapp::createBaseAnywhere(const char* entityType, PyObject* params, PyObj
 		initDataLength = strInitData.length();
 	}
 
-	CALLBACK_ID callbackID = 0;
-	if(pyCallback != NULL)
-	{
-		Py_INCREF(pyCallback);
-		callbackID = m_pyCallbackMgr.save(pyCallback);
-	}
+	Mercury::Bundle bundle;
 
-	(*sp) << entityType;
-	(*sp) << (uint32)initDataLength;
+	bundle.newMessage(BaseappmgrInterface::reqCreateBaseAnywhere);
 
+	bundle << entityType;
+	bundle << initDataLength;
 	if(initDataLength > 0)
-		sp->append(strInitData.c_str(), initDataLength);
+		bundle.append(strInitData.data(), initDataLength);
 
-	(*sp) << (COMPONENT_ID)m_componentID_;
-	(*sp) << (CALLBACK_ID)callbackID;
+	bundle << componentID_;
 
-	COMPONENT_MAP& components = EngineComponentMgr::getSingleton().getComponents(BASEAPPMGR_TYPE);
-	COMPONENT_MAP::iterator iter = components.begin();
+	Components::COMPONENTS& components = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
+	Components::COMPONENTS::iterator iter = components.begin();
 	if(iter != components.end())
 	{
-		NSChannel* lpChannel = static_cast<NSChannel*>(iter->second);
-		lpChannel->sendPacket(sp);
+		bundle.send(this->getNetworkInterface(), (*iter).pChannel);
 		return;
 	}
-	*/
-	ERROR_MSG("App::createBaseAnywhere: not found baseappmgr.\n");
+
+	ERROR_MSG("Baseapp::createBaseAnywhere: not found baseappmgr.\n");
 }
 
 //-------------------------------------------------------------------------------------

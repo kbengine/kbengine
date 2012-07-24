@@ -107,5 +107,76 @@ void Cellappmgr::finalise()
 }
 
 //-------------------------------------------------------------------------------------
+Mercury::Channel* Cellappmgr::findFreeCellapp(void)
+{
+	Components::COMPONENTS& components = Components::getSingleton().getComponents(CELLAPP_TYPE);
+	if(components.size() == 0)
+		return NULL;
+
+	/*
+	std::tr1::mt19937 engine;
+	std::tr1::uniform_int<int> unif(1, components.size());
+	std::tr1::variate_generator<std::tr1::mt19937, std::tr1::uniform_int<int> > generator (engine, unif);
+	COMPONENT_MAP::iterator iter = components.begin();
+	int index = 0;
+	for(int i=0; i<10; i++)
+		index = generator();
+		*/
+	static size_t index = 0;
+	if(index >= components.size())
+		index = 0;
+
+	Components::COMPONENTS::iterator iter = components.begin();
+	std::advance(iter, index++);
+	return (*iter).pChannel;
+}
+
+//-------------------------------------------------------------------------------------
+void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s) 
+{
+	std::string entityType;
+	ENTITY_ID id;
+	uint32 cellDataLength;
+	std::string strEntityCellData;
+	COMPONENT_ID componentID;
+
+	s >> entityType;
+	s >> id;
+	s >> componentID;
+	s >> cellDataLength;
+
+	if(cellDataLength > 0)
+	{
+		strEntityCellData.assign((char*)(s.data() + s.rpos()), cellDataLength);
+		s.read_skip(cellDataLength);
+	}
+
+	DEBUG_MSG("Cellappmgr::reqCreateInNewSpace: entityType=%s, entityID=%d, componentID=%"PRAppID".\n", entityType.c_str(), id, componentID);
+	Mercury::Channel* lpChannel = findFreeCellapp();
+	if(lpChannel == NULL)
+	{
+		ERROR_MSG("Cellappmgr::reqCreateInNewSpace: can't found a cellapp.\n");
+		return;
+	}
+
+	static SPACE_ID spaceID = 1;
+	
+	if(lpChannel)
+	{
+		Mercury::Bundle bundle;
+
+		bundle << entityType;
+		bundle << id;
+		bundle << componentID_;
+		bundle << cellDataLength;
+
+		if(cellDataLength > 0)
+			bundle.append(strEntityCellData.data(), cellDataLength);
+	
+		bundle.send(this->getNetworkInterface(), lpChannel);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 
 }

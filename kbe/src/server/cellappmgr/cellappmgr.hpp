@@ -66,6 +66,15 @@ public:
 	bool inInitialize();
 	bool initializeEnd();
 	void finalise();
+
+	/** 找出一个最空闲的cellapp */
+	Mercury::Channel* findFreeCellapp(void);
+
+	/** 网络接口
+		baseEntity请求创建在一个新的space中
+	*/
+	void reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s);
+
 protected:
 	TimerHandle					gameTimer_;
 };

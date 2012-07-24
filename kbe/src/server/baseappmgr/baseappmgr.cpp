@@ -107,5 +107,27 @@ void Baseappmgr::finalise()
 }
 
 //-------------------------------------------------------------------------------------
+void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s) 
+{
+	DEBUG_MSG("Baseappmgr::reqCreateBaseAnywhere: %s opsize=%d\n", pChannel->c_str(), s.opsize());
+	Components::COMPONENTS& components = Components::getSingleton().getComponents(BASEAPP_TYPE);
+	size_t componentSize = components.size();
+	if(componentSize == 0)
+		return;
+	
+	static uint32 currentBaseappIndex = 0;
+	if(currentBaseappIndex > componentSize - 1)
+		currentBaseappIndex = 0;
+	
+	Components::COMPONENTS::iterator iter = components.begin();
+	std::advance(iter, currentBaseappIndex++);
+	Mercury::Channel* lpChannel = (*iter).pChannel;
+
+	Mercury::Bundle bundle;
+	bundle.append((char*)s.data(), s.opsize());
+	bundle.send(this->getNetworkInterface(), lpChannel);
+}
+
+//-------------------------------------------------------------------------------------
 
 }
