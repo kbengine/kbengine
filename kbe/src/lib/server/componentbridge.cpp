@@ -75,7 +75,7 @@ Components& Componentbridge::getComponents()
 }
 
 //-------------------------------------------------------------------------------------
-void Componentbridge::onChannelTimeOut(Mercury::Channel * pChannel)
+void Componentbridge::onChannelDeregister(Mercury::Channel * pChannel)
 {
 	getComponents().removeComponentFromChannel(pChannel);
 }

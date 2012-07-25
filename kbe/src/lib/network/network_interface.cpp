@@ -327,41 +327,47 @@ Channel * NetworkInterface::findChannel(const Address & addr)
 }
 
 //-------------------------------------------------------------------------------------
-bool NetworkInterface::registerChannel(Channel* channel)
+bool NetworkInterface::registerChannel(Channel* pChannel)
 {
-	const Address & addr = channel->addr();
+	const Address & addr = pChannel->addr();
 	KBE_ASSERT(addr.ip != 0);
-	KBE_ASSERT(&channel->networkInterface() == this);
+	KBE_ASSERT(&pChannel->networkInterface() == this);
 	ChannelMap::iterator iter = channelMap_.find(addr);
 	Channel * pExisting = iter != channelMap_.end() ? iter->second : NULL;
 
 	if(pExisting)
 	{
 		CRITICAL_MSG("NetworkInterface::registerChannel: channel %s is exist.\n", \
-		channel->c_str());
+		pChannel->c_str());
 		return false;
 	}
 
-	channelMap_[addr] = channel;
-	INFO_MSG("NetworkInterface::registerChannel: new channel: %s.\n", channel->c_str());
+	channelMap_[addr] = pChannel;
+	INFO_MSG("NetworkInterface::registerChannel: new channel: %s.\n", pChannel->c_str());
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool NetworkInterface::deregisterChannel(Channel* channel)
+bool NetworkInterface::deregisterChannel(Channel* pChannel)
 {
-	const Address & addr = channel->addr();
-	KBE_ASSERT(channel->endpoint() != NULL);
+	const Address & addr = pChannel->addr();
+	KBE_ASSERT(pChannel->endpoint() != NULL);
+
+	if(pChannelDeregisterHandler_)
+	{
+		pChannelDeregisterHandler_->onChannelDeregister(pChannel);
+	}
+
+	INFO_MSG("NetworkInterface::deregisterChannel: del channel: %s\n", pChannel->c_str());
 
 	if (!channelMap_.erase(addr))
 	{
 		CRITICAL_MSG( "NetworkInterface::deregisterChannel: "
 				"Channel not found %s!\n",
-			channel->c_str() );
+			pChannel->c_str() );
 		return false;
 	}
 	
-	INFO_MSG("NetworkInterface::deregisterChannel: del channel: %s\n", channel->c_str());
 	return true;
 }
 

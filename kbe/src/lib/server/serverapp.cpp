@@ -58,6 +58,8 @@ pActiveTimerHandle_()
 {
 	networkInterface_.pExtensionData(this);
 	networkInterface_.pChannelTimeOutHandler(this);
+	networkInterface_.pChannelDeregisterHandler(this);
+
 	startActiveTick(ACTIVE_TICK_TIMEOUT_DEFAULT);
 }
 
@@ -195,18 +197,21 @@ void ServerApp::onSignalled(int sigNum)
 }
 
 //-------------------------------------------------------------------------------------	
+void ServerApp::onChannelDeregister(Mercury::Channel * pChannel)
+{
+	if(pChannel->isInternal())
+	{
+		Componentbridge::getSingleton().onChannelDeregister(pChannel);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
 void ServerApp::onChannelTimeOut(Mercury::Channel * pChannel)
 {
 	INFO_MSG( "ServerApp::onChannelTimeOut: "
 		"Channel %s timed out.\n", pChannel->c_str());
 
 	networkInterface_.deregisterChannel(pChannel);
-
-	if(pChannel->isInternal())
-	{
-		Componentbridge::getSingleton().onChannelTimeOut(pChannel);
-	}
-
 	pChannel->decRef();
 }
 

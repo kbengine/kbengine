@@ -35,6 +35,7 @@ class Address;
 class Bundle;
 class Channel;
 class ChannelTimeOutHandler;
+class ChannelDeregisterHandler;
 class DelayedChannels;
 class ListenerReceiver;
 class Packet;
@@ -62,8 +63,8 @@ public:
 	bool recreateListeningSocket(const char* pEndPointName, uint16 listeningPort_min, uint16 listeningPort_max, 
 		const char * listeningInterface, EndPoint* pEP, ListenerReceiver* pLR);
 
-	bool registerChannel(Channel* channel);
-	bool deregisterChannel(Channel* channel);
+	bool registerChannel(Channel* pChannel);
+	bool deregisterChannel(Channel* pChannel);
 	Channel * findChannel(const Address & addr);
 
 	ChannelTimeOutHandler * pChannelTimeOutHandler() const
@@ -71,6 +72,11 @@ public:
 	void pChannelTimeOutHandler(ChannelTimeOutHandler * pHandler)
 		{ pChannelTimeOutHandler_ = pHandler; }
 		
+	ChannelDeregisterHandler * pChannelDeregisterHandler() const
+		{ return pChannelDeregisterHandler_; }
+	void pChannelDeregisterHandler(ChannelDeregisterHandler * pHandler)
+		{ pChannelDeregisterHandler_ = pHandler; }
+
 	EventDispatcher & dispatcher()			{ return *pDispatcher_; }
 	EventDispatcher & mainDispatcher()		{ return *pMainDispatcher_; }
 
@@ -127,6 +133,7 @@ private:
 	DelayedChannels * 						pDelayedChannels_;
 	
 	ChannelTimeOutHandler *					pChannelTimeOutHandler_;	// 超时的通道可被这个句柄捕捉， 例如告知上层client断开
+	ChannelDeregisterHandler *				pChannelDeregisterHandler_;
 
 	const bool								isExternal_;
 };

@@ -52,6 +52,14 @@ public:
 	virtual void onChannelTimeOut(Channel * pChannel) = 0;
 };
 
+/** 此类接口用于接收一个内部网络通道取消注册
+*/
+class ChannelDeregisterHandler
+{
+public:
+	virtual void onChannelDeregister(Channel * pChannel) = 0;
+};
+
 }
 }
 #endif // __NETWORK_INTERFACES__

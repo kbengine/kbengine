@@ -61,7 +61,8 @@ class Channel;
 class ServerApp : 
 	public SignalHandler, 
 	public TimerHandler, 
-	public Mercury::ChannelTimeOutHandler
+	public Mercury::ChannelTimeOutHandler,
+	public Mercury::ChannelDeregisterHandler
 {
 public:
 	enum TimeOutType
@@ -105,6 +106,7 @@ public:
 		
 	virtual void onSignalled(int sigNum);
 	virtual void onChannelTimeOut(Mercury::Channel * pChannel);
+	virtual void onChannelDeregister(Mercury::Channel * pChannel);
 
 	void shutDown();
 

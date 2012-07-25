@@ -61,7 +61,7 @@ public:
 
 	Mercury:: EventDispatcher & dispatcher();
 
-	void onChannelTimeOut(Mercury::Channel * pChannel);
+	void onChannelDeregister(Mercury::Channel * pChannel);
 private:
 	virtual bool process();
 	bool findInterfaces();
