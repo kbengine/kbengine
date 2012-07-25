@@ -11,7 +11,7 @@ class Spaces(GameObject):
 	def __init__(self):
 		GameObject.__init__(self)
 		self._spaces = {}
-		self.addTimer(500, 1000, 1)
+		self.addTimer(5, 1, 1)
 		
 		KBEngine.globalData["SpaceMgr"] = self
 		
@@ -22,7 +22,6 @@ class Spaces(GameObject):
 		@param id		: addTimer 的返回值ID
 		@param userArg	: addTimer 最后一个参数所给入的数据
 		"""
-		DEBUG_MSG(id, userArg)
 		if userArg == 1:
 			if len(SPACE_NAMES) > 0:
 				spaceName = SPACE_NAMES.pop(0)
