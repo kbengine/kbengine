@@ -95,6 +95,8 @@ public:
 	ORDER_LOG& getCellappGroupOrderLog(){ return _cellappGrouplOrderLog; }
 	ORDER_LOG& getLoginappGroupOrderLog(){ return _loginappGrouplOrderLog; }
 	
+	// 检查所有的组件， 防止有重复的uuid， 此时应该报错.
+	bool checkComponents(int32 uid, COMPONENT_ID componentID);
 private:
 	COMPONENTS								_baseapps;
 	COMPONENTS								_cellapps;

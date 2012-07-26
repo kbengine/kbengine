@@ -79,6 +79,10 @@ const char COMPONENT_NAME[][12] = {
 	"kbcenter",
 };
 
+// 所有的组件列表
+const COMPONENT_TYPE ALL_COMPONENT_TYPES[] = {BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, DBMGR_TYPE, CELLAPP_TYPE, 
+						BASEAPP_TYPE, LOGINAPP_TYPE, MACHINE_TYPE, UNKNOWN_COMPONENT_TYPE};
+
 /** 一个cell边界能够看到另一个cell边界的最大范围 */
 #define CELL_BORDER_WIDTH					500
 	

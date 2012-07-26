@@ -51,6 +51,29 @@ Components::~Components()
 {
 }
 
+bool Components::checkComponents(int32 uid, COMPONENT_ID componentID)
+{
+	if(componentID <= 0)
+		return true;
+
+	int idx = 0;
+
+	while(true)
+	{
+		COMPONENT_TYPE ct = ALL_COMPONENT_TYPES[idx++];
+		if(ct == UNKNOWN_COMPONENT_TYPE)
+			break;
+
+		ComponentInfos* cinfos = findComponent(ct, uid, componentID);
+		if(cinfos != NULL)
+		{
+			KBE_ASSERT(false && "Components::checkComponents: componentID exist.\n");
+			return false;
+		}
+	}
+
+	return true;
+}
 
 //-------------------------------------------------------------------------------------		
 void Components::addComponent(int32 uid, const char* username, 
@@ -61,6 +84,9 @@ void Components::addComponent(int32 uid, const char* username,
 {
 	KBEngine::thread::ThreadGuard tg(&this->myMutex); 
 	COMPONENTS& components = getComponents(componentType);
+
+	if(!checkComponents(uid, componentID))
+		return;
 
 	ComponentInfos* cinfos = findComponent(componentType, uid, componentID);
 	if(cinfos != NULL)

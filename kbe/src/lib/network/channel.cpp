@@ -362,7 +362,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 
 				if(pMsgHandler == NULL)
 				{
-					INFO_MSG("Channel::handleMessage: invalide msgID=%d, msglen=%d\n, from %s", 
+					INFO_MSG("Channel::handleMessage: invalide msgID=%d, msglen=%d, from %s.\n", 
 						currMsgID_, pPacket->totalSize(), c_str());
 					break;
 				}

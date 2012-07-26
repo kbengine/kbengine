@@ -268,7 +268,8 @@ typedef uint16													ENTITY_TYPE;											// entity的类别类型定义支持0-6
 typedef int32													ENTITY_ID;												// entityID的类型
 typedef uint32													SPACE_ID;												// 一个space的id
 typedef uint32													CALLBACK_ID;											// 一个callback由CallbackMgr分配的id
-typedef uint64													COMPONENT_ID;											// 一个服务器组件的id										
+typedef uint64													COMPONENT_ID;											// 一个服务器组件的id
+typedef int8													COMPONENT_ORDER;										// 一个组件的启动顺序
 typedef	uint32													TIMER_ID;												// 一个timer的id类型
 typedef uint8													MAIL_TYPE;												// mailbox 所投递的mail类别的类别
 typedef uint32													GAME_TIME;
@@ -598,18 +599,30 @@ inline uint32 getSystemTimeDiff(uint32 oldTime, uint32 newTime)
 }
 
 /* 产生一个64位的uuid 
-	8位:	app类型
-	8位:	0-255随机数
-	32位:	时间戳
-	16位:	递增数(如果当前时间戳和上一次调用此接口时间戳一致则递增数增加， 最大65535)
 */
+extern COMPONENT_ORDER g_componentOrder;
+
 inline uint64 genUUID64()
 {
 	srand((unsigned) time(NULL));
-	uint32 rnd = rand() % 255;
-	static uint16 lastNum = rand() % 65535;
-	uint64 tv = getSystemTime();
-	return (tv << 32) + (rnd << (24)) + lastNum++;
+	
+	if(g_componentOrder <= 0)
+	{
+		// 时间戳32位， 16位随机数， 16位迭代数
+		uint64 tv = getSystemTime();
+		static uint16 lastNum0 = rand() % 65535;
+		uint32 rnd = rand() % 65535;
+		return (tv << 32) + (rnd << (24)) + lastNum0++;
+	}
+	else
+	{
+		// app顺序数8位，时间戳32位， 16位随机数， 8位迭代数
+		uint32 tv = getSystemTime();
+		uint64 appOrder = g_componentOrder;
+		static uint16 lastNum1 = rand() % 255;
+		uint32 rnd = rand() % 65535;
+		return (appOrder << 56) + (tv << (24)) + (rnd << (8)) + lastNum1++;
+	}
 }
 
 /** sleep 跨平台 */

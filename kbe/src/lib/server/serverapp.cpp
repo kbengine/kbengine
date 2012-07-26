@@ -33,8 +33,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/loginapp/loginapp_interface.hpp"
 
 namespace KBEngine{
-COMPONENT_TYPE g_componentType;
-COMPONENT_ID g_componentID;
+COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;
+COMPONENT_ID g_componentID = 0;
+COMPONENT_ORDER g_componentOrder = -1;
 
 const float ACTIVE_TICK_TIMEOUT_DEFAULT = 30.0;
 
