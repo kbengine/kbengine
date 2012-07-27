@@ -258,6 +258,15 @@ void Baseapp::createBaseAnywhere(const char* entityType, PyObject* params, PyObj
 
 	bundle << componentID_;
 
+	CALLBACK_ID callbackID = 0;
+	if(pyCallback != NULL)
+	{
+		Py_INCREF(pyCallback);
+		callbackID = callbackMgr().save(pyCallback);
+	}
+
+	bundle << callbackID;
+
 	Components::COMPONENTS& components = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
 	Components::COMPONENTS::iterator iter = components.begin();
 	if(iter != components.end())
@@ -270,71 +279,108 @@ void Baseapp::createBaseAnywhere(const char* entityType, PyObject* params, PyObj
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onCreateBaseAnywhere(std::string& entityType, std::string& strInitData, 
-								   COMPONENT_ID componentID, CALLBACK_ID callbackID)
+void Baseapp::onCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	/*
+	std::string strInitData = "";
+	uint32 initDataLength = 0;
 	PyObject* params = NULL;
+	std::string entityType;
+	COMPONENT_ID componentID;
+	CALLBACK_ID callbackID;
+
+	s >> entityType;
+	s >> initDataLength;
+
+	if(initDataLength > 0)
+	{
+		strInitData.assign((char*)(s.data() + s.rpos()), initDataLength);
+		s.read_skip(initDataLength);
+	}
+
+
+	s >> componentID;
+	s >> callbackID;
+
 	if(strInitData.size() > 0)
 		params = script::Pickler::unpickle(strInitData);
 
-	Base* base = createBase(entityType.c_str(), params);
+	Base* base = createEntityCommon(entityType.c_str(), params);
 	Py_XDECREF(params);
 
 	if(base == NULL)
 		return;
 
-	if(componentID != m_componentID_)
+	// 如果不是在发起创建entity的baseapp上创建则需要转发回调到发起方
+	if(componentID != componentID_)
 	{
-		Channel* lpChannel = EngineComponentMgr::getSingleton().findComponent(BASEAPP_TYPE, componentID);
+		Mercury::Channel* lpChannel = Components::getSingleton().findComponent(BASEAPPMGR_TYPE, 0)->pChannel;
 
 		if(lpChannel != NULL)
 		{
-			SocketPacket* sp = new SocketPacket(OP_CREATE_BASE_ANY_WHERE_CALLBACK, 10);
-			(*sp) << (CALLBACK_ID)callbackID;
-			(*sp) << (ENTITY_ID)base->getID();
-			(*sp) << (COMPONENT_ID)m_componentID_;
-			(*sp) << entityType;
-			lpChannel->sendPacket(sp);
+			// 需要baseappmgr转发给目的baseapp
+			Mercury::Bundle forwardbundle;
+			forwardbundle.newMessage(BaseappInterface::onCreateBaseAnywhereCallback);
+			forwardbundle << callbackID;
+			forwardbundle << entityType;
+			forwardbundle << base->getID();
+			forwardbundle << componentID_;
+
+			Mercury::Bundle bundle;
+			MERCURY_MESSAGE_FORWARD(BaseappmgrInterface, bundle, forwardbundle, componentID_, componentID);
+			bundle.send(this->getNetworkInterface(), lpChannel);
 		}
 	}
 	else
 	{
 		ENTITY_ID eid = base->getID();
-		onCreateBaseAnywhereCallback(NULL, callbackID, entityType, eid, m_componentID_);
+		_onCreateBaseAnywhereCallback(NULL, callbackID, entityType, eid, componentID_);
 	}
-	*/
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK_ID callbackID, 
-										   std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID)
+void Baseapp::onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	CALLBACK_ID callbackID = 0;
+	std::string entityType;
+	ENTITY_ID eid = 0;
+	COMPONENT_ID componentID = 0;
+	
+	s >> callbackID;
+	s >> entityType;
+	s >> eid;
+	s >> componentID;
+	_onCreateBaseAnywhereCallback(pChannel, callbackID, entityType, eid, componentID);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK_ID callbackID, 
+	std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID)
 {
 	if(callbackID == 0)
 		return;
-/*
-	PyObject* pyCallback = m_pyCallbackMgr.take(callbackID);
+
+	PyObject* pyCallback = callbackMgr().take(callbackID);
 	PyObject* pyargs = PyTuple_New(1);
 
-	if(handler != NULL)
+	if(pChannel != NULL)
 	{
-		ScriptModule* sm = ExtendScriptModuleMgr::findScriptModule(entityType.c_str());
+		ScriptModule* sm = EntityDef::findScriptModule(entityType.c_str());
 		if(sm == NULL)
 		{
-			ERROR_MSG("App::onCreateBaseAnywhereCallback: can't found entityType:%s.\n", entityType.c_str());
+			ERROR_MSG("Baseapp::onCreateBaseAnywhereCallback: can't found entityType:%s.\n", entityType.c_str());
 			Py_DECREF(pyargs);
 			return;
 		}
 
-		PyTuple_SET_ITEM(pyargs, 0, new EntityMailbox(handler, sm, componentID, eid, MAILBOX_TYPE_BASE));
+		PyTuple_SET_ITEM(pyargs, 0, new EntityMailbox(pChannel, sm, componentID, eid, MAILBOX_TYPE_BASE));
 		PyObject_CallObject(pyCallback, pyargs);
 	}
 	else
 	{
-		Base* base = m_bases_->find(eid);
+		Base* base = pEntities_->find(eid);
 		if(base == NULL)
 		{
-			ERROR_MSG("App::onCreateBaseAnywhereCallback: can't found entity:%ld.\n", eid);
+			ERROR_MSG("Baseapp::onCreateBaseAnywhereCallback: can't found entity:%ld.\n", eid);
 			Py_DECREF(pyargs);
 			return;
 		}
@@ -347,7 +393,6 @@ void Baseapp::onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK_
 	SCRIPT_ERROR_CHECK();
 	Py_DECREF(pyargs);
 	Py_DECREF(pyCallback);
-	*/
 }
 
 //-------------------------------------------------------------------------------------

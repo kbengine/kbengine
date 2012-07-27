@@ -223,6 +223,24 @@ public:
         return *this;
     }
     
+	Bundle &append(Bundle& bundle)
+	{
+		Packets::iterator iter = bundle.packets_.begin();
+		for(; iter!=bundle.packets_.end(); iter++)
+		{
+			append((*iter)->data(), (*iter)->totalSize());
+		}
+		
+		if(bundle.pCurrPacket_ == NULL)
+			return *this;
+		return append(bundle.pCurrPacket_->data(), bundle.pCurrPacket_->totalSize());
+	}
+
+	Bundle &append(const uint8 *str, int n)
+	{
+		return assign((char*)str, n);
+	}
+
 	Bundle &append(const char *str, int n)
 	{
 		return assign(str, n);

@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __ENTITY_MACRO_H__
 #define __ENTITY_MACRO_H__
 #include "cstdkbe/cstdkbe.hpp"
+#include "server/callbackmgr.hpp"		
 
 namespace KBEngine{
 
@@ -50,9 +51,10 @@ namespace KBEngine{
 protected:																									\
 	ENTITY_ID		id_;																					\
 	ScriptModule*	scriptModule_;																			\
-	const ScriptModule::PROPERTYDESCRIPTION_MAP*	lpPropertyDescrs_;										\
+	const ScriptModule::PROPERTYDESCRIPTION_MAP* lpPropertyDescrs_;											\
 	uint32 spaceID_;																						\
 	ScriptTimers scriptTimers_;																				\
+	PY_CALLBACKMGR pyCallbackMgr_;																			\
 public:																										\
 	void initializeScript()																					\
 	{																										\
@@ -157,6 +159,8 @@ public:																										\
 		else																								\
 			SCRIPT_ERROR_CHECK();																			\
 	}																										\
+																											\
+	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }													\
 																											\
 	static PyObject* __pyget_pyGetID(CLASS *self, void *closure)											\
 	{																										\
@@ -331,7 +335,9 @@ public:																										\
 	scriptModule_(scriptModule),																			\
 	lpPropertyDescrs_(&scriptModule->getPropertyDescrs()),													\
 	spaceID_(0),																							\
-	scriptTimers_()																							\
+	scriptTimers_(),																						\
+	pyCallbackMgr_()																						\
+
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
 	INFO_MSG(#CLASS"::~"#CLASS"(): %s %ld\n", getScriptModuleName(), id_);									\

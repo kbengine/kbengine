@@ -136,7 +136,9 @@ void Bundle::finish(bool issend)
 	// 此处对于非固定长度的消息来说需要设置它的最终长度信息
 	if(currMsgHandlerLength_ < 0)
 	{
-		Packet* pPacket = packets_[packets_.size() - currMsgPacketCount_];
+		Packet* pPacket = pCurrPacket_;
+		if(currMsgPacketCount_ > 0)
+			pPacket = packets_[packets_.size() - currMsgPacketCount_];
 
 		currMsgLength_ -= MERCURY_MESSAGE_ID_SIZE;
 		currMsgLength_ -= MERCURY_MESSAGE_LENGTH_SIZE;

@@ -365,5 +365,26 @@ Components::ComponentInfos* Components::findComponent(COMPONENT_TYPE componentTy
 	return NULL;
 }
 
+Components::ComponentInfos* Components::findComponent(COMPONENT_ID componentID)
+{
+	int idx = 0;
+	int32 uid = getUserUID();
+
+	while(true)
+	{
+		COMPONENT_TYPE ct = ALL_COMPONENT_TYPES[idx++];
+		if(ct == UNKNOWN_COMPONENT_TYPE)
+			break;
+
+		ComponentInfos* cinfos = findComponent(ct, uid, componentID);
+		if(cinfos != NULL)
+		{
+			return cinfos;
+		}
+	}
+
+	return NULL;
+}
+
 //-------------------------------------------------------------------------------------		
 }

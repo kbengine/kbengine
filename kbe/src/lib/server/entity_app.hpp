@@ -32,6 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverconfig.hpp"
 #include "server/globaldata_client.hpp"
 #include "server/globaldata_server.hpp"
+#include "server/callbackmgr.hpp"	
 #include "entitydef/entitydef.hpp"
 #include "entitydef/entities.hpp"
 #include "entitydef/entity_mailbox.hpp"
@@ -100,6 +101,8 @@ public:
 	virtual bool initialize();
 		
 	virtual void onSignalled(int sigNum);
+	
+	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }	
 
 	/* 创建一个entity */
 	E* createEntityCommon(const char* entityType, PyObject* params, 
@@ -138,6 +141,8 @@ protected:
 	TimerHandle												gameTimer_;
 
 	GlobalDataClient*										pGlobalData_;									// globalData
+
+	PY_CALLBACKMGR											pyCallbackMgr_;
 	
 };
 
@@ -154,7 +159,8 @@ entryScript_(),
 idClient_(),
 pEntities_(NULL),
 gameTimer_(),
-pGlobalData_(NULL)
+pGlobalData_(NULL),
+pyCallbackMgr_()
 {
 	ScriptTimers::initialize(*this);
 	idClient_.pApp(this);

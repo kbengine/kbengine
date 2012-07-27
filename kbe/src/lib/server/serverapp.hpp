@@ -35,6 +35,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 #include "xmlplus/xmlplus.hpp"	
 #include "cstdkbe/singleton.hpp"
+#include "server/common.hpp"
 #include "server/serverconfig.hpp"
 #include "cstdkbe/smartpointer.hpp"
 #include "cstdkbe/timer.hpp"

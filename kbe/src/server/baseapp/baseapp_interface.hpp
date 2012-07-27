@@ -79,6 +79,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASEAPP_MESSAGE_DECLARE_ARGS2(onAppActiveTick,					MERCURY_FIXED_MESSAGE,
 									COMPONENT_TYPE,					componentType, 
 									COMPONENT_ID,					componentID)
+
+	// 收到baseappmgr决定将某个baseapp要求createBaseAnywhere的请求在本baseapp上执行 
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseAnywhere,			MERCURY_VARIABLE_MESSAGE)
+
+	// createBaseAnywhere成功之后回调消息到发起层createBaseAnywhere的baseapp的entity。
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseAnywhereCallback,	MERCURY_FIXED_MESSAGE)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

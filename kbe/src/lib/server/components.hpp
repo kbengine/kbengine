@@ -85,6 +85,7 @@ public:
 
 	Components::ComponentInfos* findComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID);
 	Components::ComponentInfos* findComponent(COMPONENT_TYPE componentType, COMPONENT_ID componentID);
+	Components::ComponentInfos* findComponent(COMPONENT_ID componentID);
 	//const Components::ComponentInfos findComponent(COMPONENT_TYPE componentType, int32 uid);
 
 	int connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID);

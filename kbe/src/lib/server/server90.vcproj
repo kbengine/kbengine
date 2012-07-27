@@ -203,6 +203,14 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\callbackmgr.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\common.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\componentbridge.hpp"
 				>
 			</File>

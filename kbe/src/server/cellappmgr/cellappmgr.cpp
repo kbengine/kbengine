@@ -107,6 +107,21 @@ void Cellappmgr::finalise()
 }
 
 //-------------------------------------------------------------------------------------
+void Cellappmgr::forwardMessage(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	COMPONENT_ID sender_componentID, forward_componentID;
+
+	s >> sender_componentID >> forward_componentID;
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(forward_componentID);
+	KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
+
+	Mercury::Bundle bundle;
+	bundle.append((char*)s.data() + s.rpos(), s.opsize());
+	bundle.send(this->getNetworkInterface(), cinfos->pChannel);
+	s.read_skip(s.opsize());
+}
+
+//-------------------------------------------------------------------------------------
 Mercury::Channel* Cellappmgr::findFreeCellapp(void)
 {
 	Components::COMPONENTS& components = Components::getSingleton().getComponents(CELLAPP_TYPE);

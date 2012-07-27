@@ -88,11 +88,11 @@ public:
 		@param strInitData	: 这个entity被创建后应该给他初始化的一些数据， 需要使用pickle.loads解包.
 		@param componentID	: 请求创建entity的baseapp的组件ID
 	*/
-	void onCreateBaseAnywhere(std::string& entityType, std::string& strInitData, 
-		COMPONENT_ID componentID, CALLBACK_ID callbackID);
+	void onCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** baseapp 的createBaseAnywhere的回调 */
-	void onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK_ID callbackID, 
+	void onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void _onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK_ID callbackID, 
 		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
 
 	/** 为一个baseEntity在制定的cell上创建一个cellEntity */

@@ -28,6 +28,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.hpp"
 #include "server/componentbridge.hpp"
 
+#include "../../server/cellappmgr/cellappmgr_interface.hpp"
+#include "../../server/baseapp/baseapp_interface.hpp"
+#include "../../server/cellapp/cellapp_interface.hpp"
+#include "../../server/dbmgr/dbmgr_interface.hpp"
+#include "../../server/loginapp/loginapp_interface.hpp"
+
 namespace KBEngine{
 	
 ServerConfig g_serverConfig;
@@ -107,9 +113,23 @@ void Baseappmgr::finalise()
 }
 
 //-------------------------------------------------------------------------------------
+void Baseappmgr::forwardMessage(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	COMPONENT_ID sender_componentID, forward_componentID;
+
+	s >> sender_componentID >> forward_componentID;
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(forward_componentID);
+	KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
+
+	Mercury::Bundle bundle;
+	bundle.append((char*)s.data() + s.rpos(), s.opsize());
+	bundle.send(this->getNetworkInterface(), cinfos->pChannel);
+	s.read_skip(s.opsize());
+}
+
+//-------------------------------------------------------------------------------------
 void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s) 
 {
-	DEBUG_MSG("Baseappmgr::reqCreateBaseAnywhere: %s opsize=%d\n", pChannel->c_str(), s.opsize());
 	Components::COMPONENTS& components = Components::getSingleton().getComponents(BASEAPP_TYPE);
 	size_t componentSize = components.size();
 	if(componentSize == 0)
@@ -119,13 +139,19 @@ void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream&
 	if(currentBaseappIndex > componentSize - 1)
 		currentBaseappIndex = 0;
 	
+	DEBUG_MSG("Baseappmgr::reqCreateBaseAnywhere: %s opsize=%d, selBaseappIdx=%d.\n", 
+		pChannel->c_str(), s.opsize(), currentBaseappIndex);
+
 	Components::COMPONENTS::iterator iter = components.begin();
 	std::advance(iter, currentBaseappIndex++);
 	Mercury::Channel* lpChannel = (*iter).pChannel;
 
 	Mercury::Bundle bundle;
-	bundle.append((char*)s.data(), s.opsize());
+	bundle.newMessage(BaseappInterface::onCreateBaseAnywhere);
+
+	bundle.append((char*)s.data() + s.rpos(), s.opsize());
 	bundle.send(this->getNetworkInterface(), lpChannel);
+	s.read_skip(s.opsize());
 }
 
 //-------------------------------------------------------------------------------------

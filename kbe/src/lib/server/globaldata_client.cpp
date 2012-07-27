@@ -72,7 +72,7 @@ bool GlobalDataClient::write(PyObject* pyKey, PyObject* pyValue)
 		PyErr_Print();
 	}
 
-	Py_XDECREF(pyKey);
+	// Py_XDECREF(pyKey);
 	Py_XDECREF(pyValue);
 	return ret;	
 }

@@ -81,18 +81,48 @@ namespace KBEngine{
 
 class ServerApp;
 
-template< typename T >
+// 直接使用一个迭代数， 如果数溢出了类型大小就归零所以需要使用无符号类型
+// 适用于临时分配id， 并且很快归还， 这样才不会ID冲突
+template<typename T>
 class IDAllocate
 {
-protected:
-	typename std::queue< T > idList_;						// id列表， 所有ID都存在这个列表里
-	T lastID_;											// 最后一次申请到的ID
 public:
 	IDAllocate(): lastID_(0)
 	{
 	}
 
-	~IDAllocate()
+	virtual ~IDAllocate()
+	{
+	}	
+	
+	/** 分配一个id */
+	T alloc(void)
+	{
+		T t = ++lastID_;
+		if(t == 0)
+			t = ++lastID_;
+
+		return t;
+	}
+	
+	/** 回收一个id */
+	virtual void reclaim(T id)
+	{
+	}
+protected:
+	T lastID_;													// 最后一次申请到的ID
+};
+
+// 分配的id用完会存储在列表中， 下次使用会从中获取
+template< typename T >
+class IDAllocateFromList : public IDAllocate<T>
+{
+public:
+	IDAllocateFromList(): IDAllocate<T>()
+	{
+	}
+
+	~IDAllocateFromList()
 	{
 	}	
 	
@@ -106,7 +136,11 @@ public:
 			return n;
 		}
 		
-		return ++lastID_;
+		T t = ++lastID_;
+		if(t == 0)
+			t = ++lastID_;
+
+		return t;
 	}
 	
 	/** 回收一个id */
@@ -114,7 +148,8 @@ public:
 	{
 		idList_.push(id);
 	}
-	
+protected:
+	typename std::queue< T > idList_;							// id列表， 所有ID都存在这个列表里
 };
 
 
@@ -189,11 +224,13 @@ public:
 	/** 分配一个id */
 	T alloc(void)
 	{
-		assert(getSize() > 0 && "IDClient:: alloc:no usable of the id.\n");
+		KBE_ASSERT(getSize() > 0 && "IDClient:: alloc:no usable of the id.\n");
 		T id = lastIDRange_begin_;
 		lastIDRange_begin_ ++;
+
 		if(lastIDRange_begin_ > lastIDRange_end_)
 		{
+			// 看看是否有缓存的ID段（会在id快用尽时向服务器申请缓存到这里）
 			if(idList_.size() > 0)
 			{
 				std::pair< T, T > n = idList_.front();
@@ -217,7 +254,7 @@ public:
 	}
 	
 protected:
-	typename std::queue< std::pair< T, T > > idList_;					// id列表， 所有ID都存在这个列表里
+	typename std::queue< std::pair< T, T > > idList_;					// id列表， 所有ID段都存在这个列表里
 	T lastIDRange_begin_;												// 最后一次申请到的ID段的起始位置
 	T lastIDRange_end_;		
 	bool m_hasRequestedIDServerAlloc_;									// 是否已经请求ID服务端分配ID

@@ -393,9 +393,6 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					writeFragmentMessage(3, pPacket, currMsgLen_);
 					break;
 				}
-
-				currMsgID_ = 0;
-				currMsgLen_ = 0;
 				
 				if(pFragmentStream_ != NULL)
 				{
@@ -404,8 +401,15 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 				}
 				else
 				{
+					// 临时设置有效读取位， 防止接口中溢出操作
+					size_t wpos = pPacket->wpos();
+					pPacket->wpos(pPacket->rpos() + currMsgLen_);
 					pMsgHandler->handle(this, *pPacket);
+					pPacket->wpos(wpos);
 				}
+
+				currMsgID_ = 0;
+				currMsgLen_ = 0;
 			}
 			else
 			{
@@ -435,7 +439,7 @@ void Channel::writeFragmentMessage(uint8 fragmentDatasFlag, Packet* pPacket, uin
 	memcpy(pFragmentDatas_, pPacket->data() + pPacket->rpos(), opsize);
 	fragmentDatasFlag_ = fragmentDatasFlag;
 	pFragmentDatasWpos_ = opsize;
-
+	pPacket->clear(false);
 	DEBUG_MSG("Channel::writeFragmentMessage: fragmentDatasFlag=%u, remainsize=%u.\n", 
 		fragmentDatasFlag, pFragmentDatasRemain_);
 }
