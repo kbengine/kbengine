@@ -82,7 +82,6 @@ void Components::addComponent(int32 uid, const char* username,
 			uint32 extaddr, uint16 extport, 
 			Mercury::Channel* pChannel)
 {
-	KBEngine::thread::ThreadGuard tg(&this->myMutex); 
 	COMPONENTS& components = getComponents(componentType);
 
 	if(!checkComponents(uid, componentID))
@@ -139,8 +138,6 @@ void Components::addComponent(int32 uid, const char* username,
 void Components::delComponent(int32 uid, COMPONENT_TYPE componentType, 
 							  COMPONENT_ID componentID, bool ignoreComponentID, bool shouldShowLog)
 {
-	KBEngine::thread::ThreadGuard tg(&this->myMutex); 
-
 	COMPONENTS& components = getComponents(componentType);
 	COMPONENTS::iterator iter = components.begin();
 	for(; iter != components.end();)
@@ -298,8 +295,6 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 //-------------------------------------------------------------------------------------		
 void Components::clear(int32 uid, bool shouldShowLog)
 {
-	KBEngine::thread::ThreadGuard tg(&this->myMutex); 
-
 	delComponent(uid, DBMGR_TYPE, uid, true, shouldShowLog);
 	delComponent(uid, BASEAPPMGR_TYPE, uid, true, shouldShowLog);
 	delComponent(uid, CELLAPPMGR_TYPE, uid, true, shouldShowLog);

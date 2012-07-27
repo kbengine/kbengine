@@ -57,7 +57,6 @@ public:
 		Mercury::Channel* pChannel;
 	};
 
-	KBEngine::thread::ThreadMutex myMutex;
 	typedef std::vector<ComponentInfos> COMPONENTS;
 public:
 	Components();
