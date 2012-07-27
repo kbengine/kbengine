@@ -70,6 +70,7 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 			intlisteningInterface, &intEndpoint_, pIntListenerReceiver_);
 	}
 
+	// 如果配置了对外端口范围， 如果范围过小这里extEndpoint_可能没有端口可用了
 	KBE_ASSERT(good());
 
 	if (pMainDispatcher != NULL)
