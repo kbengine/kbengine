@@ -72,7 +72,7 @@ bool Forward_MessageBuffer::process()
 	}
 	
 	Components::COMPONENTS cts = Components::getSingleton().getComponents(forwardComponentType_);
-	int32 idx = 0;
+	size_t idx = 0;
 
 	if(cts.size() > 0)
 	{

@@ -45,7 +45,8 @@ Baseappmgr::Baseappmgr(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
 	ServerApp(dispatcher, ninterface, componentType, componentID),
-	gameTimer_()
+	gameTimer_(),
+	forward_baseapp_messagebuffer_(ninterface, BASEAPP_TYPE)
 {
 }
 
@@ -133,7 +134,16 @@ void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream&
 	Components::COMPONENTS& components = Components::getSingleton().getComponents(BASEAPP_TYPE);
 	size_t componentSize = components.size();
 	if(componentSize == 0)
+	{
+		Mercury::Bundle* pBundle = new Mercury::Bundle();
+		pBundle->newMessage(BaseappInterface::onCreateBaseAnywhere);
+		pBundle->append((char*)s.data() + s.rpos(), s.opsize());
+		s.read_skip(s.opsize());
+
+		ERROR_MSG("Baseappmgr::reqCreateBaseAnywhere: can't found a baseapp, message is buffered.\n");
+		forward_baseapp_messagebuffer_.push(pBundle);
 		return;
+	}
 	
 	static uint32 currentBaseappIndex = 0;
 	if(currentBaseappIndex > componentSize - 1)
