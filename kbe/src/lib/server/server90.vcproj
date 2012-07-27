@@ -165,6 +165,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\forward_messagebuffer.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\globaldata_client.cpp"
 				>
 			</File>
@@ -220,6 +224,10 @@
 			</File>
 			<File
 				RelativePath=".\entity_app.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\forward_messagebuffer.hpp"
 				>
 			</File>
 			<File

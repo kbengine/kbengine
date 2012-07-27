@@ -4,6 +4,7 @@ SRCS =				\
 	componentbridge		\
 	components		\
 	entity_app		\
+	forward_messagebuffer	\
 	globaldata_client	\
 	globaldata_server	\
 	idallocate		\

@@ -43,7 +43,8 @@ Cellappmgr::Cellappmgr(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
 	ServerApp(dispatcher, ninterface, componentType, componentID),
-	gameTimer_()
+	gameTimer_(),
+	forward_cellapp_messagebuffer_(ninterface, CELLAPP_TYPE)
 {
 }
 
@@ -170,30 +171,33 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 		s.read_skip(cellDataLength);
 	}
 
+	static SPACE_ID spaceID = 1;
+
+	Mercury::Bundle* pBundle = new Mercury::Bundle;
+	pBundle->newMessage(CellappInterface::onCreateInNewSpaceFromBaseapp);
+	(*pBundle) << entityType;
+	(*pBundle) << id;
+	(*pBundle) << spaceID++;
+	(*pBundle) << componentID_;
+	(*pBundle) << cellDataLength;
+
+	if(cellDataLength > 0)
+		pBundle->append(strEntityCellData.data(), cellDataLength);
+
 	DEBUG_MSG("Cellappmgr::reqCreateInNewSpace: entityType=%s, entityID=%d, componentID=%"PRAppID".\n", entityType.c_str(), id, componentID);
+
 	Mercury::Channel* lpChannel = findFreeCellapp();
+
 	if(lpChannel == NULL)
 	{
-		ERROR_MSG("Cellappmgr::reqCreateInNewSpace: can't found a cellapp.\n");
+		ERROR_MSG("Cellappmgr::reqCreateInNewSpace: can't found a cellapp, message is buffered.\n");
+		forward_cellapp_messagebuffer_.push(pBundle);
 		return;
 	}
-
-	static SPACE_ID spaceID = 1;
-	
-	if(lpChannel)
+	else
 	{
-		Mercury::Bundle bundle;
-		bundle.newMessage(CellappInterface::onCreateInNewSpaceFromBaseapp);
-		bundle << entityType;
-		bundle << id;
-		bundle << spaceID++;
-		bundle << componentID_;
-		bundle << cellDataLength;
-
-		if(cellDataLength > 0)
-			bundle.append(strEntityCellData.data(), cellDataLength);
-	
-		bundle.send(this->getNetworkInterface(), lpChannel);
+		pBundle->send(this->getNetworkInterface(), lpChannel);
+		SAFE_RELEASE(pBundle);
 	}
 }
 

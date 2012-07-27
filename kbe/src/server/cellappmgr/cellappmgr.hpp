@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverapp.hpp"
 #include "server/idallocate.hpp"
 #include "server/serverconfig.hpp"
+#include "server/forward_messagebuffer.hpp"
 #include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
 
@@ -81,6 +82,7 @@ public:
 	void forwardMessage(Mercury::Channel* pChannel, MemoryStream& s);
 protected:
 	TimerHandle					gameTimer_;
+	Forward_MessageBuffer		forward_cellapp_messagebuffer_;
 };
 
 }
