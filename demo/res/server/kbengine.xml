@@ -1,0 +1,28 @@
+﻿<root>
+	<dbmgr>
+	</dbmgr>
+	
+	<cellapp>
+	</cellapp>
+	
+	<baseapp>
+	</baseapp>
+	
+	<cellappmgr>
+	</cellappmgr>
+	
+	<baseappmgr>
+	</baseappmgr>
+	
+	<loginapp>
+	</loginapp>	
+	
+	<kbmachine>
+	</kbmachine>
+	
+	<kbcenter>
+	</kbcenter>
+	
+	<bots>
+	</bots>
+</root>
