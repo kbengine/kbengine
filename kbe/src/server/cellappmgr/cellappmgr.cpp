@@ -28,6 +28,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.hpp"
 #include "server/componentbridge.hpp"
 
+#include "../../server/baseapp/baseapp_interface.hpp"
+#include "../../server/cellapp/cellapp_interface.hpp"
+#include "../../server/dbmgr/dbmgr_interface.hpp"
+
 namespace KBEngine{
 	
 ServerConfig g_serverConfig;
@@ -179,9 +183,10 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 	if(lpChannel)
 	{
 		Mercury::Bundle bundle;
-
+		bundle.newMessage(CellappInterface::onCreateInNewSpaceFromBaseapp);
 		bundle << entityType;
 		bundle << id;
+		bundle << spaceID++;
 		bundle << componentID_;
 		bundle << cellDataLength;
 

@@ -3,7 +3,9 @@ SRCS =						\
 	cellapp					\
 	cellapp_interface			\
 	entity					\
-	main
+	main					\
+	space					\
+	spaces
 
 ASMS =
 

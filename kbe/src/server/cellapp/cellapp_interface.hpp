@@ -74,6 +74,16 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	CELLAPP_MESSAGE_DECLARE_STREAM(onBroadcastGlobalDataChange,		MERCURY_VARIABLE_MESSAGE)
 	CELLAPP_MESSAGE_DECLARE_STREAM(onBroadcastCellAppDataChange,	MERCURY_VARIABLE_MESSAGE)
 
+	// baseEntity请求创建在一个新的space中。
+	CELLAPP_MESSAGE_DECLARE_STREAM(onCreateInNewSpaceFromBaseapp,	MERCURY_VARIABLE_MESSAGE)
+
+	// baseapp请求在这个cellapp上创建一个entity。
+	CELLAPP_MESSAGE_DECLARE_STREAM(onCreateCellEntityFromBaseapp,	MERCURY_VARIABLE_MESSAGE)
+
+	// 销毁某个cellEntity。
+	CELLAPP_MESSAGE_DECLARE_ARGS1(onDestroyCellEntityFromBaseapp,	MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,						eid)
+
 	// 某个app向本app告知处于活动状态。
 	CELLAPP_MESSAGE_DECLARE_ARGS2(onAppActiveTick,					MERCURY_FIXED_MESSAGE,
 									COMPONENT_TYPE,					componentType, 

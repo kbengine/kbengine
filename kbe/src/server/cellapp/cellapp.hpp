@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 // common include	
 #include "entity.hpp"
+#include "spaces.hpp"
 #include "server/entity_app.hpp"
 
 //#define NDEBUG
@@ -83,6 +84,22 @@ public:
 		dbmgr广播global数据的改变
 	*/
 	void onBroadcastCellAppDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+		baseEntity请求创建在一个新的space中
+	*/
+	void onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+		baseapp请求在这个cellapp上创建一个entity
+	*/
+	void onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+		销毁某个cellEntity
+	*/
+	void onDestroyCellEntityFromBaseapp(Mercury::Channel* pChannel, ENTITY_ID eid);
+	
 protected:
 	GlobalDataClient*			pCellAppData_;									// cellAppData
 };

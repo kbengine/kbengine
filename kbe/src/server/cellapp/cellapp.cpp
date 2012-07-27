@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "cellapp.hpp"
+#include "space.hpp"
 #include "cellapp_interface.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
@@ -236,6 +237,84 @@ void Cellapp::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, KBEngine:
 		}
 	}
 
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	std::string entityType;
+	ENTITY_ID mailboxEntityID;
+	uint32 cellDataLength;
+	std::string strEntityCellData;
+	COMPONENT_ID componentID;
+	SPACE_ID spaceID = 1;
+
+	s >> entityType;
+	s >> mailboxEntityID;
+	s >> spaceID;
+	s >> componentID;
+	s >> cellDataLength;
+
+	if(cellDataLength > 0)
+	{
+		strEntityCellData.assign((char*)(s.data() + s.rpos()), cellDataLength);
+		s.read_skip(cellDataLength);
+	}
+
+	DEBUG_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
+		spaceID, entityType.c_str(), mailboxEntityID, componentID);
+
+	Space* space = Spaces::createNewSpace(spaceID);
+	if(space != NULL)
+	{
+		// 解包cellData信息.
+		PyObject* params = NULL;
+		if(strEntityCellData.size() > 0)
+			params = script::Pickler::unpickle(strEntityCellData);
+	
+		// 创建entity
+		Entity* e = createEntityCommon(entityType.c_str(), params, false, mailboxEntityID);
+		Py_XDECREF(params);
+		
+		if(e == NULL)
+			return;
+
+		//Components::COMPONENTS& components = Components::getSingleton().getComponents(BASEAPP_TYPE);
+	//	Components::COMPONENTS::iterator iter = components.find(componentID);
+	//	if(iter != components.end())
+	//	{	
+			/*
+			NSChannel* lpNSChannel = static_cast<NSChannel*>(iter->second);
+
+			// 设置entity的baseMailbox
+			EntityMailbox* mailbox = new EntityMailbox(lpNSChannel, e->getScriptModule(), componentID, id, MAILBOX_TYPE_BASE);
+			e->setBaseMailbox(mailbox);
+			// 添加到space
+			space->addEntity(e);
+			e->initializeScript();
+			
+			SocketPacket* sp = new SocketPacket(OP_ENTITY_CELL_CREATE_COMPLETE, 8);
+			(*sp) << (ENTITY_ID)id;
+			(*sp) << (COMPONENT_ID)m_componentID_;
+			lpNSChannel->sendPacket(sp);	\
+			*/
+			return;
+		//}
+	}
+	
+	ERROR_MSG("App::onCreateInNewSpaceFromBaseapp: not found baseapp[%ld], entityID=%d.\n", componentID, mailboxEntityID);
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::onDestroyCellEntityFromBaseapp(Mercury::Channel* pChannel, ENTITY_ID eid)
+{
+	DEBUG_MSG("Cellapp::onDestroyCellEntityFromBaseapp:entityID=%d.\n", eid);
+	destroyEntity(eid);
 }
 
 //-------------------------------------------------------------------------------------
