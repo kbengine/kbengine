@@ -403,9 +403,16 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 				{
 					// 临时设置有效读取位， 防止接口中溢出操作
 					size_t wpos = pPacket->wpos();
+					size_t rpos = pPacket->rpos();
 					pPacket->wpos(pPacket->rpos() + currMsgLen_);
 					pMsgHandler->handle(this, *pPacket);
 					pPacket->wpos(wpos);
+					
+					// 防止handle中没有将数据导出
+					if(currMsgLen_ > 0)
+					{
+						KBE_ASSERT(rpos != pPacket->rpos())
+					}
 				}
 
 				currMsgID_ = 0;
