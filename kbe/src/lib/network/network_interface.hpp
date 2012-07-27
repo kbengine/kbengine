@@ -101,7 +101,7 @@ public:
 	Reason basicSendSingleTry(Channel * pChannel, Packet * pPacket);
 	Reason basicSendWithRetries(Channel * pChannel, Packet * pPacket);
 	
-	bool good() const{ return (!isExternal() || extEndpoint_ != -1) && (intEndpoint_ != -1); }
+	bool good() const{ return (!isExternal() || extEndpoint_.good()) && (intEndpoint_.good()); }
 
 	void onPacketIn(const Packet & packet);
 	void onPacketOut(const Packet & packet);

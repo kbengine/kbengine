@@ -61,6 +61,12 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 		pExtListenerReceiver_ = new ListenerReceiver(extEndpoint_, Channel::EXTERNAL, *this);
 		this->recreateListeningSocket("EXTERNAL", htons(extlisteningPort_min), htons(extlisteningPort_max), 
 			extlisteningInterface, &extEndpoint_, pExtListenerReceiver_);
+
+		// 如果配置了对外端口范围， 如果范围过小这里extEndpoint_可能没有端口可用了
+		if(extlisteningPort_min != -1)
+		{
+			KBE_ASSERT(extEndpoint_.good() && "Channel::EXTERNAL: no available port!\n");
+		}
 	}
 
 	if(intlisteningPort != -1)
@@ -70,7 +76,7 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 			intlisteningInterface, &intEndpoint_, pIntListenerReceiver_);
 	}
 
-	// 如果配置了对外端口范围， 如果范围过小这里extEndpoint_可能没有端口可用了
+	
 	KBE_ASSERT(good());
 
 	if (pMainDispatcher != NULL)
