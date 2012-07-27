@@ -19,6 +19,7 @@ endif
 endif
 
 	$(MAKE) -C ../lib $@
+	$(MAKE) -C bots $@
 
 ifdef KBE_CONFIG
 	@echo completed $@ \(KBE_CONFIG = $(KBE_CONFIG)\)

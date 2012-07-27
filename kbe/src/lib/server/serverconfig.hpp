@@ -89,6 +89,7 @@ public:
 	ENGINE_COMPONENT_INFO& getBaseAppMgr(void);
 	ENGINE_COMPONENT_INFO& getKBMachine(void);
 	ENGINE_COMPONENT_INFO& getKBCenter(void);
+	ENGINE_COMPONENT_INFO& getBots(void);
 
 	inline ENGINE_COMPONENT_INFO& getComponent(COMPONENT_TYPE ComponentType);
  	
@@ -105,6 +106,7 @@ private:
 	ENGINE_COMPONENT_INFO _baseAppMgrInfo;
 	ENGINE_COMPONENT_INFO _kbMachineInfo;
 	ENGINE_COMPONENT_INFO _kbCenterInfo;
+	ENGINE_COMPONENT_INFO _botsInfo;
 public:
 	KBEngine::thread::ThreadMutex myMutex_;
 	int16 gameUpdateHertz_;

@@ -40,15 +40,7 @@ Bots::Bots(Mercury::EventDispatcher& dispatcher,
 			 Mercury::NetworkInterface& ninterface, 
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
-TimerHandler(),
-Mercury::ChannelTimeOutHandler(),
-componentType_(componentType),
-componentID_(componentID),
-mainDispatcher_(dispatcher),
-networkInterface_(ninterface),
-time_(0),
-timers_(),
-gameTimer_()
+ClientApp(dispatcher, ninterface, componentType, componentID)
 {
 }
 
@@ -57,58 +49,6 @@ Bots::~Bots()
 {
 }
 
-//-------------------------------------------------------------------------------------
-bool Bots::run()
-{
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
-void Bots::handleTimeout(TimerHandle handle, void * arg)
-{
-	switch (reinterpret_cast<uintptr>(arg))
-	{
-		case TIMEOUT_GAME_TICK:
-			this->handleGameTick();
-			break;
-		default:
-			break;
-	}
-
-}
-
-//-------------------------------------------------------------------------------------
-void Bots::handleGameTick()
-{
-	time_++;
-	getNetworkInterface().handleChannels(&BotsInterface::messageHandlers);
-}
-
-//-------------------------------------------------------------------------------------
-bool Bots::initializeBegin()
-{
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
-bool Bots::inInitialize()
-{
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
-bool Bots::initializeEnd()
-{
-	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
-							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
-void Bots::finalise()
-{
-	gameTimer_.cancel();
-}
 
 //-------------------------------------------------------------------------------------
 

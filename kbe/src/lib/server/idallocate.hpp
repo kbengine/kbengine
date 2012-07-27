@@ -136,9 +136,9 @@ public:
 			return n;
 		}
 		
-		T t = ++lastID_;
+		T t = ++IDAllocate<T>::lastID_;
 		if(t == 0)
-			t = ++lastID_;
+			t = ++IDAllocate<T>::lastID_;
 
 		return t;
 	}

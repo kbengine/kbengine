@@ -90,7 +90,7 @@ protected:
 };
 
 template<>
-CallbackMgr<PyObject*>::~CallbackMgr()
+inline CallbackMgr<PyObject*>::~CallbackMgr()
 {
 	std::map<CALLBACK_ID, PyObject*>::iterator iter = cbMap_.begin();
 	for(; iter!= cbMap_.end(); iter++)

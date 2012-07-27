@@ -203,6 +203,16 @@ bool ServerConfig::loadConfig(std::string fileName)
 			strncpy((char*)&_kbCenterInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 	}
 	
+	rootNode = NULL;
+	rootNode = xml->getRootNode("bots");
+	if(rootNode != NULL)
+	{
+		node = NULL;
+		node = xml->enterNode(rootNode, "bots");	
+		if(node != NULL)
+			strncpy((char*)&_botsInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+	}
+
 	SAFE_RELEASE(xml);
 	return true;
 }
@@ -253,6 +263,12 @@ ENGINE_COMPONENT_INFO& ServerConfig::getKBMachine(void)
 ENGINE_COMPONENT_INFO& ServerConfig::getKBCenter(void)
 {
 	return _kbCenterInfo;
+}
+
+//-------------------------------------------------------------------------------------		
+ENGINE_COMPONENT_INFO& ServerConfig::getBots(void)
+{
+	return _botsInfo;
 }
 
 //-------------------------------------------------------------------------------------	

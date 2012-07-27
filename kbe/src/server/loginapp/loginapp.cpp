@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
 #include "server/componentbridge.hpp"
+#include "server/components.hpp"
 
 namespace KBEngine{
 	
@@ -90,6 +91,32 @@ bool Loginapp::initializeEnd()
 void Loginapp::finalise()
 {
 	ServerApp::finalise();
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPPMGR_TYPE);
+	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->cid == 0)
+	{
+		_loginFailed(pChannel);
+		return;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::_loginFailed(Mercury::Channel* pChannel)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, MemoryStream& s)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pChannel, MemoryStream& s)
+{
 }
 
 //-------------------------------------------------------------------------------------

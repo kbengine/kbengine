@@ -67,6 +67,26 @@ public:
 	void finalise();
 
 	/** 网络接口
+		用户登录服务器
+		clientType: 前端类别(手机， web， pcexe端), 见: COMPONENT_CLIENT_TYPE
+		clientData: 前端附带数据(可以是任意的， 比如附带手机型号， 浏览器类型等)
+		accountName: 帐号名
+		password: 密码
+	*/
+	void login(Mercury::Channel* pChannel, MemoryStream& s);
+	void _loginFailed(Mercury::Channel* pChannel);
+	
+	/** 网络接口
+		dbmgr返回的登录账号检测结果
+	*/
+	void onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		baseappmgr返回的登录网关地址
+	*/
+	void onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
 		dbmgr发送初始信息
 		startGlobalOrder: 全局启动顺序 包括各种不同组件
 		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。

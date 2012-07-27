@@ -66,7 +66,7 @@ extern COMPONENT_TYPE g_componentType;
 extern COMPONENT_ID g_componentID;
 
 /** 定义服务器各组件名称 */
-const char COMPONENT_NAME[][12] = {
+const char COMPONENT_NAME[][255] = {
 	"unknown",
 	"dbmgr",
 	"loginapp",
@@ -82,6 +82,26 @@ const char COMPONENT_NAME[][12] = {
 // 所有的组件列表
 const COMPONENT_TYPE ALL_COMPONENT_TYPES[] = {BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, DBMGR_TYPE, CELLAPP_TYPE, 
 						BASEAPP_TYPE, LOGINAPP_TYPE, MACHINE_TYPE, UNKNOWN_COMPONENT_TYPE};
+
+// 前端应用的类别
+enum COMPONENT_CLIENT_TYPE
+{
+	UNKNOWN_CLIENT_COMPONENT_TYPE	= 0,
+	CLIENT_TYPE_PHONE				= 1,	// 手机类
+	CLIENT_TYPE_PC					= 2,	// pc， 一般都是exe客户端
+	CLIENT_TYPE_WEB					= 3		// web应用， html5，flash
+};
+
+/** 定义前端应用的类别名称 */
+const char CLIENT_NAME[][255] = {
+	"UNKNOWN_CLIENT_COMPONENT_TYPE",
+	"CLIENT_TYPE_PHONE",
+	"CLIENT_TYPE_PC",
+	"CLIENT_TYPE_WEB",
+};
+
+// 所有前端应用的类别
+const COMPONENT_CLIENT_TYPE ALL_CLIENT_TYPES[] = {CLIENT_TYPE_PHONE, CLIENT_TYPE_PC, CLIENT_TYPE_WEB, UNKNOWN_CLIENT_COMPONENT_TYPE};
 
 /** 一个cell边界能够看到另一个cell边界的最大范围 */
 #define CELL_BORDER_WIDTH					500

@@ -32,6 +32,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #include "bots_interface_macros.hpp"
 #include "network/interface_defs.hpp"
+#include "client_lib/common.hpp"
+
 //#define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32

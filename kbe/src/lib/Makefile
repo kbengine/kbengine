@@ -21,6 +21,7 @@ LIBDIR=$(KBE_ROOT)/kbe/src/lib/bin
 
 all install clean full:
 	test -d $(LIBDIR) || mkdir $(LIBDIR)
+	cd client_lib && $(MAKE) $@
 	cd cstdkbe && $(MAKE) $@
 	cd entitydef && $(MAKE) $@
 	cd math && $(MAKE) $@

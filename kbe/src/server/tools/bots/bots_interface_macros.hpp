@@ -20,12 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef __CELLAPPMG_INTERFACE_MACRO_H__
+	#undef __BOTS_INTERFACE_MACRO_H__
 #endif
 
 
-#ifndef __CELLAPPMG_INTERFACE_MACRO_H__
-#define __CELLAPPMG_INTERFACE_MACRO_H__
+#ifndef __BOTS_INTERFACE_MACRO_H__
+#define __BOTS_INTERFACE_MACRO_H__
 
 // common include	
 #include "network/interface_defs.hpp"

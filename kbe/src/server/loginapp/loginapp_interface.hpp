@@ -45,6 +45,8 @@ namespace KBEngine{
 	LOGINAPP所有消息接口在此定义
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
+	// 用户登录服务器 
+	LOGINAPP_MESSAGE_DECLARE_STREAM(login,						MERCURY_VARIABLE_MESSAGE)
 
 	// 某app请求获取一个entityID段的回调
 	LOGINAPP_MESSAGE_DECLARE_ARGS2(onDbmgrInitCompleted,		MERCURY_FIXED_MESSAGE,

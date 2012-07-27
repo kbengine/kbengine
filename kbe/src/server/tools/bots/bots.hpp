@@ -33,7 +33,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/interfaces.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
-#include "server/serverconfig.hpp"
+#include "client_lib/clientapp.hpp"
 
 //#define NDEBUG
 #include <map>	
@@ -45,53 +45,18 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
-class Bots : public Singleton<Bots>,
-			public TimerHandler, 
-			public Mercury::ChannelTimeOutHandler,
-			public Mercury::ChannelDeregisterHandler
+class Bots : public ClientApp,
+		public Singleton<Bots>
 {
 public:
-	enum TimeOutType
-	{
-		TIMEOUT_GAME_TICK
-	};
-	
 	Bots(Mercury::EventDispatcher& dispatcher, 
 		Mercury::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
 		COMPONENT_ID componentID);
 
 	~Bots();
-	
-	bool run();
-	
-	void handleTimeout(TimerHandle handle, void * arg);
-	void handleGameTick();
-
-	/* 初始化相关接口 */
-	bool initializeBegin();
-	bool inInitialize();
-	bool initializeEnd();
-	void finalise();
-
-	Mercury::EventDispatcher & getMainDispatcher()				{ return mainDispatcher_; }
-	Mercury::NetworkInterface & getNetworkInterface()			{ return networkInterface_; }
-
-	COMPONENT_ID componentID()const	{ return componentID_; }
-	COMPONENT_TYPE componentType()const	{ return componentType_; }
-
-	GAME_TIME time() const { return time_; }
-	Timers & timers() { return timers_; }
 protected:
-	COMPONENT_TYPE											componentType_;
-	COMPONENT_ID											componentID_;									// 本组件的ID
 
-	Mercury::EventDispatcher& 								mainDispatcher_;	
-	Mercury::NetworkInterface&								networkInterface_;
-	
-	GAME_TIME												time_;
-	Timers													timers_;
-	TimerHandle												gameTimer_;
 };
 
 }
