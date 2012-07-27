@@ -49,4 +49,8 @@
 	<kbcenter>
 		<internalInterface>  </internalInterface>
 	</kbcenter>
+	
+	<bots>
+		<internalInterface>  </internalInterface>
+	</bots>
 </root>
