@@ -42,8 +42,6 @@ Forward_MessageBuffer::Forward_MessageBuffer(Mercury::NetworkInterface & network
 Forward_MessageBuffer::~Forward_MessageBuffer()
 {
 	//dispatcher().cancelFrequentTask(this);
-	//DEBUG_MSG("Componentbridge::~Componentbridge(): local interface(componentType=%s, componentID=%"PRAppID")!\n", 
-	//	COMPONENT_NAME[componentType_], componentID_);
 }
 
 //-------------------------------------------------------------------------------------
