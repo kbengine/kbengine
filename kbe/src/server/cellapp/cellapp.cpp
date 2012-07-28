@@ -132,36 +132,46 @@ void Cellapp::finalise()
 
 
 //-------------------------------------------------------------------------------------
-void Cellapp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string& username, 
+void Cellapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std::string& username, 
 						int8 componentType, uint64 componentID, 
 						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
 {
-	EntityApp<Entity>::onRegisterNewApp(pChannel, uid,username, componentType, componentID, 
+	EntityApp<Entity>::onRegisterNewApp(pChannel, uid, username, componentType, componentID, 
 									intaddr, intport, extaddr, extport);
 
 	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
 
-	// 如果是baseapp或者cellapp则表示由dbmgr转发一个新的app启动了， 本app需要主动去连接对方。
-	if(tcomponentType == BASEAPP_TYPE || 
-		tcomponentType == CELLAPP_TYPE)
-	{
-		Components::COMPONENTS cts = Componentbridge::getComponents().getComponents(DBMGR_TYPE);
-		KBE_ASSERT(cts.size() >= 1);
-		
-		// 如果dbmgr的pChannel等于投递这个网络消息的频道则是dbmgr转发， 否则是baseapp或者cellapp正式注册
-		if((*cts.begin()).pChannel == pChannel)
-		{
-			Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent(tcomponentType, uid, componentID);
+	Components::COMPONENTS cts = Componentbridge::getComponents().getComponents(DBMGR_TYPE);
+	KBE_ASSERT(cts.size() >= 1);
+	
+	Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent(tcomponentType, uid, componentID);
+	cinfos->pChannel = NULL;
 
-			// 由于是由dbmgr转发， pChannel实际不是cellapp或者baseapp， 所以先置空
-			cinfos->pChannel = NULL;
-			int ret = Components::getSingleton().connectComponent(tcomponentType, uid, componentID);
-			KBE_ASSERT(ret != -1);
-		}
-		else
-		{
-		}
-	}
+	int ret = Components::getSingleton().connectComponent(tcomponentType, uid, componentID);
+	KBE_ASSERT(ret != -1);
+
+	Mercury::Bundle bundle;
+
+	switch(tcomponentType)
+	{
+	case BASEAPP_TYPE:
+		bundle.newMessage(BaseappInterface::onRegisterNewApp);
+		BaseappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), CELLAPP_TYPE, componentID_, 
+			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
+			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port);
+		break;
+	case CELLAPP_TYPE:
+		bundle.newMessage(CellappInterface::onRegisterNewApp);
+		CellappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), CELLAPP_TYPE, componentID_, 
+			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
+			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port);
+		break;
+	default:
+		KBE_ASSERT(false && "no support!\n");
+		break;
+	};
+	
+	bundle.send(this->getNetworkInterface(), cinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------

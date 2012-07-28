@@ -237,16 +237,16 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 					continue;
 
 				Mercury::Bundle bundle;
-				ENTITTAPP_COMMON_MERCURY_MESSAGE(broadcastCpTypes[idx], bundle, onRegisterNewApp);
+				ENTITTAPP_COMMON_MERCURY_MESSAGE(broadcastCpTypes[idx], bundle, onGetEntityAppFromDbmgr);
 				
 				if(tcomponentType == BASEAPP_TYPE)
 				{
-					BaseappmgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, uid, username, componentType, componentID, 
+					BaseappInterface::onGetEntityAppFromDbmgrArgs8::staticAddToBundle(bundle, uid, username, componentType, componentID, 
 							intaddr, intport, extaddr, extport);
 				}
 				else
 				{
-					CellappmgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, uid, username, componentType, componentID, 
+					CellappInterface::onGetEntityAppFromDbmgrArgs8::staticAddToBundle(bundle, uid, username, componentType, componentID, 
 							intaddr, intport, extaddr, extport);
 				}
 				

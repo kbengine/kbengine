@@ -72,10 +72,10 @@ public:
 	void finalise();
 	
 	/* 网络接口
-		注册一个新激活的baseapp或者cellapp或者dbmgr
-		通常是一个新的app被启动了， 它需要向某些组件注册自己。
+		dbmgr告知已经启动的其他baseapp或者cellapp的地址
+		当前app需要主动的去与他们建立连接
 	*/
-	virtual void onRegisterNewApp(Mercury::Channel* pChannel, 
+	virtual void onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, 
 							int32 uid, 
 							std::string& username, 
 							int8 componentType, uint64 componentID, 

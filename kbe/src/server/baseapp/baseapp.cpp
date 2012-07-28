@@ -137,12 +137,46 @@ void Baseapp::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string& username, 
+void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std::string& username, 
 						int8 componentType, uint64 componentID, 
 						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
 {
-	EntityApp<Base>::onRegisterNewApp(pChannel, uid,username, componentType, componentID, 
+	EntityApp<Base>::onRegisterNewApp(pChannel, uid, username, componentType, componentID, 
 									intaddr, intport, extaddr, extport);
+
+	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
+
+	Components::COMPONENTS cts = Componentbridge::getComponents().getComponents(DBMGR_TYPE);
+	KBE_ASSERT(cts.size() >= 1);
+	
+	Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent(tcomponentType, uid, componentID);
+	cinfos->pChannel = NULL;
+
+	int ret = Components::getSingleton().connectComponent(tcomponentType, uid, componentID);
+	KBE_ASSERT(ret != -1);
+
+	Mercury::Bundle bundle;
+
+	switch(tcomponentType)
+	{
+	case BASEAPP_TYPE:
+		bundle.newMessage(BaseappInterface::onRegisterNewApp);
+		BaseappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, 
+			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
+			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port);
+		break;
+	case CELLAPP_TYPE:
+		bundle.newMessage(CellappInterface::onRegisterNewApp);
+		CellappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, 
+			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
+			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port);
+		break;
+	default:
+		KBE_ASSERT(false && "no support!\n");
+		break;
+	};
+	
+	bundle.send(this->getNetworkInterface(), cinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------

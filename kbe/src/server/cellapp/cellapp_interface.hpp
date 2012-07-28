@@ -58,6 +58,18 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									uint32,							extaddr, 
 									uint16,							extport)
 
+	// dbmgr告知已经启动的其他baseapp或者cellapp的地址
+	// 当前app需要主动的去与他们建立连接
+	CELLAPP_MESSAGE_DECLARE_ARGS8(onGetEntityAppFromDbmgr,			MERCURY_VARIABLE_MESSAGE,
+									int32,							uid, 
+									std::string,					username,
+									int8,							componentType, 
+									uint64,							componentID, 
+									uint32,							intaddr, 
+									uint16,							intport,
+									uint32,							extaddr, 
+									uint16,							extport)
+
 	// 某app请求获取一个entityID段的回调
 	CELLAPP_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,				MERCURY_FIXED_MESSAGE,
 									ENTITY_ID,						startID,

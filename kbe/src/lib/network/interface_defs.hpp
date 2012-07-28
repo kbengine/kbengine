@@ -94,6 +94,7 @@ namespace Mercury
 			}																								\
 			break;																							\
 		default:																							\
+			KBE_ASSERT(false && "no support!\n");															\
 			break;																							\
 		};																									\
 
