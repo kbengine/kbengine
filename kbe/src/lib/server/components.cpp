@@ -53,6 +53,10 @@ Components::~Components()
 
 bool Components::checkComponents(int32 uid, COMPONENT_ID componentID)
 {
+#if KBE_PLATFORM == PLATFORM_WIN32
+	return true;
+#endif
+
 	if(componentID <= 0)
 		return true;
 
@@ -67,6 +71,9 @@ bool Components::checkComponents(int32 uid, COMPONENT_ID componentID)
 		ComponentInfos* cinfos = findComponent(ct, uid, componentID);
 		if(cinfos != NULL)
 		{
+			ERROR_MSG("Components::checkComponents: uid:%u, componentType=%s, componentID:%"PRAppID" exist.\n", 
+				uid, COMPONENT_NAME[ct],  componentID);
+
 			KBE_ASSERT(false && "Components::checkComponents: componentID exist.\n");
 			return false;
 		}

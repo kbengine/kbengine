@@ -25,7 +25,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
 #include "server/componentbridge.hpp"
+#include "server/components.hpp"
 #include "dbmgr/dbmgr_interface.hpp"
+
+#include "../../server/baseappmgr/baseappmgr_interface.hpp"
+#include "../../server/cellappmgr/cellappmgr_interface.hpp"
+#include "../../server/baseapp/baseapp_interface.hpp"
+#include "../../server/cellapp/cellapp_interface.hpp"
+#include "../../server/dbmgr/dbmgr_interface.hpp"
+#include "../../server/loginapp/loginapp_interface.hpp"
 
 namespace KBEngine{
 	
@@ -120,6 +128,40 @@ bool Cellapp::initializeEnd()
 void Cellapp::finalise()
 {
 	EntityApp<Entity>::finalise();
+}
+
+
+//-------------------------------------------------------------------------------------
+void Cellapp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string& username, 
+						int8 componentType, uint64 componentID, 
+						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
+{
+	EntityApp<Entity>::onRegisterNewApp(pChannel, uid,username, componentType, componentID, 
+									intaddr, intport, extaddr, extport);
+
+	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
+
+	// 如果是baseapp或者cellapp则表示由dbmgr转发一个新的app启动了， 本app需要主动去连接对方。
+	if(tcomponentType == BASEAPP_TYPE || 
+		tcomponentType == CELLAPP_TYPE)
+	{
+		Components::COMPONENTS cts = Componentbridge::getComponents().getComponents(DBMGR_TYPE);
+		KBE_ASSERT(cts.size() >= 1);
+		
+		// 如果dbmgr的pChannel等于投递这个网络消息的频道则是dbmgr转发， 否则是baseapp或者cellapp正式注册
+		if((*cts.begin()).pChannel == pChannel)
+		{
+			Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent(tcomponentType, uid, componentID);
+
+			// 由于是由dbmgr转发， pChannel实际不是cellapp或者baseapp， 所以先置空
+			cinfos->pChannel = NULL;
+			int ret = Components::getSingleton().connectComponent(tcomponentType, uid, componentID);
+			KBE_ASSERT(ret != -1);
+		}
+		else
+		{
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------

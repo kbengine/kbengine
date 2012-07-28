@@ -79,9 +79,21 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 	}
 	else if(componentType == DBMGR_TYPE) // 如果是dbmgr重启了则清空所有这个uid的记录。
 	{
-		INFO_MSG("Machine::onBroadcastInterface: /-----------------------------reset kbengine.-------------------------/\n");
-		Componentbridge::getComponents().clear(uid);
-		INFO_MSG("Machine::onBroadcastInterface: /-----------------------------end reset kbengine.---------------------/\n");
+		const Components::ComponentInfos* pinfos = 
+			Componentbridge::getComponents().findComponent(DBMGR_TYPE, uid, componentID);
+		
+		// 做一个容错处理， windows下没做处理， 广播包会受到多次， linux不会出现。
+		// 将来会对windows进行下机制进行调整此处则不会出现不会NULL。
+		if(pinfos == NULL)
+		{
+			INFO_MSG("Machine::onBroadcastInterface: /-----------------------------reset kbengine.-------------------------/\n");
+			Componentbridge::getComponents().clear(uid);
+			INFO_MSG("Machine::onBroadcastInterface: /-----------------------------end reset kbengine.---------------------/\n");
+		}
+		else
+		{
+			return;
+		}
 	}
 
 	INFO_MSG("Machine::onBroadcastInterface: uid:%d, username:%s, componentType:%s, "

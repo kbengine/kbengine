@@ -80,6 +80,23 @@ namespace Mercury
 		};																									\
 
 
+#define ENTITTAPP_COMMON_MERCURY_MESSAGE(COMPONENTTYPE, BUNDLE, MESSAGENAME)								\
+		switch(COMPONENTTYPE)																				\
+		{																									\
+		case CELLAPP_TYPE:																					\
+			{																								\
+				BUNDLE.newMessage(CellappInterface::MESSAGENAME);											\
+			}																								\
+			break;																							\
+		case BASEAPP_TYPE:																					\
+			{																								\
+				BUNDLE.newMessage(BaseappInterface::MESSAGENAME);											\
+			}																								\
+			break;																							\
+		default:																							\
+			break;																							\
+		};																									\
+
 
 #ifdef NETWORK_INTERFACE_DECLARE_BEGIN
 	#undef NETWORK_INTERFACE_DECLARE_BEGIN

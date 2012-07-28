@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
 #include "server/componentbridge.hpp"
+#include "server/components.hpp"
 
 #include "../../server/baseappmgr/baseappmgr_interface.hpp"
 #include "../../server/cellappmgr/cellappmgr_interface.hpp"
@@ -135,6 +136,16 @@ void Baseapp::finalise()
 	EntityApp<Base>::finalise();
 }
 
+//-------------------------------------------------------------------------------------
+void Baseapp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string& username, 
+						int8 componentType, uint64 componentID, 
+						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
+{
+	EntityApp<Base>::onRegisterNewApp(pChannel, uid,username, componentType, componentID, 
+									intaddr, intport, extaddr, extport);
+}
+
+//-------------------------------------------------------------------------------------
 Base* Baseapp::onCreateEntityCommon(PyObject* pyEntity, ScriptModule* sm, ENTITY_ID eid)
 {
 	if(PyType_IsSubtype(sm->getScriptType(), Proxy::getScriptType()))

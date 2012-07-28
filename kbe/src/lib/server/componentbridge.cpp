@@ -45,8 +45,7 @@ Componentbridge::Componentbridge(Mercury::NetworkInterface & networkInterface,
 	Task(),
 	networkInterface_(networkInterface),
 	componentType_(componentType),
-	componentID_(componentID),
-	broadcastCount_(1)
+	componentID_(componentID)
 {
 	// dispatcher().addFrequentTask(this);
 	getComponents().pNetworkInterface(&networkInterface);
@@ -163,10 +162,18 @@ bool Componentbridge::findInterfaces()
 			INFO_MSG("Componentbridge::process: found %s, addr:%s:%u\n",
 				COMPONENT_NAME[args.componentType], inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intaddr));
 
-			ifind++;
-			
 			Componentbridge::getComponents().addComponent(args.uid, args.username.c_str(), 
 				(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
+			
+			// 防止接收到的数据不是想要的数据
+			if(findComponentType == args.componentType)
+			{
+				ifind++;
+			}
+			else
+			{
+				ERROR_MSG("Componentbridge::process: %s not found. receive data is error!\n", COMPONENT_NAME[findComponentType]);
+			}
 		}
 		else
 		{
@@ -210,17 +217,12 @@ bool Componentbridge::process()
 		networkInterface_.extaddr().ip, networkInterface_.extaddr().port);
 	
 	bhandler.broadcast();
-	broadcastCount_--;
 
-	if(broadcastCount_ <= 0)
-	{
-		bhandler.close();
-		if(componentType_ != MACHINE_TYPE)
-			findInterfaces();
-		return false;
-	}
+	bhandler.close();
+	if(componentType_ != MACHINE_TYPE)
+		findInterfaces();
 
-	return true;
+	return false;
 }
 
 //-------------------------------------------------------------------------------------

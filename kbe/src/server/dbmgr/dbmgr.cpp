@@ -27,9 +27,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
 #include "server/componentbridge.hpp"
+#include "server/components.hpp"
 
 #include "baseapp/baseapp_interface.hpp"
 #include "cellapp/cellapp_interface.hpp"
+#include "baseappmgr/baseappmgr_interface.hpp"
+#include "cellappmgr/cellappmgr_interface.hpp"
 #include "loginapp/loginapp_interface.hpp"
 
 namespace KBEngine{
@@ -167,18 +170,20 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 	ServerApp::onRegisterNewApp(pChannel, uid, username, componentType, componentID, 
 						intaddr, intport, extaddr, extport);
 
+	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
+
 	// 下一步:
 	// 如果是连接到dbmgr则需要等待接收app初始信息
 	// 例如：初始会分配entityID段以及这个app启动的顺序信息（是否第一个baseapp启动）
-	if((KBEngine::COMPONENT_TYPE)componentType == BASEAPP_TYPE || 
-		(KBEngine::COMPONENT_TYPE)componentType == CELLAPP_TYPE || 
-		(KBEngine::COMPONENT_TYPE)componentType == LOGINAPP_TYPE)
+	if(tcomponentType == BASEAPP_TYPE || 
+		tcomponentType == CELLAPP_TYPE || 
+		tcomponentType == LOGINAPP_TYPE)
 	{
 		Mercury::Bundle bundle;
 		int32 startGlobalOrder = Componentbridge::getComponents().getGlobalOrderLog()[getUserUID()];
 		int32 startGroupOrder = 0;
 
-		switch((KBEngine::COMPONENT_TYPE)componentType)
+		switch(tcomponentType)
 		{
 		case BASEAPP_TYPE:
 			{
@@ -215,6 +220,40 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 		}
 
 		bundle.send(networkInterface_, pChannel);
+	}
+
+	// 如果是baseapp或者cellapp则将自己注册到所有其他baseapp和cellapp
+	if(tcomponentType == BASEAPP_TYPE || 
+		tcomponentType == CELLAPP_TYPE)
+	{
+		KBEngine::COMPONENT_TYPE broadcastCpTypes[2] = {BASEAPP_TYPE, CELLAPP_TYPE};
+		for(int idx = 0; idx < 2; idx++)
+		{
+			Components::COMPONENTS cts = Components::getSingleton().getComponents(broadcastCpTypes[idx]);
+			Components::COMPONENTS::iterator fiter = cts.begin();
+			for(; fiter != cts.end(); fiter++)
+			{
+				if((*fiter).cid == componentID)
+					continue;
+
+				Mercury::Bundle bundle;
+				ENTITTAPP_COMMON_MERCURY_MESSAGE(broadcastCpTypes[idx], bundle, onRegisterNewApp);
+				
+				if(tcomponentType == BASEAPP_TYPE)
+				{
+					BaseappmgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, uid, username, componentType, componentID, 
+							intaddr, intport, extaddr, extport);
+				}
+				else
+				{
+					CellappmgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, uid, username, componentType, componentID, 
+							intaddr, intport, extaddr, extport);
+				}
+				
+				KBE_ASSERT((*fiter).pChannel != NULL);
+				bundle.send(networkInterface_, (*fiter).pChannel);
+			}
+		}
 	}
 }
 
