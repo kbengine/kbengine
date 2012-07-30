@@ -86,7 +86,7 @@ int ScriptObject::onScriptInit(PyObject* self, PyObject* args, PyObject* kwds)
 PyObject* ScriptObject::tp_repr()
 {
 	char s[512];
-	sprintf(s, "%s object at 0x%08X", this->getObjTypeName(), (unsigned int)(void*)this);
+	sprintf(s, "%s object at 0x%08X", this->getScriptName(), (unsigned int)(void*)this);
 	return PyUnicode_FromString(s);
 }
 
@@ -94,7 +94,7 @@ PyObject* ScriptObject::tp_repr()
 PyObject* ScriptObject::tp_str()
 {
 	char s[512];
-	sprintf(s, "%s object at 0x%08X", this->getObjTypeName(), (unsigned int)(void*)this);
+	sprintf(s, "%s object at 0x%08X", this->getScriptName(), (unsigned int)(void*)this);
 	return PyUnicode_FromString(s);
 }
 

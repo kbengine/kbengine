@@ -87,11 +87,11 @@ void Proxy::giveClientTo(Proxy* proxy)
 		if(mb != NULL)
 		{
 			ERROR_MSG("Proxy::giveClientTo: %s[%ld] give client to %s[%ld], %s have clientMailbox.", 
-					getScriptModuleName(), 
+					getScriptName(), 
 					getID(), 
-					proxy->getScriptModuleName(), 
+					proxy->getScriptName(), 
 					proxy->getID(), 
-					proxy->getScriptModuleName());
+					proxy->getScriptName());
 			return;
 		}
 

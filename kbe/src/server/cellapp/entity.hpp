@@ -23,10 +23,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 // common include
 //#include "entitymovecontroller.hpp"
-//#include "timer.hpp"
+#include "cstdkbe/timer.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
-//#include "entityMailbox.hpp"
+#include "entitydef/entity_mailbox.hpp"
 #include "pyscript/math.hpp"
 #include "pyscript/scriptobject.hpp"
 #include "entitydef/datatypes.hpp"	

@@ -73,16 +73,24 @@ public:																										\
 																											\
 		if(!PyDict_Check(dictData)){																		\
 			ERROR_MSG(#CLASS"::createNamespace: create"#CLASS"[%s:%ld] args is not a dict.\n",				\
-				getScriptModuleName(), id_);																\
+				getScriptName(), id_);																		\
 			return;																							\
 		}																									\
 																											\
 		PyObject *key, *value;																				\
+		PyObject* pydict = PyObject_GetAttrString(this, "__dict__");										\
+		PyObject* cellDataDict = PyObject_GetAttrString(this, "cellData");									\
 		int pos = 0;																						\
 																											\
 		while(PyDict_Next(dictData, &pos, &key, &value))													\
 		{																									\
-			PyObject_SetAttr(this, key, value);																\
+			if(strcmp(#CLASS, "Base") == 0)																	\
+			{																								\
+				if(PyDict_Contains(cellDataDict, key) > 0)													\
+	    		PyDict_SetItem(cellDataDict, key, value);													\
+			}																								\
+			else																							\
+	    		PyDict_SetItem(pydict, key, value);															\
 		}																									\
 																											\
 		SCRIPT_ERROR_CHECK();																				\
@@ -190,11 +198,6 @@ public:																										\
 		return PyLong_FromLong(self->getSpaceID());															\
 	}																										\
 																											\
-	inline const char* getScriptModuleName(void)const														\
-	{																										\
-		return getScriptName();																				\
-	}																										\
-																											\
 	inline ScriptModule* getScriptModule(void)const															\
 	{																										\
 		return scriptModule_; 																				\
@@ -211,7 +214,7 @@ public:																										\
 			if(iter != lpPropertyDescrs_->end())															\
 			{																								\
 				char err[255];																				\
-				sprintf(err, "property[%s] is in [%s] def. del failed.", ccattr, getScriptModuleName());	\
+				sprintf(err, "property[%s] is in [%s] def. del failed.", ccattr, getScriptName());			\
 				PyErr_SetString(PyExc_TypeError, err);														\
 				PyErr_PrintEx(0);																			\
 				delete ccattr;																				\
@@ -222,7 +225,7 @@ public:																										\
 		if(scriptModule_->findMethodDescription(ccattr, g_componentType) != NULL)							\
 		{																									\
 			char err[255];																					\
-			sprintf(err, "method[%s] is in [%s] def. del failed.", ccattr, getScriptModuleName());			\
+			sprintf(err, "method[%s] is in [%s] def. del failed.", ccattr, getScriptName());				\
 			PyErr_SetString(PyExc_TypeError, err);															\
 			PyErr_PrintEx(0);																				\
 			delete ccattr;																					\
@@ -340,7 +343,7 @@ public:																										\
 
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
-	INFO_MSG(#CLASS"::~"#CLASS"(): %s %ld\n", getScriptModuleName(), id_);									\
+	INFO_MSG(#CLASS"::~"#CLASS"(): %s %ld\n", getScriptName(), id_);										\
 	scriptModule_ = NULL;																					\
 
 

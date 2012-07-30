@@ -178,7 +178,7 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 	(*pBundle) << entityType;
 	(*pBundle) << id;
 	(*pBundle) << spaceID++;
-	(*pBundle) << componentID_;
+	(*pBundle) << componentID;
 	(*pBundle) << cellDataLength;
 
 	if(cellDataLength > 0)

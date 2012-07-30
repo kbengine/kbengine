@@ -42,9 +42,9 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(EntityMailbox, 0, 0, 0, 0, 0)		
 
 //-------------------------------------------------------------------------------------
-EntityMailbox::EntityMailbox(Mercury::Channel* pChannel, ScriptModule* scriptModule, COMPONENT_ID componentID, 
+EntityMailbox::EntityMailbox(ScriptModule* scriptModule, COMPONENT_ID componentID, 
 ENTITY_ID& eid, ENTITY_MAILBOX_TYPE type):
-EntityMailboxAbstract(getScriptType(), pChannel, componentID, eid, scriptModule->getUType(), type),
+EntityMailboxAbstract(getScriptType(), componentID, eid, scriptModule->getUType(), type),
 scriptModule_(scriptModule)
 {
 }
@@ -124,7 +124,7 @@ PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 		if(mbtype != -1)
 		{
 			delete ccattr;
-			return new EntityMailbox(pChannelPtr_, scriptModule_, componentID_, id_, (ENTITY_MAILBOX_TYPE)mbtype);
+			return new EntityMailbox(scriptModule_, componentID_, id_, (ENTITY_MAILBOX_TYPE)mbtype);
 		}
 	}
 	
@@ -148,7 +148,7 @@ PyObject* EntityMailbox::tp_repr()
 	
 	sprintf(s, "%s mailbox id:%d, component=%s[%"PRIu64"], addr: %s.", mailboxName, id_, 
 		COMPONENT_NAME[ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[type_]], 
-			componentID_, pChannelPtr_->addr().c_str());
+			componentID_, getChannel()->addr().c_str());
 
 	return PyUnicode_FromString(s);
 }
@@ -170,20 +170,20 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 	Py_ssize_t size = PyTuple_Size(args);
 	if(size != 4)
 	{
-		ERROR_MSG("EntityMailbox::__unpickle__: args is error! size != 4");
+		ERROR_MSG("EntityMailbox::__unpickle__: args is error! size != 4.\n");
 		S_Return;
 	}
 
-	if(!PyArg_ParseTuple(args, "ilHH", &eid, &componentID, &utype, &type))
+	if(!PyArg_ParseTuple(args, "iKHH", &eid, &componentID, &utype, &type))
 	{
-		ERROR_MSG("EntityMailbox::__unpickle__: args is error!");
+		ERROR_MSG("EntityMailbox::__unpickle__: args is error!\n");
 		S_Return;
 	}
 
 	ScriptModule* sm = EntityDef::findScriptModule(utype);
 	if(sm == NULL)
 	{
-		ERROR_MSG("EntityMailbox::__unpickle__: not found utype %ld!", utype);
+		ERROR_MSG("EntityMailbox::__unpickle__: not found utype %ld!\n", utype);
 		S_Return;
 	}
 
@@ -207,7 +207,7 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 		}
 		else
 		{
-			ERROR_MSG("EntityMailbox::__unpickle__: not found %s%ld!", COMPONENT_NAME[componentType], componentID);
+			ERROR_MSG("EntityMailbox::__unpickle__: not found %s%ld!\n", COMPONENT_NAME[componentType], componentID);
 			S_Return;
 		}
 	}
@@ -217,7 +217,7 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 		return entity;
 #endif
 
-	return new EntityMailbox(pChannel, sm, componentID, eid, (ENTITY_MAILBOX_TYPE)type);
+	return new EntityMailbox(sm, componentID, eid, (ENTITY_MAILBOX_TYPE)type);
 }
 
 //-------------------------------------------------------------------------------------

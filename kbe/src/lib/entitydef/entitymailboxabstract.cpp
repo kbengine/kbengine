@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/pickler.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/packet.hpp"
+#include "server/components.hpp"
 
 namespace KBEngine{
 
@@ -41,10 +42,9 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(EntityMailboxAbstract, 0, 0, 0, 0, 0)		
 
 //-------------------------------------------------------------------------------------
-EntityMailboxAbstract::EntityMailboxAbstract(PyTypeObject* scriptType, Mercury::Channel* pChannel, 
-COMPONENT_ID componentID, ENTITY_ID eid, uint16 utype, ENTITY_MAILBOX_TYPE type):
+EntityMailboxAbstract::EntityMailboxAbstract(PyTypeObject* scriptType, COMPONENT_ID componentID, 
+											 ENTITY_ID eid, uint16 utype, ENTITY_MAILBOX_TYPE type):
 ScriptObject(scriptType, false),
-pChannelPtr_(pChannel),
 componentID_(componentID),
 type_(type),
 id_(eid),
@@ -57,32 +57,6 @@ EntityMailboxAbstract::~EntityMailboxAbstract()
 {
 }
 
-//-------------------------------------------------------------------------------------
-/*
-void EntityMailboxAbstract::post(SocketPacket* sp)
-{
-	if(sp != NULL && pChannelPtr_ != NULL && !pChannelPtr_->isClosed())
-		pChannelPtr_->sendPacket(sp);
-}
-
-//-------------------------------------------------------------------------------------
-SocketPacket* EntityMailboxAbstract::createStream(Opcodes code)
-{
-	SocketPacket* sp = new SocketPacket(code, 32);
-	(*sp) << (ENTITY_ID)id_;
-	return sp;
-}
-
-//-------------------------------------------------------------------------------------
-SocketPacket* EntityMailboxAbstract::createMail(MAIL_TYPE mailType)
-{
-	SocketPacket* sp = new SocketPacket(OP_ENTITY_MAIL, 64);
-	(*sp) << (ENTITY_ID)id_;
-	(*sp) << (uint8)type_;
-	(*sp) << (MAIL_TYPE)mailType;
-	return sp;
-}
-*/
 //-------------------------------------------------------------------------------------
 PyObject* EntityMailboxAbstract::__py_reduce_ex__(PyObject* self, PyObject* protocol)
 {
@@ -108,6 +82,14 @@ PyObject* EntityMailboxAbstract::__py_reduce_ex__(PyObject* self, PyObject* prot
 PyObject* EntityMailboxAbstract::pyGetID()
 { 
 	return PyLong_FromLong(getID()); 
+}
+
+//-------------------------------------------------------------------------------------
+Mercury::Channel* EntityMailboxAbstract::getChannel(void)
+{
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID_);
+	KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
+	return cinfos->pChannel; 
 }
 
 //-------------------------------------------------------------------------------------

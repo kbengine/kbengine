@@ -235,13 +235,9 @@ public:																						\
 	{																						\
 		if(strcmp("ScriptObject", #SUPERCLASS) == 0)										\
 			return 0;																		\
-		return -(long)sizeof(PyObject *) - SUPERCLASS::calcDictOffset();					\
+		return 0;																			\
 	}																						\
 																							\
-	static const char* getScriptName(void)													\
-	{																						\
-		return getScriptType()->tp_name;													\
-	}																						\
 	/** 计算所有继承模块的暴露方法个数 
 	*/																						\
 	static int calcTotalMethodCount(void)													\
@@ -537,7 +533,7 @@ public:
 	int onScriptInit(PyObject* self, PyObject *args, PyObject* kwds);
 
 	/** 获取对象类别名称 */
-	const char* getObjTypeName() const{ return ob_type->tp_name; }
+	const char* getScriptName() const{ return ob_type->tp_name; }
 
 	/** 脚本被安装时被调用 */
 	static void onInstallScript(PyObject* mod){}

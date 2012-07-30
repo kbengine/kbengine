@@ -107,6 +107,11 @@ public:
 
 	/** 为一个baseEntity在制定的cell上创建一个cellEntity */
 	void createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base* base);
+	
+	/** 网络接口
+		createCellEntity的cell实体创建成功回调。
+	*/
+	void onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONENT_ID componentID);
 
 	/** 通知客户端创建一个proxy对应的实体 */
 	bool createClientProxyEntity(Mercury::Channel* pChannel, Base* base);

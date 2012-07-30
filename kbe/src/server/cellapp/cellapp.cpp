@@ -130,7 +130,6 @@ void Cellapp::finalise()
 	EntityApp<Entity>::finalise();
 }
 
-
 //-------------------------------------------------------------------------------------
 void Cellapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std::string& username, 
 						int8 componentType, uint64 componentID, 
@@ -189,15 +188,21 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 		PyErr_PrintEx(0);
 		return NULL;
 	}
-
 	
-	//Space* space = SpaceManager::findSpace(spaceID);
-	//if(space == NULL)
-	//{
-	//	PyErr_Format(PyExc_TypeError, "KBEngine::createEntity: spaceID %ld not found.", spaceID);
-	//	PyErr_PrintEx(0);
-	//	S_Return;
-	//}
+	if(entityType == NULL || strlen(entityType) == 0)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::createEntity: entityType is NULL.");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	Space* space = Spaces::findSpace(spaceID);
+	if(space == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::createEntity: spaceID %ld not found.", spaceID);
+		PyErr_PrintEx(0);
+		S_Return;
+	}
 	
 	// 创建entity
 	Entity* pEntity = Cellapp::getSingleton().createEntityCommon(entityType, params, false, 0);
@@ -210,7 +215,7 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 		pEntity->initializeScript();
 
 		// 添加到space
-		//space->addEntity(pEntity);
+		space->addEntity(pEntity);
 	}
 	
 	return pEntity;
@@ -331,35 +336,110 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		if(e == NULL)
 			return;
 
-		//Components::COMPONENTS& components = Components::getSingleton().getComponents(BASEAPP_TYPE);
-	//	Components::COMPONENTS::iterator iter = components.find(componentID);
-	//	if(iter != components.end())
-	//	{	
-			/*
-			NSChannel* lpNSChannel = static_cast<NSChannel*>(iter->second);
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
+		KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
 
-			// 设置entity的baseMailbox
-			EntityMailbox* mailbox = new EntityMailbox(lpNSChannel, e->getScriptModule(), componentID, id, MAILBOX_TYPE_BASE);
-			e->setBaseMailbox(mailbox);
-			// 添加到space
-			space->addEntity(e);
-			e->initializeScript();
-			
-			SocketPacket* sp = new SocketPacket(OP_ENTITY_CELL_CREATE_COMPLETE, 8);
-			(*sp) << (ENTITY_ID)id;
-			(*sp) << (COMPONENT_ID)m_componentID_;
-			lpNSChannel->sendPacket(sp);	\
-			*/
-			return;
-		//}
+		// 设置entity的baseMailbox
+		EntityMailbox* mailbox = new EntityMailbox(e->getScriptModule(), componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
+		e->setBaseMailbox(mailbox);
+		// 添加到space
+		space->addEntity(e);
+		e->initializeScript();
+		
+		Mercury::Bundle bundle;
+		bundle.newMessage(BaseappInterface::onEntityGetCell);
+		BaseappInterface::onEntityGetCellArgs2::staticAddToBundle(bundle, mailboxEntityID, componentID_);
+		bundle.send(this->getNetworkInterface(), cinfos->pChannel);
+		return;
 	}
 	
-	ERROR_MSG("App::onCreateInNewSpaceFromBaseapp: not found baseapp[%ld], entityID=%d.\n", componentID, mailboxEntityID);
+	ERROR_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: not found baseapp[%ld], entityID=%d.\n", componentID, mailboxEntityID);
 }
 
 //-------------------------------------------------------------------------------------
 void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	std::string entityType;
+	ENTITY_ID createToEntityID, entityID;
+	uint32 cellDataLength;
+	std::string strEntityCellData;
+	COMPONENT_ID componentID;
+	SPACE_ID spaceID = 1;
+	bool hasClient;
+
+	s >> createToEntityID;
+	s >> entityType;
+	s >> entityID;
+	s >> componentID;
+	s >> hasClient;
+	s >> cellDataLength;
+
+	if(cellDataLength > 0)
+	{
+		strEntityCellData.assign((char*)(s.data() + s.rpos()), cellDataLength);
+		s.read_skip(cellDataLength);
+	}
+
+	Entity* pCreateToEntity = pEntities_->find(createToEntityID);
+	spaceID = pCreateToEntity->getSpaceID();
+
+	DEBUG_MSG("Cellapp::onCreateCellEntityFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
+		spaceID, entityType.c_str(), entityID, componentID);
+
+	Space* space = Spaces::createNewSpace(spaceID);
+	if(space != NULL)
+	{
+		// 解包cellData信息.
+		PyObject* params = NULL;
+		if(strEntityCellData.size() > 0)
+			params = script::Pickler::unpickle(strEntityCellData);
+	
+		// 创建entity
+		Entity* e = createEntityCommon(entityType.c_str(), params, false, entityID);
+		Py_XDECREF(params);
+		
+		if(e == NULL)
+			return;
+
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
+		KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
+
+		// 设置entity的baseMailbox
+		EntityMailbox* mailbox = new EntityMailbox(e->getScriptModule(), componentID, entityID, MAILBOX_TYPE_BASE);
+		e->setBaseMailbox(mailbox);
+		// 添加到space
+		space->addEntity(e);
+		e->initializeScript();
+		
+		// 如果是有client的entity则需要告知client， cell部分创建了
+		if(hasClient)
+		{
+			PyObject* clientMailbox = PyObject_GetAttrString(mailbox, "client");
+			KBE_ASSERT(clientMailbox != Py_None);
+
+			EntityMailbox* client = static_cast<EntityMailbox*>(clientMailbox);	
+			// Py_INCREF(clientMailbox); 这里不需要增加引用， 因为每次都会产生一个新的对象
+			e->setClientMailbox(client);
+			
+			// 通知客户端，avatar进入了世界
+			//SocketPacket* sp = new SocketPacket(OP_ENTITY_ENTER_WORLD);
+			//(*sp) << (ENTITY_ID)id;																	// 可提供客户端判断是否是自己enterworld
+			//(*sp) << (uint8)0;																		// 是否是增加一个entity为false， 这里表示自己也进入enterworld
+			//client->post(sp);
+
+			// 初始化默认AOI范围
+			ENGINE_COMPONENT_INFO& ecinfo = ServerConfig::getSingleton().getCellApp();
+			e->setAoiRadius(ecinfo.defaultAoIRadius, ecinfo.defaultAoIHysteresisArea);
+		}
+
+		Mercury::Bundle bundle;
+		bundle.newMessage(BaseappInterface::onEntityGetCell);
+		BaseappInterface::onEntityGetCellArgs2::staticAddToBundle(bundle, entityID, componentID_);
+		bundle.send(this->getNetworkInterface(), cinfos->pChannel);
+		return;
+	}
+
+	KBE_ASSERT(false && "Cellapp::onCreateCellEntityFromBaseapp: is error!\n");
 }
 
 //-------------------------------------------------------------------------------------

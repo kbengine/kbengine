@@ -7,6 +7,7 @@
 //#include "base.ipp"
 #endif
 
+#include "../../server/cellapp/cellapp_interface.hpp"
 
 namespace KBEngine{
 
@@ -98,14 +99,15 @@ void Base::createCellData(void)
 		
 		if(dataType)
 		{
-			//ByteStream* bs = propertyDescription->getDefaultVal();
-			//PyDict_SetItemString(cellDataDict_, propertyDescription->getName().c_str(), dataType->createObject(bs));
-			//if(bs)
-			//	bs->rpos(0);
+			MemoryStream* ms = propertyDescription->getDefaultVal();
+			PyDict_SetItemString(cellDataDict_, propertyDescription->getName().c_str(), dataType->createObject(ms));
+			if(ms)
+				ms->rpos(0);
 		}
 		else
 		{
-			ERROR_MSG("Base::createCellData: %s PropertyDescription the dataType is NULL.\n", propertyDescription->getName().c_str());	
+			ERROR_MSG("Base::createCellData: %s PropertyDescription the dataType is NULL.\n", 
+				propertyDescription->getName().c_str());	
 		}
 			
 	}
@@ -178,9 +180,10 @@ bool Base::destroyCellEntity(void)
 	if(cellMailbox_ == NULL) 
 		return false;
 	
-//	SocketPacket* sp = new SocketPacket(OP_ENTITY_DESTROY_CELL_ENTITY, 8);
-//	(*sp) << id_;
-//	cellMailbox_->post(sp);
+	Mercury::Bundle bundle;
+	bundle.newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
+	bundle << id_;
+	bundle.send(Baseapp::getSingleton().getNetworkInterface(), cellMailbox_->getChannel());
 	return true;
 }
 
@@ -238,13 +241,13 @@ void Base::onCreateCellFailure(void)
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onGetCell(Mercury::Channel* handler, COMPONENT_ID componentID)
+void Base::onGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID)
 {
 	// 删除cellData属性
 	destroyCellData();
 	
 	// 回调给脚本，获得了cell
-	cellMailbox_ = new EntityMailbox(handler, scriptModule_, componentID, id_, MAILBOX_TYPE_CELL);
+	cellMailbox_ = new EntityMailbox(scriptModule_, componentID, id_, MAILBOX_TYPE_CELL);
 	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onGetCell"), 
 																	const_cast<char*>(""));
 	if(pyResult != NULL)
@@ -304,17 +307,17 @@ void Base::onWriteToDB(PyObject* cellData)
 //-------------------------------------------------------------------------------------
 PyObject* Base::createCellEntity(PyObject* pyobj)
 {
-	if(!PyObject_TypeCheck(pyobj, EntityMailbox::getScriptType()))
+	if(!PyObject_IsInstance(pyobj, (PyObject*)EntityMailbox::getScriptType()))
 	{
-		PyErr_SetString(PyExc_TypeError, "arg1 is not cellMailbox!");
+		PyErr_Format(PyExc_TypeError, "create %s arg1 is not cellMailbox!", this->getScriptName());
 		PyErr_PrintEx(0);
 		S_Return;
 	}
-
+	
 	EntityMailboxAbstract* cellMailbox = static_cast<EntityMailboxAbstract*>(pyobj);
 	if(cellMailbox->getType() != MAILBOX_TYPE_CELL)
 	{
-		PyErr_SetString(PyExc_TypeError, "args not is a direct cellMailbox!");
+		PyErr_Format(PyExc_TypeError, "create %s args1 not is a direct cellMailbox!", this->getScriptName());
 		PyErr_PrintEx(0);
 		S_Return;
 	}

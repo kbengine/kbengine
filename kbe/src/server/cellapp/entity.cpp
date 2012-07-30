@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cellapp.hpp"
 #include "entity.hpp"
 //#include "chunk.hpp"
-//#include "space.hpp"
+#include "space.hpp"
 
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
@@ -326,13 +326,13 @@ void Entity::onWitnessed(Entity* entity, float range)
 	WitnessInfo* info = new WitnessInfo(detailLevel, entity, range);
 	ENTITY_ID id = entity->getID();
 
-	DEBUG_MSG("Entity[%s:%ld]::onWitnessed:%s %ld enter detailLevel %d. range=%f.\n", getScriptModuleName(), id_, 
-			entity->getScriptModuleName(), id, detailLevel, range);
+	DEBUG_MSG("Entity[%s:%ld]::onWitnessed:%s %ld enter detailLevel %d. range=%f.\n", getScriptName(), id_, 
+			entity->getScriptName(), id, detailLevel, range);
 
 #ifdef _DEBUG
 	WITNESSENTITY_DETAILLEVEL_MAP::iterator iter = witnessEntityDetailLevelMap_.find(id);
 	if(iter != witnessEntityDetailLevelMap_.end())
-		ERROR_MSG("Entity::onWitnessed: %s %ld is exist.\n", entity->getScriptModuleName(), id);
+		ERROR_MSG("Entity::onWitnessed: %s %ld is exist.\n", entity->getScriptName(), id);
 #endif
 	
 	witnessEntityDetailLevelMap_[id] = info;
@@ -362,8 +362,8 @@ void Entity::onRemoveWitness(Entity* entity)
 	}
 	else
 	{
-		ERROR_MSG("Entity[%s:%ld]::onRemoveWitness: can't not found %s %ld.\n", getScriptModuleName(), id_,
-			entity->getScriptModuleName(), id);
+		ERROR_MSG("Entity[%s:%ld]::onRemoveWitness: can't not found %s %ld.\n", getScriptName(), id_,
+			entity->getScriptName(), id);
 	}
 	
 	if(witnessEntityDetailLevelMap_.size() <= 0)
@@ -391,8 +391,8 @@ void Entity::onUpdateWitness(Entity* entity, float range)
 		// 详情级别改变了
 		if(detailLevel != newDetailLevel)
 		{
-			DEBUG_MSG("Entity[%s:%ld]::onUpdateWitness:%s %ld change detailLevel %d to %d. oldRange=%f, newRange=%f.\n", getScriptModuleName(), id_,
-					entity->getScriptModuleName(), id, detailLevel, newDetailLevel, witnessInfo->range, range);
+			DEBUG_MSG("Entity[%s:%ld]::onUpdateWitness:%s %ld change detailLevel %d to %d. oldRange=%f, newRange=%f.\n", getScriptName(), id_,
+					entity->getScriptName(), id, detailLevel, newDetailLevel, witnessInfo->range, range);
 
 			witnessInfo->detailLevel = newDetailLevel;
 			onEntityDetailLevelChanged(witnessInfo, detailLevel, newDetailLevel);
@@ -403,8 +403,8 @@ void Entity::onUpdateWitness(Entity* entity, float range)
 	}
 	else
 	{
-		ERROR_MSG("Entity[%s:%ld]::onUpdateWitness: can't not found %s %ld.\n", getScriptModuleName(), id_,
-			entity->getScriptModuleName(), id);
+		ERROR_MSG("Entity[%s:%ld]::onUpdateWitness: can't not found %s %ld.\n", getScriptName(), id_,
+			entity->getScriptName(), id);
 	}*/
 }
 
@@ -559,7 +559,7 @@ uint16 Entity::addProximity(float range)
 {
 	if(range <= 0.0f)
 	{
-		ERROR_MSG("Entity::addProximity: range(%f) <= 0.0f! entity[%s:%ld]\n", range, getScriptModuleName(), getID());
+		ERROR_MSG("Entity::addProximity: range(%f) <= 0.0f! entity[%s:%ld]\n", range, getScriptName(), getID());
 		return 0;
 	}
 
@@ -707,10 +707,10 @@ void Entity::setPositionAndDirection(Position3D& position, Direction3D& directio
 
 //-------------------------------------------------------------------------------------
 int32 Entity::setAoiRadius(float radius, float hyst)
-{/*
+{
 	if(!hasWitness_)
 	{
-		ERROR_MSG("Entity::setAoiRadius:%s %ld no has witness.\n", getScriptModuleName(), id_);
+		ERROR_MSG("Entity::setAoiRadius:%s %ld no has witness.\n", getScriptName(), id_);
 		return 0;
 	}
 
@@ -726,7 +726,7 @@ int32 Entity::setAoiRadius(float radius, float hyst)
 		aoiHysteresisArea_ = 15.0f;
 	}
 	
-	// 在space中投放一个AOI陷阱
+/*	// 在space中投放一个AOI陷阱
 	Proximity* p = new ProximityAOI(this, aoiRadius_, aoiHysteresisArea_);
 	trapMgr_.addProximity(p);
 	if(currChunk_ != NULL)
@@ -748,7 +748,7 @@ bool Entity::navigateStep(const Position3D& destination, float velocity, float m
 	DEBUG_MSG("Entity[%s:%d]:destination=(%f,%f,%f), velocity=%f, maxMoveDistance=%f, "
 		"maxDistance=%f, faceMovement=%d, girth=%f, userData=%x.\n",
 
-	getScriptModuleName(), id_, destination.x, destination.y, destination.z, velocity, maxMoveDistance, 
+	getScriptName(), id_, destination.x, destination.y, destination.z, velocity, maxMoveDistance, 
 	maxDistance, faceMovement, girth, userData);
 	return true;
 }

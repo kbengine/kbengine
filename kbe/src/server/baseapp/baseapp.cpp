@@ -111,7 +111,6 @@ void Baseapp::handleTimeout(TimerHandle handle, void * arg)
 	EntityApp<Base>::handleTimeout(handle, arg);
 }
 
-
 //-------------------------------------------------------------------------------------
 void Baseapp::handleGameTick()
 {
@@ -257,7 +256,7 @@ void Baseapp::createInNewSpace(Base* base, PyObject* cell)
 	std::string entityType = base->ob_type->tp_name;
 	std::string strCellData = script::Pickler::pickle(base->getCellData());
 	uint32 cellDataLength = strCellData.length();
-	
+
 	Mercury::Bundle bundle;
 
 	bundle.newMessage(CellappmgrInterface::reqCreateInNewSpace);
@@ -342,7 +341,6 @@ void Baseapp::onCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s)
 		s.read_skip(initDataLength);
 	}
 
-
 	s >> componentID;
 	s >> callbackID;
 
@@ -416,9 +414,14 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 			Py_DECREF(pyargs);
 			return;
 		}
-
-		PyTuple_SET_ITEM(pyargs, 0, new EntityMailbox(pChannel, sm, componentID, eid, MAILBOX_TYPE_BASE));
+		
+		// 如果entity属于另一个baseapp创建则设置它的mailbox
+		Mercury::Channel* pOtherBaseappChannel = Components::getSingleton().findComponent(componentID)->pChannel;
+		KBE_ASSERT(pOtherBaseappChannel != NULL);
+		PyObject* mb = static_cast<EntityMailbox*>(new EntityMailbox(sm, componentID, eid, MAILBOX_TYPE_BASE));
+		PyTuple_SET_ITEM(pyargs, 0, mb);
 		PyObject_CallObject(pyCallback, pyargs);
+		Py_DECREF(mb);
 	}
 	else
 	{
@@ -443,47 +446,61 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 //-------------------------------------------------------------------------------------
 void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base* base)
 {
-	/*
-	SocketPacket* sp = new SocketPacket(OP_CREATE_CELL_ENTITY);
+	Mercury::Bundle bundle;
+	bundle.newMessage(CellappInterface::onCreateCellEntityFromBaseapp);
+
 	ENTITY_ID id = base->getID();
 	std::string entityType = base->ob_type->tp_name;
 	std::string strCellData = script::Pickler::pickle(base->getCellData());
 	uint32 cellDataLength = strCellData.length();
 	EntityMailbox* clientMailbox = base->getClientMailbox();
-	uint8 hasClient = (clientMailbox == NULL) ? 0 : 1;
+	bool hasClient = (clientMailbox == NULL);
 	
-	(*sp) << (ENTITY_ID)createToCellMailbox->getID();															// 在这个mailbox所在的cellspace上创建
-	(*sp) << entityType;
-	(*sp) << (ENTITY_ID)id;
-	(*sp) << (COMPONENT_ID)m_componentID_;
-	(*sp) << (uint8)hasClient;
-	(*sp) << (uint32)cellDataLength;
+	bundle << createToCellMailbox->getID();				// 在这个mailbox所在的cellspace上创建
+	bundle << entityType;
+	bundle << id;
+	bundle << componentID_;
+	bundle << hasClient;
+	bundle << cellDataLength;
+
 	if(cellDataLength > 0)
-		sp->append(strCellData.c_str(), cellDataLength);
-	createToCellMailbox->post(sp);
+		bundle.append(strCellData.data(), cellDataLength);
+
+	KBE_ASSERT(createToCellMailbox->getChannel() != NULL);
+	bundle.send(this->getNetworkInterface(), createToCellMailbox->getChannel());
 	
 	if(!hasClient)
 		return;
 
-	sp = new SocketPacket(OP_CREATE_CLIENT_PROXY);
-	(*sp) << (uint8)false;	
-	(*sp) << (ENTITY_ID)id;
+	// 通报客户端cellEntity创建了
+
+	//sp = new SocketPacket(OP_CREATE_CLIENT_PROXY);
+	//(*sp) << (uint8)false;	
+	//(*sp) << (ENTITY_ID)id;
 
 	// 初始化cellEntity的位置和方向变量
-	Vector3 v;
-	PyObject* cellData = base->getCellData();
-	PyObject* position = PyDict_GetItemString(cellData, "position");
-	script::ScriptVector3::convertPyObjectToVector3(v, position);
-	(*sp) << v.x << v.y << v.z;
+	//Vector3 v;
+	//PyObject* cellData = base->getCellData();
+	//PyObject* position = PyDict_GetItemString(cellData, "position");
+	//script::ScriptVector3::convertPyObjectToVector3(v, position);
+	//(*sp) << v.x << v.y << v.z;
 
-	PyObject* direction = PyDict_GetItemString(cellData, "direction");
-	script::ScriptVector3::convertPyObjectToVector3(v, direction);
-	(*sp) << v.x << v.y << v.z;
+	//PyObject* direction = PyDict_GetItemString(cellData, "direction");
+	//script::ScriptVector3::convertPyObjectToVector3(v, direction);
+	//(*sp) << v.x << v.y << v.z;
 	
 	// 服务器已经确定要创建cell部分实体了， 我们可以从celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
-	base->getCellDataByFlags(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, sp);
-	clientMailbox->post(sp);
-	*/
+	//base->getCellDataByFlags(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, sp);
+	//clientMailbox->post(sp);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONENT_ID componentID)
+{
+	Base* base = pEntities_->find(id);
+	DEBUG_MSG("Baseapp::onEntityGetCell: entityID %d.\n", id);
+	KBE_ASSERT(base != NULL);
+	base->onGetCell(pChannel, componentID);
 }
 
 //-------------------------------------------------------------------------------------

@@ -91,12 +91,12 @@ public:
 	void getCellDataByFlags(uint32 flags, MemoryStream* s);
 	PyObject* createCellDataDictByFlags(uint32 flags);
 	INLINE PyObject* getCellData(void)const;
-
+	
 	/** 创建cell失败回调 */
 	void onCreateCellFailure(void);
 
 	/** 创建cell成功回调 */
-	void onGetCell(Mercury::Channel* handler, COMPONENT_ID componentID);
+	void onGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID);
 
 	/** 丢失cell了的通知 */
 	void onLoseCell(PyObject* cellData);
@@ -112,9 +112,6 @@ public:
 
 	/** 远程呼叫本entity的方法 */
 	//void onRemoteMethodCall(SocketPacket& recvPacket);
-
-	/** 收到邮件 */
-	//void onReceiveMail(MAIL_TYPE& mailType, SocketPacket& recvPacket);
 
 	/** 销毁这个entity */
 	void destroy();

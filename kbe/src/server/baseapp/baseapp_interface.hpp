@@ -97,6 +97,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// createBaseAnywhere成功之后回调消息到发起层createBaseAnywhere的baseapp的entity。
 	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseAnywhereCallback,	MERCURY_FIXED_MESSAGE)
 
+	// createCellEntity的cell实体创建成功回调。
+	BASEAPP_MESSAGE_DECLARE_ARGS2(onEntityGetCell,					MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,						id,
+									COMPONENT_ID,					componentID)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

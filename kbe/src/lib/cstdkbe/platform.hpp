@@ -71,6 +71,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <tr1/unordered_map>
 #include <tr1/functional>
 #include <linux/errqueue.h>
+#include <linux/types.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>

@@ -55,9 +55,9 @@ class EntityMailboxAbstract : public script::ScriptObject
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(EntityMailboxAbstract, ScriptObject)
 public:
-	EntityMailboxAbstract(PyTypeObject* scriptType, Mercury::Channel* pChannel, COMPONENT_ID componentID, 
+	EntityMailboxAbstract(PyTypeObject* scriptType, COMPONENT_ID componentID, 
 	ENTITY_ID eid, uint16 utype, ENTITY_MAILBOX_TYPE type);
-	virtual ~EntityMailboxAbstract();
+	~EntityMailboxAbstract();
 
 	/** 获取entityID */
 	ENTITY_ID getID()const{ return id_; }
@@ -72,20 +72,12 @@ public:
 
 	/** 获得type */
 	ENTITY_MAILBOX_TYPE getType(void)const{ return type_; }
-	
-	/** 发送一个数据流到entity所在机器上 */
-//	virtual SocketPacket* createStream(Opcodes code);
-//	virtual SocketPacket* createMail(MAIL_TYPE mailType);
-//	virtual void post(Packet* sp);
 
 	/** 支持pickler 方法 */
 	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol);
 	
-	/** 设置这个mailbox所关联的socket频道 在proxy进行giveClientTo操作时， 允许被设置为NULL*/
-	void setChannel(Mercury::Channel* pChannel){ pChannelPtr_ = pChannel; };
-	Mercury::Channel* getChannel(void)const{ return pChannelPtr_; }
+	Mercury::Channel* getChannel(void);
 protected:
-	Mercury::Channel*						pChannelPtr_;			// 该mailbox所关联的远端机器通信通道
 	COMPONENT_ID							componentID_;			// 远端机器组件的ID
 	ENTITY_MAILBOX_TYPE						type_;					// 该mailbox的类型
 	ENTITY_ID								id_;					// entityID
