@@ -353,7 +353,8 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		return;
 	}
 	
-	ERROR_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: not found baseapp[%ld], entityID=%d.\n", componentID, mailboxEntityID);
+	ERROR_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: not found baseapp[%"PRAppID"], entityID=%d, spaceID=%u.\n", 
+		componentID, mailboxEntityID, spaceID);
 }
 
 //-------------------------------------------------------------------------------------
@@ -386,7 +387,7 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 	DEBUG_MSG("Cellapp::onCreateCellEntityFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
 		spaceID, entityType.c_str(), entityID, componentID);
 
-	Space* space = Spaces::createNewSpace(spaceID);
+	Space* space = Spaces::findSpace(spaceID);
 	if(space != NULL)
 	{
 		// 解包cellData信息.

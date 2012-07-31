@@ -20,11 +20,12 @@ Space* Spaces::createNewSpace(SPACE_ID spaceID)
 	
 	if(iter != spaces_.end())
 	{
-		ERROR_MSG("Spaces::createNewSpace: space %ld is exist!\n", spaceID);
+		ERROR_MSG("Spaces::createNewSpace: space %u is exist!\n", spaceID);
 		return NULL;
 	}
 	
 	spaces_[spaceID] = space;
+	DEBUG_MSG("Spaces::createNewSpace: new space %u.\n", spaceID);
 	return space;
 }
 

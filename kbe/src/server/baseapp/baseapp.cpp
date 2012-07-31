@@ -292,7 +292,6 @@ void Baseapp::createBaseAnywhere(const char* entityType, PyObject* params, PyObj
 	}
 
 	Mercury::Bundle bundle;
-
 	bundle.newMessage(BaseappmgrInterface::reqCreateBaseAnywhere);
 
 	bundle << entityType;

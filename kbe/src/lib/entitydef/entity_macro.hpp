@@ -77,20 +77,19 @@ public:																										\
 			return;																							\
 		}																									\
 																											\
+		int pos = 0;																						\
 		PyObject *key, *value;																				\
 		PyObject* pydict = PyObject_GetAttrString(this, "__dict__");										\
 		PyObject* cellDataDict = PyObject_GetAttrString(this, "cellData");									\
-		int pos = 0;																						\
+		if(cellDataDict == NULL)																			\
+			PyErr_Clear();																					\
 																											\
 		while(PyDict_Next(dictData, &pos, &key, &value))													\
 		{																									\
-			if(strcmp(#CLASS, "Base") == 0)																	\
-			{																								\
-				if(PyDict_Contains(cellDataDict, key) > 0)													\
-	    		PyDict_SetItem(cellDataDict, key, value);													\
-			}																								\
+			if(cellDataDict != NULL && PyDict_Contains(cellDataDict, key) > 0)								\
+    			PyDict_SetItem(cellDataDict, key, value);													\
 			else																							\
-	    		PyDict_SetItem(pydict, key, value);															\
+				PyDict_SetItem(pydict, key, value);															\
 		}																									\
 																											\
 		SCRIPT_ERROR_CHECK();																				\
