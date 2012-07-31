@@ -18,7 +18,7 @@ ifneq ($(CURDIR),$(KBE_ROOT)kbe/src/server/tools)
 endif
 endif
 
-	$(MAKE) -C ../lib $@
+	$(MAKE) -C ../../lib $@
 	$(MAKE) -C bots $@
 
 ifdef KBE_CONFIG
