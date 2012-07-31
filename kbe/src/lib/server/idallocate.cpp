@@ -30,7 +30,7 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 void EntityIDClient::onAlloc(void)
 {
-	if(hasReqServerAlloc() || getSize() > ID_ENOUGH_LIMIT)
+	if(hasReqServerAlloc() || getSize() > ID_ENOUGH_LIMIT || idList_.size() > 0)
 		return;
 	
 	Mercury::Bundle bundle;

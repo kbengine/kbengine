@@ -199,7 +199,24 @@ public:
 	bool hasReqServerAlloc()const { return m_hasRequestedIDServerAlloc_; }
 	void setReqServerAllocFlag(bool has){ m_hasRequestedIDServerAlloc_ = has; }
 
-	size_t getSize()const{ return lastIDRange_end_ - lastIDRange_begin_; }
+	size_t getSize()
+	{ 
+		size_t ncount = lastIDRange_end_ - lastIDRange_begin_; 
+		if(ncount <= 0)
+		{
+			// 看看是否有缓存的ID段（会在id快用尽时向服务器申请缓存到这里）
+			if(idList_.size() > 0)
+			{
+				std::pair< T, T > n = idList_.front();
+				lastIDRange_begin_ = n.first;
+				lastIDRange_end_ = n.second;
+				idList_.pop();
+				ncount = lastIDRange_end_ - lastIDRange_begin_; 
+			}
+		}
+
+		return ncount;
+	}
 	
 	/* 检查entityID是否够用 
 		注意：一个tick内使用ID数量不要超过ID_ENOUGH_LIMIT
