@@ -173,7 +173,7 @@ public:
 	/** 分配一个id段 */
 	std::pair< T, T > allocRange(void)
 	{
-		DEBUG_MSG("IDServer::allocRange: %d-%d.\n", lastIDRange_begin_, lastIDRange_begin_ + rangeStep_);
+		INFO_MSG("IDServer::allocRange: %d-%d.\n", lastIDRange_begin_, lastIDRange_begin_ + rangeStep_);
 		std::pair< T, T > p = std::make_pair(lastIDRange_begin_, lastIDRange_begin_ + rangeStep_);
 		lastIDRange_begin_ += rangeStep_;
 		return p;
@@ -209,7 +209,7 @@ public:
 	/** idserver 分配过来的一个id段 */
 	void onAddRange(T idBegin, T idEnd)
 	{
-		DEBUG_MSG("IDClient::onAddRange: number of ids increased from %d to %d.\n", idBegin, idEnd);
+		INFO_MSG("IDClient::onAddRange: number of ids increased from %d to %d.\n", idBegin, idEnd);
 		if(getSize() <= 0)
 		{
 			lastIDRange_begin_ = idBegin;

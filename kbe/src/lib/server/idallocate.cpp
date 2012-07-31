@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 #include "idallocate.hpp"
 #include "serverapp.hpp"
-
+#include "components.hpp"
 #include "../../server/dbmgr/dbmgr_interface.hpp"
 
 namespace KBEngine{
@@ -36,6 +36,13 @@ void EntityIDClient::onAlloc(void)
 	Mercury::Bundle bundle;
 	bundle.newMessage(DbmgrInterface::onReqAllocEntityID);
 	DbmgrInterface::onReqAllocEntityIDArgs2::staticAddToBundle(bundle, pApp_->componentType(), pApp_->componentID());
+
+	Components::COMPONENTS cts =  Components::getSingleton().getComponents(DBMGR_TYPE);
+	KBE_ASSERT(cts.size() > 0);
+	Components::ComponentInfos* cinfos = &(*cts.begin());
+	KBE_ASSERT(cinfos->pChannel != NULL);
+
+	bundle.send(pApp_->getNetworkInterface(), cinfos->pChannel);
 	ERROR_MSG("EntityIDClient::onAlloc: not enough(%d) entityIDs!\n", ID_ENOUGH_LIMIT);
 }
 

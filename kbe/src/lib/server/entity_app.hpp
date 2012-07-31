@@ -463,6 +463,7 @@ E* EntityApp<E>::findEntity(ENTITY_ID entityID)
 template<class E>
 void EntityApp<E>::onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID)
 {
+	// INFO_MSG("EntityApp::onReqAllocEntityID: entityID alloc(%d-%d).\n", startID, endID);
 	idClient_.onAddRange(startID, endID);
 }
 
