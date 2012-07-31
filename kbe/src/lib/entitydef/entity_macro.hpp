@@ -114,6 +114,7 @@ public:																										\
 		}																									\
 																											\
 		Py_XDECREF(pydict);																					\
+		SCRIPT_ERROR_CHECK();																				\
 		return cellData;																					\
 	}																										\
 																											\
@@ -133,6 +134,7 @@ public:																										\
 		}																									\
 																											\
 		Py_XDECREF(cellData);																				\
+		SCRIPT_ERROR_CHECK();																				\
 	}																										\
 																											\
 	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol)									\
@@ -152,6 +154,7 @@ public:																										\
 			Py_DECREF(args);																				\
 			return NULL;																					\
 		}																									\
+		SCRIPT_ERROR_CHECK();																				\
 		return args;																						\
 	}																										\
 																											\
