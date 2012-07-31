@@ -81,6 +81,12 @@ public:
 		消息转发， 由某个app想通过本app将消息转发给某个app。
 	*/
 	void forwardMessage(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		一个新登录的账号获得合法登入baseapp的权利， 现在需要将账号注册给baseapp
+		使其允许在此baseapp上登录。
+	*/
+	void registerAccountToBaseapp(Mercury::Channel* pChannel, std::string& accountName, std::string& password);
 protected:
 	TimerHandle					gameTimer_;
 	Forward_MessageBuffer		forward_baseapp_messagebuffer_;

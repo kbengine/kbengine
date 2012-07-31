@@ -46,17 +46,23 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	// 用户登录服务器 
-	LOGINAPP_MESSAGE_DECLARE_STREAM(login,						MERCURY_VARIABLE_MESSAGE)
+	LOGINAPP_MESSAGE_DECLARE_STREAM(login,											MERCURY_VARIABLE_MESSAGE)
 
 	// 某app请求获取一个entityID段的回调
-	LOGINAPP_MESSAGE_DECLARE_ARGS2(onDbmgrInitCompleted,		MERCURY_FIXED_MESSAGE,
-									int32,						startGlobalOrder,
-									int32,						startGroupOrder)
+	LOGINAPP_MESSAGE_DECLARE_ARGS2(onDbmgrInitCompleted,							MERCURY_FIXED_MESSAGE,
+									int32,											startGlobalOrder,
+									int32,											startGroupOrder)
 
 	// 某个app向本app告知处于活动状态。
-	LOGINAPP_MESSAGE_DECLARE_ARGS2(onAppActiveTick,				MERCURY_FIXED_MESSAGE,
-									COMPONENT_TYPE,				componentType, 
-									COMPONENT_ID,				componentID)
+	LOGINAPP_MESSAGE_DECLARE_ARGS2(onAppActiveTick,									MERCURY_FIXED_MESSAGE,
+									COMPONENT_TYPE,									componentType, 
+									COMPONENT_ID,									componentID)
+
+	// 从dbmgr查询到用户合法性结果
+	LOGINAPP_MESSAGE_DECLARE_STREAM(onLoginAccountQueryResultFromDbmgr,				MERCURY_VARIABLE_MESSAGE)
+
+	// baseappmgr返回的登录网关地址
+	LOGINAPP_MESSAGE_DECLARE_STREAM(onLoginAccountQueryBaseappAddrFromBaseappmgr,	MERCURY_VARIABLE_MESSAGE)
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

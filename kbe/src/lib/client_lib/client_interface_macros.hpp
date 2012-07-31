@@ -37,6 +37,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
+#define CLIENTAPP ClientApp
+
 /**
 	Client消息宏，  参数为流， 需要自己解开
 */
@@ -50,7 +52,7 @@ namespace KBEngine{
 	void NAME##ClientMessagehandler_stream::handle(Mercury::Channel* pChannel,	\
 													KBEngine::MemoryStream& s)	\
 	{																			\
-			KBEngine::Client::getSingleton().NAME(pChannel, s);					\
+			KBEngine::CLIENTAPP::getSingleton().NAME(pChannel, s);				\
 	}																			\
 
 #else
@@ -91,7 +93,7 @@ namespace KBEngine{
 	void NAME##ClientMessagehandler0::handle(Mercury::Channel* pChannel,		\
 												KBEngine::MemoryStream& s)		\
 	{																			\
-			KBEngine::Client::getSingleton().NAME(pChannel);					\
+			KBEngine::CLIENTAPP::getSingleton().NAME(pChannel);					\
 	}																			\
 
 #else
@@ -137,7 +139,7 @@ namespace KBEngine{
 			s >> ARG_NAME1;														\
 			ARG_TYPE2 ARG_NAME2;												\
 			s >> ARG_NAME2;														\
-			KBEngine::Client::getSingleton().NAME(pChannel,						\
+			KBEngine::CLIENTAPP::getSingleton().NAME(pChannel,					\
 													ARG_NAME1, ARG_NAME2);		\
 	}																			\
 
@@ -186,7 +188,7 @@ namespace KBEngine{
 	{																			\
 			ARG_TYPE1 ARG_NAME1;												\
 			s >> ARG_NAME1;														\
-			KBEngine::Client::getSingleton().NAME(pChannel, ARG_NAME1);			\
+			KBEngine::CLIENTAPP::getSingleton().NAME(pChannel, ARG_NAME1);		\
 	}																			\
 
 #else
@@ -238,7 +240,7 @@ namespace KBEngine{
 			s >> ARG_NAME3;														\
 			ARG_TYPE4 ARG_NAME4;												\
 			s >> ARG_NAME4;														\
-			KBEngine::Client::getSingleton().NAME(pChannel,						\
+			KBEngine::CLIENTAPP::getSingleton().NAME(pChannel,					\
 				ARG_NAME1, ARG_NAME2,										 	\
 				ARG_NAME3, ARG_NAME4);											\
 	}																			\
@@ -309,7 +311,7 @@ namespace KBEngine{
 			s >> ARG_NAME4;														\
 			ARG_TYPE5 ARG_NAME5;												\
 			s >> ARG_NAME5;														\
-			KBEngine::Client::getSingleton().NAME(pChannel,						\
+			KBEngine::CLIENTAPP::getSingleton().NAME(pChannel,					\
 				ARG_NAME1, ARG_NAME2,										 	\
 				ARG_NAME3, ARG_NAME4, ARG_NAME5);								\
 	}																			\
@@ -389,7 +391,7 @@ namespace KBEngine{
 			s >> ARG_NAME5;														\
 			ARG_TYPE6 ARG_NAME6;												\
 			s >> ARG_NAME6;														\
-			KBEngine::Client::getSingleton().NAME(pChannel,						\
+			KBEngine::CLIENTAPP::getSingleton().NAME(pChannel,					\
 				ARG_NAME1, ARG_NAME2,										 	\
 				ARG_NAME3, ARG_NAME4, ARG_NAME5, ARG_NAME6);					\
 	}																			\
@@ -479,7 +481,7 @@ namespace KBEngine{
 			s >> ARG_NAME7;														\
 			ARG_TYPE8 ARG_NAME8;												\
 			s >> ARG_NAME8;														\
-			KBEngine::Client::getSingleton().NAME(pChannel,						\
+			KBEngine::CLIENTAPP::getSingleton().NAME(pChannel,					\
 										ARG_NAME1, ARG_NAME2, ARG_NAME3, 		\
 										ARG_NAME4, ARG_NAME5, ARG_NAME6,		\
 										ARG_NAME7, ARG_NAME8);					\

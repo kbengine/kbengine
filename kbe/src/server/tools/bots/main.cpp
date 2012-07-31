@@ -22,6 +22,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "bots.hpp"
 
 #undef DEFINE_IN_INTERFACE
+#include "client_lib/client_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "client_lib/client_interface.hpp"
+
+#undef DEFINE_IN_INTERFACE
 #include "baseapp/baseapp_interface.hpp"
 #define DEFINE_IN_INTERFACE
 #include "baseapp/baseapp_interface.hpp"

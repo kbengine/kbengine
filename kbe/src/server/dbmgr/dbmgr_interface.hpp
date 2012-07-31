@@ -51,29 +51,33 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	// 某app注册自己的接口地址到本app
-	DBMGR_MESSAGE_DECLARE_ARGS8(onRegisterNewApp,				MERCURY_VARIABLE_MESSAGE,
-									int32,						uid, 
-									std::string,				username,
-									int8,						componentType, 
-									uint64,						componentID, 
-									uint32,						intaddr, 
-									uint16,						intport,
-									uint32,						extaddr, 
-									uint16,						extport)
+	DBMGR_MESSAGE_DECLARE_ARGS8(onRegisterNewApp,					MERCURY_VARIABLE_MESSAGE,
+									int32,							uid, 
+									std::string,					username,
+									int8,							componentType, 
+									uint64,							componentID, 
+									uint32,							intaddr, 
+									uint16,							intport,
+									uint32,							extaddr, 
+									uint16,							extport)
 
 	// 某app请求获取一个entityID段 
-	DBMGR_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,				MERCURY_FIXED_MESSAGE,
-								int8,							componentType,
-								COMPONENT_ID,					componentID)
+	DBMGR_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,					MERCURY_FIXED_MESSAGE,
+								int8,								componentType,
+								COMPONENT_ID,						componentID)
 
 	// global数据改变
-	DBMGR_MESSAGE_DECLARE_STREAM(onBroadcastGlobalDataChange,	MERCURY_VARIABLE_MESSAGE)
+	DBMGR_MESSAGE_DECLARE_STREAM(onBroadcastGlobalDataChange,		MERCURY_VARIABLE_MESSAGE)
 
 	// 某个app向本app告知处于活动状态。
 	DBMGR_MESSAGE_DECLARE_ARGS2(onAppActiveTick,					MERCURY_FIXED_MESSAGE,
 									COMPONENT_TYPE,					componentType, 
 									COMPONENT_ID,					componentID)
 
+	// 某个app向本app告知处于活动状态。
+	DBMGR_MESSAGE_DECLARE_ARGS2(onAccountLogin,						MERCURY_VARIABLE_MESSAGE,
+									std::string,					accountName,
+									std::string,					password)
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

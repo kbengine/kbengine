@@ -30,6 +30,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/components.hpp"
 #include "client_lib/client_interface.hpp"
 
+#include "baseapp/baseapp_interface.hpp"
+#include "baseappmgr/baseappmgr_interface.hpp"
+
 namespace KBEngine{
 	
 ServerConfig g_serverConfig;
@@ -97,22 +100,66 @@ void Loginapp::finalise()
 //-------------------------------------------------------------------------------------
 void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPPMGR_TYPE);
-	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->cid == 0)
+	// 首先必须baseappmgr和dbmgr都已经准备完毕了。
+	Components::COMPONENTS cts = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
+	Components::ComponentInfos* baseappmgrinfos = NULL;
+	if(cts.size() > 0)
+		baseappmgrinfos = &(*cts.begin());
+
+	if(baseappmgrinfos == NULL || baseappmgrinfos->pChannel == NULL || baseappmgrinfos->cid == 0)
 	{
 		_loginFailed(pChannel);
 		return;
 	}
+
+	cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::ComponentInfos* dbmgrinfos = NULL;
+
+	if(cts.size() > 0)
+		dbmgrinfos = &(*cts.begin());
+
+	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		_loginFailed(pChannel);
+		return;
+	}
+
+	// 向dbmgr查询用户合法性
 }
 
 //-------------------------------------------------------------------------------------
 void Loginapp::_loginFailed(Mercury::Channel* pChannel)
 {
+	Mercury::Bundle bundle;
+	bundle.newMessage(ClientInterface::onLoginFailed);
+	int8 failedCode = 0;
+	bundle << failedCode;
+	bundle.send(this->getNetworkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------
 void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, MemoryStream& s)
 {
+	bool success = true;
+	s >> success;
+	
+	std::string accountName, password;
+	s >> accountName;
+	s >> password;
+
+	if(!success)
+	{
+		_loginFailed(pChannel);
+		return;
+	}
+
+	// 注册到baseapp并且获取baseapp的地址
+	Mercury::Bundle bundle;
+	bundle.newMessage(BaseappmgrInterface::registerAccountToBaseapp);
+
+	bundle << accountName;
+	bundle << password;
+	bundle.send(this->getNetworkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------

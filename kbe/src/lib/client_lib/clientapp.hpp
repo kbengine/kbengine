@@ -57,6 +57,7 @@ class Channel;
 }
 
 class ClientApp : 
+	public Singleton<ClientApp>,
 	public TimerHandler, 
 	public Mercury::ChannelTimeOutHandler,
 	public Mercury::ChannelDeregisterHandler
@@ -110,6 +111,11 @@ public:
 	   @failedcode : 失败返回码 0=账号或者密码不正确
 	*/
 	void onLoginFailed(Mercury::Channel * pChannel, int8 failedcode);
+
+	/* 网络接口
+	   登录成功
+	*/
+	void onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID

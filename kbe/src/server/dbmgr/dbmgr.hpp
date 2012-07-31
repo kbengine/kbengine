@@ -95,11 +95,16 @@ public:
 	*/
 	void onGlobalDataClientLogon(Mercury::Channel* pChannel, COMPONENT_TYPE componentType);
 	void onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
-protected:
-	TimerHandle				loopCheckTimerHandle_;
-	TimerHandle				mainProcessTimer_;
 
-	IDServer<ENTITY_ID>		idServer_;									// entityID分配服务端
+	/** 网络接口
+		一个新用户登录， 需要检查合法性
+	*/
+	void onAccountLogin(Mercury::Channel* pChannel, std::string& accountName, std::string& password);
+protected:
+	TimerHandle							loopCheckTimerHandle_;
+	TimerHandle							mainProcessTimer_;
+
+	IDServer<ENTITY_ID>					idServer_;									// entityID分配服务端
 
 	GlobalDataServer*					pGlobalData_;								// globalData
 	GlobalDataServer*					pGlobalBases_;								// globalBases

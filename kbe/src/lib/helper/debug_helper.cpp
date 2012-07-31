@@ -74,7 +74,10 @@ void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 {
 	g_logger = log4cxx::Logger::getLogger(COMPONENT_NAME[componentType]);
 	char helpConfig[256];
-	sprintf(helpConfig, "../../res/server/log4cxx_properties/%s.properties", COMPONENT_NAME[componentType]);
+	if(componentType == CLIENT_TYPE)
+		sprintf(helpConfig, "log.properties");
+	else
+		sprintf(helpConfig, "../../res/server/log4cxx_properties/%s.properties", COMPONENT_NAME[componentType]);
 	log4cxx::PropertyConfigurator::configure(helpConfig);
 }
 

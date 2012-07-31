@@ -36,7 +36,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "client_lib/clientapp.hpp"
 
 //#define NDEBUG
-#include <map>	
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
@@ -45,8 +44,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
-class Bots : public ClientApp,
-		public Singleton<Bots>
+class Bots : public ClientApp
 {
 public:
 	Bots(Mercury::EventDispatcher& dispatcher, 
@@ -55,6 +53,10 @@ public:
 		COMPONENT_ID componentID);
 
 	~Bots();
+
+	static Bots& getSingleton(){ 
+		return *static_cast<Bots*>(ClientApp::getSingletonPtr()); 
+	}
 protected:
 
 };

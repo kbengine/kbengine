@@ -165,5 +165,11 @@ void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
+void Baseappmgr::registerAccountToBaseapp(Mercury::Channel* pChannel, 
+							  std::string& accountName, std::string& password)
+{
+}
+
+//-------------------------------------------------------------------------------------
 
 }

@@ -20,6 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "server/kbemain.hpp"
 #include "loginapp.hpp"
+
+#undef DEFINE_IN_INTERFACE
+#include "client_lib/client_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "client_lib/client_interface.hpp"
+
 #include "machine/machine_interface.hpp"
 #define DEFINE_IN_INTERFACE
 #include "machine/machine_interface.hpp"

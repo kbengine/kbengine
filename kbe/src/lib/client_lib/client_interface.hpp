@@ -47,6 +47,13 @@ namespace KBEngine{
 	CLIENT所有消息接口在此定义
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
+	// 登录成功。
+	CLIENT_MESSAGE_DECLARE_STREAM(onLoginSuccessfully,			MERCURY_VARIABLE_MESSAGE)
+
+	// 登录失败。
+	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginFailed,					MERCURY_FIXED_MESSAGE,
+									int8,						failedcode)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

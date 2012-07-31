@@ -31,8 +31,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../../server/loginapp/loginapp_interface.hpp"
 
 namespace KBEngine{
-	
-KBE_SINGLETON_INIT(Bots);
 
 //-------------------------------------------------------------------------------------
 Bots::Bots(Mercury::EventDispatcher& dispatcher, 

@@ -31,7 +31,7 @@ COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;
 COMPONENT_ID g_componentID = 0;
 COMPONENT_ORDER g_componentOrder = 1;
 
-
+KBE_SINGLETON_INIT(ClientApp);
 //-------------------------------------------------------------------------------------
 ClientApp::ClientApp(Mercury::EventDispatcher& dispatcher, 
 					 Mercury::NetworkInterface& ninterface, 
@@ -143,6 +143,11 @@ void ClientApp::onChannelTimeOut(Mercury::Channel * pChannel)
 
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->decRef();
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
+{
 }
 
 //-------------------------------------------------------------------------------------	

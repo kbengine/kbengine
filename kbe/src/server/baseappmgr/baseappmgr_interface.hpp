@@ -67,6 +67,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 
 	// 消息转发， 由某个app想通过本app将消息转发给某个app。
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(forwardMessage,				MERCURY_VARIABLE_MESSAGE)
+
+	// 某个app向本app告知处于活动状态。
+	BASEAPPMGR_MESSAGE_DECLARE_ARGS2(registerAccountToBaseapp,		MERCURY_VARIABLE_MESSAGE,
+									std::string,					accountName,
+									std::string,					password)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE
