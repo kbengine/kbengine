@@ -63,7 +63,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="../../../libs\$(ProjectName).lib"
+				OutputFile="../../../libs\python32.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -130,7 +130,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="../../../libs\$(ProjectName)_d.lib"
+				OutputFile="../../../libs\python32_d.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
