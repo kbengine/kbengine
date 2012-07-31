@@ -187,7 +187,7 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 		S_Return;
 	}
 
-	Mercury::Channel* pChannel = NULL;
+	// Mercury::Channel* pChannel = NULL;
 	componentType = ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[(ENTITY_MAILBOX_TYPE)type];
 	
 #ifdef KBE_SERVER
