@@ -70,7 +70,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <arpa/inet.h>
 #include <tr1/unordered_map>
 #include <tr1/functional>
-#include <linux/errqueue.h>
 #include <linux/types.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -78,6 +77,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/socket.h>
 #include <sys/uio.h>
 #include <sys/resource.h> 
+#include <linux/errqueue.h>
 #endif
 
 #if !defined( PLAYSTATION3 )
