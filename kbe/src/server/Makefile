@@ -29,7 +29,7 @@ endif
 	$(MAKE) -C loginapp $@
 	$(MAKE) -C machine $@
 #	$(MAKE) -C reviver $@
-#	$(MAKE) -C tools $@
+	$(MAKE) -C tools $@
 
 ifdef KBE_CONFIG
 	@echo completed $@ \(KBE_CONFIG = $(KBE_CONFIG)\)
