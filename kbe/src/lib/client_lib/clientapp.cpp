@@ -20,13 +20,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "clientapp.hpp"
-#include "server/serverconfig.hpp"
 #include "network/channel.hpp"
 
 #include "../../server/baseapp/baseapp_interface.hpp"
 #include "../../server/loginapp/loginapp_interface.hpp"
 
 namespace KBEngine{
+
 COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;
 COMPONENT_ID g_componentID = 0;
 COMPONENT_ORDER g_componentOrder = 1;
@@ -94,7 +94,7 @@ void ClientApp::finalise(void)
 //-------------------------------------------------------------------------------------		
 double ClientApp::gameTimeInSeconds() const
 {
-	return double(time_) / g_kbeSrvConfig.gameUpdateHertz();
+	return double(time_) / 10;
 }
 
 //-------------------------------------------------------------------------------------
@@ -143,6 +143,11 @@ void ClientApp::onChannelTimeOut(Mercury::Channel * pChannel)
 
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->decRef();
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientApp::onLoginFailed(Mercury::Channel * pChannel, int8 failedcode)
+{
 }
 
 //-------------------------------------------------------------------------------------		

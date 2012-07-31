@@ -18,31 +18,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "server/kbemain.hpp"
+#include "client_lib/kbemain.hpp"
 #include "bots.hpp"
-#include "machine/machine_interface.hpp"
-#define DEFINE_IN_INTERFACE
-#include "machine/machine_interface.hpp"
-
-#undef DEFINE_IN_INTERFACE
-#include "baseappmgr/baseappmgr_interface.hpp"
-#define DEFINE_IN_INTERFACE
-#include "baseappmgr/baseappmgr_interface.hpp"
-
-#undef DEFINE_IN_INTERFACE
-#include "cellapp/cellapp_interface.hpp"
-#define DEFINE_IN_INTERFACE
-#include "cellapp/cellapp_interface.hpp"
 
 #undef DEFINE_IN_INTERFACE
 #include "baseapp/baseapp_interface.hpp"
 #define DEFINE_IN_INTERFACE
 #include "baseapp/baseapp_interface.hpp"
-
-#undef DEFINE_IN_INTERFACE
-#include "dbmgr/dbmgr_interface.hpp"
-#define DEFINE_IN_INTERFACE
-#include "dbmgr/dbmgr_interface.hpp"
 
 #undef DEFINE_IN_INTERFACE
 #include "loginapp/loginapp_interface.hpp"
@@ -51,7 +33,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace KBEngine;
 
-int main(int argc, char* argv[])
+int KBENGINE_MAIN(int argc, char* argv[])
 {
-	return 0;
+	return kbeMainT<Bots>(argc, argv, CLIENT_TYPE, -1, -1, 0, 0, "");
 }
+

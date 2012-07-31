@@ -35,7 +35,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 #include "xmlplus/xmlplus.hpp"	
 #include "cstdkbe/singleton.hpp"
-#include "server/serverconfig.hpp"
 #include "cstdkbe/smartpointer.hpp"
 #include "cstdkbe/timer.hpp"
 #include "network/interfaces.hpp"
@@ -106,7 +105,11 @@ public:
 
 	void shutDown();
 
-
+	/* 网络接口
+	   登录失败回调
+	   @failedcode : 失败返回码 0=账号或者密码不正确
+	*/
+	void onLoginFailed(Mercury::Channel * pChannel, int8 failedcode);
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID

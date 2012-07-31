@@ -32,7 +32,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 	
-ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Bots);
 
 //-------------------------------------------------------------------------------------
