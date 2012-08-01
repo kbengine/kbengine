@@ -30,11 +30,19 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{ namespace script{
 
 /** 脚本系统路径 */
+#ifdef _LP64
+#define SCRIPT_PATH												\
+					L"../../res/script;"						\
+					L"../../res/script/common;"					\
+					L"../../res/script/common/lib-dynload64;"	\
+					L"../../res/script/common/Lib"
+#else
 #define SCRIPT_PATH												\
 					L"../../res/script;"						\
 					L"../../res/script/common;"					\
 					L"../../res/script/common/lib-dynload;"		\
 					L"../../res/script/common/Lib"
+#endif
 
 class Script
 {						
