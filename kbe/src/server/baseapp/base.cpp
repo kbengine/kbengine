@@ -242,6 +242,26 @@ void Base::onCreateCellFailure(void)
 }
 
 //-------------------------------------------------------------------------------------
+void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	uint32 utype = 0;
+	s >> utype;
+	
+	DEBUG_MSG("Base::onRemoteMethodCall: entityID %d, methodType %ld.\n", 
+				id_, utype);
+	
+	MethodDescription* md = scriptModule_->findBaseMethodDescription(utype);
+	
+	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
+						(md->getName().c_str()));
+
+	if(md != NULL)
+		md->call(pyFunc, md->createFromStream(&s));
+	
+	Py_XDECREF(pyFunc);
+}
+
+//-------------------------------------------------------------------------------------
 void Base::onGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID)
 {
 	// …æ≥˝cellData Ù–‘

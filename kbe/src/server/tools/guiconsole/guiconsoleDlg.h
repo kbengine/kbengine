@@ -3,10 +3,21 @@
 //
 
 #pragma once
-
+#include "cstdkbe/cstdkbe.hpp"
+#include "network/endpoint.hpp"
+#include "network/common.hpp"
+#include "network/channel.hpp"
+#include "network/interfaces.hpp"
+#include "network/event_dispatcher.hpp"
+#include "network/network_interface.hpp"
+#include "helper/debug_helper.hpp"
+#include "xmlplus/xmlplus.hpp"
+#include "cstdkbe/smartpointer.hpp"
 
 // CguiconsoleDlg dialog
-class CguiconsoleDlg : public CDialog
+class CguiconsoleDlg : public CDialog,
+						public Mercury::ChannelTimeOutHandler,
+						public Mercury::ChannelDeregisterHandler
 {
 // Construction
 public:

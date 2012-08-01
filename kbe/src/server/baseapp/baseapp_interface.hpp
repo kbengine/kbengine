@@ -32,6 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "baseapp.hpp"
 #endif
 #include "baseapp_interface_macros.hpp"
+#include "base_interface_macros.hpp"
 #include "network/interface_defs.hpp"
 //#define NDEBUG
 // windows include	
@@ -101,6 +102,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASEAPP_MESSAGE_DECLARE_ARGS2(onEntityGetCell,					MERCURY_FIXED_MESSAGE,
 									ENTITY_ID,						id,
 									COMPONENT_ID,					componentID)
+
+	/**
+		Ô¶³Ìºô½Ðentity·½·¨
+	*/
+	BASE_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,					MERCURY_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 

@@ -220,6 +220,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\base_interface_macros.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\baseapp.hpp"
 				>
 			</File>

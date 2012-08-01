@@ -113,7 +113,6 @@ public:
 	*/
 	void destroyEntity(void);
 	DECLARE_PY_MOTHOD_ARG0(pyDestroyEntity);
-
 	
 	/** 
 		mailbox section
@@ -213,7 +212,7 @@ public:
 	*/
 	DECLARE_PY_MOTHOD_ARG3(pyEntitiesInRange, float, PyObject_ptr, PyObject_ptr);
 public:
-	/** 
+	/** 网络接口
 		远程呼叫本entity的方法 
 	*/
 	void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);

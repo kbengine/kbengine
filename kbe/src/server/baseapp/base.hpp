@@ -110,8 +110,10 @@ public:
 	/** 将要保存到数据库之前的通知 */
 	void onWriteToDB(PyObject* cellData);
 
-	/** 远程呼叫本entity的方法 */
-	//void onRemoteMethodCall(SocketPacket& recvPacket);
+	/** 网络接口
+		远程呼叫本entity的方法 
+	*/
+	void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 销毁这个entity */
 	void destroy();
