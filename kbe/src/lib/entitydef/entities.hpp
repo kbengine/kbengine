@@ -119,7 +119,7 @@ PyObject * Entities<T>::mp_subscript(PyObject* self, PyObject* key /*entityID*/)
 	PyObject * pyEntity = NULL;
 
 	ENTITYS_MAP& entities = lpEntities->getEntities();
-	Entities<T>::ENTITYS_MAP::const_iterator iter = entities.find(entityID);
+	ENTITYS_MAP::const_iterator iter = entities.find(entityID);
 	if (iter != entities.end())
 		pyEntity = iter->second;
 

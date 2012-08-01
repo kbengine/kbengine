@@ -200,14 +200,14 @@ PyObject* ScriptVector4::pyGetVectorLengthSquared()
 }
 
 //-------------------------------------------------------------------------------------
-int ScriptVector4::seq_length(PyObject* self)
+Py_ssize_t ScriptVector4::seq_length(PyObject* self)
 {
 	ScriptVector4* seq = static_cast<ScriptVector4*>(self);
 	return seq->length();
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::seq_item(PyObject* self, int index)
+PyObject* ScriptVector4::seq_item(PyObject* self, Py_ssize_t index)
 {
 	if (index < 0 || VECTOR_SIZE <= index)
 	{
@@ -217,11 +217,11 @@ PyObject* ScriptVector4::seq_item(PyObject* self, int index)
 	}
 
 	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
-	return PyFloat_FromDouble(sv->getVector()[index]);
+	return PyFloat_FromDouble(sv->getVector()[static_cast<int>(index)]);
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ScriptVector4::seq_slice(PyObject* self, int startIndex, int endIndex)
+PyObject* ScriptVector4::seq_slice(PyObject* self, Py_ssize_t startIndex, Py_ssize_t endIndex)
 {
 	if(startIndex < 0)
 		startIndex = 0;
@@ -251,14 +251,14 @@ PyObject* ScriptVector4::seq_slice(PyObject* self, int startIndex, int endIndex)
 				break;
 			case 1:
 				pyResult = PyTuple_New(1);
-				PyTuple_SET_ITEM(pyResult, 0, PyFloat_FromDouble(sv->getVector()[startIndex]));
+				PyTuple_SET_ITEM(pyResult, 0, PyFloat_FromDouble(sv->getVector()[static_cast<int>(startIndex)]));
 				break;
 			case 2:
 			{
 				Vector2 v;
 				
 				for(int i = startIndex; i < endIndex; i++){
-					v[i - startIndex] = my_v[i];
+					v[i - static_cast<int>(startIndex)] = my_v[i];
 				}
 
 				pyResult = new ScriptVector2(v);
@@ -268,7 +268,7 @@ PyObject* ScriptVector4::seq_slice(PyObject* self, int startIndex, int endIndex)
 			{
 				Vector3 v;
 				for (int i = startIndex; i < endIndex; i++){
-					v[i - startIndex] = my_v[i];
+					v[i - static_cast<int>(startIndex)] = my_v[i];
 				}
 
 				pyResult = new ScriptVector3(v);
@@ -284,7 +284,7 @@ PyObject* ScriptVector4::seq_slice(PyObject* self, int startIndex, int endIndex)
 }
 
 //-------------------------------------------------------------------------------------
-int ScriptVector4::seq_ass_item(PyObject* self, int index, PyObject* value)
+int ScriptVector4::seq_ass_item(PyObject* self, Py_ssize_t index, PyObject* value)
 {
 	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
 
@@ -296,7 +296,7 @@ int ScriptVector4::seq_ass_item(PyObject* self, int index, PyObject* value)
 	}
 
 	Vector4& v = sv->getVector();
-	v[index] = float(PyFloat_AsDouble(value));
+	v[static_cast<int>(index)] = float(PyFloat_AsDouble(value));
 	return 0;
 }
 

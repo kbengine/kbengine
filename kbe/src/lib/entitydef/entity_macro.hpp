@@ -77,7 +77,7 @@ public:																										\
 			return;																							\
 		}																									\
 																											\
-		int pos = 0;																						\
+		Py_ssize_t pos = 0;																					\
 		PyObject *key, *value;																				\
 		PyObject* pydict = PyObject_GetAttrString(this, "__dict__");										\
 		PyObject* cellDataDict = PyObject_GetAttrString(this, "cellData");									\

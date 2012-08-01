@@ -122,7 +122,7 @@ private:
 
 
     /** Only compiled if you use the sort procedure. */
-    static bool __cdecl compareGT(const T& a, const T& b) {
+    static bool compareGT(const T& a, const T& b) {
         return a > b;
     }
 
@@ -828,7 +828,7 @@ public:
     }
     </PRE>
      */
-    void sort(bool (__cdecl *lessThan)(const T& elem1, const T& elem2)) {
+    void sort(bool (*lessThan)(const T& elem1, const T& elem2)) {
         std::sort(data, data + num, lessThan);
     }
 
@@ -865,7 +865,7 @@ public:
         }
     }
 
-    void sortSubArray(int beginIndex, int endIndex, bool (__cdecl *lessThan)(const T& elem1, const T& elem2)) {
+    void sortSubArray(int beginIndex, int endIndex, bool (*lessThan)(const T& elem1, const T& elem2)) {
         std::sort(data + beginIndex, data + endIndex + 1, lessThan);
     }
 

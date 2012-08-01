@@ -76,7 +76,7 @@ int Sequence::findFrom(uint32 startIndex, PyObject* value)
 }
 
 //-------------------------------------------------------------------------------------
-int Sequence::seq_length(PyObject* self)
+Py_ssize_t Sequence::seq_length(PyObject* self)
 {
 	Sequence* seq = static_cast<Sequence*>(self);
 	return seq->length();
@@ -108,7 +108,7 @@ PyObject* Sequence::seq_concat(PyObject* self, PyObject* seq)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Sequence::seq_repeat(PyObject* self, int n)
+PyObject* Sequence::seq_repeat(PyObject* self, Py_ssize_t n)
 {
 	if (n <= 0) 
 		return PyList_New(0);
@@ -141,7 +141,7 @@ PyObject* Sequence::seq_repeat(PyObject* self, int n)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Sequence::seq_item(PyObject* self, int index)
+PyObject* Sequence::seq_item(PyObject* self, Py_ssize_t index)
 {
 	Sequence* seq = static_cast<Sequence*>(self);
 	std::vector<PyObject*>& values = seq->getValues();	
@@ -154,7 +154,7 @@ PyObject* Sequence::seq_item(PyObject* self, int index)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Sequence::seq_slice(PyObject* self, int startIndex, int endIndex)
+PyObject* Sequence::seq_slice(PyObject* self, Py_ssize_t startIndex, Py_ssize_t endIndex)
 {
 	if (startIndex < 0)
 		startIndex = 0;
@@ -179,7 +179,7 @@ PyObject* Sequence::seq_slice(PyObject* self, int startIndex, int endIndex)
 }
 
 //-------------------------------------------------------------------------------------
-int Sequence::seq_ass_item(PyObject* self, int index, PyObject* value)
+int Sequence::seq_ass_item(PyObject* self, Py_ssize_t index, PyObject* value)
 {
 	Sequence* seq = static_cast<Sequence*>(self);
 	std::vector<PyObject*>& values = seq->getValues();
@@ -213,7 +213,7 @@ int Sequence::seq_ass_item(PyObject* self, int index, PyObject* value)
 }
 
 //-------------------------------------------------------------------------------------
-int Sequence::seq_ass_slice(PyObject* self, int index1, int index2, PyObject* oterSeq)
+int Sequence::seq_ass_slice(PyObject* self, Py_ssize_t index1, Py_ssize_t index2, PyObject* oterSeq)
 {
 	Sequence* seq = static_cast<Sequence*>(self);
 	std::vector<PyObject*>& values = seq->getValues();
@@ -341,7 +341,7 @@ PyObject* Sequence::seq_inplace_concat(PyObject* self, PyObject* oterSeq)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Sequence::seq_inplace_repeat(PyObject* self, int n)
+PyObject* Sequence::seq_inplace_repeat(PyObject* self, Py_ssize_t n)
 {
 	Sequence* seq = static_cast<Sequence*>(self);
 	if(n == 1) 

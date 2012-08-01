@@ -99,7 +99,8 @@ MemoryStream* UInt64Type::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void UInt64Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	(*mstream) << PyLong_AsUnsignedLongLong(pyValue);
+	uint64 udata = static_cast<uint64>(PyLong_AsUnsignedLongLong(pyValue));
+	(*mstream) << udata;
 }
 
 //-------------------------------------------------------------------------------------

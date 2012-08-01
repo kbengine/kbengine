@@ -51,8 +51,11 @@ endif
 # In order to build src/lib/python, which includes this file, we need to define
 # this even when not explicitly requiring Python. This assists in setting up
 # the target for libpython<version>.a when common.mak is re-included.
+ifeq ($(KBE_CONFIG), Hybrid64)
+PYTHONLIB = python64_3.2
+else
 PYTHONLIB = python3.2
-
+endif
 
 # If SEPARATE_DEBUG_INFO is defined, the debug information for an executable
 # will be placed in a separate file. For example, cellapp and cellapp.dbg. The

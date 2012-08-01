@@ -47,10 +47,10 @@ public:
 	static PyObject* tp_new(PyTypeObject* type, PyObject* args, PyObject* kwds);
 
 	/** seq相关操作 */
-	static int seq_length(PyObject* self);
-	static PyObject* seq_item(PyObject* self, int index);
-	static PyObject* seq_slice(PyObject* self, int startIndex, int endIndex);
-	static int seq_ass_item(PyObject* self, int index, PyObject* value);
+	static Py_ssize_t seq_length(PyObject* self);
+	static PyObject* seq_item(PyObject* self, Py_ssize_t index);
+	static PyObject* seq_slice(PyObject* self, Py_ssize_t startIndex, Py_ssize_t endIndex);
+	static int seq_ass_item(PyObject* self, Py_ssize_t index, PyObject* value);
 	
 	/** 加减乘除相关操作 */
 	static PyObject* py_add(PyObject *a, PyObject *b);
