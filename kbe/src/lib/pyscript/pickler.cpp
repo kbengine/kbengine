@@ -142,18 +142,20 @@ PyObject* Pickler::unpickle(const std::string& str)
 	
 	if (!pyRet)
 	{
-		ERROR_MSG("Pickler::unpickle: failed to unpickle[%s] len=%d.\n", str.c_str(), str.length());
-		PyErr_Print();
+		ERROR_MSG("Pickler::unpickle: failed to unpickle[%s] len=%d.\n", 
+			str.c_str(), str.length());
 	}
 	
+	SCRIPT_ERROR_CHECK();
 	return pyRet;	
 }
 
 //-------------------------------------------------------------------------------------
 void Pickler::registerUnpickleFunc(PyObject* pyFunc, const char* funcName)
 {
-	if(PyObject_SetAttrString(pyPickleFuncTableModule_, funcName, pyFunc) == -1){
-		PyErr_PrintEx(0);
+	if(PyObject_SetAttrString(pyPickleFuncTableModule_, funcName, pyFunc) == -1)
+	{
+		SCRIPT_ERROR_CHECK();
 		return;
 	}
 }
