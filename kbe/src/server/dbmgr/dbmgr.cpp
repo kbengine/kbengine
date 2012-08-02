@@ -329,6 +329,7 @@ void Dbmgr::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::Me
 //-------------------------------------------------------------------------------------
 void Dbmgr::onAccountLogin(Mercury::Channel* pChannel, std::string& accountName, std::string& password)
 {
+	DEBUG_MSG("Dbmgr::onAccountLogin:%s.\n", accountName.c_str());
 	// 一个用户登录， 构造一个数据库查询指令并加入到执行队列， 执行完毕将结果返回给loginapp
 	Mercury::Bundle bundle;
 	bundle.newMessage(LoginappInterface::onLoginAccountQueryResultFromDbmgr);

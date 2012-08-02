@@ -73,7 +73,8 @@ Channel::Channel(NetworkInterface & networkInterface,
 	numBytesReceived_(0),
 	pFilter_(pFilter),
 	pEndPoint_(NULL),
-	pPacketReceiver_(NULL)
+	pPacketReceiver_(NULL),
+	isCondemn_(false)
 {
 	this->incRef();
 	this->clearBundle();
@@ -196,6 +197,7 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	roundTripTime_ =
 		this->isInternal() ? stampsPerSecond() / 10 : stampsPerSecond();
 
+	isCondemn_ = false;
 	shouldDropNextSend_ = false;
 	numPacketsSent_ = 0;
 	numPacketsReceived_ = 0;
@@ -364,6 +366,8 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 				{
 					INFO_MSG("Channel::handleMessage: invalide msgID=%d, msglen=%d, from %s.\n", 
 						currMsgID_, pPacket->totalSize(), c_str());
+
+					condemn(true);
 					break;
 				}
 				
@@ -386,6 +390,15 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					}
 					else
 						currMsgLen_ = pMsgHandler->msgLen;
+				}
+				
+				if(currMsgLen_ > PACKET_MAX_SIZE)
+				{
+					INFO_MSG("Channel::handleMessage: msglen is error! msgID=%d, msglen=%d, from %s.\n", 
+						currMsgID_, pPacket->totalSize(), c_str());
+
+					condemn(true);
+					break;
 				}
 
 				if(pPacket->opsize() < currMsgLen_)

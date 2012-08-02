@@ -139,6 +139,9 @@ public:
 	BufferedReceives& bufferedReceives(){ return bufferedReceives_; }
 		
 	void handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers);
+
+	bool isCondemn()const { return isCondemn_; }
+	void condemn(bool b){ isCondemn_ = b; }
 private:
 	enum TimeOutType
 	{
@@ -191,6 +194,9 @@ private:
 	
 	EndPoint *					pEndPoint_;
 	PacketReceiver*				pPacketReceiver_;
+
+	// 如果为true， 则该频道已经变得不合法
+	bool						isCondemn_;
 };
 
 typedef SmartPointer<Channel> ChannelPtr;

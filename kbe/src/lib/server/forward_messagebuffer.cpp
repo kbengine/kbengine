@@ -88,7 +88,7 @@ bool Forward_MessageBuffer::process()
 		for(; iter != pBundles_.end(); iter++)
 		{
 			(*iter)->send(networkInterface_, cts[idx].pChannel);
-
+			
 			idx++;
 			if(idx >= cts.size())
 				idx = 0;
@@ -96,6 +96,7 @@ bool Forward_MessageBuffer::process()
 			SAFE_RELEASE((*iter));
 		}
 		
+		DEBUG_MSG("Forward_MessageBuffer::process(): size:%d.\n", pBundles_.size());
 		pBundles_.clear();
 		start_ = false;
 		return false;

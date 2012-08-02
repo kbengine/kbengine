@@ -103,6 +103,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									ENTITY_ID,						id,
 									COMPONENT_ID,					componentID)
 
+	// loginapp向自己注册一个将要登录的账号。
+	BASEAPP_MESSAGE_DECLARE_ARGS2(registerPendingLogin,				MERCURY_VARIABLE_MESSAGE,
+									std::string,					accountName,
+									std::string,					password)
+
 	/**
 		远程呼叫entity方法
 	*/

@@ -587,5 +587,16 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 }
 
 //-------------------------------------------------------------------------------------
+void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& accountName, std::string& password)
+{
+	DEBUG_MSG("Baseapp::registerPendingLogin:%s.\n", accountName.c_str());
+	Mercury::Bundle bundle;
+	bundle.newMessage(BaseappmgrInterface::onPendingAccountGetBaseappAddr);
+	bundle << this->getNetworkInterface().extaddr().ip;
+	bundle << this->getNetworkInterface().extaddr().port;
+	bundle.send(this->getNetworkInterface(), pChannel);
+}
+
+//-------------------------------------------------------------------------------------
 
 }

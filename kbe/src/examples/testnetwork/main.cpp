@@ -19,9 +19,35 @@ same license as the rest of the engine.
 #include "network/error_reporter.hpp"
 #include "network/bundle.hpp"
 
+#undef DEFINE_IN_INTERFACE
+#include "baseappmgr/baseappmgr_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "baseappmgr/baseappmgr_interface.hpp"
+
+#undef DEFINE_IN_INTERFACE
+#include "cellappmgr/cellappmgr_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "cellappmgr/cellappmgr_interface.hpp"
+
+#undef DEFINE_IN_INTERFACE
 #include "cellapp/cellapp_interface.hpp"
 #define DEFINE_IN_INTERFACE
 #include "cellapp/cellapp_interface.hpp"
+
+#undef DEFINE_IN_INTERFACE
+#include "baseapp/baseapp_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "baseapp/baseapp_interface.hpp"
+
+#undef DEFINE_IN_INTERFACE
+#include "dbmgr/dbmgr_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "dbmgr/dbmgr_interface.hpp"
+
+#undef DEFINE_IN_INTERFACE
+#include "loginapp/loginapp_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "loginapp/loginapp_interface.hpp"
 
 #include "log4cxx/logger.h"
 #include "log4cxx/propertyconfigurator.h"
@@ -215,7 +241,7 @@ void init_network(void)
 			std::cin >> port;
 		
 		u_int32_t address;
-		mysocket.convertAddress("192.168.1.104", address );
+		mysocket.convertAddress("192.168.4.29", address );
 		if(mysocket.connect(htons(port), address) == -1)
 		{
 			ERROR_MSG("NetworkInterface::recreateListeningSocket: connect server is error(%s)!\n", kbe_strerror());
@@ -226,12 +252,16 @@ void init_network(void)
 		mysocket.setnodelay(true);
 		mysocket.setnonblocking(true);
 
-		int ii = 0;
-		while(ii ++ <= 100)
-		{
-			TCPPacket packet;
-			
-		};
+
+		Mercury::Bundle bundle;
+		bundle.newMessage(LoginappInterface::login);
+		int8 tclient = 1;
+		bundle << tclient;
+		bundle << "phone";
+		bundle << "kebiao";
+		bundle << "123456";
+		bundle.send(mysocket);
+		::sleep(5000);
 	};
 }
 

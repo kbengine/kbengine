@@ -93,7 +93,7 @@ enum COMPONENT_CLIENT_TYPE
 };
 
 /** 定义前端应用的类别名称 */
-const char CLIENT_NAME[][255] = {
+const char COMPONENT_CLIENT_NAME[][255] = {
 	"UNKNOWN_CLIENT_COMPONENT_TYPE",
 	"CLIENT_TYPE_PHONE",
 	"CLIENT_TYPE_PC",

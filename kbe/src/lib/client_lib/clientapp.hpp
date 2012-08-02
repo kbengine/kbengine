@@ -108,7 +108,9 @@ public:
 
 	/* 网络接口
 	   登录失败回调
-	   @failedcode : 失败返回码 0=账号或者密码不正确
+	   @failedcode: 失败返回码 -1=服务器没有准备好, 
+		                       0=服务器负载过重, 
+							   1=账号或者密码不正确
 	*/
 	void onLoginFailed(Mercury::Channel * pChannel, int8 failedcode);
 

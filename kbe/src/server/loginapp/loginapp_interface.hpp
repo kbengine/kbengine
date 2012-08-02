@@ -62,7 +62,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	LOGINAPP_MESSAGE_DECLARE_STREAM(onLoginAccountQueryResultFromDbmgr,				MERCURY_VARIABLE_MESSAGE)
 
 	// baseappmgr返回的登录网关地址
-	LOGINAPP_MESSAGE_DECLARE_STREAM(onLoginAccountQueryBaseappAddrFromBaseappmgr,	MERCURY_VARIABLE_MESSAGE)
+	LOGINAPP_MESSAGE_DECLARE_ARGS2(onLoginAccountQueryBaseappAddrFromBaseappmgr,	MERCURY_VARIABLE_MESSAGE,
+									uint32,											addr,
+									uint16,											port)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

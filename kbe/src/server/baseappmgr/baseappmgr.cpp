@@ -165,9 +165,52 @@ void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
-void Baseappmgr::registerAccountToBaseapp(Mercury::Channel* pChannel, 
+void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel, 
 							  std::string& accountName, std::string& password)
 {
+	Components::COMPONENTS& components = Components::getSingleton().getComponents(BASEAPP_TYPE);
+	size_t componentSize = components.size();
+	if(componentSize == 0)
+	{
+		Mercury::Bundle* pBundle = new Mercury::Bundle();
+		pBundle->newMessage(BaseappInterface::registerPendingLogin);
+		(*pBundle) << accountName << password;
+
+		ERROR_MSG("Baseappmgr::registerAccountToBaseapp: can't found a baseapp, message is buffered.\n");
+		forward_baseapp_messagebuffer_.push(pBundle);
+		return;
+	}
+
+	static uint32 currentBaseappIndex = 0;
+	if(currentBaseappIndex > componentSize - 1)
+		currentBaseappIndex = 0;
+
+	DEBUG_MSG("Baseappmgr::registerAccountToBaseapp:%s. allocBaseapp=%d.\n", accountName.c_str(), currentBaseappIndex);
+
+	Components::COMPONENTS::iterator iter = components.begin();
+	std::advance(iter, currentBaseappIndex++);
+	Mercury::Channel* lpChannel = (*iter).pChannel;
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(BaseappInterface::registerPendingLogin);
+	bundle << accountName << password;
+	bundle.send(this->getNetworkInterface(), lpChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseappmgr::onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel, 
+							  uint32 addr, uint16 port)
+{
+	Components::COMPONENTS& components = Components::getSingleton().getComponents(LOGINAPP_TYPE);
+	size_t componentSize = components.size();
+	KBE_ASSERT(componentSize > 0);
+	Components::COMPONENTS::iterator iter = components.begin();
+	Mercury::Channel* lpChannel = (*iter).pChannel;
+
+	Mercury::Bundle bundleToLoginapp;
+	bundleToLoginapp.newMessage(LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgr);
+	LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgrArgs2::staticAddToBundle(bundleToLoginapp, addr, port);
+	bundleToLoginapp.send(this->getNetworkInterface(), lpChannel);
 }
 
 //-------------------------------------------------------------------------------------

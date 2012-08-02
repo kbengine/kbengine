@@ -86,7 +86,14 @@ public:
 		一个新登录的账号获得合法登入baseapp的权利， 现在需要将账号注册给baseapp
 		使其允许在此baseapp上登录。
 	*/
-	void registerAccountToBaseapp(Mercury::Channel* pChannel, std::string& accountName, std::string& password);
+	void registerPendingAccountToBaseapp(Mercury::Channel* pChannel, 
+								std::string& accountName, std::string& password);
+
+	/** 网络接口
+		baseapp将自己的地址发送给loginapp并转发给客户端。
+	*/
+	void onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel, 
+								  uint32 addr, uint16 port);
 protected:
 	TimerHandle					gameTimer_;
 	Forward_MessageBuffer		forward_baseapp_messagebuffer_;

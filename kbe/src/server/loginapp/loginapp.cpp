@@ -32,6 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "baseapp/baseapp_interface.hpp"
 #include "baseappmgr/baseappmgr_interface.hpp"
+#include "dbmgr/dbmgr_interface.hpp"
 
 namespace KBEngine{
 	
@@ -100,6 +101,28 @@ void Loginapp::finalise()
 //-------------------------------------------------------------------------------------
 void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 {
+	COMPONENT_CLIENT_TYPE ctype;
+	int8 tctype = 0;
+	std::string accountName;
+	std::string password;
+	std::string datas;
+
+	// 前端类别
+	s >> tctype;
+	ctype = static_cast<COMPONENT_CLIENT_TYPE>(tctype);
+	
+	// 附带数据
+	s >> datas;
+
+	// 帐号名
+	s >> accountName;
+
+	// 密码
+	s >> password;
+	
+	INFO_MSG("Loginapp::login: new client[%s], accountName=%s, datas=%s.\n", 
+		COMPONENT_CLIENT_NAME[ctype], accountName.c_str(), datas.c_str());
+
 	// 首先必须baseappmgr和dbmgr都已经准备完毕了。
 	Components::COMPONENTS cts = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
 	Components::ComponentInfos* baseappmgrinfos = NULL;
@@ -108,7 +131,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(baseappmgrinfos == NULL || baseappmgrinfos->pChannel == NULL || baseappmgrinfos->cid == 0)
 	{
-		_loginFailed(pChannel);
+		_loginFailed(pChannel, accountName, -1);
 		return;
 	}
 
@@ -120,16 +143,21 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		_loginFailed(pChannel);
+		_loginFailed(pChannel, accountName, -1);
 		return;
 	}
 
 	// 向dbmgr查询用户合法性
+	Mercury::Bundle bundle;
+	bundle.newMessage(DbmgrInterface::onAccountLogin);
+	DbmgrInterface::onAccountLoginArgs2::staticAddToBundle(bundle, accountName, password);
+	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::_loginFailed(Mercury::Channel* pChannel)
+void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& accountName, int8 failedcode)
 {
+	DEBUG_MSG("Loginapp::loginFailed: accountName=%s login is failed. failedcode=%d", accountName.c_str(), failedcode);
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onLoginFailed);
 	int8 failedCode = 0;
@@ -140,31 +168,45 @@ void Loginapp::_loginFailed(Mercury::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	bool success = true;
-	s >> success;
-	
 	std::string accountName, password;
+	bool success = true;
+
+	s >> success;
 	s >> accountName;
 	s >> password;
 
 	if(!success)
 	{
-		_loginFailed(pChannel);
+		_loginFailed(pChannel, accountName, 0);
+		return;
+	}
+
+	// 获得baseappmgr地址。
+	Components::COMPONENTS cts = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
+	Components::ComponentInfos* baseappmgrinfos = NULL;
+	if(cts.size() > 0)
+		baseappmgrinfos = &(*cts.begin());
+
+	if(baseappmgrinfos == NULL || baseappmgrinfos->pChannel == NULL || baseappmgrinfos->cid == 0)
+	{
+		_loginFailed(pChannel, accountName, -1);
 		return;
 	}
 
 	// 注册到baseapp并且获取baseapp的地址
 	Mercury::Bundle bundle;
-	bundle.newMessage(BaseappmgrInterface::registerAccountToBaseapp);
+	bundle.newMessage(BaseappmgrInterface::registerPendingAccountToBaseapp);
 
 	bundle << accountName;
 	bundle << password;
-	bundle.send(this->getNetworkInterface(), pChannel);
+	bundle.send(this->getNetworkInterface(), baseappmgrinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pChannel, MemoryStream& s)
+void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pChannel, uint32 addr, uint16 port)
 {
+	Mercury::Address address(addr, port);
+	DEBUG_MSG("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:%s.\n", address.c_str());
 }
 
 //-------------------------------------------------------------------------------------

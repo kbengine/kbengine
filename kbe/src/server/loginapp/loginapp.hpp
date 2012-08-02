@@ -68,13 +68,20 @@ public:
 
 	/** 网络接口
 		用户登录服务器
-		clientType: 前端类别(手机， web， pcexe端), 见: COMPONENT_CLIENT_TYPE
-		clientData: 前端附带数据(可以是任意的， 比如附带手机型号， 浏览器类型等)
-		accountName: 帐号名
-		password: 密码
+		clientType[COMPONENT_CLIENT_TYPE]: 前端类别(手机， web， pcexe端)
+		clientData[str]: 前端附带数据(可以是任意的， 比如附带手机型号， 浏览器类型等)
+		accountName[str]: 帐号名
+		password[str]: 密码
 	*/
 	void login(Mercury::Channel* pChannel, MemoryStream& s);
-	void _loginFailed(Mercury::Channel* pChannel);
+
+	/*
+		登录失败
+		failedcode: 失败返回码 -1=服务器没有准备好, 
+		                      0=服务器负载过重, 
+							  1=账号或者密码不正确
+	*/
+	void _loginFailed(Mercury::Channel* pChannel, std::string& accountName, int8 failedcode);
 	
 	/** 网络接口
 		dbmgr返回的登录账号检测结果
@@ -84,7 +91,7 @@ public:
 	/** 网络接口
 		baseappmgr返回的登录网关地址
 	*/
-	void onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pChannel, MemoryStream& s);
+	void onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pChannel, uint32 addr, uint16 port);
 
 	/** 网络接口
 		dbmgr发送初始信息
