@@ -420,7 +420,7 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 		PyObject* mb = static_cast<EntityMailbox*>(new EntityMailbox(sm, componentID, eid, MAILBOX_TYPE_BASE));
 		PyTuple_SET_ITEM(pyargs, 0, mb);
 		PyObject_CallObject(pyCallback, pyargs);
-		Py_DECREF(mb);
+		//Py_DECREF(mb);
 	}
 	else
 	{
