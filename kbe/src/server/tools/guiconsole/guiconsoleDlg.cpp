@@ -48,7 +48,9 @@ END_MESSAGE_MAP()
 
 
 CguiconsoleDlg::CguiconsoleDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CguiconsoleDlg::IDD, pParent)
+	: CDialog(CguiconsoleDlg::IDD, pParent),
+	_dispatcher(),
+	_networkInterface(&_dispatcher)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -63,6 +65,7 @@ BEGIN_MESSAGE_MAP(CguiconsoleDlg, CDialog)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	//}}AFX_MSG_MAP
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
@@ -98,7 +101,7 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
-
+	::SetTimer(m_hWnd, 1, 100, NULL);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -151,3 +154,10 @@ HCURSOR CguiconsoleDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	// TODO: Add your message handler code here and/or call default
+
+	CDialog::OnTimer(nIDEvent);
+}

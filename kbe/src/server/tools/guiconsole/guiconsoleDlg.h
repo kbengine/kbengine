@@ -14,10 +14,12 @@
 #include "xmlplus/xmlplus.hpp"
 #include "cstdkbe/smartpointer.hpp"
 
+using namespace KBEngine;
+
 // CguiconsoleDlg dialog
-class CguiconsoleDlg : public CDialog,
-						public Mercury::ChannelTimeOutHandler,
-						public Mercury::ChannelDeregisterHandler
+class CguiconsoleDlg : public CDialog
+					//	public Mercury::ChannelTimeOutHandler,
+					//	public Mercury::ChannelDeregisterHandler
 {
 // Construction
 public:
@@ -40,4 +42,10 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+private:
+	Mercury::EventDispatcher _dispatcher;
+	Mercury::NetworkInterface _networkInterface;
+	
+public:
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 };
