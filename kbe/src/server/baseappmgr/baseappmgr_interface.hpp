@@ -74,7 +74,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 									std::string,						password)
 
 	// 获取到baseapp的地址。
-	BASEAPPMGR_MESSAGE_DECLARE_ARGS2(onPendingAccountGetBaseappAddr,	MERCURY_VARIABLE_MESSAGE,
+	BASEAPPMGR_MESSAGE_DECLARE_ARGS3(onPendingAccountGetBaseappAddr,	MERCURY_VARIABLE_MESSAGE,
+									std::string,						accountName,
 									uint32,								addr,
 									uint16,								port)
 									

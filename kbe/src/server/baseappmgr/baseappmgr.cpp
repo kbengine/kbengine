@@ -199,7 +199,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 
 //-------------------------------------------------------------------------------------
 void Baseappmgr::onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel, 
-							  uint32 addr, uint16 port)
+							  std::string& accountName, uint32 addr, uint16 port)
 {
 	Components::COMPONENTS& components = Components::getSingleton().getComponents(LOGINAPP_TYPE);
 	size_t componentSize = components.size();
@@ -209,7 +209,7 @@ void Baseappmgr::onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel,
 
 	Mercury::Bundle bundleToLoginapp;
 	bundleToLoginapp.newMessage(LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgr);
-	LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgrArgs2::staticAddToBundle(bundleToLoginapp, addr, port);
+	LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgrArgs3::staticAddToBundle(bundleToLoginapp, accountName, addr, port);
 	bundleToLoginapp.send(this->getNetworkInterface(), lpChannel);
 }
 

@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include	
 #include "base.hpp"
 #include "server/entity_app.hpp"
+#include "server/pendingLoginmgr.hpp"
 #include "network/endpoint.hpp"
 
 //#define NDEBUG
@@ -135,8 +136,24 @@ public:
 	注册将要登录的账号, 注册后则允许登录到此网关
 	*/
 	void registerPendingLogin(Mercury::Channel* pChannel, std::string& accountName, std::string& password);
+
+	/** 网络接口
+		新用户请求登录到网关上
+	*/
+	void loginGateway(Mercury::Channel* pChannel, std::string& accountName, std::string& password);
+
+	/*
+	   登录失败
+	   @failedcode: 失败返回码 0=登录非法（超时或者非法侵入）, 
+							   1=账号或者密码不正确
+	*/
+	void loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, int8 failedcode);
+
 protected:
 	GlobalDataClient*					pGlobalBases_;								// globalBases
+
+	// 记录登录到服务器但还未处理完毕的账号
+	PendingLoginMgr pendingLoginMgr_;
 };
 
 }

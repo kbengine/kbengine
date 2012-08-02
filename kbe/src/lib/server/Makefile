@@ -8,6 +8,7 @@ SRCS =				\
 	globaldata_client	\
 	globaldata_server	\
 	idallocate		\
+	pendingLoginmgr		\
 	script_timers		\
 	serverapp		\
 	serverconfig		\

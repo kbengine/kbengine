@@ -54,6 +54,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginFailed,					MERCURY_FIXED_MESSAGE,
 									int8,						failedcode)
 
+	// µÇÂ¼Íø¹Ø³É¹¦¡£
+	CLIENT_MESSAGE_DECLARE_STREAM(onLoginGatewaySuccessfully,	MERCURY_VARIABLE_MESSAGE)
+
+	// µÇÂ¼Íø¹ØÊ§°Ü¡£
+	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginGatewayFailed,			MERCURY_FIXED_MESSAGE,
+									int8,						failedcode)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

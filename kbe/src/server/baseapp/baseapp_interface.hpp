@@ -108,6 +108,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									std::string,					accountName,
 									std::string,					password)
 
+	// 前端请求登录到网关上。
+	BASEAPP_MESSAGE_DECLARE_ARGS2(loginGateway,						MERCURY_VARIABLE_MESSAGE,
+									std::string,					accountName,
+									std::string,					password)
+
 	/**
 		远程呼叫entity方法
 	*/

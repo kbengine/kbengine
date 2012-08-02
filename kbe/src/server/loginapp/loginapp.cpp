@@ -44,7 +44,8 @@ Loginapp::Loginapp(Mercury::EventDispatcher& dispatcher,
 			 Mercury::NetworkInterface& ninterface, 
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
-	ServerApp(dispatcher, ninterface, componentType, componentID)
+	ServerApp(dispatcher, ninterface, componentType, componentID),
+	pendingLoginMgr_(ninterface)
 {
 }
 
@@ -120,6 +121,14 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	// ÃÜÂë
 	s >> password;
 	
+	PendingLoginMgr::PLInfos* ptinfos = new PendingLoginMgr::PLInfos;
+	ptinfos->ctype = ctype;
+	ptinfos->datas = datas;
+	ptinfos->accountName = accountName;
+	ptinfos->password = password;
+	ptinfos->addr = pChannel->addr();
+	pendingLoginMgr_.add(ptinfos);
+
 	INFO_MSG("Loginapp::login: new client[%s], accountName=%s, datas=%s.\n", 
 		COMPONENT_CLIENT_NAME[ctype], accountName.c_str(), datas.c_str());
 
@@ -163,11 +172,17 @@ void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& accountName
 	int8 failedCode = 0;
 	bundle << failedCode;
 	bundle.send(this->getNetworkInterface(), pChannel);
+
+	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(accountName);
+	SAFE_RELEASE(infos);
 }
 
 //-------------------------------------------------------------------------------------
 void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+
 	std::string accountName, password;
 	bool success = true;
 
@@ -203,15 +218,38 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pChannel, uint32 addr, uint16 port)
+void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pChannel, std::string& accountName, uint32 addr, uint16 port)
 {
+	if(pChannel->isExternal())
+		return;
+
 	Mercury::Address address(addr, port);
 	DEBUG_MSG("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:%s.\n", address.c_str());
+
+	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(accountName);
+	if(infos == NULL)
+		return;
+
+	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(infos->addr);
+	SAFE_RELEASE(infos);
+
+	if(pClientChannel == NULL)
+		return;
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(ClientInterface::onLoginSuccessfully);
+	uint16 fport = ntohs(port);
+	bundle << inet_ntoa((struct in_addr&)addr);
+	bundle << fport;
+	bundle.send(this->getNetworkInterface(), pClientChannel);
 }
 
 //-------------------------------------------------------------------------------------
 void Loginapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, int32 startGlobalOrder, int32 startGroupOrder)
 {
+	if(pChannel->isExternal())
+		return;
+
 	INFO_MSG("Loginapp::onDbmgrInitCompleted:startGlobalOrder=%d, startGroupOrder=%d.\n",
 		startGlobalOrder, startGroupOrder);
 

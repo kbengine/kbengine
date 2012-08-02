@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/udp_packet.hpp"
 #include "server/componentbridge.hpp"
 #include "server/components.hpp"
+#include "client_lib/client_interface.hpp"
 
 #include "../../server/baseappmgr/baseappmgr_interface.hpp"
 #include "../../server/cellappmgr/cellappmgr_interface.hpp"
@@ -46,9 +47,10 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
 	EntityApp<Base>(dispatcher, ninterface, componentType, componentID),
-	pGlobalBases_(NULL)
+	pGlobalBases_(NULL),
+	pendingLoginMgr_(ninterface)
 {
-	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;	
+	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
 }
 
 //-------------------------------------------------------------------------------------
@@ -140,6 +142,9 @@ void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 						int8 componentType, uint64 componentID, 
 						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
 {
+	if(pChannel->isExternal())
+		return;
+
 	EntityApp<Base>::onRegisterNewApp(pChannel, uid, username, componentType, componentID, 
 									intaddr, intport, extaddr, extport);
 
@@ -324,6 +329,9 @@ void Baseapp::createBaseAnywhere(const char* entityType, PyObject* params, PyObj
 //-------------------------------------------------------------------------------------
 void Baseapp::onCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+
 	std::string strInitData = "";
 	uint32 initDataLength = 0;
 	PyObject* params = NULL;
@@ -382,6 +390,9 @@ void Baseapp::onCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Baseapp::onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+
 	CALLBACK_ID callbackID = 0;
 	std::string entityType;
 	ENTITY_ID eid = 0;
@@ -496,6 +507,9 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 //-------------------------------------------------------------------------------------
 void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONENT_ID componentID)
 {
+	if(pChannel->isExternal())
+		return;
+
 	Base* base = pEntities_->find(id);
 	DEBUG_MSG("Baseapp::onEntityGetCell: entityID %d.\n", id);
 	KBE_ASSERT(base != NULL);
@@ -506,6 +520,9 @@ void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONEN
 void Baseapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, 
 		ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
 {
+	if(pChannel->isExternal())
+		return;
+
 	EntityApp<Base>::onDbmgrInitCompleted(pChannel, startID, endID, startGlobalOrder, startGroupOrder);
 
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
@@ -533,6 +550,9 @@ void Baseapp::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 //-------------------------------------------------------------------------------------
 void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+
 	int32 slen;
 	std::string key, value;
 	bool isDelete;
@@ -589,11 +609,60 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 //-------------------------------------------------------------------------------------
 void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& accountName, std::string& password)
 {
-	DEBUG_MSG("Baseapp::registerPendingLogin:%s.\n", accountName.c_str());
+	if(pChannel->isExternal())
+		return;
+
 	Mercury::Bundle bundle;
 	bundle.newMessage(BaseappmgrInterface::onPendingAccountGetBaseappAddr);
+	bundle << accountName;
 	bundle << this->getNetworkInterface().extaddr().ip;
 	bundle << this->getNetworkInterface().extaddr().port;
+	bundle.send(this->getNetworkInterface(), pChannel);
+
+	PendingLoginMgr::PLInfos* ptinfos = new PendingLoginMgr::PLInfos;
+	ptinfos->accountName = accountName;
+	ptinfos->password = password;
+	pendingLoginMgr_.add(ptinfos);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, int8 failedcode)
+{
+	Mercury::Bundle bundle;
+	bundle.newMessage(ClientInterface::onLoginGatewayFailed);
+	ClientInterface::onLoginGatewayFailedArgs1::staticAddToBundle(bundle, failedcode);
+	bundle.send(this->getNetworkInterface(), pChannel);
+
+	if(failedcode == 0)
+	{
+		DEBUG_MSG("Baseapp::loginnot found user[%s], login is failed!\n", accountName.c_str());
+	}
+	else if(failedcode == 1)
+	{
+		DEBUG_MSG("Baseapp::loginnot user[%s] password is error, login is failed!\n", accountName.c_str());
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName, std::string& password)
+{
+	DEBUG_MSG("Baseapp::login: new user[%s].\n", accountName.c_str());
+
+	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
+	if(ptinfos == NULL)
+	{
+		loginGatewayFailed(pChannel, accountName, 0);
+		return;
+	}
+
+	if(ptinfos->password != password)
+	{
+		loginGatewayFailed(pChannel, accountName, 1);
+		return;
+	}
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(ClientInterface::onLoginGatewaySuccessfully);
 	bundle.send(this->getNetworkInterface(), pChannel);
 }
 

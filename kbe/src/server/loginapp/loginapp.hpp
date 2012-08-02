@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverapp.hpp"
 #include "server/idallocate.hpp"
 #include "server/serverconfig.hpp"
+#include "server/pendingLoginmgr.hpp"
 #include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
 
@@ -91,7 +92,7 @@ public:
 	/** 网络接口
 		baseappmgr返回的登录网关地址
 	*/
-	void onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pChannel, uint32 addr, uint16 port);
+	void onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pChannel, std::string& accountName, uint32 addr, uint16 port);
 
 	/** 网络接口
 		dbmgr发送初始信息
@@ -100,6 +101,8 @@ public:
 	*/
 	void onDbmgrInitCompleted(Mercury::Channel* pChannel, int32 startGlobalOrder, int32 startGroupOrder);
 protected:
+	// 记录登录到服务器但还未处理完毕的账号
+	PendingLoginMgr pendingLoginMgr_;
 };
 
 }

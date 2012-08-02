@@ -181,6 +181,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\pendingLoginmgr.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\script_timers.cpp"
 				>
 			</File>
@@ -244,6 +248,10 @@
 			</File>
 			<File
 				RelativePath=".\kbemain.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\pendingLoginmgr.hpp"
 				>
 			</File>
 			<File

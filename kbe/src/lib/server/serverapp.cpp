@@ -221,6 +221,9 @@ void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::str
 						int8 componentType, uint64 componentID, 
 						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
 {
+	if(pChannel->isExternal())
+		return;
+
 	INFO_MSG("ServerApp::onRegisterNewApp: uid:%d, username:%s, componentType:%s, "
 			"componentID:%"PRAppID", intaddr:%s, intport:%u, extaddr:%s, extport:%u,  from %s.\n", 
 			uid, username.c_str(), COMPONENT_NAME[componentType], componentID, 
@@ -246,6 +249,9 @@ void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::str
 //-------------------------------------------------------------------------------------
 void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID)
 {
+	if(pChannel->isExternal())
+		return;
+
 	Components::ComponentInfos* cinfos = 
 		Componentbridge::getComponents().findComponent(componentType, KBEngine::getUserUID(), componentID);
 

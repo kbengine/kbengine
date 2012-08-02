@@ -93,7 +93,7 @@ public:
 		baseapp将自己的地址发送给loginapp并转发给客户端。
 	*/
 	void onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel, 
-								  uint32 addr, uint16 port);
+								  std::string& accountName, uint32 addr, uint16 port);
 protected:
 	TimerHandle					gameTimer_;
 	Forward_MessageBuffer		forward_baseapp_messagebuffer_;

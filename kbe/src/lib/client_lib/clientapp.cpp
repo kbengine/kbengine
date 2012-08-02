@@ -155,5 +155,15 @@ void ClientApp::onLoginFailed(Mercury::Channel * pChannel, int8 failedcode)
 {
 }
 
+//-------------------------------------------------------------------------------------	
+void ClientApp::onLoginGatewayFailed(Mercury::Channel * pChannel, int8 failedcode)
+{
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientApp::onLoginGatewaySuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
+{
+}
+
 //-------------------------------------------------------------------------------------		
 }
