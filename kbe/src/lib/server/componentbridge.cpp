@@ -89,8 +89,8 @@ bool Componentbridge::findInterfaces()
 	{
 	case CELLAPP_TYPE:
 		findComponentTypes[0] = DBMGR_TYPE;
-		findComponentTypes[1] = BASEAPPMGR_TYPE;
-		findComponentTypes[2] = CELLAPPMGR_TYPE;
+		findComponentTypes[1] = CELLAPPMGR_TYPE;
+		findComponentTypes[2] = BASEAPPMGR_TYPE;
 		break;
 	case BASEAPP_TYPE:
 		findComponentTypes[0] = DBMGR_TYPE;
@@ -104,7 +104,6 @@ bool Componentbridge::findInterfaces()
 	case CELLAPPMGR_TYPE:
 		findComponentTypes[0] = DBMGR_TYPE;
 		findComponentTypes[1] = BASEAPPMGR_TYPE;
-		
 		break;
 	case LOGINAPP_TYPE:
 		findComponentTypes[0] = DBMGR_TYPE;

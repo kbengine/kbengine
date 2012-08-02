@@ -65,7 +65,6 @@ void Base::destroy()
 //-------------------------------------------------------------------------------------
 bool Base::installCellDataAttr(PyObject* dictData)
 {
-	SCRIPT_ERROR_CHECK();
 	if(dictData != NULL)
 	{
 		if(cellDataDict_ != NULL)
