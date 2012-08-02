@@ -404,15 +404,23 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					// 临时设置有效读取位， 防止接口中溢出操作
 					size_t wpos = pPacket->wpos();
 					size_t rpos = pPacket->rpos();
-					pPacket->wpos(pPacket->rpos() + currMsgLen_);
+					size_t frpos = pPacket->rpos() + currMsgLen_;
+					pPacket->wpos(frpos);
 					pMsgHandler->handle(this, *pPacket);
-					pPacket->wpos(wpos);
-					
-					// 防止handle中没有将数据导出
+
+					// 防止handle中没有将数据导出获取非法操作
 					if(currMsgLen_ > 0)
 					{
-						KBE_ASSERT(rpos != pPacket->rpos())
+						if(frpos != pPacket->rpos())
+						{
+							CRITICAL_MSG("Channel::handleMessage: rpos(%d) invalid, expect=%d. msgID=%d, msglen=%d.\n",
+								pPacket->rpos(), frpos, currMsgID_, currMsgLen_);
+
+							pPacket->rpos(frpos);
+						}
 					}
+
+					pPacket->wpos(wpos);
 				}
 
 				currMsgID_ = 0;
