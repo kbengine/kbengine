@@ -660,7 +660,7 @@ void Baseapp::loginGatewayFailed(Mercury::Channel* pChannel, std::string& accoun
 //-------------------------------------------------------------------------------------
 void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName, std::string& password)
 {
-	DEBUG_MSG("Baseapp::login: new user[%s].\n", accountName.c_str());
+	DEBUG_MSG("Baseapp::loginGateway: new user[%s].\n", accountName.c_str());
 
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
 	if(ptinfos == NULL)
@@ -678,6 +678,12 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName,
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onLoginGatewaySuccessfully);
 	bundle.send(this->getNetworkInterface(), pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::reLoginGateway(Mercury::Channel* pChannel, uint64 key, ENTITY_ID entityID)
+{
+	DEBUG_MSG("Baseapp::reLoginGateway: key="PRIu64", entityID=%d.\n", key, entityID);
 }
 
 //-------------------------------------------------------------------------------------

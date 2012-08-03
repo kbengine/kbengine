@@ -113,6 +113,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									std::string,					accountName,
 									std::string,					password)
 
+	// 前端请求重新登录到网关上。
+	BASEAPP_MESSAGE_DECLARE_ARGS2(reLoginGateway,					MERCURY_FIXED_MESSAGE,
+									uint64,							key,
+									ENTITY_ID,						entityID)
+
 	/**
 		远程呼叫entity方法
 	*/

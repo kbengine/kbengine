@@ -112,27 +112,27 @@ public:
 		                       0=服务器负载过重, 
 							   1=账号或者密码不正确
 	*/
-	void onLoginFailed(Mercury::Channel * pChannel, int8 failedcode);
+	virtual void onLoginFailed(Mercury::Channel * pChannel, int8 failedcode);
 
 	/* 网络接口
 	   登录成功
 	   @ip: 服务器ip地址
 	   @port: 服务器端口
 	*/
-	void onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
+	virtual void onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
 
 	/* 网络接口
 	   登录失败回调
 	   @failedcode: 失败返回码 0=登录非法（超时或者非法侵入）, 
 							   1=账号或者密码不正确
 	*/
-	void onLoginGatewayFailed(Mercury::Channel * pChannel, int8 failedcode);
+	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, int8 failedcode);
 
 	/* 网络接口
 	   登录成功回调
 	   @datas: 账号entity的信息
 	*/
-	void onLoginGatewaySuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
+	virtual void onLoginGatewaySuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID
