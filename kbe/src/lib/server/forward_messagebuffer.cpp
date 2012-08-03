@@ -79,7 +79,7 @@ bool ForwardComponent_MessageBuffer::process()
 
 		if(iter->second.size() == 0)
 		{
-			iter = pMap_.erase(iter);
+			pMap_.erase(iter++);
 		}
 		else
 		{
