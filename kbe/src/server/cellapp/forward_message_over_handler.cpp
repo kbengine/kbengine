@@ -8,14 +8,14 @@
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-FMH_Baseapp_onEntityGetCell::FMH_Baseapp_onEntityGetCell(Entity* e, SPACE_ID spaceID):
+FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(Entity* e, SPACE_ID spaceID):
 _e(e),
 _spaceID(spaceID)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void FMH_Baseapp_onEntityGetCell::process()
+void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
 {
 	KBE_ASSERT(_e != NULL);
 	
@@ -31,6 +31,29 @@ void FMH_Baseapp_onEntityGetCell::process()
 	// Ìí¼Óµ½space
 	space->addEntity(_e);
 	_e->initializeScript();
+}
+
+//-------------------------------------------------------------------------------------
+FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp::FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(
+			std::string& entityType, 
+			 ENTITY_ID createToEntityID, ENTITY_ID entityID, uint32 cellDataLength, 
+			 std::string& strEntityCellData, bool hasClient, COMPONENT_ID componentID, SPACE_ID spaceID):
+_entityType(entityType),
+_createToEntityID(createToEntityID),
+_entityID(entityID),
+_cellDataLength(cellDataLength),
+_strEntityCellData(strEntityCellData),
+_hasClient(hasClient),
+_componentID(componentID),
+_spaceID(spaceID)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp::process()
+{
+	Cellapp::getSingleton()._onCreateCellEntityFromBaseapp(_entityType, _createToEntityID, _entityID, _cellDataLength, 
+		_strEntityCellData, _hasClient, _componentID, _spaceID);
 }
 
 //-------------------------------------------------------------------------------------

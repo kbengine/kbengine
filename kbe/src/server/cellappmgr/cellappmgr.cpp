@@ -147,6 +147,7 @@ Mercury::Channel* Cellappmgr::findFreeCellapp(void)
 		index = 0;
 
 	Components::COMPONENTS::iterator iter = components.begin();
+	DEBUG_MSG("Cellappmgr::findFreeCellapp: index=%d.\n", index);
 	std::advance(iter, index++);
 	return (*iter).pChannel;
 }

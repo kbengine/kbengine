@@ -77,7 +77,8 @@ private:
 	Mercury::NetworkInterface & networkInterface_;
 	bool start_;
 	
-	typedef std::map<COMPONENT_ID, std::vector<ForwardItem*>> MSGMAP;
+	typedef std::vector<ForwardItem*> MSGMAP_ITEM;
+	typedef std::map<COMPONENT_ID, MSGMAP_ITEM> MSGMAP;
 	MSGMAP pMap_;
 
 };

@@ -347,7 +347,7 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		if(cinfos == NULL || cinfos->pChannel == NULL)
 		{
 			ForwardItem* pFI = new ForwardItem();
-			pFI->pHandler = new FMH_Baseapp_onEntityGetCell(e, spaceID);
+			pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(e, spaceID);
 			pFI->bundle.newMessage(BaseappInterface::onEntityGetCell);
 			BaseappInterface::onEntityGetCellArgs2::staticAddToBundle(pFI->bundle, mailboxEntityID, componentID_);
 			forward_messagebuffer_.push(componentID, pFI);
@@ -394,6 +394,32 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		s.read_skip(cellDataLength);
 	}
 
+		// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
+		if(cinfos == NULL || cinfos->pChannel == NULL)
+		{
+			ForwardItem* pFI = new ForwardItem();
+			pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(entityType, createToEntityID, 
+				entityID, cellDataLength, strEntityCellData, hasClient, componentID, spaceID);
+			pFI->bundle.newMessage(BaseappInterface::onEntityGetCell);
+			BaseappInterface::onEntityGetCellArgs2::staticAddToBundle(pFI->bundle, entityID, componentID_);
+			forward_messagebuffer_.push(componentID, pFI);
+			WARNING_MSG("Cellapp::onCreateCellEntityFromBaseapp: not found baseapp, message is buffered.\n");
+			return;
+		}
+
+	_onCreateCellEntityFromBaseapp(entityType, createToEntityID, entityID, cellDataLength, strEntityCellData, hasClient, componentID, spaceID);
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(BaseappInterface::onEntityGetCell);
+	BaseappInterface::onEntityGetCellArgs2::staticAddToBundle(bundle, entityID, componentID_);
+	bundle.send(this->getNetworkInterface(), cinfos->pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID createToEntityID, ENTITY_ID entityID, uint32 cellDataLength, 
+		std::string& strEntityCellData, bool hasClient, COMPONENT_ID componentID, SPACE_ID spaceID)
+{
 	Entity* pCreateToEntity = pEntities_->find(createToEntityID);
 	spaceID = pCreateToEntity->getSpaceID();
 
@@ -446,10 +472,6 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 			e->setAoiRadius(ecinfo.defaultAoIRadius, ecinfo.defaultAoIHysteresisArea);
 		}
 
-		Mercury::Bundle bundle;
-		bundle.newMessage(BaseappInterface::onEntityGetCell);
-		BaseappInterface::onEntityGetCellArgs2::staticAddToBundle(bundle, entityID, componentID_);
-		bundle.send(this->getNetworkInterface(), cinfos->pChannel);
 		return;
 	}
 

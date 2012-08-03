@@ -416,7 +416,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 				{
 					// 临时设置有效读取位， 防止接口中溢出操作
 					size_t wpos = pPacket->wpos();
-					size_t rpos = pPacket->rpos();
+					// size_t rpos = pPacket->rpos();
 					size_t frpos = pPacket->rpos() + currMsgLen_;
 					pPacket->wpos(frpos);
 					pMsgHandler->handle(this, *pPacket);
