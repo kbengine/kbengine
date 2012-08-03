@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cellapp.hpp"
 #include "space.hpp"
 #include "cellapp_interface.hpp"
+#include "forward_message_over_handler.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
 #include "server/componentbridge.hpp"
@@ -46,7 +47,8 @@ Cellapp::Cellapp(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
 	EntityApp<Entity>(dispatcher, ninterface, componentType, componentID),
-	pCellAppData_(NULL)
+	pCellAppData_(NULL),
+	forward_messagebuffer_(ninterface)
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &CellappInterface::messageHandlers;
 }
@@ -336,16 +338,27 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		if(e == NULL)
 			return;
 
-		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
-		KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
-
 		// 设置entity的baseMailbox
 		EntityMailbox* mailbox = new EntityMailbox(e->getScriptModule(), componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
 		e->setBaseMailbox(mailbox);
+		
+		// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
+		if(cinfos == NULL || cinfos->pChannel == NULL)
+		{
+			ForwardItem* pFI = new ForwardItem();
+			pFI->pHandler = new FMH_Baseapp_onEntityGetCell(e, spaceID);
+			pFI->bundle.newMessage(BaseappInterface::onEntityGetCell);
+			BaseappInterface::onEntityGetCellArgs2::staticAddToBundle(pFI->bundle, mailboxEntityID, componentID_);
+			forward_messagebuffer_.push(componentID, pFI);
+			WARNING_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: not found baseapp, message is buffered.\n");
+			return;
+		}
+
 		// 添加到space
 		space->addEntity(e);
 		e->initializeScript();
-		
+
 		Mercury::Bundle bundle;
 		bundle.newMessage(BaseappInterface::onEntityGetCell);
 		BaseappInterface::onEntityGetCellArgs2::staticAddToBundle(bundle, mailboxEntityID, componentID_);

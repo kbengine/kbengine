@@ -192,6 +192,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\forward_message_over_handler.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lib\python\Modules\getbuildinfo.c"
 				>
 			</File>
@@ -237,6 +241,10 @@
 			</File>
 			<File
 				RelativePath=".\entity_interface_macros.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\forward_message_over_handler.hpp"
 				>
 			</File>
 			<File

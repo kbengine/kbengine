@@ -3,6 +3,7 @@ SRCS =						\
 	base					\
 	baseapp					\
 	baseapp_interface			\
+	forward_message_over_handler		\
 	main					\
 	proxy
 

@@ -173,16 +173,18 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 
 	static SPACE_ID spaceID = 1;
 
-	Mercury::Bundle* pBundle = new Mercury::Bundle;
-	pBundle->newMessage(CellappInterface::onCreateInNewSpaceFromBaseapp);
-	(*pBundle) << entityType;
-	(*pBundle) << id;
-	(*pBundle) << spaceID++;
-	(*pBundle) << componentID;
-	(*pBundle) << cellDataLength;
+	ForwardItem* pFI = new ForwardItem();
+	pFI->pHandler = NULL;
 
+	pFI->bundle.newMessage(CellappInterface::onCreateInNewSpaceFromBaseapp);
+	pFI->bundle << entityType;
+	pFI->bundle << id;
+	pFI->bundle << spaceID++;
+	pFI->bundle << componentID;
+	pFI->bundle << cellDataLength;
+	
 	if(cellDataLength > 0)
-		pBundle->append(strEntityCellData.data(), cellDataLength);
+		pFI->bundle.append(strEntityCellData.data(), cellDataLength);
 
 	DEBUG_MSG("Cellappmgr::reqCreateInNewSpace: entityType=%s, entityID=%d, componentID=%"PRAppID".\n", entityType.c_str(), id, componentID);
 
@@ -190,14 +192,14 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 
 	if(lpChannel == NULL)
 	{
-		ERROR_MSG("Cellappmgr::reqCreateInNewSpace: can't found a cellapp, message is buffered.\n");
-		forward_cellapp_messagebuffer_.push(pBundle);
+		WARNING_MSG("Cellappmgr::reqCreateInNewSpace: not found cellapp, message is buffered.\n");
+		forward_cellapp_messagebuffer_.push(pFI);
 		return;
 	}
 	else
 	{
-		pBundle->send(this->getNetworkInterface(), lpChannel);
-		SAFE_RELEASE(pBundle);
+		pFI->bundle.send(this->getNetworkInterface(), lpChannel);
+		SAFE_RELEASE(pFI);
 	}
 }
 

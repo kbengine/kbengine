@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "baseapp.hpp"
 #include "proxy.hpp"
 #include "baseapp_interface.hpp"
+#include "forward_message_over_handler.hpp"
 #include "network/common.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
@@ -49,7 +50,8 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 	EntityApp<Base>(dispatcher, ninterface, componentType, componentID),
 	loopCheckTimerHandle_(),
 	pGlobalBases_(NULL),
-	pendingLoginMgr_(ninterface)
+	pendingLoginMgr_(ninterface),
+	forward_messagebuffer_(ninterface)
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
 }
@@ -446,6 +448,8 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 		PyTuple_SET_ITEM(pyargs, 0, mb);
 		PyObject_CallObject(pyCallback, pyargs);
 		//Py_DECREF(mb);
+		int i=0;
+		i++;
 	}
 	else
 	{
@@ -490,7 +494,12 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	if(cellDataLength > 0)
 		bundle.append(strCellData.data(), cellDataLength);
 
-	KBE_ASSERT(createToCellMailbox->getChannel() != NULL);
+	if(createToCellMailbox->getChannel() == NULL)
+	{
+		ERROR_MSG("Baseapp::createCellEntity: not found cellapp(createToCellMailbox), create is error!\n");
+		return;
+	}
+
 	bundle.send(this->getNetworkInterface(), createToCellMailbox->getChannel());
 	
 	if(!hasClient)

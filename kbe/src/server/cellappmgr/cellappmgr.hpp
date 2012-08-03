@@ -81,8 +81,8 @@ public:
 	*/
 	void forwardMessage(Mercury::Channel* pChannel, MemoryStream& s);
 protected:
-	TimerHandle					gameTimer_;
-	Forward_MessageBuffer		forward_cellapp_messagebuffer_;
+	TimerHandle							gameTimer_;
+	ForwardAnywhere_MessageBuffer		forward_cellapp_messagebuffer_;
 };
 
 }

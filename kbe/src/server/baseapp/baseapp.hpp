@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "base.hpp"
 #include "server/entity_app.hpp"
 #include "server/pendingLoginmgr.hpp"
+#include "server/forward_messagebuffer.hpp"
 #include "network/endpoint.hpp"
 
 //#define NDEBUG
@@ -163,6 +164,8 @@ protected:
 
 	// 记录登录到服务器但还未处理完毕的账号
 	PendingLoginMgr						pendingLoginMgr_;
+
+	ForwardComponent_MessageBuffer		forward_messagebuffer_;
 };
 
 }

@@ -2,6 +2,7 @@ BIN  = cellapp
 SRCS =						\
 	cellapp					\
 	cellapp_interface			\
+	forward_message_over_handler		\
 	entity					\
 	main					\
 	space					\

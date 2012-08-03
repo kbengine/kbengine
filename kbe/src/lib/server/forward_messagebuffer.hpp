@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/singleton.hpp"
 #include "helper/debug_helper.hpp"
 #include "server/components.hpp"
+#include "network/bundle.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -39,16 +40,61 @@ class EventDispatcher;
 	如果在app上没有找到任何cellapp或者baseapp这个模块将一些消息缓存起来， 
 	等待有新的cellapp或者baseapp加入则开始将指令转发。
 */
-class Forward_MessageBuffer : public Task, 
-						public Singleton<Forward_MessageBuffer>
+
+
+/*
+	当一个消息被成功转寄则调用这个handler处理剩余的事情
+	需要重写process
+*/
+class ForwardMessageOverHandler
 {
 public:
-	Forward_MessageBuffer(Mercury::NetworkInterface & networkInterface, COMPONENT_TYPE forwardComponentType);
-	~Forward_MessageBuffer();
+	virtual void process() = 0;
+};
+
+struct ForwardItem
+{
+	Mercury::Bundle bundle;
+	ForwardMessageOverHandler* pHandler;
+};
+
+/*
+	转发缓存消息到制定组件上
+*/
+class ForwardComponent_MessageBuffer : public Task, 
+						public Singleton<ForwardComponent_MessageBuffer>
+{
+public:
+	ForwardComponent_MessageBuffer(Mercury::NetworkInterface & networkInterface);
+	~ForwardComponent_MessageBuffer();
 
 	Mercury:: EventDispatcher & dispatcher();
 
-	void push(Mercury::Bundle* pBundle);
+	void push(COMPONENT_ID componentID, ForwardItem* pHandler);
+	
+	bool process();
+private:
+	Mercury::NetworkInterface & networkInterface_;
+	bool start_;
+	
+	typedef std::map<COMPONENT_ID, std::vector<ForwardItem*>> MSGMAP;
+	MSGMAP pMap_;
+
+};
+
+/*
+	转发缓存消息到同类型任意组件上
+*/
+class ForwardAnywhere_MessageBuffer : public Task, 
+						public Singleton<ForwardAnywhere_MessageBuffer>
+{
+public:
+	ForwardAnywhere_MessageBuffer(Mercury::NetworkInterface & networkInterface, COMPONENT_TYPE forwardComponentType);
+	~ForwardAnywhere_MessageBuffer();
+
+	Mercury:: EventDispatcher & dispatcher();
+
+	void push(ForwardItem* pHandler);
 	
 	bool process();
 private:
@@ -56,7 +102,7 @@ private:
 	COMPONENT_TYPE forwardComponentType_;
 	bool start_;
 	
-	std::vector<Mercury::Bundle*> pBundles_;
+	std::vector<ForwardItem*> pBundles_;
 
 };
 

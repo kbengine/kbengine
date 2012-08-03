@@ -135,13 +135,14 @@ void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream&
 	size_t componentSize = components.size();
 	if(componentSize == 0)
 	{
-		Mercury::Bundle* pBundle = new Mercury::Bundle();
-		pBundle->newMessage(BaseappInterface::onCreateBaseAnywhere);
-		pBundle->append((char*)s.data() + s.rpos(), s.opsize());
+		ForwardItem* pFI = new ForwardItem();
+		pFI->bundle.newMessage(BaseappInterface::onCreateBaseAnywhere);
+		pFI->bundle.append((char*)s.data() + s.rpos(), s.opsize());
 		s.read_skip(s.opsize());
 
-		ERROR_MSG("Baseappmgr::reqCreateBaseAnywhere: can't found a baseapp, message is buffered.\n");
-		forward_baseapp_messagebuffer_.push(pBundle);
+		WARNING_MSG("Baseappmgr::reqCreateBaseAnywhere: not found baseapp, message is buffered.\n");
+		pFI->pHandler = NULL;
+		forward_baseapp_messagebuffer_.push(pFI);
 		return;
 	}
 	
@@ -172,12 +173,13 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 	size_t componentSize = components.size();
 	if(componentSize == 0)
 	{
-		Mercury::Bundle* pBundle = new Mercury::Bundle();
-		pBundle->newMessage(BaseappInterface::registerPendingLogin);
-		(*pBundle) << accountName << password;
+		ForwardItem* pFI = new ForwardItem();
+		pFI->bundle.newMessage(BaseappInterface::registerPendingLogin);
+		pFI->bundle << accountName << password;
 
-		ERROR_MSG("Baseappmgr::registerAccountToBaseapp: can't found a baseapp, message is buffered.\n");
-		forward_baseapp_messagebuffer_.push(pBundle);
+		WARNING_MSG("Baseappmgr::registerAccountToBaseapp: not found baseapp, message is buffered.\n");
+		pFI->pHandler = NULL;
+		forward_baseapp_messagebuffer_.push(pFI);
 		return;
 	}
 

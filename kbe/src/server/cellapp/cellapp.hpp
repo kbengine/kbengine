@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entity.hpp"
 #include "spaces.hpp"
 #include "server/entity_app.hpp"
+#include "server/forward_messagebuffer.hpp"
 
 //#define NDEBUG
 // windows include	
@@ -110,7 +111,8 @@ public:
 	void onDestroyCellEntityFromBaseapp(Mercury::Channel* pChannel, ENTITY_ID eid);
 	
 protected:
-	GlobalDataClient*			pCellAppData_;									// cellAppData
+	GlobalDataClient*					pCellAppData_;									// cellAppData
+	ForwardComponent_MessageBuffer		forward_messagebuffer_;
 };
 
 }

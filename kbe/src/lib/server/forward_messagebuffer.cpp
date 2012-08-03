@@ -26,10 +26,90 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/network_interface.hpp"
 
 namespace KBEngine { 
-KBE_SINGLETON_INIT(Forward_MessageBuffer);
+KBE_SINGLETON_INIT(ForwardComponent_MessageBuffer);
+KBE_SINGLETON_INIT(ForwardAnywhere_MessageBuffer);
+//-------------------------------------------------------------------------------------
+ForwardComponent_MessageBuffer::ForwardComponent_MessageBuffer(Mercury::NetworkInterface & networkInterface) :
+	Task(),
+	networkInterface_(networkInterface),
+	start_(false)
+{
+	// dispatcher().addFrequentTask(this);
+}
 
 //-------------------------------------------------------------------------------------
-Forward_MessageBuffer::Forward_MessageBuffer(Mercury::NetworkInterface & networkInterface, COMPONENT_TYPE forwardComponentType) :
+ForwardComponent_MessageBuffer::~ForwardComponent_MessageBuffer()
+{
+	//dispatcher().cancelFrequentTask(this);
+}
+
+//-------------------------------------------------------------------------------------
+Mercury::EventDispatcher & ForwardComponent_MessageBuffer::dispatcher()
+{
+	return networkInterface_.dispatcher();
+}
+
+//-------------------------------------------------------------------------------------
+void ForwardComponent_MessageBuffer::push(COMPONENT_ID componentID, ForwardItem* pHandler)
+{
+	if(!start_)
+	{
+		dispatcher().addFrequentTask(this);
+		start_ = true;
+	}
+	
+	pMap_[componentID].push_back(pHandler);
+}
+
+//-------------------------------------------------------------------------------------
+bool ForwardComponent_MessageBuffer::process()
+{
+	if(pMap_.size() <= 0)
+	{
+		start_ = false;
+		return false;
+	}
+	
+	MSGMAP::iterator iter = pMap_.begin();
+	for(; iter != pMap_.end(); )
+	{
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(iter->first);
+		if(cinfos == NULL || cinfos->pChannel == NULL)
+			return true;
+
+		if(iter->second.size() == 0)
+		{
+			iter = pMap_.erase(iter);
+		}
+		else
+		{
+			std::vector<ForwardItem*>::iterator itervec = iter->second.begin();
+
+			for(; itervec != iter->second.end(); itervec++)
+			{
+				(*itervec)->bundle.send(networkInterface_, cinfos->pChannel);
+				
+				if((*itervec)->pHandler != NULL)
+				{
+					(*itervec)->pHandler->process();
+					SAFE_RELEASE((*itervec)->pHandler);
+				}
+				
+				SAFE_RELEASE((*itervec));
+			}
+			
+			DEBUG_MSG("ForwardComponent_MessageBuffer::process(): size:%d.\n", iter->second.size());
+			iter->second.clear();
+			++iter;
+		}
+	}
+	return true;
+}
+
+
+
+//-------------------------------------------------------------------------------------
+ForwardAnywhere_MessageBuffer::ForwardAnywhere_MessageBuffer(Mercury::NetworkInterface & networkInterface, COMPONENT_TYPE forwardComponentType) :
 	Task(),
 	networkInterface_(networkInterface),
 	forwardComponentType_(forwardComponentType),
@@ -39,19 +119,19 @@ Forward_MessageBuffer::Forward_MessageBuffer(Mercury::NetworkInterface & network
 }
 
 //-------------------------------------------------------------------------------------
-Forward_MessageBuffer::~Forward_MessageBuffer()
+ForwardAnywhere_MessageBuffer::~ForwardAnywhere_MessageBuffer()
 {
 	//dispatcher().cancelFrequentTask(this);
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::EventDispatcher & Forward_MessageBuffer::dispatcher()
+Mercury::EventDispatcher & ForwardAnywhere_MessageBuffer::dispatcher()
 {
 	return networkInterface_.dispatcher();
 }
 
 //-------------------------------------------------------------------------------------
-void Forward_MessageBuffer::push(Mercury::Bundle* pBundle)
+void ForwardAnywhere_MessageBuffer::push(ForwardItem* pHandler)
 {
 	if(!start_)
 	{
@@ -59,11 +139,11 @@ void Forward_MessageBuffer::push(Mercury::Bundle* pBundle)
 		start_ = true;
 	}
 	
-	pBundles_.push_back(pBundle);
+	pBundles_.push_back(pHandler);
 }
 
 //-------------------------------------------------------------------------------------
-bool Forward_MessageBuffer::process()
+bool ForwardAnywhere_MessageBuffer::process()
 {
 	if(pBundles_.size() <= 0)
 	{
@@ -84,19 +164,25 @@ bool Forward_MessageBuffer::process()
 				return true;
 		}
 
-		std::vector<Mercury::Bundle*>::iterator iter = pBundles_.begin();
+		std::vector<ForwardItem*>::iterator iter = pBundles_.begin();
 		for(; iter != pBundles_.end(); iter++)
 		{
-			(*iter)->send(networkInterface_, cts[idx].pChannel);
+			(*iter)->bundle.send(networkInterface_, cts[idx].pChannel);
 			
 			idx++;
 			if(idx >= cts.size())
 				idx = 0;
 
+			if((*iter)->pHandler != NULL)
+			{
+				(*iter)->pHandler->process();
+				SAFE_RELEASE((*iter)->pHandler);
+			}
+			
 			SAFE_RELEASE((*iter));
 		}
 		
-		DEBUG_MSG("Forward_MessageBuffer::process(): size:%d.\n", pBundles_.size());
+		DEBUG_MSG("ForwardAnywhere_MessageBuffer::process(): size:%d.\n", pBundles_.size());
 		pBundles_.clear();
 		start_ = false;
 		return false;

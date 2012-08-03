@@ -95,8 +95,8 @@ public:
 	void onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel, 
 								  std::string& accountName, uint32 addr, uint16 port);
 protected:
-	TimerHandle					gameTimer_;
-	Forward_MessageBuffer		forward_baseapp_messagebuffer_;
+	TimerHandle							gameTimer_;
+	ForwardAnywhere_MessageBuffer		forward_baseapp_messagebuffer_;
 };
 
 }
