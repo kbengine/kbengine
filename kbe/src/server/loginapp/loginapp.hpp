@@ -47,7 +47,9 @@ class Loginapp :	public ServerApp,
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_GAME_TICK = TIMEOUT_SERVERAPP_MAX + 1
+		TIMEOUT_GAME_TICK = TIMEOUT_SERVERAPP_MAX + 1,
+		TIMEOUT_CHECK_STATUS,
+		TIMEOUT_MAX
 	};
 	
 	Loginapp(Mercury::EventDispatcher& dispatcher, 
@@ -60,6 +62,7 @@ public:
 	bool run();
 	
 	virtual void handleTimeout(TimerHandle handle, void * arg);
+	void handleCheckStatusTick();
 
 	/* 初始化相关接口 */
 	bool initializeBegin();
@@ -101,8 +104,10 @@ public:
 	*/
 	void onDbmgrInitCompleted(Mercury::Channel* pChannel, int32 startGlobalOrder, int32 startGroupOrder);
 protected:
+	TimerHandle							loopCheckTimerHandle_;
+
 	// 记录登录到服务器但还未处理完毕的账号
-	PendingLoginMgr pendingLoginMgr_;
+	PendingLoginMgr						pendingLoginMgr_;
 };
 
 }

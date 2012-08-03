@@ -45,6 +45,7 @@ Loginapp::Loginapp(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
 	ServerApp(dispatcher, ninterface, componentType, componentID),
+	loopCheckTimerHandle_(),
 	pendingLoginMgr_(ninterface)
 {
 }
@@ -72,7 +73,22 @@ bool Loginapp::run()
 //-------------------------------------------------------------------------------------
 void Loginapp::handleTimeout(TimerHandle handle, void * arg)
 {
+	switch (reinterpret_cast<uintptr>(arg))
+	{
+		case TIMEOUT_CHECK_STATUS:
+			this->handleCheckStatusTick();
+			return;
+		default:
+			break;
+	}
+
 	ServerApp::handleTimeout(handle, arg);
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::handleCheckStatusTick()
+{
+	pendingLoginMgr_.process();
 }
 
 //-------------------------------------------------------------------------------------
@@ -90,6 +106,10 @@ bool Loginapp::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Loginapp::initializeEnd()
 {
+	// 添加一个timer， 每秒检查一些状态
+	loopCheckTimerHandle_ = this->getMainDispatcher().addTimer(1000000, this,
+							reinterpret_cast<void *>(TIMEOUT_CHECK_STATUS));
+
 	return true;
 }
 

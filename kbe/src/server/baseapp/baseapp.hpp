@@ -47,7 +47,8 @@ class Baseapp :	public EntityApp<Base>,
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_MAX = TIMEOUT_ENTITYAPP_MAX + 1
+		TIMEOUT_CHECK_STATUS = TIMEOUT_ENTITYAPP_MAX + 1,
+		TIMEOUT_MAX
 	};
 	
 	Baseapp(Mercury::EventDispatcher& dispatcher, 
@@ -66,6 +67,7 @@ public:
 	/* 相关处理接口 */
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 	virtual void handleGameTick();
+	void handleCheckStatusTick();
 
 	/* 初始化相关接口 */
 	bool initializeBegin();
@@ -150,10 +152,11 @@ public:
 	void loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, int8 failedcode);
 
 protected:
+	TimerHandle							loopCheckTimerHandle_;
 	GlobalDataClient*					pGlobalBases_;								// globalBases
 
 	// 记录登录到服务器但还未处理完毕的账号
-	PendingLoginMgr pendingLoginMgr_;
+	PendingLoginMgr						pendingLoginMgr_;
 };
 
 }

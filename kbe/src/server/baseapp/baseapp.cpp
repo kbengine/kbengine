@@ -47,6 +47,7 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
 	EntityApp<Base>(dispatcher, ninterface, componentType, componentID),
+	loopCheckTimerHandle_(),
 	pGlobalBases_(NULL),
 	pendingLoginMgr_(ninterface)
 {
@@ -104,13 +105,22 @@ bool Baseapp::run()
 //-------------------------------------------------------------------------------------
 void Baseapp::handleTimeout(TimerHandle handle, void * arg)
 {
-//	switch (reinterpret_cast<uintptr>(arg))
-//	{
-//		default:
-//			break;
-//	}
+	switch (reinterpret_cast<uintptr>(arg))
+	{
+		case TIMEOUT_CHECK_STATUS:
+			this->handleCheckStatusTick();
+			return;
+		default:
+			break;
+	}
 
 	EntityApp<Base>::handleTimeout(handle, arg);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::handleCheckStatusTick()
+{
+	pendingLoginMgr_.process();
 }
 
 //-------------------------------------------------------------------------------------
@@ -128,6 +138,9 @@ bool Baseapp::initializeBegin()
 //-------------------------------------------------------------------------------------
 bool Baseapp::initializeEnd()
 {
+	// 添加一个timer， 每秒检查一些状态
+	loopCheckTimerHandle_ = this->getMainDispatcher().addTimer(1000000, this,
+							reinterpret_cast<void *>(TIMEOUT_CHECK_STATUS));
 	return true;
 }
 

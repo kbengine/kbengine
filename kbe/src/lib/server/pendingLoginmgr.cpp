@@ -28,7 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 KBE_SINGLETON_INIT(PendingLoginMgr);
 
-#define OP_TIME_OUT_MAX 6000 * 60
+#define OP_TIME_OUT_MAX 1000000 * 30
 
 //-------------------------------------------------------------------------------------
 PendingLoginMgr::PendingLoginMgr(Mercury::NetworkInterface & networkInterface) :
@@ -62,11 +62,14 @@ bool PendingLoginMgr::add(PLInfos* infos)
 
 	if(!start_)
 	{
-		dispatcher().addFrequentTask(this);
+		//dispatcher().addFrequentTask(this);
 		start_ = true;
 	}
 	
 	pPLMap_[infos->accountName] = infos;
+	infos->lastProcessTime = timestamp();
+
+	DEBUG_MSG("PendingLoginMgr::add: size=%d.\n", pPLMap_.size());
 	return true;
 }
 
@@ -107,7 +110,6 @@ bool PendingLoginMgr::process()
 		}
 		else
 		{
-			infos->lastProcessTime = curr;
 			++iter;
 		}
 	}
