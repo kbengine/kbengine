@@ -49,7 +49,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #if KBE_PLATFORM == PLATFORM_WIN32
 #include <windows.h>          // for HANDLE
 #include <process.h>          // for _beginthread()	
-#include "cstdkbe/crashhandler.hpp"
+#include "helper/crashhandler.hpp"
 #else
 // linux include
 #include <errno.h>

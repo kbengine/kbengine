@@ -104,7 +104,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="..\..\..\_objs\$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="1"
-			UseOfMFC="2"
+			UseOfMFC="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -154,7 +154,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="log4cxx.lib python32.lib pyscript.lib xmlplus.lib cstdkbe.lib helper.lib network.lib vldmt.lib thread.lib client_lib.lib ws2_32.lib"
-				OutputFile="../../../../tools/server/guiconsole/$(OutDir)\$(ProjectName).exe"
+				OutputFile="../../../../tools/server/guiconsole/$(ProjectName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../../../libs"
 				GenerateDebugInformation="true"
