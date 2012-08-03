@@ -15,6 +15,15 @@
 		<arg>STRING</arg> <!-- 密码 -->
 	</Baseapp::loginGateway>
 	
+	<Baseapp::reLoginGateway>
+		<id>2</id>
+		<descr>重新登录 快速与网关建立交互关系(前提是之前已经登录了， 
+			之后断开在服务器判定该前端的Entity未超时销毁的前提下可以快速与服务器建立连接并达到操控该entity的目的)
+		</descr>
+		<arg>UINT64</arg> <!-- 64位随机GUID码 -->
+		<arg>INT32</arg> <!-- ENTITY_ID -->
+	</Baseapp::reLoginGateway>
+	
 	<Base::onRemoteMethodCall>
 		<id>6</id>
 		<descr>调用一个远程方法。</descr>
