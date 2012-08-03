@@ -1,0 +1,49 @@
+<root>
+	<Loginapp::login>
+		<id>1</id>
+		<descr>客户端请求登录到服务器的loginapp进程， 此进程受到请求验证合法后会返回一个网关地址。</descr>
+		<arg>STRING</arg> <!-- 前端类别 0:调试前端, 1:手机前端, n.. -->
+		<arg>STRING</arg> <!-- 附带数据，比如手机型号等 -->
+		<arg>STRING</arg> <!-- 账号名 -->
+		<arg>STRING</arg> <!-- 密码 -->
+	</Loginapp::login>
+	
+	<Baseapp::loginGateway>
+		<id>1</id>
+		<descr>客户端请求登录到服务器的网关进程， 如果合法则将进入游戏。</descr>
+		<arg>STRING</arg> <!-- 账号名 -->
+		<arg>STRING</arg> <!-- 密码 -->
+	</Baseapp::loginGateway>
+	
+	<Base::onRemoteMethodCall>
+		<id>6</id>
+		<descr>调用一个远程方法。</descr>
+		<arg>INT32</arg> <!-- entityID -->
+		<arg>UINT16</arg> <!-- 方法ID -->
+		<arg>UINT8_ARRAY</arg> <!-- 方法参数二进制流， 具体由方法来解析 -->
+	</Base::onRemoteMethodCall>
+	
+	<Client::onLoginSuccessfully>
+		<id>1</id>
+		<descr>客户端登陆到loginapp，服务器返回成功。</descr>
+		<arg>STRING</arg> <!-- 网关ip地址 -->
+		<arg>UINT16</arg> <!-- 网关端口 -->
+	</Client::onLoginSuccessfully>
+	
+	<Client::onLoginFailed>
+		<id>2</id>
+		<descr>客户端登陆到loginapp，服务器返回失败。</descr>
+		<arg>INT8</arg> <!-- 错误码 -1:服务器没有准备好, 0:服务器负载过重, 1:用户名或者密码不正确 -->
+	</Client::onLoginFailed>
+	
+	<Client::onLoginGatewaySuccessfully>
+		<id>1</id>
+		<descr>客户端登陆到网关，服务器返回成功。</descr>
+	</Client::onLoginGatewaySuccessfully>
+	
+	<Client::onLoginGatewayFailed>
+		<id>2</id>
+		<descr>客户端登陆到网关，服务器返回失败。</descr>
+		<arg>INT8</arg> <!-- 错误码 -1:服务器没有准备好, 0:非法登录, 1:用户名或者密码不正确 -->
+	</Client::onLoginGatewayFailed>
+</root>
