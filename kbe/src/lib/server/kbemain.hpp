@@ -23,10 +23,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "serverapp.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
-#include "server/serverinfos.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
 #include "server/componentbridge.hpp"
+#include "server/serverinfos.hpp"
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 #include "helper/crashhandler.hpp"

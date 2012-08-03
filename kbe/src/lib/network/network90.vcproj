@@ -189,6 +189,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\fixed_messages.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\interface_defs.cpp"
 				>
 			</File>
@@ -280,6 +284,10 @@
 			</File>
 			<File
 				RelativePath=".\event_poller.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\fixed_messages.hpp"
 				>
 			</File>
 			<File

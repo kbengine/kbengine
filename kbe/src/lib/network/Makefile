@@ -9,6 +9,7 @@ SRCS =				\
 	error_reporter		\
 	event_dispatcher	\
 	event_poller		\
+	fixed_messages		\
 	interface_defs		\
 	message_handler		\
 	listener_receiver	\

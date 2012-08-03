@@ -147,6 +147,7 @@ bool Baseapp::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Baseapp::finalise()
 {
+	loopCheckTimerHandle_.cancel();
 	EntityApp<Base>::finalise();
 }
 

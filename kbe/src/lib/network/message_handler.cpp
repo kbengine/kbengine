@@ -23,22 +23,33 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/channel.hpp"
 #include "network/network_interface.hpp"
 #include "network/packet_receiver.hpp"
+#include "network/fixed_messages.hpp"
 
 namespace KBEngine { 
 namespace Mercury
 {
 Mercury::MessageHandlers* MessageHandlers::pMainMessageHandlers = 0;
+static Mercury::FixedMessages* g_fm;
 
 //-------------------------------------------------------------------------------------
 MessageHandlers::MessageHandlers():
 msgHandlers_(),
 msgID_(1)
 {
+	g_fm = Mercury::FixedMessages::getSingletonPtr();
+	if(g_fm == NULL)
+	{
+		g_fm = new Mercury::FixedMessages;
+	}
+
+	Mercury::FixedMessages::getSingleton().loadConfig("../../res/server/fixed_mercury_messages.xml");
 }
 
 //-------------------------------------------------------------------------------------
 MessageHandlers::~MessageHandlers()
 {
+	SAFE_RELEASE(g_fm);
+
 	MessageHandlerMap::iterator iter = msgHandlers_.begin();
 	for(; iter != msgHandlers_.end(); iter++)
 	{
@@ -56,7 +67,30 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 		printf("KBEMessage_handlers begin:\n");
 	}
 	
-	msgHandler->msgID = msgID_++;
+	bool isfixedMsg = false;
+
+	FixedMessages::MSGInfo* msgInfo = FixedMessages::getSingleton().isFixed(ihName.c_str());
+
+	if(msgInfo == NULL)
+	{
+		while(true)
+		{
+			if(FixedMessages::getSingleton().isFixed(msgID_))
+			{
+				msgID_++;
+				isfixedMsg = true;
+			}
+			else
+				break;
+		};
+
+		msgHandler->msgID = msgID_++;
+	}
+	else
+	{
+		msgHandler->msgID = msgInfo->msgid;
+	}
+
 	msgHandler->name = ihName;					
 	msgHandler->pArgs = args;
 	msgHandler->msgLen = msgLen;			
@@ -75,6 +109,9 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 		printf("\tMessageHandlers::add: name=%s, msgID=%d, size=Fixed(%d).\n", 
 				ihName.c_str(), msgHandler->msgID, msgHandler->msgLen);
 	}
+
+	if(isfixedMsg)
+		printf("\t\t!!!message is fixed used.!!!\n");
 	return msgHandlers_[msgHandler->msgID];
 }
 
