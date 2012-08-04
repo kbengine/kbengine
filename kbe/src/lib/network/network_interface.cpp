@@ -401,15 +401,18 @@ void NetworkInterface::onChannelTimeOut(Channel * pChannel)
 //-------------------------------------------------------------------------------------
 Reason NetworkInterface::send(Bundle & bundle, Channel * pChannel)
 {
+	Reason reason = REASON_SUCCESS;
 	const Bundle::Packets& pakcets = bundle.packets();
 	Bundle::Packets::const_iterator iter = pakcets.begin();
 	for (; iter != pakcets.end(); iter++)
 	{
-		this->sendPacket((*iter), pChannel);
+		reason = this->sendPacket((*iter), pChannel);
+		if(reason != REASON_SUCCESS)
+			break; 
 	}
 	
 	bundle.onSendComplete();
-	return REASON_SUCCESS;
+	return reason;
 }
 
 //-------------------------------------------------------------------------------------
@@ -418,16 +421,17 @@ Reason NetworkInterface::sendPacket(Packet * pPacket, Channel * pChannel)
 	PacketFilterPtr pFilter = pChannel ? pChannel->pFilter() : NULL;
 	this->onPacketOut(*pPacket);
 	
+	Reason reason = REASON_SUCCESS;
 	if (pFilter)
 	{
 		pFilter->send(*this, pChannel, pPacket);
 	}
 	else
 	{
-		this->basicSendWithRetries(pChannel, pPacket);
+		reason = this->basicSendWithRetries(pChannel, pPacket);
 	}
 	
-	return REASON_SUCCESS;
+	return reason;
 }
 
 //-------------------------------------------------------------------------------------
@@ -469,6 +473,7 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 		}
 
 		// ÆäËû´íÎóÍË³ö³¢ÊÔ
+		ERROR_MSG("NetworkInterface::basicSendWithRetries: discard the packet.\n");
 		break;
 	}
 

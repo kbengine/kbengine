@@ -314,6 +314,10 @@ class MemoryStream
         size_t rpos(size_t rpos)
         {
             rpos_ = rpos;
+
+			if(rpos_ < 0)
+				rpos_ = 0;
+
             return rpos_;
         }
 
@@ -322,6 +326,10 @@ class MemoryStream
         size_t wpos(size_t wpos)
         {
             wpos_ = wpos;
+
+			if(wpos_ < 0)
+				wpos_ = 0;
+
             return wpos_;
         }
 

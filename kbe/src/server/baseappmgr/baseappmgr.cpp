@@ -150,8 +150,8 @@ void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream&
 	if(currentBaseappIndex > componentSize - 1)
 		currentBaseappIndex = 0;
 	
-	DEBUG_MSG("Baseappmgr::reqCreateBaseAnywhere: %s opsize=%d, selBaseappIdx=%d.\n", 
-		pChannel->c_str(), s.opsize(), currentBaseappIndex);
+	//DEBUG_MSG("Baseappmgr::reqCreateBaseAnywhere: %s opsize=%d, selBaseappIdx=%d.\n", 
+	//	pChannel->c_str(), s.opsize(), currentBaseappIndex);
 
 	Components::COMPONENTS::iterator iter = components.begin();
 	std::advance(iter, currentBaseappIndex++);

@@ -320,8 +320,8 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		s.read_skip(cellDataLength);
 	}
 
-	DEBUG_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
-		spaceID, entityType.c_str(), mailboxEntityID, componentID);
+	// DEBUG_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
+	//	spaceID, entityType.c_str(), mailboxEntityID, componentID);
 
 	Space* space = Spaces::createNewSpace(spaceID);
 	if(space != NULL)
@@ -423,8 +423,8 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 	Entity* pCreateToEntity = pEntities_->find(createToEntityID);
 	spaceID = pCreateToEntity->getSpaceID();
 
-	DEBUG_MSG("Cellapp::onCreateCellEntityFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
-		spaceID, entityType.c_str(), entityID, componentID);
+	//DEBUG_MSG("Cellapp::onCreateCellEntityFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
+	//	spaceID, entityType.c_str(), entityID, componentID);
 
 	Space* space = Spaces::findSpace(spaceID);
 	if(space != NULL)
@@ -481,7 +481,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 //-------------------------------------------------------------------------------------
 void Cellapp::onDestroyCellEntityFromBaseapp(Mercury::Channel* pChannel, ENTITY_ID eid)
 {
-	DEBUG_MSG("Cellapp::onDestroyCellEntityFromBaseapp:entityID=%d.\n", eid);
+	// DEBUG_MSG("Cellapp::onDestroyCellEntityFromBaseapp:entityID=%d.\n", eid);
 	destroyEntity(eid);
 }
 

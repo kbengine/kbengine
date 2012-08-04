@@ -142,7 +142,7 @@ void ClientApp::onChannelTimeOut(Mercury::Channel * pChannel)
 		"Channel %s timed out.\n", pChannel->c_str());
 
 	networkInterface_.deregisterChannel(pChannel);
-	pChannel->decRef();
+	pChannel->destroy();
 }
 
 //-------------------------------------------------------------------------------------	

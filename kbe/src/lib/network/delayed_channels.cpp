@@ -27,27 +27,27 @@ namespace KBEngine{
 namespace Mercury
 {
 //-------------------------------------------------------------------------------------
-void DelayedChannels::init( EventDispatcher & dispatcher )
+void DelayedChannels::init(EventDispatcher & dispatcher)
 {
 	dispatcher.addFrequentTask( this );
 }
 
 //-------------------------------------------------------------------------------------
-void DelayedChannels::fini( EventDispatcher & dispatcher )
+void DelayedChannels::fini(EventDispatcher & dispatcher)
 {
 	dispatcher.cancelFrequentTask( this );
 }
 
 //-------------------------------------------------------------------------------------
-void DelayedChannels::add( Channel & channel )
+void DelayedChannels::add(Channel & channel)
 {
 	channels_.insert( &channel );
 }
 
 //-------------------------------------------------------------------------------------
-void DelayedChannels::sendIfDelayed( Channel & channel )
+void DelayedChannels::sendIfDelayed(Channel & channel)
 {
-	if (channels_.erase( &channel ) > 0)
+	if (channels_.erase(&channel) > 0)
 	{
 		channel.send();
 	}

@@ -534,7 +534,7 @@ void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONEN
 		return;
 
 	Base* base = pEntities_->find(id);
-	DEBUG_MSG("Baseapp::onEntityGetCell: entityID %d.\n", id);
+	// DEBUG_MSG("Baseapp::onEntityGetCell: entityID %d.\n", id);
 	KBE_ASSERT(base != NULL);
 	base->onGetCell(pChannel, componentID);
 }

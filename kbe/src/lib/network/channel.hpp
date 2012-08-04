@@ -134,7 +134,7 @@ public:
 
 	PacketReceiver* packetReceiver()const { return pPacketReceiver_; }
 		
-	Packet* receiveWindow();
+	void addReceiveWindow(Packet* pPacket);
 	
 	BufferedReceives& bufferedReceives(){ return bufferedReceives_; }
 		
@@ -171,8 +171,8 @@ private:
 	uint32						windowSize_;
 	uint64						roundTripTime_;
 	
-	std::vector<PacketPtr>		bufferedReceives_;
-	uint8						currbufferedIdx_;
+	BufferedReceives			bufferedReceives_;
+
 	uint8*						pFragmentDatas_;
 	uint32						pFragmentDatasWpos_;
 	uint32						pFragmentDatasRemain_;

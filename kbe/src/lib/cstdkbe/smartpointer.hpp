@@ -27,12 +27,13 @@ namespace KBEngine {
 template<class T>
 inline void incrementReferenceCount(const T& obj)
 {
+	obj.incRef();
 };
 
 template<class T>
 inline void decrementReferenceCount(const T& obj)
 {
-	//delete obj;
+	obj.decRef();
 };
 
 template<class T>
@@ -44,9 +45,12 @@ public:
 	ConstSmartPointer(const T* obj = 0, REF_TAG tag = ConstSmartPointer::NEW_REF):
 	obj_(obj)
 	{
-		if(tag == ConstSmartPointer::STEAL_REF)
+		if(obj)
 		{
-			incrementReferenceCount(obj_);
+			if(tag == ConstSmartPointer::NEW_REF)
+			{
+				incrementReferenceCount(*obj_);
+			}
 		}
 	}
 
@@ -54,7 +58,7 @@ public:
 	{
 		obj_ = P.get();
 		if (obj_) 
-			incrementReferenceCount( *obj_ );
+			incrementReferenceCount(*obj_);
 	}
 
 	~ConstSmartPointer()
@@ -68,7 +72,7 @@ public:
 	void clear()
 	{
 		if (obj_)
-			decrementReferenceCount(obj_);
+			decrementReferenceCount(*obj_);
 		
 		obj_ = 0;
 	}

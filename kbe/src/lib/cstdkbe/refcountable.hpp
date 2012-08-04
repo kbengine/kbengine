@@ -62,25 +62,23 @@ namespace KBEngine{
 class RefCountable 
 {
 public:
-	int incRef(void) 
+	inline void incRef(void) const
 	{
-		return ++refCount_;
+		++refCount_;
 	}
 
-	int decRef(void) 
+	inline void decRef(void) const
 	{
 		
 		int currRef = --refCount_;
 		assert(currRef >= 0 && "RefCountable:currRef maybe a error!");
 		if (0 >= currRef)
 			onRefOver();											// 引用结束了
-			
-		return currRef;
 	}
 
-	virtual void onRefOver(void)
+	virtual void onRefOver(void) const
 	{
-		delete this;
+		delete const_cast<RefCountable*>(this);
 	}
 
 	void setRefCount(int n)
@@ -104,32 +102,30 @@ protected:
 	}
 
 protected:
-	int refCount_;
+	volatile mutable long refCount_;
 };
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 class SafeRefCountable 
 {
 public:
-	int incRef(void) 
+	inline void incRef(void) const
 	{
-		return ::InterlockedIncrement(&refCount_);
+		::InterlockedIncrement(&refCount_);
 	}
 
-	int decRef(void) 
+	inline void decRef(void) const
 	{
 		
 		long currRef =::InterlockedDecrement(&refCount_);
 		assert(currRef >= 0 && "RefCountable:currRef maybe a error!");
 		if (0 >= currRef)
 			onRefOver();											// 引用结束了
-			
-		return currRef;
 	}
 
-	virtual void onRefOver(void)
+	virtual void onRefOver(void) const
 	{
-		delete this;
+		delete const_cast<SafeRefCountable*>(this);
 	}
 
 	void setRefCount(long n)
@@ -153,13 +149,13 @@ protected:
 	}
 
 protected:
-	long refCount_;
+	volatile mutable long refCount_;
 };
 #else
 class SafeRefCountable 
 {
 public:
-	int incRef(void) 
+	inline void incRef(void) const
 	{
 		__asm__ volatile (
 			"lock addl $1, %0"
@@ -167,23 +163,20 @@ public:
 			: "m"	(this->refCount_) 	// input: this->count_
 			: "memory" 				// clobbers memory
 		);
-		return this->refCount_;
 	}
 
-	int decRef(void) 
+	inline void decRef(void) const
 	{
 		
 		long currRef = intDecRef();
 		assert(currRef >= 0 && "RefCountable:currRef maybe a error!");
 		if (0 >= currRef)
 			onRefOver();											// 引用结束了
-			
-		return currRef;
 	}
 
-	virtual void onRefOver(void)
+	virtual void onRefOver(void) const
 	{
-		delete this;
+		delete const_cast<SafeRefCountable*>(this);
 	}
 
 	void setRefCount(long n)
@@ -208,7 +201,7 @@ protected:
 	}
 
 protected:
-	long refCount_;
+	volatile mutable long refCount_;
 private:
 	/**
 	 *	This private method decreases the reference count by 1.

@@ -46,6 +46,7 @@ TCPPacketReceiver::TCPPacketReceiver(EndPoint & endpoint,
 //-------------------------------------------------------------------------------------
 TCPPacketReceiver::~TCPPacketReceiver()
 {
+	//DEBUG_MSG("TCPPacketReceiver::~TCPPacketReceiver()\n");
 }
 
 
@@ -55,7 +56,8 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 	Channel* pChannel = networkInterface_.findChannel(endpoint_.addr());
 	KBE_ASSERT(pChannel != NULL);
 	
-	Packet* pReceiveWindow = pChannel->receiveWindow();
+	TCPPacket* pReceiveWindow = new TCPPacket();
+	pChannel->addReceiveWindow(pReceiveWindow);
 	int len = pReceiveWindow->recvFromEndPoint(endpoint_);
 
 	if (len < 0)

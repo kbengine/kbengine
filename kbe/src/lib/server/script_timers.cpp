@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "script_timers.hpp"
 #include "server/serverapp.hpp"
 #include "pyscript/script.hpp"
+#include "pyscript/pyobject_pointer.hpp"
 #include "cstdkbe/smartpointer.hpp"
 
 namespace KBEngine

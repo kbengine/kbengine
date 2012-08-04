@@ -35,7 +35,7 @@ namespace Mercury
 TCPPacket::TCPPacket(MessageID msgID, size_t res):
 Packet(msgID, res)
 {
-	data_resize(PACKET_MAX_SIZE_TCP);
+	data_resize(PACKET_MAX_SIZE_TCP * 10);
 	wpos(0);
 }
 
@@ -48,26 +48,11 @@ TCPPacket::~TCPPacket(void)
 int TCPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 {
 	//KBE_ASSERT(MessageHandlers::pMainMessageHandlers != NULL && "Must set up a MainMessageHandlers!\n");
-
-	int len = 0;
-	size_t newchunksize = (PACKET_MAX_SIZE_TCP * 2);
-	int i = size() / newchunksize;
+	int len = ep.recv(data(), PACKET_MAX_SIZE_TCP * 10);
+	if(len > 0)
+		wpos(len);
 	
-	while(true)
-	{
-		len = ep.recv(data() + wpos(), PACKET_MAX_SIZE_TCP);
-		if(len >= 0)
-			wpos(wpos() + len);
-		
-		DEBUG_MSG("TCPPacket::recvFromEndPoint: datasize=%d.\n", len);
-		if(len <= 0 || len != PACKET_MAX_SIZE_TCP)
-			break;
-		
-		size_t resize = (++i + 1) * newchunksize;
-		if(size() < resize)
-			data_resize(resize);
-	};
-	
+	DEBUG_MSG("TCPPacket::recvFromEndPoint: datasize=%d, wpos=%d.\n", len, wpos());
 	return len;
 }
 

@@ -36,7 +36,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 namespace Mercury
 {
-UDPPacket _g_receiveWindow;
 //-------------------------------------------------------------------------------------
 UDPPacketReceiver::UDPPacketReceiver(EndPoint & endpoint,
 	   NetworkInterface & networkInterface	) :
@@ -57,7 +56,8 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 //	KBE_ASSERT(pChannel != NULL);
 	
 	Address	srcAddr;
-	int len = _g_receiveWindow.recvFromEndPoint(endpoint_, &srcAddr);
+	UDPPacket* pChannelReceiveWindow = new UDPPacket();
+	int len = pChannelReceiveWindow->recvFromEndPoint(endpoint_, &srcAddr);
 
 	if (len <= 0)
 	{
@@ -80,12 +80,7 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 	}
 	
 	KBE_ASSERT(pSrcChannel != NULL);
-
-	Packet* pChannelReceiveWindow = pSrcChannel->receiveWindow();
-	pChannelReceiveWindow->append(_g_receiveWindow.data(), _g_receiveWindow.wpos());
-
-	_g_receiveWindow.resetPacket();
-
+	pSrcChannel->addReceiveWindow(pChannelReceiveWindow);
 	Reason ret = this->processPacket(pSrcChannel, pChannelReceiveWindow);
 
 	if(ret != REASON_SUCCESS)

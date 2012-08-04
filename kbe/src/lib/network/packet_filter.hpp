@@ -26,7 +26,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/smartpointer.hpp"
 #include "cstdkbe/refcountable.hpp"
 
-#include <string>
 namespace KBEngine { 
 namespace Mercury
 {
@@ -49,7 +48,7 @@ public:
 	virtual Reason recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket);
 };
 
-typedef SmartPointer< PacketFilter > PacketFilterPtr;
+typedef SmartPointer<PacketFilter> PacketFilterPtr;
 
 }
 }
