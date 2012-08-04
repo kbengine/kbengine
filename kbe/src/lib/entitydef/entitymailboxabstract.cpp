@@ -88,8 +88,10 @@ PyObject* EntityMailboxAbstract::pyGetID()
 Mercury::Channel* EntityMailboxAbstract::getChannel(void)
 {
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID_);
-	KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
-	return cinfos->pChannel; 
+	if(cinfos != NULL && cinfos->pChannel != NULL)
+		return cinfos->pChannel; 
+
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
