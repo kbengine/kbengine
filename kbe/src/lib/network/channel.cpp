@@ -333,7 +333,7 @@ void Channel::addReceiveWindow(Packet* pPacket)
 {
 	bufferedReceives_.push_back(pPacket);
 
-	if(bufferedReceives_.size() > 30)
+	if(bufferedReceives_.size() > 10)
 	{
 		WARNING_MSG("Channel::addReceiveWindow: buffered is overload.");
 	}
