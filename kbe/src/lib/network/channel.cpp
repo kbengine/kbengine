@@ -85,7 +85,6 @@ Channel::Channel(NetworkInterface & networkInterface,
 		bufferedReceives_.push_back(new TCPPacket);
 		bufferedReceives_.push_back(new TCPPacket);
 		pPacketReceiver_ = new TCPPacketReceiver(*pEndPoint_, networkInterface);
-		pNetworkInterface_->dispatcher().registerFileDescriptor(*pEndPoint_, pPacketReceiver_);
 	}
 	else
 	{
@@ -94,6 +93,7 @@ Channel::Channel(NetworkInterface & networkInterface,
 		pPacketReceiver_ = new UDPPacketReceiver(*pEndPoint_, networkInterface);
 	}
 	
+	pNetworkInterface_->dispatcher().registerFileDescriptor(*pEndPoint_, pPacketReceiver_);
 	startInactivityDetection(INACTIVITY_TIMEOUT_DEFAULT);
 }
 
@@ -102,12 +102,9 @@ Channel::~Channel()
 {
 	DEBUG_MSG("Channel::~Channel(): %s\n", this->c_str());
 	pNetworkInterface_->onChannelGone(this);
-	if(protocoltype_ == PROTOCOL_TCP)
-	{
-		pNetworkInterface_->dispatcher().deregisterFileDescriptor(*pEndPoint_);
-		pEndPoint_->close();
-	}
-	
+	pNetworkInterface_->dispatcher().deregisterFileDescriptor(*pEndPoint_);
+	pEndPoint_->close();
+
 	this->clearState();
 	
 	SAFE_RELEASE(pPacketReceiver_);
