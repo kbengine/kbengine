@@ -38,6 +38,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 //#define USE_D3DX
 #if KBE_PLATFORM == PLATFORM_WIN32 && defined(USE_D3DX)
+#pragma comment(lib,"d3dx9.lib")
 #include <d3dx9math.h>
 typedef D3DXMATRIX								Matrix;
 typedef D3DXQUATERNION							Quaternion;
