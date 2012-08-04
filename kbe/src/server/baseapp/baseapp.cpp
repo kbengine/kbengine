@@ -379,22 +379,31 @@ void Baseapp::onCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s)
 	// 如果不是在发起创建entity的baseapp上创建则需要转发回调到发起方
 	if(componentID != componentID_)
 	{
-		Mercury::Channel* lpChannel = Components::getSingleton().findComponent(BASEAPPMGR_TYPE, 0)->pChannel;
-
-		if(lpChannel != NULL)
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID);
+		if(cinfos == NULL || cinfos->pChannel == NULL)
 		{
-			// 需要baseappmgr转发给目的baseapp
-			Mercury::Bundle forwardbundle;
-			forwardbundle.newMessage(BaseappInterface::onCreateBaseAnywhereCallback);
-			forwardbundle << callbackID;
-			forwardbundle << entityType;
-			forwardbundle << base->getID();
-			forwardbundle << componentID_;
-
-			Mercury::Bundle bundle;
-			MERCURY_MESSAGE_FORWARD(BaseappmgrInterface, bundle, forwardbundle, componentID_, componentID);
-			bundle.send(this->getNetworkInterface(), lpChannel);
+			ForwardItem* pFI = new ForwardItem();
+			pFI->pHandler = NULL;
+			pFI->bundle.newMessage(BaseappInterface::onCreateBaseAnywhereCallback);
+			pFI->bundle << callbackID;
+			pFI->bundle << entityType;
+			pFI->bundle << base->getID();
+			pFI->bundle << componentID_;
+			forward_messagebuffer_.push(componentID, pFI);
+			WARNING_MSG("Baseapp::onCreateBaseAnywhere: not found baseapp, message is buffered.\n");
+			return;
 		}
+
+		Mercury::Channel* lpChannel = cinfos->pChannel;
+
+		// 需要baseappmgr转发给目的baseapp
+		Mercury::Bundle forwardbundle;
+		forwardbundle.newMessage(BaseappInterface::onCreateBaseAnywhereCallback);
+		forwardbundle << callbackID;
+		forwardbundle << entityType;
+		forwardbundle << base->getID();
+		forwardbundle << componentID_;
+		forwardbundle.send(this->getNetworkInterface(), lpChannel);
 	}
 	else
 	{

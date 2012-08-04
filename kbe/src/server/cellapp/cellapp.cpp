@@ -440,7 +440,8 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		
 		if(e == NULL)
 			return;
-
+		
+		// 注意：此处理论不会找不到组件， 因为onCreateCellEntityFromBaseapp中已经进行过一次消息缓存判断
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
 		KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
 
