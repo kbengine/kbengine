@@ -251,6 +251,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mercury_errors.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\pendingLoginmgr.hpp"
 				>
 			</File>

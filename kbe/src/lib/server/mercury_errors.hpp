@@ -18,12 +18,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SERVER_COMMON_H__
-#define __SERVER_COMMON_H__
+#ifndef __MERCURY_ERRORS_H__
+#define __MERCURY_ERRORS_H__
 
 // common include
 #include "cstdkbe/cstdkbe.hpp"
-#include "server/mercury_errors.hpp"
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
@@ -32,12 +31,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
-#define MERCURY_MESSAGE_FORWARD(SEND_INTERFACE, SENDBUNDLE, FORWARDBUNDLE, MYCOMPONENT_ID, FORWARD_COMPONENT_ID)			\
-	SENDBUNDLE.newMessage(SEND_INTERFACE::forwardMessage);																	\
-	SENDBUNDLE << MYCOMPONENT_ID << FORWARD_COMPONENT_ID;																	\
-	FORWARDBUNDLE.finish(true);																								\
-	SENDBUNDLE.append(FORWARDBUNDLE);																						\
-	
-	
+#define MERCURY_ERR_SRV_NO_READY					-1			// 服务器没有准备好。
+#define MERCURY_ERR_SRV_OVERLOAD					-2			// 服务器负载过重。
+#define MERCURY_ERR_ILLEGAL_LOGIN					-3			// 非法登录。
+
+#define MERCURY_SUCCESS								0			// 非法登录。
+
+#define MERCURY_ERR_NAME_PASSWORD					1			// 用户名或者密码不正确。
+#define MERCURY_ERR_ACCOUNT_CREATE					2			// 创建账号失败（已经存在一个相同的账号）。
+
 }
-#endif
+#endif // __MERCURY_ERRORS_H__

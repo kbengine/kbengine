@@ -42,7 +42,9 @@
 	<Client::onCreateAccountResult>
 		<id>1</id>
 		<descr>创建账号成功和失败回调。</descr>
-		<arg>INT8</arg> <!-- 错误码 -1:服务器没有准备好, 0:创建失败（已经存在）, 1:账号创建成功 -->
+		<arg>INT8</arg> <!-- 错误码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_ACCOUNT_CREATE:创建失败（已经存在）, 
+									MERCURY_SUCCESS:账号创建成功 -->
 	</Client::onCreateAccountResult>
 	
 	<Client::onLoginSuccessfully>
@@ -55,7 +57,9 @@
 	<Client::onLoginFailed>
 		<id>3</id>
 		<descr>客户端登陆到loginapp，服务器返回失败。</descr>
-		<arg>INT8</arg> <!-- 错误码 -1:服务器没有准备好, 0:服务器负载过重, 1:用户名或者密码不正确 -->
+		<arg>INT8</arg> <!-- 错误码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_SRV_OVERLOAD:服务器负载过重, 
+									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确 -->
 	</Client::onLoginFailed>
 	
 	<Client::onLoginGatewaySuccessfully>
@@ -66,6 +70,8 @@
 	<Client::onLoginGatewayFailed>
 		<id>5</id>
 		<descr>客户端登陆到网关，服务器返回失败。</descr>
-		<arg>INT8</arg> <!-- 错误码 -1:服务器没有准备好, 0:非法登录, 1:用户名或者密码不正确 -->
+		<arg>INT8</arg> <!-- 错误码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
+									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确 -->
 	</Client::onLoginGatewayFailed>
 </root>
