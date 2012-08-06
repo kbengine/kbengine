@@ -73,7 +73,13 @@ public:
 	/** 网络接口
 		创建账号
 	*/
-	void createAccount(Mercury::Channel* pChannel, std::string& accountName, 
+	void reqCreateAccount(Mercury::Channel* pChannel, std::string& accountName, 
+		std::string& password);
+
+	/** 网络接口
+		创建账号
+	*/
+	void onReqCreateAccountResult(Mercury::Channel* pChannel, MERCURY_ERROR_CODE failedcode, std::string& accountName, 
 		std::string& password);
 
 	/** 网络接口
@@ -87,11 +93,11 @@ public:
 
 	/*
 		登录失败
-		failedcode: 失败返回码 -1=服务器没有准备好, 
-		                      0=服务器负载过重, 
-							  1=账号或者密码不正确
+		failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_SRV_OVERLOAD:服务器负载过重, 
+									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	void _loginFailed(Mercury::Channel* pChannel, std::string& accountName, int8 failedcode);
+	void _loginFailed(Mercury::Channel* pChannel, std::string& accountName, MERCURY_ERROR_CODE failedcode);
 	
 	/** 网络接口
 		dbmgr返回的登录账号检测结果

@@ -659,21 +659,23 @@ void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& acco
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, int8 failedcode)
+void Baseapp::loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, MERCURY_ERROR_CODE failedcode)
 {
+	if(failedcode == MERCURY_ERR_NAME)
+	{
+		DEBUG_MSG("Baseapp::login: not found user[%s], login is failed!\n", accountName.c_str());
+		failedcode = MERCURY_ERR_NAME_PASSWORD;
+	}
+	else if(failedcode == MERCURY_ERR_PASSWORD)
+	{
+		DEBUG_MSG("Baseapp::login: user[%s] password is error, login is failed!\n", accountName.c_str());
+		failedcode = MERCURY_ERR_NAME_PASSWORD;
+	}
+
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onLoginGatewayFailed);
 	ClientInterface::onLoginGatewayFailedArgs1::staticAddToBundle(bundle, failedcode);
 	bundle.send(this->getNetworkInterface(), pChannel);
-
-	if(failedcode == 0)
-	{
-		DEBUG_MSG("Baseapp::loginnot found user[%s], login is failed!\n", accountName.c_str());
-	}
-	else if(failedcode == 1)
-	{
-		DEBUG_MSG("Baseapp::loginnot user[%s] password is error, login is failed!\n", accountName.c_str());
-	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -684,13 +686,13 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName,
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(accountName);
 	if(ptinfos == NULL)
 	{
-		loginGatewayFailed(pChannel, accountName, 0);
+		loginGatewayFailed(pChannel, accountName, MERCURY_ERR_NAME);
 		return;
 	}
 
 	if(ptinfos->password != password)
 	{
-		loginGatewayFailed(pChannel, accountName, 1);
+		loginGatewayFailed(pChannel, accountName, MERCURY_ERR_PASSWORD);
 		return;
 	}
 

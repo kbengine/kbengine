@@ -327,6 +327,18 @@ void Dbmgr::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::Me
 }
 
 //-------------------------------------------------------------------------------------
+void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel, std::string& accountName, std::string& password)
+{
+	DEBUG_MSG("Dbmgr::reqCreateAccount:%s.\n", accountName.c_str());
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(LoginappInterface::onReqCreateAccountResult);
+	MERCURY_ERROR_CODE failedcode = MERCURY_SUCCESS;
+	LoginappInterface::onReqCreateAccountResultArgs3::staticAddToBundle(bundle, failedcode, accountName, password);
+	bundle.send(this->getNetworkInterface(), pChannel);
+}
+
+//-------------------------------------------------------------------------------------
 void Dbmgr::onAccountLogin(Mercury::Channel* pChannel, std::string& accountName, std::string& password)
 {
 	DEBUG_MSG("Dbmgr::onAccountLogin:%s.\n", accountName.c_str());

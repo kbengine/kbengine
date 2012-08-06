@@ -1,10 +1,10 @@
 <root>
-	<Loginapp::createAccount>
+	<Loginapp::reqCreateAccount>
 		<id>1</id>
 		<descr>客户端请求创建一个账号。</descr>
 		<arg>STRING</arg> <!-- 账号名 -->
 		<arg>STRING</arg> <!-- 密码 -->
-	</Loginapp::createAccount>
+	</Loginapp::reqCreateAccount>
 	
 	<Loginapp::login>
 		<id>2</id>

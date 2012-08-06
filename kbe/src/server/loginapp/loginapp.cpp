@@ -120,11 +120,83 @@ void Loginapp::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::createAccount(Mercury::Channel* pChannel, std::string& accountName, 
+void Loginapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, int32 startGlobalOrder, int32 startGroupOrder)
+{
+	if(pChannel->isExternal())
+		return;
+
+	INFO_MSG("Loginapp::onDbmgrInitCompleted:startGlobalOrder=%d, startGroupOrder=%d.\n",
+		startGlobalOrder, startGroupOrder);
+
+	startGlobalOrder_ = startGlobalOrder;
+	startGroupOrder_ = startGroupOrder;
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, std::string& accountName, 
 							 std::string& password)
 {
-	DEBUG_MSG("Loginapp::createAccount: accountName=%s, password=%s.\n", 
+	DEBUG_MSG("Loginapp::reqCreateAccount: accountName=%s, password=%s.\n", 
 		accountName.c_str(), password.c_str());
+
+	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(accountName);
+	if(ptinfos != NULL)
+	{
+		Mercury::Bundle bundle;
+		bundle.newMessage(ClientInterface::onCreateAccountResult);
+		ClientInterface::onCreateAccountResultArgs1::staticAddToBundle(bundle, MERCURY_ERR_BUSY);
+		bundle.send(this->getNetworkInterface(), pChannel);
+		return;
+	}
+			
+	ptinfos = new PendingLoginMgr::PLInfos;
+	ptinfos->accountName = accountName;
+	ptinfos->password = password;
+	ptinfos->addr = pChannel->addr();
+	pendingLoginMgr_.add(ptinfos);
+
+	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::ComponentInfos* dbmgrinfos = NULL;
+
+	if(cts.size() > 0)
+		dbmgrinfos = &(*cts.begin());
+
+	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		Mercury::Bundle bundle;
+		bundle.newMessage(ClientInterface::onCreateAccountResult);
+		ClientInterface::onCreateAccountResultArgs1::staticAddToBundle(bundle, MERCURY_ERR_SRV_NO_READY);
+		bundle.send(this->getNetworkInterface(), pChannel);
+		return;
+	}
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(DbmgrInterface::reqCreateAccount);
+	DbmgrInterface::reqCreateAccountArgs2::staticAddToBundle(bundle, accountName, password);
+	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::onReqCreateAccountResult(Mercury::Channel* pChannel, MERCURY_ERROR_CODE failedcode, std::string& accountName, 
+							 std::string& password)
+{
+	DEBUG_MSG("Loginapp::onReqCreateAccountResult: accountName=%s, failedcode=%d.\n", 
+		accountName.c_str(), password.c_str(), failedcode);
+
+	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
+	if(ptinfos == NULL)
+		return;
+
+	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(ptinfos->addr);
+	if(pClientChannel == NULL)
+		return;
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(ClientInterface::onCreateAccountResult);
+	ClientInterface::onCreateAccountResultArgs1::staticAddToBundle(bundle, failedcode);
+	bundle.send(this->getNetworkInterface(), pClientChannel);
+
+	SAFE_RELEASE(ptinfos);
 }
 
 //-------------------------------------------------------------------------------------
@@ -149,7 +221,14 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	// ÃÜÂë
 	s >> password;
 	
-	PendingLoginMgr::PLInfos* ptinfos = new PendingLoginMgr::PLInfos;
+	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(accountName);
+	if(ptinfos != NULL)
+	{
+		_loginFailed(pChannel, accountName, MERCURY_ERR_BUSY);
+		return;
+	}
+
+	ptinfos = new PendingLoginMgr::PLInfos;
 	ptinfos->ctype = ctype;
 	ptinfos->datas = datas;
 	ptinfos->accountName = accountName;
@@ -168,7 +247,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(baseappmgrinfos == NULL || baseappmgrinfos->pChannel == NULL || baseappmgrinfos->cid == 0)
 	{
-		_loginFailed(pChannel, accountName, -1);
+		_loginFailed(pChannel, accountName, MERCURY_ERR_SRV_NO_READY);
 		return;
 	}
 
@@ -180,7 +259,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		_loginFailed(pChannel, accountName, -1);
+		_loginFailed(pChannel, accountName, MERCURY_ERR_SRV_NO_READY);
 		return;
 	}
 
@@ -192,13 +271,12 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& accountName, int8 failedcode)
+void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& accountName, MERCURY_ERROR_CODE failedcode)
 {
 	DEBUG_MSG("Loginapp::loginFailed: accountName=%s login is failed. failedcode=%d", accountName.c_str(), failedcode);
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onLoginFailed);
-	int8 failedCode = 0;
-	bundle << failedCode;
+	bundle << failedcode;
 	bundle.send(this->getNetworkInterface(), pChannel);
 
 	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(accountName);
@@ -220,7 +298,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 
 	if(!success)
 	{
-		_loginFailed(pChannel, accountName, 0);
+		_loginFailed(pChannel, accountName, MERCURY_ERR_NAME_PASSWORD);
 		return;
 	}
 
@@ -232,7 +310,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 
 	if(baseappmgrinfos == NULL || baseappmgrinfos->pChannel == NULL || baseappmgrinfos->cid == 0)
 	{
-		_loginFailed(pChannel, accountName, -1);
+		_loginFailed(pChannel, accountName, MERCURY_ERR_SRV_NO_READY);
 		return;
 	}
 
@@ -270,19 +348,6 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pC
 	bundle << inet_ntoa((struct in_addr&)addr);
 	bundle << fport;
 	bundle.send(this->getNetworkInterface(), pClientChannel);
-}
-
-//-------------------------------------------------------------------------------------
-void Loginapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, int32 startGlobalOrder, int32 startGroupOrder)
-{
-	if(pChannel->isExternal())
-		return;
-
-	INFO_MSG("Loginapp::onDbmgrInitCompleted:startGlobalOrder=%d, startGroupOrder=%d.\n",
-		startGlobalOrder, startGroupOrder);
-
-	startGlobalOrder_ = startGlobalOrder;
-	startGroupOrder_ = startGroupOrder;
 }
 
 //-------------------------------------------------------------------------------------

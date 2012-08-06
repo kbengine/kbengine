@@ -153,10 +153,11 @@ public:
 
 	/*
 	   登录失败
-	   @failedcode: 失败返回码 0=登录非法（超时或者非法侵入）, 
-							   1=账号或者密码不正确
+	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
+									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	void loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, int8 failedcode);
+	void loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, MERCURY_ERROR_CODE failedcode);
 
 	/* 网络接口
 		从dbmgr获取到账号Entity信息

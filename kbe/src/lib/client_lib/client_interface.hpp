@@ -32,6 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #include "client_interface_macros.hpp"
 #include "network/interface_defs.hpp"
+#include "server/mercury_errors.hpp"
 #include "common.hpp"
 
 //#define NDEBUG
@@ -47,19 +48,23 @@ namespace KBEngine{
 	CLIENT所有消息接口在此定义
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
+	// 创建账号失败。
+	CLIENT_MESSAGE_DECLARE_ARGS1(onCreateAccountResult,			MERCURY_FIXED_MESSAGE,
+									MERCURY_ERROR_CODE,			failedcode)
+
 	// 登录成功。
 	CLIENT_MESSAGE_DECLARE_STREAM(onLoginSuccessfully,			MERCURY_VARIABLE_MESSAGE)
 
 	// 登录失败。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginFailed,					MERCURY_FIXED_MESSAGE,
-									int8,						failedcode)
+									MERCURY_ERROR_CODE,			failedcode)
 
 	// 登录网关成功。
 	CLIENT_MESSAGE_DECLARE_STREAM(onLoginGatewaySuccessfully,	MERCURY_VARIABLE_MESSAGE)
 
 	// 登录网关失败。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginGatewayFailed,			MERCURY_FIXED_MESSAGE,
-									int8,						failedcode)
+									MERCURY_ERROR_CODE,			failedcode)
 
 NETWORK_INTERFACE_DECLARE_END()
 

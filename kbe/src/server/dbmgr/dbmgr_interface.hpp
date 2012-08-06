@@ -74,6 +74,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									COMPONENT_TYPE,					componentType, 
 									COMPONENT_ID,					componentID)
 
+	// loginapp请求创建账号。
+	DBMGR_MESSAGE_DECLARE_ARGS2(reqCreateAccount,					MERCURY_VARIABLE_MESSAGE,
+									std::string,					accountName,
+									std::string,					password)
+
 	// 某个app向本app告知处于活动状态。
 	DBMGR_MESSAGE_DECLARE_ARGS2(onAccountLogin,						MERCURY_VARIABLE_MESSAGE,
 									std::string,					accountName,

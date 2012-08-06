@@ -146,7 +146,7 @@ void ClientApp::onChannelTimeOut(Mercury::Channel * pChannel)
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onCreateAccountResult(Mercury::Channel * pChannel, int8 failedcode)
+void ClientApp::onCreateAccountResult(Mercury::Channel * pChannel, MERCURY_ERROR_CODE failedcode)
 {
 }
 
@@ -156,12 +156,12 @@ void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onLoginFailed(Mercury::Channel * pChannel, int8 failedcode)
+void ClientApp::onLoginFailed(Mercury::Channel * pChannel, MERCURY_ERROR_CODE failedcode)
 {
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onLoginGatewayFailed(Mercury::Channel * pChannel, int8 failedcode)
+void ClientApp::onLoginGatewayFailed(Mercury::Channel * pChannel, MERCURY_ERROR_CODE failedcode)
 {
 }
 

@@ -40,6 +40,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/interfaces.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
+#include "server/mercury_errors.hpp"
 
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -108,19 +109,19 @@ public:
 	
 	/* 网络接口
 		创建账号成功和失败回调
-	   @failedcode: 失败返回码 -1=服务器没有准备好, 
-		                       0=创建失败（已经存在）
-							   1=账号创建成功
+	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_ACCOUNT_CREATE:创建失败（已经存在）, 
+									MERCURY_SUCCESS:账号创建成功
 	*/
-	virtual void onCreateAccountResult(Mercury::Channel * pChannel, int8 failedcode);
+	virtual void onCreateAccountResult(Mercury::Channel * pChannel, MERCURY_ERROR_CODE failedcode);
 
 	/* 网络接口
 	   登录失败回调
-	   @failedcode: 失败返回码 -1=服务器没有准备好, 
-		                       0=服务器负载过重, 
-							   1=账号或者密码不正确
+	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_SRV_OVERLOAD:服务器负载过重, 
+									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	virtual void onLoginFailed(Mercury::Channel * pChannel, int8 failedcode);
+	virtual void onLoginFailed(Mercury::Channel * pChannel, MERCURY_ERROR_CODE failedcode);
 
 	/* 网络接口
 	   登录成功
@@ -131,10 +132,11 @@ public:
 
 	/* 网络接口
 	   登录失败回调
-	   @failedcode: 失败返回码 0=登录非法（超时或者非法侵入）, 
-							   1=账号或者密码不正确
+	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
+									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, int8 failedcode);
+	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, MERCURY_ERROR_CODE failedcode);
 
 	/* 网络接口
 	   登录成功回调
