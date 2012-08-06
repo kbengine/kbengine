@@ -118,6 +118,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									uint64,							key,
 									ENTITY_ID,						entityID)
 
+	// 从dbmgr获取到账号Entity信息
+	BASEAPP_MESSAGE_DECLARE_ARGS3(onQueryAccountCBFromDbmgr,		MERCURY_VARIABLE_MESSAGE,
+									std::string,					accountName,
+									std::string,					password,
+									std::string,					datas)
+
 	/**
 		远程呼叫entity方法
 	*/

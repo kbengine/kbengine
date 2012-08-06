@@ -89,6 +89,19 @@ PendingLoginMgr::PLInfos* PendingLoginMgr::remove(std::string& accountName)
 }
 
 //-------------------------------------------------------------------------------------
+PendingLoginMgr::PLInfos* PendingLoginMgr::find(std::string& accountName)
+{
+	PTINFO_MAP::iterator iter = pPLMap_.find(accountName);
+	if(iter != pPLMap_.end())
+	{
+		PLInfos* infos = iter->second;
+		return infos;
+	}
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
 bool PendingLoginMgr::process()
 {
 	if(pPLMap_.size() <= 0)

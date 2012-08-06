@@ -105,6 +105,14 @@ public:
 	virtual void onChannelDeregister(Mercury::Channel * pChannel);
 
 	void shutDown();
+	
+	/* 网络接口
+		创建账号成功和失败回调
+	   @failedcode: 失败返回码 -1=服务器没有准备好, 
+		                       0=创建失败（已经存在）
+							   1=账号创建成功
+	*/
+	virtual void onCreateAccountResult(Mercury::Channel * pChannel, int8 failedcode);
 
 	/* 网络接口
 	   登录失败回调

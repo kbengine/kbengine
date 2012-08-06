@@ -66,6 +66,7 @@ public:
 	bool process();
 	
 	PendingLoginMgr::PLInfos* remove(std::string& accountName);
+	PendingLoginMgr::PLInfos* find(std::string& accountName);
 private:
 	Mercury::NetworkInterface & networkInterface_;
 

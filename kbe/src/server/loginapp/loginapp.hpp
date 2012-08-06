@@ -69,6 +69,12 @@ public:
 	bool inInitialize();
 	bool initializeEnd();
 	void finalise();
+	
+	/** 网络接口
+		创建账号
+	*/
+	void createAccount(Mercury::Channel* pChannel, std::string& accountName, 
+		std::string& password);
 
 	/** 网络接口
 		用户登录服务器

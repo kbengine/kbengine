@@ -146,6 +146,11 @@ void ClientApp::onChannelTimeOut(Mercury::Channel * pChannel)
 }
 
 //-------------------------------------------------------------------------------------	
+void ClientApp::onCreateAccountResult(Mercury::Channel * pChannel, int8 failedcode)
+{
+}
+
+//-------------------------------------------------------------------------------------	
 void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
 {
 }

@@ -158,6 +158,10 @@ public:
 	*/
 	void loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, int8 failedcode);
 
+	/* 网络接口
+		从dbmgr获取到账号Entity信息
+	*/
+	void onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& datas);
 protected:
 	TimerHandle							loopCheckTimerHandle_;
 	GlobalDataClient*					pGlobalBases_;								// globalBases

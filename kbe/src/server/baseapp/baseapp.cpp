@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "baseapp.hpp"
 #include "proxy.hpp"
+#include "base.hpp"
 #include "baseapp_interface.hpp"
 #include "forward_message_over_handler.hpp"
 #include "network/common.hpp"
@@ -680,7 +681,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName,
 {
 	DEBUG_MSG("Baseapp::loginGateway: new user[%s].\n", accountName.c_str());
 
-	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
+	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(accountName);
 	if(ptinfos == NULL)
 	{
 		loginGatewayFailed(pChannel, accountName, 0);
@@ -694,14 +695,41 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName,
 	}
 
 	Mercury::Bundle bundle;
-	bundle.newMessage(ClientInterface::onLoginGatewaySuccessfully);
+	bundle.newMessage(DbmgrInterface::queryAccount);
+	DbmgrInterface::queryAccountArgs2::staticAddToBundle(bundle, accountName, password);
 	bundle.send(this->getNetworkInterface(), pChannel);
+	
+	// 记录客户端地址
+	ptinfos->addr = pChannel->addr();
 }
 
 //-------------------------------------------------------------------------------------
 void Baseapp::reLoginGateway(Mercury::Channel* pChannel, uint64 key, ENTITY_ID entityID)
 {
 	DEBUG_MSG("Baseapp::reLoginGateway: key="PRIu64", entityID=%d.\n", key, entityID);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& datas)
+{
+	Proxy* base = static_cast<Proxy*>(createEntityCommon(g_serverConfig.getDBMgr().dbAccountEntityScriptType, NULL));
+	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
+	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(ptinfos->addr);
+
+	KBE_ASSERT(base != NULL && ptinfos != NULL && pClientChannel != NULL);
+	
+	base->rndUUID(KBEngine::genUUID64());
+	Mercury::Bundle bundle;
+	bundle.newMessage(ClientInterface::onLoginGatewaySuccessfully);
+	bundle << base->rndUUID();
+	bundle << base->getID();
+	bundle.send(this->getNetworkInterface(), pClientChannel);
+
+	DEBUG_MSG("Baseapp::onQueryAccountCBFromDbmgr: user[%s], uuid[%"PRIu64"], entityID=%d.\n", 
+		accountName.c_str(), base->rndUUID(), base->getID());
+
+	
+	SAFE_RELEASE(ptinfos);
 }
 
 //-------------------------------------------------------------------------------------

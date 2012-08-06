@@ -341,5 +341,18 @@ void Dbmgr::onAccountLogin(Mercury::Channel* pChannel, std::string& accountName,
 }
 
 //-------------------------------------------------------------------------------------
+void Dbmgr::queryAccount(Mercury::Channel* pChannel, std::string& accountName, std::string& password)
+{
+	DEBUG_MSG("Dbmgr::queryAccount:%s.\n", accountName.c_str());
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(BaseappInterface::onQueryAccountCBFromDbmgr);
+	bundle << accountName;
+	bundle << password;
+	bundle << "";
+	bundle.send(this->getNetworkInterface(), pChannel);
+}
+
+//-------------------------------------------------------------------------------------
 
 }

@@ -78,6 +78,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	DBMGR_MESSAGE_DECLARE_ARGS2(onAccountLogin,						MERCURY_VARIABLE_MESSAGE,
 									std::string,					accountName,
 									std::string,					password)
+
+	// baseapp≤È—Ø’À∫≈–≈œ¢°£
+	DBMGR_MESSAGE_DECLARE_ARGS2(queryAccount,						MERCURY_VARIABLE_MESSAGE,
+									std::string,					accountName,
+									std::string,					password)
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

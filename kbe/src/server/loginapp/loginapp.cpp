@@ -120,6 +120,14 @@ void Loginapp::finalise()
 }
 
 //-------------------------------------------------------------------------------------
+void Loginapp::createAccount(Mercury::Channel* pChannel, std::string& accountName, 
+							 std::string& password)
+{
+	DEBUG_MSG("Loginapp::createAccount: accountName=%s, password=%s.\n", 
+		accountName.c_str(), password.c_str());
+}
+
+//-------------------------------------------------------------------------------------
 void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	COMPONENT_CLIENT_TYPE ctype;
