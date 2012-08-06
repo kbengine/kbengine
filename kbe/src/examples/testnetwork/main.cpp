@@ -18,6 +18,7 @@ same license as the rest of the engine.
 #include "network/tcp_packet.hpp"
 #include "network/error_reporter.hpp"
 #include "network/bundle.hpp"
+#include "network/fixed_messages.hpp"
 
 #undef DEFINE_IN_INTERFACE
 #include "baseappmgr/baseappmgr_interface.hpp"
@@ -250,23 +251,55 @@ void init_network(void)
 		}
 		
 		mysocket.setnodelay(true);
-		mysocket.setnonblocking(true);
+		mysocket.setnonblocking(false);
 
+		Mercury::Bundle bundle1;
+		bundle1.newMessage(LoginappInterface::reqCreateAccount);
+		bundle1 << "kebiao";
+		bundle1 << "123456";
+		bundle1.send(mysocket);
 
-		Mercury::Bundle bundle;
-		bundle.newMessage(LoginappInterface::login);
+		TCPPacket packet1;
+		packet1.resize(65535);
+		int len = mysocket.recv(packet1.data(), 65535);
+		packet1.wpos(len);
+		UINT16 failedcode = 0;
+		packet1 >> failedcode;
+		packet1 >> failedcode;
+		printf("data1 size(%d) failedcode=%u.\n", len, failedcode);
+
+		Mercury::Bundle bundle11;
+		bundle11.newMessage(LoginappInterface::reqClose);
+		bundle11.send(mysocket);
+
+		Mercury::Bundle bundle2;
+		bundle2.newMessage(LoginappInterface::login);
 		int8 tclient = 1;
-		bundle << tclient;
-		bundle << "phone";
-		bundle << "kebiao";
-		bundle << "123456";
-		bundle.send(mysocket);
+		bundle2 << tclient;
+		bundle2 << "phone";
+		bundle2 << "kebiao";
+		bundle2 << "123456";
+		bundle2.send(mysocket);
+
+		TCPPacket packet2;
+		packet2.resize(65535);
+		len = mysocket.recv(packet2.data(), 65535);
+		packet2.wpos(len);
+		packet2 >> failedcode;
+		packet2 >> failedcode;
+		printf("data2 size(%d) failedcode=%u.\n", len, failedcode);
+
+		Mercury::Bundle bundle22;
+		bundle22.newMessage(LoginappInterface::reqClose);
+		bundle22.send(mysocket);
+
 		::sleep(5000);
 	};
 }
 
 int main(int argc, char* argv[])
 {
+	Mercury::FixedMessages::getSingleton().loadConfig("../../res/server/fixed_mercury_messages.xml");
 	DebugHelper::initHelper(UNKNOWN_COMPONENT_TYPE);
     INFO_MSG("ÄãºÃ£¬log4cxx---%d!---%s", 1, __FUNCTION__);
 	//LOG4CXX_INFO("Attempted to " << " in MemoryStream (pos:" << 111 <<  "size: " << 222 << ").\n");

@@ -47,6 +47,9 @@ namespace KBEngine{
 	BASEAPP所有消息接口在此定义
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
+	// 某app主动请求断线。
+	BASEAPP_MESSAGE_DECLARE_ARGS0(reqClose,							MERCURY_FIXED_MESSAGE)
+
 	// 某app注册自己的接口地址到本app
 	BASEAPP_MESSAGE_DECLARE_ARGS8(onRegisterNewApp,					MERCURY_VARIABLE_MESSAGE,
 									int32,							uid, 

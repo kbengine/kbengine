@@ -116,6 +116,7 @@ bool Loginapp::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Loginapp::finalise()
 {
+	loopCheckTimerHandle_.cancel();
 	ServerApp::finalise();
 }
 
@@ -180,8 +181,8 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, std::string& account
 void Loginapp::onReqCreateAccountResult(Mercury::Channel* pChannel, MERCURY_ERROR_CODE failedcode, std::string& accountName, 
 							 std::string& password)
 {
-	DEBUG_MSG("Loginapp::onReqCreateAccountResult: accountName=%s, failedcode=%d.\n", 
-		accountName.c_str(), password.c_str(), failedcode);
+	DEBUG_MSG("Loginapp::onReqCreateAccountResult: accountName=%s, failedcode=%u.\n", 
+		accountName.c_str(), failedcode);
 
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
 	if(ptinfos == NULL)

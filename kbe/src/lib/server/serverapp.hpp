@@ -114,7 +114,7 @@ public:
 	int32 globalOrder()const{ return startGlobalOrder_; }
 	int32 groupOrder()const{ return startGroupOrder_; }
 
-	/* 网络接口
+	/** 网络接口
 		注册一个新激活的baseapp或者cellapp或者dbmgr
 		通常是一个新的app被启动了， 它需要向某些组件注册自己。
 	*/
@@ -124,11 +124,15 @@ public:
 							int8 componentType, uint64 componentID, 
 							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport);
 
-	/* 网络接口
+	/** 网络接口
 		某个app向本app告知处于活动状态。
 	*/
 	void onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID);
-
+	
+	/** 网络接口
+		请求断开服务器的连接
+	*/
+	virtual void reqClose(Mercury::Channel* pChannel);
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID

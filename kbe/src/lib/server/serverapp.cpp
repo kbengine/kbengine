@@ -262,5 +262,13 @@ void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE compo
 		pChannel, COMPONENT_NAME[componentType], componentID, pChannel->lastReceivedTime(), cinfos->pChannel->c_str());
 }
 
+//-------------------------------------------------------------------------------------
+void ServerApp::reqClose(Mercury::Channel* pChannel)
+{
+	DEBUG_MSG("ServerApp::reqClose: %s\n", pChannel->c_str());
+	// this->getNetworkInterface().deregisterChannel(pChannel);
+	// pChannel->destroy();
+}
+
 //-------------------------------------------------------------------------------------		
 }

@@ -401,8 +401,8 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					
 					if(currMsgLen_ > PACKET_MAX_SIZE)
 					{
-						INFO_MSG("Channel::handleMessage: msglen is error! msgID=%d, msglen=%d, from %s.\n", 
-							currMsgID_, pPacket->totalSize(), c_str());
+						INFO_MSG("Channel::handleMessage: msglen is error! msgID=%d, msglen=(%d:%d), from %s.\n", 
+							currMsgID_, currMsgLen_, pPacket->totalSize(), c_str());
 
 						condemn(true);
 						break;

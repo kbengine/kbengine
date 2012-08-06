@@ -46,6 +46,14 @@ namespace KBEngine{
 	LOGINAPP所有消息接口在此定义
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
+	// 某app主动请求断线。
+	LOGINAPP_MESSAGE_DECLARE_ARGS0(reqClose,										MERCURY_FIXED_MESSAGE)
+
+	// 请求创建账号
+	LOGINAPP_MESSAGE_DECLARE_ARGS2(reqCreateAccount,								MERCURY_VARIABLE_MESSAGE,
+									std::string,									accountName,
+									std::string,									password)
+
 	// 用户登录服务器 
 	LOGINAPP_MESSAGE_DECLARE_STREAM(login,											MERCURY_VARIABLE_MESSAGE)
 
