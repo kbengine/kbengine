@@ -61,7 +61,7 @@ inline uint64 timestamp_rdtsc()
 		"=d"    (rethi),
 		"=a"    (retlo)
 						  );
-	return uint64(rethi) << 32 | retlo;
+	return uint64(rethi) << 32 | retlo; // 自CPU上电以来所经过的时钟周期数,达到纳秒级的计时精度
 }
 
 // Alternate Linux implementation uses gettimeofday. In rough tests, this can
@@ -74,7 +74,6 @@ inline uint64 timestamp_gettimeofday()
 {
 	timeval tv;
 	gettimeofday( &tv, NULL );
-
 	return 1000000ULL * uint64( tv.tv_sec ) + uint64( tv.tv_usec );
 }
 
@@ -112,13 +111,10 @@ inline uint64 timestamp()
 #pragma warning (disable: 4035)
 inline uint64 timestamp()
 {
-	__asm rdtsc
-	// MSVC complains about no return value here.
-	// According to the help, this warning is 'harmless', and
-	//  they even have example code which does it. Go figure.
+	__asm rdtsc // 自CPU上电以来所经过的时钟周期数,达到纳秒级的计时精度
 }
 #pragma warning (pop)
-#else // BW_USE_RDTSC
+#else // KBE_USE_RDTSC
 
 #ifdef _XBOX360
 #include <xtl.h>
@@ -133,7 +129,7 @@ inline uint64 timestamp()
 	return counter.QuadPart;
 }
 
-#endif // BW_USE_RDTSC
+#endif // KBE_USE_RDTSC
 
 #elif defined( PLAYSTATION3 )
 
