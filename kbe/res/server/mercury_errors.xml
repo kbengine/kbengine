@@ -45,4 +45,9 @@
 		<id>8</id>
 		<descr>	操作过于繁忙(例如：在服务器前一次请求未执行完毕的情况下连续N次创建账号)。</descr>
 	</MERCURY_ERR_BUSY>
+	
+	<MERCURY_ERR_ANOTHER_LOGON>
+		<id>10</id>
+		<descr>	当前账号在另一处登录了。</descr>
+	</MERCURY_ERR_ANOTHER_LOGON>
 </root>
