@@ -84,4 +84,18 @@
 									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
 									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确 -->
 	</Client::onLoginGatewayFailed>
+	
+	<Client::onEntityEnterWorld>
+		<id>6</id>
+		<descr>一个entity进入世界(初次登录时第一个进入世界的是自己这个ENTITY， 其后理论是其他entity， 对比ID来判断)。</descr>
+		<arg>ENTITY_ID</arg> <!-- 进入世界的entityID int32 -->
+	</Client::onEntityEnterWorld>
+	
+	<Client::onRemoteMethodCall>
+		<id>7</id>
+		<descr>调用一个远程方法。</descr>
+		<arg>INT32</arg> <!-- entityID -->
+		<arg>UINT16</arg> <!-- 方法ID -->
+		<arg>UINT8_ARRAY</arg> <!-- 方法参数二进制流， 具体由方法来解析 -->
+	</Client::onRemoteMethodCall>
 </root>
