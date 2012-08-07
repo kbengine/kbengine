@@ -242,7 +242,8 @@ void init_network(void)
 			std::cin >> port;
 		
 		u_int32_t address;
-		mysocket.convertAddress("192.168.4.29", address );
+		std::string ip = "192.168.4.39";
+		mysocket.convertAddress(ip.c_str(), address );
 		if(mysocket.connect(htons(port), address) == -1)
 		{
 			ERROR_MSG("NetworkInterface::recreateListeningSocket: connect server is error(%s)!\n", kbe_strerror());
@@ -252,25 +253,29 @@ void init_network(void)
 		
 		mysocket.setnodelay(true);
 		mysocket.setnonblocking(false);
-
+		MessageID msgID = 0;
+		MessageLength msgLength = 0;
 		Mercury::Bundle bundle1;
 		bundle1.newMessage(LoginappInterface::reqCreateAccount);
 		bundle1 << "kebiao";
 		bundle1 << "123456";
 		bundle1.send(mysocket);
+		::sleep(1000);
 
 		TCPPacket packet1;
 		packet1.resize(65535);
 		int len = mysocket.recv(packet1.data(), 65535);
 		packet1.wpos(len);
 		UINT16 failedcode = 0;
-		packet1 >> failedcode;
+		packet1 >> msgID;
 		packet1 >> failedcode;
 		printf("data1 size(%d) failedcode=%u.\n", len, failedcode);
+		::sleep(1000);
 
 		Mercury::Bundle bundle11;
 		bundle11.newMessage(LoginappInterface::reqClose);
 		bundle11.send(mysocket);
+		::sleep(1000);
 
 		Mercury::Bundle bundle2;
 		bundle2.newMessage(LoginappInterface::login);
@@ -280,19 +285,55 @@ void init_network(void)
 		bundle2 << "kebiao";
 		bundle2 << "123456";
 		bundle2.send(mysocket);
+		::sleep(1000);
 
 		TCPPacket packet2;
 		packet2.resize(65535);
 		len = mysocket.recv(packet2.data(), 65535);
 		packet2.wpos(len);
-		packet2 >> failedcode;
-		packet2 >> failedcode;
-		printf("data2 size(%d) failedcode=%u.\n", len, failedcode);
+		::sleep(1000);
+
+		uint16 iport;
+		packet2 >> msgID;
+		packet2 >> msgLength;
+		packet2 >> ip;
+		packet2 >> iport;
+		printf("data2 size(%d) ip:%s, port=%u.\n", len, ip.c_str(), iport);
 
 		Mercury::Bundle bundle22;
 		bundle22.newMessage(LoginappInterface::reqClose);
 		bundle22.send(mysocket);
+		::sleep(1000);
 
+		mysocket.close();
+		mysocket.socket(SOCK_STREAM);
+		mysocket.convertAddress(ip.c_str(), address );
+		if(mysocket.connect(htons(iport), address) == -1)
+		{
+			printf("NetworkInterface::recreateListeningSocket: connect server is error(%s)!\n", kbe_strerror());
+			port = 0;
+			continue;
+		}
+
+		Mercury::Bundle bundle3;
+		bundle3.newMessage(BaseappInterface::loginGateway);
+		bundle3 << "kebiao";
+		bundle3 << "123456";
+		bundle3.send(mysocket);
+		::sleep(1000);
+
+		TCPPacket packet33;
+		packet33.resize(65535);
+		len = mysocket.recv(packet33.data(), 65535);
+		packet33.wpos(len);
+
+		uint64 uuid;
+		ENTITY_ID eid;
+		packet33 >> msgID;
+		packet33 >> uuid;
+		packet33 >> eid;
+
+		printf("data2 size(%d) uuid:%"PRIu64", eid=%d.\n", len, uuid, eid);
 		::sleep(5000);
 	};
 }

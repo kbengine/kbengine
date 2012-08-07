@@ -142,7 +142,7 @@ public:
 	   登录成功回调
 	   @datas: 账号entity的信息
 	*/
-	virtual void onLoginGatewaySuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
+	virtual void onLoginGatewaySuccessfully(Mercury::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid);
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID

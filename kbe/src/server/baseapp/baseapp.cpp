@@ -683,6 +683,18 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName,
 {
 	DEBUG_MSG("Baseapp::loginGateway: new user[%s].\n", accountName.c_str());
 
+	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::ComponentInfos* dbmgrinfos = NULL;
+
+	if(cts.size() > 0)
+		dbmgrinfos = &(*cts.begin());
+
+	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		loginGatewayFailed(pChannel, accountName, MERCURY_ERR_SRV_NO_READY);
+		return;
+	}
+
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(accountName);
 	if(ptinfos == NULL)
 	{
@@ -699,7 +711,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName,
 	Mercury::Bundle bundle;
 	bundle.newMessage(DbmgrInterface::queryAccount);
 	DbmgrInterface::queryAccountArgs2::staticAddToBundle(bundle, accountName, password);
-	bundle.send(this->getNetworkInterface(), pChannel);
+	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 	
 	// 记录客户端地址
 	ptinfos->addr = pChannel->addr();
@@ -718,19 +730,22 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, std::string&
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
 	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(ptinfos->addr);
 
-	KBE_ASSERT(base != NULL && ptinfos != NULL && pClientChannel != NULL);
+	KBE_ASSERT(base != NULL && ptinfos != NULL);
 	
 	base->rndUUID(KBEngine::genUUID64());
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onLoginGatewaySuccessfully);
 	bundle << base->rndUUID();
-	bundle << base->getID();
-	bundle.send(this->getNetworkInterface(), pClientChannel);
+
+	ENTITY_ID eid = base->getID();
+	bundle << eid;
+
+	if(pClientChannel != NULL)
+		bundle.send(this->getNetworkInterface(), pClientChannel);
 
 	DEBUG_MSG("Baseapp::onQueryAccountCBFromDbmgr: user[%s], uuid[%"PRIu64"], entityID=%d.\n", 
-		accountName.c_str(), base->rndUUID(), base->getID());
+		accountName.c_str(), base->rndUUID(), eid);
 
-	
 	SAFE_RELEASE(ptinfos);
 }
 

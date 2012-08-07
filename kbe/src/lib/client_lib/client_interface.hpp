@@ -60,7 +60,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 									MERCURY_ERROR_CODE,			failedcode)
 
 	// µÇÂ¼Íø¹Ø³É¹¦¡£
-	CLIENT_MESSAGE_DECLARE_STREAM(onLoginGatewaySuccessfully,	MERCURY_VARIABLE_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_ARGS2(onLoginGatewaySuccessfully,	MERCURY_FIXED_MESSAGE,
+									uint64,						rndUUID,
+									ENTITY_ID,					eid)
 
 	// µÇÂ¼Íø¹ØÊ§°Ü¡£
 	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginGatewayFailed,			MERCURY_FIXED_MESSAGE,

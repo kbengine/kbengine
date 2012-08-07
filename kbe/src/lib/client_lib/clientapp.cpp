@@ -166,7 +166,7 @@ void ClientApp::onLoginGatewayFailed(Mercury::Channel * pChannel, MERCURY_ERROR_
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onLoginGatewaySuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientApp::onLoginGatewaySuccessfully(Mercury::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid)
 {
 }
 
