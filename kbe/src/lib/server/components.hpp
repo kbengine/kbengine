@@ -55,6 +55,7 @@ public:
 		COMPONENT_ID cid;
 		char username[MAX_NAME + 1];
 		Mercury::Channel* pChannel;
+		COMPONENT_TYPE componentType;
 	};
 
 	typedef std::vector<ComponentInfos> COMPONENTS;
@@ -62,9 +63,15 @@ public:
 	Components();
 	~Components();
 
-	INLINE void pNetworkInterface(Mercury::NetworkInterface * networkInterface){ 
+	INLINE void pNetworkInterface(Mercury::NetworkInterface * networkInterface)
+	{ 
 		KBE_ASSERT(networkInterface != NULL); 
 		_pNetworkInterface = networkInterface; 
+	}
+
+	INLINE Mercury::NetworkInterface* pNetworkInterface()
+	{ 
+		return _pNetworkInterface;
 	}
 
 	void addComponent(int32 uid, const char* username, 

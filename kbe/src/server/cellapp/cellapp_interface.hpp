@@ -101,6 +101,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									COMPONENT_TYPE,					componentType, 
 									COMPONENT_ID,					componentID)
 
+	// entity收到一封mail, 由某个app上的mailbox发起
+	CELLAPP_MESSAGE_DECLARE_STREAM(onEntityMail,					MERCURY_VARIABLE_MESSAGE)
+
 	/**
 		远程呼叫entity方法
 	*/

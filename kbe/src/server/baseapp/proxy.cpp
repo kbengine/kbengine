@@ -16,7 +16,8 @@ BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)
 	
 //-------------------------------------------------------------------------------------
 Proxy::Proxy(ENTITY_ID id, ScriptModule* scriptModule):
-Base(id, scriptModule, getScriptType(), true)
+Base(id, scriptModule, getScriptType(), true),
+addr_(Mercury::Address::NONE)
 {
 }
 

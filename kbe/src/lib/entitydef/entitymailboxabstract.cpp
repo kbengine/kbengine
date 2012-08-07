@@ -23,7 +23,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/pickler.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/packet.hpp"
+#include "network/bundle.hpp"
+#include "network/network_interface.hpp"
 #include "server/components.hpp"
+#include "client_lib/client_interface.hpp"
+
+#include "../../server/baseapp/baseapp_interface.hpp"
+#include "../../server/cellapp/cellapp_interface.hpp"
 
 namespace KBEngine{
 
@@ -42,9 +48,10 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(EntityMailboxAbstract, 0, 0, 0, 0, 0)		
 
 //-------------------------------------------------------------------------------------
-EntityMailboxAbstract::EntityMailboxAbstract(PyTypeObject* scriptType, COMPONENT_ID componentID, 
+EntityMailboxAbstract::EntityMailboxAbstract(PyTypeObject* scriptType, const Mercury::Address* pAddr, COMPONENT_ID componentID, 
 											 ENTITY_ID eid, uint16 utype, ENTITY_MAILBOX_TYPE type):
 ScriptObject(scriptType, false),
+addr_((pAddr == NULL) ? Mercury::Address::NONE : *pAddr),
 componentID_(componentID),
 type_(type),
 id_(eid),
@@ -55,6 +62,46 @@ utype_(utype)
 //-------------------------------------------------------------------------------------
 EntityMailboxAbstract::~EntityMailboxAbstract()
 {
+}
+
+//-------------------------------------------------------------------------------------
+void EntityMailboxAbstract::newMail(Mercury::Bundle& bundle)
+{
+	if(componentID_ == 0)	// 客户端
+	{
+		bundle.newMessage(ClientInterface::onRemoteMethodCall);
+	}
+	else					// 服务器组件
+	{
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID_);
+		// 找到对应的组件投递过去， 如果这个mailbox还需要中转比如 e.base.cell ， 则由baseapp转往cellapp
+		if(cinfos->componentType == BASEAPP_TYPE)
+		{
+			bundle.newMessage(BaseappInterface::onEntityMail);
+		}
+		else
+		{
+			bundle.newMessage(CellappInterface::onEntityMail);
+		}
+	}
+
+	bundle << id_;
+	bundle << type_;
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityMailboxAbstract::postMail(Mercury::Bundle& bundle)
+{
+	KBE_ASSERT(Components::getSingleton().pNetworkInterface() != NULL);
+	Mercury::Channel* pChannel = getChannel();
+
+	if(pChannel && !pChannel->isDead())
+	{
+		bundle.send(*Components::getSingleton().pNetworkInterface(), pChannel);
+		return true;
+	}
+
+	return false;
 }
 
 //-------------------------------------------------------------------------------------
@@ -87,9 +134,16 @@ PyObject* EntityMailboxAbstract::pyGetID()
 //-------------------------------------------------------------------------------------
 Mercury::Channel* EntityMailboxAbstract::getChannel(void)
 {
-	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID_);
-	if(cinfos != NULL && cinfos->pChannel != NULL)
-		return cinfos->pChannel; 
+	if(componentID_ > 0)
+	{
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID_);
+		if(cinfos != NULL && cinfos->pChannel != NULL)
+			return cinfos->pChannel; 
+	}
+	else
+	{
+		return Components::getSingleton().pNetworkInterface()->findChannel(addr_);
+	}
 
 	return NULL;
 }

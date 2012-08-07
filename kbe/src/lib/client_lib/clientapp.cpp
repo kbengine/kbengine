@@ -170,5 +170,15 @@ void ClientApp::onLoginGatewaySuccessfully(Mercury::Channel * pChannel, uint64 r
 {
 }
 
+//-------------------------------------------------------------------------------------	
+void ClientApp::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void ClientApp::onRemoteMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+}
+
 //-------------------------------------------------------------------------------------		
 }

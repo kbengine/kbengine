@@ -42,9 +42,9 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(EntityMailbox, 0, 0, 0, 0, 0)		
 
 //-------------------------------------------------------------------------------------
-EntityMailbox::EntityMailbox(ScriptModule* scriptModule, COMPONENT_ID componentID, 
+EntityMailbox::EntityMailbox(ScriptModule* scriptModule, const Mercury::Address* pAddr, COMPONENT_ID componentID, 
 ENTITY_ID& eid, ENTITY_MAILBOX_TYPE type):
-EntityMailboxAbstract(getScriptType(), componentID, eid, scriptModule->getUType(), type),
+EntityMailboxAbstract(getScriptType(), pAddr, componentID, eid, scriptModule->getUType(), type),
 scriptModule_(scriptModule)
 {
 }
@@ -125,7 +125,7 @@ PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 		if(mbtype != -1)
 		{
 			delete ccattr;
-			return new EntityMailbox(scriptModule_, componentID_, id_, (ENTITY_MAILBOX_TYPE)mbtype);
+			return new EntityMailbox(scriptModule_, &addr_, componentID_, id_, (ENTITY_MAILBOX_TYPE)mbtype);
 		}
 	}
 	
@@ -147,9 +147,11 @@ PyObject* EntityMailbox::tp_repr()
 		(type_ == MAILBOX_TYPE_CELL_VIA_BASE)		? "CellViaBase" :
 		(type_ == MAILBOX_TYPE_CLIENT_VIA_BASE)		? "ClientViaBase" : "???";
 	
+	Mercury::Channel* pChannel = getChannel();
+
 	sprintf(s, "%s mailbox id:%d, component=%s[%"PRIu64"], addr: %s.", mailboxName, id_, 
 		COMPONENT_NAME[ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[type_]], 
-			componentID_, getChannel()->addr().c_str());
+		componentID_, (pChannel) ? pChannel->addr().c_str() : "None");
 
 	return PyUnicode_FromString(s);
 }
@@ -218,7 +220,7 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 		return entity;
 #endif
 
-	return new EntityMailbox(sm, componentID, eid, (ENTITY_MAILBOX_TYPE)type);
+	return new EntityMailbox(sm, NULL, componentID, eid, (ENTITY_MAILBOX_TYPE)type);
 }
 
 //-------------------------------------------------------------------------------------

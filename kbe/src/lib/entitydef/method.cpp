@@ -19,6 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "method.hpp"
+#include "network/bundle.hpp"
+
 namespace KBEngine{
 
 uint32	MethodDescription::methodDescriptionCount_ = 0;
@@ -232,13 +234,16 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args, PyObject* 
 {	
 	RemoteEntityMethod* rmethod = static_cast<RemoteEntityMethod*>(self);
 	MethodDescription* methodDescription = rmethod->getDescription();
-	//EntityMailboxAbstract* mailbox = rmethod->getMailbox();
+	EntityMailboxAbstract* mailbox = rmethod->getMailbox();
 
 	if(methodDescription->checkArgs(args))
 	{
-		//Packet* sp = mailbox->createMail(MAIL_TYPE_REMOTE_CALL);
-		//methodDescription->addToStream(sp, args);
-		//mailbox->post(sp);
+		Mercury::Bundle bundle;
+		mailbox->newMail(bundle);
+		MemoryStream mstream;
+		methodDescription->addToStream(&mstream, args);
+		bundle.append(mstream.data(), mstream.wpos());
+		mailbox->postMail(bundle);
 	}
 	
 	S_Return;

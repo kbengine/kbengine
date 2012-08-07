@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "base.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
+#include "network/address.hpp"
 //#define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -49,6 +50,9 @@ public:
 	Proxy(ENTITY_ID id, ScriptModule* scriptModule);
 	~Proxy();
 	
+	void addr(const Mercury::Address& address){ addr_ = address; }
+	const Mercury::Address& addr()const{ return addr_; }
+
 	/**
 		这个entity被激活了, 在客户端初始化好对应的entity后， 这个方法被调用
 	*/
@@ -81,6 +85,7 @@ public:
 	DECLARE_PY_MOTHOD_ARG1(pyGiveClientTo, PyObject_ptr);
 protected:
 	uint64 rndUUID_;
+	Mercury::Address addr_;
 };
 
 }

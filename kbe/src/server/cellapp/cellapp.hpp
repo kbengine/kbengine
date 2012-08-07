@@ -111,6 +111,11 @@ public:
 		销毁某个cellEntity
 	*/
 	void onDestroyCellEntityFromBaseapp(Mercury::Channel* pChannel, ENTITY_ID eid);
+
+	/** 网络接口
+		entity收到一封mail, 由某个app上的mailbox发起
+	*/
+	void onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 	
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData

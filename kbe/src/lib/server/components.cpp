@@ -110,6 +110,7 @@ void Components::addComponent(int32 uid, const char* username,
 	componentInfos.uid = uid;
 	componentInfos.cid = componentID;
 	componentInfos.pChannel = pChannel;
+	componentInfos.componentType = componentType;
 
 	strncpy(componentInfos.username, username, MAX_NAME);
 

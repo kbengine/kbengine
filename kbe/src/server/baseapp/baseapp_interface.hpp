@@ -127,6 +127,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									std::string,					password,
 									std::string,					datas)
 
+	// cellapp上的entity已经进入游戏世界了。
+	BASEAPP_MESSAGE_DECLARE_ARGS1(onEntityEnterWorldFromCellapp,	MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,						eid)
+
+	// entity收到一封mail, 由某个app上的mailbox发起
+	BASEAPP_MESSAGE_DECLARE_STREAM(onEntityMail,					MERCURY_VARIABLE_MESSAGE)
+
 	/**
 		远程呼叫entity方法
 	*/

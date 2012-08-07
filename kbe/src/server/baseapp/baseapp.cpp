@@ -454,7 +454,7 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 		// 如果entity属于另一个baseapp创建则设置它的mailbox
 		Mercury::Channel* pOtherBaseappChannel = Components::getSingleton().findComponent(componentID)->pChannel;
 		KBE_ASSERT(pOtherBaseappChannel != NULL);
-		PyObject* mb = static_cast<EntityMailbox*>(new EntityMailbox(sm, componentID, eid, MAILBOX_TYPE_BASE));
+		PyObject* mb = static_cast<EntityMailbox*>(new EntityMailbox(sm, NULL, componentID, eid, MAILBOX_TYPE_BASE));
 		PyTuple_SET_ITEM(pyargs, 0, mb);
 		PyObject_CallObject(pyCallback, pyargs);
 		//Py_DECREF(mb);
@@ -547,6 +547,12 @@ void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONEN
 	// DEBUG_MSG("Baseapp::onEntityGetCell: entityID %d.\n", id);
 	KBE_ASSERT(base != NULL);
 	base->onGetCell(pChannel, componentID);
+
+	// 如果是有客户端的entity则需要告知客户端， entity已经进入世界了。
+	if(base->getClientMailbox() != NULL)
+	{
+		onEntityEnterWorldFromCellapp(pChannel, id);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -726,6 +732,9 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, uint64 key, ENTITY_ID e
 //-------------------------------------------------------------------------------------
 void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& datas)
 {
+	if(pChannel->isExternal())
+		return;
+
 	Proxy* base = static_cast<Proxy*>(createEntityCommon(g_serverConfig.getDBMgr().dbAccountEntityScriptType, NULL));
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
 	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(ptinfos->addr);
@@ -741,12 +750,47 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, std::string&
 	bundle << eid;
 
 	if(pClientChannel != NULL)
+	{
 		bundle.send(this->getNetworkInterface(), pClientChannel);
+
+		// 创建entity的客户端mailbox
+		EntityMailbox* entityClientMailbox = new EntityMailbox(base->getScriptModule(), &pChannel->addr(), 0, eid, MAILBOX_TYPE_CLIENT);
+		base->setClientMailbox(entityClientMailbox);
+		base->onEntitiesEnabled();
+
+		base->addr(pChannel->addr());
+	}
 
 	DEBUG_MSG("Baseapp::onQueryAccountCBFromDbmgr: user[%s], uuid[%"PRIu64"], entityID=%d.\n", 
 		accountName.c_str(), base->rndUUID(), eid);
 
 	SAFE_RELEASE(ptinfos);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onEntityEnterWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID)
+{
+	if(pChannel->isExternal())
+		return;
+
+	Proxy* base = static_cast<Proxy*>(pEntities_->find(entityID));
+	// DEBUG_MSG("Baseapp::onEntityEnterWorldFromCellapp: entityID %d.\n", entityID);
+	KBE_ASSERT(base != NULL);
+
+	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(base->addr());
+	if(pClientChannel)
+	{
+		Mercury::Bundle bundle;
+		bundle.newMessage(ClientInterface::onEntityEnterWorld);
+		ClientInterface::onEntityEnterWorldArgs1::staticAddToBundle(bundle, entityID);
+		bundle.send(this->getNetworkInterface(), pClientChannel);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
 }
 
 //-------------------------------------------------------------------------------------

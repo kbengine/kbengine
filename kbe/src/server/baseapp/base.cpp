@@ -267,7 +267,7 @@ void Base::onGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID)
 	destroyCellData();
 	
 	// 回调给脚本，获得了cell
-	cellMailbox_ = new EntityMailbox(scriptModule_, componentID, id_, MAILBOX_TYPE_CELL);
+	cellMailbox_ = new EntityMailbox(scriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
 	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onGetCell"), 
 																	const_cast<char*>(""));
 	if(pyResult != NULL)
@@ -353,32 +353,5 @@ PyObject* Base::createInNewSpace(PyObject* params)
 	S_Return;
 }
 
-//-------------------------------------------------------------------------------------
-/*
-void Base::onRemoteMethodCall(SocketPacket& recvPacket)
-{
-	uint32 utype = 0;
-	recvPacket >> (uint32)utype;
-	DEBUG_MSG("Base::onRemoteMethodCall: entityID %d, methodType %ld.\n", id_, utype);
-	MethodDescription* md = scriptModule_->findBaseMethodDescription(utype);
-	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>(md->getName().c_str()));
-	if(md != NULL)
-		md->call(pyFunc, md->createFromStream(&recvPacket));
-	
-	Py_XDECREF(pyFunc);
-}
-
-//-------------------------------------------------------------------------------------
-void Base::onReceiveMail(MAIL_TYPE& mailType, SocketPacket& recvPacket)
-{
-	DEBUG_MSG("Base::onReceiveMail: entityID %d, mailType %ld.\n", id_, mailType);
-	switch(mailType)
-	{
-		case MAIL_TYPE_REMOTE_CALL:
-			onRemoteMethodCall(recvPacket);
-			break;
-	};
-}
-*/
 //-------------------------------------------------------------------------------------
 }

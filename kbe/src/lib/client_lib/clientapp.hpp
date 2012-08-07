@@ -107,7 +107,7 @@ public:
 
 	void shutDown();
 	
-	/* 网络接口
+	/** 网络接口
 		创建账号成功和失败回调
 	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
 									MERCURY_ERR_ACCOUNT_CREATE:创建失败（已经存在）, 
@@ -115,7 +115,7 @@ public:
 	*/
 	virtual void onCreateAccountResult(Mercury::Channel * pChannel, MERCURY_ERROR_CODE failedcode);
 
-	/* 网络接口
+	/** 网络接口
 	   登录失败回调
 	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
 									MERCURY_ERR_SRV_OVERLOAD:服务器负载过重, 
@@ -123,14 +123,14 @@ public:
 	*/
 	virtual void onLoginFailed(Mercury::Channel * pChannel, MERCURY_ERROR_CODE failedcode);
 
-	/* 网络接口
+	/** 网络接口
 	   登录成功
 	   @ip: 服务器ip地址
 	   @port: 服务器端口
 	*/
 	virtual void onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
 
-	/* 网络接口
+	/** 网络接口
 	   登录失败回调
 	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
 									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
@@ -138,11 +138,21 @@ public:
 	*/
 	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, MERCURY_ERROR_CODE failedcode);
 
-	/* 网络接口
+	/** 网络接口
 	   登录成功回调
 	   @datas: 账号entity的信息
 	*/
 	virtual void onLoginGatewaySuccessfully(Mercury::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid);
+
+	/** 网络接口
+		服务器上的entity已经进入游戏世界了
+	*/
+	virtual void onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid);
+
+	/** 网络接口
+		远程调用entity的方法 
+	*/
+	virtual void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID

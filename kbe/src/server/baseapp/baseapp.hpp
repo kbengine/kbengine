@@ -151,7 +151,7 @@ public:
 	*/
 	void reLoginGateway(Mercury::Channel* pChannel, uint64 key, ENTITY_ID entityID);
 
-	/*
+	/**
 	   登录失败
 	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
 									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
@@ -159,10 +159,21 @@ public:
 	*/
 	void loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, MERCURY_ERROR_CODE failedcode);
 
-	/* 网络接口
+	/** 网络接口
 		从dbmgr获取到账号Entity信息
 	*/
 	void onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& datas);
+
+	/** 网络接口
+		通知客户端进入了cell（世界)
+	*/
+	void onEntityEnterWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID);
+
+	/** 网络接口
+		entity收到一封mail, 由某个app上的mailbox发起
+	*/
+	void onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
 protected:
 	TimerHandle							loopCheckTimerHandle_;
 	GlobalDataClient*					pGlobalBases_;								// globalBases

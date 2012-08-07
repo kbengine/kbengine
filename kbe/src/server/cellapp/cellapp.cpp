@@ -339,7 +339,7 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 			return;
 
 		// 设置entity的baseMailbox
-		EntityMailbox* mailbox = new EntityMailbox(e->getScriptModule(), componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
+		EntityMailbox* mailbox = new EntityMailbox(e->getScriptModule(), NULL, componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
 		e->setBaseMailbox(mailbox);
 		
 		// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
@@ -446,8 +446,9 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
 
 		// 设置entity的baseMailbox
-		EntityMailbox* mailbox = new EntityMailbox(e->getScriptModule(), componentID, entityID, MAILBOX_TYPE_BASE);
+		EntityMailbox* mailbox = new EntityMailbox(e->getScriptModule(), NULL, componentID, entityID, MAILBOX_TYPE_BASE);
 		e->setBaseMailbox(mailbox);
+
 		// 添加到space
 		space->addEntity(e);
 		e->initializeScript();
@@ -462,12 +463,6 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 			// Py_INCREF(clientMailbox); 这里不需要增加引用， 因为每次都会产生一个新的对象
 			e->setClientMailbox(client);
 			
-			// 通知客户端，avatar进入了世界
-			//SocketPacket* sp = new SocketPacket(OP_ENTITY_ENTER_WORLD);
-			//(*sp) << (ENTITY_ID)id;																	// 可提供客户端判断是否是自己enterworld
-			//(*sp) << (uint8)0;																		// 是否是增加一个entity为false， 这里表示自己也进入enterworld
-			//client->post(sp);
-
 			// 初始化默认AOI范围
 			ENGINE_COMPONENT_INFO& ecinfo = ServerConfig::getSingleton().getCellApp();
 			e->setAoiRadius(ecinfo.defaultAoIRadius, ecinfo.defaultAoIHysteresisArea);
@@ -484,6 +479,11 @@ void Cellapp::onDestroyCellEntityFromBaseapp(Mercury::Channel* pChannel, ENTITY_
 {
 	// DEBUG_MSG("Cellapp::onDestroyCellEntityFromBaseapp:entityID=%d.\n", eid);
 	destroyEntity(eid);
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
 }
 
 //-------------------------------------------------------------------------------------
