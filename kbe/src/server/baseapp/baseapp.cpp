@@ -511,30 +511,6 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	}
 
 	bundle.send(this->getNetworkInterface(), createToCellMailbox->getChannel());
-	
-	if(!hasClient)
-		return;
-
-	// 通报客户端cellEntity创建了
-
-	//sp = new SocketPacket(OP_CREATE_CLIENT_PROXY);
-	//(*sp) << (uint8)false;	
-	//(*sp) << (ENTITY_ID)id;
-
-	// 初始化cellEntity的位置和方向变量
-	//Vector3 v;
-	//PyObject* cellData = base->getCellData();
-	//PyObject* position = PyDict_GetItemString(cellData, "position");
-	//script::ScriptVector3::convertPyObjectToVector3(v, position);
-	//(*sp) << v.x << v.y << v.z;
-
-	//PyObject* direction = PyDict_GetItemString(cellData, "direction");
-	//script::ScriptVector3::convertPyObjectToVector3(v, direction);
-	//(*sp) << v.x << v.y << v.z;
-	
-	// 服务器已经确定要创建cell部分实体了， 我们可以从celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
-	//base->getCellDataByFlags(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, sp);
-	//clientMailbox->post(sp);
 }
 
 //-------------------------------------------------------------------------------------
@@ -546,13 +522,101 @@ void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONEN
 	Base* base = pEntities_->find(id);
 	// DEBUG_MSG("Baseapp::onEntityGetCell: entityID %d.\n", id);
 	KBE_ASSERT(base != NULL);
-	base->onGetCell(pChannel, componentID);
 
-	// 如果是有客户端的entity则需要告知客户端， entity已经进入世界了。
+	// 如果是有客户端的entity则需要告知客户端， 自身entity已经进入世界了。
 	if(base->getClientMailbox() != NULL)
 	{
-		onEntityEnterWorldFromCellapp(pChannel, id);
+		onClientEntityEnterWorld(static_cast<Proxy*>(base));
 	}
+
+	base->onGetCell(pChannel, componentID);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onClientEntityEnterWorld(Proxy* base)
+{
+	Mercury::Bundle bundle;
+	bundle.newMessage(ClientInterface::onEntityEnterWorld);
+	bundle << base->getID();
+
+	// 初始化cellEntity的位置和方向变量
+	Vector3 v;
+	PyObject* cellData = base->getCellData();
+
+	PyObject* position = PyDict_GetItemString(cellData, "position");
+	script::ScriptVector3::convertPyObjectToVector3(v, position);
+
+	Vector3 v1;
+	PyObject* direction = PyDict_GetItemString(cellData, "direction");
+	script::ScriptVector3::convertPyObjectToVector3(v1, direction);
+	
+	ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
+	ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
+	
+	bundle.newMessage(ClientInterface::onUpdatePropertys);
+#ifdef CLIENT_NO_FLOAT
+	int32 x = (int32)v.x;
+	int32 y = (int32)v.x;
+	int32 z = (int32)v.x;
+	
+	
+	bundle << posuid << x << y << z;
+
+	x = (int32)v1.x;
+	y = (int32)v1.x;
+	z = (int32)v1.x;
+
+	bundle << diruid << x << y << z;
+#else
+	bundle << posuid << v.x << v.y << v.z;
+	bundle << diruid << v1.x << v1.y << v1.z;
+#endif
+	
+	// 服务器已经确定创建cell部分实体了， 我们可以从celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
+	MemoryStream s;
+	base->getCellDataByFlags(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, &s);
+
+	bundle.append(s.data(), s.wpos());
+	base->getClientMailbox()->postMail(bundle);
+}
+
+//-------------------------------------------------------------------------------------
+bool Baseapp::createClientProxies(Proxy* base)
+{
+	// 让客户端知道已经创建了proxices, 并初始化一部分属性
+	Mercury::Bundle bundle;
+	bundle.newMessage(ClientInterface::onCreatedProxies);
+	bundle << base->rndUUID();
+	bundle << base->getID();
+	bundle << base->ob_type->tp_name;
+	
+	bundle.newMessage(ClientInterface::onUpdatePropertys);
+
+	// 获得base部分关联的客户端属性数据， 准备传送到客户端初始化entity
+	PyObject* pydict = PyObject_GetAttrString(base, "__dict__");
+		
+	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = base->getScriptModule()->getClientPropertyDescriptions();
+	ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();
+	for(; iter != propertyDescrs.end(); iter++)
+	{
+		PropertyDescription* propertyDescription = iter->second;
+		PyObject *key = PyUnicode_FromString(propertyDescription->getName().c_str());
+			
+	    if(PyDict_Contains(pydict, key) > 0)
+	    {
+	    	bundle << propertyDescription->getUType();
+			MemoryStream s;
+	    	propertyDescription->getDataType()->addToStream(&s, PyDict_GetItem(pydict, key));
+			bundle.append(s.data(), s.wpos());
+	    }
+	}
+	
+	Py_XDECREF(pydict);
+	base->getClientMailbox()->postMail(bundle);
+
+	// 本应该由客户端告知已经创建好entity后调用这个接口。
+	base->onEntitiesEnabled();
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -741,28 +805,20 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, std::string&
 
 	KBE_ASSERT(base != NULL && ptinfos != NULL);
 	
-	base->rndUUID(KBEngine::genUUID64());
-	Mercury::Bundle bundle;
-	bundle.newMessage(ClientInterface::onLoginGatewaySuccessfully);
-	bundle << base->rndUUID();
-
-	ENTITY_ID eid = base->getID();
-	bundle << eid;
-
 	if(pClientChannel != NULL)
 	{
-		bundle.send(this->getNetworkInterface(), pClientChannel);
-
 		// 创建entity的客户端mailbox
-		EntityMailbox* entityClientMailbox = new EntityMailbox(base->getScriptModule(), &pChannel->addr(), 0, eid, MAILBOX_TYPE_CLIENT);
-		base->setClientMailbox(entityClientMailbox);
-		base->onEntitiesEnabled();
+		EntityMailbox* entityClientMailbox = new EntityMailbox(base->getScriptModule(), 
+			&pChannel->addr(), 0, base->getID(), MAILBOX_TYPE_CLIENT);
 
+		base->setClientMailbox(entityClientMailbox);
 		base->addr(pChannel->addr());
+
+		createClientProxies(base);
 	}
 
 	DEBUG_MSG("Baseapp::onQueryAccountCBFromDbmgr: user[%s], uuid[%"PRIu64"], entityID=%d.\n", 
-		accountName.c_str(), base->rndUUID(), eid);
+		accountName.c_str(), base->rndUUID(), base->getID());
 
 	SAFE_RELEASE(ptinfos);
 }
@@ -787,6 +843,35 @@ void Baseapp::onEntityEnterWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_I
 	}
 }
 
+//-------------------------------------------------------------------------------------
+void Baseapp::onEntityLeaveWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID)
+{
+	if(pChannel->isExternal())
+		return;
+
+	Proxy* base = static_cast<Proxy*>(pEntities_->find(entityID));
+	// DEBUG_MSG("Baseapp::onEntityEnterWorldFromCellapp: entityID %d.\n", entityID);
+	KBE_ASSERT(base != NULL);
+
+	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(base->addr());
+	if(pClientChannel)
+	{
+		Mercury::Bundle bundle;
+		bundle.newMessage(ClientInterface::onEntityLeaveWorld);
+		ClientInterface::onEntityLeaveWorldArgs1::staticAddToBundle(bundle, entityID);
+		bundle.send(this->getNetworkInterface(), pClientChannel);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onEntityEnterSpaceFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID, SPACE_ID spaceID)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onEntityLeaveSpaceFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID, SPACE_ID spaceID)
+{
+}
 
 //-------------------------------------------------------------------------------------
 void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)

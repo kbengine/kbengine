@@ -37,8 +37,10 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(RemoteEntityMethod, tp_call, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-MethodDescription::MethodDescription(std::string name, bool isExposed):
+MethodDescription::MethodDescription(ENTITY_METHOD_UID utype, std::string name, bool isExposed):
 name_(name),
+utype_(utype),
+argTypes_(),
 isExposed_(isExposed)
 {
 	MethodDescription::methodDescriptionCount_++;
@@ -145,13 +147,14 @@ void MethodDescription::addToStream(MemoryStream* mstream, PyObject* args)
 	int offset = 0;
 
 	// 将utype放进去，方便对端识别这个方法
-	(*mstream) << (uint32)utype_;
+	(*mstream) << utype_;
 
 	// 如果是exposed方法则先将entityID打包进去
 	if(isExposed())
 	{
 		offset = 1;
-		(*mstream) << (ENTITY_ID)PyLong_AsLong(PyTuple_GetItem(args, 0));
+		ENTITY_ID eid = PyLong_AsLong(PyTuple_GetItem(args, 0));
+		(*mstream) << eid;
 	}
 
 	// 将每一个参数添加到流中

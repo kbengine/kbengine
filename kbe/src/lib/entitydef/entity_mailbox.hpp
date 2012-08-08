@@ -54,7 +54,8 @@ class EntityMailbox : public EntityMailboxAbstract
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(EntityMailbox, EntityMailboxAbstract)
 public:
-	EntityMailbox(ScriptModule* scriptModule, const Mercury::Address* pAddr, COMPONENT_ID componentID, ENTITY_ID& eid, ENTITY_MAILBOX_TYPE type);
+	EntityMailbox(ScriptModule* scriptModule, const Mercury::Address* pAddr, COMPONENT_ID componentID, 
+		ENTITY_ID eid, ENTITY_MAILBOX_TYPE type);
 	~EntityMailbox();
 	
 	/** 脚本请求获取属性或者方法 */

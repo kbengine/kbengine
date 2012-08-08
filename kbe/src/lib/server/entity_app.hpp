@@ -476,6 +476,7 @@ void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 
 	startGlobalOrder_ = startGlobalOrder;
 	startGroupOrder_ = startGroupOrder;
+	g_componentOrder = startGlobalOrder;
 
 	idClient_.onAddRange(startID, endID);
 

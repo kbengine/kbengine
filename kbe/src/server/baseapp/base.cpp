@@ -138,7 +138,7 @@ void Base::getCellDataByFlags(uint32 flags, MemoryStream* s)
 		if((flags & propertyDescription->getFlags()) > 0)
 		{
 			PyObject* pyVal = PyDict_GetItemString(cellDataDict_, propertyDescription->getName().c_str());
-			(*s) << (uint32)propertyDescription->getUType();
+			(*s) << propertyDescription->getUType();
 			propertyDescription->getDataType()->addToStream(s, pyVal);
 		}
 	}

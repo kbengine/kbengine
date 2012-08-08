@@ -154,7 +154,7 @@ MemoryStream* UInt32Type::parseDefaultStr(std::string defaultVal)
 		uint32 val = 0;
 		stream >> val;
 		bs = new MemoryStream();
-		(*bs) << (uint32)val;
+		(*bs) << val;
 	}
 
 	return bs;
@@ -163,7 +163,8 @@ MemoryStream* UInt32Type::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void UInt32Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	(*mstream) << (uint32)PyLong_AsUnsignedLong(pyValue);
+	uint32 v = PyLong_AsUnsignedLong(pyValue);
+	(*mstream) << v;
 }
 
 //-------------------------------------------------------------------------------------
@@ -217,7 +218,7 @@ MemoryStream* Int64Type::parseDefaultStr(std::string defaultVal)
 		int64 val = 0;
 		stream >> val;
 		bs = new MemoryStream();
-		(*bs) << (int64)val;
+		(*bs) << val;
 	}
 
 	return bs;
@@ -226,7 +227,8 @@ MemoryStream* Int64Type::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void Int64Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	(*mstream) << (int64)PyLong_AsLongLong(pyValue);
+	int64 v = PyLong_AsLongLong(pyValue);
+	(*mstream) << v;
 }
 
 //-------------------------------------------------------------------------------------
@@ -274,7 +276,7 @@ MemoryStream* FloatType::parseDefaultStr(std::string defaultVal)
 		double val = 0;
 		stream >> val;
 		bs = new MemoryStream();
-		(*bs) << (double)val;
+		(*bs) << val;
 	}
 
 	return bs;
@@ -283,7 +285,7 @@ MemoryStream* FloatType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void FloatType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	(*mstream) << (double)PyFloat_AsDouble(pyValue);
+	(*mstream) << PyFloat_AsDouble(pyValue);
 }
 
 //-------------------------------------------------------------------------------------
@@ -374,7 +376,8 @@ void VectorType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 	for(int index=0; index<elemCount_; index++)
 	{
 		PyObject* pyVal = PySequence_GetItem(pyValue, index);
-		(*mstream) << (float)PyFloat_AsDouble(pyVal);
+		float v = (float)PyFloat_AsDouble(pyVal);
+		(*mstream) << v;
 		Py_DECREF(pyVal);
 	}
 }
@@ -497,7 +500,7 @@ void PythonType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
 	std::string sdata = script::Pickler::pickle(pyValue);
 	uint32 length = sdata.length();
-	(*mstream) << (uint32)length;
+	(*mstream) << length;
 	mstream->append(sdata.c_str(), length);
 }
 

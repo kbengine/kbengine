@@ -68,10 +68,10 @@ public:
 	*/
 	void onClientDeath(void);
 	
-	/** 
+	/** 网络接口
 		当客户端所关联的这个entity的cell被创建时，被调用 
 	*/
-	void onClientGetCell(void);
+	void onClientGetCell(Mercury::Channel* pChannel);
 
 	/**
 		每个proxy创建之后都会由系统产生一个uuid， 提供提供前端重登陆时用作身份识别

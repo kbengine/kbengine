@@ -29,7 +29,11 @@ namespace KBEngine{
 std::vector<ScriptModule *>	EntityDef::__scriptModules;
 std::map<std::string, uint16> EntityDef::__scriptTypeMappingUType;
 COMPONENT_TYPE EntityDef::__loadComponentType;
-	
+
+// 方法产生时自动产生utype用的
+ENTITY_METHOD_UID g_methodUtypeAuto = 1;
+std::vector<ENTITY_METHOD_UID> g_methodCusUtypes;
+
 //-------------------------------------------------------------------------------------
 ScriptModule::ScriptModule():
 scriptType_(NULL),
@@ -430,6 +434,7 @@ bool ScriptModule::addClientMethodDescription(const char* attrName, MethodDescri
 	return true;
 }
 
+//-------------------------------------------------------------------------------------
 ScriptModule::PROPERTYDESCRIPTION_MAP& ScriptModule::getPropertyDescrs()										
 {																										
 	ScriptModule::PROPERTYDESCRIPTION_MAP* lpPropertyDescrs = NULL;										
@@ -716,29 +721,30 @@ bool EntityDef::loadDefPropertys(XmlPlus* xml, TiXmlNode* defPropertyNode, Scrip
 	{
 		XML_FOR_BEGIN(defPropertyNode)
 		{
-			uint32		flags = 0;
-			int32		hasBaseFlags = 0;
-			int32		hasCellFlags = 0;
-			int32		hasClientFlags = 0;
-			DataType*	dataType = NULL;
-			bool		isPersistent = false;
-			bool		isIdentifier = false;																					// 是否是一个索引键
-			uint32		databaseLength = 0;																						// 这个属性在数据库中的长度
-			uint8		detailLevel = DETAIL_LEVEL_NEAR;
-			std::string	detailLevelStr = "NEAR";
-			std::string	strType;
-			std::string	strisPersistent;
-			std::string	strFlags;
-			std::string	strIdentifierNode;
-			std::string	defaultStr;
-			std::string	name = "";
+			ENTITY_PROPERTY_UID			futype = 0;
+			uint32						flags = 0;
+			int32						hasBaseFlags = 0;
+			int32						hasCellFlags = 0;
+			int32						hasClientFlags = 0;
+			DataType*					dataType = NULL;
+			bool						isPersistent = false;
+			bool						isIdentifier = false;													// 是否是一个索引键
+			uint32						databaseLength = 0;														// 这个属性在数据库中的长度
+			uint8						detailLevel = DETAIL_LEVEL_NEAR;
+			std::string					detailLevelStr = "NEAR";
+			std::string					strType;
+			std::string					strisPersistent;
+			std::string					strFlags;
+			std::string					strIdentifierNode;
+			std::string					defaultStr;
+			std::string					name = "";
 
 			name = xml->getKey(defPropertyNode);
 			TiXmlNode* flagsNode = xml->enterNode(defPropertyNode->FirstChild(), "Flags");
 			if(flagsNode)
 			{
 				strFlags = xml->getValStr(flagsNode);
-				std::transform(strFlags.begin(), strFlags.end(), strFlags.begin(), toupper);									// 转换为大写
+				std::transform(strFlags.begin(), strFlags.end(), strFlags.begin(), toupper);					// 转换为大写
 				ENTITYFLAGMAP::iterator iter = g_entityFlagMapping.find(strFlags.c_str());
 				if(iter == g_entityFlagMapping.end())
 				{
@@ -820,9 +826,28 @@ bool EntityDef::loadDefPropertys(XmlPlus* xml, TiXmlNode* defPropertyNode, Scrip
 				else if(detailLevelStr == "NEAR")
 					detailLevel = DETAIL_LEVEL_NEAR;
 			}
+			
+			static ENTITY_PROPERTY_UID auto_puid = 1;
+			static std::vector<ENTITY_PROPERTY_UID> puids;
+			TiXmlNode* utypeValNode = xml->enterNode(defPropertyNode->FirstChild(), "Utype");
+			if(utypeValNode)
+			{
+				futype = xml->getValInt(utypeValNode);
+				puids.push_back(futype);
+			}
+			else
+			{
+				while(true)
+				{
+					futype = auto_puid++;
+					std::vector<ENTITY_PROPERTY_UID>::iterator iter = std::find(puids.begin(), puids.end(), futype);
+					if(iter == puids.end())
+						break;
+				}
+			}
 
 			// 产生一个属性描述实例
-			PropertyDescription* propertyDescription = PropertyDescription::createDescription(strType, name, flags, isPersistent, 
+			PropertyDescription* propertyDescription = PropertyDescription::createDescription(futype, strType, name, flags, isPersistent, 
 															dataType, isIdentifier, databaseLength, defaultStr, detailLevel);
 			
 			// 添加到模块中
@@ -846,7 +871,7 @@ bool EntityDef::loadDefCellMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scrip
 		XML_FOR_BEGIN(defMethodNode)
 		{
 			std::string name = xml->getKey(defMethodNode);
-			MethodDescription* methodDescription = new MethodDescription(name);
+			MethodDescription* methodDescription = new MethodDescription(0, name);
 			scriptModule->addCellMethodDescription(name.c_str(), methodDescription);
 			TiXmlNode* argNode = defMethodNode->FirstChild();
 			
@@ -858,7 +883,9 @@ bool EntityDef::loadDefCellMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scrip
 			{
 				std::string argType = xml->getKey(argNode);
 				if(argType == "Exposed")
+				{
 					methodDescription->setExposed();
+				}
 				else if(argType == "Arg")
 				{
 					DataType* dataType = NULL;
@@ -881,9 +908,30 @@ bool EntityDef::loadDefCellMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scrip
 					}
 					methodDescription->pushArgType(dataType);
 				}
+				else if(argType == "Utype")
+				{
+					TiXmlNode* typeNode = argNode->FirstChild();
+					ENTITY_METHOD_UID muid = xml->getValInt(typeNode);
+					methodDescription->setUType(muid);
+				}
 			}
 			XML_FOR_END(argNode);		
 			
+			// 如果配置中没有设置过utype, 则产生
+			if(methodDescription->getUType() <= 0)
+			{
+				while(true)
+				{
+					ENTITY_METHOD_UID muid = g_methodUtypeAuto++;
+					std::vector<ENTITY_METHOD_UID>::iterator iterutype = 
+						std::find(g_methodCusUtypes.begin(), g_methodCusUtypes.end(), muid);
+
+					if(iterutype == g_methodCusUtypes.end())
+					{
+						break;
+					}
+				}
+			}
 		}
 		XML_FOR_END(defMethodNode);
 	}
@@ -899,7 +947,7 @@ bool EntityDef::loadDefBaseMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scrip
 		XML_FOR_BEGIN(defMethodNode)
 		{
 			std::string name = xml->getKey(defMethodNode);
-			MethodDescription* methodDescription = new MethodDescription(name);
+			MethodDescription* methodDescription = new MethodDescription(0, name);
 			scriptModule->addBaseMethodDescription(name.c_str(), methodDescription);
 			TiXmlNode* argNode = defMethodNode->FirstChild();
 
@@ -934,9 +982,30 @@ bool EntityDef::loadDefBaseMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scrip
 					}
 					methodDescription->pushArgType(dataType);
 				}
+				else if(argType == "Utype")
+				{
+					TiXmlNode* typeNode = argNode->FirstChild();
+					ENTITY_METHOD_UID muid = xml->getValInt(typeNode);
+					methodDescription->setUType(muid);
+				}
 			}
 			XML_FOR_END(argNode);		
 			
+			// 如果配置中没有设置过utype, 则产生
+			if(methodDescription->getUType() <= 0)
+			{
+				while(true)
+				{
+					ENTITY_METHOD_UID muid = g_methodUtypeAuto++;
+					std::vector<ENTITY_METHOD_UID>::iterator iterutype = 
+						std::find(g_methodCusUtypes.begin(), g_methodCusUtypes.end(), muid);
+
+					if(iterutype == g_methodCusUtypes.end())
+					{
+						break;
+					}
+				}
+			}
 		}
 		XML_FOR_END(defMethodNode);
 	}
@@ -952,7 +1021,7 @@ bool EntityDef::loadDefClientMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scr
 		XML_FOR_BEGIN(defMethodNode)
 		{
 			std::string name = xml->getKey(defMethodNode);
-			MethodDescription* methodDescription = new MethodDescription(name);
+			MethodDescription* methodDescription = new MethodDescription(0, name);
 			scriptModule->addClientMethodDescription(name.c_str(), methodDescription);
 			TiXmlNode* argNode = defMethodNode->FirstChild();
 
@@ -985,9 +1054,30 @@ bool EntityDef::loadDefClientMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scr
 					}
 					methodDescription->pushArgType(dataType);
 				}
+				else if(argType == "Utype")
+				{
+					TiXmlNode* typeNode = argNode->FirstChild();
+					ENTITY_METHOD_UID muid = xml->getValInt(typeNode);
+					methodDescription->setUType(muid);
+				}
 			}
 			XML_FOR_END(argNode);		
 			
+			// 如果配置中没有设置过utype, 则产生
+			if(methodDescription->getUType() <= 0)
+			{
+				while(true)
+				{
+					ENTITY_METHOD_UID muid = g_methodUtypeAuto++;
+					std::vector<ENTITY_METHOD_UID>::iterator iterutype = 
+						std::find(g_methodCusUtypes.begin(), g_methodCusUtypes.end(), muid);
+
+					if(iterutype == g_methodCusUtypes.end())
+					{
+						break;
+					}
+				}
+			}
 		}
 		XML_FOR_END(defMethodNode);
 	}

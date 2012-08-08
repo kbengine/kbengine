@@ -59,8 +59,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginFailed,					MERCURY_FIXED_MESSAGE,
 									MERCURY_ERROR_CODE,			failedcode)
 
-	// 登录网关成功。
-	CLIENT_MESSAGE_DECLARE_ARGS2(onLoginGatewaySuccessfully,	MERCURY_FIXED_MESSAGE,
+	// 服务器端已经创建了一个与客户端关联的代理Entity || 登录网关成功。
+	CLIENT_MESSAGE_DECLARE_ARGS2(onCreatedProxies,				MERCURY_FIXED_MESSAGE,
 									uint64,						rndUUID,
 									ENTITY_ID,					eid)
 
@@ -72,8 +72,25 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityEnterWorld,			MERCURY_FIXED_MESSAGE,
 									ENTITY_ID,					eid)
 
+	// 服务器上的entity已经离开游戏世界了。
+	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityLeaveWorld,			MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,					eid)
+
+	// 服务器上的entity已经进入space了。
+	CLIENT_MESSAGE_DECLARE_ARGS2(onEntityEnterSpace,			MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,					eid,
+									SPACE_ID,					spaceID)
+
+	// 服务器上的entity已经离开space了。
+	CLIENT_MESSAGE_DECLARE_ARGS2(onEntityLeaveSpace,			MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,					eid,
+									SPACE_ID,					spaceID)
+
 	// 远程呼叫entity方法
 	CLIENT_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,			MERCURY_VARIABLE_MESSAGE)
+
+	// 服务器更新entity属性
+	CLIENT_MESSAGE_DECLARE_STREAM(onUpdatePropertys,			MERCURY_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 

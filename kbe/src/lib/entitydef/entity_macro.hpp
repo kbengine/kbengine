@@ -129,7 +129,7 @@ public:																										\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\
 			PyObject* pyVal = PyDict_GetItemString(cellData, propertyDescription->getName().c_str());		\
-			(*mstream) << (uint32)propertyDescription->getUType();											\
+			(*mstream) << propertyDescription->getUType();													\
 			propertyDescription->getDataType()->addToStream(mstream, pyVal);								\
 		}																									\
 																											\

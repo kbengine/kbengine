@@ -564,7 +564,8 @@ class MemoryStream
 template <typename T>
 inline MemoryStream &operator<<(MemoryStream &b, std::vector<T> v)
 {
-    b << (uint32)v.size();
+	uint32 vsize = v.size();
+    b << vsize;
     for (typename std::vector<T>::iterator i = v.begin(); i != v.end(); ++i)
     {
         b << *i;
@@ -590,7 +591,8 @@ inline MemoryStream &operator>>(MemoryStream &b, std::vector<T> &v)
 template <typename T>
 inline MemoryStream &operator<<(MemoryStream &b, std::list<T> v)
 {
-    b << (uint32)v.size();
+	uint32 vsize = v.size();
+    b << vsize;
     for (typename std::list<T>::iterator i = v.begin(); i != v.end(); ++i)
     {
         b << *i;
@@ -616,7 +618,8 @@ inline MemoryStream &operator>>(MemoryStream &b, std::list<T> &v)
 template <typename K, typename V>
 inline MemoryStream &operator<<(MemoryStream &b, std::map<K, V> &m)
 {
-    b << (uint32)m.size();
+	uint32 vsize = m.size();
+    b << vsize;
     for (typename std::map<K, V>::iterator i = m.begin(); i != m.end(); ++i)
     {
         b << i->first << i->second;

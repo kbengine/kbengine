@@ -1,5 +1,6 @@
 #include "baseapp.hpp"
 #include "proxy.hpp"
+#include "client_lib/client_interface.hpp"
 
 namespace KBEngine{
 
@@ -17,6 +18,7 @@ BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)
 //-------------------------------------------------------------------------------------
 Proxy::Proxy(ENTITY_ID id, ScriptModule* scriptModule):
 Base(id, scriptModule, getScriptType(), true),
+rndUUID_(KBEngine::genUUID64()),
 addr_(Mercury::Address::NONE)
 {
 }
@@ -65,7 +67,7 @@ void Proxy::onClientDeath(void)
 }
 
 //-------------------------------------------------------------------------------------
-void Proxy::onClientGetCell(void)
+void Proxy::onClientGetCell(Mercury::Channel* pChannel)
 {
 	PyObject* pyResult = PyObject_CallMethod(this, 
 		const_cast<char*>("onClientGetCell"), const_cast<char*>(""));
@@ -76,11 +78,21 @@ void Proxy::onClientGetCell(void)
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
+{
+	// 如果为None 则设置为NULL
+	Proxy* oterProxy = NULL;
+	if(pyOterProxy != Py_None)
+		oterProxy = static_cast<Proxy*>(pyOterProxy);
+	
+	giveClientTo(oterProxy);
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
 void Proxy::giveClientTo(Proxy* proxy)
 {
-	/*
 	Mercury::Channel* lpChannel = clientMailbox_->getChannel();
-	clientMailbox_->setChannel(NULL);
 	
 	if(proxy)
 	{
@@ -96,32 +108,25 @@ void Proxy::giveClientTo(Proxy* proxy)
 			return;
 		}
 
+		// 通知客户端销毁本entity
+		Mercury::Bundle bundle;
+		bundle.newMessage(ClientInterface::onEntityLeaveWorld);
+		ClientInterface::onEntityLeaveWorldArgs1::staticAddToBundle(bundle, id_);
+		mb->postMail(bundle);
 		proxy->onGiveClientToMe(lpChannel);
+		this->setClientMailbox(NULL);
+		mb->addr(Mercury::Address::NONE);
+		addr(Mercury::Address::NONE);
+		Py_DECREF(mb);
 	}
-	
-	// 通知客户端销毁本entity
-	SocketPacket* sp = new SocketPacket(OP_DESTROY_CLIENT_ENTITY, 16);
-	(*sp) << id_;
-	lpChannel->sendPacket(sp);
-	*/
 }
 
 //-------------------------------------------------------------------------------------
 void Proxy::onGiveClientToMe(Mercury::Channel* lpChannel)
 {
-	//Baseapp::getSingleton().createClientProxyEntity(lpChannel, this);
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
-{
-	// 如果为None 则设置为NULL
-	Proxy* oterProxy = NULL;
-	if(pyOterProxy != Py_None)
-		oterProxy = static_cast<Proxy*>(pyOterProxy);
-	
-	giveClientTo(oterProxy);
-	S_Return;
+	setClientMailbox(new EntityMailbox(this->scriptModule_, &lpChannel->addr(), 0, id_, MAILBOX_TYPE_CLIENT));
+	addr(lpChannel->addr());
+	Baseapp::getSingleton().createClientProxies(this);
 }
 
 //-------------------------------------------------------------------------------------

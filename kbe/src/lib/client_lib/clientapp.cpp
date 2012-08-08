@@ -166,7 +166,7 @@ void ClientApp::onLoginGatewayFailed(Mercury::Channel * pChannel, MERCURY_ERROR_
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onLoginGatewaySuccessfully(Mercury::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid)
+void ClientApp::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid)
 {
 }
 
@@ -175,8 +175,28 @@ void ClientApp::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid)
 {
 }
 
+//-------------------------------------------------------------------------------------	
+void ClientApp::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid)
+{
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientApp::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
+{
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientApp::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
+{
+}
+
 //-------------------------------------------------------------------------------------
 void ClientApp::onRemoteMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void ClientApp::onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s)
 {
 }
 

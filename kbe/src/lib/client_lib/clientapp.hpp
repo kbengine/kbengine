@@ -139,10 +139,11 @@ public:
 	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, MERCURY_ERROR_CODE failedcode);
 
 	/** 网络接口
-	   登录成功回调
+		服务器端已经创建了一个与客户端关联的代理Entity
+	   在登录时也可表达成功回调
 	   @datas: 账号entity的信息
 	*/
-	virtual void onLoginGatewaySuccessfully(Mercury::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid);
+	virtual void onCreatedProxies(Mercury::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid);
 
 	/** 网络接口
 		服务器上的entity已经进入游戏世界了
@@ -150,9 +151,29 @@ public:
 	virtual void onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid);
 
 	/** 网络接口
+		服务器上的entity已经离开游戏世界了
+	*/
+	virtual void onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid);
+
+	/** 网络接口
+		服务器上的entity已经进入space了
+	*/
+	virtual void onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid);
+
+	/** 网络接口
+		服务器上的entity已经离开space了
+	*/
+	virtual void onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid);
+
+	/** 网络接口
 		远程调用entity的方法 
 	*/
 	virtual void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		服务器更新entity属性
+	*/
+	virtual void onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s);
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID

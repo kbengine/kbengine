@@ -43,7 +43,7 @@ SCRIPT_INIT(EntityMailbox, 0, 0, 0, 0, 0)
 
 //-------------------------------------------------------------------------------------
 EntityMailbox::EntityMailbox(ScriptModule* scriptModule, const Mercury::Address* pAddr, COMPONENT_ID componentID, 
-ENTITY_ID& eid, ENTITY_MAILBOX_TYPE type):
+ENTITY_ID eid, ENTITY_MAILBOX_TYPE type):
 EntityMailboxAbstract(getScriptType(), pAddr, componentID, eid, scriptModule->getUType(), type),
 scriptModule_(scriptModule)
 {

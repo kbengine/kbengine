@@ -62,7 +62,7 @@ class RefCountable;
 class PropertyDescription : public RefCountable
 {
 public:	
-	PropertyDescription(std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
+	PropertyDescription(ENTITY_PROPERTY_UID utype, std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
 		DataType* dataType, bool isIdentifier, uint32 databaseLength, std::string defaultStr, uint8 detailLevel);
 	virtual ~PropertyDescription();
 	
@@ -85,7 +85,7 @@ public:
 	std::string& getDataTypeName(void){ return dataTypeName_; }
 	
 	/** 属性的数字类别， 用于网络上传输识别 */
-	uint32 getUType(void)const{ return utype_; }
+	ENTITY_PROPERTY_UID getUType(void)const{ return utype_; }
 	
 	/** 设置这个属性为索引键 */
 	void setIdentifier(bool isIdentifier){ isIdentifier_ = isIdentifier; }
@@ -100,31 +100,31 @@ public:
 	static uint32 getDescriptionCount(void){ return propertyDescriptionCount_; }
 	
 	/** 根据类型产生一个描述实例 */
-	static PropertyDescription* createDescription(std::string& dataTypeName, std::string& name,
+	static PropertyDescription* createDescription(ENTITY_PROPERTY_UID utype, std::string& dataTypeName, std::string& name,
 		uint32 flags, bool isPersistent, DataType* dataType, bool isIdentifier, uint32 databaseLength,
-		std::string& defaultStr, uint8& detailLevel);
+		std::string& defaultStr, uint8 detailLevel);
 	
 	/** 脚本请求设置这个属性的值 */
 	virtual int onSetValue(PyObject* parentObj, PyObject* value);	
 protected:	
-	std::string		name_;											// 这个属性的名称
-	std::string		dataTypeName_;									// 这个属性的字符串数据类别名
-	uint32			flags_;											// 这个属性的一些标志  比如 cell_public
-	bool			isPersistent_;									// 是否是一个存储到数据库的属性
-	DataType*		dataType_;										// 这个属性的数据类别
-	bool			isIdentifier_;									// 是否是一个索引键
-	uint32			databaseLength_;								// 这个属性在数据库中的长度
-	uint32			utype_;											// 这个属性的数字类别， 用于网络上传输识别
-	MemoryStream*	defaultVal_;									// 这个属性的默认值
-	int8			detailLevel_;									// 这个属性的lod详情级别 看common中的:属性的lod广播级别范围的定义
-	static uint32	propertyDescriptionCount_;						// 所有的属性描述的数量	
+	std::string					name_;											// 这个属性的名称
+	std::string					dataTypeName_;									// 这个属性的字符串数据类别名
+	uint32						flags_;											// 这个属性的一些标志  比如 cell_public
+	bool						isPersistent_;									// 是否是一个存储到数据库的属性
+	DataType*					dataType_;										// 这个属性的数据类别
+	bool						isIdentifier_;									// 是否是一个索引键
+	uint32						databaseLength_;								// 这个属性在数据库中的长度
+	ENTITY_PROPERTY_UID			utype_;											// 这个属性的数字类别， 用于网络上传输识别
+	MemoryStream*				defaultVal_;									// 这个属性的默认值
+	int8						detailLevel_;									// 这个属性的lod详情级别 看common中的:属性的lod广播级别范围的定义
+	static uint32				propertyDescriptionCount_;						// 所有的属性描述的数量	
 };
 
 class FixedDictDescription : public PropertyDescription
 {
 protected:	
 public:	
-	FixedDictDescription(std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
+	FixedDictDescription(ENTITY_PROPERTY_UID utype, std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
 		DataType* dataType, bool isIdentifier, uint32 databaseLength, std::string defaultStr, uint8 detailLevel);
 	virtual ~FixedDictDescription();
 	
@@ -136,7 +136,7 @@ class ArrayDescription : public PropertyDescription
 {
 protected:	
 public:	
-	ArrayDescription(std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
+	ArrayDescription(ENTITY_PROPERTY_UID utype, std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
 		DataType* dataType, bool isIdentifier, uint32 databaseLength, std::string defaultStr, uint8 detailLevel);
 	virtual ~ArrayDescription();
 	
@@ -147,7 +147,7 @@ public:
 class VectorDescription : public PropertyDescription
 {
 public:	
-	VectorDescription(std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
+	VectorDescription(ENTITY_PROPERTY_UID utype, std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
 		DataType* dataType, bool isIdentifier, uint32 databaseLength, std::string defaultStr, uint8 detailLevel, uint8 elemCount);
 	virtual ~VectorDescription();
 	

@@ -103,6 +103,9 @@ const char COMPONENT_CLIENT_NAME[][255] = {
 // 所有前端应用的类别
 const COMPONENT_CLIENT_TYPE ALL_CLIENT_TYPES[] = {CLIENT_TYPE_PHONE, CLIENT_TYPE_PC, CLIENT_TYPE_WEB, UNKNOWN_CLIENT_COMPONENT_TYPE};
 
+// 前端是否支持浮点数
+#define CLIENT_NO_FLOAT
+
 /** 一个cell边界能够看到另一个cell边界的最大范围 */
 #define CELL_BORDER_WIDTH					500
 	

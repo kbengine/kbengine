@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #pragma warning (disable : 4251)
 #pragma warning (disable : 4661)
 #endif
+#include "entitydef/common.hpp"	
 #include "cstdkbe/refcountable.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "pyscript/scriptobject.hpp"
@@ -180,7 +181,8 @@ MemoryStream* IntType<SPECIFY_TYPE>::parseDefaultStr(std::string defaultVal)
 template <typename SPECIFY_TYPE>
 void IntType<SPECIFY_TYPE>::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	(*mstream) << (SPECIFY_TYPE)PyLong_AsLong(pyValue);
+	SPECIFY_TYPE v = (SPECIFY_TYPE)PyLong_AsLong(pyValue);
+	(*mstream) << v;
 }
 
 //-------------------------------------------------------------------------------------

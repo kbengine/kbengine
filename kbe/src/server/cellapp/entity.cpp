@@ -131,7 +131,7 @@ void Entity::onDestroy(void)
 		// 将当前的cell部分数据打包 一起发送给base部分备份
 		SocketPacket* sp = new SocketPacket(OP_ENTITY_LOSE_CELL);
 		(*sp) << id_;
-		(*sp) << (uint32)cellDataLength;
+		(*sp) << cellDataLength;
 		if(cellDataLength > 0)
 			sp->append(strCellData.c_str(), cellDataLength);
 			
@@ -196,11 +196,11 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 		return;
 	
 	const uint32& flags = propertyDescription->getFlags();
-	uint32 utype = propertyDescription->getUType();
+	ENTITY_PROPERTY_UID utype = propertyDescription->getUType();
 
 	// 首先创建一个需要广播的模板流
 	MemoryStream* mstream = new MemoryStream();
-	(*mstream) << (uint32)utype;
+	(*mstream) << utype;
 	propertyDescription->getDataType()->addToStream(mstream, pyData);
 
 	// 判断是否需要广播给其他的cellapp, 这个还需一个前提是entity必须拥有ghost实体
@@ -446,7 +446,8 @@ void Entity::onEntityInitDetailLevel(Entity* entity, int8 detailLevel)
 
 	// 将这个entity的数据写入包中
 	(*sp) << eid;
-	(*sp) << (uint8)1;															// 表示向某客户端增加一个entity
+	bool isAdd = true;
+	(*sp) << isAdd;															// 表示向某客户端增加一个entity
 	(*sp) << id_;
 	(*sp) << this->ob_type->tp_name;
 	(*sp) << position_.x << position_.y << position_.z;
@@ -502,7 +503,7 @@ void Entity::onEntityDetailLevelChanged(const WitnessInfo* witnessInfo, int8 old
 			for(;piter != cddlog.end(); piter++)
 			{
 				PropertyDescription* propertyDescription = scriptModule_->findCellPropertyDescription((*piter));
-				(*sp) << (uint32)propertyDescription->getUType();
+				(*sp) << propertyDescription->getUType();
 				PyObject* pyVal = PyObject_GetAttrString(this, propertyDescription->getName().c_str());
 				propertyDescription->getDataType()->addToStream(sp, pyVal);
 				Py_DECREF(pyVal);

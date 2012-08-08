@@ -247,6 +247,10 @@
 				RelativePath=".\proxy.hpp"
 				>
 			</File>
+			<File
+				RelativePath=".\proxy_interface_macros.hpp"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\base.ipp"

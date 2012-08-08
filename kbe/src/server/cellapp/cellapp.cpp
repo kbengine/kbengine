@@ -394,26 +394,21 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		s.read_skip(cellDataLength);
 	}
 
-		// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
-		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
-		if(cinfos == NULL || cinfos->pChannel == NULL)
-		{
-			ForwardItem* pFI = new ForwardItem();
-			pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(entityType, createToEntityID, 
-				entityID, cellDataLength, strEntityCellData, hasClient, componentID, spaceID);
-			pFI->bundle.newMessage(BaseappInterface::onEntityGetCell);
-			BaseappInterface::onEntityGetCellArgs2::staticAddToBundle(pFI->bundle, entityID, componentID_);
-			forward_messagebuffer_.push(componentID, pFI);
-			WARNING_MSG("Cellapp::onCreateCellEntityFromBaseapp: not found baseapp, message is buffered.\n");
-			return;
-		}
+	// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
+	if(cinfos == NULL || cinfos->pChannel == NULL)
+	{
+		ForwardItem* pFI = new ForwardItem();
+		pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(entityType, createToEntityID, 
+			entityID, cellDataLength, strEntityCellData, hasClient, componentID, spaceID);
+		pFI->bundle.newMessage(BaseappInterface::onEntityGetCell);
+		BaseappInterface::onEntityGetCellArgs2::staticAddToBundle(pFI->bundle, entityID, componentID_);
+		forward_messagebuffer_.push(componentID, pFI);
+		WARNING_MSG("Cellapp::onCreateCellEntityFromBaseapp: not found baseapp, message is buffered.\n");
+		return;
+	}
 
 	_onCreateCellEntityFromBaseapp(entityType, createToEntityID, entityID, cellDataLength, strEntityCellData, hasClient, componentID, spaceID);
-
-	Mercury::Bundle bundle;
-	bundle.newMessage(BaseappInterface::onEntityGetCell);
-	BaseappInterface::onEntityGetCellArgs2::staticAddToBundle(bundle, entityID, componentID_);
-	bundle.send(this->getNetworkInterface(), cinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------
@@ -453,7 +448,13 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		space->addEntity(e);
 		e->initializeScript();
 		
-		// 如果是有client的entity则需要告知client， cell部分创建了
+		// 告知baseapp， entity的cell创建了
+		Mercury::Bundle bundle;
+		bundle.newMessage(BaseappInterface::onEntityGetCell);
+		BaseappInterface::onEntityGetCellArgs2::staticAddToBundle(bundle, entityID, componentID_);
+		bundle.send(this->getNetworkInterface(), cinfos->pChannel);
+
+		// 如果是有client的entity则设置它的clientmailbox, baseapp部分的onEntityGetCell会告知客户端enterworld.
 		if(hasClient)
 		{
 			PyObject* clientMailbox = PyObject_GetAttrString(mailbox, "client");

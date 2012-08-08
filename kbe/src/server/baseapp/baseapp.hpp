@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 // common include	
 #include "base.hpp"
+#include "proxy.hpp"
 #include "server/entity_app.hpp"
 #include "server/pendingLoginmgr.hpp"
 #include "server/forward_messagebuffer.hpp"
@@ -42,6 +43,7 @@ namespace Mercury{
 	class Channel;
 }
 
+class Proxy;
 class Baseapp :	public EntityApp<Base>, 
 				public Singleton<Baseapp>
 {
@@ -118,7 +120,7 @@ public:
 	void onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONENT_ID componentID);
 
 	/** 通知客户端创建一个proxy对应的实体 */
-	bool createClientProxyEntity(Mercury::Channel* pChannel, Base* base);
+	bool createClientProxies(Proxy* base);
 
 	/** 网络接口
 		dbmgr发送初始信息
@@ -165,9 +167,29 @@ public:
 	void onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& datas);
 
 	/** 网络接口
-		通知客户端进入了cell（世界)
+		通知客户端进入了cell（世界或者AOI)
 	*/
 	void onEntityEnterWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID);
+	
+	/**
+		客户端自身进入世界了
+	*/
+	void onClientEntityEnterWorld(Proxy* base);
+
+	/** 网络接口
+		通知客户端离开了cell（世界或者AOI)
+	*/
+	void onEntityLeaveWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID);
+
+	/** 网络接口
+		通知客户端进入了某个space
+	*/
+	void onEntityEnterSpaceFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID, SPACE_ID spaceID);
+
+	/** 网络接口
+		通知客户端离开了某个space
+	*/
+	void onEntityLeaveSpaceFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID, SPACE_ID spaceID);
 
 	/** 网络接口
 		entity收到一封mail, 由某个app上的mailbox发起
