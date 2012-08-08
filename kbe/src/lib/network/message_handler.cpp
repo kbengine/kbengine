@@ -99,7 +99,7 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	if(msgLen == MERCURY_VARIABLE_MESSAGE)
 	{
 		printf("\tMessageHandlers::add(%d): name=%s, msgID=%d, size=Variable.\n", 
-			msgHandlers_.size(), ihName.c_str(), msgHandler->msgID);
+			(int32)msgHandlers_.size(), ihName.c_str(), msgHandler->msgID);
 	}
 	else
 	{
@@ -107,7 +107,7 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 			msgHandler->msgLen = args->msgsize();
 		
 		printf("\tMessageHandlers::add(%d): name=%s, msgID=%d, size=Fixed(%d).\n", 
-				msgHandlers_.size(), ihName.c_str(), msgHandler->msgID, msgHandler->msgLen);
+				(int32)msgHandlers_.size(), ihName.c_str(), msgHandler->msgID, msgHandler->msgLen);
 	}
 
 	if(isfixedMsg)

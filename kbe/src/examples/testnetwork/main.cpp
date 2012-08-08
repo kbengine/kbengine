@@ -266,7 +266,7 @@ void init_network(void)
 		packet1.resize(65535);
 		int len = mysocket.recv(packet1.data(), 65535);
 		packet1.wpos(len);
-		UINT16 failedcode = 0;
+		uint16 failedcode = 0;
 		packet1 >> msgID;
 		packet1 >> failedcode;
 		printf("data1 size(%d) failedcode=%u.\n", len, failedcode);
