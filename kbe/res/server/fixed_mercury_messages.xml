@@ -21,19 +21,19 @@
 	</Loginapp::login>
 	
 	<Baseapp::reqClose>
-		<id>1</id>
+		<id>201</id>
 		<descr>客户端请求断线。</descr>
 	</Baseapp::reqClose>
 	
 	<Baseapp::loginGateway>
-		<id>2</id>
+		<id>202</id>
 		<descr>客户端请求登录到服务器的网关进程， 如果合法则将进入游戏。</descr>
 		<arg>STRING</arg> <!-- 账号名 -->
 		<arg>STRING</arg> <!-- 密码 -->
 	</Baseapp::loginGateway>
 	
 	<Baseapp::reLoginGateway>
-		<id>3</id>
+		<id>203</id>
 		<descr>重新登录 快速与网关建立交互关系(前提是之前已经登录了， 
 			之后断开在服务器判定该前端的Entity未超时销毁的前提下可以快速与服务器建立连接并达到操控该entity的目的)
 		</descr>
@@ -42,7 +42,7 @@
 	</Baseapp::reLoginGateway>
 	
 	<Base::onRemoteMethodCall>
-		<id>6</id>
+		<id>301</id>
 		<descr>调用一个远程方法。</descr>
 		<arg>INT32</arg> <!-- entityID -->
 		<arg>UINT16</arg> <!-- 方法ID -->
@@ -50,7 +50,7 @@
 	</Base::onRemoteMethodCall>
 
 	<Client::onCreateAccountResult>
-		<id>1</id>
+		<id>501</id>
 		<descr>创建账号成功和失败回调。</descr>
 		<arg>UINT16</arg> <!-- 错误码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
 									MERCURY_ERR_ACCOUNT_CREATE:创建失败（已经存在）, 
@@ -58,14 +58,14 @@
 	</Client::onCreateAccountResult>
 	
 	<Client::onLoginSuccessfully>
-		<id>2</id>
+		<id>502</id>
 		<descr>客户端登陆到loginapp，服务器返回成功。</descr>
 		<arg>STRING</arg> <!-- 网关ip地址 -->
 		<arg>UINT16</arg> <!-- 网关端口 -->
 	</Client::onLoginSuccessfully>
 	
 	<Client::onLoginFailed>
-		<id>3</id>
+		<id>503</id>
 		<descr>客户端登陆到loginapp，服务器返回失败。</descr>
 		<arg>UINT16</arg> <!-- 错误码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
 									MERCURY_ERR_SRV_OVERLOAD:服务器负载过重, 
@@ -73,29 +73,57 @@
 	</Client::onLoginFailed>
 	
 	<Client::onLoginGatewaySuccessfully>
-		<id>4</id>
+		<id>504</id>
 		<descr>客户端登陆到网关，服务器返回成功。</descr>
 	</Client::onLoginGatewaySuccessfully>
 	
 	<Client::onLoginGatewayFailed>
-		<id>5</id>
+		<id>505</id>
 		<descr>客户端登陆到网关，服务器返回失败。</descr>
 		<arg>UINT16</arg> <!-- 错误码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
 									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
 									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确 -->
 	</Client::onLoginGatewayFailed>
 	
-	<Client::onEntityEnterWorld>
-		<id>6</id>
-		<descr>一个entity进入世界(初次登录时第一个进入世界的是自己这个ENTITY， 其后理论是其他entity， 对比ID来判断)。</descr>
-		<arg>ENTITY_ID</arg> <!-- 进入世界的entityID int32 -->
-	</Client::onEntityEnterWorld>
-	
 	<Client::onRemoteMethodCall>
-		<id>7</id>
+		<id>506</id>
 		<descr>调用一个远程方法。</descr>
 		<arg>INT32</arg> <!-- entityID -->
 		<arg>UINT16</arg> <!-- 方法ID -->
 		<arg>UINT8_ARRAY</arg> <!-- 方法参数二进制流， 具体由方法来解析 -->
 	</Client::onRemoteMethodCall>
+	
+	<Client::onEntityEnterWorld>
+		<id>507</id>
+		<descr>一个entity进入世界(初次登录时第一个进入世界的是自己这个ENTITY， 其后理论是其他entity， 对比ID来判断)。
+			当有entity进入玩家的AOI时则会触发客户端这个接口。 (AOI: area of interest, 也可理解为服务器上可视范围)
+		</descr>
+		<arg>ENTITY_ID</arg> <!-- 进入世界的entityID int32 -->
+	</Client::onEntityEnterWorld>
+	
+	<Client::onEntityLeaveWorld>
+		<id>508</id>
+		<descr>一个entity进入世界(初次登录时第一个进入世界的是自己这个ENTITY， 其后理论是其他entity， 对比ID来判断)。
+			当有entity离开玩家的AOI时则会触发客户端这个接口。
+		</descr>
+		<arg>ENTITY_ID</arg> <!-- 进入世界的entityID int32 -->
+	</Client::onEntityLeaveWorld>
+
+	<Client::onEntityEnterSpace>
+		<id>509</id>
+		<descr>一个entity进入世界(初次登录时第一个进入世界的是自己这个ENTITY， 其后理论是其他entity， 对比ID来判断)。
+			当有entity进入玩家的AOI时则会触发客户端这个接口。 (AOI: area of interest, 也可理解为服务器上可视范围)
+		</descr>
+		<arg>SPACE_ID</arg> <!-- 一个场景的ID uint32-->
+		<arg>ENTITY_ID</arg> <!-- 进入世界的entityID int32 -->
+	</Client::onEntityEnterSpace>
+	
+	<Client::onEntityLeaveSpace>
+		<id>510</id>
+		<descr>一个entity进入世界(初次登录时第一个进入世界的是自己这个ENTITY， 其后理论是其他entity， 对比ID来判断)。
+			当有entity离开玩家的AOI时则会触发客户端这个接口。
+		</descr>
+		<arg>SPACE_ID</arg> <!-- 一个场景的ID uint32-->
+		<arg>ENTITY_ID</arg> <!-- 进入世界的entityID int32 -->
+	</Client::onEntityLeaveSpace>
 </root>
