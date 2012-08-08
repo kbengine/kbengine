@@ -1,6 +1,8 @@
 <root>
 	<gameUpdateHertz> 10 </gameUpdateHertz>
 	
+	<packet_contain_len>0</packet_contain_len>					<!-- 非0则不优化， 不带包长信息的包强制都携带长度信息， 某些情况下方便某些前端对接协议 -->
+	
 	<dbmgr>
 		<dbAccountEntityScriptType>	Account						</dbAccountEntityScriptType>
 		
@@ -22,9 +24,9 @@
 		<entryScriptFile>			kbengine					</entryScriptFile>
 		
 		<internalInterface>  </internalInterface>
-		<externalInterface>  </externalInterface>	<!-- Type: String -->
-		<externalPorts_min> 20015 </externalPorts_min>	<!-- Type: Integer -->
-		<externalPorts_max> 20019 </externalPorts_max>	<!-- Type: Integer -->
+		<externalInterface>  </externalInterface>				<!-- Type: String -->
+		<externalPorts_min> 20015 </externalPorts_min>			<!-- Type: Integer -->
+		<externalPorts_max> 20019 </externalPorts_max>			<!-- Type: Integer -->
 	</baseapp>
 	
 	<cellappmgr>
