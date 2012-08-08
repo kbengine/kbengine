@@ -47,6 +47,23 @@ bool ServerConfig::loadConfig(std::string fileName)
 		SAFE_RELEASE(xml);
 		return false;
 	}
+	
+	bool isPacketContainLen = false;
+	rootNode = xml->getRootNode("packet_contain_len");
+	if(rootNode != NULL){
+		isPacketContainLen = xml->getValInt(rootNode) != 0;
+		rootNode = NULL;
+	}
+
+	_cellAppInfo.isPacketContainLen = isPacketContainLen;
+	_baseAppInfo.isPacketContainLen = isPacketContainLen;
+	_dbmgrInfo.isPacketContainLen = isPacketContainLen;
+	_loginAppInfo.isPacketContainLen = isPacketContainLen;
+	_cellAppMgrInfo.isPacketContainLen = isPacketContainLen;
+	_baseAppMgrInfo.isPacketContainLen = isPacketContainLen;
+	_kbMachineInfo.isPacketContainLen = isPacketContainLen;
+	_kbCenterInfo.isPacketContainLen = isPacketContainLen;
+	_botsInfo.isPacketContainLen = isPacketContainLen;
 
 	rootNode = xml->getRootNode("gameUpdateHertz");
 	if(rootNode != NULL){
