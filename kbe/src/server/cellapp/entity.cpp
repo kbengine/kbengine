@@ -273,14 +273,22 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 //-------------------------------------------------------------------------------------
 void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	uint32 utype = 0;
+	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
 	
-	DEBUG_MSG("Entity::onRemoteMethodCall: entityID %d, methodType %ld.\n", 
+	DEBUG_MSG("Entity::onRemoteMethodCall: entityID %d, methodType %d.\n", 
 				id_, utype);
 	
 	MethodDescription* md = scriptModule_->findCellMethodDescription(utype);
 	
+	if(md == NULL)
+	{
+		ERROR_MSG("Entity::onRemoteMethodCall: can't found method. utype=%u, callerID:%d.\n", utype, id_);
+		return;
+	}
+
+	md->currCallerID(this->getID());
+
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
 						(md->getName().c_str()));
 

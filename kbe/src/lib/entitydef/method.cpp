@@ -80,7 +80,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 		return false;
 	}
 	
-	int offset = (isExposed() == true) ? 1 : 0;
+	int offset = (isExposed() == true && g_componentType == CELLAPP_TYPE) ? 1 : 0;
 	uint8 argsSize = argTypes_.size();
 	uint8 giveArgsSize = PyTuple_Size(args);
 
@@ -172,14 +172,14 @@ PyObject* MethodDescription::createFromStream(MemoryStream* mstream)
 	PyObject* pyArgsTuple = NULL;
 	int offset = 0;
 	
-	if(isExposed())
+	if(isExposed() && g_componentType == CELLAPP_TYPE)
 	{
 		offset = 1;
-		ENTITY_ID id = 0;
 		pyArgsTuple = PyTuple_New(argSize + offset);
-		
-		(*mstream) >> id;
-		PyTuple_SET_ITEM(&*pyArgsTuple, 0, PyLong_FromLong(id));
+
+		// 设置一个调用者ID提供给脚本判断来源是否正确
+		KBE_ASSERT(currCallerID_ > 0);
+		PyTuple_SET_ITEM(&*pyArgsTuple, 0, PyLong_FromLong(currCallerID_));
 	}
 	else
 		pyArgsTuple = PyTuple_New(argSize);

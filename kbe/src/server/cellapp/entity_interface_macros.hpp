@@ -54,7 +54,15 @@ namespace KBEngine{
 			s >> eid;															\
 			KBEngine::Entity* e =												\
 					KBEngine::Cellapp::getSingleton().findEntity(eid);			\
-			e->NAME(pChannel, s);												\
+			if(e)																\
+			{																	\
+				e->NAME(pChannel, s);											\
+			}																	\
+			else																\
+			{																	\
+				ERROR_MSG("Messagehandler::handle: can't found entityID:%d.\n",	\
+					eid);														\
+			}																	\
 	}																			\
 
 #else
@@ -101,7 +109,15 @@ namespace KBEngine{
 					KBEngine::Cellapp::getSingleton().findEntity(eid);			\
 			ARG_TYPE1 ARG_NAME1;												\
 			s >> ARG_NAME1;														\
-			e->NAME(pChannel, ARG_NAME1);										\
+			if(e)																\
+			{																	\
+				e->NAME(pChannel, ARG_NAME1);									\
+			}																	\
+			else																\
+			{																	\
+				ERROR_MSG("Messagehandler::handle: can't found entityID:%d.\n",	\
+					eid);														\
+			}																	\
 	}																			\
 
 #else

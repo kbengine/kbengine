@@ -243,14 +243,24 @@ void Base::onCreateCellFailure(void)
 //-------------------------------------------------------------------------------------
 void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	uint32 utype = 0;
+	ENTITY_ID srcEntityID = pChannel->proxyID();
+	if(srcEntityID <= 0 || srcEntityID != this->getID())
+		return;
+
+	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
 	
-	DEBUG_MSG("Base::onRemoteMethodCall: entityID %d, methodType %ld.\n", 
+	DEBUG_MSG("Base::onRemoteMethodCall: entityID %d, methodType %u.\n", 
 				id_, utype);
 	
 	MethodDescription* md = scriptModule_->findBaseMethodDescription(utype);
-	
+	if(md == NULL)
+	{
+		ERROR_MSG("Base::onRemoteMethodCall: can't found method. utype=%u, callerID:%d.\n", utype, id_);
+		return;
+	}
+
+	md->currCallerID(this->getID());
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
 						(md->getName().c_str()));
 

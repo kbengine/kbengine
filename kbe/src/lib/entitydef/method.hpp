@@ -93,12 +93,15 @@ public:
 	
 	/** 呼叫一个方法 */
 	PyObject* call(PyObject* func, PyObject* args);	
+
+	void currCallerID(ENTITY_ID eid){ currCallerID_ = eid; }
 protected:	
 	static uint32							methodDescriptionCount_;					// 所有的属性描述的数量
 	std::string								name_;										// 这个方法的名称
 	ENTITY_METHOD_UID						utype_;										// 这个方法的数字类别， 用于网络上传输识别
 	std::vector<DataType*>					argTypes_;									// 这个属性的参数类别列表
 	bool									isExposed_;									// 是否是一个暴露方法
+	ENTITY_ID								currCallerID_;								// 当前调用这个方法的调用者ID, 提供暴露方法调用时给脚本判断调用源防止作弊
 };
 
 class RemoteEntityMethod : public script::ScriptObject
