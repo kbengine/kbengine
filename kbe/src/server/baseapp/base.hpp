@@ -99,7 +99,7 @@ public:
 	void onGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID);
 
 	/** 丢失cell了的通知 */
-	void onLoseCell(PyObject* cellData);
+	void onLoseCell(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 客户端获得了cell */
 	void onClientGetCell();

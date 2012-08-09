@@ -117,6 +117,10 @@ public:
 	*/
 	void onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 	
+	/** 网络接口
+		client访问entity的cell方法由baseapp转发
+	*/
+	void onRemoteCellMethodCallFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;

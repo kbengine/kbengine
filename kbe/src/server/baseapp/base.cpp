@@ -299,11 +299,28 @@ void Base::onClientDeath()
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onLoseCell(PyObject* cellData)
+void Base::onLoseCell(Mercury::Channel* pChannel, MemoryStream& s)
 {
+	std::string strCellData;
+	uint32 cellDataLength;
+	PyObject* cellData = NULL;
+
 	S_RELEASE(cellMailbox_);
-	installCellDataAttr(cellData);
+
+	s >> cellDataLength;
 	
+	if(cellDataLength > 0)
+	{
+		strCellData.assign((char*)(s.data() + s.rpos()), cellDataLength);
+		s.read_skip(cellDataLength);
+		
+		cellData = script::Pickler::unpickle(strCellData);
+		KBE_ASSERT(cellData != NULL);
+	}
+	
+	installCellDataAttr(cellData);
+
+	// Í¨Öª½Å±¾
 	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLoseCell"), 
 																		const_cast<char*>(""));
 	if(pyResult != NULL)

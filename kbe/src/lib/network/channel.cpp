@@ -204,6 +204,7 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	pFragmentDatasRemain_ = 0;
 	currMsgID_ = 0;
 	currMsgLen_ = 0;
+	proxyID_ = 0;
 	SAFE_RELEASE_ARRAY(pFragmentDatas_);
 	SAFE_RELEASE(pFragmentStream_);
 

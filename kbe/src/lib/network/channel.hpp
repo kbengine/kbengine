@@ -142,6 +142,10 @@ public:
 
 	bool isCondemn()const { return isCondemn_; }
 	void condemn(bool b){ isCondemn_ = b; }
+
+	ENTITY_ID proxyID()const { return proxyID_; }
+	void proxyID(ENTITY_ID pid){ proxyID_ = pid; }
+
 private:
 	enum TimeOutType
 	{
@@ -197,6 +201,9 @@ private:
 
 	// 如果为true， 则该频道已经变得不合法
 	bool						isCondemn_;
+
+	// 如果是外部通道且代理了一个前端则会绑定前端代理ID
+	ENTITY_ID					proxyID_;
 };
 
 typedef SmartPointer<Channel> ChannelPtr;

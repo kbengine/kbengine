@@ -192,10 +192,15 @@ public:
 	void onEntityLeaveSpaceFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID, SPACE_ID spaceID);
 
 	/** 网络接口
-		entity收到一封mail, 由某个app上的mailbox发起
+		entity收到一封mail, 由某个app上的mailbox发起(只限与服务器内部使用， 客户端的mailbox调用方法走
+		onRemoteCellMethodCallFromClient)
 	*/
 	void onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
-
+	
+	/** 网络接口
+		client访问entity的cell方法
+	*/
+	void onRemoteCellMethodCallFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	TimerHandle							loopCheckTimerHandle_;
 	GlobalDataClient*					pGlobalBases_;								// globalBases

@@ -83,6 +83,51 @@ namespace KBEngine{
 																				\
 
 /**
+	Base消息宏，  只有零个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef BASE_MESSAGE_HANDLER_ARGS0
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(BASEAPP)
+#define BASE_MESSAGE_HANDLER_ARGS0(NAME)										\
+	void NAME##BaseMessagehandler0::handle(Mercury::Channel* pChannel,			\
+											KBEngine::MemoryStream& s)			\
+	{																			\
+			ENTITY_ID eid;														\
+			s >> eid;															\
+			KBEngine::Base* e =													\
+					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
+			e->NAME(pChannel);													\
+	}																			\
+
+#else
+#define BASE_MESSAGE_HANDLER_ARGS0(NAME)										\
+	void NAME##BaseMessagehandler0::handle(Mercury::Channel* pChannel,			\
+											KBEngine::MemoryStream& s)			\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define BASE_MESSAGE_HANDLER_ARGS0(NAME)										\
+	class NAME##BaseMessagehandler0 : public Mercury::MessageHandler			\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define BASE_MESSAGE_DECLARE_ARGS0(NAME, MSG_LENGTH)							\
+	BASE_MESSAGE_HANDLER_ARGS0(NAME)											\
+	NETWORK_MESSAGE_DECLARE_ARGS0(Base, NAME,									\
+				NAME##BaseMessagehandler0, MSG_LENGTH)							\
+																				\
+
+/**
 	Base消息宏，  只有一个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)

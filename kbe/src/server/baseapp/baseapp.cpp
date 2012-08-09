@@ -585,6 +585,9 @@ void Baseapp::onClientEntityEnterWorld(Proxy* base)
 //-------------------------------------------------------------------------------------
 bool Baseapp::createClientProxies(Proxy* base)
 {
+	// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
+	base->getClientMailbox()->getChannel()->proxyID(base->getID());
+
 	// 让客户端知道已经创建了proxices, 并初始化一部分属性
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onCreatedProxies);
@@ -878,16 +881,49 @@ void Baseapp::onEntityLeaveWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_I
 //-------------------------------------------------------------------------------------
 void Baseapp::onEntityEnterSpaceFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID, SPACE_ID spaceID)
 {
+	if(pChannel->isExternal())
+		return;
 }
 
 //-------------------------------------------------------------------------------------
 void Baseapp::onEntityLeaveSpaceFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID, SPACE_ID spaceID)
 {
+	if(pChannel->isExternal())
+		return;
 }
 
 //-------------------------------------------------------------------------------------
 void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onRemoteCellMethodCallFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	if(pChannel->isInternal())
+		return;
+
+	ENTITY_ID srcEntityID = pChannel->proxyID();
+	if(srcEntityID <= 0)
+		return;
+	
+	if(s.opsize() <= 0)
+		return;
+
+	KBEngine::Proxy* e = static_cast<KBEngine::Proxy*>
+			(KBEngine::Baseapp::getSingleton().findEntity(srcEntityID));		
+
+	if(e == NULL || e->getCellMailbox() == NULL)
+		return;
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(CellappInterface::onRemoteCellMethodCallFromClient);
+	bundle << srcEntityID;
+	bundle.append(s.data(), s.opsize());
+	
+	e->getCellMailbox()->postMail(bundle);
 }
 
 //-------------------------------------------------------------------------------------

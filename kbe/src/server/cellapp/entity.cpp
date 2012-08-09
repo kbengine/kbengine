@@ -23,9 +23,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entity.hpp"
 //#include "chunk.hpp"
 #include "space.hpp"
-
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
+
+#include "../../server/baseapp/baseapp_interface.hpp"
 
 #ifdef CODE_INLINE
 //#include "entity.ipp"
@@ -125,17 +126,18 @@ void Entity::onDestroy(void)
 		PyDict_SetItemString(cellData, const_cast<char*>("direction"), pyDirection);
 		
 		std::string strCellData = script::Pickler::pickle(cellData);
-		//uint32 cellDataLength = strCellData.length();
+		uint32 cellDataLength = strCellData.length();
 		Py_DECREF(cellData);
-		/*
+	
 		// 将当前的cell部分数据打包 一起发送给base部分备份
-		SocketPacket* sp = new SocketPacket(OP_ENTITY_LOSE_CELL);
-		(*sp) << id_;
-		(*sp) << cellDataLength;
+		Mercury::Bundle bundle;
+		bundle.newMessage(BaseappInterface::onLoseCell);
+		bundle << id_;
+		bundle << cellDataLength;
 		if(cellDataLength > 0)
-			sp->append(strCellData.c_str(), cellDataLength);
+			bundle.append(strCellData.c_str(), cellDataLength);
 			
-		baseMailbox_->post(sp);*/
+		baseMailbox_->postMail(bundle);
 	}
 }
 
@@ -785,9 +787,9 @@ PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, PyOb
 								 int32 faceMovement, int32 moveVertically)
 {
 	Position3D destination;
+
 	// 将坐标信息提取出来
 	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
-	
 	Py_INCREF(userData);
 
 	if(moveToPoint(destination, velocity, userData, faceMovement > 0, moveVertically > 0)){
