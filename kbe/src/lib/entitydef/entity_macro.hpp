@@ -46,6 +46,16 @@ namespace KBEngine{
 	SCRIPT_GETSET_DECLARE_END()																				\
 
 
+//#define CAN_DEBUG_CREATE_ENTITY
+#ifdef CAN_DEBUG_CREATE_ENTITY
+	#define DEBUG_CREATE_ENTITY_NAMESPACE																	\
+			char* ccattr = wchar2char(PyUnicode_AsWideCharString(key, NULL));								\
+			DEBUG_MSG(#CLASS"::createNamespace:add %s.\n", ccattr);											\
+
+#else
+	#define DEBUG_CREATE_ENTITY_NAMESPACE			
+#endif
+
 
 #define ENTITY_HEADER(CLASS)																				\
 protected:																									\
@@ -86,6 +96,13 @@ public:																										\
 																											\
 		while(PyDict_Next(dictData, &pos, &key, &value))													\
 		{																									\
+			DEBUG_CREATE_ENTITY_NAMESPACE																	\
+			if(PyDict_Contains(pydict, key) > 0)															\
+			{																								\
+				PyDict_SetItem(pydict, key, value);															\
+				continue;																					\
+			}																								\
+																											\
 			if(cellDataDict != NULL && PyDict_Contains(cellDataDict, key) > 0)								\
     			PyDict_SetItem(cellDataDict, key, value);													\
 			else																							\

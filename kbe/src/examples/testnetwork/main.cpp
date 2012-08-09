@@ -334,28 +334,57 @@ void init_network(void)
 		packet33 >> entityType;
 		printf("Client::onCreatedProxies: size(%d) : msgID=%u, uuid:%"PRIu64", eid=%d, entityType=%s.\n", 
 			len, msgID, uuid, eid, entityType.c_str());
+		
+		::sleep(1000);
+		
+		// 向服务器请求查询角色列表
+		Mercury::Bundle bundle44;
+		bundle44.newMessage(BaseappInterface::onRemoteMethodCall);
+		uint16 methodID = 1;
+		bundle44 << eid;
+		bundle44 << methodID;
+		bundle44.send(mysocket);
+		::sleep(3000);
 
-		//::sleep(3000);
+		// 向服务器请求创建角色
+		Mercury::Bundle bundle55;
+		bundle55.newMessage(BaseappInterface::onRemoteMethodCall);
+		methodID = 2;
+		bundle55 << eid;
+		bundle55 << methodID;
+		bundle55 << "kebiao";
+		bundle55.send(mysocket);
+		::sleep(3000);
+
+		// 向服务器请求选择某个角色进行游戏
+		Mercury::Bundle bundle66;
+		bundle66.newMessage(BaseappInterface::onRemoteMethodCall);
+		methodID = 3;
+		bundle66 << eid;
+		bundle66 << methodID;
+		bundle66 << "kebiao";
+		bundle66.send(mysocket);
+		::sleep(3000);
 
 		// 服务器端告知可销毁客户端账号entity了
-		//TCPPacket packet44;
-		//packet44.resize(65535);
-		//len = mysocket.recv(packet44.data(), 65535);
-		//packet44.wpos(len);
-		packet33 >> msgID;
-		packet33 >> eid;
+		TCPPacket packet77;
+		packet77.resize(65535);
+		len = mysocket.recv(packet77.data(), 65535);
+		packet77.wpos(len);
+		packet77 >> msgID;
+		packet77 >> eid;
 		printf("Client::onEntityDestroyed: size(%d) : msgID=%u, eid=%d.\n", 
 			len, msgID, eid);
 		
-		::sleep(1000);
+		//::sleep(3000);
 
 		// 服务器返回 Client::onCreatedProxies:服务器端已经创建了一个与客户端关联的代理player
-		//TCPPacket packet55;
-		//len = mysocket.recv(packet55.data(), 65535);
-		packet33 >> msgID;
-		packet33 >> uuid;
-		packet33 >> eid;
-		packet33 >> entityType;
+		//TCPPacket packet88;
+		//len = mysocket.recv(packet88.data(), 65535);
+		packet77 >> msgID;
+		packet77 >> uuid;
+		packet77 >> eid;
+		packet77 >> entityType;
 		printf("Client::onCreatedProxies: size(%d) : msgID=%u, uuid:%"PRIu64", eid=%d, entityType=%s.\n", 
 			len, msgID, uuid, eid, entityType.c_str());
 
