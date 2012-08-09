@@ -135,4 +135,12 @@
 		<arg>UINT32</arg> <!-- 一个场景的ID uint32-->
 		<arg>INT32</arg> <!-- 进入世界的entityID int32 -->
 	</Client::onEntityLeaveSpace>
+	
+	<Client::onUpdatePropertys>
+		<id>511</id>
+		<descr>某个entity的属性被更新了。
+		</descr>
+		<arg>INT32</arg> <!-- entityID int32 -->
+		<arg>UINT8_ARRAY</arg> <!-- 属性更新包， 需要解析 -->
+	</Client::onUpdatePropertys>
 </root>
