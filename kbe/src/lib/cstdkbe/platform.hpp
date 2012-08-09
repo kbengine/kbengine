@@ -619,11 +619,11 @@ inline uint64 genUUID64()
 	}
 	else
 	{
-		// app顺序数8位，时间戳32位， 16位随机数， 8位迭代数
+		// app顺序数8位，时间戳32位， 8位随机数， 16位迭代数
 		uint32 tv = getSystemTime();
 		uint64 appOrder = g_componentOrder;
-		static uint16 lastNum1 = rand() % 255;
-		uint32 rnd = rand() % 65535;
+		static uint16 lastNum1 = rand() % 65535;
+		uint32 rnd = rand() % 255;
 		return (appOrder << 56) + (tv << (24)) + (rnd << (8)) + lastNum1++;
 	}
 }
