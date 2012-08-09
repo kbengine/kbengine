@@ -76,6 +76,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityLeaveWorld,			MERCURY_FIXED_MESSAGE,
 									ENTITY_ID,					eid)
 
+	// 告诉客户端某个entity销毁了， 此类entity通常是还未onEntityEnterWorld。
+	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityDestroyed,				MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,					eid)
+
 	// 服务器上的entity已经进入space了。
 	CLIENT_MESSAGE_DECLARE_ARGS2(onEntityEnterSpace,			MERCURY_FIXED_MESSAGE,
 									ENTITY_ID,					eid,

@@ -156,6 +156,11 @@ public:
 	virtual void onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid);
 
 	/** 网络接口
+		告诉客户端某个entity销毁了， 此类entity通常是还未onEntityEnterWorld
+	*/
+	virtual void onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID eid);
+
+	/** 网络接口
 		服务器上的entity已经进入space了
 	*/
 	virtual void onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid);

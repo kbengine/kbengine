@@ -143,4 +143,10 @@
 		<arg>INT32</arg> <!-- entityID int32 -->
 		<arg>UINT8_ARRAY</arg> <!-- 属性更新包， 需要解析 -->
 	</Client::onUpdatePropertys>
+	
+	<Client::onEntityDestroyed>
+		<id>512</id>
+		<descr>告诉客户端某个entity销毁了， 此类entity通常是还未onEntityEnterWorld。</descr>
+		<arg>INT32</arg> <!-- entityID int32 -->
+	</Client::onEntityDestroyed>
 </root>

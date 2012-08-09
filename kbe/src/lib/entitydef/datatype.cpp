@@ -432,7 +432,8 @@ MemoryStream* StringType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void StringType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	//(*mstream) << PyUnicode_AsUnicode(pyValue);
+	char* ccattr = wchar2char(PyUnicode_AsWideCharString(pyValue, NULL));
+	(*mstream) << ccattr;
 }
 
 //-------------------------------------------------------------------------------------

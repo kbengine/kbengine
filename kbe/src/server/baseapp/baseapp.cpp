@@ -592,7 +592,7 @@ bool Baseapp::createClientProxies(Proxy* base)
 	bundle << base->getID();
 	bundle << base->ob_type->tp_name;
 	
-	bundle.newMessage(ClientInterface::onUpdatePropertys);
+	bool hasAddUpdatePropertysFlag = false;
 
 	// 获得base部分关联的客户端属性数据， 准备传送到客户端初始化entity
 	PyObject* pydict = PyObject_GetAttrString(base, "__dict__");
@@ -606,12 +606,20 @@ bool Baseapp::createClientProxies(Proxy* base)
 			
 	    if(PyDict_Contains(pydict, key) > 0)
 	    {
+			if(!hasAddUpdatePropertysFlag)
+			{
+				bundle.newMessage(ClientInterface::onUpdatePropertys);
+				hasAddUpdatePropertysFlag = true;
+			}
+
 	    	bundle << propertyDescription->getUType();
 			MemoryStream s;
 	    	propertyDescription->getDataType()->addToStream(&s, PyDict_GetItem(pydict, key));
 
 			if(s.wpos() > 0)
+			{
 				bundle.append(s.data(), s.wpos());
+			}
 	    }
 	}
 	

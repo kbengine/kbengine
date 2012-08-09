@@ -190,6 +190,11 @@ void ClientApp::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID
 {
 }
 
+//-------------------------------------------------------------------------------------	
+void ClientApp::onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID eid)
+{
+}
+
 //-------------------------------------------------------------------------------------
 void ClientApp::onRemoteMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {

@@ -272,7 +272,7 @@ void init_network(void)
 		uint16 failedcode = 0;
 		packet1 >> msgID;
 		packet1 >> failedcode;
-		printf("data1 size(%d) failedcode=%u.\n", len, failedcode);
+		printf("Client::onCreateAccountResult: size(%d) failedcode=%u.\n", len, failedcode);
 		::sleep(1000);
 
 		// 提交账号密码请求登录
@@ -298,7 +298,7 @@ void init_network(void)
 		packet2 >> msgLength;
 		packet2 >> ip;
 		packet2 >> iport;
-		printf("data2 size(%d) ip:%s, port=%u.\n", len, ip.c_str(), iport);
+		printf("Client::onLoginSuccessfully: size(%d) ip:%s, port=%u.\n", len, ip.c_str(), iport);
 
 		// 连接网关
 		mysocket.close();
@@ -319,6 +319,7 @@ void init_network(void)
 		bundle3.send(mysocket);
 		::sleep(3000);
 
+		// 服务器返回 Client::onCreatedProxies:服务器端已经创建了一个与客户端关联的代理Entity
 		TCPPacket packet33;
 		packet33.resize(65535);
 		len = mysocket.recv(packet33.data(), 65535);
@@ -326,11 +327,38 @@ void init_network(void)
 
 		uint64 uuid;
 		ENTITY_ID eid;
+		std::string entityType;
 		packet33 >> msgID;
 		packet33 >> uuid;
 		packet33 >> eid;
+		packet33 >> entityType;
+		printf("Client::onCreatedProxies: size(%d) : msgID=%u, uuid:%"PRIu64", eid=%d, entityType=%s.\n", 
+			len, msgID, uuid, eid, entityType.c_str());
 
-		printf("data2 size(%d) : msgID=%u, uuid:%"PRIu64", eid=%d.\n", len, msgID, uuid, eid);
+		//::sleep(3000);
+
+		// 服务器端告知可销毁客户端账号entity了
+		//TCPPacket packet44;
+		//packet44.resize(65535);
+		//len = mysocket.recv(packet44.data(), 65535);
+		//packet44.wpos(len);
+		packet33 >> msgID;
+		packet33 >> eid;
+		printf("Client::onEntityDestroyed: size(%d) : msgID=%u, eid=%d.\n", 
+			len, msgID, eid);
+		
+		::sleep(1000);
+
+		// 服务器返回 Client::onCreatedProxies:服务器端已经创建了一个与客户端关联的代理player
+		//TCPPacket packet55;
+		//len = mysocket.recv(packet55.data(), 65535);
+		packet33 >> msgID;
+		packet33 >> uuid;
+		packet33 >> eid;
+		packet33 >> entityType;
+		printf("Client::onCreatedProxies: size(%d) : msgID=%u, uuid:%"PRIu64", eid=%d, entityType=%s.\n", 
+			len, msgID, uuid, eid, entityType.c_str());
+
 		::sleep(5000);
 	};
 }

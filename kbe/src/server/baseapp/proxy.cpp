@@ -118,7 +118,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 
 		// 通知客户端销毁本entity
 		Mercury::Bundle bundle;
-		bundle.newMessage(ClientInterface::onEntityLeaveWorld);
+		bundle.newMessage(ClientInterface::onEntityDestroyed);
 		ClientInterface::onEntityLeaveWorldArgs1::staticAddToBundle(bundle, id_);
 		bundle.send(Baseapp::getSingleton().getNetworkInterface(), lpChannel);
 
