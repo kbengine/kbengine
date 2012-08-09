@@ -1,7 +1,10 @@
 <root>
 	<gameUpdateHertz> 10 </gameUpdateHertz>
 	
-	<packetAlwaysContainLength>0</packetAlwaysContainLength>					<!-- 非0则不优化， 不带包长信息的包强制都携带长度信息， 某些情况下方便某些前端对接协议 -->
+	<!-- 非0则不优化， 不带包长信息的包强制都携带长度信息， 某些情况下方便某些前端对接协议
+	什么样的包不带长度信息? 所有能够预先计算出包大小的且永远不变的包不带长度信息， 
+	如果有可变字符串参数则一定需要带长度信息 -->
+	<packetAlwaysContainLength>0</packetAlwaysContainLength>
 	
 	<dbmgr>
 		<dbAccountEntityScriptType>	Account						</dbAccountEntityScriptType>

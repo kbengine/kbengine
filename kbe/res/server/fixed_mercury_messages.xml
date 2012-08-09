@@ -41,14 +41,22 @@
 		<arg>INT32</arg> <!-- ENTITY_ID -->
 	</Baseapp::reLoginGateway>
 	
+	<Baseapp::onRemoteCellMethodCallFromClient>
+		<id>205</id>
+		<descr>调用一个cell远程方法。</descr>
+		<arg>INT32</arg> <!-- entityID -->
+
+		<arg>UINT8_ARRAY</arg> <!-- 方法参数二进制流， 具体由方法来解析 -->
+	</Baseapp::onRemoteCellMethodCallFromClient>
+	
 	<Base::onRemoteMethodCall>
 		<id>301</id>
-		<descr>调用一个远程方法。</descr>
+		<descr>调用一个base远程方法。</descr>
 		<arg>INT32</arg> <!-- entityID -->
 		<arg>UINT16</arg> <!-- 方法ID -->
 		<arg>UINT8_ARRAY</arg> <!-- 方法参数二进制流， 具体由方法来解析 -->
 	</Base::onRemoteMethodCall>
-
+	
 	<Proxy::onClientGetCell>
 		<id>401</id>
 		<descr>服务器将cell信息初始化给客户端后， 客户端应该告知服务器这个回调供服务器确定。
