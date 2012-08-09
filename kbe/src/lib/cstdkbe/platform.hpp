@@ -607,7 +607,7 @@ extern COMPONENT_ORDER g_componentOrder;
 
 inline uint64 genUUID64()
 {
-	srand((unsigned) time(NULL));
+	srand(getSystemTime());
 	
 	if(g_componentOrder <= 0)
 	{
