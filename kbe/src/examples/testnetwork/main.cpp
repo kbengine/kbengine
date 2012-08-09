@@ -241,6 +241,7 @@ void init_network(void)
 		if(port == 0)
 			std::cin >> port;
 		
+		// 连接游戏登陆进程
 		u_int32_t address;
 		std::string ip = "192.168.4.39";
 		mysocket.convertAddress(ip.c_str(), address );
@@ -251,6 +252,7 @@ void init_network(void)
 			continue;
 		}
 		
+		// 请求创建账号
 		mysocket.setnodelay(true);
 		mysocket.setnonblocking(false);
 		MessageID msgID = 0;
@@ -262,6 +264,7 @@ void init_network(void)
 		bundle1.send(mysocket);
 		::sleep(1000);
 
+		// 创建账号成功 failedcode == 0
 		TCPPacket packet1;
 		packet1.resize(65535);
 		int len = mysocket.recv(packet1.data(), 65535);
@@ -272,11 +275,7 @@ void init_network(void)
 		printf("data1 size(%d) failedcode=%u.\n", len, failedcode);
 		::sleep(1000);
 
-		Mercury::Bundle bundle11;
-		bundle11.newMessage(LoginappInterface::reqClose);
-		bundle11.send(mysocket);
-		::sleep(1000);
-
+		// 提交账号密码请求登录
 		Mercury::Bundle bundle2;
 		bundle2.newMessage(LoginappInterface::login);
 		int8 tclient = 1;
@@ -287,6 +286,7 @@ void init_network(void)
 		bundle2.send(mysocket);
 		::sleep(1000);
 
+		// 获取返回的网关ip地址
 		TCPPacket packet2;
 		packet2.resize(65535);
 		len = mysocket.recv(packet2.data(), 65535);
@@ -300,11 +300,7 @@ void init_network(void)
 		packet2 >> iport;
 		printf("data2 size(%d) ip:%s, port=%u.\n", len, ip.c_str(), iport);
 
-		Mercury::Bundle bundle22;
-		bundle22.newMessage(LoginappInterface::reqClose);
-		bundle22.send(mysocket);
-		::sleep(1000);
-
+		// 连接网关
 		mysocket.close();
 		mysocket.socket(SOCK_STREAM);
 		mysocket.convertAddress(ip.c_str(), address );
@@ -314,13 +310,14 @@ void init_network(void)
 			port = 0;
 			continue;
 		}
-
+		
+		// 请求登录网关
 		Mercury::Bundle bundle3;
 		bundle3.newMessage(BaseappInterface::loginGateway);
 		bundle3 << "kebiao";
 		bundle3 << "123456";
 		bundle3.send(mysocket);
-		::sleep(1000);
+		::sleep(3000);
 
 		TCPPacket packet33;
 		packet33.resize(65535);
@@ -333,7 +330,7 @@ void init_network(void)
 		packet33 >> uuid;
 		packet33 >> eid;
 
-		printf("data2 size(%d) uuid:%"PRIu64", eid=%d.\n", len, uuid, eid);
+		printf("data2 size(%d) : msgID=%u, uuid:%"PRIu64", eid=%d.\n", len, msgID, uuid, eid);
 		::sleep(5000);
 	};
 }

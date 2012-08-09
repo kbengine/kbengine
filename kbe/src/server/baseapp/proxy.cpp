@@ -93,7 +93,15 @@ PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
 void Proxy::giveClientTo(Proxy* proxy)
 {
 	Mercury::Channel* lpChannel = clientMailbox_->getChannel();
-	
+	if(lpChannel == NULL)
+	{
+		char err[255];																				
+		sprintf(err, "Proxy[%s]::giveClientTo: no has client.\n", getScriptName());			
+		PyErr_SetString(PyExc_TypeError, err);														
+		PyErr_PrintEx(0);	
+		return;
+	}
+
 	if(proxy)
 	{
 		EntityMailbox* mb = proxy->getClientMailbox();
@@ -112,17 +120,18 @@ void Proxy::giveClientTo(Proxy* proxy)
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onEntityLeaveWorld);
 		ClientInterface::onEntityLeaveWorldArgs1::staticAddToBundle(bundle, id_);
-		mb->postMail(bundle);
-		proxy->onGiveClientToMe(lpChannel);
-		this->setClientMailbox(NULL);
-		mb->addr(Mercury::Address::NONE);
+		bundle.send(Baseapp::getSingleton().getNetworkInterface(), lpChannel);
+
+		Py_DECREF(getClientMailbox());
+		proxy->onGiveClientTo(lpChannel);
+		getClientMailbox()->addr(Mercury::Address::NONE);
+		setClientMailbox(NULL);
 		addr(Mercury::Address::NONE);
-		Py_DECREF(mb);
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void Proxy::onGiveClientToMe(Mercury::Channel* lpChannel)
+void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
 {
 	setClientMailbox(new EntityMailbox(this->scriptModule_, &lpChannel->addr(), 0, id_, MAILBOX_TYPE_CLIENT));
 	addr(lpChannel->addr());

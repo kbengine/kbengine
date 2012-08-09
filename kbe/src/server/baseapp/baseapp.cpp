@@ -575,8 +575,10 @@ void Baseapp::onClientEntityEnterWorld(Proxy* base)
 	// 服务器已经确定创建cell部分实体了， 我们可以从celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
 	MemoryStream s;
 	base->getCellDataByFlags(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, &s);
+	
+	if(s.wpos() > 0)
+		bundle.append(s.data(), s.wpos());
 
-	bundle.append(s.data(), s.wpos());
 	base->getClientMailbox()->postMail(bundle);
 }
 
@@ -607,7 +609,9 @@ bool Baseapp::createClientProxies(Proxy* base)
 	    	bundle << propertyDescription->getUType();
 			MemoryStream s;
 	    	propertyDescription->getDataType()->addToStream(&s, PyDict_GetItem(pydict, key));
-			bundle.append(s.data(), s.wpos());
+
+			if(s.wpos() > 0)
+				bundle.append(s.data(), s.wpos());
 	    }
 	}
 	
@@ -809,7 +813,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, std::string&
 	{
 		// 创建entity的客户端mailbox
 		EntityMailbox* entityClientMailbox = new EntityMailbox(base->getScriptModule(), 
-			&pChannel->addr(), 0, base->getID(), MAILBOX_TYPE_CLIENT);
+			&pClientChannel->addr(), 0, base->getID(), MAILBOX_TYPE_CLIENT);
 
 		base->setClientMailbox(entityClientMailbox);
 		base->addr(pChannel->addr());
