@@ -28,7 +28,7 @@ class Avatar(KBEngine.Proxy):
 		KBEngine method.
 		entity的cell部分实体被创建成功
 		"""
-		DEBUG_MSG('%s' % self.cell)
+		DEBUG_MSG('Avatar::onGetCell: %s' % self.cell)
 		
 	def createCell(self, space):
 		"""

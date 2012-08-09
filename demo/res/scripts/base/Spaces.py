@@ -36,7 +36,7 @@ class Spaces(GameObject):
 		"""
 		一个space创建好后的回调
 		"""
-		DEBUG_MSG("create space %s. entityID=%i" % (spaceName, space.id))
+		DEBUG_MSG("Spaces::create space %s. entityID=%i" % (spaceName, space.id))
 		self._spaces[spaceName] = space
 		
 	def loginToSpace(self, avatarMailbox, spaceName):
@@ -46,7 +46,7 @@ class Spaces(GameObject):
 		"""
 		space = self._spaces.get(spaceName)
 		if spaceName not in self._spaces:
-			ERROR_MSG("not found space %s. login to space is failed!" % spaceName)
+			ERROR_MSG("Spaces::not found space %s. login to space is failed!" % spaceName)
 			return
 		
 		space.onLoginToSpace(avatarMailbox)
