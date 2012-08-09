@@ -134,7 +134,7 @@ void Bundle::finish(bool issend)
 	currMsgLength_ += pCurrPacket_->totalSize();
 
 	// 此处对于非固定长度的消息来说需要设置它的最终长度信息
-	if(currMsgHandlerLength_ < 0)
+	if(currMsgHandlerLength_ < 0 || g_packetAlwaysContainLength)
 	{
 		Packet* pPacket = pCurrPacket_;
 		if(currMsgPacketCount_ > 0)

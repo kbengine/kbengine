@@ -41,6 +41,10 @@ typedef uint16	MessageLength; // 最大65535
 typedef int32	ChannelID;
 const ChannelID CHANNEL_ID_NULL = 0;
 
+// 这个开关设置数据包是否总是携带长度信息， 这样在某些前端进行耦合时提供一些便利
+// 如果为false则一些固定长度的数据包不携带长度信息， 由对端自行解析
+extern bool g_packetAlwaysContainLength;
+
 namespace udp{
 }
 

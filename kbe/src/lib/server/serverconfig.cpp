@@ -20,13 +20,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "serverconfig.hpp"
+#include "network/common.hpp"
 #include "network/address.hpp"
 
 namespace KBEngine{
 KBE_SINGLETON_INIT(ServerConfig);
 
 //-------------------------------------------------------------------------------------
-ServerConfig::ServerConfig()
+ServerConfig::ServerConfig():
+gameUpdateHertz_(10)
 {
 }
 
@@ -48,22 +50,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		return false;
 	}
 	
-	bool isPacketContainLen = false;
-	rootNode = xml->getRootNode("packet_contain_len");
+	rootNode = xml->getRootNode("packetAlwaysContainLength");
 	if(rootNode != NULL){
-		isPacketContainLen = xml->getValInt(rootNode) != 0;
+		Mercury::g_packetAlwaysContainLength = xml->getValInt(rootNode) != 0;
 		rootNode = NULL;
 	}
-
-	_cellAppInfo.isPacketContainLen = isPacketContainLen;
-	_baseAppInfo.isPacketContainLen = isPacketContainLen;
-	_dbmgrInfo.isPacketContainLen = isPacketContainLen;
-	_loginAppInfo.isPacketContainLen = isPacketContainLen;
-	_cellAppMgrInfo.isPacketContainLen = isPacketContainLen;
-	_baseAppMgrInfo.isPacketContainLen = isPacketContainLen;
-	_kbMachineInfo.isPacketContainLen = isPacketContainLen;
-	_kbCenterInfo.isPacketContainLen = isPacketContainLen;
-	_botsInfo.isPacketContainLen = isPacketContainLen;
 
 	rootNode = xml->getRootNode("gameUpdateHertz");
 	if(rootNode != NULL){

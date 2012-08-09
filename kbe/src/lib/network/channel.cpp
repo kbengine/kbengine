@@ -384,7 +384,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					
 					if(currMsgLen_ == 0)
 					{
-						if(pMsgHandler->msgLen == MERCURY_VARIABLE_MESSAGE)
+						if(pMsgHandler->msgLen == MERCURY_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
 						{
 							// 如果长度信息不完整， 则等待下一个包处理
 							if(pPacket->opsize() < MERCURY_MESSAGE_LENGTH_SIZE)

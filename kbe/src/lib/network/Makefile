@@ -5,6 +5,7 @@ SRCS =				\
 	bundle_broadcast	\
 	bundle			\
 	channel			\
+	common			\
 	delayed_channels	\
 	error_reporter		\
 	event_dispatcher	\

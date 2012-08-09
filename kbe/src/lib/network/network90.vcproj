@@ -169,6 +169,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\common.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\delayed_channels.cpp"
 				>
 			</File>

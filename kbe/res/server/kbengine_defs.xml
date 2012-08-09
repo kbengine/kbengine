@@ -1,7 +1,7 @@
 <root>
 	<gameUpdateHertz> 10 </gameUpdateHertz>
 	
-	<packet_contain_len>0</packet_contain_len>					<!-- 非0则不优化， 不带包长信息的包强制都携带长度信息， 某些情况下方便某些前端对接协议 -->
+	<packetAlwaysContainLength>0</packetAlwaysContainLength>					<!-- 非0则不优化， 不带包长信息的包强制都携带长度信息， 某些情况下方便某些前端对接协议 -->
 	
 	<dbmgr>
 		<dbAccountEntityScriptType>	Account						</dbAccountEntityScriptType>

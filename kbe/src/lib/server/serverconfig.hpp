@@ -71,8 +71,6 @@ typedef struct EngineComponentInfo
 	char externalInterface[MAX_NAME];						// 外部网卡接口名称
 	int32 externalPorts_min;								// 对外socket端口使用指定范围
 	int32 externalPorts_max;
-
-	bool isPacketContainLen;								// 非0则不优化， 不带包长信息的包强制都携带长度信息， 某些情况下方便某些前端对接协议
 }ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>
