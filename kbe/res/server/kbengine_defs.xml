@@ -6,6 +6,14 @@
 	如果有可变字符串参数则一定需要带长度信息 -->
 	<packetAlwaysContainLength>0</packetAlwaysContainLength>
 	
+	<!-- 是否需要将任何接收和发送的包以文本输出到log中提供调试
+		0: 不输出
+		1: 16进制输出
+		2: 字符形式输出
+		3: 流输出
+	-->
+	<trace_packet>0</trace_packet>
+	
 	<dbmgr>
 		<dbAccountEntityScriptType>	Account						</dbAccountEntityScriptType>
 		

@@ -8,6 +8,7 @@ Also see acknowledgements in Readme.html
 You may use this sample code for anything you like, it is not covered by the
 same license as the rest of the engine.
 */
+
 #include "cstdkbe/cstdkbe.hpp"
 #include "network/address.hpp"
 #include "network/endpoint.hpp"
@@ -19,6 +20,7 @@ same license as the rest of the engine.
 #include "network/error_reporter.hpp"
 #include "network/bundle.hpp"
 #include "network/fixed_messages.hpp"
+#include "network/common.hpp"
 
 #undef DEFINE_IN_INTERFACE
 #include "baseappmgr/baseappmgr_interface.hpp"
@@ -58,8 +60,6 @@ using namespace KBEngine::Mercury;
 Address address;
 EndPoint mysocket;
 EventDispatcher gdispatcher;
-
-
 
 class MyPacketReceiver : public InputNotificationHandler
 {
@@ -214,6 +214,8 @@ MyPacketReceiver* packetReceiver;
 
 void init_network(void)
 {
+	Mercury::g_trace_packet = 3;
+
 	mysocket.close();
 	mysocket.socket(SOCK_DGRAM);
 	mysocket.setbroadcast(true);

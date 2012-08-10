@@ -492,37 +492,63 @@ class MemoryStream
 		/** 输出流数据 */
         void print_storage() const
         {
-            DEBUG_MSG("STORAGE_SIZE: %lu\n", (unsigned long)size());
-            for(uint32 i = 0; i < size(); ++i)
-                PRINT_MSG("%u - \n", read<uint8>(i));
-            PRINT_MSG(" ");
+			char buf[1024];
+			std::string fbuffer;
+
+			sprintf(buf, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
+			fbuffer += buf;
+
+            for(uint32 i = 0; i < wpos(); ++i)
+			{
+				sprintf(buf, "%u ", read<uint8>(i));
+				fbuffer += buf;
+			}
+
+			fbuffer += " \n";
+            DEBUG_MSG(fbuffer.c_str());
         }
 
 		/** 输出流数据字符串 */
         void textlike() const
         {
-            DEBUG_MSG("STORAGE_SIZE: %lu\n", (unsigned long)size());
-            for(uint32 i = 0; i < size(); ++i)
-                PRINT_MSG("%c", read<uint8>(i));
-            PRINT_MSG(" ");
+			char buf[1024];
+			std::string fbuffer;
+
+			sprintf(buf, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
+			fbuffer += buf;
+
+            for(uint32 i = 0; i < wpos(); ++i)
+			{
+				sprintf(buf, "%c", read<uint8>(i));
+				fbuffer += buf;
+			}
+
+			fbuffer += " \n";
+            DEBUG_MSG(fbuffer.c_str());
         }
 
         void hexlike() const
         {
             uint32 j = 1, k = 1;
-            DEBUG_MSG("STORAGE_SIZE: %lu\n", (unsigned long)size());
+			char buf[1024];
+			std::string fbuffer;
 
-            for(uint32 i = 0; i < size(); ++i)
+			sprintf(buf, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
+			fbuffer += buf;
+
+            for(uint32 i = 0; i < wpos(); ++i)
             {
                 if ((i == (j * 8)) && ((i != (k * 16))))
                 {
                     if (read<uint8>(i) < 0x10)
                     {
-                        PRINT_MSG("| 0%X ", read<uint8>(i));
+						sprintf(buf, "| 0%X ", read<uint8>(i));
+						fbuffer += buf;
                     }
                     else
                     {
-                        PRINT_MSG("| %X ", read<uint8>(i));
+						sprintf(buf, "| %X ", read<uint8>(i));
+						fbuffer += buf;
                     }
                     ++j;
                 }
@@ -530,13 +556,13 @@ class MemoryStream
                 {
                     if (read<uint8>(i) < 0x10)
                     {
-                        PRINT_MSG("\n");
-                        PRINT_MSG("0%X ", read<uint8>(i));
+						sprintf(buf, "\n0%X ", read<uint8>(i));
+						fbuffer += buf;
                     }
                     else
                     {
-                        PRINT_MSG("\n");
-                        PRINT_MSG("%X ", read<uint8>(i));
+						sprintf(buf, "\n%X ", read<uint8>(i));
+						fbuffer += buf;
                     }
 
                     ++k;
@@ -546,15 +572,21 @@ class MemoryStream
                 {
                     if (read<uint8>(i) < 0x10)
                     {
-                        PRINT_MSG("0%X ", read<uint8>(i));
+						sprintf(buf, "0%X ", read<uint8>(i));
+						fbuffer += buf;
                     }
                     else
                     {
-                        PRINT_MSG("%X ", read<uint8>(i));
+						sprintf(buf, "%X ", read<uint8>(i));
+						fbuffer += buf;
                     }
                 }
             }
-            PRINT_MSG("\n");
+
+			sprintf(buf, "\n");
+			fbuffer += buf;
+
+			DEBUG_MSG(fbuffer.c_str());
         }
     protected:
         size_t rpos_, wpos_;

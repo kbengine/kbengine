@@ -26,6 +26,7 @@ namespace Mercury
 {
 
 bool g_packetAlwaysContainLength = false;
+uint8 g_trace_packet = 0;
 
 //-------------------------------------------------------------------------------------
 }

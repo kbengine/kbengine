@@ -355,6 +355,8 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 		for(; packetIter != bufferedReceives_.end(); packetIter++)
 		{
 			Packet* pPacket = (*packetIter).get();
+			TRACE_BUNDLE_DATA(pPacket);
+
 			while(pPacket->totalSize() > 0)
 			{
 				if(fragmentDatasFlag_ == 0)

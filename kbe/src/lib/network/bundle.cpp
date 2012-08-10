@@ -30,6 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "bundle.ipp"
 #endif
 
+
 #define BUNDLE_SEND_OP(op)																					\
 	finish();																								\
 																											\
@@ -151,6 +152,7 @@ void Bundle::finish(bool issend)
 	if(issend)
 	{
 		currMsgHandlerLength_ = 0;
+		TRACE_BUNDLE_DATA(pCurrPacket_);
 		pCurrPacket_ = NULL;
 	}
 

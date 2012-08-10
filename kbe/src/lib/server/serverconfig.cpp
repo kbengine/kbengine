@@ -56,6 +56,16 @@ bool ServerConfig::loadConfig(std::string fileName)
 		rootNode = NULL;
 	}
 
+	rootNode = xml->getRootNode("trace_packet");
+	if(rootNode != NULL)
+	{
+		Mercury::g_trace_packet = xml->getValInt(rootNode);
+		rootNode = NULL;
+
+		if(Mercury::g_trace_packet > 3)
+			Mercury::g_trace_packet = 0;
+	}
+
 	rootNode = xml->getRootNode("gameUpdateHertz");
 	if(rootNode != NULL){
 		gameUpdateHertz_ = xml->getValInt(rootNode);

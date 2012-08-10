@@ -39,15 +39,34 @@ class Channel;
 
 #define PACKET_MAX_CHUNK_SIZE() isTCPPacket_ ? PACKET_MAX_SIZE_TCP : PACKET_MAX_SIZE_UDP;
 
-#define PACKET_OUT_VALUE(v)						\
-		if(packets_.size() <= 0)				\
-			return *this;						\
-												\
-        (*packets_[0]) >> v;					\
-		if(packets_[0]->opsize() == 0)			\
-			packets_.erase(packets_.begin());	\
-												\
-		return *this;							\
+#define PACKET_OUT_VALUE(v)																					\
+	if(packets_.size() <= 0)																				\
+		return *this;																						\
+																											\
+    (*packets_[0]) >> v;																					\
+	if(packets_[0]->opsize() == 0)																			\
+		packets_.erase(packets_.begin());																	\
+																											\
+	return *this;																							\
+
+
+#define TRACE_BUNDLE_DATA(bundle)																			\
+	if(Mercury::g_trace_packet > 0)																			\
+	{																										\
+		switch(Mercury::g_trace_packet)																		\
+		{																									\
+		case 1:																								\
+			bundle->hexlike();																				\
+			break;																							\
+		case 2:																								\
+			bundle->textlike();																				\
+			break;																							\
+		default:																							\
+			bundle->print_storage();																		\
+			break;																							\
+		};																									\
+	}																										\
+
 
 class Bundle
 {
@@ -84,6 +103,7 @@ public:
 		int32 totalsize = (int32)pCurrPacket_->totalSize();
 		if((totalsize > 0) && (totalsize + size > packetmaxsize))
 		{
+			TRACE_BUNDLE_DATA(pCurrPacket_);
 			packets_.push_back(pCurrPacket_);
 			currMsgPacketCount_++;
 			currMsgLength_ += pCurrPacket_->totalSize();
