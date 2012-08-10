@@ -95,6 +95,9 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths, const c
 	}  
 
 	Py_SetPath(pyPaths.c_str()); 
+	char* tmpchar = wchar2char(const_cast<wchar_t*>(pyPaths.c_str()));
+	DEBUG_MSG("Script::install: paths=%s.\n", tmpchar);
+	free(tmpchar);
 #endif
 	// Initialise python
 	// Py_VerboseFlag = 2;

@@ -276,7 +276,8 @@ bool EntityApp<E>::installPyScript()
 
 	tbuf = KBEngine::char2wchar(const_cast<char*>(kbe_res_path.c_str()));
 	bool ret = getScript().install(tbuf, pyPaths, "KBEngine", componentType_);
-	free(tbuf);
+	// 此处经测试传入python之后被python释放了
+	// free(tbuf);
 	return ret;
 }
 
