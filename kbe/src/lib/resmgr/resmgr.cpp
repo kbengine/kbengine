@@ -18,21 +18,62 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "resmgr.hpp"
 
 namespace KBEngine{
-KBE_SINGLETON_INIT(ResMgr);
+KBE_SINGLETON_INIT(Resmgr);
+
+Resmgr g_resMgr;
 
 //-------------------------------------------------------------------------------------
-ResMgr::ResMgr()
+Resmgr::Resmgr()
 {
 }
 
 //-------------------------------------------------------------------------------------
-ResMgr::~ResMgr()
+Resmgr::~Resmgr()
 {
 }
+
+//-------------------------------------------------------------------------------------
+bool Resmgr::initialize()
+{
+	// 获取引擎环境配置
+	kb_env_.root			= getenv("KBE_ROOT") == NULL ? "" : getenv("KBE_ROOT");
+	kb_env_.res_path		= getenv("KBE_RES_PATH") == NULL ? "" : getenv("KBE_RES_PATH"); 
+	kb_env_.hybrid_path		= getenv("KBE_HYBRID_PATH") == NULL ? "" : getenv("KBE_HYBRID_PATH"); 
+
+	INFO_MSG("Resmgr::initialize: KBE_ROOT=%s\n", kb_env_.root.c_str());
+	INFO_MSG("Resmgr::initialize: KBE_RES_PATH=%s\n", kb_env_.res_path.c_str());
+	INFO_MSG("Resmgr::initialize: KBE_HYBRID_PATH=%s\n", kb_env_.hybrid_path.c_str());
+
+	//kb_env_.root				= "d:/kbengine/";
+	//kb_env_.res_path			= "d:/kbengine/kbe/res/;d:/kbengine/demo/;d:/kbengine/demo/res/"; 
+	//kb_env_.hybrid_path		= "d:/kbengine/kbe/bin/Hybrid/"; 
+
+	std::string tbuf = kb_env_.res_path;
+	kbe_split<char>(tbuf, ';', respaths_);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+std::string Resmgr::matchRes(std::string path)
+{
+	std::vector<std::string>::iterator iter = respaths_.begin();
+
+	for(; iter != respaths_.end(); iter++)
+	{
+		std::string fpath = ((*iter) + path);
+		FILE * f = fopen (fpath.c_str(), "r");
+		if(f != NULL)
+		{
+			fclose(f);
+			return fpath;
+		}
+	}
+	return "";
+}
+
 
 //-------------------------------------------------------------------------------------		
 }

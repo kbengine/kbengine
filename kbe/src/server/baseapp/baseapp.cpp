@@ -657,7 +657,7 @@ void Baseapp::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 	pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onBaseAppReady"), 
 										const_cast<char*>("i"), 
-										startGroupOrder == 1 ? 1 : 0);
+										startGroupOrder);
 
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);

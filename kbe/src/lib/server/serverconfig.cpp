@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "serverconfig.hpp"
 #include "network/common.hpp"
 #include "network/address.hpp"
+#include "resmgr/resmgr.hpp"
 
 namespace KBEngine{
 KBE_SINGLETON_INIT(ServerConfig);
@@ -41,7 +42,7 @@ ServerConfig::~ServerConfig()
 bool ServerConfig::loadConfig(std::string fileName)
 {
 	TiXmlNode* node = NULL, *rootNode = NULL;
-	XmlPlus* xml = new XmlPlus(fileName.c_str());
+	XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes(fileName).c_str());
 
 	if(!xml->isGood())
 	{

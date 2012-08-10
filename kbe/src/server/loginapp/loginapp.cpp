@@ -274,7 +274,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& accountName, MERCURY_ERROR_CODE failedcode)
 {
-	DEBUG_MSG("Loginapp::loginFailed: accountName=%s login is failed. failedcode=%d", accountName.c_str(), failedcode);
+	DEBUG_MSG("Loginapp::loginFailed: accountName=%s login is failed. failedcode=%d.\n", accountName.c_str(), failedcode);
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onLoginFailed);
 	bundle << failedcode;

@@ -45,6 +45,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #pragma warning(disable:4819)
 #pragma warning(disable:4049)
 #pragma warning(disable:4217)
+#include <io.h>
 #include <time.h> 
 #include <winsock2.h>		// 必须在windows.h之前包含， 否则网络模块编译会出错
 #include <mswsock.h> 
@@ -487,6 +488,33 @@ inline std::string kbe_trim(std::string s)
 	return kbe_ltrim(kbe_rtrim(s));
 }
 
+// 字符串分割
+template<typename T>
+void kbe_split(const std::basic_string<T>& s, T c, std::vector< std::basic_string<T> > &v)
+{
+	if(s.size() == 0)
+		return;
+
+	typename std::basic_string< T >::size_type i = 0;
+	typename std::basic_string< T >::size_type j = s.find(c);
+
+	while(j != std::basic_string<T>::npos)
+	{
+		std::basic_string<T> buf = s.substr(i, j - i);
+
+		if(buf.size() > 0)
+			v.push_back(buf);
+
+		i = ++j; j = s.find(c, j);
+	}
+
+	if(j == std::basic_string<T>::npos)
+	{
+		std::basic_string<T> buf = s.substr(i, s.length() - i);
+		if(buf.size() > 0)
+			v.push_back(buf);
+	}
+}
 
 // 获得系统产生的最后一次错误描述
 inline char* kbe_strerror(int ierrorno = 0)

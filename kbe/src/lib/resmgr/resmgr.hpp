@@ -36,13 +36,31 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 
-class ResMgr : public Singleton<ResMgr>
+class Resmgr : public Singleton<Resmgr>
 {
 public:
-	ResMgr();
-	~ResMgr();
+	// 引擎环境变量
+	struct KBEEnv
+	{
+		std::string root;
+		std::string res_path;
+		std::string hybrid_path;
+	};
+public:
+	Resmgr();
+	~Resmgr();
 	
+	bool initialize();
+
+	const Resmgr::KBEEnv& getEnv()const { return kb_env_; }
+
+	// 从资源路径中(环境变量中指定的)匹配到完整的资源地址
+	std::string matchRes(std::string path);
+
+	const std::vector<std::string>& respaths()const { return respaths_; }
 private:
+	KBEEnv kb_env_;
+	std::vector<std::string> respaths_;
 };
 
 }

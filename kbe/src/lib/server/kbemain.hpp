@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/network_interface.hpp"
 #include "server/componentbridge.hpp"
 #include "server/serverinfos.hpp"
+#include "resmgr/resmgr.hpp"
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 #include "helper/crashhandler.hpp"
@@ -55,6 +56,15 @@ inline void START_MSG(const char * name, uint64 appuid)
 		serverInfo.memInfo().c_str() );
 }
 
+inline void loadConfig()
+{
+	// "../../res/server/kbengine_defs.xml"
+	g_kbeSrvConfig.loadConfig("server/kbengine_defs.xml");
+
+	// "../../../demo/res/server/kbengine.xml"
+	g_kbeSrvConfig.loadConfig("server/kbengine.xml");
+}
+
 template <class SERVER_APP>
 int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType, 
 			 int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
@@ -63,6 +73,8 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	g_componentType = componentType;
 	DebugHelper::initHelper(componentType);
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
+	Resmgr::getSingleton().initialize();
+	loadConfig();
 
 	Mercury::EventDispatcher dispatcher;
 	Mercury::NetworkInterface networkInterface(&dispatcher, 
@@ -89,12 +101,6 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	return ret;
 }
 
-inline void loadConfig()
-{
-	g_kbeSrvConfig.loadConfig("../../res/server/kbengine_defs.xml");
-	g_kbeSrvConfig.loadConfig("../../../demo/res/server/kbengine.xml");	
-}
-
 #if KBE_PLATFORM == PLATFORM_WIN32
 #define KBENGINE_MAIN																									\
 kbeMain(int argc, char* argv[]);																						\
@@ -104,7 +110,6 @@ int main(int argc, char* argv[])																						\
 	char dumpname[MAX_BUF] = {0};																						\
 	sprintf(dumpname, "%"PRAppID, g_componentID);																		\
 	KBEngine::exception::installCrashHandler(1, dumpname);																\
-	loadConfig();																										\
 	int retcode = -1;																									\
 	THREAD_TRY_EXECUTION;																								\
 	retcode = kbeMain(argc, argv);																						\
@@ -118,7 +123,6 @@ kbeMain(int argc, char* argv[]);																						\
 int main(int argc, char* argv[])																						\
 {																														\
 	g_componentID = genUUID64();																						\
-	loadConfig();																										\
 	return kbeMain(argc, argv);																							\
 }																														\
 int kbeMain

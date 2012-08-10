@@ -20,7 +20,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "dataTypes.hpp"
+#include "resmgr/resmgr.hpp"
+
 namespace KBEngine{
+
 DataTypes::DATATYPE_MAP DataTypes::dataTypes_;
 
 //-------------------------------------------------------------------------------------
@@ -72,7 +75,7 @@ bool DataTypes::initialize(std::string file)
 bool DataTypes::loadAlias(std::string& file)
 {
 	TiXmlNode* node = NULL;
-	XmlPlus* xml = new XmlPlus(file.c_str());
+	XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes(file).c_str());
 	node = xml->getRootNode();
 
 	XML_FOR_BEGIN(node)

@@ -38,6 +38,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entity_mailbox.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
+#include "resmgr/resmgr.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4996)
 #endif
@@ -216,11 +217,13 @@ template<class E>
 bool EntityApp<E>::installEntityDef()
 {
 	// 初始化数据类别
-	if(!DataTypes::initialize("../../../demo/res/scripts/entity_defs/alias.xml"))
+	// demo/res/scripts/entity_defs/alias.xml
+	if(!DataTypes::initialize("scripts/entity_defs/alias.xml"))
 		return false;
 
 	// 初始化所有扩展模块
-	if(!EntityDef::initialize("../../../demo/res/scripts/", scriptBaseTypes_, componentType_)){
+	// demo/res/scripts/
+	if(!EntityDef::initialize(Resmgr::getSingleton().respaths()[1] + "res/scripts/", scriptBaseTypes_, componentType_)){
 		return false;
 	}
 
@@ -242,22 +245,35 @@ int EntityApp<E>::unregisterPyObjectToScript(const char* attrName)
 template<class E>
 bool EntityApp<E>::installPyScript()
 {
-	std::wstring pyPaths = L"../../../demo/res/scripts/common;";
+	if(Resmgr::getSingleton().respaths().size() <= 0)
+	{
+		ERROR_MSG("EntityApp::installPyScript: KBE_RES_PATH is error!\n");
+		return false;
+	}
+
+	std::wstring root_path = L"";
+	root_path += KBEngine::char2wchar(const_cast<char*>(Resmgr::getSingleton().respaths()[1].c_str()));
+	
+
+	std::wstring pyPaths = root_path + L"res/scripts/common;";
 
 	switch(componentType_)
 	{
 	case BASEAPP_TYPE:
-		pyPaths += L"../../../demo/res/scripts/base;";
+		pyPaths += root_path + L"res/scripts/base;";
 		break;
 	case CELLAPP_TYPE:
-		pyPaths += L"../../../demo/res/scripts/cell;";
+		pyPaths += root_path + L"res/scripts/cell;";
 		break;
 	default:
-		pyPaths += L"../../../demo/res/scripts/client;";
+		pyPaths += root_path + L"res/scripts/client;";
 		break;
 	};
 	
-	return getScript().install(L"../../res/script/common", pyPaths, "KBEngine", componentType_);
+	std::wstring kbe_res_path = KBEngine::char2wchar(const_cast<char*>(Resmgr::getSingleton().respaths()[0].c_str()));
+	kbe_res_path += L"script/common";
+
+	return getScript().install(kbe_res_path.c_str(), pyPaths, "KBEngine", componentType_);
 }
 
 template<class E>
