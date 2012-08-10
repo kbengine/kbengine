@@ -53,7 +53,8 @@ MessageHandlers::~MessageHandlers()
 	MessageHandlerMap::iterator iter = msgHandlers_.begin();
 	for(; iter != msgHandlers_.end(); iter++)
 	{
-		delete iter->second;
+		if(iter->second)
+			delete iter->second;
 	};
 }
 
