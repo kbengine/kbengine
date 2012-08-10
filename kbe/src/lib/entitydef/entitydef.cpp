@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "entitydef.hpp"
-#include "dataTypes.hpp"
+#include "datatypes.hpp"
 #include "common.hpp"
 #include "cstdkbe/smartpointer.hpp"
 #include "entitydef/entity_mailbox.hpp"

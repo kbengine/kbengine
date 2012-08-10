@@ -20,9 +20,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "property.hpp"
-#include "pyscript/Vector2.hpp"
-#include "pyscript/Vector3.hpp"
-#include "pyscript/Vector4.hpp"
+#include "pyscript/vector2.hpp"
+#include "pyscript/vector3.hpp"
+#include "pyscript/vector4.hpp"
 namespace KBEngine{
 
 uint32	PropertyDescription::propertyDescriptionCount_ = 0;
