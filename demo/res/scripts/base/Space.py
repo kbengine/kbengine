@@ -9,7 +9,7 @@ class Space(GameObject):
 		GameObject.__init__(self)
 		self.createInNewSpace(None)
 		# 这个地图上创建的entity总数
-		self.createEntityTotalCount = 1500
+		self.createEntityTotalCount = 10
 
 	def onGetCell(self):
 		"""
@@ -17,7 +17,7 @@ class Space(GameObject):
 		entity的cell部分实体被创建成功
 		"""
 		self.addTimer(3, 1, 1)
-
+		
 	def onTimer(self, id, userArg):
 		"""
 		KBEngine method.

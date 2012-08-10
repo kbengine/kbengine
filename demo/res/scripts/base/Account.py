@@ -26,11 +26,8 @@ class Account(KBEngine.Proxy):
 		cell部分。
 		"""
 		INFO_MSG("account[%i] entities enable. mailbox:%s" % (self.id, self.client))
-		self.client.initPlayerList(self.playerList)
-		# 注意:使用giveClientTo的entity必须是当前baseapp上的entity
-		player = KBEngine.createBase("Avatar", {})
-		player.accountEntity = self
-		self.giveClientTo(player)
+		
+		#self.client.initPlayerList(self.playerList)
 		
 	def onLogOnAttempt(self, ip, port, password):
 		"""
@@ -55,3 +52,28 @@ class Account(KBEngine.Proxy):
 		"""
 		DEBUG_MSG("Account[%i].onClientDeath:" % self.id)
 		self.destroy()
+
+	def onReqPlayerList(self):
+		"""
+		exposed.
+		客户端请求查询角色列表
+		"""
+		DEBUG_MSG("Account[%i].onReqPlayerList:" % self.id)
+	
+	def reqCreateAvatar(self, name):
+		"""
+		exposed.
+		客户端请求创建一个角色
+		"""
+		DEBUG_MSG("Account[%i].reqCreateAvatar:%s." % (self.id, name))
+		
+	def selectAvatarGame(self, name):
+		"""
+		exposed.
+		客户端选择某个角色进行游戏
+		"""
+		DEBUG_MSG("Account[%i].selectAvatarGame:%s." % (self.id, name))
+		# 注意:使用giveClientTo的entity必须是当前baseapp上的entity
+		player = KBEngine.createBase("Avatar", {"name" : name})
+		player.accountEntity = self
+		self.giveClientTo(player)
