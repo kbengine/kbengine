@@ -43,9 +43,9 @@ bool Resmgr::initialize()
 	kb_env_.res_path		= getenv("KBE_RES_PATH") == NULL ? "" : getenv("KBE_RES_PATH"); 
 	kb_env_.hybrid_path		= getenv("KBE_HYBRID_PATH") == NULL ? "" : getenv("KBE_HYBRID_PATH"); 
 
-	kb_env_.root				= "D:/kbengine/";
-	kb_env_.res_path			= "D:/kbengine/kbe/res/;D:/kbengine/demo/;D:/kbengine/demo/res/"; 
-	kb_env_.hybrid_path		= "D:/kbengine/kbe/bin/Hybrid/"; 
+	//kb_env_.root				= "D:/kbengine/";
+	//kb_env_.res_path			= "D:/kbengine/kbe/res/;D:/kbengine/demo/;D:/kbengine/demo/res/"; 
+	//kb_env_.hybrid_path		= "D:/kbengine/kbe/bin/Hybrid/"; 
 
 	std::string tbuf = kb_env_.res_path;
 	kbe_split<char>(tbuf, ';', respaths_);
