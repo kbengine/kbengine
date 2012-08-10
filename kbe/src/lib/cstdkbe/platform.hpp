@@ -779,6 +779,7 @@ inline char* wchar2char(wchar_t* ts)
 {
 	int len = (wcslen(ts) + 1) * 2;
 	char* ccattr =(char *)malloc(len);
+	memset(ccattr, 0, len);
     wcstombs(ccattr, ts, len);
 	return ccattr;
 };
@@ -787,6 +788,7 @@ inline wchar_t* char2wchar(char* cs)
 {
 	int len = (strlen(cs) + 1) * 2;
 	wchar_t* ccattr =(wchar_t *)malloc(len);
+	memset(ccattr, 0, len);
     mbstowcs(ccattr, cs, len);
 	return ccattr;
 };
