@@ -30,7 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "datatype.hpp"
 #include "datatypes.hpp"
 #include "helper/debug_helper.hpp"
-#include "network/Packet.hpp"
+#include "network/packet.hpp"
 #include "entitymailboxabstract.hpp"
 #include "pyscript/scriptobject.hpp"	
 //#define NDEBUG
