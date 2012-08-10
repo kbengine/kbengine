@@ -11,9 +11,10 @@ MY_LIBS =		\
 	client_lib	\
 	entitydef	\
 	pyscript	\
+	server		\
 	network		\
-	thread		\
-	server
+	thread
+	
 	
 
 BUILD_TIME_FILE = main
