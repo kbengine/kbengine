@@ -8,7 +8,7 @@ SRCS =				\
 	entity_mailbox		\
 	entitydef		\
 	entitymailboxabstract	\
-	fixedDict		\
+	fixeddict		\
 	method			\
 	property
 
