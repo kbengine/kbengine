@@ -516,7 +516,7 @@ PyObject* PythonType::createFromStream(MemoryStream* mstream)
 	udata = new uint8[udataLen + 1];
 	mstream->read(udata, udataLen);
 	val.assign((char*)udata, udataLen);
-	SAFE_RELEASE(udata);
+	SAFE_RELEASE_ARRAY(udata);
 	return script::Pickler::unpickle(val);
 }
 

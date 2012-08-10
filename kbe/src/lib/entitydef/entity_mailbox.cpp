@@ -91,7 +91,7 @@ PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 	
 	if(md != NULL)
 	{
-		delete ccattr;
+		free(ccattr);
 		return new RemoteEntityMethod(md, this);
 	}
 
@@ -124,12 +124,12 @@ PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 		
 		if(mbtype != -1)
 		{
-			delete ccattr;
+			free(ccattr);
 			return new EntityMailbox(scriptModule_, &addr_, componentID_, id_, (ENTITY_MAILBOX_TYPE)mbtype);
 		}
 	}
 	
-	delete ccattr;
+	free(ccattr);
 	return ScriptObject::onScriptGetAttribute(attr);
 }
 

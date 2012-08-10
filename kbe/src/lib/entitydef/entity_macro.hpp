@@ -236,7 +236,7 @@ public:																										\
 				sprintf(err, "property[%s] is in [%s] def. del failed.", ccattr, getScriptName());			\
 				PyErr_SetString(PyExc_TypeError, err);														\
 				PyErr_PrintEx(0);																			\
-				delete ccattr;																				\
+				free(ccattr);																				\
 				return 0;																					\
 			}																								\
 		}																									\
@@ -247,11 +247,11 @@ public:																										\
 			sprintf(err, "method[%s] is in [%s] def. del failed.", ccattr, getScriptName());				\
 			PyErr_SetString(PyExc_TypeError, err);															\
 			PyErr_PrintEx(0);																				\
-			delete ccattr;																					\
+			free(ccattr);																					\
 			return 0;																						\
 		}																									\
 																											\
-		delete ccattr;																						\
+		free(ccattr);																						\
 		return ScriptObject::onScriptDelAttribute(attr);													\
 	}																										\
 																											\
@@ -268,7 +268,7 @@ public:																										\
 				DataType* dataType = propertyDescription->getDataType();									\
 																											\
 				if(!dataType->isSameType(value)){															\
-					delete ccattr;																			\
+					free(ccattr);																			\
 					return 0;																				\
 				}																							\
 				else																						\
@@ -279,13 +279,13 @@ public:																										\
 					if(result != -1)																		\
 						onDefDataChanged(propertyDescription, value);										\
 																											\
-					delete ccattr;																			\
+					free(ccattr);																			\
 					return result;																			\
 				}																							\
 			}																								\
 		}																									\
 																											\
-		delete ccattr;																						\
+		free(ccattr);																						\
 		return ScriptObject::onScriptSetAttribute(attr, value);												\
 	}																										\
 																											\

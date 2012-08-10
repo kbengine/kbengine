@@ -252,8 +252,9 @@ bool EntityApp<E>::installPyScript()
 	}
 
 	std::wstring root_path = L"";
-	root_path += KBEngine::char2wchar(const_cast<char*>(Resmgr::getSingleton().respaths()[1].c_str()));
-	
+	wchar_t* tbuf = KBEngine::char2wchar(const_cast<char*>(Resmgr::getSingleton().respaths()[1].c_str()));
+	root_path += tbuf;
+	free(tbuf);
 
 	std::wstring pyPaths = root_path + L"res/scripts/common;";
 
@@ -273,7 +274,10 @@ bool EntityApp<E>::installPyScript()
 	std::string kbe_res_path = Resmgr::getSingleton().respaths()[0].c_str();
 	kbe_res_path += "script/common";
 
-	return getScript().install(KBEngine::char2wchar(const_cast<char*>(kbe_res_path.c_str())), pyPaths, "KBEngine", componentType_);
+	tbuf = KBEngine::char2wchar(const_cast<char*>(kbe_res_path.c_str()));
+	bool ret = getScript().install(tbuf, pyPaths, "KBEngine", componentType_);
+	free(tbuf);
+	return ret;
 }
 
 template<class E>

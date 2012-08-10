@@ -27,7 +27,7 @@ void installCrashHandler(int svnVer, const char* dumpType)
 {
 	wchar_t* wsz = char2wchar(const_cast<char*>(dumpType));
 	wsprintf(_g_fileName, L"CrashDumps\\%ls_v%d.dmp", wsz, svnVer);
-	SAFE_RELEASE_ARRAY(wsz);
+	free(wsz);
 }
 
 //-------------------------------------------------------------------------------------
