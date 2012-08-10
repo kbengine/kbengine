@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #pragma warning (disable : 4251)
 #endif
 // common include	
-#include "dataType.hpp"
+#include "datatype.hpp"
 #include "xmlplus/xmlplus.hpp"	
 //#define NDEBUG
 #include <stdio.h>
