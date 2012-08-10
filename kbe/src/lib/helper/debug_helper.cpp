@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
-#include "thread/ThreadGuard.hpp"
+#include "thread/threadguard.hpp"
 
 namespace KBEngine{
 	

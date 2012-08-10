@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <time.h>	
 #include <stdarg.h> 
 #include "cstdkbe/singleton.hpp"
-#include "thread/ThreadMutex.hpp"
+#include "thread/threadmutex.hpp"
 #ifndef NO_USE_LOG4CXX
 #include "log4cxx/logger.h"
 #include "log4cxx/propertyconfigurator.h"
