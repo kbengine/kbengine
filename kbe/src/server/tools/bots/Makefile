@@ -2,6 +2,7 @@ BIN  = bots
 SRCS =						\
 	bots					\
 	bots_interface				\
+	entity					\
 	main
 
 ASMS =

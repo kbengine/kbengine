@@ -188,6 +188,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\entity.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\python\Modules\getbuildinfo.c"
+				>
+			</File>
+			<File
 				RelativePath="main.cpp"
 				>
 			</File>
@@ -215,7 +223,15 @@
 				RelativePath=".\bots_interface_macros.hpp"
 				>
 			</File>
+			<File
+				RelativePath=".\entity.hpp"
+				>
+			</File>
 		</Filter>
+		<File
+			RelativePath=".\entity.ipp"
+			>
+		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>
