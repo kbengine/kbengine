@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "threadPool.hpp"
+#include "threadpool.hpp"
 namespace KBEngine{ 
 KBE_SINGLETON_INIT(KBEngine::thread::ThreadPool);
 namespace thread{
