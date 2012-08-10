@@ -36,7 +36,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __THREADGUARD_H__
 	
 // common include
-#include "thread/threadMutex.hpp"
+#include "thread/threadmutex.hpp"
 //#define NDEBUG
 #include <assert.h>
 
