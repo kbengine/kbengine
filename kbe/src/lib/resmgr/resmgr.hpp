@@ -58,6 +58,8 @@ public:
 	std::string matchRes(std::string path);
 
 	const std::vector<std::string>& respaths()const { return respaths_; }
+
+	void pirnt(void);
 private:
 	KBEEnv kb_env_;
 	std::vector<std::string> respaths_;

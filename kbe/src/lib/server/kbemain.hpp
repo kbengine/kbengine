@@ -58,6 +58,8 @@ inline void START_MSG(const char * name, uint64 appuid)
 
 inline void loadConfig()
 {
+	Resmgr::getSingleton().initialize();
+
 	// "../../res/server/kbengine_defs.xml"
 	g_kbeSrvConfig.loadConfig("server/kbengine_defs.xml");
 
@@ -73,8 +75,8 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	g_componentType = componentType;
 	DebugHelper::initHelper(componentType);
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
-	Resmgr::getSingleton().initialize();
-	loadConfig();
+	
+	Resmgr::getSingleton().pirnt();
 
 	Mercury::EventDispatcher dispatcher;
 	Mercury::NetworkInterface networkInterface(&dispatcher, 
@@ -106,6 +108,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 kbeMain(int argc, char* argv[]);																						\
 int main(int argc, char* argv[])																						\
 {																														\
+	loadConfig();																										\
 	g_componentID = genUUID64();																						\
 	char dumpname[MAX_BUF] = {0};																						\
 	sprintf(dumpname, "%"PRAppID, g_componentID);																		\
@@ -122,6 +125,7 @@ int kbeMain
 kbeMain(int argc, char* argv[]);																						\
 int main(int argc, char* argv[])																						\
 {																														\
+	loadConfig();																										\
 	g_componentID = genUUID64();																						\
 	return kbeMain(argc, argv);																							\
 }																														\

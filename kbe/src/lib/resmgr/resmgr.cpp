@@ -43,10 +43,6 @@ bool Resmgr::initialize()
 	kb_env_.res_path		= getenv("KBE_RES_PATH") == NULL ? "" : getenv("KBE_RES_PATH"); 
 	kb_env_.hybrid_path		= getenv("KBE_HYBRID_PATH") == NULL ? "" : getenv("KBE_HYBRID_PATH"); 
 
-	INFO_MSG("Resmgr::initialize: KBE_ROOT=%s\n", kb_env_.root.c_str());
-	INFO_MSG("Resmgr::initialize: KBE_RES_PATH=%s\n", kb_env_.res_path.c_str());
-	INFO_MSG("Resmgr::initialize: KBE_HYBRID_PATH=%s\n", kb_env_.hybrid_path.c_str());
-
 	//kb_env_.root				= "d:/kbengine/";
 	//kb_env_.res_path			= "d:/kbengine/kbe/res/;d:/kbengine/demo/;d:/kbengine/demo/res/"; 
 	//kb_env_.hybrid_path		= "d:/kbengine/kbe/bin/Hybrid/"; 
@@ -54,6 +50,14 @@ bool Resmgr::initialize()
 	std::string tbuf = kb_env_.res_path;
 	kbe_split<char>(tbuf, ';', respaths_);
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void Resmgr::pirnt(void)
+{
+	INFO_MSG("Resmgr::initialize: KBE_ROOT=%s\n", kb_env_.root.c_str());
+	INFO_MSG("Resmgr::initialize: KBE_RES_PATH=%s\n", kb_env_.res_path.c_str());
+	INFO_MSG("Resmgr::initialize: KBE_HYBRID_PATH=%s\n", kb_env_.hybrid_path.c_str());
 }
 
 //-------------------------------------------------------------------------------------
