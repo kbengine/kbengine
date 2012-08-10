@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __FIXED_DICT_H__
 #define __FIXED_DICT_H__
 #include <string>
-#include "dataType.hpp"
+#include "datatype.hpp"
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "pyscript/map.hpp"
