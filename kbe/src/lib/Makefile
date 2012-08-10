@@ -25,6 +25,7 @@ all install clean full:
 	cd cstdkbe && $(MAKE) $@
 	cd entitydef && $(MAKE) $@
 	cd math && $(MAKE) $@
+	cd resmgr && $(MAKE) $@
 	cd pyscript && $(MAKE) $@
 	cd server && $(MAKE) $@
 	cd network && $(MAKE) $@
@@ -37,6 +38,7 @@ all install clean full:
 UNITTEST_LIBS = cstdkbe \
 				entitydef \
 				math \
+				resmgr \
 				pyscript \
 				helper \
 				thread \

@@ -157,6 +157,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "guiconsole", "server\tools\
 		{2992ABDB-0853-4C43-B9E2-98D4211192EE} = {2992ABDB-0853-4C43-B9E2-98D4211192EE}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "resmgr", "lib\resmgr\resmgr90.vcproj", "{3F8B2057-492F-4332-99DE-3E12F20ED489}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -243,6 +245,10 @@ Global
 		{78EE8B08-4E07-4C07-9592-BC4D09503155}.Debug|Win32.Build.0 = Debug|Win32
 		{78EE8B08-4E07-4C07-9592-BC4D09503155}.Release|Win32.ActiveCfg = Release|Win32
 		{78EE8B08-4E07-4C07-9592-BC4D09503155}.Release|Win32.Build.0 = Release|Win32
+		{3F8B2057-492F-4332-99DE-3E12F20ED489}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3F8B2057-492F-4332-99DE-3E12F20ED489}.Debug|Win32.Build.0 = Debug|Win32
+		{3F8B2057-492F-4332-99DE-3E12F20ED489}.Release|Win32.ActiveCfg = Release|Win32
+		{3F8B2057-492F-4332-99DE-3E12F20ED489}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
