@@ -10,7 +10,7 @@ def onBaseAppReady(isBootstrap):
 	@type isBootstrap: bool
 	"""
 	DEBUG_MSG('baseapp准备完毕! isBootstrap=%s' % isBootstrap)
-	if isBootstrap:
+	if isBootstrap == 1:
 		# 创建spacemanager
 		KBEngine.createBaseLocally( "Spaces", {} )
 		
