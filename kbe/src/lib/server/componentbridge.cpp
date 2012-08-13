@@ -114,7 +114,7 @@ bool Componentbridge::findInterfaces()
 	};
 
 	int ifind = 0;
-	srand((unsigned int)time(NULL));
+	srand(KBEngine::getSystemTime());
 	uint16 nport = KBE_PORT_START + (rand() % 1000);
 
 	while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)

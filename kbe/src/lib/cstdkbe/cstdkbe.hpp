@@ -58,7 +58,8 @@ enum COMPONENT_TYPE
 	BASEAPP_TYPE	= 6,
 	CLIENT_TYPE		= 7,
 	MACHINE_TYPE	= 8,
-	CENTER_TYPE		= 9
+	CENTER_TYPE		= 9,
+	CONSOLE_TYPE	= 10
 };
 
 /** 当前服务器组件类别和ID */
@@ -77,6 +78,7 @@ const char COMPONENT_NAME[][255] = {
 	"client",
 	"kbmachine",
 	"kbcenter",
+	"console",
 };
 
 // 所有的组件列表

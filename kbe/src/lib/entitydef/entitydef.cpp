@@ -872,7 +872,6 @@ bool EntityDef::loadDefCellMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scrip
 		{
 			std::string name = xml->getKey(defMethodNode);
 			MethodDescription* methodDescription = new MethodDescription(0, name);
-			scriptModule->addCellMethodDescription(name.c_str(), methodDescription);
 			TiXmlNode* argNode = defMethodNode->FirstChild();
 			
 			// 可能没有参数
@@ -932,6 +931,8 @@ bool EntityDef::loadDefCellMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scrip
 					}
 				}
 			}
+
+			scriptModule->addCellMethodDescription(name.c_str(), methodDescription);
 		}
 		XML_FOR_END(defMethodNode);
 	}
@@ -948,7 +949,6 @@ bool EntityDef::loadDefBaseMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scrip
 		{
 			std::string name = xml->getKey(defMethodNode);
 			MethodDescription* methodDescription = new MethodDescription(0, name);
-			scriptModule->addBaseMethodDescription(name.c_str(), methodDescription);
 			TiXmlNode* argNode = defMethodNode->FirstChild();
 
 			// 可能没有参数
@@ -1006,6 +1006,8 @@ bool EntityDef::loadDefBaseMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scrip
 					}
 				}
 			}
+
+			scriptModule->addBaseMethodDescription(name.c_str(), methodDescription);
 		}
 		XML_FOR_END(defMethodNode);
 	}
@@ -1022,7 +1024,6 @@ bool EntityDef::loadDefClientMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scr
 		{
 			std::string name = xml->getKey(defMethodNode);
 			MethodDescription* methodDescription = new MethodDescription(0, name);
-			scriptModule->addClientMethodDescription(name.c_str(), methodDescription);
 			TiXmlNode* argNode = defMethodNode->FirstChild();
 
 			// 可能没有参数
@@ -1078,6 +1079,8 @@ bool EntityDef::loadDefClientMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scr
 					}
 				}
 			}
+
+			scriptModule->addClientMethodDescription(name.c_str(), methodDescription);
 		}
 		XML_FOR_END(defMethodNode);
 	}
