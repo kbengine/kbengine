@@ -60,9 +60,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 									MERCURY_ERROR_CODE,			failedcode)
 
 	// 服务器端已经创建了一个与客户端关联的代理Entity || 登录网关成功。
-	CLIENT_MESSAGE_DECLARE_ARGS2(onCreatedProxies,				MERCURY_FIXED_MESSAGE,
+	CLIENT_MESSAGE_DECLARE_ARGS3(onCreatedProxies,				MERCURY_VARIABLE_MESSAGE,
 									uint64,						rndUUID,
-									ENTITY_ID,					eid)
+									ENTITY_ID,					eid,
+									std::string,				entityType)
 
 	// 登录网关失败。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginGatewayFailed,			MERCURY_FIXED_MESSAGE,

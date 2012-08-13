@@ -143,7 +143,8 @@ public:
 	   在登录时也可表达成功回调
 	   @datas: 账号entity的信息
 	*/
-	virtual void onCreatedProxies(Mercury::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid);
+	virtual void onCreatedProxies(Mercury::Channel * pChannel, uint64 rndUUID, 
+		ENTITY_ID eid, std::string& entityType);
 
 	/** 网络接口
 		服务器上的entity已经进入游戏世界了

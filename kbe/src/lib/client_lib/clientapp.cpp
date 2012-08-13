@@ -166,7 +166,8 @@ void ClientApp::onLoginGatewayFailed(Mercury::Channel * pChannel, MERCURY_ERROR_
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid)
+void ClientApp::onCreatedProxies(Mercury::Channel * pChannel, 
+								 uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
 {
 }
 
