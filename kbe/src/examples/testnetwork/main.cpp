@@ -246,7 +246,7 @@ void init_network(void)
 		// 连接游戏登陆进程
 		printf("连接游戏登陆进程\n");
 		u_int32_t address;
-		std::string ip = "192.168.4.39";
+		std::string ip = "192.168.4.44";
 		mysocket.convertAddress(ip.c_str(), address );
 		if(mysocket.connect(htons(port), address) == -1)
 		{
@@ -334,7 +334,9 @@ void init_network(void)
 		uint64 uuid;
 		ENTITY_ID eid;
 		std::string entityType;
+		MessageLength msgLen;
 		packet33 >> msgID;
+		packet33 >> msgLen;
 		packet33 >> uuid;
 		packet33 >> eid;
 		packet33 >> entityType;
@@ -347,7 +349,7 @@ void init_network(void)
 		// 向服务器请求查询角色列表
 		Mercury::Bundle bundle44;
 		bundle44.newMessage(BaseappInterface::onRemoteMethodCall);
-		uint16 methodID = 1;
+		uint16 methodID = 10001;
 		bundle44 << eid;
 		bundle44 << methodID;
 		bundle44.send(mysocket);
@@ -357,7 +359,7 @@ void init_network(void)
 		// 向服务器请求创建角色
 		Mercury::Bundle bundle55;
 		bundle55.newMessage(BaseappInterface::onRemoteMethodCall);
-		methodID = 2;
+		methodID = 10002;
 		bundle55 << eid;
 		bundle55 << methodID;
 		bundle55 << "kebiao";
@@ -368,7 +370,7 @@ void init_network(void)
 		// 向服务器请求选择某个角色进行游戏
 		Mercury::Bundle bundle66;
 		bundle66.newMessage(BaseappInterface::onRemoteMethodCall);
-		methodID = 3;
+		methodID = 10004;
 		bundle66 << eid;
 		bundle66 << methodID;
 		bundle66 << "kebiao";
@@ -380,10 +382,10 @@ void init_network(void)
 		packet77.resize(65535);
 		len = mysocket.recv(packet77.data(), 65535);
 		packet77.wpos(len);
-		packet77 >> msgID;
-		packet77 >> eid;
-		printf("Client::onEntityDestroyed: 服务器端告知可销毁客户端账号entity了 size(%d) : msgID=%u, eid=%d.\n", 
-			len, msgID, eid);
+		//packet77 >> msgID;
+		//packet77 >> eid;
+		//printf("Client::onEntityDestroyed: 服务器端告知可销毁客户端账号entity了 size(%d) : msgID=%u, eid=%d.\n", 
+		//	len, msgID, eid);
 		 
 		//::sleep(3000);
 
@@ -391,6 +393,7 @@ void init_network(void)
 		//TCPPacket packet88;
 		//len = mysocket.recv(packet88.data(), 65535);
 		packet77 >> msgID;
+		packet77 >> msgLen;
 		packet77 >> uuid;
 		packet77 >> eid;
 		packet77 >> entityType;
