@@ -244,6 +244,7 @@ void init_network(void)
 			std::cin >> port;
 		
 		// 连接游戏登陆进程
+		printf("连接游戏登陆进程\n");
 		u_int32_t address;
 		std::string ip = "192.168.4.39";
 		mysocket.convertAddress(ip.c_str(), address );
@@ -255,6 +256,7 @@ void init_network(void)
 		}
 		
 		// 请求创建账号
+		printf("请求创建账号\n");
 		mysocket.setnodelay(true);
 		mysocket.setnonblocking(false);
 		MessageID msgID = 0;
@@ -274,10 +276,11 @@ void init_network(void)
 		uint16 failedcode = 0;
 		packet1 >> msgID;
 		packet1 >> failedcode;
-		printf("Client::onCreateAccountResult: size(%d) failedcode=%u.\n", len, failedcode);
+		printf("Client::onCreateAccountResult: 创建账号成功 size(%d) failedcode=%u.\n", len, failedcode);
 		::sleep(1000);
 
 		// 提交账号密码请求登录
+		printf("提交账号密码请求登录\n");
 		Mercury::Bundle bundle2;
 		bundle2.newMessage(LoginappInterface::login);
 		int8 tclient = 1;
@@ -300,9 +303,10 @@ void init_network(void)
 		packet2 >> msgLength;
 		packet2 >> ip;
 		packet2 >> iport;
-		printf("Client::onLoginSuccessfully: size(%d) ip:%s, port=%u.\n", len, ip.c_str(), iport);
+		printf("Client::onLoginSuccessfully: 获取返回的网关ip地址 size(%d) ip:%s, port=%u.\n", len, ip.c_str(), iport);
 
 		// 连接网关
+		printf("连接网关\n");
 		mysocket.close();
 		mysocket.socket(SOCK_STREAM);
 		mysocket.convertAddress(ip.c_str(), address );
@@ -339,6 +343,7 @@ void init_network(void)
 		
 		::sleep(1000);
 		
+		printf("向服务器请求查询角色列表\n");
 		// 向服务器请求查询角色列表
 		Mercury::Bundle bundle44;
 		bundle44.newMessage(BaseappInterface::onRemoteMethodCall);
@@ -348,6 +353,7 @@ void init_network(void)
 		bundle44.send(mysocket);
 		::sleep(3000);
 
+		printf("向服务器请求创建角色\n");
 		// 向服务器请求创建角色
 		Mercury::Bundle bundle55;
 		bundle55.newMessage(BaseappInterface::onRemoteMethodCall);
@@ -358,6 +364,7 @@ void init_network(void)
 		bundle55.send(mysocket);
 		::sleep(3000);
 
+		printf("向服务器请求选择某个角色进行游戏\n");
 		// 向服务器请求选择某个角色进行游戏
 		Mercury::Bundle bundle66;
 		bundle66.newMessage(BaseappInterface::onRemoteMethodCall);
@@ -375,9 +382,9 @@ void init_network(void)
 		packet77.wpos(len);
 		packet77 >> msgID;
 		packet77 >> eid;
-		printf("Client::onEntityDestroyed: size(%d) : msgID=%u, eid=%d.\n", 
+		printf("Client::onEntityDestroyed: 服务器端告知可销毁客户端账号entity了 size(%d) : msgID=%u, eid=%d.\n", 
 			len, msgID, eid);
-		
+		 
 		//::sleep(3000);
 
 		// 服务器返回 Client::onCreatedProxies:服务器端已经创建了一个与客户端关联的代理player

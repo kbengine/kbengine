@@ -253,8 +253,15 @@ bool EntityApp<E>::installPyScript()
 
 	std::wstring root_path = L"";
 	wchar_t* tbuf = KBEngine::char2wchar(const_cast<char*>(Resmgr::getSingleton().respaths()[1].c_str()));
-	root_path += tbuf;
-	free(tbuf);
+	if(tbuf != NULL)
+	{
+		root_path += tbuf;
+		free(tbuf);
+	}
+	else
+	{
+		return false;
+	}
 
 	std::wstring pyPaths = root_path + L"res/scripts/common;";
 

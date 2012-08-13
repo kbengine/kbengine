@@ -777,7 +777,7 @@ static inline int long2int32(const double value)
 
 inline char* wchar2char(wchar_t* ts)
 {
-	int len = (wcslen(ts) + 1) * 2;
+	int len = (wcslen(ts) + 1) * 4;
 	char* ccattr =(char *)malloc(len);
 	memset(ccattr, 0, len);
     wcstombs(ccattr, ts, len);
@@ -786,7 +786,7 @@ inline char* wchar2char(wchar_t* ts)
 
 inline wchar_t* char2wchar(char* cs)
 {
-	int len = (strlen(cs) + 1) * 2;
+	int len = (strlen(cs) + 1) * 4;
 	wchar_t* ccattr =(wchar_t *)malloc(len);
 	memset(ccattr, 0, len);
     mbstowcs(ccattr, cs, len);
