@@ -37,18 +37,18 @@
 	<BaseMethods>
 		<onReqPlayerList>
 			<Exposed/>
-			<Utype> 1 </Utype>
+			<Utype> 10001 </Utype>
 		</onReqPlayerList>
 
 		<reqCreateAvatar>
 			<Exposed/>
-			<Utype> 2 </Utype>
+			<Utype> 10002 </Utype>
 			<Arg>	STRING	</Arg>	<!-- name -->
 		</reqCreateAvatar>
 
 		<selectAvatarGame>
 			<Exposed/>
-			<Utype> 3 </Utype>
+			<Utype> 10004 </Utype>
 			<Arg>	STRING	</Arg>	<!-- name -->
 		</selectAvatarGame>
 	</BaseMethods>
