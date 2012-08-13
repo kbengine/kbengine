@@ -42,7 +42,7 @@ ServerConfig::~ServerConfig()
 bool ServerConfig::loadConfig(std::string fileName)
 {
 	TiXmlNode* node = NULL, *rootNode = NULL;
-	XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes(fileName).c_str());
+	XmlPlus* xml = new XmlPlus(Resmgr::matchRes(fileName).c_str());
 
 	if(!xml->isGood())
 	{

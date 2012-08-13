@@ -13,6 +13,8 @@
 #include "helper/debug_helper.hpp"
 #include "xmlplus/xmlplus.hpp"
 #include "cstdkbe/smartpointer.hpp"
+#include "afxcmn.h"
+#include "DebugWindow.h"
 
 using namespace KBEngine;
 
@@ -42,10 +44,19 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+
+	void autoWndSize();
 private:
+	COMPONENT_TYPE _componentType;
+	COMPONENT_ID _componentID;
 	Mercury::EventDispatcher _dispatcher;
 	Mercury::NetworkInterface _networkInterface;
-	
+	Mercury::EndPoint m_endpoint;
+	CDebugWindow m_debugWnd;
+	bool m_isInit;
 public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	CTabCtrl m_tab;
+	afx_msg void OnSizing(UINT fwSide, LPRECT pRect);
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 };

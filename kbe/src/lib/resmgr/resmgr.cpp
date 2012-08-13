@@ -21,9 +21,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr.hpp"
 
 namespace KBEngine{
-KBE_SINGLETON_INIT(Resmgr);
-
-Resmgr g_resMgr;
+Resmgr::KBEEnv Resmgr::kb_env_;
+std::vector<std::string> Resmgr::respaths_;
+bool Resmgr::isInit_ = false;
 
 //-------------------------------------------------------------------------------------
 Resmgr::Resmgr()
@@ -38,6 +38,9 @@ Resmgr::~Resmgr()
 //-------------------------------------------------------------------------------------
 bool Resmgr::initialize()
 {
+	//if(isInit())
+	//	return true;
+
 	// 获取引擎环境配置
 	kb_env_.root			= getenv("KBE_ROOT") == NULL ? "" : getenv("KBE_ROOT");
 	kb_env_.res_path		= getenv("KBE_RES_PATH") == NULL ? "" : getenv("KBE_RES_PATH"); 
@@ -49,6 +52,8 @@ bool Resmgr::initialize()
 
 	std::string tbuf = kb_env_.res_path;
 	kbe_split<char>(tbuf, ';', respaths_);
+
+	isInit_ = true;
 	return true;
 }
 
@@ -75,7 +80,7 @@ std::string Resmgr::matchRes(std::string path)
 			return fpath;
 		}
 	}
-	return "";
+	return path;
 }
 
 

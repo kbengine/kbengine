@@ -58,7 +58,7 @@ inline void START_MSG(const char * name, uint64 appuid)
 
 inline void loadConfig()
 {
-	Resmgr::getSingleton().initialize();
+	Resmgr::initialize();
 
 	// "../../res/server/kbengine_defs.xml"
 	g_kbeSrvConfig.loadConfig("server/kbengine_defs.xml");
@@ -76,7 +76,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	DebugHelper::initHelper(componentType);
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
 	
-	Resmgr::getSingleton().pirnt();
+	Resmgr::pirnt();
 
 	Mercury::EventDispatcher dispatcher;
 	Mercury::NetworkInterface networkInterface(&dispatcher, 

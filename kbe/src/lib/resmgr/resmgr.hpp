@@ -36,7 +36,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 
-class Resmgr : public Singleton<Resmgr>
+class Resmgr
 {
 public:
 	// 引擎环境变量
@@ -50,19 +50,22 @@ public:
 	Resmgr();
 	~Resmgr();
 	
-	bool initialize();
+	static bool initialize();
 
-	const Resmgr::KBEEnv& getEnv()const { return kb_env_; }
+	static const Resmgr::KBEEnv& getEnv() { return kb_env_; }
 
 	// 从资源路径中(环境变量中指定的)匹配到完整的资源地址
-	std::string matchRes(std::string path);
+	static std::string matchRes(std::string path);
 
-	const std::vector<std::string>& respaths()const { return respaths_; }
+	static const std::vector<std::string>& respaths() { return respaths_; }
 
-	void pirnt(void);
+	static void pirnt(void);
+
+	static bool isInit(){ return isInit_; }
 private:
-	KBEEnv kb_env_;
-	std::vector<std::string> respaths_;
+	static KBEEnv kb_env_;
+	static std::vector<std::string> respaths_;
+	static bool isInit_;
 };
 
 }

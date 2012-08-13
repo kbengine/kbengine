@@ -19,6 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "fixed_messages.hpp"
 #include "xmlplus/xmlplus.hpp"	
+#include "resmgr/resmgr.hpp"	
 
 namespace KBEngine { 
 
@@ -31,6 +32,7 @@ namespace Mercury
 FixedMessages::FixedMessages():
 _infomap()
 {
+	Resmgr::initialize();
 }
 
 //-------------------------------------------------------------------------------------
@@ -43,7 +45,8 @@ FixedMessages::~FixedMessages()
 bool FixedMessages::loadConfig(std::string fileName)
 {
 	TiXmlNode* node = NULL, *rootNode = NULL;
-	XmlPlus* xml = new XmlPlus(fileName.c_str());
+
+	XmlPlus* xml = new XmlPlus(Resmgr::matchRes(fileName).c_str());
 
 	if(!xml->isGood())
 	{

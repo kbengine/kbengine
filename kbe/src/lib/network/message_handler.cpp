@@ -42,7 +42,7 @@ msgID_(1)
 		g_fm = new Mercury::FixedMessages;
 	}
 
-	Mercury::FixedMessages::getSingleton().loadConfig("../../res/server/fixed_mercury_messages.xml");
+	Mercury::FixedMessages::getSingleton().loadConfig("server/fixed_mercury_messages.xml");
 }
 
 //-------------------------------------------------------------------------------------
