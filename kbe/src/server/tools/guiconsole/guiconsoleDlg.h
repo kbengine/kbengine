@@ -46,6 +46,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 	void autoWndSize();
+	void updateTree();
 private:
 	COMPONENT_TYPE _componentType;
 	COMPONENT_ID _componentID;
@@ -59,4 +60,5 @@ public:
 	CTabCtrl m_tab;
 	afx_msg void OnSizing(UINT fwSide, LPRECT pRect);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+	CTreeCtrl m_tree;
 };

@@ -139,7 +139,8 @@ EXSTYLE WS_EX_APPWINDOW
 CAPTION "guiconsole"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    CONTROL         "",IDC_TAB1,"SysTabControl32",0x0,0,0,557,288
+    CONTROL         "",IDC_TAB1,"SysTabControl32",0x0,7,7,119,94
+    CONTROL         "",IDC_TREE1,"SysTreeView32",WS_BORDER | WS_HSCROLL | WS_TABSTOP,7,117,101,86
 END
 
 
