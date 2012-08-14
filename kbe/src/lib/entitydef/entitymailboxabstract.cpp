@@ -86,7 +86,10 @@ void EntityMailboxAbstract::newMail(Mercury::Bundle& bundle)
 	}
 
 	bundle << id_;
-	bundle << type_;
+	
+	// 如果是发往客户端的包则无需附加这样一个类型
+	if(componentID_ > 0)
+		bundle << type_;
 }
 
 //-------------------------------------------------------------------------------------

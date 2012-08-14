@@ -46,14 +46,22 @@ namespace KBEngine{
 	SCRIPT_GETSET_DECLARE_END()																				\
 
 
-//#define CAN_DEBUG_CREATE_ENTITY
+#define CAN_DEBUG_CREATE_ENTITY
 #ifdef CAN_DEBUG_CREATE_ENTITY
 	#define DEBUG_CREATE_ENTITY_NAMESPACE																	\
-			char* ccattr = wchar2char(PyUnicode_AsWideCharString(key, NULL));								\
-			DEBUG_MSG(#CLASS"::createNamespace:add %s.\n", ccattr);											\
+			char* ccattr_DEBUG_CREATE_ENTITY_NAMESPACE = wchar2char(PyUnicode_AsWideCharString(key, NULL));	\
+			DEBUG_MSG("Entity::debug_createNamespace:add %s.\n", ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);		\
+			free(ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);														\
+
+
+	#define DEBUG_OP_ATTRIBUTE(op, ccattr)																	\
+			char* ccattr_DEBUG_OP_ATTRIBUTE = wchar2char(PyUnicode_AsWideCharString(ccattr, NULL));			\
+			DEBUG_MSG("Entity::debug_op_attr:op=%s, %s.\n", op, ccattr_DEBUG_OP_ATTRIBUTE);					\
+			free(ccattr_DEBUG_OP_ATTRIBUTE);																\
 
 #else
 	#define DEBUG_CREATE_ENTITY_NAMESPACE			
+	#define DEBUG_OP_ATTRIBUTE(op, ccattr)NULL;
 #endif
 
 
@@ -225,6 +233,7 @@ public:																										\
 	int onScriptDelAttribute(PyObject* attr)																\
 	{																										\
 		char* ccattr = wchar2char(PyUnicode_AsWideCharString(attr, NULL));									\
+		DEBUG_OP_ATTRIBUTE("del", attr)																		\
 																											\
 		if(lpPropertyDescrs_)																				\
 		{																									\
@@ -257,6 +266,7 @@ public:																										\
 																											\
 	int onScriptSetAttribute(PyObject* attr, PyObject* value)												\
 	{																										\
+		DEBUG_OP_ATTRIBUTE("set", attr)																		\
 		char* ccattr = wchar2char(PyUnicode_AsWideCharString(attr, NULL));									\
 																											\
 		if(lpPropertyDescrs_)																				\
@@ -291,6 +301,7 @@ public:																										\
 																											\
 	PyObject * onScriptGetAttribute(PyObject* attr)															\
 	{																										\
+		DEBUG_OP_ATTRIBUTE("get", attr)																		\
 		return ScriptObject::onScriptGetAttribute(attr);													\
 	}																										\
 																											\
