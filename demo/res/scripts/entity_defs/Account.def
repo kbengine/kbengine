@@ -1,5 +1,12 @@
 <root>
 	<Properties>
+		<avatars>
+			<Type>			ARRAY <of> AVATAR_INFOS </of>	</Type>
+			<Flags>			BASE				</Flags>
+			<Default>						</Default>
+			<Persistent>		true				</Persistent>
+		</avatars>
+
 		<accountName>
 			<Type>			STRING				</Type>
 			<Flags>			BASE				</Flags>
@@ -29,16 +36,23 @@
 	</Properties>
 
 	<ClientMethods>
-		<initPlayerList>
-			<Arg>	ARRAY <of>INT64 </of>	</Arg>
-		</initPlayerList>
+		<onReqAvatarList>
+			<Utype> 10003 </Utype>
+			<Arg>	ARRAY <of> AVATAR_INFOS </of>	</Arg>
+		</onReqAvatarList>
+
+		<onCreateAvatarResult>
+			<Utype> 10005		</Utype>
+			<Arg>	UINT8 		</Arg>
+			<Arg>	AVATAR_INFOS 	</Arg>
+		</onCreateAvatarResult>
 	</ClientMethods>
 
 	<BaseMethods>
-		<onReqPlayerList>
+		<reqAvatarList>
 			<Exposed/>
 			<Utype> 10001 </Utype>
-		</onReqPlayerList>
+		</reqAvatarList>
 
 		<reqCreateAvatar>
 			<Exposed/>
@@ -49,7 +63,7 @@
 		<selectAvatarGame>
 			<Exposed/>
 			<Utype> 10004 </Utype>
-			<Arg>	STRING	</Arg>	<!-- name -->
+			<Arg>	UINT32	</Arg>	<!-- dbid -->
 		</selectAvatarGame>
 	</BaseMethods>
 

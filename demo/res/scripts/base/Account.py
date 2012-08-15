@@ -5,7 +5,7 @@ from KBEDebug import *
 class Account(KBEngine.Proxy):
 	def __init__(self):
 		KBEngine.Proxy.__init__(self)
-		self.playerList = [1,2]
+		self.avatars = [{"name":"unknown", "dbid": 0}, {"name":"unknown", "dbid": 0}, {"name":"unknown", "dbid": 0}]
 		self.accountName = "kebiao"
 		
 	def onTimer(self, id, userArg):
@@ -27,7 +27,7 @@ class Account(KBEngine.Proxy):
 		"""
 		INFO_MSG("account[%i] entities enable. mailbox:%s" % (self.id, self.client))
 		
-		#self.client.initPlayerList(self.playerList)
+		#self.client.initPlayerList(self.avatars)
 		
 	def onLogOnAttempt(self, ip, port, password):
 		"""
@@ -53,27 +53,44 @@ class Account(KBEngine.Proxy):
 		DEBUG_MSG("Account[%i].onClientDeath:" % self.id)
 		self.destroy()
 
-	def onReqPlayerList(self):
+	def reqAvatarList(self):
 		"""
 		exposed.
 		客户端请求查询角色列表
 		"""
-		DEBUG_MSG("Account[%i].onReqPlayerList:" % self.id)
-	
+		DEBUG_MSG("Account[%i].reqAvatarList:" % self.id)
+		self.client.onReqAvatarList(self.avatars)
+		
 	def reqCreateAvatar(self, name):
 		"""
 		exposed.
 		客户端请求创建一个角色
 		"""
-		DEBUG_MSG("Account[%i].reqCreateAvatar:%s." % (self.id, name))
+		avatarinfo = {"name": name, "dbid": id(name)}
 		
-	def selectAvatarGame(self, name):
+		done = False
+		for info in self.avatars:
+			if info["dbid"] == 0:
+				info["dbid"] = avatarinfo["dbid"]
+				info["name"] = avatarinfo["name"]
+				done = True
+				break
+		
+		retcode = 0
+		
+		if not done:
+			retcode = 3
+			
+		DEBUG_MSG("Account[%i].reqCreateAvatar:%s. avatars=%s.\n" % (self.id, name, self.avatars))
+		self.client.onCreateAvatarResult(retcode, avatarinfo)
+		
+	def selectAvatarGame(self, dbid):
 		"""
 		exposed.
 		客户端选择某个角色进行游戏
 		"""
-		DEBUG_MSG("Account[%i].selectAvatarGame:%s." % (self.id, name))
+		DEBUG_MSG("Account[%i].selectAvatarGame:%i." % (self.id, dbid))
 		# 注意:使用giveClientTo的entity必须是当前baseapp上的entity
-		player = KBEngine.createBase("Avatar", {"name" : name})
+		player = KBEngine.createBase("Avatar", {"name" : str(dbid)})
 		player.accountEntity = self
 		self.giveClientTo(player)
