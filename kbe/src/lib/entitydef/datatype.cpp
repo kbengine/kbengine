@@ -693,7 +693,7 @@ PyObject* ArrayType::createObject(MemoryStream* defaultVal)
 		
 		for(uint32 i=0; i<size; i++)
 		{
-			PyObject* pyVal = dataType_->createObject(defaultVal);
+			//PyObject* pyVal = dataType_->createObject(defaultVal);
 			//arr->add(pyVal);
 		}
 	}
