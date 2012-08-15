@@ -57,6 +57,14 @@
 		<arg>UINT8_ARRAY</arg> <!-- 方法参数二进制流， 具体由方法来解析 -->
 	</Base::onRemoteMethodCall>
 	
+	<Entity::onRemoteMethodCall>
+		<id>302</id>
+		<descr>调用一个cell远程方法。</descr>
+		<arg>INT32</arg> <!-- entityID -->
+		<arg>UINT16</arg> <!-- 方法ID -->
+		<arg>UINT8_ARRAY</arg> <!-- 方法参数二进制流， 具体由方法来解析 -->
+	</Entity::onRemoteMethodCall>
+	
 	<Proxy::onClientGetCell>
 		<id>401</id>
 		<descr>服务器将cell信息初始化给客户端后， 客户端应该告知服务器这个回调供服务器确定。
