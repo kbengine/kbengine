@@ -489,6 +489,23 @@ inline std::string kbe_trim(std::string s)
 	return kbe_ltrim(kbe_rtrim(s));
 }
 
+// ×Ö·û´®Ìæ»»
+inline std::string& kbe_replace(std::string& str, const char* old_value, const char* new_value)     
+{
+	size_t len = strlen(old_value);
+
+    while(true)
+	{     
+		std::string::size_type pos(0);     
+		if((pos = str.find(old_value)) != std::string::npos)     
+            str.replace(pos, len, new_value);     
+        else
+			break;     
+    }
+
+    return str;     
+}     
+
 // ×Ö·û´®·Ö¸î
 template<typename T>
 void kbe_split(const std::basic_string<T>& s, T c, std::vector< std::basic_string<T> > &v)
