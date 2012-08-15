@@ -211,6 +211,11 @@ private:
 
 MyPacketReceiver* packetReceiver;
 
+struct AvatarInfos
+{
+	uint32 dbid;
+	std::string name;
+};
 
 void init_network(void)
 {
@@ -246,7 +251,7 @@ void init_network(void)
 		// 连接游戏登陆进程
 		printf("连接游戏登陆进程\n");
 		u_int32_t address;
-		std::string ip = "192.168.4.44";
+		std::string ip = "192.168.10.108";
 		mysocket.convertAddress(ip.c_str(), address );
 		if(mysocket.connect(htons(port), address) == -1)
 		{
@@ -366,11 +371,6 @@ void init_network(void)
 		packet444 >> methodID;
 		uint32 size;
 
-		struct AvatarInfos
-		{
-			uint32 dbid;
-			std::string name;
-		};
 		std::vector<AvatarInfos> vargs;
 
 		packet444 >> size;
