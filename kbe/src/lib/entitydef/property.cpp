@@ -162,7 +162,9 @@ int ArrayDescription::onSetValue(PyObject* parentObj, PyObject* value)
 	}
 
 	int ret = 0;
-	Array* array1 = static_cast<Array*>(pyobj);
+
+	//Array* array1 = static_cast<Array*>(pyobj);
+
 	if(static_cast<ArrayType*>(dataType_)->isSameType(value))
 	{
 		ret = PropertyDescription::onSetValue(parentObj, value);
