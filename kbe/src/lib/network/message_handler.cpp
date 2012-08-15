@@ -91,10 +91,12 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	{
 		msgHandler->msgID = msgInfo->msgid;
 	}
-
+	
 	msgHandler->name = ihName;					
 	msgHandler->pArgs = args;
-	msgHandler->msgLen = msgLen;			
+	msgHandler->msgLen = msgLen;	
+
+	msgHandler->onInstall();
 	msgHandlers_[msgHandler->msgID] = msgHandler;
 	
 	if(msgLen == MERCURY_VARIABLE_MESSAGE)

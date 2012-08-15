@@ -35,6 +35,17 @@ public:
 
 
 // Implementation
+public:
+	/** 服务器执行指令完毕回显 */
+	void onExecScriptCommandCB(Mercury::Channel* pChannel, std::string& command);
+
+	BOOL PreTranslateMessage(MSG* pMsg);
+
+	void historyCommandCheck();
+	CString getHistoryCommand(bool isNextCommand);
+	void commitPythonCommand(CString strCommand);
+	Mercury::EventDispatcher & getMainDispatcher()				{ return _dispatcher; }
+	Mercury::NetworkInterface & getNetworkInterface()			{ return _networkInterface; }
 protected:
 	HICON m_hIcon;
 
@@ -48,17 +59,21 @@ protected:
 	void autoWndSize();
 	void updateTree();
 private:
-	COMPONENT_TYPE _componentType;
+	COMPONENT_TYPE _componentType, _debugComponentType;
 	COMPONENT_ID _componentID;
 	Mercury::EventDispatcher _dispatcher;
 	Mercury::NetworkInterface _networkInterface;
-	Mercury::EndPoint m_endpoint;
+	Mercury::Channel* m_pChannel;
 	CDebugWindow m_debugWnd;
 	bool m_isInit;
+	std::deque<CString> m_historyCommand;
+	int8 m_historyCommandIndex;
 public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	CTabCtrl m_tab;
 	afx_msg void OnSizing(UINT fwSide, LPRECT pRect);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	CTreeCtrl m_tree;
+	afx_msg void OnNMRClickTree1(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnMenu_connectTo();
 };

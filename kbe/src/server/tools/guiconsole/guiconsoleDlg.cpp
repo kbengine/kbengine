@@ -6,7 +6,9 @@
 #include "guiconsole.h"
 #include "guiconsoleDlg.h"
 #include "network/bundle_broadcast.hpp"
+#include "network/message_handler.hpp"
 #include "server/components.hpp"
+#include "helper/console_helper.hpp"
 
 #undef DEFINE_IN_INTERFACE
 #include "client_lib/client_interface.hpp"
@@ -51,6 +53,25 @@
 #define new DEBUG_NEW
 #endif
 
+namespace KBEngine{
+namespace ConsoleInterface{
+	Mercury::MessageHandlers messageHandlers;
+}
+}
+
+BOOL g_sendData = FALSE;
+
+class ConsoleExecCommandCBMessageHandlerEx : public KBEngine::ConsoleInterface::ConsoleExecCommandCBMessageHandler
+{
+public:
+	virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
+	{
+		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+		std::string strarg;	
+		s >> strarg;
+		dlg->onExecScriptCommandCB(pChannel, strarg);
+	};
+};
 
 // CAboutDlg dialog used for App About
 
@@ -91,6 +112,7 @@ END_MESSAGE_MAP()
 CguiconsoleDlg::CguiconsoleDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CguiconsoleDlg::IDD, pParent),
 	_componentType(CONSOLE_TYPE),
+	_debugComponentType(UNKNOWN_COMPONENT_TYPE),
 	_componentID(genUUID64()),
 	_dispatcher(),
 	_networkInterface(&_dispatcher),
@@ -114,6 +136,8 @@ BEGIN_MESSAGE_MAP(CguiconsoleDlg, CDialog)
 	ON_WM_TIMER()
 	ON_WM_SIZING()
 	ON_WM_SIZE()
+	ON_NOTIFY(NM_RCLICK, IDC_TREE1, &CguiconsoleDlg::OnNMRClickTree1)
+	ON_COMMAND(ID_32771, &CguiconsoleDlg::OnMenu_connectTo)
 END_MESSAGE_MAP()
 
 
@@ -153,20 +177,127 @@ BOOL CguiconsoleDlg::OnInitDialog()
 
 	::SetTimer(m_hWnd, 1, 100, NULL);
 	::SetTimer(m_hWnd, 2, 100, NULL);
+	::SetTimer(m_hWnd, 3, 1000 * 20, NULL);
 
 	m_isInit = true;
+	m_pChannel = NULL;
 
 	m_tab.InsertItem(0, _T("DEBUG"), 0); 
 	m_debugWnd.Create(IDD_DEBUG, GetDlgItem(IDC_TAB1));
 
 	DWORD styles = ::GetWindowLong(m_tree.m_hWnd, GWL_STYLE);
-	styles |= TVS_HASLINES | TVS_LINESATROOT;
+	styles |= TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS;
 	::SetWindowLong(m_tree.m_hWnd, GWL_STYLE, styles);
 
 
 	autoWndSize();
 	updateTree();
+
+	KBEngine::ConsoleInterface::messageHandlers.add("Console::onExecScriptCommandCB", new KBEngine::ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1, MERCURY_VARIABLE_MESSAGE, 
+		new ConsoleExecCommandCBMessageHandlerEx);
 	return TRUE;  // return TRUE  unless you set the focus to a control
+}
+
+void CguiconsoleDlg::historyCommandCheck()
+{
+	if(m_historyCommand.size() > 10)
+		m_historyCommand.pop_front();
+
+	if(m_historyCommandIndex < 0)
+		m_historyCommandIndex = m_historyCommand.size() - 1;
+
+	if(m_historyCommandIndex > (int)m_historyCommand.size() - 1)
+		m_historyCommandIndex = 0; 
+}
+
+CString CguiconsoleDlg::getHistoryCommand(bool isNextCommand)
+{
+	if(isNextCommand)
+		m_historyCommandIndex++;
+	else
+		m_historyCommandIndex--;
+
+	historyCommandCheck();
+	return m_historyCommand[m_historyCommandIndex];
+}
+
+void CguiconsoleDlg::commitPythonCommand(CString strCommand)
+{
+	if(_debugComponentType != CELLAPP_TYPE && _debugComponentType != BASEAPP_TYPE)
+	{
+		::AfxMessageBox(L"the component can not debug!");
+		return;
+	}
+
+	char buffer[4096] = {0};
+
+	int len = WideCharToMultiByte(CP_ACP, 0, strCommand, strCommand.GetLength(), NULL, 0, NULL, NULL);
+	WideCharToMultiByte(CP_ACP,0, strCommand, strCommand.GetLength(), buffer, len, NULL, NULL);
+	buffer[len + 1] = '\0';
+
+	int charLen = strlen(buffer);
+	std::string s = buffer;
+
+	m_historyCommand.push_back(strCommand);
+	historyCommandCheck();
+	m_historyCommandIndex = m_historyCommand.size() - 1;
+
+	int i = 0;
+	while((i = s.rfind("\r")) != -1)
+		s.erase(i, 1);
+
+	// 对普通的输入加入print 让服务器回显信息
+    if((s.find("=")) == -1 &&
+		(s.find("print")) == -1 &&
+		(s.find("import")) == -1 &&
+		(s.find("class")) == -1 &&
+		(s.find("def")) == -1 &&
+		(s.find("del")) == -1 &&
+		(s.find("if")) == -1 &&
+		(s.find("for")) == -1 &&
+		(s.find("while")) == -1
+		)
+        s = "print(" + s + ")";
+
+	if(m_pChannel)
+	{
+		Mercury::Bundle bundle;
+		if(_debugComponentType == BASEAPP_TYPE)
+			bundle.newMessage(BaseappInterface::onExecScriptCommand);
+		else
+			bundle.newMessage(CellappInterface::onExecScriptCommand);
+
+		bundle << s;
+		bundle.send(this->getNetworkInterface(), m_pChannel);
+
+		int len = MultiByteToWideChar(CP_ACP,0, buffer, charLen, NULL,0);
+		wchar_t *buf = new wchar_t[len + 1];
+		MultiByteToWideChar(CP_ACP, 0, buffer, charLen, buf, len);
+		buf[len] = L'\0';
+
+		CString str1, str2;
+		m_debugWnd.displaybufferWnd()->GetWindowText(str2);
+		wchar_t sign[10] = {L">>>"};
+		str1.Append(sign);
+		str1.Append(buf);
+		delete[] buf;
+		g_sendData = TRUE;
+		str2 += str1;
+		m_debugWnd.displaybufferWnd()->SetWindowTextW(str2);
+	}
+}
+
+BOOL CguiconsoleDlg::PreTranslateMessage(MSG* pMsg)
+{
+	if (pMsg->message == WM_KEYDOWN)   
+	{
+		if(pMsg-> wParam == 0x0d)   
+		{
+			return false;
+		} 
+	}
+
+	return CDialog::PreTranslateMessage(pMsg);
 }
 
 void CguiconsoleDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -225,9 +356,20 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 
 	CDialog::OnTimer(nIDEvent);
 
+	if(g_sendData)
+	{
+		g_sendData = !g_sendData;
+		m_debugWnd.sendbufferWnd()->SetWindowTextW(L"");
+	}
+
 	switch(nIDEvent)
 	{
 	case 1:
+		if(!_dispatcher.isBreakProcessing())
+		{
+			_dispatcher.processOnce(false);
+			_networkInterface.handleChannels(&KBEngine::ConsoleInterface::messageHandlers);
+		}
 		break;
 	case 2:
 		{
@@ -317,11 +459,60 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 			::KillTimer(m_hWnd, nIDEvent);
 		}
 		break;
+	case 3:
+		{
+			if(m_pChannel)
+			{
+				Mercury::Bundle bundle;
+				COMMON_MERCURY_MESSAGE(_debugComponentType, bundle, onAppActiveTick);
+				
+				bundle << _componentType;
+				bundle << _componentID;
+				bundle.send(getNetworkInterface(), m_pChannel);
+				m_pChannel->updateLastReceivedTime();
+			}
+		}
+		break;
 	default:
 		break;
-	};
+	};	
+}
 
-		
+void CguiconsoleDlg::onExecScriptCommandCB(Mercury::Channel* pChannel, std::string& command)
+{
+	DEBUG_MSG("CguiconsoleDlg::onExecScriptCommandCB: %s\n", command.c_str());
+	CString str;
+	CEdit* lpEdit = (CEdit*)m_debugWnd.displaybufferWnd();
+	lpEdit->GetWindowText(str);
+
+	if(str.GetLength() > 0)
+		str += "\r\n";
+	else
+		str += "";
+
+	for(unsigned int i=0; i<command.size(); i++)
+	{
+		char c = command.c_str()[i];
+		switch(c)
+		{
+		case 10:
+			str += "\r\n";
+			break;
+		case 32:
+			str += c;
+			break;
+		case 34:
+			str += "\t";
+			break;
+		default:
+			str += c;
+		}
+	}
+
+	str += "\r\n";
+	lpEdit->SetWindowText(str.GetBuffer(0));
+	int nline = lpEdit->GetLineCount();   
+	lpEdit->LineScroll(nline - 1);
 }
 
 void CguiconsoleDlg::OnSizing(UINT fwSide, LPRECT pRect)
@@ -437,7 +628,8 @@ void CguiconsoleDlg::updateTree()
 			tcitem.item.lParam = 0;
 			tcitem.item.iImage = 0;
 			tcitem.item.iSelectedImage = 1;
-			m_tree.InsertItem(&tcitem);
+			HTREEITEM insertItem = m_tree.InsertItem(&tcitem);
+			m_tree.SetItemData(insertItem, (DWORD)&cinfos.cid);
 			m_tree.Expand(hasUIDItem, TVE_EXPAND);
 			free(wbuf);
 		}
@@ -471,4 +663,137 @@ void CguiconsoleDlg::autoWndSize()
 	m_debugWnd.MoveWindow(&rect);
 	m_debugWnd.autoWndSize();
 	m_debugWnd.ShowWindow(SW_SHOW);
+}
+
+void CguiconsoleDlg::OnNMRClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	// TODO: Add your control notification handler code here
+	*pResult = 0;
+
+	CMenu menu;
+    menu.LoadMenu(IDR_POPMENU);
+    CMenu* pPopup = menu.GetSubMenu(0);
+	
+	CPoint point;
+	GetCursorPos(&point); //鼠标位置
+    pPopup->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
+}
+
+void CguiconsoleDlg::OnMenu_connectTo()
+{
+	// TODO: Add your command handler code here
+	HTREEITEM hItem = m_tree.GetSelectedItem(); 
+	if(hItem == NULL)
+	{
+		::AfxMessageBox(L"no select!");
+		return;
+	}
+
+	CString s = m_tree.GetItemText(hItem);
+	int fi_cellappmgr = s.Find(L"cellappmgr", 0);
+	int fi_baseappmgr = s.Find(L"baseappmgr", 0);
+	int fi_cellapp = s.Find(L"cellapp", 0);
+	int fi_baseapp = s.Find(L"baseapp", 0);
+	if(fi_cellappmgr >= 0)
+		fi_cellapp = -1;
+	if(fi_baseappmgr >= 0)
+		fi_baseapp = -1;
+	int fi_loginapp = s.Find(L"loginapp", 0);
+	int fi_dbmgr = s.Find(L"dbmgr", 0);
+
+	if(fi_cellapp  < 0 &&
+		fi_baseapp < 0 &&
+		fi_cellappmgr < 0 &&
+		fi_baseappmgr < 0 &&
+		fi_loginapp < 0 &&
+		fi_dbmgr < 0)
+	{
+		::AfxMessageBox(L"no select!");
+		return;
+	}
+	
+	CString title;
+	title.Format(L"guiconsole : connected[%s]", s);
+	this->SetWindowTextW(title.GetBuffer(0));
+	char* buf = KBEngine::wchar2char(s.GetBuffer(0));
+	std::string sbuf = buf;
+
+	std::string::size_type i = sbuf.find("[");
+	std::string::size_type j = sbuf.find("]");
+	sbuf = sbuf.substr(i + 1, j - 1);
+	std::string::size_type k = sbuf.find(":");
+	std::string sip, sport;
+	sip = sbuf.substr(0, k);
+	sport = sbuf.substr(k + 1, sbuf.find("]"));
+	sport = kbe_replace(sport, "]", "");
+
+	Mercury::EndPoint* endpoint = new Mercury::EndPoint();
+	endpoint->socket(SOCK_STREAM);
+	if (!endpoint->good())
+	{
+		AfxMessageBox(L"couldn't create a socket\n");
+		return;
+	}
+
+	u_int32_t address;
+	endpoint->convertAddress(sip.c_str(), address);
+	KBEngine::Mercury::Address addr(address, htons(atoi(sport.c_str())));
+	endpoint->addr(addr);
+
+	if(endpoint->connect(addr.port, addr.ip) == -1)
+	{
+		CString err;
+		err.Format(L"connect server is error! %d", ::WSAGetLastError());
+		AfxMessageBox(err);
+		return;
+	}
+
+	if(fi_cellapp >= 0)
+	{
+		_debugComponentType = CELLAPP_TYPE;
+	}
+	else if(fi_baseapp >= 0)
+	{
+		_debugComponentType = BASEAPP_TYPE;
+	}
+	else if(fi_cellappmgr >= 0)
+	{
+		_debugComponentType = CELLAPPMGR_TYPE;
+	}
+	else if(fi_baseappmgr >= 0)
+	{
+		_debugComponentType = BASEAPPMGR_TYPE;
+	}
+	else if(fi_loginapp >= 0)
+	{
+		_debugComponentType = LOGINAPP_TYPE;
+	}
+	else if(fi_dbmgr >= 0)
+	{
+		_debugComponentType = DBMGR_TYPE;
+	}
+	
+	BOOL isread_only = !(_debugComponentType == CELLAPP_TYPE || _debugComponentType == BASEAPP_TYPE);
+	m_debugWnd.sendbufferWnd()->SetReadOnly(isread_only);
+	if(!isread_only)
+	{
+		m_debugWnd.displaybufferWnd()->SetWindowTextW(L">>>请在下面的窗口写python代码来调试服务器。\r\n>>>ctrl+enter 发送\r\n\r\n");
+	}
+
+	endpoint->setnonblocking(true);
+	if(m_pChannel)
+	{
+		_networkInterface.deregisterChannel(m_pChannel);
+		m_pChannel->destroy();
+	}
+
+	m_pChannel = new Mercury::Channel(_networkInterface, endpoint, Mercury::Channel::INTERNAL);
+	if(!_networkInterface.registerChannel(m_pChannel))
+	{
+		CString err;
+		err.Format(L"ListenerReceiver::handleInputNotification:registerChannel(%s) is failed!\n",
+			m_pChannel->c_str());
+		AfxMessageBox(err);
+		return;
+	}
 }

@@ -251,15 +251,25 @@ void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE compo
 {
 	if(pChannel->isExternal())
 		return;
+	
+	Mercury::Channel* pTargetChannel = NULL;
+	if(componentType != CONSOLE_TYPE)
+	{
+		Components::ComponentInfos* cinfos = 
+			Componentbridge::getComponents().findComponent(componentType, KBEngine::getUserUID(), componentID);
 
-	Components::ComponentInfos* cinfos = 
-		Componentbridge::getComponents().findComponent(componentType, KBEngine::getUserUID(), componentID);
-
-	KBE_ASSERT(cinfos != NULL);
-	cinfos->pChannel->updateLastReceivedTime();
+		KBE_ASSERT(cinfos != NULL);
+		pTargetChannel = cinfos->pChannel;
+		pTargetChannel->updateLastReceivedTime();
+	}
+	else
+	{
+		pChannel->updateLastReceivedTime();
+		pTargetChannel = pChannel;
+	}
 
 	DEBUG_MSG("ServerApp::onAppActiveTick[%x]: %s:%"PRAppID" lastReceivedTime:%"PRIu64" at %s.\n", 
-		pChannel, COMPONENT_NAME[componentType], componentID, pChannel->lastReceivedTime(), cinfos->pChannel->c_str());
+		pChannel, COMPONENT_NAME[componentType], componentID, pChannel->lastReceivedTime(), pTargetChannel->c_str());
 }
 
 //-------------------------------------------------------------------------------------

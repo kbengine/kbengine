@@ -52,7 +52,7 @@ Script::~Script()
 }
 
 //-------------------------------------------------------------------------------------
-int Script::Run_SimpleString(std::string command, std::string* retBufferPtr)
+int Script::run_simpleString(std::string command, std::string* retBufferPtr)
 {
 	if(retBufferPtr != NULL)
 	{

@@ -39,6 +39,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
 #include "resmgr/resmgr.hpp"
+#include "helper/console_helper.hpp"
+
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4996)
 #endif
@@ -130,6 +132,12 @@ public:
 		dbmgr广播global数据的改变
 	*/
 	void onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+
+	/** 网络接口
+		请求执行一段python指令
+	*/
+	void onExecScriptCommand(Mercury::Channel* pChannel, std::string& strcommand);
 protected:
 	KBEngine::script::Script								script_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
@@ -563,6 +571,23 @@ void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEng
 			else
 				SCRIPT_ERROR_CHECK();
 		}
+	}
+}
+
+template<class E>
+void EntityApp<E>::onExecScriptCommand(Mercury::Channel* pChannel, std::string& strcommand)
+{
+	DEBUG_MSG("EntityApp::onExecScriptCommand: command size(%d).\n", strcommand.size());
+
+	std::string retbuf = "";
+	if(script_.run_simpleString(strcommand, &retbuf) == 0)
+	{
+		// 将结果返回给客户端
+		Mercury::Bundle bundle;
+		ConsoleInterface::ConsoleExecCommandCBMessageHandler msgHandler;
+		bundle.newMessage(msgHandler);
+		ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1::staticAddToBundle(bundle, retbuf);
+		bundle.send(this->getNetworkInterface(), pChannel);
 	}
 }
 

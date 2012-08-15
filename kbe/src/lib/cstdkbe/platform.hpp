@@ -34,6 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <map>
 #include <list>
 #include <set>
+#include <deque>
 #include <limits>
 #include <algorithm>
 #include <utility>

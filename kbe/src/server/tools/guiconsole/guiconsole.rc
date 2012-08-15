@@ -81,8 +81,8 @@ IDD_DEBUG DIALOGEX 0, 0, 316, 180
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    EDITTEXT        IDC_EDIT1,7,7,302,122,ES_AUTOHSCROLL
-    EDITTEXT        IDC_EDIT2,7,130,302,43,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT1,7,7,302,122,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL | WS_HSCROLL
+    EDITTEXT        IDC_EDIT2,7,130,302,43,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
 END
 
 
@@ -103,6 +103,20 @@ BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_POPMENU MENU 
+BEGIN
+    POPUP "²Ù×÷"
+    BEGIN
+        MENUITEM "Á¬½Ó",                          ID_32771
+    END
+END
 
 #endif    // Chinese (P.R.C.) resources
 /////////////////////////////////////////////////////////////////////////////
@@ -140,7 +154,7 @@ CAPTION "guiconsole"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     CONTROL         "",IDC_TAB1,"SysTabControl32",0x0,7,7,119,94
-    CONTROL         "",IDC_TREE1,"SysTreeView32",WS_BORDER | WS_HSCROLL | WS_TABSTOP,7,117,101,86
+    CONTROL         "",IDC_TREE1,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_TRACKSELECT | TVS_SINGLEEXPAND | WS_BORDER | WS_HSCROLL | WS_TABSTOP,7,117,101,86
 END
 
 

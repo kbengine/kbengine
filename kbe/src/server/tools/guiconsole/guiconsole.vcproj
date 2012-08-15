@@ -199,6 +199,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\EditSendbuffer.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\guiconsole.cpp"
 				>
 			</File>
@@ -234,6 +238,10 @@
 			>
 			<File
 				RelativePath=".\DebugWindow.h"
+				>
+			</File>
+			<File
+				RelativePath=".\EditSendbuffer.h"
 				>
 			</File>
 			<File

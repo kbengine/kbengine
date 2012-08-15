@@ -57,7 +57,7 @@ public:
 	/** 获取脚本基础模块 */
 	PyObject* getModule(void)const { return module_; }
 
-	int Run_SimpleString(std::string command, std::string* retBufferPtr);
+	int run_simpleString(std::string command, std::string* retBufferPtr);
 
 
 	int registerToModule(const char* attrName, PyObject* pyObj);

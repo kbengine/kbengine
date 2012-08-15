@@ -45,8 +45,8 @@ public:
 class MessageHandler
 {
 public:
-	MessageHandler(){};
-	~MessageHandler(){delete pArgs;};
+	MessageHandler():pArgs(NULL){};
+	~MessageHandler(){SAFE_RELEASE(pArgs);};
 
 	std::string name;
 	MessageID msgID;
