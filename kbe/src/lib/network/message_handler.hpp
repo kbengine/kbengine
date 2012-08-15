@@ -53,6 +53,11 @@ public:
 	MessageArgs* pArgs;
 	int32 msgLen;					// 如果长度为-1则为非固定长度消息
 	
+	/**
+		当这个handler被正是安装到MessageHandlers后被调用
+	*/
+	virtual void onInstall(){}
+
 	virtual void handle(Channel* pChannel, MemoryStream& s)
 	{
 		pArgs->createFromStream(s);

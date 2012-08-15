@@ -54,6 +54,7 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 	pIntListenerReceiver_(NULL),
 	pDelayedChannels_(new DelayedChannels()),
 	pChannelTimeOutHandler_(NULL),
+	pChannelDeregisterHandler_(NULL),
 	isExternal_(extlisteningPort_min != -1)
 {
 	if(isExternal())
