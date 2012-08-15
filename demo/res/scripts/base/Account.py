@@ -2,6 +2,8 @@
 import KBEngine
 from KBEDebug import *
 
+all_avatar_names = []
+
 class Account(KBEngine.Proxy):
 	def __init__(self):
 		KBEngine.Proxy.__init__(self)
@@ -67,15 +69,21 @@ class Account(KBEngine.Proxy):
 		客户端请求创建一个角色
 		"""
 		avatarinfo = {"name": name, "dbid": id(name)}
-		
+			
+		if name in all_avatar_names:
+			retcode = 2
+			self.client.onCreateAvatarResult(retcode, avatarinfo)
+			return
+			
 		done = False
 		for info in self.avatars:
 			if info["dbid"] == 0:
 				info["dbid"] = avatarinfo["dbid"]
 				info["name"] = avatarinfo["name"]
+				all_avatar_names.append(name)
 				done = True
 				break
-		
+			
 		retcode = 0
 		
 		if not done:
