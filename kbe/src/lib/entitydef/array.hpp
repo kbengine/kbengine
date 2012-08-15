@@ -35,12 +35,14 @@ class Array : public script::Sequence
 public:	
 	Array(DataType* dataType);
 	Array(DataType* dataType, std::string& strInitData);
+	Array(DataType* dataType, PyObject* pyInitData);
 	virtual ~Array();
 
 	const DataType* getDataType(void){ return _dataType; }
 	
 	/** 初始化固定字典*/
 	void initialize(std::string strInitData);
+	void initialize(PyObject* pyInitData);
 
 	/** 支持pickler 方法 */
 	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol);
@@ -60,6 +62,8 @@ public:
 	static PyObject* __py_remove(PyObject* self, PyObject* args, PyObject* kwargs);
 	
 	bool isSameType(PyObject* pyValue);
+
+	virtual PyObject* onSetItem(PyObject* pyItem);
 protected:
 	ArrayType* _dataType;
 } ;

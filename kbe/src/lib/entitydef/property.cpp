@@ -152,9 +152,22 @@ int ArrayDescription::onSetValue(PyObject* parentObj, PyObject* value)
 {
 	PyObject* pyobj = PyObject_GetAttrString(parentObj, const_cast<char*>(getName().c_str()));
 	if(pyobj == NULL)
+	{
+		if(static_cast<ArrayType*>(dataType_)->isSameType(value))
+		{
+			return PropertyDescription::onSetValue(parentObj, value);	
+		}
+
 		return -1;
-	
-	//Array* array1 = static_cast<Array*>(pyobj);
+	}
+
+	int ret = 0;
+	Array* array1 = static_cast<Array*>(pyobj);
+	if(static_cast<ArrayType*>(dataType_)->isSameType(value))
+	{
+		ret = PropertyDescription::onSetValue(parentObj, value);
+	}
+
 	Py_XDECREF(pyobj);
 	return 0;	
 }

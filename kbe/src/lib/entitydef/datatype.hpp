@@ -77,12 +77,29 @@ protected:
 public:	
 	DataType();
 	virtual ~DataType();	
+
 	virtual bool isSameType(PyObject* pyValue) = 0;
+
 	virtual void addToStream(MemoryStream* mstream, PyObject* pyValue) = 0;
+
 	virtual PyObject* createFromStream(MemoryStream* mstream) = 0;
+
+	/**	
+		当传入的这个pyobj并不是当前类型时则按照当前类型创建出一个obj
+		前提是即使这个PyObject不是当前类型， 但必须拥有转换的共性
+		既一个python字典转换为一个固定字典， 字典中的key都匹配
+	*/
+	virtual PyObject* isNotSameTypeCreateFromPyObject(PyObject* pyobj)
+	{
+		return pyobj;
+	}
+
 	virtual bool initialize(XmlPlus* xmlplus, TiXmlNode* node);
+
 	virtual PyObject* createObject(MemoryStream* defaultVal) = 0;
+
 	virtual MemoryStream* parseDefaultStr(std::string defaultVal) = 0;
+
 	virtual std::string getName(void) = 0;
 };
 
@@ -322,12 +339,20 @@ public:
 	virtual ~ArrayType();	
 
 	bool isSameType(PyObject* pyValue);
+	bool isSameItemType(PyObject* pyValue);
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
 	MemoryStream* parseDefaultStr(std::string defaultVal);
 	bool initialize(XmlPlus* xmlplus, TiXmlNode* node);
 	std::string getName(void){ return "ARRAY";}
+
+	/**	
+		当传入的这个pyobj并不是当前类型时则按照当前类型创建出一个obj
+		前提是即使这个PyObject不是当前类型， 但必须拥有转换的共性
+		既一个python字典转换为一个固定字典， 字典中的key都匹配
+	*/
+	virtual PyObject* isNotSameTypeCreateFromPyObject(PyObject* pyobj);
 };
 
 class FixedDictType : public DataType
@@ -350,6 +375,13 @@ public:
 	MemoryStream* parseDefaultStr(std::string defaultVal);
 	bool initialize(XmlPlus* xmlplus, TiXmlNode* node);
 	
+	/**	
+		当传入的这个pyobj并不是当前类型时则按照当前类型创建出一个obj
+		前提是即使这个PyObject不是当前类型， 但必须拥有转换的共性
+		既一个python字典转换为一个固定字典， 字典中的key都匹配
+	*/
+	virtual PyObject* isNotSameTypeCreateFromPyObject(PyObject* pyobj);
+
 	/** 获得固定字典所有的key名称 */
 	std::string getKeyNames(void);
 };

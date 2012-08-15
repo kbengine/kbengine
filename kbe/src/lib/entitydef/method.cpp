@@ -37,14 +37,15 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(RemoteEntityMethod, tp_call, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-MethodDescription::MethodDescription(ENTITY_METHOD_UID utype, std::string name, bool isExposed):
+MethodDescription::MethodDescription(ENTITY_METHOD_UID utype, 
+									 std::string name, bool isExposed):
 name_(name),
 utype_(utype),
 argTypes_(),
-isExposed_(isExposed)
+isExposed_(isExposed),
+currCallerID_(0)
 {
 	MethodDescription::methodDescriptionCount_++;
-	utype_ = MethodDescription::methodDescriptionCount_;
 }
 
 //-------------------------------------------------------------------------------------
@@ -245,7 +246,8 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args, PyObject* 
 		mailbox->newMail(bundle);
 		MemoryStream mstream;
 		methodDescription->addToStream(&mstream, args);
-		bundle.append(mstream.data(), mstream.wpos());
+		if(mstream.wpos() > 0)
+			bundle.append(mstream.data(), mstream.wpos());
 		mailbox->postMail(bundle);
 	}
 	

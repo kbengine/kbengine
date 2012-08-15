@@ -52,6 +52,15 @@ Sequence(getScriptType(), false)
 }
 
 //-------------------------------------------------------------------------------------
+Array::Array(DataType* dataType, PyObject* pyInitData):
+Sequence(getScriptType(), false)
+{
+	_dataType = static_cast<ArrayType*>(dataType);
+	_dataType->incRef();
+	initialize(pyInitData);
+}
+
+//-------------------------------------------------------------------------------------
 Array::Array(DataType* dataType):
 Sequence(getScriptType(), false)
 {
@@ -59,7 +68,6 @@ Sequence(getScriptType(), false)
 	_dataType->incRef();
 	initialize("");
 }
-
 
 //-------------------------------------------------------------------------------------
 Array::~Array()
@@ -70,6 +78,13 @@ Array::~Array()
 //-------------------------------------------------------------------------------------
 void Array::initialize(std::string strInitData)
 {
+}
+
+//-------------------------------------------------------------------------------------
+void Array::initialize(PyObject* pyDictInitData)
+{
+//	if(pyDictInitData)
+//		PyDict_Update(pyDict_, pyDictInitData);
 }
 
 //-------------------------------------------------------------------------------------
@@ -134,6 +149,12 @@ void Array::onInstallScript(PyObject* mod)
 bool Array::isSameType(PyObject* pyValue)
 {
 	return _dataType->isSameType(pyValue);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Array::onSetItem(PyObject* pyItem)
+{
+	return _dataType->isNotSameTypeCreateFromPyObject(pyItem);
 }
 
 //-------------------------------------------------------------------------------------

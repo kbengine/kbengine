@@ -57,6 +57,15 @@ Map(getScriptType(), false)
 }
 
 //-------------------------------------------------------------------------------------
+FixedDict::FixedDict(DataType* dataType, PyObject* pyDictInitData):
+Map(getScriptType(), false)
+{
+	_dataType = static_cast<FixedDictType*>(dataType);
+	_dataType->incRef();
+	initialize(pyDictInitData);
+}
+
+//-------------------------------------------------------------------------------------
 FixedDict::FixedDict(DataType* dataType):
 Map(getScriptType(), false)
 {
@@ -81,6 +90,13 @@ void FixedDict::initialize(std::string strDictInitData)
 	{
 		PyDict_SetItem(pyDict_, PyUnicode_FromString(iter->first.c_str()), iter->second->createObject(NULL));
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void FixedDict::initialize(PyObject* pyDictInitData)
+{
+	if(pyDictInitData)
+		PyDict_Update(pyDict_, pyDictInitData);
 }
 
 //-------------------------------------------------------------------------------------

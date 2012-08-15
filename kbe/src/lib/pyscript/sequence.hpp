@@ -50,6 +50,8 @@ public:
 	int findFrom(uint32 startIndex, PyObject* value);
 	
 	virtual bool isSameType(PyObject* pyValue);
+	virtual bool isSameItemType(PyObject* pyValue);
+	virtual PyObject* onSetItem(PyObject* pyItem);
 protected:
 	std::vector<PyObject*>				values_;
 } ;

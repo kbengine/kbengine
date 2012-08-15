@@ -355,6 +355,34 @@ void init_network(void)
 		bundle44.send(mysocket);
 		::sleep(3000);
 
+		// 开始接收列表
+		TCPPacket packet444;
+		packet444.resize(65535);
+		len = mysocket.recv(packet444.data(), 65535);
+		packet444.wpos(len);
+		packet444 >> msgID;
+		packet444 >> msgLen;
+		packet444 >> eid;
+		packet444 >> methodID;
+		uint32 size;
+
+		struct AvatarInfos
+		{
+			uint32 dbid;
+			std::string name;
+		};
+		std::vector<AvatarInfos> vargs;
+
+		packet444 >> size;
+		for(uint32 i=0; i<size; i++)
+		{
+			AvatarInfos ainfo;
+			packet444 >> ainfo.dbid;
+			packet444 >> ainfo.name;
+			vargs.push_back(ainfo);
+			printf("接收角色列表:dbid=%u,name=%s\n", ainfo.dbid, ainfo.name.c_str());
+		}
+
 		printf("向服务器请求创建角色\n");
 		// 向服务器请求创建角色
 		Mercury::Bundle bundle55;
@@ -365,6 +393,23 @@ void init_network(void)
 		bundle55 << "kebiao";
 		bundle55.send(mysocket);
 		::sleep(3000);
+
+		// 开始接收创建结果
+		TCPPacket packet555;
+		packet555.resize(65535);
+		len = mysocket.recv(packet555.data(), 65535);
+		packet555.wpos(len);
+		packet555 >> msgID;
+		packet555 >> msgLen;
+		packet555 >> eid;
+		packet555 >> methodID;
+		// 错误码
+		uint8 errorcode = 0;
+		packet555 >> errorcode;
+		AvatarInfos retainfo;
+		packet555 >> retainfo.dbid;
+		packet555 >> retainfo.name;
+		printf("创建角色结果:错误码:%u,dbid=%u,name=%s\n", errorcode, retainfo.dbid, retainfo.name.c_str());
 
 		printf("向服务器请求选择某个角色进行游戏\n");
 		// 向服务器请求选择某个角色进行游戏

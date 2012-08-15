@@ -63,6 +63,11 @@ bool Sequence::isSameType(PyObject* pyValue)
 	return true;
 }
 
+bool Sequence::isSameItemType(PyObject* pyValue)
+{
+	return true;
+}
+
 //-------------------------------------------------------------------------------------
 int Sequence::findFrom(uint32 startIndex, PyObject* value)
 {
@@ -213,6 +218,12 @@ int Sequence::seq_ass_item(PyObject* self, Py_ssize_t index, PyObject* value)
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* Sequence::onSetItem(PyObject* pyItem)
+{
+	return pyItem;
+}
+
+//-------------------------------------------------------------------------------------
 int Sequence::seq_ass_slice(PyObject* self, Py_ssize_t index1, Py_ssize_t index2, PyObject* oterSeq)
 {
 	Sequence* seq = static_cast<Sequence*>(self);
@@ -279,7 +290,12 @@ int Sequence::seq_ass_slice(PyObject* self, Py_ssize_t index1, Py_ssize_t index2
 			PyErr_PrintEx(0);
 		}
 		
-		values[index1 + i] = pyTemp;
+		PyObject* pyItem = seq->onSetItem(pyTemp);
+		values[index1 + i] = pyItem;
+		if(pyItem != pyTemp)
+		{
+			Py_DECREF(pyTemp);
+		}
 	}
 	return 0;
 }
