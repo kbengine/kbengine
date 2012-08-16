@@ -370,13 +370,13 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					{
 						(*pPacket) >> currMsgID_;
 						pPacket->messageID(currMsgID_);
-						TRACE_BUNDLE_DATA("handleRecv", pPacket);
 					}
 
 					Mercury::MessageHandler* pMsgHandler = pMsgHandlers->find(currMsgID_);
 
 					if(pMsgHandler == NULL)
 					{
+						TRACE_BUNDLE_DATA("handleRecv", pPacket, pMsgHandler);
 						INFO_MSG("Channel::handleMessage: invalide msgID=%d, msglen=%d, from %s.\n", 
 							currMsgID_, pPacket->totalSize(), c_str());
 
@@ -384,6 +384,8 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 						break;
 					}
 					
+					TRACE_BUNDLE_DATA("handleRecv", pPacket, pMsgHandler);
+
 					// 如果没有可操作的数据了则退出等待下一个包处理。
 					if(pPacket->opsize() == 0)
 						break;

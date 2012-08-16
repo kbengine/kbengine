@@ -98,7 +98,8 @@ Bundle::Bundle(Channel * pChannel, ProtocolType pt):
 	currMsgHandlerLength_(0),
 	currMsgLengthPos_(0),
 	packets_(),
-	isTCPPacket_(pt == PROTOCOL_TCP)
+	isTCPPacket_(pt == PROTOCOL_TCP),
+	pCurrMsgHandler_(NULL)
 {
 	 newPacket();
 }
@@ -152,7 +153,7 @@ void Bundle::finish(bool issend)
 	if(issend)
 	{
 		currMsgHandlerLength_ = 0;
-		TRACE_BUNDLE_DATA("pushsend", pCurrPacket_);
+		TRACE_BUNDLE_DATA("pushsend", pCurrPacket_, pCurrMsgHandler_);
 		pCurrPacket_ = NULL;
 	}
 
@@ -207,6 +208,8 @@ void Bundle::onSendComplete()
 //-------------------------------------------------------------------------------------
 void Bundle::newMessage(const MessageHandler& msgHandler)
 {
+	pCurrMsgHandler_ = &msgHandler;
+
 	finish(false);
 	KBE_ASSERT(pCurrPacket_ != NULL);
 	
