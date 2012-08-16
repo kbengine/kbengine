@@ -165,4 +165,22 @@
 		<descr>告诉客户端某个entity销毁了， 此类entity通常是还未onEntityEnterWorld。</descr>
 		<arg>INT32</arg> <!-- entityID int32 -->
 	</Client::onEntityDestroyed>
+	
+	<Property::position>
+		<id>600</id>
+		<descr>位置属性。</descr>
+		<arg>VECTOR3</arg> <!-- float(x) float(y) float(z) -->
+	</Property::position>
+
+	<Property::direction>
+		<id>601</id>
+		<descr>方向属性。</descr>
+		<arg>VECTOR3</arg> <!-- float(roll) float(pitch) float(yaw) -->
+	</Property::direction>
+	
+	<Property::spaceID>
+		<id>602</id>
+		<descr>所在空间ID。</descr>
+		<arg>SPACE_ID</arg> <!-- uint32 -->
+	</Property::spaceID>
 </root>
