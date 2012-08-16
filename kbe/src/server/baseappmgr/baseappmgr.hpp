@@ -90,6 +90,13 @@ public:
 								std::string& accountName, std::string& password);
 
 	/** 网络接口
+		一个新登录的账号获得合法登入baseapp的权利， 现在需要将账号注册给指定的baseapp
+		使其允许在此baseapp上登录。
+	*/
+	void registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel, COMPONENT_ID componentID,
+								std::string& accountName, std::string& password, ENTITY_ID entityID);
+
+	/** 网络接口
 		baseapp将自己的地址发送给loginapp并转发给客户端。
 	*/
 	void onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel, 

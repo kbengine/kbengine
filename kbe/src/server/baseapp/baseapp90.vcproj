@@ -257,6 +257,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\proxy.ipp"
+			>
+		</File>
+		<File
 			RelativePath=".\ReadMe.txt"
 			>
 		</File>

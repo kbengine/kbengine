@@ -69,6 +69,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginGatewayFailed,			MERCURY_FIXED_MESSAGE,
 									MERCURY_ERROR_CODE,			failedcode)
 
+	// 服务器上的entity已经有了一个cell部分。
+	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityGetCell,				MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,					eid)
+
 	// 服务器上的entity已经进入游戏世界了。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityEnterWorld,			MERCURY_FIXED_MESSAGE,
 									ENTITY_ID,					eid)

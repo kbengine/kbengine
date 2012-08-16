@@ -53,6 +53,7 @@ class Channel;
 #define TRACE_BUNDLE_DATA(bundle)																			\
 	if(Mercury::g_trace_packet > 0)																			\
 	{																										\
+		DEBUG_MSG("=======msgID:%d, currMsgLength:%d\n", bundle->messageID(), bundle->totalSize());			\
 		switch(Mercury::g_trace_packet)																		\
 		{																									\
 		case 1:																								\
@@ -95,6 +96,7 @@ public:
 		
 	Packet* newPacket();
 	
+	inline MessageID messageID() const { return currMsgID_; }
 public:
 	int32 onPacketAppend(int32 size)
 	{
@@ -254,6 +256,14 @@ public:
 		if(bundle.pCurrPacket_ == NULL)
 			return *this;
 		return append(bundle.pCurrPacket_->data(), bundle.pCurrPacket_->totalSize());
+	}
+
+	Bundle &append(MemoryStream& s)
+	{
+		if(s.wpos() > 0)
+			return append(s.data(), s.wpos());
+
+		return *this;
 	}
 
 	Bundle &append(const uint8 *str, int n)

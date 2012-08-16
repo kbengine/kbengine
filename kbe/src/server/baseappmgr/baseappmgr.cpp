@@ -195,8 +195,28 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 
 	Mercury::Bundle bundle;
 	bundle.newMessage(BaseappInterface::registerPendingLogin);
-	bundle << accountName << password;
+	ENTITY_ID eid = 0;
+	bundle << accountName << password << eid;
 	bundle.send(this->getNetworkInterface(), lpChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel, COMPONENT_ID componentID,
+								std::string& accountName, std::string& password, ENTITY_ID entityID)
+{
+	DEBUG_MSG("Baseappmgr::registerPendingAccountToBaseappAddr:%s, componentID=%"PRAppID", entityID=%d.\n", 
+		accountName.c_str(), componentID, entityID);
+
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID);
+	if(cinfos == NULL || cinfos->pChannel == NULL)
+	{
+		return;
+	}
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(BaseappInterface::registerPendingLogin);
+	bundle << accountName << password << entityID;
+	bundle.send(this->getNetworkInterface(), cinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------

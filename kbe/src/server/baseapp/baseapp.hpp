@@ -67,7 +67,9 @@ public:
 
 	bool run();
 	
-	/* 相关处理接口 */
+	/** 
+		相关处理接口 
+	*/
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 	virtual void handleGameTick();
 	void handleCheckStatusTick();
@@ -77,7 +79,7 @@ public:
 	bool initializeEnd();
 	void finalise();
 	
-	/* 网络接口
+	/** 网络接口
 		dbmgr告知已经启动的其他baseapp或者cellapp的地址
 		当前app需要主动的去与他们建立连接
 	*/
@@ -86,17 +88,26 @@ public:
 							std::string& username, 
 							int8 componentType, uint64 componentID, 
 							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport);
-
+	
+	/** 
+		创建了一个entity回调
+	*/
 	virtual Base* onCreateEntityCommon(PyObject* pyEntity, ScriptModule* sm, ENTITY_ID eid);
 
-	/* 创建一个entity */
+	/** 
+		创建一个entity 
+	*/
 	static PyObject* __py_createBase(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseAnywhere(PyObject* self, PyObject* args);
 
-	/** 创建一个新的space */
+	/**
+		创建一个新的space 
+	*/
 	void createInNewSpace(Base* base, PyObject* cell);
 
-	/** 在一个负载较低的baseapp上创建一个baseEntity */
+	/** 
+		在一个负载较低的baseapp上创建一个baseEntity 
+	*/
 	void createBaseAnywhere(const char* entityType, PyObject* params, PyObject* pyCallback);
 
 	/** 收到baseappmgr决定将某个baseapp要求createBaseAnywhere的请求在本baseapp上执行 
@@ -106,12 +117,16 @@ public:
 	*/
 	void onCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s);
 
-	/** baseapp 的createBaseAnywhere的回调 */
+	/** 
+		baseapp 的createBaseAnywhere的回调 
+	*/
 	void onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 	void _onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK_ID callbackID, 
 		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
 
-	/** 为一个baseEntity在制定的cell上创建一个cellEntity */
+	/** 
+		为一个baseEntity在制定的cell上创建一个cellEntity 
+	*/
 	void createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base* base);
 	
 	/** 网络接口
@@ -119,8 +134,10 @@ public:
 	*/
 	void onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONENT_ID componentID);
 
-	/** 通知客户端创建一个proxy对应的实体 */
-	bool createClientProxies(Proxy* base);
+	/** 
+		通知客户端创建一个proxy对应的实体 
+	*/
+	bool createClientProxies(Proxy* base, bool reload = false);
 
 	/** 网络接口
 		dbmgr发送初始信息
@@ -138,9 +155,10 @@ public:
 	void onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
-	注册将要登录的账号, 注册后则允许登录到此网关
+		注册将要登录的账号, 注册后则允许登录到此网关
 	*/
-	void registerPendingLogin(Mercury::Channel* pChannel, std::string& accountName, std::string& password);
+	void registerPendingLogin(Mercury::Channel* pChannel, std::string& accountName, 
+		std::string& password, ENTITY_ID entityID);
 
 	/** 网络接口
 		新用户请求登录到网关上

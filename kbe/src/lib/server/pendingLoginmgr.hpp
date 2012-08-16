@@ -52,6 +52,7 @@ public:
 		std::string password;
 		std::string datas;
 		TimeStamp lastProcessTime;
+		ENTITY_ID entityID;
 	};
 
 	typedef std::tr1::unordered_map<std::string, PLInfos*> PTINFO_MAP;

@@ -1,6 +1,10 @@
 #include "baseapp.hpp"
 #include "proxy.hpp"
 #include "client_lib/client_interface.hpp"
+#include "network/fixed_messages.hpp"
+
+#include "../../server/cellapp/cellapp_interface.hpp"
+#include "../../server/dbmgr/dbmgr_interface.hpp"
 
 namespace KBEngine{
 
@@ -29,6 +33,73 @@ Proxy::~Proxy()
 }
 
 //-------------------------------------------------------------------------------------
+void Proxy::initClientPropertys()
+{
+	Mercury::Bundle bundle;
+
+	// 初始化cellEntity的位置和方向变量
+	Vector3 v;
+	PyObject* cellData = getCellData();
+	KBE_ASSERT(cellData != NULL);
+
+	PyObject* position = PyDict_GetItemString(cellData, "position");
+	script::ScriptVector3::convertPyObjectToVector3(v, position);
+
+	Vector3 v1;
+	PyObject* direction = PyDict_GetItemString(cellData, "direction");
+	script::ScriptVector3::convertPyObjectToVector3(v1, direction);
+	
+	ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
+	ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
+	
+	Mercury::FixedMessages::MSGInfo* msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::position");
+	if(msgInfo != NULL)
+	{
+		posuid = msgInfo->msgid;
+		msgInfo = NULL;
+	}
+
+	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
+	if(msgInfo != NULL)
+	{
+		posuid = msgInfo->msgid;
+	}
+
+	bundle.newMessage(ClientInterface::onUpdatePropertys);
+	
+	bundle << getID();
+
+#ifdef CLIENT_NO_FLOAT
+	int32 x = (int32)v.x;
+	int32 y = (int32)v.x;
+	int32 z = (int32)v.x;
+	
+	
+	bundle << posuid << x << y << z;
+
+	x = (int32)v1.x;
+	y = (int32)v1.x;
+	z = (int32)v1.x;
+
+	bundle << diruid << x << y << z;
+#else
+	bundle << posuid << v.x << v.y << v.z;
+	bundle << diruid << v1.x << v1.y << v1.z;
+#endif
+	
+	// celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
+	MemoryStream s;
+	getCellDataByFlags(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, &s);
+	bundle.append(s);
+
+	MemoryStream s1;
+	getClientPropertys(&s1);
+	bundle.append(s1);
+
+	getClientMailbox()->postMail(bundle);
+}
+
+//-------------------------------------------------------------------------------------
 void Proxy::onEntitiesEnabled(void)
 {
 	PyObject* pyResult = PyObject_CallMethod(this, 
@@ -40,19 +111,26 @@ void Proxy::onEntitiesEnabled(void)
 }
 
 //-------------------------------------------------------------------------------------
-void Proxy::onLogOnAttempt(std::string& addr, uint32& port, std::string& password)
+int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 {
 	PyObject* pyResult = PyObject_CallMethod(this, 
-		const_cast<char*>("onLogOnAttempt"), const_cast<char*>("sk"), 
-		PyBytes_FromString(addr.c_str()), 
+		const_cast<char*>("onLogOnAttempt"), const_cast<char*>("uku"), 
+		PyUnicode_FromString(addr), 
 		PyLong_FromLong(port),
-		PyBytes_FromString(password.c_str())
+		PyUnicode_FromString(password)
 	);
 	
+	int32 ret = LOG_ON_REJECT;
 	if(pyResult != NULL)
+	{
+		ret = PyLong_AsLong(pyResult);
+		SCRIPT_ERROR_CHECK();
 		Py_DECREF(pyResult);
+	}
 	else
 		SCRIPT_ERROR_CHECK();
+
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------

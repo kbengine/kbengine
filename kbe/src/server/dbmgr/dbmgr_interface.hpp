@@ -88,6 +88,16 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	DBMGR_MESSAGE_DECLARE_ARGS2(queryAccount,						MERCURY_VARIABLE_MESSAGE,
 									std::string,					accountName,
 									std::string,					password)
+
+	// baseapp上账号上线。
+	DBMGR_MESSAGE_DECLARE_ARGS3(onAccountOnline,					MERCURY_VARIABLE_MESSAGE,
+									std::string,					accountName,
+									COMPONENT_ID,					componentID,
+									ENTITY_ID,						entityID)
+		
+	// baseapp上账号下线。
+	DBMGR_MESSAGE_DECLARE_ARGS1(onAccountOffline,					MERCURY_VARIABLE_MESSAGE,
+									std::string,					accountName)
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

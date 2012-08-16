@@ -251,7 +251,7 @@ void init_network(void)
 		// 连接游戏登陆进程
 		printf("连接游戏登陆进程\n");
 		u_int32_t address;
-		std::string ip = "192.168.10.108";
+		std::string ip = "192.168.4.44";
 		mysocket.convertAddress(ip.c_str(), address );
 		if(mysocket.connect(htons(port), address) == -1)
 		{
@@ -341,13 +341,22 @@ void init_network(void)
 		std::string entityType;
 		MessageLength msgLen;
 		packet33 >> msgID;
-		packet33 >> msgLen;
-		packet33 >> uuid;
-		packet33 >> eid;
-		packet33 >> entityType;
-		printf("Client::onCreatedProxies: size(%d) : msgID=%u, uuid:%"PRIu64", eid=%d, entityType=%s.\n", 
-			len, msgID, uuid, eid, entityType.c_str());
-		
+
+		if(msgID == 505) // 登录失败
+		{
+			packet33 >> failedcode;
+			printf("登录网关失败:msgID=%u, err=%u\n", msgID, failedcode);
+			continue;
+		}
+		else
+		{
+			packet33 >> msgLen;
+			packet33 >> uuid;
+			packet33 >> eid;
+			packet33 >> entityType;
+			printf("Client::onCreatedProxies: size(%d) : msgID=%u, uuid:%"PRIu64", eid=%d, entityType=%s.\n", 
+				len, msgID, uuid, eid, entityType.c_str());
+		}
 		::sleep(1000);
 		
 		printf("向服务器请求查询角色列表\n");

@@ -51,7 +51,8 @@ Dbmgr::Dbmgr(Mercury::EventDispatcher& dispatcher,
 	idServer_(1, 1024),
 	pGlobalData_(NULL),
 	pGlobalBases_(NULL),
-	pCellAppData_(NULL)
+	pCellAppData_(NULL),
+	isConnectedDB_(false)
 {
 }
 
@@ -346,9 +347,25 @@ void Dbmgr::onAccountLogin(Mercury::Channel* pChannel, std::string& accountName,
 	Mercury::Bundle bundle;
 	bundle.newMessage(LoginappInterface::onLoginAccountQueryResultFromDbmgr);
 	bool success = true;
+	COMPONENT_ID componentID = 0;
+	ENTITY_ID entityID = 0;
+	
+	// 如果没有连接db则从log中查找账号是否还在线
+	if(!isConnectedDB_)
+	{
+		PROXICES_ONLINE_LOG::iterator iter = proxicesOnlineLogs_.find(accountName);
+		if(iter != proxicesOnlineLogs_.end())
+		{
+			componentID = iter->second.cid;
+			entityID = iter->second.eid;
+		}
+	}
+
 	bundle << success;
 	bundle << accountName;
 	bundle << password;
+	bundle << componentID;   // 如果大于0则表示账号还存活在某个baseapp上
+	bundle << entityID;
 	bundle.send(this->getNetworkInterface(), pChannel);
 }
 
@@ -363,6 +380,39 @@ void Dbmgr::queryAccount(Mercury::Channel* pChannel, std::string& accountName, s
 	bundle << password;
 	bundle << "";
 	bundle.send(this->getNetworkInterface(), pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::onAccountOnline(Mercury::Channel* pChannel, std::string& accountName, COMPONENT_ID componentID, ENTITY_ID entityID)
+{
+	DEBUG_MSG("Dbmgr::onAccountOnline:componentID:%"PRAppID", entityID:%d.\n", componentID, entityID);
+	// 如果没有连接db则从log中查找账号是否还在线
+	if(!isConnectedDB_)
+	{
+		PROXICES_ONLINE_LOG::iterator iter = proxicesOnlineLogs_.find(accountName);
+		if(iter != proxicesOnlineLogs_.end())
+		{
+			iter->second.cid = componentID;
+			iter->second.eid = entityID;
+		}
+		else
+		{
+			proxicesOnlineLogs_[accountName].cid = componentID;
+			proxicesOnlineLogs_[accountName].eid = entityID;
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::onAccountOffline(Mercury::Channel* pChannel, std::string& accountName)
+{
+	DEBUG_MSG("Dbmgr::onAccountOffline:%s.\n", accountName.c_str());
+
+	// 如果没有连接db则从log中查找账号是否还在线
+	if(!isConnectedDB_)
+	{
+		proxicesOnlineLogs_.erase(accountName);
+	}
 }
 
 //-------------------------------------------------------------------------------------

@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/third_party/g3dlite;../../server;../../lib/third_party/log4cxx/include"
+				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/third_party/g3dlite;../../server;../../lib/third_party/log4cxx/include;../../lib/third_party/mysql/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER;KBE_DBMGR"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="resmgr_d.lib log4cxx_d.lib server_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib math_d.lib network_d.lib vldmt.lib thread_d.lib ws2_32.lib"
+				AdditionalDependencies="resmgr_d.lib libmysql_d.lib log4cxx_d.lib server_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib math_d.lib network_d.lib vldmt.lib thread_d.lib ws2_32.lib"
 				OutputFile="../../../bin/Hybrid/$(ProjectName).exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../../libs"
@@ -119,7 +119,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/third_party/g3dlite;../../server;../../lib/third_party/log4cxx/include"
+				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/third_party/g3dlite;../../server;../../lib/third_party/log4cxx/include;../../lib/third_party/mysql/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER;KBE_DBMGR"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -138,7 +138,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="resmgr.lib log4cxx.lib server.lib xmlplus.lib cstdkbe.lib helper.lib math.lib network.lib vldmt.lib thread.lib ws2_32.lib"
+				AdditionalDependencies="resmgr.lib log4cxx.lib libmysql.lib server.lib xmlplus.lib cstdkbe.lib helper.lib math.lib network.lib vldmt.lib thread.lib ws2_32.lib"
 				OutputFile="../../../bin/Hybrid\$(ProjectName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../../libs"

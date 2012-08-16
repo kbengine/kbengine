@@ -34,7 +34,7 @@ namespace KBEngine {
 typedef uint16 MERCURY_ERROR_CODE;					// 错误码类别
 
 
-#define MERCURY_SUCCESS								0			// 非法登录。
+#define MERCURY_SUCCESS								0			// 成功。
 #define MERCURY_ERR_SRV_NO_READY					1			// 服务器没有准备好。
 #define MERCURY_ERR_SRV_OVERLOAD					2			// 服务器负载过重。
 #define MERCURY_ERR_ILLEGAL_LOGIN					3			// 非法登录。
@@ -43,5 +43,22 @@ typedef uint16 MERCURY_ERROR_CODE;					// 错误码类别
 #define MERCURY_ERR_PASSWORD						6			// 密码不正确。
 #define MERCURY_ERR_ACCOUNT_CREATE					7			// 创建账号失败（已经存在一个相同的账号）。
 #define MERCURY_ERR_BUSY							8			// 操作过于繁忙(例如：在服务器前一次请求未执行完毕的情况下连续N次创建账号)。
+#define MERCURY_ERR_ANOTHER_LOGON					9			// 当前账号在另一处登录了。
+#define MERCURY_ERR_ACCOUNT_ONLINE					10			// 你已经登录了， 服务器拒绝再次登录。
+
+const char MERCURY_ERR_STR[][256] = {
+	"MERCURY_SUCCESS",
+	"MERCURY_ERR_SRV_NO_READY",
+	"MERCURY_ERR_SRV_OVERLOAD",
+	"MERCURY_ERR_ILLEGAL_LOGIN",
+	"MERCURY_ERR_NAME_PASSWORD",
+	"MERCURY_ERR_NAME",
+	"MERCURY_ERR_PASSWORD",
+	"MERCURY_ERR_ACCOUNT_CREATE",
+	"MERCURY_ERR_BUSY",
+	"MERCURY_ERR_ANOTHER_LOGON",
+	"MERCURY_ERR_ACCOUNT_ONLINE"
+};
+
 }
 #endif // __MERCURY_ERRORS_H__

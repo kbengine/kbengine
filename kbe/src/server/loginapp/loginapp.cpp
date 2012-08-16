@@ -274,13 +274,24 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& accountName, MERCURY_ERROR_CODE failedcode)
 {
-	DEBUG_MSG("Loginapp::loginFailed: accountName=%s login is failed. failedcode=%d.\n", accountName.c_str(), failedcode);
+	DEBUG_MSG("Loginapp::loginFailed: accountName=%s login is failed. failedcode=%s.\n", accountName.c_str(), MERCURY_ERR_STR[failedcode]);
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onLoginFailed);
 	bundle << failedcode;
-	bundle.send(this->getNetworkInterface(), pChannel);
-
+	
 	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(accountName);
+	
+	if(pChannel)
+	{
+		bundle.send(this->getNetworkInterface(), pChannel);
+	}
+	else 
+	{
+		Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(infos->addr);
+		if(pClientChannel)
+			bundle.send(this->getNetworkInterface(), pClientChannel);
+	}
+
 	SAFE_RELEASE(infos);
 }
 
@@ -292,14 +303,18 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 
 	std::string accountName, password;
 	bool success = true;
+	COMPONENT_ID componentID;
+	ENTITY_ID entityID;
 
 	s >> success;
 	s >> accountName;
 	s >> password;
+	s >> componentID;
+	s >> entityID;
 
 	if(!success)
 	{
-		_loginFailed(pChannel, accountName, MERCURY_ERR_NAME_PASSWORD);
+		_loginFailed(NULL, accountName, MERCURY_ERR_NAME_PASSWORD);
 		return;
 	}
 
@@ -311,17 +326,47 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 
 	if(baseappmgrinfos == NULL || baseappmgrinfos->pChannel == NULL || baseappmgrinfos->cid == 0)
 	{
-		_loginFailed(pChannel, accountName, MERCURY_ERR_SRV_NO_READY);
+		_loginFailed(NULL, accountName, MERCURY_ERR_SRV_NO_READY);
 		return;
 	}
 
-	// 注册到baseapp并且获取baseapp的地址
-	Mercury::Bundle bundle;
-	bundle.newMessage(BaseappmgrInterface::registerPendingAccountToBaseapp);
+	// 如果大于0则说明当前账号仍然存活于某个baseapp上
+	if(componentID > 0)
+	{
+		/*
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID);
+		if(cinfos == NULL || cinfos->pChannel == NULL)
+		{
+			_loginFailed(NULL, accountName, MERCURY_ERR_SRV_NO_READY);
+			return;
+		}
+		
+		// 直接将这个地址返回给客户端， 客户端去登录的话
+		onLoginAccountQueryBaseappAddrFromBaseappmgr(pChannel, accountName, cinfos->pExtAddr->ip, cinfos->pExtAddr->port);
 
-	bundle << accountName;
-	bundle << password;
-	bundle.send(this->getNetworkInterface(), baseappmgrinfos->pChannel);
+		// 直接注册给baseapp
+		Mercury::Bundle bundle;
+		bundle.newMessage(BaseappInterface::registerPendingLoginFromLoginapp);
+		bundle << accountName << password << entityID;
+		bundle.send(this->getNetworkInterface(), cinfos->pChannel);
+		*/
+
+		Mercury::Bundle bundle;
+		bundle.newMessage(BaseappmgrInterface::registerPendingAccountToBaseappAddr);
+		bundle << componentID << accountName << password << entityID;
+		bundle.send(this->getNetworkInterface(), baseappmgrinfos->pChannel);
+		return;
+	}
+	else
+	{
+		// 注册到baseapp并且获取baseapp的地址
+		Mercury::Bundle bundle;
+		bundle.newMessage(BaseappmgrInterface::registerPendingAccountToBaseapp);
+
+		bundle << accountName;
+		bundle << password;
+		bundle.send(this->getNetworkInterface(), baseappmgrinfos->pChannel);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -333,12 +378,12 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pC
 	Mercury::Address address(addr, port);
 	DEBUG_MSG("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:%s.\n", address.c_str());
 
-	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(accountName);
+	// 这里不做删除， 仍然使其保留一段时间避免同一时刻同时登录造成意外影响
+	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.find(accountName);
 	if(infos == NULL)
 		return;
 
 	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(infos->addr);
-	SAFE_RELEASE(infos);
 
 	if(pClientChannel == NULL)
 		return;
@@ -349,6 +394,8 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pC
 	bundle << inet_ntoa((struct in_addr&)addr);
 	bundle << fport;
 	bundle.send(this->getNetworkInterface(), pClientChannel);
+
+	infos->lastProcessTime = timestamp();
 }
 
 //-------------------------------------------------------------------------------------

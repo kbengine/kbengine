@@ -355,7 +355,6 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 		for(; packetIter != bufferedReceives_.end(); packetIter++)
 		{
 			Packet* pPacket = (*packetIter).get();
-			TRACE_BUNDLE_DATA(pPacket);
 
 			while(pPacket->totalSize() > 0)
 			{
@@ -368,7 +367,11 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					}
 					
 					if(currMsgID_ == 0)
+					{
 						(*pPacket) >> currMsgID_;
+						pPacket->messageID(currMsgID_);
+						TRACE_BUNDLE_DATA(pPacket);
+					}
 
 					Mercury::MessageHandler* pMsgHandler = pMsgHandlers->find(currMsgID_);
 
@@ -404,8 +407,8 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					
 					if(currMsgLen_ > MERCURY_MESSAGE_MAX_SIZE)
 					{
-						INFO_MSG("Channel::handleMessage: msglen is error! msgID=%d, msglen=(%d:%d), from %s.\n", 
-							currMsgID_, currMsgLen_, pPacket->totalSize(), c_str());
+						INFO_MSG("Channel::handleMessage[%s]: msglen is error! msgID=%d, msglen=(%d:%d), from %s.\n", 
+							pMsgHandler->name.c_str(), currMsgID_, currMsgLen_, pPacket->totalSize(), c_str());
 
 						condemn(true);
 						break;

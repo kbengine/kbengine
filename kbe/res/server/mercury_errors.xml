@@ -47,7 +47,13 @@
 	</MERCURY_ERR_BUSY>
 	
 	<MERCURY_ERR_ANOTHER_LOGON>
-		<id>10</id>
+		<id>9</id>
 		<descr>	当前账号在另一处登录了。</descr>
 	</MERCURY_ERR_ANOTHER_LOGON>
+	
+	<MERCURY_ERR_ACCOUNT_ONLINE>
+		<id>10</id>
+		<descr>	你已经登录了， 服务器拒绝再次登录。</descr>
+	</MERCURY_ERR_ACCOUNT_ONLINE>
+	
 </root>

@@ -175,6 +175,29 @@ void Base::destroyCellData(void)
 }
 
 //-------------------------------------------------------------------------------------
+void Base::getClientPropertys(MemoryStream* s)
+{
+	// 获得base部分关联的客户端属性数据
+	PyObject* pydict = PyObject_GetAttrString(this, "__dict__");
+		
+	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = getScriptModule()->getClientPropertyDescriptions();
+	ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();
+	for(; iter != propertyDescrs.end(); iter++)
+	{
+		PropertyDescription* propertyDescription = iter->second;
+		PyObject *key = PyUnicode_FromString(propertyDescription->getName().c_str());
+			
+	    if(PyDict_Contains(pydict, key) > 0)
+	    {
+	    	(*s) << propertyDescription->getUType();
+	    	propertyDescription->getDataType()->addToStream(s, PyDict_GetItem(pydict, key));
+	    }
+	}
+
+	Py_XDECREF(pydict);
+}
+
+//-------------------------------------------------------------------------------------
 bool Base::destroyCellEntity(void)
 {
 	if(cellMailbox_ == NULL) 
@@ -280,17 +303,6 @@ void Base::onGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID)
 	cellMailbox_ = new EntityMailbox(scriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
 	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onGetCell"), 
 																	const_cast<char*>(""));
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_Clear();
-}
-
-//-------------------------------------------------------------------------------------
-void Base::onClientGetCell()
-{
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onClientGetCell"), 
-																		const_cast<char*>(""));
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else

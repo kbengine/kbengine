@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
+#include "network/fixed_messages.hpp"
 #include "server/componentbridge.hpp"
 #include "server/components.hpp"
 #include "client_lib/client_interface.hpp"
@@ -86,6 +87,21 @@ void Baseapp::onInstallPyModules()
 	// 添加globalData, globalBases支持
 	pGlobalBases_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_BASES);
 	registerPyObjectToScript("globalBases", pGlobalBases_);
+
+	if(PyModule_AddIntMacro(this->getScript().getModule(), LOG_ON_REJECT))
+	{
+		ERROR_MSG( "Baseapp::onInstallPyModules: Unable to set KBEngine.LOG_ON_REJECT.\n");
+	}
+
+	if(PyModule_AddIntMacro(this->getScript().getModule(), LOG_ON_ACCEPT))
+	{
+		ERROR_MSG( "Baseapp::onInstallPyModules: Unable to set KBEngine.LOG_ON_ACCEPT.\n");
+	}
+
+	if(PyModule_AddIntMacro(this->getScript().getModule(), LOG_ON_WAIT_FOR_DESTROY))
+	{
+		ERROR_MSG( "Baseapp::onInstallPyModules: Unable to set KBEngine.LOG_ON_WAIT_FOR_DESTROY.\n");
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -538,55 +554,18 @@ void Baseapp::onClientEntityEnterWorld(Proxy* base)
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onEntityEnterWorld);
 	bundle << base->getID();
-
-	// 初始化cellEntity的位置和方向变量
-	Vector3 v;
-	PyObject* cellData = base->getCellData();
-
-	PyObject* position = PyDict_GetItemString(cellData, "position");
-	script::ScriptVector3::convertPyObjectToVector3(v, position);
-
-	Vector3 v1;
-	PyObject* direction = PyDict_GetItemString(cellData, "direction");
-	script::ScriptVector3::convertPyObjectToVector3(v1, direction);
-	
-	ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
-	ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
-	
-	bundle.newMessage(ClientInterface::onUpdatePropertys);
-#ifdef CLIENT_NO_FLOAT
-	int32 x = (int32)v.x;
-	int32 y = (int32)v.x;
-	int32 z = (int32)v.x;
-	
-	
-	bundle << posuid << x << y << z;
-
-	x = (int32)v1.x;
-	y = (int32)v1.x;
-	z = (int32)v1.x;
-
-	bundle << diruid << x << y << z;
-#else
-	bundle << posuid << v.x << v.y << v.z;
-	bundle << diruid << v1.x << v1.y << v1.z;
-#endif
-	
-	// 服务器已经确定创建cell部分实体了， 我们可以从celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
-	MemoryStream s;
-	base->getCellDataByFlags(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, &s);
-	
-	if(s.wpos() > 0)
-		bundle.append(s.data(), s.wpos());
-
 	base->getClientMailbox()->postMail(bundle);
 }
 
 //-------------------------------------------------------------------------------------
-bool Baseapp::createClientProxies(Proxy* base)
+bool Baseapp::createClientProxies(Proxy* base, bool reload)
 {
 	// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
 	base->getClientMailbox()->getChannel()->proxyID(base->getID());
+	
+	// 重新生成一个ID
+	if(reload)
+		base->rndUUID(genUUID64());
 
 	// 让客户端知道已经创建了proxices, 并初始化一部分属性
 	Mercury::Bundle bundle;
@@ -594,43 +573,11 @@ bool Baseapp::createClientProxies(Proxy* base)
 	bundle << base->rndUUID();
 	bundle << base->getID();
 	bundle << base->ob_type->tp_name;
-	
-	bool hasAddUpdatePropertysFlag = false;
-
-	// 获得base部分关联的客户端属性数据， 准备传送到客户端初始化entity
-	PyObject* pydict = PyObject_GetAttrString(base, "__dict__");
-		
-	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = base->getScriptModule()->getClientPropertyDescriptions();
-	ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();
-	for(; iter != propertyDescrs.end(); iter++)
-	{
-		PropertyDescription* propertyDescription = iter->second;
-		PyObject *key = PyUnicode_FromString(propertyDescription->getName().c_str());
-			
-	    if(PyDict_Contains(pydict, key) > 0)
-	    {
-			if(!hasAddUpdatePropertysFlag)
-			{
-				bundle.newMessage(ClientInterface::onUpdatePropertys);
-				hasAddUpdatePropertysFlag = true;
-			}
-
-	    	bundle << propertyDescription->getUType();
-			MemoryStream s;
-	    	propertyDescription->getDataType()->addToStream(&s, PyDict_GetItem(pydict, key));
-
-			if(s.wpos() > 0)
-			{
-				bundle.append(s.data(), s.wpos());
-			}
-	    }
-	}
-	
-	Py_XDECREF(pydict);
 	base->getClientMailbox()->postMail(bundle);
 
 	// 本应该由客户端告知已经创建好entity后调用这个接口。
-	base->onEntitiesEnabled();
+	if(!reload)
+		base->onEntitiesEnabled();
 	return true;
 }
 
@@ -725,7 +672,7 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& accountName, std::string& password)
+void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& accountName, std::string& password, ENTITY_ID entityID)
 {
 	if(pChannel->isExternal())
 		return;
@@ -740,6 +687,7 @@ void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& acco
 	PendingLoginMgr::PLInfos* ptinfos = new PendingLoginMgr::PLInfos;
 	ptinfos->accountName = accountName;
 	ptinfos->password = password;
+	ptinfos->entityID = entityID;
 	pendingLoginMgr_.add(ptinfos);
 }
 
@@ -793,11 +741,65 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName,
 		return;
 	}
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(DbmgrInterface::queryAccount);
-	DbmgrInterface::queryAccountArgs2::staticAddToBundle(bundle, accountName, password);
-	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
-	
+	// 如果entityID大于0则说明此entity是存活状态登录
+	if(ptinfos->entityID > 0)
+	{
+		DEBUG_MSG("Baseapp::loginGateway: user[%s] has entity(%d).\n", accountName.c_str(), ptinfos->entityID);
+		Proxy* base = static_cast<Proxy*>(findEntity(ptinfos->entityID));
+		if(base == NULL)
+		{
+			loginGatewayFailed(pChannel, accountName, MERCURY_ERR_SRV_NO_READY);
+			return;
+		}
+		
+		if(base->getClientMailbox() == NULL)
+		{
+			// 创建entity的客户端mailbox
+			EntityMailbox* entityClientMailbox = new EntityMailbox(base->getScriptModule(), 
+				&pChannel->addr(), 0, base->getID(), MAILBOX_TYPE_CLIENT);
+
+			base->setClientMailbox(entityClientMailbox);
+			base->addr(pChannel->addr());
+
+			// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
+			entityClientMailbox->getChannel()->proxyID(base->getID());
+			createClientProxies(base, true);
+		}
+		else
+		{
+			// 通知脚本异常登录请求有脚本决定是否允许这个通道强制登录
+			int32 ret = base->onLogOnAttempt(inet_ntoa((struct in_addr&)pChannel->addr().ip), 
+				ntohs(pChannel->addr().port), password.c_str());
+
+			switch(ret)
+			{
+			case LOG_ON_ACCEPT:
+				DEBUG_MSG("Baseapp::loginGateway: script LOG_ON_ACCEPT.\n");
+				if(base->getClientMailbox() != NULL)
+				{
+					// 通告在别处登录
+					loginGatewayFailed(base->getClientMailbox()->getChannel(), accountName, MERCURY_ERR_ANOTHER_LOGON);
+					base->getClientMailbox()->getChannel()->proxyID(0);
+					base->getClientMailbox()->addr(pChannel->addr());
+					base->addr(pChannel->addr());
+					createClientProxies(base, true);
+				}
+			case LOG_ON_WAIT_FOR_DESTROY:
+			default:
+				DEBUG_MSG("Baseapp::loginGateway: script LOG_ON_REJECT.\n");
+				loginGatewayFailed(pChannel, accountName, MERCURY_ERR_ACCOUNT_ONLINE);
+				return;
+			};
+		}
+	}
+	else
+	{
+		Mercury::Bundle bundle;
+		bundle.newMessage(DbmgrInterface::queryAccount);
+		DbmgrInterface::queryAccountArgs2::staticAddToBundle(bundle, accountName, password);
+		bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+	}
+
 	// 记录客户端地址
 	ptinfos->addr = pChannel->addr();
 }
@@ -809,7 +811,8 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, uint64 key, ENTITY_ID e
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& datas)
+void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, 
+										std::string& accountName, std::string& password, std::string& datas)
 {
 	if(pChannel->isExternal())
 		return;
@@ -827,9 +830,14 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, std::string&
 			&pClientChannel->addr(), 0, base->getID(), MAILBOX_TYPE_CLIENT);
 
 		base->setClientMailbox(entityClientMailbox);
-		base->addr(pChannel->addr());
+		base->addr(pClientChannel->addr());
 
 		createClientProxies(base);
+
+		Mercury::Bundle bundle;
+		bundle.newMessage(DbmgrInterface::onAccountOnline);
+		DbmgrInterface::onAccountOnlineArgs3::staticAddToBundle(bundle, accountName, componentID_, base->getID());
+		bundle.send(this->getNetworkInterface(), pChannel);
 	}
 
 	DEBUG_MSG("Baseapp::onQueryAccountCBFromDbmgr: user[%s], uuid[%"PRIu64"], entityID=%d.\n", 

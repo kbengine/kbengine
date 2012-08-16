@@ -345,7 +345,7 @@ bool EntityApp<E>::installPyModules()
 	// ÃÌº”globalData, globalBases÷ß≥÷
 	pGlobalData_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_DATA);
 	registerPyObjectToScript("globalData", pGlobalData_);
-
+	onInstallPyModules();
 	return true;
 }
 

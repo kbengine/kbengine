@@ -57,7 +57,8 @@ class Base : public script::ScriptObject
 	BASE_SCRIPT_HREADER(Base, ScriptObject)	
 	ENTITY_HEADER(Base)
 public:
-	Base(ENTITY_ID id, ScriptModule* scriptModule, PyTypeObject* pyType = getScriptType(), bool isInitialised = true);
+	Base(ENTITY_ID id, ScriptModule* scriptModule, 
+		PyTypeObject* pyType = getScriptType(), bool isInitialised = true);
 	~Base();
 
 	/** 
@@ -66,48 +67,81 @@ public:
 	void onDefDataChanged(const PropertyDescription* propertyDescription, 
 			PyObject* pyData);
 
-	/** 销毁cell部分的实体 */
+	/** 
+		销毁cell部分的实体 
+	*/
 	bool destroyCellEntity(void);
+
 	DECLARE_PY_MOTHOD_ARG0(pyDestroyCellEntity);
 	
-	/** 脚本请求销毁base实体 */
+	/** 
+		脚本请求销毁base实体 
+	*/
 	void destroyBase(void);
+
 	DECLARE_PY_MOTHOD_ARG0(pyDestroyBase);
 	
-	/** 脚本获取mailbox */
+	/** 
+		脚本获取mailbox 
+	*/
 	DECLARE_PY_GET_MOTHOD(pyGetCellMailbox);
+
 	EntityMailbox* getCellMailbox(void)const;
+
 	void setCellMailbox(EntityMailbox* mailbox);
 	
-	/** 脚本获取mailbox */
+	/** 
+		脚本获取mailbox 
+	*/
 	DECLARE_PY_GET_MOTHOD(pyGetClientMailbox);
+
 	EntityMailbox* getClientMailbox()const;
+
 	void setClientMailbox(EntityMailbox* mailbox);
 
-	/** cellData部分 */
+	/** 
+		cellData部分 
+	*/
 	bool installCellDataAttr(PyObject* dictData = NULL);
+
 	void createCellData(void);
+
 	void destroyCellData(void);
+
 	void getCellDataByFlags(uint32 flags, MemoryStream* s);
+
 	PyObject* createCellDataDictByFlags(uint32 flags);
+
 	INLINE PyObject* getCellData(void)const;
 	
-	/** 创建cell失败回调 */
+	/**
+		获取这个entity的client部分的属性放到流中
+	*/
+	void getClientPropertys(MemoryStream* s);
+
+	/** 
+		创建cell失败回调 
+	*/
 	void onCreateCellFailure(void);
 
-	/** 创建cell成功回调 */
+	/** 
+		创建cell成功回调 
+	*/
 	void onGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID);
 
-	/** 丢失cell了的通知 */
+	/** 
+		丢失cell了的通知 
+	*/
 	void onLoseCell(Mercury::Channel* pChannel, MemoryStream& s);
 
-	/** 客户端获得了cell */
-	void onClientGetCell();
-
-	/** 客户端丢失 */
+	/** 
+		客户端丢失 
+	*/
 	void onClientDeath();
 
-	/** 将要保存到数据库之前的通知 */
+	/** 
+		将要保存到数据库之前的通知 
+	*/
 	void onWriteToDB(PyObject* cellData);
 
 	/** 网络接口
@@ -115,13 +149,19 @@ public:
 	*/
 	void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
 
-	/** 销毁这个entity */
+	/** 
+		销毁这个entity 
+	*/
 	void destroy();
 
-	/** 为一个baseEntity在制定的cell上创建一个cellEntity */
+	/** 
+		为一个baseEntity在制定的cell上创建一个cellEntity 
+	*/
 	DECLARE_PY_MOTHOD_ARG1(createCellEntity, PyObject_ptr);
 
-	/** 创建一个cellEntity在一个新的space上 */
+	/** 
+		创建一个cellEntity在一个新的space上 
+	*/
 	DECLARE_PY_MOTHOD_ARG1(createInNewSpace, PyObject_ptr);
 
 protected:

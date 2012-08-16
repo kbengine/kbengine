@@ -138,6 +138,7 @@ BEGIN_MESSAGE_MAP(CguiconsoleDlg, CDialog)
 	ON_WM_SIZE()
 	ON_NOTIFY(NM_RCLICK, IDC_TREE1, &CguiconsoleDlg::OnNMRClickTree1)
 	ON_COMMAND(ID_32771, &CguiconsoleDlg::OnMenu_connectTo)
+	ON_COMMAND(ID_32772, &CguiconsoleDlg::OnMenu_Update)
 END_MESSAGE_MAP()
 
 
@@ -796,4 +797,19 @@ void CguiconsoleDlg::OnMenu_connectTo()
 		AfxMessageBox(err);
 		return;
 	}
+}
+
+void CguiconsoleDlg::OnMenu_Update()
+{
+	_debugComponentType = UNKNOWN_COMPONENT_TYPE;
+	if(m_pChannel)
+	{
+		_networkInterface.deregisterChannel(m_pChannel);
+		m_pChannel->destroy();
+		m_pChannel = NULL;
+	}
+
+	Components::getSingleton().clear();
+
+	::SetTimer(m_hWnd, 2, 100, NULL);
 }

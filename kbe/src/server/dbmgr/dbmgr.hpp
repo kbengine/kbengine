@@ -31,6 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
 #include "server/idallocate.hpp"
+#include "mysql.h"
 
 //#define NDEBUG
 #include <map>	
@@ -110,15 +111,45 @@ public:
 		baseapp请求查询account信息
 	*/
 	void queryAccount(Mercury::Channel* pChannel, std::string& accountName, std::string& password);
+
+	/** 网络接口
+		账号从baseapp上线了
+	*/
+	void onAccountOnline(Mercury::Channel* pChannel, std::string& accountName, COMPONENT_ID componentID, ENTITY_ID entityID);
+
+	/** 网络接口
+		账号从baseapp下线了
+	*/
+	void onAccountOffline(Mercury::Channel* pChannel, std::string& accountName);
 protected:
-	TimerHandle							loopCheckTimerHandle_;
-	TimerHandle							mainProcessTimer_;
+	TimerHandle											loopCheckTimerHandle_;
+	TimerHandle											mainProcessTimer_;
 
-	IDServer<ENTITY_ID>					idServer_;									// entityID分配服务端
+	// entityID分配服务端
+	IDServer<ENTITY_ID>									idServer_;									
 
-	GlobalDataServer*					pGlobalData_;								// globalData
-	GlobalDataServer*					pGlobalBases_;								// globalBases
-	GlobalDataServer*					pCellAppData_;								// cellAppData
+	// globalData
+	GlobalDataServer*									pGlobalData_;								
+
+	// globalBases
+	GlobalDataServer*									pGlobalBases_;								
+
+	// cellAppData
+	GlobalDataServer*									pCellAppData_;								
+
+	// 是否已经连接数据库
+	bool												isConnectedDB_;								
+	
+	struct PROXICES_ONLINE_LOG_ITEM
+	{
+		COMPONENT_ID cid;
+		ENTITY_ID eid;
+	};
+
+	typedef std::tr1::unordered_map<std::string, PROXICES_ONLINE_LOG_ITEM> PROXICES_ONLINE_LOG;
+	// 所有的proxy创建后都会注册到这里， 提供look或者登录是在线判断
+	// 注意： 如果有数据库支持则会记录在数据库中
+	PROXICES_ONLINE_LOG									proxicesOnlineLogs_;									
 };
 
 }
