@@ -370,7 +370,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					{
 						(*pPacket) >> currMsgID_;
 						pPacket->messageID(currMsgID_);
-						TRACE_BUNDLE_DATA(pPacket);
+						TRACE_BUNDLE_DATA("handleRecv", pPacket);
 					}
 
 					Mercury::MessageHandler* pMsgHandler = pMsgHandlers->find(currMsgID_);
