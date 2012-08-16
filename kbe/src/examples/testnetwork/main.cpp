@@ -229,6 +229,8 @@ void init_network(void)
 		ERROR_MSG("NetworkInterface::recreateListeningSocket: couldn't create a socket\n");
 		return;
 	}
+	
+	int nnn = 0;
 
 	while(1)
 	{
@@ -268,6 +270,11 @@ void init_network(void)
 		MessageLength msgLength = 0;
 		Mercury::Bundle bundle1;
 		bundle1.newMessage(LoginappInterface::reqCreateAccount);
+
+		std::string avatarname = "kebiao";
+		char ttt[256];
+		itoa(nnn++, ttt, 255);
+		avatarname += ttt;
 		bundle1 << "kebiao";
 		bundle1 << "123456";
 		bundle1.send(mysocket);
@@ -399,7 +406,7 @@ void init_network(void)
 		methodID = 10002;
 		bundle55 << eid;
 		bundle55 << methodID;
-		bundle55 << "kebiao";
+		bundle55 << avatarname;
 		bundle55.send(mysocket);
 		::sleep(3000);
 

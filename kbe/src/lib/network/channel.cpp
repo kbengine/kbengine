@@ -439,8 +439,8 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 						{
 							if(frpos != pPacket->rpos())
 							{
-								CRITICAL_MSG("Channel::handleMessage: rpos(%d) invalid, expect=%d. msgID=%d, msglen=%d.\n",
-									pPacket->rpos(), frpos, currMsgID_, currMsgLen_);
+								CRITICAL_MSG("Channel::handleMessage[%s]: rpos(%d) invalid, expect=%d. msgID=%d, msglen=%d.\n",
+									pMsgHandler->name.c_str(), pPacket->rpos(), frpos, currMsgID_, currMsgLen_);
 
 								pPacket->rpos(frpos);
 							}
