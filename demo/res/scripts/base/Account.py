@@ -9,6 +9,7 @@ class Account(KBEngine.Proxy):
 		KBEngine.Proxy.__init__(self)
 		self.avatars = [{"name":"unknown", "dbid": 0}, {"name":"unknown", "dbid": 0}, {"name":"unknown", "dbid": 0}]
 		self.accountName = "kebiao"
+		self.activeCharacter = None
 		
 	def onTimer(self, id, userArg):
 		"""
@@ -46,6 +47,8 @@ class Account(KBEngine.Proxy):
 		else:
 			return KBEngine.LOG_ON_REJECT
 		"""
+		player.giveClientTo(self)
+		return KBEngine.LOG_ON_ACCEPT
 		
 	def onClientDeath(self):
 		"""
@@ -99,6 +102,7 @@ class Account(KBEngine.Proxy):
 		"""
 		DEBUG_MSG("Account[%i].selectAvatarGame:%i." % (self.id, dbid))
 		# 注意:使用giveClientTo的entity必须是当前baseapp上的entity
-		player = KBEngine.createBase("Avatar", {"name" : str(dbid)})
-		player.accountEntity = self
-		self.giveClientTo(player)
+		if self.activeCharacter is None:
+			player = KBEngine.createBase("Avatar", {"name" : str(dbid)})
+			player.accountEntity = self
+			self.giveClientTo(player)
