@@ -169,7 +169,8 @@ public:
 		重新登录 快速与网关建立交互关系(前提是之前已经登录了， 
 		之后断开在服务器判定该前端的Entity未超时销毁的前提下可以快速与服务器建立连接并达到操控该entity的目的)
 	*/
-	void reLoginGateway(Mercury::Channel* pChannel, uint64 key, ENTITY_ID entityID);
+	void reLoginGateway(Mercury::Channel* pChannel, std::string& accountName, 
+		std::string& password, uint64 key, ENTITY_ID entityID);
 
 	/**
 	   登录失败

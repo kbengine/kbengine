@@ -813,9 +813,62 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName,
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::reLoginGateway(Mercury::Channel* pChannel, uint64 key, ENTITY_ID entityID)
+void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountName, 
+							 std::string& password, uint64 key, ENTITY_ID entityID)
 {
 	DEBUG_MSG("Baseapp::reLoginGateway: key="PRIu64", entityID=%d.\n", key, entityID);
+
+	Proxy* base = static_cast<Proxy*>(findEntity(entityID));
+	if(base == NULL)
+	{
+		loginGatewayFailed(pChannel, accountName, MERCURY_ERR_SRV_NO_READY);
+		return;
+	}
+	
+	if(base->getClientMailbox() == NULL)
+	{
+		// 创建entity的客户端mailbox
+		EntityMailbox* entityClientMailbox = new EntityMailbox(base->getScriptModule(), 
+			&pChannel->addr(), 0, base->getID(), MAILBOX_TYPE_CLIENT);
+
+		base->setClientMailbox(entityClientMailbox);
+		base->addr(pChannel->addr());
+
+		// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
+		entityClientMailbox->getChannel()->proxyID(base->getID());
+		createClientProxies(base, true);
+	}
+	else
+	{
+		// 通知脚本异常登录请求有脚本决定是否允许这个通道强制登录
+		int32 ret = base->onLogOnAttempt(inet_ntoa((struct in_addr&)pChannel->addr().ip), 
+			ntohs(pChannel->addr().port), password.c_str());
+
+		switch(ret)
+		{
+		case LOG_ON_ACCEPT:
+			DEBUG_MSG("Baseapp::loginGateway: script LOG_ON_ACCEPT.\n");
+			if(base->getClientMailbox() != NULL)
+			{
+				// 通告在别处登录
+				Mercury::Channel* pOldClientChannel = base->getClientMailbox()->getChannel();
+				if(pOldClientChannel != NULL)
+				{
+					loginGatewayFailed(pOldClientChannel, accountName, MERCURY_ERR_ANOTHER_LOGON);
+					pOldClientChannel->proxyID(0);
+				}
+
+				base->getClientMailbox()->addr(pChannel->addr());
+				base->addr(pChannel->addr());
+				createClientProxies(base, true);
+			}
+		case LOG_ON_WAIT_FOR_DESTROY:
+		default:
+			DEBUG_MSG("Baseapp::loginGateway: script LOG_ON_REJECT.\n");
+			loginGatewayFailed(pChannel, accountName, MERCURY_ERR_ACCOUNT_ONLINE);
+			return;
+		};
+	}
 }
 
 //-------------------------------------------------------------------------------------

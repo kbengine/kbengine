@@ -288,7 +288,8 @@ void init_network(void)
 		uint16 failedcode = 0;
 		packet1 >> msgID;
 		packet1 >> failedcode;
-		printf("Client::onCreateAccountResult: 创建账号成功 size(%d) failedcode=%u.\n", len, failedcode);
+		printf("Client::onCreateAccountResult: 创建账号%s size(%d) failedcode=%u.\n", 
+			failedcode == 0 ? "成功" : "失败",len, failedcode);
 		::sleep(1000);
 
 		// 提交账号密码请求登录
