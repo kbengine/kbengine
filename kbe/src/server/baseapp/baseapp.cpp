@@ -705,6 +705,9 @@ void Baseapp::loginGatewayFailed(Mercury::Channel* pChannel, std::string& accoun
 		failedcode = MERCURY_ERR_NAME_PASSWORD;
 	}
 
+	if(pChannel == NULL)
+		return;
+
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onLoginGatewayFailed);
 	ClientInterface::onLoginGatewayFailedArgs1::staticAddToBundle(bundle, failedcode);
@@ -778,8 +781,13 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName,
 				if(base->getClientMailbox() != NULL)
 				{
 					// 通告在别处登录
-					loginGatewayFailed(base->getClientMailbox()->getChannel(), accountName, MERCURY_ERR_ANOTHER_LOGON);
-					base->getClientMailbox()->getChannel()->proxyID(0);
+					Mercury::Channel* pOldClientChannel = base->getClientMailbox()->getChannel();
+					if(pOldClientChannel != NULL)
+					{
+						loginGatewayFailed(pOldClientChannel, accountName, MERCURY_ERR_ANOTHER_LOGON);
+						pOldClientChannel->proxyID(0);
+					}
+
 					base->getClientMailbox()->addr(pChannel->addr());
 					base->addr(pChannel->addr());
 					createClientProxies(base, true);

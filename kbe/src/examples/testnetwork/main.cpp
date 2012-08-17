@@ -399,7 +399,8 @@ void init_network(void)
 			printf("接收角色列表:dbid=%u,name=%s\n", ainfo.dbid, ainfo.name.c_str());
 		}
 
-		printf("向服务器请求创建角色\n");
+		printf("向服务器请求创建角色:%s\n", avatarname.c_str());
+
 		// 向服务器请求创建角色
 		Mercury::Bundle bundle55;
 		bundle55.newMessage(BaseappInterface::onRemoteMethodCall);

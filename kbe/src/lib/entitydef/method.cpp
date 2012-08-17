@@ -74,7 +74,7 @@ bool MethodDescription::pushArgType(DataType* dataType)
 //-------------------------------------------------------------------------------------
 bool MethodDescription::checkArgs(PyObject* args)
 {
-	if (!PyTuple_Check(args))
+	if (args == NULL || !PyTuple_Check(args))
 	{
 		PyErr_Format(PyExc_SystemError, "Method::checkArgs: method[%s] args is not a tuple.\n", getName().c_str());
 		PyErr_Print();
@@ -131,7 +131,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 				getName().c_str(),
 				i+1,
 				pExample->ob_type->tp_name,
-				pyArg->ob_type->tp_name );
+				pyArg != NULL ? pyArg->ob_type->tp_name : "NULL");
 			
 			PyErr_Print();
 			Py_DECREF(pExample);
@@ -239,15 +239,19 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args, PyObject* 
 	RemoteEntityMethod* rmethod = static_cast<RemoteEntityMethod*>(self);
 	MethodDescription* methodDescription = rmethod->getDescription();
 	EntityMailboxAbstract* mailbox = rmethod->getMailbox();
+	DEBUG_MSG("RemoteEntityMethod::tp_call:%s.\n", methodDescription->getName().c_str());
 
 	if(methodDescription->checkArgs(args))
 	{
 		Mercury::Bundle bundle;
 		mailbox->newMail(bundle);
+
 		MemoryStream mstream;
 		methodDescription->addToStream(&mstream, args);
+
 		if(mstream.wpos() > 0)
 			bundle.append(mstream.data(), mstream.wpos());
+
 		mailbox->postMail(bundle);
 	}
 	
