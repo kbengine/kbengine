@@ -488,7 +488,7 @@ void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::onRemoteCellMethodCallFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Cellapp::onRemoteCallMethodCallFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	ENTITY_ID srcEntityID;
 
@@ -498,7 +498,7 @@ void Cellapp::onRemoteCellMethodCallFromClient(Mercury::Channel* pChannel, KBEng
 
 	if(e == NULL)
 	{	
-		WARNING_MSG("Cellapp::onRemoteCellMethodCallFromClient: can't found entityID:%d.\n", srcEntityID);
+		WARNING_MSG("Cellapp::onRemoteCallMethodCallFromClient: can't found entityID:%d.\n", srcEntityID);
 		return;
 	}
 

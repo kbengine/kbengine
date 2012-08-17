@@ -58,6 +58,12 @@ UInt64Type::~UInt64Type()
 //-------------------------------------------------------------------------------------
 bool UInt64Type::isSameType(PyObject* pyValue)
 {
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("UINT64");
+		return false;
+	}
+
 	if (!PyLong_Check(pyValue))
 		return false;
 
@@ -139,6 +145,12 @@ UInt32Type::~UInt32Type()
 //-------------------------------------------------------------------------------------
 bool UInt32Type::isSameType(PyObject* pyValue)
 {
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("UINT32");
+		return false;
+	}
+
 	if (!PyLong_Check(pyValue))
 		return false;
 
@@ -215,6 +227,12 @@ Int64Type::~Int64Type()
 //-------------------------------------------------------------------------------------
 bool Int64Type::isSameType(PyObject* pyValue)
 {
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("INT64");
+		return false;
+	}
+
 	if(!PyLong_Check(pyValue))
 		return false;
 
@@ -286,6 +304,12 @@ FloatType::~FloatType()
 //-------------------------------------------------------------------------------------
 bool FloatType::isSameType(PyObject* pyValue)
 {
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("FLOAT");
+		return false;
+	}
+
 	bool ret = PyFloat_Check(pyValue);
 	if(!ret)
 		OUT_TYPE_ERROR("FLOAT");
@@ -343,6 +367,13 @@ VectorType::~VectorType()
 //-------------------------------------------------------------------------------------
 bool VectorType::isSameType(PyObject* pyValue)
 {
+	if(pyValue == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "must be set to a VECTOR%d type.", elemCount_);
+		PyErr_PrintEx(0);
+		return false;
+	}
+
 	if(!PySequence_Check(pyValue) || PySequence_Size(pyValue) != elemCount_)
 	{
 		PyErr_Format(PyExc_TypeError, "must be set to a VECTOR%d type.", elemCount_);
@@ -437,6 +468,12 @@ StringType::~StringType()
 //-------------------------------------------------------------------------------------
 bool StringType::isSameType(PyObject* pyValue)
 {
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("STRING");
+		return false;
+	}
+
 	bool ret = PyUnicode_Check(pyValue);
 	if(!ret)
 		OUT_TYPE_ERROR("STRING");
@@ -491,6 +528,12 @@ PythonType::~PythonType()
 //-------------------------------------------------------------------------------------
 bool PythonType::isSameType(PyObject* pyValue)
 {
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("PYTHON");
+		return false;
+	}
+
 	bool ret = script::Pickler::pickle(pyValue).empty();
 	if(ret)
 		OUT_TYPE_ERROR("PYTHON");
@@ -569,6 +612,12 @@ MailboxType::~MailboxType()
 //-------------------------------------------------------------------------------------
 bool MailboxType::isSameType(PyObject* pyValue)
 {
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("MAILBOX");
+		return false;
+	}
+
 	bool ret = script::Pickler::pickle(pyValue).empty();
 	if(ret)
 		OUT_TYPE_ERROR("MAILBOX");
@@ -668,6 +717,12 @@ bool ArrayType::isSameItemType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 bool ArrayType::isSameType(PyObject* pyValue)
 {
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("ARRAY");
+		return false;
+	}
+
 	Py_ssize_t size = PySequence_Size(pyValue);
 	for(Py_ssize_t i=0; i<size; i++)
 	{
@@ -814,6 +869,12 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 //-------------------------------------------------------------------------------------
 bool FixedDictType::isSameType(PyObject* pyValue)
 {
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("DICT");
+		return false;
+	}
+
 	if(!PyDict_Check(pyValue))
 	{
 		OUT_TYPE_ERROR("DICT");

@@ -908,7 +908,7 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onRemoteCellMethodCallFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Baseapp::onRemoteCallMethodCallFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	if(pChannel->isInternal())
 		return;
@@ -927,7 +927,7 @@ void Baseapp::onRemoteCellMethodCallFromClient(Mercury::Channel* pChannel, KBEng
 		return;
 
 	Mercury::Bundle bundle;
-	bundle.newMessage(CellappInterface::onRemoteCellMethodCallFromClient);
+	bundle.newMessage(CellappInterface::onRemoteCallMethodCallFromClient);
 	bundle << srcEntityID;
 	bundle.append(s.data(), s.opsize());
 	

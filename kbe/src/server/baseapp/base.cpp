@@ -268,13 +268,13 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID srcEntityID = pChannel->proxyID();
 	if(srcEntityID <= 0 || srcEntityID != this->getID())
+	{
+		WARNING_MSG("Base::onRemoteMethodCall: srcEntityID:%d, thisEntityID:%d.\n", srcEntityID, this->getID());
 		return;
+	}
 
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
-	
-	DEBUG_MSG("Base::onRemoteMethodCall: entityID %d, methodType %u.\n", 
-				id_, utype);
 	
 	MethodDescription* md = scriptModule_->findBaseMethodDescription(utype);
 	if(md == NULL)
@@ -282,6 +282,9 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 		ERROR_MSG("Base::onRemoteMethodCall: can't found method. utype=%u, callerID:%d.\n", utype, id_);
 		return;
 	}
+
+	DEBUG_MSG("Base::onRemoteMethodCall: entityID:%d, methodType:%s(%u).\n", 
+		id_, md->getName().c_str(), utype);
 
 	md->currCallerID(this->getID());
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>

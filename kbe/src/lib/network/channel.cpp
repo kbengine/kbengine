@@ -376,7 +376,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 
 					if(pMsgHandler == NULL)
 					{
-						TRACE_BUNDLE_DATA("handleRecv", pPacket, pMsgHandler);
+						TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler);
 						INFO_MSG("Channel::handleMessage: invalide msgID=%d, msglen=%d, from %s.\n", 
 							currMsgID_, pPacket->totalSize(), c_str());
 
@@ -384,7 +384,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 						break;
 					}
 					
-					TRACE_BUNDLE_DATA("handleRecv", pPacket, pMsgHandler);
+					TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler);
 
 					// 如果没有可操作的数据了则退出等待下一个包处理。
 					if(pPacket->opsize() == 0)
@@ -431,9 +431,14 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					{
 						// 临时设置有效读取位， 防止接口中溢出操作
 						size_t wpos = pPacket->wpos();
-						// size_t rpos = pPacket->rpos();
+						size_t rpos = pPacket->rpos();
 						size_t frpos = pPacket->rpos() + currMsgLen_;
 						pPacket->wpos(frpos);
+						if(rpos==4 && wpos==17)
+						{
+							int ifdsa=0;
+ifdsa++;
+						}
 						pMsgHandler->handle(this, *pPacket);
 
 						// 防止handle中没有将数据导出获取非法操作

@@ -434,7 +434,7 @@ void init_network(void)
 		methodID = 10004;
 		bundle66 << eid;
 		bundle66 << methodID;
-		bundle66 << "kebiao";
+		bundle66 << retainfo.dbid;
 		bundle66.send(mysocket);
 		::sleep(3000);
 

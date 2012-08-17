@@ -50,13 +50,15 @@ class Channel;
 	return *this;																							\
 
 
-#define TRACE_BUNDLE_DATA(op, bundle, pCurrMsgHandler)														\
+#define TRACE_BUNDLE_DATA(isrecv, bundle, pCurrMsgHandler)													\
 	if(Mercury::g_trace_packet > 0)																			\
 	{																										\
 		if(pCurrMsgHandler)																					\
 		{																									\
-			DEBUG_MSG("====>%s(%s):msgID:%d, currMsgLength:%d\n", pCurrMsgHandler->name.c_str(), op, 		\
-			bundle->messageID(), bundle->totalSize());														\
+			DEBUG_MSG("%s%s:msgID:%d, currMsgLength:%d\n",													\
+				isrecv == true ? "====>" : "<====", 														\
+				pCurrMsgHandler->name.c_str(),																\
+				bundle->messageID(), bundle->totalSize());													\
 		}																									\
 																											\
 		switch(Mercury::g_trace_packet)																		\
@@ -110,7 +112,7 @@ public:
 		int32 totalsize = (int32)pCurrPacket_->totalSize();
 		if((totalsize > 0) && (totalsize + size > packetmaxsize))
 		{
-			TRACE_BUNDLE_DATA("pushsend", pCurrPacket_, pCurrMsgHandler_);
+			TRACE_BUNDLE_DATA(false, pCurrPacket_, pCurrMsgHandler_);
 			packets_.push_back(pCurrPacket_);
 			currMsgPacketCount_++;
 			currMsgLength_ += pCurrPacket_->totalSize();

@@ -153,7 +153,7 @@ void Bundle::finish(bool issend)
 	if(issend)
 	{
 		currMsgHandlerLength_ = 0;
-		TRACE_BUNDLE_DATA("pushsend", pCurrPacket_, pCurrMsgHandler_);
+		TRACE_BUNDLE_DATA(false, pCurrPacket_, pCurrMsgHandler_);
 		pCurrPacket_ = NULL;
 	}
 

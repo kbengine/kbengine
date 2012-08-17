@@ -155,7 +155,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASEAPP_MESSAGE_DECLARE_STREAM(onEntityMail,						MERCURY_VARIABLE_MESSAGE)
 	
 	// client访问entity的cell方法
-	BASEAPP_MESSAGE_DECLARE_STREAM(onRemoteCellMethodCallFromClient,	MERCURY_VARIABLE_MESSAGE)
+	BASEAPP_MESSAGE_DECLARE_STREAM(onRemoteCallMethodCallFromClient,	MERCURY_VARIABLE_MESSAGE)
 
 	//--------------------------------------------Base----------------------------------------------------------
 	// 远程呼叫entity方法
