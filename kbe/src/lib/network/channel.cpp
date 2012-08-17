@@ -410,7 +410,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 							currMsgLen_ = pMsgHandler->msgLen;
 					}
 					
-					if(currMsgLen_ > MERCURY_MESSAGE_MAX_SIZE)
+					if(currMsgLen_ > MERCURY_MESSAGE_MAX_SIZE / 2)
 					{
 						INFO_MSG("Channel::handleMessage[%s]: msglen is error! msgID=%d, msglen=(%d:%d), from %s.\n", 
 							pMsgHandler->name.c_str(), currMsgID_, currMsgLen_, pPacket->totalSize(), c_str());
