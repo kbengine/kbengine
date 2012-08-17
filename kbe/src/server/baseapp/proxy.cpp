@@ -174,7 +174,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 	if(lpChannel == NULL)
 	{
 		char err[255];																				
-		sprintf(err, "Proxy[%s]::giveClientTo: no has client.\n", getScriptName());			
+		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: no has client.\n", getScriptName());			
 		PyErr_SetString(PyExc_TypeError, err);														
 		PyErr_PrintEx(0);	
 		return;

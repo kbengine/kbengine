@@ -36,7 +36,7 @@ char _g_buf[DBG_PT_SIZE];
 #ifdef KBE_USE_ASSERTS
 void myassert(const char * exp, const char * func, const char * file, unsigned int line)
 {
-	sprintf(_g_buf, "assertion failed: %s, file %s, line %d, at: %s\n", exp, file, line, func);
+	kbe_snprintf(_g_buf, DBG_PT_SIZE, "assertion failed: %s, file %s, line %d, at: %s\n", exp, file, line, func);
     dbghelper.print_msg(_g_buf);
 	printf(_g_buf);
     abort();
@@ -75,9 +75,9 @@ void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 	g_logger = log4cxx::Logger::getLogger(COMPONENT_NAME[componentType]);
 	char helpConfig[256];
 	if(componentType == CLIENT_TYPE)
-		sprintf(helpConfig, "log4j.properties");
+		kbe_snprintf(helpConfig, 256, "log4j.properties");
 	else
-		sprintf(helpConfig, "../../res/server/log4cxx_properties/%s.properties", COMPONENT_NAME[componentType]);
+		kbe_snprintf(helpConfig, 256, "../../res/server/log4cxx_properties/%s.properties", COMPONENT_NAME[componentType]);
 	log4cxx::PropertyConfigurator::configure(helpConfig);
 }
 
@@ -364,7 +364,7 @@ void DebugHelper::critical_msg(const char * str, ...)
 #endif
     va_end(ap);
 	char buf[DBG_PT_SIZE];
-	sprintf(buf, "%s(%d) -> %s\n\t%s\n", _currFile.c_str(), _currLine, _currFuncName.c_str(), _g_buf);
+	kbe_snprintf(buf, DBG_PT_SIZE, "%s(%d) -> %s\n\t%s\n", _currFile.c_str(), _currLine, _currFuncName.c_str(), _g_buf);
 	// printf(buf);
 	LOG4CXX_FATAL(g_logger, buf);
 #endif

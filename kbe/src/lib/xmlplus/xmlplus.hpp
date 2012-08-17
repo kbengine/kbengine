@@ -129,7 +129,7 @@ public:
 	TiXmlNode* openSection(const char* xmlFile)
 	{
 		char pathbuf[255];
-		sprintf(pathbuf, "%s", xmlFile);
+		kbe_snprintf(pathbuf, 255, "%s", xmlFile);
 
 		txdoc_ = new TiXmlDocument((char*)&pathbuf);
 		if(!txdoc_->LoadFile()){

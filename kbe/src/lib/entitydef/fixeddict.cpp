@@ -181,7 +181,7 @@ bool FixedDict::checkDataChanged(const char* keyName, PyObject* value, bool isDe
 		if(isDelete)
 		{
 			char err[255];
-			sprintf((char*)&err, "can't delete from FIXED_DICT key[%s].\n", keyName);
+			kbe_snprintf(err, 255, "can't delete from FIXED_DICT key[%s].\n", keyName);
 			PyErr_SetString(PyExc_TypeError, err);
 			PyErr_PrintEx(0);
 			return false;
@@ -197,7 +197,7 @@ bool FixedDict::checkDataChanged(const char* keyName, PyObject* value, bool isDe
 	else
 	{
 		char err[255];
-		sprintf((char*)&err, "set FIXED_DICT to a unknown key[%s].\n", keyName);
+		kbe_snprintf(err, 255, "set FIXED_DICT to a unknown key[%s].\n", keyName);
 		PyErr_SetString(PyExc_TypeError, err);
 		PyErr_PrintEx(0);
 		return false;

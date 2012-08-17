@@ -556,7 +556,7 @@ inline char* kbe_strerror(int ierrorno = 0)
 		NULL
 	); 
 	*/
-	sprintf(lpMsgBuf, "errorno=%d",  ierrorno);
+	kbe_snprintf(lpMsgBuf, 256, "errorno=%d",  ierrorno);
 	return lpMsgBuf;
 #else
 	if(ierrorno != 0)

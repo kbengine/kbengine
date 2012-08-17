@@ -149,7 +149,7 @@ PyObject* EntityMailbox::tp_repr()
 	
 	Mercury::Channel* pChannel = getChannel();
 
-	sprintf(s, "%s mailbox id:%d, component=%s[%"PRIu64"], addr: %s.", mailboxName, id_, 
+	kbe_snprintf(s, 1024, "%s mailbox id:%d, component=%s[%"PRIu64"], addr: %s.", mailboxName, id_, 
 		COMPONENT_NAME[ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[type_]], 
 		componentID_, (pChannel) ? pChannel->addr().c_str() : "None");
 

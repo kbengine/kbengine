@@ -31,7 +31,7 @@ const std::string & versionString()
 	if(g_versionString.size() == 0)
 	{
 		char buf[ 256 ];
-		sprintf( buf, "%d.%d.%d",
+		kbe_snprintf( buf, 256, "%d.%d.%d",
 				KBE_VERSION_MAJOR, KBE_VERSION_MINOR, KBE_VERSION_PATCH );
 		g_versionString = buf;
 	}

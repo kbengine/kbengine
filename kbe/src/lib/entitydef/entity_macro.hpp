@@ -242,7 +242,7 @@ public:																										\
 			if(iter != lpPropertyDescrs_->end())															\
 			{																								\
 				char err[255];																				\
-				sprintf(err, "property[%s] is in [%s] def. del failed.", ccattr, getScriptName());			\
+				kbe_snprintf(err, 255, "property[%s] is in [%s] def. del failed.", ccattr, getScriptName());\
 				PyErr_SetString(PyExc_TypeError, err);														\
 				PyErr_PrintEx(0);																			\
 				free(ccattr);																				\
@@ -253,7 +253,7 @@ public:																										\
 		if(scriptModule_->findMethodDescription(ccattr, g_componentType) != NULL)							\
 		{																									\
 			char err[255];																					\
-			sprintf(err, "method[%s] is in [%s] def. del failed.", ccattr, getScriptName());				\
+			kbe_snprintf(err, 255, "method[%s] is in [%s] def. del failed.", ccattr, getScriptName());		\
 			PyErr_SetString(PyExc_TypeError, err);															\
 			PyErr_PrintEx(0);																				\
 			free(ccattr);																					\

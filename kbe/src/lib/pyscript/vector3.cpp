@@ -181,7 +181,7 @@ PyObject* ScriptVector3::tp_repr()
 	{
 		if (i > 0)
 			strcat(str, ", ");
-		sprintf(str + strlen(str), "%f", v[i]);
+		kbe_snprintf(str + strlen(str), 128, "%f", v[i]);
 	}
 
 	strcat(str, ")");

@@ -111,7 +111,7 @@ int main(int argc, char* argv[])																						\
 	loadConfig();																										\
 	g_componentID = genUUID64();																						\
 	char dumpname[MAX_BUF] = {0};																						\
-	sprintf(dumpname, "%"PRAppID, g_componentID);																		\
+	kbe_snprintf(dumpname, MAX_BUF, "%"PRAppID, g_componentID);															\
 	KBEngine::exception::installCrashHandler(1, dumpname);																\
 	int retcode = -1;																									\
 	THREAD_TRY_EXECUTION;																								\

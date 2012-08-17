@@ -495,12 +495,12 @@ class MemoryStream
 			char buf[1024];
 			std::string fbuffer;
 
-			sprintf(buf, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
+			kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 			fbuffer += buf;
 
             for(uint32 i = 0; i < wpos(); ++i)
 			{
-				sprintf(buf, "%u ", read<uint8>(i));
+				kbe_snprintf(buf, 1024, "%u ", read<uint8>(i));
 				fbuffer += buf;
 			}
 
@@ -514,12 +514,12 @@ class MemoryStream
 			char buf[1024];
 			std::string fbuffer;
 
-			sprintf(buf, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
+			kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 			fbuffer += buf;
 
             for(uint32 i = 0; i < wpos(); ++i)
 			{
-				sprintf(buf, "%c", read<uint8>(i));
+				kbe_snprintf(buf, 1024, "%c", read<uint8>(i));
 				fbuffer += buf;
 			}
 
@@ -533,7 +533,7 @@ class MemoryStream
 			char buf[1024];
 			std::string fbuffer;
 
-			sprintf(buf, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
+			kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 			fbuffer += buf;
 
             for(uint32 i = 0; i < wpos(); ++i)
@@ -542,12 +542,12 @@ class MemoryStream
                 {
                     if (read<uint8>(i) < 0x10)
                     {
-						sprintf(buf, "| 0%X ", read<uint8>(i));
+						kbe_snprintf(buf, 1024, "| 0%X ", read<uint8>(i));
 						fbuffer += buf;
                     }
                     else
                     {
-						sprintf(buf, "| %X ", read<uint8>(i));
+						kbe_snprintf(buf, 1024, "| %X ", read<uint8>(i));
 						fbuffer += buf;
                     }
                     ++j;
@@ -556,12 +556,12 @@ class MemoryStream
                 {
                     if (read<uint8>(i) < 0x10)
                     {
-						sprintf(buf, "\n0%X ", read<uint8>(i));
+						kbe_snprintf(buf, 1024, "\n0%X ", read<uint8>(i));
 						fbuffer += buf;
                     }
                     else
                     {
-						sprintf(buf, "\n%X ", read<uint8>(i));
+						kbe_snprintf(buf, 1024, "\n%X ", read<uint8>(i));
 						fbuffer += buf;
                     }
 
@@ -572,18 +572,18 @@ class MemoryStream
                 {
                     if (read<uint8>(i) < 0x10)
                     {
-						sprintf(buf, "0%X ", read<uint8>(i));
+						kbe_snprintf(buf, 1024, "0%X ", read<uint8>(i));
 						fbuffer += buf;
                     }
                     else
                     {
-						sprintf(buf, "%X ", read<uint8>(i));
+						kbe_snprintf(buf, 1024, "%X ", read<uint8>(i));
 						fbuffer += buf;
                     }
                 }
             }
 
-			sprintf(buf, "\n");
+			kbe_snprintf(buf, 1024, "\n");
 			fbuffer += buf;
 
 			DEBUG_MSG(fbuffer.c_str());
