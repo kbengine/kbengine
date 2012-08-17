@@ -217,6 +217,7 @@ struct AvatarInfos
 	std::string name;
 };
 
+
 void init_network(void)
 {
 	Mercury::g_trace_packet = 3;
@@ -230,13 +231,15 @@ void init_network(void)
 		return;
 	}
 	
-	int nnn = 220;
+	
 
-		std::string accountname = "kebiao";
-		char ttt1[256];
-		memset(ttt1, 0, 256);
-		sprintf(ttt1, "%d", ::GetCurrentProcessId());
-		accountname += ttt1;
+	srand(getSystemTime());
+	std::string accountname = "kebiao";
+	char ttt1[256];
+	memset(ttt1, 0, 256);
+	int nnn = rand() % 65535;
+	sprintf(ttt1, "%d", nnn);
+	accountname += ttt1;
 
 	while(1)
 	{
@@ -305,7 +308,7 @@ void init_network(void)
 		int8 tclient = 1;
 		bundle2 << tclient;
 		bundle2 << "phone";
-		bundle2 << "kebiao";
+		bundle2 << accountname;
 		bundle2 << "123456";
 		bundle2.send(mysocket);
 
@@ -342,7 +345,7 @@ void init_network(void)
 		// ÇëÇóµÇÂ¼Íø¹Ø
 		Mercury::Bundle bundle3;
 		bundle3.newMessage(BaseappInterface::loginGateway);
-		bundle3 << "kebiao";
+		bundle3 << accountname;
 		bundle3 << "123456";
 		bundle3.send(mysocket);
 		//::sleep(300);
