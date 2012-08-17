@@ -219,7 +219,7 @@ public:
 	/** 网络接口
 		client访问entity的cell方法
 	*/
-	void onRemoteCallMethodCallFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onRemoteCallCellMethodFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	TimerHandle							loopCheckTimerHandle_;
 	GlobalDataClient*					pGlobalBases_;								// globalBases

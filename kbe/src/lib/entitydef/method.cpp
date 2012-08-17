@@ -187,7 +187,15 @@ PyObject* MethodDescription::createFromStream(MemoryStream* mstream)
 
 	for(size_t index=0; index<argSize; index++)
 	{
-		PyTuple_SET_ITEM(&*pyArgsTuple, index + offset, argTypes_[index]->createFromStream(mstream));
+		PyObject* pyitem = argTypes_[index]->createFromStream(mstream);
+
+		if(pyitem == NULL)
+		{
+			WARNING_MSG("MethodDescription::createFromStream:%s arg[%d][%s] is NULL.\n", 
+				this->getName().c_str(), index, argTypes_[index]->getName().c_str());
+		}
+
+		PyTuple_SET_ITEM(&*pyArgsTuple, index + offset, pyitem);
 	}
 	
 	return pyArgsTuple;

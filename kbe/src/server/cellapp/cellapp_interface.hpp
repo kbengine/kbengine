@@ -109,7 +109,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	CELLAPP_MESSAGE_DECLARE_STREAM(onEntityMail,						MERCURY_VARIABLE_MESSAGE)
 
 	// client访问entity的cell方法
-	CELLAPP_MESSAGE_DECLARE_STREAM(onRemoteCallMethodCallFromClient,	MERCURY_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(onRemoteCallMethodFromClient,		MERCURY_VARIABLE_MESSAGE)
 
 	//--------------------------------------------Entity----------------------------------------------------------
 	//远程呼叫entity方法
