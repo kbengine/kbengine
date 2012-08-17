@@ -31,7 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
 #include "server/idallocate.hpp"
-#include "mysql.h"
+#include "mysql/mysql.h"
 
 //#define NDEBUG
 #include <map>	

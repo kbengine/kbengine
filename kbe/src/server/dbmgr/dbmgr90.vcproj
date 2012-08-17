@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/third_party/g3dlite;../../server;../../lib/third_party/log4cxx/include;../../lib/third_party/mysql/include"
+				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/third_party/g3dlite;../../server;../../lib/third_party/log4cxx/include;../../lib/third_party/mysql"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER;KBE_DBMGR"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -119,7 +119,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/third_party/g3dlite;../../server;../../lib/third_party/log4cxx/include;../../lib/third_party/mysql/include"
+				AdditionalIncludeDirectories="../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/third_party/g3dlite;../../server;../../lib/third_party/log4cxx/include;../../lib/third_party/mysql"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER;KBE_DBMGR"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
