@@ -230,7 +230,13 @@ void init_network(void)
 		return;
 	}
 	
-	int nnn = 0;
+	int nnn = 220;
+
+		std::string accountname = "kebiao";
+		char ttt1[256];
+		memset(ttt1, 0, 256);
+		sprintf(ttt1, "%d", ::GetCurrentProcessId());
+		accountname += ttt1;
 
 	while(1)
 	{
@@ -264,7 +270,7 @@ void init_network(void)
 		
 		// 请求创建账号
 		printf("请求创建账号\n");
-		mysocket.setnodelay(true);
+	//	mysocket.setnodelay(false);
 		mysocket.setnonblocking(false);
 		MessageID msgID = 0;
 		MessageLength msgLength = 0;
@@ -276,10 +282,10 @@ void init_network(void)
 		memset(ttt, 0, 256);
 		sprintf(ttt, "%d", nnn++);
 		avatarname += ttt;
-		bundle1 << "kebiao";
+		bundle1 << accountname;
 		bundle1 << "123456";
 		bundle1.send(mysocket);
-		::sleep(1000);
+		//::sleep(300);
 
 		// 创建账号成功 failedcode == 0
 		TCPPacket packet1;
@@ -291,7 +297,6 @@ void init_network(void)
 		packet1 >> failedcode;
 		printf("Client::onCreateAccountResult: 创建账号%s size(%d) failedcode=%u.\n", 
 			failedcode == 0 ? "成功" : "失败",len, failedcode);
-		::sleep(1000);
 
 		// 提交账号密码请求登录
 		printf("提交账号密码请求登录\n");
@@ -303,21 +308,22 @@ void init_network(void)
 		bundle2 << "kebiao";
 		bundle2 << "123456";
 		bundle2.send(mysocket);
-		::sleep(1000);
+
 
 		// 获取返回的网关ip地址
 		TCPPacket packet2;
 		packet2.resize(65535);
+		
+		len = -1;
 		len = mysocket.recv(packet2.data(), 65535);
 		packet2.wpos(len);
-		::sleep(1000);
-
+		packet2.print_storage();
 		uint16 iport;
 		packet2 >> msgID;
 		packet2 >> msgLength;
 		packet2 >> ip;
 		packet2 >> iport;
-		printf("Client::onLoginSuccessfully: 获取返回的网关ip地址 size(%d) ip:%s, port=%u.\n", len, ip.c_str(), iport);
+		printf("Client::onLoginSuccessfully: 获取返回的网关ip地址 size(%d) msgID=%u, ip:%s, port=%u.\n", len, msgID, ip.c_str(), iport);
 
 		// 连接网关
 		printf("连接网关\n");
@@ -331,13 +337,15 @@ void init_network(void)
 			continue;
 		}
 		
+		mysocket.setnonblocking(false);
+
 		// 请求登录网关
 		Mercury::Bundle bundle3;
 		bundle3.newMessage(BaseappInterface::loginGateway);
 		bundle3 << "kebiao";
 		bundle3 << "123456";
 		bundle3.send(mysocket);
-		::sleep(3000);
+		//::sleep(300);
 
 		// 服务器返回 Client::onCreatedProxies:服务器端已经创建了一个与客户端关联的代理Entity
 		TCPPacket packet33;
@@ -366,7 +374,6 @@ void init_network(void)
 			printf("Client::onCreatedProxies: size(%d) : msgID=%u, uuid:%"PRIu64", eid=%d, entityType=%s.\n", 
 				len, msgID, uuid, eid, entityType.c_str());
 		}
-		::sleep(1000);
 		
 		printf("向服务器请求查询角色列表\n");
 		// 向服务器请求查询角色列表
@@ -376,7 +383,7 @@ void init_network(void)
 		bundle44 << eid;
 		bundle44 << methodID;
 		bundle44.send(mysocket);
-		::sleep(3000);
+		//::sleep(300);
 
 		// 开始接收列表
 		TCPPacket packet444;
@@ -411,7 +418,7 @@ void init_network(void)
 		bundle55 << methodID;
 		bundle55 << avatarname;
 		bundle55.send(mysocket);
-		::sleep(3000);
+		//::sleep(3000);
 
 		// 开始接收创建结果
 		TCPPacket packet555;
@@ -439,7 +446,7 @@ void init_network(void)
 		bundle66 << methodID;
 		bundle66 << retainfo.dbid;
 		bundle66.send(mysocket);
-		::sleep(3000);
+		//::sleep(3000);
 
 		// 服务器端告知可销毁客户端账号entity了
 		TCPPacket packet77;
@@ -464,7 +471,7 @@ void init_network(void)
 		printf("Client::onCreatedProxies: size(%d) : msgID=%u, uuid:%"PRIu64", eid=%d, entityType=%s.\n", 
 			len, msgID, uuid, eid, entityType.c_str());
 
-		::sleep(5000);
+		//::sleep(5000);
 	};
 }
 

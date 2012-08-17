@@ -333,24 +333,6 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 	// 如果大于0则说明当前账号仍然存活于某个baseapp上
 	if(componentID > 0)
 	{
-		/*
-		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID);
-		if(cinfos == NULL || cinfos->pChannel == NULL)
-		{
-			_loginFailed(NULL, accountName, MERCURY_ERR_SRV_NO_READY);
-			return;
-		}
-		
-		// 直接将这个地址返回给客户端， 客户端去登录的话
-		onLoginAccountQueryBaseappAddrFromBaseappmgr(pChannel, accountName, cinfos->pExtAddr->ip, cinfos->pExtAddr->port);
-
-		// 直接注册给baseapp
-		Mercury::Bundle bundle;
-		bundle.newMessage(BaseappInterface::registerPendingLoginFromLoginapp);
-		bundle << accountName << password << entityID;
-		bundle.send(this->getNetworkInterface(), cinfos->pChannel);
-		*/
-
 		Mercury::Bundle bundle;
 		bundle.newMessage(BaseappmgrInterface::registerPendingAccountToBaseappAddr);
 		bundle << componentID << accountName << password << entityID;
@@ -378,12 +360,14 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pC
 	Mercury::Address address(addr, port);
 	DEBUG_MSG("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:%s.\n", address.c_str());
 
-	// 这里不做删除， 仍然使其保留一段时间避免同一时刻同时登录造成意外影响
-	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.find(accountName);
+	// 这里可以不做删除， 仍然使其保留一段时间避免同一时刻同时登录造成意外影响
+	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(accountName);
 	if(infos == NULL)
 		return;
-
+	
+	infos->lastProcessTime = timestamp();
 	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(infos->addr);
+	SAFE_RELEASE(infos);
 
 	if(pClientChannel == NULL)
 		return;
@@ -394,8 +378,6 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pC
 	bundle << inet_ntoa((struct in_addr&)addr);
 	bundle << fport;
 	bundle.send(this->getNetworkInterface(), pClientChannel);
-
-	infos->lastProcessTime = timestamp();
 }
 
 //-------------------------------------------------------------------------------------
