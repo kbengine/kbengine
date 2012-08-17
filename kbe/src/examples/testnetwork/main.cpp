@@ -273,6 +273,7 @@ void init_network(void)
 
 		std::string avatarname = "kebiao";
 		char ttt[256];
+		memset(ttt, 0, 256);
 		itoa(nnn++, ttt, 255);
 		avatarname += ttt;
 		bundle1 << "kebiao";

@@ -2,15 +2,15 @@
 import KBEngine
 from KBEDebug import *
 
-def onBaseAppReady(isBootstrap):
+def onBaseAppReady(bootstrapIdx):
 	"""
 	KBEngine method.
 	baseapp已经准备好了
 	@param isBootstrap: 是否是第一个baseapp启动
 	@type isBootstrap: bool
 	"""
-	DEBUG_MSG('baseapp准备完毕! isBootstrap=%s' % isBootstrap)
-	if isBootstrap == 1:
+	DEBUG_MSG('baseapp准备完毕! bootstrapIdx=%s' % bootstrapIdx)
+	if bootstrapIdx == 1:
 		# 创建spacemanager
 		KBEngine.createBaseLocally( "Spaces", {} )
 		

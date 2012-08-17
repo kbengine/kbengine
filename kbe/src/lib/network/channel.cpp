@@ -73,7 +73,8 @@ Channel::Channel(NetworkInterface & networkInterface,
 	pFilter_(pFilter),
 	pEndPoint_(NULL),
 	pPacketReceiver_(NULL),
-	isCondemn_(false)
+	isCondemn_(false),
+	proxyID_(0)
 {
 	this->incRef();
 	this->clearBundle();
@@ -380,6 +381,8 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 						INFO_MSG("Channel::handleMessage: invalide msgID=%d, msglen=%d, from %s.\n", 
 							currMsgID_, pPacket->totalSize(), c_str());
 
+						currMsgID_ = 0;
+						currMsgLen_ = 0;
 						condemn(true);
 						break;
 					}
@@ -412,6 +415,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 						INFO_MSG("Channel::handleMessage[%s]: msglen is error! msgID=%d, msglen=(%d:%d), from %s.\n", 
 							pMsgHandler->name.c_str(), currMsgID_, currMsgLen_, pPacket->totalSize(), c_str());
 
+						currMsgLen_ = 0;
 						condemn(true);
 						break;
 					}
@@ -431,14 +435,9 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					{
 						// 临时设置有效读取位， 防止接口中溢出操作
 						size_t wpos = pPacket->wpos();
-						size_t rpos = pPacket->rpos();
+						// size_t rpos = pPacket->rpos();
 						size_t frpos = pPacket->rpos() + currMsgLen_;
 						pPacket->wpos(frpos);
-						if(rpos==4 && wpos==17)
-						{
-							int ifdsa=0;
-ifdsa++;
-						}
 						pMsgHandler->handle(this, *pPacket);
 
 						// 防止handle中没有将数据导出获取非法操作
