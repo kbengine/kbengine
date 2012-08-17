@@ -47,7 +47,8 @@ class Account(KBEngine.Proxy):
 		else:
 			return KBEngine.LOG_ON_REJECT
 		"""
-		player.giveClientTo(self)
+		if self.activeCharacter:
+			self.activeCharacter.giveClientTo(self)
 		return KBEngine.LOG_ON_ACCEPT
 		
 	def onClientDeath(self):
