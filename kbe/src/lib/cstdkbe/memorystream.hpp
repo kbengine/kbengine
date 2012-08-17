@@ -311,25 +311,23 @@ class MemoryStream
 
         size_t rpos() const { return rpos_; }
 
-        size_t rpos(size_t rpos)
+        size_t rpos(int rpos)
         {
+			if(rpos < 0)
+				rpos = 0;
+
             rpos_ = rpos;
-
-			if(rpos_ < 0)
-				rpos_ = 0;
-
             return rpos_;
         }
 
         size_t wpos() const { return wpos_; }
 
-        size_t wpos(size_t wpos)
+        size_t wpos(int wpos)
         {
+			if(wpos < 0)
+				wpos = 0;
+
             wpos_ = wpos;
-
-			if(wpos_ < 0)
-				wpos_ = 0;
-
             return wpos_;
         }
 

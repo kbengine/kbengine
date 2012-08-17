@@ -485,8 +485,27 @@ PyObject* StringType::createObject(MemoryStream* defaultVal)
 {
 	std::string val = "";
 	if(defaultVal)
-		(*defaultVal) >> val;	
-	return PyUnicode_FromString(val.c_str());
+		(*defaultVal) >> val;
+
+	PyObject* pyobj = PyUnicode_FromString(val.c_str());
+	if (pyobj && !PyErr_Occurred()) 
+		return pyobj;
+
+	PyErr_Clear();
+
+	pyobj = PyBytes_FromString(val.c_str());
+
+	if (pyobj && !PyErr_Occurred())
+	{
+		pyobj = PyUnicode_FromObject(pyobj);
+		if (pyobj && !PyErr_Occurred())
+		{
+			return pyobj;
+		}
+	}
+
+	::PyErr_PrintEx(0);
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
