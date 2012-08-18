@@ -571,6 +571,7 @@ PyObject* PythonType::createObject(MemoryStream* defaultVal)
 		if(module == NULL)
 		{
 			PyErr_SetString(PyExc_SystemError, "PythonType::createObject:PyImport_AddModule __main__ is error!");
+			PyErr_PrintEx(0);	
 			S_Return;
 		}
 

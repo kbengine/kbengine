@@ -246,7 +246,20 @@ bool EntityApp<E>::installEntityDef()
 template<class E>
 PyObject* EntityApp<E>::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args)
 {
-	return NULL;
+	int argCount = PyTuple_Size(args);
+	PyObject* pycallback = NULL;
+	int ret = -1;
+
+	if(argCount == 1)
+		ret = PyArg_ParseTuple(args, "O", &pycallback);
+
+	if(ret == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "EntityApp::executeRawDatabaseCommand: args is error!");
+		PyErr_PrintEx(0);
+	}
+	
+	S_Return;
 }
 
 template<class E>
