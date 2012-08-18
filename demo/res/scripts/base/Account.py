@@ -56,6 +56,8 @@ class Account(KBEngine.Proxy):
 		KBEngine method.
 		客户端对应实体已经销毁
 		"""
+		player.accountEntity = None
+		self.activeCharacter = None
 		DEBUG_MSG("Account[%i].onClientDeath:" % self.id)
 		self.destroy()
 

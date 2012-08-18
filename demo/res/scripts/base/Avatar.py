@@ -47,6 +47,7 @@ class Avatar(KBEngine.Proxy):
 		# 如果帐号ENTITY存在 则也通知销毁它
 		if self.accountEntity != None:
 			self.accountEntity.destroy()
+			self.accountEntity = None
 			
 		# 销毁base
 		self.destroy()

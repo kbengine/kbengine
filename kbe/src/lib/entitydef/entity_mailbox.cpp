@@ -52,7 +52,10 @@ scriptModule_(scriptModule)
 //-------------------------------------------------------------------------------------
 EntityMailbox::~EntityMailbox()
 {
-	DEBUG_MSG("EntityMailbox::~EntityMailbox() %d.\n", id_);
+	char s[1024];
+	c_str(s, 1024);
+
+	DEBUG_MSG("EntityMailbox::~EntityMailbox(): %s.\n", s);
 }
 
 //-------------------------------------------------------------------------------------
@@ -137,7 +140,13 @@ PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 PyObject* EntityMailbox::tp_repr()
 {
 	char s[1024];
-	
+	c_str(s, 1024);
+	return PyUnicode_FromString(s);
+}
+
+//-------------------------------------------------------------------------------------
+void EntityMailbox::c_str(char* s, size_t size)
+{
 	const char * mailboxName =
 		(type_ == MAILBOX_TYPE_CELL)				? "Cell" :
 		(type_ == MAILBOX_TYPE_BASE)				? "Base" :
@@ -149,11 +158,9 @@ PyObject* EntityMailbox::tp_repr()
 	
 	Mercury::Channel* pChannel = getChannel();
 
-	kbe_snprintf(s, 1024, "%s mailbox id:%d, component=%s[%"PRIu64"], addr: %s.", mailboxName, id_, 
+	kbe_snprintf(s, size, "%s mailbox id:%d, component=%s[%"PRIu64"], addr: %s.", mailboxName, id_, 
 		COMPONENT_NAME[ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[type_]], 
 		componentID_, (pChannel) ? pChannel->addr().c_str() : "None");
-
-	return PyUnicode_FromString(s);
 }
 
 //-------------------------------------------------------------------------------------

@@ -64,6 +64,8 @@ public:
 	/** 获得对象的描述 */
 	PyObject* tp_repr();
 	PyObject* tp_str();
+	
+	void c_str(char* s, size_t size);
 
 	/** unpickle方法 */
 	static PyObject* __unpickle__(PyObject* self, PyObject* args);
