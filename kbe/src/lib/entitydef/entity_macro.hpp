@@ -50,13 +50,15 @@ namespace KBEngine{
 #ifdef CAN_DEBUG_CREATE_ENTITY
 	#define DEBUG_CREATE_ENTITY_NAMESPACE																	\
 			char* ccattr_DEBUG_CREATE_ENTITY_NAMESPACE = wchar2char(PyUnicode_AsWideCharString(key, NULL));	\
-			DEBUG_MSG("Entity::debug_createNamespace:add %s.\n", ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);		\
+			DEBUG_MSG("%s::debug_createNamespace:add %s.\n", getScriptName(),								\
+																ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);		\
 			free(ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);														\
 
 
 	#define DEBUG_OP_ATTRIBUTE(op, ccattr)																	\
 			char* ccattr_DEBUG_OP_ATTRIBUTE = wchar2char(PyUnicode_AsWideCharString(ccattr, NULL));			\
-			DEBUG_MSG("Entity::debug_op_attr:op=%s, %s.\n", op, ccattr_DEBUG_OP_ATTRIBUTE);					\
+			DEBUG_MSG("%s::debug_op_attr:op=%s, %s.\n", getScriptName(),									\
+															op, ccattr_DEBUG_OP_ATTRIBUTE);					\
 			free(ccattr_DEBUG_OP_ATTRIBUTE);																\
 
 #else

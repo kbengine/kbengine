@@ -104,7 +104,7 @@ public:
 	virtual bool initialize();
 		
 	virtual void onSignalled(int sigNum);
-	
+
 	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }	
 
 	/* 创建一个entity */
@@ -250,15 +250,19 @@ PyObject* EntityApp<E>::__py_executeRawDatabaseCommand(PyObject* self, PyObject*
 	PyObject* pycallback = NULL;
 	int ret = -1;
 
-	if(argCount == 1)
-		ret = PyArg_ParseTuple(args, "O", &pycallback);
+	char* data = NULL;
+	Py_ssize_t size = 0;
+
+	if(argCount == 2)
+		ret = PyArg_ParseTuple(args, "s#|O", data, &size, &pycallback);
 
 	if(ret == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "EntityApp::executeRawDatabaseCommand: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args is error!");
 		PyErr_PrintEx(0);
 	}
 	
+	DEBUG_MSG("KBEngine::executeRawDatabaseCommand:%s.\n", data);
 	S_Return;
 }
 

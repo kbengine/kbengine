@@ -337,7 +337,7 @@ void Channel::addReceiveWindow(Packet* pPacket)
 
 	if(bufferedReceives_.size() > 10)
 	{
-		WARNING_MSG("Channel::addReceiveWindow: buffered is overload.");
+		WARNING_MSG("Channel::addReceiveWindow: buffered is overload.\n");
 	}
 }
 
@@ -346,7 +346,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 {
 	if (this->isDestroyed())
 	{
-		ERROR_MSG("Channel::handleMessage(%s): Channel is destroyed.", this->c_str());
+		ERROR_MSG("Channel::handleMessage(%s): Channel is destroyed.\n", this->c_str());
 		return;
 	}
 

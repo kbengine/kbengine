@@ -136,6 +136,14 @@ int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 //-------------------------------------------------------------------------------------
 void Proxy::onClientDeath(void)
 {
+	DEBUG_MSG("%s::onClientDeath: %d.\n", this->getScriptName(), this->getID());
+	if(getClientMailbox() != NULL)
+	{
+		Py_DECREF(getClientMailbox());
+		setClientMailbox(NULL);
+		addr(Mercury::Address::NONE);
+	}
+
 	PyObject* pyResult = PyObject_CallMethod(this, 
 		const_cast<char*>("onClientDeath"), const_cast<char*>(""));
 	if(pyResult != NULL)

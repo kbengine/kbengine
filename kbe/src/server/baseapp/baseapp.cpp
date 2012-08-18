@@ -172,6 +172,23 @@ void Baseapp::finalise()
 }
 
 //-------------------------------------------------------------------------------------
+void Baseapp::onChannelDeregister(Mercury::Channel * pChannel)
+{
+	ENTITY_ID pid = pChannel->proxyID();
+	EntityApp<Base>::onChannelDeregister(pChannel);
+	
+	// 有关联entity的客户端退出则需要设置entity的client
+	if(pid > 0)
+	{
+		Proxy* proxy = static_cast<Proxy*>(this->findEntity(pid));
+		if(proxy)
+		{
+			proxy->onClientDeath();
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std::string& username, 
 						int8 componentType, uint64 componentID, 
 						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
@@ -523,7 +540,8 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 
 	if(createToCellMailbox->getChannel() == NULL)
 	{
-		ERROR_MSG("Baseapp::createCellEntity: not found cellapp(createToCellMailbox), create is error!\n");
+		ERROR_MSG("Baseapp::createCellEntity: not found cellapp(createToCellMailbox:componentID=%"PRAppID", entityID=%d), create is error!\n", 
+			createToCellMailbox->getComponentID(), createToCellMailbox->getID());
 		return;
 	}
 
