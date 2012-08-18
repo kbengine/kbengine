@@ -101,9 +101,12 @@ class Account(KBEngine.Proxy):
 		exposed.
 		客户端选择某个角色进行游戏
 		"""
-		DEBUG_MSG("Account[%i].selectAvatarGame:%i." % (self.id, dbid))
+		DEBUG_MSG("Account[%i].selectAvatarGame:%i. self.activeCharacter=%s" % (self.id, dbid, self.activeCharacter))
 		# 注意:使用giveClientTo的entity必须是当前baseapp上的entity
 		if self.activeCharacter is None:
 			player = KBEngine.createBase("Avatar", {"name" : str(dbid)})
 			player.accountEntity = self
+			self.activeCharacter = player
 			self.giveClientTo(player)
+		else:
+			self.giveClientTo(self.activeCharacter)
