@@ -65,8 +65,8 @@ bool Cellapp::installPyModules()
 	registerScript(Entity::getScriptType());
 
 	// 注册创建entity的方法到py
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createEntity,			__py_createEntity,					METH_VARARGS,			0);
-
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createEntity,					__py_createEntity,					METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		executeRawDatabaseCommand,		__py_executeRawDatabaseCommand,		METH_VARARGS,			0);
 	return EntityApp<Entity>::installPyModules();
 }
 
