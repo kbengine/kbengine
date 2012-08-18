@@ -113,6 +113,11 @@ public:
 
 	virtual E* onCreateEntityCommon(PyObject* pyEntity, ScriptModule* sm, ENTITY_ID eid);
 
+	/** 
+		执行数据库sql语句 
+	*/
+	static PyObject* __py_executeRawDatabaseCommand(PyObject* self, PyObject* args);
+
 	/** 网络接口
 		请求分配一个ENTITY_ID段的回调
 	*/
@@ -236,6 +241,12 @@ bool EntityApp<E>::installEntityDef()
 	}
 
 	return EntityDef::installScript(NULL);
+}
+
+template<class E>
+PyObject* EntityApp<E>::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args)
+{
+	return NULL;
 }
 
 template<class E>

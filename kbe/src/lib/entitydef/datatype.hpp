@@ -315,6 +315,21 @@ public:
 	std::string getName(void){ return "PYTHON";}
 };
 
+class BlobType : public DataType
+{
+protected:
+public:	
+	BlobType();
+	virtual ~BlobType();	
+
+	bool isSameType(PyObject* pyValue);
+	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+	PyObject* createFromStream(MemoryStream* mstream);
+	PyObject* createObject(MemoryStream* defaultVal);
+	MemoryStream* parseDefaultStr(std::string defaultVal);
+	std::string getName(void){ return "BLOB";}
+};
+
 class MailboxType : public DataType
 {
 protected:

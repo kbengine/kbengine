@@ -619,6 +619,94 @@ PyObject* PythonType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
+BlobType::BlobType()
+{
+}
+
+//-------------------------------------------------------------------------------------
+BlobType::~BlobType()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool BlobType::isSameType(PyObject* pyValue)
+{
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("BLOB");
+		return false;
+	}
+
+	bool ret = PyBytes_Check(pyValue);
+	if(!ret)
+		OUT_TYPE_ERROR("BLOB");
+
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* BlobType::createObject(MemoryStream* defaultVal)
+{	
+	uint32 size = 0;
+	std::string val = "";
+	if(defaultVal)
+	{
+		(*defaultVal) >> size;
+		val.assign((char*)(defaultVal->data() + defaultVal->rpos()), size);
+		defaultVal->read_skip(size);
+	}
+
+	if(size == 0)
+	{
+		S_Return;
+	}
+
+	PyObject* pyobj = PyBytes_FromStringAndSize(val.data(), size);
+
+	if (pyobj && !PyErr_Occurred())
+	{
+		return pyobj;
+	}
+
+	OUT_TYPE_ERROR("BLOB");
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+MemoryStream* BlobType::parseDefaultStr(std::string defaultVal)
+{
+	MemoryStream* bs = NULL;
+	if(!defaultVal.empty())
+	{
+		bs = new MemoryStream(defaultVal.size());
+		bs->append(defaultVal.data(), defaultVal.size());
+	}
+
+	return bs;
+}
+
+//-------------------------------------------------------------------------------------
+void BlobType::addToStream(MemoryStream* mstream, PyObject* pyValue)
+{
+	char *buffer;
+	Py_ssize_t length;
+
+	if(PyBytes_AsStringAndSize(pyValue, &buffer, &length) < 0)
+	{
+		OUT_TYPE_ERROR("BLOB");
+	}
+
+	if(length > 0)
+		mstream->append(buffer, length);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* BlobType::createFromStream(MemoryStream* mstream)
+{
+	return createObject(mstream);
+}
+
+//-------------------------------------------------------------------------------------
 MailboxType::MailboxType()
 {
 }
