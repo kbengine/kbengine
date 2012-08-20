@@ -180,6 +180,18 @@ ifdef USE_PYTHON
 
 endif # USE_PYTHON
 
+ifdef USE_MYSQL
+ifneq (,$(findstring 64,$(KBE_CONFIG)))
+	MYSQL_CONFIG_PATH=/usr/lib64/mysql/mysql_config
+else
+	MYSQL_CONFIG_PATH=/usr/lib/mysql/mysql_config
+endif
+
+LDLIBS += `$(MYSQL_CONFIG_PATH) --libs_r`
+CPPFLAGS += -DUSE_KBE_MYSQL
+
+endif # USE_MYSQL
+
 # everyone needs pthread if LDLINUX_TLS_IS_BROKEN
 ifdef LDLINUX_TLS_IS_BROKEN
 CPPFLAGS += -DLDLINUX_TLS_IS_BROKEN

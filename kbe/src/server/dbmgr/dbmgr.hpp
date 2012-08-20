@@ -31,7 +31,19 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
 #include "server/idallocate.hpp"
+
+#ifdef USE_KBE_MYSQL
 #include "mysql/mysql.h"
+#if KBE_PLATFORM == PLATFORM_WIN32
+#ifdef _DEBUG
+#pragma comment (lib, "libmysql_d.lib")
+#pragma comment (lib, "mysqlclient_d.lib")
+#else
+#pragma comment (lib, "libmysql.lib")
+#pragma comment (lib, "mysqlclient.lib")
+#endif
+#endif
+#endif
 
 //#define NDEBUG
 #include <map>	
