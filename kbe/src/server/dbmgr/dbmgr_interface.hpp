@@ -98,6 +98,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	// baseapp上账号下线。
 	DBMGR_MESSAGE_DECLARE_ARGS1(onAccountOffline,					MERCURY_VARIABLE_MESSAGE,
 									std::string,					accountName)
+
+	// 数据库查询
+	DBMGR_MESSAGE_DECLARE_STREAM(executeRawDatabaseCommand,			MERCURY_VARIABLE_MESSAGE)
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

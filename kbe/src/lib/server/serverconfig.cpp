@@ -159,7 +159,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = NULL;
 		node = xml->enterNode(rootNode, "host");	
 		if(node != NULL)
-			strncpy((char*)&_dbmgrInfo.db_ip, xml->getValStr(node).c_str(), MAX_NAME);
+			strncpy((char*)&_dbmgrInfo.db_ip, xml->getValStr(node).c_str(), MAX_IP);
 
 		node = NULL;
 		node = xml->enterNode(rootNode, "port");	

@@ -57,7 +57,7 @@ class Address;
 typedef struct EngineComponentInfo
 {
 	uint32 port;											// 组件的运行后监听的端口
-	char ip[MAX_IP];										// 组件的运行期ip地址
+	char ip[MAX_BUF];										// 组件的运行期ip地址
 
 	char entryScriptFile[MAX_NAME];							// 组件的入口脚本文件
 	char dbAccountEntityScriptType[MAX_NAME];				// 数据库帐号脚本类别
@@ -74,7 +74,7 @@ typedef struct EngineComponentInfo
 
 	char db_type[MAX_BUF];									// 数据库的类别
 	uint32 db_port;											// 数据库的端口
-	char db_ip[MAX_IP];										// 数据库的ip地址
+	char db_ip[MAX_BUF];									// 数据库的ip地址
 	char db_username[MAX_BUF];								// 数据库的用户名
 	char db_password[MAX_BUF];								// 数据库的密码
 	char db_name[MAX_BUF];									// 数据库名

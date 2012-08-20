@@ -58,16 +58,20 @@ public:
 	
 	bool run();
 	
-	/* 相关处理接口 */
+	/**  
+		相关处理接口 
+	*/
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 	virtual void handleGameTick();
 
-	/* 初始化相关接口 */
+	/**  
+		初始化相关接口 
+	*/
 	bool initializeBegin();
 	bool initializeEnd();
 	void finalise();
 
-	/* 网络接口
+	/**  网络接口
 		dbmgr告知已经启动的其他baseapp或者cellapp的地址
 		当前app需要主动的去与他们建立连接
 	*/
@@ -77,8 +81,15 @@ public:
 							int8 componentType, uint64 componentID, 
 							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport);
 
-	/* 创建一个entity */
+	/**  
+		创建一个entity 
+	*/
 	static PyObject* __py_createEntity(PyObject* self, PyObject* args);
+
+	/** 
+		想dbmgr请求执行一个数据库命令
+	*/
+	virtual void executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback);
 
 	/** 网络接口
 		dbmgr发送初始信息

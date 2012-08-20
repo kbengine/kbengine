@@ -451,5 +451,11 @@ void Dbmgr::onAccountOffline(Mercury::Channel* pChannel, std::string& accountNam
 }
 
 //-------------------------------------------------------------------------------------
+void Dbmgr::executeRawDatabaseCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	DEBUG_MSG("Dbmgr::executeRawDatabaseCommand:%s.\n", "sss");
+}
+
+//-------------------------------------------------------------------------------------
 
 }

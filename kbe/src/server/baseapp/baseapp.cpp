@@ -601,6 +601,36 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 }
 
 //-------------------------------------------------------------------------------------
+void Baseapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback)
+{
+	if(size <= 0 || datas == NULL || pycallback == NULL)
+	{
+		ERROR_MSG("Baseapp::executeRawDatabaseCommand: execute is error!\n");
+		return;
+	}
+
+	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::ComponentInfos* dbmgrinfos = NULL;
+
+	if(cts.size() > 0)
+		dbmgrinfos = &(*cts.begin());
+
+	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		ERROR_MSG("Baseapp::executeRawDatabaseCommand: not found dbmgr!\n");
+		return;
+	}
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(DbmgrInterface::executeRawDatabaseCommand);
+	bundle << componentID_;
+	bundle << size;
+	bundle << datas;
+
+	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+}
+
+//-------------------------------------------------------------------------------------
 void Baseapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, 
 		ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
 {

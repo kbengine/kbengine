@@ -224,6 +224,36 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
+void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback)
+{
+	if(size <= 0 || datas == NULL || pycallback == NULL)
+	{
+		ERROR_MSG("Cellapp::executeRawDatabaseCommand: execute is error!\n");
+		return;
+	}
+
+	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::ComponentInfos* dbmgrinfos = NULL;
+
+	if(cts.size() > 0)
+		dbmgrinfos = &(*cts.begin());
+
+	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		ERROR_MSG("Cellapp::executeRawDatabaseCommand: not found dbmgr!\n");
+		return;
+	}
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(DbmgrInterface::executeRawDatabaseCommand);
+	bundle << componentID_;
+	bundle << size;
+	bundle << datas;
+
+	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+}
+
+//-------------------------------------------------------------------------------------
 void Cellapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, 
 		ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
 {

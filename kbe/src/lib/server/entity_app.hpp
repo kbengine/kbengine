@@ -117,6 +117,7 @@ public:
 		执行数据库sql语句 
 	*/
 	static PyObject* __py_executeRawDatabaseCommand(PyObject* self, PyObject* args);
+	virtual void executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback) {};
 
 	/** 网络接口
 		请求分配一个ENTITY_ID段的回调

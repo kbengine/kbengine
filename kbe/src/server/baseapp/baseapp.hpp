@@ -141,6 +141,11 @@ public:
 	*/
 	bool createClientProxies(Proxy* base, bool reload = false);
 
+	/** 
+		想dbmgr请求执行一个数据库命令
+	*/
+	virtual void executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback);
+
 	/** 网络接口
 		dbmgr发送初始信息
 		startID: 初始分配ENTITY_ID 段起始位置

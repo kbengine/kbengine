@@ -122,6 +122,11 @@ public:
 		账号从baseapp下线了
 	*/
 	void onAccountOffline(Mercury::Channel* pChannel, std::string& accountName);
+
+	/** 网络接口
+		执行数据库查询
+	*/
+	void executeRawDatabaseCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;
