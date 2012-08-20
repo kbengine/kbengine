@@ -18,6 +18,14 @@
 		<dbAccountEntityScriptType>	Account						</dbAccountEntityScriptType>
 		
 		<internalInterface>  </internalInterface>
+		
+		<type> mysql </type>		<!-- Type: String -->
+		<host> localhost </host>	<!-- Type: String -->
+		<port> 0 </port>			<!-- Type: Integer -->
+		<username> kbe </username>	<!-- Type: String -->
+		<password> kbe </password>	<!-- Type: String -->
+		<databaseName> kbe </databaseName> <!-- Type: String -->
+		<numConnections> 5 </numConnections>	<!-- Type: Integer -->
 	</dbmgr>
 	
 	<cellapp>

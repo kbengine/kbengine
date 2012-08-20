@@ -150,6 +150,41 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "dbAccountEntityScriptType");	
 		if(node != NULL)
 			strncpy((char*)&_dbmgrInfo.dbAccountEntityScriptType, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "type");	
+		if(node != NULL)
+			strncpy((char*)&_dbmgrInfo.db_type, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "host");	
+		if(node != NULL)
+			strncpy((char*)&_dbmgrInfo.db_ip, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "port");	
+		if(node != NULL)
+			_dbmgrInfo.db_port = xml->getValInt(node);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "username");	
+		if(node != NULL)
+			strncpy((char*)&_dbmgrInfo.db_username, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "password");	
+		if(node != NULL)
+			strncpy((char*)&_dbmgrInfo.db_password, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "databaseName");	
+		if(node != NULL)
+			strncpy((char*)&_dbmgrInfo.db_name, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "numConnections");	
+		if(node != NULL)
+			_dbmgrInfo.db_numConnections = xml->getValInt(node);
 	}
 
 	rootNode = NULL;
