@@ -23,6 +23,8 @@ all install clean full:
 	test -d $(LIBDIR) || mkdir $(LIBDIR)
 	cd client_lib && $(MAKE) $@
 	cd cstdkbe && $(MAKE) $@
+	cd db_mysql && $(MAKE) $@
+	cd dbmgr_lib && $(MAKE) $@
 	cd entitydef && $(MAKE) $@
 	cd math && $(MAKE) $@
 	cd resmgr && $(MAKE) $@
