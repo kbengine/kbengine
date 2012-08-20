@@ -40,7 +40,8 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 {
 	if(db_port_ == 0)
 		db_port_ = 3306;
-
+	
+	kbe_snprintf(db_name_, MAX_BUF, "%s", databaseName);
     pMysql_ = mysql_init(0);
     pMysql_ = mysql_real_connect(mysql(), db_ip_, db_username_, 
     	db_password_, db_name_, db_port_, 0, 0);  

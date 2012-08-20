@@ -61,6 +61,8 @@ Dbmgr::Dbmgr(Mercury::EventDispatcher& dispatcher,
 //-------------------------------------------------------------------------------------
 Dbmgr::~Dbmgr()
 {
+	loopCheckTimerHandle_.cancel();
+	mainProcessTimer_.cancel();
 }
 
 //-------------------------------------------------------------------------------------
@@ -145,7 +147,7 @@ bool Dbmgr::initializeEnd()
 
 	if(!pDBInterface_->attach(dbcfg.db_name))
 	{
-		ERROR_MSG("Dbmgr::initializeEnd: can't attach to databaseName[%s]!\n", dbcfg.db_name);
+		ERROR_MSG("Dbmgr::initializeEnd: can't attach to database! %s.\n", pDBInterface_->c_str());
 		return false;
 	}
 	else
@@ -159,9 +161,6 @@ bool Dbmgr::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Dbmgr::finalise()
 {
-	loopCheckTimerHandle_.cancel();
-	mainProcessTimer_.cancel();
-
 	SAFE_RELEASE(pGlobalData_);
 	SAFE_RELEASE(pGlobalBases_);
 	SAFE_RELEASE(pCellAppData_);
