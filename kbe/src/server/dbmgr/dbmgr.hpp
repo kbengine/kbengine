@@ -32,19 +32,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/endpoint.hpp"
 #include "server/idallocate.hpp"
 
-#ifdef USE_KBE_MYSQL
-#include "mysql/mysql.h"
-#if KBE_PLATFORM == PLATFORM_WIN32
-#ifdef _DEBUG
-#pragma comment (lib, "libmysql_d.lib")
-#pragma comment (lib, "mysqlclient_d.lib")
-#else
-#pragma comment (lib, "libmysql.lib")
-#pragma comment (lib, "mysqlclient.lib")
-#endif
-#endif
-#endif
-
 //#define NDEBUG
 #include <map>	
 // windows include	
@@ -54,6 +41,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 	
 namespace KBEngine{
+
+class DBInterface;
 
 class Dbmgr :	public ServerApp, 
 					public Singleton<Dbmgr>
@@ -147,10 +136,7 @@ protected:
 	GlobalDataServer*									pGlobalBases_;								
 
 	// cellAppData
-	GlobalDataServer*									pCellAppData_;								
-
-	// 是否已经连接数据库
-	bool												isConnectedDB_;								
+	GlobalDataServer*									pCellAppData_;														
 	
 	struct PROXICES_ONLINE_LOG_ITEM
 	{
@@ -161,7 +147,9 @@ protected:
 	typedef std::tr1::unordered_map<std::string, PROXICES_ONLINE_LOG_ITEM> PROXICES_ONLINE_LOG;
 	// 所有的proxy创建后都会注册到这里， 提供look或者登录是在线判断
 	// 注意： 如果有数据库支持则会记录在数据库中
-	PROXICES_ONLINE_LOG									proxicesOnlineLogs_;									
+	PROXICES_ONLINE_LOG									proxicesOnlineLogs_;	
+
+	DBInterface*										pDBInterface_;
 };
 
 }

@@ -28,6 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.hpp"
 #include "server/componentbridge.hpp"
 #include "server/components.hpp"
+#include "dbmgr_lib/db_interface.hpp"
 
 #include "baseapp/baseapp_interface.hpp"
 #include "cellapp/cellapp_interface.hpp"
@@ -52,7 +53,8 @@ Dbmgr::Dbmgr(Mercury::EventDispatcher& dispatcher,
 	pGlobalData_(NULL),
 	pGlobalBases_(NULL),
 	pCellAppData_(NULL),
-	isConnectedDB_(false)
+	proxicesOnlineLogs_(),
+	pDBInterface_(NULL)
 {
 }
 
@@ -130,6 +132,27 @@ bool Dbmgr::initializeEnd()
 	pGlobalData_->addConcernComponentType(BASEAPP_TYPE);
 	pGlobalBases_->addConcernComponentType(BASEAPP_TYPE);
 	pCellAppData_->addConcernComponentType(CELLAPP_TYPE);
+
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+	pDBInterface_ = DBUtil::create(dbcfg.db_type, dbcfg.db_ip, dbcfg.db_port, 
+		dbcfg.db_username, dbcfg.db_password, dbcfg.db_numConnections);
+
+	if(pDBInterface_ == NULL)
+	{
+		ERROR_MSG("Dbmgr::initializeEnd: can't create dbinterface!\n");
+		return false;
+	}
+
+	if(!pDBInterface_->attach(dbcfg.db_name))
+	{
+		ERROR_MSG("Dbmgr::initializeEnd: can't attach to databaseName[%s]!\n", dbcfg.db_name);
+		return false;
+	}
+	else
+	{
+		INFO_MSG("Dbmgr::initializeEnd: %s!\n", pDBInterface_->c_str());
+	}
+
 	return true;
 }
 
@@ -142,6 +165,8 @@ void Dbmgr::finalise()
 	SAFE_RELEASE(pGlobalData_);
 	SAFE_RELEASE(pGlobalBases_);
 	SAFE_RELEASE(pCellAppData_);
+
+	pDBInterface_->detach();
 }
 
 //-------------------------------------------------------------------------------------
@@ -337,7 +362,7 @@ void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel, std::string& accountNam
 	MERCURY_ERROR_CODE failedcode = MERCURY_SUCCESS;
 
 	// 如果没有连接db则从log中查找账号是否有此账号(这个功能是为了测试使用)
-	if(!isConnectedDB_)
+	if(!pDBInterface_)
 	{
 		PROXICES_ONLINE_LOG::iterator iter = proxicesOnlineLogs_.find(accountName);
 		if(iter != proxicesOnlineLogs_.end())
@@ -362,7 +387,7 @@ void Dbmgr::onAccountLogin(Mercury::Channel* pChannel, std::string& accountName,
 	ENTITY_ID entityID = 0;
 	
 	// 如果没有连接db则从log中查找账号是否还在线
-	if(!isConnectedDB_)
+	if(!pDBInterface_)
 	{
 		PROXICES_ONLINE_LOG::iterator iter = proxicesOnlineLogs_.find(accountName);
 		if(iter != proxicesOnlineLogs_.end())
@@ -398,7 +423,7 @@ void Dbmgr::onAccountOnline(Mercury::Channel* pChannel, std::string& accountName
 {
 	DEBUG_MSG("Dbmgr::onAccountOnline:componentID:%"PRAppID", entityID:%d.\n", componentID, entityID);
 	// 如果没有连接db则从log中查找账号是否还在线
-	if(!isConnectedDB_)
+	if(!pDBInterface_)
 	{
 		PROXICES_ONLINE_LOG::iterator iter = proxicesOnlineLogs_.find(accountName);
 		if(iter != proxicesOnlineLogs_.end())
@@ -420,7 +445,7 @@ void Dbmgr::onAccountOffline(Mercury::Channel* pChannel, std::string& accountNam
 	DEBUG_MSG("Dbmgr::onAccountOffline:%s.\n", accountName.c_str());
 
 	// 如果没有连接db则从log中查找账号是否还在线
-	if(!isConnectedDB_)
+	if(!pDBInterface_)
 	{
 		proxicesOnlineLogs_.erase(accountName);
 	}
