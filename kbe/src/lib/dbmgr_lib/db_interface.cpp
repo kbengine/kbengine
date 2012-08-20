@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "db_interface.hpp"
-#include "db_mysql/db_interface_mysql.hpp"
+#include "../db_mysql/db_interface_mysql.hpp"
 
 namespace KBEngine { 
 KBE_SINGLETON_INIT(DBUtil);
@@ -45,7 +45,7 @@ DBInterface* DBUtil::create(const char* dbtype, const char* ip, uint32 port, con
 
 	if(strcmp(dbtype, "mysql") == 0)
 	{
-		dbinterface = (DBInterface*)new DBInterfaceMysql;
+		dbinterface = new DBInterfaceMysql;
 	}
 
 	kbe_snprintf(dbinterface->db_type_, MAX_BUF, dbtype);
