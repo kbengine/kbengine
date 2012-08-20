@@ -191,7 +191,11 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 						(md->getName().c_str()));
 
 	if(md != NULL)
-		md->call(pyFunc, md->createFromStream(&s));
+	{
+		PyObject* pyargs = md->createFromStream(&s);
+		md->call(pyFunc, pyargs);
+		Py_DECREF(pyargs);
+	}
 	
 	Py_XDECREF(pyFunc);
 }

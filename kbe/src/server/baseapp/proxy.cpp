@@ -138,6 +138,7 @@ int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 void Proxy::onClientDeath(void)
 {
 	DEBUG_MSG("%s::onClientDeath: %d.\n", this->getScriptName(), this->getID());
+
 	if(getClientMailbox() != NULL)
 	{
 		Py_DECREF(getClientMailbox());
@@ -208,10 +209,10 @@ void Proxy::giveClientTo(Proxy* proxy)
 		//bundle.newMessage(ClientInterface::onEntityDestroyed);
 		//ClientInterface::onEntityLeaveWorldArgs1::staticAddToBundle(bundle, id_);
 		//bundle.send(Baseapp::getSingleton().getNetworkInterface(), lpChannel);
-
+		
+		getClientMailbox()->addr(Mercury::Address::NONE);
 		Py_DECREF(getClientMailbox());
 		proxy->onGiveClientTo(lpChannel);
-		getClientMailbox()->addr(Mercury::Address::NONE);
 		setClientMailbox(NULL);
 		addr(Mercury::Address::NONE);
 	}
