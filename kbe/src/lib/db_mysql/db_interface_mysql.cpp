@@ -91,7 +91,7 @@ bool DBInterfaceMysql::query(const char* strCommand)
 const char* DBInterfaceMysql::c_str()
 {
 	static char strdescr[MAX_BUF];
-	kbe_snprintf(strdescr, MAX_BUF, "ip=%s, port=%u, currdatabase=%s, username=%s, connected=%s.\n", 
+	kbe_snprintf(strdescr, MAX_BUF, "dbtype=mysql, ip=%s, port=%u, currdatabase=%s, username=%s, connected=%s.\n", 
 		db_ip_, db_port_, db_name_, db_username_, pMysql_ == NULL ? "no" : "yes");
 
 	return strdescr;
