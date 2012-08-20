@@ -43,7 +43,7 @@ DBInterface* DBUtil::create(const char* dbtype, const char* ip, uint32 port, con
 {
 	DBInterface* dbinterface = NULL;
 
-	if(stricmp(dbtype, "mysql") == 0)
+	if(strcmp(dbtype, "mysql") == 0)
 	{
 		dbinterface = new DBInterfaceMysql;
 	}
