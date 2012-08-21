@@ -9,4 +9,4 @@ class Avatar(GameObject):
 		self.addTimer(1, 1, 1)
 		
 	def onTimer(self, tid, userArg):
-		DEBUG_MSG("Avatar::onTimer: tid:%i, arg:%i" % (tid, userArg))
+		DEBUG_MSG("Avatar::onTimer: %i, tid:%i, arg:%i" % (self.id, tid, userArg))
