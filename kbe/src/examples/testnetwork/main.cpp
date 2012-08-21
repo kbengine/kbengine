@@ -231,8 +231,6 @@ void init_network(void)
 		return;
 	}
 	
-	
-
 	srand(getSystemTime());
 	std::string accountname = "kebiao";
 	char ttt1[256];
@@ -262,7 +260,7 @@ void init_network(void)
 		// 连接游戏登陆进程
 		printf("连接游戏登陆进程\n");
 		u_int32_t address;
-		std::string ip = "192.168.1.101";
+		std::string ip = "192.168.4.44";
 		mysocket.convertAddress(ip.c_str(), address );
 		if(mysocket.connect(htons(port), address) == -1)
 		{
