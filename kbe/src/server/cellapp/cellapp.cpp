@@ -231,11 +231,12 @@ PyObject* Cellapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 	int ret = -1;
 
 	char* data = NULL;
-
+	Py_ssize_t size;
+	
 	if(argCount == 2)
-		ret = PyArg_ParseTuple(args, "s|O", &data, &pycallback);
+		ret = PyArg_ParseTuple(args, "s#|O", &data, &size, &pycallback);
 	else if(argCount == 1)
-		ret = PyArg_ParseTuple(args, "s", &data);
+		ret = PyArg_ParseTuple(args, "s#", &data, &size);
 
 	if(ret == -1)
 	{
@@ -243,12 +244,12 @@ PyObject* Cellapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 		PyErr_PrintEx(0);
 	}
 	
-	Cellapp::getSingleton().executeRawDatabaseCommand(data, pycallback);
+	Cellapp::getSingleton().executeRawDatabaseCommand(data, size, pycallback);
 	S_Return;
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::executeRawDatabaseCommand(const char* datas, PyObject* pycallback)
+void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback)
 {
 	if(datas == NULL)
 	{
@@ -280,7 +281,8 @@ void Cellapp::executeRawDatabaseCommand(const char* datas, PyObject* pycallback)
 		callbackID = callbackMgr().save(pycallback);
 
 	bundle << callbackID;
-	bundle << datas;
+	bundle << size;
+	bundle.append(datas, size);
 	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 }
 

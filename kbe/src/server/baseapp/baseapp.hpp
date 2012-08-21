@@ -145,7 +145,7 @@ public:
 		想dbmgr请求执行一个数据库命令
 	*/
 	static PyObject* __py_executeRawDatabaseCommand(PyObject* self, PyObject* args);
-	void executeRawDatabaseCommand(const char* datas, PyObject* pycallback);
+	void executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback);
 	void onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口

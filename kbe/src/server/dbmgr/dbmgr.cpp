@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/componentbridge.hpp"
 #include "server/components.hpp"
 #include "dbmgr_lib/db_interface.hpp"
+#include "db_mysql/db_interface_mysql.hpp"
 
 #include "baseapp/baseapp_interface.hpp"
 #include "cellapp/cellapp_interface.hpp"
@@ -458,15 +459,17 @@ void Dbmgr::executeRawDatabaseCommand(Mercury::Channel* pChannel, KBEngine::Memo
 	std::string datas;
 	CALLBACK_ID callbackID = 0;
 	uint32 affectedNum = 0;
+	
 
 	s >> componentID >> componentType;
 	s >> callbackID;
-	s >> datas;
+	s.readDatasToStringSkip(datas);
 
 	DEBUG_MSG("Dbmgr::executeRawDatabaseCommand:%s.\n", datas.c_str());
 
 	std::string error;
-	if(!pDBInterface_->query(datas.c_str()))
+	MemoryStream ret;
+	if(!static_cast<DBInterfaceMysql*>(pDBInterface_)->execute(datas.data(), datas.size(), &ret))
 	{
 		error = pDBInterface_->getstrerror();
 	}
@@ -487,11 +490,8 @@ void Dbmgr::executeRawDatabaseCommand(Mercury::Channel* pChannel, KBEngine::Memo
 
 	bundle << callbackID;
 	bundle << error;
-	bundle << affectedNum;
-
-	if(affectedNum > 0)
-	{
-	}
+	if(error.size() <= 0)
+		bundle.append(ret);
 
 	bundle.send(this->getNetworkInterface(), pChannel);
 }

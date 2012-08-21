@@ -43,8 +43,14 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 	
 	kbe_snprintf(db_name_, MAX_BUF, "%s", databaseName);
     pMysql_ = mysql_init(0);
+
+	if(pMysql_ == NULL)
+	{
+		return false;
+	}
+
     pMysql_ = mysql_real_connect(mysql(), db_ip_, db_username_, 
-    	db_password_, db_name_, db_port_, 0, 0);  
+    	db_password_, db_name_, db_port_, 0, CLIENT_MULTI_STATEMENTS);  
     
 	if(mysql())
 		mysql_select_db(mysql(), databaseName); 
@@ -64,7 +70,7 @@ bool DBInterfaceMysql::detach()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceMysql::query(const char* strCommand)
+bool DBInterfaceMysql::query(const char* strCommand, uint32 size)
 {
 	if(pMysql_ == NULL)
 	{
@@ -72,7 +78,7 @@ bool DBInterfaceMysql::query(const char* strCommand)
 		return false;
 	}
 
-    int nResult = mysql_query(pMysql_, strCommand);  
+    int nResult = mysql_real_query(pMysql_, strCommand, size);  
     if(nResult != 0)  
     {  
 		ERROR_MSG("DBInterfaceMysql::query: mysql is error(%d:%s)!\n", 
@@ -85,6 +91,83 @@ bool DBInterfaceMysql::query(const char* strCommand)
     }
     
     return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceMysql::execute(const char* strCommand, uint32 size, MemoryStream * resdata)
+{
+	bool result = this->query(strCommand, size);
+
+	if (!result)
+	{
+		return false;
+	}
+
+	MYSQL_RES * pResult = mysql_store_result(mysql());
+
+	if(pResult)
+	{
+		if (resdata != NULL)
+		{
+			uint32 nrows = (uint32)mysql_num_rows(pResult);
+			uint32 nfields = (uint32)mysql_num_fields(pResult);
+
+			(*resdata) << nrows << nfields;
+
+			MYSQL_ROW arow;
+
+			while((arow = mysql_fetch_row(pResult)) != NULL)
+			{
+				unsigned long *lengths = mysql_fetch_lengths(pResult);
+
+				for (uint32 i = 0; i < nfields; i++)
+				{
+					if (arow[i] == NULL)
+					{
+						(*resdata) << "NULL";
+					}
+					else
+					{
+						resdata->append(arow[i], lengths[i]);
+					}
+				}
+			}
+		}
+
+		mysql_free_result(pResult);
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceMysql::getTableNames( std::vector<std::string>& tableNames, const char * pattern)
+{
+	if(pMysql_ == NULL)
+	{
+		ERROR_MSG("DBInterfaceMysql::query: has no attach(db).\n");
+		return false;
+	}
+
+	tableNames.clear();
+
+	MYSQL_RES * pResult = mysql_list_tables(pMysql_, pattern);
+
+	if(pResult)
+	{
+		tableNames.reserve((unsigned int)mysql_num_rows(pResult));
+
+		MYSQL_ROW row;
+		while((row = mysql_fetch_row(pResult)) != NULL)
+		{
+			unsigned long *lengths = mysql_fetch_lengths(pResult);
+			tableNames.push_back(std::string(row[0], lengths[0]));
+		}
+
+		mysql_free_result(pResult);
+	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

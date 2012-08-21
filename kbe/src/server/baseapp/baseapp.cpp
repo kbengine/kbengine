@@ -606,11 +606,12 @@ PyObject* Baseapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 	int ret = -1;
 
 	char* data = NULL;
-
+	Py_ssize_t size;
+	
 	if(argCount == 2)
-		ret = PyArg_ParseTuple(args, "s|O", &data, &pycallback);
+		ret = PyArg_ParseTuple(args, "s#|O", &data, &size, &pycallback);
 	else if(argCount == 1)
-		ret = PyArg_ParseTuple(args, "s", &data);
+		ret = PyArg_ParseTuple(args, "s#", &data, &size);
 
 	if(ret == -1)
 	{
@@ -618,12 +619,12 @@ PyObject* Baseapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 		PyErr_PrintEx(0);
 	}
 	
-	Baseapp::getSingleton().executeRawDatabaseCommand(data, pycallback);
+	Baseapp::getSingleton().executeRawDatabaseCommand(data, size, pycallback);
 	S_Return;
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::executeRawDatabaseCommand(const char* datas, PyObject* pycallback)
+void Baseapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback)
 {
 	if(datas == NULL)
 	{
@@ -655,7 +656,8 @@ void Baseapp::executeRawDatabaseCommand(const char* datas, PyObject* pycallback)
 		callbackID = callbackMgr().save(pycallback);
 
 	bundle << callbackID;
-	bundle << datas;
+	bundle << size;
+	bundle.append(datas, size);
 	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 }
 
@@ -664,13 +666,16 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine
 {
 	std::string err;
 	CALLBACK_ID callbackID = 0;
-	uint32 affectedNum = 0;
+	uint32 nrows = 0;
+	uint32 nfields = 0;
 
 	s >> callbackID;
 	s >> err;
-	s >> affectedNum;
+	if(err.size() <= 0)
+	{
+	}
 
-	DEBUG_MSG("Baseapp::onExecuteRawDatabaseCommandCB: affectedNum=%u, err=%s.\n", affectedNum, err.c_str());
+	DEBUG_MSG("Baseapp::onExecuteRawDatabaseCommandCB: nrows=%u, nfields=%u, err=%s.\n", nrows, nfields, err.c_str());
 }
 
 //-------------------------------------------------------------------------------------

@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
+#include "cstdkbe/memorystream.hpp"
 #include "helper/debug_helper.hpp"
 #include "dbmgr_lib/db_interface.hpp"
 
@@ -54,7 +55,10 @@ public:
 	virtual bool attach(const char* databaseName);
 	virtual bool detach();
 
-	virtual bool query(const char* strCommand);
+	virtual bool query(const char* strCommand, uint32 size);
+
+	bool execute(const char* strCommand, uint32 size, MemoryStream * resdata);
+	bool getTableNames( std::vector<std::string>& tableNames, const char * pattern);
 
 	MYSQL* mysql(){ return pMysql_; }
 

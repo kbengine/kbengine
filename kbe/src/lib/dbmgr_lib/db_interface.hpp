@@ -48,7 +48,7 @@ public:
 	/**
 		查询表
 	*/
-	virtual bool query(const char* strCommand) = 0;
+	virtual bool query(const char* strCommand, uint32 size) = 0;
 
 	/**
 		返回这个接口的描述
