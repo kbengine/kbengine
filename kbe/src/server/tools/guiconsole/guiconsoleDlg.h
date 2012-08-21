@@ -63,7 +63,7 @@ private:
 	COMPONENT_ID _componentID;
 	Mercury::EventDispatcher _dispatcher;
 	Mercury::NetworkInterface _networkInterface;
-	Mercury::Channel* m_pChannel;
+	Mercury::Address _currAddr;
 	CDebugWindow m_debugWnd;
 	bool m_isInit;
 	std::deque<CString> m_historyCommand;

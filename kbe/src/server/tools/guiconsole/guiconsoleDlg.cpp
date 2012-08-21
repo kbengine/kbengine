@@ -181,7 +181,7 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	::SetTimer(m_hWnd, 3, 1000 * 20, NULL);
 
 	m_isInit = true;
-	m_pChannel = NULL;
+	_currAddr = Mercury::Address::NONE;
 
 	m_tab.InsertItem(0, _T("DEBUG"), 0); 
 	m_debugWnd.Create(IDD_DEBUG, GetDlgItem(IDC_TAB1));
@@ -260,7 +260,8 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 		)
         s = "print(" + s + ")";
 
-	if(m_pChannel)
+	Mercury::Channel* pChannel = _networkInterface.findChannel(_currAddr);
+	if(pChannel)
 	{
 		Mercury::Bundle bundle;
 		if(_debugComponentType == BASEAPP_TYPE)
@@ -269,7 +270,7 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 			bundle.newMessage(CellappInterface::onExecScriptCommand);
 
 		bundle << s;
-		bundle.send(this->getNetworkInterface(), m_pChannel);
+		bundle.send(this->getNetworkInterface(), pChannel);
 
 		int len = MultiByteToWideChar(CP_ACP,0, buffer, charLen, NULL,0);
 		wchar_t *buf = new wchar_t[len + 1];
@@ -462,15 +463,16 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 		break;
 	case 3:
 		{
-			if(m_pChannel)
+			Mercury::Channel* pChannel = _networkInterface.findChannel(_currAddr);
+			if(pChannel)
 			{
 				Mercury::Bundle bundle;
 				COMMON_MERCURY_MESSAGE(_debugComponentType, bundle, onAppActiveTick);
 				
 				bundle << _componentType;
 				bundle << _componentID;
-				bundle.send(getNetworkInterface(), m_pChannel);
-				m_pChannel->updateLastReceivedTime();
+				bundle.send(getNetworkInterface(), pChannel);
+				pChannel->updateLastReceivedTime();
 			}
 		}
 		break;
@@ -782,18 +784,20 @@ void CguiconsoleDlg::OnMenu_connectTo()
 	}
 
 	endpoint->setnonblocking(true);
-	if(m_pChannel)
+	Mercury::Channel* pChannel = _networkInterface.findChannel(_currAddr);
+	if(pChannel)
 	{
-		_networkInterface.deregisterChannel(m_pChannel);
-		m_pChannel->destroy();
+		_networkInterface.deregisterChannel(pChannel);
+		pChannel->destroy();
 	}
 
-	m_pChannel = new Mercury::Channel(_networkInterface, endpoint, Mercury::Channel::INTERNAL);
-	if(!_networkInterface.registerChannel(m_pChannel))
+	_currAddr = addr;
+	pChannel = new Mercury::Channel(_networkInterface, endpoint, Mercury::Channel::INTERNAL);
+	if(!_networkInterface.registerChannel(pChannel))
 	{
 		CString err;
 		err.Format(L"ListenerReceiver::handleInputNotification:registerChannel(%s) is failed!\n",
-			m_pChannel->c_str());
+			pChannel->c_str());
 		AfxMessageBox(err);
 		return;
 	}
@@ -802,11 +806,11 @@ void CguiconsoleDlg::OnMenu_connectTo()
 void CguiconsoleDlg::OnMenu_Update()
 {
 	_debugComponentType = UNKNOWN_COMPONENT_TYPE;
-	if(m_pChannel)
+	Mercury::Channel* pChannel = _networkInterface.findChannel(_currAddr);
+	if(pChannel)
 	{
-		_networkInterface.deregisterChannel(m_pChannel);
-		m_pChannel->destroy();
-		m_pChannel = NULL;
+		_networkInterface.deregisterChannel(pChannel);
+		pChannel->destroy();
 	}
 
 	Components::getSingleton().clear();
