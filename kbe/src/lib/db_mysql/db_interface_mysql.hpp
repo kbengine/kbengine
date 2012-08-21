@@ -62,6 +62,16 @@ public:
 		返回这个接口的描述
 	*/
 	virtual const char* c_str();
+
+	/** 
+		获取错误
+	*/
+	virtual const char* getstrerror();
+
+	/** 
+		获取错误编号
+	*/
+	virtual int getlasterror();
 protected:
 	MYSQL* pMysql_;
 };

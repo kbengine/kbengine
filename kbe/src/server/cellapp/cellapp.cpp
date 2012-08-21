@@ -224,9 +224,33 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback)
+PyObject* Cellapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args)
 {
-	if(size <= 0 || datas == NULL || pycallback == NULL)
+	int argCount = PyTuple_Size(args);
+	PyObject* pycallback = NULL;
+	int ret = -1;
+
+	char* data = NULL;
+
+	if(argCount == 2)
+		ret = PyArg_ParseTuple(args, "s|O", &data, &pycallback);
+	else if(argCount == 1)
+		ret = PyArg_ParseTuple(args, "s", &data);
+
+	if(ret == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args is error!");
+		PyErr_PrintEx(0);
+	}
+	
+	Cellapp::getSingleton().executeRawDatabaseCommand(data, pycallback);
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::executeRawDatabaseCommand(const char* datas, PyObject* pycallback)
+{
+	if(datas == NULL)
 	{
 		ERROR_MSG("Cellapp::executeRawDatabaseCommand: execute is error!\n");
 		return;
@@ -244,13 +268,34 @@ void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 		return;
 	}
 
+	DEBUG_MSG("KBEngine::executeRawDatabaseCommand:%s.\n", datas);
+
 	Mercury::Bundle bundle;
 	bundle.newMessage(DbmgrInterface::executeRawDatabaseCommand);
-	bundle << componentID_;
-	bundle << size;
-	bundle << datas;
+	bundle << componentID_ << componentType_;
 
+	CALLBACK_ID callbackID = 0;
+
+	if(pycallback && PyCallable_Check(pycallback))
+		callbackID = callbackMgr().save(pycallback);
+
+	bundle << callbackID;
+	bundle << datas;
 	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	std::string err;
+	CALLBACK_ID callbackID = 0;
+	uint32 affectedNum = 0;
+
+	s >> callbackID;
+	s >> err;
+	s >> affectedNum;
+
+	DEBUG_MSG("Cellapp::onExecuteRawDatabaseCommandCB: affectedNum=%u, err=%s.\n", affectedNum, err.c_str());
 }
 
 //-------------------------------------------------------------------------------------

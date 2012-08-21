@@ -360,7 +360,6 @@ void Baseapp::createBaseAnywhere(const char* entityType, PyObject* params, PyObj
 	CALLBACK_ID callbackID = 0;
 	if(pyCallback != NULL)
 	{
-		Py_INCREF(pyCallback);
 		callbackID = callbackMgr().save(pyCallback);
 	}
 
@@ -472,7 +471,7 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 	if(callbackID == 0)
 		return;
 
-	PyObject* pyCallback = callbackMgr().take(callbackID);
+	PyObjectPtr pyCallback = callbackMgr().take(callbackID);
 	PyObject* pyargs = PyTuple_New(1);
 
 	if(pChannel != NULL)
@@ -490,7 +489,7 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 		KBE_ASSERT(pOtherBaseappChannel != NULL);
 		PyObject* mb = static_cast<EntityMailbox*>(new EntityMailbox(sm, NULL, componentID, eid, MAILBOX_TYPE_BASE));
 		PyTuple_SET_ITEM(pyargs, 0, mb);
-		PyObject_CallObject(pyCallback, pyargs);
+		PyObject_CallObject(pyCallback.get(), pyargs);
 		//Py_DECREF(mb);
 		int i=0;
 		i++;
@@ -507,12 +506,11 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 
 		Py_INCREF(base);
 		PyTuple_SET_ITEM(pyargs, 0, base);
-		PyObject_CallObject(pyCallback, pyargs);
+		PyObject_CallObject(pyCallback.get(), pyargs);
 	}
 
 	SCRIPT_ERROR_CHECK();
 	Py_DECREF(pyargs);
-	Py_DECREF(pyCallback);
 }
 
 //-------------------------------------------------------------------------------------
@@ -601,9 +599,33 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback)
+PyObject* Baseapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args)
 {
-	if(size <= 0 || datas == NULL || pycallback == NULL)
+	int argCount = PyTuple_Size(args);
+	PyObject* pycallback = NULL;
+	int ret = -1;
+
+	char* data = NULL;
+
+	if(argCount == 2)
+		ret = PyArg_ParseTuple(args, "s|O", &data, &pycallback);
+	else if(argCount == 1)
+		ret = PyArg_ParseTuple(args, "s", &data);
+
+	if(ret == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args is error!");
+		PyErr_PrintEx(0);
+	}
+	
+	Baseapp::getSingleton().executeRawDatabaseCommand(data, pycallback);
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::executeRawDatabaseCommand(const char* datas, PyObject* pycallback)
+{
+	if(datas == NULL)
 	{
 		ERROR_MSG("Baseapp::executeRawDatabaseCommand: execute is error!\n");
 		return;
@@ -621,13 +643,34 @@ void Baseapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 		return;
 	}
 
+	DEBUG_MSG("KBEngine::executeRawDatabaseCommand:%s.\n", datas);
+
 	Mercury::Bundle bundle;
 	bundle.newMessage(DbmgrInterface::executeRawDatabaseCommand);
-	bundle << componentID_;
-	bundle << size;
-	bundle << datas;
+	bundle << componentID_ << componentType_;
 
+	CALLBACK_ID callbackID = 0;
+
+	if(pycallback && PyCallable_Check(pycallback))
+		callbackID = callbackMgr().save(pycallback);
+
+	bundle << callbackID;
+	bundle << datas;
 	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	std::string err;
+	CALLBACK_ID callbackID = 0;
+	uint32 affectedNum = 0;
+
+	s >> callbackID;
+	s >> err;
+	s >> affectedNum;
+
+	DEBUG_MSG("Baseapp::onExecuteRawDatabaseCommandCB: affectedNum=%u, err=%s.\n", affectedNum, err.c_str());
 }
 
 //-------------------------------------------------------------------------------------

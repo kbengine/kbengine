@@ -159,6 +159,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// client访问entity的cell方法
 	BASEAPP_MESSAGE_DECLARE_STREAM(onRemoteCallCellMethodFromClient,	MERCURY_VARIABLE_MESSAGE)
 
+	// executeRawDatabaseCommand从dbmgr的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(onExecuteRawDatabaseCommandCB,		MERCURY_VARIABLE_MESSAGE)
+
 	//--------------------------------------------Base----------------------------------------------------------
 	// 远程呼叫entity方法
 	BASE_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,						MERCURY_VARIABLE_MESSAGE)

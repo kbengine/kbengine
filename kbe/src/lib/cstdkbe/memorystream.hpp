@@ -365,6 +365,23 @@ class MemoryStream
             rpos_ += len;
         }
 
+		uint32 readDatasToStringSkip(std::string& datas)
+		{
+			if(opsize() <= 0)
+				return 0;
+
+			uint32 rsize = 0;
+			(*this) >> rsize;
+
+			if(rsize > 0)
+			{
+				datas.assign((char*)(data() + rpos()), rsize);
+				read_skip(rsize);
+			}
+
+			return rsize;
+		}
+
         bool readPackGUID(uint64& guid)
         {
             if(rpos() + 1 > size())

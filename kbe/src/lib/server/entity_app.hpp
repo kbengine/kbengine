@@ -113,12 +113,6 @@ public:
 
 	virtual E* onCreateEntityCommon(PyObject* pyEntity, ScriptModule* sm, ENTITY_ID eid);
 
-	/** 
-		执行数据库sql语句 
-	*/
-	static PyObject* __py_executeRawDatabaseCommand(PyObject* self, PyObject* args);
-	virtual void executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback) {};
-
 	/** 网络接口
 		请求分配一个ENTITY_ID段的回调
 	*/
@@ -242,29 +236,6 @@ bool EntityApp<E>::installEntityDef()
 	}
 
 	return EntityDef::installScript(NULL);
-}
-
-template<class E>
-PyObject* EntityApp<E>::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args)
-{
-	int argCount = PyTuple_Size(args);
-	PyObject* pycallback = NULL;
-	int ret = -1;
-
-	char* data = NULL;
-	Py_ssize_t size = 0;
-
-	if(argCount == 2)
-		ret = PyArg_ParseTuple(args, "s#|O", data, &size, &pycallback);
-
-	if(ret == -1)
-	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args is error!");
-		PyErr_PrintEx(0);
-	}
-	
-	DEBUG_MSG("KBEngine::executeRawDatabaseCommand:%s.\n", data);
-	S_Return;
 }
 
 template<class E>

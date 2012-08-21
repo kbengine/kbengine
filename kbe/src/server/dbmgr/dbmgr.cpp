@@ -453,7 +453,47 @@ void Dbmgr::onAccountOffline(Mercury::Channel* pChannel, std::string& accountNam
 //-------------------------------------------------------------------------------------
 void Dbmgr::executeRawDatabaseCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	DEBUG_MSG("Dbmgr::executeRawDatabaseCommand:%s.\n", "sss");
+	COMPONENT_ID componentID = 0;
+	COMPONENT_TYPE componentType;
+	std::string datas;
+	CALLBACK_ID callbackID = 0;
+	uint32 affectedNum = 0;
+
+	s >> componentID >> componentType;
+	s >> callbackID;
+	s >> datas;
+
+	DEBUG_MSG("Dbmgr::executeRawDatabaseCommand:%s.\n", datas.c_str());
+
+	std::string error;
+	if(!pDBInterface_->query(datas.c_str()))
+	{
+		error = pDBInterface_->getstrerror();
+	}
+
+	// 如果不需要回调则结束
+	if(callbackID <= 0)
+		return;
+
+	Mercury::Bundle bundle;
+	if(componentType == BASEAPP_TYPE)
+		bundle.newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
+	else if(componentType == CELLAPP_TYPE)
+		bundle.newMessage(CellappInterface::onExecuteRawDatabaseCommandCB);
+	else
+	{
+		KBE_ASSERT(false && "no support!\n");
+	}
+
+	bundle << callbackID;
+	bundle << error;
+	bundle << affectedNum;
+
+	if(affectedNum > 0)
+	{
+	}
+
+	bundle.send(this->getNetworkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------

@@ -46,7 +46,7 @@ public:
 	virtual bool detach() = 0;
 
 	/**
-	 查询表
+		查询表
 	*/
 	virtual bool query(const char* strCommand) = 0;
 
@@ -54,6 +54,16 @@ public:
 		返回这个接口的描述
 	*/
 	virtual const char* c_str() = 0;
+
+	/** 
+		获取错误
+	*/
+	virtual const char* getstrerror() = 0;
+
+	/** 
+		获取错误编号
+	*/
+	virtual int getlasterror() = 0;
 protected:
 	char db_type_[MAX_BUF];									// 数据库的类别
 	uint32 db_port_;										// 数据库的端口

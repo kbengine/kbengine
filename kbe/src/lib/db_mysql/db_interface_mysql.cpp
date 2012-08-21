@@ -98,4 +98,16 @@ const char* DBInterfaceMysql::c_str()
 }
 
 //-------------------------------------------------------------------------------------
+const char* DBInterfaceMysql::getstrerror()
+{
+	return mysql_error(pMysql_);
+}
+
+
+//-------------------------------------------------------------------------------------
+int DBInterfaceMysql::getlasterror()
+{
+	return mysql_errno(pMysql_);
+}
+//-------------------------------------------------------------------------------------
 }

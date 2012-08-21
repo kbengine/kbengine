@@ -35,10 +35,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __CALLBACKMGR_H__
 
 // common include	
+#include "Python.h"
+#include "idallocate.hpp"
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
-#include "idallocate.hpp"
-#include "Python.h"
+#include "pyscript/pyobject_pointer.hpp"
 
 //#define NDEBUG
 // windows include	
@@ -101,7 +102,7 @@ inline CallbackMgr<PyObject*>::~CallbackMgr()
 	cbMap_.clear();
 }	
 
-typedef CallbackMgr<PyObject*> PY_CALLBACKMGR;
+typedef CallbackMgr<PyObjectPtr> PY_CALLBACKMGR;
 
 }
 #endif
