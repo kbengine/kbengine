@@ -32,6 +32,7 @@ namespace KBEngine{
 	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,			0)		\
 	SCRIPT_METHOD_DECLARE("addTimer",		pyAddTimer,						METH_VARARGS,			0)		\
 	SCRIPT_METHOD_DECLARE("delTimer",		pyDelTimer,						METH_VARARGS,			0)		\
+	SCRIPT_METHOD_DECLARE("writeToDB",		pyWriteToDB,					METH_VARARGS,			0)		\
 
 #define ENTITY_METHOD_DECLARE_END()																			\
 	SCRIPT_METHOD_DECLARE_END()																				\
@@ -309,6 +310,9 @@ public:																										\
 																											\
 	DECLARE_PY_MOTHOD_ARG3(pyAddTimer, float, float, int32);												\
 	DECLARE_PY_MOTHOD_ARG1(pyDelTimer, ScriptID);															\
+	DECLARE_PY_MOTHOD_ARG0(pyWriteToDB);																	\
+																											\
+	void writeToDB();																						\
 
 
 #define ENTITY_CPP_IMPL(CLASS)																				\
@@ -346,6 +350,7 @@ public:																										\
 		if (id == 0)																						\
 		{																									\
 			PyErr_SetString(PyExc_ValueError, "Unable to add timer");										\
+			PyErr_PrintEx(0);																				\
 			delete pHandler;																				\
 																											\
 			return NULL;																					\
@@ -363,6 +368,24 @@ public:																										\
 																											\
 		return PyLong_FromLong(timerID);																	\
 	}																										\
+																											\
+	PyObject* CLASS::pyWriteToDB()																			\
+	{																										\
+		if(g_componentType == CELLAPP_TYPE)																	\
+		{																									\
+			PyObject* baseMB = PyObject_GetAttrString(this, "base");										\
+			if(baseMB == NULL || baseMB == Py_None)															\
+			{																								\
+				PyErr_Clear();																				\
+				PyErr_SetString(PyExc_AssertionError,														\
+				"This method can only be called on a real entity that has a base entity. ");				\
+				PyErr_PrintEx(0);																			\
+			}																								\
+		}																									\
+																											\
+		S_Return;																							\
+	}																										\
+
 
 
 #define ENTITY_CONSTRUCTION(CLASS)																			\

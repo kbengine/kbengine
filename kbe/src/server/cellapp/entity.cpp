@@ -303,6 +303,30 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::backupPropertys()
+{
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::writeToDB()
+{
+	onWriteToDB();
+	backupPropertys();
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onWriteToDB()
+{
+	PyObject* pyResult = PyObject_CallMethod(this, 
+		const_cast<char*>("onWriteToDB"), const_cast<char*>(""));
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		PyErr_Clear();
+}
+
+//-------------------------------------------------------------------------------------
 /*
 void Entity::onCurrentChunkChanged(Chunk* oldChunk)
 {

@@ -166,7 +166,8 @@ PyObject* Base::createCellDataDictByFlags(uint32 flags)
 //-------------------------------------------------------------------------------------
 void Base::destroyCellData(void)
 {
-	S_RELEASE(cellDataDict_);
+	// cellDataDict_ 继续保留， 以供备份时使用， 这里仅仅让脚步层无法访问到即可
+	// S_RELEASE(cellDataDict_);
 	if(PyObject_DelAttrString(this, "cellData") == -1)
 	{
 		ERROR_MSG("Base::destroyCellData: del property cellData is error!\n");
@@ -356,6 +357,12 @@ void Base::onLoseCell(Mercury::Channel* pChannel, MemoryStream& s)
 		Py_DECREF(pyResult);
 	else
 		PyErr_Clear();
+}
+
+//-------------------------------------------------------------------------------------
+void Base::writeToDB()
+{
+	onWriteToDB(cellDataDict_);
 }
 
 //-------------------------------------------------------------------------------------

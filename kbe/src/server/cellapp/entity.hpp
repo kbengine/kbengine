@@ -170,6 +170,16 @@ public:
 	DECLARE_PY_GET_MOTHOD(pyGetIsDestroyed);
 	
 	/** 
+		向baseapp发送备份数据
+	*/
+	void backupPropertys();
+
+	/** 
+		将要保存到数据库之前的通知 
+	*/
+	void onWriteToDB();
+
+	/** 
 		entity移动导航 
 	*/
 	bool navigateStep(const Position3D& destination, float velocity, 
