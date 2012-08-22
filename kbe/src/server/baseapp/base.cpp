@@ -345,6 +345,19 @@ void Base::onLoseCell(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Base::reqUpdateCellData()
+{
+	EntityMailbox* mb = this->getCellMailbox();
+	if(mb == NULL)
+		return;
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(CellappInterface::reqUpdateEntityCellData);
+	bundle << this->getID();
+	mb->postMail(bundle);
+}
+
+//-------------------------------------------------------------------------------------
 void Base::onBackupCellData(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	std::string strCellData;

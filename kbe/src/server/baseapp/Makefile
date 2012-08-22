@@ -1,8 +1,10 @@
 BIN  = baseapp
 SRCS =						\
+	archiver				\
 	base					\
 	baseapp					\
 	baseapp_interface			\
+	backup_sender				\
 	forward_message_over_handler		\
 	main					\
 	proxy

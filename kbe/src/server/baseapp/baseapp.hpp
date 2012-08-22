@@ -44,6 +44,9 @@ namespace Mercury{
 }
 
 class Proxy;
+class BackupSender;
+class Archiver;
+
 class Baseapp :	public EntityApp<Base>, 
 				public Singleton<Baseapp>
 {
@@ -73,6 +76,8 @@ public:
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 	virtual void handleGameTick();
 	void handleCheckStatusTick();
+	void handleBackup();
+	void handleArchive();
 
 	/* 初始化相关接口 */
 	bool initializeBegin();
@@ -236,12 +241,18 @@ public:
 	void onBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	TimerHandle							loopCheckTimerHandle_;
+
 	GlobalDataClient*					pGlobalBases_;								// globalBases
 
 	// 记录登录到服务器但还未处理完毕的账号
 	PendingLoginMgr						pendingLoginMgr_;
 
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;
+
+	// 备份存档相关
+	std::tr1::shared_ptr<BackupSender>	pBackupSender_;	
+	std::tr1::shared_ptr<Archiver>		pArchiver_;	
+	
 };
 
 }

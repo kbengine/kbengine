@@ -71,6 +71,8 @@ public:
 	void clear(void);
 	T* erase(ENTITY_ID id);
 	T* find(ENTITY_ID id);
+
+	size_t size()const { return _entities.size(); }
 private:
 	ENTITYS_MAP _entities;
 };

@@ -99,6 +99,7 @@ void Entity::destroy()
 	Py_DECREF(this);
 }
 
+//-------------------------------------------------------------------------------------
 void Entity::onDestroy(void)
 {
 	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onDestroy"), const_cast<char*>(""));
@@ -312,6 +313,10 @@ void Entity::backupCellData()
 			bundle.append(strCellData.c_str(), cellDataLength);
 			
 		baseMailbox_->postMail(bundle);
+	}
+	else
+	{
+		WARNING_MSG("Entity::backupCellData(): %s %i has no base!\n", this->getScriptName(), this->getID());
 	}
 }
 

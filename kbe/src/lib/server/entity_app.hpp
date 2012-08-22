@@ -104,6 +104,8 @@ public:
 	virtual bool initialize();
 		
 	virtual void onSignalled(int sigNum);
+	
+	Entities<E>* pEntities()const{ return pEntities_; }
 
 	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }	
 

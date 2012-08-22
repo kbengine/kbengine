@@ -121,6 +121,11 @@ public:
 	INLINE PyObject* getCellData(void)const;
 	
 	/**
+		请求cell部分将entity的celldata更新一份过来
+	*/
+	void reqUpdateCellData();
+
+	/**
 		获取这个entity的client部分的属性放到流中
 	*/
 	void getClientPropertys(MemoryStream* s);

@@ -388,6 +388,22 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine
 }
 
 //-------------------------------------------------------------------------------------
+void Cellapp::reqUpdateEntityCellData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	ENTITY_ID entityID = 0;
+	s >> entityID;
+
+	Entity* e = this->findEntity(entityID);
+	if(!e)
+	{
+		ERROR_MSG("Cellapp::reqUpdateEntityCellData: not found entity %d.\n", entityID);
+		return;
+	}
+
+	e->backupCellData();
+}
+
+//-------------------------------------------------------------------------------------
 void Cellapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, 
 		ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
 {

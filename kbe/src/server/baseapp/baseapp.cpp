@@ -23,6 +23,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "proxy.hpp"
 #include "base.hpp"
 #include "baseapp_interface.hpp"
+#include "archiver.hpp"
+#include "backup_sender.hpp"
 #include "forward_message_over_handler.hpp"
 #include "network/common.hpp"
 #include "network/tcp_packet.hpp"
@@ -53,7 +55,8 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 	loopCheckTimerHandle_(),
 	pGlobalBases_(NULL),
 	pendingLoginMgr_(ninterface),
-	forward_messagebuffer_(ninterface)
+	forward_messagebuffer_(ninterface),
+	pBackupSender_()
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
 }
@@ -147,6 +150,21 @@ void Baseapp::handleCheckStatusTick()
 void Baseapp::handleGameTick()
 {
 	EntityApp<Base>::handleGameTick();
+
+	handleBackup();
+	handleArchive();
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::handleBackup()
+{
+	pBackupSender_->tick();
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::handleArchive()
+{
+	pArchiver_->tick();
 }
 
 //-------------------------------------------------------------------------------------
@@ -161,6 +179,9 @@ bool Baseapp::initializeEnd()
 	// 添加一个timer， 每秒检查一些状态
 	loopCheckTimerHandle_ = this->getMainDispatcher().addTimer(1000000, this,
 							reinterpret_cast<void *>(TIMEOUT_CHECK_STATUS));
+
+	pBackupSender_.reset(new BackupSender());
+	pArchiver_.reset(new Archiver());
 	return true;
 }
 

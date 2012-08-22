@@ -1,6 +1,7 @@
 LIB =	server
 
 SRCS =				\
+	common			\
 	componentbridge		\
 	components		\
 	entity_app		\

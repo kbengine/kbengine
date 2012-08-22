@@ -134,6 +134,11 @@ public:
 		client访问entity的cell方法由baseapp转发
 	*/
 	void onRemoteCallMethodFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+		base请求获取celldata
+	*/
+	void reqUpdateEntityCellData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;

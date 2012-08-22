@@ -18,41 +18,32 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SERVER_COMMON_H__
-#define __SERVER_COMMON_H__
+#ifndef __KBE_ARCHIVER__
+#define __KBE_ARCHIVER__
 
 // common include
-#include "cstdkbe/timer.hpp"
+#include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
-#include "server/mercury_errors.hpp"
+// #define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
 // linux include
 #endif
 
-namespace KBEngine { 
+namespace KBEngine{
 
-#define MERCURY_MESSAGE_FORWARD(SEND_INTERFACE, SENDBUNDLE, FORWARDBUNDLE, MYCOMPONENT_ID, FORWARD_COMPONENT_ID)			\
-	SENDBUNDLE.newMessage(SEND_INTERFACE::forwardMessage);																	\
-	SENDBUNDLE << MYCOMPONENT_ID << FORWARD_COMPONENT_ID;																	\
-	FORWARDBUNDLE.finish(true);																								\
-	SENDBUNDLE.append(FORWARDBUNDLE);																						\
-	
-
-/**
-将秒转换为tick
-@lowerBound: 最少不低于Ntick
-*/
-int32 secondsToTicks(float seconds, int lowerBound);
-
-/**
-	将秒为单位的时间转换为每秒所耗的stamps
-*/
-inline uint64 secondsToStamps(float seconds)
+class Archiver
 {
-	return (uint64)(seconds * stampsPerSecondD());
-}
+public:
+	Archiver();
+	~Archiver();
+	
+	void tick();
+private:
+
+};
+
 
 }
 #endif
