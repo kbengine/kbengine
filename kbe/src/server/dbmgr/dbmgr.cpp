@@ -458,8 +458,6 @@ void Dbmgr::executeRawDatabaseCommand(Mercury::Channel* pChannel, KBEngine::Memo
 	COMPONENT_TYPE componentType;
 	std::string datas;
 	CALLBACK_ID callbackID = 0;
-	uint32 affectedNum = 0;
-	
 
 	s >> componentID >> componentType;
 	s >> callbackID;
