@@ -354,23 +354,29 @@ public:
 protected:
 	EntityMailbox*							clientMailbox_;						// 这个entity的客户端mailbox
 	EntityMailbox*							baseMailbox_;						// 这个entity的baseapp mailbox
+
 	Position3D								position_;							// entity的当前位置
 	Direction3D								direction_;							// entity的当前方向
+
 //	Chunk*									currChunk_;							// 这个当前entity所在的chunk
+
 	bool									isReal_;							// 自己是否是一个realEntity
+
 	bool									isDestroyed_;						// 自身是否将要销毁
+
 	float									aoiRadius_;							// 当前entity的aoi半径
 	float									aoiHysteresisArea_;					// 当前entityAoi的一个滞后范围
+
 	bool									isWitnessed_;						// 是否被任何观察者监视到
 	bool									hasWitness_;						// 这个entity是否是一个观察者
 	std::map<ENTITY_ID, Entity*>			viewEntities_;						// 自身视野范围内的entityID， entity必须是一个观察者才有这个属性存在
 	WITNESSENTITY_DETAILLEVEL_MAP			witnessEntityDetailLevelMap_;		// 这个变量记录了一个观察者在当前entity的详情级别
 	std::map<ENTITY_ID, Entity*>			witnessEntities_[4];				// 观察者entity的ID列表， 被保存在一个详情级别队列里，详情级别总共4级， 分：近中远, 超远
+
 //	ProximityMgr							trapMgr_;							// entity陷阱管理器
+
 	float									topSpeed_;							// entity x,z轴最高移动速度
 	float									topSpeedY_;							// entity y轴最高移动速度
-	Mercury::Channel *						pChannel_;							// 该entity的通信频道
-
 	};																										
 																											
 

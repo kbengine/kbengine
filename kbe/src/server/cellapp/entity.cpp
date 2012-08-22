@@ -78,8 +78,7 @@ aoiHysteresisArea_(0.0f),
 isWitnessed_(false),
 hasWitness_(false),
 topSpeed_(-0.1f),
-topSpeedY_(-0.1f),
-pChannel_(NULL)
+topSpeedY_(-0.1f)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
 }

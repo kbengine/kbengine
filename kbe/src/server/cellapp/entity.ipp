@@ -122,18 +122,6 @@ INLINE EntityMailbox* Entity::getClientMailbox()const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::pChannel(Mercury::Channel* pchannel)
-{ 
-	pChannel_ = pchannel; 
-}
-
-//-------------------------------------------------------------------------------------
-INLINE Mercury::Channel* Entity::pChannel(void)const 
-{ 
-	return pChannel_; 
-}
-
-//-------------------------------------------------------------------------------------
 INLINE bool Entity::isReal(void)const
 { 
 	return isReal_; 
