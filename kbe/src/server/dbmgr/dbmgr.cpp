@@ -463,7 +463,7 @@ void Dbmgr::executeRawDatabaseCommand(Mercury::Channel* pChannel, KBEngine::Memo
 
 	s >> componentID >> componentType;
 	s >> callbackID;
-	s.readDatasToStringSkip(datas);
+	s.readBlob(datas);
 
 	DEBUG_MSG("Dbmgr::executeRawDatabaseCommand:%s.\n", datas.c_str());
 

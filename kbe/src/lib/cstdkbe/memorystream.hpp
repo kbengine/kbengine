@@ -365,7 +365,7 @@ class MemoryStream
             rpos_ += len;
         }
 
-		uint32 readDatasToStringSkip(std::string& datas)
+		uint32 readBlob(std::string& datas)
 		{
 			if(opsize() <= 0)
 				return 0;
@@ -431,6 +431,12 @@ class MemoryStream
         {
             if (ressize > size())
                 data_.reserve(ressize);
+        }
+
+        void appendBlob(const char *src, uint32 cnt)
+        {
+            (*this) << cnt;
+			append(src, cnt);
         }
 
         void append(const std::string& str)

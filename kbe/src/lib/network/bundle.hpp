@@ -273,6 +273,12 @@ public:
 		return *this;
 	}
 
+	Bundle &appendBlob(const uint8 *str, uint32 n)
+	{
+		(*this) << n;
+		return assign((char*)str, n);
+	}
+
 	Bundle &append(const uint8 *str, int n)
 	{
 		return assign((char*)str, n);

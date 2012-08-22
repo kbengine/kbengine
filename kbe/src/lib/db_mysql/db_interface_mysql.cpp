@@ -112,7 +112,7 @@ bool DBInterfaceMysql::execute(const char* strCommand, uint32 size, MemoryStream
 			uint32 nrows = (uint32)mysql_num_rows(pResult);
 			uint32 nfields = (uint32)mysql_num_fields(pResult);
 
-			(*resdata) << nrows << nfields;
+			(*resdata) << nfields << nrows;
 
 			MYSQL_ROW arow;
 
@@ -124,17 +124,26 @@ bool DBInterfaceMysql::execute(const char* strCommand, uint32 size, MemoryStream
 				{
 					if (arow[i] == NULL)
 					{
-						(*resdata) << "NULL";
+						std::string null = "NULL";
+						resdata->appendBlob(null.c_str(), null.size());
 					}
 					else
 					{
-						resdata->append(arow[i], lengths[i]);
+						resdata->appendBlob(arow[i], lengths[i]);
 					}
 				}
 			}
 		}
 
 		mysql_free_result(pResult);
+	}
+	else
+	{
+		uint32 nfields = 0;
+		uint64 affectedRows = mysql()->affected_rows;
+		(*resdata) << ""; // errormsg
+		(*resdata) << nfields;
+		(*resdata) << affectedRows;
 	}
 
 	return true;

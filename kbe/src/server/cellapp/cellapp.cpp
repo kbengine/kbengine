@@ -291,13 +291,100 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine
 {
 	std::string err;
 	CALLBACK_ID callbackID = 0;
-	uint32 affectedNum = 0;
+	uint32 nrows = 0;
+	uint32 nfields = 0;
+	uint64 affectedRows = 0;
+
+	PyObject* pResultSet = NULL;
+	PyObject* pAffectedRows = NULL;
+	PyObject* pErrorMsg = NULL;
 
 	s >> callbackID;
 	s >> err;
-	s >> affectedNum;
 
-	DEBUG_MSG("Cellapp::onExecuteRawDatabaseCommandCB: affectedNum=%u, err=%s.\n", affectedNum, err.c_str());
+	if(err.size() <= 0)
+	{
+		s >> nfields;
+
+		pErrorMsg = Py_None;
+		Py_INCREF(pErrorMsg);
+
+		if(nfields > 0)
+		{
+			pAffectedRows = Py_None;
+			Py_INCREF(pAffectedRows);
+
+			s >> nrows;
+
+			pResultSet = PyList_New(nrows);
+			for (uint32 i = 0; i < nrows; ++i)
+			{
+				PyObject* pRow = PyList_New(nfields);
+				for(uint32 j = 0; j < nfields; ++j)
+				{
+					std::string cell;
+					s.readBlob(cell);
+
+					PyObject* pCell = NULL;
+						
+					if(cell == "NULL")
+					{
+						Py_INCREF(Py_None);
+						pCell = Py_None;
+					}
+					else
+					{
+						pCell = PyBytes_FromStringAndSize(cell.data(), cell.length());
+					}
+
+					PyList_SET_ITEM(pRow, j, pCell);
+				}
+
+				PyList_SET_ITEM(pResultSet, i, pRow);
+			}
+		}
+		else
+		{
+			pResultSet = Py_None;
+			Py_INCREF(pResultSet);
+
+			pErrorMsg = Py_None;
+			Py_INCREF(pErrorMsg);
+
+			s >> affectedRows;
+
+			pAffectedRows = PyLong_FromUnsignedLongLong(affectedRows);
+		}
+	}
+	else
+	{
+			pResultSet = Py_None;
+			Py_INCREF(pResultSet);
+
+			pErrorMsg = PyUnicode_FromString(err.c_str());
+
+			pAffectedRows = Py_None;
+			Py_INCREF(pAffectedRows);
+	}
+
+	DEBUG_MSG("Cellapp::onExecuteRawDatabaseCommandCB: nrows=%u, nfields=%u, err=%s.\n", nrows, nfields, err.c_str());
+
+	if(callbackID > 0)
+	{
+		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
+		PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
+											const_cast<char*>("OOO"), 
+											pResultSet, pAffectedRows, pErrorMsg);
+
+		if(pyResult != NULL)
+			Py_DECREF(pyResult);
+		else
+			SCRIPT_ERROR_CHECK();
+	}
+
+	Py_XDECREF(pResultSet);
+	Py_XDECREF(pAffectedRows);
+	Py_XDECREF(pErrorMsg);
 }
 
 //-------------------------------------------------------------------------------------
