@@ -380,8 +380,28 @@ void Base::onBackupCellData(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Base::writeBackupData(MemoryStream* s)
+{
+	onBackup();
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onBackup()
+{
+	reqUpdateCellData();
+}
+
+//-------------------------------------------------------------------------------------
 void Base::writeToDB()
 {
+	PyObject* pyResult = PyObject_CallMethod(this, 
+		const_cast<char*>("onPreArchive"), const_cast<char*>(""));
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		PyErr_Clear();
+
 	hasDB(true);
 	onWriteToDB();
 }

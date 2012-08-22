@@ -40,8 +40,11 @@ public:
 	~Archiver();
 	
 	void tick();
+	void createArchiveTable();
+	void archive(Base& base);
 private:
-
+	int						archiveIndex_;
+	std::vector<ENTITY_ID> 	backupEntityIDs_;
 };
 
 

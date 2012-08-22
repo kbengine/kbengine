@@ -59,9 +59,8 @@ void BackupSender::tick()
 //-------------------------------------------------------------------------------------
 bool BackupSender::backup(Base& base, MemoryStream& s)
 {
-	base.reqUpdateCellData();
-
 	// 这里开始将需要备份的数据写入流
+	base.writeBackupData(&s);
 	return true;
 }
 

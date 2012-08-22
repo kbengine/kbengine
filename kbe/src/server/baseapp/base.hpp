@@ -124,6 +124,17 @@ public:
 		请求cell部分将entity的celldata更新一份过来
 	*/
 	void reqUpdateCellData();
+	
+	/** 
+		写备份信息到流
+	*/
+	void writeBackupData(MemoryStream* s);
+	void onBackup();
+
+	/** 
+		写存档信息到流
+	*/
+	void writeArchiveData(MemoryStream* s);
 
 	/**
 		获取这个entity的client部分的属性放到流中
