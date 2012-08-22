@@ -62,6 +62,12 @@ public:
 	~Base();
 
 	/** 
+		是否存储数据库 
+	*/
+	INLINE bool hasDB()const ;
+	INLINE void hasDB(bool has) ;
+
+	/** 
 		定义属性数据被改变了 
 	*/
 	void onDefDataChanged(const PropertyDescription* propertyDescription, 
@@ -135,6 +141,11 @@ public:
 	void onLoseCell(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 
+		备份cell数据
+	*/
+	void onBackupCellData(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 
 		客户端丢失 
 	*/
 	void onClientDeath();
@@ -142,7 +153,7 @@ public:
 	/** 
 		将要保存到数据库之前的通知 
 	*/
-	void onWriteToDB(PyObject* cellData);
+	void onWriteToDB();
 
 	/** 网络接口
 		远程呼叫本entity的方法 
@@ -168,6 +179,7 @@ protected:
 	EntityMailbox*							clientMailbox_;			// 这个entity的客户端mailbox
 	EntityMailbox*							cellMailbox_;			// 这个entity的cellapp mailbox
 	PyObject*								cellDataDict_;			// entity创建后，在cell部分未创建时，将一些cell属性数据保存在这里
+	bool									hasDB_;					// 是否是存储到数据库中的entity
 };
 
 }

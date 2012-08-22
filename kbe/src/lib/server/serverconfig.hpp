@@ -79,6 +79,11 @@ typedef struct EngineComponentInfo
 	char db_password[MAX_BUF];								// 数据库的密码
 	char db_name[MAX_BUF];									// 数据库名
 	uint16 db_numConnections;								// 数据库最大连接
+
+	float archivePeriod;									// entity存储数据库周期
+	float backupPeriod;										// entity备份周期
+	bool backUpUndefinedProperties;							// entity是否备份未定义属性
+
 }ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>

@@ -12,7 +12,7 @@
 		2: 字符流输出
 		3: 10进制输出
 	-->
-	<trace_packet>3</trace_packet>
+	<trace_packet>0</trace_packet>
 	
 	<dbmgr>
 		<dbAccountEntityScriptType>	Account						</dbAccountEntityScriptType>
@@ -46,6 +46,10 @@
 		<externalInterface>  </externalInterface>				<!-- Type: String -->
 		<externalPorts_min> 20015 </externalPorts_min>			<!-- Type: Integer -->
 		<externalPorts_max> 20019 </externalPorts_max>			<!-- Type: Integer -->
+		
+		<archivePeriod> 100 </archivePeriod> <!-- Type: Float -->
+		<backupPeriod> 10 </backupPeriod> <!-- Type: Float -->
+		<backUpUndefinedProperties> 0 </backUpUndefinedProperties> <!-- Type: Boolean -->
 	</baseapp>
 	
 	<cellappmgr>

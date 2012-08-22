@@ -172,7 +172,7 @@ public:
 	/** 
 		向baseapp发送备份数据
 	*/
-	void backupPropertys();
+	void backupCellData();
 
 	/** 
 		将要保存到数据库之前的通知 

@@ -108,35 +108,13 @@ void Entity::onDestroy(void)
 	else
 		PyErr_Clear();	
 	
+	this->backupCellData();
+
 	if(baseMailbox_ != NULL)
 	{
-		PyObject* cellData = getCellDataByFlags(ENTITY_CELL_DATA_FLAGS);
-		// 将entity位置和方向变量也设置进去
-		PyObject* pyPosition = PyTuple_New(3);
-		PyTuple_SET_ITEM(pyPosition, 0, PyFloat_FromDouble(position_.x));
-		PyTuple_SET_ITEM(pyPosition, 1, PyFloat_FromDouble(position_.y));
-		PyTuple_SET_ITEM(pyPosition, 2, PyFloat_FromDouble(position_.z));
-		
-		PyObject* pyDirection = PyTuple_New(3);
-		PyTuple_SET_ITEM(pyDirection, 0, PyFloat_FromDouble(direction_.roll));
-		PyTuple_SET_ITEM(pyDirection, 1, PyFloat_FromDouble(direction_.pitch));
-		PyTuple_SET_ITEM(pyDirection, 2, PyFloat_FromDouble(direction_.yaw));
-		
-		PyDict_SetItemString(cellData, const_cast<char*>("position"), pyPosition);
-		PyDict_SetItemString(cellData, const_cast<char*>("direction"), pyDirection);
-		
-		std::string strCellData = script::Pickler::pickle(cellData);
-		uint32 cellDataLength = strCellData.length();
-		Py_DECREF(cellData);
-	
-		// 将当前的cell部分数据打包 一起发送给base部分备份
 		Mercury::Bundle bundle;
 		bundle.newMessage(BaseappInterface::onLoseCell);
 		bundle << id_;
-		bundle << cellDataLength;
-		if(cellDataLength > 0)
-			bundle.append(strCellData.c_str(), cellDataLength);
-			
 		baseMailbox_->postMail(bundle);
 	}
 }
@@ -303,15 +281,46 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::backupPropertys()
+void Entity::backupCellData()
 {
+	if(baseMailbox_ != NULL)
+	{
+		PyObject* cellData = getCellDataByFlags(ENTITY_CELL_DATA_FLAGS);
+		// 将entity位置和方向变量也设置进去
+		PyObject* pyPosition = PyTuple_New(3);
+		PyTuple_SET_ITEM(pyPosition, 0, PyFloat_FromDouble(position_.x));
+		PyTuple_SET_ITEM(pyPosition, 1, PyFloat_FromDouble(position_.y));
+		PyTuple_SET_ITEM(pyPosition, 2, PyFloat_FromDouble(position_.z));
+		
+		PyObject* pyDirection = PyTuple_New(3);
+		PyTuple_SET_ITEM(pyDirection, 0, PyFloat_FromDouble(direction_.roll));
+		PyTuple_SET_ITEM(pyDirection, 1, PyFloat_FromDouble(direction_.pitch));
+		PyTuple_SET_ITEM(pyDirection, 2, PyFloat_FromDouble(direction_.yaw));
+		
+		PyDict_SetItemString(cellData, const_cast<char*>("position"), pyPosition);
+		PyDict_SetItemString(cellData, const_cast<char*>("direction"), pyDirection);
+		
+		std::string strCellData = script::Pickler::pickle(cellData);
+		uint32 cellDataLength = strCellData.length();
+		Py_DECREF(cellData);
+	
+		// 将当前的cell部分数据打包 一起发送给base部分备份
+		Mercury::Bundle bundle;
+		bundle.newMessage(BaseappInterface::onBackupEntityCellData);
+		bundle << id_;
+		bundle << cellDataLength;
+		if(cellDataLength > 0)
+			bundle.append(strCellData.c_str(), cellDataLength);
+			
+		baseMailbox_->postMail(bundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::writeToDB()
 {
 	onWriteToDB();
-	backupPropertys();
+	backupCellData();
 }
 
 //-------------------------------------------------------------------------------------

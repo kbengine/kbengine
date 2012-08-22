@@ -135,6 +135,22 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_baseAppInfo.externalPorts_min = 0;
 		if(_baseAppInfo.externalPorts_max < _baseAppInfo.externalPorts_min)
 			_baseAppInfo.externalPorts_max = _baseAppInfo.externalPorts_min;
+
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "archivePeriod");
+		if(node != NULL)
+			_baseAppInfo.archivePeriod = float(xml->getValFloat(node));
+		
+		node = NULL;			
+		node = xml->enterNode(rootNode, "backupPeriod");
+		if(node != NULL)
+			_baseAppInfo.backupPeriod = float(xml->getValFloat(node));
+
+		node = NULL;			
+		node = xml->enterNode(rootNode, "backUpUndefinedProperties");
+		if(node != NULL)
+			_baseAppInfo.backUpUndefinedProperties = xml->getValInt(node) > 0;
 	}
 
 	rootNode = NULL;

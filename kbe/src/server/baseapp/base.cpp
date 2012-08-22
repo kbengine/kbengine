@@ -33,7 +33,8 @@ ScriptObject(pyType, isInitialised),
 ENTITY_CONSTRUCTION(Base),
 clientMailbox_(NULL),
 cellMailbox_(NULL),
-cellDataDict_(NULL)
+cellDataDict_(NULL),
+hasDB_(false)
 {
 	ENTITY_INIT_PROPERTYS(Base);
 
@@ -69,7 +70,9 @@ bool Base::installCellDataAttr(PyObject* dictData)
 	{
 		if(cellDataDict_ != NULL)
 			Py_DECREF(cellDataDict_);
+
 		cellDataDict_ = dictData;
+		Py_INCREF(cellDataDict_);
 	}
 	else if(cellDataDict_ == NULL)
 		cellDataDict_ = PyDict_New();
@@ -78,7 +81,6 @@ bool Base::installCellDataAttr(PyObject* dictData)
 	{
 		ERROR_MSG("Base::installCellDataAttr: set property cellData is error!\n");
 		SCRIPT_ERROR_CHECK();
-		S_RELEASE(cellDataDict_);
 		return false;
 	}
 	return true;
@@ -331,11 +333,23 @@ void Base::onClientDeath()
 //-------------------------------------------------------------------------------------
 void Base::onLoseCell(Mercury::Channel* pChannel, MemoryStream& s)
 {
+	S_RELEASE(cellMailbox_);
+
+	// 通知脚本
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLoseCell"), 
+																		const_cast<char*>(""));
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		PyErr_Clear();
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onBackupCellData(Mercury::Channel* pChannel, MemoryStream& s)
+{
 	std::string strCellData;
 	uint32 cellDataLength;
 	PyObject* cellData = NULL;
-
-	S_RELEASE(cellMailbox_);
 
 	s >> cellDataLength;
 	
@@ -349,27 +363,21 @@ void Base::onLoseCell(Mercury::Channel* pChannel, MemoryStream& s)
 	}
 	
 	installCellDataAttr(cellData);
-
-	// 通知脚本
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLoseCell"), 
-																		const_cast<char*>(""));
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_Clear();
+	S_RELEASE(cellData);
 }
 
 //-------------------------------------------------------------------------------------
 void Base::writeToDB()
 {
-	onWriteToDB(cellDataDict_);
+	hasDB(true);
+	onWriteToDB();
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onWriteToDB(PyObject* cellData)
+void Base::onWriteToDB()
 {
 	PyObject* pyResult = PyObject_CallMethod(this, 
-		const_cast<char*>("onWriteToDB"), const_cast<char*>("O"), cellData);
+		const_cast<char*>("onWriteToDB"), const_cast<char*>("O"), cellDataDict_);
 
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);

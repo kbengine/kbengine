@@ -1047,7 +1047,8 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel,
 	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(ptinfos->addr);
 
 	KBE_ASSERT(base != NULL && ptinfos != NULL);
-	
+	base->hasDB(true);
+
 	if(pClientChannel != NULL)
 	{
 		// 创建entity的客户端mailbox
@@ -1157,6 +1158,26 @@ void Baseapp::onRemoteCallCellMethodFromClient(Mercury::Channel* pChannel, KBEng
 	bundle.append(s.data(), s.opsize());
 	
 	e->getCellMailbox()->postMail(bundle);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	ENTITY_ID baseID = 0;
+	s >> baseID;
+	
+	ERROR_MSG("Baseapp::onBackupEntityCellData: entityID=%d, size=%u.\n", baseID, s.opsize());
+
+	Base* base = this->findEntity(baseID);
+
+	if(base)
+	{
+		base->onBackupCellData(pChannel, s);
+	}
+	else
+	{
+		ERROR_MSG("Baseapp::onBackupEntityCellData: no support! entityID=%d\n", baseID);
+	}
 }
 
 //-------------------------------------------------------------------------------------
