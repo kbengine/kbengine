@@ -72,6 +72,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <arpa/inet.h>
 #include <tr1/unordered_map>
 #include <tr1/functional>
+#include <tr1/memory>
 #include <linux/types.h>
 #include <sys/time.h>
 #include <sys/types.h>
