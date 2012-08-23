@@ -58,12 +58,19 @@ class Avatar(KBEngine.Proxy):
 		entity丢失了客户端实体
 		"""
 		DEBUG_MSG("Avatar[%i].onClientDeath:" % self.id)
-		# 销毁cell实体
-		self.destroyCellEntity()
-		
+		# 防止正在请求创建cell的同时客户端断开了， 我们延时一秒来执行销毁cell直到销毁base
+		self.addTimer(1, 0, 1)
+
 	def onClientGetCell(self):
 		"""
 		KBEngine method.
 		客户端已经获得了cell部分实体的相关数据
 		"""
 		INFO_MSG("Avatar[%i].onClientGetCell:%s" % (self.id, self.client))
+		
+	def onTimer(self, tid, userArg):
+		DEBUG_MSG("Avatar::onTimer: %i, tid:%i, arg:%i" % (self.id, tid, userArg))
+		
+		if self.client is None:
+			# 销毁cell实体
+			self.destroyCellEntity()
