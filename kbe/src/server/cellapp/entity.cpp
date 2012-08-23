@@ -325,11 +325,20 @@ void Entity::writeToDB()
 {
 	onWriteToDB();
 	backupCellData();
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(BaseappInterface::onCellWriteToDBComplete);
+	bundle << this->getID();
+	if(this->getBaseMailbox())
+	{
+		this->getBaseMailbox()->postMail(bundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onWriteToDB()
 {
+	DEBUG_MSG("%s::onWriteToDB(): %d.\n", this->getScriptName(), this->getID());
 	PyObject* pyResult = PyObject_CallMethod(this, 
 		const_cast<char*>("onWriteToDB"), const_cast<char*>(""));
 

@@ -165,6 +165,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// cellapp备份entity的cell数据
 	BASEAPP_MESSAGE_DECLARE_STREAM(onBackupEntityCellData,				MERCURY_VARIABLE_MESSAGE)
 
+	// cellapp writeToDB完成
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCellWriteToDBComplete,				MERCURY_VARIABLE_MESSAGE)
+
 	//--------------------------------------------Base----------------------------------------------------------
 	// 远程呼叫entity方法
 	BASE_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,						MERCURY_VARIABLE_MESSAGE)

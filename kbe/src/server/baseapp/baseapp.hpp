@@ -239,6 +239,11 @@ public:
 		cellapp备份entity的cell数据
 	*/
 	void onBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+		cellapp writeToDB完成
+	*/
+	void onCellWriteToDBComplete(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	TimerHandle								loopCheckTimerHandle_;
 

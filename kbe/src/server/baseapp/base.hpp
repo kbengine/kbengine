@@ -123,7 +123,7 @@ public:
 	/**
 		请求cell部分将entity的celldata更新一份过来
 	*/
-	void reqUpdateCellData();
+	void reqBackupCellData();
 	
 	/** 
 		写备份信息到流
@@ -135,6 +135,12 @@ public:
 		写存档信息到流
 	*/
 	void writeArchiveData(MemoryStream* s);
+
+	/** 
+		将要保存到数据库之前的通知 
+	*/
+	void onWriteToDB();
+	void onCellWriteToDBComplete();
 
 	/**
 		获取这个entity的client部分的属性放到流中
@@ -166,11 +172,6 @@ public:
 	*/
 	void onClientDeath();
 
-	/** 
-		将要保存到数据库之前的通知 
-	*/
-	void onWriteToDB();
-
 	/** 网络接口
 		远程呼叫本entity的方法 
 	*/
@@ -192,10 +193,21 @@ public:
 	DECLARE_PY_MOTHOD_ARG1(createInNewSpace, PyObject_ptr);
 
 protected:
-	EntityMailbox*							clientMailbox_;			// 这个entity的客户端mailbox
-	EntityMailbox*							cellMailbox_;			// 这个entity的cellapp mailbox
-	PyObject*								cellDataDict_;			// entity创建后，在cell部分未创建时，将一些cell属性数据保存在这里
-	bool									hasDB_;					// 是否是存储到数据库中的entity
+	// 这个entity的客户端mailbox cellapp mailbox
+	EntityMailbox*							clientMailbox_;			
+	EntityMailbox*							cellMailbox_;
+
+	// entity创建后，在cell部分未创建时，将一些cell属性数据保存在这里
+	PyObject*								cellDataDict_;			
+
+	// 是否是存储到数据库中的entity
+	bool									hasDB_;					
+
+	// 是否正在获取celldata中
+	bool									isGetingCellData_;
+
+	// 是否正在存档中
+	bool									isArchiveing_;
 };
 
 }

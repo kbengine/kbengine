@@ -388,7 +388,7 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::reqUpdateEntityCellData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Cellapp::reqBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	ENTITY_ID entityID = 0;
 	s >> entityID;
@@ -396,11 +396,27 @@ void Cellapp::reqUpdateEntityCellData(Mercury::Channel* pChannel, KBEngine::Memo
 	Entity* e = this->findEntity(entityID);
 	if(!e)
 	{
-		ERROR_MSG("Cellapp::reqUpdateEntityCellData: not found entity %d.\n", entityID);
+		ERROR_MSG("Cellapp::reqBackupEntityCellData: not found entity %d.\n", entityID);
 		return;
 	}
 
 	e->backupCellData();
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::reqWriteToDBFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	ENTITY_ID entityID = 0;
+	s >> entityID;
+
+	Entity* e = this->findEntity(entityID);
+	if(!e)
+	{
+		ERROR_MSG("Cellapp::reqWriteToDBFromBaseapp: not found entity %d.\n", entityID);
+		return;
+	}
+
+	e->writeToDB();
 }
 
 //-------------------------------------------------------------------------------------

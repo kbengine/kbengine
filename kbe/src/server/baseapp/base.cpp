@@ -34,7 +34,9 @@ ENTITY_CONSTRUCTION(Base),
 clientMailbox_(NULL),
 cellMailbox_(NULL),
 cellDataDict_(NULL),
-hasDB_(false)
+hasDB_(false),
+isGetingCellData_(false),
+isArchiveing_(false)
 {
 	ENTITY_INIT_PROPERTYS(Base);
 
@@ -345,21 +347,27 @@ void Base::onLoseCell(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Base::reqUpdateCellData()
+void Base::reqBackupCellData()
 {
+	if(isGetingCellData_)
+		return;
+
 	EntityMailbox* mb = this->getCellMailbox();
 	if(mb == NULL)
 		return;
 
 	Mercury::Bundle bundle;
-	bundle.newMessage(CellappInterface::reqUpdateEntityCellData);
+	bundle.newMessage(CellappInterface::reqBackupEntityCellData);
 	bundle << this->getID();
 	mb->postMail(bundle);
+
+	isGetingCellData_ = true;
 }
 
 //-------------------------------------------------------------------------------------
 void Base::onBackupCellData(Mercury::Channel* pChannel, MemoryStream& s)
 {
+	isGetingCellData_ = false;
 	std::string strCellData;
 	uint32 cellDataLength;
 	PyObject* cellData = NULL;
@@ -388,11 +396,32 @@ void Base::writeBackupData(MemoryStream* s)
 //-------------------------------------------------------------------------------------
 void Base::onBackup()
 {
-	reqUpdateCellData();
+	reqBackupCellData();
 }
 
 //-------------------------------------------------------------------------------------
 void Base::writeToDB()
+{
+	if(isArchiveing_)
+		return;
+
+	isArchiveing_ = true;
+
+	if(this->getCellMailbox() == NULL)
+	{
+		onCellWriteToDBComplete();
+	}
+	else
+	{
+		Mercury::Bundle bundle;
+		bundle.newMessage(CellappInterface::reqWriteToDBFromBaseapp);
+		bundle << this->getID();
+		this->getCellMailbox()->postMail(bundle);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onCellWriteToDBComplete()
 {
 	PyObject* pyResult = PyObject_CallMethod(this, 
 		const_cast<char*>("onPreArchive"), const_cast<char*>(""));
@@ -403,7 +432,10 @@ void Base::writeToDB()
 		PyErr_Clear();
 
 	hasDB(true);
+
 	onWriteToDB();
+
+	isArchiveing_ = false;
 }
 
 //-------------------------------------------------------------------------------------

@@ -138,7 +138,12 @@ public:
 	/** 网络接口
 		base请求获取celldata
 	*/
-	void reqUpdateEntityCellData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void reqBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+		base请求获取WriteToDB
+	*/
+	void reqWriteToDBFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;
