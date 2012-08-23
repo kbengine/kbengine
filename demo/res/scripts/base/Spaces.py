@@ -11,7 +11,7 @@ class Spaces(GameObject):
 	def __init__(self):
 		GameObject.__init__(self)
 		self._spaces = {}
-		self.addTimer(15, 1, 1)
+		self.addTimer(3, 1, 1)
 		
 		KBEngine.globalData["SpaceMgr"] = self
 		
