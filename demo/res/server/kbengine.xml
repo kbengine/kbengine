@@ -9,6 +9,7 @@
 	</cellapp>
 	
 	<baseapp>
+		<backupPeriod> 500 </backupPeriod>
 	</baseapp>
 	
 	<cellappmgr>
