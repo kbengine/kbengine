@@ -285,7 +285,7 @@ void Entity::backupCellData()
 {
 	if(baseMailbox_ != NULL)
 	{
-		PyObject* cellData = getCellDataByFlags(ENTITY_CELL_DATA_FLAGS);
+		PyObject* cellData = addCellDataToStream(ENTITY_CELL_DATA_FLAGS);
 		// 将entity位置和方向变量也设置进去
 		PyObject* pyPosition = PyTuple_New(3);
 		PyTuple_SET_ITEM(pyPosition, 0, PyFloat_FromDouble(position_.x));

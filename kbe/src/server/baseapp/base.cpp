@@ -36,7 +36,8 @@ cellMailbox_(NULL),
 cellDataDict_(NULL),
 hasDB_(false),
 isGetingCellData_(false),
-isArchiveing_(false)
+isArchiveing_(false),
+creatingCell_(false)
 {
 	ENTITY_INIT_PROPERTYS(Base);
 
@@ -95,7 +96,7 @@ void Base::createCellData(void)
 		return;
 	
 	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
-	ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();
+	ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 	for(; iter != propertyDescrs.end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;
@@ -132,10 +133,10 @@ void Base::createCellData(void)
 }
 
 //-------------------------------------------------------------------------------------
-void Base::getCellDataByFlags(uint32 flags, MemoryStream* s)
+void Base::addCellDataToStream(uint32 flags, MemoryStream* s)
 {
 	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
-	ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();
+	ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 	for(; iter != propertyDescrs.end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;
@@ -149,12 +150,59 @@ void Base::getCellDataByFlags(uint32 flags, MemoryStream* s)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Base::createCellDataDictByFlags(uint32 flags)
+void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
+{
+	std::vector<ENTITY_PROPERTY_UID> log;
+
+	// 先将celldata中的存储属性取出
+	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
+	ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+	for(; iter != propertyDescrs.end(); iter++)
+	{
+		PropertyDescription* propertyDescription = iter->second;
+		std::vector<ENTITY_PROPERTY_UID>::const_iterator finditer = std::find(log.begin(), log.end(), propertyDescription->getUType());
+		if(finditer != log.end() && propertyDescription->isPersistent() && (flags & propertyDescription->getFlags()) > 0)
+		{
+			PyObject* pyVal = PyDict_GetItemString(cellDataDict_, propertyDescription->getName().c_str());
+			(*s) << propertyDescription->getUType();
+			log.push_back(propertyDescription->getUType());
+			propertyDescription->getDataType()->addToStream(s, pyVal);
+			DEBUG_PERSISTENT_PROPERTY("addCellPersistentsDataToStream", propertyDescription->getName().c_str());
+		}
+	}
+
+	// 再将base中存储属性取出
+	PyObject* pydict = PyObject_GetAttrString(this, "__dict__");
+		
+	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs1 = getScriptModule()->getBasePropertyDescriptions();
+	ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter1 = propertyDescrs1.begin();
+	for(; iter1 != propertyDescrs1.end(); iter1++)
+	{
+		PropertyDescription* propertyDescription = iter1->second;
+		PyObject *key = PyUnicode_FromString(propertyDescription->getName().c_str());
+			
+		std::vector<ENTITY_PROPERTY_UID>::const_iterator finditer = std::find(log.begin(), log.end(), propertyDescription->getUType());
+		if(finditer != log.end() && propertyDescription->isPersistent() && PyDict_Contains(pydict, key) > 0)
+	    {
+	    	(*s) << propertyDescription->getUType();
+			log.push_back(propertyDescription->getUType());
+	    	propertyDescription->getDataType()->addToStream(s, PyDict_GetItem(pydict, key));
+			DEBUG_PERSISTENT_PROPERTY("addBasePersistentsDataToStream", propertyDescription->getName().c_str());
+	    }
+
+		Py_DECREF(key);
+	}
+
+	Py_XDECREF(pydict);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Base::createCellDataDict(uint32 flags)
 {
 	PyObject* cellData = PyDict_New();
 
 	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
-	ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();
+	ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 	for(; iter != propertyDescrs.end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;
@@ -197,6 +245,8 @@ void Base::getClientPropertys(MemoryStream* s)
 	    	(*s) << propertyDescription->getUType();
 	    	propertyDescription->getDataType()->addToStream(s, PyDict_GetItem(pydict, key));
 	    }
+
+		Py_DECREF(key);
 	}
 
 	Py_XDECREF(pydict);
@@ -206,7 +256,11 @@ void Base::getClientPropertys(MemoryStream* s)
 bool Base::destroyCellEntity(void)
 {
 	if(cellMailbox_ == NULL) 
+	{
+		ERROR_MSG("%s::destroyCellEntity: id:%i no cell! creatingCell=%s\n", this->getScriptName(), this->getID(),
+			creatingCell_ ? "true" : "false");
 		return false;
+	}
 	
 	Mercury::Bundle bundle;
 	bundle.newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
@@ -308,6 +362,8 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Base::onGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID)
 {
+	creatingCell_ = false;
+
 	// 删除cellData属性
 	destroyCellData();
 	
@@ -436,6 +492,9 @@ void Base::onCellWriteToDBComplete()
 	onWriteToDB();
 
 	isArchiveing_ = false;
+
+	MemoryStream s;
+	addPersistentsDataToStream(ED_FLAG_ALL, &s);
 }
 
 //-------------------------------------------------------------------------------------
@@ -468,6 +527,7 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 		S_Return;
 	}
 	
+	creatingCell_ = true;
 	Baseapp::getSingleton().createCellEntity(cellMailbox, this);
 	S_Return;
 }

@@ -62,9 +62,16 @@ namespace KBEngine{
 															op, ccattr_DEBUG_OP_ATTRIBUTE);					\
 			free(ccattr_DEBUG_OP_ATTRIBUTE);																\
 
+
+	#define DEBUG_PERSISTENT_PROPERTY(op, ccattr)															\
+			DEBUG_MSG("%s::debug_op_Persistent:op=%s, %s.\n", getScriptName(),								\
+															op, ccattr);									\
+
+
 #else
 	#define DEBUG_CREATE_ENTITY_NAMESPACE			
 	#define DEBUG_OP_ATTRIBUTE(op, ccattr)NULL;
+	#define DEBUG_PERSISTENT_PROPERTY(op, ccattr)NULL;
 #endif
 
 
@@ -121,16 +128,18 @@ public:																										\
 		}																									\
 																											\
 		SCRIPT_ERROR_CHECK();																				\
+		Py_XDECREF(cellDataDict);																			\
+		Py_XDECREF(pydict);																					\
 	}																										\
 																											\
-	PyObject* getCellDataByFlags(uint32 flags)																\
+	PyObject* addCellDataToStream(uint32 flags)																\
 	{																										\
 		PyObject* cellData = PyDict_New();																	\
 		PyObject* pydict = PyObject_GetAttrString(this, "__dict__");										\
 																											\
 		ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =												\
 						scriptModule_->getCellPropertyDescriptions();										\
-		ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();						\
+		ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();				\
 		for(; iter != propertyDescrs.end(); iter++)															\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\
@@ -152,7 +161,7 @@ public:																										\
 																											\
 		ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =												\
 				scriptModule_->getCellPropertyDescriptionsByDetailLevel(detailLevel);						\
-		ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();						\
+		ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();				\
 		for(; iter != propertyDescrs.end(); iter++)															\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\

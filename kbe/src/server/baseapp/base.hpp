@@ -114,9 +114,10 @@ public:
 
 	void destroyCellData(void);
 
-	void getCellDataByFlags(uint32 flags, MemoryStream* s);
+	void addCellDataToStream(uint32 flags, MemoryStream* s);
+	void addPersistentsDataToStream(uint32 flags, MemoryStream* s);
 
-	PyObject* createCellDataDictByFlags(uint32 flags);
+	PyObject* createCellDataDict(uint32 flags);
 
 	INLINE PyObject* getCellData(void)const;
 	
@@ -208,6 +209,9 @@ protected:
 
 	// 是否正在存档中
 	bool									isArchiveing_;
+
+	// 是否正在创建cell中
+	bool									creatingCell_;
 };
 
 }

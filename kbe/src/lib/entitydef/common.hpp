@@ -55,15 +55,20 @@ namespace KBEngine{
 /** entity的数据传输特性标记 */
 enum EntityDataFlags
 {
-	ED_FLAG_CELL_PUBLIC												= 0x00000000, // 相关所有cell广播
-	ED_FLAG_CELL_PRIVATE											= 0x00000001, // 当前cell
-	ED_FLAG_ALL_CLIENTS												= 0x00000002, // cell广播与所有客户端
-	ED_FLAG_CELL_PUBLIC_AND_OWN										= 0x00000004, // cell广播与自己的客户端
-	ED_FLAG_OWN_CLIENT												= 0x00000008, // 当前cell和客户端
-	ED_FLAG_BASE_AND_CLIENT											= 0x00000010, // base和客户端
-	ED_FLAG_BASE													= 0x00000020, // 当前base
-	ED_FLAG_OTHER_CLIENTS											= 0x00000040, // cell广播和其他客户端
+	ED_FLAG_UNKOWN													= 0x00000000, // 未定义
+	ED_FLAG_CELL_PUBLIC												= 0x00000001, // 相关所有cell广播
+	ED_FLAG_CELL_PRIVATE											= 0x00000002, // 当前cell
+	ED_FLAG_ALL_CLIENTS												= 0x00000004, // cell广播与所有客户端
+	ED_FLAG_CELL_PUBLIC_AND_OWN										= 0x00000008, // cell广播与自己的客户端
+	ED_FLAG_OWN_CLIENT												= 0x00000010, // 当前cell和客户端
+	ED_FLAG_BASE_AND_CLIENT											= 0x00000020, // base和客户端
+	ED_FLAG_BASE													= 0x00000040, // 当前base
+	ED_FLAG_OTHER_CLIENTS											= 0x00000060, // cell广播和其他客户端
 };
+
+#define ED_FLAG_ALL  ED_FLAG_CELL_PUBLIC | ED_FLAG_CELL_PRIVATE | ED_FLAG_ALL_CLIENTS \
+	| ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OWN_CLIENT |	\
+	ED_FLAG_BASE_AND_CLIENT | ED_FLAG_BASE | ED_FLAG_OTHER_CLIENTS
 
 /** 相当于对entity数据传输类别的一个总体的定义 */
 enum EntityDataFlagRelation
