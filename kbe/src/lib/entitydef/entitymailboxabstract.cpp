@@ -103,6 +103,10 @@ bool EntityMailboxAbstract::postMail(Mercury::Bundle& bundle)
 		bundle.send(*Components::getSingleton().pNetworkInterface(), pChannel);
 		return true;
 	}
+	else
+	{
+		ERROR_MSG("EntityMailboxAbstract::postMail: invalid channel(%s)!\n", addr_.c_str());
+	}
 
 	return false;
 }
