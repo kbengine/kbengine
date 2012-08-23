@@ -160,8 +160,7 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 	for(; iter != propertyDescrs.end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;
-		std::vector<ENTITY_PROPERTY_UID>::const_iterator finditer = std::find(log.begin(), log.end(), propertyDescription->getUType());
-		if(finditer != log.end() && propertyDescription->isPersistent() && (flags & propertyDescription->getFlags()) > 0)
+		if(propertyDescription->isPersistent() && (flags & propertyDescription->getFlags()) > 0)
 		{
 			PyObject* pyVal = PyDict_GetItemString(cellDataDict_, propertyDescription->getName().c_str());
 			(*s) << propertyDescription->getUType();
@@ -182,7 +181,7 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 		PyObject *key = PyUnicode_FromString(propertyDescription->getName().c_str());
 			
 		std::vector<ENTITY_PROPERTY_UID>::const_iterator finditer = std::find(log.begin(), log.end(), propertyDescription->getUType());
-		if(finditer != log.end() && propertyDescription->isPersistent() && PyDict_Contains(pydict, key) > 0)
+		if(finditer == log.end() && propertyDescription->isPersistent() && PyDict_Contains(pydict, key) > 0)
 	    {
 	    	(*s) << propertyDescription->getUType();
 			log.push_back(propertyDescription->getUType());

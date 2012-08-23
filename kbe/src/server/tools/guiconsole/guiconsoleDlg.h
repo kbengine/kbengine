@@ -58,6 +58,15 @@ protected:
 
 	void autoWndSize();
 	void updateTree();
+public:
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	CTabCtrl m_tab;
+	afx_msg void OnSizing(UINT fwSide, LPRECT pRect);
+	afx_msg void OnSize(UINT nType, int cx, int cy);
+	CTreeCtrl m_tree;
+	afx_msg void OnNMRClickTree1(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnMenu_connectTo();
+	afx_msg void OnMenu_Update();
 private:
 	COMPONENT_TYPE _componentType, _debugComponentType;
 	COMPONENT_ID _componentID;
@@ -69,13 +78,4 @@ private:
 	std::deque<CString> m_historyCommand;
 	int8 m_historyCommandIndex;
 	bool m_isUsingHistroy;
-public:
-	afx_msg void OnTimer(UINT_PTR nIDEvent);
-	CTabCtrl m_tab;
-	afx_msg void OnSizing(UINT fwSide, LPRECT pRect);
-	afx_msg void OnSize(UINT nType, int cx, int cy);
-	CTreeCtrl m_tree;
-	afx_msg void OnNMRClickTree1(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnMenu_connectTo();
-	afx_msg void OnMenu_Update();
 };

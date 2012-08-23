@@ -116,7 +116,11 @@ CguiconsoleDlg::CguiconsoleDlg(CWnd* pParent /*=NULL*/)
 	_componentID(genUUID64()),
 	_dispatcher(),
 	_networkInterface(&_dispatcher),
+	_currAddr(),
+	m_debugWnd(NULL),
 	m_isInit(false),
+	m_historyCommand(),
+	m_historyCommandIndex(0),
 	m_isUsingHistroy(false)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -176,6 +180,7 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	
 	// TODO: Add extra initialization here
 	DebugHelper::initHelper(_componentType);
+	_dispatcher.breakProcessing(false);
 
 	::SetTimer(m_hWnd, 1, 100, NULL);
 	::SetTimer(m_hWnd, 2, 100, NULL);
