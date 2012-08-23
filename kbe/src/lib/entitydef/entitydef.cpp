@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 std::vector<ScriptModule *>	EntityDef::__scriptModules;
-std::map<std::string, uint16> EntityDef::__scriptTypeMappingUType;
+std::map<std::string, ENTITY_SCRIPT_UID> EntityDef::__scriptTypeMappingUType;
 COMPONENT_TYPE EntityDef::__loadComponentType;
 
 // 方法产生时自动产生utype用的
@@ -35,12 +35,13 @@ ENTITY_METHOD_UID g_methodUtypeAuto = 1;
 std::vector<ENTITY_METHOD_UID> g_methodCusUtypes;
 
 //-------------------------------------------------------------------------------------
-ScriptModule::ScriptModule():
+ScriptModule::ScriptModule(std::string name):
 scriptType_(NULL),
 uType_(0),
 hasCell_(false),
 hasBase_(false),
-hasClient_(false)
+hasClient_(false),
+name_(name)
 {
 	detailLevel_.level[DETAIL_LEVEL_NEAR] = new DetailLevel::Level();
 	detailLevel_.level[DETAIL_LEVEL_MEDIUM] = new DetailLevel::Level();
@@ -90,7 +91,7 @@ ScriptModule::~ScriptModule()
 }
 
 //-------------------------------------------------------------------------------------
-uint16 ScriptModule::getUType(void)
+ENTITY_SCRIPT_UID ScriptModule::getUType(void)
 {
 	return uType_;
 }
@@ -200,7 +201,7 @@ PropertyDescription* ScriptModule::findClientPropertyDescription(const char* att
 }
 
 //-------------------------------------------------------------------------------------
-PropertyDescription* ScriptModule::findCellPropertyDescription(const uint32& utype)
+PropertyDescription* ScriptModule::findCellPropertyDescription(ENTITY_PROPERTY_UID utype)
 {
 	PROPERTYDESCRIPTION_UIDMAP::iterator iter = cellPropertyDescr_uidmap_.find(utype);
 
@@ -214,7 +215,7 @@ PropertyDescription* ScriptModule::findCellPropertyDescription(const uint32& uty
 }
 
 //-------------------------------------------------------------------------------------
-PropertyDescription* ScriptModule::findBasePropertyDescription(const uint32& utype)
+PropertyDescription* ScriptModule::findBasePropertyDescription(ENTITY_PROPERTY_UID utype)
 {
 	PROPERTYDESCRIPTION_UIDMAP::iterator iter = basePropertyDescr_uidmap_.find(utype);
 
@@ -228,7 +229,7 @@ PropertyDescription* ScriptModule::findBasePropertyDescription(const uint32& uty
 }
 
 //-------------------------------------------------------------------------------------
-PropertyDescription* ScriptModule::findClientPropertyDescription(const uint32& utype)
+PropertyDescription* ScriptModule::findClientPropertyDescription(ENTITY_PROPERTY_UID utype)
 {
 	PROPERTYDESCRIPTION_UIDMAP::iterator iter = clientPropertyDescr_uidmap_.find(utype);
 
@@ -261,7 +262,7 @@ PropertyDescription* ScriptModule::findPropertyDescription(const char* attrName,
 }
 
 //-------------------------------------------------------------------------------------
-PropertyDescription* ScriptModule::findPropertyDescription(uint32 utype, COMPONENT_TYPE componentType)
+PropertyDescription* ScriptModule::findPropertyDescription(ENTITY_PROPERTY_UID utype, COMPONENT_TYPE componentType)
 {
 	switch(componentType)
 	{
@@ -299,7 +300,7 @@ MethodDescription* ScriptModule::findMethodDescription(const char* attrName, COM
 }
 
 //-------------------------------------------------------------------------------------
-MethodDescription* ScriptModule::findMethodDescription(uint32 utype, COMPONENT_TYPE componentType)
+MethodDescription* ScriptModule::findMethodDescription(ENTITY_METHOD_UID utype, COMPONENT_TYPE componentType)
 {
 	switch(componentType)
 	{
@@ -330,7 +331,7 @@ MethodDescription* ScriptModule::findCellMethodDescription(const char* attrName)
 }
 
 //-------------------------------------------------------------------------------------
-MethodDescription* ScriptModule::findCellMethodDescription(uint32 utype)
+MethodDescription* ScriptModule::findCellMethodDescription(ENTITY_METHOD_UID utype)
 {
 	METHODDESCRIPTION_UIDMAP::iterator iter = methodCellDescr_uidmap_.find(utype);
 	if(iter == methodCellDescr_uidmap_.end())
@@ -369,7 +370,7 @@ MethodDescription* ScriptModule::findBaseMethodDescription(const char* attrName)
 }
 
 //-------------------------------------------------------------------------------------
-MethodDescription* ScriptModule::findBaseMethodDescription(uint32 utype)
+MethodDescription* ScriptModule::findBaseMethodDescription(ENTITY_METHOD_UID utype)
 {
 	METHODDESCRIPTION_UIDMAP::iterator iter = methodBaseDescr_uidmap_.find(utype);
 	if(iter == methodBaseDescr_uidmap_.end())
@@ -408,7 +409,7 @@ MethodDescription* ScriptModule::findClientMethodDescription(const char* attrNam
 }
 
 //-------------------------------------------------------------------------------------
-MethodDescription* ScriptModule::findClientMethodDescription(uint32 utype)
+MethodDescription* ScriptModule::findClientMethodDescription(ENTITY_METHOD_UID utype)
 {
 	METHODDESCRIPTION_UIDMAP::iterator iter = methodClientDescr_uidmap_.find(utype);
 	if(iter == methodClientDescr_uidmap_.end())
@@ -490,7 +491,7 @@ bool EntityDef::initialize(const std::string entitiesPath, std::vector<PyTypeObj
 
 	std::string entitiesFile = entitiesPath + "entities.xml";
 	std::string defFilePath = entitiesPath + "entity_defs/";
-	uint16 utype = 0;
+	ENTITY_SCRIPT_UID utype = 0;
 	
 	// 打开这个entities.xml文件
 	SmartPointer<XmlPlus> xml(new XmlPlus());
@@ -507,8 +508,8 @@ bool EntityDef::initialize(const std::string entitiesPath, std::vector<PyTypeObj
 	{
 		std::string moduleName = xml.get()->getKey(node);
 		__scriptTypeMappingUType[moduleName] = utype;
-		ScriptModule* scriptModule = new ScriptModule();
-		scriptModule->setUType(utype++);
+		ScriptModule* scriptModule = new ScriptModule(moduleName);
+		scriptModule->setUType(++utype);
 		EntityDef::__scriptModules.push_back(scriptModule);
 
 		std::string deffile = defFilePath + moduleName + ".def";
@@ -532,6 +533,10 @@ bool EntityDef::initialize(const std::string entitiesPath, std::vector<PyTypeObj
 		}
 	}
 	XML_FOR_END(node);
+
+	if(loadComponentType == DBMGR_TYPE)
+		return true;
+
 	return loadAllScriptModule(entitiesPath, scriptBaseTypes);
 }
 
@@ -682,7 +687,7 @@ bool EntityDef::loadParentClass(std::string& defFilePath, std::string& moduleNam
 bool EntityDef::loadAllDefDescription(std::string& moduleName, XmlPlus* defxml, TiXmlNode* defNode, ScriptModule* scriptModule)
 {
 	// 加载属性描述
-	if(!loadDefPropertys(defxml, defxml->enterNode(defNode, "Properties"), scriptModule))
+	if(!loadDefPropertys(moduleName, defxml, defxml->enterNode(defNode, "Properties"), scriptModule))
 		return false;
 	
 	if(defxml->hasNode(defNode, "CellMethods"))
@@ -695,19 +700,19 @@ bool EntityDef::loadAllDefDescription(std::string& moduleName, XmlPlus* defxml, 
 		scriptModule->setClient(true);
 
 	// 加载cell方法描述
-	if(!loadDefCellMethods(defxml, defxml->enterNode(defNode, "CellMethods"), scriptModule)){
+	if(!loadDefCellMethods(moduleName, defxml, defxml->enterNode(defNode, "CellMethods"), scriptModule)){
 		ERROR_MSG("EntityDef::loadAllDefDescription:loadDefCellMethods[%s] is failed!\n", moduleName.c_str());
 		return false;
 	}
 
 	// 加载base方法描述
-	if(!loadDefBaseMethods(defxml, defxml->enterNode(defNode, "BaseMethods"), scriptModule)){
+	if(!loadDefBaseMethods(moduleName, defxml, defxml->enterNode(defNode, "BaseMethods"), scriptModule)){
 		ERROR_MSG("EntityDef::loadAllDefDescription:loadDefBaseMethods[%s] is failed!\n", moduleName.c_str());
 		return false;
 	}
 
 	// 加载client方法描述
-	if(!loadDefClientMethods(defxml, defxml->enterNode(defNode, "ClientMethods"), scriptModule)){
+	if(!loadDefClientMethods(moduleName, defxml, defxml->enterNode(defNode, "ClientMethods"), scriptModule)){
 		ERROR_MSG("EntityDef::loadAllDefDescription:loadDefClientMethods[%s] is failed!\n", moduleName.c_str());
 		return false;
 	}
@@ -715,7 +720,7 @@ bool EntityDef::loadAllDefDescription(std::string& moduleName, XmlPlus* defxml, 
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadDefPropertys(XmlPlus* xml, TiXmlNode* defPropertyNode, ScriptModule* scriptModule)
+bool EntityDef::loadDefPropertys(std::string& moduleName, XmlPlus* xml, TiXmlNode* defPropertyNode, ScriptModule* scriptModule)
 {
 	if(defPropertyNode)
 	{
@@ -850,13 +855,20 @@ bool EntityDef::loadDefPropertys(XmlPlus* xml, TiXmlNode* defPropertyNode, Scrip
 			PropertyDescription* propertyDescription = PropertyDescription::createDescription(futype, strType, name, flags, isPersistent, 
 															dataType, isIdentifier, databaseLength, defaultStr, detailLevel);
 			
+			bool ret = true;
 			// 添加到模块中
 			if(hasCellFlags > 0)
-				scriptModule->addPropertyDescription(name.c_str(), propertyDescription, CELLAPP_TYPE);
+				ret = scriptModule->addPropertyDescription(name.c_str(), propertyDescription, CELLAPP_TYPE);
 			if(hasBaseFlags > 0)
-				scriptModule->addPropertyDescription(name.c_str(), propertyDescription, BASEAPP_TYPE);
+				ret = scriptModule->addPropertyDescription(name.c_str(), propertyDescription, BASEAPP_TYPE);
 			if(hasClientFlags > 0)
-				scriptModule->addPropertyDescription(name.c_str(), propertyDescription, CLIENT_TYPE);
+				ret = scriptModule->addPropertyDescription(name.c_str(), propertyDescription, CLIENT_TYPE);
+			
+			if(!ret)
+			{
+				ERROR_MSG("EntityDef::addPropertyDescription(%s): %s.\n", 
+					moduleName.c_str(), xml->getTxdoc()->Value());
+			}
 		}
 		XML_FOR_END(defPropertyNode);
 	}
@@ -864,7 +876,7 @@ bool EntityDef::loadDefPropertys(XmlPlus* xml, TiXmlNode* defPropertyNode, Scrip
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadDefCellMethods(XmlPlus* xml, TiXmlNode* defMethodNode, ScriptModule* scriptModule)
+bool EntityDef::loadDefCellMethods(std::string& moduleName, XmlPlus* xml, TiXmlNode* defMethodNode, ScriptModule* scriptModule)
 {
 	if(defMethodNode)
 	{
@@ -941,7 +953,7 @@ bool EntityDef::loadDefCellMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scrip
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadDefBaseMethods(XmlPlus* xml, TiXmlNode* defMethodNode, ScriptModule* scriptModule)
+bool EntityDef::loadDefBaseMethods(std::string& moduleName, XmlPlus* xml, TiXmlNode* defMethodNode, ScriptModule* scriptModule)
 {
 	if(defMethodNode)
 	{
@@ -1016,7 +1028,7 @@ bool EntityDef::loadDefBaseMethods(XmlPlus* xml, TiXmlNode* defMethodNode, Scrip
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadDefClientMethods(XmlPlus* xml, TiXmlNode* defMethodNode, ScriptModule* scriptModule)
+bool EntityDef::loadDefClientMethods(std::string& moduleName, XmlPlus* xml, TiXmlNode* defMethodNode, ScriptModule* scriptModule)
 {
 	if(defMethodNode)
 	{
@@ -1229,7 +1241,7 @@ bool EntityDef::loadAllScriptModule(std::string entitiesPath, std::vector<PyType
 			return false;
 		}
 		
-		DEBUG_MSG("loaded script:%s.\n", moduleName.c_str());
+		DEBUG_MSG("loaded script:%s(%u).\n", moduleName.c_str(), scriptModule->getUType());
 		scriptModule->setScriptType((PyTypeObject *)pyClass);
 		S_RELEASE(pyModule);
 	}
@@ -1239,7 +1251,7 @@ bool EntityDef::loadAllScriptModule(std::string entitiesPath, std::vector<PyType
 }
 
 //-------------------------------------------------------------------------------------
-ScriptModule* EntityDef::findScriptModule(uint16 utype)
+ScriptModule* EntityDef::findScriptModule(ENTITY_SCRIPT_UID utype)
 {
 	if (utype >= __scriptModules.size())
 	{
@@ -1253,7 +1265,7 @@ ScriptModule* EntityDef::findScriptModule(uint16 utype)
 //-------------------------------------------------------------------------------------
 ScriptModule* EntityDef::findScriptModule(const char* scriptName)
 {
-	std::map<std::string, uint16>::iterator iter = __scriptTypeMappingUType.find(scriptName);
+	std::map<std::string, ENTITY_SCRIPT_UID>::iterator iter = __scriptTypeMappingUType.find(scriptName);
 	if(iter == __scriptTypeMappingUType.end())
 	{
 		ERROR_MSG("EntityDef::findScriptModule: [%s] not found!\n", scriptName);

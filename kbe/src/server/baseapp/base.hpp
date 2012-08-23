@@ -141,7 +141,7 @@ public:
 		将要保存到数据库之前的通知 
 	*/
 	void onWriteToDB();
-	void onCellWriteToDBComplete();
+	void onCellWriteToDBCompleted();
 
 	/**
 		获取这个entity的client部分的属性放到流中

@@ -64,14 +64,14 @@ class ScriptModule
 public:
 	typedef std::map<std::string, PropertyDescription*> PROPERTYDESCRIPTION_MAP;
 	typedef std::map<std::string, MethodDescription*> METHODDESCRIPTION_MAP;
-	typedef std::map<uint32, PropertyDescription*> PROPERTYDESCRIPTION_UIDMAP;
-	typedef std::map<uint32, MethodDescription*> METHODDESCRIPTION_UIDMAP;
+	typedef std::map<ENTITY_PROPERTY_UID, PropertyDescription*> PROPERTYDESCRIPTION_UIDMAP;
+	typedef std::map<ENTITY_METHOD_UID, MethodDescription*> METHODDESCRIPTION_UIDMAP;
 public:	
-	ScriptModule();
+	ScriptModule(std::string name);
 	~ScriptModule();	
 
-	uint16 getUType(void);
-	void setUType(uint16 utype){ uType_ = utype; }
+	ENTITY_SCRIPT_UID getUType(void);
+	void setUType(ENTITY_SCRIPT_UID utype){ uType_ = utype; }
 	PyTypeObject* getScriptType(void);
 	void setScriptType(PyTypeObject* scriptType){ scriptType_ = scriptType; }
 
@@ -91,12 +91,12 @@ public:
 	PropertyDescription* findCellPropertyDescription(const char* attrName);
 	PropertyDescription* findBasePropertyDescription(const char* attrName);
 	PropertyDescription* findClientPropertyDescription(const char* attrName);
-	PropertyDescription* findCellPropertyDescription(const uint32& utype);
-	PropertyDescription* findBasePropertyDescription(const uint32& utype);
-	PropertyDescription* findClientPropertyDescription(const uint32& utype);
+	PropertyDescription* findCellPropertyDescription(ENTITY_PROPERTY_UID utype);
+	PropertyDescription* findBasePropertyDescription(ENTITY_PROPERTY_UID utype);
+	PropertyDescription* findClientPropertyDescription(ENTITY_PROPERTY_UID utype);
 
 	PropertyDescription* findPropertyDescription(const char* attrName, COMPONENT_TYPE componentType);
-	PropertyDescription* findPropertyDescription(uint32 utype, COMPONENT_TYPE componentType);
+	PropertyDescription* findPropertyDescription(ENTITY_PROPERTY_UID utype, COMPONENT_TYPE componentType);
 
 	PROPERTYDESCRIPTION_MAP& getCellPropertyDescriptions(){ return cellPropertyDescr_; }
 	PROPERTYDESCRIPTION_MAP& getCellPropertyDescriptionsByDetailLevel(const int8& detailLevel){ return cellDetailLevelPropertyDescrs_[detailLevel]; }
@@ -111,26 +111,28 @@ public:
 
 	
 	MethodDescription* findCellMethodDescription(const char* attrName);
-	MethodDescription* findCellMethodDescription(uint32 utype);
+	MethodDescription* findCellMethodDescription(ENTITY_METHOD_UID utype);
 	bool addCellMethodDescription(const char* attrName, MethodDescription* methodDescription);
 	METHODDESCRIPTION_MAP& getCellMethodDescriptions(void){ return methodCellDescr_; }
 	
 	MethodDescription* findBaseMethodDescription(const char* attrName);
-	MethodDescription* findBaseMethodDescription(uint32 utype);
+	MethodDescription* findBaseMethodDescription(ENTITY_METHOD_UID utype);
 	bool addBaseMethodDescription(const char* attrName, MethodDescription* methodDescription);
 	METHODDESCRIPTION_MAP& getBaseMethodDescriptions(void){ return methodBaseDescr_; }
 	
 	MethodDescription* findClientMethodDescription(const char* attrName);
-	MethodDescription* findClientMethodDescription(uint32 utype);
+	MethodDescription* findClientMethodDescription(ENTITY_METHOD_UID utype);
 	bool addClientMethodDescription(const char* attrName, MethodDescription* methodDescription);
 	METHODDESCRIPTION_MAP& getClientMethodDescriptions(void){ return methodClientDescr_; }		
 
 	MethodDescription* findMethodDescription(const char* attrName, COMPONENT_TYPE componentType);
-	MethodDescription* findMethodDescription(uint32 utype, COMPONENT_TYPE componentType);
+	MethodDescription* findMethodDescription(ENTITY_METHOD_UID utype, COMPONENT_TYPE componentType);
+
+	const char* getName(){ return name_.c_str(); }
 
 protected:
 	PyTypeObject*						scriptType_;							// 脚本类别
-	uint16								uType_;									// 数字类别  主要用于方便查找和网络间传输识别这个脚本模块
+	ENTITY_SCRIPT_UID					uType_;									// 数字类别  主要用于方便查找和网络间传输识别这个脚本模块
 	
 	PROPERTYDESCRIPTION_MAP				cellPropertyDescr_;						// 这个脚本cell部分所拥有的所有属性描述
 	PROPERTYDESCRIPTION_MAP				cellDetailLevelPropertyDescrs_[3];		// cell近中远级别属性描述
@@ -154,13 +156,15 @@ protected:
 	bool								hasClient_;								// 是否有client部分
 	
 	DetailLevel							detailLevel_;							// entity的详情级别数据
+
+	std::string							name_;
 };
 
 class EntityDef
 {
 private:
 	static std::vector<ScriptModule *> __scriptModules;							// 所有的扩展脚本模块都存储在这里
-	static std::map<std::string, uint16> __scriptTypeMappingUType;				// 脚本类别映射utype
+	static std::map<std::string, ENTITY_SCRIPT_UID> __scriptTypeMappingUType;	// 脚本类别映射utype
 	static COMPONENT_TYPE __loadComponentType;									// 所需关系的组件类别的相关数据							
 public:
 	EntityDef();
@@ -171,10 +175,10 @@ public:
 
 	static bool loadAllScriptModule(std::string entitiesPath, std::vector<PyTypeObject*>& scriptBaseTypes);
 	static bool loadAllDefDescription(std::string& moduleName, XmlPlus* defxml, TiXmlNode* defNode, ScriptModule* scriptModule);
-	static bool loadDefPropertys(XmlPlus* xml, TiXmlNode* defPropertyNode, ScriptModule* scriptModule);
-	static bool loadDefCellMethods(XmlPlus* xml, TiXmlNode* defMethodNode, ScriptModule* scriptModule);
-	static bool loadDefBaseMethods(XmlPlus* xml, TiXmlNode* defMethodNode, ScriptModule* scriptModule);
-	static bool loadDefClientMethods(XmlPlus* xml, TiXmlNode* defMethodNode, ScriptModule* scriptModule);
+	static bool loadDefPropertys(std::string& moduleName, XmlPlus* xml, TiXmlNode* defPropertyNode, ScriptModule* scriptModule);
+	static bool loadDefCellMethods(std::string& moduleName, XmlPlus* xml, TiXmlNode* defMethodNode, ScriptModule* scriptModule);
+	static bool loadDefBaseMethods(std::string& moduleName, XmlPlus* xml, TiXmlNode* defMethodNode, ScriptModule* scriptModule);
+	static bool loadDefClientMethods(std::string& moduleName, XmlPlus* xml, TiXmlNode* defMethodNode, ScriptModule* scriptModule);
 	static bool loadInterfaces(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, TiXmlNode* defNode, ScriptModule* scriptModule);
 	static bool loadParentClass(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, TiXmlNode* defNode, ScriptModule* scriptModule);
 	static bool loadDefInfo(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, TiXmlNode* defNode, ScriptModule* scriptModule);
@@ -186,7 +190,7 @@ public:
 	static bool checkDefMethod(ScriptModule* scriptModule, PyObject* moduleObj, std::string& moduleName);
 	
 	/** 通过标记来寻找到对应的脚本模块对象 */
-	static ScriptModule* findScriptModule(uint16 utype);
+	static ScriptModule* findScriptModule(ENTITY_SCRIPT_UID utype);
 	static ScriptModule* findScriptModule(const char* scriptName);
 
 	static bool installScript(PyObject* mod);

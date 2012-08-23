@@ -1201,22 +1201,22 @@ void Baseapp::onBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::Memor
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onCellWriteToDBComplete(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Baseapp::onCellWriteToDBCompleted(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	ENTITY_ID baseID = 0;
 	s >> baseID;
 	
-	ERROR_MSG("Baseapp::onCellWriteToDBComplete: entityID=%d, size=%u.\n", baseID, s.opsize());
+	ERROR_MSG("Baseapp::onCellWriteToDBCompleted: entityID=%d, size=%u.\n", baseID, s.opsize());
 
 	Base* base = this->findEntity(baseID);
 
 	if(base)
 	{
-		base->onCellWriteToDBComplete();
+		base->onCellWriteToDBCompleted();
 	}
 	else
 	{
-		ERROR_MSG("Baseapp::onCellWriteToDBComplete: not found entityID=%d\n", baseID);
+		ERROR_MSG("Baseapp::onCellWriteToDBCompleted: not found entityID=%d\n", baseID);
 	}
 }
 

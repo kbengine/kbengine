@@ -185,6 +185,8 @@ public:
 
 		return false;	
 	}
+	
+	TiXmlDocument* getTxdoc()const { return txdoc_; }
 
 	std::string getKey(const TiXmlNode* node){return kbe_trim(node->Value());}
 	std::string getValStr(const TiXmlNode* node){return kbe_trim(node->ToText()->Value());}

@@ -243,7 +243,7 @@ public:
 	/** 网络接口
 		cellapp writeToDB完成
 	*/
-	void onCellWriteToDBComplete(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onCellWriteToDBCompleted(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	TimerHandle								loopCheckTimerHandle_;
 

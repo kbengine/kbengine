@@ -157,6 +157,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\common.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\datatype.cpp"
 				>
 			</File>
@@ -196,10 +200,6 @@
 			>
 			<File
 				RelativePath=".\array.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\common.cpp"
 				>
 			</File>
 			<File

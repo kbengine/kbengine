@@ -114,6 +114,17 @@ bool Dbmgr::initializeBegin()
 //-------------------------------------------------------------------------------------
 bool Dbmgr::inInitialize()
 {
+	// 初始化数据类别
+	// demo/res/scripts/entity_defs/alias.xml
+	if(!DataTypes::initialize("scripts/entity_defs/alias.xml"))
+		return false;
+
+	// 初始化所有扩展模块
+	// demo/res/scripts/
+	std::vector<PyTypeObject*>	scriptBaseTypes;
+	if(!EntityDef::initialize(Resmgr::respaths()[1] + "res/scripts/", scriptBaseTypes, componentType_)){
+		return false;
+	}
 	return true;
 }
 
@@ -492,6 +503,17 @@ void Dbmgr::executeRawDatabaseCommand(Mercury::Channel* pChannel, KBEngine::Memo
 		bundle.append(ret);
 
 	bundle.send(this->getNetworkInterface(), pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::writeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	ENTITY_ID entityID = 0;
+	ENTITY_SCRIPT_UID sid = 0;
+	s >> entityID >> sid;
+
+	ScriptModule* pModule = EntityDef::findScriptModule(sid);
+	DEBUG_MSG("Dbmgr::writeEntity: %s(%d), size=%u.\n", pModule->getName(), entityID, s.opsize());
 }
 
 //-------------------------------------------------------------------------------------

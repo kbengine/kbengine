@@ -145,6 +145,7 @@ extern ENTITYFLAGMAP g_entityFlagMapping;										// entity 的flag字符串映射表
 // 属性和方法的UID类别
 typedef uint16 ENTITY_PROPERTY_UID;
 typedef uint16 ENTITY_METHOD_UID;
+typedef uint16 ENTITY_SCRIPT_UID;
 
 // 对entity的一些系统级别的可变属性进行编号以便网络传输时进行辨别
 enum ENTITY_BASE_PROPERTY_UTYPE

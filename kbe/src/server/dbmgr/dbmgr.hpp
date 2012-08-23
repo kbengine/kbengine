@@ -23,6 +23,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 // common include	
 #include "server/kbemain.hpp"
+#include "pyscript/script.hpp"
+#include "pyscript/pyobject_pointer.hpp"
+#include "entitydef/entitydef.hpp"
 #include "server/serverapp.hpp"
 #include "server/idallocate.hpp"
 #include "server/serverconfig.hpp"
@@ -30,7 +33,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/globaldata_server.hpp"
 #include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
-#include "server/idallocate.hpp"
+#include "resmgr/resmgr.hpp"
+#include "thread/threadpool.hpp"
 
 //#define NDEBUG
 #include <map>	
@@ -45,7 +49,7 @@ namespace KBEngine{
 class DBInterface;
 
 class Dbmgr :	public ServerApp, 
-					public Singleton<Dbmgr>
+				public Singleton<Dbmgr>
 {
 public:
 	enum TimeOutType
@@ -127,6 +131,11 @@ public:
 		执行数据库查询
 	*/
 	void executeRawDatabaseCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+		某个entity存档
+	*/
+	void writeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;

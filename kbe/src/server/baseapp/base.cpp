@@ -8,6 +8,7 @@
 #endif
 
 #include "../../server/cellapp/cellapp_interface.hpp"
+#include "../../server/dbmgr/dbmgr_interface.hpp"
 
 namespace KBEngine{
 
@@ -472,7 +473,7 @@ void Base::writeToDB()
 
 	if(this->getCellMailbox() == NULL)
 	{
-		onCellWriteToDBComplete();
+		onCellWriteToDBCompleted();
 	}
 	else
 	{
@@ -484,7 +485,7 @@ void Base::writeToDB()
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onCellWriteToDBComplete()
+void Base::onCellWriteToDBCompleted()
 {
 	PyObject* pyResult = PyObject_CallMethod(this, 
 		const_cast<char*>("onPreArchive"), const_cast<char*>(""));
@@ -502,6 +503,25 @@ void Base::onCellWriteToDBComplete()
 
 	MemoryStream s;
 	addPersistentsDataToStream(ED_FLAG_ALL, &s);
+
+	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::ComponentInfos* dbmgrinfos = NULL;
+
+	if(cts.size() > 0)
+		dbmgrinfos = &(*cts.begin());
+
+	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		ERROR_MSG("Base::onCellWriteToDBCompleted: not found dbmgr!\n");
+		return;
+	}
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(DbmgrInterface::writeEntity);
+	bundle << this->getID();
+	bundle << this->getScriptModule()->getUType();
+	bundle.append(s);
+	bundle.send(Baseapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------

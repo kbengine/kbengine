@@ -327,7 +327,7 @@ void Entity::writeToDB()
 	backupCellData();
 
 	Mercury::Bundle bundle;
-	bundle.newMessage(BaseappInterface::onCellWriteToDBComplete);
+	bundle.newMessage(BaseappInterface::onCellWriteToDBCompleted);
 	bundle << this->getID();
 	if(this->getBaseMailbox())
 	{
