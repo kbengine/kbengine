@@ -187,14 +187,12 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, 
 			"KBEngine::createEntity: args is error! args[scriptName, spaceID, position, direction, states].");
-		PyErr_PrintEx(0);
-		return NULL;
+		S_Return;
 	}
 	
 	if(entityType == NULL || strlen(entityType) == 0)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::createEntity: entityType is NULL.");
-		PyErr_PrintEx(0);
 		S_Return;
 	}
 
@@ -202,7 +200,6 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 	if(space == NULL)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::createEntity: spaceID %ld not found.", spaceID);
-		PyErr_PrintEx(0);
 		S_Return;
 	}
 	
@@ -241,7 +238,6 @@ PyObject* Cellapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 	if(ret == -1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args is error!");
-		PyErr_PrintEx(0);
 	}
 	
 	Cellapp::getSingleton().executeRawDatabaseCommand(data, size, pycallback);

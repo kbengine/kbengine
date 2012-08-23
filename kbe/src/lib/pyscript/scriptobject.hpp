@@ -204,7 +204,6 @@ public:																						\
 	{																						\
 		PyErr_Format(PyExc_TypeError,														\
 		"Sorry, this attribute in " #CLASS " is read-only");								\
-		PyErr_Print();																		\
 		return 0;																			\
 	}																						\
 																							\
@@ -214,7 +213,6 @@ public:																						\
 	{																						\
 		PyErr_Format(PyExc_TypeError,														\
 		"Sorry, this attribute in " #CLASS " is write-only");								\
-		PyErr_Print();																		\
 		return 0;																			\
 	}																						\
 																							\

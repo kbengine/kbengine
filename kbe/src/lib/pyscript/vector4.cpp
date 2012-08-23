@@ -276,7 +276,7 @@ PyObject* ScriptVector4::seq_slice(PyObject* self, Py_ssize_t startIndex, Py_ssi
 			}
 			default:
 				PyErr_Format(PyExc_IndexError, "Bad slice indexes [%d, %d] for Vector%d", startIndex, endIndex, VECTOR_SIZE);
-				PyErr_PrintEx(0);
+				//PyErr_PrintEx(0);
 				break;
 		}
 
@@ -414,7 +414,7 @@ bool ScriptVector4::check(PyObject* value, bool isPrintErr)
 		if(isPrintErr)
 		{
 			PyErr_Format(PyExc_TypeError, "args of position is must a sequence.");
-			PyErr_PrintEx(0);
+			//PyErr_PrintEx(0);
 		}
 		return false;
 	}
@@ -425,7 +425,7 @@ bool ScriptVector4::check(PyObject* value, bool isPrintErr)
 		if(isPrintErr)
 		{
 			PyErr_Format(PyExc_TypeError, "len(position) != %d. can't set.", VECTOR_SIZE);
-			PyErr_PrintEx(0);
+			//PyErr_PrintEx(0);
 		}
 		return false;
 	}
@@ -765,7 +765,7 @@ PyObject* ScriptVector4::__py_pySet(PyObject* self, PyObject* args)
 	if(!good)
 	{
 		PyErr_Format(PyExc_TypeError, "Vector.set must be set to a tuple of %d floats, or one float", VECTOR_SIZE);
-		PyErr_PrintEx(0);
+		//PyErr_PrintEx(0);
 		return NULL;
 	}
 

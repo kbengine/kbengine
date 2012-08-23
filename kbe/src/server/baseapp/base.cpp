@@ -255,13 +255,6 @@ void Base::getClientPropertys(MemoryStream* s)
 //-------------------------------------------------------------------------------------
 bool Base::destroyCellEntity(void)
 {
-	if(cellMailbox_ == NULL) 
-	{
-		ERROR_MSG("%s::destroyCellEntity: id:%i no cell! creatingCell=%s\n", this->getScriptName(), this->getID(),
-			creatingCell_ ? "true" : "false");
-		return false;
-	}
-	
 	Mercury::Bundle bundle;
 	bundle.newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
 	bundle << id_;
@@ -272,7 +265,15 @@ bool Base::destroyCellEntity(void)
 //-------------------------------------------------------------------------------------
 PyObject* Base::pyDestroyCellEntity()
 {
-	destroyCellEntity();
+	if(cellMailbox_ == NULL) 
+	{
+		PyErr_Format(PyExc_Exception, "%s::destroyCellEntity: id:%i no cell! creatingCell=%s\n", this->getScriptName(), this->getID(),
+			creatingCell_ ? "true" : "false");
+		return false;
+	}
+	else
+		destroyCellEntity();
+
 	S_Return;
 }
 
@@ -285,7 +286,14 @@ void Base::destroyBase(void)
 //-------------------------------------------------------------------------------------
 PyObject* Base::pyDestroyBase()
 {
-	destroyBase();
+	if(creatingCell_ || cellMailbox_ != NULL) 
+	{
+		PyErr_Format(PyExc_Exception, "%s::destroyBase: id:%i has cell! creatingCell=%s\n", this->getScriptName(), this->getID(),
+			creatingCell_ ? "true" : "false");
+	}
+	else
+		destroyBase();
+
 	S_Return;
 }
 
@@ -515,7 +523,6 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 	if(!PyObject_IsInstance(pyobj, (PyObject*)EntityMailbox::getScriptType()))
 	{
 		PyErr_Format(PyExc_TypeError, "create %s arg1 is not cellMailbox!", this->getScriptName());
-		PyErr_PrintEx(0);
 		S_Return;
 	}
 	
@@ -523,7 +530,6 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 	if(cellMailbox->getType() != MAILBOX_TYPE_CELL)
 	{
 		PyErr_Format(PyExc_TypeError, "create %s args1 not is a direct cellMailbox!", this->getScriptName());
-		PyErr_PrintEx(0);
 		S_Return;
 	}
 	

@@ -382,7 +382,7 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 	if(sm == NULL || componentType_ == CELLAPP_TYPE ? !sm->hasCell() : !sm->hasBase())
 	{
 		PyErr_Format(PyExc_TypeError, "EntityApp::createEntityCommon: entity [%s] not found.\n", entityType);
-		PyErr_PrintEx(0);
+		//PyErr_PrintEx(0);
 		return NULL;
 	}
 

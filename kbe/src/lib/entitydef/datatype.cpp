@@ -370,14 +370,14 @@ bool VectorType::isSameType(PyObject* pyValue)
 	if(pyValue == NULL)
 	{
 		PyErr_Format(PyExc_TypeError, "must be set to a VECTOR%d type.", elemCount_);
-		PyErr_PrintEx(0);
+		//PyErr_PrintEx(0);
 		return false;
 	}
 
 	if(!PySequence_Check(pyValue) || PySequence_Size(pyValue) != elemCount_)
 	{
 		PyErr_Format(PyExc_TypeError, "must be set to a VECTOR%d type.", elemCount_);
-		PyErr_PrintEx(0);
+		//PyErr_PrintEx(0);
 		return false;
 	}
 	
@@ -994,7 +994,7 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 	{
 		PyErr_Format(PyExc_TypeError, "FIXED_DICT key no match. size:%d-%d, keyNames=[%s].", 
 			dictSize, keyTypes_.size(), getKeyNames().c_str());
-		PyErr_PrintEx(0);
+		//PyErr_PrintEx(0);
 		return false;
 	}
 
@@ -1006,7 +1006,7 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 		{
 			PyErr_Format(PyExc_TypeError, "set FIXED_DICT is error! at key: %s, keyNames=[%s].", 
 				iter->first.c_str(), getKeyNames().c_str());
-			PyErr_PrintEx(0);
+			//PyErr_PrintEx(0);
 			return false;
 		}
 	}
