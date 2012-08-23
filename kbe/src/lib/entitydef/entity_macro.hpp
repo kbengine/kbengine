@@ -315,6 +315,7 @@ public:																										\
 	void writeToDB();																						\
 
 
+
 #define ENTITY_CPP_IMPL(CLASS)																				\
 	class EntityScriptTimerHandler : public TimerHandler													\
 	{																										\
@@ -383,6 +384,7 @@ public:																										\
 			}																								\
 		}																									\
 																											\
+		writeToDB();																						\
 		S_Return;																							\
 	}																										\
 

@@ -38,7 +38,7 @@ BOOL CEditSendbuffer::PreTranslateMessage(MSG* pMsg)
 			this->SetWindowTextW(L"");
 			return FALSE;  
 		}
-		else if(GetKeyState(VK_MENU) < 0 && GetKeyState(VK_UP) < 0)
+		else if((GetKeyState(VK_MENU) < 0 || GetKeyState(VK_CONTROL) < 0) && GetKeyState(VK_UP) < 0)
 		{
 			CString s = dlg->getHistoryCommand(false);
 			if(s.GetLength() > 0)
@@ -46,7 +46,7 @@ BOOL CEditSendbuffer::PreTranslateMessage(MSG* pMsg)
 				this->SetWindowTextW(s);
 			}
 		}
-		else if(GetKeyState(VK_MENU) < 0 && GetKeyState(VK_DOWN) < 0)
+		else if((GetKeyState(VK_MENU) < 0 || GetKeyState(VK_CONTROL) < 0)  && GetKeyState(VK_DOWN) < 0)
 		{
 			CString s = dlg->getHistoryCommand(true);
 			if(s.GetLength() > 0)

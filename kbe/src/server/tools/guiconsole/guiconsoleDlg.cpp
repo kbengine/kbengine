@@ -116,7 +116,8 @@ CguiconsoleDlg::CguiconsoleDlg(CWnd* pParent /*=NULL*/)
 	_componentID(genUUID64()),
 	_dispatcher(),
 	_networkInterface(&_dispatcher),
-	m_isInit(false)
+	m_isInit(false),
+	m_isUsingHistroy(false)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -213,11 +214,15 @@ void CguiconsoleDlg::historyCommandCheck()
 
 CString CguiconsoleDlg::getHistoryCommand(bool isNextCommand)
 {
-	if(isNextCommand)
-		m_historyCommandIndex++;
-	else
-		m_historyCommandIndex--;
+	if(m_isUsingHistroy)
+	{
+		if(isNextCommand)
+			m_historyCommandIndex++;
+		else
+			m_historyCommandIndex--;
+	}
 
+	m_isUsingHistroy = true;
 	historyCommandCheck();
 	return m_historyCommand[m_historyCommandIndex];
 }
@@ -229,7 +234,8 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 		::AfxMessageBox(L"the component can not debug!");
 		return;
 	}
-
+	
+	m_isUsingHistroy = false;
 	char buffer[4096] = {0};
 
 	int len = WideCharToMultiByte(CP_ACP, 0, strCommand, strCommand.GetLength(), NULL, 0, NULL, NULL);

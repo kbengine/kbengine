@@ -68,6 +68,7 @@ private:
 	bool m_isInit;
 	std::deque<CString> m_historyCommand;
 	int8 m_historyCommandIndex;
+	bool m_isUsingHistroy;
 public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	CTabCtrl m_tab;

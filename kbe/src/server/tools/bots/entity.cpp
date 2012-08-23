@@ -201,6 +201,11 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::writeToDB()
+{
+}
+
+//-------------------------------------------------------------------------------------
 int Entity::pySetPosition(PyObject *value)
 {
 	if(!script::ScriptVector3::check(value))
