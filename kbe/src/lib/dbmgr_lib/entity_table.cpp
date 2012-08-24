@@ -39,6 +39,12 @@ EntityTables::~EntityTables()
 //-------------------------------------------------------------------------------------
 bool EntityTables::load()
 {
+	EntityDef::SCRIPT_MODULES smodules = EntityDef::getScriptModules();
+	EntityDef::SCRIPT_MODULES::const_iterator iter = smodules.begin();
+	for(; iter != smodules.end(); iter++)
+	{
+	}
+
 	return true;
 }
 

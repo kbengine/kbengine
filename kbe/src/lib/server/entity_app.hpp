@@ -113,7 +113,7 @@ public:
 	E* createEntityCommon(const char* entityType, PyObject* params, 
 		bool isInitializeScript = true, ENTITY_ID eid = 0);
 
-	virtual E* onCreateEntityCommon(PyObject* pyEntity, ScriptModule* sm, ENTITY_ID eid);
+	virtual E* onCreateEntityCommon(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid);
 
 	/** 网络接口
 		请求分配一个ENTITY_ID段的回调
@@ -378,7 +378,7 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 		return NULL;
 	}
 	
-	ScriptModule* sm = EntityDef::findScriptModule(entityType);
+	ScriptDefModule* sm = EntityDef::findScriptModule(entityType);
 	if(sm == NULL || componentType_ == CELLAPP_TYPE ? !sm->hasCell() : !sm->hasBase())
 	{
 		PyErr_Format(PyExc_TypeError, "EntityApp::createEntityCommon: entity [%s] not found.\n", entityType);
@@ -411,7 +411,7 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 }
 
 template<class E>
-E* EntityApp<E>::onCreateEntityCommon(PyObject* pyEntity, ScriptModule* sm, ENTITY_ID eid)
+E* EntityApp<E>::onCreateEntityCommon(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid)
 {
 	// 执行Entity的构造函数
 	return new(pyEntity) E(eid, sm);

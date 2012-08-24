@@ -51,7 +51,7 @@ class Proxy : public Base
 	/** 子类化 将一些py操作填充进派生类 */
 	BASE_SCRIPT_HREADER(Proxy, Base)	
 public:
-	Proxy(ENTITY_ID id, ScriptModule* scriptModule);
+	Proxy(ENTITY_ID id, const ScriptDefModule* scriptModule);
 	~Proxy();
 	
 	INLINE void addr(const Mercury::Address& address);

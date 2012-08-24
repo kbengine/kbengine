@@ -99,7 +99,7 @@ public:
 	/** 
 		创建了一个entity回调
 	*/
-	virtual Base* onCreateEntityCommon(PyObject* pyEntity, ScriptModule* sm, ENTITY_ID eid);
+	virtual Base* onCreateEntityCommon(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid);
 
 	/** 
 		创建一个entity 

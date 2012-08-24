@@ -256,7 +256,7 @@ void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 }
 
 //-------------------------------------------------------------------------------------
-Base* Baseapp::onCreateEntityCommon(PyObject* pyEntity, ScriptModule* sm, ENTITY_ID eid)
+Base* Baseapp::onCreateEntityCommon(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid)
 {
 	if(PyType_IsSubtype(sm->getScriptType(), Proxy::getScriptType()))
 	{
@@ -497,7 +497,7 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 
 	if(pChannel != NULL)
 	{
-		ScriptModule* sm = EntityDef::findScriptModule(entityType.c_str());
+		ScriptDefModule* sm = EntityDef::findScriptModule(entityType.c_str());
 		if(sm == NULL)
 		{
 			ERROR_MSG("Baseapp::onCreateBaseAnywhereCallback: can't found entityType:%s.\n", entityType.c_str());

@@ -78,8 +78,8 @@ namespace KBEngine{
 #define ENTITY_HEADER(CLASS)																				\
 protected:																									\
 	ENTITY_ID		id_;																					\
-	ScriptModule*	scriptModule_;																			\
-	const ScriptModule::PROPERTYDESCRIPTION_MAP* lpPropertyDescrs_;											\
+	ScriptDefModule*	scriptModule_;																		\
+	const ScriptDefModule::PROPERTYDESCRIPTION_MAP* lpPropertyDescrs_;										\
 	uint32 spaceID_;																						\
 	ScriptTimers scriptTimers_;																				\
 	PY_CALLBACKMGR pyCallbackMgr_;																			\
@@ -137,9 +137,9 @@ public:																										\
 		PyObject* cellData = PyDict_New();																	\
 		PyObject* pydict = PyObject_GetAttrString(this, "__dict__");										\
 																											\
-		ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =												\
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =											\
 						scriptModule_->getCellPropertyDescriptions();										\
-		ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();				\
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();				\
 		for(; iter != propertyDescrs.end(); iter++)															\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\
@@ -159,9 +159,9 @@ public:																										\
 	{																										\
 		PyObject* cellData = PyObject_GetAttrString(this, "__dict__");										\
 																											\
-		ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =												\
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =											\
 				scriptModule_->getCellPropertyDescriptionsByDetailLevel(detailLevel);						\
-		ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();				\
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();				\
 		for(; iter != propertyDescrs.end(); iter++)															\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\
@@ -237,7 +237,7 @@ public:																										\
 		return PyLong_FromLong(self->getSpaceID());															\
 	}																										\
 																											\
-	inline ScriptModule* getScriptModule(void)const															\
+	inline ScriptDefModule* getScriptModule(void)const														\
 	{																										\
 		return scriptModule_; 																				\
 	}																										\
@@ -250,7 +250,7 @@ public:																										\
 		if(lpPropertyDescrs_)																				\
 		{																									\
 																											\
-			ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->find(ccattr);	\
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->find(ccattr);\
 			if(iter != lpPropertyDescrs_->end())															\
 			{																								\
 				char err[255];																				\
@@ -283,7 +283,7 @@ public:																										\
 																											\
 		if(lpPropertyDescrs_)																				\
 		{																									\
-			ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->find(ccattr);	\
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->find(ccattr);\
 			if(iter != lpPropertyDescrs_->end())															\
 			{																								\
 				PropertyDescription* propertyDescription = iter->second;									\
@@ -401,8 +401,8 @@ public:																										\
 
 #define ENTITY_CONSTRUCTION(CLASS)																			\
 	id_(id),																								\
-	scriptModule_(scriptModule),																			\
-	lpPropertyDescrs_(&scriptModule->getPropertyDescrs()),													\
+	scriptModule_(const_cast<ScriptDefModule*>(scriptModule)),												\
+	lpPropertyDescrs_(&scriptModule_->getPropertyDescrs()),													\
 	spaceID_(0),																							\
 	scriptTimers_(),																						\
 	pyCallbackMgr_()																						\
@@ -414,7 +414,7 @@ public:																										\
 
 
 #define ENTITY_INIT_PROPERTYS(CLASS)																		\
-	ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->begin();				\
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->begin();				\
 	for(; iter != lpPropertyDescrs_->end(); iter++)															\
 	{																										\
 		PropertyDescription* propertyDescription = iter->second;											\

@@ -26,9 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/cstdkbe.hpp"
 #include "entitydef/entitymailboxabstract.hpp"
 #include "pyscript/scriptobject.hpp"
-#include "pyscript/pickler.hpp"
-#include "entitydef/method.hpp"
-#include "entitydef/entitydef.hpp"
+
 	
 #ifdef KBE_SERVER
 #include "server/components.hpp"
@@ -49,12 +47,14 @@ namespace Mercury
 class Channel;
 }
 
+class ScriptDefModule;
+
 class EntityMailbox : public EntityMailboxAbstract
 {
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(EntityMailbox, EntityMailboxAbstract)
 public:
-	EntityMailbox(ScriptModule* scriptModule, const Mercury::Address* pAddr, COMPONENT_ID componentID, 
+	EntityMailbox(ScriptDefModule* scriptModule, const Mercury::Address* pAddr, COMPONENT_ID componentID, 
 		ENTITY_ID eid, ENTITY_MAILBOX_TYPE type);
 	~EntityMailbox();
 	
@@ -78,7 +78,7 @@ public:
 private:
 	static GetEntityFunc					__getEntityFunc;		// 获得一个entity的实体的函数地址
 protected:
-	ScriptModule*							scriptModule_;			// 该entity所使用的脚本模块对象
+	ScriptDefModule*						scriptModule_;			// 该entity所使用的脚本模块对象
 };
 
 }

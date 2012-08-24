@@ -10,7 +10,8 @@ SRCS =				\
 	entitymailboxabstract	\
 	fixeddict		\
 	method			\
-	property
+	property		\
+	scriptdef_module
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))

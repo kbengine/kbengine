@@ -20,7 +20,7 @@ SCRIPT_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-Proxy::Proxy(ENTITY_ID id, ScriptModule* scriptModule):
+Proxy::Proxy(ENTITY_ID id, const ScriptDefModule* scriptModule):
 Base(id, scriptModule, getScriptType(), true),
 rndUUID_(KBEngine::genUUID64()),
 addr_(Mercury::Address::NONE)

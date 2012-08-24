@@ -29,7 +29,7 @@ ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Base, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-Base::Base(ENTITY_ID id, ScriptModule* scriptModule, PyTypeObject* pyType, bool isInitialised):
+Base::Base(ENTITY_ID id, const ScriptDefModule* scriptModule, PyTypeObject* pyType, bool isInitialised):
 ScriptObject(pyType, isInitialised),
 ENTITY_CONSTRUCTION(Base),
 clientMailbox_(NULL),
@@ -96,8 +96,8 @@ void Base::createCellData(void)
 	if(!installCellDataAttr())
 		return;
 	
-	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
-	ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 	for(; iter != propertyDescrs.end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;
@@ -136,8 +136,8 @@ void Base::createCellData(void)
 //-------------------------------------------------------------------------------------
 void Base::addCellDataToStream(uint32 flags, MemoryStream* s)
 {
-	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
-	ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 	for(; iter != propertyDescrs.end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;
@@ -156,8 +156,8 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 	std::vector<ENTITY_PROPERTY_UID> log;
 
 	// 先将celldata中的存储属性取出
-	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
-	ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 	for(; iter != propertyDescrs.end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;
@@ -174,8 +174,8 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 	// 再将base中存储属性取出
 	PyObject* pydict = PyObject_GetAttrString(this, "__dict__");
 		
-	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs1 = getScriptModule()->getBasePropertyDescriptions();
-	ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter1 = propertyDescrs1.begin();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs1 = getScriptModule()->getBasePropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter1 = propertyDescrs1.begin();
 	for(; iter1 != propertyDescrs1.end(); iter1++)
 	{
 		PropertyDescription* propertyDescription = iter1->second;
@@ -201,8 +201,8 @@ PyObject* Base::createCellDataDict(uint32 flags)
 {
 	PyObject* cellData = PyDict_New();
 
-	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
-	ScriptModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 	for(; iter != propertyDescrs.end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;
@@ -233,8 +233,8 @@ void Base::getClientPropertys(MemoryStream* s)
 	// 获得base部分关联的客户端属性数据
 	PyObject* pydict = PyObject_GetAttrString(this, "__dict__");
 		
-	ScriptModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = getScriptModule()->getClientPropertyDescriptions();
-	ScriptModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = getScriptModule()->getClientPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();
 	for(; iter != propertyDescrs.end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;

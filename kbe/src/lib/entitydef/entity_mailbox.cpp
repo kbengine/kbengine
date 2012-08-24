@@ -20,8 +20,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "entity_mailbox.hpp"
+#include "scriptdef_module.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/channel.hpp"	
+#include "pyscript/pickler.hpp"
+#include "entitydef/method.hpp"
+#include "entitydef/entitydef.hpp"
+
 #ifdef KBE_SERVER
 #include "server/components.hpp"
 #endif
@@ -42,7 +47,7 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(EntityMailbox, 0, 0, 0, 0, 0)		
 
 //-------------------------------------------------------------------------------------
-EntityMailbox::EntityMailbox(ScriptModule* scriptModule, const Mercury::Address* pAddr, COMPONENT_ID componentID, 
+EntityMailbox::EntityMailbox(ScriptDefModule* scriptModule, const Mercury::Address* pAddr, COMPONENT_ID componentID, 
 ENTITY_ID eid, ENTITY_MAILBOX_TYPE type):
 EntityMailboxAbstract(getScriptType(), pAddr, componentID, eid, scriptModule->getUType(), type),
 scriptModule_(scriptModule)
@@ -190,7 +195,7 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 		S_Return;
 	}
 
-	ScriptModule* sm = EntityDef::findScriptModule(utype);
+	ScriptDefModule* sm = EntityDef::findScriptModule(utype);
 	if(sm == NULL)
 	{
 		ERROR_MSG("EntityMailbox::__unpickle__: not found utype %ld!\n", utype);

@@ -192,6 +192,10 @@
 				RelativePath=".\property.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\scriptdef_module.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -246,6 +250,10 @@
 				RelativePath=".\property.hpp"
 				>
 			</File>
+			<File
+				RelativePath=".\scriptdef_module.hpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -254,7 +262,15 @@
 			>
 		</Filter>
 		<File
+			RelativePath=".\entitydef.ipp"
+			>
+		</File>
+		<File
 			RelativePath=".\ReadMe.txt"
+			>
+		</File>
+		<File
+			RelativePath=".\scriptdef_module.ipp"
 			>
 		</File>
 	</Files>

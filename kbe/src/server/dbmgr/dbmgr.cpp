@@ -30,6 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/components.hpp"
 #include "dbmgr_lib/db_interface.hpp"
 #include "db_mysql/db_interface_mysql.hpp"
+#include "entitydef/scriptdef_module.hpp"
 
 #include "baseapp/baseapp_interface.hpp"
 #include "cellapp/cellapp_interface.hpp"
@@ -513,7 +514,7 @@ void Dbmgr::writeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	ENTITY_SCRIPT_UID sid = 0;
 	s >> entityID >> sid;
 
-	ScriptModule* pModule = EntityDef::findScriptModule(sid);
+	ScriptDefModule* pModule = EntityDef::findScriptModule(sid);
 	DEBUG_MSG("Dbmgr::writeEntity: %s(%d), size=%u.\n", pModule->getName(), entityID, s.opsize());
 }
 

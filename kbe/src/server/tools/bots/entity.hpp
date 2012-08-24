@@ -31,6 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/scriptobject.hpp"
 #include "entitydef/datatypes.hpp"	
 #include "entitydef/entitydef.hpp"	
+#include "entitydef/scriptdef_module.hpp"
 #include "entitydef/entity_macro.hpp"	
 #include "server/script_timers.hpp"	
 
@@ -57,7 +58,7 @@ class Entity : public script::ScriptObject
 	BASE_SCRIPT_HREADER(Entity, ScriptObject)	
 	ENTITY_HEADER(Entity)
 public:
-	Entity(ENTITY_ID id, ScriptModule* scriptModule);
+	Entity(ENTITY_ID id, const ScriptDefModule* scriptModule);
 	~Entity();
 	
 	/** 
