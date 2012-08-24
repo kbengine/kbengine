@@ -433,6 +433,7 @@ void Dbmgr::queryAccount(Mercury::Channel* pChannel, std::string& accountName, s
 void Dbmgr::onAccountOnline(Mercury::Channel* pChannel, std::string& accountName, COMPONENT_ID componentID, ENTITY_ID entityID)
 {
 	DEBUG_MSG("Dbmgr::onAccountOnline:componentID:%"PRAppID", entityID:%d.\n", componentID, entityID);
+
 	// 如果没有连接db则从log中查找账号是否还在线
 	if(!pDBInterface_)
 	{

@@ -1,7 +1,8 @@
 LIB =	dbmgr_lib
 
 SRCS =				\
-	db_interface		
+	db_interface		\
+	entity_table
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))

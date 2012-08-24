@@ -1,7 +1,8 @@
 LIB =	db_mysql
 
 SRCS =				\
-	db_interface_mysql
+	db_interface_mysql	\
+	entity_table_mysql
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))

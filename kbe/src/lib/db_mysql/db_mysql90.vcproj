@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../;../../common;../../lib/third_party/log4cxx/include;../../lib/third_party/mysql"
+				AdditionalIncludeDirectories="../third_party/g3dlite;../python/PC;../python/Include;../;../../common;../../lib/third_party/log4cxx/include;../../lib/third_party/mysql"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -106,7 +106,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../;../../common;../../lib/third_party/log4cxx/include;../../lib/third_party/mysql"
+				AdditionalIncludeDirectories="../third_party/g3dlite;../python/PC;../python/Include;../;../../common;../../lib/third_party/log4cxx/include;../../lib/third_party/mysql"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -156,6 +156,10 @@
 				RelativePath=".\db_interface_mysql.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\entity_table_mysql.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -164,6 +168,10 @@
 			>
 			<File
 				RelativePath=".\db_interface_mysql.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\entity_table_mysql.hpp"
 				>
 			</File>
 		</Filter>
