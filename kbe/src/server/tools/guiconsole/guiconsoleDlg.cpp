@@ -378,11 +378,8 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 	switch(nIDEvent)
 	{
 	case 1:
-		if(!_dispatcher.isBreakProcessing())
-		{
-			_dispatcher.processOnce(false);
-			_networkInterface.handleChannels(&KBEngine::ConsoleInterface::messageHandlers);
-		}
+		_dispatcher.processOnce(false);
+		_networkInterface.handleChannels(&KBEngine::ConsoleInterface::messageHandlers);
 		break;
 	case 2:
 		{

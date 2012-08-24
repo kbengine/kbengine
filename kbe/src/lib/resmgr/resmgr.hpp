@@ -62,6 +62,8 @@ public:
 	static void pirnt(void);
 
 	static bool isInit(){ return isInit_; }
+
+	static std::string getPySysResPath();
 private:
 	static KBEEnv kb_env_;
 	static std::vector<std::string> respaths_;

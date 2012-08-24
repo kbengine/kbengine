@@ -508,6 +508,23 @@ inline std::string& kbe_replace(std::string& str, const char* old_value, const c
     return str;     
 }     
 
+inline std::wstring& kbe_replace(std::wstring& str, const wchar_t* old_value, const wchar_t* new_value)     
+{
+	size_t len = wcslen(old_value);
+
+    while(true)
+	{     
+		std::wstring::size_type pos(0);     
+		if((pos = str.find(old_value)) != std::wstring::npos)     
+            str.replace(pos, len, new_value);     
+        else
+			break;     
+    }
+
+    return str;     
+}     
+
+ 
 // ×Ö·û´®·Ö¸î
 template<typename T>
 void kbe_split(const std::basic_string<T>& s, T c, std::vector< std::basic_string<T> > &v)

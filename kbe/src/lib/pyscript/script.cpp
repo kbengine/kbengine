@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "math.hpp"
 #include "pickler.hpp"
 #include "uuid.hpp"
+#include "resmgr/resmgr.hpp"
 #include "thread/concurrency.hpp"
 
 namespace KBEngine{ 
@@ -77,8 +78,11 @@ int Script::run_simpleString(std::string command, std::string* retBufferPtr)
 //-------------------------------------------------------------------------------------
 bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths, const char* moduleName, COMPONENT_TYPE componentType)
 {
-	pyPaths += SCRIPT_PATH;
-
+	std::wstring pySysPaths = SCRIPT_PATH;
+	wchar_t* pwpySysResPath = char2wchar(const_cast<char*>(Resmgr::getPySysResPath().c_str()));
+	kbe_replace(pySysPaths, L"../../res/", pwpySysResPath);
+	pyPaths += pySysPaths;
+	free(pwpySysResPath);
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	Py_SetPythonHome(const_cast<wchar_t*>(pythonHomeDir));								// 先设置python的环境变量

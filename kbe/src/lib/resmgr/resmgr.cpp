@@ -83,6 +83,16 @@ std::string Resmgr::matchRes(std::string path)
 	return path;
 }
 
+//-------------------------------------------------------------------------------------
+std::string Resmgr::getPySysResPath()
+{
+	if(respaths_.size() > 0)
+	{
+		return respaths_[0];
+	}
+
+	return "";
+}
 
 //-------------------------------------------------------------------------------------		
 }
