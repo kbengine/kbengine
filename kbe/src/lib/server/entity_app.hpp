@@ -274,7 +274,7 @@ bool EntityApp<E>::installPyScript()
 		return false;
 	}
 
-	std::wstring pyPaths = root_path + L"res/scripts/common;";
+	std::wstring pyPaths = root_path + L"res/scripts/common;res/scripts/server_common;res/scripts/data;";
 
 	switch(componentType_)
 	{
@@ -283,6 +283,9 @@ bool EntityApp<E>::installPyScript()
 		break;
 	case CELLAPP_TYPE:
 		pyPaths += root_path + L"res/scripts/cell;";
+		break;
+	case DBMGR_TYPE:
+		pyPaths += root_path + L"res/scripts/db;";
 		break;
 	default:
 		pyPaths += root_path + L"res/scripts/client;";
