@@ -36,6 +36,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entitydef.hpp"
 #include "entitydef/entities.hpp"
 #include "entitydef/entity_mailbox.hpp"
+#include "entitydef/scriptdef_module.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
 #include "resmgr/resmgr.hpp"
