@@ -4,6 +4,9 @@ SRCS =				\
 	db_interface_mysql	\
 	entity_table_mysql
 
+USE_PYTHON = 1
+USE_G3DMATH=1
+
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))
 endif
