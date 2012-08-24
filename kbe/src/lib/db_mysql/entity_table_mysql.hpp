@@ -28,6 +28,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
+class ScriptDefModule;
+
 /*
 	维护entity在数据库中的表
 */
@@ -37,6 +39,11 @@ public:
 	EntityTableMysql();
 	virtual ~EntityTableMysql();
 	
+	/**
+		初始化
+	*/
+	virtual bool initialize(ScriptDefModule* sm);
+
 	/**
 		同步entity表到数据库中
 	*/

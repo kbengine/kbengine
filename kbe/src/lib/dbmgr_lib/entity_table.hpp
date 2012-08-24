@@ -28,6 +28,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 
 class DBUtil;
+class DBInterface;
+class ScriptDefModule;
 
 /*
 	维护entity在数据库中的表
@@ -38,6 +40,10 @@ public:
 	EntityTable(){};
 	virtual ~EntityTable(){};
 	
+	/**
+		初始化
+	*/
+	virtual bool initialize(ScriptDefModule* sm) = 0;
 	/**
 		同步entity表到数据库中
 	*/
@@ -51,7 +57,7 @@ public:
 	EntityTables();
 	virtual ~EntityTables();
 	
-	bool load();
+	bool load(DBInterface* dbi);
 
 	bool syncAllToDB();
 protected:

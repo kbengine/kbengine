@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "helper/debug_helper.hpp"
+#include "dbmgr_lib/entity_table.hpp"
 
 namespace KBEngine { 
 
@@ -64,6 +65,11 @@ public:
 		获取错误编号
 	*/
 	virtual int getlasterror() = 0;
+
+	/**
+		创建一个entity存储表
+	*/
+	virtual EntityTable* createEntityTable() = 0;
 protected:
 	char db_type_[MAX_BUF];									// 数据库的类别
 	uint32 db_port_;										// 数据库的端口

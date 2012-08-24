@@ -155,6 +155,21 @@ bool ScriptDefModule::addPropertyDescription(const char* attrName,
 	(*propertyDescr)[attrName] = propertyDescription;
 	(*propertyDescr_uidmap)[propertyDescription->getUType()] = propertyDescription;
 	propertyDescription->incRef();
+
+
+	// 判断是否是存储属性， 是就存储到persistentPropertyDescr_
+	if(propertyDescription->isPersistent())
+	{
+		PROPERTYDESCRIPTION_MAP::const_iterator pciter = 
+			persistentPropertyDescr_.find(attrName);
+
+		if(pciter == persistentPropertyDescr_.end())
+		{
+			persistentPropertyDescr_[attrName] = propertyDescription;
+			persistentPropertyDescr_uidmap_[propertyDescription->getUType()] = propertyDescription;
+		}
+	}
+
 	return true;
 }
 
@@ -187,6 +202,18 @@ PropertyDescription* ScriptDefModule::findClientPropertyDescription(const char* 
 {
 	PROPERTYDESCRIPTION_MAP::iterator iter = clientPropertyDescr_.find(attrName);
 	if(iter == clientPropertyDescr_.end())
+	{
+		//ERROR_MSG("ScriptDefModule::findClientPropertyDescription: [%s] not found!\n", attrName);
+		return NULL;
+	}
+	return iter->second;
+}
+
+//-------------------------------------------------------------------------------------
+PropertyDescription* ScriptDefModule::findPersistentPropertyDescription(const char* attrName)
+{
+	PROPERTYDESCRIPTION_MAP::iterator iter = persistentPropertyDescr_.find(attrName);
+	if(iter == persistentPropertyDescr_.end())
 	{
 		//ERROR_MSG("ScriptDefModule::findClientPropertyDescription: [%s] not found!\n", attrName);
 		return NULL;
@@ -228,6 +255,20 @@ PropertyDescription* ScriptDefModule::findClientPropertyDescription(ENTITY_PROPE
 	PROPERTYDESCRIPTION_UIDMAP::iterator iter = clientPropertyDescr_uidmap_.find(utype);
 
 	if(iter == clientPropertyDescr_uidmap_.end())
+	{
+		//ERROR_MSG("ScriptDefModule::findClientPropertyDescription: [%ld] not found!\n", utype);
+		return NULL;
+	}
+
+	return iter->second;
+}
+
+//-------------------------------------------------------------------------------------
+PropertyDescription* ScriptDefModule::findPersistentPropertyDescription(ENTITY_PROPERTY_UID utype)
+{
+	PROPERTYDESCRIPTION_UIDMAP::iterator iter = persistentPropertyDescr_uidmap_.find(utype);
+
+	if(iter == persistentPropertyDescr_uidmap_.end())
 	{
 		//ERROR_MSG("ScriptDefModule::findClientPropertyDescription: [%ld] not found!\n", utype);
 		return NULL;

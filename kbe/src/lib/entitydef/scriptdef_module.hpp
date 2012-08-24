@@ -77,9 +77,12 @@ public:
 	PropertyDescription* findCellPropertyDescription(const char* attrName);
 	PropertyDescription* findBasePropertyDescription(const char* attrName);
 	PropertyDescription* findClientPropertyDescription(const char* attrName);
+	PropertyDescription* findPersistentPropertyDescription(const char* attrName);
+
 	PropertyDescription* findCellPropertyDescription(ENTITY_PROPERTY_UID utype);
 	PropertyDescription* findBasePropertyDescription(ENTITY_PROPERTY_UID utype);
 	PropertyDescription* findClientPropertyDescription(ENTITY_PROPERTY_UID utype);
+	PropertyDescription* findPersistentPropertyDescription(ENTITY_PROPERTY_UID utype);
 
 	PropertyDescription* findPropertyDescription(const char* attrName, COMPONENT_TYPE componentType);
 	PropertyDescription* findPropertyDescription(ENTITY_PROPERTY_UID utype, COMPONENT_TYPE componentType);
@@ -88,9 +91,12 @@ public:
 	INLINE PROPERTYDESCRIPTION_MAP& getCellPropertyDescriptionsByDetailLevel(int8 detailLevel);
 	INLINE PROPERTYDESCRIPTION_MAP& getBasePropertyDescriptions();
 	INLINE PROPERTYDESCRIPTION_MAP& getClientPropertyDescriptions();
+	INLINE PROPERTYDESCRIPTION_MAP& getPersistentPropertyDescriptions();
+
 	INLINE PROPERTYDESCRIPTION_UIDMAP& getCellPropertyDescriptions_uidmap();
 	INLINE PROPERTYDESCRIPTION_UIDMAP& getBasePropertyDescriptions_uidmap();
 	INLINE PROPERTYDESCRIPTION_UIDMAP& getClientPropertyDescriptions_uidmap();
+	INLINE PROPERTYDESCRIPTION_UIDMAP& getPersistentPropertyDescriptions_uidmap();
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& getPropertyDescrs();
 	bool addPropertyDescription(const char* attrName, PropertyDescription* propertyDescription, 
@@ -124,6 +130,9 @@ protected:
 	// 数字类别  主要用于方便查找和网络间传输识别这个脚本模块
 	ENTITY_SCRIPT_UID					uType_;									
 	
+	// 这个脚本所有的存储到db的属性
+	PROPERTYDESCRIPTION_MAP				persistentPropertyDescr_;	
+
 	// 这个脚本cell部分所拥有的所有属性描述
 	PROPERTYDESCRIPTION_MAP				cellPropertyDescr_;		
 
@@ -137,6 +146,7 @@ protected:
 	PROPERTYDESCRIPTION_MAP				clientPropertyDescr_;					
 	
 	// 这个脚本所拥有的属性描述uid映射
+	PROPERTYDESCRIPTION_UIDMAP			persistentPropertyDescr_uidmap_;		
 	PROPERTYDESCRIPTION_UIDMAP			cellPropertyDescr_uidmap_;				
 	PROPERTYDESCRIPTION_UIDMAP			basePropertyDescr_uidmap_;				
 	PROPERTYDESCRIPTION_UIDMAP			clientPropertyDescr_uidmap_;			

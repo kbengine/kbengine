@@ -76,6 +76,11 @@ public:
 		获取错误编号
 	*/
 	virtual int getlasterror();
+
+	/**
+		创建一个entity存储表
+	*/
+	virtual EntityTable* createEntityTable();
 protected:
 	MYSQL* pMysql_;
 };

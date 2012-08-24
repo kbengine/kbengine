@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "entity_table_mysql.hpp"
+#include "entitydef/scriptdef_module.hpp"
 
 namespace KBEngine { 
 
@@ -31,6 +32,12 @@ EntityTableMysql::EntityTableMysql()
 //-------------------------------------------------------------------------------------
 EntityTableMysql::~EntityTableMysql()
 {
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableMysql::initialize(ScriptDefModule* sm)
+{
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

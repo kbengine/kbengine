@@ -87,6 +87,11 @@ INLINE ScriptDefModule::PROPERTYDESCRIPTION_MAP& ScriptDefModule::getClientPrope
 	return clientPropertyDescr_; 
 }
 
+INLINE ScriptDefModule::PROPERTYDESCRIPTION_MAP& ScriptDefModule::getPersistentPropertyDescriptions()
+{
+	return persistentPropertyDescr_;
+}
+
 INLINE ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP& ScriptDefModule::getCellPropertyDescriptions_uidmap()
 { 
 	return cellPropertyDescr_uidmap_; 
@@ -102,6 +107,11 @@ INLINE ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP& ScriptDefModule::getClientPr
 	return clientPropertyDescr_uidmap_; 
 }
 	
+INLINE ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP& ScriptDefModule::getPersistentPropertyDescriptions_uidmap()
+{
+	return persistentPropertyDescr_uidmap_;
+}
+
 INLINE ScriptDefModule::METHODDESCRIPTION_MAP& ScriptDefModule::getCellMethodDescriptions(void)
 { 
 	return methodCellDescr_; 

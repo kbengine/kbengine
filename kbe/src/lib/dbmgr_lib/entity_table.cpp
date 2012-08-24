@@ -19,7 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "entity_table.hpp"
+#include "db_interface.hpp"
 #include "entitydef/entitydef.hpp"
+#include "entitydef/scriptdef_module.hpp"
 
 namespace KBEngine { 
 KBE_SINGLETON_INIT(EntityTables);
@@ -37,12 +39,14 @@ EntityTables::~EntityTables()
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTables::load()
+bool EntityTables::load(DBInterface* dbi)
 {
 	EntityDef::SCRIPT_MODULES smodules = EntityDef::getScriptModules();
 	EntityDef::SCRIPT_MODULES::const_iterator iter = smodules.begin();
 	for(; iter != smodules.end(); iter++)
 	{
+		const ScriptDefModule* pSM = (*iter);
+		EntityTable* pEtable = dbi->createEntityTable();
 	}
 
 	return true;

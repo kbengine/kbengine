@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "db_interface_mysql.hpp"
+#include "entity_table_mysql.hpp"
 
 namespace KBEngine { 
 
@@ -67,6 +68,12 @@ bool DBInterfaceMysql::detach()
 	}
 
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+EntityTable* DBInterfaceMysql::createEntityTable()
+{
+	return new EntityTableMysql();
 }
 
 //-------------------------------------------------------------------------------------

@@ -155,42 +155,48 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 {
 	std::vector<ENTITY_PROPERTY_UID> log;
 
+	// 再将base中存储属性取出
+	PyObject* pydict = PyObject_GetAttrString(this, "__dict__");
+
 	// 先将celldata中的存储属性取出
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+
 	for(; iter != propertyDescrs.end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;
+		std::vector<ENTITY_PROPERTY_UID>::const_iterator finditer = std::find(log.begin(), log.end(), propertyDescription->getUType());
+		if(finditer != log.end())
+			continue;
+
+		const char* attrname = propertyDescription->getName().c_str();
 		if(propertyDescription->isPersistent() && (flags & propertyDescription->getFlags()) > 0)
 		{
-			PyObject* pyVal = PyDict_GetItemString(cellDataDict_, propertyDescription->getName().c_str());
-			(*s) << propertyDescription->getUType();
-			log.push_back(propertyDescription->getUType());
-			propertyDescription->getDataType()->addToStream(s, pyVal);
-			DEBUG_PERSISTENT_PROPERTY("addCellPersistentsDataToStream", propertyDescription->getName().c_str());
+			PyObject *key = PyUnicode_FromString(attrname);
+
+			if(PyDict_Contains(cellDataDict_, key) > 0)
+			{
+				PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
+				(*s) << propertyDescription->getUType();
+				log.push_back(propertyDescription->getUType());
+				propertyDescription->getDataType()->addToStream(s, pyVal);
+				DEBUG_PERSISTENT_PROPERTY("addCellPersistentsDataToStream", attrname);
+			}
+			else if(PyDict_Contains(pydict, key) > 0)
+			{
+	    		(*s) << propertyDescription->getUType();
+				log.push_back(propertyDescription->getUType());
+	    		propertyDescription->getDataType()->addToStream(s, PyDict_GetItem(pydict, key));
+				DEBUG_PERSISTENT_PROPERTY("addBasePersistentsDataToStream", attrname);
+			}
+			else
+			{
+				CRITICAL_MSG("%s::addPersistentsDataToStream: %d not found Persistent[%s].\n",
+					this->getScriptName(), this->getID(), attrname);
+			}
+
+			Py_DECREF(key);
 		}
-	}
-
-	// 再将base中存储属性取出
-	PyObject* pydict = PyObject_GetAttrString(this, "__dict__");
-		
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs1 = getScriptModule()->getBasePropertyDescriptions();
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter1 = propertyDescrs1.begin();
-	for(; iter1 != propertyDescrs1.end(); iter1++)
-	{
-		PropertyDescription* propertyDescription = iter1->second;
-		PyObject *key = PyUnicode_FromString(propertyDescription->getName().c_str());
-			
-		std::vector<ENTITY_PROPERTY_UID>::const_iterator finditer = std::find(log.begin(), log.end(), propertyDescription->getUType());
-		if(finditer == log.end() && propertyDescription->isPersistent() && PyDict_Contains(pydict, key) > 0)
-	    {
-	    	(*s) << propertyDescription->getUType();
-			log.push_back(propertyDescription->getUType());
-	    	propertyDescription->getDataType()->addToStream(s, PyDict_GetItem(pydict, key));
-			DEBUG_PERSISTENT_PROPERTY("addBasePersistentsDataToStream", propertyDescription->getName().c_str());
-	    }
-
-		Py_DECREF(key);
 	}
 
 	Py_XDECREF(pydict);
