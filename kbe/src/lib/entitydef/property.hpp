@@ -33,28 +33,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/refcountable.hpp"
 #include "cstdkbe/memorystream.hpp"
 //#define NDEBUG
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <iostream>	
-#include <map>	
-#include <vector>
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
 // linux include
-#include <errno.h>
 #endif
-	
-#define LIB_DLLAPI  __declspec(dllexport)
-
-#ifdef __cplusplus  
-extern "C" {  
-#endif  
-
-#ifdef __cplusplus  
-}
-#endif 
 
 namespace KBEngine{
 

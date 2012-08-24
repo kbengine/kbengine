@@ -33,16 +33,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #else
 // linux include
 #endif
-	
-#define LIB_DLLAPI  __declspec(dllexport)
-
-#ifdef __cplusplus  
-extern "C" {  
-#endif  
-
-#ifdef __cplusplus  
-}
-#endif 
 
 namespace KBEngine{
 

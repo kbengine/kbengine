@@ -77,18 +77,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
 // linux include
-#include <errno.h>
 #endif
-
-#define LIB_DLLAPI  __declspec(dllexport)
-
-#ifdef __cplusplus  
-extern "C" {  
-#endif  
-
-#ifdef __cplusplus  
-}
-#endif 
 
 namespace KBEngine{
 
