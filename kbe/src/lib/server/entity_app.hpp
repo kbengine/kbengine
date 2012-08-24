@@ -293,7 +293,7 @@ bool EntityApp<E>::installPyScript()
 	};
 	
 	std::string kbe_res_path = Resmgr::respaths()[0].c_str();
-	kbe_res_path += "script/common";
+	kbe_res_path += "scripts/common";
 
 	tbuf = KBEngine::char2wchar(const_cast<char*>(kbe_res_path.c_str()));
 	bool ret = getScript().install(tbuf, pyPaths, "KBEngine", componentType_);
