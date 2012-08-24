@@ -36,6 +36,7 @@ EntityTables::EntityTables()
 //-------------------------------------------------------------------------------------
 EntityTables::~EntityTables()
 {
+	tables_.clear();
 }
 
 //-------------------------------------------------------------------------------------
@@ -45,16 +46,31 @@ bool EntityTables::load(DBInterface* dbi)
 	EntityDef::SCRIPT_MODULES::const_iterator iter = smodules.begin();
 	for(; iter != smodules.end(); iter++)
 	{
-		const ScriptDefModule* pSM = (*iter);
+		ScriptDefModule* pSM = (*iter);
 		EntityTable* pEtable = dbi->createEntityTable();
+		bool ret = pEtable->initialize(pSM);
+
+		if(!ret)
+		{
+			delete pEtable;
+			return false;
+		}
+
+		tables_[pEtable->tableName()].reset(pEtable);
 	}
 
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTables::syncAllToDB()
+bool EntityTables::syncToDB()
 {
+	EntityTables::TABLES_MAP::iterator iter = tables_.begin();
+	for(; iter != tables_.end(); iter++)
+	{
+		if(!iter->second->syncToDB())
+			return false;
+	}
 	return true;
 }
 

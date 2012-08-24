@@ -145,8 +145,8 @@ public:																										\
 			PropertyDescription* propertyDescription = iter->second;										\
 			if((flags & propertyDescription->getFlags()) > 0)												\
 			{																								\
-				PyObject* pyVal = PyDict_GetItemString(pydict, propertyDescription->getName().c_str());		\
-				PyDict_SetItemString(cellData, propertyDescription->getName().c_str(), pyVal);				\
+				PyObject* pyVal = PyDict_GetItemString(pydict, propertyDescription->getName());				\
+				PyDict_SetItemString(cellData, propertyDescription->getName(), pyVal);						\
 			}																								\
 		}																									\
 																											\
@@ -165,7 +165,7 @@ public:																										\
 		for(; iter != propertyDescrs.end(); iter++)															\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\
-			PyObject* pyVal = PyDict_GetItemString(cellData, propertyDescription->getName().c_str());		\
+			PyObject* pyVal = PyDict_GetItemString(cellData, propertyDescription->getName());				\
 			(*mstream) << propertyDescription->getUType();													\
 			propertyDescription->getDataType()->addToStream(mstream, pyVal);								\
 		}																									\
@@ -425,18 +425,18 @@ public:																										\
 			MemoryStream* ms = propertyDescription->getDefaultVal();										\
 			PyObject* pyVal = dataType->createObject(ms);													\
 			PyObject_SetAttrString(static_cast<PyObject*>(this),											\
-						propertyDescription->getName().c_str(), pyVal);										\
+						propertyDescription->getName(), pyVal);												\
 			Py_DECREF(pyVal);																				\
 																											\
 			/* DEBUG_MSG(#CLASS"::"#CLASS": added [%s] property.\n", 
-			propertyDescription->getName().c_str());*/														\
+			propertyDescription->getName());*/																\
 			if(ms)																							\
 				ms->rpos(0);																				\
 		}																									\
 		else																								\
 		{																									\
 		ERROR_MSG(#CLASS"::"#CLASS": %s PropertyDescription the dataType is NULL.\n",						\
-				propertyDescription->getName().c_str());													\
+				propertyDescription->getName());															\
 		}																									\
 	}																										\
 																											\

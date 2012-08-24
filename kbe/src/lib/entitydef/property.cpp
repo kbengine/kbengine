@@ -104,7 +104,7 @@ PropertyDescription* PropertyDescription::createDescription(ENTITY_PROPERTY_UID 
 //-------------------------------------------------------------------------------------
 int PropertyDescription::onSetValue(PyObject* parentObj, PyObject* value)
 {
-	PyObject* pyName = PyUnicode_InternFromString(getName().c_str());
+	PyObject* pyName = PyUnicode_InternFromString(getName());
 	int result = PyObject_GenericSetAttr(parentObj, pyName, value);
 	Py_DECREF(pyName);
 	return result;	
@@ -125,7 +125,7 @@ FixedDictDescription::~FixedDictDescription()
 //-------------------------------------------------------------------------------------
 int FixedDictDescription::onSetValue(PyObject* parentObj, PyObject* value)
 {
-	PyObject* pyobj = PyObject_GetAttrString(parentObj, const_cast<char*>(getName().c_str()));
+	PyObject* pyobj = PyObject_GetAttrString(parentObj, const_cast<char*>(getName()));
 	if(pyobj == NULL)
 		return -1;
 	
@@ -150,7 +150,7 @@ ArrayDescription::~ArrayDescription()
 //-------------------------------------------------------------------------------------
 int ArrayDescription::onSetValue(PyObject* parentObj, PyObject* value)
 {
-	PyObject* pyobj = PyObject_GetAttrString(parentObj, const_cast<char*>(getName().c_str()));
+	PyObject* pyobj = PyObject_GetAttrString(parentObj, const_cast<char*>(getName()));
 	if(pyobj == NULL)
 	{
 		if(static_cast<ArrayType*>(dataType_)->isSameType(value))
@@ -200,7 +200,7 @@ int VectorDescription::onSetValue(PyObject* parentObj, PyObject* value)
 			}
 			else
 			{
-				PyObject* pyobj = PyObject_GetAttrString(parentObj, const_cast<char*>(getName().c_str()));
+				PyObject* pyobj = PyObject_GetAttrString(parentObj, const_cast<char*>(getName()));
 				if(pyobj == NULL)
 					return -1;
 
@@ -218,7 +218,7 @@ int VectorDescription::onSetValue(PyObject* parentObj, PyObject* value)
 			}
 			else
 			{
-				PyObject* pyobj = PyObject_GetAttrString(parentObj, const_cast<char*>(getName().c_str()));
+				PyObject* pyobj = PyObject_GetAttrString(parentObj, const_cast<char*>(getName()));
 				if(pyobj == NULL)
 					return -1;
 
@@ -236,7 +236,7 @@ int VectorDescription::onSetValue(PyObject* parentObj, PyObject* value)
 			}
 			else
 			{
-				PyObject* pyobj = PyObject_GetAttrString(parentObj, const_cast<char*>(getName().c_str()));
+				PyObject* pyobj = PyObject_GetAttrString(parentObj, const_cast<char*>(getName()));
 				if(pyobj == NULL)
 					return -1;
 

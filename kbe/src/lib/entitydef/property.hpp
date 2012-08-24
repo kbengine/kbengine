@@ -62,10 +62,10 @@ public:
 	const uint32& getFlags(void)const{ return flags_; };
 	
 	/** 获取属性名称 */
-	std::string& getName(void){ return name_; };
+	const char* getName(void)const{ return name_.c_str(); };
 	
 	/** 获取字符串数据类别名 UINT32, BAG..*/
-	std::string& getDataTypeName(void){ return dataTypeName_; }
+	const char* getDataTypeName(void)const{ return dataTypeName_.c_str(); }
 	
 	/** 属性的数字类别， 用于网络上传输识别 */
 	ENTITY_PROPERTY_UID getUType(void)const{ return utype_; }

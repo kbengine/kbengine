@@ -126,6 +126,7 @@ bool Dbmgr::inInitialize()
 	if(!EntityDef::initialize(Resmgr::respaths()[1] + "res/scripts/", scriptBaseTypes, componentType_)){
 		return false;
 	}
+
 	return true;
 }
 
@@ -168,7 +169,7 @@ bool Dbmgr::initializeEnd()
 		INFO_MSG("Dbmgr::initializeEnd: %s!\n", pDBInterface_->c_str());
 	}
 
-	return true;
+	return EntityTables::getSingleton().load(pDBInterface_) && EntityTables::getSingleton().syncToDB();
 }
 
 //-------------------------------------------------------------------------------------

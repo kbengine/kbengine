@@ -31,6 +31,28 @@ namespace KBEngine {
 class ScriptDefModule;
 
 /*
+	维护entity在数据库中的表中的一个字段
+*/
+class EntityTableItemMysql : public EntityTableItem
+{
+public:
+	EntityTableItemMysql(){};
+	virtual ~EntityTableItemMysql(){};
+
+	/**
+		初始化
+	*/
+	virtual bool initialize(const PropertyDescription* p);
+
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB();
+protected:
+};
+
+
+/*
 	维护entity在数据库中的表
 */
 class EntityTableMysql : public EntityTable
@@ -48,6 +70,11 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB();
+
+	/** 
+		创建一个表item
+	*/
+	virtual EntityTableItem* createItem();
 protected:
 };
 

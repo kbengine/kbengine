@@ -106,14 +106,14 @@ void Base::createCellData(void)
 		if(dataType)
 		{
 			MemoryStream* ms = propertyDescription->getDefaultVal();
-			PyDict_SetItemString(cellDataDict_, propertyDescription->getName().c_str(), dataType->createObject(ms));
+			PyDict_SetItemString(cellDataDict_, propertyDescription->getName(), dataType->createObject(ms));
 			if(ms)
 				ms->rpos(0);
 		}
 		else
 		{
 			ERROR_MSG("Base::createCellData: %s PropertyDescription the dataType is NULL.\n", 
-				propertyDescription->getName().c_str());	
+				propertyDescription->getName());	
 		}
 			
 	}
@@ -143,7 +143,7 @@ void Base::addCellDataToStream(uint32 flags, MemoryStream* s)
 		PropertyDescription* propertyDescription = iter->second;
 		if((flags & propertyDescription->getFlags()) > 0)
 		{
-			PyObject* pyVal = PyDict_GetItemString(cellDataDict_, propertyDescription->getName().c_str());
+			PyObject* pyVal = PyDict_GetItemString(cellDataDict_, propertyDescription->getName());
 			(*s) << propertyDescription->getUType();
 			propertyDescription->getDataType()->addToStream(s, pyVal);
 		}
@@ -169,7 +169,7 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 		if(finditer != log.end())
 			continue;
 
-		const char* attrname = propertyDescription->getName().c_str();
+		const char* attrname = propertyDescription->getName();
 		if(propertyDescription->isPersistent() && (flags & propertyDescription->getFlags()) > 0)
 		{
 			PyObject *key = PyUnicode_FromString(attrname);
@@ -214,8 +214,8 @@ PyObject* Base::createCellDataDict(uint32 flags)
 		PropertyDescription* propertyDescription = iter->second;
 		if((flags & propertyDescription->getFlags()) > 0)
 		{
-			PyObject* pyVal = PyDict_GetItemString(cellDataDict_, propertyDescription->getName().c_str());
-			PyDict_SetItemString(cellData, propertyDescription->getName().c_str(), pyVal);
+			PyObject* pyVal = PyDict_GetItemString(cellDataDict_, propertyDescription->getName());
+			PyDict_SetItemString(cellData, propertyDescription->getName(), pyVal);
 		}
 	}
 	return cellData;
@@ -244,7 +244,7 @@ void Base::getClientPropertys(MemoryStream* s)
 	for(; iter != propertyDescrs.end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;
-		PyObject *key = PyUnicode_FromString(propertyDescription->getName().c_str());
+		PyObject *key = PyUnicode_FromString(propertyDescription->getName());
 			
 	    if(PyDict_Contains(pydict, key) > 0)
 	    {

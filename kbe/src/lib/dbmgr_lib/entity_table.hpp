@@ -24,12 +24,44 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "helper/debug_helper.hpp"
+#include "entitydef/common.hpp"
 
 namespace KBEngine { 
 
 class DBUtil;
 class DBInterface;
 class ScriptDefModule;
+class PropertyDescription;
+
+/*
+	维护entity在数据库中的表中的一个字段
+*/
+class EntityTableItem
+{
+public:
+	EntityTableItem(){};
+	virtual ~EntityTableItem(){};
+
+	void itemName(std::string name){ itemName_ = name; }
+	const char* itemName(){ return itemName_.c_str(); }
+
+	void utype(ENTITY_PROPERTY_UID utype){ utype_ = utype; }
+	ENTITY_PROPERTY_UID utype(){ return utype_; }
+
+	/**
+		初始化
+	*/
+	virtual bool initialize(const PropertyDescription* p) = 0;
+
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB() = 0;
+protected:
+	// 字段名称
+	std::string itemName_;
+	ENTITY_PROPERTY_UID utype_;
+};
 
 /*
 	维护entity在数据库中的表
@@ -37,30 +69,50 @@ class ScriptDefModule;
 class EntityTable
 {
 public:
+	typedef std::map<ENTITY_PROPERTY_UID, std::tr1::shared_ptr<EntityTableItem> > TABLEITEM_MAP;
+
 	EntityTable(){};
 	virtual ~EntityTable(){};
 	
+	void tableName(std::string name){ tableName_ = name; }
+	const char* tableName(){ return tableName_.c_str(); }
+
 	/**
 		初始化
 	*/
 	virtual bool initialize(ScriptDefModule* sm) = 0;
+
 	/**
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB() = 0;
+
+	/** 
+		创建一个表item
+	*/
+	virtual EntityTableItem* createItem() = 0;
 protected:
+
+	// 表名称
+	std::string tableName_;
+
+	// 所有的字段
+	TABLEITEM_MAP tableItems_;
 };
 
 class EntityTables : public Singleton<EntityTables>
 {
 public:
+	typedef std::tr1::unordered_map<std::string, std::tr1::shared_ptr<EntityTable> > TABLES_MAP;
 	EntityTables();
 	virtual ~EntityTables();
 	
 	bool load(DBInterface* dbi);
 
-	bool syncAllToDB();
+	bool syncToDB();
 protected:
+	// 所有的字段
+	TABLES_MAP tables_;
 };
 
 }
