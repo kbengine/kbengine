@@ -32,6 +32,7 @@ class DBUtil;
 class DBInterface;
 class ScriptDefModule;
 class PropertyDescription;
+class EntityTable;
 
 /*
 	维护entity在数据库中的表中的一个字段
@@ -48,10 +49,13 @@ public:
 	void utype(ENTITY_PROPERTY_UID utype){ utype_ = utype; }
 	ENTITY_PROPERTY_UID utype(){ return utype_; }
 
+	void pParentTable(EntityTable* v){ pParentTable_ = v; }
+	EntityTable* pParentTable(){ return pParentTable_; }
+
 	/**
 		初始化
 	*/
-	virtual bool initialize(const PropertyDescription* p) = 0;
+	virtual bool initialize(DBInterface* dbi, const PropertyDescription* p) = 0;
 
 	/**
 		同步entity表到数据库中
@@ -61,6 +65,12 @@ protected:
 	// 字段名称
 	std::string itemName_;
 	ENTITY_PROPERTY_UID utype_;
+
+	DBInterface* pdbi_;
+
+	EntityTable* pParentTable_;
+
+	const PropertyDescription* pPropertyDescription_;
 };
 
 /*
@@ -80,7 +90,7 @@ public:
 	/**
 		初始化
 	*/
-	virtual bool initialize(ScriptDefModule* sm) = 0;
+	virtual bool initialize(DBInterface* dbi, ScriptDefModule* sm) = 0;
 
 	/**
 		同步entity表到数据库中
@@ -90,7 +100,7 @@ public:
 	/** 
 		创建一个表item
 	*/
-	virtual EntityTableItem* createItem() = 0;
+	virtual EntityTableItem* createItem(const PropertyDescription* p) = 0;
 protected:
 
 	// 表名称
@@ -98,6 +108,8 @@ protected:
 
 	// 所有的字段
 	TABLEITEM_MAP tableItems_;
+
+	DBInterface* pdbi_;
 };
 
 class EntityTables : public Singleton<EntityTables>
@@ -113,6 +125,7 @@ public:
 protected:
 	// 所有的字段
 	TABLES_MAP tables_;
+	DBInterface* pdbi_;
 };
 
 }

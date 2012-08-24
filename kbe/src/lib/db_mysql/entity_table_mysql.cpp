@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entity_table_mysql.hpp"
 #include "entitydef/scriptdef_module.hpp"
 #include "entitydef/property.hpp"
+#include "dbmgr_lib/db_interface.hpp"
 
 namespace KBEngine { 
 
@@ -36,8 +37,10 @@ EntityTableMysql::~EntityTableMysql()
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableMysql::initialize(ScriptDefModule* sm)
+bool EntityTableMysql::initialize(DBInterface* dbi, ScriptDefModule* sm)
 {
+	pdbi_ = dbi;
+
 	// 获取表名
 	tableName(sm->getName());
 
@@ -47,8 +50,8 @@ bool EntityTableMysql::initialize(ScriptDefModule* sm)
 	for(; iter != pdescrsMap.end(); iter++)
 	{
 		PropertyDescription* pdescrs = iter->second;
-		EntityTableItem* pETItem = this->createItem();
-		bool ret = pETItem->initialize(pdescrs);
+		EntityTableItem* pETItem = this->createItem(pdescrs);
+		bool ret = pETItem->initialize(pdbi_, pdescrs);
 		
 		if(!ret)
 		{
@@ -56,6 +59,7 @@ bool EntityTableMysql::initialize(ScriptDefModule* sm)
 			return false;
 		}
 
+		pETItem->pParentTable(this);
 		tableItems_[pETItem->utype()].reset(pETItem);
 	}
 
@@ -66,6 +70,19 @@ bool EntityTableMysql::initialize(ScriptDefModule* sm)
 bool EntityTableMysql::syncToDB()
 {
 	DEBUG_MSG("EntityTableMysql::syncToDB(): %s.\n", tableName());
+
+	char sql_str[MAX_BUF];
+	kbe_snprintf(sql_str, MAX_BUF, "CREATE TABLE IF NOT EXISTS tbl_%s ("
+			"id int(10) NOT NULL auto_increment,"
+			"PRIMARY KEY  (`id`)"
+		");", 
+		tableName());
+
+	bool ret = pdbi_->query(sql_str, strlen(sql_str));
+	if(!ret)
+	{
+		return false;
+	}
 
 	EntityTable::TABLEITEM_MAP::iterator iter = tableItems_.begin();
 	for(; iter != tableItems_.end(); iter++)
@@ -78,23 +95,78 @@ bool EntityTableMysql::syncToDB()
 }
 
 //-------------------------------------------------------------------------------------
-EntityTableItem* EntityTableMysql::createItem()
+EntityTableItem* EntityTableMysql::createItem(const PropertyDescription* p)
 {
-	return new EntityTableItemMysql();
+	std::string type = p->getDataTypeName();
+	if(type == "UINT8" ||
+		type == "UINT16" ||
+		type == "UINT64" ||
+		type == "UINT32" ||
+		type == "INT8" ||
+		type == "INT16" ||
+		type == "INT32" ||
+		type == "INT64")
+	{
+		return new EntityTableItemMysql_INT();
+	}
+	else if(type == "STRING")
+	{
+		return new EntityTableItemMysql_STRING();
+	}
+
+	return new EntityTableItemMysql_STRING();
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql::initialize(const PropertyDescription* p)
+bool EntityTableItemMysql_INT::initialize(DBInterface* dbi, const PropertyDescription* p)
 {
+	pdbi_ = dbi;
 	utype(p->getUType());
 	itemName(p->getName());
+
+	pPropertyDescription_ = p;
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql::syncToDB()
+bool EntityTableItemMysql_INT::syncToDB()
 {
-	DEBUG_MSG("EntityTableItemMysql::syncToDB(): %s.\n", itemName());
+	DEBUG_MSG("EntityTableItemMysql_INT::syncToDB(): %s.\n", itemName());
+
+	uint32 length = pPropertyDescription_->getDatabaseLength();
+	if(length == 0)
+		length = 10;
+
+	char sql_str[MAX_BUF];
+	kbe_snprintf(sql_str, MAX_BUF, "alter table tbl_%s add %s int(%s) not null default '0';",
+		this->pParentTable_->tableName(), itemName(), length);
+
+	bool ret = pdbi_->query(sql_str, strlen(sql_str));
+	if(!ret)
+	{
+		return false;
+	}
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_STRING::syncToDB()
+{
+	DEBUG_MSG("EntityTableItemMysql_STRING::syncToDB(): %s.\n", itemName());
+	
+	uint32 length = pPropertyDescription_->getDatabaseLength();
+	if(length == 0)
+		length = 255;
+
+	char sql_str[MAX_BUF];
+	kbe_snprintf(sql_str, MAX_BUF, "alter table tbl_%s add %s VARCHAR(%u);",
+		this->pParentTable_->tableName(), itemName(), length);
+
+	bool ret = pdbi_->query(sql_str, strlen(sql_str));
+	if(!ret)
+	{
+		return false;
+	}
 	return true;
 }
 

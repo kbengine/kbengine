@@ -75,7 +75,8 @@ public:
 	
 	/** 设置这个属性在数据库中的长度 */
 	void setDatabaseLength(uint32 databaseLength){ databaseLength_ = databaseLength; }
-	
+	uint32 getDatabaseLength()const { return databaseLength_; }
+
 	/** 获取这个属性描述在def文件中被定义的默认值 */
 	MemoryStream* getDefaultVal(void){ return defaultVal_; }
 	

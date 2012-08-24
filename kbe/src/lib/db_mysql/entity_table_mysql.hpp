@@ -33,16 +33,16 @@ class ScriptDefModule;
 /*
 	维护entity在数据库中的表中的一个字段
 */
-class EntityTableItemMysql : public EntityTableItem
+class EntityTableItemMysql_INT : public EntityTableItem
 {
 public:
-	EntityTableItemMysql(){};
-	virtual ~EntityTableItemMysql(){};
+	EntityTableItemMysql_INT(){};
+	virtual ~EntityTableItemMysql_INT(){};
 
 	/**
 		初始化
 	*/
-	virtual bool initialize(const PropertyDescription* p);
+	virtual bool initialize(DBInterface* dbi, const PropertyDescription* p);
 
 	/**
 		同步entity表到数据库中
@@ -51,7 +51,14 @@ public:
 protected:
 };
 
-
+class EntityTableItemMysql_STRING : public EntityTableItemMysql_INT
+{
+public:
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB();
+};
 /*
 	维护entity在数据库中的表
 */
@@ -64,7 +71,7 @@ public:
 	/**
 		初始化
 	*/
-	virtual bool initialize(ScriptDefModule* sm);
+	virtual bool initialize(DBInterface* dbi, ScriptDefModule* sm);
 
 	/**
 		同步entity表到数据库中
@@ -74,7 +81,7 @@ public:
 	/** 
 		创建一个表item
 	*/
-	virtual EntityTableItem* createItem();
+	virtual EntityTableItem* createItem(const PropertyDescription* p);
 protected:
 };
 

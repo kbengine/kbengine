@@ -42,13 +42,15 @@ EntityTables::~EntityTables()
 //-------------------------------------------------------------------------------------
 bool EntityTables::load(DBInterface* dbi)
 {
+	pdbi_ = dbi;
+
 	EntityDef::SCRIPT_MODULES smodules = EntityDef::getScriptModules();
 	EntityDef::SCRIPT_MODULES::const_iterator iter = smodules.begin();
 	for(; iter != smodules.end(); iter++)
 	{
 		ScriptDefModule* pSM = (*iter);
 		EntityTable* pEtable = dbi->createEntityTable();
-		bool ret = pEtable->initialize(pSM);
+		bool ret = pEtable->initialize(pdbi_, pSM);
 
 		if(!ret)
 		{
