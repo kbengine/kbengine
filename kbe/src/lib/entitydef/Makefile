@@ -11,6 +11,7 @@ SRCS =				\
 	fixeddict		\
 	method			\
 	property		\
+	remote_entity_method	\
 	scriptdef_module
 
 ifndef KBE_ROOT

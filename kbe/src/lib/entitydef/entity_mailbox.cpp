@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/channel.hpp"	
 #include "pyscript/pickler.hpp"
 #include "entitydef/method.hpp"
+#include "remote_entity_method.hpp"
 #include "entitydef/entitydef.hpp"
 
 #ifdef KBE_SERVER

@@ -193,6 +193,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\remote_entity_method.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\scriptdef_module.cpp"
 				>
 			</File>
@@ -248,6 +252,10 @@
 			</File>
 			<File
 				RelativePath=".\property.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\remote_entity_method.hpp"
 				>
 			</File>
 			<File

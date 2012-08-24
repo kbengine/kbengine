@@ -87,33 +87,5 @@ protected:
 	ENTITY_ID								currCallerID_;								// 当前调用这个方法的调用者ID, 提供暴露方法调用时给脚本判断调用源防止作弊
 };
 
-class RemoteEntityMethod : public script::ScriptObject
-{
-	/** 子类化 将一些py操作填充进派生类 */
-	INSTANCE_SCRIPT_HREADER(RemoteEntityMethod, script::ScriptObject)	
-public:	
-	RemoteEntityMethod(MethodDescription* methodDescription, EntityMailboxAbstract* mailbox);
-	virtual ~RemoteEntityMethod();
-
-	std::string& getName(void)
-	{ 
-		return methodDescription_->getName(); 
-	};
-
-	MethodDescription* getDescription(void)const
-	{ 
-		return methodDescription_; 
-	}
-
-	static PyObject* tp_call(PyObject* self, PyObject* args, PyObject* kwds);
-
-	EntityMailboxAbstract* getMailbox(void)const 
-	{
-		return pMailbox_; 
-	}
-protected:	
-	MethodDescription*		methodDescription_;					// 这个方法的描述
-	EntityMailboxAbstract*	pMailbox_;							// 这个方法所属的mailbox
-};
 }
 #endif
