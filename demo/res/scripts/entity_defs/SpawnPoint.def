@@ -6,11 +6,11 @@
 	</Volatile>
 
 	<Properties>
-		<spawnEntityType>
-			<Type>			STRING			</Type>
+		<spawnEntityNO>
+			<Type>			UINT32			</Type>
 			<Flags>			CELL_PRIVATE		</Flags>
 			<Persistent>		true			</Persistent>
-		</spawnEntityType>
+		</spawnEntityNO>
 
 		<createToCell>
 			<Type>			MAILBOX			</Type>

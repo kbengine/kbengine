@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 from KBEDebug import *
+import d_entities
 
 class SpawnPoint(KBEngine.Entity):
 	def __init__(self):
 		KBEngine.Entity.__init__(self)
 		
+		datas = d_entities.datas.get(self.spawnEntityNO)
 		params = {
 			"spawnPos" : tuple(self.position),
 		}
 		
-		KBEngine.createEntity(self.spawnEntityType, self.spaceID, tuple(self.position), tuple(self.direction), params)
+		KBEngine.createEntity(datas["entityType"], self.spaceID, tuple(self.position), tuple(self.direction), params)
 		
 	def onDestroy(self):
 		"""

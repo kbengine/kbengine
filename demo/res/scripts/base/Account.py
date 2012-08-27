@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 from KBEDebug import *
+import d_avatar_inittab
 
 all_avatar_names = []
 
@@ -19,8 +20,6 @@ class Account(KBEngine.Proxy):
 		@param userArg	: addTimer 最后一个参数所给入的数据
 		"""
 		DEBUG_MSG(id, userArg)
-		#self.giveClientTo(None)
-		#self.destroy()
 		
 	def onEntitiesEnabled(self):
 		"""
@@ -29,8 +28,7 @@ class Account(KBEngine.Proxy):
 		cell部分。
 		"""
 		INFO_MSG("account[%i] entities enable. mailbox:%s" % (self.id, self.client))
-		
-		#self.client.initPlayerList(self.avatars)
+		self.writeToDB()
 		
 	def onLogOnAttempt(self, ip, port, password):
 		"""
@@ -60,7 +58,7 @@ class Account(KBEngine.Proxy):
 		self.activeCharacter = None
 		DEBUG_MSG("Account[%i].onClientDeath:" % self.id)
 		self.destroy()
-
+	
 	def reqAvatarList(self):
 		"""
 		exposed.

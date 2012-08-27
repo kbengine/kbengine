@@ -9,11 +9,11 @@
 	</Implements>
 
 	<Properties>
-		<spaceName>
-			<Type>			STRING				</Type>
+		<utype>
+			<Type>			UINT32				</Type>
 			<Flags>			CELL_PRIVATE			</Flags>
 			<Persistent>		false				</Persistent>
-		</spaceName>
+		</utype>
 	</Properties>
 
 	<BaseMethods>

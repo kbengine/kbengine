@@ -3,15 +3,14 @@ import KBEngine
 import Functor
 from KBEDebug import *
 from GameObject import GameObject
-
-# 游戏存在的所有地图名称
-SPACE_NAMES = ["mengzhong", "xinshoucun"]
+import d_spaces
 
 class Spaces(GameObject):
 	def __init__(self):
 		GameObject.__init__(self)
 		self._spaces = {}
 		self.addTimer(3, 1, 1)
+		self._tmpDatas = list(d_spaces.datas.keys())
 		
 		KBEngine.globalData["SpaceMgr"] = self
 		
@@ -23,21 +22,22 @@ class Spaces(GameObject):
 		@param userArg	: addTimer 最后一个参数所给入的数据
 		"""
 		if userArg == 1:
-			if len(SPACE_NAMES) > 0:
-				spaceName = SPACE_NAMES.pop(0)
-				space = KBEngine.createBaseAnywhere("Space", \
-													{"spaceName" : spaceName}, \
-													Functor.Functor(self.onSpaceCreatedCB, spaceName))
+			if len(self._tmpDatas) > 0:
+				spaceID = self._tmpDatas.pop(0)
+				spaceData = d_spaces.datas.get(spaceID)
+				space = KBEngine.createBaseAnywhere(spaceData["entityType"], \
+													{"utype" : spaceID}, \
+													Functor.Functor(self.onSpaceCreatedCB, spaceID))
 				
-			if len(SPACE_NAMES) <= 0:
+			if len(self._tmpDatas) <= 0:
 				self.delTimer(id)
 				
-	def onSpaceCreatedCB(self, spaceName, space):
+	def onSpaceCreatedCB(self, spaceID, space):
 		"""
 		一个space创建好后的回调
 		"""
-		DEBUG_MSG("Spaces::create space %s. entityID=%i" % (spaceName, space.id))
-		self._spaces[spaceName] = space
+		DEBUG_MSG("Spaces::create space %s. entityID=%i" % (spaceID, space.id))
+		self._spaces[spaceID] = space
 		
 	def loginToSpace(self, avatarMailbox, spaceName):
 		"""

@@ -3,13 +3,14 @@ import KBEngine
 import random
 from KBEDebug import *
 from GameObject import GameObject
+import d_entities
 
 class Space(GameObject):
 	def __init__(self):
 		GameObject.__init__(self)
 		self.createInNewSpace(None)
 		# 这个地图上创建的entity总数
-		self.createEntityTotalCount = 10
+		self.tmpCreateEntityDatas = list(d_entities.datas.keys())
 
 	def onGetCell(self):
 		"""
@@ -26,14 +27,14 @@ class Space(GameObject):
 		@param userArg	: addTimer 最后一个参数所给入的数据
 		"""
 		if userArg == 1:
+			entityNO = self.tmpCreateEntityDatas.pop(0)
 			KBEngine.createBaseAnywhere("SpawnPoint", 
-										{"spawnEntityType"	: "Monster", 	\
+										{"spawnEntityNO"	: entityNO, 	\
 										"position"			: (random.randint(-512, 512), 250, random.randint(-512, 512)), 	\
 										"direction"			: (0, 0, 0),	\
 										"createToCell"		: self.cell})
 			
-			self.createEntityTotalCount -= 1
-			if self.createEntityTotalCount <= 0:
+			if len(self.tmpCreateEntityDatas) <= 0:
 				self.delTimer(id)
 				
 	def onLoginToSpace(self, avatarMailbox):
