@@ -21,7 +21,7 @@ class Avatar(KBEngine.Proxy):
 		INFO_MSG("Avatar[%i-%s] entities enable. mailbox:%s" % (self.id, self.name, self.client))
 		
 		self.cellData["position"] = (random.randint(-10, 10), 250, random.randint(-10, 10))
-		KBEngine.globalData["SpaceMgr"].loginToSpace(self, "xinshoucun")
+		KBEngine.globalData["SpaceMgr"].loginToSpace(self, self.spaceUType)
 		
 	def onGetCell(self):
 		"""

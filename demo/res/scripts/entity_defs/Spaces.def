@@ -14,8 +14,10 @@
 	<BaseMethods>
 		<loginToSpace>
 			<Arg>		MAILBOX		</Arg>
-			<Arg>		STRING		</Arg>
+			<Arg>		UINT32		</Arg>
 		</loginToSpace>
 	</BaseMethods>
 
+	<CellMethods>
+	</CellMethods>
 </root>

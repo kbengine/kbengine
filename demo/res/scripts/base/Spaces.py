@@ -23,30 +23,30 @@ class Spaces(GameObject):
 		"""
 		if userArg == 1:
 			if len(self._tmpDatas) > 0:
-				spaceID = self._tmpDatas.pop(0)
-				spaceData = d_spaces.datas.get(spaceID)
+				spaceUType = self._tmpDatas.pop(0)
+				spaceData = d_spaces.datas.get(spaceUType)
 				space = KBEngine.createBaseAnywhere(spaceData["entityType"], \
-													{"utype" : spaceID}, \
-													Functor.Functor(self.onSpaceCreatedCB, spaceID))
+													{"spaceUType" : spaceUType}, \
+													Functor.Functor(self.onSpaceCreatedCB, spaceUType))
 				
 			if len(self._tmpDatas) <= 0:
 				self.delTimer(id)
 				
-	def onSpaceCreatedCB(self, spaceID, space):
+	def onSpaceCreatedCB(self, spaceUType, space):
 		"""
 		一个space创建好后的回调
 		"""
-		DEBUG_MSG("Spaces::create space %s. entityID=%i" % (spaceID, space.id))
-		self._spaces[spaceID] = space
+		DEBUG_MSG("Spaces::create space %i. entityID=%i" % (spaceUType, space.id))
+		self._spaces[spaceUType] = space
 		
-	def loginToSpace(self, avatarMailbox, spaceName):
+	def loginToSpace(self, avatarMailbox, spaceUType):
 		"""
 		define method.
 		某个玩家请求登陆到某个space中
 		"""
-		space = self._spaces.get(spaceName)
-		if spaceName not in self._spaces:
-			ERROR_MSG("Spaces::not found space %s. login to space is failed!" % spaceName)
+		space = self._spaces.get(spaceUType)
+		if spaceID not in self._spaces:
+			ERROR_MSG("Spaces::not found space %i. login to space is failed!" % spaceUType)
 			return
 		
 		space.onLoginToSpace(avatarMailbox)

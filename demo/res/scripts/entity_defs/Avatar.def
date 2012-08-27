@@ -10,6 +10,11 @@
 	</Implements>
 
 	<Properties>
+		<spaceUType>
+			<Type>			UINT32				</Type>
+			<Flags>			CELL_PRIVATE			</Flags>
+			<Persistent>		true				</Persistent>
+		</spaceUType>
 	</Properties>
 
 	<BaseMethods>

@@ -57,7 +57,8 @@ bool EntityDef::finish(void)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::initialize(const std::string entitiesPath, std::vector<PyTypeObject*>& scriptBaseTypes, COMPONENT_TYPE loadComponentType)
+bool EntityDef::initialize(const std::string entitiesPath, 
+						   std::vector<PyTypeObject*>& scriptBaseTypes, COMPONENT_TYPE loadComponentType)
 {
 	__loadComponentType = loadComponentType;
 	g_entityFlagMapping["CELL_PUBLIC"]							= ED_FLAG_CELL_PUBLIC;
@@ -120,7 +121,8 @@ bool EntityDef::initialize(const std::string entitiesPath, std::vector<PyTypeObj
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadDefInfo(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, TiXmlNode* defNode, ScriptDefModule* scriptModule)
+bool EntityDef::loadDefInfo(std::string& defFilePath, std::string& moduleName, 
+							XmlPlus* defxml, TiXmlNode* defNode, ScriptDefModule* scriptModule)
 {
 	if(!loadAllDefDescription(moduleName, defxml, defNode, scriptModule))
 	{
@@ -153,7 +155,8 @@ bool EntityDef::loadDefInfo(std::string& defFilePath, std::string& moduleName, X
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadDetailLevelInfo(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, TiXmlNode* defNode, ScriptDefModule* scriptModule)
+bool EntityDef::loadDetailLevelInfo(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, 
+									TiXmlNode* defNode, ScriptDefModule* scriptModule)
 {
 	TiXmlNode* detailLevelNode = defxml->enterNode(defNode, "DetailLevels");
 	if(detailLevelNode == NULL)
@@ -203,7 +206,8 @@ bool EntityDef::loadDetailLevelInfo(std::string& defFilePath, std::string& modul
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadInterfaces(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, TiXmlNode* defNode, ScriptDefModule* scriptModule)
+bool EntityDef::loadInterfaces(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, 
+							   TiXmlNode* defNode, ScriptDefModule* scriptModule)
 {
 	TiXmlNode* implementsNode = defxml->enterNode(defNode, "Implements");
 	if(implementsNode == NULL)
@@ -238,7 +242,8 @@ bool EntityDef::loadInterfaces(std::string& defFilePath, std::string& moduleName
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadParentClass(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, TiXmlNode* defNode, ScriptDefModule* scriptModule)
+bool EntityDef::loadParentClass(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, 
+								TiXmlNode* defNode, ScriptDefModule* scriptModule)
 {
 	TiXmlNode* parentClassNode = defxml->enterNode(defNode, "Parent");
 	if(parentClassNode == NULL)
