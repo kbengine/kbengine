@@ -43,3 +43,10 @@ class Space(GameObject):
 		某个玩家请求登陆到这个space中
 		"""
 		avatarMailbox.createCell(self.cell)
+		
+	def teleportTo(self, entityMailbox, spaceUType):
+		"""
+		define method.
+		请求进入某个space中
+		"""
+		entityMailbox.teleport(self.cell)

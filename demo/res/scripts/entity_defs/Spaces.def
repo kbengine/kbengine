@@ -16,6 +16,11 @@
 			<Arg>		MAILBOX		</Arg>
 			<Arg>		UINT32		</Arg>
 		</loginToSpace>
+
+		<teleportTo>
+			<Arg>		MAILBOX		</Arg>
+			<Arg>		UINT32		</Arg>
+		</teleportTo>
 	</BaseMethods>
 
 	<CellMethods>

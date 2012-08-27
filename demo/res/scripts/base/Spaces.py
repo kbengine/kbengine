@@ -46,7 +46,19 @@ class Spaces(GameObject):
 		"""
 		space = self._spaces.get(spaceUType)
 		if spaceID not in self._spaces:
-			ERROR_MSG("Spaces::not found space %i. login to space is failed!" % spaceUType)
+			ERROR_MSG("Spaces::loginToSpace: not found space %i. login to space is failed!" % spaceUType)
 			return
 		
 		space.onLoginToSpace(avatarMailbox)
+		
+	def teleportTo(self, entityMailbox, spaceUType):
+		"""
+		define method.
+		请求进入某个space中
+		"""
+		space = self._spaces.get(spaceUType)
+		if spaceID not in self._spaces:
+			ERROR_MSG("Spaces::teleportTo: not found space %i. teleportTo is failed!" % spaceUType)
+			return
+		
+		space.teleportTo(avatarMailbox)

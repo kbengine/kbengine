@@ -20,6 +20,10 @@
 		<onLoginToSpace>
 			<Arg>		MAILBOX		</Arg>
 		</onLoginToSpace>
+
+		<teleportTo>
+			<Arg>		MAILBOX		</Arg>
+		</teleportTo>
 	</BaseMethods>
 
 	<CellMethods>
