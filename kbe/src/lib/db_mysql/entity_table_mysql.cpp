@@ -204,20 +204,6 @@ bool EntityTableItemMysql_ARRAY::initialize(DBInterface* dbi, const PropertyDesc
 bool EntityTableItemMysql_ARRAY::syncToDB()
 {
 	DEBUG_MSG("EntityTableItemMysql_ARRAY::syncToDB(): %s.\n", itemName());
-
-	uint32 length = pPropertyDescription_->getDatabaseLength();
-	if(length == 0)
-		length = 10;
-
-	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "alter table tbl_%s add %s int(%s) not null default '0';",
-		this->pParentTable_->tableName(), itemName(), length);
-
-	bool ret = pdbi_->query(sql_str, strlen(sql_str));
-	if(!ret)
-	{
-		return false;
-	}
 	return true;
 }
 
