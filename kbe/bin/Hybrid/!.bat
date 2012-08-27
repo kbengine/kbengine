@@ -7,7 +7,7 @@ set KBE_HYBRID_PATH=%KBE_ROOT%kbe/bin/Hybrid/
 start kbmachine.exe
 ping 127.0.0.1 -n 1
 start dbmgr.exe
-ping 127.0.0.1 -n 1
+ping 127.0.0.1 -n 2
 start baseappmgr.exe
 ping 127.0.0.1 -n 1
 start cellappmgr.exe

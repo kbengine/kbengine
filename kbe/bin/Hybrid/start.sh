@@ -7,7 +7,7 @@ export KBE_HYBRID_PATH='/root/kbe/kbe/bin/Hybrid64/'
 ./kbmachine&
 sleep 1s
 ./dbmgr&
-sleep 1s
+sleep 2s
 ./baseappmgr&
 sleep 1s
 ./cellappmgr&
