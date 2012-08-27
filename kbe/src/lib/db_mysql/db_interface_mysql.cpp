@@ -54,7 +54,23 @@ bool DBInterfaceMysql::attach(const char* databaseName)
     	db_password_, db_name_, db_port_, 0, CLIENT_MULTI_STATEMENTS);  
     
 	if(mysql())
-		mysql_select_db(mysql(), databaseName); 
+	{
+		if(mysql_select_db(mysql(), databaseName) != 0)
+		{
+			ERROR_MSG( "DBInterfaceMysql::attach: Could not set active db[%s]\n", databaseName);
+			return false;
+		}
+	}
+	else
+	{
+		return false;
+	}
+
+	if (mysql_set_character_set(mysql(), "utf8") != 0)
+	{
+		ERROR_MSG( "DBInterfaceMysql::attach: Could not set client connection character set to UTF-8\n" );
+	}
+
     return mysql() != NULL;
 }
 
@@ -74,6 +90,30 @@ bool DBInterfaceMysql::detach()
 EntityTable* DBInterfaceMysql::createEntityTable()
 {
 	return new EntityTableMysql();
+}
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceMysql::dropEntityTableFromDB(const char* tablename)
+{
+	KBE_ASSERT(tablename != NULL);
+  
+	DEBUG_MSG("DBInterfaceMysql::dropEntityTableFromDB: %s.\n", tablename);
+
+	char sql_str[MAX_BUF];
+	kbe_snprintf(sql_str, MAX_BUF, "Drop table if exists %s;", tablename);
+	return query(sql_str, strlen(sql_str));
+}
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceMysql::dropEntityTableItemFromDB(const char* tablename, const char* tableItemName)
+{
+	KBE_ASSERT(tablename != NULL && tableItemName != NULL);
+  
+	DEBUG_MSG("DBInterfaceMysql::dropEntityTableItemFromDB: %s %s.\n", tablename, tableItemName);
+
+	char sql_str[MAX_BUF];
+	kbe_snprintf(sql_str, MAX_BUF, "alter table %s drop column %s;", tablename, tableItemName);
+	return query(sql_str, strlen(sql_str));
 }
 
 //-------------------------------------------------------------------------------------
@@ -157,7 +197,7 @@ bool DBInterfaceMysql::execute(const char* strCommand, uint32 size, MemoryStream
 }
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceMysql::getTableNames( std::vector<std::string>& tableNames, const char * pattern)
+bool DBInterfaceMysql::getTableNames(std::vector<std::string>& tableNames, const char * pattern)
 {
 	if(pMysql_ == NULL)
 	{
@@ -183,6 +223,27 @@ bool DBInterfaceMysql::getTableNames( std::vector<std::string>& tableNames, cons
 		mysql_free_result(pResult);
 	}
 
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceMysql::getTableItemNames(const char* tablename, std::vector<std::string>& itemNames)
+{
+	MYSQL_RES*	result = mysql_list_fields(mysql(), tablename, NULL);
+	if(result)
+	{
+		unsigned int numFields = mysql_num_fields(result);
+		MYSQL_FIELD* fields = mysql_fetch_fields(result);
+
+		for(unsigned int i = 0; i < numFields; i++)
+		{
+			itemNames.push_back(fields[i].name);
+		}
+	}
+	else
+		return false;
+
+	mysql_free_result(result);
 	return true;
 }
 

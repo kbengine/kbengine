@@ -51,6 +51,33 @@ public:
 protected:
 };
 
+class EntityTableItemMysql_UINT : public EntityTableItemMysql_INT
+{
+public:
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB();
+};
+
+class EntityTableItemMysql_INT64 : public EntityTableItemMysql_INT
+{
+public:
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB();
+};
+
+class EntityTableItemMysql_UINT64 : public EntityTableItemMysql_INT
+{
+public:
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB();
+};
+
 class EntityTableItemMysql_STRING : public EntityTableItemMysql_INT
 {
 public:
@@ -59,6 +86,40 @@ public:
 	*/
 	virtual bool syncToDB();
 };
+
+class EntityTableItemMysql_FLOAT : public EntityTableItemMysql_INT
+{
+public:
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB();
+};
+
+class EntityTableItemMysql_DOUBLE : public EntityTableItemMysql_INT
+{
+public:
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB();
+};
+
+class EntityTableItemMysql_ARRAY : public EntityTableItemMysql_INT
+{
+public:
+	/**
+		初始化
+	*/
+	virtual bool initialize(DBInterface* dbi, const PropertyDescription* p);
+
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB();
+};
+
+
 /*
 	维护entity在数据库中的表
 */

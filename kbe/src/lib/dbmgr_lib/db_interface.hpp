@@ -47,6 +47,16 @@ public:
 	virtual bool detach() = 0;
 
 	/**
+		获取数据库所有的表名
+	*/
+	virtual bool getTableNames( std::vector<std::string>& tableNames, const char * pattern) = 0;
+
+	/**
+		获取数据库某个表所有的字段名称
+	*/
+	virtual bool getTableItemNames(const char* tablename, std::vector<std::string>& itemNames) = 0;
+
+	/**
 		查询表
 	*/
 	virtual bool query(const char* strCommand, uint32 size) = 0;
@@ -70,6 +80,16 @@ public:
 		创建一个entity存储表
 	*/
 	virtual EntityTable* createEntityTable() = 0;
+
+	/** 
+		从数据库删除entity表
+	*/
+	virtual bool dropEntityTableFromDB(const char* tablename) = 0;
+
+	/** 
+		从数据库删除entity表字段
+	*/
+	virtual bool dropEntityTableItemFromDB(const char* tablename, const char* tableItemName) = 0;
 protected:
 	char db_type_[MAX_BUF];									// 数据库的类别
 	uint32 db_port_;										// 数据库的端口

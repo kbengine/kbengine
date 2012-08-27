@@ -67,12 +67,34 @@ bool EntityTables::load(DBInterface* dbi)
 //-------------------------------------------------------------------------------------
 bool EntityTables::syncToDB()
 {
+	std::vector<std::string> dbTableNames;
+	pdbi_->getTableNames(dbTableNames, "");
+
+	// 检查是否有需要删除的表
+	std::vector<std::string>::iterator iter0 = dbTableNames.begin();
+	for(; iter0 != dbTableNames.end(); iter0++)
+	{
+		std::string tname = (*iter0);
+		if(std::string::npos == tname.find("tbl_"))
+			continue;
+
+		KBEngine::kbe_replace(tname, "tbl_", "");
+		EntityTables::TABLES_MAP::iterator iter = tables_.find(tname);
+		if(iter == tables_.end())
+		{
+			if(!pdbi_->dropEntityTableFromDB((std::string("tbl_") + tname).c_str()))
+				return false;
+		}
+	}
+
+	// 开始同步所有表
 	EntityTables::TABLES_MAP::iterator iter = tables_.begin();
 	for(; iter != tables_.end(); iter++)
 	{
 		if(!iter->second->syncToDB())
 			return false;
 	}
+
 	return true;
 }
 

@@ -58,7 +58,21 @@ public:
 	virtual bool query(const char* strCommand, uint32 size);
 
 	bool execute(const char* strCommand, uint32 size, MemoryStream * resdata);
-	bool getTableNames( std::vector<std::string>& tableNames, const char * pattern);
+
+	/**
+		获取数据库所有的表名
+	*/
+	virtual bool getTableNames( std::vector<std::string>& tableNames, const char * pattern);
+
+	/**
+		获取数据库某个表所有的字段名称
+	*/
+	virtual bool getTableItemNames(const char* tablename, std::vector<std::string>& itemNames);
+
+	/** 
+		从数据库删除entity表字段
+	*/
+	virtual bool dropEntityTableItemFromDB(const char* tablename, const char* tableItemName);
 
 	MYSQL* mysql(){ return pMysql_; }
 
@@ -81,6 +95,11 @@ public:
 		创建一个entity存储表
 	*/
 	virtual EntityTable* createEntityTable();
+
+	/** 
+		从数据库删除entity表
+	*/
+	virtual bool dropEntityTableFromDB(const char* tablename);
 protected:
 	MYSQL* pMysql_;
 };

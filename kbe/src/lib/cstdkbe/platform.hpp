@@ -553,6 +553,27 @@ void kbe_split(const std::basic_string<T>& s, T c, std::vector< std::basic_strin
 	}
 }
 
+// vector<string>之类的容易使用 std::find_if 来查找是否存在某个字符串
+template<typename T>
+class find_vec_string_exist_handle
+{
+public:
+	find_vec_string_exist_handle(std::basic_string< T > str)
+    : str_(str) {}
+
+    bool operator()(const std::basic_string< T > &strSrc)
+    {
+        return strSrc == str_;
+    }
+
+    bool operator()(const T* strSrc)
+    {
+        return strSrc == str_;
+    }
+private:
+    std::basic_string< T > str_;
+};
+
 // 获得系统产生的最后一次错误描述
 inline char* kbe_strerror(int ierrorno = 0)
 {
