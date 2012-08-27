@@ -101,6 +101,11 @@ public:
 		创建一个表item
 	*/
 	virtual EntityTableItem* createItem(const PropertyDescription* p) = 0;
+
+	/** 
+		获得所有表字段
+	*/
+	const EntityTable::TABLEITEM_MAP& tableItems()const { return tableItems_; }
 protected:
 
 	// 表名称
@@ -122,6 +127,11 @@ public:
 	bool load(DBInterface* dbi);
 
 	bool syncToDB();
+
+	/** 
+		获得所有表
+	*/
+	const EntityTables::TABLES_MAP& tables()const { return tables_; }
 protected:
 	// 所有的字段
 	TABLES_MAP tables_;
