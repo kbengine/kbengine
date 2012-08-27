@@ -270,31 +270,44 @@ bool EntityDef::loadAllDefDescription(std::string& moduleName, XmlPlus* defxml, 
 		return false;
 	
 	if(defxml->hasNode(defNode, "CellMethods"))
-		scriptModule->setCell(true);
+	{
+		TiXmlNode* node = defxml->enterNode(defNode, "CellMethods");
+		scriptModule->setCell(node != NULL);
+	}
 	
 	if(defxml->hasNode(defNode, "BaseMethods"))
-		scriptModule->setBase(true);
+	{
+		TiXmlNode* node = defxml->enterNode(defNode, "BaseMethods");
+		scriptModule->setBase(node != NULL);
+	}
 	
 	if(defxml->hasNode(defNode, "ClientMethods"))
-		scriptModule->setClient(true);
+	{
+		TiXmlNode* node = defxml->enterNode(defNode, "ClientMethods");
+		scriptModule->setClient(node != NULL);
+	}
 
 	// 加载cell方法描述
-	if(!loadDefCellMethods(moduleName, defxml, defxml->enterNode(defNode, "CellMethods"), scriptModule)){
+	if(!loadDefCellMethods(moduleName, defxml, defxml->enterNode(defNode, "CellMethods"), scriptModule))
+	{
 		ERROR_MSG("EntityDef::loadAllDefDescription:loadDefCellMethods[%s] is failed!\n", moduleName.c_str());
 		return false;
 	}
 
 	// 加载base方法描述
-	if(!loadDefBaseMethods(moduleName, defxml, defxml->enterNode(defNode, "BaseMethods"), scriptModule)){
+	if(!loadDefBaseMethods(moduleName, defxml, defxml->enterNode(defNode, "BaseMethods"), scriptModule))
+	{
 		ERROR_MSG("EntityDef::loadAllDefDescription:loadDefBaseMethods[%s] is failed!\n", moduleName.c_str());
 		return false;
 	}
 
 	// 加载client方法描述
-	if(!loadDefClientMethods(moduleName, defxml, defxml->enterNode(defNode, "ClientMethods"), scriptModule)){
+	if(!loadDefClientMethods(moduleName, defxml, defxml->enterNode(defNode, "ClientMethods"), scriptModule))
+	{
 		ERROR_MSG("EntityDef::loadAllDefDescription:loadDefClientMethods[%s] is failed!\n", moduleName.c_str());
 		return false;
 	}
+
 	return true;
 }
 
@@ -746,6 +759,26 @@ bool EntityDef::checkDefMethod(ScriptDefModule* scriptModule, PyObject* moduleOb
 }
 
 //-------------------------------------------------------------------------------------
+void EntityDef::setScriptModuleHasComponentEntity(ScriptDefModule* scriptModule, bool has)
+{
+	switch(__loadComponentType)
+	{
+	case BASEAPP_TYPE:
+		scriptModule->setBase(has);
+		return;
+	case CELLAPP_TYPE:
+		scriptModule->setCell(has);
+		return;
+	case CLIENT_TYPE:
+		scriptModule->setClient(has);
+		return;
+	default:
+		scriptModule->setCell(has);
+		return;
+	};
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityDef::loadAllScriptModule(std::string entitiesPath, std::vector<PyTypeObject*>& scriptBaseTypes)
 {
 	std::string entitiesFile = entitiesPath + "entities.xml";
@@ -763,18 +796,23 @@ bool EntityDef::loadAllScriptModule(std::string entitiesPath, std::vector<PyType
 		std::string moduleName = xml.get()->getKey(node);
 		ScriptDefModule* scriptModule = findScriptModule(moduleName.c_str());
 
-		// 是否加载这个模块 （取决于是否在def文件中定义了与当前组件相关的方法或者属性）
-		if(!isLoadScriptModule(scriptModule))
-			continue;
-
 		PyObject* pyModule = PyImport_ImportModule(const_cast<char*>(moduleName.c_str()));
 		if (pyModule == NULL)
 		{
-			ERROR_MSG("EntityDef::initialize:Could not load module[%s]\n", moduleName.c_str());
-			PyErr_Print();
-			return false;
+			// 是否加载这个模块 （取决于是否在def文件中定义了与当前组件相关的方法或者属性）
+			if(isLoadScriptModule(scriptModule))
+			{
+				ERROR_MSG("EntityDef::initialize:Could not load module[%s]\n", moduleName.c_str());
+				PyErr_Print();
+				return false;
+			}
+
+			PyErr_Clear();
+			setScriptModuleHasComponentEntity(scriptModule, false);
+			continue;
 		}
 
+		setScriptModuleHasComponentEntity(scriptModule, true);
 		PyObject* pyClass = PyObject_GetAttrString(pyModule, const_cast<char *>(moduleName.c_str()));
 		if (pyClass == NULL)
 		{

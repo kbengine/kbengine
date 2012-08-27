@@ -78,6 +78,11 @@ public:
 	static bool isLoadScriptModule(ScriptDefModule* scriptModule);
 
 	/** 
+		根据当前组件类别设置是否有cell 或者base 
+	*/
+	static void setScriptModuleHasComponentEntity(ScriptDefModule* scriptModule, bool has);
+
+	/** 
 		检查脚本模块中被定义的方法是否存在 
 	*/
 	static bool checkDefMethod(ScriptDefModule* scriptModule, PyObject* moduleObj, std::string& moduleName);
