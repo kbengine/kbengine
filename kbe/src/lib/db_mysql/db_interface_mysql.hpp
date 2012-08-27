@@ -55,7 +55,7 @@ public:
 	virtual bool attach(const char* databaseName);
 	virtual bool detach();
 
-	virtual bool query(const char* strCommand, uint32 size);
+	virtual bool query(const char* strCommand, uint32 size, bool showexecinfo = true);
 
 	bool execute(const char* strCommand, uint32 size, MemoryStream * resdata);
 

@@ -117,24 +117,33 @@ bool DBInterfaceMysql::dropEntityTableItemFromDB(const char* tablename, const ch
 }
 
 //-------------------------------------------------------------------------------------
-bool DBInterfaceMysql::query(const char* strCommand, uint32 size)
+bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexecinfo)
 {
 	if(pMysql_ == NULL)
 	{
-		ERROR_MSG("DBInterfaceMysql::query: has no attach(db).\n");
+		if(showexecinfo)
+		{
+			ERROR_MSG("DBInterfaceMysql::query: has no attach(db).\n");
+		}
 		return false;
 	}
 
     int nResult = mysql_real_query(pMysql_, strCommand, size);  
     if(nResult != 0)  
     {  
-		ERROR_MSG("DBInterfaceMysql::query: mysql is error(%d:%s)!\n", 
-			mysql_errno(pMysql_), mysql_error(pMysql_)); 
+		if(showexecinfo)
+		{
+			ERROR_MSG("DBInterfaceMysql::query: mysql is error(%d:%s)!\n", 
+				mysql_errno(pMysql_), mysql_error(pMysql_)); 
+		}
         return false;
     }  
     else
     {
-		INFO_MSG("DBInterfaceMysql::query: successfully!\n"); 
+		if(showexecinfo)
+		{
+			INFO_MSG("DBInterfaceMysql::query: successfully!\n"); 
+		}
     }
     
     return true;

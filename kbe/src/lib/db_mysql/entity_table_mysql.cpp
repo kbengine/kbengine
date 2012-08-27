@@ -30,7 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	kbe_snprintf(__sql_str__, MAX_BUF, "alter table tbl_%s add sm_%s %s;",						\
 		this->pParentTable_->tableName(), itemName(), datatype);								\
 																								\
-	bool ret = pdbi_->query(__sql_str__, strlen(__sql_str__));									\
+	bool ret = pdbi_->query(__sql_str__, strlen(__sql_str__), false);							\
 	if(!ret)																					\
 	{																							\
 		if(pdbi_->getlasterror() == 1060)														\
@@ -38,7 +38,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 			kbe_snprintf(__sql_str__, MAX_BUF, "alter table tbl_%s modify sm_%s %s;",			\
 				this->pParentTable_->tableName(), itemName(), datatype);						\
 																								\
-			ret = pdbi_->query(__sql_str__, strlen(__sql_str__));								\
+			ret = pdbi_->query(__sql_str__, strlen(__sql_str__), false);						\
 		}																						\
 																								\
 		if(!ret)																				\
