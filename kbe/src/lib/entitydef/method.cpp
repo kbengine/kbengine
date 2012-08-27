@@ -177,7 +177,7 @@ PyObject* MethodDescription::createFromStream(MemoryStream* mstream)
 		if(pyitem == NULL)
 		{
 			WARNING_MSG("MethodDescription::createFromStream:%s arg[%d][%s] is NULL.\n", 
-				this->getName().c_str(), index, argTypes_[index]->getName().c_str());
+				this->getName(), index, argTypes_[index]->getName());
 		}
 
 		PyTuple_SET_ITEM(&*pyArgsTuple, index + offset, pyitem);

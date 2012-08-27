@@ -81,7 +81,7 @@ public:
 
 	virtual MemoryStream* parseDefaultStr(std::string defaultVal) = 0;
 
-	virtual std::string getName(void) = 0;
+	virtual const char* getName(void)const = 0;
 };
 
 template <typename SPECIFY_TYPE>
@@ -97,7 +97,7 @@ public:
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
 	MemoryStream* parseDefaultStr(std::string defaultVal);
-	std::string getName(void){ return "INT";}
+	const char* getName(void)const{ return "INT";}
 };
 
 //-------------------------------------------------------------------------------------
@@ -198,11 +198,15 @@ public:
 	virtual ~UInt64Type();	
 
 	bool isSameType(PyObject* pyValue);
+
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
+
 	MemoryStream* parseDefaultStr(std::string defaultVal);
-	std::string getName(void){ return "UINT64";}
+
+	const char* getName(void)const{ return "UINT64";}
 };
 
 class UInt32Type : public DataType
@@ -213,11 +217,15 @@ public:
 	virtual ~UInt32Type();	
 
 	bool isSameType(PyObject* pyValue);
+
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
+
 	MemoryStream* parseDefaultStr(std::string defaultVal);
-	std::string getName(void){ return "UINT32";}
+
+	const char* getName(void)const{ return "UINT32";}
 };
 
 class Int64Type : public DataType
@@ -228,11 +236,15 @@ public:
 	virtual ~Int64Type();	
 
 	bool isSameType(PyObject* pyValue);
+
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
+
 	MemoryStream* parseDefaultStr(std::string defaultVal);
-	std::string getName(void){ return "INT64";}
+
+	const char* getName(void)const{ return "INT64";}
 };
 
 class FloatType : public DataType
@@ -243,27 +255,35 @@ public:
 	virtual ~FloatType();	
 
 	bool isSameType(PyObject* pyValue);
+
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
+
 	MemoryStream* parseDefaultStr(std::string defaultVal);
-	std::string getName(void){ return "FLOAT";}
+
+	const char* getName(void)const{ return "FLOAT";}
 };
 
 class VectorType : public DataType
 {
-protected:
-	int elemCount_;
 public:	
 	VectorType(int elemCount);
 	virtual ~VectorType();	
 
 	bool isSameType(PyObject* pyValue);
+
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
+
 	MemoryStream* parseDefaultStr(std::string defaultVal);
-	std::string getName(void){ return "VECTOR3";}
+
+	const char* getName(void)const{ return "VECTOR3";}
+protected:
+	int elemCount_;
 };
 
 class StringType : public DataType
@@ -274,11 +294,15 @@ public:
 	virtual ~StringType();	
 
 	bool isSameType(PyObject* pyValue);
+
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
+
 	MemoryStream* parseDefaultStr(std::string defaultVal);
-	std::string getName(void){ return "STRING";}
+
+	const char* getName(void)const{ return "STRING";}
 };
 
 class PythonType : public DataType
@@ -290,10 +314,13 @@ public:
 
 	bool isSameType(PyObject* pyValue);
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
+
 	MemoryStream* parseDefaultStr(std::string defaultVal);
-	std::string getName(void){ return "PYTHON";}
+
+	const char* getName(void)const{ return "PYTHON";}
 };
 
 class BlobType : public DataType
@@ -304,11 +331,15 @@ public:
 	virtual ~BlobType();	
 
 	bool isSameType(PyObject* pyValue);
+
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
+
 	MemoryStream* parseDefaultStr(std::string defaultVal);
-	std::string getName(void){ return "BLOB";}
+
+	const char* getName(void)const{ return "BLOB";}
 };
 
 class MailboxType : public DataType
@@ -319,29 +350,38 @@ public:
 	virtual ~MailboxType();	
 
 	bool isSameType(PyObject* pyValue);
+
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
+
 	MemoryStream* parseDefaultStr(std::string defaultVal);
-	std::string getName(void){ return "MAILBOX";}
+
+	const char* getName(void)const{ return "MAILBOX";}
 };
 
 class ArrayType : public DataType
 {
-protected:
-	DataType*			dataType_;		// 这个数组所处理的类别
 public:	
 	ArrayType();
 	virtual ~ArrayType();	
+	
+	DataType* getDataType(){ return dataType_; }
 
 	bool isSameType(PyObject* pyValue);
 	bool isSameItemType(PyObject* pyValue);
+
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
+
 	MemoryStream* parseDefaultStr(std::string defaultVal);
+
 	bool initialize(XmlPlus* xmlplus, TiXmlNode* node);
-	std::string getName(void){ return "ARRAY";}
+
+	const char* getName(void)const{ return "ARRAY";}
 
 	/**	
 		当传入的这个pyobj并不是当前类型时则按照当前类型创建出一个obj
@@ -349,25 +389,30 @@ public:
 		既一个python字典转换为一个固定字典， 字典中的key都匹配
 	*/
 	virtual PyObject* isNotSameTypeCreateFromPyObject(PyObject* pyobj);
+protected:
+	DataType*			dataType_;		// 这个数组所处理的类别
 };
 
 class FixedDictType : public DataType
 {
 public:
 	typedef std::map<std::string, DataType*> FIXEDDICT_KEYTYPE_MAP;
-protected:
-	FIXEDDICT_KEYTYPE_MAP			keyTypes_;		// 这个固定字典里的各个key的类型
 public:	
 	FixedDictType();
 	virtual ~FixedDictType();
 	
 	/** 获得这个固定字典的key类别 */	
 	FIXEDDICT_KEYTYPE_MAP& getKeyTypes(void){ return keyTypes_; }
-	std::string getName(void){ return "FIXED_DICT";}
+
+	const char* getName(void)const{ return "FIXED_DICT";}
+
 	bool isSameType(PyObject* pyValue);
+
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
+
 	MemoryStream* parseDefaultStr(std::string defaultVal);
 	bool initialize(XmlPlus* xmlplus, TiXmlNode* node);
 	
@@ -380,6 +425,8 @@ public:
 
 	/** 获得固定字典所有的key名称 */
 	std::string getKeyNames(void);
+protected:
+	FIXEDDICT_KEYTYPE_MAP			keyTypes_;		// 这个固定字典里的各个key的类型
 };
 
 

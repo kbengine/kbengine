@@ -31,6 +31,7 @@ namespace KBEngine {
 class DBUtil;
 class DBInterface;
 class ScriptDefModule;
+class DataType;
 class PropertyDescription;
 class EntityTable;
 
@@ -55,7 +56,7 @@ public:
 	/**
 		初始化
 	*/
-	virtual bool initialize(DBInterface* dbi, const PropertyDescription* p) = 0;
+	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, const DataType* pDataType) = 0;
 
 	/**
 		同步entity表到数据库中
@@ -70,6 +71,7 @@ protected:
 
 	EntityTable* pParentTable_;
 
+	const DataType* pDataType_;
 	const PropertyDescription* pPropertyDescription_;
 };
 
@@ -100,7 +102,7 @@ public:
 	/** 
 		创建一个表item
 	*/
-	virtual EntityTableItem* createItem(const PropertyDescription* p) = 0;
+	virtual EntityTableItem* createItem(std::string type) = 0;
 
 	/** 
 		获得所有表字段

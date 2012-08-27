@@ -73,8 +73,9 @@ bool EntityTableMysql::initialize(DBInterface* dbi, ScriptDefModule* sm)
 	for(; iter != pdescrsMap.end(); iter++)
 	{
 		PropertyDescription* pdescrs = iter->second;
-		EntityTableItem* pETItem = this->createItem(pdescrs);
-		bool ret = pETItem->initialize(pdbi_, pdescrs);
+		EntityTableItem* pETItem = this->createItem(pdescrs->getDataTypeName());
+		pETItem->pParentTable(this);
+		bool ret = pETItem->initialize(pdbi_, pdescrs, pdescrs->getDataType());
 		
 		if(!ret)
 		{
@@ -82,7 +83,6 @@ bool EntityTableMysql::initialize(DBInterface* dbi, ScriptDefModule* sm)
 			return false;
 		}
 
-		pETItem->pParentTable(this);
 		tableItems_[pETItem->utype()].reset(pETItem);
 	}
 
@@ -151,9 +151,8 @@ bool EntityTableMysql::syncToDB()
 }
 
 //-------------------------------------------------------------------------------------
-EntityTableItem* EntityTableMysql::createItem(const PropertyDescription* p)
+EntityTableItem* EntityTableMysql::createItem(std::string type)
 {
-	std::string type = p->getDataTypeName();
 	if(type == "INT8" ||
 		type == "INT16" ||
 		type == "INT32")
@@ -186,18 +185,28 @@ EntityTableItem* EntityTableMysql::createItem(const PropertyDescription* p)
 	{
 		return new EntityTableItemMysql_DOUBLE();
 	}
+	else if(type == "ARRAY")
+	{
+		return new EntityTableItemMysql_ARRAY();
+	}
+	else if(type == "FIXED_DICT")
+	{
+		return new EntityTableItemMysql_FIXED_DICT();
+	}
 
 	return new EntityTableItemMysql_STRING();
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_ARRAY::initialize(DBInterface* dbi, const PropertyDescription* p)
+bool EntityTableItemMysql_ARRAY::initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, const DataType* pDataType)
 {
-	bool ret = EntityTableItemMysql_INT::initialize(dbi, p);
+	bool ret = EntityTableItemMysql_INT::initialize(dbi, pPropertyDescription, pDataType);
 	if(!ret)
 		return false;
 
-	return true;
+	arrayTableItem_.reset(pParentTable_->createItem(static_cast<ArrayType*>(const_cast<DataType*>(pDataType))->getDataType()->getName()));
+	arrayTableItem_->pParentTable(this->pParentTable());
+	return arrayTableItem_->initialize(dbi, pPropertyDescription, static_cast<ArrayType*>(const_cast<DataType*>(pDataType))->getDataType());
 }
 
 //-------------------------------------------------------------------------------------
@@ -208,13 +217,43 @@ bool EntityTableItemMysql_ARRAY::syncToDB()
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_INT::initialize(DBInterface* dbi, const PropertyDescription* p)
+bool EntityTableItemMysql_FIXED_DICT::initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, const DataType* pDataType)
+{
+	bool ret = EntityTableItemMysql_INT::initialize(dbi, pPropertyDescription, pDataType);
+	if(!ret)
+		return false;
+
+	KBEngine::FixedDictType* fdatatype = static_cast<KBEngine::FixedDictType*>(const_cast<DataType*>(pDataType));
+
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = fdatatype->getKeyTypes();
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes.begin();
+	for(; iter != keyTypes.end(); iter++)
+	{
+		EntityTableItem* tableItem = pParentTable_->createItem(iter->second->getName());
+		tableItem->pParentTable(this->pParentTable());
+		if(!tableItem->initialize(dbi, pPropertyDescription, iter->second))
+			return false;
+		keyTypes_[iter->first].reset(tableItem);
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_FIXED_DICT::syncToDB()
+{
+	DEBUG_MSG("EntityTableItemMysql_FIXED_DICT::syncToDB(): %s.\n", itemName());
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_INT::initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, const DataType* pDataType)
 {
 	pdbi_ = dbi;
-	utype(p->getUType());
-	itemName(p->getName());
+	itemName(pPropertyDescription->getName());
 
-	pPropertyDescription_ = p;
+	pDataType_ = pDataType;
+	pPropertyDescription_ = pPropertyDescription;
 	return true;
 }
 

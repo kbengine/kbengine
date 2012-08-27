@@ -42,7 +42,7 @@ public:
 	/**
 		初始化
 	*/
-	virtual bool initialize(DBInterface* dbi, const PropertyDescription* p);
+	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, const DataType* pDataType);
 
 	/**
 		同步entity表到数据库中
@@ -111,12 +111,32 @@ public:
 	/**
 		初始化
 	*/
-	virtual bool initialize(DBInterface* dbi, const PropertyDescription* p);
+	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, const DataType* pDataType);
 
 	/**
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB();
+protected:
+	std::tr1::shared_ptr<EntityTableItem> arrayTableItem_;
+};
+
+class EntityTableItemMysql_FIXED_DICT : public EntityTableItemMysql_INT
+{
+public:
+	typedef std::map<std::string, std::tr1::shared_ptr<EntityTableItem>> FIXEDDICT_KEYTYPE_MAP;
+
+	/**
+		初始化
+	*/
+	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, const DataType* pDataType);
+
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB();
+protected:
+	FIXEDDICT_KEYTYPE_MAP			keyTypes_;		// 这个固定字典里的各个key的类型
 };
 
 
@@ -142,7 +162,7 @@ public:
 	/** 
 		创建一个表item
 	*/
-	virtual EntityTableItem* createItem(const PropertyDescription* p);
+	virtual EntityTableItem* createItem(std::string type);
 protected:
 };
 

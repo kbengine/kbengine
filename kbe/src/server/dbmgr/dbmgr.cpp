@@ -517,6 +517,8 @@ void Dbmgr::writeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid);
 	DEBUG_MSG("Dbmgr::writeEntity: %s(%d), size=%u.\n", pModule->getName(), entityID, s.opsize());
+
+	//EntityTables::getSingleton().updateFromStream(pModule, entityID, s);
 }
 
 //-------------------------------------------------------------------------------------
