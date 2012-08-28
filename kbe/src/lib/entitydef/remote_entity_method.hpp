@@ -50,7 +50,7 @@ public:
 	RemoteEntityMethod(MethodDescription* methodDescription, EntityMailboxAbstract* mailbox);
 	virtual ~RemoteEntityMethod();
 
-	std::string& getName(void)
+	const char* getName(void)const
 	{ 
 		return methodDescription_->getName(); 
 	};

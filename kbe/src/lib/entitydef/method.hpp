@@ -48,7 +48,7 @@ public:
 	MethodDescription(ENTITY_METHOD_UID utype, std::string name, bool isExposed = false);
 	virtual ~MethodDescription();
 	
-	std::string& getName(void){ return name_; };
+	const char* getName(void)const{ return name_.c_str(); };
 
 	ENTITY_METHOD_UID getUType(void)const{ return utype_; }
 	void setUType(ENTITY_METHOD_UID muid){ utype_ = muid; }

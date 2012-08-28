@@ -56,7 +56,7 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args, PyObject* 
 	RemoteEntityMethod* rmethod = static_cast<RemoteEntityMethod*>(self);
 	MethodDescription* methodDescription = rmethod->getDescription();
 	EntityMailboxAbstract* mailbox = rmethod->getMailbox();
-	DEBUG_MSG("RemoteEntityMethod::tp_call:%s.\n", methodDescription->getName().c_str());
+	DEBUG_MSG("RemoteEntityMethod::tp_call:%s.\n", methodDescription->getName());
 
 	if(methodDescription->checkArgs(args))
 	{

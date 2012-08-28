@@ -65,7 +65,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 {
 	if (args == NULL || !PyTuple_Check(args))
 	{
-		PyErr_Format(PyExc_SystemError, "Method::checkArgs: method[%s] args is not a tuple.\n", getName().c_str());
+		PyErr_Format(PyExc_SystemError, "Method::checkArgs: method[%s] args is not a tuple.\n", getName());
 		return false;
 	}
 	
@@ -76,7 +76,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 	if (giveArgsSize != argsSize + offset)
 	{
 		PyErr_Format(PyExc_TypeError, "Method::checkArgs: method[%s] requires exactly %d argument%s; %d given", 
-				getName().c_str(),
+				getName(),
 				argsSize,
 				(argsSize == 1) ? "" : "s",
 				PyTuple_Size(args));
@@ -97,7 +97,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 				Py_XDECREF(pyeid);
 				PyErr_Format( PyExc_TypeError,
 					"Method::checkArgs: method[%s] requires None, an id, or an object with an "
-					"id as its first agument", getName().c_str());
+					"id as its first agument", getName());
 
 				return false;
 			}
@@ -114,7 +114,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 			PyObject* pExample = argTypes_[i]->createObject(NULL);
 			PyErr_Format(PyExc_TypeError,
 				"Method::checkArgs: method[%s] argument %d: Expected %s, %s found",
-				getName().c_str(),
+				getName(),
 				i+1,
 				pExample->ob_type->tp_name,
 				pyArg != NULL ? pyArg->ob_type->tp_name : "NULL");
@@ -198,7 +198,7 @@ PyObject* MethodDescription::call(PyObject* func, PyObject* args)
 	PyObject* pyResult = NULL;
 	if (!PyCallable_Check(func))
 	{
-		PyErr_Format(PyExc_TypeError, "MethodDescription::call: Script[%s] call attempted on a error object!", getName().c_str());
+		PyErr_Format(PyExc_TypeError, "MethodDescription::call: Script[%s] call attempted on a error object!", getName());
 	}
 	else
 	{
