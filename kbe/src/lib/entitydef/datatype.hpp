@@ -396,7 +396,7 @@ protected:
 class FixedDictType : public DataType
 {
 public:
-	typedef std::vector<std::pair<std::string, DataType*>> FIXEDDICT_KEYTYPE_MAP;
+	typedef std::vector<std::pair<std::string, DataType*> > FIXEDDICT_KEYTYPE_MAP;
 public:	
 	FixedDictType();
 	virtual ~FixedDictType();
