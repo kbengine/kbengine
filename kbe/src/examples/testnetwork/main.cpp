@@ -215,6 +215,8 @@ struct AvatarInfos
 {
 	uint32 dbid;
 	std::string name;
+	uint16 level;
+	uint8 roleType;
 };
 
 
@@ -405,8 +407,10 @@ void init_network(void)
 			AvatarInfos ainfo;
 			packet444 >> ainfo.dbid;
 			packet444 >> ainfo.name;
+			packet444 >> ainfo.roleType;
+			packet444 >> ainfo.level;
 			vargs.push_back(ainfo);
-			printf("接收角色列表:dbid=%u,name=%s\n", ainfo.dbid, ainfo.name.c_str());
+			printf("接收角色列表:dbid=%u,name=%s,roleType=%u,level=%u\n", ainfo.dbid, ainfo.name.c_str(),ainfo.roleType, ainfo.level);
 		}
 
 		printf("向服务器请求创建角色:%s\n", avatarname.c_str());
@@ -417,6 +421,8 @@ void init_network(void)
 		methodID = 10002;
 		bundle55 << eid;
 		bundle55 << methodID;
+		uint8 createType = 1;
+		bundle55 << createType;
 		bundle55 << avatarname;
 		bundle55.send(mysocket);
 		//::sleep(3000);
@@ -436,7 +442,10 @@ void init_network(void)
 		AvatarInfos retainfo;
 		packet555 >> retainfo.dbid;
 		packet555 >> retainfo.name;
-		printf("创建角色结果:错误码:%u,dbid=%u,name=%s\n", errorcode, retainfo.dbid, retainfo.name.c_str());
+		packet555 >> retainfo.roleType;
+		packet555 >> retainfo.level;
+		printf("创建角色结果:错误码:%u,dbid=%u,name=%s,roleType=%u,level=%u\n", 
+			errorcode, retainfo.dbid, retainfo.name.c_str(),retainfo.roleType, retainfo.level);
 
 		printf("向服务器请求选择某个角色进行游戏\n");
 		// 向服务器请求选择某个角色进行游戏

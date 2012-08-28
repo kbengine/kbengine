@@ -949,7 +949,7 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 			{
 				ArrayType* dataType = new ArrayType();
 				if(dataType->initialize(xmlplus, typeNode)){
-					keyTypes_[typeName] = dataType;
+					keyTypes_.push_back(std::make_pair(typeName, dataType));
 					dataType->incRef();
 				}
 				else
@@ -959,7 +959,7 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 			{
 				DataType* dataType = DataTypes::getDataType(strType);
 				if(dataType != NULL){
-					keyTypes_[typeName] = dataType;
+					keyTypes_.push_back(std::make_pair(typeName, dataType));
 					dataType->incRef();
 				}
 				else
@@ -994,7 +994,6 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 	{
 		PyErr_Format(PyExc_TypeError, "FIXED_DICT key no match. size:%d-%d, keyNames=[%s].", 
 			dictSize, keyTypes_.size(), getKeyNames().c_str());
-		//PyErr_PrintEx(0);
 		return false;
 	}
 
@@ -1006,7 +1005,6 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 		{
 			PyErr_Format(PyExc_TypeError, "set FIXED_DICT is error! at key: %s, keyNames=[%s].", 
 				iter->first.c_str(), getKeyNames().c_str());
-			//PyErr_PrintEx(0);
 			return false;
 		}
 	}
@@ -1036,9 +1034,9 @@ void FixedDictType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 	for(; iter != keyTypes_.end(); iter++)
 	{
 		PyObject* pyObject = PyDict_GetItemString(pyValue, const_cast<char*>(iter->first.c_str()));
+		KBE_ASSERT(pyObject != NULL);
 		iter->second->addToStream(mstream, pyObject);
 	}
-	
 }
 
 //-------------------------------------------------------------------------------------

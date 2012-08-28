@@ -175,34 +175,37 @@ int FixedDict::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 bool FixedDict::checkDataChanged(const char* keyName, PyObject* value, bool isDelete)
 {
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = _dataType->getKeyTypes();
-	FixedDictType::FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes.find(keyName);
-	if(iter != keyTypes.end())
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator iter = keyTypes.begin();
+	
+	for(; iter != keyTypes.end(); iter++)
 	{
-		if(isDelete)
+		if((*iter).first == keyName)
 		{
-			char err[255];
-			kbe_snprintf(err, 255, "can't delete from FIXED_DICT key[%s].\n", keyName);
-			PyErr_SetString(PyExc_TypeError, err);
-			PyErr_PrintEx(0);
-			return false;
-		}
-		else
-		{
-			DataType* dataType = iter->second;
-			if(!dataType->isSameType(value)){
+			if(isDelete)
+			{
+				char err[255];
+				kbe_snprintf(err, 255, "can't delete from FIXED_DICT key[%s].\n", keyName);
+				PyErr_SetString(PyExc_TypeError, err);
+				PyErr_PrintEx(0);
 				return false;
 			}
+			else
+			{
+				DataType* dataType = (*iter).second;
+				if(!dataType->isSameType(value)){
+					return false;
+				}
+			}
+
+			return true;
 		}
 	}
-	else
-	{
-		char err[255];
-		kbe_snprintf(err, 255, "set FIXED_DICT to a unknown key[%s].\n", keyName);
-		PyErr_SetString(PyExc_TypeError, err);
-		PyErr_PrintEx(0);
-		return false;
-	}
-	return true;
+
+	char err[255];
+	kbe_snprintf(err, 255, "set FIXED_DICT to a unknown key[%s].\n", keyName);
+	PyErr_SetString(PyExc_TypeError, err);
+	PyErr_PrintEx(0);
+	return false;
 }
 	
 //-------------------------------------------------------------------------------------

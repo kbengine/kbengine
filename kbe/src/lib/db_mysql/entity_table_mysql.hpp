@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 
 class ScriptDefModule;
+#define MYSQL_ENGINE_TYPE "InnoDB"
 
 /*
 	维护entity在数据库中的表中的一个字段

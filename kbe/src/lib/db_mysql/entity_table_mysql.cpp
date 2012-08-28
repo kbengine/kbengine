@@ -95,10 +95,9 @@ bool EntityTableMysql::syncToDB()
 	DEBUG_MSG("EntityTableMysql::syncToDB(): %s.\n", tableName());
 
 	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "CREATE TABLE IF NOT EXISTS tbl_%s ("
-			"id int(10) NOT NULL auto_increment,"
-			"PRIMARY KEY  (`id`)"
-		");", 
+	kbe_snprintf(sql_str, MAX_BUF, "CREATE TABLE IF NOT EXISTS tbl_%s "
+			"(id BIGINT AUTO_INCREMENT, PRIMARY KEY idKey (id))"
+		"ENGINE="MYSQL_ENGINE_TYPE, 
 		tableName());
 
 	bool ret = pdbi_->query(sql_str, strlen(sql_str));
@@ -296,10 +295,10 @@ bool EntityTableItemMysql_INT64::syncToDB()
 
 	uint32 length = pPropertyDescription_->getDatabaseLength();
 	if(length == 0)
-		length = 10;
+		length = 20;
 
 	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "int(%u)", length);
+	kbe_snprintf(sql_str, MAX_BUF, "bigint(%u)", length);
 
 	SYNC_TO_DB(sql_str);
 	return true;
@@ -312,10 +311,10 @@ bool EntityTableItemMysql_UINT64::syncToDB()
 
 	uint32 length = pPropertyDescription_->getDatabaseLength();
 	if(length == 0)
-		length = 10;
+		length = 20;
 
 	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "int(%u)", length);
+	kbe_snprintf(sql_str, MAX_BUF, "bigint(%u)", length);
 
 	SYNC_TO_DB(sql_str);
 	return true;
