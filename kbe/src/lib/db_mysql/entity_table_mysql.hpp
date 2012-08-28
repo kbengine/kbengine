@@ -112,7 +112,7 @@ public:
 	  {
 	  }
 
-	typedef std::map<std::string, std::tr1::shared_ptr<EntityTableItem>> FIXEDDICT_KEYTYPE_MAP;
+	typedef std::map<std::string, std::tr1::shared_ptr<EntityTableItem> > FIXEDDICT_KEYTYPE_MAP;
 
 	/**
 		≥ı ºªØ
