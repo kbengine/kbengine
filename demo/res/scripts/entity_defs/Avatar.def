@@ -11,10 +11,25 @@
 
 	<Properties>
 		<spaceUType>
-			<Type>			UINT32				</Type>
-			<Flags>			CELL_PRIVATE			</Flags>
+			<Utype> 41001 </Utype>
+			<Type>			UINT16				</Type>
+			<Flags>			CELL_PUBLIC_AND_OWN		</Flags>
 			<Persistent>		true				</Persistent>
 		</spaceUType>
+
+		<level>
+			<Utype> 41002 </Utype>
+			<Type>			UINT16				</Type>
+			<Flags>			CELL_PUBLIC_AND_OWN		</Flags>
+			<Persistent>		true				</Persistent>
+		</level>
+
+		<name>
+			<Utype> 41003 </Utype>
+			<Type>			STRING				</Type>
+			<Flags>			CELL_PUBLIC_AND_OWN		</Flags>
+			<Persistent>		true				</Persistent>
+		</level>
 	</Properties>
 
 	<BaseMethods>
