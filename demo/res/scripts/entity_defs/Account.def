@@ -57,7 +57,7 @@
 		<reqCreateAvatar>
 			<Exposed/>
 			<Utype> 10002 </Utype>
-			<Arg>	UINT8	</Arg>	<!-- avatarType -->
+			<Arg>	UINT8	</Arg>	<!-- roleType -->
 			<Arg>	STRING	</Arg>	<!-- name -->
 		</reqCreateAvatar>
 

@@ -8,7 +8,7 @@ all_avatar_names = []
 class Account(KBEngine.Proxy):
 	def __init__(self):
 		KBEngine.Proxy.__init__(self)
-		self.avatars = [{"name":"unknown", "dbid": 0}, {"name":"unknown", "dbid": 0}, {"name":"unknown", "dbid": 0}]
+		self.avatars = [{"name":"unknown", "dbid": 0, "roleType" : 0, "level" : 0}, {"name":"unknown", "dbid": 0, "roleType" : 0, "level" : 0}, {"name":"unknown", "dbid": 0, "roleType" : 0, "level" : 0}]
 		self.accountName = "kebiao"
 		self.activeCharacter = None
 		
@@ -67,12 +67,12 @@ class Account(KBEngine.Proxy):
 		DEBUG_MSG("Account[%i].reqAvatarList:" % self.id)
 		self.client.onReqAvatarList(self.avatars)
 		
-	def reqCreateAvatar(self, createType, name):
+	def reqCreateAvatar(self, roleType, name):
 		"""
 		exposed.
 		客户端请求创建一个角色
 		"""
-		avatarinfo = {"name": name, "dbid": id(name)}
+		avatarinfo = {"name": name, "dbid": id(name), "roleType" : roleType, "level" : 0}
 			
 		if name in all_avatar_names:
 			retcode = 2
@@ -84,6 +84,7 @@ class Account(KBEngine.Proxy):
 			if info["dbid"] == 0:
 				info["dbid"] = avatarinfo["dbid"]
 				info["name"] = avatarinfo["name"]
+				info["roleType"] = roleType
 				all_avatar_names.append(name)
 				done = True
 				break

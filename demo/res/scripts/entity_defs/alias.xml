@@ -18,6 +18,12 @@
 			<name>
 				<Type>	STRING	</Type>
 			</name>
+			<roleType>
+				<Type>	UINT8	</Type>
+			</roleType>
+			<level>
+				<Type>	UINT16	</Type>
+			</level>
 		</Properties>
 	</AVATAR_INFOS>	
 	
