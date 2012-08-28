@@ -293,7 +293,7 @@ bool EntityTableItemMysql_DIGIT::syncToDB()
 	if(length <= 0)
 		kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
 	else
-		kbe_snprintf(sql_str, MAX_BUF, "%s(%u)", length, itemDBType_.c_str());
+		kbe_snprintf(sql_str, MAX_BUF, "%s(%u)", itemDBType_.c_str(), length);
 
 	SYNC_TO_DB(sql_str);
 	return true;
