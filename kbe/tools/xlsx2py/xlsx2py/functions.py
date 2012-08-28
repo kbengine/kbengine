@@ -57,6 +57,17 @@ def funcTupleInt(mapDict, dctData, chilidDict, data):
 
 	return tuple([int(e) for e in data.split(",") if len(e) > 0])
 
+def funcPos2D(mapDict, dctData, chilidDict, data):
+	"""
+	返回tuple数据
+	"""
+	if data is None or (type(data) == str and len(data) == 0):
+		return ()
+
+	data = str(data)
+
+	return tuple(int(data.split(",")[0], 0, data.split(",")[1]))
+	
 def funcDict(mapDict, dctData, chilidDict, data):
 	"""
 	返回dict数据
