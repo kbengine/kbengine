@@ -66,7 +66,7 @@ def funcPos2D(mapDict, dctData, chilidDict, data):
 
 	data = str(data)
 
-	return tuple(int(data.split(",")[0], 0, data.split(",")[1]))
+	return (int(data.split(",")[0]), 0, int(data.split(",")[1]))
 	
 def funcDict(mapDict, dctData, chilidDict, data):
 	"""
