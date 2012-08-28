@@ -378,7 +378,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					if(pMsgHandler == NULL)
 					{
 						TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler);
-						INFO_MSG("Channel::handleMessage: invalide msgID=%d, msglen=%d, from %s.\n", 
+						WARNING_MSG("Channel::handleMessage: invalide msgID=%d, msglen=%d, from %s.\n", 
 							currMsgID_, pPacket->totalSize(), c_str());
 
 						currMsgID_ = 0;
@@ -412,7 +412,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					
 					if(currMsgLen_ > MERCURY_MESSAGE_MAX_SIZE / 2)
 					{
-						INFO_MSG("Channel::handleMessage[%s]: msglen is error! msgID=%d, msglen=(%d:%d), from %s.\n", 
+						WARNING_MSG("Channel::handleMessage[%s]: msglen is error! msgID=%d, msglen=(%d:%d), from %s.\n", 
 							pMsgHandler->name.c_str(), currMsgID_, currMsgLen_, pPacket->totalSize(), c_str());
 
 						currMsgLen_ = 0;
@@ -466,7 +466,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 		}
 	}catch(MemoryStreamException &)
 	{
-		ERROR_MSG("Channel::handleMessage: packet invalid. currMsgID=%d, currMsgLen=%d\n", 
+		WARNING_MSG("Channel::handleMessage: packet invalid. currMsgID=%d, currMsgLen=%d\n", 
 																	currMsgID_, currMsgLen_);
 		currMsgID_ = 0;
 		currMsgLen_ = 0;

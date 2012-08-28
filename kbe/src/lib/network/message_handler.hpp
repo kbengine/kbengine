@@ -54,6 +54,14 @@ public:
 	int32 msgLen;					// 如果长度为-1则为非固定长度消息
 	
 	/**
+		默认返回类别为组件消息
+	*/
+	virtual MERCURY_MESSAGE_TYPE type()const
+	{ 
+		return MERCURY_MESSAGE_TYPE_COMPONENT; 
+	}
+
+	/**
 		当这个handler被正是安装到MessageHandlers后被调用
 	*/
 	virtual void onInstall(){}

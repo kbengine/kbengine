@@ -719,6 +719,36 @@ PyObject* Entity::pyGetPosition()
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::setPosition_XZ_int(Mercury::Channel* pChannel, int32 x, int32 z)
+{
+	getPosition().x = float(x);
+	getPosition().z = float(z);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::setPosition_XYZ_int(Mercury::Channel* pChannel, int32 x, int32 y, int32 z)
+{
+	getPosition().x = float(x);
+	getPosition().y = float(y);
+	getPosition().z = float(z);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::setPosition_XZ_float(Mercury::Channel* pChannel, float x, float z)
+{
+	getPosition().x = x;
+	getPosition().z = z;
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::setPosition_XYZ_float(Mercury::Channel* pChannel, float x, float y, float z)
+{
+	getPosition().x = x;
+	getPosition().y = y;
+	getPosition().z = z;
+}
+
+//-------------------------------------------------------------------------------------
 int Entity::pySetDirection(PyObject *value)
 {
 	if(PySequence_Check(value) <= 0)

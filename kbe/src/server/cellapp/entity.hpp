@@ -146,6 +146,26 @@ public:
 	void setPositionAndDirection(Position3D& position, 
 		Direction3D& direction);
 
+	/** 网络接口
+		客户端设置新位置
+	*/
+	void setPosition_XZ_int(Mercury::Channel* pChannel, int32 x, int32 z);
+
+	/** 网络接口
+		客户端设置新位置
+	*/
+	void setPosition_XYZ_int(Mercury::Channel* pChannel, int32 x, int32 y, int32 z);
+
+	/** 网络接口
+		客户端设置位置
+	*/
+	void setPosition_XZ_float(Mercury::Channel* pChannel, float x, float z);
+
+	/** 网络接口
+		客户端设置位置
+	*/
+	void setPosition_XYZ_float(Mercury::Channel* pChannel, float x, float y, float z);
+
 	/** 
 		脚本请求为当前所在space设置一个几何映射 
 	*/

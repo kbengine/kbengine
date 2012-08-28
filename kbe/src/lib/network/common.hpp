@@ -85,6 +85,14 @@ namespace tcp{
 #define MERCURY_VARIABLE_MESSAGE -1
 #endif
 
+// 网络消息类别
+enum MERCURY_MESSAGE_TYPE
+{
+	MERCURY_MESSAGE_TYPE_COMPONENT = 0,	// 组件消息
+	MERCURY_MESSAGE_TYPE_ENTITY = 1,	// entity消息
+};
+
+
 enum ProtocolType
 {
 	PROTOCOL_TCP = 0,

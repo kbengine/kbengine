@@ -48,83 +48,106 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// 某app注册自己的接口地址到本app
-	CELLAPP_MESSAGE_DECLARE_ARGS8(onRegisterNewApp,						MERCURY_VARIABLE_MESSAGE,
-									int32,								uid, 
-									std::string,						username,
-									int8,								componentType, 
-									uint64,								componentID, 
-									uint32,								intaddr, 
-									uint16,								intport,
-									uint32,								extaddr, 
-									uint16,								extport)
+	CELLAPP_MESSAGE_DECLARE_ARGS8(onRegisterNewApp,							MERCURY_VARIABLE_MESSAGE,
+									int32,									uid, 
+									std::string,							username,
+									int8,									componentType, 
+									uint64,									componentID, 
+									uint32,									intaddr, 
+									uint16,									intport,
+									uint32,									extaddr, 
+									uint16,									extport)
 
 	// console远程执行python语句。
-	CELLAPP_MESSAGE_DECLARE_ARGS1(onExecScriptCommand,					MERCURY_VARIABLE_MESSAGE,
-									std::string,						strcommand)
+	CELLAPP_MESSAGE_DECLARE_ARGS1(onExecScriptCommand,						MERCURY_VARIABLE_MESSAGE,
+									std::string,							strcommand)
 
 	// dbmgr告知已经启动的其他baseapp或者cellapp的地址
 	// 当前app需要主动的去与他们建立连接
-	CELLAPP_MESSAGE_DECLARE_ARGS8(onGetEntityAppFromDbmgr,				MERCURY_VARIABLE_MESSAGE,
-									int32,								uid, 
-									std::string,						username,
-									int8,								componentType, 
-									uint64,								componentID, 
-									uint32,								intaddr, 
-									uint16,								intport,
-									uint32,								extaddr, 
-									uint16,								extport)
+	CELLAPP_MESSAGE_DECLARE_ARGS8(onGetEntityAppFromDbmgr,					MERCURY_VARIABLE_MESSAGE,
+									int32,									uid, 
+									std::string,							username,
+									int8,									componentType, 
+									uint64,									componentID, 
+									uint32,									intaddr, 
+									uint16,									intport,
+									uint32,									extaddr, 
+									uint16,									extport)
 
 	// 某app请求获取一个entityID段的回调
-	CELLAPP_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,					MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,							startID,
-									ENTITY_ID,							endID)
+	CELLAPP_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,						MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,								startID,
+									ENTITY_ID,								endID)
 
 	// 某app请求获取一个entityID段的回调
-	CELLAPP_MESSAGE_DECLARE_ARGS4(onDbmgrInitCompleted,					MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,							startID,
-									ENTITY_ID,							endID,
-									int32,								startGlobalOrder,
-									int32,								startGroupOrder)
+	CELLAPP_MESSAGE_DECLARE_ARGS4(onDbmgrInitCompleted,						MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,								startID,
+									ENTITY_ID,								endID,
+									int32,									startGlobalOrder,
+									int32,									startGroupOrder)
 
 	// global数据改变
-	CELLAPP_MESSAGE_DECLARE_STREAM(onBroadcastGlobalDataChange,			MERCURY_VARIABLE_MESSAGE)
-	CELLAPP_MESSAGE_DECLARE_STREAM(onBroadcastCellAppDataChange,		MERCURY_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(onBroadcastGlobalDataChange,				MERCURY_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(onBroadcastCellAppDataChange,			MERCURY_VARIABLE_MESSAGE)
 
 	// baseEntity请求创建在一个新的space中。
-	CELLAPP_MESSAGE_DECLARE_STREAM(onCreateInNewSpaceFromBaseapp,		MERCURY_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(onCreateInNewSpaceFromBaseapp,			MERCURY_VARIABLE_MESSAGE)
 
 	// baseapp请求在这个cellapp上创建一个entity。
-	CELLAPP_MESSAGE_DECLARE_STREAM(onCreateCellEntityFromBaseapp,		MERCURY_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(onCreateCellEntityFromBaseapp,			MERCURY_VARIABLE_MESSAGE)
 
 	// 销毁某个cellEntity。
-	CELLAPP_MESSAGE_DECLARE_ARGS1(onDestroyCellEntityFromBaseapp,		MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,							eid)
+	CELLAPP_MESSAGE_DECLARE_ARGS1(onDestroyCellEntityFromBaseapp,			MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,								eid)
 
 	// 某个app向本app告知处于活动状态。
-	CELLAPP_MESSAGE_DECLARE_ARGS2(onAppActiveTick,						MERCURY_FIXED_MESSAGE,
-									COMPONENT_TYPE,						componentType, 
-									COMPONENT_ID,						componentID)
+	CELLAPP_MESSAGE_DECLARE_ARGS2(onAppActiveTick,							MERCURY_FIXED_MESSAGE,
+									COMPONENT_TYPE,							componentType, 
+									COMPONENT_ID,							componentID)
 
 	// entity收到一封mail, 由某个app上的mailbox发起
-	CELLAPP_MESSAGE_DECLARE_STREAM(onEntityMail,						MERCURY_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(onEntityMail,							MERCURY_VARIABLE_MESSAGE)
 
 	// client访问entity的cell方法
-	CELLAPP_MESSAGE_DECLARE_STREAM(onRemoteCallMethodFromClient,		MERCURY_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(onRemoteCallMethodFromClient,			MERCURY_VARIABLE_MESSAGE)
 
 	// executeRawDatabaseCommand从dbmgr的回调
-	CELLAPP_MESSAGE_DECLARE_STREAM(onExecuteRawDatabaseCommandCB,		MERCURY_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(onExecuteRawDatabaseCommandCB,			MERCURY_VARIABLE_MESSAGE)
 
 	// base请求获取celldata
-	CELLAPP_MESSAGE_DECLARE_STREAM(reqBackupEntityCellData,				MERCURY_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(reqBackupEntityCellData,					MERCURY_VARIABLE_MESSAGE)
 
 	// base请求获取WriteToDB
-	CELLAPP_MESSAGE_DECLARE_STREAM(reqWriteToDBFromBaseapp,				MERCURY_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(reqWriteToDBFromBaseapp,					MERCURY_VARIABLE_MESSAGE)
+
+	// 客户端直接发送消息给cell实体
+	CELLAPP_MESSAGE_DECLARE_STREAM(forwardEntityMessageToCellappFromClient,	MERCURY_VARIABLE_MESSAGE)
+
 	//--------------------------------------------Entity----------------------------------------------------------
 	//远程呼叫entity方法
-	ENTITY_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,					MERCURY_VARIABLE_MESSAGE)
+	ENTITY_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,						MERCURY_VARIABLE_MESSAGE)
 
-
+	//客户端设置新位置
+	ENTITY_MESSAGE_DECLARE_ARGS2(setPosition_XZ_int,						MERCURY_FIXED_MESSAGE,
+									int32,									x, 
+									int32,									z)
 	
+	//客户端设置新位置
+	ENTITY_MESSAGE_DECLARE_ARGS3(setPosition_XYZ_int,						MERCURY_FIXED_MESSAGE,
+									int32,									x, 
+									int32,									y, 
+									int32,									z)
+
+	//客户端设置新位置
+	ENTITY_MESSAGE_DECLARE_ARGS2(setPosition_XZ_float,						MERCURY_FIXED_MESSAGE,
+									float,									x, 
+									float,									z)
+
+	//客户端设置新位置
+	ENTITY_MESSAGE_DECLARE_ARGS3(setPosition_XYZ_float,						MERCURY_FIXED_MESSAGE,
+									float,									x, 
+									float,									y, 
+									float,									z)
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

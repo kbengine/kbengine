@@ -698,5 +698,80 @@ void Cellapp::onRemoteCallMethodFromClient(Mercury::Channel* pChannel, KBEngine:
 }
 
 //-------------------------------------------------------------------------------------
+void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID srcEntityID;
+
+	s >> srcEntityID;
+
+	KBEngine::Entity* e = KBEngine::Cellapp::getSingleton().findEntity(srcEntityID);		
+
+	if(e == NULL)
+	{	
+		WARNING_MSG("Cellapp::forwardEntityMessageToCellappFromClient: can't found entityID:%d.\n", srcEntityID);
+		return;
+	}
+
+	// 检查是否是entity消息， 否则不合法.
+	while(s.opsize() > 0)
+	{
+		Mercury::MessageID			currMsgID;
+		Mercury::MessageLength		currMsgLen;
+
+		s >> currMsgID;
+		Mercury::MessageHandler* pMsgHandler = CellappInterface::messageHandlers.find(currMsgID);
+
+		if(pMsgHandler == NULL)
+		{
+			ERROR_MSG("Cellapp::forwardEntityMessageToCellappFromClient: invalide msgID=%d, msglen=%d, from %s.\n", 
+				currMsgID, s.wpos(), pChannel->c_str());
+			pChannel->condemn(true);
+			break;
+		}
+
+		if(pMsgHandler->type() != Mercury::MERCURY_MESSAGE_TYPE_ENTITY)
+		{
+			WARNING_MSG("Cellapp::forwardEntityMessageToCellappFromClient: msgID=%d not is entitymsg.\n", currMsgID);
+			pChannel->condemn(true);
+			break;
+		}
+
+		if((pMsgHandler->msgLen == MERCURY_VARIABLE_MESSAGE) || Mercury::g_packetAlwaysContainLength)
+			s >> currMsgLen;
+		else
+			currMsgLen = pMsgHandler->msgLen;
+
+		if(s.opsize() < currMsgLen || currMsgLen >  MERCURY_MESSAGE_MAX_SIZE / 2)
+		{
+			ERROR_MSG("Cellapp::forwardEntityMessageToCellappFromClient: msgID=%d, invalide msglen=%d, from %s.\n", 
+				currMsgID, s.wpos(), pChannel->c_str());
+			pChannel->condemn(true);
+			break;
+		}
+
+		// 临时设置有效读取位， 防止接口中溢出操作
+		size_t wpos = s.wpos();
+		// size_t rpos = s.rpos();
+		size_t frpos = s.rpos() + currMsgLen;
+		s.wpos(frpos);
+		pMsgHandler->handle(pChannel, s);
+
+		// 防止handle中没有将数据导出获取非法操作
+		if(currMsgLen > 0)
+		{
+			if(frpos != s.rpos())
+			{
+				CRITICAL_MSG("Cellapp::forwardEntityMessageToCellappFromClient[%s]: rpos(%d) invalid, expect=%d. msgID=%d, msglen=%d.\n",
+					pMsgHandler->name.c_str(), s.rpos(), frpos, currMsgID, currMsgLen);
+
+				s.rpos(frpos);
+			}
+		}
+
+		s.wpos(wpos);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 
 }

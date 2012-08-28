@@ -144,6 +144,11 @@ public:
 		base请求获取WriteToDB
 	*/
 	void reqWriteToDBFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+		客户端直接发送消息给cell实体
+	*/
+	void forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, MemoryStream& s);
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;

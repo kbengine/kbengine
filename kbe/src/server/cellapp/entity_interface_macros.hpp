@@ -64,6 +64,10 @@ namespace KBEngine{
 					eid);														\
 			}																	\
 	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler_stream::type()const\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+	}																			\
 
 #else
 #define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
@@ -71,7 +75,11 @@ namespace KBEngine{
 													KBEngine::MemoryStream& s)	\
 	{																			\
 	}																			\
-		
+	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler_stream::type()const\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+	}																			\
+
 #endif
 #else
 #define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
@@ -80,6 +88,7 @@ namespace KBEngine{
 	public:																		\
 		virtual void handle(Mercury::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
+		virtual Mercury::MERCURY_MESSAGE_TYPE type()const;						\
 	};																			\
 
 #endif
@@ -119,12 +128,20 @@ namespace KBEngine{
 					eid);														\
 			}																	\
 	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler1::type()const		\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+	}																			\
 
 #else
 #define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
 	void NAME##EntityMessagehandler1::handle(Mercury::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
+	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler1::type()const\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 		
 #endif
@@ -135,6 +152,7 @@ namespace KBEngine{
 	public:																		\
 		virtual void handle(Mercury::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
+		virtual Mercury::MERCURY_MESSAGE_TYPE type()const;						\
 	};																			\
 
 #endif
@@ -143,6 +161,159 @@ namespace KBEngine{
 	ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
 	NETWORK_MESSAGE_DECLARE_ARGS1(Entity, NAME,									\
 				NAME##EntityMessagehandler1, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
+																				\
+
+/**
+	Entity消息宏，  只有二个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef ENTITY_MESSAGE_HANDLER_ARGS2
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(CELLAPP)
+#define ENTITY_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2)				\
+	void NAME##EntityMessagehandler2::handle(Mercury::Channel* pChannel,		\
+											KBEngine::MemoryStream& s)			\
+	{																			\
+			ENTITY_ID eid;														\
+			s >> eid;															\
+			KBEngine::Entity* e =												\
+					KBEngine::Cellapp::getSingleton().findEntity(eid);			\
+			ARG_TYPE1 ARG_NAME1;												\
+			ARG_TYPE2 ARG_NAME2;												\
+			s >> ARG_NAME1;														\
+			s >> ARG_NAME2;														\
+			if(e)																\
+			{																	\
+				e->NAME(pChannel, ARG_NAME1, ARG_NAME2);						\
+			}																	\
+			else																\
+			{																	\
+				ERROR_MSG("Messagehandler::handle: can't found entityID:%d.\n",	\
+					eid);														\
+			}																	\
+	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler2::type()const\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+	}																			\
+
+#else
+#define ENTITY_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2)				\
+	void NAME##EntityMessagehandler2::handle(Mercury::Channel* pChannel,		\
+											KBEngine::MemoryStream& s)			\
+	{																			\
+	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler2::type()const		\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+	}																			\
+		
+#endif
+#else
+#define ENTITY_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2)				\
+	class NAME##EntityMessagehandler2 : public Mercury::MessageHandler			\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+		virtual Mercury::MERCURY_MESSAGE_TYPE type()const;						\
+	};																			\
+
+#endif
+
+#define ENTITY_MESSAGE_DECLARE_ARGS2(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+														ARG_TYPE2, ARG_NAME2)	\
+	ENTITY_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,					\
+										ARG_TYPE2, ARG_NAME2)					\
+	NETWORK_MESSAGE_DECLARE_ARGS2(Entity, NAME,									\
+				NAME##EntityMessagehandler2, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+														ARG_TYPE2, ARG_NAME2)	\
+																				\
+
+
+/**
+	Entity消息宏，  只有三个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef ENTITY_MESSAGE_HANDLER_ARGS3
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(CELLAPP)
+#define ENTITY_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+	void NAME##EntityMessagehandler3::handle(Mercury::Channel* pChannel,		\
+											KBEngine::MemoryStream& s)			\
+	{																			\
+			ENTITY_ID eid;														\
+			s >> eid;															\
+			KBEngine::Entity* e =												\
+					KBEngine::Cellapp::getSingleton().findEntity(eid);			\
+			ARG_TYPE1 ARG_NAME1;												\
+			ARG_TYPE2 ARG_NAME2;												\
+			ARG_TYPE3 ARG_NAME3;												\
+			s >> ARG_NAME1;														\
+			s >> ARG_NAME2;														\
+			s >> ARG_NAME3;														\
+			if(e)																\
+			{																	\
+				e->NAME(pChannel, ARG_NAME1, ARG_NAME2, ARG_NAME3);				\
+			}																	\
+			else																\
+			{																	\
+				ERROR_MSG("Messagehandler::handle: can't found entityID:%d.\n",	\
+					eid);														\
+			}																	\
+	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler3::type()const		\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+	}																			\
+
+#else
+#define ENTITY_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+	void NAME##EntityMessagehandler3::handle(Mercury::Channel* pChannel,		\
+											KBEngine::MemoryStream& s)			\
+	{																			\
+	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler3::type()const		\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+	}																			\
+		
+#endif
+#else
+#define ENTITY_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+	class NAME##EntityMessagehandler3 : public Mercury::MessageHandler			\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+		virtual Mercury::MERCURY_MESSAGE_TYPE type()const;						\
+	};																			\
+
+#endif
+
+#define ENTITY_MESSAGE_DECLARE_ARGS3(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+	ENTITY_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,					\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+	NETWORK_MESSAGE_DECLARE_ARGS3(Entity, NAME,									\
+				NAME##EntityMessagehandler3, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
 																				\
 
 

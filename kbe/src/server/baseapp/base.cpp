@@ -571,4 +571,28 @@ PyObject* Base::createInNewSpace(PyObject* params)
 }
 
 //-------------------------------------------------------------------------------------
+void Base::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	if(pChannel->proxyID() != this->getID())
+	{
+		WARNING_MSG("Base::forwardEntityMessageToCellappFromClient: not srcEntity(%d/%d).\n", 
+			pChannel->proxyID(), this->getID());
+		return;
+	}
+
+	EntityMailbox* mb = this->getCellMailbox();
+	if(mb == NULL)
+		return;
+
+	// 将这个消息再打包转寄给cellapp， cellapp会对这个包中的每个消息进行判断
+	// 检查是否是entity消息， 否则不合法.
+	Mercury::Bundle bundle;
+	bundle.newMessage(CellappInterface::forwardEntityMessageToCellappFromClient);
+	bundle << this->getID();
+	bundle.append(s);
+	this->getCellMailbox()->postMail(bundle);
+}
+
+
+//-------------------------------------------------------------------------------------
 }

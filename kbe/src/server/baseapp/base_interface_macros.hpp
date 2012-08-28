@@ -64,12 +64,20 @@ namespace KBEngine{
 					eid);														\
 			}																	\
 	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##BaseMessagehandler_stream::type()const	\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+	}																			\
 
 #else
 #define BASE_MESSAGE_HANDLER_STREAM(NAME)										\
 	void NAME##BaseMessagehandler_stream::handle(Mercury::Channel* pChannel,	\
 													KBEngine::MemoryStream& s)	\
 	{																			\
+	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##BaseMessagehandler_stream::type()const	\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 		
 #endif
@@ -80,6 +88,7 @@ namespace KBEngine{
 	public:																		\
 		virtual void handle(Mercury::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
+		virtual Mercury::MERCURY_MESSAGE_TYPE type()const;						\
 	};																			\
 
 #endif
@@ -117,12 +126,20 @@ namespace KBEngine{
 					eid);														\
 			}																	\
 	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##BaseMessagehandler0::type()const		\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+	}																			\
 
 #else
 #define BASE_MESSAGE_HANDLER_ARGS0(NAME)										\
 	void NAME##BaseMessagehandler0::handle(Mercury::Channel* pChannel,			\
 											KBEngine::MemoryStream& s)			\
 	{																			\
+	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##BaseMessagehandler0::type()const		\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 		
 #endif
@@ -133,6 +150,7 @@ namespace KBEngine{
 	public:																		\
 		virtual void handle(Mercury::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
+		virtual Mercury::MERCURY_MESSAGE_TYPE type()const;						\
 	};																			\
 
 #endif
@@ -172,12 +190,20 @@ namespace KBEngine{
 					eid);														\
 			}																	\
 	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##BaseMessagehandler1::type()const		\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+	}																			\
 
 #else
 #define BASE_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
 	void NAME##BaseMessagehandler1::handle(Mercury::Channel* pChannel,			\
 											KBEngine::MemoryStream& s)			\
 	{																			\
+	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##BaseMessagehandler1::type()const		\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 		
 #endif
@@ -188,6 +214,7 @@ namespace KBEngine{
 	public:																		\
 		virtual void handle(Mercury::Channel* pChannel,							\
 							KBEngine::MemoryStream& s);							\
+		virtual Mercury::MERCURY_MESSAGE_TYPE type()const;						\
 	};																			\
 
 #endif

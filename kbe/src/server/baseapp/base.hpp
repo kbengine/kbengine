@@ -194,6 +194,11 @@ public:
 	*/
 	DECLARE_PY_MOTHOD_ARG1(createInNewSpace, PyObject_ptr);
 
+	/** 网络接口
+		客户端直接发送消息给cell实体
+	*/
+	void forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, MemoryStream& s);
+
 protected:
 	// 这个entity的客户端mailbox cellapp mailbox
 	EntityMailbox*							clientMailbox_;			
