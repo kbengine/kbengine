@@ -41,7 +41,18 @@ class EntityTable;
 class EntityTableItem
 {
 public:
-	EntityTableItem(){};
+	EntityTableItem(std::string itemDBType, uint32 datalength):
+		itemName_(),
+		utype_(0),
+		pdbi_(NULL),
+		pParentTable_(NULL),
+		pDataType_(NULL),
+		pPropertyDescription_(NULL),
+		itemDBType_(itemDBType),
+		datalength_(datalength)
+	{
+	};
+
 	virtual ~EntityTableItem(){};
 
 	void itemName(std::string name){ itemName_ = name; }
@@ -73,6 +84,9 @@ protected:
 
 	const DataType* pDataType_;
 	const PropertyDescription* pPropertyDescription_;
+
+	std::string itemDBType_;
+	uint32 datalength_;
 };
 
 /*

@@ -34,11 +34,14 @@ class ScriptDefModule;
 /*
 	维护entity在数据库中的表中的一个字段
 */
-class EntityTableItemMysql_INT : public EntityTableItem
+class EntityTableItemMysql_DIGIT : public EntityTableItem
 {
 public:
-	EntityTableItemMysql_INT(){};
-	virtual ~EntityTableItemMysql_INT(){};
+	EntityTableItemMysql_DIGIT(std::string itemDBType, uint32 datalength):
+	  EntityTableItem(itemDBType, datalength)
+	{
+	};
+	virtual ~EntityTableItemMysql_DIGIT(){};
 
 	/**
 		初始化
@@ -52,63 +55,42 @@ public:
 protected:
 };
 
-class EntityTableItemMysql_UINT : public EntityTableItemMysql_INT
+class EntityTableItemMysql_STRING : public EntityTableItemMysql_DIGIT
 {
 public:
+	EntityTableItemMysql_STRING(std::string itemDBType, uint32 datalength):
+	  EntityTableItemMysql_DIGIT(itemDBType, datalength)
+	  {
+	  }
+
 	/**
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB();
 };
 
-class EntityTableItemMysql_INT64 : public EntityTableItemMysql_INT
+class EntityTableItemMysql_BLOB : public EntityTableItemMysql_DIGIT
 {
 public:
+	EntityTableItemMysql_BLOB(std::string itemDBType, uint32 datalength):
+	  EntityTableItemMysql_DIGIT(itemDBType, datalength)
+	  {
+	  }
+
 	/**
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB();
 };
 
-class EntityTableItemMysql_UINT64 : public EntityTableItemMysql_INT
+class EntityTableItemMysql_ARRAY : public EntityTableItemMysql_DIGIT
 {
 public:
-	/**
-		同步entity表到数据库中
-	*/
-	virtual bool syncToDB();
-};
+	EntityTableItemMysql_ARRAY(std::string itemDBType, uint32 datalength):
+	  EntityTableItemMysql_DIGIT(itemDBType, datalength)
+	  {
+	  }
 
-class EntityTableItemMysql_STRING : public EntityTableItemMysql_INT
-{
-public:
-	/**
-		同步entity表到数据库中
-	*/
-	virtual bool syncToDB();
-};
-
-class EntityTableItemMysql_FLOAT : public EntityTableItemMysql_INT
-{
-public:
-	/**
-		同步entity表到数据库中
-	*/
-	virtual bool syncToDB();
-};
-
-class EntityTableItemMysql_DOUBLE : public EntityTableItemMysql_INT
-{
-public:
-	/**
-		同步entity表到数据库中
-	*/
-	virtual bool syncToDB();
-};
-
-class EntityTableItemMysql_ARRAY : public EntityTableItemMysql_INT
-{
-public:
 	/**
 		初始化
 	*/
@@ -122,9 +104,14 @@ protected:
 	std::tr1::shared_ptr<EntityTableItem> arrayTableItem_;
 };
 
-class EntityTableItemMysql_FIXED_DICT : public EntityTableItemMysql_INT
+class EntityTableItemMysql_FIXED_DICT : public EntityTableItemMysql_DIGIT
 {
 public:
+	EntityTableItemMysql_FIXED_DICT(std::string itemDBType, uint32 datalength):
+	  EntityTableItemMysql_DIGIT(itemDBType, datalength)
+	  {
+	  }
+
 	typedef std::map<std::string, std::tr1::shared_ptr<EntityTableItem>> FIXEDDICT_KEYTYPE_MAP;
 
 	/**
@@ -137,7 +124,7 @@ public:
 	*/
 	virtual bool syncToDB();
 protected:
-	FIXEDDICT_KEYTYPE_MAP			keyTypes_;		// 这个固定字典里的各个key的类型
+	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPE_MAP			keyTypes_;		// 这个固定字典里的各个key的类型
 };
 
 

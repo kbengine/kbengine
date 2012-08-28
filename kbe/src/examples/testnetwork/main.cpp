@@ -215,8 +215,8 @@ struct AvatarInfos
 {
 	uint32 dbid;
 	std::string name;
-	uint16 level;
 	uint8 roleType;
+	uint16 level;
 };
 
 

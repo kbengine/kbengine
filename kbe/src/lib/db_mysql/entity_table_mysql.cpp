@@ -152,54 +152,74 @@ bool EntityTableMysql::syncToDB()
 //-------------------------------------------------------------------------------------
 EntityTableItem* EntityTableMysql::createItem(std::string type)
 {
-	if(type == "INT8" ||
-		type == "INT16" ||
-		type == "INT32")
+	if(type == "INT8")
 	{
-		return new EntityTableItemMysql_INT();
+		return new EntityTableItemMysql_DIGIT("tinyint", 4);
 	}
-	else if(type == "UINT8" ||
-		type == "UINT16" ||
-		type == "UINT32")
+	else if(type == "INT16")
 	{
-		return new EntityTableItemMysql_UINT();
+		return new EntityTableItemMysql_DIGIT("smallint", 6);
 	}
-	else if(type == "UINT64")
+	else if(type == "INT32")
 	{
-		return new EntityTableItemMysql_UINT64();
+		return new EntityTableItemMysql_DIGIT("int", 11);
 	}
 	else if(type == "INT64")
 	{
-		return new EntityTableItemMysql_INT64();
+		return new EntityTableItemMysql_DIGIT("bigint", 20);
 	}
-	else if(type == "STRING")
+	else if(type == "UINT8")
 	{
-		return new EntityTableItemMysql_STRING();
+		return new EntityTableItemMysql_DIGIT("tinyint unsigned", 3);
+	}
+	else if(type == "UINT16")
+	{
+		return new EntityTableItemMysql_DIGIT("smallint unsigned", 5);
+	}
+	else if(type == "UINT32")
+	{
+		return new EntityTableItemMysql_DIGIT("int unsigned", 10);
+	}
+	else if(type == "UINT64")
+	{
+		return new EntityTableItemMysql_DIGIT("bigint unsigned", 20);
 	}
 	else if(type == "FLOAT")
 	{
-		return new EntityTableItemMysql_FLOAT();
+		return new EntityTableItemMysql_DIGIT("float", 0);
 	}
 	else if(type == "DOUBLE")
 	{
-		return new EntityTableItemMysql_DOUBLE();
+		return new EntityTableItemMysql_DIGIT("double", 0);
+	}
+	else if(type == "STRING")
+	{
+		return new EntityTableItemMysql_STRING("text", 0);
+	}
+	else if(type == "PYTHON")
+	{
+		return new EntityTableItemMysql_BLOB("blob", 0);
+	}
+	else if(type == "BLOB")
+	{
+		return new EntityTableItemMysql_BLOB("blob", 0);
 	}
 	else if(type == "ARRAY")
 	{
-		return new EntityTableItemMysql_ARRAY();
+		return new EntityTableItemMysql_ARRAY("", 0);
 	}
 	else if(type == "FIXED_DICT")
 	{
-		return new EntityTableItemMysql_FIXED_DICT();
+		return new EntityTableItemMysql_FIXED_DICT("", 0);
 	}
 
-	return new EntityTableItemMysql_STRING();
+	return new EntityTableItemMysql_STRING("", 0);
 }
 
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_ARRAY::initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, const DataType* pDataType)
 {
-	bool ret = EntityTableItemMysql_INT::initialize(dbi, pPropertyDescription, pDataType);
+	bool ret = EntityTableItemMysql_DIGIT::initialize(dbi, pPropertyDescription, pDataType);
 	if(!ret)
 		return false;
 
@@ -218,7 +238,7 @@ bool EntityTableItemMysql_ARRAY::syncToDB()
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_FIXED_DICT::initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, const DataType* pDataType)
 {
-	bool ret = EntityTableItemMysql_INT::initialize(dbi, pPropertyDescription, pDataType);
+	bool ret = EntityTableItemMysql_DIGIT::initialize(dbi, pPropertyDescription, pDataType);
 	if(!ret)
 		return false;
 
@@ -246,7 +266,7 @@ bool EntityTableItemMysql_FIXED_DICT::syncToDB()
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_INT::initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, const DataType* pDataType)
+bool EntityTableItemMysql_DIGIT::initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, const DataType* pDataType)
 {
 	pdbi_ = dbi;
 	itemName(pPropertyDescription->getName());
@@ -257,64 +277,23 @@ bool EntityTableItemMysql_INT::initialize(DBInterface* dbi, const PropertyDescri
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_INT::syncToDB()
+bool EntityTableItemMysql_DIGIT::syncToDB()
 {
-	DEBUG_MSG("EntityTableItemMysql_INT::syncToDB(): %s.\n", itemName());
+	DEBUG_MSG("EntityTableItemMysql_DIGIT::syncToDB(): %s.\n", itemName());
+
+	if(datalength_ == 0)
+	{
+		SYNC_TO_DB(itemDBType_.c_str());
+		return true;
+	}
 
 	uint32 length = pPropertyDescription_->getDatabaseLength();
-	if(length == 0)
-		length = 10;
-
 	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "int(%u)", length);
 
-	SYNC_TO_DB(sql_str);
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_UINT::syncToDB()
-{
-	DEBUG_MSG("EntityTableItemMysql_UINT::syncToDB(): %s.\n", itemName());
-
-	uint32 length = pPropertyDescription_->getDatabaseLength();
-	if(length == 0)
-		length = 10;
-
-	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "int(%u)", length);
-
-	SYNC_TO_DB(sql_str);
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_INT64::syncToDB()
-{
-	DEBUG_MSG("EntityTableItemMysql_INT64::syncToDB(): %s.\n", itemName());
-
-	uint32 length = pPropertyDescription_->getDatabaseLength();
-	if(length == 0)
-		length = 20;
-
-	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "bigint(%u)", length);
-
-	SYNC_TO_DB(sql_str);
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_UINT64::syncToDB()
-{
-	DEBUG_MSG("EntityTableItemMysql_UINT64::syncToDB(): %s.\n", itemName());
-
-	uint32 length = pPropertyDescription_->getDatabaseLength();
-	if(length == 0)
-		length = 20;
-
-	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "bigint(%u)", length);
+	if(length <= 0)
+		kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
+	else
+		kbe_snprintf(sql_str, MAX_BUF, "%s(%u)", length, itemDBType_.c_str());
 
 	SYNC_TO_DB(sql_str);
 	return true;
@@ -326,29 +305,26 @@ bool EntityTableItemMysql_STRING::syncToDB()
 	DEBUG_MSG("EntityTableItemMysql_STRING::syncToDB(): %s.\n", itemName());
 	
 	uint32 length = pPropertyDescription_->getDatabaseLength();
-	if(length == 0)
-		length = 255;
-	
 	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "VARCHAR(%u)", length);
+
+	if(length > 0)
+	{
+		kbe_snprintf(sql_str, MAX_BUF, "CHAR(%u)", length);
+	}
+	else
+	{
+		kbe_snprintf(sql_str, MAX_BUF, "text");
+	}
 
 	SYNC_TO_DB(sql_str);
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_FLOAT::syncToDB()
+bool EntityTableItemMysql_BLOB::syncToDB()
 {
-	DEBUG_MSG("EntityTableItemMysql_FLOAT::syncToDB(): %s.\n", itemName());
-	SYNC_TO_DB("float(18,3)");
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_DOUBLE::syncToDB()
-{
-	DEBUG_MSG("EntityTableItemMysql_DOUBLE::syncToDB(): %s.\n", itemName());
-	SYNC_TO_DB("double(30,6)");
+	DEBUG_MSG("EntityTableItemMysql_BLOB::syncToDB(): %s.\n", itemName());
+	SYNC_TO_DB(itemDBType_.c_str());
 	return true;
 }
 
