@@ -1,0 +1,19 @@
+<root>
+	<Volatile>
+		<position/>
+		<yaw/>
+		<pitch> 20 </pitch>
+	</Volatile>
+
+	<Implements>
+	</Implements>
+
+	<Properties>
+	</Properties>
+
+	<BaseMethods>
+	</BaseMethods>
+
+	<CellMethods>
+	</CellMethods>
+</root>

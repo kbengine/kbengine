@@ -23,9 +23,9 @@
 	
 	<BAG>	FIXED_DICT
 		<Properties>
-			<kebiao>
+			<values>
 				<Type>	ARRAY <of> ARRAY <of>INT64 </of></of>	</Type>
-			</kebiao>
+			</values>
 		</Properties>
 	</BAG>	
 		

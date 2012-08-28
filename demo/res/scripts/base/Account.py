@@ -67,7 +67,7 @@ class Account(KBEngine.Proxy):
 		DEBUG_MSG("Account[%i].reqAvatarList:" % self.id)
 		self.client.onReqAvatarList(self.avatars)
 		
-	def reqCreateAvatar(self, name):
+	def reqCreateAvatar(self, createType, name):
 		"""
 		exposed.
 		客户端请求创建一个角色
