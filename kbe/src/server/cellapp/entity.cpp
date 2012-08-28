@@ -268,7 +268,7 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 	md->currCallerID(this->getID());
 
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
-						(md->getName().c_str()));
+						(md->getName()));
 
 	if(md != NULL)
 	{
