@@ -546,7 +546,7 @@ void init_network(void)
 		methodID = 11001;
 		bundle100 << eid;
 		bundle100 << methodID;
-		UINT16 skillID = 1;
+		int32 skillID = 1;
 		// 技能ID
 		bundle100 << skillID;
 		// 目标ID

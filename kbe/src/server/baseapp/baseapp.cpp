@@ -71,7 +71,8 @@ bool Baseapp::installPyModules()
 {
 	Base::installScript(getScript().getModule());
 	Proxy::installScript(getScript().getModule());
-	
+	GlobalDataClient::installScript(getScript().getModule());
+
 	registerScript(Base::getScriptType());
 	registerScript(Proxy::getScriptType());
 
