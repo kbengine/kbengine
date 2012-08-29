@@ -541,7 +541,7 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 			ForwardItem* pFI = new ForwardItem();
 			pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(e, spaceID);
 			pFI->bundle.newMessage(BaseappInterface::onEntityGetCell);
-			BaseappInterface::onEntityGetCellArgs2::staticAddToBundle(pFI->bundle, mailboxEntityID, componentID_);
+			BaseappInterface::onEntityGetCellArgs3::staticAddToBundle(pFI->bundle, mailboxEntityID, componentID_, spaceID);
 			forward_messagebuffer_.push(componentID, pFI);
 			WARNING_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: not found baseapp, message is buffered.\n");
 			return;
@@ -553,7 +553,7 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 
 		Mercury::Bundle bundle;
 		bundle.newMessage(BaseappInterface::onEntityGetCell);
-		BaseappInterface::onEntityGetCellArgs2::staticAddToBundle(bundle, mailboxEntityID, componentID_);
+		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle(bundle, mailboxEntityID, componentID_, spaceID);
 		bundle.send(this->getNetworkInterface(), cinfos->pChannel);
 		return;
 	}
@@ -594,7 +594,7 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(entityType, createToEntityID, 
 			entityID, cellDataLength, strEntityCellData, hasClient, componentID, spaceID);
 		pFI->bundle.newMessage(BaseappInterface::onEntityGetCell);
-		BaseappInterface::onEntityGetCellArgs2::staticAddToBundle(pFI->bundle, entityID, componentID_);
+		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle(pFI->bundle, entityID, componentID_, spaceID);
 		forward_messagebuffer_.push(componentID, pFI);
 		WARNING_MSG("Cellapp::onCreateCellEntityFromBaseapp: not found baseapp, message is buffered.\n");
 		return;
@@ -643,7 +643,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		// 告知baseapp， entity的cell创建了
 		Mercury::Bundle bundle;
 		bundle.newMessage(BaseappInterface::onEntityGetCell);
-		BaseappInterface::onEntityGetCellArgs2::staticAddToBundle(bundle, entityID, componentID_);
+		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle(bundle, entityID, componentID_, spaceID);
 		bundle.send(this->getNetworkInterface(), cinfos->pChannel);
 
 		// 如果是有client的entity则设置它的clientmailbox, baseapp部分的onEntityGetCell会告知客户端enterworld.

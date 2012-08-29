@@ -80,7 +80,7 @@ protected:																									\
 	ENTITY_ID		id_;																					\
 	ScriptDefModule*	scriptModule_;																		\
 	const ScriptDefModule::PROPERTYDESCRIPTION_MAP* lpPropertyDescrs_;										\
-	uint32 spaceID_;																						\
+	SPACE_ID spaceID_;																						\
 	ScriptTimers scriptTimers_;																				\
 	PY_CALLBACKMGR pyCallbackMgr_;																			\
 public:																										\
@@ -224,11 +224,11 @@ public:																										\
 		id_ = id; 																							\
 	}																										\
 																											\
-	inline uint32 getSpaceID()const																			\
+	inline SPACE_ID getSpaceID()const																		\
 	{																										\
 		return spaceID_;																					\
 	}																										\
-	inline void setSpaceID(int id)																			\
+	inline void setSpaceID(SPACE_ID id)																		\
 	{																										\
 		spaceID_ = id;																						\
 	}																										\
@@ -410,6 +410,7 @@ public:																										\
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
 	INFO_MSG("%s::~%s(): %d\n", getScriptName(), getScriptName(), id_);										\
+	scriptTimers_.cancelAll();																				\
 	scriptModule_ = NULL;																					\
 
 

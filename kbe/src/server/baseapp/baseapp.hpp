@@ -139,7 +139,7 @@ public:
 	/** 网络接口
 		createCellEntity的cell实体创建成功回调。
 	*/
-	void onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONENT_ID componentID);
+	void onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONENT_ID componentID, SPACE_ID spaceID);
 
 	/** 
 		通知客户端创建一个proxy对应的实体 

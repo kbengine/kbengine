@@ -107,9 +107,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseAnywhereCallback,			MERCURY_FIXED_MESSAGE)
 
 	// createCellEntity的cell实体创建成功回调。
-	BASEAPP_MESSAGE_DECLARE_ARGS2(onEntityGetCell,							MERCURY_FIXED_MESSAGE,
+	BASEAPP_MESSAGE_DECLARE_ARGS3(onEntityGetCell,							MERCURY_FIXED_MESSAGE,
 									ENTITY_ID,								id,
-									COMPONENT_ID,							componentID)
+									COMPONENT_ID,							componentID,
+									SPACE_ID,								spaceID)
 
 	// loginapp向自己注册一个将要登录的账号, 由baseappmgr转发。
 	BASEAPP_MESSAGE_DECLARE_ARGS3(registerPendingLogin,						MERCURY_VARIABLE_MESSAGE,

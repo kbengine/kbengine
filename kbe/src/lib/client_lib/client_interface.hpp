@@ -74,12 +74,14 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 									ENTITY_ID,					eid)
 
 	// 服务器上的entity已经进入游戏世界了。
-	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityEnterWorld,			MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,					eid)
+	CLIENT_MESSAGE_DECLARE_ARGS2(onEntityEnterWorld,			MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,					eid,
+									SPACE_ID,					spaceID)
 
 	// 服务器上的entity已经离开游戏世界了。
-	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityLeaveWorld,			MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,					eid)
+	CLIENT_MESSAGE_DECLARE_ARGS2(onEntityLeaveWorld,			MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,					eid,
+									SPACE_ID,					spaceID)
 
 	// 告诉客户端某个entity销毁了， 此类entity通常是还未onEntityEnterWorld。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityDestroyed,				MERCURY_FIXED_MESSAGE,

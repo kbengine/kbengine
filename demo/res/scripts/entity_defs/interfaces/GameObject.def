@@ -2,35 +2,12 @@
 	<Properties>
 		<name>
 			<Type>			STRING			</Type>
+			<Utype> 		41003			</Utype>
 			<Flags>			ALL_CLIENTS		</Flags>
 			<Default>		monster			</Default>
 			<Persistent>		true			</Persistent>
 			<DetailLevel>		MEDIUM			</DetailLevel>
 		</name>
-		<modelNumber>
-			<Type>			STRING			</Type>
-			<Flags>			ALL_CLIENTS		</Flags>
-			<Default>		Ogre			</Default>
-			<DetailLevel>		FAR			</DetailLevel>
-		</modelNumber>
-		<modelScale>
-			<Type>			FLOAT			</Type>
-			<Flags>			ALL_CLIENTS		</Flags>
-			<Default>		6.5			</Default>
-			<DetailLevel>		FAR			</DetailLevel>
-		</modelScale>
-		<modelYOffset>
-			<Type>			FLOAT			</Type>
-			<Flags>			ALL_CLIENTS		</Flags>
-			<Default>		14.0			</Default>
-			<DetailLevel>		MEDIUM			</DetailLevel>
-		</modelYOffset>
-		<moveSpeed>
-			<Type>			FLOAT			</Type>
-			<Flags>			ALL_CLIENTS		</Flags>
-			<Default>		6.0			</Default>
-			<DetailLevel>		FAR			</DetailLevel>
-		</moveSpeed>
 	</Properties>
 
 	<CellMethods>

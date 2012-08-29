@@ -23,13 +23,6 @@
 			<Flags>			CELL_PUBLIC_AND_OWN		</Flags>
 			<Persistent>		true				</Persistent>
 		</level>
-
-		<name>
-			<Utype> 41003 </Utype>
-			<Type>			STRING				</Type>
-			<Flags>			CELL_PUBLIC_AND_OWN		</Flags>
-			<Persistent>		true				</Persistent>
-		</name>
 	</Properties>
 
 	<BaseMethods>

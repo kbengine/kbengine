@@ -54,7 +54,7 @@ class Account(KBEngine.Proxy):
 		KBEngine method.
 		客户端对应实体已经销毁
 		"""
-		player.accountEntity = None
+		self.activeCharacter.accountEntity = None
 		self.activeCharacter = None
 		DEBUG_MSG("Account[%i].onClientDeath:" % self.id)
 		self.destroy()
@@ -105,9 +105,11 @@ class Account(KBEngine.Proxy):
 		DEBUG_MSG("Account[%i].selectAvatarGame:%i. self.activeCharacter=%s" % (self.id, dbid, self.activeCharacter))
 		# 注意:使用giveClientTo的entity必须是当前baseapp上的entity
 		if self.activeCharacter is None:
-			player = KBEngine.createBase("Avatar", {"name" : str(dbid)})
-			player.accountEntity = self
-			self.activeCharacter = player
-			self.giveClientTo(player)
+			for info in self.avatars:
+				if info["dbid"] == dbid:
+					player = KBEngine.createBase("Avatar", {"name" : info["name"], "spaceUType" : d_avatar_inittab.datas[info["roleType"]]["spaceUType"]})
+					player.accountEntity = self
+					self.activeCharacter = player
+					self.giveClientTo(player)
 		else:
 			self.giveClientTo(self.activeCharacter)

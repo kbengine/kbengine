@@ -481,7 +481,64 @@ void init_network(void)
 		printf("Client::onCreatedProxies: size(%d) : msgID=%u, uuid:%"PRIu64", eid=%d, entityType=%s.\n", 
 			len, msgID, uuid, eid, entityType.c_str());
 
-		//::sleep(5000);
+		// 开始接收属性
+		TCPPacket packet88;
+		packet88.resize(65535);
+		len = mysocket.recv(packet88.data(), 65535);
+		packet88.wpos(len);
+		packet88 >> msgID;
+		packet88 >> msgLen;
+		packet88 >> eid;
+
+			uint16 propertyID = 0;
+			uint16 spaceUType, level;
+			std::string name;
+			SPACE_ID spaceID;
+
+		while(packet88.opsize() > 0)
+		{
+			packet88 >> propertyID;
+
+			if(41001 == propertyID)
+			{
+				packet88 >> spaceUType;
+			}
+			else if(41002 == propertyID)
+			{
+				packet88 >> level;
+			}
+			else if(41003 == propertyID)
+			{
+				packet88 >> name;
+			}
+			else if(40000 == propertyID)
+			{
+				int32 x, y, z;
+				packet88 >> x >> y >> z;
+			}
+			else if(40001 == propertyID)
+			{
+				int32 x, y, z;
+				packet88 >> x;
+				packet88 >> y ;
+				packet88 >> z;
+			}
+			else if(40002 == propertyID)
+			{
+				packet88 >> spaceID;
+			}
+		}
+		
+		printf("服务器下发属性:spaceUType=%u, level=%u.\n", spaceUType, level);
+
+		// 开始接收进入世界消息
+		TCPPacket packet99;
+		packet99.resize(65535);
+		len = mysocket.recv(packet99.data(), 65535);
+		packet99.wpos(len);
+		packet99 >> msgID;
+		packet99 >> eid >> spaceID;
+		printf("!!!玩家进入世界:spaceUType=%u, level=%u.\n", spaceUType, level);
 	};
 }
 

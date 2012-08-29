@@ -124,6 +124,7 @@
 			当有entity进入玩家的AOI时则会触发客户端这个接口。 (AOI: area of interest, 也可理解为服务器上可视范围)
 		</descr>
 		<arg>INT32</arg> <!-- 进入世界的entityID int32 -->
+		<arg>UINT32</arg> <!-- spaceID uint32 -->
 	</Client::onEntityEnterWorld>
 	
 	<Client::onEntityLeaveWorld>
@@ -132,6 +133,7 @@
 			当有entity离开玩家的AOI时则会触发客户端这个接口。
 		</descr>
 		<arg>INT32</arg> <!-- 进入世界的entityID int32 -->
+		<arg>UINT32</arg> <!-- spaceID uint32 -->
 	</Client::onEntityLeaveWorld>
 
 	<Client::onEntityEnterSpace>

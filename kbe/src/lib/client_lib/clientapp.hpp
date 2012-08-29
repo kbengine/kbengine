@@ -154,12 +154,12 @@ public:
 	/** 网络接口
 		服务器上的entity已经进入游戏世界了
 	*/
-	virtual void onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid);
+	virtual void onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID);
 
 	/** 网络接口
 		服务器上的entity已经离开游戏世界了
 	*/
-	virtual void onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid);
+	virtual void onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID);
 
 	/** 网络接口
 		告诉客户端某个entity销毁了， 此类entity通常是还未onEntityEnterWorld

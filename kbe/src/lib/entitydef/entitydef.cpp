@@ -367,6 +367,13 @@ bool EntityDef::loadDefPropertys(std::string& moduleName, XmlPlus* xml, TiXmlNod
 				hasClientFlags = flags & ENTITY_CLIENT_DATA_FLAGS;
 				if(hasClientFlags > 0)
 					scriptModule->setClient(true);
+
+				if(hasBaseFlags <= 0 && hasCellFlags <= 0)
+				{
+					ERROR_MSG("EntityDef::loadDefPropertys: can't fount entity the flags[%s] in %s.\n", 
+						strFlags.c_str(), name.c_str());
+					return false;
+				}
 			}
 
 

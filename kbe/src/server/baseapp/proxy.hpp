@@ -70,7 +70,8 @@ public:
 	/**
 		初始化客户端proxy的属性
 	*/
-	void initClientPropertys();
+	void initClientBasePropertys();
+	void initClientCellPropertys();
 
 	/** 
 		当察觉这个entity对应的客户端socket断开时被调用 

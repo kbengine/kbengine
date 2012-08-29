@@ -7,10 +7,8 @@ class Avatar(KBEngine.Proxy):
 	def __init__(self):
 		KBEngine.Proxy.__init__(self)
 		self.accountEntity = None
-		self.cellData["name"] = "avatar%i" % self.id
-		self.cellData["modelNumber"] = "ninja"
-		self.cellData["modelScale"] = 0.22
-		self.cellData["modelYOffset"] = 0.5
+		self.nameB = self.cellData["name"]
+		self.spaceUTypeB = self.cellData["spaceUType"]
 		
 	def onEntitiesEnabled(self):
 		"""
@@ -18,10 +16,10 @@ class Avatar(KBEngine.Proxy):
 		该entity被正式激活为可使用， 此时entity已经建立了client对应实体， 可以在此创建它的
 		cell部分。
 		"""
-		INFO_MSG("Avatar[%i-%s] entities enable. mailbox:%s" % (self.id, self.name, self.client))
+		INFO_MSG("Avatar[%i-%s] entities enable. mailbox:%s" % (self.id, self.nameB, self.client))
 		
 		self.cellData["position"] = (random.randint(-10, 10), 250, random.randint(-10, 10))
-		KBEngine.globalData["SpaceMgr"].loginToSpace(self, self.spaceUType)
+		KBEngine.globalData["SpaceMgr"].loginToSpace(self, self.spaceUTypeB)
 		
 	def onGetCell(self):
 		"""

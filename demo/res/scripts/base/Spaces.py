@@ -45,7 +45,7 @@ class Spaces(GameObject):
 		某个玩家请求登陆到某个space中
 		"""
 		space = self._spaces.get(spaceUType)
-		if spaceID not in self._spaces:
+		if space is None:
 			ERROR_MSG("Spaces::loginToSpace: not found space %i. login to space is failed!" % spaceUType)
 			return
 		
@@ -57,7 +57,7 @@ class Spaces(GameObject):
 		请求进入某个space中
 		"""
 		space = self._spaces.get(spaceUType)
-		if spaceID not in self._spaces:
+		if space is None:
 			ERROR_MSG("Spaces::teleportTo: not found space %i. teleportTo is failed!" % spaceUType)
 			return
 		

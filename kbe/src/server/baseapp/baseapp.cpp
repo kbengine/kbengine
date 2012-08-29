@@ -568,12 +568,14 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONENT_ID componentID)
+void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONENT_ID componentID, SPACE_ID spaceID)
 {
 	if(pChannel->isExternal())
 		return;
 
 	Base* base = pEntities_->find(id);
+	base->setSpaceID(spaceID);
+
 	// DEBUG_MSG("Baseapp::onEntityGetCell: entityID %d.\n", id);
 	KBE_ASSERT(base != NULL);
 
@@ -589,9 +591,12 @@ void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONEN
 //-------------------------------------------------------------------------------------
 void Baseapp::onClientEntityEnterWorld(Proxy* base)
 {
+	base->initClientCellPropertys();
+
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onEntityEnterWorld);
 	bundle << base->getID();
+	bundle << base->getSpaceID();
 	base->getClientMailbox()->postMail(bundle);
 }
 
@@ -612,6 +617,8 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 	bundle << base->getID();
 	bundle << base->ob_type->tp_name;
 	base->getClientMailbox()->postMail(bundle);
+
+	base->initClientBasePropertys();
 
 	// 本应该由客户端告知已经创建好entity后调用这个接口。
 	if(!reload)
@@ -1107,7 +1114,7 @@ void Baseapp::onEntityEnterWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_I
 	{
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onEntityEnterWorld);
-		ClientInterface::onEntityEnterWorldArgs1::staticAddToBundle(bundle, entityID);
+		ClientInterface::onEntityEnterWorldArgs2::staticAddToBundle(bundle, entityID, base->getSpaceID());
 		bundle.send(this->getNetworkInterface(), pClientChannel);
 	}
 }
@@ -1127,7 +1134,7 @@ void Baseapp::onEntityLeaveWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_I
 	{
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onEntityLeaveWorld);
-		ClientInterface::onEntityLeaveWorldArgs1::staticAddToBundle(bundle, entityID);
+		ClientInterface::onEntityLeaveWorldArgs2::staticAddToBundle(bundle, entityID, base->getSpaceID());
 		bundle.send(this->getNetworkInterface(), pClientChannel);
 	}
 }

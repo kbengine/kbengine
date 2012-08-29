@@ -46,6 +46,8 @@ public:
 	void update();
 
 	void addEntity(Entity* pEntity);
+
+	SPACE_ID getID()const{ return id_; }
 protected:
 	SPACE_ID id_;										// 这个space的ID
 	std::map<ENTITY_ID, Entity*> entities_;				// 这个space上的entity

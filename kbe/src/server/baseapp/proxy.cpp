@@ -33,9 +33,33 @@ Proxy::~Proxy()
 }
 
 //-------------------------------------------------------------------------------------
-void Proxy::initClientPropertys()
+void Proxy::initClientBasePropertys()
 {
+	if(getClientMailbox() == NULL)
+		return;
+
+	MemoryStream s1;
+	getClientPropertys(&s1);
+	
+	if(s1.wpos() > 0)
+	{
+		Mercury::Bundle bundle;
+		bundle.newMessage(ClientInterface::onUpdatePropertys);
+		bundle << this->getID();
+		bundle.append(s1);
+		getClientMailbox()->postMail(bundle);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Proxy::initClientCellPropertys()
+{
+	if(getClientMailbox() == NULL)
+		return;
+
 	Mercury::Bundle bundle;
+	bundle.newMessage(ClientInterface::onUpdatePropertys);
+	bundle << this->getID();
 
 	// 初始化cellEntity的位置和方向变量
 	Vector3 v;
@@ -51,7 +75,8 @@ void Proxy::initClientPropertys()
 	
 	ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
 	ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
-	
+	ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
+
 	Mercury::FixedMessages::MSGInfo* msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::position");
 	if(msgInfo != NULL)
 	{
@@ -62,12 +87,17 @@ void Proxy::initClientPropertys()
 	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
 	if(msgInfo != NULL)
 	{
-		posuid = msgInfo->msgid;
+		diruid = msgInfo->msgid;
+		msgInfo = NULL;
 	}
 
-	bundle.newMessage(ClientInterface::onUpdatePropertys);
+	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::spaceID");
+	if(msgInfo != NULL)
+	{
+		spaceuid = msgInfo->msgid;
+	}
 	
-	bundle << getID();
+	bundle << spaceuid << this->getSpaceID();
 
 #ifdef CLIENT_NO_FLOAT
 	int32 x = (int32)v.x;
@@ -91,10 +121,6 @@ void Proxy::initClientPropertys()
 	MemoryStream s;
 	addCellDataToStream(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, &s);
 	bundle.append(s);
-
-	MemoryStream s1;
-	getClientPropertys(&s1);
-	bundle.append(s1);
 
 	getClientMailbox()->postMail(bundle);
 }
