@@ -47,7 +47,7 @@ enum EntityDataFlags
 	ED_FLAG_OWN_CLIENT												= 0x00000010, // 当前cell和客户端
 	ED_FLAG_BASE_AND_CLIENT											= 0x00000020, // base和客户端
 	ED_FLAG_BASE													= 0x00000040, // 当前base
-	ED_FLAG_OTHER_CLIENTS											= 0x00000060, // cell广播和其他客户端
+	ED_FLAG_OTHER_CLIENTS											= 0x00000080, // cell广播和其他客户端
 };
 
 #define ED_FLAG_ALL  ED_FLAG_CELL_PUBLIC | ED_FLAG_CELL_PRIVATE | ED_FLAG_ALL_CLIENTS \
