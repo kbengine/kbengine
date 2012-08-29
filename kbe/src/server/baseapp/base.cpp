@@ -261,6 +261,9 @@ void Base::getClientPropertys(MemoryStream* s)
 //-------------------------------------------------------------------------------------
 bool Base::destroyCellEntity(void)
 {
+	if(cellMailbox_  == NULL || cellMailbox_->getChannel() == NULL)
+		return false;
+
 	Mercury::Bundle bundle;
 	bundle.newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
 	bundle << id_;
