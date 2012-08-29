@@ -40,7 +40,7 @@ ScriptTimers::ScriptTimers()
 ScriptTimers::~ScriptTimers()
 {
 	// DEBUG_MSG("ScriptTimers::~ScriptTimers: timers_size(%d).\n", map_.size());
-	// cancelAll();
+	cancelAll();
 }
 
 //-------------------------------------------------------------------------------------

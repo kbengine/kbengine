@@ -343,6 +343,8 @@ public:																										\
 																											\
 		virtual void onRelease( TimerHandle handle, void * /*pUser*/ )										\
 		{																									\
+			ScriptTimers* scriptTimers = &pEntity_->scriptTimers();											\
+			scriptTimers->releaseTimer(handle);																\
 			delete this;																					\
 		}																									\
 																											\

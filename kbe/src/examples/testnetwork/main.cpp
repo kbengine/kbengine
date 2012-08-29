@@ -490,10 +490,10 @@ void init_network(void)
 		packet88 >> msgLen;
 		packet88 >> eid;
 
-			uint16 propertyID = 0;
-			uint16 spaceUType, level;
-			std::string name;
-			SPACE_ID spaceID;
+		uint16 propertyID = 0;
+		uint16 spaceUType, level;
+		std::string name;
+		SPACE_ID spaceID;
 
 		while(packet88.opsize() > 0)
 		{
