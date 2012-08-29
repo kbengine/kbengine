@@ -12,7 +12,15 @@ class SpawnPoint(KBEngine.Entity):
 			"spawnPos" : tuple(self.position),
 		}
 		
-		KBEngine.createEntity(datas["entityType"], self.spaceID, tuple(self.position), tuple(self.direction), params)
+		e = KBEngine.createEntity(datas["entityType"], self.spaceID, tuple(self.position), tuple(self.direction), params)
+		
+		info = {
+			"entityID" : e.id,
+			"utype" : datas["id"],
+			"spawnPos" : datas["spawnPos"],
+			"modelID" : datas["modelID"],
+		}
+		KBEngine.globalData["space_%i" % self.spaceID].regEntity(datas["entityType"], info)
 		
 	def onDestroy(self):
 		"""
@@ -20,4 +28,5 @@ class SpawnPoint(KBEngine.Entity):
 		当前entity马上将要被引擎销毁
 		可以在此做一些销毁前的工作
 		"""
-		DEBUG_MSG("我要销毁了", self.id)
+		DEBUG_MSG("onDestroy(%i)" % self.id)
+		

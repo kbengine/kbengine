@@ -19,4 +19,4 @@ class Avatar(GameObject):
 		if srcEntityID != self.id:
 			return
 			
-		DEBUG_MSG("Avatar::spellTarget(%i):skillID=%i, targetID=%i", self.id, skillID, targetID)
+		DEBUG_MSG("Avatar::spellTarget(%i):skillID=%i, srcEntityID=%i, targetID=%i" % (self.id, skillID, srcEntityID, targetID))
