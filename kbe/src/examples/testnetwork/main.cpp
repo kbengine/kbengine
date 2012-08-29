@@ -539,6 +539,20 @@ void init_network(void)
 		packet99 >> msgID;
 		packet99 >> eid >> spaceID;
 		printf("!!!玩家进入世界:spaceUType=%u, level=%u.\n", spaceUType, level);
+
+		// 向服务器请求施放技能
+		Mercury::Bundle bundle100;
+		bundle100.newMessage(BaseappInterface::onRemoteCallCellMethodFromClient);
+		methodID = 11001;
+		bundle100 << eid;
+		bundle100 << methodID;
+		UINT16 skillID = 1;
+		// 技能ID
+		bundle100 << skillID;
+		// 目标ID
+		ENTITY_ID targetID = 300;
+		bundle100 << targetID;
+		bundle100.send(mysocket);
 	};
 }
 

@@ -682,19 +682,20 @@ void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 //-------------------------------------------------------------------------------------
 void Cellapp::onRemoteCallMethodFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	ENTITY_ID srcEntityID;
+	ENTITY_ID srcEntityID, targetID;
 
-	s >> srcEntityID;
+	s >> srcEntityID >> targetID;
 
-	KBEngine::Entity* e = KBEngine::Cellapp::getSingleton().findEntity(srcEntityID);		
+	KBEngine::Entity* e = KBEngine::Cellapp::getSingleton().findEntity(targetID);		
 
 	if(e == NULL)
 	{	
-		WARNING_MSG("Cellapp::onRemoteCallMethodFromClient: can't found entityID:%d.\n", srcEntityID);
+		WARNING_MSG("Cellapp::onRemoteCallMethodFromClient: can't found entityID:%d, by srcEntityID:%d.\n", targetID, srcEntityID);
 		return;
 	}
 
 	// 这个方法呼叫如果不是这个proxy自己的方法则必须呼叫的entity和proxy的cellEntity在一个space中。
+	e->onRemoteMethodCall(pChannel, s);
 }
 
 //-------------------------------------------------------------------------------------

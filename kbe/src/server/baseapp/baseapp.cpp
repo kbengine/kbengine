@@ -1182,9 +1182,10 @@ void Baseapp::onRemoteCallCellMethodFromClient(Mercury::Channel* pChannel, KBEng
 	Mercury::Bundle bundle;
 	bundle.newMessage(CellappInterface::onRemoteCallMethodFromClient);
 	bundle << srcEntityID;
-	bundle.append(s.data(), s.opsize());
+	bundle.append(s);
 	
 	e->getCellMailbox()->postMail(bundle);
+	s.read_skip(s.opsize());
 }
 
 //-------------------------------------------------------------------------------------
