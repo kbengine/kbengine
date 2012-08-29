@@ -410,7 +410,6 @@ public:																										\
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
 	INFO_MSG("%s::~%s(): %d\n", getScriptName(), getScriptName(), id_);										\
-	scriptTimers_.cancelAll();																				\
 	scriptModule_ = NULL;																					\
 
 
