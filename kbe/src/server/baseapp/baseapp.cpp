@@ -1072,9 +1072,12 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel,
 
 	Proxy* base = static_cast<Proxy*>(createEntityCommon(g_serverConfig.getDBMgr().dbAccountEntityScriptType, NULL));
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
+	if(ptinfos == NULL)
+		return;
+
 	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(ptinfos->addr);
 
-	KBE_ASSERT(base != NULL && ptinfos != NULL);
+	KBE_ASSERT(base != NULL);
 	base->hasDB(true);
 
 	if(pClientChannel != NULL)
