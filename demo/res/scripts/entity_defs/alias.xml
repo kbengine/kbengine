@@ -28,6 +28,23 @@
 		</Properties>
 	</AVATAR_INFOS>	
 	
+	<ENTITY_INFOS>	FIXED_DICT
+		<Properties>
+			<entityID>
+				<Type>	ENTITY_ID	</Type>
+			</entityID>
+			<modelID>
+				<Type>	UINT32	</Type>
+			</modelID>
+			<spawnPos>
+				<Type>	VECTOR3	</Type>
+			</spawnPos>
+			<utype>
+				<Type>	UINT32	</Type>
+			</utype>
+		</Properties>
+	</ENTITY_INFOS>
+	
 	<BAG>	FIXED_DICT
 		<Properties>
 			<values>

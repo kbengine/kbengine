@@ -38,8 +38,17 @@
 			<Arg>		SKILLID		</Arg>
 			<Arg>		ENTITY_ID	</Arg>
 		</spellTarget>
+		<queryCurrSpaceEntitys>
+			<Exposed/>
+			<Utype> 11002 </Utype>
+			<Arg>		UINT8		</Arg>
+		</queryCurrSpaceEntitys>
 	</CellMethods>
 
 	<ClientMethods>
+		<onQueryEntityResult>
+			<Utype> 10100		</Utype>
+			<Arg>	ENTITY_INFOS 	</Arg>
+		</onQueryEntityResult>
 	</ClientMethods>
 </root>

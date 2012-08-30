@@ -9,14 +9,9 @@ class Space(KBEngine.Entity):
 		#self.addSpaceGeometryMapping(self.spaceID, self.spaceName)
 		
 		# 记录地图上所有的实体ID， 按类型区分
-		self.allEntities = {} 
+		self.allNPEntities = [] 
 		
 		KBEngine.globalData["space_%i" % self.spaceID] = self
 		
 	def regEntity(self, entityType, entityInfo):
-		edict = self.allEntities.get(entityType)
-		if edict is None:
-			edict = []
-			self.allEntities[entityType] = edict
-		
-		edict.append(entityInfo)
+		self.allNPEntities.append(entityInfo)

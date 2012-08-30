@@ -10,6 +10,27 @@ class Avatar(GameObject):
 		
 	def onTimer(self, tid, userArg):
 		DEBUG_MSG("Avatar::onTimer: %i, tid:%i, arg:%i" % (self.id, tid, userArg))
+	
+	def queryCurrSpaceEntitys(self, srcEntityID, count):
+		"""
+		exposed.
+		查询当前场景上的entity信息
+		"""
+		DEBUG_MSG("Avatar::queryCurrSpaceEntitys(%i):srcEntityID=%i, count=%i" % (self.id, srcEntityID, count))
+		space = KBEngine.globalData["space_%i" % self.spaceID]
+		
+		allDatas = list(space.allNPEntities)
+		while len(allDatas) > 0:
+			data = allDatas.pop(0)
+			self.client.onQueryEntityResult(data)
+
+		end = {
+			"entityID" : 0,
+			"utype" : 0,
+			"spawnPos" : (0, 0, 0),
+			"modelID" : 0,
+		}
+		self.client.onQueryEntityResult(end)
 		
 	def spellTarget(self, srcEntityID, skillID, targetID):
 		"""
