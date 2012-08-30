@@ -1182,6 +1182,7 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 	switch(mailtype)
 	{
 		case MAILBOX_TYPE_BASE:																		// 本组件是baseapp，那么确认邮件的目的地是这里， 那么执行最终操作
+			base->onRemoteMethodCall(pChannel, s);
 			break;
 		case MAILBOX_TYPE_CELL_VIA_BASE: // entity.cell.base.xxx
 			{

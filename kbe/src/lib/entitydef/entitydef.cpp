@@ -491,47 +491,47 @@ bool EntityDef::loadDefCellMethods(std::string& moduleName, XmlPlus* xml, TiXmlN
 			TiXmlNode* argNode = defMethodNode->FirstChild();
 			
 			// 可能没有参数
-			if(argNode == NULL)
-				continue;
-
-			XML_FOR_BEGIN(argNode)
+			if(argNode)
 			{
-				std::string argType = xml->getKey(argNode);
-				if(argType == "Exposed")
+				XML_FOR_BEGIN(argNode)
 				{
-					methodDescription->setExposed();
-				}
-				else if(argType == "Arg")
-				{
-					DataType* dataType = NULL;
-					TiXmlNode* typeNode = argNode->FirstChild();
-					std::string strType = xml->getValStr(typeNode);
-
-					if(strType == "ARRAY")
+					std::string argType = xml->getKey(argNode);
+					if(argType == "Exposed")
 					{
-						ArrayType* dataType1 = new ArrayType();
-						if(dataType1->initialize(xml, typeNode))
-							dataType = dataType1;
+						methodDescription->setExposed();
 					}
-					else
-						dataType = DataTypes::getDataType(strType);
-
-					if(dataType == NULL)
+					else if(argType == "Arg")
 					{
-						ERROR_MSG("EntityDef::loadDefCellMethods: dataType[%s] not found, in %s!\n", strType.c_str(), name.c_str());
-						return false;
+						DataType* dataType = NULL;
+						TiXmlNode* typeNode = argNode->FirstChild();
+						std::string strType = xml->getValStr(typeNode);
+
+						if(strType == "ARRAY")
+						{
+							ArrayType* dataType1 = new ArrayType();
+							if(dataType1->initialize(xml, typeNode))
+								dataType = dataType1;
+						}
+						else
+							dataType = DataTypes::getDataType(strType);
+
+						if(dataType == NULL)
+						{
+							ERROR_MSG("EntityDef::loadDefCellMethods: dataType[%s] not found, in %s!\n", strType.c_str(), name.c_str());
+							return false;
+						}
+						methodDescription->pushArgType(dataType);
 					}
-					methodDescription->pushArgType(dataType);
+					else if(argType == "Utype")
+					{
+						TiXmlNode* typeNode = argNode->FirstChild();
+						ENTITY_METHOD_UID muid = xml->getValInt(typeNode);
+						methodDescription->setUType(muid);
+					}
 				}
-				else if(argType == "Utype")
-				{
-					TiXmlNode* typeNode = argNode->FirstChild();
-					ENTITY_METHOD_UID muid = xml->getValInt(typeNode);
-					methodDescription->setUType(muid);
-				}
+				XML_FOR_END(argNode);		
 			}
-			XML_FOR_END(argNode);		
-			
+
 			// 如果配置中没有设置过utype, 则产生
 			if(methodDescription->getUType() <= 0)
 			{
@@ -568,45 +568,45 @@ bool EntityDef::loadDefBaseMethods(std::string& moduleName, XmlPlus* xml, TiXmlN
 			TiXmlNode* argNode = defMethodNode->FirstChild();
 
 			// 可能没有参数
-			if(argNode == NULL)
-				continue;
-
-			XML_FOR_BEGIN(argNode)
+			if(argNode)
 			{
-				std::string argType = xml->getKey(argNode);
-				if(argType == "Exposed")
-					methodDescription->setExposed();
-				else if(argType == "Arg")
+				XML_FOR_BEGIN(argNode)
 				{
-					DataType* dataType = NULL;
-					TiXmlNode* typeNode = argNode->FirstChild();
-					std::string strType = xml->getValStr(typeNode);
-
-					if(strType == "ARRAY")
+					std::string argType = xml->getKey(argNode);
+					if(argType == "Exposed")
+						methodDescription->setExposed();
+					else if(argType == "Arg")
 					{
-						ArrayType* dataType1 = new ArrayType();
-						if(dataType1->initialize(xml, typeNode))
-							dataType = dataType1;
-					}
-					else
-						dataType = DataTypes::getDataType(strType);
+						DataType* dataType = NULL;
+						TiXmlNode* typeNode = argNode->FirstChild();
+						std::string strType = xml->getValStr(typeNode);
 
-					if(dataType == NULL)
-					{
-						ERROR_MSG("EntityDef::loadDefBaseMethods: dataType[%s] not found, in %s!\n", strType.c_str(), name.c_str());
-						return false;
+						if(strType == "ARRAY")
+						{
+							ArrayType* dataType1 = new ArrayType();
+							if(dataType1->initialize(xml, typeNode))
+								dataType = dataType1;
+						}
+						else
+							dataType = DataTypes::getDataType(strType);
+
+						if(dataType == NULL)
+						{
+							ERROR_MSG("EntityDef::loadDefBaseMethods: dataType[%s] not found, in %s!\n", strType.c_str(), name.c_str());
+							return false;
+						}
+						methodDescription->pushArgType(dataType);
 					}
-					methodDescription->pushArgType(dataType);
+					else if(argType == "Utype")
+					{
+						TiXmlNode* typeNode = argNode->FirstChild();
+						ENTITY_METHOD_UID muid = xml->getValInt(typeNode);
+						methodDescription->setUType(muid);
+					}
 				}
-				else if(argType == "Utype")
-				{
-					TiXmlNode* typeNode = argNode->FirstChild();
-					ENTITY_METHOD_UID muid = xml->getValInt(typeNode);
-					methodDescription->setUType(muid);
-				}
+				XML_FOR_END(argNode);		
 			}
-			XML_FOR_END(argNode);		
-			
+
 			// 如果配置中没有设置过utype, 则产生
 			if(methodDescription->getUType() <= 0)
 			{
@@ -643,43 +643,43 @@ bool EntityDef::loadDefClientMethods(std::string& moduleName, XmlPlus* xml, TiXm
 			TiXmlNode* argNode = defMethodNode->FirstChild();
 
 			// 可能没有参数
-			if(argNode == NULL)
-				continue;
-
-			XML_FOR_BEGIN(argNode)
+			if(argNode)
 			{
-				std::string argType = xml->getKey(argNode);
-				if(argType == "Arg")
+				XML_FOR_BEGIN(argNode)
 				{
-					DataType* dataType = NULL;
-					TiXmlNode* typeNode = argNode->FirstChild();
-					std::string strType = xml->getValStr(typeNode);
-
-					if(strType == "ARRAY")
+					std::string argType = xml->getKey(argNode);
+					if(argType == "Arg")
 					{
-						ArrayType* dataType1 = new ArrayType();
-						if(dataType1->initialize(xml, typeNode))
-							dataType = dataType1;
-					}
-					else
-						dataType = DataTypes::getDataType(strType);
+						DataType* dataType = NULL;
+						TiXmlNode* typeNode = argNode->FirstChild();
+						std::string strType = xml->getValStr(typeNode);
 
-					if(dataType == NULL)
-					{
-						ERROR_MSG("EntityDef::loadDefClientMethods: dataType[%s] not found, in %s!\n", strType.c_str(), name.c_str());
-						return false;
+						if(strType == "ARRAY")
+						{
+							ArrayType* dataType1 = new ArrayType();
+							if(dataType1->initialize(xml, typeNode))
+								dataType = dataType1;
+						}
+						else
+							dataType = DataTypes::getDataType(strType);
+
+						if(dataType == NULL)
+						{
+							ERROR_MSG("EntityDef::loadDefClientMethods: dataType[%s] not found, in %s!\n", strType.c_str(), name.c_str());
+							return false;
+						}
+						methodDescription->pushArgType(dataType);
 					}
-					methodDescription->pushArgType(dataType);
+					else if(argType == "Utype")
+					{
+						TiXmlNode* typeNode = argNode->FirstChild();
+						ENTITY_METHOD_UID muid = xml->getValInt(typeNode);
+						methodDescription->setUType(muid);
+					}
 				}
-				else if(argType == "Utype")
-				{
-					TiXmlNode* typeNode = argNode->FirstChild();
-					ENTITY_METHOD_UID muid = xml->getValInt(typeNode);
-					methodDescription->setUType(muid);
-				}
+				XML_FOR_END(argNode);		
 			}
-			XML_FOR_END(argNode);		
-			
+
 			// 如果配置中没有设置过utype, 则产生
 			if(methodDescription->getUType() <= 0)
 			{

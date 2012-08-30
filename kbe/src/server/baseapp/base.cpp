@@ -342,11 +342,15 @@ void Base::onCreateCellFailure(void)
 //-------------------------------------------------------------------------------------
 void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID srcEntityID = pChannel->proxyID();
-	if(srcEntityID <= 0 || srcEntityID != this->getID())
+	// 如果是外部通道调用则判断来源性
+	if(pChannel->isExternal())
 	{
-		WARNING_MSG("Base::onRemoteMethodCall: srcEntityID:%d, thisEntityID:%d.\n", srcEntityID, this->getID());
-		return;
+		ENTITY_ID srcEntityID = pChannel->proxyID();
+		if(srcEntityID <= 0 || srcEntityID != this->getID())
+		{
+			WARNING_MSG("Base::onRemoteMethodCall: srcEntityID:%d, thisEntityID:%d.\n", srcEntityID, this->getID());
+			return;
+		}
 	}
 
 	ENTITY_METHOD_UID utype = 0;

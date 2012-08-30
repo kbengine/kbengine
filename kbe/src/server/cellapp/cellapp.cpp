@@ -674,6 +674,57 @@ void Cellapp::onDestroyCellEntityFromBaseapp(Mercury::Channel* pChannel, ENTITY_
 //-------------------------------------------------------------------------------------
 void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	ENTITY_ID eid;
+	s >> eid;
+
+	ENTITY_MAILBOX_TYPE	mailtype;
+	s >> mailtype;
+
+	// 在本地区尝试查找该收件人信息， 看收件人是否属于本区域
+	Entity* entity = pEntities_->find(eid);
+	if(entity == NULL)
+	{
+		ERROR_MSG("Cellapp::onEntityMail: entityID %d not found.\n", eid);
+		return;
+	}
+	
+	Mercury::Bundle bundle;
+
+	switch(mailtype)
+	{
+		case MAILBOX_TYPE_CELL:																		// 本组件是baseapp，那么确认邮件的目的地是这里， 那么执行最终操作
+			entity->onRemoteMethodCall(pChannel, s);
+			break;
+		case MAILBOX_TYPE_BASE_VIA_CELL: // entity.base.cell.xxx
+			{
+				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(entity->getBaseMailbox());
+				if(mailbox == NULL){
+					ERROR_MSG("Cellapp::onEntityMail: occur a error(can't found baseMailbox)! mailboxType=%d, entityID=%d.\n", mailtype, eid);
+					break;
+				}
+				
+				mailbox->newMail(bundle);
+				bundle.append(s);
+				mailbox->postMail(bundle);
+			}
+			break;
+		case MAILBOX_TYPE_CLIENT_VIA_CELL: // entity.cell.client
+			{
+				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(entity->getClientMailbox());
+				if(mailbox == NULL){
+					ERROR_MSG("Cellapp::onEntityMail: occur a error(can't found clientMailbox)! mailboxType=%d, entityID=%d.\n", mailtype, eid);
+					break;
+				}
+				
+				mailbox->newMail(bundle);
+				bundle.append(s);
+				s.read_skip(s.opsize());
+				mailbox->postMail(bundle);
+			}
+			break;
+		default:
+			ERROR_MSG("Cellapp::onEntityMail: mailboxType %d is error! must a cellType. entityID=%d.\n", mailtype, eid);
+	};
 }
 
 //-------------------------------------------------------------------------------------
