@@ -219,6 +219,18 @@ struct AvatarInfos
 	uint16 level;
 };
 
+struct vector3
+{
+	int32 x, y, z;
+};
+
+struct EntityInfos
+{
+	int32 entityID;  // 服务器分配的entity唯一ID
+	uint32 modelID;  // 模型ID
+	vector3 spawnPos; // 出生在地图位置
+	uint32 utype;    // 策划填写的实体ID
+};
 
 void init_network(void)
 {
@@ -238,6 +250,7 @@ void init_network(void)
 	char ttt1[256];
 	memset(ttt1, 0, 256);
 	int nnn = rand() % 65535;
+	nnn = 0;
 	sprintf(ttt1, "%d", nnn);
 	accountname += ttt1;
 
@@ -421,7 +434,7 @@ void init_network(void)
 		methodID = 10002;
 		bundle55 << eid;
 		bundle55 << methodID;
-		uint8 createType = 1;
+		uint8 createType = 4;
 		bundle55 << createType;
 		bundle55 << avatarname;
 		bundle55.send(mysocket);
@@ -540,6 +553,50 @@ void init_network(void)
 		packet99 >> eid >> spaceID;
 		printf("!!!玩家进入世界:spaceUType=%u, level=%u.\n", spaceUType, level);
 
+		// 向服务器请求查询entities
+		Mercury::Bundle bundle999;
+		bundle999.newMessage(BaseappInterface::onRemoteCallCellMethodFromClient);
+		methodID = 11002;
+		bundle999 << eid;
+		bundle999 << methodID;
+		uint8 qcount = 5;
+		// 技能ID
+		bundle999 << qcount;
+		bundle999.send(mysocket);
+		
+		int32 targetID = 0;
+		while(1)
+		{
+			EntityInfos einfos;
+			// 接收服务器查询entities信息
+			TCPPacket packet999;
+			packet999.resize(65535);
+			len = mysocket.recv(packet999.data(), 65535);
+			packet999.wpos(len);
+			packet999 >> msgID;
+			packet999 >> msgLen;
+			packet999 >> eid;
+			packet999 >> methodID;
+
+			uint8 elemcount = 0;
+			
+			packet999 >> einfos.entityID;
+			targetID = einfos.entityID;
+			packet999 >> einfos.modelID;
+			packet999 >> elemcount;
+			// 由于这个类别是一个list所以服务器通用list打包规则会给出一个元素个数
+			// 但这里我们知道坐标服务器是x,y,z3个元素
+			packet999 >> einfos.spawnPos.x >> einfos.spawnPos.y >> einfos.spawnPos.z;
+			packet999 >> einfos.utype;
+			printf("服务器下发entity:id=%d, modelID=%u, pos(%d,%d,%d), utype=%u.\n", einfos.entityID, einfos.modelID, 
+				einfos.spawnPos.x,einfos.spawnPos.y, einfos.spawnPos.z, einfos.utype);
+
+
+			// 服务器约定结束时给出一个结构值都为0
+			if(einfos.entityID == 0)
+				break;
+		};
+
 		// 向服务器请求施放技能
 		Mercury::Bundle bundle100;
 		bundle100.newMessage(BaseappInterface::onRemoteCallCellMethodFromClient);
@@ -550,7 +607,6 @@ void init_network(void)
 		// 技能ID
 		bundle100 << skillID;
 		// 目标ID
-		ENTITY_ID targetID = 300;
 		bundle100 << targetID;
 		bundle100.send(mysocket);
 	};

@@ -46,6 +46,30 @@ namespace KBEngine{
     #define INLINE
 #endif
 
+/** entity的mailbox类别 */
+enum ENTITY_MAILBOX_TYPE
+{
+	MAILBOX_TYPE_CELL												= 0,
+	MAILBOX_TYPE_BASE												= 1,
+	MAILBOX_TYPE_CLIENT												= 2,
+	MAILBOX_TYPE_CELL_VIA_BASE										= 3,
+	MAILBOX_TYPE_BASE_VIA_CELL										= 4,
+	MAILBOX_TYPE_CLIENT_VIA_CELL									= 5,
+	MAILBOX_TYPE_CLIENT_VIA_BASE									= 6,
+};
+
+/** mailbox的类别对换为字符串名称 严格和ENTITY_MAILBOX_TYPE索引匹配 */
+const char ENTITY_MAILBOX_TYPE_TO_NAME_TABLE[][8] = 
+{
+	"cell",
+	"base",
+	"client",
+	"cell",
+	"base",
+	"client",
+	"client",
+};
+
 /** 定义服务器各组件类别 */
 enum COMPONENT_TYPE
 {

@@ -194,7 +194,14 @@ public:
 
     Bundle &operator<<(COMPONENT_TYPE value)
     {
-		onPacketAppend(sizeof(int8));
+		onPacketAppend(sizeof(int32));
+        (*pCurrPacket_) << value;
+        return *this;
+    }
+
+    Bundle &operator<<(ENTITY_MAILBOX_TYPE value)
+    {
+		onPacketAppend(sizeof(int32));
         (*pCurrPacket_) << value;
         return *this;
     }
@@ -367,6 +374,11 @@ public:
     }
 
     Bundle &operator>>(COMPONENT_TYPE &value)
+    {
+        PACKET_OUT_VALUE(value);
+    }
+
+    Bundle &operator>>(ENTITY_MAILBOX_TYPE &value)
     {
         PACKET_OUT_VALUE(value);
     }

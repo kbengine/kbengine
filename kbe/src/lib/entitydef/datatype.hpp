@@ -269,7 +269,7 @@ public:
 class VectorType : public DataType
 {
 public:	
-	VectorType(int elemCount);
+	VectorType(uint8 elemCount);
 	virtual ~VectorType();	
 
 	bool isSameType(PyObject* pyValue);
@@ -281,9 +281,10 @@ public:
 
 	MemoryStream* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void)const{ return "VECTOR3";}
+	const char* getName(void)const{ return name_.c_str();}
 protected:
-	int elemCount_;
+	std::string name_;
+	uint8 elemCount_;
 };
 
 class StringType : public DataType

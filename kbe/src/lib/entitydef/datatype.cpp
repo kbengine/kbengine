@@ -355,8 +355,13 @@ PyObject* FloatType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-VectorType::VectorType(int elemCount):elemCount_(elemCount)
+VectorType::VectorType(uint8 elemCount):
+name_(),
+elemCount_(elemCount)
 {
+	char tbuf[MAX_BUF];
+	kbe_snprintf(tbuf, MAX_BUF, "VECTOR%u", elemCount);
+	name_ += tbuf;
 }
 
 //-------------------------------------------------------------------------------------
@@ -378,28 +383,53 @@ bool VectorType::isSameType(PyObject* pyValue)
 		PyErr_Format(PyExc_TypeError, "must be set to a VECTOR%d type.", elemCount_);
 		return false;
 	}
-	
+
+	for(uint8 index=0; index<elemCount_; index++)
+	{
+		PyObject* pyVal = PySequence_GetItem(pyValue, index);
+		if(!PyFloat_Check(pyVal) && !PyLong_Check(pyVal) && !PyLong_AsLongLong(pyVal))
+		{
+			PyErr_Format(PyExc_TypeError, "VECTOR%d item is not digit.", elemCount_);
+			return false;
+		}
+
+		Py_DECREF(pyVal);
+	}
+
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* VectorType::createObject(MemoryStream* defaultVal)
 {
-	float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
+#ifdef CLIENT_NO_FLOAT
+		int32 x = 0, y = 0, z = 0, w = 0;
+#else
+		float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
+#endif
+
+	uint8 count = 0;
+	(*defaultVal) >> count;
+	
+	if(count != elemCount_)
+		return NULL;
+
 	switch(elemCount_)
 	{
 		case 2:
 			if(defaultVal)
 				(*defaultVal) >> x >> y;	
-			return new script::ScriptVector2(x, y);
+			return new script::ScriptVector2(float(x), float(y));
 		case 3:
 			if(defaultVal)
 				(*defaultVal) >> x >> y >> z;	
-			return new script::ScriptVector3(x, y, z);
+			return new script::ScriptVector3(float(x), float(y), float(z));
 		case 4:
 			if(defaultVal)
 				(*defaultVal) >> x >> y >> z >> w;	
-			return new script::ScriptVector4(x, y, z, w);
+			return new script::ScriptVector4(float(x), float(y), float(z), float(w));
+		default:
+			break;
 	}
 	
 	return NULL;
@@ -413,8 +443,15 @@ MemoryStream* VectorType::parseDefaultStr(std::string defaultVal)
 	{
 		std::stringstream stream;
 		stream << defaultVal;
+#ifdef CLIENT_NO_FLOAT
+		int32 x = 0, y = 0, z = 0, w = 0;
+#else
 		float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
+#endif
 		bs = new MemoryStream();
+		
+		(*bs) << elemCount_;
+
 		switch(elemCount_)
 		{
 			case 2:
@@ -438,10 +475,15 @@ MemoryStream* VectorType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void VectorType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	for(int index=0; index<elemCount_; index++)
+	(*mstream) << elemCount_;
+	for(uint8 index=0; index<elemCount_; index++)
 	{
 		PyObject* pyVal = PySequence_GetItem(pyValue, index);
+#ifdef CLIENT_NO_FLOAT
+		int32 v = (int32)PyFloat_AsDouble(pyVal);
+#else
 		float v = (float)PyFloat_AsDouble(pyVal);
+#endif
 		(*mstream) << v;
 		Py_DECREF(pyVal);
 	}

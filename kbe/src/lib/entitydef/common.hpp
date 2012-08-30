@@ -71,18 +71,6 @@ enum EntityDataFlagRelation
 	ENTITY_BROADCAST_OWN_CLIENT_FLAGS								= ED_FLAG_ALL_CLIENTS | ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OWN_CLIENT | ED_FLAG_BASE_AND_CLIENT,
 };
 
-/** entity的mailbox类别 */
-enum ENTITY_MAILBOX_TYPE
-{
-	MAILBOX_TYPE_CELL												= 0,
-	MAILBOX_TYPE_BASE												= 1,
-	MAILBOX_TYPE_CLIENT												= 2,
-	MAILBOX_TYPE_CELL_VIA_BASE										= 3,
-	MAILBOX_TYPE_BASE_VIA_CELL										= 4,
-	MAILBOX_TYPE_CLIENT_VIA_CELL									= 5,
-	MAILBOX_TYPE_CLIENT_VIA_BASE									= 6,
-};
-
 /** mailbox类别所对应的组件类别映射，  这个表的索引个严格匹配ENTITY_MAILBOX_TYPE的值 */
 const COMPONENT_TYPE ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[] = 
 {
@@ -94,28 +82,6 @@ const COMPONENT_TYPE ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[] =
 	CELLAPP_TYPE,
 	BASEAPP_TYPE,
 };
-
-/** mailbox的类别对换为字符串名称 严格和ENTITY_MAILBOX_TYPE索引匹配 */
-const char ENTITY_MAILBOX_TYPE_TO_NAME_TABLE[][8] = 
-{
-	"cell",
-	"base",
-	"client",
-	"cell",
-	"base",
-	"client",
-	"client",
-};
-
-/** mailbox 所投递的mail类别 */
-#define MAIL_TYPE_REMOTE_CALL										0x00000001	// 远程呼叫一个方法
-#define MAIL_TYPE_LOST_VIEW_ENTITY									0x00000002	// 当前这个entity视野范围内的一个entity丢失了
-#define MAIL_TYPE_ENTITY_MOVE_TO_POINT								0x00000003	// 当前这个entity视野范围内的一个entity移动到某个点
-#define MAIL_TYPE_ENTER_SPACE										0x00000004	// entity进入一个新的space
-#define MAIL_TYPE_LEAVE_SPACE										0x00000005	// entity将要离开当前space
-#define MAIL_TYPE_UPDATE_PROPERTYS									0x00000006	// 更新某个entity的一些属性到客户端
-#define MAIL_TYPE_UPDATE_PROPERTY									0x00000007	// 更新某个entity的某个属性到客户端
-#define MAIL_TYPE_SEEK												0x00000008	// 某个player的客户端请求移动player
 
 /** 属性的lod广播级别范围的定义 */
 #define DETAIL_LEVEL_NEAR													0	// lod级别：近						

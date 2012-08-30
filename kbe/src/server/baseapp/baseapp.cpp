@@ -1162,6 +1162,57 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 {
 	if(pChannel->isExternal())
 		return;
+
+	ENTITY_ID eid;
+	s >> eid;
+
+	ENTITY_MAILBOX_TYPE	mailtype;
+	s >> mailtype;
+
+	// 在本地区尝试查找该收件人信息， 看收件人是否属于本区域
+	Base* base = pEntities_->find(eid);
+	if(base == NULL)
+	{
+		ERROR_MSG("Baseapp::onEntityMail: entityID %d not found.\n", eid);
+		return;
+	}
+	
+	Mercury::Bundle bundle;
+
+	switch(mailtype)
+	{
+		case MAILBOX_TYPE_BASE:																		// 本组件是baseapp，那么确认邮件的目的地是这里， 那么执行最终操作
+			break;
+		case MAILBOX_TYPE_CELL_VIA_BASE: // entity.cell.base.xxx
+			{
+				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->getCellMailbox());
+				if(mailbox == NULL){
+					ERROR_MSG("Baseapp::onEntityMail: occur a error(can't found cellMailbox)! mailboxType=%d, entityID=%d.\n", mailtype, eid);
+					break;
+				}
+				
+				mailbox->newMail(bundle);
+				bundle.append(s);
+				mailbox->postMail(bundle);
+			}
+			break;
+		case MAILBOX_TYPE_CLIENT_VIA_BASE: // entity.base.client
+			{
+				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->getClientMailbox());
+				if(mailbox == NULL){
+					ERROR_MSG("Baseapp::onEntityMail: occur a error(can't found clientMailbox)! mailboxType=%d, entityID=%d.\n", mailtype, eid);
+					break;
+				}
+				
+				mailbox->newMail(bundle);
+				bundle.append(s);
+				s.read_skip(s.opsize());
+				mailbox->postMail(bundle);
+			}
+			break;
+		default:
+			ERROR_MSG("Baseapp::onEntityMail: mailboxType %d is error! must a baseType. entityID=%d.\n", mailtype, eid);
+	};
 }
 
 //-------------------------------------------------------------------------------------
