@@ -54,8 +54,9 @@ class Account(KBEngine.Proxy):
 		KBEngine method.
 		客户端对应实体已经销毁
 		"""
-		self.activeCharacter.accountEntity = None
-		self.activeCharacter = None
+		if self.activeCharacter:
+			self.activeCharacter.accountEntity = None
+			self.activeCharacter = None
 		DEBUG_MSG("Account[%i].onClientDeath:" % self.id)
 		self.destroy()
 	
@@ -85,7 +86,7 @@ class Account(KBEngine.Proxy):
 				info["dbid"] = avatarinfo["dbid"]
 				info["name"] = avatarinfo["name"]
 				info["roleType"] = roleType
-				all_avatar_names.append(name)
+				#all_avatar_names.append(name)
 				done = True
 				break
 			
