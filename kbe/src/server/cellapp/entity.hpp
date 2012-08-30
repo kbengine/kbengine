@@ -166,12 +166,6 @@ public:
 	*/
 	void setPosition_XYZ_float(Mercury::Channel* pChannel, float x, float y, float z);
 
-	/** 网络接口
-		entity绑定了和丢失了一个观察者(客户端)
-	*/
-	void onGetWitness(Mercury::Channel* pChannel);
-	void onLoseWitness(Mercury::Channel* pChannel);
-
 	/** 
 		脚本请求为当前所在space设置一个几何映射 
 	*/
@@ -291,15 +285,17 @@ public:
 	*/
 	void onRemoveWitness(Entity* entity);
 
-	/** 
-		这个entity获得了观察者身份 
-	*/
-	void onGetWitness(void);
+	/** 网络接口
+		entity绑定了一个观察者(客户端)
 
-	/** 
-		entity丢失了观察者身份 
 	*/
-	void onLoseWitness(void);
+	void onGetWitness(Mercury::Channel* pChannel);
+
+	/** 网络接口
+		entity丢失了一个观察者(客户端)
+
+	*/
+	void onLoseWitness(Mercury::Channel* pChannel);
 
 	/** 
 		获得所观察到的entities列表 

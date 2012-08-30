@@ -583,34 +583,6 @@ void Entity::onEntityDetailLevelChanged(const WitnessInfo* witnessInfo, int8 old
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onGetWitness(void)
-{
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onGetWitness"), 
-										const_cast<char*>(""));
-	
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_Clear();
-
-	hasWitness_ = true;
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::onLoseWitness(void)
-{
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLoseWitness"), 
-						const_cast<char*>(""));
-	
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_Clear();
-
-	hasWitness_ = false;
-}
-
-//-------------------------------------------------------------------------------------
 PyObject* Entity::pyIsWitnessed()
 {
 	return PyBool_FromLong(isWitnessed());
@@ -818,6 +790,8 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 		Py_DECREF(pyResult);
 	else
 		PyErr_Clear();
+
+	hasWitness_ = true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -834,6 +808,8 @@ void Entity::onLoseWitness(Mercury::Channel* pChannel)
 		Py_DECREF(pyResult);
 	else
 		PyErr_Clear();
+
+	hasWitness_ = false;
 }
 
 //-------------------------------------------------------------------------------------
