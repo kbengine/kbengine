@@ -92,6 +92,7 @@ public:
 	/** 将其自身所关联的客户端转给另一个proxy去关联 */
 	void giveClientTo(Proxy* proxy);
 	void onGiveClientTo(Mercury::Channel* lpChannel);
+	void onGiveClientToFailure();
 	DECLARE_PY_MOTHOD_ARG1(pyGiveClientTo, PyObject_ptr);
 protected:
 	uint64 rndUUID_;

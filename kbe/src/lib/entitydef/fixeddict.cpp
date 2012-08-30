@@ -88,7 +88,15 @@ void FixedDict::initialize(std::string strDictInitData)
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes.begin();
 	for(; iter != keyTypes.end(); iter++)
 	{
-		PyDict_SetItem(pyDict_, PyUnicode_FromString(iter->first.c_str()), iter->second->createObject(NULL));
+		PyObject* pyobj = iter->second->createObject(NULL);
+		if(pyobj)
+		{
+			PyDict_SetItem(pyDict_, PyUnicode_FromString(iter->first.c_str()), pyobj);
+		}
+		else
+		{
+			ERROR_MSG("FixedDict::initialize: is error! strDictInitData=%s.\n", strDictInitData.c_str());
+		}
 	}
 }
 

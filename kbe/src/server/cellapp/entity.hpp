@@ -166,6 +166,12 @@ public:
 	*/
 	void setPosition_XYZ_float(Mercury::Channel* pChannel, float x, float y, float z);
 
+	/** 网络接口
+		entity绑定了和丢失了一个观察者(客户端)
+	*/
+	void onGetWitness(Mercury::Channel* pChannel);
+	void onLoseWitness(Mercury::Channel* pChannel);
+
 	/** 
 		脚本请求为当前所在space设置一个几何映射 
 	*/

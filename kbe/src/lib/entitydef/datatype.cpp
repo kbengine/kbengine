@@ -370,14 +370,12 @@ bool VectorType::isSameType(PyObject* pyValue)
 	if(pyValue == NULL)
 	{
 		PyErr_Format(PyExc_TypeError, "must be set to a VECTOR%d type.", elemCount_);
-		//PyErr_PrintEx(0);
 		return false;
 	}
 
 	if(!PySequence_Check(pyValue) || PySequence_Size(pyValue) != elemCount_)
 	{
 		PyErr_Format(PyExc_TypeError, "must be set to a VECTOR%d type.", elemCount_);
-		//PyErr_PrintEx(0);
 		return false;
 	}
 	
@@ -488,23 +486,12 @@ PyObject* StringType::createObject(MemoryStream* defaultVal)
 		(*defaultVal) >> val;
 
 	PyObject* pyobj = PyUnicode_FromString(val.c_str());
+
 	if (pyobj && !PyErr_Occurred()) 
 		return pyobj;
 
-	PyErr_Clear();
-
-	pyobj = PyBytes_FromString(val.c_str());
-
-	if (pyobj && !PyErr_Occurred())
-	{
-		pyobj = PyUnicode_FromObject(pyobj);
-		if (pyobj && !PyErr_Occurred())
-		{
-			return pyobj;
-		}
-	}
-
 	::PyErr_PrintEx(0);
+
 	return NULL;
 }
 
@@ -1003,8 +990,9 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 		PyObject* pyObject = PyDict_GetItemString(pyValue, const_cast<char*>(iter->first.c_str()));
 		if(pyObject == NULL || !iter->second->isSameType(pyObject))
 		{
-			PyErr_Format(PyExc_TypeError, "set FIXED_DICT is error! at key: %s, keyNames=[%s].", 
-				iter->first.c_str(), getKeyNames().c_str());
+			PyErr_Format(PyExc_TypeError, "set FIXED_DICT(%s) is error! at key: %s, keyNames=[%s].", 
+				this->getName(), iter->first.c_str(), getKeyNames().c_str());
+			SCRIPT_ERROR_CHECK();
 			return false;
 		}
 	}

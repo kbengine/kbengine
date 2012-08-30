@@ -651,13 +651,8 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		// 如果是有client的entity则设置它的clientmailbox, baseapp部分的onEntityGetCell会告知客户端enterworld.
 		if(hasClient)
 		{
-			PyObject* clientMailbox = PyObject_GetAttrString(mailbox, "client");
-			KBE_ASSERT(clientMailbox != Py_None);
+			e->onGetWitness(cinfos->pChannel);
 
-			EntityMailbox* client = static_cast<EntityMailbox*>(clientMailbox);	
-			// Py_INCREF(clientMailbox); 这里不需要增加引用， 因为每次都会产生一个新的对象
-			e->setClientMailbox(client);
-			
 			// 初始化默认AOI范围
 			ENGINE_COMPONENT_INFO& ecinfo = ServerConfig::getSingleton().getCellApp();
 			e->setAoiRadius(ecinfo.defaultAoIRadius, ecinfo.defaultAoIHysteresisArea);

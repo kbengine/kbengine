@@ -546,7 +546,7 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	std::string strCellData = script::Pickler::pickle(base->getCellData());
 	uint32 cellDataLength = strCellData.length();
 	EntityMailbox* clientMailbox = base->getClientMailbox();
-	bool hasClient = (clientMailbox == NULL);
+	bool hasClient = (clientMailbox != NULL);
 	
 	bundle << createToCellMailbox->getID();				// 在这个mailbox所在的cellspace上创建
 	bundle << entityType;

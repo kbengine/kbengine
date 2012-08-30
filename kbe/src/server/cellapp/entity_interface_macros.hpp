@@ -237,6 +237,69 @@ namespace KBEngine{
 
 
 /**
+	Entity消息宏，  只有零个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef ENTITY_MESSAGE_HANDLER_ARGS0
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(CELLAPP)
+#define ENTITY_MESSAGE_HANDLER_ARGS0(NAME)										\
+	void NAME##EntityMessagehandler0::handle(Mercury::Channel* pChannel,		\
+											KBEngine::MemoryStream& s)			\
+	{																			\
+			ENTITY_ID eid;														\
+			s >> eid;															\
+			KBEngine::Entity* e =												\
+					KBEngine::Cellapp::getSingleton().findEntity(eid);			\
+			if(e)																\
+			{																	\
+				e->NAME(pChannel);												\
+			}																	\
+			else																\
+			{																	\
+				ERROR_MSG("Messagehandler::handle: can't found entityID:%d.\n",	\
+					eid);														\
+			}																	\
+	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler0::type()const		\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+	}																			\
+
+#else
+#define ENTITY_MESSAGE_HANDLER_ARGS0(NAME)										\
+	void NAME##EntityMessagehandler0::handle(Mercury::Channel* pChannel,		\
+											KBEngine::MemoryStream& s)			\
+	{																			\
+	}																			\
+	Mercury::MERCURY_MESSAGE_TYPE NAME##EntityMessagehandler0::type()const		\
+	{																			\
+		return Mercury::MERCURY_MESSAGE_TYPE_ENTITY;							\
+	}																			\
+		
+#endif
+#else
+#define ENTITY_MESSAGE_HANDLER_ARGS0(NAME)										\
+	class NAME##EntityMessagehandler0 : public Mercury::MessageHandler			\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+		virtual Mercury::MERCURY_MESSAGE_TYPE type()const;						\
+	};																			\
+
+#endif
+
+#define ENTITY_MESSAGE_DECLARE_ARGS0(NAME, MSG_LENGTH)							\
+	ENTITY_MESSAGE_HANDLER_ARGS0(NAME)											\
+	NETWORK_MESSAGE_DECLARE_ARGS0(Entity, NAME,									\
+				NAME##EntityMessagehandler0, MSG_LENGTH)						\
+																				\
+
+
+/**
 	Entity消息宏，  只有三个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)

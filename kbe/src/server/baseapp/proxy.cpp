@@ -203,6 +203,17 @@ PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
 }
 
 //-------------------------------------------------------------------------------------
+void Proxy::onGiveClientToFailure()
+{
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onGiveClientToFailure"), 
+																		const_cast<char*>(""));
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		PyErr_Clear();
+}
+
+//-------------------------------------------------------------------------------------
 void Proxy::giveClientTo(Proxy* proxy)
 {
 	Mercury::Channel* lpChannel = clientMailbox_->getChannel();
@@ -212,6 +223,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: no has client.\n", getScriptName());			
 		PyErr_SetString(PyExc_TypeError, err);														
 		PyErr_PrintEx(0);	
+		onGiveClientToFailure();
 		return;
 	}
 
@@ -226,15 +238,19 @@ void Proxy::giveClientTo(Proxy* proxy)
 					proxy->getScriptName(), 
 					proxy->getID(), 
 					proxy->getScriptName());
+
+			onGiveClientToFailure();
 			return;
 		}
 
-		// 通知客户端销毁本entity
-		//Mercury::Bundle bundle;
-		//bundle.newMessage(ClientInterface::onEntityDestroyed);
-		//ClientInterface::onEntityLeaveWorldArgs1::staticAddToBundle(bundle, id_);
-		//bundle.send(Baseapp::getSingleton().getNetworkInterface(), lpChannel);
-		
+		if(getCellMailbox())
+		{
+			// 通知cell丢失客户端
+			Mercury::Bundle bundle;
+			bundle.newMessage(CellappInterface::onLoseWitness);
+			getCellMailbox()->postMail(bundle);
+		}
+
 		getClientMailbox()->addr(Mercury::Address::NONE);
 		Py_DECREF(getClientMailbox());
 		proxy->onGiveClientTo(lpChannel);
@@ -249,6 +265,14 @@ void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
 	setClientMailbox(new EntityMailbox(this->scriptModule_, &lpChannel->addr(), 0, id_, MAILBOX_TYPE_CLIENT));
 	addr(lpChannel->addr());
 	Baseapp::getSingleton().createClientProxies(this);
+
+	if(getCellMailbox())
+	{
+		// 通知cell获得客户端
+		Mercury::Bundle bundle;
+		bundle.newMessage(CellappInterface::onGetWitness);
+		getCellMailbox()->postMail(bundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------

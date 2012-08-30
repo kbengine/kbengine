@@ -802,6 +802,41 @@ void Entity::setPositionAndDirection(Position3D& position, Direction3D& directio
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::onGetWitness(Mercury::Channel* pChannel)
+{
+	KBE_ASSERT(this->getBaseMailbox() != NULL);
+	PyObject* clientMailbox = PyObject_GetAttrString(this->getBaseMailbox(), "client");
+	KBE_ASSERT(clientMailbox != Py_None);
+
+	EntityMailbox* client = static_cast<EntityMailbox*>(clientMailbox);	
+	// Py_INCREF(clientMailbox); 这里不需要增加引用， 因为每次都会产生一个新的对象
+	setClientMailbox(client);
+
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onGetWitness"), 
+																		const_cast<char*>(""));
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		PyErr_Clear();
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onLoseWitness(Mercury::Channel* pChannel)
+{
+	KBE_ASSERT(this->getClientMailbox() != NULL);
+	getClientMailbox()->addr(Mercury::Address::NONE);
+	Py_DECREF(getClientMailbox());
+	setClientMailbox(NULL);
+
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLoseWitness"), 
+																		const_cast<char*>(""));
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		PyErr_Clear();
+}
+
+//-------------------------------------------------------------------------------------
 int32 Entity::setAoiRadius(float radius, float hyst)
 {
 	if(!hasWitness_)
