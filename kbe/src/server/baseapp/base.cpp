@@ -7,6 +7,7 @@
 //#include "base.ipp"
 #endif
 
+#include "../../server/baseapp/baseapp_interface.hpp"
 #include "../../server/cellapp/cellapp_interface.hpp"
 #include "../../server/dbmgr/dbmgr_interface.hpp"
 
@@ -17,6 +18,7 @@ SCRIPT_METHOD_DECLARE("createCellEntity",				createCellEntity,				METH_VARARGS,	
 SCRIPT_METHOD_DECLARE("createInNewSpace",				createInNewSpace,				METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE("destroyCellEntity",				pyDestroyCellEntity,			METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE("destroy",						pyDestroyBase,					METH_VARARGS,			0)
+SCRIPT_METHOD_DECLARE("teleport",						pyTeleport,						METH_VARARGS,			0)
 ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Base)
@@ -568,7 +570,7 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 {
 	if(creatingCell_ || this->getCellMailbox())
 	{
-		ERROR_MSG("%s::createCellEntity: %d has a cell!\n", getScriptName(), getID());
+		PyErr_Format(PyExc_Exception, "%s::createCellEntity: %d has a cell!\n", getScriptName(), getID());
 		S_Return;
 	}
 
@@ -595,7 +597,7 @@ PyObject* Base::createInNewSpace(PyObject* params)
 {
 	if(createdSpace_)
 	{
-		ERROR_MSG("%s::createInNewSpace: %d has a space!\n", getScriptName(), getID());
+		PyErr_Format(PyExc_Exception, "%s::createInNewSpace: %d has a space!\n", getScriptName(), getID());
 		S_Return;
 	}
 
@@ -627,6 +629,128 @@ void Base::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, M
 	this->getCellMailbox()->postMail(bundle);
 }
 
+//-------------------------------------------------------------------------------------
+PyObject* Base::pyTeleport(PyObject* baseEntityMB)
+{
+	if(this->getCellMailbox() == NULL)
+	{
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d no has cell!\n", getScriptName(), getID());
+		S_Return;
+	}
+
+	if(baseEntityMB == NULL)
+	{
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d baseEntityMB is NULL!\n", getScriptName(), getID());
+		S_Return;
+	}
+
+	bool isMailbox = PyObject_TypeCheck(baseEntityMB, EntityMailbox::getScriptType());
+	bool isEntity = !isMailbox && (PyObject_TypeCheck(baseEntityMB, Base::getScriptType())
+		|| PyObject_TypeCheck(baseEntityMB, Proxy::getScriptType()));
+
+	if(!isMailbox && !isEntity)
+	{
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d invalid baseEntityMB!\n", getScriptName(), getID());
+		S_Return;
+	}
+
+	ENTITY_ID eid = 0;
+
+	// 如果不是mailbox则是本地base
+	if(isMailbox)
+	{
+		EntityMailbox* mb = static_cast<EntityMailbox*>(baseEntityMB);
+
+		if(mb->getType() != MAILBOX_TYPE_BASE && mb->getType() != MAILBOX_TYPE_CELL_VIA_BASE)
+		{
+			PyErr_Format(PyExc_Exception, "%s::teleport: %d baseEntityMB is not baseMailbox!\n", getScriptName(), getID());
+			S_Return;
+		}
+
+		eid = mb->getID();
+
+		Mercury::Bundle bundle;
+		bundle.newMessage(BaseappInterface::reqTeleportOther);
+		bundle << eid;
+		BaseappInterface::reqTeleportOtherArgs3::staticAddToBundle(bundle, this->getID(), this->getCellMailbox()->getComponentID(), g_componentID);
+		mb->postMail(bundle);
+	}
+	else
+	{
+		Base* base = static_cast<Base*>(baseEntityMB);
+		eid = base->getID();
+		base->reqTeleportOther(NULL, this->getID(), this->getCellMailbox()->getComponentID(), g_componentID);
+	}
+
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onTeleportCB(Mercury::Channel* pChannel, SPACE_ID spaceID)
+{
+	if(spaceID > 0)
+	{
+		onTeleportSuccess(spaceID);
+	}
+	else
+	{
+		onTeleportFailure();
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onTeleportFailure()
+{
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTeleportFailure"), 
+		const_cast<char*>(""));
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		PyErr_Clear();	
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onTeleportSuccess(SPACE_ID spaceID)
+{
+	this->setSpaceID(spaceID);
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTeleportSuccess"), 
+		const_cast<char*>(""));
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		PyErr_Clear();	
+}
+
+//-------------------------------------------------------------------------------------
+void Base::reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEntityID, 
+							COMPONENT_ID reqTeleportEntityCellAppID, COMPONENT_ID reqTeleportEntityBaseAppID)
+{
+	DEBUG_MSG("Base::reqTeleportOther: reqTeleportEntityID=%d, reqTeleportEntityCellAppID=%"PRAppID".\n",
+		reqTeleportEntityID, reqTeleportEntityCellAppID);
+
+	if(this->getCellMailbox() == NULL || this->getCellMailbox()->getChannel() == NULL)
+	{
+		ERROR_MSG("%s::reqTeleportOther: %d, teleport is error, cellMailbox is NULL, reqTeleportEntityID, reqTeleportEntityCellAppID=%"PRAppID".\n",
+			this->getScriptName(), this->getID(), reqTeleportEntityID, reqTeleportEntityCellAppID);
+		return;
+	}
+
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(reqTeleportEntityCellAppID);
+	if(cinfos == NULL || cinfos->pChannel == NULL)
+	{
+		ERROR_MSG("%s::reqTeleportOther: %d, teleport is error, not found cellapp, reqTeleportEntityID, reqTeleportEntityCellAppID=%"PRAppID".\n",
+			this->getScriptName(), this->getID(), reqTeleportEntityID, reqTeleportEntityCellAppID);
+		return;
+	}
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(CellappInterface::teleportFromBaseapp);
+	bundle << reqTeleportEntityID;
+	CellappInterface::teleportFromBaseappArgs3::staticAddToBundle(bundle, this->getCellMailbox()->getComponentID(), this->getID(), reqTeleportEntityBaseAppID);
+	bundle.send(Baseapp::getSingleton().getNetworkInterface(), cinfos->pChannel);
+}
 
 //-------------------------------------------------------------------------------------
 }

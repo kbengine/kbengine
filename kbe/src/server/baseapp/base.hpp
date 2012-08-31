@@ -199,6 +199,24 @@ public:
 	*/
 	void forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, MemoryStream& s);
 
+	/** 
+		传送
+	*/
+	DECLARE_PY_MOTHOD_ARG1(pyTeleport, PyObject_ptr);
+
+	/**
+		传送回调
+	*/
+	void onTeleportCB(Mercury::Channel* pChannel, SPACE_ID spaceID);  
+	void onTeleportFailure();  
+	void onTeleportSuccess(SPACE_ID spaceID);
+
+	/** 网络接口
+		某个entity请求teleport到这个entity的space上。
+	*/
+	void reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEntityID, 
+		COMPONENT_ID reqTeleportEntityCellAppID, COMPONENT_ID reqTeleportEntityBaseAppID);
+
 protected:
 	// 这个entity的客户端mailbox cellapp mailbox
 	EntityMailbox*							clientMailbox_;			

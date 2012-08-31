@@ -179,6 +179,16 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// 客户端直接发送消息给cell实体
 	BASE_MESSAGE_DECLARE_STREAM(forwardEntityMessageToCellappFromClient,	MERCURY_VARIABLE_MESSAGE)
 	
+	// 某个entity请求teleport到本entity的space上
+	BASE_MESSAGE_DECLARE_ARGS3(reqTeleportOther,							MERCURY_FIXED_MESSAGE,
+								ENTITY_ID,									reqTeleportEntityID,
+								COMPONENT_ID,								reqTeleportEntityAppID,
+								COMPONENT_ID,								reqTeleportEntityBaseAppID)
+
+	// 某个entity请求teleport后的回调结果
+	BASE_MESSAGE_DECLARE_ARGS1(onTeleportCB,								MERCURY_FIXED_MESSAGE,
+								SPACE_ID,									spaceID)
+
 	//--------------------------------------------Proxy---------------------------------------------------------
 	/**
 		远程呼叫entity方法

@@ -969,4 +969,164 @@ PyObject* Entity::pyEntitiesInRange(float radius, PyObject_ptr pyEntityType, PyO
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, SPACE_ID spaceID)
+{
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(sourceBaseAppID);
+	if(cinfos != NULL && cinfos->pChannel != NULL)
+	{
+		Mercury::Bundle bundle;
+		bundle.newMessage(BaseappInterface::onTeleportCB);
+		bundle << sourceEntityID;
+		BaseappInterface::onTeleportCBArgs1::staticAddToBundle(bundle, spaceID);
+		bundle.send(Cellapp::getSingleton().getNetworkInterface(), cinfos->pChannel);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAppID, ENTITY_ID targetEntityID, COMPONENT_ID sourceBaseAppID)
+{
+	DEBUG_MSG("%s::teleportFromBaseapp: %d, targetEntityID=%d, cell=%"PRAppID", sourceBaseAppID=%"PRAppID".\n", 
+		this->getScriptName(), this->getID(), targetEntityID, cellAppID, sourceBaseAppID);
+
+	// 如果不在一个cell上
+	if(cellAppID != g_componentID)
+	{
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(cellAppID);
+		if(cinfos == NULL || cinfos->pChannel == NULL)
+		{
+			ERROR_MSG("%s::teleportFromBaseapp: %d, teleport is error, not found cellapp, targetEntityID, cellAppID=%"PRAppID".\n",
+				this->getScriptName(), this->getID(), targetEntityID, cellAppID);
+			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0);
+			return;
+		}
+	}
+	else
+	{
+		Entity* entity = Cellapp::getSingleton().findEntity(targetEntityID);
+		if(entity == NULL)
+		{
+			ERROR_MSG("%s::teleportFromBaseapp: %d, can't found targetEntity(%d).\n", 
+				this->getScriptName(), this->getID(), targetEntityID);
+
+			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0);
+			return;
+		}
+		
+		// 找到space
+		SPACE_ID spaceID = entity->getSpaceID();
+
+		// 如果是不同space跳转
+		if(spaceID != this->getSpaceID())
+		{
+			Space* space = Spaces::findSpace(spaceID);
+			if(space == NULL)
+			{
+				ERROR_MSG("%s::teleportFromBaseapp: %d, can't found space(%u).\n", 
+					this->getScriptName(), this->getID(), spaceID);
+
+				_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0);
+				return;
+			}
+			
+			Space* currspace = Spaces::findSpace(this->getSpaceID());
+			currspace->delEntity(this);
+			space->addEntity(this);
+			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, spaceID);
+		}
+		else
+		{
+			WARNING_MSG("%s::teleportFromBaseapp: %d targetSpace(%u) == currSpaceID.\n", 
+				this->getScriptName(), this->getID(), spaceID, this->getSpaceID());
+
+			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, spaceID);
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onTeleport()
+{
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTeleport"), 
+		const_cast<char*>(""));
+	
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		PyErr_Clear();
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onTeleportFailure()
+{
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTeleportFailure"), 
+		const_cast<char*>(""));
+	
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		PyErr_Clear();
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onTeleportSuccess(PyObject* nearbyEntity)
+{
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTeleportSuccess"), 
+		const_cast<char*>("O"), nearbyEntity);
+	
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		PyErr_Clear();
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onEnteredCell()
+{
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onEnteredCell"), 
+		const_cast<char*>(""));
+	
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		PyErr_Clear();
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onEnteringCell()
+{
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onEnteringCell"), 
+		const_cast<char*>(""));
+	
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		PyErr_Clear();
+}
+
+
+//-------------------------------------------------------------------------------------
+void Entity::onLeavingCell()
+{
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLeavingCell"), 
+		const_cast<char*>(""));
+	
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		PyErr_Clear();
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onLeftCell()
+{
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLeftCell"), 
+		const_cast<char*>(""));
+	
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		PyErr_Clear();
+}
+
+//-------------------------------------------------------------------------------------
 }

@@ -46,6 +46,7 @@ public:
 	void update();
 
 	void addEntity(Entity* pEntity);
+	void delEntity(Entity* pEntity);
 
 	SPACE_ID getID()const{ return id_; }
 protected:
