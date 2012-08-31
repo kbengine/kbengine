@@ -47,6 +47,7 @@ SCRIPT_METHOD_DECLARE("navigateStep",				pyNavigateStep,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("stopMove",					pyStopMove,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInRange",			pyEntitiesInRange,				METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("teleport",					pyTeleport,						METH_VARARGS,				0)
 ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
@@ -136,7 +137,9 @@ PyObject* Entity::pyGetClientMailbox()
 //-------------------------------------------------------------------------------------
 int Entity::pySetTopSpeedY(PyObject *value)
 {
-	setTopSpeedY(float(PyFloat_AsDouble(PySequence_GetItem(value, 0)))); 
+	PyObject* pyItem = PySequence_GetItem(value, 0);
+	setTopSpeedY(float(PyFloat_AsDouble(pyItem))); 
+	Py_DECREF(pyItem);
 	return 0; 
 };
 
@@ -155,7 +158,9 @@ PyObject* Entity::pyGetTopSpeed()
 //-------------------------------------------------------------------------------------
 int Entity::pySetTopSpeed(PyObject *value)
 { 
-	setTopSpeed(float(PyFloat_AsDouble(PySequence_GetItem(value, 0)))); 
+	PyObject* pyItem = PySequence_GetItem(value, 0);
+	setTopSpeed(float(PyFloat_AsDouble(pyItem))); 
+	Py_DECREF(pyItem);
 	return 0; 
 }
 
@@ -736,9 +741,15 @@ int Entity::pySetDirection(PyObject *value)
 	}
 
 	Direction3D& dir = getDirection();
+	PyObject* pyItem = PySequence_GetItem(value, 0);
 	dir.roll	= float(PyFloat_AsDouble(PySequence_GetItem(value, 0)));
+	Py_DECREF(pyItem);
+	pyItem = PySequence_GetItem(value, 1);
 	dir.pitch	= float(PyFloat_AsDouble(PySequence_GetItem(value, 1)));
+	Py_DECREF(pyItem);
+	pyItem = PySequence_GetItem(value, 2);
 	dir.yaw		= float(PyFloat_AsDouble(PySequence_GetItem(value, 2)));
+	Py_DECREF(pyItem);
 	return 0;
 }
 
@@ -1039,6 +1050,94 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 				this->getScriptName(), this->getID(), spaceID, this->getSpaceID());
 
 			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, spaceID);
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyTeleport(PyObject* nearbyMBRef, PyObject* pyposition, PyObject* pydirection)
+{
+	if(!PySequence_Check(pyposition) || PySequence_Size(pyposition) != 3)
+	{
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d position not is Sequence!\n", getScriptName(), getID());
+		S_Return;
+	}
+
+	if(!PySequence_Check(pydirection) || PySequence_Size(pydirection) != 3)
+	{
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d direction not is Sequence!\n", getScriptName(), getID());
+		S_Return;
+	}
+
+	Position3D pos;
+	Direction3D dir;
+
+	PyObject* pyitem = PySequence_GetItem(pyposition, 0);
+	pos.x = (float)PyFloat_AsDouble(pyitem);
+	Py_DECREF(pyitem);
+
+	pyitem = PySequence_GetItem(pyposition, 1);
+	pos.y = (float)PyFloat_AsDouble(pyitem);
+	Py_DECREF(pyitem);
+
+	pyitem = PySequence_GetItem(pyposition, 2);
+	pos.z = (float)PyFloat_AsDouble(pyitem);
+	Py_DECREF(pyitem);
+
+	pyitem = PySequence_GetItem(pydirection, 0);
+	dir.roll = (float)PyFloat_AsDouble(pyitem);
+	Py_DECREF(pyitem);
+
+	pyitem = PySequence_GetItem(pydirection, 1);
+	dir.pitch = (float)PyFloat_AsDouble(pyitem);
+	Py_DECREF(pyitem);
+
+	pyitem = PySequence_GetItem(pydirection, 2);
+	dir.yaw = (float)PyFloat_AsDouble(pyitem);
+	Py_DECREF(pyitem);
+	
+	teleport(nearbyMBRef, pos, dir);
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& dir)
+{
+	// 如果为None则是entity自己想在本space上跳转到某位置
+	if(nearbyMBRef == Py_None)
+	{
+		this->setPositionAndDirection(pos, dir);
+	}
+	else
+	{
+		EntityMailbox* mb = NULL;
+		SPACE_ID spaceID = 0;
+		
+		// 如果是entity则一定是在本cellapp上， 可以直接进行操作
+		if(PyObject_TypeCheck(nearbyMBRef, Entity::getScriptType()))
+		{
+			Entity* entity = static_cast<Entity*>(nearbyMBRef);
+			spaceID = entity->getSpaceID();
+			if(spaceID == this->getID())
+			{
+				this->setPositionAndDirection(pos, dir);
+				onTeleportSuccess(nearbyMBRef);
+			}
+			else
+			{
+				this->setPositionAndDirection(pos, dir);
+				Space* currspace = Spaces::findSpace(this->getSpaceID());
+				Space* space = Spaces::findSpace(spaceID);
+				currspace->delEntity(this);
+				space->addEntity(this);
+				onTeleportSuccess(nearbyMBRef);
+			}
+		}
+		else
+		{
+			if(PyObject_TypeCheck(nearbyMBRef, EntityMailbox::getScriptType()))
+			{
+			}
 		}
 	}
 }

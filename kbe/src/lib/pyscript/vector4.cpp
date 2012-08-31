@@ -436,10 +436,21 @@ bool ScriptVector4::check(PyObject* value, bool isPrintErr)
 //-------------------------------------------------------------------------------------
 void ScriptVector4::convertPyObjectToVector4(Vector4& v, PyObject* obj)
 {
-	v.x = float(PyFloat_AsDouble(PySequence_GetItem(obj, 0)));
-	v.y = float(PyFloat_AsDouble(PySequence_GetItem(obj, 1)));
-	v.z = float(PyFloat_AsDouble(PySequence_GetItem(obj, 2)));
-	v.w = float(PyFloat_AsDouble(PySequence_GetItem(obj, 3)));
+	PyObject* pyItem = PySequence_GetItem(obj, 0);
+	v.x = float(PyFloat_AsDouble(pyItem));
+	Py_DECREF(pyItem);
+
+	pyItem = PySequence_GetItem(obj, 1);
+	v.y = float(PyFloat_AsDouble(pyItem));
+	Py_DECREF(pyItem);
+
+	pyItem = PySequence_GetItem(obj, 2);
+	v.z = float(PyFloat_AsDouble(pyItem));
+	Py_DECREF(pyItem);
+
+	pyItem = PySequence_GetItem(obj, 3);
+	v.w = float(PyFloat_AsDouble(pyItem));
+	Py_DECREF(pyItem);
 }
 
 //-------------------------------------------------------------------------------------

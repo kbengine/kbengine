@@ -106,8 +106,11 @@ PyObject* Sequence::seq_concat(PyObject* self, PyObject* seq)
 
 	for (int i = 0; i < seqSize1; i++)
 		PyList_SET_ITEM(pyList, i, values[i]);
+
 	for (int i = 0; i < seqSize2; i++)
+	{
 		PyList_SET_ITEM(pyList, seqSize1 + i, PySequence_GetItem(seq, i));
+	}
 
 	return pyList;
 }

@@ -180,6 +180,12 @@ public:
 	void teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAppID, ENTITY_ID targetEntityID, COMPONENT_ID sourceBaseAppID);
 
 	/**
+		cell上的传送方法
+	*/
+	DECLARE_PY_MOTHOD_ARG3(pyTeleport, PyObject_ptr, PyObject_ptr, PyObject_ptr);
+	void teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& dir);
+
+	/**
 		传送成功和失败相关回调
 	*/
 	void onTeleport();

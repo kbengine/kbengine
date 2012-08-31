@@ -423,9 +423,17 @@ bool ScriptVector3::check(PyObject* value, bool isPrintErr)
 //-------------------------------------------------------------------------------------
 void ScriptVector3::convertPyObjectToVector3(Vector3& v, PyObject* obj)
 {
-	v.x = float(PyFloat_AsDouble(PySequence_GetItem(obj, 0)));
-	v.y = float(PyFloat_AsDouble(PySequence_GetItem(obj, 1)));
-	v.z = float(PyFloat_AsDouble(PySequence_GetItem(obj, 2)));
+	PyObject* pyItem = PySequence_GetItem(obj, 0);
+	v.x = float(PyFloat_AsDouble(pyItem));
+	Py_DECREF(pyItem);
+
+	pyItem = PySequence_GetItem(obj, 1);
+	v.y = float(PyFloat_AsDouble(pyItem));
+	Py_DECREF(pyItem);
+
+	pyItem = PySequence_GetItem(obj, 2);
+	v.z = float(PyFloat_AsDouble(pyItem));
+	Py_DECREF(pyItem);
 }
 
 //-------------------------------------------------------------------------------------

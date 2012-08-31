@@ -239,9 +239,15 @@ int Entity::pySetDirection(PyObject *value)
 	}
 
 	Direction3D& dir = getDirection();
+	PyObject* pyItem = PySequence_GetItem(value, 0);
 	dir.roll	= float(PyFloat_AsDouble(PySequence_GetItem(value, 0)));
+	Py_DECREF(pyItem);
+	pyItem = PySequence_GetItem(value, 1);
 	dir.pitch	= float(PyFloat_AsDouble(PySequence_GetItem(value, 1)));
+	Py_DECREF(pyItem);
+	pyItem = PySequence_GetItem(value, 2);
 	dir.yaw		= float(PyFloat_AsDouble(PySequence_GetItem(value, 2)));
+	Py_DECREF(pyItem);
 	return 0;
 }
 

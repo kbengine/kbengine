@@ -406,8 +406,13 @@ bool ScriptVector2::check(PyObject* value, bool isPrintErr)
 //-------------------------------------------------------------------------------------
 void ScriptVector2::convertPyObjectToVector2(Vector2& v, PyObject* obj)
 {
-	v.x = float(PyFloat_AsDouble(PySequence_GetItem(obj, 0)));
-	v.y = float(PyFloat_AsDouble(PySequence_GetItem(obj, 1)));
+	PyObject* pyItem = PySequence_GetItem(obj, 0);
+	v.x = float(PyFloat_AsDouble(pyItem));
+	Py_DECREF(pyItem);
+
+	pyItem = PySequence_GetItem(obj, 1);
+	v.y = float(PyFloat_AsDouble(pyItem));
+	Py_DECREF(pyItem);
 }
 
 //-------------------------------------------------------------------------------------
