@@ -108,7 +108,7 @@ class Account(KBEngine.Proxy):
 		if self.activeCharacter is None:
 			for info in self.avatars:
 				if info["dbid"] == dbid:
-					player = KBEngine.createBase("Avatar", {"name" : info["name"], "spaceUType" : d_avatar_inittab.datas[info["roleType"]]["spaceUType"]})
+					player = KBEngine.createBase("Avatar", {"name" : info["name"], "spaceUType" : d_avatar_inittab.datas[info["roleType"]]["spaceUType"], "position" : d_avatar_inittab.datas[info["roleType"]]["spawnPos"]})
 					player.accountEntity = self
 					self.activeCharacter = player
 					self.giveClientTo(player)

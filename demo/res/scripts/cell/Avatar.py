@@ -11,6 +11,20 @@ class Avatar(GameObject):
 	def onTimer(self, tid, userArg):
 		DEBUG_MSG("Avatar::onTimer: %i, tid:%i, arg:%i" % (self.id, tid, userArg))
 	
+	def onGetWitness(self):
+		"""
+		KBEngine method.
+		绑定了一个观察者(客户端)
+		"""
+		DEBUG_MSG("Avatar::onGetWitness: %i." % self.id)
+
+	def onLoseWitness(self):
+		"""
+		KBEngine method.
+		解绑定了一个观察者(客户端)
+		"""
+		DEBUG_MSG("Avatar::onLoseWitness: %i." % self.id)
+		
 	def queryCurrSpaceEntitys(self, srcEntityID, count):
 		"""
 		exposed.

@@ -527,11 +527,20 @@ void init_network(void)
 			else if(40000 == propertyID)
 			{
 				int32 x, y, z;
-				packet88 >> x >> y >> z;
+				uint32 listlen;
+				
+				packet88 >> listlen;
+				packet88 >> x;
+				packet88 >> y ;
+				packet88 >> z;
+				z = 0;
 			}
 			else if(40001 == propertyID)
 			{
 				int32 x, y, z;
+				uint32 listlen;
+				
+				packet88 >> listlen;
 				packet88 >> x;
 				packet88 >> y ;
 				packet88 >> z;

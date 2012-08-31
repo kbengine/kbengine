@@ -98,23 +98,24 @@ void Proxy::initClientCellPropertys()
 	}
 	
 	bundle << spaceuid << this->getSpaceID();
+	uint32 posdirLen = 3;
 
 #ifdef CLIENT_NO_FLOAT
 	int32 x = (int32)v.x;
-	int32 y = (int32)v.x;
-	int32 z = (int32)v.x;
+	int32 y = (int32)v.y;
+	int32 z = (int32)v.z;
 	
 	
-	bundle << posuid << x << y << z;
+	bundle << posuid<< posdirLen << x << y << z;
 
 	x = (int32)v1.x;
-	y = (int32)v1.x;
-	z = (int32)v1.x;
+	y = (int32)v1.y;
+	z = (int32)v1.z;
 
-	bundle << diruid << x << y << z;
+	bundle << diruid << posdirLen << x << y << z;
 #else
-	bundle << posuid << v.x << v.y << v.z;
-	bundle << diruid << v1.x << v1.y << v1.z;
+	bundle << posuid << posdirLen << v.x << v.y << v.z;
+	bundle << diruid << posdirLen << v1.x << v1.y << v1.z;
 #endif
 	
 	// celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
