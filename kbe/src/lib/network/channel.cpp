@@ -231,7 +231,6 @@ void Channel::send(Bundle * pBundle)
 	if (this->isDestroyed())
 	{
 		ERROR_MSG("Channel::send(%s): Channel is destroyed.", this->c_str());
-		// TODO: Should we return here?
 	}
 	
 	bool isSendingOwnBundle = (pBundle == NULL);
@@ -241,12 +240,9 @@ void Channel::send(Bundle * pBundle)
 
 	pBundle->send(*pNetworkInterface_, this);
 
-	// Update our stats
 	++numPacketsSent_;
 	numBytesSent_ += pBundle->totalSize();
 
-
-	// Clear the bundle
 	if (isSendingOwnBundle)
 	{
 		this->clearBundle();
