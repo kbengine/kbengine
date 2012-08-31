@@ -98,6 +98,10 @@ public:
 	INLINE void setDirection(Direction3D& dir);
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
 	
+	/** 
+		销毁这个entity 
+	*/
+	void onDestroy(void){};
 public:
 	/** 网络接口
 		远程呼叫本entity的方法 

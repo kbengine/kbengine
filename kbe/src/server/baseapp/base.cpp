@@ -38,7 +38,8 @@ cellDataDict_(NULL),
 hasDB_(false),
 isGetingCellData_(false),
 isArchiveing_(false),
-creatingCell_(false)
+creatingCell_(false),
+createdSpace_(false)
 {
 	ENTITY_INIT_PROPERTYS(Base);
 
@@ -50,6 +51,9 @@ creatingCell_(false)
 Base::~Base()
 {
 	ENTITY_DECONSTRUCTION(Base);
+	S_RELEASE(clientMailbox_);
+	S_RELEASE(cellMailbox_);
+	S_RELEASE(cellDataDict_);
 }	
 
 //-------------------------------------------------------------------------------------
@@ -59,12 +63,15 @@ void Base::onDefDataChanged(const PropertyDescription* propertyDescription,
 }
 
 //-------------------------------------------------------------------------------------
-void Base::destroy()
+void Base::onDestroy(void)																					
 {
-	S_RELEASE(clientMailbox_);
-	S_RELEASE(cellMailbox_);
-	S_RELEASE(cellDataDict_);
-	Py_DECREF(this);
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onDestroy"), 
+		const_cast<char*>(""));
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		PyErr_Clear();	
 }
 
 //-------------------------------------------------------------------------------------
@@ -559,6 +566,12 @@ void Base::onWriteToDB()
 //-------------------------------------------------------------------------------------
 PyObject* Base::createCellEntity(PyObject* pyobj)
 {
+	if(creatingCell_ || this->getCellMailbox())
+	{
+		ERROR_MSG("%s::createCellEntity: %d has a cell!\n", getScriptName(), getID());
+		S_Return;
+	}
+
 	if(!PyObject_IsInstance(pyobj, (PyObject*)EntityMailbox::getScriptType()))
 	{
 		PyErr_Format(PyExc_TypeError, "create %s arg1 is not cellMailbox!", this->getScriptName());
@@ -580,6 +593,13 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 //-------------------------------------------------------------------------------------
 PyObject* Base::createInNewSpace(PyObject* params)
 {
+	if(createdSpace_)
+	{
+		ERROR_MSG("%s::createInNewSpace: %d has a space!\n", getScriptName(), getID());
+		S_Return;
+	}
+
+	createdSpace_ = true;
 	Baseapp::getSingleton().createInNewSpace(this, params);
 	S_Return;
 }

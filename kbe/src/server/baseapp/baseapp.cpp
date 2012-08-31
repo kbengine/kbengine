@@ -538,6 +538,12 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 //-------------------------------------------------------------------------------------
 void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base* base)
 {
+	if(base->getCellMailbox())
+	{
+		ERROR_MSG("Baseapp::createCellEntity: %s %d has a cell!\n", base->getScriptName(), base->getID());
+		return;
+	}
+
 	Mercury::Bundle bundle;
 	bundle.newMessage(CellappInterface::onCreateCellEntityFromBaseapp);
 
@@ -562,6 +568,7 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	{
 		ERROR_MSG("Baseapp::createCellEntity: not found cellapp(createToCellMailbox:componentID=%"PRAppID", entityID=%d), create is error!\n", 
 			createToCellMailbox->getComponentID(), createToCellMailbox->getID());
+		base->onCreateCellFailure();
 		return;
 	}
 

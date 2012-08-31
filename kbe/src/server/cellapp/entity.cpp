@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "space.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
+#include "network/bundle.hpp"	
 
 #include "../../server/baseapp/baseapp_interface.hpp"
 
@@ -72,7 +73,6 @@ clientMailbox_(NULL),
 baseMailbox_(NULL),
 //currChunk_(NULL),
 isReal_(true),
-isDestroyed_(false),
 aoiRadius_(0.0f),
 aoiHysteresisArea_(0.0f),
 isWitnessed_(false),
@@ -87,17 +87,9 @@ topSpeedY_(-0.1f)
 Entity::~Entity()
 {
 	ENTITY_DECONSTRUCTION(Entity);
-}	
-
-//-------------------------------------------------------------------------------------
-void Entity::destroy()
-{
-	isDestroyed_ = true;
-	onDestroy();
 	S_RELEASE(clientMailbox_);
 	S_RELEASE(baseMailbox_);
-	Py_DECREF(this);
-}
+}	
 
 //-------------------------------------------------------------------------------------
 void Entity::onDestroy(void)

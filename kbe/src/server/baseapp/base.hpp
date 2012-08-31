@@ -182,7 +182,7 @@ public:
 	/** 
 		销毁这个entity 
 	*/
-	void destroy();
+	void onDestroy(void);
 
 	/** 
 		为一个baseEntity在制定的cell上创建一个cellEntity 
@@ -218,6 +218,9 @@ protected:
 
 	// 是否正在创建cell中
 	bool									creatingCell_;
+
+	// 是否已经创建了一个space
+	bool									createdSpace_;
 };
 
 }

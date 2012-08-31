@@ -50,6 +50,7 @@ class EntityMailbox;
 namespace Mercury
 {
 class Channel;
+class Bundle;
 }
 
 /** 观察者信息结构 */
@@ -90,13 +91,12 @@ public:
 		销毁这个entity 
 	*/
 	void onDestroy(void);
-	void destroy();
 	
 	/** 
 		判断自身是否是一个realEntity 
 	*/
 	INLINE bool isReal(void)const;
-	
+
 	/** 
 		定义属性数据被改变了 
 	*/
@@ -223,7 +223,6 @@ public:
 	
 	DECLARE_PY_MOTHOD_ARG5(pyMoveToPoint, PyObject_ptr, float, PyObject_ptr, int32, int32);
 
-	
 	/** 
 		脚本获取和设置entity的最高xz移动速度 
 	*/
@@ -384,8 +383,6 @@ protected:
 //	Chunk*									currChunk_;							// 这个当前entity所在的chunk
 
 	bool									isReal_;							// 自己是否是一个realEntity
-
-	bool									isDestroyed_;						// 自身是否将要销毁
 
 	float									aoiRadius_;							// 当前entity的aoi半径
 	float									aoiHysteresisArea_;					// 当前entityAoi的一个滞后范围

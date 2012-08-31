@@ -83,6 +83,8 @@ protected:																									\
 	SPACE_ID spaceID_;																						\
 	ScriptTimers scriptTimers_;																				\
 	PY_CALLBACKMGR pyCallbackMgr_;																			\
+	bool isDestroyed_;																						\
+	Mercury::Bundle* pBundle_;																				\
 public:																										\
 	void initializeScript()																					\
 	{																										\
@@ -214,21 +216,21 @@ public:																										\
 		return PyLong_FromLong(self->getID());																\
 	}																										\
 																											\
-	inline ENTITY_ID getID()const																			\
+	INLINE ENTITY_ID getID()const																			\
 	{																										\
 		return id_;																							\
 	}																										\
 																											\
-	inline void setID(int id)																				\
+	INLINE void setID(int id)																				\
 	{																										\
 		id_ = id; 																							\
 	}																										\
 																											\
-	inline SPACE_ID getSpaceID()const																		\
+	INLINE SPACE_ID getSpaceID()const																		\
 	{																										\
 		return spaceID_;																					\
 	}																										\
-	inline void setSpaceID(SPACE_ID id)																		\
+	INLINE void setSpaceID(SPACE_ID id)																		\
 	{																										\
 		spaceID_ = id;																						\
 	}																										\
@@ -237,10 +239,12 @@ public:																										\
 		return PyLong_FromLong(self->getSpaceID());															\
 	}																										\
 																											\
-	inline ScriptDefModule* getScriptModule(void)const														\
+	INLINE ScriptDefModule* getScriptModule(void)const														\
 	{																										\
 		return scriptModule_; 																				\
 	}																										\
+																											\
+	INLINE Mercury::Bundle* pBundle()const{ return pBundle_; }												\
 																											\
 	int onScriptDelAttribute(PyObject* attr)																\
 	{																										\
@@ -322,7 +326,13 @@ public:																										\
 	DECLARE_PY_MOTHOD_ARG0(pyWriteToDB);																	\
 																											\
 	void writeToDB();																						\
-
+																											\
+	void destroy()																							\
+	{																										\
+		isDestroyed_ = true;																				\
+		onDestroy();																						\
+		Py_DECREF(this);																					\
+	}																										\
 
 
 #define ENTITY_CPP_IMPL(CLASS)																				\
@@ -407,12 +417,16 @@ public:																										\
 	lpPropertyDescrs_(&scriptModule_->getPropertyDescrs()),													\
 	spaceID_(0),																							\
 	scriptTimers_(),																						\
-	pyCallbackMgr_()																						\
+	pyCallbackMgr_(),																						\
+	isDestroyed_(false),																					\
+	pBundle_(new Mercury::Bundle())																			\
 
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
 	INFO_MSG("%s::~%s(): %d\n", getScriptName(), getScriptName(), id_);										\
 	scriptModule_ = NULL;																					\
+	isDestroyed_ = true;																					\
+	SAFE_RELEASE(pBundle_);																					\
 
 
 #define ENTITY_INIT_PROPERTYS(CLASS)																		\
