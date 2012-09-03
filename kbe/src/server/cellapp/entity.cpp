@@ -1097,7 +1097,7 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 	}
 	else
 	{
-		EntityMailbox* mb = NULL;
+		//EntityMailbox* mb = NULL;
 		SPACE_ID spaceID = 0;
 		
 		// 如果是entity则一定是在本cellapp上， 可以直接进行操作
