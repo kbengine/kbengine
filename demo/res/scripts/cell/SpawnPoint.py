@@ -19,6 +19,7 @@ class SpawnPoint(KBEngine.Entity):
 			"utype" : datas["id"],
 			"spawnPos" : datas["spawnPos"],
 			"modelID" : datas["modelID"],
+			"dialogID" : datas["dialogID"],
 		}
 		KBEngine.globalData["space_%i" % self.spaceID].regEntity(datas["entityType"], info)
 		

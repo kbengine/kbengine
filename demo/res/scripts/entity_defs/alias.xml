@@ -42,6 +42,9 @@
 			<utype>
 				<Type>	UINT32	</Type>
 			</utype>
+			<dialogID>
+				<Type>	UINT32	</Type>
+			</dialogID>
 		</Properties>
 	</ENTITY_INFOS>
 	

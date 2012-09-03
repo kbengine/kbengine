@@ -43,6 +43,7 @@ class Avatar(GameObject):
 			"utype" : 0,
 			"spawnPos" : (0, 0, 0),
 			"modelID" : 0,
+			"dialogID" : 0,
 		}
 		self.client.onQueryEntityResult(end)
 		
