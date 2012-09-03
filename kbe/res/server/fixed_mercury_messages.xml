@@ -41,13 +41,13 @@
 		<arg>INT32</arg> <!-- ENTITY_ID -->
 	</Baseapp::reLoginGateway>
 	
-	<Baseapp::onRemoteCellMethodCallFromClient>
+	<Baseapp::onRemoteCallCellMethodFromClient>
 		<id>205</id>
 		<descr>调用一个cell远程方法。</descr>
 		<arg>INT32</arg> <!-- entityID -->
 
 		<arg>UINT8_ARRAY</arg> <!-- 方法参数二进制流， 具体由方法来解析 -->
-	</Baseapp::onRemoteCellMethodCallFromClient>
+	</Baseapp::onRemoteCallCellMethodFromClient>
 	
 	<Base::onRemoteMethodCall>
 		<id>301</id>
