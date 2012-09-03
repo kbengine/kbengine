@@ -10,6 +10,7 @@ class SpawnPoint(KBEngine.Entity):
 		datas = d_entities.datas.get(self.spawnEntityNO)
 		params = {
 			"spawnPos" : tuple(self.position),
+			"utype" : datas["id"],
 		}
 		
 		e = KBEngine.createEntity(datas["entityType"], self.spaceID, tuple(self.position), tuple(self.direction), params)

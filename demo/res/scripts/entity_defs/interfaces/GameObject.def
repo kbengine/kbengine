@@ -8,6 +8,14 @@
 			<Persistent>		true			</Persistent>
 			<DetailLevel>		MEDIUM			</DetailLevel>
 		</name>
+
+		<utype>
+			<Type>			UINT32			</Type>
+			<Utype> 		41004			</Utype>
+			<Flags>			ALL_CLIENTS		</Flags>
+			<Default>		0			</Default>
+			<Persistent>		true			</Persistent>
+		</utype>
 	</Properties>
 
 	<CellMethods>
