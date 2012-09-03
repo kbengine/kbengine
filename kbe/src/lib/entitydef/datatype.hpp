@@ -284,7 +284,7 @@ public:
 	const char* getName(void)const{ return name_.c_str();}
 protected:
 	std::string name_;
-	uint8 elemCount_;
+	uint32 elemCount_;
 };
 
 class StringType : public DataType
