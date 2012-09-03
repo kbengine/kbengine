@@ -36,7 +36,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-ENTITY_METHOD_DECLARE_BEGIN(Entity)
+ENTITY_METHOD_DECLARE_BEGIN(Cellapp, Entity)
 SCRIPT_METHOD_DECLARE("addSpaceGeometryMapping",	pyAddSpaceGeometryMapping,		METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("setAoiRadius",				pySetAoiRadius,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("isReal",						pyIsReal,						METH_VARARGS,				0)	
@@ -56,7 +56,6 @@ SCRIPT_MEMBER_DECLARE_END()
 ENTITY_GETSET_DECLARE_BEGIN(Entity)
 SCRIPT_GET_DECLARE("base",							pyGetBaseMailbox,				0,					0)
 SCRIPT_GET_DECLARE("client",						pyGetClientMailbox,				0,					0)
-SCRIPT_GET_DECLARE("isDestroyed",					pyGetIsDestroyed,				0,					0)
 SCRIPT_GET_DECLARE("isWitnessed",					pyIsWitnessed,					0,					0)
 SCRIPT_GET_DECLARE("hasWitness",					pyHasWitness,					0,					0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,		0,		0)
@@ -111,6 +110,13 @@ void Entity::onDestroy(void)
 		baseMailbox_->postMail(bundle);
 	}
 }
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyDestroyEntity()																		
+{																										
+	destroyEntity();																					
+	S_Return;																							
+}																										
 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetBaseMailbox()
@@ -362,25 +368,6 @@ void Entity::onCurrentChunkChanged(Chunk* oldChunk)
 PyObject* Entity::pyIsReal()
 {
 	return PyBool_FromLong(isReal());
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetIsDestroyed()
-{
-	return PyBool_FromLong(isDestroyed());
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::destroyEntity(void)
-{
-	Cellapp::getSingleton().destroyEntity(id_);
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::pyDestroyEntity()
-{
-	destroyEntity();
-	S_Return;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1014,7 +1001,7 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 	else
 	{
 		Entity* entity = Cellapp::getSingleton().findEntity(targetEntityID);
-		if(entity == NULL)
+		if(entity == NULL || entity->isDestroyed())
 		{
 			ERROR_MSG("%s::teleportFromBaseapp: %d, can't found targetEntity(%d).\n", 
 				this->getScriptName(), this->getID(), targetEntityID);

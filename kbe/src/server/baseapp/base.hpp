@@ -84,8 +84,6 @@ public:
 	/** 
 		脚本请求销毁base实体 
 	*/
-	void destroyBase(void);
-
 	DECLARE_PY_MOTHOD_ARG0(pyDestroyBase);
 	
 	/** 

@@ -71,17 +71,24 @@ public:
 		COMPONENT_ID componentID);
 	~EntityApp();
 	
-	/* 相关处理接口 */
+	/** 
+		相关处理接口 
+	*/
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 	virtual void handleGameTick();
 
-	/* 通过entityID寻找到对应的实例 */
+	/**
+		通过entityID寻找到对应的实例 
+	*/
 	E* findEntity(ENTITY_ID entityID);
 
-	/* 通过entityID销毁一个entity */
+	/** 
+		通过entityID销毁一个entity 
+	*/
 	virtual bool destroyEntity(ENTITY_ID entityID);
 
-	/* 由mailbox来尝试获取一个entity的实例
+	/**
+		由mailbox来尝试获取一个entity的实例
 		因为这个组件上不一定存在这个entity。
 	*/
 	PyObject* tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_ID eid);
@@ -110,7 +117,9 @@ public:
 
 	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }	
 
-	/* 创建一个entity */
+	/**
+		创建一个entity 
+	*/
 	E* createEntityCommon(const char* entityType, PyObject* params, 
 		bool isInitializeScript = true, ENTITY_ID eid = 0);
 

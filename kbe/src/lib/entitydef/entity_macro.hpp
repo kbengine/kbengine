@@ -26,14 +26,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-#define ENTITY_METHOD_DECLARE_BEGIN(CLASS)																	\
-	ENTITY_CPP_IMPL(CLASS)																					\
+#define ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																\
+	ENTITY_CPP_IMPL(APP, CLASS)																				\
 	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																		\
 	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,			0)		\
 	SCRIPT_METHOD_DECLARE("addTimer",		pyAddTimer,						METH_VARARGS,			0)		\
 	SCRIPT_METHOD_DECLARE("delTimer",		pyDelTimer,						METH_VARARGS,			0)		\
 	SCRIPT_METHOD_DECLARE("writeToDB",		pyWriteToDB,					METH_VARARGS,			0)		\
-
+	
 #define ENTITY_METHOD_DECLARE_END()																			\
 	SCRIPT_METHOD_DECLARE_END()																				\
 
@@ -41,6 +41,7 @@ namespace KBEngine{
 	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
 	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
 	SCRIPT_GET_DECLARE("spaceID",			pyGetSpaceID,					0,						0)		\
+	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,						0)		\
 
 
 #define ENTITY_GETSET_DECLARE_END()																			\
@@ -333,13 +334,22 @@ public:																										\
 		onDestroy();																						\
 		Py_DECREF(this);																					\
 	}																										\
+	INLINE bool isDestroyed()																				\
+	{																										\
+		return isDestroyed_;																				\
+	}																										\
+	DECLARE_PY_GET_MOTHOD(pyGetIsDestroyed);																\
+																											\
+	void destroyEntity(void);																				\
+	DECLARE_PY_MOTHOD_ARG0(pyDestroyEntity);																\
 
 
-#define ENTITY_CPP_IMPL(CLASS)																				\
+
+#define ENTITY_CPP_IMPL(APP, CLASS)																			\
 	class EntityScriptTimerHandler : public TimerHandler													\
 	{																										\
 	public:																									\
-		EntityScriptTimerHandler(CLASS * entity ) : pEntity_( entity )										\
+		EntityScriptTimerHandler(CLASS * entity) : pEntity_( entity )										\
 		{																									\
 		}																									\
 																											\
@@ -408,7 +418,15 @@ public:																										\
 		writeToDB();																						\
 		S_Return;																							\
 	}																										\
-
+																											\
+	void CLASS::destroyEntity(void)																			\
+	{																										\
+		APP::getSingleton().destroyEntity(id_);																\
+	}																										\
+	PyObject* CLASS::pyGetIsDestroyed()																		\
+	{																										\
+		return PyBool_FromLong(isDestroyed());																\
+	}																										\
 
 
 #define ENTITY_CONSTRUCTION(CLASS)																			\

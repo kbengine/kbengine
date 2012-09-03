@@ -13,11 +13,10 @@
 
 namespace KBEngine{
 
-ENTITY_METHOD_DECLARE_BEGIN(Base)
+ENTITY_METHOD_DECLARE_BEGIN(Baseapp, Base)
 SCRIPT_METHOD_DECLARE("createCellEntity",				createCellEntity,				METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE("createInNewSpace",				createInNewSpace,				METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE("destroyCellEntity",				pyDestroyCellEntity,			METH_VARARGS,			0)
-SCRIPT_METHOD_DECLARE("destroy",						pyDestroyBase,					METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE("teleport",						pyTeleport,						METH_VARARGS,			0)
 ENTITY_METHOD_DECLARE_END()
 
@@ -296,21 +295,15 @@ PyObject* Base::pyDestroyCellEntity()
 }
 
 //-------------------------------------------------------------------------------------
-void Base::destroyBase(void)
-{
-	Baseapp::getSingleton().destroyEntity(id_);
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Base::pyDestroyBase()
+PyObject* Base::pyDestroyEntity()
 {
 	if(creatingCell_ || cellMailbox_ != NULL) 
 	{
-		PyErr_Format(PyExc_Exception, "%s::destroyBase: id:%i has cell! creatingCell=%s\n", this->getScriptName(), this->getID(),
+		PyErr_Format(PyExc_Exception, "%s::destroy: id:%i has cell! creatingCell=%s\n", this->getScriptName(), this->getID(),
 			creatingCell_ ? "true" : "false");
 	}
 	else
-		destroyBase();
+		destroyEntity();
 
 	S_Return;
 }
@@ -678,8 +671,15 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 	else
 	{
 		Base* base = static_cast<Base*>(baseEntityMB);
-		eid = base->getID();
-		base->reqTeleportOther(NULL, this->getID(), this->getCellMailbox()->getComponentID(), g_componentID);
+		if(!base->isDestroyed())
+		{
+			base->reqTeleportOther(NULL, this->getID(), this->getCellMailbox()->getComponentID(), g_componentID);
+		}
+		else
+		{
+			PyErr_Format(PyExc_Exception, "%s::teleport: %d baseEntity is destroyed!\n", getScriptName(), getID());
+			S_Return;
+		}
 	}
 
 	S_Return;

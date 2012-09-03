@@ -35,7 +35,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-ENTITY_METHOD_DECLARE_BEGIN(Entity)
+ENTITY_METHOD_DECLARE_BEGIN(Bots, Entity)
 ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
@@ -263,6 +263,12 @@ void Entity::setPosition(Position3D& pos)
 	position_ = pos; 
 //	if(currChunk_ != NULL)
 //		currChunk_->getSpace()->onEntityPositionChanged(this, currChunk_, position_);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyDestroyEntity()
+{
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------

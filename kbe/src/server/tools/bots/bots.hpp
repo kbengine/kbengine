@@ -57,6 +57,11 @@ public:
 	static Bots& getSingleton(){ 
 		return *static_cast<Bots*>(ClientApp::getSingletonPtr()); 
 	}
+
+	/**
+		通过entityID销毁一个entity 
+	*/
+	virtual bool destroyEntity(ENTITY_ID entityID){ return true; }
 protected:
 
 };

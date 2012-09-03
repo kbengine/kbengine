@@ -46,6 +46,7 @@ namespace KBEngine{
 class Chunk;
 class Entity;
 class EntityMailbox;
+class Cellapp;
 
 namespace Mercury
 {
@@ -109,12 +110,6 @@ public:
 	INLINE void pChannel(Mercury::Channel* pchannel);
 	INLINE Mercury::Channel* pChannel(void)const ;
 public:
-	/** 
-		脚本请求销毁实体
-	*/
-	void destroyEntity(void);
-	DECLARE_PY_MOTHOD_ARG0(pyDestroyEntity);
-	
 	/** 
 		mailbox section
 	*/
@@ -212,12 +207,6 @@ public:
 		当前entity是否为real 
 	*/
 	DECLARE_PY_MOTHOD_ARG0(pyIsReal);
-
-	/** 
-		脚本获得当前entity是否为将要销毁的entity 
-	*/
-	INLINE bool isDestroyed();
-	DECLARE_PY_GET_MOTHOD(pyGetIsDestroyed);
 	
 	/** 
 		向baseapp发送备份数据

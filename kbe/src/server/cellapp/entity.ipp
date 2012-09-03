@@ -64,12 +64,6 @@ INLINE void Entity::setTopSpeed(float speed)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Entity::isDestroyed()
-{ 
-	return isDestroyed_; 
-}
-
-//-------------------------------------------------------------------------------------
 INLINE float Entity::getAoiRadius(void)const
 { 
 	return aoiRadius_; 
