@@ -269,7 +269,7 @@ public:
 class VectorType : public DataType
 {
 public:	
-	VectorType(uint8 elemCount);
+	VectorType(uint32 elemCount);
 	virtual ~VectorType();	
 
 	bool isSameType(PyObject* pyValue);

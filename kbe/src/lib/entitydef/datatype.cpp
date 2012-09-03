@@ -355,7 +355,7 @@ PyObject* FloatType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-VectorType::VectorType(uint8 elemCount):
+VectorType::VectorType(uint32 elemCount):
 name_(),
 elemCount_(elemCount)
 {
@@ -384,7 +384,7 @@ bool VectorType::isSameType(PyObject* pyValue)
 		return false;
 	}
 
-	for(uint8 index=0; index<elemCount_; index++)
+	for(uint32 index=0; index<elemCount_; index++)
 	{
 		PyObject* pyVal = PySequence_GetItem(pyValue, index);
 		if(!PyFloat_Check(pyVal) && !PyLong_Check(pyVal) && !PyLong_AsLongLong(pyVal))
@@ -408,7 +408,7 @@ PyObject* VectorType::createObject(MemoryStream* defaultVal)
 		float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
 #endif
 
-	uint8 count = 0;
+	uint32 count = 0;
 	(*defaultVal) >> count;
 	
 	if(count != elemCount_)
@@ -476,7 +476,7 @@ MemoryStream* VectorType::parseDefaultStr(std::string defaultVal)
 void VectorType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
 	(*mstream) << elemCount_;
-	for(uint8 index=0; index<elemCount_; index++)
+	for(uint32 index=0; index<elemCount_; index++)
 	{
 		PyObject* pyVal = PySequence_GetItem(pyValue, index);
 #ifdef CLIENT_NO_FLOAT
