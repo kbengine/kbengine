@@ -1105,7 +1105,7 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 		{
 			Entity* entity = static_cast<Entity*>(nearbyMBRef);
 			spaceID = entity->getSpaceID();
-			if(spaceID == this->getID())
+			if(spaceID == this->getSpaceID())
 			{
 				this->setPositionAndDirection(pos, dir);
 				onTeleportSuccess(nearbyMBRef);
