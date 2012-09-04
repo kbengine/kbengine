@@ -662,7 +662,7 @@ void init_network(void)
 					packet999.readBlob(body);
 					std::wstring outstr;
 					utf82wchar(body, outstr);
-					std::wcout << L"对话内容:" << outstr << std::endl;
+					std::wcout << L"对话内容:" << outstr << L"\n";
 					readover = true;
 					break;
 				}
@@ -676,7 +676,7 @@ void init_network(void)
 				packet999 >> doption.extraData;
 				std::wstring outstr;
 				utf82wchar(doption.title, outstr);
-				std::wcout << L"对话选项(" << doption.dialogKey << L"):" << outstr  << std::endl;
+				std::wcout << L"对话选项(" << doption.dialogKey << L"):" << outstr  << L"\n";
 			}
 		};
 
