@@ -66,7 +66,7 @@ void Archiver::createArchiveTable()
 
 	for(; iter != Baseapp::getSingleton().pEntities()->getEntities().end(); iter++)
 	{
-		if(static_cast<Base*>(iter->second)->hasDB())
+		if(static_cast<Base*>(iter->second.get())->hasDB())
 		{
 			backupEntityIDs_.push_back(iter->first);
 		}

@@ -1,5 +1,6 @@
 #include "cellapp.hpp"
 #include "space.hpp"	
+#include "entity.hpp"	
 #include "entitydef/entities.hpp"
 
 namespace KBEngine{	

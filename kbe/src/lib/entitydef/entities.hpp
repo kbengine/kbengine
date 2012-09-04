@@ -24,7 +24,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include	
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/smartpointer.hpp"
 #include "pyscript/scriptobject.hpp"
+#include "pyscript/pyobject_pointer.hpp"
 //#define NDEBUG
 #include <map>	
 // windows include	
@@ -44,7 +46,7 @@ class Entities : public script::ScriptObject
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(Entities, ScriptObject)	
 public:
-	typedef std::tr1::unordered_map<ENTITY_ID, PyObject*> ENTITYS_MAP;
+	typedef std::tr1::unordered_map<ENTITY_ID, PyObjectPtr> ENTITYS_MAP;
 
 	Entities():
 	ScriptObject(getScriptType(), false)
@@ -82,8 +84,8 @@ private:
 template<typename T>
 PyMappingMethods Entities<T>::mappingMethods =
 {
-	(lenfunc)mp_length,					// mp_length
-	(binaryfunc)mp_subscript,				// mp_subscript
+	(lenfunc)mp_length,								// mp_length
+	(binaryfunc)mp_subscript,						// mp_subscript
 	NULL											// mp_ass_subscript
 };
 
@@ -123,7 +125,7 @@ PyObject * Entities<T>::mp_subscript(PyObject* self, PyObject* key /*entityID*/)
 	ENTITYS_MAP& entities = lpEntities->getEntities();
 	ENTITYS_MAP::const_iterator iter = entities.find(entityID);
 	if (iter != entities.end())
-		pyEntity = iter->second;
+		pyEntity = iter->second.get();
 
 	if(pyEntity == NULL)
 	{
@@ -175,8 +177,8 @@ PyObject* Entities<T>::pyValues()
 	ENTITYS_MAP::const_iterator iter = entities.begin();
 	while (iter != entities.end())
 	{
-		Py_INCREF(iter->second);							// PyObject Entity* 增加一个引用
-		PyList_SET_ITEM(pyList, i, iter->second);
+		Py_INCREF(iter->second.get());							// PyObject Entity* 增加一个引用
+		PyList_SET_ITEM(pyList, i, iter->second.get());
 
 		i++;
 		iter++;
@@ -198,10 +200,10 @@ PyObject* Entities<T>::pyItems()
 	{
 		PyObject * pTuple = PyTuple_New(2);
 		PyObject* entityID = PyLong_FromLong(iter->first);
-		Py_INCREF(iter->second);							// PyObject Entity* 增加一个引用
+		Py_INCREF(iter->second.get());							// PyObject Entity* 增加一个引用
 
 		PyTuple_SET_ITEM(pTuple, 0, entityID);
-		PyTuple_SET_ITEM(pTuple, 1, iter->second);
+		PyTuple_SET_ITEM(pTuple, 1, iter->second.get());
 		PyList_SET_ITEM(pyList, i, pTuple);
 		i++;
 		iter++;
@@ -231,7 +233,7 @@ void Entities<T>::clear(void)
 	ENTITYS_MAP::const_iterator iter = _entities.begin();
 	while (iter != _entities.end())
 	{
-		T* entity = iter->second;
+		T* entity = iter->second.get();
 		entity->destroy();
 		iter++;
 	}
@@ -246,7 +248,7 @@ T* Entities<T>::find(ENTITY_ID id)
 	ENTITYS_MAP::const_iterator iter = _entities.find(id);
 	if(iter != _entities.end())
 	{
-		return static_cast<T*>(iter->second);
+		return static_cast<T*>(iter->second.get());
 	}
 	
 	return NULL;
@@ -259,7 +261,7 @@ T* Entities<T>::erase(ENTITY_ID id)
 	ENTITYS_MAP::iterator iter = _entities.find(id);
 	if(iter != _entities.end())
 	{
-		T* entity = static_cast<T*>(iter->second);
+		T* entity = static_cast<T*>(iter->second.get());
 		_entities.erase(iter);
 		return entity;
 	}

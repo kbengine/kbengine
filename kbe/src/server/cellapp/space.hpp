@@ -22,9 +22,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __SPACE_HPP__
 
 // common include
-#include "entity.hpp"	
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/smartpointer.hpp"
 // #define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -33,6 +33,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 namespace KBEngine{
+
+class Entity;
+typedef SmartPointer<Entity> EntityPtr;
 
 class Space
 {
@@ -51,7 +54,7 @@ public:
 	SPACE_ID getID()const{ return id_; }
 protected:
 	SPACE_ID id_;										// 这个space的ID
-	std::map<ENTITY_ID, Entity*> entities_;				// 这个space上的entity
+	std::vector<EntityPtr> entities_;					// 这个space上的entity
 	bool isLoadGeometry_;								// 是否加载过地形数据
 	int32 mapSize_;										// 地图大小
 	std::string loadGeometryPathName_;					// 加载几何的路径
