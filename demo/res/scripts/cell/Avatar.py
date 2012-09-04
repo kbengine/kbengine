@@ -25,6 +25,17 @@ class Avatar(GameObject):
 		解绑定了一个观察者(客户端)
 		"""
 		DEBUG_MSG("Avatar::onLoseWitness: %i." % self.id)
+	
+	def queryCurrSpaceRes(self, srcEntityID):
+		"""
+		exposed.
+		查询当前场景引用的资源
+		"""
+		if srcEntityID != self.id:
+			return
+		
+		DEBUG_MSG("Avatar::queryCurrSpaceRes(%i):srcEntityID=%i." % (self.id, srcEntityID))
+		self.client.onQuerySpaceResResult("pic/xxx.png;pic/xxx1.png;")
 		
 	def queryCurrSpaceEntitys(self, srcEntityID, count):
 		"""

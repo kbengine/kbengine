@@ -49,6 +49,10 @@
 			<Arg>		ENTITY_ID	</Arg>
 			<Arg>		UINT32		</Arg>
 		</dialog>
+		<queryCurrSpaceRes>
+			<Exposed/>
+			<Utype> 11004 </Utype>
+		</queryCurrSpaceRes>
 	</CellMethods>
 
 	<ClientMethods>
@@ -69,5 +73,10 @@
 			<Utype> 10102			</Utype>
 			<Arg>	UNICODE			</Arg>
 		</dialog_setText>
+
+		<onQuerySpaceResResult>
+			<Utype> 10103			</Utype>
+			<Arg>	STRING	 		</Arg>
+		</onQuerySpaceResResult>
 	</ClientMethods>
 </root>
