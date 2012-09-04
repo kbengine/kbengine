@@ -61,6 +61,7 @@ bool DataTypes::initialize(std::string file)
 	addDateType("INT64",	new Int64Type);
 
 	addDateType("STRING",	new StringType);
+	addDateType("UNICODE",	new UnicodeType);
 	addDateType("FLOAT",	new FloatType);
 	addDateType("PYTHON",	new PythonType);
 	addDateType("MAILBOX",	new MailboxType);

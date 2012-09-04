@@ -306,6 +306,25 @@ public:
 	const char* getName(void)const{ return "STRING";}
 };
 
+class UnicodeType : public DataType
+{
+protected:
+public:	
+	UnicodeType();
+	virtual ~UnicodeType();	
+
+	bool isSameType(PyObject* pyValue);
+
+	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+
+	PyObject* createFromStream(MemoryStream* mstream);
+	PyObject* createObject(MemoryStream* defaultVal);
+
+	MemoryStream* parseDefaultStr(std::string defaultVal);
+
+	const char* getName(void)const{ return "UNICODE";}
+};
+
 class PythonType : public DataType
 {
 protected:

@@ -23,10 +23,11 @@ class Dialog:
 			menu = datas.get("menu%i" % (idx + 1))
 			if menu > 0:
 				self.__menus.append(menu)
-				
+				assert menu != self.__key
+					
 			func = datas.get("func%i" % (idx + 1))
 			if len(func) <= 0:
-				continue;
+				continue
 
 			self.__funcs[func] = funcs.g_funcs[func](datas.get("funcargs%i" % (idx + 1)))
 
@@ -55,14 +56,14 @@ class Dialog:
 	def onTalk(self, avatar, talker):
 		"""
 		"""
-		INFO_MSG("onTalk title %s,__func %s, __menus %s, __body %d,"%(self.__title, self.__funcs, self.__menus, self.__body))
+		INFO_MSG("onTalk title=%s, func=%s, menus=%s, body=%s" % (self.__title, self.__funcs, self.__menus, self.__body))
 		
 		# 执行功能
 		self.do(avatar, talker)
 		
 		# 列出菜单
 		for mkey in self.__menus:
-			dialog = c_dialogMgr.getDialog(mkey)
+			dialog = Dialog.c_dialogMgr.getDialog(mkey)
 			if dialog.canTalk(avatar, talker):
 				avatar.client.dialog_addOption(GlobalDefine.DIALOG_TYPE_NORMAL, dialog.getKey(), dialog.getTitle(), 0)
 

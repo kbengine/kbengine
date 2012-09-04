@@ -230,6 +230,16 @@ struct EntityInfos
 	uint32 modelID;  // 模型ID
 	vector3 spawnPos; // 出生在地图位置
 	uint32 utype;    // 策划填写的实体ID
+	uint32 dialogID;    // 策划填写的对话ID
+};
+
+// 对话选项
+struct DialogOption
+{
+	uint8 dialogType; // 对话类别
+	uint32 dialogKey; // 对话协议key
+	std::string title; // 选项标题
+	int32 extraData; // 扩展项(忽略)
 };
 
 void init_network(void)
@@ -275,7 +285,7 @@ void init_network(void)
 		// 连接游戏登陆进程
 		printf("连接游戏登陆进程\n");
 		u_int32_t address;
-		std::string ip = "192.168.4.44";
+		std::string ip = "192.168.4.45";
 		mysocket.convertAddress(ip.c_str(), address );
 		if(mysocket.connect(htons(port), address) == -1)
 		{
@@ -587,23 +597,68 @@ void init_network(void)
 			packet999 >> eid;
 			packet999 >> methodID;
 
-			uint8 elemcount = 0;
+			uint32 elemcount = 0;
 			
 			packet999 >> einfos.entityID;
-			targetID = einfos.entityID;
 			packet999 >> einfos.modelID;
 			packet999 >> elemcount;
 			// 由于这个类别是一个list所以服务器通用list打包规则会给出一个元素个数
 			// 但这里我们知道坐标服务器是x,y,z3个元素
 			packet999 >> einfos.spawnPos.x >> einfos.spawnPos.y >> einfos.spawnPos.z;
 			packet999 >> einfos.utype;
-			printf("服务器下发entity:id=%d, modelID=%u, pos(%d,%d,%d), utype=%u.\n", einfos.entityID, einfos.modelID, 
-				einfos.spawnPos.x,einfos.spawnPos.y, einfos.spawnPos.z, einfos.utype);
+			packet999 >> einfos.dialogID;
+			
+			if(targetID == 0 && einfos.dialogID == 80001)
+				targetID = einfos.entityID;
+
+			printf("服务器下发entity:id=%d, modelID=%u, pos(%d,%d,%d), utype=%u, dialogID=%u.\n", einfos.entityID, einfos.modelID, 
+				einfos.spawnPos.x,einfos.spawnPos.y, einfos.spawnPos.z, einfos.utype, einfos.dialogID);
 
 
 			// 服务器约定结束时给出一个结构值都为0
 			if(einfos.entityID == 0)
 				break;
+		};
+
+		// 向服务器请求和NPC对话
+		Mercury::Bundle bundle9999;
+		bundle9999.newMessage(BaseappInterface::onRemoteCallCellMethodFromClient);
+		methodID = 11003;
+		bundle9999 << eid;
+		bundle9999 << methodID;
+		bundle9999 << targetID;
+		uint32 dialogID = 80001;
+		bundle9999 << dialogID;
+		bundle9999.send(mysocket);
+		
+		while(true)
+		{
+			
+			TCPPacket packet999;
+			packet999.resize(65535);
+			len = mysocket.recv(packet999.data(), 65535);
+			packet999.wpos(len);
+			packet999 >> msgID;
+			packet999 >> msgLen;
+			packet999 >> eid;
+			packet999 >> methodID;
+			
+			if(methodID == 10102)
+			{
+				std::string body;
+				packet999.readBlob(body);
+				break;
+			}
+
+			DialogOption doption;
+			
+			packet999 >> doption.dialogType;
+			packet999 >> doption.dialogKey;
+			// 这里其实是从包中先取出uint32的size， 然后取得size长度的bytedatas
+			packet999.readBlob(doption.title);
+			packet999 >> doption.extraData;
+			std::wstring outstr;
+			utf82wchar(doption.title, outstr);
 		};
 
 		// 向服务器请求施放技能

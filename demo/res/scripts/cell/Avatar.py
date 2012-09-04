@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import KBEngine
+import dialog
 from KBEDebug import *
 from GameObject import GameObject
 
@@ -30,6 +31,9 @@ class Avatar(GameObject):
 		exposed.
 		查询当前场景上的entity信息
 		"""
+		if srcEntityID != self.id:
+			return
+			
 		DEBUG_MSG("Avatar::queryCurrSpaceEntitys(%i):srcEntityID=%i, count=%i" % (self.id, srcEntityID, count))
 		space = KBEngine.globalData["space_%i" % self.spaceID]
 		
@@ -56,3 +60,17 @@ class Avatar(GameObject):
 			return
 			
 		DEBUG_MSG("Avatar::spellTarget(%i):skillID=%i, srcEntityID=%i, targetID=%i" % (self.id, skillID, srcEntityID, targetID))
+		
+	def dialog(self, srcEntityID, targetID, dialogID):
+		"""
+		exposed.
+		对一个目标entity施放一个技能
+		"""
+		if srcEntityID != self.id:
+			return
+			
+		if not KBEngine.entities.has_key(targetID):
+			DEBUG_MSG("Avatar::dialog: %i not found targetID:%i" % (self.id, dialogID))
+			return
+			
+		dialog.onGossip(dialogID, self, KBEngine.entities[targetID])

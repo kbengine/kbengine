@@ -564,6 +564,84 @@ PyObject* StringType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
+UnicodeType::UnicodeType()
+{
+}
+
+//-------------------------------------------------------------------------------------
+UnicodeType::~UnicodeType()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool UnicodeType::isSameType(PyObject* pyValue)
+{
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("UNICODE");
+		return false;
+	}
+
+	bool ret = PyUnicode_Check(pyValue);
+	if(!ret)
+		OUT_TYPE_ERROR("UNICODE");
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* UnicodeType::createObject(MemoryStream* defaultVal)
+{
+	std::string val = "";
+	if(defaultVal)
+	{
+		defaultVal->readBlob(val);
+	}
+
+	PyObject* pyobj = PyUnicode_DecodeUTF8(val.data(), val.size(), "");
+
+	if(pyobj && !PyErr_Occurred()) 
+	{
+		return pyobj;
+	}
+
+	::PyErr_PrintEx(0);
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+MemoryStream* UnicodeType::parseDefaultStr(std::string defaultVal)
+{
+	MemoryStream* bs = NULL;
+	if(!defaultVal.empty())
+	{
+		bs = new MemoryStream(defaultVal.size());
+		bs->appendBlob(defaultVal.data(), defaultVal.size());
+	}
+
+	return bs;
+}
+
+//-------------------------------------------------------------------------------------
+void UnicodeType::addToStream(MemoryStream* mstream, PyObject* pyValue)
+{
+	PyObject* pyobj = PyUnicode_AsUTF8String(pyValue);
+	if(pyobj == NULL)
+	{
+		OUT_TYPE_ERROR("UNICODE");
+		return;
+	}	
+
+	mstream->appendBlob(PyBytes_AS_STRING(pyobj), PyBytes_GET_SIZE(pyobj));
+	Py_DECREF(pyobj);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* UnicodeType::createFromStream(MemoryStream* mstream)
+{
+	return createObject(mstream);
+}
+
+//-------------------------------------------------------------------------------------
 PythonType::PythonType()
 {
 }

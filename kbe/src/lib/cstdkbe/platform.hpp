@@ -851,5 +851,82 @@ inline wchar_t* char2wchar(char* cs)
 	return ccattr;
 };
 
+inline int wchar2utf8(const wchar_t* in, int in_len, char* out, int out_max)   
+{   
+#ifdef WIN32   
+    BOOL use_def_char;   
+    use_def_char = FALSE;   
+    return ::WideCharToMultiByte(CP_UTF8, 0, in,in_len / sizeof(wchar_t), out, out_max, NULL, NULL);   
+#else   
+    size_t result;   
+    iconv_t env;   
+   
+    env = iconv_open("UTF8", "WCHAR_T");   
+    result = iconv(env,(char**)&in,(size_t*)&in_len,(char**)&out,(size_t*)&out_max);        
+    iconv_close(env);   
+    return (int) result;   
+#endif   
+}   
+   
+inline int wchar2utf8(const std::wstring& in, std::string& out)   
+{   
+    int len = in.length() + 1;   
+    int result;   
+
+    char* pBuffer = new char[len * 4];   
+
+    memset(pBuffer,0,len * 4);               
+
+    result = wchar2utf8(in.c_str(), in.length() * sizeof(wchar_t), pBuffer,len * 4);   
+
+    if(result >= 0)   
+    {   
+        out = pBuffer;   
+    }   
+    else   
+    {   
+        out = "";   
+    }   
+
+    delete[] pBuffer;   
+    return result;   
+}   
+   
+inline int utf82wchar(const char* in, int in_len, wchar_t* out, int out_max)   
+{   
+#ifdef WIN32   
+    return ::MultiByteToWideChar(CP_UTF8, 0, in, in_len, out, out_max);   
+#else   
+    size_t result;   
+    iconv_t env;   
+    env = iconv_open("WCHAR_T", "UTF8");   
+    result = iconv(env,(char**)&in, (size_t*)&in_len, (char**)&out,(size_t*)&out_max);   
+    iconv_close(env);   
+    return (int) result;   
+#endif   
+}   
+   
+inline int utf82wchar(const std::string& in, std::wstring& out)   
+{   
+    int len = in.length() + 1;   
+    int result;   
+ 
+    wchar_t* pBuffer = new wchar_t[len];   
+    memset(pBuffer,0,len * sizeof(wchar_t));   
+    result = utf82wchar(in.c_str(), in.length(), pBuffer, len*sizeof(wchar_t));   
+
+    if(result >= 0)   
+    {   
+        out = pBuffer;   
+    }   
+    else   
+    {   
+        out.clear();         
+    }   
+
+    delete[] pBuffer;   
+    return result;   
+}   
+
 }
 #endif
