@@ -87,7 +87,7 @@ Entity::~Entity()
 	ENTITY_DECONSTRUCTION(Entity);
 	S_RELEASE(clientMailbox_);
 	S_RELEASE(baseMailbox_);
-	S_RELEASE(pWitness_);
+	SAFE_RELEASE(pWitness_);
 }	
 
 //-------------------------------------------------------------------------------------
