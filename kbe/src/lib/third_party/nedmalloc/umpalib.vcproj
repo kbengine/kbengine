@@ -5,20 +5,27 @@
 	Name="umpalib"
 	ProjectGUID="{06B9182A-A125-1E82-3C02-1D7D627C956E}"
 	RootNamespace="umpalib"
-	Keyword="MakeFileProj">
+	Keyword="MakeFileProj"
+	TargetFrameworkVersion="0"
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 		<Platform
-			Name="x64"/>
+			Name="x64"
+		/>
 		<Platform
-			Name="generic"/>
+			Name="generic"
+		/>
 	</Platforms>
 	<ToolFiles>
 	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="0"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
@@ -29,6 +36,26 @@
 				ReBuildCommandLine="echo Starting SCons &amp;&amp; &quot;C:\Python26\python.exe&quot; -c &quot;from os.path import join; import sys; sys.path = [ join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons&apos;), join(sys.prefix, &apos;scons&apos;) ] + sys.path; import SCons.Script; SCons.Script.main()&quot; -C &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc&quot; -f SConstruct &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc\x86\Debug\nedumpa_test.dll&quot;"
 				CleanCommandLine="echo Starting SCons &amp;&amp; &quot;C:\Python26\python.exe&quot; -c &quot;from os.path import join; import sys; sys.path = [ join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons&apos;), join(sys.prefix, &apos;scons&apos;) ] + sys.path; import SCons.Script; SCons.Script.main()&quot; -C &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc&quot; -f SConstruct -c &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc\x86\Debug\nedumpa_test.dll&quot;"
 				Output="x86\Debug\nedumpa_test.dll"
+				PreprocessorDefinitions="ENABLE_TOLERANT_NEDMALLOC;USE_ALLOCATOR=1;USE_LOCKS=1;NEDMALLOCDEPRECATED="
+				IncludeSearchPath=""
+				ForcedIncludes=""
+				AssemblySearchPath=""
+				ForcedUsingAssemblies=""
+				CompileAsManaged=""
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			ConfigurationType="0"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="echo Starting SCons &amp;&amp; &quot;C:\Python26\python.exe&quot; -c &quot;from os.path import join; import sys; sys.path = [ join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons&apos;), join(sys.prefix, &apos;scons&apos;) ] + sys.path; import SCons.Script; SCons.Script.main()&quot; -C &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc&quot; -f SConstruct &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc\x86\Release\nedumpa_test.dll&quot;"
+				ReBuildCommandLine="echo Starting SCons &amp;&amp; &quot;C:\Python26\python.exe&quot; -c &quot;from os.path import join; import sys; sys.path = [ join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons&apos;), join(sys.prefix, &apos;scons&apos;) ] + sys.path; import SCons.Script; SCons.Script.main()&quot; -C &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc&quot; -f SConstruct &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc\x86\Release\nedumpa_test.dll&quot;"
+				CleanCommandLine="echo Starting SCons &amp;&amp; &quot;C:\Python26\python.exe&quot; -c &quot;from os.path import join; import sys; sys.path = [ join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons&apos;), join(sys.prefix, &apos;scons&apos;) ] + sys.path; import SCons.Script; SCons.Script.main()&quot; -C &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc&quot; -f SConstruct -c &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc\x86\Release\nedumpa_test.dll&quot;"
+				Output="x86\Release\nedumpa_test.dll"
 				PreprocessorDefinitions="ENABLE_TOLERANT_NEDMALLOC;USE_ALLOCATOR=1;USE_LOCKS=1;NEDMALLOCDEPRECATED="
 				IncludeSearchPath=""
 				ForcedIncludes=""
@@ -69,26 +96,6 @@
 				ReBuildCommandLine="echo Starting SCons &amp;&amp; &quot;C:\Python26\python.exe&quot; -c &quot;from os.path import join; import sys; sys.path = [ join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons&apos;), join(sys.prefix, &apos;scons&apos;) ] + sys.path; import SCons.Script; SCons.Script.main()&quot; -C &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc&quot; -f SConstruct &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc\x64\Debug\nedumpa_test.dll&quot;"
 				CleanCommandLine="echo Starting SCons &amp;&amp; &quot;C:\Python26\python.exe&quot; -c &quot;from os.path import join; import sys; sys.path = [ join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons&apos;), join(sys.prefix, &apos;scons&apos;) ] + sys.path; import SCons.Script; SCons.Script.main()&quot; -C &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc&quot; -f SConstruct -c &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc\x64\Debug\nedumpa_test.dll&quot;"
 				Output="x64\Debug\nedumpa_test.dll"
-				PreprocessorDefinitions="ENABLE_TOLERANT_NEDMALLOC;USE_ALLOCATOR=1;USE_LOCKS=1;NEDMALLOCDEPRECATED="
-				IncludeSearchPath=""
-				ForcedIncludes=""
-				AssemblySearchPath=""
-				ForcedUsingAssemblies=""
-				CompileAsManaged=""
-			/>
-		</Configuration>
-		<Configuration
-			Name="Release|Win32"
-			ConfigurationType="0"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			>
-			<Tool
-				Name="VCNMakeTool"
-				BuildCommandLine="echo Starting SCons &amp;&amp; &quot;C:\Python26\python.exe&quot; -c &quot;from os.path import join; import sys; sys.path = [ join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons&apos;), join(sys.prefix, &apos;scons&apos;) ] + sys.path; import SCons.Script; SCons.Script.main()&quot; -C &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc&quot; -f SConstruct &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc\x86\Release\nedumpa_test.dll&quot;"
-				ReBuildCommandLine="echo Starting SCons &amp;&amp; &quot;C:\Python26\python.exe&quot; -c &quot;from os.path import join; import sys; sys.path = [ join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons&apos;), join(sys.prefix, &apos;scons&apos;) ] + sys.path; import SCons.Script; SCons.Script.main()&quot; -C &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc&quot; -f SConstruct &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc\x86\Release\nedumpa_test.dll&quot;"
-				CleanCommandLine="echo Starting SCons &amp;&amp; &quot;C:\Python26\python.exe&quot; -c &quot;from os.path import join; import sys; sys.path = [ join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;scons-2.2.0&apos;), join(sys.prefix, &apos;Lib&apos;, &apos;site-packages&apos;, &apos;scons&apos;), join(sys.prefix, &apos;scons&apos;) ] + sys.path; import SCons.Script; SCons.Script.main()&quot; -C &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc&quot; -f SConstruct -c &quot;D:\kbengine\kbe\src\lib\third_party\nedmalloc\x86\Release\nedumpa_test.dll&quot;"
-				Output="x86\Release\nedumpa_test.dll"
 				PreprocessorDefinitions="ENABLE_TOLERANT_NEDMALLOC;USE_ALLOCATOR=1;USE_LOCKS=1;NEDMALLOCDEPRECATED="
 				IncludeSearchPath=""
 				ForcedIncludes=""
@@ -143,74 +150,59 @@
 	<Files>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl">
+			Filter="h;hpp;hxx;hm;inl"
+			>
 			<File
-				RelativePath="malloc.c.h">
+				RelativePath="malloc.c.h"
+				>
 			</File>
 			<File
-				RelativePath="nedmalloc.c">
+				RelativePath="nedmalloc.c"
+				>
 			</File>
 			<File
-				RelativePath="nedmalloc.h">
+				RelativePath="nedmalloc.h"
+				>
 			</File>
 			<File
-				RelativePath="usermodepageallocator.c">
+				RelativePath="usermodepageallocator.c"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Other Files"
-			Filter="">
+			>
 			<File
-				RelativePath="Readme.html">
+				RelativePath="Readme.html"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;l;y;def;odl;idl;hpj;bat">
+			Filter="cpp;c;cxx;l;y;def;odl;idl;hpj;bat"
+			>
 			<File
-				RelativePath="nedmalloc.c">
+				RelativePath="nedmalloc.c"
+				>
 			</File>
 			<File
-				RelativePath="nedmalloc_dll.rc">
+				RelativePath="nedmalloc_dll.rc"
+				>
 			</File>
 			<File
-				RelativePath="winpatcher.c">
+				RelativePath="winpatcher.c"
+				>
 			</File>
 		</Filter>
 		<File
-			RelativePath="SConstruct">
+			RelativePath=".\nedmalloc90.sln"
+			>
+		</File>
+		<File
+			RelativePath="SConstruct"
+			>
 		</File>
 	</Files>
 	<Globals>
 	</Globals>
 </VisualStudioProject>
-<!-- SCons Data:
-fXEBKFULRGVidWd8V2luMzJxAmNjb3B5X3JlZwpfcmVjb25zdHJ1Y3RvcgpxAyhjU0NvbnMuVG9v
-bC5tc3ZzCkNvbmZpZwpxBGNfX2J1aWx0aW5fXwpvYmplY3QKcQVOdFJxBn1xByhVB3ZhcmlhbnRx
-CFUFRGVidWdxCVUHY21kYXJnc3EKVQBVCHBsYXRmb3JtcQtVBVdpbjMycQxVB3J1bmZpbGVxDVUa
-eDg2XERlYnVnXG5lZHVtcGFfdGVzdC5kbGxxDlULYnVpbGR0YXJnZXRxD1VIRDpca2JlbmdpbmVc
-a2JlXHNyY1xsaWJcdGhpcmRfcGFydHlcbmVkbWFsbG9jXHg4NlxEZWJ1Z1xuZWR1bXBhX3Rlc3Qu
-ZGxscRBVBm91dGRpcnERVQB1YlUJRGVidWd8eDY0cRJoAyhoBGgFTnRScRN9cRQoaAhVBURlYnVn
-cRVoClUAaAtVA3g2NHEWaA1VGng2NFxEZWJ1Z1xuZWR1bXBhX3Rlc3QuZGxscRdoD1VIRDpca2Jl
-bmdpbmVca2JlXHNyY1xsaWJcdGhpcmRfcGFydHlcbmVkbWFsbG9jXHg2NFxEZWJ1Z1xuZWR1bXBh
-X3Rlc3QuZGxscRhoEVUAdWJVDURlYnVnfGdlbmVyaWNxGWgDKGgEaAVOdFJxGn1xGyhoCFUFRGVi
-dWdxHGgKVQBoC1UHZ2VuZXJpY3EdaA1VHmdlbmVyaWNcRGVidWdcbmVkdW1wYV90ZXN0LmRsbHEe
-aA9VTEQ6XGtiZW5naW5lXGtiZVxzcmNcbGliXHRoaXJkX3BhcnR5XG5lZG1hbGxvY1xnZW5lcmlj
-XERlYnVnXG5lZHVtcGFfdGVzdC5kbGxxH2gRVQB1YlUPUmVsZWFzZXxnZW5lcmljcSBoAyhoBGgF
-TnRScSF9cSIoaAhVB1JlbGVhc2VxI2gKVQBoC1UHZ2VuZXJpY3EkaA1VIGdlbmVyaWNcUmVsZWFz
-ZVxuZWR1bXBhX3Rlc3QuZGxscSVoD1VORDpca2JlbmdpbmVca2JlXHNyY1xsaWJcdGhpcmRfcGFy
-dHlcbmVkbWFsbG9jXGdlbmVyaWNcUmVsZWFzZVxuZWR1bXBhX3Rlc3QuZGxscSZoEVUAdWJVC1Jl
-bGVhc2V8eDY0cSdoAyhoBGgFTnRScSh9cSkoaAhVB1JlbGVhc2VxKmgKVQBoC1UDeDY0cStoDVUc
-eDY0XFJlbGVhc2VcbmVkdW1wYV90ZXN0LmRsbHEsaA9VSkQ6XGtiZW5naW5lXGtiZVxzcmNcbGli
-XHRoaXJkX3BhcnR5XG5lZG1hbGxvY1x4NjRcUmVsZWFzZVxuZWR1bXBhX3Rlc3QuZGxscS1oEVUA
-dWJVDVJlbGVhc2V8V2luMzJxLmgDKGgEaAVOdFJxL31xMChoCFUHUmVsZWFzZXExaApVAGgLVQVX
-aW4zMnEyaA1VHHg4NlxSZWxlYXNlXG5lZHVtcGFfdGVzdC5kbGxxM2gPVUpEOlxrYmVuZ2luZVxr
-YmVcc3JjXGxpYlx0aGlyZF9wYXJ0eVxuZWRtYWxsb2NceDg2XFJlbGVhc2VcbmVkdW1wYV90ZXN0
-LmRsbHE0aBFVAHVidS4=
-
-fXEBKFULT3RoZXIgRmlsZXNxAl1xA1ULUmVhZG1lLmh0bWxxBGFVDUxvY2FsIEhlYWRlcnNxBV1x
-BlUMSGVhZGVyIEZpbGVzcQddcQgoVQptYWxsb2MuYy5ocQlVC25lZG1hbGxvYy5jcQpVC25lZG1h
-bGxvYy5ocQtVF3VzZXJtb2RlcGFnZWFsbG9jYXRvci5jcQxlVQxTb3VyY2UgRmlsZXNxDV1xDihV
-C25lZG1hbGxvYy5jcQ9VEG5lZG1hbGxvY19kbGwucmNxEFUMd2lucGF0Y2hlci5jcRFlVQ5SZXNv
-dXJjZSBGaWxlc3ESXXETdS4=
--->
