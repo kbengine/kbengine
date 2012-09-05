@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
+#include "cstdkbe/objectpool.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/common.hpp"
 #include "network/interfaces.hpp"
@@ -41,6 +42,8 @@ class EventDispatcher;
 class UDPPacketReceiver : public PacketReceiver
 {
 public:
+	static ObjectPool<UDPPacketReceiver> objPool;
+
 	UDPPacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
 	~UDPPacketReceiver();
 

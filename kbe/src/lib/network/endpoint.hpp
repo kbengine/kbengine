@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __KBEENDPOINT__
 
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/objectpool.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/address.hpp"
 #include "network/common.hpp"
@@ -33,6 +34,8 @@ namespace Mercury
 class EndPoint
 {
 public:
+	static ObjectPool<EndPoint> objPool;
+
 	EndPoint(u_int32_t networkAddr = 0, u_int16_t networkPort = 0);
 	virtual ~EndPoint();
 	operator KBESOCKET() const;

@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __NETWORKPACKET_RECEIVER__
 
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/objectpool.hpp"
 #include "cstdkbe/timer.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/common.hpp"
@@ -40,6 +41,8 @@ class EventDispatcher;
 class PacketReceiver : public InputNotificationHandler
 {
 public:
+	static ObjectPool<PacketReceiver> objPool;
+
 	PacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
 	virtual ~PacketReceiver();
 

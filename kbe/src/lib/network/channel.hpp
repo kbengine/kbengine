@@ -23,6 +23,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
+#include "cstdkbe/smartpointer.hpp"
+#include "cstdkbe/timestamp.hpp"
+#include "cstdkbe/refcountable.hpp"
+#include "cstdkbe/objectpool.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/address.hpp"
 #include "network/event_dispatcher.hpp"
@@ -31,11 +35,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 #include "network/bundle.hpp"
 #include "network/interfaces.hpp"
-#include "network/circular_buffer.hpp"
-#include "cstdkbe/smartpointer.hpp"
-#include "cstdkbe/timestamp.hpp"
-#include "cstdkbe/refcountable.hpp"
 #include "network/packet_filter.hpp"
+#include "network/circular_buffer.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -48,6 +49,8 @@ class MessageHandlers;
 class Channel : public TimerHandler, public RefCountable
 {
 public:
+	static ObjectPool<Channel> objPool;
+
 	enum Traits
 	{
 		/// This describes the properties of channel from server to server.

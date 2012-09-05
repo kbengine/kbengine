@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __KBE_ADDRESS__
 
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/objectpool.hpp"
 #include "network/common.hpp"
 
 namespace KBEngine { 
@@ -31,6 +32,7 @@ class Address
 {
 public:
 	static const Address NONE;
+	static ObjectPool<Address> objPool;
 
 	Address();
 	Address(uint32 ipArg, uint16 portArg);
