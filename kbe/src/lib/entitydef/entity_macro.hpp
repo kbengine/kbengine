@@ -33,6 +33,8 @@ namespace KBEngine{
 	SCRIPT_METHOD_DECLARE("addTimer",		pyAddTimer,						METH_VARARGS,			0)		\
 	SCRIPT_METHOD_DECLARE("delTimer",		pyDelTimer,						METH_VARARGS,			0)		\
 	SCRIPT_METHOD_DECLARE("writeToDB",		pyWriteToDB,					METH_VARARGS,			0)		\
+	SCRIPT_METHOD_DECLARE("destroy",		pyDestroyEntity,				METH_VARARGS,			0)		\
+
 	
 #define ENTITY_METHOD_DECLARE_END()																			\
 	SCRIPT_METHOD_DECLARE_END()																				\

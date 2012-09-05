@@ -211,6 +211,10 @@
 				RelativePath=".\spaces.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\witness.cpp"
+				>
+			</File>
 			<Filter
 				Name="Resource Files"
 				Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
@@ -253,6 +257,10 @@
 			</File>
 			<File
 				RelativePath=".\spaces.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\witness.hpp"
 				>
 			</File>
 		</Filter>

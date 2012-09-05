@@ -18,13 +18,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SPACEMANAGER_HPP__
-#define __SPACEMANAGER_HPP__
+#ifndef __KBE_WITNESS_HPP__
+#define __KBE_WITNESS_HPP__
 
 // common include
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
-#include "space.hpp"
 // #define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32	
@@ -33,23 +32,36 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 namespace KBEngine{
+class Entity;
 
-class Spaces
+/** 观察者信息结构 */
+struct WitnessInfo
+{
+	WitnessInfo(const int8& lv, Entity* e, const float& r):
+	detailLevel(lv),
+	entity(e),
+	range(r)
+	{
+		for(int i=0; i<3; i++)
+			if(lv == i)
+				detailLevelLog[i] = true;
+			else
+				detailLevelLog[i] = false;
+	}
+	
+	int8 detailLevel;							// 当前所在详情级别
+	Entity* entity;								// 所表达的entity
+	float range;								// 当前与这个entity的距离
+	bool detailLevelLog[3];						// 表示这个entity都进入过该entity的哪些详情级别， 提供属性广播优化用的
+												// 当没有进入过某级别时， 会将所有这个级别的属性更新给他， 否则只更新近段时间曾经改变过的属性
+	std::vector<uint32> changeDefDataLogs[3];	// entity离开了某个详情级别(没有脱离witness)后， 这期间有某个详情级别的属性改变均记录在这里
+};
+
+class Witness
 {
 public:
-	Spaces();
-	~Spaces();
-
-	/** 创建一个新的space */
-	static Space* createNewSpace(SPACE_ID spaceID);
-	
-	/** 寻找一个指定space */
-	static Space* findSpace(SPACE_ID spaceID);
-	
-	/** 更新所有的space */
-	static void update();
-protected:
-	static std::map<SPACE_ID, Space*> spaces_;
+	Witness();
+	~Witness();
 };
 
 }

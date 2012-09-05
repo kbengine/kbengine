@@ -108,7 +108,6 @@ Bundle::Bundle(Channel * pChannel, ProtocolType pt):
 Bundle::~Bundle()
 {
 	clear();
-	SAFE_RELEASE(pCurrPacket_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -173,11 +172,15 @@ void Bundle::clear()
 	packets_.clear();
 	SAFE_RELEASE(pCurrPacket_);
 
+	pChannel_ = NULL;
+	numMessages_ = 0;
+
 	currMsgID_ = 0;
 	currMsgPacketCount_ = 0;
 	currMsgLength_ = 0;
 	currMsgLengthPos_ = 0;
 	currMsgHandlerLength_ = 0;
+	pCurrMsgHandler_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -209,6 +212,9 @@ void Bundle::onSendComplete()
 void Bundle::newMessage(const MessageHandler& msgHandler)
 {
 	pCurrMsgHandler_ = &msgHandler;
+	
+	if(pCurrPacket_ == NULL)
+		this->newPacket();
 
 	finish(false);
 	KBE_ASSERT(pCurrPacket_ != NULL);

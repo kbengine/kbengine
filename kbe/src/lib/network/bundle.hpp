@@ -107,6 +107,11 @@ public:
 public:
 	int32 onPacketAppend(int32 size)
 	{
+		if(pCurrPacket_ == NULL)
+		{
+			newPacket();
+		}
+
 		int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
 		
 		int32 totalsize = (int32)pCurrPacket_->totalSize();

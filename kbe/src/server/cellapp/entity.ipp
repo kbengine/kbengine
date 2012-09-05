@@ -22,12 +22,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-INLINE std::map<ENTITY_ID, Entity*>& Entity::getViewEntities(void)
-{ 
-	return viewEntities_; 
-}
-
-//-------------------------------------------------------------------------------------
 INLINE void Entity::setClientMailbox(EntityMailbox* mailbox)
 {
 	clientMailbox_ = mailbox; 
@@ -42,7 +36,7 @@ INLINE bool Entity::isWitnessed(void)const
 //-------------------------------------------------------------------------------------
 INLINE bool Entity::hasWitness(void)const
 { 
-	return hasWitness_; 
+	return pWitness_ != NULL; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -115,6 +109,30 @@ INLINE EntityMailbox* Entity::getClientMailbox()const
 INLINE bool Entity::isReal(void)const
 { 
 	return isReal_; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE SPACE_ENTITIES::size_type Entity::spaceEntityIdx()const
+{
+	return spaceEntityIdx_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::spaceEntityIdx(SPACE_ENTITIES::size_type idx)
+{
+	spaceEntityIdx_ = idx;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE Witness* Entity::witness()const
+{
+	return pWitness_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::witness(Witness* w)
+{
+	pWitness_ = w;
 }
 
 //-------------------------------------------------------------------------------------

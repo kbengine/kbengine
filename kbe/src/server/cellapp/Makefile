@@ -6,7 +6,8 @@ SRCS =						\
 	entity					\
 	main					\
 	space					\
-	spaces
+	spaces					\
+	witness
 
 ASMS =
 

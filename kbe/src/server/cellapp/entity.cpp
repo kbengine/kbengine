@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cellapp.hpp"
 #include "entity.hpp"
-//#include "chunk.hpp"
+#include "witness.hpp"	
 #include "space.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
@@ -42,7 +42,6 @@ SCRIPT_METHOD_DECLARE("setAoiRadius",				pySetAoiRadius,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("isReal",						pyIsReal,						METH_VARARGS,				0)	
 SCRIPT_METHOD_DECLARE("addProximity",				pyAddProximity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("delProximity",				pyDelProximity,					METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("destroy",					pyDestroyEntity,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("navigateStep",				pyNavigateStep,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("stopMove",					pyStopMove,						METH_VARARGS,				0)
@@ -71,14 +70,13 @@ ScriptObject(getScriptType(), true),
 ENTITY_CONSTRUCTION(Entity),
 clientMailbox_(NULL),
 baseMailbox_(NULL),
-//currChunk_(NULL),
 isReal_(true),
 aoiRadius_(0.0f),
 aoiHysteresisArea_(0.0f),
 isWitnessed_(false),
-hasWitness_(false),
 topSpeed_(-0.1f),
-topSpeedY_(-0.1f)
+topSpeedY_(-0.1f),
+pWitness_(NULL)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
 }
@@ -89,6 +87,7 @@ Entity::~Entity()
 	ENTITY_DECONSTRUCTION(Entity);
 	S_RELEASE(clientMailbox_);
 	S_RELEASE(baseMailbox_);
+	S_RELEASE(pWitness_);
 }	
 
 //-------------------------------------------------------------------------------------
@@ -108,6 +107,12 @@ void Entity::onDestroy(void)
 		bundle.newMessage(BaseappInterface::onLoseCell);
 		bundle << id_;
 		baseMailbox_->postMail(bundle);
+	}
+
+	Space* space = Spaces::findSpace(this->getSpaceID());
+	if(space)
+	{
+		space->removeEntity(this);
 	}
 }
 
@@ -404,166 +409,6 @@ void Entity::onWitnessed(Entity* entity, float range)
 //-------------------------------------------------------------------------------------
 void Entity::onRemoveWitness(Entity* entity)
 {
-	ENTITY_ID id = entity->getID();
-	WITNESSENTITY_DETAILLEVEL_MAP::iterator iter = witnessEntityDetailLevelMap_.find(id);
-	if(iter != witnessEntityDetailLevelMap_.end())
-	{
-		witnessEntities_[iter->second->detailLevel].erase(id);
-		witnessEntityDetailLevelMap_.erase(iter);
-	}
-	else
-	{
-		ERROR_MSG("Entity[%s:%ld]::onRemoveWitness: can't not found %s %ld.\n", getScriptName(), id_,
-			entity->getScriptName(), id);
-	}
-	
-	if(witnessEntityDetailLevelMap_.size() <= 0)
-	{
-		isWitnessed_ = false;
-		PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onWitnessed"), const_cast<char*>("O"), PyBool_FromLong(0));
-		if(pyResult != NULL)
-			Py_DECREF(pyResult);
-		else
-			PyErr_Clear();
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::onUpdateWitness(Entity* entity, float range)
-{/*
-	ENTITY_ID id = entity->getID();
-	WITNESSENTITY_DETAILLEVEL_MAP::iterator iter = witnessEntityDetailLevelMap_.find(id);
-	if(iter != witnessEntityDetailLevelMap_.end())
-	{
-		WitnessInfo* witnessInfo = iter->second;
-		int8 detailLevel = witnessInfo->detailLevel;
-		int8 newDetailLevel = scriptModule_->getDetailLevel().getLevelByRange(detailLevel, range);
-
-		// 详情级别改变了
-		if(detailLevel != newDetailLevel)
-		{
-			DEBUG_MSG("Entity[%s:%ld]::onUpdateWitness:%s %ld change detailLevel %d to %d. oldRange=%f, newRange=%f.\n", getScriptName(), id_,
-					entity->getScriptName(), id, detailLevel, newDetailLevel, witnessInfo->range, range);
-
-			witnessInfo->detailLevel = newDetailLevel;
-			onEntityDetailLevelChanged(witnessInfo, detailLevel, newDetailLevel);
-			witnessInfo->detailLevelLog[newDetailLevel] = true;
-		}
-
-		witnessInfo->range = range;
-	}
-	else
-	{
-		ERROR_MSG("Entity[%s:%ld]::onUpdateWitness: can't not found %s %ld.\n", getScriptName(), id_,
-			entity->getScriptName(), id);
-	}*/
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::onViewEntity(Entity* entity)
-{
-	// 将这个entity加入视野范围Entity列表
-	viewEntities_[entity->getID()] = entity;
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::onLoseViewEntity(Entity* entity)
-{/*
-	ENTITY_ID eid = entity->getID();
-	// 将这个entit从视野范围Entity列表删除
-	std::map<ENTITY_ID, Entity*>::iterator iter = viewEntities_.find(eid);
-	if(iter != viewEntities_.end())
-		viewEntities_.erase(iter);
-	
-	// 从本entity的客户端中删除他
-	if(entity->getScriptModule()->hasClient() && clientMailbox_ != NULL)
-	{
-		SocketPacket* sp = clientMailbox_->createMail(MAIL_TYPE_LOST_VIEW_ENTITY);
-		(*sp) << eid;
-		clientMailbox_->post(sp);
-	}*/
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::onEntityInitDetailLevel(Entity* entity, int8 detailLevel)
-{
-	// 自身没有客户端部分则无需做相关操作
-	if(!scriptModule_->hasClient())
-		return;
-	/*
-	EntityMailbox* clientMailbox = entity->getClientMailbox();
-	ENTITY_ID eid = entity->getID();
-	SocketPacket* sp = new SocketPacket(OP_ENTITY_ENTER_WORLD);
-
-	// 将这个entity的数据写入包中
-	(*sp) << eid;
-	bool isAdd = true;
-	(*sp) << isAdd;															// 表示向某客户端增加一个entity
-	(*sp) << id_;
-	(*sp) << this->ob_type->tp_name;
-	(*sp) << position_.x << position_.y << position_.z;
-	(*sp) << direction_.roll << direction_.pitch << direction_.yaw;
-	
-	// 如果是非常远的级别， 那么我们只发送一个entity基础信息到客户端
-	if(detailLevel == DETAIL_LEVEL_UNKNOW)
-	{
-		clientMailbox->post(sp);
-		return;
-	}
-	
-	while(detailLevel <= DETAIL_LEVEL_FAR)
-		getCellDataByDetailLevel(detailLevel++, sp);
-	
-	clientMailbox->post(sp);*/
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::onEntityDetailLevelChanged(const WitnessInfo* witnessInfo, int8 oldDetailLevel, int8 newDetailLevel)
-{/*
-	// 自身没有客户端部分则无需做相关操作
-	if(!scriptModule_->hasClient())
-		return;
-	
-	// 如果是非常远的级别或者是由近级别改变到远级别， 那么我们忽略下面的操作
-	if(newDetailLevel == DETAIL_LEVEL_UNKNOW || oldDetailLevel <= newDetailLevel)
-		return;
-	
-	Entity* entity = witnessInfo->entity;
-	EntityMailbox* clientMailbox = entity->getClientMailbox();
-	SocketPacket* sp = NULL;
-
-	// 如果没有初始化过属性则初始化所有属性到客户端， 否则只发送期间有过改变的属性
-	if(!witnessInfo->detailLevelLog[newDetailLevel])
-	{
-		sp = clientMailbox->createMail(MAIL_TYPE_UPDATE_PROPERTYS);
-		
-		// 将这个entity的数据写入包中
-		(*sp) << id_;
-		getCellDataByDetailLevel(newDetailLevel, sp);
-		clientMailbox->post(sp);
-	}
-	else
-	{
-		std::vector<uint32>& cddlog = witnessInfo->changeDefDataLogs[newDetailLevel];
-
-		// 如果有属性被改变才进行属性更新
-		if(cddlog.size() > 0)
-		{
-			sp = clientMailbox->createMail(MAIL_TYPE_UPDATE_PROPERTYS);
-			std::vector<uint32>::iterator piter = cddlog.begin();
-			for(;piter != cddlog.end(); piter++)
-			{
-				PropertyDescription* propertyDescription = scriptModule_->findCellPropertyDescription((*piter));
-				(*sp) << propertyDescription->getUType();
-				PyObject* pyVal = PyObject_GetAttrString(this, propertyDescription->getName().c_str());
-				propertyDescription->getDataType()->addToStream(sp, pyVal);
-				Py_DECREF(pyVal);
-			}
-
-			clientMailbox->post(sp);
-			cddlog.clear();
-		}
-	}*/
 }
 
 //-------------------------------------------------------------------------------------
@@ -766,7 +611,7 @@ void Entity::setPositionAndDirection(Position3D& position, Direction3D& directio
 //-------------------------------------------------------------------------------------
 void Entity::onGetWitness(Mercury::Channel* pChannel)
 {
-	KBE_ASSERT(this->getBaseMailbox() != NULL);
+	KBE_ASSERT(this->getBaseMailbox() != NULL && !this->hasWitness());
 	PyObject* clientMailbox = PyObject_GetAttrString(this->getBaseMailbox(), "client");
 	KBE_ASSERT(clientMailbox != Py_None);
 
@@ -781,16 +626,17 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 	else
 		PyErr_Clear();
 
-	hasWitness_ = true;
+	pWitness_ = new Witness();
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onLoseWitness(Mercury::Channel* pChannel)
 {
-	KBE_ASSERT(this->getClientMailbox() != NULL);
+	KBE_ASSERT(this->getClientMailbox() != NULL && this->hasWitness());
 	getClientMailbox()->addr(Mercury::Address::NONE);
 	Py_DECREF(getClientMailbox());
 	setClientMailbox(NULL);
+	SAFE_RELEASE(pWitness_);
 
 	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLoseWitness"), 
 																		const_cast<char*>(""));
@@ -798,22 +644,11 @@ void Entity::onLoseWitness(Mercury::Channel* pChannel)
 		Py_DECREF(pyResult);
 	else
 		PyErr_Clear();
-
-	hasWitness_ = false;
 }
 
 //-------------------------------------------------------------------------------------
 int32 Entity::setAoiRadius(float radius, float hyst)
 {
-	if(!hasWitness_)
-	{
-		ERROR_MSG("Entity::setAoiRadius:%s %ld no has witness.\n", getScriptName(), id_);
-		return 0;
-	}
-
-	if(clientMailbox_ == NULL || clientMailbox_ == Py_None)
-		return 0;
-
 	aoiRadius_ = radius;
 	aoiHysteresisArea_ = hyst;
 
@@ -823,12 +658,6 @@ int32 Entity::setAoiRadius(float radius, float hyst)
 		aoiHysteresisArea_ = 15.0f;
 	}
 	
-/*	// 在space中投放一个AOI陷阱
-	Proximity* p = new ProximityAOI(this, aoiRadius_, aoiHysteresisArea_);
-	trapMgr_.addProximity(p);
-	if(currChunk_ != NULL)
-		currChunk_->getSpace()->placeProximity(currChunk_, p);
-*/
 	return 1;
 }
 
@@ -1027,7 +856,7 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 			}
 			
 			Space* currspace = Spaces::findSpace(this->getSpaceID());
-			currspace->delEntity(this);
+			currspace->removeEntity(this);
 			space->addEntity(this);
 			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, spaceID);
 		}
@@ -1115,7 +944,7 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 				this->setPositionAndDirection(pos, dir);
 				Space* currspace = Spaces::findSpace(this->getSpaceID());
 				Space* space = Spaces::findSpace(spaceID);
-				currspace->delEntity(this);
+				currspace->removeEntity(this);
 				space->addEntity(this);
 				onTeleportSuccess(nearbyMBRef);
 			}

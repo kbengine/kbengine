@@ -36,6 +36,7 @@ namespace KBEngine{
 
 class Entity;
 typedef SmartPointer<Entity> EntityPtr;
+typedef std::vector<EntityPtr> SPACE_ENTITIES;
 
 class Space
 {
@@ -49,12 +50,15 @@ public:
 	void update();
 
 	void addEntity(Entity* pEntity);
-	void delEntity(Entity* pEntity);
+	void removeEntity(Entity* pEntity);
 
 	SPACE_ID getID()const{ return id_; }
+
+	const SPACE_ENTITIES& entities()const{ return entities_; }
+
 protected:
 	SPACE_ID id_;										// 这个space的ID
-	std::vector<EntityPtr> entities_;					// 这个space上的entity
+	SPACE_ENTITIES entities_;							// 这个space上的entity
 	bool isLoadGeometry_;								// 是否加载过地形数据
 	int32 mapSize_;										// 地图大小
 	std::string loadGeometryPathName_;					// 加载几何的路径
