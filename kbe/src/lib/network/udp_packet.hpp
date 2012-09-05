@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 // common include
 #include "network/packet.hpp"
+#include "cstdkbe/objectpool.hpp"
 //#define NDEBUG
 #include <assert.h>
 // windows include	
@@ -38,6 +39,8 @@ namespace Mercury
 class UDPPacket : public Packet
 {
 public:
+	static ObjectPool<UDPPacket> objPool;
+
     UDPPacket(MessageID msgID = 0, size_t res = 0);
 	virtual ~UDPPacket(void);
 	
