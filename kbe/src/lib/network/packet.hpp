@@ -14,8 +14,9 @@ same license as the rest of the engine.
 // common include
 #include "cstdkbe/memorystream.hpp"
 #include "cstdkbe/cstdkbe.hpp"
-#include "network/common.hpp"
+#include "cstdkbe/objectpool.hpp"
 #include "cstdkbe/smartpointer.hpp"	
+#include "network/common.hpp"
 
 //#define NDEBUG
 #include <assert.h>
@@ -35,6 +36,7 @@ class Address;
 class Packet : public MemoryStream, public RefCountable
 {
 public:
+	static ObjectPool<Packet> objPool;
 
 	Packet(MessageID msgID = 0, size_t res = 200):
 	MemoryStream(res),
