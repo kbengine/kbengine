@@ -43,6 +43,7 @@ class Avatar(KBEngine.Proxy):
 		
 		# 如果帐号ENTITY存在 则也通知销毁它
 		if self.accountEntity != None:
+			self.accountEntity.activeCharacter = None
 			self.accountEntity.destroy()
 			self.accountEntity = None
 			
@@ -57,7 +58,7 @@ class Avatar(KBEngine.Proxy):
 		DEBUG_MSG("Avatar[%i].onClientDeath:" % self.id)
 		# 防止正在请求创建cell的同时客户端断开了， 我们延时一段时间来执行销毁cell直到销毁base
 		# 这段时间内客户端短连接登录则会激活entity
-		self._destroyTimer = self.addTimer(60 * 5, 0, 1)
+		self._destroyTimer = self.addTimer(1, 0, 1)
 
 	def onClientGetCell(self):
 		"""
