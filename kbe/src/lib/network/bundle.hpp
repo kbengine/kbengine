@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
+#include "cstdkbe/objectpool.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/address.hpp"
 #include "network/event_dispatcher.hpp"
@@ -79,6 +80,7 @@ class Channel;
 class Bundle
 {
 public:
+	static ObjectPool<Bundle> objPool;
 	typedef std::vector<Packet*> Packets;
 
 	Bundle(Channel * pChannel = NULL, ProtocolType pt = PROTOCOL_TCP);
