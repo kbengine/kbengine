@@ -1,0 +1,17 @@
+creator: '"Niall Douglas" <ned@lyta>'
+
+
+reporter: '"Niall Douglas" <ned@lyta>'
+
+
+severity: minor
+
+
+status: open
+
+
+summary: nedalloc can not work with boost::multi_index
+
+
+time: Wed, 14 Dec 2011 14:41:37 +0000
+

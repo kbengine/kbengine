@@ -1,0 +1,3 @@
+nedalloc can not work with boost::multi_index,
+
+Error 1 error C2248: 'nedalloc::nedallocatorI::baseimplementation<implementation>::operator =' : cannot access private member declared in class 'nedalloc::nedallocatorI::baseimplementation<implementation>' e:\tmr\src\communicators\nedmalloc\nedmalloc.h 1338 communicatorS</implementation></implementation>

@@ -1,0 +1,3 @@
+[submodule "nedtries"]
+	path = nedtries
+	url = git://github.com/ned14/nedtries.git

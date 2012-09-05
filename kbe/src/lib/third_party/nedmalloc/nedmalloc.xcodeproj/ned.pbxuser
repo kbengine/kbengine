@@ -1,0 +1,285 @@
+// !$*UTF8*$!
+{
+	08FB7793FE84155DC02AAC07 /* Project object */ = {
+		activeArchitecturePreference = i386;
+		activeBuildConfigurationName = Release;
+		activeExecutable = 819E6B8C0FA0F2B10069AFE3 /* nedmalloc */;
+		activeTarget = 8DD76FA90486AB0100D96B5E /* nedmalloc */;
+		addToTargets = (
+			8DD76FA90486AB0100D96B5E /* nedmalloc */,
+		);
+		breakpoints = (
+			819E6BE80FA0FCCA0069AFE3 /* nedmalloc.c:380 */,
+		);
+		codeSenseManager = 819E6B950FA0F2B10069AFE3 /* Code sense */;
+		executables = (
+			819E6B8C0FA0F2B10069AFE3 /* nedmalloc */,
+		);
+		perUserDictionary = {
+			"PBXConfiguration.PBXBreakpointsDataSource.v1:1CA1AED706398EBD00589147" = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXBreakpointsDataSource_BreakpointID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					20,
+					198,
+					20,
+					99,
+					99,
+					29,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXBreakpointsDataSource_ActionID,
+					PBXBreakpointsDataSource_TypeID,
+					PBXBreakpointsDataSource_BreakpointID,
+					PBXBreakpointsDataSource_UseID,
+					PBXBreakpointsDataSource_LocationID,
+					PBXBreakpointsDataSource_ConditionID,
+					PBXBreakpointsDataSource_IgnoreCountID,
+					PBXBreakpointsDataSource_ContinueID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					341,
+					20,
+					48,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXPerProjectTemplateStateSaveDate = 262292385;
+			PBXWorkspaceStateSaveDate = 262292385;
+		};
+		perUserProjectItems = {
+			8152A93B0FA243AF00CF53E9 /* PBXTextBookmark */ = 8152A93B0FA243AF00CF53E9 /* PBXTextBookmark */;
+			8152A93C0FA243AF00CF53E9 /* PBXTextBookmark */ = 8152A93C0FA243AF00CF53E9 /* PBXTextBookmark */;
+			8152A97C0FA243AF00CF53E9 /* PBXTextBookmark */ = 8152A97C0FA243AF00CF53E9 /* PBXTextBookmark */;
+			8152A97D0FA243AF00CF53E9 /* PBXTextBookmark */ = 8152A97D0FA243AF00CF53E9 /* PBXTextBookmark */;
+			8152A9840FA243AF00CF53E9 /* PBXTextBookmark */ = 8152A9840FA243AF00CF53E9 /* PBXTextBookmark */;
+			8152A9860FA243AF00CF53E9 /* PBXTextBookmark */ = 8152A9860FA243AF00CF53E9 /* PBXTextBookmark */;
+			819E6BFC0FA0FD790069AFE3 /* PBXTextBookmark */ = 819E6BFC0FA0FD790069AFE3 /* PBXTextBookmark */;
+			819E6C080FA0FE290069AFE3 /* PBXTextBookmark */ = 819E6C080FA0FE290069AFE3 /* PBXTextBookmark */;
+		};
+		sourceControlManager = 819E6B940FA0F2B10069AFE3 /* Source Control */;
+		userBuildSettings = {
+		};
+	};
+	8152A93B0FA243AF00CF53E9 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 819E6C070FA0FE290069AFE3 /* malloc.c.h */;
+		name = "malloc.c.h: 6";
+		rLen = 0;
+		rLoc = 274;
+		rType = 0;
+		vrLen = 733;
+		vrLoc = 0;
+	};
+	8152A93C0FA243AF00CF53E9 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 819E6C070FA0FE290069AFE3 /* malloc.c.h */;
+		name = "malloc.c.h: 6";
+		rLen = 0;
+		rLoc = 274;
+		rType = 0;
+		vrLen = 733;
+		vrLoc = 0;
+	};
+	8152A97C0FA243AF00CF53E9 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 819E6B9C0FA0F2B10069AFE3 /* test.c */;
+		name = "test.c: 10";
+		rLen = 0;
+		rLoc = 165;
+		rType = 0;
+		vrLen = 302;
+		vrLoc = 0;
+	};
+	8152A97D0FA243AF00CF53E9 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 819E6B9C0FA0F2B10069AFE3 /* test.c */;
+		name = "test.c: 10";
+		rLen = 0;
+		rLoc = 165;
+		rType = 0;
+		vrLen = 302;
+		vrLoc = 0;
+	};
+	8152A9840FA243AF00CF53E9 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 8152A9850FA243AF00CF53E9 /* malloc.c.h */;
+		name = "malloc.c.h: 535";
+		rLen = 4;
+		rLoc = 27696;
+		rType = 0;
+		vrLen = 756;
+		vrLoc = 27333;
+	};
+	8152A9850FA243AF00CF53E9 /* malloc.c.h */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.c.h;
+		name = malloc.c.h;
+		path = "/Volumes/XP/Documents and Settings/ned/My Documents/Tornado/Tn/TClient/TnFOX/src/nedmalloc/malloc.c.h";
+		sourceTree = "<absolute>";
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {684, 79884}}";
+			sepNavSelRange = "{27696, 4}";
+			sepNavVisRange = "{27333, 756}";
+		};
+	};
+	8152A9860FA243AF00CF53E9 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 8152A9870FA243AF00CF53E9 /* nedmalloc.c */;
+		name = "nedmalloc.c: 65";
+		rLen = 0;
+		rLoc = 2398;
+		rType = 0;
+		vrLen = 836;
+		vrLoc = 1708;
+	};
+	8152A9870FA243AF00CF53E9 /* nedmalloc.c */ = {
+		isa = PBXFileReference;
+		name = nedmalloc.c;
+		path = "/Volumes/XP/Documents and Settings/ned/My Documents/Tornado/Tn/TClient/TnFOX/src/nedmalloc/nedmalloc.c";
+		sourceTree = "<absolute>";
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {534, 13790}}";
+			sepNavSelRange = "{1974, 16}";
+			sepNavVisRange = "{1778, 421}";
+			sepNavWindowFrame = "{{125, 20}, {750, 558}}";
+		};
+	};
+	819E6B8C0FA0F2B10069AFE3 /* nedmalloc */ = {
+		isa = PBXExecutable;
+		activeArgIndices = (
+		);
+		argumentStrings = (
+		);
+		autoAttachOnCrash = 1;
+		breakpointsEnabled = 1;
+		configStateDict = {
+		};
+		customDataFormattersEnabled = 1;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		dylibVariantSuffix = "";
+		enableDebugStr = 1;
+		environmentEntries = (
+		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
+		libgmallocEnabled = 0;
+		name = nedmalloc;
+		savedGlobals = {
+		};
+		sourceDirectories = (
+		);
+		variableFormatDictionary = {
+		};
+	};
+	819E6B940FA0F2B10069AFE3 /* Source Control */ = {
+		isa = PBXSourceControlManager;
+		fallbackIsa = XCSourceControlManager;
+		isSCMEnabled = 0;
+		scmConfiguration = {
+		};
+	};
+	819E6B950FA0F2B10069AFE3 /* Code sense */ = {
+		isa = PBXCodeSenseManager;
+		indexTemplatePath = "";
+	};
+	819E6B9C0FA0F2B10069AFE3 /* test.c */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {594, 5118}}";
+			sepNavSelRange = "{165, 0}";
+			sepNavVisRange = "{0, 316}";
+			sepNavWindowFrame = "{{15, 15}, {750, 558}}";
+		};
+	};
+	819E6BE60FA0FCCA0069AFE3 /* nedmalloc.c */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.c.c;
+		name = nedmalloc.c;
+		path = "/Volumes/XP/Documents and Settings/ned/My Documents/Tornado/Tn/TClient/TnFOX/src/nedmalloc/nedmalloc.c";
+		sourceTree = "<absolute>";
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {924, 13622}}";
+			sepNavSelRange = "{2398, 0}";
+			sepNavVisRange = "{1708, 836}";
+		};
+	};
+	819E6BE80FA0FCCA0069AFE3 /* nedmalloc.c:380 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 819E6BE60FA0FCCA0069AFE3 /* nedmalloc.c */;
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 380;
+		modificationTime = 262289054.41405;
+		state = 1;
+	};
+	819E6BFC0FA0FD790069AFE3 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 819E6B9C0FA0F2B10069AFE3 /* test.c */;
+		name = "test.c: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 306;
+		vrLoc = 0;
+	};
+	819E6C070FA0FE290069AFE3 /* malloc.c.h */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.c.h;
+		name = malloc.c.h;
+		path = "/Volumes/XP/Documents and Settings/ned/My Documents/Tornado/Tn/TClient/TnFOX/src/nedmalloc/malloc.c.h";
+		sourceTree = "<absolute>";
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {684, 79884}}";
+			sepNavSelRange = "{27696, 4}";
+			sepNavVisRange = "{27333, 756}";
+		};
+	};
+	819E6C080FA0FE290069AFE3 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 819E6C090FA0FE290069AFE3 /* nedmalloc.c */;
+		name = "nedmalloc.c: 375";
+		rLen = 0;
+		rLoc = 11404;
+		rType = 0;
+		vrLen = 678;
+		vrLoc = 10163;
+	};
+	819E6C090FA0FE290069AFE3 /* nedmalloc.c */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.c.c;
+		name = nedmalloc.c;
+		path = "/Volumes/XP/Documents and Settings/ned/My Documents/Tornado/Tn/TClient/TnFOX/src/nedmalloc/nedmalloc.c";
+		sourceTree = "<absolute>";
+	};
+	8DD76FA90486AB0100D96B5E /* nedmalloc */ = {
+		activeExec = 0;
+		executables = (
+			819E6B8C0FA0F2B10069AFE3 /* nedmalloc */,
+		);
+	};
+}
