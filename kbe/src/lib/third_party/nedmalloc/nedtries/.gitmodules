@@ -1,0 +1,3 @@
+[submodule "uthash"]
+	path = uthash
+	url = git://github.com/ned14/uthash.git

@@ -1,0 +1,60 @@
+A little P.S. - thought that maybe a small ascii diagram may explain
+the logic instantly.
+
+As i wrote, first we do a normal lookup, but don't stop when
+encountering the refkey, but dial as much as we can. After we did this,
+one of three cases MUST apply. The first case is:
+
+Root----------------> X  (Leaf node)
+
+Lookup ended at a leaf, we encountered no branch at all. If there is a
+"next" in this bucket, we must have encounted it on our way. The reason
+simply is, that there having been no branch, means nothing else than
+that we never picked link0 but could have picked link1 - in other
+words: we CANNOT "dial" higher in this bucket. Thus, in the above case,
+if we found no candidate, then there is none in this bucket.
+
+                      link1-------> possible candidate
+                       /
+Root----------------> X
+
+The situation here is, that our lookup ended when we wanted to choose
+link0 but it was null BUT there is link1 available here. It doesn't
+really matter if we found a candidate yet, because we cannot be sure,
+that it really is the lowest possible next, because of that "branch" up
+there at the node where we stopped "dialing". It also doesn't matter if
+there were "branches" earlier, because the above branch is "later" and
+thus MUST contain lower keys than earlier branches. So, what we do is
+to then pick link1, and scan this subtree for its lowest key. We do
+this by prefering link0 over link1, and on every node checking if the
+key is a better candidate. We must be done afterwards, because: If the
+correct next was in the nodes before X, we jumped through it already,
+and if we didn't encounter any candidate on our way to X, then X's
+branch MUST contain a next (bit1 is higher than bit0).
+
+          link1----------> possible candidate
+           /          
+Root------+
+           \
+          link0----------> X
+
+Last case. We at some point picked link0 even though link1 was
+available. We then further dialed bits, and never again encountered a
+branch. Furthermore, when we later arrived at X, we still had no
+candidate yet. This means: Since after the above branch, no further
+branch followed, the entire subtree from that branch onwards cannot
+contain the matching next - for the simple reason, that we have inside
+this subtree already "dialed" as high as we can.
+
+However, since wie DID encounter a branch earlier, the correct next
+MUST be in it (bit1 is higher than bit0), and we must find it, if we
+inside the link1 subtree dial the lowest possible bits and collect
+candidates, until we reach a leaf.
+
+As you may have noticed, even though the reasoning is different, what
+we do in case2 and case3 is exactly the same: We pick a branch, follow
+link1, and then dial as low as we can, collecting candidates. Thus, the
+entire algo can be simplified to just two cases, instead of three.
+
+Hope that helped.
+

@@ -1,0 +1,77 @@
+> > A few days ago i wrote that we had figured out how to do safe
+> > in-order next and prev with nedtries, and provided the conceptual
+> > code. Unfortunatelly, it turns out that this "code" was buggy (it
+> > works if keys were inserted in-order, but not out-of-order).
+> 
+> I thought what you supplied was for delete-tolerant traversal?
+
+It was, and this one is too. None of both - neither the "buggy one" nor
+the new one, has design-bugs regarding delete. The problem simply was,
+that the original buggy algo, only worked when key -originally- were
+inserted in order - since at that time we naively only tested in-order
+insertion and next, we at first didn't notice the issue, because it
+worked fine.
+
+Then after we tried random-order inserts before doing "next", we
+noticed the bug. The current algo should safely work for deletions AND
+inserts during iteration. It's properties are as follows:
+
+- caller only needs to supply a referencekey, which doesn't even need
+  to actually exist. I.e., he can just remember his previous key,
+  and then supply it to get the next key, even if the prev key by
+  now no longer exists.
+
+- Guaranteed in-order traversal. You will never get a lower key than
+  the refkey, and the key you get will be the lowest key above refkey
+  available at the time of call.
+
+- If during iteration keys are inserted/removed before your current
+  refkey, your iterator is unaffected.
+
+- If during iteration keys are inserted/deleted after your current
+  refkey, you will iterate/skip over those keys.
+
+- Multitasking-safe but not thread-safe if writes happen. But that
+  applies to our implementation in general anyways, and is nothing
+  specific to next/prev: If two threads write to the trie structure,
+  bad this happen.
+
+
+> An guaranteed ordered prev/next could be useful. I'm constantly 
+> getting complaints that the trie isn't fully sorted, and me 
+> suggesting a bubble sort as a very quick way of solving the problem 
+> doesn't go down well (most just want something they can slot in with 
+> no effort).
+
+Well, we simply did it, because we needed multitasking support - i.e. a
+func starts an iterator, and then in this iterator calls another func
+that modifies the trie. That also instantly put remembering nodes to
+supply the state, out of the competition, because nodes may not only
+change position, but may be deleted (ouch!). That pretty much leaves
+only keys as state, and since keynode positions in the trie may change,
+the only "order" left to ensure consistency, is something like in-order
+lookup from head.
+
+> > Initial benchmarks without further tweaks:
+> > 2x the time of normal find
+> > 
+> > Benchmarks after tweaks for cheap special cases:
+> > 1.5x the time of normal find
+> 
+> If your method can beat a bubble sort of traversed tree, I'm 
+> interested.
+
+The number of nodes traversed per next/prev, is the minimum possible,
+if one adds tweaks like stopping the search instantly when refkey +1 is
+encountered. In principle, as i understand it, no other approach can
+traverse less nodes, only perhaps an equal amount. That only leaves
+instruction speed as the judge. Even though we put a lot effort into
+getting the instructions down, it is still significantly more than for
+normal find - especially the excessive branching is ugly.
+
+In any case, we yesterday ran benchmarks multiple times with different
+insertion steps and patterns, for 10m next's on an old coreDuo proc,
+and the times were 1.4secs for find, and 2.3secs for next.
+
+Will reply to your other mail in the next days.
+

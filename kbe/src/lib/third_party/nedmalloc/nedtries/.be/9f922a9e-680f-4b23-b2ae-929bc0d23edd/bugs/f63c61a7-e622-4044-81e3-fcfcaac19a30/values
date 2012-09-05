@@ -1,0 +1,19 @@
+creator: '"Niall Douglas \(s \[underscore\] sourceforge {at} nedprod \[dot\] com\)"
+  <spam@nowhere>'
+
+
+reporter: '"Niall Douglas \(s \[underscore\] sourceforge {at} nedprod \[dot\] com\)"
+  <spam@nowhere>'
+
+
+severity: minor
+
+
+status: open
+
+
+summary: Set node using currently lowest/highest unused key
+
+
+time: Sun, 11 Mar 2012 16:31:53 +0000
+

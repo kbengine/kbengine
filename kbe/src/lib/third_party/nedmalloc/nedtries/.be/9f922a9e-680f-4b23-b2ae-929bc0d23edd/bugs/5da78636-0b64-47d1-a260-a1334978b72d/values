@@ -1,0 +1,17 @@
+creator: '"Niall Douglas" <ned@lyta>'
+
+
+reporter: '"Niall Douglas" <ned@lyta>'
+
+
+severity: wishlist
+
+
+status: open
+
+
+summary: Halve size of NEDTRIE_HEAD by storing two bits per bucket. Suggested by Lyxar
+
+
+time: Thu, 08 Sep 2011 11:37:25 +0000
+
