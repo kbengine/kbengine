@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../lib;../;../../common;../../lib/third_party/log4cxx/include"
+				AdditionalIncludeDirectories="../../lib;../;../../common;../../lib/third_party/log4cxx/include;../../lib/third_party"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;__LIB_DLLAPI__;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -106,7 +106,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../lib;../;../../common;../../lib/third_party/log4cxx/include"
+				AdditionalIncludeDirectories="../../lib;../;../../common;../../lib/third_party/log4cxx/include;../../lib/third_party"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"

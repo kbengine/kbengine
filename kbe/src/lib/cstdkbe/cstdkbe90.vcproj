@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../common;../../lib;../../lib/third_party/log4cxx/include"
+				AdditionalIncludeDirectories="../../common;../../lib;../../lib/third_party/log4cxx/include;;../../lib/third_party"
 				PreprocessorDefinitions="LOG4CXX_STATIC;WIN32;_DEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -106,7 +106,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../common;../../lib;../../lib/third_party/log4cxx/include"
+				AdditionalIncludeDirectories="../../common;../../lib;../../lib/third_party/log4cxx/include;../../lib/third_party"
 				PreprocessorDefinitions="LOG4CXX_STATIC;WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -180,6 +180,10 @@
 			>
 			<File
 				RelativePath=".\cstdkbe.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\kbemalloc.hpp"
 				>
 			</File>
 			<File

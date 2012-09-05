@@ -22,7 +22,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/platform.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "cstdkbe/kbeversion.hpp"
-	
+#include "cstdkbe/kbemalloc.hpp"
+
 namespace KBEngine{
 /** 安全的释放一个指针内存 */
 #define SAFE_RELEASE(i)										\
