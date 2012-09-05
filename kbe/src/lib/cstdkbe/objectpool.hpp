@@ -60,14 +60,14 @@ public:
 
 	~ObjectPool()
 	{
-		OBJECTS::iterator itr = objects_.begin();
-		for(; itr!=objects_.end(); itr++)
-			SAFE_RELEASE((*itr));
+		ObjectPool::OBJECTS::iterator iter = objects_.begin();
+		for(; iter!=objects_.end(); iter++)
+			SAFE_RELEASE((*iter));
 				
 		objects_.clear();	
 	}	
 	
-	const OBJECTS& objects(void)const { return objects_; }
+	const ObjectPool::OBJECTS& objects(void)const { return objects_; }
 
 	/** 强制创建一个指定类型的对象。 如果缓冲里已经创建则返回现有的，否则
 		创建一个新的， 这个对象必须是继承自T的。
@@ -109,7 +109,7 @@ public:
 	size_t size(void)const{ return objects_.size(); }
 	
 protected:
-	OBJECTS objects_;							// 对象缓冲器
+	ObjectPool::OBJECTS objects_;							// 对象缓冲器
 };
 
 }
