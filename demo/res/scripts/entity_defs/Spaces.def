@@ -14,13 +14,15 @@
 	<BaseMethods>
 		<loginToSpace>
 			<Arg>		MAILBOX		</Arg>
-			<Arg>		UINT32		</Arg>
+			<Arg>		ENTITY_UTYPE	</Arg>
 		</loginToSpace>
 
-		<teleportTo>
+		<teleportSpace>
 			<Arg>		MAILBOX		</Arg>
-			<Arg>		UINT32		</Arg>
-		</teleportTo>
+			<Arg>		ENTITY_UTYPE	</Arg>
+			<Arg>		POSITION3D	</Arg>
+			<Arg>		DIRECTION3D	</Arg>
+		</teleportSpace>
 	</BaseMethods>
 
 	<CellMethods>

@@ -19,6 +19,12 @@
 	</Properties>
 
 	<CellMethods>
+		<onTeleportSpaceCB>
+			<Arg>		MAILBOX		</Arg>
+			<Arg>		ENTITY_UTYPE	</Arg>
+			<Arg>		POSITION3D	</Arg>
+			<Arg>		DIRECTION3D	</Arg>
+		</onTeleportSpaceCB>
 	</CellMethods>
 	
 	<DetailLevels><!-- entity详情级别, 决定某些属性广播给客户端的优先级 -->

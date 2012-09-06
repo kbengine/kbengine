@@ -46,7 +46,7 @@ class Avatar(GameObject):
 			return
 			
 		DEBUG_MSG("Avatar::queryCurrSpaceEntitys(%i):srcEntityID=%i, count=%i" % (self.id, srcEntityID, count))
-		space = KBEngine.globalData["space_%i" % self.spaceID]
+		space = self.getCurrSpace()
 		
 		allDatas = list(space.allNPEntities)
 		while len(allDatas) > 0:

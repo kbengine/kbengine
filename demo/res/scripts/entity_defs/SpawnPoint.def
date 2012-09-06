@@ -5,6 +5,10 @@
 		<pitch> 20 </pitch>
 	</Volatile>
 
+	<Implements>
+		<Interface>	GameObject		</Interface>
+	</Implements>
+
 	<Properties>
 		<spawnEntityNO>
 			<Type>			UINT32			</Type>

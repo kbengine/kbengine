@@ -11,7 +11,7 @@ class Space(KBEngine.Entity):
 		# 记录地图上所有的实体ID， 按类型区分
 		self.allNPEntities = [] 
 		
-		KBEngine.globalData["space_%i" % self.spaceID] = self
+		KBEngine.globalData["space_%i" % self.spaceID] = self.base
 		
 	def regEntity(self, entityType, entityInfo):
 		self.allNPEntities.append(entityInfo)

@@ -21,9 +21,12 @@
 			<Arg>		MAILBOX		</Arg>
 		</onLoginToSpace>
 
-		<teleportTo>
+		<teleportSpace>
 			<Arg>		MAILBOX		</Arg>
-		</teleportTo>
+			<Arg>		ENTITY_UTYPE	</Arg>
+			<Arg>		POSITION3D	</Arg>
+			<Arg>		DIRECTION3D	</Arg>
+		</teleportSpace>
 	</BaseMethods>
 
 	<CellMethods>

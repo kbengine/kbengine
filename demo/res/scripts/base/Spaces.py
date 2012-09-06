@@ -51,7 +51,7 @@ class Spaces(GameObject):
 		
 		space.onLoginToSpace(avatarMailbox)
 		
-	def teleportTo(self, entityMailbox, spaceUType):
+	def teleportSpace(self, entityMailbox, spaceUType, position, direction):
 		"""
 		define method.
 		请求进入某个space中
@@ -61,4 +61,5 @@ class Spaces(GameObject):
 			ERROR_MSG("Spaces::teleportTo: not found space %i. teleportTo is failed!" % spaceUType)
 			return
 		
-		space.teleportTo(avatarMailbox)
+		DEBUG_MSG("Spaces::teleportSpace: entityMailbox=%s" % entityMailbox)
+		space.teleportSpace(entityMailbox, position, direction)

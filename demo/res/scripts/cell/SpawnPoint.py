@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 from KBEDebug import *
+from GameObject import GameObject
 import d_entities
 
-class SpawnPoint(KBEngine.Entity):
+class SpawnPoint(GameObject):
 	def __init__(self):
 		KBEngine.Entity.__init__(self)
 		
@@ -22,7 +23,7 @@ class SpawnPoint(KBEngine.Entity):
 			"modelID" : datas["modelID"],
 			"dialogID" : datas["dialogID"],
 		}
-		KBEngine.globalData["space_%i" % self.spaceID].regEntity(datas["entityType"], info)
+		self.getCurrSpace().regEntity(datas["entityType"], info)
 		
 	def onDestroy(self):
 		"""
