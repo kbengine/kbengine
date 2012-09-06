@@ -42,6 +42,7 @@ public:
 
 	/** 获得对象的描述 */
 	PyObject* tp_repr();
+	PyObject* tp_str();
 
 	/** 脚本模块对象从python中创建 */
 	static PyObject* tp_new(PyTypeObject* type, PyObject* args, PyObject* kwds);

@@ -173,7 +173,7 @@ PyObject* ScriptVector2::tp_repr()
 	char str[128];
 	Vector2 v = this->getVector();
 
-	strcpy(str, "(");
+	strcpy(str, "Vector2(");
 	for(int i=0; i < VECTOR_SIZE; i++)
 	{
 		if (i > 0)
@@ -183,6 +183,12 @@ PyObject* ScriptVector2::tp_repr()
 
 	strcat(str, ")");
 	return PyUnicode_FromString(str);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ScriptVector2::tp_str()
+{
+	return tp_repr();
 }
 
 //-------------------------------------------------------------------------------------
