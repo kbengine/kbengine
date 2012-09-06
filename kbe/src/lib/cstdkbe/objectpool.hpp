@@ -51,7 +51,14 @@ class ObjectPool
 public:
 	typedef std::list<T*> OBJECTS;
 
-	ObjectPool(unsigned int preAssignVal = OBJECT_POOL_INIT_SIZE)
+	ObjectPool()
+	{
+		for(unsigned int i=0; i<OBJECT_POOL_INIT_SIZE; i++){
+			objects_.push_back(new T);
+		}
+	}
+
+	ObjectPool(unsigned int preAssignVal)
 	{
 		for(unsigned int i=0; i<preAssignVal; i++){
 			objects_.push_back(new T);
@@ -69,7 +76,8 @@ public:
 	
 	const OBJECTS& objects(void)const { return objects_; }
 
-	/** 强制创建一个指定类型的对象。 如果缓冲里已经创建则返回现有的，否则
+	/** 
+		强制创建一个指定类型的对象。 如果缓冲里已经创建则返回现有的，否则
 		创建一个新的， 这个对象必须是继承自T的。
 	*/
 	template<typename T1>
@@ -85,7 +93,8 @@ public:
 		return new T1;
 	}
 
-	/** 创建一个对象。 如果缓冲里已经创建则返回现有的，否则
+	/** 
+		创建一个对象。 如果缓冲里已经创建则返回现有的，否则
 		创建一个新的。
 	*/
 	T* createObject(void)
@@ -100,7 +109,25 @@ public:
 		return new T;
 	}
 
-	/**回收一个对象*/
+	/** 
+		获取临时对象的引用。
+		如果objects_没有对象则创建
+	*/
+	T& getTemp(void)
+	{
+		if(objects_.size() == 0)
+		{
+			T* t = new T;
+			objects_.push_back(t);
+			return *t;
+		}
+
+		return *objects_.front();
+	}
+
+	/**
+		回收一个对象
+	*/
 	void reclaimObject(T* obj)
 	{
 		objects_.push_back(obj);
@@ -110,6 +137,10 @@ public:
 	
 protected:
 	OBJECTS objects_;							// 对象缓冲器
+};
+
+class PoolObject
+{
 };
 
 }

@@ -36,6 +36,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 namespace Mercury
 {
+
+//-------------------------------------------------------------------------------------
+static ObjectPool<TCPPacketReceiver> _g_objPool;
+ObjectPool<TCPPacketReceiver>& TCPPacketReceiver::ObjPool()
+{
+	return _g_objPool;
+}
+
 //-------------------------------------------------------------------------------------
 TCPPacketReceiver::TCPPacketReceiver(EndPoint & endpoint,
 	   NetworkInterface & networkInterface	) :
@@ -53,12 +61,12 @@ TCPPacketReceiver::~TCPPacketReceiver()
 //-------------------------------------------------------------------------------------
 bool TCPPacketReceiver::processSocket(bool expectingPacket)
 {
-	Channel* pChannel = networkInterface_.findChannel(endpoint_.addr());
+	Channel* pChannel = pNetworkInterface_->findChannel(pEndpoint_->addr());
 	KBE_ASSERT(pChannel != NULL);
 	
-	TCPPacket* pReceiveWindow = new TCPPacket();
+	TCPPacket* pReceiveWindow = TCPPacket::ObjPool().createObject();
 	pChannel->addReceiveWindow(pReceiveWindow);
-	int len = pReceiveWindow->recvFromEndPoint(endpoint_);
+	int len = pReceiveWindow->recvFromEndPoint(*pEndpoint_);
 
 	if (len < 0)
 	{
@@ -66,7 +74,7 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 	}
 	else if(len == 0) // 客户端正常退出
 	{
-		networkInterface_.deregisterChannel(pChannel);
+		pNetworkInterface_->deregisterChannel(pChannel);
 		pChannel->destroy();
 		return false;
 	}
@@ -74,7 +82,7 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 	Reason ret = this->processPacket(pChannel, pReceiveWindow);
 
 	if(ret != REASON_SUCCESS)
-		this->dispatcher().errorReporter().reportException(ret, endpoint_.addr());
+		this->dispatcher().errorReporter().reportException(ret, pEndpoint_->addr());
 	
 	return true;
 }
@@ -82,7 +90,7 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 //-------------------------------------------------------------------------------------
 Reason TCPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * pPacket)
 {
-	networkInterface_.onPacketIn(*pPacket);
+	pNetworkInterface_->onPacketIn(*pPacket);
 	return REASON_SUCCESS;
 }
 

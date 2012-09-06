@@ -36,10 +36,9 @@ class Address;
 class Packet : public MemoryStream, public RefCountable
 {
 public:
-	static ObjectPool<Packet> objPool;
-
-	Packet(MessageID msgID = 0, size_t res = 200):
+	Packet(MessageID msgID = 0, bool isTCPPacket = true, size_t res = 200):
 	MemoryStream(res),
+	isTCPPacket_(isTCPPacket),
 	msgID_(msgID)
 	{
 	};
@@ -65,8 +64,11 @@ public:
 	}
 
 	inline MessageID messageID() const { return msgID_; }
+
+	bool isTCPPacket()const { return isTCPPacket_; }
 protected:
 	MessageID msgID_;
+	bool isTCPPacket_;
 
 };
 

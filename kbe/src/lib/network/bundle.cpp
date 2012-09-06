@@ -87,6 +87,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 namespace Mercury
 {
+
+//-------------------------------------------------------------------------------------
+static ObjectPool<Bundle> _g_objPool;
+ObjectPool<Bundle>& Bundle::ObjPool()
+{
+	return _g_objPool;
+}
+
 //-------------------------------------------------------------------------------------
 Bundle::Bundle(Channel * pChannel, ProtocolType pt):
 	pChannel_(pChannel),
@@ -114,9 +122,9 @@ Bundle::~Bundle()
 Packet* Bundle::newPacket()
 {
 	if(isTCPPacket_)
-		pCurrPacket_ = new TCPPacket;
+		pCurrPacket_ = TCPPacket::ObjPool().createObject();
 	else
-		pCurrPacket_ = new UDPPacket;
+		pCurrPacket_ = UDPPacket::ObjPool().createObject();
 	
 	return pCurrPacket_;
 }
@@ -167,10 +175,26 @@ void Bundle::clear()
 {
 	Packets::iterator iter = packets_.begin();
 	for (; iter != packets_.end(); iter++)
-		delete (*iter);
+	{
+		// delete (*iter);
+		(*iter)->clear(false);
+		if(isTCPPacket_)
+			TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>((*iter)));
+		else
+			UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>((*iter)));
+	}
 	
 	packets_.clear();
-	SAFE_RELEASE(pCurrPacket_);
+
+	if(pCurrPacket_)
+	{
+		if(isTCPPacket_)
+			TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pCurrPacket_));
+		else
+			UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pCurrPacket_));
+		
+		pCurrPacket_->clear(false);
+	}
 
 	pChannel_ = NULL;
 	numMessages_ = 0;

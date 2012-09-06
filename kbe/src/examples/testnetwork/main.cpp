@@ -285,7 +285,7 @@ void init_network(void)
 		// 连接游戏登陆进程
 		printf("连接游戏登陆进程\n");
 		u_int32_t address;
-		std::string ip = "192.168.4.45";
+		std::string ip = "192.168.4.205";
 		mysocket.convertAddress(ip.c_str(), address );
 		if(mysocket.connect(htons(port), address) == -1)
 		{

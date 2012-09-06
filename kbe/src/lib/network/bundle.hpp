@@ -80,7 +80,7 @@ class Channel;
 class Bundle
 {
 public:
-	static ObjectPool<Bundle> objPool;
+	static ObjectPool<Bundle>& ObjPool();
 	typedef std::vector<Packet*> Packets;
 
 	Bundle(Channel * pChannel = NULL, ProtocolType pt = PROTOCOL_TCP);

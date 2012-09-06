@@ -87,7 +87,7 @@ class MemoryStreamException
 class MemoryStream
 {
 public:
-	static ObjectPool<MemoryStream> objPool;
+	static ObjectPool<MemoryStream>& ObjPool();
 
     const static size_t DEFAULT_SIZE = 0x1000;
     MemoryStream(): rpos_(0), wpos_(0)
@@ -636,6 +636,7 @@ protected:
     size_t rpos_, wpos_;
     std::vector<uint8> data_;
 };
+
 
 template <typename T>
 inline MemoryStream &operator<<(MemoryStream &b, std::vector<T> v)

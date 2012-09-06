@@ -32,7 +32,7 @@ class Address
 {
 public:
 	static const Address NONE;
-	static ObjectPool<Address> objPool;
+	static ObjectPool<Address>& ObjPool();
 
 	Address();
 	Address(uint32 ipArg, uint16 portArg);

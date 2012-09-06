@@ -32,8 +32,15 @@ namespace KBEngine {
 namespace Mercury
 {
 //-------------------------------------------------------------------------------------
+static ObjectPool<TCPPacket> _g_objPool;
+ObjectPool<TCPPacket>& TCPPacket::ObjPool()
+{
+	return _g_objPool;
+}
+
+//-------------------------------------------------------------------------------------
 TCPPacket::TCPPacket(MessageID msgID, size_t res):
-Packet(msgID, res)
+Packet(msgID, true, res)
 {
 	data_resize(PACKET_MAX_SIZE_TCP * 4);
 	wpos(0);

@@ -36,6 +36,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 namespace Mercury
 {
+
+//-------------------------------------------------------------------------------------
+static ObjectPool<UDPPacketReceiver> _g_objPool;
+ObjectPool<UDPPacketReceiver>& UDPPacketReceiver::ObjPool()
+{
+	return _g_objPool;
+}
+
 //-------------------------------------------------------------------------------------
 UDPPacketReceiver::UDPPacketReceiver(EndPoint & endpoint,
 	   NetworkInterface & networkInterface	) :
@@ -56,22 +64,22 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 //	KBE_ASSERT(pChannel != NULL);
 	
 	Address	srcAddr;
-	UDPPacket* pChannelReceiveWindow = new UDPPacket();
-	int len = pChannelReceiveWindow->recvFromEndPoint(endpoint_, &srcAddr);
+	UDPPacket* pChannelReceiveWindow = UDPPacket::ObjPool().createObject();
+	int len = pChannelReceiveWindow->recvFromEndPoint(*pEndpoint_, &srcAddr);
 
 	if (len <= 0)
 	{
 		return this->checkSocketErrors(len, expectingPacket);
 	}
 	
-	Channel* pSrcChannel = networkInterface_.findChannel(srcAddr);
+	Channel* pSrcChannel = pNetworkInterface_->findChannel(srcAddr);
 
 	if(pSrcChannel == NULL) 
 	{
 		EndPoint* pNewEndPoint = new EndPoint(srcAddr.ip, srcAddr.port);
-		pSrcChannel = new Channel(networkInterface_, pNewEndPoint, Channel::EXTERNAL, PROTOCOL_UDP);
+		pSrcChannel = new Channel(*pNetworkInterface_, pNewEndPoint, Channel::EXTERNAL, PROTOCOL_UDP);
 
-		if(!networkInterface_.registerChannel(pSrcChannel))
+		if(!pNetworkInterface_->registerChannel(pSrcChannel))
 		{
 			ERROR_MSG("UDPPacketReceiver::processSocket:registerChannel(%s) is failed!\n",
 				pSrcChannel->c_str());
@@ -84,7 +92,7 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 	Reason ret = this->processPacket(pSrcChannel, pChannelReceiveWindow);
 
 	if(ret != REASON_SUCCESS)
-		this->dispatcher().errorReporter().reportException(ret, endpoint_.addr());
+		this->dispatcher().errorReporter().reportException(ret, pEndpoint_->addr());
 	
 	return true;
 }
@@ -92,7 +100,7 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 //-------------------------------------------------------------------------------------
 Reason UDPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * pPacket)
 {
-	networkInterface_.onPacketIn(*pPacket);
+	pNetworkInterface_->onPacketIn(*pPacket);
 	return REASON_SUCCESS;
 }
 

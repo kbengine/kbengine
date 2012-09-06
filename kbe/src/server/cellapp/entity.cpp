@@ -807,6 +807,9 @@ void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sour
 		BaseappInterface::onTeleportCBArgs1::staticAddToBundle(bundle, spaceID);
 		bundle.send(Cellapp::getSingleton().getNetworkInterface(), cinfos->pChannel);
 	}
+
+	if(spaceID > 0)
+		_onTeleportSuccess();
 }
 
 //-------------------------------------------------------------------------------------
@@ -959,6 +962,18 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::_onTeleportSuccess()
+{
+	// entity已经跳转到某个space了
+	// 如果此entity是有客户端的entity则我们需要通知他的客户端
+	if(this->getClientMailbox() == NULL)
+		return;
+
+	Mercury::Bundle& bundle = Mercury::Bundle::ObjPool().getTemp();
+	//bundle
+}
+
+//-------------------------------------------------------------------------------------
 void Entity::onTeleport()
 {
 	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTeleport"), 
@@ -985,6 +1000,8 @@ void Entity::onTeleportFailure()
 //-------------------------------------------------------------------------------------
 void Entity::onTeleportSuccess(PyObject* nearbyEntity)
 {
+	_onTeleportSuccess();
+
 	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTeleportSuccess"), 
 		const_cast<char*>("O"), nearbyEntity);
 	

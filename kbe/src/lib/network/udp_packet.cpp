@@ -32,8 +32,15 @@ namespace KBEngine {
 namespace Mercury
 {
 //-------------------------------------------------------------------------------------
+static ObjectPool<UDPPacket> _g_objPool;
+ObjectPool<UDPPacket>& UDPPacket::ObjPool()
+{
+	return _g_objPool;
+}
+
+//-------------------------------------------------------------------------------------
 UDPPacket::UDPPacket(MessageID msgID, size_t res):
-Packet(msgID, res)
+Packet(msgID, false, res)
 {
 	data_resize(PACKET_MAX_SIZE_UDP);
 	wpos(0);

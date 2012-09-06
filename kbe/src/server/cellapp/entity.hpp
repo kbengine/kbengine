@@ -166,6 +166,7 @@ public:
 	void onTeleport();
 	void onTeleportFailure();
 	void onTeleportSuccess(PyObject* nearbyEntity);
+	void _onTeleportSuccess();
 
 	/**
 		进入离开cell等回调

@@ -35,10 +35,17 @@ namespace KBEngine {
 namespace Mercury
 {
 //-------------------------------------------------------------------------------------
+PacketReceiver::PacketReceiver() :
+	pEndpoint_(NULL),
+	pNetworkInterface_(NULL)
+{
+}
+
+//-------------------------------------------------------------------------------------
 PacketReceiver::PacketReceiver(EndPoint & endpoint,
 	   NetworkInterface & networkInterface	) :
-	endpoint_(endpoint),
-	networkInterface_(networkInterface)
+	pEndpoint_(&endpoint),
+	pNetworkInterface_(&networkInterface)
 {
 }
 
@@ -80,7 +87,7 @@ Reason PacketReceiver::processPacket(Channel* pChannel, Packet * pPacket)
 //-------------------------------------------------------------------------------------
 EventDispatcher & PacketReceiver::dispatcher()
 {
-	return networkInterface_.dispatcher();
+	return this->pNetworkInterface_->dispatcher();
 }
 
 //-------------------------------------------------------------------------------------

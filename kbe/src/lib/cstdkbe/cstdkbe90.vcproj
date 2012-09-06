@@ -161,6 +161,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\memorystream.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\tasks.cpp"
 				>
 			</File>

@@ -39,7 +39,7 @@ namespace Mercury
 class UDPPacket : public Packet
 {
 public:
-	static ObjectPool<UDPPacket> objPool;
+	static ObjectPool<UDPPacket>& ObjPool();
 
     UDPPacket(MessageID msgID = 0, size_t res = 0);
 	virtual ~UDPPacket(void);

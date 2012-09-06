@@ -43,8 +43,9 @@ class EventDispatcher;
 class TCPPacketReceiver : public PacketReceiver
 {
 public:
-	static ObjectPool<TCPPacketReceiver> objPool;
-
+	static ObjectPool<TCPPacketReceiver>& ObjPool();
+	
+	TCPPacketReceiver():PacketReceiver(){}
 	TCPPacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
 	~TCPPacketReceiver();
 

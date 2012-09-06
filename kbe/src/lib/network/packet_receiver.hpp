@@ -41,8 +41,7 @@ class EventDispatcher;
 class PacketReceiver : public InputNotificationHandler
 {
 public:
-	static ObjectPool<PacketReceiver> objPool;
-
+	PacketReceiver();
 	PacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
 	virtual ~PacketReceiver();
 
@@ -54,8 +53,8 @@ protected:
 	virtual bool processSocket(bool expectingPacket) = 0;
 	virtual bool checkSocketErrors(int len, bool expectingPacket) = 0;
 protected:
-	EndPoint & endpoint_;
-	NetworkInterface & networkInterface_;
+	EndPoint* pEndpoint_;
+	NetworkInterface* pNetworkInterface_;
 };
 
 }

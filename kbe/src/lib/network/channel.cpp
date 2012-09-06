@@ -40,6 +40,14 @@ const int INDEXED_CHANNEL_SIZE = 512;
 
 const float INACTIVITY_TIMEOUT_DEFAULT = 60.0;
 
+//-------------------------------------------------------------------------------------
+static ObjectPool<Channel> _g_objPool;
+ObjectPool<Channel>& Channel::ObjPool()
+{
+	return _g_objPool;
+}
+
+//-------------------------------------------------------------------------------------
 Channel::Channel(NetworkInterface & networkInterface,
 		const EndPoint * endpoint, Traits traits, ProtocolType pt,
 		PacketFilterPtr pFilter, ChannelID id):
@@ -173,11 +181,16 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 		
 		for(; iter != bufferedReceives_.end(); iter++)
 		{
-			Packet* pPacket = (*iter).get();
+			Packet* pPacket = (*iter);
 			if(pPacket->opsize() > 0)
 				hasDiscard++;
 			
 			pPacket->clear(false);
+
+			if(pPacket->isTCPPacket())
+				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
+			else
+				UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pPacket));
 		}
 
 		if (hasDiscard > 0 && warnOnDiscard)
@@ -351,7 +364,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 		BufferedReceives::iterator packetIter = bufferedReceives_.begin();
 		for(; packetIter != bufferedReceives_.end(); packetIter++)
 		{
-			Packet* pPacket = (*packetIter).get();
+			Packet* pPacket = (*packetIter);
 
 			while(pPacket->totalSize() > 0)
 			{
@@ -459,6 +472,13 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					mergeFragmentMessage(pPacket);
 				}
 			}
+			
+			pPacket->clear(false);
+			if(pPacket->isTCPPacket())
+				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
+			else
+				UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pPacket));
+
 		}
 	}catch(MemoryStreamException &)
 	{

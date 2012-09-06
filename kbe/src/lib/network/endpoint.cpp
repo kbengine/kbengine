@@ -57,6 +57,13 @@ namespace Mercury
 static bool g_networkInitted = false;
 
 //-------------------------------------------------------------------------------------
+static ObjectPool<EndPoint> _g_objPool;
+ObjectPool<EndPoint>& EndPoint::ObjPool()
+{
+	return _g_objPool;
+}
+
+//-------------------------------------------------------------------------------------
 bool EndPoint::getClosedPort(Mercury::Address & closedPort)
 {
 	bool isResultSet = false;

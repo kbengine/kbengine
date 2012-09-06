@@ -39,7 +39,7 @@ namespace Mercury
 class TCPPacket : public Packet
 {
 public:
-	static ObjectPool<TCPPacket> objPool;
+	static ObjectPool<TCPPacket>& ObjPool();
 
     TCPPacket(MessageID msgID = 0, size_t res = 0);
 	virtual ~TCPPacket(void);

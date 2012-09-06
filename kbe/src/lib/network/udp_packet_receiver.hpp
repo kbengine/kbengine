@@ -42,8 +42,8 @@ class EventDispatcher;
 class UDPPacketReceiver : public PacketReceiver
 {
 public:
-	static ObjectPool<UDPPacketReceiver> objPool;
-
+	static ObjectPool<UDPPacketReceiver>& ObjPool();
+	UDPPacketReceiver():PacketReceiver(){}
 	UDPPacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
 	~UDPPacketReceiver();
 

@@ -643,10 +643,11 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		e->initializeScript();
 		
 		// 告知baseapp， entity的cell创建了
-		Mercury::Bundle bundle;
+		Mercury::Bundle& bundle = Mercury::Bundle::ObjPool().getTemp();
 		bundle.newMessage(BaseappInterface::onEntityGetCell);
 		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle(bundle, entityID, componentID_, spaceID);
 		bundle.send(this->getNetworkInterface(), cinfos->pChannel);
+		bundle.clear();
 
 		// 如果是有client的entity则设置它的clientmailbox, baseapp部分的onEntityGetCell会告知客户端enterworld.
 		if(hasClient)
@@ -688,7 +689,7 @@ void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 		return;
 	}
 	
-	Mercury::Bundle bundle;
+	Mercury::Bundle& bundle = Mercury::Bundle::ObjPool().getTemp();
 
 	switch(mailtype)
 	{
@@ -725,6 +726,8 @@ void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 		default:
 			ERROR_MSG("Cellapp::onEntityMail: mailboxType %d is error! must a cellType. entityID=%d.\n", mailtype, eid);
 	};
+
+	bundle.clear();
 }
 
 //-------------------------------------------------------------------------------------

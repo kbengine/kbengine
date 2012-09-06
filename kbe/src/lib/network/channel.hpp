@@ -49,7 +49,7 @@ class MessageHandlers;
 class Channel : public TimerHandler, public RefCountable
 {
 public:
-	static ObjectPool<Channel> objPool;
+	static ObjectPool<Channel>& ObjPool();
 
 	enum Traits
 	{
@@ -67,8 +67,10 @@ public:
 		PACKET_IS_CORRUPT
 	};
 
-	typedef std::vector<PacketPtr> BufferedReceives;
+	typedef std::vector<Packet*> BufferedReceives;
 public:
+	Channel(){}
+
 	Channel(NetworkInterface & networkInterface, 
 		const EndPoint * endpoint, 
 		Traits traits, 
