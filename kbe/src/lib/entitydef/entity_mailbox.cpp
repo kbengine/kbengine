@@ -164,7 +164,7 @@ void EntityMailbox::c_str(char* s, size_t size)
 	
 	Mercury::Channel* pChannel = getChannel();
 
-	kbe_snprintf(s, size, "%s mailbox id:%d, component=%s[%"PRIu64"], addr: %s.", mailboxName, id_, 
+	kbe_snprintf(s, size, "%s mailbox id:%d, utype:%u, component=%s[%"PRIu64"], addr: %s.", mailboxName, id_,  utype_,
 		COMPONENT_NAME[ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[type_]], 
 		componentID_, (pChannel) ? pChannel->addr().c_str() : "None");
 }
@@ -181,7 +181,7 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 	ENTITY_ID eid = 0;
 	COMPONENT_ID componentID = 0;
 	COMPONENT_TYPE componentType;
-	uint16 utype = 0, type = 0;
+	ENTITY_SCRIPT_UID utype = 0, type = 0;
 
 	Py_ssize_t size = PyTuple_Size(args);
 	if(size != 4)

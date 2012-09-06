@@ -71,10 +71,16 @@ namespace KBEngine{
 															op, ccattr);									\
 
 
+	#define DEBUG_REDUCE_EX(tentity)																		\
+		DEBUG_MSG("%s::debug_reduct_ex: %i utype=%u.\n", tentity->getScriptName(), tentity->getID(),		\
+				tentity->getScriptModule()->getUType());													\
+
+
 #else
 	#define DEBUG_CREATE_ENTITY_NAMESPACE			
 	#define DEBUG_OP_ATTRIBUTE(op, ccattr)NULL;
 	#define DEBUG_PERSISTENT_PROPERTY(op, ccattr)NULL;
+	#define DEBUG_REDUCE_EX(tentity)
 #endif
 
 
@@ -182,6 +188,7 @@ public:																										\
 	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol)									\
 	{																										\
 		CLASS* entity = static_cast<CLASS*>(self);															\
+		DEBUG_REDUCE_EX(entity);																			\
 		PyObject* args = PyTuple_New(2);																	\
 		PyObject* unpickleMethod = script::Pickler::getUnpickleFunc("Mailbox");								\
 		PyTuple_SET_ITEM(args, 0, unpickleMethod);															\
@@ -189,7 +196,10 @@ public:																										\
 		PyTuple_SET_ITEM(args1, 0, PyLong_FromUnsignedLong(entity->getID()));								\
 		PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLongLong(g_componentID));								\
 		PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(entity->getScriptModule()->getUType()));			\
-		PyTuple_SET_ITEM(args1, 3, PyLong_FromUnsignedLong(MAILBOX_TYPE_BASE));								\
+		if(g_componentType == BASEAPP_TYPE)																	\
+			PyTuple_SET_ITEM(args1, 3, PyLong_FromUnsignedLong(MAILBOX_TYPE_BASE));							\
+		else																								\
+			PyTuple_SET_ITEM(args1, 3, PyLong_FromUnsignedLong(MAILBOX_TYPE_CELL));							\
 		PyTuple_SET_ITEM(args, 1, args1);																	\
 																											\
 		if(unpickleMethod == NULL){																			\

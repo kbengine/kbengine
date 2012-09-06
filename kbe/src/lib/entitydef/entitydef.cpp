@@ -71,7 +71,7 @@ bool EntityDef::initialize(const std::string entitiesPath,
 
 	std::string entitiesFile = entitiesPath + "entities.xml";
 	std::string defFilePath = entitiesPath + "entity_defs/";
-	ENTITY_SCRIPT_UID utype = 0;
+	ENTITY_SCRIPT_UID utype = 1;
 	
 	// 打开这个entities.xml文件
 	SmartPointer<XmlPlus> xml(new XmlPlus());
@@ -89,7 +89,7 @@ bool EntityDef::initialize(const std::string entitiesPath,
 		std::string moduleName = xml.get()->getKey(node);
 		__scriptTypeMappingUType[moduleName] = utype;
 		ScriptDefModule* scriptModule = new ScriptDefModule(moduleName);
-		scriptModule->setUType(++utype);
+		scriptModule->setUType(utype++);
 		EntityDef::__scriptModules.push_back(scriptModule);
 
 		std::string deffile = defFilePath + moduleName + ".def";
@@ -98,6 +98,7 @@ bool EntityDef::initialize(const std::string entitiesPath,
 			return false;
 
 		TiXmlNode* defNode = defxml.get()->getRootNode();
+
 		// 加载def文件中的定义
 		if(!loadDefInfo(defFilePath, moduleName, defxml.get(), defNode, scriptModule))
 		{
@@ -535,9 +536,10 @@ bool EntityDef::loadDefCellMethods(std::string& moduleName, XmlPlus* xml, TiXmlN
 			// 如果配置中没有设置过utype, 则产生
 			if(methodDescription->getUType() <= 0)
 			{
+				ENTITY_METHOD_UID muid = 0;
 				while(true)
 				{
-					ENTITY_METHOD_UID muid = g_methodUtypeAuto++;
+					muid = g_methodUtypeAuto++;
 					std::vector<ENTITY_METHOD_UID>::iterator iterutype = 
 						std::find(g_methodCusUtypes.begin(), g_methodCusUtypes.end(), muid);
 
@@ -546,6 +548,8 @@ bool EntityDef::loadDefCellMethods(std::string& moduleName, XmlPlus* xml, TiXmlN
 						break;
 					}
 				}
+
+				methodDescription->setUType(muid);
 			}
 
 			scriptModule->addCellMethodDescription(name.c_str(), methodDescription);
@@ -610,9 +614,10 @@ bool EntityDef::loadDefBaseMethods(std::string& moduleName, XmlPlus* xml, TiXmlN
 			// 如果配置中没有设置过utype, 则产生
 			if(methodDescription->getUType() <= 0)
 			{
+				ENTITY_METHOD_UID muid = 0;
 				while(true)
 				{
-					ENTITY_METHOD_UID muid = g_methodUtypeAuto++;
+					muid = g_methodUtypeAuto++;
 					std::vector<ENTITY_METHOD_UID>::iterator iterutype = 
 						std::find(g_methodCusUtypes.begin(), g_methodCusUtypes.end(), muid);
 
@@ -621,6 +626,8 @@ bool EntityDef::loadDefBaseMethods(std::string& moduleName, XmlPlus* xml, TiXmlN
 						break;
 					}
 				}
+
+				methodDescription->setUType(muid);
 			}
 
 			scriptModule->addBaseMethodDescription(name.c_str(), methodDescription);
@@ -683,9 +690,10 @@ bool EntityDef::loadDefClientMethods(std::string& moduleName, XmlPlus* xml, TiXm
 			// 如果配置中没有设置过utype, 则产生
 			if(methodDescription->getUType() <= 0)
 			{
+				ENTITY_METHOD_UID muid = 0;
 				while(true)
 				{
-					ENTITY_METHOD_UID muid = g_methodUtypeAuto++;
+					muid = g_methodUtypeAuto++;
 					std::vector<ENTITY_METHOD_UID>::iterator iterutype = 
 						std::find(g_methodCusUtypes.begin(), g_methodCusUtypes.end(), muid);
 
@@ -694,6 +702,8 @@ bool EntityDef::loadDefClientMethods(std::string& moduleName, XmlPlus* xml, TiXm
 						break;
 					}
 				}
+
+				methodDescription->setUType(muid);
 			}
 
 			scriptModule->addClientMethodDescription(name.c_str(), methodDescription);
@@ -882,13 +892,13 @@ bool EntityDef::loadAllScriptModule(std::string entitiesPath, std::vector<PyType
 //-------------------------------------------------------------------------------------
 ScriptDefModule* EntityDef::findScriptModule(ENTITY_SCRIPT_UID utype)
 {
-	if (utype >= __scriptModules.size())
+	if (utype >= __scriptModules.size() + 1)
 	{
 		ERROR_MSG("EntityDef::findScriptModule: is not exist(utype:%d)!\n", utype);
 		return NULL;
 	}
 
-	return __scriptModules[utype];
+	return __scriptModules[utype - 1];
 }
 
 //-------------------------------------------------------------------------------------

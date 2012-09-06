@@ -74,14 +74,22 @@ void EntityMailboxAbstract::newMail(Mercury::Bundle& bundle)
 	else					// 服务器组件
 	{
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID_);
-		// 找到对应的组件投递过去， 如果这个mailbox还需要中转比如 e.base.cell ， 则由baseapp转往cellapp
-		if(cinfos->componentType == BASEAPP_TYPE)
+
+		if(cinfos != NULL)
 		{
-			bundle.newMessage(BaseappInterface::onEntityMail);
+			// 找到对应的组件投递过去， 如果这个mailbox还需要中转比如 e.base.cell ， 则由baseapp转往cellapp
+			if(cinfos->componentType == BASEAPP_TYPE)
+			{
+				bundle.newMessage(BaseappInterface::onEntityMail);
+			}
+			else
+			{
+				bundle.newMessage(CellappInterface::onEntityMail);
+			}
 		}
 		else
 		{
-			bundle.newMessage(CellappInterface::onEntityMail);
+			ERROR_MSG("EntityMailboxAbstract::newMail: not found component!\n");
 		}
 	}
 

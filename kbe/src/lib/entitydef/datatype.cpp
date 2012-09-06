@@ -864,9 +864,12 @@ PyObject* MailboxType::createFromStream(MemoryStream* mstream)
 {
 	std::string val = "";
 	if(mstream)
-		(*mstream) >> val;
+	{
+		mstream->readBlob(val);
+	}
 	else
 		S_Return;	
+
 	return script::Pickler::unpickle(val);
 }
 

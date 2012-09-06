@@ -387,6 +387,8 @@ public:
 
 		uint32 rsize = 0;
 		(*this) >> rsize;
+		if(rsize > 65535)
+			return 0;
 
 		if(rsize > 0)
 		{

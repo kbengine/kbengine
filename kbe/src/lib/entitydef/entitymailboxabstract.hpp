@@ -90,7 +90,7 @@ protected:
 	Mercury::Address						addr_;					// 频道地址
 	ENTITY_MAILBOX_TYPE						type_;					// 该mailbox的类型
 	ENTITY_ID								id_;					// entityID
-	uint16									utype_;					// entity的utype  按照entities.xml中的定义顺序
+	ENTITY_SCRIPT_UID						utype_;					// entity的utype  按照entities.xml中的定义顺序
 };
 
 }
