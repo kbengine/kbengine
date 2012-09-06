@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 #include "network/bundle.hpp"	
+#include "client_lib/client_interface.hpp"
 
 #include "../../server/baseapp/baseapp_interface.hpp"
 
@@ -970,7 +971,10 @@ void Entity::_onTeleportSuccess()
 		return;
 
 	Mercury::Bundle& bundle = Mercury::Bundle::ObjPool().getTemp();
-	//bundle
+	bundle.newMessage(ClientInterface::onEntityEnterWorld);
+	bundle << this->getID();
+	bundle << this->getSpaceID();
+	this->getClientMailbox()->postMail(bundle);
 }
 
 //-------------------------------------------------------------------------------------
