@@ -854,9 +854,7 @@ MemoryStream* MailboxType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void MailboxType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	std::string s = script::Pickler::pickle(pyValue);
-	if(!s.empty())
-		(*mstream) << s;
+	mstream->appendBlob(script::Pickler::pickle(pyValue));
 }
 
 //-------------------------------------------------------------------------------------

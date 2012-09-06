@@ -387,7 +387,7 @@ public:
 
 		uint32 rsize = 0;
 		(*this) >> rsize;
-		if(rsize > 65535)
+		if(rsize > 655350)
 			return 0;
 
 		if(rsize > 0)
@@ -454,6 +454,12 @@ public:
     {
         (*this) << cnt;
 		append(src, cnt);
+    }
+
+	void appendBlob(const std::string& datas)
+    {
+		(*this) << datas.size();
+		append(datas.data(), datas.size());
     }
 
     void append(const std::string& str)
