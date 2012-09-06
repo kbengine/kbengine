@@ -146,7 +146,7 @@ bool UDPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 #else
 		Mercury::Address offender;
 
-		if (endpoint_.getClosedPort(offender))
+		if (pEndpoint_->getClosedPort(offender))
 		{
 			// If we got a NO_SUCH_PORT error and there is an internal
 			// channel to this address, mark it as remote failed.  The logic
