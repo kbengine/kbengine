@@ -38,8 +38,8 @@ class Packet : public MemoryStream, public RefCountable
 public:
 	Packet(MessageID msgID = 0, bool isTCPPacket = true, size_t res = 200):
 	MemoryStream(res),
-	isTCPPacket_(isTCPPacket),
-	msgID_(msgID)
+	msgID_(msgID),
+	isTCPPacket_(isTCPPacket)
 	{
 	};
 	
