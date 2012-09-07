@@ -275,12 +275,11 @@ void Channel::delayedSend()
 //-------------------------------------------------------------------------------------
 const char * Channel::c_str() const
 {
-	static char dodgyString[ 40 ] = {0};
+	static char dodgyString[ MAX_BUF ] = {0};
+	char tdodgyString[ MAX_BUF ] = {0};
 
-	int length = pEndPoint_->addr().writeToString(dodgyString, sizeof(dodgyString));
-
-	length += kbe_snprintf(dodgyString + length,
-		sizeof(dodgyString) - length,	"/%d", id_);
+	pEndPoint_->addr().writeToString(tdodgyString, MAX_BUF);
+	kbe_snprintf(dodgyString, MAX_BUF, "%s/%d", tdodgyString, id_);
 
 	return dodgyString;
 }
