@@ -101,6 +101,11 @@ public:
     }
 
     MemoryStream(const MemoryStream &buf): rpos_(buf.rpos_), wpos_(buf.wpos_), data_(buf.data_) { }
+	
+	virtual ~MemoryStream()
+	{
+		clear(true);
+	}
 
     void clear(bool clearData)
     {
