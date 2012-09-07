@@ -40,7 +40,7 @@ public:
 	uint16	port;
 
 	int writeToString(char * str, int length) const;
-	
+
 	operator char*() const { return this->c_str(); }
 
 	char * c_str() const;
