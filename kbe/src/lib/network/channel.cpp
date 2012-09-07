@@ -275,7 +275,7 @@ void Channel::delayedSend()
 //-------------------------------------------------------------------------------------
 const char * Channel::c_str() const
 {
-	static char dodgyString[ 40 ];
+	static char dodgyString[ 40 ] = {0};
 
 	int length = pEndPoint_->addr().writeToString(dodgyString, sizeof(dodgyString));
 
