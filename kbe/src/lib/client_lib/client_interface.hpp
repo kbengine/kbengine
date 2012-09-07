@@ -65,6 +65,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 									ENTITY_ID,					eid,
 									std::string,				entityType)
 
+	// 服务器端已经创建了一个Entity。
+	CLIENT_MESSAGE_DECLARE_ARGS2(onCreatedEntity,				MERCURY_VARIABLE_MESSAGE,
+									ENTITY_ID,					eid,
+									std::string,				entityType)
+
 	// 登录网关失败。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginGatewayFailed,			MERCURY_FIXED_MESSAGE,
 									MERCURY_ERROR_CODE,			failedcode)

@@ -664,6 +664,17 @@ void init_network(void)
 					utf82wchar(body, outstr);
 					std::wcout << "对话内容:" << outstr << std::endl;
 					readover = true;
+
+					{
+						// 服务器开始传送到某场景 开始接收进入世界消息
+						TCPPacket packet99;
+						packet99.resize(65535);
+						len = mysocket.recv(packet99.data(), 65535);
+						packet99.wpos(len);
+						packet99 >> msgID;
+						packet99 >> eid >> spaceID;
+						printf("!!!玩家进入世界:spaceUType=%u, level=%u.\n", spaceUType, level);
+					}
 					break;
 				}
 
@@ -679,6 +690,7 @@ void init_network(void)
 				std::wcout << "对话选项(" << doption.dialogKey << "):" << outstr  << std::endl;
 			}
 		};
+
 
 		// 向服务器请求施放技能
 		Mercury::Bundle bundle100;

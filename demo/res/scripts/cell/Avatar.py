@@ -85,3 +85,5 @@ class Avatar(GameObject):
 			return
 			
 		dialog.onGossip(dialogID, self, KBEngine.entities[targetID])
+		
+		self.teleportSpace(30001, (1,2,3), (4,5,6))

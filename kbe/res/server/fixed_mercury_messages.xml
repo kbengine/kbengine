@@ -100,14 +100,15 @@
 	   在登录时也可表达成功回调。</descr>
 	   <arg>UINT64</arg> <!-- 与entity关联用来短连接身份确认的guid码 -->
 	   <arg>INT32</arg> <!-- entityID -->
+	   <arg>STRING</arg> <!-- 脚本类型 -->
 	</Client::onCreatedProxies>
 
 	<Client::onCreatedEntity>
 		<id>513</id>
 		<descr>		服务器端已经创建了一个与客户端关联的代理Entity
 	   在登录时也可表达成功回调。</descr>
-	   <arg>UINT64</arg> <!-- 与entity关联用来短连接身份确认的guid码 -->
 	   <arg>INT32</arg> <!-- entityID -->
+	   <arg>STRING</arg> <!-- 脚本类型 -->
 	</Client::onCreatedEntity>
 	
 	<Client::onLoginGatewayFailed>

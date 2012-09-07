@@ -147,12 +147,15 @@ Channel::Channel():
 Channel::~Channel()
 {
 	DEBUG_MSG("Channel::~Channel(): %s\n", this->c_str());
-	pNetworkInterface_->onChannelGone(this);
-
-	if(protocoltype_ == PROTOCOL_TCP)
+	if(pNetworkInterface_ != NULL && pEndPoint_ != NULL)
 	{
-		pNetworkInterface_->dispatcher().deregisterFileDescriptor(*pEndPoint_);
-		pEndPoint_->close();
+		pNetworkInterface_->onChannelGone(this);
+
+		if(protocoltype_ == PROTOCOL_TCP)
+		{
+			pNetworkInterface_->dispatcher().deregisterFileDescriptor(*pEndPoint_);
+			pEndPoint_->close();
+		}
 	}
 
 	this->clearState();
@@ -316,10 +319,12 @@ void Channel::delayedSend()
 //-------------------------------------------------------------------------------------
 const char * Channel::c_str() const
 {
-	static char dodgyString[ MAX_BUF ] = {0};
+	static char dodgyString[ MAX_BUF ] = {"None"};
 	char tdodgyString[ MAX_BUF ] = {0};
 
-	pEndPoint_->addr().writeToString(tdodgyString, MAX_BUF);
+	if(pEndPoint_ && !pEndPoint_->addr().isNone())
+		pEndPoint_->addr().writeToString(tdodgyString, MAX_BUF);
+
 	kbe_snprintf(dodgyString, MAX_BUF, "%s/%d", tdodgyString, id_);
 
 	return dodgyString;

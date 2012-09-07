@@ -22,4 +22,5 @@ class SpawnPoint(KBEngine.Base):
 		KBEngine method.
 		entity的cell部分实体丢失
 		"""
-		DEBUG_MSG("cell丢失了!", self.id, self.cellData)
+		DEBUG_MSG("cell丢失了! %s" % (self.id, self.cellData))
+		self.destroy()

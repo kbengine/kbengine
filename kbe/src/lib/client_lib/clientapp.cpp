@@ -172,6 +172,11 @@ void ClientApp::onCreatedProxies(Mercury::Channel * pChannel,
 }
 
 //-------------------------------------------------------------------------------------	
+void ClientApp::onCreatedEntity(Mercury::Channel * pChannel, ENTITY_ID eid, std::string& entityType)
+{
+}
+
+//-------------------------------------------------------------------------------------	
 void ClientApp::onEntityGetCell(Mercury::Channel * pChannel, ENTITY_ID eid)
 {
 }

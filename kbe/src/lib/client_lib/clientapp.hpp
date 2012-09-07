@@ -147,6 +147,11 @@ public:
 		ENTITY_ID eid, std::string& entityType);
 
 	/** 网络接口
+		服务器端已经创建了一个Entity
+	*/
+	virtual void onCreatedEntity(Mercury::Channel * pChannel, ENTITY_ID eid, std::string& entityType);
+
+	/** 网络接口
 		服务器上的entity已经有了一个cell部分
 	*/
 	virtual void onEntityGetCell(Mercury::Channel * pChannel, ENTITY_ID eid);
