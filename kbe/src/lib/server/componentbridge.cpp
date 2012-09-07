@@ -119,6 +119,9 @@ bool Componentbridge::findInterfaces()
 
 	while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)
 	{
+		if(dispatcher().isBreakProcessing())
+			return false;
+
 		int8 findComponentType = findComponentTypes[ifind];
 
 		INFO_MSG("Componentbridge::process: finding %s...\n",
@@ -187,6 +190,9 @@ bool Componentbridge::findInterfaces()
 
 	while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)
 	{
+		if(dispatcher().isBreakProcessing())
+			return false;
+
 		int8 findComponentType = findComponentTypes[ifind++];
 
 		INFO_MSG("Componentbridge::process: register self to %s...\n",

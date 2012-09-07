@@ -41,7 +41,7 @@ class BundleBroadcast : public Bundle
 {
 public:
 	BundleBroadcast(NetworkInterface & networkInterface, uint16 bindPort = KBE_PORT_BROADCAST_DISCOVERY, 
-		uint32 recvWindowSize = 4096);
+		uint32 recvWindowSize = PACKET_MAX_SIZE_UDP);
 	virtual ~BundleBroadcast();
 
 	EventDispatcher& dispatcher();

@@ -24,7 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 namespace Mercury
 {
-char Address::s_stringBuf[ 2 ][32];
+char Address::s_stringBuf[2][32] = {0};
 int Address::s_currStringBuf = 0;
 const Address Address::NONE(0, 0);
 
