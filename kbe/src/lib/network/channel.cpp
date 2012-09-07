@@ -101,6 +101,43 @@ Channel::Channel(NetworkInterface & networkInterface,
 }
 
 //-------------------------------------------------------------------------------------
+Channel::Channel():
+	pNetworkInterface_(NULL),
+	traits_(EXTERNAL),
+	protocoltype_(PROTOCOL_TCP),
+	id_(0),
+	inactivityTimerHandle_(),
+	inactivityExceptionPeriod_(0),
+	lastReceivedTime_(0),
+	pBundle_(NULL),
+	windowSize_(EXTERNAL_CHANNEL_SIZE),
+	bufferedReceives_(),
+	pFragmentDatas_(NULL),
+	pFragmentDatasWpos_(0),
+	pFragmentDatasRemain_(0),
+	fragmentDatasFlag_(0),
+	pFragmentStream_(NULL),
+	currMsgID_(0),
+	currMsgLen_(0),
+	isDestroyed_(false),
+	shouldDropNextSend_(false),
+	// Stats
+	numPacketsSent_(0),
+	numPacketsReceived_(0),
+	numBytesSent_(0),
+	numBytesReceived_(0),
+	pFilter_(NULL),
+	pEndPoint_(NULL),
+	pPacketReceiver_(NULL),
+	isCondemn_(false),
+	proxyID_(0)
+{
+	this->incRef();
+	this->clearBundle();
+	this->endpoint(NULL);
+}
+
+//-------------------------------------------------------------------------------------
 Channel::~Channel()
 {
 	DEBUG_MSG("Channel::~Channel(): %s\n", this->c_str());

@@ -69,7 +69,7 @@ public:
 
 	typedef std::vector<Packet*> BufferedReceives;
 public:
-	Channel(){}
+	Channel();
 
 	Channel(NetworkInterface & networkInterface, 
 		const EndPoint * endpoint, 
