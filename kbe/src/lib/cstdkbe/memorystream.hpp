@@ -84,7 +84,7 @@ class MemoryStreamException
         size_t 		_m_size;
 };
 
-class MemoryStream
+class MemoryStream : public PoolObject
 {
 public:
 	static ObjectPool<MemoryStream>& ObjPool();
@@ -105,6 +105,11 @@ public:
 	virtual ~MemoryStream()
 	{
 		clear(true);
+	}
+	
+	void onReclaimObject()
+	{
+		clear(false);
 	}
 
     void clear(bool clearData)

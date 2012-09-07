@@ -1165,6 +1165,36 @@ void Baseapp::onEntityLeaveSpaceFromCellapp(Mercury::Channel* pChannel, ENTITY_I
 }
 
 //-------------------------------------------------------------------------------------
+void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	if(pChannel->isExternal())
+		return;
+	
+	ENTITY_ID eid;
+	s >> eid;
+
+	Base* base = pEntities_->find(eid);
+	if(base == NULL)
+	{
+		ERROR_MSG("Baseapp::forwardMessageToClientFromCellapp: entityID %d not found.\n", eid);
+		return;
+	}
+
+	EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->getClientMailbox());
+	if(mailbox == NULL)
+	{
+		ERROR_MSG("Baseapp::forwardMessageToClientFromCellapp: occur a error(can't found clientMailbox)! entityID=%d.\n", eid);
+		return;
+	}
+	
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle) << eid;
+	(*pBundle).append(s);
+	s.read_skip(s.opsize());
+	mailbox->postMail((*pBundle));
+}
+
+//-------------------------------------------------------------------------------------
 void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	if(pChannel->isExternal())
@@ -1184,7 +1214,8 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 		return;
 	}
 	
-	Mercury::Bundle bundle;
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Mercury::Bundle& bundle = *pBundle;
 
 	switch(mailtype)
 	{
@@ -1221,6 +1252,8 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 		default:
 			ERROR_MSG("Baseapp::onEntityMail: mailboxType %d is error! must a baseType. entityID=%d.\n", mailtype, eid);
 	};
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

@@ -46,10 +46,11 @@ class Bundle;
 class NetworkInterface;
 class MessageHandlers;
 
-class Channel : public TimerHandler, public RefCountable
+class Channel : public TimerHandler, public RefCountable, public PoolObject
 {
 public:
 	static ObjectPool<Channel>& ObjPool();
+	void onReclaimObject();
 
 	enum Traits
 	{

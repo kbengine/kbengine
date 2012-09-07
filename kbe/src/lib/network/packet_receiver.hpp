@@ -38,7 +38,7 @@ class Address;
 class NetworkInterface;
 class EventDispatcher;
 
-class PacketReceiver : public InputNotificationHandler
+class PacketReceiver : public InputNotificationHandler, public PoolObject
 {
 public:
 	PacketReceiver();
@@ -48,6 +48,12 @@ public:
 	virtual Reason processPacket(Channel* pChannel, Packet * pPacket);
 	virtual Reason processFilteredPacket(Channel* pChannel, Packet * pPacket) = 0;
 	EventDispatcher& dispatcher();
+
+	void onReclaimObject()
+	{
+		pEndpoint_ = NULL;
+		pNetworkInterface_ = NULL;
+	}
 protected:
 	virtual int handleInputNotification(int fd);
 	virtual bool processSocket(bool expectingPacket) = 0;

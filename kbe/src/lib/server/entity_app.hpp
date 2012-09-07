@@ -427,7 +427,7 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 		entity->initializeScript();
 
 	SCRIPT_ERROR_CHECK();
-	INFO_MSG("EntityApp::createEntityCommon: new %s (%d).\n", entityType, id);
+	INFO_MSG("EntityApp::createEntityCommon: new %s (%d) refc=%u.\n", entityType, id, obj->ob_refcnt);
 	return entity;
 }
 

@@ -212,7 +212,10 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 	{
 		PyObject* entity = __getEntityFunc(componentID, eid);
 		if(entity != NULL)
+		{
+			Py_INCREF(entity);
 			return entity;
+		}
 	}
 	else
 	{
@@ -230,7 +233,10 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 #else
 	PyObject* entity = __getEntityFunc(componentID, eid);
 	if(entity != NULL)
+	{
+		Py_INCREF(entity);
 		return entity;
+	}
 #endif
 
 	return new EntityMailbox(sm, NULL, componentID, eid, (ENTITY_MAILBOX_TYPE)type);

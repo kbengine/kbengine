@@ -970,11 +970,15 @@ void Entity::_onTeleportSuccess()
 	if(this->getClientMailbox() == NULL)
 		return;
 
-	Mercury::Bundle& bundle = Mercury::Bundle::ObjPool().getTemp();
-	bundle.newMessage(ClientInterface::onEntityEnterWorld);
-	bundle << this->getID();
-	bundle << this->getSpaceID();
-	this->getClientMailbox()->postMail(bundle);
+	Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+
+	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
+	(*pForwardBundle) << this->getID();
+	(*pForwardBundle) << this->getSpaceID();
+
+	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(this->getID(), (*pSendBundle), (*pForwardBundle));
+	this->getClientMailbox()->postMail(*pSendBundle);
 }
 
 //-------------------------------------------------------------------------------------

@@ -54,26 +54,30 @@ namespace KBEngine{
 #ifdef CAN_DEBUG_CREATE_ENTITY
 	#define DEBUG_CREATE_ENTITY_NAMESPACE																	\
 			char* ccattr_DEBUG_CREATE_ENTITY_NAMESPACE = wchar2char(PyUnicode_AsWideCharString(key, NULL));	\
-			DEBUG_MSG("%s::debug_createNamespace:add %s.\n", getScriptName(),								\
+			DEBUG_MSG("%s(refc=%u, id=%d)::debug_createNamespace:add %s.\n", getScriptName(),				\
+												static_cast<PyObject*>(this)->ob_refcnt, this->getID(),		\
 																ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);		\
 			free(ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);														\
 
 
 	#define DEBUG_OP_ATTRIBUTE(op, ccattr)																	\
 			char* ccattr_DEBUG_OP_ATTRIBUTE = wchar2char(PyUnicode_AsWideCharString(ccattr, NULL));			\
-			DEBUG_MSG("%s::debug_op_attr:op=%s, %s.\n", getScriptName(),									\
+			DEBUG_MSG("%s(refc=%u, id=%d)::debug_op_attr:op=%s, %s.\n", getScriptName(),					\
+												static_cast<PyObject*>(this)->ob_refcnt, this->getID(),		\
 															op, ccattr_DEBUG_OP_ATTRIBUTE);					\
 			free(ccattr_DEBUG_OP_ATTRIBUTE);																\
 
 
 	#define DEBUG_PERSISTENT_PROPERTY(op, ccattr)															\
-			DEBUG_MSG("%s::debug_op_Persistent:op=%s, %s.\n", getScriptName(),								\
+			DEBUG_MSG("%s(refc=%u, id=%d)::debug_op_Persistent:op=%s, %s.\n", getScriptName(),				\
+												static_cast<PyObject*>(this)->ob_refcnt, this->getID(),		\
 															op, ccattr);									\
 
 
 	#define DEBUG_REDUCE_EX(tentity)																		\
-		DEBUG_MSG("%s::debug_reduct_ex: %i utype=%u.\n", tentity->getScriptName(), tentity->getID(),		\
-				tentity->getScriptModule()->getUType());													\
+		DEBUG_MSG("%s(refc=%u, id=%d)::debug_reduct_ex: utype=%u.\n", tentity->getScriptName(),				\
+											static_cast<PyObject*>(tentity)->ob_refcnt, tentity->getID(),	\
+											tentity->getScriptModule()->getUType());						\
 
 
 #else

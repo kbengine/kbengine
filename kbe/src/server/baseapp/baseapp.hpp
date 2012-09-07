@@ -244,6 +244,11 @@ public:
 		cellapp writeToDB完成
 	*/
 	void onCellWriteToDBCompleted(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+		cellapp转发entity消息给client
+	*/
+	void forwardMessageToClientFromCellapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	TimerHandle								loopCheckTimerHandle_;
 

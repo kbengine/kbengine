@@ -38,6 +38,13 @@ ObjectPool<Address>& Address::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+void Address::onReclaimObject()
+{
+	ip = 0;
+	port = 0;
+}
+
+//-------------------------------------------------------------------------------------
 int Address::writeToString(char * str, int length) const
 {
 	uint32	hip = ntohl(ip);

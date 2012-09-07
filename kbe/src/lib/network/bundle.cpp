@@ -119,6 +119,12 @@ Bundle::~Bundle()
 }
 
 //-------------------------------------------------------------------------------------
+void Bundle::onReclaimObject()
+{
+	clear();
+}
+
+//-------------------------------------------------------------------------------------
 Packet* Bundle::newPacket()
 {
 	if(isTCPPacket_)
@@ -177,7 +183,6 @@ void Bundle::clear()
 	for (; iter != packets_.end(); iter++)
 	{
 		// delete (*iter);
-		(*iter)->clear(false);
 		if(isTCPPacket_)
 			TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>((*iter)));
 		else
@@ -192,8 +197,6 @@ void Bundle::clear()
 			TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pCurrPacket_));
 		else
 			UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pCurrPacket_));
-		
-		pCurrPacket_->clear(false);
 	}
 
 	pChannel_ = NULL;

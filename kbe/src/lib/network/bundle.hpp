@@ -77,12 +77,14 @@ class Channel;
 	}																										\
 
 
-class Bundle
+class Bundle : public PoolObject
 {
 public:
 	static ObjectPool<Bundle>& ObjPool();
-	typedef std::vector<Packet*> Packets;
+	void onReclaimObject();
 
+	typedef std::vector<Packet*> Packets;
+	
 	Bundle(Channel * pChannel = NULL, ProtocolType pt = PROTOCOL_TCP);
 	virtual ~Bundle();
 	

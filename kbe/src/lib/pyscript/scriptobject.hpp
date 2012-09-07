@@ -95,6 +95,16 @@ namespace KBEngine{ namespace script{
 // python的默认空返回值
 #define S_Return { Py_INCREF(Py_None); return Py_None; }																		
 
+#define S_INCREF(pyObj)																		\
+	if(pyObj){																				\
+		Py_INCREF(pyObj);																	\
+	}																						\
+
+#define S_DECREF(pyObj)																		\
+	if(pyObj){																				\
+		Py_DECREF(pyObj);																	\
+	}																						\
+
 // python的对象释放
 #define S_RELEASE(pyObj)																	\
 	if(pyObj){																				\

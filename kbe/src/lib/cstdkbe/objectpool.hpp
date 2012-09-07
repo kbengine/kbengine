@@ -102,27 +102,14 @@ public:
 		if(objects_.size() > 0){
 			T* t = static_cast<T*>(*objects_.begin());
 			objects_.pop_front();
+
+			// 先重置状态
+			t->onReclaimObject();
 			return t;
 		}
 		
 		// INFO_MSG("ObjectPool:create new object! total:%d\n", m_totalCount_);
 		return new T;
-	}
-
-	/** 
-		获取临时对象的引用。
-		如果objects_没有对象则创建
-	*/
-	T& getTemp(void)
-	{
-		if(objects_.size() == 0)
-		{
-			T* t = new T;
-			objects_.push_back(t);
-			return *t;
-		}
-
-		return *objects_.front();
 	}
 
 	/**
@@ -139,8 +126,13 @@ protected:
 	OBJECTS objects_;							// 对象缓冲器
 };
 
+/*
+	池对象， 所有使用池的对象必须实现回收功能。
+*/
 class PoolObject
 {
+public:
+	virtual void onReclaimObject() = 0;
 };
 
 }

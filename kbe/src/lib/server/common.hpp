@@ -33,12 +33,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
-#define MERCURY_MESSAGE_FORWARD(SEND_INTERFACE, SENDBUNDLE, FORWARDBUNDLE, MYCOMPONENT_ID, FORWARD_COMPONENT_ID)			\
-	SENDBUNDLE.newMessage(SEND_INTERFACE::forwardMessage);																	\
-	SENDBUNDLE << MYCOMPONENT_ID << FORWARD_COMPONENT_ID;																	\
-	FORWARDBUNDLE.finish(true);																								\
-	SENDBUNDLE.append(FORWARDBUNDLE);																						\
+#define MERCURY_MESSAGE_FORWARD(SEND_INTERFACE, SENDBUNDLE, FORWARDBUNDLE, MYCOMPONENT_ID, FORWARD_COMPONENT_ID)						\
+	SENDBUNDLE.newMessage(SEND_INTERFACE::forwardMessage);																				\
+	SENDBUNDLE << MYCOMPONENT_ID << FORWARD_COMPONENT_ID;																				\
+	FORWARDBUNDLE.finish(true);																											\
+	SENDBUNDLE.append(FORWARDBUNDLE);																									\
 	
+#define MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(ENTITYID, SENDBUNDLE, FORWARDBUNDLE)														\
+	SENDBUNDLE.newMessage(BaseappInterface::forwardMessageToClientFromCellapp);															\
+	SENDBUNDLE << ENTITYID;																												\
+	FORWARDBUNDLE.finish(true);																											\
+	SENDBUNDLE.append(FORWARDBUNDLE);																									\
 
 /**
 ½«Ãë×ª»»Îªtick

@@ -28,11 +28,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 namespace Mercury
 {
-class Address
+class Address  : public PoolObject
 {
 public:
 	static const Address NONE;
 	static ObjectPool<Address>& ObjPool();
+	void onReclaimObject();
 
 	Address();
 	Address(uint32 ipArg, uint16 portArg);

@@ -31,10 +31,11 @@ namespace KBEngine {
 namespace Mercury
 {
 
-class EndPoint
+class EndPoint : public PoolObject
 {
 public:
 	static ObjectPool<EndPoint>& ObjPool();
+	void onReclaimObject();
 
 	EndPoint(u_int32_t networkAddr = 0, u_int16_t networkPort = 0);
 	virtual ~EndPoint();

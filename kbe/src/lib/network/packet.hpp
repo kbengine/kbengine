@@ -47,6 +47,11 @@ public:
 	{
 	};
 	
+	void onReclaimObject()
+	{
+		MemoryStream::onReclaimObject();
+	}
+
 	virtual int recvFromEndPoint(EndPoint & ep, Address* pAddr = NULL) = 0;
 	
 	virtual size_t totalSize() const { return wpos() - rpos(); }

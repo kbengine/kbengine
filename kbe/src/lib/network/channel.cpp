@@ -48,6 +48,12 @@ ObjectPool<Channel>& Channel::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+void Channel::onReclaimObject()
+{
+	this->clearState();
+}
+
+//-------------------------------------------------------------------------------------
 Channel::Channel(NetworkInterface & networkInterface,
 		const EndPoint * endpoint, Traits traits, ProtocolType pt,
 		PacketFilterPtr pFilter, ChannelID id):
@@ -221,8 +227,6 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 			Packet* pPacket = (*iter);
 			if(pPacket->opsize() > 0)
 				hasDiscard++;
-			
-			pPacket->clear(false);
 
 			if(pPacket->isTCPPacket())
 				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
@@ -509,7 +513,6 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 				}
 			}
 			
-			pPacket->clear(false);
 			if(pPacket->isTCPPacket())
 				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
 			else
