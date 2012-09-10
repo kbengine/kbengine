@@ -32,6 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "math/math.hpp"
 #include "pyscript/scriptobject.hpp"
 #include "xmlplus/xmlplus.hpp"	
+#include "cstdkbe/refcountable.hpp"
 //#define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -44,7 +45,7 @@ namespace KBEngine{
 /**
 	描述一个脚本def模块
 */
-class ScriptDefModule
+class ScriptDefModule : public RefCountable
 {
 public:
 	typedef std::map<std::string, PropertyDescription*> PROPERTYDESCRIPTION_MAP;

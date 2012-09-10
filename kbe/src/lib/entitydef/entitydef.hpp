@@ -32,6 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "math/math.hpp"
 #include "pyscript/scriptobject.hpp"
 #include "xmlplus/xmlplus.hpp"	
+#include "cstdkbe/smartpointer.hpp"
 //#define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -42,12 +43,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class ScriptDefModule;
+typedef SmartPointer<ScriptDefModule> ScriptDefModulePtr;
+
 class EntityDef
 {
 public:
-	typedef std::vector<ScriptDefModule *> SCRIPT_MODULES;	
+	typedef std::vector<ScriptDefModulePtr> SCRIPT_MODULES;	
 	typedef std::map<std::string, ENTITY_SCRIPT_UID> SCRIPT_MODULE_UID_MAP;	
-	
 public:
 	EntityDef();
 	~EntityDef();

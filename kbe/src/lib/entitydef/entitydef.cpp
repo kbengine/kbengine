@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entity_mailbox.hpp"
 
 namespace KBEngine{
-std::vector<ScriptDefModule *>	EntityDef::__scriptModules;
+std::vector<ScriptDefModulePtr>	EntityDef::__scriptModules;
 std::map<std::string, ENTITY_SCRIPT_UID> EntityDef::__scriptTypeMappingUType;
 COMPONENT_TYPE EntityDef::__loadComponentType;
 
@@ -48,10 +48,6 @@ EntityDef::~EntityDef()
 //-------------------------------------------------------------------------------------
 bool EntityDef::finish(void)
 {
-	std::vector<ScriptDefModule *>::iterator iter = EntityDef::__scriptModules.begin();
-	for(;iter != EntityDef::__scriptModules.end(); iter++)
-		delete *iter;
-
 	EntityDef::__scriptModules.clear();
 	return true;
 }
@@ -898,7 +894,7 @@ ScriptDefModule* EntityDef::findScriptModule(ENTITY_SCRIPT_UID utype)
 		return NULL;
 	}
 
-	return __scriptModules[utype - 1];
+	return __scriptModules[utype - 1].get();
 }
 
 //-------------------------------------------------------------------------------------
