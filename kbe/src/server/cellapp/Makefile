@@ -7,6 +7,8 @@ SRCS =						\
 	main					\
 	space					\
 	spaces					\
+	updatable				\
+	updatables				\
 	witness
 
 ASMS =
