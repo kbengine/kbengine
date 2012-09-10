@@ -160,7 +160,7 @@ DataType* DataTypes::getDataType(std::string name)
 {
 	DATATYPE_MAP::iterator iter = dataTypes_.find(name);
 	if (iter != dataTypes_.end()) 
-		return iter->second;
+		return iter->second.get();
 
 	ERROR_MSG("DataTypes::getDataType:not found type %s.\n", name.c_str());
 	return NULL;
@@ -171,7 +171,7 @@ DataType* DataTypes::getDataType(const char* name)
 {
 	DATATYPE_MAP::iterator iter = dataTypes_.find(name);
 	if (iter != dataTypes_.end()) 
-		return iter->second;
+		return iter->second.get();
 
 	ERROR_MSG("DataTypes::getDataType:not found type %s.\n", name);
 	return NULL;

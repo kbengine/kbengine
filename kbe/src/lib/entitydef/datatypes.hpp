@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include	
 #include "datatype.hpp"
 #include "xmlplus/xmlplus.hpp"	
+#include "cstdkbe/smartpointer.hpp"
 //#define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -38,11 +39,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 namespace KBEngine{
+typedef SmartPointer<DataType> DataTypePtr;
 
 class DataTypes
 {
 protected:
-	typedef std::map<std::string, DataType*> DATATYPE_MAP;
+	typedef std::map<std::string, DataTypePtr> DATATYPE_MAP;
 	static DATATYPE_MAP dataTypes_;
 public:	
 	DataTypes();
