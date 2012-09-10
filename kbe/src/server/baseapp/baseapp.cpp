@@ -1188,10 +1188,10 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel, KBEn
 	}
 	
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-	(*pBundle) << eid;
 	(*pBundle).append(s);
 	s.read_skip(s.opsize());
 	mailbox->postMail((*pBundle));
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

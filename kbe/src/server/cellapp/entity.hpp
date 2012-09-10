@@ -165,8 +165,8 @@ public:
 	*/
 	void onTeleport();
 	void onTeleportFailure();
-	void onTeleportSuccess(PyObject* nearbyEntity);
-	void _onTeleportSuccess();
+	void onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID);
+	void _onTeleportSuccess(SPACE_ID lastSpaceID);
 
 	/**
 		进入离开cell等回调
@@ -346,7 +346,7 @@ private:
 	/** 
 		发送teleport结果到base端
 	*/
-	void _sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, SPACE_ID spaceID);
+	void _sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, SPACE_ID spaceID, SPACE_ID lastSpaceID);
 protected:
 	EntityMailbox*							clientMailbox_;						// 这个entity的客户端mailbox
 	EntityMailbox*							baseMailbox_;						// 这个entity的baseapp mailbox

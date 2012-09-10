@@ -797,7 +797,7 @@ PyObject* Entity::pyEntitiesInRange(float radius, PyObject_ptr pyEntityType, PyO
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, SPACE_ID spaceID)
+void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, SPACE_ID spaceID, SPACE_ID lastSpaceID)
 {
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(sourceBaseAppID);
 	if(cinfos != NULL && cinfos->pChannel != NULL)
@@ -810,7 +810,7 @@ void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sour
 	}
 
 	if(spaceID > 0)
-		_onTeleportSuccess();
+		_onTeleportSuccess(lastSpaceID);
 }
 
 //-------------------------------------------------------------------------------------
@@ -818,6 +818,8 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 {
 	DEBUG_MSG("%s::teleportFromBaseapp: %d, targetEntityID=%d, cell=%"PRAppID", sourceBaseAppID=%"PRAppID".\n", 
 		this->getScriptName(), this->getID(), targetEntityID, cellAppID, sourceBaseAppID);
+	
+	SPACE_ID lastSpaceID = this->getSpaceID();
 
 	// 如果不在一个cell上
 	if(cellAppID != g_componentID)
@@ -827,7 +829,7 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 		{
 			ERROR_MSG("%s::teleportFromBaseapp: %d, teleport is error, not found cellapp, targetEntityID, cellAppID=%"PRAppID".\n",
 				this->getScriptName(), this->getID(), targetEntityID, cellAppID);
-			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0);
+			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0, lastSpaceID);
 			return;
 		}
 	}
@@ -839,7 +841,7 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 			ERROR_MSG("%s::teleportFromBaseapp: %d, can't found targetEntity(%d).\n", 
 				this->getScriptName(), this->getID(), targetEntityID);
 
-			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0);
+			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0, lastSpaceID);
 			return;
 		}
 		
@@ -855,21 +857,21 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 				ERROR_MSG("%s::teleportFromBaseapp: %d, can't found space(%u).\n", 
 					this->getScriptName(), this->getID(), spaceID);
 
-				_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0);
+				_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0, lastSpaceID);
 				return;
 			}
 			
 			Space* currspace = Spaces::findSpace(this->getSpaceID());
 			currspace->removeEntity(this);
 			space->addEntity(this);
-			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, spaceID);
+			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, spaceID, lastSpaceID);
 		}
 		else
 		{
 			WARNING_MSG("%s::teleportFromBaseapp: %d targetSpace(%u) == currSpaceID.\n", 
 				this->getScriptName(), this->getID(), spaceID, this->getSpaceID());
 
-			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, spaceID);
+			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, spaceID, lastSpaceID);
 		}
 	}
 }
@@ -923,6 +925,8 @@ PyObject* Entity::pyTeleport(PyObject* nearbyMBRef, PyObject* pyposition, PyObje
 //-------------------------------------------------------------------------------------
 void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& dir)
 {
+	SPACE_ID lastSpaceID = this->getSpaceID();
+
 	// 如果为None则是entity自己想在本space上跳转到某位置
 	if(nearbyMBRef == Py_None)
 	{
@@ -941,7 +945,7 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 			if(spaceID == this->getSpaceID())
 			{
 				this->setPositionAndDirection(pos, dir);
-				onTeleportSuccess(nearbyMBRef);
+				onTeleportSuccess(nearbyMBRef, lastSpaceID);
 			}
 			else
 			{
@@ -950,7 +954,7 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 				Space* space = Spaces::findSpace(spaceID);
 				currspace->removeEntity(this);
 				space->addEntity(this);
-				onTeleportSuccess(nearbyMBRef);
+				onTeleportSuccess(nearbyMBRef, lastSpaceID);
 			}
 		}
 		else
@@ -963,22 +967,37 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::_onTeleportSuccess()
+void Entity::_onTeleportSuccess(SPACE_ID lastSpaceID)
 {
 	// entity已经跳转到某个space了
 	// 如果此entity是有客户端的entity则我们需要通知他的客户端
 	if(this->getClientMailbox() == NULL)
 		return;
+	
+	if(lastSpaceID != this->getSpaceID())
+	{
+		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 
-	Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
+		(*pForwardBundle) << this->getID();
+		(*pForwardBundle) << this->getSpaceID();
 
-	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
-	(*pForwardBundle) << this->getID();
-	(*pForwardBundle) << this->getSpaceID();
+		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(this->getID(), (*pSendBundle), (*pForwardBundle));
+		this->getClientMailbox()->postMail(*pSendBundle);
+	}
 
-	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(this->getID(), (*pSendBundle), (*pForwardBundle));
-	this->getClientMailbox()->postMail(*pSendBundle);
+	{
+		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+
+		(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
+		(*pForwardBundle) << this->getID();
+		(*pForwardBundle) << this->getSpaceID();
+
+		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(this->getID(), (*pSendBundle), (*pForwardBundle));
+		this->getClientMailbox()->postMail(*pSendBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -1006,9 +1025,9 @@ void Entity::onTeleportFailure()
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onTeleportSuccess(PyObject* nearbyEntity)
+void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 {
-	_onTeleportSuccess();
+	_onTeleportSuccess(lastSpaceID);
 
 	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTeleportSuccess"), 
 		const_cast<char*>("O"), nearbyEntity);
