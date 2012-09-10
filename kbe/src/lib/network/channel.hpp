@@ -51,6 +51,7 @@ class Channel : public TimerHandler, public RefCountable, public PoolObject
 public:
 	static ObjectPool<Channel>& ObjPool();
 	void onReclaimObject();
+	bool destructorPoolObject();
 
 	enum Traits
 	{

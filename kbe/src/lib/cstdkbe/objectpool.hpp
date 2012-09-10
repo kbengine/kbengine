@@ -69,7 +69,12 @@ public:
 	{
 		typename OBJECTS::iterator iter = objects_.begin();
 		for(; iter!=objects_.end(); iter++)
-			SAFE_RELEASE((*iter));
+		{
+			if(!(*iter)->destructorPoolObject())
+			{
+				delete (*iter);
+			}
+		}
 				
 		objects_.clear();	
 	}	
@@ -134,6 +139,15 @@ class PoolObject
 {
 public:
 	virtual void onReclaimObject() = 0;
+	
+	/**
+		池对象被析构前的通知
+		某些对象可以在此做一些工作
+	*/
+	virtual bool destructorPoolObject()
+	{
+		return false;
+	}
 };
 
 }

@@ -212,6 +212,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\updatable.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\updatables.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\witness.cpp"
 				>
 			</File>
@@ -257,6 +265,14 @@
 			</File>
 			<File
 				RelativePath=".\spaces.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\updatable.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\updatables.hpp"
 				>
 			</File>
 			<File
