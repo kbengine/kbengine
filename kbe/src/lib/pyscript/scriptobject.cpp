@@ -86,7 +86,7 @@ int ScriptObject::onScriptInit(PyObject* self, PyObject* args, PyObject* kwds)
 PyObject* ScriptObject::tp_repr()
 {
 	char s[512];
-	kbe_snprintf(s, 512, "%s object at %p, refc=%u.", this->getScriptName(), this, static_cast<PyObject*>(this)->ob_refcnt);
+	kbe_snprintf(s, 512, "%s object at %p, refc=%u.", this->getScriptName(), this, (uint32)static_cast<PyObject*>(this)->ob_refcnt);
 	return PyUnicode_FromString(s);
 }
 
@@ -94,7 +94,7 @@ PyObject* ScriptObject::tp_repr()
 PyObject* ScriptObject::tp_str()
 {
 	char s[512];
-	kbe_snprintf(s, 512, "%s object at %p, refc=%u.", this->getScriptName(), this, static_cast<PyObject*>(this)->ob_refcnt);
+	kbe_snprintf(s, 512, "%s object at %p, refc=%u.", this->getScriptName(), this, (uint32)static_cast<PyObject*>(this)->ob_refcnt);
 	return PyUnicode_FromString(s);
 }
 
