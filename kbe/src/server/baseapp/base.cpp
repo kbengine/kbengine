@@ -498,8 +498,8 @@ void Base::onCellWriteToDBCompleted()
 
 	isArchiveing_ = false;
 
-	MemoryStream s;
-	addPersistentsDataToStream(ED_FLAG_ALL, &s);
+	MemoryStream* s = MemoryStream::ObjPool().createObject();
+	addPersistentsDataToStream(ED_FLAG_ALL, s);
 
 	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
@@ -517,8 +517,9 @@ void Base::onCellWriteToDBCompleted()
 	bundle.newMessage(DbmgrInterface::writeEntity);
 	bundle << this->getID();
 	bundle << this->getScriptModule()->getUType();
-	bundle.append(s);
+	bundle.append(*s);
 	bundle.send(Baseapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
+	MemoryStream::ObjPool().reclaimObject(s);
 }
 
 //-------------------------------------------------------------------------------------

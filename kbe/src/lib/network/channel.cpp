@@ -306,7 +306,7 @@ void Channel::send(Bundle * pBundle)
 	}
 	else
 	{
-		pBundle->clear();
+		pBundle->clear(true);
 	}
 }
 
@@ -339,7 +339,7 @@ void Channel::clearBundle()
 	}
 	else
 	{
-		pBundle_->clear();
+		pBundle_->clear(true);
 	}
 }
 

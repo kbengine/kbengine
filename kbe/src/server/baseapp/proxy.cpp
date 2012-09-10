@@ -121,10 +121,10 @@ void Proxy::initClientCellPropertys()
 #endif
 	
 	// celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
-	MemoryStream s;
-	addCellDataToStream(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, &s);
-	bundle.append(s);
-
+	MemoryStream* s = MemoryStream::ObjPool().createObject();
+	addCellDataToStream(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, s);
+	bundle.append(*s);
+	MemoryStream::ObjPool().reclaimObject(s);
 	getClientMailbox()->postMail(bundle);
 }
 

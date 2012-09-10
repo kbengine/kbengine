@@ -97,7 +97,7 @@ public:
 	void sendto(EndPoint& ep, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
 	void onSendComplete();
 	
-	void clear();
+	void clear(bool isRecl);
 	bool isEmpty() const;
 	int totalSize() const;
 	int sizeInPackets();

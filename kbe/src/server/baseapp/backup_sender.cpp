@@ -47,12 +47,13 @@ void BackupSender::tick()
 		Base * pBase = Baseapp::getSingleton().findEntity(backupEntityIDs_.back());
 		backupEntityIDs_.pop_back();
 		
-		MemoryStream s;
-		if (pBase && backup(*pBase, s))
+		MemoryStream* s = MemoryStream::ObjPool().createObject();
+		if (pBase && backup(*pBase, *s))
 		{
 			--numToBackUp;
-			bundle.append(s);
+			bundle.append(*s);
 		}
+		MemoryStream::ObjPool().reclaimObject(s);
 	}
 }
 
@@ -78,7 +79,6 @@ void BackupSender::createBackupTable()
 
 	// 随机一下序列
 	std::random_shuffle(backupEntityIDs_.begin(), backupEntityIDs_.end());
-	
 }
 
 }

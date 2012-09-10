@@ -115,13 +115,13 @@ Bundle::Bundle(Channel * pChannel, ProtocolType pt):
 //-------------------------------------------------------------------------------------
 Bundle::~Bundle()
 {
-	clear();
+	clear(false);
 }
 
 //-------------------------------------------------------------------------------------
 void Bundle::onReclaimObject()
 {
-	clear();
+	clear(true);
 }
 
 //-------------------------------------------------------------------------------------
@@ -177,26 +177,39 @@ void Bundle::finish(bool issend)
 }
 
 //-------------------------------------------------------------------------------------
-void Bundle::clear()
+void Bundle::clear(bool isRecl)
 {
 	Packets::iterator iter = packets_.begin();
 	for (; iter != packets_.end(); iter++)
 	{
-		// delete (*iter);
-		if(isTCPPacket_)
-			TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>((*iter)));
+		if(!isRecl)
+		{
+			delete (*iter);
+		}
 		else
-			UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>((*iter)));
+		{
+			if(isTCPPacket_)
+				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>((*iter)));
+			else
+				UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>((*iter)));
+		}
 	}
 	
 	packets_.clear();
 
 	if(pCurrPacket_)
 	{
-		if(isTCPPacket_)
-			TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pCurrPacket_));
+		if(!isRecl)
+		{
+			delete pCurrPacket_;
+		}
 		else
-			UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pCurrPacket_));
+		{
+			if(isTCPPacket_)
+				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pCurrPacket_));
+			else
+				UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pCurrPacket_));
+		}
 	}
 
 	pChannel_ = NULL;
