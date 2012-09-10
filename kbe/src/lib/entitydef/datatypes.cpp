@@ -100,10 +100,13 @@ bool DataTypes::loadAlias(std::string& file)
 			{
 				FixedDictType* fixedDict = new FixedDictType;
 				if(fixedDict->initialize(xml, childNode))
+				{
 					addDateType(aliasName, fixedDict);
+				}
 				else
 				{
 					ERROR_MSG("DataTypes::loadAlias:parse FIXED_DICT [%s] is error!\n", aliasName.c_str());
+					delete fixedDict;
 					return false;
 				}
 			}
@@ -136,7 +139,7 @@ bool DataTypes::addDateType(std::string name, DataType* dataType)
 	}
 
 	dataTypes_[name] = dataType;
-	dataType->incRef();
+	//dataType->incRef();
 	return true;
 }
 
