@@ -571,64 +571,90 @@ void init_network(void)
 		packet99 >> msgID;
 		packet99 >> eid >> spaceID;
 		printf("!!!玩家进入世界:spaceUType=%u, level=%u.\n", spaceUType, level);
-
-		// 向服务器请求查询entities
-		Mercury::Bundle bundle999;
-		bundle999.newMessage(BaseappInterface::onRemoteCallCellMethodFromClient);
-		methodID = 11002;
-		bundle999 << eid;
-		bundle999 << methodID;
-		uint8 qcount = 5;
-		// 技能ID
-		bundle999 << qcount;
-		bundle999.send(mysocket);
 		
-		int32 targetID = 0;
-		TCPPacket packet999;
-		packet999.resize(65535);
-		bool readover = false;
-		while(!readover)
+		// 服务器下发entity
+		if(packet99.opsize() == 0)
 		{
-			EntityInfos einfos;
-			// 接收服务器查询entities信息
-			packet999.resetPacket();
+			packet99.clear(false);
+			len = mysocket.recv(packet99.data(), 65535);
+			packet99.wpos(len);
+		}
+
+		ENTITY_ID targetID = 0;
+
+		while(packet99.opsize() > 0)
+		{
+			// 开始接收属性
+			packet99 >> msgID;
+			packet99 >> msgLen;
+			packet99 >> eid;
 			
-			len = mysocket.recv(packet999.data(), 65535);
-			packet999.wpos(len);
-			while(packet999.opsize() > 0)
+
+			uint16 propertyID = 0;
+			uint16 spaceUType, level;
+			std::string name;
+			SPACE_ID spaceID;
+			uint32 utype = 0;
+			uint32 endpos = msgLen + packet99.rpos() - 4;
+			while(packet99.rpos() < endpos)
 			{
-				packet999 >> msgID;
-				packet999 >> msgLen;
-				packet999 >> eid;
-				packet999 >> methodID;
+				packet99 >> propertyID;
 
-				uint32 elemcount = 0;
-				
-				packet999 >> einfos.entityID;
-				packet999 >> einfos.modelID;
-				packet999 >> elemcount;
-				// 由于这个类别是一个list所以服务器通用list打包规则会给出一个元素个数
-				// 但这里我们知道坐标服务器是x,y,z3个元素
-				packet999 >> einfos.spawnPos.x >> einfos.spawnPos.y >> einfos.spawnPos.z;
-				packet999 >> einfos.utype;
-				packet999 >> einfos.dialogID;
-				
-				if(targetID == 0 && einfos.dialogID == 80001)
-					targetID = einfos.entityID;
-
-				printf("服务器下发entity:id=%d, modelID=%u, pos(%d,%d,%d), utype=%u, dialogID=%u.\n", einfos.entityID, einfos.modelID, 
-					einfos.spawnPos.x,einfos.spawnPos.y, einfos.spawnPos.z, einfos.utype, einfos.dialogID);
-
-
-				// 服务器约定结束时给出一个结构值都为0
-				if(einfos.entityID == 0)
+				if(41001 == propertyID)
 				{
-					readover = true;
-					break;
+					packet99 >> spaceUType;
 				}
+				else if(41002 == propertyID)
+				{
+					packet99 >> level;
+				}
+				else if(41003 == propertyID)
+				{
+					packet99 >> name;
+				}
+				else if(40000 == propertyID)
+				{
+					int32 x, y, z;
+					uint32 listlen;
+					
+					packet99 >> listlen;
+					packet99 >> x;
+					packet99 >> y ;
+					packet99 >> z;
+					z = 0;
+				}
+				else if(40001 == propertyID)
+				{
+					int32 x, y, z;
+					uint32 listlen;
+					
+					packet99 >> listlen;
+					packet99 >> x;
+					packet99 >> y ;
+					packet99 >> z;
+				}
+				else if(40002 == propertyID)
+				{
+					packet99 >> spaceID;
+				}
+				else if(41004 == propertyID)
+				{
+					packet99 >> utype;
+					if(utype > 0)
+						targetID = eid;
+				}
+				
 			}
+			printf("服务器下发属性:name=%s, utype=%u.\n", name.c_str(), utype);
+
+			packet99 >> msgID;
+			packet99 >> eid;
+			SPACE_ID spaceID1;
+			packet99 >> spaceID1;
+			printf("!!!entity进入世界:id=%d.\n", eid);
 		};
 
+		
 		// 向服务器请求和NPC对话
 		Mercury::Bundle bundle9999;
 		bundle9999.newMessage(BaseappInterface::onRemoteCallCellMethodFromClient);
@@ -640,7 +666,7 @@ void init_network(void)
 		bundle9999 << dialogID;
 		bundle9999.send(mysocket);
 		
-		readover = false;
+		bool readover = false;
 		std::wcout.imbue(std::locale("chs"));
 		while(!readover)
 		{
@@ -664,7 +690,7 @@ void init_network(void)
 					utf82wchar(body, outstr);
 					std::wcout << "对话内容:" << outstr << std::endl;
 					readover = true;
-
+					if(false)
 					{
 						// 服务器开始传送到某场景 开始接收进入世界消息
 						TCPPacket packet99;
@@ -677,6 +703,7 @@ void init_network(void)
 						printf("!!!玩家离开世界:spaceUType=%u, level=%u.\n", spaceUType, level);
 					}
 					
+					if(false)
 					{
 						// 服务器开始传送到某场景 开始接收进入世界消息
 						TCPPacket packet99;

@@ -38,17 +38,19 @@ void Proxy::initClientBasePropertys()
 	if(getClientMailbox() == NULL)
 		return;
 
-	MemoryStream s1;
-	getClientPropertys(&s1);
+	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
+	addClientDataToStream(s1);
 	
-	if(s1.wpos() > 0)
+	if(s1->wpos() > 0)
 	{
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onUpdatePropertys);
 		bundle << this->getID();
-		bundle.append(s1);
+		bundle.append(*s1);
 		getClientMailbox()->postMail(bundle);
 	}
+
+	MemoryStream::ObjPool().reclaimObject(s1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -106,7 +108,7 @@ void Proxy::initClientCellPropertys()
 	int32 z = (int32)v.z;
 	
 	
-	bundle << posuid<< posdirLen << x << y << z;
+	bundle << posuid << posdirLen << x << y << z;
 
 	x = (int32)v1.x;
 	y = (int32)v1.y;

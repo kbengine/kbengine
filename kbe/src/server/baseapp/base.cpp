@@ -242,31 +242,6 @@ void Base::destroyCellData(void)
 }
 
 //-------------------------------------------------------------------------------------
-void Base::getClientPropertys(MemoryStream* s)
-{
-	// 获得base部分关联的客户端属性数据
-	PyObject* pydict = PyObject_GetAttrString(this, "__dict__");
-		
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = getScriptModule()->getClientPropertyDescriptions();
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();
-	for(; iter != propertyDescrs.end(); iter++)
-	{
-		PropertyDescription* propertyDescription = iter->second;
-		PyObject *key = PyUnicode_FromString(propertyDescription->getName());
-			
-	    if(PyDict_Contains(pydict, key) > 0)
-	    {
-	    	(*s) << propertyDescription->getUType();
-	    	propertyDescription->getDataType()->addToStream(s, PyDict_GetItem(pydict, key));
-	    }
-
-		Py_DECREF(key);
-	}
-
-	Py_XDECREF(pydict);
-}
-
-//-------------------------------------------------------------------------------------
 bool Base::destroyCellEntity(void)
 {
 	if(cellMailbox_  == NULL || cellMailbox_->getChannel() == NULL)

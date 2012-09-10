@@ -1187,6 +1187,9 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel, KBEn
 		return;
 	}
 	
+	if(s.opsize() <= 0)
+		return;
+
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).append(s);
 	s.read_skip(s.opsize());

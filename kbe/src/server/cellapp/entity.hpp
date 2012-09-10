@@ -140,6 +140,11 @@ public:
 		客户端设置位置
 	*/
 	void setPosition_XYZ_float(Mercury::Channel* pChannel, float x, float y, float z);
+	
+	/**
+		将方向位置信息添加到流
+	*/
+	void addPositionAndDirectionToStream(MemoryStream& s);
 
 	/** 
 		脚本请求为当前所在space设置一个几何映射 

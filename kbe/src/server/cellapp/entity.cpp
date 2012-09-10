@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 #include "network/bundle.hpp"	
+#include "network/fixed_messages.hpp"
 #include "client_lib/client_interface.hpp"
 
 #include "../../server/baseapp/baseapp_interface.hpp"
@@ -88,7 +89,7 @@ Entity::~Entity()
 	ENTITY_DECONSTRUCTION(Entity);
 	S_RELEASE(clientMailbox_);
 	S_RELEASE(baseMailbox_);
-	SAFE_RELEASE(pWitness_);
+	Witness::ObjPool().reclaimObject(pWitness_);
 }	
 
 //-------------------------------------------------------------------------------------
@@ -558,6 +559,47 @@ void Entity::setPosition_XYZ_float(Mercury::Channel* pChannel, float x, float y,
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::addPositionAndDirectionToStream(MemoryStream& s)
+{
+	ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
+	ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
+
+	Mercury::FixedMessages::MSGInfo* msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::position");
+	if(msgInfo != NULL)
+	{
+		posuid = msgInfo->msgid;
+		msgInfo = NULL;
+	}
+
+	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
+	if(msgInfo != NULL)
+	{
+		diruid = msgInfo->msgid;
+		msgInfo = NULL;
+	}
+
+	uint32 posdirLen = 3;
+
+#ifdef CLIENT_NO_FLOAT
+	int32 x = (int32)getPosition().x;
+	int32 y = (int32)getPosition().y;
+	int32 z = (int32)getPosition().z;
+	
+	
+	s << posuid << posdirLen << x << y << z;
+
+	x = (int32)getDirection().roll;
+	y = (int32)getDirection().pitch;
+	z = (int32)getDirection().yaw;
+
+	s << diruid << posdirLen << x << y << z;
+#else
+	s << posuid << posdirLen << getPosition().x << getPosition().y << getPosition().z;
+	s << diruid << posdirLen << getDirection().roll << getDirection().pitch << getDirection().yaw;
+#endif
+}
+
+//-------------------------------------------------------------------------------------
 int Entity::pySetDirection(PyObject *value)
 {
 	if(PySequence_Check(value) <= 0)
@@ -619,6 +661,14 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 	EntityMailbox* client = static_cast<EntityMailbox*>(clientMailbox);	
 	// Py_INCREF(clientMailbox); 这里不需要增加引用， 因为每次都会产生一个新的对象
 	setClientMailbox(client);
+	
+	pWitness_ = Witness::ObjPool().createObject();
+
+	Space* space = Spaces::findSpace(this->getSpaceID());
+	if(space)
+	{
+		space->onEntityAttachWitness(this);
+	}
 
 	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onGetWitness"), 
 																		const_cast<char*>(""));
@@ -626,8 +676,6 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 		Py_DECREF(pyResult);
 	else
 		PyErr_Clear();
-
-	pWitness_ = new Witness();
 }
 
 //-------------------------------------------------------------------------------------
@@ -637,7 +685,7 @@ void Entity::onLoseWitness(Mercury::Channel* pChannel)
 	getClientMailbox()->addr(Mercury::Address::NONE);
 	Py_DECREF(getClientMailbox());
 	setClientMailbox(NULL);
-	SAFE_RELEASE(pWitness_);
+	Witness::ObjPool().reclaimObject(pWitness_);
 
 	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLoseWitness"), 
 																		const_cast<char*>(""));
@@ -985,6 +1033,8 @@ void Entity::_onTeleportSuccess(SPACE_ID lastSpaceID)
 
 		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(this->getID(), (*pSendBundle), (*pForwardBundle));
 		this->getClientMailbox()->postMail(*pSendBundle);
+		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	}
 
 	{
@@ -997,6 +1047,8 @@ void Entity::_onTeleportSuccess(SPACE_ID lastSpaceID)
 
 		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(this->getID(), (*pSendBundle), (*pForwardBundle));
 		this->getClientMailbox()->postMail(*pSendBundle);
+		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	}
 }
 

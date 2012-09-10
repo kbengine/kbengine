@@ -117,7 +117,8 @@ public:
 	*/
 	void reclaimObject(T* obj)
 	{
-		objects_.push_back(obj);
+		if(obj != NULL)
+			objects_.push_back(obj);
 	}
 
 	size_t size(void)const{ return objects_.size(); }

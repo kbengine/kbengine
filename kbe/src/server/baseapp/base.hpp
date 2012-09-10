@@ -142,11 +142,6 @@ public:
 	void onWriteToDB();
 	void onCellWriteToDBCompleted();
 
-	/**
-		获取这个entity的client部分的属性放到流中
-	*/
-	void getClientPropertys(MemoryStream* s);
-
 	/** 
 		创建cell失败回调 
 	*/

@@ -170,7 +170,7 @@ public:																										\
 		return cellData;																					\
 	}																										\
 																											\
-	void getCellDataByDetailLevel(int8 detailLevel, MemoryStream* mstream)									\
+	void addCellDataToStreamByDetailLevel(int8 detailLevel, MemoryStream* mstream)							\
 	{																										\
 		PyObject* cellData = PyObject_GetAttrString(this, "__dict__");										\
 																											\
@@ -187,6 +187,31 @@ public:																										\
 																											\
 		Py_XDECREF(cellData);																				\
 		SCRIPT_ERROR_CHECK();																				\
+	}																										\
+																											\
+	void addClientDataToStream(MemoryStream* s)																\
+	{																										\
+																											\
+		PyObject* pydict = PyObject_GetAttrString(this, "__dict__");										\
+																											\
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =											\
+				getScriptModule()->getClientPropertyDescriptions();											\
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();					\
+		for(; iter != propertyDescrs.end(); iter++)															\
+		{																									\
+			PropertyDescription* propertyDescription = iter->second;										\
+			PyObject *key = PyUnicode_FromString(propertyDescription->getName());							\
+																											\
+			if(PyDict_Contains(pydict, key) > 0)															\
+			{																								\
+	    		(*s) << propertyDescription->getUType();													\
+	    		propertyDescription->getDataType()->addToStream(s, PyDict_GetItem(pydict, key));			\
+			}																								\
+																											\
+			Py_DECREF(key);																					\
+		}																									\
+																											\
+		Py_XDECREF(pydict);																					\
 	}																										\
 																											\
 	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol)									\

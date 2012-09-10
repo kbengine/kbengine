@@ -46,11 +46,21 @@ public:
 
 	void loadSpaceGeometry(const char* path);
 
-	/** 更新space中的内容 */
+	/** 
+		更新space中的内容 
+	*/
 	void update();
 
 	void addEntity(Entity* pEntity);
 	void removeEntity(Entity* pEntity);
+
+	/**
+		一个entity进入了游戏世界
+	*/
+	void onEnterWorld(Entity* pEntity);
+	void onLeaveWorld(Entity* pEntity);
+
+	void onEntityAttachWitness(Entity* pEntity);
 
 	SPACE_ID getID()const{ return id_; }
 

@@ -24,6 +24,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/objectpool.hpp"
+
 // #define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32	
@@ -57,11 +59,15 @@ struct WitnessInfo
 	std::vector<uint32> changeDefDataLogs[3];	// entity离开了某个详情级别(没有脱离witness)后， 这期间有某个详情级别的属性改变均记录在这里
 };
 
-class Witness
+class Witness : public PoolObject
 {
 public:
 	Witness();
 	~Witness();
+
+	static ObjectPool<Witness>& ObjPool();
+	void onReclaimObject();
+
 };
 
 }

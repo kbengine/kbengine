@@ -189,12 +189,14 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, 
 			"KBEngine::createEntity: args is error! args[scriptName, spaceID, position, direction, states].");
+		PyErr_PrintEx(0);
 		S_Return;
 	}
 	
 	if(entityType == NULL || strlen(entityType) == 0)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::createEntity: entityType is NULL.");
+		PyErr_PrintEx(0);
 		S_Return;
 	}
 
@@ -202,6 +204,7 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 	if(space == NULL)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::createEntity: spaceID %ld not found.", spaceID);
+		PyErr_PrintEx(0);
 		S_Return;
 	}
 	
@@ -240,6 +243,7 @@ PyObject* Cellapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 	if(ret == -1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args is error!");
+		PyErr_PrintEx(0);
 	}
 	
 	Cellapp::getSingleton().executeRawDatabaseCommand(data, size, pycallback);
@@ -637,11 +641,11 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		// 设置entity的baseMailbox
 		EntityMailbox* mailbox = new EntityMailbox(e->getScriptModule(), NULL, componentID, entityID, MAILBOX_TYPE_BASE);
 		e->setBaseMailbox(mailbox);
-
+		
 		// 添加到space
 		space->addEntity(e);
 		e->initializeScript();
-		
+
 		// 告知baseapp， entity的cell创建了
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		pBundle->newMessage(BaseappInterface::onEntityGetCell);
@@ -652,11 +656,11 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		// 如果是有client的entity则设置它的clientmailbox, baseapp部分的onEntityGetCell会告知客户端enterworld.
 		if(hasClient)
 		{
-			e->onGetWitness(cinfos->pChannel);
-
 			// 初始化默认AOI范围
 			ENGINE_COMPONENT_INFO& ecinfo = ServerConfig::getSingleton().getCellApp();
 			e->setAoiRadius(ecinfo.defaultAoIRadius, ecinfo.defaultAoIHysteresisArea);
+
+			e->onGetWitness(cinfos->pChannel);
 		}
 
 		return;
