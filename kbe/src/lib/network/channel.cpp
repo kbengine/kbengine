@@ -271,7 +271,8 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	currMsgLen_ = 0;
 	proxyID_ = 0;
 	SAFE_RELEASE_ARRAY(pFragmentDatas_);
-	SAFE_RELEASE(pFragmentStream_);
+	MemoryStream::ObjPool().reclaimObject(pFragmentStream_);
+	pFragmentStream_ = NULL;
 
 	inactivityTimerHandle_.cancel();
 	this->endpoint(NULL);
@@ -490,7 +491,8 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					if(pFragmentStream_ != NULL)
 					{
 						pMsgHandler->handle(this, *pFragmentStream_);
-						SAFE_RELEASE(pFragmentStream_);
+						MemoryStream::ObjPool().reclaimObject(pFragmentStream_);
+						pFragmentStream_ = NULL;
 					}
 					else
 					{
@@ -580,7 +582,7 @@ void Channel::mergeFragmentMessage(Packet* pPacket)
 			break;
 
 		case 3:		// 消息内容信息不全
-			pFragmentStream_ = new MemoryStream;
+			pFragmentStream_ = MemoryStream::ObjPool().createObject();
 			pFragmentStream_->data_resize(currMsgLen_);
 			pFragmentStream_->wpos(currMsgLen_);
 			memcpy(pFragmentStream_->data(), pFragmentDatas_, currMsgLen_);

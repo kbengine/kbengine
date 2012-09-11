@@ -53,20 +53,23 @@ namespace KBEngine{
 #define CAN_DEBUG_CREATE_ENTITY
 #ifdef CAN_DEBUG_CREATE_ENTITY
 	#define DEBUG_CREATE_ENTITY_NAMESPACE																	\
-			char* ccattr_DEBUG_CREATE_ENTITY_NAMESPACE = wchar2char(PyUnicode_AsWideCharString(key, NULL));	\
+			wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(key, NULL);				\
+			char* ccattr_DEBUG_CREATE_ENTITY_NAMESPACE = wchar2char(PyUnicode_AsWideCharStringRet1);		\
 			DEBUG_MSG("%s(refc=%u, id=%d)::debug_createNamespace:add %s.\n", getScriptName(),				\
 												static_cast<PyObject*>(this)->ob_refcnt, this->getID(),		\
 																ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);		\
 			free(ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);														\
+			PyMem_Free(PyUnicode_AsWideCharStringRet1);														\
 
 
 	#define DEBUG_OP_ATTRIBUTE(op, ccattr)																	\
-			char* ccattr_DEBUG_OP_ATTRIBUTE = wchar2char(PyUnicode_AsWideCharString(ccattr, NULL));			\
+			wchar_t* PyUnicode_AsWideCharStringRet2 = PyUnicode_AsWideCharString(ccattr, NULL);				\
+			char* ccattr_DEBUG_OP_ATTRIBUTE = wchar2char(PyUnicode_AsWideCharStringRet2);					\
 			DEBUG_MSG("%s(refc=%u, id=%d)::debug_op_attr:op=%s, %s.\n", getScriptName(),					\
 												static_cast<PyObject*>(this)->ob_refcnt, this->getID(),		\
 															op, ccattr_DEBUG_OP_ATTRIBUTE);					\
 			free(ccattr_DEBUG_OP_ATTRIBUTE);																\
-
+			PyMem_Free(PyUnicode_AsWideCharStringRet2);														\
 
 	#define DEBUG_PERSISTENT_PROPERTY(op, ccattr)															\
 			DEBUG_MSG("%s(refc=%u, id=%d)::debug_op_Persistent:op=%s, %s.\n", getScriptName(),				\
@@ -290,7 +293,9 @@ public:																										\
 																											\
 	int onScriptDelAttribute(PyObject* attr)																\
 	{																										\
-		char* ccattr = wchar2char(PyUnicode_AsWideCharString(attr, NULL));									\
+		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);					\
+		char* ccattr = wchar2char(PyUnicode_AsWideCharStringRet0);											\
+		PyMem_Free(PyUnicode_AsWideCharStringRet0);															\
 		DEBUG_OP_ATTRIBUTE("del", attr)																		\
 																											\
 		if(lpPropertyDescrs_)																				\
@@ -325,7 +330,9 @@ public:																										\
 	int onScriptSetAttribute(PyObject* attr, PyObject* value)												\
 	{																										\
 		DEBUG_OP_ATTRIBUTE("set", attr)																		\
-		char* ccattr = wchar2char(PyUnicode_AsWideCharString(attr, NULL));									\
+		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);					\
+		char* ccattr = wchar2char(PyUnicode_AsWideCharStringRet0);											\
+		PyMem_Free(PyUnicode_AsWideCharStringRet0);															\
 																											\
 		if(lpPropertyDescrs_)																				\
 		{																									\

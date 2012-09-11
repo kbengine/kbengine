@@ -77,7 +77,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 			}																								\
 		}																									\
 																											\
-		delete pPacket;																						\
 	}																										\
 																											\
 	onSendComplete();																						\
@@ -245,6 +244,15 @@ void Bundle::sendto(EndPoint& ep, u_int16_t networkPort, u_int32_t networkAddr)
 //-------------------------------------------------------------------------------------
 void Bundle::onSendComplete()
 {
+	Packets::iterator iter = packets_.begin();
+	for (; iter != packets_.end(); iter++)
+	{
+		if(isTCPPacket_)
+			TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>((*iter)));
+		else
+			UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>((*iter)));
+	}
+
 	packets_.clear();
 }
 

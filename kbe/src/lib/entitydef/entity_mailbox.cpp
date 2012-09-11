@@ -67,7 +67,9 @@ EntityMailbox::~EntityMailbox()
 //-------------------------------------------------------------------------------------
 PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 {
+	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
 	char* ccattr = wchar2char(PyUnicode_AsWideCharString(attr, NULL));
+	PyMem_Free(PyUnicode_AsWideCharStringRet0);
 
 	MethodDescription* md = NULL;
 
