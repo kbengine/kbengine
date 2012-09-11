@@ -209,6 +209,8 @@ void Bundle::clear(bool isRecl)
 			else
 				UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pCurrPacket_));
 		}
+
+		pCurrPacket_ = NULL;
 	}
 
 	pChannel_ = NULL;
