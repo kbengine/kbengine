@@ -5,6 +5,8 @@ import os
 import string
 import signal
 import time
+import codecs
+
 
 from ExcelTool import ExcelTool
 from config import *
@@ -20,7 +22,7 @@ import copy
 SYS_CODE = sys.getdefaultencoding()
 
 def siginit(sigNum, sigHandler):
-	print  "byebye"
+	print("byebye")
 	sys.exit(1)
 
 signal.signal(signal.SIGINT, siginit)   					#Ctrl-c处理
@@ -42,26 +44,14 @@ class xlsx2py(object):
 	"""
 	def __init__(self, infile, outfile):
 		sys.excepthook = xlsxError.except_hook						#traceback处理,希望输出中文
-		self.infile = os.path.abspath(infile).decode(FILE_CODE)		#暂存excel文件名
-		self.outfile = os.path.abspath(outfile).decode(FILE_CODE)	#data文件名
+		self.infile = os.path.abspath(infile)						#暂存excel文件名
+		self.outfile = os.path.abspath(outfile)						#data文件名
 		return
-
-	def __getattr__(self, attr):
-		"""
-		为了方便将self.xbook.getXXX->self.getXXX,  其他不变
-		"""
-		if attr[:3] == "get":
-			try:
-				return getattr(self.xbook, attr)
-			except:
-				return getattr(self, attr)
-		else:
-			raise AttributeError
 
 	def __initXlsx(self):
 		self.xbook = ExcelTool(self.infile)
 
-		while not self.getWorkbook(forcedClose = False):
+		while not self.xbook.getWorkbook(forcedClose = True):
 			xlsxtool.exportMenu(EXPORT_INFO_RTEXCEL, OCallback = self.resetXlsx)
 
 	def resetXlsx(self):
@@ -69,7 +59,7 @@ class xlsx2py(object):
 		输入O(other)的回调
 		关闭已打开的excel，然后重新打开
 		"""
-		self.getWorkbook(forcedClose = True)
+		self.xbook.getWorkbook(forcedClose = True)
 
 	def __initInfo(self):
 		self.__exportSheetIndex = []		#存储可导表的索引
@@ -97,11 +87,11 @@ class xlsx2py(object):
 		"""
 		something for nothing, 代对表和导入表需要有
 		"""
-		for index in xrange(1, self.getSheetCount() + 1):
-			sheetName = self.getSheetNameByIndex(index)
-			if sheetName == EXPORT_MAP_SHEET.decode(FILE_CODE):
+		for index in range(1, self.xbook.getSheetCount() + 1):
+			sheetName = self.xbook.getSheetNameByIndex(index)
+			if sheetName == EXPORT_MAP_SHEET:
 				self.__onFindMapSheet(index)
-			if sheetName.encode(FILE_CODE).startswith(EXPORT_PREFIX_CHAR):
+			if sheetName.startswith(EXPORT_PREFIX_CHAR):
 				self.__onFindExportSheet(index)
 		self.onSth4Nth()
 
@@ -131,20 +121,23 @@ class xlsx2py(object):
 		生成代对字典， 代对表只有一个
 		"""
 		mapDict = {}
-		sheet = self.getSheetByIndex(self.mapIndex)
+		sheet = self.xbook.getSheetByIndex(self.mapIndex)
 		if not sheet:
 			return
 
-		for col in xrange(0, self.getRowCount(self.mapIndex)):
-			colValues = self.getColValues(sheet, col)
+		for col in range(0, self.xbook.getRowCount(self.mapIndex)):
+			colValues = self.xbook.getColValues(sheet, col)
 			if colValues:
-				for v in  [e for e in colValues[1:] if e[0] and isinstance(e[0], basestring) and e[0].strip()]:
-					mapStr = v[0].replace('：'.decode(FILE_CODE), ":")			#中文"："和":"
+				for v in  [e for e in colValues[1:] if e[0] and isinstance(e[0], str) and e[0].strip()]:
+					print (v)
+					mapStr = v[0].replace('：', ":")			#中文"："和":"
 					try:
-						k, v = map(string.strip, mapStr.split(":"))
+						k, v  = mapStr.split(":")
+						k = str.strip(k)
+						v = str.strip(v)
 						mapDict[k] = v
-					except:
-						print "waring：需要检查代对表 第%d列"%col
+					except Exception as errstr:
+						print( "waring：需要检查代对表 第%d列, err=%s"%(col , errstr))
 		self.__onConstruct(mapDict)
 		return
 
@@ -183,10 +176,10 @@ class xlsx2py(object):
 		"""
 		第一行的个元素是否符合定义格式"name[signs][func]"以及key是否符合规定
 		"""
-		print  "检测文件头(第一行)是否正确"
+		print(  "检测文件头(第一行)是否正确" )
 		for index in self.__exportSheetIndex:
 			self.sheetKeys = []
-			headList = self.getRowValues(self.getSheetByIndex(index), EXPORT_DEFINE_ROW -1 )
+			headList = self.xbook.getRowValues(self.xbook.getSheetByIndex(index), EXPORT_DEFINE_ROW -1 )
 			enName = []											#检查命名重复临时变量
 			reTuples = []
 
@@ -215,13 +208,13 @@ class xlsx2py(object):
 						enName.append(name)
 					else:
 						self.xlsxClear(EXPORT_ERROR_REPEAT, \
-						(self.getSheetNameByIndex(index).encode(FILE_CODE), EXPORT_DEFINE_ROW, c+1))
+						(self.xbook.getSheetNameByIndex(index).encode(FILE_CODE), EXPORT_DEFINE_ROW, c+1))
 
 					if not hasFunc(funcName):					#funcName是否存在
 						self.xlsxClear(EXPORT_ERROR_NOFUNC, (xlsxtool.toGBK(funcName), c+1))
 
 				else:
-					self.xlsxClear(EXPORT_ERROR_HEADER, (self.getSheetNameByIndex(index).encode(FILE_CODE), EXPORT_DEFINE_ROW, c+1))
+					self.xlsxClear(EXPORT_ERROR_HEADER, (self.xbook.getSheetNameByIndex(index).encode(FILE_CODE), EXPORT_DEFINE_ROW, c+1))
 
 				self.__onCheckSheetHeader(self.headerDict[index], c, (name, signs, funcName))	#定义一行经常使用存起来了
 
@@ -236,12 +229,12 @@ class xlsx2py(object):
 		if len(self.sheetKeys) != EXPORT_KEY_NUMS:					#key也不能少
 			self.xlsxClear(EXPORT_ERROR_NOKEY, ("需要%d而只有%d"%(EXPORT_KEY_NUMS,len(self.sheetKeys))))
 
-		print "文件头检测正确", time.ctime(time.time())
+		print( "文件头检测正确", time.ctime(time.time()) )
 
 	def sheetIndex2Data(self):
 		self.sheet2Data = {}
 		for index in self.__exportSheetIndex:
-			SheetName = self.getSheetNameByIndex(index)
+			SheetName = self.xbook.getSheetNameByIndex(index)
 			sheetName = SheetName[SheetName.find(EXPORT_PREFIX_CHAR)+1:]
 			if sheetName in self.mapDict:
 				dataName = self.mapDict[sheetName]
@@ -258,15 +251,15 @@ class xlsx2py(object):
 		self.dctDatas = g_dctDatas
 		self.hasExportedSheet = []
 
-		for dataName, indexList  in self.sheet2Data.iteritems():
+		for dataName, indexList  in self.sheet2Data.items():
 			self.curIndexMax = len(indexList)
 			self.curProIndex = []
 			for index in indexList:
-				sheet = self.getSheetByIndex(index)
+				sheet = self.xbook.getSheetByIndex(index)
 				self.curProIndex.append(index)
 
-				cols =  self.getRowCount(index)
-				rows  = self.getColCount(index)
+				cols =  self.xbook.getRowCount(index)
+				rows  = self.xbook.getColCount(index)
 				if dataName not in self.dctDatas:
 					self.dctDatas[dataName] = {}
 				self.dctData = self.dctDatas[dataName]
@@ -274,7 +267,7 @@ class xlsx2py(object):
 				for row in range(3,  rows + 1):
 					childDict = {}
 					for col in range(1, cols + 1):
-						val = (self.getText(sheet, row, col),)
+						val = (self.xbook.getText(sheet, row, col),)
 						if self.headerDict[index][col-1] is None:
 							continue
 
@@ -288,7 +281,7 @@ class xlsx2py(object):
 							self.xlsxClear(EXPORT_ERROR_NOTNULL, (col, row))
 
 						try:
-							sv = xlsxtool.toGBK(v)
+							sv = v#xlsxtool.toGBK(v)
 						except:
 							sv = v
 
@@ -296,24 +289,25 @@ class xlsx2py(object):
 
 						try:
 							v = func(self.mapDict, self.dctData, childDict, sv)
-						except Exception, errstr:
-							self.xlsxClear(EXPORT_ERROR_FUNC, (errstr, sv, row, col))
+						except Exception as errstr:
+							self.xlsxClear(EXPORT_ERROR_FUNC, (errstr, funcName, sv, row, col))
+							
+						for ss in sign.replace('$',''):
+							EXPORT_SIGN[ss](self,{"v":v,"pos":(row, col)})
 
-						map(lambda s:EXPORT_SIGN[s](self,{"v":v,"pos":(row, col)}),sign.replace('$',''))
-
-						if isinstance(v, (basestring, unicode)):
-							try:
-								v = v.decode("gb2312").encode("utf-8")
-							except:
-								pass
+						#if isinstance(v, (isinstance, unicode)):
+						#	try:
+						#		v = v.decode("gb2312").encode("utf-8")
+						#	except:
+						#		pass
 						childDict[name] = v
 
-					print "当前:%i/%i" % (row, rows)
+					print( "当前:%i/%i" % (row, rows) )
 					self.dctData[self.tempKeys[-1]] = copy.deepcopy(childDict)
 
 				self.writeHead()
 
-			overFunc = self.mapDict.get(u'overFunc')
+			overFunc = self.mapDict.get('overFunc')
 			if overFunc is not None:
 				func = getFunc(overFunc)
 				self.dctData = func(self.mapDict, self.dctDatas, self.dctData, dataName)
@@ -340,10 +334,7 @@ class xlsx2py(object):
 
 	def needReplace(self, cellData):
 		"""宏替代"""
-		if isinstance(cellData["v"], basestring):
-			v = cellData["v"].strip()
-		else:
-			v = cellData["v"]
+		v = cellData["v"].strip()
 
 		if isinstance(v, float):	#防止数字报错(1:string) mapDict 是unicode字符串
 			v = str(int(v))
@@ -391,7 +382,8 @@ class xlsx2py(object):
 			except:
 				self.xlsxClear(EXPORT_ERROR_CPATH, (dirPath, ))
 		try:
-			fileHandler = open(self.outfile, "w+")
+			fileHandler = codecs.open(self.outfile, "w+",'utf-8')
+			#fileHandler = open(self.outfile, "w+")
 		except:
 			self.xlsxClear(EXPORT_ERROR_FILEOPEN, (self.outfile, ))
 
@@ -414,8 +406,8 @@ class xlsx2py(object):
 			self.xlsxClear(EXPORT_ERROR_FILEOPEN, ())
 		try:
 			self.fileHandler.write(stream)
-		except:
-			self.xlsxClear(EXPORT_ERROR_IOOP, ())
+		except Exception as errstr:
+			self.xlsxClear(EXPORT_ERROR_IOOP, (errstr))
 
 	def writeXLSX2PY(self):
 		"""
@@ -425,11 +417,11 @@ class xlsx2py(object):
 		return
 
 	def writeHead(self):
-		print "开始写入文件:", time.ctime(time.time())
+		print( "开始写入文件:", time.ctime(time.time()) )
 		try:
-			SheetName = self.getSheetNameByIndex(self.curProIndex[-1])
+			SheetName = self.xbook.getSheetNameByIndex(self.curProIndex[-1])
 		except:
-			print "获取表的名字出错"
+			print( "获取表的名字出错" )
 
 		sheetName = SheetName[SheetName.find(EXPORT_PREFIX_CHAR)+1:]
 		if sheetName in self.mapDict:
@@ -443,7 +435,7 @@ class xlsx2py(object):
 
 		if len(self.hasExportedSheet) <= 1:
 			stream =  EXPORT_DATA_HEAD
-			globalDefs = self.mapDict.get(u'globalDefs', '')
+			globalDefs = self.mapDict.get('globalDefs', '')
 			if len(globalDefs) > 0:
 				func = getFunc(globalDefs)
 				globalDefs = func(self.dctData)
@@ -457,13 +449,13 @@ class xlsx2py(object):
 
 	def writeBody(self):
 		#for index  in self.curProIndex:
-		#	xlsxError.info_input(EXPORT_INFO_ING, (self.getSheetNameByIndex(index).encode(FILE_CODE), ))
+		#	xlsxError.info_input(EXPORT_INFO_ING, (self.xbook.getSheetNameByIndex(index).encode(FILE_CODE), ))
 		self.xlsxWrite(EXPORT_DATA_HEAD)
 		if "globalDefs" in g_fdatas:
 			self.xlsxWrite(g_fdatas["globalDefs"])
 
 		for dataName, datas in g_dctDatas.items():
-			stream = dataName.encode("UTF-8") + "="
+			stream = dataName + "="
 			#stream += xlsxtool.dict_to_text(datas) + "\n"
 			stream += "%s\n" % (datas)
 			self.xlsxWrite(stream)
@@ -475,7 +467,7 @@ class xlsx2py(object):
 		if len(self.hasExportedSheet) < len(self.__exportSheetIndex):
 			return
 
-		allDataDefs = self.mapDict.get(u'allDataDefs', '')
+		allDataDefs = self.mapDict.get('allDataDefs', '')
 		if len(allDataDefs) > 0:
 			func = getFunc(allDataDefs)
 			allDataDefs = func(self.dctData)
@@ -485,9 +477,9 @@ class xlsx2py(object):
 					g_fdatas["allDataDefs"] = allDataDefs
 
 		stream = "\nallDatas = {\n"
-		for dataName, indexList in self.sheet2Data.iteritems():
+		for dataName, indexList in self.sheet2Data.items():
 			for index in indexList:
-				SheetName = self.getSheetNameByIndex(index)
+				SheetName = self.xbook.getSheetNameByIndex(index)
 				sheetName = SheetName[SheetName.find(EXPORT_PREFIX_CHAR)+1:]
 				stream += "\t'" +  sheetName
 				stream += "':"
@@ -498,9 +490,9 @@ class xlsx2py(object):
 			stream += "\t" + g_fdatas["allDataDefs"] + ",\n"
 
 		stream +="}"
-		self.xlsxWrite(stream.encode("UTF-8"))
+		self.xlsxWrite(stream)
 		self.xlsxbyebye()
-		print "写完了time:", time.ctime(time.time())
+		print( "写完了time:", time.ctime(time.time()) )
 
 ##############其他##################
 	def xlsxClose(self):
@@ -532,7 +524,7 @@ class xlsx2py(object):
 
 	def getSheetsCounts(self):
 		return reduce(lambda x,y:x+y, \
-			[self.getColCount(index) for index in self.__exportSheetIndex])
+			[self.xbook.getColCount(index) for index in self.__exportSheetIndex])
 
 EXPORT_SIGN['.'] = xlsx2py.isNotEmpty
 EXPORT_SIGN['$'] = xlsx2py.needReplace
@@ -546,18 +538,18 @@ def main():
 	try:
 		outfile = sys.argv[1]
 	except:
-		print main.__doc__
+		print( main.__doc__ )
 		return
 	
 	for infile in sys.argv[2:]:
-		print "开始导表:[%s] max=%i" % (infile, len(sys.argv[2:]))
+		print( "开始导表:[%s] max=%i" % (infile, len(sys.argv[2:])) )
 		if os.path.isfile(infile):
 			a = xlsx2py(infile, outfile)
 			xlsxtool.exportMenu(EXPORT_INFO_OK)
 			a.run()
 		else:
 			xlsxError.error_input(EXPORT_ERROR_NOEXISTFILE, (infile,))
-		print '-------------------------------THE END------------------------------------------------'
+		print( '-------------------------------THE END------------------------------------------------' )
 	
 	sys.exit()
 	

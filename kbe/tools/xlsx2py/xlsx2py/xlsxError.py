@@ -17,10 +17,7 @@ def except_hook(typ, val, tb):
 	ex = "\n"
 
 	for e in traceback.format_exception(typ, val, tb):
-		if isinstance(ex, unicode):
-			ex += e.encode(FILE_CODE)
-		else:
-			ex += e
+		ex += e
 
 	pywinerr_pos = ex.find('com_error')
 
@@ -31,12 +28,12 @@ def except_hook(typ, val, tb):
 	#xt.inputList(pywinerr_list)
 			
 def error_input(index, args = ""):
-		print "ERROR%d:%s"%(index, EXPORT_ERROR[index],)
+		print( "ERROR%d:%s"%(index, EXPORT_ERROR[index],) )
 		xt.inputList(args)
 		return
 
 def info_input(index, args = ""):
-	print "INFO(%d):%s,"%(index, EXPORT_INFO[index],)
+	print( "INFO(%d):%s,"%(index, EXPORT_INFO[index],) )
 	xt.inputList(args)
 
 class XlsxException(Exception):
@@ -44,7 +41,7 @@ class XlsxException(Exception):
 	“Ï≥£¥¶¿Ì
 	"""
 	def __init__(self, index, msg = ""):
-		print "ERROR%d:%s, %s"%(index, EXPORT_ERROR[index], xt.value_to_text(msg))
+		print( "ERROR%d:%s, %s"%(index, EXPORT_ERROR[index], xt.value_to_text(msg)) )
 		
 		sys.exit(1)
 

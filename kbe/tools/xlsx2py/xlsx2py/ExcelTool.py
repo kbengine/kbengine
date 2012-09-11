@@ -30,10 +30,10 @@ class ExcelTool:
 		try:
 			wn  = len(self.__xapp.Workbooks)
 		except:
-			print '程序异常退出，这可能是你打开编辑了"某文件"而没有保存该文件造成的，请保存该文件'
+			print('程序异常退出，这可能是你打开编辑了"某文件"而没有保存该文件造成的，请保存该文件')
 			sys.exit(1)
 
-		for x in xrange(0, wn):
+		for x in range(0, wn):
 			Workbook = self.__xapp.Workbooks[x]
 
 			if self.fileName == os.path.join(Workbook.Path, Workbook.name):
@@ -77,7 +77,7 @@ class ExcelTool:
 		"""
 		获得excel上指定索引位置上的表
 		"""
-		if index in xrange(1, len(self.__xlsx.Sheets)+1):
+		if index in range(1, len(self.__xlsx.Sheets)+1):
 			return self.__xlsx.Sheets(index)
 
 		else:
@@ -137,18 +137,18 @@ class ExcelTool:
 def main():
 	xbook = ExcelTool("d:\\test1.xlsx")
 
-	print "sheetCount=%i" % xbook.getSheetCount()
+	print("sheetCount=%i" % xbook.getSheetCount())
 
 	for x in range(1, xbook.getSheetCount() +1 ):
-	   print "      ", xbook.getSheetNameByIndex(x)
+	   print( "      ", xbook.getSheetNameByIndex(x))
 
-	print "sheet1:rowCount=%i, colCount=%i" % (xbook.getRowCount(1), xbook.getColCount(1))
+	print( "sheet1:rowCount=%i, colCount=%i" % (xbook.getRowCount(1), xbook.getColCount(1)))
 
 	for r in range(1, xbook.getRowCount(1) + 1):
 		for c in range(1, xbook.getColCount(1) + 1):
 			val = xbook.getValue(xbook.getSheetByIndex(2), r, c)
 			if val:
-				print "DATA:", val
+				print( "DATA:", val)
 
 if __name__ == "__main__":
 	main()

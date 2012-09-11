@@ -23,9 +23,9 @@ def exportMenu(msgIndex, YCallback = None, NCallback = None, OCallback = None):
 	# if OCallback:
 		# msg += ',other(o)'
 	
-	# print msg,'------------------'
+	# print( msg,'------------------' )
 
-	# print "您的输入:"
+	# print( "您的输入:" )
 
 	# input_command = raw_input()
 
@@ -41,7 +41,7 @@ def exportMenu(msgIndex, YCallback = None, NCallback = None, OCallback = None):
 			# if OCallback:OCallback()
 			# return
 		# else:
-			# print "是Y还是N：", 
+			# print( "是Y还是N：", )
 			# input_command = raw_input()
 
 
@@ -99,18 +99,18 @@ def inputList(var_list):
 	for element in var_list:
 		if isinstance(element, list):
 			inputList(element)
-		elif isinstance(element, basestring):
+		elif isinstance(element, str):
 			inputElement(element)
 
 def inputElement(element):
 	"""
 	对字串编码处理
 	"""
-	if isinstance(element, basestring):
+	if isinstance(element, str):
 		#element.strip().replace
-		print element#.encode(FILE_CODE),
+		print( element )#.encode(FILE_CODE),
 	#else:
-		#print element,
+		#print( element),
 
 	return
 
@@ -143,10 +143,8 @@ def str2List(error_str, pywinerr_list):
 def val2Str(data):
 	if isinstance(data, float):
 		return str(int(data))
-
-	elif isinstance(data, unicode):
-		return toGBK(data)
-	
+	if isinstance(data, bytes):
+		return data.decode("utf-8")
 	else:
 		return data
 
@@ -186,10 +184,8 @@ def dict_to_text(d):
 def value_to_text(v):
 	if isinstance(v, str):
 		return "'" + v.replace('\'', '\\\'') + "'"
-	
-	if isinstance(v, unicode):
-		return "'" + v.encode("utf-8").replace('\'', '\\\'') + "'"
-
+	if isinstance(v, bytes):
+		return v.decode("utf-8")
 	if isinstance(v, dict):
 		return dict_to_text(v)
 		
@@ -203,58 +199,29 @@ def value_to_text(v):
 
 #######################code############################
 def toGBK(val):
-	if isinstance(val, unicode):
-		return val.encode(FILE_CODE)
-		
-	else:
-		return val
-
+	if isinstance(val, str):
+		return val.encode("utf-8")
+	return val
+	
 def GTOUC(val):
-	if isinstance(val, basestring):
-		return val.decode("gb2312")
-
-	else:
-		return val
-
+	return val
+	
 def STOU(val):
 	"""
 	SYS_CODE -> utf-8
 	"""
-	if isinstance(val, basestring):
-
-		try:
-			return val.encode("utf-8")
-		except:
-			print "warining 编码转化是失败"
-			return val
-			
-	else:
-		return val
+	return val
 
 def UTOF(val):
 	"""
 	utf-8 -> FILE_CODE
 	"""
-	if isinstance(val, basestring):
-		try:
-			return val.decode("utf-8").encode(FILE_CODE)
-		except:
-			print "warining 编码转化是失败"
-			return val
-	else:
-		return val
+	return val
 
 def FTOU(val):
 	"""
 	FILE_CODE ->UTF-8
 	"""
-	if isinstance(val, basestring):
-		try:
-			return val.decode(FILE_CODE).encode("utf-8")
-		except:
-			print "warining 编码转化是失败"
-			return val
-	else:
-		return val
+	return val
 
 

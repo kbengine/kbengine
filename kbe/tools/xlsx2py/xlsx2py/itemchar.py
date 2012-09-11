@@ -56,9 +56,9 @@ def funcDropOver(mapDict, allDatas, datas, dataName):
 	elif dataName == "specialDatas":
 		for dropID, dropDatas in datas.items():
 			d[dropID] = {}
-			for bigGroupIdx in xrange(1, 6):
+			for bigGroupIdx in range(1, 6):
 				smallGroups = {}
-				for smallGroupIdx in xrange(1, 11):
+				for smallGroupIdx in range(1, 11):
 					dropGroupKey = "%s_%d_%d" % ("dropGroup", bigGroupIdx, smallGroupIdx)
 					if dropDatas[dropGroupKey] == ():
 						continue
@@ -208,7 +208,7 @@ def funcEquipDecomposeR(mapDict, allDatas, datas, dataName):
 	d = {}
 	for no, drInfo in datas.items():
 		products = {}
-		for productIdx in xrange(1, 6):
+		for productIdx in range(1, 6):
 			productKey = "%s_%d" % ("product", productIdx)
 			if drInfo[productKey] == ():
 				continue
@@ -254,7 +254,7 @@ def funcEquipDecomposeC(mapDict, allDatas, datas, dataName):
 			dd = dd
 
 		products = {}
-		for productIdx in xrange(1, 6):
+		for productIdx in range(1, 6):
 			productKey = "%s_%d" % ("product", productIdx)
 			if dcInfo[productKey] == ():
 				continue
@@ -300,7 +300,7 @@ def funcSuitProp(mapDict, allDatas, datas, dataName):
 		d[suitID]["name"] = suitDatas["name"]
 		d[suitID]["equips"] = suitDatas["equips"]
 		dd = {}
-		for propIdx in xrange(1, 11):
+		for propIdx in range(1, 11):
 			eqCount = suitDatas["%s_%d" % ("activeProp", propIdx)]
 			if eqCount == 0:
 				break

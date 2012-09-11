@@ -57,6 +57,6 @@ def funcPetData(mapDict, allDatas, datas, dataName):
 
 			d[key] = value
         else:
-                print "Unknow Table"
-                print x
+                print( "Unknow Table")
+                print( x)
 	return d

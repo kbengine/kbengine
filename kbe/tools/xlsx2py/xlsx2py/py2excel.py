@@ -81,7 +81,7 @@ class py2excel(object):
 		pyPath, filename=  os.path.split(self.pyfile)
 		pypos = filename.strip().rfind(".py")
 		if pypos < 0:
-			print "pypypypypypypypy"
+			print( "pypypypypypypypy")
 		else:
 			filename = filename[:pypos]
 
@@ -89,7 +89,7 @@ class py2excel(object):
 		#try:
 		self.pyModule = __import__(filename)
 		#except:
-			#print 'import %s' %(self.pyfile)
+			#print( 'import %s' %(self.pyfile))
 			#sys.exit(1)
 		sys.path.pop(-1)
 		sys.path.pop(-1)
@@ -106,7 +106,7 @@ class py2excel(object):
 			self.xbook = ExcelTool(self.sourcefile)
 
 			if not self.xbook.getWorkbook():
-				print "打开文件失败"
+				print( "打开文件失败" )
 				return
 
 			self.xlsx = self.xbook.getXLSX()
@@ -114,7 +114,7 @@ class py2excel(object):
 	def getSheetCNames(self):
 		allDatas = self.getSheetNameFromModule()
 		sheetCNames = {}
-		for index in xrange(1, self.xbook.getSheetCount() + 1):
+		for index in range(1, self.xbook.getSheetCount() + 1):
 			sheetName = self.xbook.getSheetNameByIndex(index)
 			if sheetName.startswith(EXPORT_PREFIX_CHAR):
 				if allDatas is  None:
@@ -123,13 +123,13 @@ class py2excel(object):
 					sheetCNames[index] = sheetName
 					
 		if len(sheetCNames) == 0:
-			print 'no sheet'
+			print( 'no sheet' )
 			self.xbook.close()
 			sys.exit(1)
 			
 		if allDatas is None and len(sheetCNames) > 1:	#这个主要处理，没有allDatas的时候
 			for k,v in sheetCNames.iteritems():
-				print "%d:%s"%(k,v)
+				print( "%d:%s"%(k,v) )
 
 			while True:
 				ii = raw_input('input your choice:')
@@ -139,7 +139,7 @@ class py2excel(object):
 					continue
 
 				if ii > 0 and ii < len(sheetCNames):
-					print sheetCNames[ii]
+					print( sheetCNames[ii] )
 					self.sheetCNames[ii] = sheetCNames[ii]
 					break
 		else:
@@ -151,7 +151,7 @@ class py2excel(object):
 		读取中英文对照
 		"""
 		if self.xlsx is None:
-			print "no file opened"
+			print( "no file opened" )
 
 		self.names = {}									#sn:表的中文名字,engName，chnName:字典key的英文(中文)名字，
 
@@ -205,7 +205,7 @@ class py2excel(object):
 		
 		if self.xbook.getXLSX() is None:
 			if not self.xbook.getWorkbook(forcedClose =True):
-				print "unknow error"
+				print( "unknow error" )
 				return
 		if self.sourcefile != '':
 			self.writeXlsxWithC()
@@ -318,7 +318,7 @@ class py2excel(object):
 		self.repeatUse = {}	#表需要覆盖
 		self.useless = []	#这些表被看做无用，需要新表的时候从这里取
 
-		for index in  xrange(1, self.xbook.getSheetCount()+1):
+		for index in  range(1, self.xbook.getSheetCount()+1):
 			name = self.xbook.getSheetNameByIndex(index)
 			if name in cnames:
 				self.repeatUse[name] = index
@@ -332,7 +332,7 @@ class py2excel(object):
 		"""
 		类型转换
 		"""
-		if isinstance(val, basestring):
+		if isinstance(val, str):
 			return val.decode("utf-8")
 		elif isinstance(val, (dict, list, tuple)):
 			return xlsxtool.value_to_text(val)		
@@ -359,14 +359,14 @@ if __name__ == '__main__':
 		pyfile, sourcefile, dstfile  = sys.argv[1:]
 
 		if False in map(lambda x:os.path.isfile(x.decode('gb2312')), sys.argv[1:3]):
-			print  '文件呢?'.decode("utf-8")
+			print(  '文件呢?'.decode("utf-8") )
 			sys.exit(1)
 
 		a = py2excel(pyfile, sourcefile, dstfile)
 		a.run()
 		
 	else:
-		print __doc__.decode("utf-8")
+		print( __doc__.decode("utf-8") )
 		sys.exit(1)
 	
 	

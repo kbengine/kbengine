@@ -1,6 +1,17 @@
 # -*- coding: gb2312 -*-
 #
 import xlsxtool
+def funcPos2D(mapDict, dctData, chilidDict, data):
+	"""
+	返回int数据
+	"""
+	if data is None or (type(data) == str and len(data) == 0):
+		return ()
+
+	data = str(data)
+
+	return (int(data.split(",")[0]), 0, int(data.split(",")[1]))
+
 def funcInt(mapDict, dctData, chilidDict, data):
 	"""
 	返回int数据
@@ -33,9 +44,9 @@ def funcStr(mapDict, dctData, chilidDict, data):
 
 	if type(data) == str:
 		return data
-	elif type(data) == unicode:
-		return data.encode("utf-8")
 	else:
+		data = str(data)
+		data = data.encode('utf8')
 		return str(data)
 
 def funcEval(mapDict, dctData, chilidDict, data):
@@ -57,17 +68,6 @@ def funcTupleInt(mapDict, dctData, chilidDict, data):
 
 	return tuple([int(e) for e in data.split(",") if len(e) > 0])
 
-def funcPos2D(mapDict, dctData, chilidDict, data):
-	"""
-	返回tuple数据
-	"""
-	if data is None or (type(data) == str and len(data) == 0):
-		return ()
-
-	data = str(data)
-
-	return (int(data.split(",")[0]), 0, int(data.split(",")[1]))
-	
 def funcDict(mapDict, dctData, chilidDict, data):
 	"""
 	返回dict数据
@@ -118,8 +118,8 @@ def funcTupleEvalMD(mapDict, dctData, chilidDict, data):
 	data = str(data)
 	try:
 		return tuple([eval(mapDict[e.decode("gb2312")]) for e in data.split(",") if len(e) > 0])
-	except Exception, errstr:
-		print "函数中发生错误:%s" % errstr
+	except Exception as errstr:
+		print( "函数中发生错误:%s" % errstr)
 		return ()
 	
 def funcTupleEval1(mapDict, dctData, chilidDict, data):
@@ -135,8 +135,8 @@ def funcTupleEval1(mapDict, dctData, chilidDict, data):
 	for e in data.split("/"):
 		try:
 			i, v = e.split("'")
-		except Exception, errstr:
-			print "函数中发生错误:%s" % errstr
+		except Exception as errstr:
+			print( "函数中发生错误:%s" % errstr)
 			continue
 		ret.append((eval(i), eval(v)))
 	return tuple(ret)
