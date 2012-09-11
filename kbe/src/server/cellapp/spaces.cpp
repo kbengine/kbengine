@@ -1,6 +1,6 @@
 #include "spaces.hpp"	
 namespace KBEngine{	
-std::map<SPACE_ID, Space*> Spaces::spaces_;
+Spaces::SPACES Spaces::spaces_;
 
 //-------------------------------------------------------------------------------------
 Spaces::Spaces()
@@ -16,7 +16,7 @@ Spaces::~Spaces()
 Space* Spaces::createNewSpace(SPACE_ID spaceID)
 {
 	Space* space = new Space(spaceID);
-	std::map<SPACE_ID, Space*>::iterator iter = spaces_.find(spaceID);
+	SPACES::iterator iter = spaces_.find(spaceID);
 	
 	if(iter != spaces_.end())
 	{
@@ -24,7 +24,7 @@ Space* Spaces::createNewSpace(SPACE_ID spaceID)
 		return NULL;
 	}
 	
-	spaces_[spaceID] = space;
+	spaces_[spaceID].reset(space);
 	DEBUG_MSG("Spaces::createNewSpace: new space %u.\n", spaceID);
 	return space;
 }
@@ -32,9 +32,9 @@ Space* Spaces::createNewSpace(SPACE_ID spaceID)
 //-------------------------------------------------------------------------------------
 Space* Spaces::findSpace(SPACE_ID spaceID)
 {
-	std::map<SPACE_ID, Space*>::iterator iter = spaces_.find(spaceID);
+	SPACES::iterator iter = spaces_.find(spaceID);
 	if(iter != spaces_.end())
-		return iter->second;
+		return iter->second.get();
 	
 	return NULL;
 }
@@ -42,7 +42,7 @@ Space* Spaces::findSpace(SPACE_ID spaceID)
 //-------------------------------------------------------------------------------------
 void Spaces::update()
 {
-	std::map<SPACE_ID, Space*>::iterator iter = spaces_.begin();
+	SPACES::iterator iter = spaces_.begin();
 	for(;iter != spaces_.end(); iter++)
 		iter->second->update();
 }

@@ -40,6 +40,8 @@ public:
 	Spaces();
 	~Spaces();
 
+	typedef std::map<SPACE_ID, std::tr1::shared_ptr<Space> > SPACES;
+
 	/** 创建一个新的space */
 	static Space* createNewSpace(SPACE_ID spaceID);
 	
@@ -49,7 +51,7 @@ public:
 	/** 更新所有的space */
 	static void update();
 protected:
-	static std::map<SPACE_ID, Space*> spaces_;
+	static SPACES spaces_;
 };
 
 }

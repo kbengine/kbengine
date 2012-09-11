@@ -558,6 +558,7 @@ void StringType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 	PyMem_Free(PyUnicode_AsWideCharStringRet0);
 
 	(*mstream) << ccattr;
+	free(ccattr);
 }
 
 //-------------------------------------------------------------------------------------
