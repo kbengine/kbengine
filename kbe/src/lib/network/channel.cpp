@@ -204,6 +204,7 @@ void Channel::endpoint(const EndPoint* endpoint)
 {
 	if (pEndPoint_ != endpoint)
 	{
+		delete pEndPoint_;
 		pEndPoint_ = const_cast<EndPoint*>(endpoint);
 	}
 	
