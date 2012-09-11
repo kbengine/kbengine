@@ -662,7 +662,7 @@ void init_network(void)
 		bundle9999 << eid;
 		bundle9999 << methodID;
 		bundle9999 << targetID;
-		uint32 dialogID = 80001;
+		uint32 dialogID = 7000001;
 		bundle9999 << dialogID;
 		bundle9999.send(mysocket);
 		

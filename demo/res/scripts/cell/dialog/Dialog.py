@@ -3,7 +3,7 @@
 """
 """
 import KBEngine
-import dialog.funcs
+import dialog.funcs as funcs
 import GlobalDefine
 from KBEDebug import *
 
@@ -28,9 +28,12 @@ class Dialog:
 			func = datas.get("func%i" % (idx + 1))
 			if len(func) <= 0:
 				continue
-
-			self.__funcs[func] = funcs.g_funcs[func](datas.get("funcargs%i" % (idx + 1)))
-
+			
+			try:
+				self.__funcs[func] = funcs.g_funcs[func](datas.get("funcargs%i" % (idx + 1)))
+			except Exception as errstr:
+				ERROR_MSG("Dialog:__init__: errstr=%s, func=%s" % (errstr, func))
+				
 	def getTitle(self):
 		return self.__title
 

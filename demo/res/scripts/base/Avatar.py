@@ -34,13 +34,17 @@ class Avatar(KBEngine.Proxy):
 		"""
 		self.createCellEntity(space)
 	
-	def onLoseCell(self):
+	def destroySelf(self):
 		"""
-		KBEngine method.
-		entity的cell部分实体丢失
 		"""
-		DEBUG_MSG("Avatar[%i].onLoseCell:" % self.id)
-		
+		if self.client is not None:
+			return
+			
+		if self.cell is not None:
+			# 销毁cell实体
+			self.destroyCellEntity()
+			return
+			
 		# 如果帐号ENTITY存在 则也通知销毁它
 		if self.accountEntity != None:
 			self.accountEntity.activeCharacter = None
@@ -49,7 +53,15 @@ class Avatar(KBEngine.Proxy):
 			
 		# 销毁base
 		self.destroy()
-			
+		
+	def onLoseCell(self):
+		"""
+		KBEngine method.
+		entity的cell部分实体丢失
+		"""
+		DEBUG_MSG("Avatar[%i].onLoseCell:" % self.id)
+		self.destroySelf()
+
 	def onClientDeath(self):
 		"""
 		KBEngine method.
@@ -69,7 +81,4 @@ class Avatar(KBEngine.Proxy):
 		
 	def onTimer(self, tid, userArg):
 		DEBUG_MSG("Avatar::onTimer: %i, tid:%i, arg:%i" % (self.id, tid, userArg))
-		
-		if self.client is None:
-			# 销毁cell实体
-			self.destroyCellEntity()
+		self.destroySelf()
