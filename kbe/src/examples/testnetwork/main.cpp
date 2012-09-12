@@ -611,7 +611,6 @@ void init_network(void)
 			uint32 endpos = msgLen + packet99.rpos() - 4;
 			if(endpos > packet99.wpos())
 			{
-				uint32 remain = endpos - packet99.wpos();
 				packet99.clear(false);
 				len = mysocket.recv(packet99.data(), 65535);
 				break;
