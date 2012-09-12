@@ -58,6 +58,9 @@ protected:
 
 	void autoWndSize();
 	void updateTree();
+
+	void loadHistory();
+	void saveHistory();
 public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	CTabCtrl m_tab;

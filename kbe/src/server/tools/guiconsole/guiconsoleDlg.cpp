@@ -9,6 +9,7 @@
 #include "network/message_handler.hpp"
 #include "server/components.hpp"
 #include "helper/console_helper.hpp"
+#include "xmlplus/xmlplus.hpp"
 
 #undef DEFINE_IN_INTERFACE
 #include "client_lib/client_interface.hpp"
@@ -196,7 +197,7 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	styles |= TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS;
 	::SetWindowLong(m_tree.m_hWnd, GWL_STYLE, styles);
 
-
+	loadHistory();
 	autoWndSize();
 	updateTree();
 
@@ -207,7 +208,7 @@ BOOL CguiconsoleDlg::OnInitDialog()
 
 void CguiconsoleDlg::historyCommandCheck()
 {
-	if(m_historyCommand.size() > 10)
+	if(m_historyCommand.size() > 50)
 		m_historyCommand.pop_front();
 
 	if(m_historyCommandIndex < 0)
@@ -297,8 +298,92 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 		g_sendData = TRUE;
 		str2 += str1;
 		m_debugWnd.displaybufferWnd()->SetWindowTextW(str2);
+
+		saveHistory();
 	}
 }
+
+CString GetAppPath()
+{
+	::TCHAR modulePath[MAX_PATH];
+    GetModuleFileName(NULL, modulePath, MAX_PATH);
+    CString strModulePath(modulePath);
+    strModulePath = strModulePath.Left(strModulePath.ReverseFind(_T('\\')));
+    return strModulePath;
+}
+
+void CguiconsoleDlg::saveHistory()
+{
+    //创建一个XML的文档对象。
+    TiXmlDocument *pDocument = new TiXmlDocument();
+
+	int i = 0;
+	std::deque<CString>::iterator iter = m_historyCommand.begin();
+	TiXmlElement *rootElement = new TiXmlElement("root");
+	pDocument->LinkEndChild(rootElement);
+
+	for(; iter != m_historyCommand.end(); iter++)
+	{
+		char key[256] = {0};
+		kbe_snprintf(key, 256, "item%d", i++);
+		TiXmlElement *rootElementChild = new TiXmlElement(key);
+		rootElement->LinkEndChild(rootElementChild);
+
+		char buffer[4096] = {0};
+		CString strCommand = (*iter);
+
+		int len = WideCharToMultiByte(CP_ACP, 0, strCommand, strCommand.GetLength(), NULL, 0, NULL, NULL);
+		WideCharToMultiByte(CP_ACP,0, strCommand, strCommand.GetLength(), buffer, len, NULL, NULL);
+		buffer[len + 1] = '\0';
+
+
+		TiXmlText *content = new TiXmlText(buffer);
+		rootElementChild->LinkEndChild(content);
+	}
+
+    CString appPath = GetAppPath();
+    CString fullPath = appPath + L"\\histroycommands.xml";
+
+	char fname[4096] = {0};
+
+	int len = WideCharToMultiByte(CP_ACP, 0, fullPath, fullPath.GetLength(), NULL, 0, NULL, NULL);
+	WideCharToMultiByte(CP_ACP,0, fullPath, fullPath.GetLength(), fname, len, NULL, NULL);
+	fname[len + 1] = '\0';
+
+	pDocument->SaveFile(fname);
+}
+
+void CguiconsoleDlg::loadHistory()
+{
+    CString appPath = GetAppPath();
+    CString fullPath = appPath + L"\\histroycommands.xml";
+
+	char fname[4096] = {0};
+
+	int len = WideCharToMultiByte(CP_ACP, 0, fullPath, fullPath.GetLength(), NULL, 0, NULL, NULL);
+	WideCharToMultiByte(CP_ACP,0, fullPath, fullPath.GetLength(), fname, len, NULL, NULL);
+	fname[len + 1] = '\0';
+
+	TiXmlDocument *pDocument = new TiXmlDocument(fname);
+	if(pDocument == NULL || !pDocument->LoadFile(TIXML_ENCODING_UTF8))
+		return;
+
+	TiXmlElement *rootElement = pDocument->RootElement();
+	TiXmlNode* node = rootElement->FirstChild();
+	if(node)
+	{
+		do																				
+		{																				
+			std::string c = node->FirstChild()->Value();
+			wchar_t* strCommand = char2wchar(c.c_str());
+			m_historyCommand.push_back(strCommand);
+			free(strCommand);
+		}while((node = node->NextSibling()));												
+	}
+
+	pDocument->Clear();
+	delete pDocument;
+}	
 
 BOOL CguiconsoleDlg::PreTranslateMessage(MSG* pMsg)
 {
@@ -788,7 +873,11 @@ void CguiconsoleDlg::OnMenu_connectTo()
 	m_debugWnd.sendbufferWnd()->SetReadOnly(isread_only);
 	if(!isread_only)
 	{
-		m_debugWnd.displaybufferWnd()->SetWindowTextW(L">>>请在下面的窗口写python代码来调试服务器。\r\n>>>ctrl+enter 发送\r\n\r\n");
+		CString s;
+		m_debugWnd.displaybufferWnd()->GetWindowTextW(s);
+		
+		s += L">>>请在下面的窗口写python代码来调试服务器。\r\n>>>ctrl+enter 发送\r\n\r\n";
+		m_debugWnd.displaybufferWnd()->SetWindowTextW(s);
 	}
 
 	endpoint->setnonblocking(true);
