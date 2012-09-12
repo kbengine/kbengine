@@ -118,7 +118,8 @@ CguiconsoleDlg::CguiconsoleDlg(CWnd* pParent /*=NULL*/)
 	_dispatcher(),
 	_networkInterface(&_dispatcher),
 	_currAddr(),
-	m_debugWnd(NULL),
+	m_debugWnd(),
+	m_logWnd(),
 	m_isInit(false),
 	m_historyCommand(),
 	m_historyCommandIndex(0),
@@ -145,6 +146,7 @@ BEGIN_MESSAGE_MAP(CguiconsoleDlg, CDialog)
 	ON_NOTIFY(NM_RCLICK, IDC_TREE1, &CguiconsoleDlg::OnNMRClickTree1)
 	ON_COMMAND(ID_32771, &CguiconsoleDlg::OnMenu_connectTo)
 	ON_COMMAND(ID_32772, &CguiconsoleDlg::OnMenu_Update)
+	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB1, &CguiconsoleDlg::OnTcnSelchangeTab1)
 END_MESSAGE_MAP()
 
 
@@ -189,9 +191,15 @@ BOOL CguiconsoleDlg::OnInitDialog()
 
 	m_isInit = true;
 	_currAddr = Mercury::Address::NONE;
-
-	m_tab.InsertItem(0, _T("DEBUG"), 0); 
+	
+	m_tab.InsertItem(0, _T("STATUS"), 0); 
+	m_statusWnd.Create(IDD_STATUS, GetDlgItem(IDC_TAB1));
+	
+	m_tab.InsertItem(1, _T("DEBUG"), 0); 
 	m_debugWnd.Create(IDD_DEBUG, GetDlgItem(IDC_TAB1));
+
+	m_tab.InsertItem(2, _T("LOG"), 0); 
+	m_logWnd.Create(IDD_LOG, GetDlgItem(IDC_TAB1));
 
 	DWORD styles = ::GetWindowLong(m_tree.m_hWnd, GWL_STYLE);
 	styles |= TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS;
@@ -756,9 +764,17 @@ void CguiconsoleDlg::autoWndSize()
 	rect.bottom -= 5;
 	rect.left += 5;
 	rect.right -= 5;
+
+	m_statusWnd.MoveWindow(&rect);
+	m_statusWnd.autoWndSize();
+
+	m_logWnd.MoveWindow(&rect);
+	m_logWnd.autoWndSize();
+
 	m_debugWnd.MoveWindow(&rect);
 	m_debugWnd.autoWndSize();
-	m_debugWnd.ShowWindow(SW_SHOW);
+
+	autoShowWindow();
 }
 
 void CguiconsoleDlg::OnNMRClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
@@ -913,4 +929,33 @@ void CguiconsoleDlg::OnMenu_Update()
 	Components::getSingleton().clear();
 
 	::SetTimer(m_hWnd, 2, 100, NULL);
+}
+
+void CguiconsoleDlg::autoShowWindow()
+{
+	switch(m_tab.GetCurSel())
+    {
+    case 0:
+		m_statusWnd.ShowWindow(SW_SHOW);
+		m_debugWnd.ShowWindow(SW_HIDE);
+		m_logWnd.ShowWindow(SW_HIDE);
+		break;
+    case 1:
+		m_statusWnd.ShowWindow(SW_HIDE);
+		m_debugWnd.ShowWindow(SW_SHOW);
+		m_logWnd.ShowWindow(SW_HIDE);
+		break;
+    case 2:
+		m_statusWnd.ShowWindow(SW_HIDE);
+		m_debugWnd.ShowWindow(SW_HIDE);
+		m_logWnd.ShowWindow(SW_SHOW);
+		break;
+    };
+}
+
+void CguiconsoleDlg::OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	// TODO: Add your control notification handler code here
+	*pResult = 0;
+	autoShowWindow();
 }

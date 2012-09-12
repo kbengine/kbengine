@@ -15,6 +15,8 @@
 #include "cstdkbe/smartpointer.hpp"
 #include "afxcmn.h"
 #include "DebugWindow.h"
+#include "LogWindow.h"
+#include "StatusWindow.h"
 
 using namespace KBEngine;
 
@@ -61,6 +63,8 @@ protected:
 
 	void loadHistory();
 	void saveHistory();
+
+	void autoShowWindow();
 public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	CTabCtrl m_tab;
@@ -77,8 +81,12 @@ private:
 	Mercury::NetworkInterface _networkInterface;
 	Mercury::Address _currAddr;
 	CDebugWindow m_debugWnd;
+	CLogWindow m_logWnd;
+	StatusWindow m_statusWnd;
 	bool m_isInit;
 	std::deque<CString> m_historyCommand;
 	int8 m_historyCommandIndex;
 	bool m_isUsingHistroy;
+public:
+	afx_msg void OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult);
 };

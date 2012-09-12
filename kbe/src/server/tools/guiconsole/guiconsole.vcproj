@@ -211,6 +211,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\LogWindow.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\StatusWindow.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -253,7 +261,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\LogWindow.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\StatusWindow.h"
 				>
 			</File>
 			<File
