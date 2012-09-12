@@ -167,7 +167,7 @@ void Space::onEntityAttachWitness(Entity* pEntity)
 		for(; iter != entities_.end(); iter++)
 		{
 			Entity* entity = (*iter).get();
-			if(!entity->getScriptModule()->hasClient())
+			if(!entity->getScriptModule()->hasClient() || entity == pEntity)
 				continue;
 
 			Mercury::Bundle* pForwardBundle1 = Mercury::Bundle::ObjPool().createObject();

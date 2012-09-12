@@ -44,6 +44,10 @@ namespace KBEngine{ namespace script{
 					L"../../res/scripts/common/Lib"
 #endif
 
+// 脚本编译后的后缀名和缓存文件夹
+#define SCRIPT_BIN_TAG "cpython-32"
+#define SCRIPT_BIN_CACHEDIR "__pycache__"
+
 class Script
 {						
 public:	

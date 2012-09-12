@@ -7,6 +7,7 @@
 
 	<Implements>
 		<Interface>	GameObject		</Interface>
+		<Interface>	NPCObject		</Interface>
 	</Implements>
 
 	<Properties>

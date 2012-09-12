@@ -11,19 +11,13 @@ class SpawnPoint(GameObject):
 		datas = d_entities.datas.get(self.spawnEntityNO)
 		params = {
 			"spawnPos" : tuple(self.position),
-			"utype" : datas["id"],
-		}
-		
-		e = KBEngine.createEntity(datas["entityType"], self.spaceID, tuple(self.position), tuple(self.direction), params)
-		
-		info = {
-			"entityID" : e.id,
-			"utype" : datas["id"],
-			"spawnPos" : datas["spawnPos"],
+			"uid" : datas["id"],
+			"utype" : datas["etype"],
 			"modelID" : datas["modelID"],
 			"dialogID" : datas["dialogID"],
 		}
-		self.getCurrSpace().regEntity(datas["entityType"], info)
+		
+		e = KBEngine.createEntity(datas["entityType"], self.spaceID, tuple(self.position), tuple(self.direction), params)
 		
 	def onDestroy(self):
 		"""

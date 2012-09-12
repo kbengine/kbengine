@@ -9,7 +9,6 @@ from GameObject import GameObject
 class Gate(GameObject):
 	def __init__(self):
 		GameObject.__init__(self)
-		self.name = "Gate%i" % self.id
 			
 	def onTimer(self, id, userArg):
 		"""

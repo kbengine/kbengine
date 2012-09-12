@@ -124,6 +124,7 @@ public:
 
 	INLINE const char* getName();
 
+	void autoMatchCompOwn();
 protected:
 	// ½Å±¾Àà±ð
 	PyTypeObject*						scriptType_;	

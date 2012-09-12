@@ -559,6 +559,16 @@ void init_network(void)
 			{
 				packet88 >> spaceID;
 			}
+			else if(40005 == propertyID)
+			{
+				uint32 listlen;
+				packet88 >> listlen;
+			}
+			else if(41006 == propertyID)
+			{
+				uint32 model;
+				packet88 >> model;
+			}
 		}
 		
 		printf("服务器下发属性:spaceUType=%u, level=%u.\n", spaceUType, level);
@@ -584,10 +594,11 @@ void init_network(void)
 
 		while(packet99.opsize() > 0)
 		{
+			ENTITY_ID eid1 = 0;
 			// 开始接收属性
 			packet99 >> msgID;
 			packet99 >> msgLen;
-			packet99 >> eid;
+			packet99 >> eid1;
 			
 
 			uint16 propertyID = 0;
@@ -595,7 +606,17 @@ void init_network(void)
 			std::string name;
 			SPACE_ID spaceID;
 			uint32 utype = 0;
+			uint32 dialogID;
+			uint32 model;
 			uint32 endpos = msgLen + packet99.rpos() - 4;
+			if(endpos > packet99.wpos())
+			{
+				uint32 remain = endpos - packet99.wpos();
+				packet99.clear(false);
+				len = mysocket.recv(packet99.data(), 65535);
+				break;
+			}
+
 			while(packet99.rpos() < endpos)
 			{
 				packet99 >> propertyID;
@@ -641,17 +662,29 @@ void init_network(void)
 				{
 					packet99 >> utype;
 					if(utype > 0)
-						targetID = eid;
+						targetID = eid1;
 				}
-				
+				else if(41005 == propertyID)
+				{
+					uint32 listlen;
+					packet99 >> listlen;
+				}
+				else if(41006 == propertyID)
+				{
+					packet99 >> model;
+				}
+				else if(41007 == propertyID)
+				{
+					packet99 >> dialogID;
+				}
 			}
-			printf("服务器下发属性:name=%s, utype=%u.\n", name.c_str(), utype);
+			printf("服务器下发属性:name=%s, utype=%u. dialogID=%u\n", name.c_str(), utype, dialogID);
 
 			packet99 >> msgID;
-			packet99 >> eid;
+			packet99 >> eid1;
 			SPACE_ID spaceID1;
 			packet99 >> spaceID1;
-			printf("!!!entity进入世界:id=%d.\n", eid);
+			printf("!!!entity进入世界:id=%d.\n", eid1);
 		};
 
 		

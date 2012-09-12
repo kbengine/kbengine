@@ -11,17 +11,6 @@ TIMER_TYPE_HEARDBEAT	= 1
 class Monster(GameObject):
 	def __init__(self):
 		GameObject.__init__(self)
-		self.name = "monster%i" % self.id
-		self.addProximity(30.0)															# 添加一个陷阱30米
-		self.heartBeatTimerID = 0														# 心跳timer的ID
-		self.moveWaitCount = 0															# 移动完毕后休息， 休息的时间是心跳的N次
-		self.isMoving = False
-		
-		# 50%几率使用另一个模型表现
-		if random.randint(0, 100) < 50:
-			self.modelNumber = "dwarf"
-			self.modelYOffset = 0.0
-			self.modelScale = 40.0
 
 	def enable(self):
 		"""

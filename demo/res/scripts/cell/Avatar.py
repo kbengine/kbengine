@@ -45,22 +45,6 @@ class Avatar(GameObject):
 		if srcEntityID != self.id:
 			return
 			
-		DEBUG_MSG("Avatar::queryCurrSpaceEntitys(%i):srcEntityID=%i, count=%i" % (self.id, srcEntityID, count))
-		space = self.getCurrSpace()
-		
-		allDatas = list(space.allNPEntities)
-		while len(allDatas) > 0:
-			data = allDatas.pop(0)
-			self.client.onQueryEntityResult(data)
-
-		end = {
-			"entityID" : 0,
-			"utype" : 0,
-			"spawnPos" : (0, 0, 0),
-			"modelID" : 0,
-			"dialogID" : 0,
-		}
-		self.client.onQueryEntityResult(end)
 		
 	def spellTarget(self, srcEntityID, skillID, targetID):
 		"""

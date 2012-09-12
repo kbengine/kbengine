@@ -9,13 +9,28 @@
 			<DetailLevel>		MEDIUM			</DetailLevel>
 		</name>
 
-		<utype>
+		<uid>
 			<Type>			UINT32			</Type>
 			<Utype> 		41004			</Utype>
 			<Flags>			ALL_CLIENTS		</Flags>
 			<Default>		0			</Default>
 			<Persistent>		true			</Persistent>
+		</uid>
+
+		<utype>
+			<Type>			UINT32			</Type>
+			<Utype> 		41005			</Utype>
+			<Flags>			ALL_CLIENTS		</Flags>
+			<Default>		0			</Default>
+			<Persistent>		true			</Persistent>
 		</utype>
+
+		<modelID>
+			<Type>			UINT32			</Type>
+			<Utype> 		41006			</Utype>
+			<Flags>			ALL_CLIENTS		</Flags>
+			<Default>		0			</Default>
+		</modelID>
 	</Properties>
 
 	<CellMethods>

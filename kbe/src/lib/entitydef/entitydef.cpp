@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "scriptdef_module.hpp"
 #include "datatypes.hpp"
 #include "common.hpp"
+#include "resmgr/resmgr.hpp"
 #include "cstdkbe/smartpointer.hpp"
 #include "entitydef/entity_mailbox.hpp"
 
@@ -147,7 +148,8 @@ bool EntityDef::loadDefInfo(std::string& defFilePath, std::string& moduleName,
 		ERROR_MSG("EntityDef::loadDefInfo: failed to load entity:%s DetailLevelInfo.\n", moduleName.c_str());
 		return false;
 	}
-		
+	
+	scriptModule->autoMatchCompOwn();
 	return true;
 }
 
@@ -271,24 +273,6 @@ bool EntityDef::loadAllDefDescription(std::string& moduleName, XmlPlus* defxml, 
 	if(!loadDefPropertys(moduleName, defxml, defxml->enterNode(defNode, "Properties"), scriptModule))
 		return false;
 	
-	if(defxml->hasNode(defNode, "CellMethods"))
-	{
-		TiXmlNode* node = defxml->enterNode(defNode, "CellMethods");
-		scriptModule->setCell(node != NULL);
-	}
-	
-	if(defxml->hasNode(defNode, "BaseMethods"))
-	{
-		TiXmlNode* node = defxml->enterNode(defNode, "BaseMethods");
-		scriptModule->setBase(node != NULL);
-	}
-	
-	if(defxml->hasNode(defNode, "ClientMethods"))
-	{
-		TiXmlNode* node = defxml->enterNode(defNode, "ClientMethods");
-		scriptModule->setClient(node != NULL);
-	}
-
 	// ¼ÓÔØcell·½·¨ÃèÊö
 	if(!loadDefCellMethods(moduleName, defxml, defxml->enterNode(defNode, "CellMethods"), scriptModule))
 	{

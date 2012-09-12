@@ -25,6 +25,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common.hpp"
 #include "cstdkbe/smartpointer.hpp"
 #include "entitydef/entity_mailbox.hpp"
+#include "resmgr/resmgr.hpp"
+#include "pyscript/script.hpp"
 
 namespace KBEngine{
 
@@ -115,6 +117,46 @@ PyObject* ScriptDefModule::getInitDict(void)
 }
 
 //-------------------------------------------------------------------------------------
+void ScriptDefModule::autoMatchCompOwn()
+{
+	setClient(false);
+	setBase(false);
+	setCell(false);
+
+	std::string fmodule = "scripts/client/" + name_ + ".py";
+	std::string fmodule_pyc = "scripts/client/"SCRIPT_BIN_CACHEDIR"/" + name_ + "."SCRIPT_BIN_TAG".pyc";
+	if(Resmgr::matchRes(fmodule) != fmodule ||
+		Resmgr::matchRes(fmodule_pyc) != fmodule_pyc)
+	{
+		setClient(true);
+	}
+	
+	if(g_componentType == CLIENT_TYPE)
+	{
+		setBase(true);
+		setCell(true);
+		return;
+	}
+
+	fmodule = "scripts/base/" + name_ + ".py";
+	fmodule_pyc = "scripts/base/"SCRIPT_BIN_CACHEDIR"/" + name_ + "."SCRIPT_BIN_TAG".pyc";
+	if(Resmgr::matchRes(fmodule) != fmodule ||
+		Resmgr::matchRes(fmodule_pyc) != fmodule_pyc)
+	{
+		setBase(true);
+	}
+
+	fmodule = "scripts/cell/" + name_ + ".py";
+	fmodule_pyc = "scripts/cell/"SCRIPT_BIN_CACHEDIR"/" + name_ + "."SCRIPT_BIN_TAG".pyc";
+	if(Resmgr::matchRes(fmodule) != fmodule ||
+		Resmgr::matchRes(fmodule_pyc) != fmodule_pyc)
+	{
+		setCell(true);
+	}
+
+}
+
+//-------------------------------------------------------------------------------------
 bool ScriptDefModule::addPropertyDescription(const char* attrName, 
 										  PropertyDescription* propertyDescription, COMPONENT_TYPE componentType)
 {
@@ -133,16 +175,20 @@ bool ScriptDefModule::addPropertyDescription(const char* attrName,
 			if((propertyDescription->getFlags() & ENTITY_CLIENT_DATA_FLAGS) > 0){
 				cellDetailLevelPropertyDescrs_[propertyDescription->getDetailLevel()][attrName] = propertyDescription;
 			}
+
+			setCell(true);
 			break;
 	case BASEAPP_TYPE:
 			f_propertyDescription = findBasePropertyDescription(attrName);
 			propertyDescr = &getBasePropertyDescriptions();
 			propertyDescr_uidmap = &getBasePropertyDescriptions_uidmap();
+			setBase(true);
 			break;
 	default:
 			f_propertyDescription = findClientPropertyDescription(attrName);
 			propertyDescr = &getClientPropertyDescriptions();
 			propertyDescr_uidmap = &getClientPropertyDescriptions_uidmap();
+			setClient(true);
 			break;
 	};
 
@@ -386,7 +432,8 @@ bool ScriptDefModule::addCellMethodDescription(const char* attrName, MethodDescr
 		ERROR_MSG("ScriptDefModule::addCellMethodDescription: [%s] is exist!\n", attrName);
 		return false;
 	}
-
+	
+	setCell(true);
 	methodCellDescr_[attrName] = methodDescription;
 	methodCellDescr_uidmap_[methodDescription->getUType()] = methodDescription;
 	return true;
@@ -425,7 +472,8 @@ bool ScriptDefModule::addBaseMethodDescription(const char* attrName, MethodDescr
 		ERROR_MSG("ScriptDefModule::addBaseMethodDescription: [%s] is exist!\n", attrName);
 		return false;
 	}
-
+	
+	setBase(true);
 	methodBaseDescr_[attrName] = methodDescription;
 	methodBaseDescr_uidmap_[methodDescription->getUType()] = methodDescription;
 	return true;
@@ -465,6 +513,7 @@ bool ScriptDefModule::addClientMethodDescription(const char* attrName, MethodDes
 		return false;
 	}
 
+	setClient(true);
 	methodClientDescr_[attrName] = methodDescription;
 	methodClientDescr_uidmap_[methodDescription->getUType()] = methodDescription;
 	return true;
