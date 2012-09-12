@@ -18,7 +18,7 @@ def onInit():
 def onGossip(key, avatar, talker):
 	INFO_MSG("onGossip: avatar:%i, talker=%i, key:%s." % (avatar.id, talker.id, key))
 	
-	if d_entities.datas.get(talker.utype, None) is None:
+	if d_entities.datas.get(talker.uid, None) is None:
 		return
 		
 	return g_dialogMgr.talk(key, avatar, talker, None)
