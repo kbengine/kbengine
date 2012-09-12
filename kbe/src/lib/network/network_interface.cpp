@@ -356,6 +356,22 @@ bool NetworkInterface::registerChannel(Channel* pChannel)
 }
 
 //-------------------------------------------------------------------------------------
+bool NetworkInterface::deregisterAllChannels()
+{
+	ChannelMap::iterator iter = channelMap_.begin();
+	while (iter != channelMap_.end())
+	{
+		ChannelMap::iterator oldIter = iter++;
+		Channel * pChannel = oldIter->second;
+		pChannel->destroy();
+	}
+
+	channelMap_.clear();
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool NetworkInterface::deregisterChannel(Channel* pChannel)
 {
 	const Address & addr = pChannel->addr();

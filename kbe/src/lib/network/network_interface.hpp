@@ -65,6 +65,7 @@ public:
 
 	bool registerChannel(Channel* pChannel);
 	bool deregisterChannel(Channel* pChannel);
+	bool deregisterAllChannels();
 	Channel * findChannel(const Address & addr);
 
 	ChannelTimeOutHandler * pChannelTimeOutHandler() const

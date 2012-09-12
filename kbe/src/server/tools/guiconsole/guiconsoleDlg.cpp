@@ -113,11 +113,9 @@ END_MESSAGE_MAP()
 CguiconsoleDlg::CguiconsoleDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CguiconsoleDlg::IDD, pParent),
 	_componentType(CONSOLE_TYPE),
-	_debugComponentType(UNKNOWN_COMPONENT_TYPE),
 	_componentID(genUUID64()),
 	_dispatcher(),
 	_networkInterface(&_dispatcher),
-	_currAddr(),
 	m_debugWnd(),
 	m_logWnd(),
 	m_isInit(false),
@@ -144,9 +142,9 @@ BEGIN_MESSAGE_MAP(CguiconsoleDlg, CDialog)
 	ON_WM_SIZING()
 	ON_WM_SIZE()
 	ON_NOTIFY(NM_RCLICK, IDC_TREE1, &CguiconsoleDlg::OnNMRClickTree1)
-	ON_COMMAND(ID_32771, &CguiconsoleDlg::OnMenu_connectTo)
 	ON_COMMAND(ID_32772, &CguiconsoleDlg::OnMenu_Update)
 	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB1, &CguiconsoleDlg::OnTcnSelchangeTab1)
+	ON_NOTIFY(NM_CLICK, IDC_TREE1, &CguiconsoleDlg::OnNMClickTree1)
 END_MESSAGE_MAP()
 
 
@@ -190,7 +188,6 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	::SetTimer(m_hWnd, 3, 1000 * 20, NULL);
 
 	m_isInit = true;
-	_currAddr = Mercury::Address::NONE;
 	
 	m_tab.InsertItem(0, _T("STATUS"), 0); 
 	m_statusWnd.Create(IDD_STATUS, GetDlgItem(IDC_TAB1));
@@ -243,7 +240,8 @@ CString CguiconsoleDlg::getHistoryCommand(bool isNextCommand)
 
 void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 {
-	if(_debugComponentType != CELLAPP_TYPE && _debugComponentType != BASEAPP_TYPE)
+	if(getTreeItemComponent(m_tree.GetSelectedItem()) != CELLAPP_TYPE 
+		&& getTreeItemComponent(m_tree.GetSelectedItem()) != BASEAPP_TYPE)
 	{
 		::AfxMessageBox(L"the component can not debug!");
 		return;
@@ -280,11 +278,11 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 		)
         s = "print(" + s + ")";
 
-	Mercury::Channel* pChannel = _networkInterface.findChannel(_currAddr);
+	Mercury::Channel* pChannel = _networkInterface.findChannel(this->getTreeItemAddr(m_tree.GetSelectedItem()));
 	if(pChannel)
 	{
 		Mercury::Bundle bundle;
-		if(_debugComponentType == BASEAPP_TYPE)
+		if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPP_TYPE)
 			bundle.newMessage(BaseappInterface::onExecScriptCommand);
 		else
 			bundle.newMessage(CellappInterface::onExecScriptCommand);
@@ -564,11 +562,13 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 		break;
 	case 3:
 		{
-			Mercury::Channel* pChannel = _networkInterface.findChannel(_currAddr);
-			if(pChannel)
+			const Mercury::NetworkInterface::ChannelMap& channels = _networkInterface.channels();
+			Mercury::NetworkInterface::ChannelMap::const_iterator iter = channels.begin();
+			for(; iter != channels.end(); iter++)
 			{
+				Mercury::Channel* pChannel = const_cast<KBEngine::Mercury::Channel*>(iter->second);
 				Mercury::Bundle bundle;
-				COMMON_MERCURY_MESSAGE(_debugComponentType, bundle, onAppActiveTick);
+				COMMON_MERCURY_MESSAGE(pChannel->proxyID(), bundle, onAppActiveTick);
 				
 				bundle << _componentType;
 				bundle << _componentID;
@@ -791,15 +791,10 @@ void CguiconsoleDlg::OnNMRClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
     pPopup->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
 }
 
-void CguiconsoleDlg::OnMenu_connectTo()
+COMPONENT_TYPE CguiconsoleDlg::getTreeItemComponent(HTREEITEM hItem)
 {
-	// TODO: Add your command handler code here
-	HTREEITEM hItem = m_tree.GetSelectedItem(); 
 	if(hItem == NULL)
-	{
-		::AfxMessageBox(L"no select!");
-		return;
-	}
+		return UNKNOWN_COMPONENT_TYPE;
 
 	CString s = m_tree.GetItemText(hItem);
 	int fi_cellappmgr = s.Find(L"cellappmgr", 0);
@@ -820,13 +815,64 @@ void CguiconsoleDlg::OnMenu_connectTo()
 		fi_loginapp < 0 &&
 		fi_dbmgr < 0)
 	{
-		::AfxMessageBox(L"no select!");
-		return;
+		return UNKNOWN_COMPONENT_TYPE;
 	}
-	
-	CString title;
-	title.Format(L"guiconsole : connected[%s]", s);
-	this->SetWindowTextW(title.GetBuffer(0));
+
+	if(fi_cellapp >= 0)
+	{
+		return CELLAPP_TYPE;
+	}
+	else if(fi_baseapp >= 0)
+	{
+		return BASEAPP_TYPE;
+	}
+	else if(fi_cellappmgr >= 0)
+	{
+		return CELLAPPMGR_TYPE;
+	}
+	else if(fi_baseappmgr >= 0)
+	{
+		return BASEAPPMGR_TYPE;
+	}
+	else if(fi_loginapp >= 0)
+	{
+		return LOGINAPP_TYPE;
+	}
+	else if(fi_dbmgr >= 0)
+	{
+		return DBMGR_TYPE;
+	}
+
+	return UNKNOWN_COMPONENT_TYPE;
+}
+
+Mercury::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
+{
+	if(hItem == NULL)
+		return Mercury::Address::NONE;
+
+	CString s = m_tree.GetItemText(hItem);
+	int fi_cellappmgr = s.Find(L"cellappmgr", 0);
+	int fi_baseappmgr = s.Find(L"baseappmgr", 0);
+	int fi_cellapp = s.Find(L"cellapp", 0);
+	int fi_baseapp = s.Find(L"baseapp", 0);
+	if(fi_cellappmgr >= 0)
+		fi_cellapp = -1;
+	if(fi_baseappmgr >= 0)
+		fi_baseapp = -1;
+	int fi_loginapp = s.Find(L"loginapp", 0);
+	int fi_dbmgr = s.Find(L"dbmgr", 0);
+
+	if(fi_cellapp  < 0 &&
+		fi_baseapp < 0 &&
+		fi_cellappmgr < 0 &&
+		fi_baseappmgr < 0 &&
+		fi_loginapp < 0 &&
+		fi_dbmgr < 0)
+	{
+		return Mercury::Address::NONE;
+	}
+
 	char* buf = KBEngine::wchar2char(s.GetBuffer(0));
 	std::string sbuf = buf;
 
@@ -839,6 +885,24 @@ void CguiconsoleDlg::OnMenu_connectTo()
 	sport = sbuf.substr(k + 1, sbuf.find("]"));
 	sport = kbe_replace(sport, "]", "");
 
+	Mercury::EndPoint endpoint;
+	u_int32_t address;
+	endpoint.convertAddress(sip.c_str(), address);
+	KBEngine::Mercury::Address addr(address, htons(atoi(sport.c_str())));
+	return addr;
+}
+
+void CguiconsoleDlg::connectTo()
+{
+	// TODO: Add your command handler code here
+	HTREEITEM hItem = m_tree.GetSelectedItem(); 
+	KBEngine::Mercury::Address addr = getTreeItemAddr(hItem);
+	if(addr.ip == 0)
+	{
+		::AfxMessageBox(L"no select!");
+		return;
+	}
+	
 	Mercury::EndPoint* endpoint = new Mercury::EndPoint();
 	endpoint->socket(SOCK_STREAM);
 	if (!endpoint->good())
@@ -847,9 +911,6 @@ void CguiconsoleDlg::OnMenu_connectTo()
 		return;
 	}
 
-	u_int32_t address;
-	endpoint->convertAddress(sip.c_str(), address);
-	KBEngine::Mercury::Address addr(address, htons(atoi(sport.c_str())));
 	endpoint->addr(addr);
 
 	if(endpoint->connect(addr.port, addr.ip) == -1)
@@ -860,52 +921,16 @@ void CguiconsoleDlg::OnMenu_connectTo()
 		return;
 	}
 
-	if(fi_cellapp >= 0)
-	{
-		_debugComponentType = CELLAPP_TYPE;
-	}
-	else if(fi_baseapp >= 0)
-	{
-		_debugComponentType = BASEAPP_TYPE;
-	}
-	else if(fi_cellappmgr >= 0)
-	{
-		_debugComponentType = CELLAPPMGR_TYPE;
-	}
-	else if(fi_baseappmgr >= 0)
-	{
-		_debugComponentType = BASEAPPMGR_TYPE;
-	}
-	else if(fi_loginapp >= 0)
-	{
-		_debugComponentType = LOGINAPP_TYPE;
-	}
-	else if(fi_dbmgr >= 0)
-	{
-		_debugComponentType = DBMGR_TYPE;
-	}
-	
-	BOOL isread_only = !(_debugComponentType == CELLAPP_TYPE || _debugComponentType == BASEAPP_TYPE);
-	m_debugWnd.sendbufferWnd()->SetReadOnly(isread_only);
-	if(!isread_only)
-	{
-		CString s;
-		m_debugWnd.displaybufferWnd()->GetWindowTextW(s);
-		
-		s += L">>>请在下面的窗口写python代码来调试服务器。\r\n>>>ctrl+enter 发送\r\n\r\n";
-		m_debugWnd.displaybufferWnd()->SetWindowTextW(s);
-	}
-
 	endpoint->setnonblocking(true);
-	Mercury::Channel* pChannel = _networkInterface.findChannel(_currAddr);
+	Mercury::Channel* pChannel = _networkInterface.findChannel(endpoint->addr());
 	if(pChannel)
 	{
 		_networkInterface.deregisterChannel(pChannel);
 		pChannel->destroy();
 	}
 
-	_currAddr = addr;
 	pChannel = new Mercury::Channel(_networkInterface, endpoint, Mercury::Channel::INTERNAL);
+	pChannel->proxyID(getTreeItemComponent(m_tree.GetSelectedItem()));
 	if(!_networkInterface.registerChannel(pChannel))
 	{
 		CString err;
@@ -916,16 +941,27 @@ void CguiconsoleDlg::OnMenu_connectTo()
 	}
 }
 
-void CguiconsoleDlg::OnMenu_Update()
+void CguiconsoleDlg::closeCurrTreeSelChannel()
 {
-	_debugComponentType = UNKNOWN_COMPONENT_TYPE;
-	Mercury::Channel* pChannel = _networkInterface.findChannel(_currAddr);
+	HTREEITEM hItem = m_tree.GetSelectedItem(); 
+	KBEngine::Mercury::Address addr = getTreeItemAddr(hItem);
+	if(addr.ip == 0)
+	{
+		::AfxMessageBox(L"no select!");
+		return;
+	}
+
+	Mercury::Channel* pChannel = _networkInterface.findChannel(addr);
 	if(pChannel)
 	{
 		_networkInterface.deregisterChannel(pChannel);
 		pChannel->destroy();
 	}
+}
 
+void CguiconsoleDlg::OnMenu_Update()
+{
+	_networkInterface.deregisterAllChannels();
 	Components::getSingleton().clear();
 
 	::SetTimer(m_hWnd, 2, 100, NULL);
@@ -958,4 +994,67 @@ void CguiconsoleDlg::OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult)
 	// TODO: Add your control notification handler code here
 	*pResult = 0;
 	autoShowWindow();
+}
+
+void CguiconsoleDlg::OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	// TODO: Add your control notification handler code here
+	*pResult = 0;
+
+	TVHITTESTINFO hittestInfo;
+
+	GetCursorPos(&hittestInfo.pt);     
+	m_tree.ScreenToClient(&hittestInfo.pt);
+
+	HTREEITEM hItem = m_tree.HitTest(&hittestInfo);   
+	
+	if(hItem == NULL || TVHT_NOWHERE & hittestInfo.flags)
+		return;
+
+	bool changeToChecked = false;
+
+	// 复选框被选中就连接否则断开连接
+	if(TVHT_ONITEMSTATEICON & hittestInfo.flags)
+	{
+		m_tree.SelectItem(hItem);
+		BOOL checked = !m_tree.GetCheck(hItem);
+
+		if(checked)
+		{
+			connectTo();
+			changeToChecked = true;
+		}
+		else
+		{
+			closeCurrTreeSelChannel();
+		}
+	}
+
+	COMPONENT_TYPE debugComponentType = getTreeItemComponent(hItem);
+	BOOL isread_only = debugComponentType != CELLAPP_TYPE && debugComponentType != BASEAPP_TYPE;
+	m_debugWnd.sendbufferWnd()->SetReadOnly(isread_only || !changeToChecked && !m_tree.GetCheck(hItem));
+
+	if(!isread_only && changeToChecked)
+	{
+		CString s;
+		m_debugWnd.displaybufferWnd()->GetWindowTextW(s);
+		
+		if(s.GetLength() <= 0)
+			s += L">>>请在下面的窗口写python代码来调试服务器。\r\n>>>ctrl+enter 发送\r\n>>>↑↓使用历史命令\r\n\r\n";
+		else
+			s += L">>>";
+
+		m_debugWnd.displaybufferWnd()->SetWindowTextW(s);
+	}
+
+	Mercury::Address currAddr = this->getTreeItemAddr(hItem);
+	if(currAddr.ip == 0)
+		return;
+
+	CString title;
+	wchar_t* tbuf = char2wchar(currAddr.c_str());
+	title.Format(L"guiconsole : selected[%s]", tbuf);
+	free(tbuf);
+	this->SetWindowTextW(title.GetBuffer(0));
+
 }

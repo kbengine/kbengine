@@ -63,8 +63,13 @@ protected:
 
 	void loadHistory();
 	void saveHistory();
+	
+	void connectTo();
 
 	void autoShowWindow();
+	void closeCurrTreeSelChannel();
+	Mercury::Address getTreeItemAddr(HTREEITEM hItem);
+	COMPONENT_TYPE getTreeItemComponent(HTREEITEM hItem);
 public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	CTabCtrl m_tab;
@@ -72,14 +77,13 @@ public:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	CTreeCtrl m_tree;
 	afx_msg void OnNMRClickTree1(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnMenu_connectTo();
+	
 	afx_msg void OnMenu_Update();
 private:
-	COMPONENT_TYPE _componentType, _debugComponentType;
+	COMPONENT_TYPE _componentType;
 	COMPONENT_ID _componentID;
 	Mercury::EventDispatcher _dispatcher;
 	Mercury::NetworkInterface _networkInterface;
-	Mercury::Address _currAddr;
 	CDebugWindow m_debugWnd;
 	CLogWindow m_logWnd;
 	StatusWindow m_statusWnd;
@@ -89,4 +93,5 @@ private:
 	bool m_isUsingHistroy;
 public:
 	afx_msg void OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult);
 };

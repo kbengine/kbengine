@@ -143,7 +143,7 @@ IDR_POPMENU MENU
 BEGIN
     POPUP "操作"
     BEGIN
-        MENUITEM "连接",                          ID_32771
+        MENUITEM "kbengine",                    ID_32771
         MENUITEM "刷新",                          ID_32772
     END
 END
