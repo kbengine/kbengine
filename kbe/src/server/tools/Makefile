@@ -20,6 +20,7 @@ endif
 
 	$(MAKE) -C ../../lib $@
 	$(MAKE) -C bots $@
+	$(MAKE) -C message_log $@
 
 ifdef KBE_CONFIG
 	@echo completed $@ \(KBE_CONFIG = $(KBE_CONFIG)\)
