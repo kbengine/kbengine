@@ -33,6 +33,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/cellapp/cellapp_interface.hpp"
 #include "../../server/dbmgr/dbmgr_interface.hpp"
 #include "../../server/loginapp/loginapp_interface.hpp"
+#include "../../server/resourcemgr/resourcemgr_interface.hpp"
 #include "../../server/tools/message_log/messagelog_interface.hpp"
 
 
@@ -306,12 +307,12 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 			}
 			else if(componentType == RESOURCEMGR_TYPE)
 			{
-				//bundle.newMessage(ResourcemgrInterface::onRegisterNewApp);
+				bundle.newMessage(ResourcemgrInterface::onRegisterNewApp);
 				
-				//ResourcemgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
-				//	Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
-				//	_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
-				//	_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
+				ResourcemgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
+					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
 			else
 			{

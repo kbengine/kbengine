@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cstdkbe/cstdkbe.hpp"
 #include "server/kbemain.hpp"
-#include "machine.hpp"
+#include "resourcemgr.hpp"
 
 #undef DEFINE_IN_INTERFACE
 #include "baseappmgr/baseappmgr_interface.hpp"
@@ -54,9 +54,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "loginapp/loginapp_interface.hpp"
 
 #undef DEFINE_IN_INTERFACE
-#include "resourcemgr/resourcemgr_interface.hpp"
+#include "machine/machine_interface.hpp"
 #define DEFINE_IN_INTERFACE
-#include "resourcemgr/resourcemgr_interface.hpp"
+#include "machine/machine_interface.hpp"
 
 #undef DEFINE_IN_INTERFACE
 #include "tools/message_log/messagelog_interface.hpp"
@@ -73,7 +73,8 @@ int KBENGINE_MAIN(int argc, char* argv[])
 	setrlimit(RLIMIT_CORE, &rlimitData);
 #endif
 	
-	ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getKBMachine();
-	int ret = kbeMainT<Machine>(argc, argv, MACHINE_TYPE, -1, -1, "", 0, info.internalInterface);
+	ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getMessagelog();
+	int ret = kbeMainT<Resourcemgr>(argc, argv, RESOURCEMGR_TYPE, info.externalPorts_min, 
+		info.externalPorts_max, info.externalInterface, 0, info.internalInterface);
 	return ret; 
 }

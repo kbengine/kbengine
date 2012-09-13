@@ -51,6 +51,11 @@
 #include "cellappmgr/cellappmgr_interface.hpp"
 
 #undef DEFINE_IN_INTERFACE
+#include "resourcemgr/resourcemgr_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "resourcemgr/resourcemgr_interface.hpp"
+
+#undef DEFINE_IN_INTERFACE
 #include "tools/message_log/messagelog_interface.hpp"
 #define DEFINE_IN_INTERFACE
 #include "tools/message_log/messagelog_interface.hpp"

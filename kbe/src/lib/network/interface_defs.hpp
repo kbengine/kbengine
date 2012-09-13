@@ -82,6 +82,7 @@ namespace Mercury
 			break;																							\
 		case RESOURCEMGR_TYPE:																				\
 			{																								\
+				BUNDLE.newMessage(ResourcemgrInterface::MESSAGENAME);										\
 			}																								\
 			break;																							\
 		default:																							\
