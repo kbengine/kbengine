@@ -91,23 +91,33 @@ bool Componentbridge::findInterfaces()
 		findComponentTypes[0] = DBMGR_TYPE;
 		findComponentTypes[1] = CELLAPPMGR_TYPE;
 		findComponentTypes[2] = BASEAPPMGR_TYPE;
+		findComponentTypes[3] = MESSAGELOG_TYPE;
+		//findComponentTypes[4] = RESOURCEMGR_TYPE;
 		break;
 	case BASEAPP_TYPE:
 		findComponentTypes[0] = DBMGR_TYPE;
 		findComponentTypes[1] = BASEAPPMGR_TYPE;
 		findComponentTypes[2] = CELLAPPMGR_TYPE;
+		findComponentTypes[3] = MESSAGELOG_TYPE;
+		findComponentTypes[4] = RESOURCEMGR_TYPE;
 		break;
 	case BASEAPPMGR_TYPE:
 		findComponentTypes[0] = DBMGR_TYPE;
 		findComponentTypes[1] = CELLAPPMGR_TYPE;
+		findComponentTypes[2] = MESSAGELOG_TYPE;
 		break;
 	case CELLAPPMGR_TYPE:
 		findComponentTypes[0] = DBMGR_TYPE;
 		findComponentTypes[1] = BASEAPPMGR_TYPE;
+		findComponentTypes[2] = MESSAGELOG_TYPE;
 		break;
 	case LOGINAPP_TYPE:
 		findComponentTypes[0] = DBMGR_TYPE;
 		findComponentTypes[1] = BASEAPPMGR_TYPE;
+		findComponentTypes[2] = MESSAGELOG_TYPE;
+		break;
+	case DBMGR_TYPE:
+		findComponentTypes[0] = MESSAGELOG_TYPE;
 		break;
 	default:
 		break;
@@ -159,6 +169,18 @@ bool Componentbridge::findInterfaces()
 				//	COMPONENT_NAME[findComponentType]);
 				
 				KBEngine::sleep(1000);
+				
+				// 如果是这些辅助组件没找到则跳过
+				if(findComponentType == MESSAGELOG_TYPE || findComponentType == RESOURCEMGR_TYPE)
+				{
+					WARNING_MSG("Componentbridge::process: not found %s!\n",
+						COMPONENT_NAME[findComponentType]);
+
+					findComponentTypes[ifind] = -1; // 跳过标志
+
+					ifind++;
+				}
+
 				continue;
 			}
 
@@ -186,14 +208,17 @@ bool Componentbridge::findInterfaces()
 	}
 	
 	ifind = 0;
-	// 开始注册到所有的组件
 
+	// 开始注册到所有的组件
 	while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)
 	{
 		if(dispatcher().isBreakProcessing())
 			return false;
 
 		int8 findComponentType = findComponentTypes[ifind++];
+		
+		if(findComponentType == -1)
+			continue;
 
 		INFO_MSG("Componentbridge::process: register self to %s...\n",
 			COMPONENT_NAME[findComponentType]);

@@ -33,6 +33,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/cellapp/cellapp_interface.hpp"
 #include "../../server/dbmgr/dbmgr_interface.hpp"
 #include "../../server/loginapp/loginapp_interface.hpp"
+#include "../../server/tools/message_log/messagelog_interface.hpp"
+
 
 namespace KBEngine
 {
@@ -42,7 +44,21 @@ Components _g_components;
 
 //-------------------------------------------------------------------------------------
 Components::Components():
-_pNetworkInterface(NULL)
+_baseapps(),
+_cellapps(),
+_dbmgrs(),
+_loginapps(),
+_cellappmgrs(),
+_baseappmgrs(),
+_machines(),
+_messagelogs(),
+_resourcemgrs(),
+_consoles(),
+_pNetworkInterface(NULL),
+_globalOrderLog(),
+_baseappGrouplOrderLog(),
+_cellappGrouplOrderLog(),
+_loginappGrouplOrderLog()
 {
 }
 
@@ -51,6 +67,7 @@ Components::~Components()
 {
 }
 
+//-------------------------------------------------------------------------------------
 bool Components::checkComponents(int32 uid, COMPONENT_ID componentID)
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -105,8 +122,8 @@ void Components::addComponent(int32 uid, const char* username,
 	
 	ComponentInfos componentInfos;
 
-	componentInfos.pIntAddr = new Mercury::Address(intaddr, intport);
-	componentInfos.pExtAddr = new Mercury::Address(extaddr, extport);
+	componentInfos.pIntAddr.reset(new Mercury::Address(intaddr, intport));
+	componentInfos.pExtAddr.reset(new Mercury::Address(extaddr, extport));
 	componentInfos.uid = uid;
 	componentInfos.cid = componentID;
 	componentInfos.pChannel = pChannel;
@@ -155,8 +172,8 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType,
 			INFO_MSG("Components::delComponent[%s] componentID=%" PRAppID ", component:totalcount=%d.\n", 
 				COMPONENT_NAME[(uint8)componentType], componentID, components.size());
 
-			SAFE_RELEASE((*iter).pIntAddr);
-			SAFE_RELEASE((*iter).pExtAddr);
+			//SAFE_RELEASE((*iter).pIntAddr);
+			//SAFE_RELEASE((*iter).pExtAddr);
 			//(*iter).pChannel->decRef();
 			iter = components.erase(iter);
 
@@ -177,13 +194,10 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType,
 //-------------------------------------------------------------------------------------		
 void Components::removeComponentFromChannel(Mercury::Channel * pChannel)
 {
-	int8 findComponentTypes[] = {BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, DBMGR_TYPE, CELLAPP_TYPE, 
-						BASEAPP_TYPE, LOGINAPP_TYPE, MACHINE_TYPE, UNKNOWN_COMPONENT_TYPE};
-	
 	int ifind = 0;
-	while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)
+	while(ALL_COMPONENT_TYPES[ifind] != UNKNOWN_COMPONENT_TYPE)
 	{
-		COMPONENT_TYPE componentType = (COMPONENT_TYPE)findComponentTypes[ifind++];
+		COMPONENT_TYPE componentType = ALL_COMPONENT_TYPES[ifind++];
 		COMPONENTS& components = getComponents(componentType);
 		COMPONENTS::iterator iter = components.begin();
 
@@ -191,8 +205,8 @@ void Components::removeComponentFromChannel(Mercury::Channel * pChannel)
 		{
 			if((*iter).pChannel == pChannel)
 			{
-				SAFE_RELEASE((*iter).pIntAddr);
-				SAFE_RELEASE((*iter).pExtAddr);
+				//SAFE_RELEASE((*iter).pIntAddr);
+				//SAFE_RELEASE((*iter).pExtAddr);
 				// (*iter).pChannel->decRef();
 
 				WARNING_MSG("Components::removeComponentFromChannel: %s : %"PRAppID".\n", COMPONENT_NAME[componentType], (*iter).cid);
@@ -281,6 +295,24 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
+			else if(componentType == MESSAGELOG_TYPE)
+			{
+				bundle.newMessage(MessagelogInterface::onRegisterNewApp);
+				
+				MessagelogInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
+					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
+			}
+			else if(componentType == RESOURCEMGR_TYPE)
+			{
+				//bundle.newMessage(ResourcemgrInterface::onRegisterNewApp);
+				
+				//ResourcemgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+				//	Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+				//	_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
+				//	_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
+			}
 			else
 			{
 				KBE_ASSERT(false && "invalid componentType.\n");
@@ -330,13 +362,15 @@ Components::COMPONENTS& Components::getComponents(COMPONENT_TYPE componentType)
 		return _baseapps;
 	case MACHINE_TYPE:
 		return _machines;
-	case CENTER_TYPE:
-		return _centers;		
+	case MESSAGELOG_TYPE:
+		return _messagelogs;		
+	case RESOURCEMGR_TYPE:
+		return _resourcemgrs;	
 	default:
 		break;
 	};
 
-	return _baseapps;
+	return _consoles;
 }
 
 //-------------------------------------------------------------------------------------		

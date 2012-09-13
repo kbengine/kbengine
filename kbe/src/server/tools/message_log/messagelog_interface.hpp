@@ -46,7 +46,21 @@ namespace KBEngine{
 	Messagelog所有消息接口在此定义
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(MessagelogInterface)
-									
+	// 某app注册自己的接口地址到本app
+	MESSAGELOG_MESSAGE_DECLARE_ARGS8(onRegisterNewApp,						MERCURY_VARIABLE_MESSAGE,
+									int32,									uid, 
+									std::string,							username,
+									int8,									componentType, 
+									uint64,									componentID, 
+									uint32,									intaddr, 
+									uint16,									intport,
+									uint32,									extaddr, 
+									uint16,									extport)
+
+	// 某个app向本app告知处于活动状态。
+	MESSAGELOG_MESSAGE_DECLARE_ARGS2(onAppActiveTick,						MERCURY_FIXED_MESSAGE,
+									COMPONENT_TYPE,							componentType, 
+									COMPONENT_ID,							componentID)
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

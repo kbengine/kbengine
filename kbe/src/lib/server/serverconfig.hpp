@@ -103,6 +103,8 @@ public:
 	ENGINE_COMPONENT_INFO& getKBMachine(void);
 	ENGINE_COMPONENT_INFO& getKBCenter(void);
 	ENGINE_COMPONENT_INFO& getBots(void);
+	ENGINE_COMPONENT_INFO& getResourcemgr(void);
+	ENGINE_COMPONENT_INFO& getMessagelog(void);
 
 	inline ENGINE_COMPONENT_INFO& getComponent(COMPONENT_TYPE ComponentType);
  	
@@ -120,6 +122,8 @@ private:
 	ENGINE_COMPONENT_INFO _kbMachineInfo;
 	ENGINE_COMPONENT_INFO _kbCenterInfo;
 	ENGINE_COMPONENT_INFO _botsInfo;
+	ENGINE_COMPONENT_INFO _resourcemgrInfo;
+	ENGINE_COMPONENT_INFO _messagelogInfo;
 public:
 	int16 gameUpdateHertz_;
 };

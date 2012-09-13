@@ -75,6 +75,15 @@ namespace Mercury
 				BUNDLE.newMessage(LoginappInterface::MESSAGENAME);											\
 			}																								\
 			break;																							\
+		case MESSAGELOG_TYPE:																				\
+			{																								\
+				BUNDLE.newMessage(MessagelogInterface::MESSAGENAME);										\
+			}																								\
+			break;																							\
+		case RESOURCEMGR_TYPE:																				\
+			{																								\
+			}																								\
+			break;																							\
 		default:																							\
 			break;																							\
 		};																									\

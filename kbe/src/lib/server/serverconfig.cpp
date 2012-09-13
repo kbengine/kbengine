@@ -283,6 +283,26 @@ bool ServerConfig::loadConfig(std::string fileName)
 			strncpy((char*)&_botsInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 	}
 
+	rootNode = NULL;
+	rootNode = xml->getRootNode("messagelog");
+	if(rootNode != NULL)
+	{
+		node = NULL;
+		node = xml->enterNode(rootNode, "messagelog");	
+		if(node != NULL)
+			strncpy((char*)&_messagelogInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+	}
+
+	rootNode = NULL;
+	rootNode = xml->getRootNode("resourcemgr");
+	if(rootNode != NULL)
+	{
+		node = NULL;
+		node = xml->enterNode(rootNode, "resourcemgr");	
+		if(node != NULL)
+			strncpy((char*)&_resourcemgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+	}
+
 	SAFE_RELEASE(xml);
 	return true;
 }
@@ -341,6 +361,18 @@ ENGINE_COMPONENT_INFO& ServerConfig::getBots(void)
 	return _botsInfo;
 }
 
+//-------------------------------------------------------------------------------------		
+ENGINE_COMPONENT_INFO& ServerConfig::getResourcemgr(void)
+{
+	return _resourcemgrInfo;
+}
+
+//-------------------------------------------------------------------------------------		
+ENGINE_COMPONENT_INFO& ServerConfig::getMessagelog(void)
+{
+	return _messagelogInfo;
+}
+
 //-------------------------------------------------------------------------------------	
 ENGINE_COMPONENT_INFO& ServerConfig::getComponent(COMPONENT_TYPE componentType)
 {
@@ -362,6 +394,10 @@ ENGINE_COMPONENT_INFO& ServerConfig::getComponent(COMPONENT_TYPE componentType)
 		return getKBMachine();
 	case CENTER_TYPE:
 		return getKBCenter();
+	case RESOURCEMGR_TYPE:
+		return getResourcemgr();
+	case MESSAGELOG_TYPE:
+		return getMessagelog();
 	default:
 		return getCellApp();
 	};

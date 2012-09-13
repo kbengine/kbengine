@@ -50,6 +50,11 @@
 #define DEFINE_IN_INTERFACE
 #include "cellappmgr/cellappmgr_interface.hpp"
 
+#undef DEFINE_IN_INTERFACE
+#include "tools/message_log/messagelog_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "tools/message_log/messagelog_interface.hpp"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif

@@ -120,7 +120,120 @@ namespace KBEngine{
 	NETWORK_MESSAGE_DECLARE_ARGS1(Messagelog, NAME,								\
 				NAME##MessagelogMessagehandler1, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
 																				\
-	
+
+/**
+	Messagelog消息宏，  只有二个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS2
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(MESSAGELOG)
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2)				\
+	void NAME##MessagelogMessagehandler2::handle(Mercury::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			ARG_TYPE1 ARG_NAME1;												\
+			s >> ARG_NAME1;														\
+			ARG_TYPE2 ARG_NAME2;												\
+			s >> ARG_NAME2;														\
+			KBEngine::Messagelog::getSingleton().NAME(pChannel,					\
+													ARG_NAME1, ARG_NAME2);		\
+	}																			\
+
+#else
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2)				\
+	void NAME##MessagelogMessagehandler2::handle(Mercury::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2)				\
+	class NAME##MessagelogMessagehandler2 : public Mercury::MessageHandler		\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define MESSAGELOG_MESSAGE_DECLARE_ARGS2(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+											ARG_TYPE2, ARG_NAME2)				\
+	MESSAGELOG_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1, 				\
+											ARG_TYPE2, ARG_NAME2)				\
+	NETWORK_MESSAGE_DECLARE_ARGS2(Messagelog, NAME,								\
+				NAME##MessagelogMessagehandler2, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+											ARG_TYPE2, ARG_NAME2)				\
+
+
+/**
+	Messagelog消息宏，  只有三个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS3
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(MESSAGELOG)
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+	void NAME##CellAppMessagehandler3::handle(Mercury::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			ARG_TYPE1 ARG_NAME1;												\
+			s >> ARG_NAME1;														\
+			ARG_TYPE2 ARG_NAME2;												\
+			s >> ARG_NAME2;														\
+			ARG_TYPE3 ARG_NAME3;												\
+			s >> ARG_NAME3;														\
+			KBEngine::Messagelog::getSingleton().NAME(pChannel,					\
+				ARG_NAME1, ARG_NAME2, 											\
+				ARG_NAME3);														\
+	}																			\
+
+#else
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+	void NAME##CellAppMessagehandler3::handle(Mercury::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+	class NAME##CellAppMessagehandler3 : public Mercury::MessageHandler			\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+												KBEngine::MemoryStream& s);		\
+	};																			\
+
+#endif
+
+#define MESSAGELOG_MESSAGE_DECLARE_ARGS3(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+	MESSAGELOG_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1, 				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+	NETWORK_MESSAGE_DECLARE_ARGS3(Messagelog, NAME,								\
+				NAME##CellAppMessagehandler3, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3)				\
+
+
 /**
 	Messagelog消息宏，  只有四个参数的消息
 */

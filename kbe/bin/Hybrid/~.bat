@@ -1,4 +1,5 @@
 taskkill /f /t /im kbmachine.exe
+taskkill /f /t /im messagelog.exe
 taskkill /f /t /im dbmgr.exe
 taskkill /f /t /im baseappmgr.exe
 taskkill /f /t /im cellappmgr.exe

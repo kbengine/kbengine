@@ -50,7 +50,7 @@ class Components : public Singleton<Components>
 public:
 	struct ComponentInfos
 	{
-		Mercury::Address* pIntAddr, *pExtAddr; // 内部和外部地址
+		std::tr1::shared_ptr<Mercury::Address > pIntAddr, pExtAddr; // 内部和外部地址
 		int32 uid;
 		COMPONENT_ID cid;
 		char username[MAX_NAME + 1];
@@ -112,7 +112,9 @@ private:
 	COMPONENTS								_cellappmgrs;
 	COMPONENTS								_baseappmgrs;
 	COMPONENTS								_machines;
-	COMPONENTS								_centers;
+	COMPONENTS								_messagelogs;
+	COMPONENTS								_resourcemgrs;
+	COMPONENTS								_consoles;
 
 	Mercury::NetworkInterface*				_pNetworkInterface;
 	

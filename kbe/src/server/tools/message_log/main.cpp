@@ -68,7 +68,8 @@ int KBENGINE_MAIN(int argc, char* argv[])
 	setrlimit(RLIMIT_CORE, &rlimitData);
 #endif
 	
-	ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getKBMachine();
-	int ret = kbeMainT<Messagelog>(argc, argv, MESSAGELOG_TYPE, -1, -1, "", 0, info.internalInterface);
+	ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getMessagelog();
+	int ret = kbeMainT<Messagelog>(argc, argv, MESSAGELOG_TYPE, info.externalPorts_min, 
+		info.externalPorts_max, info.externalInterface, 0, info.internalInterface);
 	return ret; 
 }

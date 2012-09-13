@@ -78,4 +78,12 @@
 	<bots>
 		<internalInterface>  </internalInterface>
 	</bots>
+	
+	<messagelog>
+		<internalInterface>  </internalInterface>
+	</messagelog>
+	
+	<resourcemgr>
+		<internalInterface>  </internalInterface>
+	</resourcemgr>
 </root>

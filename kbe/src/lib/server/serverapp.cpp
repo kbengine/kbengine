@@ -31,6 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/cellapp/cellapp_interface.hpp"
 #include "../../server/dbmgr/dbmgr_interface.hpp"
 #include "../../server/loginapp/loginapp_interface.hpp"
+#include "../../server/tools/message_log/messagelog_interface.hpp"
 
 namespace KBEngine{
 COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;
@@ -127,7 +128,7 @@ void ServerApp::handleTimeout(TimerHandle, void * arg)
 		case TIMEOUT_ACTIVE_TICK:
 		{
 			int8 findComponentTypes[] = {BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, DBMGR_TYPE, CELLAPP_TYPE, 
-								BASEAPP_TYPE, LOGINAPP_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE};
+								BASEAPP_TYPE, LOGINAPP_TYPE, MESSAGELOG_TYPE, RESOURCEMGR_TYPE, UNKNOWN_COMPONENT_TYPE};
 			
 			int ifind = 0;
 			while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)
