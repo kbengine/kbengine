@@ -28,7 +28,7 @@ endif
 	$(MAKE) -C dbmgr $@
 	$(MAKE) -C loginapp $@
 	$(MAKE) -C machine $@
-#	$(MAKE) -C reviver $@
+	$(MAKE) -C resourcemgr $@
 	$(MAKE) -C tools $@
 
 ifdef KBE_CONFIG
