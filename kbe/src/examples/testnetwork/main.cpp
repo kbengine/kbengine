@@ -295,7 +295,7 @@ void init_network(void)
 		}
 		
 		// 请求创建账号
-		printf("请求创建账号\n");
+		printf("请求创建账号\n"); 
 	//	mysocket.setnodelay(false);
 		mysocket.setnonblocking(false);
 		MessageID msgID = 0;
