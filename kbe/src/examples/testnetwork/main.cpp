@@ -514,7 +514,8 @@ void init_network(void)
 		packet88 >> eid;
 
 		uint16 propertyID = 0;
-		uint16 spaceUType, level;
+		uint32 spaceUType;
+		uint16 level;
 		std::string name;
 		SPACE_ID spaceID;
 
@@ -602,7 +603,8 @@ void init_network(void)
 			
 
 			uint16 propertyID = 0;
-			uint16 spaceUType, level;
+			uint32 spaceUType;
+			uint16 level;
 			std::string name;
 			SPACE_ID spaceID;
 			uint32 utype = 0;

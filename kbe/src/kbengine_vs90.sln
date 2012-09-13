@@ -174,6 +174,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dbmgr_lib", "lib\dbmgr_lib\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "db_mysql", "lib\db_mysql\db_mysql90.vcproj", "{24CB1A43-C6E1-442E-AF99-A91D26BA8FA0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "messagelog", "server\tools\message_log\messagelog90.vcproj", "{E999D336-32D1-48CC-A71F-FC552BD5093B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -272,6 +274,10 @@ Global
 		{24CB1A43-C6E1-442E-AF99-A91D26BA8FA0}.Debug|Win32.Build.0 = Debug|Win32
 		{24CB1A43-C6E1-442E-AF99-A91D26BA8FA0}.Release|Win32.ActiveCfg = Release|Win32
 		{24CB1A43-C6E1-442E-AF99-A91D26BA8FA0}.Release|Win32.Build.0 = Release|Win32
+		{E999D336-32D1-48CC-A71F-FC552BD5093B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E999D336-32D1-48CC-A71F-FC552BD5093B}.Debug|Win32.Build.0 = Debug|Win32
+		{E999D336-32D1-48CC-A71F-FC552BD5093B}.Release|Win32.ActiveCfg = Release|Win32
+		{E999D336-32D1-48CC-A71F-FC552BD5093B}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

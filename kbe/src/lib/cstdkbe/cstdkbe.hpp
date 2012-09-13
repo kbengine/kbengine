@@ -75,16 +75,18 @@ const char ENTITY_MAILBOX_TYPE_TO_NAME_TABLE[][8] =
 enum COMPONENT_TYPE
 {
 	UNKNOWN_COMPONENT_TYPE	= 0,
-	DBMGR_TYPE		= 1,
-	LOGINAPP_TYPE	= 2,
-	BASEAPPMGR_TYPE	= 3,
-	CELLAPPMGR_TYPE	= 4,
-	CELLAPP_TYPE	= 5,
-	BASEAPP_TYPE	= 6,
-	CLIENT_TYPE		= 7,
-	MACHINE_TYPE	= 8,
-	CENTER_TYPE		= 9,
-	CONSOLE_TYPE	= 10
+	DBMGR_TYPE				= 1,
+	LOGINAPP_TYPE			= 2,
+	BASEAPPMGR_TYPE			= 3,
+	CELLAPPMGR_TYPE			= 4,
+	CELLAPP_TYPE			= 5,
+	BASEAPP_TYPE			= 6,
+	CLIENT_TYPE				= 7,
+	MACHINE_TYPE			= 8,
+	CENTER_TYPE				= 9,
+	CONSOLE_TYPE			= 10,
+	MESSAGELOG_TYPE			= 11,
+	RESOURCEMGR_TYPE		= 12
 };
 
 /** 当前服务器组件类别和ID */
@@ -104,6 +106,8 @@ const char COMPONENT_NAME[][255] = {
 	"kbmachine",
 	"kbcenter",
 	"console",
+	"messagelog",
+	"resourcemgr",
 };
 
 // 所有的组件列表
