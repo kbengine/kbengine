@@ -582,7 +582,7 @@ void init_network(void)
 		packet99 >> msgID;
 		packet99 >> eid >> spaceID;
 		printf("!!!玩家进入世界:spaceUType=%u, level=%u.\n", spaceUType, level);
-		
+		uint32 dialogID = 0;
 		// 服务器下发entity
 		if(packet99.opsize() == 0)
 		{
@@ -608,7 +608,7 @@ void init_network(void)
 			std::string name;
 			SPACE_ID spaceID;
 			uint32 utype = 0;
-			uint32 dialogID;
+			uint32 dialogID1;
 			uint32 model;
 			uint32 endpos = msgLen + packet99.rpos() - 4;
 			if(endpos > packet99.wpos())
@@ -676,7 +676,10 @@ void init_network(void)
 				}
 				else if(41007 == propertyID)
 				{
-					packet99 >> dialogID;
+					packet99 >> dialogID1;
+
+					if(dialogID == 0)
+						dialogID = dialogID1;
 				}
 			}
 			printf("服务器下发属性:name=%s, utype=%u. dialogID=%u\n", name.c_str(), utype, dialogID);
@@ -696,7 +699,7 @@ void init_network(void)
 		bundle9999 << eid;
 		bundle9999 << methodID;
 		bundle9999 << targetID;
-		uint32 dialogID = 7000001;
+		
 		bundle9999 << dialogID;
 		bundle9999.send(mysocket);
 		
