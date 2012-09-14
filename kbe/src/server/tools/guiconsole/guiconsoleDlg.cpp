@@ -245,6 +245,9 @@ CString CguiconsoleDlg::getHistoryCommand(bool isNextCommand)
 
 	m_isUsingHistroy = true;
 	historyCommandCheck();
+
+	if(m_historyCommand.size() == 0)
+		return L"";
 	return m_historyCommand[m_historyCommandIndex];
 }
 
