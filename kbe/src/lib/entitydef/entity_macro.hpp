@@ -91,6 +91,18 @@ namespace KBEngine{
 #endif
 
 
+#define ENTITY_DESTROYED_CHECK(RETURN, OPNAME, ENTITY)														\
+{																											\
+	if(ENTITY->isDestroyed())																				\
+	{																										\
+		PyErr_Format(PyExc_Exception, "%s::%s: %d is destroyed!\n",											\
+			OPNAME, ENTITY->getScriptName(), ENTITY->getID());												\
+		PyErr_PrintEx(0);																					\
+		RETURN;																								\
+	}																										\
+}																											\
+
+
 #define ENTITY_HEADER(CLASS)																				\
 protected:																									\
 	ENTITY_ID		id_;																					\

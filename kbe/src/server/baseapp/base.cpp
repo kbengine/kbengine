@@ -244,6 +244,11 @@ void Base::destroyCellData(void)
 //-------------------------------------------------------------------------------------
 bool Base::destroyCellEntity(void)
 {
+	if(isDestroyed())	
+	{
+		return false;																					
+	}
+
 	if(cellMailbox_  == NULL || cellMailbox_->getChannel() == NULL)
 		return false;
 
@@ -261,6 +266,7 @@ PyObject* Base::pyDestroyCellEntity()
 	{
 		PyErr_Format(PyExc_Exception, "%s::destroyCellEntity: id:%i no cell! creatingCell=%s\n", this->getScriptName(), this->getID(),
 			creatingCell_ ? "true" : "false");
+		PyErr_PrintEx(0);
 		return false;
 	}
 	else
@@ -272,10 +278,19 @@ PyObject* Base::pyDestroyCellEntity()
 //-------------------------------------------------------------------------------------
 PyObject* Base::pyDestroyEntity()
 {
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_Exception, "%s::destroy: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		S_Return;																						
+	}
+
 	if(creatingCell_ || cellMailbox_ != NULL) 
 	{
 		PyErr_Format(PyExc_Exception, "%s::destroy: id:%i has cell! creatingCell=%s\n", this->getScriptName(), this->getID(),
 			creatingCell_ ? "true" : "false");
+		PyErr_PrintEx(0);
 	}
 	else
 		destroyEntity();
@@ -286,6 +301,14 @@ PyObject* Base::pyDestroyEntity()
 //-------------------------------------------------------------------------------------
 PyObject* Base::pyGetCellMailbox()
 { 
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_Exception, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		S_Return;																						
+	}
+
 	EntityMailbox* mailbox = getCellMailbox();
 	if(mailbox == NULL)
 		S_Return;
@@ -296,7 +319,15 @@ PyObject* Base::pyGetCellMailbox()
 
 //-------------------------------------------------------------------------------------
 PyObject* Base::pyGetClientMailbox()
-{ 
+{
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_Exception, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		S_Return;																						
+	}
+
 	EntityMailbox* mailbox = getClientMailbox();
 	if(mailbox == NULL)
 		S_Return;
@@ -328,6 +359,14 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 			WARNING_MSG("Base::onRemoteMethodCall: srcEntityID:%d, thisEntityID:%d.\n", srcEntityID, this->getID());
 			return;
 		}
+	}
+
+	if(isDestroyed())																				
+	{																										
+		ERROR_MSG("%s::onRemoteMethodCall: %d is destroyed!\n",											
+			getScriptName(), getID());
+		s.read_skip(s.opsize());
+		return;																							
 	}
 
 	ENTITY_METHOD_UID utype = 0;
@@ -468,6 +507,11 @@ void Base::writeToDB()
 
 	isArchiveing_ = true;
 
+	if(isDestroyed())																				
+	{																										
+		return;																							
+	}
+
 	if(this->getCellMailbox() == NULL)
 	{
 		onCellWriteToDBCompleted();
@@ -537,15 +581,32 @@ void Base::onWriteToDB()
 //-------------------------------------------------------------------------------------
 PyObject* Base::createCellEntity(PyObject* pyobj)
 {
-	if(creatingCell_ || this->getCellMailbox())
+	if(isDestroyed())																				
+	{																										
+		PyErr_Format(PyExc_Exception, "%s::createCellEntity: %d is destroyed!\n",											
+			getScriptName(), getID());												
+		PyErr_PrintEx(0);																					
+		S_Return;																								
+	}																										
+
+	if(Baseapp::getSingleton().findEntity(getID()) == NULL)
 	{
-		PyErr_Format(PyExc_Exception, "%s::createCellEntity: %d has a cell!\n", getScriptName(), getID());
+		PyErr_Format(PyExc_Exception, "%s::createCellEntity: %d not found!\n", getScriptName(), getID());
+		PyErr_PrintEx(0);
 		S_Return;
 	}
 
-	if(!PyObject_IsInstance(pyobj, (PyObject*)EntityMailbox::getScriptType()))
+	if(creatingCell_ || this->getCellMailbox())
+	{
+		PyErr_Format(PyExc_Exception, "%s::createCellEntity: %d has a cell!\n", getScriptName(), getID());
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	if(!PyObject_TypeCheck(pyobj, EntityMailbox::getScriptType()))
 	{
 		PyErr_Format(PyExc_TypeError, "create %s arg1 is not cellMailbox!", this->getScriptName());
+		PyErr_PrintEx(0);
 		S_Return;
 	}
 	
@@ -553,6 +614,7 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 	if(cellMailbox->getType() != MAILBOX_TYPE_CELL)
 	{
 		PyErr_Format(PyExc_TypeError, "create %s args1 not is a direct cellMailbox!", this->getScriptName());
+		PyErr_PrintEx(0);
 		S_Return;
 	}
 	
@@ -564,9 +626,18 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 //-------------------------------------------------------------------------------------
 PyObject* Base::createInNewSpace(PyObject* params)
 {
+	if(isDestroyed())																				
+	{																										
+		PyErr_Format(PyExc_Exception, "%s::createInNewSpace: %d is destroyed!\n",											
+			getScriptName(), getID());												
+		PyErr_PrintEx(0);																					
+		S_Return;																								
+	}	
+
 	if(createdSpace_)
 	{
 		PyErr_Format(PyExc_Exception, "%s::createInNewSpace: %d has a space!\n", getScriptName(), getID());
+		PyErr_PrintEx(0);
 		S_Return;
 	}
 
@@ -601,15 +672,25 @@ void Base::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, M
 //-------------------------------------------------------------------------------------
 PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 {
+	if(isDestroyed())																				
+	{																										
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d is destroyed!\n",											
+			getScriptName(), getID());												
+		PyErr_PrintEx(0);																					
+		S_Return;																								
+	}	
+
 	if(this->getCellMailbox() == NULL)
 	{
 		PyErr_Format(PyExc_Exception, "%s::teleport: %d no has cell!\n", getScriptName(), getID());
+		PyErr_PrintEx(0);
 		S_Return;
 	}
 
 	if(baseEntityMB == NULL)
 	{
 		PyErr_Format(PyExc_Exception, "%s::teleport: %d baseEntityMB is NULL!\n", getScriptName(), getID());
+		PyErr_PrintEx(0);
 		S_Return;
 	}
 
@@ -620,6 +701,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 	if(!isMailbox && !isEntity)
 	{
 		PyErr_Format(PyExc_Exception, "%s::teleport: %d invalid baseEntityMB!\n", getScriptName(), getID());
+		PyErr_PrintEx(0);
 		S_Return;
 	}
 
@@ -633,6 +715,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 		if(mb->getType() != MAILBOX_TYPE_BASE && mb->getType() != MAILBOX_TYPE_CELL_VIA_BASE)
 		{
 			PyErr_Format(PyExc_Exception, "%s::teleport: %d baseEntityMB is not baseMailbox!\n", getScriptName(), getID());
+			PyErr_PrintEx(0);
 			S_Return;
 		}
 
@@ -654,6 +737,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 		else
 		{
 			PyErr_Format(PyExc_Exception, "%s::teleport: %d baseEntity is destroyed!\n", getScriptName(), getID());
+			PyErr_PrintEx(0);
 			S_Return;
 		}
 	}

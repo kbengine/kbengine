@@ -769,8 +769,16 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel
 		return;
 	}
 
+	if(e->isDestroyed())																				
+	{																										
+		ERROR_MSG("%s::forwardEntityMessageToCellappFromClient: %d is destroyed!\n",											
+			e->getScriptName(), e->getID());
+		s.read_skip(s.opsize());
+		return;																							
+	}
+
 	// 检查是否是entity消息， 否则不合法.
-	while(s.opsize() > 0)
+	while(s.opsize() > 0 && !e->isDestroyed())
 	{
 		Mercury::MessageID			currMsgID;
 		Mercury::MessageLength		currMsgLen;

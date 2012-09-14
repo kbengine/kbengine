@@ -65,20 +65,22 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 	KBE_ASSERT(pChannel != NULL);
 	
 	TCPPacket* pReceiveWindow = TCPPacket::ObjPool().createObject();
-	pChannel->addReceiveWindow(pReceiveWindow);
 	int len = pReceiveWindow->recvFromEndPoint(*pEndpoint_);
 
 	if (len < 0)
 	{
+		TCPPacket::ObjPool().reclaimObject(pReceiveWindow);
 		return this->checkSocketErrors(len, expectingPacket);
 	}
 	else if(len == 0) // 客户端正常退出
 	{
+		TCPPacket::ObjPool().reclaimObject(pReceiveWindow);
 		pNetworkInterface_->deregisterChannel(pChannel);
 		pChannel->destroy();
 		return false;
 	}
 	
+	pChannel->addReceiveWindow(pReceiveWindow);
 	Reason ret = this->processPacket(pChannel, pReceiveWindow);
 
 	if(ret != REASON_SUCCESS)

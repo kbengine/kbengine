@@ -261,6 +261,14 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 //-------------------------------------------------------------------------------------
 void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 {
+	if(isDestroyed())																				
+	{																										
+		ERROR_MSG("%s::onRemoteMethodCall: %d is destroyed!\n",											
+			getScriptName(), getID());
+		s.read_skip(s.opsize());
+		return;																							
+	}
+
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
 	

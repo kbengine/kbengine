@@ -69,6 +69,7 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 
 	if (len <= 0)
 	{
+		UDPPacket::ObjPool().reclaimObject(pChannelReceiveWindow);
 		return this->checkSocketErrors(len, expectingPacket);
 	}
 	
@@ -83,6 +84,9 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 		{
 			ERROR_MSG("UDPPacketReceiver::processSocket:registerChannel(%s) is failed!\n",
 				pSrcChannel->c_str());
+
+			UDPPacket::ObjPool().reclaimObject(pChannelReceiveWindow);
+			pSrcChannel->destroy();
 			return false;
 		}
 	}

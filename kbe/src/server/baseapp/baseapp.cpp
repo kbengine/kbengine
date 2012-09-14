@@ -582,11 +582,11 @@ void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONEN
 		return;
 
 	Base* base = pEntities_->find(id);
-	base->setSpaceID(spaceID);
 
 	// DEBUG_MSG("Baseapp::onEntityGetCell: entityID %d.\n", id);
 	KBE_ASSERT(base != NULL);
 
+	base->setSpaceID(spaceID);
 	// 如果是有客户端的entity则需要告知客户端， 自身entity已经进入世界了。
 	if(base->getClientMailbox() != NULL)
 	{
