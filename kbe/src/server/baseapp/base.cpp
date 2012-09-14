@@ -72,7 +72,7 @@ void Base::onDestroy(void)
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();	
+		PyErr_PrintEx(0);	
 }
 
 //-------------------------------------------------------------------------------------
@@ -267,7 +267,7 @@ PyObject* Base::pyDestroyCellEntity()
 		PyErr_Format(PyExc_Exception, "%s::destroyCellEntity: id:%i no cell! creatingCell=%s\n", this->getScriptName(), this->getID(),
 			creatingCell_ ? "true" : "false");
 		PyErr_PrintEx(0);
-		return false;
+		S_Return;
 	}
 	else
 		destroyCellEntity();
@@ -344,7 +344,7 @@ void Base::onCreateCellFailure(void)
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -418,7 +418,7 @@ void Base::onGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID)
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -429,7 +429,7 @@ void Base::onClientDeath()
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -443,7 +443,7 @@ void Base::onLoseCell(Mercury::Channel* pChannel, MemoryStream& s)
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -534,7 +534,7 @@ void Base::onCellWriteToDBCompleted()
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 
 	hasDB(true);
 
@@ -575,7 +575,7 @@ void Base::onWriteToDB()
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -767,7 +767,7 @@ void Base::onTeleportFailure()
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();	
+		PyErr_PrintEx(0);	
 }
 
 //-------------------------------------------------------------------------------------
@@ -780,7 +780,7 @@ void Base::onTeleportSuccess(SPACE_ID spaceID)
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();	
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------

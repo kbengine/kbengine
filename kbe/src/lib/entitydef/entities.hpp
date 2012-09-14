@@ -130,6 +130,7 @@ PyObject * Entities<T>::mp_subscript(PyObject* self, PyObject* key /*entityID*/)
 	if(pyEntity == NULL)
 	{
 		PyErr_Format(PyExc_KeyError, "%d", entityID);
+		PyErr_PrintEx(0);
 		return NULL;
 	}
 

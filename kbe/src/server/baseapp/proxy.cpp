@@ -213,7 +213,7 @@ void Proxy::onGiveClientToFailure()
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------

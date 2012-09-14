@@ -652,6 +652,7 @@ PyObject* Baseapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 	if(ret == -1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args is error!");
+		PyErr_PrintEx(0);
 	}
 	
 	Baseapp::getSingleton().executeRawDatabaseCommand(data, size, pycallback);

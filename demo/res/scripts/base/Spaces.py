@@ -18,7 +18,7 @@ class Spaces(GameObject):
 		self._tmpDatas = list(d_spaces.datas.keys())
 		for utype in self._tmpDatas:
 			spaceData = d_spaces.datas.get(utype)
-			if spaceData["entityType"] != "SpaceCopy":
+			if spaceData["entityType"] == "SpaceCopy":
 				self._spaceAllocs[utype] = SpaceAllocCopy(utype)
 			else:
 				self._spaceAllocs[utype] = SpaceAlloc(utype)

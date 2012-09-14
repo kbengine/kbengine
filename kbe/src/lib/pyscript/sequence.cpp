@@ -244,12 +244,14 @@ int Sequence::seq_ass_slice(PyObject* self, Py_ssize_t index1, Py_ssize_t index2
 	if (!PySequence_Check(oterSeq))
 	{
 		PyErr_Format(PyExc_TypeError, "Sequence slices can only be assigned to a sequence");
+		PyErr_PrintEx(0);
 		return -1;
 	}
 
 	if (oterSeq == seq)
 	{
 		PyErr_Format(PyExc_TypeError, "Sequence does not support assignment of itself to a slice of itself");
+		PyErr_PrintEx(0);
 		return -1;
 	}
 
@@ -271,6 +273,7 @@ int Sequence::seq_ass_slice(PyObject* self, Py_ssize_t index1, Py_ssize_t index2
 		if (!ok)
 		{
 			PyErr_Format(PyExc_TypeError, "Array elements must be set to type %s (setting slice %d-%d)", "ss", index1, index2);
+			PyErr_PrintEx(0);
 			return -1;
 		}
 	}
@@ -287,6 +290,7 @@ int Sequence::seq_ass_slice(PyObject* self, Py_ssize_t index1, Py_ssize_t index2
 		if(pyTemp == NULL)
 		{
 			PyErr_Format(PyExc_TypeError, "Sequence::seq_ass_slice::PySequence_GetItem %d is NULL.", i);
+			PyErr_PrintEx(0);
 		}
 		
 		PyObject* pyItem = seq->onSetItem(pyTemp);
@@ -334,6 +338,7 @@ PyObject* Sequence::seq_inplace_concat(PyObject* self, PyObject* oterSeq)
 		if (!ok)
 		{
 			PyErr_Format(PyExc_TypeError, "Array elements must be set to type %s (appending with +=)", "sss");
+			PyErr_PrintEx(0);
 			return NULL;
 		}
 	}
@@ -346,6 +351,7 @@ PyObject* Sequence::seq_inplace_concat(PyObject* self, PyObject* oterSeq)
 		PyObject* pyTemp = PySequence_GetItem(oterSeq, i);
 		if(pyTemp == NULL){
 			PyErr_Format(PyExc_TypeError, "Sequence::seq_inplace_concat::PySequence_GetItem %d is NULL.", i);
+			PyErr_PrintEx(0);
 		}
 		values[szA + i] = pyTemp;
 	}

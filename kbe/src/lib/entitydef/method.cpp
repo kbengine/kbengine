@@ -66,6 +66,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 	if (args == NULL || !PyTuple_Check(args))
 	{
 		PyErr_Format(PyExc_SystemError, "Method::checkArgs: method[%s] args is not a tuple.\n", getName());
+		PyErr_PrintEx(0);
 		return false;
 	}
 	
@@ -81,6 +82,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 				(argsSize == 1) ? "" : "s",
 				PyTuple_Size(args));
 
+		PyErr_PrintEx(0);
 		return false;
 	}	
 	
@@ -99,6 +101,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 					"Method::checkArgs: method[%s] requires None, an id, or an object with an "
 					"id as its first agument", getName());
 
+				PyErr_PrintEx(0);
 				return false;
 			}
 			
@@ -119,6 +122,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 				pExample->ob_type->tp_name,
 				pyArg != NULL ? pyArg->ob_type->tp_name : "NULL");
 			
+			PyErr_PrintEx(0);
 			Py_DECREF(pExample);
 			return false;
 		}

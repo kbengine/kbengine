@@ -99,7 +99,7 @@ void Entity::onDestroy(void)
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();	
+		PyErr_PrintEx(0);	
 	
 	this->backupCellData();
 
@@ -370,7 +370,7 @@ void Entity::onWriteToDB()
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -412,7 +412,7 @@ void Entity::onWitnessed(Entity* entity, float range)
 		if(pyResult != NULL)
 			Py_DECREF(pyResult);
 		else
-			PyErr_Clear();
+			PyErr_PrintEx(0);
 	}*/
 }
 
@@ -486,7 +486,7 @@ void Entity::onEnterTrap(Entity* entity, float range, int controllerID)
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -498,7 +498,7 @@ void Entity::onLeaveTrap(Entity* entity, float range, int controllerID)
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -510,7 +510,7 @@ void Entity::onLeaveTrapID(ENTITY_ID entityID, float range, int controllerID)
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -613,6 +613,7 @@ int Entity::pySetDirection(PyObject *value)
 	if(PySequence_Check(value) <= 0)
 	{
 		PyErr_Format(PyExc_TypeError, "args of direction is must a sequence.");
+		PyErr_PrintEx(0);
 		return -1;
 	}
 
@@ -620,6 +621,7 @@ int Entity::pySetDirection(PyObject *value)
 	if(size != 3)
 	{
 		PyErr_Format(PyExc_TypeError, "len(direction) != 3. can't set.");
+		PyErr_PrintEx(0);
 		return -1;
 	}
 
@@ -683,7 +685,7 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -700,7 +702,7 @@ void Entity::onLoseWitness(Mercury::Channel* pChannel)
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -800,7 +802,7 @@ void Entity::onMove(PyObject* userData)
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -938,12 +940,14 @@ PyObject* Entity::pyTeleport(PyObject* nearbyMBRef, PyObject* pyposition, PyObje
 	if(!PySequence_Check(pyposition) || PySequence_Size(pyposition) != 3)
 	{
 		PyErr_Format(PyExc_Exception, "%s::teleport: %d position not is Sequence!\n", getScriptName(), getID());
+		PyErr_PrintEx(0);
 		S_Return;
 	}
 
 	if(!PySequence_Check(pydirection) || PySequence_Size(pydirection) != 3)
 	{
 		PyErr_Format(PyExc_Exception, "%s::teleport: %d direction not is Sequence!\n", getScriptName(), getID());
+		PyErr_PrintEx(0);
 		S_Return;
 	}
 
@@ -1069,7 +1073,7 @@ void Entity::onTeleport()
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1081,7 +1085,7 @@ void Entity::onTeleportFailure()
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1095,7 +1099,7 @@ void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1107,7 +1111,7 @@ void Entity::onEnteredCell()
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1119,7 +1123,7 @@ void Entity::onEnteringCell()
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 
@@ -1132,7 +1136,7 @@ void Entity::onLeavingCell()
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1144,7 +1148,7 @@ void Entity::onLeftCell()
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
-		PyErr_Clear();
+		PyErr_PrintEx(0);
 }
 
 //-------------------------------------------------------------------------------------

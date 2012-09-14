@@ -228,6 +228,7 @@ int Entity::pySetDirection(PyObject *value)
 	if(PySequence_Check(value) <= 0)
 	{
 		PyErr_Format(PyExc_TypeError, "args of direction is must a sequence.");
+		PyErr_PrintEx(0);
 		return -1;
 	}
 
@@ -235,6 +236,7 @@ int Entity::pySetDirection(PyObject *value)
 	if(size != 3)
 	{
 		PyErr_Format(PyExc_TypeError, "len(direction) != 3. can't set.");
+		PyErr_PrintEx(0);
 		return -1;
 	}
 
