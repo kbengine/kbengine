@@ -63,41 +63,85 @@ kbengine仿照bigworld技术努力成为一款开源mmorpg引擎，bigworld引�
 
 
 **设置环境变量:**
+
 kbe会读取KBE_ROOT，KBE_RES_PATH， KBE_HYBRID_PATH系统环境变量来做一些事情。
 
+
+
 linux:
-	vim ~/.bashrc
+
+	`vim ~/.bashrc
+
 	ulimit -c unlimited
+
 	export KBE_ROOT=/root/kbengine/
+
 	export KBE_RES_PATH='/root/kbengine/kbe/res/;/root/kbengine/demo/;/root/kbengine/demo/res/'
-	export KBE_HYBRID_PATH=/root/kbengine/kbe/bin/Hybrid64/
+
+	export KBE_HYBRID_PATH=/root/kbengine/kbe/bin/Hybrid64/`
+
+
 
 windows:
-	鼠标右键"我的电脑"->"高级"->"环境变量" 设置对应的值就好了。
+
+	`鼠标右键"我的电脑"->"高级"->"环境变量" 设置对应的值就好了。`
+
+
 
 KBE_ROOT:
-	kbe根目录路径。
+
+	`kbe根目录路径。`
+
+
 KBE_RES_PATH:
-	相关资源路径用';'分隔, 第一个res必须是kbe系统res, 第二个res必须是用户脚本res， 其他无限制。
+
+	`相关资源路径用';'分隔, 第一个res必须是kbe系统res, 第二个res必须是用户脚本res， 其他无限制。`
+
+
 KBE_HYBRID_PATH:
-	kbe二进制文件所在目录路径。
+
+	`kbe二进制文件所在目录路径。`
+
+
 
 **编译:**
+
+
 linux:
-	测试系统:centos5.x, debian5.x
+
+	`测试系统:centos5.x, debian5.x
+
 	gcc: 4.4.5
+
 	[root@localhost ~]# cd $KBE_ROOT/kbe/src
-	[root@localhost ~]# make
+
+	[root@localhost ~]# make`
+
+
 windows:
-	安装好vc2008sp1版本直接编译完即可
-	KBE_ROOT\kbengine\kbe\src\kbengine_vs90.sln
+
+	`安装好vc2008sp1版本直接编译完即可
+
+	KBE_ROOT\kbengine\kbe\src\kbengine_vs90.sln`
+
+
 
 **运行服务器:**
+
+
 linux:
-	[root@localhost ~]# cd $KBE_HYBRID_PATH
+
+	`[root@localhost ~]# cd $KBE_HYBRID_PATH
+
 	sh start.sh
-	sh kill.sh	
+
+	sh kill.sh`	
+
+
 windows:
-	cd KBE_HYBRID_PATH
+
+	`cd KBE_HYBRID_PATH
+
 	!.bat
-	~.bat
+
+	~.bat`
