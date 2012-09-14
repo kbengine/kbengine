@@ -14,18 +14,31 @@
 			<Flags>			CELL_PRIVATE			</Flags>
 			<Persistent>		false				</Persistent>
 		</spaceUType>
+
+		<spaceKey>
+			<Type>			DBID				</Type>
+			<Flags>			BASE				</Flags>
+			<Persistent>		true				</Persistent>
+		</spaceKey>
+
+		<params>
+			<Type>			PYTHON				</Type>
+			<Flags>			BASE				</Flags>
+			<Persistent>		true				</Persistent>
+		</params>
 	</Properties>
 
 	<BaseMethods>
-		<onLoginToSpace>
+		<loginToSpace>
 			<Arg>		MAILBOX		</Arg>
-		</onLoginToSpace>
+		</loginToSpace>
 
 		<teleportSpace>
 			<Arg>		MAILBOX		</Arg>
 			<Arg>		ENTITY_UTYPE	</Arg>
 			<Arg>		POSITION3D	</Arg>
 			<Arg>		DIRECTION3D	</Arg>
+			<Arg>		PYTHON		</Arg>
 		</teleportSpace>
 	</BaseMethods>
 

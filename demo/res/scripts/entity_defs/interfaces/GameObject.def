@@ -17,6 +17,13 @@
 			<Persistent>		true			</Persistent>
 		</uid>
 
+		<dbid>
+			<Type>			UINT64			</Type>
+			<Flags>			CELL_PUBLIC		</Flags>
+			<Default>		0			</Default>
+			<Persistent>		true			</Persistent>
+		</dbid>
+
 		<utype>
 			<Type>			UINT32			</Type>
 			<Utype> 		41005			</Utype>
@@ -40,6 +47,13 @@
 			<Arg>		POSITION3D	</Arg>
 			<Arg>		DIRECTION3D	</Arg>
 		</onTeleportSpaceCB>
+
+		<teleportSpace>
+			<Arg>		ENTITY_UTYPE	</Arg>
+			<Arg>		POSITION3D	</Arg>
+			<Arg>		DIRECTION3D	</Arg>
+			<Arg>		PYTHON		</Arg>
+		</teleportSpace>
 	</CellMethods>
 	
 	<DetailLevels><!-- entity详情级别, 决定某些属性广播给客户端的优先级 -->

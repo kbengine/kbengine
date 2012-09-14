@@ -26,13 +26,13 @@ class GameObject(KBEngine.Entity):
 		"""
 		return KBEngine.globalData["SpaceMgr"]
 		
-	def teleportSpace(self, spaceUType, position, direction):
+	def teleportSpace(self, spaceUType, position, direction, params):
 		"""
 		defined.
 		传送到某场景
 		"""
 		assert self.base != None
-		self.getSpaceMgr().teleportSpace(self.base, spaceUType, position, direction)
+		self.getSpaceMgr().teleportSpace(self.base, spaceUType, position, direction, params)
 		
 	def onTeleportSpaceCB(self, spaceCellMailbox, spaceUType, position, direction):
 		"""

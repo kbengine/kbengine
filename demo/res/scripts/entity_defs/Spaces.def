@@ -22,7 +22,14 @@
 			<Arg>		ENTITY_UTYPE	</Arg>
 			<Arg>		POSITION3D	</Arg>
 			<Arg>		DIRECTION3D	</Arg>
+			<Arg>		PYTHON		</Arg>
 		</teleportSpace>
+
+		<onSpaceGetCell>
+			<Arg>		ENTITY_UTYPE	</Arg>
+			<Arg>		MAILBOX		</Arg>
+			<Arg>		DBID		</Arg>
+		</onSpaceGetCell>
 	</BaseMethods>
 
 	<CellMethods>

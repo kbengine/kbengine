@@ -21,7 +21,8 @@ class Space(GameObject):
 		KBEngine method.
 		entity的cell部分实体被创建成功
 		"""
-		self.addTimer(3, 1, 1)
+		#self.addTimer(3, 1, 1)
+		KBEngine.globalData["SpaceMgr"].onSpaceGetCell(self.spaceUTypeB, self, self.spaceKey)
 		
 	def onTimer(self, id, userArg):
 		"""
@@ -42,14 +43,14 @@ class Space(GameObject):
 										"direction"			: (0, 0, 0),	\
 										"createToCell"		: self.cell})
 				
-	def onLoginToSpace(self, avatarMailbox):
+	def loginToSpace(self, avatarMailbox):
 		"""
 		define method.
 		某个玩家请求登陆到这个space中
 		"""
 		avatarMailbox.createCell(self.cell)
 		
-	def teleportSpace(self, entityMailbox, position, direction):
+	def teleportSpace(self, entityMailbox, position, direction, params):
 		"""
 		define method.
 		请求进入某个space中
