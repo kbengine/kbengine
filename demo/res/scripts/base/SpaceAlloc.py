@@ -20,6 +20,7 @@ class SpaceAlloc:
 		
 	def init(self):
 		"""
+		virtual method.
 		"""
 		self.createSpace(0, {})
 	
@@ -116,6 +117,12 @@ class SpaceAllocCopy(SpaceAlloc):
 	def __init__(self, utype):
 		SpaceAlloc.__init__(self, utype)
 
+	def init(self):
+		"""
+		virtual method.
+		"""
+		pass # 副本不需要初始化创建一个
+		
 	def alloc(self, params):
 		"""
 		virtual method.
