@@ -3,7 +3,7 @@ kbengine
 
 演示截图(点击图片看视频):
 [![kbengine](https://github.com/downloads/kbengine/kbengine/demo.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
-
+[![kbengine](https://github.com/downloads/kbengine/kbengine/guiconsole.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
 **什么是KBEngine?**
 
 kbengine仿照bigworld技术努力成为一款开源mmorpg引擎，bigworld引擎的特点是开发者无需接触c++底层，
