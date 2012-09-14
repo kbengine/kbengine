@@ -21,11 +21,11 @@
 			<Persistent>		true				</Persistent>
 		</spaceKey>
 
-		<params>
+		<context>
 			<Type>			PYTHON				</Type>
 			<Flags>			BASE				</Flags>
 			<Persistent>		true				</Persistent>
-		</params>
+		</context>
 	</Properties>
 
 	<BaseMethods>

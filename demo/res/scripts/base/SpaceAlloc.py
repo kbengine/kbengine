@@ -24,15 +24,15 @@ class SpaceAlloc:
 		"""
 		self.createSpace(0, {})
 	
-	def createSpace(self, spaceKey, params):
+	def createSpace(self, spaceKey, context):
 		"""
 		"""
-		params = copy.copy(params)
+		context = copy.copy(context)
 		spaceData = d_spaces.datas.get(self._utype)
 		KBEngine.createBaseAnywhere(spaceData["entityType"], \
 											{"spaceUType" : self._utype,	\
 											"spaceKey" : spaceKey,	\
-											"params" : params,	\
+											"context" : context,	\
 											}, \
 											Functor.Functor(self.onSpaceCreatedCB, spaceKey))
 											
@@ -61,10 +61,10 @@ class SpaceAlloc:
 		for e in pendingLogonEntities:
 			self.loginToSpace(e)
 		
-		for mb, pos, dir, params in pendingEnterEntityMBs:
-			self.teleportSpace(mb, pos, dir, params)
+		for mb, pos, dir, context in pendingEnterEntityMBs:
+			self.teleportSpace(mb, pos, dir, context)
 		
-	def alloc(self, params):
+	def alloc(self, context):
 		"""
 		virtual method.
 		分配一个space
@@ -92,23 +92,23 @@ class SpaceAlloc:
 		DEBUG_MSG("Spaces::loginToSpace: avatarEntity=%s" % avatarEntity.id)
 		space.loginToSpace(avatarEntity)
 
-	def teleportSpace(self, entityMailbox, position, direction, params):
+	def teleportSpace(self, entityMailbox, position, direction, context):
 		"""
 		virtual method.
 		请求进入某个space中
 		"""
-		space = self.alloc(params)
+		space = self.alloc(context)
 		if space is None:
 			ERROR_MSG("Spaces::teleportSpace: not found space %i. login to space is failed!" % self._utype)
 			return
 		
 		if space == CONST_WAIT_CREATE:
-			self._pendingEnterEntityMBs.append((entityMailbox, position, direction, params))
+			self._pendingEnterEntityMBs.append((entityMailbox, position, direction, context))
 			DEBUG_MSG("Spaces::teleportSpace: avatarEntity=%s add pending." % entityMailbox.id)
 			return
 			
 		DEBUG_MSG("Spaces::teleportSpace: entityMailbox=%s" % entityMailbox)
-		space.teleportSpace(entityMailbox, position, direction, params)
+		space.teleportSpace(entityMailbox, position, direction, context)
 		
 class SpaceAllocCopy(SpaceAlloc):
 	"""
@@ -123,20 +123,20 @@ class SpaceAllocCopy(SpaceAlloc):
 		"""
 		pass # 副本不需要初始化创建一个
 		
-	def alloc(self, params):
+	def alloc(self, context):
 		"""
 		virtual method.
 		分配一个space
 		对于副本来说创建副本则将玩家的dbid作为space的key，
 		任何一个人想进入到这个副本需要知道这个key。
 		"""
-		spaceKey = params.get("spaceKey", 0)
+		spaceKey = context.get("spaceKey", 0)
 		space = self._spaces.get(spaceKey)
 		
 		assert spaceKey != 0
 		
 		if space is None:
-			self.createSpace(spaceKey, params)
+			self.createSpace(spaceKey, context)
 			return CONST_WAIT_CREATE
 		
 		return space

@@ -20,6 +20,8 @@ class Spaces(GameObject):
 			spaceData = d_spaces.datas.get(utype)
 			if spaceData["entityType"] == "SpaceCopy":
 				self._spaceAllocs[utype] = SpaceAllocCopy(utype)
+			elif spaceData["entityType"] == "SpaceCopyContext":
+				self._spaceAllocs[utype] = SpaceAllocCopy(utype)
 			else:
 				self._spaceAllocs[utype] = SpaceAlloc(utype)
 				
@@ -46,12 +48,12 @@ class Spaces(GameObject):
 		"""
 		self._spaceAllocs[spaceUType].loginToSpace(avatarEntity)
 		
-	def teleportSpace(self, entityMailbox, spaceUType, position, direction, params):
+	def teleportSpace(self, entityMailbox, spaceUType, position, direction, context):
 		"""
 		define method.
 		请求进入某个space中
 		"""
-		self._spaceAllocs[spaceUType].teleportSpace(entityMailbox, position, direction, params)
+		self._spaceAllocs[spaceUType].teleportSpace(entityMailbox, position, direction, context)
 
 	def onSpaceGetCell(self, spaceUType, spaceMailbox, spaceKey):
 		"""

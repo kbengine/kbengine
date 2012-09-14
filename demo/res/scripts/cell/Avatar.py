@@ -55,6 +55,7 @@ class Avatar(GameObject):
 			return
 			
 		DEBUG_MSG("Avatar::spellTarget(%i):skillID=%i, srcEntityID=%i, targetID=%i" % (self.id, skillID, srcEntityID, targetID))
+		self.teleportSpace(10013004, (0,0,0), (4,5,6), {})
 		
 	def dialog(self, srcEntityID, targetID, dialogID):
 		"""
@@ -69,5 +70,3 @@ class Avatar(GameObject):
 			return
 			
 		dialog.onGossip(dialogID, self, KBEngine.entities[targetID])
-		
-		#self.teleportSpace(30001, (1,2,3), (4,5,6))

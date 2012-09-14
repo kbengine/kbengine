@@ -9,11 +9,20 @@ class DFTeleport(iDFunction):
 	"""
 	"""
 	def __init__(self, args):
+		args = args.split(",")
 		self.spaceType = int(args[0]) # 地图ID
-		self.position = (float(args[1]), float(args[2]), float(args[3]))
-
+		
+		if '0' == args[1]:
+			param1 = (0,0,0)
+		else:
+			param1 = args[1].split("`")
+			param1 = (int(param1[0]), 0, int(param1[1]))
+			
+		self.position = param1
+		
 	def valid(self, avatar, args):
 		return True
 
 	def do(self, avatar, args):
+		self.teleportSpace(self.spaceType, tuple(self.position), (0, 0, 0), {})
 		return True

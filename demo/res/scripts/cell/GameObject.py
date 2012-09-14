@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 from KBEDebug import * 
+import d_spaces
+import SpaceContext
 
 class GameObject(KBEngine.Entity):
 	def __init__(self):
@@ -26,13 +28,13 @@ class GameObject(KBEngine.Entity):
 		"""
 		return KBEngine.globalData["SpaceMgr"]
 		
-	def teleportSpace(self, spaceUType, position, direction, params):
+	def teleportSpace(self, spaceUType, position, direction, context):
 		"""
 		defined.
 		传送到某场景
 		"""
 		assert self.base != None
-		self.getSpaceMgr().teleportSpace(self.base, spaceUType, position, direction, params)
+		self.getSpaceMgr().teleportSpace(self.base, spaceUType, position, direction, SpaceContext.createContext(self, spaceUType))
 		
 	def onTeleportSpaceCB(self, spaceCellMailbox, spaceUType, position, direction):
 		"""

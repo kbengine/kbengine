@@ -14,7 +14,7 @@ class Space(GameObject):
 		self.spaceUTypeB = self.cellData["spaceUType"]
 		
 		# 这个地图上创建的entity总数
-		self.tmpCreateEntityDatas = list(d_spaces.datas[self.spaceUTypeB]["entities"])
+		self.tmpCreateEntityDatas = list(d_spaces.datas[self.spaceUTypeB].get("entities", []))
 		
 	def onGetCell(self):
 		"""
@@ -50,7 +50,7 @@ class Space(GameObject):
 		"""
 		avatarMailbox.createCell(self.cell)
 		
-	def teleportSpace(self, entityMailbox, position, direction, params):
+	def teleportSpace(self, entityMailbox, position, direction, context):
 		"""
 		define method.
 		请求进入某个space中

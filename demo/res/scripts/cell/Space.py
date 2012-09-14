@@ -9,4 +9,4 @@ class Space(KBEngine.Entity):
 		#self.addSpaceGeometryMapping(self.spaceID, self.spaceName)
 
 		KBEngine.globalData["space_%i" % self.spaceID] = self.base
-		
+	
