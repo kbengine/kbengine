@@ -1,14 +1,14 @@
 kbengine
 ========
 
-演示截图(点击图片看视频):
+##演示截图(点击图片看视频):
 [![kbengine](https://github.com/downloads/kbengine/kbengine/demo.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
 
-控制台截图:
+##控制台截图:
 [![kbengine](https://github.com/downloads/kbengine/kbengine/guiconsole.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
 
 
-**什么是KBEngine?**
+##什么是KBEngine?
 
 kbengine仿照bigworld技术努力成为一款开源mmorpg引擎，bigworld引擎的特点是开发者无需接触c++底层，
 无需重复性的实现网络，内存管理，线程管理等底层通用性技术，把精力集中到游戏开发层面上来，
@@ -63,7 +63,7 @@ kbengine仿照bigworld技术努力成为一款开源mmorpg引擎，bigworld引�
 
 
 
-###GO!
+##GO!
 
 
 **设置环境变量:**
@@ -108,7 +108,7 @@ KBE_HYBRID_PATH:
 
 
 
-**编译:**
+##编译:
 
 linux:
 
@@ -118,7 +118,7 @@ linux:
 
 	[root@localhost ~]# cd $KBE_ROOT/kbe/src
 
-	[root@localhost ~]# make
+	[root@localhost /src]# make
 
 
 windows:
@@ -130,7 +130,7 @@ windows:
 
 
 
-**运行服务器:**
+##运行服务器:
 
 
 linux:
