@@ -61,6 +61,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MessagelogInterface)
 	MESSAGELOG_MESSAGE_DECLARE_ARGS2(onAppActiveTick,						MERCURY_FIXED_MESSAGE,
 									COMPONENT_TYPE,							componentType, 
 									COMPONENT_ID,							componentID)
+
+	// ‘∂≥Ã–¥»’÷æ
+	MESSAGELOG_MESSAGE_DECLARE_ARGS2(writeLog,								MERCURY_VARIABLE_MESSAGE,
+									int32,									logType, 
+									std::string,							message)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

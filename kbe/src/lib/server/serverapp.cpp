@@ -205,6 +205,7 @@ void ServerApp::onChannelDeregister(Mercury::Channel * pChannel)
 	if(pChannel->isInternal())
 	{
 		Componentbridge::getSingleton().onChannelDeregister(pChannel);
+		DebugHelper::getSingleton().unregisterWatch(0, pChannel);
 	}
 }
 

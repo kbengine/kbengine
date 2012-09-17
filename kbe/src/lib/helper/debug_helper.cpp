@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "thread/threadguard.hpp"
+#include "network/channel.hpp"
 
 namespace KBEngine{
 	
@@ -60,7 +61,12 @@ void vutf8printf(FILE *out, const char *str, va_list* ap)
 
 //-------------------------------------------------------------------------------------
 DebugHelper::DebugHelper():
-_logfile(NULL)
+_logfile(NULL),
+_currFile(),
+_currFuncName(),
+_currLine(0),
+watcherChannels_(),
+logMutex()
 {
 }
 
@@ -110,6 +116,48 @@ void DebugHelper::outTime()
 }
 
 //-------------------------------------------------------------------------------------
+void DebugHelper::onMessage(LOG_TYPE logType, const char * str)
+{
+	int strlength = strlen(str);
+	if(strlength <= 0)
+		return;
+
+	WATCH_CHANNELS::iterator iter = watcherChannels_.begin();
+	for(; iter != watcherChannels_.end(); iter++)
+	{
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle) << (*iter).first;
+
+		Mercury::MessageLength len = sizeof(logType) + strlength;
+		(*pBundle) << len;
+		(*pBundle) << logType;
+		(*pBundle) << str;
+		(*iter).second->send(pBundle);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::registerWatch(Mercury::MessageID msgID, Mercury::Channel* pChannel)
+{
+	watcherChannels_.push_back(std::make_pair<Mercury::MessageID, Mercury::Channel*>(msgID, pChannel));
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::unregisterWatch(Mercury::MessageID msgID, Mercury::Channel* pChannel)
+{
+	WATCH_CHANNELS::iterator iter = watcherChannels_.begin();
+	for(; iter != watcherChannels_.end(); iter++)
+	{
+		if((msgID == (*iter).first || msgID == 0) && (*iter).second == pChannel)
+		{
+			watcherChannels_.erase(iter);
+			return;
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void DebugHelper::print_msg(const char * str, ...)
 {
     if(str == NULL)
@@ -145,6 +193,8 @@ void DebugHelper::print_msg(const char * str, ...)
     va_end(ap);
 	LOG4CXX_INFO(g_logger, _g_buf);
 #endif
+
+	onMessage(LOG_PRINT, _g_buf);
 }
 
 //-------------------------------------------------------------------------------------
@@ -189,6 +239,8 @@ void DebugHelper::error_msg(const char * err, ...)
     va_end(ap);
 	LOG4CXX_ERROR(g_logger, _g_buf);
 #endif
+
+	onMessage(LOG_ERROR, _g_buf);
 }
 
 //-------------------------------------------------------------------------------------
@@ -233,6 +285,8 @@ void DebugHelper::info_msg(const char * info, ...)
     va_end(ap);
 	LOG4CXX_INFO(g_logger, _g_buf);
 #endif
+
+	onMessage(LOG_INFO, _g_buf);
 }
 
 //-------------------------------------------------------------------------------------
@@ -277,6 +331,8 @@ void DebugHelper::debug_msg(const char * str, ...)
     va_end(ap);
 	LOG4CXX_DEBUG(g_logger, _g_buf);
 #endif
+
+	onMessage(LOG_DEBUG, _g_buf);
 }
 
 //-------------------------------------------------------------------------------------
@@ -322,6 +378,8 @@ void DebugHelper::warning_msg(const char * str, ...)
 	// printf("CRITICAL:%s(%d)\n\t%s\n", _currFile.c_str(), _currLine, _g_buf);
 	LOG4CXX_WARN(g_logger, _g_buf);
 #endif
+
+	onMessage(LOG_WARNING, _g_buf);
 }
 
 void DebugHelper::critical_msg(const char * str, ...)
@@ -370,6 +428,8 @@ void DebugHelper::critical_msg(const char * str, ...)
 #endif
 
 	setFile("", "", 0);
+
+	onMessage(LOG_CRITICAL, _g_buf);
 }
 //-------------------------------------------------------------------------------------
 

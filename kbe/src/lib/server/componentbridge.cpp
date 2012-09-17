@@ -88,33 +88,33 @@ bool Componentbridge::findInterfaces()
 	switch(componentType_)
 	{
 	case CELLAPP_TYPE:
-		findComponentTypes[0] = DBMGR_TYPE;
-		findComponentTypes[1] = CELLAPPMGR_TYPE;
-		findComponentTypes[2] = BASEAPPMGR_TYPE;
-		findComponentTypes[3] = MESSAGELOG_TYPE;
-		//findComponentTypes[4] = RESOURCEMGR_TYPE;
+		findComponentTypes[0] = MESSAGELOG_TYPE;
+		findComponentTypes[1] = RESOURCEMGR_TYPE;
+		findComponentTypes[2] = DBMGR_TYPE;
+		findComponentTypes[3] = CELLAPPMGR_TYPE;
+		findComponentTypes[4] = BASEAPPMGR_TYPE;
 		break;
 	case BASEAPP_TYPE:
-		findComponentTypes[0] = DBMGR_TYPE;
-		findComponentTypes[1] = BASEAPPMGR_TYPE;
-		findComponentTypes[2] = CELLAPPMGR_TYPE;
-		findComponentTypes[3] = MESSAGELOG_TYPE;
-		findComponentTypes[4] = RESOURCEMGR_TYPE;
+		findComponentTypes[0] = MESSAGELOG_TYPE;
+		findComponentTypes[1] = RESOURCEMGR_TYPE;
+		findComponentTypes[2] = DBMGR_TYPE;
+		findComponentTypes[3] = BASEAPPMGR_TYPE;
+		findComponentTypes[4] = CELLAPPMGR_TYPE;
 		break;
 	case BASEAPPMGR_TYPE:
-		findComponentTypes[0] = DBMGR_TYPE;
-		findComponentTypes[1] = CELLAPPMGR_TYPE;
-		findComponentTypes[2] = MESSAGELOG_TYPE;
+		findComponentTypes[0] = MESSAGELOG_TYPE;
+		findComponentTypes[1] = DBMGR_TYPE;
+		findComponentTypes[2] = CELLAPPMGR_TYPE;
 		break;
 	case CELLAPPMGR_TYPE:
-		findComponentTypes[0] = DBMGR_TYPE;
-		findComponentTypes[1] = BASEAPPMGR_TYPE;
-		findComponentTypes[2] = MESSAGELOG_TYPE;
+		findComponentTypes[0] = MESSAGELOG_TYPE;
+		findComponentTypes[1] = DBMGR_TYPE;
+		findComponentTypes[2] = BASEAPPMGR_TYPE;
 		break;
 	case LOGINAPP_TYPE:
-		findComponentTypes[0] = DBMGR_TYPE;
-		findComponentTypes[1] = BASEAPPMGR_TYPE;
-		findComponentTypes[2] = MESSAGELOG_TYPE;
+		findComponentTypes[0] = MESSAGELOG_TYPE;
+		findComponentTypes[1] = DBMGR_TYPE;
+		findComponentTypes[2] = BASEAPPMGR_TYPE;
 		break;
 	case DBMGR_TYPE:
 		findComponentTypes[0] = MESSAGELOG_TYPE;

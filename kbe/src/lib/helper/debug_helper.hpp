@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdarg.h> 
 #include "cstdkbe/singleton.hpp"
 #include "thread/threadmutex.hpp"
+#include "network/common.hpp"
 #ifndef NO_USE_LOG4CXX
 #include "log4cxx/logger.h"
 #include "log4cxx/propertyconfigurator.h"
@@ -34,18 +35,30 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-/** Ö§³Öuft-8±àÂë×Ö·û´®Êä³ö */
+namespace Mercury{
+	class Channel;
+}
+
+/** 
+	Ö§³Öuft-8±àÂë×Ö·û´®Êä³ö 
+*/
 void vutf8printf(FILE *out, const char *str, va_list* ap);
 void utf8printf(FILE *out, const char *str, ...);
 
 class DebugHelper : public Singleton<DebugHelper>
 {
-private:
-	FILE* _logfile;
-	std::string _currFile, _currFuncName;
-	uint32 _currLine;
 public:
-	KBEngine::thread::ThreadMutex logMutex;
+	enum LOG_TYPE
+	{
+		LOG_PRINT = 0,
+		LOG_ERROR = 1,
+		LOG_WARNING = 2,
+		LOG_DEBUG = 3,
+		LOG_INFO = 4,
+		LOG_CRITICAL = 5
+	};
+
+	typedef std::vector<std::pair<Mercury::MessageID, Mercury::Channel*> > WATCH_CHANNELS;
 public:
 	DebugHelper();
 
@@ -68,6 +81,17 @@ public:
     void info_msg(const char * info, ...);
 	void warning_msg(const char * str, ...);
 	void critical_msg(const char * str, ...);
+
+	void onMessage(LOG_TYPE logType, const char * str);
+
+	void registerWatch(Mercury::MessageID msgID, Mercury::Channel* pChannel);
+	void unregisterWatch(Mercury::MessageID msgID, Mercury::Channel* pChannel);
+private:
+	FILE* _logfile;
+	std::string _currFile, _currFuncName;
+	uint32 _currLine;
+	WATCH_CHANNELS watcherChannels_;
+	KBEngine::thread::ThreadMutex logMutex;
 };
 
 /*---------------------------------------------------------------------------------

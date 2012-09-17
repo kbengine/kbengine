@@ -233,6 +233,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 	if (!pEndpoint->good())
 	{
 		ERROR_MSG("Components::connectComponent: couldn't create a socket\n");
+		delete pEndpoint;
 		return -1;
 	}
 
@@ -246,6 +247,9 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		{
 			ERROR_MSG("Components::connectComponent: registerChannel(%s) is failed!\n",
 				pComponentInfos->pChannel->c_str());
+
+			delete pComponentInfos->pChannel;
+			pComponentInfos->pChannel = NULL;
 			return -1;
 		}
 		else
@@ -403,6 +407,7 @@ Components::ComponentInfos* Components::findComponent(COMPONENT_TYPE componentTy
 	return NULL;
 }
 
+//-------------------------------------------------------------------------------------		
 Components::ComponentInfos* Components::findComponent(COMPONENT_ID componentID)
 {
 	int idx = 0;

@@ -67,6 +67,12 @@ public:
 	bool inInitialize();
 	bool initializeEnd();
 	void finalise();
+
+	/* 网络接口
+		写日志
+	*/
+	void writeLog(Mercury::Channel* pChannel, int32 logType, std::string& message);
+
 protected:
 };
 
