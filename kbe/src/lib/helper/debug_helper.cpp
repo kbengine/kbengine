@@ -81,8 +81,11 @@ void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 {
 	g_logger = log4cxx::Logger::getLogger(COMPONENT_NAME[componentType]);
 	char helpConfig[256];
+
 	if(componentType == CLIENT_TYPE)
+	{
 		kbe_snprintf(helpConfig, 256, "log4j.properties");
+	}
 	else
 	{
 		kbe_snprintf(helpConfig, 256, "server/log4cxx_properties/%s.properties", COMPONENT_NAME[componentType]);
