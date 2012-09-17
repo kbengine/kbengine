@@ -25,12 +25,23 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/channel.hpp"
 #include "resmgr/resmgr.hpp"
 
+
+#ifndef NO_USE_LOG4CXX
+#include "log4cxx/logger.h"
+#include "log4cxx/net/socketappender.h"
+#include "log4cxx/propertyconfigurator.h"
+#endif
+
 namespace KBEngine{
 	
 KBE_SINGLETON_INIT(DebugHelper);
 
 DebugHelper dbghelper;
+
+
+#ifndef NO_USE_LOG4CXX
 log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger("default"));
+#endif
 
 #define DBG_PT_SIZE 1024 * 4
 char _g_buf[DBG_PT_SIZE];
@@ -79,6 +90,7 @@ DebugHelper::~DebugHelper()
 //-------------------------------------------------------------------------------------
 void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 {
+#ifndef NO_USE_LOG4CXX
 	g_logger = log4cxx::Logger::getLogger(COMPONENT_NAME[componentType]);
 	char helpConfig[256];
 
@@ -92,6 +104,7 @@ void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 	}
 
 	log4cxx::PropertyConfigurator::configure(Resmgr::matchRes(helpConfig).c_str());
+#endif
 }
 
 //-------------------------------------------------------------------------------------
@@ -125,6 +138,7 @@ void DebugHelper::outTime()
 //-------------------------------------------------------------------------------------
 void DebugHelper::onMessage(LOG_TYPE logType, const char * str)
 {
+	/*
 	int strlength = strlen(str);
 	if(strlength <= 0)
 		return;
@@ -142,6 +156,7 @@ void DebugHelper::onMessage(LOG_TYPE logType, const char * str)
 		(*iter).second->send(pBundle);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
+	*/
 }
 
 //-------------------------------------------------------------------------------------

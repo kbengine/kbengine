@@ -28,10 +28,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/singleton.hpp"
 #include "thread/threadmutex.hpp"
 #include "network/common.hpp"
-#ifndef NO_USE_LOG4CXX
-#include "log4cxx/logger.h"
-#include "log4cxx/propertyconfigurator.h"
-#endif
 
 namespace KBEngine{
 
