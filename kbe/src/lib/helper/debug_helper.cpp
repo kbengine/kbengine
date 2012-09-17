@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/cstdkbe.hpp"
 #include "thread/threadguard.hpp"
 #include "network/channel.hpp"
+#include "resmgr/resmgr.hpp"
 
 namespace KBEngine{
 	
@@ -83,8 +84,11 @@ void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 	if(componentType == CLIENT_TYPE)
 		kbe_snprintf(helpConfig, 256, "log4j.properties");
 	else
-		kbe_snprintf(helpConfig, 256, "../../res/server/log4cxx_properties/%s.properties", COMPONENT_NAME[componentType]);
-	log4cxx::PropertyConfigurator::configure(helpConfig);
+	{
+		kbe_snprintf(helpConfig, 256, "server/log4cxx_properties/%s.properties", COMPONENT_NAME[componentType]);
+	}
+
+	log4cxx::PropertyConfigurator::configure(Resmgr::matchRes(helpConfig).c_str());
 }
 
 //-------------------------------------------------------------------------------------
