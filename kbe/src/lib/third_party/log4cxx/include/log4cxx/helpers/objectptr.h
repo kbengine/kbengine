@@ -28,9 +28,9 @@
 //   switching between the initialization styles.
 //
 #if LOG4CXX_HELGRIND
-#define _LOG4CXX_OBJECTPTR_INIT(x) : ObjectPtrBase() { exchange(x); 
+#define _LOG4CXX_OBJECTPTR_INIT(x) { exchange(x); 
 #else
-#define _LOG4CXX_OBJECTPTR_INIT(x) : ObjectPtrBase(), p(x) {
+#define _LOG4CXX_OBJECTPTR_INIT(x) : p(x) {
 #endif
 
 namespace log4cxx
@@ -169,13 +169,8 @@ namespace log4cxx
             return 0;
          }
        T* exchange(const T* newValue) {
-             // Avoid GCC strict aliasing warnings
-             union {
-               T** in;
-               void** out;
-             } temp = { &p };
              return static_cast<T*>(ObjectPtrBase::exchange(
-                 temp.out, 
+                 reinterpret_cast<void**>(&p), 
                  const_cast<T*>(newValue)));
        }
 

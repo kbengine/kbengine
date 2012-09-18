@@ -52,8 +52,6 @@ public:
   static PatternConverterPtr newInstance(
     const std::vector<LogString>& options);
 
-  using LoggingEventPatternConverter::format;
-
   void format(const log4cxx::spi::LoggingEventPtr& event,
      LogString& toAppendTo,
      log4cxx::helpers::Pool& p) const;

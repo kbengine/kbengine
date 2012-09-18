@@ -69,6 +69,7 @@ namespace log4cxx
 
         private:
                 void targetWarn(const LogString& val);
+                static log4cxx::helpers::WriterPtr createWriter(const LogString& target);
 
         };
         LOG4CXX_PTR_DEF(ConsoleAppender);

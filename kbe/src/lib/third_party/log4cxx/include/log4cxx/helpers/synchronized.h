@@ -19,10 +19,6 @@
 #define _LOG4CXX_HELPERS_SYNCHRONIZED_H
 #include <log4cxx/log4cxx.h>
 
-extern "C" {
-    typedef struct apr_thread_mutex_t apr_thread_mutex_t;
-}
-
 namespace log4cxx
 {
         namespace helpers {
@@ -33,7 +29,6 @@ namespace log4cxx
                 {
                 public:
                 synchronized(const Mutex& mutex);
-                synchronized(apr_thread_mutex_t* mutex);
                 ~synchronized();
 
 

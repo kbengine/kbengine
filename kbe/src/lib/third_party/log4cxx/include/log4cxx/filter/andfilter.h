@@ -95,10 +95,9 @@ namespace log4cxx
             void addFilter(const log4cxx::spi::FilterPtr & filter);
 
             void setAcceptOnMatch(bool acceptOnMatch);
-            
+
             FilterDecision decide(const spi::LoggingEventPtr & event) const;
         };
-        LOG4CXX_PTR_DEF(AndFilter);
 
     }
 }

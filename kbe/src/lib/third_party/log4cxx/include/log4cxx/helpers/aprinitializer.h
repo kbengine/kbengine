@@ -46,6 +46,7 @@ namespace log4cxx
       log4cxx_time_t startTime;
       apr_threadkey_t* tlsKey;
       static APRInitializer& getInstance();
+      static void tlsDestruct(void*);
 
     public:
       ~APRInitializer();
