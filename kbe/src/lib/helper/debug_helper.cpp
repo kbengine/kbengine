@@ -25,11 +25,25 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/channel.hpp"
 #include "resmgr/resmgr.hpp"
 
-
 #ifndef NO_USE_LOG4CXX
 #include "log4cxx/logger.h"
 #include "log4cxx/net/socketappender.h"
 #include "log4cxx/propertyconfigurator.h"
+#if KBE_PLATFORM == PLATFORM_WIN32
+#pragma comment (lib, "Mswsock.lib")
+#pragma comment( lib, "odbc32.lib" )
+#ifdef _DEBUG
+#pragma comment (lib, "apr_d.lib")
+#pragma comment (lib, "aprutil_d.lib")
+#pragma comment (lib, "expat_d.lib")
+#pragma comment (lib, "log4cxx_d.lib")
+#else
+#pragma comment (lib, "apr.lib")
+#pragma comment (lib, "aprutil.lib")
+#pragma comment (lib, "expat.lib")
+#pragma comment (lib, "log4cxx.lib")
+#endif
+#endif
 #endif
 
 namespace KBEngine{
