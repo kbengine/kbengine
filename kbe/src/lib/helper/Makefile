@@ -9,6 +9,7 @@ endif
 
 ifndef NO_USE_LOG4CXX
 	NO_USE_LOG4CXX = 0
+	CPPFLAGS += -DLOG4CXX_STATIC
 endif
 
 include $(KBE_ROOT)/kbe/src/build/common.mak
