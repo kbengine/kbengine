@@ -10,6 +10,7 @@
 	<Implements>
 		<Interface>			GameObject		</Interface>
 		<Interface>			NPCObject		</Interface>
+		<Interface>			Combat			</Interface>
 	</Implements>
 
 	<Properties>

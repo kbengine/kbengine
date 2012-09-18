@@ -5,13 +5,15 @@ import time
 import KBEngine
 from KBEDebug import *
 from GameObject import GameObject
+from Combat import Combat
 
 TIMER_TYPE_HEARDBEAT	= 1
 
-class Monster(GameObject):
+class Monster(GameObject, Combat):
 	def __init__(self):
 		GameObject.__init__(self)
-
+		Combat.__init__(self) 
+		
 	def enable(self):
 		"""
 		激活entity

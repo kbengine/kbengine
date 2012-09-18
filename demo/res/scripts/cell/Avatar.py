@@ -3,10 +3,12 @@ import KBEngine
 import dialog
 from KBEDebug import *
 from GameObject import GameObject
+from Combat import Combat
 
-class Avatar(GameObject):
+class Avatar(GameObject, Combat):
 	def __init__(self):
 		GameObject.__init__(self) 
+		Combat.__init__(self) 
 		#self.addTimer(1, 1, 1)
 		
 	def onTimer(self, tid, userArg):
