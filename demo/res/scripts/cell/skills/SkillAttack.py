@@ -14,7 +14,7 @@ class SkillAttack(SkillInitiative):
 		@param caster: 使用技能者
 		@param receiver: 受技能影响者
 		"""
-		return True
+		return SkillInitiative.canUse(self, caster, receiver)
 		
 	def use(self, caster, receiver):
 		"""
@@ -23,4 +23,4 @@ class SkillAttack(SkillInitiative):
 		@param caster: 使用技能者
 		@param receiver: 受技能影响者
 		"""
-		pass
+		caster.teleportSpace(10013004, (0,0,0), (4,5,6), {})

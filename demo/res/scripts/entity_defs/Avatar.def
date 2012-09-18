@@ -8,6 +8,7 @@
 	<Implements>
 		<Interface>	GameObject		</Interface>
 		<Interface>	Combat			</Interface>
+		<Interface>	Spell			</Interface>
 	</Implements>
 
 	<Properties>
@@ -33,12 +34,6 @@
 	</BaseMethods>
 
 	<CellMethods>
-		<spellTarget>
-			<Exposed/>
-			<Utype> 11001 </Utype>
-			<Arg>		SKILLID		</Arg>
-			<Arg>		ENTITY_ID	</Arg>
-		</spellTarget>
 		<queryCurrSpaceEntitys>
 			<Exposed/>
 			<Utype> 11002 </Utype>

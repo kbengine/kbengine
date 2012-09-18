@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import KBEngine
+import GlobalConst
 from KBEDebug import * 
 from skillbases.SObject import SObject
 
@@ -14,7 +15,7 @@ class SkillInitiative(SObject):
 		@param caster: 使用技能者
 		@param receiver: 受技能影响者
 		"""
-		return True
+		return GlobalConst.GC_OK
 		
 	def use(self, caster, receiver):
 		"""

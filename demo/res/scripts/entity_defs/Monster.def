@@ -11,6 +11,7 @@
 		<Interface>			GameObject		</Interface>
 		<Interface>			NPCObject		</Interface>
 		<Interface>			Combat			</Interface>
+		<Interface>			Spell			</Interface>
 	</Implements>
 
 	<Properties>

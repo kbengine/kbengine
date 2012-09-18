@@ -570,6 +570,11 @@ void init_network(void)
 				uint32 model;
 				packet88 >> model;
 			}
+			else if(41008 == propertyID)
+			{
+				uint32 headmodel;
+				packet88 >> headmodel;
+			}
 		}
 		
 		printf("服务器下发属性:spaceUType=%u, level=%u.\n", spaceUType, level);
@@ -681,6 +686,11 @@ void init_network(void)
 					if(dialogID == 0)
 						dialogID = dialogID1;
 				}
+				else if(41008 == propertyID)
+				{
+					uint32 headmodel;
+					packet88 >> headmodel;
+				}
 			}
 			printf("服务器下发属性:name=%s, utype=%u. dialogID=%u\n", name.c_str(), utype, dialogID);
 
@@ -774,7 +784,7 @@ void init_network(void)
 		methodID = 11001;
 		bundle100 << eid;
 		bundle100 << methodID;
-		int32 skillID = 1;
+		int32 skillID = 10011001;
 		// 技能ID
 		bundle100 << skillID;
 		// 目标ID

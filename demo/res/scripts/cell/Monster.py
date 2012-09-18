@@ -6,13 +6,15 @@ import KBEngine
 from KBEDebug import *
 from GameObject import GameObject
 from Combat import Combat
+from Spell import Spell
 
 TIMER_TYPE_HEARDBEAT	= 1
 
-class Monster(GameObject, Combat):
+class Monster(GameObject, Combat, Spell):
 	def __init__(self):
 		GameObject.__init__(self)
 		Combat.__init__(self) 
+		Spell.__init__(self) 
 		
 	def enable(self):
 		"""

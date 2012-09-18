@@ -4,11 +4,13 @@ import dialog
 from KBEDebug import *
 from GameObject import GameObject
 from Combat import Combat
+from Spell import Spell
 
-class Avatar(GameObject, Combat):
+class Avatar(GameObject, Combat, Spell):
 	def __init__(self):
 		GameObject.__init__(self) 
 		Combat.__init__(self) 
+		Spell.__init__(self) 
 		#self.addTimer(1, 1, 1)
 		
 	def onTimer(self, tid, userArg):
@@ -46,18 +48,6 @@ class Avatar(GameObject, Combat):
 		"""
 		if srcEntityID != self.id:
 			return
-			
-		
-	def spellTarget(self, srcEntityID, skillID, targetID):
-		"""
-		exposed.
-		对一个目标entity施放一个技能
-		"""
-		if srcEntityID != self.id:
-			return
-			
-		DEBUG_MSG("Avatar::spellTarget(%i):skillID=%i, srcEntityID=%i, targetID=%i" % (self.id, skillID, srcEntityID, targetID))
-		self.teleportSpace(10013004, (0,0,0), (4,5,6), {})
 		
 	def dialog(self, srcEntityID, targetID, dialogID):
 		"""
