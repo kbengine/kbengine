@@ -28,7 +28,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef NO_USE_LOG4CXX
 #include "log4cxx/logger.h"
 #include "log4cxx/net/socketappender.h"
+#include "log4cxx/helpers/inetaddress.h"
 #include "log4cxx/propertyconfigurator.h"
+#include "log4cxx/patternlayout.h"
+#include "log4cxx/logstring.h"
+#include "log4cxx/basicconfigurator.h"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment( lib, "odbc32.lib" )
@@ -118,6 +122,20 @@ void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 	}
 
 	log4cxx::PropertyConfigurator::configure(Resmgr::matchRes(helpConfig).c_str());
+
+	//log4cxx::helpers::InetAddressPtr aaa = new log4cxx::helpers::InetAddress(log4cxx::LogString(L"localhost"), log4cxx::LogString(L"192.168.4.205")); 
+	
+	//log4cxx::net::SocketAppenderPtr bbb = new log4cxx::net::SocketAppender(aaa, 6593);
+	
+	//bbb->setLayout(new log4cxx::PatternLayout(L"%5p [%t] [%d] - %m"));
+	//log4cxx::BasicConfigurator::configure(bbb); 
+	//bbb->setLocationInfo(true);
+	//bbb->setReconnectionDelay(100);
+
+	// log4cxx::helpers::Pool p;
+	//bbb->activateOptions(p);
+	//log4cxx::Logger::getRootLogger()->addAppender(bbb);
+	
 #endif
 }
 
