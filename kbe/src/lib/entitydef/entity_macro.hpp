@@ -85,8 +85,8 @@ namespace KBEngine{
 
 #else
 	#define DEBUG_CREATE_ENTITY_NAMESPACE			
-	#define DEBUG_OP_ATTRIBUTE(op, ccattr)NULL;
-	#define DEBUG_PERSISTENT_PROPERTY(op, ccattr)NULL;
+	#define DEBUG_OP_ATTRIBUTE(op, ccattr)
+	#define DEBUG_PERSISTENT_PROPERTY(op, ccattr)
 	#define DEBUG_REDUCE_EX(tentity)
 #endif
 
