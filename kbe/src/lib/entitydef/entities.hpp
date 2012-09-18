@@ -62,6 +62,8 @@ public:
 	DECLARE_PY_MOTHOD_ARG0(pyKeys);
 	DECLARE_PY_MOTHOD_ARG0(pyValues);
 	DECLARE_PY_MOTHOD_ARG0(pyItems);
+	
+	static PyObject* __py_pyGet(PyObject * self, PyObject * args, PyObject* kwds);
 
 	/** map操作函数相关 */
 	static PyObject* mp_subscript(PyObject * self, PyObject * key);
@@ -94,6 +96,7 @@ SCRIPT_METHOD_DECLARE("has_key",			pyHas_key,		METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE("keys",				pyKeys,			METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE("values",				pyValues,		METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE("items",				pyItems,		METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("get",				pyGet,			METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE_END()
 
 TEMPLATE_SCRIPT_MEMBER_DECLARE_BEGIN(template<typename T>, Entities<T>, Entities)
@@ -211,6 +214,29 @@ PyObject* Entities<T>::pyItems()
 	}
 
 	return pyList;
+}
+
+//-------------------------------------------------------------------------------------
+template<typename T>
+PyObject* Entities<T>::__py_pyGet(PyObject* self, PyObject * args, PyObject* kwds)
+{
+	Entities* lpEntities = static_cast<Entities*>(self);
+	PyObject * pDefault = Py_None;
+	int id = 0;
+	if (!PyArg_ParseTuple( args, "i|O", &id, &pDefault))
+	{
+		return NULL;
+	}
+
+	PyObject* pEntity = lpEntities->find(id);
+
+	if (!pEntity)
+	{
+		pEntity = pDefault;
+	}
+
+	Py_INCREF(pEntity);
+	return pEntity;
 }
 
 //-------------------------------------------------------------------------------------
