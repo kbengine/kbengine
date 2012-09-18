@@ -2,6 +2,7 @@
 import KBEngine
 from KBEDebug import *
 import dialog
+import skills
 
 def onInit(isReload):
 	"""
@@ -10,6 +11,7 @@ def onInit(isReload):
 	"""
 	DEBUG_MSG('所有的脚本初始化完毕。游戏初始化...')
 	dialog.onInit()
+	skills.onInit()
 	
 def onGlobalData(key, value):
 	DEBUG_MSG('onGlobalData: %s' % key)
