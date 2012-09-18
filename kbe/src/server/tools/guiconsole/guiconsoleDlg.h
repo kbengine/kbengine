@@ -17,6 +17,9 @@
 #include "DebugWindow.h"
 #include "LogWindow.h"
 #include "StatusWindow.h"
+#include "ProfileWindow.h"
+#include "WatcherWindow.h"
+#include "SpaceViewWindow.h"
 
 using namespace KBEngine;
 
@@ -87,6 +90,11 @@ private:
 	CDebugWindow m_debugWnd;
 	CLogWindow m_logWnd;
 	StatusWindow m_statusWnd;
+
+	CProfileWindow m_profileWnd;
+	CWatcherWindow m_watcherWnd;
+	CSpaceViewWindow m_spaceViewWnd;
+
 	bool m_isInit;
 	std::deque<CString> m_historyCommand;
 	int8 m_historyCommandIndex;

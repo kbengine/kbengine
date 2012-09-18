@@ -1,4 +1,5 @@
 #pragma once
+#include "afxwin.h"
 
 
 // CLogWindow dialog
@@ -18,4 +19,7 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	DECLARE_MESSAGE_MAP()
+public:
+	CButton m_autopull;
+	CEdit m_logedit;
 };

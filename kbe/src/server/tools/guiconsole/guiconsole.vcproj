@@ -215,6 +215,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ProfileWindow.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SpaceViewWindow.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\StatusWindow.cpp"
 				>
 			</File>
@@ -237,6 +245,10 @@
 						UsePrecompiledHeader="1"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\WatcherWindow.cpp"
+				>
 			</File>
 		</Filter>
 		<Filter
@@ -265,7 +277,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ProfileWindow.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SpaceViewWindow.h"
 				>
 			</File>
 			<File
@@ -278,6 +298,10 @@
 			</File>
 			<File
 				RelativePath=".\targetver.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WatcherWindow.h"
 				>
 			</File>
 		</Filter>

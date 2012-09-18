@@ -128,6 +128,10 @@ CguiconsoleDlg::CguiconsoleDlg(CWnd* pParent /*=NULL*/)
 	_networkInterface(&_dispatcher),
 	m_debugWnd(),
 	m_logWnd(),
+	m_statusWnd(),
+	m_profileWnd(),
+	m_watcherWnd(),
+	m_spaceViewWnd(),
 	m_isInit(false),
 	m_historyCommand(),
 	m_historyCommandIndex(0),
@@ -207,6 +211,15 @@ BOOL CguiconsoleDlg::OnInitDialog()
 
 	m_tab.InsertItem(2, _T("LOG"), 0); 
 	m_logWnd.Create(IDD_LOG, GetDlgItem(IDC_TAB1));
+
+	m_tab.InsertItem(3, _T("profile"), 0); 
+	m_profileWnd.Create(IDD_PROFILE, GetDlgItem(IDC_TAB1));
+
+	m_tab.InsertItem(4, _T("watcher"), 0); 
+	m_watcherWnd.Create(IDD_WATCHER, GetDlgItem(IDC_TAB1));
+
+	m_tab.InsertItem(5, _T("spaceview"), 0); 
+	m_spaceViewWnd.Create(IDD_SPACEVIEW, GetDlgItem(IDC_TAB1));
 
 	DWORD styles = ::GetWindowLong(m_tree.m_hWnd, GWL_STYLE);
 	styles |= TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS;
@@ -787,6 +800,15 @@ void CguiconsoleDlg::autoWndSize()
 	m_debugWnd.MoveWindow(&rect);
 	m_debugWnd.autoWndSize();
 
+	m_profileWnd.MoveWindow(&rect);
+	m_profileWnd.autoWndSize();
+
+	m_watcherWnd.MoveWindow(&rect);
+	m_watcherWnd.autoWndSize();
+
+	m_spaceViewWnd.MoveWindow(&rect);
+	m_spaceViewWnd.autoWndSize();
+
 	autoShowWindow();
 }
 
@@ -988,16 +1010,49 @@ void CguiconsoleDlg::autoShowWindow()
 		m_statusWnd.ShowWindow(SW_SHOW);
 		m_debugWnd.ShowWindow(SW_HIDE);
 		m_logWnd.ShowWindow(SW_HIDE);
+		m_profileWnd.ShowWindow(SW_HIDE);
+		m_watcherWnd.ShowWindow(SW_HIDE);
+		m_spaceViewWnd.ShowWindow(SW_HIDE);
 		break;
     case 1:
 		m_statusWnd.ShowWindow(SW_HIDE);
 		m_debugWnd.ShowWindow(SW_SHOW);
 		m_logWnd.ShowWindow(SW_HIDE);
+		m_profileWnd.ShowWindow(SW_HIDE);
+		m_watcherWnd.ShowWindow(SW_HIDE);
+		m_spaceViewWnd.ShowWindow(SW_HIDE);
 		break;
     case 2:
 		m_statusWnd.ShowWindow(SW_HIDE);
 		m_debugWnd.ShowWindow(SW_HIDE);
 		m_logWnd.ShowWindow(SW_SHOW);
+		m_profileWnd.ShowWindow(SW_HIDE);
+		m_watcherWnd.ShowWindow(SW_HIDE);
+		m_spaceViewWnd.ShowWindow(SW_HIDE);
+		break;
+    case 3:
+		m_statusWnd.ShowWindow(SW_HIDE);
+		m_debugWnd.ShowWindow(SW_HIDE);
+		m_logWnd.ShowWindow(SW_HIDE);
+		m_profileWnd.ShowWindow(SW_SHOW);
+		m_watcherWnd.ShowWindow(SW_HIDE);
+		m_spaceViewWnd.ShowWindow(SW_HIDE);
+		break;
+    case 4:
+		m_statusWnd.ShowWindow(SW_HIDE);
+		m_debugWnd.ShowWindow(SW_HIDE);
+		m_logWnd.ShowWindow(SW_HIDE);
+		m_profileWnd.ShowWindow(SW_HIDE);
+		m_watcherWnd.ShowWindow(SW_SHOW);
+		m_spaceViewWnd.ShowWindow(SW_HIDE);
+		break;
+    case 5:
+		m_statusWnd.ShowWindow(SW_HIDE);
+		m_debugWnd.ShowWindow(SW_HIDE);
+		m_logWnd.ShowWindow(SW_HIDE);
+		m_profileWnd.ShowWindow(SW_HIDE);
+		m_watcherWnd.ShowWindow(SW_HIDE);
+		m_spaceViewWnd.ShowWindow(SW_SHOW);
 		break;
     };
 }
