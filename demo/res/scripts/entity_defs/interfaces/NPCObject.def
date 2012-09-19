@@ -15,6 +15,13 @@
 			<Flags>			ALL_CLIENTS		</Flags>
 			<Default>		0			</Default>
 		</dialogID>
+
+		<descr>
+			<Type>			STRING			</Type>
+			<Utype> 		41009			</Utype>
+			<Flags>			ALL_CLIENTS		</Flags>
+			<DetailLevel>		MEDIUM			</DetailLevel>
+		</descr>
 	</Properties>
 
 	<BaseMethods>
