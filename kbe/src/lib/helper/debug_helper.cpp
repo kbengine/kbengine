@@ -24,6 +24,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadguard.hpp"
 #include "network/channel.hpp"
 #include "resmgr/resmgr.hpp"
+#include "network/bundle.hpp"
+#include "network/event_dispatcher.hpp"
+#include "server/components.hpp"
 
 #ifndef NO_USE_LOG4CXX
 #include "log4cxx/logger.h"
@@ -49,6 +52,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #endif
 #endif
+
+#include "../../server/tools/message_log/messagelog_interface.hpp"
 
 namespace KBEngine{
 	
@@ -96,13 +101,17 @@ _currFile(),
 _currFuncName(),
 _currLine(0),
 watcherChannels_(),
-logMutex()
+logMutex(),
+pBundle_(NULL),
+syncStarting_(false),
+pDispatcher_(NULL)
 {
 }
 
 //-------------------------------------------------------------------------------------
 DebugHelper::~DebugHelper()
 {
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle_);
 }	
 
 //-------------------------------------------------------------------------------------
@@ -168,13 +177,94 @@ void DebugHelper::outTime()
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::onMessage(LOG_TYPE logType, const char * str)
+void DebugHelper::sync()
 {
-	/*
-	int strlength = strlen(str);
-	if(strlength <= 0)
+	if(pBundle_ == NULL)
 		return;
 
+	Components::COMPONENTS cts = Components::getSingleton().getComponents(MESSAGELOG_TYPE);
+	Components::ComponentInfos* loginfos = NULL;
+
+	if(cts.size() > 0)
+		loginfos = &(*cts.begin());
+
+	if(loginfos == NULL || loginfos->pChannel == NULL)
+	{
+		if(pBundle_->packets().size() > 32)
+		{
+			ERROR_MSG("DebugHelper::sync: can't found messagelog. packet size=%u.\n", pBundle_->packets().size());
+			Mercury::Bundle::ObjPool().reclaimObject(pBundle_);
+			pBundle_ = NULL;
+		}
+		return;
+	}
+
+	int8 v = Mercury::g_trace_packet;
+	Mercury::g_trace_packet = 0;
+	loginfos->pChannel->send(pBundle_);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle_);
+	pBundle_ = NULL;
+	Mercury::g_trace_packet = v;
+}
+
+//-------------------------------------------------------------------------------------
+bool DebugHelper::process()
+{
+	if(pBundle_ == NULL || pDispatcher_ == NULL)
+	{
+		syncStarting_ = false;
+		return false;
+	}
+
+	sync();
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::pDispatcher(Mercury:: EventDispatcher* dispatcher)
+{ 
+	pDispatcher_ = dispatcher; 
+	if(syncStarting_)
+	{
+		pDispatcher_->addFrequentTask(this);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::onMessage(int8 logType, const char * str, uint32 length)
+{
+	if(g_componentType == MACHINE_TYPE || 
+		g_componentType == CONSOLE_TYPE || g_componentType == MESSAGELOG_TYPE)
+		return;
+
+	if(length <= 0)
+		return;
+
+	if(pBundle_ == NULL)
+		pBundle_ = Mercury::Bundle::ObjPool().createObject();
+
+	int8 v = Mercury::g_trace_packet;
+	Mercury::g_trace_packet = 0;
+	pBundle_->newMessage(MessagelogInterface::writeLog);
+
+	(*pBundle_) << logType;
+	(*pBundle_) << g_componentType;
+	(*pBundle_) << g_componentID;
+	(*pBundle_) << g_componentOrder;
+
+	int64 t = time(NULL);
+	(*pBundle_) << t;
+	(*pBundle_) << str;
+	
+	Mercury::g_trace_packet = v;
+	if(!syncStarting_)
+	{
+		if(pDispatcher_)
+			pDispatcher_->addFrequentTask(this);
+		syncStarting_ = true;
+	}
+
+	/*
 	WATCH_CHANNELS::iterator iter = watcherChannels_.begin();
 	for(; iter != watcherChannels_.end(); iter++)
 	{
@@ -239,16 +329,17 @@ void DebugHelper::print_msg(const char * str, ...)
 #else
     va_list ap;
     va_start(ap, str);
+
 #if KBE_PLATFORM == PLATFORM_WIN32
-	_vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+	uint32 size = _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
 #else
-    vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+    uint32 size = vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
 #endif
     va_end(ap);
 	LOG4CXX_INFO(g_logger, _g_buf);
 #endif
 
-	onMessage(LOG_PRINT, _g_buf);
+	onMessage(LOG_DEBUG, _g_buf, size);
 }
 
 //-------------------------------------------------------------------------------------
@@ -286,15 +377,15 @@ void DebugHelper::error_msg(const char * err, ...)
     va_list ap;
     va_start(ap, err);
 #if KBE_PLATFORM == PLATFORM_WIN32
-	_vsnprintf(_g_buf, DBG_PT_SIZE, err, ap);
+	uint32 size = _vsnprintf(_g_buf, DBG_PT_SIZE, err, ap);
 #else
-    vsnprintf(_g_buf, DBG_PT_SIZE, err, ap);
+    uint32 size = vsnprintf(_g_buf, DBG_PT_SIZE, err, ap);
 #endif
     va_end(ap);
 	LOG4CXX_ERROR(g_logger, _g_buf);
 #endif
 
-	onMessage(LOG_ERROR, _g_buf);
+	onMessage(LOG_DEBUG, _g_buf, size);
 }
 
 //-------------------------------------------------------------------------------------
@@ -332,15 +423,15 @@ void DebugHelper::info_msg(const char * info, ...)
     va_list ap;
     va_start(ap, info);
 #if KBE_PLATFORM == PLATFORM_WIN32
-	_vsnprintf(_g_buf, DBG_PT_SIZE, info, ap);
+	uint32 size = _vsnprintf(_g_buf, DBG_PT_SIZE, info, ap);
 #else
-    vsnprintf(_g_buf, DBG_PT_SIZE, info, ap);
+    uint32 size = vsnprintf(_g_buf, DBG_PT_SIZE, info, ap);
 #endif
     va_end(ap);
 	LOG4CXX_INFO(g_logger, _g_buf);
 #endif
 
-	onMessage(LOG_INFO, _g_buf);
+	onMessage(LOG_DEBUG, _g_buf, size);
 }
 
 //-------------------------------------------------------------------------------------
@@ -378,15 +469,15 @@ void DebugHelper::debug_msg(const char * str, ...)
     va_list ap;
     va_start(ap, str);
 #if KBE_PLATFORM == PLATFORM_WIN32
-	_vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+	uint32 size = _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
 #else
-    vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+    uint32 size = vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
 #endif
     va_end(ap);
 	LOG4CXX_DEBUG(g_logger, _g_buf);
 #endif
 
-	onMessage(LOG_DEBUG, _g_buf);
+	onMessage(LOG_DEBUG, _g_buf, size);
 }
 
 //-------------------------------------------------------------------------------------
@@ -424,16 +515,16 @@ void DebugHelper::warning_msg(const char * str, ...)
     va_list ap;
     va_start(ap, str);
 #if KBE_PLATFORM == PLATFORM_WIN32
-	_vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+	uint32 size = _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
 #else
-    vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+    uint32 size = vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
 #endif
     va_end(ap);
 	// printf("CRITICAL:%s(%d)\n\t%s\n", _currFile.c_str(), _currLine, _g_buf);
 	LOG4CXX_WARN(g_logger, _g_buf);
 #endif
 
-	onMessage(LOG_WARNING, _g_buf);
+	onMessage(LOG_WARNING, _g_buf, size);
 }
 
 void DebugHelper::critical_msg(const char * str, ...)
@@ -470,9 +561,9 @@ void DebugHelper::critical_msg(const char * str, ...)
     va_list ap;
     va_start(ap, str);
 #if KBE_PLATFORM == PLATFORM_WIN32
-	_vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+	uint32 size = _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
 #else
-    vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+    uint32 size = vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
 #endif
     va_end(ap);
 	char buf[DBG_PT_SIZE];
@@ -483,7 +574,7 @@ void DebugHelper::critical_msg(const char * str, ...)
 
 	setFile("", "", 0);
 
-	onMessage(LOG_CRITICAL, _g_buf);
+	onMessage(LOG_CRITICAL, _g_buf, size);
 }
 //-------------------------------------------------------------------------------------
 

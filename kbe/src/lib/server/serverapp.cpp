@@ -261,7 +261,13 @@ void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE compo
 		Components::ComponentInfos* cinfos = 
 			Componentbridge::getComponents().findComponent(componentType, KBEngine::getUserUID(), componentID);
 
-		KBE_ASSERT(cinfos != NULL);
+		if(cinfos == NULL)
+		{
+			ERROR_MSG("ServerApp::onAppActiveTick[%x]: %s:%"PRAppID" not found.\n", 
+		pChannel, COMPONENT_NAME[componentType], componentID);
+			return;
+		}
+
 		pTargetChannel = cinfos->pChannel;
 		pTargetChannel->updateLastReceivedTime();
 	}

@@ -52,6 +52,20 @@ same license as the rest of the engine.
 #define DEFINE_IN_INTERFACE
 #include "loginapp/loginapp_interface.hpp"
 
+#undef DEFINE_IN_INTERFACE
+#include "tools/message_log/messagelog_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "tools/message_log/messagelog_interface.hpp"
+
+#undef DEFINE_IN_INTERFACE
+#include "resourcemgr/resourcemgr_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "resourcemgr/resourcemgr_interface.hpp"
+
+#include "machine/machine_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "machine/machine_interface.hpp"
+
 #include "log4cxx/logger.h"
 #include "log4cxx/propertyconfigurator.h"
 

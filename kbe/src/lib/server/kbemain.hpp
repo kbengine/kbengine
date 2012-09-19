@@ -79,6 +79,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	Resmgr::pirnt();
 
 	Mercury::EventDispatcher dispatcher;
+	DebugHelper::getSingleton().pDispatcher(&dispatcher);
 	Mercury::NetworkInterface networkInterface(&dispatcher, 
 		extlisteningPort_min, extlisteningPort_max, extlisteningInterface,
 		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface);

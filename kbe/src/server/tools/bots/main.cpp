@@ -60,6 +60,16 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define DEFINE_IN_INTERFACE
 #include "cellappmgr/cellappmgr_interface.hpp"
 
+#undef DEFINE_IN_INTERFACE
+#include "tools/message_log/messagelog_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "tools/message_log/messagelog_interface.hpp"
+
+#undef DEFINE_IN_INTERFACE
+#include "resourcemgr/resourcemgr_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "resourcemgr/resourcemgr_interface.hpp"
+
 using namespace KBEngine;
 
 int KBENGINE_MAIN(int argc, char* argv[])

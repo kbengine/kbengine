@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include <time.h>	
 #include <stdarg.h> 
+#include "cstdkbe/tasks.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "thread/threadmutex.hpp"
 #include "network/common.hpp"
@@ -33,6 +34,8 @@ namespace KBEngine{
 
 namespace Mercury{
 	class Channel;
+	class Bundle;
+	class EventDispatcher;
 }
 
 /** 
@@ -41,7 +44,8 @@ namespace Mercury{
 void vutf8printf(FILE *out, const char *str, va_list* ap);
 void utf8printf(FILE *out, const char *str, ...);
 
-class DebugHelper : public Singleton<DebugHelper>
+class DebugHelper : public Task, 
+					public Singleton<DebugHelper>
 {
 public:
 	enum LOG_TYPE
@@ -67,10 +71,18 @@ public:
 		_currLine = line;
 		_currFuncName = funcname;
 	}
+	
+	/** 
+		同步日志到messagelog
+	*/
+	void sync();
+	bool process();
 
 	void outTime();
 	static void outTimestamp(FILE* file);
     
+	void pDispatcher(Mercury:: EventDispatcher* dispatcher);
+
 	void print_msg(const char * str, ...);
     void debug_msg(const char * str, ...);
     void error_msg(const char * err, ...);
@@ -78,7 +90,7 @@ public:
 	void warning_msg(const char * str, ...);
 	void critical_msg(const char * str, ...);
 
-	void onMessage(LOG_TYPE logType, const char * str);
+	void onMessage(int8 logType, const char * str, uint32 length);
 
 	void registerWatch(Mercury::MessageID msgID, Mercury::Channel* pChannel);
 	void unregisterWatch(Mercury::MessageID msgID, Mercury::Channel* pChannel);
@@ -88,6 +100,9 @@ private:
 	uint32 _currLine;
 	WATCH_CHANNELS watcherChannels_;
 	KBEngine::thread::ThreadMutex logMutex;
+	Mercury::Bundle* pBundle_;
+	bool syncStarting_;
+	Mercury:: EventDispatcher* pDispatcher_;
 };
 
 /*---------------------------------------------------------------------------------

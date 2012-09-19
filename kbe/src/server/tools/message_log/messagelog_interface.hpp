@@ -63,9 +63,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MessagelogInterface)
 									COMPONENT_ID,							componentID)
 
 	// ‘∂≥Ã–¥»’÷æ
-	MESSAGELOG_MESSAGE_DECLARE_ARGS2(writeLog,								MERCURY_VARIABLE_MESSAGE,
-									int32,									logType, 
-									std::string,							message)
+	MESSAGELOG_MESSAGE_DECLARE_STREAM(writeLog,								MERCURY_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 

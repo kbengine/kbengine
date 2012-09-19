@@ -95,8 +95,25 @@ void Messagelog::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-void Messagelog::writeLog(Mercury::Channel* pChannel, int32 logType, std::string& message)
+void Messagelog::writeLog(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	int8 ilogtype;
+	DebugHelper::LOG_TYPE logType;
+	COMPONENT_TYPE componentType = UNKNOWN_COMPONENT_TYPE;
+	COMPONENT_ID componentID = 0;
+	COMPONENT_ORDER componentOrder = 0;
+	int64 t;
+	std::string str;
+
+	s >> ilogtype;
+	logType = static_cast<DebugHelper::LOG_TYPE>(ilogtype);
+	s >> g_componentType;
+	s >> g_componentID;
+	s >> g_componentOrder;
+	s >> t;
+	s >> str;
+	
+	PRINT_MSG(str.c_str());
 }
 
 //-------------------------------------------------------------------------------------
