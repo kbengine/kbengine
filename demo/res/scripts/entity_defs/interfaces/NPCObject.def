@@ -17,7 +17,7 @@
 		</dialogID>
 
 		<descr>
-			<Type>			STRING			</Type>
+			<Type>			UNICODE			</Type>
 			<Utype> 		41009			</Utype>
 			<Flags>			ALL_CLIENTS		</Flags>
 			<DetailLevel>		MEDIUM			</DetailLevel>

@@ -516,7 +516,7 @@ void init_network(void)
 		uint16 propertyID = 0;
 		uint32 spaceUType;
 		uint16 level;
-		std::string name;
+		std::wstring name;
 		SPACE_ID spaceID;
 
 		while(packet88.opsize() > 0)
@@ -533,7 +533,9 @@ void init_network(void)
 			}
 			else if(41003 == propertyID)
 			{
-				packet88 >> name;
+				std::string outstr;
+				packet88.readBlob(outstr);
+				utf82wchar(outstr, name);
 			}
 			else if(40000 == propertyID)
 			{
@@ -610,11 +612,13 @@ void init_network(void)
 			uint16 propertyID = 0;
 			uint32 spaceUType;
 			uint16 level;
-			std::string name;
+			std::wstring name;
 			SPACE_ID spaceID;
 			uint32 utype = 0;
 			uint32 dialogID1;
 			uint32 model;
+			uint32 headmodel;
+			std::wstring descr;
 			uint32 endpos = msgLen + packet99.rpos() - 4;
 			if(endpos > packet99.wpos())
 			{
@@ -637,7 +641,9 @@ void init_network(void)
 				}
 				else if(41003 == propertyID)
 				{
-					packet99 >> name;
+					std::string outstr;
+					packet99.readBlob(outstr);
+					utf82wchar(outstr, name);
 				}
 				else if(40000 == propertyID)
 				{
@@ -688,11 +694,22 @@ void init_network(void)
 				}
 				else if(41008 == propertyID)
 				{
-					uint32 headmodel;
-					packet88 >> headmodel;
+					packet99 >> headmodel;
+				}
+				else if(41009 == propertyID)
+				{
+					
+					std::string outstr;
+					packet99.readBlob(outstr);
+					if(outstr.size() > 0)
+						utf82wchar(outstr, descr);
 				}
 			}
-			printf("服务器下发属性:name=%s, utype=%u. dialogID=%u\n", name.c_str(), utype, dialogID);
+
+			printf("服务器下发属性:name=");
+			std::wcout << name;
+			printf("utype=%u. dialogID=%u, descr=",  utype, dialogID);
+			std::wcout << descr << std::endl;
 
 			packet99 >> msgID;
 			packet99 >> eid1;

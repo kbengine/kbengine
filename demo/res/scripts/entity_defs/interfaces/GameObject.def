@@ -1,10 +1,9 @@
 <root>
 	<Properties>
 		<name>
-			<Type>			STRING			</Type>
+			<Type>			UNICODE			</Type>
 			<Utype> 		41003			</Utype>
 			<Flags>			ALL_CLIENTS		</Flags>
-			<Default>		monster			</Default>
 			<Persistent>		true			</Persistent>
 			<DetailLevel>		MEDIUM			</DetailLevel>
 		</name>
@@ -43,7 +42,7 @@
 			<Type>			UINT32			</Type>
 			<Utype> 		41008			</Utype>
 			<Flags>			ALL_CLIENTS		</Flags>
-			<Default>		0			</Default>
+			<Default>		88888888		</Default>
 		</headID>
 	</Properties>
 

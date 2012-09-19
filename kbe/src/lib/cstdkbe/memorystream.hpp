@@ -97,6 +97,8 @@ public:
 
     MemoryStream(size_t res): rpos_(0), wpos_(0)
     {
+		if(res <= 0)
+			res = DEFAULT_SIZE;
         data_.reserve(res);
     }
 
@@ -463,13 +465,15 @@ public:
     void appendBlob(const char *src, uint32 cnt)
     {
         (*this) << cnt;
-		append(src, cnt);
+		if(cnt > 0)
+			append(src, cnt);
     }
 
 	void appendBlob(const std::string& datas)
     {
 		(*this) << datas.size();
-		append(datas.data(), datas.size());
+		if(datas.size() > 0)
+			append(datas.data(), datas.size());
     }
 
     void append(const std::string& str)
