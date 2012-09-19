@@ -50,16 +50,23 @@ namespace KBEngine{
 	SCRIPT_GETSET_DECLARE_END()																				\
 
 
-//#define CAN_DEBUG_CREATE_ENTITY
+#define CAN_DEBUG_CREATE_ENTITY
 #ifdef CAN_DEBUG_CREATE_ENTITY
 	#define DEBUG_CREATE_ENTITY_NAMESPACE																	\
 			wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(key, NULL);				\
 			char* ccattr_DEBUG_CREATE_ENTITY_NAMESPACE = wchar2char(PyUnicode_AsWideCharStringRet1);		\
-			DEBUG_MSG("%s(refc=%u, id=%d)::debug_createNamespace:add %s.\n", getScriptName(),				\
+			PyObject* pytsval = PyObject_Str(value);														\
+			wchar_t* cwpytsval = PyUnicode_AsWideCharString(pytsval, NULL);									\
+			char* cccpytsval = wchar2char(cwpytsval);														\
+			Py_DECREF(pytsval);																				\
+			DEBUG_MSG("%s(refc=%u, id=%d)::debug_createNamespace:add %s(%s).\n", getScriptName(),			\
 												static_cast<PyObject*>(this)->ob_refcnt, this->getID(),		\
-																ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);		\
+																ccattr_DEBUG_CREATE_ENTITY_NAMESPACE,		\
+																cccpytsval);								\
 			free(ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);														\
 			PyMem_Free(PyUnicode_AsWideCharStringRet1);														\
+			free(cccpytsval);																				\
+			PyMem_Free(cwpytsval);																			\
 
 
 	#define DEBUG_OP_ATTRIBUTE(op, ccattr)																	\
@@ -124,6 +131,12 @@ public:																										\
 			SCRIPT_ERROR_CHECK();																			\
 	}																										\
 																											\
+	void initializeEntity(PyObject* dictData)																\
+	{																										\
+		createNamespace(dictData);																			\
+		initializeScript();																					\
+	}																										\
+																											\
 	void createNamespace(PyObject* dictData)																\
 	{																										\
 		if(dictData == NULL)																				\
@@ -137,7 +150,6 @@ public:																										\
 																											\
 		Py_ssize_t pos = 0;																					\
 		PyObject *key, *value;																				\
-		PyObject* pydict = PyObject_GetAttrString(this, "__dict__");										\
 		PyObject* cellDataDict = PyObject_GetAttrString(this, "cellData");									\
 		if(cellDataDict == NULL)																			\
 			PyErr_Clear();																					\
@@ -145,21 +157,20 @@ public:																										\
 		while(PyDict_Next(dictData, &pos, &key, &value))													\
 		{																									\
 			DEBUG_CREATE_ENTITY_NAMESPACE																	\
-			if(PyDict_Contains(pydict, key) > 0)															\
+			if(PyObject_HasAttr(this, key) > 0)																\
 			{																								\
-				PyDict_SetItem(pydict, key, value);															\
+				PyObject_SetAttr(this, key, value);															\
 				continue;																					\
 			}																								\
 																											\
 			if(cellDataDict != NULL && PyDict_Contains(cellDataDict, key) > 0)								\
     			PyDict_SetItem(cellDataDict, key, value);													\
 			else																							\
-				PyDict_SetItem(pydict, key, value);															\
+				PyObject_SetAttr(this, key, value);															\
 		}																									\
 																											\
 		SCRIPT_ERROR_CHECK();																				\
 		Py_XDECREF(cellDataDict);																			\
-		Py_XDECREF(pydict);																					\
 	}																										\
 																											\
 	PyObject* addCellDataToStream(uint32 flags)																\

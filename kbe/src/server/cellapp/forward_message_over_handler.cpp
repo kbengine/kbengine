@@ -8,9 +8,10 @@
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(Entity* e, SPACE_ID spaceID):
+FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(Entity* e, SPACE_ID spaceID, PyObject* params):
 _e(e),
-_spaceID(spaceID)
+_spaceID(spaceID),
+params_(params)
 {
 }
 
@@ -30,7 +31,8 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
 
 	// Ìí¼Óµ½space
 	space->addEntity(_e);
-	_e->initializeScript();
+	_e->initializeEntity(params_);
+	Py_XDECREF(params_);
 }
 
 //-------------------------------------------------------------------------------------

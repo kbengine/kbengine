@@ -418,15 +418,12 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 	
 	E* entity = onCreateEntityCommon(obj, sm, id);
 
-	// 创建名字空间
-	entity->createNamespace(params);
-
 	// 将entity加入entities
 	pEntities_->add(id, entity); 
 
 	// 初始化脚本
 	if(isInitializeScript)
-		entity->initializeScript();
+		entity->initializeEntity(params);
 
 	SCRIPT_ERROR_CHECK();
 	INFO_MSG("EntityApp::createEntityCommon: new %s (%d) refc=%u.\n", entityType, id, obj->ob_refcnt);

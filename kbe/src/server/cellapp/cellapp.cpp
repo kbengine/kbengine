@@ -214,14 +214,15 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 	if(pEntity != NULL)
 	{
 		Py_INCREF(pEntity);
+		pEntity->initializeEntity(params);
 		pEntity->pySetPosition(position);
 		pEntity->pySetDirection(direction);	
-		pEntity->initializeScript();
-
+		
 		// 添加到space
 		space->addEntity(pEntity);
 	}
 	
+	//Py_XDECREF(params);
 	return pEntity;
 }
 
@@ -531,10 +532,12 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 	
 		// 创建entity
 		Entity* e = createEntityCommon(entityType.c_str(), params, false, mailboxEntityID);
-		Py_XDECREF(params);
 		
 		if(e == NULL)
+		{
+			Py_XDECREF(params);
 			return;
+		}
 
 		// 设置entity的baseMailbox
 		EntityMailbox* mailbox = new EntityMailbox(e->getScriptModule(), NULL, componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
@@ -545,7 +548,8 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		if(cinfos == NULL || cinfos->pChannel == NULL)
 		{
 			ForwardItem* pFI = new ForwardItem();
-			pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(e, spaceID);
+			pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(e, spaceID, params);
+			//Py_XDECREF(params);
 			pFI->bundle.newMessage(BaseappInterface::onEntityGetCell);
 			BaseappInterface::onEntityGetCellArgs3::staticAddToBundle(pFI->bundle, mailboxEntityID, componentID_, spaceID);
 			forward_messagebuffer_.push(componentID, pFI);
@@ -555,7 +559,8 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 
 		// 添加到space
 		space->addEntity(e);
-		e->initializeScript();
+		e->initializeEntity(params);
+		Py_XDECREF(params);
 
 		Mercury::Bundle bundle;
 		bundle.newMessage(BaseappInterface::onEntityGetCell);
@@ -629,10 +634,12 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 	
 		// 创建entity
 		Entity* e = createEntityCommon(entityType.c_str(), params, false, entityID);
-		Py_XDECREF(params);
 		
 		if(e == NULL)
+		{
+			Py_XDECREF(params);
 			return;
+		}
 		
 		// 注意：此处理论不会找不到组件， 因为onCreateCellEntityFromBaseapp中已经进行过一次消息缓存判断
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
@@ -644,7 +651,8 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		
 		// 添加到space
 		space->addEntity(e);
-		e->initializeScript();
+		e->initializeEntity(params);
+		Py_XDECREF(params);
 
 		// 告知baseapp， entity的cell创建了
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();

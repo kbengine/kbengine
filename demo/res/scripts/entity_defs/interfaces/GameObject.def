@@ -42,7 +42,7 @@
 			<Type>			UINT32			</Type>
 			<Utype> 		41008			</Utype>
 			<Flags>			ALL_CLIENTS		</Flags>
-			<Default>		88888888		</Default>
+			<Default>		0			</Default>
 		</headID>
 	</Properties>
 

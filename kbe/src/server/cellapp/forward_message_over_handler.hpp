@@ -36,12 +36,13 @@ namespace KBEngine{
 class FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp : public ForwardMessageOverHandler
 {
 public:
-	FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(Entity* e, SPACE_ID spaceID);
+	FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(Entity* e, SPACE_ID spaceID, PyObject* params);
 
 	virtual void process();
 private:
 	Entity* _e;
 	SPACE_ID _spaceID;
+	PyObject* params_;
 };
 
 class FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp : public ForwardMessageOverHandler

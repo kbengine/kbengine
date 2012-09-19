@@ -11,7 +11,9 @@ class SpawnPoint(GameObject):
 		datas = d_entities.datas.get(self.spawnEntityNO)
 		DEBUG_MSG("spawn:%i" % self.spawnEntityNO)
 		params = {
-			"spawnPos" : tuple(self.position),
+			"spawnPos" : tuple(datas["spawnPos"]),
+			"position" : tuple(self.position),
+			"direction" : tuple(self.direction),
 			"uid" : datas["id"],
 			"utype" : datas["etype"],
 			"modelID" : datas["modelID"],
