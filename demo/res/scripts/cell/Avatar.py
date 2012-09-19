@@ -11,10 +11,6 @@ class Avatar(GameObject, Combat, Spell):
 		GameObject.__init__(self) 
 		Combat.__init__(self) 
 		Spell.__init__(self) 
-		#self.addTimer(1, 1, 1)
-		
-	def onTimer(self, tid, userArg):
-		DEBUG_MSG("Avatar::onTimer: %i, tid:%i, arg:%i" % (self.id, tid, userArg))
 	
 	def onGetWitness(self):
 		"""
@@ -62,3 +58,7 @@ class Avatar(GameObject, Combat, Spell):
 			return
 			
 		dialog.onGossip(dialogID, self, KBEngine.entities[targetID])
+
+Avatar._timermap = {}
+Avatar._timermap.update(GameObject._timermap)
+Avatar._timermap.update(Spell._timermap)

@@ -263,6 +263,7 @@ void init_network(void)
 	nnn = 0;
 	sprintf(ttt1, "%d", nnn);
 	accountname += ttt1;
+	std::wcout.imbue(std::locale("chs"));
 
 	while(1)
 	{

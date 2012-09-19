@@ -9,6 +9,7 @@ class SpawnPoint(GameObject):
 		KBEngine.Entity.__init__(self)
 		
 		datas = d_entities.datas.get(self.spawnEntityNO)
+		DEBUG_MSG("spawn:%i" % self.spawnEntityNO)
 		params = {
 			"spawnPos" : tuple(self.position),
 			"uid" : datas["id"],

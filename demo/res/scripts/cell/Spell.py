@@ -2,12 +2,33 @@
 import KBEngine
 import skills
 import GlobalConst
+import wtimer
 from KBEDebug import * 
 
 class Spell:
 	def __init__(self):
+		self.addTimer(1,1,wtimer.TIME_TYPE_BUFF_TICK)
+
+	def addDBuff(self, buffData):
+		"""
+		defined method.
+		添加buff
+		"""
 		pass
 
+	def removeDBuff(self, buffData):
+		"""
+		defined method.
+		删除buff
+		"""
+		pass
+		
+	def onBuffTick(self, tid):
+		"""
+		buff的tick
+		"""
+		DEBUG_MSG("onBuffTick:%i" % tid)
+		
 	def spellTarget(self, srcEntityID, skillID, targetID):
 		"""
 		exposed.
@@ -34,3 +55,6 @@ class Spell:
 			return
 			
 		skill.use(self, target)
+
+Spell._timermap = {}
+Spell._timermap[wtimer.TIME_TYPE_BUFF_TICK] = Spell.onBuffTick
