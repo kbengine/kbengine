@@ -6,6 +6,7 @@ ASMS =
 
 MY_LIBS =		\
 	helper		\
+	server		\
 	network		\
 	thread
 	
