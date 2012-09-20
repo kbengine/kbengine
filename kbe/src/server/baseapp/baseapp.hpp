@@ -249,6 +249,11 @@ public:
 		cellapp转发entity消息给client
 	*/
 	void forwardMessageToClientFromCellapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/**
+		获取游戏时间
+	*/
+	static PyObject* __py_gametime(PyObject* self, PyObject* args);
 protected:
 	TimerHandle								loopCheckTimerHandle_;
 

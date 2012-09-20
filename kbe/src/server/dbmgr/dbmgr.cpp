@@ -97,7 +97,7 @@ void Dbmgr::handleMainTick()
 	 //time_t t = ::time(NULL);
 	 //DEBUG_MSG("Dbmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
-	time_++;
+	g_kbetime++;
 	getNetworkInterface().handleChannels(&DbmgrInterface::messageHandlers);
 }
 

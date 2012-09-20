@@ -166,7 +166,8 @@ void DebugHelper::outTimestamp(FILE* file)
     //       HH     hour (2 digits 00-23)
     //       MM     minutes (2 digits 00-59)
     //       SS     seconds (2 digits 00-59)
-    fprintf(file,"[%-4d-%02d-%02d %02d:%02d:%02d] ",aTm->tm_year+1900,aTm->tm_mon+1,aTm->tm_mday,aTm->tm_hour,aTm->tm_min,aTm->tm_sec);
+    fprintf(file, "[%-4d-%02d-%02d %02d:%02d:%02d] ",aTm->tm_year+1900, aTm->tm_mon+1, 
+		aTm->tm_mday, aTm->tm_hour, aTm->tm_min, aTm->tm_sec);
 }
 
 //-------------------------------------------------------------------------------------
@@ -180,7 +181,7 @@ void DebugHelper::outTime()
     //       HH     hour (2 digits 00-23)
     //       MM     minutes (2 digits 00-59)
     //       SS     seconds (2 digits 00-59)
-    printf("[%02d:%02d:%02d] ",aTm->tm_hour,aTm->tm_min,aTm->tm_sec);
+    printf("[%02d:%02d:%02d] ", aTm->tm_hour, aTm->tm_min, aTm->tm_sec);
 }
 
 //-------------------------------------------------------------------------------------
@@ -204,6 +205,13 @@ void DebugHelper::sync()
 	Mercury::g_trace_packet = 0;
 
 	Mercury::Channel* pChannel = pNetworkInterface_->findChannel(messagelogAddr_);
+	if(pChannel == NULL)
+	{
+		messagelogAddr_.ip = 0;
+		messagelogAddr_.port = 0;
+		return;
+	}
+
 	pChannel->send(pBundle_);
 	
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle_);
@@ -264,6 +272,7 @@ void DebugHelper::onMessage(int8 logType, const char * str, uint32 length)
 
 	int64 t = time(NULL);
 	(*pBundle_) << t;
+	(*pBundle_) << g_kbetime;
 	(*pBundle_) << str;
 	
 	Mercury::g_trace_packet = v;

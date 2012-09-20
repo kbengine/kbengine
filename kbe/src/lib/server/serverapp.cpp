@@ -38,6 +38,7 @@ namespace KBEngine{
 COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;
 COMPONENT_ID g_componentID = 0;
 COMPONENT_ORDER g_componentOrder = -1;
+GAME_TIME g_kbetime = 0;
 
 const float ACTIVE_TICK_TIMEOUT_DEFAULT = 30.0;
 
@@ -54,7 +55,6 @@ componentType_(componentType),
 componentID_(componentID),
 mainDispatcher_(dispatcher),
 networkInterface_(ninterface),
-time_(0),
 timers_(),
 startGlobalOrder_(-1),
 startGroupOrder_(-1),
@@ -120,7 +120,7 @@ void ServerApp::finalise(void)
 //-------------------------------------------------------------------------------------		
 double ServerApp::gameTimeInSeconds() const
 {
-	return double(time_) / g_kbeSrvConfig.gameUpdateHertz();
+	return double(g_kbetime) / g_kbeSrvConfig.gameUpdateHertz();
 }
 
 //-------------------------------------------------------------------------------------
@@ -171,7 +171,7 @@ void ServerApp::startActiveTick(float period)
 //-------------------------------------------------------------------------------------
 void ServerApp::handleTimers()
 {
-	timers().process(time_);
+	timers().process(g_kbetime);
 }
 
 //-------------------------------------------------------------------------------------		

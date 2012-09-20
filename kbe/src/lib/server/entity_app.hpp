@@ -150,6 +150,7 @@ public:
 		请求执行一段python指令
 	*/
 	void onExecScriptCommand(Mercury::Channel* pChannel, std::string& strcommand);
+
 protected:
 	KBEngine::script::Script								script_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
@@ -494,7 +495,7 @@ void EntityApp<E>::handleGameTick()
 	// time_t t = ::time(NULL);
 	// DEBUG_MSG("EntityApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
-	time_++;
+	g_kbetime++;
 	handleTimers();
 	getNetworkInterface().handleChannels(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
 }

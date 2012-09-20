@@ -80,7 +80,7 @@ void Cellappmgr::handleGameTick()
 	 //time_t t = ::time(NULL);
 	 //DEBUG_MSG("CellApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
-	time_++;
+	g_kbetime++;
 	getNetworkInterface().handleChannels(&CellappmgrInterface::messageHandlers);
 }
 

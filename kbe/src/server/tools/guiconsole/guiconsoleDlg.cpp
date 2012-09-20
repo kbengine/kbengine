@@ -500,7 +500,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 		break;
 	case 2:
 		{
-			int8 findComponentTypes[] = {BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, UNKNOWN_COMPONENT_TYPE};
+			int8 findComponentTypes[] = {MESSAGELOG_TYPE, RESOURCEMGR_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, UNKNOWN_COMPONENT_TYPE};
 			int ifind = 0;
 
 			while(true)
@@ -672,6 +672,8 @@ void CguiconsoleDlg::updateTree()
 	Components::COMPONENTS cts3 = Components::getSingleton().getComponents(CELLAPPMGR_TYPE);
 	Components::COMPONENTS cts4 = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::COMPONENTS cts5 = Components::getSingleton().getComponents(LOGINAPP_TYPE);
+	Components::COMPONENTS cts6 = Components::getSingleton().getComponents(MESSAGELOG_TYPE);
+	Components::COMPONENTS cts7 = Components::getSingleton().getComponents(RESOURCEMGR_TYPE);
 	Components::COMPONENTS cts;
 	
 	if(cts0.size() > 0)
@@ -686,6 +688,10 @@ void CguiconsoleDlg::updateTree()
 		cts.insert(cts.begin(), cts4.begin(), cts4.end());
 	if(cts5.size() > 0)
 		cts.insert(cts.begin(), cts5.begin(), cts5.end());
+	if(cts6.size() > 0)
+		cts.insert(cts.begin(), cts6.begin(), cts6.end());
+	if(cts7.size() > 0)
+		cts.insert(cts.begin(), cts7.begin(), cts7.end());
 
 	HTREEITEM hItemRoot;
 	TV_INSERTSTRUCT tcitem;
@@ -842,12 +848,16 @@ COMPONENT_TYPE CguiconsoleDlg::getTreeItemComponent(HTREEITEM hItem)
 		fi_baseapp = -1;
 	int fi_loginapp = s.Find(L"loginapp", 0);
 	int fi_dbmgr = s.Find(L"dbmgr", 0);
+	int fi_messagelog = s.Find(L"messagelog", 0);
+	int fi_resourcemgr = s.Find(L"resourcemgr", 0);
 
 	if(fi_cellapp  < 0 &&
 		fi_baseapp < 0 &&
 		fi_cellappmgr < 0 &&
 		fi_baseappmgr < 0 &&
 		fi_loginapp < 0 &&
+		fi_messagelog < 0 &&
+		fi_resourcemgr < 0 &&
 		fi_dbmgr < 0)
 	{
 		return UNKNOWN_COMPONENT_TYPE;
@@ -877,6 +887,14 @@ COMPONENT_TYPE CguiconsoleDlg::getTreeItemComponent(HTREEITEM hItem)
 	{
 		return DBMGR_TYPE;
 	}
+	else if(fi_messagelog >= 0)
+	{
+		return MESSAGELOG_TYPE;
+	}
+	else if(fi_resourcemgr >= 0)
+	{
+		return RESOURCEMGR_TYPE;
+	}
 
 	return UNKNOWN_COMPONENT_TYPE;
 }
@@ -897,12 +915,16 @@ Mercury::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 		fi_baseapp = -1;
 	int fi_loginapp = s.Find(L"loginapp", 0);
 	int fi_dbmgr = s.Find(L"dbmgr", 0);
+	int fi_messagelog = s.Find(L"messagelog", 0);
+	int fi_resourcemgr = s.Find(L"resourcemgr", 0);
 
 	if(fi_cellapp  < 0 &&
 		fi_baseapp < 0 &&
 		fi_cellappmgr < 0 &&
 		fi_baseappmgr < 0 &&
 		fi_loginapp < 0 &&
+		fi_messagelog < 0 &&
+		fi_resourcemgr < 0 &&
 		fi_dbmgr < 0)
 	{
 		return Mercury::Address::NONE;

@@ -47,6 +47,9 @@ namespace KBEngine{
     #define INLINE
 #endif
 
+/** kbe时间 */
+extern GAME_TIME g_kbetime;
+
 /** entity的mailbox类别 */
 enum ENTITY_MAILBOX_TYPE
 {

@@ -149,6 +149,11 @@ public:
 		客户端直接发送消息给cell实体
 	*/
 	void forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/**
+		获取游戏时间
+	*/
+	static PyObject* __py_gametime(PyObject* self, PyObject* args);
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;

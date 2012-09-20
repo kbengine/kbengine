@@ -96,7 +96,7 @@ public:
 	void startActiveTick(float period);
 	virtual void handleTimeout(TimerHandle, void * pUser);
 
-	GAME_TIME time() const { return time_; }
+	GAME_TIME time() const { return g_kbetime; }
 	Timers & timers() { return timers_; }
 	double gameTimeInSeconds() const;
 	void handleTimers();
@@ -144,7 +144,6 @@ protected:
 	Mercury::EventDispatcher& 								mainDispatcher_;	
 	Mercury::NetworkInterface&								networkInterface_;
 	
-	GAME_TIME												time_;
 	Timers													timers_;
 
 	// app启动顺序， global为全局(如dbmgr，cellapp的顺序)启动顺序， 

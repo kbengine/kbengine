@@ -30,6 +30,7 @@ namespace KBEngine{
 COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;
 COMPONENT_ID g_componentID = 0;
 COMPONENT_ORDER g_componentOrder = 1;
+GAME_TIME g_kbetime = 0;
 
 KBE_SINGLETON_INIT(ClientApp);
 //-------------------------------------------------------------------------------------
@@ -43,7 +44,6 @@ componentType_(componentType),
 componentID_(componentID),
 mainDispatcher_(dispatcher),
 networkInterface_(ninterface),
-time_(0),
 timers_()
 {
 	networkInterface_.pExtensionData(this);
@@ -94,7 +94,7 @@ void ClientApp::finalise(void)
 //-------------------------------------------------------------------------------------		
 double ClientApp::gameTimeInSeconds() const
 {
-	return double(time_) / 10;
+	return double(g_kbetime) / 10;
 }
 
 //-------------------------------------------------------------------------------------
@@ -113,7 +113,7 @@ void ClientApp::handleTimeout(TimerHandle, void * arg)
 //-------------------------------------------------------------------------------------
 void ClientApp::handleTimers()
 {
-	timers().process(time_);
+	timers().process(g_kbetime);
 }
 
 //-------------------------------------------------------------------------------------		

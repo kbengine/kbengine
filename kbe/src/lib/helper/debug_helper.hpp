@@ -46,19 +46,41 @@ namespace Mercury{
 void vutf8printf(FILE *out, const char *str, va_list* ap);
 void utf8printf(FILE *out, const char *str, ...);
 
+enum LOG_TYPE
+{
+	LOG_UNKNOWN = 0,
+	LOG_PRINT = 1,
+	LOG_ERROR = 2,
+	LOG_WARNING = 3,
+	LOG_DEBUG = 4,
+	LOG_INFO = 5,
+	LOG_CRITICAL = 6,
+	LOG_END_TYPE = 7
+};
+
+const char LOG_TYPE_NAME[][255] = {
+	" unknown",
+	"        ",
+	"   ERROR",
+	" WARNING",
+	"   DEBUG",
+	"    INFO",
+	"CRITICAL",
+};
+
+inline const char* LOG_TYPE_NAME_EX(LOG_TYPE CTYPE)
+{									
+	if(CTYPE < 0 || CTYPE >= LOG_END_TYPE)
+	{
+		return LOG_TYPE_NAME[LOG_UNKNOWN];
+	}
+
+	return LOG_TYPE_NAME[CTYPE];
+}
+
 class DebugHelper : public Task, 
 					public Singleton<DebugHelper>
 {
-public:
-	enum LOG_TYPE
-	{
-		LOG_PRINT = 0,
-		LOG_ERROR = 1,
-		LOG_WARNING = 2,
-		LOG_DEBUG = 3,
-		LOG_INFO = 4,
-		LOG_CRITICAL = 5
-	};
 public:
 	DebugHelper();
 
