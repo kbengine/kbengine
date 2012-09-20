@@ -51,7 +51,7 @@ class Channel;
 	return *this;																							\
 
 
-#define TRACE_BUNDLE_DATA(isrecv, bundle, pCurrMsgHandler)													\
+#define TRACE_BUNDLE_DATA(isrecv, bundle, pCurrMsgHandler, length)											\
 	if(Mercury::g_trace_packet > 0)																			\
 	{																										\
 		if(pCurrMsgHandler)																					\
@@ -59,7 +59,7 @@ class Channel;
 			DEBUG_MSG("%s%s:msgID:%d, currMsgLength:%d\n",													\
 				isrecv == true ? "====>" : "<====", 														\
 				pCurrMsgHandler->name.c_str(),																\
-				bundle->messageID(), bundle->totalSize());													\
+				bundle->messageID(), length);																\
 		}																									\
 																											\
 		switch(Mercury::g_trace_packet)																		\
@@ -111,6 +111,7 @@ public:
 public:
 	int32 onPacketAppend(int32 size)
 	{
+		currMsgLength_ += size;
 		if(pCurrPacket_ == NULL)
 		{
 			newPacket();
@@ -121,10 +122,9 @@ public:
 		int32 totalsize = (int32)pCurrPacket_->totalSize();
 		if((totalsize > 0) && (totalsize + size > packetmaxsize))
 		{
-			TRACE_BUNDLE_DATA(false, pCurrPacket_, pCurrMsgHandler_);
+			TRACE_BUNDLE_DATA(false, pCurrPacket_, pCurrMsgHandler_, totalsize);
 			packets_.push_back(pCurrPacket_);
 			currMsgPacketCount_++;
-			currMsgLength_ += pCurrPacket_->totalSize();
 			newPacket();
 		}
 
