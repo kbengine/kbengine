@@ -166,7 +166,7 @@ bool Dbmgr::initializeEnd()
 	}
 	else
 	{
-		INFO_MSG("Dbmgr::initializeEnd: %s!\n", pDBInterface_->c_str());
+		INFO_MSG("Dbmgr::initializeEnd: %s\n", pDBInterface_->c_str());
 	}
 
 	return EntityTables::getSingleton().load(pDBInterface_) && EntityTables::getSingleton().syncToDB();

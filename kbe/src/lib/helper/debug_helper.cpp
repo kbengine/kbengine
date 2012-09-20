@@ -111,7 +111,7 @@ pDispatcher_(NULL)
 //-------------------------------------------------------------------------------------
 DebugHelper::~DebugHelper()
 {
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle_);
+	SAFE_RELEASE(pBundle_);
 }	
 
 //-------------------------------------------------------------------------------------

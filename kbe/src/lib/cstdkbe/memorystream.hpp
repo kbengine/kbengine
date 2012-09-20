@@ -444,6 +444,8 @@ public:
     virtual bool empty() const { return data_.empty(); }
 	size_t opsize() { return wpos() - rpos(); }
 	
+	void opfini(){ read_skip(opsize()); }
+
     void resize(size_t newsize)
     {
         data_.resize(newsize);

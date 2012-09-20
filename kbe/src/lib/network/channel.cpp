@@ -440,7 +440,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 
 					if(pMsgHandler == NULL)
 					{
-						TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler);
+						TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, pPacket->totalSize());
 						WARNING_MSG("Channel::handleMessage: invalide msgID=%d, msglen=%d, from %s.\n", 
 							currMsgID_, pPacket->totalSize(), c_str());
 
@@ -449,8 +449,8 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 						condemn(true);
 						break;
 					}
-					
-					TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler);
+
+					TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, pPacket->totalSize());
 
 					// 如果没有可操作的数据了则退出等待下一个包处理。
 					if(pPacket->opsize() == 0)

@@ -107,9 +107,9 @@ void Messagelog::writeLog(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 
 	s >> ilogtype;
 	logType = static_cast<DebugHelper::LOG_TYPE>(ilogtype);
-	s >> g_componentType;
-	s >> g_componentID;
-	s >> g_componentOrder;
+	s >> componentType;
+	s >> componentID;
+	s >> componentOrder;
 	s >> t;
 	s >> str;
 	
