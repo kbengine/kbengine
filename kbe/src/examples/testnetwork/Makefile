@@ -5,7 +5,7 @@ SRCS =				\
 ASMS =
 
 MY_LIBS =		\
-	cstdkbe		\
+	helper		\
 	network		\
 	thread
 	
