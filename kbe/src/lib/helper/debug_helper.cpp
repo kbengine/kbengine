@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr/resmgr.hpp"
 #include "network/bundle.hpp"
 #include "network/event_dispatcher.hpp"
-#include "server/components.hpp"
+#include "network/network_interface.hpp"
 
 #ifndef NO_USE_LOG4CXX
 #include "log4cxx/logger.h"
@@ -100,10 +100,11 @@ _logfile(NULL),
 _currFile(),
 _currFuncName(),
 _currLine(0),
-watcherChannels_(),
+messagelogAddr_(),
 logMutex(),
 pBundle_(NULL),
 syncStarting_(false),
+pNetworkInterface_(NULL),
 pDispatcher_(NULL)
 {
 }
@@ -113,6 +114,12 @@ DebugHelper::~DebugHelper()
 {
 	SAFE_RELEASE(pBundle_);
 }	
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::changeLogger(std::string name)
+{
+	g_logger = log4cxx::Logger::getLogger(name.c_str());
+}
 
 //-------------------------------------------------------------------------------------
 void DebugHelper::initHelper(COMPONENT_TYPE componentType)
@@ -182,13 +189,7 @@ void DebugHelper::sync()
 	if(pBundle_ == NULL)
 		return;
 
-	Components::COMPONENTS cts = Components::getSingleton().getComponents(MESSAGELOG_TYPE);
-	Components::ComponentInfos* loginfos = NULL;
-
-	if(cts.size() > 0)
-		loginfos = &(*cts.begin());
-
-	if(loginfos == NULL || loginfos->pChannel == NULL)
+	if(messagelogAddr_.isNone())
 	{
 		if(pBundle_->packets().size() > 32)
 		{
@@ -201,7 +202,10 @@ void DebugHelper::sync()
 
 	int8 v = Mercury::g_trace_packet;
 	Mercury::g_trace_packet = 0;
-	loginfos->pChannel->send(pBundle_);
+
+	Mercury::Channel* pChannel = pNetworkInterface_->findChannel(messagelogAddr_);
+	pChannel->send(pBundle_);
+	
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle_);
 	pBundle_ = NULL;
 	Mercury::g_trace_packet = v;
@@ -210,7 +214,7 @@ void DebugHelper::sync()
 //-------------------------------------------------------------------------------------
 bool DebugHelper::process()
 {
-	if(pBundle_ == NULL || pDispatcher_ == NULL)
+	if(pBundle_ == NULL || pNetworkInterface_ == NULL)
 	{
 		syncStarting_ = false;
 		return false;
@@ -228,6 +232,12 @@ void DebugHelper::pDispatcher(Mercury:: EventDispatcher* dispatcher)
 	{
 		pDispatcher_->addFrequentTask(this);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::pNetworkInterface(Mercury:: NetworkInterface* networkInterface)
+{ 
+	pNetworkInterface_ = networkInterface; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -263,42 +273,19 @@ void DebugHelper::onMessage(int8 logType, const char * str, uint32 length)
 			pDispatcher_->addFrequentTask(this);
 		syncStarting_ = true;
 	}
-
-	/*
-	WATCH_CHANNELS::iterator iter = watcherChannels_.begin();
-	for(; iter != watcherChannels_.end(); iter++)
-	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle) << (*iter).first;
-
-		Mercury::MessageLength len = sizeof(logType) + strlength;
-		(*pBundle) << len;
-		(*pBundle) << logType;
-		(*pBundle) << str;
-		(*iter).second->send(pBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-	}
-	*/
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::registerWatch(Mercury::MessageID msgID, Mercury::Channel* pChannel)
+void DebugHelper::registerMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr)
 {
-	watcherChannels_.push_back(std::make_pair<Mercury::MessageID, Mercury::Channel*>(msgID, pChannel));
+	messagelogAddr_ = *pAddr;
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::unregisterWatch(Mercury::MessageID msgID, Mercury::Channel* pChannel)
+void DebugHelper::unregisterMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr)
 {
-	WATCH_CHANNELS::iterator iter = watcherChannels_.begin();
-	for(; iter != watcherChannels_.end(); iter++)
-	{
-		if((msgID == (*iter).first || msgID == 0) && (*iter).second == pChannel)
-		{
-			watcherChannels_.erase(iter);
-			return;
-		}
-	}
+	messagelogAddr_.ip = 0;
+	messagelogAddr_.port = 0;
 }
 
 //-------------------------------------------------------------------------------------

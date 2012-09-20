@@ -59,7 +59,8 @@ _pNetworkInterface(NULL),
 _globalOrderLog(),
 _baseappGrouplOrderLog(),
 _cellappGrouplOrderLog(),
-_loginappGrouplOrderLog()
+_loginappGrouplOrderLog(),
+_pHandler(NULL)
 {
 }
 
@@ -158,6 +159,9 @@ void Components::addComponent(int32 uid, const char* username,
 		"componentID:%"PRAppID", totalcount=%d\n", 
 			COMPONENT_NAME_EX(componentType), uid, 
 			componentID, components.size());
+
+	if(_pHandler)
+		_pHandler->onAddComponent(&componentInfos);
 }
 
 //-------------------------------------------------------------------------------------		
@@ -173,10 +177,15 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType,
 			INFO_MSG("Components::delComponent[%s] componentID=%" PRAppID ", component:totalcount=%d.\n", 
 				COMPONENT_NAME_EX(componentType), componentID, components.size());
 
+			ComponentInfos* componentInfos = &(*iter);
+
 			//SAFE_RELEASE((*iter).pIntAddr);
 			//SAFE_RELEASE((*iter).pExtAddr);
 			//(*iter).pChannel->decRef();
 			iter = components.erase(iter);
+
+			if(_pHandler)
+				_pHandler->onRemoveComponent(componentInfos);
 
 			if(!ignoreComponentID)
 				return;

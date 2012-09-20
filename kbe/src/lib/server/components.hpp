@@ -28,6 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/singleton.hpp"
 #include "thread/threadmutex.hpp"
 #include "thread/threadguard.hpp"
+#include "server/common.hpp"
 
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -45,6 +46,7 @@ class Address;
 class NetworkInterface;
 }
 
+
 class Components : public Singleton<Components>
 {
 public:
@@ -59,6 +61,15 @@ public:
 	};
 
 	typedef std::vector<ComponentInfos> COMPONENTS;
+
+	/** 组件添加删除handler */
+	class ComponentsNotificationHandler
+	{
+	public:
+		virtual ~ComponentsNotificationHandler() {};
+		virtual void onAddComponent(const Components::ComponentInfos*) = 0;
+		virtual void onRemoveComponent(const Components::ComponentInfos*) = 0;
+	};
 public:
 	Components();
 	~Components();
@@ -104,6 +115,8 @@ public:
 	
 	// 检查所有的组件， 防止有重复的uuid， 此时应该报错.
 	bool checkComponents(int32 uid, COMPONENT_ID componentID);
+
+	void pHandler(ComponentsNotificationHandler* ph){ _pHandler = ph; };
 private:
 	COMPONENTS								_baseapps;
 	COMPONENTS								_cellapps;
@@ -124,6 +137,8 @@ private:
 	ORDER_LOG								_baseappGrouplOrderLog;
 	ORDER_LOG								_cellappGrouplOrderLog;
 	ORDER_LOG								_loginappGrouplOrderLog;
+
+	ComponentsNotificationHandler*			_pHandler;
 };
 
 }

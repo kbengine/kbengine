@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/singleton.hpp"
 #include "thread/threadmutex.hpp"
 #include "network/common.hpp"
+#include "network/address.hpp"
 
 namespace KBEngine{
 
@@ -36,6 +37,7 @@ namespace Mercury{
 	class Channel;
 	class Bundle;
 	class EventDispatcher;
+	class NetworkInterface;
 }
 
 /** 
@@ -57,8 +59,6 @@ public:
 		LOG_INFO = 4,
 		LOG_CRITICAL = 5
 	};
-
-	typedef std::vector<std::pair<Mercury::MessageID, Mercury::Channel*> > WATCH_CHANNELS;
 public:
 	DebugHelper();
 
@@ -81,6 +81,7 @@ public:
 	void outTime();
 	static void outTimestamp(FILE* file);
     
+	void pNetworkInterface(Mercury:: NetworkInterface* networkInterface);
 	void pDispatcher(Mercury:: EventDispatcher* dispatcher);
 
 	void print_msg(const char * str, ...);
@@ -92,16 +93,19 @@ public:
 
 	void onMessage(int8 logType, const char * str, uint32 length);
 
-	void registerWatch(Mercury::MessageID msgID, Mercury::Channel* pChannel);
-	void unregisterWatch(Mercury::MessageID msgID, Mercury::Channel* pChannel);
+	void registerMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr);
+	void unregisterMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr);
+
+	void changeLogger(std::string name);
 private:
 	FILE* _logfile;
 	std::string _currFile, _currFuncName;
 	uint32 _currLine;
-	WATCH_CHANNELS watcherChannels_;
+	Mercury::Address messagelogAddr_;
 	KBEngine::thread::ThreadMutex logMutex;
 	Mercury::Bundle* pBundle_;
 	bool syncStarting_;
+	Mercury:: NetworkInterface* pNetworkInterface_;
 	Mercury:: EventDispatcher* pDispatcher_;
 };
 

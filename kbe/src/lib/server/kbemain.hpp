@@ -84,6 +84,8 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 		extlisteningPort_min, extlisteningPort_max, extlisteningInterface,
 		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface);
 	
+	DebugHelper::getSingleton().pNetworkInterface(&networkInterface);
+
 	g_kbeSrvConfig.updateInfos(true, componentType, g_componentID, 
 			networkInterface.intaddr(), networkInterface.extaddr());
 	

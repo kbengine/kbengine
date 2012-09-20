@@ -36,6 +36,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "xmlplus/xmlplus.hpp"	
 #include "cstdkbe/singleton.hpp"
 #include "server/common.hpp"
+#include "server/components.hpp"
 #include "server/serverconfig.hpp"
 #include "cstdkbe/smartpointer.hpp"
 #include "cstdkbe/timer.hpp"
@@ -63,7 +64,8 @@ class ServerApp :
 	public SignalHandler, 
 	public TimerHandler, 
 	public Mercury::ChannelTimeOutHandler,
-	public Mercury::ChannelDeregisterHandler
+	public Mercury::ChannelDeregisterHandler,
+	public Components::ComponentsNotificationHandler
 {
 public:
 	enum TimeOutType
@@ -108,6 +110,8 @@ public:
 	virtual void onSignalled(int sigNum);
 	virtual void onChannelTimeOut(Mercury::Channel * pChannel);
 	virtual void onChannelDeregister(Mercury::Channel * pChannel);
+	virtual void onAddComponent(const Components::ComponentInfos* pInfos);
+	virtual void onRemoveComponent(const Components::ComponentInfos* pInfos);
 
 	void shutDown();
 

@@ -49,6 +49,7 @@ ServerApp::ServerApp(Mercury::EventDispatcher& dispatcher,
 SignalHandler(),
 TimerHandler(),
 Mercury::ChannelTimeOutHandler(),
+Components::ComponentsNotificationHandler(),
 componentType_(componentType),
 componentID_(componentID),
 mainDispatcher_(dispatcher),
@@ -104,6 +105,7 @@ bool ServerApp::initialize()
 	
 	// 广播自己的地址给网上上的所有kbemachine
 	// 并且从kbemachine获取basappmgr和cellappmgr以及dbmgr地址
+	Componentbridge::getSingleton().getComponents().pHandler(this);
 	this->getMainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
 
 	return initializeEnd();
@@ -205,7 +207,6 @@ void ServerApp::onChannelDeregister(Mercury::Channel * pChannel)
 	if(pChannel->isInternal())
 	{
 		Componentbridge::getSingleton().onChannelDeregister(pChannel);
-		DebugHelper::getSingleton().unregisterWatch(0, pChannel);
 	}
 }
 
@@ -217,6 +218,24 @@ void ServerApp::onChannelTimeOut(Mercury::Channel * pChannel)
 
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->destroy();
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::onAddComponent(const Components::ComponentInfos* pInfos)
+{
+	if(pInfos->componentType == MESSAGELOG_TYPE)
+	{
+		DebugHelper::getSingleton().registerMessagelog(MessagelogInterface::writeLog.msgID, pInfos->pIntAddr.get());
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::onRemoveComponent(const Components::ComponentInfos* pInfos)
+{
+	if(pInfos->componentType == MESSAGELOG_TYPE)
+	{
+		DebugHelper::getSingleton().unregisterMessagelog(MessagelogInterface::writeLog.msgID, pInfos->pIntAddr.get());
+	}
 }
 
 //-------------------------------------------------------------------------------------
