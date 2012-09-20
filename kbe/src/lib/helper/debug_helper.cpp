@@ -118,7 +118,7 @@ DebugHelper::~DebugHelper()
 void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 {
 #ifndef NO_USE_LOG4CXX
-	g_logger = log4cxx::Logger::getLogger(COMPONENT_NAME[componentType]);
+	g_logger = log4cxx::Logger::getLogger(COMPONENT_NAME_EX(componentType));
 	char helpConfig[256];
 
 	if(componentType == CLIENT_TYPE)
@@ -127,7 +127,7 @@ void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 	}
 	else
 	{
-		kbe_snprintf(helpConfig, 256, "server/log4cxx_properties/%s.properties", COMPONENT_NAME[componentType]);
+		kbe_snprintf(helpConfig, 256, "server/log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
 	}
 
 	log4cxx::PropertyConfigurator::configure(Resmgr::matchRes(helpConfig).c_str());

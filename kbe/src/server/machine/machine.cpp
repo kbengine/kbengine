@@ -98,7 +98,7 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 
 	INFO_MSG("Machine::onBroadcastInterface: uid:%d, username:%s, componentType:%s, "
 			"componentID:%"PRAppID", intaddr:%s, intport:%u, extaddr:%s, extport:%u.\n", 
-		uid, username.c_str(), COMPONENT_NAME[componentType], componentID, 
+		uid, username.c_str(), COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), componentID, 
 		inet_ntoa((struct in_addr&)intaddr), ntohs(intport),
 		extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport", ntohs(extport));
 
@@ -112,7 +112,7 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 {
 	INFO_MSG("Machine::onFindInterfaceAddr: uid:%d, username:%s, componentType:%s, "
 		"find:%s, finderaddr:%s, finderRecvPort:%u.\n", 
-		uid, username.c_str(), COMPONENT_NAME[componentType],  COMPONENT_NAME[findComponentType], 
+		uid, username.c_str(), COMPONENT_NAME_EX((COMPONENT_TYPE)componentType),  COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), 
 		inet_ntoa((struct in_addr&)finderAddr), ntohs(finderRecvPort));
 
 	Mercury::EndPoint ep;
@@ -131,8 +131,8 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 
 	if(pinfos == NULL)
 	{
-		WARNING_MSG("Machine::onFindInterfaceAddr: %s not found %s.\n", COMPONENT_NAME[componentType], 
-			COMPONENT_NAME[findComponentType]);
+		WARNING_MSG("Machine::onFindInterfaceAddr: %s not found %s.\n", COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), 
+			COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 
 		MachineInterface::onBroadcastInterfaceArgs8::staticAddToBundle(bundle, 0, 
 			"", UNKNOWN_COMPONENT_TYPE, 0, 0, 0, 0, 0);

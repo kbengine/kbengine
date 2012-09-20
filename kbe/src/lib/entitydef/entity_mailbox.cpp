@@ -167,7 +167,7 @@ void EntityMailbox::c_str(char* s, size_t size)
 	Mercury::Channel* pChannel = getChannel();
 
 	kbe_snprintf(s, size, "%s mailbox id:%d, utype:%u, component=%s[%"PRIu64"], addr: %s.", mailboxName, id_,  utype_,
-		COMPONENT_NAME[ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[type_]], 
+		COMPONENT_NAME_EX(ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[type_]), 
 		componentID_, (pChannel) ? pChannel->addr().c_str() : "None");
 }
 
@@ -228,7 +228,7 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 		}
 		else
 		{
-			ERROR_MSG("EntityMailbox::__unpickle__: not found %s%ld!\n", COMPONENT_NAME[componentType], componentID);
+			ERROR_MSG("EntityMailbox::__unpickle__: not found %s%ld!\n", COMPONENT_NAME_EX(componentType), componentID);
 			S_Return;
 		}
 	}

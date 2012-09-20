@@ -509,7 +509,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 				if(findComponentType == UNKNOWN_COMPONENT_TYPE)
 				{
 					//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
-					//	COMPONENT_NAME[findComponentType]);
+					//	COMPONENT_NAME_EX(findComponentType));
 					
 					::KillTimer(m_hWnd, nIDEvent);
 					return;
@@ -549,14 +549,14 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 					if(args.componentType == UNKNOWN_COMPONENT_TYPE)
 					{
 						//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
-						//	COMPONENT_NAME[findComponentType]);
+						//	COMPONENT_NAME_EX(findComponentType));
 						
 						::KillTimer(m_hWnd, nIDEvent);
 						return;
 					}
 
 					INFO_MSG("CguiconsoleDlg::OnTimer: found %s, addr:%s:%u\n",
-						COMPONENT_NAME[args.componentType], inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intaddr));
+						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intaddr));
 
 					Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
 						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
@@ -570,7 +570,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 					}
 					else
 					{
-						ERROR_MSG("CguiconsoleDlg::OnTimer: %s not found. receive data is error!\n", COMPONENT_NAME[findComponentType]);
+						ERROR_MSG("CguiconsoleDlg::OnTimer: %s not found. receive data is error!\n", COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 					}
 				}
 				else
@@ -749,7 +749,7 @@ void CguiconsoleDlg::updateTree()
 			}
 			
 			char sbuf[1024];
-			kbe_snprintf(sbuf, 1024, "%s[%s]", COMPONENT_NAME[cinfos.componentType], cinfos.pIntAddr->c_str());
+			kbe_snprintf(sbuf, 1024, "%s[%s]", COMPONENT_NAME_EX(cinfos.componentType), cinfos.pIntAddr->c_str());
 			wchar_t* wbuf = KBEngine::char2wchar(sbuf);
 			tcitem.hParent = hasUIDItem;
 			tcitem.hInsertAfter = TVI_LAST;

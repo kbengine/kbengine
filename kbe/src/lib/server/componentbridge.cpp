@@ -56,7 +56,7 @@ Componentbridge::~Componentbridge()
 {
 	//dispatcher().cancelFrequentTask(this);
 	//DEBUG_MSG("Componentbridge::~Componentbridge(): local interface(componentType=%s, componentID=%"PRAppID")!\n", 
-	//	COMPONENT_NAME[componentType_], componentID_);
+	//	COMPONENT_NAME_EX(componentType_), componentID_);
 
 	getComponents().clear(0, false);
 }
@@ -135,7 +135,7 @@ bool Componentbridge::findInterfaces()
 		int8 findComponentType = findComponentTypes[ifind];
 
 		INFO_MSG("Componentbridge::process: finding %s...\n",
-			COMPONENT_NAME[findComponentType]);
+			COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 		
 		Mercury::BundleBroadcast bhandler(networkInterface_, nport);
 		if(!bhandler.good())
@@ -166,7 +166,7 @@ bool Componentbridge::findInterfaces()
 			if(args.componentType == UNKNOWN_COMPONENT_TYPE)
 			{
 				//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
-				//	COMPONENT_NAME[findComponentType]);
+				//	COMPONENT_NAME_EX(findComponentType));
 				
 				KBEngine::sleep(1000);
 				
@@ -174,7 +174,7 @@ bool Componentbridge::findInterfaces()
 				if(findComponentType == MESSAGELOG_TYPE || findComponentType == RESOURCEMGR_TYPE)
 				{
 					WARNING_MSG("Componentbridge::process: not found %s!\n",
-						COMPONENT_NAME[findComponentType]);
+						COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 
 					findComponentTypes[ifind] = -1; // Ìø¹ý±êÖ¾
 
@@ -185,7 +185,7 @@ bool Componentbridge::findInterfaces()
 			}
 
 			INFO_MSG("Componentbridge::process: found %s, addr:%s:%u\n",
-				COMPONENT_NAME[args.componentType], inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intaddr));
+				COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intaddr));
 
 			Componentbridge::getComponents().addComponent(args.uid, args.username.c_str(), 
 				(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
@@ -197,7 +197,7 @@ bool Componentbridge::findInterfaces()
 			}
 			else
 			{
-				ERROR_MSG("Componentbridge::process: %s not found. receive data is error!\n", COMPONENT_NAME[findComponentType]);
+				ERROR_MSG("Componentbridge::process: %s not found. receive data is error!\n", COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 			}
 		}
 		else
@@ -221,12 +221,12 @@ bool Componentbridge::findInterfaces()
 			continue;
 
 		INFO_MSG("Componentbridge::process: register self to %s...\n",
-			COMPONENT_NAME[findComponentType]);
+			COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 
 		if(getComponents().connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 		{
 			ERROR_MSG("Componentbridge::register self to %s is error!\n",
-			COMPONENT_NAME[findComponentType]);
+			COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 
 			dispatcher().breakProcessing();
 			return false;

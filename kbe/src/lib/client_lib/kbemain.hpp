@@ -48,16 +48,16 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface);
 	
 	CLIENT_APP app(dispatcher, networkInterface, componentType, g_componentID);
-	START_MSG(COMPONENT_NAME[componentType], g_componentID);
+	START_MSG(COMPONENT_NAME_EX(componentType), g_componentID);
 	if(!app.initialize()){
 		ERROR_MSG("app::initialize is error!\n");
 		return -1;
 	}
 	
-	INFO_MSG( "---- %s is running ----\n", COMPONENT_NAME[componentType]);
+	INFO_MSG( "---- %s is running ----\n", COMPONENT_NAME_EX(componentType));
 	int ret = app.run();
 	app.finalise();
-	INFO_MSG("%s has shut down.\n", COMPONENT_NAME[componentType]);
+	INFO_MSG("%s has shut down.\n", COMPONENT_NAME_EX(componentType));
 	return ret;
 }
 

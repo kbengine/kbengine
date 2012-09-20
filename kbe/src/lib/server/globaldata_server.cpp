@@ -71,7 +71,7 @@ void GlobalDataServer::broadcastDataChange(Mercury::Channel* pChannel, COMPONENT
 										const std::string& key, const std::string& value, bool isDelete)
 {
 	INFO_MSG("GlobalDataServer::broadcastDataChange: writer(%s), key_size=%d, val_size=%d, isdelete=%d.\n", 
-		COMPONENT_NAME[componentType], key.size(), value.size(), (int)isDelete);
+		COMPONENT_NAME_EX(componentType), key.size(), value.size(), (int)isDelete);
 
 	std::vector<COMPONENT_TYPE>::iterator iter = concernComponentTypes_.begin();
 	for(; iter != concernComponentTypes_.end(); iter++)

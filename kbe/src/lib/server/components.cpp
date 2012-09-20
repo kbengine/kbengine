@@ -90,7 +90,7 @@ bool Components::checkComponents(int32 uid, COMPONENT_ID componentID)
 		if(cinfos != NULL)
 		{
 			ERROR_MSG("Components::checkComponents: uid:%u, componentType=%s, componentID:%"PRAppID" exist.\n", 
-				uid, COMPONENT_NAME[ct],  componentID);
+				uid, COMPONENT_NAME_EX(ct),  componentID);
 
 			KBE_ASSERT(false && "Components::checkComponents: componentID exist.\n");
 			return false;
@@ -117,7 +117,7 @@ void Components::addComponent(int32 uid, const char* username,
 	{
 		WARNING_MSG("Components::addComponent[%s]: uid:%d, username:%s, "
 			"componentType:%d, componentID:%"PRAppID" is exist!\n", 
-			COMPONENT_NAME[(uint8)componentType], uid, username, (int32)componentType, componentID);
+			COMPONENT_NAME_EX(componentType), uid, username, (int32)componentType, componentID);
 		return;
 	}
 	
@@ -156,7 +156,7 @@ void Components::addComponent(int32 uid, const char* username,
 
 	INFO_MSG("Components::addComponent[%s], uid:%d, "
 		"componentID:%"PRAppID", totalcount=%d\n", 
-			COMPONENT_NAME[(uint8)componentType], uid, 
+			COMPONENT_NAME_EX(componentType), uid, 
 			componentID, components.size());
 }
 
@@ -171,7 +171,7 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType,
 		if((*iter).uid == uid && (ignoreComponentID == true || (*iter).cid == componentID))
 		{
 			INFO_MSG("Components::delComponent[%s] componentID=%" PRAppID ", component:totalcount=%d.\n", 
-				COMPONENT_NAME[(uint8)componentType], componentID, components.size());
+				COMPONENT_NAME_EX(componentType), componentID, components.size());
 
 			//SAFE_RELEASE((*iter).pIntAddr);
 			//SAFE_RELEASE((*iter).pExtAddr);
@@ -188,7 +188,7 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType,
 	if(shouldShowLog)
 	{
 		ERROR_MSG("Components::delComponent::not found [%s] component:totalcount:%d\n", 
-			COMPONENT_NAME[(uint8)componentType], components.size());
+			COMPONENT_NAME_EX(componentType), components.size());
 	}
 }
 
@@ -210,7 +210,7 @@ void Components::removeComponentFromChannel(Mercury::Channel * pChannel)
 				//SAFE_RELEASE((*iter).pExtAddr);
 				// (*iter).pChannel->decRef();
 
-				WARNING_MSG("Components::removeComponentFromChannel: %s : %"PRAppID".\n", COMPONENT_NAME[componentType], (*iter).cid);
+				WARNING_MSG("Components::removeComponentFromChannel: %s : %"PRAppID".\n", COMPONENT_NAME_EX(componentType), (*iter).cid);
 				iter = components.erase(iter);
 				return;
 			}

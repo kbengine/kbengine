@@ -128,7 +128,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths, const c
 	if (module_ == NULL)
 		return false;
 	
-	const char* componentName = COMPONENT_NAME[componentType];
+	const char* componentName = COMPONENT_NAME_EX(componentType);
 	if (PyModule_AddStringConstant(module_, "component", componentName))
 	{
 		ERROR_MSG( "Script::init: Unable to set KBEngine.component to %s\n",

@@ -449,8 +449,8 @@ void EntityApp<E>::onSignalled(int sigNum)
 					"%sMgr killing this %s because it has been "
 					"unresponsive for too long. Look at the callstack from "
 					"the core dump to find the likely cause.\n",
-				COMPONENT_NAME[componentType_], 
-				COMPONENT_NAME[componentType_] );
+				COMPONENT_NAME_EX(componentType_), 
+				COMPONENT_NAME_EX(componentType_) );
 		
 		break;
 	default: 

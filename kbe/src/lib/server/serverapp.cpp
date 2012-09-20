@@ -229,7 +229,7 @@ void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::str
 
 	INFO_MSG("ServerApp::onRegisterNewApp: uid:%d, username:%s, componentType:%s, "
 			"componentID:%"PRAppID", intaddr:%s, intport:%u, extaddr:%s, extport:%u,  from %s.\n", 
-			uid, username.c_str(), COMPONENT_NAME[componentType], componentID, 
+			uid, username.c_str(), COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), componentID, 
 			inet_ntoa((struct in_addr&)intaddr), ntohs(intport), 
 			extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport", ntohs(extport),
 			pChannel->c_str());
@@ -264,7 +264,7 @@ void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE compo
 		if(cinfos == NULL)
 		{
 			ERROR_MSG("ServerApp::onAppActiveTick[%x]: %s:%"PRAppID" not found.\n", 
-		pChannel, COMPONENT_NAME[componentType], componentID);
+		pChannel, COMPONENT_NAME_EX(componentType), componentID);
 			return;
 		}
 
@@ -278,7 +278,7 @@ void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE compo
 	}
 
 	DEBUG_MSG("ServerApp::onAppActiveTick[%x]: %s:%"PRAppID" lastReceivedTime:%"PRIu64" at %s.\n", 
-		pChannel, COMPONENT_NAME[componentType], componentID, pChannel->lastReceivedTime(), pTargetChannel->c_str());
+		pChannel, COMPONENT_NAME_EX(componentType), componentID, pChannel->lastReceivedTime(), pTargetChannel->c_str());
 }
 
 //-------------------------------------------------------------------------------------

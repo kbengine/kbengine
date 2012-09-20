@@ -86,7 +86,7 @@ public:
 	bool installSingnals();
 
 	virtual bool loadConfig();
-	const char* name(){return COMPONENT_NAME[componentType_];}
+	const char* name(){return COMPONENT_NAME_EX(componentType_);}
 	
 	virtual void handleTimeout(TimerHandle, void * pUser);
 
