@@ -68,6 +68,9 @@
 		<dialog_setText>
 			<Utype> 10102			</Utype>
 			<Arg>	UNICODE			</Arg>
+			<Arg>	BOOL			</Arg>
+			<Arg>	UINT32			</Arg>
+			<Arg>	UNICODE			</Arg>
 		</dialog_setText>
 
 		<onQuerySpaceResResult>

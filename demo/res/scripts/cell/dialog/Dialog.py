@@ -16,6 +16,10 @@ class Dialog:
 		self.__title = datas.get("title", 0)
 		self.__body = datas.get("body", 0)
 		self.__funcFailMsg = datas.get("funcFailMsg", "")
+		self.__headID = datas.get("headID", 0)
+		self.__sayname = datas.get("sayname", '')
+		self.__isplayer = datas.get("isPlayerSay", False)
+		
 		self.__menus = []
 		self.__funcs = {}
 		
@@ -71,4 +75,4 @@ class Dialog:
 				avatar.client.dialog_addOption(GlobalDefine.DIALOG_TYPE_NORMAL, dialog.getKey(), dialog.getTitle(), 0)
 
 		# 显示主内容
-		avatar.client.dialog_setText(self.getBody())
+		avatar.client.dialog_setText(self.getBody(), self.__isplayer, self.__headID, self.__sayname)
