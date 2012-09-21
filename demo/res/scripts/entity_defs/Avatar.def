@@ -73,6 +73,10 @@
 			<Arg>	UNICODE			</Arg>
 		</dialog_setText>
 
+		<dialog_close>
+			<Utype> 10104			</Utype>
+		</dialog_close>
+
 		<onQuerySpaceResResult>
 			<Utype> 10103			</Utype>
 			<Arg>	STRING	 		</Arg>
