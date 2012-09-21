@@ -30,6 +30,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/endpoint.hpp"
 #include "network/udp_packet_receiver.hpp"
 #include "network/common.hpp"
+#include "network/address.hpp"
+#include "logwatcher.hpp"
 
 //#define NDEBUG
 #include <map>	
@@ -44,6 +46,8 @@ namespace KBEngine{
 class Messagelog:	public ServerApp, 
 				public Singleton<Messagelog>
 {
+public:
+	typedef std::map<Mercury::Address, LogWatcher> LOG_WATCHERS;
 public:
 	enum TimeOutType
 	{
@@ -68,12 +72,19 @@ public:
 	bool initializeEnd();
 	void finalise();
 
-	/* 网络接口
+	/** 网络接口
 		写日志
 	*/
 	void writeLog(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
+	/** 网络接口
+		注册log监听者
+	*/
+	void registerLogWatcher(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	LOG_WATCHERS& logWatchers(){ return logWatchers_; }
 protected:
+	LOG_WATCHERS logWatchers_;
 };
 
 }

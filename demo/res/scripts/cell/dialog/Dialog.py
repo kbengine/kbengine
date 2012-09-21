@@ -68,6 +68,9 @@ class Dialog:
 		# 执行功能
 		self.do(avatar, talker)
 		
+		if len(self.__menus) == 0 and self.getBody() == '':
+			return
+			
 		# 列出菜单
 		for mkey in self.__menus:
 			dialog = Dialog.c_dialogMgr.getDialog(mkey)

@@ -98,8 +98,7 @@ void Messagelog::finalise()
 //-------------------------------------------------------------------------------------
 void Messagelog::writeLog(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	int8 ilogtype;
-	LOG_TYPE logType;
+	uint32 logtype;
 	COMPONENT_TYPE componentType = UNKNOWN_COMPONENT_TYPE;
 	COMPONENT_ID componentID = 0;
 	COMPONENT_ORDER componentOrder = 0;
@@ -108,8 +107,7 @@ void Messagelog::writeLog(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	std::string str;
 	std::stringstream logstream;
 
-	s >> ilogtype;
-	logType = static_cast<LOG_TYPE>(ilogtype);
+	s >> logtype;
 	s >> componentType;
 	s >> componentID;
 	s >> componentOrder;
@@ -127,7 +125,7 @@ void Messagelog::writeLog(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
     kbe_snprintf(timebuf, MAX_BUF, " [%-4d-%02d-%02d %02d:%02d:%02d %02d] ", aTm->tm_year+1900, aTm->tm_mon+1, 
 		aTm->tm_mday, aTm->tm_hour, aTm->tm_min, aTm->tm_sec, kbetime);
 
-	logstream << LOG_TYPE_NAME_EX(logType);
+	logstream << LOG_TYPE_NAME_EX(logtype);
 	logstream << " ";
 	logstream << COMPONENT_NAME_EX(componentType);
 	logstream << " ";
@@ -140,6 +138,27 @@ void Messagelog::writeLog(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(componentType));
 	PRINT_MSG(logstream.str().c_str());
 	DebugHelper::getSingleton().changeLogger("default");
+
+	LOG_WATCHERS::iterator iter = logWatchers_.begin();
+	for(; iter != logWatchers_.end(); iter++)
+	{
+		iter->second.onMessage(logtype, componentType, componentID, componentOrder, t, kbetime, str, logstream);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Messagelog::registerLogWatcher(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	LogWatcher* pLogwatcher = &logWatchers_[pChannel->addr()];
+	if(!pLogwatcher->loadFromStream(&s))
+	{
+		ERROR_MSG("Messagelog::registerLogWatcher: addr=%s is failed!\n", pChannel->addr());
+		logWatchers_.erase(pChannel->addr());
+		return;
+	}
+
+	pLogwatcher->addr(pChannel->addr());
+	INFO_MSG("Messagelog::registerLogWatcher: addr=%s is successfully!\n", pChannel->addr().c_str());
 }
 
 //-------------------------------------------------------------------------------------

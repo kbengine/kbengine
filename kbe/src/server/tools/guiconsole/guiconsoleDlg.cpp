@@ -84,6 +84,18 @@ public:
 	};
 };
 
+class ConsoleLogMessageHandlerEx : public KBEngine::ConsoleInterface::ConsoleLogMessageHandler
+{
+public:
+	virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
+	{
+		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+		std::string str;
+		s >> str;
+		dlg->onReceiveRemoteLog(str);
+	};
+};
+
 // CAboutDlg dialog used for App About
 
 class CAboutDlg : public CDialog
@@ -231,7 +243,15 @@ BOOL CguiconsoleDlg::OnInitDialog()
 
 	KBEngine::ConsoleInterface::messageHandlers.add("Console::onExecScriptCommandCB", new KBEngine::ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1, MERCURY_VARIABLE_MESSAGE, 
 		new ConsoleExecCommandCBMessageHandlerEx);
+
+	KBEngine::ConsoleInterface::messageHandlers.add("Console::onReceiveRemoteLog", new KBEngine::ConsoleInterface::ConsoleLogMessageHandlerArgsStream, MERCURY_VARIABLE_MESSAGE, 
+		new ConsoleLogMessageHandlerEx);
 	return TRUE;  // return TRUE  unless you set the focus to a control
+}
+
+void CguiconsoleDlg::onReceiveRemoteLog(std::string str)
+{
+	m_logWnd.onReceiveRemoteLog(str);
 }
 
 void CguiconsoleDlg::historyCommandCheck()
@@ -262,6 +282,38 @@ CString CguiconsoleDlg::getHistoryCommand(bool isNextCommand)
 	if(m_historyCommand.size() == 0)
 		return L"";
 	return m_historyCommand[m_historyCommandIndex];
+}
+
+HTREEITEM CguiconsoleDlg::hasCheckApp(COMPONENT_TYPE type)
+{
+	HTREEITEM rootitem = m_tree.GetRootItem();
+	if(rootitem == NULL)
+		return NULL;
+	
+	rootitem = m_tree.GetChildItem(rootitem);
+	if(rootitem == NULL)
+		return NULL;
+
+	do
+	{
+		HTREEITEM childItem = m_tree.GetChildItem(rootitem);
+		while(NULL != childItem)
+		{
+			COMPONENT_TYPE ctype = getTreeItemComponent(childItem);
+
+			if(ctype == type)
+			{
+				if(m_tree.GetCheck(childItem))
+					return childItem;
+				else
+					return NULL;
+			}
+
+			childItem = m_tree.GetNextItem(childItem, TVGN_NEXT);
+		}
+	}while((rootitem = m_tree.GetNextItem(rootitem, TVGN_NEXT)) != NULL);
+
+	return NULL;
 }
 
 void CguiconsoleDlg::commitPythonCommand(CString strCommand)

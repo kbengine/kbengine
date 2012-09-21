@@ -51,15 +51,7 @@ public:
 	void commitPythonCommand(CString strCommand);
 	Mercury::EventDispatcher & getMainDispatcher()				{ return _dispatcher; }
 	Mercury::NetworkInterface & getNetworkInterface()			{ return _networkInterface; }
-protected:
-	HICON m_hIcon;
-
-	// Generated message map functions
-	virtual BOOL OnInitDialog();
-	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
-	afx_msg void OnPaint();
-	afx_msg HCURSOR OnQueryDragIcon();
-	DECLARE_MESSAGE_MAP()
+	HTREEITEM hasCheckApp(COMPONENT_TYPE type);
 
 	void autoWndSize();
 	void updateTree();
@@ -73,6 +65,17 @@ protected:
 	void closeCurrTreeSelChannel();
 	Mercury::Address getTreeItemAddr(HTREEITEM hItem);
 	COMPONENT_TYPE getTreeItemComponent(HTREEITEM hItem);
+	
+	void onReceiveRemoteLog(std::string str);
+protected:
+	HICON m_hIcon;
+
+	// Generated message map functions
+	virtual BOOL OnInitDialog();
+	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
+	afx_msg void OnPaint();
+	afx_msg HCURSOR OnQueryDragIcon();
+	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	CTabCtrl m_tab;

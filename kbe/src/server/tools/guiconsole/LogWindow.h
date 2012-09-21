@@ -1,6 +1,7 @@
 #pragma once
 #include "afxwin.h"
 
+#include "cstdkbe/cstdkbe.hpp"
 
 // CLogWindow dialog
 
@@ -15,6 +16,12 @@ public:
 // Dialog Data
 	enum { IDD = IDD_LOG };
 	void autoWndSize();
+	virtual BOOL OnInitDialog();
+
+	KBEngine::uint32 getSelLogTypes();
+	std::vector<KBEngine::COMPONENT_TYPE> getSelComponents();
+
+	void onReceiveRemoteLog(std::string str);
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
@@ -22,4 +29,10 @@ protected:
 public:
 	CButton m_autopull;
 	CEdit m_logedit;
+	CCheckListBox m_componentlist;
+	CCheckListBox m_msgTypeList;
+	CStatic m_optiongroup;
+	CStatic m_appIDstatic;
+	CEdit m_appIDEdit;
+	afx_msg void OnBnClickedButton1();
 };

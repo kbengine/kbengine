@@ -38,7 +38,10 @@ class Space(GameObject):
 				
 			entityNO = self.tmpCreateEntityDatas.pop(0)
 			datas = d_entities.datas.get(entityNO)
-
+			
+			if datas is None:
+				ERROR_MSG("Space::onTimer: spawn %i is error!" % entityNO)
+	
 			KBEngine.createBaseAnywhere("SpawnPoint", 
 										{"spawnEntityNO"	: entityNO, 	\
 										"position"			: tuple(datas.get('spawnPos', (0,0,0))), 	\

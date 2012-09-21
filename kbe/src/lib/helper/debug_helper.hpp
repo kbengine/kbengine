@@ -46,36 +46,55 @@ namespace Mercury{
 void vutf8printf(FILE *out, const char *str, va_list* ap);
 void utf8printf(FILE *out, const char *str, ...);
 
-enum LOG_TYPE
-{
-	LOG_UNKNOWN = 0,
-	LOG_PRINT = 1,
-	LOG_ERROR = 2,
-	LOG_WARNING = 3,
-	LOG_DEBUG = 4,
-	LOG_INFO = 5,
-	LOG_CRITICAL = 6,
-	LOG_END_TYPE = 7
-};
+
+#define	LOG_UNKNOWN			0x00000000
+#define	LOG_PRINT			0x00000001
+#define	LOG_ERROR			0x00000002
+#define	LOG_WARNING			0x00000004
+#define	LOG_DEBUG			0x00000008
+#define	LOG_INFO			0x00000010
+#define	LOG_CRITICAL		0x00000020
+#define LOG_SCRIPT			0x00000040
+
+#define LOG_TYPES LOG_UNKNOWN | LOG_PRINT | LOG_ERROR | LOG_WARNING | LOG_DEBUG | LOG_INFO | LOG_CRITICAL | LOG_SCRIPT
 
 const char LOG_TYPE_NAME[][255] = {
-	" unknown",
+	" UNKNOWN",
 	"        ",
 	"   ERROR",
 	" WARNING",
 	"   DEBUG",
 	"    INFO",
 	"CRITICAL",
+	"  SCRIPT",
 };
 
-inline const char* LOG_TYPE_NAME_EX(LOG_TYPE CTYPE)
+inline const char* LOG_TYPE_NAME_EX(uint32 CTYPE)
 {									
-	if(CTYPE < 0 || CTYPE >= LOG_END_TYPE)
+	if(CTYPE < 0 || (CTYPE & LOG_TYPES) <= 0)
 	{
-		return LOG_TYPE_NAME[LOG_UNKNOWN];
+		return " UNKNOWN";
 	}
+	
+	switch(CTYPE)
+	{
+	case LOG_PRINT:
+		return "        ";
+	case LOG_ERROR:
+		return "   ERROR";
+	case LOG_WARNING:
+		return " WARNING";
+	case LOG_DEBUG:
+		return "   DEBUG";
+	case LOG_INFO:
+		return "    INFO";
+	case LOG_CRITICAL:
+		return "CRITICAL";
+	case LOG_SCRIPT:
+		return "  SCRIPT";
+	};
 
-	return LOG_TYPE_NAME[CTYPE];
+	return " UNKNOWN";
 }
 
 class DebugHelper : public Task, 
@@ -112,8 +131,8 @@ public:
     void info_msg(const char * info, ...);
 	void warning_msg(const char * str, ...);
 	void critical_msg(const char * str, ...);
-
-	void onMessage(int8 logType, const char * str, uint32 length);
+	void script_msg(const char * str, ...);
+	void onMessage(uint32 logType, const char * str, uint32 length);
 
 	void registerMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr);
 	void unregisterMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr);
@@ -134,6 +153,7 @@ private:
 /*---------------------------------------------------------------------------------
 	调试信息输出接口
 ---------------------------------------------------------------------------------*/
+#define SCRIPT_MSG					DebugHelper::getSingleton().script_msg									// 输出任何信息
 #define PRINT_MSG					DebugHelper::getSingleton().print_msg									// 输出任何信息
 #define ERROR_MSG					DebugHelper::getSingleton().setFile(__FUNCTION__, \
 									__FILE__, __LINE__); \

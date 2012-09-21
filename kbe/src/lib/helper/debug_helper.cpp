@@ -249,7 +249,7 @@ void DebugHelper::pNetworkInterface(Mercury:: NetworkInterface* networkInterface
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::onMessage(int8 logType, const char * str, uint32 length)
+void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 {
 	if(g_componentType == MACHINE_TYPE || 
 		g_componentType == CONSOLE_TYPE || g_componentType == MESSAGELOG_TYPE)
@@ -428,6 +428,52 @@ void DebugHelper::info_msg(const char * info, ...)
 #endif
 
 	onMessage(LOG_DEBUG, _g_buf, size);
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::script_msg(const char * info, ...)
+{
+    if(info == NULL)
+        return;
+
+#ifdef NO_USE_LOG4CXX
+	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
+
+    outTime();
+	fprintf(stdout, "SCRIPT:");
+
+    va_list ap;
+    va_start(ap, info);
+    vutf8printf(stdout, info, &ap);
+    va_end(ap);
+
+    if(_logfile)
+    {
+        outTimestamp(_logfile);
+        fprintf(_logfile, "SCRIPT:");
+
+        va_start(ap, info);
+        vfprintf(_logfile, info, ap);
+        va_end(ap);
+
+        fprintf(_logfile, "\n");
+        fflush(_logfile);
+    }
+
+    fflush(stdout);
+#else
+    va_list ap;
+    va_start(ap, info);
+#if KBE_PLATFORM == PLATFORM_WIN32
+	uint32 size = _vsnprintf(_g_buf, DBG_PT_SIZE, info, ap);
+#else
+    uint32 size = vsnprintf(_g_buf, DBG_PT_SIZE, info, ap);
+#endif
+    va_end(ap);
+	LOG4CXX_INFO(g_logger, _g_buf);
+#endif
+
+	onMessage(LOG_SCRIPT, _g_buf, size);
 }
 
 //-------------------------------------------------------------------------------------

@@ -2,6 +2,7 @@ BIN  = messagelog
 SRCS =						\
 	messagelog				\
 	messagelog_interface			\
+	logwatcher				\
 	main
 
 ASMS =

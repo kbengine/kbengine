@@ -7,8 +7,9 @@ from KBEDebug import *
 
 class Spell:
 	def __init__(self):
-		self.addTimer(1,1,wtimer.TIME_TYPE_BUFF_TICK)
-
+		#self.addTimer(1,1,wtimer.TIME_TYPE_BUFF_TICK)
+		pass
+		
 	def addDBuff(self, buffData):
 		"""
 		defined method.

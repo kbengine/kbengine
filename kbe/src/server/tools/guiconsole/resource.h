@@ -14,7 +14,6 @@
 #define IDD_STATUS                      132
 #define IDD_PROFILE                     133
 #define IDD_SPACEVIEW                   134
-#define IDD_DIALOG1                     135
 #define IDD_WATCHER                     135
 #define IDC_TAB1                        1000
 #define IDC_LIST1                       1001
@@ -25,6 +24,12 @@
 #define IDC_BUTTON1                     1006
 #define IDC_BUTTON2                     1008
 #define IDC_BUTTON3                     1009
+#define IDC_APP_LIST1                   1010
+#define IDC_APPID                       1011
+#define IDC_APPID_EDIT                  1011
+#define IDC_MSGTYPE_LIST2               1012
+#define IDC_STATIC_OPTION               1013
+#define IDC_STATIC_APPID                1014
 #define ID_32771                        32771
 #define ID_32772                        32772
 
@@ -34,7 +39,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        136
 #define _APS_NEXT_COMMAND_VALUE         32773
-#define _APS_NEXT_CONTROL_VALUE         1010
+#define _APS_NEXT_CONTROL_VALUE         1015
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -24,7 +24,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/message_handler.hpp"
 #include "network/channel.hpp"
 
-#define CONSOLE_COMMANDCB_MSGID 999
+#define CONSOLE_COMMANDCB_MSGID 65500
+#define CONSOLE_LOG_MSGID 65501
 
 namespace KBEngine{
 namespace ConsoleInterface{
@@ -77,6 +78,44 @@ namespace ConsoleInterface{
 		{
 			// 强制这条协议ID
 			msgID = CONSOLE_COMMANDCB_MSGID;
+			msgLen = MERCURY_VARIABLE_MESSAGE;
+		}
+		virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
+		{
+		};
+	};
+
+
+	class ConsoleLogMessageHandlerArgsStream : public Mercury::MessageArgs	
+	{																								
+	public:															
+		ConsoleLogMessageHandlerArgsStream():Mercury::MessageArgs(){}																			
+		~ConsoleLogMessageHandlerArgsStream(){}											
+																															
+		virtual int32 msgsize(void)									
+		{															
+			return MERCURY_VARIABLE_MESSAGE;								
+		}		
+		virtual void addToStream(MemoryStream& s)					
+		{																									
+		}															
+		virtual void createFromStream(MemoryStream& s)				
+		{																										
+		}	
+	};																
+				
+	class ConsoleLogMessageHandler : public Mercury::MessageHandler
+	{
+	public:
+		ConsoleLogMessageHandler()
+		{
+			onInstall();
+		}
+
+		virtual void onInstall()
+		{
+			// 强制这条协议ID
+			msgID = CONSOLE_LOG_MSGID;
 			msgLen = MERCURY_VARIABLE_MESSAGE;
 		}
 
