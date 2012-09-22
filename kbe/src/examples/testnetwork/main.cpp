@@ -827,6 +827,167 @@ void init_network(void)
 		};
 */
 
+					if(1)
+					{
+						// 服务器开始传送到某场景 开始接收进入世界消息
+						packet99.clear(false);
+						packet99.resize(65535);
+						len = mysocket.recv(packet99.data(), 65535);
+						packet99.wpos(len);
+						packet99 >> msgID;
+						packet99 >> eid >> spaceID;
+				
+						printf("!!!玩家离开世界:spaceUType=%u, level=%u.\n", spaceUType, level);
+
+
+						if(packet99.opsize() > 0)
+						{
+							// 服务器开始传送到某场景 开始接收进入世界消息
+							packet99 >> msgID;
+							packet99 >> eid >> spaceID;
+							printf("!!!玩家进入世界:spaceUType=%u, level=%u.\n", spaceUType, level);
+							goto FLAG1;
+						}
+					}
+					
+					if(1)
+					{
+						// 服务器开始传送到某场景 开始接收进入世界消息
+						TCPPacket packet99;
+						packet99.resize(65535);
+						len = mysocket.recv(packet99.data(), 65535);
+						packet99.wpos(len);
+						packet99 >> msgID;
+						packet99 >> eid >> spaceID;
+						printf("!!!玩家进入世界:spaceUType=%u, level=%u.\n", spaceUType, level);
+					}
+
+FLAG1:
+					if(packet99.opsize() < 10)
+						packet99.clear(false);
+					len = mysocket.recv(packet99.data(), 65535);
+					packet99.wpos(len);
+
+					targetID = 0;
+
+					while(packet99.opsize() > 0)
+					{
+						ENTITY_ID eid1 = 0;
+						// 开始接收属性
+						packet99 >> msgID;
+						packet99 >> msgLen;
+						packet99 >> eid1;
+						
+
+						uint16 propertyID = 0;
+						uint32 spaceUType;
+						uint16 level;
+						std::wstring name;
+						SPACE_ID spaceID;
+						uint32 utype = 0;
+						uint32 dialogID1;
+						uint32 model;
+						uint32 headmodel;
+						std::wstring descr;
+						uint32 endpos = msgLen + packet99.rpos() - 4;
+						if(endpos > packet99.wpos())
+						{
+							packet99.clear(false);
+							len = mysocket.recv(packet99.data(), 65535);
+							break;
+						}
+
+						while(packet99.rpos() < endpos)
+						{
+							packet99 >> propertyID;
+
+							if(41001 == propertyID)
+							{
+								packet99 >> spaceUType;
+							}
+							else if(41002 == propertyID)
+							{
+								packet99 >> level;
+							}
+							else if(41003 == propertyID)
+							{
+								std::string outstr;
+								packet99.readBlob(outstr);
+								utf82wchar(outstr, name);
+							}
+							else if(40000 == propertyID)
+							{
+								int32 x, y, z;
+								uint32 listlen;
+								
+								packet99 >> listlen;
+								packet99 >> x;
+								packet99 >> y ;
+								packet99 >> z;
+								z = 0;
+							}
+							else if(40001 == propertyID)
+							{
+								int32 x, y, z;
+								uint32 listlen;
+								
+								packet99 >> listlen;
+								packet99 >> x;
+								packet99 >> y ;
+								packet99 >> z;
+							}
+							else if(40002 == propertyID)
+							{
+								packet99 >> spaceID;
+							}
+							else if(41004 == propertyID)
+							{
+								packet99 >> utype;
+								if(utype > 0)
+									targetID = eid1;
+							}
+							else if(41005 == propertyID)
+							{
+								uint32 listlen;
+								packet99 >> listlen;
+							}
+							else if(41006 == propertyID)
+							{
+								packet99 >> model;
+							}
+							else if(41007 == propertyID)
+							{
+								packet99 >> dialogID1;
+
+								if(dialogID == 0)
+									dialogID = dialogID1;
+							}
+							else if(41008 == propertyID)
+							{
+								packet99 >> headmodel;
+							}
+							else if(41009 == propertyID)
+							{
+								
+								std::string outstr;
+								packet99.readBlob(outstr);
+								if(outstr.size() > 0)
+									utf82wchar(outstr, descr);
+							}
+						}
+
+						printf("服务器下发属性:name=");
+						std::wcout << name;
+						printf("utype=%u. dialogID=%u, descr=",  utype, dialogID);
+						std::wcout << descr << std::endl;
+
+						packet99 >> msgID;
+						packet99 >> eid1;
+						SPACE_ID spaceID1;
+						packet99 >> spaceID1;
+						printf("!!!entity进入世界:id=%d.\n", eid1);
+					};
+
 		// 向服务器请求施放技能 
 		Mercury::Bundle bundle100;
 		bundle100.newMessage(BaseappInterface::onRemoteCallCellMethodFromClient);

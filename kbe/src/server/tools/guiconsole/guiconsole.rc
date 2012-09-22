@@ -195,8 +195,8 @@ IDR_POPMENU MENU
 BEGIN
     POPUP "²Ù×÷"
     BEGIN
-        MENUITEM "connect",                     ID_32771
-        MENUITEM "Ë¢ÐÂ",                          ID_32772
+        MENUITEM "add server",                  ID_32771
+        MENUITEM "update",                      ID_32772
     END
 END
 

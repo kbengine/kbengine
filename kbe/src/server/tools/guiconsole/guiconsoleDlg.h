@@ -105,4 +105,5 @@ private:
 public:
 	afx_msg void OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnConnectRemoteMachine();
 };

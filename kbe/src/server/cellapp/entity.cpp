@@ -180,16 +180,15 @@ int Entity::pySetTopSpeed(PyObject *value)
 //-------------------------------------------------------------------------------------
 void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, PyObject* pyData)
 {
-	/*
 	// 如果不是一个realEntity则不理会
 	if(!isReal())
 		return;
-	
+	/*
 	const uint32& flags = propertyDescription->getFlags();
 	ENTITY_PROPERTY_UID utype = propertyDescription->getUType();
 
 	// 首先创建一个需要广播的模板流
-	MemoryStream* mstream = new MemoryStream();
+	MemoryStream* mstream = MemoryStream::ObjPool().createObject();
 	(*mstream) << utype;
 	propertyDescription->getDataType()->addToStream(mstream, pyData);
 
@@ -248,10 +247,10 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	// 判断这个属性是否还需要广播给自己的客户端
 	if((flags & ENTITY_BROADCAST_OWN_CLIENT_FLAGS) > 0 && clientMailbox_ != NULL)
 	{
-		SocketPacket* sp = clientMailbox_->createMail(MAIL_TYPE_UPDATE_PROPERTY);
-		(*sp) << id_;
-		sp->append(bytestream->contents(), bytestream->size());
-		clientMailbox_->post(sp);
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		clientMailbox_->newMail(pBundle);
+		pBundle->append(*mstream);
+		clientMailbox_->postMail(*pBundle);
 	}
 
 	SAFE_RELEASE(bytestream);

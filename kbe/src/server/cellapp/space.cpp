@@ -132,26 +132,61 @@ void Space::onEnterWorld(Entity* pEntity)
 			pEntity->getClientMailbox()->postMail(*pSendBundle);
 		}
 	}
-
-	std::vector<Entity*>::iterator iter = viewEntitys.begin();
-	for(; iter != viewEntitys.end(); iter++)
+	else
 	{
-		Entity* entity = (*iter);
+		if(entities().size() > 0 && pEntity->getScriptModule()->hasClient())
+		{
+			SPACE_ENTITIES::iterator iter = entities_.begin();
+			for(; iter != entities().end(); iter++)
+			{
+				Entity* entity = (*iter).get();
+				if(entity == pEntity)
+					continue;
 
-		if(!entity->getScriptModule()->hasClient())
-			continue;
+				if(entity->hasWitness())
+				{
+					viewEntitys.push_back(entity);
+				}
+			}
+		}
+	}
 
-		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+	if(viewEntitys.size())
+	{
+		MemoryStream* s1 = MemoryStream::ObjPool().createObject();
+		pEntity->addPositionAndDirectionToStream(*s1);
+		pEntity->addClientDataToStream(s1);
 
-		(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
-		(*pForwardBundle) << pEntity->getID();
-		(*pForwardBundle) << pEntity->getSpaceID();
+		std::vector<Entity*>::iterator iter = viewEntitys.begin();
+		for(; iter != viewEntitys.end(); iter++)
+		{
+			Entity* entity = (*iter);
 
-		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(entity->getID(), (*pSendBundle), (*pForwardBundle));
-		entity->getClientMailbox()->postMail(*pSendBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+			if(!entity->getScriptModule()->hasClient())
+				continue;
+
+			Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+			Mercury::Bundle* pForwardBundle1 = Mercury::Bundle::ObjPool().createObject();
+			Mercury::Bundle* pForwardBundle2 = Mercury::Bundle::ObjPool().createObject();
+
+			(*pForwardBundle1).newMessage(ClientInterface::onUpdatePropertys);
+			(*pForwardBundle1) << pEntity->getID();
+			(*pForwardBundle1).append(*s1);
+
+			(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
+			(*pForwardBundle2) << pEntity->getID();
+			(*pForwardBundle2) << pEntity->getSpaceID();
+
+			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(entity->getID(), (*pSendBundle), (*pForwardBundle1));
+			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(entity->getID(), (*pSendBundle), (*pForwardBundle2));
+			Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle1);
+			Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle2);
+
+			entity->getClientMailbox()->postMail(*pSendBundle);
+			Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+		}
+
+		MemoryStream::ObjPool().reclaimObject(s1);
 	}
 }
 

@@ -171,6 +171,7 @@ BEGIN_MESSAGE_MAP(CguiconsoleDlg, CDialog)
 	ON_COMMAND(ID_32772, &CguiconsoleDlg::OnMenu_Update)
 	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB1, &CguiconsoleDlg::OnTcnSelchangeTab1)
 	ON_NOTIFY(NM_CLICK, IDC_TREE1, &CguiconsoleDlg::OnNMClickTree1)
+	ON_COMMAND(ID_32771, &CguiconsoleDlg::OnConnectRemoteMachine)
 END_MESSAGE_MAP()
 
 
@@ -1199,4 +1200,9 @@ void CguiconsoleDlg::OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
 	free(tbuf);
 	this->SetWindowTextW(title.GetBuffer(0));
 
+}
+
+void CguiconsoleDlg::OnConnectRemoteMachine()
+{
+	// TODO: Add your command handler code here
 }
