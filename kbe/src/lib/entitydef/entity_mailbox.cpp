@@ -183,7 +183,8 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 	ENTITY_ID eid = 0;
 	COMPONENT_ID componentID = 0;
 	COMPONENT_TYPE componentType;
-	ENTITY_SCRIPT_UID utype = 0, type = 0;
+	ENTITY_SCRIPT_UID utype = 0;
+	int16 type = 0;
 
 	Py_ssize_t size = PyTuple_Size(args);
 	if(size != 4)
@@ -192,7 +193,7 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 		S_Return;
 	}
 
-	if(!PyArg_ParseTuple(args, "iKHH", &eid, &componentID, &utype, &type))
+	if(!PyArg_ParseTuple(args, "iKHh", &eid, &componentID, &utype, &type))
 	{
 		ERROR_MSG("EntityMailbox::__unpickle__: args is error!\n");
 		S_Return;

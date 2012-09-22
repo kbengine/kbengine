@@ -70,7 +70,7 @@ public:
 	COMPONENT_ID getComponentID(void)const{ return componentID_; }
 
 	/** 获得utype */
-	uint16 getUType(void)const{ return utype_; }
+	ENTITY_SCRIPT_UID getUType(void)const{ return utype_; }
 
 	/** 获得type */
 	ENTITY_MAILBOX_TYPE getType(void)const{ return type_; }

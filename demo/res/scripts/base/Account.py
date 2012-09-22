@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import KBEngine
+import random
 from KBEDebug import *
 import d_avatar_inittab
 
@@ -73,7 +74,7 @@ class Account(KBEngine.Proxy):
 		exposed.
 		客户端请求创建一个角色
 		"""
-		avatarinfo = {"name": name, "dbid": id(name), "roleType" : roleType, "level" : 0}
+		avatarinfo = {"name": name, "dbid": random.randint(1, 999999), "roleType" : roleType, "level" : 0}
 			
 		if name in all_avatar_names:
 			retcode = 2

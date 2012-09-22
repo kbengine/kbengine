@@ -473,9 +473,10 @@ public:
 
 	void appendBlob(const std::string& datas)
     {
-		(*this) << datas.size();
-		if(datas.size() > 0)
-			append(datas.data(), datas.size());
+		uint32 len = datas.size();
+		(*this) << len;
+		if(len > 0)
+			append(datas.data(), len);
     }
 
     void append(const std::string& str)

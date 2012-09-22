@@ -195,7 +195,7 @@ IDR_POPMENU MENU
 BEGIN
     POPUP "²Ù×÷"
     BEGIN
-        MENUITEM "kbengine",                    ID_32771
+        MENUITEM "connect",                     ID_32771
         MENUITEM "Ë¢ÐÂ",                          ID_32772
     END
 END

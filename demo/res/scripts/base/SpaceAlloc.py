@@ -81,7 +81,7 @@ class SpaceAlloc:
 		"""
 		space = self.alloc({"spaceKey" : avatarEntity.dbidB})
 		if space is None:
-			ERROR_MSG("Spaces::loginToSpace: not found space %i. login to space is failed!" % self._utype)
+			ERROR_MSG("Spaces::loginToSpace: not found space %i. login to space is failed! spaces=%s" % (self._utype, self._spaces))
 			return
 		
 		if space == CONST_WAIT_CREATE:

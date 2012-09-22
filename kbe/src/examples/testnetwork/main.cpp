@@ -307,7 +307,7 @@ void init_network(void)
 		// 连接游戏登陆进程
 		printf("连接游戏登陆进程\n");
 		u_int32_t address;
-		std::string ip = "192.168.4.205";
+		std::string ip = "192.168.10.108";
 		mysocket.convertAddress(ip.c_str(), address );
 		if(mysocket.connect(htons(port), address) == -1)
 		{
@@ -748,10 +748,10 @@ void init_network(void)
 		bundle9999 << eid;
 		bundle9999 << methodID;
 		bundle9999 << targetID;
-		
+		dialogID = 20001001;
 		bundle9999 << dialogID;
 		bundle9999.send(mysocket);
-		
+		/*
 		bool readover = false;
 		std::wcout.imbue(std::locale("chs"));
 		while(!readover)
@@ -774,7 +774,17 @@ void init_network(void)
 					packet999.readBlob(body);
 					std::wstring outstr;
 					utf82wchar(body, outstr);
-					std::wcout << "对话内容:" << outstr << std::endl;
+					uint8 isplayersay = false;
+					packet999 >> isplayersay;
+					uint32 sayheadID = 0;
+					packet999 >> sayheadID;
+
+					std::string body1;
+					packet999.readBlob(body1);
+					std::wstring outstr1;
+					utf82wchar(body1, outstr1);
+
+					std::wcout << "对话内容[" << outstr1 << "]:" << outstr << std::endl;
 					readover = true;
 					if(false)
 					{
@@ -815,9 +825,9 @@ void init_network(void)
 				std::wcout << "对话选项(" << doption.dialogKey << "):" << outstr  << std::endl;
 			}
 		};
+*/
 
-
-		// 向服务器请求施放技能
+		// 向服务器请求施放技能 
 		Mercury::Bundle bundle100;
 		bundle100.newMessage(BaseappInterface::onRemoteCallCellMethodFromClient);
 		methodID = 11001;
