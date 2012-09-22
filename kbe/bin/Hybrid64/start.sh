@@ -2,6 +2,8 @@
 
 ./kbmachine&
 sleep 1s
+./messagelog&
+sleep 1s
 ./dbmgr&
 sleep 2s
 ./baseappmgr&
