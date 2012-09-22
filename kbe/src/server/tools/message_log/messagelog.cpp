@@ -121,6 +121,13 @@ void Messagelog::writeLog(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
     //       HH     hour (2 digits 00-23)
     //       MM     minutes (2 digits 00-59)
     //       SS     seconds (2 digits 00-59)
+
+	if(aTm == NULL)
+	{
+		ERROR_MSG("Messagelog::writeLog: log is error!\n");
+		return;
+	}
+
 	char timebuf[MAX_BUF];
     kbe_snprintf(timebuf, MAX_BUF, " [%-4d-%02d-%02d %02d:%02d:%02d %02d] ", aTm->tm_year+1900, aTm->tm_mon+1, 
 		aTm->tm_mday, aTm->tm_hour, aTm->tm_min, aTm->tm_sec, kbetime);
