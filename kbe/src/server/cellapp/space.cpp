@@ -94,6 +94,8 @@ void Space::onEnterWorld(Entity* pEntity)
 			for(; iter != entities().end(); iter++)
 			{
 				Entity* entity = (*iter).get();
+				if(entity == pEntity)
+					continue;
 
 				if(entity->hasWitness())
 				{
@@ -210,7 +212,7 @@ void Space::onLeaveWorld(Entity* pEntity)
 		for(; iter != entities().end(); iter++)
 		{
 			const Entity* entity = (*iter).get();
-			if(!entity->hasWitness())
+			if(!entity->hasWitness() || entity == pEntity)
 				continue;
 
 			Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
