@@ -86,6 +86,10 @@ bool Messagelog::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Messagelog::initializeEnd()
 {
+	// 由于messagelog接收其他app的log， 不允许文本输出保证安全。
+	if(Mercury::g_trace_packet == 2)
+		Mercury::g_trace_packet = 3;
+
 	return true;
 }
 
