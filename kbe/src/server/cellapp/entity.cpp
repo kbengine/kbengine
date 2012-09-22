@@ -1041,7 +1041,7 @@ void Entity::_onTeleportSuccess(SPACE_ID lastSpaceID)
 
 		(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
 		(*pForwardBundle) << this->getID();
-		(*pForwardBundle) << this->getSpaceID();
+		(*pForwardBundle) << lastSpaceID;
 
 		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(this->getID(), (*pSendBundle), (*pForwardBundle));
 		this->getClientMailbox()->postMail(*pSendBundle);
