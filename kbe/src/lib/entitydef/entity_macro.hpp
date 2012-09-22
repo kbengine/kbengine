@@ -50,7 +50,7 @@ namespace KBEngine{
 	SCRIPT_GETSET_DECLARE_END()																				\
 
 
-#define CAN_DEBUG_CREATE_ENTITY
+//#define CAN_DEBUG_CREATE_ENTITY
 #ifdef CAN_DEBUG_CREATE_ENTITY
 	#define DEBUG_CREATE_ENTITY_NAMESPACE																	\
 			wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(key, NULL);				\

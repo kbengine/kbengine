@@ -228,8 +228,9 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 		}
 		else
 		{
-			ERROR_MSG("EntityMailbox::__unpickle__: not found %s%ld!\n", COMPONENT_NAME_EX(componentType), componentID);
-			S_Return;
+			// 在服务器起来的时候可能会出现找不到， 因为组件先连接了dbmgr， dbmgr就开始初始化了
+			//ERROR_MSG("EntityMailbox::__unpickle__: not found %s%ld!\n", COMPONENT_NAME_EX(componentType), componentID);
+			//S_Return;
 		}
 	}
 #else
