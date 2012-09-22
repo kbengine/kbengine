@@ -120,6 +120,7 @@ protected:																									\
 	PY_CALLBACKMGR pyCallbackMgr_;																			\
 	bool isDestroyed_;																						\
 	Mercury::Bundle* pBundle_;																				\
+	bool initing_;																							\
 public:																										\
 	void initializeScript()																					\
 	{																										\
@@ -508,13 +509,15 @@ public:																										\
 	scriptTimers_(),																						\
 	pyCallbackMgr_(),																						\
 	isDestroyed_(false),																					\
-	pBundle_(new Mercury::Bundle())																			\
+	pBundle_(new Mercury::Bundle()),																		\
+	initing_(true)																							\
 
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
 	INFO_MSG("%s::~%s(): %d\n", getScriptName(), getScriptName(), id_);										\
 	scriptModule_ = NULL;																					\
 	isDestroyed_ = true;																					\
+	initing_ = false;																						\
 	SAFE_RELEASE(pBundle_);																					\
 
 
@@ -544,6 +547,7 @@ public:																										\
 				propertyDescription->getName());															\
 		}																									\
 	}																										\
+	initing_ = false;																						\
 																											\
 
 

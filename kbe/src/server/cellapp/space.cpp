@@ -82,7 +82,9 @@ void Space::onEnterWorld(Entity* pEntity)
 	KBE_ASSERT(pEntity != NULL);
 	
 	std::vector<Entity*> viewEntitys;
-
+	
+	// 如果是一个有Witness(通常是玩家)则需要将当前场景已经创建的有client部分的entity广播给他
+	// 否则是一个普通的entity进入世界， 那么需要将这个entity广播给所有看见他的有Witness的entity。
 	if(pEntity->hasWitness())
 	{
 		if(entities().size() > 0)
@@ -151,6 +153,7 @@ void Space::onEnterWorld(Entity* pEntity)
 		}
 	}
 
+	// 向所有的这些entity广播当前进入世界的entity
 	if(viewEntitys.size())
 	{
 		MemoryStream* s1 = MemoryStream::ObjPool().createObject();

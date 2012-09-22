@@ -21,7 +21,9 @@ same license as the rest of the engine.
 #include "network/bundle.hpp"
 #include "network/fixed_messages.hpp"
 #include "network/common.hpp"
-
+#include "resmgr/resmgr.hpp"
+#include "server/serverinfos.hpp"
+#include "server/serverconfig.hpp"
 #undef DEFINE_IN_INTERFACE
 #include "baseappmgr/baseappmgr_interface.hpp"
 #define DEFINE_IN_INTERFACE
@@ -853,7 +855,6 @@ void init_network(void)
 					if(1)
 					{
 						// 服务器开始传送到某场景 开始接收进入世界消息
-						TCPPacket packet99;
 						packet99.resize(65535);
 						len = mysocket.recv(packet99.data(), 65535);
 						packet99.wpos(len);
@@ -1005,6 +1006,13 @@ FLAG1:
 
 int main(int argc, char* argv[])
 {
+	Resmgr::initialize();
+	ServerConfig sss;
+	// "../../res/server/kbengine_defs.xml"
+	g_kbeSrvConfig.loadConfig("server/kbengine_defs.xml");
+
+	// "../../../demo/res/server/kbengine.xml"
+	g_kbeSrvConfig.loadConfig("server/kbengine.xml");
 	Mercury::FixedMessages::getSingleton().loadConfig("../../res/server/fixed_mercury_messages.xml");
 	DebugHelper::initHelper(UNKNOWN_COMPONENT_TYPE);
     INFO_MSG("你好，log4cxx---%d!---%s", 1, __FUNCTION__);

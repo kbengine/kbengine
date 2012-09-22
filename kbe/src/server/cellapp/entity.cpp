@@ -181,9 +181,9 @@ int Entity::pySetTopSpeed(PyObject *value)
 void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, PyObject* pyData)
 {
 	// 如果不是一个realEntity则不理会
-	if(!isReal())
+	if(!isReal() && initing_)
 		return;
-	/*
+
 	const uint32& flags = propertyDescription->getFlags();
 	ENTITY_PROPERTY_UID utype = propertyDescription->getUType();
 
@@ -198,6 +198,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	{
 	}
 	
+	/*
 	// 判断这个属性是否还需要广播给其他客户端
 	if((flags & ENTITY_BROADCAST_OTHER_CLIENT_FLAGS) > 0)
 	{
@@ -243,18 +244,19 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 			}
 		}
 	}
+	*/
 
 	// 判断这个属性是否还需要广播给自己的客户端
 	if((flags & ENTITY_BROADCAST_OWN_CLIENT_FLAGS) > 0 && clientMailbox_ != NULL)
 	{
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		clientMailbox_->newMail(pBundle);
+		(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
+		(*pBundle) << getID();
 		pBundle->append(*mstream);
 		clientMailbox_->postMail(*pBundle);
 	}
 
-	SAFE_RELEASE(bytestream);
-	*/
+	MemoryStream::ObjPool().reclaimObject(mstream);
 }
 
 //-------------------------------------------------------------------------------------
