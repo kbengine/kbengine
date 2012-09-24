@@ -59,6 +59,20 @@ class Avatar(GameObject, Combat, Spell):
 			
 		dialog.onGossip(dialogID, self, KBEngine.entities[targetID])
 
+	def onTeleportSpaceCB(self, spaceCellMailbox, spaceUType, position, direction):
+		"""
+		defined.
+		baseapp返回teleportSpace的回调
+		"""
+		GameObject.onTeleportSpaceCB(self, spaceCellMailbox, spaceUType, position, direction)
+		self.teleportingSpaceUType = spaceUType
+
+	def onTeleportSuccess(self, nearbyEntity):
+		"""
+		KBEngine method.
+		"""
+		self.spaceUType = self.teleportingSpaceUType
+		
 Avatar._timermap = {}
 Avatar._timermap.update(GameObject._timermap)
 Avatar._timermap.update(Spell._timermap)

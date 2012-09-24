@@ -12,6 +12,12 @@
 	</Implements>
 
 	<Properties>
+		<teleportingSpaceUType>
+			<Type>			UINT32				</Type>
+			<Flags>			CELL_PRIVATE			</Flags>
+			<Persistent>		true				</Persistent>
+		</teleportingSpaceUType>
+
 		<spaceUType>
 			<Utype> 41001 </Utype>
 			<Type>			UINT32				</Type>

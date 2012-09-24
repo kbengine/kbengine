@@ -1053,6 +1053,14 @@ void Entity::_onTeleportSuccess(SPACE_ID lastSpaceID)
 	{
 		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
 		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+		Mercury::Bundle* pForwardPosDirBundle = Mercury::Bundle::ObjPool().createObject();
+		
+		(*pForwardPosDirBundle).newMessage(ClientInterface::onUpdatePropertys);
+		MemoryStream* s1 = MemoryStream::ObjPool().createObject();
+		this->addPositionAndDirectionToStream(*s1);
+		(*pForwardPosDirBundle).append(*s1);
+		MemoryStream::ObjPool().reclaimObject(s1);
+		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(this->getID(), (*pSendBundle), (*pForwardPosDirBundle));
 
 		(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
 		(*pForwardBundle) << this->getID();
@@ -1060,8 +1068,10 @@ void Entity::_onTeleportSuccess(SPACE_ID lastSpaceID)
 
 		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(this->getID(), (*pSendBundle), (*pForwardBundle));
 		this->getClientMailbox()->postMail(*pSendBundle);
+
 		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
 		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+		Mercury::Bundle::ObjPool().reclaimObject(pForwardPosDirBundle);
 	}
 }
 
