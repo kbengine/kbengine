@@ -859,16 +859,51 @@ void init_network(void)
 						len = mysocket.recv(packet99.data(), 65535);
 						packet99.wpos(len);
 						packet99 >> msgID;
+						packet99 >> msgLen;
+						packet99 >> eid;
+						packet99 >> propertyID;
+						if(40000 == propertyID)
+						{
+							int32 x, y, z;
+							uint32 listlen;
+							
+							packet99 >> listlen;
+							packet99 >> x;
+							packet99 >> y ;
+							packet99 >> z;
+							z = 0;
+						}
+
+						packet99 >> propertyID;
+						if(40001 == propertyID)
+						{
+							int32 x, y, z;
+							uint32 listlen;
+							
+							packet99 >> listlen;
+							packet99 >> x;
+							packet99 >> y ;
+							packet99 >> z;
+						}
+						if(packet99.opsize() < 10)
+						{
+							packet99.clear(false);
+							len = mysocket.recv(packet99.data(), 65535);
+							packet99.wpos(len);
+						}
+
+						packet99 >> msgID;
 						packet99 >> eid >> spaceID;
 						printf("!!!玩家进入世界:spaceUType=%u, level=%u.\n", spaceUType, level);
 					}
 
 FLAG1:
 					if(packet99.opsize() < 10)
+					{
 						packet99.clear(false);
-					len = mysocket.recv(packet99.data(), 65535);
-					packet99.wpos(len);
-
+						len = mysocket.recv(packet99.data(), 65535);
+						packet99.wpos(len);
+					}
 					targetID = 0;
 
 					while(packet99.opsize() > 0)

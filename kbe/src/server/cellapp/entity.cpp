@@ -1057,6 +1057,7 @@ void Entity::_onTeleportSuccess(SPACE_ID lastSpaceID)
 		
 		(*pForwardPosDirBundle).newMessage(ClientInterface::onUpdatePropertys);
 		MemoryStream* s1 = MemoryStream::ObjPool().createObject();
+		(*pForwardPosDirBundle) << getID();
 		this->addPositionAndDirectionToStream(*s1);
 		(*pForwardPosDirBundle).append(*s1);
 		MemoryStream::ObjPool().reclaimObject(s1);
