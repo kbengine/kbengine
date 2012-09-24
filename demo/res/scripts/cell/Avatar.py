@@ -64,9 +64,9 @@ class Avatar(GameObject, Combat, Spell):
 		defined.
 		baseapp返回teleportSpace的回调
 		"""
-		GameObject.onTeleportSpaceCB(self, spaceCellMailbox, spaceUType, position, direction)
 		self.teleportingSpaceUType = spaceUType
-
+		GameObject.onTeleportSpaceCB(self, spaceCellMailbox, spaceUType, position, direction)
+		
 	def onTeleportSuccess(self, nearbyEntity):
 		"""
 		KBEngine method.
