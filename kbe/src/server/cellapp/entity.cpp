@@ -249,11 +249,13 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	// 判断这个属性是否还需要广播给自己的客户端
 	if((flags & ENTITY_BROADCAST_OWN_CLIENT_FLAGS) > 0 && clientMailbox_ != NULL)
 	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
-		(*pBundle) << getID();
-		pBundle->append(*mstream);
-		clientMailbox_->postMail(*pBundle);
+		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pForwardBundle).newMessage(ClientInterface::onUpdatePropertys);
+		(*pForwardBundle) << getID();
+		pForwardBundle->append(*mstream);
+		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(this->getID(), (*pSendBundle), (*pForwardBundle));
+		clientMailbox_->postMail(*pSendBundle);
 	}
 
 	MemoryStream::ObjPool().reclaimObject(mstream);

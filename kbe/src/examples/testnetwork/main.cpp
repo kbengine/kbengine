@@ -895,6 +895,13 @@ void init_network(void)
 						packet99 >> msgID;
 						packet99 >> eid >> spaceID;
 						printf("!!!玩家进入世界:spaceUType=%u, level=%u.\n", spaceUType, level);
+
+						packet99 >> msgID;
+						packet99 >> msgLen;
+						packet99 >> eid;
+						packet99 >> propertyID;
+						uint32 spacetype;
+						packet99 >> spacetype;
 					}
 
 FLAG1:
