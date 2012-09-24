@@ -96,6 +96,11 @@ public:
 							int8 componentType, uint64 componentID, 
 							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport);
 	
+	/** 网络接口
+		某个client向本app告知处于活动状态。
+	*/
+	void onClientActiveTick(Mercury::Channel* pChannel);
+
 	/** 
 		创建了一个entity回调
 	*/

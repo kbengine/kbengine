@@ -271,8 +271,9 @@ void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::str
 //-------------------------------------------------------------------------------------
 void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID)
 {
-	if(pChannel->isExternal())
-		return;
+	if(componentType != CLIENT_TYPE)
+		if(pChannel->isExternal())
+			return;
 	
 	Mercury::Channel* pTargetChannel = NULL;
 	if(componentType != CONSOLE_TYPE)

@@ -902,6 +902,7 @@ void init_network(void)
 						packet99 >> propertyID;
 						uint32 spacetype;
 						packet99 >> spacetype;
+						spacetype = 0;
 					}
 
 FLAG1:

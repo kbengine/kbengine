@@ -1336,5 +1336,14 @@ void Baseapp::onCellWriteToDBCompleted(Mercury::Channel* pChannel, KBEngine::Mem
 }
 
 //-------------------------------------------------------------------------------------
+void Baseapp::onClientActiveTick(Mercury::Channel* pChannel)
+{
+	if(!pChannel->isExternal())
+		return;
+
+	onAppActiveTick(pChannel, CLIENT_TYPE, 0);
+}
+
+//-------------------------------------------------------------------------------------
 
 }

@@ -49,6 +49,11 @@
 		<arg>UINT8_ARRAY</arg> <!-- 方法参数二进制流， 具体由方法来解析 -->
 	</Baseapp::onRemoteCallCellMethodFromClient>
 	
+	<Baseapp::onClientActiveTick>
+		<id>206</id>
+		<descr>客户端的tick。</descr>
+	</Baseapp::onClientActiveTick>
+	
 	<Base::onRemoteMethodCall>
 		<id>301</id>
 		<descr>调用一个base远程方法。</descr>

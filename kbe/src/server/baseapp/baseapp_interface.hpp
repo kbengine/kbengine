@@ -100,6 +100,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									COMPONENT_TYPE,							componentType, 
 									COMPONENT_ID,							componentID)
 
+	// 某个app向本app告知处于活动状态。
+	BASEAPP_MESSAGE_DECLARE_ARGS0(onClientActiveTick,						MERCURY_FIXED_MESSAGE)
+
 	// 收到baseappmgr决定将某个baseapp要求createBaseAnywhere的请求在本baseapp上执行 
 	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseAnywhere,					MERCURY_VARIABLE_MESSAGE)
 
