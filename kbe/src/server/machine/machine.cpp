@@ -141,8 +141,11 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 		MachineInterface::onBroadcastInterfaceArgs8::staticAddToBundle(bundle, pinfos->uid, 
 			pinfos->username, findComponentType, pinfos->cid, pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
 			pinfos->pExtAddr->ip, pinfos->pExtAddr->port);
-
-	bundle.sendto(ep, finderRecvPort, finderAddr);
+	
+	if(finderAddr != 0 && finderRecvPort != 0)
+		bundle.sendto(ep, finderRecvPort, finderAddr);
+	else
+		bundle.send(this->getNetworkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------

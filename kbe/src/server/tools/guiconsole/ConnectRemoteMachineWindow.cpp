@@ -6,6 +6,8 @@
 #include "guiconsoleDlg.h"
 #include "ConnectRemoteMachineWindow.h"
 #include "machine/machine_interface.hpp"
+#include "server/components.hpp"
+#include "helper/console_helper.hpp"
 
 // CConnectRemoteMachineWindow dialog
 
@@ -79,7 +81,6 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	}
 
 	endpoint->addr(addr);
-	endpoint->setnonblocking(false);
 	if(endpoint->connect(addr.port, addr.ip) == -1)
 	{
 		CString err;
@@ -89,6 +90,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 		return;
 	}
 
+	endpoint->setnonblocking(false);
 	int8 findComponentTypes[] = {MESSAGELOG_TYPE, RESOURCEMGR_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, UNKNOWN_COMPONENT_TYPE};
 	int ifind = 0;
 
@@ -108,6 +110,21 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 			CONSOLE_TYPE, findComponentType, 0, 0);
 
 		bhandler.send(*endpoint);
+
+		KBEngine::Mercury::TCPPacket packet;
+		packet.resize(65535);
+		packet.wpos(endpoint->recv(packet.data(), 65535));
+
+		MachineInterface::onBroadcastInterfaceArgs8 args;
+		args.createFromStream(packet);
+
+		INFO_MSG("CConnectRemoteMachineWindow::OnBnClickedOk: found %s, addr:%s:%u\n",
+			COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intaddr));
+
+		Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
+			(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
+
+		dlg->updateTree();
 	}
 
 	delete endpoint;

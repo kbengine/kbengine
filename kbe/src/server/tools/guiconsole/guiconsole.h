@@ -13,6 +13,7 @@
 #include "network/endpoint.hpp"
 #include "network/common.hpp"
 #include "network/channel.hpp"
+#include "network/tcp_packet.hpp"
 #include "network/interfaces.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
