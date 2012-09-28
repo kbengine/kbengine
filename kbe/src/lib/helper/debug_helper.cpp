@@ -36,6 +36,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "log4cxx/patternlayout.h"
 #include "log4cxx/logstring.h"
 #include "log4cxx/basicconfigurator.h"
+#include "helper/script_loglevel.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment( lib, "odbc32.lib" )
@@ -335,7 +336,7 @@ void DebugHelper::print_msg(const char * str, ...)
 	LOG4CXX_INFO(g_logger, _g_buf);
 #endif
 
-	onMessage(LOG_DEBUG, _g_buf, size);
+	onMessage(LOG_PRINT, _g_buf, size);
 }
 
 //-------------------------------------------------------------------------------------
@@ -381,7 +382,7 @@ void DebugHelper::error_msg(const char * err, ...)
 	LOG4CXX_ERROR(g_logger, _g_buf);
 #endif
 
-	onMessage(LOG_DEBUG, _g_buf, size);
+	onMessage(LOG_ERROR, _g_buf, size);
 }
 
 //-------------------------------------------------------------------------------------
@@ -427,7 +428,7 @@ void DebugHelper::info_msg(const char * info, ...)
 	LOG4CXX_INFO(g_logger, _g_buf);
 #endif
 
-	onMessage(LOG_DEBUG, _g_buf, size);
+	onMessage(LOG_INFO, _g_buf, size);
 }
 
 //-------------------------------------------------------------------------------------
@@ -470,7 +471,7 @@ void DebugHelper::script_msg(const char * info, ...)
     uint32 size = vsnprintf(_g_buf, DBG_PT_SIZE, info, ap);
 #endif
     va_end(ap);
-	LOG4CXX_INFO(g_logger, _g_buf);
+	LOG4CXX_LOG(g_logger, log4cxx::ScriptLevel::getScript(), _g_buf);
 #endif
 
 	onMessage(LOG_SCRIPT, _g_buf, size);
