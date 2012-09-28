@@ -1,6 +1,7 @@
 #pragma once
 #include "afxwin.h"
-
+#include "ColorListBox.h"
+#include "MultiLineListBox.h"
 #include "cstdkbe/cstdkbe.hpp"
 
 // CLogWindow dialog
@@ -28,11 +29,11 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CButton m_autopull;
-	CEdit m_logedit;
 	CCheckListBox m_componentlist;
 	CCheckListBox m_msgTypeList;
 	CStatic m_optiongroup;
 	CStatic m_appIDstatic;
 	CEdit m_appIDEdit;
 	afx_msg void OnBnClickedButton1();
+	CMultiLineListBox m_loglist;
 };

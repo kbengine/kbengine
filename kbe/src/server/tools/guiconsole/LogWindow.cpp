@@ -24,12 +24,12 @@ void CLogWindow::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_BUTTON1, m_autopull);
-	DDX_Control(pDX, IDC_LOG_EDIT1, m_logedit);
 	DDX_Control(pDX, IDC_APP_LIST1, m_componentlist);
 	DDX_Control(pDX, IDC_MSGTYPE_LIST2, m_msgTypeList);
 	DDX_Control(pDX, IDC_STATIC_OPTION, m_optiongroup);
 	DDX_Control(pDX, IDC_STATIC_APPID, m_appIDstatic);
 	DDX_Control(pDX, IDC_APPID_EDIT, m_appIDEdit);
+	DDX_Control(pDX, IDC_LOG_LIST1, m_loglist);
 }
 
 BOOL CLogWindow::OnInitDialog()
@@ -87,7 +87,7 @@ void CLogWindow::autoWndSize()
 	m_appIDstatic.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5, int(rect.bottom * 0.7) + 15,  int(rect.right / 5 * 0.3), int(rect.bottom * 0.03), TRUE);
 	m_appIDEdit.MoveWindow(rect.right / 5 + 3 + rect.right / 7 + 3 + 5 +  int((rect.right / 5 * 0.3)), int(rect.bottom * 0.7) + 15,  int(rect.right / 5 * 0.6), int(rect.bottom * 0.04), TRUE);
 
-	m_logedit.MoveWindow(2, 3, rect.right, rect.bottom - int(rect.bottom * 0.3) - 5, TRUE);
+	m_loglist.MoveWindow(2, 3, rect.right, rect.bottom - int(rect.bottom * 0.3) - 5, TRUE);
 }
 
 // CLogWindow message handlers
@@ -95,21 +95,30 @@ void CLogWindow::onReceiveRemoteLog(std::string str)
 {
 	if(str.size() <= 0)
 		return;
-
+	
 	CString s;
-	int len = m_logedit.GetWindowTextLengthW();   
-	m_logedit.SetSel(len, len);   
-
 	wchar_t* wstr = KBEngine::char2wchar(str.c_str());
 	s = wstr;
 	free(wstr);
-	m_logedit.ReplaceSel(s);
+	s.Replace(L"\n", L"");
+	s.Replace(L"\r\n", L"");
+	s.Replace(L"\n\r", L"");
+	s.Replace(L"\r", L"");
 
-	int rowCount;
-	rowCount = m_logedit.GetLineCount();
-	m_logedit.LineScroll(rowCount);
+	if(s.Find(L"WARNING") >= 0)
+		m_loglist.AddEntry(s, RGB(255, 165, 0), m_loglist.GetCount());
+	else if(s.Find(L"ERROR") >= 0)
+		m_loglist.AddEntry(s, RGB(255, 0, 0), m_loglist.GetCount());
+	else if(s.Find(L"CRITICAL") >= 0)
+		m_loglist.AddEntry(s, RGB(100, 149, 237), m_loglist.GetCount());
+	else if(s.Find(L"SCRIPT") >= 0)
+		m_loglist.AddEntry(s, RGB(255, 255, 255), m_loglist.GetCount());
+	else
+		m_loglist.AddEntry(s, RGB(237, 237,237), m_loglist.GetCount());
+
+	::SendMessage(m_loglist.m_hWnd, WM_VSCROLL, SB_BOTTOM, 0);
 }
-
+ 
 void CLogWindow::OnBnClickedButton1()
 {
 	// TODO: Add your control notification handler code here

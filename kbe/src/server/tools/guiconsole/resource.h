@@ -30,6 +30,7 @@
 #define IDC_MSGTYPE_LIST2               1012
 #define IDC_STATIC_OPTION               1013
 #define IDC_STATIC_APPID                1014
+#define IDC_LOG_LIST1                   1015
 #define ID_32771                        32771
 #define ID_32772                        32772
 
@@ -39,7 +40,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        136
 #define _APS_NEXT_COMMAND_VALUE         32773
-#define _APS_NEXT_CONTROL_VALUE         1015
+#define _APS_NEXT_CONTROL_VALUE         1016
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
