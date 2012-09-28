@@ -120,6 +120,8 @@ bool Componentbridge::findInterfaces()
 		findComponentTypes[0] = MESSAGELOG_TYPE;
 		break;
 	default:
+		if(componentType_ != MESSAGELOG_TYPE && componentType_ != MACHINE_TYPE)
+			findComponentTypes[0] = MESSAGELOG_TYPE;
 		break;
 	};
 
