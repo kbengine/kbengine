@@ -489,11 +489,11 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 			continue;
 		}
 
-		// 其他错误退出尝试
-		ERROR_MSG("NetworkInterface::basicSendWithRetries: discard the packet.\n");
 		break;
 	}
 
+	// 其他错误退出尝试
+	ERROR_MSG("NetworkInterface::basicSendWithRetries: packet discarded.\n");
 	return reason;
 }
 

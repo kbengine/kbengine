@@ -3,16 +3,6 @@
 //
 
 #pragma once
-#include "cstdkbe/cstdkbe.hpp"
-#include "network/endpoint.hpp"
-#include "network/common.hpp"
-#include "network/channel.hpp"
-#include "network/interfaces.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/network_interface.hpp"
-#include "helper/debug_helper.hpp"
-#include "xmlplus/xmlplus.hpp"
-#include "cstdkbe/smartpointer.hpp"
 #include "afxcmn.h"
 #include "DebugWindow.h"
 #include "LogWindow.h"
@@ -20,6 +10,7 @@
 #include "ProfileWindow.h"
 #include "WatcherWindow.h"
 #include "SpaceViewWindow.h"
+#include "ConnectRemoteMachineWindow.h"
 
 using namespace KBEngine;
 

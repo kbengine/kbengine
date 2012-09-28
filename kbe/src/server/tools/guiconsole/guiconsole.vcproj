@@ -199,6 +199,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ConnectRemoteMachineWindow.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\DebugWindow.cpp"
 				>
 			</File>
@@ -266,6 +270,10 @@
 			>
 			<File
 				RelativePath=".\ColorListBox.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ConnectRemoteMachineWindow.h"
 				>
 			</File>
 			<File

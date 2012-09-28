@@ -1205,4 +1205,6 @@ void CguiconsoleDlg::OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
 void CguiconsoleDlg::OnConnectRemoteMachine()
 {
 	// TODO: Add your command handler code here
+	CConnectRemoteMachineWindow dlg;
+	dlg.DoModal();
 }

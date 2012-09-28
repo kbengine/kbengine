@@ -70,6 +70,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 					select(ep + 1, NULL, &fds, NULL, &tv);													\
 					continue;																				\
 				}																							\
+																											\
+				if(retries > 3 && reason != REASON_SUCCESS)																				\
+				{																							\
+					ERROR_MSG("Bundle::send: packet discarded.\n");										\
+					break;																					\
+				}																							\
 			}																								\
 			else																							\
 			{																								\
