@@ -421,7 +421,9 @@ public:
 	FixedDictType();
 	virtual ~FixedDictType();
 	
-	/** 获得这个固定字典的key类别 */	
+	/** 
+		获得这个固定字典的key类别 
+	*/	
 	FIXEDDICT_KEYTYPE_MAP& getKeyTypes(void){ return keyTypes_; }
 
 	const char* getName(void)const{ return "FIXED_DICT";}
@@ -443,10 +445,31 @@ public:
 	*/
 	virtual PyObject* isNotSameTypeCreateFromPyObject(PyObject* pyobj);
 
-	/** 获得固定字典所有的key名称 */
+	/** 
+		获得固定字典所有的key名称 
+	*/
 	std::string getKeyNames(void);
+
+	/** 
+		加载impl模块
+	*/
+	bool loadImplModule(std::string moduleName);
+
+	/** 
+		impl相关实现
+	*/
+	PyObject* impl_createObjFromDict(PyObject* dictData);
+	PyObject* impl_getDictFromObj(PyObject* pyobj);
+	bool impl_isSameType(PyObject* pyobj);
+
+	bool hasImpl()const { return implObj_ != NULL; }
 protected:
 	FIXEDDICT_KEYTYPE_MAP			keyTypes_;		// 这个固定字典里的各个key的类型
+	PyObject*						implObj_;		// 实现脚本模块
+	PyObject*						pycreateObjFromDict_;
+	PyObject*						pygetDictFromObj_;
+	PyObject*						pyisSameType_;
+	std::string						moduleName_;
 };
 
 

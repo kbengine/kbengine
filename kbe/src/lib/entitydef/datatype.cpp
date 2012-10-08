@@ -1006,7 +1006,13 @@ PyObject* ArrayType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-FixedDictType::FixedDictType()
+FixedDictType::FixedDictType():
+keyTypes_(),
+implObj_(NULL),
+pycreateObjFromDict_(NULL),
+pygetDictFromObj_(NULL),
+pyisSameType_(NULL),
+moduleName_()
 {
 }
 
@@ -1018,18 +1024,26 @@ FixedDictType::~FixedDictType()
 	{
 		iter->second->decRef();
 	}
+
 	keyTypes_.clear();
+
+	S_RELEASE(pycreateObjFromDict_);
+	S_RELEASE(pygetDictFromObj_);
+	S_RELEASE(pyisSameType_);
+	S_RELEASE(implObj_);
 }
 
 //-------------------------------------------------------------------------------------
 std::string FixedDictType::getKeyNames(void)
 {
 	std::string keyNames = "";
+
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
 	for(; iter != keyTypes_.end(); iter++)
 	{
 		keyNames += iter->first + ",";
 	}
+
 	return keyNames;
 }
 
@@ -1063,30 +1077,153 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 			if(strType == "ARRAY")
 			{
 				ArrayType* dataType = new ArrayType();
-				if(dataType->initialize(xmlplus, typeNode)){
-					keyTypes_.push_back(std::make_pair(typeName, dataType));
-					dataType->incRef();
-				}
-				else
-					return false;
-			}
-			else
-			{
-				DataType* dataType = DataTypes::getDataType(strType);
-				if(dataType != NULL){
+				if(dataType->initialize(xmlplus, typeNode))
+				{
 					keyTypes_.push_back(std::make_pair(typeName, dataType));
 					dataType->incRef();
 				}
 				else
 				{
-					ERROR_MSG("FixedDictType::initialize: can't found type[%s] by key[%s].\n", strType.c_str(), typeName.c_str());
+					return false;
+				}
+			}
+			else
+			{
+				DataType* dataType = DataTypes::getDataType(strType);
+				if(dataType != NULL)
+				{
+					keyTypes_.push_back(std::make_pair(typeName, dataType));
+					dataType->incRef();
+				}
+				else
+				{
+					ERROR_MSG("FixedDictType::initialize: can't found type[%s] by key[%s].\n", 
+						strType.c_str(), typeName.c_str());
+
 					return false;
 				}
 			}
 		}		
 	}
 	XML_FOR_END(propertiesNode);
+
+	TiXmlNode* implementedByNode = xmlplus->enterNode(node, "implementedBy");
+	if(implementedByNode)
+	{
+		strType = xmlplus->getValStr(implementedByNode);
+		if(strType.size() > 0 && !loadImplModule(strType))
+			return false;
+
+		moduleName_ = strType;
+	}
+
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool FixedDictType::loadImplModule(std::string moduleName)
+{
+	KBE_ASSERT(implObj_ == NULL);
+	
+	std::vector<std::string> res_;
+	kbe_split<char>(moduleName, '.', res_);
+	
+	if(res_.size() != 2)
+	{
+		ERROR_MSG("FixedDictType::loadImplModule: %s impl is error! like:[moduleName.inst]\n", 
+			moduleName.c_str());
+		return false;
+	}
+
+	PyObject* implModule = PyImport_ImportModule(res_[0].c_str());
+	if (!implModule)
+	{
+		SCRIPT_ERROR_CHECK();
+		return false;
+	}
+	
+	implObj_ = PyObject_GetAttrString(implModule, res_[1].c_str());
+	Py_DECREF(implModule);
+
+	if (!implObj_)
+	{
+		SCRIPT_ERROR_CHECK()
+		return false;
+	}
+
+	pycreateObjFromDict_ = PyObject_GetAttrString(implObj_, "createObjFromDict");
+	if (!pycreateObjFromDict_)
+	{
+		SCRIPT_ERROR_CHECK()
+		return false;
+	}
+	
+
+	pygetDictFromObj_ = PyObject_GetAttrString(implObj_, "getDictFromObj");
+	if (!pygetDictFromObj_)
+	{
+		SCRIPT_ERROR_CHECK()
+		return false;
+	}
+	
+	pyisSameType_ = PyObject_GetAttrString(implObj_, "isSameType");
+	if (!pyisSameType_)
+	{
+		SCRIPT_ERROR_CHECK()
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* FixedDictType::impl_createObjFromDict(PyObject* dictData)
+{
+	PyObject* pyRet = PyObject_CallFunction(pycreateObjFromDict_, 
+		const_cast<char*>("(O)"), dictData);
+	
+	if(pyRet == NULL)
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+	
+	if(!impl_isSameType(pyRet))
+	{
+		ERROR_MSG("FixedDictType::impl_createObjFromDict: %s.isSameType() is failed!\n", moduleName_.c_str());
+		Py_RETURN_NONE;
+	}
+
+	return pyRet;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* FixedDictType::impl_getDictFromObj(PyObject* pyobj)
+{
+	PyObject* pyRet = PyObject_CallFunction(pygetDictFromObj_, 
+		const_cast<char*>("(O)"), pyobj);
+	
+	if(pyRet == NULL)
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+
+	return pyRet;
+}
+
+//-------------------------------------------------------------------------------------
+bool FixedDictType::impl_isSameType(PyObject* pyobj)
+{
+	PyObject* pyRet = PyObject_CallFunction(pyisSameType_, 
+		const_cast<char*>("(O)"), pyobj);
+	
+	if(pyRet == NULL)
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+	
+	bool ret = Py_True == pyRet;
+	Py_DECREF(pyRet);
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1135,7 +1272,17 @@ PyObject* FixedDictType::createObject(MemoryStream* defaultVal)
 	std::string val = "";
 	if(defaultVal)
 		(*defaultVal) >> val;	
-	return new FixedDict(this, val);
+
+	FixedDict* pydict = new FixedDict(this, val);
+
+	if(hasImpl())
+	{
+		PyObject* pyValue = impl_createObjFromDict(pydict);
+		Py_DECREF(pydict);
+		return pyValue;
+	}
+
+	return pydict;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1147,12 +1294,22 @@ MemoryStream* FixedDictType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void FixedDictType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
+	if(hasImpl())
+	{
+		pyValue = impl_getDictFromObj(pyValue);
+	}
+
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
 	for(; iter != keyTypes_.end(); iter++)
 	{
 		PyObject* pyObject = PyDict_GetItemString(pyValue, const_cast<char*>(iter->first.c_str()));
 		KBE_ASSERT(pyObject != NULL);
 		iter->second->addToStream(mstream, pyObject);
+	}
+
+	if(hasImpl())
+	{
+		Py_DECREF(pyValue);
 	}
 }
 

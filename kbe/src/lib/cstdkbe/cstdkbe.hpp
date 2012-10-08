@@ -114,6 +114,22 @@ const char COMPONENT_NAME[][255] = {
 	"resourcemgr",
 };
 
+const char COMPONENT_NAME_1[][255] = {
+	"unknown    ",
+	"dbmgr      ",
+	"loginapp   ",
+	"baseappmgr ",
+	"cellappmgr ",
+	"cellapp    ",
+	"baseapp    ",
+	"client     ",
+	"kbmachine  ",
+	"kbcenter   ",
+	"console    ",
+	"messagelog ",
+	"resourcemgr",
+};
+
 inline const char* COMPONENT_NAME_EX(COMPONENT_TYPE CTYPE)
 {									
 	if(CTYPE < 0 || CTYPE >= COMPONENT_END_TYPE)
@@ -124,6 +140,15 @@ inline const char* COMPONENT_NAME_EX(COMPONENT_TYPE CTYPE)
 	return COMPONENT_NAME[CTYPE];
 }
 
+inline const char* COMPONENT_NAME_EX_1(COMPONENT_TYPE CTYPE)
+{									
+	if(CTYPE < 0 || CTYPE >= COMPONENT_END_TYPE)
+	{
+		return COMPONENT_NAME_1[UNKNOWN_COMPONENT_TYPE];
+	}
+
+	return COMPONENT_NAME_1[CTYPE];
+}
 
 // 所有的组件列表
 const COMPONENT_TYPE ALL_COMPONENT_TYPES[] = {BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, DBMGR_TYPE, CELLAPP_TYPE, 

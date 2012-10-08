@@ -286,6 +286,7 @@ bool EntityApp<E>::installPyScript()
 
 	std::wstring pyPaths = root_path + L"res/scripts/common;";
 	pyPaths += root_path + L"res/scripts/data;";
+	pyPaths += root_path + L"res/scripts/user_type;";
 
 	switch(componentType_)
 	{

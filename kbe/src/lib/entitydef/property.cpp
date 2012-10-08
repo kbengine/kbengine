@@ -46,7 +46,9 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype, std::string 
 	PropertyDescription::propertyDescriptionCount_++;
 
 	if(dataType != NULL)
+	{
 		defaultVal_ = dataType->parseDefaultStr(defaultStr);
+	}
 	else
 	{
 		ERROR_MSG("PropertyDescription::PropertyDescription: %s DataType is NULL, in property[%s].\n", 

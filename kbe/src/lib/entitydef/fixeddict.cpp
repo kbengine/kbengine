@@ -176,6 +176,7 @@ int FixedDict::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 	
 	if(!fixedDict->checkDataChanged(dictKeyName, value))
 		return 0;
+
 	return PyDict_SetItem(fixedDict->pyDict_, key, value);
 }
 

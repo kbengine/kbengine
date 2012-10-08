@@ -138,7 +138,7 @@ void Messagelog::writeLog(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 
 	logstream << LOG_TYPE_NAME_EX(logtype);
 	logstream << " ";
-	logstream << COMPONENT_NAME_EX(componentType);
+	logstream << COMPONENT_NAME_EX_1(componentType);
 	logstream << " ";
 	logstream << componentID;
 	logstream << " ";
