@@ -99,7 +99,7 @@ KBE_ROOT:
 
 KBE_RES_PATH:
 
-	相关资源路径用';'分隔, 第一个res必须是kbe系统res, 第二个res必须是用户脚本res， 其他无限制。
+	相关资源路径用':'或者';'分隔, 第一个res必须是kbe系统res, 第二个res必须是用户脚本res， 其他无限制。
 
 
 KBE_HYBRID_PATH:
