@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "script.hpp"
 #include "math.hpp"
 #include "pickler.hpp"
+#include "copy.hpp"
 #include "uuid.hpp"
 #include "resmgr/resmgr.hpp"
 #include "thread/concurrency.hpp"
@@ -174,6 +175,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths, const c
 	}
 	
 	Pickler::initialize();
+	Copy::initialize();
 	Uuid::initialize();
 
 	math::installModule("Math");
@@ -186,6 +188,7 @@ bool Script::uninstall()
 {
 	math::uninstallModule();
 	Pickler::finalise();
+	Copy::finalise();
 	Uuid::finalise();
 	SCRIPT_ERROR_CHECK();															// 检查是否有错误产生
 

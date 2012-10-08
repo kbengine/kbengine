@@ -1,6 +1,7 @@
 LIB =	pyscript
 
 SRCS =				\
+	copy			\
 	map			\
 	math			\
 	pickler			\
