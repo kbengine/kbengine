@@ -276,7 +276,7 @@ void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE compo
 			return;
 	
 	Mercury::Channel* pTargetChannel = NULL;
-	if(componentType != CONSOLE_TYPE)
+	if(componentType != CONSOLE_TYPE && componentType != CLIENT_TYPE)
 	{
 		Components::ComponentInfos* cinfos = 
 			Componentbridge::getComponents().findComponent(componentType, KBEngine::getUserUID(), componentID);

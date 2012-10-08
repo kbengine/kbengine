@@ -1236,7 +1236,8 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 		case MAILBOX_TYPE_CELL_VIA_BASE: // entity.cell.base.xxx
 			{
 				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->getCellMailbox());
-				if(mailbox == NULL){
+				if(mailbox == NULL)
+				{
 					ERROR_MSG("Baseapp::onEntityMail: occur a error(can't found cellMailbox)! mailboxType=%d, entityID=%d.\n", mailtype, eid);
 					break;
 				}
@@ -1249,7 +1250,8 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 		case MAILBOX_TYPE_CLIENT_VIA_BASE: // entity.base.client
 			{
 				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->getClientMailbox());
-				if(mailbox == NULL){
+				if(mailbox == NULL)
+				{
 					ERROR_MSG("Baseapp::onEntityMail: occur a error(can't found clientMailbox)! mailboxType=%d, entityID=%d.\n", mailtype, eid);
 					break;
 				}
@@ -1301,7 +1303,7 @@ void Baseapp::onBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::Memor
 	ENTITY_ID baseID = 0;
 	s >> baseID;
 	
-	ERROR_MSG("Baseapp::onBackupEntityCellData: entityID=%d, size=%u.\n", baseID, s.opsize());
+	INFO_MSG("Baseapp::onBackupEntityCellData: entityID=%d, size=%u.\n", baseID, s.opsize());
 
 	Base* base = this->findEntity(baseID);
 
@@ -1321,7 +1323,7 @@ void Baseapp::onCellWriteToDBCompleted(Mercury::Channel* pChannel, KBEngine::Mem
 	ENTITY_ID baseID = 0;
 	s >> baseID;
 	
-	ERROR_MSG("Baseapp::onCellWriteToDBCompleted: entityID=%d, size=%u.\n", baseID, s.opsize());
+	INFO_MSG("Baseapp::onCellWriteToDBCompleted: entityID=%d, size=%u.\n", baseID, s.opsize());
 
 	Base* base = this->findEntity(baseID);
 
