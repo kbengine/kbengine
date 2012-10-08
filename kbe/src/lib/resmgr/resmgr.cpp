@@ -46,13 +46,18 @@ bool Resmgr::initialize()
 	kb_env_.res_path		= getenv("KBE_RES_PATH") == NULL ? "" : getenv("KBE_RES_PATH"); 
 	kb_env_.hybrid_path		= getenv("KBE_HYBRID_PATH") == NULL ? "" : getenv("KBE_HYBRID_PATH"); 
 
-	//kb_env_.root				= "D:/kbengine/";
-	//kb_env_.res_path			= "D:/kbengine/kbe/res/;D:/kbengine/demo/;D:/kbengine/demo/res/"; 
-	//kb_env_.hybrid_path		= "D:/kbengine/kbe/bin/Hybrid/"; 
-
+	//kb_env_.root				= "/home/kbe/kbengine/";
+	//kb_env_.res_path			= "/home/kbe/kbengine/kbe/res/;/home/kbe/kbengine/demo/;/home/kbe/kbengine/demo/res/"; 
+	//kb_env_.hybrid_path		= "/home/kbe/kbengine/kbe/bin/Hybrid/"; 
+	
+	respaths_.clear();
 	std::string tbuf = kb_env_.res_path;
 	kbe_split<char>(tbuf, ';', respaths_);
-	kbe_split<char>(tbuf, ':', respaths_);
+	if(respaths_.size() < 2)
+	{
+		respaths_.clear();
+		kbe_split<char>(tbuf, ':', respaths_);
+	}
 
 	isInit_ = true;
 	return true;
