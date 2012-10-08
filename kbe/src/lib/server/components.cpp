@@ -355,8 +355,8 @@ void Components::clear(int32 uid, bool shouldShowLog)
 	delComponent(uid, CELLAPP_TYPE, uid, true, shouldShowLog);
 	delComponent(uid, BASEAPP_TYPE, uid, true, shouldShowLog);
 	delComponent(uid, LOGINAPP_TYPE, uid, true, shouldShowLog);
-	delComponent(uid, MESSAGELOG_TYPE, uid, true, shouldShowLog);
-	delComponent(uid, RESOURCEMGR_TYPE, uid, true, shouldShowLog);
+	//delComponent(uid, MESSAGELOG_TYPE, uid, true, shouldShowLog);
+	//delComponent(uid, RESOURCEMGR_TYPE, uid, true, shouldShowLog);
 }
 
 //-------------------------------------------------------------------------------------		
