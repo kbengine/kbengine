@@ -74,15 +74,15 @@ kbe会读取KBE_ROOT，KBE_RES_PATH， KBE_HYBRID_PATH系统环境变量来做�
 
 linux:
 
-	[root@localhost ~]# vim ~/.bashrc
+	[kbe@localhost ~]# vim ~/.bashrc
 
 	ulimit -c unlimited
 
-	export KBE_ROOT=/root/kbengine/
+	export KBE_ROOT=/home/kbe/kbengine/
 
-	export KBE_RES_PATH='/root/kbengine/kbe/res/;/root/kbengine/demo/;/root/kbengine/demo/res/'
+	export KBE_RES_PATH=$KBE_ROOT/kbe/res/:$KBE_ROOT/demo/:$KBE_ROOT/demo/res/
 
-	export KBE_HYBRID_PATH=/root/kbengine/kbe/bin/Hybrid64/
+	export KBE_HYBRID_PATH=$KBE_ROOT/kbe/bin/Hybrid64/
 
 
 
