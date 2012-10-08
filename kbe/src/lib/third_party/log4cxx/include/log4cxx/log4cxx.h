@@ -22,7 +22,7 @@
  * Edit log4cxx.hw instead
  *
  */
-
+#if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
 #define LOG4CXX_LOGCHAR_IS_UTF8 0
 #if LOG4CXX_LOGCHAR_IS_UTF8
 #define LOG4CXX_LOGCHAR_IS_WCHAR 0
@@ -94,6 +94,29 @@ typedef std::vector<T> N
 #define LOG4CXX_LIST_DEF(N, T) typedef std::vector<T> N
 #endif
 
+#else
+#define LOG4CXX_LOGCHAR_IS_UNICHAR 0
+#define LOG4CXX_LOGCHAR_IS_UTF8 1
+#define LOG4CXX_LOGCHAR_IS_WCHAR 0
 
+#define LOG4CXX_CHAR_API 1
+#define LOG4CXX_WCHAR_T_API 1
+#define LOG4CXX_UNICHAR_API 0
+#define LOG4CXX_CFSTRING_API 0
+
+
+typedef long long log4cxx_int64_t;
+#define LOG4CXX_USE_GLOBAL_SCOPE_TEMPLATE 0
+#define LOG4CXX_LOGSTREAM_ADD_NOP 0
+typedef log4cxx_int64_t log4cxx_time_t;
+typedef int log4cxx_status_t;
+typedef unsigned int log4cxx_uint32_t;
+
+
+#define LOG4CXX_EXPORT
+#define LOG4CXX_PTR_DEF(T) typedef log4cxx::helpers::ObjectPtrT<T> T##Ptr
+#define LOG4CXX_LIST_DEF(N, T) typedef std::vector<T> N
+
+#endif
 #endif
 

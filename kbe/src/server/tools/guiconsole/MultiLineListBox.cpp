@@ -51,6 +51,9 @@ void CMultiLineListBox::MeasureItem(LPMEASUREITEMSTRUCT lpMIS)
 
 void CMultiLineListBox::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 {
+	if(this->GetCount() <= 0)
+		return;
+
 	CDC* pDC = CDC::FromHandle(lpDIS->hDC);
 
 	COLORREF rColor = (COLORREF)lpDIS->itemData; // RGB in item data

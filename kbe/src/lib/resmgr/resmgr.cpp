@@ -52,6 +52,7 @@ bool Resmgr::initialize()
 
 	std::string tbuf = kb_env_.res_path;
 	kbe_split<char>(tbuf, ';', respaths_);
+	kbe_split<char>(tbuf, ':', respaths_);
 
 	isInit_ = true;
 	return true;
