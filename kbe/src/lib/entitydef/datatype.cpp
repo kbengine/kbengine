@@ -923,6 +923,9 @@ bool ArrayType::isSameType(PyObject* pyValue)
 		OUT_TYPE_ERROR("ARRAY");
 		return false;
 	}
+	
+	if(!PySequence_Check(pyValue))
+		return false;
 
 	Py_ssize_t size = PySequence_Size(pyValue);
 	for(Py_ssize_t i=0; i<size; i++)
