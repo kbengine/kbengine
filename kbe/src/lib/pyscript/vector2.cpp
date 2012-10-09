@@ -94,15 +94,16 @@ static int tp_compare(PyObject* v, PyObject* w)
 }
 */
 SCRIPT_METHOD_DECLARE_BEGIN(ScriptVector2)
-SCRIPT_METHOD_DECLARE("distTo",				pyDistTo,					METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("distSqrTo",			pyDistSqrTo,				METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("cross2D",			pyCross2D,					METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("scale",				pyScale,					METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("dot",				pyDot,						METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("normalise",			pyNormalise,				METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("tuple",				pyTuple,					METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("list",				pyList,						METH_VARARGS,		0)
-SCRIPT_METHOD_DECLARE("set",				pySet,						METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("distTo",							pyDistTo,					METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("distSqrTo",						pyDistSqrTo,				METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("cross2D",						pyCross2D,					METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("scale",							pyScale,					METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("dot",							pyDot,						METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("normalise",						pyNormalise,				METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("tuple",							pyTuple,					METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("list",							pyList,						METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("set",							pySet,						METH_VARARGS,		0)
+SCRIPT_DIRECT_METHOD_DECLARE("__reduce_ex__",			__reduce_ex__,				METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(ScriptVector2)
@@ -361,7 +362,7 @@ PyObject* ScriptVector2::__unpickle__(PyObject* self, PyObject* args)
 		S_Return;
 	}
 
-	if(!PyArg_ParseTuple(args, "dd", &x, &y))
+	if(!PyArg_ParseTuple(args, "ff", &x, &y))
 	{
 		ERROR_MSG("ScriptVector2::__unpickle__: args is error!");
 		S_Return;

@@ -78,7 +78,7 @@ public:
 	uint32 getDatabaseLength()const { return databaseLength_; }
 
 	/** 获取这个属性描述在def文件中被定义的默认值 */
-	MemoryStream* getDefaultVal(void){ return defaultVal_; }
+	PyObject* newDefaultVal(void);
 	
 	/** 获得属性描述的总数量 */
 	static uint32 getDescriptionCount(void){ return propertyDescriptionCount_; }
@@ -99,7 +99,7 @@ protected:
 	bool						isIdentifier_;									// 是否是一个索引键
 	uint32						databaseLength_;								// 这个属性在数据库中的长度
 	ENTITY_PROPERTY_UID			utype_;											// 这个属性的数字类别， 用于网络上传输识别
-	MemoryStream*				defaultVal_;									// 这个属性的默认值
+	PyObject*					defaultVal_;									// 这个属性的默认值
 	int8						detailLevel_;									// 这个属性的lod详情级别 看common中的:属性的lod广播级别范围的定义
 	static uint32				propertyDescriptionCount_;						// 所有的属性描述的数量	
 };

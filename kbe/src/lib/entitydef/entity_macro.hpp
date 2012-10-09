@@ -530,16 +530,13 @@ public:																										\
 																											\
 		if(dataType)																						\
 		{																									\
-			MemoryStream* ms = propertyDescription->getDefaultVal();										\
-			PyObject* pyVal = dataType->createObject(ms);													\
+			PyObject* defObj = propertyDescription->newDefaultVal();										\
 			PyObject_SetAttrString(static_cast<PyObject*>(this),											\
-						propertyDescription->getName(), pyVal);												\
-			Py_DECREF(pyVal);																				\
+						propertyDescription->getName(), defObj);											\
+			Py_DECREF(defObj);																				\
 																											\
 			/* DEBUG_MSG(#CLASS"::"#CLASS": added [%s] property.\n", 
 			propertyDescription->getName());*/																\
-			if(ms)																							\
-				ms->rpos(0);																				\
 		}																									\
 		else																								\
 		{																									\

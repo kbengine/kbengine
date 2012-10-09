@@ -1073,7 +1073,8 @@ void CguiconsoleDlg::OnMenu_Update()
 {
 	_networkInterface.deregisterAllChannels();
 	Components::getSingleton().clear();
-
+	Components::getSingleton().delComponent(0, MESSAGELOG_TYPE, 0, true, false);
+	Components::getSingleton().delComponent(0, RESOURCEMGR_TYPE, 0, true, false);
 	::SetTimer(m_hWnd, 2, 100, NULL);
 }
 

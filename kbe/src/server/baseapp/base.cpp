@@ -113,10 +113,8 @@ void Base::createCellData(void)
 		
 		if(dataType)
 		{
-			MemoryStream* ms = propertyDescription->getDefaultVal();
-			PyDict_SetItemString(cellDataDict_, propertyDescription->getName(), dataType->createObject(ms));
-			if(ms)
-				ms->rpos(0);
+			PyObject* pyObj = propertyDescription->newDefaultVal();
+			PyDict_SetItemString(cellDataDict_, propertyDescription->getName(), pyObj);
 		}
 		else
 		{

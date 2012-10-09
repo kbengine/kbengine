@@ -79,7 +79,7 @@ public:
 
 	virtual PyObject* createObject(MemoryStream* defaultVal) = 0;
 
-	virtual MemoryStream* parseDefaultStr(std::string defaultVal) = 0;
+	virtual PyObject* parseDefaultStr(std::string defaultVal) = 0;
 
 	virtual const char* getName(void)const = 0;
 };
@@ -96,7 +96,7 @@ public:
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
-	MemoryStream* parseDefaultStr(std::string defaultVal);
+	PyObject* parseDefaultStr(std::string defaultVal);
 	const char* getName(void)const{ return "INT";}
 };
 
@@ -159,20 +159,17 @@ PyObject* IntType<SPECIFY_TYPE>::createObject(MemoryStream* defaultVal)
 
 //-------------------------------------------------------------------------------------
 template <typename SPECIFY_TYPE>
-MemoryStream* IntType<SPECIFY_TYPE>::parseDefaultStr(std::string defaultVal)
+PyObject* IntType<SPECIFY_TYPE>::parseDefaultStr(std::string defaultVal)
 {
-	MemoryStream* bs = NULL;
+	SPECIFY_TYPE i = 0;
 	if(!defaultVal.empty())
 	{
 		std::stringstream stream;
 		stream << defaultVal;
-		SPECIFY_TYPE i;
 		stream >> i;
-		bs = new MemoryStream();
-		(*bs) << i;
 	}
 
-	return bs;
+	return PyLong_FromLong(i);
 }
 
 //-------------------------------------------------------------------------------------
@@ -204,7 +201,7 @@ public:
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
 
-	MemoryStream* parseDefaultStr(std::string defaultVal);
+	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "UINT64";}
 };
@@ -223,7 +220,7 @@ public:
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
 
-	MemoryStream* parseDefaultStr(std::string defaultVal);
+	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "UINT32";}
 };
@@ -242,7 +239,7 @@ public:
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
 
-	MemoryStream* parseDefaultStr(std::string defaultVal);
+	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "INT64";}
 };
@@ -261,7 +258,7 @@ public:
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
 
-	MemoryStream* parseDefaultStr(std::string defaultVal);
+	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "FLOAT";}
 };
@@ -279,7 +276,7 @@ public:
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
 
-	MemoryStream* parseDefaultStr(std::string defaultVal);
+	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return name_.c_str();}
 protected:
@@ -301,7 +298,7 @@ public:
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
 
-	MemoryStream* parseDefaultStr(std::string defaultVal);
+	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "STRING";}
 };
@@ -320,7 +317,7 @@ public:
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
 
-	MemoryStream* parseDefaultStr(std::string defaultVal);
+	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "UNICODE";}
 };
@@ -338,7 +335,7 @@ public:
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
 
-	MemoryStream* parseDefaultStr(std::string defaultVal);
+	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "PYTHON";}
 };
@@ -357,7 +354,7 @@ public:
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
 
-	MemoryStream* parseDefaultStr(std::string defaultVal);
+	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "BLOB";}
 };
@@ -376,7 +373,7 @@ public:
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
 
-	MemoryStream* parseDefaultStr(std::string defaultVal);
+	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "MAILBOX";}
 };
@@ -397,7 +394,7 @@ public:
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
 
-	MemoryStream* parseDefaultStr(std::string defaultVal);
+	PyObject* parseDefaultStr(std::string defaultVal);
 
 	bool initialize(XmlPlus* xmlplus, TiXmlNode* node);
 
@@ -435,7 +432,7 @@ public:
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* createObject(MemoryStream* defaultVal);
 
-	MemoryStream* parseDefaultStr(std::string defaultVal);
+	PyObject* parseDefaultStr(std::string defaultVal);
 	bool initialize(XmlPlus* xmlplus, TiXmlNode* node);
 	
 	/**	

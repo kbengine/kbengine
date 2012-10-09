@@ -82,9 +82,10 @@ PyObject* Copy::copy(PyObject* pyobj)
 	if(!pyRet)
 	{
 		SCRIPT_ERROR_CHECK();
+		Py_RETURN_NONE;
 	}
 	
-	Py_RETURN_NONE;
+	return pyRet;
 }
 
 //-------------------------------------------------------------------------------------
@@ -96,9 +97,10 @@ PyObject* Copy::deepcopy(PyObject* pyobj)
 	if(!pyRet)
 	{
 		SCRIPT_ERROR_CHECK();
+		Py_RETURN_NONE;
 	}
 	
-	Py_RETURN_NONE;
+	return pyRet;
 }
 
 

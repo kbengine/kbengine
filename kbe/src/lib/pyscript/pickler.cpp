@@ -69,11 +69,11 @@ bool Pickler::initialize(void)
 
 		static struct PyModuleDef moduleDesc =   
 		{  
-				 PyModuleDef_HEAD_INIT,  
-				 "_upf",  
-				 "This module is created by KBEngine!",  
-				 -1,  
-				 NULL  
+			 PyModuleDef_HEAD_INIT,  
+			 "_upf",  
+			 "This module is created by KBEngine!",  
+			 -1,  
+			 NULL  
 		};  
 
 		PyObject* m = PyModule_Create(&moduleDesc);	

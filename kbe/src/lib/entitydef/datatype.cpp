@@ -103,20 +103,17 @@ PyObject* UInt64Type::createObject(MemoryStream* defaultVal)
 }
 
 //-------------------------------------------------------------------------------------
-MemoryStream* UInt64Type::parseDefaultStr(std::string defaultVal)
+PyObject* UInt64Type::parseDefaultStr(std::string defaultVal)
 {
-	MemoryStream* bs = NULL;
+	uint64 val = 0;
 	if(!defaultVal.empty())
 	{
 		std::stringstream stream;
 		stream << defaultVal;
-		uint64 val = 0;
 		stream >> val;
-		bs = new MemoryStream();
-		(*bs) << val;
 	}
 
-	return bs;
+	return PyLong_FromUnsignedLongLong(val);
 }
 
 //-------------------------------------------------------------------------------------
@@ -185,20 +182,17 @@ PyObject* UInt32Type::createObject(MemoryStream* defaultVal)
 }
 
 //-------------------------------------------------------------------------------------
-MemoryStream* UInt32Type::parseDefaultStr(std::string defaultVal)
+PyObject* UInt32Type::parseDefaultStr(std::string defaultVal)
 {
-	MemoryStream* bs = NULL;
+	uint32 val = 0;
 	if(!defaultVal.empty())
 	{
 		std::stringstream stream;
 		stream << defaultVal;
-		uint32 val = 0;
 		stream >> val;
-		bs = new MemoryStream();
-		(*bs) << val;
 	}
 
-	return bs;
+	return PyLong_FromUnsignedLong(val);
 }
 
 //-------------------------------------------------------------------------------------
@@ -262,20 +256,17 @@ PyObject* Int64Type::createObject(MemoryStream* defaultVal)
 }
 
 //-------------------------------------------------------------------------------------
-MemoryStream* Int64Type::parseDefaultStr(std::string defaultVal)
+PyObject* Int64Type::parseDefaultStr(std::string defaultVal)
 {
-	MemoryStream* bs = NULL;
+	int64 val = 0;
 	if(!defaultVal.empty())
 	{
 		std::stringstream stream;
 		stream << defaultVal;
-		int64 val = 0;
 		stream >> val;
-		bs = new MemoryStream();
-		(*bs) << val;
 	}
 
-	return bs;
+	return PyLong_FromLongLong(val);
 }
 
 //-------------------------------------------------------------------------------------
@@ -326,20 +317,17 @@ PyObject* FloatType::createObject(MemoryStream* defaultVal)
 }
 
 //-------------------------------------------------------------------------------------
-MemoryStream* FloatType::parseDefaultStr(std::string defaultVal)
+PyObject* FloatType::parseDefaultStr(std::string defaultVal)
 {
-	MemoryStream* bs = NULL;
+	double val = 0.0f;
 	if(!defaultVal.empty())
 	{
 		std::stringstream stream;
 		stream << defaultVal;
-		double val = 0;
 		stream >> val;
-		bs = new MemoryStream();
-		(*bs) << val;
 	}
 
-	return bs;
+	return PyFloat_FromDouble(val);
 }
 
 //-------------------------------------------------------------------------------------
@@ -439,40 +427,44 @@ PyObject* VectorType::createObject(MemoryStream* defaultVal)
 }
 
 //-------------------------------------------------------------------------------------
-MemoryStream* VectorType::parseDefaultStr(std::string defaultVal)
+PyObject* VectorType::parseDefaultStr(std::string defaultVal)
 {
-	MemoryStream* bs = NULL;
+	float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
+
 	if(!defaultVal.empty())
 	{
 		std::stringstream stream;
 		stream << defaultVal;
-#ifdef CLIENT_NO_FLOAT
-		int32 x = 0, y = 0, z = 0, w = 0;
-#else
-		float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
-#endif
-		bs = new MemoryStream();
-		
-		(*bs) << elemCount_;
 
 		switch(elemCount_)
 		{
 			case 2:
 				stream >> x >> y;
-				(*bs) << x << y;
 				break;
 			case 3:
 				stream >> x >> y >> z;
-				(*bs) << x << y << z;
 				break;
 			case 4:
 				stream >> x >> y >> z >> w;
-				(*bs) << x << y << z << w;
+				break;
+			default:
 				break;
 		}
 	}
 
-	return bs;
+	switch(elemCount_)
+	{
+		case 2:
+			return new script::ScriptVector2(float(x), float(y));
+		case 3:
+			return new script::ScriptVector3(float(x), float(y), float(z));
+		case 4:
+			return new script::ScriptVector4(float(x), float(y), float(z), float(w));
+		default:
+			break;
+	}
+
+	Py_RETURN_NONE;
 }
 
 //-------------------------------------------------------------------------------------
@@ -541,16 +533,15 @@ PyObject* StringType::createObject(MemoryStream* defaultVal)
 }
 
 //-------------------------------------------------------------------------------------
-MemoryStream* StringType::parseDefaultStr(std::string defaultVal)
+PyObject* StringType::parseDefaultStr(std::string defaultVal)
 {
-	MemoryStream* bs = NULL;
-	if(!defaultVal.empty())
-	{
-		bs = new MemoryStream(defaultVal.size());
-		(*bs) << defaultVal;
-	}
+	PyObject* pyobj = PyUnicode_FromString(defaultVal.c_str());
 
-	return bs;
+	if (pyobj && !PyErr_Occurred()) 
+		return pyobj;
+
+	PyErr_Clear();
+	return PyUnicode_FromString("");
 }
 
 //-------------------------------------------------------------------------------------
@@ -616,16 +607,17 @@ PyObject* UnicodeType::createObject(MemoryStream* defaultVal)
 }
 
 //-------------------------------------------------------------------------------------
-MemoryStream* UnicodeType::parseDefaultStr(std::string defaultVal)
+PyObject* UnicodeType::parseDefaultStr(std::string defaultVal)
 {
-	MemoryStream* bs = NULL;
-	if(!defaultVal.empty())
+	PyObject* pyobj = PyUnicode_DecodeUTF8(defaultVal.data(), defaultVal.size(), "");
+
+	if(pyobj && !PyErr_Occurred()) 
 	{
-		bs = new MemoryStream(defaultVal.size());
-		bs->appendBlob(defaultVal.data(), defaultVal.size());
+		return pyobj;
 	}
 
-	return bs;
+	PyErr_Clear();
+	return PyUnicode_DecodeUTF8("", 0, "");
 }
 
 //-------------------------------------------------------------------------------------
@@ -697,16 +689,9 @@ PyObject* PythonType::createObject(MemoryStream* defaultVal)
 }
 
 //-------------------------------------------------------------------------------------
-MemoryStream* PythonType::parseDefaultStr(std::string defaultVal)
+PyObject* PythonType::parseDefaultStr(std::string defaultVal)
 {
-	MemoryStream* bs = NULL;
-	if(!defaultVal.empty())
-	{
-		bs = new MemoryStream(defaultVal.size());
-		(*bs) << defaultVal;
-	}
-
-	return bs;
+	Py_RETURN_NONE;
 }
 
 //-------------------------------------------------------------------------------------
@@ -788,16 +773,9 @@ PyObject* BlobType::createObject(MemoryStream* defaultVal)
 }
 
 //-------------------------------------------------------------------------------------
-MemoryStream* BlobType::parseDefaultStr(std::string defaultVal)
+PyObject* BlobType::parseDefaultStr(std::string defaultVal)
 {
-	MemoryStream* bs = NULL;
-	if(!defaultVal.empty())
-	{
-		bs = new MemoryStream(defaultVal.size());
-		bs->append(defaultVal.data(), defaultVal.size());
-	}
-
-	return bs;
+	Py_RETURN_NONE;
 }
 
 //-------------------------------------------------------------------------------------
@@ -853,9 +831,9 @@ PyObject* MailboxType::createObject(MemoryStream* defaultVal)
 }
 
 //-------------------------------------------------------------------------------------
-MemoryStream* MailboxType::parseDefaultStr(std::string defaultVal)
+PyObject* MailboxType::parseDefaultStr(std::string defaultVal)
 {
-	return NULL;
+	Py_RETURN_NONE;
 }
 
 //-------------------------------------------------------------------------------------
@@ -980,9 +958,9 @@ PyObject* ArrayType::createObject(MemoryStream* defaultVal)
 }
 
 //-------------------------------------------------------------------------------------
-MemoryStream* ArrayType::parseDefaultStr(std::string defaultVal)
+PyObject* ArrayType::parseDefaultStr(std::string defaultVal)
 {
-	return NULL;
+	Py_RETURN_NONE;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1107,14 +1085,18 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 	}
 	XML_FOR_END(propertiesNode);
 
-	TiXmlNode* implementedByNode = xmlplus->enterNode(node, "implementedBy");
-	if(implementedByNode)
+	if(g_componentType == CELLAPP_TYPE || g_componentType == BASEAPP_TYPE ||
+		g_componentType == CLIENT_TYPE)
 	{
-		strType = xmlplus->getValStr(implementedByNode);
-		if(strType.size() > 0 && !loadImplModule(strType))
-			return false;
+		TiXmlNode* implementedByNode = xmlplus->enterNode(node, "implementedBy");
+		if(implementedByNode)
+		{
+			strType = xmlplus->getValStr(implementedByNode);
+			if(strType.size() > 0 && !loadImplModule(strType))
+				return false;
 
-		moduleName_ = strType;
+			moduleName_ = strType;
+		}
 	}
 
 	return true;
@@ -1286,9 +1268,9 @@ PyObject* FixedDictType::createObject(MemoryStream* defaultVal)
 }
 
 //-------------------------------------------------------------------------------------
-MemoryStream* FixedDictType::parseDefaultStr(std::string defaultVal)
+PyObject* FixedDictType::parseDefaultStr(std::string defaultVal)
 {
-	return NULL;
+	Py_RETURN_NONE;
 }
 
 //-------------------------------------------------------------------------------------

@@ -23,6 +23,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/vector2.hpp"
 #include "pyscript/vector3.hpp"
 #include "pyscript/vector4.hpp"
+#include "pyscript/copy.hpp"
+
 namespace KBEngine{
 
 uint32	PropertyDescription::propertyDescriptionCount_ = 0;
@@ -47,7 +49,11 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype, std::string 
 
 	if(dataType != NULL)
 	{
-		defaultVal_ = dataType->parseDefaultStr(defaultStr);
+		if(g_componentType == CELLAPP_TYPE || g_componentType == BASEAPP_TYPE ||
+			g_componentType == CLIENT_TYPE)
+		{
+			defaultVal_ = dataType->parseDefaultStr(defaultStr);
+		}
 	}
 	else
 	{
@@ -59,7 +65,7 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype, std::string 
 //-------------------------------------------------------------------------------------
 PropertyDescription::~PropertyDescription()
 {
-	SAFE_RELEASE(defaultVal_);
+	S_RELEASE(defaultVal_);
 	dataType_->decRef();
 }
 
@@ -101,6 +107,22 @@ PropertyDescription* PropertyDescription::createDescription(ENTITY_PROPERTY_UID 
 														dataType, isIdentifier, databaseLength, defaultStr, detailLevel);
 	}
 	return propertyDescription;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PropertyDescription::newDefaultVal(void)
+{
+	int ob_refcnt = defaultVal_->ob_refcnt;
+	PyObject* pyobj = script::Copy::deepcopy(defaultVal_); 
+	if(pyobj == defaultVal_ && pyobj->ob_refcnt == ob_refcnt)
+		Py_INCREF(pyobj);
+	
+	KBEngine::script::ScriptVector3* aaa = static_cast<KBEngine::script::ScriptVector3*>(defaultVal_);
+	KBEngine::script::ScriptVector3* bbb = static_cast<KBEngine::script::ScriptVector3*>(pyobj);
+
+	if(aaa == bbb)
+		return pyobj;
+	return pyobj;
 }
 
 //-------------------------------------------------------------------------------------

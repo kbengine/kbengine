@@ -155,7 +155,6 @@ void FixedDict::onInstallScript(PyObject* mod)
 	Py_DECREF(pyFunc);
 }
 
-
 //-------------------------------------------------------------------------------------
 int FixedDict::mp_length(PyObject* self)
 {

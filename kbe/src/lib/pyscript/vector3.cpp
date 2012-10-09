@@ -105,6 +105,7 @@ SCRIPT_METHOD_DECLARE("normalise",						pyNormalise,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("tuple",							pyTuple,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("list",							pyList,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("set",							pySet,						METH_VARARGS,				0)
+SCRIPT_DIRECT_METHOD_DECLARE("__reduce_ex__",			__reduce_ex__,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(ScriptVector3)
@@ -378,7 +379,7 @@ PyObject* ScriptVector3::__unpickle__(PyObject* self, PyObject* args)
 		S_Return;
 	}
 
-	if(!PyArg_ParseTuple(args, "ddd", &x, &y, &z))
+	if(!PyArg_ParseTuple(args, "fff", &x, &y, &z))
 	{
 		ERROR_MSG("ScriptVector3::__unpickle__: args is error!");
 		S_Return;
