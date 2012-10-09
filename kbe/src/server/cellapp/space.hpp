@@ -58,7 +58,18 @@ public:
 		一个entity进入了游戏世界
 	*/
 	void onEnterWorld(Entity* pEntity);
+	void _onEnterWorld(Entity* pEntity);
 	void onLeaveWorld(Entity* pEntity);
+
+	/**
+		广播当前aoi范围内的entity到当前entity的客户端
+	*/
+	void broadcastAOIEntities(Entity* pEntity);
+
+	/**
+		广播当前entity到其他entity的客户端
+	*/
+	void broadcastEntityToEntities(Entity* pEntity, std::vector<Entity*>& entities);
 
 	void onEntityAttachWitness(Entity* pEntity);
 

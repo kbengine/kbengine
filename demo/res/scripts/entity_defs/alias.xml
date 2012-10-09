@@ -15,7 +15,6 @@
 	<ENTITY_UTYPE>		UINT32		</ENTITY_UTYPE>
 	
 	<AVATAR_INFOS>	FIXED_DICT
-		<implementedBy>AVATAR_INFOS.inst</implementedBy>
 		<Properties>
 			<dbid>
 				<Type>	DBID	</Type>

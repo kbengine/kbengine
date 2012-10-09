@@ -869,9 +869,6 @@ void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sour
 		BaseappInterface::onTeleportCBArgs1::staticAddToBundle(bundle, spaceID);
 		bundle.send(Cellapp::getSingleton().getNetworkInterface(), cinfos->pChannel);
 	}
-
-	if(spaceID > 0)
-		_onTeleportSuccess(lastSpaceID);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1030,55 +1027,6 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::_onTeleportSuccess(SPACE_ID lastSpaceID)
-{
-	// entity已经跳转到某个space了
-	// 如果此entity是有客户端的entity则我们需要通知他的客户端
-	if(this->getClientMailbox() == NULL)
-		return;
-	
-	if(lastSpaceID != this->getSpaceID())
-	{
-		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
-
-		(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
-		(*pForwardBundle) << this->getID();
-		(*pForwardBundle) << lastSpaceID;
-
-		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(this->getID(), (*pSendBundle), (*pForwardBundle));
-		this->getClientMailbox()->postMail(*pSendBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
-	}
-
-	{
-		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
-		Mercury::Bundle* pForwardPosDirBundle = Mercury::Bundle::ObjPool().createObject();
-		
-		(*pForwardPosDirBundle).newMessage(ClientInterface::onUpdatePropertys);
-		MemoryStream* s1 = MemoryStream::ObjPool().createObject();
-		(*pForwardPosDirBundle) << getID();
-		this->addPositionAndDirectionToStream(*s1);
-		(*pForwardPosDirBundle).append(*s1);
-		MemoryStream::ObjPool().reclaimObject(s1);
-		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(this->getID(), (*pSendBundle), (*pForwardPosDirBundle));
-
-		(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
-		(*pForwardBundle) << this->getID();
-		(*pForwardBundle) << this->getSpaceID();
-
-		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(this->getID(), (*pSendBundle), (*pForwardBundle));
-		this->getClientMailbox()->postMail(*pSendBundle);
-
-		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pForwardPosDirBundle);
-	}
-}
-
-//-------------------------------------------------------------------------------------
 void Entity::onTeleport()
 {
 	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTeleport"), 
@@ -1105,8 +1053,6 @@ void Entity::onTeleportFailure()
 //-------------------------------------------------------------------------------------
 void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 {
-	_onTeleportSuccess(lastSpaceID);
-
 	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTeleportSuccess"), 
 		const_cast<char*>("O"), nearbyEntity);
 	

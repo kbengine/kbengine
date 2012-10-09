@@ -171,7 +171,6 @@ public:
 	void onTeleport();
 	void onTeleportFailure();
 	void onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID);
-	void _onTeleportSuccess(SPACE_ID lastSpaceID);
 
 	/**
 		进入离开cell等回调
