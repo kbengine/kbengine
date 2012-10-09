@@ -111,20 +111,22 @@ void Space::onEnterWorld(Entity* pEntity)
 {
 	KBE_ASSERT(pEntity != NULL);
 	
-	std::vector<Entity*> viewEntitys;
+	SPACE_ENTITIES viewEntitys;
+	SPACE_ENTITIES aoiEntitys;
+	getAOIEntities(pEntity, aoiEntitys);
 	
 	// 如果是一个有Witness(通常是玩家)则需要将当前场景已经创建的有client部分的entity广播给他
 	// 否则是一个普通的entity进入世界， 那么需要将这个entity广播给所有看见他的有Witness的entity。
 	if(pEntity->hasWitness())
 	{
 		_onEnterWorld(pEntity);
-		if(entities().size() > 0)
+		if(aoiEntitys.size() > 0)
 		{
 			Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
 			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity->getID(), (*pSendBundle));
 
-			SPACE_ENTITIES::iterator iter = entities_.begin();
-			for(; iter != entities().end(); iter++)
+			SPACE_ENTITIES::iterator iter = aoiEntitys.begin();
+			for(; iter != aoiEntitys.end(); iter++)
 			{
 				Entity* entity = (*iter).get();
 				if(entity == pEntity)
@@ -167,10 +169,10 @@ void Space::onEnterWorld(Entity* pEntity)
 	}
 	else
 	{
-		if(entities().size() > 0 && pEntity->getScriptModule()->hasClient())
+		if(aoiEntitys.size() > 0 && pEntity->getScriptModule()->hasClient())
 		{
-			SPACE_ENTITIES::iterator iter = entities_.begin();
-			for(; iter != entities().end(); iter++)
+			SPACE_ENTITIES::iterator iter = aoiEntitys.begin();
+			for(; iter != aoiEntitys.end(); iter++)
 			{
 				Entity* entity = (*iter).get();
 				if(entity == pEntity)
@@ -185,22 +187,22 @@ void Space::onEnterWorld(Entity* pEntity)
 	}
 
 	// 向所有的这些entity广播当前进入世界的entity
-	broadcastEntityToEntities(pEntity, viewEntitys);
+	broadcastEntityToAOIEntities(pEntity, viewEntitys);
 }
 
 //-------------------------------------------------------------------------------------
-void Space::broadcastEntityToEntities(Entity* pEntity, std::vector<Entity*>& entities)
+void Space::broadcastEntityToAOIEntities(Entity* pEntity, SPACE_ENTITIES& aoiEntitys)
 {
-	if(entities.size())
+	if(aoiEntitys.size())
 	{
 		MemoryStream* s1 = MemoryStream::ObjPool().createObject();
 		pEntity->addPositionAndDirectionToStream(*s1);
 		pEntity->addClientDataToStream(s1);
 
-		std::vector<Entity*>::iterator iter = entities.begin();
-		for(; iter != entities.end(); iter++)
+		SPACE_ENTITIES::iterator iter = aoiEntitys.begin();
+		for(; iter != aoiEntitys.end(); iter++)
 		{
-			Entity* entity = (*iter);
+			Entity* entity = (*iter).get();
 
 			if(!entity->getScriptModule()->hasClient())
 				continue;
@@ -231,18 +233,21 @@ void Space::broadcastEntityToEntities(Entity* pEntity, std::vector<Entity*>& ent
 }
 
 //-------------------------------------------------------------------------------------
-void Space::broadcastAOIEntities(Entity* pEntity)
+void Space::broadcastAOIEntitiesToEntity(Entity* pEntity)
 {
 	if(pEntity == NULL || !pEntity->hasWitness())
 		return;
 
-	if(entities().size() > 0)
+	SPACE_ENTITIES aoiEntitys;
+	getAOIEntities(pEntity, aoiEntitys);
+
+	if(aoiEntitys.size() > 0)
 	{
 		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
 		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity->getID(), (*pSendBundle));
 
-		SPACE_ENTITIES::iterator iter = entities_.begin();
-		for(; iter != entities_.end(); iter++)
+		SPACE_ENTITIES::iterator iter = aoiEntitys.begin();
+		for(; iter != aoiEntitys.end(); iter++)
 		{
 			Entity* entity = (*iter).get();
 			if(!entity->getScriptModule()->hasClient() || entity == pEntity)
@@ -281,7 +286,7 @@ void Space::onEntityAttachWitness(Entity* pEntity)
 {
 	KBE_ASSERT(pEntity != NULL && pEntity->hasWitness());
 	_onEnterWorld(pEntity);
-	broadcastAOIEntities(pEntity);
+	broadcastAOIEntitiesToEntity(pEntity);
 }
 
 //-------------------------------------------------------------------------------------
@@ -289,11 +294,15 @@ void Space::onLeaveWorld(Entity* pEntity)
 {
 	if(!pEntity->getScriptModule()->hasClient())
 		return;
+	
+	SPACE_ENTITIES aoiEntitys;
+	getAOIEntities(pEntity, aoiEntitys);
 
-	if(entities().size() > 0)
+	// 向其他人客户端广播自己的离开
+	if(aoiEntitys.size() > 0)
 	{
-		SPACE_ENTITIES::const_iterator iter = entities().begin();
-		for(; iter != entities().end(); iter++)
+		SPACE_ENTITIES::const_iterator iter = aoiEntitys.begin();
+		for(; iter != aoiEntitys.end(); iter++)
 		{
 			const Entity* entity = (*iter).get();
 			if(!entity->hasWitness() || entity == pEntity)
@@ -327,6 +336,20 @@ void Space::onLeaveWorld(Entity* pEntity)
 		pEntity->getClientMailbox()->postMail(*pSendBundle);
 		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
 		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Space::getAOIEntities(Entity* pEntity, SPACE_ENTITIES& aoiEntitys)
+{
+	if(this->entities().size() > 0)
+	{
+		SPACE_ENTITIES::const_iterator iter = this->entities().begin();
+		for(; iter != this->entities().end(); iter++)
+		{
+			const Entity* entity = (*iter).get();
+			aoiEntitys.push_back((*iter));
+		}
 	}
 }
 
