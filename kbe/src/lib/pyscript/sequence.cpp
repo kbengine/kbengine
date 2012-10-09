@@ -154,7 +154,11 @@ PyObject* Sequence::seq_item(PyObject* self, Py_ssize_t index)
 	Sequence* seq = static_cast<Sequence*>(self);
 	std::vector<PyObject*>& values = seq->getValues();	
 	if (uint32(index) < values.size())
-		return values[index];
+	{
+		PyObject* pyobj = values[index];
+		Py_INCREF(pyobj);
+		return pyobj;
+	}
 
 	PyErr_SetString(PyExc_IndexError, "Sequence index out of range");
 	PyErr_PrintEx(0);
@@ -183,6 +187,7 @@ PyObject* Sequence::seq_slice(PyObject* self, Py_ssize_t startIndex, Py_ssize_t 
 	PyObject* pyRet = PyList_New(length);
 	for (int i = startIndex; i < endIndex; ++i)
 		PyList_SET_ITEM(pyRet, i - startIndex, values[i]);
+
 	return pyRet;
 }
 
@@ -217,6 +222,7 @@ int Sequence::seq_ass_item(PyObject* self, Py_ssize_t index, PyObject* value)
 	{
 		values.erase(values.begin() + index);
 	}
+
 	return 0;
 }
 
@@ -300,6 +306,7 @@ int Sequence::seq_ass_slice(PyObject* self, Py_ssize_t index1, Py_ssize_t index2
 			Py_DECREF(pyTemp);
 		}
 	}
+
 	return 0;
 }
 
@@ -353,6 +360,7 @@ PyObject* Sequence::seq_inplace_concat(PyObject* self, PyObject* oterSeq)
 			PyErr_Format(PyExc_TypeError, "Sequence::seq_inplace_concat::PySequence_GetItem %d is NULL.", i);
 			PyErr_PrintEx(0);
 		}
+
 		values[szA + i] = pyTemp;
 	}
 
