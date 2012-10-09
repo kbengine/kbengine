@@ -49,10 +49,14 @@ namespace KBEngine{
 #define ENTITY_GETSET_DECLARE_END()																			\
 	SCRIPT_GETSET_DECLARE_END()																				\
 
-
-//#define CAN_DEBUG_CREATE_ENTITY
+/*
+	debug info.
+*/
+#define CAN_DEBUG_CREATE_ENTITY
 #ifdef CAN_DEBUG_CREATE_ENTITY
-	#define DEBUG_CREATE_ENTITY_NAMESPACE																	\
+#define DEBUG_CREATE_ENTITY_NAMESPACE																		\
+		if(g_debugEntity)																					\
+		{																									\
 			wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(key, NULL);				\
 			char* ccattr_DEBUG_CREATE_ENTITY_NAMESPACE = wchar2char(PyUnicode_AsWideCharStringRet1);		\
 			PyObject* pytsval = PyObject_Str(value);														\
@@ -67,9 +71,12 @@ namespace KBEngine{
 			PyMem_Free(PyUnicode_AsWideCharStringRet1);														\
 			free(cccpytsval);																				\
 			PyMem_Free(cwpytsval);																			\
+		}																									\
 
 
-	#define DEBUG_OP_ATTRIBUTE(op, ccattr)																	\
+#define DEBUG_OP_ATTRIBUTE(op, ccattr)																		\
+		if(g_debugEntity)																					\
+		{																									\
 			wchar_t* PyUnicode_AsWideCharStringRet2 = PyUnicode_AsWideCharString(ccattr, NULL);				\
 			char* ccattr_DEBUG_OP_ATTRIBUTE = wchar2char(PyUnicode_AsWideCharStringRet2);					\
 			DEBUG_MSG("%s(refc=%u, id=%d)::debug_op_attr:op=%s, %s.\n", getScriptName(),					\
@@ -77,17 +84,27 @@ namespace KBEngine{
 															op, ccattr_DEBUG_OP_ATTRIBUTE);					\
 			free(ccattr_DEBUG_OP_ATTRIBUTE);																\
 			PyMem_Free(PyUnicode_AsWideCharStringRet2);														\
+		}																									\
 
-	#define DEBUG_PERSISTENT_PROPERTY(op, ccattr)															\
+
+#define DEBUG_PERSISTENT_PROPERTY(op, ccattr)																\
+	{																										\
+		if(g_debugEntity)																					\
+		{																									\
 			DEBUG_MSG("%s(refc=%u, id=%d)::debug_op_Persistent:op=%s, %s.\n", getScriptName(),				\
 												static_cast<PyObject*>(this)->ob_refcnt, this->getID(),		\
 															op, ccattr);									\
+		}																									\
+	}																										\
 
 
-	#define DEBUG_REDUCE_EX(tentity)																		\
-		DEBUG_MSG("%s(refc=%u, id=%d)::debug_reduct_ex: utype=%u.\n", tentity->getScriptName(),				\
-											static_cast<PyObject*>(tentity)->ob_refcnt, tentity->getID(),	\
-											tentity->getScriptModule()->getUType());						\
+#define DEBUG_REDUCE_EX(tentity)																			\
+		if(g_debugEntity)																					\
+		{																									\
+			DEBUG_MSG("%s(refc=%u, id=%d)::debug_reduct_ex: utype=%u.\n", tentity->getScriptName(),			\
+												static_cast<PyObject*>(tentity)->ob_refcnt, tentity->getID(),\
+												tentity->getScriptModule()->getUType());					\
+		}																									\
 
 
 #else
@@ -366,7 +383,11 @@ public:																										\
 				PropertyDescription* propertyDescription = iter->second;									\
 				DataType* dataType = propertyDescription->getDataType();									\
 																											\
-				if(!dataType->isSameType(value)){															\
+				if(!dataType->isSameType(value))															\
+				{																							\
+					PyErr_Format(PyExc_ValueError, "can't set %s.%s to %s.",								\
+													getScriptName(), ccattr, value->ob_type->tp_name);		\
+					PyErr_PrintEx(0);																		\
 					free(ccattr);																			\
 					return 0;																				\
 				}																							\

@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 // common include
 #include "cstdkbe/cstdkbe.hpp"
+#include "helper/debug_option.hpp"
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
@@ -40,18 +41,6 @@ typedef uint16	MessageLength; // 最大65535
 
 typedef int32	ChannelID;
 const ChannelID CHANNEL_ID_NULL = 0;
-
-// 这个开关设置数据包是否总是携带长度信息， 这样在某些前端进行耦合时提供一些便利
-// 如果为false则一些固定长度的数据包不携带长度信息， 由对端自行解析
-extern bool g_packetAlwaysContainLength;
-
-/*是否需要将任何接收和发送的包以文本输出到log中提供调试
-		0: 不输出
-		1: 16进制输出
-		2: 字符流输出
-		3: 10进制输出
-*/
-extern uint8 g_trace_packet;
 
 namespace udp{
 }

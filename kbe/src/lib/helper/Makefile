@@ -2,6 +2,7 @@ LIB =	helper
 
 SRCS =				\
 	debug_helper		\
+	debug_option		\
 	script_loglevel
 
 ifndef KBE_ROOT

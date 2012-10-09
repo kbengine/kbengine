@@ -67,6 +67,13 @@ bool ServerConfig::loadConfig(std::string fileName)
 			Mercury::g_trace_packet = 0;
 	}
 
+	rootNode = xml->getRootNode("debugEntity");
+	if(rootNode != NULL)
+	{
+		g_debugEntity = xml->getValInt(rootNode) > 0;
+		rootNode = NULL;
+	}
+
 	rootNode = xml->getRootNode("gameUpdateHertz");
 	if(rootNode != NULL){
 		gameUpdateHertz_ = xml->getValInt(rootNode);

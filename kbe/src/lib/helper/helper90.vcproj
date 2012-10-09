@@ -161,6 +161,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\debug_option.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\script_loglevel.cpp"
 				>
 			</File>
@@ -180,6 +184,10 @@
 			</File>
 			<File
 				RelativePath=".\debug_helper.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\debug_option.hpp"
 				>
 			</File>
 			<File

@@ -14,6 +14,9 @@
 	-->
 	<trace_packet>0</trace_packet>
 	
+	<!-- 是否输出entity的创建， 脚本获取属性， 初始化属性等调试信息 -->
+	<debugEntity>0</debugEntity>
+		
 	<dbmgr>
 		<dbAccountEntityScriptType>	Account						</dbAccountEntityScriptType>
 		
