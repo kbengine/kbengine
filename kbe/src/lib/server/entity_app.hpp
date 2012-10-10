@@ -237,6 +237,9 @@ void EntityApp<E>::finalise(void)
 template<class E>
 bool EntityApp<E>::installEntityDef()
 {
+	if(!EntityDef::installScript(NULL))
+		return false;
+
 	// 初始化数据类别
 	// demo/res/scripts/entity_defs/alias.xml
 	if(!DataTypes::initialize("scripts/entity_defs/alias.xml"))
@@ -248,7 +251,7 @@ bool EntityApp<E>::installEntityDef()
 		return false;
 	}
 
-	return EntityDef::installScript(NULL);
+	return true;
 }
 
 template<class E>
