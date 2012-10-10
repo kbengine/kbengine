@@ -32,11 +32,11 @@ PyMappingMethods FixedDict::mappingMethods =
 
 
 SCRIPT_METHOD_DECLARE_BEGIN(FixedDict)
-SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__, METH_VARARGS, 0)
-SCRIPT_METHOD_DECLARE("has_key",		has_key, METH_VARARGS, 0)
-SCRIPT_METHOD_DECLARE("keys",			keys, METH_VARARGS, 0)
-SCRIPT_METHOD_DECLARE("values",			values, METH_VARARGS, 0)
-SCRIPT_METHOD_DECLARE("items",			items, METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,		METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("has_key",		has_key,			METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("keys",			keys,				METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("values",			values,				METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("items",			items,				METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE_END()
 
 
