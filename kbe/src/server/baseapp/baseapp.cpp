@@ -77,7 +77,7 @@ bool Baseapp::installPyModules()
 	registerScript(Proxy::getScriptType());
 
 	// 注册创建entity的方法到py
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		time,							__py_gametime,					METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		time,							__py_gametime,						METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createBase,						__py_createBase,					METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createBaseLocally,				__py_createBase,					METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createEntity,					__py_createBase,					METH_VARARGS,			0);
@@ -608,11 +608,13 @@ void Baseapp::onClientEntityEnterWorld(Proxy* base)
 {
 	base->initClientCellPropertys();
 
+	/*
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onEntityEnterWorld);
 	bundle << base->getID();
 	bundle << base->getSpaceID();
 	base->getClientMailbox()->postMail(bundle);
+	*/
 }
 
 //-------------------------------------------------------------------------------------
