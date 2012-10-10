@@ -204,6 +204,9 @@ void Space::broadcastEntityToAOIEntities(Entity* pEntity, SPACE_ENTITIES& aoiEnt
 		{
 			Entity* entity = (*iter).get();
 
+			if(entity == pEntity)
+				continue;
+
 			if(!entity->getScriptModule()->hasClient())
 				continue;
 
