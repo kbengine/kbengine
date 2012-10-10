@@ -379,7 +379,14 @@ public:																						\
 																							\
 		Py_INCREF(&_scriptType);															\
 		if(mod)																				\
-			PyModule_AddObject(mod, name, (PyObject *)&_scriptType);						\
+		{																					\
+			if(PyModule_AddObject(mod, name, (PyObject *)&_scriptType) < 0)					\
+			{																				\
+				ERROR_MSG("PyModule_AddObject(%s) is error!", name);						\
+			}																				\
+		}																					\
+																							\
+		SCRIPT_ERROR_CHECK();																\
 																							\
 	}																						\
 																							\
