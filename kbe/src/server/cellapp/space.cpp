@@ -350,7 +350,7 @@ void Space::getAOIEntities(Entity* pEntity, SPACE_ENTITIES& aoiEntitys)
 		SPACE_ENTITIES::const_iterator iter = this->entities().begin();
 		for(; iter != this->entities().end(); iter++)
 		{
-			const Entity* entity = (*iter).get();
+			// const Entity* entity = (*iter).get();
 			aoiEntitys.push_back((*iter));
 		}
 	}
