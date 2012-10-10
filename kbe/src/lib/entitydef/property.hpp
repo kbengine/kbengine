@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #pragma warning (disable : 4251)
 #endif
 // common include
-#include "array.hpp"
+#include "fixedarray.hpp"
 #include "fixeddict.hpp"
 #include "datatype.hpp"
 #include "cstdkbe/refcountable.hpp"

@@ -22,16 +22,22 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "datatype.hpp"
 #include "datatypes.hpp"
 #include "fixeddict.hpp"
-#include "array.hpp"
+#include "fixedarray.hpp"
 #include "pyscript/vector2.hpp"
 #include "pyscript/vector3.hpp"
 #include "pyscript/vector4.hpp"
 	
 namespace KBEngine{
+static DATATYPE_UID _g_dataTypeUID = 1;
 
 //-------------------------------------------------------------------------------------
-DataType::DataType()
+DataType::DataType(DATATYPE_UID did):
+id_(did)
 {
+	if(id_ == 0)
+		id_ = _g_dataTypeUID++;
+
+	DataTypes::addDateType(id_, this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -46,7 +52,8 @@ bool DataType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 }
 
 //-------------------------------------------------------------------------------------
-UInt64Type::UInt64Type()
+UInt64Type::UInt64Type(DATATYPE_UID did):
+DataType(did)
 {
 }
 
@@ -130,7 +137,8 @@ PyObject* UInt64Type::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-UInt32Type::UInt32Type()
+UInt32Type::UInt32Type(DATATYPE_UID did):
+DataType(did)
 {
 }
 
@@ -209,7 +217,8 @@ PyObject* UInt32Type::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-Int64Type::Int64Type()
+Int64Type::Int64Type(DATATYPE_UID did):
+DataType(did)
 {
 }
 
@@ -283,7 +292,8 @@ PyObject* Int64Type::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-FloatType::FloatType()
+FloatType::FloatType(DATATYPE_UID did):
+DataType(did)
 {
 }
 
@@ -343,7 +353,8 @@ PyObject* FloatType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-VectorType::VectorType(uint32 elemCount):
+VectorType::VectorType(uint32 elemCount, DATATYPE_UID did):
+DataType(did),
 name_(),
 elemCount_(elemCount)
 {
@@ -491,7 +502,8 @@ PyObject* VectorType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-StringType::StringType()
+StringType::StringType(DATATYPE_UID did):
+DataType(did)
 {
 }
 
@@ -562,7 +574,8 @@ PyObject* StringType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-UnicodeType::UnicodeType()
+UnicodeType::UnicodeType(DATATYPE_UID did):
+DataType(did)
 {
 }
 
@@ -641,7 +654,8 @@ PyObject* UnicodeType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-PythonType::PythonType()
+PythonType::PythonType(DATATYPE_UID did):
+DataType(did)
 {
 }
 
@@ -719,7 +733,8 @@ PyObject* PythonType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-BlobType::BlobType()
+BlobType::BlobType(DATATYPE_UID did):
+DataType(did)
 {
 }
 
@@ -800,7 +815,8 @@ PyObject* BlobType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-MailboxType::MailboxType()
+MailboxType::MailboxType(DATATYPE_UID did):
+DataType(did)
 {
 }
 
@@ -857,7 +873,8 @@ PyObject* MailboxType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-ArrayType::ArrayType()
+ArrayType::ArrayType(DATATYPE_UID did):
+DataType(did)
 {
 }
 
@@ -868,14 +885,30 @@ ArrayType::~ArrayType()
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ArrayType::isNotSameTypeCreateFromPyObject(PyObject* pyobj)
+PyObject* ArrayType::createNewItemFromObj(PyObject* pyobj)
 {
-	if(PyObject_TypeCheck(pyobj, Array::getScriptType()))
+	if(!isSameItemType(pyobj))
+	{
+		Py_RETURN_NONE;
+	}
+
+	return dataType_->createNewFromObj(pyobj);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ArrayType::createNewFromObj(PyObject* pyobj)
+{
+	if(!isSameType(pyobj))
+	{
+		Py_RETURN_NONE;
+	}
+
+	if(PyObject_TypeCheck(pyobj, FixedArray::getScriptType()))
 	{
 		return pyobj;
 	}
 
-	return new Array(this, pyobj);
+	return new FixedArray(this, pyobj);
 }
 
 //-------------------------------------------------------------------------------------
@@ -925,7 +958,10 @@ bool ArrayType::isSameType(PyObject* pyValue)
 	}
 	
 	if(!PySequence_Check(pyValue))
+	{
+		OUT_TYPE_ERROR("ARRAY");
 		return false;
+	}
 
 	Py_ssize_t size = PySequence_Size(pyValue);
 	for(Py_ssize_t i=0; i<size; i++)
@@ -944,7 +980,7 @@ bool ArrayType::isSameType(PyObject* pyValue)
 PyObject* ArrayType::createObject(MemoryStream* defaultVal)
 {
 	uint32 size;
-	Array* arr = new Array(this);
+	FixedArray* arr = new FixedArray(this);
 
 	if(defaultVal)
 	{
@@ -963,7 +999,7 @@ PyObject* ArrayType::createObject(MemoryStream* defaultVal)
 //-------------------------------------------------------------------------------------
 PyObject* ArrayType::parseDefaultStr(std::string defaultVal)
 {
-	Py_RETURN_NONE;
+	return new FixedArray(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -987,7 +1023,8 @@ PyObject* ArrayType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-FixedDictType::FixedDictType():
+FixedDictType::FixedDictType(DATATYPE_UID did):
+DataType(did),
 keyTypes_(),
 implObj_(NULL),
 pycreateObjFromDict_(NULL),
@@ -1029,8 +1066,25 @@ std::string FixedDictType::getKeyNames(void)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* FixedDictType::isNotSameTypeCreateFromPyObject(PyObject* pyobj)
+PyObject* FixedDictType::createNewItemFromObj(const char* keyName, PyObject* pyobj)
 {
+	DataType* dataType = isSameItemType(keyName, pyobj);
+	if(!dataType)
+	{
+		Py_RETURN_NONE;
+	}
+
+	return dataType->createNewFromObj(pyobj);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* FixedDictType::createNewFromObj(PyObject* pyobj)
+{
+	if(!isSameType(pyobj))
+	{
+		Py_RETURN_NONE;
+	}
+
 	if(PyObject_TypeCheck(pyobj, FixedDict::getScriptType()))
 	{
 		return pyobj;
@@ -1212,6 +1266,31 @@ bool FixedDictType::impl_isSameType(PyObject* pyobj)
 }
 
 //-------------------------------------------------------------------------------------
+DataType* FixedDictType::isSameItemType(const char* keyName, PyObject* pyValue)
+{
+	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
+	for(; iter != keyTypes_.end(); iter++)
+	{
+		if(iter->first == keyName)
+		{
+			if(pyValue == NULL || !iter->second->isSameType(pyValue))
+			{
+				PyErr_Format(PyExc_TypeError, "set FIXED_DICT(%s) is error! at key: %s, keyNames=[%s].", 
+					this->aliasName(), iter->first.c_str(), getKeyNames().c_str());
+				PyErr_PrintEx(0);
+				return NULL;
+			}
+			else
+			{
+				return iter->second;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
 bool FixedDictType::isSameType(PyObject* pyValue)
 {
 	if(pyValue == NULL)
@@ -1220,12 +1299,20 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 		return false;
 	}
 
+	if(PyObject_TypeCheck(pyValue, FixedDict::getScriptType()))
+	{
+		if(static_cast<FixedDict*>(pyValue)->getDataType()->id() == this->id())
+			return true;
+		else
+			return false;
+	}
+
 	if(!PyDict_Check(pyValue))
 	{
 		OUT_TYPE_ERROR("DICT");
 		return false;
 	}
-	
+
 	Py_ssize_t dictSize = PyDict_Size(pyValue);
 	if(dictSize != (Py_ssize_t)keyTypes_.size())
 	{
@@ -1242,7 +1329,7 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 		if(pyObject == NULL || !iter->second->isSameType(pyObject))
 		{
 			PyErr_Format(PyExc_TypeError, "set FIXED_DICT(%s) is error! at key: %s, keyNames=[%s].", 
-				this->getName(), iter->first.c_str(), getKeyNames().c_str());
+				this->aliasName(), iter->first.c_str(), getKeyNames().c_str());
 			PyErr_PrintEx(0);
 			return false;
 		}
@@ -1273,7 +1360,16 @@ PyObject* FixedDictType::createObject(MemoryStream* defaultVal)
 //-------------------------------------------------------------------------------------
 PyObject* FixedDictType::parseDefaultStr(std::string defaultVal)
 {
-	Py_RETURN_NONE;
+	PyObject* val = PyDict_New();
+
+	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
+	for(; iter != keyTypes_.end(); iter++)
+	{
+		PyObject* item = iter->second->parseDefaultStr("");
+		PyDict_SetItemString(val, iter->first.c_str(), item);
+	}
+
+	return new FixedDict(this, val);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1284,10 +1380,16 @@ void FixedDictType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 		pyValue = impl_getDictFromObj(pyValue);
 	}
 
+	PyObject* pydict = pyValue;
+	if(PyObject_TypeCheck(pyValue, FixedDict::getScriptType()))
+	{
+		pydict = static_cast<FixedDict*>(pyValue)->getDictObject();
+	}
+
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
 	for(; iter != keyTypes_.end(); iter++)
 	{
-		PyObject* pyObject = PyDict_GetItemString(pyValue, const_cast<char*>(iter->first.c_str()));
+		PyObject* pyObject = PyDict_GetItemString(pydict, const_cast<char*>(iter->first.c_str()));
 		KBE_ASSERT(pyObject != NULL);
 		iter->second->addToStream(mstream, pyObject);
 	}

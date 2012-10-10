@@ -898,6 +898,8 @@ ScriptDefModule* EntityDef::findScriptModule(const char* scriptName)
 bool EntityDef::installScript(PyObject* mod)
 {
 	EntityMailbox::installScript(mod);
+	FixedArray::installScript(NULL);
+	FixedDict::installScript(NULL);
 	return true;
 }
 
@@ -905,6 +907,8 @@ bool EntityDef::installScript(PyObject* mod)
 bool EntityDef::uninstallScript()
 {
 	EntityMailbox::uninstallScript();
+	FixedArray::uninstallScript();
+	FixedDict::uninstallScript();
 	return true;
 }
 

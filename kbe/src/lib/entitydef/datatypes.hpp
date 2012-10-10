@@ -43,20 +43,28 @@ typedef SmartPointer<DataType> DataTypePtr;
 
 class DataTypes
 {
-protected:
-	typedef std::map<std::string, DataTypePtr> DATATYPE_MAP;
-	static DATATYPE_MAP dataTypes_;
 public:	
+	typedef std::map<std::string, DataTypePtr> DATATYPE_MAP;
+	typedef std::map<DATATYPE_UID, DataType*> UID_DATATYPE_MAP;
+
 	DataTypes();
 	virtual ~DataTypes();	
 
 	static bool initialize(std::string file);
 	static void finish(void);
+
 	static bool addDateType(std::string name, DataType* dataType);
+	static bool addDateType(DATATYPE_UID uid, DataType* dataType);
 	static void delDataType(std::string name);
+
 	static DataType* getDataType(std::string name);
 	static DataType* getDataType(const char* name);
+	static DataType* getDataType(DATATYPE_UID uid);
+
 	static bool loadAlias(std::string& file);
+protected:
+	static DATATYPE_MAP dataTypes_;
+	static UID_DATATYPE_MAP uid_dataTypes_;
 };
 
 }

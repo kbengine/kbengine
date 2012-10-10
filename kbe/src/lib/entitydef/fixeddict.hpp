@@ -41,7 +41,7 @@ public:
 	FixedDict(DataType* dataType, PyObject* pyDictInitData);
 	virtual ~FixedDict();
 
-	const DataType* getDataType(void){ return _dataType; }
+	DataType* getDataType(void){ return _dataType; }
 
 	/** 支持pickler 方法 */
 	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol);

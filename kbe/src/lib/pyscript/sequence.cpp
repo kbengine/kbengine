@@ -77,6 +77,7 @@ int Sequence::findFrom(uint32 startIndex, PyObject* value)
 	for (uint32 i = startIndex; i < values_.size(); ++i)
 		if(PyObject_RichCompareBool(value, &*values_[i], Py_EQ)) 
 			return i;
+
 	return -1;
 }
 
@@ -160,11 +161,14 @@ PyObject* Sequence::seq_item(PyObject* self, Py_ssize_t index)
 		return pyobj;
 	}
 
+	/*
 	if(values.size() > 0)
 	{
 		PyErr_SetString(PyExc_IndexError, "Sequence index out of range");
 		PyErr_PrintEx(0);
 	}
+	*/
+
 	return NULL;
 }
 
@@ -185,11 +189,17 @@ PyObject* Sequence::seq_slice(PyObject* self, Py_ssize_t startIndex, Py_ssize_t 
 	int length = endIndex - startIndex;
 
 	if (length == int(values.size())) 
+	{
+		Py_INCREF(seq);
 		return seq;
+	}
 
 	PyObject* pyRet = PyList_New(length);
 	for (int i = startIndex; i < endIndex; ++i)
+	{
+		Py_INCREF(values[i]);
 		PyList_SET_ITEM(pyRet, i - startIndex, values[i]);
+	}
 
 	return pyRet;
 }
@@ -210,9 +220,9 @@ int Sequence::seq_ass_item(PyObject* self, Py_ssize_t index, PyObject* value)
 	if(value)
 	{
 		// 检查类别是否正确
-		if(seq->isSameType(value))
+		if(seq->isSameItemType(value))
 		{
-			values[index] = value;
+			values[index] = seq->createNewItemFromObj(value);
 		}
 		else
 		{
@@ -230,8 +240,9 @@ int Sequence::seq_ass_item(PyObject* self, Py_ssize_t index, PyObject* value)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Sequence::onSetItem(PyObject* pyItem)
+PyObject* Sequence::createNewItemFromObj(PyObject* pyItem)
 {
+	Py_INCREF(pyItem);
 	return pyItem;
 }
 
@@ -246,6 +257,7 @@ int Sequence::seq_ass_slice(PyObject* self, Py_ssize_t index1, Py_ssize_t index2
 	{
 		if (index1 < index2)
 			values.erase(values.begin() + index1, values.begin() + index2);
+
 		return 0;
 	}
 
@@ -277,8 +289,9 @@ int Sequence::seq_ass_slice(PyObject* self, Py_ssize_t index1, Py_ssize_t index2
 	for (int i = 0; i < osz; ++i)
 	{
 		PyObject* pyVal = PySequence_GetItem(oterSeq, i);
-		bool ok = seq->isSameType(pyVal);
+		bool ok = seq->isSameItemType(pyVal);
 		Py_DECREF(pyVal);
+
 		if (!ok)
 		{
 			PyErr_Format(PyExc_TypeError, "Array elements must be set to type %s (setting slice %d-%d)", "ss", index1, index2);
@@ -302,12 +315,8 @@ int Sequence::seq_ass_slice(PyObject* self, Py_ssize_t index1, Py_ssize_t index2
 			PyErr_PrintEx(0);
 		}
 		
-		PyObject* pyItem = seq->onSetItem(pyTemp);
-		values[index1 + i] = pyItem;
-		if(pyItem != pyTemp)
-		{
-			Py_DECREF(pyTemp);
-		}
+		values[index1 + i] = seq->createNewItemFromObj(pyTemp);
+		Py_DECREF(pyTemp);
 	}
 
 	return 0;
@@ -337,14 +346,18 @@ PyObject* Sequence::seq_inplace_concat(PyObject* self, PyObject* oterSeq)
 	int szB = PySequence_Size(oterSeq);
 
 	if (szB == 0) 
+	{
+		Py_INCREF(seq);
 		return seq;
+	}
 
 	// 检查类型是否正确
 	for (int i = 0; i < szB; ++i)
 	{
 		PyObject * pyVal = PySequence_GetItem(oterSeq, i);
-		bool ok = seq->isSameType(pyVal);
+		bool ok = seq->isSameItemType(pyVal);
 		Py_DECREF(pyVal);
+
 		if (!ok)
 		{
 			PyErr_Format(PyExc_TypeError, "Array elements must be set to type %s (appending with +=)", "sss");
@@ -375,12 +388,21 @@ PyObject* Sequence::seq_inplace_repeat(PyObject* self, Py_ssize_t n)
 {
 	Sequence* seq = static_cast<Sequence*>(self);
 	if(n == 1) 
+	{
+		Py_INCREF(seq);
 		return seq;
+	}
 
 	std::vector<PyObject*>& values = seq->getValues();
 	int sz = values.size();
 
-	if (n <= 0){
+	if (n <= 0)
+	{
+		for(size_t j = 0; j < values.size(); ++j)
+		{
+			Py_DECREF(values[j]);
+		}
+
 		values.clear();
 	}
 	else

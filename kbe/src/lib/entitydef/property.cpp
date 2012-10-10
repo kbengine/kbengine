@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "datatypes.hpp"
 #include "property.hpp"
 #include "pyscript/vector2.hpp"
 #include "pyscript/vector3.hpp"
@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-uint32	PropertyDescription::propertyDescriptionCount_ = 0;
+uint32 PropertyDescription::propertyDescriptionCount_ = 0;
 
 //-------------------------------------------------------------------------------------
 PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype, std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
@@ -117,11 +117,6 @@ PyObject* PropertyDescription::newDefaultVal(void)
 	if(pyobj == defaultVal_ && pyobj->ob_refcnt == ob_refcnt)
 		Py_INCREF(pyobj);
 	
-	KBEngine::script::ScriptVector3* aaa = static_cast<KBEngine::script::ScriptVector3*>(defaultVal_);
-	KBEngine::script::ScriptVector3* bbb = static_cast<KBEngine::script::ScriptVector3*>(pyobj);
-
-	if(aaa == bbb)
-		return pyobj;
 	return pyobj;
 }
 
@@ -149,14 +144,20 @@ FixedDictDescription::~FixedDictDescription()
 //-------------------------------------------------------------------------------------
 int FixedDictDescription::onSetValue(PyObject* parentObj, PyObject* value)
 {
-	PyObject* pyobj = PyObject_GetAttrString(parentObj, const_cast<char*>(getName()));
-	if(pyobj == NULL)
-		return -1;
-	
-	FixedDict* fixedDict = static_cast<FixedDict*>(pyobj);
-	fixedDict->update(value);
-	Py_XDECREF(pyobj);
-	return 0;	
+	if(static_cast<FixedDictType*>(dataType_)->isSameType(value))
+	{
+		// 如果是同一类别则直接允许设置，否则需要转换
+		if(PyObject_TypeCheck(value, FixedDict::getScriptType()))
+		{
+			return PropertyDescription::onSetValue(parentObj, value);
+		}
+		else
+		{
+			return PropertyDescription::onSetValue(parentObj, new FixedDict(this->getDataType(), value));	
+		}
+	}
+
+	return 0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -174,27 +175,19 @@ ArrayDescription::~ArrayDescription()
 //-------------------------------------------------------------------------------------
 int ArrayDescription::onSetValue(PyObject* parentObj, PyObject* value)
 {
-	PyObject* pyobj = PyObject_GetAttrString(parentObj, const_cast<char*>(getName()));
-	if(pyobj == NULL)
-	{
-		if(static_cast<ArrayType*>(dataType_)->isSameType(value))
-		{
-			return PropertyDescription::onSetValue(parentObj, value);	
-		}
-
-		return -1;
-	}
-
-	int ret = 0;
-
-	//Array* array1 = static_cast<Array*>(pyobj);
-
 	if(static_cast<ArrayType*>(dataType_)->isSameType(value))
 	{
-		ret = PropertyDescription::onSetValue(parentObj, value);
+		// 如果是同一类别则直接允许设置，否则需要转换
+		if(PyObject_TypeCheck(value, FixedArray::getScriptType()))
+		{
+			return PropertyDescription::onSetValue(parentObj, value);
+		}
+		else
+		{
+			return PropertyDescription::onSetValue(parentObj, new FixedArray(this->getDataType(), value));	
+		}
 	}
 
-	Py_XDECREF(pyobj);
 	return 0;	
 }
 

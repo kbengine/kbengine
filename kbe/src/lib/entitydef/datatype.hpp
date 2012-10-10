@@ -54,9 +54,8 @@ namespace KBEngine{
 class RefCountable;
 class DataType : public RefCountable
 {
-protected:
 public:	
-	DataType();
+	DataType(DATATYPE_UID did = 0);
 	virtual ~DataType();	
 
 	virtual bool isSameType(PyObject* pyValue) = 0;
@@ -70,11 +69,18 @@ public:
 		前提是即使这个PyObject不是当前类型， 但必须拥有转换的共性
 		既一个python字典转换为一个固定字典， 字典中的key都匹配
 	*/
-	virtual PyObject* isNotSameTypeCreateFromPyObject(PyObject* pyobj)
+	virtual PyObject* createNewItemFromObj(PyObject* pyobj)
 	{
+		Py_INCREF(pyobj);
 		return pyobj;
 	}
-
+	
+	virtual PyObject* createNewFromObj(PyObject* pyobj)
+	{
+		Py_INCREF(pyobj);
+		return pyobj;
+	}
+		
 	virtual bool initialize(XmlPlus* xmlplus, TiXmlNode* node);
 
 	virtual PyObject* createObject(MemoryStream* defaultVal) = 0;
@@ -82,6 +88,14 @@ public:
 	virtual PyObject* parseDefaultStr(std::string defaultVal) = 0;
 
 	virtual const char* getName(void)const = 0;
+
+	DATATYPE_UID id()const { return id_; }
+
+	void aliasName(std::string aliasName){ aliasName_ = aliasName; }
+	const char* aliasName(void)const{ return aliasName_.c_str(); }
+protected:
+	DATATYPE_UID id_;
+	std::string aliasName_;
 };
 
 template <typename SPECIFY_TYPE>
@@ -89,7 +103,7 @@ class IntType : public DataType
 {
 protected:
 public:	
-	IntType();
+	IntType(DATATYPE_UID did = 0);
 	virtual ~IntType();	
 
 	bool isSameType(PyObject* pyValue);
@@ -102,7 +116,8 @@ public:
 
 //-------------------------------------------------------------------------------------
 template <typename SPECIFY_TYPE>
-IntType<SPECIFY_TYPE>::IntType()
+IntType<SPECIFY_TYPE>::IntType(DATATYPE_UID did = 0):
+DataType(did)
 {
 }
 
@@ -191,7 +206,7 @@ class UInt64Type : public DataType
 {
 protected:
 public:	
-	UInt64Type();
+	UInt64Type(DATATYPE_UID did = 0);
 	virtual ~UInt64Type();	
 
 	bool isSameType(PyObject* pyValue);
@@ -210,7 +225,7 @@ class UInt32Type : public DataType
 {
 protected:
 public:	
-	UInt32Type();
+	UInt32Type(DATATYPE_UID did = 0);
 	virtual ~UInt32Type();	
 
 	bool isSameType(PyObject* pyValue);
@@ -229,7 +244,7 @@ class Int64Type : public DataType
 {
 protected:
 public:	
-	Int64Type();
+	Int64Type(DATATYPE_UID did = 0);
 	virtual ~Int64Type();	
 
 	bool isSameType(PyObject* pyValue);
@@ -248,7 +263,7 @@ class FloatType : public DataType
 {
 protected:
 public:	
-	FloatType();
+	FloatType(DATATYPE_UID did = 0);
 	virtual ~FloatType();	
 
 	bool isSameType(PyObject* pyValue);
@@ -266,7 +281,7 @@ public:
 class VectorType : public DataType
 {
 public:	
-	VectorType(uint32 elemCount);
+	VectorType(uint32 elemCount, DATATYPE_UID did = 0);
 	virtual ~VectorType();	
 
 	bool isSameType(PyObject* pyValue);
@@ -288,7 +303,7 @@ class StringType : public DataType
 {
 protected:
 public:	
-	StringType();
+	StringType(DATATYPE_UID did = 0);
 	virtual ~StringType();	
 
 	bool isSameType(PyObject* pyValue);
@@ -307,7 +322,7 @@ class UnicodeType : public DataType
 {
 protected:
 public:	
-	UnicodeType();
+	UnicodeType(DATATYPE_UID did = 0);
 	virtual ~UnicodeType();	
 
 	bool isSameType(PyObject* pyValue);
@@ -326,7 +341,7 @@ class PythonType : public DataType
 {
 protected:
 public:	
-	PythonType();
+	PythonType(DATATYPE_UID did = 0);
 	virtual ~PythonType();	
 
 	bool isSameType(PyObject* pyValue);
@@ -344,7 +359,7 @@ class BlobType : public DataType
 {
 protected:
 public:	
-	BlobType();
+	BlobType(DATATYPE_UID did = 0);
 	virtual ~BlobType();	
 
 	bool isSameType(PyObject* pyValue);
@@ -363,7 +378,7 @@ class MailboxType : public DataType
 {
 protected:
 public:	
-	MailboxType();
+	MailboxType(DATATYPE_UID did = 0);
 	virtual ~MailboxType();	
 
 	bool isSameType(PyObject* pyValue);
@@ -381,7 +396,7 @@ public:
 class ArrayType : public DataType
 {
 public:	
-	ArrayType();
+	ArrayType(DATATYPE_UID did = 0);
 	virtual ~ArrayType();	
 	
 	DataType* getDataType(){ return dataType_; }
@@ -405,7 +420,8 @@ public:
 		前提是即使这个PyObject不是当前类型， 但必须拥有转换的共性
 		既一个python字典转换为一个固定字典， 字典中的key都匹配
 	*/
-	virtual PyObject* isNotSameTypeCreateFromPyObject(PyObject* pyobj);
+	virtual PyObject* createNewItemFromObj(PyObject* pyobj);
+	virtual PyObject* createNewFromObj(PyObject* pyobj);
 protected:
 	DataType*			dataType_;		// 这个数组所处理的类别
 };
@@ -415,7 +431,7 @@ class FixedDictType : public DataType
 public:
 	typedef std::vector<std::pair<std::string, DataType*> > FIXEDDICT_KEYTYPE_MAP;
 public:	
-	FixedDictType();
+	FixedDictType(DATATYPE_UID did = 0);
 	virtual ~FixedDictType();
 	
 	/** 
@@ -426,6 +442,7 @@ public:
 	const char* getName(void)const{ return "FIXED_DICT";}
 
 	bool isSameType(PyObject* pyValue);
+	DataType* isSameItemType(const char* keyName, PyObject* pyValue);
 
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 
@@ -440,7 +457,8 @@ public:
 		前提是即使这个PyObject不是当前类型， 但必须拥有转换的共性
 		既一个python字典转换为一个固定字典， 字典中的key都匹配
 	*/
-	virtual PyObject* isNotSameTypeCreateFromPyObject(PyObject* pyobj);
+	virtual PyObject* createNewItemFromObj(const char* keyName, PyObject* pyobj);
+	virtual PyObject* createNewFromObj(PyObject* pyobj);
 
 	/** 
 		获得固定字典所有的key名称 

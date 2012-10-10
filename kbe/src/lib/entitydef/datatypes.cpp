@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 DataTypes::DATATYPE_MAP DataTypes::dataTypes_;
+DataTypes::UID_DATATYPE_MAP DataTypes::uid_dataTypes_;
 
 //-------------------------------------------------------------------------------------
 DataTypes::DataTypes()
@@ -44,6 +45,7 @@ void DataTypes::finish(void)
 		iter->second->decRef();
 
 	dataTypes_.clear();
+	uid_dataTypes_.clear();
 }
 
 //-------------------------------------------------------------------------------------
@@ -99,6 +101,7 @@ bool DataTypes::loadAlias(std::string& file)
 			if(type == "FIXED_DICT")
 			{
 				FixedDictType* fixedDict = new FixedDictType;
+				
 				if(fixedDict->initialize(xml, childNode))
 				{
 					addDateType(aliasName, fixedDict);
@@ -132,14 +135,31 @@ bool DataTypes::loadAlias(std::string& file)
 //-------------------------------------------------------------------------------------
 bool DataTypes::addDateType(std::string name, DataType* dataType)
 {
+	dataType->aliasName(name);
 	DATATYPE_MAP::iterator iter = dataTypes_.find(name);
-	if (iter != dataTypes_.end()){ 
+	if (iter != dataTypes_.end())
+	{ 
 		ERROR_MSG("DataTypes::addDateType:exist a type %s.\n", name.c_str());
 		return false;
 	}
 
 	dataTypes_[name] = dataType;
+	uid_dataTypes_[dataType->id()] = dataType;
+
 	//dataType->incRef();
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool DataTypes::addDateType(DATATYPE_UID uid, DataType* dataType)
+{
+	UID_DATATYPE_MAP::iterator iter = uid_dataTypes_.find(uid);
+	if (iter != uid_dataTypes_.end())
+	{
+		return false;
+	}
+
+	uid_dataTypes_[uid] = dataType;
 	return true;
 }
 
@@ -153,6 +173,7 @@ void DataTypes::delDataType(std::string name)
 	}
 	else
 	{
+		uid_dataTypes_.erase(iter->second->id());
 		iter->second->decRef();
 		dataTypes_.erase(iter);
 	}
@@ -180,6 +201,16 @@ DataType* DataTypes::getDataType(const char* name)
 	return NULL;
 }
 
+//-------------------------------------------------------------------------------------
+DataType* DataTypes::getDataType(DATATYPE_UID uid)
+{
+	UID_DATATYPE_MAP::iterator iter = uid_dataTypes_.find(uid);
+	if (iter != uid_dataTypes_.end()) 
+		return iter->second;
+
+	ERROR_MSG("DataTypes::getDataType:not found type %u.\n", uid);
+	return NULL;
+}
 
 //-------------------------------------------------------------------------------------
 

@@ -153,10 +153,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\array.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\common.cpp"
 				>
 			</File>
@@ -181,7 +177,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\fixedDict.cpp"
+				RelativePath=".\fixedarray.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\fixeddict.cpp"
 				>
 			</File>
 			<File
@@ -206,10 +206,6 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath=".\array.hpp"
-				>
-			</File>
 			<File
 				RelativePath=".\common.hpp"
 				>
@@ -243,7 +239,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\fixedDict.hpp"
+				RelativePath=".\fixedarray.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\fixeddict.hpp"
 				>
 			</File>
 			<File

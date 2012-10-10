@@ -51,7 +51,7 @@ public:
 	
 	virtual bool isSameType(PyObject* pyValue);
 	virtual bool isSameItemType(PyObject* pyValue);
-	virtual PyObject* onSetItem(PyObject* pyItem);
+	virtual PyObject* createNewItemFromObj(PyObject* pyItem);
 protected:
 	std::vector<PyObject*>				values_;
 } ;

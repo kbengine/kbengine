@@ -19,6 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "fixeddict.hpp"
+#include "datatypes.hpp"
 
 namespace KBEngine{ 
 
@@ -104,7 +105,9 @@ void FixedDict::initialize(std::string strDictInitData)
 void FixedDict::initialize(PyObject* pyDictInitData)
 {
 	if(pyDictInitData)
-		PyDict_Update(pyDict_, pyDictInitData);
+	{
+		update(pyDictInitData);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -114,8 +117,11 @@ PyObject* FixedDict::__py_reduce_ex__(PyObject* self, PyObject* protocol)
 	PyObject* args = PyTuple_New(2);
 	PyObject* unpickleMethod = script::Pickler::getUnpickleFunc("FixedDict");
 	PyTuple_SET_ITEM(args, 0, unpickleMethod);
-	PyObject* args1 = PyTuple_New(1);
-	PyTuple_SET_ITEM(args1, 0, PyDict_Copy(fixedDict->getDictObject()));
+	PyObject* args1 = PyTuple_New(2);
+
+	PyTuple_SET_ITEM(args1, 0, PyLong_FromLongLong(fixedDict->getDataType()->id()));
+	PyTuple_SET_ITEM(args1, 1, PyDict_Copy(fixedDict->getDictObject()));
+
 	PyTuple_SET_ITEM(args, 1, args1);
 
 	if(unpickleMethod == NULL){
@@ -129,21 +135,23 @@ PyObject* FixedDict::__py_reduce_ex__(PyObject* self, PyObject* protocol)
 PyObject* FixedDict::__unpickle__(PyObject* self, PyObject* args)
 {
 	Py_ssize_t size = PyTuple_Size(args);
-	if(size != 1)
+	if(size != 2)
 	{
 		ERROR_MSG("FixedDict::__unpickle__: args is error! size != 1");
 		S_Return;
 	}
 
-	PyObject* dict = PyTuple_GET_ITEM(args, 0);
+	PyObject* pyDatatypeUID = PyTuple_GET_ITEM(args, 0);
+	DATATYPE_UID uid = (DATATYPE_UID)PyLong_AsUnsignedLong(pyDatatypeUID);
+
+	PyObject* dict = PyTuple_GET_ITEM(args, 1);
 	if(dict == NULL)
 	{
 		ERROR_MSG("FixedDict::__unpickle__: args is error!");
 		S_Return;
 	}
 	
-	Py_INCREF(dict);
-	return dict;
+	return new FixedDict(DataTypes::getDataType(uid), dict);
 }
 
 //-------------------------------------------------------------------------------------
@@ -164,19 +172,34 @@ int FixedDict::mp_length(PyObject* self)
 //-------------------------------------------------------------------------------------
 int FixedDict::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 {
-	const char* dictKeyName = PyBytes_AsString(key);
+	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(key, NULL);					
+	char* dictKeyName = wchar2char(PyUnicode_AsWideCharStringRet0);											
+	PyMem_Free(PyUnicode_AsWideCharStringRet0);															
+
 	FixedDict* fixedDict = static_cast<FixedDict*>(self);
 	if (value == NULL)
 	{
 		if(!fixedDict->checkDataChanged(dictKeyName, value, true))
+		{
+			free(dictKeyName);
 			return 0;
+		}
+
 		return PyDict_DelItem(fixedDict->pyDict_, key);
 	}
 	
 	if(!fixedDict->checkDataChanged(dictKeyName, value))
+	{
+		free(dictKeyName);
 		return 0;
+	}
 
-	return PyDict_SetItem(fixedDict->pyDict_, key, value);
+	PyObject* val1 = static_cast<FixedDictType*>(fixedDict->getDataType())->createNewItemFromObj(dictKeyName, value);
+	int ret = PyDict_SetItem(fixedDict->pyDict_, key, val1);
+	Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
+
+	free(dictKeyName);
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------
@@ -232,7 +255,21 @@ PyObject* FixedDict::mp_subscript(PyObject* self, PyObject* key)
 //-------------------------------------------------------------------------------------
 PyObject* FixedDict::update(PyObject* args)
 {
-	return script::Map::__py_update(this, args);
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = _dataType->getKeyTypes();
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator iter = keyTypes.begin();
+
+	for(; iter != keyTypes.end(); iter++)
+	{
+		PyObject* val = PyDict_GetItemString(args, iter->first.c_str());
+		if(val)
+		{
+			PyObject* val1 = static_cast<FixedDictType*>(getDataType())->createNewItemFromObj(iter->first.c_str(), val);
+			int ret = PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
+			Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
+		}
+	}
+
+	S_Return; 
 }
 	
 //-------------------------------------------------------------------------------------
