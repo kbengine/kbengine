@@ -223,9 +223,9 @@ bool EntityTableItemMysql_ARRAY::initialize(DBInterface* dbi, const PropertyDesc
 	if(!ret)
 		return false;
 
-	arrayTableItem_.reset(pParentTable_->createItem(static_cast<ArrayType*>(const_cast<DataType*>(pDataType))->getDataType()->getName()));
+	arrayTableItem_.reset(pParentTable_->createItem(static_cast<FixedArrayType*>(const_cast<DataType*>(pDataType))->getDataType()->getName()));
 	arrayTableItem_->pParentTable(this->pParentTable());
-	return arrayTableItem_->initialize(dbi, pPropertyDescription, static_cast<ArrayType*>(const_cast<DataType*>(pDataType))->getDataType());
+	return arrayTableItem_->initialize(dbi, pPropertyDescription, static_cast<FixedArrayType*>(const_cast<DataType*>(pDataType))->getDataType());
 }
 
 //-------------------------------------------------------------------------------------

@@ -47,7 +47,7 @@ SCRIPT_INIT(FixedArray, 0, &Sequence::seqMethods, 0, 0, 0)
 FixedArray::FixedArray(DataType* dataType, std::string& strInitData):
 Sequence(getScriptType(), false)
 {
-	_dataType = static_cast<ArrayType*>(dataType);
+	_dataType = static_cast<FixedArrayType*>(dataType);
 	_dataType->incRef();
 	initialize(strInitData);
 }
@@ -56,7 +56,7 @@ Sequence(getScriptType(), false)
 FixedArray::FixedArray(DataType* dataType, PyObject* pyInitData):
 Sequence(getScriptType(), false)
 {
-	_dataType = static_cast<ArrayType*>(dataType);
+	_dataType = static_cast<FixedArrayType*>(dataType);
 	_dataType->incRef();
 	initialize(pyInitData);
 }
@@ -65,7 +65,7 @@ Sequence(getScriptType(), false)
 FixedArray::FixedArray(DataType* dataType):
 Sequence(getScriptType(), false)
 {
-	_dataType = static_cast<ArrayType*>(dataType);
+	_dataType = static_cast<FixedArrayType*>(dataType);
 	_dataType->incRef();
 	initialize("");
 }

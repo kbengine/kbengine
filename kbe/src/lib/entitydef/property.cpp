@@ -146,15 +146,8 @@ int FixedDictDescription::onSetValue(PyObject* parentObj, PyObject* value)
 {
 	if(static_cast<FixedDictType*>(dataType_)->isSameType(value))
 	{
-		// 如果是同一类别则直接允许设置，否则需要转换
-		if(PyObject_TypeCheck(value, FixedDict::getScriptType()))
-		{
-			return PropertyDescription::onSetValue(parentObj, value);
-		}
-		else
-		{
-			return PropertyDescription::onSetValue(parentObj, new FixedDict(this->getDataType(), value));	
-		}
+		FixedDictType* dataType = static_cast<FixedDictType*>(this->getDataType());
+		return PropertyDescription::onSetValue(parentObj, dataType->createNewFromObj(value));
 	}
 
 	return 0;
@@ -175,17 +168,10 @@ ArrayDescription::~ArrayDescription()
 //-------------------------------------------------------------------------------------
 int ArrayDescription::onSetValue(PyObject* parentObj, PyObject* value)
 {
-	if(static_cast<ArrayType*>(dataType_)->isSameType(value))
+	if(static_cast<FixedArrayType*>(dataType_)->isSameType(value))
 	{
-		// 如果是同一类别则直接允许设置，否则需要转换
-		if(PyObject_TypeCheck(value, FixedArray::getScriptType()))
-		{
-			return PropertyDescription::onSetValue(parentObj, value);
-		}
-		else
-		{
-			return PropertyDescription::onSetValue(parentObj, new FixedArray(this->getDataType(), value));	
-		}
+		FixedArrayType* dataType = static_cast<FixedArrayType*>(this->getDataType());
+		return PropertyDescription::onSetValue(parentObj, dataType->createNewFromObj(value));
 	}
 
 	return 0;	

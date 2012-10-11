@@ -393,11 +393,11 @@ public:
 	const char* getName(void)const{ return "MAILBOX";}
 };
 
-class ArrayType : public DataType
+class FixedArrayType : public DataType
 {
 public:	
-	ArrayType(DATATYPE_UID did = 0);
-	virtual ~ArrayType();	
+	FixedArrayType(DATATYPE_UID did = 0);
+	virtual ~FixedArrayType();	
 	
 	DataType* getDataType(){ return dataType_; }
 

@@ -873,19 +873,19 @@ PyObject* MailboxType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-ArrayType::ArrayType(DATATYPE_UID did):
+FixedArrayType::FixedArrayType(DATATYPE_UID did):
 DataType(did)
 {
 }
 
 //-------------------------------------------------------------------------------------
-ArrayType::~ArrayType()
+FixedArrayType::~FixedArrayType()
 {
 	dataType_->decRef();
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ArrayType::createNewItemFromObj(PyObject* pyobj)
+PyObject* FixedArrayType::createNewItemFromObj(PyObject* pyobj)
 {
 	if(!isSameItemType(pyobj))
 	{
@@ -896,7 +896,7 @@ PyObject* ArrayType::createNewItemFromObj(PyObject* pyobj)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ArrayType::createNewFromObj(PyObject* pyobj)
+PyObject* FixedArrayType::createNewFromObj(PyObject* pyobj)
 {
 	if(!isSameType(pyobj))
 	{
@@ -912,7 +912,7 @@ PyObject* ArrayType::createNewFromObj(PyObject* pyobj)
 }
 
 //-------------------------------------------------------------------------------------
-bool ArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
+bool FixedArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 {
 	TiXmlNode* arrayNode = xmlplus->enterNode(node, "of");
 	std::string strType = xmlplus->getValStr(arrayNode);
@@ -920,7 +920,7 @@ bool ArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 
 	if(strType == "ARRAY")
 	{
-		ArrayType* dataType = new ArrayType();
+		FixedArrayType* dataType = new FixedArrayType();
 		if(dataType->initialize(xmlplus, arrayNode)){
 			dataType_ = dataType;
 			dataType_->incRef();
@@ -935,7 +935,7 @@ bool ArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 		}
 		else
 		{
-			ERROR_MSG("FixedDictType::ArrayType: can't found type[%s] by key[%s].\n", strType.c_str(), "ARRAY");
+			ERROR_MSG("FixedArrayType::initialize: can't found type[%s] by key[%s].\n", strType.c_str(), "ARRAY");
 			return false;
 		}			
 	}
@@ -943,13 +943,13 @@ bool ArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 }
 
 //-------------------------------------------------------------------------------------
-bool ArrayType::isSameItemType(PyObject* pyValue)
+bool FixedArrayType::isSameItemType(PyObject* pyValue)
 {
 	return dataType_->isSameType(pyValue);
 }
 
 //-------------------------------------------------------------------------------------
-bool ArrayType::isSameType(PyObject* pyValue)
+bool FixedArrayType::isSameType(PyObject* pyValue)
 {
 	if(pyValue == NULL)
 	{
@@ -977,7 +977,7 @@ bool ArrayType::isSameType(PyObject* pyValue)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ArrayType::createObject(MemoryStream* defaultVal)
+PyObject* FixedArrayType::createObject(MemoryStream* defaultVal)
 {
 	uint32 size;
 	FixedArray* arr = new FixedArray(this);
@@ -997,13 +997,13 @@ PyObject* ArrayType::createObject(MemoryStream* defaultVal)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ArrayType::parseDefaultStr(std::string defaultVal)
+PyObject* FixedArrayType::parseDefaultStr(std::string defaultVal)
 {
 	return new FixedArray(this);
 }
 
 //-------------------------------------------------------------------------------------
-void ArrayType::addToStream(MemoryStream* mstream, PyObject* pyValue)
+void FixedArrayType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
 	uint32 size = PySequence_Size(pyValue);
 	(*mstream) << size;
@@ -1017,7 +1017,7 @@ void ArrayType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* ArrayType::createFromStream(MemoryStream* mstream)
+PyObject* FixedArrayType::createFromStream(MemoryStream* mstream)
 {
 	return createObject(mstream);
 }
@@ -1087,7 +1087,17 @@ PyObject* FixedDictType::createNewFromObj(PyObject* pyobj)
 
 	if(PyObject_TypeCheck(pyobj, FixedDict::getScriptType()))
 	{
+		if(this->hasImpl())
+		{
+			return impl_createObjFromDict(static_cast<FixedDict*>(pyobj)->getDictObject());
+		}
+
 		return pyobj;
+	}
+	
+	if(this->hasImpl())
+	{
+		return impl_createObjFromDict(pyobj);
 	}
 
 	return new FixedDict(this, pyobj);
@@ -1111,7 +1121,7 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 
 			if(strType == "ARRAY")
 			{
-				ArrayType* dataType = new ArrayType();
+				FixedArrayType* dataType = new FixedArrayType();
 				if(dataType->initialize(xmlplus, typeNode))
 				{
 					keyTypes_.push_back(std::make_pair(typeName, dataType));

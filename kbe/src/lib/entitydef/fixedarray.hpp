@@ -66,7 +66,7 @@ public:
 
 	virtual PyObject* createNewItemFromObj(PyObject* pyItem);
 protected:
-	ArrayType* _dataType;
+	FixedArrayType* _dataType;
 } ;
 
 }

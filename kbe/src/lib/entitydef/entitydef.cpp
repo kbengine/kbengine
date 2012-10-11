@@ -374,7 +374,7 @@ bool EntityDef::loadDefPropertys(std::string& moduleName, XmlPlus* xml, TiXmlNod
 				std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// ×ª»»Îª´óÐ´
 				if(strType == "ARRAY")
 				{
-					ArrayType* dataType1 = new ArrayType();
+					FixedArrayType* dataType1 = new FixedArrayType();
 					if(dataType1->initialize(xml, typeNode))
 						dataType = dataType1;
 					else
@@ -489,7 +489,7 @@ bool EntityDef::loadDefCellMethods(std::string& moduleName, XmlPlus* xml, TiXmlN
 
 						if(strType == "ARRAY")
 						{
-							ArrayType* dataType1 = new ArrayType();
+							FixedArrayType* dataType1 = new FixedArrayType();
 							if(dataType1->initialize(xml, typeNode))
 								dataType = dataType1;
 						}
@@ -567,7 +567,7 @@ bool EntityDef::loadDefBaseMethods(std::string& moduleName, XmlPlus* xml, TiXmlN
 
 						if(strType == "ARRAY")
 						{
-							ArrayType* dataType1 = new ArrayType();
+							FixedArrayType* dataType1 = new FixedArrayType();
 							if(dataType1->initialize(xml, typeNode))
 								dataType = dataType1;
 						}
@@ -643,7 +643,7 @@ bool EntityDef::loadDefClientMethods(std::string& moduleName, XmlPlus* xml, TiXm
 
 						if(strType == "ARRAY")
 						{
-							ArrayType* dataType1 = new ArrayType();
+							FixedArrayType* dataType1 = new FixedArrayType();
 							if(dataType1->initialize(xml, typeNode))
 								dataType = dataType1;
 						}
