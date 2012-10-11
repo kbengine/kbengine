@@ -56,6 +56,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappmgrInterface)
 									uint32,						extaddr, 
 									uint16,						extport)
 
+	// 某app主动请求look。
+	CELLAPPMGR_MESSAGE_DECLARE_ARGS0(lookApp,					MERCURY_FIXED_MESSAGE)
+
 	// 某个app向本app告知处于活动状态。
 	CELLAPPMGR_MESSAGE_DECLARE_ARGS2(onAppActiveTick,			MERCURY_FIXED_MESSAGE,
 									COMPONENT_TYPE,				componentType, 

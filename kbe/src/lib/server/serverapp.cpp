@@ -142,13 +142,15 @@ void ServerApp::handleTimeout(TimerHandle, void * arg)
 				Components::COMPONENTS::iterator iter = components.begin();
 				for(; iter != components.end(); iter++)
 				{
-					Mercury::Bundle bundle;
-					COMMON_MERCURY_MESSAGE(componentType, bundle, onAppActiveTick);
+					Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+					COMMON_MERCURY_MESSAGE(componentType, (*pBundle), onAppActiveTick);
 					
-					bundle << g_componentType;
-					bundle << componentID_;
+					(*pBundle) << g_componentType;
+					(*pBundle) << componentID_;
 					if((*iter).pChannel != NULL)
-						bundle.send(getNetworkInterface(), (*iter).pChannel);
+						(*pBundle).send(getNetworkInterface(), (*iter).pChannel);
+
+					Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 				}
 
 				ifind++;
@@ -307,6 +309,23 @@ void ServerApp::reqClose(Mercury::Channel* pChannel)
 	DEBUG_MSG("ServerApp::reqClose: %s\n", pChannel->c_str());
 	// this->getNetworkInterface().deregisterChannel(pChannel);
 	// pChannel->destroy();
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::lookApp(Mercury::Channel* pChannel)
+{
+	if(pChannel->isExternal())
+		return;
+
+	DEBUG_MSG("ServerApp::lookApp: %s\n", pChannel->c_str());
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	(*pBundle) << g_componentType;
+	(*pBundle) << componentID_;
+	(*pBundle).send(getNetworkInterface(), pChannel);
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------		

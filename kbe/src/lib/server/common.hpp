@@ -57,6 +57,74 @@ namespace KBEngine {
 	FORWARDBUNDLE.finish(true);																											\
 	SENDBUNDLE.append(FORWARDBUNDLE);																									\
 
+// 公共消息
+#define COMMON_MERCURY_MESSAGE(COMPONENTTYPE, BUNDLE, MESSAGENAME)											\
+		switch(COMPONENTTYPE)																				\
+		{																									\
+		case CELLAPPMGR_TYPE:																				\
+			{																								\
+				BUNDLE.newMessage(CellappmgrInterface::MESSAGENAME);										\
+			}																								\
+			break;																							\
+		case BASEAPPMGR_TYPE:																				\
+			{																								\
+				BUNDLE.newMessage(BaseappmgrInterface::MESSAGENAME);										\
+			}																								\
+			break;																							\
+		case DBMGR_TYPE:																					\
+			{																								\
+				BUNDLE.newMessage(DbmgrInterface::MESSAGENAME);												\
+			}																								\
+			break;																							\
+		case CELLAPP_TYPE:																					\
+			{																								\
+				BUNDLE.newMessage(CellappInterface::MESSAGENAME);											\
+			}																								\
+			break;																							\
+		case BASEAPP_TYPE:																					\
+			{																								\
+				BUNDLE.newMessage(BaseappInterface::MESSAGENAME);											\
+			}																								\
+			break;																							\
+		case LOGINAPP_TYPE:																					\
+			{																								\
+				BUNDLE.newMessage(LoginappInterface::MESSAGENAME);											\
+			}																								\
+			break;																							\
+		case MESSAGELOG_TYPE:																				\
+			{																								\
+				BUNDLE.newMessage(MessagelogInterface::MESSAGENAME);										\
+			}																								\
+			break;																							\
+		case RESOURCEMGR_TYPE:																				\
+			{																								\
+				BUNDLE.newMessage(ResourcemgrInterface::MESSAGENAME);										\
+			}																								\
+			break;																							\
+		default:																							\
+			KBE_ASSERT(false && "not support!\n");															\
+			break;																							\
+		};																									\
+
+
+#define ENTITTAPP_COMMON_MERCURY_MESSAGE(COMPONENTTYPE, BUNDLE, MESSAGENAME)								\
+		switch(COMPONENTTYPE)																				\
+		{																									\
+		case CELLAPP_TYPE:																					\
+			{																								\
+				BUNDLE.newMessage(CellappInterface::MESSAGENAME);											\
+			}																								\
+			break;																							\
+		case BASEAPP_TYPE:																					\
+			{																								\
+				BUNDLE.newMessage(BaseappInterface::MESSAGENAME);											\
+			}																								\
+			break;																							\
+		default:																							\
+			KBE_ASSERT(false && "no support!\n");															\
+			break;																							\
+		};																									\
+
 /**
 将秒转换为tick
 @lowerBound: 最少不低于Ntick

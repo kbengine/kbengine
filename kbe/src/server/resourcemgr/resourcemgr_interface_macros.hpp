@@ -79,6 +79,48 @@ namespace KBEngine{
 																				\
 
 /**
+	Resourcemgr消息宏，  只有零个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef RESOURCEMGR_MESSAGE_HANDLER_ARGS0
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(RESOURCEMGR)
+#define RESOURCEMGR_MESSAGE_HANDLER_ARGS0(NAME)									\
+	void NAME##ResourcemgrMessagehandler0::handle(Mercury::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			KBEngine::Resourcemgr::getSingleton().NAME(pChannel);				\
+	}																			\
+
+#else
+#define RESOURCEMGR_MESSAGE_HANDLER_ARGS0(NAME)									\
+	void NAME##ResourcemgrMessagehandler0::handle(Mercury::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define RESOURCEMGR_MESSAGE_HANDLER_ARGS0(NAME)									\
+	class NAME##ResourcemgrMessagehandler0 : public Mercury::MessageHandler		\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define RESOURCEMGR_MESSAGE_DECLARE_ARGS0(NAME, MSG_LENGTH)						\
+	RESOURCEMGR_MESSAGE_HANDLER_ARGS0(NAME)										\
+	NETWORK_MESSAGE_DECLARE_ARGS0(Resourcemgr, NAME,							\
+				NAME##ResourcemgrMessagehandler0, MSG_LENGTH)					\
+																				\
+
+
+/**
 	Resourcemgr消息宏，  只有一个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)

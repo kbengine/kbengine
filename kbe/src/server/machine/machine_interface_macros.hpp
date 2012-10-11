@@ -79,6 +79,48 @@ namespace KBEngine{
 																				\
 
 /**
+	Machine消息宏，  只有零个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef MACHINE_MESSAGE_HANDLER_ARGS0
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(MACHINE)
+#define MACHINE_MESSAGE_HANDLER_ARGS0(NAME)										\
+	void NAME##MachineMessagehandler0::handle(Mercury::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			KBEngine::Machine::getSingleton().NAME(pChannel);					\
+	}																			\
+
+#else
+#define MACHINE_MESSAGE_HANDLER_ARGS0(NAME)										\
+	void NAME##MachineMessagehandler0::handle(Mercury::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define MACHINE_MESSAGE_HANDLER_ARGS0(NAME)										\
+	class NAME##MachineMessagehandler0 : public Mercury::MessageHandler			\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define MACHINE_MESSAGE_DECLARE_ARGS0(NAME, MSG_LENGTH)							\
+	MACHINE_MESSAGE_HANDLER_ARGS0(NAME)											\
+	NETWORK_MESSAGE_DECLARE_ARGS0(Machine, NAME,								\
+				NAME##MachineMessagehandler0, MSG_LENGTH)						\
+																				\
+
+
+/**
 	Machine消息宏，  只有一个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)

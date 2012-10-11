@@ -597,24 +597,35 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 				}
 
 				MachineInterface::onBroadcastInterfaceArgs8 args;
+				bool isfirstget = true;
+
 				if(bhandler.receive(&args, 0))
 				{
-					if(args.componentType == UNKNOWN_COMPONENT_TYPE)
+					do
 					{
-						//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
-						//	COMPONENT_NAME_EX(findComponentType));
+						if(!isfirstget)
+						{
+							args.createFromStream(*bhandler.pCurrPacket());
+						}
+
+						if(args.componentType == UNKNOWN_COMPONENT_TYPE)
+						{
+							//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
+							//	COMPONENT_NAME_EX(findComponentType));
+							
+							::KillTimer(m_hWnd, nIDEvent);
+							return;
+						}
+
+						INFO_MSG("CguiconsoleDlg::OnTimer: found %s, addr:%s:%u\n",
+							COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intaddr));
+
+						Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
+							(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
 						
-						::KillTimer(m_hWnd, nIDEvent);
-						return;
-					}
-
-					INFO_MSG("CguiconsoleDlg::OnTimer: found %s, addr:%s:%u\n",
-						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intaddr));
-
-					Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
-						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
-					
-					updateTree();
+						updateTree();
+						isfirstget = false;
+					}while(bhandler.pCurrPacket()->opsize() > 0);
 
 					// 防止接收到的数据不是想要的数据
 					if(findComponentType == args.componentType)

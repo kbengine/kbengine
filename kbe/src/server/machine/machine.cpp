@@ -86,9 +86,9 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 		// 将来会对windows进行下机制进行调整此处则不会出现不会NULL。
 		if(pinfos == NULL)
 		{
-			INFO_MSG("Machine::onBroadcastInterface: /-----------------------------reset kbengine.-------------------------/\n");
-			Componentbridge::getComponents().clear(uid);
-			INFO_MSG("Machine::onBroadcastInterface: /-----------------------------end reset kbengine.---------------------/\n");
+			//INFO_MSG("Machine::onBroadcastInterface: /-----------------------------reset kbengine.-------------------------/\n");
+			//Componentbridge::getComponents().clear(uid);
+			//INFO_MSG("Machine::onBroadcastInterface: /-----------------------------end reset kbengine.---------------------/\n");
 		}
 		else
 		{
@@ -124,12 +124,38 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 		return;
 	}
 	
-	const Components::ComponentInfos* pinfos = 
-		Componentbridge::getComponents().findComponent((KBEngine::COMPONENT_TYPE)findComponentType, uid, 0);
-	
+	Components::COMPONENTS& components = Componentbridge::getComponents().getComponents((KBEngine::COMPONENT_TYPE)findComponentType);
+	Components::COMPONENTS::iterator iter = components.begin();
+	bool found = false;
 	Mercury::Bundle bundle;
 
-	if(pinfos == NULL)
+	for(; iter != components.end(); )
+	{
+		if((*iter).uid != uid)
+			continue;
+
+		const Components::ComponentInfos* pinfos = &(*iter);
+		found = true;
+		
+		bool usable = Componentbridge::getComponents().checkComponentUsable(pinfos);
+		
+		if(usable)
+		{
+			MachineInterface::onBroadcastInterfaceArgs8::staticAddToBundle(bundle, pinfos->uid, 
+				pinfos->username, findComponentType, pinfos->cid, pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
+				pinfos->pExtAddr->ip, pinfos->pExtAddr->port);
+
+			++iter;
+		}
+		else
+		{
+			WARNING_MSG("Machine::onFindInterfaceAddr: %s[%"PRAppID"] invalid.\n", COMPONENT_NAME_EX(pinfos->componentType), 
+				pinfos->cid);
+			iter = components.erase(iter);
+		}
+	}
+
+	if(!found)
 	{
 		WARNING_MSG("Machine::onFindInterfaceAddr: %s not found %s.\n", COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), 
 			COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
@@ -137,11 +163,7 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 		MachineInterface::onBroadcastInterfaceArgs8::staticAddToBundle(bundle, 0, 
 			"", UNKNOWN_COMPONENT_TYPE, 0, 0, 0, 0, 0);
 	}
-	else
-		MachineInterface::onBroadcastInterfaceArgs8::staticAddToBundle(bundle, pinfos->uid, 
-			pinfos->username, findComponentType, pinfos->cid, pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
-			pinfos->pExtAddr->ip, pinfos->pExtAddr->port);
-	
+
 	if(finderAddr != 0 && finderRecvPort != 0)
 		bundle.sendto(ep, finderRecvPort, finderAddr);
 	else

@@ -51,6 +51,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// 某app主动请求断线。
 	BASEAPP_MESSAGE_DECLARE_ARGS0(reqClose,									MERCURY_FIXED_MESSAGE)
 
+	// 某app主动请求look。
+	BASEAPP_MESSAGE_DECLARE_ARGS0(lookApp,									MERCURY_FIXED_MESSAGE)
+
 	// console远程执行python语句。
 	BASEAPP_MESSAGE_DECLARE_ARGS1(onExecScriptCommand,						MERCURY_VARIABLE_MESSAGE,
 									std::string,							strcommand)

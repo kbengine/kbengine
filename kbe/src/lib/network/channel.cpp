@@ -453,8 +453,8 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, pPacket->totalSize());
 
 					// 如果没有可操作的数据了则退出等待下一个包处理。
-					if(pPacket->opsize() == 0)
-						break;
+					//if(pPacket->opsize() == 0)	// 可能是一个无参数数据包
+					//	break;
 					
 					if(currMsgLen_ == 0)
 					{

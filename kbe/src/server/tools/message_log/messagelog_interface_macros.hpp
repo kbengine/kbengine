@@ -79,6 +79,48 @@ namespace KBEngine{
 																				\
 
 /**
+	Messagelog消息宏，  只有零个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS0
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(MESSAGELOG)
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS0(NAME)									\
+	void NAME##MessagelogMessagehandler0::handle(Mercury::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			KBEngine::Messagelog::getSingleton().NAME(pChannel);				\
+	}																			\
+
+#else
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS0(NAME)									\
+	void NAME##MessagelogMessagehandler0::handle(Mercury::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS0(NAME)									\
+	class NAME##MessagelogMessagehandler0 : public Mercury::MessageHandler		\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define MESSAGELOG_MESSAGE_DECLARE_ARGS0(NAME, MSG_LENGTH)						\
+	MESSAGELOG_MESSAGE_HANDLER_ARGS0(NAME)										\
+	NETWORK_MESSAGE_DECLARE_ARGS0(Messagelog, NAME,								\
+				NAME##MessagelogMessagehandler0, MSG_LENGTH)					\
+																				\
+
+
+/**
 	Messagelog消息宏，  只有一个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)

@@ -58,6 +58,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									uint32,									extaddr, 
 									uint16,									extport)
 
+	// 某app主动请求look。
+	CELLAPP_MESSAGE_DECLARE_ARGS0(lookApp,									MERCURY_FIXED_MESSAGE)
+
 	// console远程执行python语句。
 	CELLAPP_MESSAGE_DECLARE_ARGS1(onExecScriptCommand,						MERCURY_VARIABLE_MESSAGE,
 									std::string,							strcommand)

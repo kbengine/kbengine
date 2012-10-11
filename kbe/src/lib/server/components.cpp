@@ -72,10 +72,6 @@ Components::~Components()
 //-------------------------------------------------------------------------------------
 bool Components::checkComponents(int32 uid, COMPONENT_ID componentID)
 {
-#if KBE_PLATFORM == PLATFORM_WIN32
-	return true;
-#endif
-
 	if(componentID <= 0)
 		return true;
 
@@ -93,7 +89,7 @@ bool Components::checkComponents(int32 uid, COMPONENT_ID componentID)
 			ERROR_MSG("Components::checkComponents: uid:%u, componentType=%s, componentID:%"PRAppID" exist.\n", 
 				uid, COMPONENT_NAME_EX(ct),  componentID);
 
-			KBE_ASSERT(false && "Components::checkComponents: componentID exist.\n");
+			// KBE_ASSERT(false && "Components::checkComponents: componentID exist.\n");
 			return false;
 		}
 	}
@@ -438,6 +434,73 @@ Components::ComponentInfos* Components::findComponent(COMPONENT_ID componentID)
 	}
 
 	return NULL;
+}
+
+//-------------------------------------------------------------------------------------		
+bool Components::checkComponentUsable(const Components::ComponentInfos* info)
+{
+	Mercury::EndPoint epListen;
+	epListen.socket(SOCK_STREAM);
+	if (!epListen.good())
+	{
+		ERROR_MSG("Components::checkComponentUsable: couldn't create a socket\n");
+		return true;
+	}
+
+	if(epListen.connect(info->pIntAddr->port, info->pIntAddr->ip) == -1)
+	{
+		return false;
+	}
+	
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	COMMON_MERCURY_MESSAGE(info->componentType, (*pBundle), lookApp);
+	epListen.send(pBundle->pCurrPacket()->data(), pBundle->pCurrPacket()->wpos());
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	epListen.setnodelay(true);
+	epListen.setnonblocking(true);
+
+	fd_set	fds;
+	struct timeval tv = { 0, 100000 }; // 100ms
+
+	FD_ZERO( &fds );
+	FD_SET((int)epListen, &fds);
+
+	int selgot = select(epListen+1, &fds, NULL, NULL, &tv);
+	if(selgot == 0)
+	{
+		return true;	// 超时可能对方繁忙
+	}
+	else if(selgot == -1)
+	{
+		return true;
+	}
+	else
+	{
+		COMPONENT_TYPE ctype;
+		COMPONENT_ID cid;
+
+		Mercury::TCPPacket packet;
+		packet.resize(255);
+		int recvsize = sizeof(ctype) + sizeof(cid);
+		int len = epListen.recv(packet.data(), recvsize);
+		packet.wpos(len);
+		
+		if(recvsize != len)
+		{
+			ERROR_MSG("Components::checkComponentUsable: packet invalid.\n");
+			return true;
+		}
+
+		packet >> ctype >> cid;
+
+		if(ctype != info->componentType || cid != info->cid)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------		

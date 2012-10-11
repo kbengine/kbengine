@@ -61,6 +61,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									uint32,							extaddr, 
 									uint16,							extport)
 
+	// 某app主动请求look。
+	DBMGR_MESSAGE_DECLARE_ARGS0(lookApp,							MERCURY_FIXED_MESSAGE)
+
 	// 某app请求获取一个entityID段 
 	DBMGR_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,					MERCURY_FIXED_MESSAGE,
 								int8,								componentType,
