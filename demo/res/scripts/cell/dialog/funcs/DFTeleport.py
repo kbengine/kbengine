@@ -19,6 +19,7 @@ class DFTeleport(iDFunction):
 			param1 = (int(param1[0]), 0, int(param1[1]))
 			
 		self.position = param1
+		self.yaw = int(args[2])
 		
 	def valid(self, avatar, args):
 		return True

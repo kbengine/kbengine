@@ -113,6 +113,7 @@ class Account(KBEngine.Proxy):
 														"headID" : d_avatar_inittab.datas[info["roleType"]]["headResID"], \
 														"modelID" : d_avatar_inittab.datas[info["roleType"]]["modelResID"], \
 														"spaceUType" : d_avatar_inittab.datas[info["roleType"]]["spaceUType"], \
+														"direction" : (0, 0, d_avatar_inittab.datas[info["roleType"]]["spawnYaw"]),	\
 														"position" : d_avatar_inittab.datas[info["roleType"]]["spawnPos"]})
 					player.accountEntity = self
 					self.activeCharacter = player

@@ -45,7 +45,7 @@ class Space(GameObject):
 			KBEngine.createBaseAnywhere("SpawnPoint", 
 										{"spawnEntityNO"	: entityNO, 	\
 										"position"			: tuple(datas.get('spawnPos', (0,0,0))), 	\
-										"direction"			: (random.randint(-512, 512), random.randint(-512, 512), random.randint(-512, 512)),	\
+										"direction"			: (0, 0, datas.get("spawnYaw", 0)),	\
 										"createToCell"		: self.cell})
 				
 	def loginToSpace(self, avatarMailbox):
