@@ -25,5 +25,5 @@ class DFTeleport(iDFunction):
 		return True
 
 	def do(self, avatar, args):
-		avatar.teleportSpace(self.spaceType, tuple(self.position), (0, 0, 0), {})
+		avatar.teleportSpace(self.spaceType, tuple(self.position), (0, 0, self.yaw), {})
 		return True

@@ -35,6 +35,7 @@
 #define IDC_LOG_LIST1                   1015
 #define IDC_HISTROY_LIST1               1016
 #define IDC_IPADDRESS1                  1017
+#define IDC_STATUS_LIST1                1018
 #define ID_32771                        32771
 #define ID_32772                        32772
 
@@ -44,7 +45,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        137
 #define _APS_NEXT_COMMAND_VALUE         32773
-#define _APS_NEXT_CONTROL_VALUE         1018
+#define _APS_NEXT_CONTROL_VALUE         1019
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

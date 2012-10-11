@@ -16,6 +16,8 @@ public:
 // Dialog Data
 	enum { IDD = IDD_PROFILE };
 	void autoWndSize();
+
+	BOOL OnInitDialog();
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 

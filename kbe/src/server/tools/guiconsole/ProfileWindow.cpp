@@ -29,6 +29,26 @@ void CProfileWindow::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LIST1, m_profileShowList);
 }
 
+BOOL CProfileWindow::OnInitDialog()
+{
+	CDialog::OnInitDialog();
+	
+	DWORD dwStyle = m_profileShowList.GetExtendedStyle();
+	dwStyle |= LVS_EX_FULLROWSELECT;					//选中某行使整行高亮（只适用与report风格的listctrl）
+	dwStyle |= LVS_EX_GRIDLINES;						//网格线（只适用与report风格的listctrl）
+	//dwStyle |= LVS_EX_ONECLICKACTIVATE;
+	m_profileShowList.SetExtendedStyle(dwStyle);				//设置扩展风格
+
+	int idx = 0;
+	m_profileShowList.InsertColumn(idx++, _T("ncalls "),					LVCFMT_CENTER,	50);
+	m_profileShowList.InsertColumn(idx++, _T("tottime"),					LVCFMT_CENTER,	80);
+	m_profileShowList.InsertColumn(idx++, _T("percall"),					LVCFMT_CENTER,	80);
+	m_profileShowList.InsertColumn(idx++, _T("cumtime"),					LVCFMT_CENTER,	80);
+	m_profileShowList.InsertColumn(idx++, _T("percall"),					LVCFMT_CENTER,	80);
+	m_profileShowList.InsertColumn(idx++, _T("filename:lineno(function)"),	LVCFMT_CENTER,	300);
+	return TRUE;  // return TRUE  unless you set the focus to a control
+}
+
 void CProfileWindow::autoWndSize()
 {
 	CRect rect;
