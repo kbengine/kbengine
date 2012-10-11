@@ -116,7 +116,7 @@ public:
 
 //-------------------------------------------------------------------------------------
 template <typename SPECIFY_TYPE>
-IntType<SPECIFY_TYPE>::IntType(DATATYPE_UID did = 0):
+IntType<SPECIFY_TYPE>::IntType(DATATYPE_UID did):
 DataType(did)
 {
 }
