@@ -83,8 +83,6 @@ public:
 		
 	virtual bool initialize(XmlPlus* xmlplus, TiXmlNode* node);
 
-	virtual PyObject* createObject(MemoryStream* defaultVal) = 0;
-
 	virtual PyObject* parseDefaultStr(std::string defaultVal) = 0;
 
 	virtual const char* getName(void)const = 0;
@@ -109,7 +107,6 @@ public:
 	bool isSameType(PyObject* pyValue);
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 	PyObject* createFromStream(MemoryStream* mstream);
-	PyObject* createObject(MemoryStream* defaultVal);
 	PyObject* parseDefaultStr(std::string defaultVal);
 	const char* getName(void)const{ return "INT";}
 };
@@ -161,16 +158,6 @@ bool IntType<SPECIFY_TYPE>::isSameType(PyObject* pyValue)
 	return true;
 }
 
-//-------------------------------------------------------------------------------------
-template <typename SPECIFY_TYPE>
-PyObject* IntType<SPECIFY_TYPE>::createObject(MemoryStream* defaultVal)
-{
-	SPECIFY_TYPE val = 0;
-	if(defaultVal)
-		(*defaultVal) >> val;
-
-	return PyLong_FromLong(val);
-}
 
 //-------------------------------------------------------------------------------------
 template <typename SPECIFY_TYPE>
@@ -199,7 +186,11 @@ void IntType<SPECIFY_TYPE>::addToStream(MemoryStream* mstream, PyObject* pyValue
 template <typename SPECIFY_TYPE>
 PyObject* IntType<SPECIFY_TYPE>::createFromStream(MemoryStream* mstream)
 {
-	return createObject(mstream);
+	SPECIFY_TYPE val = 0;
+	if(mstream)
+		(*mstream) >> val;
+
+	return PyLong_FromLong(val);
 }
 
 class UInt64Type : public DataType
@@ -214,7 +205,6 @@ public:
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 
 	PyObject* createFromStream(MemoryStream* mstream);
-	PyObject* createObject(MemoryStream* defaultVal);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
@@ -233,7 +223,6 @@ public:
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 
 	PyObject* createFromStream(MemoryStream* mstream);
-	PyObject* createObject(MemoryStream* defaultVal);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
@@ -252,7 +241,6 @@ public:
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 
 	PyObject* createFromStream(MemoryStream* mstream);
-	PyObject* createObject(MemoryStream* defaultVal);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
@@ -271,7 +259,6 @@ public:
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 
 	PyObject* createFromStream(MemoryStream* mstream);
-	PyObject* createObject(MemoryStream* defaultVal);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
@@ -289,7 +276,6 @@ public:
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 
 	PyObject* createFromStream(MemoryStream* mstream);
-	PyObject* createObject(MemoryStream* defaultVal);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
@@ -311,7 +297,6 @@ public:
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 
 	PyObject* createFromStream(MemoryStream* mstream);
-	PyObject* createObject(MemoryStream* defaultVal);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
@@ -330,7 +315,6 @@ public:
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 
 	PyObject* createFromStream(MemoryStream* mstream);
-	PyObject* createObject(MemoryStream* defaultVal);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
@@ -348,7 +332,6 @@ public:
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 
 	PyObject* createFromStream(MemoryStream* mstream);
-	PyObject* createObject(MemoryStream* defaultVal);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
@@ -367,7 +350,6 @@ public:
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 
 	PyObject* createFromStream(MemoryStream* mstream);
-	PyObject* createObject(MemoryStream* defaultVal);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
@@ -386,7 +368,6 @@ public:
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 
 	PyObject* createFromStream(MemoryStream* mstream);
-	PyObject* createObject(MemoryStream* defaultVal);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
@@ -407,7 +388,6 @@ public:
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 
 	PyObject* createFromStream(MemoryStream* mstream);
-	PyObject* createObject(MemoryStream* defaultVal);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
@@ -447,7 +427,6 @@ public:
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 
 	PyObject* createFromStream(MemoryStream* mstream);
-	PyObject* createObject(MemoryStream* defaultVal);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 	bool initialize(XmlPlus* xmlplus, TiXmlNode* node);

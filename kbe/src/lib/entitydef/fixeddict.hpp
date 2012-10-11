@@ -39,6 +39,7 @@ public:
 	FixedDict(DataType* dataType);
 	FixedDict(DataType* dataType, std::string& strDictInitData);
 	FixedDict(DataType* dataType, PyObject* pyDictInitData);
+	FixedDict(DataType* dataType, MemoryStream* streamInitData);
 	virtual ~FixedDict();
 
 	DataType* getDataType(void){ return _dataType; }
@@ -59,6 +60,7 @@ public:
 	/** 初始化固定字典*/
 	void initialize(std::string strDictInitData);
 	void initialize(PyObject* pyDictInitData);
+	void initialize(MemoryStream* streamInitData);
 
 	/** 检查数据改变 */
 	bool checkDataChanged(const char* keyName, PyObject* value, bool isDelete = false);

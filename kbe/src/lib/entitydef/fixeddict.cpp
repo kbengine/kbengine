@@ -67,6 +67,15 @@ Map(getScriptType(), false)
 }
 
 //-------------------------------------------------------------------------------------
+FixedDict::FixedDict(DataType* dataType, MemoryStream* streamInitData):
+Map(getScriptType(), false)
+{
+	_dataType = static_cast<FixedDictType*>(dataType);
+	_dataType->incRef();
+	initialize(streamInitData);
+}
+
+//-------------------------------------------------------------------------------------
 FixedDict::FixedDict(DataType* dataType):
 Map(getScriptType(), false)
 {
@@ -89,7 +98,7 @@ void FixedDict::initialize(std::string strDictInitData)
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes.begin();
 	for(; iter != keyTypes.end(); iter++)
 	{
-		PyObject* pyobj = iter->second->createObject(NULL);
+		PyObject* pyobj = iter->second->parseDefaultStr("");
 		if(pyobj)
 		{
 			PyDict_SetItem(pyDict_, PyUnicode_FromString(iter->first.c_str()), pyobj);
@@ -107,6 +116,20 @@ void FixedDict::initialize(PyObject* pyDictInitData)
 	if(pyDictInitData)
 	{
 		update(pyDictInitData);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void FixedDict::initialize(MemoryStream* streamInitData)
+{
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = _dataType->getKeyTypes();
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator iter = keyTypes.begin();
+
+	for(; iter != keyTypes.end(); iter++)
+	{
+		PyObject* val1 = iter->second->createFromStream(streamInitData);
+		PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
+		Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
 	}
 }
 

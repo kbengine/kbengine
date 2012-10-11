@@ -101,15 +101,6 @@ bool UInt64Type::isSameType(PyObject* pyValue)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* UInt64Type::createObject(MemoryStream* defaultVal)
-{
-	uint64 val = 0;
-	if(defaultVal)
-		(*defaultVal) >> val;	
-	return PyLong_FromUnsignedLongLong(val);
-}
-
-//-------------------------------------------------------------------------------------
 PyObject* UInt64Type::parseDefaultStr(std::string defaultVal)
 {
 	uint64 val = 0;
@@ -133,7 +124,10 @@ void UInt64Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* UInt64Type::createFromStream(MemoryStream* mstream)
 {
-	return createObject(mstream);
+	uint64 val = 0;
+	if(mstream)
+		(*mstream) >> val;	
+	return PyLong_FromUnsignedLongLong(val);
 }
 
 //-------------------------------------------------------------------------------------
@@ -181,15 +175,6 @@ bool UInt32Type::isSameType(PyObject* pyValue)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* UInt32Type::createObject(MemoryStream* defaultVal)
-{
-	uint32 val = 0;
-	if(defaultVal)
-		(*defaultVal) >> val;	
-	return PyLong_FromUnsignedLong(val);
-}
-
-//-------------------------------------------------------------------------------------
 PyObject* UInt32Type::parseDefaultStr(std::string defaultVal)
 {
 	uint32 val = 0;
@@ -213,7 +198,10 @@ void UInt32Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* UInt32Type::createFromStream(MemoryStream* mstream)
 {
-	return createObject(mstream);
+	uint32 val = 0;
+	if(mstream)
+		(*mstream) >> val;	
+	return PyLong_FromUnsignedLong(val);
 }
 
 //-------------------------------------------------------------------------------------
@@ -256,15 +244,6 @@ bool Int64Type::isSameType(PyObject* pyValue)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Int64Type::createObject(MemoryStream* defaultVal)
-{
-	int64 val = 0;
-	if(defaultVal)
-		(*defaultVal) >> val;	
-	return PyLong_FromLongLong(val);
-}
-
-//-------------------------------------------------------------------------------------
 PyObject* Int64Type::parseDefaultStr(std::string defaultVal)
 {
 	int64 val = 0;
@@ -288,7 +267,10 @@ void Int64Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* Int64Type::createFromStream(MemoryStream* mstream)
 {
-	return createObject(mstream);
+	int64 val = 0;
+	if(mstream)
+		(*mstream) >> val;	
+	return PyLong_FromLongLong(val);
 }
 
 //-------------------------------------------------------------------------------------
@@ -318,15 +300,6 @@ bool FloatType::isSameType(PyObject* pyValue)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* FloatType::createObject(MemoryStream* defaultVal)
-{
-	double val = 0.0;
-	if(defaultVal)
-		(*defaultVal) >> val;	
-	return PyFloat_FromDouble(val);
-}
-
-//-------------------------------------------------------------------------------------
 PyObject* FloatType::parseDefaultStr(std::string defaultVal)
 {
 	double val = 0.0f;
@@ -349,7 +322,10 @@ void FloatType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* FloatType::createFromStream(MemoryStream* mstream)
 {
-	return createObject(mstream);
+	double val = 0.0;
+	if(mstream)
+		(*mstream) >> val;	
+	return PyFloat_FromDouble(val);
 }
 
 //-------------------------------------------------------------------------------------
@@ -399,42 +375,6 @@ bool VectorType::isSameType(PyObject* pyValue)
 	}
 
 	return true;
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* VectorType::createObject(MemoryStream* defaultVal)
-{
-#ifdef CLIENT_NO_FLOAT
-		int32 x = 0, y = 0, z = 0, w = 0;
-#else
-		float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
-#endif
-
-	uint32 count = 0;
-	(*defaultVal) >> count;
-	
-	if(count != elemCount_)
-		return NULL;
-
-	switch(elemCount_)
-	{
-		case 2:
-			if(defaultVal)
-				(*defaultVal) >> x >> y;	
-			return new script::ScriptVector2(float(x), float(y));
-		case 3:
-			if(defaultVal)
-				(*defaultVal) >> x >> y >> z;	
-			return new script::ScriptVector3(float(x), float(y), float(z));
-		case 4:
-			if(defaultVal)
-				(*defaultVal) >> x >> y >> z >> w;	
-			return new script::ScriptVector4(float(x), float(y), float(z), float(w));
-		default:
-			break;
-	}
-	
-	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -498,7 +438,37 @@ void VectorType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* VectorType::createFromStream(MemoryStream* mstream)
 {
-	return createObject(mstream);
+#ifdef CLIENT_NO_FLOAT
+		int32 x = 0, y = 0, z = 0, w = 0;
+#else
+		float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
+#endif
+
+	uint32 count = 0;
+	(*mstream) >> count;
+	
+	if(count != elemCount_)
+		return NULL;
+
+	switch(elemCount_)
+	{
+		case 2:
+			if(mstream)
+				(*mstream) >> x >> y;	
+			return new script::ScriptVector2(float(x), float(y));
+		case 3:
+			if(mstream)
+				(*mstream) >> x >> y >> z;	
+			return new script::ScriptVector3(float(x), float(y), float(z));
+		case 4:
+			if(mstream)
+				(*mstream) >> x >> y >> z >> w;	
+			return new script::ScriptVector4(float(x), float(y), float(z), float(w));
+		default:
+			break;
+	}
+	
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -528,23 +498,6 @@ bool StringType::isSameType(PyObject* pyValue)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* StringType::createObject(MemoryStream* defaultVal)
-{
-	std::string val = "";
-	if(defaultVal)
-		(*defaultVal) >> val;
-
-	PyObject* pyobj = PyUnicode_FromString(val.c_str());
-
-	if (pyobj && !PyErr_Occurred()) 
-		return pyobj;
-
-	::PyErr_PrintEx(0);
-
-	return NULL;
-}
-
-//-------------------------------------------------------------------------------------
 PyObject* StringType::parseDefaultStr(std::string defaultVal)
 {
 	PyObject* pyobj = PyUnicode_FromString(defaultVal.c_str());
@@ -570,7 +523,18 @@ void StringType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* StringType::createFromStream(MemoryStream* mstream)
 {
-	return createObject(mstream);
+	std::string val = "";
+	if(mstream)
+		(*mstream) >> val;
+
+	PyObject* pyobj = PyUnicode_FromString(val.c_str());
+
+	if (pyobj && !PyErr_Occurred()) 
+		return pyobj;
+
+	::PyErr_PrintEx(0);
+
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -597,26 +561,6 @@ bool UnicodeType::isSameType(PyObject* pyValue)
 	if(!ret)
 		OUT_TYPE_ERROR("UNICODE");
 	return ret;
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* UnicodeType::createObject(MemoryStream* defaultVal)
-{
-	std::string val = "";
-	if(defaultVal)
-	{
-		defaultVal->readBlob(val);
-	}
-
-	PyObject* pyobj = PyUnicode_DecodeUTF8(val.data(), val.size(), "");
-
-	if(pyobj && !PyErr_Occurred()) 
-	{
-		return pyobj;
-	}
-
-	::PyErr_PrintEx(0);
-	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -650,7 +594,21 @@ void UnicodeType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* UnicodeType::createFromStream(MemoryStream* mstream)
 {
-	return createObject(mstream);
+	std::string val = "";
+	if(mstream)
+	{
+		mstream->readBlob(val);
+	}
+
+	PyObject* pyobj = PyUnicode_DecodeUTF8(val.data(), val.size(), "");
+
+	if(pyobj && !PyErr_Occurred()) 
+	{
+		return pyobj;
+	}
+
+	::PyErr_PrintEx(0);
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -680,13 +638,11 @@ bool PythonType::isSameType(PyObject* pyValue)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* PythonType::createObject(MemoryStream* defaultVal)
+PyObject* PythonType::parseDefaultStr(std::string defaultVal)
 {
 	std::string val = "";
-	if(defaultVal)
+	if(val.size() > 0)
 	{
-		(*defaultVal) >> val;
-	
 		PyObject* module = PyImport_AddModule("__main__");
 		if(module == NULL)
 		{
@@ -700,12 +656,6 @@ PyObject* PythonType::createObject(MemoryStream* defaultVal)
 	}
 		
 	S_Return;
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* PythonType::parseDefaultStr(std::string defaultVal)
-{
-	Py_RETURN_NONE;
 }
 
 //-------------------------------------------------------------------------------------
@@ -760,34 +710,6 @@ bool BlobType::isSameType(PyObject* pyValue)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* BlobType::createObject(MemoryStream* defaultVal)
-{	
-	uint32 size = 0;
-	std::string val = "";
-	if(defaultVal)
-	{
-		(*defaultVal) >> size;
-		val.assign((char*)(defaultVal->data() + defaultVal->rpos()), size);
-		defaultVal->read_skip(size);
-	}
-
-	if(size == 0)
-	{
-		S_Return;
-	}
-
-	PyObject* pyobj = PyBytes_FromStringAndSize(val.data(), size);
-
-	if (pyobj && !PyErr_Occurred())
-	{
-		return pyobj;
-	}
-
-	OUT_TYPE_ERROR("BLOB");
-	return NULL;
-}
-
-//-------------------------------------------------------------------------------------
 PyObject* BlobType::parseDefaultStr(std::string defaultVal)
 {
 	Py_RETURN_NONE;
@@ -811,7 +733,29 @@ void BlobType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* BlobType::createFromStream(MemoryStream* mstream)
 {
-	return createObject(mstream);
+	uint32 size = 0;
+	std::string val = "";
+	if(mstream)
+	{
+		(*mstream) >> size;
+		val.assign((char*)(mstream->data() + mstream->rpos()), size);
+		mstream->read_skip(size);
+	}
+
+	if(size == 0)
+	{
+		S_Return;
+	}
+
+	PyObject* pyobj = PyBytes_FromStringAndSize(val.data(), size);
+
+	if (pyobj && !PyErr_Occurred())
+	{
+		return pyobj;
+	}
+
+	OUT_TYPE_ERROR("BLOB");
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -838,12 +782,6 @@ bool MailboxType::isSameType(PyObject* pyValue)
 	if(ret)
 		OUT_TYPE_ERROR("MAILBOX");
 	return !ret;
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* MailboxType::createObject(MemoryStream* defaultVal)
-{
-	S_Return;
 }
 
 //-------------------------------------------------------------------------------------
@@ -977,26 +915,6 @@ bool FixedArrayType::isSameType(PyObject* pyValue)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* FixedArrayType::createObject(MemoryStream* defaultVal)
-{
-	uint32 size;
-	FixedArray* arr = new FixedArray(this);
-
-	if(defaultVal)
-	{
-		(*defaultVal) >> size;	
-		
-		for(uint32 i=0; i<size; i++)
-		{
-			//PyObject* pyVal = dataType_->createObject(defaultVal);
-			//arr->add(pyVal);
-		}
-	}
-
-	return arr;
-}
-
-//-------------------------------------------------------------------------------------
 PyObject* FixedArrayType::parseDefaultStr(std::string defaultVal)
 {
 	return new FixedArray(this);
@@ -1019,7 +937,23 @@ void FixedArrayType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* FixedArrayType::createFromStream(MemoryStream* mstream)
 {
-	return createObject(mstream);
+	uint32 size;
+	FixedArray* arr = new FixedArray(this);
+
+	if(mstream)
+	{
+		(*mstream) >> size;	
+		
+		for(uint32 i=0; i<size; i++)
+		{
+			PyObject* pyVal = dataType_->createFromStream(mstream);
+
+			std::vector<PyObject*>& vals = arr->getValues();
+			vals.push_back(pyVal);
+		}
+	}
+
+	return arr;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1249,7 +1183,7 @@ PyObject* FixedDictType::impl_createObjFromDict(PyObject* dictData)
 PyObject* FixedDictType::impl_getDictFromObj(PyObject* pyobj)
 {
 	PyObject* pyRet = PyObject_CallFunction(pygetDictFromObj_, 
-		const_cast<char*>("(O)"), pyobj);
+		const_cast<char*>("(O)"), impl_createObjFromDict(pyobj));
 	
 	if(pyRet == NULL)
 	{
@@ -1349,25 +1283,6 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* FixedDictType::createObject(MemoryStream* defaultVal)
-{
-	std::string val = "";
-	if(defaultVal)
-		(*defaultVal) >> val;	
-
-	FixedDict* pydict = new FixedDict(this, val);
-
-	if(hasImpl())
-	{
-		PyObject* pyValue = impl_createObjFromDict(pydict);
-		Py_DECREF(pydict);
-		return pyValue;
-	}
-
-	return pydict;
-}
-
-//-------------------------------------------------------------------------------------
 PyObject* FixedDictType::parseDefaultStr(std::string defaultVal)
 {
 	PyObject* val = PyDict_New();
@@ -1413,7 +1328,16 @@ void FixedDictType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* FixedDictType::createFromStream(MemoryStream* mstream)
 {
-	return createObject(mstream);
+	FixedDict* pydict = new FixedDict(this, mstream);
+
+	if(hasImpl())
+	{
+		PyObject* pyValue = impl_createObjFromDict(pydict);
+		Py_DECREF(pydict);
+		return pyValue;
+	}
+
+	return pydict;
 }
 
 //-------------------------------------------------------------------------------------

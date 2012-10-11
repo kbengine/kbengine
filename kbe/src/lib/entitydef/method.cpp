@@ -114,7 +114,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 		PyObject* pyArg = PyTuple_GetItem(args, i + offset);
 		if (!argTypes_[i]->isSameType(pyArg))
 		{
-			PyObject* pExample = argTypes_[i]->createObject(NULL);
+			PyObject* pExample = argTypes_[i]->parseDefaultStr("");
 			PyErr_Format(PyExc_TypeError,
 				"Method::checkArgs: method[%s] argument %d: Expected %s, %s found",
 				getName(),
