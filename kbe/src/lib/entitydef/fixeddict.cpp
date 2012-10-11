@@ -264,7 +264,7 @@ PyObject* FixedDict::update(PyObject* args)
 		if(val)
 		{
 			PyObject* val1 = static_cast<FixedDictType*>(getDataType())->createNewItemFromObj(iter->first.c_str(), val);
-			int ret = PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
+			PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
 			Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
 		}
 	}
