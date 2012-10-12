@@ -373,5 +373,80 @@ void Machine::finalise()
 }
 
 //-------------------------------------------------------------------------------------
+void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	uint32 startCount = 0;
+	int32 uid = 0;
+
+	s >> uid;
+	s >> startCount;
+	
+	std::string componentTypeStrs;
+	std::vector<COMPONENT_TYPE> startcomponents;
+
+	for(uint32 i=0; i<startCount; i++)
+	{
+		COMPONENT_TYPE componentType;
+		s >> componentType;
+		startcomponents.push_back(componentType);
+		componentTypeStrs += COMPONENT_NAME[componentType];
+		componentTypeStrs += "|";
+	}
+
+	INFO_MSG("Machine::startserver: uid=%d, startCount=%u:[%s]\n", uid, startCount, componentTypeStrs.c_str());
+
+	for(uint32 i=0; i<startCount; i++)
+	{
+		COMPONENT_TYPE componentType = startcomponents[i];
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+		STARTUPINFO si;
+		PROCESS_INFORMATION pi;
+
+		std::string str = Resmgr::getEnv().hybrid_path;
+		str += COMPONENT_NAME[componentType];
+		str += ".exe";
+		wchar_t* szCmdline = KBEngine::char2wchar(str.c_str());
+		
+		wchar_t* currdir = KBEngine::char2wchar(Resmgr::getEnv().hybrid_path.c_str());
+
+		ZeroMemory( &si, sizeof(si));
+		si.cb = sizeof(si);
+		ZeroMemory( &pi, sizeof(pi));
+
+		if(!CreateProcess( NULL,   // No module name (use command line)
+			szCmdline,      // Command line
+			NULL,           // Process handle not inheritable
+			NULL,           // Thread handle not inheritable
+			FALSE,          // Set handle inheritance to FALSE
+			0,              // No creation flags
+			NULL,           // Use parent's environment block
+			currdir,           // Use parent's starting directory
+			&si,            // Pointer to STARTUPINFO structure
+			&pi )           // Pointer to PROCESS_INFORMATION structure
+		)
+		{
+			ERROR_MSG( "Machine::startserver:CreateProcess failed (%d).\n", GetLastError());
+			free(szCmdline);
+			free(currdir);
+			return;
+		}
+		
+		free(szCmdline);
+		free(currdir);
+#else
+#endif
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	int32 uid = 0;
+	s >> uid;
+}
+
+
+//-------------------------------------------------------------------------------------
 
 }

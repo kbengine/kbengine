@@ -174,8 +174,8 @@ BEGIN_MESSAGE_MAP(CguiconsoleDlg, CDialog)
 	ON_COMMAND(ID_32771, &CguiconsoleDlg::OnConnectRemoteMachine)
 	ON_COMMAND(ID_HELP_ABOUT, &CguiconsoleDlg::OnHelpAbout)
 	ON_COMMAND(ID_BUTTON32784, &CguiconsoleDlg::OnToolBar_Find)
-	ON_COMMAND(ID_BUTTON32783, &CguiconsoleDlg::OnToolBar_StartServer)
-	ON_COMMAND(ID_BUTTON32780, &CguiconsoleDlg::OnToolBar_StopServer)
+	ON_COMMAND(ID_BUTTON32780, &CguiconsoleDlg::OnToolBar_StartServer)
+	ON_COMMAND(ID_BUTTON32783, &CguiconsoleDlg::OnToolBar_StopServer)
 END_MESSAGE_MAP()
 
 
@@ -1256,9 +1256,78 @@ void CguiconsoleDlg::OnToolBar_Find()
 
 void CguiconsoleDlg::OnToolBar_StartServer()
 {
-}
+	COMPONENT_TYPE startComponentTypes[6] = {BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE};
+	uint32 count = 6;
 
+	while(1)
+	{
+		srand(KBEngine::getSystemTime());
+		uint16 nport = KBE_PORT_START + (rand() % 1000);
+		Mercury::BundleBroadcast bhandler(_networkInterface, nport);
+
+		if(!bhandler.good())
+		{
+			KBEngine::sleep(10);
+			nport = KBE_PORT_START + (rand() % 1000);
+			continue;
+		}
+
+		bhandler.newMessage(MachineInterface::startserver);
+		bhandler << KBEngine::getUserUID();
+		bhandler << count;
+
+		for(uint32 i=0; i<count; i++)
+		{
+			bhandler << startComponentTypes[i];
+		}
+
+		if(!bhandler.broadcast())
+		{
+			ERROR_MSG("CguiconsoleDlg::OnToolBar_StartServer: broadcast error!\n");
+			//::AfxMessageBox(L"不能发送服务器启动包。");
+			return;
+		}
+
+		if(!bhandler.receive(NULL, 0))
+		{
+			ERROR_MSG("CguiconsoleDlg::OnToolBar_StartServer: recv error!\n");
+			//::AfxMessageBox(L"接收服务器启动包错误。");
+			return;
+		}
+	
+	}
+}
 
 void CguiconsoleDlg::OnToolBar_StopServer()
 {
+	while(1)
+	{
+		srand(KBEngine::getSystemTime());
+		uint16 nport = KBE_PORT_START + (rand() % 1000);
+		Mercury::BundleBroadcast bhandler(_networkInterface, nport);
+
+		if(!bhandler.good())
+		{
+			KBEngine::sleep(10);
+			nport = KBE_PORT_START + (rand() % 1000);
+			continue;
+		}
+
+		bhandler.newMessage(MachineInterface::stopserver);
+		bhandler << KBEngine::getUserUID();
+
+		if(!bhandler.broadcast())
+		{
+			ERROR_MSG("CguiconsoleDlg::OnToolBar_StopServer: broadcast error!\n");
+			//::AfxMessageBox(L"不能发送服务器启动包。");
+			return;
+		}
+
+		if(!bhandler.receive(NULL, 0))
+		{
+			ERROR_MSG("CguiconsoleDlg::OnToolBar_StopServer: recv error!\n");
+			//::AfxMessageBox(L"接收服务器启动包错误。");
+			return;
+		}
+	}
 }

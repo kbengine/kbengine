@@ -83,6 +83,19 @@ public:
 	bool initializeEnd();
 	void finalise();
 	bool initNetwork();
+
+	/** 网络接口
+		启动服务器
+		@uid: 提供启动的uid参数
+		@components: 启动哪些组件(可能采取分布式启动方案)
+	*/
+	void startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+		关闭服务器
+		@uid: 提供启动的uid参数
+	*/
+	void stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	// udp广播地址
 	u_int32_t broadcastAddr_;

@@ -163,7 +163,7 @@ bool Componentbridge::findInterfaces()
 		}
 	
 		MachineInterface::onBroadcastInterfaceArgs8 args;
-		if(bhandler.receive(&args, 0))
+		if(bhandler.receive(&args, 0, 1000000))
 		{
 			if(args.componentType == UNKNOWN_COMPONENT_TYPE)
 			{
