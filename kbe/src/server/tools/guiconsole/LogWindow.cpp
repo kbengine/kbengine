@@ -106,15 +106,15 @@ void CLogWindow::onReceiveRemoteLog(std::string str)
 	s.Replace(L"\r", L"");
 
 	if(s.Find(L"WARNING") >= 0)
-		m_loglist.AddEntry(s, RGB(255, 165, 0), m_loglist.GetCount());
+		m_loglist.AddString(s, RGB(0, 0, 0), RGB(255, 165, 0));
 	else if(s.Find(L"ERROR") >= 0)
-		m_loglist.AddEntry(s, RGB(255, 0, 0), m_loglist.GetCount());
+		m_loglist.AddString(s, RGB(0, 0, 0), RGB(255, 0, 0));
 	else if(s.Find(L"CRITICAL") >= 0)
-		m_loglist.AddEntry(s, RGB(100, 149, 237), m_loglist.GetCount());
+		m_loglist.AddString(s, RGB(0, 0, 0), RGB(100, 149, 237));
 	else if(s.Find(L"SCRIPT") >= 0)
-		m_loglist.AddEntry(s, RGB(255, 255, 255), m_loglist.GetCount());
+		m_loglist.AddString(s, RGB(0, 0, 0), RGB(237, 237,237));
 	else
-		m_loglist.AddEntry(s, RGB(237, 237,237), m_loglist.GetCount());
+		m_loglist.AddString(s, RGB(80, 80, 80), RGB(237, 237,237));
 
 	::SendMessage(m_loglist.m_hWnd, WM_VSCROLL, SB_BOTTOM, 0);
 }

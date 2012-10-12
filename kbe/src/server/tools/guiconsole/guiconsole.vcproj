@@ -346,6 +346,10 @@
 				RelativePath=".\res\guiconsole.rc2"
 				>
 			</File>
+			<File
+				RelativePath=".\res\toolbar1.bmp"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"

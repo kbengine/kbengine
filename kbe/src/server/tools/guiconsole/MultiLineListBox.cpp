@@ -4,112 +4,273 @@
 #include "stdafx.h"
 #include "MultiLineListBox.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-
-/////////////////////////////////////////////////////////////////////////////
 // CMultiLineListBox
+#define MSG_UPDATEITEM WM_USER + 0x1001
+#define ITEM_HEIGHT 20
+
+int CMultiLineListBox::m_nFocusIndex = -1;
+
+IMPLEMENT_DYNAMIC(CMultiLineListBox, CListBox)
+
+CMultiLineListBox::CMultiLineListBox()
+{
+	m_sArray.clear();
+}
+
+CMultiLineListBox::~CMultiLineListBox() 
+{
+	vector<LISTBOXINFO*>::const_iterator iter1 = m_sArray.begin();
+	for(; iter1 != m_sArray.end(); ++iter1)
+	{
+		LISTBOXINFO* pNode = *iter1;
+		vector<LISTBOXINFO::SUBNODEINFO*>::const_iterator iter2 = pNode->subArray.begin();
+		for(; iter2 != pNode->subArray.end(); ++iter2)
+		{
+			LISTBOXINFO::SUBNODEINFO* pSubNode = *iter2;
+			delete pSubNode;
+			pSubNode = NULL;
+		}
+		delete pNode;
+		pNode = NULL;
+	}
+	m_sArray.clear();
+}
 
 BEGIN_MESSAGE_MAP(CMultiLineListBox, CListBox)
-	//{{AFX_MSG_MAP(CMultiLineListBox)
-		// NOTE - the ClassWizard will add and remove mapping macros here.
-	//}}AFX_MSG_MAP
+	ON_WM_ERASEBKGND()
+	ON_WM_KEYDOWN()
+	ON_WM_LBUTTONDOWN()
+	ON_WM_MOUSEMOVE()
+	ON_MESSAGE(MSG_UPDATEITEM, &CMultiLineListBox::OnUpdateItem)
 END_MESSAGE_MAP()
 
-/////////////////////////////////////////////////////////////////////////////
+int CMultiLineListBox::InsertString(int nIndex, LPCTSTR pszText, COLORREF fgColor, COLORREF bgColor)
+{
+	LISTBOXINFO* pListBox = new LISTBOXINFO;
+	ASSERT(pListBox);
+
+	ASSERT((nIndex >= 0) && (nIndex <= GetCount()));
+
+	pListBox->strText = pszText;
+	pListBox->fgColor = fgColor;
+	pListBox->bgColor = bgColor;
+
+	m_sArray.insert(m_sArray.begin() + nIndex, pListBox);
+
+	return CListBox::InsertString(nIndex, pszText);
+}
+
+int CMultiLineListBox::AddString(LPCTSTR pszText, COLORREF fgColor, COLORREF bgColor)
+{
+	LISTBOXINFO* pListBox = new LISTBOXINFO;
+	ASSERT(pListBox);
+
+	pListBox->strText = pszText;
+	pListBox->fgColor = fgColor;
+	pListBox->bgColor = bgColor;
+
+	m_sArray.push_back(pListBox);
+
+	return CListBox::AddString(pszText);
+}
+
+void CMultiLineListBox::AddSubString(int nIndex, LPCTSTR pszText, COLORREF fgColor, COLORREF bgColor)
+{
+	ASSERT((nIndex >=0) && (nIndex < GetCount()));
+	
+	ASSERT(!m_sArray.empty());
+
+	LISTBOXINFO* pListBox = m_sArray.at(nIndex);
+	ASSERT(pListBox);
+
+	LISTBOXINFO::SUBNODEINFO* pSubNode = new LISTBOXINFO::SUBNODEINFO;
+	ASSERT(pSubNode);
+
+	pSubNode->strText = pszText;
+	pSubNode->fgColor = fgColor;
+	pSubNode->bgColor = bgColor;
+	pListBox->subArray.push_back(pSubNode);
+}
+
 // CMultiLineListBox message handlers
 
-void CMultiLineListBox::AddEntry(LPCTSTR lpszItem, COLORREF color, int nIndex /* 0 */)
+void CMultiLineListBox::MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct)
 {
-	int index = InsertString(nIndex, lpszItem);
-	SetItemData(index,color);
+	// TODO:  Add your code to determine the size of specified item
+	ASSERT(lpMeasureItemStruct->CtlType == ODT_LISTBOX);
+
+	lpMeasureItemStruct->itemHeight = ITEM_HEIGHT;
 }
 
-void CMultiLineListBox::MeasureItem(LPMEASUREITEMSTRUCT lpMIS)
+void CMultiLineListBox::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 {
-// all items are of fixed size
-// must use LBS_OWNERDRAWVARIABLE for this to work
+	// TODO:  Add your code to draw the specified item
+	ASSERT(lpDrawItemStruct->CtlType == ODT_LISTBOX);
 
-	int nItem = lpMIS->itemID;
-	CPaintDC dc(this);
-	CString sLabel;
-	CRect rcLabel;
+	int nIndex = lpDrawItemStruct->itemID;
 
-	GetText( nItem, sLabel );
-	GetItemRect(nItem, rcLabel);
+	if((!m_sArray.empty())  && (nIndex < static_cast<int>(m_sArray.size())))
+	{
+		CDC dc;
+		dc.Attach(lpDrawItemStruct->hDC);
 
-// Using the flags below, calculate the required rectangle for 
-// the text and set the item height for this specific item based
-// on the return value (new height).
+		// Save these value to restore them when done drawing.
+		COLORREF crOldTextColor = dc.GetTextColor();
+		COLORREF crOldBkColor = dc.GetBkColor();
 
-	int itemHeight = dc.DrawText( sLabel, -1, rcLabel, DT_WORDBREAK | DT_CALCRECT );
-	lpMIS->itemHeight = itemHeight;
+		// If this item is selected, set the background color 
+		// and the text color to appropriate values. Also, erase
+		// rect by filling it with the background color.
+		CRect rc(lpDrawItemStruct->rcItem);
+		
+		LISTBOXINFO* pListBox = m_sArray.at(nIndex);
+		ASSERT(pListBox);
+
+		if ((lpDrawItemStruct->itemAction | ODA_SELECT) &&
+			(lpDrawItemStruct->itemState & ODS_SELECTED))
+		{
+			dc.SetTextColor(pListBox->bgColor);
+			dc.SetBkColor(pListBox->fgColor);
+			dc.FillSolidRect(&rc, pListBox->fgColor);
+
+			// Draw item the text.
+			CRect rect(rc);
+			int nItemCount = 1;
+			nItemCount += static_cast<int>(pListBox->subArray.size());
+			int nItemHeight = rc.Height() / nItemCount;
+			rect.bottom = rect.top + nItemHeight;
+			dc.DrawText(pListBox->strText, pListBox->strText.GetLength(), CRect(rect.left + 5, rect.top, rect.right, rect.bottom), DT_SINGLELINE | DT_VCENTER);
+			
+			// Draw subitem the text.
+			CRect rcItem;
+			rcItem.SetRectEmpty();
+			rcItem.top = rect.bottom;
+			rcItem.left = rect.left;
+			rcItem.right = rect.right;
+			rcItem.bottom = rcItem.top + nItemHeight;
+			
+			vector<LISTBOXINFO::SUBNODEINFO*>::const_iterator iter = pListBox->subArray.begin();
+			for(; iter != pListBox->subArray.end(); ++iter)
+			{
+				LISTBOXINFO::SUBNODEINFO* pSubNode = *iter;
+ 				dc.SetTextColor(pSubNode->fgColor);
+ 				dc.SetBkColor(pSubNode->bgColor);
+ 				dc.FillSolidRect(&rcItem, pSubNode->bgColor);
+
+				CRect rectItem(rcItem);
+				rectItem.left += 22;
+				dc.DrawText(pSubNode->strText, pSubNode->strText.GetLength(), &rectItem, DT_SINGLELINE | DT_VCENTER);
+				
+				rcItem.top = rcItem.bottom;
+				rcItem.bottom = rcItem.top + nItemHeight;
+			}
+
+			dc.DrawFocusRect(rc);	// Draw focus rect
+		}
+		else
+		{
+			dc.SetTextColor(pListBox->fgColor);
+			dc.SetBkColor(pListBox->bgColor);
+			dc.FillSolidRect(&rc, pListBox->bgColor);
+
+			// Draw the text.
+			CRect rect(rc);
+			rect.left += 5;
+			dc.DrawText(pListBox->strText, pListBox->strText.GetLength(), &rect, DT_SINGLELINE | DT_VCENTER);
+		}
+
+		// Reset the background color and the text color back to their
+		// original values.
+		dc.SetTextColor(crOldTextColor);
+		dc.SetBkColor(crOldBkColor);
+
+		dc.Detach();
+	}
 }
 
-void CMultiLineListBox::DrawItem(LPDRAWITEMSTRUCT lpDIS)
+BOOL CMultiLineListBox::OnEraseBkgnd(CDC* pDC)
 {
-	if(this->GetCount() <= 0)
-		return;
+	// Set listbox background color
+	CRect rc;
+	GetClientRect(&rc);
+	
+	CDC memDC;
+	memDC.CreateCompatibleDC(pDC);
+	ASSERT(memDC.GetSafeHdc());
 
-	CDC* pDC = CDC::FromHandle(lpDIS->hDC);
+	CBitmap bmp;
+	bmp.CreateCompatibleBitmap(pDC, rc.Width(), rc.Height());
+	ASSERT(bmp.GetSafeHandle());
 
-	COLORREF rColor = (COLORREF)lpDIS->itemData; // RGB in item data
+	CBitmap* pOldbmp = (CBitmap*)memDC.SelectObject(&bmp);
 
-	CString sLabel;
-	GetText(lpDIS->itemID, sLabel);
+	memDC.FillSolidRect(rc, LISTBOX_BACKGROUND); // Set background color which you want
+	pDC->BitBlt(0, 0, rc.Width(), rc.Height(), &memDC, 0, 0, SRCCOPY);
 
-	// item selected
-	if ((lpDIS->itemState & ODS_SELECTED) &&
-		(lpDIS->itemAction & (ODA_SELECT | ODA_DRAWENTIRE)))
+	memDC.SelectObject(pOldbmp);
+	bmp.DeleteObject();
+	memDC.DeleteDC();
+
+	return TRUE;
+}
+
+void CMultiLineListBox::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	// TODO: Add your message handler code here and/or call default
+	CListBox::OnKeyDown(nChar, nRepCnt, nFlags);
+
+	UpdateItem();
+}
+
+void CMultiLineListBox::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	// TODO: Add your message handler code here and/or call default
+	CListBox::OnLButtonDown(nFlags, point);
+
+	UpdateItem();
+}
+
+void CMultiLineListBox::OnMouseMove(UINT nFlags, CPoint point)
+{
+	// TODO: Add your message handler code here and/or call default
+	CListBox::OnMouseMove(nFlags, point);
+
+	UpdateItem();
+}
+
+void CMultiLineListBox::UpdateItem()
+{
+	// If per item height not equal, you must calculate area between the current focus item with last one,
+	// otherwise you must calculate area between the current focus item with previously focus item.
+	int nIndex = GetCurSel();
+	if((CB_ERR != nIndex) && (m_nFocusIndex != nIndex))
 	{
-		// draw color box
-		CBrush colorBrush(rColor);
-		CRect colorRect = lpDIS->rcItem;
+		PostMessage(MSG_UPDATEITEM, (WPARAM)m_nFocusIndex, (LPARAM)nIndex);
+		m_nFocusIndex = nIndex; // Set current select focus index
+	}
+}
 
-		// draw label background
-		CBrush labelBrush(::GetSysColor(COLOR_HIGHLIGHT));
-		CRect labelRect = lpDIS->rcItem;
-		pDC->FillRect(&labelRect,&labelBrush);
+LRESULT CMultiLineListBox::OnUpdateItem(WPARAM wParam, LPARAM lParam)
+{
+	int nPreIndex = static_cast<int>(wParam);
+	int nCurIndex = static_cast<int>(lParam);
+	if(m_sArray.size() == 0)
+		return 0;
 
-		// draw label text
-		COLORREF colorTextSave;
-		COLORREF colorBkSave;
-
-		colorTextSave = pDC->SetTextColor(::GetSysColor(COLOR_HIGHLIGHTTEXT));
-		colorBkSave = pDC->SetBkColor(::GetSysColor(COLOR_HIGHLIGHT));
-		pDC->DrawText( sLabel, -1, &lpDIS->rcItem, DT_WORDBREAK );
-
-		pDC->SetTextColor(colorTextSave);
-		pDC->SetBkColor(colorBkSave);
-
-		return;
+	if(-1 != nPreIndex)
+	{
+		SetItemHeight(nPreIndex, ITEM_HEIGHT);
+	}
+	
+	if(-1 != nCurIndex)
+	{
+		int nItemCount = 1;
+		LISTBOXINFO* pListBox = m_sArray.at(nCurIndex);
+		ASSERT(pListBox);
+		nItemCount += static_cast<int>(pListBox->subArray.size());
+		SetItemHeight(nCurIndex, ITEM_HEIGHT * nItemCount);
 	}
 
-	// item brought into box
-	if (lpDIS->itemAction & ODA_DRAWENTIRE)
-	{
-		CBrush brush(rColor);
-		CRect rect = lpDIS->rcItem;
-		pDC->SetBkColor(rColor);
-		pDC->FillRect(&rect,&brush);
-		pDC->DrawText( sLabel, -1, &lpDIS->rcItem, DT_WORDBREAK );
-
-		return;
-	}
-
-	// item deselected
-	if (!(lpDIS->itemState & ODS_SELECTED) &&
-		(lpDIS->itemAction & ODA_SELECT))
-	{
-		CRect rect = lpDIS->rcItem;
-		CBrush brush(rColor);
-		pDC->SetBkColor(rColor);
-		pDC->FillRect(&rect,&brush);
-		pDC->DrawText( sLabel, -1, &lpDIS->rcItem, DT_WORDBREAK );
-
-		return;
-	}
+ 	Invalidate(); // Update item
+	return 0;
 }

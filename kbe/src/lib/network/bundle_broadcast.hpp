@@ -47,7 +47,7 @@ public:
 	EventDispatcher& dispatcher();
 	
 	bool broadcast(uint16 port = 0);
-	bool receive(MessageArgs* recvArgs, sockaddr_in* psin = NULL);
+	bool receive(MessageArgs* recvArgs, sockaddr_in* psin = NULL, int32 timeout = 100000);
 
 	Mercury::EndPoint& epListen() { return epListen_; }
 

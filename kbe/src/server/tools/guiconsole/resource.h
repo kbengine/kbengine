@@ -17,6 +17,8 @@
 #define IDD_WATCHER                     135
 #define IDD_DIALOG1                     136
 #define IDD_DIALOG_REMOTE_CONNECT       136
+#define IDR_MAIN_MENU1                  137
+#define IDR_TOOLBAR1                    138
 #define IDC_TAB1                        1000
 #define IDC_LIST1                       1001
 #define IDC_EDIT1                       1002
@@ -38,14 +40,19 @@
 #define IDC_STATUS_LIST1                1018
 #define ID_32771                        32771
 #define ID_32772                        32772
+#define ID_HELP_ABOUT                   32773
+#define ID_FILE_CLOSE32774              32774
+#define ID_BUTTON32780                  32780
+#define ID_BUTTON32783                  32783
+#define ID_BUTTON32784                  32784
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        137
-#define _APS_NEXT_COMMAND_VALUE         32773
-#define _APS_NEXT_CONTROL_VALUE         1019
+#define _APS_NEXT_RESOURCE_VALUE        140
+#define _APS_NEXT_COMMAND_VALUE         32785
+#define _APS_NEXT_CONTROL_VALUE         1020
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

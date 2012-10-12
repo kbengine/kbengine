@@ -77,6 +77,10 @@ public:
 	afx_msg void OnNMRClickTree1(NMHDR *pNMHDR, LRESULT *pResult);
 	
 	afx_msg void OnMenu_Update();
+
+	afx_msg void OnToolBar_Find();
+	afx_msg void OnToolBar_StartServer();
+	afx_msg void OnToolBar_StopServer();
 private:
 	COMPONENT_TYPE _componentType;
 	COMPONENT_ID _componentID;
@@ -94,8 +98,11 @@ private:
 	std::deque<CString> m_historyCommand;
 	int8 m_historyCommandIndex;
 	bool m_isUsingHistroy;
+	CToolBar m_ToolBar;
+	CImageList m_ImageList;
 public:
 	afx_msg void OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnConnectRemoteMachine();
+	afx_msg void OnHelpAbout();
 };

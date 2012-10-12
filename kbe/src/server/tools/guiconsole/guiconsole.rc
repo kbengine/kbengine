@@ -223,6 +223,55 @@ BEGIN
     END
 END
 
+IDR_MAIN_MENU1 MENU 
+BEGIN
+    POPUP "File"
+    BEGIN
+        MENUITEM "close",                       ID_FILE_CLOSE32774
+    END
+    POPUP "Help"
+    BEGIN
+        MENUITEM "About",                       ID_HELP_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_TOOLBAR1 TOOLBAR  19, 20
+BEGIN
+    BUTTON      ID_BUTTON32780
+    BUTTON      ID_BUTTON32783
+    BUTTON      ID_BUTTON32784
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_TOOLBAR1            BITMAP                  "res\\toolbar1.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    ID_BUTTON32780          "启动服务器"
+    ID_BUTTON32783          "停止服务器"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_BUTTON32784          "查找服务器"
+END
+
 #endif    // Chinese (P.R.C.) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -256,10 +305,11 @@ IDD_GUICONSOLE_DIALOG DIALOGEX 0, 0, 558, 295
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_APPWINDOW
 CAPTION "guiconsole"
+MENU IDR_MAIN_MENU1
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    CONTROL         "",IDC_TAB1,"SysTabControl32",0x0,7,7,119,94
-    CONTROL         "",IDC_TREE1,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_CHECKBOXES | TVS_TRACKSELECT | TVS_SINGLEEXPAND | WS_BORDER | WS_HSCROLL | WS_TABSTOP,7,117,101,86
+    CONTROL         "",IDC_TAB1,"SysTabControl32",0x0,221,187,119,94
+    CONTROL         "",IDC_TREE1,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_CHECKBOXES | TVS_TRACKSELECT | TVS_SINGLEEXPAND | WS_BORDER | WS_HSCROLL | WS_TABSTOP,36,185,101,86
 END
 
 

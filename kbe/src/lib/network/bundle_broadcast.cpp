@@ -125,7 +125,7 @@ bool BundleBroadcast::broadcast(uint16 port)
 }
 
 //-------------------------------------------------------------------------------------
-bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin)
+bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 timeout)
 {
 	if (!epListen_.good())
 		return false;
@@ -134,8 +134,8 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin)
 	fd_set fds;
 	
 	int icount = 1;
-	tv.tv_sec = 1;
-	tv.tv_usec = 0;
+	tv.tv_sec = 0;
+	tv.tv_usec = timeout;
 	
 	if(!pCurrPacket())
 		newPacket();

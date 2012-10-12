@@ -1,47 +1,96 @@
-#if !defined(AFX_MULTILINELISTBOX_H__BF8E1EC2_833B_11D2_8BE7_A813DF000000__INCLUDED_)
-#define AFX_MULTILINELISTBOX_H__BF8E1EC2_833B_11D2_8BE7_A813DF000000__INCLUDED_
-
-#if _MSC_VER >= 1000
 #pragma once
-#endif // _MSC_VER >= 1000
-// MultiLineListBox.h : header file
-//
 
-/////////////////////////////////////////////////////////////////////////////
+#include <vector>
+using namespace std;
 // CMultiLineListBox
+
+#define RGB_FOREGROUND RGB(0, 0, 0)
+#define RGB_BACKGROUND RGB(255, 255, 255)
+#define LISTBOX_BACKGROUND RGB(237, 237,237)
 
 class CMultiLineListBox : public CListBox
 {
-// Attributes
+	DECLARE_DYNAMIC(CMultiLineListBox)
+
 public:
+	CMultiLineListBox();
+	virtual ~CMultiLineListBox();
 
-// Operations
+typedef struct _LISTBOX_INFO_
+{
 public:
-	void AddEntry(LPCTSTR lpszItem, COLORREF color, int nIndex=0);
+	typedef struct _SUBNODE_INFO_
+	{
+	public:
+		CString strText;
+		COLORREF fgColor;
+		COLORREF bgColor;
 
-	virtual void MeasureItem(LPMEASUREITEMSTRUCT lpMIS);
-	virtual void DrawItem(LPDRAWITEMSTRUCT lpDIS);
+		_SUBNODE_INFO_()
+		{
+			clean();
+		}
+		~_SUBNODE_INFO_()
+		{
+			clean();
+		}
+	protected:
+		inline void clean(void)
+		{
+			strText.Empty();
+			fgColor = RGB_FOREGROUND;
+			bgColor = RGB_BACKGROUND;
+		}
+	}SUBNODEINFO, *PSUBNODEINFO;
 
-// Overrides
-	// ClassWizard generated virtual function overrides
-	//{{AFX_VIRTUAL(CMultiLineListBox)
-	//}}AFX_VIRTUAL
-
-// Implementation
 public:
+	vector<SUBNODEINFO*> subArray;
+	CString strText;
+	COLORREF fgColor;
+	COLORREF bgColor;
 
-	// Generated message map functions
+	_LISTBOX_INFO_()
+	{
+		clean();
+	}
+	~_LISTBOX_INFO_()
+	{
+		clean();
+	}
+
 protected:
-	//{{AFX_MSG(CMultiLineListBox)
-		// NOTE - the ClassWizard will add and remove member functions here.
-	//}}AFX_MSG
+	inline void clean(void)
+	{
+		subArray.clear();
+		strText.Empty();
+		fgColor = RGB_FOREGROUND;
+		bgColor = RGB_BACKGROUND;
+	}
+}LISTBOXINFO, * PLISTBOXINFO;
+
+protected:
+	static int m_nFocusIndex;
+	vector<LISTBOXINFO*> m_sArray;
+
+public:
+	int InsertString(int nIndex, LPCTSTR pszText, COLORREF fgColor = RGB_FOREGROUND, COLORREF bgColor = RGB_BACKGROUND);
+	int AddString(LPCTSTR pszText, COLORREF fgColor = RGB_FOREGROUND, COLORREF bgColor = RGB_BACKGROUND);
+	void AddSubString(int nIndex, LPCTSTR pszText, COLORREF fgColor = RGB_FOREGROUND, COLORREF bgColor = RGB_BACKGROUND);
+	
+protected:
+	virtual void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
+	virtual void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct);
+	void UpdateItem(void);
+	void GetItemHeight(int nIndex);
+
+protected:
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg LRESULT OnUpdateItem(WPARAM wParam, LPARAM lParam);
 
 	DECLARE_MESSAGE_MAP()
 };
 
-/////////////////////////////////////////////////////////////////////////////
 
-//{{AFX_INSERT_LOCATION}}
-// Microsoft Developer Studio will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_MULTILINELISTBOX_H__BF8E1EC2_833B_11D2_8BE7_A813DF000000__INCLUDED_)

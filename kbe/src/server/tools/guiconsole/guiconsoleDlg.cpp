@@ -172,6 +172,10 @@ BEGIN_MESSAGE_MAP(CguiconsoleDlg, CDialog)
 	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB1, &CguiconsoleDlg::OnTcnSelchangeTab1)
 	ON_NOTIFY(NM_CLICK, IDC_TREE1, &CguiconsoleDlg::OnNMClickTree1)
 	ON_COMMAND(ID_32771, &CguiconsoleDlg::OnConnectRemoteMachine)
+	ON_COMMAND(ID_HELP_ABOUT, &CguiconsoleDlg::OnHelpAbout)
+	ON_COMMAND(ID_BUTTON32784, &CguiconsoleDlg::OnToolBar_Find)
+	ON_COMMAND(ID_BUTTON32783, &CguiconsoleDlg::OnToolBar_StartServer)
+	ON_COMMAND(ID_BUTTON32780, &CguiconsoleDlg::OnToolBar_StopServer)
 END_MESSAGE_MAP()
 
 
@@ -206,6 +210,17 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 	
+	if(!m_ToolBar.CreateEx(this, TBSTYLE_FLAT ,  WS_CHILD | WS_VISIBLE | CBRS_ALIGN_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS,
+    CRect(4,4,0,0))
+		||!m_ToolBar.LoadToolBar(IDR_TOOLBAR1))
+	{
+		return FALSE;
+	}
+
+	m_ToolBar.ShowWindow(SW_SHOW);
+	RepositionBars(AFX_IDW_CONTROLBAR_FIRST, AFX_IDW_CONTROLBAR_LAST, 0);
+	
+
 	// TODO: Add extra initialization here
 	DebugHelper::initHelper(_componentType);
 	_dispatcher.breakProcessing(false);
@@ -844,8 +859,12 @@ void CguiconsoleDlg::autoWndSize()
 		return;
 
 	CRect rect1;
+	m_ToolBar.GetClientRect(&rect1);
+	g_diffHeight = rect1.bottom + 8;
+	
 	this->GetClientRect(&rect1);
 	rect1.left += int(rect1.right * 0.25);
+	rect1.top += g_diffHeight;
 	m_tab.MoveWindow(rect1);
 	
 	CRect rect;
@@ -854,6 +873,7 @@ void CguiconsoleDlg::autoWndSize()
 	CRect rect2;
 	this->GetClientRect(&rect2);
 	rect2.right = int(rect2.right * 0.25);
+	rect2.top += g_diffHeight;
 	m_tree.MoveWindow(rect2);
 
 	rect.top += 25;
@@ -1219,4 +1239,26 @@ void CguiconsoleDlg::OnConnectRemoteMachine()
 	// TODO: Add your command handler code here
 	CConnectRemoteMachineWindow dlg;
 	dlg.DoModal();
+}
+
+void CguiconsoleDlg::OnHelpAbout()
+{
+	// TODO: Add your command handler code here
+	::CAboutDlg dlg;
+	dlg.DoModal();
+}
+
+void CguiconsoleDlg::OnToolBar_Find()
+{
+	OnConnectRemoteMachine();
+}
+
+
+void CguiconsoleDlg::OnToolBar_StartServer()
+{
+}
+
+
+void CguiconsoleDlg::OnToolBar_StopServer()
+{
 }

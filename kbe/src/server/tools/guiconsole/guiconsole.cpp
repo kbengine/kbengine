@@ -10,6 +10,7 @@
 #define new DEBUG_NEW
 #endif
 
+int g_diffHeight = 0;
 
 // CguiconsoleApp
 
