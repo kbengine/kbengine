@@ -40,3 +40,12 @@ public:
 };
 
 extern CguiconsoleApp theApp;
+
+inline CString GetAppPath()
+{
+	::TCHAR modulePath[MAX_PATH];
+    GetModuleFileName(NULL, modulePath, MAX_PATH);
+    CString strModulePath(modulePath);
+    strModulePath = strModulePath.Left(strModulePath.ReverseFind(_T('\\')));
+    return strModulePath;
+}

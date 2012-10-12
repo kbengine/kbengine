@@ -388,15 +388,6 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 	}
 }
 
-CString GetAppPath()
-{
-	::TCHAR modulePath[MAX_PATH];
-    GetModuleFileName(NULL, modulePath, MAX_PATH);
-    CString strModulePath(modulePath);
-    strModulePath = strModulePath.Left(strModulePath.ReverseFind(_T('\\')));
-    return strModulePath;
-}
-
 void CguiconsoleDlg::saveHistory()
 {
     //创建一个XML的文档对象。

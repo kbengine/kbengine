@@ -71,7 +71,8 @@
 	</loginapp>		
 	
 	<kbmachine>
-		<internalInterface>  </internalInterface>
+		<externalPorts_min> 20099 </externalPorts_min>	<!-- Type: Integer -->
+		<externalPorts_max> 0 </externalPorts_max>	<!-- Type: Integer -->
 	</kbmachine>
 	
 	<kbcenter>

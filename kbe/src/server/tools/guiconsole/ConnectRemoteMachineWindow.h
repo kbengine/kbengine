@@ -15,7 +15,10 @@ public:
 
 // Dialog Data
 	enum { IDD = IDD_DIALOG_REMOTE_CONNECT };
-
+	
+	void saveHistory();
+	void loadHistory();
+	virtual BOOL OnInitDialog();
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
@@ -24,4 +27,7 @@ public:
 	afx_msg void OnBnClickedOk();
 	CIPAddressCtrl m_ip;
 	CEdit m_port;
+	std::deque<CString> m_historyCommand;
+	CListBox m_log;
+	afx_msg void OnLbnDblclkList1();
 };

@@ -268,6 +268,26 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_kbMachineInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "externalInterface");	
+		if(node != NULL)
+			strncpy((char*)&_kbMachineInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "externalPorts_min");
+		if(node != NULL)	
+			_kbMachineInfo.externalPorts_min = xml->getValInt(node);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "externalPorts_max");
+		if(node != NULL)	
+			_kbMachineInfo.externalPorts_max = xml->getValInt(node);
+
+		if(_kbMachineInfo.externalPorts_min < 0)
+			_kbMachineInfo.externalPorts_min = 0;
+		if(_kbMachineInfo.externalPorts_max < _kbMachineInfo.externalPorts_min)
+			_kbMachineInfo.externalPorts_max = _kbMachineInfo.externalPorts_min;
 	}
 
 	rootNode = NULL;
