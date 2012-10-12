@@ -17,6 +17,25 @@ BEGIN_MESSAGE_MAP(CguiconsoleApp, CWinAppEx)
 	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
 END_MESSAGE_MAP()
 
+int CALLBACK CompareFunc(LPARAM lParam1,LPARAM lParam2,LPARAM lParamSort)
+{
+	ListSortData *p = (ListSortData *)lParamSort;
+	CListCtrl* list = p->listctrl;
+	int isub = p->isub;
+	LVFINDINFO findInfo;
+	findInfo.flags = LVFI_PARAM;
+	findInfo.lParam = lParam1;
+	int iItem1 = list->FindItem(&findInfo, -1);
+	findInfo.lParam = lParam2;
+	int iItem2 = list->FindItem(&findInfo, -1);
+
+	CString strItem1 =list->GetItemText(iItem1,isub);
+	CString strItem2 =list->GetItemText(iItem2,isub);
+	if(p->seq)
+		return _tcscmp(strItem2, strItem1);
+	else
+		return -_tcscmp(strItem2, strItem1);
+}
 
 // CguiconsoleApp construction
 

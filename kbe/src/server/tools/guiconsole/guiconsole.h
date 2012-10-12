@@ -49,3 +49,11 @@ inline CString GetAppPath()
     strModulePath = strModulePath.Left(strModulePath.ReverseFind(_T('\\')));
     return strModulePath;
 }
+
+struct ListSortData{
+     CListCtrl *listctrl;               //CListCtrl控件指针
+     int isub;							//l列号
+     int seq;							//1为升序，0为降序
+};
+
+int CALLBACK CompareFunc(LPARAM lParam1,LPARAM lParam2,LPARAM lParamSort);

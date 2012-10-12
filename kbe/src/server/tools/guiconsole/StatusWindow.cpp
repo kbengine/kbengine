@@ -48,8 +48,8 @@ BOOL StatusWindow::OnInitDialog()
 	m_statusList.InsertColumn(idx++, _T("memory"),				LVCFMT_CENTER,	100);
 	m_statusList.InsertColumn(idx++, _T("entities"),			LVCFMT_CENTER,	100);
 	m_statusList.InsertColumn(idx++, _T("proxies"),				LVCFMT_CENTER,	100);
-	m_statusList.InsertColumn(idx++, _T("address"),				LVCFMT_CENTER,	100);
-	
+	m_statusList.InsertColumn(idx++, _T("address"),				LVCFMT_CENTER,	140);
+	m_statusList.InsertColumn(idx++, _T("username"),			LVCFMT_CENTER,	100);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -62,4 +62,54 @@ void StatusWindow::autoWndSize()
 	m_statusList.MoveWindow(2, 3, rect.right - 2, rect.bottom - 3, TRUE);
 	
 }
+
+void StatusWindow::addApp(Components::ComponentInfos& cinfos)
+{
+	std::stringstream stream;
+	stream << cinfos.cid;
+	CString str;
+	std::string tstr;
+	stream >> tstr;
+	wchar_t* ws = KBEngine::char2wchar(tstr.c_str());
+	str = ws;
+	free(ws);
+
+	bool found = false;
+	for(int icount = 0; icount < m_statusList.GetItemCount(); icount++)
+	{
+		CString s = m_statusList.GetItemText(icount, 2);
+		if(str == s)
+		{
+			found = true;
+			break;
+		}
+	}
+
+	if(!found)
+	{
+		CString suid;
+		suid.Format(L"%u", cinfos.uid);
+		m_statusList.InsertItem(0, suid);
+
+		CString cname;
+		ws = KBEngine::char2wchar(COMPONENT_NAME_EX(cinfos.componentType));
+		cname = ws;
+		free(ws);
+		m_statusList.SetItemText(0, 1, cname);
+
+		m_statusList.SetItemText(0, 2, str);
+
+
+		ws = KBEngine::char2wchar(cinfos.pIntAddr->c_str());
+		str = ws;
+		free(ws);
+		m_statusList.SetItemText(0, 7, str);
+
+		ws = KBEngine::char2wchar(cinfos.username);
+		str = ws;
+		free(ws);
+		m_statusList.SetItemText(0, 8, str);
+	}
+}
+
 // StatusWindow message handlers

@@ -556,6 +556,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 					//	COMPONENT_NAME_EX(findComponentType));
 					
 					::KillTimer(m_hWnd, nIDEvent);
+					updateTree();
 					return;
 				}
 
@@ -603,7 +604,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 						{
 							//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
 							//	COMPONENT_NAME_EX(findComponentType));
-							
+							updateTree();
 							::KillTimer(m_hWnd, nIDEvent);
 							return;
 						}
@@ -614,7 +615,6 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 						Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
 							(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
 						
-						updateTree();
 						isfirstget = false;
 					}while(bhandler.pCurrPacket()->opsize() > 0);
 
@@ -637,7 +637,8 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 					return;
 				}
 			}
-
+			
+			updateTree();
 			::KillTimer(m_hWnd, nIDEvent);
 		}
 		break;
@@ -823,10 +824,18 @@ void CguiconsoleDlg::updateTree()
 			m_tree.SetItemData(insertItem, (DWORD)&cinfos.cid);
 			m_tree.Expand(hasUIDItem, TVE_EXPAND);
 			free(wbuf);
+
+			m_statusWnd.addApp(cinfos);
 		}
 	}
 
 	m_tree.Expand(hItemRoot, TVE_EXPAND);
+	
+	ListSortData *tmpp = new ListSortData;
+	tmpp->listctrl = &m_statusWnd.m_statusList;
+	tmpp->isub = 0;
+	tmpp->seq = 0;
+	m_statusWnd.m_statusList.SortItems(CompareFunc,(LPARAM)tmpp);
 }
 
 void CguiconsoleDlg::autoWndSize()

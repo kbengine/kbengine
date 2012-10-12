@@ -1,9 +1,9 @@
 #pragma once
 #include "afxcmn.h"
-
+#include "server/components.hpp"
 
 // StatusWindow dialog
-
+using namespace KBEngine;
 class StatusWindow : public CDialog
 {
 	DECLARE_DYNAMIC(StatusWindow)
@@ -17,6 +17,8 @@ public:
 // Dialog Data
 	enum { IDD = IDD_STATUS };
 	void autoWndSize();
+
+	void addApp(Components::ComponentInfos& cinfos);
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 

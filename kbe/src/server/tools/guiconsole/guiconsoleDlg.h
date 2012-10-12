@@ -11,6 +11,7 @@
 #include "WatcherWindow.h"
 #include "SpaceViewWindow.h"
 #include "ConnectRemoteMachineWindow.h"
+#include <sstream>
 
 using namespace KBEngine;
 

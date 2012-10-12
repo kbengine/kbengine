@@ -160,10 +160,10 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 			Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
 				(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
 
-			dlg->updateTree();
 		}
 	}
-
+	
+	dlg->updateTree();
 	delete endpoint;
 	wchar_t* wcommand = KBEngine::char2wchar(command.c_str());
 	bool found = false;
