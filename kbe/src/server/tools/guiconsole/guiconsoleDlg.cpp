@@ -1358,7 +1358,7 @@ void CguiconsoleDlg::OnToolBar_StopServer()
 			break;
 		}
 
-		if(!bhandler.receive(NULL, 0, 1000000))
+		if(!bhandler.receive(NULL, 0, 3000000))
 		{
 			ERROR_MSG("CguiconsoleDlg::OnToolBar_StartServer: recv error!\n");
 			//::AfxMessageBox(L"接收服务器启动包错误。");

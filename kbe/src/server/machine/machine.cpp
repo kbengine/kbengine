@@ -489,6 +489,14 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 			continue;
 		}
 
+		bool usable = Componentbridge::getComponents().checkComponentUsable(&(*iter));
+		
+		if(!usable)
+		{
+			success = true;
+			break;
+		}
+
 		cinfos = &(*iter);
 		Mercury::Bundle closebundle;
 		COMMON_MERCURY_MESSAGE(componentType, closebundle, reqCloseServer);
