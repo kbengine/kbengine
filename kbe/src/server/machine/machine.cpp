@@ -397,9 +397,8 @@ void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 
 	for(uint32 i=0; i<startCount; i++)
 	{
-		COMPONENT_TYPE componentType = startcomponents[i];
-
 #if KBE_PLATFORM == PLATFORM_WIN32
+		COMPONENT_TYPE componentType = startcomponents[i];
 		STARTUPINFO si;
 		PROCESS_INFORMATION pi;
 
