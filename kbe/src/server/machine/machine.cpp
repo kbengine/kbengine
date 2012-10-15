@@ -29,6 +29,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.hpp"
 #include "server/componentbridge.hpp"
 
+#include "../baseappmgr/baseappmgr_interface.hpp"
+#include "../cellappmgr/cellappmgr_interface.hpp"
+#include "../baseapp/baseapp_interface.hpp"
+#include "../cellapp/cellapp_interface.hpp"
+#include "../dbmgr/dbmgr_interface.hpp"
+#include "../loginapp/loginapp_interface.hpp"
+#include "../resourcemgr/resourcemgr_interface.hpp"
+#include "../tools/message_log/messagelog_interface.hpp"
+
 namespace KBEngine{
 	
 ServerConfig g_serverConfig;
@@ -445,7 +454,78 @@ void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	int32 uid = 0;
+	COMPONENT_TYPE componentType;
+	uint32 recvip;
+	uint16 recvport;
+	Mercury::Bundle bundle;
+	bool success = true;
+
 	s >> uid;
+	s >> componentType;
+	s >> recvip;
+	s >> recvport;
+
+	Mercury::EndPoint ep;
+	ep.socket(SOCK_DGRAM);
+
+	if (!ep.good())
+	{
+		ERROR_MSG("Machine::stopserver: Failed to create socket.\n");
+		return;
+	}
+	
+	Components::COMPONENTS& components = Componentbridge::getComponents().getComponents(componentType);
+	Components::COMPONENTS::iterator iter = components.begin();
+
+	Components::ComponentInfos* cinfos = NULL;
+
+	for(; iter != components.end(); )
+	{
+		if((*iter).uid != uid)
+			continue;
+
+		if(componentType != (*iter).componentType)
+		{
+			continue;
+		}
+
+		cinfos = &(*iter);
+		Mercury::Bundle closebundle;
+		COMMON_MERCURY_MESSAGE(componentType, closebundle, reqCloseServer);
+
+		Mercury::EndPoint ep1;
+		ep1.socket(SOCK_STREAM);
+
+		if (!ep1.good())
+		{
+			ERROR_MSG("Machine::stopserver: Failed to create socket.\n");
+			success = false;
+			break;
+		}
+		
+		if(ep1.connect((*iter).pIntAddr.get()->port, (*iter).pIntAddr.get()->ip) == -1)
+		{
+			ERROR_MSG("Machine::stopserver: connect server is error(%s)!\n", kbe_strerror());
+			success = false;
+			break;
+		}
+
+		closebundle.send(ep1);
+		Mercury::TCPPacket recvpacket;
+		recvpacket.resize(255);
+		int len = ep1.recv(recvpacket.data(), 1);
+		if(len != 1)
+		{
+			success = false;
+			break;
+		}
+
+		recvpacket >> success;
+		break;
+	}
+
+	bundle << success;
+	bundle.sendto(ep, recvport, recvip);
 }
 
 

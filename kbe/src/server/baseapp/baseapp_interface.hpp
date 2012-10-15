@@ -178,6 +178,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// cellapp转发entity消息给client
 	BASEAPP_MESSAGE_DECLARE_STREAM(forwardMessageToClientFromCellapp,		MERCURY_VARIABLE_MESSAGE)
 
+	// 请求关闭服务器
+	BASEAPP_MESSAGE_DECLARE_STREAM(reqCloseServer,							MERCURY_VARIABLE_MESSAGE)
+
 	//--------------------------------------------Base----------------------------------------------------------
 	// 远程呼叫entity方法
 	BASE_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,							MERCURY_VARIABLE_MESSAGE)

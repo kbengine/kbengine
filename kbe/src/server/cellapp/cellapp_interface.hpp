@@ -126,6 +126,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// 客户端直接发送消息给cell实体
 	CELLAPP_MESSAGE_DECLARE_STREAM(forwardEntityMessageToCellappFromClient,	MERCURY_VARIABLE_MESSAGE)
 
+	// 请求关闭服务器
+	CELLAPP_MESSAGE_DECLARE_STREAM(reqCloseServer,							MERCURY_VARIABLE_MESSAGE)
+
 	//--------------------------------------------Entity----------------------------------------------------------
 	//远程呼叫entity方法
 	ENTITY_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,						MERCURY_VARIABLE_MESSAGE)

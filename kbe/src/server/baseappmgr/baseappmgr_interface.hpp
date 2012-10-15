@@ -90,6 +90,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 									std::string,							password,
 									ENTITY_ID,								entityID)
 
+	// 请求关闭服务器
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCloseServer,						MERCURY_VARIABLE_MESSAGE)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

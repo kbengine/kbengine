@@ -73,7 +73,6 @@ kbengine仿照bigworld技术努力成为一款开源mmog引擎，bigworld引擎�
 kbe会读取KBE_ROOT，KBE_RES_PATH， KBE_HYBRID_PATH系统环境变量来做一些事情。
 
 
-
 linux:
 
 	[kbe@localhost ~]# vim ~/.bashrc
@@ -86,8 +85,9 @@ linux:
 
 	export KBE_HYBRID_PATH=$KBE_ROOT/kbe/bin/Hybrid64/
 
-
-
+	[root@localhost ~]# vim /etc/passwd
+	
+	修改kbe的uid为唯一, 一个uid用来表达一组服务器。
 windows:
 
 	鼠标右键"我的电脑"->"高级"->"环境变量" 设置对应的值就好了。
@@ -131,6 +131,16 @@ windows:
 
 
 
+##配置数据库:
+	1: 安装好mysql
+
+	2: 创建一个数据库账户， 假设用户名密码都为"kbe"
+
+	3: 新建一个数据库， 假设数据库名为"kbe"
+
+	4: 在res\server\kbengine_defs.xml的dbmgr节修改相关参数(推荐在demo\res\server\kbengine.xml进行重载修改)。
+
+
 
 ##启动服务器:
 
@@ -152,3 +162,4 @@ windows:
 
 	~.bat
 
+	或者使用tools\server\guiconsole\guiconsole.exe来启动和关闭服务器。

@@ -137,6 +137,11 @@ public:
 		某个app请求查看该app
 	*/
 	virtual void lookApp(Mercury::Channel* pChannel);
+
+	/** 网络接口
+		请求关闭服务器
+	*/
+	virtual void reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s);
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID

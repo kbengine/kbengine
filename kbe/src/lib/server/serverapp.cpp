@@ -332,5 +332,21 @@ void ServerApp::lookApp(Mercury::Channel* pChannel)
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
+//-------------------------------------------------------------------------------------
+void ServerApp::reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	DEBUG_MSG("ServerApp::reqCloseServer: %s\n", pChannel->c_str());
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	bool success = true;
+	(*pBundle) << success;
+	(*pBundle).send(getNetworkInterface(), pChannel);
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	this->getMainDispatcher().breakProcessing();
+}
+
 //-------------------------------------------------------------------------------------		
 }

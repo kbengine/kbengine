@@ -85,6 +85,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 									std::string,									accountName,
 									std::string,									password)
 
+	// 请求关闭服务器
+	LOGINAPP_MESSAGE_DECLARE_STREAM(reqCloseServer,									MERCURY_VARIABLE_MESSAGE)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

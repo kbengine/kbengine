@@ -619,9 +619,8 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 						{
 							//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
 							//	COMPONENT_NAME_EX(findComponentType));
-							updateTree();
-							::KillTimer(m_hWnd, nIDEvent);
-							return;
+							ifind++;
+							continue;
 						}
 
 						INFO_MSG("CguiconsoleDlg::OnTimer: found %s, addr:%s:%u\n",
@@ -1309,11 +1308,19 @@ void CguiconsoleDlg::OnToolBar_StartServer()
 		bhandler >> success;
 	}
 
-	::SetTimer(m_hWnd, 1, 100, NULL);
+	_networkInterface.deregisterAllChannels();
+	Components::getSingleton().clear();
+	Components::getSingleton().delComponent(0, MESSAGELOG_TYPE, 0, true, false);
+	Components::getSingleton().delComponent(0, RESOURCEMGR_TYPE, 0, true, false);
+	::SetTimer(m_hWnd, 2, 1000, NULL);
 }
 
 void CguiconsoleDlg::OnToolBar_StopServer()
 {
+	COMPONENT_TYPE startComponentTypes[] = {BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, UNKNOWN_COMPONENT_TYPE};
+	
+	int i = 0;
+
 	while(1)
 	{
 		srand(KBEngine::getSystemTime());
@@ -1327,21 +1334,38 @@ void CguiconsoleDlg::OnToolBar_StopServer()
 			continue;
 		}
 
+		if(bhandler.pCurrPacket() != NULL)
+		{
+			bhandler.pCurrPacket()->resetPacket();
+		}
+
+		COMPONENT_TYPE componentType = startComponentTypes[i++];
+		if(componentType == UNKNOWN_COMPONENT_TYPE)
+			break;
+
 		bhandler.newMessage(MachineInterface::stopserver);
 		bhandler << KBEngine::getUserUID();
+		bhandler << componentType;
+
+		uint32 ip = _networkInterface.intaddr().ip;
+		uint16 port = bhandler.epListen().addr().port;
+		bhandler << ip << port;
 
 		if(!bhandler.broadcast())
 		{
-			ERROR_MSG("CguiconsoleDlg::OnToolBar_StopServer: broadcast error!\n");
+			ERROR_MSG("CguiconsoleDlg::OnToolBar_StartServer: broadcast error!\n");
 			//::AfxMessageBox(L"不能发送服务器启动包。");
-			return;
+			break;
 		}
 
-		if(!bhandler.receive(NULL, 0))
+		if(!bhandler.receive(NULL, 0, 1000000))
 		{
-			ERROR_MSG("CguiconsoleDlg::OnToolBar_StopServer: recv error!\n");
+			ERROR_MSG("CguiconsoleDlg::OnToolBar_StartServer: recv error!\n");
 			//::AfxMessageBox(L"接收服务器启动包错误。");
-			return;
+			break;
 		}
+		
+		bool success;
+		bhandler >> success;
 	}
 }
