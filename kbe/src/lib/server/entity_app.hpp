@@ -38,7 +38,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entity_mailbox.hpp"
 #include "entitydef/scriptdef_module.hpp"
 #include "network/message_handler.hpp"
-#include "thread/threadpool.hpp"
 #include "resmgr/resmgr.hpp"
 #include "helper/console_helper.hpp"
 
@@ -213,10 +212,6 @@ bool EntityApp<E>::inInitialize()
 template<class E>
 bool EntityApp<E>::initialize()
 {
-	if(thread::ThreadPool::getSingletonPtr() && 
-		!thread::ThreadPool::getSingleton().isInitialize())
-		thread::ThreadPool::getSingleton().createThreadPool(16, 16, 256);
-
 	bool ret = ServerApp::initialize();
 	if(ret)
 	{
@@ -498,8 +493,9 @@ void EntityApp<E>::handleGameTick()
 {
 	// time_t t = ::time(NULL);
 	// DEBUG_MSG("EntityApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
-	
+
 	g_kbetime++;
+	thread::ThreadPool::getSingleton().onMainThreadTick();
 	handleTimers();
 	getNetworkInterface().handleChannels(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
 }

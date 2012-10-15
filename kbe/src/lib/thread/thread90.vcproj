@@ -182,6 +182,10 @@
 				RelativePath=".\threadpool.hpp"
 				>
 			</File>
+			<File
+				RelativePath=".\threadtask.hpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

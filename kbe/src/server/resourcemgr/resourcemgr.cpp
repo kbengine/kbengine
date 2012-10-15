@@ -56,6 +56,7 @@ bool Resourcemgr::run()
 
 	while(!this->getMainDispatcher().isBreakProcessing())
 	{
+		thread::ThreadPool::getSingleton().onMainThreadTick();
 		this->getMainDispatcher().processOnce(false);
 		getNetworkInterface().handleChannels(&ResourcemgrInterface::messageHandlers);
 		KBEngine::sleep(100);

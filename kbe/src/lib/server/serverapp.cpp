@@ -91,6 +91,10 @@ bool ServerApp::installSingnals()
 //-------------------------------------------------------------------------------------		
 bool ServerApp::initialize()
 {
+	if(thread::ThreadPool::getSingletonPtr() && 
+		!thread::ThreadPool::getSingleton().isInitialize())
+		thread::ThreadPool::getSingleton().createThreadPool(16, 16, 256);
+
 	if(!installSingnals())
 		return false;
 	

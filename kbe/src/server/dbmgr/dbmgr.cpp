@@ -98,6 +98,7 @@ void Dbmgr::handleMainTick()
 	 //DEBUG_MSG("Dbmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
 	g_kbetime++;
+	thread::ThreadPool::getSingleton().onMainThreadTick();
 	getNetworkInterface().handleChannels(&DbmgrInterface::messageHandlers);
 }
 

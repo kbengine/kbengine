@@ -27,29 +27,24 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #pragma warning (disable : 4996)
 #endif
 //#define NDEBUG
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <iostream>	
 #include <stdarg.h> 
 #include "helper/debug_helper.hpp"
 #include "xmlplus/xmlplus.hpp"	
-#include "cstdkbe/singleton.hpp"
 #include "server/common.hpp"
 #include "server/components.hpp"
 #include "server/serverconfig.hpp"
+#include "server/signal_handler.hpp"
 #include "cstdkbe/smartpointer.hpp"
 #include "cstdkbe/timer.hpp"
+#include "cstdkbe/singleton.hpp"
 #include "network/interfaces.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
-#include "server/signal_handler.hpp"
-
+#include "thread/threadpool.hpp"
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
 // linux include
-#include <errno.h>
 #endif
 	
 namespace KBEngine{

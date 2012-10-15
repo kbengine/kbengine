@@ -18,32 +18,24 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __TASKS__
-#define __TASKS__
-#include "cstdkbe/task.hpp"
+#ifndef __TASK__
+#define __TASK__
 #include "cstdkbe/cstdkbe.hpp"
 
 namespace KBEngine
 {
 
 /**
- *	任务容器
+ *	抽象一个任务
  */
-class Tasks
+class Task
 {
 public:
-	Tasks();
-	~Tasks();
-
-	void add(Task * pTask);
-	bool cancel(Task * pTask);
-	void process();
-private:
-	
-	typedef std::vector<KBEngine::Task *> Container;
-	Container container_;
+	virtual ~Task() {}
+	virtual bool process() = 0;
 };
+
 
 }
 
-#endif // __TASKS__
+#endif // __TASK__

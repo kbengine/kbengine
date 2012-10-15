@@ -223,6 +223,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\task.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\tasks.hpp"
 				>
 			</File>

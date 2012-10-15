@@ -18,32 +18,27 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __TASKS__
-#define __TASKS__
-#include "cstdkbe/task.hpp"
+#ifndef __THREADTASK_H__
+#define __THREADTASK_H__
+
+// common include	
+// #define NDEBUG
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/task.hpp"
+#include "helper/debug_helper.hpp"
 
-namespace KBEngine
-{
+namespace KBEngine{ namespace thread{
 
-/**
- *	任务容器
- */
-class Tasks
+/*
+	线程池的线程基类
+*/
+
+class TPTask : public Task
 {
 public:
-	Tasks();
-	~Tasks();
-
-	void add(Task * pTask);
-	bool cancel(Task * pTask);
-	void process();
-private:
-	
-	typedef std::vector<KBEngine::Task *> Container;
-	Container container_;
+	virtual void presentMainThread(){}
 };
 
 }
-
-#endif // __TASKS__
+}
+#endif

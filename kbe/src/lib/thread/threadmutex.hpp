@@ -20,7 +20,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 /*
 	线程互诉体：
-		避免线程之间恶意竞争产生死锁问题。
 	用法:
 		ThreadMutex tm;
 		tm.lockMutex();
@@ -31,7 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 		在一个类中定义互诉体成员
 		ThreadMutex tm;
 		在需要保护的地方:
-		void XXCLASS::foo(void)
+		void XXCLASS::func(void)
 		{
 			ThreadGuard tg(this->tm);
 			下面的代码都是安全的
