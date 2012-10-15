@@ -736,6 +736,7 @@ void CguiconsoleDlg::updateTree()
 		return;
 
 	m_tree.DeleteAllItems();
+	m_statusWnd.m_statusList.DeleteAllItems();
 
 	Components::COMPONENTS cts0 = Components::getSingleton().getComponents(BASEAPP_TYPE);
 	Components::COMPONENTS cts1 = Components::getSingleton().getComponents(CELLAPP_TYPE);
@@ -1256,8 +1257,9 @@ void CguiconsoleDlg::OnToolBar_Find()
 
 void CguiconsoleDlg::OnToolBar_StartServer()
 {
-	COMPONENT_TYPE startComponentTypes[6] = {BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE};
-	uint32 count = 6;
+	COMPONENT_TYPE startComponentTypes[] = {BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, UNKNOWN_COMPONENT_TYPE};
+	
+	int i = 0;
 
 	while(1)
 	{
@@ -1272,30 +1274,42 @@ void CguiconsoleDlg::OnToolBar_StartServer()
 			continue;
 		}
 
+		if(bhandler.pCurrPacket() != NULL)
+		{
+			bhandler.pCurrPacket()->resetPacket();
+		}
+
+		COMPONENT_TYPE componentType = startComponentTypes[i++];
+		if(componentType == UNKNOWN_COMPONENT_TYPE)
+			break;
+
 		bhandler.newMessage(MachineInterface::startserver);
 		bhandler << KBEngine::getUserUID();
-		bhandler << count;
+		bhandler << componentType;
 
-		for(uint32 i=0; i<count; i++)
-		{
-			bhandler << startComponentTypes[i];
-		}
+		uint32 ip = _networkInterface.intaddr().ip;
+		uint16 port = bhandler.epListen().addr().port;
+		bhandler << ip << port;
 
 		if(!bhandler.broadcast())
 		{
 			ERROR_MSG("CguiconsoleDlg::OnToolBar_StartServer: broadcast error!\n");
 			//::AfxMessageBox(L"不能发送服务器启动包。");
-			return;
+			break;
 		}
 
-		if(!bhandler.receive(NULL, 0))
+		if(!bhandler.receive(NULL, 0, 1000000))
 		{
 			ERROR_MSG("CguiconsoleDlg::OnToolBar_StartServer: recv error!\n");
 			//::AfxMessageBox(L"接收服务器启动包错误。");
-			return;
+			break;
 		}
-	
+		
+		bool success;
+		bhandler >> success;
 	}
+
+	::SetTimer(m_hWnd, 1, 100, NULL);
 }
 
 void CguiconsoleDlg::OnToolBar_StopServer()

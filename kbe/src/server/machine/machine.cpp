@@ -330,6 +330,7 @@ bool Machine::run()
 
 	while(!this->getMainDispatcher().isBreakProcessing())
 	{
+		thread::ThreadPool::getSingleton().onMainThreadTick();
 		this->getMainDispatcher().processOnce(false);
 		getNetworkInterface().handleChannels(&MachineInterface::messageHandlers);
 		KBEngine::sleep(100);
@@ -375,67 +376,69 @@ void Machine::finalise()
 //-------------------------------------------------------------------------------------
 void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	uint32 startCount = 0;
 	int32 uid = 0;
+	COMPONENT_TYPE componentType;
+	uint32 recvip;
+	uint16 recvport;
+	Mercury::Bundle bundle;
+	bool success = true;
 
 	s >> uid;
-	s >> startCount;
-	
-	std::string componentTypeStrs;
-	std::vector<COMPONENT_TYPE> startcomponents;
+	s >> componentType;
+	s >> recvip;
+	s >> recvport;
 
-	for(uint32 i=0; i<startCount; i++)
+
+	INFO_MSG("Machine::startserver: uid=%d, [%s], addr:%s, recvPort:%u.\n", uid,  COMPONENT_NAME[componentType], 
+		inet_ntoa((struct in_addr&)recvip), ntohs(recvport));
+
+	Mercury::EndPoint ep;
+	ep.socket(SOCK_DGRAM);
+
+	if (!ep.good())
 	{
-		COMPONENT_TYPE componentType;
-		s >> componentType;
-		startcomponents.push_back(componentType);
-		componentTypeStrs += COMPONENT_NAME[componentType];
-		componentTypeStrs += "|";
+		ERROR_MSG("Machine::startserver: Failed to create socket.\n");
+		return;
 	}
 
-	INFO_MSG("Machine::startserver: uid=%d, startCount=%u:[%s]\n", uid, startCount, componentTypeStrs.c_str());
-
-	for(uint32 i=0; i<startCount; i++)
-	{
 #if KBE_PLATFORM == PLATFORM_WIN32
-		COMPONENT_TYPE componentType = startcomponents[i];
-		STARTUPINFO si;
-		PROCESS_INFORMATION pi;
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
 
-		std::string str = Resmgr::getEnv().hybrid_path;
-		str += COMPONENT_NAME[componentType];
-		str += ".exe";
-		wchar_t* szCmdline = KBEngine::char2wchar(str.c_str());
-		
-		wchar_t* currdir = KBEngine::char2wchar(Resmgr::getEnv().hybrid_path.c_str());
+	std::string str = Resmgr::getEnv().hybrid_path;
+	str += COMPONENT_NAME[componentType];
+	str += ".exe";
 
-		ZeroMemory( &si, sizeof(si));
-		si.cb = sizeof(si);
-		ZeroMemory( &pi, sizeof(pi));
+	wchar_t* szCmdline = KBEngine::char2wchar(str.c_str());
+	wchar_t* currdir = KBEngine::char2wchar(Resmgr::getEnv().hybrid_path.c_str());
 
-		if(!CreateProcess( NULL,   // No module name (use command line)
-			szCmdline,      // Command line
-			NULL,           // Process handle not inheritable
-			NULL,           // Thread handle not inheritable
-			FALSE,          // Set handle inheritance to FALSE
-			0,              // No creation flags
-			NULL,           // Use parent's environment block
-			currdir,           // Use parent's starting directory
-			&si,            // Pointer to STARTUPINFO structure
-			&pi )           // Pointer to PROCESS_INFORMATION structure
-		)
-		{
-			ERROR_MSG( "Machine::startserver:CreateProcess failed (%d).\n", GetLastError());
-			free(szCmdline);
-			free(currdir);
-			return;
-		}
-		
-		free(szCmdline);
-		free(currdir);
+	ZeroMemory( &si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory( &pi, sizeof(pi));
+
+	if(!CreateProcess( NULL,   // No module name (use command line)
+		szCmdline,      // Command line
+		NULL,           // Process handle not inheritable
+		NULL,           // Thread handle not inheritable
+		FALSE,          // Set handle inheritance to FALSE
+		CREATE_NEW_CONSOLE,    // No creation flags
+		NULL,           // Use parent's environment block
+		currdir,        // Use parent's starting directory
+		&si,            // Pointer to STARTUPINFO structure
+		&pi )           // Pointer to PROCESS_INFORMATION structure
+	)
+	{
+		ERROR_MSG( "Machine::startserver:CreateProcess failed (%d).\n", GetLastError());
+		success = false;
+	}
+	
+	free(szCmdline);
+	free(currdir);
 #else
 #endif
-	}
+	
+	bundle << success;
+	bundle.sendto(ep, recvport, recvip);
 }
 
 //-------------------------------------------------------------------------------------
