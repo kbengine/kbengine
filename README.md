@@ -87,7 +87,7 @@ linux:
 
 	[root@localhost ~]# vim /etc/passwd
 	
-	修改kbe的uid为唯一, 一个uid用来表达一组服务器。
+	修改kbe的uid必须唯一, uid用来区分不同的服务器组， 如果二台硬件维护一组服务器那么二台硬件上的uid必须一致。
 windows:
 
 	鼠标右键"我的电脑"->"高级"->"环境变量" 设置对应的值就好了。
@@ -167,3 +167,7 @@ windows:
 	~.bat
 
 	或者使用tools\server\guiconsole\guiconsole.exe来启动和关闭服务器。
+
+##日志:
+
+	KBE_HYBRID_PATH目录下会产生各组件运行的日志信息， 也可以使用guiconsole来查看。
