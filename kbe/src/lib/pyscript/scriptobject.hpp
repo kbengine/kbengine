@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /*
-	kbengine-脚本系统：
+	kbengine-脚本对象：
 		这个脚本系统主要封装了python/c的应用， 可以简单的包装一个python模块， 实现c++与python
 		混合编程。
 		
@@ -154,7 +154,7 @@ namespace KBEngine{ namespace script{
 
 																							
 #define SCRIPT_HREADER_BASE(CLASS, SUPERCLASS)												\
-	/* 当前脚本模块的类别 */																\
+	/* 当前脚本模块的类别 */																	\
 	static PyTypeObject _scriptType;														\
 	typedef CLASS ThisClass;																\
 																							\
@@ -203,7 +203,7 @@ public:																						\
 	static PyMethodDef* _##CLASS##_lpScriptmethods;											\
 	static PyMemberDef* _##CLASS##_lpScriptmembers;											\
 	static PyGetSetDef* _##CLASS##_lpgetseters;												\
-	/* 本模块所要暴漏给脚本的方法和成员， 最终会被导入到上面的2个指针列表中 */				\
+	/* 本模块所要暴漏给脚本的方法和成员， 最终会被导入到上面的2个指针列表中 */					\
 	static PyMethodDef _##CLASS##_scriptMethods[];											\
 	static PyMemberDef _##CLASS##_scriptMembers[];											\
 	static PyGetSetDef _##CLASS##_scriptGetSeters[];										\
