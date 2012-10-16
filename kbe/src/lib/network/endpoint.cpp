@@ -156,7 +156,7 @@ bool EndPoint::getClosedPort(Mercury::Address & closedPort)
 bool EndPoint::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 {
 #ifdef _WIN32
-	int i,count = 0;
+	int count = 0;
 	char hostname[1024];
 	struct hostent* inaddrs;
 
@@ -165,18 +165,18 @@ bool EndPoint::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 		inaddrs = gethostbyname(hostname);
 		if(inaddrs)
 		{
-			count = inaddrs->h_length / sizeof(in_addr);
-			for(i=0; i<count; i++)
+			while(inaddrs->h_addr_list[count])
 			{
-				unsigned long addrs = *(unsigned long*)inaddrs->h_addr_list[i];
+				unsigned long addrs = *(unsigned long*)inaddrs->h_addr_list[count];
 				interfaces[addrs] = "eth0";
-				char *ip = inet_ntoa (*(struct in_addr *)*inaddrs->h_addr_list);
+				char *ip = inet_ntoa (*(struct in_addr *)inaddrs->h_addr_list[count]);
 				DEBUG_MSG("EndPoint::getInterfaces: found eth0 %s\n", ip);
+				++count;
 			}
 		}
 	}
 
-	return true;
+	return count > 0;
 #else
 	struct ifconf ifc;
 	char          buf[1024];
