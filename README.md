@@ -19,6 +19,7 @@ kbengine仿照bigworld技术努力成为一款开源mmog引擎，bigworld引擎�
 	· dbmgr:
 	这个程序主要是用来处理游戏的数据库部分，它封装了mysql，能够很方便的完成各种数据库操作, 
 	以及整个游戏的entityID分配等等, 共享数据(globaldata, baseAppData, cellAppData)。 
+	另外还提供一套接口与第三方运营接口对接。
 
 
 	· baseappmgr:
@@ -29,7 +30,7 @@ kbengine仿照bigworld技术努力成为一款开源mmog引擎，bigworld引擎�
 	baseappmgr将一个client分配给它之后， 它才接受某个帐号登陆， 登陆后就会将client分配到一个合适的cellapp，
 	一个帐号登陆到baseapp之后就不会再改变，这个baseapp会一直维护这个帐号，直到与他断开连接。当然baseapp还会处理很多的东西，
 	例如entity需要存储到数据库的数据会定时给dbmgr处理， 备份entity cell部分的相关数据等等。客户端与服务器的通讯只能通过baseapp来完成, 
-	它也充当服务器与客户端之间的安全墙。 
+	它也充当服务器与客户端之间的防火墙。 
 
 
 	· cellappmgr:
@@ -37,9 +38,8 @@ kbengine仿照bigworld技术努力成为一款开源mmog引擎，bigworld引擎�
 
 
 	· cellapp:
-	一个cellapp负责处理一个或者多个space，当某个space消耗达到cellapp快无法承受时， 
-	服务器会让比较轻松的cellapp与它一起分担消耗， 也就是说也会出现多个cellapp维护一个space。整个游戏的逻辑部分也在cellapp， 
-	包括aoi, ai, entity移动等等。 
+	一个cellapp负责处理一个或者多个space，当一个space上消耗过大时kbe将会寻找空闲的cell来均衡负载， 
+	整个游戏的实时处理逻辑部分也在cellapp，	包括aoi, 逻辑层的ai, entity移动导航等等。 
 
 
 	· loginapp:
@@ -49,8 +49,8 @@ kbengine仿照bigworld技术努力成为一款开源mmog引擎，bigworld引擎�
 
 	· client:
 	客户端我们将提供基础框架，这个框架不包括渲染部分和输入输出部分的具体实现, 
-	我们将提供一个lib文件和一套API接口，开发者可以使用自己比较擅长或者合适的图形渲染和输入输出控制部分， 
-	当然我也会封装一套默认的相关模块，目前我们准备开源的渲染引擎ogre来实现图形表现部分。 
+	我们将提供一个lib文件和一套API接口，开发者可以选择使用自己比较适合的图形渲染引擎与输入输出控制部分， 
+	当然我们也会封装一套默认的相关模块，目前我们准备开源的渲染引擎ogre来实现图形表现部分。 
 
 
 	· kbmachine:
