@@ -43,8 +43,8 @@ kbengine仿照bigworld技术努力成为一款开源mmog引擎，bigworld引擎�
 
 
 	· loginapp:
-	它只处理client的登录排队与检查帐号， 帐号合法就会从baseappmgr得到一个baseapp的地址发给客户端，
-	然后就与客户端断开连接。可在多台机器部署。 
+	它只处理client的登录接入, 账号由dbmgr检查通过就会从baseappmgr得到一个baseapp的地址发给客户端，
+	然后就与客户端断开连接， 客户端需要主动连接获得到的baseapp，可在多台机器部署多个loginapp进程。 
 
 
 	· client:
