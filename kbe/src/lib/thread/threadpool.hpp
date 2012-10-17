@@ -237,6 +237,8 @@ public:
 	ThreadPool();
 	virtual ~ThreadPool();
 	
+	void finalise();
+
 	virtual void onMainThreadTick();
 	
 	/**

@@ -92,14 +92,19 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	Componentbridge* pComponentbridge = new Componentbridge(networkInterface, componentType, g_componentID);
 	SERVER_APP app(dispatcher, networkInterface, componentType, g_componentID);
 	START_MSG(COMPONENT_NAME_EX(componentType), g_componentID);
-	if(!app.initialize()){
+
+	if(!app.initialize())
+	{
 		ERROR_MSG("app::initialize is error!\n");
 		SAFE_RELEASE(pComponentbridge);
+		app.finalise();
 		return -1;
 	}
 	
 	INFO_MSG( "---- %s is running ----\n", COMPONENT_NAME_EX(componentType));
+
 	int ret = app.run();
+
 	SAFE_RELEASE(pComponentbridge);
 	app.finalise();
 	INFO_MSG("%s has shut down.\n", COMPONENT_NAME_EX(componentType));

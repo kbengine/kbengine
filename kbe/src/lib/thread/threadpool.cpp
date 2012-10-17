@@ -87,7 +87,14 @@ ThreadPool::~ThreadPool()
 		delete tptask;
 	}
 }
-	
+
+//-------------------------------------------------------------------------------------
+void ThreadPool::finalise()
+{
+	// 延时一下， 避免销毁时的极端情况导致出错
+	KBEngine::sleep(100);
+}
+
 //-------------------------------------------------------------------------------------
 TPTask* ThreadPool::popBusyTaskList(void)
 {
@@ -335,7 +342,8 @@ bool ThreadPool::addTask(TPTask* tptask)
 bool TPThread::onWaitCondSignal(void)
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
-	if(threadWaitSecond_ <= 0){
+	if(threadWaitSecond_ <= 0)
+	{
 		state_ = 0;
 		WaitForSingleObject(cond_, INFINITE); 
 		ResetEvent(cond_);
@@ -346,7 +354,8 @@ bool TPThread::onWaitCondSignal(void)
 		DWORD ret = WaitForSingleObject(cond_, threadWaitSecond_ * 1000);
 		ResetEvent(cond_);
 
-		if (ret == WAIT_TIMEOUT){											// 如果是因为超时了， 说明这个线程很久没有被用到， 我们应该注销这个线程。
+		if (ret == WAIT_TIMEOUT)
+		{																	// 如果是因为超时了， 说明这个线程很久没有被用到， 我们应该注销这个线程。
 			threadPool_->removeHangThread(this);							// 通知ThreadPool注销自己
 			return false;
 		}
@@ -383,7 +392,8 @@ bool TPThread::onWaitCondSignal(void)
 			threadPool_->removeHangThread(this);
 			return false;
 		}
-		else if(ret != 0){
+		else if(ret != 0)
+		{
 			ERROR_MSG("pthread_cond_timedwait is error, %s\n", kbe_strerror());
 		}
 	}

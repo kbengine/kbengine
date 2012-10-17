@@ -118,6 +118,7 @@ bool ServerApp::initialize()
 //-------------------------------------------------------------------------------------		
 void ServerApp::finalise(void)
 {
+	thread::ThreadPool::getSingleton().finalise();
 	pActiveTimerHandle_.cancel();
 }
 

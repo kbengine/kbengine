@@ -327,7 +327,7 @@ bool EntityDef::loadDefPropertys(std::string& moduleName, XmlPlus* xml, TiXmlNod
 			if(flagsNode)
 			{
 				strFlags = xml->getValStr(flagsNode);
-				std::transform(strFlags.begin(), strFlags.end(), strFlags.begin(), toupper);					// 转换为大写
+				//std::transform(strFlags.begin(), strFlags.end(), strFlags.begin(), toupper);					// 转换为大写
 				ENTITYFLAGMAP::iterator iter = g_entityFlagMapping.find(strFlags.c_str());
 				if(iter == g_entityFlagMapping.end())
 				{
@@ -371,7 +371,7 @@ bool EntityDef::loadDefPropertys(std::string& moduleName, XmlPlus* xml, TiXmlNod
 			if(typeNode)
 			{
 				strType = xml->getValStr(typeNode);
-				std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
+				//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
 				if(strType == "ARRAY")
 				{
 					FixedArrayType* dataType1 = new FixedArrayType();

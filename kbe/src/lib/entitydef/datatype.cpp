@@ -854,7 +854,7 @@ bool FixedArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 {
 	TiXmlNode* arrayNode = xmlplus->enterNode(node, "of");
 	std::string strType = xmlplus->getValStr(arrayNode);
-	std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
+	//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
 
 	if(strType == "ARRAY")
 	{
@@ -1051,7 +1051,7 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 		if(typeNode)
 		{
 			strType = xmlplus->getValStr(typeNode);
-			std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
+			//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
 
 			if(strType == "ARRAY")
 			{

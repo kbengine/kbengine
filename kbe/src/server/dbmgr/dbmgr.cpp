@@ -180,7 +180,11 @@ void Dbmgr::finalise()
 	SAFE_RELEASE(pGlobalBases_);
 	SAFE_RELEASE(pCellAppData_);
 
-	pDBInterface_->detach();
+	if(pDBInterface_)
+		pDBInterface_->detach();
+
+	SAFE_RELEASE(pDBInterface_);
+	ServerApp::finalise();
 }
 
 //-------------------------------------------------------------------------------------
