@@ -148,6 +148,9 @@ windows:
 
 ##配置数据库:
 	1: 安装好mysql
+		如果是windows系统则my.ini中加入如下代码使mysql大小写敏感
+		[mysqld]
+		lower_case_table_names=2
 
 	2: 创建一个数据库账户， 假设用户名密码都为"kbe"
 		grant all privileges on mydb.* to kbe@% identified by 'kbe';
