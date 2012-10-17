@@ -114,8 +114,8 @@ KBE_HYBRID_PATH:
 
 linux:
 
-	测试系统:centos5.x, debian5.x
-	gcc: 4.4.5
+	测试系统(x32&x64): centos >= 5.x, debian >= 5.x
+	编译器 gcc: >= 4.4.x
 
 
 	[root@localhost ~]# cd $KBE_ROOT/kbe/src
@@ -129,6 +129,20 @@ windows:
 
 	KBE_ROOT\kbengine\kbe\src\kbengine_vs90.sln
 
+注意: 
+	编译如使用其他版本编译器请将python, log4cxx, mysql重新编译。
+
+	在linux上编译完成如因为python无法初始化无法正常运行的情况(这是个bug http://bugs.python.org/issue11320):
+
+	cd src\lib\python
+
+	./configure
+
+	make
+
+	make install
+
+	再启动服务器
 
 
 ##配置数据库:
