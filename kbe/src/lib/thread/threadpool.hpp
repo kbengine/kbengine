@@ -176,7 +176,7 @@ public:
 	static void* threadFunc(void* arg)
 #endif
 	{
-		TPThread * tptd = (TPThread*) arg;
+		TPThread * tptd = static_cast<TPThread*>(arg);
 		bool isRun = true;
 #if KBE_PLATFORM == PLATFORM_WIN32
 		THREAD_TRY_EXECUTION;

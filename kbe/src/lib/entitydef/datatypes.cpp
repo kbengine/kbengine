@@ -81,7 +81,7 @@ bool DataTypes::loadAlias(std::string& file)
 	TiXmlNode* node = NULL;
 	XmlPlus* xml = new XmlPlus(Resmgr::matchRes(file).c_str());
 
-	if(xml == NULL)
+	if(xml == NULL || !xml->isGood())
 		return false;
 
 	node = xml->getRootNode();

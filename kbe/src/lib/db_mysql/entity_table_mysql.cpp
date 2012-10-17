@@ -24,11 +24,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/property.hpp"
 #include "dbmgr_lib/db_interface.hpp"
 
-#define SYNC_TO_DB(datatype)																	\
+#define SYNC_ITEM_TO_DB(datatype, strTableName, strItemName)									\
 {																								\
 	char __sql_str__[MAX_BUF];																	\
 	kbe_snprintf(__sql_str__, MAX_BUF, "alter table tbl_%s add sm_%s %s;",						\
-		this->pParentTable_->tableName(), itemName(), datatype);								\
+		strTableName, strItemName, datatype);													\
 																								\
 	bool ret = pdbi_->query(__sql_str__, strlen(__sql_str__), false);							\
 	if(!ret)																					\
@@ -283,7 +283,7 @@ bool EntityTableItemMysql_DIGIT::syncToDB()
 
 	if(datalength_ == 0)
 	{
-		SYNC_TO_DB(itemDBType_.c_str());
+		SYNC_ITEM_TO_DB(itemDBType_.c_str(), this->pParentTable_->tableName(), itemName());
 		return true;
 	}
 
@@ -295,7 +295,7 @@ bool EntityTableItemMysql_DIGIT::syncToDB()
 	else
 		kbe_snprintf(sql_str, MAX_BUF, "%s(%u)", itemDBType_.c_str(), length);
 
-	SYNC_TO_DB(sql_str);
+	SYNC_ITEM_TO_DB(sql_str, this->pParentTable_->tableName(), itemName());
 	return true;
 }
 
@@ -316,7 +316,7 @@ bool EntityTableItemMysql_STRING::syncToDB()
 		kbe_snprintf(sql_str, MAX_BUF, "text");
 	}
 
-	SYNC_TO_DB(sql_str);
+	SYNC_ITEM_TO_DB(sql_str, this->pParentTable_->tableName(), itemName());
 	return true;
 }
 
@@ -324,7 +324,7 @@ bool EntityTableItemMysql_STRING::syncToDB()
 bool EntityTableItemMysql_BLOB::syncToDB()
 {
 	DEBUG_MSG("EntityTableItemMysql_BLOB::syncToDB(): %s.\n", itemName());
-	SYNC_TO_DB(itemDBType_.c_str());
+	SYNC_ITEM_TO_DB(itemDBType_.c_str(), this->pParentTable_->tableName(), itemName());
 	return true;
 }
 
