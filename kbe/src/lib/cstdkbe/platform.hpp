@@ -664,7 +664,7 @@ inline int32 getProcessPID()
 #if KBE_PLATFORM == PLATFORM_WIN32
 	inline uint32 getSystemTime() 
 	{ 
-		// 注意这个函数windows上只能正确位置49天。
+		// 注意这个函数windows上只能正确维持49天。
 		return ::GetTickCount(); 
 	};
 #else

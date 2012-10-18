@@ -50,14 +50,51 @@ bool Resmgr::initialize()
 	//kb_env_.res_path			= "/home/kbe/kbengine/kbe/res/;/home/kbe/kbengine/demo/;/home/kbe/kbengine/demo/res/"; 
 	//kb_env_.hybrid_path		= "/home/kbe/kbengine/kbe/bin/Hybrid/"; 
 	
+	char ch;
+	
+	if(kb_env_.root.size() > 0)
+	{
+		ch =  kb_env_.root.at(kb_env_.root.size() - 1);
+		if(ch != '/' && ch != '\\')
+			kb_env_.root += "/";
+	}
+
+	if(kb_env_.hybrid_path.size() > 0)
+	{
+		ch =  kb_env_.hybrid_path.at(kb_env_.hybrid_path.size() - 1);
+		if(ch != '/' && ch != '\\')
+			kb_env_.hybrid_path += "/";
+	}
+
 	respaths_.clear();
 	std::string tbuf = kb_env_.res_path;
-	kbe_split<char>(tbuf, ';', respaths_);
+	char splitFlag = ';';
+	kbe_split<char>(tbuf, splitFlag, respaths_);
+
 	if(respaths_.size() < 2)
 	{
 		respaths_.clear();
-		kbe_split<char>(tbuf, ':', respaths_);
+		splitFlag = ':';
+		kbe_split<char>(tbuf, splitFlag, respaths_);
 	}
+
+	kb_env_.res_path = "";
+	std::vector<std::string>::iterator iter = respaths_.begin();
+	for(; iter != respaths_.end(); iter++)
+	{
+		if((*iter).size() <= 0)
+			continue;
+
+		ch =  (*iter).at((*iter).size() - 1);
+		if(ch != '/' && ch != '\\')
+			(*iter) += "/";
+
+		kb_env_.res_path += (*iter);
+		kb_env_.res_path += splitFlag;
+	}
+
+	if(kb_env_.res_path.size() > 0)
+		kb_env_.res_path.erase(kb_env_.res_path.size() - 1);
 
 	isInit_ = true;
 	return true;
