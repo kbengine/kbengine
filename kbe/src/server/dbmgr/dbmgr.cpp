@@ -377,7 +377,7 @@ void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel, std::string& accountNam
 
 	Mercury::Bundle bundle;
 	bundle.newMessage(LoginappInterface::onReqCreateAccountResult);
-	MERCURY_ERROR_CODE failedcode = MERCURY_SUCCESS;
+	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
 	// 如果没有连接db则从log中查找账号是否有此账号(这个功能是为了测试使用)
 	if(!pDBInterface_)
@@ -385,7 +385,7 @@ void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel, std::string& accountNam
 		PROXICES_ONLINE_LOG::iterator iter = proxicesOnlineLogs_.find(accountName);
 		if(iter != proxicesOnlineLogs_.end())
 		{
-			failedcode = MERCURY_ERR_ACCOUNT_CREATE;
+			failedcode = SERVER_ERR_ACCOUNT_CREATE;
 		}
 	}
 

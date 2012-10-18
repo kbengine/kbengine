@@ -918,17 +918,17 @@ void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& acco
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, MERCURY_ERROR_CODE failedcode)
+void Baseapp::loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, SERVER_ERROR_CODE failedcode)
 {
-	if(failedcode == MERCURY_ERR_NAME)
+	if(failedcode == SERVER_ERR_NAME)
 	{
 		DEBUG_MSG("Baseapp::login: not found user[%s], login is failed!\n", accountName.c_str());
-		failedcode = MERCURY_ERR_NAME_PASSWORD;
+		failedcode = SERVER_ERR_NAME_PASSWORD;
 	}
-	else if(failedcode == MERCURY_ERR_PASSWORD)
+	else if(failedcode == SERVER_ERR_PASSWORD)
 	{
 		DEBUG_MSG("Baseapp::login: user[%s] password is error, login is failed!\n", accountName.c_str());
-		failedcode = MERCURY_ERR_NAME_PASSWORD;
+		failedcode = SERVER_ERR_NAME_PASSWORD;
 	}
 
 	if(pChannel == NULL)
@@ -953,20 +953,20 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName,
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		loginGatewayFailed(pChannel, accountName, MERCURY_ERR_SRV_NO_READY);
+		loginGatewayFailed(pChannel, accountName, SERVER_ERR_SRV_NO_READY);
 		return;
 	}
 
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(accountName);
 	if(ptinfos == NULL)
 	{
-		loginGatewayFailed(pChannel, accountName, MERCURY_ERR_NAME);
+		loginGatewayFailed(pChannel, accountName, SERVER_ERR_NAME);
 		return;
 	}
 
 	if(ptinfos->password != password)
 	{
-		loginGatewayFailed(pChannel, accountName, MERCURY_ERR_PASSWORD);
+		loginGatewayFailed(pChannel, accountName, SERVER_ERR_PASSWORD);
 		return;
 	}
 
@@ -977,7 +977,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName,
 		Proxy* base = static_cast<Proxy*>(findEntity(ptinfos->entityID));
 		if(base == NULL)
 		{
-			loginGatewayFailed(pChannel, accountName, MERCURY_ERR_SRV_NO_READY);
+			loginGatewayFailed(pChannel, accountName, SERVER_ERR_SRV_NO_READY);
 			return;
 		}
 		
@@ -1010,7 +1010,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName,
 					Mercury::Channel* pOldClientChannel = base->getClientMailbox()->getChannel();
 					if(pOldClientChannel != NULL)
 					{
-						loginGatewayFailed(pOldClientChannel, accountName, MERCURY_ERR_ANOTHER_LOGON);
+						loginGatewayFailed(pOldClientChannel, accountName, SERVER_ERR_ANOTHER_LOGON);
 						pOldClientChannel->proxyID(0);
 					}
 
@@ -1021,7 +1021,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName,
 			case LOG_ON_WAIT_FOR_DESTROY:
 			default:
 				DEBUG_MSG("Baseapp::loginGateway: script LOG_ON_REJECT.\n");
-				loginGatewayFailed(pChannel, accountName, MERCURY_ERR_ACCOUNT_ONLINE);
+				loginGatewayFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_ONLINE);
 				return;
 			};
 		}
@@ -1048,7 +1048,7 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 	Base* base = findEntity(entityID);
 	if(base == NULL || !PyObject_TypeCheck(base, Proxy::getScriptType()))
 	{
-		loginGatewayFailed(pChannel, accountName, MERCURY_ERR_ILLEGAL_LOGIN);
+		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
 		return;
 	}
 	
@@ -1056,7 +1056,7 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 	
 	if(proxy->rndUUID() != key)
 	{
-		loginGatewayFailed(pChannel, accountName, MERCURY_ERR_ILLEGAL_LOGIN);
+		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
 		return;
 	}
 

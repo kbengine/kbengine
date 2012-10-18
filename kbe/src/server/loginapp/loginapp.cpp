@@ -146,7 +146,7 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, std::string& account
 	{
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onCreateAccountResult);
-		ClientInterface::onCreateAccountResultArgs1::staticAddToBundle(bundle, MERCURY_ERR_BUSY);
+		ClientInterface::onCreateAccountResultArgs1::staticAddToBundle(bundle, SERVER_ERR_BUSY);
 		bundle.send(this->getNetworkInterface(), pChannel);
 		return;
 	}
@@ -167,7 +167,7 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, std::string& account
 	{
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onCreateAccountResult);
-		ClientInterface::onCreateAccountResultArgs1::staticAddToBundle(bundle, MERCURY_ERR_SRV_NO_READY);
+		ClientInterface::onCreateAccountResultArgs1::staticAddToBundle(bundle, SERVER_ERR_SRV_NO_READY);
 		bundle.send(this->getNetworkInterface(), pChannel);
 		return;
 	}
@@ -179,7 +179,7 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, std::string& account
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::onReqCreateAccountResult(Mercury::Channel* pChannel, MERCURY_ERROR_CODE failedcode, std::string& accountName, 
+void Loginapp::onReqCreateAccountResult(Mercury::Channel* pChannel, SERVER_ERROR_CODE failedcode, std::string& accountName, 
 							 std::string& password)
 {
 	DEBUG_MSG("Loginapp::onReqCreateAccountResult: accountName=%s, failedcode=%u.\n", 
@@ -226,7 +226,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(accountName);
 	if(ptinfos != NULL)
 	{
-		_loginFailed(pChannel, accountName, MERCURY_ERR_BUSY);
+		_loginFailed(pChannel, accountName, SERVER_ERR_BUSY);
 		return;
 	}
 
@@ -249,7 +249,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(baseappmgrinfos == NULL || baseappmgrinfos->pChannel == NULL || baseappmgrinfos->cid == 0)
 	{
-		_loginFailed(pChannel, accountName, MERCURY_ERR_SRV_NO_READY);
+		_loginFailed(pChannel, accountName, SERVER_ERR_SRV_NO_READY);
 		return;
 	}
 
@@ -261,7 +261,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		_loginFailed(pChannel, accountName, MERCURY_ERR_SRV_NO_READY);
+		_loginFailed(pChannel, accountName, SERVER_ERR_SRV_NO_READY);
 		return;
 	}
 
@@ -273,9 +273,9 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& accountName, MERCURY_ERROR_CODE failedcode)
+void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& accountName, SERVER_ERROR_CODE failedcode)
 {
-	DEBUG_MSG("Loginapp::loginFailed: accountName=%s login is failed. failedcode=%s.\n", accountName.c_str(), MERCURY_ERR_STR[failedcode]);
+	DEBUG_MSG("Loginapp::loginFailed: accountName=%s login is failed. failedcode=%s.\n", accountName.c_str(), SERVER_ERR_STR[failedcode]);
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onLoginFailed);
 	bundle << failedcode;
@@ -315,7 +315,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 
 	if(!success)
 	{
-		_loginFailed(NULL, accountName, MERCURY_ERR_NAME_PASSWORD);
+		_loginFailed(NULL, accountName, SERVER_ERR_NAME_PASSWORD);
 		return;
 	}
 
@@ -327,7 +327,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 
 	if(baseappmgrinfos == NULL || baseappmgrinfos->pChannel == NULL || baseappmgrinfos->cid == 0)
 	{
-		_loginFailed(NULL, accountName, MERCURY_ERR_SRV_NO_READY);
+		_loginFailed(NULL, accountName, SERVER_ERR_SRV_NO_READY);
 		return;
 	}
 
