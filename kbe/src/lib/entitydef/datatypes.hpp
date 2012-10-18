@@ -64,6 +64,7 @@ public:
 	static bool loadAlias(std::string& file);
 protected:
 	static DATATYPE_MAP dataTypes_;
+	static DATATYPE_MAP dataTypesLowerName_;
 	static UID_DATATYPE_MAP uid_dataTypes_;
 };
 

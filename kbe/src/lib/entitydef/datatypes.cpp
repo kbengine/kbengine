@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 DataTypes::DATATYPE_MAP DataTypes::dataTypes_;
+DataTypes::DATATYPE_MAP DataTypes::dataTypesLowerName_;
 DataTypes::UID_DATATYPE_MAP DataTypes::uid_dataTypes_;
 
 //-------------------------------------------------------------------------------------
@@ -136,14 +137,17 @@ bool DataTypes::loadAlias(std::string& file)
 bool DataTypes::addDateType(std::string name, DataType* dataType)
 {
 	dataType->aliasName(name);
-	DATATYPE_MAP::iterator iter = dataTypes_.find(name);
-	if (iter != dataTypes_.end())
+	std::string lowername = name;
+	std::transform(lowername.begin(), lowername.end(), lowername.begin(), tolower);	
+	DATATYPE_MAP::iterator iter = dataTypesLowerName_.find(lowername);
+	if (iter != dataTypesLowerName_.end())
 	{ 
 		ERROR_MSG("DataTypes::addDateType:exist a type %s.\n", name.c_str());
 		return false;
 	}
 
 	dataTypes_[name] = dataType;
+	dataTypesLowerName_[lowername] = dataType;
 	uid_dataTypes_[dataType->id()] = dataType;
 
 	//dataType->incRef();
@@ -176,6 +180,7 @@ void DataTypes::delDataType(std::string name)
 		uid_dataTypes_.erase(iter->second->id());
 		iter->second->decRef();
 		dataTypes_.erase(iter);
+		dataTypesLowerName_.erase(iter);
 	}
 }
 
