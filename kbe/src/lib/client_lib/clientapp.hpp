@@ -40,7 +40,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/interfaces.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
-#include "server/mercury_errors.hpp"
+#include "server/server_errors.hpp"
 
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -113,7 +113,7 @@ public:
 									MERCURY_ERR_ACCOUNT_CREATE:创建失败（已经存在）, 
 									MERCURY_SUCCESS:账号创建成功
 	*/
-	virtual void onCreateAccountResult(Mercury::Channel * pChannel, MERCURY_ERROR_CODE failedcode);
+	virtual void onCreateAccountResult(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
 
 	/** 网络接口
 	   登录失败回调
@@ -121,7 +121,7 @@ public:
 									MERCURY_ERR_SRV_OVERLOAD:服务器负载过重, 
 									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	virtual void onLoginFailed(Mercury::Channel * pChannel, MERCURY_ERROR_CODE failedcode);
+	virtual void onLoginFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
 
 	/** 网络接口
 	   登录成功
@@ -136,7 +136,7 @@ public:
 									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
 									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, MERCURY_ERROR_CODE failedcode);
+	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
 
 	/** 网络接口
 		服务器端已经创建了一个与客户端关联的代理Entity

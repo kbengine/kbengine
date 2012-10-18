@@ -24,7 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include
 #include "cstdkbe/timer.hpp"
 #include "cstdkbe/cstdkbe.hpp"
-#include "server/mercury_errors.hpp"
+#include "server/server_errors.hpp"
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else

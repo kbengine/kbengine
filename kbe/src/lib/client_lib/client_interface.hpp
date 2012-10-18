@@ -32,7 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #include "client_interface_macros.hpp"
 #include "network/interface_defs.hpp"
-#include "server/mercury_errors.hpp"
+#include "server/server_errors.hpp"
 #include "common.hpp"
 
 //#define NDEBUG
@@ -50,14 +50,14 @@ namespace KBEngine{
 NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	// 创建账号失败。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onCreateAccountResult,			MERCURY_FIXED_MESSAGE,
-									MERCURY_ERROR_CODE,			failedcode)
+									SERVER_ERROR_CODE,			failedcode)
 
 	// 登录成功。
 	CLIENT_MESSAGE_DECLARE_STREAM(onLoginSuccessfully,			MERCURY_VARIABLE_MESSAGE)
 
 	// 登录失败。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginFailed,					MERCURY_FIXED_MESSAGE,
-									MERCURY_ERROR_CODE,			failedcode)
+									SERVER_ERROR_CODE,			failedcode)
 
 	// 服务器端已经创建了一个与客户端关联的代理Entity || 登录网关成功。
 	CLIENT_MESSAGE_DECLARE_ARGS3(onCreatedProxies,				MERCURY_VARIABLE_MESSAGE,
@@ -72,7 +72,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 
 	// 登录网关失败。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginGatewayFailed,			MERCURY_FIXED_MESSAGE,
-									MERCURY_ERROR_CODE,			failedcode)
+									SERVER_ERROR_CODE,			failedcode)
 
 	// 服务器上的entity已经有了一个cell部分。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityGetCell,				MERCURY_FIXED_MESSAGE,

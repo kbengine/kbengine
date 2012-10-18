@@ -32,7 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #include "loginapp_interface_macros.hpp"
 #include "network/interface_defs.hpp"
-#include "server/mercury_errors.hpp"
+#include "server/server_errors.hpp"
 //#define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -81,7 +81,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 
 	// 向dbmgr请求创建账号返回结果
 	LOGINAPP_MESSAGE_DECLARE_ARGS3(onReqCreateAccountResult,						MERCURY_VARIABLE_MESSAGE,
-									MERCURY_ERROR_CODE,								failedcode,
+									SERVER_ERROR_CODE,								failedcode,
 									std::string,									accountName,
 									std::string,									password)
 
