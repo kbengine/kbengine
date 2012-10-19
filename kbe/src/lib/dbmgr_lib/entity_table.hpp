@@ -72,6 +72,8 @@ public:
 
 	virtual ~EntityTableItem(){};
 
+	virtual bool isSameKey(std::string key){ return itemName() == key; }
+
 	virtual uint8 type()const{ return TABLE_ITEM_TYPE_UNKONWN; }
 
 	void itemName(std::string name){ itemName_ = name; }
@@ -85,6 +87,8 @@ public:
 
 	void pParentTableItem(EntityTableItem* v){ pParentTableItem_ = v; }
 	EntityTableItem* pParentTableItem(){ return pParentTableItem_; }
+
+	const DataType* pDataType(){ return pDataType_; }
 
 	/**
 		初始化
@@ -193,6 +197,8 @@ public:
 		获得所有表
 	*/
 	const EntityTables::TABLES_MAP& tables()const { return tables_; }
+
+	void addTable(EntityTable* pTable);
 protected:
 	// 所有的字段
 	TABLES_MAP tables_;

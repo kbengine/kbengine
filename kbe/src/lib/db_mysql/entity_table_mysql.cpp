@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/scriptdef_module.hpp"
 #include "entitydef/property.hpp"
 #include "dbmgr_lib/db_interface.hpp"
-#include <queue>																						
+#include "dbmgr_lib/entity_table.hpp"																					
 
 
 namespace KBEngine { 
@@ -118,6 +118,13 @@ bool EntityTableMysql::syncToDB()
 		return false;
 	}
 
+	EntityTable::TABLEITEM_MAP::iterator iter = tableItems_.begin();
+	for(; iter != tableItems_.end(); iter++)
+	{
+		if(!iter->second->syncToDB())
+			return false;
+	}
+
 	std::vector<std::string> dbTableItemNames;
 	std::string ttablename = ENTITY_TABLE_PERFIX"_";
 	ttablename += tableName();
@@ -134,9 +141,31 @@ bool EntityTableMysql::syncToDB()
 
 		for(; iter != tableItems_.end(); iter++)
 		{
+			// 处理array中的值的特例情况
+			if(tname == "sm_value")
+			{
+				if(iter->second->pParentTableItem() && iter->second->type() != TABLE_ITEM_TYPE_ARRAY)
+				{
+					if(iter->second->pParentTableItem()->type() == TABLE_ITEM_TYPE_ARRAY)
+					{
+						found = true;
+						break;
+					}
+				}
+			}
+
 			std::string tname1 = TABLE_ITEM_PERFIX"_";
-			tname1 += iter->second->itemName();
-			if(tname == tname1)
+			
+			if(strncmp(tname.c_str(), tname1.c_str(), tname1.size()) == 0)
+			{
+				tname1 = (tname.c_str() + 3);
+			}
+			else
+			{
+				tname1 = tname;
+			}
+
+			if(iter->second->isSameKey(tname1))
 			{
 				found = true;
 				break;
@@ -149,13 +178,6 @@ bool EntityTableMysql::syncToDB()
 				if(!pdbi_->dropEntityTableItemFromDB(ttablename.c_str(), tname.c_str()))
 					return false;
 		}
-	}
-
-	EntityTable::TABLEITEM_MAP::iterator iter = tableItems_.begin();
-	for(; iter != tableItems_.end(); iter++)
-	{
-		if(!iter->second->syncToDB())
-			return false;
 	}
 
 	return true;
@@ -245,14 +267,41 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 }
 
 //-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_VECTOR2::isSameKey(std::string key)
+{
+	std::string vkey0 = "0_";
+	vkey0 += itemName();
+
+	std::string vkey1 = "1_";
+	vkey1 += itemName();
+
+	return (key == vkey0 || key == vkey1);
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_VECTOR2::syncToDB()
 {
 	DEBUG_MSG("EntityTableItemMysql_VECTOR2::syncToDB(): %s.\n", itemName());
 
-	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "vm_0"))
+	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "sm_0"))
 		return false;
 
-	return sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "vm_1");
+	return sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "sm_1");
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_VECTOR3::isSameKey(std::string key)
+{
+	std::string vkey0 = "0_";
+	vkey0 += itemName();
+
+	std::string vkey1 = "1_";
+	vkey1 += itemName();
+
+	std::string vkey2 = "2_";
+	vkey2 += itemName();
+
+	return (key == vkey0 || key == vkey1 || key == vkey2);
 }
 
 //-------------------------------------------------------------------------------------
@@ -260,13 +309,31 @@ bool EntityTableItemMysql_VECTOR3::syncToDB()
 {
 	DEBUG_MSG("EntityTableItemMysql_VECTOR3::syncToDB(): %s.\n", itemName());
 
-	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "vm_0"))
+	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "sm_0"))
 		return false;
 
-	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "vm_1"))
+	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "sm_1"))
 		return false;
 
-	return sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "vm_2");
+	return sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "sm_2");
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_VECTOR4::isSameKey(std::string key)
+{
+	std::string vkey0 = "0_";
+	vkey0 += itemName();
+
+	std::string vkey1 = "1_";
+	vkey1 += itemName();
+
+	std::string vkey2 = "2_";
+	vkey2 += itemName();
+
+	std::string vkey3 = "3_";
+	vkey3 += itemName();
+
+	return (key == vkey0 || key == vkey1 || key == vkey2 || key == vkey2);
 }
 
 //-------------------------------------------------------------------------------------
@@ -274,16 +341,22 @@ bool EntityTableItemMysql_VECTOR4::syncToDB()
 {
 	DEBUG_MSG("EntityTableItemMysql_VECTOR4::syncToDB(): %s.\n", itemName());
 
-	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "vm_0"))
+	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "sm_0"))
 		return false;
 
-	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "vm_1"))
+	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "sm_1"))
 		return false;
 
-	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "vm_2"))
+	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "sm_2"))
 		return false;
 
-	return sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "vm_3");
+	return sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "sm_3");
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_ARRAY::isSameKey(std::string key)
+{
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -350,7 +423,9 @@ bool EntityTableItemMysql_ARRAY::initialize(DBInterface* dbi, const PropertyDesc
 	}
 
 	pTable->addItem(pArrayTableItem);
-	pChildTable_.reset(pTable);
+	pChildTable_ = pTable;
+
+	EntityTables::getSingleton().addTable(pTable);
 	return true;
 }
 
@@ -358,9 +433,28 @@ bool EntityTableItemMysql_ARRAY::initialize(DBInterface* dbi, const PropertyDesc
 bool EntityTableItemMysql_ARRAY::syncToDB()
 {
 	DEBUG_MSG("EntityTableItemMysql_ARRAY::syncToDB(): %s.\n", itemName());
-	if(pChildTable_.get())
+	if(pChildTable_)
 		return pChildTable_->syncToDB();
+
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_FIXED_DICT::isSameKey(std::string key)
+{
+	FIXEDDICT_KEYTYPE_MAP::iterator fditer = keyTypes_.begin();
+	bool tmpfound = false;
+
+	for(; fditer != keyTypes_.end(); fditer++)
+	{
+		if(fditer->second->isSameKey(key))
+		{
+			tmpfound = true;
+			break;
+		}
+	}
+	
+	return tmpfound;
 }
 
 //-------------------------------------------------------------------------------------

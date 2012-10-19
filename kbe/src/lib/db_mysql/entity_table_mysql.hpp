@@ -145,6 +145,8 @@ public:
 	virtual ~EntityTableItemMysql_VECTOR2(){};
 
 	uint8 type()const{ return TABLE_ITEM_TYPE_VECTOR2; }
+	
+	virtual bool isSameKey(std::string key);
 
 	/**
 		同步entity表到数据库中
@@ -164,6 +166,8 @@ public:
 
 	uint8 type()const{ return TABLE_ITEM_TYPE_VECTOR3; }
 
+	virtual bool isSameKey(std::string key);
+
 	/**
 		同步entity表到数据库中
 	*/
@@ -182,6 +186,8 @@ public:
 
 	uint8 type()const{ return TABLE_ITEM_TYPE_VECTOR4; }
 
+	virtual bool isSameKey(std::string key);
+
 	/**
 		同步entity表到数据库中
 	*/
@@ -192,11 +198,14 @@ class EntityTableItemMysql_ARRAY : public EntityTableItemMysqlBase
 {
 public:
 	EntityTableItemMysql_ARRAY(std::string itemDBType, uint32 datalength):
-	  EntityTableItemMysqlBase(itemDBType, datalength)
+	  EntityTableItemMysqlBase(itemDBType, datalength),
+	  pChildTable_(NULL)
 	  {
 	  }
 
 	virtual ~EntityTableItemMysql_ARRAY(){};
+
+	virtual bool isSameKey(std::string key);
 
 	/**
 		初始化
@@ -211,7 +220,7 @@ public:
 	*/
 	virtual bool syncToDB();
 protected:
-	std::tr1::shared_ptr<EntityTable> pChildTable_;
+	EntityTable* pChildTable_;
 };
 
 class EntityTableItemMysql_FIXED_DICT : public EntityTableItemMysqlBase
@@ -227,6 +236,8 @@ public:
 	typedef std::map<std::string, std::tr1::shared_ptr<EntityTableItem> > FIXEDDICT_KEYTYPE_MAP;
 
 	uint8 type()const{ return TABLE_ITEM_TYPE_FIXEDDICT; }
+
+	virtual bool isSameKey(std::string key);
 
 	/**
 		初始化
