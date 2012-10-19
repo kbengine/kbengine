@@ -35,6 +35,21 @@ class DataType;
 class PropertyDescription;
 class EntityTable;
 
+#define TABLE_ITEM_TYPE_UNKONWN		0
+#define TABLE_ITEM_TYPE_ARRAY		1
+#define TABLE_ITEM_TYPE_FIXEDDICT	2
+#define TABLE_ITEM_TYPE_STRING		3
+#define TABLE_ITEM_TYPE_DIGIT		4
+#define TABLE_ITEM_TYPE_BLOB		5
+#define TABLE_ITEM_TYPE_VECTOR2		6
+#define TABLE_ITEM_TYPE_VECTOR3		7
+#define TABLE_ITEM_TYPE_VECTOR4		8
+#define TABLE_ITEM_TYPE_UNICODE		9
+
+#define ENTITY_TABLE_PERFIX			"tbl"
+#define TABLE_PARENT_ID				"parentID"
+#define TABLE_ITEM_PERFIX			"sm"
+
 /*
 	维护entity在数据库中的表中的一个字段
 */
@@ -43,9 +58,11 @@ class EntityTableItem
 public:
 	EntityTableItem(std::string itemDBType, uint32 datalength):
 		itemName_(),
+		tableName_(),
 		utype_(0),
 		pdbi_(NULL),
 		pParentTable_(NULL),
+		pParentTableItem_(NULL),
 		pDataType_(NULL),
 		pPropertyDescription_(NULL),
 		itemDBType_(itemDBType),
@@ -55,19 +72,28 @@ public:
 
 	virtual ~EntityTableItem(){};
 
+	virtual uint8 type()const{ return TABLE_ITEM_TYPE_UNKONWN; }
+
 	void itemName(std::string name){ itemName_ = name; }
 	const char* itemName(){ return itemName_.c_str(); }
 
-	void utype(ENTITY_PROPERTY_UID utype){ utype_ = utype; }
-	ENTITY_PROPERTY_UID utype(){ return utype_; }
+	void utype(int32/*ENTITY_PROPERTY_UID*/ utype){ utype_ = utype; }
+	int32 utype(){ return utype_; }
 
 	void pParentTable(EntityTable* v){ pParentTable_ = v; }
 	EntityTable* pParentTable(){ return pParentTable_; }
 
+	void pParentTableItem(EntityTableItem* v){ pParentTableItem_ = v; }
+	EntityTableItem* pParentTableItem(){ return pParentTableItem_; }
+
 	/**
 		初始化
 	*/
-	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, const DataType* pDataType) = 0;
+	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, 
+		const DataType* pDataType, std::string itemName) = 0;
+
+	void tableName(std::string name){ tableName_ = name; }
+	const char* tableName(){ return tableName_.c_str(); }
 
 	/**
 		同步entity表到数据库中
@@ -76,11 +102,13 @@ public:
 protected:
 	// 字段名称
 	std::string itemName_;
-	ENTITY_PROPERTY_UID utype_;
+	std::string tableName_;
+	int32/*ENTITY_PROPERTY_UID*/ utype_;
 
 	DBInterface* pdbi_;
 
 	EntityTable* pParentTable_;
+	EntityTableItem* pParentTableItem_;
 
 	const DataType* pDataType_;
 	const PropertyDescription* pPropertyDescription_;
@@ -95,9 +123,16 @@ protected:
 class EntityTable
 {
 public:
-	typedef std::map<ENTITY_PROPERTY_UID, std::tr1::shared_ptr<EntityTableItem> > TABLEITEM_MAP;
+	typedef std::map<int32/*ENTITY_PROPERTY_UID*/, std::tr1::shared_ptr<EntityTableItem> > TABLEITEM_MAP;
 
-	EntityTable(){};
+	EntityTable():
+	tableName_(),
+	tableItems_(),
+	pdbi_(NULL),
+	isChild_(false)
+	{
+	};
+
 	virtual ~EntityTable(){};
 	
 	void tableName(std::string name){ tableName_ = name; }
@@ -106,7 +141,7 @@ public:
 	/**
 		初始化
 	*/
-	virtual bool initialize(DBInterface* dbi, ScriptDefModule* sm) = 0;
+	virtual bool initialize(DBInterface* dbi, ScriptDefModule* sm, std::string name) = 0;
 
 	/**
 		同步entity表到数据库中
@@ -122,6 +157,14 @@ public:
 		获得所有表字段
 	*/
 	const EntityTable::TABLEITEM_MAP& tableItems()const { return tableItems_; }
+
+	void pdbi(DBInterface* v){ pdbi_ = v; }
+	DBInterface* pdbi(){ return pdbi_; }
+
+	void addItem(EntityTableItem* pItem);
+
+	bool isChild()const{ return isChild_; }
+	void isChild(bool b){ isChild_ = b; }
 protected:
 
 	// 表名称
@@ -131,6 +174,8 @@ protected:
 	TABLEITEM_MAP tableItems_;
 
 	DBInterface* pdbi_;
+
+	bool isChild_; // 是否为子表
 };
 
 class EntityTables : public Singleton<EntityTables>

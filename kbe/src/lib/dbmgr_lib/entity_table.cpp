@@ -29,6 +29,12 @@ KBE_SINGLETON_INIT(EntityTables);
 EntityTables g_EntityTables;
 
 //-------------------------------------------------------------------------------------
+void EntityTable::addItem(EntityTableItem* pItem)
+{
+	tableItems_[pItem->utype()].reset(pItem);
+}
+
+//-------------------------------------------------------------------------------------
 EntityTables::EntityTables()
 {
 }
@@ -50,7 +56,7 @@ bool EntityTables::load(DBInterface* dbi)
 	{
 		ScriptDefModule* pSM = (*iter).get();
 		EntityTable* pEtable = dbi->createEntityTable();
-		bool ret = pEtable->initialize(pdbi_, pSM);
+		bool ret = pEtable->initialize(pdbi_, pSM, pSM->getName());
 
 		if(!ret)
 		{

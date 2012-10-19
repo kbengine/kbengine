@@ -29,39 +29,67 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 
 class ScriptDefModule;
+class EntityTableMysql;
+
+
 #define MYSQL_ENGINE_TYPE "InnoDB"
 
 /*
 	维护entity在数据库中的表中的一个字段
 */
-class EntityTableItemMysql_DIGIT : public EntityTableItem
+class EntityTableItemMysqlBase : public EntityTableItem
 {
 public:
-	EntityTableItemMysql_DIGIT(std::string itemDBType, uint32 datalength):
+	EntityTableItemMysqlBase(std::string itemDBType, uint32 datalength):
 	  EntityTableItem(itemDBType, datalength)
 	{
 	};
-	virtual ~EntityTableItemMysql_DIGIT(){};
+	virtual ~EntityTableItemMysqlBase(){};
+
+	uint8 type()const{ return TABLE_ITEM_TYPE_UNKONWN; }
 
 	/**
 		初始化
 	*/
-	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, const DataType* pDataType);
+	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, 
+		const DataType* pDataType, std::string name);
+
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB() = 0;
+protected:
+};
+
+class EntityTableItemMysql_DIGIT : public EntityTableItemMysqlBase
+{
+public:
+	EntityTableItemMysql_DIGIT(std::string itemDBType, uint32 datalength):
+	  EntityTableItemMysqlBase(itemDBType, datalength)
+	{
+	};
+
+	virtual ~EntityTableItemMysql_DIGIT(){};
+
+	uint8 type()const{ return TABLE_ITEM_TYPE_DIGIT; }
 
 	/**
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB();
-protected:
 };
 
-class EntityTableItemMysql_STRING : public EntityTableItemMysql_DIGIT
+class EntityTableItemMysql_STRING : public EntityTableItemMysqlBase
 {
 public:
 	EntityTableItemMysql_STRING(std::string itemDBType, uint32 datalength):
-	  EntityTableItemMysql_DIGIT(itemDBType, datalength)
+	  EntityTableItemMysqlBase(itemDBType, datalength)
 	  {
 	  }
+
+	virtual ~EntityTableItemMysql_STRING(){};
+
+	uint8 type()const{ return TABLE_ITEM_TYPE_STRING; }
 
 	/**
 		同步entity表到数据库中
@@ -69,13 +97,36 @@ public:
 	virtual bool syncToDB();
 };
 
-class EntityTableItemMysql_BLOB : public EntityTableItemMysql_DIGIT
+class EntityTableItemMysql_UNICODE : public EntityTableItemMysqlBase
+{
+public:
+	EntityTableItemMysql_UNICODE(std::string itemDBType, uint32 datalength):
+	  EntityTableItemMysqlBase(itemDBType, datalength)
+	  {
+	  }
+
+	virtual ~EntityTableItemMysql_UNICODE(){};
+
+	uint8 type()const{ return TABLE_ITEM_TYPE_UNICODE; }
+
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB();
+};
+
+
+class EntityTableItemMysql_BLOB : public EntityTableItemMysqlBase
 {
 public:
 	EntityTableItemMysql_BLOB(std::string itemDBType, uint32 datalength):
-	  EntityTableItemMysql_DIGIT(itemDBType, datalength)
+	  EntityTableItemMysqlBase(itemDBType, datalength)
 	  {
 	  }
+
+	virtual ~EntityTableItemMysql_BLOB(){};
+
+	uint8 type()const{ return TABLE_ITEM_TYPE_BLOB; }
 
 	/**
 		同步entity表到数据库中
@@ -83,41 +134,105 @@ public:
 	virtual bool syncToDB();
 };
 
-class EntityTableItemMysql_ARRAY : public EntityTableItemMysql_DIGIT
+class EntityTableItemMysql_VECTOR2 : public EntityTableItemMysqlBase
+{
+public:
+	EntityTableItemMysql_VECTOR2(std::string itemDBType, uint32 datalength):
+	  EntityTableItemMysqlBase(itemDBType, datalength)
+	  {
+	  }
+
+	virtual ~EntityTableItemMysql_VECTOR2(){};
+
+	uint8 type()const{ return TABLE_ITEM_TYPE_VECTOR2; }
+
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB();
+};
+
+class EntityTableItemMysql_VECTOR3 : public EntityTableItemMysqlBase
+{
+public:
+	EntityTableItemMysql_VECTOR3(std::string itemDBType, uint32 datalength):
+	  EntityTableItemMysqlBase(itemDBType, datalength)
+	  {
+	  }
+
+	virtual ~EntityTableItemMysql_VECTOR3(){};
+
+	uint8 type()const{ return TABLE_ITEM_TYPE_VECTOR3; }
+
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB();
+};
+
+class EntityTableItemMysql_VECTOR4 : public EntityTableItemMysqlBase
+{
+public:
+	EntityTableItemMysql_VECTOR4(std::string itemDBType, uint32 datalength):
+	  EntityTableItemMysqlBase(itemDBType, datalength)
+	  {
+	  }
+
+	virtual ~EntityTableItemMysql_VECTOR4(){};
+
+	uint8 type()const{ return TABLE_ITEM_TYPE_VECTOR4; }
+
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB();
+};
+
+class EntityTableItemMysql_ARRAY : public EntityTableItemMysqlBase
 {
 public:
 	EntityTableItemMysql_ARRAY(std::string itemDBType, uint32 datalength):
-	  EntityTableItemMysql_DIGIT(itemDBType, datalength)
+	  EntityTableItemMysqlBase(itemDBType, datalength)
 	  {
 	  }
+
+	virtual ~EntityTableItemMysql_ARRAY(){};
 
 	/**
 		初始化
 	*/
-	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, const DataType* pDataType);
+	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, 
+		const DataType* pDataType, std::string name);
+
+	uint8 type()const{ return TABLE_ITEM_TYPE_ARRAY; }
 
 	/**
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB();
 protected:
-	std::tr1::shared_ptr<EntityTableItem> arrayTableItem_;
+	std::tr1::shared_ptr<EntityTable> pChildTable_;
 };
 
-class EntityTableItemMysql_FIXED_DICT : public EntityTableItemMysql_DIGIT
+class EntityTableItemMysql_FIXED_DICT : public EntityTableItemMysqlBase
 {
 public:
 	EntityTableItemMysql_FIXED_DICT(std::string itemDBType, uint32 datalength):
-	  EntityTableItemMysql_DIGIT(itemDBType, datalength)
+	  EntityTableItemMysqlBase(itemDBType, datalength)
 	  {
 	  }
 
+	virtual ~EntityTableItemMysql_FIXED_DICT(){};
+
 	typedef std::map<std::string, std::tr1::shared_ptr<EntityTableItem> > FIXEDDICT_KEYTYPE_MAP;
+
+	uint8 type()const{ return TABLE_ITEM_TYPE_FIXEDDICT; }
 
 	/**
 		初始化
 	*/
-	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, const DataType* pDataType);
+	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, 
+		const DataType* pDataType, std::string name);
 
 	/**
 		同步entity表到数据库中
@@ -140,7 +255,7 @@ public:
 	/**
 		初始化
 	*/
-	virtual bool initialize(DBInterface* dbi, ScriptDefModule* sm);
+	virtual bool initialize(DBInterface* dbi, ScriptDefModule* sm, std::string name);
 
 	/**
 		同步entity表到数据库中
@@ -152,6 +267,7 @@ public:
 	*/
 	virtual EntityTableItem* createItem(std::string type);
 protected:
+	
 };
 
 
