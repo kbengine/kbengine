@@ -158,8 +158,8 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 		}
 		else
 		{
-			WARNING_MSG("Machine::onFindInterfaceAddr: %s[%"PRAppID"] invalid.\n", COMPONENT_NAME_EX(pinfos->componentType), 
-				pinfos->cid);
+			WARNING_MSG("Machine::onFindInterfaceAddr: %s[%"PRAppID"] invalid, erase %s.\n", COMPONENT_NAME_EX(pinfos->componentType), 
+				pinfos->cid, COMPONENT_NAME_EX(pinfos->componentType));
 			iter = components.erase(iter);
 		}
 	}

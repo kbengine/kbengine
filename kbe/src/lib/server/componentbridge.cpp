@@ -187,10 +187,12 @@ bool Componentbridge::findInterfaces()
 			}
 
 			INFO_MSG("Componentbridge::process: found %s, addr:%s:%u\n",
-				COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intaddr));
+				COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), 
+				inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intaddr));
 
 			Componentbridge::getComponents().addComponent(args.uid, args.username.c_str(), 
-				(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
+				(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, 
+				args.intaddr, args.intport, args.extaddr, args.extport);
 			
 			// 防止接收到的数据不是想要的数据
 			if(findComponentType == args.componentType)
@@ -199,13 +201,14 @@ bool Componentbridge::findInterfaces()
 			}
 			else
 			{
-				ERROR_MSG("Componentbridge::process: %s not found. receive data is error!\n", COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+				ERROR_MSG("Componentbridge::process: %s not found. receive data is error!\n", 
+					COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 			}
 		}
 		else
 		{
 			ERROR_MSG("Componentbridge::process: receive error!\n");
-			return false;
+			//return false;
 		}
 	}
 	
