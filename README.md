@@ -6,7 +6,7 @@ kbengine
 
 ##控制台截图:
 [![kbengine](https://github.com/downloads/kbengine/kbengine/guiconsole.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
-
+[![kbengine](https://github.com/downloads/kbengine/kbengine/guiconsole_log.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
 
 ##什么是KBEngine?
 
