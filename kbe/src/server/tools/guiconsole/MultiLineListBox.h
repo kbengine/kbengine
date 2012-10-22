@@ -71,7 +71,7 @@ protected:
 protected:
 	static int m_nFocusIndex;
 	vector<LISTBOXINFO*> m_sArray;
-
+	int   m_nMaxWidth; 
 public:
 	int InsertString(int nIndex, LPCTSTR pszText, COLORREF fgColor = RGB_FOREGROUND, COLORREF bgColor = RGB_BACKGROUND);
 	int AddString(LPCTSTR pszText, COLORREF fgColor = RGB_FOREGROUND, COLORREF bgColor = RGB_BACKGROUND);

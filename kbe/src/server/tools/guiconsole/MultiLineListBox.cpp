@@ -15,6 +15,7 @@ IMPLEMENT_DYNAMIC(CMultiLineListBox, CListBox)
 CMultiLineListBox::CMultiLineListBox()
 {
 	m_sArray.clear();
+	m_nMaxWidth   =   0; 
 }
 
 CMultiLineListBox::~CMultiLineListBox() 
@@ -71,13 +72,41 @@ int CMultiLineListBox::AddString(LPCTSTR pszText, COLORREF fgColor, COLORREF bgC
 
 	m_sArray.push_back(pListBox);
 
-	return CListBox::AddString(pszText);
+	int ret = CListBox::AddString(pszText);
+
+	SCROLLINFO scrollInfo;
+	memset(&scrollInfo,   0,   sizeof(SCROLLINFO));
+	scrollInfo.cbSize   =   sizeof(SCROLLINFO);
+	scrollInfo.fMask   =   SIF_ALL;
+	GetScrollInfo(SB_VERT,   &scrollInfo,   SIF_ALL); 
+
+	int   nScrollWidth   =   0;
+	if(GetCount() > 1 && ((int)scrollInfo.nMax >= (int)scrollInfo.nPage))
+	{
+		nScrollWidth = GetSystemMetrics(SM_CXVSCROLL);
+	} 
+
+	SIZE   sSize;
+	CClientDC   myDC(this); 
+
+	CFont* pListBoxFont = GetFont();
+	if(pListBoxFont != NULL)
+	{
+		CFont* pOldFont =  myDC.SelectObject(pListBoxFont); 
+		GetTextExtentPoint32(myDC.m_hDC, pszText, ::wcslen(pszText), &sSize);
+
+		m_nMaxWidth   =   max(m_nMaxWidth,   (int)sSize.cx); 
+		SetHorizontalExtent(m_nMaxWidth   +   3); 
+		myDC.SelectObject(pOldFont);   
+	}
+
+	return ret;
 }
 
 void CMultiLineListBox::AddSubString(int nIndex, LPCTSTR pszText, COLORREF fgColor, COLORREF bgColor)
 {
 	ASSERT((nIndex >=0) && (nIndex < GetCount()));
-	
+
 	ASSERT(!m_sArray.empty());
 
 	LISTBOXINFO* pListBox = m_sArray.at(nIndex);
@@ -122,7 +151,7 @@ void CMultiLineListBox::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 		// and the text color to appropriate values. Also, erase
 		// rect by filling it with the background color.
 		CRect rc(lpDrawItemStruct->rcItem);
-		
+
 		LISTBOXINFO* pListBox = m_sArray.at(nIndex);
 		ASSERT(pListBox);
 
@@ -140,7 +169,7 @@ void CMultiLineListBox::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 			int nItemHeight = rc.Height() / nItemCount;
 			rect.bottom = rect.top + nItemHeight;
 			dc.DrawText(pListBox->strText, pListBox->strText.GetLength(), CRect(rect.left + 5, rect.top, rect.right, rect.bottom), DT_SINGLELINE | DT_VCENTER);
-			
+
 			// Draw subitem the text.
 			CRect rcItem;
 			rcItem.SetRectEmpty();
@@ -148,19 +177,19 @@ void CMultiLineListBox::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 			rcItem.left = rect.left;
 			rcItem.right = rect.right;
 			rcItem.bottom = rcItem.top + nItemHeight;
-			
+
 			vector<LISTBOXINFO::SUBNODEINFO*>::const_iterator iter = pListBox->subArray.begin();
 			for(; iter != pListBox->subArray.end(); ++iter)
 			{
 				LISTBOXINFO::SUBNODEINFO* pSubNode = *iter;
- 				dc.SetTextColor(pSubNode->fgColor);
- 				dc.SetBkColor(pSubNode->bgColor);
- 				dc.FillSolidRect(&rcItem, pSubNode->bgColor);
+				dc.SetTextColor(pSubNode->fgColor);
+				dc.SetBkColor(pSubNode->bgColor);
+				dc.FillSolidRect(&rcItem, pSubNode->bgColor);
 
 				CRect rectItem(rcItem);
 				rectItem.left += 22;
 				dc.DrawText(pSubNode->strText, pSubNode->strText.GetLength(), &rectItem, DT_SINGLELINE | DT_VCENTER);
-				
+
 				rcItem.top = rcItem.bottom;
 				rcItem.bottom = rcItem.top + nItemHeight;
 			}
@@ -193,7 +222,7 @@ BOOL CMultiLineListBox::OnEraseBkgnd(CDC* pDC)
 	// Set listbox background color
 	CRect rc;
 	GetClientRect(&rc);
-	
+
 	CDC memDC;
 	memDC.CreateCompatibleDC(pDC);
 	ASSERT(memDC.GetSafeHdc());
@@ -261,7 +290,7 @@ LRESULT CMultiLineListBox::OnUpdateItem(WPARAM wParam, LPARAM lParam)
 	{
 		SetItemHeight(nPreIndex, ITEM_HEIGHT);
 	}
-	
+
 	if(-1 != nCurIndex)
 	{
 		int nItemCount = 1;
@@ -271,6 +300,6 @@ LRESULT CMultiLineListBox::OnUpdateItem(WPARAM wParam, LPARAM lParam)
 		SetItemHeight(nCurIndex, ITEM_HEIGHT * nItemCount);
 	}
 
- 	Invalidate(); // Update item
+	Invalidate(); // Update item
 	return 0;
 }
