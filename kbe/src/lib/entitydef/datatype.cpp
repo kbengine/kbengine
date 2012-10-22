@@ -712,7 +712,7 @@ bool BlobType::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* BlobType::parseDefaultStr(std::string defaultVal)
 {
-	Py_RETURN_NONE;
+	return PyBytes_FromString("");
 }
 
 //-------------------------------------------------------------------------------------
@@ -1008,7 +1008,16 @@ PyObject* FixedDictType::createNewItemFromObj(const char* keyName, PyObject* pyo
 		Py_RETURN_NONE;
 	}
 
-	return dataType->createNewFromObj(pyobj);
+	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
+	for(; iter != keyTypes_.end(); iter++)
+	{
+		if(iter->first == keyName)
+		{
+			return iter->second->createNewFromObj(pyobj);
+		}
+	}
+
+	Py_RETURN_NONE;
 }
 
 //-------------------------------------------------------------------------------------

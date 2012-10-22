@@ -69,6 +69,9 @@ private:
 	Mercury::NetworkInterface & networkInterface_;
 	COMPONENT_TYPE componentType_;
 	COMPONENT_ID componentID_;									// 本组件的ID
+	uint8 state_;
+	int16 findIdx_;
+	int8 findComponentTypes_[8];
 };
 
 }

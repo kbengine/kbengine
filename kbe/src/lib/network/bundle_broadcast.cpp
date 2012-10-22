@@ -40,7 +40,8 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 	epListen_(),
 	networkInterface_(networkInterface),
 	recvWindowSize_(recvWindowSize),
-	good_(false)
+	good_(false),
+	itry_(5)
 {
 	epListen_.socket(SOCK_DGRAM);
 	epBroadcast_.socket(SOCK_DGRAM);
@@ -148,11 +149,11 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 
 		if (selgot == 0)
 		{
-			if(icount > 5)
+			if(icount > itry_)
 			{
-				DEBUG_MSG("BundleBroadcast::receive: is failed, the app will be terminated.\n", 
+				DEBUG_MSG("BundleBroadcast::receive: is failed!\n", 
 					icount, epListen_.addr().c_str());
-				networkInterface_.mainDispatcher().breakProcessing();
+
 				return false;
 			}
 			else

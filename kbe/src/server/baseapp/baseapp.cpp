@@ -342,26 +342,36 @@ void Baseapp::createInNewSpace(Base* base, PyObject* cell)
 	std::string strCellData = script::Pickler::pickle(base->getCellData());
 	uint32 cellDataLength = strCellData.length();
 
-	Mercury::Bundle bundle;
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
-	bundle.newMessage(CellappmgrInterface::reqCreateInNewSpace);
+	(*pBundle).newMessage(CellappmgrInterface::reqCreateInNewSpace);
 
-	bundle << entityType;
-	bundle << id;
-	bundle << componentID_;
-	bundle << cellDataLength;
+	(*pBundle) << entityType;
+	(*pBundle) << id;
+	(*pBundle) << componentID_;
+	(*pBundle) << cellDataLength;
 
 	if(cellDataLength > 0)
-		bundle.append(strCellData.data(), cellDataLength);
+		(*pBundle).append(strCellData.data(), cellDataLength);
 	
 	Components::COMPONENTS& components = Components::getSingleton().getComponents(CELLAPPMGR_TYPE);
 	Components::COMPONENTS::iterator iter = components.begin();
 	if(iter != components.end())
 	{
-		bundle.send(this->getNetworkInterface(), (*iter).pChannel);
+		if((*iter).pChannel != NULL)
+		{
+			(*pBundle).send(this->getNetworkInterface(), (*iter).pChannel);
+		}
+		else
+		{
+			ERROR_MSG("Baseapp::createInNewSpace: cellappmgr channel is NULL.\n");
+		}
+		
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		return;
 	}
 	
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	ERROR_MSG("Baseapp::createInNewSpace: not found cellappmgr.\n");
 }
 
@@ -376,15 +386,15 @@ void Baseapp::createBaseAnywhere(const char* entityType, PyObject* params, PyObj
 		initDataLength = strInitData.length();
 	}
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(BaseappmgrInterface::reqCreateBaseAnywhere);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappmgrInterface::reqCreateBaseAnywhere);
 
-	bundle << entityType;
-	bundle << initDataLength;
+	(*pBundle) << entityType;
+	(*pBundle) << initDataLength;
 	if(initDataLength > 0)
-		bundle.append(strInitData.data(), initDataLength);
+		(*pBundle).append(strInitData.data(), initDataLength);
 
-	bundle << componentID_;
+	(*pBundle) << componentID_;
 
 	CALLBACK_ID callbackID = 0;
 	if(pyCallback != NULL)
@@ -392,16 +402,26 @@ void Baseapp::createBaseAnywhere(const char* entityType, PyObject* params, PyObj
 		callbackID = callbackMgr().save(pyCallback);
 	}
 
-	bundle << callbackID;
+	(*pBundle) << callbackID;
 
 	Components::COMPONENTS& components = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
 	Components::COMPONENTS::iterator iter = components.begin();
 	if(iter != components.end())
 	{
-		bundle.send(this->getNetworkInterface(), (*iter).pChannel);
+		if((*iter).pChannel != NULL)
+		{
+			(*pBundle).send(this->getNetworkInterface(), (*iter).pChannel);
+		}
+		else
+		{
+			ERROR_MSG("Baseapp::createInNewSpace: baseappmgr channel is NULL.\n");
+		}
+		
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		return;
 	}
 
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	ERROR_MSG("Baseapp::createBaseAnywhere: not found baseappmgr.\n");
 }
 
@@ -551,8 +571,8 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 		return;
 	}
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(CellappInterface::onCreateCellEntityFromBaseapp);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(CellappInterface::onCreateCellEntityFromBaseapp);
 
 	ENTITY_ID id = base->getID();
 	std::string entityType = base->ob_type->tp_name;
@@ -561,25 +581,28 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	EntityMailbox* clientMailbox = base->getClientMailbox();
 	bool hasClient = (clientMailbox != NULL);
 	
-	bundle << createToCellMailbox->getID();				// 在这个mailbox所在的cellspace上创建
-	bundle << entityType;
-	bundle << id;
-	bundle << componentID_;
-	bundle << hasClient;
-	bundle << cellDataLength;
+	(*pBundle) << createToCellMailbox->getID();				// 在这个mailbox所在的cellspace上创建
+	(*pBundle) << entityType;
+	(*pBundle) << id;
+	(*pBundle) << componentID_;
+	(*pBundle) << hasClient;
+	(*pBundle) << cellDataLength;
 
 	if(cellDataLength > 0)
-		bundle.append(strCellData.data(), cellDataLength);
+		(*pBundle).append(strCellData.data(), cellDataLength);
 
 	if(createToCellMailbox->getChannel() == NULL)
 	{
 		ERROR_MSG("Baseapp::createCellEntity: not found cellapp(createToCellMailbox:componentID=%"PRAppID", entityID=%d), create is error!\n", 
 			createToCellMailbox->getComponentID(), createToCellMailbox->getID());
+
 		base->onCreateCellFailure();
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		return;
 	}
 
-	bundle.send(this->getNetworkInterface(), createToCellMailbox->getChannel());
+	(*pBundle).send(this->getNetworkInterface(), createToCellMailbox->getChannel());
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

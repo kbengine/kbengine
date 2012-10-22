@@ -446,10 +446,23 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 		ERROR_MSG("Components::checkComponentUsable: couldn't create a socket\n");
 		return true;
 	}
+	
+	int trycount = 0;
 
-	if(epListen.connect(info->pIntAddr->port, info->pIntAddr->ip) == -1)
+	while(true)
 	{
-		return false;
+		if(epListen.connect(info->pIntAddr->port, info->pIntAddr->ip) == -1)
+		{
+			KBEngine::sleep(30);
+			trycount++;
+			if(trycount > 3)
+			{
+				ERROR_MSG("Components::checkComponentUsable: couldn't connect to:%s\n", info->pIntAddr->c_str());
+				return false;
+			}
+		}
+		
+		break;
 	}
 	
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
@@ -496,6 +509,7 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 
 		if(ctype != info->componentType || cid != info->cid)
 		{
+			ERROR_MSG("Components::checkComponentUsable: invalid component.\n");
 			return false;
 		}
 	}

@@ -45,8 +45,53 @@ Componentbridge::Componentbridge(Mercury::NetworkInterface & networkInterface,
 	Task(),
 	networkInterface_(networkInterface),
 	componentType_(componentType),
-	componentID_(componentID)
+	componentID_(componentID),
+	state_(0),
+	findIdx_(0)
 {
+	for(uint8 i=0; i<8; i++)
+		findComponentTypes_[i] = UNKNOWN_COMPONENT_TYPE;
+
+	switch(componentType_)
+	{
+	case CELLAPP_TYPE:
+		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		findComponentTypes_[1] = RESOURCEMGR_TYPE;
+		findComponentTypes_[2] = DBMGR_TYPE;
+		findComponentTypes_[3] = CELLAPPMGR_TYPE;
+		findComponentTypes_[4] = BASEAPPMGR_TYPE;
+		break;
+	case BASEAPP_TYPE:
+		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		findComponentTypes_[1] = RESOURCEMGR_TYPE;
+		findComponentTypes_[2] = DBMGR_TYPE;
+		findComponentTypes_[3] = BASEAPPMGR_TYPE;
+		findComponentTypes_[4] = CELLAPPMGR_TYPE;
+		break;
+	case BASEAPPMGR_TYPE:
+		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		findComponentTypes_[1] = DBMGR_TYPE;
+		findComponentTypes_[2] = CELLAPPMGR_TYPE;
+		break;
+	case CELLAPPMGR_TYPE:
+		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		findComponentTypes_[1] = DBMGR_TYPE;
+		findComponentTypes_[2] = BASEAPPMGR_TYPE;
+		break;
+	case LOGINAPP_TYPE:
+		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		findComponentTypes_[1] = DBMGR_TYPE;
+		findComponentTypes_[2] = BASEAPPMGR_TYPE;
+		break;
+	case DBMGR_TYPE:
+		findComponentTypes_[0] = MESSAGELOG_TYPE;
+		break;
+	default:
+		if(componentType_ != MESSAGELOG_TYPE && componentType_ != MACHINE_TYPE)
+			findComponentTypes_[0] = MESSAGELOG_TYPE;
+		break;
+	};
+
 	// dispatcher().addFrequentTask(this);
 	getComponents().pNetworkInterface(&networkInterface);
 }
@@ -82,158 +127,136 @@ void Componentbridge::onChannelDeregister(Mercury::Channel * pChannel)
 //-------------------------------------------------------------------------------------
 bool Componentbridge::findInterfaces()
 {
-	int8 findComponentTypes[] = {UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, 
-								UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE, UNKNOWN_COMPONENT_TYPE};
-
-	switch(componentType_)
+	if(state_ == 1)
 	{
-	case CELLAPP_TYPE:
-		findComponentTypes[0] = MESSAGELOG_TYPE;
-		findComponentTypes[1] = RESOURCEMGR_TYPE;
-		findComponentTypes[2] = DBMGR_TYPE;
-		findComponentTypes[3] = CELLAPPMGR_TYPE;
-		findComponentTypes[4] = BASEAPPMGR_TYPE;
-		break;
-	case BASEAPP_TYPE:
-		findComponentTypes[0] = MESSAGELOG_TYPE;
-		findComponentTypes[1] = RESOURCEMGR_TYPE;
-		findComponentTypes[2] = DBMGR_TYPE;
-		findComponentTypes[3] = BASEAPPMGR_TYPE;
-		findComponentTypes[4] = CELLAPPMGR_TYPE;
-		break;
-	case BASEAPPMGR_TYPE:
-		findComponentTypes[0] = MESSAGELOG_TYPE;
-		findComponentTypes[1] = DBMGR_TYPE;
-		findComponentTypes[2] = CELLAPPMGR_TYPE;
-		break;
-	case CELLAPPMGR_TYPE:
-		findComponentTypes[0] = MESSAGELOG_TYPE;
-		findComponentTypes[1] = DBMGR_TYPE;
-		findComponentTypes[2] = BASEAPPMGR_TYPE;
-		break;
-	case LOGINAPP_TYPE:
-		findComponentTypes[0] = MESSAGELOG_TYPE;
-		findComponentTypes[1] = DBMGR_TYPE;
-		findComponentTypes[2] = BASEAPPMGR_TYPE;
-		break;
-	case DBMGR_TYPE:
-		findComponentTypes[0] = MESSAGELOG_TYPE;
-		break;
-	default:
-		if(componentType_ != MESSAGELOG_TYPE && componentType_ != MACHINE_TYPE)
-			findComponentTypes[0] = MESSAGELOG_TYPE;
-		break;
-	};
+		srand(KBEngine::getSystemTime());
+		uint16 nport = KBE_PORT_START + (rand() % 1000);
 
-	int ifind = 0;
-	srand(KBEngine::getSystemTime());
-	uint16 nport = KBE_PORT_START + (rand() % 1000);
-
-	while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)
-	{
-		if(dispatcher().isBreakProcessing())
-			return false;
-
-		int8 findComponentType = findComponentTypes[ifind];
-
-		INFO_MSG("Componentbridge::process: finding %s...\n",
-			COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
-		
-		Mercury::BundleBroadcast bhandler(networkInterface_, nport);
-		if(!bhandler.good())
+		while(findComponentTypes_[findIdx_] != UNKNOWN_COMPONENT_TYPE)
 		{
-			KBEngine::sleep(10);
-			nport = KBE_PORT_START + (rand() % 1000);
-			continue;
-		}
+			if(dispatcher().isBreakProcessing())
+				return false;
 
-		if(bhandler.pCurrPacket() != NULL)
-		{
-			bhandler.pCurrPacket()->resetPacket();
-		}
+			int8 findComponentType = findComponentTypes_[findIdx_];
 
-		bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
-		MachineInterface::onFindInterfaceAddrArgs6::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
-			componentType_, findComponentType, networkInterface_.intaddr().ip, bhandler.epListen().addr().port);
-
-		if(!bhandler.broadcast())
-		{
-			ERROR_MSG("Componentbridge::process: broadcast error!\n");
-			return false;
-		}
-	
-		MachineInterface::onBroadcastInterfaceArgs8 args;
-		if(bhandler.receive(&args, 0, 1000000))
-		{
-			if(args.componentType == UNKNOWN_COMPONENT_TYPE)
+			INFO_MSG("Componentbridge::process: finding %s...\n",
+				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+			
+			Mercury::BundleBroadcast bhandler(networkInterface_, nport);
+			if(!bhandler.good())
 			{
-				//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
-				//	COMPONENT_NAME_EX(findComponentType));
+				return false;
+			}
+
+			bhandler.itry(0);
+			if(bhandler.pCurrPacket() != NULL)
+			{
+				bhandler.pCurrPacket()->resetPacket();
+			}
+
+			bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
+			MachineInterface::onFindInterfaceAddrArgs6::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+				componentType_, findComponentType, networkInterface_.intaddr().ip, bhandler.epListen().addr().port);
+
+			if(!bhandler.broadcast())
+			{
+				ERROR_MSG("Componentbridge::process: broadcast error!\n");
+				return false;
+			}
+		
+			MachineInterface::onBroadcastInterfaceArgs8 args;
+			if(bhandler.receive(&args, 0, 10000000))
+			{
+				if(args.componentType == UNKNOWN_COMPONENT_TYPE)
+				{
+					//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
+					//	COMPONENT_NAME_EX(findComponentType));
+					
+					// 如果是这些辅助组件没找到则跳过
+					if(findComponentType == MESSAGELOG_TYPE || findComponentType == RESOURCEMGR_TYPE)
+					{
+						WARNING_MSG("Componentbridge::process: not found %s!\n",
+							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+
+						findComponentTypes_[findIdx_] = -1; // 跳过标志
+
+						findIdx_++;
+					}
+
+					return false;
+				}
+
+				INFO_MSG("Componentbridge::process: found %s, addr:%s:%u\n",
+					COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), 
+					inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intaddr));
+
+				Componentbridge::getComponents().addComponent(args.uid, args.username.c_str(), 
+					(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, 
+					args.intaddr, args.intport, args.extaddr, args.extport);
 				
-				KBEngine::sleep(1000);
-				
+				// 防止接收到的数据不是想要的数据
+				if(findComponentType == args.componentType)
+				{
+					findIdx_++;
+				}
+				else
+				{
+					ERROR_MSG("Componentbridge::process: %s not found. receive data is error!\n", 
+						COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+				}
+			}
+			else
+			{
+				ERROR_MSG("Componentbridge::process: receive error!\n");
+
 				// 如果是这些辅助组件没找到则跳过
 				if(findComponentType == MESSAGELOG_TYPE || findComponentType == RESOURCEMGR_TYPE)
 				{
 					WARNING_MSG("Componentbridge::process: not found %s!\n",
 						COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 
-					findComponentTypes[ifind] = -1; // 跳过标志
+					findComponentTypes_[findIdx_] = -1; // 跳过标志
 
-					ifind++;
+					findIdx_++;
 				}
 
-				continue;
-			}
-
-			INFO_MSG("Componentbridge::process: found %s, addr:%s:%u\n",
-				COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), 
-				inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intaddr));
-
-			Componentbridge::getComponents().addComponent(args.uid, args.username.c_str(), 
-				(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, 
-				args.intaddr, args.intport, args.extaddr, args.extport);
-			
-			// 防止接收到的数据不是想要的数据
-			if(findComponentType == args.componentType)
-			{
-				ifind++;
-			}
-			else
-			{
-				ERROR_MSG("Componentbridge::process: %s not found. receive data is error!\n", 
-					COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+				return false;
 			}
 		}
-		else
-		{
-			ERROR_MSG("Componentbridge::process: receive error!\n");
-			//return false;
-		}
+
+		state_ = 2;
+		findIdx_ = 0;
+		return false;
 	}
-	
-	ifind = 0;
 
-	// 开始注册到所有的组件
-	while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)
+	if(state_ == 2)
 	{
-		if(dispatcher().isBreakProcessing())
-			return false;
-
-		int8 findComponentType = findComponentTypes[ifind++];
-		
-		if(findComponentType == -1)
-			continue;
-
-		INFO_MSG("Componentbridge::process: register self to %s...\n",
-			COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
-
-		if(getComponents().connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
+		// 开始注册到所有的组件
+		while(findComponentTypes_[findIdx_] != UNKNOWN_COMPONENT_TYPE)
 		{
-			ERROR_MSG("Componentbridge::register self to %s is error!\n",
-			COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+			if(dispatcher().isBreakProcessing())
+				return false;
 
-			dispatcher().breakProcessing();
+			int8 findComponentType = findComponentTypes_[findIdx_];
+			
+			if(findComponentType == -1)
+			{
+				findIdx_++;
+				return false;
+			}
+
+			INFO_MSG("Componentbridge::process: register self to %s...\n",
+				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+
+			if(getComponents().connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
+			{
+				ERROR_MSG("Componentbridge::register self to %s is error!\n",
+				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+				//dispatcher().breakProcessing();
+				return false;
+			}
+
+			findIdx_++;
 			return false;
 		}
 	}
@@ -243,20 +266,29 @@ bool Componentbridge::findInterfaces()
 //-------------------------------------------------------------------------------------
 bool Componentbridge::process()
 {
-	// 如果是cellappmgr或者baseapmgrp则向machine请求获得dbmgr的地址
-	Mercury::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
+	if(state_ == 0)
+	{
+		// 如果是cellappmgr或者baseapmgrp则向machine请求获得dbmgr的地址
+		Mercury::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
 
-	bhandler.newMessage(MachineInterface::onBroadcastInterface);
-	MachineInterface::onBroadcastInterfaceArgs8::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
-		componentType_, componentID_, 
-		networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
-		networkInterface_.extaddr().ip, networkInterface_.extaddr().port);
-	
-	bhandler.broadcast();
+		bhandler.newMessage(MachineInterface::onBroadcastInterface);
+		MachineInterface::onBroadcastInterfaceArgs8::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+			componentType_, componentID_, 
+			networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
+			networkInterface_.extaddr().ip, networkInterface_.extaddr().port);
+		
+		bhandler.broadcast();
 
-	bhandler.close();
-	if(componentType_ != MACHINE_TYPE)
-		findInterfaces();
+		bhandler.close();
+		state_ = 1;
+		return true;
+	}
+	else
+	{
+		if(componentType_ != MACHINE_TYPE)
+			if(!findInterfaces())
+				return true;
+	}
 
 	return false;
 }
