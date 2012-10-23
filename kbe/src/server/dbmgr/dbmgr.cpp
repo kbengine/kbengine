@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "dbmgr.hpp"
 #include "dbmgr_interface.hpp"
+#include "dbtasks.hpp"
 #include "network/common.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
@@ -55,7 +56,6 @@ Dbmgr::Dbmgr(Mercury::EventDispatcher& dispatcher,
 	pGlobalData_(NULL),
 	pGlobalBases_(NULL),
 	pCellAppData_(NULL),
-	proxicesOnlineLogs_(),
 	pDBInterface_(NULL)
 {
 }
@@ -373,157 +373,43 @@ void Dbmgr::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::Me
 //-------------------------------------------------------------------------------------
 void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel, std::string& accountName, std::string& password)
 {
-	DEBUG_MSG("Dbmgr::reqCreateAccount:%s.\n", accountName.c_str());
-
-	Mercury::Bundle bundle;
-	bundle.newMessage(LoginappInterface::onReqCreateAccountResult);
-	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
-
-	// 如果没有连接db则从log中查找账号是否有此账号(这个功能是为了测试使用)
-	if(!pDBInterface_)
-	{
-		PROXICES_ONLINE_LOG::iterator iter = proxicesOnlineLogs_.find(accountName);
-		if(iter != proxicesOnlineLogs_.end())
-		{
-			failedcode = SERVER_ERR_ACCOUNT_CREATE;
-		}
-	}
-
-	LoginappInterface::onReqCreateAccountResultArgs3::staticAddToBundle(bundle, failedcode, accountName, password);
-	bundle.send(this->getNetworkInterface(), pChannel);
+	PUSH_THREAD_TASK(new DBTaskCreateAccount(pChannel->addr(), accountName, password));
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::onAccountLogin(Mercury::Channel* pChannel, std::string& accountName, std::string& password)
 {
-	DEBUG_MSG("Dbmgr::onAccountLogin:%s.\n", accountName.c_str());
-	// 一个用户登录， 构造一个数据库查询指令并加入到执行队列， 执行完毕将结果返回给loginapp
-	Mercury::Bundle bundle;
-	bundle.newMessage(LoginappInterface::onLoginAccountQueryResultFromDbmgr);
-	bool success = true;
-	COMPONENT_ID componentID = 0;
-	ENTITY_ID entityID = 0;
-	
-	// 如果没有连接db则从log中查找账号是否还在线
-	if(!pDBInterface_)
-	{
-		PROXICES_ONLINE_LOG::iterator iter = proxicesOnlineLogs_.find(accountName);
-		if(iter != proxicesOnlineLogs_.end())
-		{
-			componentID = iter->second.cid;
-			entityID = iter->second.eid;
-		}
-	}
-
-	bundle << success;
-	bundle << accountName;
-	bundle << password;
-	bundle << componentID;   // 如果大于0则表示账号还存活在某个baseapp上
-	bundle << entityID;
-	bundle.send(this->getNetworkInterface(), pChannel);
+	PUSH_THREAD_TASK(new DBTaskAccountLogin(pChannel->addr(), accountName, password));
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::queryAccount(Mercury::Channel* pChannel, std::string& accountName, std::string& password)
 {
-	DEBUG_MSG("Dbmgr::queryAccount:%s.\n", accountName.c_str());
-
-	Mercury::Bundle bundle;
-	bundle.newMessage(BaseappInterface::onQueryAccountCBFromDbmgr);
-	bundle << accountName;
-	bundle << password;
-	bundle << "";
-	bundle.send(this->getNetworkInterface(), pChannel);
+	PUSH_THREAD_TASK(new DBTaskQueryAccount(pChannel->addr(), accountName, password));
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::onAccountOnline(Mercury::Channel* pChannel, std::string& accountName, COMPONENT_ID componentID, ENTITY_ID entityID)
 {
-	DEBUG_MSG("Dbmgr::onAccountOnline:componentID:%"PRAppID", entityID:%d.\n", componentID, entityID);
-
-	// 如果没有连接db则从log中查找账号是否还在线
-	if(!pDBInterface_)
-	{
-		PROXICES_ONLINE_LOG::iterator iter = proxicesOnlineLogs_.find(accountName);
-		if(iter != proxicesOnlineLogs_.end())
-		{
-			iter->second.cid = componentID;
-			iter->second.eid = entityID;
-		}
-		else
-		{
-			proxicesOnlineLogs_[accountName].cid = componentID;
-			proxicesOnlineLogs_[accountName].eid = entityID;
-		}
-	}
+	PUSH_THREAD_TASK(new DBTaskAccountOnline(pChannel->addr(), accountName, componentID, entityID));
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::onAccountOffline(Mercury::Channel* pChannel, std::string& accountName)
 {
-	DEBUG_MSG("Dbmgr::onAccountOffline:%s.\n", accountName.c_str());
-
-	// 如果没有连接db则从log中查找账号是否还在线
-	if(!pDBInterface_)
-	{
-		proxicesOnlineLogs_.erase(accountName);
-	}
+	PUSH_THREAD_TASK(new DBTaskAccountOffline(pChannel->addr(), accountName));
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::executeRawDatabaseCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	COMPONENT_ID componentID = 0;
-	COMPONENT_TYPE componentType;
-	std::string datas;
-	CALLBACK_ID callbackID = 0;
-
-	s >> componentID >> componentType;
-	s >> callbackID;
-	s.readBlob(datas);
-
-	DEBUG_MSG("Dbmgr::executeRawDatabaseCommand:%s.\n", datas.c_str());
-
-	std::string error;
-	MemoryStream ret;
-	if(!static_cast<DBInterfaceMysql*>(pDBInterface_)->execute(datas.data(), datas.size(), &ret))
-	{
-		error = pDBInterface_->getstrerror();
-	}
-
-	// 如果不需要回调则结束
-	if(callbackID <= 0)
-		return;
-
-	Mercury::Bundle bundle;
-	if(componentType == BASEAPP_TYPE)
-		bundle.newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
-	else if(componentType == CELLAPP_TYPE)
-		bundle.newMessage(CellappInterface::onExecuteRawDatabaseCommandCB);
-	else
-	{
-		KBE_ASSERT(false && "no support!\n");
-	}
-
-	bundle << callbackID;
-	bundle << error;
-	if(error.size() <= 0)
-		bundle.append(ret);
-
-	bundle.send(this->getNetworkInterface(), pChannel);
+	PUSH_THREAD_TASK(new DBTaskExecuteRawDatabaseCommand(pChannel->addr(), s));
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::writeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	ENTITY_ID entityID = 0;
-	ENTITY_SCRIPT_UID sid = 0;
-	s >> entityID >> sid;
-
-	ScriptDefModule* pModule = EntityDef::findScriptModule(sid);
-	DEBUG_MSG("Dbmgr::writeEntity: %s(%d), size=%u.\n", pModule->getName(), entityID, s.opsize());
-
-	//EntityTables::getSingleton().updateFromStream(pModule, entityID, s);
+	PUSH_THREAD_TASK(new DBTaskWriteEntity(pChannel->addr(), s));
 }
 
 //-------------------------------------------------------------------------------------

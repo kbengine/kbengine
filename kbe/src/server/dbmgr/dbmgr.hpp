@@ -136,6 +136,11 @@ public:
 		某个entity存档
 	*/
 	void writeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/**
+		获取db接口
+	*/
+	DBInterface* pDBInterface()const{ return pDBInterface_; }
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;
@@ -152,17 +157,6 @@ protected:
 	// cellAppData
 	GlobalDataServer*									pCellAppData_;														
 	
-	struct PROXICES_ONLINE_LOG_ITEM
-	{
-		COMPONENT_ID cid;
-		ENTITY_ID eid;
-	};
-
-	typedef std::tr1::unordered_map<std::string, PROXICES_ONLINE_LOG_ITEM> PROXICES_ONLINE_LOG;
-	// 所有的proxy创建后都会注册到这里， 提供look或者登录是在线判断
-	// 注意： 如果有数据库支持则会记录在数据库中
-	PROXICES_ONLINE_LOG									proxicesOnlineLogs_;	
-
 	DBInterface*										pDBInterface_;
 };
 

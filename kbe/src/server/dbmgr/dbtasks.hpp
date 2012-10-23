@@ -27,6 +27,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/memorystream.hpp"
 #include "thread/threadtask.hpp"
 #include "helper/debug_helper.hpp"
+#include "entitydef/entitydef.hpp"
+#include "network/address.hpp"
 
 namespace KBEngine{ 
 /*
@@ -36,17 +38,34 @@ namespace KBEngine{
 class DBTask : public thread::TPTask
 {
 public:
-	DBTask(MemoryStream& datas);
+	DBTask(const Mercury::Address& addr, MemoryStream& datas);
+	DBTask():
+	pDatas_(0),
+	addr_(Mercury::Address::NONE)
+	{
+	}
+
+	DBTask(const Mercury::Address& addr):
+	pDatas_(0),
+	addr_(addr)
+	{
+	}
+
 	virtual ~DBTask();
 	virtual bool process() = 0;
 	virtual void presentMainThread(){}
 protected:
 	MemoryStream* pDatas_;
+	Mercury::Address addr_;
 };
 
+/**
+	执行一条sql语句
+*/
 class DBTaskExecuteRawDatabaseCommand : public DBTask
 {
-	DBTaskExecuteRawDatabaseCommand(MemoryStream& datas);
+public:
+	DBTaskExecuteRawDatabaseCommand(const Mercury::Address& addr, MemoryStream& datas);
 	virtual ~DBTaskExecuteRawDatabaseCommand();
 	virtual bool process();
 	virtual void presentMainThread();
@@ -57,6 +76,100 @@ protected:
 	CALLBACK_ID callbackID_;
 	std::string error_;
 	MemoryStream execret_;
+};
+
+/**
+	向数据库写entity， 备份entity时也是这个机制
+*/
+class DBTaskWriteEntity : public DBTask
+{
+public:
+	DBTaskWriteEntity(const Mercury::Address& addr, MemoryStream& datas);
+	virtual ~DBTaskWriteEntity();
+	virtual bool process();
+	virtual void presentMainThread();
+protected:
+	ENTITY_ID entityID_;
+	ENTITY_SCRIPT_UID sid_;
+};
+
+/**
+	创建一个账号到数据库
+*/
+class DBTaskCreateAccount : public DBTask
+{
+public:
+	DBTaskCreateAccount(const Mercury::Address& addr, std::string& accountName, std::string& password);
+	virtual ~DBTaskCreateAccount();
+	virtual bool process();
+	virtual void presentMainThread();
+protected:
+	std::string accountName_;
+	std::string password_;
+	
+};
+
+/**
+	baseapp请求查询account信息
+*/
+class DBTaskQueryAccount : public DBTask
+{
+public:
+	DBTaskQueryAccount(const Mercury::Address& addr, std::string& accountName, std::string& password);
+	virtual ~DBTaskQueryAccount();
+	virtual bool process();
+	virtual void presentMainThread();
+protected:
+	std::string accountName_;
+	std::string password_;
+};
+
+/**
+	账号上线
+*/
+class DBTaskAccountOnline : public DBTask
+{
+public:
+	DBTaskAccountOnline(const Mercury::Address& addr, std::string& accountName,
+		COMPONENT_ID componentID, ENTITY_ID entityID);
+	virtual ~DBTaskAccountOnline();
+	virtual bool process();
+	virtual void presentMainThread();
+protected:
+	std::string accountName_;
+	COMPONENT_ID componentID_;
+	ENTITY_ID entityID_;
+};
+
+
+/**
+	账号下线
+*/
+class DBTaskAccountOffline : public DBTask
+{
+public:
+	DBTaskAccountOffline(const Mercury::Address& addr, std::string& accountName);
+	virtual ~DBTaskAccountOffline();
+	virtual bool process();
+	virtual void presentMainThread();
+protected:
+	std::string accountName_;
+};
+
+
+/**
+	一个新用户登录， 需要检查合法性
+*/
+class DBTaskAccountLogin : public DBTask
+{
+public:
+	DBTaskAccountLogin(const Mercury::Address& addr, std::string& accountName, std::string& password);
+	virtual ~DBTaskAccountLogin();
+	virtual bool process();
+	virtual void presentMainThread();
+protected:
+	std::string accountName_;
+	std::string password_;
 };
 
 }
