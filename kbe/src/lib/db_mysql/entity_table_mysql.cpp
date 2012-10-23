@@ -531,6 +531,16 @@ bool EntityTableItemMysql_FIXED_DICT::syncToDB()
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_FIXED_DICT::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
+	FIXEDDICT_KEYTYPE_MAP::iterator fditer = keyTypes_.begin();
+
+	for(; fditer != keyTypes_.end(); fditer++)
+	{
+		if(!fditer->second->updateItem(dbid, s, pModule))
+		{
+			return false;
+		}
+	}
+
 	return true;
 }
 
