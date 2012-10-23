@@ -334,6 +334,9 @@ HTREEITEM CguiconsoleDlg::hasCheckApp(COMPONENT_TYPE type)
 
 void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 {
+	if(strCommand.GetLength() <= 0)
+		return;
+
 	if(getTreeItemComponent(m_tree.GetSelectedItem()) != CELLAPP_TYPE 
 		&& getTreeItemComponent(m_tree.GetSelectedItem()) != BASEAPP_TYPE)
 	{
@@ -466,9 +469,12 @@ void CguiconsoleDlg::loadHistory()
 		do																				
 		{																				
 			std::string c = node->FirstChild()->Value();
-			wchar_t* strCommand = char2wchar(c.c_str());
-			m_historyCommand.push_back(strCommand);
-			free(strCommand);
+			if(c.size() > 0)
+			{
+				wchar_t* strCommand = char2wchar(c.c_str());
+				m_historyCommand.push_back(strCommand);
+				free(strCommand);
+			}
 		}while((node = node->NextSibling()));												
 	}
 
