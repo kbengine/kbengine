@@ -2,6 +2,7 @@ BIN  = dbmgr
 SRCS =						\
 	dbmgr					\
 	dbmgr_interface				\
+	dbtasks					\
 	main
 
 ASMS =

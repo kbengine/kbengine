@@ -188,6 +188,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\dbtasks.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lib\python\Modules\getbuildinfo.c"
 				>
 			</File>
@@ -217,6 +221,10 @@
 			</File>
 			<File
 				RelativePath=".\dbmgr_interface_macros.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\dbtasks.hpp"
 				>
 			</File>
 		</Filter>
