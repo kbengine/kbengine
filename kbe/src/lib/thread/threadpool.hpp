@@ -71,6 +71,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{ namespace thread{
 
+#define PUSH_THREAD_TASK thread::ThreadPool::getSingleton().addTask
+
+// 线程池活动线程大于这个数目则处于繁忙状态
+#define THREAD_BUSY_SIZE 32
+
 /*
 	线程池的线程基类
 */
@@ -78,12 +83,21 @@ class ThreadPool;
 class TPThread
 {
 public:
+	// 线程状态 -1还未启动, 0睡眠， 1繁忙中
+	enum THREAD_STATE
+	{
+		THREAD_STATE_STOP = -1,
+		THREAD_STATE_SLEEP = 0,
+		THREAD_STATE_BUSY = 1
+	};
+
+public:
 	TPThread(ThreadPool* threadPool, int threadWaitSecond = 0):
 	threadWaitSecond_(threadWaitSecond), 
 	currTask_(NULL), 
 	threadPool_(threadPool)
 	{
-		state_ = 0;
+		state_ = THREAD_STATE_SLEEP;
 		initCond();
 		initMutex();
 	}
@@ -94,15 +108,9 @@ public:
 		uninitMutex();
 	}
 	
-	THREAD_ID getID(void)const
-	{
-		return tidp_;
-	}
+	INLINE THREAD_ID getID(void)const;
 	
-	void setID(THREAD_ID tidp)
-	{
-		tidp_ = tidp;
-	}
+	INLINE void setID(THREAD_ID tidp);
 	
 	/**创建一个线程， 并将自己与该线程绑定*/
 	THREAD_ID createThread(void);
@@ -151,21 +159,12 @@ public:
 	bool onWaitCondSignal(void);
 
 	/**获取本线程要处理的任务*/
-	TPTask* getTask(void)const
-	{
-		return currTask_;
-	}
+	INLINE TPTask* getTask(void)const;
 
 	/**设置本线程要处理的任务*/
-	void setTask(TPTask* tpt)
-	{
-		currTask_ = tpt;
-	}
+	INLINE void setTask(TPTask* tpt);
 
-	int getState(void)const
-	{
-		return state_;
-	}
+	INLINE int getState(void)const;
 	
 	/**本线程要处理的任务已经处理完毕 我们决定删除这个废弃的任务*/
 	void onTaskComplete(void);
@@ -186,7 +185,7 @@ public:
 		while(isRun)
 		{
 			isRun = tptd->onWaitCondSignal();
-			tptd->state_ = 1;
+			tptd->state_ = THREAD_STATE_BUSY;
 			TPTask * task = tptd->getTask();
 			
 			while(task)
@@ -223,7 +222,7 @@ protected:
 	TPTask * currTask_;				// 该线程的当前执行的任务
 	THREAD_ID tidp_;				// 本线程的ID
 	ThreadPool* threadPool_;		// 线程池指针
-	int state_;						// 线程状态 -1还未启动, 0睡眠， 1繁忙中
+	THREAD_STATE state_;			// 线程状态 -1还未启动, 0睡眠， 1繁忙中
 };
 
 
@@ -244,18 +243,12 @@ public:
 	/**
 		获取当前线程总数
 	*/	
-	unsigned int getCurrentThreadCount(void)const
-	{ 
-		return currentThreadCount_; 
-	}
+	INLINE unsigned int getCurrentThreadCount(void)const;
 	
 	/**
 		获取当前空闲线程总数
 	*/		
-	unsigned int getCurrentFreeThreadCount(void)const
-	{ 
-		return currentFreeThreadCount_; 
-	}
+	INLINE unsigned int getCurrentFreeThreadCount(void)const;
 	
 	/**
 		创建线程池
@@ -290,23 +283,18 @@ public:
 		向线程池添加一个任务
 	*/		
 	bool addTask(TPTask* tptask);
-	
+	bool pushTask(TPTask* tptask){ return addTask(tptask); }
+
 	/**
 		线程数量是否到达最大个数
 	*/
-	bool isThreadCountMax(void)const
-	{
-		return currentThreadCount_ >= maxThreadCount_;	
-	}
+	INLINE bool isThreadCountMax(void)const;
 	
 	/**
 		线程池是否处于繁忙状态
 		未处理任务是否非常多   说明线程很繁忙
 	*/
-	bool isBusy(void)const
-	{
-		return busyTaskList_.size() > 32;
-	}	
+	INLINE bool isBusy(void)const;
 
 	/**
 		将某个任务保存到未处理列表
@@ -321,10 +309,7 @@ public:
 	/** 
 		线程池是否已经被初始化 
 	*/
-	bool isInitialize(void)const
-	{ 
-		return isInitialize_; 
-	}
+	INLINE bool isInitialize(void)const;
 protected:
 	bool isInitialize_;												// 线程池是否被初始化过
 	
@@ -348,5 +333,11 @@ protected:
 };
 
 }
+
+
 }
+
+#ifdef CODE_INLINE
+#include "threadpool.ipp"
+#endif
 #endif

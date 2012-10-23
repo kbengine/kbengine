@@ -197,6 +197,10 @@
 			RelativePath=".\ReadMe.txt"
 			>
 		</File>
+		<File
+			RelativePath=".\threadpool.ipp"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

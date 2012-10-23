@@ -165,6 +165,7 @@ void ThreadPool::onMainThreadTick()
 		delete (*finiiter);
 	}
 	
+	finiTaskList_.clear();
 	THREAD_MUTEX_UNLOCK(finiTaskList_mutex_);	
 }
 
@@ -344,13 +345,13 @@ bool TPThread::onWaitCondSignal(void)
 #if KBE_PLATFORM == PLATFORM_WIN32
 	if(threadWaitSecond_ <= 0)
 	{
-		state_ = 0;
+		state_ = THREAD_STATE_SLEEP;
 		WaitForSingleObject(cond_, INFINITE); 
 		ResetEvent(cond_);
 	}
 	else
 	{
-		state_ = 0;
+		state_ = THREAD_STATE_SLEEP;
 		DWORD ret = WaitForSingleObject(cond_, threadWaitSecond_ * 1000);
 		ResetEvent(cond_);
 
@@ -368,7 +369,7 @@ bool TPThread::onWaitCondSignal(void)
 	if(threadWaitSecond_ <= 0)
 	{
 		lock();
-		state_ = 0;
+		state_ = THREAD_STATE_SLEEP;
 		pthread_cond_wait(&cond_, &mutex_);
 		unlock();
 	}
@@ -381,7 +382,7 @@ bool TPThread::onWaitCondSignal(void)
 		timeout.tv_nsec = now.tv_usec * 1000;
 		
 		lock();
-		state_ = 0;
+		state_ = THREAD_STATE_SLEEP;
 		int ret = pthread_cond_timedwait(&cond_, &mutex_, &timeout);
 		unlock();
 		
