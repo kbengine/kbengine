@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "db_interface.hpp"
 #include "entitydef/entitydef.hpp"
 #include "entitydef/scriptdef_module.hpp"
+#include "thread/threadguard.hpp"
 
 namespace KBEngine { 
 KBE_SINGLETON_INIT(EntityTables);
@@ -32,6 +33,36 @@ EntityTables g_EntityTables;
 void EntityTable::addItem(EntityTableItem* pItem)
 {
 	tableItems_[pItem->utype()].reset(pItem);
+}
+
+//-------------------------------------------------------------------------------------
+EntityTableItem* EntityTable::findItem(int32/*ENTITY_PROPERTY_UID*/ utype)
+{
+	TABLEITEM_MAP::iterator iter = tableItems_.find(utype);
+	if(iter != tableItems_.end())
+	{
+		return iter->second.get();
+	}
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTable::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+{
+	while(s->opsize() > 0)
+	{
+		ENTITY_PROPERTY_UID pid;
+		(*s) >> pid;
+		
+		EntityTableItem* pTableItem = this->findItem(pid);
+		KBE_ASSERT(pTableItem != NULL);
+
+		if(!pTableItem->updateItem(dbid, s, pModule))
+			return false;
+	};
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -119,6 +150,29 @@ void EntityTables::addTable(EntityTable* pTable)
 	}
 
 	tables_[pTable->tableName()].reset(pTable);
+}
+
+//-------------------------------------------------------------------------------------
+EntityTable* EntityTables::findTable(std::string name)
+{
+	TABLES_MAP::iterator iter = tables_.find(name);
+	if(iter != tables_.end())
+	{
+		return iter->second.get();
+	}
+
+	return NULL;
+};
+
+//-------------------------------------------------------------------------------------
+bool EntityTables::writeEntity(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+{
+	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
+
+	EntityTable* pTable = this->findTable(pModule->getName());
+	KBE_ASSERT(pTable != NULL);
+
+	return pTable->updateTable(dbid, s, pModule);
 }
 
 //-------------------------------------------------------------------------------------

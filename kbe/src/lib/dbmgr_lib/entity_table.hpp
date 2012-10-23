@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/singleton.hpp"
 #include "helper/debug_helper.hpp"
 #include "entitydef/common.hpp"
+#include "thread/threadmutex.hpp"
 
 namespace KBEngine { 
 
@@ -34,6 +35,7 @@ class ScriptDefModule;
 class DataType;
 class PropertyDescription;
 class EntityTable;
+class MemoryStream;
 
 #define TABLE_ITEM_TYPE_UNKONWN		0
 #define TABLE_ITEM_TYPE_ARRAY		1
@@ -103,6 +105,11 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB() = 0;
+
+	/**
+		更新数据
+	*/
+	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule) = 0;
 protected:
 	// 字段名称
 	std::string itemName_;
@@ -169,6 +176,13 @@ public:
 
 	bool isChild()const{ return isChild_; }
 	void isChild(bool b){ isChild_ = b; }
+
+	EntityTableItem* findItem(int32/*ENTITY_PROPERTY_UID*/ utype);
+
+	/**
+		更新表
+	*/
+	virtual bool updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 protected:
 
 	// 表名称
@@ -199,10 +213,18 @@ public:
 	const EntityTables::TABLES_MAP& tables()const { return tables_; }
 
 	void addTable(EntityTable* pTable);
+
+	EntityTable* findTable(std::string name);
+
+	/**
+		写entity到数据库
+	*/
+	bool writeEntity(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 protected:
 	// 所有的字段
 	TABLES_MAP tables_;
 	DBInterface* pdbi_;
+	KBEngine::thread::ThreadMutex logMutex;
 };
 
 }

@@ -37,6 +37,7 @@ clientMailbox_(NULL),
 cellMailbox_(NULL),
 cellDataDict_(NULL),
 hasDB_(false),
+DBID_(0),
 isGetingCellData_(false),
 isArchiveing_(false),
 creatingCell_(false),
@@ -557,7 +558,7 @@ void Base::onCellWriteToDBCompleted()
 
 	Mercury::Bundle bundle;
 	bundle.newMessage(DbmgrInterface::writeEntity);
-	bundle << this->getID();
+	bundle << this->getDBID();
 	bundle << this->getScriptModule()->getUType();
 	bundle.append(*s);
 	bundle.send(Baseapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
@@ -808,6 +809,11 @@ void Base::reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEnt
 	bundle << reqTeleportEntityID;
 	CellappInterface::teleportFromBaseappArgs3::staticAddToBundle(bundle, this->getCellMailbox()->getComponentID(), this->getID(), reqTeleportEntityBaseAppID);
 	bundle.send(Baseapp::getSingleton().getNetworkInterface(), cinfos->pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onGetDBID(Mercury::Channel* pChannel, DBID dbid)
+{
 }
 
 //-------------------------------------------------------------------------------------

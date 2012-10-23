@@ -279,7 +279,7 @@ typedef uint8													MAIL_TYPE;												// mailbox ËùÍ¶µİµÄmailÀà±ğµÄÀà±
 typedef uint32													GAME_TIME;
 typedef uint32													GameTime;
 typedef int32													ScriptID;
-typedef uint32													DBID;													// Ò»¸öÔÚÊı¾İ¿âÖĞµÄË÷ÒıÓÃÀ´µ±×öÄ³ID
+typedef uint64													DBID;													// Ò»¸öÔÚÊı¾İ¿âÖĞµÄË÷ÒıÓÃÀ´µ±×öÄ³ID
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	#define IFNAMSIZ											16

@@ -290,6 +290,12 @@ bool EntityTableItemMysql_VECTOR2::syncToDB()
 }
 
 //-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_VECTOR2::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_VECTOR3::isSameKey(std::string key)
 {
 	std::string vkey0 = "0_";
@@ -316,6 +322,12 @@ bool EntityTableItemMysql_VECTOR3::syncToDB()
 		return false;
 
 	return sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "sm_2");
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_VECTOR3::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+{
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -351,6 +363,12 @@ bool EntityTableItemMysql_VECTOR4::syncToDB()
 		return false;
 
 	return sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), "sm_3");
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_VECTOR4::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+{
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -440,6 +458,15 @@ bool EntityTableItemMysql_ARRAY::syncToDB()
 }
 
 //-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_ARRAY::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+{
+	if(pChildTable_)
+		return pChildTable_->updateTable(dbid, s, pModule);
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_FIXED_DICT::isSameKey(std::string key)
 {
 	FIXEDDICT_KEYTYPE_MAP::iterator fditer = keyTypes_.begin();
@@ -502,6 +529,12 @@ bool EntityTableItemMysql_FIXED_DICT::syncToDB()
 }
 
 //-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_FIXED_DICT::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityTableItemMysqlBase::initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, 
 										  const DataType* pDataType, std::string name)
 {
@@ -535,6 +568,12 @@ bool EntityTableItemMysql_DIGIT::syncToDB()
 }
 
 //-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_DIGIT::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_STRING::syncToDB()
 {
 	DEBUG_MSG("EntityTableItemMysql_STRING::syncToDB(): %s.\n", itemName());
@@ -552,6 +591,12 @@ bool EntityTableItemMysql_STRING::syncToDB()
 	}
 
 	return sync_item_to_db(pdbi_, sql_str, tableName_.c_str(), itemName());
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_STRING::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+{
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -575,10 +620,22 @@ bool EntityTableItemMysql_UNICODE::syncToDB()
 }
 
 //-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_UNICODE::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_BLOB::syncToDB()
 {
 	DEBUG_MSG("EntityTableItemMysql_BLOB::syncToDB(): %s.\n", itemName());
 	return sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName());
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_BLOB::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+{
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

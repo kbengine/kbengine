@@ -201,6 +201,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASE_MESSAGE_DECLARE_ARGS1(onTeleportCB,								MERCURY_FIXED_MESSAGE,
 								SPACE_ID,									spaceID)
 
+	// 某个entity请求teleport后的回调结果
+	BASE_MESSAGE_DECLARE_ARGS1(onGetDBID,									MERCURY_FIXED_MESSAGE,
+								DBID,										dbid)
+
 	//--------------------------------------------Proxy---------------------------------------------------------
 	/**
 		远程呼叫entity方法

@@ -56,4 +56,14 @@ INLINE void Base::hasDB(bool has)
 	hasDB_ = has; 
 }
 
+INLINE DBID Base::getDBID()const
+{
+	return DBID_;
+}
+
+INLINE void Base::setDBID(DBID id)
+{
+	DBID_ = id;
+}
+
 }

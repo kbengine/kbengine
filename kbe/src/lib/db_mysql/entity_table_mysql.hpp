@@ -77,6 +77,11 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB();
+
+	/**
+		更新数据
+	*/
+	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 };
 
 class EntityTableItemMysql_STRING : public EntityTableItemMysqlBase
@@ -95,6 +100,11 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB();
+
+	/**
+		更新数据
+	*/
+	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 };
 
 class EntityTableItemMysql_UNICODE : public EntityTableItemMysqlBase
@@ -113,6 +123,11 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB();
+
+	/**
+		更新数据
+	*/
+	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 };
 
 
@@ -132,6 +147,11 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB();
+
+	/**
+		更新数据
+	*/
+	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 };
 
 class EntityTableItemMysql_VECTOR2 : public EntityTableItemMysqlBase
@@ -152,6 +172,11 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB();
+
+	/**
+		更新数据
+	*/
+	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 };
 
 class EntityTableItemMysql_VECTOR3 : public EntityTableItemMysqlBase
@@ -172,6 +197,11 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB();
+
+	/**
+		更新数据
+	*/
+	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 };
 
 class EntityTableItemMysql_VECTOR4 : public EntityTableItemMysqlBase
@@ -192,6 +222,11 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB();
+
+	/**
+		更新数据
+	*/
+	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 };
 
 class EntityTableItemMysql_ARRAY : public EntityTableItemMysqlBase
@@ -219,6 +254,11 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB();
+
+	/**
+		更新数据
+	*/
+	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 protected:
 	EntityTable* pChildTable_;
 };
@@ -249,6 +289,11 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB();
+
+	/**
+		更新数据
+	*/
+	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 protected:
 	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPE_MAP			keyTypes_;		// 这个固定字典里的各个key的类型
 };

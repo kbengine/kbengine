@@ -124,7 +124,7 @@ void DBTaskExecuteRawDatabaseCommand::presentMainThread()
 //-------------------------------------------------------------------------------------
 DBTaskWriteEntity::DBTaskWriteEntity(const Mercury::Address& addr, MemoryStream& datas):
 DBTask(addr, datas),
-entityID_(0),
+entityDBID_(0),
 sid_(0)
 {
 }
@@ -137,10 +137,10 @@ DBTaskWriteEntity::~DBTaskWriteEntity()
 //-------------------------------------------------------------------------------------
 bool DBTaskWriteEntity::process()
 {
-	(*pDatas_) >> entityID_ >> sid_;
+	(*pDatas_) >> entityDBID_ >> sid_;
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
-	//EntityTables::getSingleton().updateFromStream(pModule, entityID, s);
+	EntityTables::getSingleton().writeEntity(entityDBID_, pDatas_, pModule);
 	
 	return false;
 }
@@ -149,7 +149,7 @@ bool DBTaskWriteEntity::process()
 void DBTaskWriteEntity::presentMainThread()
 {
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
-	DEBUG_MSG("Dbmgr::writeEntity: %s(%d), size=%u.\n", pModule->getName(), entityID_, (*pDatas_).opsize());
+	DEBUG_MSG("Dbmgr::writeEntity: %s(%"PRIu64"), size=%u.\n", pModule->getName(), entityDBID_, (*pDatas_).opsize());
 }
 
 //-------------------------------------------------------------------------------------

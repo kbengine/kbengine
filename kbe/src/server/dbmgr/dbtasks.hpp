@@ -89,7 +89,7 @@ public:
 	virtual bool process();
 	virtual void presentMainThread();
 protected:
-	ENTITY_ID entityID_;
+	DBID entityDBID_;
 	ENTITY_SCRIPT_UID sid_;
 };
 

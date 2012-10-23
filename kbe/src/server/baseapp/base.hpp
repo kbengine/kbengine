@@ -65,8 +65,14 @@ public:
 	/** 
 		是否存储数据库 
 	*/
-	INLINE bool hasDB()const ;
-	INLINE void hasDB(bool has) ;
+	INLINE bool hasDB()const;
+	INLINE void hasDB(bool has);
+
+	/** 
+		数据库关联ID
+	*/
+	INLINE DBID getDBID()const;
+	INLINE void setDBID(DBID id);
 
 	/** 
 		定义属性数据被改变了 
@@ -141,6 +147,11 @@ public:
 	*/
 	void onWriteToDB();
 	void onCellWriteToDBCompleted();
+
+	/** 网络接口
+		entity第一次写数据库由dbmgr返回的dbid
+	*/
+	void onGetDBID(Mercury::Channel* pChannel, DBID dbid);
 
 	/** 
 		创建cell失败回调 
@@ -220,6 +231,7 @@ protected:
 
 	// 是否是存储到数据库中的entity
 	bool									hasDB_;					
+	DBID									DBID_;
 
 	// 是否正在获取celldata中
 	bool									isGetingCellData_;
