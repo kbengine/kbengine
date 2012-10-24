@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "entity_table_mysql.hpp"
+#include "SqlCommandCreateFromDatas.hpp"
 #include "entitydef/scriptdef_module.hpp"
 #include "entitydef/property.hpp"
 #include "dbmgr_lib/db_interface.hpp"
@@ -297,6 +298,14 @@ bool EntityTableMysql::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* 
 		static_cast<EntityTableItemMysqlBase*>(pTableItem)->getSqlItemStr(s, opTable);
 	};
 
+	// 先将主表的数据放入数据库
+	std::string mainTableName = pModule->getName();
+	SQL_OP_TABLE::iterator iter = opTable.find(mainTableName);
+	if(iter == opTable.end())
+		return true;
+	
+	SqlCommandCreateFromDatas(mainTableName, dbid, iter->second)->excute(pdbi_);
+
 	return true;
 }
 
@@ -344,15 +353,16 @@ void EntityTableItemMysql_VECTOR2::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& 
 {
 	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
 	float v;
-	char sqlval[MAX_BUF];
-	char sqlkey[MAX_BUF];
 
 	for(int i=0; i<2; i++)
 	{
 		(*s) >> v;
-		kbe_snprintf(sqlkey, MAX_BUF, "sm_%d_%s", i, itemName());
-		kbe_snprintf(sqlval, MAX_BUF, "%f", v);
-		opTableVal.push_back(std::make_pair<std::string, std::string>(sqlkey, sqlval));
+		SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
+		kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%d_%s", i, itemName());
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%f", v);
+		pSotvs->parentTableName = this->pParentTable()->tableName();
+		pSotvs->parentTableID = 0;
+		opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
 	}
 }
 
@@ -396,15 +406,16 @@ void EntityTableItemMysql_VECTOR3::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& 
 {
 	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
 	float v;
-	char sqlval[MAX_BUF];
-	char sqlkey[MAX_BUF];
 
 	for(int i=0; i<3; i++)
 	{
 		(*s) >> v;
-		kbe_snprintf(sqlkey, MAX_BUF, "sm_%d_%s", i, itemName());
-		kbe_snprintf(sqlval, MAX_BUF, "%f", v);
-		opTableVal.push_back(std::make_pair<std::string, std::string>(sqlkey, sqlval));
+		SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
+		kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%d_%s", i, itemName());
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%f", v);
+		pSotvs->parentTableName = this->pParentTable()->tableName();
+		pSotvs->parentTableID = 0;
+		opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
 	}
 }
 
@@ -454,15 +465,16 @@ void EntityTableItemMysql_VECTOR4::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& 
 {
 	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
 	float v;
-	char sqlval[MAX_BUF];
-	char sqlkey[MAX_BUF];
 
 	for(int i=0; i<4; i++)
 	{
 		(*s) >> v;
-		kbe_snprintf(sqlkey, MAX_BUF, "sm_%d_%s", i, itemName());
-		kbe_snprintf(sqlval, MAX_BUF, "%f", v);
-		opTableVal.push_back(std::make_pair<std::string, std::string>(sqlkey, sqlval));
+		SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
+		kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%d_%s", i, itemName());
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%f", v);
+		pSotvs->parentTableName = this->pParentTable()->tableName();
+		pSotvs->parentTableID = 0;
+		opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
 	}
 }
 
@@ -729,73 +741,73 @@ bool EntityTableItemMysql_DIGIT::updateItem(DBID dbid, MemoryStream* s, ScriptDe
 void EntityTableItemMysql_DIGIT::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
 {
 	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
-
-	char sqlval[MAX_BUF];
-	char sqlkey[MAX_BUF];
-
+	SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
+	
 	if(dataSType_ == "INT8")
 	{
 		int8 v;
 		(*s) >> v;
-		kbe_snprintf(sqlval, MAX_BUF, "%d", v);
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%d", v);
 	}
 	else if(dataSType_ == "INT16")
 	{
 		int16 v;
 		(*s) >> v;
-		kbe_snprintf(sqlval, MAX_BUF, "%d", v);
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%d", v);
 	}
 	else if(dataSType_ == "INT32")
 	{
 		int32 v;
 		(*s) >> v;
-		kbe_snprintf(sqlval, MAX_BUF, "%d", v);
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%d", v);
 	}
 	else if(dataSType_ == "INT64")
 	{
 		int64 v;
 		(*s) >> v;
-		kbe_snprintf(sqlval, MAX_BUF, "%"PRI64, v);
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%"PRI64, v);
 	}
 	else if(dataSType_ == "UINT8")
 	{
 		uint8 v;
 		(*s) >> v;
-		kbe_snprintf(sqlval, MAX_BUF, "%u", v);
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%u", v);
 	}
 	else if(dataSType_ == "UINT16")
 	{
 		uint16 v;
 		(*s) >> v;
-		kbe_snprintf(sqlval, MAX_BUF, "%u", v);
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%u", v);
 	}
 	else if(dataSType_ == "UINT32")
 	{
 		uint32 v;
 		(*s) >> v;
-		kbe_snprintf(sqlval, MAX_BUF, "%u", v);
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%u", v);
 	}
 	else if(dataSType_ == "UINT64")
 	{
 		uint64 v;
 		(*s) >> v;
-		kbe_snprintf(sqlval, MAX_BUF, "%"PRIu64, v);
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%"PRIu64, v);
 	}
 	else if(dataSType_ == "FLOAT")
 	{
 		float v;
 		(*s) >> v;
-		kbe_snprintf(sqlval, MAX_BUF, "%f", v);
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%f", v);
 	}
 	else if(dataSType_ == "DOUBLE")
 	{
 		double v;
 		(*s) >> v;
-		kbe_snprintf(sqlval, MAX_BUF, "%lf", v);
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%lf", v);
 	}
 
-	kbe_snprintf(sqlkey, MAX_BUF, "sm_%s", itemName());
-	opTableVal.push_back(std::make_pair<std::string, std::string>(sqlkey, sqlval));
+	kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%s", itemName());
+	pSotvs->parentTableName = this->pParentTable()->tableName();
+	pSotvs->parentTableID = 0;
+	opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
 	
 }
 
@@ -830,13 +842,20 @@ void EntityTableItemMysql_STRING::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& o
 {
 	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
 
-	char sqlkey[MAX_BUF];
-	std::string sqlval;
+	SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
+	
+	pSotvs->extraDatas = "\"";
+	std::string val;
+	(*s) >> val;
+	
+	pSotvs->extraDatas += val;
+	pSotvs->extraDatas += "\"";
 
-	(*s) >> sqlval;
-
-	kbe_snprintf(sqlkey, MAX_BUF, "sm_%s", itemName());
-	opTableVal.push_back(std::make_pair<std::string, std::string>(sqlkey, sqlval));
+	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
+	pSotvs->parentTableName = this->pParentTable()->tableName();
+	pSotvs->parentTableID = 0;
+	kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%s", itemName());
+	opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
@@ -869,14 +888,21 @@ bool EntityTableItemMysql_UNICODE::updateItem(DBID dbid, MemoryStream* s, Script
 void EntityTableItemMysql_UNICODE::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
 {
 	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+	
+	SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
 
-	char sqlkey[MAX_BUF];
-	std::string sqlval;
+	pSotvs->extraDatas = "\"";
+	std::string val;
+	s->readBlob(val);
+	
+	pSotvs->extraDatas += val;
+	pSotvs->extraDatas += "\"";
 
-	s->readBlob(sqlval);
-
-	kbe_snprintf(sqlkey, MAX_BUF, "sm_%s", itemName());
-	opTableVal.push_back(std::make_pair<std::string, std::string>(sqlkey, sqlval));
+	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
+	pSotvs->parentTableName = this->pParentTable()->tableName();
+	pSotvs->parentTableID = 0;
+	kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%s", itemName());
+	opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
@@ -896,15 +922,21 @@ bool EntityTableItemMysql_BLOB::updateItem(DBID dbid, MemoryStream* s, ScriptDef
 void EntityTableItemMysql_BLOB::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
 {
 	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+	
+	SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
 
-	char sqlkey[MAX_BUF];
-	std::string type = pPropertyDescription_->getDataType()->getName();
-	std::string sqlval;
+	pSotvs->extraDatas = "\"";
+	std::string val;
+	s->readBlob(val);
+	
+	pSotvs->extraDatas += val;
+	pSotvs->extraDatas += "\"";
 
-	s->readBlob(sqlval);
-
-	kbe_snprintf(sqlkey, MAX_BUF, "sm_%s", itemName());
-	opTableVal.push_back(std::make_pair<std::string, std::string>(sqlkey, sqlval));
+	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
+	pSotvs->parentTableName = this->pParentTable()->tableName();
+	pSotvs->parentTableID = 0;
+	kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%s", itemName());
+	opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------

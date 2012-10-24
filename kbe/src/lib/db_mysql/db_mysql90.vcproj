@@ -167,11 +167,19 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\common.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\db_interface_mysql.hpp"
 				>
 			</File>
 			<File
 				RelativePath=".\entity_table_mysql.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SqlCommandCreateFromDatas.hpp"
 				>
 			</File>
 		</Filter>

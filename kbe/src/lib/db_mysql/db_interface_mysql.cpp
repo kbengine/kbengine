@@ -159,6 +159,11 @@ bool DBInterfaceMysql::execute(const char* strCommand, uint32 size, MemoryStream
 		return false;
 	}
 
+	if(resdata == NULL)
+	{
+		return true;
+	}
+
 	MYSQL_RES * pResult = mysql_store_result(mysql());
 
 	if(pResult)

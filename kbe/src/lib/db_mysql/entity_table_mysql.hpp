@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __KBE_ENTITY_TABLE_MYSQL__
 #define __KBE_ENTITY_TABLE_MYSQL__
 
+#include "common.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "helper/debug_helper.hpp"
@@ -31,11 +32,7 @@ namespace KBEngine {
 class ScriptDefModule;
 class EntityTableMysql;
 
-
 #define MYSQL_ENGINE_TYPE "InnoDB"
-
-typedef std::vector< std::pair< std::string, std::string> > SQL_OP_TABLE_VAL;
-typedef std::tr1::unordered_map< std::string, SQL_OP_TABLE_VAL > SQL_OP_TABLE;
 
 /*
 	维护entity在数据库中的表中的一个字段
