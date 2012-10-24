@@ -34,6 +34,9 @@ class EntityTableMysql;
 
 #define MYSQL_ENGINE_TYPE "InnoDB"
 
+typedef std::vector< std::pair< std::string, std::string> > SQL_OP_TABLE_VAL;
+typedef std::tr1::unordered_map< std::string, SQL_OP_TABLE_VAL > SQL_OP_TABLE;
+
 /*
 	维护entity在数据库中的表中的一个字段
 */
@@ -58,14 +61,20 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB() = 0;
+
+	/**
+		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
+	*/
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable) = 0;
 protected:
 };
 
 class EntityTableItemMysql_DIGIT : public EntityTableItemMysqlBase
 {
 public:
-	EntityTableItemMysql_DIGIT(std::string itemDBType, uint32 datalength):
-	  EntityTableItemMysqlBase(itemDBType, datalength)
+	EntityTableItemMysql_DIGIT(std::string dataSType, std::string itemDBType, uint32 datalength):
+	  EntityTableItemMysqlBase(itemDBType, datalength),
+		  dataSType_(dataSType)
 	{
 	};
 
@@ -82,6 +91,13 @@ public:
 		更新数据
 	*/
 	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	/**
+		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
+	*/
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
+protected:
+	std::string dataSType_;
 };
 
 class EntityTableItemMysql_STRING : public EntityTableItemMysqlBase
@@ -105,6 +121,11 @@ public:
 		更新数据
 	*/
 	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	/**
+		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
+	*/
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
 };
 
 class EntityTableItemMysql_UNICODE : public EntityTableItemMysqlBase
@@ -128,6 +149,11 @@ public:
 		更新数据
 	*/
 	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	/**
+		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
+	*/
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
 };
 
 
@@ -152,6 +178,11 @@ public:
 		更新数据
 	*/
 	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	/**
+		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
+	*/
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
 };
 
 class EntityTableItemMysql_VECTOR2 : public EntityTableItemMysqlBase
@@ -177,6 +208,11 @@ public:
 		更新数据
 	*/
 	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	/**
+		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
+	*/
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
 };
 
 class EntityTableItemMysql_VECTOR3 : public EntityTableItemMysqlBase
@@ -202,6 +238,11 @@ public:
 		更新数据
 	*/
 	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	/**
+		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
+	*/
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
 };
 
 class EntityTableItemMysql_VECTOR4 : public EntityTableItemMysqlBase
@@ -227,6 +268,39 @@ public:
 		更新数据
 	*/
 	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	/**
+		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
+	*/
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
+};
+
+class EntityTableItemMysql_MAILBOX : public EntityTableItemMysqlBase
+{
+public:
+	EntityTableItemMysql_MAILBOX(std::string itemDBType, uint32 datalength):
+	  EntityTableItemMysqlBase(itemDBType, datalength)
+	  {
+	  }
+
+	virtual ~EntityTableItemMysql_MAILBOX(){};
+
+	uint8 type()const{ return TABLE_ITEM_TYPE_MAILBOX; }
+
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB();
+
+	/**
+		更新数据
+	*/
+	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	/**
+		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
+	*/
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
 };
 
 class EntityTableItemMysql_ARRAY : public EntityTableItemMysqlBase
@@ -259,6 +333,11 @@ public:
 		更新数据
 	*/
 	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	/**
+		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
+	*/
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
 protected:
 	EntityTable* pChildTable_;
 };
@@ -273,7 +352,7 @@ public:
 
 	virtual ~EntityTableItemMysql_FIXED_DICT(){};
 
-	typedef std::map<std::string, std::tr1::shared_ptr<EntityTableItem> > FIXEDDICT_KEYTYPE_MAP;
+	typedef std::vector< std::pair< std::string, std::tr1::shared_ptr<EntityTableItem> > > FIXEDDICT_KEYTYPES;
 
 	uint8 type()const{ return TABLE_ITEM_TYPE_FIXEDDICT; }
 
@@ -294,8 +373,13 @@ public:
 		更新数据
 	*/
 	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	/**
+		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
+	*/
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
 protected:
-	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPE_MAP			keyTypes_;		// 这个固定字典里的各个key的类型
+	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPES			keyTypes_;		// 这个固定字典里的各个key的类型
 };
 
 
@@ -322,6 +406,13 @@ public:
 		创建一个表item
 	*/
 	virtual EntityTableItem* createItem(std::string type);
+
+	bool updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	/**
+		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
+	*/
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
 protected:
 	
 };

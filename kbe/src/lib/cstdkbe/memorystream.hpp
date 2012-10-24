@@ -397,7 +397,7 @@ public:
 		if(opsize() <= 0)
 			return 0;
 
-		uint32 rsize = 0;
+		ArraySize rsize = 0;
 		(*this) >> rsize;
 		if(rsize > 655350)
 			return 0;
@@ -464,7 +464,7 @@ public:
             data_.reserve(ressize);
     }
 
-    void appendBlob(const char *src, uint32 cnt)
+    void appendBlob(const char *src, ArraySize cnt)
     {
         (*this) << cnt;
 		if(cnt > 0)
@@ -473,7 +473,7 @@ public:
 
 	void appendBlob(const std::string& datas)
     {
-		uint32 len = datas.size();
+		ArraySize len = datas.size();
 		(*this) << len;
 		if(len > 0)
 			append(datas.data(), len);
@@ -685,7 +685,7 @@ inline MemoryStream &operator>>(MemoryStream &b, std::vector<T> &v)
 template <typename T>
 inline MemoryStream &operator<<(MemoryStream &b, std::list<T> v)
 {
-	uint32 vsize = v.size();
+	ArraySize vsize = v.size();
     b << vsize;
     for (typename std::list<T>::iterator i = v.begin(); i != v.end(); ++i)
     {
@@ -697,7 +697,7 @@ inline MemoryStream &operator<<(MemoryStream &b, std::list<T> v)
 template <typename T>
 inline MemoryStream &operator>>(MemoryStream &b, std::list<T> &v)
 {
-    uint32 vsize;
+    ArraySize vsize;
     b >> vsize;
     v.clear();
     while(vsize--)
@@ -712,7 +712,7 @@ inline MemoryStream &operator>>(MemoryStream &b, std::list<T> &v)
 template <typename K, typename V>
 inline MemoryStream &operator<<(MemoryStream &b, std::map<K, V> &m)
 {
-	uint32 vsize = m.size();
+	ArraySize vsize = m.size();
     b << vsize;
     for (typename std::map<K, V>::iterator i = m.begin(); i != m.end(); ++i)
     {
@@ -724,7 +724,7 @@ inline MemoryStream &operator<<(MemoryStream &b, std::map<K, V> &m)
 template <typename K, typename V>
 inline MemoryStream &operator>>(MemoryStream &b, std::map<K, V> &m)
 {
-    uint32 msize;
+    ArraySize msize;
     b >> msize;
     m.clear();
     while(msize--)

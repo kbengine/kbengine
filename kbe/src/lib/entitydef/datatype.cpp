@@ -302,7 +302,7 @@ bool FloatType::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* FloatType::parseDefaultStr(std::string defaultVal)
 {
-	double val = 0.0f;
+	float val = 0.0f;
 	if(!defaultVal.empty())
 	{
 		std::stringstream stream;
@@ -316,11 +316,67 @@ PyObject* FloatType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void FloatType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	(*mstream) << PyFloat_AsDouble(pyValue);
+	float val = (float)PyFloat_AsDouble(pyValue);
+	(*mstream) << val;
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* FloatType::createFromStream(MemoryStream* mstream)
+{
+	float val = 0.0;
+	if(mstream)
+		(*mstream) >> val;	
+	return PyFloat_FromDouble(val);
+}
+
+//-------------------------------------------------------------------------------------
+DoubleType::DoubleType(DATATYPE_UID did):
+DataType(did)
+{
+}
+
+//-------------------------------------------------------------------------------------
+DoubleType::~DoubleType()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DoubleType::isSameType(PyObject* pyValue)
+{
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("DOUBLE");
+		return false;
+	}
+
+	bool ret = PyFloat_Check(pyValue);
+	if(!ret)
+		OUT_TYPE_ERROR("DOUBLE");
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* DoubleType::parseDefaultStr(std::string defaultVal)
+{
+	double val = 0.0f;
+	if(!defaultVal.empty())
+	{
+		std::stringstream stream;
+		stream << defaultVal;
+		stream >> val;
+	}
+
+	return PyFloat_FromDouble(val);
+}
+
+//-------------------------------------------------------------------------------------
+void DoubleType::addToStream(MemoryStream* mstream, PyObject* pyValue)
+{
+	(*mstream) << PyFloat_AsDouble(pyValue);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* DoubleType::createFromStream(MemoryStream* mstream)
 {
 	double val = 0.0;
 	if(mstream)
@@ -923,10 +979,10 @@ PyObject* FixedArrayType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void FixedArrayType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	uint32 size = PySequence_Size(pyValue);
+	ArraySize size = PySequence_Size(pyValue);
 	(*mstream) << size;
 
-	for(uint32 i=0; i<size; i++)
+	for(ArraySize i=0; i<size; i++)
 	{
 		PyObject* pyVal = PySequence_GetItem(pyValue, i);
 		dataType_->addToStream(mstream, pyVal);
@@ -937,14 +993,14 @@ void FixedArrayType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* FixedArrayType::createFromStream(MemoryStream* mstream)
 {
-	uint32 size;
+	ArraySize size;
 	FixedArray* arr = new FixedArray(this);
 
 	if(mstream)
 	{
 		(*mstream) >> size;	
 		
-		for(uint32 i=0; i<size; i++)
+		for(ArraySize i=0; i<size; i++)
 		{
 			PyObject* pyVal = dataType_->createFromStream(mstream);
 

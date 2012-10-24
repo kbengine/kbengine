@@ -75,13 +75,17 @@ bool EntityTableMysql::initialize(DBInterface* dbi, ScriptDefModule* sm, std::st
 	// 找到所有存储属性并且创建出所有的字段
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& pdescrsMap = sm->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pdescrsMap.begin();
+
 	for(; iter != pdescrsMap.end(); iter++)
 	{
 		PropertyDescription* pdescrs = iter->second;
-		EntityTableItem* pETItem = this->createItem(pdescrs->getDataTypeName());
+
+		EntityTableItem* pETItem = this->createItem(pdescrs->getDataType()->getName());
+
 		pETItem->pParentTable(this);
 		pETItem->utype(pdescrs->getUType());
 		pETItem->tableName(this->tableName());
+
 		bool ret = pETItem->initialize(pdbi_, pdescrs, pdescrs->getDataType(), pdescrs->getName());
 		
 		if(!ret)
@@ -126,8 +130,10 @@ bool EntityTableMysql::syncToDB()
 	}
 
 	std::vector<std::string> dbTableItemNames;
+
 	std::string ttablename = ENTITY_TABLE_PERFIX"_";
 	ttablename += tableName();
+
 	pdbi_->getTableItemNames(ttablename.c_str(), dbTableItemNames);
 
 	// 检查是否有需要删除的表字段
@@ -188,43 +194,43 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 {
 	if(type == "INT8")
 	{
-		return new EntityTableItemMysql_DIGIT("tinyint", 4);
+		return new EntityTableItemMysql_DIGIT(type, "tinyint", 4);
 	}
 	else if(type == "INT16")
 	{
-		return new EntityTableItemMysql_DIGIT("smallint", 6);
+		return new EntityTableItemMysql_DIGIT(type, "smallint", 6);
 	}
 	else if(type == "INT32")
 	{
-		return new EntityTableItemMysql_DIGIT("int", 11);
+		return new EntityTableItemMysql_DIGIT(type, "int", 11);
 	}
 	else if(type == "INT64")
 	{
-		return new EntityTableItemMysql_DIGIT("bigint", 20);
+		return new EntityTableItemMysql_DIGIT(type, "bigint", 20);
 	}
 	else if(type == "UINT8")
 	{
-		return new EntityTableItemMysql_DIGIT("tinyint unsigned", 3);
+		return new EntityTableItemMysql_DIGIT(type, "tinyint unsigned", 3);
 	}
 	else if(type == "UINT16")
 	{
-		return new EntityTableItemMysql_DIGIT("smallint unsigned", 5);
+		return new EntityTableItemMysql_DIGIT(type, "smallint unsigned", 5);
 	}
 	else if(type == "UINT32")
 	{
-		return new EntityTableItemMysql_DIGIT("int unsigned", 10);
+		return new EntityTableItemMysql_DIGIT(type, "int unsigned", 10);
 	}
 	else if(type == "UINT64")
 	{
-		return new EntityTableItemMysql_DIGIT("bigint unsigned", 20);
+		return new EntityTableItemMysql_DIGIT(type, "bigint unsigned", 20);
 	}
 	else if(type == "FLOAT")
 	{
-		return new EntityTableItemMysql_DIGIT("float", 0);
+		return new EntityTableItemMysql_DIGIT(type, "float", 0);
 	}
 	else if(type == "DOUBLE")
 	{
-		return new EntityTableItemMysql_DIGIT("double", 0);
+		return new EntityTableItemMysql_DIGIT(type, "double", 0);
 	}
 	else if(type == "STRING")
 	{
@@ -252,7 +258,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 	}
 	else if(type == "VECTOR2")
 	{
-		return new EntityTableItemMysql_VECTOR3("float", 0);
+		return new EntityTableItemMysql_VECTOR2("float", 0);
 	}
 	else if(type == "VECTOR3")
 	{
@@ -260,10 +266,48 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 	}
 	else if(type == "VECTOR4")
 	{
-		return new EntityTableItemMysql_VECTOR3("float", 0);
+		return new EntityTableItemMysql_VECTOR4("float", 0);
+	}
+	else if(type == "MAILBOX")
+	{
+		return new EntityTableItemMysql_MAILBOX("blob", 0);
 	}
 
+	KBE_ASSERT(false && "not found type.\n");
 	return new EntityTableItemMysql_STRING("", 0);
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableMysql::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+{
+	SQL_OP_TABLE opTable;
+
+	while(s->opsize() > 0)
+	{
+		ENTITY_PROPERTY_UID pid;
+		(*s) >> pid;
+		
+		EntityTableItem* pTableItem = this->findItem(pid);
+		if(pTableItem == NULL)
+		{
+			ERROR_MSG("EntityTable::updateTable: not found item[%u].\n", pid);
+			return false;
+		}
+		
+		static_cast<EntityTableItemMysqlBase*>(pTableItem)->getSqlItemStr(s, opTable);
+	};
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableMysql::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
+{
+	TABLEITEM_MAP::iterator iter = tableItems_.begin();
+	for(; iter != tableItems_.end(); iter++)
+	{
+		static_cast<EntityTableItemMysqlBase*>(iter->second.get())->getSqlItemStr(s, opTable);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -293,6 +337,23 @@ bool EntityTableItemMysql_VECTOR2::syncToDB()
 bool EntityTableItemMysql_VECTOR2::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_VECTOR2::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
+{
+	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+	float v;
+	char sqlval[MAX_BUF];
+	char sqlkey[MAX_BUF];
+
+	for(int i=0; i<2; i++)
+	{
+		(*s) >> v;
+		kbe_snprintf(sqlkey, MAX_BUF, "sm_%d_%s", i, itemName());
+		kbe_snprintf(sqlval, MAX_BUF, "%f", v);
+		opTableVal.push_back(std::make_pair<std::string, std::string>(sqlkey, sqlval));
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -328,6 +389,23 @@ bool EntityTableItemMysql_VECTOR3::syncToDB()
 bool EntityTableItemMysql_VECTOR3::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_VECTOR3::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
+{
+	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+	float v;
+	char sqlval[MAX_BUF];
+	char sqlkey[MAX_BUF];
+
+	for(int i=0; i<3; i++)
+	{
+		(*s) >> v;
+		kbe_snprintf(sqlkey, MAX_BUF, "sm_%d_%s", i, itemName());
+		kbe_snprintf(sqlval, MAX_BUF, "%f", v);
+		opTableVal.push_back(std::make_pair<std::string, std::string>(sqlkey, sqlval));
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -369,6 +447,41 @@ bool EntityTableItemMysql_VECTOR4::syncToDB()
 bool EntityTableItemMysql_VECTOR4::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_VECTOR4::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
+{
+	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+	float v;
+	char sqlval[MAX_BUF];
+	char sqlkey[MAX_BUF];
+
+	for(int i=0; i<4; i++)
+	{
+		(*s) >> v;
+		kbe_snprintf(sqlkey, MAX_BUF, "sm_%d_%s", i, itemName());
+		kbe_snprintf(sqlval, MAX_BUF, "%f", v);
+		opTableVal.push_back(std::make_pair<std::string, std::string>(sqlkey, sqlval));
+	}
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_MAILBOX::syncToDB()
+{
+	DEBUG_MSG("EntityTableItemMysql_MAILBOX::syncToDB(): %s.\n", itemName());
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_MAILBOX::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_MAILBOX::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
+{
 }
 
 //-------------------------------------------------------------------------------------
@@ -467,9 +580,22 @@ bool EntityTableItemMysql_ARRAY::updateItem(DBID dbid, MemoryStream* s, ScriptDe
 }
 
 //-------------------------------------------------------------------------------------
+void EntityTableItemMysql_ARRAY::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
+{
+	ArraySize size = 0;
+	(*s) >> size;
+
+	if(pChildTable_)
+	{
+		for(ArraySize i=0; i<size; i++)
+			static_cast<EntityTableMysql*>(pChildTable_)->getSqlItemStr(s, opTable);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_FIXED_DICT::isSameKey(std::string key)
 {
-	FIXEDDICT_KEYTYPE_MAP::iterator fditer = keyTypes_.begin();
+	FIXEDDICT_KEYTYPES::iterator fditer = keyTypes_.begin();
 	bool tmpfound = false;
 
 	for(; fditer != keyTypes_.end(); fditer++)
@@ -496,6 +622,7 @@ bool EntityTableItemMysql_FIXED_DICT::initialize(DBInterface* dbi, const Propert
 
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = fdatatype->getKeyTypes();
 	FixedDictType::FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes.begin();
+
 	for(; iter != keyTypes.end(); iter++)
 	{
 		EntityTableItem* tableItem = pParentTable_->createItem(iter->second->getName());
@@ -507,7 +634,11 @@ bool EntityTableItemMysql_FIXED_DICT::initialize(DBInterface* dbi, const Propert
 		if(!tableItem->initialize(dbi, pPropertyDescription, iter->second, iter->first))
 			return false;
 
-		keyTypes_[iter->first].reset(tableItem);
+		std::pair< std::string, std::tr1::shared_ptr<EntityTableItem> > itemVal;
+		itemVal.first = iter->first;
+		itemVal.second.reset(tableItem);
+
+		keyTypes_.push_back(itemVal);
 	}
 
 	return true;
@@ -518,7 +649,7 @@ bool EntityTableItemMysql_FIXED_DICT::syncToDB()
 {
 	DEBUG_MSG("EntityTableItemMysql_FIXED_DICT::syncToDB(): %s.\n", itemName());
 
-	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
+	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPES::iterator iter = keyTypes_.begin();
 	for(; iter != keyTypes_.end(); iter++)
 	{
 		if(!iter->second->syncToDB())
@@ -531,7 +662,7 @@ bool EntityTableItemMysql_FIXED_DICT::syncToDB()
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_FIXED_DICT::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
-	FIXEDDICT_KEYTYPE_MAP::iterator fditer = keyTypes_.begin();
+	FIXEDDICT_KEYTYPES::iterator fditer = keyTypes_.begin();
 
 	for(; fditer != keyTypes_.end(); fditer++)
 	{
@@ -542,6 +673,17 @@ bool EntityTableItemMysql_FIXED_DICT::updateItem(DBID dbid, MemoryStream* s, Scr
 	}
 
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_FIXED_DICT::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
+{
+	FIXEDDICT_KEYTYPES::iterator fditer = keyTypes_.begin();
+
+	for(; fditer != keyTypes_.end(); fditer++)
+	{
+		static_cast<EntityTableItemMysqlBase*>(fditer->second.get())->getSqlItemStr(s, opTable);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -584,6 +726,80 @@ bool EntityTableItemMysql_DIGIT::updateItem(DBID dbid, MemoryStream* s, ScriptDe
 }
 
 //-------------------------------------------------------------------------------------
+void EntityTableItemMysql_DIGIT::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
+{
+	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+
+	char sqlval[MAX_BUF];
+	char sqlkey[MAX_BUF];
+
+	if(dataSType_ == "INT8")
+	{
+		int8 v;
+		(*s) >> v;
+		kbe_snprintf(sqlval, MAX_BUF, "%d", v);
+	}
+	else if(dataSType_ == "INT16")
+	{
+		int16 v;
+		(*s) >> v;
+		kbe_snprintf(sqlval, MAX_BUF, "%d", v);
+	}
+	else if(dataSType_ == "INT32")
+	{
+		int32 v;
+		(*s) >> v;
+		kbe_snprintf(sqlval, MAX_BUF, "%d", v);
+	}
+	else if(dataSType_ == "INT64")
+	{
+		int64 v;
+		(*s) >> v;
+		kbe_snprintf(sqlval, MAX_BUF, "%"PRI64, v);
+	}
+	else if(dataSType_ == "UINT8")
+	{
+		uint8 v;
+		(*s) >> v;
+		kbe_snprintf(sqlval, MAX_BUF, "%u", v);
+	}
+	else if(dataSType_ == "UINT16")
+	{
+		uint16 v;
+		(*s) >> v;
+		kbe_snprintf(sqlval, MAX_BUF, "%u", v);
+	}
+	else if(dataSType_ == "UINT32")
+	{
+		uint32 v;
+		(*s) >> v;
+		kbe_snprintf(sqlval, MAX_BUF, "%u", v);
+	}
+	else if(dataSType_ == "UINT64")
+	{
+		uint64 v;
+		(*s) >> v;
+		kbe_snprintf(sqlval, MAX_BUF, "%"PRIu64, v);
+	}
+	else if(dataSType_ == "FLOAT")
+	{
+		float v;
+		(*s) >> v;
+		kbe_snprintf(sqlval, MAX_BUF, "%f", v);
+	}
+	else if(dataSType_ == "DOUBLE")
+	{
+		double v;
+		(*s) >> v;
+		kbe_snprintf(sqlval, MAX_BUF, "%lf", v);
+	}
+
+	kbe_snprintf(sqlkey, MAX_BUF, "sm_%s", itemName());
+	opTableVal.push_back(std::make_pair<std::string, std::string>(sqlkey, sqlval));
+	
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_STRING::syncToDB()
 {
 	DEBUG_MSG("EntityTableItemMysql_STRING::syncToDB(): %s.\n", itemName());
@@ -607,6 +823,20 @@ bool EntityTableItemMysql_STRING::syncToDB()
 bool EntityTableItemMysql_STRING::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_STRING::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
+{
+	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+
+	char sqlkey[MAX_BUF];
+	std::string sqlval;
+
+	(*s) >> sqlval;
+
+	kbe_snprintf(sqlkey, MAX_BUF, "sm_%s", itemName());
+	opTableVal.push_back(std::make_pair<std::string, std::string>(sqlkey, sqlval));
 }
 
 //-------------------------------------------------------------------------------------
@@ -636,6 +866,20 @@ bool EntityTableItemMysql_UNICODE::updateItem(DBID dbid, MemoryStream* s, Script
 }
 
 //-------------------------------------------------------------------------------------
+void EntityTableItemMysql_UNICODE::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
+{
+	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+
+	char sqlkey[MAX_BUF];
+	std::string sqlval;
+
+	s->readBlob(sqlval);
+
+	kbe_snprintf(sqlkey, MAX_BUF, "sm_%s", itemName());
+	opTableVal.push_back(std::make_pair<std::string, std::string>(sqlkey, sqlval));
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_BLOB::syncToDB()
 {
 	DEBUG_MSG("EntityTableItemMysql_BLOB::syncToDB(): %s.\n", itemName());
@@ -646,6 +890,21 @@ bool EntityTableItemMysql_BLOB::syncToDB()
 bool EntityTableItemMysql_BLOB::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_BLOB::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
+{
+	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+
+	char sqlkey[MAX_BUF];
+	std::string type = pPropertyDescription_->getDataType()->getName();
+	std::string sqlval;
+
+	s->readBlob(sqlval);
+
+	kbe_snprintf(sqlkey, MAX_BUF, "sm_%s", itemName());
+	opTableVal.push_back(std::make_pair<std::string, std::string>(sqlkey, sqlval));
 }
 
 //-------------------------------------------------------------------------------------

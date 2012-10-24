@@ -125,6 +125,42 @@ IntType<SPECIFY_TYPE>::~IntType()
 }
 
 //-------------------------------------------------------------------------------------
+const char* IntType<uint8>::getName(void)const
+{
+	return "UINT8";
+}
+
+//-------------------------------------------------------------------------------------
+const char* IntType<uint16>::getName(void)const
+{
+	return "UINT16";
+}
+
+//-------------------------------------------------------------------------------------
+const char* IntType<uint32>::getName(void)const
+{
+	return "UINT32";
+}
+
+//-------------------------------------------------------------------------------------
+const char* IntType<int8>::getName(void)const
+{
+	return "INT8";
+}
+
+//-------------------------------------------------------------------------------------
+const char* IntType<int16>::getName(void)const
+{
+	return "INT16";
+}
+
+//-------------------------------------------------------------------------------------
+const char* IntType<int32>::getName(void)const
+{
+	return "INT32";
+}
+
+//-------------------------------------------------------------------------------------
 template <typename SPECIFY_TYPE>
 bool IntType<SPECIFY_TYPE>::isSameType(PyObject* pyValue)
 {
@@ -263,6 +299,24 @@ public:
 	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "FLOAT";}
+};
+
+class DoubleType : public DataType
+{
+protected:
+public:	
+	DoubleType(DATATYPE_UID did = 0);
+	virtual ~DoubleType();	
+
+	bool isSameType(PyObject* pyValue);
+
+	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+
+	PyObject* createFromStream(MemoryStream* mstream);
+
+	PyObject* parseDefaultStr(std::string defaultVal);
+
+	const char* getName(void)const{ return "DOUBLE";}
 };
 
 class VectorType : public DataType

@@ -47,6 +47,7 @@ class MemoryStream;
 #define TABLE_ITEM_TYPE_VECTOR3		7
 #define TABLE_ITEM_TYPE_VECTOR4		8
 #define TABLE_ITEM_TYPE_UNICODE		9
+#define TABLE_ITEM_TYPE_MAILBOX		10
 
 #define ENTITY_TABLE_PERFIX			"tbl"
 #define TABLE_PARENT_ID				"parentID"
