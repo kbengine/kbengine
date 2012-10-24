@@ -56,7 +56,11 @@ bool EntityTable::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModu
 		(*s) >> pid;
 		
 		EntityTableItem* pTableItem = this->findItem(pid);
-		KBE_ASSERT(pTableItem != NULL);
+		if(pTableItem == NULL)
+		{
+			ERROR_MSG("EntityTable::updateTable: not found item[%u].\n", pid);
+			return false;
+		}
 
 		if(!pTableItem->updateItem(dbid, s, pModule))
 			return false;
