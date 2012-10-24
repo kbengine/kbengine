@@ -125,39 +125,45 @@ IntType<SPECIFY_TYPE>::~IntType()
 }
 
 //-------------------------------------------------------------------------------------
+template <>
 const char* IntType<uint8>::getName(void)const
 {
-	return "UINT8";
+        return "UINT8";
 }
 
 //-------------------------------------------------------------------------------------
+template <>
 const char* IntType<uint16>::getName(void)const
 {
-	return "UINT16";
+        return "UINT16";
 }
 
 //-------------------------------------------------------------------------------------
+template <>
 const char* IntType<uint32>::getName(void)const
 {
-	return "UINT32";
+        return "UINT32";
 }
 
 //-------------------------------------------------------------------------------------
+template <>
 const char* IntType<int8>::getName(void)const
 {
-	return "INT8";
+        return "INT8";
 }
 
 //-------------------------------------------------------------------------------------
+template <>
 const char* IntType<int16>::getName(void)const
 {
-	return "INT16";
+        return "INT16";
 }
 
 //-------------------------------------------------------------------------------------
+template <>
 const char* IntType<int32>::getName(void)const
 {
-	return "INT32";
+        return "INT32";
 }
 
 //-------------------------------------------------------------------------------------
