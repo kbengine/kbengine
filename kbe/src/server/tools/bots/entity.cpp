@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 #include "network/bundle.hpp"	
+#include "network/fixed_messages.hpp"
 
 #include "../../../server/baseapp/baseapp_interface.hpp"
 #include "../../../server/cellapp/cellapp_interface.hpp"

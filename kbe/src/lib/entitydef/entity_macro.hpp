@@ -49,6 +49,27 @@ namespace KBEngine{
 #define ENTITY_GETSET_DECLARE_END()																			\
 	SCRIPT_GETSET_DECLARE_END()																				\
 
+
+#ifdef CLIENT_NO_FLOAT																					
+	#define ADD_POS_DIR_TO_STREAM																			\
+		int32 x = (int32)pos.x;																				\
+		int32 y = (int32)pos.y;																				\
+		int32 z = (int32)pos.z;																				\
+																											\
+		s << posuid << posdirLen << x << y << z;															\
+																											\
+		x = (int32)dir.x;																					\
+		y = (int32)dir.y;																					\
+		z = (int32)dir.z;																					\
+																											\
+		s << diruid << posdirLen << x << y << z;															\
+
+#else																									
+	#define ADD_POS_DIR_TO_STREAM																			\
+		s << posuid << posdirLen << pos.x << pos.y << pos.z;												\
+		s << diruid << posdirLen << dir.x << dir.y << dir.z;												\
+
+#endif																									
 /*
 	debug info.
 */
@@ -257,6 +278,8 @@ public:																										\
 																											\
 		Py_XDECREF(pydict);																					\
 	}																										\
+																											\
+	void addPositionAndDirectionToStream(MemoryStream& s);													\
 																											\
 	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol)									\
 	{																										\
@@ -519,6 +542,74 @@ public:																										\
 	PyObject* CLASS::pyGetIsDestroyed()																		\
 	{																										\
 		return PyBool_FromLong(isDestroyed());																\
+	}																										\
+																											\
+	void CLASS::addPositionAndDirectionToStream(MemoryStream& s)											\
+	{																										\
+		ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;								\
+		ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;					\
+																											\
+		Mercury::FixedMessages::MSGInfo* msgInfo =															\
+					Mercury::FixedMessages::getSingleton().isFixed("Property::position");					\
+																											\
+		if(msgInfo != NULL)																					\
+		{																									\
+			posuid = msgInfo->msgid;																		\
+			msgInfo = NULL;																					\
+		}																									\
+																											\
+		msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");					\
+		if(msgInfo != NULL)																					\
+		{																									\
+			diruid = msgInfo->msgid;																		\
+			msgInfo = NULL;																					\
+		}																									\
+																											\
+		PyObject* pyPos = NULL;																				\
+		PyObject* pyDir = NULL;																				\
+																											\
+																											\
+		if(g_componentType == BASEAPP_TYPE)																	\
+		{																									\
+			PyObject* cellDataDict = PyObject_GetAttrString(this, "cellData");								\
+			if(cellDataDict == NULL)																		\
+			{																								\
+				PyErr_Clear();																				\
+				return;																						\
+			}																								\
+			else																							\
+			{																								\
+				pyPos = PyDict_GetItemString(this, "position");												\
+				pyDir = PyDict_GetItemString(this, "direction");											\
+			}																								\
+																											\
+			Py_XDECREF(cellDataDict);																		\
+			if(pyPos == NULL && pyDir == NULL)																\
+			{																								\
+				PyErr_Clear();																				\
+				return;																						\
+			}																								\
+		}																									\
+		else																								\
+		{																									\
+			pyPos = PyObject_GetAttrString(this, "position");												\
+			pyDir = PyObject_GetAttrString(this, "direction");												\
+		}																									\
+																											\
+																											\
+		uint32 posdirLen = 3;																				\
+		Vector3 pos, dir;																					\
+		script::ScriptVector3::convertPyObjectToVector3(pos, pyPos);										\
+		script::ScriptVector3::convertPyObjectToVector3(dir, pyDir);										\
+																											\
+		ADD_POS_DIR_TO_STREAM																				\
+																											\
+		if(g_componentType != BASEAPP_TYPE)																	\
+		{																									\
+			Py_XDECREF(pyPos);																				\
+			Py_XDECREF(pyDir);																				\
+		}																									\
+																											\
 	}																										\
 
 

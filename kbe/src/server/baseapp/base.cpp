@@ -2,6 +2,7 @@
 #include "base.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
+#include "network/fixed_messages.hpp"
 
 #ifdef CODE_INLINE
 //#include "base.ipp"
@@ -168,6 +169,9 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 	// 先将celldata中的存储属性取出
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+
+	if(scriptModule_->hasCell())
+		addPositionAndDirectionToStream(*s);
 
 	for(; iter != propertyDescrs.end(); iter++)
 	{

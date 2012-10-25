@@ -63,65 +63,22 @@ void Proxy::initClientCellPropertys()
 	bundle.newMessage(ClientInterface::onUpdatePropertys);
 	bundle << this->getID();
 
-	// 初始化cellEntity的位置和方向变量
-	Vector3 v;
-	PyObject* cellData = getCellData();
-	KBE_ASSERT(cellData != NULL);
-
-	PyObject* position = PyDict_GetItemString(cellData, "position");
-	script::ScriptVector3::convertPyObjectToVector3(v, position);
-
-	Vector3 v1;
-	PyObject* direction = PyDict_GetItemString(cellData, "direction");
-	script::ScriptVector3::convertPyObjectToVector3(v1, direction);
-	
-	ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
-	ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
 	ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
-
-	Mercury::FixedMessages::MSGInfo* msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::position");
-	if(msgInfo != NULL)
-	{
-		posuid = msgInfo->msgid;
-		msgInfo = NULL;
-	}
-
-	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
-	if(msgInfo != NULL)
-	{
-		diruid = msgInfo->msgid;
-		msgInfo = NULL;
-	}
-
-	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::spaceID");
+	Mercury::FixedMessages::MSGInfo* msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::spaceID");
 	if(msgInfo != NULL)
 	{
 		spaceuid = msgInfo->msgid;
 	}
 	
 	bundle << spaceuid << this->getSpaceID();
-	uint32 posdirLen = 3;
 
-#ifdef CLIENT_NO_FLOAT
-	int32 x = (int32)v.x;
-	int32 y = (int32)v.y;
-	int32 z = (int32)v.z;
-	
-	
-	bundle << posuid << posdirLen << x << y << z;
-
-	x = (int32)v1.x;
-	y = (int32)v1.y;
-	z = (int32)v1.z;
-
-	bundle << diruid << posdirLen << x << y << z;
-#else
-	bundle << posuid << posdirLen << v.x << v.y << v.z;
-	bundle << diruid << posdirLen << v1.x << v1.y << v1.z;
-#endif
-	
-	// celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
+	addPositionAndDirectionToStream(*s);
+	bundle.append(s);
+	MemoryStream::ObjPool().reclaimObject(s);
+
+	// celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
+	s = MemoryStream::ObjPool().createObject();
 	addCellDataToStream(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, s);
 	bundle.append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);

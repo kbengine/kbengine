@@ -570,47 +570,6 @@ void Entity::setPosition_XYZ_float(Mercury::Channel* pChannel, float x, float y,
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::addPositionAndDirectionToStream(MemoryStream& s)
-{
-	ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
-	ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
-
-	Mercury::FixedMessages::MSGInfo* msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::position");
-	if(msgInfo != NULL)
-	{
-		posuid = msgInfo->msgid;
-		msgInfo = NULL;
-	}
-
-	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
-	if(msgInfo != NULL)
-	{
-		diruid = msgInfo->msgid;
-		msgInfo = NULL;
-	}
-
-	uint32 posdirLen = 3;
-
-#ifdef CLIENT_NO_FLOAT
-	int32 x = (int32)getPosition().x;
-	int32 y = (int32)getPosition().y;
-	int32 z = (int32)getPosition().z;
-	
-	
-	s << posuid << posdirLen << x << y << z;
-
-	x = (int32)getDirection().roll;
-	y = (int32)getDirection().pitch;
-	z = (int32)getDirection().yaw;
-
-	s << diruid << posdirLen << x << y << z;
-#else
-	s << posuid << posdirLen << getPosition().x << getPosition().y << getPosition().z;
-	s << diruid << posdirLen << getDirection().roll << getDirection().pitch << getDirection().yaw;
-#endif
-}
-
-//-------------------------------------------------------------------------------------
 int Entity::pySetDirection(PyObject *value)
 {
 	if(PySequence_Check(value) <= 0)

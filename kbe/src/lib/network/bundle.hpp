@@ -268,6 +268,12 @@ public:
         return *this;
     }
     
+	Bundle &append(Bundle* pBundle)
+	{
+		KBE_ASSERT(pBundle != NULL);
+		return append(*pBundle);
+	}
+
 	Bundle &append(Bundle& bundle)
 	{
 		Packets::iterator iter = bundle.packets_.begin();
@@ -279,6 +285,12 @@ public:
 		if(bundle.pCurrPacket_ == NULL)
 			return *this;
 		return append(bundle.pCurrPacket_->data(), bundle.pCurrPacket_->totalSize());
+	}
+
+	Bundle &append(MemoryStream* s)
+	{
+		KBE_ASSERT(s != NULL);
+		return append(*s);
 	}
 
 	Bundle &append(MemoryStream& s)
