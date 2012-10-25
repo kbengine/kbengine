@@ -154,7 +154,7 @@ void Space::onEnterWorld(Entity* pEntity)
 		
 				(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
 				(*pForwardBundle2) << entity->getID();
-				(*pForwardBundle2) << entity->getSpaceID();
+				(*pForwardBundle2) << this->getID();
 
 				MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle1));
 				MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle2));
@@ -220,7 +220,7 @@ void Space::broadcastEntityToAOIEntities(Entity* pEntity, SPACE_ENTITIES& aoiEnt
 
 			(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
 			(*pForwardBundle2) << pEntity->getID();
-			(*pForwardBundle2) << pEntity->getSpaceID();
+			(*pForwardBundle2) << this->getID();
 
 			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(entity->getID(), (*pSendBundle), (*pForwardBundle1));
 			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(entity->getID(), (*pSendBundle), (*pForwardBundle2));
@@ -270,7 +270,7 @@ void Space::broadcastAOIEntitiesToEntity(Entity* pEntity)
 	
 			(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
 			(*pForwardBundle2) << entity->getID();
-			(*pForwardBundle2) << entity->getSpaceID();
+			(*pForwardBundle2) << this->getID();
 
 			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle1));
 			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle2));
@@ -316,7 +316,7 @@ void Space::onLeaveWorld(Entity* pEntity)
 
 			(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
 			(*pForwardBundle) << pEntity->getID();
-			(*pForwardBundle) << pEntity->getSpaceID();
+			(*pForwardBundle) << this->getID();
 
 			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(entity->getID(), (*pSendBundle), (*pForwardBundle));
 			entity->getClientMailbox()->postMail(*pSendBundle);
