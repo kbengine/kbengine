@@ -579,8 +579,8 @@ public:																										\
 			}																								\
 			else																							\
 			{																								\
-				pyPos = PyDict_GetItemString(this, "position");												\
-				pyDir = PyDict_GetItemString(this, "direction");											\
+				pyPos = PyDict_GetItemString(cellDataDict, "position");										\
+				pyDir = PyDict_GetItemString(cellDataDict, "direction");									\
 			}																								\
 																											\
 			Py_XDECREF(cellDataDict);																		\

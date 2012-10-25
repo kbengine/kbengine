@@ -75,6 +75,9 @@ void Base::onDestroy(void)
 		Py_DECREF(pyResult);
 	else
 		PyErr_PrintEx(0);	
+
+	if(this->hasDB())
+		onCellWriteToDBCompleted();
 }
 
 //-------------------------------------------------------------------------------------
@@ -103,7 +106,7 @@ bool Base::installCellDataAttr(PyObject* dictData)
 //-------------------------------------------------------------------------------------
 void Base::createCellData(void)
 {
-	if(!installCellDataAttr())
+	if(!scriptModule_->hasCell() || !installCellDataAttr())
 		return;
 	
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
@@ -175,7 +178,9 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 
 	if(scriptModule_->hasCell())
+	{
 		addPositionAndDirectionToStream(*s);
+	}
 
 	for(; iter != propertyDescrs.end(); iter++)
 	{

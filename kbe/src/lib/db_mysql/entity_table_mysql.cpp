@@ -25,7 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/property.hpp"
 #include "dbmgr_lib/db_interface.hpp"
 #include "dbmgr_lib/entity_table.hpp"
-
+#include "network/fixed_messages.hpp"
 
 namespace KBEngine { 
 
@@ -95,6 +95,45 @@ bool EntityTableMysql::initialize(DBInterface* dbi, ScriptDefModule* sm, std::st
 			return false;
 		}
 		
+		tableItems_[pETItem->utype()].reset(pETItem);
+	}
+
+	// 特殊处理， 数据库保存方向和位置
+	if(sm->hasCell())
+	{
+		ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
+		ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
+
+		Mercury::FixedMessages::MSGInfo* msgInfo =	
+					Mercury::FixedMessages::getSingleton().isFixed("Property::position");
+
+		if(msgInfo != NULL)
+		{
+			posuid = msgInfo->msgid;
+			msgInfo = NULL;
+		}	
+
+		msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
+		if(msgInfo != NULL)
+		{
+			diruid = msgInfo->msgid;
+			msgInfo = NULL;	
+		}
+
+		EntityTableItem* pETItem = this->createItem("VECTOR3");
+		pETItem->pParentTable(this);
+		pETItem->utype(posuid);
+		pETItem->tableName(this->tableName());
+		pETItem->pdbi(dbi);
+		pETItem->itemName("position");
+		tableItems_[pETItem->utype()].reset(pETItem);
+
+		pETItem = this->createItem("VECTOR3");
+		pETItem->pParentTable(this);
+		pETItem->utype(diruid);
+		pETItem->tableName(this->tableName());
+		pETItem->pdbi(dbi);
+		pETItem->itemName("direction");
 		tableItems_[pETItem->utype()].reset(pETItem);
 	}
 
@@ -195,43 +234,43 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 {
 	if(type == "INT8")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "tinyint", 4);
+		return new EntityTableItemMysql_DIGIT(type, "tinyint not null DEFAULT 0", 4);
 	}
 	else if(type == "INT16")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "smallint", 6);
+		return new EntityTableItemMysql_DIGIT(type, "smallint not null DEFAULT 0", 6);
 	}
 	else if(type == "INT32")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "int", 11);
+		return new EntityTableItemMysql_DIGIT(type, "int not null DEFAULT 0", 11);
 	}
 	else if(type == "INT64")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "bigint", 20);
+		return new EntityTableItemMysql_DIGIT(type, "bigint not null DEFAULT 0", 20);
 	}
 	else if(type == "UINT8")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "tinyint unsigned", 3);
+		return new EntityTableItemMysql_DIGIT(type, "tinyint unsigned not null DEFAULT 0", 3);
 	}
 	else if(type == "UINT16")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "smallint unsigned", 5);
+		return new EntityTableItemMysql_DIGIT(type, "smallint unsigned not null DEFAULT 0", 5);
 	}
 	else if(type == "UINT32")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "int unsigned", 10);
+		return new EntityTableItemMysql_DIGIT(type, "int unsigned not null DEFAULT 0", 10);
 	}
 	else if(type == "UINT64")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "bigint unsigned", 20);
+		return new EntityTableItemMysql_DIGIT(type, "bigint unsigned not null DEFAULT 0", 20);
 	}
 	else if(type == "FLOAT")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "float", 0);
+		return new EntityTableItemMysql_DIGIT(type, "float not null DEFAULT 0", 0);
 	}
 	else if(type == "DOUBLE")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "double", 0);
+		return new EntityTableItemMysql_DIGIT(type, "double not null DEFAULT 0", 0);
 	}
 	else if(type == "STRING")
 	{
@@ -239,7 +278,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 	}
 	else if(type == "UNICODE")
 	{
-		return new EntityTableItemMysql_UNICODE("text", 0);
+		return new EntityTableItemMysql_UNICODE("blob", 0);
 	}
 	else if(type == "PYTHON")
 	{
@@ -259,15 +298,15 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 	}
 	else if(type == "VECTOR2")
 	{
-		return new EntityTableItemMysql_VECTOR2("float", 0);
+		return new EntityTableItemMysql_VECTOR2("float not null DEFAULT 0", 0);
 	}
 	else if(type == "VECTOR3")
 	{
-		return new EntityTableItemMysql_VECTOR3("float", 0);
+		return new EntityTableItemMysql_VECTOR3("float not null DEFAULT 0", 0);
 	}
 	else if(type == "VECTOR4")
 	{
-		return new EntityTableItemMysql_VECTOR4("float", 0);
+		return new EntityTableItemMysql_VECTOR4("float not null DEFAULT 0", 0);
 	}
 	else if(type == "MAILBOX")
 	{

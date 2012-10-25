@@ -93,6 +93,9 @@ public:
 
 	const DataType* pDataType(){ return pDataType_; }
 
+	void pdbi(DBInterface* v){ pdbi_ = v; }
+	DBInterface* pdbi(){ return pdbi_; }
+
 	/**
 		≥ı ºªØ
 	*/
