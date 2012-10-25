@@ -57,7 +57,7 @@ class Channel;
 		if(pCurrMsgHandler)																					\
 		{																									\
 			DEBUG_MSG("%s%s:msgID:%d, currMsgLength:%d\n",													\
-				isrecv == true ? "====>" : "<====", 														\
+				((isrecv == true) ? "====>" : "<===="), 													\
 				pCurrMsgHandler->name.c_str(),																\
 				bundle->messageID(), length);																\
 		}																									\

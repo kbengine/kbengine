@@ -49,7 +49,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 			if(slen != (int)pPacket->totalSize())															\
 			{																								\
 				reason = NetworkInterface::getSendErrorReason(&ep, slen, pPacket->totalSize());				\
-				/* 如果发送出现错误那么我们可以继续尝试一次， 超过3次退出	*/									\
+				/* 如果发送出现错误那么我们可以继续尝试一次， 超过3次退出	*/								\
 				if (reason == REASON_NO_SUCH_PORT && retries <= 3)											\
 				{																							\
 					continue;																				\

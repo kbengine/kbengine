@@ -210,6 +210,7 @@ void DebugHelper::sync()
 	{
 		messagelogAddr_.ip = 0;
 		messagelogAddr_.port = 0;
+		Mercury::g_trace_packet = v;
 		return;
 	}
 
