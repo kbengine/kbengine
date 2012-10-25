@@ -327,7 +327,10 @@ void Entity::backupCellData()
 		
 		PyDict_SetItemString(cellData, const_cast<char*>("position"), pyPosition);
 		PyDict_SetItemString(cellData, const_cast<char*>("direction"), pyDirection);
-		
+
+		Py_DECREF(pyPosition);
+		Py_DECREF(pyDirection);
+
 		std::string strCellData = script::Pickler::pickle(cellData);
 		uint32 cellDataLength = strCellData.length();
 		Py_DECREF(cellData);

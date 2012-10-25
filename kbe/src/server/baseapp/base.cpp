@@ -117,6 +117,7 @@ void Base::createCellData(void)
 		{
 			PyObject* pyObj = propertyDescription->newDefaultVal();
 			PyDict_SetItemString(cellDataDict_, propertyDescription->getName(), pyObj);
+			Py_DECREF(pyObj);
 		}
 		else
 		{
@@ -139,6 +140,9 @@ void Base::createCellData(void)
 	
 	PyDict_SetItemString(cellDataDict_, "position", position);
 	PyDict_SetItemString(cellDataDict_, "direction", direction);
+
+	Py_DECREF(position);
+	Py_DECREF(direction);
 }
 
 //-------------------------------------------------------------------------------------

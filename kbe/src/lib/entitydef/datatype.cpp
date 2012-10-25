@@ -1357,6 +1357,7 @@ PyObject* FixedDictType::parseDefaultStr(std::string defaultVal)
 	{
 		PyObject* item = iter->second->parseDefaultStr("");
 		PyDict_SetItemString(val, iter->first.c_str(), item);
+		Py_DECREF(item);
 	}
 
 	return new FixedDict(this, val);
