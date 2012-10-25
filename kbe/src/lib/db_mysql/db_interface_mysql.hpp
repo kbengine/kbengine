@@ -76,6 +76,16 @@ public:
 
 	MYSQL* mysql(){ return pMysql_; }
 
+	my_ulonglong insertID()		{ return mysql_insert_id( pMysql_ ); }
+
+	my_ulonglong affectedRows()	{ return mysql_affected_rows( pMysql_ ); }
+
+	const char* info()			{ return mysql_info( pMysql_ ); }
+
+	const char* getLastError()	{ return mysql_error( pMysql_ ); }
+
+	unsigned int getLastErrorNum() { return mysql_errno( pMysql_ ); }
+
 	/**
 		返回这个接口的描述
 	*/

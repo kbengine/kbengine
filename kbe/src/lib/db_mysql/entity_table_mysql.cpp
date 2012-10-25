@@ -24,32 +24,32 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/scriptdef_module.hpp"
 #include "entitydef/property.hpp"
 #include "dbmgr_lib/db_interface.hpp"
-#include "dbmgr_lib/entity_table.hpp"																					
+#include "dbmgr_lib/entity_table.hpp"
 
 
 namespace KBEngine { 
 
 
 bool sync_item_to_db(DBInterface* dbi, const char* datatype, 
-					 const char* strTableName, const char* strItemName, const char* perfix = TABLE_ITEM_PERFIX)						
-{																								
-	char __sql_str__[MAX_BUF];																	
-	kbe_snprintf(__sql_str__, MAX_BUF, "alter table "ENTITY_TABLE_PERFIX"_%s add %s_%s %s;",						
-		strTableName, perfix, strItemName, datatype);											
-																								
-	bool ret = dbi->query(__sql_str__, strlen(__sql_str__), false);							
-	if(!ret)																					
-	{																							
-		if(dbi->getlasterror() == 1060)														
-		{																						
-			kbe_snprintf(__sql_str__, MAX_BUF, "alter table "ENTITY_TABLE_PERFIX"_%s modify %s_%s %s;",			
-				strTableName, perfix, strItemName, datatype);				
-																								
-			ret = dbi->query(__sql_str__, strlen(__sql_str__), false);						
-		}																						
-																								
-		if(!ret)																				
-			return false;																		
+					 const char* strTableName, const char* strItemName, const char* perfix = TABLE_ITEM_PERFIX)	
+{
+	char __sql_str__[MAX_BUF];	
+	kbe_snprintf(__sql_str__, MAX_BUF, "alter table "ENTITY_TABLE_PERFIX"_%s add %s_%s %s;",
+		strTableName, perfix, strItemName, datatype);	
+
+	bool ret = dbi->query(__sql_str__, strlen(__sql_str__), false);	
+	if(!ret)
+	{
+		if(dbi->getlasterror() == 1060)	
+		{
+			kbe_snprintf(__sql_str__, MAX_BUF, "alter table "ENTITY_TABLE_PERFIX"_%s modify %s_%s %s;",	
+				strTableName, perfix, strItemName, datatype);
+
+			ret = dbi->query(__sql_str__, strlen(__sql_str__), false);	
+		}
+
+		if(!ret)
+			return false;
 	}	
 
 	return true;
@@ -304,7 +304,9 @@ bool EntityTableMysql::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* 
 	if(iter == opTable.end())
 		return true;
 	
-	SqlCommandCreateFromDatas(mainTableName, dbid, iter->second)->excute(pdbi_);
+	SqlCommandCreateFromDatas sqlcmd(mainTableName, dbid, iter->second);
+	sqlcmd->query(pdbi_);
+	dbid = sqlcmd->dbid();
 
 	return true;
 }

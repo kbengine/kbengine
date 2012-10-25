@@ -39,7 +39,8 @@ public:
 	SqlCommandCreateFromDatasBase(std::string tableName, DBID dbid, SQL_OP_TABLE_VAL& tableVal):
 	  tableVal_(tableVal),
 	  sqlstr_(),
-	  tableName_(tableName)
+	  tableName_(tableName),
+	  dbid_(dbid)
 	{
 	}
 
@@ -49,15 +50,17 @@ public:
 
 	std::string& sql(){ return sqlstr_; }
 
-	bool excute(DBInterface* pdbi)
+	virtual bool query(DBInterface* pdbi)
 	{
-		MemoryStream s;
-		return static_cast<DBInterfaceMysql*>(pdbi)->execute(sqlstr_.c_str(), sqlstr_.size(), &s);
+		return static_cast<DBInterfaceMysql*>(pdbi)->query(sqlstr_.c_str(), sqlstr_.size(), false);
 	}
+
+	DBID dbid()const{ return dbid_; }
 protected:
 	SQL_OP_TABLE_VAL& tableVal_;
 	std::string sqlstr_;
 	std::string tableName_;
+	DBID dbid_;
 };
 
 class SqlCommandCreateFromDatas_INSERT : public SqlCommandCreateFromDatasBase
@@ -106,6 +109,17 @@ public:
 	virtual ~SqlCommandCreateFromDatas_INSERT()
 	{
 	}
+
+	virtual bool query(DBInterface* pdbi)
+	{
+		bool ret = SqlCommandCreateFromDatasBase::query(pdbi);
+		if(!ret)
+			return false;
+
+		dbid_ = static_cast<DBInterfaceMysql*>(pdbi)->insertID();
+		return ret;
+	}
+
 protected:
 	
 	std::string sqlstr1_;
