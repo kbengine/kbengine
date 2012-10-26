@@ -109,26 +109,34 @@ public:
 	
 	inline MessageID messageID() const { return currMsgID_; }
 public:
-	int32 onPacketAppend(int32 size)
+	int32 onPacketAppend(int32 addsize)
 	{
-		currMsgLength_ += size;
 		if(pCurrPacket_ == NULL)
 		{
 			newPacket();
 		}
 
 		int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
-		
 		int32 totalsize = (int32)pCurrPacket_->totalSize();
-		if((totalsize > 0) && (totalsize + size > packetmaxsize))
+
+		if((int32)pCurrPacket_->wpos() >= packetmaxsize)
 		{
 			TRACE_BUNDLE_DATA(false, pCurrPacket_, pCurrMsgHandler_, totalsize);
 			packets_.push_back(pCurrPacket_);
 			currMsgPacketCount_++;
 			newPacket();
+			totalsize = 0;
 		}
 
-		return size - packetmaxsize;
+		int32 remainsize = packetmaxsize - totalsize;
+		int32 taddsize = addsize;
+
+		// 如果 当前包剩余空间小于要添加的字节则本次填满此包
+		if(remainsize < addsize)
+			taddsize = remainsize;
+		
+		currMsgLength_ += taddsize;
+		return taddsize;
 	}
 
     Bundle &operator<<(uint8 value)
@@ -224,22 +232,17 @@ public:
 
     Bundle &operator<<(const std::string &value)
     {
-		int32 len = (int32)value.size() + 1;
+		int32 len = (int32)value.size() + 1; // +1为字符串尾部的0位置
 		int32 i = 0;
 		int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
+		int32 addtotalsize = 0;
 
-		while(true)
+		while(len > 0)
 		{
-			len = onPacketAppend(len);
-			if(len > 0)
-			{
-				pCurrPacket_->append(value.c_str() + (i++ * packetmaxsize), packetmaxsize);
-			}
-			else
-			{
-				pCurrPacket_->append(value.c_str() + (i++ * packetmaxsize), packetmaxsize + len);
-				break;
-			}
+			int32 ilen = onPacketAppend(len);
+			pCurrPacket_->append(value.c_str() + addtotalsize, ilen);
+			addtotalsize += ilen;
+			len -= ilen;
 		}
 
         return *this;
@@ -247,22 +250,17 @@ public:
 	
     Bundle &operator<<(const char *str)
     {
-		int32 len = (int32)strlen(str) + 1;
+		int32 len = (int32)strlen(str) + 1;  // +1为字符串尾部的0位置
 		int32 i = 0;
 		int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
+		int32 addtotalsize = 0;
 
-		while(true)
+		while(len > 0)
 		{
-			len = onPacketAppend(len);
-			if(len > 0)
-			{
-				pCurrPacket_->append(str + (i++ * packetmaxsize), packetmaxsize);
-			}
-			else
-			{
-				pCurrPacket_->append(str + (i++ * packetmaxsize), packetmaxsize + len);
-				break;
-			}
+			int32 ilen = onPacketAppend(len);
+			pCurrPacket_->append(str + addtotalsize, ilen);
+			addtotalsize += ilen;
+			len -= ilen;
 		}
 
         return *this;
@@ -322,20 +320,16 @@ public:
 		int32 len = (int32)n;
 		int32 i = 0;
 		int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
+		int32 addtotalsize = 0;
 
-		while(true)
+		while(len > 0)
 		{
-			len = onPacketAppend(len);
-			if(len > 0)
-			{
-				pCurrPacket_->append((uint8*)str + (i++ * packetmaxsize), packetmaxsize);
-			}
-			else
-			{
-				pCurrPacket_->append((uint8*)str + (i++ * packetmaxsize), packetmaxsize + len);
-				break;
-			}
+			int32 ilen = onPacketAppend(len);
+			pCurrPacket_->append((uint8*)(str + addtotalsize), ilen);
+			addtotalsize += ilen;
+			len -= ilen;
 		}
+
 		return *this;
 	}
 
