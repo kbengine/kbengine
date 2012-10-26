@@ -491,7 +491,7 @@ void init_network(void)
 		packet555 >> retainfo.name;
 		packet555 >> retainfo.roleType;
 		packet555 >> retainfo.level;
-		printf("创建角色结果:错误码:%u,dbid=%u,name=%s,roleType=%u,level=%u\n", 
+		printf("创建角色结果:错误码:%u,dbid=%"PRIu64",name=%s,roleType=%u,level=%u\n", 
 			errorcode, retainfo.dbid, retainfo.name.c_str(),retainfo.roleType, retainfo.level);
 
 		printf("向服务器请求选择某个角色进行游戏\n");
