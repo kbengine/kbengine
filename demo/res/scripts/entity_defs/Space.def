@@ -33,6 +33,10 @@
 			<Arg>		MAILBOX		</Arg>
 		</loginToSpace>
 
+		<logoutSpace>
+			<Arg>		ENTITY_ID	</Arg>
+		</logoutSpace>
+
 		<teleportSpace>
 			<Arg>		MAILBOX		</Arg>
 			<Arg>		ENTITY_UTYPE	</Arg>
@@ -40,8 +44,23 @@
 			<Arg>		DIRECTION3D	</Arg>
 			<Arg>		PYTHON		</Arg>
 		</teleportSpace>
+
+		<onEnter>
+			<Arg>		MAILBOX		</Arg>
+		</onEnter>
+
+		<onLeave>
+			<Arg>		ENTITY_ID	</Arg>
+		</onLeave>
 	</BaseMethods>
 
 	<CellMethods>
+		<onEnter>
+			<Arg>		MAILBOX		</Arg>
+		</onEnter>
+
+		<onLeave>
+			<Arg>		ENTITY_ID	</Arg>
+		</onLeave>
 	</CellMethods>
 </root>

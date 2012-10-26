@@ -12,22 +12,21 @@ class GameObject(KBEngine.Entity):
 		return self.__class__.__name__
 		
 	def onTimer(self, tid, userArg):
-		DEBUG_MSG("%s::onTimer: %i, tid:%i, arg:%i" % (self.getScriptName(), self.id, tid, userArg))
+		#DEBUG_MSG("%s::onTimer: %i, tid:%i, arg:%i" % (self.getScriptName(), self.id, tid, userArg))
 		self._timermap[userArg](self, tid, userArg)
 		
 	def getCurrSpaceBase(self):
 		"""
 		获得当前space的entity baseMailbox
 		"""
-		spaceBase = KBEngine.globalData["space_%i" % self.spaceID]
-		return spaceBase
+		return KBEngine.globalData["space_%i" % self.spaceID]
 
 	def getCurrSpace(self):
 		"""
 		获得当前space的entity baseMailbox
 		"""
 		spaceBase = self.getCurrSpaceBase()
-		return KBEngine.entities[spaceBase.id]
+		return KBEngine.entities.get(spaceBase.id, None)
 		
 	def getSpaceMgr(self):
 		"""

@@ -11,5 +11,19 @@ class Space(GameObject):
 
 		KBEngine.globalData["space_%i" % self.spaceID] = self.base
 	
+	def onEnter(self, entityMailbox):
+		"""
+		defined method.
+		进入场景
+		"""
+		pass
+		
+	def onLeave(self, entityID):
+		"""
+		defined method.
+		离开场景
+		"""
+		pass
+		
 Space._timermap = {}
 Space._timermap.update(GameObject._timermap)

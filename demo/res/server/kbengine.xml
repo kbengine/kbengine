@@ -1,5 +1,5 @@
 ﻿<root>
-	<trace_packet>3</trace_packet>
+	<trace_packet>0</trace_packet>
 	
 	<dbmgr>
 		<host> 192.168.10.108 </host>

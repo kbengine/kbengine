@@ -71,7 +71,7 @@ class SpaceFightCopy(SpaceCopy):
 	def onFightInputTimeoutTimer(self, tid, tno):
 		"""
 		"""
-		self.startInputFigth()
+		pass
 		
 SpaceFightCopy._timermap = {}
 SpaceFightCopy._timermap.update(SpaceCopy._timermap)

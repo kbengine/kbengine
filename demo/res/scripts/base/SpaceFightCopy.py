@@ -15,7 +15,7 @@ class SpaceFightCopy(SpaceCopy):
 		defined method.
 		"""
 		for e in self.avatars:
-			DEBUG_MSG("SpaceFightCopy::startInputFigth(%i)" % e.id)
+			DEBUG_MSG("SpaceFightCopy::startInputFigth(%i-%i)" % (e.id, self.spaceID))
 			if e.client:
 				e.client.startInputFigth(30)
 			

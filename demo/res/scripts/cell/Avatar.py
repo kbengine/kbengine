@@ -33,6 +33,14 @@ class Avatar(GameObject,
 		"""
 		DEBUG_MSG("Avatar::onLoseWitness: %i." % self.id)
 	
+	def onDestroy(self):
+		"""
+		KBEngine method.
+		entity销毁
+		"""
+		DEBUG_MSG("Avatar::onDestroy: %i." % self.id)
+		Teleport.onDestroy(self)
+		
 	def queryCurrSpaceRes(self, srcEntityID):
 		"""
 		exposed.

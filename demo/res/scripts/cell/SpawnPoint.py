@@ -9,7 +9,11 @@ class SpawnPoint(GameObject):
 		KBEngine.Entity.__init__(self)
 		
 		datas = d_entities.datas.get(self.spawnEntityNO)
-		DEBUG_MSG("spawn:%i" % self.spawnEntityNO)
+		
+		if datas is None:
+			ERROR_MSG("SpawnPoint::spawn:%i not found." % self.spawnEntityNO)
+			return
+			
 		params = {
 			"spawnPos" : tuple(datas["spawnPos"]),
 			"uid" : datas["id"],

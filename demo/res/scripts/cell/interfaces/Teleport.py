@@ -7,6 +7,12 @@ class Teleport:
 	def __init__(self):
 		pass
 
+	def onDestroy(self):
+		"""
+		entity销毁
+		"""
+		self.getCurrSpaceBase().logoutSpace(self.id)
+		
 	def teleportSpace(self, spaceUType, position, direction, context):
 		"""
 		defined.
@@ -20,15 +26,19 @@ class Teleport:
 		defined.
 		baseapp返回teleportSpace的回调
 		"""
-		DEBUG_MSG("Avatar::onTeleportSpaceCB: %i mb=%s, spaceUType=%i, pos=%s, dir=%s." % \
+		DEBUG_MSG("Teleport::onTeleportSpaceCB: %i mb=%s, spaceUType=%i, pos=%s, dir=%s." % \
 					(self.id, spaceCellMailbox, spaceUType, position, direction))
-		self.teleportingSpaceUType = spaceUType
+		
+		
+		self.getCurrSpaceBase().onLeave(self.id)
 		self.teleport(spaceCellMailbox, position, direction)
+		self.spaceUType = spaceUType
 		
 	def onTeleportSuccess(self, nearbyEntity):
 		"""
 		KBEngine method.
 		"""
-		self.spaceUType = self.teleportingSpaceUType
+		self.getCurrSpaceBase().onEnter(self.base)
+		
 		
 Teleport._timermap = {}

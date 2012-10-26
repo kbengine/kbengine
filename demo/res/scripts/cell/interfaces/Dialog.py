@@ -16,7 +16,7 @@ class Dialog:
 			return
 			
 		if not KBEngine.entities.has_key(targetID):
-			DEBUG_MSG("Avatar::dialog: %i not found targetID:%i" % (self.id, dialogID))
+			DEBUG_MSG("Dialog::dialog: %i not found targetID:%i" % (self.id, dialogID))
 			return
 			
 		dialogmgr.onGossip(dialogID, self, KBEngine.entities[targetID])

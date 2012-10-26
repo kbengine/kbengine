@@ -3,5 +3,11 @@
 	</Properties>
 
 	<CellMethods>
+		<commitFight>
+			<Exposed/>
+			<Utype> 10106 </Utype>
+			<Arg>		ENTITY_ID	</Arg>
+			<Arg>		SKILLID		</Arg>
+		</commitFight>
 	</CellMethods>
 </root>

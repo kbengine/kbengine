@@ -16,7 +16,7 @@ class Space(GameObject):
 		
 		# 这个地图上创建的entity总数
 		self.tmpCreateEntityDatas = list(d_spaces.datas[self.spaceUTypeB].get("entities", []))
-		self.avatars = []
+		self.avatars = {}
 		
 	def onGetCell(self):
 		"""
@@ -52,7 +52,13 @@ class Space(GameObject):
 		某个玩家请求登陆到这个space中
 		"""
 		avatarMailbox.createCell(self.cell)
-		self.avatars.append(avatarMailbox)
+	
+	def logoutSpace(self, entityID):
+		"""
+		define method.
+		某个玩家请求登出这个space
+		"""
+		self.onLeave(entityID)
 		
 	def teleportSpace(self, entityMailbox, position, direction, context):
 		"""
@@ -60,7 +66,22 @@ class Space(GameObject):
 		请求进入某个space中
 		"""
 		entityMailbox.cell.onTeleportSpaceCB(self.cell, self.spaceUTypeB, position, direction)
-		self.avatars.append(entityMailbox)
+
+	def onEnter(self, entityMailbox):
+		"""
+		defined method.
+		进入场景
+		"""
+		self.avatars[entityMailbox.id] = entityMailbox
+		self.cell.onEnter(entityMailbox)
+		
+	def onLeave(self, entityID):
+		"""
+		defined method.
+		离开场景
+		"""
+		del self.avatars[entityID]
+		self.cell.onLeave(entityID)
 		
 Space._timermap = {}
 Space._timermap.update(GameObject._timermap)
