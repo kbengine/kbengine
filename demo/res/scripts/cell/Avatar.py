@@ -4,20 +4,20 @@ from KBEDebug import *
 from interfaces.GameObject import GameObject
 from interfaces.Combat import Combat
 from interfaces.Spell import Spell
-from interfaces.teleport import teleport
-from interfaces.dialog import dialog
+from interfaces.Teleport import Teleport
+from interfaces.Dialog import Dialog
 
 class Avatar(GameObject, 
 			Combat, 
 			Spell, 
-			teleport,
-			dialog):
+			Teleport,
+			Dialog):
 	def __init__(self):
 		GameObject.__init__(self) 
 		Combat.__init__(self) 
 		Spell.__init__(self) 
-		teleport.__init__(self) 
-		dialog.__init__(self) 
+		Teleport.__init__(self) 
+		Dialog.__init__(self) 
 		
 	def onGetWitness(self):
 		"""
@@ -57,5 +57,5 @@ Avatar._timermap = {}
 Avatar._timermap.update(GameObject._timermap)
 Avatar._timermap.update(Combat._timermap)
 Avatar._timermap.update(Spell._timermap)
-Avatar._timermap.update(teleport._timermap)
-Avatar._timermap.update(dialog._timermap)
+Avatar._timermap.update(Teleport._timermap)
+Avatar._timermap.update(Dialog._timermap)

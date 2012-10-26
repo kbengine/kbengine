@@ -4,15 +4,15 @@ import random
 import wtimer
 from KBEDebug import *
 from interfaces.GameObject import GameObject
-from interfaces.teleport import teleport
+from interfaces.Teleport import Teleport
 
 class Avatar(KBEngine.Proxy,
 			GameObject,
-			teleport):
+			Teleport):
 	def __init__(self):
 		KBEngine.Proxy.__init__(self)
 		GameObject.__init__(self)
-		teleport.__init__(self)
+		Teleport.__init__(self)
 		
 		self.accountEntity = None
 		
@@ -98,6 +98,6 @@ class Avatar(KBEngine.Proxy,
 
 Avatar._timermap = {}
 Avatar._timermap.update(GameObject._timermap)
-Avatar._timermap.update(teleport._timermap)
+Avatar._timermap.update(Teleport._timermap)
 Avatar._timermap[wtimer.TIMER_TYPE_DESTROY] = Avatar.onDestroyTimer
 

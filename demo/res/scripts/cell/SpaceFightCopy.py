@@ -48,7 +48,7 @@ class SpaceFightCopy(SpaceCopy):
 				"uid" : mondatas["id"],
 				"utype" : mondatas["etype"],
 				"modelID" : mondatas["modelID"],
-				"dialogID" : mondatas.get("dialogID"),
+				"dialogID" : mondatas.get("dialogID", 0),
 				"name" : mondatas["name"],
 				"descr" : mondatas.get("descr", ''),
 			}

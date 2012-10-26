@@ -3,7 +3,7 @@ import KBEngine
 from KBEDebug import * 
 import dialogmgr
 
-class dialog:
+class Dialog:
 	def __init__(self):
 		pass
 
@@ -21,4 +21,4 @@ class dialog:
 			
 		dialogmgr.onGossip(dialogID, self, KBEngine.entities[targetID])
 
-dialog._timermap = {}
+Dialog._timermap = {}

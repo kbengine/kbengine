@@ -3,11 +3,17 @@ import KBEngine
 import KBExtend
 from KBEDebug import *
 from interfaces.GameObject import GameObject
+from interfaces.Dialog import Dialog
+from interfaces.Teleport import Teleport
 
-class Avatar(GameObject):
+class Avatar(GameObject,
+			Dialog,
+			Teleport):
 	def __init__(self):
 		GameObject.__init__(self)
-
+		Dialog.__init__(self)
+		Teleport.__init__(self)
+		
 	def onEnterSpace(self):
 		"""
 		KBEngine method.

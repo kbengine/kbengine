@@ -3,7 +3,7 @@ import KBEngine
 import SpaceContext
 from KBEDebug import * 
 
-class teleport:
+class Teleport:
 	def __init__(self):
 		pass
 
@@ -31,4 +31,4 @@ class teleport:
 		"""
 		self.spaceUType = self.teleportingSpaceUType
 		
-teleport._timermap = {}
+Teleport._timermap = {}

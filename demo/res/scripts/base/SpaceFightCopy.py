@@ -16,7 +16,8 @@ class SpaceFightCopy(SpaceCopy):
 		"""
 		for e in self.avatars:
 			DEBUG_MSG("SpaceFightCopy::startInputFigth(%i)" % e.id)
-			e.client.startInputFigth(30)
+			if e.client:
+				e.client.startInputFigth(30)
 			
 SpaceFightCopy._timermap = {}
 SpaceFightCopy._timermap.update(SpaceCopy._timermap)

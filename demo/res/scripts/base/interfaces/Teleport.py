@@ -2,9 +2,9 @@
 import KBEngine
 from KBEDebug import * 
 
-class teleport:
+class Teleport:
 	def __init__(self):
 		pass
 
-teleport._timermap = {}
+Teleport._timermap = {}
 
