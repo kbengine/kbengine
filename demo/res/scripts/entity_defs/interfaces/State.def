@@ -1,0 +1,36 @@
+<root>
+
+	<Properties>
+		<state>
+			<Type>			ENTITY_STATE				</Type>
+			<Flags>			CELL_PUBLIC				</Flags>
+			<Persistent>	true						</Persistent> 
+			<Default>		0					</Default>
+		</state>
+
+		<subState>
+			<Type>          ENTITY_SUBSTATE					</Type>
+			<Flags>         CELL_PRIVATE					</Flags>
+		</subState>
+
+		<forbids>
+			<Type>			ENTITY_FORBIDS				</Type>
+			<Flags>			ALL_CLIENTS				</Flags>
+			<Default>		0					</Default>
+		</forbids>
+
+		<_forbidCounter>
+			<Type>			ENTITY_FORBID_COUNTER			</Type>
+			<Flags>			CELL_PRIVATE				</Flags>
+		</_forbidCounter>
+	</Properties>
+
+	<CellMethods>
+		<changeState>
+			<Arg>			ENTITY_STATE				</Arg>
+		</changeState>
+	</CellMethods>
+
+	<ClientMethods>
+	</ClientMethods>
+</root>
