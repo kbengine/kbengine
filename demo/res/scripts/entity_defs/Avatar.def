@@ -31,6 +31,12 @@
 			<Flags>			CELL_PUBLIC_AND_OWN		</Flags>
 			<Persistent>		true				</Persistent>
 		</level>
+
+		<fightSeat>
+			<Utype> 41010 </Utype>
+			<Type>			INT8				</Type>
+			<Flags>			ALL_CLIENTS			</Flags>
+		</fightSeat>
 	</Properties>
 
 	<BaseMethods>
@@ -87,5 +93,10 @@
 			<Utype> 10103			</Utype>
 			<Arg>	STRING	 		</Arg>
 		</onQuerySpaceResResult>
+
+		<startInputFigth>
+			<Utype> 10105			</Utype>
+			<Arg>	INT16			</Arg>
+		</startInputFigth>
 	</ClientMethods>
 </root>

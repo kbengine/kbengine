@@ -15,6 +15,11 @@
 	</Implements>
 
 	<Properties>
+		<fightSeat>
+			<Utype> 41010 </Utype>
+			<Type>			INT8				</Type>
+			<Flags>			ALL_CLIENTS			</Flags>
+		</fightSeat>
 	</Properties>
 
 	<CellMethods>

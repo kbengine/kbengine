@@ -20,7 +20,7 @@ class Spaces(GameObject):
 			spaceData = d_spaces.datas.get(utype)
 			if spaceData["entityType"] == "SpaceCopy":
 				self._spaceAllocs[utype] = SpaceAllocCopy(utype)
-			elif spaceData["entityType"] == "SpaceCopyContext":
+			elif spaceData["entityType"] == "SpaceFightCopy":
 				self._spaceAllocs[utype] = SpaceAllocCopy(utype)
 			else:
 				self._spaceAllocs[utype] = SpaceAlloc(utype)
