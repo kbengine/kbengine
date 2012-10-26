@@ -115,6 +115,21 @@ bool DataTypes::loadAlias(std::string& file)
 					return false;
 				}
 			}
+			else if(type == "ARRAY")
+			{
+				FixedArrayType* fixedArray = new FixedArrayType;
+				
+				if(fixedArray->initialize(xml, childNode))
+				{
+					addDateType(aliasName, fixedArray);
+				}
+				else
+				{
+					ERROR_MSG("DataTypes::loadAlias:parse ARRAY [%s] is error!\n", aliasName.c_str());
+					delete fixedArray;
+					return false;
+				}
+			}
 			else
 			{
 				DataType* dataType = getDataType(type);
