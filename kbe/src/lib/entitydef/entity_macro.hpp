@@ -450,7 +450,7 @@ public:																										\
 		onDestroy();																						\
 		Py_DECREF(this);																					\
 	}																										\
-	INLINE bool isDestroyed()																				\
+	INLINE bool isDestroyed()const																			\
 	{																										\
 		return isDestroyed_;																				\
 	}																										\

@@ -129,7 +129,7 @@ void Space::onEnterWorld(Entity* pEntity)
 			for(; iter != aoiEntitys.end(); iter++)
 			{
 				Entity* entity = (*iter).get();
-				if(entity == pEntity)
+				if(entity == pEntity || entity->isDestroyed())
 					continue;
 
 				if(entity->hasWitness())
@@ -350,7 +350,10 @@ void Space::getAOIEntities(Entity* pEntity, SPACE_ENTITIES& aoiEntitys)
 		SPACE_ENTITIES::const_iterator iter = this->entities().begin();
 		for(; iter != this->entities().end(); iter++)
 		{
-			// const Entity* entity = (*iter).get();
+			const Entity* entity = (*iter).get();
+			if(entity->isDestroyed())
+				continue;
+
 			aoiEntitys.push_back((*iter));
 		}
 	}

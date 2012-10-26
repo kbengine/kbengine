@@ -111,6 +111,7 @@ void Entity::onDestroy(void)
 		baseMailbox_->postMail(bundle);
 	}
 
+	// 将entity从场景中剔除
 	Space* space = Spaces::findSpace(this->getSpaceID());
 	if(space)
 	{
