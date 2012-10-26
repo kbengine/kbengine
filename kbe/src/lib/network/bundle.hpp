@@ -233,8 +233,6 @@ public:
     Bundle &operator<<(const std::string &value)
     {
 		int32 len = (int32)value.size() + 1; // +1为字符串尾部的0位置
-		int32 i = 0;
-		int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
 		int32 addtotalsize = 0;
 
 		while(len > 0)
@@ -251,8 +249,6 @@ public:
     Bundle &operator<<(const char *str)
     {
 		int32 len = (int32)strlen(str) + 1;  // +1为字符串尾部的0位置
-		int32 i = 0;
-		int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
 		int32 addtotalsize = 0;
 
 		while(len > 0)
@@ -282,6 +278,7 @@ public:
 		
 		if(bundle.pCurrPacket_ == NULL)
 			return *this;
+
 		return append(bundle.pCurrPacket_->data(), bundle.pCurrPacket_->totalSize());
 	}
 
@@ -318,8 +315,6 @@ public:
 	Bundle &assign(const char *str, int n)
 	{
 		int32 len = (int32)n;
-		int32 i = 0;
-		int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
 		int32 addtotalsize = 0;
 
 		while(len > 0)
