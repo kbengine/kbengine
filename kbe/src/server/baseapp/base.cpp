@@ -27,6 +27,7 @@ SCRIPT_MEMBER_DECLARE_END()
 ENTITY_GETSET_DECLARE_BEGIN(Base)
 SCRIPT_GET_DECLARE("cell",								pyGetCellMailbox,				0,						0)	
 SCRIPT_GET_DECLARE("client",							pyGetClientMailbox,				0,						0)	
+SCRIPT_GET_DECLARE("databaseID",						pyGetDBID,						0,						0)	
 ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Base, 0, 0, 0, 0, 0)	
 	
@@ -327,6 +328,20 @@ PyObject* Base::pyGetCellMailbox()
 
 	Py_INCREF(mailbox);
 	return mailbox; 
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Base::pyGetDBID()
+{ 
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_Exception, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		S_Return;																						
+	}
+
+	return PyLong_FromUnsignedLongLong(this->getDBID()); 
 }
 
 //-------------------------------------------------------------------------------------

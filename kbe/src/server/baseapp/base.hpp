@@ -73,6 +73,7 @@ public:
 	*/
 	INLINE DBID getDBID()const;
 	INLINE void setDBID(DBID id);
+	DECLARE_PY_GET_MOTHOD(pyGetDBID);
 
 	/** 
 		定义属性数据被改变了 
