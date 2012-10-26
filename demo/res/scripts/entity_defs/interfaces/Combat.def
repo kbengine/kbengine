@@ -1,4 +1,8 @@
 <root>
+	<Implements>
+	<!--	<Interface> State					</Interface> -->
+	</Implements>
+
 	<Properties>
 	</Properties>
 

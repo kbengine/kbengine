@@ -7,9 +7,12 @@
 	</Properties>
 
 	<BaseMethods>
-		<startInputFigth/>
 	</BaseMethods>
 
 	<CellMethods>
+		<commitFight>
+			<Arg>		ENTITY_ID	</Arg>
+			<Arg>		SKILLID		</Arg>
+		</commitFight>
 	</CellMethods>
 </root>

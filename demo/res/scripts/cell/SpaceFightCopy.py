@@ -15,6 +15,8 @@ class SpaceFightCopy(SpaceCopy):
 		# 添加一个timer5秒后战斗开始
 		self.addTimer(5, 0, wtimer.TIMER_TYPE_FIGTH_READY)
 		
+		self.monsters = []
+		
 		datas = d_spaces.datas[self.spaceUType]
 		entitiesMinCount = datas.get("entitiesMinCount", 1)
 		entitiesMaxCount = datas.get("entitiesMaxCount", 1)
@@ -39,6 +41,7 @@ class SpaceFightCopy(SpaceCopy):
 		vals = bosslist + monlist
 		random.shuffle(vals)
 		
+		
 		for x in range(random.randint(entitiesMinCount, entitiesMaxCount)):
 			val = vals[x]
 			mondatas = d_entities.datas.get(val[0])
@@ -54,14 +57,18 @@ class SpaceFightCopy(SpaceCopy):
 			}
 			
 			e = KBEngine.createEntity(mondatas["entityType"], self.spaceID, (0,0,0), (0,0,0), params)
-	
+			self.monsters.append(e)
+			
 	def startInputFigth(self):
 		"""
 		开始接受输入战斗
 		"""
 		self.addTimer(30, 0, wtimer.TIMER_TYPE_FIGTH_WATI_INPUT_TIMEOUT)
 		
-		self.base.startInputFigth()
+		for e in self.avatars.values():
+			DEBUG_MSG("SpaceFightCopy::startInputFigth(%i-%i)" % (e.id, self.spaceID))
+			if e.client:
+				e.client.startInputFigth(30)
 		
 	def onFightBeginTimer(self, tid, tno):
 		"""
@@ -72,6 +79,13 @@ class SpaceFightCopy(SpaceCopy):
 		"""
 		"""
 		pass
+		
+	def commitFight(self, targetID, skillID):
+		"""
+		defined method.
+		"""
+		DEBUG_MSG("SpaceFightCopy::commitFight: targetID=%i, skillID=%i" % (targetID, skillID))
+		
 		
 SpaceFightCopy._timermap = {}
 SpaceFightCopy._timermap.update(SpaceCopy._timermap)

@@ -5,12 +5,24 @@ from KBEDebug import *
 from interfaces.GameObject import GameObject
 from interfaces.Dialog import Dialog
 from interfaces.Teleport import Teleport
+from interfaces.State import State
+from interfaces.Flags import Flags
+from interfaces.Combat import Combat
+from interfaces.Spell import Spell
 
 class Avatar(GameObject,
+			Flags,
+			State,
+			Combat, 
+			Spell, 
 			Dialog,
 			Teleport):
 	def __init__(self):
 		GameObject.__init__(self)
+		Flags.__init__(self) 
+		State.__init__(self) 
+		Combat.__init__(self) 
+		Spell.__init__(self) 
 		Dialog.__init__(self)
 		Teleport.__init__(self)
 		
