@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 from KBEDebug import *
-from GameObject import GameObject
+from interfaces.GameObject import GameObject
 import d_entities
 
 class SpawnPoint(GameObject):
@@ -30,3 +30,5 @@ class SpawnPoint(GameObject):
 		"""
 		DEBUG_MSG("onDestroy(%i)" % self.id)
 		
+SpawnPoint._timermap = {}
+SpawnPoint._timermap.update(GameObject._timermap)

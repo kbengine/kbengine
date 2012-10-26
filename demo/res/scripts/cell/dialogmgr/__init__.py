@@ -3,8 +3,8 @@
 """
 """
 from KBEDebug import *
-from dialog.Dialog import Dialog
-from dialog.DialogMgr import DialogMgr
+from dialogmgr.Dialog import Dialog
+from dialogmgr.DialogMgr import DialogMgr
 import d_entities
 
 g_dialogMgr = DialogMgr()

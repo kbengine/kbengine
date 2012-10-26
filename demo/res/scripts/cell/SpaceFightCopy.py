@@ -2,17 +2,18 @@
 import KBEngine
 import random
 from KBEDebug import *
-from Space import Space
+from SpaceCopy import SpaceCopy
 import d_entities
 import d_spaces
 import random
+import wtimer
 
-class SpaceFightCopy(Space):
+class SpaceFightCopy(SpaceCopy):
 	def __init__(self):
-		Space.__init__(self)
+		SpaceCopy.__init__(self)
 	
 		# 添加一个timer5秒后战斗开始
-		self.addTimer(5, 0, 1)
+		self.addTimer(5, 0, wtimer.TIMER_TYPE_FIGTH_READY)
 		
 		datas = d_spaces.datas[self.spaceUType]
 		entitiesMinCount = datas.get("entitiesMinCount", 1)
@@ -58,18 +59,21 @@ class SpaceFightCopy(Space):
 		"""
 		开始接受输入战斗
 		"""
-		self.addTimer(30, 0, 2)
+		self.addTimer(30, 0, wtimer.TIMER_TYPE_FIGTH_WATI_INPUT_TIMEOUT)
 		
 		self.base.startInputFigth()
 		
-	def onTimer(self, id, userArg):
+	def onFightBeginTimer(self, tid, tno):
 		"""
-		KBEngine method.
-		使用addTimer后， 当时间到达则该接口被调用
-		@param id		: addTimer 的返回值ID
-		@param userArg	: addTimer 最后一个参数所给入的数据
 		"""
-		if userArg == 1:
-			self.startInputFigth()
-		elif userArg == 2:
-			pass
+		self.startInputFigth()
+
+	def onFightInputTimeoutTimer(self, tid, tno):
+		"""
+		"""
+		self.startInputFigth()
+		
+SpaceFightCopy._timermap = {}
+SpaceFightCopy._timermap.update(SpaceCopy._timermap)
+SpaceFightCopy._timermap[wtimer.TIMER_TYPE_FIGTH_READY] = SpaceFightCopy.onFightBeginTimer
+SpaceFightCopy._timermap[wtimer.TIMER_TYPE_FIGTH_WATI_INPUT_TIMEOUT] = SpaceFightCopy.onFightInputTimeoutTimer

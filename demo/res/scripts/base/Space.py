@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 import random
+import wtimer
 from KBEDebug import *
-from GameObject import GameObject
+from interfaces.GameObject import GameObject
 import d_entities
 import d_spaces
 
@@ -22,32 +23,28 @@ class Space(GameObject):
 		KBEngine method.
 		entity的cell部分实体被创建成功
 		"""
-		self.addTimer(0.1, 0.1, 1)
+		self.addTimer(0.1, 0.1, wtimer.TIMER_TYPE_SPACE_SPAWN_TICK)
 		KBEngine.globalData["SpaceMgr"].onSpaceGetCell(self.spaceUTypeB, self, self.spaceKey)
 		
-	def onTimer(self, id, userArg):
+	def spawnOnTimer(self, tid, tno):
 		"""
-		KBEngine method.
-		使用addTimer后， 当时间到达则该接口被调用
-		@param id		: addTimer 的返回值ID
-		@param userArg	: addTimer 最后一个参数所给入的数据
+		出生怪物
 		"""
-		if userArg == 1:
-			if len(self.tmpCreateEntityDatas) <= 0:
-				self.delTimer(id)
-				return
-				
-			entityNO = self.tmpCreateEntityDatas.pop(0)
-			datas = d_entities.datas.get(entityNO)
+		if len(self.tmpCreateEntityDatas) <= 0:
+			self.delTimer(tid)
+			return
 			
-			if datas is None:
-				ERROR_MSG("Space::onTimer: spawn %i is error!" % entityNO)
-	
-			KBEngine.createBaseAnywhere("SpawnPoint", 
-										{"spawnEntityNO"	: entityNO, 	\
-										"position"			: tuple(datas.get('spawnPos', (0,0,0))), 	\
-										"direction"			: (0, 0, datas.get("spawnYaw", 0)),	\
-										"createToCell"		: self.cell})
+		entityNO = self.tmpCreateEntityDatas.pop(0)
+		datas = d_entities.datas.get(entityNO)
+		
+		if datas is None:
+			ERROR_MSG("Space::onTimer: spawn %i is error!" % entityNO)
+
+		KBEngine.createBaseAnywhere("SpawnPoint", 
+									{"spawnEntityNO"	: entityNO, 	\
+									"position"			: tuple(datas.get('spawnPos', (0,0,0))), 	\
+									"direction"			: (0, 0, datas.get("spawnYaw", 0)),	\
+									"createToCell"		: self.cell})
 				
 	def loginToSpace(self, avatarMailbox):
 		"""
@@ -64,3 +61,7 @@ class Space(GameObject):
 		"""
 		entityMailbox.cell.onTeleportSpaceCB(self.cell, self.spaceUTypeB, position, direction)
 		self.avatars.append(entityMailbox)
+		
+Space._timermap = {}
+Space._timermap.update(GameObject._timermap)
+Space._timermap[wtimer.TIMER_TYPE_SPACE_SPAWN_TICK] = Space.spawnOnTimer

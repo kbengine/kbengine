@@ -2,7 +2,7 @@
 import KBEngine
 import KBExtend
 from KBEDebug import *
-from GameObject import GameObject
+from interfaces.GameObject import GameObject
 
 class Monster(GameObject):
 	def __init__(self):

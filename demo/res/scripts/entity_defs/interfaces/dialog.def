@@ -1,0 +1,13 @@
+<root>
+	<Properties>
+	</Properties>
+
+	<CellMethods>
+		<dialog>
+			<Exposed/>
+			<Utype> 11003 </Utype>
+			<Arg>		ENTITY_ID	</Arg>
+			<Arg>		UINT32		</Arg>
+		</dialog>
+	</CellMethods>
+</root>

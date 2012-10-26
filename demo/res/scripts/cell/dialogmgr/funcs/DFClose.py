@@ -3,7 +3,7 @@
 """
 """
 from KBEDebug import *
-from dialog.funcs.iDFunction import iDFunction
+from dialogmgr.funcs.iDFunction import iDFunction
 
 class DFClose(iDFunction):
 	"""

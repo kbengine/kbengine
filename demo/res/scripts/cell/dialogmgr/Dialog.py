@@ -3,7 +3,7 @@
 """
 """
 import KBEngine
-import dialog.funcs as funcs
+import dialogmgr.funcs as funcs
 import GlobalDefine
 from KBEDebug import *
 

@@ -3,12 +3,11 @@ import random
 import math
 import time
 import KBEngine
+import wtimer
 from KBEDebug import *
-from GameObject import GameObject
-from Combat import Combat
-from Spell import Spell
-
-TIMER_TYPE_HEARDBEAT	= 1
+from interfaces.GameObject import GameObject
+from interfaces.Combat import Combat
+from interfaces.Spell import Spell
 
 class Monster(GameObject, Combat, Spell):
 	def __init__(self):
@@ -21,7 +20,7 @@ class Monster(GameObject, Combat, Spell):
 		激活entity
 		"""
 		self.heartBeatTimerID = \
-		self.addTimer(random.randint(0, 1000), 1000, TIMER_TYPE_HEARDBEAT)				# 心跳timer, 每1秒一次
+		self.addTimer(random.randint(0, 1000), 1000, wtimer.TIMER_TYPE_HEARDBEAT)				# 心跳timer, 每1秒一次
 	
 	def disable(self):
 		"""
@@ -66,17 +65,7 @@ class Monster(GameObject, Combat, Spell):
 		else:
 			self.disable()
 			
-	def onTimer(self, id, userArg):
-		"""
-		KBEngine method.
-		使用addTimer后， 当时间到达则该接口被调用
-		@param id		: addTimer 的返回值ID
-		@param userArg	: addTimer 最后一个参数所给入的数据
-		"""
-		if userArg == TIMER_TYPE_HEARDBEAT:
-			self.onHeartBeat();
-	
-	def onHeartBeat(self):
+	def onHeardTimer(self, tid, tno):
 		"""
 		entity的心跳
 		"""
@@ -106,4 +95,9 @@ class Monster(GameObject, Combat, Spell):
 		"""
 		self.moveWaitCount = random.randint(5, 15)
 		self.isMoving = False
-		
+
+Monster._timermap = {}
+Monster._timermap.update(GameObject._timermap)
+Monster._timermap.update(Combat._timermap)
+Monster._timermap.update(Spell._timermap)
+Monster._timermap[wtimer.TIMER_TYPE_HEARDBEAT] = Monster.onHeardTimer

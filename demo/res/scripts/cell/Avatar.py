@@ -1,17 +1,24 @@
 # -*- coding: utf-8 -*-
 import KBEngine
-import dialog
 from KBEDebug import *
-from GameObject import GameObject
-from Combat import Combat
-from Spell import Spell
+from interfaces.GameObject import GameObject
+from interfaces.Combat import Combat
+from interfaces.Spell import Spell
+from interfaces.teleport import teleport
+from interfaces.dialog import dialog
 
-class Avatar(GameObject, Combat, Spell):
+class Avatar(GameObject, 
+			Combat, 
+			Spell, 
+			teleport,
+			dialog):
 	def __init__(self):
 		GameObject.__init__(self) 
 		Combat.__init__(self) 
 		Spell.__init__(self) 
-	
+		teleport.__init__(self) 
+		dialog.__init__(self) 
+		
 	def onGetWitness(self):
 		"""
 		KBEngine method.
@@ -44,35 +51,11 @@ class Avatar(GameObject, Combat, Spell):
 		"""
 		if srcEntityID != self.id:
 			return
-		
-	def dialog(self, srcEntityID, targetID, dialogID):
-		"""
-		exposed.
-		对一个目标entity施放一个技能
-		"""
-		if srcEntityID != self.id:
-			return
-			
-		if not KBEngine.entities.has_key(targetID):
-			DEBUG_MSG("Avatar::dialog: %i not found targetID:%i" % (self.id, dialogID))
-			return
-			
-		dialog.onGossip(dialogID, self, KBEngine.entities[targetID])
 
-	def onTeleportSpaceCB(self, spaceCellMailbox, spaceUType, position, direction):
-		"""
-		defined.
-		baseapp返回teleportSpace的回调
-		"""
-		self.teleportingSpaceUType = spaceUType
-		GameObject.onTeleportSpaceCB(self, spaceCellMailbox, spaceUType, position, direction)
-		
-	def onTeleportSuccess(self, nearbyEntity):
-		"""
-		KBEngine method.
-		"""
-		self.spaceUType = self.teleportingSpaceUType
 		
 Avatar._timermap = {}
 Avatar._timermap.update(GameObject._timermap)
+Avatar._timermap.update(Combat._timermap)
 Avatar._timermap.update(Spell._timermap)
+Avatar._timermap.update(teleport._timermap)
+Avatar._timermap.update(dialog._timermap)

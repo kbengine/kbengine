@@ -1,0 +1,32 @@
+<root>
+	<Properties>
+		<teleportingSpaceUType>
+			<Type>			UINT32				</Type>
+			<Flags>			CELL_PRIVATE			</Flags>
+			<Persistent>		true				</Persistent>
+		</teleportingSpaceUType>
+
+		<spaceUType>
+			<Utype> 41001 </Utype>
+			<Type>			UINT32				</Type>
+			<Flags>			CELL_PUBLIC_AND_OWN		</Flags>
+			<Persistent>		true				</Persistent>
+		</spaceUType>
+	</Properties>
+
+	<CellMethods>
+		<onTeleportSpaceCB>
+			<Arg>		MAILBOX		</Arg>
+			<Arg>		ENTITY_UTYPE	</Arg>
+			<Arg>		POSITION3D	</Arg>
+			<Arg>		DIRECTION3D	</Arg>
+		</onTeleportSpaceCB>
+
+		<teleportSpace>
+			<Arg>		ENTITY_UTYPE	</Arg>
+			<Arg>		POSITION3D	</Arg>
+			<Arg>		DIRECTION3D	</Arg>
+			<Arg>		PYTHON		</Arg>
+		</teleportSpace>
+	</CellMethods>
+</root>

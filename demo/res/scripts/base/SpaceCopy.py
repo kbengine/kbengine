@@ -9,3 +9,6 @@ import d_spaces
 class SpaceCopy(Space):
 	def __init__(self):
 		Space.__init__(self)
+		
+SpaceCopy._timermap = {}
+SpaceCopy._timermap.update(Space._timermap)

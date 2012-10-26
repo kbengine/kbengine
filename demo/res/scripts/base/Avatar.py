@@ -1,11 +1,19 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 import random
+import wtimer
 from KBEDebug import *
+from interfaces.GameObject import GameObject
+from interfaces.teleport import teleport
 
-class Avatar(KBEngine.Proxy):
+class Avatar(KBEngine.Proxy,
+			GameObject,
+			teleport):
 	def __init__(self):
 		KBEngine.Proxy.__init__(self)
+		GameObject.__init__(self)
+		teleport.__init__(self)
+		
 		self.accountEntity = None
 		
 		self.nameB = self.cellData["name"]
@@ -75,7 +83,7 @@ class Avatar(KBEngine.Proxy):
 		DEBUG_MSG("Avatar[%i].onClientDeath:" % self.id)
 		# 防止正在请求创建cell的同时客户端断开了， 我们延时一段时间来执行销毁cell直到销毁base
 		# 这段时间内客户端短连接登录则会激活entity
-		self._destroyTimer = self.addTimer(1, 0, 1)
+		self._destroyTimer = self.addTimer(1, 0, wtimer.TIMER_TYPE_DESTROY)
 
 	def onClientGetCell(self):
 		"""
@@ -84,6 +92,12 @@ class Avatar(KBEngine.Proxy):
 		"""
 		INFO_MSG("Avatar[%i].onClientGetCell:%s" % (self.id, self.client))
 		
-	def onTimer(self, tid, userArg):
-		DEBUG_MSG("Avatar::onTimer: %i, tid:%i, arg:%i" % (self.id, tid, userArg))
+	def onDestroyTimer(self, tid, tno):
+		DEBUG_MSG("Avatar::onTimer: %i, tid:%i, arg:%i" % (self.id, tid, tno))
 		self.destroySelf()
+
+Avatar._timermap = {}
+Avatar._timermap.update(GameObject._timermap)
+Avatar._timermap.update(teleport._timermap)
+Avatar._timermap[wtimer.TIMER_TYPE_DESTROY] = Avatar.onDestroyTimer
+

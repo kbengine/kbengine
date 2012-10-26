@@ -2,13 +2,13 @@
 import KBEngine
 import random
 from KBEDebug import *
-from Space import Space
+from SpaceCopy import SpaceCopy
 import d_entities
 import d_spaces
 
-class SpaceFightCopy(Space):
+class SpaceFightCopy(SpaceCopy):
 	def __init__(self):
-		Space.__init__(self)
+		SpaceCopy.__init__(self)
 		
 	def startInputFigth(self):
 		"""
@@ -17,3 +17,6 @@ class SpaceFightCopy(Space):
 		for e in self.avatars:
 			DEBUG_MSG("SpaceFightCopy::startInputFigth(%i)" % e.id)
 			e.client.startInputFigth(30)
+			
+SpaceFightCopy._timermap = {}
+SpaceFightCopy._timermap.update(SpaceCopy._timermap)

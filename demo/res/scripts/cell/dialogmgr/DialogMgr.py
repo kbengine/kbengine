@@ -3,7 +3,7 @@
 """
 """
 from KBEDebug import *
-from dialog.Dialog import Dialog
+from dialogmgr.Dialog import Dialog
 from d_dialogs import datas as g_dialogDatas
 
 class DialogMgr:

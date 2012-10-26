@@ -9,22 +9,11 @@
 		<Interface>	GameObject		</Interface>
 		<Interface>	Combat			</Interface>
 		<Interface>	Spell			</Interface>
+		<Interface>	teleport		</Interface>
+		<Interface>	dialog		</Interface>
 	</Implements>
 
 	<Properties>
-		<teleportingSpaceUType>
-			<Type>			UINT32				</Type>
-			<Flags>			CELL_PRIVATE			</Flags>
-			<Persistent>		true				</Persistent>
-		</teleportingSpaceUType>
-
-		<spaceUType>
-			<Utype> 41001 </Utype>
-			<Type>			UINT32				</Type>
-			<Flags>			CELL_PUBLIC_AND_OWN		</Flags>
-			<Persistent>		true				</Persistent>
-		</spaceUType>
-
 		<level>
 			<Utype> 41002 </Utype>
 			<Type>			UINT16				</Type>
@@ -51,12 +40,6 @@
 			<Utype> 11002 </Utype>
 			<Arg>		UINT8		</Arg>
 		</queryCurrSpaceEntitys>
-		<dialog>
-			<Exposed/>
-			<Utype> 11003 </Utype>
-			<Arg>		ENTITY_ID	</Arg>
-			<Arg>		UINT32		</Arg>
-		</dialog>
 		<queryCurrSpaceRes>
 			<Exposed/>
 			<Utype> 11004 </Utype>

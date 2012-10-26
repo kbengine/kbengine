@@ -730,6 +730,11 @@ void init_network(void)
 					if(outstr.size() > 0)
 						utf82wchar(outstr, descr);
 				}
+				else if(41010 == propertyID)
+				{
+					int16 seat=0;
+					packet99 >> seat;
+				}
 				else
 				{
 					KBE_ASSERT(false);
@@ -978,6 +983,11 @@ avatarenterworld = false;
 					packet99.readBlob(outstr);
 					if(outstr.size() > 0)
 						utf82wchar(outstr, descr);
+				}
+				else if(41010 == propertyID)
+				{
+					int16 seat=0;
+					packet99 >> seat;
 				}
 				else
 				{

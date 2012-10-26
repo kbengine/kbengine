@@ -7,7 +7,7 @@ from KBEDebug import *
 
 class Spell:
 	def __init__(self):
-		#self.addTimer(1,1,wtimer.TIME_TYPE_BUFF_TICK)
+		#self.addTimer(1,1,wtimer.TIMER_TYPE_BUFF_TICK)
 		pass
 		
 	def addDBuff(self, buffData):
@@ -24,7 +24,7 @@ class Spell:
 		"""
 		pass
 		
-	def onBuffTick(self, tid):
+	def onBuffTick(self, tid, tno):
 		"""
 		buff的tick
 		"""
@@ -58,4 +58,4 @@ class Spell:
 		skill.use(self, target)
 
 Spell._timermap = {}
-Spell._timermap[wtimer.TIME_TYPE_BUFF_TICK] = Spell.onBuffTick
+Spell._timermap[wtimer.TIMER_TYPE_BUFF_TICK] = Spell.onBuffTick

@@ -2,15 +2,16 @@
 import KBEngine
 import Functor
 from KBEDebug import *
-from GameObject import GameObject
+from interfaces.GameObject import GameObject
 from SpaceAlloc import *
 import d_spaces
-		
+import wtimer
+
 class Spaces(GameObject):
 	def __init__(self):
 		GameObject.__init__(self)
 		self._spaceAllocs = {}
-		self.addTimer(3, 1, 1)
+		self.addTimer(3, 1, wtimer.TIMER_TYPE_CREATE_SPACES)
 		self.initAlloc()
 		KBEngine.globalData["SpaceMgr"] = self
 	
@@ -25,21 +26,17 @@ class Spaces(GameObject):
 			else:
 				self._spaceAllocs[utype] = SpaceAlloc(utype)
 				
-	def onTimer(self, id, userArg):
+	def createSpaceOnTimer(self, tid, tno):
 		"""
-		KBEngine method.
-		使用addTimer后， 当时间到达则该接口被调用
-		@param id		: addTimer 的返回值ID
-		@param userArg	: addTimer 最后一个参数所给入的数据
+		出生怪物
 		"""
-		if userArg == 1:
-			if len(self._tmpDatas) > 0:
-				spaceUType = self._tmpDatas.pop(0)
-				self._spaceAllocs[spaceUType].init()
-				
-			if len(self._tmpDatas) <= 0:
-				del self._tmpDatas
-				self.delTimer(id)
+		if len(self._tmpDatas) > 0:
+			spaceUType = self._tmpDatas.pop(0)
+			self._spaceAllocs[spaceUType].init()
+			
+		if len(self._tmpDatas) <= 0:
+			del self._tmpDatas
+			self.delTimer(tid)
 			
 	def loginToSpace(self, avatarEntity, spaceUType):
 		"""
@@ -62,3 +59,6 @@ class Spaces(GameObject):
 		"""
 		self._spaceAllocs[spaceUType].onSpaceGetCell(spaceMailbox, spaceKey)
 
+Spaces._timermap = {}
+Spaces._timermap.update(GameObject._timermap)
+Spaces._timermap[wtimer.TIMER_TYPE_CREATE_SPACES] = Spaces.createSpaceOnTimer
