@@ -52,8 +52,8 @@ inline bool operator==( TimerHandle h1, TimerHandle h2 )
 
 
 /**
- *	This is an interface which must be derived from in order to
- *	receive time queue events.
+ *	必须继承这个接口
+ *	来接收timer->handleTimeout事件
  */
 class TimerHandler
 {
