@@ -234,6 +234,14 @@ bool EntityDef::loadInterfaces(std::string& defFilePath, std::string& moduleName
 			ERROR_MSG("EntityDef::loadInterfaces: failed to load entity:%s DetailLevelInfo.\n", moduleName.c_str());
 			return false;
 		}
+
+		// 遍历所有的interface， 并将他们的方法和属性加入到模块中
+		if(!loadInterfaces(defFilePath, moduleName, interfaceXml.get(), interfaceRootNode, scriptModule))
+		{
+			ERROR_MSG("EntityDef::loadInterfaces: failed to load entity:%s interface.\n", moduleName.c_str());
+			return false;
+		}
+
 	}
 	XML_FOR_END(implementsNode);
 
