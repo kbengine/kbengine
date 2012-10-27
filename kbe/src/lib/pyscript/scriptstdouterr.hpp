@@ -41,11 +41,15 @@ public:
 	ScriptStdOutErr();
 	virtual ~ScriptStdOutErr();
 
-	/** python执行写操作 */
+	/** 
+		python执行写操作 
+	*/
 	static PyObject* __py_write(PyObject* self, PyObject *args);	
 	static PyObject* __py_flush(PyObject* self, PyObject *args);
 
-	/** 安装和卸载这个模块 */
+	/** 
+		安装和卸载这个模块 
+	*/
 	bool install(void);
 	bool uninstall(void);
 	bool isInstall(void)const{ return isInstall_; }

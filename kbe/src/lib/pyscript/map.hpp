@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pickler.hpp"
 	
 namespace KBEngine{ namespace script{
+
 class Map : public ScriptObject
 {		
 	/** 子类化 将一些py操作填充进派生类 */
@@ -44,14 +45,19 @@ public:
 	
 	/** map操作函数相关 */
 	static PyObject* mp_subscript(PyObject* self, PyObject* key);
-	static int mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value);
+
+	static int mp_ass_subscript(PyObject* self, 
+		PyObject* key, PyObject* value);
+
 	static int mp_length(PyObject* self);
 
 	/** 获取字典对象 */
 	PyObject* getDictObject(void)const{ return pyDict_;}
 	
 	/** 数据改变通知 */
-	virtual void onDataChanged(std::string& key, std::string& value, bool isDelete = false);
+	virtual void onDataChanged(std::string& key, std::string& value, 
+		bool isDelete = false);
+
 protected:
 	PyObject* pyDict_;											// 字典数据， 所有的数据都往这里面写
 } ;

@@ -154,7 +154,7 @@ namespace KBEngine{ namespace script{
 
 																							
 #define SCRIPT_HREADER_BASE(CLASS, SUPERCLASS)												\
-	/* 当前脚本模块的类别 */																	\
+	/* 当前脚本模块的类别 */																\
 	static PyTypeObject _scriptType;														\
 	typedef CLASS ThisClass;																\
 																							\
@@ -203,7 +203,7 @@ public:																						\
 	static PyMethodDef* _##CLASS##_lpScriptmethods;											\
 	static PyMemberDef* _##CLASS##_lpScriptmembers;											\
 	static PyGetSetDef* _##CLASS##_lpgetseters;												\
-	/* 本模块所要暴漏给脚本的方法和成员， 最终会被导入到上面的2个指针列表中 */					\
+	/* 本模块所要暴漏给脚本的方法和成员， 最终会被导入到上面的2个指针列表中 */				\
 	static PyMethodDef _##CLASS##_scriptMethods[];											\
 	static PyMemberDef _##CLASS##_scriptMembers[];											\
 	static PyGetSetDef _##CLASS##_scriptGetSeters[];										\
@@ -519,43 +519,68 @@ public:																						\
 
 class ScriptObject: public PyObject
 {
-	/** 子类化 将一些py操作填充进派生类 */
+	/** 
+		子类化 将一些py操作填充进派生类 
+	*/
 	SCRIPT_OBJECT_HREADER(ScriptObject, ScriptObject)							
 public:	
 	ScriptObject(PyTypeObject* pyType, bool isInitialised = false);
 	~ScriptObject();
 
-	/** 脚本对象引用计数 */
+	/** 
+		脚本对象引用计数 
+	*/
 	void incRef() const				{ Py_INCREF((PyObject*)this); }
 	void decRef() const				{ Py_DECREF((PyObject*)this); }
+
 	int refCount() const			{ return int(((PyObject*)this)->ob_refcnt); }
 	
-	/** 获得对象的描述 */
+	/** 
+		获得对象的描述 
+	*/
 	PyObject* tp_repr();
 	PyObject* tp_str();
 
-	/** 脚本请求创建一个该对象 */
-	static PyObject* tp_new(PyTypeObject* type, PyObject* args, PyObject* kwds);
+	/** 
+		脚本请求创建一个该对象 
+	*/
+	static PyObject* tp_new(PyTypeObject* type, PyObject* args, 
+		PyObject* kwds);
 
-	/** 脚本请求获取属性或者方法 */
+	/** 
+		脚本请求获取属性或者方法 
+	*/
 	PyObject* onScriptGetAttribute(PyObject* attr);						
 
-	/** 脚本请求设置属性或者方法 */
+	/** 
+		脚本请求设置属性或者方法 
+	*/
 	int onScriptSetAttribute(PyObject* attr, PyObject* value);			
 
-	/** 脚本请求删除一个属性 */
+	/** 
+		脚本请求删除一个属性 
+	*/
 	int onScriptDelAttribute(PyObject* attr);
 
-	/** 脚本请求初始化 */
-	int onScriptInit(PyObject* self, PyObject *args, PyObject* kwds);
+	/** 
+		脚本请求初始化 
+	*/
+	int onScriptInit(PyObject* self, PyObject *args, 
+		PyObject* kwds);
 
-	/** 获取对象类别名称 */
+	/** 
+		获取对象类别名称
+	*/
 	const char* getScriptName() const{ return ob_type->tp_name; }
 
-	/** 脚本被安装时被调用 */
+	/** 
+		脚本被安装时被调用 
+	*/
 	static void onInstallScript(PyObject* mod){}
 
-	/** 脚本被卸载时被调用 */
+	/** 
+		脚本被卸载时被调用 
+	*/
 	static void onUninstallScript(){}
 } ;
 

@@ -42,8 +42,11 @@ class ScriptStdOutErrHook : public ScriptStdOutErr
 public:
 	ScriptStdOutErrHook();
 	~ScriptStdOutErrHook();
+
 	void onPrint(const char* msg);
+
 	void setHookBuffer(std::string* buffer){ buffer_ = buffer; };
+
 protected:
 	std::string* buffer_;
 } ;

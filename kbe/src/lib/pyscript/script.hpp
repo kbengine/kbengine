@@ -55,7 +55,9 @@ public:
 	virtual ~Script();
 	
 	/** 安装和卸载脚本模块 */
-	virtual bool install(const wchar_t* pythonHomeDir, std::wstring pyPaths, const char* moduleName, COMPONENT_TYPE componentType);
+	virtual bool install(const wchar_t* pythonHomeDir, std::wstring pyPaths, 
+		const char* moduleName, COMPONENT_TYPE componentType);
+
 	virtual bool uninstall(void);
 	
 	/** 获取脚本基础模块 */

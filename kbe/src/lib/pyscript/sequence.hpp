@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pickler.hpp"
 	
 namespace KBEngine{ namespace script{
+
 class Sequence : public ScriptObject
 {		
 	/** 子类化 将一些py操作填充进派生类 */

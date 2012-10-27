@@ -24,22 +24,29 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "scriptobject.hpp"
 
 namespace KBEngine{ namespace script{
+
 class Pickler
 {						
 public:	
 	/** 代理 cPicket.dumps */
 	static std::string pickle(PyObject* pyobj);
 	static std::string pickle(PyObject* pyobj, int8 protocol);
+
 	/** 代理 cPicket.loads */
 	static PyObject* unpickle(const std::string& str);
+
 	/** 初始化pickler */
 	static bool initialize(void);
 	static void finalise(void);
 	
-	/** 获取unpickle函数表模块对象 */
+	/** 
+		获取unpickle函数表模块对象 
+	*/
 	static PyObject* getUnpickleFuncTableModule(void){ return pyPickleFuncTableModule_; }
 	static PyObject* getUnpickleFunc(const char* funcName);
+
 	static void registerUnpickleFunc(PyObject* pyFunc, const char* funcName);
+
 private:
 	static PyObject* picklerMethod_;						// cPicket.dumps方法指针
 	static PyObject* unPicklerMethod_;						// cPicket.loads方法指针

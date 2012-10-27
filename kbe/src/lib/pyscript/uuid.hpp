@@ -35,6 +35,7 @@ public:
 	/** 初始化 */
 	static bool initialize(void);
 	static void finalise(void);
+
 private:
 	static PyObject* uuidMethod_;							// uuid.uuid4方法指针
 	static bool	isInit;										// 是否已经被初始化
