@@ -46,7 +46,7 @@ namespace KBEngine{
 
 #define OUT_TYPE_ERROR(T)								\
 {														\
-	char err[] = {"must be set to a " T " type."};	\
+	char err[] = {"must be set to a " T " type."};		\
 	PyErr_SetString(PyExc_TypeError, err);				\
 	PyErr_PrintEx(0);									\
 }
@@ -194,7 +194,9 @@ bool IntType<SPECIFY_TYPE>::isSameType(PyObject* pyValue)
 	SPECIFY_TYPE val = (SPECIFY_TYPE)ival;
 	if(ival != int(val))
 	{
-		ERROR_MSG("IntType::isSameType:%d is out of range (currVal = %d).\n", ival, int(val));
+		ERROR_MSG("IntType::isSameType:%d is out of range (currVal = %d).\n", 
+			ival, int(val));
+		
 		return false;
 	}
 	return true;
@@ -218,7 +220,8 @@ PyObject* IntType<SPECIFY_TYPE>::parseDefaultStr(std::string defaultVal)
 
 //-------------------------------------------------------------------------------------
 template <typename SPECIFY_TYPE>
-void IntType<SPECIFY_TYPE>::addToStream(MemoryStream* mstream, PyObject* pyValue)
+void IntType<SPECIFY_TYPE>::addToStream(MemoryStream* mstream, 
+	PyObject* pyValue)
 {
 	SPECIFY_TYPE v = (SPECIFY_TYPE)PyLong_AsLong(pyValue);
 	(*mstream) << v;

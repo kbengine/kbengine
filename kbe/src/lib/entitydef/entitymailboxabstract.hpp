@@ -57,8 +57,12 @@ class EntityMailboxAbstract : public script::ScriptObject
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(EntityMailboxAbstract, ScriptObject)
 public:
-	EntityMailboxAbstract(PyTypeObject* scriptType, const Mercury::Address* pAddr, COMPONENT_ID componentID, 
-	ENTITY_ID eid, uint16 utype, ENTITY_MAILBOX_TYPE type);
+	EntityMailboxAbstract(PyTypeObject* scriptType, 
+		const Mercury::Address* pAddr, 
+		COMPONENT_ID componentID, 
+		ENTITY_ID eid, uint16 utype, 
+		ENTITY_MAILBOX_TYPE type);
+	
 	~EntityMailboxAbstract();
 
 	/** 获取entityID */

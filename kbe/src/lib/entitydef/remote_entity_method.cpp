@@ -36,7 +36,8 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(RemoteEntityMethod, tp_call, 0, 0, 0, 0)	
 
 //-------------------------------------------------------------------------------------
-RemoteEntityMethod::RemoteEntityMethod(MethodDescription* methodDescription, EntityMailboxAbstract* mailbox):
+RemoteEntityMethod::RemoteEntityMethod(MethodDescription* methodDescription, 
+	EntityMailboxAbstract* mailbox):
 script::ScriptObject(getScriptType(), false),
 methodDescription_(methodDescription),
 pMailbox_(mailbox)
@@ -51,7 +52,8 @@ RemoteEntityMethod::~RemoteEntityMethod()
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args, PyObject* kwds)	
+PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args, 
+	PyObject* kwds)	
 {	
 	RemoteEntityMethod* rmethod = static_cast<RemoteEntityMethod*>(self);
 	MethodDescription* methodDescription = rmethod->getDescription();

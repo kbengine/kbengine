@@ -48,8 +48,11 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(EntityMailboxAbstract, 0, 0, 0, 0, 0)		
 
 //-------------------------------------------------------------------------------------
-EntityMailboxAbstract::EntityMailboxAbstract(PyTypeObject* scriptType, const Mercury::Address* pAddr, COMPONENT_ID componentID, 
-											 ENTITY_ID eid, uint16 utype, ENTITY_MAILBOX_TYPE type):
+EntityMailboxAbstract::EntityMailboxAbstract(PyTypeObject* scriptType, 
+											const Mercury::Address* pAddr, 
+											COMPONENT_ID componentID, 
+											ENTITY_ID eid, uint16 utype, 
+											ENTITY_MAILBOX_TYPE type):
 ScriptObject(scriptType, false),
 componentID_(componentID),
 addr_((pAddr == NULL) ? Mercury::Address::NONE : *pAddr),
@@ -123,15 +126,18 @@ bool EntityMailboxAbstract::postMail(Mercury::Bundle& bundle)
 PyObject* EntityMailboxAbstract::__py_reduce_ex__(PyObject* self, PyObject* protocol)
 {
 	EntityMailboxAbstract* emailbox = static_cast<EntityMailboxAbstract*>(self);
+	
 	PyObject* args = PyTuple_New(2);
 	PyObject* unpickleMethod = script::Pickler::getUnpickleFunc("Mailbox");
 	PyTuple_SET_ITEM(args, 0, unpickleMethod);
+	
 	PyObject* args1 = PyTuple_New(4);
 	PyTuple_SET_ITEM(args1, 0, PyLong_FromLong(emailbox->getID()));
 	PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLongLong(emailbox->getComponentID()));
 	PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(emailbox->getUType()));
 
 	int16 mbType = static_cast<int16>(emailbox->getType());
+	
 	PyTuple_SET_ITEM(args1, 3, PyLong_FromLong(mbType));
 	PyTuple_SET_ITEM(args, 1, args1);
 

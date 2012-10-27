@@ -405,14 +405,18 @@ bool VectorType::isSameType(PyObject* pyValue)
 {
 	if(pyValue == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "must be set to a VECTOR%d type.", elemCount_);
+		PyErr_Format(PyExc_TypeError, 
+			"must be set to a VECTOR%d type.", elemCount_);
+		
 		PyErr_PrintEx(0);
 		return false;
 	}
 
 	if(!PySequence_Check(pyValue) || PySequence_Size(pyValue) != elemCount_)
 	{
-		PyErr_Format(PyExc_TypeError, "must be set to a VECTOR%d type.", elemCount_);
+		PyErr_Format(PyExc_TypeError, 
+			"must be set to a VECTOR%d type.", elemCount_);
+		
 		PyErr_PrintEx(0);
 		return false;
 	}
@@ -422,7 +426,9 @@ bool VectorType::isSameType(PyObject* pyValue)
 		PyObject* pyVal = PySequence_GetItem(pyValue, index);
 		if(!PyFloat_Check(pyVal) && !PyLong_Check(pyVal) && !PyLong_AsLongLong(pyVal))
 		{
-			PyErr_Format(PyExc_TypeError, "VECTOR%d item is not digit.", elemCount_);
+			PyErr_Format(PyExc_TypeError, 
+				"VECTOR%d item is not digit.", elemCount_);
+			
 			PyErr_PrintEx(0);
 			return false;
 		}
@@ -702,13 +708,17 @@ PyObject* PythonType::parseDefaultStr(std::string defaultVal)
 		PyObject* module = PyImport_AddModule("__main__");
 		if(module == NULL)
 		{
-			PyErr_SetString(PyExc_SystemError, "PythonType::createObject:PyImport_AddModule __main__ is error!");
+			PyErr_SetString(PyExc_SystemError, 
+				"PythonType::createObject:PyImport_AddModule __main__ is error!");
+			
 			PyErr_PrintEx(0);	
 			S_Return;
 		}
 
-		PyObject* mdict = PyModule_GetDict(module);
-		return PyRun_String(const_cast<char*>(val.c_str()), Py_eval_input, mdict, mdict);
+		PyObject* mdict = PyModule_GetDict(module); // Borrowed reference.
+		
+		return PyRun_String(const_cast<char*>(val.c_str()), 
+							Py_eval_input, mdict, mdict);
 	}
 		
 	S_Return;
@@ -718,8 +728,10 @@ PyObject* PythonType::parseDefaultStr(std::string defaultVal)
 void PythonType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
 	std::string sdata = script::Pickler::pickle(pyValue);
+	
 	uint32 length = sdata.length();
 	(*mstream) << length;
+	
 	mstream->append(sdata.c_str(), length);
 }
 
@@ -731,10 +743,15 @@ PyObject* PythonType::createFromStream(MemoryStream* mstream)
 	uint32 udataLen = 0;
 
 	(*mstream) >> udataLen;
+	
 	udata = new uint8[udataLen + 1];
+	
 	mstream->read(udata, udataLen);
+	
 	val.assign((char*)udata, udataLen);
+	
 	SAFE_RELEASE_ARRAY(udata);
+	
 	return script::Pickler::unpickle(val);
 }
 
@@ -929,7 +946,9 @@ bool FixedArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 		}
 		else
 		{
-			ERROR_MSG("FixedArrayType::initialize: can't found type[%s] by key[%s].\n", strType.c_str(), "ARRAY");
+			ERROR_MSG("FixedArrayType::initialize: can't found type[%s] by key[%s].\n", 
+				strType.c_str(), "ARRAY");
+			
 			return false;
 		}			
 	}
@@ -1237,7 +1256,9 @@ PyObject* FixedDictType::impl_createObjFromDict(PyObject* dictData)
 	
 	if(!impl_isSameType(pyRet))
 	{
-		ERROR_MSG("FixedDictType::impl_createObjFromDict: %s.isSameType() is failed!\n", moduleName_.c_str());
+		ERROR_MSG("FixedDictType::impl_createObjFromDict: %s.isSameType() is failed!\n", 
+			moduleName_.c_str());
+		
 		Py_RETURN_NONE;
 	}
 
@@ -1284,8 +1305,11 @@ DataType* FixedDictType::isSameItemType(const char* keyName, PyObject* pyValue)
 		{
 			if(pyValue == NULL || !iter->second->isSameType(pyValue))
 			{
-				PyErr_Format(PyExc_TypeError, "set FIXED_DICT(%s) is error! at key: %s, keyNames=[%s].", 
-					this->aliasName(), iter->first.c_str(), getKeyNames().c_str());
+				PyErr_Format(PyExc_TypeError, 
+					"set FIXED_DICT(%s) is error! at key: %s, keyNames=[%s].", 
+					this->aliasName(), iter->first.c_str(), 
+					getKeyNames().c_str());
+				
 				PyErr_PrintEx(0);
 				return NULL;
 			}
@@ -1325,8 +1349,11 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 	Py_ssize_t dictSize = PyDict_Size(pyValue);
 	if(dictSize != (Py_ssize_t)keyTypes_.size())
 	{
-		PyErr_Format(PyExc_TypeError, "FIXED_DICT key no match. size:%d-%d, keyNames=[%s].", 
-			dictSize, keyTypes_.size(), getKeyNames().c_str());
+		PyErr_Format(PyExc_TypeError, 
+			"FIXED_DICT key no match. size:%d-%d, keyNames=[%s].", 
+			dictSize, keyTypes_.size(), 
+			getKeyNames().c_str());
+		
 		PyErr_PrintEx(0);
 		return false;
 	}
@@ -1337,8 +1364,11 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 		PyObject* pyObject = PyDict_GetItemString(pyValue, const_cast<char*>(iter->first.c_str()));
 		if(pyObject == NULL || !iter->second->isSameType(pyObject))
 		{
-			PyErr_Format(PyExc_TypeError, "set FIXED_DICT(%s) is error! at key: %s, keyNames=[%s].", 
-				this->aliasName(), iter->first.c_str(), getKeyNames().c_str());
+			PyErr_Format(PyExc_TypeError, 
+				"set FIXED_DICT(%s) is error! at key: %s, keyNames=[%s].", 
+				this->aliasName(), iter->first.c_str(), 
+				getKeyNames().c_str());
+			
 			PyErr_PrintEx(0);
 			return false;
 		}
@@ -1380,7 +1410,9 @@ void FixedDictType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
 	for(; iter != keyTypes_.end(); iter++)
 	{
-		PyObject* pyObject = PyDict_GetItemString(pydict, const_cast<char*>(iter->first.c_str()));
+		PyObject* pyObject = 
+			PyDict_GetItemString(pydict, const_cast<char*>(iter->first.c_str()));
+		
 		KBE_ASSERT(pyObject != NULL);
 		iter->second->addToStream(mstream, pyObject);
 	}

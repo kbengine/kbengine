@@ -47,7 +47,9 @@ class RemoteEntityMethod : public script::ScriptObject
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(RemoteEntityMethod, script::ScriptObject)	
 public:	
-	RemoteEntityMethod(MethodDescription* methodDescription, EntityMailboxAbstract* mailbox);
+	RemoteEntityMethod(MethodDescription* methodDescription, 
+						EntityMailboxAbstract* mailbox);
+	
 	virtual ~RemoteEntityMethod();
 
 	const char* getName(void)const
@@ -60,7 +62,8 @@ public:
 		return methodDescription_; 
 	}
 
-	static PyObject* tp_call(PyObject* self, PyObject* args, PyObject* kwds);
+	static PyObject* tp_call(PyObject* self, 
+			PyObject* args, PyObject* kwds);
 
 	EntityMailboxAbstract* getMailbox(void)const 
 	{

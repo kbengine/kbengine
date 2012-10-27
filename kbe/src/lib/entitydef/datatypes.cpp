@@ -110,7 +110,9 @@ bool DataTypes::loadAlias(std::string& file)
 				}
 				else
 				{
-					ERROR_MSG("DataTypes::loadAlias:parse FIXED_DICT [%s] is error!\n", aliasName.c_str());
+					ERROR_MSG("DataTypes::loadAlias:parse FIXED_DICT [%s] is error!\n", 
+						aliasName.c_str());
+					
 					delete fixedDict;
 					return false;
 				}
@@ -125,7 +127,9 @@ bool DataTypes::loadAlias(std::string& file)
 				}
 				else
 				{
-					ERROR_MSG("DataTypes::loadAlias:parse ARRAY [%s] is error!\n", aliasName.c_str());
+					ERROR_MSG("DataTypes::loadAlias:parse ARRAY [%s] is error!\n", 
+						aliasName.c_str());
+					
 					delete fixedArray;
 					return false;
 				}
@@ -135,7 +139,9 @@ bool DataTypes::loadAlias(std::string& file)
 				DataType* dataType = getDataType(type);
 				if(dataType == NULL)
 				{
-					ERROR_MSG("DataTypes::loadAlias:can't fount type %s by alias[%s].\n", type.c_str(), aliasName.c_str());
+					ERROR_MSG("DataTypes::loadAlias:can't fount type %s by alias[%s].\n", 
+						type.c_str(), aliasName.c_str());
+					
 					return false;
 				}
 
