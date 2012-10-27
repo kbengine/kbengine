@@ -45,8 +45,17 @@ class RefCountable;
 class PropertyDescription : public RefCountable
 {
 public:	
-	PropertyDescription(ENTITY_PROPERTY_UID utype, std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
-		DataType* dataType, bool isIdentifier, uint32 databaseLength, std::string defaultStr, uint8 detailLevel);
+	PropertyDescription(ENTITY_PROPERTY_UID utype, 
+		std::string dataTypeName, 
+		std::string name, 
+		uint32 flags, 
+		bool isPersistent, 
+		DataType* dataType, 
+		bool isIdentifier, 
+		uint32 databaseLength, 
+		std::string defaultStr, 
+		uint8 detailLevel);
+
 	virtual ~PropertyDescription();
 	
 	/** 获取这个属性的detailLevel */
@@ -84,9 +93,16 @@ public:
 	static uint32 getDescriptionCount(void){ return propertyDescriptionCount_; }
 	
 	/** 根据类型产生一个描述实例 */
-	static PropertyDescription* createDescription(ENTITY_PROPERTY_UID utype, std::string& dataTypeName, std::string& name,
-		uint32 flags, bool isPersistent, DataType* dataType, bool isIdentifier, uint32 databaseLength,
-		std::string& defaultStr, uint8 detailLevel);
+	static PropertyDescription* createDescription(ENTITY_PROPERTY_UID utype, 
+		std::string& dataTypeName, 
+		std::string& name,
+		uint32 flags, 
+		bool isPersistent, 
+		DataType* dataType, 
+		bool isIdentifier, 
+		uint32 databaseLength,
+		std::string& defaultStr, 
+		uint8 detailLevel);
 	
 	/** 脚本请求设置这个属性的值 */
 	virtual int onSetValue(PyObject* parentObj, PyObject* value);	
@@ -108,8 +124,17 @@ class FixedDictDescription : public PropertyDescription
 {
 protected:	
 public:	
-	FixedDictDescription(ENTITY_PROPERTY_UID utype, std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
-		DataType* dataType, bool isIdentifier, uint32 databaseLength, std::string defaultStr, uint8 detailLevel);
+	FixedDictDescription(ENTITY_PROPERTY_UID utype, 
+		std::string dataTypeName,
+		std::string name, 
+		uint32 flags, 
+		bool isPersistent, 
+		DataType* dataType, 
+		bool isIdentifier, 
+		uint32 databaseLength, 
+		std::string defaultStr, 
+		uint8 detailLevel);
+
 	virtual ~FixedDictDescription();
 	
 	/** 脚本请求设置这个属性的值 */
@@ -120,8 +145,17 @@ class ArrayDescription : public PropertyDescription
 {
 protected:	
 public:	
-	ArrayDescription(ENTITY_PROPERTY_UID utype, std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
-		DataType* dataType, bool isIdentifier, uint32 databaseLength, std::string defaultStr, uint8 detailLevel);
+	ArrayDescription(ENTITY_PROPERTY_UID utype, 
+		std::string dataTypeName, 
+		std::string name, 
+		uint32 flags, 
+		bool isPersistent, 
+		DataType* dataType, 
+		bool isIdentifier,
+		uint32 databaseLength, 
+		std::string defaultStr, 
+		uint8 detailLevel);
+
 	virtual ~ArrayDescription();
 	
 	/** 脚本请求设置这个属性的值 */
@@ -131,8 +165,18 @@ public:
 class VectorDescription : public PropertyDescription
 {
 public:	
-	VectorDescription(ENTITY_PROPERTY_UID utype, std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
-		DataType* dataType, bool isIdentifier, uint32 databaseLength, std::string defaultStr, uint8 detailLevel, uint8 elemCount);
+	VectorDescription(ENTITY_PROPERTY_UID utype, 
+		std::string dataTypeName, 
+		std::string name, 
+		uint32 flags, 
+		bool isPersistent, 
+		DataType* dataType, 
+		bool isIdentifier, 
+		uint32 databaseLength, 
+		std::string defaultStr, 
+		uint8 detailLevel, 
+		uint8 elemCount);
+
 	virtual ~VectorDescription();
 	
 	/** 脚本请求设置这个属性的值 */

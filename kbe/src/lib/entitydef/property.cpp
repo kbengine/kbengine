@@ -30,8 +30,15 @@ namespace KBEngine{
 uint32 PropertyDescription::propertyDescriptionCount_ = 0;
 
 //-------------------------------------------------------------------------------------
-PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype, std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
-	DataType* dataType, bool isIdentifier, uint32 databaseLength, std::string defaultStr, uint8 detailLevel):
+PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype, 
+										 std::string dataTypeName, 
+										 std::string name, uint32 flags, 
+										 bool isPersistent, 
+										DataType* dataType, 
+										bool isIdentifier, 
+										uint32 databaseLength, 
+										std::string defaultStr, 
+										uint8 detailLevel):
 	name_(name),
 	dataTypeName_(dataTypeName),
 	flags_(flags),
@@ -70,42 +77,61 @@ PropertyDescription::~PropertyDescription()
 }
 
 //-------------------------------------------------------------------------------------
-PropertyDescription* PropertyDescription::createDescription(ENTITY_PROPERTY_UID utype, std::string& dataTypeName, 
-	std::string& name, uint32 flags, bool isPersistent, DataType* dataType, bool isIdentifier, 
-	uint32 databaseLength, std::string& defaultStr, uint8 detailLevel)
+PropertyDescription* PropertyDescription::createDescription(ENTITY_PROPERTY_UID utype, 
+															std::string& dataTypeName, 
+															std::string& name, 
+															uint32 flags, 
+															bool isPersistent, 
+															DataType* dataType, 
+															bool isIdentifier, 
+															uint32 databaseLength, 
+															std::string& defaultStr, 
+															uint8 detailLevel)
 {
 	PropertyDescription* propertyDescription = NULL;
-	if(dataTypeName == "FIXED_DICT" || dataType->getName() == "FIXED_DICT")
+	if(dataTypeName == "FIXED_DICT" || 
+		dataType->getName() == "FIXED_DICT")
 	{
 		propertyDescription = new FixedDictDescription(utype, dataTypeName, name, flags, isPersistent, 
-														dataType, isIdentifier, databaseLength, defaultStr, detailLevel);
+														dataType, isIdentifier, databaseLength, 
+														defaultStr, detailLevel);
 	}
-	else if(dataTypeName == "ARRAY" || dataType->getName() == "ARRAY")
+	else if(dataTypeName == "ARRAY" ||
+		dataType->getName() == "ARRAY")
 	{
 		propertyDescription = new ArrayDescription(utype, dataTypeName, name, flags, isPersistent, 
-														dataType, isIdentifier, databaseLength, defaultStr, detailLevel);
+														dataType, isIdentifier, databaseLength, 
+														defaultStr, detailLevel);
 		
 	}
-	else if(dataTypeName == "VECTOR2" || dataType->getName() == "VECTOR2")
+	else if(dataTypeName == "VECTOR2" || 
+		dataType->getName() == "VECTOR2")
 	{
 		propertyDescription = new VectorDescription(utype, dataTypeName, name, flags, isPersistent, 
-														dataType, isIdentifier, databaseLength, defaultStr, detailLevel, 2);
+														dataType, isIdentifier, databaseLength, 
+														defaultStr, detailLevel, 2);
 	}
-	else if(dataTypeName == "VECTOR3" || dataType->getName() == "VECTOR3")
+	else if(dataTypeName == "VECTOR3" || 
+		dataType->getName() == "VECTOR3")
 	{
 		propertyDescription = new VectorDescription(utype, dataTypeName, name, flags, isPersistent, 
-														dataType, isIdentifier, databaseLength, defaultStr, detailLevel, 3);
+														dataType, isIdentifier, databaseLength, 
+														defaultStr, detailLevel, 3);
 	}
-	else if(dataTypeName == "VECTOR4" || dataType->getName() == "VECTOR4")
+	else if(dataTypeName == "VECTOR4" || 
+		dataType->getName() == "VECTOR4")
 	{
 		propertyDescription = new VectorDescription(utype, dataTypeName, name, flags, isPersistent, 
-														dataType, isIdentifier, databaseLength, defaultStr, detailLevel, 4);
+														dataType, isIdentifier, databaseLength, 
+														defaultStr, detailLevel, 4);
 	}
 	else
 	{
 		propertyDescription = new PropertyDescription(utype, dataTypeName, name, flags, isPersistent, 
-														dataType, isIdentifier, databaseLength, defaultStr, detailLevel);
+														dataType, isIdentifier, databaseLength, 
+														defaultStr, detailLevel);
 	}
+
 	return propertyDescription;
 }
 
@@ -130,9 +156,18 @@ int PropertyDescription::onSetValue(PyObject* parentObj, PyObject* value)
 }
 
 //-------------------------------------------------------------------------------------
-FixedDictDescription::FixedDictDescription(ENTITY_PROPERTY_UID utype, std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
-	DataType* dataType, bool isIdentifier, uint32 databaseLength, std::string defaultStr, uint8 detailLevel):
-	PropertyDescription(utype, dataTypeName, name, flags, isPersistent, dataType, isIdentifier, databaseLength, defaultStr, detailLevel)
+FixedDictDescription::FixedDictDescription(ENTITY_PROPERTY_UID utype, 
+										   std::string dataTypeName,
+										   std::string name, 
+										   uint32 flags, 
+										   bool isPersistent, 
+											DataType* dataType, 
+											bool isIdentifier, 
+											uint32 databaseLength, 
+											std::string defaultStr, 
+											uint8 detailLevel):
+	PropertyDescription(utype, dataTypeName, name, flags, isPersistent, 
+		dataType, isIdentifier, databaseLength, defaultStr, detailLevel)
 {
 }
 
@@ -154,9 +189,18 @@ int FixedDictDescription::onSetValue(PyObject* parentObj, PyObject* value)
 }
 
 //-------------------------------------------------------------------------------------
-ArrayDescription::ArrayDescription(ENTITY_PROPERTY_UID utype, std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
-	DataType* dataType, bool isIdentifier, uint32 databaseLength, std::string defaultStr, uint8 detailLevel):
-	PropertyDescription(utype, dataTypeName, name, flags, isPersistent, dataType, isIdentifier, databaseLength, defaultStr, detailLevel)
+ArrayDescription::ArrayDescription(ENTITY_PROPERTY_UID utype, 
+										   std::string dataTypeName,
+										   std::string name, 
+										   uint32 flags, 
+										   bool isPersistent, 
+											DataType* dataType, 
+											bool isIdentifier, 
+											uint32 databaseLength, 
+											std::string defaultStr, 
+											uint8 detailLevel):
+	PropertyDescription(utype, dataTypeName, name, flags, isPersistent, 
+		dataType, isIdentifier, databaseLength, defaultStr, detailLevel)
 {
 }
 
@@ -178,9 +222,19 @@ int ArrayDescription::onSetValue(PyObject* parentObj, PyObject* value)
 }
 
 //-------------------------------------------------------------------------------------
-VectorDescription::VectorDescription(ENTITY_PROPERTY_UID utype, std::string dataTypeName, std::string name, uint32 flags, bool isPersistent, 
-	DataType* dataType, bool isIdentifier, uint32 databaseLength, std::string defaultStr, uint8 detailLevel, uint8 elemCount):
-	PropertyDescription(utype, dataTypeName, name, flags, isPersistent, dataType, isIdentifier, databaseLength, defaultStr, detailLevel),
+VectorDescription::VectorDescription(ENTITY_PROPERTY_UID utype, 
+									 std::string dataTypeName, 
+									 std::string name, 
+									 uint32 flags, 
+									 bool isPersistent, 
+									DataType* dataType, 
+									bool isIdentifier, 
+									uint32 databaseLength, 
+									std::string defaultStr, 
+									uint8 detailLevel, 
+									uint8 elemCount):
+	PropertyDescription(utype, dataTypeName, name, flags, isPersistent, 
+		dataType, isIdentifier, databaseLength, defaultStr, detailLevel),
 	elemCount_(elemCount)
 {
 }

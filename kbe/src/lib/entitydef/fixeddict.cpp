@@ -105,7 +105,8 @@ void FixedDict::initialize(std::string strDictInitData)
 		}
 		else
 		{
-			ERROR_MSG("FixedDict::initialize: is error! strDictInitData=%s.\n", strDictInitData.c_str());
+			ERROR_MSG("FixedDict::initialize: is error! strDictInitData=%s.\n", 
+				strDictInitData.c_str());
 		}
 	}
 }
@@ -180,7 +181,9 @@ PyObject* FixedDict::__unpickle__(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void FixedDict::onInstallScript(PyObject* mod)
 {
-	static PyMethodDef __unpickle__Method = {"FixedDict", (PyCFunction)&FixedDict::__unpickle__, METH_VARARGS, 0};
+	static PyMethodDef __unpickle__Method = 
+		{"FixedDict", (PyCFunction)&FixedDict::__unpickle__, METH_VARARGS, 0};
+
 	PyObject* pyFunc = PyCFunction_New(&__unpickle__Method, NULL);
 	script::Pickler::registerUnpickleFunc(pyFunc, "FixedDict");
 	Py_DECREF(pyFunc);
@@ -217,8 +220,11 @@ int FixedDict::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 		return 0;
 	}
 
-	PyObject* val1 = static_cast<FixedDictType*>(fixedDict->getDataType())->createNewItemFromObj(dictKeyName, value);
+	PyObject* val1 = 
+		static_cast<FixedDictType*>(fixedDict->getDataType())->createNewItemFromObj(dictKeyName, value);
+
 	int ret = PyDict_SetItem(fixedDict->pyDict_, key, val1);
+
 	Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
 
 	free(dictKeyName);
@@ -286,7 +292,9 @@ PyObject* FixedDict::update(PyObject* args)
 		PyObject* val = PyDict_GetItemString(args, iter->first.c_str());
 		if(val)
 		{
-			PyObject* val1 = static_cast<FixedDictType*>(getDataType())->createNewItemFromObj(iter->first.c_str(), val);
+			PyObject* val1 = 
+				static_cast<FixedDictType*>(getDataType())->createNewItemFromObj(iter->first.c_str(), val);
+
 			PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
 
 			if(val1 != val)

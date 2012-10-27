@@ -48,9 +48,15 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(EntityMailbox, 0, 0, 0, 0, 0)		
 
 //-------------------------------------------------------------------------------------
-EntityMailbox::EntityMailbox(ScriptDefModule* scriptModule, const Mercury::Address* pAddr, COMPONENT_ID componentID, 
+EntityMailbox::EntityMailbox(ScriptDefModule* scriptModule, 
+							 const Mercury::Address* pAddr, 
+							 COMPONENT_ID componentID, 
 ENTITY_ID eid, ENTITY_MAILBOX_TYPE type):
-EntityMailboxAbstract(getScriptType(), pAddr, componentID, eid, scriptModule->getUType(), type),
+EntityMailboxAbstract(getScriptType(),
+					  pAddr, 
+					  componentID, 
+					  eid, scriptModule->getUType(), 
+					  type),
 scriptModule_(scriptModule)
 {
 }
@@ -136,7 +142,8 @@ PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 		if(mbtype != -1)
 		{
 			free(ccattr);
-			return new EntityMailbox(scriptModule_, &addr_, componentID_, id_, (ENTITY_MAILBOX_TYPE)mbtype);
+			return new EntityMailbox(scriptModule_, &addr_, componentID_, 
+				id_, (ENTITY_MAILBOX_TYPE)mbtype);
 		}
 	}
 	
@@ -166,7 +173,8 @@ void EntityMailbox::c_str(char* s, size_t size)
 	
 	Mercury::Channel* pChannel = getChannel();
 
-	kbe_snprintf(s, size, "%s mailbox id:%d, utype:%u, component=%s[%"PRIu64"], addr: %s.", mailboxName, id_,  utype_,
+	kbe_snprintf(s, size, "%s mailbox id:%d, utype:%u, component=%s[%"PRIu64"], addr: %s.", 
+		mailboxName, id_,  utype_,
 		COMPONENT_NAME_EX(ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[type_]), 
 		componentID_, (pChannel) ? pChannel->addr().c_str() : "None");
 }
@@ -222,7 +230,9 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 	}
 	else
 	{
-		Components::ComponentInfos* pcomponent = Components::getSingleton().findComponent(componentType, componentID);
+		Components::ComponentInfos* pcomponent = 
+			Components::getSingleton().findComponent(componentType, componentID);
+
 		if(pcomponent != NULL)
 		{
 			// pChannel = pcomponent->pChannel;
@@ -230,8 +240,9 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 		else
 		{
 			// 在服务器起来的时候可能会出现找不到， 因为组件先连接了dbmgr， dbmgr就开始初始化了
-			//ERROR_MSG("EntityMailbox::__unpickle__: not found %s%ld!\n", COMPONENT_NAME_EX(componentType), componentID);
-			//S_Return;
+			// ERROR_MSG("EntityMailbox::__unpickle__: not found %s%ld!\n", 
+			// COMPONENT_NAME_EX(componentType), componentID);
+			// S_Return;
 		}
 	}
 #else
@@ -249,9 +260,12 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void EntityMailbox::onInstallScript(PyObject* mod)
 {
-	static PyMethodDef __unpickle__Method = {"Mailbox", (PyCFunction)&EntityMailbox::__unpickle__, METH_VARARGS, 0};
+	static PyMethodDef __unpickle__Method = 
+	{"Mailbox", (PyCFunction)&EntityMailbox::__unpickle__, METH_VARARGS, 0};
+
 	PyObject* pyFunc = PyCFunction_New(&__unpickle__Method, NULL);
 	script::Pickler::registerUnpickleFunc(pyFunc, "Mailbox");
+
 	Py_DECREF(pyFunc);
 }
 

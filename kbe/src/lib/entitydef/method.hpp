@@ -45,7 +45,10 @@ namespace KBEngine{
 class MethodDescription
 {
 public:	
-	MethodDescription(ENTITY_METHOD_UID utype, std::string name, bool isExposed = false);
+	MethodDescription(ENTITY_METHOD_UID utype, 
+		std::string name, 
+		bool isExposed = false);
+
 	virtual ~MethodDescription();
 	
 	const char* getName(void)const{ return name_.c_str(); };

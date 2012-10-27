@@ -40,32 +40,53 @@ public:
 	FixedDict(DataType* dataType, std::string& strDictInitData);
 	FixedDict(DataType* dataType, PyObject* pyDictInitData);
 	FixedDict(DataType* dataType, MemoryStream* streamInitData);
+
 	virtual ~FixedDict();
 
 	DataType* getDataType(void){ return _dataType; }
 
-	/** 支持pickler 方法 */
+	/** 
+		支持pickler 方法 
+	*/
 	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol);
-	/** unpickle方法 */
+
+	/** 
+		unpickle方法 
+	*/
 	static PyObject* __unpickle__(PyObject* self, PyObject* args);
 	
-	/** 脚本被安装时被调用 */
+	/** 
+		脚本被安装时被调用 
+	*/
 	static void onInstallScript(PyObject* mod);
 	
-	/** map操作函数相关 */
+	/** 
+		map操作函数相关 
+	*/
 	static PyObject* mp_subscript(PyObject* self, PyObject* key);
-	static int mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value);
+
+	static int mp_ass_subscript(PyObject* self, PyObject* key, 
+		PyObject* value);
+
 	static int mp_length(PyObject* self);
 
-	/** 初始化固定字典*/
+	/** 
+		初始化固定字典
+	*/
 	void initialize(std::string strDictInitData);
 	void initialize(PyObject* pyDictInitData);
 	void initialize(MemoryStream* streamInitData);
 
-	/** 检查数据改变 */
-	bool checkDataChanged(const char* keyName, PyObject* value, bool isDelete = false);
+	/** 
+		检查数据改变 
+	*/
+	bool checkDataChanged(const char* keyName, 
+		PyObject* value,
+		bool isDelete = false);
 	
-	/** 更新字典数据到自己的数据中 */
+	/**
+		更新字典数据到自己的数据中 
+	*/
 	PyObject* update(PyObject* args);
 protected:
 	FixedDictType* _dataType;

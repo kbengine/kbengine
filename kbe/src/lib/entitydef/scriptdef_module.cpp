@@ -158,7 +158,8 @@ void ScriptDefModule::autoMatchCompOwn()
 
 //-------------------------------------------------------------------------------------
 bool ScriptDefModule::addPropertyDescription(const char* attrName, 
-										  PropertyDescription* propertyDescription, COMPONENT_TYPE componentType)
+										  PropertyDescription* propertyDescription, 
+										  COMPONENT_TYPE componentType)
 {
 	PropertyDescription* f_propertyDescription = NULL;
 	PROPERTYDESCRIPTION_MAP*  propertyDescr;
@@ -194,7 +195,9 @@ bool ScriptDefModule::addPropertyDescription(const char* attrName,
 
 	if(f_propertyDescription)
 	{
-		ERROR_MSG("ScriptDefModule::addPropertyDescription: [%s] is exist! componentType=%d.\n", attrName, componentType);
+		ERROR_MSG("ScriptDefModule::addPropertyDescription: [%s] is exist! componentType=%d.\n", 
+			attrName, componentType);
+
 		return false;
 	}
 
@@ -324,7 +327,8 @@ PropertyDescription* ScriptDefModule::findPersistentPropertyDescription(ENTITY_P
 }
 
 //-------------------------------------------------------------------------------------
-PropertyDescription* ScriptDefModule::findPropertyDescription(const char* attrName, COMPONENT_TYPE componentType)
+PropertyDescription* ScriptDefModule::findPropertyDescription(const char* attrName, 
+															  COMPONENT_TYPE componentType)
 {
 	switch(componentType)
 	{
@@ -343,7 +347,8 @@ PropertyDescription* ScriptDefModule::findPropertyDescription(const char* attrNa
 }
 
 //-------------------------------------------------------------------------------------
-PropertyDescription* ScriptDefModule::findPropertyDescription(ENTITY_PROPERTY_UID utype, COMPONENT_TYPE componentType)
+PropertyDescription* ScriptDefModule::findPropertyDescription(ENTITY_PROPERTY_UID utype, 
+															  COMPONENT_TYPE componentType)
 {
 	switch(componentType)
 	{
@@ -362,7 +367,8 @@ PropertyDescription* ScriptDefModule::findPropertyDescription(ENTITY_PROPERTY_UI
 }
 
 //-------------------------------------------------------------------------------------
-MethodDescription* ScriptDefModule::findMethodDescription(const char* attrName, COMPONENT_TYPE componentType)
+MethodDescription* ScriptDefModule::findMethodDescription(const char* attrName, 
+														  COMPONENT_TYPE componentType)
 {
 	switch(componentType)
 	{
@@ -381,7 +387,8 @@ MethodDescription* ScriptDefModule::findMethodDescription(const char* attrName, 
 }
 
 //-------------------------------------------------------------------------------------
-MethodDescription* ScriptDefModule::findMethodDescription(ENTITY_METHOD_UID utype, COMPONENT_TYPE componentType)
+MethodDescription* ScriptDefModule::findMethodDescription(ENTITY_METHOD_UID utype, 
+														  COMPONENT_TYPE componentType)
 {
 	switch(componentType)
 	{
@@ -424,7 +431,8 @@ MethodDescription* ScriptDefModule::findCellMethodDescription(ENTITY_METHOD_UID 
 }
 
 //-------------------------------------------------------------------------------------
-bool ScriptDefModule::addCellMethodDescription(const char* attrName, MethodDescription* methodDescription)
+bool ScriptDefModule::addCellMethodDescription(const char* attrName, 
+											   MethodDescription* methodDescription)
 {
 	MethodDescription* f_methodDescription = findCellMethodDescription(attrName);
 	if(f_methodDescription)
@@ -464,7 +472,8 @@ MethodDescription* ScriptDefModule::findBaseMethodDescription(ENTITY_METHOD_UID 
 }
 
 //-------------------------------------------------------------------------------------
-bool ScriptDefModule::addBaseMethodDescription(const char* attrName, MethodDescription* methodDescription)
+bool ScriptDefModule::addBaseMethodDescription(const char* attrName, 
+											   MethodDescription* methodDescription)
 {
 	MethodDescription* f_methodDescription = findBaseMethodDescription(attrName);
 	if(f_methodDescription)
@@ -504,7 +513,8 @@ MethodDescription* ScriptDefModule::findClientMethodDescription(ENTITY_METHOD_UI
 }
 
 //-------------------------------------------------------------------------------------
-bool ScriptDefModule::addClientMethodDescription(const char* attrName, MethodDescription* methodDescription)
+bool ScriptDefModule::addClientMethodDescription(const char* attrName, 
+												 MethodDescription* methodDescription)
 {
 	MethodDescription* f_methodDescription = findClientMethodDescription(attrName);
 	if(f_methodDescription)

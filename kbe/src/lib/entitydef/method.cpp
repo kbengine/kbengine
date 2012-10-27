@@ -27,7 +27,8 @@ uint32	MethodDescription::methodDescriptionCount_ = 0;
 	
 //-------------------------------------------------------------------------------------
 MethodDescription::MethodDescription(ENTITY_METHOD_UID utype, 
-									 std::string name, bool isExposed):
+									 std::string name, 
+									 bool isExposed):
 name_(name),
 utype_(utype),
 argTypes_(),
@@ -65,7 +66,9 @@ bool MethodDescription::checkArgs(PyObject* args)
 {
 	if (args == NULL || !PyTuple_Check(args))
 	{
-		PyErr_Format(PyExc_SystemError, "Method::checkArgs: method[%s] args is not a tuple.\n", getName());
+		PyErr_Format(PyExc_SystemError, "Method::checkArgs: method[%s] args is not a tuple.\n", 
+			getName());
+
 		PyErr_PrintEx(0);
 		return false;
 	}
@@ -202,7 +205,8 @@ PyObject* MethodDescription::call(PyObject* func, PyObject* args)
 	PyObject* pyResult = NULL;
 	if (!PyCallable_Check(func))
 	{
-		PyErr_Format(PyExc_TypeError, "MethodDescription::call: Script[%s] call attempted on a error object!", getName());
+		PyErr_Format(PyExc_TypeError, "MethodDescription::call: Script[%s] call attempted on a error object!", 
+			getName());
 	}
 	else
 	{

@@ -50,29 +50,74 @@ class EntityDef
 public:
 	typedef std::vector<ScriptDefModulePtr> SCRIPT_MODULES;	
 	typedef std::map<std::string, ENTITY_SCRIPT_UID> SCRIPT_MODULE_UID_MAP;	
-public:
+
 	EntityDef();
 	~EntityDef();
 	
 	/** 
 		初始化
 	*/
-	static bool initialize(const std::string entitiesPath, std::vector<PyTypeObject*>& scriptBaseTypes, COMPONENT_TYPE loadComponentType);
+	static bool initialize(const std::string entitiesPath, 
+		std::vector<PyTypeObject*>& scriptBaseTypes, 
+		COMPONENT_TYPE loadComponentType);
+
 	static bool finish(void);
 
 	/** 
 		加载相关描述
 	*/
-	static bool loadAllScriptModule(std::string entitiesPath, std::vector<PyTypeObject*>& scriptBaseTypes);
-	static bool loadAllDefDescription(std::string& moduleName, XmlPlus* defxml, TiXmlNode* defNode, ScriptDefModule* scriptModule);
-	static bool loadDefPropertys(std::string& moduleName, XmlPlus* xml, TiXmlNode* defPropertyNode, ScriptDefModule* scriptModule);
-	static bool loadDefCellMethods(std::string& moduleName, XmlPlus* xml, TiXmlNode* defMethodNode, ScriptDefModule* scriptModule);
-	static bool loadDefBaseMethods(std::string& moduleName, XmlPlus* xml, TiXmlNode* defMethodNode, ScriptDefModule* scriptModule);
-	static bool loadDefClientMethods(std::string& moduleName, XmlPlus* xml, TiXmlNode* defMethodNode, ScriptDefModule* scriptModule);
-	static bool loadInterfaces(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, TiXmlNode* defNode, ScriptDefModule* scriptModule);
-	static bool loadParentClass(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, TiXmlNode* defNode, ScriptDefModule* scriptModule);
-	static bool loadDefInfo(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, TiXmlNode* defNode, ScriptDefModule* scriptModule);
-	static bool loadDetailLevelInfo(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, TiXmlNode* defNode, ScriptDefModule* scriptModule);
+	static bool loadAllScriptModule(std::string entitiesPath, 
+		std::vector<PyTypeObject*>& scriptBaseTypes);
+
+	static bool loadAllDefDescription(std::string& moduleName, 
+		XmlPlus* defxml, 
+		TiXmlNode* defNode, 
+		ScriptDefModule* scriptModule);
+
+	static bool loadDefPropertys(std::string& moduleName, 
+		XmlPlus* xml, 
+		TiXmlNode* defPropertyNode, 
+		ScriptDefModule* scriptModule);
+
+	static bool loadDefCellMethods(std::string& moduleName, 
+		XmlPlus* xml, 
+		TiXmlNode* defMethodNode, 
+		ScriptDefModule* scriptModule);
+
+	static bool loadDefBaseMethods(std::string& moduleName, 
+		XmlPlus* xml, 
+		TiXmlNode* defMethodNode, 
+		ScriptDefModule* scriptModule);
+
+	static bool loadDefClientMethods(std::string& moduleName, 
+		XmlPlus* xml, 
+		TiXmlNode* defMethodNode, 
+		ScriptDefModule* scriptModule);
+
+	static bool loadInterfaces(std::string& defFilePath, 
+		std::string& moduleName, 
+		XmlPlus* defxml, 
+		TiXmlNode* defNode, 
+		ScriptDefModule* scriptModule);
+
+	static bool loadParentClass(std::string& defFilePath, 
+		std::string& moduleName, 
+		XmlPlus* defxml, 
+		TiXmlNode* defNode, 
+		ScriptDefModule* scriptModule);
+
+	static bool loadDefInfo(std::string& defFilePath, 
+		std::string& moduleName, 
+		XmlPlus* defxml, 
+		TiXmlNode* defNode, 
+		ScriptDefModule* scriptModule);
+
+	static bool loadDetailLevelInfo(std::string& defFilePath, 
+		std::string& moduleName, 
+		XmlPlus* defxml, 
+		TiXmlNode* defNode, 
+		ScriptDefModule* scriptModule);
+
 	
 	/** 
 		是否加载这个脚本模块 
@@ -87,7 +132,8 @@ public:
 	/** 
 		检查脚本模块中被定义的方法是否存在 
 	*/
-	static bool checkDefMethod(ScriptDefModule* scriptModule, PyObject* moduleObj, std::string& moduleName);
+	static bool checkDefMethod(ScriptDefModule* scriptModule, PyObject* moduleObj, 
+		std::string& moduleName);
 	
 	/** 
 		通过标记来寻找到对应的脚本模块对象 
@@ -98,10 +144,14 @@ public:
 	static bool installScript(PyObject* mod);
 	static bool uninstallScript();
 
-	static const SCRIPT_MODULES& getScriptModules() { return __scriptModules; }
+	static const SCRIPT_MODULES& getScriptModules(){ 
+		return EntityDef::__scriptModules; 
+	}
 private:
 	static SCRIPT_MODULES __scriptModules;										// 所有的扩展脚本模块都存储在这里
+
 	static SCRIPT_MODULE_UID_MAP __scriptTypeMappingUType;						// 脚本类别映射utype
+
 	static COMPONENT_TYPE __loadComponentType;									// 所需关系的组件类别的相关数据		
 };
 
