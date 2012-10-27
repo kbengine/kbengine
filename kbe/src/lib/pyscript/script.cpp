@@ -67,7 +67,9 @@ int Script::run_simpleString(std::string command, std::string* retBufferPtr)
 		pyStdouterrHook_->setHookBuffer(retBufferPtr);
 		PyRun_SimpleString(command.c_str());
 		SCRIPT_ERROR_CHECK();														// 检查是否有错误产生
+		
 		pyStdouterrHook_->uninstall();
+		
 		return 0;
 	}
 
@@ -77,7 +79,8 @@ int Script::run_simpleString(std::string command, std::string* retBufferPtr)
 }
 
 //-------------------------------------------------------------------------------------
-bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths, const char* moduleName, COMPONENT_TYPE componentType)
+bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths, 
+	const char* moduleName, COMPONENT_TYPE componentType)
 {
 	std::wstring pySysPaths = SCRIPT_PATH;
 	wchar_t* pwpySysResPath = char2wchar(const_cast<char*>(Resmgr::getPySysResPath().c_str()));
@@ -103,6 +106,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths, const c
 	char* tmpchar = wchar2char(const_cast<wchar_t*>(pyPaths.c_str()));
 	DEBUG_MSG("Script::install: paths=%s.\n", tmpchar);
 	free(tmpchar);
+	
 #endif
 	// Initialise python
 	// Py_VerboseFlag = 2;

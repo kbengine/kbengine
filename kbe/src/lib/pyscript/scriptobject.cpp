@@ -53,7 +53,8 @@ ScriptObject::~ScriptObject()
 	assert(this->ob_refcnt == 0);
 }
 
-PyObject* ScriptObject::tp_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
+PyObject* ScriptObject::tp_new(PyTypeObject* type, 
+	PyObject* args, PyObject* kwds)
 {
 	return type->tp_alloc(type, 0); 
 };
@@ -77,7 +78,8 @@ int ScriptObject::onScriptDelAttribute(PyObject* attr)
 }
 
 //-------------------------------------------------------------------------------------
-int ScriptObject::onScriptInit(PyObject* self, PyObject* args, PyObject* kwds)
+int ScriptObject::onScriptInit(PyObject* self, 
+	PyObject* args, PyObject* kwds)
 {
 	return 0;
 }
@@ -86,7 +88,9 @@ int ScriptObject::onScriptInit(PyObject* self, PyObject* args, PyObject* kwds)
 PyObject* ScriptObject::tp_repr()
 {
 	if(g_debugEntity)
-		return PyUnicode_FromFormat("%s object at %p, refc=%u.", this->getScriptName(), this, (uint32)static_cast<PyObject*>(this)->ob_refcnt);
+		return PyUnicode_FromFormat("%s object at %p, refc=%u.", 
+			this->getScriptName(), this, (uint32)static_cast<PyObject*>(this)->ob_refcnt);
+	
 	return PyUnicode_FromFormat("%s object at %p.", this->getScriptName(), this);
 }
 
@@ -94,7 +98,9 @@ PyObject* ScriptObject::tp_repr()
 PyObject* ScriptObject::tp_str()
 {
 	if(g_debugEntity)
-		return PyUnicode_FromFormat("%s object at %p, refc=%u.", this->getScriptName(), this, (uint32)static_cast<PyObject*>(this)->ob_refcnt);
+		return PyUnicode_FromFormat("%s object at %p, refc=%u.", 
+				this->getScriptName(), this, (uint32)static_cast<PyObject*>(this)->ob_refcnt);
+	
 	return PyUnicode_FromFormat("%s object at %p.", this->getScriptName(), this);
 }
 
