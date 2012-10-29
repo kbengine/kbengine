@@ -119,7 +119,7 @@ bool EntityDef::initialize(const std::string entitiesPath,
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadDefInfo(std::string& defFilePath, std::string& moduleName, 
+bool EntityDef::loadDefInfo(const std::string& defFilePath, const std::string& moduleName, 
 							XmlPlus* defxml, TiXmlNode* defNode, ScriptDefModule* scriptModule)
 {
 	if(!loadAllDefDescription(moduleName, defxml, defNode, scriptModule))
@@ -154,7 +154,7 @@ bool EntityDef::loadDefInfo(std::string& defFilePath, std::string& moduleName,
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadDetailLevelInfo(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, 
+bool EntityDef::loadDetailLevelInfo(const std::string& defFilePath, const std::string& moduleName, XmlPlus* defxml, 
 									TiXmlNode* defNode, ScriptDefModule* scriptModule)
 {
 	TiXmlNode* detailLevelNode = defxml->enterNode(defNode, "DetailLevels");
@@ -205,7 +205,7 @@ bool EntityDef::loadDetailLevelInfo(std::string& defFilePath, std::string& modul
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadInterfaces(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, 
+bool EntityDef::loadInterfaces(const std::string& defFilePath, const std::string& moduleName, XmlPlus* defxml, 
 							   TiXmlNode* defNode, ScriptDefModule* scriptModule)
 {
 	TiXmlNode* implementsNode = defxml->enterNode(defNode, "Implements");
@@ -249,7 +249,7 @@ bool EntityDef::loadInterfaces(std::string& defFilePath, std::string& moduleName
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadParentClass(std::string& defFilePath, std::string& moduleName, XmlPlus* defxml, 
+bool EntityDef::loadParentClass(const std::string& defFilePath, const std::string& moduleName, XmlPlus* defxml, 
 								TiXmlNode* defNode, ScriptDefModule* scriptModule)
 {
 	TiXmlNode* parentClassNode = defxml->enterNode(defNode, "Parent");
@@ -275,7 +275,7 @@ bool EntityDef::loadParentClass(std::string& defFilePath, std::string& moduleNam
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadAllDefDescription(std::string& moduleName, XmlPlus* defxml, TiXmlNode* defNode, ScriptDefModule* scriptModule)
+bool EntityDef::loadAllDefDescription(const std::string& moduleName, XmlPlus* defxml, TiXmlNode* defNode, ScriptDefModule* scriptModule)
 {
 	// ¼ÓÔØÊôÐÔÃèÊö
 	if(!loadDefPropertys(moduleName, defxml, defxml->enterNode(defNode, "Properties"), scriptModule))
@@ -306,7 +306,7 @@ bool EntityDef::loadAllDefDescription(std::string& moduleName, XmlPlus* defxml, 
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadDefPropertys(std::string& moduleName, XmlPlus* xml, TiXmlNode* defPropertyNode, ScriptDefModule* scriptModule)
+bool EntityDef::loadDefPropertys(const std::string& moduleName, XmlPlus* xml, TiXmlNode* defPropertyNode, ScriptDefModule* scriptModule)
 {
 	if(defPropertyNode)
 	{
@@ -469,7 +469,7 @@ bool EntityDef::loadDefPropertys(std::string& moduleName, XmlPlus* xml, TiXmlNod
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadDefCellMethods(std::string& moduleName, XmlPlus* xml, TiXmlNode* defMethodNode, ScriptDefModule* scriptModule)
+bool EntityDef::loadDefCellMethods(const std::string& moduleName, XmlPlus* xml, TiXmlNode* defMethodNode, ScriptDefModule* scriptModule)
 {
 	if(defMethodNode)
 	{
@@ -549,7 +549,8 @@ bool EntityDef::loadDefCellMethods(std::string& moduleName, XmlPlus* xml, TiXmlN
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadDefBaseMethods(std::string& moduleName, XmlPlus* xml, TiXmlNode* defMethodNode, ScriptDefModule* scriptModule)
+bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml, 
+								   TiXmlNode* defMethodNode, ScriptDefModule* scriptModule)
 {
 	if(defMethodNode)
 	{
@@ -584,7 +585,9 @@ bool EntityDef::loadDefBaseMethods(std::string& moduleName, XmlPlus* xml, TiXmlN
 
 						if(dataType == NULL)
 						{
-							ERROR_MSG("EntityDef::loadDefBaseMethods: dataType[%s] not found, in %s!\n", strType.c_str(), name.c_str());
+							ERROR_MSG("EntityDef::loadDefBaseMethods: dataType[%s] not found, in %s!\n", 
+								strType.c_str(), name.c_str());
+
 							return false;
 						}
 						methodDescription->pushArgType(dataType);
@@ -627,7 +630,8 @@ bool EntityDef::loadDefBaseMethods(std::string& moduleName, XmlPlus* xml, TiXmlN
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadDefClientMethods(std::string& moduleName, XmlPlus* xml, TiXmlNode* defMethodNode, ScriptDefModule* scriptModule)
+bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml, 
+									 TiXmlNode* defMethodNode, ScriptDefModule* scriptModule)
 {
 	if(defMethodNode)
 	{
@@ -660,7 +664,9 @@ bool EntityDef::loadDefClientMethods(std::string& moduleName, XmlPlus* xml, TiXm
 
 						if(dataType == NULL)
 						{
-							ERROR_MSG("EntityDef::loadDefClientMethods: dataType[%s] not found, in %s!\n", strType.c_str(), name.c_str());
+							ERROR_MSG("EntityDef::loadDefClientMethods: dataType[%s] not found, in %s!\n", 
+								strType.c_str(), name.c_str());
+
 							return false;
 						}
 						methodDescription->pushArgType(dataType);
@@ -729,7 +735,7 @@ bool EntityDef::isLoadScriptModule(ScriptDefModule* scriptModule)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::checkDefMethod(ScriptDefModule* scriptModule, PyObject* moduleObj, std::string& moduleName)
+bool EntityDef::checkDefMethod(ScriptDefModule* scriptModule, PyObject* moduleObj, const std::string& moduleName)
 {
 	ScriptDefModule::METHODDESCRIPTION_MAP* methodDescrsPtr = NULL;
 	
@@ -851,7 +857,9 @@ bool EntityDef::loadAllScriptModule(std::string entitiesPath, std::vector<PyType
 			
 			if(!valid)
 			{
-				ERROR_MSG("EntityDef::initialize:Class %s is not derived from KBEngine.[%s]\n", moduleName.c_str(), typeNames.c_str());
+				ERROR_MSG("EntityDef::initialize:Class %s is not derived from KBEngine.[%s]\n", 
+					moduleName.c_str(), typeNames.c_str());
+
 				return false;
 			}
 		}
@@ -864,11 +872,14 @@ bool EntityDef::loadAllScriptModule(std::string entitiesPath, std::vector<PyType
 		
 		if(!checkDefMethod(scriptModule, pyClass, moduleName))
 		{
-			ERROR_MSG("EntityDef::initialize:class[%s] checkDefMethod is failed!\n", moduleName.c_str());
+			ERROR_MSG("EntityDef::initialize:class[%s] checkDefMethod is failed!\n", 
+				moduleName.c_str());
+
 			return false;
 		}
 		
 		DEBUG_MSG("loaded script:%s(%u).\n", moduleName.c_str(), scriptModule->getUType());
+
 		scriptModule->setScriptType((PyTypeObject *)pyClass);
 		S_RELEASE(pyModule);
 	}

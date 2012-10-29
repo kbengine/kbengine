@@ -70,8 +70,10 @@ protected:
 	virtual void onRelease( TimerHandle handle, void * pUser ) {}
 private:
 	friend class TimeBase;
+
 	void incTimerRegisterCount() { ++numTimesRegistered_; }
 	void decTimerRegisterCount() { --numTimesRegistered_; }
+
 	void release( TimerHandle handle, void * pUser )
 	{
 		this->decTimerRegisterCount();
@@ -84,9 +86,13 @@ private:
 class TimeBase
 {
 public:
-	TimeBase(TimersBase &owner, TimerHandler * pHandler, void * pUserData);
+	TimeBase(TimersBase &owner, TimerHandler* pHandler, 
+		void* pUserData);
+
 	void cancel();
+
 	void * getUserData()const	{ return pUserData_; }
+
 	bool isCancelled()const{ return state_ == TIME_CANCELLED; }
 	bool isExecuting()const{ return state_ == TIME_EXECUTING; }
 protected:
@@ -126,7 +132,9 @@ public:
 	TIME_STAMP nextExp( TimeStamp now ) const;
 	void clear( bool shouldCallCancel = true );
 	
-	bool getTimerInfo( TimerHandle handle, TimeStamp& time, TimeStamp&	interval,
+	bool getTimerInfo( TimerHandle handle, 
+					TimeStamp& time, 
+					TimeStamp&	interval,
 					void *&	pUser ) const;
 	
 	TimerHandle	add(TimeStamp startTime, TimeStamp interval,

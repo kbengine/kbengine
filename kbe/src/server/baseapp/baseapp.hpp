@@ -79,7 +79,9 @@ public:
 	void handleBackup();
 	void handleArchive();
 
-	/* 初始化相关接口 */
+	/** 
+		初始化相关接口 
+	*/
 	bool initializeBegin();
 	bool initializeEnd();
 	void finalise();

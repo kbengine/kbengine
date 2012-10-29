@@ -43,7 +43,9 @@ namespace KBEngine{
 template<typename T>
 class Entities : public script::ScriptObject
 {
-	/** 子类化 将一些py操作填充进派生类 */
+	/** 
+		子类化 将一些py操作填充进派生类 
+	*/
 	INSTANCE_SCRIPT_HREADER(Entities, ScriptObject)	
 public:
 	typedef std::tr1::unordered_map<ENTITY_ID, PyObjectPtr> ENTITYS_MAP;
@@ -57,17 +59,24 @@ public:
 	{
 	}	
 
-	/** 暴露一些字典方法给python */
+	/** 
+		暴露一些字典方法给python 
+	*/
 	DECLARE_PY_MOTHOD_ARG1(pyHas_key, ENTITY_ID);
 	DECLARE_PY_MOTHOD_ARG0(pyKeys);
 	DECLARE_PY_MOTHOD_ARG0(pyValues);
 	DECLARE_PY_MOTHOD_ARG0(pyItems);
 	
-	static PyObject* __py_pyGet(PyObject * self, PyObject * args, PyObject* kwds);
+	static PyObject* __py_pyGet(PyObject * self, 
+		PyObject * args, PyObject* kwds);
 
-	/** map操作函数相关 */
+	/** 
+		map操作函数相关 
+	*/
 	static PyObject* mp_subscript(PyObject * self, PyObject * key);
+
 	static int mp_length(PyObject * self);
+
 	static PyMappingMethods mappingMethods;
 
 	ENTITYS_MAP& getEntities(void){ return _entities; }
@@ -81,8 +90,9 @@ private:
 	ENTITYS_MAP _entities;
 };
 
-/** python Entities操作所需要的方法表 */
-
+/** 
+	python Entities操作所需要的方法表 
+*/
 template<typename T>
 PyMappingMethods Entities<T>::mappingMethods =
 {

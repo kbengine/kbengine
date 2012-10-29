@@ -40,19 +40,27 @@ public:
 
 	const DataType* getDataType(void){ return _dataType; }
 	
-	/** 初始化固定字典*/
+	/** 
+		初始化固定字典
+	*/
 	void initialize(std::string strInitData);
 	void initialize(PyObject* pyObjInitData);
 
-	/** 支持pickler 方法 */
+	/** 
+		支持pickler 方法 
+	*/
 	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol);
 	/** unpickle方法 */
 	static PyObject* __unpickle__(PyObject* self, PyObject* args);
 	
-	/** 脚本被安装时被调用 */
+	/** 
+		脚本被安装时被调用 
+	*/
 	static void onInstallScript(PyObject* mod);
 	
-	/** 一下为一个list所需的操作接口 */
+	/** 
+		一下为一个list所需的操作接口 
+	*/
 	static PyObject* __py_append(PyObject* self, PyObject* args, PyObject* kwargs);	
 	static PyObject* __py_count(PyObject* self, PyObject* args, PyObject* kwargs);
 	static PyObject* __py_extend(PyObject* self, PyObject* args, PyObject* kwargs);	

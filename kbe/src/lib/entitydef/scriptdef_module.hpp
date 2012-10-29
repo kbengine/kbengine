@@ -52,7 +52,7 @@ public:
 	typedef std::map<std::string, MethodDescription*> METHODDESCRIPTION_MAP;
 	typedef std::map<ENTITY_PROPERTY_UID, PropertyDescription*> PROPERTYDESCRIPTION_UIDMAP;
 	typedef std::map<ENTITY_METHOD_UID, MethodDescription*> METHODDESCRIPTION_UIDMAP;
-public:	
+
 	ScriptDefModule(std::string name);
 	~ScriptDefModule();	
 
@@ -100,8 +100,10 @@ public:
 	INLINE PROPERTYDESCRIPTION_UIDMAP& getPersistentPropertyDescriptions_uidmap();
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& getPropertyDescrs();
-	bool addPropertyDescription(const char* attrName, PropertyDescription* propertyDescription, 
-		COMPONENT_TYPE componentType);
+
+	bool addPropertyDescription(const char* attrName, 
+									PropertyDescription* propertyDescription, 
+									COMPONENT_TYPE componentType);
 
 	
 	MethodDescription* findCellMethodDescription(const char* attrName);

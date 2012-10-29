@@ -70,10 +70,12 @@ public:
 
 	void initThread( bool plusOwnInterpreter = false );
 	void finiThread( bool plusOwnInterpreter = false );
+
 	static void acquireLock();
 	static void releaseLock();
 protected:
 	PyObject* 					module_;
+
 	ScriptStdOutErr*			pyStdouterr_;
 	ScriptStdOutErrHook*		pyStdouterrHook_;	// 提供telnet 执行脚本回显用
 } ;

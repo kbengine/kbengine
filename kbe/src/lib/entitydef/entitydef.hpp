@@ -69,51 +69,51 @@ public:
 	static bool loadAllScriptModule(std::string entitiesPath, 
 		std::vector<PyTypeObject*>& scriptBaseTypes);
 
-	static bool loadAllDefDescription(std::string& moduleName, 
+	static bool loadAllDefDescription(const std::string& moduleName, 
 		XmlPlus* defxml, 
 		TiXmlNode* defNode, 
 		ScriptDefModule* scriptModule);
 
-	static bool loadDefPropertys(std::string& moduleName, 
+	static bool loadDefPropertys(const std::string& moduleName, 
 		XmlPlus* xml, 
 		TiXmlNode* defPropertyNode, 
 		ScriptDefModule* scriptModule);
 
-	static bool loadDefCellMethods(std::string& moduleName, 
+	static bool loadDefCellMethods(const std::string& moduleName, 
 		XmlPlus* xml, 
 		TiXmlNode* defMethodNode, 
 		ScriptDefModule* scriptModule);
 
-	static bool loadDefBaseMethods(std::string& moduleName, 
+	static bool loadDefBaseMethods(const std::string& moduleName, 
 		XmlPlus* xml, 
 		TiXmlNode* defMethodNode, 
 		ScriptDefModule* scriptModule);
 
-	static bool loadDefClientMethods(std::string& moduleName, 
+	static bool loadDefClientMethods(const std::string& moduleName, 
 		XmlPlus* xml, 
 		TiXmlNode* defMethodNode, 
 		ScriptDefModule* scriptModule);
 
-	static bool loadInterfaces(std::string& defFilePath, 
-		std::string& moduleName, 
+	static bool loadInterfaces(const std::string& defFilePath, 
+		const std::string& moduleName, 
 		XmlPlus* defxml, 
 		TiXmlNode* defNode, 
 		ScriptDefModule* scriptModule);
 
-	static bool loadParentClass(std::string& defFilePath, 
-		std::string& moduleName, 
+	static bool loadParentClass(const std::string& defFilePath, 
+		const std::string& moduleName, 
 		XmlPlus* defxml, 
 		TiXmlNode* defNode, 
 		ScriptDefModule* scriptModule);
 
-	static bool loadDefInfo(std::string& defFilePath, 
-		std::string& moduleName, 
+	static bool loadDefInfo(const std::string& defFilePath, 
+		const std::string& moduleName, 
 		XmlPlus* defxml, 
 		TiXmlNode* defNode, 
 		ScriptDefModule* scriptModule);
 
-	static bool loadDetailLevelInfo(std::string& defFilePath, 
-		std::string& moduleName, 
+	static bool loadDetailLevelInfo(const std::string& defFilePath, 
+		const std::string& moduleName, 
 		XmlPlus* defxml, 
 		TiXmlNode* defNode, 
 		ScriptDefModule* scriptModule);
@@ -133,7 +133,7 @@ public:
 		检查脚本模块中被定义的方法是否存在 
 	*/
 	static bool checkDefMethod(ScriptDefModule* scriptModule, PyObject* moduleObj, 
-		std::string& moduleName);
+		const std::string& moduleName);
 	
 	/** 
 		通过标记来寻找到对应的脚本模块对象 

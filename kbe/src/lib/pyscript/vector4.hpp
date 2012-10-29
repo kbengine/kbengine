@@ -40,20 +40,28 @@ public:
 	ScriptVector4(float x, float y, float z, float w);
 	virtual ~ScriptVector4();
 
-	/** 获得对象的描述 */
+	/** 
+		获得对象的描述 
+	*/
 	PyObject* tp_repr();
 	PyObject* tp_str();
 
-	/** 脚本模块对象从python中创建 */
+	/** 
+		脚本模块对象从python中创建 
+	*/
 	static PyObject* tp_new(PyTypeObject* type, PyObject* args, PyObject* kwds);
 
-	/** seq相关操作 */
+	/** 
+		seq相关操作 
+	*/
 	static Py_ssize_t seq_length(PyObject* self);
 	static PyObject* seq_item(PyObject* self, Py_ssize_t index);
 	static PyObject* seq_slice(PyObject* self, Py_ssize_t startIndex, Py_ssize_t endIndex);
 	static int seq_ass_item(PyObject* self, Py_ssize_t index, PyObject* value);
 	
-	/** 加减乘除相关操作 */
+	/** 
+		加减乘除相关操作 
+	*/
 	static PyObject* py_add(PyObject *a, PyObject *b);
 	static PyObject* py_subtract(PyObject *a, PyObject *b);
 	static PyObject* py_multiply(PyObject *a, PyObject *b);
@@ -69,7 +77,9 @@ public:
 	static PyObject* py_inplace_multiply(PyObject *self, PyObject *b);
 	static PyObject* py_inplace_divide(PyObject *self, PyObject *b);
 	
-	/** 暴漏一些方法 */
+	/** 
+		暴漏一些方法 
+	*/
 	static PyObject* __py_pyDistTo(PyObject* self, PyObject* args);
 	static PyObject* __py_pyDistSqrTo(PyObject* self, PyObject* args);
 	static PyObject* __py_pyScale(PyObject* self, PyObject* args);
@@ -87,22 +97,33 @@ public:
 	DECLARE_PY_GETSET_MOTHOD(pyGetZ, pySetZ);
 	DECLARE_PY_GETSET_MOTHOD(pyGetW, pySetW);
 	
-	/** 支持pickler 方法 */
+	/** 
+		支持pickler 方法 
+	*/
 	static PyObject* __reduce_ex__(PyObject* self, PyObject* protocol);
-	/** unpickle方法 */
+
+	/** 
+		unpickle方法 
+	*/
 	static PyObject* __unpickle__(PyObject* self, PyObject* args);
 
-	/** 脚本被安装时被调用 */
+	/** 
+		脚本被安装时被调用 
+	*/
 	static void onInstallScript(PyObject* mod);
 	
 	int length(void){ return VECTOR_SIZE; }
 	Vector4& getVector(void){ return *val_; }
 	void setVector(const Vector4& v){ *val_ = v; }
 	
-	/** 检查某个python对象是否可以转换为本类型 */
+	/** 
+		检查某个python对象是否可以转换为本类型 
+	*/
 	static bool check(PyObject* value, bool isPrintErr = true);
 	
-	/** 将某个经过check检查过的python对象转换为vector4 */
+	/** 
+		将某个经过check检查过的python对象转换为vector4 
+	*/
 	static void convertPyObjectToVector4(Vector4& v, PyObject* obj);
 private:
 	Vector4*			val_;
