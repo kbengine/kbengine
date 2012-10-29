@@ -3,18 +3,19 @@
 	<Properties>
 		<state>
 			<Type>			ENTITY_STATE				</Type>
-			<Flags>			CELL_PUBLIC				</Flags>
+			<Flags>			ALL_CLIENTS				</Flags>
 			<Persistent>	true						</Persistent> 
 			<Default>		0					</Default>
 		</state>
 
 		<subState>
 			<Type>          ENTITY_SUBSTATE					</Type>
-			<Flags>         CELL_PRIVATE					</Flags>
+			<Flags>         ALL_CLIENTS					</Flags>
 		</subState>
 
 		<forbids>
 			<Type>			ENTITY_FORBIDS				</Type>
+			<Utype> 		10106 </Utype>
 			<Flags>			ALL_CLIENTS				</Flags>
 			<Default>		0					</Default>
 		</forbids>
