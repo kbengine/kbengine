@@ -394,8 +394,12 @@ void EntityTableItemMysql_VECTOR2::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& 
 {
 	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
 	float v;
+	ArraySize asize;
 
-	for(int i=0; i<2; i++)
+	(*s) >> asize;
+	KBE_ASSERT(asize == 2);
+
+	for(ArraySize i=0; i<asize; i++)
 	{
 		(*s) >> v;
 		SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
@@ -447,8 +451,12 @@ void EntityTableItemMysql_VECTOR3::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& 
 {
 	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
 	float v;
+	ArraySize asize;
 
-	for(int i=0; i<3; i++)
+	(*s) >> asize;
+	KBE_ASSERT(asize == 3);
+
+	for(ArraySize i=0; i<asize; i++)
 	{
 		(*s) >> v;
 		SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
@@ -506,8 +514,12 @@ void EntityTableItemMysql_VECTOR4::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& 
 {
 	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
 	float v;
+	ArraySize asize;
 
-	for(int i=0; i<4; i++)
+	(*s) >> asize;
+	KBE_ASSERT(asize == 4);
+
+	for(ArraySize i=0; i<asize; i++)
 	{
 		(*s) >> v;
 		SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();

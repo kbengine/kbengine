@@ -597,7 +597,7 @@ public:																										\
 		}																									\
 																											\
 																											\
-		uint32 posdirLen = 3;																				\
+		ArraySize posdirLen = 3;																			\
 		Vector3 pos, dir;																					\
 		script::ScriptVector3::convertPyObjectToVector3(pos, pyPos);										\
 		script::ScriptVector3::convertPyObjectToVector3(dir, pyDir);										\

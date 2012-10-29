@@ -371,27 +371,40 @@ void Dbmgr::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::Me
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel, std::string& accountName, std::string& password)
+void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel, 
+							 std::string& accountName, 
+							 std::string& password)
 {
-	PUSH_THREAD_TASK(new DBTaskCreateAccount(pChannel->addr(), accountName, password));
+	PUSH_THREAD_TASK(new DBTaskCreateAccount(pChannel->addr(), 
+		accountName, password));
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::onAccountLogin(Mercury::Channel* pChannel, std::string& accountName, std::string& password)
+void Dbmgr::onAccountLogin(Mercury::Channel* pChannel, 
+						   std::string& accountName, 
+						   std::string& password)
 {
-	PUSH_THREAD_TASK(new DBTaskAccountLogin(pChannel->addr(), accountName, password));
+	PUSH_THREAD_TASK(new DBTaskAccountLogin(pChannel->addr(), 
+		accountName, password));
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::queryAccount(Mercury::Channel* pChannel, std::string& accountName, std::string& password)
+void Dbmgr::queryAccount(Mercury::Channel* pChannel, 
+						 std::string& accountName, 
+						 std::string& password)
 {
-	PUSH_THREAD_TASK(new DBTaskQueryAccount(pChannel->addr(), accountName, password));
+	PUSH_THREAD_TASK(new DBTaskQueryAccount(pChannel->addr(), 
+		accountName, password));
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::onAccountOnline(Mercury::Channel* pChannel, std::string& accountName, COMPONENT_ID componentID, ENTITY_ID entityID)
+void Dbmgr::onAccountOnline(Mercury::Channel* pChannel, 
+							std::string& accountName, 
+							COMPONENT_ID componentID, 
+							ENTITY_ID entityID)
 {
-	PUSH_THREAD_TASK(new DBTaskAccountOnline(pChannel->addr(), accountName, componentID, entityID));
+	PUSH_THREAD_TASK(new DBTaskAccountOnline(pChannel->addr(), 
+		accountName, componentID, entityID));
 }
 
 //-------------------------------------------------------------------------------------
@@ -401,15 +414,19 @@ void Dbmgr::onAccountOffline(Mercury::Channel* pChannel, std::string& accountNam
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::executeRawDatabaseCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Dbmgr::executeRawDatabaseCommand(Mercury::Channel* pChannel, 
+									  KBEngine::MemoryStream& s)
 {
 	PUSH_THREAD_TASK(new DBTaskExecuteRawDatabaseCommand(pChannel->addr(), s));
+	s.opfini();
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::writeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Dbmgr::writeEntity(Mercury::Channel* pChannel, 
+						KBEngine::MemoryStream& s)
 {
 	PUSH_THREAD_TASK(new DBTaskWriteEntity(pChannel->addr(), s));
+	s.opfini();
 }
 
 //-------------------------------------------------------------------------------------
