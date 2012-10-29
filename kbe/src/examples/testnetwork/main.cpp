@@ -611,6 +611,11 @@ void init_network(void)
 				uint32 listlen;
 				packet88 >> listlen;
 			}
+			else if(47001 == propertyID || 47002 == propertyID || 47003 == propertyID || 47004 == propertyID)
+			{
+				int32 v;
+				packet88 >> v;
+			}
 		}
 		
 		printf("服务器下发属性:spaceUType=%u, level=%u.\n", spaceUType, level);
@@ -734,6 +739,11 @@ void init_network(void)
 				{
 					int16 seat=0;
 					packet99 >> seat;
+				}
+				else if(47001 == propertyID || 47002 == propertyID || 47003 == propertyID || 47004 == propertyID)
+				{
+					int32 v;
+					packet99 >> v;
 				}
 				else
 				{
@@ -988,6 +998,11 @@ avatarenterworld = false;
 				{
 					int16 seat=0;
 					packet99 >> seat;
+				}
+				else if(47001 == propertyID || 47002 == propertyID || 47003 == propertyID || 47004 == propertyID)
+				{
+					int32 v;
+					packet99 >> v;
 				}
 				else
 				{

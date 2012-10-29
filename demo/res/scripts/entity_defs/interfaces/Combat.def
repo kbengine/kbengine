@@ -1,6 +1,6 @@
 <root>
 	<Implements>
-	<!--	<Interface> State					</Interface> -->
+		<Interface> 			CombatPropertys			</Interface>
 	</Implements>
 
 	<Properties>

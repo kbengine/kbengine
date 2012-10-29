@@ -80,12 +80,13 @@ class SpaceFightCopy(SpaceCopy):
 		"""
 		pass
 		
-	def commitFight(self, targetID, skillID):
+	def commitFight(self, casterID, targetID, skillID):
 		"""
 		defined method.
 		"""
 		DEBUG_MSG("SpaceFightCopy::commitFight: targetID=%i, skillID=%i" % (targetID, skillID))
 		
+		self.client.fightResult()
 		
 SpaceFightCopy._timermap = {}
 SpaceFightCopy._timermap.update(SpaceCopy._timermap)
