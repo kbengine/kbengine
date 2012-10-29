@@ -118,5 +118,6 @@ class Account(KBEngine.Proxy):
 					player.accountEntity = self
 					self.activeCharacter = player
 					self.giveClientTo(player)
+					player.writeToDB()
 		else:
 			self.giveClientTo(self.activeCharacter)

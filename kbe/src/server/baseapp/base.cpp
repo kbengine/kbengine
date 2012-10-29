@@ -539,7 +539,10 @@ void Base::writeToDB()
 		return;																							
 	}
 
-	if(this->getCellMailbox() == NULL)
+	// creatingCell_ 此时可能正在创建cell
+	// 不过我们在此假设在cell未创建完成的时候base这个接口被调用
+	// 写入数据库的是该entity的初始值， 并不影响
+	if(this->getCellMailbox() == NULL) 
 	{
 		onCellWriteToDBCompleted();
 	}

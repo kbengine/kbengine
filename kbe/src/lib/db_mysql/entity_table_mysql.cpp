@@ -296,6 +296,20 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 	{
 		return new EntityTableItemMysql_FIXED_DICT("", 0);
 	}
+#ifdef CLIENT_NO_FLOAT
+	else if(type == "VECTOR2")
+	{
+		return new EntityTableItemMysql_VECTOR2("int not null DEFAULT 0", 0);
+	}
+	else if(type == "VECTOR3")
+	{
+		return new EntityTableItemMysql_VECTOR3("int not null DEFAULT 0", 0);
+	}
+	else if(type == "VECTOR4")
+	{
+		return new EntityTableItemMysql_VECTOR4("int not null DEFAULT 0", 0);
+	}
+#else
 	else if(type == "VECTOR2")
 	{
 		return new EntityTableItemMysql_VECTOR2("float not null DEFAULT 0", 0);
@@ -308,6 +322,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 	{
 		return new EntityTableItemMysql_VECTOR4("float not null DEFAULT 0", 0);
 	}
+#endif
 	else if(type == "MAILBOX")
 	{
 		return new EntityTableItemMysql_MAILBOX("blob", 0);
@@ -393,7 +408,13 @@ bool EntityTableItemMysql_VECTOR2::updateItem(DBID dbid, MemoryStream* s, Script
 void EntityTableItemMysql_VECTOR2::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
 {
 	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+
+#ifdef CLIENT_NO_FLOAT
+	int32 v;
+#else
 	float v;
+#endif
+
 	ArraySize asize;
 
 	(*s) >> asize;
@@ -404,7 +425,13 @@ void EntityTableItemMysql_VECTOR2::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& 
 		(*s) >> v;
 		SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
 		kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%d_%s", i, itemName());
+
+#ifdef CLIENT_NO_FLOAT
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%d", v);
+#else
 		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%f", v);
+#endif
+		
 		pSotvs->parentTableName = this->pParentTable()->tableName();
 		pSotvs->parentTableID = 0;
 		opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
@@ -450,7 +477,13 @@ bool EntityTableItemMysql_VECTOR3::updateItem(DBID dbid, MemoryStream* s, Script
 void EntityTableItemMysql_VECTOR3::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
 {
 	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+
+#ifdef CLIENT_NO_FLOAT
+	int32 v;
+#else
 	float v;
+#endif
+
 	ArraySize asize;
 
 	(*s) >> asize;
@@ -461,7 +494,13 @@ void EntityTableItemMysql_VECTOR3::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& 
 		(*s) >> v;
 		SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
 		kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%d_%s", i, itemName());
+
+#ifdef CLIENT_NO_FLOAT
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%d", v);
+#else
 		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%f", v);
+#endif
+
 		pSotvs->parentTableName = this->pParentTable()->tableName();
 		pSotvs->parentTableID = 0;
 		opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
@@ -513,7 +552,13 @@ bool EntityTableItemMysql_VECTOR4::updateItem(DBID dbid, MemoryStream* s, Script
 void EntityTableItemMysql_VECTOR4::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
 {
 	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+
+#ifdef CLIENT_NO_FLOAT
+	int32 v;
+#else
 	float v;
+#endif
+
 	ArraySize asize;
 
 	(*s) >> asize;
@@ -524,7 +569,13 @@ void EntityTableItemMysql_VECTOR4::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& 
 		(*s) >> v;
 		SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
 		kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%d_%s", i, itemName());
+
+#ifdef CLIENT_NO_FLOAT
+		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%d", v);
+#else
 		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%f", v);
+#endif
+
 		pSotvs->parentTableName = this->pParentTable()->tableName();
 		pSotvs->parentTableID = 0;
 		opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
