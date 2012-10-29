@@ -32,5 +32,28 @@
 	</Properties>
 
 	<CellMethods>
+		<addHP>
+			<Arg>			HP				</Arg>
+		</addHP>
+
+		<addMP>
+			<Arg>			MP				</Arg>
+		</addMP>
+
+		<setHP>
+			<Arg>			HP				</Arg>
+		</setHP>
+
+		<setMP>
+			<Arg>			MP				</Arg>
+		</setMP>
+
+		<setHPMax>
+			<Arg>			HP				</Arg>
+		</setHPMax>
+
+		<setMPMax>
+			<Arg>			MP				</Arg>
+		</setMPMax>
 	</CellMethods>
 </root>

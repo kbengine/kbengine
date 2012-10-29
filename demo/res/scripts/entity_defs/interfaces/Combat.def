@@ -7,6 +7,13 @@
 	</Properties>
 
 	<CellMethods>
+		<recvDamage>
+			<Arg>	ENTITY_ID									</Arg>
+			<Arg>	SKILLID										</Arg>
+			<Arg>	DAMAGE_TYPE									</Arg>
+			<Arg>	HP										</Arg>
+		</recvDamage>
+
 		<commitFight>
 			<Exposed/>
 			<Utype> 10106 </Utype>
@@ -14,4 +21,16 @@
 			<Arg>		SKILLID		</Arg>
 		</commitFight>
 	</CellMethods>
+
+	<ClientMethods>
+		<fightResult>
+			<Exposed/>
+			<Utype> 10106 </Utype>
+			<Arg>		ENTITY_ID	</Arg>
+			<Arg>		ENTITY_ID	</Arg>
+			<Arg>		SKILLID		</Arg>
+			<Arg>		ARRAY <of> SKILLEFFECT </of>	</Arg>
+
+		</fightResult>
+	</ClientMethods>
 </root>
