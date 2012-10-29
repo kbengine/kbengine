@@ -611,10 +611,25 @@ void init_network(void)
 				uint32 listlen;
 				packet88 >> listlen;
 			}
-			else if(47001 == propertyID || 47002 == propertyID || 47003 == propertyID || 47004 == propertyID)
+			else if(47001 == propertyID || 47002 == propertyID || 47003 == propertyID || 47004 == propertyID || 47005 == propertyID)
 			{
 				int32 v;
 				packet88 >> v;
+			}
+			else if(47006 == propertyID)
+			{	
+				int8 v;
+				packet88 >> v;
+			}
+			else if(47007 == propertyID)
+			{
+				uint8 v;
+				packet88 >> v;
+			}
+			else if(41010 == propertyID)
+			{
+				INT8 seat=0;
+				packet88 >> seat;
 			}
 		}
 		
@@ -737,12 +752,22 @@ void init_network(void)
 				}
 				else if(41010 == propertyID)
 				{
-					int16 seat=0;
+					INT8 seat=0;
 					packet99 >> seat;
 				}
-				else if(47001 == propertyID || 47002 == propertyID || 47003 == propertyID || 47004 == propertyID)
+				else if(47001 == propertyID || 47002 == propertyID || 47003 == propertyID || 47004 == propertyID || 47005 == propertyID)
 				{
 					int32 v;
+					packet99 >> v;
+				}
+				else if(47006 == propertyID)
+				{	
+					int8 v;
+					packet99 >> v;
+				}
+				else if(47007 == propertyID)
+				{
+					uint8 v;
 					packet99 >> v;
 				}
 				else
@@ -996,12 +1021,22 @@ avatarenterworld = false;
 				}
 				else if(41010 == propertyID)
 				{
-					int16 seat=0;
+					INT8 seat=0;
 					packet99 >> seat;
 				}
-				else if(47001 == propertyID || 47002 == propertyID || 47003 == propertyID || 47004 == propertyID)
+				else if(47001 == propertyID || 47002 == propertyID || 47003 == propertyID || 47004 == propertyID || 47005 == propertyID)
 				{
 					int32 v;
+					packet99 >> v;
+				}
+				else if(47006 == propertyID)
+				{	
+					int8 v;
+					packet99 >> v;
+				}
+				else if(47007 == propertyID)
+				{
+					uint8 v;
 					packet99 >> v;
 				}
 				else

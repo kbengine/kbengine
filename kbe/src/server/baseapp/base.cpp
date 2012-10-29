@@ -527,7 +527,7 @@ void Base::onBackup()
 }
 
 //-------------------------------------------------------------------------------------
-void Base::writeToDB()
+void Base::writeToDB(PyObject* pyCallback)
 {
 	if(isArchiveing_)
 		return;

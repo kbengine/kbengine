@@ -353,7 +353,7 @@ void Entity::backupCellData()
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::writeToDB()
+void Entity::writeToDB(PyObject* pyCallback)
 {
 	onWriteToDB();
 	backupCellData();

@@ -440,9 +440,58 @@ public:																										\
 																											\
 	DECLARE_PY_MOTHOD_ARG3(pyAddTimer, float, float, int32);												\
 	DECLARE_PY_MOTHOD_ARG1(pyDelTimer, ScriptID);															\
-	DECLARE_PY_MOTHOD_ARG0(pyWriteToDB);																	\
 																											\
-	void writeToDB();																						\
+	static PyObject* __py_pyWriteToDB(PyObject* self, PyObject* args)										\
+	{																										\
+		uint16 currargsSize = PyTuple_Size(args);															\
+		CLASS* pobj = static_cast<CLASS*>(self);															\
+																											\
+		if((g_componentType == CELLAPP_TYPE && currargsSize > 0) ||											\
+			(g_componentType == BASEAPP_TYPE && currargsSize > 1))											\
+		{																									\
+			PyErr_Format(PyExc_AssertionError,																\
+							"%s: args max require %d args, gived %d! is script[%s].\n",						\
+				__FUNCTION__, 1, currargsSize, pobj->getScriptName());										\
+			PyErr_PrintEx(0);																				\
+		}																									\
+																											\
+		PyObject* pycallback = NULL;																		\
+		if(g_componentType == CELLAPP_TYPE)																	\
+		{																									\
+			PyObject* baseMB = PyObject_GetAttrString(self, "base");										\
+			if(baseMB == NULL || baseMB == Py_None)															\
+			{																								\
+				PyErr_Clear();																				\
+				PyErr_SetString(PyExc_AssertionError,														\
+				"This method can only be called on a real entity that has a base entity. ");				\
+				PyErr_PrintEx(0);																			\
+			}																								\
+		}																									\
+																											\
+		if(currargsSize == 1)																				\
+		{																									\
+			if(PyArg_ParseTuple(args, "O", &pycallback) == -1)												\
+			{																								\
+				PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args is error!");						\
+				PyErr_PrintEx(0);																			\
+				pycallback = NULL;																			\
+				S_Return;																					\
+			}																								\
+																											\
+			if(!PyMethod_Check(pycallback))																	\
+			{																								\
+				PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args1 not is callback!");				\
+				PyErr_PrintEx(0);																			\
+				Py_DECREF(pycallback);																		\
+				S_Return;																					\
+			}																								\
+		}																									\
+																											\
+		pobj->writeToDB(pycallback);																		\
+		S_Return;																							\
+	}																										\
+																											\
+	void writeToDB(PyObject* pyCallback = NULL);															\
 																											\
 	void destroy()																							\
 	{																										\
@@ -517,23 +566,6 @@ public:																										\
 		return PyLong_FromLong(timerID);																	\
 	}																										\
 																											\
-	PyObject* CLASS::pyWriteToDB()																			\
-	{																										\
-		if(g_componentType == CELLAPP_TYPE)																	\
-		{																									\
-			PyObject* baseMB = PyObject_GetAttrString(this, "base");										\
-			if(baseMB == NULL || baseMB == Py_None)															\
-			{																								\
-				PyErr_Clear();																				\
-				PyErr_SetString(PyExc_AssertionError,														\
-				"This method can only be called on a real entity that has a base entity. ");				\
-				PyErr_PrintEx(0);																			\
-			}																								\
-		}																									\
-																											\
-		writeToDB();																						\
-		S_Return;																							\
-	}																										\
 																											\
 	void CLASS::destroyEntity(void)																			\
 	{																										\
