@@ -196,10 +196,12 @@ void DBTaskCreateAccount::presentMainThread()
 
 	Mercury::Channel* pChannel = Dbmgr::getSingleton().getNetworkInterface().findChannel(addr_);
 	
-	if(pChannel)
+	if(pChannel){
 		bundle.send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
-	else
-		ERROR_MSG("DBTaskCreateAccount::presentMainThread: channel(%s) not found.", addr_.c_str());
+	}
+	else{
+		ERROR_MSG("DBTaskCreateAccount::presentMainThread: channel(%s) not found.\n", addr_.c_str());
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -234,10 +236,12 @@ void DBTaskQueryAccount::presentMainThread()
 
 	Mercury::Channel* pChannel = Dbmgr::getSingleton().getNetworkInterface().findChannel(addr_);
 	
-	if(pChannel)
+	if(pChannel){
 		bundle.send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
-	else
-		ERROR_MSG("DBTaskQueryAccount::presentMainThread: channel(%s) not found.", addr_.c_str());
+	}
+	else{
+		ERROR_MSG("DBTaskQueryAccount::presentMainThread: channel(%s) not found.\n", addr_.c_str());
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -370,10 +374,12 @@ void DBTaskAccountLogin::presentMainThread()
 
 	Mercury::Channel* pChannel = Dbmgr::getSingleton().getNetworkInterface().findChannel(addr_);
 
-	if(pChannel)
+	if(pChannel){
 		bundle.send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
-	else
-		ERROR_MSG("DBTaskAccountLogin::presentMainThread: channel(%s) not found.", addr_.c_str());
+	}
+	else{
+		ERROR_MSG("DBTaskAccountLogin::presentMainThread: channel(%s) not found.\n", addr_.c_str());
+	}
 }
 
 //-------------------------------------------------------------------------------------
