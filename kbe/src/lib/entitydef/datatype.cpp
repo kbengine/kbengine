@@ -1447,7 +1447,6 @@ void FixedDictType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool
 		pydict = static_cast<FixedDict*>(pyValue)->getDictObject();
 	}
 	
-	int i = 0;
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
 
 	for(; iter != keyTypes_.end(); iter++)
