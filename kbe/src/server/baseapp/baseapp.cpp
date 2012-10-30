@@ -392,6 +392,8 @@ void Baseapp::createBaseFromDBID(const char* entityType, DBID dbid, PyObject* py
 	}
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
