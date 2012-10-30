@@ -51,20 +51,20 @@ public:
 
 	virtual ~MethodDescription();
 	
-	const char* getName(void)const{ return name_.c_str(); };
+	INLINE const char* getName(void)const;
 
-	ENTITY_METHOD_UID getUType(void)const{ return utype_; }
-	void setUType(ENTITY_METHOD_UID muid){ utype_ = muid; }
+	INLINE ENTITY_METHOD_UID getUType(void)const;
+	INLINE void setUType(ENTITY_METHOD_UID muid);
 
 	static uint32 getDescriptionCount(void){ return methodDescriptionCount_; }
 
-	bool isExposed(void)const{ return isExposed_; }
+	INLINE bool isExposed(void)const;
 
-	void setExposed(void){ isExposed_ = true; }
+	INLINE void setExposed(void);
 
 	bool pushArgType(DataType* dataType);
 
-	std::vector<DataType*>& getArgTypes(void){ return argTypes_; }
+	INLINE std::vector<DataType*>& getArgTypes(void);
 
 	size_t getArgSize(void);
 	
@@ -89,7 +89,7 @@ public:
 	*/
 	PyObject* call(PyObject* func, PyObject* args);	
 
-	void currCallerID(ENTITY_ID eid){ currCallerID_ = eid; }
+	INLINE void currCallerID(ENTITY_ID eid);
 protected:	
 	static uint32							methodDescriptionCount_;					// 所有的属性描述的数量
 
@@ -104,4 +104,8 @@ protected:
 };
 
 }
+
+#ifdef CODE_INLINE
+#include "method.ipp"
+#endif
 #endif

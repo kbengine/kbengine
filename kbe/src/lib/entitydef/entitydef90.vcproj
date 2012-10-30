@@ -274,6 +274,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\method.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\property.ipp"
+			>
+		</File>
+		<File
 			RelativePath=".\ReadMe.txt"
 			>
 		</File>

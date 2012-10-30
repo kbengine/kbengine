@@ -690,7 +690,7 @@ bool EntityTableItemMysql_ARRAY::syncToDB()
 bool EntityTableItemMysql_ARRAY::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	if(pChildTable_)
-		return pChildTable_->updateTable(dbid, s, pModule);
+		return pChildTable_->updateTable(dbid, s, pModule) > 0;
 
 	return true;
 }
