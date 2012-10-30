@@ -57,12 +57,12 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB() = 0;
+	virtual bool syncToDB(const char* exstrFlag = "") = 0;
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable) = 0;
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag = "") = 0;
 protected:
 };
 
@@ -82,7 +82,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB();
+	virtual bool syncToDB(const char* exstrFlag = "");
 
 	/**
 		更新数据
@@ -92,7 +92,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag = "");
 protected:
 	std::string dataSType_;
 };
@@ -112,7 +112,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB();
+	virtual bool syncToDB(const char* exstrFlag = "");
 
 	/**
 		更新数据
@@ -122,7 +122,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag = "");
 };
 
 class EntityTableItemMysql_UNICODE : public EntityTableItemMysqlBase
@@ -140,7 +140,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB();
+	virtual bool syncToDB(const char* exstrFlag = "");
 
 	/**
 		更新数据
@@ -150,7 +150,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag = "");
 };
 
 
@@ -169,7 +169,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB();
+	virtual bool syncToDB(const char* exstrFlag = "");
 
 	/**
 		更新数据
@@ -179,7 +179,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag = "");
 };
 
 class EntityTableItemMysql_VECTOR2 : public EntityTableItemMysqlBase
@@ -199,7 +199,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB();
+	virtual bool syncToDB(const char* exstrFlag = "");
 
 	/**
 		更新数据
@@ -209,7 +209,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag = "");
 };
 
 class EntityTableItemMysql_VECTOR3 : public EntityTableItemMysqlBase
@@ -229,7 +229,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB();
+	virtual bool syncToDB(const char* exstrFlag = "");
 
 	/**
 		更新数据
@@ -239,7 +239,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag = "");
 };
 
 class EntityTableItemMysql_VECTOR4 : public EntityTableItemMysqlBase
@@ -259,7 +259,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB();
+	virtual bool syncToDB(const char* exstrFlag = "");
 
 	/**
 		更新数据
@@ -269,7 +269,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag = "");
 };
 
 class EntityTableItemMysql_MAILBOX : public EntityTableItemMysqlBase
@@ -287,7 +287,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB();
+	virtual bool syncToDB(const char* exstrFlag = "");
 
 	/**
 		更新数据
@@ -297,7 +297,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag = "");
 };
 
 class EntityTableItemMysql_ARRAY : public EntityTableItemMysqlBase
@@ -319,12 +319,12 @@ public:
 	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, 
 		const DataType* pDataType, std::string name);
 
-	uint8 type()const{ return TABLE_ITEM_TYPE_ARRAY; }
+	uint8 type()const{ return TABLE_ITEM_TYPE_FIXEDARRAY; }
 
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB();
+	virtual bool syncToDB(const char* exstrFlag = "");
 
 	/**
 		更新数据
@@ -334,7 +334,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag = "");
 protected:
 	EntityTable* pChildTable_;
 };
@@ -364,7 +364,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB();
+	virtual bool syncToDB(const char* exstrFlag = "");
 
 	/**
 		更新数据
@@ -374,7 +374,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable);
+	virtual void getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag = "");
 protected:
 	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPES			keyTypes_;		// 这个固定字典里的各个key的类型
 };

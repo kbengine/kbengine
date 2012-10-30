@@ -267,6 +267,7 @@ typedef uint32													uintptr;
 #endif
 
 #define PRAppID													PRIu64
+#define PRDBID													PRIu64
 
 typedef uint16													ENTITY_TYPE;											// entity的类别类型定义支持0-65535个类别
 typedef int32													ENTITY_ID;												// entityID的类型

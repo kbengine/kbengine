@@ -134,6 +134,33 @@ public:
 		// update tbl_Account set sm_accountName="fdsafsad" where id=123;
 		sqlstr_ = "update "ENTITY_TABLE_PERFIX"_";
 		sqlstr_ += tableName;
+		sqlstr_ += " set ";
+
+		SQL_OP_TABLE_VAL::iterator tableValIter = tableVal.begin();
+		for(; tableValIter != tableVal.end(); tableValIter++)
+		{
+			std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT> pSotvs = (*tableValIter);
+			
+			sqlstr_ += pSotvs->sqlkey;
+			sqlstr_ += "=";
+				
+			if(pSotvs->extraDatas.size() > 0)
+				sqlstr_ += pSotvs->extraDatas;
+			else
+				sqlstr_ += pSotvs->sqlval;
+
+			sqlstr_ += ",";
+		}
+
+		if(sqlstr_.at(sqlstr_.size() - 1) == ',')
+			sqlstr_.erase(sqlstr_.size() - 1);
+
+		sqlstr_ += " where id=";
+		
+		char strdbid[MAX_BUF];
+		kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, dbid);
+		sqlstr_ += strdbid;
+		sqlstr_ += ";";
 	}
 
 	virtual ~SqlCommandCreateFromDatas_UPDATE()

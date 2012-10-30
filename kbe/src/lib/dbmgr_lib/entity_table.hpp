@@ -38,7 +38,7 @@ class EntityTable;
 class MemoryStream;
 
 #define TABLE_ITEM_TYPE_UNKONWN		0
-#define TABLE_ITEM_TYPE_ARRAY		1
+#define TABLE_ITEM_TYPE_FIXEDARRAY	1
 #define TABLE_ITEM_TYPE_FIXEDDICT	2
 #define TABLE_ITEM_TYPE_STRING		3
 #define TABLE_ITEM_TYPE_DIGIT		4
@@ -108,7 +108,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB() = 0;
+	virtual bool syncToDB(const char* exstrFlag = "") = 0;
 
 	/**
 		更新数据
