@@ -8,19 +8,13 @@ import d_spaces
 import random
 import wtimer
 
-_STATE_WAIT_INPUT = 0  # 等待输入战斗
-_STATE_WAIT_NEXT = 1	# 等待下一回合。
-
 class SpaceFightCopy(SpaceCopy):
 	def __init__(self):
 		SpaceCopy.__init__(self)
-		
-		self._state = _STATE_WAIT_INPUT
-		
-		# 添加一个timer5秒后战斗开始
-		self.addTimer(5, 0, wtimer.TIMER_TYPE_FIGTH_READY)
-		
+
 		self.monsters = {}
+		self.inputAvatars = [] # 本回合已经提交过的人
+		self.startRecvInputFigth()
 		
 		datas = d_spaces.datas[self.spaceUType]
 		entitiesMinCount = datas.get("entitiesMinCount", 1)
@@ -46,7 +40,6 @@ class SpaceFightCopy(SpaceCopy):
 		vals = bosslist + monlist
 		random.shuffle(vals)
 		
-		
 		for x in range(random.randint(entitiesMinCount, entitiesMaxCount)):
 			val = vals[x]
 			mondatas = d_entities.datas.get(val[0])
@@ -64,37 +57,28 @@ class SpaceFightCopy(SpaceCopy):
 			e = KBEngine.createEntity(mondatas["entityType"], self.spaceID, (0,0,0), (0,0,0), params)
 			self.monsters[e.id] = e
 			
-	def startInputFigth(self):
+	def startRecvInputFigth(self):
 		"""
 		开始接受输入战斗
 		"""
-		self._state = _STATE_WAIT_INPUT
-		self.addTimer(30, 0, wtimer.TIMER_TYPE_FIGTH_WATI_INPUT_TIMEOUT)
-		
-		for e in self.avatars.values():
-			DEBUG_MSG("SpaceFightCopy::startInputFigth(%i-%i)" % (e.id, self.spaceID))
-			if e.client:
-				e.client.startInputFigth(30)
-		
-	def onFightBeginTimer(self, tid, tno):
-		"""
-		"""
-		self.startInputFigth()
+		self.inputAvatars = []
+		self.addTimer(60, 0, wtimer.TIMER_TYPE_FIGTH_WATI_INPUT_TIMEOUT)
 
 	def onFightInputTimeoutTimer(self, tid, tno):
 		"""
 		"""
 		self.autoCommitFight()
-		self._state = _STATE_WAIT_NEXT
-	
+		self.startRecvInputFigth()
+		
 	def autoCommitFight(self):
 		"""
 		自动提交战斗
 		"""
-		mon = list(self.monsters.keys())
+		monID = random.choice(list(self.monsters.keys()))
 		
 		for e in self.avatars.values():
-			self.commitFight(e.id, mon.id, 1)
+			if e.id not in self.inputAvatars:
+				self.commitFight(e.id, monID, 1)
 			
 	def commitFight(self, casterID, targetID, skillID):
 		"""
@@ -102,10 +86,12 @@ class SpaceFightCopy(SpaceCopy):
 		"""
 		DEBUG_MSG("SpaceFightCopy::commitFight: targetID=%i, skillID=%i" % (targetID, skillID))
 		
-		if self._state != _STATE_WAIT_INPUT:
-			DEBUG_MSG("SpaceFightCopy::commitFight: state not is _STATE_WAIT_INPUT.")
+		if casterID in self.inputAvatars:
+			DEBUG_MSG("SpaceFightCopy::commitFight: casterID has inputAvatars.")
 			return
-			
+		
+		self.inputAvatars.append(casterID)
+		
 		caster = self.avatars.get(casterID)
 		mon = self.monsters.get(targetID)
 		
@@ -115,5 +101,4 @@ class SpaceFightCopy(SpaceCopy):
 		
 SpaceFightCopy._timermap = {}
 SpaceFightCopy._timermap.update(SpaceCopy._timermap)
-SpaceFightCopy._timermap[wtimer.TIMER_TYPE_FIGTH_READY] = SpaceFightCopy.onFightBeginTimer
 SpaceFightCopy._timermap[wtimer.TIMER_TYPE_FIGTH_WATI_INPUT_TIMEOUT] = SpaceFightCopy.onFightInputTimeoutTimer
