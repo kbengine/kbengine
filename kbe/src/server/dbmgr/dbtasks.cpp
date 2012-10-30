@@ -94,31 +94,34 @@ void DBTaskExecuteRawDatabaseCommand::presentMainThread()
 	if(callbackID_ <= 0)
 		return;
 
-	Mercury::Bundle bundle;
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+
 	if(componentType_ == BASEAPP_TYPE)
-		bundle.newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
+		(*pBundle).newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
 	else if(componentType_ == CELLAPP_TYPE)
-		bundle.newMessage(CellappInterface::onExecuteRawDatabaseCommandCB);
+		(*pBundle).newMessage(CellappInterface::onExecuteRawDatabaseCommandCB);
 	else
 	{
 		KBE_ASSERT(false && "no support!\n");
 	}
 
-	bundle << callbackID_;
-	bundle << error_;
+	(*pBundle) << callbackID_;
+	(*pBundle) << error_;
 	if(error_.size() <= 0)
-		bundle.append(execret_);
+		(*pBundle).append(execret_);
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentType_, componentID_);
 
 	if(cinfos && cinfos->pChannel)
 	{
-		bundle.send(Dbmgr::getSingleton().getNetworkInterface(), cinfos->pChannel);
+		(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), cinfos->pChannel);
 	}
 	else
 	{
 		ERROR_MSG("DBTaskExecuteRawDatabaseCommand::presentMainThread: %s not found.", COMPONENT_NAME_EX(componentType_));
 	}
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -166,6 +169,7 @@ void DBTaskWriteEntity::presentMainThread()
 			eid_, entityDBID_, callbackID_, success_);
 
 		(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 	else{
 		ERROR_MSG("DBTaskCreateAccount::presentMainThread: channel(%s) not found.\n", addr_.c_str());
@@ -196,8 +200,8 @@ void DBTaskCreateAccount::presentMainThread()
 {
 	DEBUG_MSG("Dbmgr::reqCreateAccount:%s.\n", accountName_.c_str());
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(LoginappInterface::onReqCreateAccountResult);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(LoginappInterface::onReqCreateAccountResult);
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
 	// 如果没有连接db则从log中查找账号是否有此账号(这个功能是为了测试使用)
@@ -212,16 +216,18 @@ void DBTaskCreateAccount::presentMainThread()
 	}
 	*/
 
-	LoginappInterface::onReqCreateAccountResultArgs3::staticAddToBundle(bundle, failedcode, accountName_, password_);
+	LoginappInterface::onReqCreateAccountResultArgs3::staticAddToBundle((*pBundle), failedcode, accountName_, password_);
 
 	Mercury::Channel* pChannel = Dbmgr::getSingleton().getNetworkInterface().findChannel(addr_);
 	
 	if(pChannel){
-		bundle.send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
+		(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
 	}
 	else{
 		ERROR_MSG("DBTaskCreateAccount::presentMainThread: channel(%s) not found.\n", addr_.c_str());
 	}
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -248,20 +254,22 @@ void DBTaskQueryAccount::presentMainThread()
 {
 	DEBUG_MSG("Dbmgr::queryAccount:%s.\n", accountName_.c_str());
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(BaseappInterface::onQueryAccountCBFromDbmgr);
-	bundle << accountName_;
-	bundle << password_;
-	bundle << "";
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::onQueryAccountCBFromDbmgr);
+	(*pBundle) << accountName_;
+	(*pBundle) << password_;
+	(*pBundle) << "";
 
 	Mercury::Channel* pChannel = Dbmgr::getSingleton().getNetworkInterface().findChannel(addr_);
 	
 	if(pChannel){
-		bundle.send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
+		(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
 	}
 	else{
 		ERROR_MSG("DBTaskQueryAccount::presentMainThread: channel(%s) not found.\n", addr_.c_str());
 	}
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -366,8 +374,8 @@ void DBTaskAccountLogin::presentMainThread()
 	DEBUG_MSG("Dbmgr::onAccountLogin:%s.\n", accountName_.c_str());
 
 	// 一个用户登录， 构造一个数据库查询指令并加入到执行队列， 执行完毕将结果返回给loginapp
-	Mercury::Bundle bundle;
-	bundle.newMessage(LoginappInterface::onLoginAccountQueryResultFromDbmgr);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(LoginappInterface::onLoginAccountQueryResultFromDbmgr);
 
 	bool success = true;
 	COMPONENT_ID componentID = 0;
@@ -386,20 +394,22 @@ void DBTaskAccountLogin::presentMainThread()
 	}
 	*/
 
-	bundle << success;
-	bundle << accountName_;
-	bundle << password_;
-	bundle << componentID;   // 如果大于0则表示账号还存活在某个baseapp上
-	bundle << entityID;
+	(*pBundle) << success;
+	(*pBundle) << accountName_;
+	(*pBundle) << password_;
+	(*pBundle) << componentID;   // 如果大于0则表示账号还存活在某个baseapp上
+	(*pBundle) << entityID;
 
 	Mercury::Channel* pChannel = Dbmgr::getSingleton().getNetworkInterface().findChannel(addr_);
 
 	if(pChannel){
-		bundle.send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
+		(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
 	}
 	else{
 		ERROR_MSG("DBTaskAccountLogin::presentMainThread: channel(%s) not found.\n", addr_.c_str());
 	}
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

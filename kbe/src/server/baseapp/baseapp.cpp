@@ -82,6 +82,7 @@ bool Baseapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createBaseLocally,				__py_createBase,					METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createEntity,					__py_createBase,					METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		createBaseAnywhere,				__py_createBaseAnywhere,			METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		createBaseFromDBID,				__py_createBaseFromDBID,			METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		executeRawDatabaseCommand,		__py_executeRawDatabaseCommand,		METH_VARARGS,			0);
 
 	return EntityApp<Base>::installPyModules();
@@ -338,6 +339,59 @@ PyObject* Baseapp::__py_createBaseAnywhere(PyObject* self, PyObject* args)
 
 	Baseapp::getSingleton().createBaseAnywhere(entityType, params, pyCallback);
 	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	PyObject* pyDBID = NULL, *pyCallback = NULL;
+	char* entityType = NULL;
+	int ret = -1;
+
+	switch(argCount)
+	{
+	case 3:
+		ret = PyArg_ParseTuple(args, "s|O|O", &entityType, &pyDBID, &pyCallback);
+		break;
+	case 2:
+		ret = PyArg_ParseTuple(args, "s|O", &entityType, &pyDBID);
+		break;
+	default:
+		{
+			PyErr_Format(PyExc_AssertionError, "%s: args require 2 or 3 args, gived %d!\n",
+				__FUNCTION__, argCount);	
+			PyErr_PrintEx(0);
+			S_Return;
+		}
+	};
+
+
+	if(entityType == NULL || ret == -1)
+	{
+		ERROR_MSG("Baseapp::createBaseFromDBID: args is error!");
+		S_Return;
+	}
+
+	if(!PyCallable_Check(pyCallback))
+		pyCallback = NULL;
+
+	DBID dbid = PyLong_AsUnsignedLongLong(pyDBID);
+
+	Baseapp::getSingleton().createBaseFromDBID(entityType, dbid, pyCallback);
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::createBaseFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback)
+{
+	CALLBACK_ID callbackID = 0;
+	if(pyCallback != NULL)
+	{
+		callbackID = callbackMgr().save(pyCallback);
+	}
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 }
 
 //-------------------------------------------------------------------------------------

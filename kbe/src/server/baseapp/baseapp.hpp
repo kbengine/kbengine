@@ -113,7 +113,8 @@ public:
 	*/
 	static PyObject* __py_createBase(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseAnywhere(PyObject* self, PyObject* args);
-
+	static PyObject* __py_createBaseFromDBID(PyObject* self, PyObject* args);
+	
 	/**
 		创建一个新的space 
 	*/
@@ -130,6 +131,11 @@ public:
 		@param componentID	: 请求创建entity的baseapp的组件ID
 	*/
 	void onCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 
+		从db获取信息创建一个entity
+	*/
+	void createBaseFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback);
 
 	/** 
 		baseapp 的createBaseAnywhere的回调 
