@@ -261,6 +261,11 @@ public:
 		获取游戏时间
 	*/
 	static PyObject* __py_gametime(PyObject* self, PyObject* args);
+
+	/** 网络接口
+		写entity到db回调
+	*/
+	void onWriteToDBCallback(Mercury::Channel* pChannel, ENTITY_ID eid, DBID entityDBID, CALLBACK_ID callbackID, bool success);
 protected:
 	TimerHandle								loopCheckTimerHandle_;
 

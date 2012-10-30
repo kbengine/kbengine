@@ -48,7 +48,7 @@ EntityTableItem* EntityTable::findItem(int32/*ENTITY_PROPERTY_UID*/ utype)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTable::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+DBID EntityTable::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	while(s->opsize() > 0)
 	{
@@ -59,14 +59,14 @@ bool EntityTable::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModu
 		if(pTableItem == NULL)
 		{
 			ERROR_MSG("EntityTable::updateTable: not found item[%u].\n", pid);
-			return false;
+			return dbid;
 		}
 
 		if(!pTableItem->updateItem(dbid, s, pModule))
-			return false;
+			return dbid;
 	};
 
-	return true;
+	return dbid;
 }
 
 //-------------------------------------------------------------------------------------
@@ -169,7 +169,7 @@ EntityTable* EntityTables::findTable(std::string name)
 };
 
 //-------------------------------------------------------------------------------------
-bool EntityTables::writeEntity(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+DBID EntityTables::writeEntity(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 

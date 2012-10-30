@@ -404,7 +404,7 @@ public:
 	*/
 	virtual EntityTableItem* createItem(std::string type);
 
-	bool updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	DBID updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值

@@ -203,7 +203,7 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::writeToDB(PyObject* pyCallback)
+void Entity::writeToDB(void* data)
 {
 }
 

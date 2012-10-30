@@ -570,7 +570,9 @@ void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEng
 	}
 
 	PyObject * pyKey = script::Pickler::unpickle(key);
-	
+	if(pyKey == NULL)
+		return;
+
 	if(isDelete)
 	{
 		if(pGlobalData_->del(pyKey))

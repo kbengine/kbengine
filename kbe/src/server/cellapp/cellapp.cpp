@@ -417,7 +417,10 @@ void Cellapp::reqBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::Memo
 void Cellapp::reqWriteToDBFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	ENTITY_ID entityID = 0;
+	CALLBACK_ID callbackID = 0;
+
 	s >> entityID;
+	s >> callbackID;
 
 	Entity* e = this->findEntity(entityID);
 	if(!e)
@@ -426,7 +429,7 @@ void Cellapp::reqWriteToDBFromBaseapp(Mercury::Channel* pChannel, KBEngine::Memo
 		return;
 	}
 
-	e->writeToDB();
+	e->writeToDB(&callbackID);
 }
 
 //-------------------------------------------------------------------------------------

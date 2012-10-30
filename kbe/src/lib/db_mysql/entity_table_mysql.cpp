@@ -333,7 +333,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableMysql::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+DBID EntityTableMysql::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	SQL_OP_TABLE opTable;
 
@@ -346,7 +346,7 @@ bool EntityTableMysql::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* 
 		if(pTableItem == NULL)
 		{
 			ERROR_MSG("EntityTable::updateTable: not found item[%u].\n", pid);
-			return false;
+			return dbid;
 		}
 		
 		static_cast<EntityTableItemMysqlBase*>(pTableItem)->getSqlItemStr(s, opTable);
@@ -356,13 +356,13 @@ bool EntityTableMysql::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* 
 	std::string mainTableName = pModule->getName();
 	SQL_OP_TABLE::iterator iter = opTable.find(mainTableName);
 	if(iter == opTable.end())
-		return true;
+		return dbid;
 	
 	SqlCommandCreateFromDatas sqlcmd(mainTableName, dbid, iter->second);
 	sqlcmd->query(pdbi_);
 	dbid = sqlcmd->dbid();
 
-	return true;
+	return dbid;
 }
 
 //-------------------------------------------------------------------------------------

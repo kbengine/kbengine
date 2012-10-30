@@ -52,6 +52,12 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype,
 {
 	dataType_->incRef();
 	
+	// mailbox ÎÞ·¨±£´æ
+	if(isPersistent && strcmp(dataType_->getName(), "MAILBOX") == 0)
+	{
+		isPersistent_ = false;
+	}
+
 	PropertyDescription::propertyDescriptionCount_++;
 
 	if(dataType != NULL)

@@ -64,7 +64,10 @@ void Proxy::initClientCellPropertys()
 	bundle << this->getID();
 
 	ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
-	Mercury::FixedMessages::MSGInfo* msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::spaceID");
+
+	Mercury::FixedMessages::MSGInfo* msgInfo = 
+		Mercury::FixedMessages::getSingleton().isFixed("Property::spaceID");
+
 	if(msgInfo != NULL)
 	{
 		spaceuid = msgInfo->msgid;
@@ -222,7 +225,9 @@ void Proxy::giveClientTo(Proxy* proxy)
 //-------------------------------------------------------------------------------------
 void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
 {
-	setClientMailbox(new EntityMailbox(this->scriptModule_, &lpChannel->addr(), 0, id_, MAILBOX_TYPE_CLIENT));
+	setClientMailbox(new EntityMailbox(this->scriptModule_, 
+		&lpChannel->addr(), 0, id_, MAILBOX_TYPE_CLIENT));
+
 	addr(lpChannel->addr());
 	Baseapp::getSingleton().createClientProxies(this);
 

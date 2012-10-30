@@ -186,7 +186,7 @@ public:
 	/**
 		更新表
 	*/
-	virtual bool updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	virtual DBID updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 protected:
 
 	// 表名称
@@ -223,7 +223,7 @@ public:
 	/**
 		写entity到数据库
 	*/
-	bool writeEntity(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	DBID writeEntity(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 protected:
 	// 所有的字段
 	TABLES_MAP tables_;

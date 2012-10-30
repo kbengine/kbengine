@@ -353,14 +353,21 @@ void Entity::backupCellData()
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::writeToDB(PyObject* pyCallback)
+void Entity::writeToDB(void* data)
 {
+	CALLBACK_ID* pCallbackID = static_cast<CALLBACK_ID*>(data);
+	CALLBACK_ID callbackID = 0;
+
+	if(pCallbackID)
+		callbackID = *pCallbackID;
+
 	onWriteToDB();
 	backupCellData();
 
 	Mercury::Bundle bundle;
 	bundle.newMessage(BaseappInterface::onCellWriteToDBCompleted);
 	bundle << this->getID();
+	bundle << callbackID;
 	if(this->getBaseMailbox())
 	{
 		this->getBaseMailbox()->postMail(bundle);

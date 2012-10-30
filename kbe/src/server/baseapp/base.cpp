@@ -32,7 +32,8 @@ ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Base, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-Base::Base(ENTITY_ID id, const ScriptDefModule* scriptModule, PyTypeObject* pyType, bool isInitialised):
+Base::Base(ENTITY_ID id, const ScriptDefModule* scriptModule, 
+		   PyTypeObject* pyType, bool isInitialised):
 ScriptObject(pyType, isInitialised),
 ENTITY_CONSTRUCTION(Base),
 clientMailbox_(NULL),
@@ -78,7 +79,7 @@ void Base::onDestroy(void)
 		PyErr_PrintEx(0);	
 
 	if(this->hasDB())
-		onCellWriteToDBCompleted();
+		onCellWriteToDBCompleted(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -186,7 +187,9 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 	for(; iter != propertyDescrs.end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;
-		std::vector<ENTITY_PROPERTY_UID>::const_iterator finditer = std::find(log.begin(), log.end(), propertyDescription->getUType());
+		std::vector<ENTITY_PROPERTY_UID>::const_iterator finditer = 
+			std::find(log.begin(), log.end(), propertyDescription->getUType());
+
 		if(finditer != log.end())
 			continue;
 
@@ -277,7 +280,8 @@ PyObject* Base::pyDestroyCellEntity()
 {
 	if(cellMailbox_ == NULL) 
 	{
-		PyErr_Format(PyExc_Exception, "%s::destroyCellEntity: id:%i no cell! creatingCell=%s\n", this->getScriptName(), this->getID(),
+		PyErr_Format(PyExc_Exception, "%s::destroyCellEntity: id:%i no cell! creatingCell=%s\n", 
+			this->getScriptName(), this->getID(),
 			creatingCell_ ? "true" : "false");
 		PyErr_PrintEx(0);
 		S_Return;
@@ -301,7 +305,9 @@ PyObject* Base::pyDestroyEntity()
 
 	if(creatingCell_ || cellMailbox_ != NULL) 
 	{
-		PyErr_Format(PyExc_Exception, "%s::destroy: id:%i has cell! creatingCell=%s\n", this->getScriptName(), this->getID(),
+		PyErr_Format(PyExc_Exception, "%s::destroy: id:%i has cell! creatingCell=%s\n", 
+			this->getScriptName(), this->getID(),
+
 			creatingCell_ ? "true" : "false");
 		PyErr_PrintEx(0);
 	}
@@ -366,8 +372,10 @@ PyObject* Base::pyGetClientMailbox()
 //-------------------------------------------------------------------------------------
 void Base::onCreateCellFailure(void)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onCreateCellFailure"), 
-																		const_cast<char*>(""));
+	PyObject* pyResult = 
+		PyObject_CallMethod(this, const_cast<char*>("onCreateCellFailure"), 
+													const_cast<char*>(""));
+
 	if(pyResult != NULL)
 		Py_DECREF(pyResult);
 	else
@@ -383,7 +391,9 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 		ENTITY_ID srcEntityID = pChannel->proxyID();
 		if(srcEntityID <= 0 || srcEntityID != this->getID())
 		{
-			WARNING_MSG("Base::onRemoteMethodCall: srcEntityID:%d, thisEntityID:%d.\n", srcEntityID, this->getID());
+			WARNING_MSG("Base::onRemoteMethodCall: srcEntityID:%d, thisEntityID:%d.\n", 
+				srcEntityID, this->getID());
+
 			return;
 		}
 	}
@@ -402,7 +412,9 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 	MethodDescription* md = scriptModule_->findBaseMethodDescription(utype);
 	if(md == NULL)
 	{
-		ERROR_MSG("Base::onRemoteMethodCall: can't found method. utype=%u, callerID:%d.\n", utype, id_);
+		ERROR_MSG("Base::onRemoteMethodCall: can't found method. utype=%u, callerID:%d.\n", 
+			utype, id_);
+
 		return;
 	}
 
@@ -527,16 +539,28 @@ void Base::onBackup()
 }
 
 //-------------------------------------------------------------------------------------
-void Base::writeToDB(PyObject* pyCallback)
+void Base::writeToDB(void* data)
 {
+	PyObject* pyCallback = static_cast<PyObject*>(data);
+
 	if(isArchiveing_)
+	{
+		Py_DECREF(pyCallback);
 		return;
+	}
 
 	isArchiveing_ = true;
 
 	if(isDestroyed())																				
-	{																										
+	{			
+		Py_DECREF(pyCallback);
 		return;																							
+	}
+
+	CALLBACK_ID callbackID = 0;
+	if(pyCallback != NULL)
+	{
+		callbackID = callbackMgr().save(pyCallback);
 	}
 
 	// creatingCell_ 此时可能正在创建cell
@@ -544,19 +568,48 @@ void Base::writeToDB(PyObject* pyCallback)
 	// 写入数据库的是该entity的初始值， 并不影响
 	if(this->getCellMailbox() == NULL) 
 	{
-		onCellWriteToDBCompleted();
+		onCellWriteToDBCompleted(callbackID);
 	}
 	else
 	{
 		Mercury::Bundle bundle;
 		bundle.newMessage(CellappInterface::reqWriteToDBFromBaseapp);
 		bundle << this->getID();
+		bundle << callbackID;
 		this->getCellMailbox()->postMail(bundle);
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onCellWriteToDBCompleted()
+void Base::onWriteToDBCallback(ENTITY_ID eid, 
+								DBID entityDBID, 
+								CALLBACK_ID callbackID, 
+								bool success)
+{
+
+	PyObjectPtr pyCallback;
+
+	if(callbackID > 0)
+		pyCallback = callbackMgr().take(callbackID);
+
+	if(getDBID() <= 0)
+		setDBID(entityDBID);
+
+	if(callbackID > 0)
+	{
+		PyObject* pyargs = PyTuple_New(2);
+
+		Py_INCREF(this);
+		PyTuple_SET_ITEM(pyargs, 0, PyBool_FromLong((long)success));
+		PyTuple_SET_ITEM(pyargs, 1, this);
+		PyObject_CallObject(pyCallback.get(), pyargs);
+
+		Py_DECREF(pyargs);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 {
 	PyObject* pyResult = PyObject_CallMethod(this, 
 		const_cast<char*>("onPreArchive"), const_cast<char*>(""));
@@ -589,8 +642,12 @@ void Base::onCellWriteToDBCompleted()
 
 	Mercury::Bundle bundle;
 	bundle.newMessage(DbmgrInterface::writeEntity);
+
+	bundle << this->getID();
 	bundle << this->getDBID();
 	bundle << this->getScriptModule()->getUType();
+	bundle << callbackID;
+
 	bundle.append(*s);
 	bundle.send(Baseapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
 	MemoryStream::ObjPool().reclaimObject(s);
@@ -621,21 +678,27 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 
 	if(Baseapp::getSingleton().findEntity(getID()) == NULL)
 	{
-		PyErr_Format(PyExc_Exception, "%s::createCellEntity: %d not found!\n", getScriptName(), getID());
+		PyErr_Format(PyExc_Exception, "%s::createCellEntity: %d not found!\n", 
+			getScriptName(), getID());
+
 		PyErr_PrintEx(0);
 		S_Return;
 	}
 
 	if(creatingCell_ || this->getCellMailbox())
 	{
-		PyErr_Format(PyExc_Exception, "%s::createCellEntity: %d has a cell!\n", getScriptName(), getID());
+		PyErr_Format(PyExc_Exception, "%s::createCellEntity: %d has a cell!\n", 
+			getScriptName(), getID());
+
 		PyErr_PrintEx(0);
 		S_Return;
 	}
 
 	if(!PyObject_TypeCheck(pyobj, EntityMailbox::getScriptType()))
 	{
-		PyErr_Format(PyExc_TypeError, "create %s arg1 is not cellMailbox!", this->getScriptName());
+		PyErr_Format(PyExc_TypeError, "create %s arg1 is not cellMailbox!", 
+			this->getScriptName());
+
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -643,7 +706,9 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 	EntityMailboxAbstract* cellMailbox = static_cast<EntityMailboxAbstract*>(pyobj);
 	if(cellMailbox->getType() != MAILBOX_TYPE_CELL)
 	{
-		PyErr_Format(PyExc_TypeError, "create %s args1 not is a direct cellMailbox!", this->getScriptName());
+		PyErr_Format(PyExc_TypeError, "create %s args1 not is a direct cellMailbox!", 
+			this->getScriptName());
+
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -666,7 +731,9 @@ PyObject* Base::createInNewSpace(PyObject* params)
 
 	if(createdSpace_)
 	{
-		PyErr_Format(PyExc_Exception, "%s::createInNewSpace: %d has a space!\n", getScriptName(), getID());
+		PyErr_Format(PyExc_Exception, "%s::createInNewSpace: %d has a space!\n", 
+			getScriptName(), getID());
+
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -712,14 +779,18 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 
 	if(this->getCellMailbox() == NULL)
 	{
-		PyErr_Format(PyExc_Exception, "%s::teleport: %d no has cell!\n", getScriptName(), getID());
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d no has cell!\n", 
+			getScriptName(), getID());
+
 		PyErr_PrintEx(0);
 		S_Return;
 	}
 
 	if(baseEntityMB == NULL)
 	{
-		PyErr_Format(PyExc_Exception, "%s::teleport: %d baseEntityMB is NULL!\n", getScriptName(), getID());
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d baseEntityMB is NULL!\n", 
+			getScriptName(), getID());
+
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -730,7 +801,9 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 
 	if(!isMailbox && !isEntity)
 	{
-		PyErr_Format(PyExc_Exception, "%s::teleport: %d invalid baseEntityMB!\n", getScriptName(), getID());
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d invalid baseEntityMB!\n", 
+			getScriptName(), getID());
+
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -744,7 +817,9 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 
 		if(mb->getType() != MAILBOX_TYPE_BASE && mb->getType() != MAILBOX_TYPE_CELL_VIA_BASE)
 		{
-			PyErr_Format(PyExc_Exception, "%s::teleport: %d baseEntityMB is not baseMailbox!\n", getScriptName(), getID());
+			PyErr_Format(PyExc_Exception, "%s::teleport: %d baseEntityMB is not baseMailbox!\n", 
+				getScriptName(), getID());
+
 			PyErr_PrintEx(0);
 			S_Return;
 		}
@@ -754,7 +829,10 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 		Mercury::Bundle bundle;
 		bundle.newMessage(BaseappInterface::reqTeleportOther);
 		bundle << eid;
-		BaseappInterface::reqTeleportOtherArgs3::staticAddToBundle(bundle, this->getID(), this->getCellMailbox()->getComponentID(), g_componentID);
+
+		BaseappInterface::reqTeleportOtherArgs3::staticAddToBundle(bundle, this->getID(), 
+			this->getCellMailbox()->getComponentID(), g_componentID);
+
 		mb->postMail(bundle);
 	}
 	else
@@ -762,11 +840,14 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 		Base* base = static_cast<Base*>(baseEntityMB);
 		if(!base->isDestroyed())
 		{
-			base->reqTeleportOther(NULL, this->getID(), this->getCellMailbox()->getComponentID(), g_componentID);
+			base->reqTeleportOther(NULL, this->getID(), 
+				this->getCellMailbox()->getComponentID(), g_componentID);
 		}
 		else
 		{
-			PyErr_Format(PyExc_Exception, "%s::teleport: %d baseEntity is destroyed!\n", getScriptName(), getID());
+			PyErr_Format(PyExc_Exception, "%s::teleport: %d baseEntity is destroyed!\n", 
+				getScriptName(), getID());
+
 			PyErr_PrintEx(0);
 			S_Return;
 		}
@@ -822,7 +903,8 @@ void Base::reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEnt
 
 	if(this->getCellMailbox() == NULL || this->getCellMailbox()->getChannel() == NULL)
 	{
-		ERROR_MSG("%s::reqTeleportOther: %d, teleport is error, cellMailbox is NULL, reqTeleportEntityID, reqTeleportEntityCellAppID=%"PRAppID".\n",
+		ERROR_MSG("%s::reqTeleportOther: %d, teleport is error, cellMailbox is NULL, "
+			"reqTeleportEntityID, reqTeleportEntityCellAppID=%"PRAppID".\n",
 			this->getScriptName(), this->getID(), reqTeleportEntityID, reqTeleportEntityCellAppID);
 		return;
 	}
@@ -830,7 +912,8 @@ void Base::reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEnt
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(reqTeleportEntityCellAppID);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
-		ERROR_MSG("%s::reqTeleportOther: %d, teleport is error, not found cellapp, reqTeleportEntityID, reqTeleportEntityCellAppID=%"PRAppID".\n",
+		ERROR_MSG("%s::reqTeleportOther: %d, teleport is error, not found cellapp, "
+			"reqTeleportEntityID, reqTeleportEntityCellAppID=%"PRAppID".\n",
 			this->getScriptName(), this->getID(), reqTeleportEntityID, reqTeleportEntityCellAppID);
 		return;
 	}
@@ -838,7 +921,10 @@ void Base::reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEnt
 	Mercury::Bundle bundle;
 	bundle.newMessage(CellappInterface::teleportFromBaseapp);
 	bundle << reqTeleportEntityID;
-	CellappInterface::teleportFromBaseappArgs3::staticAddToBundle(bundle, this->getCellMailbox()->getComponentID(), this->getID(), reqTeleportEntityBaseAppID);
+
+	CellappInterface::teleportFromBaseappArgs3::staticAddToBundle(bundle, this->getCellMailbox()->getComponentID(), 
+		this->getID(), reqTeleportEntityBaseAppID);
+
 	bundle.send(Baseapp::getSingleton().getNetworkInterface(), cinfos->pChannel);
 }
 

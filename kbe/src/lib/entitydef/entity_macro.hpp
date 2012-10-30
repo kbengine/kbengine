@@ -478,7 +478,7 @@ public:																										\
 				S_Return;																					\
 			}																								\
 																											\
-			if(!PyMethod_Check(pycallback))																	\
+			if(!PyCallable_Check(pycallback))																\
 			{																								\
 				PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args1 not is callback!");				\
 				PyErr_PrintEx(0);																			\
@@ -491,7 +491,7 @@ public:																										\
 		S_Return;																							\
 	}																										\
 																											\
-	void writeToDB(PyObject* pyCallback = NULL);															\
+	void writeToDB(void* data);																				\
 																											\
 	void destroy()																							\
 	{																										\

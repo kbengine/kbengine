@@ -123,9 +123,12 @@ void DBTaskExecuteRawDatabaseCommand::presentMainThread()
 
 //-------------------------------------------------------------------------------------
 DBTaskWriteEntity::DBTaskWriteEntity(const Mercury::Address& addr, MemoryStream& datas):
+eid_(0),
 DBTask(addr, datas),
 entityDBID_(0),
-sid_(0)
+sid_(0),
+callbackID_(0),
+success_(false)
 {
 }
 
@@ -137,11 +140,11 @@ DBTaskWriteEntity::~DBTaskWriteEntity()
 //-------------------------------------------------------------------------------------
 bool DBTaskWriteEntity::process()
 {
-	(*pDatas_) >> entityDBID_ >> sid_;
+	(*pDatas_) >> eid_ >> entityDBID_ >> sid_ >> callbackID_;
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
-	EntityTables::getSingleton().writeEntity(entityDBID_, pDatas_, pModule);
-	
+	entityDBID_ = EntityTables::getSingleton().writeEntity(entityDBID_, pDatas_, pModule);
+	success_ = entityDBID_ > 0;
 	return false;
 }
 
@@ -150,6 +153,23 @@ void DBTaskWriteEntity::presentMainThread()
 {
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
 	DEBUG_MSG("Dbmgr::writeEntity: %s(%"PRIu64"), size=%u.\n", pModule->getName(), entityDBID_, (*pDatas_).opsize());
+
+	// 返回写entity的结果， 成功或者失败
+	// callbackID_
+
+	Mercury::Channel* pChannel = Dbmgr::getSingleton().getNetworkInterface().findChannel(addr_);
+	
+	if(pChannel){
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(BaseappInterface::onWriteToDBCallback);
+		BaseappInterface::onWriteToDBCallbackArgs4::staticAddToBundle((*pBundle), 
+			eid_, entityDBID_, callbackID_, success_);
+
+		(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
+	}
+	else{
+		ERROR_MSG("DBTaskCreateAccount::presentMainThread: channel(%s) not found.\n", addr_.c_str());
+	}
 }
 
 //-------------------------------------------------------------------------------------

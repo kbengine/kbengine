@@ -233,7 +233,9 @@ void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 	Components::COMPONENTS cts = Componentbridge::getComponents().getComponents(DBMGR_TYPE);
 	KBE_ASSERT(cts.size() >= 1);
 	
-	Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent(tcomponentType, uid, componentID);
+	Components::ComponentInfos* cinfos = 
+		Componentbridge::getComponents().findComponent(tcomponentType, uid, componentID);
+
 	cinfos->pChannel = NULL;
 
 	int ret = Components::getSingleton().connectComponent(tcomponentType, uid, componentID);
@@ -245,13 +247,17 @@ void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 	{
 	case BASEAPP_TYPE:
 		bundle.newMessage(BaseappInterface::onRegisterNewApp);
-		BaseappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, 
+		BaseappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, 
+			getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, 
+
 			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
 			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port);
 		break;
 	case CELLAPP_TYPE:
 		bundle.newMessage(CellappInterface::onRegisterNewApp);
-		CellappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, 
+		CellappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, 
+			getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, 
+
 			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
 			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port);
 		break;
@@ -548,7 +554,7 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 		Base* base = pEntities_->find(eid);
 		if(base == NULL)
 		{
-			ERROR_MSG("Baseapp::onCreateBaseAnywhereCallback: can't found entity:%ld.\n", eid);
+			ERROR_MSG("Baseapp::onCreateBaseAnywhereCallback: can't found entity:%d.\n", eid);
 			Py_DECREF(pyargs);
 			return;
 		}
@@ -567,7 +573,9 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 {
 	if(base->getCellMailbox())
 	{
-		ERROR_MSG("Baseapp::createCellEntity: %s %d has a cell!\n", base->getScriptName(), base->getID());
+		ERROR_MSG("Baseapp::createCellEntity: %s %d has a cell!\n", 
+			base->getScriptName(), base->getID());
+
 		return;
 	}
 
@@ -593,7 +601,8 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 
 	if(createToCellMailbox->getChannel() == NULL)
 	{
-		ERROR_MSG("Baseapp::createCellEntity: not found cellapp(createToCellMailbox:componentID=%"PRAppID", entityID=%d), create is error!\n", 
+		ERROR_MSG("Baseapp::createCellEntity: not found cellapp(createToCellMailbox:"
+			"componentID=%"PRAppID", entityID=%d), create is error!\n", 
 			createToCellMailbox->getComponentID(), createToCellMailbox->getID());
 
 		base->onCreateCellFailure();
@@ -606,7 +615,8 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONENT_ID componentID, SPACE_ID spaceID)
+void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, 
+							  COMPONENT_ID componentID, SPACE_ID spaceID)
 {
 	if(pChannel->isExternal())
 		return;
@@ -810,7 +820,8 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine
 			Py_INCREF(pAffectedRows);
 	}
 
-	DEBUG_MSG("Baseapp::onExecuteRawDatabaseCommandCB: nrows=%u, nfields=%u, err=%s.\n", nrows, nfields, err.c_str());
+	DEBUG_MSG("Baseapp::onExecuteRawDatabaseCommandCB: nrows=%u, nfields=%u, err=%s.\n", 
+		nrows, nfields, err.c_str());
 
 	if(callbackID > 0)
 	{
@@ -837,7 +848,8 @@ void Baseapp::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 	if(pChannel->isExternal())
 		return;
 
-	EntityApp<Base>::onDbmgrInitCompleted(pChannel, startID, endID, startGlobalOrder, startGroupOrder);
+	EntityApp<Base>::onDbmgrInitCompleted(pChannel, startID, endID, 
+		startGlobalOrder, startGroupOrder);
 
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onInit"), 
@@ -921,7 +933,8 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& accountName, std::string& password, ENTITY_ID entityID)
+void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& accountName, 
+								   std::string& password, ENTITY_ID entityID)
 {
 	if(pChannel->isExternal())
 		return;
@@ -941,16 +954,21 @@ void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& acco
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, SERVER_ERROR_CODE failedcode)
+void Baseapp::loginGatewayFailed(Mercury::Channel* pChannel, std::string& accountName, 
+								 SERVER_ERROR_CODE failedcode)
 {
 	if(failedcode == SERVER_ERR_NAME)
 	{
-		DEBUG_MSG("Baseapp::login: not found user[%s], login is failed!\n", accountName.c_str());
+		DEBUG_MSG("Baseapp::login: not found user[%s], login is failed!\n", 
+			accountName.c_str());
+
 		failedcode = SERVER_ERR_NAME_PASSWORD;
 	}
 	else if(failedcode == SERVER_ERR_PASSWORD)
 	{
-		DEBUG_MSG("Baseapp::login: user[%s] password is error, login is failed!\n", accountName.c_str());
+		DEBUG_MSG("Baseapp::login: user[%s] password is error, login is failed!\n", 
+			accountName.c_str());
+
 		failedcode = SERVER_ERR_NAME_PASSWORD;
 	}
 
@@ -964,7 +982,9 @@ void Baseapp::loginGatewayFailed(Mercury::Channel* pChannel, std::string& accoun
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName, std::string& password)
+void Baseapp::loginGateway(Mercury::Channel* pChannel, 
+						   std::string& accountName, 
+						   std::string& password)
 {
 	DEBUG_MSG("Baseapp::loginGateway: new user[%s].\n", accountName.c_str());
 
@@ -996,7 +1016,9 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel, std::string& accountName,
 	// 如果entityID大于0则说明此entity是存活状态登录
 	if(ptinfos->entityID > 0)
 	{
-		DEBUG_MSG("Baseapp::loginGateway: user[%s] has entity(%d).\n", accountName.c_str(), ptinfos->entityID);
+		DEBUG_MSG("Baseapp::loginGateway: user[%s] has entity(%d).\n", 
+			accountName.c_str(), ptinfos->entityID);
+
 		Proxy* base = static_cast<Proxy*>(findEntity(ptinfos->entityID));
 		if(base == NULL)
 		{
@@ -1098,14 +1120,17 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 	}
 	else
 	{
-		WARNING_MSG("Baseapp::reLoginGateway: accountName=%s, key="PRIu64", entityID=%d, ClientMailbox is exist.\n", 
+		WARNING_MSG("Baseapp::reLoginGateway: accountName=%s, key="PRIu64", "
+			"entityID=%d, ClientMailbox is exist.\n", 
 			accountName.c_str(), key, entityID);
 	}
 }
 
 //-------------------------------------------------------------------------------------
 void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, 
-										std::string& accountName, std::string& password, std::string& datas)
+										std::string& accountName, 
+										std::string& password, 
+										std::string& datas)
 {
 	if(pChannel->isExternal())
 		return;
@@ -1133,7 +1158,10 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel,
 
 		Mercury::Bundle bundle;
 		bundle.newMessage(DbmgrInterface::onAccountOnline);
-		DbmgrInterface::onAccountOnlineArgs3::staticAddToBundle(bundle, accountName, componentID_, base->getID());
+
+		DbmgrInterface::onAccountOnlineArgs3::staticAddToBundle(bundle, accountName, 
+			componentID_, base->getID());
+
 		bundle.send(this->getNetworkInterface(), pChannel);
 	}
 
@@ -1158,13 +1186,17 @@ void Baseapp::onEntityEnterWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_I
 	{
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onEntityEnterWorld);
-		ClientInterface::onEntityEnterWorldArgs2::staticAddToBundle(bundle, entityID, base->getSpaceID());
+
+		ClientInterface::onEntityEnterWorldArgs2::staticAddToBundle(bundle, entityID, 
+			base->getSpaceID());
+
 		bundle.send(this->getNetworkInterface(), pClientChannel);
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onEntityLeaveWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID)
+void Baseapp::onEntityLeaveWorldFromCellapp(Mercury::Channel* pChannel, 
+											ENTITY_ID entityID)
 {
 	if(pChannel->isExternal())
 		return;
@@ -1178,27 +1210,33 @@ void Baseapp::onEntityLeaveWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_I
 	{
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onEntityLeaveWorld);
-		ClientInterface::onEntityLeaveWorldArgs2::staticAddToBundle(bundle, entityID, base->getSpaceID());
+
+		ClientInterface::onEntityLeaveWorldArgs2::staticAddToBundle(bundle, entityID, 
+			base->getSpaceID());
+
 		bundle.send(this->getNetworkInterface(), pClientChannel);
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onEntityEnterSpaceFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID, SPACE_ID spaceID)
+void Baseapp::onEntityEnterSpaceFromCellapp(Mercury::Channel* pChannel, 
+											ENTITY_ID entityID, SPACE_ID spaceID)
 {
 	if(pChannel->isExternal())
 		return;
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onEntityLeaveSpaceFromCellapp(Mercury::Channel* pChannel, ENTITY_ID entityID, SPACE_ID spaceID)
+void Baseapp::onEntityLeaveSpaceFromCellapp(Mercury::Channel* pChannel, 
+											ENTITY_ID entityID, SPACE_ID spaceID)
 {
 	if(pChannel->isExternal())
 		return;
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel, 
+												KBEngine::MemoryStream& s)
 {
 	if(pChannel->isExternal())
 		return;
@@ -1216,7 +1254,10 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel, KBEn
 	EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->getClientMailbox());
 	if(mailbox == NULL)
 	{
-		ERROR_MSG("Baseapp::forwardMessageToClientFromCellapp: occur a error(can't found clientMailbox)! entityID=%d.\n", eid);
+		ERROR_MSG("Baseapp::forwardMessageToClientFromCellapp: "
+			"occur a error(can't found clientMailbox)! entityID=%d.\n", 
+			eid);
+
 		return;
 	}
 	
@@ -1255,7 +1296,7 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 
 	switch(mailtype)
 	{
-		case MAILBOX_TYPE_BASE:																		// 本组件是baseapp，那么确认邮件的目的地是这里， 那么执行最终操作
+		case MAILBOX_TYPE_BASE:		// 本组件是baseapp，那么确认邮件的目的地是这里， 那么执行最终操作
 			base->onRemoteMethodCall(pChannel, s);
 			break;
 		case MAILBOX_TYPE_CELL_VIA_BASE: // entity.cell.base.xxx
@@ -1263,7 +1304,8 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->getCellMailbox());
 				if(mailbox == NULL)
 				{
-					ERROR_MSG("Baseapp::onEntityMail: occur a error(can't found cellMailbox)! mailboxType=%d, entityID=%d.\n", mailtype, eid);
+					ERROR_MSG("Baseapp::onEntityMail: occur a error(can't found cellMailbox)! "
+						"mailboxType=%d, entityID=%d.\n", mailtype, eid);
 					break;
 				}
 				
@@ -1277,7 +1319,10 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->getClientMailbox());
 				if(mailbox == NULL)
 				{
-					ERROR_MSG("Baseapp::onEntityMail: occur a error(can't found clientMailbox)! mailboxType=%d, entityID=%d.\n", mailtype, eid);
+					ERROR_MSG("Baseapp::onEntityMail: occur a error(can't found clientMailbox)! "
+						"mailboxType=%d, entityID=%d.\n", 
+						mailtype, eid);
+
 					break;
 				}
 				
@@ -1288,7 +1333,10 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 			}
 			break;
 		default:
-			ERROR_MSG("Baseapp::onEntityMail: mailboxType %d is error! must a baseType. entityID=%d.\n", mailtype, eid);
+			{
+				ERROR_MSG("Baseapp::onEntityMail: mailboxType %d is error! must a baseType. entityID=%d.\n", 
+					mailtype, eid);
+			}
 	};
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
@@ -1325,6 +1373,9 @@ void Baseapp::onRemoteCallCellMethodFromClient(Mercury::Channel* pChannel, KBEng
 //-------------------------------------------------------------------------------------
 void Baseapp::onBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+
 	ENTITY_ID baseID = 0;
 	s >> baseID;
 	
@@ -1345,16 +1396,23 @@ void Baseapp::onBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::Memor
 //-------------------------------------------------------------------------------------
 void Baseapp::onCellWriteToDBCompleted(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+
 	ENTITY_ID baseID = 0;
+	CALLBACK_ID callbackID = 0;
+
 	s >> baseID;
-	
-	INFO_MSG("Baseapp::onCellWriteToDBCompleted: entityID=%d, size=%u.\n", baseID, s.opsize());
+	s >> callbackID;
+
+	INFO_MSG("Baseapp::onCellWriteToDBCompleted: entityID=%d, size=%u.\n", 
+		baseID, s.opsize());
 
 	Base* base = this->findEntity(baseID);
 
 	if(base)
 	{
-		base->onCellWriteToDBCompleted();
+		base->onCellWriteToDBCompleted(callbackID);
 	}
 	else
 	{
@@ -1369,6 +1427,23 @@ void Baseapp::onClientActiveTick(Mercury::Channel* pChannel)
 		return;
 
 	onAppActiveTick(pChannel, CLIENT_TYPE, 0);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onWriteToDBCallback(Mercury::Channel* pChannel, ENTITY_ID eid, 
+								  DBID entityDBID, CALLBACK_ID callbackID, bool success)
+{
+	if(pChannel->isExternal())
+		return;
+
+	Base* base = pEntities_->find(eid);
+	if(base == NULL)
+	{
+		ERROR_MSG("Baseapp::onWriteToDBCallback: can't found entity:%d.\n", eid);
+		return;
+	}
+
+	base->onWriteToDBCallback(eid, entityDBID, callbackID, success);
 }
 
 //-------------------------------------------------------------------------------------

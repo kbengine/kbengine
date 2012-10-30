@@ -181,6 +181,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// 请求关闭服务器
 	BASEAPP_MESSAGE_DECLARE_STREAM(reqCloseServer,							MERCURY_VARIABLE_MESSAGE)
 
+	// 写entity到db回调。
+	BASEAPP_MESSAGE_DECLARE_ARGS4(onWriteToDBCallback,						MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,								eid,
+									DBID,									entityDBID,
+									CALLBACK_ID,							callbackID,
+									bool,									success)
+
 	//--------------------------------------------Base----------------------------------------------------------
 	// 远程呼叫entity方法
 	BASE_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,							MERCURY_VARIABLE_MESSAGE)

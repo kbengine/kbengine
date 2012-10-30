@@ -89,8 +89,11 @@ public:
 	virtual bool process();
 	virtual void presentMainThread();
 protected:
+	ENTITY_ID eid_;
 	DBID entityDBID_;
 	ENTITY_SCRIPT_UID sid_;
+	CALLBACK_ID callbackID_;
+	bool success_;
 };
 
 /**
