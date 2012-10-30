@@ -97,6 +97,18 @@ typedef uint16 ENTITY_PROPERTY_UID;
 typedef uint16 ENTITY_METHOD_UID;
 typedef uint16 ENTITY_SCRIPT_UID;
 typedef uint16 DATATYPE_UID;
+typedef uint8  DATATYPE;
+
+#define DATA_TYPE_UNKONWN		0
+#define DATA_TYPE_FIXEDARRAY	1
+#define DATA_TYPE_FIXEDDICT		2
+#define DATA_TYPE_STRING		3
+#define DATA_TYPE_DIGIT			4
+#define DATA_TYPE_BLOB			5
+#define DATA_TYPE_PYTHON		6
+#define DATA_TYPE_VECTOR		7
+#define DATA_TYPE_UNICODE		8
+#define DATA_TYPE_MAILBOX		9
 
 // 对entity的一些系统级别的可变属性进行编号以便网络传输时进行辨别
 enum ENTITY_BASE_PROPERTY_UTYPE

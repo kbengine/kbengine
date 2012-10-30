@@ -83,6 +83,24 @@ PropertyDescription::~PropertyDescription()
 }
 
 //-------------------------------------------------------------------------------------
+void PropertyDescription::addToStream(MemoryStream* mstream, PyObject* pyValue)
+{
+	dataType_->addToStream(mstream, pyValue);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PropertyDescription::createFromStream(MemoryStream* mstream)
+{
+	return dataType_->createFromStream(mstream);
+}
+
+//-------------------------------------------------------------------------------------
+void PropertyDescription::addPersistentToStream(MemoryStream* mstream, PyObject* pyValue)
+{
+	dataType_->addToStream(mstream, pyValue);
+}
+
+//-------------------------------------------------------------------------------------
 PropertyDescription* PropertyDescription::createDescription(ENTITY_PROPERTY_UID utype, 
 															std::string& dataTypeName, 
 															std::string& name, 
@@ -175,6 +193,19 @@ FixedDictDescription::FixedDictDescription(ENTITY_PROPERTY_UID utype,
 	PropertyDescription(utype, dataTypeName, name, flags, isPersistent, 
 		dataType, isIdentifier, databaseLength, defaultStr, detailLevel)
 {
+	KBE_ASSERT(dataType->type() == DATA_TYPE_FIXEDDICT);
+
+	/*
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = 
+		static_cast<FixedDictType*>(dataType)->getKeyTypes();
+
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes.begin();
+	for(; iter != keyTypes.end(); iter++)
+	{
+		PropertyDescription* pPropertyDescription = PropertyDescription::createDescription(0,
+			std::string(iter->second->getName()), iter->first, flags, isPersistent, iter->second, false, 0, std::string(), detailLevel);
+	}
+	*/
 }
 
 //-------------------------------------------------------------------------------------
@@ -192,6 +223,12 @@ int FixedDictDescription::onSetValue(PyObject* parentObj, PyObject* value)
 	}
 
 	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+void FixedDictDescription::addPersistentToStream(MemoryStream* mstream, PyObject* pyValue)
+{
+	static_cast<FixedDictType*>(dataType_)->addToStreamEx(mstream, pyValue, true);
 }
 
 //-------------------------------------------------------------------------------------

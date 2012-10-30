@@ -32,7 +32,8 @@ static DATATYPE_UID _g_dataTypeUID = 1;
 
 //-------------------------------------------------------------------------------------
 DataType::DataType(DATATYPE_UID did):
-id_(did)
+id_(did),
+aliasName_()
 {
 	if(id_ == 0)
 		id_ = _g_dataTypeUID++;
@@ -1049,7 +1050,7 @@ FixedDictType::~FixedDictType()
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
 	for(; iter != keyTypes_.end(); iter++)
 	{
-		iter->second->decRef();
+		iter->second->dataType->decRef();
 	}
 
 	keyTypes_.clear();
@@ -1088,7 +1089,7 @@ PyObject* FixedDictType::createNewItemFromObj(const char* keyName, PyObject* pyo
 	{
 		if(iter->first == keyName)
 		{
-			return iter->second->createNewFromObj(pyobj);
+			return iter->second->dataType->createNewFromObj(pyobj);
 		}
 	}
 
@@ -1130,8 +1131,20 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 	XML_FOR_BEGIN(propertiesNode)
 	{
 		typeName = xmlplus->getKey(propertiesNode);
+
 		TiXmlNode* typeNode = xmlplus->enterNode(propertiesNode->FirstChild(), "Type");
+		TiXmlNode* PersistentNode = xmlplus->enterNode(propertiesNode->FirstChild(), "Persistent");
 		
+		bool persistent = true;
+		if(PersistentNode)
+		{
+			std::string strval = xmlplus->getValStr(PersistentNode);
+			if(strval == "false")
+			{
+				persistent = false;
+			}
+		}
+
 		if(typeNode)
 		{
 			strType = xmlplus->getValStr(typeNode);
@@ -1140,33 +1153,54 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 			if(strType == "ARRAY")
 			{
 				FixedArrayType* dataType = new FixedArrayType();
+				DictItemDataType* pDictItemDataType = new DictItemDataType();
+				pDictItemDataType->dataType = dataType;
+
 				if(dataType->initialize(xmlplus, typeNode))
 				{
-					keyTypes_.push_back(std::make_pair(typeName, dataType));
+					keyTypes_.push_back(std::make_pair(typeName, pDictItemDataType));
 					dataType->incRef();
+
+					if(dataType->getDataType()->type() == DATA_TYPE_MAILBOX)
+						persistent = false;
+
+					pDictItemDataType->persistent = persistent;
 				}
 				else
 				{
+					ERROR_MSG("FixedDictType::initialize: can't found array type[%s] by key[%s].\n", 
+						strType.c_str(), typeName.c_str());
+
+					delete pDictItemDataType;
 					return false;
 				}
 			}
 			else
 			{
 				DataType* dataType = DataTypes::getDataType(strType);
+				DictItemDataType* pDictItemDataType = new DictItemDataType();
+				pDictItemDataType->dataType = dataType;
+
 				if(dataType != NULL)
 				{
-					keyTypes_.push_back(std::make_pair(typeName, dataType));
+					keyTypes_.push_back(std::make_pair(typeName, pDictItemDataType));
 					dataType->incRef();
+					
+					if(dataType->type() == DATA_TYPE_MAILBOX)
+						persistent = false;
+
+					pDictItemDataType->persistent = persistent;
 				}
 				else
 				{
 					ERROR_MSG("FixedDictType::initialize: can't found type[%s] by key[%s].\n", 
 						strType.c_str(), typeName.c_str());
-
+					
+					delete pDictItemDataType;
 					return false;
 				}
 			}
-		}		
+		}
 	}
 	XML_FOR_END(propertiesNode);
 
@@ -1303,7 +1337,7 @@ DataType* FixedDictType::isSameItemType(const char* keyName, PyObject* pyValue)
 	{
 		if(iter->first == keyName)
 		{
-			if(pyValue == NULL || !iter->second->isSameType(pyValue))
+			if(pyValue == NULL || !iter->second->dataType->isSameType(pyValue))
 			{
 				PyErr_Format(PyExc_TypeError, 
 					"set FIXED_DICT(%s) is error! at key: %s, keyNames=[%s].", 
@@ -1315,7 +1349,7 @@ DataType* FixedDictType::isSameItemType(const char* keyName, PyObject* pyValue)
 			}
 			else
 			{
-				return iter->second;
+				return iter->second->dataType;
 			}
 		}
 	}
@@ -1362,7 +1396,7 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 	for(; iter != keyTypes_.end(); iter++)
 	{
 		PyObject* pyObject = PyDict_GetItemString(pyValue, const_cast<char*>(iter->first.c_str()));
-		if(pyObject == NULL || !iter->second->isSameType(pyObject))
+		if(pyObject == NULL || !iter->second->dataType->isSameType(pyObject))
 		{
 			PyErr_Format(PyExc_TypeError, 
 				"set FIXED_DICT(%s) is error! at key: %s, keyNames=[%s].", 
@@ -1385,7 +1419,7 @@ PyObject* FixedDictType::parseDefaultStr(std::string defaultVal)
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
 	for(; iter != keyTypes_.end(); iter++)
 	{
-		PyObject* item = iter->second->parseDefaultStr("");
+		PyObject* item = iter->second->dataType->parseDefaultStr("");
 		PyDict_SetItemString(val, iter->first.c_str(), item);
 		Py_DECREF(item);
 	}
@@ -1395,6 +1429,12 @@ PyObject* FixedDictType::parseDefaultStr(std::string defaultVal)
 
 //-------------------------------------------------------------------------------------
 void FixedDictType::addToStream(MemoryStream* mstream, PyObject* pyValue)
+{
+	addToStreamEx(mstream, pyValue, false);
+}
+
+//-------------------------------------------------------------------------------------
+void FixedDictType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool onlyPersistents)
 {
 	if(hasImpl())
 	{
@@ -1406,15 +1446,23 @@ void FixedDictType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 	{
 		pydict = static_cast<FixedDict*>(pyValue)->getDictObject();
 	}
-
+	
+	int i = 0;
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
+
 	for(; iter != keyTypes_.end(); iter++)
 	{
+		if(onlyPersistents)
+		{
+			if(!iter->second->persistent)
+				continue;
+		}
+
 		PyObject* pyObject = 
 			PyDict_GetItemString(pydict, const_cast<char*>(iter->first.c_str()));
 		
 		KBE_ASSERT(pyObject != NULL);
-		iter->second->addToStream(mstream, pyObject);
+		iter->second->dataType->addToStream(mstream, pyObject);
 	}
 
 	if(hasImpl())

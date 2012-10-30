@@ -741,13 +741,16 @@ bool EntityTableItemMysql_FIXED_DICT::initialize(DBInterface* dbi, const Propert
 
 	for(; iter != keyTypes.end(); iter++)
 	{
-		EntityTableItem* tableItem = pParentTable_->createItem(iter->second->getName());
+		if(!iter->second->persistent)
+			continue;
+
+		EntityTableItem* tableItem = pParentTable_->createItem(iter->second->dataType->getName());
 
 		tableItem->pParentTable(this->pParentTable());
 		tableItem->pParentTableItem(this);
 		tableItem->utype(-pPropertyDescription->getUType());
 		tableItem->tableName(this->tableName());
-		if(!tableItem->initialize(dbi, pPropertyDescription, iter->second, iter->first))
+		if(!tableItem->initialize(dbi, pPropertyDescription, iter->second->dataType, iter->first))
 			return false;
 
 		std::pair< std::string, std::tr1::shared_ptr<EntityTableItem> > itemVal;

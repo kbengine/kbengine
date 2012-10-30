@@ -87,10 +87,12 @@ public:
 
 	virtual const char* getName(void)const = 0;
 
-	DATATYPE_UID id()const { return id_; }
+	INLINE DATATYPE_UID id()const;
 
-	void aliasName(std::string aliasName){ aliasName_ = aliasName; }
-	const char* aliasName(void)const{ return aliasName_.c_str(); }
+	INLINE void aliasName(std::string aliasName);
+	INLINE const char* aliasName(void)const;
+
+	virtual DATATYPE type()const{ return DATA_TYPE_UNKONWN; }
 protected:
 	DATATYPE_UID id_;
 	std::string aliasName_;
@@ -109,6 +111,7 @@ public:
 	PyObject* createFromStream(MemoryStream* mstream);
 	PyObject* parseDefaultStr(std::string defaultVal);
 	const char* getName(void)const{ return "INT";}
+	virtual DATATYPE type()const{ return DATA_TYPE_DIGIT; }
 };
 
 //-------------------------------------------------------------------------------------
@@ -153,6 +156,8 @@ inline const char* IntType<int32>::getName(void)const
         return "INT32";
 }
 
+//-------------------------------------------------------------------------------------
+
 class UInt64Type : public DataType
 {
 protected:
@@ -169,6 +174,8 @@ public:
 	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "UINT64";}
+
+	virtual DATATYPE type()const{ return DATA_TYPE_DIGIT; }
 };
 
 class UInt32Type : public DataType
@@ -187,6 +194,8 @@ public:
 	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "UINT32";}
+
+	virtual DATATYPE type()const{ return DATA_TYPE_DIGIT; }
 };
 
 class Int64Type : public DataType
@@ -205,6 +214,8 @@ public:
 	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "INT64";}
+
+	virtual DATATYPE type()const{ return DATA_TYPE_DIGIT; }
 };
 
 class FloatType : public DataType
@@ -223,6 +234,8 @@ public:
 	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "FLOAT";}
+
+	virtual DATATYPE type()const{ return DATA_TYPE_DIGIT; }
 };
 
 class DoubleType : public DataType
@@ -241,6 +254,8 @@ public:
 	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "DOUBLE";}
+
+	virtual DATATYPE type()const{ return DATA_TYPE_DIGIT; }
 };
 
 class VectorType : public DataType
@@ -258,6 +273,8 @@ public:
 	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return name_.c_str();}
+
+	virtual DATATYPE type()const{ return DATA_TYPE_VECTOR; }
 protected:
 	std::string name_;
 	uint32 elemCount_;
@@ -279,6 +296,8 @@ public:
 	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "STRING";}
+
+	virtual DATATYPE type()const{ return DATA_TYPE_STRING; }
 };
 
 class UnicodeType : public DataType
@@ -297,6 +316,8 @@ public:
 	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "UNICODE";}
+
+	virtual DATATYPE type()const{ return DATA_TYPE_UNICODE; }
 };
 
 class PythonType : public DataType
@@ -314,6 +335,8 @@ public:
 	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "PYTHON";}
+
+	virtual DATATYPE type()const{ return DATA_TYPE_PYTHON; }
 };
 
 class BlobType : public DataType
@@ -332,6 +355,8 @@ public:
 	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "BLOB";}
+
+	virtual DATATYPE type()const{ return DATA_TYPE_BLOB; }
 };
 
 class MailboxType : public DataType
@@ -350,6 +375,8 @@ public:
 	PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "MAILBOX";}
+
+	virtual DATATYPE type()const{ return DATA_TYPE_MAILBOX; }
 };
 
 class FixedArrayType : public DataType
@@ -380,6 +407,8 @@ public:
 	*/
 	virtual PyObject* createNewItemFromObj(PyObject* pyobj);
 	virtual PyObject* createNewFromObj(PyObject* pyobj);
+
+	virtual DATATYPE type()const{ return DATA_TYPE_FIXEDARRAY; }
 protected:
 	DataType*			dataType_;		// 这个数组所处理的类别
 };
@@ -387,7 +416,15 @@ protected:
 class FixedDictType : public DataType
 {
 public:
-	typedef std::vector<std::pair<std::string, DataType*> > FIXEDDICT_KEYTYPE_MAP;
+	struct DictItemDataType
+	{
+		DataType* dataType;
+
+		// 作为一个数据类别在alias中可对dict中的某个项指定是否持久化
+		bool persistent;
+	};
+
+	typedef std::vector<std::pair<std::string, std::tr1::shared_ptr<DictItemDataType>> > FIXEDDICT_KEYTYPE_MAP;
 public:	
 	FixedDictType(DATATYPE_UID did = 0);
 	virtual ~FixedDictType();
@@ -403,6 +440,7 @@ public:
 	DataType* isSameItemType(const char* keyName, PyObject* pyValue);
 
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+	void addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool onlyPersistents);
 
 	PyObject* createFromStream(MemoryStream* mstream);
 
@@ -435,13 +473,21 @@ public:
 	bool impl_isSameType(PyObject* pyobj);
 
 	bool hasImpl()const { return implObj_ != NULL; }
+
+	virtual DATATYPE type()const{ return DATA_TYPE_FIXEDDICT; }
 protected:
-	FIXEDDICT_KEYTYPE_MAP			keyTypes_;		// 这个固定字典里的各个key的类型
-	PyObject*						implObj_;		// 实现脚本模块
+	// 这个固定字典里的各个key的类型
+	FIXEDDICT_KEYTYPE_MAP			keyTypes_;				
+
+	// 实现脚本模块
+	PyObject*						implObj_;				
+
 	PyObject*						pycreateObjFromDict_;
 	PyObject*						pygetDictFromObj_;
+
 	PyObject*						pyisSameType_;
-	std::string						moduleName_;
+
+	std::string						moduleName_;		
 };
 
 

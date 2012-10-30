@@ -132,6 +132,11 @@ public:
 		脚本请求设置这个属性的值 
 	*/
 	virtual int onSetValue(PyObject* parentObj, PyObject* value);	
+
+	virtual void addToStream(MemoryStream* mstream, PyObject* pyValue);
+	virtual PyObject* createFromStream(MemoryStream* mstream);
+	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+
 protected:	
 	std::string					name_;											// 这个属性的名称
 	std::string					dataTypeName_;									// 这个属性的字符串数据类别名
@@ -148,7 +153,6 @@ protected:
 
 class FixedDictDescription : public PropertyDescription
 {
-protected:	
 public:	
 	FixedDictDescription(ENTITY_PROPERTY_UID utype, 
 		std::string dataTypeName,
@@ -166,12 +170,17 @@ public:
 	/** 
 		脚本请求设置这个属性的值 
 	*/
-	int onSetValue(PyObject* parentObj, PyObject* value);		
+	int onSetValue(PyObject* parentObj, PyObject* value);	
+
+	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+
+	typedef std::vector<std::pair<std::string, std::tr1::shared_ptr<PropertyDescription> > > CHILD_PROPERTYS;
+protected:
+	CHILD_PROPERTYS childPropertys_;
 };
 
 class ArrayDescription : public PropertyDescription
 {
-protected:	
 public:	
 	ArrayDescription(ENTITY_PROPERTY_UID utype, 
 		std::string dataTypeName, 
@@ -190,6 +199,7 @@ public:
 		脚本请求设置这个属性的值 
 	*/
 	int onSetValue(PyObject* parentObj, PyObject* value);
+protected:	
 };
 
 class VectorDescription : public PropertyDescription

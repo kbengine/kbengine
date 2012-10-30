@@ -203,14 +203,14 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 				PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
 				(*s) << propertyDescription->getUType();
 				log.push_back(propertyDescription->getUType());
-				propertyDescription->getDataType()->addToStream(s, pyVal);
+				propertyDescription->addPersistentToStream(s, pyVal);
 				DEBUG_PERSISTENT_PROPERTY("addCellPersistentsDataToStream", attrname);
 			}
 			else if(PyDict_Contains(pydict, key) > 0)
 			{
 	    		(*s) << propertyDescription->getUType();
 				log.push_back(propertyDescription->getUType());
-	    		propertyDescription->getDataType()->addToStream(s, PyDict_GetItem(pydict, key));
+	    		propertyDescription->addPersistentToStream(s, PyDict_GetItem(pydict, key));
 				DEBUG_PERSISTENT_PROPERTY("addBasePersistentsDataToStream", attrname);
 			}
 			else
