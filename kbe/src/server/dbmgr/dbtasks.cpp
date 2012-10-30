@@ -123,8 +123,8 @@ void DBTaskExecuteRawDatabaseCommand::presentMainThread()
 
 //-------------------------------------------------------------------------------------
 DBTaskWriteEntity::DBTaskWriteEntity(const Mercury::Address& addr, MemoryStream& datas):
-eid_(0),
 DBTask(addr, datas),
+eid_(0),
 entityDBID_(0),
 sid_(0),
 callbackID_(0),
