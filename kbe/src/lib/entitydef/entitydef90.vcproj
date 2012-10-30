@@ -270,6 +270,10 @@
 			>
 		</Filter>
 		<File
+			RelativePath=".\datatype.ipp"
+			>
+		</File>
+		<File
 			RelativePath=".\entitydef.ipp"
 			>
 		</File>
