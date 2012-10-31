@@ -14,7 +14,7 @@ kbengine仿照bigworld技术努力成为一款开源mmog引擎，bigworld引擎�
 无需重复性的实现网络，内存管理，线程管理等底层通用性技术，把精力集中到游戏开发层面上来，
 使用python就能够简单高效的打造一款游戏。
 
-先简单的介绍一下引擎的各个组件部分:
+先简单的介绍一下引擎的各个主要组件部分:
 
 	· dbmgr:
 	实现数据的存取，默认使用mysql作为数据库。另外还包括整个游戏的entityID分配、
@@ -26,11 +26,10 @@ kbengine仿照bigworld技术努力成为一款开源mmog引擎，bigworld引擎�
 
 
 	· baseapp:
-	客户端与服务器的通讯只能通过baseapp来完成, 一个帐号登陆到baseapp之后就不会再改变，
-	这个baseapp会一直维护这个帐号，直到与他断开连接, 
-	并不像cellapp一样会迁移entity。另外它还会定义备份entity的cell数据、定时写数据到数据库、
-	定时备份相关数据到其他baseapp、数据包加密解密、逻辑层还可以利用base不迁移的特性在此实现
-	类似全局管理器之类的系统。baseapp部署的数量可自由配置。
+	客户端与服务器的通讯只能通过baseapp来完成, 一个帐号登陆到baseapp之后就不会再改变，这个baseapp会一直维护这个帐号，
+	直到与他断开连接, 并不像cellapp一样会迁移entity。另外它还会定义备份entity的cell数据、定时写数据到数据库、
+	定时备份相关数据到其他baseapp、数据包加密解密、逻辑层还可以利用base不迁移的特性在此实现类似全局管理器之类的系统。
+	baseapp部署的数量可自由配置。
 
 
 	· cellappmgr:
@@ -38,8 +37,8 @@ kbengine仿照bigworld技术努力成为一款开源mmog引擎，bigworld引擎�
 
 
 	· cellapp:
-	一个cellapp负责处理一个(尽量)或者多个cell，每个cell处理一个space，当一个space上消耗过大时kbe将会寻找空闲的
-	cellapp来均衡负载， 整个游戏的实时处理逻辑部分也在cellapp，包括aoi, 逻辑层的ai, entity移动导航等等。 
+	一个cellapp负责处理一个(尽量)或者多个cell，每个cell处理一个space的部分或者整个space，当一个space上消耗过大时kbe将会
+	寻找空闲的cellapp来均衡负载， 整个游戏的实时处理逻辑部分也在cellapp，包括aoi, 逻辑层的ai, entity移动导航等等。 
 	cellapp部署的数量可自由配置。
 
 	· loginapp:
@@ -64,7 +63,8 @@ kbengine仿照bigworld技术努力成为一款开源mmog引擎，bigworld引擎�
 	并支持动态调试服务器python逻辑层以及查看各个组件的日志，启动服务器与关闭等。 
 
 
-
+	· messagelog: 
+	收集和备份各个组件的运行日志，可使用guiconsole来查看和搜索相关信息。
 ##GO!
 
 
