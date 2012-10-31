@@ -905,13 +905,22 @@ void init_network(void)
 				
 						printf("!!!玩家离开世界:spaceUType=%u, spaceID=%u.\n", spaceUType, spaceID);
 	
-				if(packet99.opsize() == 0)
+				//if(packet99.opsize() == 0)
 				{
 					packet99.clear(false);
 					len = mysocket.recv(packet99.data(), 65535);
 					packet99.wpos(len);
 				}
+
+			packet99 >> msgID;
+			packet99 >> eid;
+			SPACE_ID spaceID1;
+			packet99 >> spaceID1;
+			printf("!!!entity进入世界:id=%d.\n", eid);
 avatarenterworld = false;
+					packet99.clear(false);
+					len = mysocket.recv(packet99.data(), 65535);
+					packet99.wpos(len);
 
 		while(packet99.opsize() > 0)
 		{
@@ -1064,7 +1073,7 @@ avatarenterworld = false;
 			std::wcout << name;
 			printf("utype=%u. dialogID=%u, descr=",  utype, dialogID);
 			std::wcout << descr << std::endl;
-			break;
+			//break;
 		};
 
 		/*

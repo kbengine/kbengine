@@ -364,14 +364,14 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 
 	// 对普通的输入加入print 让服务器回显信息
     if((s.find("=")) == -1 &&
-		(s.find("print")) == -1 &&
-		(s.find("import")) == -1 &&
-		(s.find("class")) == -1 &&
-		(s.find("def")) == -1 &&
-		(s.find("del")) == -1 &&
-		(s.find("if")) == -1 &&
-		(s.find("for")) == -1 &&
-		(s.find("while")) == -1
+		(s.find("print(")) == -1 &&
+		(s.find("import ")) == -1 &&
+		(s.find("class ")) == -1 &&
+		(s.find("def ")) == -1 &&
+		(s.find("del ")) == -1 &&
+		(s.find("if ")) == -1 &&
+		(s.find("for ")) == -1 &&
+		(s.find("while ")) == -1
 		)
         s = "print(" + s + ")";
 
