@@ -112,6 +112,7 @@ public:
 	virtual bool dropEntityTableFromDB(const char* tablename);
 protected:
 	MYSQL* pMysql_;
+	bool hasLostConnection_;
 };
 
 

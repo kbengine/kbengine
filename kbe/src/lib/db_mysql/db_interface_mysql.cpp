@@ -27,7 +27,8 @@ namespace KBEngine {
 //-------------------------------------------------------------------------------------
 DBInterfaceMysql::DBInterfaceMysql() :
 DBInterface(),
-pMysql_(NULL)
+pMysql_(NULL),
+hasLostConnection_(false)
 {
 }
 
@@ -43,32 +44,44 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 		db_port_ = 3306;
 	
 	kbe_snprintf(db_name_, MAX_BUF, "%s", databaseName);
-    pMysql_ = mysql_init(0);
 
-	if(pMysql_ == NULL)
-	{
-		return false;
-	}
+	hasLostConnection_ = false;
 
-    pMysql_ = mysql_real_connect(mysql(), db_ip_, db_username_, 
-    	db_password_, db_name_, db_port_, 0, CLIENT_MULTI_STATEMENTS);  
-    
-	if(mysql())
+	try
 	{
-		if(mysql_select_db(mysql(), databaseName) != 0)
+		pMysql_ = mysql_init(0);
+
+		if(pMysql_ == NULL)
 		{
-			ERROR_MSG( "DBInterfaceMysql::attach: Could not set active db[%s]\n", databaseName);
 			return false;
 		}
-	}
-	else
-	{
-		return false;
-	}
 
-	if (mysql_set_character_set(mysql(), "utf8") != 0)
+		pMysql_ = mysql_real_connect(mysql(), db_ip_, db_username_, 
+    		db_password_, db_name_, db_port_, 0, CLIENT_MULTI_STATEMENTS);  
+	    
+		if(mysql())
+		{
+			if(mysql_select_db(mysql(), databaseName) != 0)
+			{
+				ERROR_MSG( "DBInterfaceMysql::attach: Could not set active db[%s]\n", databaseName);
+				return false;
+			}
+		}
+		else
+		{
+			return false;
+		}
+
+		if (mysql_set_character_set(mysql(), "utf8") != 0)
+		{
+			ERROR_MSG( "DBInterfaceMysql::attach: Could not set client connection character set to UTF-8\n" );
+		}
+	}
+	catch (std::exception& e)
 	{
-		ERROR_MSG( "DBInterfaceMysql::attach: Could not set client connection character set to UTF-8\n" );
+		ERROR_MSG("DBInterfaceMysql::attach: %s\n", e.what() );
+		hasLostConnection_ = true;
+		return false;
 	}
 
     return mysql() != NULL;
