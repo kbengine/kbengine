@@ -48,6 +48,12 @@ ObjectPool<Channel>& Channel::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+Channel::SmartPoolObjectPtr Channel::createSmartPoolObj()
+{
+	return SmartPoolObjectPtr(new SmartPoolObject<Channel>(ObjPool().createObject(), _g_objPool));
+}
+
+//-------------------------------------------------------------------------------------
 void Channel::onReclaimObject()
 {
 	this->clearState();

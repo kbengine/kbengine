@@ -38,6 +38,12 @@ ObjectPool<Address>& Address::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+Address::SmartPoolObjectPtr Address::createSmartPoolObj()
+{
+	return SmartPoolObjectPtr(new SmartPoolObject<Address>(ObjPool().createObject(), _g_objPool));
+}
+
+//-------------------------------------------------------------------------------------
 void Address::onReclaimObject()
 {
 	ip = 0;

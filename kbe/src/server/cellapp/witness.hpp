@@ -65,6 +65,9 @@ public:
 	Witness();
 	~Witness();
 
+	typedef std::tr1::shared_ptr<SmartPoolObject<Witness>> SmartPoolObjectPtr;
+	static SmartPoolObjectPtr createSmartPoolObj();
+
 	static ObjectPool<Witness>& ObjPool();
 	void onReclaimObject();
 

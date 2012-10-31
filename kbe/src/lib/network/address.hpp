@@ -32,6 +32,9 @@ class Address  : public PoolObject
 {
 public:
 	static const Address NONE;
+
+	typedef std::tr1::shared_ptr<SmartPoolObject<Address>> SmartPoolObjectPtr;
+	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<Address>& ObjPool();
 	void onReclaimObject();
 

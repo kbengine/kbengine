@@ -45,6 +45,12 @@ ObjectPool<UDPPacketReceiver>& UDPPacketReceiver::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+UDPPacketReceiver::SmartPoolObjectPtr UDPPacketReceiver::createSmartPoolObj()
+{
+	return SmartPoolObjectPtr(new SmartPoolObject<UDPPacketReceiver>(ObjPool().createObject(), _g_objPool));
+}
+
+//-------------------------------------------------------------------------------------
 UDPPacketReceiver::UDPPacketReceiver(EndPoint & endpoint,
 	   NetworkInterface & networkInterface	) :
 	PacketReceiver(endpoint, networkInterface)

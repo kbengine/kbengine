@@ -22,12 +22,19 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine
 {
 static ObjectPool<MemoryStream> _g_objPool;
-
+//-------------------------------------------------------------------------------------
 ObjectPool<MemoryStream>& MemoryStream::ObjPool()
 {
 	return _g_objPool;
 }
 
+//-------------------------------------------------------------------------------------
+MemoryStream::SmartPoolObjectPtr MemoryStream::createSmartPoolObj()
+{
+	return SmartPoolObjectPtr(new SmartPoolObject<MemoryStream>(ObjPool().createObject(), _g_objPool));
+}
+
+//-------------------------------------------------------------------------------------
 } 
 
 

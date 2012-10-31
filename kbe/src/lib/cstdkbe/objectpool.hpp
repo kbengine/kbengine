@@ -46,6 +46,9 @@ namespace KBEngine{
 #define OBJECT_POOL_INIT_SIZE	16
 
 template< typename T >
+class SmartPoolObject;
+
+template< typename T >
 class ObjectPool
 {
 public:
@@ -148,6 +151,50 @@ public:
 	{
 		return false;
 	}
+};
+
+template< typename T >
+class SmartObjectPool : public ObjectPool<T>
+{
+public:
+};
+
+template< typename T >
+class SmartPoolObject
+{
+public:
+	SmartPoolObject(T* pPoolObject, ObjectPool<T>& objectPool):
+	  pPoolObject_(pPoolObject),
+	  objectPool_(objectPool)
+	{
+	}
+
+	~SmartPoolObject()
+	{
+		onReclaimObject();
+	}
+
+	void onReclaimObject()
+	{
+		if(pPoolObject_ != NULL)
+		{
+			objectPool_.reclaimObject(pPoolObject_);
+			pPoolObject_ = NULL;
+		}
+	}
+
+	T* get()
+	{
+		return pPoolObject_;
+	}
+
+	T* operator->()
+	{
+		return pPoolObject_;
+	}
+private:
+	T* pPoolObject_;
+	ObjectPool<T>& objectPool_;
 };
 
 }

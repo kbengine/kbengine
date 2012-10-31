@@ -39,6 +39,12 @@ ObjectPool<UDPPacket>& UDPPacket::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+UDPPacket::SmartPoolObjectPtr UDPPacket::createSmartPoolObj()
+{
+	return SmartPoolObjectPtr(new SmartPoolObject<UDPPacket>(ObjPool().createObject(), _g_objPool));
+}
+
+//-------------------------------------------------------------------------------------
 UDPPacket::UDPPacket(MessageID msgID, size_t res):
 Packet(msgID, false, res)
 {

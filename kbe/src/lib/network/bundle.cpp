@@ -101,6 +101,12 @@ ObjectPool<Bundle>& Bundle::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+Bundle::SmartPoolObjectPtr Bundle::createSmartPoolObj()
+{
+	return SmartPoolObjectPtr(new SmartPoolObject<Bundle>(ObjPool().createObject(), _g_objPool));
+}
+
+//-------------------------------------------------------------------------------------
 Bundle::Bundle(Channel * pChannel, ProtocolType pt):
 	pChannel_(pChannel),
 	numMessages_(0),

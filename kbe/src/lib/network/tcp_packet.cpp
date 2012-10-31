@@ -39,6 +39,12 @@ ObjectPool<TCPPacket>& TCPPacket::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+TCPPacket::SmartPoolObjectPtr TCPPacket::createSmartPoolObj()
+{
+	return SmartPoolObjectPtr(new SmartPoolObject<TCPPacket>(ObjPool().createObject(), _g_objPool));
+}
+
+//-------------------------------------------------------------------------------------
 TCPPacket::TCPPacket(MessageID msgID, size_t res):
 Packet(msgID, true, res)
 {

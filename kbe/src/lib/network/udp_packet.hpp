@@ -39,6 +39,8 @@ namespace Mercury
 class UDPPacket : public Packet
 {
 public:
+	typedef std::tr1::shared_ptr<SmartPoolObject<UDPPacket>> SmartPoolObjectPtr;
+	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<UDPPacket>& ObjPool();
 
     UDPPacket(MessageID msgID = 0, size_t res = 0);

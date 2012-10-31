@@ -45,6 +45,12 @@ ObjectPool<TCPPacketReceiver>& TCPPacketReceiver::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+TCPPacketReceiver::SmartPoolObjectPtr TCPPacketReceiver::createSmartPoolObj()
+{
+	return SmartPoolObjectPtr(new SmartPoolObject<TCPPacketReceiver>(ObjPool().createObject(), _g_objPool));
+}
+
+//-------------------------------------------------------------------------------------
 TCPPacketReceiver::TCPPacketReceiver(EndPoint & endpoint,
 	   NetworkInterface & networkInterface	) :
 	PacketReceiver(endpoint, networkInterface)

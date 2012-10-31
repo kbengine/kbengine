@@ -20,6 +20,12 @@ ObjectPool<Witness>& Witness::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+Witness::SmartPoolObjectPtr Witness::createSmartPoolObj()
+{
+	return SmartPoolObjectPtr(new SmartPoolObject<Witness>(ObjPool().createObject(), _g_objPool));
+}
+
+//-------------------------------------------------------------------------------------
 void Witness::onReclaimObject()
 {
 }

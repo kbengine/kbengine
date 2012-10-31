@@ -42,7 +42,10 @@ class EventDispatcher;
 class UDPPacketReceiver : public PacketReceiver
 {
 public:
+	typedef std::tr1::shared_ptr<SmartPoolObject<UDPPacketReceiver>> SmartPoolObjectPtr;
+	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<UDPPacketReceiver>& ObjPool();
+
 	UDPPacketReceiver():PacketReceiver(){}
 	UDPPacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
 	~UDPPacketReceiver();

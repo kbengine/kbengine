@@ -64,6 +64,12 @@ ObjectPool<EndPoint>& EndPoint::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+EndPoint::SmartPoolObjectPtr EndPoint::createSmartPoolObj()
+{
+	return SmartPoolObjectPtr(new SmartPoolObject<EndPoint>(ObjPool().createObject(), _g_objPool));
+}
+
+//-------------------------------------------------------------------------------------
 void EndPoint::onReclaimObject()
 {
 #if KBE_PLATFORM == PLATFORM_WIN32

@@ -39,6 +39,8 @@ namespace Mercury
 class TCPPacket : public Packet
 {
 public:
+	typedef std::tr1::shared_ptr<SmartPoolObject<TCPPacket>> SmartPoolObjectPtr;
+	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<TCPPacket>& ObjPool();
 
     TCPPacket(MessageID msgID = 0, size_t res = 0);

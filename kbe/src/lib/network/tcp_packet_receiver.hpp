@@ -43,6 +43,8 @@ class EventDispatcher;
 class TCPPacketReceiver : public PacketReceiver
 {
 public:
+	typedef std::tr1::shared_ptr<SmartPoolObject<TCPPacketReceiver>> SmartPoolObjectPtr;
+	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<TCPPacketReceiver>& ObjPool();
 	
 	TCPPacketReceiver():PacketReceiver(){}
