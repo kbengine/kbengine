@@ -188,6 +188,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									CALLBACK_ID,							callbackID,
 									bool,									success)
 
+	// createBaseFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseFromDBIDCallback,			MERCURY_FIXED_MESSAGE)
+
 	//--------------------------------------------Base----------------------------------------------------------
 	// 远程呼叫entity方法
 	BASE_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,							MERCURY_VARIABLE_MESSAGE)

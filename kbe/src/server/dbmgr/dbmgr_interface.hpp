@@ -111,6 +111,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	// 请求关闭服务器
 	DBMGR_MESSAGE_DECLARE_STREAM(reqCloseServer,					MERCURY_VARIABLE_MESSAGE)
 
+	// 某个app向本app告知处于活动状态。
+	DBMGR_MESSAGE_DECLARE_ARGS4(queryEntity,						MERCURY_FIXED_MESSAGE, 
+									COMPONENT_ID,					componentID,
+									DBID,							dbid, 
+									std::string,					entityType,
+									CALLBACK_ID,					callbackID)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

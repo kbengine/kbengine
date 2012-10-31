@@ -360,7 +360,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 //-------------------------------------------------------------------------------------
 DBID EntityTableMysql::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
-	SQL_OP_TABLE opTable;
+	SQL_W_OP_TABLE opTable;
 
 	while(s->opsize() > 0)
 	{
@@ -382,12 +382,12 @@ DBID EntityTableMysql::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* 
 			exstrFlag += "_";
 		}
 
-		static_cast<EntityTableItemMysqlBase*>(pTableItem)->getSqlItemStr(s, opTable, exstrFlag.c_str());
+		static_cast<EntityTableItemMysqlBase*>(pTableItem)->getWriteSqlItem(s, opTable, exstrFlag.c_str());
 	};
 
 	// 先将主表的数据放入数据库
 	std::string mainTableName = pModule->getName();
-	SQL_OP_TABLE::iterator iter = opTable.find(mainTableName);
+	SQL_W_OP_TABLE::iterator iter = opTable.find(mainTableName);
 	if(iter == opTable.end())
 		return dbid;
 	
@@ -399,12 +399,29 @@ DBID EntityTableMysql::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* 
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableMysql::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable)
+bool EntityTableMysql::addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
-	TABLEITEM_MAP::iterator iter = tableItems_.begin();
-	for(; iter != tableItems_.end(); iter++)
+	KBE_ASSERT(pModule && s && dbid > 0);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableMysql::getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable)
+{
+	std::vector<EntityTableItem*>::iterator iter = tableFixedOrderItems_.begin();
+	for(; iter != tableFixedOrderItems_.end(); iter++)
 	{
-		static_cast<EntityTableItemMysqlBase*>(iter->second.get())->getSqlItemStr(s, opTable);
+		static_cast<EntityTableItemMysqlBase*>((*iter))->getWriteSqlItem(s, opTable);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableMysql::getReadSqlItem(SQL_R_OP_TABLE& opTable)
+{
+	std::vector<EntityTableItem*>::iterator iter = tableFixedOrderItems_.begin();
+	for(; iter != tableFixedOrderItems_.end(); iter++)
+	{
+		static_cast<EntityTableItemMysqlBase*>((*iter))->getReadSqlItem(opTable);
 	}
 }
 
@@ -432,15 +449,15 @@ bool EntityTableItemMysql_VECTOR2::syncToDB(const char* exstrFlag)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_VECTOR2::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+bool EntityTableItemMysql_VECTOR2::addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR2::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag)
+void EntityTableItemMysql_VECTOR2::getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag)
 {
-	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+	SQL_W_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
 
 #ifdef CLIENT_NO_FLOAT
 	int32 v;
@@ -456,7 +473,7 @@ void EntityTableItemMysql_VECTOR2::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& 
 	for(ArraySize i=0; i<asize; i++)
 	{
 		(*s) >> v;
-		SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
+		SQL_W_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_W_OP_TABLE_VAL_STRUCT();
 		kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%d_%s%s", i, exstrFlag, itemName());
 
 #ifdef CLIENT_NO_FLOAT
@@ -467,8 +484,13 @@ void EntityTableItemMysql_VECTOR2::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& 
 		
 		pSotvs->parentTableName = this->pParentTable()->tableName();
 		pSotvs->parentTableID = 0;
-		opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
+		opTableVal.push_back(std::tr1::shared_ptr<SQL_W_OP_TABLE_VAL_STRUCT>(pSotvs));
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_VECTOR2::getReadSqlItem(SQL_R_OP_TABLE& opTable)
+{
 }
 
 //-------------------------------------------------------------------------------------
@@ -501,15 +523,15 @@ bool EntityTableItemMysql_VECTOR3::syncToDB(const char* exstrFlag)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_VECTOR3::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+bool EntityTableItemMysql_VECTOR3::addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR3::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag)
+void EntityTableItemMysql_VECTOR3::getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag)
 {
-	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+	SQL_W_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
 
 #ifdef CLIENT_NO_FLOAT
 	int32 v;
@@ -525,7 +547,7 @@ void EntityTableItemMysql_VECTOR3::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& 
 	for(ArraySize i=0; i<asize; i++)
 	{
 		(*s) >> v;
-		SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
+		SQL_W_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_W_OP_TABLE_VAL_STRUCT();
 		kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%d_%s%s", i, exstrFlag, itemName());
 
 #ifdef CLIENT_NO_FLOAT
@@ -536,8 +558,13 @@ void EntityTableItemMysql_VECTOR3::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& 
 
 		pSotvs->parentTableName = this->pParentTable()->tableName();
 		pSotvs->parentTableID = 0;
-		opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
+		opTableVal.push_back(std::tr1::shared_ptr<SQL_W_OP_TABLE_VAL_STRUCT>(pSotvs));
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_VECTOR3::getReadSqlItem(SQL_R_OP_TABLE& opTable)
+{
 }
 
 //-------------------------------------------------------------------------------------
@@ -576,15 +603,15 @@ bool EntityTableItemMysql_VECTOR4::syncToDB(const char* exstrFlag)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_VECTOR4::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+bool EntityTableItemMysql_VECTOR4::addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR4::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag)
+void EntityTableItemMysql_VECTOR4::getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag)
 {
-	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+	SQL_W_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
 
 #ifdef CLIENT_NO_FLOAT
 	int32 v;
@@ -600,7 +627,7 @@ void EntityTableItemMysql_VECTOR4::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& 
 	for(ArraySize i=0; i<asize; i++)
 	{
 		(*s) >> v;
-		SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
+		SQL_W_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_W_OP_TABLE_VAL_STRUCT();
 		kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%d_%s%s", i, exstrFlag, itemName());
 
 #ifdef CLIENT_NO_FLOAT
@@ -611,8 +638,13 @@ void EntityTableItemMysql_VECTOR4::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& 
 
 		pSotvs->parentTableName = this->pParentTable()->tableName();
 		pSotvs->parentTableID = 0;
-		opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
+		opTableVal.push_back(std::tr1::shared_ptr<SQL_W_OP_TABLE_VAL_STRUCT>(pSotvs));
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_VECTOR4::getReadSqlItem(SQL_R_OP_TABLE& opTable)
+{
 }
 
 //-------------------------------------------------------------------------------------
@@ -623,13 +655,18 @@ bool EntityTableItemMysql_MAILBOX::syncToDB(const char* exstrFlag)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_MAILBOX::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+bool EntityTableItemMysql_MAILBOX::addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_MAILBOX::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag)
+void EntityTableItemMysql_MAILBOX::getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_MAILBOX::getReadSqlItem(SQL_R_OP_TABLE& opTable)
 {
 }
 
@@ -720,16 +757,13 @@ bool EntityTableItemMysql_ARRAY::syncToDB(const char* exstrFlag)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_ARRAY::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+bool EntityTableItemMysql_ARRAY::addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
-	if(pChildTable_)
-		return pChildTable_->updateTable(dbid, s, pModule) > 0;
-
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_ARRAY::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag)
+void EntityTableItemMysql_ARRAY::getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag)
 {
 	ArraySize size = 0;
 	(*s) >> size;
@@ -737,8 +771,13 @@ void EntityTableItemMysql_ARRAY::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& op
 	if(pChildTable_)
 	{
 		for(ArraySize i=0; i<size; i++)
-			static_cast<EntityTableMysql*>(pChildTable_)->getSqlItemStr(s, opTable);
+			static_cast<EntityTableMysql*>(pChildTable_)->getWriteSqlItem(s, opTable);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_ARRAY::getReadSqlItem(SQL_R_OP_TABLE& opTable)
+{
 }
 
 //-------------------------------------------------------------------------------------
@@ -812,30 +851,25 @@ bool EntityTableItemMysql_FIXED_DICT::syncToDB(const char* exstrFlag)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_FIXED_DICT::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+bool EntityTableItemMysql_FIXED_DICT::addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
-	FIXEDDICT_KEYTYPES::iterator fditer = keyTypes_.begin();
-
-	for(; fditer != keyTypes_.end(); fditer++)
-	{
-		if(!fditer->second->updateItem(dbid, s, pModule))
-		{
-			return false;
-		}
-	}
-
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_FIXED_DICT::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag)
+void EntityTableItemMysql_FIXED_DICT::getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag)
 {
 	FIXEDDICT_KEYTYPES::iterator fditer = keyTypes_.begin();
 
 	for(; fditer != keyTypes_.end(); fditer++)
 	{
-		static_cast<EntityTableItemMysqlBase*>(fditer->second.get())->getSqlItemStr(s, opTable, exstrFlag);
+		static_cast<EntityTableItemMysqlBase*>(fditer->second.get())->getWriteSqlItem(s, opTable, exstrFlag);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_FIXED_DICT::getReadSqlItem(SQL_R_OP_TABLE& opTable)
+{
 }
 
 //-------------------------------------------------------------------------------------
@@ -872,16 +906,16 @@ bool EntityTableItemMysql_DIGIT::syncToDB(const char* exstrFlag)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_DIGIT::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+bool EntityTableItemMysql_DIGIT::addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_DIGIT::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag)
+void EntityTableItemMysql_DIGIT::getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag)
 {
-	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
-	SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
+	SQL_W_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+	SQL_W_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_W_OP_TABLE_VAL_STRUCT();
 	
 	if(dataSType_ == "INT8")
 	{
@@ -947,8 +981,13 @@ void EntityTableItemMysql_DIGIT::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& op
 	kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%s%s", exstrFlag, itemName());
 	pSotvs->parentTableName = this->pParentTable()->tableName();
 	pSotvs->parentTableID = 0;
-	opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
+	opTableVal.push_back(std::tr1::shared_ptr<SQL_W_OP_TABLE_VAL_STRUCT>(pSotvs));
 	
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_DIGIT::getReadSqlItem(SQL_R_OP_TABLE& opTable)
+{
 }
 
 //-------------------------------------------------------------------------------------
@@ -972,17 +1011,17 @@ bool EntityTableItemMysql_STRING::syncToDB(const char* exstrFlag)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_STRING::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+bool EntityTableItemMysql_STRING::addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_STRING::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag)
+void EntityTableItemMysql_STRING::getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag)
 {
-	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+	SQL_W_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
 
-	SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
+	SQL_W_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_W_OP_TABLE_VAL_STRUCT();
 	
 	pSotvs->extraDatas = "\"";
 	std::string val;
@@ -995,7 +1034,12 @@ void EntityTableItemMysql_STRING::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& o
 	pSotvs->parentTableName = this->pParentTable()->tableName();
 	pSotvs->parentTableID = 0;
 	kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%s%s", exstrFlag, itemName());
-	opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
+	opTableVal.push_back(std::tr1::shared_ptr<SQL_W_OP_TABLE_VAL_STRUCT>(pSotvs));
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_STRING::getReadSqlItem(SQL_R_OP_TABLE& opTable)
+{
 }
 
 //-------------------------------------------------------------------------------------
@@ -1019,17 +1063,17 @@ bool EntityTableItemMysql_UNICODE::syncToDB(const char* exstrFlag)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_UNICODE::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+bool EntityTableItemMysql_UNICODE::addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_UNICODE::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag)
+void EntityTableItemMysql_UNICODE::getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag)
 {
-	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+	SQL_W_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
 	
-	SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
+	SQL_W_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_W_OP_TABLE_VAL_STRUCT();
 
 	pSotvs->extraDatas = "\"";
 	std::string val;
@@ -1042,7 +1086,12 @@ void EntityTableItemMysql_UNICODE::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& 
 	pSotvs->parentTableName = this->pParentTable()->tableName();
 	pSotvs->parentTableID = 0;
 	kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%s%s", exstrFlag, itemName());
-	opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
+	opTableVal.push_back(std::tr1::shared_ptr<SQL_W_OP_TABLE_VAL_STRUCT>(pSotvs));
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_UNICODE::getReadSqlItem(SQL_R_OP_TABLE& opTable)
+{
 }
 
 //-------------------------------------------------------------------------------------
@@ -1053,17 +1102,17 @@ bool EntityTableItemMysql_BLOB::syncToDB(const char* exstrFlag)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_BLOB::updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+bool EntityTableItemMysql_BLOB::addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_BLOB::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opTable, const char* exstrFlag)
+void EntityTableItemMysql_BLOB::getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag)
 {
-	SQL_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
+	SQL_W_OP_TABLE_VAL& opTableVal = opTable[this->tableName()];
 	
-	SQL_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_OP_TABLE_VAL_STRUCT();
+	SQL_W_OP_TABLE_VAL_STRUCT* pSotvs = new SQL_W_OP_TABLE_VAL_STRUCT();
 
 	pSotvs->extraDatas = "\"";
 	std::string val;
@@ -1076,7 +1125,12 @@ void EntityTableItemMysql_BLOB::getSqlItemStr(MemoryStream* s, SQL_OP_TABLE& opT
 	pSotvs->parentTableName = this->pParentTable()->tableName();
 	pSotvs->parentTableID = 0;
 	kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%s%s", exstrFlag, itemName());
-	opTableVal.push_back(std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>(pSotvs));
+	opTableVal.push_back(std::tr1::shared_ptr<SQL_W_OP_TABLE_VAL_STRUCT>(pSotvs));
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_BLOB::getReadSqlItem(SQL_R_OP_TABLE& opTable)
+{
 }
 
 //-------------------------------------------------------------------------------------

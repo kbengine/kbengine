@@ -433,5 +433,12 @@ void Dbmgr::writeEntity(Mercury::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
+void Dbmgr::queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, DBID dbid, 
+	std::string& entityType, CALLBACK_ID callbackID)
+{
+	PUSH_THREAD_TASK(new DBTaskQueryEntity(pChannel->addr(), entityType, dbid, componentID, callbackID));
+}
+
+//-------------------------------------------------------------------------------------
 
 }

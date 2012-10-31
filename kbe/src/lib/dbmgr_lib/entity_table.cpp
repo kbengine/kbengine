@@ -33,6 +33,7 @@ EntityTables g_EntityTables;
 void EntityTable::addItem(EntityTableItem* pItem)
 {
 	tableItems_[pItem->utype()].reset(pItem);
+	tableFixedOrderItems_.push_back(pItem);
 }
 
 //-------------------------------------------------------------------------------------
@@ -67,6 +68,19 @@ DBID EntityTable::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModu
 	};
 
 	return dbid;
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTable::addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+{
+	std::vector<EntityTableItem*>::iterator iter = tableFixedOrderItems_.begin();
+	for(; iter != tableFixedOrderItems_.end(); iter++)
+	{
+		if(!(*iter)->addToStream(dbid, s, pModule))
+			return false;
+	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -171,12 +185,19 @@ EntityTable* EntityTables::findTable(std::string name)
 //-------------------------------------------------------------------------------------
 DBID EntityTables::writeEntity(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
-
 	EntityTable* pTable = this->findTable(pModule->getName());
 	KBE_ASSERT(pTable != NULL);
 
 	return pTable->updateTable(dbid, s, pModule);
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTables::addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+{
+	EntityTable* pTable = this->findTable(pModule->getName());
+	KBE_ASSERT(pTable != NULL);
+
+	return pTable->addToStream(dbid, s, pModule);
 }
 
 //-------------------------------------------------------------------------------------

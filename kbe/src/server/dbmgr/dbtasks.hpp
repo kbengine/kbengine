@@ -54,6 +54,8 @@ public:
 	virtual ~DBTask();
 	virtual bool process() = 0;
 	virtual void presentMainThread(){}
+
+	bool send(Mercury::Bundle& bundle);
 protected:
 	MemoryStream* pDatas_;
 	Mercury::Address addr_;
@@ -173,6 +175,27 @@ public:
 protected:
 	std::string accountName_;
 	std::string password_;
+};
+
+/**
+	baseapp请求查询entity信息
+*/
+class DBTaskQueryEntity : public DBTask
+{
+public:
+	DBTaskQueryEntity(const Mercury::Address& addr, std::string& entityType, DBID dbid, 
+		COMPONENT_ID componentID, CALLBACK_ID callbackID);
+
+	virtual ~DBTaskQueryEntity();
+	virtual bool process();
+	virtual void presentMainThread();
+protected:
+	std::string entityType_;
+	DBID dbid_;
+	COMPONENT_ID componentID_;
+	CALLBACK_ID callbackID_;
+	bool success_;
+	MemoryStream s_;
 };
 
 }

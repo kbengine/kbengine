@@ -54,6 +54,21 @@ DBTask::~DBTask()
 }
 
 //-------------------------------------------------------------------------------------
+bool DBTask::send(Mercury::Bundle& bundle)
+{
+	Mercury::Channel* pChannel = Dbmgr::getSingleton().getNetworkInterface().findChannel(addr_);
+	
+	if(pChannel){
+		bundle.send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
+	}
+	else{
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 DBTaskExecuteRawDatabaseCommand::DBTaskExecuteRawDatabaseCommand(const Mercury::Address& addr, MemoryStream& datas):
 DBTask(addr, datas),
 componentID_(0),
@@ -160,20 +175,17 @@ void DBTaskWriteEntity::presentMainThread()
 	// 返回写entity的结果， 成功或者失败
 	// callbackID_
 
-	Mercury::Channel* pChannel = Dbmgr::getSingleton().getNetworkInterface().findChannel(addr_);
-	
-	if(pChannel){
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(BaseappInterface::onWriteToDBCallback);
-		BaseappInterface::onWriteToDBCallbackArgs4::staticAddToBundle((*pBundle), 
-			eid_, entityDBID_, callbackID_, success_);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::onWriteToDBCallback);
+	BaseappInterface::onWriteToDBCallbackArgs4::staticAddToBundle((*pBundle), 
+		eid_, entityDBID_, callbackID_, success_);
 
-		(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	if(!this->send((*pBundle)))
+	{
+		ERROR_MSG("DBTaskWriteEntity::presentMainThread: channel(%s) not found.\n", addr_.c_str());
 	}
-	else{
-		ERROR_MSG("DBTaskCreateAccount::presentMainThread: channel(%s) not found.\n", addr_.c_str());
-	}
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -218,12 +230,8 @@ void DBTaskCreateAccount::presentMainThread()
 
 	LoginappInterface::onReqCreateAccountResultArgs3::staticAddToBundle((*pBundle), failedcode, accountName_, password_);
 
-	Mercury::Channel* pChannel = Dbmgr::getSingleton().getNetworkInterface().findChannel(addr_);
-	
-	if(pChannel){
-		(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
-	}
-	else{
+	if(!this->send((*pBundle)))
+	{
 		ERROR_MSG("DBTaskCreateAccount::presentMainThread: channel(%s) not found.\n", addr_.c_str());
 	}
 
@@ -260,12 +268,8 @@ void DBTaskQueryAccount::presentMainThread()
 	(*pBundle) << password_;
 	(*pBundle) << "";
 
-	Mercury::Channel* pChannel = Dbmgr::getSingleton().getNetworkInterface().findChannel(addr_);
-	
-	if(pChannel){
-		(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
-	}
-	else{
+	if(!this->send((*pBundle)))
+	{
 		ERROR_MSG("DBTaskQueryAccount::presentMainThread: channel(%s) not found.\n", addr_.c_str());
 	}
 
@@ -400,13 +404,50 @@ void DBTaskAccountLogin::presentMainThread()
 	(*pBundle) << componentID;   // 如果大于0则表示账号还存活在某个baseapp上
 	(*pBundle) << entityID;
 
-	Mercury::Channel* pChannel = Dbmgr::getSingleton().getNetworkInterface().findChannel(addr_);
-
-	if(pChannel){
-		(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
-	}
-	else{
+	if(!this->send((*pBundle)))
+	{
 		ERROR_MSG("DBTaskAccountLogin::presentMainThread: channel(%s) not found.\n", addr_.c_str());
+	}
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskQueryEntity::DBTaskQueryEntity(const Mercury::Address& addr, std::string& entityType, DBID dbid, 
+		COMPONENT_ID componentID, CALLBACK_ID callbackID):
+DBTask(addr),
+entityType_(entityType),
+dbid_(dbid),
+componentID_(componentID),
+callbackID_(callbackID),
+success_(false),
+s_()
+{
+	EntityTables::getSingleton().addToStream(dbid, &s_, EntityDef::findScriptModule(entityType_.c_str()));
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskQueryEntity::~DBTaskQueryEntity()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskQueryEntity::process()
+{
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+void DBTaskQueryEntity::presentMainThread()
+{
+	DEBUG_MSG("Dbmgr::DBTaskQueryEntity:%s.\n", entityType_.c_str());
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+
+
+	if(!this->send((*pBundle)))
+	{
+		ERROR_MSG("DBTaskQueryAccount::presentMainThread: channel(%s) not found.\n", addr_.c_str());
 	}
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);

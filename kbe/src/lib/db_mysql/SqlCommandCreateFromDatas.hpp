@@ -36,7 +36,7 @@ namespace KBEngine{
 class SqlCommandCreateFromDatasBase
 {
 public:
-	SqlCommandCreateFromDatasBase(std::string tableName, DBID dbid, SQL_OP_TABLE_VAL& tableVal):
+	SqlCommandCreateFromDatasBase(std::string tableName, DBID dbid, SQL_W_OP_TABLE_VAL& tableVal):
 	  tableVal_(tableVal),
 	  sqlstr_(),
 	  tableName_(tableName),
@@ -57,7 +57,7 @@ public:
 
 	DBID dbid()const{ return dbid_; }
 protected:
-	SQL_OP_TABLE_VAL& tableVal_;
+	SQL_W_OP_TABLE_VAL& tableVal_;
 	std::string sqlstr_;
 	std::string tableName_;
 	DBID dbid_;
@@ -66,7 +66,7 @@ protected:
 class SqlCommandCreateFromDatas_INSERT : public SqlCommandCreateFromDatasBase
 {
 public:
-	SqlCommandCreateFromDatas_INSERT(std::string tableName, DBID dbid, SQL_OP_TABLE_VAL& tableVal):
+	SqlCommandCreateFromDatas_INSERT(std::string tableName, DBID dbid, SQL_W_OP_TABLE_VAL& tableVal):
 	  SqlCommandCreateFromDatasBase(tableName, dbid, tableVal)
 	{
 		// insert into tbl_Account (sm_accountName) values("fdsafsad\0\fdsfasfsa\0fdsafsda");
@@ -75,10 +75,10 @@ public:
 		sqlstr_ += " (";
 		sqlstr1_ = ")  values(";
 
-		SQL_OP_TABLE_VAL::iterator tableValIter = tableVal.begin();
+		SQL_W_OP_TABLE_VAL::iterator tableValIter = tableVal.begin();
 		for(; tableValIter != tableVal.end(); tableValIter++)
 		{
-			std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT> pSotvs = (*tableValIter);
+			std::tr1::shared_ptr<SQL_W_OP_TABLE_VAL_STRUCT> pSotvs = (*tableValIter);
 
 			if(dbid > 0)
 			{
@@ -128,7 +128,7 @@ protected:
 class SqlCommandCreateFromDatas_UPDATE : public SqlCommandCreateFromDatasBase
 {
 public:
-	SqlCommandCreateFromDatas_UPDATE(std::string tableName, DBID dbid, SQL_OP_TABLE_VAL& tableVal):
+	SqlCommandCreateFromDatas_UPDATE(std::string tableName, DBID dbid, SQL_W_OP_TABLE_VAL& tableVal):
 	  SqlCommandCreateFromDatasBase(tableName, dbid, tableVal)
 	{
 		// update tbl_Account set sm_accountName="fdsafsad" where id=123;
@@ -136,10 +136,10 @@ public:
 		sqlstr_ += tableName;
 		sqlstr_ += " set ";
 
-		SQL_OP_TABLE_VAL::iterator tableValIter = tableVal.begin();
+		SQL_W_OP_TABLE_VAL::iterator tableValIter = tableVal.begin();
 		for(; tableValIter != tableVal.end(); tableValIter++)
 		{
-			std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT> pSotvs = (*tableValIter);
+			std::tr1::shared_ptr<SQL_W_OP_TABLE_VAL_STRUCT> pSotvs = (*tableValIter);
 			
 			sqlstr_ += pSotvs->sqlkey;
 			sqlstr_ += "=";
@@ -172,7 +172,7 @@ protected:
 class SqlCommandCreateFromDatas
 {
 public:
-	SqlCommandCreateFromDatas(std::string tableName, DBID dbid, SQL_OP_TABLE_VAL& tableVal)
+	SqlCommandCreateFromDatas(std::string tableName, DBID dbid, SQL_W_OP_TABLE_VAL& tableVal)
 	{
 		if(dbid > 0)
 			pSqlcmd_.reset(new SqlCommandCreateFromDatas_UPDATE(tableName, dbid, tableVal));

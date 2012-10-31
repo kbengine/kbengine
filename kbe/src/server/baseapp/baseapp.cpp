@@ -346,17 +346,17 @@ PyObject* Baseapp::__py_createBaseAnywhere(PyObject* self, PyObject* args)
 PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
-	PyObject* pyDBID = NULL, *pyCallback = NULL;
+	PyObject* pyDBID = NULL, *pyCallback = NULL, *pyEntityType = NULL;
 	char* entityType = NULL;
 	int ret = -1;
 
 	switch(argCount)
 	{
 	case 3:
-		ret = PyArg_ParseTuple(args, "s|O|O", &entityType, &pyDBID, &pyCallback);
+		ret = PyArg_ParseTuple(args, "s|O|O", &pyEntityType, &pyDBID, &pyCallback);
 		break;
 	case 2:
-		ret = PyArg_ParseTuple(args, "s|O", &entityType, &pyDBID);
+		ret = PyArg_ParseTuple(args, "s|O", &pyEntityType, &pyDBID);
 		break;
 	default:
 		{
@@ -367,19 +367,45 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 		}
 	};
 
+	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyEntityType, NULL);
+	entityType = wchar2char(PyUnicode_AsWideCharStringRet0);
+	PyMem_Free(PyUnicode_AsWideCharStringRet0);
 
-	if(entityType == NULL || ret == -1)
+	if(entityType == NULL || strlen(entityType) <= 0 || ret == -1)
 	{
-		ERROR_MSG("Baseapp::createBaseFromDBID: args is error!");
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: args is error!");
+		PyErr_PrintEx(0);
 		S_Return;
 	}
 
-	if(!PyCallable_Check(pyCallback))
+	if(EntityDef::findScriptModule(entityType) == NULL)
+	{
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: entityType is error!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	if(pyDBID <= 0)
+	{
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: dbid is error!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	if(pyCallback && !PyCallable_Check(pyCallback))
+	{
 		pyCallback = NULL;
+
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: callback is error!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
 
 	DBID dbid = PyLong_AsUnsignedLongLong(pyDBID);
 
 	Baseapp::getSingleton().createBaseFromDBID(entityType, dbid, pyCallback);
+
+	free(entityType);
 	S_Return;
 }
 
@@ -405,8 +431,18 @@ void Baseapp::createBaseFromDBID(const char* entityType, DBID dbid, PyObject* py
 	}
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	pBundle->newMessage(DbmgrInterface::queryEntity);
 
+	DbmgrInterface::queryEntityArgs4::staticAddToBundle((*pBundle), 
+		g_componentID, dbid, entityType, callbackID);
+	
+	pBundle->send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
 }
 
 //-------------------------------------------------------------------------------------

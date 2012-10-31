@@ -137,6 +137,11 @@ public:
 	*/
 	void createBaseFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback);
 
+	/** 网络接口
+		createBaseFromDBID的回调。
+	*/
+	void onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
 	/** 
 		baseapp 的createBaseAnywhere的回调 
 	*/

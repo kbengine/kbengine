@@ -120,7 +120,8 @@ public:
 	/** 网络接口
 		账号从baseapp上线了
 	*/
-	void onAccountOnline(Mercury::Channel* pChannel, std::string& accountName, COMPONENT_ID componentID, ENTITY_ID entityID);
+	void onAccountOnline(Mercury::Channel* pChannel, std::string& accountName, 
+		COMPONENT_ID componentID, ENTITY_ID entityID);
 
 	/** 网络接口
 		账号从baseapp下线了
@@ -141,6 +142,12 @@ public:
 		获取db接口
 	*/
 	DBInterface* pDBInterface()const{ return pDBInterface_; }
+
+	/** 网络接口
+		请求从db获取entity的所有数据
+	*/
+	void queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, DBID dbid, 
+		std::string& entityType, CALLBACK_ID callbackID);
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;

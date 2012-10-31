@@ -114,6 +114,11 @@ public:
 		更新数据
 	*/
 	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule) = 0;
+
+	/**
+		获取所有的数据放到流中
+	*/
+	virtual bool addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule) = 0;
 protected:
 	// 字段名称
 	std::string itemName_;
@@ -143,6 +148,7 @@ public:
 	EntityTable():
 	tableName_(),
 	tableItems_(),
+	tableFixedOrderItems_(),
 	pdbi_(NULL),
 	isChild_(false)
 	{
@@ -187,6 +193,11 @@ public:
 		更新表
 	*/
 	virtual DBID updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	/**
+		获取所有的数据放到流中
+	*/
+	virtual bool addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 protected:
 
 	// 表名称
@@ -194,6 +205,9 @@ protected:
 
 	// 所有的字段
 	TABLEITEM_MAP tableItems_;
+
+	// 和ScriptDefModule中保持一致持续的item引用
+	std::vector<EntityTableItem*> tableFixedOrderItems_; 
 
 	DBInterface* pdbi_;
 
@@ -224,6 +238,11 @@ public:
 		写entity到数据库
 	*/
 	DBID writeEntity(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	/**
+		获取某个表所有的数据放到流中
+	*/
+	bool addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 protected:
 	// 所有的字段
 	TABLES_MAP tables_;

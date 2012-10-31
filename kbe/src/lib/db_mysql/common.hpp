@@ -29,7 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{ 
 
-struct SQL_OP_TABLE_VAL_STRUCT
+struct SQL_W_OP_TABLE_VAL_STRUCT
 {
 	char sqlval[MAX_BUF];
 	char sqlkey[MAX_BUF];
@@ -38,8 +38,18 @@ struct SQL_OP_TABLE_VAL_STRUCT
 	DBID parentTableID;
 };
 
-typedef std::vector< std::tr1::shared_ptr<SQL_OP_TABLE_VAL_STRUCT>  > SQL_OP_TABLE_VAL;
-typedef std::tr1::unordered_map< std::string/*tableName*/, SQL_OP_TABLE_VAL > SQL_OP_TABLE;
+struct SQL_R_OP_TABLE_VAL_STRUCT
+{
+	char sqlkey[MAX_BUF];
+	std::string parentTableName;
+	DBID parentTableID;
+};
+
+typedef std::vector< std::tr1::shared_ptr<SQL_R_OP_TABLE_VAL_STRUCT>  > SQL_R_OP_TABLE_VAL;
+typedef std::vector< std::tr1::shared_ptr<SQL_W_OP_TABLE_VAL_STRUCT>  > SQL_W_OP_TABLE_VAL;
+
+typedef std::tr1::unordered_map< std::string/*tableName*/, SQL_R_OP_TABLE_VAL > SQL_R_OP_TABLE;
+typedef std::tr1::unordered_map< std::string/*tableName*/, SQL_W_OP_TABLE_VAL > SQL_W_OP_TABLE;
 
 }
 #endif
