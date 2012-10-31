@@ -17,30 +17,30 @@ kbengine仿照bigworld技术努力成为一款开源mmog引擎，bigworld引擎�
 先简单的介绍一下引擎的各个组件部分:
 
 	· dbmgr:
-	这个程序主要是用来处理游戏的数据库部分，它封装了mysql，能够很方便的完成各种数据库操作, 
-	以及整个游戏的entityID分配等等, 共享数据(globaldata, baseAppData, cellAppData)。 
-	另外还提供一套接口与第三方运营接口对接。
+	实现数据的存取，默认使用mysql作为数据库。另外还包括整个游戏的entityID分配、
+	共享数据(globaldata, baseAppData, cellAppData)、与第三方运营接口对接框架。
 
 
 	· baseappmgr:
-	主要是用来负责处理所有的baseapp的工作分配（负载平衡）等。服务器上会有一个或者多个baseapp，主要看使用者如何配置。 
+	主要负责协调所有的baseapp的工作（base部分的负载平衡）等。
 
 
 	· baseapp:
-	baseappmgr将一个client分配给它之后， 它才接受某个帐号登陆， 登陆后就会将client分配到一个合适的cellapp，
-	一个帐号登陆到baseapp之后就不会再改变，这个baseapp会一直维护这个帐号，直到与他断开连接。当然baseapp还会处理很多的东西，
-	例如entity需要存储到数据库的数据会定时给dbmgr处理， 备份entity cell部分的相关数据等等。客户端与服务器的通讯只能通过baseapp来完成, 
-	它也充当服务器与客户端之间的防火墙。 
+	客户端与服务器的通讯只能通过baseapp来完成, 一个帐号登陆到baseapp之后就不会再改变，
+	这个baseapp会一直维护这个帐号，直到与他断开连接, 
+	并不像cellapp一样会迁移entity。另外它还会定义备份entity的cell数据、定时写数据到数据库、
+	定时备份相关数据到其他baseapp、数据包加密解密、逻辑层还可以利用base不迁移的特性在此实现
+	类似全局管理器之类的系统。baseapp部署的数量可自由配置。
 
 
 	· cellappmgr:
-	负责所有cellapp的工作分配，包括负载均衡处理等。服务器上会有一个或者多个cellapp，主要看使用者如何配置。 
+	主要负责协调所有cellapp的工作，包括负载均衡处理等。
 
 
 	· cellapp:
-	一个cellapp负责处理一个或者多个space，当一个space上消耗过大时kbe将会寻找空闲的cell来均衡负载， 
-	整个游戏的实时处理逻辑部分也在cellapp，	包括aoi, 逻辑层的ai, entity移动导航等等。 
-
+	一个cellapp负责处理一个(尽量)或者多个cell，每个cell处理一个space，当一个space上消耗过大时kbe将会寻找空闲的
+	cellapp来均衡负载， 整个游戏的实时处理逻辑部分也在cellapp，包括aoi, 逻辑层的ai, entity移动导航等等。 
+	cellapp部署的数量可自由配置。
 
 	· loginapp:
 	它只处理client的登录接入, 账号由dbmgr检查通过就会从baseappmgr得到一个baseapp的地址发给客户端，
@@ -50,7 +50,7 @@ kbengine仿照bigworld技术努力成为一款开源mmog引擎，bigworld引擎�
 	· client:
 	客户端我们将提供基础框架，这个框架不包括渲染部分和输入输出部分的具体实现, 
 	我们将提供一个lib文件和一套API接口，开发者可以选择使用自己比较适合的图形渲染引擎与输入输出控制部分， 
-	当然我们也会封装一套默认的相关模块，目前我们准备开源的渲染引擎ogre来实现图形表现部分。 
+	当然我们也会封装一套默认的相关模块，目前我们准备采用开源的渲染引擎ogre来实现图形表现部分。 
 
 
 	· kbmachine:
