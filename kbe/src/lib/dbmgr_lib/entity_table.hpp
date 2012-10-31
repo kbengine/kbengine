@@ -63,7 +63,6 @@ public:
 		itemName_(),
 		tableName_(),
 		utype_(0),
-		pdbi_(NULL),
 		pParentTable_(NULL),
 		pParentTableItem_(NULL),
 		pDataType_(NULL),
@@ -93,13 +92,10 @@ public:
 
 	const DataType* pDataType(){ return pDataType_; }
 
-	void pdbi(DBInterface* v){ pdbi_ = v; }
-	DBInterface* pdbi(){ return pdbi_; }
-
 	/**
 		初始化
 	*/
-	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, 
+	virtual bool initialize(const PropertyDescription* pPropertyDescription, 
 		const DataType* pDataType, std::string itemName) = 0;
 
 	void tableName(std::string name){ tableName_ = name; }
@@ -108,12 +104,12 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(const char* exstrFlag = "") = 0;
+	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "") = 0;
 
 	/**
 		更新数据
 	*/
-	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule) = 0;
+	virtual bool updateItem(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule) = 0;
 
 	/**
 		获取所有的数据放到流中
@@ -124,8 +120,6 @@ protected:
 	std::string itemName_;
 	std::string tableName_;
 	int32/*ENTITY_PROPERTY_UID*/ utype_;
-
-	DBInterface* pdbi_;
 
 	EntityTable* pParentTable_;
 	EntityTableItem* pParentTableItem_;
@@ -149,7 +143,6 @@ public:
 	tableName_(),
 	tableItems_(),
 	tableFixedOrderItems_(),
-	pdbi_(NULL),
 	isChild_(false)
 	{
 	};
@@ -162,12 +155,12 @@ public:
 	/**
 		初始化
 	*/
-	virtual bool initialize(DBInterface* dbi, ScriptDefModule* sm, std::string name) = 0;
+	virtual bool initialize(ScriptDefModule* sm, std::string name) = 0;
 
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB() = 0;
+	virtual bool syncToDB(DBInterface* dbi) = 0;
 
 	/** 
 		创建一个表item
@@ -179,9 +172,6 @@ public:
 	*/
 	const EntityTable::TABLEITEM_MAP& tableItems()const { return tableItems_; }
 
-	void pdbi(DBInterface* v){ pdbi_ = v; }
-	DBInterface* pdbi(){ return pdbi_; }
-
 	void addItem(EntityTableItem* pItem);
 
 	bool isChild()const{ return isChild_; }
@@ -192,7 +182,7 @@ public:
 	/**
 		更新表
 	*/
-	virtual DBID updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	virtual DBID updateTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
 		获取所有的数据放到流中
@@ -209,8 +199,6 @@ protected:
 	// 和ScriptDefModule中保持一致持续的item引用
 	std::vector<EntityTableItem*> tableFixedOrderItems_; 
 
-	DBInterface* pdbi_;
-
 	bool isChild_; // 是否为子表
 };
 
@@ -223,7 +211,7 @@ public:
 	
 	bool load(DBInterface* dbi);
 
-	bool syncToDB();
+	bool syncToDB(DBInterface* dbi);
 
 	/** 
 		获得所有表
@@ -237,7 +225,7 @@ public:
 	/**
 		写entity到数据库
 	*/
-	DBID writeEntity(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	DBID writeEntity(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -246,7 +234,6 @@ public:
 protected:
 	// 所有的字段
 	TABLES_MAP tables_;
-	DBInterface* pdbi_;
 	KBEngine::thread::ThreadMutex logMutex;
 };
 

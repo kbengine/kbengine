@@ -170,7 +170,7 @@ bool Dbmgr::initializeEnd()
 		INFO_MSG("Dbmgr::initializeEnd: %s\n", pDBInterface_->c_str());
 	}
 
-	return EntityTables::getSingleton().load(pDBInterface_) && EntityTables::getSingleton().syncToDB();
+	return EntityTables::getSingleton().load(pDBInterface_) && EntityTables::getSingleton().syncToDB(pDBInterface_);
 }
 
 //-------------------------------------------------------------------------------------

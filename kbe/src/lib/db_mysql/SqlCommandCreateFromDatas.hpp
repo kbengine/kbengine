@@ -114,7 +114,10 @@ public:
 	{
 		bool ret = SqlCommandCreateFromDatasBase::query(pdbi);
 		if(!ret)
+		{
+			ERROR_MSG("SqlCommandCreateFromDatas_INSERT::query: %s\n", pdbi->getstrerror());
 			return false;
+		}
 
 		dbid_ = static_cast<DBInterfaceMysql*>(pdbi)->insertID();
 		return ret;

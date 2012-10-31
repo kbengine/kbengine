@@ -49,7 +49,7 @@ EntityTableItem* EntityTable::findItem(int32/*ENTITY_PROPERTY_UID*/ utype)
 }
 
 //-------------------------------------------------------------------------------------
-DBID EntityTable::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+DBID EntityTable::updateTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	while(s->opsize() > 0)
 	{
@@ -63,7 +63,7 @@ DBID EntityTable::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModu
 			return dbid;
 		}
 
-		if(!pTableItem->updateItem(dbid, s, pModule))
+		if(!pTableItem->updateItem(dbi, dbid, s, pModule))
 			return dbid;
 	};
 
@@ -97,15 +97,13 @@ EntityTables::~EntityTables()
 //-------------------------------------------------------------------------------------
 bool EntityTables::load(DBInterface* dbi)
 {
-	pdbi_ = dbi;
-
 	EntityDef::SCRIPT_MODULES smodules = EntityDef::getScriptModules();
 	EntityDef::SCRIPT_MODULES::const_iterator iter = smodules.begin();
 	for(; iter != smodules.end(); iter++)
 	{
 		ScriptDefModule* pSM = (*iter).get();
 		EntityTable* pEtable = dbi->createEntityTable();
-		bool ret = pEtable->initialize(pdbi_, pSM, pSM->getName());
+		bool ret = pEtable->initialize(pSM, pSM->getName());
 
 		if(!ret)
 		{
@@ -120,18 +118,18 @@ bool EntityTables::load(DBInterface* dbi)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTables::syncToDB()
+bool EntityTables::syncToDB(DBInterface* dbi)
 {
 	// 开始同步所有表
 	EntityTables::TABLES_MAP::iterator iter = tables_.begin();
 	for(; iter != tables_.end(); iter++)
 	{
-		if(!iter->second->syncToDB())
+		if(!iter->second->syncToDB(dbi))
 			return false;
 	}
 
 	std::vector<std::string> dbTableNames;
-	pdbi_->getTableNames(dbTableNames, "");
+	dbi->getTableNames(dbTableNames, "");
 
 	// 检查是否有需要删除的表
 	std::vector<std::string>::iterator iter0 = dbTableNames.begin();
@@ -145,7 +143,7 @@ bool EntityTables::syncToDB()
 		EntityTables::TABLES_MAP::iterator iter = tables_.find(tname);
 		if(iter == tables_.end())
 		{
-			if(!pdbi_->dropEntityTableFromDB((std::string(ENTITY_TABLE_PERFIX"_") + tname).c_str()))
+			if(!dbi->dropEntityTableFromDB((std::string(ENTITY_TABLE_PERFIX"_") + tname).c_str()))
 				return false;
 		}
 	}
@@ -183,12 +181,12 @@ EntityTable* EntityTables::findTable(std::string name)
 };
 
 //-------------------------------------------------------------------------------------
-DBID EntityTables::writeEntity(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+DBID EntityTables::writeEntity(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	EntityTable* pTable = this->findTable(pModule->getName());
 	KBE_ASSERT(pTable != NULL);
 
-	return pTable->updateTable(dbid, s, pModule);
+	return pTable->updateTable(dbi, dbid, s, pModule);
 }
 
 //-------------------------------------------------------------------------------------

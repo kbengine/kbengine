@@ -66,10 +66,8 @@ EntityTableMysql::~EntityTableMysql()
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableMysql::initialize(DBInterface* dbi, ScriptDefModule* sm, std::string name)
+bool EntityTableMysql::initialize(ScriptDefModule* sm, std::string name)
 {
-	pdbi_ = dbi;
-
 	// 获取表名
 	tableName(name);
 
@@ -87,7 +85,7 @@ bool EntityTableMysql::initialize(DBInterface* dbi, ScriptDefModule* sm, std::st
 		pETItem->utype(pdescrs->getUType());
 		pETItem->tableName(this->tableName());
 
-		bool ret = pETItem->initialize(pdbi_, pdescrs, pdescrs->getDataType(), pdescrs->getName());
+		bool ret = pETItem->initialize(pdescrs, pdescrs->getDataType(), pdescrs->getName());
 		
 		if(!ret)
 		{
@@ -124,7 +122,6 @@ bool EntityTableMysql::initialize(DBInterface* dbi, ScriptDefModule* sm, std::st
 		pETItem->pParentTable(this);
 		pETItem->utype(posuid);
 		pETItem->tableName(this->tableName());
-		pETItem->pdbi(dbi);
 		pETItem->itemName("position");
 		tableItems_[pETItem->utype()].reset(pETItem);
 
@@ -132,7 +129,6 @@ bool EntityTableMysql::initialize(DBInterface* dbi, ScriptDefModule* sm, std::st
 		pETItem->pParentTable(this);
 		pETItem->utype(diruid);
 		pETItem->tableName(this->tableName());
-		pETItem->pdbi(dbi);
 		pETItem->itemName("direction");
 		tableItems_[pETItem->utype()].reset(pETItem);
 	}
@@ -141,7 +137,7 @@ bool EntityTableMysql::initialize(DBInterface* dbi, ScriptDefModule* sm, std::st
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableMysql::syncToDB()
+bool EntityTableMysql::syncToDB(DBInterface* dbi)
 {
 	DEBUG_MSG("EntityTableMysql::syncToDB(): %s.\n", tableName());
 
@@ -156,7 +152,7 @@ bool EntityTableMysql::syncToDB()
 		"ENGINE="MYSQL_ENGINE_TYPE, 
 		tableName(), exItems.c_str());
 
-	bool ret = pdbi_->query(sql_str, strlen(sql_str));
+	bool ret = dbi->query(sql_str, strlen(sql_str));
 	if(!ret)
 	{
 		return false;
@@ -174,7 +170,7 @@ bool EntityTableMysql::syncToDB()
 				exstrFlag += "_";
 		}
 
-		if(!iter->second->syncToDB(exstrFlag.c_str()))
+		if(!iter->second->syncToDB(dbi, exstrFlag.c_str()))
 			return false;
 	}
 
@@ -183,7 +179,7 @@ bool EntityTableMysql::syncToDB()
 	std::string ttablename = ENTITY_TABLE_PERFIX"_";
 	ttablename += tableName();
 
-	pdbi_->getTableItemNames(ttablename.c_str(), dbTableItemNames);
+	dbi->getTableItemNames(ttablename.c_str(), dbTableItemNames);
 
 	// 检查是否有需要删除的表字段
 	std::vector<std::string>::iterator iter0 = dbTableItemNames.begin();
@@ -246,7 +242,7 @@ bool EntityTableMysql::syncToDB()
 		if(!found)
 		{
 			if(tname != "id" && tname != TABLE_PARENT_ID)
-				if(!pdbi_->dropEntityTableItemFromDB(ttablename.c_str(), tname.c_str()))
+				if(!dbi->dropEntityTableItemFromDB(ttablename.c_str(), tname.c_str()))
 					return false;
 		}
 	}
@@ -358,7 +354,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 }
 
 //-------------------------------------------------------------------------------------
-DBID EntityTableMysql::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+DBID EntityTableMysql::updateTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	SQL_W_OP_TABLE opTable;
 
@@ -392,7 +388,7 @@ DBID EntityTableMysql::updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* 
 		return dbid;
 	
 	SqlCommandCreateFromDatas sqlcmd(mainTableName, dbid, iter->second);
-	sqlcmd->query(pdbi_);
+	sqlcmd->query(dbi);
 	dbid = sqlcmd->dbid();
 
 	return dbid;
@@ -438,14 +434,14 @@ bool EntityTableItemMysql_VECTOR2::isSameKey(std::string key)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_VECTOR2::syncToDB(const char* exstrFlag)
+bool EntityTableItemMysql_VECTOR2::syncToDB(DBInterface* dbi, const char* exstrFlag)
 {
 	DEBUG_MSG("EntityTableItemMysql_VECTOR2::syncToDB(): %s.\n", itemName());
 
-	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_0"))
+	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_0"))
 		return false;
 
-	return sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_1");
+	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_1");
 }
 
 //-------------------------------------------------------------------------------------
@@ -509,17 +505,17 @@ bool EntityTableItemMysql_VECTOR3::isSameKey(std::string key)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_VECTOR3::syncToDB(const char* exstrFlag)
+bool EntityTableItemMysql_VECTOR3::syncToDB(DBInterface* dbi, const char* exstrFlag)
 {
 	DEBUG_MSG("EntityTableItemMysql_VECTOR3::syncToDB(): %s.\n", itemName());
 
-	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_0"))
+	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_0"))
 		return false;
 
-	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_1"))
+	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_1"))
 		return false;
 
-	return sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_2");
+	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_2");
 }
 
 //-------------------------------------------------------------------------------------
@@ -586,20 +582,20 @@ bool EntityTableItemMysql_VECTOR4::isSameKey(std::string key)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_VECTOR4::syncToDB(const char* exstrFlag)
+bool EntityTableItemMysql_VECTOR4::syncToDB(DBInterface* dbi, const char* exstrFlag)
 {
 	DEBUG_MSG("EntityTableItemMysql_VECTOR4::syncToDB(): %s.\n", itemName());
 
-	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_0"))
+	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_0"))
 		return false;
 
-	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_1"))
+	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_1"))
 		return false;
 
-	if(!sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_2"))
+	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_2"))
 		return false;
 
-	return sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_3");
+	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_3");
 }
 
 //-------------------------------------------------------------------------------------
@@ -648,7 +644,7 @@ void EntityTableItemMysql_VECTOR4::getReadSqlItem(SQL_R_OP_TABLE& opTable)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_MAILBOX::syncToDB(const char* exstrFlag)
+bool EntityTableItemMysql_MAILBOX::syncToDB(DBInterface* dbi, const char* exstrFlag)
 {
 	DEBUG_MSG("EntityTableItemMysql_MAILBOX::syncToDB(): %s.\n", itemName());
 	return true;
@@ -677,16 +673,15 @@ bool EntityTableItemMysql_ARRAY::isSameKey(std::string key)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_ARRAY::initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, 
+bool EntityTableItemMysql_ARRAY::initialize(const PropertyDescription* pPropertyDescription, 
 											const DataType* pDataType, std::string name)
 {
-	bool ret = EntityTableItemMysqlBase::initialize(dbi, pPropertyDescription, pDataType, name);
+	bool ret = EntityTableItemMysqlBase::initialize(pPropertyDescription, pDataType, name);
 	if(!ret)
 		return false;
 
 	// 创建子表
 	EntityTableMysql* pTable = new EntityTableMysql();
-	pTable->pdbi(dbi);
 
 	std::string tname = this->pParentTable()->tableName();
 	std::vector<std::string> qname;
@@ -730,7 +725,7 @@ bool EntityTableItemMysql_ARRAY::initialize(DBInterface* dbi, const PropertyDesc
 	pArrayTableItem->pParentTableItem(this);
 	pArrayTableItem->tableName(pTable->tableName());
 
-	ret = pArrayTableItem->initialize(dbi, pPropertyDescription, 
+	ret = pArrayTableItem->initialize(pPropertyDescription, 
 		static_cast<FixedArrayType*>(const_cast<DataType*>(pDataType))->getDataType(), itemName.c_str());
 
 	if(!ret)
@@ -747,11 +742,11 @@ bool EntityTableItemMysql_ARRAY::initialize(DBInterface* dbi, const PropertyDesc
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_ARRAY::syncToDB(const char* exstrFlag)
+bool EntityTableItemMysql_ARRAY::syncToDB(DBInterface* dbi, const char* exstrFlag)
 {
 	DEBUG_MSG("EntityTableItemMysql_ARRAY::syncToDB(): %s.\n", itemName());
 	if(pChildTable_)
-		return pChildTable_->syncToDB();
+		return pChildTable_->syncToDB(dbi);
 
 	return true;
 }
@@ -799,10 +794,10 @@ bool EntityTableItemMysql_FIXED_DICT::isSameKey(std::string key)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_FIXED_DICT::initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, 
+bool EntityTableItemMysql_FIXED_DICT::initialize(const PropertyDescription* pPropertyDescription, 
 												 const DataType* pDataType, std::string name)
 {
-	bool ret = EntityTableItemMysqlBase::initialize(dbi, pPropertyDescription, pDataType, name);
+	bool ret = EntityTableItemMysqlBase::initialize(pPropertyDescription, pDataType, name);
 	if(!ret)
 		return false;
 
@@ -822,7 +817,7 @@ bool EntityTableItemMysql_FIXED_DICT::initialize(DBInterface* dbi, const Propert
 		tableItem->pParentTableItem(this);
 		tableItem->utype(-pPropertyDescription->getUType());
 		tableItem->tableName(this->tableName());
-		if(!tableItem->initialize(dbi, pPropertyDescription, iter->second->dataType, iter->first))
+		if(!tableItem->initialize(pPropertyDescription, iter->second->dataType, iter->first))
 			return false;
 
 		std::pair< std::string, std::tr1::shared_ptr<EntityTableItem> > itemVal;
@@ -836,14 +831,14 @@ bool EntityTableItemMysql_FIXED_DICT::initialize(DBInterface* dbi, const Propert
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_FIXED_DICT::syncToDB(const char* exstrFlag)
+bool EntityTableItemMysql_FIXED_DICT::syncToDB(DBInterface* dbi, const char* exstrFlag)
 {
 	DEBUG_MSG("EntityTableItemMysql_FIXED_DICT::syncToDB(): %s.\n", itemName());
 
 	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPES::iterator iter = keyTypes_.begin();
 	for(; iter != keyTypes_.end(); iter++)
 	{
-		if(!iter->second->syncToDB(exstrFlag))
+		if(!iter->second->syncToDB(dbi, exstrFlag))
 			return false;
 	}
 
@@ -873,10 +868,9 @@ void EntityTableItemMysql_FIXED_DICT::getReadSqlItem(SQL_R_OP_TABLE& opTable)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysqlBase::initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, 
+bool EntityTableItemMysqlBase::initialize(const PropertyDescription* pPropertyDescription, 
 										  const DataType* pDataType, std::string name)
 {
-	pdbi_ = dbi;
 	itemName(name);
 
 	pDataType_ = pDataType;
@@ -885,13 +879,13 @@ bool EntityTableItemMysqlBase::initialize(DBInterface* dbi, const PropertyDescri
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_DIGIT::syncToDB(const char* exstrFlag)
+bool EntityTableItemMysql_DIGIT::syncToDB(DBInterface* dbi, const char* exstrFlag)
 {
 	DEBUG_MSG("EntityTableItemMysql_DIGIT::syncToDB(): %s.\n", itemName());
 
 	if(datalength_ == 0)
 	{
-		return sync_item_to_db(pdbi_, itemDBType_.c_str(), this->pParentTable_->tableName(), itemName(), exstrFlag);
+		return sync_item_to_db(dbi, itemDBType_.c_str(), this->pParentTable_->tableName(), itemName(), exstrFlag);
 	}
 
 	uint32 length = pPropertyDescription_->getDatabaseLength();
@@ -902,7 +896,7 @@ bool EntityTableItemMysql_DIGIT::syncToDB(const char* exstrFlag)
 	else
 		kbe_snprintf(sql_str, MAX_BUF, "%s(%u)", itemDBType_.c_str(), length);
 
-	return sync_item_to_db(pdbi_, sql_str, tableName_.c_str(), itemName(), exstrFlag);
+	return sync_item_to_db(dbi, sql_str, tableName_.c_str(), itemName(), exstrFlag);
 }
 
 //-------------------------------------------------------------------------------------
@@ -991,7 +985,7 @@ void EntityTableItemMysql_DIGIT::getReadSqlItem(SQL_R_OP_TABLE& opTable)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_STRING::syncToDB(const char* exstrFlag)
+bool EntityTableItemMysql_STRING::syncToDB(DBInterface* dbi, const char* exstrFlag)
 {
 	DEBUG_MSG("EntityTableItemMysql_STRING::syncToDB(): %s.\n", itemName());
 	
@@ -1007,7 +1001,7 @@ bool EntityTableItemMysql_STRING::syncToDB(const char* exstrFlag)
 		kbe_snprintf(sql_str, MAX_BUF, "text");
 	}
 
-	return sync_item_to_db(pdbi_, sql_str, tableName_.c_str(), itemName(), exstrFlag);
+	return sync_item_to_db(dbi, sql_str, tableName_.c_str(), itemName(), exstrFlag);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1043,7 +1037,7 @@ void EntityTableItemMysql_STRING::getReadSqlItem(SQL_R_OP_TABLE& opTable)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_UNICODE::syncToDB(const char* exstrFlag)
+bool EntityTableItemMysql_UNICODE::syncToDB(DBInterface* dbi, const char* exstrFlag)
 {
 	DEBUG_MSG("EntityTableItemMysql_UNICODE::syncToDB(): %s.\n", itemName());
 	
@@ -1059,7 +1053,7 @@ bool EntityTableItemMysql_UNICODE::syncToDB(const char* exstrFlag)
 		kbe_snprintf(sql_str, MAX_BUF, "text");
 	}
 
-	return sync_item_to_db(pdbi_, sql_str, tableName_.c_str(), itemName(), exstrFlag);
+	return sync_item_to_db(dbi, sql_str, tableName_.c_str(), itemName(), exstrFlag);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1095,10 +1089,10 @@ void EntityTableItemMysql_UNICODE::getReadSqlItem(SQL_R_OP_TABLE& opTable)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_BLOB::syncToDB(const char* exstrFlag)
+bool EntityTableItemMysql_BLOB::syncToDB(DBInterface* dbi, const char* exstrFlag)
 {
 	DEBUG_MSG("EntityTableItemMysql_BLOB::syncToDB(): %s.\n", itemName());
-	return sync_item_to_db(pdbi_, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag);
+	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag);
 }
 
 //-------------------------------------------------------------------------------------

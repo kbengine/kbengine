@@ -40,7 +40,8 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 DBTask::DBTask(const Mercury::Address& addr, MemoryStream& datas):
 pDatas_(0),
-addr_(addr)
+addr_(addr),
+pdbi_(NULL)
 {
 	pDatas_ = MemoryStream::ObjPool().createObject();
 	*pDatas_ = datas;
@@ -69,6 +70,42 @@ bool DBTask::send(Mercury::Bundle& bundle)
 }
 
 //-------------------------------------------------------------------------------------
+bool DBTask::process()
+{
+	mysql_thread_init();
+
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+	pdbi_ = DBUtil::create(dbcfg.db_type, dbcfg.db_ip, dbcfg.db_port, 
+		dbcfg.db_username, dbcfg.db_password, dbcfg.db_numConnections);
+
+	if(pdbi_ == NULL)
+	{
+		ERROR_MSG("DBTask::process: can't create dbinterface!\n");
+		return false;
+	}
+
+	if(!pdbi_->attach(dbcfg.db_name))
+	{
+		ERROR_MSG("DBTask::process: can't attach to database! %s.\n", pdbi_->c_str());
+		return false;
+	}
+	else
+	{
+		INFO_MSG("DBTask::process: %s\n", pdbi_->c_str());
+	}
+
+	bool ret = db_thread_process();
+	if(!ret)
+		mysql_thread_end();
+
+	if(pdbi_)
+		pdbi_->detach();
+	
+	pdbi_ = NULL;
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
 DBTaskExecuteRawDatabaseCommand::DBTaskExecuteRawDatabaseCommand(const Mercury::Address& addr, MemoryStream& datas):
 DBTask(addr, datas),
 componentID_(0),
@@ -86,15 +123,15 @@ DBTaskExecuteRawDatabaseCommand::~DBTaskExecuteRawDatabaseCommand()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBTaskExecuteRawDatabaseCommand::process()
+bool DBTaskExecuteRawDatabaseCommand::db_thread_process()
 {
 	(*pDatas_) >> componentID_ >> componentType_;
 	(*pDatas_) >> callbackID_;
 	(*pDatas_).readBlob(sdatas_);
 
-	if(!static_cast<DBInterfaceMysql*>(Dbmgr::getSingleton().pDBInterface())->execute(sdatas_.data(), sdatas_.size(), &execret_))
+	if(!static_cast<DBInterfaceMysql*>(pdbi_)->execute(sdatas_.data(), sdatas_.size(), &execret_))
 	{
-		error_ = Dbmgr::getSingleton().pDBInterface()->getstrerror();
+		error_ = pdbi_->getstrerror();
 	}
 	
 	return false;
@@ -156,12 +193,12 @@ DBTaskWriteEntity::~DBTaskWriteEntity()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBTaskWriteEntity::process()
+bool DBTaskWriteEntity::db_thread_process()
 {
 	(*pDatas_) >> eid_ >> entityDBID_ >> sid_ >> callbackID_;
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
-	entityDBID_ = EntityTables::getSingleton().writeEntity(entityDBID_, pDatas_, pModule);
+	entityDBID_ = EntityTables::getSingleton().writeEntity(pdbi_, entityDBID_, pDatas_, pModule);
 	success_ = entityDBID_ > 0;
 	return false;
 }
@@ -202,7 +239,7 @@ DBTaskCreateAccount::~DBTaskCreateAccount()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBTaskCreateAccount::process()
+bool DBTaskCreateAccount::db_thread_process()
 {
 	return false;
 }
@@ -218,7 +255,7 @@ void DBTaskCreateAccount::presentMainThread()
 
 	// 如果没有连接db则从log中查找账号是否有此账号(这个功能是为了测试使用)
 	/*
-	if(!Dbmgr::getSingleton().pDBInterface())
+	if(!pdbi_)
 	{
 		PROXICES_ONLINE_LOG::iterator iter = proxicesOnlineLogs_.find(accountName);
 		if(iter != proxicesOnlineLogs_.end())
@@ -252,7 +289,7 @@ DBTaskQueryAccount::~DBTaskQueryAccount()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBTaskQueryAccount::process()
+bool DBTaskQueryAccount::db_thread_process()
 {
 	return false;
 }
@@ -292,7 +329,7 @@ DBTaskAccountOnline::~DBTaskAccountOnline()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBTaskAccountOnline::process()
+bool DBTaskAccountOnline::db_thread_process()
 {
 	return false;
 }
@@ -334,7 +371,7 @@ DBTaskAccountOffline::~DBTaskAccountOffline()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBTaskAccountOffline::process()
+bool DBTaskAccountOffline::db_thread_process()
 {
 	return false;
 }
@@ -367,7 +404,7 @@ DBTaskAccountLogin::~DBTaskAccountLogin()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBTaskAccountLogin::process()
+bool DBTaskAccountLogin::db_thread_process()
 {
 	return false;
 }
@@ -432,7 +469,7 @@ DBTaskQueryEntity::~DBTaskQueryEntity()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBTaskQueryEntity::process()
+bool DBTaskQueryEntity::db_thread_process()
 {
 	return false;
 }

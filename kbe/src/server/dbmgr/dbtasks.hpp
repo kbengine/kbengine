@@ -31,6 +31,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/address.hpp"
 
 namespace KBEngine{ 
+
+class DBInterface;
+
 /*
 	数据库线程任务基础类
 */
@@ -52,13 +55,15 @@ public:
 	}
 
 	virtual ~DBTask();
-	virtual bool process() = 0;
+	virtual bool process();
+	virtual bool db_thread_process() = 0;
 	virtual void presentMainThread(){}
 
 	bool send(Mercury::Bundle& bundle);
 protected:
 	MemoryStream* pDatas_;
 	Mercury::Address addr_;
+	DBInterface* pdbi_;
 };
 
 /**
@@ -69,7 +74,7 @@ class DBTaskExecuteRawDatabaseCommand : public DBTask
 public:
 	DBTaskExecuteRawDatabaseCommand(const Mercury::Address& addr, MemoryStream& datas);
 	virtual ~DBTaskExecuteRawDatabaseCommand();
-	virtual bool process();
+	virtual bool db_thread_process();
 	virtual void presentMainThread();
 protected:
 	COMPONENT_ID componentID_;
@@ -88,7 +93,7 @@ class DBTaskWriteEntity : public DBTask
 public:
 	DBTaskWriteEntity(const Mercury::Address& addr, MemoryStream& datas);
 	virtual ~DBTaskWriteEntity();
-	virtual bool process();
+	virtual bool db_thread_process();
 	virtual void presentMainThread();
 protected:
 	ENTITY_ID eid_;
@@ -106,7 +111,7 @@ class DBTaskCreateAccount : public DBTask
 public:
 	DBTaskCreateAccount(const Mercury::Address& addr, std::string& accountName, std::string& password);
 	virtual ~DBTaskCreateAccount();
-	virtual bool process();
+	virtual bool db_thread_process();
 	virtual void presentMainThread();
 protected:
 	std::string accountName_;
@@ -122,7 +127,7 @@ class DBTaskQueryAccount : public DBTask
 public:
 	DBTaskQueryAccount(const Mercury::Address& addr, std::string& accountName, std::string& password);
 	virtual ~DBTaskQueryAccount();
-	virtual bool process();
+	virtual bool db_thread_process();
 	virtual void presentMainThread();
 protected:
 	std::string accountName_;
@@ -138,7 +143,7 @@ public:
 	DBTaskAccountOnline(const Mercury::Address& addr, std::string& accountName,
 		COMPONENT_ID componentID, ENTITY_ID entityID);
 	virtual ~DBTaskAccountOnline();
-	virtual bool process();
+	virtual bool db_thread_process();
 	virtual void presentMainThread();
 protected:
 	std::string accountName_;
@@ -155,7 +160,7 @@ class DBTaskAccountOffline : public DBTask
 public:
 	DBTaskAccountOffline(const Mercury::Address& addr, std::string& accountName);
 	virtual ~DBTaskAccountOffline();
-	virtual bool process();
+	virtual bool db_thread_process();
 	virtual void presentMainThread();
 protected:
 	std::string accountName_;
@@ -170,7 +175,7 @@ class DBTaskAccountLogin : public DBTask
 public:
 	DBTaskAccountLogin(const Mercury::Address& addr, std::string& accountName, std::string& password);
 	virtual ~DBTaskAccountLogin();
-	virtual bool process();
+	virtual bool db_thread_process();
 	virtual void presentMainThread();
 protected:
 	std::string accountName_;
@@ -187,7 +192,7 @@ public:
 		COMPONENT_ID componentID, CALLBACK_ID callbackID);
 
 	virtual ~DBTaskQueryEntity();
-	virtual bool process();
+	virtual bool db_thread_process();
 	virtual void presentMainThread();
 protected:
 	std::string entityType_;

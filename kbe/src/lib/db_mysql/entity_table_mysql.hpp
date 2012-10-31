@@ -51,18 +51,18 @@ public:
 	/**
 		初始化
 	*/
-	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, 
+	virtual bool initialize(const PropertyDescription* pPropertyDescription, 
 		const DataType* pDataType, std::string name);
 
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(const char* exstrFlag = "") = 0;
+	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "") = 0;
 
 /**
 		更新数据
 	*/
-	virtual bool updateItem(DBID dbid, MemoryStream* s, ScriptDefModule* pModule){ return true; }
+	virtual bool updateItem(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule){ return true; }
 
 	/**
 		获取某个表所有的数据放到流中
@@ -93,7 +93,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
 
 	/**
 		获取某个表所有的数据放到流中
@@ -124,7 +124,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
 
 	/**
 		获取某个表所有的数据放到流中
@@ -153,7 +153,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
 
 	/**
 		获取某个表所有的数据放到流中
@@ -182,7 +182,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
 
 	/**
 		获取某个表所有的数据放到流中
@@ -213,7 +213,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
 
 	/**
 		获取某个表所有的数据放到流中
@@ -244,7 +244,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
 
 	/**
 		获取某个表所有的数据放到流中
@@ -275,7 +275,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
 
 	/**
 		获取某个表所有的数据放到流中
@@ -304,7 +304,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
 
 	/**
 		获取某个表所有的数据放到流中
@@ -334,7 +334,7 @@ public:
 	/**
 		初始化
 	*/
-	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, 
+	virtual bool initialize(const PropertyDescription* pPropertyDescription, 
 		const DataType* pDataType, std::string name);
 
 	uint8 type()const{ return TABLE_ITEM_TYPE_FIXEDARRAY; }
@@ -342,7 +342,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
 
 	/**
 		获取某个表所有的数据放到流中
@@ -377,13 +377,13 @@ public:
 	/**
 		初始化
 	*/
-	virtual bool initialize(DBInterface* dbi, const PropertyDescription* pPropertyDescription, 
+	virtual bool initialize(const PropertyDescription* pPropertyDescription, 
 		const DataType* pDataType, std::string name);
 
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
 
 	/**
 		获取某个表所有的数据放到流中
@@ -412,19 +412,19 @@ public:
 	/**
 		初始化
 	*/
-	virtual bool initialize(DBInterface* dbi, ScriptDefModule* sm, std::string name);
+	virtual bool initialize(ScriptDefModule* sm, std::string name);
 
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB();
+	virtual bool syncToDB(DBInterface* dbi);
 
 	/** 
 		创建一个表item
 	*/
 	virtual EntityTableItem* createItem(std::string type);
 
-	DBID updateTable(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	DBID updateTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
 		获取某个表所有的数据放到流中
