@@ -242,21 +242,21 @@ void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 	int ret = Components::getSingleton().connectComponent(tcomponentType, uid, componentID);
 	KBE_ASSERT(ret != -1);
 
-	Mercury::Bundle bundle;
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
 	switch(tcomponentType)
 	{
 	case BASEAPP_TYPE:
-		bundle.newMessage(BaseappInterface::onRegisterNewApp);
-		BaseappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, 
+		(*pBundle).newMessage(BaseappInterface::onRegisterNewApp);
+		BaseappInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), 
 			getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, 
 
 			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
 			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port);
 		break;
 	case CELLAPP_TYPE:
-		bundle.newMessage(CellappInterface::onRegisterNewApp);
-		CellappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, 
+		(*pBundle).newMessage(CellappInterface::onRegisterNewApp);
+		CellappInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), 
 			getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, 
 
 			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
@@ -267,7 +267,8 @@ void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 		break;
 	};
 	
-	bundle.send(this->getNetworkInterface(), cinfos->pChannel);
+	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -385,6 +386,18 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Baseapp::createBaseFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback)
 {
+	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::ComponentInfos* dbmgrinfos = NULL;
+
+	if(cts.size() > 0)
+		dbmgrinfos = &(*cts.begin());
+
+	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		ERROR_MSG("Baseapp::createBaseFromDBID: not found dbmgr!\n");
+		return;
+	}
+
 	CALLBACK_ID callbackID = 0;
 	if(pyCallback != NULL)
 	{
@@ -527,13 +540,16 @@ void Baseapp::onCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s)
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID);
 		if(cinfos == NULL || cinfos->pChannel == NULL)
 		{
+			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 			ForwardItem* pFI = new ForwardItem();
 			pFI->pHandler = NULL;
-			pFI->bundle.newMessage(BaseappInterface::onCreateBaseAnywhereCallback);
-			pFI->bundle << callbackID;
-			pFI->bundle << entityType;
-			pFI->bundle << base->getID();
-			pFI->bundle << componentID_;
+			pFI->pBundle = pBundle;
+
+			(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhereCallback);
+			(*pBundle) << callbackID;
+			(*pBundle) << entityType;
+			(*pBundle) << base->getID();
+			(*pBundle) << componentID_;
 			forward_messagebuffer_.push(componentID, pFI);
 			WARNING_MSG("Baseapp::onCreateBaseAnywhere: not found baseapp, message is buffered.\n");
 			return;
@@ -542,13 +558,14 @@ void Baseapp::onCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s)
 		Mercury::Channel* lpChannel = cinfos->pChannel;
 
 		// 需要baseappmgr转发给目的baseapp
-		Mercury::Bundle forwardbundle;
-		forwardbundle.newMessage(BaseappInterface::onCreateBaseAnywhereCallback);
-		forwardbundle << callbackID;
-		forwardbundle << entityType;
-		forwardbundle << base->getID();
-		forwardbundle << componentID_;
-		forwardbundle.send(this->getNetworkInterface(), lpChannel);
+		Mercury::Bundle* pForwardbundle = Mercury::Bundle::ObjPool().createObject();
+		(*pForwardbundle).newMessage(BaseappInterface::onCreateBaseAnywhereCallback);
+		(*pForwardbundle) << callbackID;
+		(*pForwardbundle) << entityType;
+		(*pForwardbundle) << base->getID();
+		(*pForwardbundle) << componentID_;
+		(*pForwardbundle).send(this->getNetworkInterface(), lpChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pForwardbundle);
 	}
 	else
 	{
@@ -717,12 +734,13 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 		base->rndUUID(genUUID64());
 
 	// 让客户端知道已经创建了proxices, 并初始化一部分属性
-	Mercury::Bundle bundle;
-	bundle.newMessage(ClientInterface::onCreatedProxies);
-	bundle << base->rndUUID();
-	bundle << base->getID();
-	bundle << base->ob_type->tp_name;
-	base->getClientMailbox()->postMail(bundle);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(ClientInterface::onCreatedProxies);
+	(*pBundle) << base->rndUUID();
+	(*pBundle) << base->getID();
+	(*pBundle) << base->ob_type->tp_name;
+	base->getClientMailbox()->postMail((*pBundle));
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	base->initClientBasePropertys();
 
@@ -780,19 +798,20 @@ void Baseapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 
 	DEBUG_MSG("KBEngine::executeRawDatabaseCommand:%s.\n", datas);
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(DbmgrInterface::executeRawDatabaseCommand);
-	bundle << componentID_ << componentType_;
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(DbmgrInterface::executeRawDatabaseCommand);
+	(*pBundle) << componentID_ << componentType_;
 
 	CALLBACK_ID callbackID = 0;
 
 	if(pycallback && PyCallable_Check(pycallback))
 		callbackID = callbackMgr().save(pycallback);
 
-	bundle << callbackID;
-	bundle << size;
-	bundle.append(datas, size);
-	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+	(*pBundle) << callbackID;
+	(*pBundle) << size;
+	(*pBundle).append(datas, size);
+	(*pBundle).send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -995,18 +1014,19 @@ void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& acco
 	if(pChannel->isExternal())
 		return;
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(BaseappmgrInterface::onPendingAccountGetBaseappAddr);
-	bundle << accountName;
-	bundle << this->getNetworkInterface().extaddr().ip;
-	bundle << this->getNetworkInterface().extaddr().port;
-	bundle.send(this->getNetworkInterface(), pChannel);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappmgrInterface::onPendingAccountGetBaseappAddr);
+	(*pBundle) << accountName;
+	(*pBundle) << this->getNetworkInterface().extaddr().ip;
+	(*pBundle) << this->getNetworkInterface().extaddr().port;
+	(*pBundle).send(this->getNetworkInterface(), pChannel);
 
 	PendingLoginMgr::PLInfos* ptinfos = new PendingLoginMgr::PLInfos;
 	ptinfos->accountName = accountName;
 	ptinfos->password = password;
 	ptinfos->entityID = entityID;
 	pendingLoginMgr_.add(ptinfos);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1031,10 +1051,11 @@ void Baseapp::loginGatewayFailed(Mercury::Channel* pChannel, std::string& accoun
 	if(pChannel == NULL)
 		return;
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(ClientInterface::onLoginGatewayFailed);
-	ClientInterface::onLoginGatewayFailedArgs1::staticAddToBundle(bundle, failedcode);
-	bundle.send(this->getNetworkInterface(), pChannel);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(ClientInterface::onLoginGatewayFailed);
+	ClientInterface::onLoginGatewayFailedArgs1::staticAddToBundle((*pBundle), failedcode);
+	(*pBundle).send(this->getNetworkInterface(), pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1129,10 +1150,11 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 	}
 	else
 	{
-		Mercury::Bundle bundle;
-		bundle.newMessage(DbmgrInterface::queryAccount);
-		DbmgrInterface::queryAccountArgs2::staticAddToBundle(bundle, accountName, password);
-		bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(DbmgrInterface::queryAccount);
+		DbmgrInterface::queryAccountArgs2::staticAddToBundle((*pBundle), accountName, password);
+		(*pBundle).send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
 	// 记录客户端地址
@@ -1212,13 +1234,14 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel,
 
 		createClientProxies(base);
 
-		Mercury::Bundle bundle;
-		bundle.newMessage(DbmgrInterface::onAccountOnline);
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(DbmgrInterface::onAccountOnline);
 
-		DbmgrInterface::onAccountOnlineArgs3::staticAddToBundle(bundle, accountName, 
+		DbmgrInterface::onAccountOnlineArgs3::staticAddToBundle((*pBundle), accountName, 
 			componentID_, base->getID());
 
-		bundle.send(this->getNetworkInterface(), pChannel);
+		(*pBundle).send(this->getNetworkInterface(), pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
 	DEBUG_MSG("Baseapp::onQueryAccountCBFromDbmgr: user[%s], uuid[%"PRIu64"], entityID=%d.\n", 
@@ -1240,13 +1263,14 @@ void Baseapp::onEntityEnterWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_I
 	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(base->addr());
 	if(pClientChannel)
 	{
-		Mercury::Bundle bundle;
-		bundle.newMessage(ClientInterface::onEntityEnterWorld);
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(ClientInterface::onEntityEnterWorld);
 
-		ClientInterface::onEntityEnterWorldArgs2::staticAddToBundle(bundle, entityID, 
+		ClientInterface::onEntityEnterWorldArgs2::staticAddToBundle((*pBundle), entityID, 
 			base->getSpaceID());
 
-		bundle.send(this->getNetworkInterface(), pClientChannel);
+		(*pBundle).send(this->getNetworkInterface(), pClientChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 }
 
@@ -1264,13 +1288,14 @@ void Baseapp::onEntityLeaveWorldFromCellapp(Mercury::Channel* pChannel,
 	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(base->addr());
 	if(pClientChannel)
 	{
-		Mercury::Bundle bundle;
-		bundle.newMessage(ClientInterface::onEntityLeaveWorld);
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(ClientInterface::onEntityLeaveWorld);
 
-		ClientInterface::onEntityLeaveWorldArgs2::staticAddToBundle(bundle, entityID, 
+		ClientInterface::onEntityLeaveWorldArgs2::staticAddToBundle((*pBundle), entityID, 
 			base->getSpaceID());
 
-		bundle.send(this->getNetworkInterface(), pClientChannel);
+		(*pBundle).send(this->getNetworkInterface(), pClientChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 }
 
@@ -1417,13 +1442,14 @@ void Baseapp::onRemoteCallCellMethodFromClient(Mercury::Channel* pChannel, KBEng
 	if(e == NULL || e->getCellMailbox() == NULL)
 		return;
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(CellappInterface::onRemoteCallMethodFromClient);
-	bundle << srcEntityID;
-	bundle.append(s);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(CellappInterface::onRemoteCallMethodFromClient);
+	(*pBundle) << srcEntityID;
+	(*pBundle).append(s);
 	
-	e->getCellMailbox()->postMail(bundle);
+	e->getCellMailbox()->postMail((*pBundle));
 	s.read_skip(s.opsize());
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

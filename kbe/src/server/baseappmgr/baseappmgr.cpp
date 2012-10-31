@@ -123,10 +123,11 @@ void Baseappmgr::forwardMessage(Mercury::Channel* pChannel, MemoryStream& s)
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(forward_componentID);
 	KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
 
-	Mercury::Bundle bundle;
-	bundle.append((char*)s.data() + s.rpos(), s.opsize());
-	bundle.send(this->getNetworkInterface(), cinfos->pChannel);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).append((char*)s.data() + s.rpos(), s.opsize());
+	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
 	s.read_skip(s.opsize());
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -136,9 +137,11 @@ void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream&
 	size_t componentSize = components.size();
 	if(componentSize == 0)
 	{
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		ForwardItem* pFI = new ForwardItem();
-		pFI->bundle.newMessage(BaseappInterface::onCreateBaseAnywhere);
-		pFI->bundle.append((char*)s.data() + s.rpos(), s.opsize());
+		pFI->pBundle = pBundle;
+		(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhere);
+		(*pBundle).append((char*)s.data() + s.rpos(), s.opsize());
 		s.read_skip(s.opsize());
 
 		WARNING_MSG("Baseappmgr::reqCreateBaseAnywhere: not found baseapp, message is buffered.\n");
@@ -158,12 +161,13 @@ void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream&
 	std::advance(iter, currentBaseappIndex++);
 	Mercury::Channel* lpChannel = (*iter).pChannel;
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(BaseappInterface::onCreateBaseAnywhere);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhere);
 
-	bundle.append((char*)s.data() + s.rpos(), s.opsize());
-	bundle.send(this->getNetworkInterface(), lpChannel);
+	(*pBundle).append((char*)s.data() + s.rpos(), s.opsize());
+	(*pBundle).send(this->getNetworkInterface(), lpChannel);
 	s.read_skip(s.opsize());
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -174,9 +178,12 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 	size_t componentSize = components.size();
 	if(componentSize == 0)
 	{
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		ForwardItem* pFI = new ForwardItem();
-		pFI->bundle.newMessage(BaseappInterface::registerPendingLogin);
-		pFI->bundle << accountName << password;
+
+		pFI->pBundle = pBundle;
+		(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
+		(*pBundle) << accountName << password;
 
 		WARNING_MSG("Baseappmgr::registerAccountToBaseapp: not found baseapp, message is buffered.\n");
 		pFI->pHandler = NULL;
@@ -194,11 +201,12 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 	std::advance(iter, currentBaseappIndex++);
 	Mercury::Channel* lpChannel = (*iter).pChannel;
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(BaseappInterface::registerPendingLogin);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
 	ENTITY_ID eid = 0;
-	bundle << accountName << password << eid;
-	bundle.send(this->getNetworkInterface(), lpChannel);
+	(*pBundle) << accountName << password << eid;
+	(*pBundle).send(this->getNetworkInterface(), lpChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -214,10 +222,11 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel,
 		return;
 	}
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(BaseappInterface::registerPendingLogin);
-	bundle << accountName << password << entityID;
-	bundle.send(this->getNetworkInterface(), cinfos->pChannel);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
+	(*pBundle) << accountName << password << entityID;
+	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -230,10 +239,11 @@ void Baseappmgr::onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel,
 	Components::COMPONENTS::iterator iter = components.begin();
 	Mercury::Channel* lpChannel = (*iter).pChannel;
 
-	Mercury::Bundle bundleToLoginapp;
-	bundleToLoginapp.newMessage(LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgr);
-	LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgrArgs3::staticAddToBundle(bundleToLoginapp, accountName, addr, port);
-	bundleToLoginapp.send(this->getNetworkInterface(), lpChannel);
+	Mercury::Bundle* pBundleToLoginapp = Mercury::Bundle::ObjPool().createObject();
+	(*pBundleToLoginapp).newMessage(LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgr);
+	LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgrArgs3::staticAddToBundle((*pBundleToLoginapp), accountName, addr, port);
+	(*pBundleToLoginapp).send(this->getNetworkInterface(), lpChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundleToLoginapp);
 }
 
 //-------------------------------------------------------------------------------------

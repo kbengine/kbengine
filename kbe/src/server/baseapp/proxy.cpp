@@ -43,11 +43,12 @@ void Proxy::initClientBasePropertys()
 	
 	if(s1->wpos() > 0)
 	{
-		Mercury::Bundle bundle;
-		bundle.newMessage(ClientInterface::onUpdatePropertys);
-		bundle << this->getID();
-		bundle.append(*s1);
-		getClientMailbox()->postMail(bundle);
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
+		(*pBundle) << this->getID();
+		(*pBundle).append(*s1);
+		getClientMailbox()->postMail((*pBundle));
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
 	MemoryStream::ObjPool().reclaimObject(s1);
@@ -59,9 +60,9 @@ void Proxy::initClientCellPropertys()
 	if(getClientMailbox() == NULL)
 		return;
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(ClientInterface::onUpdatePropertys);
-	bundle << this->getID();
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
+	(*pBundle) << this->getID();
 
 	ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
 
@@ -73,19 +74,20 @@ void Proxy::initClientCellPropertys()
 		spaceuid = msgInfo->msgid;
 	}
 	
-	bundle << spaceuid << this->getSpaceID();
+	(*pBundle) << spaceuid << this->getSpaceID();
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
 	addPositionAndDirectionToStream(*s);
-	bundle.append(s);
+	(*pBundle).append(s);
 	MemoryStream::ObjPool().reclaimObject(s);
 
 	// celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
 	s = MemoryStream::ObjPool().createObject();
 	addCellDataToStream(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, s);
-	bundle.append(*s);
+	(*pBundle).append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);
-	getClientMailbox()->postMail(bundle);
+	getClientMailbox()->postMail((*pBundle));
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -209,9 +211,10 @@ void Proxy::giveClientTo(Proxy* proxy)
 		if(getCellMailbox())
 		{
 			// 通知cell丢失客户端
-			Mercury::Bundle bundle;
-			bundle.newMessage(CellappInterface::onLoseWitness);
-			getCellMailbox()->postMail(bundle);
+			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			(*pBundle).newMessage(CellappInterface::onLoseWitness);
+			getCellMailbox()->postMail((*pBundle));
+			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 
 		getClientMailbox()->addr(Mercury::Address::NONE);
@@ -234,9 +237,10 @@ void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
 	if(getCellMailbox())
 	{
 		// 通知cell获得客户端
-		Mercury::Bundle bundle;
-		bundle.newMessage(CellappInterface::onGetWitness);
-		getCellMailbox()->postMail(bundle);
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(CellappInterface::onGetWitness);
+		getCellMailbox()->postMail((*pBundle));
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 }
 

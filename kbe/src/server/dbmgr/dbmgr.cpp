@@ -194,16 +194,17 @@ void Dbmgr::onReqAllocEntityID(Mercury::Channel* pChannel, int8 componentType, C
 
 	// 获取一个id段 并传输给IDClient
 	std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
-	Mercury::Bundle bundle(pChannel);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
 	if(ct == BASEAPP_TYPE)
-		bundle.newMessage(BaseappInterface::onReqAllocEntityID);
+		(*pBundle).newMessage(BaseappInterface::onReqAllocEntityID);
 	else	
-		bundle.newMessage(CellappInterface::onReqAllocEntityID);
+		(*pBundle).newMessage(CellappInterface::onReqAllocEntityID);
 
-	bundle << idRange.first;
-	bundle << idRange.second;
-	bundle.send(this->getNetworkInterface(), pChannel);
+	(*pBundle) << idRange.first;
+	(*pBundle) << idRange.second;
+	(*pBundle).send(this->getNetworkInterface(), pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -223,7 +224,7 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 		tcomponentType == CELLAPP_TYPE || 
 		tcomponentType == LOGINAPP_TYPE)
 	{
-		Mercury::Bundle bundle;
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		int32 startGlobalOrder = Componentbridge::getComponents().getGlobalOrderLog()[getUserUID()];
 		int32 startGroupOrder = 0;
 
@@ -236,8 +237,8 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 				onGlobalDataClientLogon(pChannel, BASEAPP_TYPE);
 
 				std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
-				bundle.newMessage(BaseappInterface::onDbmgrInitCompleted);
-				BaseappInterface::onDbmgrInitCompletedArgs4::staticAddToBundle(bundle, idRange.first, 
+				(*pBundle).newMessage(BaseappInterface::onDbmgrInitCompleted);
+				BaseappInterface::onDbmgrInitCompletedArgs4::staticAddToBundle((*pBundle), idRange.first, 
 					idRange.second, startGlobalOrder, startGroupOrder);
 			}
 			break;
@@ -248,22 +249,23 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 				onGlobalDataClientLogon(pChannel, CELLAPP_TYPE);
 
 				std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
-				bundle.newMessage(CellappInterface::onDbmgrInitCompleted);
-				CellappInterface::onDbmgrInitCompletedArgs4::staticAddToBundle(bundle, idRange.first, 
+				(*pBundle).newMessage(CellappInterface::onDbmgrInitCompleted);
+				CellappInterface::onDbmgrInitCompletedArgs4::staticAddToBundle((*pBundle), idRange.first, 
 					idRange.second, startGlobalOrder, startGroupOrder);
 			}
 			break;
 		case LOGINAPP_TYPE:
 			startGroupOrder = Componentbridge::getComponents().getLoginappGroupOrderLog()[getUserUID()];
 
-			bundle.newMessage(LoginappInterface::onDbmgrInitCompleted);
-			LoginappInterface::onDbmgrInitCompletedArgs2::staticAddToBundle(bundle, startGlobalOrder, startGroupOrder);
+			(*pBundle).newMessage(LoginappInterface::onDbmgrInitCompleted);
+			LoginappInterface::onDbmgrInitCompletedArgs2::staticAddToBundle((*pBundle), startGlobalOrder, startGroupOrder);
 			break;
 		default:
 			break;
 		}
 
-		bundle.send(networkInterface_, pChannel);
+		(*pBundle).send(networkInterface_, pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
 	// 如果是baseapp或者cellapp则将自己注册到所有其他baseapp和cellapp
@@ -280,22 +282,23 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 				if((*fiter).cid == componentID)
 					continue;
 
-				Mercury::Bundle bundle;
-				ENTITTAPP_COMMON_MERCURY_MESSAGE(broadcastCpTypes[idx], bundle, onGetEntityAppFromDbmgr);
+				Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+				ENTITTAPP_COMMON_MERCURY_MESSAGE(broadcastCpTypes[idx], (*pBundle), onGetEntityAppFromDbmgr);
 				
 				if(tcomponentType == BASEAPP_TYPE)
 				{
-					BaseappInterface::onGetEntityAppFromDbmgrArgs8::staticAddToBundle(bundle, uid, username, componentType, componentID, 
+					BaseappInterface::onGetEntityAppFromDbmgrArgs8::staticAddToBundle((*pBundle), uid, username, componentType, componentID, 
 							intaddr, intport, extaddr, extport);
 				}
 				else
 				{
-					CellappInterface::onGetEntityAppFromDbmgrArgs8::staticAddToBundle(bundle, uid, username, componentType, componentID, 
+					CellappInterface::onGetEntityAppFromDbmgrArgs8::staticAddToBundle((*pBundle), uid, username, componentType, componentID, 
 							intaddr, intport, extaddr, extport);
 				}
 				
 				KBE_ASSERT((*fiter).pChannel != NULL);
-				bundle.send(networkInterface_, (*fiter).pChannel);
+				(*pBundle).send(networkInterface_, (*fiter).pChannel);
+				Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 			}
 		}
 	}

@@ -160,19 +160,19 @@ void Cellapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 	int ret = Components::getSingleton().connectComponent(tcomponentType, uid, componentID);
 	KBE_ASSERT(ret != -1);
 
-	Mercury::Bundle bundle;
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
 	switch(tcomponentType)
 	{
 	case BASEAPP_TYPE:
-		bundle.newMessage(BaseappInterface::onRegisterNewApp);
-		BaseappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), CELLAPP_TYPE, componentID_, 
+		(*pBundle).newMessage(BaseappInterface::onRegisterNewApp);
+		BaseappInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), CELLAPP_TYPE, componentID_, 
 			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
 			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port);
 		break;
 	case CELLAPP_TYPE:
-		bundle.newMessage(CellappInterface::onRegisterNewApp);
-		CellappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), CELLAPP_TYPE, componentID_, 
+		(*pBundle).newMessage(CellappInterface::onRegisterNewApp);
+		CellappInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), CELLAPP_TYPE, componentID_, 
 			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
 			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port);
 		break;
@@ -181,7 +181,8 @@ void Cellapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 		break;
 	};
 	
-	bundle.send(this->getNetworkInterface(), cinfos->pChannel);
+	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -281,19 +282,20 @@ void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 
 	DEBUG_MSG("KBEngine::executeRawDatabaseCommand:%s.\n", datas);
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(DbmgrInterface::executeRawDatabaseCommand);
-	bundle << componentID_ << componentType_;
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(DbmgrInterface::executeRawDatabaseCommand);
+	(*pBundle) << componentID_ << componentType_;
 
 	CALLBACK_ID callbackID = 0;
 
 	if(pycallback && PyCallable_Check(pycallback))
 		callbackID = callbackMgr().save(pycallback);
 
-	bundle << callbackID;
-	bundle << size;
-	bundle.append(datas, size);
-	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+	(*pBundle) << callbackID;
+	(*pBundle) << size;
+	(*pBundle).append(datas, size);
+	(*pBundle).send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -557,11 +559,13 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
 		if(cinfos == NULL || cinfos->pChannel == NULL)
 		{
+			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 			ForwardItem* pFI = new ForwardItem();
 			pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(e, spaceID, params);
 			//Py_XDECREF(params);
-			pFI->bundle.newMessage(BaseappInterface::onEntityGetCell);
-			BaseappInterface::onEntityGetCellArgs3::staticAddToBundle(pFI->bundle, mailboxEntityID, componentID_, spaceID);
+			pFI->pBundle = pBundle;
+			(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
+			BaseappInterface::onEntityGetCellArgs3::staticAddToBundle((*pBundle), mailboxEntityID, componentID_, spaceID);
 			forward_messagebuffer_.push(componentID, pFI);
 			WARNING_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: not found baseapp, message is buffered.\n");
 			return;
@@ -572,10 +576,11 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		e->initializeEntity(params);
 		Py_XDECREF(params);
 
-		Mercury::Bundle bundle;
-		bundle.newMessage(BaseappInterface::onEntityGetCell);
-		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle(bundle, mailboxEntityID, componentID_, spaceID);
-		bundle.send(this->getNetworkInterface(), cinfos->pChannel);
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
+		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle((*pBundle), mailboxEntityID, componentID_, spaceID);
+		(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		return;
 	}
 	
@@ -611,11 +616,14 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		ForwardItem* pFI = new ForwardItem();
 		pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(entityType, createToEntityID, 
 			entityID, cellDataLength, strEntityCellData, hasClient, componentID, spaceID);
-		pFI->bundle.newMessage(BaseappInterface::onEntityGetCell);
-		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle(pFI->bundle, entityID, componentID_, spaceID);
+
+		pFI->pBundle = pBundle;
+		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
+		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle((*pBundle), entityID, componentID_, spaceID);
 		forward_messagebuffer_.push(componentID, pFI);
 		WARNING_MSG("Cellapp::onCreateCellEntityFromBaseapp: not found baseapp, message is buffered.\n");
 		return;

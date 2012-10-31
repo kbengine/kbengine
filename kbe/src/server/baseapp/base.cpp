@@ -268,10 +268,11 @@ bool Base::destroyCellEntity(void)
 	if(cellMailbox_  == NULL || cellMailbox_->getChannel() == NULL)
 		return false;
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
-	bundle << id_;
-	bundle.send(Baseapp::getSingleton().getNetworkInterface(), cellMailbox_->getChannel());
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
+	(*pBundle) << id_;
+	(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), cellMailbox_->getChannel());
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	return true;
 }
 
@@ -495,12 +496,14 @@ void Base::reqBackupCellData()
 	if(mb == NULL)
 		return;
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(CellappInterface::reqBackupEntityCellData);
-	bundle << this->getID();
-	mb->postMail(bundle);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(CellappInterface::reqBackupEntityCellData);
+	(*pBundle) << this->getID();
+	mb->postMail((*pBundle));
 
 	isGetingCellData_ = true;
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -572,11 +575,12 @@ void Base::writeToDB(void* data)
 	}
 	else
 	{
-		Mercury::Bundle bundle;
-		bundle.newMessage(CellappInterface::reqWriteToDBFromBaseapp);
-		bundle << this->getID();
-		bundle << callbackID;
-		this->getCellMailbox()->postMail(bundle);
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(CellappInterface::reqWriteToDBFromBaseapp);
+		(*pBundle) << this->getID();
+		(*pBundle) << callbackID;
+		this->getCellMailbox()->postMail((*pBundle));
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 }
 
@@ -640,17 +644,18 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 		return;
 	}
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(DbmgrInterface::writeEntity);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(DbmgrInterface::writeEntity);
 
-	bundle << this->getID();
-	bundle << this->getDBID();
-	bundle << this->getScriptModule()->getUType();
-	bundle << callbackID;
+	(*pBundle) << this->getID();
+	(*pBundle) << this->getDBID();
+	(*pBundle) << this->getScriptModule()->getUType();
+	(*pBundle) << callbackID;
 
-	bundle.append(*s);
-	bundle.send(Baseapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
+	(*pBundle).append(*s);
+	(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
 	MemoryStream::ObjPool().reclaimObject(s);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -759,11 +764,12 @@ void Base::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, M
 
 	// 将这个消息再打包转寄给cellapp， cellapp会对这个包中的每个消息进行判断
 	// 检查是否是entity消息， 否则不合法.
-	Mercury::Bundle bundle;
-	bundle.newMessage(CellappInterface::forwardEntityMessageToCellappFromClient);
-	bundle << this->getID();
-	bundle.append(s);
-	this->getCellMailbox()->postMail(bundle);
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(CellappInterface::forwardEntityMessageToCellappFromClient);
+	(*pBundle) << this->getID();
+	(*pBundle).append(s);
+	this->getCellMailbox()->postMail((*pBundle));
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -826,14 +832,15 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 
 		eid = mb->getID();
 
-		Mercury::Bundle bundle;
-		bundle.newMessage(BaseappInterface::reqTeleportOther);
-		bundle << eid;
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(BaseappInterface::reqTeleportOther);
+		(*pBundle) << eid;
 
-		BaseappInterface::reqTeleportOtherArgs3::staticAddToBundle(bundle, this->getID(), 
+		BaseappInterface::reqTeleportOtherArgs3::staticAddToBundle((*pBundle), this->getID(), 
 			this->getCellMailbox()->getComponentID(), g_componentID);
 
-		mb->postMail(bundle);
+		mb->postMail((*pBundle));
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 	else
 	{
@@ -918,14 +925,15 @@ void Base::reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEnt
 		return;
 	}
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(CellappInterface::teleportFromBaseapp);
-	bundle << reqTeleportEntityID;
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(CellappInterface::teleportFromBaseapp);
+	(*pBundle) << reqTeleportEntityID;
 
-	CellappInterface::teleportFromBaseappArgs3::staticAddToBundle(bundle, this->getCellMailbox()->getComponentID(), 
+	CellappInterface::teleportFromBaseappArgs3::staticAddToBundle((*pBundle), this->getCellMailbox()->getComponentID(), 
 		this->getID(), reqTeleportEntityBaseAppID);
 
-	bundle.send(Baseapp::getSingleton().getNetworkInterface(), cinfos->pChannel);
+	(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), cinfos->pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

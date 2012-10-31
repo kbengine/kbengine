@@ -54,7 +54,7 @@ public:
 
 struct ForwardItem
 {
-	Mercury::Bundle bundle;
+	Mercury::Bundle* pBundle;
 	ForwardMessageOverHandler* pHandler;
 };
 

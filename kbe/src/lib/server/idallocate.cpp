@@ -33,16 +33,17 @@ void EntityIDClient::onAlloc(void)
 	if(hasReqServerAlloc() || getSize() > ID_ENOUGH_LIMIT || idList_.size() > 0)
 		return;
 	
-	Mercury::Bundle bundle;
-	bundle.newMessage(DbmgrInterface::onReqAllocEntityID);
-	DbmgrInterface::onReqAllocEntityIDArgs2::staticAddToBundle(bundle, pApp_->componentType(), pApp_->componentID());
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(DbmgrInterface::onReqAllocEntityID);
+	DbmgrInterface::onReqAllocEntityIDArgs2::staticAddToBundle((*pBundle), pApp_->componentType(), pApp_->componentID());
 
 	Components::COMPONENTS cts =  Components::getSingleton().getComponents(DBMGR_TYPE);
 	KBE_ASSERT(cts.size() > 0);
 	Components::ComponentInfos* cinfos = &(*cts.begin());
 	KBE_ASSERT(cinfos->pChannel != NULL);
 
-	bundle.send(pApp_->getNetworkInterface(), cinfos->pChannel);
+	(*pBundle).send(pApp_->getNetworkInterface(), cinfos->pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	ERROR_MSG("EntityIDClient::onAlloc: not enough(%d) entityIDs!\n", ID_ENOUGH_LIMIT);
 }
 

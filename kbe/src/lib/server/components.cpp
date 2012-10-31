@@ -259,66 +259,66 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		}
 		else
 		{
-			Mercury::Bundle bundle(pComponentInfos->pChannel);
+			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 			if(componentType == BASEAPPMGR_TYPE)
 			{
-				bundle.newMessage(BaseappmgrInterface::onRegisterNewApp);
+				(*pBundle).newMessage(BaseappmgrInterface::onRegisterNewApp);
 				
-				BaseappmgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+				BaseappmgrInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
 			else if(componentType == CELLAPPMGR_TYPE)
 			{
-				bundle.newMessage(CellappmgrInterface::onRegisterNewApp);
+				(*pBundle).newMessage(CellappmgrInterface::onRegisterNewApp);
 				
-				CellappmgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+				CellappmgrInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
 			else if(componentType == CELLAPP_TYPE)
 			{
-				bundle.newMessage(CellappInterface::onRegisterNewApp);
+				(*pBundle).newMessage(CellappInterface::onRegisterNewApp);
 				
-				CellappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+				CellappInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
 						_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
 			else if(componentType == BASEAPP_TYPE)
 			{
-				bundle.newMessage(BaseappInterface::onRegisterNewApp);
+				(*pBundle).newMessage(BaseappInterface::onRegisterNewApp);
 				
-				BaseappInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+				BaseappInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
 			else if(componentType == DBMGR_TYPE)
 			{
-				bundle.newMessage(DbmgrInterface::onRegisterNewApp);
+				(*pBundle).newMessage(DbmgrInterface::onRegisterNewApp);
 				
-				DbmgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+				DbmgrInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
 			else if(componentType == MESSAGELOG_TYPE)
 			{
-				bundle.newMessage(MessagelogInterface::onRegisterNewApp);
+				(*pBundle).newMessage(MessagelogInterface::onRegisterNewApp);
 				
-				MessagelogInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+				MessagelogInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
 			else if(componentType == RESOURCEMGR_TYPE)
 			{
-				bundle.newMessage(ResourcemgrInterface::onRegisterNewApp);
+				(*pBundle).newMessage(ResourcemgrInterface::onRegisterNewApp);
 				
-				ResourcemgrInterface::onRegisterNewAppArgs8::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+				ResourcemgrInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
@@ -328,7 +328,8 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				KBE_ASSERT(false && "invalid componentType.\n");
 			}
 
-			bundle.send(*_pNetworkInterface, pComponentInfos->pChannel);
+			(*pBundle).send(*_pNetworkInterface, pComponentInfos->pChannel);
+			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 	}
 	else

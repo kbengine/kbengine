@@ -88,18 +88,18 @@ void GlobalDataServer::broadcastDataChange(Mercury::Channel* pChannel, COMPONENT
 			if(pChannel == lpChannel)
 				continue;
 
-			Mercury::Bundle bundle;
+			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
 			switch(dataType_)
 			{
 			case GLOBAL_DATA:
 				if(componentType == CELLAPP_TYPE)
 				{
-					bundle.newMessage(CellappInterface::onBroadcastGlobalDataChange);
+					(*pBundle).newMessage(CellappInterface::onBroadcastGlobalDataChange);
 				}
 				else if(componentType == BASEAPP_TYPE)
 				{
-					bundle.newMessage(BaseappInterface::onBroadcastGlobalDataChange);
+					(*pBundle).newMessage(BaseappInterface::onBroadcastGlobalDataChange);
 				}
 				else
 				{
@@ -107,10 +107,10 @@ void GlobalDataServer::broadcastDataChange(Mercury::Channel* pChannel, COMPONENT
 				}
 				break;
 			case GLOBAL_BASES:
-				bundle.newMessage(BaseappInterface::onBroadcastGlobalBasesChange);
+				(*pBundle).newMessage(BaseappInterface::onBroadcastGlobalBasesChange);
 				break;
 			case CELLAPP_DATA:
-				bundle.newMessage(CellappInterface::onBroadcastCellAppDataChange);
+				(*pBundle).newMessage(CellappInterface::onBroadcastCellAppDataChange);
 				break;
 			default:
 				KBE_ASSERT(false && "dataType is error!\n");
@@ -118,19 +118,20 @@ void GlobalDataServer::broadcastDataChange(Mercury::Channel* pChannel, COMPONENT
 			};
 
 			
-			bundle << isDelete;
+			(*pBundle) << isDelete;
 			int32 slen = key.size();
-			bundle << slen;
-			bundle.assign(key.data(), slen);
+			(*pBundle) << slen;
+			(*pBundle).assign(key.data(), slen);
 
 			if(!isDelete)
 			{
 				slen = value.size();
-				bundle << slen;
-				bundle.assign(value.data(), slen);
+				(*pBundle) << slen;
+				(*pBundle).assign(value.data(), slen);
 			}
 
-			bundle.send(*lpChannel->endpoint());
+			(*pBundle).send(*lpChannel->endpoint());
+			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 	}
 }
@@ -143,18 +144,18 @@ void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONE
 	DATA_MAP_KEY iter = dict_.begin();
 	for(; iter != dict_.end(); iter++)
 	{
-		Mercury::Bundle bundle;
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		
 		switch(dataType_)
 		{
 		case GLOBAL_DATA:
 			if(componentType == CELLAPP_TYPE)
 			{
-				bundle.newMessage(CellappInterface::onBroadcastGlobalDataChange);
+				(*pBundle).newMessage(CellappInterface::onBroadcastGlobalDataChange);
 			}
 			else if(componentType == BASEAPP_TYPE)
 			{
-				bundle.newMessage(BaseappInterface::onBroadcastGlobalDataChange);
+				(*pBundle).newMessage(BaseappInterface::onBroadcastGlobalDataChange);
 			}
 			else
 			{
@@ -162,27 +163,28 @@ void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONE
 			}
 			break;
 		case GLOBAL_BASES:
-			bundle.newMessage(BaseappInterface::onBroadcastGlobalDataChange);
+			(*pBundle).newMessage(BaseappInterface::onBroadcastGlobalDataChange);
 			break;
 		case CELLAPP_DATA:
-			bundle.newMessage(CellappInterface::onBroadcastGlobalDataChange);
+			(*pBundle).newMessage(CellappInterface::onBroadcastGlobalDataChange);
 			break;
 		default:
 			KBE_ASSERT(false && "dataType is error!\n");
 			break;
 		};
 
-		bundle << isDelete;
+		(*pBundle) << isDelete;
 
 		int32 slen = iter->first.size();
-		bundle << slen;
-		bundle.assign(iter->first.data(), slen);
+		(*pBundle) << slen;
+		(*pBundle).assign(iter->first.data(), slen);
 
 		slen = iter->second.size();
-		bundle << slen;
-		bundle.assign(iter->second.data(), slen);
+		(*pBundle) << slen;
+		(*pBundle).assign(iter->second.data(), slen);
 
-		bundle.send(*client->endpoint());
+		(*pBundle).send(*client->endpoint());
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 }
 

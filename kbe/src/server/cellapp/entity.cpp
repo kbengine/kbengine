@@ -105,10 +105,11 @@ void Entity::onDestroy(void)
 
 	if(baseMailbox_ != NULL)
 	{
-		Mercury::Bundle bundle;
-		bundle.newMessage(BaseappInterface::onLoseCell);
-		bundle << id_;
-		baseMailbox_->postMail(bundle);
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(BaseappInterface::onLoseCell);
+		(*pBundle) << id_;
+		baseMailbox_->postMail((*pBundle));
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
 	// 将entity从场景中剔除
@@ -337,14 +338,15 @@ void Entity::backupCellData()
 		Py_DECREF(cellData);
 	
 		// 将当前的cell部分数据打包 一起发送给base部分备份
-		Mercury::Bundle bundle;
-		bundle.newMessage(BaseappInterface::onBackupEntityCellData);
-		bundle << id_;
-		bundle << cellDataLength;
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(BaseappInterface::onBackupEntityCellData);
+		(*pBundle) << id_;
+		(*pBundle) << cellDataLength;
 		if(cellDataLength > 0)
-			bundle.append(strCellData.c_str(), cellDataLength);
+			(*pBundle).append(strCellData.c_str(), cellDataLength);
 			
-		baseMailbox_->postMail(bundle);
+		baseMailbox_->postMail((*pBundle));
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 	else
 	{
@@ -364,14 +366,16 @@ void Entity::writeToDB(void* data)
 	onWriteToDB();
 	backupCellData();
 
-	Mercury::Bundle bundle;
-	bundle.newMessage(BaseappInterface::onCellWriteToDBCompleted);
-	bundle << this->getID();
-	bundle << callbackID;
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::onCellWriteToDBCompleted);
+	(*pBundle) << this->getID();
+	(*pBundle) << callbackID;
 	if(this->getBaseMailbox())
 	{
-		this->getBaseMailbox()->postMail(bundle);
+		this->getBaseMailbox()->postMail((*pBundle));
 	}
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -833,11 +837,12 @@ void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sour
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(sourceBaseAppID);
 	if(cinfos != NULL && cinfos->pChannel != NULL)
 	{
-		Mercury::Bundle bundle;
-		bundle.newMessage(BaseappInterface::onTeleportCB);
-		bundle << sourceEntityID;
-		BaseappInterface::onTeleportCBArgs1::staticAddToBundle(bundle, spaceID);
-		bundle.send(Cellapp::getSingleton().getNetworkInterface(), cinfos->pChannel);
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(BaseappInterface::onTeleportCB);
+		(*pBundle) << sourceEntityID;
+		BaseappInterface::onTeleportCBArgs1::staticAddToBundle((*pBundle), spaceID);
+		(*pBundle).send(Cellapp::getSingleton().getNetworkInterface(), cinfos->pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 }
 

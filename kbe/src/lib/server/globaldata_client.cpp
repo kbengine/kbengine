@@ -117,27 +117,28 @@ void GlobalDataClient::onDataChanged(std::string& key, std::string& value, bool 
 		Mercury::Channel* lpChannel = iter1->pChannel;
 		KBE_ASSERT(lpChannel != NULL);
 		
-		Mercury::Bundle bundle;
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		
-		bundle.newMessage(DbmgrInterface::onBroadcastGlobalDataChange);
+		(*pBundle).newMessage(DbmgrInterface::onBroadcastGlobalDataChange);
 		
-		bundle << dataType;
-		bundle << isDelete;
+		(*pBundle) << dataType;
+		(*pBundle) << isDelete;
 
 		slen = key.size();
-		bundle << slen;
-		bundle.assign(key.data(), slen);
+		(*pBundle) << slen;
+		(*pBundle).assign(key.data(), slen);
 
 		if(!isDelete)
 		{
 			slen = value.size();
-			bundle << slen;
-			bundle.assign(value.data(), slen);
+			(*pBundle) << slen;
+			(*pBundle).assign(value.data(), slen);
 		}
 
-		bundle << g_componentType;
+		(*pBundle) << g_componentType;
 
-		bundle.send(*lpChannel->endpoint());
+		(*pBundle).send(*lpChannel->endpoint());
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 }
 

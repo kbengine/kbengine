@@ -175,18 +175,20 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 
 	static SPACE_ID spaceID = 1;
 
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	ForwardItem* pFI = new ForwardItem();
 	pFI->pHandler = NULL;
-
-	pFI->bundle.newMessage(CellappInterface::onCreateInNewSpaceFromBaseapp);
-	pFI->bundle << entityType;
-	pFI->bundle << id;
-	pFI->bundle << spaceID++;
-	pFI->bundle << componentID;
-	pFI->bundle << cellDataLength;
+	
+	pFI->pBundle = pBundle;
+	(*pBundle).newMessage(CellappInterface::onCreateInNewSpaceFromBaseapp);
+	(*pBundle) << entityType;
+	(*pBundle) << id;
+	(*pBundle) << spaceID++;
+	(*pBundle) << componentID;
+	(*pBundle) << cellDataLength;
 	
 	if(cellDataLength > 0)
-		pFI->bundle.append(strEntityCellData.data(), cellDataLength);
+		(*pBundle).append(strEntityCellData.data(), cellDataLength);
 
 	DEBUG_MSG("Cellappmgr::reqCreateInNewSpace: entityType=%s, entityID=%d, componentID=%"PRAppID".\n", entityType.c_str(), id, componentID);
 
@@ -200,7 +202,8 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 	}
 	else
 	{
-		pFI->bundle.send(this->getNetworkInterface(), lpChannel);
+		(*pBundle).send(this->getNetworkInterface(), lpChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		SAFE_RELEASE(pFI);
 	}
 }

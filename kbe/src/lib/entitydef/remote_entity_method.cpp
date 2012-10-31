@@ -62,16 +62,17 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 
 	if(methodDescription->checkArgs(args))
 	{
-		Mercury::Bundle bundle;
-		mailbox->newMail(bundle);
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		mailbox->newMail((*pBundle));
 
 		MemoryStream mstream;
 		methodDescription->addToStream(&mstream, args);
 
 		if(mstream.wpos() > 0)
-			bundle.append(mstream.data(), mstream.wpos());
+			(*pBundle).append(mstream.data(), mstream.wpos());
 
-		mailbox->postMail(bundle);
+		mailbox->postMail((*pBundle));
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 	
 	S_Return;
