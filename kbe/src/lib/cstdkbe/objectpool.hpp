@@ -192,6 +192,11 @@ public:
 	{
 		return pPoolObject_;
 	}
+
+	T& operator*()
+	{
+		return *pPoolObject_;
+	}
 private:
 	T* pPoolObject_;
 	ObjectPool<T>& objectPool_;
