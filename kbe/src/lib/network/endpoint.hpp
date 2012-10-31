@@ -34,7 +34,7 @@ namespace Mercury
 class EndPoint : public PoolObject
 {
 public:
-	typedef std::tr1::shared_ptr<SmartPoolObject<EndPoint>> SmartPoolObjectPtr;
+	typedef std::tr1::shared_ptr< SmartPoolObject< EndPoint > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<EndPoint>& ObjPool();
 	void onReclaimObject();

@@ -89,7 +89,7 @@ class MemoryStream : public PoolObject
 public:
 	static ObjectPool<MemoryStream>& ObjPool();
 
-	typedef std::tr1::shared_ptr<SmartPoolObject<MemoryStream>> SmartPoolObjectPtr;
+	typedef std::tr1::shared_ptr< SmartPoolObject< MemoryStream > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 
     const static size_t DEFAULT_SIZE = 0x1000;

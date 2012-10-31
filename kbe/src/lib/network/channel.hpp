@@ -49,7 +49,7 @@ class MessageHandlers;
 class Channel : public TimerHandler, public RefCountable, public PoolObject
 {
 public:
-	typedef std::tr1::shared_ptr<SmartPoolObject<Channel>> SmartPoolObjectPtr;
+	typedef std::tr1::shared_ptr< SmartPoolObject< Channel > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<Channel>& ObjPool();
 	void onReclaimObject();
