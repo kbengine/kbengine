@@ -29,27 +29,61 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{ 
 
-struct SQL_W_OP_TABLE_VAL_STRUCT
+/**
+	db操作数据结构
+*/
+struct DB_W_OP_TABLE_ITEM_DATA;
+struct DB_R_OP_TABLE_ITEM_DATA;
+
+/**
+	存储所有要操作的表item结构
+*/
+typedef std::vector< std::tr1::shared_ptr<DB_R_OP_TABLE_ITEM_DATA>  > DB_R_OP_TABLE_ITEM_DATAS;
+typedef std::vector< std::tr1::shared_ptr<DB_W_OP_TABLE_ITEM_DATA>  > DB_W_OP_TABLE_ITEM_DATAS;
+
+/**
+	存储要操作的表的所有内容
+*/
+struct DB_W_OP_TABLE_ITEM_DATA_BOX;
+struct DB_R_OP_TABLE_ITEM_DATA_BOX;
+
+/**
+	所有要操作的表数据结构
+*/
+typedef std::vector< std::pair< std::string/*tableName*/, std::tr1::shared_ptr< DB_R_OP_TABLE_ITEM_DATA_BOX > > > DB_R_OP_TABLE_DATAS;
+typedef std::vector< std::pair< std::string/*tableName*/, std::tr1::shared_ptr< DB_W_OP_TABLE_ITEM_DATA_BOX > > > DB_W_OP_TABLE_DATAS;
+
+struct DB_W_OP_TABLE_ITEM_DATA
 {
 	char sqlval[MAX_BUF];
 	char sqlkey[MAX_BUF];
 	std::string extraDatas;
-	std::string parentTableName;
-	DBID parentTableID;
 };
 
-struct SQL_R_OP_TABLE_VAL_STRUCT
+struct DB_R_OP_TABLE_ITEM_DATA
 {
 	char sqlkey[MAX_BUF];
-	std::string parentTableName;
-	DBID parentTableID;
 };
 
-typedef std::vector< std::tr1::shared_ptr<SQL_R_OP_TABLE_VAL_STRUCT>  > SQL_R_OP_TABLE_VAL;
-typedef std::vector< std::tr1::shared_ptr<SQL_W_OP_TABLE_VAL_STRUCT>  > SQL_W_OP_TABLE_VAL;
+struct DB_W_OP_TABLE_ITEM_DATA_BOX
+{
+	DB_W_OP_TABLE_ITEM_DATAS items;
+	std::string tableName;
+	std::string parentTableName;
+	DBID parentTableDBID;
+	DBID dbid;
+	DB_W_OP_TABLE_DATAS optable;
+};
 
-typedef std::tr1::unordered_map< std::string/*tableName*/, SQL_R_OP_TABLE_VAL > SQL_R_OP_TABLE;
-typedef std::tr1::unordered_map< std::string/*tableName*/, SQL_W_OP_TABLE_VAL > SQL_W_OP_TABLE;
+struct DB_R_OP_TABLE_ITEM_DATA_BOX
+{
+	DB_R_OP_TABLE_ITEM_DATAS items;
+	std::string tableName;
+	std::string parentTableName;
+	DBID parentTableDBID;
+	DBID dbid;
+	DB_W_OP_TABLE_DATAS optable;
+};
 
 }
 #endif

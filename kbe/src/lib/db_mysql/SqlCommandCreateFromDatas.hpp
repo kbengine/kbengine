@@ -36,11 +36,12 @@ namespace KBEngine{
 class SqlCommandCreateFromDatasBase
 {
 public:
-	SqlCommandCreateFromDatasBase(std::string tableName, DBID dbid, SQL_W_OP_TABLE_VAL& tableVal):
-	  tableVal_(tableVal),
+	SqlCommandCreateFromDatasBase(std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
+	  tableItemDatas_(tableItemDatas),
 	  sqlstr_(),
 	  tableName_(tableName),
-	  dbid_(dbid)
+	  dbid_(dbid),
+	  parentDBID_(parentDBID)
 	{
 	}
 
@@ -57,28 +58,40 @@ public:
 
 	DBID dbid()const{ return dbid_; }
 protected:
-	SQL_W_OP_TABLE_VAL& tableVal_;
+	DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas_;
 	std::string sqlstr_;
 	std::string tableName_;
 	DBID dbid_;
+	DBID parentDBID_;
 };
 
 class SqlCommandCreateFromDatas_INSERT : public SqlCommandCreateFromDatasBase
 {
 public:
-	SqlCommandCreateFromDatas_INSERT(std::string tableName, DBID dbid, SQL_W_OP_TABLE_VAL& tableVal):
-	  SqlCommandCreateFromDatasBase(tableName, dbid, tableVal)
+	SqlCommandCreateFromDatas_INSERT(std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
+	  SqlCommandCreateFromDatasBase(tableName, parentDBID, dbid, tableItemDatas)
 	{
 		// insert into tbl_Account (sm_accountName) values("fdsafsad\0\fdsfasfsa\0fdsafsda");
 		sqlstr_ = "insert into "ENTITY_TABLE_PERFIX"_";
 		sqlstr_ += tableName;
 		sqlstr_ += " (";
 		sqlstr1_ = ")  values(";
-
-		SQL_W_OP_TABLE_VAL::iterator tableValIter = tableVal.begin();
-		for(; tableValIter != tableVal.end(); tableValIter++)
+		
+		if(parentDBID > 0)
 		{
-			std::tr1::shared_ptr<SQL_W_OP_TABLE_VAL_STRUCT> pSotvs = (*tableValIter);
+			sqlstr_ += TABLE_PARENT_ID;
+			sqlstr_ += ",";
+			
+			char strdbid[MAX_BUF];
+			kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, parentDBID);
+			sqlstr1_ += strdbid;
+			sqlstr1_ += ",";
+		}
+
+		DB_W_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
+		for(; tableValIter != tableItemDatas.end(); tableValIter++)
+		{
+			std::tr1::shared_ptr<DB_W_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
 
 			if(dbid > 0)
 			{
@@ -96,10 +109,10 @@ public:
 			}
 		}
 		
-		if(sqlstr_.at(sqlstr_.size() - 1) == ',')
+		if(parentDBID > 0 || sqlstr_.at(sqlstr_.size() - 1) == ',')
 			sqlstr_.erase(sqlstr_.size() - 1);
 
-		if(sqlstr1_.at(sqlstr1_.size() - 1) == ',')
+		if(parentDBID > 0 || sqlstr1_.at(sqlstr1_.size() - 1) == ',')
 			sqlstr1_.erase(sqlstr1_.size() - 1);
 
 		sqlstr1_ += ");";
@@ -131,18 +144,18 @@ protected:
 class SqlCommandCreateFromDatas_UPDATE : public SqlCommandCreateFromDatasBase
 {
 public:
-	SqlCommandCreateFromDatas_UPDATE(std::string tableName, DBID dbid, SQL_W_OP_TABLE_VAL& tableVal):
-	  SqlCommandCreateFromDatasBase(tableName, dbid, tableVal)
+	SqlCommandCreateFromDatas_UPDATE(std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
+	  SqlCommandCreateFromDatasBase(tableName, parentDBID, dbid, tableItemDatas)
 	{
 		// update tbl_Account set sm_accountName="fdsafsad" where id=123;
 		sqlstr_ = "update "ENTITY_TABLE_PERFIX"_";
 		sqlstr_ += tableName;
 		sqlstr_ += " set ";
 
-		SQL_W_OP_TABLE_VAL::iterator tableValIter = tableVal.begin();
-		for(; tableValIter != tableVal.end(); tableValIter++)
+		DB_W_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
+		for(; tableValIter != tableItemDatas.end(); tableValIter++)
 		{
-			std::tr1::shared_ptr<SQL_W_OP_TABLE_VAL_STRUCT> pSotvs = (*tableValIter);
+			std::tr1::shared_ptr<DB_W_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
 			
 			sqlstr_ += pSotvs->sqlkey;
 			sqlstr_ += "=";
@@ -172,18 +185,18 @@ public:
 protected:
 };
 
-class SqlCommandCreateFromDatas
+class SqlCommandHelper
 {
 public:
-	SqlCommandCreateFromDatas(std::string tableName, DBID dbid, SQL_W_OP_TABLE_VAL& tableVal)
+	SqlCommandHelper(std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableVal)
 	{
 		if(dbid > 0)
-			pSqlcmd_.reset(new SqlCommandCreateFromDatas_UPDATE(tableName, dbid, tableVal));
+			pSqlcmd_.reset(new SqlCommandCreateFromDatas_UPDATE(tableName, parentDBID, dbid, tableVal));
 		else
-			pSqlcmd_.reset(new SqlCommandCreateFromDatas_INSERT(tableName, dbid, tableVal));
+			pSqlcmd_.reset(new SqlCommandCreateFromDatas_INSERT(tableName, parentDBID, dbid, tableVal));
 	}
 
-	virtual ~SqlCommandCreateFromDatas()
+	virtual ~SqlCommandHelper()
 	{
 	}
 
@@ -191,6 +204,36 @@ public:
 	{
 		return pSqlcmd_.get();
 	}
+
+	/**
+		将数据更新到表中
+	*/
+	static bool updateTable(DBInterface* dbi, DB_W_OP_TABLE_ITEM_DATA_BOX opTableItemDataBox)
+	{
+		SqlCommandHelper sql(opTableItemDataBox.tableName, opTableItemDataBox.parentTableDBID, 
+			opTableItemDataBox.dbid, opTableItemDataBox.items);
+
+		sql->query(dbi);
+
+		DBID dbid = sql->dbid();
+		opTableItemDataBox.dbid = dbid;
+
+		// 开始更新所有的子表
+		DB_W_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
+		for(; iter1 != opTableItemDataBox.optable.end(); iter1++)
+		{
+			DB_W_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
+			
+			// 绑定表关系
+			wbox.parentTableDBID = dbid;
+
+			// 更新子表
+			updateTable(dbi, wbox);
+		}
+
+		return true;
+	}
+
 protected:
 	std::tr1::shared_ptr<SqlCommandCreateFromDatasBase> pSqlcmd_;
 };

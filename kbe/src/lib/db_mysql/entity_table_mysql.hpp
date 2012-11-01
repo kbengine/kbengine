@@ -72,8 +72,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag = "") = 0;
-	virtual void getReadSqlItem(SQL_R_OP_TABLE& opTable) = 0;
+	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTable, const char* exstrFlag = "") = 0;
+	virtual void getReadSqlItem(DB_R_OP_TABLE_DATAS& opTable) = 0;
 protected:
 };
 
@@ -103,8 +103,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag = "");
-	virtual void getReadSqlItem(SQL_R_OP_TABLE& opTable);
+	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_R_OP_TABLE_DATAS& opTable);
 protected:
 	std::string dataSType_;
 };
@@ -134,8 +134,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag = "");
-	virtual void getReadSqlItem(SQL_R_OP_TABLE& opTable);
+	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_R_OP_TABLE_DATAS& opTable);
 };
 
 class EntityTableItemMysql_UNICODE : public EntityTableItemMysqlBase
@@ -163,8 +163,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag = "");
-	virtual void getReadSqlItem(SQL_R_OP_TABLE& opTable);
+	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_R_OP_TABLE_DATAS& opTable);
 };
 
 class EntityTableItemMysql_BLOB : public EntityTableItemMysqlBase
@@ -192,8 +192,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag = "");
-	virtual void getReadSqlItem(SQL_R_OP_TABLE& opTable);
+	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_R_OP_TABLE_DATAS& opTable);
 };
 
 class EntityTableItemMysql_VECTOR2 : public EntityTableItemMysqlBase
@@ -223,8 +223,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag = "");
-	virtual void getReadSqlItem(SQL_R_OP_TABLE& opTable);
+	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_R_OP_TABLE_DATAS& opTable);
 };
 
 class EntityTableItemMysql_VECTOR3 : public EntityTableItemMysqlBase
@@ -254,8 +254,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag = "");
-	virtual void getReadSqlItem(SQL_R_OP_TABLE& opTable);
+	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_R_OP_TABLE_DATAS& opTable);
 };
 
 class EntityTableItemMysql_VECTOR4 : public EntityTableItemMysqlBase
@@ -285,8 +285,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag = "");
-	virtual void getReadSqlItem(SQL_R_OP_TABLE& opTable);
+	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_R_OP_TABLE_DATAS& opTable);
 };
 
 class EntityTableItemMysql_MAILBOX : public EntityTableItemMysqlBase
@@ -314,8 +314,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag = "");
-	virtual void getReadSqlItem(SQL_R_OP_TABLE& opTable);
+	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_R_OP_TABLE_DATAS& opTable);
 };
 
 class EntityTableItemMysql_ARRAY : public EntityTableItemMysqlBase
@@ -352,8 +352,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag = "");
-	virtual void getReadSqlItem(SQL_R_OP_TABLE& opTable);
+	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_R_OP_TABLE_DATAS& opTable);
 protected:
 	EntityTable* pChildTable_;
 };
@@ -393,8 +393,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable, const char* exstrFlag = "");
-	virtual void getReadSqlItem(SQL_R_OP_TABLE& opTable);
+	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_R_OP_TABLE_DATAS& opTable);
 protected:
 	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPES			keyTypes_;		// 这个固定字典里的各个key的类型
 };
@@ -434,8 +434,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, SQL_W_OP_TABLE& opTable);
-	virtual void getReadSqlItem(SQL_R_OP_TABLE& opTable);
+	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getReadSqlItem(DB_R_OP_TABLE_DATAS& opTable);
 protected:
 	
 };
