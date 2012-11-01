@@ -97,7 +97,15 @@ class SpaceFightCopy(SpaceCopy):
 		
 		v = random.randint(0, 30)
 		mon.addHP(-v)
-		self.client.fightResult(casterID, targetID, 1, [{"eff":"addHP", "val" : -v}])
+		caster.client.fightResult(casterID, targetID, 1, [{"eff":"addHP", "val" : -v}])
+
+	def onEnter(self, entityMailbox):
+		"""
+		defined method.
+		进入场景
+		"""
+		SpaceCopy.onEnter(self, entityMailbox)
+		KBEngine.entities[entityMailbox.id].fightSeat = 2
 		
 SpaceFightCopy._timermap = {}
 SpaceFightCopy._timermap.update(SpaceCopy._timermap)
