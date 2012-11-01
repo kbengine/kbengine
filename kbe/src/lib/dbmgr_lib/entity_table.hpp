@@ -53,7 +53,17 @@ class MemoryStream;
 #define TABLE_PARENT_ID				"parentID"
 #define TABLE_ITEM_PERFIX			"sm"
 
-/*
+/**
+	db表操作
+*/
+enum DB_TABLE_OP
+{
+	TABLE_OP_INSERT					= 1,
+	TABLE_OP_UPDATE					= 2,
+	TABLE_OP_DELETE					= 3
+};
+
+/**
 	维护entity在数据库中的表中的一个字段
 */
 class EntityTableItem

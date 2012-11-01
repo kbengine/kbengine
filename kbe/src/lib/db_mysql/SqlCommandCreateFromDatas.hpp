@@ -192,12 +192,21 @@ protected:
 class SqlCommandHelper
 {
 public:
-	SqlCommandHelper(std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableVal)
+	SqlCommandHelper(DB_TABLE_OP opType, std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableVal)
 	{
-		if(dbid > 0)
+		switch(opType)
+		{
+		case TABLE_OP_UPDATE:
 			pSqlcmd_.reset(new SqlCommandCreateFromDatas_UPDATE(tableName, parentDBID, dbid, tableVal));
-		else
+			break;
+		case TABLE_OP_INSERT:
 			pSqlcmd_.reset(new SqlCommandCreateFromDatas_INSERT(tableName, parentDBID, dbid, tableVal));
+			break;
+		case TABLE_OP_DELETE:
+			break;
+		default:
+			KBE_ASSERT(false && "no support!\n");
+		};
 	}
 
 	virtual ~SqlCommandHelper()
@@ -212,9 +221,9 @@ public:
 	/**
 		将数据更新到表中
 	*/
-	static bool updateTable(DBInterface* dbi, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+	static bool updateTable(DB_TABLE_OP optype, DBInterface* dbi, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 	{
-		SqlCommandHelper sql(opTableItemDataBox.tableName, opTableItemDataBox.parentTableDBID, 
+		SqlCommandHelper sql(optype, opTableItemDataBox.tableName, opTableItemDataBox.parentTableDBID, 
 			opTableItemDataBox.dbid, opTableItemDataBox.items);
 
 		sql->query(dbi);
@@ -232,7 +241,7 @@ public:
 			wbox.parentTableDBID = dbid;
 
 			// 更新子表
-			updateTable(dbi, wbox);
+			updateTable(optype, dbi, wbox);
 		}
 
 		return true;

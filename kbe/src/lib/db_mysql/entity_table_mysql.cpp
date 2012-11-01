@@ -385,8 +385,8 @@ DBID EntityTableMysql::updateTable(DBInterface* dbi, DBID dbid, MemoryStream* s,
 		static_cast<EntityTableItemMysqlBase*>(pTableItem)->getWriteSqlItem(s, opTableItemDataBox, exstrFlag.c_str());
 	};
 
-
-	if(!SqlCommandHelper::updateTable(dbi, opTableItemDataBox))
+	if(!SqlCommandHelper::updateTable(opTableItemDataBox.dbid > 0 ? TABLE_OP_UPDATE : TABLE_OP_INSERT, 
+		dbi, opTableItemDataBox))
 		return 0;
 
 	dbid = opTableItemDataBox.dbid;
