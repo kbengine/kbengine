@@ -258,6 +258,8 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 		pForwardBundle->append(*mstream);
 		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(this->getID(), (*pSendBundle), (*pForwardBundle));
 		clientMailbox_->postMail(*pSendBundle);
+		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	}
 
 	MemoryStream::ObjPool().reclaimObject(mstream);
