@@ -202,5 +202,9 @@ private:
 	ObjectPool<T>& objectPool_;
 };
 
+
+#define NEW_POOL_OBJECT(TYPE) TYPE::ObjPool().createObject();
+
+
 }
 #endif

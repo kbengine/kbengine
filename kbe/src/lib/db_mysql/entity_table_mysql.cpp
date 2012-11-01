@@ -390,6 +390,12 @@ DBID EntityTableMysql::updateTable(DBInterface* dbi, DBID dbid, MemoryStream* s,
 	SqlCommandCreateFromDatas sqlcmd(mainTableName, dbid, iter->second);
 	sqlcmd->query(dbi);
 	dbid = sqlcmd->dbid();
+	
+	// 如果dbid为0则存储失败返回
+	if(dbid <= 0)
+		return dbid;
+
+	opTable.erase(iter);
 
 	return dbid;
 }
@@ -669,7 +675,7 @@ void EntityTableItemMysql_MAILBOX::getReadSqlItem(SQL_R_OP_TABLE& opTable)
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_ARRAY::isSameKey(std::string key)
 {
-	return true;
+	return false;
 }
 
 //-------------------------------------------------------------------------------------
