@@ -53,6 +53,10 @@ public:
 
 	virtual bool query(DBInterface* pdbi)
 	{
+		// 没有数据更新
+		if(sqlstr_ == "")
+			return true;
+
 		return static_cast<DBInterfaceMysql*>(pdbi)->query(sqlstr_.c_str(), sqlstr_.size(), false);
 	}
 
@@ -208,7 +212,7 @@ public:
 	/**
 		将数据更新到表中
 	*/
-	static bool updateTable(DBInterface* dbi, DB_W_OP_TABLE_ITEM_DATA_BOX opTableItemDataBox)
+	static bool updateTable(DBInterface* dbi, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 	{
 		SqlCommandHelper sql(opTableItemDataBox.tableName, opTableItemDataBox.parentTableDBID, 
 			opTableItemDataBox.dbid, opTableItemDataBox.items);
