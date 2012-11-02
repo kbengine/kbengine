@@ -267,6 +267,10 @@ public:
 		}
 		else
 		{
+			// 如果有父ID首先得到该属性数据库中同父id的数据有多少条目， 并取出每条数据的id
+			// 然后将内存中的数据顺序更新至数据库， 如果数据库中有存在的条目则顺序覆盖更新已有的条目， 如果数据数量
+			// 大于数据库中已有的条目则插入剩余的数据， 如果数据少于数据库中的条目则删除数据库中的条目
+			// select id from tbl_SpawnPoint_xxx_values where parentID = 7;
 			std::tr1::unordered_map< std::string, std::vector<DBID> > childTableDBIDs;
 
 			if(opTableItemDataBox.dbid > 0)
@@ -289,11 +293,6 @@ public:
 				std::tr1::unordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
 				for(; tabiter != childTableDBIDs.end(); tabiter++)
 				{
-					// 如果有父ID首先得到该属性数据库中同父id的数据有多少条目， 并取出每条数据的id
-					// 然后将内存中的数据顺序更新至数据库， 如果数据库中有存在的条目则顺序覆盖更新已有的条目， 如果数据数量
-					// 大于数据库中已有的条目则插入剩余的数据， 如果数据少于数据库中的条目则删除数据库中的条目
-					// select id from tbl_SpawnPoint_xxx_values where parentID = 7;
-
 					std::string sqlstr;
 
 					sqlstr = "select id from "ENTITY_TABLE_PERFIX"_";
@@ -366,7 +365,8 @@ public:
 					updateTable(optype, dbi, wbox);
 				}
 			}
-
+			
+			// 删除废弃的数据项
 			std::tr1::unordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
 			for(; tabiter != childTableDBIDs.end(); tabiter++)
 			{
