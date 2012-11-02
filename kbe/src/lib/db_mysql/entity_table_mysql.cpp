@@ -361,6 +361,7 @@ DBID EntityTableMysql::updateTable(DBInterface* dbi, DBID dbid, MemoryStream* s,
 	opTableItemDataBox.parentTableDBID = 0;
 	opTableItemDataBox.dbid = dbid;
 	opTableItemDataBox.tableName = pModule->getName();
+	opTableItemDataBox.isEmpty = false;
 
 	while(s->opsize() > 0)
 	{
@@ -410,7 +411,7 @@ void EntityTableMysql::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_
 {
 	if(tableFixedOrderItems_.size() == 0)
 		return;
-
+	
 	std::vector<EntityTableItem*>::iterator iter = tableFixedOrderItems_.begin();
 
 	DB_W_OP_TABLE_ITEM_DATA_BOX* opTableItemDataBox1 = new DB_W_OP_TABLE_ITEM_DATA_BOX();
@@ -418,7 +419,8 @@ void EntityTableMysql::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_
 	opTableItemDataBox1->tableName = (*iter)->tableName();
 	opTableItemDataBox1->parentTableDBID = 0;
 	opTableItemDataBox1->dbid = 0;
-
+	opTableItemDataBox1->isEmpty = (s == NULL);
+	
 	std::tr1::shared_ptr< DB_W_OP_TABLE_ITEM_DATA_BOX > opTableValBox1Ptr(opTableItemDataBox1);
 	opTableItemDataBox.optable.push_back( std::make_pair<std::string/*tableName*/, std::tr1::shared_ptr< DB_W_OP_TABLE_ITEM_DATA_BOX > >
 		((*iter)->tableName(), opTableValBox1Ptr));
@@ -471,6 +473,9 @@ bool EntityTableItemMysql_VECTOR2::addToStream(DBID dbid, MemoryStream* s, Scrip
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR2::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag)
 {
+	if(s == NULL)
+		return;
+
 #ifdef CLIENT_NO_FLOAT
 	int32 v;
 #else
@@ -541,6 +546,9 @@ bool EntityTableItemMysql_VECTOR3::addToStream(DBID dbid, MemoryStream* s, Scrip
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR3::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag)
 {
+	if(s == NULL)
+		return;
+
 #ifdef CLIENT_NO_FLOAT
 	int32 v;
 #else
@@ -617,6 +625,9 @@ bool EntityTableItemMysql_VECTOR4::addToStream(DBID dbid, MemoryStream* s, Scrip
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR4::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag)
 {
+	if(s == NULL)
+		return;
+
 #ifdef CLIENT_NO_FLOAT
 	int32 v;
 #else
@@ -769,12 +780,20 @@ bool EntityTableItemMysql_ARRAY::addToStream(DBID dbid, MemoryStream* s, ScriptD
 void EntityTableItemMysql_ARRAY::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag)
 {
 	ArraySize size = 0;
-	(*s) >> size;
+	if(s)
+		(*s) >> size;
 
 	if(pChildTable_)
 	{
-		for(ArraySize i=0; i<size; i++)
-			static_cast<EntityTableMysql*>(pChildTable_)->getWriteSqlItem(s, opTableItemDataBox);
+		if(size > 0)
+		{
+			for(ArraySize i=0; i<size; i++)
+				static_cast<EntityTableMysql*>(pChildTable_)->getWriteSqlItem(s, opTableItemDataBox);
+		}
+		else
+		{
+			static_cast<EntityTableMysql*>(pChildTable_)->getWriteSqlItem(NULL, opTableItemDataBox);
+		}
 	}
 }
 
@@ -916,6 +935,9 @@ bool EntityTableItemMysql_DIGIT::addToStream(DBID dbid, MemoryStream* s, ScriptD
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_DIGIT::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag)
 {
+	if(s == NULL)
+		return;
+
 	DB_W_OP_TABLE_ITEM_DATA* pSotvs = new DB_W_OP_TABLE_ITEM_DATA();
 	
 	if(dataSType_ == "INT8")
@@ -1018,6 +1040,9 @@ bool EntityTableItemMysql_STRING::addToStream(DBID dbid, MemoryStream* s, Script
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_STRING::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag)
 {
+	if(s == NULL)
+		return;
+
 	DB_W_OP_TABLE_ITEM_DATA* pSotvs = new DB_W_OP_TABLE_ITEM_DATA();
 	
 	pSotvs->extraDatas = "\"";
@@ -1066,6 +1091,9 @@ bool EntityTableItemMysql_UNICODE::addToStream(DBID dbid, MemoryStream* s, Scrip
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_UNICODE::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag)
 {
+	if(s == NULL)
+		return;
+
 	DB_W_OP_TABLE_ITEM_DATA* pSotvs = new DB_W_OP_TABLE_ITEM_DATA();
 
 	pSotvs->extraDatas = "\"";
@@ -1101,6 +1129,9 @@ bool EntityTableItemMysql_BLOB::addToStream(DBID dbid, MemoryStream* s, ScriptDe
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_BLOB::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag)
 {
+	if(s == NULL)
+		return;
+
 	DB_W_OP_TABLE_ITEM_DATA* pSotvs = new DB_W_OP_TABLE_ITEM_DATA();
 
 	pSotvs->extraDatas = "\"";

@@ -181,6 +181,7 @@ public:
 		获得所有表字段
 	*/
 	const EntityTable::TABLEITEM_MAP& tableItems()const { return tableItems_; }
+	const std::vector<EntityTableItem*>& tableFixedOrderItems()const{ return tableFixedOrderItems_; }
 
 	void addItem(EntityTableItem* pItem);
 

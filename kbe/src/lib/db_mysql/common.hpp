@@ -73,6 +73,7 @@ struct DB_W_OP_TABLE_ITEM_DATA_BOX
 	DBID parentTableDBID;
 	DBID dbid;
 	DB_W_OP_TABLE_DATAS optable;
+	bool isEmpty;
 };
 
 struct DB_R_OP_TABLE_ITEM_DATA_BOX
