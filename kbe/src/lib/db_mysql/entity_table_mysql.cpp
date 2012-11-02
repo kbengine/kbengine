@@ -198,7 +198,7 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 		for(; iter != tableItems_.end(); iter++)
 		{
 			// 处理array中的值的特例情况
-			if(tname == "sm_value")
+			if(tname == TABLE_ITEM_PERFIX"_"TABLE_ARRAY_ITEM_VALUE)
 			{
 				if(iter->second->pParentTableItem() && iter->second->type() != TABLE_ITEM_TYPE_FIXEDARRAY)
 				{
@@ -458,10 +458,10 @@ bool EntityTableItemMysql_VECTOR2::syncToDB(DBInterface* dbi, const char* exstrF
 {
 	DEBUG_MSG("EntityTableItemMysql_VECTOR2::syncToDB(): %s.\n", itemName());
 
-	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_0"))
+	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, TABLE_ITEM_PERFIX"_0"))
 		return false;
 
-	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_1");
+	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, TABLE_ITEM_PERFIX"_1");
 }
 
 //-------------------------------------------------------------------------------------
@@ -491,7 +491,7 @@ void EntityTableItemMysql_VECTOR2::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABL
 	{
 		(*s) >> v;
 		DB_W_OP_TABLE_ITEM_DATA* pSotvs = new DB_W_OP_TABLE_ITEM_DATA();
-		kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%d_%s%s", i, exstrFlag, itemName());
+		kbe_snprintf(pSotvs->sqlkey, MAX_BUF, TABLE_ITEM_PERFIX"_%d_%s%s", i, exstrFlag, itemName());
 
 #ifdef CLIENT_NO_FLOAT
 		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%d", v);
@@ -528,13 +528,13 @@ bool EntityTableItemMysql_VECTOR3::syncToDB(DBInterface* dbi, const char* exstrF
 {
 	DEBUG_MSG("EntityTableItemMysql_VECTOR3::syncToDB(): %s.\n", itemName());
 
-	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_0"))
+	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, TABLE_ITEM_PERFIX"_0"))
 		return false;
 
-	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_1"))
+	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, TABLE_ITEM_PERFIX"_1"))
 		return false;
 
-	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_2");
+	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, TABLE_ITEM_PERFIX"_2");
 }
 
 //-------------------------------------------------------------------------------------
@@ -564,7 +564,7 @@ void EntityTableItemMysql_VECTOR3::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABL
 	{
 		(*s) >> v;
 		DB_W_OP_TABLE_ITEM_DATA* pSotvs = new DB_W_OP_TABLE_ITEM_DATA();
-		kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%d_%s%s", i, exstrFlag, itemName());
+		kbe_snprintf(pSotvs->sqlkey, MAX_BUF, TABLE_ITEM_PERFIX"_%d_%s%s", i, exstrFlag, itemName());
 
 #ifdef CLIENT_NO_FLOAT
 		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%d", v);
@@ -604,16 +604,16 @@ bool EntityTableItemMysql_VECTOR4::syncToDB(DBInterface* dbi, const char* exstrF
 {
 	DEBUG_MSG("EntityTableItemMysql_VECTOR4::syncToDB(): %s.\n", itemName());
 
-	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_0"))
+	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, TABLE_ITEM_PERFIX"_0"))
 		return false;
 
-	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_1"))
+	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, TABLE_ITEM_PERFIX"_1"))
 		return false;
 
-	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_2"))
+	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, TABLE_ITEM_PERFIX"_2"))
 		return false;
 
-	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, "sm_3");
+	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), itemName(), exstrFlag, TABLE_ITEM_PERFIX"_3");
 }
 
 //-------------------------------------------------------------------------------------
@@ -643,7 +643,7 @@ void EntityTableItemMysql_VECTOR4::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABL
 	{
 		(*s) >> v;
 		DB_W_OP_TABLE_ITEM_DATA* pSotvs = new DB_W_OP_TABLE_ITEM_DATA();
-		kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%d_%s%s", i, exstrFlag, itemName());
+		kbe_snprintf(pSotvs->sqlkey, MAX_BUF, TABLE_ITEM_PERFIX"_%d_%s%s", i, exstrFlag, itemName());
 
 #ifdef CLIENT_NO_FLOAT
 		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%d", v);
@@ -728,10 +728,10 @@ bool EntityTableItemMysql_ARRAY::initialize(const PropertyDescription* pProperty
 	}
 	else
 	{
-		tablename += "values";
+		tablename += TABLE_ARRAY_ITEM_VALUES;
 
 		if(static_cast<FixedArrayType*>(const_cast<DataType*>(pDataType))->getDataType()->type() != DATA_TYPE_FIXEDDICT)
-			itemName = "value";
+			itemName = TABLE_ARRAY_ITEM_VALUE;
 	}
 
 	pTable->tableName(tablename);
@@ -1001,7 +1001,7 @@ void EntityTableItemMysql_DIGIT::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_
 		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%lf", v);
 	}
 
-	kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%s%s", exstrFlag, itemName());
+	kbe_snprintf(pSotvs->sqlkey, MAX_BUF, TABLE_ITEM_PERFIX"_%s%s", exstrFlag, itemName());
 	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_W_OP_TABLE_ITEM_DATA>(pSotvs));
 	
 }
@@ -1053,7 +1053,7 @@ void EntityTableItemMysql_STRING::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE
 	pSotvs->extraDatas += "\"";
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
-	kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%s%s", exstrFlag, itemName());
+	kbe_snprintf(pSotvs->sqlkey, MAX_BUF, TABLE_ITEM_PERFIX"_%s%s", exstrFlag, itemName());
 	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_W_OP_TABLE_ITEM_DATA>(pSotvs));
 }
 
@@ -1104,7 +1104,7 @@ void EntityTableItemMysql_UNICODE::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABL
 	pSotvs->extraDatas += "\"";
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
-	kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%s%s", exstrFlag, itemName());
+	kbe_snprintf(pSotvs->sqlkey, MAX_BUF, TABLE_ITEM_PERFIX"_%s%s", exstrFlag, itemName());
 	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_W_OP_TABLE_ITEM_DATA>(pSotvs));
 }
 
@@ -1142,7 +1142,7 @@ void EntityTableItemMysql_BLOB::getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_I
 	pSotvs->extraDatas += "\"";
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
-	kbe_snprintf(pSotvs->sqlkey, MAX_BUF, "sm_%s%s", exstrFlag, itemName());
+	kbe_snprintf(pSotvs->sqlkey, MAX_BUF, TABLE_ITEM_PERFIX"_%s%s", exstrFlag, itemName());
 	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_W_OP_TABLE_ITEM_DATA>(pSotvs));
 }
 

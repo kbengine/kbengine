@@ -52,6 +52,8 @@ class MemoryStream;
 #define ENTITY_TABLE_PERFIX			"tbl"
 #define TABLE_PARENT_ID				"parentID"
 #define TABLE_ITEM_PERFIX			"sm"
+#define TABLE_ARRAY_ITEM_VALUE		"value"
+#define TABLE_ARRAY_ITEM_VALUES		"values"
 
 /**
 	db±í²Ù×÷
