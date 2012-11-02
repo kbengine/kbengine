@@ -98,6 +98,7 @@ class SpaceFightCopy(SpaceCopy):
 		v = random.randint(0, 30)
 		mon.addHP(-v)
 		caster.client.fightResult(casterID, targetID, 1, [{"eff":"addHP", "val" : -v}])
+		caster.client.fightResult(0, 0, 0, [])
 
 	def onEnter(self, entityMailbox):
 		"""
