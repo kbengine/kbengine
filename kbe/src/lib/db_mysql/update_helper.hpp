@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SQL_COMMAND_CREATE_FROM_DATAS_H__
-#define __SQL_COMMAND_CREATE_FROM_DATAS_H__
+#ifndef __SQL_UPDATE_DATAS_H__
+#define __SQL_UPDATE_DATAS_H__
 
 // common include	
 // #define NDEBUG
@@ -34,10 +34,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{ 
 
-class SqlCommandCreateFromDatasBase
+class SqlUpdateDatasBase
 {
 public:
-	SqlCommandCreateFromDatasBase(DBInterface* dbi, std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
+	SqlUpdateDatasBase(DBInterface* dbi, std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
 	  tableItemDatas_(tableItemDatas),
 	  sqlstr_(),
 	  tableName_(tableName),
@@ -47,7 +47,7 @@ public:
 	{
 	}
 
-	virtual ~SqlCommandCreateFromDatasBase()
+	virtual ~SqlUpdateDatasBase()
 	{
 	}
 
@@ -72,11 +72,11 @@ protected:
 	DBInterface* dbi_; 
 };
 
-class SqlCommandCreateFromDatas_INSERT : public SqlCommandCreateFromDatasBase
+class SqlUpdateDatas_INSERT : public SqlUpdateDatasBase
 {
 public:
-	SqlCommandCreateFromDatas_INSERT(DBInterface* dbi, std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
-	  SqlCommandCreateFromDatasBase(dbi, tableName, parentDBID, dbid, tableItemDatas)
+	SqlUpdateDatas_INSERT(DBInterface* dbi, std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
+	  SqlUpdateDatasBase(dbi, tableName, parentDBID, dbid, tableItemDatas)
 	{
 		// insert into tbl_Account (sm_accountName) values("fdsafsad\0\fdsfasfsa\0fdsafsda");
 		sqlstr_ = "insert into "ENTITY_TABLE_PERFIX"_";
@@ -126,7 +126,7 @@ public:
 		sqlstr_ += sqlstr1_;
 	}
 
-	virtual ~SqlCommandCreateFromDatas_INSERT()
+	virtual ~SqlUpdateDatas_INSERT()
 	{
 	}
 
@@ -136,10 +136,10 @@ public:
 		if(sqlstr_ == "")
 			return true;
 
-		bool ret = SqlCommandCreateFromDatasBase::query();
+		bool ret = SqlUpdateDatasBase::query();
 		if(!ret)
 		{
-			ERROR_MSG("SqlCommandCreateFromDatas_INSERT::query: %s\n", dbi_->getstrerror());
+			ERROR_MSG("SqlUpdateDatas_INSERT::query: %s\n", dbi_->getstrerror());
 			return false;
 		}
 
@@ -152,11 +152,11 @@ protected:
 	std::string sqlstr1_;
 };
 
-class SqlCommandCreateFromDatas_UPDATE : public SqlCommandCreateFromDatasBase
+class SqlUpdateDatas_UPDATE : public SqlUpdateDatasBase
 {
 public:
-	SqlCommandCreateFromDatas_UPDATE(DBInterface* dbi, std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
-	  SqlCommandCreateFromDatasBase(dbi, tableName, parentDBID, dbid, tableItemDatas)
+	SqlUpdateDatas_UPDATE(DBInterface* dbi, std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
+	  SqlUpdateDatasBase(dbi, tableName, parentDBID, dbid, tableItemDatas)
 	{
 		if(tableItemDatas.size() == 0)
 		{
@@ -196,27 +196,27 @@ public:
 		sqlstr_ += ";";
 	}
 
-	virtual ~SqlCommandCreateFromDatas_UPDATE()
+	virtual ~SqlUpdateDatas_UPDATE()
 	{
 	}
 protected:
 };
 
-class SqlCommandHelper
+class SqlUpdateEntityHelper
 {
 public:
-	SqlCommandHelper(DBInterface* dbi, DB_TABLE_OP opType, std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableVal)
+	SqlUpdateEntityHelper(DBInterface* dbi, DB_TABLE_OP opType, std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableVal)
 	{
 		switch(opType)
 		{
 		case TABLE_OP_UPDATE:
 			if(dbid > 0)
-				pSqlcmd_.reset(new SqlCommandCreateFromDatas_UPDATE(dbi, tableName, parentDBID, dbid, tableVal));
+				pSqlcmd_.reset(new SqlUpdateDatas_UPDATE(dbi, tableName, parentDBID, dbid, tableVal));
 			else
-				pSqlcmd_.reset(new SqlCommandCreateFromDatas_INSERT(dbi, tableName, parentDBID, dbid, tableVal));
+				pSqlcmd_.reset(new SqlUpdateDatas_INSERT(dbi, tableName, parentDBID, dbid, tableVal));
 			break;
 		case TABLE_OP_INSERT:
-			pSqlcmd_.reset(new SqlCommandCreateFromDatas_INSERT(dbi, tableName, parentDBID, dbid, tableVal));
+			pSqlcmd_.reset(new SqlUpdateDatas_INSERT(dbi, tableName, parentDBID, dbid, tableVal));
 			break;
 		case TABLE_OP_DELETE:
 			break;
@@ -225,11 +225,11 @@ public:
 		};
 	}
 
-	virtual ~SqlCommandHelper()
+	virtual ~SqlUpdateEntityHelper()
 	{
 	}
 
-	SqlCommandCreateFromDatasBase* operator ->()
+	SqlUpdateDatasBase* operator ->()
 	{
 		return pSqlcmd_.get();
 	}
@@ -243,7 +243,7 @@ public:
 
 		if(!opTableItemDataBox.isEmpty)
 		{
-			SqlCommandHelper sql(dbi, optype, opTableItemDataBox.tableName, opTableItemDataBox.parentTableDBID, 
+			SqlUpdateEntityHelper sql(dbi, optype, opTableItemDataBox.tableName, opTableItemDataBox.parentTableDBID, 
 				opTableItemDataBox.dbid, opTableItemDataBox.items);
 
 			ret = sql->query();
@@ -286,7 +286,7 @@ public:
 					if(iter == childTableDBIDs.end())
 					{
 						std::vector<DBID> v;
-						childTableDBIDs.insert(std::make_pair<std::string, std::vector<DBID>>(wbox.tableName, v));
+						childTableDBIDs.insert(std::make_pair< std::string, std::vector<DBID> >(wbox.tableName, v));
 					}
 				}
 
@@ -309,9 +309,6 @@ public:
 						MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
 						if(pResult)
 						{
-							uint32 nrows = (uint32)mysql_num_rows(pResult);
-							uint32 nfields = (uint32)mysql_num_fields(pResult);
-
 							MYSQL_ROW arow;
 							while((arow = mysql_fetch_row(pResult)) != NULL)
 							{
@@ -409,7 +406,7 @@ public:
 	}
 
 protected:
-	std::tr1::shared_ptr<SqlCommandCreateFromDatasBase> pSqlcmd_;
+	std::tr1::shared_ptr<SqlUpdateDatasBase> pSqlcmd_;
 };
 
 }

@@ -179,7 +179,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\SqlCommandCreateFromDatas.hpp"
+				RelativePath=".\update_helper.hpp"
 				>
 			</File>
 		</Filter>
