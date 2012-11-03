@@ -46,23 +46,16 @@ public:
 	{
 	}
 
-	static SqlStatement* createSql(DBInterface* dbi, DB_TABLE_OP opType, 
-		std::string tableName, DBID parentDBID, 
+	static SqlStatement* createSql(DBInterface* dbi, std::string tableName, DBID parentDBID, 
 		DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableVal)
 	{
-		switch(opType)
-		{
-		default:
-			KBE_ASSERT(false && "no support!\n");
-		};
-
 		return NULL;
 	}
 
 	/**
 		从表中查询数据
 	*/
-	static bool queryDB(DB_TABLE_OP optype, DBInterface* dbi, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+	static bool queryDB(DBInterface* dbi, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 	{
 		return true;
 	}

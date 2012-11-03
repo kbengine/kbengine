@@ -49,7 +49,7 @@ EntityTableItem* EntityTable::findItem(int32/*ENTITY_PROPERTY_UID*/ utype)
 }
 
 //-------------------------------------------------------------------------------------
-DBID EntityTable::updateTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+DBID EntityTable::writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	while(s->opsize() > 0)
 	{
@@ -59,11 +59,11 @@ DBID EntityTable::updateTable(DBInterface* dbi, DBID dbid, MemoryStream* s, Scri
 		EntityTableItem* pTableItem = this->findItem(pid);
 		if(pTableItem == NULL)
 		{
-			ERROR_MSG("EntityTable::updateTable: not found item[%u].\n", pid);
+			ERROR_MSG("EntityTable::writeTable: not found item[%u].\n", pid);
 			return dbid;
 		}
 
-		if(!pTableItem->updateItem(dbi, dbid, s, pModule))
+		if(!pTableItem->writeItem(dbi, dbid, s, pModule))
 			return dbid;
 	};
 
@@ -71,12 +71,12 @@ DBID EntityTable::updateTable(DBInterface* dbi, DBID dbid, MemoryStream* s, Scri
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTable::addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+bool EntityTable::queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	std::vector<EntityTableItem*>::iterator iter = tableFixedOrderItems_.begin();
 	for(; iter != tableFixedOrderItems_.end(); iter++)
 	{
-		if(!(*iter)->addToStream(dbid, s, pModule))
+		if(!(*iter)->queryTable(dbi, dbid, s, pModule))
 			return false;
 	}
 
@@ -186,16 +186,16 @@ DBID EntityTables::writeEntity(DBInterface* dbi, DBID dbid, MemoryStream* s, Scr
 	EntityTable* pTable = this->findTable(pModule->getName());
 	KBE_ASSERT(pTable != NULL);
 
-	return pTable->updateTable(dbi, dbid, s, pModule);
+	return pTable->writeTable(dbi, dbid, s, pModule);
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTables::addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
+bool EntityTables::queryEntity(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	EntityTable* pTable = this->findTable(pModule->getName());
 	KBE_ASSERT(pTable != NULL);
 
-	return pTable->addToStream(dbid, s, pModule);
+	return pTable->queryTable(dbi, dbid, s, pModule);
 }
 
 //-------------------------------------------------------------------------------------

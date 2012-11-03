@@ -121,12 +121,12 @@ public:
 	/**
 		更新数据
 	*/
-	virtual bool updateItem(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule) = 0;
+	virtual bool writeItem(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule) = 0;
 
 	/**
 		获取所有的数据放到流中
 	*/
-	virtual bool addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule) = 0;
+	virtual bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule) = 0;
 protected:
 	// 字段名称
 	std::string itemName_;
@@ -195,12 +195,12 @@ public:
 	/**
 		更新表
 	*/
-	virtual DBID updateTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	virtual DBID writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
 		获取所有的数据放到流中
 	*/
-	virtual bool addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	virtual bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 protected:
 
 	// 表名称
@@ -243,7 +243,7 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	bool addToStream(DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	bool queryEntity(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 protected:
 	// 所有的字段
 	TABLES_MAP tables_;

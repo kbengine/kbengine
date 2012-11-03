@@ -460,7 +460,7 @@ callbackID_(callbackID),
 success_(false),
 s_()
 {
-	EntityTables::getSingleton().addToStream(dbid, &s_, EntityDef::findScriptModule(entityType_.c_str()));
+	EntityTables::getSingleton().queryEntity(pdbi_, dbid, &s_, EntityDef::findScriptModule(entityType_.c_str()));
 }
 
 //-------------------------------------------------------------------------------------
