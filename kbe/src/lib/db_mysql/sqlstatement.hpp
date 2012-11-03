@@ -205,6 +205,56 @@ public:
 protected:
 };
 
+class SqlStatementQuery : public SqlStatement
+{
+public:
+	SqlStatementQuery(DBInterface* dbi, std::string tableName, DBID parentDBID, 
+		DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
+	  SqlStatement(dbi, tableName, parentDBID, dbid, tableItemDatas)
+	{
+		if(tableItemDatas.size() == 0)
+		{
+			sqlstr_ = "";
+			return;
+		}
+
+		// update tbl_Account set sm_accountName="fdsafsad" where id=123;
+		sqlstr_ = "update "ENTITY_TABLE_PERFIX"_";
+		sqlstr_ += tableName;
+		sqlstr_ += " set ";
+
+		DB_W_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
+		for(; tableValIter != tableItemDatas.end(); tableValIter++)
+		{
+			std::tr1::shared_ptr<DB_W_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
+			
+			sqlstr_ += pSotvs->sqlkey;
+			sqlstr_ += "=";
+				
+			if(pSotvs->extraDatas.size() > 0)
+				sqlstr_ += pSotvs->extraDatas;
+			else
+				sqlstr_ += pSotvs->sqlval;
+
+			sqlstr_ += ",";
+		}
+
+		if(sqlstr_.at(sqlstr_.size() - 1) == ',')
+			sqlstr_.erase(sqlstr_.size() - 1);
+
+		sqlstr_ += " where id=";
+		
+		char strdbid[MAX_BUF];
+		kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, dbid);
+		sqlstr_ += strdbid;
+		sqlstr_ += ";";
+	}
+
+	virtual ~SqlStatementQuery()
+	{
+	}
+protected:
+};
 
 }
 #endif
