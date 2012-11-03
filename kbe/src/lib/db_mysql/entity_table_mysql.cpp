@@ -95,6 +95,7 @@ bool EntityTableMysql::initialize(ScriptDefModule* sm, std::string name)
 		}
 		
 		tableItems_[pETItem->utype()].reset(pETItem);
+		tableFixedOrderItems_.push_back(pETItem);
 	}
 
 	// 特殊处理， 数据库保存方向和位置
@@ -125,6 +126,7 @@ bool EntityTableMysql::initialize(ScriptDefModule* sm, std::string name)
 		pETItem->tableName(this->tableName());
 		pETItem->itemName("position");
 		tableItems_[pETItem->utype()].reset(pETItem);
+		tableFixedOrderItems_.push_back(pETItem);
 
 		pETItem = this->createItem("VECTOR3");
 		pETItem->pParentTable(this);
@@ -132,6 +134,7 @@ bool EntityTableMysql::initialize(ScriptDefModule* sm, std::string name)
 		pETItem->tableName(this->tableName());
 		pETItem->itemName("direction");
 		tableItems_[pETItem->utype()].reset(pETItem);
+		tableFixedOrderItems_.push_back(pETItem);
 	}
 
 	return true;
