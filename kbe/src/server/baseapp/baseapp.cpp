@@ -346,17 +346,19 @@ PyObject* Baseapp::__py_createBaseAnywhere(PyObject* self, PyObject* args)
 PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
-	PyObject* pyDBID = NULL, *pyCallback = NULL, *pyEntityType = NULL;
+	PyObject* pyCallback = NULL;
+	wchar_t* wEntityType = NULL;
 	char* entityType = NULL;
 	int ret = -1;
+	DBID dbid;
 
 	switch(argCount)
 	{
 	case 3:
-		ret = PyArg_ParseTuple(args, "s|O|O", &pyEntityType, &pyDBID, &pyCallback);
+		ret = PyArg_ParseTuple(args, "u|K|O", &wEntityType, &dbid, &pyCallback);
 		break;
 	case 2:
-		ret = PyArg_ParseTuple(args, "s|O", &pyEntityType, &pyDBID);
+		ret = PyArg_ParseTuple(args, "u|K", &wEntityType, &dbid);
 		break;
 	default:
 		{
@@ -367,14 +369,15 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 		}
 	};
 
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyEntityType, NULL);
-	entityType = wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	entityType = wchar2char(wEntityType);
 
 	if(entityType == NULL || strlen(entityType) <= 0 || ret == -1)
 	{
 		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: args is error!");
 		PyErr_PrintEx(0);
+
+		if(entityType)
+			free(entityType);
 		S_Return;
 	}
 
@@ -382,13 +385,15 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: entityType is error!");
 		PyErr_PrintEx(0);
+		free(entityType);
 		S_Return;
 	}
 
-	if(pyDBID <= 0)
+	if(dbid <= 0)
 	{
 		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: dbid is error!");
 		PyErr_PrintEx(0);
+		free(entityType);
 		S_Return;
 	}
 
@@ -398,10 +403,9 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 
 		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: callback is error!");
 		PyErr_PrintEx(0);
+		free(entityType);
 		S_Return;
 	}
-
-	DBID dbid = PyLong_AsUnsignedLongLong(pyDBID);
 
 	Baseapp::getSingleton().createBaseFromDBID(entityType, dbid, pyCallback);
 
