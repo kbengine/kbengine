@@ -179,7 +179,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\update_helper.hpp"
+				RelativePath=".\read_entity_helper.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\sqlstatement.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\write_entity_helper.hpp"
 				>
 			</File>
 		</Filter>

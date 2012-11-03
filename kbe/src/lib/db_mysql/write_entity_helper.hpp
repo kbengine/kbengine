@@ -18,13 +18,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SQL_UPDATE_DATAS_H__
-#define __SQL_UPDATE_DATAS_H__
+#ifndef __WRITE_ENTITY_HELPER_H__
+#define __WRITE_ENTITY_HELPER_H__
 
 // common include	
 // #define NDEBUG
 #include <sstream>
 #include "common.hpp"
+#include "sqlstatement.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "helper/debug_helper.hpp"
@@ -34,220 +35,57 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{ 
 
-class SqlUpdateDatasBase
+class WriteEntityHelper
 {
 public:
-	SqlUpdateDatasBase(DBInterface* dbi, std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
-	  tableItemDatas_(tableItemDatas),
-	  sqlstr_(),
-	  tableName_(tableName),
-	  dbid_(dbid),
-	  parentDBID_(parentDBID),
-	  dbi_(dbi)
+	WriteEntityHelper()
 	{
 	}
 
-	virtual ~SqlUpdateDatasBase()
+	virtual ~WriteEntityHelper()
 	{
 	}
 
-	std::string& sql(){ return sqlstr_; }
-
-	virtual bool query()
-	{
-		// 没有数据更新
-		if(sqlstr_ == "")
-			return true;
-
-		return static_cast<DBInterfaceMysql*>(dbi_)->query(sqlstr_.c_str(), sqlstr_.size(), false);
-	}
-
-	DBID dbid()const{ return dbid_; }
-protected:
-	DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas_;
-	std::string sqlstr_;
-	std::string tableName_;
-	DBID dbid_;
-	DBID parentDBID_;
-	DBInterface* dbi_; 
-};
-
-class SqlUpdateDatas_INSERT : public SqlUpdateDatasBase
-{
-public:
-	SqlUpdateDatas_INSERT(DBInterface* dbi, std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
-	  SqlUpdateDatasBase(dbi, tableName, parentDBID, dbid, tableItemDatas)
-	{
-		// insert into tbl_Account (sm_accountName) values("fdsafsad\0\fdsfasfsa\0fdsafsda");
-		sqlstr_ = "insert into "ENTITY_TABLE_PERFIX"_";
-		sqlstr_ += tableName;
-		sqlstr_ += " (";
-		sqlstr1_ = ")  values(";
-		
-		if(parentDBID > 0)
-		{
-			sqlstr_ += TABLE_PARENT_ID;
-			sqlstr_ += ",";
-			
-			char strdbid[MAX_BUF];
-			kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, parentDBID);
-			sqlstr1_ += strdbid;
-			sqlstr1_ += ",";
-		}
-
-		DB_W_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
-		for(; tableValIter != tableItemDatas.end(); tableValIter++)
-		{
-			std::tr1::shared_ptr<DB_W_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
-
-			if(dbid > 0)
-			{
-			}
-			else
-			{
-				sqlstr_ += pSotvs->sqlkey;
-				if(pSotvs->extraDatas.size() > 0)
-					sqlstr1_ += pSotvs->extraDatas;
-				else
-					sqlstr1_ += pSotvs->sqlval;
-
-				sqlstr_ += ",";
-				sqlstr1_ += ",";
-			}
-		}
-		
-		if(parentDBID > 0 || sqlstr_.at(sqlstr_.size() - 1) == ',')
-			sqlstr_.erase(sqlstr_.size() - 1);
-
-		if(parentDBID > 0 || sqlstr1_.at(sqlstr1_.size() - 1) == ',')
-			sqlstr1_.erase(sqlstr1_.size() - 1);
-
-		sqlstr1_ += ");";
-		sqlstr_ += sqlstr1_;
-	}
-
-	virtual ~SqlUpdateDatas_INSERT()
-	{
-	}
-
-	virtual bool query()
-	{
-		// 没有数据更新
-		if(sqlstr_ == "")
-			return true;
-
-		bool ret = SqlUpdateDatasBase::query();
-		if(!ret)
-		{
-			ERROR_MSG("SqlUpdateDatas_INSERT::query: %s\n", dbi_->getstrerror());
-			return false;
-		}
-
-		dbid_ = static_cast<DBInterfaceMysql*>(dbi_)->insertID();
-		return ret;
-	}
-
-protected:
-	
-	std::string sqlstr1_;
-};
-
-class SqlUpdateDatas_UPDATE : public SqlUpdateDatasBase
-{
-public:
-	SqlUpdateDatas_UPDATE(DBInterface* dbi, std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
-	  SqlUpdateDatasBase(dbi, tableName, parentDBID, dbid, tableItemDatas)
-	{
-		if(tableItemDatas.size() == 0)
-		{
-			sqlstr_ = "";
-			return;
-		}
-
-		// update tbl_Account set sm_accountName="fdsafsad" where id=123;
-		sqlstr_ = "update "ENTITY_TABLE_PERFIX"_";
-		sqlstr_ += tableName;
-		sqlstr_ += " set ";
-
-		DB_W_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
-		for(; tableValIter != tableItemDatas.end(); tableValIter++)
-		{
-			std::tr1::shared_ptr<DB_W_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
-			
-			sqlstr_ += pSotvs->sqlkey;
-			sqlstr_ += "=";
-				
-			if(pSotvs->extraDatas.size() > 0)
-				sqlstr_ += pSotvs->extraDatas;
-			else
-				sqlstr_ += pSotvs->sqlval;
-
-			sqlstr_ += ",";
-		}
-
-		if(sqlstr_.at(sqlstr_.size() - 1) == ',')
-			sqlstr_.erase(sqlstr_.size() - 1);
-
-		sqlstr_ += " where id=";
-		
-		char strdbid[MAX_BUF];
-		kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, dbid);
-		sqlstr_ += strdbid;
-		sqlstr_ += ";";
-	}
-
-	virtual ~SqlUpdateDatas_UPDATE()
-	{
-	}
-protected:
-};
-
-class SqlUpdateEntityHelper
-{
-public:
-	SqlUpdateEntityHelper(DBInterface* dbi, DB_TABLE_OP opType, std::string tableName, DBID parentDBID, DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableVal)
+	static SqlStatement* createSql(DBInterface* dbi, DB_TABLE_OP opType, 
+		std::string tableName, DBID parentDBID, 
+		DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableVal)
 	{
 		switch(opType)
 		{
 		case TABLE_OP_UPDATE:
 			if(dbid > 0)
-				pSqlcmd_.reset(new SqlUpdateDatas_UPDATE(dbi, tableName, parentDBID, dbid, tableVal));
+				return new SqlStatementUpdate(dbi, tableName, parentDBID, dbid, tableVal);
 			else
-				pSqlcmd_.reset(new SqlUpdateDatas_INSERT(dbi, tableName, parentDBID, dbid, tableVal));
+				return new SqlStatementInsert(dbi, tableName, parentDBID, dbid, tableVal);
 			break;
 		case TABLE_OP_INSERT:
-			pSqlcmd_.reset(new SqlUpdateDatas_INSERT(dbi, tableName, parentDBID, dbid, tableVal));
+			return new SqlStatementInsert(dbi, tableName, parentDBID, dbid, tableVal);
 			break;
 		case TABLE_OP_DELETE:
 			break;
 		default:
 			KBE_ASSERT(false && "no support!\n");
 		};
-	}
 
-	virtual ~SqlUpdateEntityHelper()
-	{
-	}
-
-	SqlUpdateDatasBase* operator ->()
-	{
-		return pSqlcmd_.get();
+		return NULL;
 	}
 
 	/**
 		将数据更新到表中
 	*/
-	static bool updateTable(DB_TABLE_OP optype, DBInterface* dbi, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+	static bool writeDB(DB_TABLE_OP optype, DBInterface* dbi, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 	{
 		bool ret = true;
 
 		if(!opTableItemDataBox.isEmpty)
 		{
-			SqlUpdateEntityHelper sql(dbi, optype, opTableItemDataBox.tableName, opTableItemDataBox.parentTableDBID, 
+			SqlStatement* pSqlcmd = createSql(dbi, optype, opTableItemDataBox.tableName, 
+				opTableItemDataBox.parentTableDBID, 
 				opTableItemDataBox.dbid, opTableItemDataBox.items);
 
-			ret = sql->query();
-			opTableItemDataBox.dbid = sql->dbid();
+			ret = pSqlcmd->query();
+			opTableItemDataBox.dbid = pSqlcmd->dbid();
+			delete pSqlcmd;
 		}
 
 		if(optype == TABLE_OP_INSERT)
@@ -262,7 +100,7 @@ public:
 				wbox.parentTableDBID = opTableItemDataBox.dbid;
 
 				// 更新子表
-				updateTable(optype, dbi, wbox);
+				writeDB(optype, dbi, wbox);
 			}
 		}
 		else
@@ -359,7 +197,7 @@ public:
 					}
 
 					// 更新子表
-					updateTable(optype, dbi, wbox);
+					writeDB(optype, dbi, wbox);
 				}
 			}
 			
@@ -396,7 +234,7 @@ public:
 							wbox.isEmpty = true;
 
 							// 更新子表
-							updateTable(optype, dbi, wbox);
+							writeDB(optype, dbi, wbox);
 						}
 					}
 				}
@@ -406,7 +244,6 @@ public:
 	}
 
 protected:
-	std::tr1::shared_ptr<SqlUpdateDatasBase> pSqlcmd_;
 };
 
 }

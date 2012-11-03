@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "entity_table_mysql.hpp"
-#include "update_helper.hpp"
+#include "write_entity_helper.hpp"
 #include "entitydef/scriptdef_module.hpp"
 #include "entitydef/property.hpp"
 #include "dbmgr_lib/db_interface.hpp"
@@ -386,7 +386,7 @@ DBID EntityTableMysql::updateTable(DBInterface* dbi, DBID dbid, MemoryStream* s,
 		static_cast<EntityTableItemMysqlBase*>(pTableItem)->getWriteSqlItem(s, opTableItemDataBox, exstrFlag.c_str());
 	};
 
-	if(!SqlUpdateEntityHelper::updateTable(opTableItemDataBox.dbid > 0 ? TABLE_OP_UPDATE : TABLE_OP_INSERT, 
+	if(!WriteEntityHelper::writeDB(opTableItemDataBox.dbid > 0 ? TABLE_OP_UPDATE : TABLE_OP_INSERT, 
 		dbi, opTableItemDataBox))
 		return 0;
 
