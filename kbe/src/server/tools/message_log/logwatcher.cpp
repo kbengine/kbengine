@@ -63,7 +63,8 @@ bool LogWatcher::loadFromStream(MemoryStream * s)
 	{
 		COMPONENT_TYPE type;
 		(*s) >> type;
-		componentBitmap_[type] = 1;
+		if(VALID_COMPONENT(type))
+			componentBitmap_[type] = 1;
 	}
 	
 	return true;
@@ -73,7 +74,7 @@ bool LogWatcher::loadFromStream(MemoryStream * s)
 void LogWatcher::onMessage(uint32 logtype, COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER componentOrder, 
 	int64 tm, GAME_TIME kbetime, const std::string& str, const std::stringstream& sstr)
 {
-	if(componentBitmap_[componentType] == 0)
+	if(!VALID_COMPONENT(componentType) || componentBitmap_[componentType] == 0)
 		return;
 
 	if((logtypes_ & logtype) <= 0)

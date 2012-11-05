@@ -111,7 +111,7 @@ public:
 	
 	inline MessageID messageID() const { return currMsgID_; }
 public:
-	int32 onPacketAppend(int32 addsize)
+	int32 onPacketAppend(int32 addsize, bool inseparable = true)
 	{
 		if(pCurrPacket_ == NULL)
 		{
@@ -120,8 +120,12 @@ public:
 
 		int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
 		int32 totalsize = (int32)pCurrPacket_->totalSize();
+		int32 fwpos = (int32)pCurrPacket_->wpos();
 
-		if((int32)pCurrPacket_->wpos() >= packetmaxsize)
+		if(inseparable)
+			fwpos += addsize;
+
+		if(fwpos >= packetmaxsize)
 		{
 			TRACE_BUNDLE_DATA(false, pCurrPacket_, pCurrMsgHandler_, totalsize);
 			packets_.push_back(pCurrPacket_);
@@ -239,7 +243,7 @@ public:
 
 		while(len > 0)
 		{
-			int32 ilen = onPacketAppend(len);
+			int32 ilen = onPacketAppend(len, false);
 			pCurrPacket_->append(value.c_str() + addtotalsize, ilen);
 			addtotalsize += ilen;
 			len -= ilen;
@@ -255,7 +259,7 @@ public:
 
 		while(len > 0)
 		{
-			int32 ilen = onPacketAppend(len);
+			int32 ilen = onPacketAppend(len, false);
 			pCurrPacket_->append(str + addtotalsize, ilen);
 			addtotalsize += ilen;
 			len -= ilen;
@@ -321,7 +325,7 @@ public:
 
 		while(len > 0)
 		{
-			int32 ilen = onPacketAppend(len);
+			int32 ilen = onPacketAppend(len, false);
 			pCurrPacket_->append((uint8*)(str + addtotalsize), ilen);
 			addtotalsize += ilen;
 			len -= ilen;
