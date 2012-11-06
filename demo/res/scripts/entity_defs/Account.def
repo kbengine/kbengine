@@ -64,7 +64,7 @@
 		<selectAvatarGame>
 			<Exposed/>
 			<Utype> 10004 </Utype>
-			<Arg>	UINT32	</Arg>	<!-- dbid -->
+			<Arg>	DBID	</Arg>	<!-- dbid -->
 		</selectAvatarGame>
 	</BaseMethods>
 
