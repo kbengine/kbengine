@@ -59,21 +59,26 @@ public:
 	*/
 	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "") = 0;
 
-/**
+	/**
 		更新数据
 	*/
 	virtual bool writeItem(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule){ return true; }
 
 	/**
+		查询表
+	*/
+	virtual bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule){ return true; }
+
+	/**
 		获取某个表所有的数据放到流中
 	*/
-	bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule){ return true; }
+	virtual void addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID){};
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "") = 0;
-	virtual void getReadSqlItem(DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "") = 0;
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "") = 0;
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "") = 0;
 protected:
 };
 
@@ -98,13 +103,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	void addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
 protected:
 	std::string dataSType_;
 };
@@ -129,13 +134,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	void addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
 };
 
 class EntityTableItemMysql_UNICODE : public EntityTableItemMysqlBase
@@ -158,13 +163,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	void addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
 };
 
 class EntityTableItemMysql_BLOB : public EntityTableItemMysqlBase
@@ -187,13 +192,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	void addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
 };
 
 class EntityTableItemMysql_VECTOR2 : public EntityTableItemMysqlBase
@@ -218,13 +223,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	void addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
 };
 
 class EntityTableItemMysql_VECTOR3 : public EntityTableItemMysqlBase
@@ -249,13 +254,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	void addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
 };
 
 class EntityTableItemMysql_VECTOR4 : public EntityTableItemMysqlBase
@@ -280,13 +285,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	void addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
 };
 
 class EntityTableItemMysql_MAILBOX : public EntityTableItemMysqlBase
@@ -309,13 +314,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	void addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
 };
 
 class EntityTableItemMysql_ARRAY : public EntityTableItemMysqlBase
@@ -347,13 +352,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	void addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
 protected:
 	EntityTable* pChildTable_;
 };
@@ -388,13 +393,13 @@ public:
 	/**
 		获取某个表所有的数据放到流中
 	*/
-	bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	void addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
 protected:
 	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPES			keyTypes_;		// 这个固定字典里的各个key的类型
 };
@@ -427,15 +432,20 @@ public:
 	DBID writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
+		获取所有的数据放到流中
+	*/
+	virtual bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	/**
 		获取某个表所有的数据放到流中
 	*/
-	bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+	void addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID);
 
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
-	virtual void getReadSqlItem(DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 protected:
 	
 };

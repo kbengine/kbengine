@@ -38,7 +38,7 @@ class SqlStatement
 {
 public:
 	SqlStatement(DBInterface* dbi, std::string tableName, DBID parentDBID, DBID dbid, 
-		DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
+		DB_OP_TABLE_ITEM_DATAS& tableItemDatas):
 	  tableItemDatas_(tableItemDatas),
 	  sqlstr_(),
 	  tableName_(tableName),
@@ -65,7 +65,7 @@ public:
 
 	DBID dbid()const{ return dbid_; }
 protected:
-	DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas_;
+	DB_OP_TABLE_ITEM_DATAS& tableItemDatas_;
 	std::string sqlstr_;
 	std::string tableName_;
 	DBID dbid_;
@@ -77,7 +77,7 @@ class SqlStatementInsert : public SqlStatement
 {
 public:
 	SqlStatementInsert(DBInterface* dbi, std::string tableName, DBID parentDBID, 
-		DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
+		DBID dbid, DB_OP_TABLE_ITEM_DATAS& tableItemDatas):
 	  SqlStatement(dbi, tableName, parentDBID, dbid, tableItemDatas)
 	{
 		// insert into tbl_Account (sm_accountName) values("fdsafsad\0\fdsfasfsa\0fdsafsda");
@@ -97,10 +97,10 @@ public:
 			sqlstr1_ += ",";
 		}
 
-		DB_W_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
+		DB_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
 		for(; tableValIter != tableItemDatas.end(); tableValIter++)
 		{
-			std::tr1::shared_ptr<DB_W_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
+			std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
 
 			if(dbid > 0)
 			{
@@ -158,7 +158,7 @@ class SqlStatementUpdate : public SqlStatement
 {
 public:
 	SqlStatementUpdate(DBInterface* dbi, std::string tableName, DBID parentDBID, 
-		DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
+		DBID dbid, DB_OP_TABLE_ITEM_DATAS& tableItemDatas):
 	  SqlStatement(dbi, tableName, parentDBID, dbid, tableItemDatas)
 	{
 		if(tableItemDatas.size() == 0)
@@ -172,10 +172,10 @@ public:
 		sqlstr_ += tableName;
 		sqlstr_ += " set ";
 
-		DB_W_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
+		DB_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
 		for(; tableValIter != tableItemDatas.end(); tableValIter++)
 		{
-			std::tr1::shared_ptr<DB_W_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
+			std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
 			
 			sqlstr_ += pSotvs->sqlkey;
 			sqlstr_ += "=";
@@ -209,51 +209,55 @@ class SqlStatementQuery : public SqlStatement
 {
 public:
 	SqlStatementQuery(DBInterface* dbi, std::string tableName, DBID parentDBID, 
-		DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableItemDatas):
-	  SqlStatement(dbi, tableName, parentDBID, dbid, tableItemDatas)
+		DBID dbid, DB_OP_TABLE_ITEM_DATAS& tableItemDatas):
+	  SqlStatement(dbi, tableName, parentDBID, dbid, tableItemDatas),
+	  sqlstr1_()
 	{
-		if(tableItemDatas.size() == 0)
+
+		// select id,xxx from tbl_SpawnPoint where id=123;
+		sqlstr_ = "select ";
+		sqlstr1_ += " from "ENTITY_TABLE_PERFIX"_";
+		sqlstr1_ += tableName;
+		
+		char strdbid[MAX_BUF];
+
+		if(parentDBID <= 0)
 		{
-			sqlstr_ = "";
-			return;
+			sqlstr1_ += " where id=";
+			kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, dbid);
 		}
+		else
+		{
+			sqlstr1_ += " where "TABLE_PARENT_ID"=";
+			kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, parentDBID);
+		}
+		
+		// 无论哪种情况都查询出ID字段
+		sqlstr_ += "id,";
 
-		// update tbl_Account set sm_accountName="fdsafsad" where id=123;
-		sqlstr_ = "update "ENTITY_TABLE_PERFIX"_";
-		sqlstr_ += tableName;
-		sqlstr_ += " set ";
+		sqlstr1_ += strdbid;
+		sqlstr1_ += ";";
 
-		DB_W_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
+		DB_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
 		for(; tableValIter != tableItemDatas.end(); tableValIter++)
 		{
-			std::tr1::shared_ptr<DB_W_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
+			std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
 			
 			sqlstr_ += pSotvs->sqlkey;
-			sqlstr_ += "=";
-				
-			if(pSotvs->extraDatas.size() > 0)
-				sqlstr_ += pSotvs->extraDatas;
-			else
-				sqlstr_ += pSotvs->sqlval;
-
 			sqlstr_ += ",";
 		}
 
 		if(sqlstr_.at(sqlstr_.size() - 1) == ',')
 			sqlstr_.erase(sqlstr_.size() - 1);
 
-		sqlstr_ += " where id=";
-		
-		char strdbid[MAX_BUF];
-		kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, dbid);
-		sqlstr_ += strdbid;
-		sqlstr_ += ";";
+		sqlstr_ += sqlstr1_;
 	}
 
 	virtual ~SqlStatementQuery()
 	{
 	}
 protected:
+	std::string sqlstr1_;
 };
 
 }

@@ -124,7 +124,7 @@ bool Dbmgr::inInitialize()
 	// 初始化所有扩展模块
 	// demo/res/scripts/
 	std::vector<PyTypeObject*>	scriptBaseTypes;
-	if(!EntityDef::initialize(Resmgr::respaths()[1] + "res/scripts/", scriptBaseTypes, componentType_)){
+	if(!EntityDef::initialize(Resmgr::getSingleton().respaths()[1] + "res/scripts/", scriptBaseTypes, componentType_)){
 		return false;
 	}
 

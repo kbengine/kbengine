@@ -32,58 +32,41 @@ namespace KBEngine{
 /**
 	db操作数据结构
 */
-struct DB_W_OP_TABLE_ITEM_DATA;
-struct DB_R_OP_TABLE_ITEM_DATA;
+struct DB_OP_TABLE_ITEM_DATA;
 
 /**
 	存储所有要操作的表item结构
 */
-typedef std::vector< std::tr1::shared_ptr<DB_R_OP_TABLE_ITEM_DATA>  > DB_R_OP_TABLE_ITEM_DATAS;
-typedef std::vector< std::tr1::shared_ptr<DB_W_OP_TABLE_ITEM_DATA>  > DB_W_OP_TABLE_ITEM_DATAS;
+typedef std::vector< std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>  > DB_OP_TABLE_ITEM_DATAS;
 
 /**
 	存储要操作的表的所有内容
 */
-struct DB_W_OP_TABLE_ITEM_DATA_BOX;
-struct DB_R_OP_TABLE_ITEM_DATA_BOX;
+struct DB_OP_TABLE_ITEM_DATA_BOX;
 
 /**
 	所有要操作的表数据结构
 */
-typedef std::vector< std::pair< std::string/*tableName*/, std::tr1::shared_ptr< DB_R_OP_TABLE_ITEM_DATA_BOX > > > DB_R_OP_TABLE_DATAS;
-typedef std::vector< std::pair< std::string/*tableName*/, std::tr1::shared_ptr< DB_W_OP_TABLE_ITEM_DATA_BOX > > > DB_W_OP_TABLE_DATAS;
+typedef std::vector< std::pair< std::string/*tableName*/, std::tr1::shared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > > > DB_OP_TABLE_DATAS;
 
-struct DB_W_OP_TABLE_ITEM_DATA
+struct DB_OP_TABLE_ITEM_DATA
 {
 	char sqlval[MAX_BUF];
 	char sqlkey[MAX_BUF];
 	std::string extraDatas;
 };
 
-struct DB_R_OP_TABLE_ITEM_DATA
+struct DB_OP_TABLE_ITEM_DATA_BOX
 {
-	char sqlkey[MAX_BUF];
-};
-
-struct DB_W_OP_TABLE_ITEM_DATA_BOX
-{
-	DB_W_OP_TABLE_ITEM_DATAS items;
+	DB_OP_TABLE_ITEM_DATAS items;
 	std::string tableName;
 	std::string parentTableName;
 	DBID parentTableDBID;
 	DBID dbid;
-	DB_W_OP_TABLE_DATAS optable;
+	DB_OP_TABLE_DATAS optable;
 	bool isEmpty;
-};
-
-struct DB_R_OP_TABLE_ITEM_DATA_BOX
-{
-	DB_R_OP_TABLE_ITEM_DATAS items;
-	std::string tableName;
-	std::string parentTableName;
-	DBID parentTableDBID;
-	DBID dbid;
-	DB_W_OP_TABLE_DATAS optable;
+	std::map<DBID, std::vector<DBID> > dbids;
+	std::map<DBID, std::vector< std::string > > results;
 };
 
 }

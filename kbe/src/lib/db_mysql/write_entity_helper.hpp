@@ -48,7 +48,7 @@ public:
 
 	static SqlStatement* createSql(DBInterface* dbi, DB_TABLE_OP opType, 
 		std::string tableName, DBID parentDBID, 
-		DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableVal)
+		DBID dbid, DB_OP_TABLE_ITEM_DATAS& tableVal)
 	{
 		switch(opType)
 		{
@@ -73,7 +73,7 @@ public:
 	/**
 		将数据更新到表中
 	*/
-	static bool writeDB(DB_TABLE_OP optype, DBInterface* dbi, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+	static bool writeDB(DB_TABLE_OP optype, DBInterface* dbi, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 	{
 		bool ret = true;
 
@@ -91,10 +91,10 @@ public:
 		if(optype == TABLE_OP_INSERT)
 		{
 			// 开始更新所有的子表
-			DB_W_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
+			DB_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
 			for(; iter1 != opTableItemDataBox.optable.end(); iter1++)
 			{
-				DB_W_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
+				DB_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
 				
 				// 绑定表关系
 				wbox.parentTableDBID = opTableItemDataBox.dbid;
@@ -113,10 +113,10 @@ public:
 
 			if(opTableItemDataBox.dbid > 0)
 			{
-				DB_W_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
+				DB_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
 				for(; iter1 != opTableItemDataBox.optable.end(); iter1++)
 				{
-					DB_W_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
+					DB_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
 
 					std::tr1::unordered_map<std::string, std::vector<DBID> >::iterator iter = 
 						childTableDBIDs.find(opTableItemDataBox.tableName);
@@ -168,10 +168,10 @@ public:
 			if(!opTableItemDataBox.isEmpty)
 			{
 				// 开始更新所有的子表
-				DB_W_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
+				DB_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
 				for(; iter1 != opTableItemDataBox.optable.end(); iter1++)
 				{
-					DB_W_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
+					DB_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
 					
 					if(wbox.isEmpty)
 						continue;
@@ -205,10 +205,10 @@ public:
 			std::tr1::unordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
 			for(; tabiter != childTableDBIDs.end(); tabiter++)
 			{
-				DB_W_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
+				DB_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
 				for(; iter1 != opTableItemDataBox.optable.end(); iter1++)
 				{
-					DB_W_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
+					DB_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
 					if(wbox.tableName == tabiter->first)
 					{
 						std::vector<DBID>::iterator iter = tabiter->second.begin();

@@ -46,18 +46,85 @@ public:
 	{
 	}
 
-	static SqlStatement* createSql(DBInterface* dbi, std::string tableName, DBID parentDBID, 
-		DBID dbid, DB_W_OP_TABLE_ITEM_DATAS& tableVal)
-	{
-		return NULL;
-	}
-
 	/**
 		从表中查询数据
 	*/
-	static bool queryDB(DBInterface* dbi, DB_W_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+	static bool queryDB(DBInterface* dbi, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 	{
-		return true;
+		SqlStatement* pSqlcmd = new SqlStatementQuery(dbi, opTableItemDataBox.tableName, 
+			opTableItemDataBox.parentTableDBID, 
+			opTableItemDataBox.dbid, opTableItemDataBox.items);
+
+		bool ret = pSqlcmd->query();
+		opTableItemDataBox.dbid = pSqlcmd->dbid();
+		delete pSqlcmd;
+		
+		if(!ret)
+			return ret;
+
+		MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+
+		if(pResult)
+		{
+			MYSQL_ROW arow;
+
+			while((arow = mysql_fetch_row(pResult)) != NULL)
+			{
+				uint32 nfields = (uint32)mysql_num_fields(pResult);
+				if(nfields <= 0)
+					continue;
+
+				unsigned long *lengths = mysql_fetch_lengths(pResult);
+
+				std::stringstream sval;
+				sval << arow[0];
+				DBID item_dbid;
+				
+				sval >> item_dbid;
+				opTableItemDataBox.dbids[opTableItemDataBox.parentTableDBID > 0 ? 
+							opTableItemDataBox.parentTableDBID : opTableItemDataBox.dbid].push_back(item_dbid);
+
+				if(nfields > 1)
+				{
+					KBE_ASSERT(nfields == opTableItemDataBox.items.size() + 1);
+					for (uint32 i = 1; i < nfields; i++)
+					{
+						std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA> pSotvs = opTableItemDataBox.items[i - 1];
+						std::string data;
+						data.assign(arow[i], lengths[i]);
+
+						opTableItemDataBox.results[opTableItemDataBox.parentTableDBID > 0 ? 
+							opTableItemDataBox.parentTableDBID : opTableItemDataBox.dbid].push_back(data);
+					}
+				}
+			}
+
+			mysql_free_result(pResult);
+		}
+		
+		std::vector<DBID>& dbids = opTableItemDataBox.dbids[opTableItemDataBox.parentTableDBID > 0 ? 
+							opTableItemDataBox.parentTableDBID : opTableItemDataBox.dbid];
+
+		if(dbids.size() == 0)
+			return true;
+
+		std::vector<DBID>::iterator dbidIter = dbids.begin();
+		for(; dbidIter != dbids.end(); dbidIter++)
+		{
+			DB_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
+			for(; iter1 != opTableItemDataBox.optable.end(); iter1++)
+			{
+				DB_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
+				
+				// 绑定表关系
+				wbox.parentTableDBID = (*dbidIter);
+
+				if(!queryDB(dbi, wbox))
+					return false;
+			}
+		}
+
+		return ret;
 	}
 
 protected:

@@ -242,7 +242,7 @@ bool EntityApp<E>::installEntityDef()
 
 	// 初始化所有扩展模块
 	// demo/res/scripts/
-	if(!EntityDef::initialize(Resmgr::respaths()[1] + "res/scripts/", scriptBaseTypes_, componentType_)){
+	if(!EntityDef::initialize(Resmgr::getSingleton().respaths()[1] + "res/scripts/", scriptBaseTypes_, componentType_)){
 		return false;
 	}
 
@@ -264,14 +264,14 @@ int EntityApp<E>::unregisterPyObjectToScript(const char* attrName)
 template<class E>
 bool EntityApp<E>::installPyScript()
 {
-	if(Resmgr::respaths().size() <= 0)
+	if(Resmgr::getSingleton().respaths().size() <= 0)
 	{
 		ERROR_MSG("EntityApp::installPyScript: KBE_RES_PATH is error!\n");
 		return false;
 	}
 
 	std::wstring root_path = L"";
-	wchar_t* tbuf = KBEngine::char2wchar(const_cast<char*>(Resmgr::respaths()[1].c_str()));
+	wchar_t* tbuf = KBEngine::char2wchar(const_cast<char*>(Resmgr::getSingleton().respaths()[1].c_str()));
 	if(tbuf != NULL)
 	{
 		root_path += tbuf;
@@ -305,7 +305,7 @@ bool EntityApp<E>::installPyScript()
 		break;
 	};
 	
-	std::string kbe_res_path = Resmgr::respaths()[0].c_str();
+	std::string kbe_res_path = Resmgr::getSingleton().respaths()[0].c_str();
 	kbe_res_path += "scripts/common";
 
 	tbuf = KBEngine::char2wchar(const_cast<char*>(kbe_res_path.c_str()));

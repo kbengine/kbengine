@@ -414,12 +414,12 @@ void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 
-	std::string str = Resmgr::getEnv().hybrid_path;
+	std::string str = Resmgr::getSingleton().getEnv().hybrid_path;
 	str += COMPONENT_NAME[componentType];
 	str += ".exe";
 
 	wchar_t* szCmdline = KBEngine::char2wchar(str.c_str());
-	wchar_t* currdir = KBEngine::char2wchar(Resmgr::getEnv().hybrid_path.c_str());
+	wchar_t* currdir = KBEngine::char2wchar(Resmgr::getSingleton().getEnv().hybrid_path.c_str());
 
 	ZeroMemory( &si, sizeof(si));
 	si.cb = sizeof(si);

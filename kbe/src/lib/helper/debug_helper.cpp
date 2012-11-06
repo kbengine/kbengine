@@ -138,7 +138,7 @@ void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 		kbe_snprintf(helpConfig, 256, "server/log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
 	}
 
-	log4cxx::PropertyConfigurator::configure(Resmgr::matchRes(helpConfig).c_str());
+	log4cxx::PropertyConfigurator::configure(Resmgr::getSingleton().matchRes(helpConfig).c_str());
 
 	//log4cxx::helpers::InetAddressPtr aaa = new log4cxx::helpers::InetAddress(log4cxx::LogString(L"localhost"), log4cxx::LogString(L"192.168.4.205")); 
 	

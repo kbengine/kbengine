@@ -1095,7 +1095,7 @@ avatarenterworld = false;
 
 int main(int argc, char* argv[])
 {
-	Resmgr::initialize();
+	Resmgr::getSingleton().initialize();
 	ServerConfig sss;
 	// "../../res/server/kbengine_defs.xml"
 	g_kbeSrvConfig.loadConfig("server/kbengine_defs.xml");

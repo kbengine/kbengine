@@ -125,8 +125,8 @@ void ScriptDefModule::autoMatchCompOwn()
 
 	std::string fmodule = "scripts/client/" + name_ + ".py";
 	std::string fmodule_pyc = "scripts/client/"SCRIPT_BIN_CACHEDIR"/" + name_ + "."SCRIPT_BIN_TAG".pyc";
-	if(Resmgr::matchRes(fmodule) != fmodule ||
-		Resmgr::matchRes(fmodule_pyc) != fmodule_pyc)
+	if(Resmgr::getSingleton().matchRes(fmodule) != fmodule ||
+		Resmgr::getSingleton().matchRes(fmodule_pyc) != fmodule_pyc)
 	{
 		setClient(true);
 	}
@@ -140,16 +140,16 @@ void ScriptDefModule::autoMatchCompOwn()
 
 	fmodule = "scripts/base/" + name_ + ".py";
 	fmodule_pyc = "scripts/base/"SCRIPT_BIN_CACHEDIR"/" + name_ + "."SCRIPT_BIN_TAG".pyc";
-	if(Resmgr::matchRes(fmodule) != fmodule ||
-		Resmgr::matchRes(fmodule_pyc) != fmodule_pyc)
+	if(Resmgr::getSingleton().matchRes(fmodule) != fmodule ||
+		Resmgr::getSingleton().matchRes(fmodule_pyc) != fmodule_pyc)
 	{
 		setBase(true);
 	}
 
 	fmodule = "scripts/cell/" + name_ + ".py";
 	fmodule_pyc = "scripts/cell/"SCRIPT_BIN_CACHEDIR"/" + name_ + "."SCRIPT_BIN_TAG".pyc";
-	if(Resmgr::matchRes(fmodule) != fmodule ||
-		Resmgr::matchRes(fmodule_pyc) != fmodule_pyc)
+	if(Resmgr::getSingleton().matchRes(fmodule) != fmodule ||
+		Resmgr::getSingleton().matchRes(fmodule_pyc) != fmodule_pyc)
 	{
 		setCell(true);
 	}

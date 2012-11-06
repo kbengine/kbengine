@@ -21,9 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr.hpp"
 
 namespace KBEngine{
-Resmgr::KBEEnv Resmgr::kb_env_;
-std::vector<std::string> Resmgr::respaths_;
-bool Resmgr::isInit_ = false;
+KBE_SINGLETON_INIT(Resmgr);
 
 //-------------------------------------------------------------------------------------
 Resmgr::Resmgr()
