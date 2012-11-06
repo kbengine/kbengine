@@ -92,12 +92,15 @@ class SpaceFightCopy(SpaceCopy):
 		
 		self.inputAvatars.append(casterID)
 		
-		caster = self.avatars.get(casterID)
+		caster = KBEngine.entities[casterID]
 		mon = self.monsters.get(targetID)
 		
 		v = random.randint(0, 30)
 		mon.addHP(-v)
+		vv = random.randint(0, 30)
+		caster.addHP(-vv)
 		caster.client.fightResult(casterID, targetID, 1, [{"eff":"addHP", "val" : -v}])
+		caster.client.fightResult(targetID, casterID, 1, [{"eff":"addHP", "val" : -vv}])
 		caster.client.fightResult(0, 0, 0, [])
 
 	def onEnter(self, entityMailbox):
