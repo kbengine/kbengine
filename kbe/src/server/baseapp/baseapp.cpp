@@ -447,6 +447,103 @@ void Baseapp::createBaseFromDBID(const char* entityType, DBID dbid, PyObject* py
 //-------------------------------------------------------------------------------------
 void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	std::string entityType;
+	DBID dbid;
+	CALLBACK_ID callbackID;
+	bool success = false;
+	bool wasActive = false;
+
+	s >> entityType;
+	s >> dbid;
+	s >> callbackID;
+	s >> success;
+	s >> wasActive;
+
+	if(!success)
+	{
+		if(callbackID > 0)
+		{
+			Py_INCREF(Py_None);
+			// baseRef, dbid, wasActive
+			PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
+			PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
+												const_cast<char*>("OKi"), 
+												Py_None, dbid, wasActive);
+
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+		}
+
+		return;
+	}
+
+	PyObject* pyDict = PyDict_New();
+	ScriptDefModule* scriptModule = EntityDef::findScriptModule(entityType.c_str());
+
+	// 先将celldata中的存储属性取出
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule->getPersistentPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+
+	for(; iter != propertyDescrs.end(); iter++)
+	{
+		PropertyDescription* propertyDescription = iter->second;
+
+		const char* attrname = propertyDescription->getName();
+		PyObject* pyVal = propertyDescription->createFromStream(&s);
+			PyDict_SetItemString(pyDict, attrname, pyVal);
+	}
+	
+	if(scriptModule->hasCell())
+	{
+		ArraySize size = 0;
+#ifdef CLIENT_NO_FLOAT
+		int32 v1, v2, v3;
+		int32 vv1, vv2, vv3;
+#else
+		float v1, v2, v3;
+		float vv1, vv2, vv3;
+#endif
+		
+		s >> size >> v1 >> v2 >> v3;
+		s >> size >> vv1 >> vv2 >> vv3;
+
+		PyObject* position = PyTuple_New(3);
+		PyTuple_SET_ITEM(position, 0, PyFloat_FromDouble((float)v1));
+		PyTuple_SET_ITEM(position, 1, PyFloat_FromDouble((float)v2));
+		PyTuple_SET_ITEM(position, 2, PyFloat_FromDouble((float)v3));
+		
+		PyObject* direction = PyTuple_New(3);
+		PyTuple_SET_ITEM(direction, 0, PyFloat_FromDouble((float)vv1));
+		PyTuple_SET_ITEM(direction, 1, PyFloat_FromDouble((float)vv2));
+		PyTuple_SET_ITEM(direction, 2, PyFloat_FromDouble((float)vv3));
+		
+		PyDict_SetItemString(pyDict, "position", position);
+		PyDict_SetItemString(pyDict, "direction", direction);
+
+		Py_DECREF(position);
+		Py_DECREF(direction);
+	}
+
+	PyObject* e = Baseapp::getSingleton().createEntityCommon(entityType.c_str(), pyDict);
+
+	if(callbackID > 0)
+	{
+		if(e != NULL)
+			Py_INCREF(e);
+
+		// baseRef, dbid, wasActive
+		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
+		PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
+											const_cast<char*>("OKi"), 
+											e, dbid, wasActive);
+
+		if(pyResult != NULL)
+			Py_DECREF(pyResult);
+		else
+			SCRIPT_ERROR_CHECK();
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -1561,7 +1658,7 @@ void Baseapp::onWriteToDBCallback(Mercury::Channel* pChannel, ENTITY_ID eid,
 	Base* base = pEntities_->find(eid);
 	if(base == NULL)
 	{
-		ERROR_MSG("Baseapp::onWriteToDBCallback: can't found entity:%d.\n", eid);
+		// ERROR_MSG("Baseapp::onWriteToDBCallback: can't found entity:%d.\n", eid);
 		return;
 	}
 

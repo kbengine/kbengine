@@ -470,7 +470,7 @@ DBTaskQueryEntity::~DBTaskQueryEntity()
 //-------------------------------------------------------------------------------------
 bool DBTaskQueryEntity::db_thread_process()
 {
-	EntityTables::getSingleton().queryEntity(pdbi_, dbid_, &s_, EntityDef::findScriptModule(entityType_.c_str()));
+	success_ = EntityTables::getSingleton().queryEntity(pdbi_, dbid_, &s_, EntityDef::findScriptModule(entityType_.c_str()));
 	return false;
 }
 
@@ -480,7 +480,20 @@ void DBTaskQueryEntity::presentMainThread()
 	DEBUG_MSG("Dbmgr::DBTaskQueryEntity:%s.\n", entityType_.c_str());
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-	pBundle->append(s_);
+	pBundle->newMessage(BaseappInterface::onCreateBaseFromDBIDCallback);
+	(*pBundle) << entityType_;
+	(*pBundle) << dbid_;
+	(*pBundle) << callbackID_;
+	(*pBundle) << success_;
+	
+	bool wasActive = false;
+	(*pBundle) << wasActive;
+
+	if(success_)
+	{
+		pBundle->append(s_);
+	}
+
 	if(!this->send((*pBundle)))
 	{
 		ERROR_MSG("DBTaskQueryAccount::presentMainThread: channel(%s) not found.\n", addr_.c_str());
