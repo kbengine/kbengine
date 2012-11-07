@@ -342,6 +342,7 @@ DBID EntityTableMysql::writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, 
 	opTableItemDataBox.dbid = dbid;
 	opTableItemDataBox.tableName = pModule->getName();
 	opTableItemDataBox.isEmpty = false;
+	opTableItemDataBox.readresultIdx = 0;
 
 	while(s->opsize() > 0)
 	{
@@ -382,6 +383,7 @@ bool EntityTableMysql::queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, 
 	opTableItemDataBox.dbid = dbid;
 	opTableItemDataBox.tableName = pModule->getName();
 	opTableItemDataBox.isEmpty = false;
+	opTableItemDataBox.readresultIdx = 0;
 
 	std::vector<EntityTableItem*>::iterator iter = tableFixedOrderItems_.begin();
 	for(; iter != tableFixedOrderItems_.end(); iter++)
@@ -425,7 +427,8 @@ void EntityTableMysql::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BO
 	opTableItemDataBox1->parentTableDBID = 0;
 	opTableItemDataBox1->dbid = 0;
 	opTableItemDataBox1->isEmpty = (s == NULL);
-	
+	opTableItemDataBox1->readresultIdx = 0;
+
 	std::tr1::shared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > opTableValBox1Ptr(opTableItemDataBox1);
 	opTableItemDataBox.optable.push_back( std::make_pair<std::string/*tableName*/, std::tr1::shared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > >
 		((*iter)->tableName(), opTableValBox1Ptr));
@@ -450,7 +453,8 @@ void EntityTableMysql::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemData
 	opTableItemDataBox1->parentTableDBID = 0;
 	opTableItemDataBox1->dbid = 0;
 	opTableItemDataBox1->isEmpty = true;
-	
+	opTableItemDataBox1->readresultIdx = 0;
+
 	std::tr1::shared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > opTableValBox1Ptr(opTableItemDataBox1);
 	opTableItemDataBox.optable.push_back( std::make_pair<std::string/*tableName*/, std::tr1::shared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > >
 		((*iter)->tableName(), opTableValBox1Ptr));
@@ -501,14 +505,12 @@ void EntityTableItemMysql_VECTOR2::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM
 	for(ArraySize i = 0; i < asize; i++)
 	{
 #ifdef CLIENT_NO_FLOAT
-		int32 v = atoi(vals[i].c_str());
+		int32 v = atoi(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++].c_str());
 #else
-		float v = atof(vals[i].c_str());
+		float v = atof(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++].c_str());
 #endif
 		(*s) << v;
 	}
-
-	vals.erase(vals.begin(), vals.begin() + asize);
 }
 
 //-------------------------------------------------------------------------------------
@@ -594,14 +596,12 @@ void EntityTableItemMysql_VECTOR3::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM
 	for(ArraySize i = 0; i < asize; i++)
 	{
 #ifdef CLIENT_NO_FLOAT
-		int32 v = atoi(vals[i].c_str());
+		int32 v = atoi(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++].c_str());
 #else
-		float v = atof(vals[i].c_str());
+		float v = atof(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++].c_str());
 #endif
 		(*s) << v;
 	}
-
-	vals.erase(vals.begin(), vals.begin() + asize);
 }
 
 //-------------------------------------------------------------------------------------
@@ -690,14 +690,12 @@ void EntityTableItemMysql_VECTOR4::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM
 	for(ArraySize i = 0; i < asize; i++)
 	{
 #ifdef CLIENT_NO_FLOAT
-		int32 v = atoi(vals[i].c_str());
+		int32 v = atoi(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++].c_str());
 #else
-		float v = atof(vals[i].c_str());
+		float v = atof(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++].c_str());
 #endif
 		(*s) << v;
 	}
-
-	vals.erase(vals.begin(), vals.begin() + asize);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1069,9 +1067,7 @@ bool EntityTableItemMysql_DIGIT::syncToDB(DBInterface* dbi)
 void EntityTableItemMysql_DIGIT::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID)
 {
 	std::stringstream stream;
-	std::vector< std::string >& vals = opTableItemDataBox.results;
-	stream << vals.front();
-	vals.erase(vals.begin());
+	stream << opTableItemDataBox.results[opTableItemDataBox.readresultIdx++];
 
 	if(dataSType_ == "INT8")
 	{
@@ -1241,9 +1237,7 @@ bool EntityTableItemMysql_STRING::syncToDB(DBInterface* dbi)
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_STRING::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID)
 {
-	std::vector< std::string >& vals = opTableItemDataBox.results;
-	(*s) << vals.front();
-	vals.erase(vals.begin());
+	(*s) << opTableItemDataBox.results[opTableItemDataBox.readresultIdx++];
 }
 
 //-------------------------------------------------------------------------------------
@@ -1298,10 +1292,7 @@ bool EntityTableItemMysql_UNICODE::syncToDB(DBInterface* dbi)
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_UNICODE::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID)
 {
-	
-	std::vector< std::string >& vals = opTableItemDataBox.results;
-	s->appendBlob(vals.front());
-	vals.erase(vals.begin());
+	s->appendBlob(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++]);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1343,9 +1334,7 @@ bool EntityTableItemMysql_BLOB::syncToDB(DBInterface* dbi)
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_BLOB::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID)
 {
-	std::vector< std::string >& vals = opTableItemDataBox.results;
-	s->appendBlob(vals.front());
-	vals.erase(vals.begin());
+	s->appendBlob(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++]);
 }
 
 //-------------------------------------------------------------------------------------

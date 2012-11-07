@@ -67,6 +67,7 @@ struct DB_OP_TABLE_ITEM_DATA_BOX
 	bool isEmpty;
 	std::map<DBID, std::vector<DBID> > dbids;
 	std::vector< std::string >results;
+	std::vector< std::string >::size_type readresultIdx;
 };
 
 }
