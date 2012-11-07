@@ -54,13 +54,13 @@ public:
 
 	std::string& sql(){ return sqlstr_; }
 
-	virtual bool query()
+	virtual bool query(DBInterface* dbi = NULL)
 	{
 		// 没有数据更新
 		if(sqlstr_ == "")
 			return true;
 
-		return static_cast<DBInterfaceMysql*>(dbi_)->query(sqlstr_.c_str(), sqlstr_.size(), false);
+		return static_cast<DBInterfaceMysql*>(dbi != NULL ? dbi : dbi_)->query(sqlstr_.c_str(), sqlstr_.size(), false);
 	}
 
 	DBID dbid()const{ return dbid_; }
@@ -132,20 +132,20 @@ public:
 	{
 	}
 
-	virtual bool query()
+	virtual bool query(DBInterface* dbi = NULL)
 	{
 		// 没有数据更新
 		if(sqlstr_ == "")
 			return true;
 
-		bool ret = SqlStatement::query();
+		bool ret = SqlStatement::query(dbi);
 		if(!ret)
 		{
-			ERROR_MSG("SqlStatementInsert::query: %s\n", dbi_->getstrerror());
+			ERROR_MSG("SqlStatementInsert::query: %s\n", (dbi != NULL ? dbi : dbi_)->getstrerror());
 			return false;
 		}
 
-		dbid_ = static_cast<DBInterfaceMysql*>(dbi_)->insertID();
+		dbid_ = static_cast<DBInterfaceMysql*>(dbi != NULL ? dbi : dbi_)->insertID();
 		return ret;
 	}
 
