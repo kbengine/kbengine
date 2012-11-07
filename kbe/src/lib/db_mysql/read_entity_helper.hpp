@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <sstream>
 #include "common.hpp"
 #include "sqlstatement.hpp"
+#include "entity_sqlstatement_mapping.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "helper/debug_helper.hpp"

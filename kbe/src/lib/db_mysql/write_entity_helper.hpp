@@ -50,16 +50,18 @@ public:
 		std::string tableName, DBID parentDBID, 
 		DBID dbid, DB_OP_TABLE_ITEM_DATAS& tableVal)
 	{
+		SqlStatement* pSqlcmd = NULL;
+
 		switch(opType)
 		{
 		case TABLE_OP_UPDATE:
 			if(dbid > 0)
-				return new SqlStatementUpdate(dbi, tableName, parentDBID, dbid, tableVal);
+				pSqlcmd = new SqlStatementUpdate(dbi, tableName, parentDBID, dbid, tableVal);
 			else
-				return new SqlStatementInsert(dbi, tableName, parentDBID, dbid, tableVal);
+				pSqlcmd = new SqlStatementInsert(dbi, tableName, parentDBID, dbid, tableVal);
 			break;
 		case TABLE_OP_INSERT:
-			return new SqlStatementInsert(dbi, tableName, parentDBID, dbid, tableVal);
+			pSqlcmd = new SqlStatementInsert(dbi, tableName, parentDBID, dbid, tableVal);
 			break;
 		case TABLE_OP_DELETE:
 			break;
@@ -67,7 +69,7 @@ public:
 			KBE_ASSERT(false && "no support!\n");
 		};
 
-		return NULL;
+		return pSqlcmd;
 	}
 
 	/**
@@ -131,18 +133,12 @@ public:
 				std::tr1::unordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
 				for(; tabiter != childTableDBIDs.end(); tabiter++)
 				{
-					std::string sqlstr;
+					char sqlstr[MAX_BUF * 10];
+					kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENT_ID"=%"PRDBID";", 
+						tabiter->first.c_str(),
+						opTableItemDataBox.dbid);
 
-					sqlstr = "select id from "ENTITY_TABLE_PERFIX"_";
-					sqlstr += tabiter->first;
-					sqlstr += " where "TABLE_PARENT_ID"=";
-
-					char strdbid[MAX_BUF];
-					kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, opTableItemDataBox.dbid);
-					sqlstr += strdbid;
-					sqlstr += ";";
-
-					if(dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+					if(dbi->query(sqlstr, strlen(sqlstr), false))
 					{
 						MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
 						if(pResult)
@@ -215,18 +211,13 @@ public:
 						for(; iter != tabiter->second.end(); iter++)
 						{
 							DBID dbid = (*iter);
-							std::string sqlstr;
 
-							sqlstr = "delete from "ENTITY_TABLE_PERFIX"_";
-							sqlstr += tabiter->first;
-							sqlstr += " where id=";
+							char sqlstr[MAX_BUF * 10];
+							kbe_snprintf(sqlstr, MAX_BUF * 10, "delete from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENT_ID"=%"PRDBID";", 
+								tabiter->first.c_str(),
+								opTableItemDataBox.dbid);
 
-							char strdbid[MAX_BUF];
-							kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, dbid);
-							sqlstr += strdbid;
-							sqlstr += ";";
-
-							bool ret = dbi->query(sqlstr.c_str(), sqlstr.size(), false);
+							bool ret = dbi->query(sqlstr, strlen(sqlstr), false);
 							KBE_ASSERT(ret);
 							
 							wbox.parentTableDBID = opTableItemDataBox.dbid;

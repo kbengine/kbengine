@@ -161,6 +161,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\entity_sqlstatement_mapping.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\entity_table_mysql.cpp"
 				>
 			</File>
@@ -176,6 +180,10 @@
 			</File>
 			<File
 				RelativePath=".\db_interface_mysql.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\entity_sqlstatement_mapping.hpp"
 				>
 			</File>
 			<File
