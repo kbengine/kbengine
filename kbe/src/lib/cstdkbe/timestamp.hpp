@@ -24,10 +24,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/platform.hpp"
 #include "helper/debug_helper.hpp"
 namespace KBEngine{
-// Indicates whether or not to use a call to RDTSC (Read Time Stamp Counter)
-// to calculate timestamp. The benefit of using this is that it is fast and
-// accurate, returning actual clock ticks. The downside is that this does not
-// work well with CPUs that use Speedstep technology to vary their clock speeds.
+
+// 指示是否可以通过调用RDTSC（时间戳计数器）
+// 计算时间戳。使用此的好处是，它能快速和精确的返回实际的时钟滴答
+// 。不足之处是，这并不使用SpeedStep技术来改变他们的时钟速度的CPU。
 #ifndef _XBOX360
 #ifdef unix
 // #define KBE_USE_RDTSC
@@ -43,7 +43,7 @@ namespace KBEngine{
 
 enum KBETimingMethod
 {
-	RDTSC_TIMING_METHOD,
+	RDTSC_TIMING_METHOD, // 自CPU上电以来所经过的时钟周期数,达到纳秒级的计时精度
 	GET_TIME_OF_DAY_TIMING_METHOD,
 	GET_TIME_TIMING_METHOD,
 	NO_TIMING_METHOD,
@@ -61,13 +61,13 @@ inline uint64 timestamp_rdtsc()
 		"=d"    (rethi),
 		"=a"    (retlo)
 						  );
-	return uint64(rethi) << 32 | retlo; // 自CPU上电以来所经过的时钟周期数,达到纳秒级的计时精度
+	return uint64(rethi) << 32 | retlo; 
 }
 
-// Alternate Linux implementation uses gettimeofday. In rough tests, this can
-// be between 20 and 600 times slower than using RDTSC. Also, there is a problem
-// under 2.4 kernels where two consecutive calls to gettimeofday may actually
-// return a result that goes backwards.
+// 使用 gettimeofday. 测试大概比RDTSC20倍-600倍。
+// 此外，有一个问题
+// 2.4内核下，连续两次调用gettimeofday的可能
+// 返回一个结果是倒着走。
 #include <sys/time.h>
 
 inline uint64 timestamp_gettimeofday()
@@ -111,7 +111,7 @@ inline uint64 timestamp()
 #pragma warning (disable: 4035)
 inline uint64 timestamp()
 {
-	__asm rdtsc // 自CPU上电以来所经过的时钟周期数,达到纳秒级的计时精度
+	__asm rdtsc
 }
 #pragma warning (pop)
 #else // KBE_USE_RDTSC
@@ -159,12 +159,6 @@ inline double stampsToSeconds( uint64 stamps )
 }
 
 // -----------------------------------------------------------------------------
-// Section: TimeStamp
-// -----------------------------------------------------------------------------
-
-/**
- *	This class stores a value in stamps but has access functions in seconds.
- */
 class TimeStamp
 {
 public:
