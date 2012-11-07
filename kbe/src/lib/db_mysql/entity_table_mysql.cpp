@@ -177,7 +177,7 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 		"ENGINE="MYSQL_ENGINE_TYPE, 
 		tableName(), exItems.c_str());
 
-	bool ret = dbi->query(sql_str, strlen(sql_str));
+	bool ret = dbi->query(sql_str, strlen(sql_str), false);
 	if(!ret)
 	{
 		return false;

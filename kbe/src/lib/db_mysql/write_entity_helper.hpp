@@ -142,7 +142,7 @@ public:
 					sqlstr += strdbid;
 					sqlstr += ";";
 
-					if(dbi->query(sqlstr.c_str(), sqlstr.size()))
+					if(dbi->query(sqlstr.c_str(), sqlstr.size(), false))
 					{
 						MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
 						if(pResult)
@@ -226,7 +226,7 @@ public:
 							sqlstr += strdbid;
 							sqlstr += ";";
 
-							bool ret = dbi->query(sqlstr.c_str(), sqlstr.size());
+							bool ret = dbi->query(sqlstr.c_str(), sqlstr.size(), false);
 							KBE_ASSERT(ret);
 							
 							wbox.parentTableDBID = opTableItemDataBox.dbid;
