@@ -1,6 +1,7 @@
 LIB =	db_mysql
 
 SRCS =				\
+	common			\
 	db_interface_mysql	\
 	entity_table_mysql
 

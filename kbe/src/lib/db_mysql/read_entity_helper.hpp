@@ -93,8 +93,7 @@ public:
 						std::string data;
 						data.assign(arow[i], lengths[i]);
 
-						opTableItemDataBox.results[opTableItemDataBox.parentTableDBID > 0 ? 
-							opTableItemDataBox.parentTableDBID : opTableItemDataBox.dbid].push_back(data);
+						opTableItemDataBox.results.push_back(data);
 					}
 				}
 			}

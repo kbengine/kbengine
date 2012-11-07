@@ -153,6 +153,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\common.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\db_interface_mysql.cpp"
 				>
 			</File>
@@ -197,6 +201,10 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
+		<File
+			RelativePath=".\entity_table_mysql.ipp"
+			>
+		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>

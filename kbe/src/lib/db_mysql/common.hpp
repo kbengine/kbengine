@@ -52,7 +52,7 @@ typedef std::vector< std::pair< std::string/*tableName*/, std::tr1::shared_ptr< 
 struct DB_OP_TABLE_ITEM_DATA
 {
 	char sqlval[MAX_BUF];
-	char sqlkey[MAX_BUF];
+	const char* sqlkey;
 	std::string extraDatas;
 };
 
@@ -66,7 +66,7 @@ struct DB_OP_TABLE_ITEM_DATA_BOX
 	DB_OP_TABLE_DATAS optable;
 	bool isEmpty;
 	std::map<DBID, std::vector<DBID> > dbids;
-	std::map<DBID, std::vector< std::string > > results;
+	std::vector< std::string >results;
 };
 
 }

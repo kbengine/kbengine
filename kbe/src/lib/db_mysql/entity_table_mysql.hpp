@@ -43,8 +43,12 @@ public:
 	EntityTableItemMysqlBase(std::string itemDBType, uint32 datalength):
 	  EntityTableItem(itemDBType, datalength)
 	{
+		memset(db_item_name_, 0, MAX_BUF);
 	};
-	virtual ~EntityTableItemMysqlBase(){};
+
+	virtual ~EntityTableItemMysqlBase()
+	{
+	};
 
 	uint8 type()const{ return TABLE_ITEM_TYPE_UNKONWN; }
 
@@ -57,7 +61,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "") = 0;
+	virtual bool syncToDB(DBInterface* dbi) = 0;
 
 	/**
 		更新数据
@@ -77,9 +81,15 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "") = 0;
-	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "") = 0;
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox) = 0;
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox) = 0;
+
+	virtual void init_db_item_name(const char* exstrFlag = "");
+	const char* db_item_name(){ return db_item_name_; }
+
+	virtual bool isSameKey(std::string key){ return key == db_item_name(); }
 protected:
+	char db_item_name_[MAX_BUF];
 };
 
 class EntityTableItemMysql_DIGIT : public EntityTableItemMysqlBase
@@ -98,7 +108,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -108,8 +118,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 protected:
 	std::string dataSType_;
 };
@@ -129,7 +139,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -139,8 +149,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 };
 
 class EntityTableItemMysql_UNICODE : public EntityTableItemMysqlBase
@@ -158,7 +168,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -168,8 +178,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 };
 
 class EntityTableItemMysql_BLOB : public EntityTableItemMysqlBase
@@ -187,7 +197,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -197,8 +207,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 };
 
 class EntityTableItemMysql_VECTOR2 : public EntityTableItemMysqlBase
@@ -218,7 +228,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -228,8 +238,17 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+
+	virtual void init_db_item_name(const char* exstrFlag = "")
+	{
+		for(int i=0; i<2; i++)
+			kbe_snprintf(db_item_names_[i], MAX_BUF, TABLE_ITEM_PERFIX"_%d_%s%s", i, exstrFlag, itemName());
+	}
+
+protected:
+	char db_item_names_[2][MAX_BUF];
 };
 
 class EntityTableItemMysql_VECTOR3 : public EntityTableItemMysqlBase
@@ -249,7 +268,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -259,8 +278,17 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+
+	virtual void init_db_item_name(const char* exstrFlag = "")
+	{
+		for(int i=0; i<3; i++)
+			kbe_snprintf(db_item_names_[i], MAX_BUF, TABLE_ITEM_PERFIX"_%d_%s%s", i, exstrFlag, itemName());
+	}
+
+protected:
+	char db_item_names_[3][MAX_BUF];
 };
 
 class EntityTableItemMysql_VECTOR4 : public EntityTableItemMysqlBase
@@ -280,7 +308,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -290,8 +318,17 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+
+	virtual void init_db_item_name(const char* exstrFlag = "")
+	{
+		for(int i=0; i<4; i++)
+			kbe_snprintf(db_item_names_[i], MAX_BUF, TABLE_ITEM_PERFIX"_%d_%s%s", i, exstrFlag, itemName());
+	}
+
+protected:
+	char db_item_names_[4][MAX_BUF];
 };
 
 class EntityTableItemMysql_MAILBOX : public EntityTableItemMysqlBase
@@ -309,7 +346,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -319,8 +356,8 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 };
 
 class EntityTableItemMysql_ARRAY : public EntityTableItemMysqlBase
@@ -347,7 +384,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -357,8 +394,11 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+
+	virtual void init_db_item_name(const char* exstrFlag = "");
+
 protected:
 	EntityTable* pChildTable_;
 };
@@ -388,7 +428,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi, const char* exstrFlag = "");
+	virtual bool syncToDB(DBInterface* dbi);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -398,8 +438,10 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
-	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, const char* exstrFlag = "");
+	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+
+	virtual void init_db_item_name(const char* exstrFlag = "");
 protected:
 	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPES			keyTypes_;		// 这个固定字典里的各个key的类型
 };
@@ -446,6 +488,8 @@ public:
 	*/
 	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+
+	void init_db_item_name();
 protected:
 	
 };
@@ -453,4 +497,7 @@ protected:
 
 }
 
+#ifdef CODE_INLINE
+#include "entity_table_mysql.ipp"
+#endif
 #endif // __KBE_ENTITY_TABLE_MYSQL__
