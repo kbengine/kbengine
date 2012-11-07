@@ -497,8 +497,6 @@ bool EntityTableItemMysql_VECTOR2::syncToDB(DBInterface* dbi)
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR2::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID)
 {
-	std::vector< std::string >& vals = opTableItemDataBox.results;
-
 	ArraySize asize = 2;
 	(*s) << asize;
 
@@ -588,8 +586,6 @@ bool EntityTableItemMysql_VECTOR3::syncToDB(DBInterface* dbi)
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR3::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID)
 {
-	std::vector< std::string >& vals = opTableItemDataBox.results;
-
 	ArraySize asize = 3;
 	(*s) << asize;
 
@@ -682,8 +678,6 @@ bool EntityTableItemMysql_VECTOR4::syncToDB(DBInterface* dbi)
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR4::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID)
 {
-	std::vector< std::string >& vals = opTableItemDataBox.results;
-
 	ArraySize asize = 4;
 	(*s) << asize;
 
