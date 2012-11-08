@@ -51,7 +51,7 @@ namespace KBEngine{
 
 
 #ifdef CLIENT_NO_FLOAT																					
-	#define ADD_POS_DIR_TO_STREAM																			\
+	#define ADD_POS_DIR_TO_STREAM(s, pos, dir)																\
 		int32 x = (int32)pos.x;																				\
 		int32 y = (int32)pos.y;																				\
 		int32 z = (int32)pos.z;																				\
@@ -65,11 +65,39 @@ namespace KBEngine{
 		s << diruid << posdirLen << x << y << z;															\
 
 #else																									
-	#define ADD_POS_DIR_TO_STREAM																			\
+	#define ADD_POS_DIR_TO_STREAM(s, pos, dir)																\
 		s << posuid << posdirLen << pos.x << pos.y << pos.z;												\
 		s << diruid << posdirLen << dir.x << dir.y << dir.z;												\
 
-#endif																									
+#endif	
+
+
+#define ADD_POSDIR_TO_STREAM(s, pos, dir)																	\
+	{																										\
+		ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;								\
+		ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;					\
+																											\
+		Mercury::FixedMessages::MSGInfo* msgInfo =															\
+					Mercury::FixedMessages::getSingleton().isFixed("Property::position");					\
+																											\
+		if(msgInfo != NULL)																					\
+		{																									\
+			posuid = msgInfo->msgid;																		\
+			msgInfo = NULL;																					\
+		}																									\
+																											\
+		msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");					\
+		if(msgInfo != NULL)																					\
+		{																									\
+			diruid = msgInfo->msgid;																		\
+			msgInfo = NULL;																					\
+		}																									\
+																											\
+		ArraySize posdirLen = 3;																			\
+		ADD_POS_DIR_TO_STREAM(s, pos, dir)																	\
+																											\
+	}																										\
+
 /*
 	debug info.
 */
@@ -634,7 +662,7 @@ public:																										\
 		script::ScriptVector3::convertPyObjectToVector3(pos, pyPos);										\
 		script::ScriptVector3::convertPyObjectToVector3(dir, pyDir);										\
 																											\
-		ADD_POS_DIR_TO_STREAM																				\
+		ADD_POS_DIR_TO_STREAM(s, pos, dir)																	\
 																											\
 		if(g_componentType != BASEAPP_TYPE)																	\
 		{																									\

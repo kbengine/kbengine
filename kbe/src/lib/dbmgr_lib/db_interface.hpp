@@ -111,6 +111,8 @@ public:
 
 	static DBInterface* createInterface(bool showinfo = true);
 	static const char* dbname();
+	static const char* dbtype();
+	static const char* accountScriptName();
 	static bool initialize(DBInterface* dbi);
 private:
 

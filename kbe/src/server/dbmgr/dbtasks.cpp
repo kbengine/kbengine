@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/components.hpp"
 #include "dbmgr_lib/db_interface.hpp"
 #include "db_mysql/db_interface_mysql.hpp"
+#include "db_mysql/kbe_table_mysql.hpp"
 #include "entitydef/scriptdef_module.hpp"
 
 #include "baseapp/baseapp_interface.hpp"
@@ -210,7 +211,8 @@ void DBTaskWriteEntity::presentMainThread()
 DBTaskCreateAccount::DBTaskCreateAccount(const Mercury::Address& addr, std::string& accountName, std::string& password):
 DBTask(addr),
 accountName_(accountName),
-password_(password)
+password_(password),
+success_(false)
 {
 }
 
@@ -222,6 +224,23 @@ DBTaskCreateAccount::~DBTaskCreateAccount()
 //-------------------------------------------------------------------------------------
 bool DBTaskCreateAccount::db_thread_process()
 {
+	// 寻找dblog是否有此账号， 如果有则创建失败
+	// 如果没有则向account表新建一个entity数据同时在accountlog表写入一个log关联dbid
+	EntityTable* pTable = EntityTables::getSingleton().findKBETable("kbe_accountinfos");
+	KBE_ASSERT(pTable);
+
+	if(strcmp(DBUtil::dbtype(), "mysql") == 0)
+	{
+		KBEAccountTableMysql* pMysqlTable = static_cast<KBEAccountTableMysql*>(pTable);
+
+		ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
+		DBID entityDBID = EntityTables::getSingleton().writeEntity(pdbi_, 0, &pMysqlTable->accountDefMemoryStream(), pModule);
+
+		if(pMysqlTable->hasAccount(accountName_))
+			return false;
+	}
+
+	success_ = true;
 	return false;
 }
 

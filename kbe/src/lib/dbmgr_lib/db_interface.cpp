@@ -89,11 +89,26 @@ const char* DBUtil::dbname()
 }
 
 //-------------------------------------------------------------------------------------
+const char* DBUtil::dbtype()
+{
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+	return dbcfg.db_type;
+}
+
+//-------------------------------------------------------------------------------------
+const char* DBUtil::accountScriptName()
+{
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+	return dbcfg.dbAccountEntityScriptType;
+}
+
+//-------------------------------------------------------------------------------------
 bool DBUtil::initialize(DBInterface* dbi)
 {
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 	if(strcmp(dbcfg.db_type, "mysql") == 0)
 	{
+		EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
 		EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());
 	}
 

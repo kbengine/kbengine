@@ -65,6 +65,12 @@ enum DB_TABLE_OP
 	TABLE_OP_DELETE					= 3
 };
 
+struct ACCOUNT_INFOS
+{
+	std::string name, password;
+	DBID dbid;
+};
+
 /**
 	维护entity在数据库中的表中的一个字段
 */

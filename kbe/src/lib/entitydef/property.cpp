@@ -97,6 +97,15 @@ PyObject* PropertyDescription::createFromStream(MemoryStream* mstream)
 //-------------------------------------------------------------------------------------
 void PropertyDescription::addPersistentToStream(MemoryStream* mstream, PyObject* pyValue)
 {
+	// 允许使用默认值来创建一个流
+	if(pyValue == NULL)
+	{
+		pyValue = newDefaultVal();
+		dataType_->addToStream(mstream, pyValue);
+		Py_DECREF(pyValue);
+		return;
+	}
+
 	dataType_->addToStream(mstream, pyValue);
 }
 
