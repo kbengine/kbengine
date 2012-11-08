@@ -24,9 +24,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "dbmgr_lib/entity_table.hpp"
 #include "entitydef/entitydef.hpp"
 #include "entitydef/scriptdef_module.hpp"
-#include "entitydef/entity_macro.hpp"
-#include "network/fixed_messages.hpp"
-#include "math/math.hpp"
 
 namespace KBEngine { 
 
@@ -87,23 +84,6 @@ KBEAccountTableMysql::KBEAccountTableMysql():
 	EntityTable()
 {
 	tableName("kbe_accountinfos");
-	
-	ScriptDefModule* scriptModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule->getPersistentPropertyDescriptions();
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
-
-	if(scriptModule->hasCell())
-	{
-		Vector3 pos, dir;
-		ADD_POSDIR_TO_STREAM(accountDefMemoryStream_, pos, dir);
-	}
-
-	for(; iter != propertyDescrs.end(); iter++)
-	{
-		PropertyDescription* propertyDescription = iter->second;
-		accountDefMemoryStream_ << propertyDescription->getUType();
-		propertyDescription->addPersistentToStream(&accountDefMemoryStream_, NULL);
-	}
 }
 
 //-------------------------------------------------------------------------------------

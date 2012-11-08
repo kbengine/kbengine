@@ -215,6 +215,10 @@
 				RelativePath=".\proxy.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\sync_entitystreamtemplate_handler.cpp"
+				>
+			</File>
 			<Filter
 				Name="Resource Files"
 				Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
@@ -265,6 +269,10 @@
 			</File>
 			<File
 				RelativePath=".\proxy_interface_macros.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\sync_entitystreamtemplate_handler.hpp"
 				>
 			</File>
 		</Filter>

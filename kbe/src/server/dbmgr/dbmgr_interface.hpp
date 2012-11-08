@@ -118,6 +118,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									std::string,					entityType,
 									CALLBACK_ID,					callbackID)
 
+	// 同步entity流模板
+	DBMGR_MESSAGE_DECLARE_STREAM(syncEntityStreamTemplate,			MERCURY_VARIABLE_MESSAGE)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

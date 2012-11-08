@@ -148,6 +148,12 @@ public:
 	*/
 	void queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, DBID dbid, 
 		std::string& entityType, CALLBACK_ID callbackID);
+
+	/** 网络接口
+		同步entity流模板
+	*/
+	void syncEntityStreamTemplate(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;

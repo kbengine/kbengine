@@ -76,6 +76,7 @@ public:
 	bool hasAccount(std::string& name);
 
 	MemoryStream& accountDefMemoryStream(){ return accountDefMemoryStream_; }
+	void accountDefMemoryStream(MemoryStream& s){accountDefMemoryStream_.append(s.data() + s.rpos(), s.opsize()); }
 protected:
 	MemoryStream accountDefMemoryStream_;
 };

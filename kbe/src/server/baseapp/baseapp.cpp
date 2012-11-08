@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "archiver.hpp"
 #include "backup_sender.hpp"
 #include "forward_message_over_handler.hpp"
+#include "sync_entitystreamtemplate_handler.hpp"
 #include "network/common.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
@@ -191,6 +192,7 @@ bool Baseapp::initializeEnd()
 
 	pBackupSender_.reset(new BackupSender());
 	pArchiver_.reset(new Archiver());
+	new SyncEntityStreamTemplateHandler(this->getNetworkInterface());
 	return true;
 }
 

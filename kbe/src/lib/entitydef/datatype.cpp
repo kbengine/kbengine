@@ -1302,9 +1302,19 @@ PyObject* FixedDictType::impl_createObjFromDict(PyObject* dictData)
 //-------------------------------------------------------------------------------------
 PyObject* FixedDictType::impl_getDictFromObj(PyObject* pyobj)
 {
+	bool isFixedDict = false;
+	if(PyObject_TypeCheck(pyobj, FixedDict::getScriptType()))
+	{
+		isFixedDict = true;
+		pyobj = impl_createObjFromDict(pyobj);
+	}
+
 	PyObject* pyRet = PyObject_CallFunction(pygetDictFromObj_, 
 		const_cast<char*>("(O)"), pyobj);
 	
+	if(isFixedDict)
+		Py_DECREF(pyobj);
+
 	if(pyRet == NULL)
 	{
 		SCRIPT_ERROR_CHECK();

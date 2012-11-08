@@ -237,6 +237,15 @@ int FixedDictDescription::onSetValue(PyObject* parentObj, PyObject* value)
 //-------------------------------------------------------------------------------------
 void FixedDictDescription::addPersistentToStream(MemoryStream* mstream, PyObject* pyValue)
 {
+	// 允许使用默认值来创建一个流
+	if(pyValue == NULL)
+	{
+		pyValue = newDefaultVal();
+		dataType_->addToStream(mstream, pyValue);
+		Py_DECREF(pyValue);
+		return;
+	}
+
 	static_cast<FixedDictType*>(dataType_)->addToStreamEx(mstream, pyValue, true);
 }
 

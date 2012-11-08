@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "dbmgr.hpp"
 #include "dbmgr_interface.hpp"
 #include "dbtasks.hpp"
+#include "db_mysql/kbe_table_mysql.hpp"
 #include "network/common.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
@@ -424,6 +425,19 @@ void Dbmgr::queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, DB
 	std::string& entityType, CALLBACK_ID callbackID)
 {
 	PUSH_THREAD_TASK(new DBTaskQueryEntity(pChannel->addr(), entityType, dbid, componentID, callbackID));
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::syncEntityStreamTemplate(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	EntityTable* pTable = EntityTables::getSingleton().findKBETable("kbe_accountinfos");
+	KBE_ASSERT(pTable);
+
+	if(strcmp(DBUtil::dbtype(), "mysql") == 0)
+	{
+		KBEAccountTableMysql* pMysqlTable = static_cast<KBEAccountTableMysql*>(pTable);
+		pMysqlTable->accountDefMemoryStream(s);
+	}
 }
 
 //-------------------------------------------------------------------------------------

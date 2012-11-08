@@ -8,7 +8,8 @@
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(Entity* e, SPACE_ID spaceID, PyObject* params):
+FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::
+FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(Entity* e, SPACE_ID spaceID, PyObject* params):
 _e(e),
 _spaceID(spaceID),
 params_(params)
@@ -36,7 +37,8 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
 }
 
 //-------------------------------------------------------------------------------------
-FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp::FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(
+FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp::
+	FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(
 			std::string& entityType, 
 			 ENTITY_ID createToEntityID, ENTITY_ID entityID, uint32 cellDataLength, 
 			 std::string& strEntityCellData, bool hasClient, COMPONENT_ID componentID, SPACE_ID spaceID):
