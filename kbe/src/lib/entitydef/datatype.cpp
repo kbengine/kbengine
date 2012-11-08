@@ -1288,7 +1288,7 @@ PyObject* FixedDictType::impl_createObjFromDict(PyObject* dictData)
 		SCRIPT_ERROR_CHECK();
 	}
 	
-	if(!impl_isSameType(pyRet))
+	if(pyRet == NULL || !impl_isSameType(pyRet))
 	{
 		ERROR_MSG("FixedDictType::impl_createObjFromDict: %s.isSameType() is failed!\n", 
 			moduleName_.c_str());
@@ -1322,6 +1322,7 @@ bool FixedDictType::impl_isSameType(PyObject* pyobj)
 	if(pyRet == NULL)
 	{
 		SCRIPT_ERROR_CHECK();
+		return false;
 	}
 	
 	bool ret = Py_True == pyRet;
