@@ -1,11 +1,11 @@
 <root>
 	<Properties>
-		<avatars>
-			<Type>			ARRAY <of> AVATAR_INFOS </of>	</Type>
+		<characters>
+			<Type>			AVATAR_INFOS_LIST		</Type>
 			<Flags>			BASE				</Flags>
 			<Default>						</Default>
 			<Persistent>		true				</Persistent>
-		</avatars>
+		</characters>
 
 		<accountName>
 			<Type>			STRING				</Type>

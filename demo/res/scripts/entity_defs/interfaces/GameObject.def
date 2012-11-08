@@ -17,7 +17,7 @@
 		</uid>
 
 		<dbid>
-			<Type>			UINT64			</Type>
+			<Type>			DBID			</Type>
 			<Flags>			CELL_PUBLIC		</Flags>
 			<Default>		0			</Default>
 			<Persistent>		true			</Persistent>

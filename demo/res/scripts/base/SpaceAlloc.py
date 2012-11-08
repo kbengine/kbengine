@@ -79,7 +79,7 @@ class SpaceAlloc:
 		virtual method.
 		某个玩家请求登陆到某个space中
 		"""
-		space = self.alloc({"spaceKey" : avatarEntity.dbidB})
+		space = self.alloc({"spaceKey" : avatarEntity.databaseID})
 		if space is None:
 			ERROR_MSG("Spaces::loginToSpace: not found space %i. login to space is failed! spaces=%s" % (self._utype, self._spaces))
 			return

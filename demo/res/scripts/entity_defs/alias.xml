@@ -24,7 +24,6 @@
 	<ENTITY_FORBID_COUNTER> ARRAY <of> INT8 </of>	</ENTITY_FORBID_COUNTER>
 	
 	<AVATAR_INFOS>	FIXED_DICT
-		<implementedBy>AVATAR_INFOS.inst</implementedBy>
 		<Properties>
 			<dbid>
 				<Type>	DBID	</Type>
@@ -40,6 +39,15 @@
 			</level>
 		</Properties>
 	</AVATAR_INFOS>	
+	
+	<AVATAR_INFOS_LIST>	FIXED_DICT
+		<implementedBy>AVATAR_INFOS.inst</implementedBy>
+		<Properties>
+			<values>
+				<Type>	ARRAY <of> AVATAR_INFOS </of>	</Type>
+			</values>
+		</Properties>
+	</AVATAR_INFOS_LIST>	
 	
 	<ENTITY_INFOS>	FIXED_DICT
 		<Properties>
@@ -63,9 +71,9 @@
 	
 	<BAG>	FIXED_DICT
 		<Properties>
-			<values>
+			<values22>
 				<Type>	ARRAY <of> ARRAY <of>INT64 </of></of>	</Type>
-			</values>
+			</values22>
 		</Properties>
 	</BAG>	
 		
@@ -93,4 +101,15 @@
 			</val>
 		</Properties>
 	</SKILLEFFECT>	
+	
+	<XXX>	FIXED_DICT
+		<Properties>
+			<val11>
+				<Type>	INT32	</Type>
+			</val11>
+			<array>
+				<Type>	BAG	</Type>
+			</array>
+		</Properties>
+	</XXX>	
 </root>

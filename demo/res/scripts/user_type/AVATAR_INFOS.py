@@ -3,40 +3,45 @@ import KBEngine
 import GlobalConst
 from KBEDebug import * 
 
-class TAvatarInfos(dict):
+class TAvatarInfosList(dict):
 	"""
 	"""
 	def __init__(self):
 		"""
 		"""
 		dict.__init__(self)
-
+		
 	def asDict(self):
-		return {
-			"dbid"			: self["dbid"],
-			"name"			: self["name"],
-			"roleType"		: self["roleType"],
-			"level"			: self["level"],
-		}
+		datas = []
+		dct = {"values" : datas}
+		
+		for key, val in self.items():
+			data = {
+				"dbid"			: key,
+				"name"			: val["name"],
+				"roleType"		: val["roleType"],
+				"level"			: val["level"],
+			}
+			datas.append(data)
+			
+		return dct
 
 	def createFromDict(self, dictData):
-		self["dbid"]		= dictData["dbid"]
-		self["name"]		= dictData["name"]
-		self["roleType"]	= dictData["roleType"]
-		self["level"]		= dictData["level"]
+		for data in dictData["values"]:
+			self[data["dbid"]] = [data["name"], data["roleType"], data["level"]]
 		return self
 		
-class AVATAR_INFOS_PICKLER:
+class AVATAR_INFOS_LIST_PICKLER:
 	def __init__(self):
 		pass
 
 	def createObjFromDict(self, dct):
-		return TAvatarInfos().createFromDict(dct)
+		return TAvatarInfosList().createFromDict(dct)
 
 	def getDictFromObj(self, obj):
 		return obj.asDict()
 
 	def isSameType(self, obj):
-		return isinstance(obj, TAvatarInfos)
+		return isinstance(obj, TAvatarInfosList)
 
-inst = AVATAR_INFOS_PICKLER()
+inst = AVATAR_INFOS_LIST_PICKLER()

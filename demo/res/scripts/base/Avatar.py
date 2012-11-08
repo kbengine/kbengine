@@ -15,12 +15,9 @@ class Avatar(KBEngine.Proxy,
 		Teleport.__init__(self)
 		
 		self.accountEntity = None
-		
+		self.cellData["dbid"] = self.databaseID
 		self.nameB = self.cellData["name"]
 		self.spaceUTypeB = self.cellData["spaceUType"]
-		
-		self.cellData["dbid"] = self.id # 临时处理一下
-		self.dbidB = self.cellData["dbid"]
 		
 		self._destroyTimer = 0
 		

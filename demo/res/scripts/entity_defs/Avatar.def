@@ -16,6 +16,11 @@
 	</Implements>
 
 	<Properties>
+		<roleType>
+			<Type>	UINT8	</Type>
+			<Flags>	BASE		</Flags>
+		</roleType>
+
 		<level>
 			<Utype> 41002 </Utype>
 			<Type>			UINT16				</Type>
