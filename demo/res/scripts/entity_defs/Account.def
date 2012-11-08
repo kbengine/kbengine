@@ -12,7 +12,7 @@
 			<Flags>			BASE				</Flags>
 			<Persistent>		true				</Persistent>
 			<DatabaseLength> 	100				</DatabaseLength>
-			<Default>		"kbengine"			</Default>
+			<Default>		kbengine			</Default>
 			<Identifier>		true				</Identifier>
 		</accountName>
 		
