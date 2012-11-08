@@ -150,27 +150,14 @@ bool Dbmgr::initializeEnd()
 	pGlobalBases_->addConcernComponentType(BASEAPP_TYPE);
 	pCellAppData_->addConcernComponentType(CELLAPP_TYPE);
 
-	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
-	pDBInterface_ = DBUtil::create(dbcfg.db_type, dbcfg.db_ip, dbcfg.db_port, 
-		dbcfg.db_username, dbcfg.db_password, dbcfg.db_numConnections);
-
+	pDBInterface_ = DBUtil::createInterface();
 	if(pDBInterface_ == NULL)
 	{
 		ERROR_MSG("Dbmgr::initializeEnd: can't create dbinterface!\n");
 		return false;
 	}
 
-	if(!pDBInterface_->attach(dbcfg.db_name))
-	{
-		ERROR_MSG("Dbmgr::initializeEnd: can't attach to database! %s.\n", pDBInterface_->c_str());
-		return false;
-	}
-	else
-	{
-		INFO_MSG("Dbmgr::initializeEnd: %s\n", pDBInterface_->c_str());
-	}
-
-	return EntityTables::getSingleton().load(pDBInterface_) && EntityTables::getSingleton().syncToDB(pDBInterface_);
+	return DBUtil::initialize(pDBInterface_);
 }
 
 //-------------------------------------------------------------------------------------

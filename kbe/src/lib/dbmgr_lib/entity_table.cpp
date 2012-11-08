@@ -121,6 +121,13 @@ bool EntityTables::load(DBInterface* dbi)
 bool EntityTables::syncToDB(DBInterface* dbi)
 {
 	// 开始同步所有表
+	EntityTables::TABLES_MAP::iterator kiter = kbe_tables_.begin();
+	for(; kiter != kbe_tables_.end(); kiter++)
+	{
+		if(!kiter->second->syncToDB(dbi))
+			return false;
+	}
+
 	EntityTables::TABLES_MAP::iterator iter = tables_.begin();
 	for(; iter != tables_.end(); iter++)
 	{
@@ -173,6 +180,35 @@ EntityTable* EntityTables::findTable(std::string name)
 {
 	TABLES_MAP::iterator iter = tables_.find(name);
 	if(iter != tables_.end())
+	{
+		return iter->second.get();
+	}
+
+	return NULL;
+};
+
+//-------------------------------------------------------------------------------------
+void EntityTables::addKBETable(EntityTable* pTable)
+{
+	TABLES_MAP::iterator iter = kbe_tables_.begin();
+
+	for(; iter != kbe_tables_.end(); iter++)
+	{
+		if(iter->first == pTable->tableName())
+		{
+			KBE_ASSERT(false && "table exist!\n");
+			return;
+		}
+	}
+
+	kbe_tables_[pTable->tableName()].reset(pTable);
+}
+
+//-------------------------------------------------------------------------------------
+EntityTable* EntityTables::findKBETable(std::string name)
+{
+	TABLES_MAP::iterator iter = kbe_tables_.find(name);
+	if(iter != kbe_tables_.end())
 	{
 		return iter->second.get();
 	}

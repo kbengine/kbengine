@@ -20,7 +20,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "db_interface.hpp"
+#include "entity_table.hpp"
 #include "../db_mysql/db_interface_mysql.hpp"
+#include "../db_mysql/kbe_table_mysql.hpp"
+#include "server/serverconfig.hpp"
 
 namespace KBEngine { 
 KBE_SINGLETON_INIT(DBUtil);
@@ -38,24 +41,64 @@ DBUtil::~DBUtil()
 }
 
 //-------------------------------------------------------------------------------------
-DBInterface* DBUtil::create(const char* dbtype, const char* ip, uint32 port, const char* db_username, 
-		const char* db_password, uint16 db_numConnections)
+DBInterface* DBUtil::createInterface(bool showinfo)
 {
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 	DBInterface* dbinterface = NULL;
 
-	if(strcmp(dbtype, "mysql") == 0)
+	if(strcmp(dbcfg.db_type, "mysql") == 0)
 	{
 		dbinterface = new DBInterfaceMysql;
 	}
 
-	kbe_snprintf(dbinterface->db_type_, MAX_BUF, dbtype);
-	dbinterface->db_port_ = port;	
-	kbe_snprintf(dbinterface->db_ip_, MAX_BUF, ip);
-	kbe_snprintf(dbinterface->db_username_, MAX_BUF, db_username);
-	kbe_snprintf(dbinterface->db_password_, MAX_BUF, db_password);
-	dbinterface->db_numConnections_ = db_numConnections;
+	kbe_snprintf(dbinterface->db_type_, MAX_BUF, dbcfg.db_type);
+	dbinterface->db_port_ = dbcfg.db_port;	
+	kbe_snprintf(dbinterface->db_ip_, MAX_BUF, dbcfg.db_ip);
+	kbe_snprintf(dbinterface->db_username_, MAX_BUF, dbcfg.db_username);
+	kbe_snprintf(dbinterface->db_password_, MAX_BUF, dbcfg.db_password);
+	dbinterface->db_numConnections_ = dbcfg.db_numConnections;
 	
+	if(dbinterface == NULL)
+	{
+		ERROR_MSG("DBUtil::createInterface: can't create dbinterface!\n");
+		return NULL;
+	}
+
+	if(!dbinterface->attach(DBUtil::dbname()))
+	{
+		ERROR_MSG("DBUtil::createInterface: can't attach to database! %s.\n", dbinterface->c_str());
+		delete dbinterface;
+		return NULL;
+	}
+	else
+	{
+		if(showinfo)
+		{
+			INFO_MSG("DBUtil::createInterface: %s\n", dbinterface->c_str());
+		}
+	}
+
 	return dbinterface;
 }
+
+//-------------------------------------------------------------------------------------
+const char* DBUtil::dbname()
+{
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+	return dbcfg.db_name;
+}
+
+//-------------------------------------------------------------------------------------
+bool DBUtil::initialize(DBInterface* dbi)
+{
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+	if(strcmp(dbcfg.db_type, "mysql") == 0)
+	{
+		EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());
+	}
+
+	return EntityTables::getSingleton().load(dbi) && EntityTables::getSingleton().syncToDB(dbi);
+}
+
 //-------------------------------------------------------------------------------------
 }

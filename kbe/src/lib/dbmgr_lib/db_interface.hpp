@@ -109,8 +109,9 @@ public:
 	DBUtil();
 	~DBUtil();
 
-	static DBInterface* create(const char* dbtype, const char* ip, uint32 port, const char* db_username, 
-		const char* db_password, uint16 db_numConnections);
+	static DBInterface* createInterface(bool showinfo = true);
+	static const char* dbname();
+	static bool initialize(DBInterface* dbi);
 private:
 
 };

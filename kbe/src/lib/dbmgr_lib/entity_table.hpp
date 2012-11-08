@@ -235,6 +235,10 @@ public:
 
 	EntityTable* findTable(std::string name);
 
+	void addKBETable(EntityTable* pTable);
+
+	EntityTable* findKBETable(std::string name);
+
 	/**
 		写entity到数据库
 	*/
@@ -245,8 +249,9 @@ public:
 	*/
 	bool queryEntity(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 protected:
-	// 所有的字段
+	// 所有的表
 	TABLES_MAP tables_;
+	TABLES_MAP kbe_tables_;
 	KBEngine::thread::ThreadMutex logMutex;
 };
 

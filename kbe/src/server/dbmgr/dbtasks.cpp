@@ -74,26 +74,7 @@ bool DBTask::process()
 {
 	mysql_thread_init();
 
-	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
-	pdbi_ = DBUtil::create(dbcfg.db_type, dbcfg.db_ip, dbcfg.db_port, 
-		dbcfg.db_username, dbcfg.db_password, dbcfg.db_numConnections);
-
-	if(pdbi_ == NULL)
-	{
-		ERROR_MSG("DBTask::process: can't create dbinterface!\n");
-		return false;
-	}
-
-	if(!pdbi_->attach(dbcfg.db_name))
-	{
-		ERROR_MSG("DBTask::process: can't attach to database! %s.\n", pdbi_->c_str());
-		return false;
-	}
-	else
-	{
-		INFO_MSG("DBTask::process: %s\n", pdbi_->c_str());
-	}
-
+	pdbi_ = DBUtil::createInterface();
 	bool ret = db_thread_process();
 	if(!ret)
 		mysql_thread_end();
@@ -101,7 +82,7 @@ bool DBTask::process()
 	if(pdbi_)
 		pdbi_->detach();
 	
-	pdbi_ = NULL;
+	SAFE_RELEASE(pdbi_);
 	return ret;
 }
 

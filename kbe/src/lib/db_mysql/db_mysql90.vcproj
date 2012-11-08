@@ -168,6 +168,10 @@
 				RelativePath=".\entity_table_mysql.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\kbe_table_mysql.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -188,6 +192,10 @@
 			</File>
 			<File
 				RelativePath=".\entity_table_mysql.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\kbe_table_mysql.hpp"
 				>
 			</File>
 			<File
