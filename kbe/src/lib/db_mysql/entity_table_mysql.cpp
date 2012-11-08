@@ -1252,6 +1252,10 @@ void EntityTableItemMysql_STRING::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_I
 	pSotvs->extraDatas += val;
 	pSotvs->extraDatas += "\"";
 
+	char* tbuf = new char[pSotvs->extraDatas.size() * 2];
+	mysql_escape_string(tbuf, pSotvs->extraDatas.c_str(), pSotvs->extraDatas.size());
+	pSotvs->extraDatas = tbuf;
+	SAFE_RELEASE_ARRAY(tbuf);
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
 	pSotvs->sqlkey = db_item_name();
 	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
@@ -1307,6 +1311,11 @@ void EntityTableItemMysql_UNICODE::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_
 	pSotvs->extraDatas += val;
 	pSotvs->extraDatas += "\"";
 
+	char* tbuf = new char[pSotvs->extraDatas.size() * 2];
+	mysql_escape_string(tbuf, pSotvs->extraDatas.c_str(), pSotvs->extraDatas.size());
+	pSotvs->extraDatas = tbuf;
+	SAFE_RELEASE_ARRAY(tbuf);
+
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
 	pSotvs->sqlkey = db_item_name();
 	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
@@ -1348,6 +1357,11 @@ void EntityTableItemMysql_BLOB::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITE
 	
 	pSotvs->extraDatas += val;
 	pSotvs->extraDatas += "\"";
+
+	char* tbuf = new char[pSotvs->extraDatas.size() * 2];
+	mysql_escape_string(tbuf, pSotvs->extraDatas.c_str(), pSotvs->extraDatas.size());
+	pSotvs->extraDatas = tbuf;
+	SAFE_RELEASE_ARRAY(tbuf);
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
 	pSotvs->sqlkey = db_item_name();
