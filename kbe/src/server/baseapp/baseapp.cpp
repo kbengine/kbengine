@@ -754,7 +754,17 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 		KBE_ASSERT(pOtherBaseappChannel != NULL);
 		PyObject* mb = static_cast<EntityMailbox*>(new EntityMailbox(sm, NULL, componentID, eid, MAILBOX_TYPE_BASE));
 		PyTuple_SET_ITEM(pyargs, 0, mb);
-		PyObject_CallObject(pyCallback.get(), pyargs);
+
+		PyObject* pyRet = PyObject_CallObject(pyCallback.get(), pyargs);
+		if(pyRet == NULL)
+		{
+			SCRIPT_ERROR_CHECK();
+		}
+		else
+		{
+			Py_DECREF(pyRet);
+		}
+
 		//Py_DECREF(mb);
 		int i=0;
 		i++;
@@ -771,7 +781,16 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 
 		Py_INCREF(base);
 		PyTuple_SET_ITEM(pyargs, 0, base);
-		PyObject_CallObject(pyCallback.get(), pyargs);
+
+		PyObject* pyRet = PyObject_CallObject(pyCallback.get(), pyargs);
+		if(pyRet == NULL)
+		{
+			SCRIPT_ERROR_CHECK();
+		}
+		else
+		{
+			Py_DECREF(pyRet);
+		}
 	}
 
 	SCRIPT_ERROR_CHECK();

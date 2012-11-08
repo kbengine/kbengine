@@ -606,7 +606,16 @@ void Base::onWriteToDBCallback(ENTITY_ID eid,
 		Py_INCREF(this);
 		PyTuple_SET_ITEM(pyargs, 0, PyBool_FromLong((long)success));
 		PyTuple_SET_ITEM(pyargs, 1, this);
-		PyObject_CallObject(pyCallback.get(), pyargs);
+
+		PyObject* pyRet = PyObject_CallObject(pyCallback.get(), pyargs);
+		if(pyRet == NULL)
+		{
+			SCRIPT_ERROR_CHECK();
+		}
+		else
+		{
+			Py_DECREF(pyRet);
+		}
 
 		Py_DECREF(pyargs);
 	}

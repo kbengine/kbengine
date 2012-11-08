@@ -1303,7 +1303,7 @@ PyObject* FixedDictType::impl_createObjFromDict(PyObject* dictData)
 PyObject* FixedDictType::impl_getDictFromObj(PyObject* pyobj)
 {
 	PyObject* pyRet = PyObject_CallFunction(pygetDictFromObj_, 
-		const_cast<char*>("(O)"), impl_createObjFromDict(pyobj));
+		const_cast<char*>("(O)"), pyobj);
 	
 	if(pyRet == NULL)
 	{
