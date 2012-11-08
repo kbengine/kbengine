@@ -57,7 +57,7 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 		}
 
 		pMysql_ = mysql_real_connect(mysql(), db_ip_, db_username_, 
-    		db_password_, db_name_, db_port_, 0, CLIENT_MULTI_STATEMENTS);  
+    		db_password_, db_name_, db_port_, NULL, 0); // CLIENT_MULTI_STATEMENTS  
 	    
 		if(mysql())
 		{

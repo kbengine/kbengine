@@ -461,6 +461,7 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 
 	if(!success)
 	{
+		ERROR_MSG("Baseapp::onCreateBaseFromDBID: create %s(%"PRDBID") is failed.\n", entityType.c_str(), dbid);
 		if(callbackID > 0)
 		{
 			Py_INCREF(Py_None);
@@ -526,7 +527,12 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 		Py_DECREF(direction);
 	}
 
-	PyObject* e = Baseapp::getSingleton().createEntityCommon(entityType.c_str(), pyDict);
+	PyObject* e = Baseapp::getSingleton().createEntityCommon(entityType.c_str(), pyDict, false);
+	if(e)
+	{
+		static_cast<Base*>(e)->setDBID(dbid);
+		static_cast<Base*>(e)->initializeEntity(pyDict);
+	}
 
 	if(callbackID > 0)
 	{

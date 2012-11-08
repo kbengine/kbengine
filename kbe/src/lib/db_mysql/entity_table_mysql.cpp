@@ -394,6 +394,9 @@ bool EntityTableMysql::queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, 
 	if(!ReadEntityHelper::queryDB(dbi, opTableItemDataBox))
 		return false;
 
+	if(opTableItemDataBox.dbids[dbid].size() == 0)
+		return false;
+
 	iter = tableFixedOrderItems_.begin();
 	for(; iter != tableFixedOrderItems_.end(); iter++)
 	{

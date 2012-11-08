@@ -74,7 +74,7 @@ bool DBTask::process()
 {
 	mysql_thread_init();
 
-	pdbi_ = DBUtil::createInterface();
+	pdbi_ = DBUtil::createInterface(false);
 	bool ret = db_thread_process();
 	if(!ret)
 		mysql_thread_end();
