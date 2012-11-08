@@ -235,7 +235,7 @@ bool DBTaskCreateAccount::db_thread_process()
 
 		ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
 		DBID entityDBID = EntityTables::getSingleton().writeEntity(pdbi_, 0, &pMysqlTable->accountDefMemoryStream(), pModule);
-
+		KBE_ASSERT(entityDBID > 0);
 		if(pMysqlTable->hasAccount(accountName_))
 			return false;
 	}
