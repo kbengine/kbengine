@@ -1308,6 +1308,7 @@ PyObject* FixedDictType::impl_getDictFromObj(PyObject* pyobj)
 	if(pyRet == NULL)
 	{
 		SCRIPT_ERROR_CHECK();
+		return parseDefaultStr("");
 	}
 
 	return pyRet;
