@@ -51,15 +51,8 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* dbi)
 
 //-------------------------------------------------------------------------------------
 KBEEntityLogTableMysql::KBEEntityLogTableMysql():
-	EntityTable()
+	KBEEntityLogTable()
 {
-	tableName("kbe_entitylog");
-}
-
-//-------------------------------------------------------------------------------------
-bool KBEEntityLogTableMysql::initialize(ScriptDefModule* sm, std::string name)
-{
-	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -82,16 +75,10 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* dbi)
 
 //-------------------------------------------------------------------------------------
 KBEAccountTableMysql::KBEAccountTableMysql():
-	EntityTable()
+	KBEAccountTable()
 {
-	tableName("kbe_accountinfos");
 }
 
-//-------------------------------------------------------------------------------------
-bool KBEAccountTableMysql::initialize(ScriptDefModule* sm, std::string name)
-{
-	return true;
-}
 
 //-------------------------------------------------------------------------------------
 bool KBEAccountTableMysql::queryAccount(DBInterface * dbi, std::string& name, ACCOUNT_INFOS& info)

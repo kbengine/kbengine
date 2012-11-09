@@ -26,13 +26,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/singleton.hpp"
 #include "helper/debug_helper.hpp"
 #include "dbmgr_lib/entity_table.hpp"
+#include "dbmgr_lib/kbe_tables.hpp"
 
 namespace KBEngine { 
 
 /*
 	kbe系统表
 */
-class KBEEntityLogTableMysql : public EntityTable
+class KBEEntityLogTableMysql : public KBEEntityLogTable
 {
 public:
 	KBEEntityLogTableMysql();
@@ -42,18 +43,11 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB(DBInterface* dbi);
-	
-	/**
-		初始化
-	*/
-	virtual bool initialize(ScriptDefModule* sm, std::string name);
-	
-	virtual EntityTableItem* createItem(std::string type) {return NULL;}
 protected:
 	
 };
 
-class KBEAccountTableMysql : public EntityTable
+class KBEAccountTableMysql : public KBEAccountTable
 {
 public:
 	KBEAccountTableMysql();
@@ -64,20 +58,10 @@ public:
 	*/
 	virtual bool syncToDB(DBInterface* dbi);
 	
-	/**
-		初始化
-	*/
-	virtual bool initialize(ScriptDefModule* sm, std::string name);
-	
-	virtual EntityTableItem* createItem(std::string type) {return NULL;}
-	
 	bool queryAccount(DBInterface * dbi, std::string& name, ACCOUNT_INFOS& info);
 	bool logAccount(DBInterface * dbi, ACCOUNT_INFOS& info);
 
-	MemoryStream& accountDefMemoryStream(){ return accountDefMemoryStream_; }
-	void accountDefMemoryStream(MemoryStream& s){accountDefMemoryStream_.append(s.data() + s.rpos(), s.opsize()); }
 protected:
-	MemoryStream accountDefMemoryStream_;
 };
 
 }

@@ -160,6 +160,10 @@
 				RelativePath=".\entity_table.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\kbe_tables.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -172,6 +176,10 @@
 			</File>
 			<File
 				RelativePath=".\entity_table.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\kbe_tables.hpp"
 				>
 			</File>
 		</Filter>

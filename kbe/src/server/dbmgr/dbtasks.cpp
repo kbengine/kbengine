@@ -27,8 +27,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/components.hpp"
 #include "server/serverconfig.hpp"
 #include "dbmgr_lib/db_interface.hpp"
+#include "dbmgr_lib/kbe_tables.hpp"
 #include "db_mysql/db_interface_mysql.hpp"
-#include "db_mysql/kbe_table_mysql.hpp"
 #include "entitydef/scriptdef_module.hpp"
 
 #include "baseapp/baseapp_interface.hpp"
@@ -227,29 +227,24 @@ bool DBTaskCreateAccount::db_thread_process()
 {
 	// 寻找dblog是否有此账号， 如果有则创建失败
 	// 如果没有则向account表新建一个entity数据同时在accountlog表写入一个log关联dbid
-	EntityTable* pTable = EntityTables::getSingleton().findKBETable("kbe_accountinfos");
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
 	KBE_ASSERT(pTable);
 
-	if(strcmp(DBUtil::dbtype(), "mysql") == 0)
-	{
-		KBEAccountTableMysql* pMysqlTable = static_cast<KBEAccountTableMysql*>(pTable);
+	ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
 
-		ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
+	ACCOUNT_INFOS info;
+	if(pTable->queryAccount(pdbi_, accountName_, info))
+		return false;
 
-		ACCOUNT_INFOS info;
-		if(pMysqlTable->queryAccount(pdbi_, accountName_, info))
-			return false;
+	DBID entityDBID = EntityTables::getSingleton().writeEntity(pdbi_, 0, &pTable->accountDefMemoryStream(), pModule);
+	pTable->accountDefMemoryStream().rpos(0);
+	KBE_ASSERT(entityDBID > 0);
 
-		DBID entityDBID = EntityTables::getSingleton().writeEntity(pdbi_, 0, &pMysqlTable->accountDefMemoryStream(), pModule);
-		pMysqlTable->accountDefMemoryStream().rpos(0);
-		KBE_ASSERT(entityDBID > 0);
-
-		info.name = accountName_;
-		info.password = password_;
-		info.dbid = entityDBID;
-		if(!pMysqlTable->logAccount(pdbi_, info))
-			return false;
-	}
+	info.name = accountName_;
+	info.password = password_;
+	info.dbid = entityDBID;
+	if(!pTable->logAccount(pdbi_, info))
+		return false;
 
 	success_ = true;
 	return false;
@@ -296,7 +291,7 @@ DBTaskQueryAccount::~DBTaskQueryAccount()
 //-------------------------------------------------------------------------------------
 bool DBTaskQueryAccount::db_thread_process()
 {
-	EntityTable* pTable = EntityTables::getSingleton().findKBETable("kbe_accountinfos");
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
 	KBE_ASSERT(pTable);
 
 	ACCOUNT_INFOS info;
@@ -304,12 +299,8 @@ bool DBTaskQueryAccount::db_thread_process()
 	info.password = "";
 	info.dbid = 0;
 
-	if(strcmp(DBUtil::dbtype(), "mysql") == 0)
-	{
-		KBEAccountTableMysql* pMysqlTable = static_cast<KBEAccountTableMysql*>(pTable);
-		if(!pMysqlTable->queryAccount(pdbi_, accountName_, info))
-			return false;
-	}
+	if(!pTable->queryAccount(pdbi_, accountName_, info))
+		return false;
 
 	if(info.dbid == 0)
 		return false;
