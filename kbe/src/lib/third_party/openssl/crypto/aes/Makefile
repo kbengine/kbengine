@@ -11,7 +11,7 @@ CFLAG=-g
 MAKEFILE=	Makefile
 AR=		ar r
 
-AES_ASM_OBJ=$(MF_CONFIG)/aes_core.o $(MF_CONFIG)/aes_cbc.o
+AES_ASM_OBJ=$(KBE_CONFIG)/aes_core.o $(KBE_CONFIG)/aes_cbc.o
 
 CFLAGS= $(INCLUDES) $(CFLAG)
 ASFLAGS= $(INCLUDES) $(ASFLAG)
@@ -22,10 +22,10 @@ GENERAL=Makefile
 TEST=
 APPS=
 
-LIB=$(BWLIBDIR)/libcrypto.a
+LIB=$(LIBDIR)/libcrypto.a
 LIBSRC=aes_core.c aes_misc.c aes_ecb.c aes_cbc.c aes_cfb.c aes_ofb.c \
        aes_ctr.c aes_ige.c
-LIBOBJ=$(MF_CONFIG)/aes_misc.o $(MF_CONFIG)/aes_ecb.o $(MF_CONFIG)/aes_cfb.o $(MF_CONFIG)/aes_ofb.o $(MF_CONFIG)/aes_ctr.o $(MF_CONFIG)/aes_ige.o \
+LIBOBJ=$(KBE_CONFIG)/aes_misc.o $(KBE_CONFIG)/aes_ecb.o $(KBE_CONFIG)/aes_cfb.o $(KBE_CONFIG)/aes_ofb.o $(KBE_CONFIG)/aes_ctr.o $(KBE_CONFIG)/aes_ige.o \
        $(AES_ASM_OBJ)
 
 SRC= $(LIBSRC)
@@ -40,27 +40,27 @@ top:
 
 all:	lib
 
-$(MF_CONFIG):
-	@-mkdir $(MF_CONFIG)
+$(KBE_CONFIG):
+	@-mkdir $(KBE_CONFIG)
 
-lib:	$(MF_CONFIG) $(LIBOBJ)
+lib:	$(KBE_CONFIG) $(LIBOBJ)
 	$(AR) $(LIB) $(LIBOBJ)
 	$(RANLIB) $(LIB) || echo Never mind.
 	@touch lib
 
-$(MF_CONFIG)/%.o: %.c
+$(KBE_CONFIG)/%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(LIBOBJ): $(LIBSRC)
 
-$(MF_CONFIG)/aes-ia64.s: asm/aes-ia64.S
+$(KBE_CONFIG)/aes-ia64.s: asm/aes-ia64.S
 	$(CC) $(CFLAGS) -E asm/aes-ia64.S > $@
 
-$(MF_CONFIG)/ax86-elf.s: asm/aes-586.pl ../perlasm/x86asm.pl
+$(KBE_CONFIG)/ax86-elf.s: asm/aes-586.pl ../perlasm/x86asm.pl
 	(cd asm; $(PERL) aes-586.pl elf $(CFLAGS) $(PROCESSOR) > ../$@)
-$(MF_CONFIG)/ax86-cof.s: asm/aes-586.pl ../perlasm/x86asm.pl
+$(KBE_CONFIG)/ax86-cof.s: asm/aes-586.pl ../perlasm/x86asm.pl
 	(cd asm; $(PERL) aes-586.pl coff $(CFLAGS) $(PROCESSOR) > ../$@)
-$(MF_CONFIG)/ax86-out.s: asm/aes-586.pl ../perlasm/x86asm.pl
+$(KBE_CONFIG)/ax86-out.s: asm/aes-586.pl ../perlasm/x86asm.pl
 	(cd asm; $(PERL) aes-586.pl a.out $(CFLAGS) $(PROCESSOR) > ../$@)
 
 files:
@@ -96,30 +96,30 @@ dclean:
 	mv -f Makefile.new $(MAKEFILE)
 
 clean:
-	rm -f $(MF_CONFIG)/*.s *.s $(MF_CONFIG)/*.o *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
+	rm -f $(KBE_CONFIG)/*.s *.s $(KBE_CONFIG)/*.o *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-$(MF_CONFIG)/aes_cbc.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/aes_cbc.o: ../../include/openssl/opensslconf.h aes_cbc.c aes_locl.h
-$(MF_CONFIG)/aes_cfb.o: ../../e_os.h ../../include/openssl/aes.h
-$(MF_CONFIG)/aes_cfb.o: ../../include/openssl/e_os2.h ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/aes_cfb.o: aes_cfb.c aes_locl.h
-$(MF_CONFIG)/aes_core.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/aes_core.o: ../../include/openssl/opensslconf.h aes_core.c aes_locl.h
-$(MF_CONFIG)/aes_ctr.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/aes_ctr.o: ../../include/openssl/opensslconf.h aes_ctr.c aes_locl.h
-$(MF_CONFIG)/aes_ecb.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/aes_ecb.o: ../../include/openssl/opensslconf.h aes_ecb.c aes_locl.h
-$(MF_CONFIG)/aes_ige.o: ../../e_os.h ../../include/openssl/aes.h ../../include/openssl/bio.h
-$(MF_CONFIG)/aes_ige.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
-$(MF_CONFIG)/aes_ige.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
-$(MF_CONFIG)/aes_ige.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/aes_ige.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(MF_CONFIG)/aes_ige.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
-$(MF_CONFIG)/aes_ige.o: ../../include/openssl/symhacks.h ../cryptlib.h aes_ige.c aes_locl.h
-$(MF_CONFIG)/aes_misc.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/aes_misc.o: ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/aes_misc.o: ../../include/openssl/opensslv.h aes_locl.h aes_misc.c
-$(MF_CONFIG)/aes_ofb.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/aes_ofb.o: ../../include/openssl/opensslconf.h aes_locl.h aes_ofb.c
+$(KBE_CONFIG)/aes_cbc.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/aes_cbc.o: ../../include/openssl/opensslconf.h aes_cbc.c aes_locl.h
+$(KBE_CONFIG)/aes_cfb.o: ../../e_os.h ../../include/openssl/aes.h
+$(KBE_CONFIG)/aes_cfb.o: ../../include/openssl/e_os2.h ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/aes_cfb.o: aes_cfb.c aes_locl.h
+$(KBE_CONFIG)/aes_core.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/aes_core.o: ../../include/openssl/opensslconf.h aes_core.c aes_locl.h
+$(KBE_CONFIG)/aes_ctr.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/aes_ctr.o: ../../include/openssl/opensslconf.h aes_ctr.c aes_locl.h
+$(KBE_CONFIG)/aes_ecb.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/aes_ecb.o: ../../include/openssl/opensslconf.h aes_ecb.c aes_locl.h
+$(KBE_CONFIG)/aes_ige.o: ../../e_os.h ../../include/openssl/aes.h ../../include/openssl/bio.h
+$(KBE_CONFIG)/aes_ige.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
+$(KBE_CONFIG)/aes_ige.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
+$(KBE_CONFIG)/aes_ige.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/aes_ige.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+$(KBE_CONFIG)/aes_ige.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+$(KBE_CONFIG)/aes_ige.o: ../../include/openssl/symhacks.h ../cryptlib.h aes_ige.c aes_locl.h
+$(KBE_CONFIG)/aes_misc.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/aes_misc.o: ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/aes_misc.o: ../../include/openssl/opensslv.h aes_locl.h aes_misc.c
+$(KBE_CONFIG)/aes_ofb.o: ../../include/openssl/aes.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/aes_ofb.o: ../../include/openssl/opensslconf.h aes_locl.h aes_ofb.c

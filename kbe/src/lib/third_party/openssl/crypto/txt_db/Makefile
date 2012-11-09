@@ -16,9 +16,9 @@ GENERAL=Makefile
 TEST=
 APPS=
 
-LIB=$(BWLIBDIR)/libcrypto.a
+LIB=$(LIBDIR)/libcrypto.a
 LIBSRC=txt_db.c
-LIBOBJ=$(MF_CONFIG)/txt_db.o
+LIBOBJ=$(KBE_CONFIG)/txt_db.o
 
 SRC= $(LIBSRC)
 
@@ -32,15 +32,15 @@ top:
 
 all:	lib
 
-$(MF_CONFIG):
-	@-mkdir $(MF_CONFIG)
+$(KBE_CONFIG):
+	@-mkdir $(KBE_CONFIG)
 
-lib:	$(MF_CONFIG) $(LIBOBJ)
+lib:	$(KBE_CONFIG) $(LIBOBJ)
 	$(AR) $(LIB) $(LIBOBJ)
 	$(RANLIB) $(LIB) || echo Never mind.
 	@touch lib
 
-$(MF_CONFIG)/%.o: %.c
+$(KBE_CONFIG)/%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 files:
@@ -76,15 +76,15 @@ dclean:
 	mv -f Makefile.new $(MAKEFILE)
 
 clean:
-	rm -f $(MF_CONFIG)/*.o *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
+	rm -f $(KBE_CONFIG)/*.o *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-$(MF_CONFIG)/txt_db.o: ../../e_os.h ../../include/openssl/bio.h
-$(MF_CONFIG)/txt_db.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
-$(MF_CONFIG)/txt_db.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
-$(MF_CONFIG)/txt_db.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/txt_db.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(MF_CONFIG)/txt_db.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
-$(MF_CONFIG)/txt_db.o: ../../include/openssl/symhacks.h ../../include/openssl/txt_db.h
-$(MF_CONFIG)/txt_db.o: ../cryptlib.h txt_db.c
+$(KBE_CONFIG)/txt_db.o: ../../e_os.h ../../include/openssl/bio.h
+$(KBE_CONFIG)/txt_db.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
+$(KBE_CONFIG)/txt_db.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
+$(KBE_CONFIG)/txt_db.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/txt_db.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+$(KBE_CONFIG)/txt_db.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+$(KBE_CONFIG)/txt_db.o: ../../include/openssl/symhacks.h ../../include/openssl/txt_db.h
+$(KBE_CONFIG)/txt_db.o: ../cryptlib.h txt_db.c

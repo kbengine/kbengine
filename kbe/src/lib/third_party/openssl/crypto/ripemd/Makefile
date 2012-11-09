@@ -21,9 +21,9 @@ GENERAL=Makefile
 TEST=rmdtest.c
 APPS=
 
-LIB=$(BWLIBDIR)/libcrypto.a
+LIB=$(LIBDIR)/libcrypto.a
 LIBSRC=rmd_dgst.c rmd_one.c
-LIBOBJ=$(MF_CONFIG)/rmd_dgst.o $(MF_CONFIG)/rmd_one.o $(RMD160_ASM_OBJ)
+LIBOBJ=$(KBE_CONFIG)/rmd_dgst.o $(KBE_CONFIG)/rmd_one.o $(RMD160_ASM_OBJ)
 
 SRC= $(LIBSRC)
 
@@ -37,25 +37,25 @@ top:
 
 all:    lib
 
-$(MF_CONFIG):
-	@-mkdir $(MF_CONFIG)
+$(KBE_CONFIG):
+	@-mkdir $(KBE_CONFIG)
 
-lib:    $(MF_CONFIG) $(LIBOBJ)
+lib:    $(KBE_CONFIG) $(LIBOBJ)
 	$(AR) $(LIB) $(LIBOBJ)
 	$(RANLIB) $(LIB) || echo Never mind.
 	@touch lib
 
-$(MF_CONFIG)/%.o: %.c
+$(KBE_CONFIG)/%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 # ELF
-$(MF_CONFIG)/rm86-elf.s: asm/rmd-586.pl ../perlasm/x86asm.pl
+$(KBE_CONFIG)/rm86-elf.s: asm/rmd-586.pl ../perlasm/x86asm.pl
 	(cd asm; $(PERL) rmd-586.pl elf $(CFLAGS) > ../$@)
 # COFF
-$(MF_CONFIG)/rm86-cof.s: asm/rmd-586.pl ../perlasm/x86asm.pl
+$(KBE_CONFIG)/rm86-cof.s: asm/rmd-586.pl ../perlasm/x86asm.pl
 	(cd asm; $(PERL) rmd-586.pl coff $(CFLAGS) > ../$@)
 # a.out
-$(MF_CONFIG)/rm86-out.s: asm/rmd-586.pl ../perlasm/x86asm.pl
+$(KBE_CONFIG)/rm86-out.s: asm/rmd-586.pl ../perlasm/x86asm.pl
 	(cd asm; $(PERL) rmd-586.pl a.out $(CFLAGS) > ../$@)
 
 files:
@@ -91,15 +91,15 @@ dclean:
 	mv -f Makefile.new $(MAKEFILE)
 
 clean:
-	rm -f $(MF_CONFIG)/*.s *.s $(MF_CONFIG)/*.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
+	rm -f $(KBE_CONFIG)/*.s *.s $(KBE_CONFIG)/*.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-$(MF_CONFIG)/rmd_dgst.o: ../../include/openssl/e_os2.h ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/rmd_dgst.o: ../../include/openssl/opensslv.h ../../include/openssl/ripemd.h
-$(MF_CONFIG)/rmd_dgst.o: ../md32_common.h rmd_dgst.c rmd_locl.h rmdconst.h
-$(MF_CONFIG)/rmd_one.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/rmd_one.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
-$(MF_CONFIG)/rmd_one.o: ../../include/openssl/ossl_typ.h ../../include/openssl/ripemd.h
-$(MF_CONFIG)/rmd_one.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
-$(MF_CONFIG)/rmd_one.o: ../../include/openssl/symhacks.h rmd_one.c
+$(KBE_CONFIG)/rmd_dgst.o: ../../include/openssl/e_os2.h ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/rmd_dgst.o: ../../include/openssl/opensslv.h ../../include/openssl/ripemd.h
+$(KBE_CONFIG)/rmd_dgst.o: ../md32_common.h rmd_dgst.c rmd_locl.h rmdconst.h
+$(KBE_CONFIG)/rmd_one.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/rmd_one.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
+$(KBE_CONFIG)/rmd_one.o: ../../include/openssl/ossl_typ.h ../../include/openssl/ripemd.h
+$(KBE_CONFIG)/rmd_one.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+$(KBE_CONFIG)/rmd_one.o: ../../include/openssl/symhacks.h rmd_one.c

@@ -18,11 +18,11 @@ TEST=
 APPS=
 
 COMPATSRC= ui_compat.c
-COMPATOBJ= $(MF_CONFIG)/ui_compat.o
+COMPATOBJ= $(KBE_CONFIG)/ui_compat.o
 
-LIB=$(BWLIBDIR)/libcrypto.a
+LIB=$(LIBDIR)/libcrypto.a
 LIBSRC= ui_err.c ui_lib.c ui_openssl.c ui_util.c $(COMPATSRC)
-LIBOBJ= $(MF_CONFIG)/ui_err.o $(MF_CONFIG)/ui_lib.o $(MF_CONFIG)/ui_openssl.o $(MF_CONFIG)/ui_util.o $(COMPATOBJ)
+LIBOBJ= $(KBE_CONFIG)/ui_err.o $(KBE_CONFIG)/ui_lib.o $(KBE_CONFIG)/ui_openssl.o $(KBE_CONFIG)/ui_util.o $(COMPATOBJ)
 
 SRC= $(LIBSRC)
 
@@ -36,15 +36,15 @@ top:
 
 all:	lib
 
-$(MF_CONFIG):
-	@-mkdir $(MF_CONFIG)
+$(KBE_CONFIG):
+	@-mkdir $(KBE_CONFIG)
 
-lib:	$(MF_CONFIG) $(LIBOBJ)
+lib:	$(KBE_CONFIG) $(LIBOBJ)
 	$(AR) $(LIB) $(LIBOBJ)
 	$(RANLIB) $(LIB) || echo Never mind.
 	@touch lib
 
-$(MF_CONFIG)/%.o: %.c
+$(KBE_CONFIG)/%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 files:
@@ -80,38 +80,38 @@ dclean:
 	mv -f Makefile.new $(MAKEFILE)
 
 clean:
-	rm -f $(MF_CONFIG)/*.o *.o */*.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
+	rm -f $(KBE_CONFIG)/*.o *.o */*.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-$(MF_CONFIG)/ui_compat.o: ../../include/openssl/e_os2.h ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/ui_compat.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
-$(MF_CONFIG)/ui_compat.o: ../../include/openssl/stack.h ../../include/openssl/ui.h
-$(MF_CONFIG)/ui_compat.o: ../../include/openssl/ui_compat.h ui_compat.c
-$(MF_CONFIG)/ui_err.o: ../../include/openssl/bio.h ../../include/openssl/crypto.h
-$(MF_CONFIG)/ui_err.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
-$(MF_CONFIG)/ui_err.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/ui_err.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(MF_CONFIG)/ui_err.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
-$(MF_CONFIG)/ui_err.o: ../../include/openssl/symhacks.h ../../include/openssl/ui.h ui_err.c
-$(MF_CONFIG)/ui_lib.o: ../../e_os.h ../../include/openssl/bio.h
-$(MF_CONFIG)/ui_lib.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
-$(MF_CONFIG)/ui_lib.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
-$(MF_CONFIG)/ui_lib.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/ui_lib.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(MF_CONFIG)/ui_lib.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
-$(MF_CONFIG)/ui_lib.o: ../../include/openssl/symhacks.h ../../include/openssl/ui.h
-$(MF_CONFIG)/ui_lib.o: ../cryptlib.h ui_lib.c ui_locl.h
-$(MF_CONFIG)/ui_openssl.o: ../../e_os.h ../../include/openssl/bio.h
-$(MF_CONFIG)/ui_openssl.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
-$(MF_CONFIG)/ui_openssl.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
-$(MF_CONFIG)/ui_openssl.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/ui_openssl.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(MF_CONFIG)/ui_openssl.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
-$(MF_CONFIG)/ui_openssl.o: ../../include/openssl/symhacks.h ../../include/openssl/ui.h
-$(MF_CONFIG)/ui_openssl.o: ../cryptlib.h ui_locl.h ui_openssl.c
-$(MF_CONFIG)/ui_util.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/ui_util.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
-$(MF_CONFIG)/ui_util.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
-$(MF_CONFIG)/ui_util.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
-$(MF_CONFIG)/ui_util.o: ../../include/openssl/ui.h ui_locl.h ui_util.c
+$(KBE_CONFIG)/ui_compat.o: ../../include/openssl/e_os2.h ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/ui_compat.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
+$(KBE_CONFIG)/ui_compat.o: ../../include/openssl/stack.h ../../include/openssl/ui.h
+$(KBE_CONFIG)/ui_compat.o: ../../include/openssl/ui_compat.h ui_compat.c
+$(KBE_CONFIG)/ui_err.o: ../../include/openssl/bio.h ../../include/openssl/crypto.h
+$(KBE_CONFIG)/ui_err.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
+$(KBE_CONFIG)/ui_err.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/ui_err.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+$(KBE_CONFIG)/ui_err.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+$(KBE_CONFIG)/ui_err.o: ../../include/openssl/symhacks.h ../../include/openssl/ui.h ui_err.c
+$(KBE_CONFIG)/ui_lib.o: ../../e_os.h ../../include/openssl/bio.h
+$(KBE_CONFIG)/ui_lib.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
+$(KBE_CONFIG)/ui_lib.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
+$(KBE_CONFIG)/ui_lib.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/ui_lib.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+$(KBE_CONFIG)/ui_lib.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+$(KBE_CONFIG)/ui_lib.o: ../../include/openssl/symhacks.h ../../include/openssl/ui.h
+$(KBE_CONFIG)/ui_lib.o: ../cryptlib.h ui_lib.c ui_locl.h
+$(KBE_CONFIG)/ui_openssl.o: ../../e_os.h ../../include/openssl/bio.h
+$(KBE_CONFIG)/ui_openssl.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
+$(KBE_CONFIG)/ui_openssl.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
+$(KBE_CONFIG)/ui_openssl.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/ui_openssl.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+$(KBE_CONFIG)/ui_openssl.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+$(KBE_CONFIG)/ui_openssl.o: ../../include/openssl/symhacks.h ../../include/openssl/ui.h
+$(KBE_CONFIG)/ui_openssl.o: ../cryptlib.h ui_locl.h ui_openssl.c
+$(KBE_CONFIG)/ui_util.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/ui_util.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
+$(KBE_CONFIG)/ui_util.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
+$(KBE_CONFIG)/ui_util.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
+$(KBE_CONFIG)/ui_util.o: ../../include/openssl/ui.h ui_locl.h ui_util.c

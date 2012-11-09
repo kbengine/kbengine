@@ -19,12 +19,12 @@ GENERAL=Makefile README
 TEST=
 APPS=
 
-LIB=$(BWLIBDIR)/libcrypto.a
+LIB=$(LIBDIR)/libcrypto.a
 LIBSRC=	pk7_asn1.c pk7_lib.c pkcs7err.c pk7_doit.c pk7_smime.c pk7_attr.c \
 	pk7_mime.c
-LIBOBJ= $(MF_CONFIG)/pk7_asn1.o $(MF_CONFIG)/pk7_lib.o $(MF_CONFIG)/pkcs7err.o \
-	$(MF_CONFIG)/pk7_doit.o $(MF_CONFIG)/pk7_smime.o $(MF_CONFIG)/pk7_attr.o \
-	$(MF_CONFIG)/pk7_mime.o
+LIBOBJ= $(KBE_CONFIG)/pk7_asn1.o $(KBE_CONFIG)/pk7_lib.o $(KBE_CONFIG)/pkcs7err.o \
+	$(KBE_CONFIG)/pk7_doit.o $(KBE_CONFIG)/pk7_smime.o $(KBE_CONFIG)/pk7_attr.o \
+	$(KBE_CONFIG)/pk7_mime.o
 
 SRC= $(LIBSRC)
 
@@ -54,15 +54,15 @@ sign: sign.o lib
 verify: verify.o example.o lib
 	$(CC) $(CFLAGS) -o verify verify.o $(PEX_LIBS) example.o $(LIB) $(EX_LIBS)
 
-$(MF_CONFIG):
-	@-mkdir $(MF_CONFIG)
+$(KBE_CONFIG):
+	@-mkdir $(KBE_CONFIG)
 
-lib:	$(MF_CONFIG) $(LIBOBJ)
+lib:	$(KBE_CONFIG) $(LIBOBJ)
 	$(AR) $(LIB) $(LIBOBJ)
 	$(RANLIB) $(LIB) || echo Never mind.
 	@touch lib
 
-$(MF_CONFIG)/%.o: %.c
+$(KBE_CONFIG)/%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 files:
@@ -98,97 +98,97 @@ dclean:
 	mv -f Makefile.new $(MAKEFILE)
 
 clean:
-	rm -f $(MF_CONFIG)/*.o *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff enc dec sign verify
+	rm -f $(KBE_CONFIG)/*.o *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff enc dec sign verify
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-$(MF_CONFIG)/pk7_asn1.o: ../../e_os.h ../../include/openssl/asn1.h
-$(MF_CONFIG)/pk7_asn1.o: ../../include/openssl/asn1t.h ../../include/openssl/bio.h
-$(MF_CONFIG)/pk7_asn1.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
-$(MF_CONFIG)/pk7_asn1.o: ../../include/openssl/e_os2.h ../../include/openssl/ec.h
-$(MF_CONFIG)/pk7_asn1.o: ../../include/openssl/ecdh.h ../../include/openssl/ecdsa.h
-$(MF_CONFIG)/pk7_asn1.o: ../../include/openssl/err.h ../../include/openssl/evp.h
-$(MF_CONFIG)/pk7_asn1.o: ../../include/openssl/lhash.h ../../include/openssl/obj_mac.h
-$(MF_CONFIG)/pk7_asn1.o: ../../include/openssl/objects.h ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/pk7_asn1.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(MF_CONFIG)/pk7_asn1.o: ../../include/openssl/pkcs7.h ../../include/openssl/safestack.h
-$(MF_CONFIG)/pk7_asn1.o: ../../include/openssl/sha.h ../../include/openssl/stack.h
-$(MF_CONFIG)/pk7_asn1.o: ../../include/openssl/symhacks.h ../../include/openssl/x509.h
-$(MF_CONFIG)/pk7_asn1.o: ../../include/openssl/x509_vfy.h ../cryptlib.h pk7_asn1.c
-$(MF_CONFIG)/pk7_attr.o: ../../include/openssl/asn1.h ../../include/openssl/bio.h
-$(MF_CONFIG)/pk7_attr.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
-$(MF_CONFIG)/pk7_attr.o: ../../include/openssl/e_os2.h ../../include/openssl/ec.h
-$(MF_CONFIG)/pk7_attr.o: ../../include/openssl/ecdh.h ../../include/openssl/ecdsa.h
-$(MF_CONFIG)/pk7_attr.o: ../../include/openssl/err.h ../../include/openssl/evp.h
-$(MF_CONFIG)/pk7_attr.o: ../../include/openssl/lhash.h ../../include/openssl/obj_mac.h
-$(MF_CONFIG)/pk7_attr.o: ../../include/openssl/objects.h ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/pk7_attr.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(MF_CONFIG)/pk7_attr.o: ../../include/openssl/pem.h ../../include/openssl/pem2.h
-$(MF_CONFIG)/pk7_attr.o: ../../include/openssl/pkcs7.h ../../include/openssl/safestack.h
-$(MF_CONFIG)/pk7_attr.o: ../../include/openssl/sha.h ../../include/openssl/stack.h
-$(MF_CONFIG)/pk7_attr.o: ../../include/openssl/symhacks.h ../../include/openssl/x509.h
-$(MF_CONFIG)/pk7_attr.o: ../../include/openssl/x509_vfy.h pk7_attr.c
-$(MF_CONFIG)/pk7_doit.o: ../../e_os.h ../../include/openssl/asn1.h
-$(MF_CONFIG)/pk7_doit.o: ../../include/openssl/bio.h ../../include/openssl/buffer.h
-$(MF_CONFIG)/pk7_doit.o: ../../include/openssl/conf.h ../../include/openssl/crypto.h
-$(MF_CONFIG)/pk7_doit.o: ../../include/openssl/e_os2.h ../../include/openssl/ec.h
-$(MF_CONFIG)/pk7_doit.o: ../../include/openssl/ecdh.h ../../include/openssl/ecdsa.h
-$(MF_CONFIG)/pk7_doit.o: ../../include/openssl/err.h ../../include/openssl/evp.h
-$(MF_CONFIG)/pk7_doit.o: ../../include/openssl/lhash.h ../../include/openssl/obj_mac.h
-$(MF_CONFIG)/pk7_doit.o: ../../include/openssl/objects.h ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/pk7_doit.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(MF_CONFIG)/pk7_doit.o: ../../include/openssl/pkcs7.h ../../include/openssl/rand.h
-$(MF_CONFIG)/pk7_doit.o: ../../include/openssl/safestack.h ../../include/openssl/sha.h
-$(MF_CONFIG)/pk7_doit.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
-$(MF_CONFIG)/pk7_doit.o: ../../include/openssl/x509.h ../../include/openssl/x509_vfy.h
-$(MF_CONFIG)/pk7_doit.o: ../../include/openssl/x509v3.h ../cryptlib.h pk7_doit.c
-$(MF_CONFIG)/pk7_lib.o: ../../e_os.h ../../include/openssl/asn1.h
-$(MF_CONFIG)/pk7_lib.o: ../../include/openssl/bio.h ../../include/openssl/buffer.h
-$(MF_CONFIG)/pk7_lib.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/pk7_lib.o: ../../include/openssl/ec.h ../../include/openssl/ecdh.h
-$(MF_CONFIG)/pk7_lib.o: ../../include/openssl/ecdsa.h ../../include/openssl/err.h
-$(MF_CONFIG)/pk7_lib.o: ../../include/openssl/evp.h ../../include/openssl/lhash.h
-$(MF_CONFIG)/pk7_lib.o: ../../include/openssl/obj_mac.h ../../include/openssl/objects.h
-$(MF_CONFIG)/pk7_lib.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
-$(MF_CONFIG)/pk7_lib.o: ../../include/openssl/ossl_typ.h ../../include/openssl/pkcs7.h
-$(MF_CONFIG)/pk7_lib.o: ../../include/openssl/safestack.h ../../include/openssl/sha.h
-$(MF_CONFIG)/pk7_lib.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
-$(MF_CONFIG)/pk7_lib.o: ../../include/openssl/x509.h ../../include/openssl/x509_vfy.h
-$(MF_CONFIG)/pk7_lib.o: ../cryptlib.h pk7_lib.c
-$(MF_CONFIG)/pk7_mime.o: ../../e_os.h ../../include/openssl/asn1.h
-$(MF_CONFIG)/pk7_mime.o: ../../include/openssl/bio.h ../../include/openssl/buffer.h
-$(MF_CONFIG)/pk7_mime.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/pk7_mime.o: ../../include/openssl/ec.h ../../include/openssl/ecdh.h
-$(MF_CONFIG)/pk7_mime.o: ../../include/openssl/ecdsa.h ../../include/openssl/err.h
-$(MF_CONFIG)/pk7_mime.o: ../../include/openssl/evp.h ../../include/openssl/lhash.h
-$(MF_CONFIG)/pk7_mime.o: ../../include/openssl/obj_mac.h ../../include/openssl/objects.h
-$(MF_CONFIG)/pk7_mime.o: ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/pk7_mime.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(MF_CONFIG)/pk7_mime.o: ../../include/openssl/pkcs7.h ../../include/openssl/rand.h
-$(MF_CONFIG)/pk7_mime.o: ../../include/openssl/safestack.h ../../include/openssl/sha.h
-$(MF_CONFIG)/pk7_mime.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
-$(MF_CONFIG)/pk7_mime.o: ../../include/openssl/x509.h ../../include/openssl/x509_vfy.h
-$(MF_CONFIG)/pk7_mime.o: ../cryptlib.h pk7_mime.c
-$(MF_CONFIG)/pk7_smime.o: ../../e_os.h ../../include/openssl/asn1.h
-$(MF_CONFIG)/pk7_smime.o: ../../include/openssl/bio.h ../../include/openssl/buffer.h
-$(MF_CONFIG)/pk7_smime.o: ../../include/openssl/conf.h ../../include/openssl/crypto.h
-$(MF_CONFIG)/pk7_smime.o: ../../include/openssl/e_os2.h ../../include/openssl/ec.h
-$(MF_CONFIG)/pk7_smime.o: ../../include/openssl/ecdh.h ../../include/openssl/ecdsa.h
-$(MF_CONFIG)/pk7_smime.o: ../../include/openssl/err.h ../../include/openssl/evp.h
-$(MF_CONFIG)/pk7_smime.o: ../../include/openssl/lhash.h ../../include/openssl/obj_mac.h
-$(MF_CONFIG)/pk7_smime.o: ../../include/openssl/objects.h
-$(MF_CONFIG)/pk7_smime.o: ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/pk7_smime.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(MF_CONFIG)/pk7_smime.o: ../../include/openssl/pkcs7.h ../../include/openssl/safestack.h
-$(MF_CONFIG)/pk7_smime.o: ../../include/openssl/sha.h ../../include/openssl/stack.h
-$(MF_CONFIG)/pk7_smime.o: ../../include/openssl/symhacks.h ../../include/openssl/x509.h
-$(MF_CONFIG)/pk7_smime.o: ../../include/openssl/x509_vfy.h ../../include/openssl/x509v3.h
-$(MF_CONFIG)/pk7_smime.o: ../cryptlib.h pk7_smime.c
-$(MF_CONFIG)/pkcs7err.o: ../../include/openssl/asn1.h ../../include/openssl/bio.h
-$(MF_CONFIG)/pkcs7err.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/pkcs7err.o: ../../include/openssl/err.h ../../include/openssl/lhash.h
-$(MF_CONFIG)/pkcs7err.o: ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/pkcs7err.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(MF_CONFIG)/pkcs7err.o: ../../include/openssl/pkcs7.h ../../include/openssl/safestack.h
-$(MF_CONFIG)/pkcs7err.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
-$(MF_CONFIG)/pkcs7err.o: pkcs7err.c
+$(KBE_CONFIG)/pk7_asn1.o: ../../e_os.h ../../include/openssl/asn1.h
+$(KBE_CONFIG)/pk7_asn1.o: ../../include/openssl/asn1t.h ../../include/openssl/bio.h
+$(KBE_CONFIG)/pk7_asn1.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
+$(KBE_CONFIG)/pk7_asn1.o: ../../include/openssl/e_os2.h ../../include/openssl/ec.h
+$(KBE_CONFIG)/pk7_asn1.o: ../../include/openssl/ecdh.h ../../include/openssl/ecdsa.h
+$(KBE_CONFIG)/pk7_asn1.o: ../../include/openssl/err.h ../../include/openssl/evp.h
+$(KBE_CONFIG)/pk7_asn1.o: ../../include/openssl/lhash.h ../../include/openssl/obj_mac.h
+$(KBE_CONFIG)/pk7_asn1.o: ../../include/openssl/objects.h ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/pk7_asn1.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+$(KBE_CONFIG)/pk7_asn1.o: ../../include/openssl/pkcs7.h ../../include/openssl/safestack.h
+$(KBE_CONFIG)/pk7_asn1.o: ../../include/openssl/sha.h ../../include/openssl/stack.h
+$(KBE_CONFIG)/pk7_asn1.o: ../../include/openssl/symhacks.h ../../include/openssl/x509.h
+$(KBE_CONFIG)/pk7_asn1.o: ../../include/openssl/x509_vfy.h ../cryptlib.h pk7_asn1.c
+$(KBE_CONFIG)/pk7_attr.o: ../../include/openssl/asn1.h ../../include/openssl/bio.h
+$(KBE_CONFIG)/pk7_attr.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
+$(KBE_CONFIG)/pk7_attr.o: ../../include/openssl/e_os2.h ../../include/openssl/ec.h
+$(KBE_CONFIG)/pk7_attr.o: ../../include/openssl/ecdh.h ../../include/openssl/ecdsa.h
+$(KBE_CONFIG)/pk7_attr.o: ../../include/openssl/err.h ../../include/openssl/evp.h
+$(KBE_CONFIG)/pk7_attr.o: ../../include/openssl/lhash.h ../../include/openssl/obj_mac.h
+$(KBE_CONFIG)/pk7_attr.o: ../../include/openssl/objects.h ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/pk7_attr.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+$(KBE_CONFIG)/pk7_attr.o: ../../include/openssl/pem.h ../../include/openssl/pem2.h
+$(KBE_CONFIG)/pk7_attr.o: ../../include/openssl/pkcs7.h ../../include/openssl/safestack.h
+$(KBE_CONFIG)/pk7_attr.o: ../../include/openssl/sha.h ../../include/openssl/stack.h
+$(KBE_CONFIG)/pk7_attr.o: ../../include/openssl/symhacks.h ../../include/openssl/x509.h
+$(KBE_CONFIG)/pk7_attr.o: ../../include/openssl/x509_vfy.h pk7_attr.c
+$(KBE_CONFIG)/pk7_doit.o: ../../e_os.h ../../include/openssl/asn1.h
+$(KBE_CONFIG)/pk7_doit.o: ../../include/openssl/bio.h ../../include/openssl/buffer.h
+$(KBE_CONFIG)/pk7_doit.o: ../../include/openssl/conf.h ../../include/openssl/crypto.h
+$(KBE_CONFIG)/pk7_doit.o: ../../include/openssl/e_os2.h ../../include/openssl/ec.h
+$(KBE_CONFIG)/pk7_doit.o: ../../include/openssl/ecdh.h ../../include/openssl/ecdsa.h
+$(KBE_CONFIG)/pk7_doit.o: ../../include/openssl/err.h ../../include/openssl/evp.h
+$(KBE_CONFIG)/pk7_doit.o: ../../include/openssl/lhash.h ../../include/openssl/obj_mac.h
+$(KBE_CONFIG)/pk7_doit.o: ../../include/openssl/objects.h ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/pk7_doit.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+$(KBE_CONFIG)/pk7_doit.o: ../../include/openssl/pkcs7.h ../../include/openssl/rand.h
+$(KBE_CONFIG)/pk7_doit.o: ../../include/openssl/safestack.h ../../include/openssl/sha.h
+$(KBE_CONFIG)/pk7_doit.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
+$(KBE_CONFIG)/pk7_doit.o: ../../include/openssl/x509.h ../../include/openssl/x509_vfy.h
+$(KBE_CONFIG)/pk7_doit.o: ../../include/openssl/x509v3.h ../cryptlib.h pk7_doit.c
+$(KBE_CONFIG)/pk7_lib.o: ../../e_os.h ../../include/openssl/asn1.h
+$(KBE_CONFIG)/pk7_lib.o: ../../include/openssl/bio.h ../../include/openssl/buffer.h
+$(KBE_CONFIG)/pk7_lib.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/pk7_lib.o: ../../include/openssl/ec.h ../../include/openssl/ecdh.h
+$(KBE_CONFIG)/pk7_lib.o: ../../include/openssl/ecdsa.h ../../include/openssl/err.h
+$(KBE_CONFIG)/pk7_lib.o: ../../include/openssl/evp.h ../../include/openssl/lhash.h
+$(KBE_CONFIG)/pk7_lib.o: ../../include/openssl/obj_mac.h ../../include/openssl/objects.h
+$(KBE_CONFIG)/pk7_lib.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
+$(KBE_CONFIG)/pk7_lib.o: ../../include/openssl/ossl_typ.h ../../include/openssl/pkcs7.h
+$(KBE_CONFIG)/pk7_lib.o: ../../include/openssl/safestack.h ../../include/openssl/sha.h
+$(KBE_CONFIG)/pk7_lib.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
+$(KBE_CONFIG)/pk7_lib.o: ../../include/openssl/x509.h ../../include/openssl/x509_vfy.h
+$(KBE_CONFIG)/pk7_lib.o: ../cryptlib.h pk7_lib.c
+$(KBE_CONFIG)/pk7_mime.o: ../../e_os.h ../../include/openssl/asn1.h
+$(KBE_CONFIG)/pk7_mime.o: ../../include/openssl/bio.h ../../include/openssl/buffer.h
+$(KBE_CONFIG)/pk7_mime.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/pk7_mime.o: ../../include/openssl/ec.h ../../include/openssl/ecdh.h
+$(KBE_CONFIG)/pk7_mime.o: ../../include/openssl/ecdsa.h ../../include/openssl/err.h
+$(KBE_CONFIG)/pk7_mime.o: ../../include/openssl/evp.h ../../include/openssl/lhash.h
+$(KBE_CONFIG)/pk7_mime.o: ../../include/openssl/obj_mac.h ../../include/openssl/objects.h
+$(KBE_CONFIG)/pk7_mime.o: ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/pk7_mime.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+$(KBE_CONFIG)/pk7_mime.o: ../../include/openssl/pkcs7.h ../../include/openssl/rand.h
+$(KBE_CONFIG)/pk7_mime.o: ../../include/openssl/safestack.h ../../include/openssl/sha.h
+$(KBE_CONFIG)/pk7_mime.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
+$(KBE_CONFIG)/pk7_mime.o: ../../include/openssl/x509.h ../../include/openssl/x509_vfy.h
+$(KBE_CONFIG)/pk7_mime.o: ../cryptlib.h pk7_mime.c
+$(KBE_CONFIG)/pk7_smime.o: ../../e_os.h ../../include/openssl/asn1.h
+$(KBE_CONFIG)/pk7_smime.o: ../../include/openssl/bio.h ../../include/openssl/buffer.h
+$(KBE_CONFIG)/pk7_smime.o: ../../include/openssl/conf.h ../../include/openssl/crypto.h
+$(KBE_CONFIG)/pk7_smime.o: ../../include/openssl/e_os2.h ../../include/openssl/ec.h
+$(KBE_CONFIG)/pk7_smime.o: ../../include/openssl/ecdh.h ../../include/openssl/ecdsa.h
+$(KBE_CONFIG)/pk7_smime.o: ../../include/openssl/err.h ../../include/openssl/evp.h
+$(KBE_CONFIG)/pk7_smime.o: ../../include/openssl/lhash.h ../../include/openssl/obj_mac.h
+$(KBE_CONFIG)/pk7_smime.o: ../../include/openssl/objects.h
+$(KBE_CONFIG)/pk7_smime.o: ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/pk7_smime.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+$(KBE_CONFIG)/pk7_smime.o: ../../include/openssl/pkcs7.h ../../include/openssl/safestack.h
+$(KBE_CONFIG)/pk7_smime.o: ../../include/openssl/sha.h ../../include/openssl/stack.h
+$(KBE_CONFIG)/pk7_smime.o: ../../include/openssl/symhacks.h ../../include/openssl/x509.h
+$(KBE_CONFIG)/pk7_smime.o: ../../include/openssl/x509_vfy.h ../../include/openssl/x509v3.h
+$(KBE_CONFIG)/pk7_smime.o: ../cryptlib.h pk7_smime.c
+$(KBE_CONFIG)/pkcs7err.o: ../../include/openssl/asn1.h ../../include/openssl/bio.h
+$(KBE_CONFIG)/pkcs7err.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/pkcs7err.o: ../../include/openssl/err.h ../../include/openssl/lhash.h
+$(KBE_CONFIG)/pkcs7err.o: ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/pkcs7err.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+$(KBE_CONFIG)/pkcs7err.o: ../../include/openssl/pkcs7.h ../../include/openssl/safestack.h
+$(KBE_CONFIG)/pkcs7err.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
+$(KBE_CONFIG)/pkcs7err.o: pkcs7err.c

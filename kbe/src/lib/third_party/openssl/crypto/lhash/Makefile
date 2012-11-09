@@ -16,9 +16,9 @@ GENERAL=Makefile
 TEST=
 APPS=
 
-LIB=$(BWLIBDIR)/libcrypto.a
+LIB=$(LIBDIR)/libcrypto.a
 LIBSRC=lhash.c lh_stats.c
-LIBOBJ=$(MF_CONFIG)/lhash.o $(MF_CONFIG)/lh_stats.o
+LIBOBJ=$(KBE_CONFIG)/lhash.o $(KBE_CONFIG)/lh_stats.o
 
 SRC= $(LIBSRC)
 
@@ -32,15 +32,15 @@ top:
 
 all:	lib
 
-$(MF_CONFIG):
-	@-mkdir $(MF_CONFIG)
+$(KBE_CONFIG):
+	@-mkdir $(KBE_CONFIG)
 
-lib:	$(MF_CONFIG) $(LIBOBJ)
+lib:	$(KBE_CONFIG) $(LIBOBJ)
 	$(AR) $(LIB) $(LIBOBJ)
 	$(RANLIB) $(LIB) || echo Never mind.
 	@touch lib
 
-$(MF_CONFIG)/%.o: %.c
+$(KBE_CONFIG)/%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 files:
@@ -76,19 +76,19 @@ dclean:
 	mv -f Makefile.new $(MAKEFILE)
 
 clean:
-	rm -f $(MF_CONFIG)/*.o *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
+	rm -f $(KBE_CONFIG)/*.o *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-$(MF_CONFIG)/lh_stats.o: ../../e_os.h ../../include/openssl/bio.h
-$(MF_CONFIG)/lh_stats.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
-$(MF_CONFIG)/lh_stats.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
-$(MF_CONFIG)/lh_stats.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/lh_stats.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(MF_CONFIG)/lh_stats.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
-$(MF_CONFIG)/lh_stats.o: ../../include/openssl/symhacks.h ../cryptlib.h lh_stats.c
-$(MF_CONFIG)/lhash.o: ../../include/openssl/bio.h ../../include/openssl/crypto.h
-$(MF_CONFIG)/lhash.o: ../../include/openssl/e_os2.h ../../include/openssl/lhash.h
-$(MF_CONFIG)/lhash.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
-$(MF_CONFIG)/lhash.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
-$(MF_CONFIG)/lhash.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h lhash.c
+$(KBE_CONFIG)/lh_stats.o: ../../e_os.h ../../include/openssl/bio.h
+$(KBE_CONFIG)/lh_stats.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
+$(KBE_CONFIG)/lh_stats.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
+$(KBE_CONFIG)/lh_stats.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/lh_stats.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+$(KBE_CONFIG)/lh_stats.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+$(KBE_CONFIG)/lh_stats.o: ../../include/openssl/symhacks.h ../cryptlib.h lh_stats.c
+$(KBE_CONFIG)/lhash.o: ../../include/openssl/bio.h ../../include/openssl/crypto.h
+$(KBE_CONFIG)/lhash.o: ../../include/openssl/e_os2.h ../../include/openssl/lhash.h
+$(KBE_CONFIG)/lhash.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
+$(KBE_CONFIG)/lhash.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
+$(KBE_CONFIG)/lhash.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h lhash.c

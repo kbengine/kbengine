@@ -16,9 +16,9 @@ GENERAL=Makefile
 TEST=
 APPS=
 
-LIB=$(BWLIBDIR)/libcrypto.a
+LIB=$(LIBDIR)/libcrypto.a
 LIBSRC=err.c err_all.c err_prn.c
-LIBOBJ=$(MF_CONFIG)/err.o $(MF_CONFIG)/err_all.o $(MF_CONFIG)/err_prn.o
+LIBOBJ=$(KBE_CONFIG)/err.o $(KBE_CONFIG)/err_all.o $(KBE_CONFIG)/err_prn.o
 
 SRC= $(LIBSRC)
 
@@ -32,15 +32,15 @@ top:
 
 all:	lib
 
-$(MF_CONFIG):
-	@-mkdir $(MF_CONFIG)
+$(KBE_CONFIG):
+	@-mkdir $(KBE_CONFIG)
 
-lib:	$(MF_CONFIG) $(LIBOBJ)
+lib:	$(KBE_CONFIG) $(LIBOBJ)
 	$(AR) $(LIB) $(LIBOBJ)
 	$(RANLIB) $(LIB) || echo Never mind.
 	@touch lib
 
-$(MF_CONFIG)/%.o: %.c
+$(KBE_CONFIG)/%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 files:
@@ -76,39 +76,39 @@ dclean:
 	mv -f Makefile.new $(MAKEFILE)
 
 clean:
-	rm -f $(MF_CONFIG)/*.o *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
+	rm -f $(KBE_CONFIG)/*.o *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-$(MF_CONFIG)/err.o: ../../e_os.h ../../include/openssl/bio.h ../../include/openssl/buffer.h
-$(MF_CONFIG)/err.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/err.o: ../../include/openssl/err.h ../../include/openssl/lhash.h
-$(MF_CONFIG)/err.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
-$(MF_CONFIG)/err.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
-$(MF_CONFIG)/err.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
-$(MF_CONFIG)/err.o: ../cryptlib.h err.c
-$(MF_CONFIG)/err_all.o: ../../include/openssl/asn1.h ../../include/openssl/bio.h
-$(MF_CONFIG)/err_all.o: ../../include/openssl/bn.h ../../include/openssl/buffer.h
-$(MF_CONFIG)/err_all.o: ../../include/openssl/conf.h ../../include/openssl/crypto.h
-$(MF_CONFIG)/err_all.o: ../../include/openssl/dso.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/err_all.o: ../../include/openssl/ec.h ../../include/openssl/ecdh.h
-$(MF_CONFIG)/err_all.o: ../../include/openssl/ecdsa.h ../../include/openssl/engine.h
-$(MF_CONFIG)/err_all.o: ../../include/openssl/err.h ../../include/openssl/evp.h
-$(MF_CONFIG)/err_all.o: ../../include/openssl/lhash.h ../../include/openssl/obj_mac.h
-$(MF_CONFIG)/err_all.o: ../../include/openssl/objects.h ../../include/openssl/ocsp.h
-$(MF_CONFIG)/err_all.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
-$(MF_CONFIG)/err_all.o: ../../include/openssl/ossl_typ.h ../../include/openssl/pem2.h
-$(MF_CONFIG)/err_all.o: ../../include/openssl/pkcs12.h ../../include/openssl/pkcs7.h
-$(MF_CONFIG)/err_all.o: ../../include/openssl/rand.h ../../include/openssl/rsa.h
-$(MF_CONFIG)/err_all.o: ../../include/openssl/safestack.h ../../include/openssl/sha.h
-$(MF_CONFIG)/err_all.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
-$(MF_CONFIG)/err_all.o: ../../include/openssl/ui.h ../../include/openssl/x509.h
-$(MF_CONFIG)/err_all.o: ../../include/openssl/x509_vfy.h ../../include/openssl/x509v3.h
-$(MF_CONFIG)/err_all.o: err_all.c
-$(MF_CONFIG)/err_prn.o: ../../e_os.h ../../include/openssl/bio.h
-$(MF_CONFIG)/err_prn.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
-$(MF_CONFIG)/err_prn.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
-$(MF_CONFIG)/err_prn.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/err_prn.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(MF_CONFIG)/err_prn.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
-$(MF_CONFIG)/err_prn.o: ../../include/openssl/symhacks.h ../cryptlib.h err_prn.c
+$(KBE_CONFIG)/err.o: ../../e_os.h ../../include/openssl/bio.h ../../include/openssl/buffer.h
+$(KBE_CONFIG)/err.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/err.o: ../../include/openssl/err.h ../../include/openssl/lhash.h
+$(KBE_CONFIG)/err.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
+$(KBE_CONFIG)/err.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
+$(KBE_CONFIG)/err.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
+$(KBE_CONFIG)/err.o: ../cryptlib.h err.c
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/asn1.h ../../include/openssl/bio.h
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/bn.h ../../include/openssl/buffer.h
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/conf.h ../../include/openssl/crypto.h
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/dso.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/ec.h ../../include/openssl/ecdh.h
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/ecdsa.h ../../include/openssl/engine.h
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/err.h ../../include/openssl/evp.h
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/lhash.h ../../include/openssl/obj_mac.h
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/objects.h ../../include/openssl/ocsp.h
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/ossl_typ.h ../../include/openssl/pem2.h
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/pkcs12.h ../../include/openssl/pkcs7.h
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/rand.h ../../include/openssl/rsa.h
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/safestack.h ../../include/openssl/sha.h
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/ui.h ../../include/openssl/x509.h
+$(KBE_CONFIG)/err_all.o: ../../include/openssl/x509_vfy.h ../../include/openssl/x509v3.h
+$(KBE_CONFIG)/err_all.o: err_all.c
+$(KBE_CONFIG)/err_prn.o: ../../e_os.h ../../include/openssl/bio.h
+$(KBE_CONFIG)/err_prn.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
+$(KBE_CONFIG)/err_prn.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
+$(KBE_CONFIG)/err_prn.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/err_prn.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+$(KBE_CONFIG)/err_prn.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+$(KBE_CONFIG)/err_prn.o: ../../include/openssl/symhacks.h ../cryptlib.h err_prn.c

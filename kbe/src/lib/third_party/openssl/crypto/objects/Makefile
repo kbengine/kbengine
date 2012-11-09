@@ -17,9 +17,9 @@ GENERAL=Makefile README
 TEST=
 APPS=
 
-LIB=$(BWLIBDIR)/libcrypto.a
+LIB=$(LIBDIR)/libcrypto.a
 LIBSRC=	o_names.c obj_dat.c obj_lib.c obj_err.c
-LIBOBJ= $(MF_CONFIG)/o_names.o $(MF_CONFIG)/obj_dat.o $(MF_CONFIG)/obj_lib.o $(MF_CONFIG)/obj_err.o
+LIBOBJ= $(KBE_CONFIG)/o_names.o $(KBE_CONFIG)/obj_dat.o $(KBE_CONFIG)/obj_lib.o $(KBE_CONFIG)/obj_err.o
 
 SRC= $(LIBSRC)
 
@@ -33,15 +33,15 @@ top:
 
 all:	obj_dat.h lib
 
-$(MF_CONFIG):
-	@-mkdir $(MF_CONFIG)
+$(KBE_CONFIG):
+	@-mkdir $(KBE_CONFIG)
 
-lib:	$(MF_CONFIG) $(LIBOBJ)
+lib:	$(KBE_CONFIG) $(LIBOBJ)
 	$(AR) $(LIB) $(LIBOBJ)
 	$(RANLIB) $(LIB) || echo Never mind.
 	@touch lib
 
-$(MF_CONFIG)/%.o: %.c
+$(KBE_CONFIG)/%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 obj_dat.h: obj_dat.pl obj_mac.h
@@ -85,41 +85,41 @@ dclean:
 	mv -f Makefile.new $(MAKEFILE)
 
 clean:
-	rm -f $(MF_CONFIG)/*.o *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
+	rm -f $(KBE_CONFIG)/*.o *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-$(MF_CONFIG)/o_names.o: ../../include/openssl/asn1.h ../../include/openssl/bio.h
-$(MF_CONFIG)/o_names.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/o_names.o: ../../include/openssl/err.h ../../include/openssl/lhash.h
-$(MF_CONFIG)/o_names.o: ../../include/openssl/obj_mac.h ../../include/openssl/objects.h
-$(MF_CONFIG)/o_names.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
-$(MF_CONFIG)/o_names.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
-$(MF_CONFIG)/o_names.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
-$(MF_CONFIG)/o_names.o: o_names.c
-$(MF_CONFIG)/obj_dat.o: ../../e_os.h ../../include/openssl/asn1.h
-$(MF_CONFIG)/obj_dat.o: ../../include/openssl/bio.h ../../include/openssl/buffer.h
-$(MF_CONFIG)/obj_dat.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/obj_dat.o: ../../include/openssl/err.h ../../include/openssl/lhash.h
-$(MF_CONFIG)/obj_dat.o: ../../include/openssl/obj_mac.h ../../include/openssl/objects.h
-$(MF_CONFIG)/obj_dat.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
-$(MF_CONFIG)/obj_dat.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
-$(MF_CONFIG)/obj_dat.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
-$(MF_CONFIG)/obj_dat.o: ../cryptlib.h obj_dat.c obj_dat.h
-$(MF_CONFIG)/obj_err.o: ../../include/openssl/asn1.h ../../include/openssl/bio.h
-$(MF_CONFIG)/obj_err.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/obj_err.o: ../../include/openssl/err.h ../../include/openssl/lhash.h
-$(MF_CONFIG)/obj_err.o: ../../include/openssl/obj_mac.h ../../include/openssl/objects.h
-$(MF_CONFIG)/obj_err.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
-$(MF_CONFIG)/obj_err.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
-$(MF_CONFIG)/obj_err.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
-$(MF_CONFIG)/obj_err.o: obj_err.c
-$(MF_CONFIG)/obj_lib.o: ../../e_os.h ../../include/openssl/asn1.h
-$(MF_CONFIG)/obj_lib.o: ../../include/openssl/bio.h ../../include/openssl/buffer.h
-$(MF_CONFIG)/obj_lib.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/obj_lib.o: ../../include/openssl/err.h ../../include/openssl/lhash.h
-$(MF_CONFIG)/obj_lib.o: ../../include/openssl/obj_mac.h ../../include/openssl/objects.h
-$(MF_CONFIG)/obj_lib.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
-$(MF_CONFIG)/obj_lib.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
-$(MF_CONFIG)/obj_lib.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
-$(MF_CONFIG)/obj_lib.o: ../cryptlib.h obj_lib.c
+$(KBE_CONFIG)/o_names.o: ../../include/openssl/asn1.h ../../include/openssl/bio.h
+$(KBE_CONFIG)/o_names.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/o_names.o: ../../include/openssl/err.h ../../include/openssl/lhash.h
+$(KBE_CONFIG)/o_names.o: ../../include/openssl/obj_mac.h ../../include/openssl/objects.h
+$(KBE_CONFIG)/o_names.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
+$(KBE_CONFIG)/o_names.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
+$(KBE_CONFIG)/o_names.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
+$(KBE_CONFIG)/o_names.o: o_names.c
+$(KBE_CONFIG)/obj_dat.o: ../../e_os.h ../../include/openssl/asn1.h
+$(KBE_CONFIG)/obj_dat.o: ../../include/openssl/bio.h ../../include/openssl/buffer.h
+$(KBE_CONFIG)/obj_dat.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/obj_dat.o: ../../include/openssl/err.h ../../include/openssl/lhash.h
+$(KBE_CONFIG)/obj_dat.o: ../../include/openssl/obj_mac.h ../../include/openssl/objects.h
+$(KBE_CONFIG)/obj_dat.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
+$(KBE_CONFIG)/obj_dat.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
+$(KBE_CONFIG)/obj_dat.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
+$(KBE_CONFIG)/obj_dat.o: ../cryptlib.h obj_dat.c obj_dat.h
+$(KBE_CONFIG)/obj_err.o: ../../include/openssl/asn1.h ../../include/openssl/bio.h
+$(KBE_CONFIG)/obj_err.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/obj_err.o: ../../include/openssl/err.h ../../include/openssl/lhash.h
+$(KBE_CONFIG)/obj_err.o: ../../include/openssl/obj_mac.h ../../include/openssl/objects.h
+$(KBE_CONFIG)/obj_err.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
+$(KBE_CONFIG)/obj_err.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
+$(KBE_CONFIG)/obj_err.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
+$(KBE_CONFIG)/obj_err.o: obj_err.c
+$(KBE_CONFIG)/obj_lib.o: ../../e_os.h ../../include/openssl/asn1.h
+$(KBE_CONFIG)/obj_lib.o: ../../include/openssl/bio.h ../../include/openssl/buffer.h
+$(KBE_CONFIG)/obj_lib.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/obj_lib.o: ../../include/openssl/err.h ../../include/openssl/lhash.h
+$(KBE_CONFIG)/obj_lib.o: ../../include/openssl/obj_mac.h ../../include/openssl/objects.h
+$(KBE_CONFIG)/obj_lib.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
+$(KBE_CONFIG)/obj_lib.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
+$(KBE_CONFIG)/obj_lib.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
+$(KBE_CONFIG)/obj_lib.o: ../cryptlib.h obj_lib.c

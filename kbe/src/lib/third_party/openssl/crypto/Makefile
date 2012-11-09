@@ -31,10 +31,10 @@ LIBS=
 
 GENERAL=Makefile README crypto-lib.com install.com
 
-LIB= $(BWLIBDIR)/libcrypto.a
+LIB= $(LIBDIR)/libcrypto.a
 SHARED_LIB= libcrypto$(SHLIB_EXT)
 LIBSRC=	cryptlib.c mem.c mem_clr.c mem_dbg.c cversion.c ex_data.c tmdiff.c cpt_err.c ebcdic.c uid.c o_time.c o_str.c o_dir.c
-LIBOBJ= $(MF_CONFIG)/cryptlib.o $(MF_CONFIG)/mem.o $(MF_CONFIG)/mem_clr.o $(MF_CONFIG)/mem_dbg.o $(MF_CONFIG)/cversion.o $(MF_CONFIG)/ex_data.o $(MF_CONFIG)/tmdiff.o $(MF_CONFIG)/cpt_err.o $(MF_CONFIG)/ebcdic.o $(MF_CONFIG)/uid.o $(MF_CONFIG)/o_time.o $(MF_CONFIG)/o_str.o $(MF_CONFIG)/o_dir.o $(CPUID_OBJ)
+LIBOBJ= $(KBE_CONFIG)/cryptlib.o $(KBE_CONFIG)/mem.o $(KBE_CONFIG)/mem_clr.o $(KBE_CONFIG)/mem_dbg.o $(KBE_CONFIG)/cversion.o $(KBE_CONFIG)/ex_data.o $(KBE_CONFIG)/tmdiff.o $(KBE_CONFIG)/cpt_err.o $(KBE_CONFIG)/ebcdic.o $(KBE_CONFIG)/uid.o $(KBE_CONFIG)/o_time.o $(KBE_CONFIG)/o_str.o $(KBE_CONFIG)/o_dir.o $(CPUID_OBJ)
 
 SRC= $(LIBSRC)
 
@@ -47,7 +47,7 @@ ALL=    $(GENERAL) $(SRC) $(HEADER)
 top:
 	@(cd ..; $(MAKE) DIRS=$(DIR) all)
 
-# BigWorld: we don't need the shared library, only the static
+# kbe: we don't need the shared library, only the static
 #all: shared
 all: buildinf.h lib subdirs
 
@@ -59,25 +59,25 @@ buildinf.h: ../Makefile
 	echo "  #define DATE \"`LC_ALL=C LC_TIME=C date`\""; \
 	echo '#endif' ) >buildinf.h
 
-$(MF_CONFIG)/x86cpuid-elf.s:	x86cpuid.pl perlasm/x86asm.pl
+$(KBE_CONFIG)/x86cpuid-elf.s:	x86cpuid.pl perlasm/x86asm.pl
 	$(PERL) x86cpuid.pl elf $(CFLAGS) $(PROCESSOR) > $@
-$(MF_CONFIG)/x86cpuid-cof.s: x86cpuid.pl perlasm/x86asm.pl
+$(KBE_CONFIG)/x86cpuid-cof.s: x86cpuid.pl perlasm/x86asm.pl
 	$(PERL) x86cpuid.pl coff $(CFLAGS) $(PROCESSOR) > $@
-$(MF_CONFIG)/x86cpuid-out.s: x86cpuid.pl perlasm/x86asm.pl
+$(KBE_CONFIG)/x86cpuid-out.s: x86cpuid.pl perlasm/x86asm.pl
 	$(PERL) x86cpuid.pl a.out $(CFLAGS) $(PROCESSOR) > $@
 
-$(MF_CONFIG)/uplink.o:	../ms/uplink.c
+$(KBE_CONFIG)/uplink.o:	../ms/uplink.c
 	$(CC) $(CFLAGS) -c -o $@ ../ms/uplink.c
 
-$(MF_CONFIG)/uplink-cof.s:	../ms/uplink.pl
+$(KBE_CONFIG)/uplink-cof.s:	../ms/uplink.pl
 	$(PERL) ../ms/uplink.pl coff > $@
 
-$(MF_CONFIG)/x86_64cpuid.s: x86_64cpuid.pl
+$(KBE_CONFIG)/x86_64cpuid.s: x86_64cpuid.pl
 	$(PERL) x86_64cpuid.pl $@
-$(MF_CONFIG)/ia64cpuid.s: ia64cpuid.S
+$(KBE_CONFIG)/ia64cpuid.s: ia64cpuid.S
 	$(CC) $(CFLAGS) -E ia64cpuid.S > $@
 
-$(MF_CONFIG)/%.o: %.c
+$(KBE_CONFIG)/%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 testapps:
@@ -99,13 +99,13 @@ links:
 	@$(PERL) $(TOP)/util/mklink.pl ../apps $(APPS)
 	@target=links; $(RECURSIVE_MAKE)
 
-$(MF_CONFIG):
-	@-mkdir $(MF_CONFIG)
+$(KBE_CONFIG):
+	@-mkdir $(KBE_CONFIG)
 
 # lib: and $(LIB): are splitted to avoid end-less loop
 lib:	$(LIB)
 	@touch lib
-$(LIB):	$(MF_CONFIG) $(LIBOBJ)
+$(LIB):	$(KBE_CONFIG) $(LIBOBJ)
 	$(AR) $(LIB) $(LIBOBJ)
 	$(RANLIB) $(LIB) || echo Never mind.
 
@@ -137,7 +137,7 @@ depend:
 	@if [ -z "$(THIS)" ]; then $(MAKE) -f $(TOP)/Makefile reflect THIS=$@; fi
 
 clean:
-	rm -f buildinf.h $(MF_CONFIG)/*.s *.s $(MF_CONFIG)/*.o *.o */*.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
+	rm -f buildinf.h $(KBE_CONFIG)/*.s *.s $(KBE_CONFIG)/*.o *.o */*.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
 	@+target=clean; $(RECURSIVE_MAKE)
 
 dclean:
@@ -147,66 +147,66 @@ dclean:
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-$(MF_CONFIG)/cpt_err.o: ../include/openssl/bio.h ../include/openssl/crypto.h
-$(MF_CONFIG)/cpt_err.o: ../include/openssl/e_os2.h ../include/openssl/err.h
-$(MF_CONFIG)/cpt_err.o: ../include/openssl/lhash.h ../include/openssl/opensslconf.h
-$(MF_CONFIG)/cpt_err.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
-$(MF_CONFIG)/cpt_err.o: ../include/openssl/safestack.h ../include/openssl/stack.h
-$(MF_CONFIG)/cpt_err.o: ../include/openssl/symhacks.h cpt_err.c
-$(MF_CONFIG)/cryptlib.o: ../e_os.h ../include/openssl/bio.h ../include/openssl/buffer.h
-$(MF_CONFIG)/cryptlib.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
-$(MF_CONFIG)/cryptlib.o: ../include/openssl/err.h ../include/openssl/lhash.h
-$(MF_CONFIG)/cryptlib.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
-$(MF_CONFIG)/cryptlib.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
-$(MF_CONFIG)/cryptlib.o: ../include/openssl/stack.h ../include/openssl/symhacks.h cryptlib.c
-$(MF_CONFIG)/cryptlib.o: cryptlib.h
-$(MF_CONFIG)/cversion.o: ../e_os.h ../include/openssl/bio.h ../include/openssl/buffer.h
-$(MF_CONFIG)/cversion.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
-$(MF_CONFIG)/cversion.o: ../include/openssl/err.h ../include/openssl/lhash.h
-$(MF_CONFIG)/cversion.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
-$(MF_CONFIG)/cversion.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
-$(MF_CONFIG)/cversion.o: ../include/openssl/stack.h ../include/openssl/symhacks.h buildinf.h
-$(MF_CONFIG)/cversion.o: cryptlib.h cversion.c
-$(MF_CONFIG)/ebcdic.o: ../include/openssl/e_os2.h ../include/openssl/opensslconf.h ebcdic.c
-$(MF_CONFIG)/ex_data.o: ../e_os.h ../include/openssl/bio.h ../include/openssl/buffer.h
-$(MF_CONFIG)/ex_data.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
-$(MF_CONFIG)/ex_data.o: ../include/openssl/err.h ../include/openssl/lhash.h
-$(MF_CONFIG)/ex_data.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
-$(MF_CONFIG)/ex_data.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
-$(MF_CONFIG)/ex_data.o: ../include/openssl/stack.h ../include/openssl/symhacks.h cryptlib.h
-$(MF_CONFIG)/ex_data.o: ex_data.c
-$(MF_CONFIG)/mem.o: ../e_os.h ../include/openssl/bio.h ../include/openssl/buffer.h
-$(MF_CONFIG)/mem.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
-$(MF_CONFIG)/mem.o: ../include/openssl/err.h ../include/openssl/lhash.h
-$(MF_CONFIG)/mem.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
-$(MF_CONFIG)/mem.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
-$(MF_CONFIG)/mem.o: ../include/openssl/stack.h ../include/openssl/symhacks.h cryptlib.h
-$(MF_CONFIG)/mem.o: mem.c
-$(MF_CONFIG)/mem_clr.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
-$(MF_CONFIG)/mem_clr.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
-$(MF_CONFIG)/mem_clr.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
-$(MF_CONFIG)/mem_clr.o: ../include/openssl/stack.h ../include/openssl/symhacks.h mem_clr.c
-$(MF_CONFIG)/mem_dbg.o: ../e_os.h ../include/openssl/bio.h ../include/openssl/buffer.h
-$(MF_CONFIG)/mem_dbg.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
-$(MF_CONFIG)/mem_dbg.o: ../include/openssl/err.h ../include/openssl/lhash.h
-$(MF_CONFIG)/mem_dbg.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
-$(MF_CONFIG)/mem_dbg.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
-$(MF_CONFIG)/mem_dbg.o: ../include/openssl/stack.h ../include/openssl/symhacks.h cryptlib.h
-$(MF_CONFIG)/mem_dbg.o: mem_dbg.c
-$(MF_CONFIG)/o_dir.o: ../e_os.h ../include/openssl/e_os2.h ../include/openssl/opensslconf.h
-$(MF_CONFIG)/o_dir.o: LPdir_unix.c o_dir.c o_dir.h
-$(MF_CONFIG)/o_str.o: ../e_os.h ../include/openssl/e_os2.h ../include/openssl/opensslconf.h
-$(MF_CONFIG)/o_str.o: o_str.c o_str.h
-$(MF_CONFIG)/o_time.o: ../include/openssl/e_os2.h ../include/openssl/opensslconf.h o_time.c
-$(MF_CONFIG)/o_time.o: o_time.h
-$(MF_CONFIG)/tmdiff.o: ../e_os.h ../include/openssl/bio.h ../include/openssl/buffer.h
-$(MF_CONFIG)/tmdiff.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
-$(MF_CONFIG)/tmdiff.o: ../include/openssl/err.h ../include/openssl/lhash.h
-$(MF_CONFIG)/tmdiff.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
-$(MF_CONFIG)/tmdiff.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
-$(MF_CONFIG)/tmdiff.o: ../include/openssl/stack.h ../include/openssl/symhacks.h
-$(MF_CONFIG)/tmdiff.o: ../include/openssl/tmdiff.h cryptlib.h tmdiff.c
-$(MF_CONFIG)/uid.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
-$(MF_CONFIG)/uid.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
-$(MF_CONFIG)/uid.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
-$(MF_CONFIG)/uid.o: ../include/openssl/stack.h ../include/openssl/symhacks.h uid.c
+$(KBE_CONFIG)/cpt_err.o: ../include/openssl/bio.h ../include/openssl/crypto.h
+$(KBE_CONFIG)/cpt_err.o: ../include/openssl/e_os2.h ../include/openssl/err.h
+$(KBE_CONFIG)/cpt_err.o: ../include/openssl/lhash.h ../include/openssl/opensslconf.h
+$(KBE_CONFIG)/cpt_err.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
+$(KBE_CONFIG)/cpt_err.o: ../include/openssl/safestack.h ../include/openssl/stack.h
+$(KBE_CONFIG)/cpt_err.o: ../include/openssl/symhacks.h cpt_err.c
+$(KBE_CONFIG)/cryptlib.o: ../e_os.h ../include/openssl/bio.h ../include/openssl/buffer.h
+$(KBE_CONFIG)/cryptlib.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
+$(KBE_CONFIG)/cryptlib.o: ../include/openssl/err.h ../include/openssl/lhash.h
+$(KBE_CONFIG)/cryptlib.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
+$(KBE_CONFIG)/cryptlib.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
+$(KBE_CONFIG)/cryptlib.o: ../include/openssl/stack.h ../include/openssl/symhacks.h cryptlib.c
+$(KBE_CONFIG)/cryptlib.o: cryptlib.h
+$(KBE_CONFIG)/cversion.o: ../e_os.h ../include/openssl/bio.h ../include/openssl/buffer.h
+$(KBE_CONFIG)/cversion.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
+$(KBE_CONFIG)/cversion.o: ../include/openssl/err.h ../include/openssl/lhash.h
+$(KBE_CONFIG)/cversion.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
+$(KBE_CONFIG)/cversion.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
+$(KBE_CONFIG)/cversion.o: ../include/openssl/stack.h ../include/openssl/symhacks.h buildinf.h
+$(KBE_CONFIG)/cversion.o: cryptlib.h cversion.c
+$(KBE_CONFIG)/ebcdic.o: ../include/openssl/e_os2.h ../include/openssl/opensslconf.h ebcdic.c
+$(KBE_CONFIG)/ex_data.o: ../e_os.h ../include/openssl/bio.h ../include/openssl/buffer.h
+$(KBE_CONFIG)/ex_data.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
+$(KBE_CONFIG)/ex_data.o: ../include/openssl/err.h ../include/openssl/lhash.h
+$(KBE_CONFIG)/ex_data.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
+$(KBE_CONFIG)/ex_data.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
+$(KBE_CONFIG)/ex_data.o: ../include/openssl/stack.h ../include/openssl/symhacks.h cryptlib.h
+$(KBE_CONFIG)/ex_data.o: ex_data.c
+$(KBE_CONFIG)/mem.o: ../e_os.h ../include/openssl/bio.h ../include/openssl/buffer.h
+$(KBE_CONFIG)/mem.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
+$(KBE_CONFIG)/mem.o: ../include/openssl/err.h ../include/openssl/lhash.h
+$(KBE_CONFIG)/mem.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
+$(KBE_CONFIG)/mem.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
+$(KBE_CONFIG)/mem.o: ../include/openssl/stack.h ../include/openssl/symhacks.h cryptlib.h
+$(KBE_CONFIG)/mem.o: mem.c
+$(KBE_CONFIG)/mem_clr.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
+$(KBE_CONFIG)/mem_clr.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
+$(KBE_CONFIG)/mem_clr.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
+$(KBE_CONFIG)/mem_clr.o: ../include/openssl/stack.h ../include/openssl/symhacks.h mem_clr.c
+$(KBE_CONFIG)/mem_dbg.o: ../e_os.h ../include/openssl/bio.h ../include/openssl/buffer.h
+$(KBE_CONFIG)/mem_dbg.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
+$(KBE_CONFIG)/mem_dbg.o: ../include/openssl/err.h ../include/openssl/lhash.h
+$(KBE_CONFIG)/mem_dbg.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
+$(KBE_CONFIG)/mem_dbg.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
+$(KBE_CONFIG)/mem_dbg.o: ../include/openssl/stack.h ../include/openssl/symhacks.h cryptlib.h
+$(KBE_CONFIG)/mem_dbg.o: mem_dbg.c
+$(KBE_CONFIG)/o_dir.o: ../e_os.h ../include/openssl/e_os2.h ../include/openssl/opensslconf.h
+$(KBE_CONFIG)/o_dir.o: LPdir_unix.c o_dir.c o_dir.h
+$(KBE_CONFIG)/o_str.o: ../e_os.h ../include/openssl/e_os2.h ../include/openssl/opensslconf.h
+$(KBE_CONFIG)/o_str.o: o_str.c o_str.h
+$(KBE_CONFIG)/o_time.o: ../include/openssl/e_os2.h ../include/openssl/opensslconf.h o_time.c
+$(KBE_CONFIG)/o_time.o: o_time.h
+$(KBE_CONFIG)/tmdiff.o: ../e_os.h ../include/openssl/bio.h ../include/openssl/buffer.h
+$(KBE_CONFIG)/tmdiff.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
+$(KBE_CONFIG)/tmdiff.o: ../include/openssl/err.h ../include/openssl/lhash.h
+$(KBE_CONFIG)/tmdiff.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
+$(KBE_CONFIG)/tmdiff.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
+$(KBE_CONFIG)/tmdiff.o: ../include/openssl/stack.h ../include/openssl/symhacks.h
+$(KBE_CONFIG)/tmdiff.o: ../include/openssl/tmdiff.h cryptlib.h tmdiff.c
+$(KBE_CONFIG)/uid.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h
+$(KBE_CONFIG)/uid.o: ../include/openssl/opensslconf.h ../include/openssl/opensslv.h
+$(KBE_CONFIG)/uid.o: ../include/openssl/ossl_typ.h ../include/openssl/safestack.h
+$(KBE_CONFIG)/uid.o: ../include/openssl/stack.h ../include/openssl/symhacks.h uid.c

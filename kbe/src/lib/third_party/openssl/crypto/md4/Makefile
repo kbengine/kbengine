@@ -17,9 +17,9 @@ GENERAL=Makefile
 TEST=md4test.c
 APPS=md4.c
 
-LIB=$(BWLIBDIR)/libcrypto.a
+LIB=$(LIBDIR)/libcrypto.a
 LIBSRC=md4_dgst.c md4_one.c
-LIBOBJ=$(MF_CONFIG)/md4_dgst.o $(MF_CONFIG)/md4_one.o
+LIBOBJ=$(KBE_CONFIG)/md4_dgst.o $(KBE_CONFIG)/md4_one.o
 
 SRC= $(LIBSRC)
 
@@ -33,15 +33,15 @@ top:
 
 all:    lib
 
-$(MF_CONFIG):
-	@-mkdir $(MF_CONFIG)
+$(KBE_CONFIG):
+	@-mkdir $(KBE_CONFIG)
 
-lib:    $(MF_CONFIG) $(LIBOBJ)
+lib:    $(KBE_CONFIG) $(LIBOBJ)
 	$(AR) $(LIB) $(LIBOBJ)
 	$(RANLIB) $(LIB) || echo Never mind.
 	@touch lib
 
-$(MF_CONFIG)/%.o: %.c
+$(KBE_CONFIG)/%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 files:
@@ -77,16 +77,16 @@ dclean:
 	mv -f Makefile.new $(MAKEFILE)
 
 clean:
-	rm -f asm/mx86unix.cpp $(MF_CONFIG)/*.o *.o asm/*.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
+	rm -f asm/mx86unix.cpp $(KBE_CONFIG)/*.o *.o asm/*.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-$(MF_CONFIG)/md4_dgst.o: ../../include/openssl/e_os2.h ../../include/openssl/md4.h
-$(MF_CONFIG)/md4_dgst.o: ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/md4_dgst.o: ../../include/openssl/opensslv.h ../md32_common.h md4_dgst.c
-$(MF_CONFIG)/md4_dgst.o: md4_locl.h
-$(MF_CONFIG)/md4_one.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
-$(MF_CONFIG)/md4_one.o: ../../include/openssl/md4.h ../../include/openssl/opensslconf.h
-$(MF_CONFIG)/md4_one.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(MF_CONFIG)/md4_one.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
-$(MF_CONFIG)/md4_one.o: ../../include/openssl/symhacks.h md4_one.c
+$(KBE_CONFIG)/md4_dgst.o: ../../include/openssl/e_os2.h ../../include/openssl/md4.h
+$(KBE_CONFIG)/md4_dgst.o: ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/md4_dgst.o: ../../include/openssl/opensslv.h ../md32_common.h md4_dgst.c
+$(KBE_CONFIG)/md4_dgst.o: md4_locl.h
+$(KBE_CONFIG)/md4_one.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
+$(KBE_CONFIG)/md4_one.o: ../../include/openssl/md4.h ../../include/openssl/opensslconf.h
+$(KBE_CONFIG)/md4_one.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+$(KBE_CONFIG)/md4_one.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+$(KBE_CONFIG)/md4_one.o: ../../include/openssl/symhacks.h md4_one.c
