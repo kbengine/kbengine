@@ -321,7 +321,7 @@ bool DBTaskQueryAccount::db_thread_process()
 		strcat(md5password, tmp);
 	}
 
-	if(kbe_stricmpIgnoreCase(info.password.c_str(), md5password) != 0)
+	if(kbe_stricmp(info.password.c_str(), md5password) != 0)
 		return false;
 
 	success_ = EntityTables::getSingleton().queryEntity(pdbi_, info.dbid, &s_, 
