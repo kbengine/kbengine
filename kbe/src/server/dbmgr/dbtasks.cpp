@@ -30,12 +30,18 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "dbmgr_lib/kbe_tables.hpp"
 #include "db_mysql/db_interface_mysql.hpp"
 #include "entitydef/scriptdef_module.hpp"
+#include "openssl/md5.h"
 
 #include "baseapp/baseapp_interface.hpp"
 #include "cellapp/cellapp_interface.hpp"
 #include "baseappmgr/baseappmgr_interface.hpp"
 #include "cellappmgr/cellappmgr_interface.hpp"
 #include "loginapp/loginapp_interface.hpp"
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+#pragma comment(lib, "libeay32.lib")
+#pragma comment(lib, "ssleay32.lib")
+#endif
 
 namespace KBEngine{
 
@@ -303,6 +309,19 @@ bool DBTaskQueryAccount::db_thread_process()
 		return false;
 
 	if(info.dbid == 0)
+		return false;
+	
+	unsigned char md[16];
+	MD5((unsigned char *)password_.c_str(),password_.length(), md);
+
+	char tmp[3]={'\0'}, md5password[33] = {'\0'};
+	for (int i = 0; i < 16; i++)
+	{
+		sprintf(tmp,"%2.2X", md[i]);
+		strcat(md5password, tmp);
+	}
+
+	if(kbe_stricmp(info.password.c_str(), md5password) != 0)
 		return false;
 
 	success_ = EntityTables::getSingleton().queryEntity(pdbi_, info.dbid, &s_, 
