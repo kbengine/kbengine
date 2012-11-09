@@ -312,7 +312,7 @@ bool DBTaskQueryAccount::db_thread_process()
 		return false;
 	
 	unsigned char md[16];
-	MD5((unsigned char *)password_.c_str(),password_.length(), md);
+	MD5((unsigned char *)password_.c_str(), password_.length(), md);
 
 	char tmp[3]={'\0'}, md5password[33] = {'\0'};
 	for (int i = 0; i < 16; i++)
@@ -321,7 +321,7 @@ bool DBTaskQueryAccount::db_thread_process()
 		strcat(md5password, tmp);
 	}
 
-	if(kbe_stricmp(info.password.c_str(), md5password) != 0)
+	if(kbe_stricmpIgnoreCase(info.password.c_str(), md5password) != 0)
 		return false;
 
 	success_ = EntityTables::getSingleton().queryEntity(pdbi_, info.dbid, &s_, 

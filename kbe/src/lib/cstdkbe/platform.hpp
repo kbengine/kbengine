@@ -457,7 +457,7 @@ inline const T & max( const T & a, const T & b )
 #define kbe_strnicmp strncasecmp
 #define kbe_fileno fileno
 #define kbe_va_copy va_copy
-#define kbe_stricmp strcmpIgnoreCase
+#define kbe_stricmpIgnoreCase strcmpIgnoreCase
 #else
 #define kbe_isnan _isnan
 #define kbe_isinf(x) (!_finite(x) && !_isnan(x))
@@ -469,7 +469,7 @@ inline const T & max( const T & a, const T & b )
 #define kbe_strnicmp _strnicmp
 #define kbe_fileno _fileno
 #define kbe_va_copy( dst, src) dst = src
-#define kbe_stricmp _stricmp
+#define kbe_stricmpIgnoreCase _stricmp
 #endif // unix
 
 // 去掉字符串前面或者后面的空格
