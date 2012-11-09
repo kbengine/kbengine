@@ -2,7 +2,8 @@ LIB =	dbmgr_lib
 
 SRCS =				\
 	db_interface		\
-	entity_table
+	entity_table		\
+	kbe_tables
 
 USE_PYTHON = 1
 USE_G3DMATH=1
