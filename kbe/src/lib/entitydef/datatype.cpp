@@ -879,7 +879,9 @@ PyObject* MailboxType::createFromStream(MemoryStream* mstream)
 		mstream->readBlob(val);
 	}
 	else
-		S_Return;	
+	{
+		S_Return;
+	}
 
 	return script::Pickler::unpickle(val);
 }
@@ -1020,11 +1022,10 @@ PyObject* FixedArrayType::createFromStream(MemoryStream* mstream)
 	{
 		(*mstream) >> size;	
 		
+		std::vector<PyObject*>& vals = arr->getValues();
 		for(ArraySize i=0; i<size; i++)
 		{
 			PyObject* pyVal = dataType_->createFromStream(mstream);
-
-			std::vector<PyObject*>& vals = arr->getValues();
 			vals.push_back(pyVal);
 		}
 	}

@@ -241,6 +241,9 @@ public:
 	/** ∑÷≈‰“ª∏ˆid */
 	T alloc(void)
 	{
+		if(getSize() <= 0)
+			return 0;
+
 		KBE_ASSERT(getSize() > 0 && "IDClient:: alloc:no usable of the id.\n");
 		T id = lastIDRange_begin_;
 		lastIDRange_begin_ ++;
