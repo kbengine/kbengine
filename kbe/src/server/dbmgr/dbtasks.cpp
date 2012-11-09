@@ -307,8 +307,6 @@ bool DBTaskQueryAccount::db_thread_process()
 	if(strcmp(DBUtil::dbtype(), "mysql") == 0)
 	{
 		KBEAccountTableMysql* pMysqlTable = static_cast<KBEAccountTableMysql*>(pTable);
-
-		ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
 		if(!pMysqlTable->queryAccount(pdbi_, accountName_, info))
 			return false;
 	}
