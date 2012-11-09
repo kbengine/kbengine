@@ -139,9 +139,9 @@ bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
 		tbuf, info.password.c_str(), info.password.size());
 
-	sqlstr += "\"";
+	sqlstr += "md5(\"";
 	sqlstr += tbuf;
-	sqlstr += "\",";
+	sqlstr += "\"),";
 
 	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, info.dbid);
 
