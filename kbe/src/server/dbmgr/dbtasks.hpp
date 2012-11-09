@@ -133,6 +133,9 @@ public:
 protected:
 	std::string accountName_;
 	std::string password_;
+	bool success_;
+	MemoryStream s_;
+	DBID dbid_;
 };
 
 /**

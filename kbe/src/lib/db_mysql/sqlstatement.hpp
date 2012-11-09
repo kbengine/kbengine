@@ -124,7 +124,7 @@ public:
 		if(parentDBID > 0 || sqlstr1_.at(sqlstr1_.size() - 1) == ',')
 			sqlstr1_.erase(sqlstr1_.size() - 1);
 
-		sqlstr1_ += ");";
+		sqlstr1_ += ")";
 		sqlstr_ += sqlstr1_;
 	}
 
@@ -196,7 +196,6 @@ public:
 		char strdbid[MAX_BUF];
 		kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, dbid);
 		sqlstr_ += strdbid;
-		sqlstr_ += ";";
 	}
 
 	virtual ~SqlStatementUpdate()
@@ -236,7 +235,6 @@ public:
 		sqlstr_ += "id,";
 
 		sqlstr1_ += strdbid;
-		sqlstr1_ += ";";
 
 		DB_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
 		for(; tableValIter != tableItemDatas.end(); tableValIter++)

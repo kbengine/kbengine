@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.hpp"
 #include "server/componentbridge.hpp"
 #include "server/components.hpp"
+#include "server/serverconfig.hpp"
 #include "dbmgr_lib/db_interface.hpp"
 #include "db_mysql/db_interface_mysql.hpp"
 #include "db_mysql/kbe_table_mysql.hpp"
@@ -234,9 +235,19 @@ bool DBTaskCreateAccount::db_thread_process()
 		KBEAccountTableMysql* pMysqlTable = static_cast<KBEAccountTableMysql*>(pTable);
 
 		ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
+
+		ACCOUNT_INFOS info;
+		if(pMysqlTable->queryAccount(pdbi_, accountName_, info))
+			return false;
+
 		DBID entityDBID = EntityTables::getSingleton().writeEntity(pdbi_, 0, &pMysqlTable->accountDefMemoryStream(), pModule);
+		pMysqlTable->accountDefMemoryStream().rpos(0);
 		KBE_ASSERT(entityDBID > 0);
-		if(pMysqlTable->hasAccount(accountName_))
+
+		info.name = accountName_;
+		info.password = password_;
+		info.dbid = entityDBID;
+		if(!pMysqlTable->logAccount(pdbi_, info))
 			return false;
 	}
 
@@ -253,17 +264,8 @@ void DBTaskCreateAccount::presentMainThread()
 	(*pBundle).newMessage(LoginappInterface::onReqCreateAccountResult);
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
-	// 如果没有连接db则从log中查找账号是否有此账号(这个功能是为了测试使用)
-	/*
-	if(!pdbi_)
-	{
-		PROXICES_ONLINE_LOG::iterator iter = proxicesOnlineLogs_.find(accountName);
-		if(iter != proxicesOnlineLogs_.end())
-		{
-			failedcode = SERVER_ERR_ACCOUNT_CREATE;
-		}
-	}
-	*/
+	if(!success_)
+		failedcode = SERVER_ERR_ACCOUNT_CREATE;
 
 	LoginappInterface::onReqCreateAccountResultArgs3::staticAddToBundle((*pBundle), failedcode, accountName_, password_);
 
@@ -279,7 +281,10 @@ void DBTaskCreateAccount::presentMainThread()
 DBTaskQueryAccount::DBTaskQueryAccount(const Mercury::Address& addr, std::string& accountName, std::string& password):
 DBTask(addr),
 accountName_(accountName),
-password_(password)
+password_(password),
+success_(false),
+s_(),
+dbid_(0)
 {
 }
 
@@ -291,6 +296,30 @@ DBTaskQueryAccount::~DBTaskQueryAccount()
 //-------------------------------------------------------------------------------------
 bool DBTaskQueryAccount::db_thread_process()
 {
+	EntityTable* pTable = EntityTables::getSingleton().findKBETable("kbe_accountinfos");
+	KBE_ASSERT(pTable);
+
+	ACCOUNT_INFOS info;
+	info.name = "";
+	info.password = "";
+	info.dbid = 0;
+
+	if(strcmp(DBUtil::dbtype(), "mysql") == 0)
+	{
+		KBEAccountTableMysql* pMysqlTable = static_cast<KBEAccountTableMysql*>(pTable);
+
+		ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
+		if(!pMysqlTable->queryAccount(pdbi_, accountName_, info))
+			return false;
+	}
+
+	if(info.dbid == 0)
+		return false;
+
+	success_ = EntityTables::getSingleton().queryEntity(pdbi_, info.dbid, &s_, 
+		EntityDef::findScriptModule(g_kbeSrvConfig.getDBMgr().dbAccountEntityScriptType));
+
+	dbid_ = info.dbid;
 	return false;
 }
 
@@ -303,7 +332,13 @@ void DBTaskQueryAccount::presentMainThread()
 	(*pBundle).newMessage(BaseappInterface::onQueryAccountCBFromDbmgr);
 	(*pBundle) << accountName_;
 	(*pBundle) << password_;
-	(*pBundle) << "";
+	(*pBundle) << dbid_;
+	(*pBundle) << success_;
+	
+	if(success_)
+	{
+		pBundle->append(s_);
+	}
 
 	if(!this->send((*pBundle)))
 	{

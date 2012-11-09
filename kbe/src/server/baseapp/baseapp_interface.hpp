@@ -137,10 +137,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									ENTITY_ID,								entityID)
 
 	// 从dbmgr获取到账号Entity信息
-	BASEAPP_MESSAGE_DECLARE_ARGS3(onQueryAccountCBFromDbmgr,				MERCURY_VARIABLE_MESSAGE,
-									std::string,							accountName,
-									std::string,							password,
-									std::string,							datas)
+	BASEAPP_MESSAGE_DECLARE_STREAM(onQueryAccountCBFromDbmgr,				MERCURY_VARIABLE_MESSAGE)
 
 	// cellapp上的entity已经进入游戏世界了。
 	BASEAPP_MESSAGE_DECLARE_ARGS1(onEntityEnterWorldFromCellapp,			MERCURY_FIXED_MESSAGE,

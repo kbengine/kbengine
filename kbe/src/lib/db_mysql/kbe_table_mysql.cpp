@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "entity_table_mysql.hpp"
 #include "kbe_table_mysql.hpp"
+#include "db_interface_mysql.hpp"
 #include "dbmgr_lib/db_interface.hpp"
 #include "dbmgr_lib/entity_table.hpp"
 #include "entitydef/entitydef.hpp"
@@ -93,8 +94,79 @@ bool KBEAccountTableMysql::initialize(ScriptDefModule* sm, std::string name)
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEAccountTableMysql::hasAccount(std::string& name)
+bool KBEAccountTableMysql::queryAccount(DBInterface * dbi, std::string& name, ACCOUNT_INFOS& info)
 {
+	std::string sqlstr = "select entityDBID, password from kbe_accountinfos where accountName like \"";
+
+	char* tbuf = new char[name.size() * 2 + 1];
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, name.c_str(), name.size());
+
+	sqlstr += tbuf;
+
+	SAFE_RELEASE_ARRAY(tbuf);
+	sqlstr += "\"";
+
+	// 如果查询失败则返回存在， 避免可能产生的错误
+	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+		return true;
+
+	info.dbid = 0;
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+	if(pResult)
+	{
+		MYSQL_ROW arow;
+		while((arow = mysql_fetch_row(pResult)) != NULL)
+		{
+			std::stringstream sval;
+			sval << arow[0];
+			DBID old_dbid;
+			
+			sval >> old_dbid;
+			info.dbid = old_dbid;
+			info.name = name;
+			info.password = arow[1];
+		}
+
+		mysql_free_result(pResult);
+	}
+
+	return info.dbid > 0;
+}
+
+//-------------------------------------------------------------------------------------
+bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
+{
+	std::string sqlstr = "insert into kbe_accountinfos (accountName, password, entityDBID) values(";
+
+	char* tbuf = new char[MAX_BUF * 3];
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, info.name.c_str(), info.name.size());
+
+	sqlstr += "\"";
+	sqlstr += tbuf;
+	sqlstr += "\",";
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, info.password.c_str(), info.password.size());
+
+	sqlstr += "\"";
+	sqlstr += tbuf;
+	sqlstr += "\",";
+
+	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, info.dbid);
+
+	sqlstr += tbuf;
+	sqlstr += ")";
+
+	SAFE_RELEASE_ARRAY(tbuf);
+
+	// 如果查询失败则返回存在， 避免可能产生的错误
+	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+		return false;
+
 	return true;
 }
 

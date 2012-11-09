@@ -81,7 +81,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox) = 0;
+	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox) = 0;
 	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox) = 0;
 
 	virtual void init_db_item_name(const char* exstrFlag = "");
@@ -118,7 +118,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 protected:
 	std::string dataSType_;
@@ -149,7 +149,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 };
 
@@ -178,7 +178,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 };
 
@@ -207,7 +207,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 };
 
@@ -238,7 +238,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 
 	virtual void init_db_item_name(const char* exstrFlag = "")
@@ -278,7 +278,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 
 	virtual void init_db_item_name(const char* exstrFlag = "")
@@ -318,7 +318,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 
 	virtual void init_db_item_name(const char* exstrFlag = "")
@@ -356,7 +356,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 };
 
@@ -394,7 +394,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 
 	virtual void init_db_item_name(const char* exstrFlag = "");
@@ -438,7 +438,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 
 	virtual void init_db_item_name(const char* exstrFlag = "");
@@ -486,7 +486,7 @@ public:
 	/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 	*/
-	virtual void getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 
 	void init_db_item_name();

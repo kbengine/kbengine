@@ -47,6 +47,59 @@ namespace KBEngine{
 ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Baseapp);
 
+
+PyObject* create_celldatadict_from_stream(MemoryStream& s, const char* entityType)
+{
+	PyObject* pyDict = PyDict_New();
+	ScriptDefModule* scriptModule = EntityDef::findScriptModule(entityType);
+
+	// 先将celldata中的存储属性取出
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule->getPersistentPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+
+	for(; iter != propertyDescrs.end(); iter++)
+	{
+		PropertyDescription* propertyDescription = iter->second;
+
+		const char* attrname = propertyDescription->getName();
+		PyObject* pyVal = propertyDescription->createFromStream(&s);
+			PyDict_SetItemString(pyDict, attrname, pyVal);
+	}
+	
+	if(scriptModule->hasCell())
+	{
+		ArraySize size = 0;
+#ifdef CLIENT_NO_FLOAT
+		int32 v1, v2, v3;
+		int32 vv1, vv2, vv3;
+#else
+		float v1, v2, v3;
+		float vv1, vv2, vv3;
+#endif
+		
+		s >> size >> v1 >> v2 >> v3;
+		s >> size >> vv1 >> vv2 >> vv3;
+
+		PyObject* position = PyTuple_New(3);
+		PyTuple_SET_ITEM(position, 0, PyFloat_FromDouble((float)v1));
+		PyTuple_SET_ITEM(position, 1, PyFloat_FromDouble((float)v2));
+		PyTuple_SET_ITEM(position, 2, PyFloat_FromDouble((float)v3));
+		
+		PyObject* direction = PyTuple_New(3);
+		PyTuple_SET_ITEM(direction, 0, PyFloat_FromDouble((float)vv1));
+		PyTuple_SET_ITEM(direction, 1, PyFloat_FromDouble((float)vv2));
+		PyTuple_SET_ITEM(direction, 2, PyFloat_FromDouble((float)vv3));
+		
+		PyDict_SetItemString(pyDict, "position", position);
+		PyDict_SetItemString(pyDict, "direction", direction);
+
+		Py_DECREF(position);
+		Py_DECREF(direction);
+	}
+
+	return pyDict;
+}
+
 //-------------------------------------------------------------------------------------
 Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher, 
 			 Mercury::NetworkInterface& ninterface, 
@@ -482,58 +535,13 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 		return;
 	}
 
-	PyObject* pyDict = PyDict_New();
-	ScriptDefModule* scriptModule = EntityDef::findScriptModule(entityType.c_str());
-
-	// 先将celldata中的存储属性取出
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule->getPersistentPropertyDescriptions();
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
-
-	for(; iter != propertyDescrs.end(); iter++)
-	{
-		PropertyDescription* propertyDescription = iter->second;
-
-		const char* attrname = propertyDescription->getName();
-		PyObject* pyVal = propertyDescription->createFromStream(&s);
-			PyDict_SetItemString(pyDict, attrname, pyVal);
-	}
-	
-	if(scriptModule->hasCell())
-	{
-		ArraySize size = 0;
-#ifdef CLIENT_NO_FLOAT
-		int32 v1, v2, v3;
-		int32 vv1, vv2, vv3;
-#else
-		float v1, v2, v3;
-		float vv1, vv2, vv3;
-#endif
-		
-		s >> size >> v1 >> v2 >> v3;
-		s >> size >> vv1 >> vv2 >> vv3;
-
-		PyObject* position = PyTuple_New(3);
-		PyTuple_SET_ITEM(position, 0, PyFloat_FromDouble((float)v1));
-		PyTuple_SET_ITEM(position, 1, PyFloat_FromDouble((float)v2));
-		PyTuple_SET_ITEM(position, 2, PyFloat_FromDouble((float)v3));
-		
-		PyObject* direction = PyTuple_New(3);
-		PyTuple_SET_ITEM(direction, 0, PyFloat_FromDouble((float)vv1));
-		PyTuple_SET_ITEM(direction, 1, PyFloat_FromDouble((float)vv2));
-		PyTuple_SET_ITEM(direction, 2, PyFloat_FromDouble((float)vv3));
-		
-		PyDict_SetItemString(pyDict, "position", position);
-		PyDict_SetItemString(pyDict, "direction", direction);
-
-		Py_DECREF(position);
-		Py_DECREF(direction);
-	}
-
+	PyObject* pyDict = create_celldatadict_from_stream(s, entityType.c_str());
 	PyObject* e = Baseapp::getSingleton().createEntityCommon(entityType.c_str(), pyDict, false);
 	if(e)
 	{
 		static_cast<Base*>(e)->setDBID(dbid);
 		static_cast<Base*>(e)->initializeEntity(pyDict);
+		Py_DECREF(pyDict);
 	}
 
 	if(callbackID > 0)
@@ -1369,23 +1377,39 @@ void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountNam
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, 
-										std::string& accountName, 
-										std::string& password, 
-										std::string& datas)
+void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	if(pChannel->isExternal())
 		return;
 
-	Proxy* base = static_cast<Proxy*>(createEntityCommon(g_serverConfig.getDBMgr().dbAccountEntityScriptType, NULL));
+	std::string accountName;
+	std::string password;
+	bool success = false;
+	DBID dbid;
+
+	s >> accountName >> password >> dbid >> success;
+
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
 	if(ptinfos == NULL)
 		return;
+
+	if(!success)
+	{
+		ERROR_MSG("Baseapp::onQueryAccountCBFromDbmgr: query %s is failed!\n", accountName.c_str());
+		return;
+	}
+
+	Proxy* base = static_cast<Proxy*>(createEntityCommon(g_serverConfig.getDBMgr().dbAccountEntityScriptType, NULL, false));
 
 	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(ptinfos->addr);
 
 	KBE_ASSERT(base != NULL);
 	base->hasDB(true);
+	base->setDBID(dbid);
+
+	PyObject* pyDict = create_celldatadict_from_stream(s, g_serverConfig.getDBMgr().dbAccountEntityScriptType);
+	base->initializeEntity(pyDict);
+	Py_DECREF(pyDict);
 
 	if(pClientChannel != NULL)
 	{

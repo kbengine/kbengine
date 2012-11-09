@@ -215,7 +215,7 @@ public:
 	/** 网络接口
 		从dbmgr获取到账号Entity信息
 	*/
-	void onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& datas);
+	void onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		通知客户端进入了cell（世界或者AOI)

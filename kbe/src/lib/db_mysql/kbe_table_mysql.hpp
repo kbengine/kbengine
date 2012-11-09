@@ -29,8 +29,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine { 
 
-
-
 /*
 	kbeœµÕ≥±Ì
 */
@@ -73,7 +71,8 @@ public:
 	
 	virtual EntityTableItem* createItem(std::string type) {return NULL;}
 	
-	bool hasAccount(std::string& name);
+	bool queryAccount(DBInterface * dbi, std::string& name, ACCOUNT_INFOS& info);
+	bool logAccount(DBInterface * dbi, ACCOUNT_INFOS& info);
 
 	MemoryStream& accountDefMemoryStream(){ return accountDefMemoryStream_; }
 	void accountDefMemoryStream(MemoryStream& s){accountDefMemoryStream_.append(s.data() + s.rpos(), s.opsize()); }

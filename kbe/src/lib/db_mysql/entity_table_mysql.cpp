@@ -356,7 +356,7 @@ DBID EntityTableMysql::writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, 
 			return dbid;
 		}
 		
-		static_cast<EntityTableItemMysqlBase*>(pTableItem)->getWriteSqlItem(s, opTableItemDataBox);
+		static_cast<EntityTableItemMysqlBase*>(pTableItem)->getWriteSqlItem(dbi, s, opTableItemDataBox);
 	};
 
 	if(!WriteEntityHelper::writeDB(opTableItemDataBox.dbid > 0 ? TABLE_OP_UPDATE : TABLE_OP_INSERT, 
@@ -417,7 +417,7 @@ void EntityTableMysql::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& o
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableMysql::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+void EntityTableMysql::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 {
 	if(tableFixedOrderItems_.size() == 0)
 		return;
@@ -438,7 +438,7 @@ void EntityTableMysql::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BO
 
 	for(; iter != tableFixedOrderItems_.end(); iter++)
 	{
-		static_cast<EntityTableItemMysqlBase*>((*iter))->getWriteSqlItem(s, *opTableItemDataBox1);
+		static_cast<EntityTableItemMysqlBase*>((*iter))->getWriteSqlItem(dbi, s, *opTableItemDataBox1);
 	}
 }
 
@@ -515,7 +515,7 @@ void EntityTableItemMysql_VECTOR2::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR2::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+void EntityTableItemMysql_VECTOR2::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 {
 	if(s == NULL)
 		return;
@@ -604,7 +604,7 @@ void EntityTableItemMysql_VECTOR3::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR3::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+void EntityTableItemMysql_VECTOR3::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 {
 	if(s == NULL)
 		return;
@@ -696,7 +696,7 @@ void EntityTableItemMysql_VECTOR4::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_VECTOR4::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+void EntityTableItemMysql_VECTOR4::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 {
 	if(s == NULL)
 		return;
@@ -754,7 +754,7 @@ void EntityTableItemMysql_MAILBOX::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_MAILBOX::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+void EntityTableItemMysql_MAILBOX::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 {
 }
 
@@ -876,7 +876,7 @@ void EntityTableItemMysql_ARRAY::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_D
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_ARRAY::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+void EntityTableItemMysql_ARRAY::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 {
 	ArraySize size = 0;
 	if(s)
@@ -887,11 +887,11 @@ void EntityTableItemMysql_ARRAY::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_IT
 		if(size > 0)
 		{
 			for(ArraySize i=0; i<size; i++)
-				static_cast<EntityTableMysql*>(pChildTable_)->getWriteSqlItem(s, opTableItemDataBox);
+				static_cast<EntityTableMysql*>(pChildTable_)->getWriteSqlItem(dbi, s, opTableItemDataBox);
 		}
 		else
 		{
-			static_cast<EntityTableMysql*>(pChildTable_)->getWriteSqlItem(NULL, opTableItemDataBox);
+			static_cast<EntityTableMysql*>(pChildTable_)->getWriteSqlItem(dbi, NULL, opTableItemDataBox);
 		}
 	}
 }
@@ -996,13 +996,13 @@ void EntityTableItemMysql_FIXED_DICT::addToStream(MemoryStream* s, DB_OP_TABLE_I
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_FIXED_DICT::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+void EntityTableItemMysql_FIXED_DICT::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 {
 	FIXEDDICT_KEYTYPES::iterator fditer = keyTypes_.begin();
 
 	for(; fditer != keyTypes_.end(); fditer++)
 	{
-		static_cast<EntityTableItemMysqlBase*>(fditer->second.get())->getWriteSqlItem(s, opTableItemDataBox);
+		static_cast<EntityTableItemMysqlBase*>(fditer->second.get())->getWriteSqlItem(dbi, s, opTableItemDataBox);
 	}
 }
 
@@ -1129,7 +1129,7 @@ void EntityTableItemMysql_DIGIT::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_D
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_DIGIT::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+void EntityTableItemMysql_DIGIT::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 {
 	if(s == NULL)
 		return;
@@ -1238,24 +1238,27 @@ void EntityTableItemMysql_STRING::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_STRING::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+void EntityTableItemMysql_STRING::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 {
 	if(s == NULL)
 		return;
 
 	DB_OP_TABLE_ITEM_DATA* pSotvs = new DB_OP_TABLE_ITEM_DATA();
-	
-	pSotvs->extraDatas = "\"";
+
 	std::string val;
 	(*s) >> val;
-	
-	pSotvs->extraDatas += val;
+
+	pSotvs->extraDatas = "\"";
+	char* tbuf = new char[val.size() * 2 + 1];
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, val.c_str(), val.size());
+
+	pSotvs->extraDatas += tbuf;
 	pSotvs->extraDatas += "\"";
 
-	char* tbuf = new char[pSotvs->extraDatas.size() * 2];
-	mysql_escape_string(tbuf, pSotvs->extraDatas.c_str(), pSotvs->extraDatas.size());
-	pSotvs->extraDatas = tbuf;
 	SAFE_RELEASE_ARRAY(tbuf);
+
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
 	pSotvs->sqlkey = db_item_name();
 	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
@@ -1297,23 +1300,25 @@ void EntityTableItemMysql_UNICODE::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_UNICODE::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+void EntityTableItemMysql_UNICODE::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 {
 	if(s == NULL)
 		return;
 
 	DB_OP_TABLE_ITEM_DATA* pSotvs = new DB_OP_TABLE_ITEM_DATA();
 
-	pSotvs->extraDatas = "\"";
 	std::string val;
 	s->readBlob(val);
-	
-	pSotvs->extraDatas += val;
+
+	pSotvs->extraDatas = "\"";
+	char* tbuf = new char[val.size() * 2 + 1];
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, val.c_str(), val.size());
+
+	pSotvs->extraDatas += tbuf;
 	pSotvs->extraDatas += "\"";
 
-	char* tbuf = new char[pSotvs->extraDatas.size() * 2];
-	mysql_escape_string(tbuf, pSotvs->extraDatas.c_str(), pSotvs->extraDatas.size());
-	pSotvs->extraDatas = tbuf;
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
@@ -1344,23 +1349,25 @@ void EntityTableItemMysql_BLOB::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DA
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_BLOB::getWriteSqlItem(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+void EntityTableItemMysql_BLOB::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 {
 	if(s == NULL)
 		return;
 
 	DB_OP_TABLE_ITEM_DATA* pSotvs = new DB_OP_TABLE_ITEM_DATA();
 
-	pSotvs->extraDatas = "\"";
 	std::string val;
 	s->readBlob(val);
-	
-	pSotvs->extraDatas += val;
+
+	pSotvs->extraDatas = "\"";
+	char* tbuf = new char[val.size() * 2 + 1];
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, val.c_str(), val.size());
+
+	pSotvs->extraDatas += tbuf;
 	pSotvs->extraDatas += "\"";
 
-	char* tbuf = new char[pSotvs->extraDatas.size() * 2];
-	mysql_escape_string(tbuf, pSotvs->extraDatas.c_str(), pSotvs->extraDatas.size());
-	pSotvs->extraDatas = tbuf;
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
