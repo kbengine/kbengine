@@ -430,14 +430,12 @@ void Dbmgr::queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, DB
 //-------------------------------------------------------------------------------------
 void Dbmgr::syncEntityStreamTemplate(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	EntityTable* pTable = EntityTables::getSingleton().findKBETable("kbe_accountinfos");
+	KBEAccountTable* pTable = 
+		static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
+
 	KBE_ASSERT(pTable);
 
-	if(strcmp(DBUtil::dbtype(), "mysql") == 0)
-	{
-		KBEAccountTableMysql* pMysqlTable = static_cast<KBEAccountTableMysql*>(pTable);
-		pMysqlTable->accountDefMemoryStream(s);
-	}
+	pTable->accountDefMemoryStream(s);
 }
 
 //-------------------------------------------------------------------------------------
