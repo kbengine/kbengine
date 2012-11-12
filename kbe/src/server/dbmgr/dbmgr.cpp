@@ -382,10 +382,12 @@ void Dbmgr::onAccountLogin(Mercury::Channel* pChannel,
 //-------------------------------------------------------------------------------------
 void Dbmgr::queryAccount(Mercury::Channel* pChannel, 
 						 std::string& accountName, 
-						 std::string& password)
+						 std::string& password,
+						 COMPONENT_ID componentID,
+						 ENTITY_ID entityID)
 {
 	PUSH_THREAD_TASK(new DBTaskQueryAccount(pChannel->addr(), 
-		accountName, password));
+		accountName, password, componentID, entityID));
 }
 
 //-------------------------------------------------------------------------------------
@@ -399,9 +401,9 @@ void Dbmgr::onAccountOnline(Mercury::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::onAccountOffline(Mercury::Channel* pChannel, std::string& accountName)
+void Dbmgr::onEntityOffline(Mercury::Channel* pChannel, DBID dbid)
 {
-	PUSH_THREAD_TASK(new DBTaskAccountOffline(pChannel->addr(), accountName));
+	PUSH_THREAD_TASK(new DBTaskEntityOffline(pChannel->addr(), dbid));
 }
 
 //-------------------------------------------------------------------------------------
@@ -422,9 +424,9 @@ void Dbmgr::writeEntity(Mercury::Channel* pChannel,
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, DBID dbid, 
-	std::string& entityType, CALLBACK_ID callbackID)
+	std::string& entityType, CALLBACK_ID callbackID, ENTITY_ID entityID)
 {
-	PUSH_THREAD_TASK(new DBTaskQueryEntity(pChannel->addr(), entityType, dbid, componentID, callbackID));
+	PUSH_THREAD_TASK(new DBTaskQueryEntity(pChannel->addr(), entityType, dbid, componentID, callbackID, entityID));
 }
 
 //-------------------------------------------------------------------------------------

@@ -43,6 +43,11 @@ public:
 		同步entity表到数据库中
 	*/
 	virtual bool syncToDB(DBInterface* dbi);
+	
+	virtual bool logEntity(DBInterface * dbi, const char* ip, uint32 port, DBID dbid,
+						COMPONENT_ID componentID, ENTITY_ID entityID);
+
+	virtual bool eraseEntityLog(DBInterface * dbi, DBID dbid);
 protected:
 	
 };

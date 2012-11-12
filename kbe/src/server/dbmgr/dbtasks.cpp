@@ -279,13 +279,16 @@ void DBTaskCreateAccount::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskQueryAccount::DBTaskQueryAccount(const Mercury::Address& addr, std::string& accountName, std::string& password):
+DBTaskQueryAccount::DBTaskQueryAccount(const Mercury::Address& addr, std::string& accountName, std::string& password, 
+		COMPONENT_ID componentID, ENTITY_ID entityID):
 DBTask(addr),
 accountName_(accountName),
 password_(password),
 success_(false),
 s_(),
-dbid_(0)
+dbid_(0),
+componentID_(componentID),
+entityID_(entityID)
 {
 }
 
@@ -328,6 +331,13 @@ bool DBTaskQueryAccount::db_thread_process()
 		EntityDef::findScriptModule(g_kbeSrvConfig.getDBMgr().dbAccountEntityScriptType));
 
 	dbid_ = info.dbid;
+
+	// 先写log， 如果写失败则可能这个entity已经在线
+	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
+					(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
+	KBE_ASSERT(pELTable);
+	
+	success_ = pELTable->logEntity(pdbi_, addr_.ipAsString(), addr_.port, dbid_, componentID_, entityID_);
 	return false;
 }
 
@@ -342,7 +352,8 @@ void DBTaskQueryAccount::presentMainThread()
 	(*pBundle) << password_;
 	(*pBundle) << dbid_;
 	(*pBundle) << success_;
-	
+	(*pBundle) << entityID_;
+
 	if(success_)
 	{
 		pBundle->append(s_);
@@ -402,35 +413,31 @@ void DBTaskAccountOnline::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskAccountOffline::DBTaskAccountOffline(const Mercury::Address& addr, std::string& accountName):
+DBTaskEntityOffline::DBTaskEntityOffline(const Mercury::Address& addr, DBID dbid):
 DBTask(addr),
-accountName_(accountName)
+dbid_(dbid)
 {
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskAccountOffline::~DBTaskAccountOffline()
+DBTaskEntityOffline::~DBTaskEntityOffline()
 {
 }
 
 //-------------------------------------------------------------------------------------
-bool DBTaskAccountOffline::db_thread_process()
+bool DBTaskEntityOffline::db_thread_process()
 {
+	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
+					(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
+	KBE_ASSERT(pELTable);
+	pELTable->eraseEntityLog(pdbi_, dbid_);
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-void DBTaskAccountOffline::presentMainThread()
+void DBTaskEntityOffline::presentMainThread()
 {
-	DEBUG_MSG("Dbmgr::onAccountOffline:%s.\n", accountName_.c_str());
-	
-	/*
-	// 如果没有连接db则从log中查找账号是否还在线
-	if(!pDBInterface_)
-	{
-		proxicesOnlineLogs_.erase(accountName);
-	}
-	*/
+	DEBUG_MSG("Dbmgr::onEntityOffline:%"PRDBID".\n", dbid_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -494,14 +501,16 @@ void DBTaskAccountLogin::presentMainThread()
 
 //-------------------------------------------------------------------------------------
 DBTaskQueryEntity::DBTaskQueryEntity(const Mercury::Address& addr, std::string& entityType, DBID dbid, 
-		COMPONENT_ID componentID, CALLBACK_ID callbackID):
+		COMPONENT_ID componentID, CALLBACK_ID callbackID, ENTITY_ID entityID):
 DBTask(addr),
 entityType_(entityType),
 dbid_(dbid),
 componentID_(componentID),
 callbackID_(callbackID),
 success_(false),
-s_()
+s_(),
+entityID_(entityID),
+wasActive_(false)
 {
 }
 
@@ -514,6 +523,19 @@ DBTaskQueryEntity::~DBTaskQueryEntity()
 bool DBTaskQueryEntity::db_thread_process()
 {
 	success_ = EntityTables::getSingleton().queryEntity(pdbi_, dbid_, &s_, EntityDef::findScriptModule(entityType_.c_str()));
+
+	if(success_)
+	{
+		// 先写log， 如果写失败则可能这个entity已经在线
+		KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
+						(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
+		KBE_ASSERT(pELTable);
+
+		success_ = pELTable->logEntity(pdbi_, addr_.ipAsString(), addr_.port, dbid_, componentID_, entityID_);
+		if(!success_)
+			wasActive_ = true;
+	}
+
 	return false;
 }
 
@@ -528,9 +550,8 @@ void DBTaskQueryEntity::presentMainThread()
 	(*pBundle) << dbid_;
 	(*pBundle) << callbackID_;
 	(*pBundle) << success_;
-	
-	bool wasActive = false;
-	(*pBundle) << wasActive;
+	(*pBundle) << entityID_;
+	(*pBundle) << wasActive_;
 
 	if(success_)
 	{

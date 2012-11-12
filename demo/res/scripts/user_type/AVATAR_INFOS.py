@@ -14,13 +14,13 @@ class TAvatarInfosList(dict):
 	def asDict(self):
 		datas = []
 		dct = {"values" : datas}
-		
+
 		for key, val in self.items():
 			data = {
 				"dbid"			: key,
-				"name"			: val["name"],
-				"roleType"		: val["roleType"],
-				"level"			: val["level"],
+				"name"			: val[0],
+				"roleType"		: val[1],
+				"level"			: val[2],
 			}
 			datas.append(data)
 			

@@ -444,14 +444,16 @@ public:																										\
 				}																							\
 				else																						\
 				{																							\
-					int result = propertyDescription->onSetValue(this, value);								\
+					PyObject* pySetObj = propertyDescription->onSetValue(this, value);						\
 																											\
 					/* 如果def属性数据有改变， 那么可能需要广播 */											\
-					if(result != -1)																		\
-						onDefDataChanged(propertyDescription, value);										\
+					if(pySetObj != NULL)																	\
+					{																						\
+						onDefDataChanged(propertyDescription, pySetObj);									\
+					}																						\
 																											\
 					free(ccattr);																			\
-					return result;																			\
+					return pySetObj == NULL ? -1 : 0;														\
 				}																							\
 			}																								\
 		}																									\

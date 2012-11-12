@@ -63,7 +63,7 @@ PyObject* create_celldatadict_from_stream(MemoryStream& s, const char* entityTyp
 
 		const char* attrname = propertyDescription->getName();
 		PyObject* pyVal = propertyDescription->createFromStream(&s);
-			PyDict_SetItemString(pyDict, attrname, pyVal);
+		PyDict_SetItemString(pyDict, attrname, pyVal);
 	}
 	
 	if(scriptModule->hasCell())
@@ -492,8 +492,11 @@ void Baseapp::createBaseFromDBID(const char* entityType, DBID dbid, PyObject* py
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	pBundle->newMessage(DbmgrInterface::queryEntity);
 
-	DbmgrInterface::queryEntityArgs4::staticAddToBundle((*pBundle), 
-		g_componentID, dbid, entityType, callbackID);
+	ENTITY_ID entityID = idClient_.alloc();
+	KBE_ASSERT(entityID > 0);
+
+	DbmgrInterface::queryEntityArgs5::staticAddToBundle((*pBundle), 
+		g_componentID, dbid, entityType, callbackID, entityID);
 	
 	pBundle->send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
@@ -507,11 +510,13 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 	CALLBACK_ID callbackID;
 	bool success = false;
 	bool wasActive = false;
+	ENTITY_ID entityID;
 
 	s >> entityType;
 	s >> dbid;
 	s >> callbackID;
 	s >> success;
+	s >> entityID;
 	s >> wasActive;
 
 	if(!success)
@@ -536,7 +541,7 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 	}
 
 	PyObject* pyDict = create_celldatadict_from_stream(s, entityType.c_str());
-	PyObject* e = Baseapp::getSingleton().createEntityCommon(entityType.c_str(), pyDict, false);
+	PyObject* e = Baseapp::getSingleton().createEntityCommon(entityType.c_str(), pyDict, false, entityID);
 	if(e)
 	{
 		static_cast<Base*>(e)->setDBID(dbid);
@@ -546,8 +551,8 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 
 	if(callbackID > 0)
 	{
-		if(e != NULL)
-			Py_INCREF(e);
+		//if(e != NULL)
+		//	Py_INCREF(e);
 
 		// baseRef, dbid, wasActive
 		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
@@ -1324,7 +1329,11 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 	{
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(DbmgrInterface::queryAccount);
-		DbmgrInterface::queryAccountArgs2::staticAddToBundle((*pBundle), accountName, password);
+
+		ENTITY_ID entityID = idClient_.alloc();
+		KBE_ASSERT(entityID > 0);
+
+		DbmgrInterface::queryAccountArgs4::staticAddToBundle((*pBundle), accountName, password, g_componentID, entityID);
 		(*pBundle).send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
@@ -1386,8 +1395,9 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 	std::string password;
 	bool success = false;
 	DBID dbid;
+	ENTITY_ID entityID;
 
-	s >> accountName >> password >> dbid >> success;
+	s >> accountName >> password >> dbid >> success >> entityID;
 
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
 	if(ptinfos == NULL)
@@ -1399,7 +1409,8 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 		return;
 	}
 
-	Proxy* base = static_cast<Proxy*>(createEntityCommon(g_serverConfig.getDBMgr().dbAccountEntityScriptType, NULL, false));
+	Proxy* base = static_cast<Proxy*>(createEntityCommon(g_serverConfig.getDBMgr().dbAccountEntityScriptType, 
+		NULL, false, entityID));
 
 	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(ptinfos->addr);
 

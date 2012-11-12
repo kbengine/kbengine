@@ -39,6 +39,7 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* dbi)
 
 	sqlstr = "CREATE TABLE IF NOT EXISTS kbe_entitylog "
 			"(entityDBID bigint(20), PRIMARY KEY idKey (entityDBID),"
+			"entityID int unsigned not null DEFAULT 0,"
 			"ip int unsigned not null DEFAULT 0,"
 			"port int unsigned not null DEFAULT 0,"
 			"componentID bigint unsigned not null DEFAULT 0)"
@@ -47,6 +48,65 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* dbi)
 	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), false);
 	KBE_ASSERT(ret);
 	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+bool KBEEntityLogTableMysql::logEntity(DBInterface * dbi, const char* ip, uint32 port, DBID dbid,
+					COMPONENT_ID componentID, ENTITY_ID entityID)
+{
+	std::string sqlstr = "insert into kbe_entitylog (entityDBID, entityID, ip, port, componentID) values(";
+
+	char* tbuf = new char[MAX_BUF * 3];
+
+	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, dbid);
+	sqlstr += tbuf;
+	sqlstr += ",";
+	
+	kbe_snprintf(tbuf, MAX_BUF, "%d", entityID);
+	sqlstr += tbuf;
+	sqlstr += ",\"";
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, ip, strlen(ip));
+
+	sqlstr += tbuf;
+	sqlstr += "\",";
+
+	kbe_snprintf(tbuf, MAX_BUF, "%u", port);
+	sqlstr += tbuf;
+	sqlstr += ",";
+	
+	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, componentID);
+	sqlstr += tbuf;
+	sqlstr += ")";
+
+	SAFE_RELEASE_ARRAY(tbuf);
+
+	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	{
+		//int err = dbi->getlasterror(); 1062
+		return false;
+	}
+	
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool KBEEntityLogTableMysql::eraseEntityLog(DBInterface * dbi, DBID dbid)
+{
+	std::string sqlstr = "delete from kbe_entitylog where entityDBID=";
+
+	char tbuf[MAX_BUF];
+
+	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, dbid);
+	sqlstr += tbuf;
+
+	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	{
+		return false;
+	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

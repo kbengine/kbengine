@@ -1105,19 +1105,17 @@ PyObject* FixedDictType::createNewFromObj(PyObject* pyobj)
 		Py_RETURN_NONE;
 	}
 
-	if(PyObject_TypeCheck(pyobj, FixedDict::getScriptType()))
-	{
-		if(this->hasImpl())
-		{
-			return impl_createObjFromDict(static_cast<FixedDict*>(pyobj)->getDictObject());
-		}
-
-		return pyobj;
-	}
-	
 	if(this->hasImpl())
 	{
 		return impl_createObjFromDict(pyobj);
+	}
+
+	// 可能在传入参数的时候已经是FixedDict类型了, 因为parseDefaultStr
+	// 会初始为最终对象类型
+	if(PyObject_TypeCheck(pyobj, FixedDict::getScriptType()))
+	{
+		Py_INCREF(pyobj);
+		return pyobj;
 	}
 
 	return new FixedDict(this, pyobj);
@@ -1281,16 +1279,20 @@ bool FixedDictType::loadImplModule(std::string moduleName)
 //-------------------------------------------------------------------------------------
 PyObject* FixedDictType::impl_createObjFromDict(PyObject* dictData)
 {
+	// 可能在传入参数的时候已经是用户类型了, 因为parseDefaultStr
+	// 会初始为最终对象类型
+	if(impl_isSameType(dictData))
+	{
+		Py_INCREF(dictData);
+		return dictData;
+	}
+
 	PyObject* pyRet = PyObject_CallFunction(pycreateObjFromDict_, 
 		const_cast<char*>("(O)"), dictData);
 	
-	if(pyRet == NULL)
-	{
-		SCRIPT_ERROR_CHECK();
-	}
-	
 	if(pyRet == NULL || !impl_isSameType(pyRet))
 	{
+		SCRIPT_ERROR_CHECK();
 		ERROR_MSG("FixedDictType::impl_createObjFromDict: %s.isSameType() is failed!\n", 
 			moduleName_.c_str());
 		
@@ -1303,19 +1305,9 @@ PyObject* FixedDictType::impl_createObjFromDict(PyObject* dictData)
 //-------------------------------------------------------------------------------------
 PyObject* FixedDictType::impl_getDictFromObj(PyObject* pyobj)
 {
-	bool isFixedDict = false;
-	if(PyObject_TypeCheck(pyobj, FixedDict::getScriptType()))
-	{
-		isFixedDict = true;
-		pyobj = impl_createObjFromDict(pyobj);
-	}
-
 	PyObject* pyRet = PyObject_CallFunction(pygetDictFromObj_, 
 		const_cast<char*>("(O)"), pyobj);
 	
-	if(isFixedDict)
-		Py_DECREF(pyobj);
-
 	if(pyRet == NULL)
 	{
 		SCRIPT_ERROR_CHECK();
@@ -1379,6 +1371,14 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 		return false;
 	}
 
+	if(hasImpl())
+	{
+		// 这里返回false后还继续判断的原因是isSameType因为相关特性
+		// fixeddict或者用户产生的类别都应该是合法的
+		if(impl_isSameType(pyValue))
+			return true;
+	}
+
 	if(PyObject_TypeCheck(pyValue, FixedDict::getScriptType()))
 	{
 		if(static_cast<FixedDict*>(pyValue)->getDataType()->id() == this->id())
@@ -1437,7 +1437,16 @@ PyObject* FixedDictType::parseDefaultStr(std::string defaultVal)
 		Py_DECREF(item);
 	}
 
-	return new FixedDict(this, val);
+	FixedDict* pydict = new FixedDict(this, val);
+
+	if(hasImpl())
+	{
+		PyObject* pyValue = impl_createObjFromDict(pydict);
+		Py_DECREF(pydict);
+		return pyValue;
+	}
+	
+	return pydict;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1461,7 +1470,6 @@ void FixedDictType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool
 	}
 	
 	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
-
 	for(; iter != keyTypes_.end(); iter++)
 	{
 		if(onlyPersistents)

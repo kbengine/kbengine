@@ -180,12 +180,16 @@ PyObject* PropertyDescription::newDefaultVal(void)
 }
 
 //-------------------------------------------------------------------------------------
-int PropertyDescription::onSetValue(PyObject* parentObj, PyObject* value)
+PyObject* PropertyDescription::onSetValue(PyObject* parentObj, PyObject* value)
 {
 	PyObject* pyName = PyUnicode_InternFromString(getName());
 	int result = PyObject_GenericSetAttr(parentObj, pyName, value);
 	Py_DECREF(pyName);
-	return result;	
+	
+	if(result == -1)
+		return NULL;
+
+	return value;	
 }
 
 //-------------------------------------------------------------------------------------
@@ -223,7 +227,7 @@ FixedDictDescription::~FixedDictDescription()
 }
 
 //-------------------------------------------------------------------------------------
-int FixedDictDescription::onSetValue(PyObject* parentObj, PyObject* value)
+PyObject* FixedDictDescription::onSetValue(PyObject* parentObj, PyObject* value)
 {
 	if(static_cast<FixedDictType*>(dataType_)->isSameType(value))
 	{
@@ -231,7 +235,7 @@ int FixedDictDescription::onSetValue(PyObject* parentObj, PyObject* value)
 		return PropertyDescription::onSetValue(parentObj, dataType->createNewFromObj(value));
 	}
 
-	return 0;
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -271,7 +275,7 @@ ArrayDescription::~ArrayDescription()
 }
 
 //-------------------------------------------------------------------------------------
-int ArrayDescription::onSetValue(PyObject* parentObj, PyObject* value)
+PyObject* ArrayDescription::onSetValue(PyObject* parentObj, PyObject* value)
 {
 	if(static_cast<FixedArrayType*>(dataType_)->isSameType(value))
 	{
@@ -279,7 +283,7 @@ int ArrayDescription::onSetValue(PyObject* parentObj, PyObject* value)
 		return PropertyDescription::onSetValue(parentObj, dataType->createNewFromObj(value));
 	}
 
-	return 0;	
+	return NULL;	
 }
 
 //-------------------------------------------------------------------------------------
@@ -306,7 +310,7 @@ VectorDescription::~VectorDescription()
 }
 
 //-------------------------------------------------------------------------------------
-int VectorDescription::onSetValue(PyObject* parentObj, PyObject* value)
+PyObject* VectorDescription::onSetValue(PyObject* parentObj, PyObject* value)
 {
 	switch(elemCount_)
 	{
@@ -320,11 +324,12 @@ int VectorDescription::onSetValue(PyObject* parentObj, PyObject* value)
 			{
 				PyObject* pyobj = PyObject_GetAttrString(parentObj, const_cast<char*>(getName()));
 				if(pyobj == NULL)
-					return -1;
+					return NULL;
 
 				script::ScriptVector2* v = static_cast<script::ScriptVector2*>(pyobj);
 				v->__py_pySet(v, value);
 				Py_XDECREF(pyobj);
+				return v;
 			}
 		}
 		break;
@@ -338,11 +343,12 @@ int VectorDescription::onSetValue(PyObject* parentObj, PyObject* value)
 			{
 				PyObject* pyobj = PyObject_GetAttrString(parentObj, const_cast<char*>(getName()));
 				if(pyobj == NULL)
-					return -1;
+					return NULL;
 
 				script::ScriptVector3* v = static_cast<script::ScriptVector3*>(pyobj);
 				v->__py_pySet(v, value);
 				Py_XDECREF(pyobj);
+				return v;
 			}
 		}
 		break;
@@ -356,17 +362,18 @@ int VectorDescription::onSetValue(PyObject* parentObj, PyObject* value)
 			{
 				PyObject* pyobj = PyObject_GetAttrString(parentObj, const_cast<char*>(getName()));
 				if(pyobj == NULL)
-					return -1;
+					return NULL;
 
 				script::ScriptVector4* v = static_cast<script::ScriptVector4*>(pyobj);
 				v->__py_pySet(v, value);
 				Py_XDECREF(pyobj);
+				return v;
 			}
 		}
 		break;
 	};
 	
-	return 0;	
+	return NULL;	
 }
 
 

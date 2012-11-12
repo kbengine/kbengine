@@ -88,9 +88,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									std::string,					password)
 
 	// baseapp查询账号信息。
-	DBMGR_MESSAGE_DECLARE_ARGS2(queryAccount,						MERCURY_VARIABLE_MESSAGE,
+	DBMGR_MESSAGE_DECLARE_ARGS4(queryAccount,						MERCURY_VARIABLE_MESSAGE,
 									std::string,					accountName,
-									std::string,					password)
+									std::string,					password,
+									COMPONENT_ID,					componentID,
+									ENTITY_ID,						entityID)
 
 	// baseapp上账号上线。
 	DBMGR_MESSAGE_DECLARE_ARGS3(onAccountOnline,					MERCURY_VARIABLE_MESSAGE,
@@ -98,9 +100,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									COMPONENT_ID,					componentID,
 									ENTITY_ID,						entityID)
 		
-	// baseapp上账号下线。
-	DBMGR_MESSAGE_DECLARE_ARGS1(onAccountOffline,					MERCURY_VARIABLE_MESSAGE,
-									std::string,					accountName)
+	// baseapp上entity下线。
+	DBMGR_MESSAGE_DECLARE_ARGS1(onEntityOffline,					MERCURY_VARIABLE_MESSAGE,
+									DBID,							dbid)
 
 	// 数据库查询
 	DBMGR_MESSAGE_DECLARE_STREAM(executeRawDatabaseCommand,			MERCURY_VARIABLE_MESSAGE)
@@ -112,11 +114,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	DBMGR_MESSAGE_DECLARE_STREAM(reqCloseServer,					MERCURY_VARIABLE_MESSAGE)
 
 	// 某个app向本app告知处于活动状态。
-	DBMGR_MESSAGE_DECLARE_ARGS4(queryEntity,						MERCURY_VARIABLE_MESSAGE, 
+	DBMGR_MESSAGE_DECLARE_ARGS5(queryEntity,						MERCURY_VARIABLE_MESSAGE, 
 									COMPONENT_ID,					componentID,
 									DBID,							dbid, 
 									std::string,					entityType,
-									CALLBACK_ID,					callbackID)
+									CALLBACK_ID,					callbackID,
+									ENTITY_ID,						entityID)
 
 	// 同步entity流模板
 	DBMGR_MESSAGE_DECLARE_STREAM(syncEntityStreamTemplate,			MERCURY_VARIABLE_MESSAGE)

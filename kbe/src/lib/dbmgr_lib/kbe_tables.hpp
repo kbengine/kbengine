@@ -71,6 +71,11 @@ public:
 	virtual ~KBEEntityLogTable()
 	{
 	}
+	
+	virtual bool logEntity(DBInterface * dbi, const char* ip, uint32 port, DBID dbid,
+						COMPONENT_ID componentID, ENTITY_ID entityID) = 0;
+
+	virtual bool eraseEntityLog(DBInterface * dbi, DBID dbid) = 0;
 protected:
 	
 };

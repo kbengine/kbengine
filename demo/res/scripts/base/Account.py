@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
 import KBEngine
 import random
+from AVATAR_INFOS import TAvatarInfosList
 from KBEDebug import *
 import d_avatar_inittab
 
 class Account(KBEngine.Proxy):
 	def __init__(self):
 		KBEngine.Proxy.__init__(self)
-		self.characters[0] = {"name":"unknown", "roleType" : 0, "level" : 0}
-		self.characters[1] = {"name":"unknown", "roleType" : 0, "level" : 0}
-		self.characters[2] = {"name":"unknown", "roleType" : 0, "level" : 0}
-		
-		self.accountName = "kebiao"
 		self.activeCharacter = None
 		
 	def onTimer(self, id, userArg):
@@ -68,8 +64,17 @@ class Account(KBEngine.Proxy):
 		客户端请求查询角色列表
 		"""
 		DEBUG_MSG("Account[%i].reqAvatarList:" % self.id)
-		self.client.onReqAvatarList(self.characters.asDict()["values"])
+		listdata = TAvatarInfosList()
+		listdata.update(self.characters)
+		avatarinfo = ["unknown",  0, 0]
+		characterssize = len(listdata)
 		
+		if characterssize < 3:
+			for x in range(0, 3-characterssize):
+				listdata[x] = avatarinfo
+
+		self.client.onReqAvatarList(listdata)
+				
 	def reqCreateAvatar(self, roleType, name):
 		"""
 		exposed.
@@ -84,54 +89,38 @@ class Account(KBEngine.Proxy):
 			return
 		"""
 		
-		done = False
-		for dbid, info in self.characters.items():
-			if dbid < 3:
-				done = True
-				
-				props = {
-					"name"				: name,
-					"roleType"			: roleType,
-					"level"				: 1,
-					"spaceUType"		: d_avatar_inittab.datas[roleType]["spaceUType"],
-					"direction"			: (0, 0, d_avatar_inittab.datas[roleType]["spawnYaw"]),
-					"position"			: d_avatar_inittab.datas[roleType]["spawnPos"]
-					}
-					
-				avatar = KBEngine.createBaseLocally('Avatar', props)
-				if avatar:
-					avatar.writeToDB(self._onCharacterSaved)
-					
-				break
-			
-		retcode = 0
-		
-		if not done:
-			retcode = 3
+		if len(self.characters) >= 3:
 			DEBUG_MSG("Account[%i].reqCreateAvatar:%s. character=%s.\n" % (self.id, name, self.characters))
-			self.client.onCreateAvatarResult(retcode, avatarinfo)
+			self.client.onCreateAvatarResult(3, avatarinfo)
+			return
+			
+		props = {
+			"name"				: name,
+			"roleType"			: roleType,
+			"level"				: 1,
+			"spaceUType"		: d_avatar_inittab.datas[roleType]["spaceUType"],
+			"direction"			: (0, 0, d_avatar_inittab.datas[roleType]["spawnYaw"]),
+			"position"			: d_avatar_inittab.datas[roleType]["spawnPos"]
+			}
+			
+		avatar = KBEngine.createBaseLocally('Avatar', props)
+		if avatar:
+			avatar.writeToDB(self._onCharacterSaved)
 		
 	def _onCharacterSaved(self, success, avatar):
 		"""
 		新建角色写入数据库回调
 		"""
-		INFO_MSG('Account::_onCharacterSaved:(%i) create avatar state: %i' % (self.id, success))
+		INFO_MSG('Account::_onCharacterSaved:(%i) create avatar state: %i, %s, %i' % (self.id, success, avatar.cellData["name"], avatar.databaseID))
 		avatarinfo = {"name": "", "dbid": 0, "roleType" : 0, "level" : 0}
 		
 		if success:
-
-			for dbid, info in self.characters.items():
-				if dbid < 3:
-					self.characters.pop(dbid)
-					break
-
-			if(len(self.characters) < 3):
-				self.characters[avatar.databaseID] = {"name": avatar.cellData["name"], "roleType" : avatar.roleType, "level" : 1}
-				avatarinfo["dbid"] = avatar.databaseID
-				avatarinfo["name"] = avatar.cellData["name"]
-				avatarinfo["roleType"] = avatar.roleType
-				avatarinfo["level"] = 1
-				self.writeToDB()
+			self.characters[avatar.databaseID] = [avatar.cellData["name"], avatar.roleType, 1]
+			avatarinfo["dbid"] = avatar.databaseID
+			avatarinfo["name"] = avatar.cellData["name"]
+			avatarinfo["roleType"] = avatar.roleType
+			avatarinfo["level"] = 1
+			self.writeToDB()
 
 			avatar.destroy()
 		
@@ -169,8 +158,8 @@ class Account(KBEngine.Proxy):
 			return
 
 		info = self.characters[dbid]
-		avatar.cellData["headID"] = d_avatar_inittab.datas[info["roleType"]]["headResID"]
-		avatar.cellData["modelID"] = d_avatar_inittab.datas[info["roleType"]]["modelResID"]
+		avatar.cellData["headID"] = d_avatar_inittab.datas[info[1]]["headResID"]
+		avatar.cellData["modelID"] = d_avatar_inittab.datas[info[1]]["modelResID"]
 												
 		avatar.accountEntity = self
 		self.activeCharacter = avatar

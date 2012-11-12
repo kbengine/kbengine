@@ -1068,9 +1068,10 @@ void EntityTableItemMysql_DIGIT::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_D
 
 	if(dataSType_ == "INT8")
 	{
-		int8 v;
+		int32 v;
 		stream >> v;
-		(*s) << v;
+		int8 vv = static_cast<int8>(v);
+		(*s) << vv;
 	}
 	else if(dataSType_ == "INT16")
 	{
@@ -1092,9 +1093,10 @@ void EntityTableItemMysql_DIGIT::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_D
 	}
 	else if(dataSType_ == "UINT8")
 	{
-		uint8 v;
+		int32 v;
 		stream >> v;
-		(*s) << v;
+		uint8 vv = static_cast<uint8>(v);
+		(*s) << vv;
 	}
 	else if(dataSType_ == "UINT16")
 	{

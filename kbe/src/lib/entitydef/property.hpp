@@ -131,7 +131,7 @@ public:
 	/** 
 		脚本请求设置这个属性的值 
 	*/
-	virtual int onSetValue(PyObject* parentObj, PyObject* value);	
+	virtual PyObject* onSetValue(PyObject* parentObj, PyObject* value);	
 
 	virtual void addToStream(MemoryStream* mstream, PyObject* pyValue);
 	virtual PyObject* createFromStream(MemoryStream* mstream);
@@ -170,7 +170,7 @@ public:
 	/** 
 		脚本请求设置这个属性的值 
 	*/
-	int onSetValue(PyObject* parentObj, PyObject* value);	
+	PyObject* onSetValue(PyObject* parentObj, PyObject* value);	
 
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
 
@@ -198,7 +198,7 @@ public:
 	/** 
 		脚本请求设置这个属性的值 
 	*/
-	int onSetValue(PyObject* parentObj, PyObject* value);
+	PyObject* onSetValue(PyObject* parentObj, PyObject* value);
 protected:	
 };
 
@@ -222,7 +222,7 @@ public:
 	/** 
 		脚本请求设置这个属性的值 
 	*/
-	int onSetValue(PyObject* parentObj, PyObject* value);
+	PyObject* onSetValue(PyObject* parentObj, PyObject* value);
 protected:	
 	uint8 elemCount_;
 };

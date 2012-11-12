@@ -126,7 +126,8 @@ protected:
 class DBTaskQueryAccount : public DBTask
 {
 public:
-	DBTaskQueryAccount(const Mercury::Address& addr, std::string& accountName, std::string& password);
+	DBTaskQueryAccount(const Mercury::Address& addr, std::string& accountName, std::string& password, 
+		COMPONENT_ID componentID, ENTITY_ID entityID);
 	virtual ~DBTaskQueryAccount();
 	virtual bool db_thread_process();
 	virtual void presentMainThread();
@@ -136,6 +137,8 @@ protected:
 	bool success_;
 	MemoryStream s_;
 	DBID dbid_;
+	COMPONENT_ID componentID_;
+	ENTITY_ID entityID_;
 };
 
 /**
@@ -157,17 +160,17 @@ protected:
 
 
 /**
-	账号下线
+	entity下线
 */
-class DBTaskAccountOffline : public DBTask
+class DBTaskEntityOffline : public DBTask
 {
 public:
-	DBTaskAccountOffline(const Mercury::Address& addr, std::string& accountName);
-	virtual ~DBTaskAccountOffline();
+	DBTaskEntityOffline(const Mercury::Address& addr, DBID dbid);
+	virtual ~DBTaskEntityOffline();
 	virtual bool db_thread_process();
 	virtual void presentMainThread();
 protected:
-	std::string accountName_;
+	DBID dbid_;
 };
 
 
@@ -193,7 +196,7 @@ class DBTaskQueryEntity : public DBTask
 {
 public:
 	DBTaskQueryEntity(const Mercury::Address& addr, std::string& entityType, DBID dbid, 
-		COMPONENT_ID componentID, CALLBACK_ID callbackID);
+		COMPONENT_ID componentID, CALLBACK_ID callbackID, ENTITY_ID entityID);
 
 	virtual ~DBTaskQueryEntity();
 	virtual bool db_thread_process();
@@ -205,6 +208,8 @@ protected:
 	CALLBACK_ID callbackID_;
 	bool success_;
 	MemoryStream s_;
+	ENTITY_ID entityID_;
+	bool wasActive_;
 };
 
 }

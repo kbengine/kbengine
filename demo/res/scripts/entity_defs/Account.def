@@ -38,7 +38,7 @@
 	<ClientMethods>
 		<onReqAvatarList>
 			<Utype> 10003 </Utype>
-			<Arg>	ARRAY <of> AVATAR_INFOS </of>	</Arg>
+			<Arg>	AVATAR_INFOS_LIST	</Arg>
 		</onReqAvatarList>
 
 		<onCreateAvatarResult>

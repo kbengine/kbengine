@@ -283,7 +283,7 @@ void init_network(void)
 	char ttt1[256];
 	memset(ttt1, 0, 256);
 	int nnn = rand() % 65535;
-	nnn = 0;
+	nnn = 3;
 	sprintf(ttt1, "%d", nnn);
 	accountname += ttt1;
 	std::wcout.imbue(std::locale("chs"));

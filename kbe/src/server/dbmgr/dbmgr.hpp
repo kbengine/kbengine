@@ -115,7 +115,8 @@ public:
 	/** 网络接口
 		baseapp请求查询account信息
 	*/
-	void queryAccount(Mercury::Channel* pChannel, std::string& accountName, std::string& password);
+	void queryAccount(Mercury::Channel* pChannel, std::string& accountName, std::string& password, 
+		COMPONENT_ID componentID, ENTITY_ID entityID);
 
 	/** 网络接口
 		账号从baseapp上线了
@@ -124,9 +125,9 @@ public:
 		COMPONENT_ID componentID, ENTITY_ID entityID);
 
 	/** 网络接口
-		账号从baseapp下线了
+		entity-baseapp下线了
 	*/
-	void onAccountOffline(Mercury::Channel* pChannel, std::string& accountName);
+	void onEntityOffline(Mercury::Channel* pChannel, DBID dbid);
 
 	/** 网络接口
 		执行数据库查询
@@ -147,7 +148,7 @@ public:
 		请求从db获取entity的所有数据
 	*/
 	void queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, DBID dbid, 
-		std::string& entityType, CALLBACK_ID callbackID);
+		std::string& entityType, CALLBACK_ID callbackID, ENTITY_ID entityID);
 
 	/** 网络接口
 		同步entity流模板

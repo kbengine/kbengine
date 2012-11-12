@@ -79,7 +79,29 @@ void Base::onDestroy(void)
 		PyErr_PrintEx(0);	
 
 	if(this->hasDB())
+	{
 		onCellWriteToDBCompleted(0);
+
+		// 擦除DB中的在线纪录
+		Mercury::Bundle::SmartPoolObjectPtr bundleptr = Mercury::Bundle::createSmartPoolObj();
+		(*bundleptr)->newMessage(DbmgrInterface::onEntityOffline);
+		(*(*bundleptr)) << this->getDBID();
+
+
+		Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+		Components::ComponentInfos* dbmgrinfos = NULL;
+
+		if(cts.size() > 0)
+			dbmgrinfos = &(*cts.begin());
+
+		if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+		{
+			ERROR_MSG("Base::onDestroy: not found dbmgr!\n");
+			return;
+		}
+
+		(*bundleptr)->send(Baseapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
+	}
 }
 
 //-------------------------------------------------------------------------------------
