@@ -57,7 +57,8 @@ Dbmgr::Dbmgr(Mercury::EventDispatcher& dispatcher,
 	pGlobalData_(NULL),
 	pGlobalBases_(NULL),
 	pCellAppData_(NULL),
-	pDBInterface_(NULL)
+	pDBInterface_(NULL),
+	bufferedDBTasks_()
 {
 }
 
@@ -419,7 +420,12 @@ void Dbmgr::executeRawDatabaseCommand(Mercury::Channel* pChannel,
 void Dbmgr::writeEntity(Mercury::Channel* pChannel, 
 						KBEngine::MemoryStream& s)
 {
-	PUSH_THREAD_TASK(new DBTaskWriteEntity(pChannel->addr(), s));
+	ENTITY_ID eid;
+	DBID entityDBID;
+
+	s >> eid >> entityDBID;
+
+	PUSH_THREAD_TASK(new DBTaskWriteEntity(pChannel->addr(), eid, entityDBID, s));
 	s.opfini();
 }
 

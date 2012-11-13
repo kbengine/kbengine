@@ -3,6 +3,7 @@ SRCS =						\
 	dbmgr					\
 	dbmgr_interface				\
 	dbtasks					\
+	buffered_dbtasks			\
 	main
 
 ASMS =

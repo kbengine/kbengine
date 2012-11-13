@@ -166,7 +166,7 @@ void DBTaskExecuteRawDatabaseCommand::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskWriteEntity::DBTaskWriteEntity(const Mercury::Address& addr, MemoryStream& datas):
+DBTaskWriteEntity::DBTaskWriteEntity(const Mercury::Address& addr, ENTITY_ID eid, DBID entityDBID, MemoryStream& datas):
 DBTask(addr, datas),
 eid_(0),
 entityDBID_(0),
@@ -184,7 +184,7 @@ DBTaskWriteEntity::~DBTaskWriteEntity()
 //-------------------------------------------------------------------------------------
 bool DBTaskWriteEntity::db_thread_process()
 {
-	(*pDatas_) >> eid_ >> entityDBID_ >> sid_ >> callbackID_;
+	(*pDatas_) >> sid_ >> callbackID_;
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
 	entityDBID_ = EntityTables::getSingleton().writeEntity(pdbi_, entityDBID_, pDatas_, pModule);

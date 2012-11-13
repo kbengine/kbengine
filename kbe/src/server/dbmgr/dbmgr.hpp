@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __DBMGR_H__
 	
 // common include	
+#include "buffered_dbtasks.hpp"
 #include "server/kbemain.hpp"
 #include "pyscript/script.hpp"
 #include "pyscript/pyobject_pointer.hpp"
@@ -37,7 +38,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.hpp"
 
 //#define NDEBUG
-#include <map>	
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
@@ -172,6 +172,8 @@ protected:
 	GlobalDataServer*									pCellAppData_;														
 	
 	DBInterface*										pDBInterface_;
+
+	Buffered_DBTasks									bufferedDBTasks_;
 };
 
 }

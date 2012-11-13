@@ -91,7 +91,7 @@ protected:
 class DBTaskWriteEntity : public DBTask
 {
 public:
-	DBTaskWriteEntity(const Mercury::Address& addr, MemoryStream& datas);
+	DBTaskWriteEntity(const Mercury::Address& addr, ENTITY_ID eid, DBID entityDBID, MemoryStream& datas);
 	virtual ~DBTaskWriteEntity();
 	virtual bool db_thread_process();
 	virtual void presentMainThread();
