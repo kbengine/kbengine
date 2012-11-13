@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __CELLAPPMGR_H__
-#define __CELLAPPMGR_H__
+#ifndef __BOTS_H__
+#define __BOTS_H__
 	
 // common include	
 #include "cstdkbe/timer.hpp"
