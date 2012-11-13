@@ -39,7 +39,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine
 {
-	
+int32 Components::ANY_UID = -1;
+
 KBE_SINGLETON_INIT(Components);
 Components _g_components;
 
@@ -168,7 +169,7 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType,
 	COMPONENTS::iterator iter = components.begin();
 	for(; iter != components.end();)
 	{
-		if((*iter).uid == uid && (ignoreComponentID == true || (*iter).cid == componentID))
+		if((uid < 0 || (*iter).uid == uid) && (ignoreComponentID == true || (*iter).cid == componentID))
 		{
 			INFO_MSG("Components::delComponent[%s] componentID=%" PRAppID ", component:totalcount=%d.\n", 
 				COMPONENT_NAME_EX(componentType), componentID, components.size());

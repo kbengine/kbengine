@@ -650,11 +650,8 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 				}
 				else
 				{
-					::KillTimer(m_hWnd, nIDEvent);
-					ERROR_MSG("CguiconsoleDlg::OnTimer: receive error!\n");
-					//::AfxMessageBox(L"初始化错误：未找到服务器。");
-					updateTree();
-					return;
+					ifind++;
+					continue;
 				}
 			}
 			
@@ -1110,8 +1107,8 @@ void CguiconsoleDlg::OnMenu_Update()
 {
 	_networkInterface.deregisterAllChannels();
 	Components::getSingleton().clear();
-	Components::getSingleton().delComponent(0, MESSAGELOG_TYPE, 0, true, false);
-	Components::getSingleton().delComponent(0, RESOURCEMGR_TYPE, 0, true, false);
+	Components::getSingleton().delComponent(Components::ANY_UID, MESSAGELOG_TYPE, 0, true, false);
+	Components::getSingleton().delComponent(Components::ANY_UID, RESOURCEMGR_TYPE, 0, true, false);
 	::SetTimer(m_hWnd, 2, 100, NULL);
 }
 
@@ -1316,8 +1313,8 @@ void CguiconsoleDlg::OnToolBar_StartServer()
 
 	_networkInterface.deregisterAllChannels();
 	Components::getSingleton().clear();
-	Components::getSingleton().delComponent(0, MESSAGELOG_TYPE, 0, true, false);
-	Components::getSingleton().delComponent(0, RESOURCEMGR_TYPE, 0, true, false);
+	Components::getSingleton().delComponent(Components::ANY_UID, MESSAGELOG_TYPE, 0, true, false);
+	Components::getSingleton().delComponent(Components::ANY_UID, RESOURCEMGR_TYPE, 0, true, false);
 	::SetTimer(m_hWnd, 2, 1000, NULL);
 }
 

@@ -50,6 +50,8 @@ class NetworkInterface;
 class Components : public Singleton<Components>
 {
 public:
+	static int32 ANY_UID; 
+
 	struct ComponentInfos
 	{
 		std::tr1::shared_ptr<Mercury::Address > pIntAddr, pExtAddr; // 内部和外部地址
@@ -96,7 +98,7 @@ public:
 
 	void removeComponentFromChannel(Mercury::Channel * pChannel);
 
-	void clear(int32 uid = 0, bool shouldShowLog = true);
+	void clear(int32 uid = -1, bool shouldShowLog = true);
 
 	Components::COMPONENTS& getComponents(COMPONENT_TYPE componentType);
 
