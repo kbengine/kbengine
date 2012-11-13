@@ -223,6 +223,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\stringconv.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\task.hpp"
 				>
 			</File>

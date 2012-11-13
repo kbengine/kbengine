@@ -28,6 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h> 
 #include <iostream>  
 #include <sstream>
+#include <stdexcept>
 #include <string>  
 #include <cstring>  
 #include <vector>
@@ -468,6 +469,13 @@ inline const T & max( const T & a, const T & b )
 #define kbe_strnicmp _strnicmp
 #define kbe_fileno _fileno
 #define kbe_va_copy( dst, src) dst = src
+
+#define strtoq   _strtoi64
+#define strtouq  _strtoui64
+#define strtoll  _strtoi64
+#define strtoull _strtoui64
+#define atoll    _atoi64
+
 #endif // unix
 
 // 去掉字符串前面或者后面的空格
