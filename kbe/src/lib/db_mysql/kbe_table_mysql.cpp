@@ -92,6 +92,45 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * dbi, const char* ip, uint32
 }
 
 //-------------------------------------------------------------------------------------
+bool KBEEntityLogTableMysql::queryEntity(DBInterface * dbi, DBID dbid, EntityLog& entitylog)
+{
+	std::string sqlstr = "select entityID,ip,port,componentID from kbe_entitylog where entityDBID=";
+
+	char tbuf[MAX_BUF];
+	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, dbid);
+	sqlstr += tbuf;
+
+	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	{
+		return true;
+	}
+	
+	entitylog.dbid = dbid;
+	entitylog.componentID = 0;
+	entitylog.entityID = 0;
+	entitylog.ip = 0;
+	entitylog.port = 0;
+
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+	if(pResult)
+	{
+		MYSQL_ROW arow;
+		while((arow = mysql_fetch_row(pResult)) != NULL)
+		{
+			StringConv::str2value(entitylog.entityID, arow[0]);
+			StringConv::str2value(entitylog.ip, arow[1]);
+			StringConv::str2value(entitylog.port, arow[2]);
+			StringConv::str2value(entitylog.componentID, arow[3]);
+			break;
+		}
+
+		mysql_free_result(pResult);
+	}
+
+	return entitylog.componentID > 0;
+}
+
+//-------------------------------------------------------------------------------------
 bool KBEEntityLogTableMysql::eraseEntityLog(DBInterface * dbi, DBID dbid)
 {
 	std::string sqlstr = "delete from kbe_entitylog where entityDBID=";

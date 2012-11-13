@@ -428,7 +428,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 
 	if(entityType == NULL || strlen(entityType) <= 0 || ret == -1)
 	{
-		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: args is error!");
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: args is error, entityType=%s!", entityType);
 		PyErr_PrintEx(0);
 
 		if(entityType)

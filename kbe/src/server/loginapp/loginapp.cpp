@@ -276,12 +276,15 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& accountName, SERVER_ERROR_CODE failedcode)
 {
 	DEBUG_MSG("Loginapp::loginFailed: accountName=%s login is failed. failedcode=%s.\n", accountName.c_str(), SERVER_ERR_STR[failedcode]);
+	
+	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(accountName);
+	if(infos == NULL)
+		return;
+
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onLoginFailed);
 	bundle << failedcode;
-	
-	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(accountName);
-	
+
 	if(pChannel)
 	{
 		bundle.send(this->getNetworkInterface(), pChannel);

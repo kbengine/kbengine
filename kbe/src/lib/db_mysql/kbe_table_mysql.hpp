@@ -47,6 +47,8 @@ public:
 	virtual bool logEntity(DBInterface * dbi, const char* ip, uint32 port, DBID dbid,
 						COMPONENT_ID componentID, ENTITY_ID entityID);
 
+	virtual bool queryEntity(DBInterface * dbi, DBID dbid, EntityLog& entitylog);
+
 	virtual bool eraseEntityLog(DBInterface * dbi, DBID dbid);
 protected:
 	

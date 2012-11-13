@@ -444,7 +444,10 @@ void DBTaskEntityOffline::presentMainThread()
 DBTaskAccountLogin::DBTaskAccountLogin(const Mercury::Address& addr, std::string& accountName, std::string& password):
 DBTask(addr),
 accountName_(accountName),
-password_(password)
+password_(password),
+success_(false),
+componentID_(0),
+entityID_(0)
 {
 }
 
@@ -456,6 +459,31 @@ DBTaskAccountLogin::~DBTaskAccountLogin()
 //-------------------------------------------------------------------------------------
 bool DBTaskAccountLogin::db_thread_process()
 {
+	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
+					(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
+	KBE_ASSERT(pELTable);
+
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
+	KBE_ASSERT(pTable);
+
+	ACCOUNT_INFOS info;
+	info.dbid = 0;
+	if(!pTable->queryAccount(pdbi_, accountName_, info))
+		return false;
+
+	if(info.dbid == 0)
+		return false;
+
+	KBEEntityLogTable::EntityLog entitylog;
+	success_ = !pELTable->queryEntity(pdbi_, info.dbid, entitylog);
+
+	// 如果有在线纪录
+	if(!success_)
+	{
+		componentID_ = entitylog.componentID;
+		entityID_ = entitylog.entityID;
+	}
+
 	return false;
 }
 
@@ -468,28 +496,11 @@ void DBTaskAccountLogin::presentMainThread()
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::onLoginAccountQueryResultFromDbmgr);
 
-	bool success = true;
-	COMPONENT_ID componentID = 0;
-	ENTITY_ID entityID = 0;
-	
-	/*
-	// 如果没有连接db则从log中查找账号是否还在线
-	if(!pDBInterface_)
-	{
-		PROXICES_ONLINE_LOG::iterator iter = proxicesOnlineLogs_.find(accountName);
-		if(iter != proxicesOnlineLogs_.end())
-		{
-			componentID = iter->second.cid;
-			entityID = iter->second.eid;
-		}
-	}
-	*/
-
-	(*pBundle) << success;
+	(*pBundle) << success_;
 	(*pBundle) << accountName_;
 	(*pBundle) << password_;
-	(*pBundle) << componentID;   // 如果大于0则表示账号还存活在某个baseapp上
-	(*pBundle) << entityID;
+	(*pBundle) << componentID_;   // 如果大于0则表示账号还存活在某个baseapp上
+	(*pBundle) << entityID_;
 
 	if(!this->send((*pBundle)))
 	{

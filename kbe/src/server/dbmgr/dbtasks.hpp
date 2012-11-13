@@ -187,6 +187,9 @@ public:
 protected:
 	std::string accountName_;
 	std::string password_;
+	bool success_;
+	COMPONENT_ID componentID_;
+	ENTITY_ID entityID_;
 };
 
 /**

@@ -62,6 +62,15 @@ protected:
 class KBEEntityLogTable : public KBETable
 {
 public:
+	struct EntityLog
+	{
+		DBID dbid;
+		ENTITY_ID entityID;
+		uint32 ip;
+		uint16 port;
+		COMPONENT_ID componentID;
+	};
+
 	KBEEntityLogTable():
 	KBETable()
 	{
@@ -74,6 +83,8 @@ public:
 	
 	virtual bool logEntity(DBInterface * dbi, const char* ip, uint32 port, DBID dbid,
 						COMPONENT_ID componentID, ENTITY_ID entityID) = 0;
+
+	virtual bool queryEntity(DBInterface * dbi, DBID dbid, EntityLog& entitylog) = 0;
 
 	virtual bool eraseEntityLog(DBInterface * dbi, DBID dbid) = 0;
 protected:
