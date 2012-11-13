@@ -31,7 +31,7 @@ inline std::string val2str(const TYPE& value)
 {
 	std::stringstream ss;
 	ss << value;
-	return ss.pstr();
+	return ss.str();
 }
 
 inline void str2value(float& value, const char * pstr)
@@ -130,3 +130,5 @@ inline void str2value(uint64& value, const char * pstr)
 }
 
 #endif // __STRING_CONV_HPP__
+
+
