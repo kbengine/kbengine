@@ -406,14 +406,15 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 	char* entityType = NULL;
 	int ret = -1;
 	DBID dbid;
+	PyObject* pyEntityType = NULL;
 
 	switch(argCount)
 	{
 	case 3:
-		ret = PyArg_ParseTuple(args, "u|K|O", &wEntityType, &dbid, &pyCallback);
+		ret = PyArg_ParseTuple(args, "O|K|O", &pyEntityType, &dbid, &pyCallback);
 		break;
 	case 2:
-		ret = PyArg_ParseTuple(args, "u|K", &wEntityType, &dbid);
+		ret = PyArg_ParseTuple(args, "O|K", &pyEntityType, &dbid);
 		break;
 	default:
 		{
@@ -424,7 +425,12 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 		}
 	};
 
-	entityType = wchar2char(wEntityType);
+	if(pyEntityType)
+	{
+		wEntityType = PyUnicode_AsWideCharString(pyEntityType, NULL);					
+		entityType = wchar2char(wEntityType);									
+		PyMem_Free(wEntityType);		
+	}
 
 	if(entityType == NULL || strlen(entityType) <= 0 || ret == -1)
 	{
@@ -433,6 +439,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 
 		if(entityType)
 			free(entityType);
+
 		S_Return;
 	}
 
@@ -1186,13 +1193,14 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 
 //-------------------------------------------------------------------------------------
 void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& accountName, 
-								   std::string& password, ENTITY_ID entityID)
+								   std::string& password, ENTITY_ID entityID, DBID entityDBID)
 {
 	if(pChannel->isExternal())
 		return;
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappmgrInterface::onPendingAccountGetBaseappAddr);
+
 	(*pBundle) << accountName;
 	(*pBundle) << this->getNetworkInterface().extaddr().ip;
 	(*pBundle) << this->getNetworkInterface().extaddr().port;
@@ -1202,7 +1210,9 @@ void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& acco
 	ptinfos->accountName = accountName;
 	ptinfos->password = password;
 	ptinfos->entityID = entityID;
+	ptinfos->entityDBID = entityDBID;
 	pendingLoginMgr_.add(ptinfos);
+
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
@@ -1333,7 +1343,9 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 		ENTITY_ID entityID = idClient_.alloc();
 		KBE_ASSERT(entityID > 0);
 
-		DbmgrInterface::queryAccountArgs4::staticAddToBundle((*pBundle), accountName, password, g_componentID, entityID);
+		DbmgrInterface::queryAccountArgs5::staticAddToBundle((*pBundle), accountName, password, g_componentID, 
+			entityID, ptinfos->entityDBID);
+
 		(*pBundle).send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}

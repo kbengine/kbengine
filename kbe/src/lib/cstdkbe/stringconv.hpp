@@ -25,6 +25,23 @@ namespace KBEngine{
 namespace StringConv
 {
 
+template<typename T>
+T str2value(const std::string& s) 
+{
+	std::istringstream is(s);
+	T t;
+	is >> t;
+	return t;
+}
+
+template<typename T>
+T str2value(const char* s) 
+{
+	std::istringstream is(s);
+	T t;
+	is >> t;
+	return t;
+}
 
 template <class TYPE>
 inline std::string val2str(const TYPE& value)

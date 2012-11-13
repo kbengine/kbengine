@@ -88,11 +88,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									std::string,					password)
 
 	// baseapp查询账号信息。
-	DBMGR_MESSAGE_DECLARE_ARGS4(queryAccount,						MERCURY_VARIABLE_MESSAGE,
+	DBMGR_MESSAGE_DECLARE_ARGS5(queryAccount,						MERCURY_VARIABLE_MESSAGE,
 									std::string,					accountName,
 									std::string,					password,
 									COMPONENT_ID,					componentID,
-									ENTITY_ID,						entityID)
+									ENTITY_ID,						entityID,
+									DBID,							entityDBID)
 
 	// baseapp上账号上线。
 	DBMGR_MESSAGE_DECLARE_ARGS3(onAccountOnline,					MERCURY_VARIABLE_MESSAGE,

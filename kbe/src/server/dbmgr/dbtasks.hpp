@@ -127,7 +127,7 @@ class DBTaskQueryAccount : public DBTask
 {
 public:
 	DBTaskQueryAccount(const Mercury::Address& addr, std::string& accountName, std::string& password, 
-		COMPONENT_ID componentID, ENTITY_ID entityID);
+		COMPONENT_ID componentID, ENTITY_ID entityID, DBID entityDBID);
 	virtual ~DBTaskQueryAccount();
 	virtual bool db_thread_process();
 	virtual void presentMainThread();
@@ -190,6 +190,7 @@ protected:
 	bool success_;
 	COMPONENT_ID componentID_;
 	ENTITY_ID entityID_;
+	DBID dbid_;
 };
 
 /**

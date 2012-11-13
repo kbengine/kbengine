@@ -280,13 +280,13 @@ void DBTaskCreateAccount::presentMainThread()
 
 //-------------------------------------------------------------------------------------
 DBTaskQueryAccount::DBTaskQueryAccount(const Mercury::Address& addr, std::string& accountName, std::string& password, 
-		COMPONENT_ID componentID, ENTITY_ID entityID):
+		COMPONENT_ID componentID, ENTITY_ID entityID, DBID entityDBID):
 DBTask(addr),
 accountName_(accountName),
 password_(password),
 success_(false),
 s_(),
-dbid_(0),
+dbid_(entityDBID),
 componentID_(componentID),
 entityID_(entityID)
 {
@@ -306,26 +306,29 @@ bool DBTaskQueryAccount::db_thread_process()
 	ACCOUNT_INFOS info;
 	info.name = "";
 	info.password = "";
-	info.dbid = 0;
+	info.dbid = dbid_;
 
-	if(!pTable->queryAccount(pdbi_, accountName_, info))
-		return false;
-
-	if(info.dbid == 0)
-		return false;
-	
-	unsigned char md[16];
-	MD5((unsigned char *)password_.c_str(), password_.length(), md);
-
-	char tmp[3]={'\0'}, md5password[33] = {'\0'};
-	for (int i = 0; i < 16; i++)
+	if(dbid_  == 0)
 	{
-		sprintf(tmp,"%2.2X", md[i]);
-		strcat(md5password, tmp);
-	}
+		if(!pTable->queryAccount(pdbi_, accountName_, info))
+			return false;
 
-	if(kbe_stricmp(info.password.c_str(), md5password) != 0)
-		return false;
+		if(info.dbid == 0)
+			return false;
+		
+		unsigned char md[16];
+		MD5((unsigned char *)password_.c_str(), password_.length(), md);
+
+		char tmp[3]={'\0'}, md5password[33] = {'\0'};
+		for (int i = 0; i < 16; i++)
+		{
+			sprintf(tmp,"%2.2X", md[i]);
+			strcat(md5password, tmp);
+		}
+
+		if(kbe_stricmp(info.password.c_str(), md5password) != 0)
+			return false;
+	}
 
 	success_ = EntityTables::getSingleton().queryEntity(pdbi_, info.dbid, &s_, 
 		EntityDef::findScriptModule(g_kbeSrvConfig.getDBMgr().dbAccountEntityScriptType));
@@ -447,7 +450,8 @@ accountName_(accountName),
 password_(password),
 success_(false),
 componentID_(0),
-entityID_(0)
+entityID_(0),
+dbid_(0)
 {
 }
 
@@ -484,6 +488,7 @@ bool DBTaskAccountLogin::db_thread_process()
 		entityID_ = entitylog.entityID;
 	}
 
+	dbid_ = info.dbid;
 	return false;
 }
 
@@ -501,6 +506,7 @@ void DBTaskAccountLogin::presentMainThread()
 	(*pBundle) << password_;
 	(*pBundle) << componentID_;   // 如果大于0则表示账号还存活在某个baseapp上
 	(*pBundle) << entityID_;
+	(*pBundle) << dbid_;
 
 	if(!this->send((*pBundle)))
 	{

@@ -53,6 +53,7 @@ public:
 		std::string datas;
 		TimeStamp lastProcessTime;
 		ENTITY_ID entityID;
+		DBID entityDBID;
 	};
 
 	typedef std::tr1::unordered_map<std::string, PLInfos*> PTINFO_MAP;

@@ -487,12 +487,16 @@ void init_network(void)
 		uint8 errorcode = 0;
 		packet555 >> errorcode;
 		AvatarInfos retainfo;
+		DBID lastDBID = retainfo.dbid;
 		packet555 >> retainfo.dbid;
 		packet555 >> retainfo.name;
 		packet555 >> retainfo.roleType;
 		packet555 >> retainfo.level;
 		printf("创建角色结果:错误码:%u,dbid=%"PRIu64",name=%s,roleType=%u,level=%u\n", 
 			errorcode, retainfo.dbid, retainfo.name.c_str(),retainfo.roleType, retainfo.level);
+		
+		if(retainfo.dbid == 0)
+			retainfo.dbid = lastDBID;
 
 		printf("向服务器请求选择某个角色进行游戏\n");
 		// 向服务器请求选择某个角色进行游戏

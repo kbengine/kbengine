@@ -384,10 +384,11 @@ void Dbmgr::queryAccount(Mercury::Channel* pChannel,
 						 std::string& accountName, 
 						 std::string& password,
 						 COMPONENT_ID componentID,
-						 ENTITY_ID entityID)
+						 ENTITY_ID entityID,
+						 DBID entityDBID)
 {
 	PUSH_THREAD_TASK(new DBTaskQueryAccount(pChannel->addr(), 
-		accountName, password, componentID, entityID));
+		accountName, password, componentID, entityID, entityDBID));
 }
 
 //-------------------------------------------------------------------------------------

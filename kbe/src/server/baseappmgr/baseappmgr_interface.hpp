@@ -72,9 +72,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(forwardMessage,						MERCURY_VARIABLE_MESSAGE)
 
 	// 某个app向本app告知处于活动状态。
-	BASEAPPMGR_MESSAGE_DECLARE_ARGS2(registerPendingAccountToBaseapp,		MERCURY_VARIABLE_MESSAGE,
+	BASEAPPMGR_MESSAGE_DECLARE_ARGS3(registerPendingAccountToBaseapp,		MERCURY_VARIABLE_MESSAGE,
 									std::string,							accountName,
-									std::string,							password)
+									std::string,							password,
+									DBID,									entityDBID)
 
 	// 获取到baseapp的地址。
 	BASEAPPMGR_MESSAGE_DECLARE_ARGS3(onPendingAccountGetBaseappAddr,		MERCURY_VARIABLE_MESSAGE,
@@ -84,11 +85,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 									
 	// 一个新登录的账号获得合法登入baseapp的权利， 现在需要将账号注册给指定的baseapp
 	// 使其允许在此baseapp上登录。
-	BASEAPPMGR_MESSAGE_DECLARE_ARGS4(registerPendingAccountToBaseappAddr,	MERCURY_VARIABLE_MESSAGE,
+	BASEAPPMGR_MESSAGE_DECLARE_ARGS5(registerPendingAccountToBaseappAddr,	MERCURY_VARIABLE_MESSAGE,
 									COMPONENT_ID,							componentID,
 									std::string,							accountName,
 									std::string,							password,
-									ENTITY_ID,								entityID)
+									ENTITY_ID,								entityID,
+									DBID,									entityDBID)
 
 	// 请求关闭服务器
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCloseServer,						MERCURY_VARIABLE_MESSAGE)

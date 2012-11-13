@@ -116,7 +116,7 @@ public:
 		baseapp请求查询account信息
 	*/
 	void queryAccount(Mercury::Channel* pChannel, std::string& accountName, std::string& password, 
-		COMPONENT_ID componentID, ENTITY_ID entityID);
+		COMPONENT_ID componentID, ENTITY_ID entityID, DBID entityDBID);
 
 	/** 网络接口
 		账号从baseapp上线了
