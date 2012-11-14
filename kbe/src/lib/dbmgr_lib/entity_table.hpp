@@ -259,7 +259,6 @@ protected:
 	// 所有的表
 	TABLES_MAP tables_;
 	TABLES_MAP kbe_tables_;
-	KBEngine::thread::ThreadMutex logMutex;
 };
 
 }

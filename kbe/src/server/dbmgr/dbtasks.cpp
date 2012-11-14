@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "dbtasks.hpp"
 #include "dbmgr.hpp"
+#include "buffered_dbtasks.hpp"
 #include "network/common.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
@@ -92,6 +93,13 @@ bool DBTask::process()
 	
 	SAFE_RELEASE(pdbi_);
 	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityDBTask::presentMainThread()
+{
+	KBE_ASSERT(_pBuffered_DBTasks != NULL);
+	_pBuffered_DBTasks->onFiniTask(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -168,7 +176,7 @@ void DBTaskExecuteRawDatabaseCommand::presentMainThread()
 //-------------------------------------------------------------------------------------
 DBTaskWriteEntity::DBTaskWriteEntity(const Mercury::Address& addr, ENTITY_ID eid, 
 									 DBID entityDBID, MemoryStream& datas):
-DBTask(addr, datas),
+EntityDBTask(addr, datas, eid, entityDBID),
 eid_(eid),
 entityDBID_(entityDBID),
 sid_(0),
@@ -213,6 +221,7 @@ void DBTaskWriteEntity::presentMainThread()
 	}
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	EntityDBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
@@ -520,7 +529,7 @@ void DBTaskAccountLogin::presentMainThread()
 //-------------------------------------------------------------------------------------
 DBTaskQueryEntity::DBTaskQueryEntity(const Mercury::Address& addr, std::string& entityType, DBID dbid, 
 		COMPONENT_ID componentID, CALLBACK_ID callbackID, ENTITY_ID entityID):
-DBTask(addr),
+EntityDBTask(addr, entityID, dbid),
 entityType_(entityType),
 dbid_(dbid),
 componentID_(componentID),
@@ -582,6 +591,7 @@ void DBTaskQueryEntity::presentMainThread()
 	}
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	EntityDBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------

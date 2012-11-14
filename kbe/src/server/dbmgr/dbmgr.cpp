@@ -67,6 +67,7 @@ Dbmgr::~Dbmgr()
 {
 	loopCheckTimerHandle_.cancel();
 	mainProcessTimer_.cancel();
+	KBEngine::sleep(300);
 }
 
 //-------------------------------------------------------------------------------------
@@ -425,7 +426,7 @@ void Dbmgr::writeEntity(Mercury::Channel* pChannel,
 
 	s >> eid >> entityDBID;
 
-	PUSH_THREAD_TASK(new DBTaskWriteEntity(pChannel->addr(), eid, entityDBID, s));
+	bufferedDBTasks_.addTask(new DBTaskWriteEntity(pChannel->addr(), eid, entityDBID, s));
 	s.opfini();
 }
 
@@ -433,7 +434,7 @@ void Dbmgr::writeEntity(Mercury::Channel* pChannel,
 void Dbmgr::queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, DBID dbid, 
 	std::string& entityType, CALLBACK_ID callbackID, ENTITY_ID entityID)
 {
-	PUSH_THREAD_TASK(new DBTaskQueryEntity(pChannel->addr(), entityType, dbid, componentID, callbackID, entityID));
+	bufferedDBTasks_.addTask(new DBTaskQueryEntity(pChannel->addr(), entityType, dbid, componentID, callbackID, entityID));
 }
 
 //-------------------------------------------------------------------------------------

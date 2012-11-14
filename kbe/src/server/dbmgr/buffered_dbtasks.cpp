@@ -19,12 +19,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "buffered_dbtasks.hpp"
+#include "thread/threadpool.hpp"
+#include "thread/threadguard.hpp"
 
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 Buffered_DBTasks::Buffered_DBTasks():
-tasks_()
+entityid_tasks_(),
+dbid_tasks_()
 {
 }
 
@@ -34,9 +37,119 @@ Buffered_DBTasks::~Buffered_DBTasks()
 }
 
 //-------------------------------------------------------------------------------------
-void Buffered_DBTasks::addTask(DBID dbid, DBTask* pTask)
+bool Buffered_DBTasks::hasTask(DBID dbid)
 {
-	tasks_.insert(std::make_pair(dbid, pTask));
+	std::pair<DBID_TASKS_MAP::iterator, DBID_TASKS_MAP::iterator> range = 
+		dbid_tasks_.equal_range(dbid);  
+
+	if (range.first != range.second)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool Buffered_DBTasks::hasTask(ENTITY_ID entityID)
+{
+	std::pair<ENTITYID_TASKS_MAP::iterator, ENTITYID_TASKS_MAP::iterator> range = 
+		entityid_tasks_.equal_range(entityID);  
+
+	if (range.first != range.second)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+void Buffered_DBTasks::addTask(EntityDBTask* pTask)
+{
+	pTask->pBuffered_DBTasks(this);
+	
+	if(pTask->EntityDBTask_entityDBID() <= 0)
+	{
+		if(hasTask(pTask->EntityDBTask_entityID()))
+		{
+			entityid_tasks_.insert(std::make_pair(pTask->EntityDBTask_entityID(), pTask));
+			return;
+		}
+
+		entityid_tasks_.insert(std::make_pair(pTask->EntityDBTask_entityID(), 
+			static_cast<EntityDBTask *>(NULL)));
+	}
+	else
+	{
+		if(hasTask(pTask->EntityDBTask_entityDBID()))
+		{
+			dbid_tasks_.insert(std::make_pair(pTask->EntityDBTask_entityDBID(), pTask));
+			return;
+		}
+
+		dbid_tasks_.insert(std::make_pair(pTask->EntityDBTask_entityDBID(), 
+			static_cast<EntityDBTask *>(NULL)));
+	}
+
+	PUSH_THREAD_TASK(pTask);
+}
+
+//-------------------------------------------------------------------------------------
+void Buffered_DBTasks::onFiniTask(EntityDBTask* pTask)
+{
+	EntityDBTask * pNextTask = NULL;
+	
+	if(pTask->EntityDBTask_entityDBID() <= 0)
+	{
+		std::pair<ENTITYID_TASKS_MAP::iterator, ENTITYID_TASKS_MAP::iterator> range = 
+			entityid_tasks_.equal_range(pTask->EntityDBTask_entityID());  
+
+		// 如果没有任务则退出
+		if (range.first == range.second)
+		{
+			return;
+		}
+		
+		ENTITYID_TASKS_MAP::iterator nextIter = range.first;
+		++nextIter;
+
+		if (nextIter != range.second)
+		{
+			pNextTask = nextIter->second;
+		}
+
+		entityid_tasks_.erase( range.first );
+	}
+	else
+	{
+		std::pair<DBID_TASKS_MAP::iterator, DBID_TASKS_MAP::iterator> range = 
+			dbid_tasks_.equal_range(pTask->EntityDBTask_entityDBID());  
+
+		// 如果没有任务则退出
+		if (range.first == range.second)
+		{
+			return;
+		}
+		
+		DBID_TASKS_MAP::iterator nextIter = range.first;
+		++nextIter;
+
+		if (nextIter != range.second)
+		{
+			pNextTask = nextIter->second;
+		}
+
+		dbid_tasks_.erase( range.first );
+	}
+	
+	if(pNextTask != NULL)
+	{
+		INFO_MSG("Buffered_DBTasks::onFiniTask: Playing buffered task for entityID=%d, dbid=%"PRDBID"\n", 
+			pNextTask->EntityDBTask_entityID(), pNextTask->EntityDBTask_entityDBID());
+		
+		PUSH_THREAD_TASK(pNextTask);
+	}
 }
 
 //-------------------------------------------------------------------------------------

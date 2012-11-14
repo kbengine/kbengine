@@ -33,6 +33,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{ 
 
 class DBInterface;
+class Buffered_DBTasks;
 
 /*
 	数据库线程任务基础类
@@ -66,6 +67,41 @@ protected:
 	DBInterface* pdbi_;
 };
 
+/*
+	EntityDBTask
+*/
+class EntityDBTask : public DBTask
+{
+public:
+	EntityDBTask(const Mercury::Address& addr, MemoryStream& datas, ENTITY_ID entityID, DBID entityDBID):
+	DBTask(addr, datas),
+	_entityID(entityID),
+	_entityDBID(entityDBID),
+	_pBuffered_DBTasks(NULL)
+	{
+	}
+	
+	EntityDBTask(const Mercury::Address& addr, ENTITY_ID entityID, DBID entityDBID):
+	DBTask(addr),
+	_entityID(entityID),
+	_entityDBID(entityDBID),
+	_pBuffered_DBTasks(NULL)
+	{
+	}
+	
+	virtual ~EntityDBTask(){}
+	
+	ENTITY_ID EntityDBTask_entityID()const { return _entityID; }
+	DBID EntityDBTask_entityDBID()const { return _entityDBID; }
+	
+	void pBuffered_DBTasks(Buffered_DBTasks* v){ _pBuffered_DBTasks = v; }
+	virtual void presentMainThread();
+private:
+	ENTITY_ID _entityID;
+	DBID _entityDBID;
+	Buffered_DBTasks* _pBuffered_DBTasks;
+};
+
 /**
 	执行一条sql语句
 */
@@ -88,7 +124,7 @@ protected:
 /**
 	向数据库写entity， 备份entity时也是这个机制
 */
-class DBTaskWriteEntity : public DBTask
+class DBTaskWriteEntity : public EntityDBTask
 {
 public:
 	DBTaskWriteEntity(const Mercury::Address& addr, ENTITY_ID eid, DBID entityDBID, MemoryStream& datas);
@@ -196,7 +232,7 @@ protected:
 /**
 	baseapp请求查询entity信息
 */
-class DBTaskQueryEntity : public DBTask
+class DBTaskQueryEntity : public EntityDBTask
 {
 public:
 	DBTaskQueryEntity(const Mercury::Address& addr, std::string& entityType, DBID dbid, 

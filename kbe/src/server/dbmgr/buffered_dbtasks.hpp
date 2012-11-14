@@ -38,14 +38,21 @@ namespace KBEngine{
 class Buffered_DBTasks
 {
 public:
-	typedef std::multimap<DBID, DBTask*> TASKS_MAP;  
-
+	typedef std::multimap<DBID, EntityDBTask*> DBID_TASKS_MAP;  
+	typedef std::multimap<ENTITY_ID, EntityDBTask*> ENTITYID_TASKS_MAP;  
+	
 	Buffered_DBTasks();
 	virtual ~Buffered_DBTasks();
+	
+	bool hasTask(DBID dbid);
+	bool hasTask(ENTITY_ID entityID);
 
-	void addTask(DBID dbid, DBTask* pTask);
+	void addTask(EntityDBTask* pTask);
+
+	void onFiniTask(EntityDBTask* pTask);
 protected:
-	TASKS_MAP tasks_;
+	DBID_TASKS_MAP dbid_tasks_;
+	ENTITYID_TASKS_MAP entityid_tasks_;
 };
 
 }
