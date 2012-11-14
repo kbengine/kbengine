@@ -166,10 +166,11 @@ void DBTaskExecuteRawDatabaseCommand::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskWriteEntity::DBTaskWriteEntity(const Mercury::Address& addr, ENTITY_ID eid, DBID entityDBID, MemoryStream& datas):
+DBTaskWriteEntity::DBTaskWriteEntity(const Mercury::Address& addr, ENTITY_ID eid, 
+									 DBID entityDBID, MemoryStream& datas):
 DBTask(addr, datas),
-eid_(0),
-entityDBID_(0),
+eid_(eid),
+entityDBID_(entityDBID),
 sid_(0),
 callbackID_(0),
 success_(false)
