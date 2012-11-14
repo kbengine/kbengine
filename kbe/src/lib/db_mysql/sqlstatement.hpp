@@ -88,7 +88,7 @@ public:
 		
 		if(parentDBID > 0)
 		{
-			sqlstr_ += TABLE_PARENT_ID;
+			sqlstr_ += TABLE_PARENTID_CONST_STR;
 			sqlstr_ += ",";
 			
 			char strdbid[MAX_BUF];
@@ -227,7 +227,7 @@ public:
 		}
 		else
 		{
-			sqlstr1_ += " where "TABLE_PARENT_ID"=";
+			sqlstr1_ += " where "TABLE_PARENTID_CONST_STR"=";
 			kbe_snprintf(strdbid, MAX_BUF, "%"PRDBID, parentDBID);
 		}
 		

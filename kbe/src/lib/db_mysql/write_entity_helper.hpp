@@ -129,34 +129,84 @@ public:
 						childTableDBIDs.insert(std::make_pair< std::string, std::vector<DBID> >(wbox.tableName, v));
 					}
 				}
-
-				std::tr1::unordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
-				for(; tabiter != childTableDBIDs.end(); tabiter++)
+				
+				if(childTableDBIDs.size() > 1)
 				{
-					char sqlstr[MAX_BUF * 10];
-					kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENT_ID"=%"PRDBID";", 
-						tabiter->first.c_str(),
-						opTableItemDataBox.dbid);
+					std::string sqlstr_getids;
+					std::tr1::unordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
+					for(; tabiter != childTableDBIDs.end();)
+					{
+						char sqlstr[MAX_BUF * 10];
+						kbe_snprintf(sqlstr, MAX_BUF * 10, "select count(id) from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID" union all ", 
+							tabiter->first.c_str(),
+							opTableItemDataBox.dbid);
+						
+						sqlstr_getids += sqlstr;
 
-					if(dbi->query(sqlstr, strlen(sqlstr), false))
+						kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID, 
+							tabiter->first.c_str(),
+							opTableItemDataBox.dbid);
+
+						sqlstr_getids += sqlstr;
+						if(++tabiter != childTableDBIDs.end())
+							sqlstr_getids += " union all ";
+					}
+					
+					if(dbi->query(sqlstr_getids.c_str(), sqlstr_getids.size(), false))
 					{
 						MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
 						if(pResult)
 						{
 							MYSQL_ROW arow;
+							int32 count = 0;
+							tabiter = childTableDBIDs.begin();
+							bool first = true;
+
 							while((arow = mysql_fetch_row(pResult)) != NULL)
 							{
-								std::stringstream sval;
-								sval << arow[0];
+								if(count == 0)
+								{
+									StringConv::str2value(count, arow[0]);
+									if(!first || count <= 0)
+										tabiter++;
+									continue;
+								}
+
 								DBID old_dbid;
-								
-								sval >> old_dbid;
+								StringConv::str2value(old_dbid, arow[0]);
 								tabiter->second.push_back(old_dbid);
+								count--;
+								first = false;
 							}
 
 							mysql_free_result(pResult);
 						}
 					}
+				}
+				else if(childTableDBIDs.size() == 1)
+				{
+					std::tr1::unordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
+						char sqlstr[MAX_BUF * 10];
+						kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID, 
+							tabiter->first.c_str(),
+							opTableItemDataBox.dbid);
+
+						if(dbi->query(sqlstr, strlen(sqlstr), false))
+						{
+							MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+							if(pResult)
+							{
+								MYSQL_ROW arow;
+								while((arow = mysql_fetch_row(pResult)) != NULL)
+								{
+									DBID old_dbid;
+									StringConv::str2value(old_dbid, arow[0]);
+									tabiter->second.push_back(old_dbid);
+								}
+
+								mysql_free_result(pResult);
+							}
+						}
 				}
 			}
 
@@ -201,6 +251,30 @@ public:
 			std::tr1::unordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
 			for(; tabiter != childTableDBIDs.end(); tabiter++)
 			{
+				if(tabiter->second.size() == 0)
+					continue;
+
+				// 先删除数据库中的记录
+				std::string sqlstr = "delete from "ENTITY_TABLE_PERFIX"_";
+				sqlstr += tabiter->first;
+				sqlstr += " where "TABLE_ID_CONST_STR" in (";
+
+				std::vector<DBID>::iterator iter = tabiter->second.begin();
+				for(; iter != tabiter->second.end(); iter++)
+				{
+					DBID dbid = (*iter);
+
+					char sqlstr1[MAX_BUF];
+					kbe_snprintf(sqlstr1, MAX_BUF, "%"PRDBID, dbid);
+					sqlstr += sqlstr1;
+					sqlstr += ",";
+				}
+				
+				sqlstr.erase(sqlstr.size() - 1);
+				sqlstr += ")";
+				bool ret = dbi->query(sqlstr.c_str(), sqlstr.size(), false);
+				KBE_ASSERT(ret);
+
 				DB_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
 				for(; iter1 != opTableItemDataBox.optable.end(); iter1++)
 				{
@@ -211,14 +285,6 @@ public:
 						for(; iter != tabiter->second.end(); iter++)
 						{
 							DBID dbid = (*iter);
-
-							char sqlstr[MAX_BUF * 10];
-							kbe_snprintf(sqlstr, MAX_BUF * 10, "delete from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENT_ID"=%"PRDBID";", 
-								tabiter->first.c_str(),
-								opTableItemDataBox.dbid);
-
-							bool ret = dbi->query(sqlstr, strlen(sqlstr), false);
-							KBE_ASSERT(ret);
 							
 							wbox.parentTableDBID = opTableItemDataBox.dbid;
 							wbox.dbid = dbid;

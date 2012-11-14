@@ -170,7 +170,7 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 	std::string exItems = "";
 
 	if(this->isChild())
-		exItems = ", "TABLE_PARENT_ID" bigint(20) NOT NULL, INDEX("TABLE_PARENT_ID")";
+		exItems = ", "TABLE_PARENTID_CONST_STR" bigint(20) NOT NULL, INDEX("TABLE_PARENTID_CONST_STR")";
 
 	kbe_snprintf(sql_str, MAX_BUF, "CREATE TABLE IF NOT EXISTS "ENTITY_TABLE_PERFIX"_%s "
 			"(id bigint(20) AUTO_INCREMENT, PRIMARY KEY idKey (id)%s)"
@@ -203,7 +203,7 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 	{
 		std::string tname = (*iter0);
 		
-		if(tname == "id" || tname == TABLE_PARENT_ID)
+		if(tname == "id" || tname == TABLE_PARENTID_CONST_STR)
 		{
 			continue;
 		}
@@ -808,10 +808,10 @@ bool EntityTableItemMysql_ARRAY::initialize(const PropertyDescription* pProperty
 	}
 	else
 	{
-		tablename += TABLE_ARRAY_ITEM_VALUES;
+		tablename += TABLE_ARRAY_ITEM_VALUES_CONST_STR;
 
 		if(static_cast<FixedArrayType*>(const_cast<DataType*>(pDataType))->getDataType()->type() != DATA_TYPE_FIXEDDICT)
-			itemName = TABLE_ARRAY_ITEM_VALUE;
+			itemName = TABLE_ARRAY_ITEM_VALUE_CONST_STR;
 	}
 
 	pTable->tableName(tablename);

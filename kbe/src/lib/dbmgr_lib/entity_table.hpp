@@ -49,11 +49,12 @@ class MemoryStream;
 #define TABLE_ITEM_TYPE_UNICODE		9
 #define TABLE_ITEM_TYPE_MAILBOX		10
 
-#define ENTITY_TABLE_PERFIX			"tbl"
-#define TABLE_PARENT_ID				"parentID"
-#define TABLE_ITEM_PERFIX			"sm"
-#define TABLE_ARRAY_ITEM_VALUE		"value"
-#define TABLE_ARRAY_ITEM_VALUES		"values"
+#define ENTITY_TABLE_PERFIX						"tbl"
+#define TABLE_ID_CONST_STR						"id"
+#define TABLE_PARENTID_CONST_STR				"parentID"
+#define TABLE_ITEM_PERFIX						"sm"
+#define TABLE_ARRAY_ITEM_VALUE_CONST_STR		"value"
+#define TABLE_ARRAY_ITEM_VALUES_CONST_STR		"values"
 
 /**
 	db±í²Ù×÷
