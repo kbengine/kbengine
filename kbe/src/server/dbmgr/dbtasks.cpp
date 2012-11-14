@@ -83,10 +83,27 @@ bool DBTask::process()
 {
 	mysql_thread_init();
 
-	pdbi_ = DBUtil::createInterface(false);
-	bool ret = db_thread_process();
-	if(!ret)
-		mysql_thread_end();
+	for(int tryi = 0; tryi < 3; tryi++)
+	{
+		pdbi_ = DBUtil::createInterface(false);
+		if(pdbi_ == NULL)
+		{
+			KBEngine::sleep(10);
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	bool ret = false;
+	
+	if(pdbi_)
+	{
+		ret = db_thread_process();
+	}
+
+	mysql_thread_end();
 
 	if(pdbi_)
 		pdbi_->detach();
