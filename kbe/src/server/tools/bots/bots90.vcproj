@@ -199,6 +199,10 @@
 				RelativePath="main.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\proxices_threadtask.cpp"
+				>
+			</File>
 			<Filter
 				Name="Resource Files"
 				Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
@@ -225,6 +229,10 @@
 			</File>
 			<File
 				RelativePath=".\entity.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\proxices_threadtask.hpp"
 				>
 			</File>
 		</Filter>

@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "clientapp.hpp"
 #include "network/channel.hpp"
+#include "thread/threadpool.hpp"
 
 #include "../../server/baseapp/baseapp_interface.hpp"
 #include "../../server/loginapp/loginapp_interface.hpp"
@@ -71,6 +72,10 @@ bool ClientApp::installSingnals()
 //-------------------------------------------------------------------------------------		
 bool ClientApp::initialize()
 {
+	if(thread::ThreadPool::getSingletonPtr() && 
+		!thread::ThreadPool::getSingleton().isInitialize())
+		thread::ThreadPool::getSingleton().createThreadPool(4, 4, 256);
+
 	if(!installSingnals())
 		return false;
 	

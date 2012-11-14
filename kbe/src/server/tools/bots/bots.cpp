@@ -26,11 +26,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
-
+#include "server/serverconfig.hpp"
 #include "../../../server/baseapp/baseapp_interface.hpp"
 #include "../../../server/loginapp/loginapp_interface.hpp"
 
 namespace KBEngine{
+ServerConfig g_serverConfig;
 
 //-------------------------------------------------------------------------------------
 Bots::Bots(Mercury::EventDispatcher& dispatcher, 
