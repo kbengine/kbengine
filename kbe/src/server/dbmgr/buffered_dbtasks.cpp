@@ -26,8 +26,8 @@ namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 Buffered_DBTasks::Buffered_DBTasks():
-entityid_tasks_(),
-dbid_tasks_()
+dbid_tasks_(),
+entityid_tasks_()
 {
 }
 
