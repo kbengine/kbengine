@@ -30,6 +30,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entitydef.hpp"
 #include "network/address.hpp"
 #include "network/endpoint.hpp"
+#include "pyscript/script.hpp"
+#include "pyscript/pyobject_pointer.hpp"
 
 namespace KBEngine{ 
 
@@ -48,10 +50,20 @@ public:
 	virtual void presentMainThread(){}
 
 	bool initNetwork();
+
+	bool login();
+	bool messageloop();
 protected:
 	MemoryStream s_;
 	Mercury::Address addr_;
 	Mercury::EndPoint endpoint_;
+
+	std::string name_;
+	std::string password_;
+
+	Mercury::Address getewayAddr_;
+
+	PyObjectPtr												entryScript_;
 };
 
 

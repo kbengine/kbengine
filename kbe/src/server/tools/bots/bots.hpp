@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 // common include	
 #include "cstdkbe/timer.hpp"
+#include "pyscript/script.hpp"
 #include "network/endpoint.hpp"
 #include "helper/debug_helper.hpp"
 #include "xmlplus/xmlplus.hpp"	
@@ -34,6 +35,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
 #include "client_lib/clientapp.hpp"
+#include "pyscript/pyobject_pointer.hpp"
+#include "entitydef/entitydef.hpp"
 
 //#define NDEBUG
 // windows include	
@@ -54,6 +57,19 @@ public:
 
 	~Bots();
 
+	virtual bool initialize();
+
+	void registerScript(PyTypeObject*);
+	int registerPyObjectToScript(const char* attrName, PyObject* pyObj);
+	int unregisterPyObjectToScript(const char* attrName);
+
+	bool installPyScript();
+	virtual bool installPyModules();
+	virtual void onInstallPyModules() {};
+	virtual bool uninstallPyModules();
+	bool uninstallPyScript();
+	bool installEntityDef();
+
 	static Bots& getSingleton(){ 
 		return *static_cast<Bots*>(ClientApp::getSingletonPtr()); 
 	}
@@ -62,8 +78,11 @@ public:
 		通过entityID销毁一个entity 
 	*/
 	virtual bool destroyEntity(ENTITY_ID entityID){ return true; }
-protected:
 
+	KBEngine::script::Script& getScript(){ return script_; }
+protected:
+	KBEngine::script::Script								script_;
+	std::vector<PyTypeObject*>								scriptBaseTypes_;
 };
 
 }

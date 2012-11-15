@@ -50,6 +50,7 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 	{
 		ERROR_MSG("BundleBroadcast::BundleBroadcast: init socket is error, %s\n", 
 			kbe_strerror());
+
 		networkInterface_.mainDispatcher().breakProcessing();
 	}
 	else
@@ -61,11 +62,13 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 			if (epListen_.bind(htons(bindPort), htonl(INADDR_ANY)) != 0)
 			{
 				good_ = false;
+
 				WARNING_MSG("BundleBroadcast::BundleBroadcast: Couldn't bind listener socket to port %d, %s\n", 
 					bindPort, kbe_strerror());
 				
 				KBEngine::sleep(100);
 				count++;
+
 				if(count > 3)
 				{
 					break;
@@ -75,6 +78,7 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 			{
 				epListen_.addr(htons(bindPort), htonl(INADDR_ANY));
 				good_ = true;
+
 				DEBUG_MSG("BundleBroadcast::BundleBroadcast: epListen %s\n", epListen_.c_str());
 				break;
 			}
@@ -117,6 +121,7 @@ bool BundleBroadcast::broadcast(uint16 port)
 	{
 		ERROR_MSG("BundleBroadcast::broadcast: Couldn't broadcast socket, port %d, %s\n", 
 			port, kbe_strerror());
+
 		networkInterface_.mainDispatcher().breakProcessing();
 		return false;
 	}
@@ -168,6 +173,7 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 		{
 			ERROR_MSG("BundleBroadcast::receive: select error. %s.\n",
 					kbe_strerror());
+
 			return false;
 		}
 		else
@@ -183,13 +189,17 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 			{
 				ERROR_MSG("BundleBroadcast::receive: recvfrom error. %s.\n",
 						kbe_strerror());
+
 				continue;
 			}
 			
 			DEBUG_MSG("BundleBroadcast::receive: from %s, datalen=%d.\n", inet_ntoa((struct in_addr&)psin->sin_addr.s_addr), len);
+
 			pCurrPacket()->wpos(len);
+
 			if(recvArgs != NULL)
 				recvArgs->createFromStream(*pCurrPacket());
+
 			break;
 
 		}

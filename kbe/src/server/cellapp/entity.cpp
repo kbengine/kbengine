@@ -101,10 +101,11 @@ void Entity::onDestroy(void)
 	else
 		PyErr_PrintEx(0);	
 	
-	this->backupCellData();
 
 	if(baseMailbox_ != NULL)
 	{
+		this->backupCellData();
+
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::onLoseCell);
 		(*pBundle) << id_;

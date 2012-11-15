@@ -91,7 +91,8 @@ enum COMPONENT_TYPE
 	CONSOLE_TYPE			= 10,
 	MESSAGELOG_TYPE			= 11,
 	RESOURCEMGR_TYPE		= 12,
-	COMPONENT_END_TYPE		= 13,
+	BOTS_TYPE				= 13,
+	COMPONENT_END_TYPE		= 14,
 };
 
 /** 当前服务器组件类别和ID */
@@ -113,6 +114,7 @@ const char COMPONENT_NAME[][255] = {
 	"console",
 	"messagelog",
 	"resourcemgr",
+	"bots",
 };
 
 const char COMPONENT_NAME_1[][255] = {
@@ -129,6 +131,7 @@ const char COMPONENT_NAME_1[][255] = {
 	"console    ",
 	"messagelog ",
 	"resourcemgr",
+	"bots",
 };
 
 inline const char* COMPONENT_NAME_EX(COMPONENT_TYPE CTYPE)
