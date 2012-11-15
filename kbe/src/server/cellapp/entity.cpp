@@ -92,7 +92,6 @@ Entity::~Entity()
 	Witness::ObjPool().reclaimObject(pWitness_);
 }	
 
-#define CALL_ENTITY_METHOD
 //-------------------------------------------------------------------------------------
 void Entity::onDestroy(void)
 {
