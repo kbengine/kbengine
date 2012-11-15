@@ -190,12 +190,15 @@ protected:																									\
 public:																										\
 	void initializeScript()																					\
 	{																										\
-		PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("__init__"),						\
-										const_cast<char*>(""));												\
-		if(pyResult != NULL)																				\
-			Py_DECREF(pyResult);																			\
-		else																								\
-			SCRIPT_ERROR_CHECK();																			\
+		if(PyObject_HasAttrString(this, "__init__"))														\
+		{																									\
+			PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("__init__"),					\
+											const_cast<char*>(""));											\
+			if(pyResult != NULL)																			\
+				Py_DECREF(pyResult);																		\
+			else																							\
+				SCRIPT_ERROR_CHECK();																		\
+		}																									\
 	}																										\
 																											\
 	void initializeEntity(PyObject* dictData)																\

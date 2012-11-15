@@ -70,13 +70,7 @@ void Base::onDefDataChanged(const PropertyDescription* propertyDescription,
 //-------------------------------------------------------------------------------------
 void Base::onDestroy(void)																					
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onDestroy"), 
-		const_cast<char*>(""));
-
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);	
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"));
 
 	if(this->hasDB())
 	{
@@ -475,37 +469,22 @@ void Base::onGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID)
 	
 	// 回调给脚本，获得了cell
 	cellMailbox_ = new EntityMailbox(scriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onGetCell"), 
-																	const_cast<char*>(""));
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetCell"));
 }
 
 //-------------------------------------------------------------------------------------
 void Base::onClientDeath()
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onClientDeath"), 
-																		const_cast<char*>(""));
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientDeath"));
 }
 
 //-------------------------------------------------------------------------------------
 void Base::onLoseCell(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	S_RELEASE(cellMailbox_);
-
-	// 通知脚本
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLoseCell"), 
-																		const_cast<char*>(""));
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLoseCell"));
 }
 
 //-------------------------------------------------------------------------------------
@@ -646,13 +625,7 @@ void Base::onWriteToDBCallback(ENTITY_ID eid,
 //-------------------------------------------------------------------------------------
 void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, 
-		const_cast<char*>("onPreArchive"), const_cast<char*>(""));
-
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onPreArchive"));
 
 	hasDB(true);
 
@@ -692,13 +665,8 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 //-------------------------------------------------------------------------------------
 void Base::onWriteToDB()
 {
-	PyObject* pyResult = PyObject_CallMethod(this, 
-		const_cast<char*>("onWriteToDB"), const_cast<char*>("O"), cellDataDict_);
-
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWriteToDB"), 
+		const_cast<char*>("O"), cellDataDict_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -910,26 +878,14 @@ void Base::onTeleportCB(Mercury::Channel* pChannel, SPACE_ID spaceID)
 //-------------------------------------------------------------------------------------
 void Base::onTeleportFailure()
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTeleportFailure"), 
-		const_cast<char*>(""));
-
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);	
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportFailure"));
 }
 
 //-------------------------------------------------------------------------------------
 void Base::onTeleportSuccess(SPACE_ID spaceID)
 {
 	this->setSpaceID(spaceID);
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTeleportSuccess"), 
-		const_cast<char*>(""));
-
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportSuccess"));
 }
 
 //-------------------------------------------------------------------------------------

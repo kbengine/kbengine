@@ -84,7 +84,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __SCRIPTOBJECT_H__
 #include <vector>	
 #include "Python.h"     
-#include "pyattr_macro.hpp"     
+#include "pyattr_macro.hpp" 
+#include "pyobject_call_template.hpp"
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include <structmember.h>

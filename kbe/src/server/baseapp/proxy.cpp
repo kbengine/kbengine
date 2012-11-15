@@ -93,12 +93,7 @@ void Proxy::initClientCellPropertys()
 //-------------------------------------------------------------------------------------
 void Proxy::onEntitiesEnabled(void)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, 
-		const_cast<char*>("onEntitiesEnabled"), const_cast<char*>(""));
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEntitiesEnabled"));
 }
 
 //-------------------------------------------------------------------------------------
@@ -136,23 +131,13 @@ void Proxy::onClientDeath(void)
 		addr(Mercury::Address::NONE);
 	}
 
-	PyObject* pyResult = PyObject_CallMethod(this, 
-		const_cast<char*>("onClientDeath"), const_cast<char*>(""));
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientDeath"));
 }
 
 //-------------------------------------------------------------------------------------
 void Proxy::onClientGetCell(Mercury::Channel* pChannel)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, 
-		const_cast<char*>("onClientGetCell"), const_cast<char*>(""));
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientGetCell"));
 }
 
 //-------------------------------------------------------------------------------------
@@ -170,12 +155,7 @@ PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
 //-------------------------------------------------------------------------------------
 void Proxy::onGiveClientToFailure()
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onGiveClientToFailure"), 
-																		const_cast<char*>(""));
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGiveClientToFailure"));
 }
 
 //-------------------------------------------------------------------------------------

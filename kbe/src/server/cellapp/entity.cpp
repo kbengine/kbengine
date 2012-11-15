@@ -92,15 +92,11 @@ Entity::~Entity()
 	Witness::ObjPool().reclaimObject(pWitness_);
 }	
 
+#define CALL_ENTITY_METHOD
 //-------------------------------------------------------------------------------------
 void Entity::onDestroy(void)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onDestroy"), const_cast<char*>(""));
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);	
-	
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"));
 
 	if(baseMailbox_ != NULL)
 	{
@@ -385,13 +381,8 @@ void Entity::writeToDB(void* data)
 void Entity::onWriteToDB()
 {
 	DEBUG_MSG("%s::onWriteToDB(): %d.\n", this->getScriptName(), this->getID());
-	PyObject* pyResult = PyObject_CallMethod(this, 
-		const_cast<char*>("onWriteToDB"), const_cast<char*>(""));
 
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onWriteToDB"));
 }
 
 //-------------------------------------------------------------------------------------
@@ -429,11 +420,7 @@ void Entity::onWitnessed(Entity* entity, float range)
 	if(!isWitnessed_)
 	{
 		isWitnessed_ = true; 
-		PyObject* pyResult = PyObject_CallMethod(this, "onWitnessed", "O", PyBool_FromLong(1));
-		if(pyResult != NULL)
-			Py_DECREF(pyResult);
-		else
-			PyErr_PrintEx(0);
+		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWitnessed"), const_cast<char*>("O"), PyBool_FromLong(1));
 	}*/
 }
 
@@ -501,37 +488,22 @@ PyObject* Entity::pyDelProximity(uint16 id)
 //-------------------------------------------------------------------------------------
 void Entity::onEnterTrap(Entity* entity, float range, int controllerID)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onEnterTrap"), 
-					const_cast<char*>("Ofi"), entity, range, controllerID);
-	
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS3(this, const_cast<char*>("onEnterTrap"), 
+		const_cast<char*>("Ofi"), entity, range, controllerID);
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onLeaveTrap(Entity* entity, float range, int controllerID)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLeaveTrap"), 
-			const_cast<char*>("Ofi"), entity, range, controllerID);
-	
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS3(this, const_cast<char*>("onLeaveTrap"), 
+		const_cast<char*>("Ofi"), entity, range, controllerID);
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onLeaveTrapID(ENTITY_ID entityID, float range, int controllerID)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLeaveTrapID"), 
-	const_cast<char*>("kfi"), entityID, range, controllerID);
-	
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS3(this, const_cast<char*>("onLeaveTrapID"), 
+		const_cast<char*>("kfi"), entityID, range, controllerID);
 }
 
 //-------------------------------------------------------------------------------------
@@ -660,12 +632,7 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 		space->onEntityAttachWitness(this);
 	}
 
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onGetWitness"), 
-																		const_cast<char*>(""));
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetWitness"));
 }
 
 //-------------------------------------------------------------------------------------
@@ -677,12 +644,7 @@ void Entity::onLoseWitness(Mercury::Channel* pChannel)
 	setClientMailbox(NULL);
 	Witness::ObjPool().reclaimObject(pWitness_);
 
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLoseWitness"), 
-																		const_cast<char*>(""));
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLoseWitness"));
 }
 
 //-------------------------------------------------------------------------------------
@@ -776,13 +738,7 @@ PyObject* Entity::pyStopMove()
 //-------------------------------------------------------------------------------------
 void Entity::onMove(PyObject* userData)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onMove"), 
-		const_cast<char*>("O"), userData);
-	
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onMove"), const_cast<char*>("O"), userData);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1007,86 +963,44 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 //-------------------------------------------------------------------------------------
 void Entity::onTeleport()
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTeleport"), 
-		const_cast<char*>(""));
-	
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleport"));
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onTeleportFailure()
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTeleportFailure"), 
-		const_cast<char*>(""));
-	
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportFailure"));
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTeleportSuccess"), 
-		const_cast<char*>("O"), nearbyEntity);
-	
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportSuccess"));
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onEnteredCell()
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onEnteredCell"), 
-		const_cast<char*>(""));
-	
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnteredCell"));
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onEnteringCell()
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onEnteringCell"), 
-		const_cast<char*>(""));
-	
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnteringCell"));
 }
 
 
 //-------------------------------------------------------------------------------------
 void Entity::onLeavingCell()
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLeavingCell"), 
-		const_cast<char*>(""));
-	
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeavingCell"));
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onLeftCell()
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onLeftCell"), 
-		const_cast<char*>(""));
-	
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeftCell"));
 }
 
 //-------------------------------------------------------------------------------------

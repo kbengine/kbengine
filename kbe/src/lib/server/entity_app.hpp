@@ -578,15 +578,8 @@ void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEng
 		if(pGlobalData_->del(pyKey))
 		{
 			// 通知脚本
-			PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-												const_cast<char*>("onGlobalDataDel"), 
-												const_cast<char*>("O"), 
-												pyKey);
-
-			if(pyResult != NULL)
-				Py_DECREF(pyResult);
-			else
-				SCRIPT_ERROR_CHECK();
+			SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onGlobalDataDel"), 
+				const_cast<char*>("O"), pyKey);
 		}
 	}
 	else
@@ -595,15 +588,8 @@ void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEng
 		if(pGlobalData_->write(pyKey, pyValue))
 		{
 			// 通知脚本
-			PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-												const_cast<char*>("onGlobalData"), 
-												const_cast<char*>("OO"), 
-												pyKey, pyValue);
-
-			if(pyResult != NULL)
-				Py_DECREF(pyResult);
-			else
-				SCRIPT_ERROR_CHECK();
+			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onGlobalData"), 
+				const_cast<char*>("OO"), pyKey, pyValue);
 		}
 	}
 }

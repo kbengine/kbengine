@@ -233,6 +233,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\pyobject_call_template.hpp"
+				>
+			</File>
+			<File
 				RelativePath="pyobject_pointer.hpp"
 				>
 			</File>

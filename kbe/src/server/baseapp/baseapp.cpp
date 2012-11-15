@@ -1161,15 +1161,8 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 		if(pGlobalBases_->del(pyKey))
 		{
 			// 通知脚本
-			PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-												const_cast<char*>("onGlobalBasesDel"), 
-												const_cast<char*>("O"), 
-												pyKey);
-
-			if(pyResult != NULL)
-				Py_DECREF(pyResult);
-			else
-				SCRIPT_ERROR_CHECK();
+			SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onGlobalBasesDel"), 
+				const_cast<char*>("O"), pyKey);
 		}
 	}
 	else
@@ -1178,15 +1171,8 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 		if(pGlobalBases_->write(pyKey, pyValue))
 		{
 			// 通知脚本
-			PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-												const_cast<char*>("onGlobalBases"), 
-												const_cast<char*>("OO"), 
-												pyKey, pyValue);
-
-			if(pyResult != NULL)
-				Py_DECREF(pyResult);
-			else
-				SCRIPT_ERROR_CHECK();
+			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onGlobalBases"), 
+				const_cast<char*>("OO"), pyKey, pyValue);
 		}
 	}
 }

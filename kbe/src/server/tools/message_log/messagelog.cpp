@@ -60,7 +60,7 @@ bool Messagelog::run()
 		thread::ThreadPool::getSingleton().onMainThreadTick();
 		this->getMainDispatcher().processOnce(false);
 		getNetworkInterface().handleChannels(&MessagelogInterface::messageHandlers);
-		KBEngine::sleep(100);
+		KBEngine::sleep(10);
 	};
 
 	return ret;
