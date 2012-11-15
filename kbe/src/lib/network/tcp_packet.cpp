@@ -62,7 +62,7 @@ int TCPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 {
 	//KBE_ASSERT(MessageHandlers::pMainMessageHandlers != NULL && "Must set up a MainMessageHandlers!\n");
 	int len = ep.recv(data(), PACKET_MAX_SIZE_TCP * 4);
-
+	KBE_ASSERT(rpos() == 0);
 	wpos(len);
 
 	// DEBUG_MSG("TCPPacket::recvFromEndPoint: datasize=%d, wpos=%d.\n", len, wpos());
