@@ -119,7 +119,7 @@ void GlobalDataServer::broadcastDataChange(Mercury::Channel* pChannel, COMPONENT
 
 			
 			(*pBundle) << isDelete;
-			int32 slen = key.size();
+			ArraySize slen = key.size();
 			(*pBundle) << slen;
 			(*pBundle).assign(key.data(), slen);
 
@@ -175,7 +175,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONE
 
 		(*pBundle) << isDelete;
 
-		int32 slen = iter->first.size();
+		ArraySize slen = iter->first.size();
 		(*pBundle) << slen;
 		(*pBundle).assign(iter->first.data(), slen);
 

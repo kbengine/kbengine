@@ -40,7 +40,7 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
 FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp::
 	FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(
 			std::string& entityType, 
-			 ENTITY_ID createToEntityID, ENTITY_ID entityID, uint32 cellDataLength, 
+			 ENTITY_ID createToEntityID, ENTITY_ID entityID, ArraySize cellDataLength, 
 			 std::string& strEntityCellData, bool hasClient, COMPONENT_ID componentID, SPACE_ID spaceID):
 _entityType(entityType),
 _createToEntityID(createToEntityID),

@@ -117,7 +117,7 @@ public:
 		baseapp请求在这个cellapp上创建一个entity
 	*/
 	void onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
-	void _onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID createToEntityID, ENTITY_ID entityID, uint32 cellDataLength, 
+	void _onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID createToEntityID, ENTITY_ID entityID, ArraySize cellDataLength, 
 		std::string& strEntityCellData, bool hasClient, COMPONENT_ID componentID, SPACE_ID spaceID);
 
 	/** 网络接口

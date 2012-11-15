@@ -110,7 +110,7 @@ void GlobalDataClient::onDataChanged(std::string& key, std::string& value, bool 
 	Components::COMPONENTS& channels = Components::getSingleton().getComponents(serverComponentType_);
 	Components::COMPONENTS::iterator iter1 = channels.begin();
 	uint8 dataType = dataType_;
-	int32 slen = 0;
+	ArraySize slen = 0;
 
 	for(; iter1 != channels.end(); iter1++)
 	{

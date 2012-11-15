@@ -455,23 +455,24 @@ void Cellapp::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 //-------------------------------------------------------------------------------------
 void Cellapp::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	int32 slen;
+
 	std::string key, value;
 	bool isDelete;
 	
 	s >> isDelete;
-	s >> slen;
-	key.assign((char*)(s.data() + s.rpos()), slen);
-	s.read_skip(slen);
+	s.readBlob(key);
 
 	if(!isDelete)
 	{
-		s >> slen;
-		value.assign((char*)(s.data() + s.rpos()), slen);
-		s.read_skip(slen);
+		s.readBlob(value);
 	}
 
 	PyObject * pyKey = script::Pickler::unpickle(key);
+	if(pyKey == NULL)
+	{
+		ERROR_MSG("Cellapp::onBroadcastCellAppDataChange: no has key!\n");
+		return;
+	}
 
 	if(isDelete)
 	{
@@ -479,12 +480,19 @@ void Cellapp::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, KBEngine:
 		{
 			// 通知脚本
 			SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onCellAppDataDel"), 
-				const_cast<char*>("O"), pyKey, pyValue);
+				const_cast<char*>("O"), pyKey);
 		}
 	}
 	else
 	{
 		PyObject * pyValue = script::Pickler::unpickle(value);
+
+		if(pyValue == NULL)
+		{
+			ERROR_MSG("Cellapp::onBroadcastCellAppDataChange: no has value!\n");
+			return;
+		}
+
 		if(pCellAppData_->write(pyKey, pyValue))
 		{
 			// 通知脚本
@@ -500,7 +508,6 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 {
 	std::string entityType;
 	ENTITY_ID mailboxEntityID;
-	uint32 cellDataLength;
 	std::string strEntityCellData;
 	COMPONENT_ID componentID;
 	SPACE_ID spaceID = 1;
@@ -509,13 +516,8 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 	s >> mailboxEntityID;
 	s >> spaceID;
 	s >> componentID;
-	s >> cellDataLength;
 
-	if(cellDataLength > 0)
-	{
-		strEntityCellData.assign((char*)(s.data() + s.rpos()), cellDataLength);
-		s.read_skip(cellDataLength);
-	}
+	s.readBlob(strEntityCellData);
 
 	// DEBUG_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
 	//	spaceID, entityType.c_str(), mailboxEntityID, componentID);
@@ -579,7 +581,6 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 {
 	std::string entityType;
 	ENTITY_ID createToEntityID, entityID;
-	uint32 cellDataLength;
 	std::string strEntityCellData;
 	COMPONENT_ID componentID;
 	SPACE_ID spaceID = 1;
@@ -590,13 +591,8 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 	s >> entityID;
 	s >> componentID;
 	s >> hasClient;
-	s >> cellDataLength;
 
-	if(cellDataLength > 0)
-	{
-		strEntityCellData.assign((char*)(s.data() + s.rpos()), cellDataLength);
-		s.read_skip(cellDataLength);
-	}
+	s.readBlob(strEntityCellData);
 
 	// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
@@ -605,7 +601,7 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		ForwardItem* pFI = new ForwardItem();
 		pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(entityType, createToEntityID, 
-			entityID, cellDataLength, strEntityCellData, hasClient, componentID, spaceID);
+			entityID, (ArraySize)strEntityCellData.size(), strEntityCellData, hasClient, componentID, spaceID);
 
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
@@ -615,12 +611,15 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		return;
 	}
 
-	_onCreateCellEntityFromBaseapp(entityType, createToEntityID, entityID, cellDataLength, strEntityCellData, hasClient, componentID, spaceID);
+	_onCreateCellEntityFromBaseapp(entityType, createToEntityID, entityID, (ArraySize)strEntityCellData.size(), 
+		strEntityCellData, hasClient, componentID, spaceID);
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID createToEntityID, ENTITY_ID entityID, uint32 cellDataLength, 
-		std::string& strEntityCellData, bool hasClient, COMPONENT_ID componentID, SPACE_ID spaceID)
+void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID createToEntityID, 
+											 ENTITY_ID entityID, ArraySize cellDataLength, 
+											std::string& strEntityCellData, bool hasClient, 
+											COMPONENT_ID componentID, SPACE_ID spaceID)
 {
 	Entity* pCreateToEntity = pEntities_->find(createToEntityID);
 	spaceID = pCreateToEntity->getSpaceID();

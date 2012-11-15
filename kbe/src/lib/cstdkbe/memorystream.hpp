@@ -395,14 +395,14 @@ public:
         rpos_ += len;
     }
 
-	uint32 readBlob(std::string& datas)
+	ArraySize readBlob(std::string& datas)
 	{
 		if(opsize() <= 0)
 			return 0;
 
 		ArraySize rsize = 0;
 		(*this) >> rsize;
-		if(rsize > 655350)
+		if((size_t)rsize > opsize())
 			return 0;
 
 		if(rsize > 0)
@@ -445,7 +445,7 @@ public:
 		
     virtual size_t size() const { return data_.size(); }
     virtual bool empty() const { return data_.empty(); }
-	size_t opsize() { return wpos() - rpos(); }
+	size_t opsize() { return rpos() >= wpos() ? 0 : wpos() - rpos(); }
 	
 	void opfini(){ read_skip(opsize()); }
 

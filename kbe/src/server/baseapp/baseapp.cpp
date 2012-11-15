@@ -580,7 +580,7 @@ void Baseapp::createInNewSpace(Base* base, PyObject* cell)
 	ENTITY_ID id = base->getID();
 	std::string entityType = base->ob_type->tp_name;
 	std::string strCellData = script::Pickler::pickle(base->getCellData());
-	uint32 cellDataLength = strCellData.length();
+	ArraySize cellDataLength = strCellData.length();
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
@@ -672,20 +672,13 @@ void Baseapp::onCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s)
 		return;
 
 	std::string strInitData = "";
-	uint32 initDataLength = 0;
 	PyObject* params = NULL;
 	std::string entityType;
 	COMPONENT_ID componentID;
 	CALLBACK_ID callbackID;
 
 	s >> entityType;
-	s >> initDataLength;
-
-	if(initDataLength > 0)
-	{
-		strInitData.assign((char*)(s.data() + s.rpos()), initDataLength);
-		s.read_skip(initDataLength);
-	}
+	s.readBlob(strInitData);
 
 	s >> componentID;
 	s >> callbackID;
@@ -842,7 +835,7 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	ENTITY_ID id = base->getID();
 	std::string entityType = base->ob_type->tp_name;
 	std::string strCellData = script::Pickler::pickle(base->getCellData());
-	uint32 cellDataLength = strCellData.length();
+	ArraySize cellDataLength = strCellData.length();
 	EntityMailbox* clientMailbox = base->getClientMailbox();
 	bool hasClient = (clientMailbox != NULL);
 	
@@ -1138,23 +1131,24 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 	if(pChannel->isExternal())
 		return;
 
-	int32 slen;
 	std::string key, value;
 	bool isDelete;
 	
 	s >> isDelete;
-	s >> slen;
-	key.assign((char*)(s.data() + s.rpos()), slen);
-	s.read_skip(slen);
+
+	s.readBlob(key);
 
 	if(!isDelete)
 	{
-		s >> slen;
-		value.assign((char*)(s.data() + s.rpos()), slen);
-		s.read_skip(slen);
+		s.readBlob(value);
 	}
 
 	PyObject * pyKey = script::Pickler::unpickle(key);
+	if(pyKey == NULL)
+	{
+		ERROR_MSG("Baseapp::onBroadcastCellAppDataChange: no has key!\n");
+		return;
+	}
 
 	if(isDelete)
 	{
@@ -1168,6 +1162,12 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 	else
 	{
 		PyObject * pyValue = script::Pickler::unpickle(value);
+		if(pyValue == NULL)
+		{
+			ERROR_MSG("Baseapp::onBroadcastCellAppDataChange: no has value!\n");
+			return;
+		}
+
 		if(pGlobalBases_->write(pyKey, pyValue))
 		{
 			// Í¨Öª½Å±¾

@@ -317,22 +317,18 @@ void Dbmgr::onGlobalDataClientLogon(Mercury::Channel* pChannel, COMPONENT_TYPE c
 void Dbmgr::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	uint8 dataType;
-	int32 slen;
 	std::string key, value;
 	bool isDelete;
 	COMPONENT_TYPE componentType;
 	
 	s >> dataType;
 	s >> isDelete;
-	s >> slen;
-	key.assign((char*)(s.data() + s.rpos()), slen);
-	s.read_skip(slen);
+
+	s.readBlob(key);
 
 	if(!isDelete)
 	{
-		s >> slen;
-		value.assign((char*)(s.data() + s.rpos()), slen);
-		s.read_skip(slen);
+		s.readBlob(value);
 	}
 
 	s >> componentType;

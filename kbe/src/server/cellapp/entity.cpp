@@ -333,7 +333,7 @@ void Entity::backupCellData()
 		Py_DECREF(pyDirection);
 
 		std::string strCellData = script::Pickler::pickle(cellData);
-		uint32 cellDataLength = strCellData.length();
+		ArraySize cellDataLength = strCellData.length();
 		Py_DECREF(cellData);
 	
 		// 将当前的cell部分数据打包 一起发送给base部分备份

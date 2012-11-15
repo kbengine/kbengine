@@ -512,16 +512,12 @@ void Base::onBackupCellData(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	isGetingCellData_ = false;
 	std::string strCellData;
-	uint32 cellDataLength;
 	PyObject* cellData = NULL;
 
-	s >> cellDataLength;
+	s.readBlob(strCellData);
 	
-	if(cellDataLength > 0)
+	if(strCellData.size() > 0)
 	{
-		strCellData.assign((char*)(s.data() + s.rpos()), cellDataLength);
-		s.read_skip(cellDataLength);
-		
 		cellData = script::Pickler::unpickle(strCellData);
 		KBE_ASSERT(cellData != NULL);
 	}

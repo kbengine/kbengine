@@ -63,6 +63,7 @@ int UDPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 	int len = ep.recvfrom(data(), PACKET_MAX_SIZE_UDP,
 		(u_int16_t*)&pAddr->port, (u_int32_t*)&pAddr->ip);
 
+	KBE_ASSERT(rpos() == 0);
 	wpos(len);
 	return len;
 }

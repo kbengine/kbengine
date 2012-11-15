@@ -158,20 +158,15 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 {
 	std::string entityType;
 	ENTITY_ID id;
-	uint32 cellDataLength;
+	ArraySize cellDataLength;
 	std::string strEntityCellData;
 	COMPONENT_ID componentID;
 
 	s >> entityType;
 	s >> id;
 	s >> componentID;
-	s >> cellDataLength;
 
-	if(cellDataLength > 0)
-	{
-		strEntityCellData.assign((char*)(s.data() + s.rpos()), cellDataLength);
-		s.read_skip(cellDataLength);
-	}
+	cellDataLength = s.readBlob(strEntityCellData);
 
 	static SPACE_ID spaceID = 1;
 

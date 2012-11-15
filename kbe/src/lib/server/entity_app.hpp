@@ -553,25 +553,23 @@ void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 template<class E>
 void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	int32 slen;
 	std::string key, value;
 	bool isDelete;
 	
 	s >> isDelete;
-	s >> slen;
-	key.assign((char*)(s.data() + s.rpos()), slen);
-	s.read_skip(slen);
+	s.readBlob(key);
 
 	if(!isDelete)
 	{
-		s >> slen;
-		value.assign((char*)(s.data() + s.rpos()), slen);
-		s.read_skip(slen);
+		s.readBlob(value);
 	}
 
 	PyObject * pyKey = script::Pickler::unpickle(key);
 	if(pyKey == NULL)
+	{
+		ERROR_MSG("EntityApp::onBroadcastCellAppDataChange: no has key!\n");
 		return;
+	}
 
 	if(isDelete)
 	{
@@ -585,6 +583,12 @@ void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEng
 	else
 	{
 		PyObject * pyValue = script::Pickler::unpickle(value);
+		if(pyValue == NULL)
+		{
+			ERROR_MSG("EntityApp::onBroadcastCellAppDataChange: no has value!\n");
+			return;
+		}
+
 		if(pGlobalData_->write(pyKey, pyValue))
 		{
 			// Í¨Öª½Å±¾
