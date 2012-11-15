@@ -82,6 +82,10 @@ public:
 
 	const SPACE_ENTITIES& entities()const{ return entities_; }
 
+	/**
+		销毁
+	*/
+	bool destroy(ENTITY_ID entityID);
 protected:
 	SPACE_ID id_;										// 这个space的ID
 	SPACE_ENTITIES entities_;							// 这个space上的entity

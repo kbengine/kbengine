@@ -73,6 +73,12 @@ public:
 	*/
 	void onDestroy(void);
 	
+	/**
+		销毁场景
+	*/
+	DECLARE_PY_MOTHOD_ARG0(pyDestroySpace);
+	void destroySpace(void);
+
 	/** 
 		判断自身是否是一个realEntity 
 	*/

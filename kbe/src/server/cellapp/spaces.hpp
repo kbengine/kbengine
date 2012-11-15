@@ -42,13 +42,24 @@ public:
 
 	typedef std::map<SPACE_ID, std::tr1::shared_ptr<Space> > SPACES;
 
-	/** 创建一个新的space */
+	/** 
+		创建一个新的space 
+	*/
 	static Space* createNewSpace(SPACE_ID spaceID);
 	
-	/** 寻找一个指定space */
+	/**
+		销毁一个space
+	*/
+	static bool destroySpace(SPACE_ID spaceID, ENTITY_ID entityID);
+
+	/** 
+		寻找一个指定space 
+	*/
 	static Space* findSpace(SPACE_ID spaceID);
 	
-	/** 更新所有的space */
+	/** 
+		更新所有的space 
+	*/
 	static void update();
 protected:
 	static SPACES spaces_;

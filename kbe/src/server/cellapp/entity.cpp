@@ -49,6 +49,7 @@ SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("stopMove",					pyStopMove,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInRange",			pyEntitiesInRange,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("teleport",					pyTeleport,						METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("destroySpace",				pyDestroySpace,					METH_VARARGS,				0)
 ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
@@ -122,6 +123,29 @@ PyObject* Entity::pyDestroyEntity()
 	destroyEntity();																					
 	S_Return;																							
 }																										
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyDestroySpace()																		
+{		
+	if(getSpaceID() == 0)
+	{
+		PyErr_Format(PyExc_TypeError, "Entity::destroySpace: spaceID is 0.\n");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	destroySpace();																					
+	S_Return;																							
+}	
+
+//-------------------------------------------------------------------------------------
+void Entity::destroySpace()
+{
+	if(getSpaceID() == 0)
+		return;
+
+	Spaces::destroySpace(getSpaceID(), this->getID());
+}
 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetBaseMailbox()

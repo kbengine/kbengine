@@ -360,4 +360,29 @@ void Space::getAOIEntities(Entity* pEntity, SPACE_ENTITIES& aoiEntitys)
 }
 
 //-------------------------------------------------------------------------------------
+bool Space::destroy(ENTITY_ID entityID)
+{
+	if(this->entities().size() == 0)
+		return true;
+
+	SPACE_ENTITIES entitieslog;
+
+	SPACE_ENTITIES::const_iterator iter = this->entities().begin();
+	for(; iter != this->entities().end(); iter++)
+	{
+		const Entity* entity = (*iter).get();
+		entitieslog.push_back((*iter));
+	}
+
+	iter = entitieslog.begin();
+	for(; iter != entitieslog.end(); iter++)
+	{
+		Entity* entity = const_cast<Entity*>((*iter).get());
+		entity->destroyEntity();
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 }

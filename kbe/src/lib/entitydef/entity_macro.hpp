@@ -528,8 +528,11 @@ public:																										\
 																											\
 	void destroy()																							\
 	{																										\
-		isDestroyed_ = true;																				\
-		onDestroy();																						\
+		if(!isDestroyed_)																					\
+		{																									\
+			isDestroyed_ = true;																			\
+			onDestroy();																					\
+		}																									\
 		Py_DECREF(this);																					\
 	}																										\
 	INLINE bool isDestroyed()const																			\

@@ -30,6 +30,15 @@ Space* Spaces::createNewSpace(SPACE_ID spaceID)
 }
 
 //-------------------------------------------------------------------------------------
+bool Spaces::destroySpace(SPACE_ID spaceID, ENTITY_ID entityID)
+{
+	INFO_MSG("Spaces::destroySpace: %u.\n", spaceID);
+
+	Space* pSpace = Spaces::findSpace(spaceID);
+	return pSpace->destroy(entityID);
+}
+
+//-------------------------------------------------------------------------------------
 Space* Spaces::findSpace(SPACE_ID spaceID)
 {
 	SPACES::iterator iter = spaces_.find(spaceID);
