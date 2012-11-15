@@ -1025,8 +1025,22 @@ PyObject* FixedArrayType::createFromStream(MemoryStream* mstream)
 		std::vector<PyObject*>& vals = arr->getValues();
 		for(ArraySize i=0; i<size; i++)
 		{
+			if(mstream->opsize() == 0)
+			{
+				ERROR_MSG("FixedArrayType::createFromStream: invalid(size=%u), stream no space!\n", size);
+				break;
+			}
+
 			PyObject* pyVal = dataType_->createFromStream(mstream);
-			vals.push_back(pyVal);
+			if(pyVal)
+			{
+				vals.push_back(pyVal);
+			}
+			else
+			{
+				ERROR_MSG("FixedArrayType::createFromStream: pyVal is NULL, create is error!\n");
+				break;
+			}
 		}
 	}
 
