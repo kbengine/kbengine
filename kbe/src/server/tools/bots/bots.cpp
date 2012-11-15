@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "bots.hpp"
 #include "bots_interface.hpp"
+#include "resmgr/resmgr.hpp"
 #include "network/common.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
@@ -40,6 +41,13 @@ Bots::Bots(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_ID componentID):
 ClientApp(dispatcher, ninterface, componentType, componentID)
 {
+	Resmgr::getSingleton().initialize();
+
+	// "../../res/server/kbengine_defs.xml"
+	g_kbeSrvConfig.loadConfig("server/kbengine_defs.xml");
+
+	// "../../../demo/res/server/kbengine.xml"
+	g_kbeSrvConfig.loadConfig("server/kbengine.xml");
 }
 
 //-------------------------------------------------------------------------------------

@@ -308,6 +308,16 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "bots");	
 		if(node != NULL)
 			strncpy((char*)&_botsInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "host");	
+		if(node != NULL)
+			strncpy((char*)&_botsInfo.login_ip, xml->getValStr(node).c_str(), MAX_IP);
+
+		node = NULL;
+		node = xml->enterNode(rootNode, "port");	
+		if(node != NULL)
+			_botsInfo.login_port = xml->getValInt(node);
 	}
 
 	rootNode = NULL;

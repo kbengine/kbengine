@@ -46,13 +46,13 @@
 		<entryScriptFile>			kbengine					</entryScriptFile>
 		
 		<internalInterface>  </internalInterface>
-		<externalInterface>  </externalInterface>				<!-- Type: String -->
-		<externalPorts_min> 20015 </externalPorts_min>			<!-- Type: Integer -->
-		<externalPorts_max> 20019 </externalPorts_max>			<!-- Type: Integer -->
+		<externalInterface>  </externalInterface>					<!-- Type: String -->
+		<externalPorts_min> 20015 </externalPorts_min>				<!-- Type: Integer -->
+		<externalPorts_max> 20019 </externalPorts_max>				<!-- Type: Integer -->
 		
-		<archivePeriod> 100 </archivePeriod> <!-- Type: Float -->
-		<backupPeriod> 10 </backupPeriod> <!-- Type: Float -->
-		<backUpUndefinedProperties> 0 </backUpUndefinedProperties> <!-- Type: Boolean -->
+		<archivePeriod> 100 </archivePeriod> 						<!-- Type: Float -->
+		<backupPeriod> 10 </backupPeriod>							<!-- Type: Float -->
+		<backUpUndefinedProperties> 0 </backUpUndefinedProperties>	<!-- Type: Boolean -->
 	</baseapp>
 	
 	<cellappmgr>
@@ -65,14 +65,14 @@
 	
 	<loginapp>
 		<internalInterface>  </internalInterface>
-		<externalInterface>  </externalInterface>	<!-- Type: String -->
+		<externalInterface>  </externalInterface>		<!-- Type: String -->
 		<externalPorts_min> 20013 </externalPorts_min>	<!-- Type: Integer -->
-		<externalPorts_max> 0 </externalPorts_max>	<!-- Type: Integer -->
+		<externalPorts_max> 0 </externalPorts_max>		<!-- Type: Integer -->
 	</loginapp>		
 	
 	<kbmachine>
 		<externalPorts_min> 20099 </externalPorts_min>	<!-- Type: Integer -->
-		<externalPorts_max> 0 </externalPorts_max>	<!-- Type: Integer -->
+		<externalPorts_max> 0 </externalPorts_max>		<!-- Type: Integer -->
 	</kbmachine>
 	
 	<kbcenter>
@@ -81,6 +81,8 @@
 	
 	<bots>
 		<internalInterface>  </internalInterface>
+		<host> localhost </host>						<!-- Type: String -->
+		<port> 20013 </port>							<!-- Type: Integer -->
 	</bots>
 	
 	<messagelog>
