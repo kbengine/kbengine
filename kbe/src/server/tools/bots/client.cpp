@@ -214,8 +214,8 @@ bool Client::messageloop()
 	endpoint_.setnonblocking(true);
 
 	fd_set fds;
-	Mercury::MessageID msgID = 0;
-	Mercury::MessageLength msgLength = 0;
+	//Mercury::MessageID msgID = 0;
+	//Mercury::MessageLength msgLength = 0;
 
 	while (true)
 	{
