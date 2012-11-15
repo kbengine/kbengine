@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "bots.hpp"
-#include "proxices_threadtask.hpp"
+#include "client.hpp"
 #include "network/common.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
@@ -38,19 +38,20 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-ProxicesThreadtask::ProxicesThreadtask(const Mercury::Address& addr):
+Client::Client(const Mercury::Address& addr):
 s_(0),
-addr_(addr)
+addr_(addr),
+endpoint_()
 {
 }
 
 //-------------------------------------------------------------------------------------
-ProxicesThreadtask::~ProxicesThreadtask()
+Client::~Client()
 {
 }
 
 //-------------------------------------------------------------------------------------
-bool ProxicesThreadtask::send(Mercury::Bundle& bundle)
+bool Client::send(Mercury::Bundle& bundle)
 {
 	Mercury::Channel* pChannel = Bots::getSingleton().getNetworkInterface().findChannel(addr_);
 	
@@ -65,7 +66,21 @@ bool ProxicesThreadtask::send(Mercury::Bundle& bundle)
 }
 
 //-------------------------------------------------------------------------------------
-bool ProxicesThreadtask::process()
+bool Client::initNetwork()
+{
+	endpoint_.socket(SOCK_STREAM);
+	if (!endpoint_.good())
+	{
+		ERROR_MSG("Client::initNetwork: couldn't create a socket\n");
+		return false;
+	}
+	
+	ENGINE_COMPONENT_INFO& infos = g_kbeSrvConfig.getBots();
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool Client::process()
 {
 	return false;
 }

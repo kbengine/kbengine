@@ -2,7 +2,7 @@ BIN  = bots
 SRCS =						\
 	bots					\
 	bots_interface				\
-	proxices_threadtask			\
+	client					\
 	entity					\
 	main
 

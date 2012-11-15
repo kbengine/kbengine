@@ -188,6 +188,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\entity.cpp"
 				>
 			</File>
@@ -197,10 +201,6 @@
 			</File>
 			<File
 				RelativePath="main.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\proxices_threadtask.cpp"
 				>
 			</File>
 			<Filter
@@ -228,11 +228,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\entity.hpp"
+				RelativePath=".\client.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\proxices_threadtask.hpp"
+				RelativePath=".\entity.hpp"
 				>
 			</File>
 		</Filter>

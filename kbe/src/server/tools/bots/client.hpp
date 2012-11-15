@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PROXICES_TASKS_H__
-#define __PROXICES_TASKS_H__
+#ifndef __CLIENT_TASKS_H__
+#define __CLIENT_TASKS_H__
 
 // common include	
 // #define NDEBUG
@@ -29,26 +29,29 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 #include "entitydef/entitydef.hpp"
 #include "network/address.hpp"
+#include "network/endpoint.hpp"
 
 namespace KBEngine{ 
 
 /*
 */
 
-class ProxicesThreadtask : public thread::TPTask
+class Client : public thread::TPTask
 {
 public:
-	ProxicesThreadtask(const Mercury::Address& addr);
-	virtual ~ProxicesThreadtask();
+	Client(const Mercury::Address& addr);
+	virtual ~Client();
 
 	bool send(Mercury::Bundle& bundle);
 
 	virtual bool process();
 	virtual void presentMainThread(){}
 
+	bool initNetwork();
 protected:
 	MemoryStream s_;
 	Mercury::Address addr_;
+	Mercury::EndPoint endpoint_;
 };
 
 
