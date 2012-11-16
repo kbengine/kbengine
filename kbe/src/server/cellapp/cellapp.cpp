@@ -632,6 +632,15 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 											COMPONENT_ID componentID, SPACE_ID spaceID)
 {
 	Entity* pCreateToEntity = pEntities_->find(createToEntityID);
+
+	// 可能spaceEntity已经销毁了， 但还未来得及通知到baseapp时
+	// base部分在向这个space创建entity
+	if(pCreateToEntity == NULL)
+	{
+		ERROR_MSG("Cellapp::_onCreateCellEntityFromBaseapp: not fount spaceEntity. may have been destroyed!\n");
+		return;
+	}
+
 	spaceID = pCreateToEntity->getSpaceID();
 
 	//DEBUG_MSG("Cellapp::onCreateCellEntityFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
