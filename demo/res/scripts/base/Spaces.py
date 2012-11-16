@@ -28,7 +28,7 @@ class Spaces(GameObject):
 				
 	def createSpaceOnTimer(self, tid, tno):
 		"""
-		出生怪物
+		创建space
 		"""
 		if len(self._tmpDatas) > 0:
 			spaceUType = self._tmpDatas.pop(0)
