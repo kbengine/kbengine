@@ -25,6 +25,13 @@ class GameObject(KBEngine.Base):
 		# 销毁base
 		self.destroy()
 
+	def onGetCell(self):
+		"""
+		KBEngine method.
+		entity的cell部分实体被创建成功
+		"""
+		DEBUG_MSG("%s::onGetCell: %i" % (self.getScriptName(), self.id))
+		
 	def onLoseCell(self):
 		"""
 		KBEngine method.
