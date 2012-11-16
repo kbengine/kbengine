@@ -474,6 +474,8 @@ void Cellapp::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, KBEngine:
 		return;
 	}
 
+	Py_INCREF(pyKey);
+
 	if(isDelete)
 	{
 		if(pCellAppData_->del(pyKey))
@@ -490,8 +492,11 @@ void Cellapp::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, KBEngine:
 		if(pyValue == NULL)
 		{
 			ERROR_MSG("Cellapp::onBroadcastCellAppDataChange: no has value!\n");
+			Py_DECREF(pyKey);
 			return;
 		}
+
+		Py_INCREF(pyValue);
 
 		if(pCellAppData_->write(pyKey, pyValue))
 		{
@@ -499,8 +504,11 @@ void Cellapp::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, KBEngine:
 			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onCellAppData"), 
 				const_cast<char*>("OO"), pyKey, pyValue);
 		}
+
+		Py_DECREF(pyValue);
 	}
 
+	Py_DECREF(pyKey);
 }
 
 //-------------------------------------------------------------------------------------

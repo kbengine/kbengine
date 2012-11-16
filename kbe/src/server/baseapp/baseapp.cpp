@@ -1150,6 +1150,8 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 		return;
 	}
 
+	Py_INCREF(pyKey);
+
 	if(isDelete)
 	{
 		if(pGlobalBases_->del(pyKey))
@@ -1165,8 +1167,11 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 		if(pyValue == NULL)
 		{
 			ERROR_MSG("Baseapp::onBroadcastCellAppDataChange: no has value!\n");
+			Py_DECREF(pyKey);
 			return;
 		}
+
+		Py_INCREF(pyValue);
 
 		if(pGlobalBases_->write(pyKey, pyValue))
 		{
@@ -1174,7 +1179,11 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onGlobalBases"), 
 				const_cast<char*>("OO"), pyKey, pyValue);
 		}
+
+		Py_DECREF(pyValue);
 	}
+
+	Py_DECREF(pyKey);
 }
 
 //-------------------------------------------------------------------------------------

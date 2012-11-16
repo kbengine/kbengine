@@ -571,6 +571,8 @@ void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEng
 		return;
 	}
 
+	Py_INCREF(pyKey);
+
 	if(isDelete)
 	{
 		if(pGlobalData_->del(pyKey))
@@ -586,8 +588,11 @@ void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEng
 		if(pyValue == NULL)
 		{
 			ERROR_MSG("EntityApp::onBroadcastCellAppDataChange: no has value!\n");
+			Py_DECREF(pyKey);
 			return;
 		}
+
+		Py_INCREF(pyValue);
 
 		if(pGlobalData_->write(pyKey, pyValue))
 		{
@@ -595,7 +600,11 @@ void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEng
 			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onGlobalData"), 
 				const_cast<char*>("OO"), pyKey, pyValue);
 		}
+
+		Py_DECREF(pyValue);
 	}
+
+	Py_DECREF(pyKey);
 }
 
 template<class E>
