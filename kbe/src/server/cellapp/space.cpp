@@ -366,12 +366,18 @@ bool Space::destroy(ENTITY_ID entityID)
 		return true;
 
 	SPACE_ENTITIES entitieslog;
+	
+	Entity* creator = NULL;
 
 	SPACE_ENTITIES::const_iterator iter = this->entities().begin();
 	for(; iter != this->entities().end(); iter++)
 	{
 		const Entity* entity = (*iter).get();
-		entitieslog.push_back((*iter));
+
+		if(entity->getID() == this->creatorID())
+			creator = const_cast<Entity*>(entity);
+		else
+			entitieslog.push_back((*iter));
 	}
 
 	iter = entitieslog.begin();
@@ -381,6 +387,9 @@ bool Space::destroy(ENTITY_ID entityID)
 		entity->destroyEntity();
 	}
 
+	// 最后销毁创建者
+	if(creator)
+		creator->destroyEntity();
 	return true;
 }
 

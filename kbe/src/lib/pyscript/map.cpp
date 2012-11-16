@@ -70,15 +70,16 @@ int Map::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 {
 	Map* lpScriptData = static_cast<Map*>(self);
 	std::string skey = script::Pickler::pickle(key, 0);
-	std::string sval = script::Pickler::pickle(value, 0);
+	std::string sval = "";
 	
 	if (value == NULL)
 	{
-		sval = "";
 		lpScriptData->onDataChanged(skey, sval, true);
 		return PyDict_DelItem(lpScriptData->pyDict_, key);
 	}
 	
+	sval = script::Pickler::pickle(value, 0);
+
 	lpScriptData->onDataChanged(skey, sval);
 	return PyDict_SetItem(lpScriptData->pyDict_, key, value);
 }

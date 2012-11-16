@@ -568,7 +568,9 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		}
 
 		// Ìí¼Óµ½space
+		space->creatorID(e->getID());
 		space->addEntity(e);
+		
 		e->initializeEntity(params);
 		Py_XDECREF(params);
 

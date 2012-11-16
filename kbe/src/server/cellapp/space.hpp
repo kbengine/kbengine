@@ -46,6 +46,9 @@ public:
 
 	void loadSpaceGeometry(const char* path);
 
+	void creatorID(ENTITY_ID id){ creatorID_ = id; }
+	ENTITY_ID creatorID()const { return creatorID_; }
+
 	/** 
 		更新space中的内容 
 	*/
@@ -88,7 +91,10 @@ public:
 	bool destroy(ENTITY_ID entityID);
 protected:
 	SPACE_ID id_;										// 这个space的ID
+	ENTITY_ID creatorID_;								// 创造者ID 一般来说就是spaceEntity的ID
+
 	SPACE_ENTITIES entities_;							// 这个space上的entity
+
 	bool isLoadGeometry_;								// 是否加载过地形数据
 	int32 mapSize_;										// 地图大小
 	std::string loadGeometryPathName_;					// 加载几何的路径
