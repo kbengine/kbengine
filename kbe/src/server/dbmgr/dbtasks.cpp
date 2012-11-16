@@ -222,7 +222,7 @@ bool DBTaskWriteEntity::db_thread_process()
 void DBTaskWriteEntity::presentMainThread()
 {
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
-	DEBUG_MSG("Dbmgr::writeEntity: %s(%"PRIu64"), size=%u.\n", pModule->getName(), entityDBID_, (*pDatas_).opsize());
+	DEBUG_MSG("Dbmgr::writeEntity: %s(%"PRIu64").\n", pModule->getName(), entityDBID_);
 
 	// 返回写entity的结果， 成功或者失败
 	// callbackID_
