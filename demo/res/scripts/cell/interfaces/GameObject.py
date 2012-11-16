@@ -12,6 +12,10 @@ class GameObject(KBEngine.Entity):
 		return self.__class__.__name__
 		
 	def onTimer(self, tid, userArg):
+		"""
+		KBEngine method.
+		引擎回调timer触发
+		"""
 		#DEBUG_MSG("%s::onTimer: %i, tid:%i, arg:%i" % (self.getScriptName(), self.id, tid, userArg))
 		self._timermap[userArg](self, tid, userArg)
 		
