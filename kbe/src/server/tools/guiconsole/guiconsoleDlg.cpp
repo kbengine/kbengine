@@ -598,8 +598,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 				}
 
 				bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
-				int32 uid = 0; // 查找所有的机器
-				MachineInterface::onFindInterfaceAddrArgs6::staticAddToBundle(bhandler, uid, getUsername(), 
+				MachineInterface::onFindInterfaceAddrArgs6::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
 					_componentType, findComponentType, _networkInterface.intaddr().ip, bhandler.epListen().addr().port);
 
 				if(!bhandler.broadcast())
@@ -612,8 +611,9 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 
 				MachineInterface::onBroadcastInterfaceArgs8 args;
 				bool isfirstget = true;
-
-				if(bhandler.receive(&args, 0))
+				int32 timeout = 100000;
+RESTART_RECV:
+				if(bhandler.receive(&args, 0, timeout))
 				{
 					do
 					{
@@ -626,7 +626,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 						{
 							//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
 							//	COMPONENT_NAME_EX(findComponentType));
-							ifind++;
+							//ifind++;
 							continue;
 						}
 
@@ -642,12 +642,15 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 					// 防止接收到的数据不是想要的数据
 					if(findComponentType == args.componentType)
 					{
-						ifind++;
+						//ifind++;
 					}
 					else
 					{
 						ERROR_MSG("CguiconsoleDlg::OnTimer: %s not found. receive data is error!\n", COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 					}
+
+					timeout = 10000;
+					goto RESTART_RECV;
 				}
 				else
 				{

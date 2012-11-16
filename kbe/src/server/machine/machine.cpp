@@ -103,6 +103,13 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::string& username, int8 componentType, 
 								  int8 findComponentType, uint32 finderAddr, uint16 finderRecvPort)
 {
+	KBEngine::COMPONENT_TYPE tfindComponentType = (KBEngine::COMPONENT_TYPE)findComponentType;
+	KBEngine::COMPONENT_TYPE tComponentType = (KBEngine::COMPONENT_TYPE)componentType;
+
+	// 如果不是guiconsole发出的, uid也不等于当前服务器的uid则不理会。
+	if(tComponentType != CONSOLE_TYPE && uid != KBEngine::getUserUID())
+		return;
+
 	INFO_MSG("Machine::onFindInterfaceAddr[%s]: uid:%d, username:%s, componentType:%s, "
 		"find:%s, finderaddr:%s, finderRecvPort:%u.\n", 
 		pChannel->c_str(), uid, username.c_str(), 
@@ -119,17 +126,20 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 		return;
 	}
 	
-	Components::COMPONENTS& components = Componentbridge::getComponents().getComponents((KBEngine::COMPONENT_TYPE)findComponentType);
+	Components::COMPONENTS& components = Componentbridge::getComponents().getComponents(tfindComponentType);
 	Components::COMPONENTS::iterator iter = components.begin();
 	bool found = false;
 	Mercury::Bundle bundle;
 
 	for(; iter != components.end(); )
 	{
-		if(uid != 0 && (*iter).uid != uid)
+		if(tComponentType != CONSOLE_TYPE)
 		{
-			++iter;
-			continue;
+			if((*iter).uid != uid)
+			{
+				++iter;
+				continue;
+			}
 		}
 
 		const Components::ComponentInfos* pinfos = &(*iter);
@@ -138,7 +148,7 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 		
 		if(usable)
 		{
-			if(ep_.addr().ip == pinfos->pIntAddr->ip)
+			if(ep_.addr().ip == pinfos->pIntAddr->ip || tComponentType == CONSOLE_TYPE)
 			{
 				found = true;
 				MachineInterface::onBroadcastInterfaceArgs8::staticAddToBundle(bundle, pinfos->uid, 
@@ -158,10 +168,17 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 
 	if(!found)
 	{
-		WARNING_MSG("Machine::onFindInterfaceAddr: %s not found %s.\n", COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), 
-			COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+		// 如果是控制台， 且uid不是一致的则无需返回找不到消息
+		// 控制台可能广播到其他组去了
+		if(tComponentType == CONSOLE_TYPE && KBEngine::getUserUID() != uid)
+		{
+			return;
+		}
 
-		MachineInterface::onBroadcastInterfaceArgs8::staticAddToBundle(bundle, 0, 
+		WARNING_MSG("Machine::onFindInterfaceAddr: %s not found %s.\n", COMPONENT_NAME_EX(tComponentType), 
+			COMPONENT_NAME_EX(tfindComponentType));
+
+		MachineInterface::onBroadcastInterfaceArgs8::staticAddToBundle(bundle, KBEngine::getUserUID(), 
 			"", UNKNOWN_COMPONENT_TYPE, 0, 0, 0, 0, 0);
 	}
 
