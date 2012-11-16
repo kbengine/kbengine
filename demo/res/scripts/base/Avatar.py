@@ -63,14 +63,6 @@ class Avatar(KBEngine.Proxy,
 			
 		# 销毁base
 		self.destroy()
-		
-	def onLoseCell(self):
-		"""
-		KBEngine method.
-		entity的cell部分实体丢失
-		"""
-		DEBUG_MSG("Avatar[%i].onLoseCell:" % self.id)
-		self.destroySelf()
 
 	def onClientDeath(self):
 		"""

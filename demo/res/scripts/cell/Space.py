@@ -11,6 +11,12 @@ class Space(GameObject):
 
 		KBEngine.globalData["space_%i" % self.spaceID] = self.base
 	
+	def onDestroy(self):
+		"""
+		KBEngine method.
+		"""
+		del KBEngine.globalData["space_%i" % self.spaceID]
+		
 	def onEnter(self, entityMailbox):
 		"""
 		defined method.
