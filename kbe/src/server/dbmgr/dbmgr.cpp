@@ -442,6 +442,7 @@ void Dbmgr::syncEntityStreamTemplate(Mercury::Channel* pChannel, KBEngine::Memor
 	KBE_ASSERT(pTable);
 
 	pTable->accountDefMemoryStream(s);
+	s.opfini();
 }
 
 //-------------------------------------------------------------------------------------

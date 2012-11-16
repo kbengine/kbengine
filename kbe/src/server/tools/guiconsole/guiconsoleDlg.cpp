@@ -776,7 +776,7 @@ void CguiconsoleDlg::updateTree()
 	tcitem.hParent = TVI_ROOT;
 	tcitem.hInsertAfter = TVI_LAST;
 	tcitem.item.mask = TVIF_TEXT|TVIF_PARAM|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
-	tcitem.item.pszText = L"servers";
+	tcitem.item.pszText = L"servergroups";
 	tcitem.item.lParam = 0;
 	tcitem.item.iImage = 0;
 	tcitem.item.iSelectedImage = 1;
