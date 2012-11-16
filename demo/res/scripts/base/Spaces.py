@@ -57,7 +57,7 @@ class Spaces(GameObject):
 		define method.
 		space的cell创建好了
 		"""
-		self._spaceAllocs[spaceUType].onSpaceGetCell(spaceKey)
+		self._spaceAllocs[spaceUType].onSpaceLoseCell(spaceKey)
 		
 	def onSpaceGetCell(self, spaceUType, spaceMailbox, spaceKey):
 		"""

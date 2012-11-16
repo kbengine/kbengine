@@ -27,6 +27,9 @@ class SpaceAlloc:
 	def createSpace(self, spaceKey, context):
 		"""
 		"""
+		if spaceKey <= 0:
+			spaceKey = KBEngine.genUUID64()
+			
 		context = copy.copy(context)
 		spaceData = d_spaces.datas.get(self._utype)
 		KBEngine.createBaseAnywhere(spaceData["entityType"], \
@@ -53,10 +56,6 @@ class SpaceAlloc:
 		space的cell创建好了
 		"""
 		DEBUG_MSG("Spaces::onSpaceGetCell: space %i. entityID=%i, spaceKey=%i" % (self._utype, spaceMailbox.id, spaceKey))
-		
-		if spaceKey <= 0:
-			spaceKey = spaceMailbox.id
-
 		self._spaces[spaceKey] = spaceMailbox
 
 		pendingLogonEntities = self._pendingLogonEntities
