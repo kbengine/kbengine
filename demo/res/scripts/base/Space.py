@@ -18,6 +18,13 @@ class Space(GameObject):
 		self.tmpCreateEntityDatas = list(d_spaces.datas[self.spaceUTypeB].get("entities", []))
 		self.avatars = {}
 		
+	def onLoseCell(self):
+		"""
+		KBEngine method.
+		entity的cell部分实体丢失
+		"""
+		KBEngine.globalData["SpaceMgr"].onSpaceLoseCell(self.spaceUTypeB, self.spaceKey)
+		
 	def onGetCell(self):
 		"""
 		KBEngine method.

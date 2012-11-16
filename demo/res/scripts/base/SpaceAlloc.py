@@ -41,6 +41,12 @@ class SpaceAlloc:
 		一个space创建好后的回调
 		"""
 		DEBUG_MSG("Spaces::onSpaceCreatedCB: space %i. entityID=%i" % (self._utype, space.id))
+
+	def onSpaceLoseCell(self, spaceKey):
+		"""
+		space的cell创建好了
+		"""
+		del self._spaces[spaceKey]
 		
 	def onSpaceGetCell(self, spaceMailbox, spaceKey):
 		"""

@@ -25,6 +25,11 @@
 			<Arg>		PYTHON		</Arg>
 		</teleportSpace>
 
+		<onSpaceLoseCell>
+			<Arg>		ENTITY_UTYPE	</Arg>
+			<Arg>		DBID		</Arg>
+		</onSpaceLoseCell>
+
 		<onSpaceGetCell>
 			<Arg>		ENTITY_UTYPE	</Arg>
 			<Arg>		MAILBOX		</Arg>

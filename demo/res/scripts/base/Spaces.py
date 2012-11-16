@@ -52,6 +52,13 @@ class Spaces(GameObject):
 		"""
 		self._spaceAllocs[spaceUType].teleportSpace(entityMailbox, position, direction, context)
 
+	def onSpaceLoseCell(self, spaceUType, spaceKey):
+		"""
+		define method.
+		space的cell创建好了
+		"""
+		self._spaceAllocs[spaceUType].onSpaceGetCell(spaceKey)
+		
 	def onSpaceGetCell(self, spaceUType, spaceMailbox, spaceKey):
 		"""
 		define method.
