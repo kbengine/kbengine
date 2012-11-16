@@ -1693,8 +1693,8 @@ void Baseapp::onCellWriteToDBCompleted(Mercury::Channel* pChannel, KBEngine::Mem
 	s >> baseID;
 	s >> callbackID;
 
-	INFO_MSG("Baseapp::onCellWriteToDBCompleted: entityID=%d, size=%u.\n", 
-		baseID, s.opsize());
+	INFO_MSG("Baseapp::onCellWriteToDBCompleted: entityID=%d.\n", 
+		baseID);
 
 	Base* base = this->findEntity(baseID);
 

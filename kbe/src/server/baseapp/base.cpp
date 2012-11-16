@@ -541,11 +541,17 @@ void Base::onBackup()
 //-------------------------------------------------------------------------------------
 void Base::writeToDB(void* data)
 {
-	PyObject* pyCallback = static_cast<PyObject*>(data);
+	PyObject* pyCallback = NULL;
+	
+	// data 是有可能会NULL的， 比如定时存档是不需要回调函数的
+	if(data != NULL)
+		pyCallback = static_cast<PyObject*>(data);
 
 	if(isArchiveing_)
 	{
-		Py_DECREF(pyCallback);
+		if(pyCallback != NULL)
+			Py_DECREF(pyCallback);
+
 		return;
 	}
 
@@ -553,7 +559,9 @@ void Base::writeToDB(void* data)
 
 	if(isDestroyed())																				
 	{			
-		Py_DECREF(pyCallback);
+		if(pyCallback != NULL)
+			Py_DECREF(pyCallback);
+
 		return;																							
 	}
 

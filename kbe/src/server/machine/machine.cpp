@@ -126,19 +126,25 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 
 	for(; iter != components.end(); )
 	{
-		if((*iter).uid != uid)
+		if(uid != 0 && (*iter).uid != uid)
+		{
+			++iter;
 			continue;
+		}
 
 		const Components::ComponentInfos* pinfos = &(*iter);
-		found = true;
 		
 		bool usable = Componentbridge::getComponents().checkComponentUsable(pinfos);
 		
 		if(usable)
 		{
-			MachineInterface::onBroadcastInterfaceArgs8::staticAddToBundle(bundle, pinfos->uid, 
-				pinfos->username, findComponentType, pinfos->cid, pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
-				pinfos->pExtAddr->ip, pinfos->pExtAddr->port);
+			if(ep_.addr().ip == pinfos->pIntAddr->ip)
+			{
+				found = true;
+				MachineInterface::onBroadcastInterfaceArgs8::staticAddToBundle(bundle, pinfos->uid, 
+					pinfos->username, findComponentType, pinfos->cid, pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
+					pinfos->pExtAddr->ip, pinfos->pExtAddr->port);
+			}
 
 			++iter;
 		}

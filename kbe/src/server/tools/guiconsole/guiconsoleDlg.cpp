@@ -598,7 +598,8 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 				}
 
 				bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
-				MachineInterface::onFindInterfaceAddrArgs6::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+				int32 uid = 0; // 查找所有的机器
+				MachineInterface::onFindInterfaceAddrArgs6::staticAddToBundle(bhandler, uid, getUsername(), 
 					_componentType, findComponentType, _networkInterface.intaddr().ip, bhandler.epListen().addr().port);
 
 				if(!bhandler.broadcast())
