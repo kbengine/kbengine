@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "kbe_table_mysql.hpp"
 #include "read_entity_helper.hpp"
 #include "write_entity_helper.hpp"
+#include "remove_entity_helper.hpp"
 #include "entitydef/scriptdef_module.hpp"
 #include "entitydef/property.hpp"
 #include "dbmgr_lib/db_interface.hpp"
@@ -370,6 +371,31 @@ DBID EntityTableMysql::writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, 
 		return dbid;
 
 	return dbid;
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableMysql::removeEntity(DBInterface* dbi, DBID dbid, ScriptDefModule* pModule)
+{
+	KBE_ASSERT(pModule && dbid > 0);
+
+	DB_OP_TABLE_ITEM_DATA_BOX opTableItemDataBox;
+	opTableItemDataBox.parentTableName = "";
+	opTableItemDataBox.parentTableDBID = 0;
+	opTableItemDataBox.dbid = dbid;
+	opTableItemDataBox.tableName = pModule->getName();
+	opTableItemDataBox.isEmpty = false;
+	opTableItemDataBox.readresultIdx = 0;
+
+	std::vector<EntityTableItem*>::iterator iter = tableFixedOrderItems_.begin();
+	for(; iter != tableFixedOrderItems_.end(); iter++)
+	{
+		static_cast<EntityTableItemMysqlBase*>((*iter))->getReadSqlItem(opTableItemDataBox);
+	}
+
+	bool ret = RemoveEntityHelper::removeDB(dbi, opTableItemDataBox);
+	KBE_ASSERT(ret);
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

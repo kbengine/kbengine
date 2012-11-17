@@ -205,6 +205,11 @@ public:
 	virtual DBID writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 
 	/**
+		从数据库删除entity
+	*/
+	virtual bool removeEntity(DBInterface* dbi, DBID dbid, ScriptDefModule* pModule);
+
+	/**
 		获取所有的数据放到流中
 	*/
 	virtual bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
@@ -250,6 +255,11 @@ public:
 		写entity到数据库
 	*/
 	DBID writeEntity(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	/**
+		从数据库删除entity
+	*/
+	bool removeEntity(DBInterface* dbi, DBID dbid, ScriptDefModule* pModule);
 
 	/**
 		获取某个表所有的数据放到流中

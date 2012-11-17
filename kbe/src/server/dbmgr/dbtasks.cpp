@@ -83,12 +83,12 @@ bool DBTask::process()
 {
 	mysql_thread_init();
 
-	for(int tryi = 0; tryi < 3; tryi++)
+	for(int tryi = 0; tryi < 10; tryi++)
 	{
 		pdbi_ = DBUtil::createInterface(false);
 		if(pdbi_ == NULL)
 		{
-			KBEngine::sleep(10);
+			KBEngine::sleep(1000);
 		}
 		else
 		{
@@ -258,6 +258,45 @@ void DBTaskWriteEntity::presentMainThread()
 	}
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	EntityDBTask::presentMainThread();
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskRemoveEntity::DBTaskRemoveEntity(const Mercury::Address& addr, 
+									 COMPONENT_ID componentID, ENTITY_ID eid, 
+									 DBID entityDBID, MemoryStream& datas):
+EntityDBTask(addr, datas, eid, entityDBID),
+componentID_(componentID),
+eid_(eid),
+entityDBID_(entityDBID),
+sid_(0)
+{
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskRemoveEntity::~DBTaskRemoveEntity()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskRemoveEntity::db_thread_process()
+{
+	(*pDatas_) >> sid_;
+
+	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
+					(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
+	KBE_ASSERT(pELTable);
+	pELTable->eraseEntityLog(pdbi_, entityDBID_);
+
+	EntityTables::getSingleton().removeEntity(pdbi_, entityDBID_, EntityDef::findScriptModule(sid_));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+void DBTaskRemoveEntity::presentMainThread()
+{
+	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
+	DEBUG_MSG("Dbmgr::removeEntity: %s(%"PRIu64").\n", pModule->getName(), entityDBID_);
 	EntityDBTask::presentMainThread();
 }
 

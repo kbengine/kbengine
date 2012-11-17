@@ -193,7 +193,7 @@ void Entity::setPosition(Position3D& pos)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyDestroyEntity()
+PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * kwargs)
 {
 	S_Return;
 }

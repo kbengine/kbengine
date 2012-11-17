@@ -127,6 +127,8 @@ public:
 
 	INLINE PyObject* getCellData(void)const;
 	
+	INLINE bool creatingCell(void)const;
+
 	/**
 		请求cell部分将entity的celldata更新一份过来
 	*/
@@ -190,6 +192,11 @@ public:
 		销毁这个entity 
 	*/
 	void onDestroy(void);
+
+	/**
+		销毁base内部通知
+	*/
+	void onDestroyEntity(bool deleteFromDB, bool writeToDB);
 
 	/** 
 		为一个baseEntity在制定的cell上创建一个cellEntity 

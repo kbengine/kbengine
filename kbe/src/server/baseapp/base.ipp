@@ -46,6 +46,11 @@ INLINE PyObject* Base::getCellData(void)const
 	return cellDataDict_; 
 }
 
+INLINE bool Base::creatingCell(void)const
+{ 
+	return creatingCell_; 
+}
+
 INLINE bool Base::hasDB()const 
 {
 	return hasDB_; 

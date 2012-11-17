@@ -203,6 +203,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\remove_entity_helper.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\sqlstatement.hpp"
 				>
 			</File>

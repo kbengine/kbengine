@@ -143,6 +143,25 @@ protected:
 };
 
 /**
+	从数据库中删除entity
+*/
+class DBTaskRemoveEntity : public EntityDBTask
+{
+public:
+	DBTaskRemoveEntity(const Mercury::Address& addr, COMPONENT_ID componentID, 
+		ENTITY_ID eid, DBID entityDBID, MemoryStream& datas);
+
+	virtual ~DBTaskRemoveEntity();
+	virtual bool db_thread_process();
+	virtual void presentMainThread();
+protected:
+	COMPONENT_ID componentID_;
+	ENTITY_ID eid_;
+	DBID entityDBID_;
+	ENTITY_SCRIPT_UID sid_;
+};
+
+/**
 	创建一个账号到数据库
 */
 class DBTaskCreateAccount : public DBTask

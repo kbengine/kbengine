@@ -71,6 +71,12 @@ DBID EntityTable::writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, Scrip
 }
 
 //-------------------------------------------------------------------------------------
+bool EntityTable::removeEntity(DBInterface* dbi, DBID dbid, ScriptDefModule* pModule)
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityTable::queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule)
 {
 	std::vector<EntityTableItem*>::iterator iter = tableFixedOrderItems_.begin();
@@ -223,6 +229,15 @@ DBID EntityTables::writeEntity(DBInterface* dbi, DBID dbid, MemoryStream* s, Scr
 	KBE_ASSERT(pTable != NULL);
 
 	return pTable->writeTable(dbi, dbid, s, pModule);
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTables::removeEntity(DBInterface* dbi, DBID dbid, ScriptDefModule* pModule)
+{
+	EntityTable* pTable = this->findTable(pModule->getName());
+	KBE_ASSERT(pTable != NULL);
+
+	return pTable->removeEntity(dbi, dbid, pModule);
 }
 
 //-------------------------------------------------------------------------------------

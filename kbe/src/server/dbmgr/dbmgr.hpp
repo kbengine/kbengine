@@ -139,6 +139,11 @@ public:
 	*/
 	void writeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
+	/** 网络接口
+		删除某个entity的存档数据
+	*/
+	void removeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
 	/**
 		获取db接口
 	*/

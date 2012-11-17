@@ -428,6 +428,20 @@ void Dbmgr::writeEntity(Mercury::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
+void Dbmgr::removeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	ENTITY_ID eid;
+	DBID entityDBID;
+	COMPONENT_ID componentID;
+
+	s >> componentID >> eid >> entityDBID;
+	KBE_ASSERT(entityDBID > 0);
+
+	bufferedDBTasks_.addTask(new DBTaskRemoveEntity(pChannel->addr(), componentID, eid, entityDBID, s));
+	s.opfini();
+}
+
+//-------------------------------------------------------------------------------------
 void Dbmgr::queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, DBID dbid, 
 	std::string& entityType, CALLBACK_ID callbackID, ENTITY_ID entityID)
 {

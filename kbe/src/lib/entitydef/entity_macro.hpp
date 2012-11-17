@@ -26,14 +26,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-#define ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																\
-	ENTITY_CPP_IMPL(APP, CLASS)																				\
-	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																		\
-	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,			0)		\
-	SCRIPT_METHOD_DECLARE("addTimer",		pyAddTimer,						METH_VARARGS,			0)		\
-	SCRIPT_METHOD_DECLARE("delTimer",		pyDelTimer,						METH_VARARGS,			0)		\
-	SCRIPT_METHOD_DECLARE("writeToDB",		pyWriteToDB,					METH_VARARGS,			0)		\
-	SCRIPT_METHOD_DECLARE("destroy",		pyDestroyEntity,				METH_VARARGS,			0)		\
+#define ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																				\
+	ENTITY_CPP_IMPL(APP, CLASS)																								\
+	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																						\
+	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,							0)		\
+	SCRIPT_METHOD_DECLARE("addTimer",		pyAddTimer,						METH_VARARGS,							0)		\
+	SCRIPT_METHOD_DECLARE("delTimer",		pyDelTimer,						METH_VARARGS,							0)		\
+	SCRIPT_METHOD_DECLARE("writeToDB",		pyWriteToDB,					METH_VARARGS,							0)		\
+	SCRIPT_METHOD_DECLARE("destroy",		pyDestroyEntity,				METH_VARARGS | METH_KEYWORDS,			0)		\
 
 	
 #define ENTITY_METHOD_DECLARE_END()																			\
@@ -541,8 +541,8 @@ public:																										\
 	}																										\
 	DECLARE_PY_GET_MOTHOD(pyGetIsDestroyed);																\
 																											\
-	void destroyEntity(void);																				\
-	DECLARE_PY_MOTHOD_ARG0(pyDestroyEntity);																\
+	void destroyEntity();																					\
+	static PyObject* __py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * kwargs);				\
 
 
 
@@ -602,11 +602,11 @@ public:																										\
 		return PyLong_FromLong(timerID);																	\
 	}																										\
 																											\
-																											\
-	void CLASS::destroyEntity(void)																			\
+	void CLASS::destroyEntity()																				\
 	{																										\
 		APP::getSingleton().destroyEntity(id_);																\
 	}																										\
+																											\
 	PyObject* CLASS::pyGetIsDestroyed()																		\
 	{																										\
 		return PyBool_FromLong(isDestroyed());																\

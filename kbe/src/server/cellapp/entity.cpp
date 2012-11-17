@@ -118,11 +118,24 @@ void Entity::onDestroy(void)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyDestroyEntity()																		
-{																										
-	destroyEntity();																					
-	S_Return;																							
-}																										
+PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * kwargs)
+{
+	uint16 currargsSize = PyTuple_Size(args);
+	Entity* pobj = static_cast<Entity*>(self);
+
+	if(currargsSize > 0)
+	{
+		PyErr_Format(PyExc_AssertionError,
+						"%s: args max require %d args, gived %d! is script[%s].\n",	
+			__FUNCTION__, 0, currargsSize, pobj->getScriptName());
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	pobj->destroyEntity();
+
+	S_Return;
+}																							
 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyDestroySpace()																		

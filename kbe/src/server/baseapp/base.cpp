@@ -310,28 +310,109 @@ PyObject* Base::pyDestroyCellEntity()
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Base::pyDestroyEntity()
+PyObject* Base::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * kwargs)
 {
-	if(isDestroyed())	
+	Base* pobj = static_cast<Base*>(self);
+	static char * keywords[] =
 	{
-		PyErr_Format(PyExc_Exception, "%s::destroy: %d is destroyed!\n",		
-			getScriptName(), getID());		
+		const_cast<char *> ("deleteFromDB"),
+		const_cast<char *> ("writeToDB"),
+		NULL
+	};
+
+	if(pobj->isDestroyed())	
+	{
+		PyErr_Format(PyExc_Exception, "%s::destroy: %d is destroyed!\n",
+			pobj->getScriptName(), pobj->getID());
 		PyErr_PrintEx(0);
-		S_Return;																						
+		return NULL;
 	}
 
-	if(creatingCell_ || cellMailbox_ != NULL) 
+	if(pobj->creatingCell() || pobj->getCellMailbox() != NULL) 
 	{
 		PyErr_Format(PyExc_Exception, "%s::destroy: id:%i has cell! creatingCell=%s\n", 
-			this->getScriptName(), this->getID(),
+			pobj->getScriptName(), pobj->getID(),
 
-			creatingCell_ ? "true" : "false");
+			pobj->creatingCell() ? "true" : "false");
 		PyErr_PrintEx(0);
+		return NULL;
 	}
-	else
-		destroyEntity();
+
+	PyObject* pyDeleteFromDB = NULL;
+	PyObject* pyWriteToDB = NULL;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OO", 
+		keywords, &pyDeleteFromDB, &pyWriteToDB))
+	{
+		return NULL;
+	}
+
+	bool deleteFromDB = (pyDeleteFromDB != NULL) ? 
+		(PyObject_IsTrue(pyDeleteFromDB) ? true : false) : false; 
+
+	bool writeToDB = (pyWriteToDB != NULL) ? 
+		(PyObject_IsTrue(pyWriteToDB) ? true : false) : pobj->hasDB();
+
+	if(deleteFromDB || writeToDB)
+	{
+		// 有可能已经请求了writeToDB但还未返回写入的dbid
+		// 这种情况需要返回给用户一个错误， 用户可以继续尝试这个操作
+		if(pobj->hasDB() && pobj->getDBID() == 0)
+		{
+			PyErr_Format(PyExc_Exception, "%s::destroy: id:%i has db, but not dbid. "
+				"please wait for dbmgr to processing!\n", 
+				pobj->getScriptName(), pobj->getID());
+			PyErr_PrintEx(0);
+			return NULL;
+		}
+	}
+
+	pobj->onDestroyEntity(deleteFromDB, writeToDB);
+	pobj->destroyEntity();
 
 	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onDestroyEntity(bool deleteFromDB, bool writeToDB)
+{
+	if(deleteFromDB && hasDB())
+	{
+		Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+		Components::ComponentInfos* dbmgrinfos = NULL;
+
+		if(cts.size() > 0)
+			dbmgrinfos = &(*cts.begin());
+
+		if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+		{
+			ERROR_MSG("Base::onCellWriteToDBCompleted: not found dbmgr!\n");
+			return;
+		}
+
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(DbmgrInterface::removeEntity);
+
+		(*pBundle) << g_componentID;
+		(*pBundle) << this->getID();
+		(*pBundle) << this->getDBID();
+		(*pBundle) << this->getScriptModule()->getUType();
+		(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+		this->hasDB(false);
+		return;
+	}
+
+	if(writeToDB)
+	{
+		// 这个行为默认会处理
+		// this->writeToDB(NULL);
+	}
+	else
+	{
+		this->hasDB(false);
+	}
 }
 
 //-------------------------------------------------------------------------------------
