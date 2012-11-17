@@ -185,6 +185,12 @@ public:
 		while(isRun)
 		{
 			isRun = tptd->onWaitCondSignal();
+			if(!isRun)
+			{
+				tptd = NULL;
+				break;
+			}
+
 			tptd->state_ = THREAD_STATE_BUSY;
 			TPTask * task = tptd->getTask();
 			
