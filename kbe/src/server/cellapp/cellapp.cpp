@@ -631,6 +631,10 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 											std::string& strEntityCellData, bool hasClient, 
 											COMPONENT_ID componentID, SPACE_ID spaceID)
 {
+	// 注意：此处理论不会找不到组件， 因为onCreateCellEntityFromBaseapp中已经进行过一次消息缓存判断
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
+	KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
+
 	Entity* pCreateToEntity = pEntities_->find(createToEntityID);
 
 	// 可能spaceEntity已经销毁了， 但还未来得及通知到baseapp时
@@ -638,6 +642,12 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 	if(pCreateToEntity == NULL)
 	{
 		ERROR_MSG("Cellapp::_onCreateCellEntityFromBaseapp: not fount spaceEntity. may have been destroyed!\n");
+
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		pBundle->newMessage(BaseappInterface::onCreateCellFailure);
+		BaseappInterface::onCreateCellFailureArgs1::staticAddToBundle(*pBundle, entityID);
+		pBundle->send(this->getNetworkInterface(), cinfos->pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		return;
 	}
 
@@ -662,10 +672,6 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 			Py_XDECREF(params);
 			return;
 		}
-		
-		// 注意：此处理论不会找不到组件， 因为onCreateCellEntityFromBaseapp中已经进行过一次消息缓存判断
-		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
-		KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
 
 		// 设置entity的baseMailbox
 		EntityMailbox* mailbox = new EntityMailbox(e->getScriptModule(), NULL, componentID, entityID, MAILBOX_TYPE_BASE);

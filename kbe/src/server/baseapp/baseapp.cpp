@@ -865,6 +865,18 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 }
 
 //-------------------------------------------------------------------------------------
+void Baseapp::onCreateCellFailure(Mercury::Channel* pChannel, ENTITY_ID entityID)
+{
+	if(pChannel->isExternal())
+		return;
+
+	Base* base = pEntities_->find(entityID);
+	KBE_ASSERT(base != NULL);
+
+	base->onCreateCellFailure();
+}
+
+//-------------------------------------------------------------------------------------
 void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, 
 							  COMPONENT_ID componentID, SPACE_ID spaceID)
 {

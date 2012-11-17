@@ -389,14 +389,9 @@ PyObject* Base::pyGetClientMailbox()
 //-------------------------------------------------------------------------------------
 void Base::onCreateCellFailure(void)
 {
-	PyObject* pyResult = 
-		PyObject_CallMethod(this, const_cast<char*>("onCreateCellFailure"), 
-													const_cast<char*>(""));
+	creatingCell_ = false;
 
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		PyErr_PrintEx(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onCreateCellFailure"));
 }
 
 //-------------------------------------------------------------------------------------

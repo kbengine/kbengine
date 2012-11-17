@@ -155,6 +155,11 @@ public:
 	void createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base* base);
 	
 	/** 网络接口
+		createCellEntity失败的回调。
+	*/
+	void onCreateCellFailure(Mercury::Channel* pChannel, ENTITY_ID entityID);
+
+	/** 网络接口
 		createCellEntity的cell实体创建成功回调。
 	*/
 	void onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id, COMPONENT_ID componentID, SPACE_ID spaceID);

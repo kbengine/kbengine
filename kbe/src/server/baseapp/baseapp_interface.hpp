@@ -118,6 +118,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									COMPONENT_ID,							componentID,
 									SPACE_ID,								spaceID)
 
+	// createCellEntity的cell实体创建成功回调。
+	BASEAPP_MESSAGE_DECLARE_ARGS1(onCreateCellFailure,						MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,								entityID)
+
 	// loginapp向自己注册一个将要登录的账号, 由baseappmgr转发。
 	BASEAPP_MESSAGE_DECLARE_ARGS4(registerPendingLogin,						MERCURY_VARIABLE_MESSAGE,
 									std::string,							accountName,
