@@ -127,11 +127,14 @@ protected:
 class DBTaskWriteEntity : public EntityDBTask
 {
 public:
-	DBTaskWriteEntity(const Mercury::Address& addr, ENTITY_ID eid, DBID entityDBID, MemoryStream& datas);
+	DBTaskWriteEntity(const Mercury::Address& addr, COMPONENT_ID componentID, 
+		ENTITY_ID eid, DBID entityDBID, MemoryStream& datas);
+
 	virtual ~DBTaskWriteEntity();
 	virtual bool db_thread_process();
 	virtual void presentMainThread();
 protected:
+	COMPONENT_ID componentID_;
 	ENTITY_ID eid_;
 	DBID entityDBID_;
 	ENTITY_SCRIPT_UID sid_;

@@ -191,9 +191,11 @@ void DBTaskExecuteRawDatabaseCommand::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskWriteEntity::DBTaskWriteEntity(const Mercury::Address& addr, ENTITY_ID eid, 
+DBTaskWriteEntity::DBTaskWriteEntity(const Mercury::Address& addr, 
+									 COMPONENT_ID componentID, ENTITY_ID eid, 
 									 DBID entityDBID, MemoryStream& datas):
 EntityDBTask(addr, datas, eid, entityDBID),
+componentID_(componentID),
 eid_(eid),
 entityDBID_(entityDBID),
 sid_(0),
@@ -213,8 +215,26 @@ bool DBTaskWriteEntity::db_thread_process()
 	(*pDatas_) >> sid_ >> callbackID_;
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
+	bool writeEntityLog = (entityDBID_ == 0);
+
 	entityDBID_ = EntityTables::getSingleton().writeEntity(pdbi_, entityDBID_, pDatas_, pModule);
 	success_ = entityDBID_ > 0;
+
+	if(writeEntityLog && success_)
+	{
+		// 先写log， 如果写失败则可能这个entity已经在线
+		KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
+						(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
+		KBE_ASSERT(pELTable);
+
+		success_ = pELTable->logEntity(pdbi_, addr_.ipAsString(), addr_.port, entityDBID_, componentID_, eid_);
+
+		if(!success_)
+		{
+			entityDBID_ = 0;
+		}
+	}
+
 	return false;
 }
 

@@ -655,6 +655,7 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(DbmgrInterface::writeEntity);
 
+	(*pBundle) << g_componentID;
 	(*pBundle) << this->getID();
 	(*pBundle) << this->getDBID();
 	(*pBundle) << this->getScriptModule()->getUType();

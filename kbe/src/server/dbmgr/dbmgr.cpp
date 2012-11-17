@@ -419,10 +419,11 @@ void Dbmgr::writeEntity(Mercury::Channel* pChannel,
 {
 	ENTITY_ID eid;
 	DBID entityDBID;
+	COMPONENT_ID componentID;
 
-	s >> eid >> entityDBID;
+	s >> componentID >> eid >> entityDBID;
 
-	bufferedDBTasks_.addTask(new DBTaskWriteEntity(pChannel->addr(), eid, entityDBID, s));
+	bufferedDBTasks_.addTask(new DBTaskWriteEntity(pChannel->addr(), componentID, eid, entityDBID, s));
 	s.opfini();
 }
 
