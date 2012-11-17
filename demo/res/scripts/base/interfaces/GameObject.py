@@ -15,6 +15,10 @@ class GameObject(KBEngine.Base):
 		引擎回调timer触发
 		"""
 		#DEBUG_MSG("%s::onTimer: %i, tid:%i, arg:%i" % (self.getScriptName(), self.id, tid, userArg))
+		if self.isDestroyed:
+			self.delTimer(tid)
+			return
+			
 		self._timermap[userArg](self, tid, userArg)
 
 	def destroySelf(self):
