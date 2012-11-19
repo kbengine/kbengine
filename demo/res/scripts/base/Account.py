@@ -64,16 +64,7 @@ class Account(KBEngine.Proxy):
 		客户端请求查询角色列表
 		"""
 		DEBUG_MSG("Account[%i].reqAvatarList:" % self.id)
-		listdata = TAvatarInfosList()
-		listdata.update(self.characters)
-		avatarinfo = ["unknown",  0, 0]
-		characterssize = len(listdata)
-		
-		if characterssize < 3:
-			for x in range(0, 3-characterssize):
-				listdata[x] = avatarinfo
-
-		self.client.onReqAvatarList(listdata)
+		self.client.onReqAvatarList(self.characters)
 				
 	def reqCreateAvatar(self, roleType, name):
 		"""
