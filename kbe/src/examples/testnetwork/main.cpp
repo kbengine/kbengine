@@ -24,6 +24,9 @@ same license as the rest of the engine.
 #include "resmgr/resmgr.hpp"
 #include "server/serverinfos.hpp"
 #include "server/serverconfig.hpp"
+#include "thread/threadpool.hpp"
+#include "thread/threadtask.hpp"
+
 #undef DEFINE_IN_INTERFACE
 #include "baseappmgr/baseappmgr_interface.hpp"
 #define DEFINE_IN_INTERFACE
@@ -263,6 +266,18 @@ struct DialogOption
 	uint32 dialogKey; // 对话协议key
 	std::string title; // 选项标题
 	int32 extraData; // 扩展项(忽略)
+};
+
+class XTask : public thread::TPTask
+{
+public:
+	XTask(){}
+	~XTask(){}
+
+	virtual bool process()
+	{
+		return false;
+	}
 };
 
 void init_network(void)
@@ -1109,6 +1124,17 @@ int main(int argc, char* argv[])
 	Mercury::FixedMessages::getSingleton().loadConfig("../../res/server/fixed_mercury_messages.xml");
 	DebugHelper::initHelper(UNKNOWN_COMPONENT_TYPE);
     INFO_MSG("你好，log4cxx---%d!---%s", 1, __FUNCTION__);
+
+	if(thread::ThreadPool::getSingletonPtr() && 
+		!thread::ThreadPool::getSingleton().isInitialize())
+		thread::ThreadPool::getSingleton().createThreadPool(16, 16, 256);
+
+	while(1)
+	{
+		PUSH_THREAD_TASK(new XTask());
+		thread::ThreadPool::getSingleton().onMainThreadTick();
+	}
+
 	//LOG4CXX_INFO("Attempted to " << " in MemoryStream (pos:" << 111 <<  "size: " << 222 << ").\n");
 	init_network();
 	gdispatcher.processUntilBreak();

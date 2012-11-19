@@ -287,10 +287,8 @@ bool ThreadPool::addTask(TPTask* tptask)
 		busyThreadList_.push_back(tptd);
 		currentFreeThreadCount_--;
 		
-		INFO_MSG("ThreadPool::currFree:%d, currThreadCount:%d, busy:[%d]\n",
-				 currentFreeThreadCount_, currentThreadCount_, busyThreadList_.size());
-		
-		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
+		//INFO_MSG("ThreadPool::currFree:%d, currThreadCount:%d, busy:[%d]\n",
+		//		 currentFreeThreadCount_, currentThreadCount_, busyThreadList_.size());
 		
 		tptd->setTask(tptask);												// 给线程设置新任务	
 		
@@ -300,9 +298,11 @@ bool ThreadPool::addTask(TPTask* tptask)
 		if(tptd->sendCondSignal()!= 0){
 #endif
 			ERROR_MSG("ThreadPool:pthread_cond_signal is error!\n");
+			THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 			return false;
 		}
 		
+		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 		return true;
 	}
 	
