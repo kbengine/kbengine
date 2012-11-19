@@ -110,6 +110,7 @@ bool DBUtil::initialize(DBInterface* dbi)
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 	if(strcmp(dbcfg.db_type, "mysql") == 0)
 	{
+		EntityTables::getSingleton().addKBETable(new KBEEntityTypeMysql());
 		EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
 		EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());
 	}

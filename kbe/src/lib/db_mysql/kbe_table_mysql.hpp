@@ -45,9 +45,9 @@ public:
 	virtual bool syncToDB(DBInterface* dbi);
 	
 	virtual bool logEntity(DBInterface * dbi, const char* ip, uint32 port, DBID dbid,
-						COMPONENT_ID componentID, ENTITY_ID entityID);
+						COMPONENT_ID componentID, ENTITY_ID entityID, ENTITY_SCRIPT_UID entityType);
 
-	virtual bool queryEntity(DBInterface * dbi, DBID dbid, EntityLog& entitylog);
+	virtual bool queryEntity(DBInterface * dbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType);
 
 	virtual bool eraseEntityLog(DBInterface * dbi, DBID dbid);
 protected:
@@ -68,6 +68,19 @@ public:
 	bool queryAccount(DBInterface * dbi, std::string& name, ACCOUNT_INFOS& info);
 	bool logAccount(DBInterface * dbi, ACCOUNT_INFOS& info);
 
+protected:
+};
+
+class KBEEntityTypeMysql : public KBEEntityType
+{
+public:
+	KBEEntityTypeMysql();
+	virtual ~KBEEntityTypeMysql(){}
+	
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB(DBInterface* dbi);
 protected:
 };
 

@@ -227,7 +227,8 @@ bool DBTaskWriteEntity::db_thread_process()
 						(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
 		KBE_ASSERT(pELTable);
 
-		success_ = pELTable->logEntity(pdbi_, addr_.ipAsString(), addr_.port, entityDBID_, componentID_, eid_);
+		success_ = pELTable->logEntity(pdbi_, addr_.ipAsString(), addr_.port, entityDBID_, 
+			componentID_, eid_, pModule->getUType());
 
 		if(!success_)
 		{
@@ -416,8 +417,8 @@ bool DBTaskQueryAccount::db_thread_process()
 			return false;
 	}
 
-	success_ = EntityTables::getSingleton().queryEntity(pdbi_, info.dbid, &s_, 
-		EntityDef::findScriptModule(g_kbeSrvConfig.getDBMgr().dbAccountEntityScriptType));
+	ScriptDefModule* pModule = EntityDef::findScriptModule(g_kbeSrvConfig.getDBMgr().dbAccountEntityScriptType);
+	success_ = EntityTables::getSingleton().queryEntity(pdbi_, info.dbid, &s_, pModule);
 
 	dbid_ = info.dbid;
 
@@ -426,7 +427,9 @@ bool DBTaskQueryAccount::db_thread_process()
 					(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
 	KBE_ASSERT(pELTable);
 	
-	success_ = pELTable->logEntity(pdbi_, addr_.ipAsString(), addr_.port, dbid_, componentID_, entityID_);
+	success_ = pELTable->logEntity(pdbi_, addr_.ipAsString(), addr_.port, dbid_, 
+		componentID_, entityID_, pModule->getUType());
+
 	return false;
 }
 
@@ -565,7 +568,10 @@ bool DBTaskAccountLogin::db_thread_process()
 		return false;
 
 	KBEEntityLogTable::EntityLog entitylog;
-	success_ = !pELTable->queryEntity(pdbi_, info.dbid, entitylog);
+
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+	ScriptDefModule* pModule = EntityDef::findScriptModule(dbcfg.dbAccountEntityScriptType);
+	success_ = !pELTable->queryEntity(pdbi_, info.dbid, entitylog, pModule->getUType());
 
 	// 如果有在线纪录
 	if(!success_)
@@ -625,7 +631,8 @@ DBTaskQueryEntity::~DBTaskQueryEntity()
 //-------------------------------------------------------------------------------------
 bool DBTaskQueryEntity::db_thread_process()
 {
-	success_ = EntityTables::getSingleton().queryEntity(pdbi_, dbid_, &s_, EntityDef::findScriptModule(entityType_.c_str()));
+	ScriptDefModule* pModule = EntityDef::findScriptModule(entityType_.c_str());
+	success_ = EntityTables::getSingleton().queryEntity(pdbi_, dbid_, &s_, pModule);
 
 	if(success_)
 	{
@@ -634,7 +641,9 @@ bool DBTaskQueryEntity::db_thread_process()
 						(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
 		KBE_ASSERT(pELTable);
 
-		success_ = pELTable->logEntity(pdbi_, addr_.ipAsString(), addr_.port, dbid_, componentID_, entityID_);
+		success_ = pELTable->logEntity(pdbi_, addr_.ipAsString(), addr_.port, dbid_, 
+			componentID_, entityID_, pModule->getUType());
+
 		if(!success_)
 			wasActive_ = true;
 	}
