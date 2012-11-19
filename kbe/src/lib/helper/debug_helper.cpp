@@ -204,8 +204,8 @@ void DebugHelper::sync()
 
 	int8 v = Mercury::g_trace_packet;
 	Mercury::g_trace_packet = 0;
-
 	static uint16 trycount = 0;
+
 	Mercury::Channel* pChannel = pNetworkInterface_->findChannel(messagelogAddr_);
 	if(pChannel == NULL)
 	{
@@ -213,7 +213,10 @@ void DebugHelper::sync()
 		{
 			messagelogAddr_.ip = 0;
 			messagelogAddr_.port = 0;
+			Mercury::Bundle::ObjPool().reclaimObject(pBundle_);
+			pBundle_ = NULL;
 		}
+
 		Mercury::g_trace_packet = v;
 		return;
 	}
