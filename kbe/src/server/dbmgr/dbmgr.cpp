@@ -177,11 +177,10 @@ bool Dbmgr::initDB()
 	{
 		dbThreadPool_.createThreadPool(dbcfg.db_numConnections, 
 			dbcfg.db_numConnections, dbcfg.db_numConnections);
-		return true;
+		return ret;
 	}
 
-	
-	return true;
+	return false;
 }
 
 //-------------------------------------------------------------------------------------
