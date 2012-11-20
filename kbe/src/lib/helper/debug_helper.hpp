@@ -113,14 +113,14 @@ public:
 		_currFuncName = funcname;
 	}
 	
+	void lockthread();
+	void unlockthread();
+
 	/** 
 		同步日志到messagelog
 	*/
 	void sync();
 	bool process();
-
-	void outTime();
-	static void outTimestamp(FILE* file);
     
 	void pNetworkInterface(Mercury:: NetworkInterface* networkInterface);
 	void pDispatcher(Mercury:: EventDispatcher* dispatcher);
@@ -155,16 +155,10 @@ private:
 ---------------------------------------------------------------------------------*/
 #define SCRIPT_MSG					DebugHelper::getSingleton().script_msg									// 输出任何信息
 #define PRINT_MSG					DebugHelper::getSingleton().print_msg									// 输出任何信息
-#define ERROR_MSG					DebugHelper::getSingleton().setFile(__FUNCTION__, \
-									__FILE__, __LINE__); \
-									DebugHelper::getSingleton().error_msg									// 输出一个错误
-#define DEBUG_MSG					DebugHelper::getSingleton().setFile(__FUNCTION__, \
-									__FILE__, __LINE__); \
-									DebugHelper::getSingleton().debug_msg									// 输出一个debug信息
+#define ERROR_MSG					DebugHelper::getSingleton().error_msg									// 输出一个错误
+#define DEBUG_MSG					DebugHelper::getSingleton().debug_msg									// 输出一个debug信息
 #define INFO_MSG					DebugHelper::getSingleton().info_msg									// 输出一个info信息
-#define WARNING_MSG					DebugHelper::getSingleton().setFile(__FUNCTION__, \
-									__FILE__, __LINE__); \
-									DebugHelper::getSingleton().warning_msg									// 输出一个警告信息
+#define WARNING_MSG					DebugHelper::getSingleton().warning_msg									// 输出一个警告信息
 #define CRITICAL_MSG				DebugHelper::getSingleton().setFile(__FUNCTION__, \
 									__FILE__, __LINE__); \
 									DebugHelper::getSingleton().critical_msg

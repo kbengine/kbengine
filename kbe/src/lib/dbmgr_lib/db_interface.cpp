@@ -66,8 +66,8 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 
 	if(!dbinterface->attach(DBUtil::dbname()))
 	{
-		ERROR_MSG("DBUtil::createInterface: can't attach to database!\n\terrstr=%s\n\targs=%s", 
-			dbinterface->getstrerror(), dbinterface->c_str());
+		ERROR_MSG("DBUtil::createInterface: can't attach to database!\n\tdbinterface=%p\n\targs=%s", 
+			&dbinterface, dbinterface->c_str());
 
 		delete dbinterface;
 		return NULL;
@@ -76,7 +76,7 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 	{
 		if(showinfo)
 		{
-			INFO_MSG("DBUtil::createInterface: %s\n", dbinterface->c_str());
+			INFO_MSG("DBUtil::createInterface[%p]: %s\n", &dbinterface, dbinterface->c_str());
 		}
 	}
 

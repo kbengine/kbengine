@@ -57,7 +57,6 @@ Dbmgr::Dbmgr(Mercury::EventDispatcher& dispatcher,
 	pGlobalData_(NULL),
 	pGlobalBases_(NULL),
 	pCellAppData_(NULL),
-	pDBInterface_(NULL),
 	bufferedDBTasks_()
 {
 }
@@ -153,14 +152,17 @@ bool Dbmgr::initializeEnd()
 	pGlobalBases_->addConcernComponentType(BASEAPP_TYPE);
 	pCellAppData_->addConcernComponentType(CELLAPP_TYPE);
 
-	pDBInterface_ = DBUtil::createInterface();
-	if(pDBInterface_ == NULL)
+	DBInterface* pDBInterface = DBUtil::createInterface();
+	if(pDBInterface == NULL)
 	{
 		ERROR_MSG("Dbmgr::initializeEnd: can't create dbinterface!\n");
 		return false;
 	}
 
-	return DBUtil::initialize(pDBInterface_);
+	bool ret = DBUtil::initialize(pDBInterface);
+	pDBInterface->detach();
+	SAFE_RELEASE(pDBInterface);
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------
@@ -169,11 +171,6 @@ void Dbmgr::finalise()
 	SAFE_RELEASE(pGlobalData_);
 	SAFE_RELEASE(pGlobalBases_);
 	SAFE_RELEASE(pCellAppData_);
-
-	if(pDBInterface_)
-		pDBInterface_->detach();
-
-	SAFE_RELEASE(pDBInterface_);
 	ServerApp::finalise();
 }
 

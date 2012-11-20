@@ -119,7 +119,21 @@ DebugHelper::~DebugHelper()
 //-------------------------------------------------------------------------------------
 void DebugHelper::changeLogger(std::string name)
 {
+#ifndef NO_USE_LOG4CXX
 	g_logger = log4cxx::Logger::getLogger(name.c_str());
+#endif
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::lockthread()
+{
+	logMutex.lockMutex();
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::unlockthread()
+{
+	logMutex.unlockMutex();
 }
 
 //-------------------------------------------------------------------------------------
@@ -139,50 +153,7 @@ void DebugHelper::initHelper(COMPONENT_TYPE componentType)
 	}
 
 	log4cxx::PropertyConfigurator::configure(Resmgr::getSingleton().matchRes(helpConfig).c_str());
-
-	//log4cxx::helpers::InetAddressPtr aaa = new log4cxx::helpers::InetAddress(log4cxx::LogString(L"localhost"), log4cxx::LogString(L"192.168.4.205")); 
-	
-	//log4cxx::net::SocketAppenderPtr bbb = new log4cxx::net::SocketAppender(aaa, 6593);
-	
-	//bbb->setLayout(new log4cxx::PatternLayout(L"%5p [%t] [%d] - %m"));
-	//log4cxx::BasicConfigurator::configure(bbb); 
-	//bbb->setLocationInfo(true);
-	//bbb->setReconnectionDelay(100);
-
-	// log4cxx::helpers::Pool p;
-	//bbb->activateOptions(p);
-	//log4cxx::Logger::getRootLogger()->addAppender(bbb);
-	
 #endif
-}
-
-//-------------------------------------------------------------------------------------
-void DebugHelper::outTimestamp(FILE* file)
-{
-    time_t t = time(NULL);
-    tm* aTm = localtime(&t);
-    //       YYYY   year
-    //       MM     month (2 digits 01-12)
-    //       DD     day (2 digits 01-31)
-    //       HH     hour (2 digits 00-23)
-    //       MM     minutes (2 digits 00-59)
-    //       SS     seconds (2 digits 00-59)
-    fprintf(file, "[%-4d-%02d-%02d %02d:%02d:%02d] ",aTm->tm_year+1900, aTm->tm_mon+1, 
-		aTm->tm_mday, aTm->tm_hour, aTm->tm_min, aTm->tm_sec);
-}
-
-//-------------------------------------------------------------------------------------
-void DebugHelper::outTime()
-{
-    time_t t = time(NULL);
-    tm* aTm = localtime(&t);
-    //       YYYY   year
-    //       MM     month (2 digits 01-12)
-    //       DD     day (2 digits 01-31)
-    //       HH     hour (2 digits 00-23)
-    //       MM     minutes (2 digits 00-59)
-    //       SS     seconds (2 digits 00-59)
-    printf("[%02d:%02d:%02d] ", aTm->tm_hour, aTm->tm_min, aTm->tm_sec);
 }
 
 //-------------------------------------------------------------------------------------
@@ -312,25 +283,9 @@ void DebugHelper::print_msg(const char * str, ...)
     if(str == NULL)
         return;
 
-#ifdef NO_USE_LOG4CXX
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
-    va_list ap;
-    va_start(ap, str);
-    vutf8printf(stdout, str, &ap);
-    va_end(ap);
-
-    if(_logfile)
-    {
-        outTimestamp(_logfile);
-        va_start(ap, str);
-        vfprintf(_logfile, str, ap);
-        fprintf(_logfile, "\n");
-        va_end(ap);
-        fflush(_logfile);
-    }
-
-    fflush(stdout);
+#ifdef NO_USE_LOG4CXX
 #else
     va_list ap;
     va_start(ap, str);
@@ -353,31 +308,9 @@ void DebugHelper::error_msg(const char * err, ...)
     if(err == NULL)
         return;
 
-#ifdef NO_USE_LOG4CXX
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
-    outTime();
-	fprintf(stderr, "ERROR:");
-
-    va_list ap;
-    va_start(ap, err);
-    vutf8printf(stderr, err, &ap);
-    va_end(ap);
-
-    if(_logfile)
-    {
-        outTimestamp(_logfile);
-        fprintf(_logfile, "ERROR:");
-
-        va_start(ap, err);
-        vfprintf(_logfile, err, ap);
-        va_end(ap);
-
-        fprintf(_logfile, "\n");
-        fflush(_logfile);
-    }
-
-    fflush(stderr);
+#ifdef NO_USE_LOG4CXX
 #else
     va_list ap;
     va_start(ap, err);
@@ -399,31 +332,9 @@ void DebugHelper::info_msg(const char * info, ...)
     if(info == NULL)
         return;
 
-#ifdef NO_USE_LOG4CXX
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
-    outTime();
-	fprintf(stdout, "INFO:");
-
-    va_list ap;
-    va_start(ap, info);
-    vutf8printf(stdout, info, &ap);
-    va_end(ap);
-
-    if(_logfile)
-    {
-        outTimestamp(_logfile);
-        fprintf(_logfile, "INFO:");
-
-        va_start(ap, info);
-        vfprintf(_logfile, info, ap);
-        va_end(ap);
-
-        fprintf(_logfile, "\n");
-        fflush(_logfile);
-    }
-
-    fflush(stdout);
+#ifdef NO_USE_LOG4CXX
 #else
     va_list ap;
     va_start(ap, info);
@@ -445,31 +356,9 @@ void DebugHelper::script_msg(const char * info, ...)
     if(info == NULL)
         return;
 
-#ifdef NO_USE_LOG4CXX
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
-    outTime();
-	fprintf(stdout, "SCRIPT:");
-
-    va_list ap;
-    va_start(ap, info);
-    vutf8printf(stdout, info, &ap);
-    va_end(ap);
-
-    if(_logfile)
-    {
-        outTimestamp(_logfile);
-        fprintf(_logfile, "SCRIPT:");
-
-        va_start(ap, info);
-        vfprintf(_logfile, info, ap);
-        va_end(ap);
-
-        fprintf(_logfile, "\n");
-        fflush(_logfile);
-    }
-
-    fflush(stdout);
+#ifdef NO_USE_LOG4CXX
 #else
     va_list ap;
     va_start(ap, info);
@@ -491,31 +380,9 @@ void DebugHelper::debug_msg(const char * str, ...)
     if(str == NULL)
         return;
 
-#ifdef NO_USE_LOG4CXX
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
-    outTime();
-	fprintf(stdout, "DEBUG:");
-
-    va_list ap;
-    va_start(ap, str);
-    vutf8printf(stdout, str, &ap);
-    va_end(ap);
-
-    if(_logfile)
-    {
-        outTimestamp(_logfile);
-        fprintf(_logfile, "DEBUG:");
-
-        va_start(ap, str);
-        vfprintf(_logfile, str, ap);
-        va_end(ap);
-
-        fprintf(_logfile, "\n");
-        fflush(_logfile);
-    }
-
-    fflush(stdout);
+#ifdef NO_USE_LOG4CXX
 #else 
     va_list ap;
     va_start(ap, str);
@@ -537,31 +404,9 @@ void DebugHelper::warning_msg(const char * str, ...)
     if(str == NULL)
         return;
 
-#ifdef NO_USE_LOG4CXX
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
-    outTime();
-	fprintf(stdout, "WARNING:");
-
-    va_list ap;
-    va_start(ap, str);
-    vutf8printf(stdout, str, &ap);
-    va_end(ap);
-
-    if(_logfile)
-    {
-        outTimestamp(_logfile);
-        fprintf(_logfile, "WARNING:");
-
-        va_start(ap, str);
-        vfprintf(_logfile, str, ap);
-        va_end(ap);
-
-        fprintf(_logfile, "\n");
-        fflush(_logfile);
-    }
-
-    fflush(stdout);
+#ifdef NO_USE_LOG4CXX
 #else
     va_list ap;
     va_start(ap, str);
@@ -571,7 +416,7 @@ void DebugHelper::warning_msg(const char * str, ...)
     uint32 size = vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
 #endif
     va_end(ap);
-	// printf("CRITICAL:%s(%d)\n\t%s\n", _currFile.c_str(), _currLine, _g_buf);
+
 	LOG4CXX_WARN(g_logger, _g_buf);
 #endif
 
@@ -583,31 +428,9 @@ void DebugHelper::critical_msg(const char * str, ...)
     if(str == NULL)
         return;
 
-#ifdef NO_USE_LOG4CXX
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
-    outTime();
-	fprintf(stdout, "CRITICAL:%s(%d)\n\t", _currFile.c_str(), _currLine);
-
-    va_list ap;
-    va_start(ap, str);
-    vutf8printf(stdout, str, &ap);
-    va_end(ap);
-
-    if(_logfile)
-    {
-        outTimestamp(_logfile);
-		fprintf(_logfile, "CRITICAL:%s(%d)\n\t", _currFile.c_str(), _currLine);
-
-        va_start(ap, str);
-        vfprintf(_logfile, str, ap);
-        va_end(ap);
-
-        fprintf(_logfile, "\n");
-        fflush(_logfile);
-    }
-
-    fflush(stdout);
+#ifdef NO_USE_LOG4CXX
 #else
     va_list ap;
     va_start(ap, str);
@@ -619,7 +442,6 @@ void DebugHelper::critical_msg(const char * str, ...)
     va_end(ap);
 	char buf[DBG_PT_SIZE];
 	kbe_snprintf(buf, DBG_PT_SIZE, "%s(%d) -> %s\n\t%s\n", _currFile.c_str(), _currLine, _currFuncName.c_str(), _g_buf);
-	// printf(buf);
 	LOG4CXX_FATAL(g_logger, buf);
 #endif
 

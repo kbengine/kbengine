@@ -144,11 +144,6 @@ public:
 	*/
 	void removeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
-	/**
-		获取db接口
-	*/
-	DBInterface* pDBInterface()const{ return pDBInterface_; }
-
 	/** 网络接口
 		请求从db获取entity的所有数据
 	*/
@@ -175,8 +170,6 @@ protected:
 
 	// cellAppData
 	GlobalDataServer*									pCellAppData_;														
-	
-	DBInterface*										pDBInterface_;
 
 	Buffered_DBTasks									bufferedDBTasks_;
 };
