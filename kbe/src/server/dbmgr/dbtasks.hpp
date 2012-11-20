@@ -181,7 +181,7 @@ protected:
 /**
 	baseapp请求查询account信息
 */
-class DBTaskQueryAccount : public DBTask
+class DBTaskQueryAccount : public EntityDBTask
 {
 public:
 	DBTaskQueryAccount(const Mercury::Address& addr, std::string& accountName, std::string& password, 

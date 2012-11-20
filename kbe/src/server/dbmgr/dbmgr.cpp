@@ -382,7 +382,7 @@ void Dbmgr::queryAccount(Mercury::Channel* pChannel,
 						 ENTITY_ID entityID,
 						 DBID entityDBID)
 {
-	PUSH_THREAD_TASK(new DBTaskQueryAccount(pChannel->addr(), 
+	bufferedDBTasks_.addTask(new DBTaskQueryAccount(pChannel->addr(), 
 		accountName, password, componentID, entityID, entityDBID));
 }
 
@@ -392,8 +392,8 @@ void Dbmgr::onAccountOnline(Mercury::Channel* pChannel,
 							COMPONENT_ID componentID, 
 							ENTITY_ID entityID)
 {
-	PUSH_THREAD_TASK(new DBTaskAccountOnline(pChannel->addr(), 
-		accountName, componentID, entityID));
+	// PUSH_THREAD_TASK(new DBTaskAccountOnline(pChannel->addr(), 
+	//	accountName, componentID, entityID));
 }
 
 //-------------------------------------------------------------------------------------

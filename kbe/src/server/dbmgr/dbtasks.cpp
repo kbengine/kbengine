@@ -368,7 +368,7 @@ void DBTaskCreateAccount::presentMainThread()
 //-------------------------------------------------------------------------------------
 DBTaskQueryAccount::DBTaskQueryAccount(const Mercury::Address& addr, std::string& accountName, std::string& password, 
 		COMPONENT_ID componentID, ENTITY_ID entityID, DBID entityDBID):
-DBTask(addr),
+EntityDBTask(addr, entityID, entityDBID),
 accountName_(accountName),
 password_(password),
 success_(false),
@@ -457,6 +457,7 @@ void DBTaskQueryAccount::presentMainThread()
 	}
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	EntityDBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
