@@ -45,7 +45,8 @@ componentType_(componentType),
 componentID_(componentID),
 mainDispatcher_(dispatcher),
 networkInterface_(ninterface),
-timers_()
+timers_(),
+threadPool_()
 {
 	networkInterface_.pExtensionData(this);
 	networkInterface_.pChannelTimeOutHandler(this);
@@ -72,9 +73,8 @@ bool ClientApp::installSingnals()
 //-------------------------------------------------------------------------------------		
 bool ClientApp::initialize()
 {
-	if(thread::ThreadPool::getSingletonPtr() && 
-		!thread::ThreadPool::getSingleton().isInitialize())
-		thread::ThreadPool::getSingleton().createThreadPool(4, 4, 256);
+	if(!threadPool_.isInitialize())
+		threadPool_.createThreadPool(4, 4, 256);
 
 	if(!installSingnals())
 		return false;
@@ -94,6 +94,7 @@ bool ClientApp::initialize()
 //-------------------------------------------------------------------------------------		
 void ClientApp::finalise(void)
 {
+	threadPool_.finalise();
 }
 
 //-------------------------------------------------------------------------------------		

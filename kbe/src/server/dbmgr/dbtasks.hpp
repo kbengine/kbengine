@@ -61,6 +61,8 @@ public:
 	virtual void presentMainThread(){}
 
 	bool send(Mercury::Bundle& bundle);
+
+	void pdbi(DBInterface* ptr){ pdbi_ = ptr; }
 protected:
 	MemoryStream* pDatas_;
 	Mercury::Address addr_;

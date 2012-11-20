@@ -46,14 +46,14 @@ THREAD_ID TPThread::createThread(void)
 //-------------------------------------------------------------------------------------
 ThreadPool::ThreadPool():
 isInitialize_(false),
-busyTaskList_(),
+bufferedTaskList_(),
 finiTaskList_()
 {		
 	extraNewAddThreadCount_ = currentThreadCount_ = 
 	currentFreeThreadCount_ = normalThreadCount_ = 0;
 	
 	THREAD_MUTEX_INIT(threadStateList_mutex_);	
-	THREAD_MUTEX_INIT(busyTaskList_mutex_);
+	THREAD_MUTEX_INIT(bufferedTaskList_mutex_);
 	THREAD_MUTEX_INIT(finiTaskList_mutex_);
 }
 
@@ -61,7 +61,7 @@ finiTaskList_()
 ThreadPool::~ThreadPool()
 {
 	THREAD_MUTEX_DELETE(threadStateList_mutex_);
-	THREAD_MUTEX_DELETE(busyTaskList_mutex_);
+	THREAD_MUTEX_DELETE(bufferedTaskList_mutex_);
 	THREAD_MUTEX_DELETE(finiTaskList_mutex_);
 	
 	std::list<TPThread*>::iterator itr = allThreadList_.begin();
@@ -80,10 +80,10 @@ ThreadPool::~ThreadPool()
 		delete (*finiiter);
 	}
 	
-	while(busyTaskList_.size() > 0)
+	while(bufferedTaskList_.size() > 0)
 	{
-		TPTask* tptask = busyTaskList_.front();
-		busyTaskList_.pop();
+		TPTask* tptask = bufferedTaskList_.front();
+		bufferedTaskList_.pop();
 		delete tptask;
 	}
 }
@@ -96,18 +96,18 @@ void ThreadPool::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-TPTask* ThreadPool::popBusyTaskList(void)
+TPTask* ThreadPool::popbufferTask(void)
 {
 	TPTask* tptask = NULL;
-	THREAD_MUTEX_LOCK(busyTaskList_mutex_);
+	THREAD_MUTEX_LOCK(bufferedTaskList_mutex_);
 
-	if(busyTaskList_.size()> 0)
+	if(bufferedTaskList_.size()> 0)
 	{
-		tptask = busyTaskList_.front();
-		busyTaskList_.pop();
+		tptask = bufferedTaskList_.front();
+		bufferedTaskList_.pop();
 	}
 
-	THREAD_MUTEX_UNLOCK(busyTaskList_mutex_);	
+	THREAD_MUTEX_UNLOCK(bufferedTaskList_mutex_);	
 	return tptask;
 }
 
@@ -170,11 +170,11 @@ void ThreadPool::onMainThreadTick()
 }
 
 //-------------------------------------------------------------------------------------
-void ThreadPool::saveToBusyTaskList(TPTask* tptask)
+void ThreadPool::bufferTask(TPTask* tptask)
 {
-	THREAD_MUTEX_LOCK(busyTaskList_mutex_);
-	busyTaskList_.push(tptask);
-	THREAD_MUTEX_UNLOCK(busyTaskList_mutex_);
+	THREAD_MUTEX_LOCK(bufferedTaskList_mutex_);
+	bufferedTaskList_.push(tptask);
+	THREAD_MUTEX_UNLOCK(bufferedTaskList_mutex_);
 	
 	WARNING_MSG("ThreadPool::save BusyTask to list!\n");
 }
@@ -188,7 +188,7 @@ TPThread* ThreadPool::createThread(int threadWaitSecond)
 }	
 
 //-------------------------------------------------------------------------------------
-bool ThreadPool::moveThreadToFreeList(TPThread* tptd)
+bool ThreadPool::addFreeThread(TPThread* tptd)
 {
 	THREAD_MUTEX_LOCK(threadStateList_mutex_);
 	std::list<TPThread*>::iterator itr;
@@ -213,7 +213,7 @@ bool ThreadPool::moveThreadToFreeList(TPThread* tptd)
 }
 
 //-------------------------------------------------------------------------------------
-bool ThreadPool::moveThreadToBusyList(TPThread* tptd)
+bool ThreadPool::addBusyThread(TPThread* tptd)
 {
 	THREAD_MUTEX_LOCK(threadStateList_mutex_);
 	std::list<TPThread*>::iterator itr;
@@ -306,7 +306,7 @@ bool ThreadPool::addTask(TPTask* tptask)
 		return true;
 	}
 	
-	saveToBusyTaskList(tptask);
+	bufferTask(tptask);
 	
 	if(isThreadCountMax())
 	{
@@ -407,13 +407,13 @@ void TPThread::onTaskComplete(void)
 {
 	deleteFiniTask(currTask_);
 	currTask_ = NULL;
-	threadPool_->moveThreadToFreeList(this);
+	threadPool_->addFreeThread(this);
 }
 
 //-------------------------------------------------------------------------------------
 TPTask* TPThread::tryGetTask(void)
 {
-	return threadPool_->popBusyTaskList();
+	return threadPool_->popbufferTask();
 }
 
 //-------------------------------------------------------------------------------------

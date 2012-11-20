@@ -57,7 +57,7 @@ bool Messagelog::run()
 
 	while(!this->getMainDispatcher().isBreakProcessing())
 	{
-		thread::ThreadPool::getSingleton().onMainThreadTick();
+		threadPool_.onMainThreadTick();
 		this->getMainDispatcher().processOnce(false);
 		getNetworkInterface().handleChannels(&MessagelogInterface::messageHandlers);
 		KBEngine::sleep(10);

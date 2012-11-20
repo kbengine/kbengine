@@ -41,6 +41,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
 #include "server/server_errors.hpp"
+#include "thread/threadpool.hpp"
 
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -192,13 +193,18 @@ public:
 	virtual void onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s);
 protected:
 	COMPONENT_TYPE											componentType_;
-	COMPONENT_ID											componentID_;									// 本组件的ID
+
+	// 本组件的ID
+	COMPONENT_ID											componentID_;									
 
 	Mercury::EventDispatcher& 								mainDispatcher_;
 	Mercury::NetworkInterface&								networkInterface_;
 	
 	GAME_TIME												time_;
 	Timers													timers_;
+
+	// 线程池
+	thread::ThreadPool										threadPool_;		
 
 };
 

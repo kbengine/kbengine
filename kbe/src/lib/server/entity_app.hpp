@@ -504,7 +504,7 @@ void EntityApp<E>::handleGameTick()
 	// DEBUG_MSG("EntityApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
 
 	g_kbetime++;
-	thread::ThreadPool::getSingleton().onMainThreadTick();
+	threadPool_.onMainThreadTick();
 	handleTimers();
 	getNetworkInterface().handleChannels(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
 }

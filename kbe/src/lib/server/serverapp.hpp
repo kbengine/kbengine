@@ -83,6 +83,8 @@ public:
 	virtual void finalise();
 	virtual bool run();
 	
+	virtual bool initThreadPool();
+
 	bool installSingnals();
 
 	virtual bool loadConfig();
@@ -157,6 +159,10 @@ protected:
 	int32													startGroupOrder_;
 
 	TimerHandle												pActiveTimerHandle_;
+
+
+	// Ïß³Ì³Ø
+	thread::ThreadPool										threadPool_;	
 };
 
 }

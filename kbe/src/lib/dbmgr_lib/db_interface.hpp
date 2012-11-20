@@ -109,6 +109,9 @@ public:
 	DBUtil();
 	~DBUtil();
 
+	static bool initThread();
+	static bool finiThread();
+
 	static DBInterface* createInterface(bool showinfo = true);
 	static const char* dbname();
 	static const char* dbtype();

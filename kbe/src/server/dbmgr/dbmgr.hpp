@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __DBMGR_H__
 	
 // common include	
+#include "db_threadpool.hpp"
 #include "buffered_dbtasks.hpp"
 #include "server/kbemain.hpp"
 #include "pyscript/script.hpp"
@@ -76,6 +77,8 @@ public:
 	bool inInitialize();
 	bool initializeEnd();
 	void finalise();
+	
+	bool initDB();
 
 	/** 获取ID服务器指针 */
 	IDServer<ENTITY_ID>& idServer(void){ return idServer_; }
@@ -155,6 +158,10 @@ public:
 	*/
 	void syncEntityStreamTemplate(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 	
+	/**
+		获取db线程池
+	*/
+	INLINE DBThreadPool& dbThreadPool(){ return dbThreadPool_; }
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;
@@ -172,6 +179,9 @@ protected:
 	GlobalDataServer*									pCellAppData_;														
 
 	Buffered_DBTasks									bufferedDBTasks_;
+
+	// 线程池
+	DBThreadPool										dbThreadPool_;	
 };
 
 }

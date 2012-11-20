@@ -17,7 +17,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#include "dbmgr.hpp"
 #include "buffered_dbtasks.hpp"
 #include "thread/threadpool.hpp"
 #include "thread/threadguard.hpp"
@@ -92,7 +92,7 @@ void Buffered_DBTasks::addTask(EntityDBTask* pTask)
 			static_cast<EntityDBTask *>(NULL)));
 	}
 
-	PUSH_THREAD_TASK(pTask);
+	Dbmgr::getSingleton().dbThreadPool().addTask(pTask);
 }
 
 //-------------------------------------------------------------------------------------
@@ -148,7 +148,7 @@ void Buffered_DBTasks::onFiniTask(EntityDBTask* pTask)
 		INFO_MSG("Buffered_DBTasks::onFiniTask: Playing buffered task for entityID=%d, dbid=%"PRDBID"\n", 
 			pNextTask->EntityDBTask_entityID(), pNextTask->EntityDBTask_entityDBID());
 		
-		PUSH_THREAD_TASK(pNextTask);
+		Dbmgr::getSingleton().dbThreadPool().addTask(pNextTask);
 	}
 }
 

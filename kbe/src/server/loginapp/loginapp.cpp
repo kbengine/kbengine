@@ -62,7 +62,7 @@ bool Loginapp::run()
 
 	while(!this->getMainDispatcher().isBreakProcessing())
 	{
-		thread::ThreadPool::getSingleton().onMainThreadTick();
+		threadPool_.onMainThreadTick();
 		this->getMainDispatcher().processOnce(false);
 		getNetworkInterface().handleChannels(&LoginappInterface::messageHandlers);
 		KBEngine::sleep(100);

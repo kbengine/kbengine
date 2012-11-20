@@ -83,7 +83,7 @@ void Baseappmgr::handleGameTick()
 	 //DEBUG_MSG("CellApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
 	g_kbetime++;
-	thread::ThreadPool::getSingleton().onMainThreadTick();
+	threadPool_.onMainThreadTick();
 	getNetworkInterface().handleChannels(&BaseappmgrInterface::messageHandlers);
 }
 

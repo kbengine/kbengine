@@ -41,6 +41,37 @@ DBUtil::~DBUtil()
 }
 
 //-------------------------------------------------------------------------------------
+bool DBUtil::initThread()
+{
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+	if(strcmp(dbcfg.db_type, "mysql") == 0)
+	{
+		if (!mysql_thread_safe()) 
+		{
+			KBE_ASSERT(false);
+		}
+		else
+		{
+			mysql_thread_init();
+		}
+	}
+
+	return TRUE;
+}
+
+//-------------------------------------------------------------------------------------
+bool DBUtil::finiThread()
+{
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+	if(strcmp(dbcfg.db_type, "mysql") == 0)
+	{
+		mysql_thread_end();
+	}
+
+	return TRUE;
+}
+
+//-------------------------------------------------------------------------------------
 DBInterface* DBUtil::createInterface(bool showinfo)
 {
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();

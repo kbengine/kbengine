@@ -58,7 +58,8 @@ networkInterface_(ninterface),
 timers_(),
 startGlobalOrder_(-1),
 startGroupOrder_(-1),
-pActiveTimerHandle_()
+pActiveTimerHandle_(),
+threadPool_()
 {
 	networkInterface_.pExtensionData(this);
 	networkInterface_.pChannelTimeOutHandler(this);
@@ -91,9 +92,8 @@ bool ServerApp::installSingnals()
 //-------------------------------------------------------------------------------------		
 bool ServerApp::initialize()
 {
-	if(thread::ThreadPool::getSingletonPtr() && 
-		!thread::ThreadPool::getSingleton().isInitialize())
-		thread::ThreadPool::getSingleton().createThreadPool(16, 16, 256);
+	if(!initThreadPool())
+		return false;
 
 	if(!installSingnals())
 		return false;
@@ -116,9 +116,21 @@ bool ServerApp::initialize()
 }
 
 //-------------------------------------------------------------------------------------		
+bool ServerApp::initThreadPool()
+{
+	if(!threadPool_.isInitialize())
+	{
+		threadPool_.createThreadPool(4, 4, 16);
+		return true;
+	}
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------		
 void ServerApp::finalise(void)
 {
-	thread::ThreadPool::getSingleton().finalise();
+	threadPool_.finalise();
 	pActiveTimerHandle_.cancel();
 }
 

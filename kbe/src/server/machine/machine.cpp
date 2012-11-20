@@ -348,7 +348,7 @@ bool Machine::run()
 
 	while(!this->getMainDispatcher().isBreakProcessing())
 	{
-		thread::ThreadPool::getSingleton().onMainThreadTick();
+		threadPool_.onMainThreadTick();
 		this->getMainDispatcher().processOnce(false);
 		getNetworkInterface().handleChannels(&MachineInterface::messageHandlers);
 		KBEngine::sleep(100);

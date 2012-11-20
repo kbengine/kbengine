@@ -57,7 +57,8 @@ Dbmgr::Dbmgr(Mercury::EventDispatcher& dispatcher,
 	pGlobalData_(NULL),
 	pGlobalBases_(NULL),
 	pCellAppData_(NULL),
-	bufferedDBTasks_()
+	bufferedDBTasks_(),
+	dbThreadPool_()
 {
 }
 
@@ -100,7 +101,8 @@ void Dbmgr::handleMainTick()
 	 //DEBUG_MSG("Dbmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
 	g_kbetime++;
-	thread::ThreadPool::getSingleton().onMainThreadTick();
+	threadPool_.onMainThreadTick();
+	dbThreadPool_.onMainThreadTick();
 	getNetworkInterface().handleChannels(&DbmgrInterface::messageHandlers);
 }
 
@@ -126,7 +128,8 @@ bool Dbmgr::inInitialize()
 	// 初始化所有扩展模块
 	// demo/res/scripts/
 	std::vector<PyTypeObject*>	scriptBaseTypes;
-	if(!EntityDef::initialize(Resmgr::getSingleton().respaths()[1] + "res/scripts/", scriptBaseTypes, componentType_)){
+	if(!EntityDef::initialize(Resmgr::getSingleton().respaths()[1] + "res/scripts/", 
+		scriptBaseTypes, componentType_)){
 		return false;
 	}
 
@@ -151,6 +154,13 @@ bool Dbmgr::initializeEnd()
 	pGlobalData_->addConcernComponentType(BASEAPP_TYPE);
 	pGlobalBases_->addConcernComponentType(BASEAPP_TYPE);
 	pCellAppData_->addConcernComponentType(CELLAPP_TYPE);
+	return initDB();
+}
+
+//-------------------------------------------------------------------------------------		
+bool Dbmgr::initDB()
+{
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 
 	DBInterface* pDBInterface = DBUtil::createInterface();
 	if(pDBInterface == NULL)
@@ -162,7 +172,16 @@ bool Dbmgr::initializeEnd()
 	bool ret = DBUtil::initialize(pDBInterface);
 	pDBInterface->detach();
 	SAFE_RELEASE(pDBInterface);
-	return ret;
+
+	if(!dbThreadPool_.isInitialize())
+	{
+		dbThreadPool_.createThreadPool(dbcfg.db_numConnections, 
+			dbcfg.db_numConnections, dbcfg.db_numConnections);
+		return true;
+	}
+
+	
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -171,6 +190,8 @@ void Dbmgr::finalise()
 	SAFE_RELEASE(pGlobalData_);
 	SAFE_RELEASE(pGlobalBases_);
 	SAFE_RELEASE(pCellAppData_);
+
+	dbThreadPool_.finalise();
 	ServerApp::finalise();
 }
 
@@ -245,7 +266,9 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 			startGroupOrder = Componentbridge::getComponents().getLoginappGroupOrderLog()[getUserUID()];
 
 			(*pBundle).newMessage(LoginappInterface::onDbmgrInitCompleted);
-			LoginappInterface::onDbmgrInitCompletedArgs2::staticAddToBundle((*pBundle), startGlobalOrder, startGroupOrder);
+			LoginappInterface::onDbmgrInitCompletedArgs2::staticAddToBundle((*pBundle), 
+				startGlobalOrder, startGroupOrder);
+
 			break;
 		default:
 			break;
@@ -274,12 +297,14 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 				
 				if(tcomponentType == BASEAPP_TYPE)
 				{
-					BaseappInterface::onGetEntityAppFromDbmgrArgs8::staticAddToBundle((*pBundle), uid, username, componentType, componentID, 
+					BaseappInterface::onGetEntityAppFromDbmgrArgs8::staticAddToBundle((*pBundle), 
+						uid, username, componentType, componentID, 
 							intaddr, intport, extaddr, extport);
 				}
 				else
 				{
-					CellappInterface::onGetEntityAppFromDbmgrArgs8::staticAddToBundle((*pBundle), uid, username, componentType, componentID, 
+					CellappInterface::onGetEntityAppFromDbmgrArgs8::staticAddToBundle((*pBundle), 
+						uid, username, componentType, componentID, 
 							intaddr, intport, extaddr, extport);
 				}
 				
@@ -361,7 +386,7 @@ void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel,
 							 std::string& accountName, 
 							 std::string& password)
 {
-	PUSH_THREAD_TASK(new DBTaskCreateAccount(pChannel->addr(), 
+	dbThreadPool_.addTask(new DBTaskCreateAccount(pChannel->addr(), 
 		accountName, password));
 }
 
@@ -370,7 +395,7 @@ void Dbmgr::onAccountLogin(Mercury::Channel* pChannel,
 						   std::string& accountName, 
 						   std::string& password)
 {
-	PUSH_THREAD_TASK(new DBTaskAccountLogin(pChannel->addr(), 
+	dbThreadPool_.addTask(new DBTaskAccountLogin(pChannel->addr(), 
 		accountName, password));
 }
 
@@ -399,14 +424,14 @@ void Dbmgr::onAccountOnline(Mercury::Channel* pChannel,
 //-------------------------------------------------------------------------------------
 void Dbmgr::onEntityOffline(Mercury::Channel* pChannel, DBID dbid)
 {
-	PUSH_THREAD_TASK(new DBTaskEntityOffline(pChannel->addr(), dbid));
+	dbThreadPool_.addTask(new DBTaskEntityOffline(pChannel->addr(), dbid));
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::executeRawDatabaseCommand(Mercury::Channel* pChannel, 
 									  KBEngine::MemoryStream& s)
 {
-	PUSH_THREAD_TASK(new DBTaskExecuteRawDatabaseCommand(pChannel->addr(), s));
+	dbThreadPool_.addTask(new DBTaskExecuteRawDatabaseCommand(pChannel->addr(), s));
 	s.opfini();
 }
 
@@ -434,7 +459,9 @@ void Dbmgr::removeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	s >> componentID >> eid >> entityDBID;
 	KBE_ASSERT(entityDBID > 0);
 
-	bufferedDBTasks_.addTask(new DBTaskRemoveEntity(pChannel->addr(), componentID, eid, entityDBID, s));
+	bufferedDBTasks_.addTask(new DBTaskRemoveEntity(pChannel->addr(), 
+		componentID, eid, entityDBID, s));
+
 	s.opfini();
 }
 
@@ -442,7 +469,8 @@ void Dbmgr::removeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 void Dbmgr::queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, DBID dbid, 
 	std::string& entityType, CALLBACK_ID callbackID, ENTITY_ID entityID)
 {
-	bufferedDBTasks_.addTask(new DBTaskQueryEntity(pChannel->addr(), entityType, dbid, componentID, callbackID, entityID));
+	bufferedDBTasks_.addTask(new DBTaskQueryEntity(pChannel->addr(), entityType, 
+		dbid, componentID, callbackID, entityID));
 }
 
 //-------------------------------------------------------------------------------------

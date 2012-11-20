@@ -184,6 +184,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\db_threadpool.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\dbmgr.cpp"
 				>
 			</File>
@@ -217,6 +221,10 @@
 			>
 			<File
 				RelativePath=".\buffered_dbtasks.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\db_threadpool.hpp"
 				>
 			</File>
 			<File

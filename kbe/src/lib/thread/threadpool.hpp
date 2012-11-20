@@ -71,8 +71,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{ namespace thread{
 
-#define PUSH_THREAD_TASK thread::ThreadPool::getSingleton().addTask
-
 // 线程池活动线程大于这个数目则处于繁忙状态
 #define THREAD_BUSY_SIZE 32
 
@@ -83,6 +81,8 @@ class ThreadPool;
 class TPThread
 {
 public:
+	friend class ThreadPool;
+
 	// 线程状态 -1还未启动, 0睡眠， 1繁忙中
 	enum THREAD_STATE
 	{
@@ -108,6 +108,10 @@ public:
 		uninitMutex();
 	}
 	
+	virtual void onStart(){}
+	virtual void onEnd(){}
+	virtual void onProcessTask(TPTask* pTask){}
+
 	INLINE THREAD_ID getID(void)const;
 	
 	INLINE void setID(THREAD_ID tidp);
@@ -177,11 +181,14 @@ public:
 	{
 		TPThread * tptd = static_cast<TPThread*>(arg);
 		bool isRun = true;
+
 #if KBE_PLATFORM == PLATFORM_WIN32
-		THREAD_TRY_EXECUTION;
 #else			
 		pthread_detach(pthread_self());
 #endif
+
+		tptd->onStart();
+
 		while(isRun)
 		{
 			isRun = tptd->onWaitCondSignal();
@@ -196,6 +203,8 @@ public:
 			
 			while(task)
 			{
+				tptd->onProcessTask(task);
+
 				task->process();									// 处理该任务
 				TPTask * task1 = tptd->tryGetTask();				// 尝试继续从任务队列里取出一个繁忙的未处理的任务
 
@@ -213,8 +222,9 @@ public:
 			}
 		}
 
+		tptd->onEnd();
+
 #if KBE_PLATFORM == PLATFORM_WIN32
-		THREAD_HANDLE_CRASH;
 		return 0;
 #else	
 		pthread_exit(NULL);
@@ -232,11 +242,8 @@ protected:
 };
 
 
-class ThreadPool : public Singleton<ThreadPool>
+class ThreadPool
 {
-protected:
-	/**创建一个线程池线程*/
-	TPThread* createThread(int threadWaitSecond = 0);
 public:		
 	
 	ThreadPool();
@@ -264,32 +271,13 @@ public:
 	*/
 	bool createThreadPool(unsigned int inewThreadCount, 
 	unsigned int inormalMaxThreadCount, unsigned int imaxThreadCount);
-
-	/**
-		移动一个线程到空闲列表
-	*/
-	bool moveThreadToFreeList(TPThread* tptd);
-	
-	/**
-		移动一个线程到繁忙列表
-	*/	
-	bool moveThreadToBusyList(TPThread* tptd);
-	
-	/**
-		添加一个已经完成的任务到列表
-	*/	
-	void addFiniTask(TPTask* tptask);
-	
-	/**
-		删除一个挂起(超时)线程
-	*/	
-	bool removeHangThread(TPThread* tptd);
 	
 	/**
 		向线程池添加一个任务
 	*/		
 	bool addTask(TPTask* tptask);
-	bool pushTask(TPTask* tptask){ return addTask(tptask); }
+	INLINE bool addBackgroundTask(TPTask* tptask){ return addTask(tptask); }
+	INLINE bool pushTask(TPTask* tptask){ return addTask(tptask); }
 
 	/**
 		线程数量是否到达最大个数
@@ -302,28 +290,59 @@ public:
 	*/
 	INLINE bool isBusy(void)const;
 
-	/**
-		将某个任务保存到未处理列表
-	*/
-	void saveToBusyTaskList(TPTask* tptask);
 
-	/**
-		从未处理列表取出一个任务 并从列表中删除
-	*/
-	TPTask* popBusyTaskList(void);
 	
 	/** 
 		线程池是否已经被初始化 
 	*/
 	INLINE bool isInitialize(void)const;
+
+
+public:
+
+	/**
+		创建一个线程池线程
+	*/
+	virtual TPThread* createThread(int threadWaitSecond = 0);
+
+	/**
+		将某个任务保存到未处理列表
+	*/
+	void bufferTask(TPTask* tptask);
+
+	/**
+		从未处理列表取出一个任务 并从列表中删除
+	*/
+	TPTask* popbufferTask(void);
+
+	/**
+		移动一个线程到空闲列表
+	*/
+	bool addFreeThread(TPThread* tptd);
+	
+	/**
+		移动一个线程到繁忙列表
+	*/	
+	bool addBusyThread(TPThread* tptd);
+	
+	/**
+		添加一个已经完成的任务到列表
+	*/	
+	void addFiniTask(TPTask* tptask);
+	
+	/**
+		删除一个挂起(超时)线程
+	*/	
+	bool removeHangThread(TPThread* tptd);
+
 protected:
 	bool isInitialize_;												// 线程池是否被初始化过
 	
-	std::queue<TPTask*> busyTaskList_;								// 系统处于繁忙时还未处理的任务列表
+	std::queue<TPTask*> bufferedTaskList_;							// 系统处于繁忙时还未处理的任务列表
 	std::vector<TPTask*> finiTaskList_;								// 已经完成的任务列表
 	
-	THREAD_MUTEX busyTaskList_mutex_;								// 处理busyTaskList_互斥锁
-	THREAD_MUTEX threadStateList_mutex_;							// 处理busyThreadList_ and freeThreadList_互斥锁
+	THREAD_MUTEX bufferedTaskList_mutex_;							// 处理bufferTaskList互斥锁
+	THREAD_MUTEX threadStateList_mutex_;							// 处理bufferTaskList and freeThreadList_互斥锁
 	THREAD_MUTEX finiTaskList_mutex_;								// 处理finiTaskList互斥锁
 	
 	std::list<TPThread*> busyThreadList_;							// 繁忙的线程列表

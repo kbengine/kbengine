@@ -81,35 +81,7 @@ bool DBTask::send(Mercury::Bundle& bundle)
 //-------------------------------------------------------------------------------------
 bool DBTask::process()
 {
-	mysql_thread_init();
-
-	for(int tryi = 0; tryi < 10; tryi++)
-	{
-		pdbi_ = DBUtil::createInterface(false);
-		if(pdbi_ == NULL)
-		{
-			KBEngine::sleep(1000);
-		}
-		else
-		{
-			break;
-		}
-	}
-
-	bool ret = false;
-	
-	if(pdbi_)
-	{
-		ret = db_thread_process();
-	}
-
-	mysql_thread_end();
-
-	if(pdbi_)
-		pdbi_->detach();
-	
-	SAFE_RELEASE(pdbi_);
-	return ret;
+	return db_thread_process();
 }
 
 //-------------------------------------------------------------------------------------

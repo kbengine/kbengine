@@ -9,7 +9,7 @@ INLINE bool ThreadPool::isInitialize(void)const
 
 INLINE bool ThreadPool::isBusy(void)const
 {
-	return busyTaskList_.size() > THREAD_BUSY_SIZE;
+	return bufferedTaskList_.size() > THREAD_BUSY_SIZE;
 }	
 
 INLINE bool ThreadPool::isThreadCountMax(void)const
