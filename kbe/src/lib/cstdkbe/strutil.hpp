@@ -100,7 +100,7 @@ namespace strutil {
 		}
 	}
 
-    std::vector<std::string> split(const std::string& str, const std::string& delimiters);
+    std::vector< std::string > kbe_splits(const std::string& s, const std::string& delim, const bool keep_empty = true);
 }
 
 namespace strutil {

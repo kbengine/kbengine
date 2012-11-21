@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../;../../common;../../lib/third_party/log4cxx/include;../../lib/third_party"
+				AdditionalIncludeDirectories="../;../../common;../../lib/third_party/log4cxx/include;../../lib/third_party;../../lib/third_party/openssl/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -153,6 +153,14 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\base64.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\sha1.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\websocket_protocol.cpp"
 				>
 			</File>
@@ -162,6 +170,14 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\base64.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\sha1.hpp"
+				>
+			</File>
 			<File
 				RelativePath=".\websocket_protocol.hpp"
 				>

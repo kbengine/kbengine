@@ -99,60 +99,32 @@ namespace strutil {
 		return count; 
 	}
 
-    std::vector<std::string> split(const std::string& str, const std::string& delimiters) {
-        std::vector<std::string> ss;
 
-        Tokenizer tokenizer(str, delimiters);
-        while (tokenizer.nextToken()) {
-            ss.push_back(tokenizer.getToken());
-        }
+	std::vector< std::string > kbe_splits(const std::string& s, const std::string& delim, const bool keep_empty) 
+	{
+		std::vector< std::string > result;
 
-        return ss;
-    }
+		if (delim.empty()) {
+			result.push_back(s);
+			return result;
+		}
+
+		std::string::const_iterator substart = s.begin(), subend;
+
+		while (true) {
+			subend = std::search(substart, s.end(), delim.begin(), delim.end());
+			std::string temp(substart, subend);
+			if (keep_empty || !temp.empty()) {
+				result.push_back(temp);
+			}
+			if (subend == s.end()) {
+				break;
+			}
+			substart = subend + delim.size();
+		}
+
+		return result;
+	}
 }
 
-namespace strutil {
-
-    const std::string Tokenizer::DEFAULT_DELIMITERS(" \t\n\r");
-
-    Tokenizer::Tokenizer(const std::string& str)
-        : m_String(str), m_Offset(0), m_Delimiters(DEFAULT_DELIMITERS) {}
-
-    Tokenizer::Tokenizer(const std::string& str, const std::string& delimiters)
-        : m_String(str), m_Offset(0), m_Delimiters(delimiters) {}
-
-    bool Tokenizer::nextToken() {
-        return nextToken(m_Delimiters);
-    }
-
-    bool Tokenizer::nextToken(const std::string& delimiters) {
-        // find the start charater of the next token.
-        size_t i = m_String.find_first_not_of(delimiters, m_Offset);
-        if (i == std::string::npos) {
-            m_Offset = m_String.length();
-            return false;
-        }
-
-        // find the end of the token.
-        size_t j = m_String.find_first_of(delimiters, i);
-        if (j == std::string::npos) {
-            m_Token = m_String.substr(i);
-            m_Offset = m_String.length();
-            return true;
-        }
-
-        // to intercept the token and save current position
-        m_Token = m_String.substr(i, j - i);
-        m_Offset = j;
-        return true;
-    }
-
-    const std::string Tokenizer::getToken() const {
-        return m_Token;
-    }
-
-    void Tokenizer::reset() {
-        m_Offset = 0;
-    }
-}
 }
