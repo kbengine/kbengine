@@ -17,8 +17,8 @@ MY_LIBS =		\
 	entitydef	\
 	server		\
 	pyscript	\
-	html5		\
 	network		\
+	html5		\
 	thread
 	
 
