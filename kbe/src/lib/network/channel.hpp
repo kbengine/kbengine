@@ -80,6 +80,16 @@ public:
 		PACKET_IS_CORRUPT
 	};
 
+	enum FragmentDataTypes
+	{
+		FRAGMENT_DATA_UNKNOW,
+		FRAGMENT_DATA_MESSAGE_HREADER,
+		FRAGMENT_DATA_MESSAGE_ID,
+		FRAGMENT_DATA_MESSAGE_LENGTH,
+		FRAGMENT_DATA_MESSAGE_BODY,
+		FRAGMENT_DATA_MESSAGE_END,
+	};
+
 	typedef std::vector<Packet*> BufferedReceives;
 public:
 	Channel();
@@ -164,6 +174,9 @@ public:
 	ENTITY_ID proxyID()const { return proxyID_; }
 	void proxyID(ENTITY_ID pid){ proxyID_ = pid; }
 
+	virtual void onPacketProcessStart(Packet* pPacket);
+	virtual void onPacketProcessEnd(Packet* pPacket);
+	virtual void handshake();
 private:
 	enum TimeOutType
 	{
@@ -174,7 +187,7 @@ private:
 	void clearState( bool warnOnDiscard = false );
 	EventDispatcher & dispatcher();
 
-	void writeFragmentMessage(uint8 fragmentDatasFlag, Packet* pPacket, uint32 datasize);
+	void writeFragmentMessage(FragmentDataTypes fragmentDatasFlag, Packet* pPacket, uint32 datasize);
 	void mergeFragmentMessage(Packet* pPacket);
 private:
 	NetworkInterface * 			pNetworkInterface_;
@@ -198,7 +211,7 @@ private:
 	uint8*						pFragmentDatas_;
 	uint32						pFragmentDatasWpos_;
 	uint32						pFragmentDatasRemain_;
-	uint8						fragmentDatasFlag_;
+	FragmentDataTypes			fragmentDatasFlag_;
 	MemoryStream*				pFragmentStream_;
 	Mercury::MessageID			currMsgID_;
 	Mercury::MessageLength		currMsgLen_;
@@ -223,11 +236,16 @@ private:
 	// 如果是外部通道且代理了一个前端则会绑定前端代理ID
 	ENTITY_ID					proxyID_;
 
-	// 是否是第一次处理数消息
-	bool						firstHandleMessage_;
+	// 是否握手完成
+	bool						isHandshake_;
 
 	// 通道类别
 	ChannelTypes				channelType_;
+
+	// 包头包尾大小, 注意：此包头包尾属于附加选项用于扩展
+	// 比如websocket等会附加包头尾内容。
+	Mercury::MessageLength		packetHeaderSize_;
+	Mercury::MessageLength		packetEndSize_;
 };
 
 typedef SmartPointer<Channel> ChannelPtr;

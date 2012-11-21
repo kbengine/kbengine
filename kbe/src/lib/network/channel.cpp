@@ -88,7 +88,7 @@ Channel::Channel(NetworkInterface & networkInterface,
 	pFragmentDatas_(NULL),
 	pFragmentDatasWpos_(0),
 	pFragmentDatasRemain_(0),
-	fragmentDatasFlag_(0),
+	fragmentDatasFlag_(FRAGMENT_DATA_UNKNOW),
 	pFragmentStream_(NULL),
 	currMsgID_(0),
 	currMsgLen_(0),
@@ -104,8 +104,10 @@ Channel::Channel(NetworkInterface & networkInterface,
 	pPacketReceiver_(NULL),
 	isCondemn_(false),
 	proxyID_(0),
-	firstHandleMessage_(false),
-	channelType_(CHANNEL_NORMAL)
+	isHandshake_(false),
+	channelType_(CHANNEL_NORMAL),
+	packetHeaderSize_(0),
+	packetEndSize_(0)
 {
 	this->incRef();
 	this->clearBundle();
@@ -138,7 +140,7 @@ Channel::Channel():
 	pFragmentDatas_(NULL),
 	pFragmentDatasWpos_(0),
 	pFragmentDatasRemain_(0),
-	fragmentDatasFlag_(0),
+	fragmentDatasFlag_(FRAGMENT_DATA_UNKNOW),
 	pFragmentStream_(NULL),
 	currMsgID_(0),
 	currMsgLen_(0),
@@ -153,7 +155,11 @@ Channel::Channel():
 	pEndPoint_(NULL),
 	pPacketReceiver_(NULL),
 	isCondemn_(false),
-	proxyID_(0)
+	proxyID_(0),
+	isHandshake_(false),
+	channelType_(CHANNEL_NORMAL),
+	packetHeaderSize_(0),
+	packetEndSize_(0)
 {
 	this->incRef();
 	this->clearBundle();
@@ -275,14 +281,16 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	numPacketsReceived_ = 0;
 	numBytesSent_ = 0;
 	numBytesReceived_ = 0;
-	fragmentDatasFlag_ = 0;
+	fragmentDatasFlag_ = FRAGMENT_DATA_UNKNOW;
 	pFragmentDatasWpos_ = 0;
 	pFragmentDatasRemain_ = 0;
 	currMsgID_ = 0;
 	currMsgLen_ = 0;
 	proxyID_ = 0;
-	firstHandleMessage_ = false;
+	isHandshake_ = false;
 	channelType_ = CHANNEL_NORMAL;
+	packetHeaderSize_ = 0;
+	packetEndSize_ = 0;
 
 	SAFE_RELEASE_ARRAY(pFragmentDatas_);
 	MemoryStream::ObjPool().reclaimObject(pFragmentStream_);
@@ -418,6 +426,43 @@ void Channel::addReceiveWindow(Packet* pPacket)
 }
 
 //-------------------------------------------------------------------------------------
+void Channel::onPacketProcessStart(Packet* pPacket)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::onPacketProcessEnd(Packet* pPacket)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::handshake()
+{
+	if(!isHandshake_ && bufferedReceives_.size() > 0)
+	{
+		isHandshake_ = true;
+
+		BufferedReceives::iterator packetIter = bufferedReceives_.begin();
+		Packet* pPacket = (*packetIter);
+		
+		// 此处判定是否为websocket或者其他协议的握手
+		if(html5::WebSocketProtocol::isWebSocketProtocol(pPacket))
+		{
+			channelType_ = CHANNEL_WEB;
+			if(html5::WebSocketProtocol::handshake(this, pPacket))
+			{
+				packetHeaderSize_ = 1;
+				packetEndSize_ = 1;
+				if(pPacket->totalSize() == 0)
+				{
+					bufferedReceives_.erase(packetIter);
+				}
+			}
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 {
 	if (this->isDestroyed())
@@ -426,25 +471,10 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 		return;
 	}
 
-	// 如果是第一次处理包， 则此处判定是否为websocket或者其他协议的握手
-	if(!firstHandleMessage_ && bufferedReceives_.size() > 0)
+	// 没有握手则尝试握手
+	if(!isHandshake_)
 	{
-		firstHandleMessage_ = true;
-
-		BufferedReceives::iterator packetIter = bufferedReceives_.begin();
-		Packet* pPacket = (*packetIter);
-		
-		if(html5::WebSocketProtocol::isWebSocketProtocol(pPacket))
-		{
-			channelType_ = CHANNEL_WEB;
-
-			html5::WebSocketProtocol::handshake(this, pPacket);
-		}
-
-		if(pPacket->totalSize() == 0)
-		{
-			bufferedReceives_.erase(packetIter);
-		}
+		handshake();
 	}
 
 	try
@@ -456,11 +486,11 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 
 			while(pPacket->totalSize() > 0)
 			{
-				if(fragmentDatasFlag_ == 0)
+				if(fragmentDatasFlag_ == FRAGMENT_DATA_UNKNOW)
 				{
 					if(MERCURY_MESSAGE_ID_SIZE > 1 && pPacket->opsize() < MERCURY_MESSAGE_ID_SIZE)
 					{
-						writeFragmentMessage(1, pPacket, MERCURY_MESSAGE_ID_SIZE);
+						writeFragmentMessage(FRAGMENT_DATA_MESSAGE_ID, pPacket, MERCURY_MESSAGE_ID_SIZE);
 						break;
 					}
 					
@@ -497,7 +527,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 							// 如果长度信息不完整， 则等待下一个包处理
 							if(pPacket->opsize() < MERCURY_MESSAGE_LENGTH_SIZE)
 							{
-								writeFragmentMessage(2, pPacket, MERCURY_MESSAGE_LENGTH_SIZE);
+								writeFragmentMessage(FRAGMENT_DATA_MESSAGE_LENGTH, pPacket, MERCURY_MESSAGE_LENGTH_SIZE);
 								break;
 							}
 							else
@@ -519,7 +549,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 
 					if(pPacket->opsize() < currMsgLen_)
 					{
-						writeFragmentMessage(3, pPacket, currMsgLen_);
+						writeFragmentMessage(FRAGMENT_DATA_MESSAGE_BODY, pPacket, currMsgLen_);
 						break;
 					}
 					
@@ -580,7 +610,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::writeFragmentMessage(uint8 fragmentDatasFlag, Packet* pPacket, uint32 datasize)
+void Channel::writeFragmentMessage(FragmentDataTypes fragmentDatasFlag, Packet* pPacket, uint32 datasize)
 {
 	KBE_ASSERT(pFragmentDatas_ == NULL);
 
@@ -591,7 +621,7 @@ void Channel::writeFragmentMessage(uint8 fragmentDatasFlag, Packet* pPacket, uin
 	fragmentDatasFlag_ = fragmentDatasFlag;
 	pFragmentDatasWpos_ = opsize;
 	pPacket->clear(false);
-	DEBUG_MSG("Channel::writeFragmentMessage: fragmentDatasFlag=%u, remainsize=%u.\n", 
+	DEBUG_MSG("Channel::writeFragmentMessage: fragmentDatasFlag=%d, remainsize=%u.\n", 
 		fragmentDatasFlag, pFragmentDatasRemain_);
 }
 
@@ -608,15 +638,21 @@ void Channel::mergeFragmentMessage(Packet* pPacket)
 
 		switch(fragmentDatasFlag_)
 		{
-		case 1:		// 消息ID信息不全
+		case FRAGMENT_DATA_MESSAGE_HREADER:
+			break;
+
+		case FRAGMENT_DATA_MESSAGE_END:
+			break;
+
+		case FRAGMENT_DATA_MESSAGE_ID:		// 消息ID信息不全
 			memcpy(&currMsgLen_, pFragmentDatas_, MERCURY_MESSAGE_ID_SIZE);
 			break;
 
-		case 2:		// 消息长度信息不全
+		case FRAGMENT_DATA_MESSAGE_LENGTH:		// 消息长度信息不全
 			memcpy(&currMsgLen_, pFragmentDatas_, MERCURY_MESSAGE_LENGTH_SIZE);
 			break;
 
-		case 3:		// 消息内容信息不全
+		case FRAGMENT_DATA_MESSAGE_BODY:		// 消息内容信息不全
 			pFragmentStream_ = MemoryStream::ObjPool().createObject();
 			pFragmentStream_->data_resize(currMsgLen_);
 			pFragmentStream_->wpos(currMsgLen_);
@@ -627,7 +663,7 @@ void Channel::mergeFragmentMessage(Packet* pPacket)
 			break;
 		};
 
-		fragmentDatasFlag_ = 0;
+		fragmentDatasFlag_ = FRAGMENT_DATA_UNKNOW;
 		pFragmentDatasRemain_ = 0;
 	}
 	else
@@ -637,7 +673,7 @@ void Channel::mergeFragmentMessage(Packet* pPacket)
 		pPacket->rpos(pPacket->rpos() + opsize);
 	}
 
-	if(fragmentDatasFlag_ == 0)
+	if(fragmentDatasFlag_ == FRAGMENT_DATA_UNKNOW)
 		SAFE_RELEASE_ARRAY(pFragmentDatas_);
 }
 

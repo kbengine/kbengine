@@ -85,22 +85,6 @@ bool WebSocketProtocol::handshake(Mercury::Channel* pChannel, MemoryStream* s)
 
 	(*s) >> data;
 
-	size_t fi = data.find_first_of("Sec-WebSocket-Key");
-	if(fi == std::string::npos)
-	{
-		s->rpos(rpos);
-		s->wpos(wpos);
-		return false;
-	}
-
-	fi = data.find_first_of("GET");
-	if(fi == std::string::npos)
-	{
-		s->rpos(rpos);
-		s->wpos(wpos);
-		return false;
-	}
-
 	std::vector<std::string> header_and_data;
 	header_and_data = KBEngine::strutil::kbe_splits(data, "\r\n\r\n");
 	
@@ -184,9 +168,13 @@ bool WebSocketProtocol::handshake(Mercury::Channel* pChannel, MemoryStream* s)
 								"Connection: Upgrade\r\n"
 								"Sec-WebSocket-Accept:";
 
-	ackHandshake += server_key; ackHandshake += "\r\n";
-	ackHandshake += "WebSocket-Origin:"; ackHandshake += szOrigin; ackHandshake += "\r\n";
-	ackHandshake += "WebSocket-Location: ws://";ackHandshake += szHost;ackHandshake += "/WebManagerSocket\r\n";
+	ackHandshake += server_key; 
+	ackHandshake += "\r\n";
+	ackHandshake += "WebSocket-Origin:"; 
+	ackHandshake += szOrigin; ackHandshake += "\r\n";
+	ackHandshake += "WebSocket-Location: ws://";
+	ackHandshake += szHost;
+	ackHandshake += "/WebManagerSocket\r\n";
 	ackHandshake += "WebSocket-Protocol:WebManagerSocket\r\n\r\n";
 
 	Mercury::Bundle::SmartPoolObjectPtr pBundle = Mercury::Bundle::createSmartPoolObj();
