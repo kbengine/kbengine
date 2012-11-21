@@ -297,11 +297,12 @@ public:
     MemoryStream &operator>>(std::string& value)
     {
         value.clear();
-        while (rpos() < size())
+        while (opsize() > 0)
         {
             char c = read<char>();
             if (c == 0)
                 break;
+
             value += c;
         }
         
@@ -310,11 +311,12 @@ public:
 
     MemoryStream &operator>>(char *value)
     {
-        while (rpos() < size())
+        while (opsize() > 0)
         {
             char c = read<char>();
             if (c == 0)
                 break;
+
             *(value++) = c;
         }
 
@@ -366,8 +368,8 @@ public:
 
     void read_skip(size_t skip)
     {
-        if(rpos_ + skip > size())
-            throw MemoryStreamException(false, rpos_, skip, size());
+        if(skip > opsize())
+            throw MemoryStreamException(false, rpos_, skip, opsize());
         rpos_ += skip;
     }
 
@@ -380,8 +382,8 @@ public:
 
     template <typename T> T read(size_t pos) const
     {
-        if(pos + sizeof(T) > size())
-            throw MemoryStreamException(false, pos, sizeof(T), size());
+        if(sizeof(T) > opsize())
+            throw MemoryStreamException(false, pos, sizeof(T), opsize());
         T val = *((T const*)&data_[pos]);
         EndianConvert(val);
         return val;
@@ -389,8 +391,8 @@ public:
 
     void read(uint8 *dest, size_t len)
     {
-        if(rpos_  + len > size())
-           throw MemoryStreamException(false, rpos_, len, size());
+        if(len > opsize())
+           throw MemoryStreamException(false, rpos_, len, opsize());
         memcpy(dest, &data_[rpos_], len);
         rpos_ += len;
     }
@@ -416,7 +418,7 @@ public:
 
     bool readPackGUID(uint64& guid)
     {
-        if(rpos() + 1 > size())
+        if(opsize() == 0)
             return false;
 
         guid = 0;
@@ -428,7 +430,7 @@ public:
         {
             if(guidmark & (uint8(1) << i))
             {
-                if(rpos() + 1 > size())
+                if(opsize() == 0)
                     return false;
 
                 uint8 bit;
@@ -445,7 +447,7 @@ public:
 		
     virtual size_t size() const { return data_.size(); }
     virtual bool empty() const { return data_.empty(); }
-	size_t opsize() { return rpos() >= wpos() ? 0 : wpos() - rpos(); }
+	size_t opsize()const { return rpos() >= wpos() ? 0 : wpos() - rpos(); }
 	
 	void opfini(){ read_skip(opsize()); }
 
@@ -562,7 +564,7 @@ public:
 		kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 		fbuffer += buf;
 
-        for(uint32 i = 0; i < wpos(); ++i)
+        for(uint32 i = 0; i < opsize(); ++i)
 		{
 			kbe_snprintf(buf, 1024, "%u ", read<uint8>(i));
 			fbuffer += buf;
@@ -581,7 +583,7 @@ public:
 		kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 		fbuffer += buf;
 
-        for(uint32 i = 0; i < wpos(); ++i)
+        for(uint32 i = 0; i < opsize(); ++i)
 		{
 			kbe_snprintf(buf, 1024, "%c", read<uint8>(i));
 			fbuffer += buf;
@@ -600,7 +602,7 @@ public:
 		kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 		fbuffer += buf;
 
-        for(uint32 i = 0; i < wpos(); ++i)
+        for(uint32 i = 0; i < opsize(); ++i)
         {
             if ((i == (j * 8)) && ((i != (k * 16))))
             {
@@ -653,8 +655,8 @@ public:
 		DEBUG_MSG(fbuffer.c_str());
     }
 protected:
-    size_t rpos_, wpos_;
-    std::vector<uint8> data_;
+	mutable size_t rpos_, wpos_;
+	std::vector<uint8> data_;
 };
 
 
@@ -673,7 +675,7 @@ inline MemoryStream &operator<<(MemoryStream &b, std::vector<T> v)
 template <typename T>
 inline MemoryStream &operator>>(MemoryStream &b, std::vector<T> &v)
 {
-    uint32 vsize;
+    ArraySize vsize;
     b >> vsize;
     v.clear();
     while(vsize--)

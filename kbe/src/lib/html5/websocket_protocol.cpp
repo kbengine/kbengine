@@ -184,6 +184,18 @@ bool WebSocketProtocol::handshake(Mercury::Channel* pChannel, MemoryStream* s)
 }
 
 //-------------------------------------------------------------------------------------
+void WebSocketProtocol::onPacketProcessHeader(Mercury::Channel* pChannel, MemoryStream* s)
+{
+	s->read_skip(1);
+}
+
+//-------------------------------------------------------------------------------------
+void WebSocketProtocol::onPacketProcessEnd(Mercury::Channel* pChannel, MemoryStream* s)
+{
+	s->read_skip(1);
+}
+
+//-------------------------------------------------------------------------------------
 }
 }
 

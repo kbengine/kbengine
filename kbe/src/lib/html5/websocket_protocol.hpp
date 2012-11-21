@@ -44,6 +44,9 @@ public:
 		websocket–≠“ÈŒ’ ÷
 	*/
 	static bool handshake(Mercury::Channel* pChannel, MemoryStream* s);
+
+	static void onPacketProcessHeader(Mercury::Channel* pChannel, MemoryStream* s);
+	static void onPacketProcessEnd(Mercury::Channel* pChannel, MemoryStream* s);
 };
 
 }

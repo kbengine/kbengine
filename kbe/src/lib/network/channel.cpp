@@ -431,11 +431,27 @@ void Channel::addReceiveWindow(Packet* pPacket)
 //-------------------------------------------------------------------------------------
 void Channel::onPacketProcessHeader(MemoryStream* s)
 {
+	switch(channelType_)
+	{
+	case CHANNEL_WEB:
+		html5::WebSocketProtocol::onPacketProcessHeader(this, s);
+		break;
+	default:
+		break;
+	};
 }
 
 //-------------------------------------------------------------------------------------
 void Channel::onPacketProcessEnd(MemoryStream* s)
 {
+	switch(channelType_)
+	{
+	case CHANNEL_WEB:
+		html5::WebSocketProtocol::onPacketProcessEnd(this, s);
+		break;
+	default:
+		break;
+	};
 }
 
 //-------------------------------------------------------------------------------------
@@ -454,8 +470,8 @@ void Channel::handshake()
 			channelType_ = CHANNEL_WEB;
 			if(html5::WebSocketProtocol::handshake(this, pPacket))
 			{
-				packetHeaderSize_ = 1;
-				packetEndSize_ = 1;
+				packetHeaderSize_ = 6;
+				packetEndSize_ = 0;
 				if(pPacket->totalSize() == 0)
 				{
 					bufferedReceives_.erase(packetIter);
