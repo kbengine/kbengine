@@ -7,6 +7,7 @@ ASMS =
 MY_LIBS =		\
 	cstdkbe		\
 	network		\
+	html5		\
 	server		\
 	thread
 	
