@@ -64,6 +64,15 @@ public:
 		EXTERNAL = 1,
 	};
 	
+	enum ChannelTypes
+	{
+		/// 普通通道
+		CHANNEL_NORMAL = 0,
+
+		// 浏览器web通道
+		CHANNEL_WEB = 1,
+	};
+
 	enum AddToReceiveWindowResult
 	{
 		SHOULD_PROCESS,
@@ -213,6 +222,12 @@ private:
 
 	// 如果是外部通道且代理了一个前端则会绑定前端代理ID
 	ENTITY_ID					proxyID_;
+
+	// 是否是第一次处理数消息
+	bool						firstHandleMessage_;
+
+	// 通道类别
+	ChannelTypes				channelType_;
 };
 
 typedef SmartPointer<Channel> ChannelPtr;

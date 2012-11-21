@@ -21,10 +21,29 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 
 namespace KBEngine{
+
+class MemoryStream;
+
+namespace Mercury
+{
+	class Channel;
+}
+
 namespace html5{
+
 
 class WebSocketProtocol
 {
+public:
+	/**
+		是否是websocket协议
+	*/
+	static bool isWebSocketProtocol(MemoryStream* s);
+	
+	/**
+		websocket协议握手
+	*/
+	static bool handshake(Mercury::Channel* pChannel, MemoryStream* s);
 };
 
 }

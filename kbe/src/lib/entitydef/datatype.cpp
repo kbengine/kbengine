@@ -1240,7 +1240,7 @@ bool FixedDictType::loadImplModule(std::string moduleName)
 	KBE_ASSERT(implObj_ == NULL);
 	
 	std::vector<std::string> res_;
-	kbe_split<char>(moduleName, '.', res_);
+	strutil::kbe_split<char>(moduleName, '.', res_);
 	
 	if(res_.size() != 2)
 	{

@@ -19,12 +19,36 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "websocket_protocol.hpp"
+#include "cstdkbe/memorystream.hpp"
+#include "network/channel.hpp"
 
 namespace KBEngine{
 namespace html5{
 
 //-------------------------------------------------------------------------------------
+bool WebSocketProtocol::isWebSocketProtocol(MemoryStream* s)
+{
+	KBE_ASSERT(s != NULL);
+	std::string data;
+	(*s) >> data;
 
+	std::vector<std::string> header_and_data;
+//	KBEngine::kbe_split<char>(data.c_str, "\r\n\r\n", header_and_data);
+
+	std::vector<std::string> headers;
+	std::vector<std::string> values;
+//	KBEngine::kbe_split<char>(header_and_data[0], "\r\n", values);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool WebSocketProtocol::handshake(Mercury::Channel* pChannel, MemoryStream* s)
+{
+	KBE_ASSERT(s != NULL);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 }
 }
 

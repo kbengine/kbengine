@@ -165,6 +165,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\strutil.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\tasks.cpp"
 				>
 			</File>
@@ -224,6 +228,10 @@
 			</File>
 			<File
 				RelativePath=".\stringconv.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\strutil.hpp"
 				>
 			</File>
 			<File

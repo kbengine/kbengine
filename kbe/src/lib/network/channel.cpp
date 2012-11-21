@@ -23,6 +23,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef CODE_INLINE
 #include "channel.ipp"
 #endif
+
+#include "html5/websocket_protocol.hpp"
 #include "network/bundle.hpp"
 #include "network/network_interface.hpp"
 #include "network/tcp_packet_receiver.hpp"
@@ -101,7 +103,9 @@ Channel::Channel(NetworkInterface & networkInterface,
 	pEndPoint_(NULL),
 	pPacketReceiver_(NULL),
 	isCondemn_(false),
-	proxyID_(0)
+	proxyID_(0),
+	firstHandleMessage_(false),
+	channelType_(CHANNEL_NORMAL)
 {
 	this->incRef();
 	this->clearBundle();
@@ -277,6 +281,9 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	currMsgID_ = 0;
 	currMsgLen_ = 0;
 	proxyID_ = 0;
+	firstHandleMessage_ = false;
+	channelType_ = CHANNEL_NORMAL;
+
 	SAFE_RELEASE_ARRAY(pFragmentDatas_);
 	MemoryStream::ObjPool().reclaimObject(pFragmentStream_);
 	pFragmentStream_ = NULL;
@@ -417,6 +424,27 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 	{
 		ERROR_MSG("Channel::handleMessage(%s): Channel is destroyed.\n", this->c_str());
 		return;
+	}
+
+	// 如果是第一次处理包， 则此处判定是否为websocket或者其他协议的握手
+	if(!firstHandleMessage_ && bufferedReceives_.size() > 0)
+	{
+		firstHandleMessage_ = true;
+
+		BufferedReceives::iterator packetIter = bufferedReceives_.begin();
+		Packet* pPacket = (*packetIter);
+		
+		if(html5::WebSocketProtocol::isWebSocketProtocol(pPacket))
+		{
+			channelType_ = CHANNEL_WEB;
+
+			html5::WebSocketProtocol::handshake(this, pPacket);
+		}
+
+		if(pPacket->totalSize() == 0)
+		{
+			bufferedReceives_.erase(packetIter);
+		}
 	}
 
 	try

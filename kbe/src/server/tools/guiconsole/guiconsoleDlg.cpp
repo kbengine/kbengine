@@ -1031,7 +1031,7 @@ Mercury::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 	std::string sip, sport;
 	sip = sbuf.substr(0, k);
 	sport = sbuf.substr(k + 1, sbuf.find("]"));
-	sport = kbe_replace(sport, "]", "");
+	strutil::kbe_replace(sport, "]", "");
 
 	Mercury::EndPoint endpoint;
 	u_int32_t address;

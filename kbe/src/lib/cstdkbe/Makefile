@@ -5,6 +5,7 @@ SRCS =				\
 	tasks			\
 	timer			\
 	timestamp		\
+	strutil			\
 	kbeversion		\
 	memorystream
 

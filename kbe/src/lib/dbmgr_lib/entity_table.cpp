@@ -152,7 +152,7 @@ bool EntityTables::syncToDB(DBInterface* dbi)
 		if(std::string::npos == tname.find(ENTITY_TABLE_PERFIX"_"))
 			continue;
 
-		KBEngine::kbe_replace(tname, ENTITY_TABLE_PERFIX"_", "");
+		KBEngine::strutil::kbe_replace(tname, ENTITY_TABLE_PERFIX"_", "");
 		EntityTables::TABLES_MAP::iterator iter = tables_.find(tname);
 		if(iter == tables_.end())
 		{

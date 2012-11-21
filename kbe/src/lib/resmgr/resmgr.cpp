@@ -67,13 +67,13 @@ bool Resmgr::initialize()
 	respaths_.clear();
 	std::string tbuf = kb_env_.res_path;
 	char splitFlag = ';';
-	kbe_split<char>(tbuf, splitFlag, respaths_);
+	strutil::kbe_split<char>(tbuf, splitFlag, respaths_);
 
 	if(respaths_.size() < 2)
 	{
 		respaths_.clear();
 		splitFlag = ':';
-		kbe_split<char>(tbuf, splitFlag, respaths_);
+		strutil::kbe_split<char>(tbuf, splitFlag, respaths_);
 	}
 
 	kb_env_.res_path = "";

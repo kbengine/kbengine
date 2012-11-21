@@ -177,10 +177,10 @@ public:
 	
 	TiXmlDocument* getTxdoc()const { return txdoc_; }
 
-	std::string getKey(const TiXmlNode* node){return kbe_trim(node->Value());}
-	std::string getValStr(const TiXmlNode* node){return kbe_trim(node->ToText()->Value());}
-	int getValInt(const TiXmlNode* node){return atoi(kbe_trim(node->ToText()->Value()).c_str());}
-	double getValFloat(const TiXmlNode* node){return atof(kbe_trim(node->ToText()->Value()).c_str());}
+	std::string getKey(const TiXmlNode* node){return strutil::kbe_trim(node->Value());}
+	std::string getValStr(const TiXmlNode* node){return strutil::kbe_trim(node->ToText()->Value());}
+	int getValInt(const TiXmlNode* node){return atoi(strutil::kbe_trim(node->ToText()->Value()).c_str());}
+	double getValFloat(const TiXmlNode* node){return atof(strutil::kbe_trim(node->ToText()->Value()).c_str());}
 protected:
 	TiXmlDocument* txdoc_;
 	TiXmlElement* rootElement_;
