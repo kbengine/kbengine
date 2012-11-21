@@ -77,6 +77,80 @@ Address address;
 EndPoint mysocket;
 EventDispatcher gdispatcher;
 
+/*
+	packetHeaderSize_ = 2;
+	packetEndSize_ = 2;
+
+	bufferedReceives_.clear();
+	TCPPacket* packet = new TCPPacket();
+	MessageID id = 1;
+	(*packet) << id;
+	TCPPacket* packet1 = new TCPPacket();
+	TCPPacket* packet2 = new TCPPacket();
+	packet1->append(packet->data(), 1);
+	packet2->append(packet->data() + 1, 1);
+	bufferedReceives_.push_back(packet1);
+	bufferedReceives_.push_back(packet2);
+
+	TCPPacket* nullpacket = new TCPPacket();
+
+	packet = new TCPPacket();
+	id = 5;
+	(*packet) << id;
+	packet1 = new TCPPacket();
+	packet2 = new TCPPacket();
+	packet1->append(packet->data(), 1);
+
+	packet2->append(packet->data() + 1, 1);
+	bufferedReceives_.push_back(packet1);
+	bufferedReceives_.push_back(nullpacket);
+	bufferedReceives_.push_back(packet2);
+
+	nullpacket = new TCPPacket();
+	bufferedReceives_.push_back(nullpacket);
+
+	packet = new TCPPacket();
+	packet1 = new TCPPacket();
+	packet2 = new TCPPacket();
+
+	MessageLength len = 3;
+	(*packet) << len;
+	packet1->append(packet->data(), 1);
+	packet2->append(packet->data() + 1, 1);
+	bufferedReceives_.push_back(packet1);
+	nullpacket = new TCPPacket();
+	bufferedReceives_.push_back(nullpacket);
+	bufferedReceives_.push_back(packet2);
+	nullpacket = new TCPPacket();
+	bufferedReceives_.push_back(nullpacket);
+
+	packet = new TCPPacket();
+	(*packet) << "ab";
+	packet1 = new TCPPacket();
+	packet2 = new TCPPacket();
+	TCPPacket* packet3 = new TCPPacket();
+	packet1->append(packet->data(), 1);
+	bufferedReceives_.push_back(packet1);
+	nullpacket = new TCPPacket();
+	bufferedReceives_.push_back(nullpacket);
+	packet2->append(packet->data() + 1, 1);
+	bufferedReceives_.push_back(packet2);
+	nullpacket = new TCPPacket();
+	bufferedReceives_.push_back(nullpacket);
+	packet2->append(packet->data() + 3, 1);
+	bufferedReceives_.push_back(packet3);
+
+	packet = new TCPPacket();
+	id = 1;
+	(*packet) << id;
+	packet1 = new TCPPacket();
+	packet2 = new TCPPacket();
+	packet1->append(packet->data(), 1);
+	packet2->append(packet->data() + 1, 1);
+	bufferedReceives_.push_back(packet1);
+	bufferedReceives_.push_back(packet2);
+
+*/
 namespace KBEngine{
 COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;
 COMPONENT_ID g_componentID = 0;

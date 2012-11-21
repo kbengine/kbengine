@@ -46,6 +46,14 @@ class Bundle;
 class NetworkInterface;
 class MessageHandlers;
 
+#define MESSAGE_PROCESSED_UNKOWN	0x00000000
+#define MESSAGE_PROCESSED_HEADER	0x00000001
+#define MESSAGE_PROCESSED_MSGID		0x00000002
+#define MESSAGE_PROCESSED_MSGLEN	0x00000004
+#define MESSAGE_PROCESSED_MSGBODY	0x00000008
+#define MESSAGE_PROCESSED_END		0x00000010
+
+
 class Channel : public TimerHandler, public RefCountable, public PoolObject
 {
 public:
@@ -174,8 +182,8 @@ public:
 	ENTITY_ID proxyID()const { return proxyID_; }
 	void proxyID(ENTITY_ID pid){ proxyID_ = pid; }
 
-	virtual void onPacketProcessStart(Packet* pPacket);
-	virtual void onPacketProcessEnd(Packet* pPacket);
+	virtual void onPacketProcessHeader(MemoryStream* s);
+	virtual void onPacketProcessEnd(MemoryStream* s);
 	virtual void handshake();
 private:
 	enum TimeOutType
@@ -246,6 +254,8 @@ private:
 	// 比如websocket等会附加包头尾内容。
 	Mercury::MessageLength		packetHeaderSize_;
 	Mercury::MessageLength		packetEndSize_;
+
+	int32						processedFlags_;
 };
 
 typedef SmartPointer<Channel> ChannelPtr;
