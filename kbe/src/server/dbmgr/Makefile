@@ -13,6 +13,7 @@ MY_LIBS =		\
 	entitydef	\
 	server		\
 	pyscript	\
+	html5		\
 	network		\
 	thread		\
 	dbmgr_lib	\
