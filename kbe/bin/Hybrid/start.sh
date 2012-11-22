@@ -12,8 +12,16 @@ sleep 2s
 sleep 1s
 ./cellappmgr&
 sleep 1s
-./loginapp&
+./baseapp&
+sleep 1s
+./baseapp&
 sleep 1s
 ./baseapp&
 sleep 1s
 ./cellapp&
+sleep 1s
+./cellapp&
+sleep 1s
+./cellapp&
+sleep 1s
+./loginapp&
