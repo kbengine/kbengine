@@ -181,7 +181,7 @@ PacketReceiver::RecvState UDPPacketReceiver::checkSocketErrors(int len, bool exp
 			this->dispatcher().errorReporter().reportException(
 					REASON_NO_SUCH_PORT, offender);
 
-			RECV_STATE_CONTINUE true;
+			return RECV_STATE_CONTINUE;
 		}
 		else
 		{
