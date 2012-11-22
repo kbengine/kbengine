@@ -124,7 +124,7 @@ bool ThreadPool::createThreadPool(unsigned int inewThreadCount,
 	unsigned int inormalMaxThreadCount, unsigned int imaxThreadCount)
 {
 	assert(!isInitialize_ && "ThreadPool is exist!");
-	INFO_MSG("ThreadPool::creating  Threadpool...\n");
+	INFO_MSG("ThreadPool::createThreadPool: creating  threadpool...\n");
 	
 	extraNewAddThreadCount_ = inewThreadCount;
 	normalThreadCount_ = inormalMaxThreadCount;
@@ -136,7 +136,7 @@ bool ThreadPool::createThreadPool(unsigned int inewThreadCount,
 		
 		if(!tptd)
 		{
-			ERROR_MSG("ThreadPool:: create Thread error! \n");
+			ERROR_MSG("ThreadPool::createThreadPool: create thread is error! \n");
 		}
 
 		currentFreeThreadCount_++;	
@@ -145,7 +145,7 @@ bool ThreadPool::createThreadPool(unsigned int inewThreadCount,
 		allThreadList_.push_back(tptd);										// 所有的线程列表
 	}
 	
-	INFO_MSG("ThreadPool::createThreadPool is successfully(%d), "
+	INFO_MSG("ThreadPool::createThreadPool: is successfully(%d), "
 		"newThreadCount=%d, normalMaxThreadCount=%d, maxThreadCount=%d\n", \
 			currentThreadCount_, extraNewAddThreadCount_, normalThreadCount_, maxThreadCount_);
 
@@ -174,9 +174,8 @@ void ThreadPool::bufferTask(TPTask* tptask)
 {
 	THREAD_MUTEX_LOCK(bufferedTaskList_mutex_);
 	bufferedTaskList_.push(tptask);
+	WARNING_MSG("ThreadPool::bufferTask: task buffered(%d)!\n", (int)bufferedTaskList_.size());
 	THREAD_MUTEX_UNLOCK(bufferedTaskList_mutex_);
-	
-	WARNING_MSG("ThreadPool::save BusyTask to list!\n");
 }
 
 //-------------------------------------------------------------------------------------
@@ -201,7 +200,7 @@ bool ThreadPool::addFreeThread(TPThread* tptd)
 	else
 	{
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
-		ERROR_MSG("ThreadPool::moveThreadToFreeList: busyThreadList_ not found thread.%u\n",
+		ERROR_MSG("ThreadPool::addFreeThread: busyThreadList_ not found thread.%u\n",
 		 (unsigned int)tptd->getID());
 		return false;
 	}
@@ -226,7 +225,7 @@ bool ThreadPool::addBusyThread(TPThread* tptd)
 	else
 	{
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
-		ERROR_MSG("ThreadPool::moveThreadToBusyList: freeThreadList_ not "
+		ERROR_MSG("ThreadPool::addBusyThread: freeThreadList_ not "
 					"found thread.%u\n", 
 					(unsigned int)tptd->getID());
 		
@@ -297,7 +296,7 @@ bool ThreadPool::addTask(TPTask* tptask)
 #else
 		if(tptd->sendCondSignal()!= 0){
 #endif
-			ERROR_MSG("ThreadPool:pthread_cond_signal is error!\n");
+			ERROR_MSG("ThreadPool::addTask: pthread_cond_signal is error!\n");
 			THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 			return false;
 		}
@@ -311,7 +310,7 @@ bool ThreadPool::addTask(TPTask* tptask)
 	if(isThreadCountMax())
 	{
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
-		WARNING_MSG("thread create is failed, count is full(%d).\n", maxThreadCount_);
+		WARNING_MSG("ThreadPool::addTask: thread create is failed, count is full(%d).\n", maxThreadCount_);
 		return false;
 	}
 
@@ -321,9 +320,9 @@ bool ThreadPool::addTask(TPTask* tptask)
 		if(!tptd)
 		{
 #if KBE_PLATFORM == PLATFORM_WIN32		
-			ERROR_MSG(">>ThreadPool create new Thread error! ... \n");
+			ERROR_MSG("ThreadPool::addTask: ThreadPool create new Thread error! ... \n");
 #else
-			ERROR_MSG(">>ThreadPool create new Thread error:%s ... \n", kbe_strerror());
+			ERROR_MSG("ThreadPool::addTask: ThreadPool create new Thread error:%s ... \n", kbe_strerror());
 #endif				
 		}
 
@@ -334,7 +333,7 @@ bool ThreadPool::addTask(TPTask* tptask)
 		
 	}
 	
-	INFO_MSG(">>ThreadPool:createNewThread-> currThreadCount: %d\n", currentThreadCount_);
+	INFO_MSG("ThreadPool::addTask: createNewThread-> currThreadCount: %d\n", currentThreadCount_);
 	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 	return true;
 }
@@ -362,7 +361,7 @@ bool TPThread::onWaitCondSignal(void)
 		}
 		else if(ret != WAIT_OBJECT_0)
 		{
-			ERROR_MSG("WaitForSingleObject is error, ret=%d\n", ret);
+			ERROR_MSG("TPThread::onWaitCondSignal: WaitForSingleObject is error, ret=%d\n", ret);
 		}
 	}	
 #else		
@@ -395,7 +394,8 @@ bool TPThread::onWaitCondSignal(void)
 		}
 		else if(ret != 0)
 		{
-			ERROR_MSG("pthread_cond_timedwait is error, %s\n", kbe_strerror());
+			ERROR_MSG("TPThread::onWaitCondSignal: pthread_cond_timedwait is error, %s\n", 
+				kbe_strerror());
 		}
 	}
 #endif
