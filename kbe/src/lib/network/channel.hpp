@@ -46,14 +46,6 @@ class Bundle;
 class NetworkInterface;
 class MessageHandlers;
 
-#define MESSAGE_PROCESSED_UNKOWN	0x00000000
-#define MESSAGE_PROCESSED_HEADER	0x00000001
-#define MESSAGE_PROCESSED_MSGID		0x00000002
-#define MESSAGE_PROCESSED_MSGLEN	0x00000004
-#define MESSAGE_PROCESSED_MSGBODY	0x00000008
-#define MESSAGE_PROCESSED_END		0x00000010
-
-
 class Channel : public TimerHandler, public RefCountable, public PoolObject
 {
 public:
@@ -91,11 +83,9 @@ public:
 	enum FragmentDataTypes
 	{
 		FRAGMENT_DATA_UNKNOW,
-		FRAGMENT_DATA_MESSAGE_HREADER,
 		FRAGMENT_DATA_MESSAGE_ID,
 		FRAGMENT_DATA_MESSAGE_LENGTH,
-		FRAGMENT_DATA_MESSAGE_BODY,
-		FRAGMENT_DATA_MESSAGE_END,
+		FRAGMENT_DATA_MESSAGE_BODY
 	};
 
 	typedef std::vector<Packet*> BufferedReceives;
@@ -182,8 +172,6 @@ public:
 	ENTITY_ID proxyID()const { return proxyID_; }
 	void proxyID(ENTITY_ID pid){ proxyID_ = pid; }
 
-	virtual void onPacketProcessHeader(MemoryStream* s);
-	virtual void onPacketProcessEnd(MemoryStream* s);
 	virtual void handshake();
 private:
 	enum TimeOutType
@@ -249,13 +237,6 @@ private:
 
 	// 通道类别
 	ChannelTypes				channelType_;
-
-	// 包头包尾大小, 注意：此包头包尾属于附加选项用于扩展
-	// 比如websocket等会附加包头尾内容。
-	Mercury::MessageLength		packetHeaderSize_;
-	Mercury::MessageLength		packetEndSize_;
-
-	int32						processedFlags_;
 };
 
 typedef SmartPointer<Channel> ChannelPtr;

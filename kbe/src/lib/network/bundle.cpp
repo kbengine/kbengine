@@ -58,16 +58,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 				/* 如果系统发送缓冲已经满了，则我们等待10ms	*/												\
 				if (reason == REASON_RESOURCE_UNAVAILABLE && retries <= 3)									\
 				{																							\
-					fd_set	fds;																			\
-					struct timeval tv = { 0, 10000 };														\
-					FD_ZERO( &fds );																		\
-					FD_SET(ep, &fds);																		\
-																											\
 					WARNING_MSG( "%s: "																		\
 						"Transmit queue full, waiting for space... (%d)\n",									\
 						__FUNCTION__, retries );															\
 																											\
-					select(ep + 1, NULL, &fds, NULL, &tv);													\
+					KBEngine::sleep(10);																	\
 					continue;																				\
 				}																							\
 																											\

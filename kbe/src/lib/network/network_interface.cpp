@@ -476,16 +476,11 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 		// 如果系统发送缓冲已经满了，则我们等待10ms
 		if (reason == REASON_RESOURCE_UNAVAILABLE && retries <= 3)
 		{
-			fd_set	fds;
-			struct timeval tv = { 0, 10000 };
-			FD_ZERO( &fds );
-			FD_SET(*pChannel->endpoint(), &fds);
-
 			WARNING_MSG( "NetworkInterface::basicSendWithRetries: "
 				"Transmit queue full, waiting for space... (%d)\n",
 				retries );
 
-			select(*pChannel->endpoint() + 1, NULL, &fds, NULL, &tv);
+			KBEngine::sleep(10);
 			continue;
 		}
 

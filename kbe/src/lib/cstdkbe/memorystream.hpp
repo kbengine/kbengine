@@ -649,8 +649,7 @@ public:
             }
         }
 
-		kbe_snprintf(buf, 1024, "\n");
-		fbuffer += buf;
+		fbuffer += "\n";
 
 		DEBUG_MSG(fbuffer.c_str());
     }
