@@ -55,7 +55,7 @@ public:
 
 protected:
 	bool processSocket(bool expectingPacket);
-	bool checkSocketErrors(int len, bool expectingPacket);
+	PacketReceiver::RecvState checkSocketErrors(int len, bool expectingPacket);
 	
 };
 }

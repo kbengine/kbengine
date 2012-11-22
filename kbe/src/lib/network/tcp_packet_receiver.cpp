@@ -76,7 +76,17 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 	if (len < 0)
 	{
 		TCPPacket::ObjPool().reclaimObject(pReceiveWindow);
-		return this->checkSocketErrors(len, expectingPacket);
+
+		PacketReceiver::RecvState rstate = this->checkSocketErrors(len, expectingPacket);
+
+		if(rstate == PacketReceiver::RECV_STATE_INTERRUPT)
+		{
+			pNetworkInterface_->deregisterChannel(pChannel);
+			pChannel->destroy();
+			return false;
+		}
+
+		return rstate == PacketReceiver::RECV_STATE_CONTINUE;
 	}
 	else if(len == 0) // 客户端正常退出
 	{
@@ -103,7 +113,7 @@ Reason TCPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * pPac
 }
 
 //-------------------------------------------------------------------------------------
-bool TCPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
+PacketReceiver::RecvState TCPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 {
 #ifdef _WIN32
 	DWORD wsaErr = WSAGetLastError();
@@ -117,7 +127,7 @@ bool TCPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 #endif
 		)
 	{
-		return false;
+		return RECV_STATE_BREAK;
 	}
 
 #ifdef unix
@@ -127,7 +137,8 @@ bool TCPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 	{
 		this->dispatcher().errorReporter().reportException(
 				REASON_NO_SUCH_PORT);
-		return false;
+
+		return RECV_STATE_BREAK;
 	}
 #else
 	/*
@@ -141,11 +152,11 @@ bool TCPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 	case WSAECONNRESET:
 		WARNING_MSG("TCPPacketReceiver::processPendingEvents: "
 					"Throwing REASON_GENERAL_NETWORK - WSAECONNRESET\n");
-		return false;
+		return RECV_STATE_INTERRUPT;
 	case WSAECONNABORTED:
 		WARNING_MSG("TCPPacketReceiver::processPendingEvents: "
 					"Throwing REASON_GENERAL_NETWORK - WSAECONNABORTED\n");
-		return false;
+		return RECV_STATE_INTERRUPT;
 	default:
 		break;
 
@@ -165,7 +176,7 @@ bool TCPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 	this->dispatcher().errorReporter().reportException(
 			REASON_GENERAL_NETWORK);
 
-	return true;
+	return RECV_STATE_CONTINUE;
 }
 
 //-------------------------------------------------------------------------------------

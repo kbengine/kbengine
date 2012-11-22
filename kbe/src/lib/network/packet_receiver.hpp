@@ -41,6 +41,13 @@ class EventDispatcher;
 class PacketReceiver : public InputNotificationHandler, public PoolObject
 {
 public:
+	enum RecvState
+	{
+		RECV_STATE_INTERRUPT = -1,
+		RECV_STATE_BREAK = 0,
+		RECV_STATE_CONTINUE = 1
+	};
+
 	PacketReceiver();
 	PacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
 	virtual ~PacketReceiver();
@@ -57,7 +64,7 @@ public:
 protected:
 	virtual int handleInputNotification(int fd);
 	virtual bool processSocket(bool expectingPacket) = 0;
-	virtual bool checkSocketErrors(int len, bool expectingPacket) = 0;
+	virtual RecvState checkSocketErrors(int len, bool expectingPacket) = 0;
 protected:
 	EndPoint* pEndpoint_;
 	NetworkInterface* pNetworkInterface_;

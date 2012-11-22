@@ -76,7 +76,8 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 	if (len <= 0)
 	{
 		UDPPacket::ObjPool().reclaimObject(pChannelReceiveWindow);
-		return this->checkSocketErrors(len, expectingPacket);
+		PacketReceiver::RecvState rstate = this->checkSocketErrors(len, expectingPacket);
+		return rstate == PacketReceiver::RECV_STATE_CONTINUE;
 	}
 	
 	Channel* pSrcChannel = pNetworkInterface_->findChannel(srcAddr);
@@ -115,7 +116,7 @@ Reason UDPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * pPac
 }
 
 //-------------------------------------------------------------------------------------
-bool UDPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
+PacketReceiver::RecvState UDPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 {
 	if (len == 0)
 	{
@@ -126,7 +127,7 @@ bool UDPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 		this->dispatcher().errorReporter().reportException(
 				REASON_GENERAL_NETWORK );
 
-		return true;
+		return RECV_STATE_CONTINUE;
 	}
 	
 #ifdef _WIN32
@@ -141,7 +142,7 @@ bool UDPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 #endif
 		)
 	{
-		return false;
+		return RECV_STATE_BREAK;
 	}
 
 #ifdef unix
@@ -152,7 +153,8 @@ bool UDPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 #if defined(PLAYSTATION3)
 		this->dispatcher().errorReporter().reportException(
 				REASON_NO_SUCH_PORT);
-		return true;
+
+		return RECV_STATE_CONTINUE;
 #else
 		Mercury::Address offender;
 
@@ -170,7 +172,7 @@ bool UDPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 			this->dispatcher().errorReporter().reportException(
 					REASON_NO_SUCH_PORT, offender);
 
-			return true;
+			RECV_STATE_CONTINUE true;
 		}
 		else
 		{
@@ -182,7 +184,7 @@ bool UDPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 #else
 	if (wsaErr == WSAECONNRESET)
 	{
-		return true;
+		return RECV_STATE_CONTINUE;
 	}
 #endif // unix
 
@@ -198,7 +200,7 @@ bool UDPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 	this->dispatcher().errorReporter().reportException(
 			REASON_GENERAL_NETWORK);
 
-	return true;
+	return RECV_STATE_CONTINUE;
 }
 
 //-------------------------------------------------------------------------------------
