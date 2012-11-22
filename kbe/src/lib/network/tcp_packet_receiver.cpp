@@ -70,6 +70,13 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 	Channel* pChannel = pNetworkInterface_->findChannel(pEndpoint_->addr());
 	KBE_ASSERT(pChannel != NULL);
 	
+	if(pChannel->isCondemn())
+	{
+		pNetworkInterface_->deregisterChannel(pChannel);
+		pChannel->destroy();
+		return false;
+	}
+
 	TCPPacket* pReceiveWindow = TCPPacket::ObjPool().createObject();
 	int len = pReceiveWindow->recvFromEndPoint(*pEndpoint_);
 

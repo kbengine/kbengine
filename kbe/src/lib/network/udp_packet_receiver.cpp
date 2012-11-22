@@ -99,6 +99,15 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 	}
 	
 	KBE_ASSERT(pSrcChannel != NULL);
+
+	if(pSrcChannel->isCondemn())
+	{
+		UDPPacket::ObjPool().reclaimObject(pChannelReceiveWindow);
+		pNetworkInterface_->deregisterChannel(pSrcChannel);
+		pSrcChannel->destroy();
+		return false;
+	}
+
 	pSrcChannel->addReceiveWindow(pChannelReceiveWindow);
 	Reason ret = this->processPacket(pSrcChannel, pChannelReceiveWindow);
 

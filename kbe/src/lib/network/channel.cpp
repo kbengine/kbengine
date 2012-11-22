@@ -43,19 +43,6 @@ const int INDEXED_CHANNEL_SIZE = 512;
 const float INACTIVITY_TIMEOUT_DEFAULT = 60.0;
 
 //-------------------------------------------------------------------------------------
-static ObjectPool<Channel> _g_objPool;
-ObjectPool<Channel>& Channel::ObjPool()
-{
-	return _g_objPool;
-}
-
-//-------------------------------------------------------------------------------------
-Channel::SmartPoolObjectPtr Channel::createSmartPoolObj()
-{
-	return SmartPoolObjectPtr(new SmartPoolObject<Channel>(ObjPool().createObject(), _g_objPool));
-}
-
-//-------------------------------------------------------------------------------------
 void Channel::onReclaimObject()
 {
 	this->clearState();
@@ -415,8 +402,16 @@ void Channel::addReceiveWindow(Packet* pPacket)
 
 	if(bufferedReceives_.size() > 10)
 	{
-		WARNING_MSG("Channel::addReceiveWindow: buffered is overload.\n");
+		WARNING_MSG("Channel::addReceiveWindow[%p]: channel(%s), buffered is overload(%d).\n", 
+			this, this->c_str(), (int)bufferedReceives_.size());
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::condemn()
+{ 
+	isCondemn_ = true; 
+	ERROR_MSG("Channel::condemn[%p]: channel(%s).\n", this, this->c_str()); 
 }
 
 //-------------------------------------------------------------------------------------
@@ -493,7 +488,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 
 						currMsgID_ = 0;
 						currMsgLen_ = 0;
-						condemn(true);
+						condemn();
 						break;
 					}
 
@@ -526,7 +521,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 							pMsgHandler->name.c_str(), currMsgID_, currMsgLen_, pPacket->totalSize(), c_str());
 
 						currMsgLen_ = 0;
-						condemn(true);
+						condemn();
 						break;
 					}
 
@@ -588,7 +583,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 
 		currMsgID_ = 0;
 		currMsgLen_ = 0;
-		condemn(true);
+		condemn();
 	}
 
 	bufferedReceives_.clear();

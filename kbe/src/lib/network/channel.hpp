@@ -49,9 +49,6 @@ class MessageHandlers;
 class Channel : public TimerHandler, public RefCountable, public PoolObject
 {
 public:
-	typedef std::tr1::shared_ptr< SmartPoolObject< Channel > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
-	static ObjectPool<Channel>& ObjPool();
 	void onReclaimObject();
 	bool destructorPoolObject();
 
@@ -167,7 +164,7 @@ public:
 	void handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers);
 
 	bool isCondemn()const { return isCondemn_; }
-	void condemn(bool b){ isCondemn_ = b; }
+	void condemn();
 
 	ENTITY_ID proxyID()const { return proxyID_; }
 	void proxyID(ENTITY_ID pid){ proxyID_ = pid; }

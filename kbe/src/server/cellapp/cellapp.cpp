@@ -820,20 +820,23 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel
 		Mercury::MessageLength		currMsgLen;
 
 		s >> currMsgID;
+
 		Mercury::MessageHandler* pMsgHandler = CellappInterface::messageHandlers.find(currMsgID);
 
 		if(pMsgHandler == NULL)
 		{
 			ERROR_MSG("Cellapp::forwardEntityMessageToCellappFromClient: invalide msgID=%d, msglen=%d, from %s.\n", 
 				currMsgID, s.wpos(), pChannel->c_str());
-			pChannel->condemn(true);
+
+			pChannel->condemn();
 			break;
 		}
 
 		if(pMsgHandler->type() != Mercury::MERCURY_MESSAGE_TYPE_ENTITY)
 		{
 			WARNING_MSG("Cellapp::forwardEntityMessageToCellappFromClient: msgID=%d not is entitymsg.\n", currMsgID);
-			pChannel->condemn(true);
+
+			pChannel->condemn();
 			break;
 		}
 
@@ -846,7 +849,8 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel
 		{
 			ERROR_MSG("Cellapp::forwardEntityMessageToCellappFromClient: msgID=%d, invalide msglen=%d, from %s.\n", 
 				currMsgID, s.wpos(), pChannel->c_str());
-			pChannel->condemn(true);
+
+			pChannel->condemn();
 			break;
 		}
 
