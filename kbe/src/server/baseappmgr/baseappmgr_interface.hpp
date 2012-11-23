@@ -95,6 +95,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 	// 请求关闭服务器
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCloseServer,						MERCURY_VARIABLE_MESSAGE)
 
+	// 获取到baseapp的地址。
+	BASEAPPMGR_MESSAGE_DECLARE_ARGS3(updateBaseapp,							MERCURY_FIXED_MESSAGE,
+									ENTITY_ID,								numBases,
+									ENTITY_ID,								numProxices,
+									float,									load)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

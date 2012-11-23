@@ -46,7 +46,8 @@ Baseappmgr::Baseappmgr(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_ID componentID):
 	ServerApp(dispatcher, ninterface, componentType, componentID),
 	gameTimer_(),
-	forward_baseapp_messagebuffer_(ninterface, BASEAPP_TYPE)
+	forward_baseapp_messagebuffer_(ninterface, BASEAPP_TYPE),
+	bestBaseappID_(0)
 {
 }
 
@@ -83,6 +84,7 @@ void Baseappmgr::handleGameTick()
 	 //DEBUG_MSG("CellApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
 	g_kbetime++;
+	updateBestBaseapp();
 	threadPool_.onMainThreadTick();
 	getNetworkInterface().handleChannels(&BaseappmgrInterface::messageHandlers);
 }
@@ -131,6 +133,24 @@ void Baseappmgr::forwardMessage(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Baseappmgr::updateBaseapp(Mercury::Channel* pChannel, 
+							ENTITY_ID numBases, ENTITY_ID numProxices, float load)
+{
+}
+
+//-------------------------------------------------------------------------------------
+COMPONENT_ID Baseappmgr::findFreeBaseapp()
+{
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+void Baseappmgr::updateBestBaseapp()
+{
+	bestBaseappID_ = findFreeBaseapp();
+}
+
+//-------------------------------------------------------------------------------------
 void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s) 
 {
 	Components::COMPONENTS& components = Components::getSingleton().getComponents(BASEAPP_TYPE);
@@ -149,7 +169,7 @@ void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream&
 		forward_baseapp_messagebuffer_.push(pFI);
 		return;
 	}
-	
+
 	static uint32 currentBaseappIndex = 0;
 	if(currentBaseappIndex > componentSize - 1)
 		currentBaseappIndex = 0;

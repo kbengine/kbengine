@@ -1,5 +1,6 @@
 BIN  = baseappmgr
 SRCS =						\
+	baseapp					\
 	baseappmgr				\
 	baseappmgr_interface			\
 	main

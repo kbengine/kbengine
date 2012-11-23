@@ -53,6 +53,8 @@
 		<archivePeriod> 100 </archivePeriod> 						<!-- Type: Float -->
 		<backupPeriod> 10 </backupPeriod>							<!-- Type: Float -->
 		<backUpUndefinedProperties> 0 </backUpUndefinedProperties>	<!-- Type: Boolean -->
+		
+		<loadSmoothingBias> 0.5 </loadSmoothingBias>
 	</baseapp>
 	
 	<cellappmgr>

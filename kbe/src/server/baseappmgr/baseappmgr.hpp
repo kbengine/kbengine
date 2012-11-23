@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __BASEAPPMGR_H__
 	
 // common include	
+#include "baseapp.hpp"
 #include "server/kbemain.hpp"
 #include "server/serverapp.hpp"
 #include "server/idallocate.hpp"
@@ -68,6 +69,9 @@ public:
 	bool initializeEnd();
 	void finalise();
 
+	COMPONENT_ID findFreeBaseapp();
+	void updateBestBaseapp();
+
 	/** 网络接口
 		收到baseapp::createBaseAnywhere请求在某个空闲的baseapp上创建一个baseEntity
 		@param sp: 这个数据包中存储的是 entityType	: entity的类别， entities.xml中的定义的。
@@ -101,9 +105,16 @@ public:
 	*/
 	void onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel, 
 								  std::string& accountName, uint32 addr, uint16 port);
+
+	/** 网络接口
+		更新baseapp情况。
+	*/
+	void updateBaseapp(Mercury::Channel* pChannel, 
+								ENTITY_ID numBases, ENTITY_ID numProxices, float load);
 protected:
 	TimerHandle							gameTimer_;
 	ForwardAnywhere_MessageBuffer		forward_baseapp_messagebuffer_;
+	COMPONENT_ID						bestBaseappID_;
 };
 
 }
