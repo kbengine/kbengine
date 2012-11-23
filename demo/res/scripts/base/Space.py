@@ -61,7 +61,8 @@ class Space(GameObject):
 		某个玩家请求登陆到这个space中
 		"""
 		avatarMailbox.createCell(self.cell)
-	
+		self.onEnter(avatarMailbox)
+		
 	def logoutSpace(self, entityID):
 		"""
 		define method.
