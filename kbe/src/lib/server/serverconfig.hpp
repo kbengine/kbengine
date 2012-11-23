@@ -84,6 +84,7 @@ typedef struct EngineComponentInfo
 	float backupPeriod;										// entity备份周期
 	bool backUpUndefinedProperties;							// entity是否备份未定义属性
 
+	float loadSmoothingBias;								// baseapp负载滤平衡调整值， 
 	uint32 login_port;										// 服务器登录端口 目前bots在用
 	char login_ip[MAX_BUF];									// 服务器登录ip地址
 

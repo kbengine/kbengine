@@ -36,11 +36,6 @@ namespace KBEngine{
 #endif // unix
 #endif // _XBOX360
 
-/**
- * This function returns the processor's (real-time) clock cycle counter.
- */
-#ifdef unix
-
 enum KBETimingMethod
 {
 	RDTSC_TIMING_METHOD, // 自CPU上电以来所经过的时钟周期数,达到纳秒级的计时精度
@@ -51,12 +46,12 @@ enum KBETimingMethod
 
 extern KBETimingMethod g_timingMethod;
 
+#ifdef unix
+
 inline uint64 timestamp_rdtsc()
 {
 	uint32 rethi, retlo;
 	__asm__ __volatile__ (
-		// Read Time-Stamp Counter
-		// loads current value of processor's timestamp counter into EDX:EAX
 		"rdtsc":
 		"=d"    (rethi),
 		"=a"    (retlo)
@@ -83,9 +78,7 @@ inline uint64 timestamp_gettimeofday()
 inline uint64 timestamp_gettime()
 {
 	timespec tv;
-	// Using a syscall here so we don't have to link with -lrt
 	KBE_VERIFY(syscall( __NR_clock_gettime, CLOCK_MONOTONIC, &tv ) == 0);
-
 	return 1000000000ULL * tv.tv_sec + tv.tv_nsec;
 }
 
@@ -173,7 +166,6 @@ public:
 	inline TimeStamp ageInStamps() const;
 	inline double ageInSeconds() const;
 
-	// Utility methods
 	inline static double toSeconds( uint64 stamps );
 	inline static TimeStamp fromSeconds( double seconds );
 

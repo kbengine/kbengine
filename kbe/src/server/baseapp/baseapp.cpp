@@ -27,12 +27,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "backup_sender.hpp"
 #include "forward_message_over_handler.hpp"
 #include "sync_entitystreamtemplate_handler.hpp"
+#include "cstdkbe/timestamp.hpp"
 #include "network/common.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
 #include "network/fixed_messages.hpp"
 #include "server/componentbridge.hpp"
 #include "server/components.hpp"
+#include "math/math.hpp"
 #include "client_lib/client_interface.hpp"
 
 #include "../../server/baseappmgr/baseappmgr_interface.hpp"
@@ -47,6 +49,7 @@ namespace KBEngine{
 ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Baseapp);
 
+uint64 Baseapp::_g_lastTimestamp = timestamp();
 
 PyObject* create_celldatadict_from_stream(MemoryStream& s, const char* entityType)
 {
@@ -138,6 +141,7 @@ bool Baseapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		createBaseAnywhere,				__py_createBaseAnywhere,			METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		createBaseFromDBID,				__py_createBaseFromDBID,			METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		executeRawDatabaseCommand,		__py_executeRawDatabaseCommand,		METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		quantumPassedPercent,			__py_quantumPassedPercent,			METH_VARARGS,			0);
 
 	return EntityApp<Base>::installPyModules();
 }
@@ -183,6 +187,41 @@ PyObject* Baseapp::__py_gametime(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* Baseapp::__py_quantumPassedPercent(PyObject* self, PyObject* args)
+{
+	return PyLong_FromLong(quantumPassedPercent());
+}
+
+//-------------------------------------------------------------------------------------
+int Baseapp::quantumPassedPercent(uint64 curr)
+{
+	// 取得间隔差转为微妙级别 / 每秒cpu-stamps = 一秒内所过去的cpu-stamps
+	uint64 pass_stamps = (curr - _g_lastTimestamp) * uint64(1000) / stampsPerSecond();
+
+	static int ms_expected = (1000 / g_kbeSrvConfig.gameUpdateHertz());
+
+	// 得到一个当前tick-pass_stamps占一个时钟周期的的百分比
+	return int(pass_stamps) * 100 / ms_expected;
+}
+
+//-------------------------------------------------------------------------------------
+uint64 Baseapp::checkTickPeriod()
+{
+	uint64 curr = timestamp();
+	int percent = quantumPassedPercent(curr);
+
+	if (percent > 200)
+	{
+		WARNING_MSG( "Baseapp::handleGameTick: tick took %d%% (%.2f seconds)!\n",
+			percent, float(percent)/1000.f );
+	}
+
+	uint64 elapsed = curr - _g_lastTimestamp;
+	_g_lastTimestamp = curr;
+	return elapsed;
+}
+
+//-------------------------------------------------------------------------------------
 bool Baseapp::run()
 {
 	return EntityApp<Base>::run();
@@ -210,8 +249,51 @@ void Baseapp::handleCheckStatusTick()
 }
 
 //-------------------------------------------------------------------------------------
+void Baseapp::updateLoad()
+{
+	uint64 lastTickInStamps = checkTickPeriod();
+
+	// 获得空闲时间比例
+	double spareTime = 1.0;
+	if (lastTickInStamps != 0)
+	{
+		spareTime = double(mainDispatcher_.getSpareTime())/double(lastTickInStamps);
+	}
+
+	mainDispatcher_.clearSpareTime();
+
+	// 如果空闲时间比例小于0 或者大于1则表明计时不准确
+	if ((spareTime < 0.f) || (1.f < spareTime))
+	{
+		if (g_timingMethod == RDTSC_TIMING_METHOD)
+		{
+			CRITICAL_MSG( "Baseapp::handleGameTick: "
+				"Invalid timing result %.3f.\n"
+				"please  to change for timingMethod(curr = RDTSC_TIMING_METHOD)!",
+				spareTime );
+		}
+		else
+		{
+			CRITICAL_MSG( "Baseapp::handleGameTick: Invalid timing result %.3f.\n", 
+				spareTime);
+		}
+	}
+
+	// 负载的值为1.0 - 空闲时间比例, 必须在0-1.f之间
+	float load = G3D::clamp(0.f, 1.f - float(spareTime), 1.f);
+
+	// 此处算法看server_operations_guide.pdf介绍loadSmoothingBias处
+	// loadSmoothingBias 决定本次负载取最后一次负载的loadSmoothingBias剩余比例 + 当前负载的loadSmoothingBias比例
+	static float loadSmoothingBias = g_kbeSrvConfig.getBaseApp().loadSmoothingBias;
+	load_ = (1 - loadSmoothingBias) * load_ + loadSmoothingBias * load;
+}
+
+//-------------------------------------------------------------------------------------
 void Baseapp::handleGameTick()
 {
+	// 一定要在最前面
+	updateLoad();
+
 	EntityApp<Base>::handleGameTick();
 
 	handleBackup();
@@ -245,7 +327,11 @@ bool Baseapp::initializeEnd()
 
 	pBackupSender_.reset(new BackupSender());
 	pArchiver_.reset(new Archiver());
+
 	new SyncEntityStreamTemplateHandler(this->getNetworkInterface());
+
+	_g_lastTimestamp = timestamp();
+
 	return true;
 }
 

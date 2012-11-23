@@ -158,6 +158,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "backUpUndefinedProperties");
 		if(node != NULL)
 			_baseAppInfo.backUpUndefinedProperties = xml->getValInt(node) > 0;
+
+		node = NULL;			
+		node = xml->enterNode(rootNode, "loadSmoothingBias");
+		if(node != NULL)
+			_baseAppInfo.loadSmoothingBias = float(xml->getValFloat(node));
 	}
 
 	rootNode = NULL;

@@ -86,6 +86,15 @@ public:
 	bool initializeEnd();
 	void finalise();
 	
+	float getLoad()const { return load_; }
+	
+	void updateLoad();
+
+	static uint64 checkTickPeriod();
+
+	static int quantumPassedPercent(uint64 curr = timestamp());
+	static PyObject* __py_quantumPassedPercent(PyObject* self, PyObject* args);
+
 	virtual void onChannelDeregister(Mercury::Channel * pChannel);
 
 	/** 网络接口
@@ -295,6 +304,10 @@ protected:
 	// 备份存档相关
 	std::tr1::shared_ptr< BackupSender >	pBackupSender_;	
 	std::tr1::shared_ptr< Archiver >		pArchiver_;	
+
+	float									load_;
+
+	static uint64							_g_lastTimestamp;
 	
 };
 

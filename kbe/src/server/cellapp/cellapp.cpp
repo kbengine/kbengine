@@ -132,6 +132,7 @@ bool Cellapp::initializeBegin()
 //-------------------------------------------------------------------------------------
 bool Cellapp::initializeEnd()
 {
+	mainDispatcher_.clearSpareTime();
 	return true;
 }
 

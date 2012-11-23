@@ -20,11 +20,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "timestamp.hpp"
 namespace KBEngine{
-#ifdef unix
-
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 #ifdef KBE_USE_RDTSC
 KBETimingMethod g_timingMethod = RDTSC_TIMING_METHOD;
@@ -33,7 +28,12 @@ const KBETimingMethod DEFAULT_TIMING_METHOD = GET_TIME_TIMING_METHOD;
 KBETimingMethod g_timingMethod = NO_TIMING_METHOD;
 #endif // KBE_USE_RDTSC
 
-const char * timingMethod()
+#ifdef unix
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+const char* timingMethod()
 {
 	switch (g_timingMethod)
 	{
@@ -54,47 +54,40 @@ const char * timingMethod()
 	}
 }
 
-
 static uint64 calcStampsPerSecond_rdtsc()
 {
 	struct timeval	tvBefore,	tvSleep = {0, 500000},	tvAfter;
 	uint64 stampBefore,	stampAfter;
 
-	// Prime it (just in cache)
-	gettimeofday( &tvBefore, NULL );
-	gettimeofday( &tvBefore, NULL );
+	gettimeofday(&tvBefore, NULL);
+	gettimeofday(&tvBefore, NULL);
 
-	/* If we do these in the same order, then as long as the offset of
-	the time returned by gettimeofday is consistent, we should be ok. */
-	gettimeofday( &tvBefore, NULL );
+	gettimeofday(&tvBefore, NULL);
 	stampBefore = timestamp();
 
-	select( 0, NULL, NULL, NULL, &tvSleep );
+	select(0, NULL, NULL, NULL, &tvSleep);
 
-	// And again
-	gettimeofday( &tvAfter, NULL );
-	gettimeofday( &tvAfter, NULL );
+	gettimeofday(&tvAfter, NULL);
+	gettimeofday(&tvAfter, NULL);
 
-	gettimeofday( &tvAfter, NULL );
+	gettimeofday(&tvAfter, NULL);
 	stampAfter = timestamp();
 
 	uint64 microDelta =
 		(tvAfter.tv_usec + 1000000 - tvBefore.tv_usec) % 1000000;
+
 	uint64 stampDelta = stampAfter - stampBefore;
 
-	return ( stampDelta * 1000000ULL ) / microDelta;
-	// the multiply above won't overflow until we get over 4THz processors :)
+	return (stampDelta * 1000000ULL) / microDelta;
 }
 
 static uint64 calcStampsPerSecond_gettime()
 {
-	// Using gettimeofday and returning microseconds.
 	return 1000000000ULL;
 }
 
 static uint64 calcStampsPerSecond_gettimeofday()
 {
-	// Using gettimeofday and returning microseconds.
 	return 1000000ULL;
 }
 
@@ -117,20 +110,20 @@ static uint64 calcStampsPerSecond()
 		return calcStampsPerSecond_gettime();
 	else
 	{
-		char * timingMethod = getenv( "KBE_TIMING_METHOD" );
+		char * timingMethod = getenv("KBE_TIMING_METHOD");
 		if (!timingMethod)
 		{
 			g_timingMethod = DEFAULT_TIMING_METHOD;
 		}
-		else if (strcmp( timingMethod, "rdtsc" ) == 0)
+		else if (strcmp(timingMethod, "rdtsc") == 0)
 		{
 			g_timingMethod = RDTSC_TIMING_METHOD;
 		}
-		else if (strcmp( timingMethod, "gettimeofday" ) == 0)
+		else if (strcmp(timingMethod, "gettimeofday") == 0)
 		{
 			g_timingMethod = GET_TIME_OF_DAY_TIMING_METHOD;
 		}
-		else if (strcmp( timingMethod, "gettime" ) == 0)
+		else if (strcmp(timingMethod, "gettime") == 0)
 		{
 			g_timingMethod = GET_TIME_TIMING_METHOD;
 		}
@@ -139,6 +132,7 @@ static uint64 calcStampsPerSecond()
 			WARNING_MSG( "calcStampsPerSecond: "
 						 "Unknown timing method '%s', using clock_gettime.\n",
 						 timingMethod );
+
 			g_timingMethod = DEFAULT_TIMING_METHOD;
 		}
 
@@ -181,36 +175,34 @@ double stampsPerSecondD_gettimeofday()
 
 #ifdef KBE_USE_RDTSC
 static uint64 calcStampsPerSecond()
-{		// see comments for the unix version
+{	
 	LARGE_INTEGER	tvBefore,	tvAfter;
 	DWORD			tvSleep = 500;
 	uint64 stampBefore,	stampAfter;
 	
 	Sleep(100);
 	
-	QueryPerformanceCounter( &tvBefore );
-	QueryPerformanceCounter( &tvBefore );
+	QueryPerformanceCounter(&tvBefore);
+	QueryPerformanceCounter(&tvBefore);
 
-	QueryPerformanceCounter( &tvBefore );
+	QueryPerformanceCounter(&tvBefore);
 	stampBefore = timestamp();
 
 	Sleep(tvSleep);
 
-	QueryPerformanceCounter( &tvAfter );
-	QueryPerformanceCounter( &tvAfter );
+	QueryPerformanceCounter(&tvAfter);
+	QueryPerformanceCounter(&tvAfter);
 
-	QueryPerformanceCounter( &tvAfter );
+	QueryPerformanceCounter(&tvAfter);
 	stampAfter = timestamp();
 
 	uint64 countDelta = tvAfter.QuadPart - tvBefore.QuadPart;
 	uint64 stampDelta = stampAfter - stampBefore;
 
 	LARGE_INTEGER	frequency;
-	QueryPerformanceFrequency( &frequency );
+	QueryPerformanceFrequency(&frequency);
 
-	return (uint64)( ( stampDelta * uint64(frequency.QuadPart) ) / countDelta );
-	// the multiply above won't overflow until we get over 4THz processors :)
-	//  (assuming the performance counter stays at about 1MHz)
+	return (uint64)((stampDelta * uint64(frequency.QuadPart) ) / countDelta);
 }
 
 #else // KBE_USE_RDTSC
@@ -218,7 +210,7 @@ static uint64 calcStampsPerSecond()
 static uint64 calcStampsPerSecond()
 {
 	LARGE_INTEGER rate;
-	KBE_VERIFY( QueryPerformanceFrequency( &rate ) );
+	KBE_VERIFY(QueryPerformanceFrequency(&rate));
 	return rate.QuadPart;
 }
 
@@ -237,19 +229,16 @@ static uint64 calcStampsPerSecond()
 #endif // PLAYSTATION3
 
 /**
- *	This function tells you how many there are in a second. It caches its reply
- *	after being called for the first time, however that call may take some time.
+ *	每秒cpu所耗时间
  */
 uint64 stampsPerSecond()
 {
-	static uint64 stampsPerSecondCache = calcStampsPerSecond();
-	return stampsPerSecondCache;
+	static uint64 _stampsPerSecondCache = calcStampsPerSecond();
+	return _stampsPerSecondCache;
 }
 
 /**
- *	This function tells you how many there are in a second as a double precision
- *	floating point value. It caches its reply after being called for the first
- *	time, however that call may take some time.
+ *	每秒cpu所耗时间 double版本
  */
 double stampsPerSecondD()
 {
