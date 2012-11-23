@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include <time.h>	
 #include <stdarg.h> 
+#include <list> 
 #include "cstdkbe/tasks.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "thread/threadmutex.hpp"
@@ -38,6 +39,7 @@ namespace Mercury{
 	class Bundle;
 	class EventDispatcher;
 	class NetworkInterface;
+	class Packet;
 }
 
 /** 
@@ -138,13 +140,15 @@ public:
 	void unregisterMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr);
 
 	void changeLogger(std::string name);
+
+	void clearBufferedLog();
 private:
 	FILE* _logfile;
 	std::string _currFile, _currFuncName;
 	uint32 _currLine;
 	Mercury::Address messagelogAddr_;
 	KBEngine::thread::ThreadMutex logMutex;
-	Mercury::Bundle* pBundle_;
+	std::list< Mercury::Bundle* > bufferedLogPackets_;
 	bool syncStarting_;
 	Mercury:: NetworkInterface* pNetworkInterface_;
 	Mercury:: EventDispatcher* pDispatcher_;

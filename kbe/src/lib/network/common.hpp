@@ -136,6 +136,50 @@ const char * reasonToString(Reason reason)
 }
 
 
+#define MERCURY_SEND_TO_ENDPOINT(ep, op, pPacket)														\
+{																										\
+	int retries = 0;																					\
+	Mercury::Reason reason;																				\
+																										\
+	while(true)																							\
+	{																									\
+		retries++;																						\
+		int slen = ep->op(pPacket->data(), pPacket->totalSize());										\
+																										\
+		if(slen != (int)pPacket->totalSize())															\
+		{																								\
+			reason = Mercury::NetworkInterface::getSendErrorReason(ep, slen, pPacket->totalSize());		\
+			/* 如果发送出现错误那么我们可以继续尝试一次， 超过3次退出	*/								\
+			if (reason == Mercury::REASON_NO_SUCH_PORT && retries <= 3)									\
+			{																							\
+				continue;																				\
+			}																							\
+																										\
+			/* 如果系统发送缓冲已经满了，则我们等待10ms	*/												\
+			if (reason == Mercury::REASON_RESOURCE_UNAVAILABLE && retries <= 3)							\
+			{																							\
+				WARNING_MSG( "%s: "																		\
+					"Transmit queue full, waiting for space... (%d)\n",									\
+					__FUNCTION__, retries );															\
+																										\
+				KBEngine::sleep(10);																	\
+				continue;																				\
+			}																							\
+																										\
+			if(retries > 3 && reason != Mercury::REASON_SUCCESS)										\
+			{																							\
+				ERROR_MSG("MERCURY_SEND::send: packet discarded.\n");									\
+				break;																					\
+			}																							\
+		}																								\
+		else																							\
+		{																								\
+			break;																						\
+		}																								\
+	}																									\
+																										\
+}																										\
+
 
 
 }

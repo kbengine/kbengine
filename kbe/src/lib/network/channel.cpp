@@ -404,6 +404,11 @@ void Channel::addReceiveWindow(Packet* pPacket)
 	{
 		WARNING_MSG("Channel::addReceiveWindow[%p]: channel(%s), buffered is overload(%d).\n", 
 			this, this->c_str(), (int)bufferedReceives_.size());
+
+		if(bufferedReceives_.size() > 256)
+		{
+			this->condemn();
+		}
 	}
 }
 

@@ -99,6 +99,10 @@ public:
 	void sendto(EndPoint& ep, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
 	void onSendComplete();
 	
+	void clearPackets(){packets_.clear();}
+
+	MessageLength currMsgLength()const { return currMsgLength_; }
+
 	void clear(bool isRecl);
 	bool isEmpty() const;
 	int totalSize() const;
@@ -106,7 +110,13 @@ public:
 	
 	const Packets& packets() { return packets_; }
 	Packet* pCurrPacket() { return pCurrPacket_; }
-		
+	void pCurrPacket(Packet* p) { pCurrPacket_ = p; }
+
+	void finiCurrPacket(){ 
+		packets_.push_back(pCurrPacket_); 
+		pCurrPacket_ = NULL; 
+	}
+
 	Packet* newPacket();
 	
 	inline MessageID messageID() const { return currMsgID_; }
