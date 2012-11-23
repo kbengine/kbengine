@@ -38,6 +38,7 @@ class Teleport:
 		"""
 		KBEngine method.
 		"""
+		DEBUG_MSG("Teleport::onTeleportSuccess: %s" % (nearbyEntity))
 		self.getCurrSpaceBase().onEnter(self.base)
 		
 		
