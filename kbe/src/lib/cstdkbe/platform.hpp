@@ -64,6 +64,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include <signal.h>
 #include <netdb.h>
+#include <iconv.h>
 #include <langinfo.h>   /* CODESET */
 #include <stdint.h>
 #include <signal.h>

@@ -235,12 +235,10 @@ ifneq (,$(findstring 64,$(KBE_CONFIG)))
 	OPENSSL_CONFIG="x86_64=1"
 	PYTHON_EXTRA_CFLAGS="EXTRA_CFLAGS=-m64 -fPIC"
 	ARCHFLAGS=-m64 -fPIC
-	MYSQL_CONFIG_PATH=/usr/lib64/mysql/mysql_config
 else
 	OPENSSL_CONFIG=
 	PYTHON_EXTRA_CFLAGS="EXTRA_CFLAGS=-m32"
 	ARCHFLAGS=-m32
-	MYSQL_CONFIG_PATH=/usr/lib/mysql/mysql_config
 endif
 
 ifdef USE_CPPUNITLITE2

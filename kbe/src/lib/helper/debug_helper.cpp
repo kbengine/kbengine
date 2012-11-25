@@ -76,7 +76,7 @@ void myassert(const char * exp, const char * func, const char * file, unsigned i
 {
 	kbe_snprintf(_g_buf, DBG_PT_SIZE, "assertion failed: %s, file %s, line %d, at: %s\n", exp, file, line, func);
     dbghelper.print_msg(_g_buf);
-	printf(_g_buf);
+	printf("%s", _g_buf);
     abort();
 }
 #endif

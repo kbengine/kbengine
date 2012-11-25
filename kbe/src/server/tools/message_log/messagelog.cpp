@@ -118,8 +118,9 @@ void Messagelog::writeLog(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	s >> componentOrder;
 	s >> t >> kbetime;
 	s >> str;
-	
-    tm* aTm = localtime(&t);
+
+	time_t tt = static_cast<time_t>(t);	
+    tm* aTm = localtime(&tt);
     //       YYYY   year
     //       MM     month (2 digits 01-12)
     //       DD     day (2 digits 01-31)

@@ -123,14 +123,14 @@ PropertyDescription* PropertyDescription::createDescription(ENTITY_PROPERTY_UID 
 {
 	PropertyDescription* propertyDescription = NULL;
 	if(dataTypeName == "FIXED_DICT" || 
-		dataType->getName() == "FIXED_DICT")
+		strcmp(dataType->getName(), "FIXED_DICT") == 0)
 	{
 		propertyDescription = new FixedDictDescription(utype, dataTypeName, name, flags, isPersistent, 
 														dataType, isIdentifier, databaseLength, 
 														defaultStr, detailLevel);
 	}
 	else if(dataTypeName == "ARRAY" ||
-		dataType->getName() == "ARRAY")
+		strcmp(dataType->getName(), "ARRAY") == 0)
 	{
 		propertyDescription = new ArrayDescription(utype, dataTypeName, name, flags, isPersistent, 
 														dataType, isIdentifier, databaseLength, 
@@ -138,21 +138,21 @@ PropertyDescription* PropertyDescription::createDescription(ENTITY_PROPERTY_UID 
 		
 	}
 	else if(dataTypeName == "VECTOR2" || 
-		dataType->getName() == "VECTOR2")
+		strcmp(dataType->getName(), "VECTOR2") == 0)
 	{
 		propertyDescription = new VectorDescription(utype, dataTypeName, name, flags, isPersistent, 
 														dataType, isIdentifier, databaseLength, 
 														defaultStr, detailLevel, 2);
 	}
 	else if(dataTypeName == "VECTOR3" || 
-		dataType->getName() == "VECTOR3")
+		strcmp(dataType->getName(), "VECTOR3") == 0)
 	{
 		propertyDescription = new VectorDescription(utype, dataTypeName, name, flags, isPersistent, 
 														dataType, isIdentifier, databaseLength, 
 														defaultStr, detailLevel, 3);
 	}
 	else if(dataTypeName == "VECTOR4" || 
-		dataType->getName() == "VECTOR4")
+		strcmp(dataType->getName(), "VECTOR4") == 0)
 	{
 		propertyDescription = new VectorDescription(utype, dataTypeName, name, flags, isPersistent, 
 														dataType, isIdentifier, databaseLength, 

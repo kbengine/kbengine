@@ -82,11 +82,11 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 		dbinterface = new DBInterfaceMysql;
 	}
 
-	kbe_snprintf(dbinterface->db_type_, MAX_BUF, dbcfg.db_type);
+	kbe_snprintf(dbinterface->db_type_, MAX_BUF, "%s", dbcfg.db_type);
 	dbinterface->db_port_ = dbcfg.db_port;	
-	kbe_snprintf(dbinterface->db_ip_, MAX_BUF, dbcfg.db_ip);
-	kbe_snprintf(dbinterface->db_username_, MAX_BUF, dbcfg.db_username);
-	kbe_snprintf(dbinterface->db_password_, MAX_BUF, dbcfg.db_password);
+	kbe_snprintf(dbinterface->db_ip_, MAX_IP, "%s", dbcfg.db_ip);
+	kbe_snprintf(dbinterface->db_username_, MAX_BUF, "%s", dbcfg.db_username);
+	kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", dbcfg.db_password);
 	dbinterface->db_numConnections_ = dbcfg.db_numConnections;
 	
 	if(dbinterface == NULL)

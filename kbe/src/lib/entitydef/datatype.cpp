@@ -413,7 +413,7 @@ bool VectorType::isSameType(PyObject* pyValue)
 		return false;
 	}
 
-	if(!PySequence_Check(pyValue) || PySequence_Size(pyValue) != elemCount_)
+	if(!PySequence_Check(pyValue) || (uint32)PySequence_Size(pyValue) != elemCount_)
 	{
 		PyErr_Format(PyExc_TypeError, 
 			"must be set to a VECTOR%d type.", elemCount_);

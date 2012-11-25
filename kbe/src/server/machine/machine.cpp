@@ -486,14 +486,14 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	Components::COMPONENTS& components = Componentbridge::getComponents().getComponents(componentType);
 	Components::COMPONENTS::iterator iter = components.begin();
 
-	Components::ComponentInfos* cinfos = NULL;
-
 	for(; iter != components.end(); )
 	{
-		if((*iter).uid != uid)
+		Components::ComponentInfos* cinfos = &(*iter);
+
+		if(cinfos->uid != uid)
 			continue;
 
-		if(componentType != (*iter).componentType)
+		if(componentType != cinfos->componentType)
 		{
 			continue;
 		}
@@ -506,7 +506,6 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 			break;
 		}
 
-		cinfos = &(*iter);
 		Mercury::Bundle closebundle;
 		COMMON_MERCURY_MESSAGE(componentType, closebundle, reqCloseServer);
 

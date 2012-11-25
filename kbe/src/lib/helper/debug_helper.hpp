@@ -73,7 +73,7 @@ const char LOG_TYPE_NAME[][255] = {
 
 inline const char* LOG_TYPE_NAME_EX(uint32 CTYPE)
 {									
-	if(CTYPE < 0 || (CTYPE & LOG_TYPES) <= 0)
+	if(CTYPE < 0 || ((CTYPE) & (LOG_TYPES)) <= 0)
 	{
 		return " UNKNOWN";
 	}
