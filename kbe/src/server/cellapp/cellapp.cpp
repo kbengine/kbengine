@@ -437,9 +437,9 @@ void Cellapp::reqWriteToDBFromBaseapp(Mercury::Channel* pChannel, KBEngine::Memo
 
 //-------------------------------------------------------------------------------------
 void Cellapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, 
-		ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
+		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
 {
-	EntityApp<Entity>::onDbmgrInitCompleted(pChannel, startID, endID, startGlobalOrder, startGroupOrder);
+	EntityApp<Entity>::onDbmgrInitCompleted(pChannel, gametime, startID, endID, startGlobalOrder, startGroupOrder);
 	
 	// 所有脚本都加载完毕
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 

@@ -137,7 +137,7 @@ public:
 		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
 	*/
 	void onDbmgrInitCompleted(Mercury::Channel* pChannel, 
-		ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder);
+		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder);
 
 	/** 网络接口
 		dbmgr广播global数据的改变
@@ -537,7 +537,7 @@ void EntityApp<E>::onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID star
 
 template<class E>
 void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel, 
-		ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
+		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
 {
 	INFO_MSG("EntityApp::onDbmgrInitCompleted: entityID alloc(%d-%d), startGlobalOrder=%d, startGroupOrder=%d.\n",
 		startID, endID, startGlobalOrder, startGroupOrder);
@@ -547,7 +547,7 @@ void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 	g_componentOrder = startGlobalOrder;
 
 	idClient_.onAddRange(startID, endID);
-
+	g_kbetime = gametime;
 }
 
 template<class E>

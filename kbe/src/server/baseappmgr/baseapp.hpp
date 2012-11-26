@@ -41,7 +41,7 @@ public:
 	void numProxices(ENTITY_ID num) { numProxices_ = num; }
 	
 	float load()const { return load_; }
-	void load(int32 v) { load_ = v; }
+	void load(float v) { load_ = v; }
 
 protected:
 	ENTITY_ID numBases_;

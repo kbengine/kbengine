@@ -245,7 +245,7 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 
 				std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
 				(*pBundle).newMessage(BaseappInterface::onDbmgrInitCompleted);
-				BaseappInterface::onDbmgrInitCompletedArgs4::staticAddToBundle((*pBundle), idRange.first, 
+				BaseappInterface::onDbmgrInitCompletedArgs5::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
 					idRange.second, startGlobalOrder, startGroupOrder);
 			}
 			break;
@@ -257,7 +257,7 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 
 				std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
 				(*pBundle).newMessage(CellappInterface::onDbmgrInitCompleted);
-				CellappInterface::onDbmgrInitCompletedArgs4::staticAddToBundle((*pBundle), idRange.first, 
+				CellappInterface::onDbmgrInitCompletedArgs5::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
 					idRange.second, startGlobalOrder, startGroupOrder);
 			}
 			break;

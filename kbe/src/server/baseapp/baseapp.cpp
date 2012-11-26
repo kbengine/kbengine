@@ -1193,12 +1193,12 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine
 
 //-------------------------------------------------------------------------------------
 void Baseapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, 
-		ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
+		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
 {
 	if(pChannel->isExternal())
 		return;
 
-	EntityApp<Base>::onDbmgrInitCompleted(pChannel, startID, endID, 
+	EntityApp<Base>::onDbmgrInitCompleted(pChannel, gametime, startID, endID, 
 		startGlobalOrder, startGroupOrder);
 
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 

@@ -193,7 +193,7 @@ public:
 		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
 	*/
 	void onDbmgrInitCompleted(Mercury::Channel* pChannel, 
-		ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder);
+		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder);
 
 	/** 网络接口
 		dbmgr广播global数据的改变
