@@ -54,7 +54,7 @@
 		<backupPeriod> 10 </backupPeriod>							<!-- Type: Float -->
 		<backUpUndefinedProperties> 0 </backUpUndefinedProperties>	<!-- Type: Boolean -->
 		
-		<loadSmoothingBias> 0.5 </loadSmoothingBias>
+		<loadSmoothingBias> 0.01 </loadSmoothingBias>
 	</baseapp>
 	
 	<cellappmgr>

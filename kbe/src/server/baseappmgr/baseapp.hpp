@@ -42,11 +42,15 @@ public:
 	
 	float load()const { return load_; }
 	void load(float v) { load_ = v; }
-
+	
+	void destroy(){ isDestroyed_ = true; }
+	bool isDestroyed()const { return isDestroyed_; }
 protected:
 	ENTITY_ID numBases_;
 	ENTITY_ID numProxices_;
 	float load_;
+
+	bool isDestroyed_;
 };
 
 }

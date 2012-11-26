@@ -91,6 +91,14 @@ typedef D3DXVECTOR4								Vector4;
 #define KBEQuaternionRotationAxis				D3DXQuaternionRotationAxis
 #define KBEQuaternionMultiply					D3DXQuaternionMultiply
 #define KBEQuaternionInverse					D3DXQuaternionInverse
+
+template <class TYPE>
+inline TYPE KBEClamp(TYPE value, TYPE minValue, TYPE maxValue)
+{
+	return value < minValue ? minValue :
+	( value > maxValue ? maxValue : value);
+}
+
 #else
 #include "G3D/g3dmath.h"
 #include "G3D/Vector2.h"
@@ -150,6 +158,7 @@ typedef G3D::Vector4							Vector4;
 #define KBEQuaternionRotationAxis(v)			D3DXQuaternionRotationAxis
 #define KBEQuaternionMultiply(v)				D3DXQuaternionMultiply
 #define KBEQuaternionInverse(v)					D3DXQuaternionInverse
+#define KBEClamp								G3D::clamp
 #endif
 
 // 从2个3d向量忽略y计算出2d长度

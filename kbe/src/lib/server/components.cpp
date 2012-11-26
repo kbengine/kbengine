@@ -520,4 +520,85 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 }
 
 //-------------------------------------------------------------------------------------		
+Components::ComponentInfos* Components::getBaseappmgr()
+{
+	return findComponent(BASEAPPMGR_TYPE, getUserUID(), 0);
+}
+
+//-------------------------------------------------------------------------------------		
+Components::ComponentInfos* Components::getCellappmgr()
+{
+	return findComponent(CELLAPPMGR_TYPE, getUserUID(), 0);
+}
+
+//-------------------------------------------------------------------------------------		
+Components::ComponentInfos* Components::getDbmgr()
+{
+	return findComponent(DBMGR_TYPE, getUserUID(), 0);
+}
+
+//-------------------------------------------------------------------------------------		
+Components::ComponentInfos* Components::getResourcemgr()
+{
+	return findComponent(RESOURCEMGR_TYPE, getUserUID(), 0);
+}
+
+//-------------------------------------------------------------------------------------		
+Components::ComponentInfos* Components::getMessagelog()
+{
+	return findComponent(MESSAGELOG_TYPE, getUserUID(), 0);
+}
+
+//-------------------------------------------------------------------------------------		
+Mercury::Channel* Components::getBaseappmgrChannel()
+{
+	Components::ComponentInfos* cinfo = getBaseappmgr();
+	if(cinfo == NULL)
+		 return NULL;
+
+	return cinfo->pChannel;
+}
+
+//-------------------------------------------------------------------------------------		
+Mercury::Channel* Components::getCellappmgrChannel()
+{
+	Components::ComponentInfos* cinfo = getCellappmgr();
+	if(cinfo == NULL)
+		 return NULL;
+
+	return cinfo->pChannel;
+}
+
+//-------------------------------------------------------------------------------------		
+Mercury::Channel* Components::getDbmgrChannel()
+{
+	Components::ComponentInfos* cinfo = getDbmgr();
+	if(cinfo == NULL)
+		 return NULL;
+
+	return cinfo->pChannel;
+}
+
+//-------------------------------------------------------------------------------------		
+Mercury::Channel* Components::getResourcemgrChannel()
+{
+	Components::ComponentInfos* cinfo = getResourcemgr();
+	if(cinfo == NULL)
+		 return NULL;
+
+	return cinfo->pChannel;
+}
+
+//-------------------------------------------------------------------------------------		
+Mercury::Channel* Components::getMessagelogChannel()
+{
+	Components::ComponentInfos* cinfo = getMessagelog();
+	if(cinfo == NULL)
+		 return NULL;
+
+	return cinfo->pChannel;
+}
+
+//-------------------------------------------------------------------------------------		
+	
 }

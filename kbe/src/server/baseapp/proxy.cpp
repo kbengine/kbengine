@@ -25,11 +25,13 @@ Base(id, scriptModule, getScriptType(), true),
 rndUUID_(KBEngine::genUUID64()),
 addr_(Mercury::Address::NONE)
 {
+	Baseapp::getSingleton().incProxicesCount();
 }
 
 //-------------------------------------------------------------------------------------
 Proxy::~Proxy()
 {
+	Baseapp::getSingleton().decProxicesCount();
 }
 
 //-------------------------------------------------------------------------------------

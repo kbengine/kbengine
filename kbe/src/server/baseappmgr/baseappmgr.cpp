@@ -47,13 +47,15 @@ Baseappmgr::Baseappmgr(Mercury::EventDispatcher& dispatcher,
 	ServerApp(dispatcher, ninterface, componentType, componentID),
 	gameTimer_(),
 	forward_baseapp_messagebuffer_(ninterface, BASEAPP_TYPE),
-	bestBaseappID_(0)
+	bestBaseappID_(0),
+	baseapps_()
 {
 }
 
 //-------------------------------------------------------------------------------------
 Baseappmgr::~Baseappmgr()
 {
+	baseapps_.clear();
 }
 
 //-------------------------------------------------------------------------------------
@@ -133,15 +135,34 @@ void Baseappmgr::forwardMessage(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Baseappmgr::updateBaseapp(Mercury::Channel* pChannel, 
+void Baseappmgr::updateBaseapp(Mercury::Channel* pChannel, COMPONENT_ID componentID,
 							ENTITY_ID numBases, ENTITY_ID numProxices, float load)
 {
+	Baseapp& baseapp = baseapps_[componentID];
+	
+	baseapp.load(load);
+	baseapp.numProxices(numProxices);
+	baseapp.numBases(numBases);
 }
 
 //-------------------------------------------------------------------------------------
 COMPONENT_ID Baseappmgr::findFreeBaseapp()
 {
-	return 0;
+	std::map< COMPONENT_ID, Baseapp >::iterator iter = baseapps_.begin();
+	COMPONENT_ID cid = 0;
+
+	float minload = 1.f;
+	for(; iter != baseapps_.end(); iter++)
+	{
+		if(!iter->second.isDestroyed() &&
+			minload > iter->second.load())
+		{
+			cid = iter->first;
+			minload = iter->second.load();
+		}
+	}
+
+	return cid;
 }
 
 //-------------------------------------------------------------------------------------
@@ -153,9 +174,10 @@ void Baseappmgr::updateBestBaseapp()
 //-------------------------------------------------------------------------------------
 void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream& s) 
 {
-	Components::COMPONENTS& components = Components::getSingleton().getComponents(BASEAPP_TYPE);
-	size_t componentSize = components.size();
-	if(componentSize == 0)
+	Components::ComponentInfos* cinfos = 
+		Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
+
+	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		ForwardItem* pFI = new ForwardItem();
@@ -169,23 +191,15 @@ void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream&
 		forward_baseapp_messagebuffer_.push(pFI);
 		return;
 	}
-
-	static uint32 currentBaseappIndex = 0;
-	if(currentBaseappIndex > componentSize - 1)
-		currentBaseappIndex = 0;
 	
 	//DEBUG_MSG("Baseappmgr::reqCreateBaseAnywhere: %s opsize=%d, selBaseappIdx=%d.\n", 
 	//	pChannel->c_str(), s.opsize(), currentBaseappIndex);
-
-	Components::COMPONENTS::iterator iter = components.begin();
-	std::advance(iter, currentBaseappIndex++);
-	Mercury::Channel* lpChannel = (*iter).pChannel;
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhere);
 
 	(*pBundle).append((char*)s.data() + s.rpos(), s.opsize());
-	(*pBundle).send(this->getNetworkInterface(), lpChannel);
+	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
 	s.read_skip(s.opsize());
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
@@ -195,10 +209,10 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 							  std::string& accountName, std::string& password, DBID entityDBID)
 {
 	ENTITY_ID eid = 0;
-	Components::COMPONENTS& components = Components::getSingleton().getComponents(BASEAPP_TYPE);
-	size_t componentSize = components.size();
+	Components::ComponentInfos* cinfos = 
+		Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
 
-	if(componentSize == 0)
+	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		ForwardItem* pFI = new ForwardItem();
@@ -213,21 +227,14 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 		return;
 	}
 
-	static uint32 currentBaseappIndex = 0;
-	if(currentBaseappIndex > componentSize - 1)
-		currentBaseappIndex = 0;
 
-	DEBUG_MSG("Baseappmgr::registerAccountToBaseapp:%s. allocBaseapp=%d.\n", 
-		accountName.c_str(), currentBaseappIndex);
-
-	Components::COMPONENTS::iterator iter = components.begin();
-	std::advance(iter, currentBaseappIndex++);
-	Mercury::Channel* lpChannel = (*iter).pChannel;
+	DEBUG_MSG("Baseappmgr::registerAccountToBaseapp:%s. allocBaseapp=[%"PRAppID"].\n", 
+		accountName.c_str(), bestBaseappID_);
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
 	(*pBundle) << accountName << password << eid << entityDBID;
-	(*pBundle).send(this->getNetworkInterface(), lpChannel);
+	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 

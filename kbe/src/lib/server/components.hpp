@@ -126,6 +126,19 @@ public:
 		检查某个组件是否有效.
 	*/
 	bool checkComponentUsable(const Components::ComponentInfos* info);
+
+	Components::ComponentInfos* getBaseappmgr();
+	Components::ComponentInfos* getCellappmgr();
+	Components::ComponentInfos* getDbmgr();
+	Components::ComponentInfos* getResourcemgr();
+	Components::ComponentInfos* getMessagelog();
+
+	Mercury::Channel* getBaseappmgrChannel();
+	Mercury::Channel* getCellappmgrChannel();
+	Mercury::Channel* getDbmgrChannel();
+	Mercury::Channel* getResourcemgrChannel();
+	Mercury::Channel* getMessagelogChannel();
+
 private:
 	COMPONENTS								_baseapps;
 	COMPONENTS								_cellapps;

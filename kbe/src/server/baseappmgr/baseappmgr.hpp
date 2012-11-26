@@ -109,12 +109,16 @@ public:
 	/** 网络接口
 		更新baseapp情况。
 	*/
-	void updateBaseapp(Mercury::Channel* pChannel, 
+	void updateBaseapp(Mercury::Channel* pChannel, COMPONENT_ID componentID,
 								ENTITY_ID numBases, ENTITY_ID numProxices, float load);
 protected:
-	TimerHandle							gameTimer_;
-	ForwardAnywhere_MessageBuffer		forward_baseapp_messagebuffer_;
-	COMPONENT_ID						bestBaseappID_;
+	TimerHandle													gameTimer_;
+
+	ForwardAnywhere_MessageBuffer								forward_baseapp_messagebuffer_;
+
+	COMPONENT_ID												bestBaseappID_;
+
+	std::map< COMPONENT_ID, Baseapp >							baseapps_;
 };
 
 }

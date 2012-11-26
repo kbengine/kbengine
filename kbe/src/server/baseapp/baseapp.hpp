@@ -291,6 +291,22 @@ public:
 		写entity到db回调
 	*/
 	void onWriteToDBCallback(Mercury::Channel* pChannel, ENTITY_ID eid, DBID entityDBID, CALLBACK_ID callbackID, bool success);
+
+	/**
+		增加proxices计数
+	*/
+	void incProxicesCount(){ ++proxicesCount_; }
+
+	/**
+		减少proxices计数
+	*/
+	void decProxicesCount(){ --proxicesCount_; }
+
+	/**
+		获得proxices计数
+	*/
+	int32 proxicesCount()const{ return proxicesCount_; }
+
 protected:
 	TimerHandle								loopCheckTimerHandle_;
 
@@ -308,6 +324,8 @@ protected:
 	float									load_;
 
 	static uint64							_g_lastTimestamp;
+
+	int32									proxicesCount_;
 	
 };
 

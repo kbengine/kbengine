@@ -113,7 +113,8 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 	pGlobalBases_(NULL),
 	pendingLoginMgr_(ninterface),
 	forward_messagebuffer_(ninterface),
-	pBackupSender_()
+	pBackupSender_(),
+	proxicesCount_(0)
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
 }
@@ -280,12 +281,25 @@ void Baseapp::updateLoad()
 	}
 
 	// 负载的值为1.0 - 空闲时间比例, 必须在0-1.f之间
-	float load = G3D::clamp(0.f, 1.f - float(spareTime), 1.f);
+	float load = KBEClamp(1.f - float(spareTime), 0.f, 1.f);
 
 	// 此处算法看server_operations_guide.pdf介绍loadSmoothingBias处
 	// loadSmoothingBias 决定本次负载取最后一次负载的loadSmoothingBias剩余比例 + 当前负载的loadSmoothingBias比例
 	static float loadSmoothingBias = g_kbeSrvConfig.getBaseApp().loadSmoothingBias;
 	load_ = (1 - loadSmoothingBias) * load_ + loadSmoothingBias * load;
+
+	Mercury::Channel* pChannel = Componentbridge::getComponents().getBaseappmgrChannel();
+	
+	if(pChannel != NULL)
+	{
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(BaseappmgrInterface::updateBaseapp);
+		BaseappmgrInterface::updateBaseappArgs4::staticAddToBundle((*pBundle), 
+			componentID_, pEntities_->getEntities().size() - proxicesCount(), proxicesCount(), this->getLoad());
+
+		(*pBundle).send(this->getNetworkInterface(), pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
