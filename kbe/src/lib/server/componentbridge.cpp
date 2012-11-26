@@ -197,6 +197,19 @@ bool Componentbridge::findInterfaces()
 				// 防止接收到的数据不是想要的数据
 				if(findComponentType == args.componentType)
 				{
+					// 这里做个特例， 是messagelog则优先连接上去， 这样可以尽早同步日志
+					if(findComponentType == (int8)MESSAGELOG_TYPE)
+					{
+						findComponentTypes_[findIdx_] = -1;
+						if(getComponents().connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
+						{
+							ERROR_MSG("Componentbridge::register self to %s is error!\n",
+							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+							//dispatcher().breakProcessing();
+							return false;
+						}
+					}
+
 					findIdx_++;
 				}
 				else
