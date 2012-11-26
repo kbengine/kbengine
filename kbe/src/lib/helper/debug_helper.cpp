@@ -177,7 +177,7 @@ void DebugHelper::sync()
 
 	if(messagelogAddr_.isNone())
 	{
-		if(bufferedLogPackets_.size() > 128)
+		if(bufferedLogPackets_.size() > 4096)
 		{
 			ERROR_MSG("DebugHelper::sync: can't found messagelog. packet size=%u.\n", bufferedLogPackets_.size());
 			clearBufferedLog();
@@ -191,7 +191,7 @@ void DebugHelper::sync()
 	Mercury::Channel* pChannel = pNetworkInterface_->findChannel(messagelogAddr_);
 	if(pChannel == NULL)
 	{
-		if(bufferedLogPackets_.size() > 1024)
+		if(bufferedLogPackets_.size() > 4096)
 		{
 			messagelogAddr_.ip = 0;
 			messagelogAddr_.port = 0;
