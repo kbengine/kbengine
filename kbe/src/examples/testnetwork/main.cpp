@@ -70,7 +70,7 @@ same license as the rest of the engine.
 
 #include "log4cxx/logger.h"
 #include "log4cxx/propertyconfigurator.h"
-
+#include "boost/format.hpp"
 using namespace KBEngine;
 using namespace KBEngine::Mercury;
 Address address;
@@ -341,7 +341,9 @@ struct DialogOption
 
 void init_network(void)
 {
-	Mercury::g_trace_packet = 3;
+	boost::format s = boost::format("writing %1%,  x=%2% : %3%-th try") % "toto" % 40.23 % 50;
+	std::string ss = s.str();
+	Mercury::g_trace_packet =  3;
 
 	mysocket.close();
 	mysocket.socket(SOCK_DGRAM);
