@@ -23,10 +23,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
+#include "thread/threadtask.hpp"
 
 namespace KBEngine{
-	
-class DataDownload
+
+class DataDownloads;
+
+class DataDownload : public thread::TPTask
 {
 public:
 	DataDownload(PyObjectPtr objptr, 
@@ -35,10 +38,14 @@ public:
 	virtual ~DataDownload();
 	
 	virtual bool checkDescr(){ return true; }
+
+	void pDataDownloads(DataDownloads* pDataDownloads){ pDataDownloads_ = pDataDownloads; }
+	DataDownloads* pDataDownloads(){ return pDataDownloads_; }
 protected:
 	PyObjectPtr objptr_;
 	std::string descr_;
 	int16 id_;
+	DataDownloads* pDataDownloads_;
 };
 
 class StringDataDownload : public DataDownload
@@ -48,6 +55,9 @@ public:
 		const std::string & descr, int16 id);
 
 	virtual ~StringDataDownload();
+
+	virtual bool process();
+	virtual void presentMainThread();
 };
 
 class FileDataDownload : public DataDownload
@@ -57,6 +67,9 @@ public:
 		const std::string & descr, int16 id);
 
 	virtual ~FileDataDownload();
+
+	virtual bool process();
+	virtual void presentMainThread();
 };
 
 }

@@ -8,7 +8,8 @@ DataDownload::DataDownload(PyObjectPtr objptr,
 						   const std::string & descr, int16 id):
 objptr_(objptr),
 descr_(descr),
-id_(id)
+id_(id),
+pDataDownloads_(NULL)
 {
 }
 
@@ -30,6 +31,17 @@ StringDataDownload::~StringDataDownload()
 }
 
 //-------------------------------------------------------------------------------------
+bool StringDataDownload::process()
+{
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+void StringDataDownload::presentMainThread()
+{
+}
+
+//-------------------------------------------------------------------------------------
 FileDataDownload::FileDataDownload(PyObjectPtr objptr, 
 							const std::string & descr, int16 id):
 DataDownload(objptr, descr, id)
@@ -38,6 +50,17 @@ DataDownload(objptr, descr, id)
 
 //-------------------------------------------------------------------------------------
 FileDataDownload::~FileDataDownload()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool FileDataDownload::process()
+{
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+void FileDataDownload::presentMainThread()
 {
 }
 

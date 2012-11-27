@@ -1,5 +1,6 @@
 #include "baseapp.hpp"
 #include "proxy.hpp"
+#include "data_download.hpp"
 #include "client_lib/client_interface.hpp"
 #include "network/fixed_messages.hpp"
 
@@ -309,8 +310,11 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 int16 Proxy::streamFileToClient(PyObjectPtr objptr, 
 	const std::string& descr, int16 id)
 {
-	return dataDownloads_.pushDownload(DataDownloadFactory::create(
-		DataDownloadFactory::DATA_DOWNLOAD_STREAM_FILE, objptr, descr, id));
+	DataDownload* pDataDownload = DataDownloadFactory::create(
+		DataDownloadFactory::DATA_DOWNLOAD_STREAM_FILE, objptr, descr, id);
+
+	pDataDownload->pDataDownloads(&dataDownloads_);
+	return dataDownloads_.pushDownload(pDataDownload);
 }
 
 //-------------------------------------------------------------------------------------
@@ -393,8 +397,11 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 int16 Proxy::streamStringToClient(PyObjectPtr objptr, 
 	const std::string& descr, int16 id)
 {
-	return dataDownloads_.pushDownload(DataDownloadFactory::create(
-		DataDownloadFactory::DATA_DOWNLOAD_STREAM_STRING, objptr, descr, id));
+	DataDownload* pDataDownload = DataDownloadFactory::create(
+		DataDownloadFactory::DATA_DOWNLOAD_STREAM_STRING, objptr, descr, id);
+
+	pDataDownload->pDataDownloads(&dataDownloads_);
+	return dataDownloads_.pushDownload(pDataDownload);
 }
 
 //-------------------------------------------------------------------------------------
