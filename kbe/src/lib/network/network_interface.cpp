@@ -285,9 +285,9 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 #ifdef KBE_SERVER
 	if (!pEP->setBufferSize(SO_RCVBUF, RECV_BUFFER_SIZE))
 	{
-		WARNING_MSG("NetworkInterface::recreateListeningSocket(%s): "
-			"Operating with a receive buffer of only %d bytes (instead of %d)\n",
-			pEndPointName, pEP->getBufferSize(SO_RCVBUF), RECV_BUFFER_SIZE);
+		WARNING_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
+			"Operating with a receive buffer of only %2% bytes (instead of %3%)\n") %
+			pEndPointName % pEP->getBufferSize(SO_RCVBUF) % RECV_BUFFER_SIZE);
 	}
 #endif
 

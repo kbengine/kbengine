@@ -322,9 +322,9 @@ bool SelectPoller::doRegisterForRead(int fd)
 #ifndef _WIN32
 	if ((fd < 0) || (FD_SETSIZE <= fd))
 	{
-		ERROR_MSG("EventDispatcher::registerFileDescriptor: "
-			"Tried to register invalid fd %d. FD_SETSIZE (%d)\n",
-			fd, FD_SETSIZE);
+		ERROR_MSG(boost::format("EventDispatcher::registerFileDescriptor: "
+			"Tried to register invalid fd %1%. FD_SETSIZE (%2%)\n") %
+			fd % FD_SETSIZE);
 
 		return false;
 	}
@@ -350,9 +350,9 @@ bool SelectPoller::doRegisterForWrite(int fd)
 #ifndef _WIN32
 	if ((fd < 0) || (FD_SETSIZE <= fd))
 	{
-		ERROR_MSG("EventDispatcher::registerWriteFileDescriptor: "
-			"Tried to register invalid fd %d. FD_SETSIZE (%d)\n",
-			fd, FD_SETSIZE);
+		ERROR_MSG(boost::format("EventDispatcher::registerWriteFileDescriptor: "
+			"Tried to register invalid fd %1%. FD_SETSIZE (%2%)\n") %
+			fd % FD_SETSIZE);
 
 		return false;
 	}
@@ -470,7 +470,7 @@ EPoller::EPoller(int expectedSize) :
 {
 	if (epfd_ == -1)
 	{
-		ERROR_MSG("EPoller::EPoller: epoll_create failed: %s\n",
+		ERROR_MSG(boost::format("EPoller::EPoller: epoll_create failed: %1%\n") %
 				kbe_strerror());
 	}
 };
@@ -515,18 +515,18 @@ bool EPoller::doRegister(int fd, bool isRead, bool isRegister)
 				"descriptor %d (%s)\n";
 		if (errno == EBADF)
 		{
-			WARNING_MSG(MESSAGE,
-					isRegister ? "add" : "remove",
-					isRead ? "read" : "write",
-					fd,
+			WARNING_MSG(boost::format(MESSAGE) %
+					(isRegister ? "add" : "remove") %
+					(isRead ? "read" : "write") %
+					fd %
 					kbe_strerror());
 		}
 		else
 		{
-			ERROR_MSG(MESSAGE,
-					isRegister ? "add" : "remove",
-					isRead ? "read" : "write",
-					fd,
+			ERROR_MSG(boost::format(MESSAGE) %
+					(isRegister ? "add" : "remove") %
+					(isRead ? "read" : "write") %
+					fd %
 					kbe_strerror());
 		}
 

@@ -330,7 +330,7 @@ bool ThreadPool::addTask(TPTask* tptask)
 #if KBE_PLATFORM == PLATFORM_WIN32		
 			ERROR_MSG("ThreadPool::addTask: ThreadPool create new Thread error! ... \n");
 #else
-			ERROR_MSG("boost::format(ThreadPool::addTask: ThreadPool create new Thread error:%1% ... \n") % 
+			ERROR_MSG(boost::format("boost::format(ThreadPool::addTask: ThreadPool create new Thread error:%1% ... \n") % 
 				kbe_strerror());
 #endif				
 		}

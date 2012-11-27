@@ -249,8 +249,8 @@ int EndPoint::findDefaultInterface(char * name)
 	}
 	else
 	{
-		ERROR_MSG("EndPoint::findDefaultInterface: "
-							"if_nameindex returned NULL (%s)\n",
+		ERROR_MSG(boost::format("EndPoint::findDefaultInterface: "
+							"if_nameindex returned NULL (%1%)\n") %
 						kbe_strerror());
 	}
 
@@ -408,9 +408,10 @@ int EndPoint::getQueueSizes(int & tx, int & rx) const
 
 	if (!f)
 	{
-		ERROR_MSG("Endpoint::getQueueSizes: "
-				"could not open /proc/net/udp: %s\n",
+		ERROR_MSG(boost::format("Endpoint::getQueueSizes: "
+				"could not open /proc/net/udp: %1%\n") %
 			kbe_strerror());
+
 		return -1;
 	}
 
@@ -464,7 +465,7 @@ int EndPoint::getBufferSize(int optname) const
 	{
 		ERROR_MSG(boost::format("EndPoint::getBufferSize: "
 			"Failed to read option %1%: %2%\n") %
-			optname == SO_SNDBUF ? "SO_SNDBUF" : "SO_RCVBUF" %
+			(optname == SO_SNDBUF ? "SO_SNDBUF" : "SO_RCVBUF") %
 			kbe_strerror());
 
 		return -1;

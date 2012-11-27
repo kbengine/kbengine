@@ -129,8 +129,8 @@ static uint64 calcStampsPerSecond()
 		}
 		else
 		{
-			WARNING_MSG( "calcStampsPerSecond: "
-						 "Unknown timing method '%s', using clock_gettime.\n",
+			WARNING_MSG(boost::format("calcStampsPerSecond: "
+						 "Unknown timing method '%s', using clock_gettime.\n") %
 						 timingMethod );
 
 			g_timingMethod = DEFAULT_TIMING_METHOD;
