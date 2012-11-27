@@ -141,7 +141,7 @@ public:
 		bool ret = SqlStatement::query(dbi);
 		if(!ret)
 		{
-			ERROR_MSG("SqlStatementInsert::query: %s\n", (dbi != NULL ? dbi : dbi_)->getstrerror());
+			ERROR_MSG(boost::format("SqlStatementInsert::query: %1%\n") % (dbi != NULL ? dbi : dbi_)->getstrerror());
 			return false;
 		}
 

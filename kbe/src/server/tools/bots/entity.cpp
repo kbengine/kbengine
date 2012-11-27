@@ -100,14 +100,16 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
 	
-	DEBUG_MSG("Entity::onRemoteMethodCall: entityID %d, methodType %d.\n", 
-				id_, utype);
+	DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: entityID %1%, methodType %2%.\n") % 
+				id_ % utype);
 	
 	MethodDescription* md = scriptModule_->findCellMethodDescription(utype);
 	
 	if(md == NULL)
 	{
-		ERROR_MSG("Entity::onRemoteMethodCall: can't found method. utype=%u, callerID:%d.\n", utype, id_);
+		ERROR_MSG(boost::format("Entity::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") % 
+			utype % id_);
+
 		return;
 	}
 

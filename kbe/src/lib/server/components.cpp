@@ -87,8 +87,8 @@ bool Components::checkComponents(int32 uid, COMPONENT_ID componentID)
 		ComponentInfos* cinfos = findComponent(ct, uid, componentID);
 		if(cinfos != NULL)
 		{
-			ERROR_MSG("Components::checkComponents: uid:%u, componentType=%s, componentID:%"PRAppID" exist.\n", 
-				uid, COMPONENT_NAME_EX(ct),  componentID);
+			ERROR_MSG(boost::format("Components::checkComponents: uid:%1%, componentType=%2%, componentID:%3% exist.\n") %
+				uid % COMPONENT_NAME_EX(ct) % componentID);
 
 			// KBE_ASSERT(false && "Components::checkComponents: componentID exist.\n");
 			return false;
@@ -113,9 +113,9 @@ void Components::addComponent(int32 uid, const char* username,
 	ComponentInfos* cinfos = findComponent(componentType, uid, componentID);
 	if(cinfos != NULL)
 	{
-		WARNING_MSG("Components::addComponent[%s]: uid:%d, username:%s, "
-			"componentType:%d, componentID:%"PRAppID" is exist!\n", 
-			COMPONENT_NAME_EX(componentType), uid, username, (int32)componentType, componentID);
+		WARNING_MSG(boost::format("Components::addComponent[%1%]: uid:%2%, username:%3%, "
+			"componentType:%4%, componentID:%5% is exist!\n") %
+			COMPONENT_NAME_EX(componentType) % uid % username % (int32)componentType % componentID);
 		return;
 	}
 	
@@ -152,10 +152,12 @@ void Components::addComponent(int32 uid, const char* username,
 		break;
 	};
 
-	INFO_MSG("Components::addComponent[%s], uid:%d, "
-		"componentID:%"PRAppID", totalcount=%d\n", 
-			COMPONENT_NAME_EX(componentType), uid, 
-			componentID, components.size());
+	INFO_MSG(boost::format("Components::addComponent[%1%], uid:%2%, "
+		"componentID:%3%, totalcount=%4%\n") %
+			COMPONENT_NAME_EX(componentType) % 
+			uid %
+			componentID % 
+			components.size());
 
 	if(_pHandler)
 		_pHandler->onAddComponent(&componentInfos);
@@ -171,8 +173,8 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType,
 	{
 		if((uid < 0 || (*iter).uid == uid) && (ignoreComponentID == true || (*iter).cid == componentID))
 		{
-			INFO_MSG("Components::delComponent[%s] componentID=%" PRAppID ", component:totalcount=%d.\n", 
-				COMPONENT_NAME_EX(componentType), componentID, components.size());
+			INFO_MSG(boost::format("Components::delComponent[%1%] componentID=%2%, component:totalcount=%3%.\n") % 
+				COMPONENT_NAME_EX(componentType) % componentID % components.size());
 
 			ComponentInfos* componentInfos = &(*iter);
 
@@ -193,8 +195,8 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType,
 
 	if(shouldShowLog)
 	{
-		ERROR_MSG("Components::delComponent::not found [%s] component:totalcount:%d\n", 
-			COMPONENT_NAME_EX(componentType), components.size());
+		ERROR_MSG(boost::format("Components::delComponent::not found [%1%] component:totalcount:%2%\n") % 
+			COMPONENT_NAME_EX(componentType) % components.size());
 	}
 }
 
@@ -216,7 +218,9 @@ void Components::removeComponentFromChannel(Mercury::Channel * pChannel)
 				//SAFE_RELEASE((*iter).pExtAddr);
 				// (*iter).pChannel->decRef();
 
-				WARNING_MSG("Components::removeComponentFromChannel: %s : %"PRAppID".\n", COMPONENT_NAME_EX(componentType), (*iter).cid);
+				WARNING_MSG(boost::format("Components::removeComponentFromChannel: %1% : %2%.\n") %
+					COMPONENT_NAME_EX(componentType) % (*iter).cid);
+
 				iter = components.erase(iter);
 				return;
 			}
@@ -251,7 +255,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		pComponentInfos->pChannel = new Mercury::Channel(*_pNetworkInterface, pEndpoint, Mercury::Channel::INTERNAL);
 		if(!_pNetworkInterface->registerChannel(pComponentInfos->pChannel))
 		{
-			ERROR_MSG("Components::connectComponent: registerChannel(%s) is failed!\n",
+			ERROR_MSG(boost::format("Components::connectComponent: registerChannel(%1%) is failed!\n") %
 				pComponentInfos->pChannel->c_str());
 
 			delete pComponentInfos->pChannel;
@@ -335,8 +339,8 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 	}
 	else
 	{
-		ERROR_MSG("Components::connectComponent: connect(%s) is failed! %s.\n",
-			pComponentInfos->pIntAddr->c_str(), kbe_strerror());
+		ERROR_MSG(boost::format("Components::connectComponent: connect(%1%) is failed! %2%.\n") %
+			pComponentInfos->pIntAddr->c_str() % kbe_strerror());
 
 		return -1;
 	}
@@ -459,7 +463,7 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 			trycount++;
 			if(trycount > 3)
 			{
-				ERROR_MSG("Components::checkComponentUsable: couldn't connect to:%s\n", info->pIntAddr->c_str());
+				ERROR_MSG(boost::format("Components::checkComponentUsable: couldn't connect to:%1%\n") % info->pIntAddr->c_str());
 				return false;
 			}
 		}

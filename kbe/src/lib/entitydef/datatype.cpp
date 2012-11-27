@@ -949,8 +949,8 @@ bool FixedArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 		}
 		else
 		{
-			ERROR_MSG("FixedArrayType::initialize: can't found type[%s] by key[%s].\n", 
-				strType.c_str(), "ARRAY");
+			ERROR_MSG(boost::format("FixedArrayType::initialize: can't found type[%1%] by key[%2%].\n") % 
+				strType.c_str() % "ARRAY");
 			
 			return false;
 		}			
@@ -1027,7 +1027,9 @@ PyObject* FixedArrayType::createFromStream(MemoryStream* mstream)
 		{
 			if(mstream->opsize() == 0)
 			{
-				ERROR_MSG("FixedArrayType::createFromStream: invalid(size=%u), stream no space!\n", size);
+				ERROR_MSG(boost::format("FixedArrayType::createFromStream: invalid(size=%1%), stream no space!\n") %
+					size);
+
 				break;
 			}
 
@@ -1181,8 +1183,8 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 				}
 				else
 				{
-					ERROR_MSG("FixedDictType::initialize: can't found array type[%s] by key[%s].\n", 
-						strType.c_str(), typeName.c_str());
+					ERROR_MSG(boost::format("FixedDictType::initialize: can't found array type[%1%] by key[%2%].\n") % 
+						strType.c_str() % typeName.c_str());
 
 					delete pDictItemDataType;
 					return false;
@@ -1206,8 +1208,8 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 				}
 				else
 				{
-					ERROR_MSG("FixedDictType::initialize: can't found type[%s] by key[%s].\n", 
-						strType.c_str(), typeName.c_str());
+					ERROR_MSG(boost::format("FixedDictType::initialize: can't found type[%1%] by key[%2%].\n") % 
+						strType.c_str() % typeName.c_str());
 					
 					delete pDictItemDataType;
 					return false;
@@ -1244,8 +1246,9 @@ bool FixedDictType::loadImplModule(std::string moduleName)
 	
 	if(res_.size() != 2)
 	{
-		ERROR_MSG("FixedDictType::loadImplModule: %s impl is error! like:[moduleName.inst]\n", 
+		ERROR_MSG(boost::format("FixedDictType::loadImplModule: %1% impl is error! like:[moduleName.inst]\n") %
 			moduleName.c_str());
+
 		return false;
 	}
 
@@ -1307,7 +1310,7 @@ PyObject* FixedDictType::impl_createObjFromDict(PyObject* dictData)
 	if(pyRet == NULL || !impl_isSameType(pyRet))
 	{
 		SCRIPT_ERROR_CHECK();
-		ERROR_MSG("FixedDictType::impl_createObjFromDict: %s.isSameType() is failed!\n", 
+		ERROR_MSG(boost::format("FixedDictType::impl_createObjFromDict: %1%.isSameType() is failed!\n") %
 			moduleName_.c_str());
 		
 		Py_RETURN_NONE;

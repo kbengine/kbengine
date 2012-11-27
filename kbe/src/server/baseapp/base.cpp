@@ -142,7 +142,7 @@ void Base::createCellData(void)
 		}
 		else
 		{
-			ERROR_MSG("Base::createCellData: %s PropertyDescription the dataType is NULL.\n", 
+			ERROR_MSG(boost::format("Base::createCellData: %1% PropertyDescription the dataType is NULL.\n") %
 				propertyDescription->getName());	
 		}
 			
@@ -231,8 +231,8 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 			}
 			else
 			{
-				CRITICAL_MSG("%s::addPersistentsDataToStream: %d not found Persistent[%s].\n",
-					this->getScriptName(), this->getID(), attrname);
+				CRITICAL_MSG(boost::format("%1%::addPersistentsDataToStream: %2% not found Persistent[%3%].\n") %
+					this->getScriptName() % this->getID() % attrname);
 			}
 
 			Py_DECREF(key);
@@ -484,8 +484,8 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 		ENTITY_ID srcEntityID = pChannel->proxyID();
 		if(srcEntityID <= 0 || srcEntityID != this->getID())
 		{
-			WARNING_MSG("Base::onRemoteMethodCall: srcEntityID:%d, thisEntityID:%d.\n", 
-				srcEntityID, this->getID());
+			WARNING_MSG(boost::format("Base::onRemoteMethodCall: srcEntityID:%1%, thisEntityID:%2%.\n") % 
+				srcEntityID % this->getID());
 
 			return;
 		}
@@ -493,8 +493,9 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(isDestroyed())																				
 	{																										
-		ERROR_MSG("%s::onRemoteMethodCall: %d is destroyed!\n",											
-			getScriptName(), getID());
+		ERROR_MSG(boost::format("%1%::onRemoteMethodCall: %2% is destroyed!\n") %											
+			getScriptName() % getID());
+
 		s.read_skip(s.opsize());
 		return;																							
 	}
@@ -505,14 +506,14 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 	MethodDescription* md = scriptModule_->findBaseMethodDescription(utype);
 	if(md == NULL)
 	{
-		ERROR_MSG("Base::onRemoteMethodCall: can't found method. utype=%u, callerID:%d.\n", 
-			utype, id_);
+		ERROR_MSG(boost::format("Base::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") % 
+			utype % id_);
 
 		return;
 	}
 
-	DEBUG_MSG("Base::onRemoteMethodCall: entityID:%d, methodType:%s(%u).\n", 
-		id_, md->getName(), utype);
+	DEBUG_MSG(boost::format("Base::onRemoteMethodCall: entityID:%1%, methodType:%2%(%3%).\n") % 
+		id_ % md->getName() % utype);
 
 	md->currCallerID(this->getID());
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
@@ -833,8 +834,9 @@ void Base::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel, M
 {
 	if(pChannel->proxyID() != this->getID())
 	{
-		WARNING_MSG("Base::forwardEntityMessageToCellappFromClient: not srcEntity(%d/%d).\n", 
-			pChannel->proxyID(), this->getID());
+		WARNING_MSG(boost::format("Base::forwardEntityMessageToCellappFromClient: not srcEntity(%1%/%2%).\n") %
+			pChannel->proxyID() % this->getID());
+
 		return;
 	}
 
@@ -973,23 +975,25 @@ void Base::onTeleportSuccess(SPACE_ID spaceID)
 void Base::reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEntityID, 
 							COMPONENT_ID reqTeleportEntityCellAppID, COMPONENT_ID reqTeleportEntityBaseAppID)
 {
-	DEBUG_MSG("Base::reqTeleportOther: reqTeleportEntityID=%d, reqTeleportEntityCellAppID=%"PRAppID".\n",
-		reqTeleportEntityID, reqTeleportEntityCellAppID);
+	DEBUG_MSG(boost::format("Base::reqTeleportOther: reqTeleportEntityID=%1%, reqTeleportEntityCellAppID=%2%.\n") %
+		reqTeleportEntityID % reqTeleportEntityCellAppID);
 
 	if(this->getCellMailbox() == NULL || this->getCellMailbox()->getChannel() == NULL)
 	{
-		ERROR_MSG("%s::reqTeleportOther: %d, teleport is error, cellMailbox is NULL, "
-			"reqTeleportEntityID, reqTeleportEntityCellAppID=%"PRAppID".\n",
-			this->getScriptName(), this->getID(), reqTeleportEntityID, reqTeleportEntityCellAppID);
+		ERROR_MSG(boost::format("%1%::reqTeleportOther: %2%, teleport is error, cellMailbox is NULL, "
+			"reqTeleportEntityID=%3%, reqTeleportEntityCellAppID=%4%.\n") %
+			this->getScriptName() % this->getID() % reqTeleportEntityID % reqTeleportEntityCellAppID);
+
 		return;
 	}
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(reqTeleportEntityCellAppID);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
-		ERROR_MSG("%s::reqTeleportOther: %d, teleport is error, not found cellapp, "
-			"reqTeleportEntityID, reqTeleportEntityCellAppID=%"PRAppID".\n",
-			this->getScriptName(), this->getID(), reqTeleportEntityID, reqTeleportEntityCellAppID);
+		ERROR_MSG(boost::format("%1%::reqTeleportOther: %2%, teleport is error, not found cellapp, "
+			"reqTeleportEntityID=%3%, reqTeleportEntityCellAppID=%4%.\n") %
+			this->getScriptName() % this->getID() % reqTeleportEntityID % reqTeleportEntityCellAppID);
+
 		return;
 	}
 

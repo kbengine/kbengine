@@ -59,7 +59,7 @@ DBID EntityTable::writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, Scrip
 		EntityTableItem* pTableItem = this->findItem(pid);
 		if(pTableItem == NULL)
 		{
-			ERROR_MSG("EntityTable::writeTable: not found item[%u].\n", pid);
+			ERROR_MSG(boost::format("EntityTable::writeTable: not found item[%1%].\n") % pid);
 			return dbid;
 		}
 

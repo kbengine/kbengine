@@ -142,8 +142,8 @@ PyObject* Pickler::unpickle(const std::string& str)
 	
 	if (!pyRet)
 	{
-		ERROR_MSG("Pickler::unpickle: failed to unpickle[%s] len=%d.\n", 
-			str.c_str(), str.length());
+		ERROR_MSG(boost::format("Pickler::unpickle: failed to unpickle[%1%] len=%2%.\n") % 
+			str.c_str() % str.length());
 	}
 	
 	SCRIPT_ERROR_CHECK();

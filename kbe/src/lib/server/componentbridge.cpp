@@ -139,7 +139,7 @@ bool Componentbridge::findInterfaces()
 
 			int8 findComponentType = findComponentTypes_[findIdx_];
 
-			INFO_MSG("Componentbridge::process: finding %s...\n",
+			INFO_MSG(boost::format("Componentbridge::process: finding %1%...\n") %
 				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 			
 			Mercury::BundleBroadcast bhandler(networkInterface_, nport);
@@ -175,7 +175,7 @@ bool Componentbridge::findInterfaces()
 					// 如果是这些辅助组件没找到则跳过
 					if(findComponentType == MESSAGELOG_TYPE || findComponentType == RESOURCEMGR_TYPE)
 					{
-						WARNING_MSG("Componentbridge::process: not found %s!\n",
+						WARNING_MSG(boost::format("Componentbridge::process: not found %1%!\n") %
 							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 
 						findComponentTypes_[findIdx_] = -1; // 跳过标志
@@ -186,9 +186,10 @@ bool Componentbridge::findInterfaces()
 					return false;
 				}
 
-				INFO_MSG("Componentbridge::process: found %s, addr:%s:%u\n",
-					COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), 
-					inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intaddr));
+				INFO_MSG(boost::format("Componentbridge::process: found %1%, addr:%2%:%3%\n") %
+					COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType) % 
+					inet_ntoa((struct in_addr&)args.intaddr) %
+					ntohs(args.intaddr));
 
 				Componentbridge::getComponents().addComponent(args.uid, args.username.c_str(), 
 					(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, 
@@ -203,7 +204,7 @@ bool Componentbridge::findInterfaces()
 						findComponentTypes_[findIdx_] = -1;
 						if(getComponents().connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 						{
-							ERROR_MSG("Componentbridge::register self to %s is error!\n",
+							ERROR_MSG(boost::format("Componentbridge::register self to %1% is error!\n") %
 							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 							//dispatcher().breakProcessing();
 							return false;
@@ -214,7 +215,7 @@ bool Componentbridge::findInterfaces()
 				}
 				else
 				{
-					ERROR_MSG("Componentbridge::process: %s not found. receive data is error!\n", 
+					ERROR_MSG(boost::format("Componentbridge::process: %1% not found. receive data is error!\n") %
 						COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 				}
 			}
@@ -225,7 +226,7 @@ bool Componentbridge::findInterfaces()
 				// 如果是这些辅助组件没找到则跳过
 				if(findComponentType == MESSAGELOG_TYPE || findComponentType == RESOURCEMGR_TYPE)
 				{
-					WARNING_MSG("Componentbridge::process: not found %s!\n",
+					WARNING_MSG(boost::format("Componentbridge::process: not found %1%!\n") %
 						COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 
 					findComponentTypes_[findIdx_] = -1; // 跳过标志
@@ -258,12 +259,12 @@ bool Componentbridge::findInterfaces()
 				return false;
 			}
 
-			INFO_MSG("Componentbridge::process: register self to %s...\n",
+			INFO_MSG(boost::format("Componentbridge::process: register self to %1%...\n") %
 				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 
 			if(getComponents().connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 			{
-				ERROR_MSG("Componentbridge::register self to %s is error!\n",
+				ERROR_MSG(boost::format("Componentbridge::register self to %1% is error!\n") %
 				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 				//dispatcher().breakProcessing();
 				return false;

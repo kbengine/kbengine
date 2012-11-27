@@ -112,9 +112,11 @@ namespace KBEngine{
 			wchar_t* cwpytsval = PyUnicode_AsWideCharString(pytsval, NULL);									\
 			char* cccpytsval = wchar2char(cwpytsval);														\
 			Py_DECREF(pytsval);																				\
-			DEBUG_MSG("%s(refc=%u, id=%d)::debug_createNamespace:add %s(%s).\n", getScriptName(),			\
-												static_cast<PyObject*>(this)->ob_refcnt, this->getID(),		\
-																ccattr_DEBUG_CREATE_ENTITY_NAMESPACE,		\
+			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_createNamespace:add %4%(%5%).\n") %		\
+												getScriptName() %											\
+												static_cast<PyObject*>(this)->ob_refcnt %					\
+												this->getID() %												\
+																ccattr_DEBUG_CREATE_ENTITY_NAMESPACE %		\
 																cccpytsval);								\
 			free(ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);														\
 			PyMem_Free(PyUnicode_AsWideCharStringRet1);														\
@@ -128,9 +130,10 @@ namespace KBEngine{
 		{																									\
 			wchar_t* PyUnicode_AsWideCharStringRet2 = PyUnicode_AsWideCharString(ccattr, NULL);				\
 			char* ccattr_DEBUG_OP_ATTRIBUTE = wchar2char(PyUnicode_AsWideCharStringRet2);					\
-			DEBUG_MSG("%s(refc=%u, id=%d)::debug_op_attr:op=%s, %s.\n", getScriptName(),					\
-												static_cast<PyObject*>(this)->ob_refcnt, this->getID(),		\
-															op, ccattr_DEBUG_OP_ATTRIBUTE);					\
+			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_op_attr:op=%4%, %5%.\n") %				\
+												getScriptName() %											\
+												static_cast<PyObject*>(this)->ob_refcnt % this->getID() %	\
+															op % ccattr_DEBUG_OP_ATTRIBUTE);				\
 			free(ccattr_DEBUG_OP_ATTRIBUTE);																\
 			PyMem_Free(PyUnicode_AsWideCharStringRet2);														\
 		}																									\
@@ -140,9 +143,10 @@ namespace KBEngine{
 	{																										\
 		if(g_debugEntity)																					\
 		{																									\
-			DEBUG_MSG("%s(refc=%u, id=%d)::debug_op_Persistent:op=%s, %s.\n", getScriptName(),				\
-												static_cast<PyObject*>(this)->ob_refcnt, this->getID(),		\
-															op, ccattr);									\
+			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_op_Persistent:op=%4%, %5%.\n") %			\
+												getScriptName() %											\
+												static_cast<PyObject*>(this)->ob_refcnt % this->getID() %	\
+															op % ccattr);									\
 		}																									\
 	}																										\
 
@@ -150,8 +154,10 @@ namespace KBEngine{
 #define DEBUG_REDUCE_EX(tentity)																			\
 		if(g_debugEntity)																					\
 		{																									\
-			DEBUG_MSG("%s(refc=%u, id=%d)::debug_reduct_ex: utype=%u.\n", tentity->getScriptName(),			\
-												static_cast<PyObject*>(tentity)->ob_refcnt, tentity->getID(),\
+			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_reduct_ex: utype=%4%.\n") %				\
+												tentity->getScriptName() %									\
+												static_cast<PyObject*>(tentity)->ob_refcnt %				\
+												tentity->getID() %											\
 												tentity->getScriptModule()->getUType());					\
 		}																									\
 
@@ -213,8 +219,9 @@ public:																										\
 			return;																							\
 																											\
 		if(!PyDict_Check(dictData)){																		\
-			ERROR_MSG(#CLASS"::createNamespace: create"#CLASS"[%s:%ld] args is not a dict.\n",				\
-				getScriptName(), id_);																		\
+			ERROR_MSG(boost::format(#CLASS"::createNamespace: create"#CLASS"[%1%:%2%] "						\
+				"args is not a dict.\n") %																	\
+				getScriptName() % id_);																		\
 			return;																							\
 		}																									\
 																											\
@@ -694,7 +701,7 @@ public:																										\
 
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
-	INFO_MSG("%s::~%s(): %d\n", getScriptName(), getScriptName(), id_);										\
+	INFO_MSG(boost::format("%1%::~%2%(): %3%\n") % getScriptName() % getScriptName() % id_);				\
 	scriptModule_ = NULL;																					\
 	isDestroyed_ = true;																					\
 	initing_ = false;																						\
@@ -720,7 +727,7 @@ public:																										\
 		}																									\
 		else																								\
 		{																									\
-		ERROR_MSG(#CLASS"::"#CLASS": %s PropertyDescription the dataType is NULL.\n",						\
+		ERROR_MSG(boost::format(#CLASS"::"#CLASS": %1% PropertyDescription the dataType is NULL.\n") %		\
 				propertyDescription->getName());															\
 		}																									\
 	}																										\

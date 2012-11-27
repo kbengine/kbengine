@@ -87,7 +87,9 @@ bool Client::initNetwork()
 	endpoint_.convertAddress(infos.login_ip, address);
 	if(endpoint_.connect(htons(infos.login_port), address) == -1)
 	{
-		ERROR_MSG("Client::initNetwork: connect server is error(%s)!\n", kbe_strerror());
+		ERROR_MSG(boost::format("Client::initNetwork: connect server is error(%1%)!\n") %
+			kbe_strerror());
+
 		return false;
 	}
 
@@ -125,8 +127,8 @@ bool Client::login()
 	uint16 failedcode = 0;
 	packet >> msgID;
 	packet >> failedcode;
-	DEBUG_MSG("Client::onCreateAccountResult: 创建账号[%s]%s size(%d) failedcode=%u.\n", 
-		name_.c_str(), failedcode == 0 ? "成功" : "失败", len, failedcode);
+	DEBUG_MSG(boost::format("Client::onCreateAccountResult: 创建账号[%s]%s size(%d) failedcode=%u.\n") % 
+		name_.c_str() % (failedcode == 0 ? "成功" : "失败") % len % failedcode);
 	
 	if(failedcode > 0)
 		return false;
@@ -151,8 +153,8 @@ bool Client::login()
 	packet >> msgLength;
 	packet >> ip;
 	packet >> iport;
-	DEBUG_MSG("Client::onLoginSuccessfully: 获取返回的网关ip地址 size(%d) msgID=%u, ip:%s, port=%u.\n", 
-		len, msgID, ip.c_str(), iport);
+	DEBUG_MSG(boost::format("Client::onLoginSuccessfully: 获取返回的网关ip地址 size(%d) msgID=%u, ip:%s, port=%u.\n") %
+		len % msgID % ip.c_str() % iport);
 
 	// 连接网关
 	endpoint_.close();
@@ -163,7 +165,7 @@ bool Client::login()
 	getewayAddr_.port = htons(iport);
 	if(endpoint_.connect(getewayAddr_.port, getewayAddr_.ip) == -1)
 	{
-		DEBUG_MSG("Client::login: connect server is error(%s)!\n", kbe_strerror());
+		DEBUG_MSG(boost::format("Client::login: connect server is error(%s)!\n") % kbe_strerror());
 		return false;
 	}
 	
@@ -192,7 +194,7 @@ bool Client::login()
 	if(msgID == msgInfo->msgid) // 登录失败
 	{
 		packet >> failedcode;
-		DEBUG_MSG("登录网关失败:msgID=%u, err=%u\n", msgID, failedcode);
+		DEBUG_MSG(boost::format("登录网关失败:msgID=%u, err=%u\n") % msgID % failedcode);
 		return false;
 	}
 	else
@@ -201,8 +203,8 @@ bool Client::login()
 		packet >> uuid;
 		packet >> eid;
 		packet >> entityType;
-		DEBUG_MSG("Client::onCreatedProxies: size(%d) : msgID=%u, uuid:%"PRIu64", eid=%d, entityType=%s.\n", 
-			len, msgID, uuid, eid, entityType.c_str());
+		DEBUG_MSG(boost::format("Client::onCreatedProxies: size(%1%) : msgID=%2%, uuid:%3%, eid=%4%, entityType=%5%.\n") %
+			len % msgID % uuid % eid % entityType.c_str());
 	}
 
 	return true;
@@ -231,7 +233,7 @@ bool Client::messageloop()
 		}
 		else if (selgot == -1)
 		{
-			ERROR_MSG("Client::process: select error. %s.\n",
+			ERROR_MSG(boost::format("Client::process: select error. %1%.\n") %
 					kbe_strerror());
 
 			break;
@@ -244,13 +246,15 @@ bool Client::messageloop()
 			int len = endpoint_.recvfrom(packet.data(), PACKET_MAX_SIZE_TCP, sin);
 			if (len == -1)
 			{
-				ERROR_MSG("Client::process: recvfrom error. %s.\n",
+				ERROR_MSG(boost::format("Client::process: recvfrom error. %1%.\n") %
 						kbe_strerror());
 
 				break;
 			}
 			
-			DEBUG_MSG("Client::process: from %s, datalen=%d.\n", inet_ntoa((struct in_addr&)sin.sin_addr.s_addr), len);
+			DEBUG_MSG(boost::format("Client::process: from %1%, datalen=%2%.\n") %
+				inet_ntoa((struct in_addr&)sin.sin_addr.s_addr) % len);
+
 			break;
 
 		}

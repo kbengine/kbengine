@@ -149,7 +149,7 @@ void Messagelog::writeLog(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	logstream << "- ";
 	logstream << str;
 	DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(componentType));
-	PRINT_MSG(logstream.str().c_str());
+	PRINT_MSG(logstream.str());
 	DebugHelper::getSingleton().changeLogger("default");
 
 	LOG_WATCHERS::iterator iter = logWatchers_.begin();
@@ -165,13 +165,17 @@ void Messagelog::registerLogWatcher(Mercury::Channel* pChannel, KBEngine::Memory
 	LogWatcher* pLogwatcher = &logWatchers_[pChannel->addr()];
 	if(!pLogwatcher->loadFromStream(&s))
 	{
-		ERROR_MSG("Messagelog::registerLogWatcher: addr=%s is failed!\n", pChannel->addr().c_str());
+		ERROR_MSG(boost::format("Messagelog::registerLogWatcher: addr=%1% is failed!\n") %
+			pChannel->addr().c_str());
+
 		logWatchers_.erase(pChannel->addr());
 		return;
 	}
 
 	pLogwatcher->addr(pChannel->addr());
-	INFO_MSG("Messagelog::registerLogWatcher: addr=%s is successfully!\n", pChannel->addr().c_str());
+
+	INFO_MSG(boost::format("Messagelog::registerLogWatcher: addr=%1% is successfully!\n") %
+		pChannel->addr().c_str());
 }
 
 //-------------------------------------------------------------------------------------

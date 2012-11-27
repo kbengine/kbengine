@@ -20,19 +20,19 @@ Space* Spaces::createNewSpace(SPACE_ID spaceID)
 	
 	if(iter != spaces_.end())
 	{
-		ERROR_MSG("Spaces::createNewSpace: space %u is exist!\n", spaceID);
+		ERROR_MSG(boost::format("Spaces::createNewSpace: space %1% is exist!\n") % spaceID);
 		return NULL;
 	}
 	
 	spaces_[spaceID].reset(space);
-	DEBUG_MSG("Spaces::createNewSpace: new space %u.\n", spaceID);
+	DEBUG_MSG(boost::format("Spaces::createNewSpace: new space %1%.\n") % spaceID);
 	return space;
 }
 
 //-------------------------------------------------------------------------------------
 bool Spaces::destroySpace(SPACE_ID spaceID, ENTITY_ID entityID)
 {
-	INFO_MSG("Spaces::destroySpace: %u.\n", spaceID);
+	INFO_MSG(boost::format("Spaces::destroySpace: %1%.\n") % spaceID);
 
 	Space* pSpace = Spaces::findSpace(spaceID);
 	return pSpace->destroy(entityID);

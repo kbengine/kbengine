@@ -116,7 +116,8 @@ bool EntityMailboxAbstract::postMail(Mercury::Bundle& bundle)
 	}
 	else
 	{
-		ERROR_MSG("EntityMailboxAbstract::postMail: invalid channel(%s)!\n", addr_.c_str());
+		ERROR_MSG(boost::format("EntityMailboxAbstract::postMail: invalid channel(%1%)!\n") %
+			addr_.c_str());
 	}
 
 	return false;

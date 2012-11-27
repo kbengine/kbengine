@@ -105,7 +105,7 @@ void FixedDict::initialize(std::string strDictInitData)
 		}
 		else
 		{
-			ERROR_MSG("FixedDict::initialize: is error! strDictInitData=%s.\n", 
+			ERROR_MSG(boost::format("FixedDict::initialize: is error! strDictInitData=%1%.\n") %
 				strDictInitData.c_str());
 		}
 	}

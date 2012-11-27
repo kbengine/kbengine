@@ -58,9 +58,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 				/* 如果系统发送缓冲已经满了，则我们等待10ms	*/												\
 				if (reason == REASON_RESOURCE_UNAVAILABLE && retries <= 3)									\
 				{																							\
-					WARNING_MSG( "%s: "																		\
-						"Transmit queue full, waiting for space... (%d)\n",									\
-						__FUNCTION__, retries );															\
+					WARNING_MSG(boost::format("%1%: "														\
+						"Transmit queue full, waiting for space... (%2%)\n") %								\
+						__FUNCTION__ % retries );															\
 																											\
 					KBEngine::sleep(10);																	\
 					continue;																				\

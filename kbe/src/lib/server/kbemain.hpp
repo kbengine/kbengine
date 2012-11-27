@@ -39,20 +39,20 @@ inline void START_MSG(const char * name, uint64 appuid)
 {
 	ServerInfos serverInfo;
 	
-	INFO_MSG( "---- %-10s "
-			"Version: %s. "
-			"Config: %s. "
-			"Built: %s %s. "
-			"AppUID: %"PRAppID". "
-			"UID: %d. "
-			"PID: %d ----\n",
-		name, KBEVersion::versionString().c_str(),
-		KBE_CONFIG, __TIME__, __DATE__, 
-		appuid, getUserUID(), getProcessPID() );
+	INFO_MSG(boost::format("---- %1% "
+			"Version: %2%. "
+			"Config: %3%. "
+			"Built: %4% %5%. "
+			"AppUID: %6%. "
+			"UID: %7%. "
+			"PID: %8% ----\n") %
+		name % KBEVersion::versionString().c_str() %
+		KBE_CONFIG % __TIME__ % __DATE__ %
+		appuid % getUserUID() % getProcessPID() );
 	
-	INFO_MSG( "Server %s: %s with %s RAM\n",
-		serverInfo.serverName().c_str(),
-		serverInfo.cpuInfo().c_str(),
+	INFO_MSG(boost::format("Server %1%: %2% with %3% RAM\n") %
+		serverInfo.serverName().c_str() %
+		serverInfo.cpuInfo().c_str() %
 		serverInfo.memInfo().c_str() );
 }
 
@@ -101,13 +101,13 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 		return -1;
 	}
 	
-	INFO_MSG( "---- %s is running ----\n", COMPONENT_NAME_EX(componentType));
+	INFO_MSG(boost::format("---- %1% is running ----\n") % COMPONENT_NAME_EX(componentType));
 
 	int ret = app.run();
 
 	SAFE_RELEASE(pComponentbridge);
 	app.finalise();
-	INFO_MSG("%s has shut down.\n", COMPONENT_NAME_EX(componentType));
+	INFO_MSG(boost::format("%1% has shut down.\n") % COMPONENT_NAME_EX(componentType));
 	return ret;
 }
 

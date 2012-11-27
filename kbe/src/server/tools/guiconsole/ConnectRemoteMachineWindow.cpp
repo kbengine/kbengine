@@ -154,8 +154,8 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 			MachineInterface::onBroadcastInterfaceArgs8 args;
 			args.createFromStream(packet);
 
-			INFO_MSG("CConnectRemoteMachineWindow::OnBnClickedOk: found %s, addr:%s:%u\n",
-				COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intaddr));
+			INFO_MSG(boost::format("CConnectRemoteMachineWindow::OnBnClickedOk: found %1%, addr:%2%:%3%\n") %
+				COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType) % inet_ntoa((struct in_addr&)args.intaddr) % ntohs(args.intaddr));
 
 			Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
 				(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);

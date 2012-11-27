@@ -256,7 +256,7 @@ void Entities<T>::add(ENTITY_ID id, T* entity)
 	ENTITYS_MAP::const_iterator iter = _entities.find(id);
 	if(iter != _entities.end())
 	{
-		ERROR_MSG("Entities::add: entityID:%d has exist\n.", id);
+		ERROR_MSG(boost::format("Entities::add: entityID:%1% has exist\n.") % id);
 		return;
 	}
 

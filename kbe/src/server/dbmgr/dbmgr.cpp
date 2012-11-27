@@ -330,7 +330,8 @@ void Dbmgr::onGlobalDataClientLogon(Mercury::Channel* pChannel, COMPONENT_TYPE c
 	}
 	else
 	{
-		ERROR_MSG("Dbmgr::onGlobalDataClientLogon: nonsupport %s!\n", COMPONENT_NAME_EX(componentType));
+		ERROR_MSG(boost::format("Dbmgr::onGlobalDataClientLogon: nonsupport %1%!\n") %
+			COMPONENT_NAME_EX(componentType));
 	}
 }
 

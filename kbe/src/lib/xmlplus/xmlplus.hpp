@@ -121,8 +121,10 @@ public:
 		kbe_snprintf(pathbuf, 255, "%s", xmlFile);
 
 		txdoc_ = new TiXmlDocument((char*)&pathbuf);
-		if(!txdoc_->LoadFile()){
-			ERROR_MSG("load xml from %s is error!\n", pathbuf);
+
+		if(!txdoc_->LoadFile())
+		{
+			ERROR_MSG(boost::format("load xml from %1% is error!\n") % pathbuf);
 			return NULL;
 		}
 

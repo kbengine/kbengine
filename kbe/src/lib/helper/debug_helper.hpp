@@ -26,6 +26,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <time.h>	
 #include <stdarg.h> 
 #include <list> 
+#if KBE_PLATFORM == PLATFORM_WIN32
+#pragma warning(disable:4819)
+#endif
+#include "boost/format.hpp"
 #include "cstdkbe/tasks.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "thread/threadmutex.hpp"
@@ -127,13 +131,27 @@ public:
 	void pNetworkInterface(Mercury:: NetworkInterface* networkInterface);
 	void pDispatcher(Mercury:: EventDispatcher* dispatcher);
 
-	void print_msg(const char * str, ...);
-    void debug_msg(const char * str, ...);
-    void error_msg(const char * err, ...);
-    void info_msg(const char * info, ...);
-	void warning_msg(const char * str, ...);
-	void critical_msg(const char * str, ...);
-	void script_msg(const char * str, ...);
+	void print_msg(boost::format& fmt);
+	void print_msg(std::string s);
+
+	void debug_msg(boost::format& fmt);
+	void debug_msg(std::string s);
+
+	void error_msg(boost::format& fmt);
+	void error_msg(std::string s);
+
+	void info_msg(boost::format& fmt);
+	void info_msg(std::string s);
+
+	void warning_msg(boost::format& fmt);
+	void warning_msg(std::string s);
+
+	void critical_msg(boost::format& fmt);
+	void critical_msg(std::string s);
+
+	void script_msg(boost::format& fmt);
+	void script_msg(std::string s);
+
 	void onMessage(uint32 logType, const char * str, uint32 length);
 
 	void registerMessagelog(Mercury::MessageID msgID, Mercury::Address* pAddr);
@@ -157,15 +175,15 @@ private:
 /*---------------------------------------------------------------------------------
 	调试信息输出接口
 ---------------------------------------------------------------------------------*/
-#define SCRIPT_MSG					DebugHelper::getSingleton().script_msg									// 输出任何信息
-#define PRINT_MSG					DebugHelper::getSingleton().print_msg									// 输出任何信息
-#define ERROR_MSG					DebugHelper::getSingleton().error_msg									// 输出一个错误
-#define DEBUG_MSG					DebugHelper::getSingleton().debug_msg									// 输出一个debug信息
-#define INFO_MSG					DebugHelper::getSingleton().info_msg									// 输出一个info信息
-#define WARNING_MSG					DebugHelper::getSingleton().warning_msg									// 输出一个警告信息
-#define CRITICAL_MSG				DebugHelper::getSingleton().setFile(__FUNCTION__, \
-									__FILE__, __LINE__); \
-									DebugHelper::getSingleton().critical_msg
+#define SCRIPT_MSG(m)					DebugHelper::getSingleton().script_msg((m))									// 输出任何信息
+#define PRINT_MSG(m)					DebugHelper::getSingleton().print_msg((m))									// 输出任何信息
+#define ERROR_MSG(m)					DebugHelper::getSingleton().error_msg((m))									// 输出一个错误
+#define DEBUG_MSG(m)					DebugHelper::getSingleton().debug_msg((m))									// 输出一个debug信息
+#define INFO_MSG(m)						DebugHelper::getSingleton().info_msg((m))									// 输出一个info信息
+#define WARNING_MSG(m)					DebugHelper::getSingleton().warning_msg((m))								// 输出一个警告信息
+#define CRITICAL_MSG(m)					DebugHelper::getSingleton().setFile(__FUNCTION__, \
+										__FILE__, __LINE__); \
+										DebugHelper::getSingleton().critical_msg((m))
 
 /*---------------------------------------------------------------------------------
 	调试宏

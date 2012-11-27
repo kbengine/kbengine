@@ -18,68 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-	kbengine-脚本对象：
-		这个脚本系统主要封装了python/c的应用， 可以简单的包装一个python模块， 实现c++与python
-		混合编程。
-		
-		使用例子:
-				class Entity:public ScriptObject
-				{
-					SCRIPT_SUPERCLASS(Entity, ScriptObject)
-				public:
-					PyObject * id;
-					void hello(){printf("基类中显示\n");}
-					static PyObject * getID(PyObject* self){ return Py_BuildValue("i",1); }
-					static PyObject * helloWraper(PyObject* self){
-						static_cast<Entity*>(self)->hello();
-						Py_INCREF(Py_None);
-						return Py_None;
-					}
-				};
-
-				SCRIPT_METHOD_DECLARE_BEGIN(Entity)
-				SCRIPT_METHOD_DECLARE("getID", getID, METH_NOARGS, 0)
-				SCRIPT_METHOD_DECLARE("hello", helloWraper, METH_NOARGS, 0)
-				SCRIPT_METHOD_DECLARE_END()
-				
-				SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
-				SCRIPT_MEMBER_DECLARE(id, T_INT, 0, 0)
-				SCRIPT_MEMBER_DECLARE_END()
-				
-				SCRIPT_INIT(Entity)
-
-				int _tmain(int argc, _TCHAR* argv[])
-				{
-					Py_Initialize();                       //python   解释器的初始化  
-					Py_IsInitialized();
-					PyObject* m;
-					m = PyImport_AddModule("KBEngine");
-					Entity::initPyType(m);
-					Py_InitModule("KBEngine", NULL);
-					PyObject *pName = PyString_FromString("test1");
-					PyObject * pModule = PyImport_Import(pName);
-					getchar();
-					Py_Finalize(); // 清除
-					return 0;
-				}
-
-			python:
-					import KBEngine
-					print dir(KBEngine.Entity)
-
-					class Test(KBEngine.Entity):
-						def __init__(self):
-							pass
-						def getID(self):
-							print "脚本中显示"
-							return KBEngine.Entity.getID(self)
-					t = Test()
-					print t.id
-					print t.getID()
-					t.xx = 1
-					t.hello()			
-*/
 #ifndef __SCRIPTOBJECT_H__
 #define __SCRIPTOBJECT_H__
 #include <vector>	
@@ -383,7 +321,7 @@ public:																						\
 		{																					\
 			if(PyModule_AddObject(mod, name, (PyObject *)&_scriptType) < 0)					\
 			{																				\
-				ERROR_MSG("PyModule_AddObject(%s) is error!", name);						\
+				ERROR_MSG(boost::format("PyModule_AddObject(%1%) is error!") % name);		\
 			}																				\
 		}																					\
 																							\

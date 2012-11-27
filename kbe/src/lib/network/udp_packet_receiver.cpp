@@ -89,7 +89,7 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 
 		if(!pNetworkInterface_->registerChannel(pSrcChannel))
 		{
-			ERROR_MSG("UDPPacketReceiver::processSocket:registerChannel(%s) is failed!\n",
+			ERROR_MSG(boost::format("UDPPacketReceiver::processSocket:registerChannel(%1%) is failed!\n") %
 				pSrcChannel->c_str());
 
 			UDPPacket::ObjPool().reclaimObject(pChannelReceiveWindow);
@@ -129,8 +129,8 @@ PacketReceiver::RecvState UDPPacketReceiver::checkSocketErrors(int len, bool exp
 {
 	if (len == 0)
 	{
-		WARNING_MSG( "PacketReceiver::processPendingEvents: "
-			"Throwing REASON_GENERAL_NETWORK (1)- %s\n",
+		WARNING_MSG(boost::format("PacketReceiver::processPendingEvents: "
+			"Throwing REASON_GENERAL_NETWORK (1)- %1%\n") %
 			strerror( errno ) );
 
 		this->dispatcher().errorReporter().reportException(
@@ -198,12 +198,12 @@ PacketReceiver::RecvState UDPPacketReceiver::checkSocketErrors(int len, bool exp
 #endif // unix
 
 #ifdef _WIN32
-	WARNING_MSG("UDPPacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK - %d\n",
+	WARNING_MSG(boost::format("UDPPacketReceiver::processPendingEvents: "
+				"Throwing REASON_GENERAL_NETWORK - %1%\n") %
 				wsaErr);
 #else
-	WARNING_MSG("UDPPacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK - %s\n",
+	WARNING_MSG(boost::format("UDPPacketReceiver::processPendingEvents: "
+				"Throwing REASON_GENERAL_NETWORK - %1%\n") %
 			kbe_strerror());
 #endif
 	this->dispatcher().errorReporter().reportException(

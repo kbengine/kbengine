@@ -58,7 +58,7 @@ bool GlobalDataServer::write(Mercury::Channel* pChannel, COMPONENT_TYPE componen
 bool GlobalDataServer::del(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key)
 {
 	if(!dict_.erase(key)){
-		ERROR_MSG("GlobalDataServer::del: not found the key:[%s]\n", key.c_str());
+		ERROR_MSG(boost::format("GlobalDataServer::del: not found the key:[%1%]\n") % key.c_str());
 		return false;
 	}
 
@@ -70,8 +70,8 @@ bool GlobalDataServer::del(Mercury::Channel* pChannel, COMPONENT_TYPE componentT
 void GlobalDataServer::broadcastDataChange(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, 
 										const std::string& key, const std::string& value, bool isDelete)
 {
-	INFO_MSG("GlobalDataServer::broadcastDataChange: writer(%s), key_size=%d, val_size=%d, isdelete=%d.\n", 
-		COMPONENT_NAME_EX(componentType), key.size(), value.size(), (int)isDelete);
+	INFO_MSG(boost::format("GlobalDataServer::broadcastDataChange: writer(%1%), key_size=%2%, val_size=%3%, isdelete=%4%.\n") %
+		COMPONENT_NAME_EX(componentType) % key.size() % value.size() % (int)isDelete);
 
 	std::vector<COMPONENT_TYPE>::iterator iter = concernComponentTypes_.begin();
 	for(; iter != concernComponentTypes_.end(); iter++)

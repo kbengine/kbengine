@@ -44,7 +44,7 @@ void EntityIDClient::onAlloc(void)
 
 	(*pBundle).send(pApp_->getNetworkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-	ERROR_MSG("EntityIDClient::onAlloc: not enough(%d) entityIDs!\n", ID_ENOUGH_LIMIT);
+	ERROR_MSG(boost::format("EntityIDClient::onAlloc: not enough(%1%) entityIDs!\n") % ID_ENOUGH_LIMIT);
 }
 
 //-------------------------------------------------------------------------------------

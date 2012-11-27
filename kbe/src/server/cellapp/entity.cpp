@@ -303,8 +303,9 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	if(isDestroyed())																				
 	{																										
-		ERROR_MSG("%s::onRemoteMethodCall: %d is destroyed!\n",											
-			getScriptName(), getID());
+		ERROR_MSG(boost::format("%1%::onRemoteMethodCall: %2% is destroyed!\n") %											
+			getScriptName() % getID());
+
 		s.read_skip(s.opsize());
 		return;																							
 	}
@@ -312,14 +313,14 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
 	
-	DEBUG_MSG("Entity::onRemoteMethodCall: entityID %d, methodType %d.\n", 
-				id_, utype);
+	DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: entityID %1%, methodType %2%.\n") % 
+				id_ % utype);
 	
 	MethodDescription* md = scriptModule_->findCellMethodDescription(utype);
 	
 	if(md == NULL)
 	{
-		ERROR_MSG("Entity::onRemoteMethodCall: can't found method. utype=%u, callerID:%d.\n", utype, id_);
+		ERROR_MSG(boost::format("Entity::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") % utype % id_);
 		return;
 	}
 
@@ -385,7 +386,8 @@ void Entity::backupCellData()
 	}
 	else
 	{
-		WARNING_MSG("Entity::backupCellData(): %s %i has no base!\n", this->getScriptName(), this->getID());
+		WARNING_MSG(boost::format("Entity::backupCellData(): %1% %2% has no base!\n") % 
+			this->getScriptName() % this->getID());
 	}
 }
 
@@ -416,7 +418,8 @@ void Entity::writeToDB(void* data)
 //-------------------------------------------------------------------------------------
 void Entity::onWriteToDB()
 {
-	DEBUG_MSG("%s::onWriteToDB(): %d.\n", this->getScriptName(), this->getID());
+	DEBUG_MSG(boost::format("%1%::onWriteToDB(): %2%.\n") % 
+		this->getScriptName() % this->getID());
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onWriteToDB"));
 }
@@ -482,7 +485,9 @@ uint16 Entity::addProximity(float range)
 {
 	if(range <= 0.0f)
 	{
-		ERROR_MSG("Entity::addProximity: range(%f) <= 0.0f! entity[%s:%ld]\n", range, getScriptName(), getID());
+		ERROR_MSG(boost::format("Entity::addProximity: range(%1%) <= 0.0f! entity[%2%:%3%]\n") % 
+			range % getScriptName() % getID());
+
 		return 0;
 	}
 
@@ -708,11 +713,11 @@ PyObject* Entity::pySetAoiRadius(float radius, float hyst)
 bool Entity::navigateStep(const Position3D& destination, float velocity, float maxMoveDistance, float maxDistance, 
 	bool faceMovement, float girth, PyObject* userData)
 {
-	DEBUG_MSG("Entity[%s:%d]:destination=(%f,%f,%f), velocity=%f, maxMoveDistance=%f, "
-		"maxDistance=%f, faceMovement=%d, girth=%f, userData=%x.\n",
+	DEBUG_MSG(boost::format("Entity[%1%:%2%]:destination=(%3%,%4%,%5%), velocity=%6%, maxMoveDistance=%7%, "
+		"maxDistance=%8%, faceMovement=%9%, girth=%10%, userData=%11%.\n") %
+		getScriptName() % id_ % destination.x % destination.y % destination.z % velocity % maxMoveDistance %
+		maxDistance % faceMovement % girth % userData);
 
-	getScriptName(), id_, destination.x, destination.y, destination.z, velocity, maxMoveDistance, 
-	maxDistance, faceMovement, girth, userData);
 	return true;
 }
 
@@ -844,8 +849,8 @@ void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sour
 //-------------------------------------------------------------------------------------
 void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAppID, ENTITY_ID targetEntityID, COMPONENT_ID sourceBaseAppID)
 {
-	DEBUG_MSG("%s::teleportFromBaseapp: %d, targetEntityID=%d, cell=%"PRAppID", sourceBaseAppID=%"PRAppID".\n", 
-		this->getScriptName(), this->getID(), targetEntityID, cellAppID, sourceBaseAppID);
+	DEBUG_MSG(boost::format("%1%::teleportFromBaseapp: %2%, targetEntityID=%3%, cell=%4%, sourceBaseAppID=%5%.\n") % 
+		this->getScriptName() % this->getID() % targetEntityID % cellAppID % sourceBaseAppID);
 	
 	SPACE_ID lastSpaceID = this->getSpaceID();
 
@@ -855,8 +860,9 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(cellAppID);
 		if(cinfos == NULL || cinfos->pChannel == NULL)
 		{
-			ERROR_MSG("%s::teleportFromBaseapp: %d, teleport is error, not found cellapp, targetEntityID, cellAppID=%"PRAppID".\n",
-				this->getScriptName(), this->getID(), targetEntityID, cellAppID);
+			ERROR_MSG(boost::format("%1%::teleportFromBaseapp: %2%, teleport is error, not found cellapp, targetEntityID, cellAppID=%3%.\n") %
+				this->getScriptName() % this->getID() % targetEntityID % cellAppID);
+
 			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0, lastSpaceID);
 			return;
 		}
@@ -866,8 +872,8 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 		Entity* entity = Cellapp::getSingleton().findEntity(targetEntityID);
 		if(entity == NULL || entity->isDestroyed())
 		{
-			ERROR_MSG("%s::teleportFromBaseapp: %d, can't found targetEntity(%d).\n", 
-				this->getScriptName(), this->getID(), targetEntityID);
+			ERROR_MSG(boost::format("%1%::teleportFromBaseapp: %2%, can't found targetEntity(%3%).\n") %
+				this->getScriptName() % this->getID() % targetEntityID);
 
 			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0, lastSpaceID);
 			return;
@@ -882,8 +888,8 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 			Space* space = Spaces::findSpace(spaceID);
 			if(space == NULL)
 			{
-				ERROR_MSG("%s::teleportFromBaseapp: %d, can't found space(%u).\n", 
-					this->getScriptName(), this->getID(), spaceID);
+				ERROR_MSG(boost::format("%1%::teleportFromBaseapp: %2%, can't found space(%3%).\n") %
+					this->getScriptName() % this->getID() % spaceID);
 
 				_sendBaseTeleportResult(this->getID(), sourceBaseAppID, 0, lastSpaceID);
 				return;
@@ -896,8 +902,8 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 		}
 		else
 		{
-			WARNING_MSG("%s::teleportFromBaseapp: %d targetSpace(%u) == currSpaceID.\n", 
-				this->getScriptName(), this->getID(), spaceID, this->getSpaceID());
+			WARNING_MSG(boost::format("%1%::teleportFromBaseapp: %2% targetSpace(%3%) == currSpaceID(%4%).\n") %
+				this->getScriptName() % this->getID() % spaceID % this->getSpaceID());
 
 			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, spaceID, lastSpaceID);
 		}

@@ -145,8 +145,8 @@ void Buffered_DBTasks::onFiniTask(EntityDBTask* pTask)
 	
 	if(pNextTask != NULL)
 	{
-		INFO_MSG("Buffered_DBTasks::onFiniTask: Playing buffered task for entityID=%d, dbid=%"PRDBID"\n", 
-			pNextTask->EntityDBTask_entityID(), pNextTask->EntityDBTask_entityDBID());
+		INFO_MSG(boost::format("Buffered_DBTasks::onFiniTask: Playing buffered task for entityID=%1%, dbid=%2%\n") % 
+			pNextTask->EntityDBTask_entityID() % pNextTask->EntityDBTask_entityDBID());
 		
 		Dbmgr::getSingleton().dbThreadPool().addTask(pNextTask);
 	}

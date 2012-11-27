@@ -101,9 +101,9 @@ bool Resmgr::initialize()
 //-------------------------------------------------------------------------------------
 void Resmgr::pirnt(void)
 {
-	INFO_MSG("Resmgr::initialize: KBE_ROOT=%s\n", kb_env_.root.c_str());
-	INFO_MSG("Resmgr::initialize: KBE_RES_PATH=%s\n", kb_env_.res_path.c_str());
-	INFO_MSG("Resmgr::initialize: KBE_HYBRID_PATH=%s\n", kb_env_.hybrid_path.c_str());
+	INFO_MSG(boost::format("Resmgr::initialize: KBE_ROOT=%1%\n") % kb_env_.root.c_str());
+	INFO_MSG(boost::format("Resmgr::initialize: KBE_RES_PATH=%1%\n") % kb_env_.res_path.c_str());
+	INFO_MSG(boost::format("Resmgr::initialize: KBE_HYBRID_PATH=%1%\n") % kb_env_.hybrid_path.c_str());
 }
 
 //-------------------------------------------------------------------------------------

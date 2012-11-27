@@ -43,7 +43,7 @@ public:
 			ERROR_MSG("DBThread:: can't create dbinterface!\n");
 		}
 
-		DEBUG_MSG("DBThread:: %p started!\n", this);
+		DEBUG_MSG(boost::format("DBThread:: %1% started!\n") % this);
 	}
 
 	~DBThread()
@@ -55,7 +55,7 @@ public:
 			DBUtil::finiThread();
 		}
 
-		DEBUG_MSG("DBThread:: %p end!\n", this);
+		DEBUG_MSG(boost::format("DBThread:: %1% end!\n") % this);
 	}
 
 	virtual void onProcessTask(thread::TPTask* pTask)

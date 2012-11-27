@@ -308,8 +308,8 @@ int SelectPoller::processPendingEvents(double maxWait)
 		// TODO: Clean this up on shutdown
 		// if (!breakProcessing_)
 		{
-			WARNING_MSG("EventDispatcher::processContinuously: "
-				"error in select(): %s\n", kbe_strerror());
+			WARNING_MSG(boost::format("EventDispatcher::processContinuously: "
+				"error in select(): %1%\n") % kbe_strerror());
 		}
 	}
 

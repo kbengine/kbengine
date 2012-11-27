@@ -54,10 +54,10 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 		return -1;
 	}
 	
-	INFO_MSG( "---- %s is running ----\n", COMPONENT_NAME_EX(componentType));
+	INFO_MSG(boost::format("---- %1% is running ----\n") % COMPONENT_NAME_EX(componentType));
 	int ret = app.run();
 	app.finalise();
-	INFO_MSG("%s has shut down.\n", COMPONENT_NAME_EX(componentType));
+	INFO_MSG(boost::format("%1% has shut down.\n") % COMPONENT_NAME_EX(componentType));
 	return ret;
 }
 

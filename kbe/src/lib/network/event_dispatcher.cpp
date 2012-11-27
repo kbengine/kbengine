@@ -54,7 +54,7 @@ EventDispatcher::~EventDispatcher()
 	
 	if (!pTimers_->empty())
 	{
-		INFO_MSG("EventDispatcher()::~EventDispatcher: Num timers = %d\n",
+		INFO_MSG(boost::format("EventDispatcher()::~EventDispatcher: Num timers = %1%\n") %
 			pTimers_->size());
 	}
 

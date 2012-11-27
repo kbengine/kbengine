@@ -165,7 +165,7 @@ void EntityTableMysql::init_db_item_name()
 //-------------------------------------------------------------------------------------
 bool EntityTableMysql::syncToDB(DBInterface* dbi)
 {
-	DEBUG_MSG("EntityTableMysql::syncToDB(): %s.\n", tableName());
+	DEBUG_MSG(boost::format("EntityTableMysql::syncToDB(): %1%.\n") % tableName());
 
 	char sql_str[MAX_BUF];
 	std::string exItems = "";
@@ -353,7 +353,7 @@ DBID EntityTableMysql::writeTable(DBInterface* dbi, DBID dbid, MemoryStream* s, 
 		EntityTableItem* pTableItem = this->findItem(pid);
 		if(pTableItem == NULL)
 		{
-			ERROR_MSG("EntityTable::writeTable: not found item[%u].\n", pid);
+			ERROR_MSG(boost::format("EntityTable::writeTable: not found item[%1%].\n") % pid);
 			return dbid;
 		}
 		
@@ -515,7 +515,7 @@ bool EntityTableItemMysql_VECTOR2::isSameKey(std::string key)
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_VECTOR2::syncToDB(DBInterface* dbi)
 {
-	DEBUG_MSG("EntityTableItemMysql_VECTOR2::syncToDB(): %s.\n", itemName());
+	DEBUG_MSG(boost::format("EntityTableItemMysql_VECTOR2::syncToDB(): %1%.\n") % itemName());
 
 	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[0]))
 		return false;
@@ -601,7 +601,7 @@ bool EntityTableItemMysql_VECTOR3::isSameKey(std::string key)
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_VECTOR3::syncToDB(DBInterface* dbi)
 {
-	DEBUG_MSG("EntityTableItemMysql_VECTOR3::syncToDB(): %s.\n", itemName());
+	DEBUG_MSG(boost::format("EntityTableItemMysql_VECTOR3::syncToDB(): %1%.\n") % itemName());
 
 	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[0]))
 		return false;
@@ -690,7 +690,7 @@ bool EntityTableItemMysql_VECTOR4::isSameKey(std::string key)
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_VECTOR4::syncToDB(DBInterface* dbi)
 {
-	DEBUG_MSG("EntityTableItemMysql_VECTOR4::syncToDB(): %s.\n", itemName());
+	DEBUG_MSG(boost::format("EntityTableItemMysql_VECTOR4::syncToDB(): %1%.\n") % itemName());
 
 	if(!sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), db_item_names_[0]))
 		return false;
@@ -770,7 +770,7 @@ void EntityTableItemMysql_VECTOR4::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opT
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_MAILBOX::syncToDB(DBInterface* dbi)
 {
-	DEBUG_MSG("EntityTableItemMysql_MAILBOX::syncToDB(): %s.\n", itemName());
+	DEBUG_MSG(boost::format("EntityTableItemMysql_MAILBOX::syncToDB(): %1%.\n") % itemName());
 	return true;
 }
 
@@ -869,7 +869,8 @@ bool EntityTableItemMysql_ARRAY::initialize(const PropertyDescription* pProperty
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_ARRAY::syncToDB(DBInterface* dbi)
 {
-	DEBUG_MSG("EntityTableItemMysql_ARRAY::syncToDB(): %s.\n", itemName());
+	DEBUG_MSG(boost::format("EntityTableItemMysql_ARRAY::syncToDB(): %1%.\n") % itemName());
+
 	if(pChildTable_)
 		return pChildTable_->syncToDB(dbi);
 
@@ -998,7 +999,7 @@ bool EntityTableItemMysql_FIXED_DICT::initialize(const PropertyDescription* pPro
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_FIXED_DICT::syncToDB(DBInterface* dbi)
 {
-	DEBUG_MSG("EntityTableItemMysql_FIXED_DICT::syncToDB(): %s.\n", itemName());
+	DEBUG_MSG(boost::format("EntityTableItemMysql_FIXED_DICT::syncToDB(): %1%.\n") % itemName());
 
 	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPES::iterator iter = keyTypes_.begin();
 	for(; iter != keyTypes_.end(); iter++)
@@ -1068,7 +1069,7 @@ bool EntityTableItemMysqlBase::initialize(const PropertyDescription* pPropertyDe
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_DIGIT::syncToDB(DBInterface* dbi)
 {
-	DEBUG_MSG("EntityTableItemMysql_DIGIT::syncToDB(): %s.\n", itemName());
+	DEBUG_MSG(boost::format("EntityTableItemMysql_DIGIT::syncToDB(): %1%.\n") % itemName());
 
 	if(datalength_ == 0)
 	{
@@ -1242,7 +1243,7 @@ void EntityTableItemMysql_DIGIT::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTab
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_STRING::syncToDB(DBInterface* dbi)
 {
-	DEBUG_MSG("EntityTableItemMysql_STRING::syncToDB(): %s.\n", itemName());
+	DEBUG_MSG(boost::format("EntityTableItemMysql_STRING::syncToDB(): %1%.\n") % itemName());
 	
 	uint32 length = pPropertyDescription_->getDatabaseLength();
 	char sql_str[MAX_BUF];
@@ -1304,7 +1305,7 @@ void EntityTableItemMysql_STRING::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTa
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_UNICODE::syncToDB(DBInterface* dbi)
 {
-	DEBUG_MSG("EntityTableItemMysql_UNICODE::syncToDB(): %s.\n", itemName());
+	DEBUG_MSG(boost::format("EntityTableItemMysql_UNICODE::syncToDB(): %1%.\n") % itemName());
 	
 	uint32 length = pPropertyDescription_->getDatabaseLength();
 	char sql_str[MAX_BUF];
@@ -1366,7 +1367,7 @@ void EntityTableItemMysql_UNICODE::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opT
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_BLOB::syncToDB(DBInterface* dbi)
 {
-	DEBUG_MSG("EntityTableItemMysql_BLOB::syncToDB(): %s.\n", itemName());
+	DEBUG_MSG(boost::format("EntityTableItemMysql_BLOB::syncToDB(): %1%.\n") % itemName());
 	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), db_item_name());
 }
 

@@ -195,8 +195,8 @@ bool ScriptDefModule::addPropertyDescription(const char* attrName,
 
 	if(f_propertyDescription)
 	{
-		ERROR_MSG("ScriptDefModule::addPropertyDescription: [%s] is exist! componentType=%d.\n", 
-			attrName, componentType);
+		ERROR_MSG(boost::format("ScriptDefModule::addPropertyDescription: [%1%] is exist! componentType=%2%.\n") %
+			attrName % componentType);
 
 		return false;
 	}
@@ -437,7 +437,7 @@ bool ScriptDefModule::addCellMethodDescription(const char* attrName,
 	MethodDescription* f_methodDescription = findCellMethodDescription(attrName);
 	if(f_methodDescription)
 	{
-		ERROR_MSG("ScriptDefModule::addCellMethodDescription: [%s] is exist!\n", attrName);
+		ERROR_MSG(boost::format("ScriptDefModule::addCellMethodDescription: [%1%] is exist!\n") % attrName);
 		return false;
 	}
 	
@@ -478,7 +478,9 @@ bool ScriptDefModule::addBaseMethodDescription(const char* attrName,
 	MethodDescription* f_methodDescription = findBaseMethodDescription(attrName);
 	if(f_methodDescription)
 	{
-		ERROR_MSG("ScriptDefModule::addBaseMethodDescription: [%s] is exist!\n", attrName);
+		ERROR_MSG(boost::format("ScriptDefModule::addBaseMethodDescription: [%1%] is exist!\n") % 
+			attrName);
+
 		return false;
 	}
 	
@@ -519,7 +521,9 @@ bool ScriptDefModule::addClientMethodDescription(const char* attrName,
 	MethodDescription* f_methodDescription = findClientMethodDescription(attrName);
 	if(f_methodDescription)
 	{
-		ERROR_MSG("ScriptDefModule::addClientMethodDescription: [%s] is exist!\n", attrName);
+		ERROR_MSG(boost::format("ScriptDefModule::addClientMethodDescription: [%1%] is exist!\n") %
+			attrName);
+
 		return false;
 	}
 

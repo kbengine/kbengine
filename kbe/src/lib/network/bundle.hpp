@@ -56,10 +56,11 @@ class Channel;
 	{																										\
 		if(pCurrMsgHandler)																					\
 		{																									\
-			DEBUG_MSG("%s%s:msgID:%d, currMsgLength:%d\n",													\
-				((isrecv == true) ? "====>" : "<===="), 													\
-				pCurrMsgHandler->name.c_str(),																\
-				bundle->messageID(), length);																\
+			DEBUG_MSG(boost::format("%1% %2%:msgID:%3%, currMsgLength:%4%\n") %								\
+				((isrecv == true) ? "====>" : "<====") %													\
+				pCurrMsgHandler->name.c_str() %																\
+				bundle->messageID() %																		\
+				length);																					\
 		}																									\
 																											\
 		switch(Mercury::g_trace_packet)																		\

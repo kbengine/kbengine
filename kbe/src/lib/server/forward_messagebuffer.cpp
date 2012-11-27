@@ -100,7 +100,7 @@ bool ForwardComponent_MessageBuffer::process()
 				SAFE_RELEASE((*itervec));
 			}
 			
-			DEBUG_MSG("ForwardComponent_MessageBuffer::process(): size:%d.\n", iter->second.size());
+			DEBUG_MSG(boost::format("ForwardComponent_MessageBuffer::process(): size:%1%.\n") % iter->second.size());
 			iter->second.clear();
 			++iter;
 		}
@@ -186,7 +186,7 @@ bool ForwardAnywhere_MessageBuffer::process()
 			SAFE_RELEASE((*iter));
 		}
 		
-		DEBUG_MSG("ForwardAnywhere_MessageBuffer::process(): size:%d.\n", pBundles_.size());
+		DEBUG_MSG(boost::format("ForwardAnywhere_MessageBuffer::process(): size:%1%.\n") % pBundles_.size());
 		pBundles_.clear();
 		start_ = false;
 		return false;

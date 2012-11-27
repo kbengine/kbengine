@@ -228,8 +228,8 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 	}
 
 
-	DEBUG_MSG("Baseappmgr::registerAccountToBaseapp:%s. allocBaseapp=[%"PRAppID"].\n", 
-		accountName.c_str(), bestBaseappID_);
+	DEBUG_MSG(boost::format("Baseappmgr::registerAccountToBaseapp:%1%. allocBaseapp=[%2%].\n") %
+		accountName.c_str() % bestBaseappID_);
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
@@ -242,8 +242,8 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel, COMPONENT_ID componentID,
 								std::string& accountName, std::string& password, ENTITY_ID entityID, DBID entityDBID)
 {
-	DEBUG_MSG("Baseappmgr::registerPendingAccountToBaseappAddr:%s, componentID=%"PRAppID", entityID=%d.\n", 
-		accountName.c_str(), componentID, entityID);
+	DEBUG_MSG(boost::format("Baseappmgr::registerPendingAccountToBaseappAddr:%1%, componentID=%2%, entityID=%3%.\n") % 
+		accountName.c_str() % componentID % entityID);
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID);
 	if(cinfos == NULL || cinfos->pChannel == NULL)

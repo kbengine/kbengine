@@ -145,9 +145,9 @@ bool ThreadPool::createThreadPool(unsigned int inewThreadCount,
 		allThreadList_.push_back(tptd);										// 所有的线程列表
 	}
 	
-	INFO_MSG("ThreadPool::createThreadPool: is successfully(%d), "
-		"newThreadCount=%d, normalMaxThreadCount=%d, maxThreadCount=%d\n", \
-			currentThreadCount_, extraNewAddThreadCount_, normalThreadCount_, maxThreadCount_);
+	INFO_MSG(boost::format("ThreadPool::createThreadPool: is successfully(%1%), "
+		"newThreadCount=%2%, normalMaxThreadCount=%3%, maxThreadCount=%4%\n") %
+			currentThreadCount_ % extraNewAddThreadCount_ % normalThreadCount_ % maxThreadCount_);
 
 	isInitialize_ = true;
 	return true;
@@ -174,7 +174,10 @@ void ThreadPool::bufferTask(TPTask* tptask)
 {
 	THREAD_MUTEX_LOCK(bufferedTaskList_mutex_);
 	bufferedTaskList_.push(tptask);
-	WARNING_MSG("ThreadPool::bufferTask: task buffered(%d)!\n", (int)bufferedTaskList_.size());
+
+	WARNING_MSG(boost::format("ThreadPool::bufferTask: task buffered(%1%)!\n") % 
+		(int)bufferedTaskList_.size());
+
 	THREAD_MUTEX_UNLOCK(bufferedTaskList_mutex_);
 }
 
@@ -200,8 +203,10 @@ bool ThreadPool::addFreeThread(TPThread* tptd)
 	else
 	{
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
-		ERROR_MSG("ThreadPool::addFreeThread: busyThreadList_ not found thread.%u\n",
+
+		ERROR_MSG(boost::format("ThreadPool::addFreeThread: busyThreadList_ not found thread.%1%\n") %
 		 (unsigned int)tptd->getID());
+
 		return false;
 	}
 		
@@ -225,8 +230,8 @@ bool ThreadPool::addBusyThread(TPThread* tptd)
 	else
 	{
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
-		ERROR_MSG("ThreadPool::addBusyThread: freeThreadList_ not "
-					"found thread.%u\n", 
+		ERROR_MSG(boost::format("ThreadPool::addBusyThread: freeThreadList_ not "
+					"found thread.%1%\n") %
 					(unsigned int)tptd->getID());
 		
 		return false;
@@ -247,16 +252,16 @@ bool ThreadPool::removeHangThread(TPThread* tptd)
 	itr = find(freeThreadList_.begin(), freeThreadList_.end(), tptd);
 	itr1 = find(allThreadList_.begin(), allThreadList_.end(), tptd);
 	
-	if(itr != freeThreadList_.end()&& itr1 != allThreadList_.end())
+	if(itr != freeThreadList_.end() && itr1 != allThreadList_.end())
 	{
 		freeThreadList_.erase(itr);
 		allThreadList_.erase(itr1);
 		currentThreadCount_--;
 		currentFreeThreadCount_--;
 
-		INFO_MSG("ThreadPool::removeHangThread: thread.%u is destroy. "
-			"currentFreeThreadCount:%d, currentThreadCount:%d\n", \
-		(unsigned int)tptd->getID(), currentFreeThreadCount_, currentThreadCount_);
+		INFO_MSG(boost::format("ThreadPool::removeHangThread: thread.%1% is destroy. "
+			"currentFreeThreadCount:%2%, currentThreadCount:%3%\n") %
+		(unsigned int)tptd->getID() % currentFreeThreadCount_ % currentThreadCount_);
 		
 		SAFE_RELEASE(tptd);
 	}
@@ -264,7 +269,7 @@ bool ThreadPool::removeHangThread(TPThread* tptd)
 	{
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);		
 		
-		ERROR_MSG("ThreadPool::removeHangThread: not found thread.%u\n", 
+		ERROR_MSG(boost::format("ThreadPool::removeHangThread: not found thread.%1%\n") % 
 			(unsigned int)tptd->getID());
 		
 		return false;
@@ -310,7 +315,10 @@ bool ThreadPool::addTask(TPTask* tptask)
 	if(isThreadCountMax())
 	{
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
-		WARNING_MSG("ThreadPool::addTask: thread create is failed, count is full(%d).\n", maxThreadCount_);
+
+		WARNING_MSG(boost::format("ThreadPool::addTask: thread create is failed, count is full(%1%).\n") % 
+			maxThreadCount_);
+
 		return false;
 	}
 
@@ -322,7 +330,8 @@ bool ThreadPool::addTask(TPTask* tptask)
 #if KBE_PLATFORM == PLATFORM_WIN32		
 			ERROR_MSG("ThreadPool::addTask: ThreadPool create new Thread error! ... \n");
 #else
-			ERROR_MSG("ThreadPool::addTask: ThreadPool create new Thread error:%s ... \n", kbe_strerror());
+			ERROR_MSG("boost::format(ThreadPool::addTask: ThreadPool create new Thread error:%1% ... \n") % 
+				kbe_strerror());
 #endif				
 		}
 
@@ -333,7 +342,9 @@ bool ThreadPool::addTask(TPTask* tptask)
 		
 	}
 	
-	INFO_MSG("ThreadPool::addTask: createNewThread-> currThreadCount: %d\n", currentThreadCount_);
+	INFO_MSG(boost::format("ThreadPool::addTask: createNewThread-> currThreadCount: %1%\n") % 
+		currentThreadCount_);
+
 	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 	return true;
 }
@@ -361,7 +372,7 @@ bool TPThread::onWaitCondSignal(void)
 		}
 		else if(ret != WAIT_OBJECT_0)
 		{
-			ERROR_MSG("TPThread::onWaitCondSignal: WaitForSingleObject is error, ret=%d\n", ret);
+			ERROR_MSG(boost::format("TPThread::onWaitCondSignal: WaitForSingleObject is error, ret=%1%\n") % ret);
 		}
 	}	
 #else		
@@ -394,7 +405,7 @@ bool TPThread::onWaitCondSignal(void)
 		}
 		else if(ret != 0)
 		{
-			ERROR_MSG("TPThread::onWaitCondSignal: pthread_cond_timedwait is error, %s\n", 
+			ERROR_MSG(boost::format("TPThread::onWaitCondSignal: pthread_cond_timedwait is error, %1%\n") % 
 				kbe_strerror());
 		}
 	}

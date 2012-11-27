@@ -144,8 +144,8 @@ void ClientApp::onChannelDeregister(Mercury::Channel * pChannel)
 //-------------------------------------------------------------------------------------	
 void ClientApp::onChannelTimeOut(Mercury::Channel * pChannel)
 {
-	INFO_MSG( "ClientApp::onChannelTimeOut: "
-		"Channel %s timed out.\n", pChannel->c_str());
+	INFO_MSG(boost::format("ClientApp::onChannelTimeOut: "
+		"Channel %1% timed out.\n") % pChannel->c_str());
 
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->destroy();

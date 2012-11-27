@@ -232,8 +232,8 @@ void ServerApp::onChannelDeregister(Mercury::Channel * pChannel)
 //-------------------------------------------------------------------------------------	
 void ServerApp::onChannelTimeOut(Mercury::Channel * pChannel)
 {
-	INFO_MSG( "ServerApp::onChannelTimeOut: "
-		"Channel %s timed out.\n", pChannel->c_str());
+	INFO_MSG(boost::format("ServerApp::onChannelTimeOut: "
+		"Channel %1% timed out.\n") % pChannel->c_str());
 
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->destroy();
@@ -265,11 +265,16 @@ void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::str
 	if(pChannel->isExternal())
 		return;
 
-	INFO_MSG("ServerApp::onRegisterNewApp: uid:%d, username:%s, componentType:%s, "
-			"componentID:%"PRAppID", intaddr:%s, intport:%u, extaddr:%s, extport:%u,  from %s.\n", 
-			uid, username.c_str(), COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), componentID, 
-			inet_ntoa((struct in_addr&)intaddr), ntohs(intport), 
-			extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport", ntohs(extport),
+	INFO_MSG(boost::format("ServerApp::onRegisterNewApp: uid:%1%, username:%2%, componentType:%3%, "
+			"componentID:%4%, intaddr:%5%, intport:%6%, extaddr:%7%, extport:%8%,  from %9%.\n") %
+			uid % 
+			username.c_str() % 
+			COMPONENT_NAME_EX((COMPONENT_TYPE)componentType) % 
+			componentID %
+			inet_ntoa((struct in_addr&)intaddr) %
+			ntohs(intport) %
+			(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport") %
+			ntohs(extport) %
 			pChannel->c_str());
 
 	Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent((
@@ -302,8 +307,9 @@ void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE compo
 
 		if(cinfos == NULL)
 		{
-			ERROR_MSG("ServerApp::onAppActiveTick[%x]: %s:%"PRAppID" not found.\n", 
-		pChannel, COMPONENT_NAME_EX(componentType), componentID);
+			ERROR_MSG(boost::format("ServerApp::onAppActiveTick[%1%]: %2%:%3% not found.\n") % 
+				pChannel % COMPONENT_NAME_EX(componentType) % componentID);
+
 			return;
 		}
 
@@ -323,7 +329,7 @@ void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE compo
 //-------------------------------------------------------------------------------------
 void ServerApp::reqClose(Mercury::Channel* pChannel)
 {
-	DEBUG_MSG("ServerApp::reqClose: %s\n", pChannel->c_str());
+	DEBUG_MSG(boost::format("ServerApp::reqClose: %1%\n") % pChannel->c_str());
 	// this->getNetworkInterface().deregisterChannel(pChannel);
 	// pChannel->destroy();
 }
@@ -334,7 +340,7 @@ void ServerApp::lookApp(Mercury::Channel* pChannel)
 	if(pChannel->isExternal())
 		return;
 
-	DEBUG_MSG("ServerApp::lookApp: %s\n", pChannel->c_str());
+	DEBUG_MSG(boost::format("ServerApp::lookApp: %1%\n") % pChannel->c_str());
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	
@@ -348,7 +354,7 @@ void ServerApp::lookApp(Mercury::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void ServerApp::reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	DEBUG_MSG("ServerApp::reqCloseServer: %s\n", pChannel->c_str());
+	DEBUG_MSG(boost::format("ServerApp::reqCloseServer: %1%\n") % pChannel->c_str());
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	

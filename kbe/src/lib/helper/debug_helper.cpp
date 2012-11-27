@@ -74,9 +74,7 @@ char _g_buf[DBG_PT_SIZE];
 #ifdef KBE_USE_ASSERTS
 void myassert(const char * exp, const char * func, const char * file, unsigned int line)
 {
-	kbe_snprintf(_g_buf, DBG_PT_SIZE, "assertion failed: %s, file %s, line %d, at: %s\n", exp, file, line, func);
-    dbghelper.print_msg(_g_buf);
-	printf("%s", _g_buf);
+	dbghelper.print_msg(boost::format("assertion failed: %1%, file %2%, line %3%, at: %4%\n") % exp % file % line % func);
     abort();
 }
 #endif
@@ -179,7 +177,8 @@ void DebugHelper::sync()
 	{
 		if(bufferedLogPackets_.size() > 4096)
 		{
-			ERROR_MSG("DebugHelper::sync: can't found messagelog. packet size=%u.\n", bufferedLogPackets_.size());
+			ERROR_MSG(boost::format("DebugHelper::sync: can't found messagelog. packet size=%1%.\n") %
+				bufferedLogPackets_.size());
 			clearBufferedLog();
 		}
 		return;
@@ -196,8 +195,9 @@ void DebugHelper::sync()
 			messagelogAddr_.ip = 0;
 			messagelogAddr_.port = 0;
 
-			WARNING_MSG("DebugHelper::sync: is no use the messagelog, packet size=%u.\n", 
+			WARNING_MSG(boost::format("DebugHelper::sync: is no use the messagelog, packet size=%1%.\n") % 
 				bufferedLogPackets_.size());
+
 			clearBufferedLog();
 		}
 
@@ -209,7 +209,8 @@ void DebugHelper::sync()
 	{
 		if(bufferedLogPackets_.size() > 32)
 		{
-			WARNING_MSG("DebugHelper::sync: packet size=%u.\n", bufferedLogPackets_.size());
+			WARNING_MSG(boost::format("DebugHelper::sync: packet size=%1%.\n") % 
+				bufferedLogPackets_.size());
 		}
 
 		int i = 0;
@@ -313,177 +314,141 @@ void DebugHelper::unregisterMessagelog(Mercury::MessageID msgID, Mercury::Addres
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::print_msg(const char * str, ...)
+void DebugHelper::print_msg(boost::format& fmt)
 {
-    if(str == NULL)
-        return;
-
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
-
-#ifdef NO_USE_LOG4CXX
-#else
-    va_list ap;
-    va_start(ap, str);
-
-#if KBE_PLATFORM == PLATFORM_WIN32
-	uint32 size = _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
-#else
-    uint32 size = vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
-#endif
-    va_end(ap);
-	LOG4CXX_INFO(g_logger, _g_buf);
-#endif
-
-	onMessage(LOG_PRINT, _g_buf, size);
+	print_msg(boost::str(fmt));
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::error_msg(const char * err, ...)
+void DebugHelper::print_msg(std::string s)
 {
-    if(err == NULL)
-        return;
-
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
-    va_list ap;
-    va_start(ap, err);
-#if KBE_PLATFORM == PLATFORM_WIN32
-	uint32 size = _vsnprintf(_g_buf, DBG_PT_SIZE, err, ap);
-#else
-    uint32 size = vsnprintf(_g_buf, DBG_PT_SIZE, err, ap);
-#endif
-    va_end(ap);
-	LOG4CXX_ERROR(g_logger, _g_buf);
+	LOG4CXX_INFO(g_logger, s);
 #endif
 
-	onMessage(LOG_ERROR, _g_buf, size);
+	onMessage(LOG_PRINT, s.c_str(), s.size());
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::info_msg(const char * info, ...)
+void DebugHelper::error_msg(boost::format& fmt)
 {
-    if(info == NULL)
-        return;
-
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
-
-#ifdef NO_USE_LOG4CXX
-#else
-    va_list ap;
-    va_start(ap, info);
-#if KBE_PLATFORM == PLATFORM_WIN32
-	uint32 size = _vsnprintf(_g_buf, DBG_PT_SIZE, info, ap);
-#else
-    uint32 size = vsnprintf(_g_buf, DBG_PT_SIZE, info, ap);
-#endif
-    va_end(ap);
-	LOG4CXX_INFO(g_logger, _g_buf);
-#endif
-
-	onMessage(LOG_INFO, _g_buf, size);
+	error_msg(boost::str(fmt));
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::script_msg(const char * info, ...)
+void DebugHelper::error_msg(std::string s)
 {
-    if(info == NULL)
-        return;
-
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
-    va_list ap;
-    va_start(ap, info);
-#if KBE_PLATFORM == PLATFORM_WIN32
-	uint32 size = _vsnprintf(_g_buf, DBG_PT_SIZE, info, ap);
-#else
-    uint32 size = vsnprintf(_g_buf, DBG_PT_SIZE, info, ap);
-#endif
-    va_end(ap);
-	LOG4CXX_LOG(g_logger, log4cxx::ScriptLevel::getScript(), _g_buf);
+	LOG4CXX_ERROR(g_logger, s);
 #endif
 
-	onMessage(LOG_SCRIPT, _g_buf, size);
+	onMessage(LOG_ERROR, s.c_str(), s.size());
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::debug_msg(const char * str, ...)
+void DebugHelper::info_msg(boost::format& fmt)
 {
-    if(str == NULL)
-        return;
-
-	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
-
-#ifdef NO_USE_LOG4CXX
-#else 
-    va_list ap;
-    va_start(ap, str);
-#if KBE_PLATFORM == PLATFORM_WIN32
-	uint32 size = _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
-#else
-    uint32 size = vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
-#endif
-    va_end(ap);
-	LOG4CXX_DEBUG(g_logger, _g_buf);
-#endif
-
-	onMessage(LOG_DEBUG, _g_buf, size);
+	info_msg(boost::str(fmt));
 }
 
 //-------------------------------------------------------------------------------------
-void DebugHelper::warning_msg(const char * str, ...)
+void DebugHelper::info_msg(std::string s)
 {
-    if(str == NULL)
-        return;
-
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
-    va_list ap;
-    va_start(ap, str);
-#if KBE_PLATFORM == PLATFORM_WIN32
-	uint32 size = _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
-#else
-    uint32 size = vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
-#endif
-    va_end(ap);
-
-	LOG4CXX_WARN(g_logger, _g_buf);
+	LOG4CXX_INFO(g_logger, s);
 #endif
 
-	onMessage(LOG_WARNING, _g_buf, size);
+	onMessage(LOG_INFO, s.c_str(), s.size());
 }
 
-void DebugHelper::critical_msg(const char * str, ...)
+//-------------------------------------------------------------------------------------
+void DebugHelper::script_msg(boost::format& fmt)
 {
-    if(str == NULL)
-        return;
+	script_msg(boost::str(fmt));
+}
 
+//-------------------------------------------------------------------------------------
+void DebugHelper::script_msg(std::string s)
+{
 	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
 
 #ifdef NO_USE_LOG4CXX
 #else
-    va_list ap;
-    va_start(ap, str);
-#if KBE_PLATFORM == PLATFORM_WIN32
-	uint32 size = _vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
-#else
-    uint32 size = vsnprintf(_g_buf, DBG_PT_SIZE, str, ap);
+	LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::getScript(), s);
 #endif
-    va_end(ap);
+
+	onMessage(LOG_SCRIPT, s.c_str(), s.size());
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::debug_msg(boost::format& fmt)
+{
+	debug_msg(boost::str(fmt));
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::debug_msg(std::string s)
+{
+	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
+
+#ifdef NO_USE_LOG4CXX
+#else
+	LOG4CXX_DEBUG(g_logger, s);
+#endif
+
+	onMessage(LOG_DEBUG, s.c_str(), s.size());
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::warning_msg(boost::format& fmt)
+{
+	warning_msg(boost::str(fmt));
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::warning_msg(std::string s)
+{
+	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
+
+#ifdef NO_USE_LOG4CXX
+#else
+	LOG4CXX_WARN(g_logger, s);
+#endif
+
+	onMessage(LOG_WARNING, s.c_str(), s.size());
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::critical_msg(boost::format& fmt)
+{
+	critical_msg(boost::str(fmt));
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::critical_msg(std::string s)
+{
+	KBEngine::thread::ThreadGuard tg(&this->logMutex); 
+
 	char buf[DBG_PT_SIZE];
-	kbe_snprintf(buf, DBG_PT_SIZE, "%s(%d) -> %s\n\t%s\n", _currFile.c_str(), _currLine, _currFuncName.c_str(), _g_buf);
+	kbe_snprintf(buf, DBG_PT_SIZE, "%s(%d) -> %s\n\t%s\n", _currFile.c_str(), _currLine, _currFuncName.c_str(), s.c_str());
+
+#ifdef NO_USE_LOG4CXX
+#else
 	LOG4CXX_FATAL(g_logger, buf);
 #endif
 
-	setFile("", "", 0);
-
-	onMessage(LOG_CRITICAL, _g_buf, size);
+	onMessage(LOG_CRITICAL, buf, strlen(buf));
 }
+
 //-------------------------------------------------------------------------------------
 
 }

@@ -281,7 +281,7 @@ void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 		return;
 	}
 
-	DEBUG_MSG("KBEngine::executeRawDatabaseCommand:%s.\n", datas);
+	DEBUG_MSG(boost::format("KBEngine::executeRawDatabaseCommand:%1%.\n") % datas);
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(DbmgrInterface::executeRawDatabaseCommand);
@@ -380,7 +380,8 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine
 			Py_INCREF(pAffectedRows);
 	}
 
-	DEBUG_MSG("Cellapp::onExecuteRawDatabaseCommandCB: nrows=%u, nfields=%u, err=%s.\n", nrows, nfields, err.c_str());
+	DEBUG_MSG(boost::format("Cellapp::onExecuteRawDatabaseCommandCB: nrows=%1%, nfields=%2%, err=%3%.\n") % 
+		nrows % nfields % err.c_str());
 
 	if(callbackID > 0)
 	{
@@ -409,7 +410,7 @@ void Cellapp::reqBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::Memo
 	Entity* e = this->findEntity(entityID);
 	if(!e)
 	{
-		ERROR_MSG("Cellapp::reqBackupEntityCellData: not found entity %d.\n", entityID);
+		ERROR_MSG(boost::format("Cellapp::reqBackupEntityCellData: not found entity %1%.\n") % entityID);
 		return;
 	}
 
@@ -428,7 +429,7 @@ void Cellapp::reqWriteToDBFromBaseapp(Mercury::Channel* pChannel, KBEngine::Memo
 	Entity* e = this->findEntity(entityID);
 	if(!e)
 	{
-		ERROR_MSG("Cellapp::reqWriteToDBFromBaseapp: not found entity %d.\n", entityID);
+		ERROR_MSG(boost::format("Cellapp::reqWriteToDBFromBaseapp: not found entity %1%.\n") % entityID);
 		return;
 	}
 
@@ -583,8 +584,8 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		return;
 	}
 	
-	ERROR_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: not found baseapp[%"PRAppID"], entityID=%d, spaceID=%u.\n", 
-		componentID, mailboxEntityID, spaceID);
+	ERROR_MSG(boost::format("Cellapp::onCreateInNewSpaceFromBaseapp: not found baseapp[%1%], entityID=%2%, spaceID=%3%.\n") %
+		componentID % mailboxEntityID % spaceID);
 }
 
 //-------------------------------------------------------------------------------------
@@ -726,7 +727,7 @@ void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 	Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{
-		ERROR_MSG("Cellapp::onEntityMail: entityID %d not found.\n", eid);
+		ERROR_MSG(boost::format("Cellapp::onEntityMail: entityID %1% not found.\n") % eid);
 		return;
 	}
 	
@@ -741,8 +742,11 @@ void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 		case MAILBOX_TYPE_BASE_VIA_CELL: // entity.base.cell.xxx
 			{
 				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(entity->getBaseMailbox());
-				if(mailbox == NULL){
-					ERROR_MSG("Cellapp::onEntityMail: occur a error(can't found baseMailbox)! mailboxType=%d, entityID=%d.\n", mailtype, eid);
+				if(mailbox == NULL)
+				{
+					ERROR_MSG(boost::format("Cellapp::onEntityMail: occur a error(can't found baseMailbox)! mailboxType=%1%, entityID=%2%.\n") %
+						mailtype % eid);
+
 					break;
 				}
 				
@@ -754,8 +758,11 @@ void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 		case MAILBOX_TYPE_CLIENT_VIA_CELL: // entity.cell.client
 			{
 				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(entity->getClientMailbox());
-				if(mailbox == NULL){
-					ERROR_MSG("Cellapp::onEntityMail: occur a error(can't found clientMailbox)! mailboxType=%d, entityID=%d.\n", mailtype, eid);
+				if(mailbox == NULL)
+				{
+					ERROR_MSG(boost::format("Cellapp::onEntityMail: occur a error(can't found clientMailbox)! mailboxType=%1%, entityID=%2%.\n") %
+						mailtype % eid);
+
 					break;
 				}
 				
@@ -766,7 +773,10 @@ void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 			}
 			break;
 		default:
-			ERROR_MSG("Cellapp::onEntityMail: mailboxType %d is error! must a cellType. entityID=%d.\n", mailtype, eid);
+			{
+				ERROR_MSG(boost::format("Cellapp::onEntityMail: mailboxType %1% is error! must a cellType. entityID=%2%.\n") %
+					mailtype % eid);
+			}
 	};
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
@@ -783,7 +793,9 @@ void Cellapp::onRemoteCallMethodFromClient(Mercury::Channel* pChannel, KBEngine:
 
 	if(e == NULL)
 	{	
-		WARNING_MSG("Cellapp::onRemoteCallMethodFromClient: can't found entityID:%d, by srcEntityID:%d.\n", targetID, srcEntityID);
+		WARNING_MSG(boost::format("Cellapp::onRemoteCallMethodFromClient: can't found entityID:%1%, by srcEntityID:%2%.\n") % 
+			targetID % srcEntityID);
+
 		return;
 	}
 
@@ -802,14 +814,17 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel
 
 	if(e == NULL)
 	{	
-		WARNING_MSG("Cellapp::forwardEntityMessageToCellappFromClient: can't found entityID:%d.\n", srcEntityID);
+		WARNING_MSG(boost::format("Cellapp::forwardEntityMessageToCellappFromClient: can't found entityID:%1%.\n") %
+			srcEntityID);
+
 		return;
 	}
 
 	if(e->isDestroyed())																				
 	{																										
-		ERROR_MSG("%s::forwardEntityMessageToCellappFromClient: %d is destroyed!\n",											
-			e->getScriptName(), e->getID());
+		ERROR_MSG(boost::format("%1%::forwardEntityMessageToCellappFromClient: %2% is destroyed!\n") %										
+			e->getScriptName() % e->getID());
+
 		s.read_skip(s.opsize());
 		return;																							
 	}
@@ -826,8 +841,8 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel
 
 		if(pMsgHandler == NULL)
 		{
-			ERROR_MSG("Cellapp::forwardEntityMessageToCellappFromClient: invalide msgID=%d, msglen=%d, from %s.\n", 
-				currMsgID, s.wpos(), pChannel->c_str());
+			ERROR_MSG(boost::format("Cellapp::forwardEntityMessageToCellappFromClient: invalide msgID=%1%, msglen=%2%, from %3%.\n") % 
+				currMsgID % s.wpos() % pChannel->c_str());
 
 			pChannel->condemn();
 			break;
@@ -835,7 +850,8 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel
 
 		if(pMsgHandler->type() != Mercury::MERCURY_MESSAGE_TYPE_ENTITY)
 		{
-			WARNING_MSG("Cellapp::forwardEntityMessageToCellappFromClient: msgID=%d not is entitymsg.\n", currMsgID);
+			WARNING_MSG(boost::format("Cellapp::forwardEntityMessageToCellappFromClient: msgID=%1% not is entitymsg.\n") %
+				currMsgID);
 
 			pChannel->condemn();
 			break;
@@ -848,8 +864,8 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel
 
 		if(s.opsize() < currMsgLen || currMsgLen >  MERCURY_MESSAGE_MAX_SIZE / 2)
 		{
-			ERROR_MSG("Cellapp::forwardEntityMessageToCellappFromClient: msgID=%d, invalide msglen=%d, from %s.\n", 
-				currMsgID, s.wpos(), pChannel->c_str());
+			ERROR_MSG(boost::format("Cellapp::forwardEntityMessageToCellappFromClient: msgID=%1%, invalide msglen=%2%, from %3%.\n") % 
+				currMsgID % s.wpos() % pChannel->c_str());
 
 			pChannel->condemn();
 			break;
@@ -867,8 +883,8 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel
 		{
 			if(frpos != s.rpos())
 			{
-				CRITICAL_MSG("Cellapp::forwardEntityMessageToCellappFromClient[%s]: rpos(%d) invalid, expect=%d. msgID=%d, msglen=%d.\n",
-					pMsgHandler->name.c_str(), s.rpos(), frpos, currMsgID, currMsgLen);
+				CRITICAL_MSG(boost::format("Cellapp::forwardEntityMessageToCellappFromClient[%1%]: rpos(%2%) invalid, expect=%3%. msgID=%4%, msglen=%5%.\n") %
+					pMsgHandler->name.c_str() % s.rpos() % frpos % currMsgID % currMsgLen);
 
 				s.rpos(frpos);
 			}

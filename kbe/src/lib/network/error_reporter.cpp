@@ -216,9 +216,10 @@ void ErrorReporter::addReport(const Address & address, const std::string & error
 
 		if (millisSinceLastReport >= ERROR_REPORT_MIN_PERIOD_MS)
 		{
-			ERROR_MSG("%s\n",
+			ERROR_MSG(boost::format("%1%\n") %
 				addressErrorToString(address, errorString,
 					reportAndCount, now).c_str());
+
 			reportAndCount.count = 0;
 			reportAndCount.lastReportStamps = now;
 		}
@@ -226,7 +227,7 @@ void ErrorReporter::addReport(const Address & address, const std::string & error
 	}
 	else
 	{
-		ERROR_MSG("%s\n",
+		ERROR_MSG(boost::format("%1%\n") %
 			addressErrorToString(address, errorString).c_str());
 
 		ErrorReportAndCount reportAndCount = {
@@ -275,7 +276,7 @@ void ErrorReporter::reportPendingExceptions(bool reportBelowThreshold)
 		{
 			if (reportAndCount.count)
 			{
-				ERROR_MSG("%s\n",
+				ERROR_MSG(boost::format("%1%\n") %
 					addressErrorToString(
 						addressError.first, addressError.second,
 						reportAndCount, now).c_str()

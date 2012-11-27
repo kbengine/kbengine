@@ -46,7 +46,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 
 	if(!xml->isGood())
 	{
-		ERROR_MSG(" ServerConfig::loadConfig: load %s is failed!\n", fileName.c_str());
+		ERROR_MSG(boost::format("ServerConfig::loadConfig: load %1% is failed!\n") %
+			fileName.c_str());
+
 		SAFE_RELEASE(xml);
 		return false;
 	}
@@ -460,13 +462,13 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG("\tgameUpdateHertz : %d\n", gameUpdateHertz());
-			INFO_MSG("\tdefaultAoIRadius : %f\n", info.defaultAoIRadius);
-			INFO_MSG("\tdefaultAoIHysteresisArea : %f\n", info.defaultAoIHysteresisArea);
-			INFO_MSG("\tentryScriptFile : %s\n", info.entryScriptFile);
-			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
-			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG("\tcomponentID : %"PRAppID"\n", info.componentID);
+			INFO_MSG(boost::format("\tgameUpdateHertz : %1%\n") % gameUpdateHertz());
+			INFO_MSG(boost::format("\tdefaultAoIRadius : %1%\n") % info.defaultAoIRadius);
+			INFO_MSG(boost::format("\tdefaultAoIHysteresisArea : %1%\n") % info.defaultAoIHysteresisArea);
+			INFO_MSG(boost::format("\tentryScriptFile : %1%\n") % info.entryScriptFile);
+			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
+			//INFO_MSG(boost::format("\texternalAddr : %1%\n") % externalAddr.c_str());
+			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
 		}
 	}
 	else if (componentType == BASEAPP_TYPE)
@@ -478,13 +480,13 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG("\tgameUpdateHertz : %d\n", gameUpdateHertz());
-			INFO_MSG("\tdefaultAoIRadius : %f\n", info.defaultAoIRadius);
-			INFO_MSG("\tdefaultAoIHysteresisArea : %f\n", info.defaultAoIHysteresisArea);
-			INFO_MSG("\tentryScriptFile : %s\n", info.entryScriptFile);
-			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
-			INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG("\tcomponentID : %"PRAppID"\n", info.componentID);
+			INFO_MSG(boost::format("\tgameUpdateHertz : %1%\n") % gameUpdateHertz());
+			INFO_MSG(boost::format("\tdefaultAoIRadius : %1%\n") % info.defaultAoIRadius);
+			INFO_MSG(boost::format("\tdefaultAoIHysteresisArea : %1%\n") % info.defaultAoIHysteresisArea);
+			INFO_MSG(boost::format("\tentryScriptFile : %1%\n") % info.entryScriptFile);
+			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
+			INFO_MSG(boost::format("\texternalAddr : %1%\n") % externalAddr.c_str());
+			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
 		}
 	}
 	else if (componentType == BASEAPPMGR_TYPE)
@@ -496,9 +498,9 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
+			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
 			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG("\tcomponentID : %"PRAppID"\n", info.componentID);
+			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
 		}
 	}
 	else if (componentType == CELLAPPMGR_TYPE)
@@ -510,9 +512,9 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
+			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
 			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG("\tcomponentID : %"PRAppID"\n", info.componentID);
+			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
 		}
 	}
 	else if (componentType == DBMGR_TYPE)
@@ -524,9 +526,9 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
+			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
 			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG("\tcomponentID : %"PRAppID"\n", info.componentID);
+			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
 		}
 	}
 	else if (componentType == LOGINAPP_TYPE)
@@ -538,9 +540,9 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
-			INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG("\tcomponentID : %"PRAppID"\n", info.componentID);
+			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
+			INFO_MSG(boost::format("\texternalAddr : %1%\n") % externalAddr.c_str());
+			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
 		}
 	}
 	else if (componentType == MACHINE_TYPE)
@@ -552,9 +554,9 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG("\tinternalAddr : %s\n", internalAddr.c_str());
+			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
 			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG("\tcomponentID : %"PRAppID"\n", info.componentID);
+			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
 		}
 	}
 }

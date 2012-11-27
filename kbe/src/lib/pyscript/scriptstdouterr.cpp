@@ -80,7 +80,7 @@ void ScriptStdOutErr::onPrint(const char* msg)
 	sbuffer_ += msg;
 	if(msg[0] == '\n')
 	{
-		SCRIPT_MSG("%s", sbuffer_.c_str());
+		SCRIPT_MSG(sbuffer_);
 		sbuffer_ = "";
 	}
 }

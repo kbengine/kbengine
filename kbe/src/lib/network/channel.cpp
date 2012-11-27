@@ -152,7 +152,7 @@ Channel::Channel():
 //-------------------------------------------------------------------------------------
 Channel::~Channel()
 {
-	DEBUG_MSG("Channel::~Channel(): %s\n", this->c_str());
+	DEBUG_MSG(boost::format("Channel::~Channel(): %1%\n") % this->c_str());
 	if(pNetworkInterface_ != NULL && pEndPoint_ != NULL)
 	{
 		pNetworkInterface_->onChannelGone(this);
@@ -246,9 +246,9 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 
 		if (hasDiscard > 0 && warnOnDiscard)
 		{
-			WARNING_MSG( "Channel::clearState( %s ): "
-				"Discarding %u buffered packet(s)\n",
-				this->c_str(), hasDiscard );
+			WARNING_MSG(boost::format("Channel::clearState( %1% ): "
+				"Discarding %2% buffered packet(s)\n") %
+				this->c_str() % hasDiscard );
 		}
 
 		bufferedReceives_.clear();
@@ -298,7 +298,7 @@ void Channel::send(Bundle * pBundle)
 {
 	if (this->isDestroyed())
 	{
-		ERROR_MSG("Channel::send(%s): Channel is destroyed.", this->c_str());
+		ERROR_MSG(boost::format("Channel::send(%1%): Channel is destroyed.") % this->c_str());
 	}
 	
 	bool isSendingOwnBundle = (pBundle == NULL);
@@ -402,8 +402,8 @@ void Channel::addReceiveWindow(Packet* pPacket)
 
 	if(bufferedReceives_.size() > 10)
 	{
-		WARNING_MSG("Channel::addReceiveWindow[%p]: channel(%s), buffered is overload(%d).\n", 
-			this, this->c_str(), (int)bufferedReceives_.size());
+		WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: channel(%2%), buffered is overload(%3%).\n") % 
+			this % this->c_str() % (int)bufferedReceives_.size());
 
 		if(bufferedReceives_.size() > 256)
 		{
@@ -416,7 +416,7 @@ void Channel::addReceiveWindow(Packet* pPacket)
 void Channel::condemn()
 { 
 	isCondemn_ = true; 
-	ERROR_MSG("Channel::condemn[%p]: channel(%s).\n", this, this->c_str()); 
+	ERROR_MSG(boost::format("Channel::condemn[%1]: channel(%2).\n") % this % this->c_str()); 
 }
 
 //-------------------------------------------------------------------------------------
@@ -449,13 +449,13 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 {
 	if (this->isDestroyed())
 	{
-		ERROR_MSG("Channel::handleMessage(%s): channel[%p] is destroyed.\n", this->c_str(), this);
+		ERROR_MSG(boost::format("Channel::handleMessage(%1%): channel[%2%] is destroyed.\n") % this->c_str() % this);
 		return;
 	}
 
 	if(this->isCondemn())
 	{
-		ERROR_MSG("Channel::handleMessage(%s): channel[%p] is condemn.\n", this->c_str(), this);
+		ERROR_MSG(boost::format("Channel::handleMessage(%1%): channel[%2%] is condemn.\n") % this->c_str() % this);
 		//this->destroy();
 		return;
 	}
@@ -488,8 +488,8 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					if(pMsgHandler == NULL)
 					{
 						TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, pPacket->totalSize());
-						WARNING_MSG("Channel::handleMessage: invalide msgID=%d, msglen=%d, from %s.\n", 
-							currMsgID_, pPacket->totalSize(), c_str());
+						WARNING_MSG(boost::format("Channel::handleMessage: invalide msgID=%1%, msglen=%2%, from %3%.\n") %
+							currMsgID_ % pPacket->totalSize() % c_str());
 
 						currMsgID_ = 0;
 						currMsgLen_ = 0;
@@ -522,8 +522,8 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					
 					if(currMsgLen_ > MERCURY_MESSAGE_MAX_SIZE / 2)
 					{
-						WARNING_MSG("Channel::handleMessage(%s): msglen is error! msgID=%d, msglen=(%d:%d), from %s.\n", 
-							pMsgHandler->name.c_str(), currMsgID_, currMsgLen_, pPacket->totalSize(), c_str());
+						WARNING_MSG(boost::format("Channel::handleMessage(%1%): msglen is error! msgID=%2%, msglen=(%3%:%4%), from %s.\n") % 
+							pMsgHandler->name.c_str() % currMsgID_ % currMsgLen_ % pPacket->totalSize() % c_str());
 
 						currMsgLen_ = 0;
 						condemn();
@@ -556,8 +556,8 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 						{
 							if(frpos != pPacket->rpos())
 							{
-								CRITICAL_MSG("Channel::handleMessage(%s): rpos(%d) invalid, expect=%d. msgID=%d, msglen=%d.\n",
-									pMsgHandler->name.c_str(), pPacket->rpos(), frpos, currMsgID_, currMsgLen_);
+								CRITICAL_MSG(boost::format("Channel::handleMessage(%s): rpos(%d) invalid, expect=%d. msgID=%d, msglen=%d.\n") %
+									pMsgHandler->name.c_str() % pPacket->rpos() % frpos % currMsgID_ % currMsgLen_);
 
 								pPacket->rpos(frpos);
 							}
@@ -583,8 +583,8 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 		}
 	}catch(MemoryStreamException &)
 	{
-		WARNING_MSG("Channel::handleMessage(%s): packet invalid. currMsgID=%d, currMsgLen=%d\n", 
-																this->c_str(), currMsgID_, currMsgLen_);
+		WARNING_MSG(boost::format("Channel::handleMessage(%1%): packet invalid. currMsgID=%2%, currMsgLen=%3%\n") %
+																this->c_str() % currMsgID_ % currMsgLen_);
 
 		currMsgID_ = 0;
 		currMsgLen_ = 0;
@@ -612,8 +612,8 @@ void Channel::writeFragmentMessage(FragmentDataTypes fragmentDatasFlag, Packet* 
 		pPacket->opfini();
 	}
 
-	DEBUG_MSG("Channel::writeFragmentMessage(%s): channel[%p-%p], fragmentDatasFlag=%d, remainsize=%u.\n", 
-		this->c_str(), this, pFragmentDatas_, (int)fragmentDatasFlag, pFragmentDatasRemain_);
+	DEBUG_MSG(boost::format("Channel::writeFragmentMessage(%1%): channel[%2%-%3%], fragmentDatasFlag=%4%, remainsize=%5%.\n") % 
+		this->c_str() % this % pFragmentDatas_ % (int)fragmentDatasFlag % pFragmentDatasRemain_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -654,7 +654,8 @@ void Channel::mergeFragmentMessage(Packet* pPacket)
 		fragmentDatasFlag_ = FRAGMENT_DATA_UNKNOW;
 		pFragmentDatasRemain_ = 0;
 		SAFE_RELEASE_ARRAY(pFragmentDatas_);
-		DEBUG_MSG("Channel::mergeFragmentMessage(%s): channel[%p], completed!\n", this->c_str(), this);
+		DEBUG_MSG(boost::format("Channel::mergeFragmentMessage(%1%): channel[%2%], completed!\n") % 
+			this->c_str() % this);
 	}
 	else
 	{
@@ -662,8 +663,8 @@ void Channel::mergeFragmentMessage(Packet* pPacket)
 		pFragmentDatasRemain_ -= opsize;
 		pPacket->rpos(pPacket->rpos() + opsize);
 
-		DEBUG_MSG("Channel::writeFragmentMessage(%s): channel[%p], fragmentDatasFlag=%d, remainsize=%u.\n", 
-			this->c_str(), this, (int)fragmentDatasFlag_, pFragmentDatasRemain_);
+		DEBUG_MSG(boost::format("Channel::writeFragmentMessage(%1%): channel[%2%], fragmentDatasFlag=%3%, remainsize=%4%.\n") %
+			this->c_str() % this % (int)fragmentDatasFlag_ % pFragmentDatasRemain_);
 	}	
 }
 

@@ -429,11 +429,11 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 
 	if(g_debugEntity)
 	{
-		INFO_MSG("EntityApp::createEntityCommon: new %s (%d) refc=%u.\n", entityType, id, obj->ob_refcnt);
+		INFO_MSG(boost::format("EntityApp::createEntityCommon: new %1% (%2%) refc=%3%.\n") % entityType % id % obj->ob_refcnt);
 	}
 	else
 	{
-		INFO_MSG("EntityApp::createEntityCommon: new %s (%d)\n", entityType, id);
+		INFO_MSG(boost::format("EntityApp::createEntityCommon: new %1% (%2%)\n") % entityType % id);
 	}
 
 	return entity;
@@ -454,11 +454,11 @@ void EntityApp<E>::onSignalled(int sigNum)
 	switch (sigNum)
 	{
 	case SIGQUIT:
-		CRITICAL_MSG("Received QUIT signal. This is likely caused by the "
-					"%sMgr killing this %s because it has been "
+		CRITICAL_MSG(boost::format("Received QUIT signal. This is likely caused by the "
+					"%1%Mgr killing this %2% because it has been "
 					"unresponsive for too long. Look at the callstack from "
-					"the core dump to find the likely cause.\n",
-				COMPONENT_NAME_EX(componentType_), 
+					"the core dump to find the likely cause.\n") %
+				COMPONENT_NAME_EX(componentType_) % 
 				COMPONENT_NAME_EX(componentType_) );
 		
 		break;
@@ -475,7 +475,7 @@ PyObject* EntityApp<E>::tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_I
 	
 	E* entity = pEntities_->find(eid);
 	if(entity == NULL){
-		ERROR_MSG("EntityApp::tryGetEntityByMailbox: can't found entity:%d.\n", eid);
+		ERROR_MSG(boost::format("EntityApp::tryGetEntityByMailbox: can't found entity:%1%.\n") % eid);
 		return NULL;
 	}
 
@@ -539,8 +539,8 @@ template<class E>
 void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel, 
 		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
 {
-	INFO_MSG("EntityApp::onDbmgrInitCompleted: entityID alloc(%d-%d), startGlobalOrder=%d, startGroupOrder=%d.\n",
-		startID, endID, startGlobalOrder, startGroupOrder);
+	INFO_MSG(boost::format("EntityApp::onDbmgrInitCompleted: entityID alloc(%1%-%2%), startGlobalOrder=%3%, startGroupOrder=%4%.\n") %
+		startID % endID % startGlobalOrder % startGroupOrder);
 
 	startGlobalOrder_ = startGlobalOrder;
 	startGroupOrder_ = startGroupOrder;
@@ -610,7 +610,7 @@ void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEng
 template<class E>
 void EntityApp<E>::onExecScriptCommand(Mercury::Channel* pChannel, std::string& strcommand)
 {
-	DEBUG_MSG("EntityApp::onExecScriptCommand: command size(%d).\n", strcommand.size());
+	DEBUG_MSG(boost::format("EntityApp::onExecScriptCommand: command size(%1%).\n") % strcommand.size());
 
 	std::string retbuf = "";
 	if(script_.run_simpleString(strcommand, &retbuf) == 0)

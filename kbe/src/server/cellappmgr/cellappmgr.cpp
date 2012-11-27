@@ -148,7 +148,7 @@ Mercury::Channel* Cellappmgr::findFreeCellapp(void)
 		index = 0;
 
 	Components::COMPONENTS::iterator iter = components.begin();
-	DEBUG_MSG("Cellappmgr::findFreeCellapp: index=%d.\n", index);
+	DEBUG_MSG(boost::format("Cellappmgr::findFreeCellapp: index=%1%.\n") % index);
 	std::advance(iter, index++);
 	return (*iter).pChannel;
 }
@@ -185,7 +185,8 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 	if(cellDataLength > 0)
 		(*pBundle).append(strEntityCellData.data(), cellDataLength);
 
-	DEBUG_MSG("Cellappmgr::reqCreateInNewSpace: entityType=%s, entityID=%d, componentID=%"PRAppID".\n", entityType.c_str(), id, componentID);
+	DEBUG_MSG(boost::format("Cellappmgr::reqCreateInNewSpace: entityType=%1%, entityID=%2%, componentID=%3%.\n") %
+		entityType.c_str() % id % componentID);
 
 	Mercury::Channel* lpChannel = findFreeCellapp();
 

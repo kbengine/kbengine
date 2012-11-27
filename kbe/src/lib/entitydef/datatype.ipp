@@ -77,8 +77,8 @@ bool IntType<SPECIFY_TYPE>::isSameType(PyObject* pyValue)
 	SPECIFY_TYPE val = (SPECIFY_TYPE)ival;
 	if(ival != int(val))
 	{
-		ERROR_MSG("IntType::isSameType:%d is out of range (currVal = %d).\n", 
-			ival, int(val));
+		ERROR_MSG(boost::format("IntType::isSameType:%1% is out of range (currVal = %2%).\n") %
+			ival % int(val));
 		
 		return false;
 	}

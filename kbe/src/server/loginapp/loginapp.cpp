@@ -127,8 +127,8 @@ void Loginapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, int32 startGloba
 	if(pChannel->isExternal())
 		return;
 
-	INFO_MSG("Loginapp::onDbmgrInitCompleted:startGlobalOrder=%d, startGroupOrder=%d.\n",
-		startGlobalOrder, startGroupOrder);
+	INFO_MSG(boost::format("Loginapp::onDbmgrInitCompleted:startGlobalOrder=%1%, startGroupOrder=%2%.\n") %
+		startGlobalOrder % startGroupOrder);
 
 	startGlobalOrder_ = startGlobalOrder;
 	startGroupOrder_ = startGroupOrder;
@@ -138,8 +138,8 @@ void Loginapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, int32 startGloba
 void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, std::string& accountName, 
 							 std::string& password)
 {
-	DEBUG_MSG("Loginapp::reqCreateAccount: accountName=%s, password=%s.\n", 
-		accountName.c_str(), password.c_str());
+	DEBUG_MSG(boost::format("Loginapp::reqCreateAccount: accountName=%1%, password=%2%.\n") %
+		accountName.c_str() % password.c_str());
 
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(accountName);
 	if(ptinfos != NULL)
@@ -182,8 +182,8 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, std::string& account
 void Loginapp::onReqCreateAccountResult(Mercury::Channel* pChannel, SERVER_ERROR_CODE failedcode, std::string& accountName, 
 							 std::string& password)
 {
-	DEBUG_MSG("Loginapp::onReqCreateAccountResult: accountName=%s, failedcode=%u.\n", 
-		accountName.c_str(), failedcode);
+	DEBUG_MSG(boost::format("Loginapp::onReqCreateAccountResult: accountName=%1%, failedcode=%2%.\n") %
+		accountName.c_str() % failedcode);
 
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
 	if(ptinfos == NULL)
@@ -238,8 +238,8 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	ptinfos->addr = pChannel->addr();
 	pendingLoginMgr_.add(ptinfos);
 
-	INFO_MSG("Loginapp::login: new client[%s], accountName=%s, datas=%s.\n", 
-		COMPONENT_CLIENT_NAME[ctype], accountName.c_str(), datas.c_str());
+	INFO_MSG(boost::format("Loginapp::login: new client[%1%], accountName=%2%, datas=%3%.\n") %
+		COMPONENT_CLIENT_NAME[ctype] % accountName.c_str() % datas.c_str());
 
 	// 首先必须baseappmgr和dbmgr都已经准备完毕了。
 	Components::COMPONENTS cts = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
@@ -275,7 +275,8 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& accountName, SERVER_ERROR_CODE failedcode)
 {
-	DEBUG_MSG("Loginapp::loginFailed: accountName=%s login is failed. failedcode=%s.\n", accountName.c_str(), SERVER_ERR_STR[failedcode]);
+	DEBUG_MSG(boost::format("Loginapp::loginFailed: accountName=%1% login is failed. failedcode=%2%.\n") %
+		accountName.c_str() % SERVER_ERR_STR[failedcode]);
 	
 	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(accountName);
 	if(infos == NULL)
@@ -365,7 +366,9 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pC
 		return;
 
 	Mercury::Address address(addr, port);
-	DEBUG_MSG("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:%s.\n", address.c_str());
+
+	DEBUG_MSG(boost::format("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:%1%.\n") % 
+		address.c_str());
 
 	// 这里可以不做删除， 仍然使其保留一段时间避免同一时刻同时登录造成意外影响
 	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(accountName);

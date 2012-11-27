@@ -63,7 +63,7 @@ ScriptID ScriptTimers::addTimer( float initialOffset,
 {
 	if (initialOffset < 0.f)
 	{
-		WARNING_MSG( "ScriptTimers::addTimer: Negative timer offset (%f)\n",
+		WARNING_MSG(boost::format("ScriptTimers::addTimer: Negative timer offset (%1%)\n") %
 				initialOffset );
 
 		initialOffset = 0.f;
@@ -431,7 +431,7 @@ PyObject * py_delTimer( PyObject * args )
 
 	if (!ScriptTimersUtil::delTimer( g_pTimers, timerID ))
 	{
-		ERROR_MSG( "KBEngine.delTimer: Unable to cancel timer %d\n",
+		ERROR_MSG(boost::format("KBEngine.delTimer: Unable to cancel timer %1%\n") %
 				timerID );
 	}
 

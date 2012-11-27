@@ -124,7 +124,7 @@ int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 //-------------------------------------------------------------------------------------
 void Proxy::onClientDeath(void)
 {
-	DEBUG_MSG("%s::onClientDeath: %d.\n", this->getScriptName(), this->getID());
+	DEBUG_MSG(boost::format("%1%::onClientDeath: %2%.\n") % this->getScriptName() % this->getID());
 
 	if(getClientMailbox() != NULL)
 	{
@@ -179,11 +179,11 @@ void Proxy::giveClientTo(Proxy* proxy)
 		EntityMailbox* mb = proxy->getClientMailbox();
 		if(mb != NULL)
 		{
-			ERROR_MSG("Proxy::giveClientTo: %s[%ld] give client to %s[%ld], %s have clientMailbox.", 
-					getScriptName(), 
-					getID(), 
-					proxy->getScriptName(), 
-					proxy->getID(), 
+			ERROR_MSG(boost::format("Proxy::giveClientTo: %1%[%2%] give client to %3%[%4%], %5% have clientMailbox.") % 
+					getScriptName() %
+					getID() %
+					proxy->getScriptName() % 
+					proxy->getID() %
 					proxy->getScriptName());
 
 			onGiveClientToFailure();

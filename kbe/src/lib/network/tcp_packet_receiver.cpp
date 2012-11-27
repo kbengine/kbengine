@@ -172,12 +172,12 @@ PacketReceiver::RecvState TCPPacketReceiver::checkSocketErrors(int len, bool exp
 #endif // unix
 
 #ifdef _WIN32
-	WARNING_MSG("TCPPacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK - %d\n",
+	WARNING_MSG(boost::format("TCPPacketReceiver::processPendingEvents: "
+				"Throwing REASON_GENERAL_NETWORK - %1%\n") %
 				wsaErr);
 #else
-	WARNING_MSG("TCPPacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK - %s\n",
+	WARNING_MSG(boost::format("TCPPacketReceiver::processPendingEvents: "
+				"Throwing REASON_GENERAL_NETWORK - %1%\n") %
 			kbe_strerror());
 #endif
 	this->dispatcher().errorReporter().reportException(

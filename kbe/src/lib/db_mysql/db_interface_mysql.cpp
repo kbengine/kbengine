@@ -63,7 +63,9 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 		{
 			if(mysql_select_db(mysql(), databaseName) != 0)
 			{
-				ERROR_MSG( "DBInterfaceMysql::attach: Could not set active db[%s]\n", databaseName);
+				ERROR_MSG(boost::format("DBInterfaceMysql::attach: Could not set active db[%1%]\n") %
+					databaseName);
+
 				return false;
 			}
 		}
@@ -74,12 +76,12 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 
 		if (mysql_set_character_set(mysql(), "utf8") != 0)
 		{
-			ERROR_MSG( "DBInterfaceMysql::attach: Could not set client connection character set to UTF-8\n" );
+			ERROR_MSG("DBInterfaceMysql::attach: Could not set client connection character set to UTF-8\n" );
 		}
 	}
 	catch (std::exception& e)
 	{
-		ERROR_MSG("DBInterfaceMysql::attach: %s\n", e.what() );
+		ERROR_MSG(boost::format("DBInterfaceMysql::attach: %1%\n") % e.what());
 		hasLostConnection_ = true;
 		return false;
 	}
@@ -110,7 +112,7 @@ bool DBInterfaceMysql::dropEntityTableFromDB(const char* tablename)
 {
 	KBE_ASSERT(tablename != NULL);
   
-	DEBUG_MSG("DBInterfaceMysql::dropEntityTableFromDB: %s.\n", tablename);
+	DEBUG_MSG(boost::format("DBInterfaceMysql::dropEntityTableFromDB: %1%.\n") % tablename);
 
 	char sql_str[MAX_BUF];
 	kbe_snprintf(sql_str, MAX_BUF, "Drop table if exists %s;", tablename);
@@ -122,7 +124,8 @@ bool DBInterfaceMysql::dropEntityTableItemFromDB(const char* tablename, const ch
 {
 	KBE_ASSERT(tablename != NULL && tableItemName != NULL);
   
-	DEBUG_MSG("DBInterfaceMysql::dropEntityTableItemFromDB: %s %s.\n", tablename, tableItemName);
+	DEBUG_MSG(boost::format("DBInterfaceMysql::dropEntityTableItemFromDB: %1% %2%.\n") % 
+		tablename % tableItemName);
 
 	char sql_str[MAX_BUF];
 	kbe_snprintf(sql_str, MAX_BUF, "alter table %s drop column %s;", tablename, tableItemName);
@@ -146,8 +149,8 @@ bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexeci
     {  
 		if(showexecinfo)
 		{
-			ERROR_MSG("DBInterfaceMysql::query: mysql is error(%d:%s)!\n", 
-				mysql_errno(pMysql_), mysql_error(pMysql_)); 
+			ERROR_MSG(boost::format("DBInterfaceMysql::query: mysql is error(%1%:%2%)!\n") % 
+				mysql_errno(pMysql_) % mysql_error(pMysql_)); 
 		}
         return false;
     }  

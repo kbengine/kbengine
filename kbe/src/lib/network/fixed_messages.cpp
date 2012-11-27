@@ -51,7 +51,7 @@ bool FixedMessages::loadConfig(std::string fileName)
 
 	if(!xml->isGood())
 	{
-		ERROR_MSG(" FixedMessages::loadConfig: load %s is failed!\n", fileName.c_str());
+		ERROR_MSG(boost::format(" FixedMessages::loadConfig: load %1% is failed!\n") % fileName.c_str());
 		SAFE_RELEASE(xml);
 		return false;
 	}

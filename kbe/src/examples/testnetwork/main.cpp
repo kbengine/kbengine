@@ -216,8 +216,8 @@ private:
 		// is len weird?
 		if (len == 0)
 		{
-			WARNING_MSG("PacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK (1)- %s\n",
+			WARNING_MSG(boost::format("PacketReceiver::processPendingEvents: "
+				"Throwing REASON_GENERAL_NETWORK (1)- %1%\n") %
 				kbe_strerror());
 
 			this->dispatcher().errorReporter().reportException(
@@ -288,12 +288,12 @@ private:
 
 		// ok, I give up, something's wrong
 	#ifdef _WIN32
-		WARNING_MSG("PacketReceiver::processPendingEvents: "
-					"Throwing REASON_GENERAL_NETWORK - %d\n",
+		WARNING_MSG(boost::format("PacketReceiver::processPendingEvents: "
+					"Throwing REASON_GENERAL_NETWORK - %1%\n") %
 					wsaErr);
 	#else
-		WARNING_MSG("PacketReceiver::processPendingEvents: "
-					"Throwing REASON_GENERAL_NETWORK - %s\n",
+		WARNING_MSG(boost::format("PacketReceiver::processPendingEvents: "
+					"Throwing REASON_GENERAL_NETWORK - %1%\n") %
 				kbe_strerror());
 	#endif
 		this->dispatcher().errorReporter().reportException(
@@ -341,8 +341,8 @@ struct DialogOption
 
 void init_network(void)
 {
-	boost::format s = boost::format("writing %1%,  x=%2% : %3%-th try") % "toto" % 40.23 % 50;
-	std::string ss = s.str();
+	
+	std::string ss = boost::str(boost::format("writing %1%,  x=%2% : %3%-th try") % "toto" % 40.23 % 50);
 	Mercury::g_trace_packet =  3;
 
 	mysocket.close();
@@ -389,7 +389,7 @@ void init_network(void)
 		mysocket.convertAddress(ip.c_str(), address );
 		if(mysocket.connect(htons(port), address) == -1)
 		{
-			ERROR_MSG("NetworkInterface::recreateListeningSocket: connect server is error(%s)!\n", kbe_strerror());
+			ERROR_MSG(boost::format("NetworkInterface::recreateListeningSocket: connect server is error(%1%)!\n") % kbe_strerror());
 			port = 0;
 			continue;
 		}
@@ -1184,7 +1184,7 @@ int main(int argc, char* argv[])
 	g_kbeSrvConfig.loadConfig("server/kbengine.xml");
 	Mercury::FixedMessages::getSingleton().loadConfig("../../res/server/fixed_mercury_messages.xml");
 	DebugHelper::initHelper(UNKNOWN_COMPONENT_TYPE);
-    INFO_MSG("ÄãºÃ£¬log4cxx---%d!---%s", 1, __FUNCTION__);
+    INFO_MSG(boost::format("ÄãºÃ£¬log4cxx---%1%!---%2%") % 1 % __FUNCTION__);
 	//LOG4CXX_INFO("Attempted to " << " in MemoryStream (pos:" << 111 <<  "size: " << 222 << ").\n");
 	init_network();
 	gdispatcher.processUntilBreak();

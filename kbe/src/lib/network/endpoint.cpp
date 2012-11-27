@@ -176,7 +176,7 @@ bool EndPoint::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 				unsigned long addrs = *(unsigned long*)inaddrs->h_addr_list[count];
 				interfaces[addrs] = "eth0";
 				char *ip = inet_ntoa (*(struct in_addr *)inaddrs->h_addr_list[count]);
-				DEBUG_MSG("EndPoint::getInterfaces: found eth0 %s\n", ip);
+				DEBUG_MSG(boost::format("EndPoint::getInterfaces: found eth0 %1%\n") % ip);
 				++count;
 			}
 		}
@@ -287,8 +287,8 @@ int EndPoint::findIndicatedInterface(const char * spec, char * name)
 
 		if (!ok)
 		{
-			ERROR_MSG("EndPoint::findIndicatedInterface: "
-				"netmask match %s length %s is not valid.\n", iftemp, slash+1);
+			ERROR_MSG(boost::format("EndPoint::findIndicatedInterface: "
+				"netmask match %1% length %2% is not valid.\n") % iftemp % (slash+1));
 			return -1;
 		}
 	}
@@ -304,8 +304,8 @@ int EndPoint::findIndicatedInterface(const char * spec, char * name)
 	}
 	else
 	{
-		ERROR_MSG("EndPoint::findIndicatedInterface: "
-			"No interface matching interface spec '%s' found\n", spec);
+		ERROR_MSG(boost::format("EndPoint::findIndicatedInterface: "
+			"No interface matching interface spec '%1%' found\n") % spec);
 		return -1;
 	}
 
@@ -355,10 +355,10 @@ int EndPoint::findIndicatedInterface(const char * spec, char * name)
 		if (name[0] == 0)
 		{
 			uint8 * qik = (uint8*)&addr;
-			ERROR_MSG("EndPoint::findIndicatedInterface: "
-				"No interface matching netmask spec '%s' found "
-				"(evals to %d.%d.%d.%d/%d)\n", spec,
-				qik[0], qik[1], qik[2], qik[3], netmaskbits);
+			ERROR_MSG(boost::format("EndPoint::findIndicatedInterface: "
+				"No interface matching netmask spec '%1%' found "
+				"(evals to %2%.%3%.%4%.%5%/%6%)\n") % spec %
+				qik[0] % qik[1] % qik[2] % qik[3] % netmaskbits);
 
 			return -2; // parsing ok, just didn't match
 		}
@@ -462,9 +462,9 @@ int EndPoint::getBufferSize(int optname) const
 	}
 	else
 	{
-		ERROR_MSG("EndPoint::getBufferSize: "
-			"Failed to read option %s: %s\n",
-			optname == SO_SNDBUF ? "SO_SNDBUF" : "SO_RCVBUF",
+		ERROR_MSG(boost::format("EndPoint::getBufferSize: "
+			"Failed to read option %1%: %2%\n") %
+			optname == SO_SNDBUF ? "SO_SNDBUF" : "SO_RCVBUF" %
 			kbe_strerror());
 
 		return -1;
@@ -501,7 +501,7 @@ bool EndPoint::recvAll(void * gramData, int gramSize)
 			}
 			else
 			{
-				WARNING_MSG("EndPoint::recvAll: Got error '%s'\n",
+				WARNING_MSG(boost::format("EndPoint::recvAll: Got error '%1%'\n") %
 					kbe_strerror());
 			}
 
