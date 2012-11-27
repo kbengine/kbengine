@@ -5,6 +5,8 @@ SRCS =						\
 	baseapp					\
 	baseapp_interface			\
 	backup_sender				\
+	data_download				\
+	data_downloads				\
 	forward_message_over_handler		\
 	sync_entitystreamtemplate_handler	\
 	main					\

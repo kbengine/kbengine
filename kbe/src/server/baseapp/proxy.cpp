@@ -10,6 +10,8 @@ namespace KBEngine{
 
 SCRIPT_METHOD_DECLARE_BEGIN(Proxy)
 SCRIPT_METHOD_DECLARE("giveClientTo",					pyGiveClientTo,					METH_VARARGS,			0)
+SCRIPT_METHOD_DECLARE("streamStringToClient",			pyStreamStringToClient,			METH_VARARGS,			0)
+SCRIPT_METHOD_DECLARE("streamFileToClient",				pyStreamFileToClient,			METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Proxy)
@@ -23,7 +25,8 @@ BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)
 Proxy::Proxy(ENTITY_ID id, const ScriptDefModule* scriptModule):
 Base(id, scriptModule, getScriptType(), true),
 rndUUID_(KBEngine::genUUID64()),
-addr_(Mercury::Address::NONE)
+addr_(Mercury::Address::NONE),
+dataDownloads_()
 {
 	Baseapp::getSingleton().incProxicesCount();
 }
@@ -224,6 +227,174 @@ void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
 		getCellMailbox()->postMail((*pBundle));
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
+{
+	uint16 currargsSize = PyTuple_Size(args);
+	Proxy* pobj = static_cast<Proxy*>(self);
+
+	if(currargsSize > 3)
+	{
+		PyErr_Format(PyExc_AssertionError,
+						"Proxy::streamFileToClient: args max require 3 args, gived %d! is script[%s].\n",
+			currargsSize, pobj->getScriptName());
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	PyObject* pyResourceName = NULL;
+	PyObject* pyDesc = NULL;
+	int16 id = -1;
+
+	if(currargsSize >= 1)
+	{
+		if(PyArg_ParseTuple(args, "O", &pyResourceName) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: args is error!");
+			PyErr_PrintEx(0);
+			return NULL;
+		}
+	}
+	else if(currargsSize == 2)
+	{
+		if(PyArg_ParseTuple(args, "O|O", &pyResourceName, &pyDesc) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: args is error!");
+			PyErr_PrintEx(0);
+			return NULL;
+		}
+	}
+	else if(currargsSize == 3)
+	{
+		if(PyArg_ParseTuple(args, "O|O|H", &pyResourceName, &pyDesc, &id) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: args is error!");
+			PyErr_PrintEx(0);
+			return NULL;
+		}
+	}
+
+	char* pDescr = NULL;
+
+	if(pDescr != NULL)
+	{
+		wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(pyDesc, NULL);
+		pDescr = wchar2char(PyUnicode_AsWideCharStringRet1);
+		PyMem_Free(PyUnicode_AsWideCharStringRet1);
+	}
+
+	bool enable = true;
+
+	if(strlen(pDescr) > 255)
+	{
+		enable = false;
+	}
+
+	int16 rid = -1;
+
+	if(enable)
+		rid = pobj->streamFileToClient(pyResourceName, 
+								(pDescr == NULL ? "" : pDescr),  
+								id);
+
+	if(pDescr)
+		free(pDescr);
+
+	return PyLong_FromLong(rid);
+}
+
+//-------------------------------------------------------------------------------------
+int16 Proxy::streamFileToClient(PyObjectPtr objptr, 
+	const std::string& descr, int16 id)
+{
+	return dataDownloads_.pushDownload(DataDownloadFactory::create(
+		DataDownloadFactory::DATA_DOWNLOAD_STREAM_FILE, objptr, descr, id));
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
+{
+	uint16 currargsSize = PyTuple_Size(args);
+	Proxy* pobj = static_cast<Proxy*>(self);
+
+	if(currargsSize > 3)
+	{
+		PyErr_Format(PyExc_AssertionError,
+						"Proxy::streamStringToClient: args max require 3 args, gived %d! is script[%s].\n",
+			currargsSize, pobj->getScriptName());
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	PyObject* pyData = NULL;
+	PyObject* pyDesc = NULL;
+	int16 id = -1;
+
+	if(currargsSize >= 1)
+	{
+		if(PyArg_ParseTuple(args, "O", &pyData) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "Proxy::streamStringToClient: args is error!");
+			PyErr_PrintEx(0);
+			return NULL;
+		}
+	}
+	else if(currargsSize == 2)
+	{
+		if(PyArg_ParseTuple(args, "O|O", &pyData, &pyDesc) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "Proxy::streamStringToClient: args is error!");
+			PyErr_PrintEx(0);
+			return NULL;
+		}
+	}
+	else if(currargsSize == 3)
+	{
+		if(PyArg_ParseTuple(args, "O|O|H", &pyData, &pyDesc, &id) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "Proxy::streamStringToClient: args is error!");
+			PyErr_PrintEx(0);
+			return NULL;
+		}
+	}
+
+	char* pDescr = NULL;
+
+	if(pDescr != NULL)
+	{
+		wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(pyDesc, NULL);
+		pDescr = wchar2char(PyUnicode_AsWideCharStringRet1);
+		PyMem_Free(PyUnicode_AsWideCharStringRet1);
+	}
+
+	bool enable = true;
+
+	if(strlen(pDescr) > 255)
+	{
+		enable = false;
+	}
+
+	int16 rid = -1;
+
+	if(enable)
+		rid = pobj->streamStringToClient(pyData, 
+								(pDescr == NULL ? "" : pDescr),  
+								id);
+
+	if(pDescr)
+		free(pDescr);
+
+	return PyLong_FromLong(rid);
+}
+
+//-------------------------------------------------------------------------------------
+int16 Proxy::streamStringToClient(PyObjectPtr objptr, 
+	const std::string& descr, int16 id)
+{
+	return dataDownloads_.pushDownload(DataDownloadFactory::create(
+		DataDownloadFactory::DATA_DOWNLOAD_STREAM_STRING, objptr, descr, id));
 }
 
 //-------------------------------------------------------------------------------------

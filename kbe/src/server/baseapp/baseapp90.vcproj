@@ -200,6 +200,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\data_download.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\data_downloads.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\forward_message_over_handler.cpp"
 				>
 			</File>
@@ -257,6 +265,14 @@
 			</File>
 			<File
 				RelativePath=".\baseapp_interface_macros.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\data_download.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\data_downloads.hpp"
 				>
 			</File>
 			<File

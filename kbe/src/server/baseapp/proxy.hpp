@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 // common include
 #include "base.hpp"
+#include "data_downloads.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/address.hpp"
@@ -88,15 +89,33 @@ public:
 	*/
 	INLINE uint64 rndUUID()const;
 	INLINE void rndUUID(uint64 uid);
-public:
-	/** 将其自身所关联的客户端转给另一个proxy去关联 */
+
+	/** 
+		将其自身所关联的客户端转给另一个proxy去关联 
+	*/
 	void giveClientTo(Proxy* proxy);
 	void onGiveClientTo(Mercury::Channel* lpChannel);
 	void onGiveClientToFailure();
 	DECLARE_PY_MOTHOD_ARG1(pyGiveClientTo, PyObject_ptr);
+
+	/**
+		文件流数据下载
+	*/
+	static PyObject* __py_pyStreamFileToClient(PyObject* self, PyObject* args);
+	int16 streamFileToClient(PyObjectPtr objptr, 
+		const std::string& descr = "", int16 id = -1);
+
+	/**
+		字符串流数据下载
+	*/
+	static PyObject* __py_pyStreamStringToClient(PyObject* self, PyObject* args);
+	int16 streamStringToClient(PyObjectPtr objptr, 
+		const std::string& descr = "", int16 id = -1);
+
 protected:
 	uint64 rndUUID_;
 	Mercury::Address addr_;
+	DataDownloads dataDownloads_;
 };
 
 }
