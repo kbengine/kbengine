@@ -98,6 +98,8 @@ public:
 	double gameTimeInSeconds() const;
 	void handleTimers();
 
+	thread::ThreadPool& threadPool(){ return threadPool_; }
+
 	Mercury::EventDispatcher & getMainDispatcher()				{ return mainDispatcher_; }
 	Mercury::NetworkInterface & getNetworkInterface()			{ return networkInterface_; }
 

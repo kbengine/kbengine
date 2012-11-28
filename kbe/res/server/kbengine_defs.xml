@@ -40,6 +40,10 @@
 		</defaultAoIRadius>
 		
 		<internalInterface>  </internalInterface>
+		
+		<ids>
+			<criticallyLowSize> 500 </criticallyLowSize> <!-- Type: Integer -->
+		</ids>
 	</cellapp>
 	
 	<baseapp>
@@ -55,6 +59,15 @@
 		<backUpUndefinedProperties> 0 </backUpUndefinedProperties>	<!-- Type: Boolean -->
 		
 		<loadSmoothingBias> 0.01 </loadSmoothingBias>
+		
+		<downloadStreaming>
+			<bitsPerSecondTotal> 1000000 </bitsPerSecondTotal> <!-- Type: Int -->
+			<bitsPerSecondPerClient> 100000 </bitsPerSecondPerClient> <!-- Type: Int -->
+		</downloadStreaming>
+		
+		<ids>
+			<criticallyLowSize> 500 </criticallyLowSize> <!-- Type: Integer -->
+		</ids>
 	</baseapp>
 	
 	<cellappmgr>
@@ -93,5 +106,10 @@
 	
 	<resourcemgr>
 		<internalInterface>  </internalInterface>
+		
+		<downloadStreaming>
+			<bitsPerSecondTotal> 1000000 </bitsPerSecondTotal> <!-- Type: Int -->
+			<bitsPerSecondPerClient> 100000 </bitsPerSecondPerClient> <!-- Type: Int -->
+		</downloadStreaming>
 	</resourcemgr>
 </root>

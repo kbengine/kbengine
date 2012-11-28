@@ -104,8 +104,8 @@ public:
 		
 	virtual ~TPThread()
 	{
-		uninitCond();
-		uninitMutex();
+		deleteCond();
+		deleteMutex();
 	}
 	
 	virtual void onStart(){}
@@ -129,12 +129,12 @@ public:
 		THREAD_MUTEX_INIT(mutex_);	
 	}
 
-	virtual void uninitCond(void)
+	virtual void deleteCond(void)
 	{
 		THREAD_SINGNAL_DELETE(cond_);
 	}
 	
-	virtual void uninitMutex(void)
+	virtual void deleteMutex(void)
 	{
 		THREAD_MUTEX_DELETE(mutex_);
 	}
@@ -339,7 +339,7 @@ protected:
 	bool isInitialize_;												// 线程池是否被初始化过
 	
 	std::queue<TPTask*> bufferedTaskList_;							// 系统处于繁忙时还未处理的任务列表
-	std::vector<TPTask*> finiTaskList_;								// 已经完成的任务列表
+	std::list<TPTask*> finiTaskList_;								// 已经完成的任务列表
 	
 	THREAD_MUTEX bufferedTaskList_mutex_;							// 处理bufferTaskList互斥锁
 	THREAD_MUTEX threadStateList_mutex_;							// 处理bufferTaskList and freeThreadList_互斥锁

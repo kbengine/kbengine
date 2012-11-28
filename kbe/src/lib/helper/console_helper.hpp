@@ -80,6 +80,12 @@ namespace ConsoleInterface{
 			msgID = CONSOLE_COMMANDCB_MSGID;
 			msgLen = MERCURY_VARIABLE_MESSAGE;
 		}
+
+		virtual int32 msglenMax()
+		{ 
+			return MERCURY_MESSAGE_MAX_SIZE * 1000; 
+		}
+
 		virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
 		{
 		};
@@ -96,9 +102,16 @@ namespace ConsoleInterface{
 		{															
 			return MERCURY_VARIABLE_MESSAGE;								
 		}		
+
+		virtual int32 msglenMax()
+		{ 
+			return MERCURY_MESSAGE_MAX_SIZE * 1000; 
+		}
+
 		virtual void addToStream(MemoryStream& s)					
 		{																									
-		}															
+		}			
+
 		virtual void createFromStream(MemoryStream& s)				
 		{																										
 		}	

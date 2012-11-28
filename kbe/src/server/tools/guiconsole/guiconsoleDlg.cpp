@@ -622,7 +622,13 @@ RESTART_RECV:
 					{
 						if(!isfirstget)
 						{
-							args.createFromStream(*bhandler.pCurrPacket());
+							try
+							{
+								args.createFromStream(*bhandler.pCurrPacket());
+							}catch(MemoryStreamException &)
+							{
+								break;
+							}
 						}
 
 						if(args.componentType == UNKNOWN_COMPONENT_TYPE)

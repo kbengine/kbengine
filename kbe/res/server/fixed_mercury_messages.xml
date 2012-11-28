@@ -182,6 +182,22 @@
 		<arg>INT32</arg> <!-- entityID int32 -->
 	</Client::onEntityDestroyed>
 	
+	<Client::onStreamDataStarted>
+		<id>514</id>
+		<descr>服务器告知客户端数据流开始下载。
+		</descr>
+		<arg>INT16</arg> <!-- 一个下载句柄 INT16 -->
+		<arg>STRING</arg> <!-- 描述 -->
+	</Client::onStreamDataStarted>
+	
+	<Client::onStreamDataRecv>
+		<id>515</id>
+		<descr>客户端接收到数据流。
+		</descr>
+		<arg>INT16</arg> <!-- 一个下载句柄 INT16 -->
+		<arg>UINT8_ARRAY</arg> <!-- 二进制流 -->
+	</Client::onStreamDataRecv>
+	
 	<Property::position>
 		<id>40000</id>
 		<descr>位置属性。</descr>

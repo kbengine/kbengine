@@ -85,10 +85,11 @@ bool DBTask::process()
 }
 
 //-------------------------------------------------------------------------------------
-void EntityDBTask::presentMainThread()
+thread::TPTask::TPTaskState EntityDBTask::presentMainThread()
 {
 	KBE_ASSERT(_pBuffered_DBTasks != NULL);
 	_pBuffered_DBTasks->onFiniTask(this);
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
 //-------------------------------------------------------------------------------------
@@ -124,13 +125,13 @@ bool DBTaskExecuteRawDatabaseCommand::db_thread_process()
 }
 
 //-------------------------------------------------------------------------------------
-void DBTaskExecuteRawDatabaseCommand::presentMainThread()
+thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommand::presentMainThread()
 {
 	DEBUG_MSG(boost::format("Dbmgr::executeRawDatabaseCommand:%1%.\n") % sdatas_.c_str());
 
 	// 如果不需要回调则结束
 	if(callbackID_ <= 0)
-		return;
+		return thread::TPTask::TPTASK_STATE_COMPLETED;
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
@@ -161,6 +162,7 @@ void DBTaskExecuteRawDatabaseCommand::presentMainThread()
 	}
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
 //-------------------------------------------------------------------------------------
@@ -213,13 +215,12 @@ bool DBTaskWriteEntity::db_thread_process()
 }
 
 //-------------------------------------------------------------------------------------
-void DBTaskWriteEntity::presentMainThread()
+thread::TPTask::TPTaskState DBTaskWriteEntity::presentMainThread()
 {
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
 	DEBUG_MSG(boost::format("Dbmgr::writeEntity: %1%(%2%).\n") % pModule->getName() % entityDBID_);
 
 	// 返回写entity的结果， 成功或者失败
-	// callbackID_
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::onWriteToDBCallback);
@@ -232,7 +233,8 @@ void DBTaskWriteEntity::presentMainThread()
 	}
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-	EntityDBTask::presentMainThread();
+	
+	return EntityDBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
@@ -267,11 +269,11 @@ bool DBTaskRemoveEntity::db_thread_process()
 }
 
 //-------------------------------------------------------------------------------------
-void DBTaskRemoveEntity::presentMainThread()
+thread::TPTask::TPTaskState DBTaskRemoveEntity::presentMainThread()
 {
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
 	DEBUG_MSG(boost::format("Dbmgr::removeEntity: %1%(%2%).\n") % pModule->getName() % entityDBID_);
-	EntityDBTask::presentMainThread();
+	return EntityDBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
@@ -317,7 +319,7 @@ bool DBTaskCreateAccount::db_thread_process()
 }
 
 //-------------------------------------------------------------------------------------
-void DBTaskCreateAccount::presentMainThread()
+thread::TPTask::TPTaskState DBTaskCreateAccount::presentMainThread()
 {
 	DEBUG_MSG(boost::format("Dbmgr::reqCreateAccount:%1%.\n") % accountName_.c_str());
 
@@ -336,6 +338,8 @@ void DBTaskCreateAccount::presentMainThread()
 	}
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
 //-------------------------------------------------------------------------------------
@@ -407,7 +411,7 @@ bool DBTaskQueryAccount::db_thread_process()
 }
 
 //-------------------------------------------------------------------------------------
-void DBTaskQueryAccount::presentMainThread()
+thread::TPTask::TPTaskState DBTaskQueryAccount::presentMainThread()
 {
 	DEBUG_MSG(boost::format("Dbmgr::queryAccount:%1%.\n") % accountName_.c_str());
 
@@ -430,7 +434,7 @@ void DBTaskQueryAccount::presentMainThread()
 	}
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-	EntityDBTask::presentMainThread();
+	return EntityDBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
@@ -455,7 +459,7 @@ bool DBTaskAccountOnline::db_thread_process()
 }
 
 //-------------------------------------------------------------------------------------
-void DBTaskAccountOnline::presentMainThread()
+thread::TPTask::TPTaskState DBTaskAccountOnline::presentMainThread()
 {
 	DEBUG_MSG(boost::format("Dbmgr::onAccountOnline:componentID:%1%, entityID:%2%.\n") % componentID_ % entityID_);
 
@@ -476,6 +480,8 @@ void DBTaskAccountOnline::presentMainThread()
 		}
 	}
 	*/
+
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
 //-------------------------------------------------------------------------------------
@@ -501,9 +507,10 @@ bool DBTaskEntityOffline::db_thread_process()
 }
 
 //-------------------------------------------------------------------------------------
-void DBTaskEntityOffline::presentMainThread()
+thread::TPTask::TPTaskState DBTaskEntityOffline::presentMainThread()
 {
 	DEBUG_MSG(boost::format("Dbmgr::onEntityOffline:%1%.\n") % dbid_);
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
 //-------------------------------------------------------------------------------------
@@ -559,7 +566,7 @@ bool DBTaskAccountLogin::db_thread_process()
 }
 
 //-------------------------------------------------------------------------------------
-void DBTaskAccountLogin::presentMainThread()
+thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 {
 	DEBUG_MSG(boost::format("Dbmgr::onAccountLogin:%1%.\n") % accountName_.c_str());
 
@@ -580,6 +587,7 @@ void DBTaskAccountLogin::presentMainThread()
 	}
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
 //-------------------------------------------------------------------------------------
@@ -626,7 +634,7 @@ bool DBTaskQueryEntity::db_thread_process()
 }
 
 //-------------------------------------------------------------------------------------
-void DBTaskQueryEntity::presentMainThread()
+thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 {
 	DEBUG_MSG(boost::format("Dbmgr::DBTaskQueryEntity:%1%.\n") % entityType_.c_str());
 
@@ -650,7 +658,8 @@ void DBTaskQueryEntity::presentMainThread()
 	}
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-	EntityDBTask::presentMainThread();
+
+	return EntityDBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------

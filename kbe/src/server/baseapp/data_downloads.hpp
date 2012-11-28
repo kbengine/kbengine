@@ -36,8 +36,10 @@ public:
 	~DataDownloads();
 	
 	int16 pushDownload(DataDownload* pdl);
+
+	void onDownloadCompleted(DataDownload* pdl);
 private:
-	std::list< std::tr1::shared_ptr<DataDownload> > downloads_;
+	std::map<int16, DataDownload*> downloads_;
 };
 
 class DataDownloadFactory

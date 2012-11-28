@@ -108,6 +108,15 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	// 服务器更新entity属性
 	CLIENT_MESSAGE_DECLARE_STREAM(onUpdatePropertys,			MERCURY_VARIABLE_MESSAGE)
 
+	// download stream开始了 
+	CLIENT_MESSAGE_DECLARE_ARGS3(onStreamDataStarted,			MERCURY_VARIABLE_MESSAGE,
+									int16,						id,
+									uint32,						datasize,
+									std::string,				descr)
+
+	// 接收到streamData
+	CLIENT_MESSAGE_DECLARE_STREAM(onStreamDataRecv,				MERCURY_VARIABLE_MESSAGE)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

@@ -191,6 +191,16 @@ public:
 		服务器更新entity属性
 	*/
 	virtual void onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		download stream开始了 
+	*/
+	virtual void onStreamDataStarted(Mercury::Channel* pChannel, int16 id, uint32 datasize, std::string& descr);
+
+	/** 网络接口
+		接收到streamData
+	*/
+	virtual void onStreamDataRecv(Mercury::Channel* pChannel, MemoryStream& s);
 protected:
 	COMPONENT_TYPE											componentType_;
 

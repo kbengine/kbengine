@@ -36,7 +36,25 @@ namespace KBEngine{ namespace thread{
 class TPTask : public Task
 {
 public:
-	virtual void presentMainThread(){}
+	enum TPTaskState
+	{
+		/// 一个任务已经完成
+		TPTASK_STATE_COMPLETED = 0,
+
+		/// 继续在主线程执行
+		TPTASK_STATE_CONTINUE_MAINTHREAD = 1,
+
+		// 继续在子线程执行
+		TPTASK_STATE_CONTINUE_CHILDTHREAD = 2,
+	};
+
+	/**
+		返回值： true， 代表任务执行完毕可以销毁任务了
+				 否则继续添加到线程执行
+	*/
+	virtual thread::TPTask::TPTaskState presentMainThread(){ 
+		return thread::TPTask::TPTASK_STATE_COMPLETED; 
+	}
 };
 
 }

@@ -74,7 +74,7 @@ ThreadPool::~ThreadPool()
 		}
 	}
 	
-	std::vector<TPTask*>::iterator finiiter  = finiTaskList_.begin();
+	std::list<TPTask*>::iterator finiiter  = finiTaskList_.begin();
 	for(; finiiter != finiTaskList_.end(); finiiter++)
 	{
 		delete (*finiiter);
@@ -157,15 +157,32 @@ bool ThreadPool::createThreadPool(unsigned int inewThreadCount,
 void ThreadPool::onMainThreadTick()
 {
 	THREAD_MUTEX_LOCK(finiTaskList_mutex_);
-	
-	std::vector<TPTask*>::iterator finiiter  = finiTaskList_.begin();
-	for(; finiiter != finiTaskList_.end(); finiiter++)
+
+	std::list<TPTask*>::iterator finiiter  = finiTaskList_.begin();
+
+	for(; finiiter != finiTaskList_.end(); )
 	{
-		(*finiiter)->presentMainThread();
-		delete (*finiiter);
+		thread::TPTask::TPTaskState state = (*finiiter)->presentMainThread();
+
+		switch(state)
+		{
+		case thread::TPTask::TPTASK_STATE_COMPLETED:
+			delete (*finiiter);
+			finiTaskList_.erase(finiiter++);
+			break;
+		case thread::TPTask::TPTASK_STATE_CONTINUE_CHILDTHREAD:
+			this->addTask((*finiiter));
+			finiTaskList_.erase(finiiter++);
+			break;
+		case thread::TPTask::TPTASK_STATE_CONTINUE_MAINTHREAD:
+			++finiiter;
+			break;
+		default:
+			KBE_ASSERT(false);
+			break;
+		};
 	}
-	
-	finiTaskList_.clear();
+
 	THREAD_MUTEX_UNLOCK(finiTaskList_mutex_);	
 }
 

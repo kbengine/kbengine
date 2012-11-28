@@ -236,6 +236,14 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 	uint16 currargsSize = PyTuple_Size(args);
 	Proxy* pobj = static_cast<Proxy*>(self);
 
+	if(pobj->getClientMailbox() == NULL)
+	{
+		PyErr_Format(PyExc_AssertionError,
+						"Proxy::streamStringToClient: has no client.\n");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
 	if(currargsSize > 3)
 	{
 		PyErr_Format(PyExc_AssertionError,
@@ -286,19 +294,19 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 		PyMem_Free(PyUnicode_AsWideCharStringRet1);
 	}
 
-	bool enable = true;
-
-	if(strlen(pDescr) > 255)
+	if(pDescr && strlen(pDescr) > 255)
 	{
-		enable = false;
+		PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: the descr-size(%d > 255) too big!", 
+			strlen(pDescr));
+
+		PyErr_PrintEx(0);
+		free(pDescr);
+		return NULL;
 	}
 
-	int16 rid = -1;
-
-	if(enable)
-		rid = pobj->streamFileToClient(pyResourceName, 
-								(pDescr == NULL ? "" : pDescr),  
-								id);
+	int16 rid = pobj->streamFileToClient(pyResourceName, 
+							(pDescr == NULL ? "" : pDescr),  
+							id);
 
 	if(pDescr)
 		free(pDescr);
@@ -313,7 +321,7 @@ int16 Proxy::streamFileToClient(PyObjectPtr objptr,
 	DataDownload* pDataDownload = DataDownloadFactory::create(
 		DataDownloadFactory::DATA_DOWNLOAD_STREAM_FILE, objptr, descr, id);
 
-	pDataDownload->pDataDownloads(&dataDownloads_);
+	pDataDownload->entityID(this->getID());
 	return dataDownloads_.pushDownload(pDataDownload);
 }
 
@@ -322,6 +330,14 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 {
 	uint16 currargsSize = PyTuple_Size(args);
 	Proxy* pobj = static_cast<Proxy*>(self);
+
+	if(pobj->getClientMailbox() == NULL)
+	{
+		PyErr_Format(PyExc_AssertionError,
+						"Proxy::streamStringToClient: has no client.\n");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
 
 	if(currargsSize > 3)
 	{
@@ -373,19 +389,19 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 		PyMem_Free(PyUnicode_AsWideCharStringRet1);
 	}
 
-	bool enable = true;
-
-	if(strlen(pDescr) > 255)
+	if(pDescr && strlen(pDescr) > 255)
 	{
-		enable = false;
+		PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: the descr-size(%d > 255) too big!", 
+			strlen(pDescr));
+
+		PyErr_PrintEx(0);
+		free(pDescr);
+		return NULL;
 	}
 
-	int16 rid = -1;
-
-	if(enable)
-		rid = pobj->streamStringToClient(pyData, 
-								(pDescr == NULL ? "" : pDescr),  
-								id);
+	int16 rid = pobj->streamStringToClient(pyData, 
+						(pDescr == NULL ? "" : pDescr),  
+						id);
 
 	if(pDescr)
 		free(pDescr);
@@ -400,7 +416,7 @@ int16 Proxy::streamStringToClient(PyObjectPtr objptr,
 	DataDownload* pDataDownload = DataDownloadFactory::create(
 		DataDownloadFactory::DATA_DOWNLOAD_STREAM_STRING, objptr, descr, id);
 
-	pDataDownload->pDataDownloads(&dataDownloads_);
+	pDataDownload->entityID(this->getID());
 	return dataDownloads_.pushDownload(pDataDownload);
 }
 

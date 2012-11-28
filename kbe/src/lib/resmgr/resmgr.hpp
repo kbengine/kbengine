@@ -56,6 +56,7 @@ public:
 
 	// 从资源路径中(环境变量中指定的)匹配到完整的资源地址
 	std::string matchRes(std::string path);
+	std::string matchRes(const char* path);
 
 	const std::vector<std::string>& respaths() { return respaths_; }
 
@@ -64,6 +65,8 @@ public:
 	bool isInit(){ return isInit_; }
 
 	std::string getPySysResPath();
+
+	FILE* openResource(const char* res, const char* model);
 private:
 	KBEEnv kb_env_;
 	std::vector<std::string> respaths_;

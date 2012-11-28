@@ -58,7 +58,7 @@ public:
 	virtual ~DBTask();
 	virtual bool process();
 	virtual bool db_thread_process() = 0;
-	virtual void presentMainThread(){}
+	virtual thread::TPTask::TPTaskState presentMainThread(){ return thread::TPTask::TPTASK_STATE_COMPLETED; }
 
 	bool send(Mercury::Bundle& bundle);
 
@@ -97,7 +97,7 @@ public:
 	DBID EntityDBTask_entityDBID()const { return _entityDBID; }
 	
 	void pBuffered_DBTasks(Buffered_DBTasks* v){ _pBuffered_DBTasks = v; }
-	virtual void presentMainThread();
+	virtual thread::TPTask::TPTaskState presentMainThread();
 private:
 	ENTITY_ID _entityID;
 	DBID _entityDBID;
@@ -113,7 +113,7 @@ public:
 	DBTaskExecuteRawDatabaseCommand(const Mercury::Address& addr, MemoryStream& datas);
 	virtual ~DBTaskExecuteRawDatabaseCommand();
 	virtual bool db_thread_process();
-	virtual void presentMainThread();
+	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
 	COMPONENT_ID componentID_;
 	COMPONENT_TYPE componentType_;
@@ -134,7 +134,7 @@ public:
 
 	virtual ~DBTaskWriteEntity();
 	virtual bool db_thread_process();
-	virtual void presentMainThread();
+	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
 	COMPONENT_ID componentID_;
 	ENTITY_ID eid_;
@@ -155,7 +155,7 @@ public:
 
 	virtual ~DBTaskRemoveEntity();
 	virtual bool db_thread_process();
-	virtual void presentMainThread();
+	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
 	COMPONENT_ID componentID_;
 	ENTITY_ID eid_;
@@ -172,7 +172,7 @@ public:
 	DBTaskCreateAccount(const Mercury::Address& addr, std::string& accountName, std::string& password);
 	virtual ~DBTaskCreateAccount();
 	virtual bool db_thread_process();
-	virtual void presentMainThread();
+	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
 	std::string accountName_;
 	std::string password_;
@@ -190,7 +190,7 @@ public:
 		COMPONENT_ID componentID, ENTITY_ID entityID, DBID entityDBID);
 	virtual ~DBTaskQueryAccount();
 	virtual bool db_thread_process();
-	virtual void presentMainThread();
+	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
 	std::string accountName_;
 	std::string password_;
@@ -211,7 +211,7 @@ public:
 		COMPONENT_ID componentID, ENTITY_ID entityID);
 	virtual ~DBTaskAccountOnline();
 	virtual bool db_thread_process();
-	virtual void presentMainThread();
+	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
 	std::string accountName_;
 	COMPONENT_ID componentID_;
@@ -228,7 +228,7 @@ public:
 	DBTaskEntityOffline(const Mercury::Address& addr, DBID dbid);
 	virtual ~DBTaskEntityOffline();
 	virtual bool db_thread_process();
-	virtual void presentMainThread();
+	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
 	DBID dbid_;
 };
@@ -243,7 +243,7 @@ public:
 	DBTaskAccountLogin(const Mercury::Address& addr, std::string& accountName, std::string& password);
 	virtual ~DBTaskAccountLogin();
 	virtual bool db_thread_process();
-	virtual void presentMainThread();
+	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
 	std::string accountName_;
 	std::string password_;
@@ -264,7 +264,7 @@ public:
 
 	virtual ~DBTaskQueryEntity();
 	virtual bool db_thread_process();
-	virtual void presentMainThread();
+	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
 	std::string entityType_;
 	DBID dbid_;

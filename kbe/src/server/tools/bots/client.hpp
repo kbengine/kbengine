@@ -47,7 +47,9 @@ public:
 	bool send(Mercury::Bundle& bundle);
 
 	virtual bool process();
-	virtual void presentMainThread(){}
+	virtual thread::TPTask::TPTaskState presentMainThread(){ 
+		return thread::TPTask::TPTASK_STATE_COMPLETED; 
+	}
 
 	bool initNetwork();
 

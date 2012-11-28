@@ -152,7 +152,14 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 		while(packet.opsize() > 0)
 		{
 			MachineInterface::onBroadcastInterfaceArgs8 args;
-			args.createFromStream(packet);
+			
+			try
+			{
+				args.createFromStream(packet);
+			}catch(MemoryStreamException &)
+			{
+				goto END;
+			}
 
 			INFO_MSG(boost::format("CConnectRemoteMachineWindow::OnBnClickedOk: found %1%, addr:%2%:%3%\n") %
 				COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType) % inet_ntoa((struct in_addr&)args.intaddr) % ntohs(args.intaddr));
@@ -162,7 +169,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 
 		}
 	}
-	
+END:
 	dlg->updateTree();
 	delete endpoint;
 	wchar_t* wcommand = KBEngine::char2wchar(command.c_str());

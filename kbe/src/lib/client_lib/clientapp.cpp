@@ -222,5 +222,15 @@ void ClientApp::onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s)
 {
 }
 
+//-------------------------------------------------------------------------------------
+void ClientApp::onStreamDataStarted(Mercury::Channel* pChannel, int16 id, uint32 datasize, std::string& descr)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void ClientApp::onStreamDataRecv(Mercury::Channel* pChannel, MemoryStream& s)
+{
+}
+
 //-------------------------------------------------------------------------------------		
 }

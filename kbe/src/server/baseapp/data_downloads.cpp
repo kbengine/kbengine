@@ -34,9 +34,21 @@ DataDownloads::~DataDownloads()
 //-------------------------------------------------------------------------------------
 int16 DataDownloads::pushDownload(DataDownload* pdl)
 {
-	downloads_.push_back(std::tr1::shared_ptr<DataDownload>(pdl));
+	downloads_[pdl->id()] = pdl;
 
-	return 0;
+	pdl->pDataDownloads(this);
+
+	Baseapp::getSingleton().threadPool().addTask(pdl);
+	return pdl->id();
+}
+
+//-------------------------------------------------------------------------------------
+void DataDownloads::onDownloadCompleted(DataDownload* pdl)
+{
+	INFO_MSG(boost::format("DataDownloads::onDownloadCompleted: proxy(%1%), downloadID(%2%) at %3%, sentTotalBytes=%4%.\n") % 
+		pdl->entityID() % pdl->id() % pdl % pdl->totalBytes());
+
+	downloads_.erase(pdl->id());
 }
 
 //-------------------------------------------------------------------------------------

@@ -109,6 +109,12 @@ void Resmgr::pirnt(void)
 //-------------------------------------------------------------------------------------
 std::string Resmgr::matchRes(std::string path)
 {
+	return matchRes(path.c_str());
+}
+
+//-------------------------------------------------------------------------------------
+std::string Resmgr::matchRes(const char* path)
+{
 	std::vector<std::string>::iterator iter = respaths_.begin();
 
 	for(; iter != respaths_.end(); iter++)
@@ -133,6 +139,12 @@ std::string Resmgr::getPySysResPath()
 	}
 
 	return "";
+}
+
+//-------------------------------------------------------------------------------------
+FILE* Resmgr::openResource(const char* res, const char* model)
+{
+	return fopen(matchRes(res).c_str(), model);
 }
 
 //-------------------------------------------------------------------------------------		

@@ -116,6 +116,13 @@ protected:
 	uint64 rndUUID_;
 	Mercury::Address addr_;
 	DataDownloads dataDownloads_;
+
+	bool entitiesEnabled_;
+
+	// Set this to limit the amount of bandwidth this Client wishes to receive per second 
+	int32 bandwidthPerSecond_;
+	// This is the average round trip time in seconds for communication to the client. 
+	int32 roundTripTime_;
 };
 
 }

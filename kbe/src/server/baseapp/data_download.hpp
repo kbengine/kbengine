@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/memoryStream.hpp"
 #include "thread/threadtask.hpp"
 
 namespace KBEngine{
@@ -41,11 +42,35 @@ public:
 
 	void pDataDownloads(DataDownloads* pDataDownloads){ pDataDownloads_ = pDataDownloads; }
 	DataDownloads* pDataDownloads(){ return pDataDownloads_; }
+
+
+	void entityID(ENTITY_ID entityID){ entityID_ = entityID; }
+	ENTITY_ID entityID(){ return entityID_; }
+
+	bool send(Mercury::Bundle& bundle);
+
+	int16 id()const{ return id_; }
+
+	uint32 totalBytes()const{ return totalBytes_; }
+
 protected:
 	PyObjectPtr objptr_;
 	std::string descr_;
 	int16 id_;
 	DataDownloads* pDataDownloads_;
+
+	bool sentStart_;
+
+	uint32 totalBytes_;
+
+	// 总共发送的字节数
+	uint32 totalSentBytes_;
+	uint32 remainSent_;
+	uint32 currSent_;
+
+	bool fini_;
+
+	ENTITY_ID entityID_;
 };
 
 class StringDataDownload : public DataDownload
@@ -57,7 +82,7 @@ public:
 	virtual ~StringDataDownload();
 
 	virtual bool process();
-	virtual void presentMainThread();
+	virtual thread::TPTask::TPTaskState presentMainThread();
 };
 
 class FileDataDownload : public DataDownload
@@ -69,7 +94,10 @@ public:
 	virtual ~FileDataDownload();
 
 	virtual bool process();
-	virtual void presentMainThread();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+protected:
+	std::string path_;
+	char stream_[65536];
 };
 
 }
