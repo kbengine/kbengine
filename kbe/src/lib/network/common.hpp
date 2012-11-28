@@ -56,6 +56,9 @@ namespace tcp{
 #define MERCURY_MESSAGE_LENGTH_SIZE			sizeof(Mercury::MessageLength)
 #define MERCURY_MESSAGE_MAX_SIZE			65535
 
+// 游戏内容可用包大小
+#define GAME_PACKET_MAX_SIZE_TCP			PACKET_MAX_SIZE_TCP - MERCURY_MESSAGE_ID_SIZE - MERCURY_MESSAGE_LENGTH_SIZE
+
 /** kbe machine端口 */
 #define KBE_PORT_START						20000
 #define KBE_MACHINE_BRAODCAST_SEND_PORT		KBE_PORT_START + 86	// machine接收广播的端口

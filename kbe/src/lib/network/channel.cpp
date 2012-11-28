@@ -467,7 +467,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 		{
 			Packet* pPacket = (*packetIter);
 
-			while(pPacket->totalSize() > 0)
+			while(pPacket->totalSize() > 0 || pFragmentStream_ != NULL)
 			{
 				if(fragmentDatasFlag_ == FRAGMENT_DATA_UNKNOW)
 				{
@@ -520,7 +520,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 							currMsgLen_ = pMsgHandler->msgLen;
 					}
 					
-					if(currMsgLen_ > MERCURY_MESSAGE_MAX_SIZE / 2)
+					if(currMsgLen_ > pMsgHandler->msglenMax())
 					{
 						WARNING_MSG(boost::format("Channel::handleMessage(%1%): msglen is error! msgID=%2%, msglen=(%3%:%4%), from %5%.\n") % 
 							pMsgHandler->name.c_str() % currMsgID_ % currMsgLen_ % pPacket->totalSize() % c_str());
@@ -632,7 +632,7 @@ void Channel::mergeFragmentMessage(Packet* pPacket)
 
 		switch(fragmentDatasFlag_)
 		{
-		case FRAGMENT_DATA_MESSAGE_ID:		// 消息ID信息不全
+		case FRAGMENT_DATA_MESSAGE_ID:			// 消息ID信息不全
 			memcpy(&currMsgID_, pFragmentDatas_, MERCURY_MESSAGE_ID_SIZE);
 			break;
 

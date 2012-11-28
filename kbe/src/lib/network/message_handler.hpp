@@ -61,6 +61,8 @@ public:
 		return MERCURY_MESSAGE_TYPE_COMPONENT; 
 	}
 
+	virtual int32 msglenMax(){ return MERCURY_MESSAGE_MAX_SIZE / 2; }
+
 	/**
 		当这个handler被正是安装到MessageHandlers后被调用
 	*/
