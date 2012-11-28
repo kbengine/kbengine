@@ -345,11 +345,11 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 	}
 	
 	m_isUsingHistroy = false;
-	char buffer[4096] = {0};
+	char* buffer = new char[strCommand.GetLength() * 2 + 1];
 
 	int len = WideCharToMultiByte(CP_ACP, 0, strCommand, strCommand.GetLength(), NULL, 0, NULL, NULL);
 	WideCharToMultiByte(CP_ACP,0, strCommand, strCommand.GetLength(), buffer, len, NULL, NULL);
-	buffer[len + 1] = '\0';
+	buffer[len] = '\0';
 
 	int charLen = strlen(buffer);
 	std::string s = buffer;
@@ -404,6 +404,8 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 
 		saveHistory();
 	}
+
+	delete[] buffer;
 }
 
 void CguiconsoleDlg::saveHistory()
@@ -423,16 +425,17 @@ void CguiconsoleDlg::saveHistory()
 		TiXmlElement *rootElementChild = new TiXmlElement(key);
 		rootElement->LinkEndChild(rootElementChild);
 
-		char buffer[4096] = {0};
 		CString strCommand = (*iter);
+		char* buffer = new char[strCommand.GetLength() * 2 + 1];
 
 		int len = WideCharToMultiByte(CP_ACP, 0, strCommand, strCommand.GetLength(), NULL, 0, NULL, NULL);
 		WideCharToMultiByte(CP_ACP,0, strCommand, strCommand.GetLength(), buffer, len, NULL, NULL);
-		buffer[len + 1] = '\0';
+		buffer[len] = '\0';
 
 
 		TiXmlText *content = new TiXmlText(buffer);
 		rootElementChild->LinkEndChild(content);
+		delete[] buffer;
 	}
 
     CString appPath = GetAppPath();
@@ -442,7 +445,7 @@ void CguiconsoleDlg::saveHistory()
 
 	int len = WideCharToMultiByte(CP_ACP, 0, fullPath, fullPath.GetLength(), NULL, 0, NULL, NULL);
 	WideCharToMultiByte(CP_ACP,0, fullPath, fullPath.GetLength(), fname, len, NULL, NULL);
-	fname[len + 1] = '\0';
+	fname[len] = '\0';
 
 	pDocument->SaveFile(fname);
 }
