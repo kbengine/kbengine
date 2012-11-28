@@ -416,7 +416,7 @@ void Channel::addReceiveWindow(Packet* pPacket)
 void Channel::condemn()
 { 
 	isCondemn_ = true; 
-	ERROR_MSG(boost::format("Channel::condemn[%1]: channel(%2).\n") % this % this->c_str()); 
+	ERROR_MSG(boost::format("Channel::condemn[%1%]: channel(%2%).\n") % this % this->c_str()); 
 }
 
 //-------------------------------------------------------------------------------------
@@ -522,7 +522,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					
 					if(currMsgLen_ > MERCURY_MESSAGE_MAX_SIZE / 2)
 					{
-						WARNING_MSG(boost::format("Channel::handleMessage(%1%): msglen is error! msgID=%2%, msglen=(%3%:%4%), from %s.\n") % 
+						WARNING_MSG(boost::format("Channel::handleMessage(%1%): msglen is error! msgID=%2%, msglen=(%3%:%4%), from %5%.\n") % 
 							pMsgHandler->name.c_str() % currMsgID_ % currMsgLen_ % pPacket->totalSize() % c_str());
 
 						currMsgLen_ = 0;
