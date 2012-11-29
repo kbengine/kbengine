@@ -195,6 +195,7 @@
 		<descr>客户端接收到数据流。
 		</descr>
 		<arg>INT16</arg> <!-- 一个下载句柄 INT16 -->
+		<arg>UINT32</arg> <!-- 本次接收的数据大小 -->
 		<arg>UINT8_ARRAY</arg> <!-- 二进制流 -->
 	</Client::onStreamDataRecv>
 	
