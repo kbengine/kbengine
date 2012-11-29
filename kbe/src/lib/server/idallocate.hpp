@@ -76,9 +76,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
-// 当本地ID数量小于这个数量时向服务端申请
-#define ID_ENOUGH_LIMIT 500
-
 class ServerApp;
 
 // 直接使用一个迭代数， 如果数溢出了类型大小就归零所以需要使用无符号类型

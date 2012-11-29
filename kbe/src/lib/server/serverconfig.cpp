@@ -82,6 +82,12 @@ bool ServerConfig::loadConfig(std::string fileName)
 		rootNode = NULL;
 	}
 
+	rootNode = xml->getRootNode("bitsPerSecondToClient");
+	if(rootNode != NULL){
+		bitsPerSecondToClient_ = xml->getValInt(rootNode);
+		rootNode = NULL;
+	}
+
 	rootNode = xml->getRootNode("cellapp");
 	if(rootNode != NULL)
 	{
@@ -108,6 +114,19 @@ bool ServerConfig::loadConfig(std::string fileName)
 			node = xml->enterNode(aoiNode, "hysteresisArea");
 			if(node != NULL)
 				_cellAppInfo.defaultAoIHysteresisArea = float(xml->getValFloat(node));
+		}
+
+		node = NULL;			
+		node = xml->enterNode(rootNode, "ids");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "criticallyLowSize");
+			if(childnode)
+			{
+				_cellAppInfo.criticallyLowSize = xml->getValInt(childnode);
+				if(_cellAppInfo.criticallyLowSize < 100)
+					_cellAppInfo.criticallyLowSize = 100;
+			}
 		}
 	}
 	
@@ -165,6 +184,32 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "loadSmoothingBias");
 		if(node != NULL)
 			_baseAppInfo.loadSmoothingBias = float(xml->getValFloat(node));
+
+		node = NULL;			
+		node = xml->enterNode(rootNode, "ids");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "criticallyLowSize");
+			if(childnode)
+			{
+				_baseAppInfo.criticallyLowSize = xml->getValInt(childnode);
+				if(_baseAppInfo.criticallyLowSize < 100)
+					_baseAppInfo.criticallyLowSize = 100;
+			}
+		}
+
+		node = NULL;			
+		node = xml->enterNode(rootNode, "downloadStreaming");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "bitsPerSecondTotal");
+			if(childnode)
+				_baseAppInfo.downloadBitsPerSecondTotal = xml->getValInt(childnode);
+
+			childnode = xml->enterNode(node, "bitsPerSecondPerClient");
+			if(childnode)
+				_baseAppInfo.downloadBitsPerSecondPerClient = xml->getValInt(childnode);
+		}
 	}
 
 	rootNode = NULL;

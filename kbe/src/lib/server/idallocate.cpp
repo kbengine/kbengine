@@ -18,33 +18,46 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-#include "helper/debug_helper.hpp"
 #include "idallocate.hpp"
 #include "serverapp.hpp"
 #include "components.hpp"
+#include "helper/debug_helper.hpp"
+#include "server/serverconfig.hpp"
 #include "../../server/dbmgr/dbmgr_interface.hpp"
 
 namespace KBEngine{
 
+static size_t id_enough_limit = 0;
+
 //-------------------------------------------------------------------------------------
 void EntityIDClient::onAlloc(void)
 {
-	if(hasReqServerAlloc() || getSize() > ID_ENOUGH_LIMIT || idList_.size() > 0)
+	if(id_enough_limit <= 0)
+	{
+		if(g_componentType == BASEAPP_TYPE)
+			id_enough_limit = (size_t)g_kbeSrvConfig.getBaseApp().criticallyLowSize;
+		else
+			id_enough_limit = (size_t)g_kbeSrvConfig.getCellApp().criticallyLowSize;
+	}
+
+	if(hasReqServerAlloc() || getSize() > id_enough_limit || idList_.size() > 0)
 		return;
 	
+	Mercury::Channel* pChannel = Components::getSingleton().getDbmgrChannel();
+
+	if(pChannel == NULL)
+	{
+		ERROR_MSG("EntityIDClient::onAlloc: not found dbmgr!\n");
+		return;
+	}
+
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(DbmgrInterface::onReqAllocEntityID);
 	DbmgrInterface::onReqAllocEntityIDArgs2::staticAddToBundle((*pBundle), pApp_->componentType(), pApp_->componentID());
-
-	Components::COMPONENTS cts =  Components::getSingleton().getComponents(DBMGR_TYPE);
-	KBE_ASSERT(cts.size() > 0);
-	Components::ComponentInfos* cinfos = &(*cts.begin());
-	KBE_ASSERT(cinfos->pChannel != NULL);
-
-	(*pBundle).send(pApp_->getNetworkInterface(), cinfos->pChannel);
+	(*pBundle).send(pApp_->getNetworkInterface(), pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-	ERROR_MSG(boost::format("EntityIDClient::onAlloc: not enough(%1%) entityIDs!\n") % ID_ENOUGH_LIMIT);
+
+	WARNING_MSG(boost::format("EntityIDClient::onAlloc: not enough(%1%) entityIDs!\n") % id_enough_limit);
 }
 
 //-------------------------------------------------------------------------------------
