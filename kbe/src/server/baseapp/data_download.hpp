@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/memoryStream.hpp"
+#include "cstdkbe/memorystream.hpp"
 #include "thread/threadtask.hpp"
 
 namespace KBEngine{
