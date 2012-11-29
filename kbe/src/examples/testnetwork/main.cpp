@@ -501,6 +501,65 @@ void init_network(void)
 				len, msgID, uuid, eid, entityType.c_str());
 		}
 		
+		{
+			TCPPacket packet555;
+			packet555.resize(65535);
+			len = mysocket.recv(packet555.data(), 65535);
+			packet555.wpos(len);
+			packet555 >> msgID;
+			packet555 >> msgLen;
+			int16 did = 0;
+			std::string descr;
+			uint32 totalsize;
+
+			packet555 >> did;
+			packet555 >> totalsize;
+			packet555 >> descr;
+
+			uint32 currRecvSize = 0;
+			FILE* f = fopen("c:/aaa.rar", "ab+");
+
+			TCPPacket packet5515;
+			packet5515.resize(65535);
+			packet5515.wpos(0);
+			uint32 datasize;
+
+			while(1)
+			{
+				if(packet5515.opsize() == 0)
+				{
+					packet5515.onReclaimObject();
+					len = mysocket.recv(packet5515.data(), 65535);
+					packet5515.wpos(len);
+
+					Mercury::Bundle bundle44;
+					bundle44.newMessage(BaseappInterface::onClientActiveTick);
+					bundle44.send(mysocket);
+				}
+
+				packet5515 >> msgID;
+				packet5515 >> msgLen;
+
+				packet5515 >> did >> datasize;
+				DEBUG_MSG(boost::format("------%1%--%2% / %3%(%4$.2f%%)\n") % datasize % currRecvSize % totalsize % (((float)currRecvSize / (float)totalsize) * 100.0f));
+
+				if((((float)currRecvSize / (float)totalsize) * 100.0f) > 99.8)
+				{
+					int i = 0;
+					i++;
+				}
+
+				fwrite(packet5515.data() + packet5515.rpos(), datasize, 1, f);
+				packet5515.read_skip(datasize);
+				currRecvSize += datasize;
+				if(currRecvSize >= totalsize)
+				{
+					fclose(f);
+					break;
+				}
+			};
+		}
+
 		printf("向服务器请求查询角色列表\n");
 		// 向服务器请求查询角色列表
 		Mercury::Bundle bundle44;

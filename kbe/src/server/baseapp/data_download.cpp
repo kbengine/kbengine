@@ -120,6 +120,8 @@ bool FileDataDownload::process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState FileDataDownload::presentMainThread()
 {
+	uint32 datasize = GAME_PACKET_MAX_SIZE_TCP - sizeof(int16) - sizeof(uint32);
+
 	if(remainSent_ > 0 && currSent_ < remainSent_)
 	{
 		Mercury::Bundle::SmartPoolObjectPtr pBundle = Mercury::Bundle::createSmartPoolObj();
@@ -143,13 +145,15 @@ thread::TPTask::TPTaskState FileDataDownload::presentMainThread()
 		}
 
 		(*pBundle)->newMessage(ClientInterface::onStreamDataRecv);
+		(*(*pBundle)) << id();
 
-		if(remainSent_ - currSent_ > GAME_PACKET_MAX_SIZE_TCP)
+		if(remainSent_ - currSent_ > datasize)
 		{
-			(*(*pBundle)).append(stream_ + currSent_, GAME_PACKET_MAX_SIZE_TCP);
+			(*(*pBundle)) << datasize;
+			(*(*pBundle)).append(stream_ + currSent_, datasize);
 
-			currSent_ += GAME_PACKET_MAX_SIZE_TCP;
-			totalSentBytes_ += GAME_PACKET_MAX_SIZE_TCP;
+			currSent_ += datasize;
+			totalSentBytes_ += datasize;
 
 			if(!send((*(*pBundle))))
 			{
@@ -161,7 +165,9 @@ thread::TPTask::TPTaskState FileDataDownload::presentMainThread()
 		}
 		else
 		{
-			(*(*pBundle)).append(stream_ + currSent_, remainSent_ - currSent_);
+			datasize = remainSent_ - currSent_;
+			(*(*pBundle)) << datasize;
+			(*(*pBundle)).append(stream_ + currSent_, datasize);
 
 			if(!send((*(*pBundle))))
 			{
@@ -171,19 +177,21 @@ thread::TPTask::TPTaskState FileDataDownload::presentMainThread()
 				return thread::TPTask::TPTASK_STATE_COMPLETED; 
 			}
 
-			totalSentBytes_ += remainSent_ - currSent_;
+			totalSentBytes_ += datasize;
 			currSent_ = remainSent_;
 		}
 	}
 
 	if(totalSentBytes_ == totalBytes_)
 	{
+		DEBUG_MSG(boost::format("DataDownload::presentMainThread: proxy(%1%), downloadID(%2%), sentBytes=%6%,%3%/%4% (%5$.2f%%).\n") % 
+			entityID() % id() % totalSentBytes_ % this->totalBytes() % 100.0f % datasize);
 		pDataDownloads_->onDownloadCompleted(this);
 		return thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 	
-	DEBUG_MSG(boost::format("DataDownload::presentMainThread: proxy(%1%), downloadID(%2%), sentBytes=%3%/%4%.\n") % 
-		entityID() % id() % totalSentBytes_ % this->totalBytes());
+	DEBUG_MSG(boost::format("DataDownload::presentMainThread: proxy(%1%), downloadID(%2%), sentBytes=%6%,%3%/%4% (%5$.2f%%).\n") % 
+		entityID() % id() % totalSentBytes_ % this->totalBytes() % (((float)totalSentBytes_ / (float)this->totalBytes()) * 100.0f) % datasize);
 
 	if(currSent_ == remainSent_)
 	{
