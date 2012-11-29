@@ -162,7 +162,8 @@ public:
 	tableName_(),
 	tableItems_(),
 	tableFixedOrderItems_(),
-	isChild_(false)
+	isChild_(false),
+	sync_(false)
 	{
 	};
 
@@ -213,6 +214,8 @@ public:
 		获取所有的数据放到流中
 	*/
 	virtual bool queryTable(DBInterface* dbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+
+	bool hasSync()const { return sync_; }
 protected:
 
 	// 表名称
@@ -224,7 +227,10 @@ protected:
 	// 和ScriptDefModule中保持一致持续的item引用
 	std::vector<EntityTableItem*> tableFixedOrderItems_; 
 
-	bool isChild_; // 是否为子表
+	// 是否为子表
+	bool isChild_; 
+
+	bool sync_;
 };
 
 class EntityTables : public Singleton<EntityTables>

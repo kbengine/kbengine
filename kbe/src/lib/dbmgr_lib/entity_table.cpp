@@ -137,8 +137,11 @@ bool EntityTables::syncToDB(DBInterface* dbi)
 	EntityTables::TABLES_MAP::iterator iter = tables_.begin();
 	for(; iter != tables_.end(); iter++)
 	{
-		if(!iter->second->syncToDB(dbi))
-			return false;
+		if(!iter->second->hasSync())
+		{
+			if(!iter->second->syncToDB(dbi))
+				return false;
+		}
 	}
 
 	std::vector<std::string> dbTableNames;

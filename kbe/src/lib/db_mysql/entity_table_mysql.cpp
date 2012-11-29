@@ -165,6 +165,9 @@ void EntityTableMysql::init_db_item_name()
 //-------------------------------------------------------------------------------------
 bool EntityTableMysql::syncToDB(DBInterface* dbi)
 {
+	if(hasSync())
+		return true;
+
 	DEBUG_MSG(boost::format("EntityTableMysql::syncToDB(): %1%.\n") % tableName());
 
 	char sql_str[MAX_BUF];
@@ -228,6 +231,7 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 		}
 	}
 
+	sync_ = true;
 	return true;
 }
 
