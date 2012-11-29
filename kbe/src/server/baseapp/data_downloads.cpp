@@ -39,7 +39,7 @@ int16 DataDownloads::freeID(int16 id)
 	if(id > 0 && usedIDs_.find(id) != usedIDs_.end())
 		return id;
 
-	for(int16 i=1; i< 32767; i++)
+	for(int16 i=2; i< 32767; i++)
 	{
 		if(usedIDs_.find(id + i) == usedIDs_.end())
 			return id + i;
