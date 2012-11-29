@@ -65,7 +65,7 @@ bool StringDataDownload::process()
 thread::TPTask::TPTaskState StringDataDownload::presentMainThread()
 {
 	if(fini_)
-		thread::TPTask::TPTASK_STATE_COMPLETED; 
+		return thread::TPTask::TPTASK_STATE_COMPLETED; 
 
 	return thread::TPTask::TPTASK_STATE_CONTINUE_MAINTHREAD; 
 }
