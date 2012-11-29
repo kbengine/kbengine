@@ -511,10 +511,12 @@ void init_network(void)
 			int16 did = 0;
 			std::string descr;
 			uint32 totalsize;
+			int8 dtype;
 
 			packet555 >> did;
 			packet555 >> totalsize;
 			packet555 >> descr;
+			packet555 >> dtype;
 
 			uint32 currRecvSize = 0;
 			FILE* f = fopen("c:/aaa.rar", "ab+");

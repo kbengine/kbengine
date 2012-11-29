@@ -43,16 +43,21 @@ public:
 	void pDataDownloads(DataDownloads* pDataDownloads){ pDataDownloads_ = pDataDownloads; }
 	DataDownloads* pDataDownloads(){ return pDataDownloads_; }
 
+	virtual thread::TPTask::TPTaskState presentMainThread();
 
 	void entityID(ENTITY_ID entityID){ entityID_ = entityID; }
 	ENTITY_ID entityID(){ return entityID_; }
 
 	bool send(Mercury::Bundle& bundle);
 
+	void id(int16 i){ id_ = i; }
 	int16 id()const{ return id_; }
 
 	uint32 totalBytes()const{ return totalBytes_; }
 
+	virtual char* getOutStream(){ return stream_; }
+
+	virtual int8 type() = 0;
 protected:
 	PyObjectPtr objptr_;
 	std::string descr_;
@@ -68,9 +73,11 @@ protected:
 	uint32 remainSent_;
 	uint32 currSent_;
 
-	bool fini_;
+	char* stream_;
 
 	ENTITY_ID entityID_;
+
+	bool error_;
 };
 
 class StringDataDownload : public DataDownload
@@ -82,7 +89,10 @@ public:
 	virtual ~StringDataDownload();
 
 	virtual bool process();
-	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	virtual char* getOutStream();
+
+	virtual int8 type();
 };
 
 class FileDataDownload : public DataDownload
@@ -94,10 +104,11 @@ public:
 	virtual ~FileDataDownload();
 
 	virtual bool process();
-	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	virtual int8 type();
 protected:
 	std::string path_;
-	char stream_[65536];
+	
 };
 
 }

@@ -38,8 +38,12 @@ public:
 	int16 pushDownload(DataDownload* pdl);
 
 	void onDownloadCompleted(DataDownload* pdl);
+
+	int16 freeID(int16 id);
 private:
 	std::map<int16, DataDownload*> downloads_;
+
+	std::set< uint16 > usedIDs_;
 };
 
 class DataDownloadFactory
