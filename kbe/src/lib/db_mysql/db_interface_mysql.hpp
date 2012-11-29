@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __KBE_DB_INTERFACE_MYSQL__
 #define __KBE_DB_INTERFACE_MYSQL__
 
+#include "common.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "cstdkbe/memorystream.hpp"
@@ -39,6 +40,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 namespace KBEngine { 
+
+struct TABLE_FIELD
+{
+	std::string name;
+	int32 length;
+	uint64 maxlength;
+	unsigned int flags;
+	enum_field_types type;
+};
 
 /*
 	数据库接口
@@ -85,6 +95,9 @@ public:
 	const char* getLastError()	{ return mysql_error( pMysql_ ); }
 
 	unsigned int getLastErrorNum() { return mysql_errno( pMysql_ ); }
+
+	typedef std::tr1::unordered_map<std::string, TABLE_FIELD> TABLE_FIELDS;
+	void getFields(TABLE_FIELDS& outs, const char* tablename);
 
 	/**
 		返回这个接口的描述

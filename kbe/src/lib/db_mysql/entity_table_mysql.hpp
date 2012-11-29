@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef __KBE_ENTITY_TABLE_MYSQL__
 #define __KBE_ENTITY_TABLE_MYSQL__
-
+#include "db_interface_mysql.hpp"
 #include "common.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
@@ -40,8 +40,9 @@ class EntityTableMysql;
 class EntityTableItemMysqlBase : public EntityTableItem
 {
 public:
-	EntityTableItemMysqlBase(std::string itemDBType, uint32 datalength):
-	  EntityTableItem(itemDBType, datalength)
+	EntityTableItemMysqlBase(std::string itemDBType, uint32 datalength, uint32 flags, enum_field_types mysqlItemtype):
+	  EntityTableItem(itemDBType, datalength, flags),
+	  mysqlItemtype_(mysqlItemtype)
 	{
 		memset(db_item_name_, 0, MAX_BUF);
 	};
@@ -90,13 +91,15 @@ public:
 	virtual bool isSameKey(std::string key){ return key == db_item_name(); }
 protected:
 	char db_item_name_[MAX_BUF];
+	enum_field_types mysqlItemtype_;
 };
 
 class EntityTableItemMysql_DIGIT : public EntityTableItemMysqlBase
 {
 public:
-	EntityTableItemMysql_DIGIT(std::string dataSType, std::string itemDBType, uint32 datalength):
-	  EntityTableItemMysqlBase(itemDBType, datalength),
+	EntityTableItemMysql_DIGIT(std::string dataSType, std::string itemDBType, 
+		uint32 datalength, uint32 flags, enum_field_types mysqlItemtype):
+	  EntityTableItemMysqlBase(itemDBType, datalength, flags, mysqlItemtype),
 		  dataSType_(dataSType)
 	{
 	};
@@ -127,8 +130,9 @@ protected:
 class EntityTableItemMysql_STRING : public EntityTableItemMysqlBase
 {
 public:
-	EntityTableItemMysql_STRING(std::string itemDBType, uint32 datalength):
-	  EntityTableItemMysqlBase(itemDBType, datalength)
+	EntityTableItemMysql_STRING(std::string itemDBType, 
+		uint32 datalength, uint32 flags, enum_field_types mysqlItemtype):
+	  EntityTableItemMysqlBase(itemDBType, datalength, flags, mysqlItemtype)
 	  {
 	  }
 
@@ -156,8 +160,9 @@ public:
 class EntityTableItemMysql_UNICODE : public EntityTableItemMysqlBase
 {
 public:
-	EntityTableItemMysql_UNICODE(std::string itemDBType, uint32 datalength):
-	  EntityTableItemMysqlBase(itemDBType, datalength)
+	EntityTableItemMysql_UNICODE(std::string itemDBType, 
+		uint32 datalength, uint32 flags, enum_field_types mysqlItemtype):
+	  EntityTableItemMysqlBase(itemDBType, datalength, flags, mysqlItemtype)
 	  {
 	  }
 
@@ -185,8 +190,9 @@ public:
 class EntityTableItemMysql_BLOB : public EntityTableItemMysqlBase
 {
 public:
-	EntityTableItemMysql_BLOB(std::string itemDBType, uint32 datalength):
-	  EntityTableItemMysqlBase(itemDBType, datalength)
+	EntityTableItemMysql_BLOB(std::string itemDBType, 
+		uint32 datalength, uint32 flags, enum_field_types mysqlItemtype):
+	  EntityTableItemMysqlBase(itemDBType, datalength, flags, mysqlItemtype)
 	  {
 	  }
 
@@ -214,8 +220,9 @@ public:
 class EntityTableItemMysql_VECTOR2 : public EntityTableItemMysqlBase
 {
 public:
-	EntityTableItemMysql_VECTOR2(std::string itemDBType, uint32 datalength):
-	  EntityTableItemMysqlBase(itemDBType, datalength)
+	EntityTableItemMysql_VECTOR2(std::string itemDBType, 
+		uint32 datalength, uint32 flags, enum_field_types mysqlItemtype):
+	  EntityTableItemMysqlBase(itemDBType, datalength, flags, mysqlItemtype)
 	  {
 	  }
 
@@ -254,8 +261,9 @@ protected:
 class EntityTableItemMysql_VECTOR3 : public EntityTableItemMysqlBase
 {
 public:
-	EntityTableItemMysql_VECTOR3(std::string itemDBType, uint32 datalength):
-	  EntityTableItemMysqlBase(itemDBType, datalength)
+	EntityTableItemMysql_VECTOR3(std::string itemDBType, 
+		uint32 datalength, uint32 flags, enum_field_types mysqlItemtype):
+	  EntityTableItemMysqlBase(itemDBType, datalength, flags, mysqlItemtype)
 	  {
 	  }
 
@@ -294,8 +302,9 @@ protected:
 class EntityTableItemMysql_VECTOR4 : public EntityTableItemMysqlBase
 {
 public:
-	EntityTableItemMysql_VECTOR4(std::string itemDBType, uint32 datalength):
-	  EntityTableItemMysqlBase(itemDBType, datalength)
+	EntityTableItemMysql_VECTOR4(std::string itemDBType, 
+		uint32 datalength, uint32 flags, enum_field_types mysqlItemtype):
+	  EntityTableItemMysqlBase(itemDBType, datalength, flags, mysqlItemtype)
 	  {
 	  }
 
@@ -334,8 +343,9 @@ protected:
 class EntityTableItemMysql_MAILBOX : public EntityTableItemMysqlBase
 {
 public:
-	EntityTableItemMysql_MAILBOX(std::string itemDBType, uint32 datalength):
-	  EntityTableItemMysqlBase(itemDBType, datalength)
+	EntityTableItemMysql_MAILBOX(std::string itemDBType, 
+		uint32 datalength, uint32 flags, enum_field_types mysqlItemtype):
+	  EntityTableItemMysqlBase(itemDBType, datalength, flags, mysqlItemtype)
 	  {
 	  }
 
@@ -363,8 +373,9 @@ public:
 class EntityTableItemMysql_ARRAY : public EntityTableItemMysqlBase
 {
 public:
-	EntityTableItemMysql_ARRAY(std::string itemDBType, uint32 datalength):
-	  EntityTableItemMysqlBase(itemDBType, datalength),
+	EntityTableItemMysql_ARRAY(std::string itemDBType, 
+		uint32 datalength, uint32 flags, enum_field_types mysqlItemtype):
+	  EntityTableItemMysqlBase(itemDBType, datalength, flags, mysqlItemtype),
 	  pChildTable_(NULL)
 	  {
 	  }
@@ -406,8 +417,9 @@ protected:
 class EntityTableItemMysql_FIXED_DICT : public EntityTableItemMysqlBase
 {
 public:
-	EntityTableItemMysql_FIXED_DICT(std::string itemDBType, uint32 datalength):
-	  EntityTableItemMysqlBase(itemDBType, datalength)
+	EntityTableItemMysql_FIXED_DICT(std::string itemDBType, 
+		uint32 datalength, uint32 flags, enum_field_types mysqlItemtype):
+	  EntityTableItemMysqlBase(itemDBType, datalength, flags, mysqlItemtype)
 	  {
 	  }
 

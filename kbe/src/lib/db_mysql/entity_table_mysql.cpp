@@ -187,6 +187,9 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 		return false;
 	}
 
+	DBInterfaceMysql::TABLE_FIELDS outs;
+	static_cast<DBInterfaceMysql*>(dbi)->getFields(outs, this->tableName());
+
 	EntityTable::TABLEITEM_MAP::iterator iter = tableItems_.begin();
 	for(; iter != tableItems_.end(); iter++)
 	{
@@ -240,102 +243,102 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 {
 	if(type == "INT8")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "tinyint not null DEFAULT 0", 4);
+		return new EntityTableItemMysql_DIGIT(type, "tinyint not null DEFAULT 0", 4, NOT_NULL_FLAG, FIELD_TYPE_TINY);
 	}
 	else if(type == "INT16")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "smallint not null DEFAULT 0", 6);
+		return new EntityTableItemMysql_DIGIT(type, "smallint not null DEFAULT 0", 6, NOT_NULL_FLAG, FIELD_TYPE_SHORT);
 	}
 	else if(type == "INT32")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "int not null DEFAULT 0", 11);
+		return new EntityTableItemMysql_DIGIT(type, "int not null DEFAULT 0", 11, NOT_NULL_FLAG, FIELD_TYPE_LONG);
 	}
 	else if(type == "INT64")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "bigint not null DEFAULT 0", 20);
+		return new EntityTableItemMysql_DIGIT(type, "bigint not null DEFAULT 0", 20, NOT_NULL_FLAG, FIELD_TYPE_LONGLONG);
 	}
 	else if(type == "UINT8")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "tinyint unsigned not null DEFAULT 0", 3);
+		return new EntityTableItemMysql_DIGIT(type, "tinyint unsigned not null DEFAULT 0", 3, NOT_NULL_FLAG|UNSIGNED_FLAG, FIELD_TYPE_TINY);
 	}
 	else if(type == "UINT16")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "smallint unsigned not null DEFAULT 0", 5);
+		return new EntityTableItemMysql_DIGIT(type, "smallint unsigned not null DEFAULT 0", 5, NOT_NULL_FLAG|UNSIGNED_FLAG, FIELD_TYPE_SHORT);
 	}
 	else if(type == "UINT32")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "int unsigned not null DEFAULT 0", 10);
+		return new EntityTableItemMysql_DIGIT(type, "int unsigned not null DEFAULT 0", 10, NOT_NULL_FLAG|UNSIGNED_FLAG, FIELD_TYPE_LONG);
 	}
 	else if(type == "UINT64")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "bigint unsigned not null DEFAULT 0", 20);
+		return new EntityTableItemMysql_DIGIT(type, "bigint unsigned not null DEFAULT 0", 20, NOT_NULL_FLAG|UNSIGNED_FLAG, FIELD_TYPE_LONGLONG);
 	}
 	else if(type == "FLOAT")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "float not null DEFAULT 0", 0);
+		return new EntityTableItemMysql_DIGIT(type, "float not null DEFAULT 0", 0, NOT_NULL_FLAG, FIELD_TYPE_FLOAT);
 	}
 	else if(type == "DOUBLE")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "double not null DEFAULT 0", 0);
+		return new EntityTableItemMysql_DIGIT(type, "double not null DEFAULT 0", 0, NOT_NULL_FLAG, FIELD_TYPE_DOUBLE);
 	}
 	else if(type == "STRING")
 	{
-		return new EntityTableItemMysql_STRING("text", 0);
+		return new EntityTableItemMysql_STRING("text", 0, 0, FIELD_TYPE_STRING);
 	}
 	else if(type == "UNICODE")
 	{
-		return new EntityTableItemMysql_UNICODE("blob", 0);
+		return new EntityTableItemMysql_UNICODE("blob", 0, 0, FIELD_TYPE_BLOB);
 	}
 	else if(type == "PYTHON")
 	{
-		return new EntityTableItemMysql_BLOB("blob", 0);
+		return new EntityTableItemMysql_BLOB("blob", 0, 0, FIELD_TYPE_BLOB);
 	}
 	else if(type == "BLOB")
 	{
-		return new EntityTableItemMysql_BLOB("blob", 0);
+		return new EntityTableItemMysql_BLOB("blob", 0, 0, FIELD_TYPE_BLOB);
 	}
 	else if(type == "ARRAY")
 	{
-		return new EntityTableItemMysql_ARRAY("", 0);
+		return new EntityTableItemMysql_ARRAY("", 0, 0, FIELD_TYPE_BLOB);
 	}
 	else if(type == "FIXED_DICT")
 	{
-		return new EntityTableItemMysql_FIXED_DICT("", 0);
+		return new EntityTableItemMysql_FIXED_DICT("", 0, 0, FIELD_TYPE_BLOB);
 	}
 #ifdef CLIENT_NO_FLOAT
 	else if(type == "VECTOR2")
 	{
-		return new EntityTableItemMysql_VECTOR2("int not null DEFAULT 0", 0);
+		return new EntityTableItemMysql_VECTOR2("int not null DEFAULT 0", 0, NOT_NULL_FLAG, FIELD_TYPE_LONG);
 	}
 	else if(type == "VECTOR3")
 	{
-		return new EntityTableItemMysql_VECTOR3("int not null DEFAULT 0", 0);
+		return new EntityTableItemMysql_VECTOR3("int not null DEFAULT 0", 0, NOT_NULL_FLAG, FIELD_TYPE_LONG);
 	}
 	else if(type == "VECTOR4")
 	{
-		return new EntityTableItemMysql_VECTOR4("int not null DEFAULT 0", 0);
+		return new EntityTableItemMysql_VECTOR4("int not null DEFAULT 0", 0, NOT_NULL_FLAG, FIELD_TYPE_LONG);
 	}
 #else
 	else if(type == "VECTOR2")
 	{
-		return new EntityTableItemMysql_VECTOR2("float not null DEFAULT 0", 0);
+		return new EntityTableItemMysql_VECTOR2("float not null DEFAULT 0", 0, NOT_NULL_FLAG, FIELD_TYPE_FLOAT);
 	}
 	else if(type == "VECTOR3")
 	{
-		return new EntityTableItemMysql_VECTOR3("float not null DEFAULT 0", 0);
+		return new EntityTableItemMysql_VECTOR3("float not null DEFAULT 0", 0, NOT_NULL_FLAG, FIELD_TYPE_FLOAT);
 	}
 	else if(type == "VECTOR4")
 	{
-		return new EntityTableItemMysql_VECTOR4("float not null DEFAULT 0", 0);
+		return new EntityTableItemMysql_VECTOR4("float not null DEFAULT 0", 0, NOT_NULL_FLAG, FIELD_TYPE_FLOAT);
 	}
 #endif
 	else if(type == "MAILBOX")
 	{
-		return new EntityTableItemMysql_MAILBOX("blob", 0);
+		return new EntityTableItemMysql_MAILBOX("blob", 0, 0, FIELD_TYPE_BLOB);
 	}
 
 	KBE_ASSERT(false && "not found type.\n");
-	return new EntityTableItemMysql_STRING("", 0);
+	return new EntityTableItemMysql_STRING("", 0, 0, FIELD_TYPE_STRING);
 }
 
 //-------------------------------------------------------------------------------------

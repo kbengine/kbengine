@@ -293,11 +293,43 @@ const char* DBInterfaceMysql::getstrerror()
 	return mysql_error(pMysql_);
 }
 
-
 //-------------------------------------------------------------------------------------
 int DBInterfaceMysql::getlasterror()
 {
 	return mysql_errno(pMysql_);
 }
+
+//-------------------------------------------------------------------------------------
+void DBInterfaceMysql::getFields(TABLE_FIELDS& outs, const char* tablename)
+{
+	std::string sqlname = ENTITY_TABLE_PERFIX"_";
+	sqlname += tablename;
+
+	MYSQL_RES*	result = mysql_list_fields(mysql(), sqlname.c_str(), NULL);
+	if(result == NULL)
+	{
+		ERROR_MSG(boost::format("EntityTableMysql::loadFields:%1%\n") % getstrerror());
+		return;
+	}
+
+	unsigned int numFields;
+	MYSQL_FIELD* fields;
+
+	numFields = mysql_num_fields(result);
+	fields = mysql_fetch_fields(result);
+
+	for(unsigned int i=0; i<numFields; i++)
+	{
+		TABLE_FIELD& info = outs[fields[i].name];
+		info.name = fields[i].name;
+		info.length = fields[i].length;
+		info.maxlength = fields[i].max_length;
+		info.flags = fields[i].flags;
+		info.type = fields[i].type;
+	}
+
+	mysql_free_result(result);
+}
+
 //-------------------------------------------------------------------------------------
 }

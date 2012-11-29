@@ -78,7 +78,7 @@ struct ACCOUNT_INFOS
 class EntityTableItem
 {
 public:
-	EntityTableItem(std::string itemDBType, uint32 datalength):
+	EntityTableItem(std::string itemDBType, uint32 datalength, uint32 flags):
 		itemName_(),
 		tableName_(),
 		utype_(0),
@@ -87,7 +87,8 @@ public:
 		pDataType_(NULL),
 		pPropertyDescription_(NULL),
 		itemDBType_(itemDBType),
-		datalength_(datalength)
+		datalength_(datalength),
+		flags_(flags)
 	{
 	};
 
@@ -102,6 +103,9 @@ public:
 
 	void utype(int32/*ENTITY_PROPERTY_UID*/ utype){ utype_ = utype; }
 	int32 utype(){ return utype_; }
+
+	void flags(uint32 f){ flags_ = f; }
+	uint32 flags(){ return flags_; }
 
 	void pParentTable(EntityTable* v){ pParentTable_ = v; }
 	EntityTable* pParentTable(){ return pParentTable_; }
@@ -148,6 +152,7 @@ protected:
 
 	std::string itemDBType_;
 	uint32 datalength_;
+	uint32 flags_;
 };
 
 /*
