@@ -55,6 +55,8 @@ bool Resmgr::initialize()
 		ch =  kb_env_.root.at(kb_env_.root.size() - 1);
 		if(ch != '/' && ch != '\\')
 			kb_env_.root += "/";
+
+		strutil::kbe_replace(kb_env_.root, "\\", "/");
 	}
 
 	if(kb_env_.hybrid_path.size() > 0)
@@ -62,6 +64,8 @@ bool Resmgr::initialize()
 		ch =  kb_env_.hybrid_path.at(kb_env_.hybrid_path.size() - 1);
 		if(ch != '/' && ch != '\\')
 			kb_env_.hybrid_path += "/";
+
+		strutil::kbe_replace(kb_env_.hybrid_path, "\\", "/");
 	}
 
 	respaths_.clear();
@@ -89,6 +93,7 @@ bool Resmgr::initialize()
 
 		kb_env_.res_path += (*iter);
 		kb_env_.res_path += splitFlag;
+		strutil::kbe_replace(kb_env_.res_path, "\\", "/");
 	}
 
 	if(kb_env_.res_path.size() > 0)
