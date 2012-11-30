@@ -35,6 +35,7 @@ all install clean full:
 	cd helper && $(MAKE) $@
 	cd thread && $(MAKE) $@
 	cd xmlplus && $(MAKE) $@
+	cd third_party/zip && $(MAKE) $@
 	cd third_party/g3dlite && $(MAKE) $@
 	cd third_party/tinyxml && $(MAKE) $@
 
