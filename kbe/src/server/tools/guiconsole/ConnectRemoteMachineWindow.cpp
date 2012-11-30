@@ -147,6 +147,9 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 
 		KBEngine::Mercury::TCPPacket packet;
 		packet.resize(65535);
+
+		endpoint->setnonblocking(true);
+		KBEngine::sleep(300);
 		packet.wpos(endpoint->recv(packet.data(), 65535));
 
 		while(packet.opsize() > 0)
