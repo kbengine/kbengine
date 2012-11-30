@@ -57,6 +57,7 @@ bool Resmgr::initialize()
 			kb_env_.root += "/";
 
 		strutil::kbe_replace(kb_env_.root, "\\", "/");
+		strutil::kbe_replace(kb_env_.root, "//", "/");
 	}
 
 	if(kb_env_.hybrid_path.size() > 0)
@@ -66,6 +67,7 @@ bool Resmgr::initialize()
 			kb_env_.hybrid_path += "/";
 
 		strutil::kbe_replace(kb_env_.hybrid_path, "\\", "/");
+		strutil::kbe_replace(kb_env_.hybrid_path, "//", "/");
 	}
 
 	respaths_.clear();
@@ -94,6 +96,7 @@ bool Resmgr::initialize()
 		kb_env_.res_path += (*iter);
 		kb_env_.res_path += splitFlag;
 		strutil::kbe_replace(kb_env_.res_path, "\\", "/");
+		strutil::kbe_replace(kb_env_.res_path, "//", "/");
 	}
 
 	if(kb_env_.res_path.size() > 0)
@@ -125,7 +128,10 @@ std::string Resmgr::matchRes(const char* path)
 	for(; iter != respaths_.end(); iter++)
 	{
 		std::string fpath = ((*iter) + path);
+
 		strutil::kbe_replace(fpath, "\\", "/");
+		strutil::kbe_replace(fpath, "//", "/");
+
 		FILE * f = fopen (fpath.c_str(), "r");
 		if(f != NULL)
 		{
