@@ -1,9 +1,10 @@
-<?xml version="1.0" encoding="Windows-1252"?>
+<?xml version="1.0" encoding="gb2312"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="zip"
 	ProjectGUID="{1ABB1158-909C-4AD4-9F81-CB38BBA5D950}"
+	RootNamespace="zip"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -16,8 +17,9 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\cstdmf\bw_vs90_lib_defaults.vsprops;..\cstdmf\bw_vs90_defaults_debug.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="1"
@@ -60,6 +62,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				OutputFile="../../../libs/$(ProjectName)_d.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -81,7 +84,6 @@
 		<Configuration
 			Name="Release|Win32"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\cstdmf\bw_vs90_lib_defaults.vsprops;..\cstdmf\bw_vs90_defaults_release.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="1"
@@ -127,6 +129,7 @@
 			<Tool
 				Name="VCLibrarianTool"
 				AdditionalOptions="/LTCG"
+				OutputFile="../../../libs/$(ProjectName).lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -147,7 +150,6 @@
 		<Configuration
 			Name="Hybrid|Win32"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\cstdmf\bw_vs90_lib_defaults.vsprops;..\cstdmf\bw_vs90_defaults_hybrid.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="1"
@@ -212,7 +214,6 @@
 		<Configuration
 			Name="PyModule_Hybrid|Win32"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\cstdmf\bw_vs90_lib_defaults.vsprops;..\cstdmf\bw_vs90_defaults_pymodule_hybrid.vsprops"
 			CharacterSet="1"
 			>
 			<Tool
@@ -265,7 +266,6 @@
 		<Configuration
 			Name="Consumer_Release|Win32"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\cstdmf\bw_vs90_lib_defaults.vsprops;..\cstdmf\bw_vs90_defaults_consumer_release.vsprops"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -319,7 +319,6 @@
 		<Configuration
 			Name="Editor_Hybrid|Win32"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\cstdmf\bw_vs90_lib_defaults.vsprops;..\cstdmf\bw_vs90_defaults_editor_hybrid.vsprops"
 			CharacterSet="1"
 			>
 			<Tool
@@ -372,7 +371,6 @@
 		<Configuration
 			Name="Editor_Debug|Win32"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\cstdmf\bw_vs90_lib_defaults.vsprops;..\cstdmf\bw_vs90_defaults_editor_debug.vsprops"
 			CharacterSet="1"
 			>
 			<Tool
@@ -425,7 +423,6 @@
 		<Configuration
 			Name="Static_Release|Win32"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\cstdmf\bw_vs90_lib_defaults.vsprops;..\cstdmf\bw_vs90_defaults_static_release.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="1"
@@ -482,7 +479,6 @@
 		<Configuration
 			Name="Exporter_Debug|Win32"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\cstdmf\bw_vs90_lib_defaults.vsprops;..\cstdmf\bw_vs90_defaults_exporter_debug.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="1"
@@ -543,7 +539,6 @@
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\cstdmf\bw_vs90_lib_defaults.vsprops;..\cstdmf\bw_vs90_defaults_exporter_release.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="1"
@@ -602,7 +597,6 @@
 		<Configuration
 			Name="Evaluation|Win32"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\cstdmf\bw_vs90_lib_defaults.vsprops;..\cstdmf\bw_vs90_defaults_evaluation.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="1"
@@ -670,7 +664,6 @@
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\cstdmf\bw_vs90_lib_defaults.vsprops;..\cstdmf\bw_vs90_defaults_editor_hybrid_indie.vsprops"
 			CharacterSet="1"
 			>
 			<Tool
@@ -725,7 +718,6 @@
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\cstdmf\bw_vs90_lib_defaults.vsprops;..\cstdmf\bw_vs90_defaults_release_indie.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="1"
@@ -793,7 +785,6 @@
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\cstdmf\bw_vs90_lib_defaults.vsprops;..\cstdmf\bw_vs90_defaults_consumer_release_indie.vsprops"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
