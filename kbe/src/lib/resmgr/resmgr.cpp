@@ -120,6 +120,7 @@ std::string Resmgr::matchRes(const char* path)
 	for(; iter != respaths_.end(); iter++)
 	{
 		std::string fpath = ((*iter) + path);
+		strutil::kbe_replace(fpath, "\\", "/");
 		FILE * f = fopen (fpath.c_str(), "r");
 		if(f != NULL)
 		{
