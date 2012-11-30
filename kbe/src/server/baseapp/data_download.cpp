@@ -54,7 +54,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 		ERROR_MSG(boost::format("DataDownload::presentMainThread: proxy(%1%), downloadID(%2%), type(%3%), thread error.\n") 
 			% entityID() % id() % type());
 
-		return thread::TPTask::TPTASK_STATE_CONTINUE_MAINTHREAD; 
+		return thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 
 	uint32 datasize = GAME_PACKET_MAX_SIZE_TCP - sizeof(int16) - sizeof(uint32);
