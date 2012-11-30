@@ -127,7 +127,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi) = 0;
+	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL) = 0;
 
 	/**
 		更新数据

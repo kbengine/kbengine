@@ -35,7 +35,7 @@ class EntityTableMysql;
 #define MYSQL_ENGINE_TYPE "InnoDB"
 
 /*
-	维护entity在数据库中的表中的一个字段
+	维护entity在数据库表中的一个字段
 */
 class EntityTableItemMysqlBase : public EntityTableItem
 {
@@ -62,7 +62,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi) = 0;
+	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL) = 0;
 
 	/**
 		更新数据
@@ -111,7 +111,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi);
+	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -143,7 +143,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi);
+	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -173,7 +173,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi);
+	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -203,7 +203,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi);
+	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -235,7 +235,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi);
+	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -276,7 +276,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi);
+	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -317,7 +317,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi);
+	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -356,7 +356,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi);
+	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -395,7 +395,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi);
+	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中
@@ -440,7 +440,7 @@ public:
 	/**
 		同步entity表到数据库中
 	*/
-	virtual bool syncToDB(DBInterface* dbi);
+	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
 
 	/**
 		获取某个表所有的数据放到流中

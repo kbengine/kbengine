@@ -31,7 +31,6 @@ namespace KBEngine {
 //-------------------------------------------------------------------------------------
 bool KBEEntityLogTableMysql::syncToDB(DBInterface* dbi)
 {
-	DEBUG_MSG("KBEEntityLogTableMysql::syncToDB(): kbe_entitylog.\n");
 	std::string sqlstr = "DROP TABLE kbe_entitylog;";
 	dbi->query(sqlstr.c_str(), sqlstr.size(), false);
 	
@@ -167,8 +166,6 @@ KBEEntityLogTableMysql::KBEEntityLogTableMysql():
 //-------------------------------------------------------------------------------------
 bool KBEAccountTableMysql::syncToDB(DBInterface* dbi)
 {
-	DEBUG_MSG("KBEAccountTableMysql::syncToDB(): kbe_accountinfos.\n");
-	
 	bool ret = false;
 
 	std::string sqlstr = "CREATE TABLE IF NOT EXISTS kbe_accountinfos "
@@ -275,7 +272,6 @@ KBEEntityTypeMysql::KBEEntityTypeMysql():
 //-------------------------------------------------------------------------------------
 bool KBEEntityTypeMysql::syncToDB(DBInterface* dbi)
 {
-	DEBUG_MSG("KBEEntityTypeMysql::syncToDB(): kbe_entitytypes.\n");
 	std::string sqlstr = "DROP TABLE kbe_entitytypes;";
 	dbi->query(sqlstr.c_str(), sqlstr.size(), false);
 	
