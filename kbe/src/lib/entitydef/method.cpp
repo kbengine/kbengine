@@ -19,6 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "method.hpp"
+#include "entitydef.hpp"
 #include "network/bundle.hpp"
 
 namespace KBEngine{
@@ -36,6 +37,7 @@ isExposed_(isExposed),
 currCallerID_(0)
 {
 	MethodDescription::methodDescriptionCount_++;
+	EntityDef::md5().append((void*)name_.c_str(), name_.size());
 }
 
 //-------------------------------------------------------------------------------------

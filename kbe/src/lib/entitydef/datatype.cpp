@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "datatype.hpp"
 #include "datatypes.hpp"
+#include "entitydef.hpp"
 #include "fixeddict.hpp"
 #include "fixedarray.hpp"
 #include "pyscript/vector2.hpp"
@@ -39,6 +40,8 @@ aliasName_()
 		id_ = _g_dataTypeUID++;
 
 	DataTypes::addDateType(id_, this);
+
+	EntityDef::md5().append((void*)this->aliasName(), strlen(this->aliasName()));
 }
 
 //-------------------------------------------------------------------------------------

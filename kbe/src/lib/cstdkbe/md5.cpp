@@ -43,13 +43,18 @@ void KBE_MD5::append(const void * data, int numBytes)
 //-------------------------------------------------------------------------------------
 const unsigned char* KBE_MD5::getDigest()
 {
+	final();
+	return bytes_;
+}
+
+//-------------------------------------------------------------------------------------
+void KBE_MD5::final()
+{
 	if(!isFinal_)
 	{
 		MD5_Final(bytes_, &state_);
 		isFinal_ = true;
 	}
-
-	return bytes_;
 }
 
 //-------------------------------------------------------------------------------------

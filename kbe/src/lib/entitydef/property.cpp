@@ -19,6 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "datatypes.hpp"
+#include "entitydef.hpp"
 #include "property.hpp"
 #include "pyscript/vector2.hpp"
 #include "pyscript/vector3.hpp"
@@ -52,6 +53,10 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype,
 {
 	dataType_->incRef();
 	
+	EntityDef::md5().append((void*)name_.c_str(), name_.size());
+	EntityDef::md5().append((void*)defaultStr.c_str(), defaultStr.size());
+	EntityDef::md5().append((void*)dataTypeName.c_str(), dataTypeName.size());
+
 	// mailbox ÎÞ·¨±£´æ
 	if(isPersistent && strcmp(dataType_->getName(), "MAILBOX") == 0)
 	{

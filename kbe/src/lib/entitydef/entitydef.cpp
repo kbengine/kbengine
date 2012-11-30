@@ -31,6 +31,7 @@ namespace KBEngine{
 std::vector<ScriptDefModulePtr>	EntityDef::__scriptModules;
 std::map<std::string, ENTITY_SCRIPT_UID> EntityDef::__scriptTypeMappingUType;
 COMPONENT_TYPE EntityDef::__loadComponentType;
+KBE_MD5 EntityDef::__md5;
 
 // 方法产生时自动产生utype用的
 ENTITY_METHOD_UID g_methodUtypeAuto = 1;
@@ -118,6 +119,7 @@ bool EntityDef::initialize(const std::string entitiesPath,
 	}
 	XML_FOR_END(node);
 
+	EntityDef::md5().final();
 	if(loadComponentType == DBMGR_TYPE)
 		return true;
 

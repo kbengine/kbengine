@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __ENTITYDEF_H__
 #define __ENTITYDEF_H__
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/md5.hpp"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4910)
 #pragma warning (disable : 4251)
@@ -147,12 +148,16 @@ public:
 	static const SCRIPT_MODULES& getScriptModules(){ 
 		return EntityDef::__scriptModules; 
 	}
+
+	static KBE_MD5& md5(){ return __md5; }
 private:
 	static SCRIPT_MODULES __scriptModules;										// 所有的扩展脚本模块都存储在这里
 
 	static SCRIPT_MODULE_UID_MAP __scriptTypeMappingUType;						// 脚本类别映射utype
 
 	static COMPONENT_TYPE __loadComponentType;									// 所需关系的组件类别的相关数据		
+
+	static KBE_MD5 __md5;														// defs-md5
 };
 
 }

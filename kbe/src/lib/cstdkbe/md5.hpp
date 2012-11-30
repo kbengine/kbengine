@@ -41,6 +41,8 @@ public:
 	
 	void clear();
 	
+	void final();
+
 	bool operator==( const KBE_MD5 & other ) const;
 	bool operator!=( const KBE_MD5 & other ) const
 		{ return !(*this == other); }

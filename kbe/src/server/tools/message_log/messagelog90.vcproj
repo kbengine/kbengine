@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../lib;../../../common;../../../lib/third_party/g3dlite;../../../server;../../../lib/third_party/log4cxx/include;../../../lib/third_party"
+				AdditionalIncludeDirectories="../../../lib;../../../common;../../../lib/third_party/g3dlite;../../../server;../../../lib/third_party/log4cxx/include;../../../lib/third_party;../../../lib/third_party/openssl/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER;KBE_MESSAGELOG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -119,7 +119,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../../lib;../../../common;../../../lib/third_party/g3dlite;../../../server;../../../lib/third_party/log4cxx/include;../../../lib/third_party"
+				AdditionalIncludeDirectories="../../../lib;../../../common;../../../lib/third_party/g3dlite;../../../server;../../../lib/third_party/log4cxx/include;../../../lib/third_party;../../../lib/third_party/openssl/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC;KBE_SERVER;KBE_MESSAGELOG"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
