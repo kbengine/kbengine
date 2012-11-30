@@ -49,7 +49,7 @@ bool sync_item_to_db(DBInterface* dbi,
 		TABLE_FIELD& tf = iter->second;
 		if(tf.type == sqlitemtype && ((tf.flags & itemflags) == itemflags))
 		{
-			if((length == 0) || length == tf.length)
+			if((length == 0) || (int32)length == tf.length)
 				return true;
 		}
 	}
