@@ -7,6 +7,7 @@ SRCS =				\
 	timestamp		\
 	strutil			\
 	kbeversion		\
+	md5			\
 	memorystream
 
 ifndef KBE_ROOT
