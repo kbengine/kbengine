@@ -16,9 +16,7 @@ MY_LIBS =		\
 
 BUILD_TIME_FILE = main
 
-ifndef USE_OPENSSL
-	USE_OPENSSL = 0
-endif
+USE_OPENSSL = 1
 
 ifndef NO_USE_LOG4CXX
 	NO_USE_LOG4CXX = 0
