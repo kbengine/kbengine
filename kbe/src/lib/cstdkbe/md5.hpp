@@ -37,7 +37,7 @@ public:
 	~KBE_MD5();
 
 	void append(const void * data, int numBytes);
-	unsigned char* getDigest();
+	const unsigned char* getDigest();
 	
 	void clear();
 	

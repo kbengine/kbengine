@@ -41,7 +41,7 @@ void KBE_MD5::append(const void * data, int numBytes)
 }
 
 //-------------------------------------------------------------------------------------
-unsigned char* KBE_MD5::getDigest()
+const unsigned char* KBE_MD5::getDigest()
 {
 	if(!isFinal_)
 	{
