@@ -108,8 +108,16 @@ public:
 	virtual bool queryAccount(DBInterface * dbi, std::string& name, ACCOUNT_INFOS& info) = 0;
 	virtual bool logAccount(DBInterface * dbi, ACCOUNT_INFOS& info) = 0;
 
-	MemoryStream& accountDefMemoryStream(){ return accountDefMemoryStream_; }
-	void accountDefMemoryStream(MemoryStream& s){accountDefMemoryStream_.append(s.data() + s.rpos(), s.opsize()); }
+	MemoryStream& accountDefMemoryStream()
+	{ 
+		return accountDefMemoryStream_; 
+	}
+
+	void accountDefMemoryStream(MemoryStream& s)
+	{
+		accountDefMemoryStream_.clear(false);
+		accountDefMemoryStream_.append(s.data() + s.rpos(), s.opsize()); 
+	}
 protected:
 	MemoryStream accountDefMemoryStream_;
 };
