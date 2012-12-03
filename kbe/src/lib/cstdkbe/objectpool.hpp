@@ -60,7 +60,6 @@ public:
 		max_(OBJECT_POOL_INIT_MAX_SIZE),
 		isDestroyed_(false)
 	{
-		assignObjs(OBJECT_POOL_INIT_SIZE);
 	}
 
 	ObjectPool(unsigned int preAssignVal, size_t max):
@@ -68,7 +67,6 @@ public:
 		max_((max == 0 ? 1 : max)),
 		isDestroyed_(false)
 	{
-		assignObjs(preAssignVal);
 	}
 
 	~ObjectPool()
