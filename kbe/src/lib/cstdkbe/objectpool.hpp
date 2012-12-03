@@ -65,7 +65,7 @@ public:
 
 	ObjectPool(unsigned int preAssignVal, size_t max):
 		objects_(),
-		max_((max == 0) 1 : max),
+		max_((max == 0 ? 1 : max)),
 		isDestroyed_(false)
 	{
 		assignObjs(preAssignVal);
