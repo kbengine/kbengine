@@ -52,16 +52,25 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype,
 	detailLevel_(detailLevel)
 {
 	dataType_->incRef();
-	
-	EntityDef::md5().append((void*)name_.c_str(), name_.size());
-	EntityDef::md5().append((void*)defaultStr.c_str(), defaultStr.size());
-	EntityDef::md5().append((void*)dataTypeName.c_str(), dataTypeName.size());
 
 	// mailbox ÎÞ·¨±£´æ
 	if(isPersistent && strcmp(dataType_->getName(), "MAILBOX") == 0)
 	{
 		isPersistent_ = false;
 	}
+
+	EntityDef::md5().append((void*)name_.c_str(), name_.size());
+	EntityDef::md5().append((void*)defaultStr.c_str(), defaultStr.size());
+	EntityDef::md5().append((void*)dataTypeName.c_str(), dataTypeName.size());
+	EntityDef::md5().append((void*)&utype_, sizeof(ENTITY_PROPERTY_UID));
+	EntityDef::md5().append((void*)&flags_, sizeof(uint32));
+	EntityDef::md5().append((void*)&isPersistent_, sizeof(bool));
+	EntityDef::md5().append((void*)&isIdentifier_, sizeof(bool));
+	EntityDef::md5().append((void*)&databaseLength_, sizeof(uint32));
+	EntityDef::md5().append((void*)&detailLevel_, sizeof(int8));
+
+	DATATYPE_UID uid = dataType->id();
+	EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
 
 	PropertyDescription::propertyDescriptionCount_++;
 

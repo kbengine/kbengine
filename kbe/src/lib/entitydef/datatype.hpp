@@ -52,6 +52,8 @@ namespace KBEngine{
 }
 
 class RefCountable;
+
+
 class DataType : public RefCountable
 {
 public:	

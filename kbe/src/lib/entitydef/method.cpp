@@ -37,7 +37,10 @@ isExposed_(isExposed),
 currCallerID_(0)
 {
 	MethodDescription::methodDescriptionCount_++;
+
 	EntityDef::md5().append((void*)name_.c_str(), name_.size());
+	EntityDef::md5().append((void*)&utype_, sizeof(ENTITY_METHOD_UID));
+	EntityDef::md5().append((void*)&isExposed_, sizeof(bool));
 }
 
 //-------------------------------------------------------------------------------------
@@ -60,6 +63,9 @@ bool MethodDescription::pushArgType(DataType* dataType)
 
 	dataType->incRef();
 	argTypes_.push_back(dataType);
+
+	DATATYPE_UID uid = dataType->id();
+	EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
 	return true;
 }
 

@@ -22,11 +22,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 
 
-INLINE void ScriptDefModule::setUType(ENTITY_SCRIPT_UID utype)
-{ 
-	uType_ = utype; 
-}
-
 INLINE void ScriptDefModule::setScriptType(PyTypeObject* scriptType)
 { 
 	scriptType_ = scriptType;

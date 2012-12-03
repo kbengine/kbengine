@@ -57,7 +57,7 @@ public:
 	~ScriptDefModule();	
 
 	ENTITY_SCRIPT_UID getUType(void);
-	INLINE void setUType(ENTITY_SCRIPT_UID utype);
+	void setUType(ENTITY_SCRIPT_UID utype);
 
 	PyTypeObject* getScriptType(void);
 	INLINE void setScriptType(PyTypeObject* scriptType);

@@ -39,6 +39,8 @@ hasBase_(false),
 hasClient_(false),
 name_(name)
 {
+	EntityDef::md5().append((void*)name.c_str(), name.size());
+
 	detailLevel_.level[DETAIL_LEVEL_NEAR] = new DetailLevel::Level();
 	detailLevel_.level[DETAIL_LEVEL_MEDIUM] = new DetailLevel::Level();
 	detailLevel_.level[DETAIL_LEVEL_FAR] = new DetailLevel::Level();
@@ -84,6 +86,13 @@ ScriptDefModule::~ScriptDefModule()
 	METHODDESCRIPTION_MAP::iterator iter4 = methodClientDescr_.begin();
 	for(; iter4 != methodClientDescr_.end(); iter4++)
 		SAFE_RELEASE(iter4->second);
+}
+
+//-------------------------------------------------------------------------------------
+void ScriptDefModule::setUType(ENTITY_SCRIPT_UID utype)
+{ 
+	uType_ = utype; 
+	EntityDef::md5().append((void*)&uType_, sizeof(ENTITY_SCRIPT_UID));
 }
 
 //-------------------------------------------------------------------------------------

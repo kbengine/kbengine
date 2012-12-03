@@ -42,6 +42,7 @@ aliasName_()
 	DataTypes::addDateType(id_, this);
 
 	EntityDef::md5().append((void*)this->aliasName(), strlen(this->aliasName()));
+	EntityDef::md5().append((void*)&id_, sizeof(DATATYPE_UID));
 }
 
 //-------------------------------------------------------------------------------------
@@ -946,7 +947,8 @@ bool FixedArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 	else
 	{
 		DataType* dataType = DataTypes::getDataType(strType);
-		if(dataType != NULL){
+		if(dataType != NULL)
+		{
 			dataType_ = dataType;
 			dataType_->incRef();
 		}
@@ -958,6 +960,11 @@ bool FixedArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 			return false;
 		}			
 	}
+
+	DATATYPE_UID uid = dataType_->id();
+	EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
+	EntityDef::md5().append((void*)strType.c_str(), strType.size());
+
 	return true;
 }
 
@@ -1176,11 +1183,19 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 
 				if(dataType->initialize(xmlplus, typeNode))
 				{
+					DATATYPE_UID uid = dataType->id();
+					EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
+					EntityDef::md5().append((void*)strType.c_str(), strType.size());
+					EntityDef::md5().append((void*)typeName.c_str(), typeName.size());
+
 					keyTypes_.push_back(std::make_pair(typeName, pDictItemDataType));
 					dataType->incRef();
 
 					if(dataType->getDataType()->type() == DATA_TYPE_MAILBOX)
+					{
 						persistent = false;
+						EntityDef::md5().append((void*)&persistent, sizeof(bool));
+					}
 
 					pDictItemDataType->persistent = persistent;
 				}
@@ -1201,11 +1216,19 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 
 				if(dataType != NULL)
 				{
+					DATATYPE_UID uid = dataType->id();
+					EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
+					EntityDef::md5().append((void*)strType.c_str(), strType.size());
+					EntityDef::md5().append((void*)typeName.c_str(), typeName.size());
+
 					keyTypes_.push_back(std::make_pair(typeName, pDictItemDataType));
 					dataType->incRef();
 					
 					if(dataType->type() == DATA_TYPE_MAILBOX)
+					{
 						persistent = false;
+						EntityDef::md5().append((void*)&persistent, sizeof(bool));
+					}
 
 					pDictItemDataType->persistent = persistent;
 				}
@@ -1233,6 +1256,7 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 				return false;
 
 			moduleName_ = strType;
+			EntityDef::md5().append((void*)moduleName_.c_str(), moduleName_.size());
 		}
 	}
 
