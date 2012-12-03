@@ -56,25 +56,39 @@ class EntityMailbox : public EntityMailboxAbstract
 public:
 	EntityMailbox(ScriptDefModule* scriptModule, const Mercury::Address* pAddr, COMPONENT_ID componentID, 
 		ENTITY_ID eid, ENTITY_MAILBOX_TYPE type);
+
 	~EntityMailbox();
 	
-	/** 脚本请求获取属性或者方法 */
+	/** 
+		脚本请求获取属性或者方法 
+	*/
 	PyObject* onScriptGetAttribute(PyObject* attr);						
 			
-	/** 获得对象的描述 */
+	/** 
+		获得对象的描述 
+	*/
 	PyObject* tp_repr();
 	PyObject* tp_str();
 	
 	void c_str(char* s, size_t size);
 
-	/** unpickle方法 */
+	/** 
+		unpickle方法 
+	*/
 	static PyObject* __unpickle__(PyObject* self, PyObject* args);
 
-	/** 脚本被安装时被调用 */
+	/** 
+		脚本被安装时被调用 
+	*/
 	static void onInstallScript(PyObject* mod);
 
-	/** 设置mailbox的__getEntityFunc函数地址 */
-	static void setGetEntityFunc(GetEntityFunc func){ __getEntityFunc = func; };
+	/** 
+		设置mailbox的__getEntityFunc函数地址 
+	*/
+	static void setGetEntityFunc(GetEntityFunc func){ 
+		__getEntityFunc = func; 
+	};
+
 private:
 	static GetEntityFunc					__getEntityFunc;		// 获得一个entity的实体的函数地址
 protected:

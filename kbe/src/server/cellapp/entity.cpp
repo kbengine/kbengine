@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entity.hpp"
 #include "witness.hpp"	
 #include "space.hpp"
+#include "all_clients.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 #include "network/bundle.hpp"	
@@ -58,6 +59,8 @@ SCRIPT_MEMBER_DECLARE_END()
 ENTITY_GETSET_DECLARE_BEGIN(Entity)
 SCRIPT_GET_DECLARE("base",							pyGetBaseMailbox,				0,					0)
 SCRIPT_GET_DECLARE("client",						pyGetClientMailbox,				0,					0)
+SCRIPT_GET_DECLARE("allClients",					pyGetAllClients,				0,					0)
+SCRIPT_GET_DECLARE("otherClients",					pyGetOtherClients,				0,					0)
 SCRIPT_GET_DECLARE("isWitnessed",					pyIsWitnessed,					0,					0)
 SCRIPT_GET_DECLARE("hasWitness",					pyHasWitness,					0,					0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,		0,		0)
@@ -79,7 +82,9 @@ aoiHysteresisArea_(0.0f),
 isWitnessed_(false),
 topSpeed_(-0.1f),
 topSpeedY_(-0.1f),
-pWitness_(NULL)
+pWitness_(NULL),
+allClients_(new AllClients(scriptModule, id, true)),
+otherClients_(new AllClients(scriptModule, id, false))
 {
 	ENTITY_INIT_PROPERTYS(Entity);
 }
@@ -88,8 +93,12 @@ pWitness_(NULL)
 Entity::~Entity()
 {
 	ENTITY_DECONSTRUCTION(Entity);
+
 	S_RELEASE(clientMailbox_);
 	S_RELEASE(baseMailbox_);
+	S_RELEASE(allClients_);
+	S_RELEASE(otherClients_);
+
 	Witness::ObjPool().reclaimObject(pWitness_);
 }	
 
@@ -180,6 +189,28 @@ PyObject* Entity::pyGetClientMailbox()
 
 	Py_INCREF(mailbox);
 	return mailbox; 
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetAllClients()
+{ 
+	AllClients* clients = getAllClients();
+	if(clients == NULL)
+		S_Return;
+
+	Py_INCREF(clients);
+	return clients; 
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetOtherClients()
+{ 
+	AllClients* clients = getOtherClients();
+	if(clients == NULL)
+		S_Return;
+
+	Py_INCREF(clients);
+	return clients; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -664,7 +695,7 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 	EntityMailbox* client = static_cast<EntityMailbox*>(clientMailbox);	
 	// Py_INCREF(clientMailbox); 这里不需要增加引用， 因为每次都会产生一个新的对象
 	setClientMailbox(client);
-	
+
 	pWitness_ = Witness::ObjPool().createObject();
 
 	Space* space = Spaces::findSpace(this->getSpaceID());
@@ -680,9 +711,11 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 void Entity::onLoseWitness(Mercury::Channel* pChannel)
 {
 	KBE_ASSERT(this->getClientMailbox() != NULL && this->hasWitness());
+
 	getClientMailbox()->addr(Mercury::Address::NONE);
 	Py_DECREF(getClientMailbox());
 	setClientMailbox(NULL);
+
 	Witness::ObjPool().reclaimObject(pWitness_);
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLoseWitness"));

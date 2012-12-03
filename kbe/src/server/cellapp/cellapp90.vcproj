@@ -180,11 +180,19 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\all_clients.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\cellapp.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\cellapp_interface.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\clients_remote_entity_method.cpp"
 				>
 			</File>
 			<File
@@ -236,6 +244,10 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\all_clients.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\cellapp.hpp"
 				>
 			</File>
@@ -245,6 +257,10 @@
 			</File>
 			<File
 				RelativePath=".\cellapp_interface_macros.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\clients_remote_entity_method.hpp"
 				>
 			</File>
 			<File

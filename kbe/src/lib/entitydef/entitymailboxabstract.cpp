@@ -51,7 +51,8 @@ SCRIPT_INIT(EntityMailboxAbstract, 0, 0, 0, 0, 0)
 EntityMailboxAbstract::EntityMailboxAbstract(PyTypeObject* scriptType, 
 											const Mercury::Address* pAddr, 
 											COMPONENT_ID componentID, 
-											ENTITY_ID eid, uint16 utype, 
+											ENTITY_ID eid, 
+											uint16 utype, 
 											ENTITY_MAILBOX_TYPE type):
 ScriptObject(scriptType, false),
 componentID_(componentID),

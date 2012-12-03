@@ -49,6 +49,7 @@ class Entity;
 class EntityMailbox;
 class Cellapp;
 class Witness;
+class AllClients;
 
 namespace Mercury
 {
@@ -106,6 +107,20 @@ public:
 	INLINE EntityMailbox* getClientMailbox()const;
 	DECLARE_PY_GET_MOTHOD(pyGetClientMailbox);
 	INLINE void setClientMailbox(EntityMailbox* mailbox);
+
+	/**
+		all_clients
+	*/
+	INLINE AllClients* getAllClients()const;
+	DECLARE_PY_GET_MOTHOD(pyGetAllClients);
+	INLINE void setAllClients(AllClients* clients);
+
+	/**
+		other_clients
+	*/
+	INLINE AllClients* getOtherClients()const;
+	DECLARE_PY_GET_MOTHOD(pyGetOtherClients);
+	INLINE void setOtherClients(AllClients* clients);
 
 	/** 
 		脚本获取和设置entity的position 
@@ -373,6 +388,9 @@ protected:
 	SPACE_ENTITIES::size_type				spaceEntityIdx_;					// 自身在space的entities中的位置
 
 	Witness*								pWitness_;							// 观察者对象
+
+	AllClients*								allClients_;
+	AllClients*								otherClients_;
 };																										
 																											
 

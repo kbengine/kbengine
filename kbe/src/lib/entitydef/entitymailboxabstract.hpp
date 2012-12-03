@@ -60,26 +60,49 @@ public:
 	EntityMailboxAbstract(PyTypeObject* scriptType, 
 		const Mercury::Address* pAddr, 
 		COMPONENT_ID componentID, 
-		ENTITY_ID eid, uint16 utype, 
+		ENTITY_ID eid, 
+		uint16 utype, 
 		ENTITY_MAILBOX_TYPE type);
 	
-	~EntityMailboxAbstract();
+	virtual ~EntityMailboxAbstract();
 
-	/** 获取entityID */
-	ENTITY_ID getID()const{ return id_; }
-	void setID(int id){ id_ = id; }
+	/** 
+		获取entityID 
+	*/
+	ENTITY_ID getID()const{ 
+		return id_; 
+	}
+
+	void setID(int id){ 
+		id_ = id; 
+	}
+
 	DECLARE_PY_GET_MOTHOD(pyGetID);
 
-	/** 获得组件ID */
-	COMPONENT_ID getComponentID(void)const{ return componentID_; }
+	/** 
+		获得组件ID 
+	*/
+	COMPONENT_ID getComponentID(void)const{ 
+		return componentID_; 
+	}
 
-	/** 获得utype */
-	ENTITY_SCRIPT_UID getUType(void)const{ return utype_; }
+	/** 
+		获得utype 
+	*/
+	ENTITY_SCRIPT_UID getUType(void)const{ 
+		return utype_; 
+	}
 
-	/** 获得type */
-	ENTITY_MAILBOX_TYPE getType(void)const{ return type_; }
+	/** 
+		获得type 
+	*/
+	ENTITY_MAILBOX_TYPE getType(void)const{
+		return type_; 
+	}
 
-	/** 支持pickler 方法 */
+	/** 
+		支持pickler 方法 
+	*/
 	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol);
 	
 	Mercury::Channel* getChannel(void);

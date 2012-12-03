@@ -106,6 +106,30 @@ INLINE EntityMailbox* Entity::getClientMailbox()const
 }
 
 //-------------------------------------------------------------------------------------
+INLINE AllClients* Entity::getAllClients()const
+{ 
+	return allClients_; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE AllClients* Entity::getOtherClients()const
+{ 
+	return otherClients_; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::setAllClients(AllClients* clients)
+{
+	allClients_ = clients;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::setOtherClients(AllClients* clients)
+{
+	otherClients_ = clients;
+}
+
+//-------------------------------------------------------------------------------------
 INLINE bool Entity::isReal(void)const
 { 
 	return isReal_; 
