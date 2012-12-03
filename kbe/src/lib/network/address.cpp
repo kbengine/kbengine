@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "address.hpp"
+#include "helper/debug_helper.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -35,6 +36,15 @@ static ObjectPool<Address> _g_objPool;
 ObjectPool<Address>& Address::ObjPool()
 {
 	return _g_objPool;
+}
+
+//-------------------------------------------------------------------------------------
+void Address::destroyObjPool()
+{
+	DEBUG_MSG(boost::format("Address::destroyObjPool(): size %1%.\n") % 
+		_g_objPool.size());
+
+	_g_objPool.destroy();
 }
 
 //-------------------------------------------------------------------------------------

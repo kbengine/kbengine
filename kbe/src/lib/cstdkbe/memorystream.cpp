@@ -29,6 +29,15 @@ ObjectPool<MemoryStream>& MemoryStream::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+void MemoryStream::destroyObjPool()
+{
+	DEBUG_MSG(boost::format("MemoryStream::destroyObjPool(): size %1%.\n") % 
+		_g_objPool.size());
+
+	_g_objPool.destroy();
+}
+
+//-------------------------------------------------------------------------------------
 MemoryStream::SmartPoolObjectPtr MemoryStream::createSmartPoolObj()
 {
 	return SmartPoolObjectPtr(new SmartPoolObject<MemoryStream>(ObjPool().createObject(), _g_objPool));

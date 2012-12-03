@@ -64,6 +64,15 @@ ObjectPool<EndPoint>& EndPoint::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+void EndPoint::destroyObjPool()
+{
+	DEBUG_MSG(boost::format("EndPoint::destroyObjPool(): size %1%.\n") % 
+		_g_objPool.size());
+
+	_g_objPool.destroy();
+}
+
+//-------------------------------------------------------------------------------------
 EndPoint::SmartPoolObjectPtr EndPoint::createSmartPoolObj()
 {
 	return SmartPoolObjectPtr(new SmartPoolObject<EndPoint>(ObjPool().createObject(), _g_objPool));

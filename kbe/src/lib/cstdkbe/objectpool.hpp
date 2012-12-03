@@ -44,6 +44,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 #define OBJECT_POOL_INIT_SIZE	16
+#define OBJECT_POOL_INIT_MAX_SIZE	OBJECT_POOL_INIT_SIZE * 16
 
 template< typename T >
 class SmartPoolObject;
@@ -54,22 +55,30 @@ class ObjectPool
 public:
 	typedef std::list<T*> OBJECTS;
 
-	ObjectPool()
+	ObjectPool():
+		objects_(),
+		max_(OBJECT_POOL_INIT_MAX_SIZE),
+		isDestroyed_(false)
 	{
-		for(unsigned int i=0; i<OBJECT_POOL_INIT_SIZE; i++){
-			objects_.push_back(new T);
-		}
+		assignObjs(OBJECT_POOL_INIT_SIZE);
 	}
 
-	ObjectPool(unsigned int preAssignVal)
+	ObjectPool(unsigned int preAssignVal, size_t max):
+		objects_(),
+		max_((max == 0) 1 : max),
+		isDestroyed_(false)
 	{
-		for(unsigned int i=0; i<preAssignVal; i++){
-			objects_.push_back(new T);
-		}
+		assignObjs(preAssignVal);
 	}
 
 	~ObjectPool()
 	{
+		destroy();
+	}	
+	
+	void destroy()
+	{
+		isDestroyed_ = true;
 		typename OBJECTS::iterator iter = objects_.begin();
 		for(; iter!=objects_.end(); iter++)
 		{
@@ -80,9 +89,16 @@ public:
 		}
 				
 		objects_.clear();	
-	}	
-	
+	}
+
 	const OBJECTS& objects(void)const { return objects_; }
+
+	void assignObjs(unsigned int preAssignVal = OBJECT_POOL_INIT_SIZE)
+	{
+		for(unsigned int i=0; i<preAssignVal; i++){
+			objects_.push_back(new T);
+		}
+	}
 
 	/** 
 		强制创建一个指定类型的对象。 如果缓冲里已经创建则返回现有的，否则
@@ -91,14 +107,19 @@ public:
 	template<typename T1>
 	T* createObject(void)
 	{
-		if(objects_.size() > 0){
-			T* t = static_cast<T1*>(*objects_.begin());
-			objects_.pop_front();
-			return t;
+		while(true)
+		{
+			if(objects_.size() > 0){
+				T* t = static_cast<T1*>(*objects_.begin());
+				objects_.pop_front();
+				return t;
+			}
+
+			assignObjs();
 		}
-		
+
 		// INFO_MSG("ObjectPool:create new object! total:%d\n", m_totalCount_);
-		return new T1;
+		return NULL;
 	}
 
 	/** 
@@ -107,17 +128,22 @@ public:
 	*/
 	T* createObject(void)
 	{
-		if(objects_.size() > 0){
-			T* t = static_cast<T*>(*objects_.begin());
-			objects_.pop_front();
+		while(true)
+		{
+			if(objects_.size() > 0){
+				T* t = static_cast<T*>(*objects_.begin());
+				objects_.pop_front();
 
-			// 先重置状态
-			t->onReclaimObject();
-			return t;
+				// 先重置状态
+				t->onReclaimObject();
+				return t;
+			}
+
+			assignObjs();
 		}
-		
+
 		// INFO_MSG("ObjectPool:create new object! total:%d\n", m_totalCount_);
-		return new T;
+		return NULL;
 	}
 
 	/**
@@ -126,13 +152,26 @@ public:
 	void reclaimObject(T* obj)
 	{
 		if(obj != NULL)
-			objects_.push_back(obj);
+		{
+			if(size() >= max_ || isDestroyed_)
+			{
+				delete obj;
+			}
+			else
+			{
+				objects_.push_back(obj);
+			}
+		}
 	}
 
 	size_t size(void)const{ return objects_.size(); }
 	
 protected:
 	OBJECTS objects_;							// 对象缓冲器
+
+	size_t max_;
+
+	bool isDestroyed_;
 };
 
 /*

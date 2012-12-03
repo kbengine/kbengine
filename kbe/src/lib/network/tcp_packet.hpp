@@ -42,6 +42,7 @@ public:
 	typedef std::tr1::shared_ptr< SmartPoolObject< TCPPacket > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<TCPPacket>& ObjPool();
+	static void destroyObjPool();
 
     TCPPacket(MessageID msgID = 0, size_t res = 0);
 	virtual ~TCPPacket(void);

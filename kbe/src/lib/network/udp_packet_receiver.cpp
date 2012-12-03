@@ -45,6 +45,15 @@ ObjectPool<UDPPacketReceiver>& UDPPacketReceiver::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+void UDPPacketReceiver::destroyObjPool()
+{
+	DEBUG_MSG(boost::format("UDPPacketReceiver::destroyObjPool(): size %1%.\n") % 
+		_g_objPool.size());
+
+	_g_objPool.destroy();
+}
+
+//-------------------------------------------------------------------------------------
 UDPPacketReceiver::SmartPoolObjectPtr UDPPacketReceiver::createSmartPoolObj()
 {
 	return SmartPoolObjectPtr(new SmartPoolObject<UDPPacketReceiver>(ObjPool().createObject(), _g_objPool));

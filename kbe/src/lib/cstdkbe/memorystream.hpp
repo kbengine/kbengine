@@ -89,6 +89,7 @@ class MemoryStream : public PoolObject
 {
 public:
 	static ObjectPool<MemoryStream>& ObjPool();
+	static void destroyObjPool();
 
 	typedef std::tr1::shared_ptr< SmartPoolObject< MemoryStream > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();

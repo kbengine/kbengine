@@ -23,7 +23,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverconfig.hpp"
 #include "server/componentbridge.hpp"
 #include "network/channel.hpp"
-#include "server/componentbridge.hpp"
+#include "network/bundle.hpp"
+#include "network/common.hpp"
+#include "cstdkbe/memorystream.hpp"
 
 #include "../../server/baseappmgr/baseappmgr_interface.hpp"
 #include "../../server/cellappmgr/cellappmgr_interface.hpp"
@@ -132,6 +134,8 @@ void ServerApp::finalise(void)
 {
 	threadPool_.finalise();
 	pActiveTimerHandle_.cancel();
+
+	Mercury::destroyObjPool();
 }
 
 //-------------------------------------------------------------------------------------		

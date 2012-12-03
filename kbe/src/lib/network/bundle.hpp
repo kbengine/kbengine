@@ -84,6 +84,7 @@ public:
 	typedef std::tr1::shared_ptr< SmartPoolObject< Bundle > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<Bundle>& ObjPool();
+	static void destroyObjPool();
 	void onReclaimObject();
 
 	typedef std::vector<Packet*> Packets;

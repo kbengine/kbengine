@@ -184,6 +184,7 @@ const char * reasonToString(Reason reason)
 }																										\
 
 
+void destroyObjPool();
 
 }
 }

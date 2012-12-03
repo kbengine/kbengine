@@ -36,6 +36,7 @@ public:
 	typedef std::tr1::shared_ptr< SmartPoolObject< Address > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<Address>& ObjPool();
+	static void destroyObjPool();
 	void onReclaimObject();
 
 	Address();

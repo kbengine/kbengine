@@ -46,6 +46,7 @@ public:
 	typedef std::tr1::shared_ptr< SmartPoolObject< TCPPacketReceiver > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<TCPPacketReceiver>& ObjPool();
+	static void destroyObjPool();
 	
 	TCPPacketReceiver():PacketReceiver(){}
 	TCPPacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);

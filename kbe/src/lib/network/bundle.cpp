@@ -96,6 +96,15 @@ ObjectPool<Bundle>& Bundle::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+void Bundle::destroyObjPool()
+{
+	DEBUG_MSG(boost::format("Bundle::destroyObjPool(): size %1%.\n") % 
+		_g_objPool.size());
+
+	_g_objPool.destroy();
+}
+
+//-------------------------------------------------------------------------------------
 Bundle::SmartPoolObjectPtr Bundle::createSmartPoolObj()
 {
 	return SmartPoolObjectPtr(new SmartPoolObject<Bundle>(ObjPool().createObject(), _g_objPool));

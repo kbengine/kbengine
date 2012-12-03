@@ -45,6 +45,7 @@ public:
 	typedef std::tr1::shared_ptr< SmartPoolObject< UDPPacketReceiver > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<UDPPacketReceiver>& ObjPool();
+	static void destroyObjPool();
 
 	UDPPacketReceiver():PacketReceiver(){}
 	UDPPacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);

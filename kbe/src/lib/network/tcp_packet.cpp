@@ -39,6 +39,15 @@ ObjectPool<TCPPacket>& TCPPacket::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+void TCPPacket::destroyObjPool()
+{
+	DEBUG_MSG(boost::format("TCPPacket::destroyObjPool(): size %1%.\n") % 
+		_g_objPool.size());
+
+	_g_objPool.destroy();
+}
+
+//-------------------------------------------------------------------------------------
 TCPPacket::SmartPoolObjectPtr TCPPacket::createSmartPoolObj()
 {
 	return SmartPoolObjectPtr(new SmartPoolObject<TCPPacket>(ObjPool().createObject(), _g_objPool));

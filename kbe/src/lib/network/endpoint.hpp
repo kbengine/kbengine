@@ -37,6 +37,7 @@ public:
 	typedef std::tr1::shared_ptr< SmartPoolObject< EndPoint > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<EndPoint>& ObjPool();
+	static void destroyObjPool();
 	void onReclaimObject();
 
 	EndPoint(u_int32_t networkAddr = 0, u_int16_t networkPort = 0);
