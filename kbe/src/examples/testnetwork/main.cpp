@@ -501,7 +501,7 @@ void init_network(void)
 				len, msgID, uuid, eid, entityType.c_str());
 		}
 		
-		{
+		if(0){
 			TCPPacket packet555;
 			packet555.resize(65535);
 			len = mysocket.recv(packet555.data(), 65535);

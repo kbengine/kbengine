@@ -61,6 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalOptions="/ignore:4049&#x0D;&#x0A;/ignore:4217"
 				AdditionalDependencies="zip_d.lib resmgr_d.lib python32_d.lib server_d.lib pyscript_d.lib entitydef_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib math_d.lib network_d.lib vldmt.lib thread_d.lib ws2_32.lib"
 				OutputFile="../../../bin/Hybrid/$(ProjectName).exe"
 				LinkIncremental="2"
@@ -138,6 +139,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalOptions="/ignore:4049&#x0D;&#x0A;/ignore:4217"
 				AdditionalDependencies="zip.lib resmgr.lib python32.lib server.lib pyscript.lib entitydef.lib xmlplus.lib cstdkbe.lib helper.lib math.lib network.lib vldmt.lib thread.lib ws2_32.lib"
 				OutputFile="../../../bin/Hybrid\$(ProjectName).exe"
 				LinkIncremental="1"
