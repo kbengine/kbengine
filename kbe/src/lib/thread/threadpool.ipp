@@ -17,14 +17,29 @@ INLINE bool ThreadPool::isThreadCountMax(void)const
 	return currentThreadCount_ >= maxThreadCount_;	
 }
 
-INLINE unsigned int ThreadPool::getCurrentThreadCount(void)const
+INLINE uint32 ThreadPool::getCurrentThreadCount(void)const
 { 
 	return currentThreadCount_; 
 }
 
-INLINE unsigned int ThreadPool::getCurrentFreeThreadCount(void)const
+INLINE uint32 ThreadPool::getCurrentFreeThreadCount(void)const
 { 
 	return currentFreeThreadCount_; 
+}
+
+INLINE bool ThreadPool::isDestroyed()const 
+{ 
+	return isDestroyed_; 
+}
+
+INLINE void ThreadPool::destroy()
+{
+	isDestroyed_ = true;
+}
+
+ThreadPool* TPThread::threadPool()
+{
+	return threadPool_;
 }
 
 INLINE THREAD_ID TPThread::getID(void)const

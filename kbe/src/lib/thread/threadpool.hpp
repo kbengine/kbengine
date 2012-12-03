@@ -106,6 +106,8 @@ public:
 	{
 		deleteCond();
 		deleteMutex();
+
+		DEBUG_MSG(boost::format("TPThread::~TPThread(): %1%\n") % this);
 	}
 	
 	virtual void onStart(){}
@@ -116,7 +118,9 @@ public:
 	
 	INLINE void setID(THREAD_ID tidp);
 	
-	/**创建一个线程， 并将自己与该线程绑定*/
+	/**
+		创建一个线程， 并将自己与该线程绑定
+	*/
 	THREAD_ID createThread(void);
 	
 	virtual void initCond(void)
@@ -153,84 +157,46 @@ public:
 	
 	void deleteFiniTask(TPTask* tpTask);
 	
-	/**发送条件信号*/
+	/**
+		发送条件信号
+	*/
 	int sendCondSignal(void)
 	{
 		return THREAD_SINGNAL_SET(cond_);
 	}
 	
-	/**线程通知 等待条件信号*/
+	/**
+		线程通知 等待条件信号
+	*/
 	bool onWaitCondSignal(void);
 
-	/**获取本线程要处理的任务*/
+	/**
+		获取本线程要处理的任务
+	*/
 	INLINE TPTask* getTask(void)const;
 
-	/**设置本线程要处理的任务*/
+	/**
+		设置本线程要处理的任务
+	*/
 	INLINE void setTask(TPTask* tpt);
 
 	INLINE int getState(void)const;
 	
-	/**本线程要处理的任务已经处理完毕 我们决定删除这个废弃的任务*/
+	/**
+		本线程要处理的任务已经处理完毕 我们决定删除这个废弃的任务
+	*/
 	void onTaskComplete(void);
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-	static unsigned __stdcall threadFunc(void *arg)
+	static unsigned __stdcall threadFunc(void *arg);
 #else	
-	static void* threadFunc(void* arg)
-#endif
-	{
-		TPThread * tptd = static_cast<TPThread*>(arg);
-		bool isRun = true;
-
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else			
-		pthread_detach(pthread_self());
+	static void* threadFunc(void* arg);
 #endif
 
-		tptd->onStart();
-
-		while(isRun)
-		{
-			isRun = tptd->onWaitCondSignal();
-			if(!isRun)
-			{
-				tptd = NULL;
-				break;
-			}
-
-			tptd->state_ = THREAD_STATE_BUSY;
-			TPTask * task = tptd->getTask();
-			
-			while(task)
-			{
-				tptd->onProcessTask(task);
-
-				task->process();									// 处理该任务
-				TPTask * task1 = tptd->tryGetTask();				// 尝试继续从任务队列里取出一个繁忙的未处理的任务
-
-				if(!task1)
-				{
-					tptd->onTaskComplete();
-					break;
-				}
-				else
-				{
-					tptd->deleteFiniTask(task);
-					task = task1;
-					tptd->setTask(task1);
-				}
-			}
-		}
-
-		tptd->onEnd();
-
-#if KBE_PLATFORM == PLATFORM_WIN32
-		return 0;
-#else	
-		pthread_exit(NULL);
-		return NULL;
-#endif		
-	}
+	/**
+		设置本线程要处理的任务
+	*/
+	INLINE ThreadPool* threadPool();
 protected:
 	THREAD_SINGNAL cond_;			// 线程信号量
 	THREAD_MUTEX mutex_;			// 线程互诉体
@@ -256,12 +222,12 @@ public:
 	/**
 		获取当前线程总数
 	*/	
-	INLINE unsigned int getCurrentThreadCount(void)const;
+	INLINE uint32 getCurrentThreadCount(void)const;
 	
 	/**
 		获取当前空闲线程总数
 	*/		
-	INLINE unsigned int getCurrentFreeThreadCount(void)const;
+	INLINE uint32 getCurrentFreeThreadCount(void)const;
 	
 	/**
 		创建线程池
@@ -269,8 +235,8 @@ public:
 		@param inormalMaxThreadCount	: 线程池会一直保持这么多个数的线程
 		@param imaxThreadCount			: 线程池最多只能有这么多个线程
 	*/
-	bool createThreadPool(unsigned int inewThreadCount, 
-	unsigned int inormalMaxThreadCount, unsigned int imaxThreadCount);
+	bool createThreadPool(uint32 inewThreadCount, 
+			uint32 inormalMaxThreadCount, uint32 imaxThreadCount);
 	
 	/**
 		向线程池添加一个任务
@@ -289,15 +255,21 @@ public:
 		未处理任务是否非常多   说明线程很繁忙
 	*/
 	INLINE bool isBusy(void)const;
-
-
 	
 	/** 
 		线程池是否已经被初始化 
 	*/
 	INLINE bool isInitialize(void)const;
 
+	/**
+		返回是否已经销毁
+	*/
+	INLINE bool isDestroyed()const;
 
+	/**
+		返回是否已经销毁
+	*/
+	INLINE void destroy();
 public:
 
 	/**
@@ -349,12 +321,14 @@ protected:
 	std::list<TPThread*> freeThreadList_;							// 闲置的线程列表
 	std::list<TPThread*> allThreadList_;							// 所有的线程列表
 	
-	unsigned int maxThreadCount_;									// 最大线程总数
-	unsigned int extraNewAddThreadCount_;							// 如果normalThreadCount_不足够使用则会新创建这么多线程
-	unsigned int currentThreadCount_;								// 当前线程数
-	unsigned int currentFreeThreadCount_;							// 当前闲置的线程数
-	unsigned int normalThreadCount_;								// 标准状态下的线程总数 即：默认情况下一启动服务器就开启这么多线程
+	uint32 maxThreadCount_;											// 最大线程总数
+	uint32 extraNewAddThreadCount_;									// 如果normalThreadCount_不足够使用则会新创建这么多线程
+	uint32 currentThreadCount_;										// 当前线程数
+	uint32 currentFreeThreadCount_;									// 当前闲置的线程数
+	uint32 normalThreadCount_;										// 标准状态下的线程总数 即：默认情况下一启动服务器就开启这么多线程
 																	// 如果线程不足够，则会新创建一些线程， 最大能够到maxThreadNum.
+
+	bool isDestroyed_;
 };
 
 }

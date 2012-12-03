@@ -47,10 +47,13 @@ THREAD_ID TPThread::createThread(void)
 ThreadPool::ThreadPool():
 isInitialize_(false),
 bufferedTaskList_(),
-finiTaskList_()
+finiTaskList_(),
+isDestroyed_(false)
 {		
-	extraNewAddThreadCount_ = currentThreadCount_ = 
-	currentFreeThreadCount_ = normalThreadCount_ = 0;
+	extraNewAddThreadCount_ =  0;
+	currentThreadCount_ =  0;
+	currentFreeThreadCount_ =  0;
+	normalThreadCount_ = 0;
 	
 	THREAD_MUTEX_INIT(threadStateList_mutex_);	
 	THREAD_MUTEX_INIT(bufferedTaskList_mutex_);
@@ -91,6 +94,8 @@ ThreadPool::~ThreadPool()
 //-------------------------------------------------------------------------------------
 void ThreadPool::finalise()
 {
+	destroy();
+
 	// 延时一下， 避免销毁时的极端情况导致出错
 	KBEngine::sleep(100);
 }
@@ -120,8 +125,8 @@ void ThreadPool::addFiniTask(TPTask* tptask)
 }
 
 //-------------------------------------------------------------------------------------
-bool ThreadPool::createThreadPool(unsigned int inewThreadCount, 
-	unsigned int inormalMaxThreadCount, unsigned int imaxThreadCount)
+bool ThreadPool::createThreadPool(uint32 inewThreadCount, 
+	uint32 inormalMaxThreadCount, uint32 imaxThreadCount)
 {
 	assert(!isInitialize_ && "ThreadPool is exist!");
 	INFO_MSG("ThreadPool::createThreadPool: creating  threadpool...\n");
@@ -130,7 +135,7 @@ bool ThreadPool::createThreadPool(unsigned int inewThreadCount,
 	normalThreadCount_ = inormalMaxThreadCount;
 	maxThreadCount_ = imaxThreadCount;
 	
-	for(unsigned int i=0; i<normalThreadCount_; i++)
+	for(uint32 i=0; i<normalThreadCount_; i++)
 	{
 		TPThread* tptd = createThread();
 		
@@ -222,7 +227,7 @@ bool ThreadPool::addFreeThread(TPThread* tptd)
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 
 		ERROR_MSG(boost::format("ThreadPool::addFreeThread: busyThreadList_ not found thread.%1%\n") %
-		 (unsigned int)tptd->getID());
+		 (uint32)tptd->getID());
 
 		return false;
 	}
@@ -249,7 +254,7 @@ bool ThreadPool::addBusyThread(TPThread* tptd)
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 		ERROR_MSG(boost::format("ThreadPool::addBusyThread: freeThreadList_ not "
 					"found thread.%1%\n") %
-					(unsigned int)tptd->getID());
+					(uint32)tptd->getID());
 		
 		return false;
 	}
@@ -278,7 +283,7 @@ bool ThreadPool::removeHangThread(TPThread* tptd)
 
 		INFO_MSG(boost::format("ThreadPool::removeHangThread: thread.%1% is destroy. "
 			"currentFreeThreadCount:%2%, currentThreadCount:%3%\n") %
-		(unsigned int)tptd->getID() % currentFreeThreadCount_ % currentThreadCount_);
+		(uint32)tptd->getID() % currentFreeThreadCount_ % currentThreadCount_);
 		
 		SAFE_RELEASE(tptd);
 	}
@@ -287,7 +292,7 @@ bool ThreadPool::removeHangThread(TPThread* tptd)
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);		
 		
 		ERROR_MSG(boost::format("ThreadPool::removeHangThread: not found thread.%1%\n") % 
-			(unsigned int)tptd->getID());
+			(uint32)tptd->getID());
 		
 		return false;
 	}
@@ -339,7 +344,7 @@ bool ThreadPool::addTask(TPTask* tptask)
 		return false;
 	}
 
-	for(unsigned int i=0; i<extraNewAddThreadCount_; i++)
+	for(uint32 i=0; i<extraNewAddThreadCount_; i++)
 	{
 		TPThread* tptd = createThread(300);									// 设定5分钟未使用则退出的线程
 		if(!tptd)
@@ -367,6 +372,66 @@ bool ThreadPool::addTask(TPTask* tptask)
 }
 
 //-------------------------------------------------------------------------------------
+#if KBE_PLATFORM == PLATFORM_WIN32
+unsigned __stdcall TPThread::threadFunc(void *arg)
+#else	
+void* TPThread::threadFunc(void* arg)
+#endif
+{
+	TPThread * tptd = static_cast<TPThread*>(arg);
+	bool isRun = true;
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+#else			
+	pthread_detach(pthread_self());
+#endif
+
+	tptd->onStart();
+
+	while(isRun)
+	{
+		isRun = tptd->onWaitCondSignal();
+		if(!isRun || tptd->threadPool()->isDestroyed())
+		{
+			tptd = NULL;
+			break;
+		}
+
+		tptd->state_ = THREAD_STATE_BUSY;
+		TPTask * task = tptd->getTask();
+		
+		while(task && !tptd->threadPool()->isDestroyed())
+		{
+			tptd->onProcessTask(task);
+
+			task->process();									// 处理该任务
+			TPTask * task1 = tptd->tryGetTask();				// 尝试继续从任务队列里取出一个繁忙的未处理的任务
+
+			if(!task1)
+			{
+				tptd->onTaskComplete();
+				break;
+			}
+			else
+			{
+				tptd->deleteFiniTask(task);
+				task = task1;
+				tptd->setTask(task1);
+			}
+		}
+	}
+
+	tptd->onEnd();
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	return 0;
+#else	
+	pthread_exit(NULL);
+	return NULL;
+#endif		
+}
+
+//-------------------------------------------------------------------------------------
 bool TPThread::onWaitCondSignal(void)
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -382,14 +447,17 @@ bool TPThread::onWaitCondSignal(void)
 		DWORD ret = WaitForSingleObject(cond_, threadWaitSecond_ * 1000);
 		ResetEvent(cond_);
 
+		// 如果是因为超时了， 说明这个线程很久没有被用到， 我们应该注销这个线程。
+		// 通知ThreadPool注销自己
 		if (ret == WAIT_TIMEOUT)
-		{																	// 如果是因为超时了， 说明这个线程很久没有被用到， 我们应该注销这个线程。
-			threadPool_->removeHangThread(this);							// 通知ThreadPool注销自己
+		{																	
+			threadPool_->removeHangThread(this);							
 			return false;
 		}
 		else if(ret != WAIT_OBJECT_0)
 		{
-			ERROR_MSG(boost::format("TPThread::onWaitCondSignal: WaitForSingleObject is error, ret=%1%\n") % ret);
+			ERROR_MSG(boost::format("TPThread::onWaitCondSignal: WaitForSingleObject is error, ret=%1%\n") 
+				% ret);
 		}
 	}	
 #else		
