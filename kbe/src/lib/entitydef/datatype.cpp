@@ -27,7 +27,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/vector2.hpp"
 #include "pyscript/vector3.hpp"
 #include "pyscript/vector4.hpp"
-	
+#include "pyscript/copy.hpp"
+
 namespace KBEngine{
 static DATATYPE_UID _g_dataTypeUID = 1;
 
@@ -923,7 +924,7 @@ PyObject* FixedArrayType::createNewFromObj(PyObject* pyobj)
 
 	if(PyObject_TypeCheck(pyobj, FixedArray::getScriptType()))
 	{
-		return pyobj;
+		return script::Copy::deepcopy(pyobj);
 	}
 
 	return new FixedArray(this, pyobj);
@@ -1140,8 +1141,7 @@ PyObject* FixedDictType::createNewFromObj(PyObject* pyobj)
 	// 会初始为最终对象类型
 	if(PyObject_TypeCheck(pyobj, FixedDict::getScriptType()))
 	{
-		Py_INCREF(pyobj);
-		return pyobj;
+		return script::Copy::deepcopy(pyobj);
 	}
 
 	return new FixedDict(this, pyobj);
