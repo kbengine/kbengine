@@ -613,14 +613,15 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 				}
 
 				MachineInterface::onBroadcastInterfaceArgs8 args;
-				bool isfirstget = true;
 				int32 timeout = 100000;
 RESTART_RECV:
 				if(bhandler.receive(&args, 0, timeout))
 				{
+					bool isContinue = false;
+
 					do
 					{
-						if(!isfirstget)
+						if(isContinue)
 						{
 							try
 							{
@@ -645,7 +646,7 @@ RESTART_RECV:
 						Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
 							(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
 						
-						isfirstget = false;
+						isContinue = true;
 					}while(bhandler.pCurrPacket()->opsize() > 0);
 
 					// 防止接收到的数据不是想要的数据

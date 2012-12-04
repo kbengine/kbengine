@@ -454,12 +454,26 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 	}
 	
 	int trycount = 0;
+	epListen.setnonblocking(true);
 
 	while(true)
 	{
+		fd_set	frds, fwds;
+		struct timeval tv = { 0, 100000 }; // 100ms
+
+		FD_ZERO( &frds );
+		FD_ZERO( &fwds );
+		FD_SET((int)epListen, &frds);
+		FD_SET((int)epListen, &fwds);
+
 		if(epListen.connect(info->pIntAddr->port, info->pIntAddr->ip) == -1)
 		{
-			KBEngine::sleep(30);
+			int selgot = select(epListen+1, &frds, &fwds, NULL, &tv);
+			if(selgot > 0)
+			{
+				break;
+			}
+
 			trycount++;
 			if(trycount > 3)
 			{
@@ -467,17 +481,14 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 				return false;
 			}
 		}
-		
-		break;
 	}
 	
+	epListen.setnodelay(true);
+
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	COMMON_MERCURY_MESSAGE(info->componentType, (*pBundle), lookApp);
 	epListen.send(pBundle->pCurrPacket()->data(), pBundle->pCurrPacket()->wpos());
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-
-	epListen.setnodelay(true);
-	epListen.setnonblocking(true);
 
 	fd_set	fds;
 	struct timeval tv = { 0, 100000 }; // 100ms

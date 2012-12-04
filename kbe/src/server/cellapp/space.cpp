@@ -345,6 +345,9 @@ void Space::onLeaveWorld(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Space::getAOIEntities(Entity* pEntity, SPACE_ENTITIES& aoiEntitys)
 {
+	if(pEntity->getAoiRadius() < 0.5f)
+		return;
+
 	if(this->entities().size() > 0)
 	{
 		SPACE_ENTITIES::const_iterator iter = this->entities().begin();
