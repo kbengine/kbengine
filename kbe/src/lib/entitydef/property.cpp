@@ -48,7 +48,7 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype,
 	isIdentifier_(isIdentifier),
 	databaseLength_(databaseLength),
 	utype_(utype),
-	defaultVal_(NULL),
+	defaultValStr_(defaultStr),
 	detailLevel_(detailLevel)
 {
 	dataType_->incRef();
@@ -60,7 +60,7 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype,
 	}
 
 	EntityDef::md5().append((void*)name_.c_str(), name_.size());
-	EntityDef::md5().append((void*)defaultStr.c_str(), defaultStr.size());
+	EntityDef::md5().append((void*)defaultValStr_.c_str(), defaultValStr_.size());
 	EntityDef::md5().append((void*)dataTypeName.c_str(), dataTypeName.size());
 	EntityDef::md5().append((void*)&utype_, sizeof(ENTITY_PROPERTY_UID));
 	EntityDef::md5().append((void*)&flags_, sizeof(uint32));
@@ -74,15 +74,7 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype,
 
 	PropertyDescription::propertyDescriptionCount_++;
 
-	if(dataType != NULL)
-	{
-		if(g_componentType == CELLAPP_TYPE || g_componentType == BASEAPP_TYPE ||
-			g_componentType == CLIENT_TYPE)
-		{
-			defaultVal_ = dataType->parseDefaultStr(defaultStr);
-		}
-	}
-	else
+	if(dataType == NULL)
 	{
 		ERROR_MSG(boost::format("PropertyDescription::PropertyDescription: %1% DataType is NULL, in property[%2%].\n") % 
 			dataTypeName.c_str() % name_.c_str());
@@ -92,7 +84,6 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype,
 //-------------------------------------------------------------------------------------
 PropertyDescription::~PropertyDescription()
 {
-	S_RELEASE(defaultVal_);
 	dataType_->decRef();
 }
 
@@ -185,12 +176,7 @@ PropertyDescription* PropertyDescription::createDescription(ENTITY_PROPERTY_UID 
 //-------------------------------------------------------------------------------------
 PyObject* PropertyDescription::newDefaultVal(void)
 {
-	int ob_refcnt = defaultVal_->ob_refcnt;
-	PyObject* pyobj = script::Copy::deepcopy(defaultVal_); 
-	if(pyobj == defaultVal_ && pyobj->ob_refcnt == ob_refcnt)
-		Py_INCREF(pyobj);
-	
-	return pyobj;
+	return dataType_->parseDefaultStr(defaultValStr_);
 }
 
 //-------------------------------------------------------------------------------------

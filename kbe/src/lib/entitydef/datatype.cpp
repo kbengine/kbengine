@@ -1482,6 +1482,7 @@ PyObject* FixedDictType::parseDefaultStr(std::string defaultVal)
 	}
 
 	FixedDict* pydict = new FixedDict(this, val);
+	Py_DECREF(val);
 
 	if(hasImpl())
 	{
