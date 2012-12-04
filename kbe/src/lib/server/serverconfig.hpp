@@ -93,6 +93,8 @@ typedef struct EngineComponentInfo
 	uint32 downloadBitsPerSecondTotal;						// 所有客户端每秒下载带宽总上限
 	uint32 downloadBitsPerSecondPerClient;					// 每个客户端每秒的下载带宽
 
+	uint32 channelTimeout;									// 频道超时时间
+
 }ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>

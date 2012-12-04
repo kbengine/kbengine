@@ -40,8 +40,6 @@ const int EXTERNAL_CHANNEL_SIZE = 256;
 const int INTERNAL_CHANNEL_SIZE = 4096;
 const int INDEXED_CHANNEL_SIZE = 512;
 
-const float INACTIVITY_TIMEOUT_DEFAULT = 60.0;
-
 //-------------------------------------------------------------------------------------
 void Channel::onReclaimObject()
 {
@@ -107,7 +105,7 @@ Channel::Channel(NetworkInterface & networkInterface,
 	else
 		pPacketReceiver_ = new UDPPacketReceiver(*pEndPoint_, networkInterface);
 	
-	startInactivityDetection(INACTIVITY_TIMEOUT_DEFAULT);
+	startInactivityDetection((traits == INTERNAL) ? g_channelInternalTimeout : g_channelExternalTimeout);
 }
 
 //-------------------------------------------------------------------------------------

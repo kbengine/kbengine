@@ -76,6 +76,20 @@ bool ServerConfig::loadConfig(std::string fileName)
 		rootNode = NULL;
 	}
 
+	rootNode = xml->getRootNode("channelTimeout");
+	if(rootNode != NULL)
+	{
+		TiXmlNode* childnode = xml->enterNode(rootNode, "internal");
+		if(childnode)
+			Mercury::g_channelInternalTimeout = float(xml->getValFloat(childnode));
+
+		childnode = xml->enterNode(rootNode, "external");
+		if(childnode)
+			Mercury::g_channelExternalTimeout = float(xml->getValFloat(childnode));
+
+		rootNode = NULL;
+	}
+
 	rootNode = xml->getRootNode("gameUpdateHertz");
 	if(rootNode != NULL){
 		gameUpdateHertz_ = xml->getValInt(rootNode);

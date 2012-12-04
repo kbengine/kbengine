@@ -42,6 +42,10 @@ typedef uint16	MessageLength; // 最大65535
 typedef int32	ChannelID;
 const ChannelID CHANNEL_ID_NULL = 0;
 
+// 频道超时时间
+extern float g_channelInternalTimeout;
+extern float g_channelExternalTimeout;
+
 namespace udp{
 }
 
