@@ -81,11 +81,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 	{
 		TiXmlNode* childnode = xml->enterNode(rootNode, "internal");
 		if(childnode)
-			Mercury::g_channelInternalTimeout = KBEngine::max(1.f, float(xml->getValFloat(childnode)));
+			Mercury::g_channelInternalTimeout = max(1.f, float(xml->getValFloat(childnode)));
 
 		childnode = xml->enterNode(rootNode, "external");
 		if(childnode)
-			Mercury::g_channelExternalTimeout = KBEngine::max(1.f, float(xml->getValFloat(childnode)));
+			Mercury::g_channelExternalTimeout = max(1.f, float(xml->getValFloat(childnode)));
 
 		rootNode = NULL;
 	}
