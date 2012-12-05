@@ -65,7 +65,7 @@ threadPool_()
 	networkInterface_.pChannelTimeOutHandler(this);
 	networkInterface_.pChannelDeregisterHandler(this);
 
-	startActiveTick(max(1.f, Mercury::g_channelInternalTimeout / 2.0f));
+	startActiveTick(KBE_MIN(1.f, Mercury::g_channelInternalTimeout / 2.0f));
 }
 
 //-------------------------------------------------------------------------------------
