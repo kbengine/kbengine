@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // #define NDEBUG
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/memorystream.hpp"
+#include "cstdkbe/timestamp.hpp"
 #include "thread/threadtask.hpp"
 #include "helper/debug_helper.hpp"
 #include "entitydef/entitydef.hpp"
@@ -43,11 +44,6 @@ class DBTask : public thread::TPTask
 {
 public:
 	DBTask(const Mercury::Address& addr, MemoryStream& datas);
-	DBTask():
-	pDatas_(0),
-	addr_(Mercury::Address::NONE)
-	{
-	}
 
 	DBTask(const Mercury::Address& addr):
 	pDatas_(0),
@@ -58,7 +54,7 @@ public:
 	virtual ~DBTask();
 	virtual bool process();
 	virtual bool db_thread_process() = 0;
-	virtual thread::TPTask::TPTaskState presentMainThread(){ return thread::TPTask::TPTASK_STATE_COMPLETED; }
+	virtual thread::TPTask::TPTaskState presentMainThread();
 
 	bool send(Mercury::Bundle& bundle);
 

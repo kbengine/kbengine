@@ -81,7 +81,24 @@ bool DBTask::send(Mercury::Bundle& bundle)
 //-------------------------------------------------------------------------------------
 bool DBTask::process()
 {
-	return db_thread_process();
+	uint64 startTime = timestamp();
+
+	bool ret = db_thread_process();
+
+	uint64 duration = timestamp() - startTime;
+	if (duration > stampsPerSecond())
+	{
+		WARNING_MSG(boost::format("DBTask::presentMainThread(): took %.2f seconds\n") % 
+			(double(duration)/stampsPerSecondD()));
+	}
+
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState DBTask::presentMainThread()
+{
+	return thread::TPTask::TPTASK_STATE_COMPLETED; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -89,7 +106,7 @@ thread::TPTask::TPTaskState EntityDBTask::presentMainThread()
 {
 	KBE_ASSERT(_pBuffered_DBTasks != NULL);
 	_pBuffered_DBTasks->onFiniTask(this);
-	return thread::TPTask::TPTASK_STATE_COMPLETED;
+	return DBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
@@ -481,7 +498,7 @@ thread::TPTask::TPTaskState DBTaskAccountOnline::presentMainThread()
 	}
 	*/
 
-	return thread::TPTask::TPTASK_STATE_COMPLETED;
+	return DBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
@@ -510,7 +527,7 @@ bool DBTaskEntityOffline::db_thread_process()
 thread::TPTask::TPTaskState DBTaskEntityOffline::presentMainThread()
 {
 	DEBUG_MSG(boost::format("Dbmgr::onEntityOffline:%1%.\n") % dbid_);
-	return thread::TPTask::TPTASK_STATE_COMPLETED;
+	return DBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
@@ -587,7 +604,7 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 	}
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-	return thread::TPTask::TPTASK_STATE_COMPLETED;
+	return DBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
