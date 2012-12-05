@@ -55,6 +55,13 @@ ScriptObject(pyType, isInitialised)
 //-------------------------------------------------------------------------------------
 Sequence::~Sequence()
 {
+	std::vector<PyObject*>::iterator iter = values_.begin();
+	for(; iter != values_.end(); iter++)
+	{
+		Py_DECREF((*iter));
+	}
+
+	values_.clear();
 }
 
 //-------------------------------------------------------------------------------------
