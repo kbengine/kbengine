@@ -30,7 +30,9 @@ namespace KBEngine{
 static size_t id_enough_limit = 0;
 
 //-------------------------------------------------------------------------------------
-void EntityIDClient::onAlloc(void)
+EntityIDClient::EntityIDClient():
+	IDClient<ENTITY_ID>(),
+	pApp_(NULL)
 {
 	if(id_enough_limit <= 0)
 	{
@@ -39,10 +41,20 @@ void EntityIDClient::onAlloc(void)
 		else
 			id_enough_limit = (size_t)g_kbeSrvConfig.getCellApp().criticallyLowSize;
 	}
+}
 
-	if(hasReqServerAlloc() || getSize() > id_enough_limit || idList_.size() > 0)
+//-------------------------------------------------------------------------------------
+void EntityIDClient::onAlloc(void)
+{
+	if(getSize() > id_enough_limit)
+	{
+		setReqServerAllocFlag(false);
 		return;
+	}
 	
+	if(hasReqServerAlloc())
+		return;
+
 	Mercury::Channel* pChannel = Components::getSingleton().getDbmgrChannel();
 
 	if(pChannel == NULL)
@@ -56,6 +68,8 @@ void EntityIDClient::onAlloc(void)
 	DbmgrInterface::onReqAllocEntityIDArgs2::staticAddToBundle((*pBundle), pApp_->componentType(), pApp_->componentID());
 	(*pBundle).send(pApp_->getNetworkInterface(), pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	setReqServerAllocFlag(true);
 
 	WARNING_MSG(boost::format("EntityIDClient::onAlloc: not enough(%1%) entityIDs!\n") % id_enough_limit);
 }

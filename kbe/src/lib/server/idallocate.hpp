@@ -92,7 +92,9 @@ public:
 	{
 	}	
 	
-	/** 分配一个id */
+	/** 
+		分配一个id 
+	*/
 	T alloc(void)
 	{
 		T t = ++lastID_;
@@ -102,7 +104,9 @@ public:
 		return t;
 	}
 	
-	/** 回收一个id */
+	/** 
+		回收一个id 
+	*/
 	virtual void reclaim(T id)
 	{
 	}
@@ -123,7 +127,9 @@ public:
 	{
 	}	
 	
-	/** 分配一个id */
+	/** 
+		分配一个id 
+	*/
 	T alloc(void)
 	{
 		if(idList_.size() > 0)
@@ -140,7 +146,9 @@ public:
 		return t;
 	}
 	
-	/** 回收一个id */
+	/** 
+		回收一个id 
+	*/
 	void reclaim(T id)
 	{
 		idList_.push(id);
@@ -167,7 +175,9 @@ public:
 	{
 	}	
 	
-	/** 分配一个id段 */
+	/** 
+		分配一个id段 
+	*/
 	std::pair< T, T > allocRange(void)
 	{
 		INFO_MSG(boost::format("IDServer::allocRange: %1%-%2%.\n") % lastIDRange_begin_ % (lastIDRange_begin_ + rangeStep_));
@@ -184,17 +194,24 @@ public:
 	IDClient():
 	  lastIDRange_begin_(0), 
 	lastIDRange_end_(0),
-	m_hasRequestedIDServerAlloc_(false)
+	requestedIDServerAlloc_(false)
 	{
 	}
 	
-	/** 析构时不会通知IDServer进行回收， 请使用者自己进行这方面的维护 */
+	/** 
+		析构时不会通知IDServer进行回收， 请使用者自己进行这方面的维护 
+	*/
 	virtual ~IDClient()
 	{
 	}	
 	
-	bool hasReqServerAlloc()const { return m_hasRequestedIDServerAlloc_; }
-	void setReqServerAllocFlag(bool has){ m_hasRequestedIDServerAlloc_ = has; }
+	bool hasReqServerAlloc()const { 
+		return requestedIDServerAlloc_; 
+	}
+
+	void setReqServerAllocFlag(bool has){ 
+		requestedIDServerAlloc_ = has; 
+	}
 
 	size_t getSize()
 	{ 
@@ -215,12 +232,16 @@ public:
 		return ncount;
 	}
 	
-	/* 检查entityID是否够用 
+	/**
+		检查entityID是否够用 
 		注意：一个tick内使用ID数量不要超过ID_ENOUGH_LIMIT
 	*/
-	virtual void onAlloc(void) {};
+	virtual void onAlloc(void) {
+	};
 	
-	/** idserver 分配过来的一个id段 */
+	/** 
+		idserver 分配过来的一个id段 
+	*/
 	void onAddRange(T idBegin, T idEnd)
 	{
 		INFO_MSG(boost::format("IDClient::onAddRange: number of ids increased from %1% to %2%.\n") % idBegin % idEnd);
@@ -235,13 +256,13 @@ public:
 		}
 	}
 	
-	/** 分配一个id */
+	/** 
+		分配一个id 
+	*/
 	T alloc(void)
 	{
-		if(getSize() <= 0)
-			return 0;
-
 		KBE_ASSERT(getSize() > 0 && "IDClient:: alloc:no usable of the id.\n");
+
 		T id = lastIDRange_begin_;
 		lastIDRange_begin_ ++;
 
@@ -265,26 +286,26 @@ public:
 		return id;
 	}
 	
-	/** 回收一个id */
+	/** 
+		回收一个id
+	*/
 	void onReclaim(T id)
 	{
 	}
 	
 protected:
 	typename std::queue< std::pair< T, T > > idList_;					// id列表， 所有ID段都存在这个列表里
+
 	T lastIDRange_begin_;												// 最后一次申请到的ID段的起始位置
-	T lastIDRange_end_;		
-	bool m_hasRequestedIDServerAlloc_;									// 是否已经请求ID服务端分配ID
+	T lastIDRange_end_;	
+
+	bool requestedIDServerAlloc_;										// 是否已经请求ID服务端分配ID
 };
 
 class EntityIDClient : public IDClient<ENTITY_ID>
 {
 public:
-	EntityIDClient():
-	IDClient<ENTITY_ID>(),
-	pApp_(NULL)
-	{
-	}
+	EntityIDClient();
 	
 	virtual ~EntityIDClient()
 	{
@@ -292,7 +313,10 @@ public:
 
 	virtual void onAlloc(void);
 	
-	void pApp(ServerApp* pApp){ pApp_ = pApp; }
+	void pApp(ServerApp* pApp){ 
+		pApp_ = pApp; 
+	}
+
 protected:
 	ServerApp* pApp_;
 };
