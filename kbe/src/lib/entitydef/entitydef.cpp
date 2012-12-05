@@ -48,9 +48,19 @@ EntityDef::~EntityDef()
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::finish(void)
+bool EntityDef::finalise(void)
 {
+	std::vector<ScriptDefModulePtr>::iterator iter = EntityDef::__scriptModules.begin();
+	for(; iter != EntityDef::__scriptModules.end(); iter++)
+	{
+		(*iter)->finalise();
+	}
+
 	EntityDef::__scriptModules.clear();
+
+	DataTypes::finalise();
+	
+	EntityDef::__scriptTypeMappingUType.clear();
 	return true;
 }
 

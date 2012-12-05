@@ -56,6 +56,8 @@ public:
 	ScriptDefModule(std::string name);
 	~ScriptDefModule();	
 
+	void finalise(void);
+
 	ENTITY_SCRIPT_UID getUType(void);
 	void setUType(ENTITY_SCRIPT_UID utype);
 

@@ -68,6 +68,7 @@ public:
 		Mercury::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
 		COMPONENT_ID componentID);
+
 	~EntityApp();
 	
 	/** 
@@ -194,7 +195,6 @@ pyCallbackMgr_()
 template<class E>
 EntityApp<E>::~EntityApp()
 {
-	ScriptTimers::finalise(*this);
 }
 
 template<class E>
@@ -225,7 +225,13 @@ template<class E>
 void EntityApp<E>::finalise(void)
 {
 	gameTimer_.cancel();
+
+	ScriptTimers::finalise(*this);
+	pEntities_->finalise();
+	
 	uninstallPyScript();
+	EntityDef::finalise();
+
 	ServerApp::finalise();
 }
 

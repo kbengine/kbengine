@@ -62,30 +62,48 @@ name_(name)
 //-------------------------------------------------------------------------------------
 ScriptDefModule::~ScriptDefModule()
 {
+	finalise();
+}
+
+//-------------------------------------------------------------------------------------
+void ScriptDefModule::finalise(void)
+{
 	S_RELEASE(scriptType_);
 	PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
 	for(; iter1 != cellPropertyDescr_.end(); iter1++)
 		iter1->second->decRef();
+	
+	cellPropertyDescr_.clear();
 
 	iter1 = basePropertyDescr_.begin();
 	for(; iter1 != basePropertyDescr_.end(); iter1++)
 		iter1->second->decRef();
 
+	basePropertyDescr_.clear();
+
 	iter1 = clientPropertyDescr_.begin();
 	for(; iter1 != clientPropertyDescr_.end(); iter1++)
 		iter1->second->decRef();
+
+	clientPropertyDescr_.clear();
 
 	METHODDESCRIPTION_MAP::iterator iter2 = methodCellDescr_.begin();
 	for(; iter2 != methodCellDescr_.end(); iter2++)
 		SAFE_RELEASE(iter2->second);
 		
+	methodCellDescr_.clear();
+
 	METHODDESCRIPTION_MAP::iterator iter3 = methodBaseDescr_.begin();
 	for(; iter3 != methodBaseDescr_.end(); iter3++)
 		SAFE_RELEASE(iter3->second);
-		
+	
+	methodBaseDescr_.clear();
+
 	METHODDESCRIPTION_MAP::iterator iter4 = methodClientDescr_.begin();
 	for(; iter4 != methodClientDescr_.end(); iter4++)
 		SAFE_RELEASE(iter4->second);
+
+	methodClientDescr_.clear();
 }
 
 //-------------------------------------------------------------------------------------

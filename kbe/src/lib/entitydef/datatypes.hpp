@@ -51,7 +51,7 @@ public:
 	virtual ~DataTypes();	
 
 	static bool initialize(std::string file);
-	static void finish(void);
+	static void finalise(void);
 
 	static bool addDateType(std::string name, DataType* dataType);
 	static bool addDateType(DATATYPE_UID uid, DataType* dataType);

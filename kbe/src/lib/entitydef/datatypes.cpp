@@ -36,10 +36,11 @@ DataTypes::DataTypes()
 //-------------------------------------------------------------------------------------
 DataTypes::~DataTypes()
 {
+	finalise();
 }
 
 //-------------------------------------------------------------------------------------
-void DataTypes::finish(void)
+void DataTypes::finalise(void)
 {
 	DATATYPE_MAP::iterator iter = dataTypes_.begin();
 	for (; iter != dataTypes_.end(); iter++) 

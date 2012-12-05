@@ -57,7 +57,21 @@ public:
 
 	~Entities()
 	{
+		finalise();
 	}	
+
+	void finalise()
+	{
+		ENTITYS_MAP& entities = getEntities();
+		ENTITYS_MAP::const_iterator iter = entities.begin();
+		while (iter != entities.end())
+		{
+			Py_DECREF(iter->second.get());
+			iter++;
+		}
+
+		entities.clear();
+	}
 
 	/** 
 		暴露一些字典方法给python 

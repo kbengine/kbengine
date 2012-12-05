@@ -62,7 +62,7 @@ public:
 		std::vector<PyTypeObject*>& scriptBaseTypes, 
 		COMPONENT_TYPE loadComponentType);
 
-	static bool finish(void);
+	static bool finalise(void);
 
 	/** 
 		º”‘ÿœ‡πÿ√Ë ˆ
