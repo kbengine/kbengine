@@ -611,7 +611,7 @@ void Channel::writeFragmentMessage(FragmentDataTypes fragmentDatasFlag, Packet* 
 	}
 
 	DEBUG_MSG(boost::format("Channel::writeFragmentMessage(%1%): channel[%2%-%3%], fragmentDatasFlag=%4%, remainsize=%5%.\n") % 
-		this->c_str() % this % pFragmentDatas_ % (int)fragmentDatasFlag % pFragmentDatasRemain_);
+		this->c_str() % this % (UINT_PTR)pFragmentDatas_ % (int)fragmentDatasFlag % pFragmentDatasRemain_);
 }
 
 //-------------------------------------------------------------------------------------
