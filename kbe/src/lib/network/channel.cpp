@@ -610,8 +610,8 @@ void Channel::writeFragmentMessage(FragmentDataTypes fragmentDatasFlag, Packet* 
 		pPacket->opfini();
 	}
 
-	DEBUG_MSG(boost::format("Channel::writeFragmentMessage(%1%): channel[%2%-%3%], fragmentDatasFlag=%4%, remainsize=%5%.\n") % 
-		this->c_str() % this % (UINT_PTR)pFragmentDatas_ % (int)fragmentDatasFlag % pFragmentDatasRemain_);
+	DEBUG_MSG(boost::format("Channel::writeFragmentMessage(%1%): channel[%2%], fragmentDatasFlag=%3%, remainsize=%4%.\n") % 
+		this->c_str() % this % fragmentDatasFlag % pFragmentDatasRemain_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -662,7 +662,7 @@ void Channel::mergeFragmentMessage(Packet* pPacket)
 		pPacket->rpos(pPacket->rpos() + opsize);
 
 		DEBUG_MSG(boost::format("Channel::writeFragmentMessage(%1%): channel[%2%], fragmentDatasFlag=%3%, remainsize=%4%.\n") %
-			this->c_str() % this % (int)fragmentDatasFlag_ % pFragmentDatasRemain_);
+			this->c_str() % this % fragmentDatasFlag_ % pFragmentDatasRemain_);
 	}	
 }
 
