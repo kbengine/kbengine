@@ -46,8 +46,9 @@ void DataTypes::finalise(void)
 	for (; iter != dataTypes_.end(); iter++) 
 		iter->second->decRef();
 
-	dataTypes_.clear();
 	uid_dataTypes_.clear();
+	dataTypesLowerName_.clear();
+	dataTypes_.clear();
 }
 
 //-------------------------------------------------------------------------------------

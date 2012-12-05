@@ -57,10 +57,8 @@ bool EntityDef::finalise(void)
 	}
 
 	EntityDef::__scriptModules.clear();
-
-	DataTypes::finalise();
-	
 	EntityDef::__scriptTypeMappingUType.clear();
+	g_methodCusUtypes.clear();
 	return true;
 }
 
