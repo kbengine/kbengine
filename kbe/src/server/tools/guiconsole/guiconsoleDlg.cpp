@@ -599,13 +599,16 @@ void CguiconsoleDlg::loadHistory()
 	if(node)
 	{
 		do																				
-		{																				
-			std::string c = node->FirstChild()->Value();
-			if(c.size() > 0)
+		{	
+			if(node->FirstChild() != NULL)
 			{
-				wchar_t* strCommand = char2wchar(c.c_str());
-				m_historyCommand.push_back(strCommand);
-				free(strCommand);
+				std::string c = node->FirstChild()->Value();
+				if(c.size() > 0)
+				{
+					wchar_t* strCommand = char2wchar(c.c_str());
+					m_historyCommand.push_back(strCommand);
+					free(strCommand);
+				}
 			}
 		}while((node = node->NextSibling()));												
 	}
