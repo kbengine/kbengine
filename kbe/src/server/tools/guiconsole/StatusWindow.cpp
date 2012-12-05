@@ -41,7 +41,7 @@ BOOL StatusWindow::OnInitDialog()
 	m_statusList.SetExtendedStyle(dwStyle);				//设置扩展风格
 
 	int idx = 0;
-	m_statusList.InsertColumn(idx++, _T("uid"),					LVCFMT_CENTER,	30);
+	m_statusList.InsertColumn(idx++, _T("uid"),					LVCFMT_CENTER,	40);
 	m_statusList.InsertColumn(idx++, _T("componentType"),		LVCFMT_CENTER,	100);
 	m_statusList.InsertColumn(idx++, _T("componentID"),			LVCFMT_CENTER,	120);
 	m_statusList.InsertColumn(idx++, _T("cpu"),					LVCFMT_CENTER,	60);

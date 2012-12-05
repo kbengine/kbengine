@@ -240,13 +240,13 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	m_tab.InsertItem(2, _T("LOG"), 0); 
 	m_logWnd.Create(IDD_LOG, GetDlgItem(IDC_TAB1));
 
-	m_tab.InsertItem(3, _T("profile"), 0); 
+	m_tab.InsertItem(3, _T("PROFILE"), 0); 
 	m_profileWnd.Create(IDD_PROFILE, GetDlgItem(IDC_TAB1));
 
-	m_tab.InsertItem(4, _T("watcher"), 0); 
+	m_tab.InsertItem(4, _T("WATCHER"), 0); 
 	m_watcherWnd.Create(IDD_WATCHER, GetDlgItem(IDC_TAB1));
 
-	m_tab.InsertItem(5, _T("spaceview"), 0); 
+	m_tab.InsertItem(5, _T("SPACEVIEW"), 0); 
 	m_spaceViewWnd.Create(IDD_SPACEVIEW, GetDlgItem(IDC_TAB1));
 
 	DWORD styles = ::GetWindowLong(m_tree.m_hWnd, GWL_STYLE);
@@ -660,7 +660,7 @@ RESTART_RECV:
 							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 					}
 
-					timeout = 10000;
+					//timeout = 10000;
 					goto RESTART_RECV;
 				}
 				else
