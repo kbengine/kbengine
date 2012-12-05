@@ -11,6 +11,7 @@
 #include "WatcherWindow.h"
 #include "SpaceViewWindow.h"
 #include "ConnectRemoteMachineWindow.h"
+#include "thread/threadpool.hpp"
 #include <sstream>
 
 using namespace KBEngine;
@@ -59,6 +60,10 @@ public:
 	COMPONENT_TYPE getTreeItemComponent(HTREEITEM hItem);
 	
 	void onReceiveRemoteLog(std::string str);
+
+	COMPONENT_TYPE componentType()const { return _componentType; }
+
+	void updateFindTreeStatus();
 protected:
 	HICON m_hIcon;
 
@@ -100,6 +105,9 @@ private:
 	bool m_isUsingHistroy;
 	CToolBar m_ToolBar;
 	CImageList m_ImageList;
+
+	// Ïß³Ì³Ø
+	thread::ThreadPool threadPool_;	
 public:
 	afx_msg void OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult);

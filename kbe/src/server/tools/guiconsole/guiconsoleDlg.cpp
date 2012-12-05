@@ -96,6 +96,132 @@ public:
 	};
 };
 
+class FindServersTask : public thread::TPTask
+{
+public:
+	FindServersTask():
+	thread::TPTask()
+	{
+	}
+
+	virtual ~FindServersTask()
+	{
+	}
+
+	virtual bool process()
+	{
+		int8 findComponentTypes[] = {MESSAGELOG_TYPE, RESOURCEMGR_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, UNKNOWN_COMPONENT_TYPE};
+		int ifind = 0;
+
+		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+
+		while(true)
+		{
+			dlg->updateFindTreeStatus();
+			int8 findComponentType = findComponentTypes[ifind];
+			if(findComponentType == UNKNOWN_COMPONENT_TYPE)
+			{
+				//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
+				//	COMPONENT_NAME_EX(findComponentType));
+				return false;
+			}
+			
+			srand(KBEngine::getSystemTime());
+			uint16 nport = KBE_PORT_START + (rand() % 1000);
+			Mercury::BundleBroadcast bhandler(dlg->getNetworkInterface(), nport);
+
+			if(!bhandler.good())
+			{
+				KBEngine::sleep(10);
+				nport = KBE_PORT_START + (rand() % 1000);
+				continue;
+			}
+
+			if(bhandler.pCurrPacket() != NULL)
+			{
+				bhandler.pCurrPacket()->resetPacket();
+			}
+
+			bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
+			MachineInterface::onFindInterfaceAddrArgs6::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+				dlg->componentType(), findComponentType, dlg->getNetworkInterface().intaddr().ip, bhandler.epListen().addr().port);
+
+			if(!bhandler.broadcast())
+			{
+				ERROR_MSG("CguiconsoleDlg::OnTimer: broadcast error!\n");
+				::AfxMessageBox(L"初始化错误：不能发送服务器探测包。");
+				return false;
+			}
+
+			MachineInterface::onBroadcastInterfaceArgs8 args;
+			int32 timeout = 100000;
+RESTART_RECV:
+			if(bhandler.receive(&args, 0, timeout))
+			{
+				bool isContinue = false;
+
+				do
+				{
+					if(isContinue)
+					{
+						try
+						{
+							args.createFromStream(*bhandler.pCurrPacket());
+						}catch(MemoryStreamException &)
+						{
+							break;
+						}
+					}
+
+					if(args.componentType == UNKNOWN_COMPONENT_TYPE)
+					{
+						//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
+						//	COMPONENT_NAME_EX(findComponentType));
+						//ifind++;
+						continue;
+					}
+
+					INFO_MSG(boost::format("CguiconsoleDlg::OnTimer: found %1%, addr:%2%:%3%\n") %
+						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType) % inet_ntoa((struct in_addr&)args.intaddr) % ntohs(args.intaddr));
+
+					Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
+						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
+					
+					isContinue = true;
+				}while(bhandler.pCurrPacket()->opsize() > 0);
+
+				// 防止接收到的数据不是想要的数据
+				if(findComponentType == args.componentType)
+				{
+					//ifind++;
+				}
+				else
+				{
+					ERROR_MSG(boost::format("CguiconsoleDlg::OnTimer: %1% not found. receive data is error!\n") %
+						COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+				}
+
+				//timeout = 10000;
+				goto RESTART_RECV;
+			}
+			else
+			{
+				ifind++;
+				continue;
+			}
+		}
+
+		return false;
+	}
+
+	virtual thread::TPTask::TPTaskState presentMainThread()
+	{ 
+		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+		dlg->updateTree();
+		return thread::TPTask::TPTASK_STATE_COMPLETED; 
+	}
+};
+
 // CAboutDlg dialog used for App About
 
 class CAboutDlg : public CDialog
@@ -147,7 +273,8 @@ CguiconsoleDlg::CguiconsoleDlg(CWnd* pParent /*=NULL*/)
 	m_isInit(false),
 	m_historyCommand(),
 	m_historyCommandIndex(0),
-	m_isUsingHistroy(false)
+	m_isUsingHistroy(false),
+	threadPool_()
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -262,6 +389,8 @@ BOOL CguiconsoleDlg::OnInitDialog()
 
 	KBEngine::ConsoleInterface::messageHandlers.add("Console::onReceiveRemoteLog", new KBEngine::ConsoleInterface::ConsoleLogMessageHandlerArgsStream, MERCURY_VARIABLE_MESSAGE, 
 		new ConsoleLogMessageHandlerEx);
+
+	threadPool_.createThreadPool(1, 1, 16);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -547,6 +676,45 @@ HCURSOR CguiconsoleDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+void CguiconsoleDlg::updateFindTreeStatus()
+{
+	static int count = 0;
+	if(count++ >= 6)
+	{
+		count = 0;
+	}
+
+	m_tree.DeleteAllItems();
+	m_statusWnd.m_statusList.DeleteAllItems();
+
+	HTREEITEM hItemRoot;
+	TV_INSERTSTRUCT tcitem;
+	tcitem.hParent = TVI_ROOT;
+	tcitem.hInsertAfter = TVI_LAST;
+	tcitem.item.mask = TVIF_TEXT|TVIF_PARAM|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
+	tcitem.item.pszText = L"servergroups";
+	tcitem.item.lParam = 0;
+	tcitem.item.iImage = 0;
+	tcitem.item.iSelectedImage = 1;
+	hItemRoot = m_tree.InsertItem(&tcitem);
+
+	tcitem.hParent = hItemRoot;
+	tcitem.hInsertAfter = TVI_LAST;
+	tcitem.item.mask = TVIF_TEXT|TVIF_PARAM|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
+	CString s = L"finding server";
+
+	for(int i=0; i<count; i++)
+	{
+		s += L".";
+	}
+
+	tcitem.item.pszText = s.GetBuffer(0);
+	tcitem.item.lParam = 0;
+	tcitem.item.iImage = 0;
+	tcitem.item.iSelectedImage = 1;
+	m_tree.InsertItem(&tcitem);
+	m_tree.Expand(hItemRoot, TVE_EXPAND);
+}
 
 void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 {
@@ -563,114 +731,13 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 	switch(nIDEvent)
 	{
 	case 1:
+		threadPool_.onMainThreadTick();
 		_dispatcher.processOnce(false);
 		_networkInterface.handleChannels(&KBEngine::ConsoleInterface::messageHandlers);
 		break;
 	case 2:
 		{
-			int8 findComponentTypes[] = {MESSAGELOG_TYPE, RESOURCEMGR_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, UNKNOWN_COMPONENT_TYPE};
-			int ifind = 0;
-
-			while(true)
-			{
-				int8 findComponentType = findComponentTypes[ifind];
-				if(findComponentType == UNKNOWN_COMPONENT_TYPE)
-				{
-					//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
-					//	COMPONENT_NAME_EX(findComponentType));
-					
-					::KillTimer(m_hWnd, nIDEvent);
-					updateTree();
-					return;
-				}
-
-				srand(KBEngine::getSystemTime());
-				uint16 nport = KBE_PORT_START + (rand() % 1000);
-				Mercury::BundleBroadcast bhandler(_networkInterface, nport);
-
-				if(!bhandler.good())
-				{
-					KBEngine::sleep(10);
-					nport = KBE_PORT_START + (rand() % 1000);
-					continue;
-				}
-
-				if(bhandler.pCurrPacket() != NULL)
-				{
-					bhandler.pCurrPacket()->resetPacket();
-				}
-
-				bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
-				MachineInterface::onFindInterfaceAddrArgs6::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
-					_componentType, findComponentType, _networkInterface.intaddr().ip, bhandler.epListen().addr().port);
-
-				if(!bhandler.broadcast())
-				{
-					::KillTimer(m_hWnd, nIDEvent);
-					ERROR_MSG("CguiconsoleDlg::OnTimer: broadcast error!\n");
-					::AfxMessageBox(L"初始化错误：不能发送服务器探测包。");
-					return;
-				}
-
-				MachineInterface::onBroadcastInterfaceArgs8 args;
-				int32 timeout = 100000;
-RESTART_RECV:
-				if(bhandler.receive(&args, 0, timeout))
-				{
-					bool isContinue = false;
-
-					do
-					{
-						if(isContinue)
-						{
-							try
-							{
-								args.createFromStream(*bhandler.pCurrPacket());
-							}catch(MemoryStreamException &)
-							{
-								break;
-							}
-						}
-
-						if(args.componentType == UNKNOWN_COMPONENT_TYPE)
-						{
-							//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
-							//	COMPONENT_NAME_EX(findComponentType));
-							//ifind++;
-							continue;
-						}
-
-						INFO_MSG(boost::format("CguiconsoleDlg::OnTimer: found %1%, addr:%2%:%3%\n") %
-							COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType) % inet_ntoa((struct in_addr&)args.intaddr) % ntohs(args.intaddr));
-
-						Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
-							(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
-						
-						isContinue = true;
-					}while(bhandler.pCurrPacket()->opsize() > 0);
-
-					// 防止接收到的数据不是想要的数据
-					if(findComponentType == args.componentType)
-					{
-						//ifind++;
-					}
-					else
-					{
-						ERROR_MSG(boost::format("CguiconsoleDlg::OnTimer: %1% not found. receive data is error!\n") %
-							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
-					}
-
-					//timeout = 10000;
-					goto RESTART_RECV;
-				}
-				else
-				{
-					ifind++;
-					continue;
-				}
-			}
-			
-			updateTree();
+			threadPool_.addTask(new FindServersTask());
 			::KillTimer(m_hWnd, nIDEvent);
 		}
 		break;

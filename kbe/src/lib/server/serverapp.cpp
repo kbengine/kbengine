@@ -42,8 +42,6 @@ COMPONENT_ID g_componentID = 0;
 COMPONENT_ORDER g_componentOrder = -1;
 GAME_TIME g_kbetime = 0;
 
-const float ACTIVE_TICK_TIMEOUT_DEFAULT = 30.0;
-
 //-------------------------------------------------------------------------------------
 ServerApp::ServerApp(Mercury::EventDispatcher& dispatcher, 
 					 Mercury::NetworkInterface& ninterface, 
@@ -67,7 +65,7 @@ threadPool_()
 	networkInterface_.pChannelTimeOutHandler(this);
 	networkInterface_.pChannelDeregisterHandler(this);
 
-	startActiveTick(ACTIVE_TICK_TIMEOUT_DEFAULT);
+	startActiveTick(KBEngine::max(1.f, Mercury::g_channelInternalTimeout / 2.0f));
 }
 
 //-------------------------------------------------------------------------------------
