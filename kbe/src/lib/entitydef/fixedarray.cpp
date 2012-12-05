@@ -50,6 +50,8 @@ Sequence(getScriptType(), false)
 	_dataType = static_cast<FixedArrayType*>(dataType);
 	_dataType->incRef();
 	initialize(strInitData);
+
+//	DEBUG_MSG(boost::format("FixedArray::FixedArray(): %1%\n") % this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -59,6 +61,8 @@ Sequence(getScriptType(), false)
 	_dataType = static_cast<FixedArrayType*>(dataType);
 	_dataType->incRef();
 	initialize(pyInitData);
+
+//	DEBUG_MSG(boost::format("FixedArray::FixedArray(): %1%\n") % this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -68,12 +72,16 @@ Sequence(getScriptType(), false)
 	_dataType = static_cast<FixedArrayType*>(dataType);
 	_dataType->incRef();
 	initialize("");
+
+//	DEBUG_MSG(boost::format("FixedArray::FixedArray(): %1%\n") % this);
 }
 
 //-------------------------------------------------------------------------------------
 FixedArray::~FixedArray()
 {
 	_dataType->decRef();
+
+//	DEBUG_MSG(boost::format("FixedArray::~FixedArray(): %1%\n") % this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -97,6 +105,7 @@ void FixedArray::initialize(PyObject* pyObjInitData)
 	 {
 		 PyObject* pyobj = PySequence_GetItem(pyObjInitData, i);
 		 values_.push_back(_dataType->createNewItemFromObj(pyobj));
+		 Py_DECREF(pyobj);
 	 }
 }
 

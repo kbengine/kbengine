@@ -924,7 +924,8 @@ PyObject* FixedArrayType::createNewFromObj(PyObject* pyobj)
 
 	if(PyObject_TypeCheck(pyobj, FixedArray::getScriptType()))
 	{
-		return script::Copy::deepcopy(pyobj);
+		Py_INCREF(pyobj);
+		return pyobj;
 	}
 
 	return new FixedArray(this, pyobj);
@@ -1141,7 +1142,8 @@ PyObject* FixedDictType::createNewFromObj(PyObject* pyobj)
 	// 会初始为最终对象类型
 	if(PyObject_TypeCheck(pyobj, FixedDict::getScriptType()))
 	{
-		return script::Copy::deepcopy(pyobj);
+		Py_INCREF(pyobj);
+		return pyobj;
 	}
 
 	return new FixedDict(this, pyobj);

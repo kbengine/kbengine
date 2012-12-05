@@ -55,6 +55,9 @@ Map(getScriptType(), false)
 	_dataType = static_cast<FixedDictType*>(dataType);
 	_dataType->incRef();
 	initialize(strDictInitData);
+
+//	DEBUG_MSG(boost::format("FixedDict::FixedDict(1): %1%---%2%\n") % this %
+//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL)));
 }
 
 //-------------------------------------------------------------------------------------
@@ -64,6 +67,9 @@ Map(getScriptType(), false)
 	_dataType = static_cast<FixedDictType*>(dataType);
 	_dataType->incRef();
 	initialize(pyDictInitData);
+
+//	DEBUG_MSG(boost::format("FixedDict::FixedDict(2): %1%---%2%\n") % this % 
+//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL)));
 }
 
 //-------------------------------------------------------------------------------------
@@ -73,6 +79,9 @@ Map(getScriptType(), false)
 	_dataType = static_cast<FixedDictType*>(dataType);
 	_dataType->incRef();
 	initialize(streamInitData);
+	
+//	DEBUG_MSG(boost::format("FixedDict::FixedDict(3): %1%---%2%\n") % this % 
+//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL)));
 }
 
 //-------------------------------------------------------------------------------------
@@ -82,6 +91,9 @@ Map(getScriptType(), false)
 	_dataType = static_cast<FixedDictType*>(dataType);
 	_dataType->incRef();
 	initialize("");
+
+//	DEBUG_MSG(boost::format("FixedDict::FixedDict(4): %1%---%2%\n") % this % 
+//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL)));
 }
 
 
@@ -89,6 +101,8 @@ Map(getScriptType(), false)
 FixedDict::~FixedDict()
 {
 	_dataType->decRef();
+
+//	DEBUG_MSG(boost::format("FixedDict::~FixedDict(): %1%\n") % this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -296,9 +310,7 @@ PyObject* FixedDict::update(PyObject* args)
 				static_cast<FixedDictType*>(getDataType())->createNewItemFromObj(iter->first.c_str(), val);
 
 			PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
-
-			if(val1 != val)
-				Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
+			Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
 		}
 	}
 
