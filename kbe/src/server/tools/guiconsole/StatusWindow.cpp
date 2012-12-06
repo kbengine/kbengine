@@ -90,6 +90,8 @@ void StatusWindow::addApp(Components::ComponentInfos& cinfos)
 		CString suid;
 		suid.Format(L"%u", cinfos.uid);
 		m_statusList.InsertItem(0, suid);
+		static int ndata = 0;
+		m_statusList.SetItemData(0, ndata++);
 
 		CString cname;
 		ws = KBEngine::char2wchar(COMPONENT_NAME_EX(cinfos.componentType));

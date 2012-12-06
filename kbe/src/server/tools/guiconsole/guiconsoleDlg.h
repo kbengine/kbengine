@@ -59,11 +59,18 @@ public:
 	Mercury::Address getTreeItemAddr(HTREEITEM hItem);
 	COMPONENT_TYPE getTreeItemComponent(HTREEITEM hItem);
 	
+	bool hasTreeComponent(Components::ComponentInfos& cinfos);
+
 	void onReceiveRemoteLog(std::string str);
 
 	COMPONENT_TYPE componentType()const { return _componentType; }
 
 	void updateFindTreeStatus();
+
+	void clearTree(){
+		m_tree.DeleteAllItems();
+		m_statusWnd.m_statusList.DeleteAllItems();
+	}
 protected:
 	HICON m_hIcon;
 
@@ -113,4 +120,5 @@ public:
 	afx_msg void OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnConnectRemoteMachine();
 	afx_msg void OnHelpAbout();
+	afx_msg void OnClose();
 };

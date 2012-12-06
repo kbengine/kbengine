@@ -102,6 +102,8 @@ public:
 	FindServersTask():
 	thread::TPTask()
 	{
+		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+		dlg->clearTree();
 	}
 
 	virtual ~FindServersTask()
@@ -113,19 +115,22 @@ public:
 		int8 findComponentTypes[] = {MESSAGELOG_TYPE, RESOURCEMGR_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, UNKNOWN_COMPONENT_TYPE};
 		int ifind = 0;
 
+		if(g_isDestroyed)
+			return false;
+
 		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 
 		while(true)
 		{
-			dlg->updateFindTreeStatus();
 			int8 findComponentType = findComponentTypes[ifind];
-			if(findComponentType == UNKNOWN_COMPONENT_TYPE)
+			if(findComponentType == UNKNOWN_COMPONENT_TYPE || g_isDestroyed)
 			{
 				//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
 				//	COMPONENT_NAME_EX(findComponentType));
 				return false;
 			}
-			
+
+			dlg->updateFindTreeStatus();
 			srand(KBEngine::getSystemTime());
 			uint16 nport = KBE_PORT_START + (rand() % 1000);
 			Mercury::BundleBroadcast bhandler(dlg->getNetworkInterface(), nport);
@@ -162,6 +167,9 @@ RESTART_RECV:
 
 				do
 				{
+					if(g_isDestroyed)
+						return false;
+
 					if(isContinue)
 					{
 						try
@@ -194,6 +202,9 @@ RESTART_RECV:
 				if(findComponentType == args.componentType)
 				{
 					//ifind++;
+					if(g_isDestroyed)
+						return false;
+					dlg->updateTree();
 				}
 				else
 				{
@@ -216,8 +227,12 @@ RESTART_RECV:
 
 	virtual thread::TPTask::TPTaskState presentMainThread()
 	{ 
-		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
-		dlg->updateTree();
+		if(!g_isDestroyed)
+		{
+			CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+			dlg->updateTree();
+		}
+
 		return thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 };
@@ -303,6 +318,7 @@ BEGIN_MESSAGE_MAP(CguiconsoleDlg, CDialog)
 	ON_COMMAND(ID_BUTTON32784, &CguiconsoleDlg::OnToolBar_Find)
 	ON_COMMAND(ID_BUTTON32780, &CguiconsoleDlg::OnToolBar_StartServer)
 	ON_COMMAND(ID_BUTTON32783, &CguiconsoleDlg::OnToolBar_StopServer)
+	ON_WM_CLOSE()
 END_MESSAGE_MAP()
 
 
@@ -687,6 +703,16 @@ void CguiconsoleDlg::updateFindTreeStatus()
 		count = 0;
 	}
 
+	CString s = L"finding server";
+
+	for(int i=0; i<count; i++)
+	{
+		s += L".";
+	}
+
+	this->SetWindowTextW(s.GetBuffer(0));
+
+	/*
 	m_tree.DeleteAllItems();
 	m_statusWnd.m_statusList.DeleteAllItems();
 
@@ -717,6 +743,7 @@ void CguiconsoleDlg::updateFindTreeStatus()
 	tcitem.item.iSelectedImage = 1;
 	m_tree.InsertItem(&tcitem);
 	m_tree.Expand(hItemRoot, TVE_EXPAND);
+	*/
 }
 
 void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
@@ -818,13 +845,55 @@ void CguiconsoleDlg::OnSize(UINT nType, int cx, int cy)
 	autoWndSize();
 }
 
+bool CguiconsoleDlg::hasTreeComponent(Components::ComponentInfos& cinfos)
+{
+	HTREEITEM hItemRoot = m_tree.GetRootItem();
+	if(hItemRoot == NULL)
+		return false;
+
+	HTREEITEM item = m_tree.GetChildItem(hItemRoot), hasUIDItem = NULL;
+
+	do
+	{
+		CString s = m_tree.GetItemText(item);
+		CString s1;
+		s1.Format(L"uid[%u]", cinfos.uid);
+
+		if(s1 == s)
+		{
+			hasUIDItem = item;
+			break;
+		}
+	}while(item = m_tree.GetNextItem(item, TVGN_NEXT));
+
+	if(hasUIDItem == NULL)
+		return false;
+
+	item = m_tree.GetChildItem(hasUIDItem);
+
+	char sbuf[1024];
+	kbe_snprintf(sbuf, 1024, "%s[%s]", COMPONENT_NAME_EX(cinfos.componentType), cinfos.pIntAddr->c_str());
+	wchar_t* wbuf = KBEngine::char2wchar(sbuf);
+	CString s1 = wbuf;
+	free(wbuf);
+
+	do
+	{
+		CString s = m_tree.GetItemText(item);
+
+		if(s1 == s)
+		{
+			return true;
+		}
+	}while(item = m_tree.GetNextItem(item, TVGN_NEXT));
+
+	return false;
+}
+
 void CguiconsoleDlg::updateTree()
 {
 	if(!m_isInit)
 		return;
-
-	m_tree.DeleteAllItems();
-	m_statusWnd.m_statusList.DeleteAllItems();
 
 	Components::COMPONENTS cts0 = Components::getSingleton().getComponents(BASEAPP_TYPE);
 	Components::COMPONENTS cts1 = Components::getSingleton().getComponents(CELLAPP_TYPE);
@@ -855,82 +924,78 @@ void CguiconsoleDlg::updateTree()
 
 	HTREEITEM hItemRoot;
 	TV_INSERTSTRUCT tcitem;
-	tcitem.hParent = TVI_ROOT;
-	tcitem.hInsertAfter = TVI_LAST;
-	tcitem.item.mask = TVIF_TEXT|TVIF_PARAM|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
-	tcitem.item.pszText = L"servergroups";
-	tcitem.item.lParam = 0;
-	tcitem.item.iImage = 0;
-	tcitem.item.iSelectedImage = 1;
-	hItemRoot = m_tree.InsertItem(&tcitem);
 
-	if(cts.size() == 0)
+	hItemRoot = m_tree.GetRootItem();
+	if(hItemRoot == NULL)
 	{
-		tcitem.hParent = hItemRoot;
+		tcitem.hParent = TVI_ROOT;
 		tcitem.hInsertAfter = TVI_LAST;
 		tcitem.item.mask = TVIF_TEXT|TVIF_PARAM|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
-		tcitem.item.pszText = L"server not found!";
+		tcitem.item.pszText = L"servergroups";
 		tcitem.item.lParam = 0;
 		tcitem.item.iImage = 0;
 		tcitem.item.iSelectedImage = 1;
-		m_tree.InsertItem(&tcitem);
+		hItemRoot = m_tree.InsertItem(&tcitem);
 	}
-	else
+
+	Components::COMPONENTS::iterator iter = cts.begin();
+	for(; iter != cts.end(); iter++)
 	{
-		Components::COMPONENTS::iterator iter = cts.begin();
-		for(; iter != cts.end(); iter++)
+		Components::ComponentInfos& cinfos = (*iter);
+
+		HTREEITEM item = m_tree.GetChildItem(hItemRoot), hasUIDItem = NULL;
+
+		if(item)
 		{
-			Components::ComponentInfos& cinfos = (*iter);
-
-			HTREEITEM item = m_tree.GetChildItem(hItemRoot), hasUIDItem = NULL;
-
-			if(item)
+			do
 			{
-				do
+				CString s = m_tree.GetItemText(item);
+				CString s1;
+				s1.Format(L"uid[%u]", cinfos.uid);
+
+				if(s1 == s)
 				{
-					CString s = m_tree.GetItemText(item);
-					CString s1;
-					s1.Format(L"uid[%u]", cinfos.uid);
+					hasUIDItem = item;
+					break;
+				}
+			}while(item = m_tree.GetNextItem(item, TVGN_NEXT));
+		}
 
-					if(s1 == s)
-					{
-						hasUIDItem = item;
-						break;
-					}
-				}while(item = m_tree.GetNextItem(item, TVGN_NEXT));
-			}
-
-			if(hasUIDItem == NULL)
-			{
-				CString s;
-				s.Format(L"uid[%u]", cinfos.uid);
-				tcitem.hParent = hItemRoot;
-				tcitem.hInsertAfter = TVI_LAST;
-				tcitem.item.mask = TVIF_TEXT|TVIF_PARAM|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
-				tcitem.item.pszText = s.GetBuffer(0);
-				tcitem.item.lParam = 0;
-				tcitem.item.iImage = 0;
-				tcitem.item.iSelectedImage = 1;
-				hasUIDItem = m_tree.InsertItem(&tcitem);
-			}
-			
-			char sbuf[1024];
-			kbe_snprintf(sbuf, 1024, "%s[%s]", COMPONENT_NAME_EX(cinfos.componentType), cinfos.pIntAddr->c_str());
-			wchar_t* wbuf = KBEngine::char2wchar(sbuf);
-			tcitem.hParent = hasUIDItem;
+		if(hasUIDItem == NULL)
+		{
+			CString s;
+			s.Format(L"uid[%u]", cinfos.uid);
+			tcitem.hParent = hItemRoot;
 			tcitem.hInsertAfter = TVI_LAST;
 			tcitem.item.mask = TVIF_TEXT|TVIF_PARAM|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
-			tcitem.item.pszText = wbuf;
+			tcitem.item.pszText = s.GetBuffer(0);
 			tcitem.item.lParam = 0;
 			tcitem.item.iImage = 0;
 			tcitem.item.iSelectedImage = 1;
-			HTREEITEM insertItem = m_tree.InsertItem(&tcitem);
-			m_tree.SetItemData(insertItem, (DWORD)&cinfos.cid);
-			m_tree.Expand(hasUIDItem, TVE_EXPAND);
-			free(wbuf);
-
-			m_statusWnd.addApp(cinfos);
+			hasUIDItem = m_tree.InsertItem(&tcitem);
 		}
+		
+		if(this->hasTreeComponent(cinfos))
+		{
+			continue;
+		}
+		
+		char sbuf[1024];
+		kbe_snprintf(sbuf, 1024, "%s[%s]", COMPONENT_NAME_EX(cinfos.componentType), cinfos.pIntAddr->c_str());
+		wchar_t* wbuf = KBEngine::char2wchar(sbuf);
+		tcitem.hParent = hasUIDItem;
+		tcitem.hInsertAfter = TVI_LAST;
+		tcitem.item.mask = TVIF_TEXT|TVIF_PARAM|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
+		tcitem.item.pszText = wbuf;
+		tcitem.item.lParam = 0;
+		tcitem.item.iImage = 0;
+		tcitem.item.iSelectedImage = 1;
+		HTREEITEM insertItem = m_tree.InsertItem(&tcitem);
+		m_tree.SetItemData(insertItem, (DWORD)&cinfos.cid);
+		m_tree.Expand(hasUIDItem, TVE_EXPAND);
+		free(wbuf);
+
+		m_statusWnd.addApp(cinfos);
 	}
 
 	m_tree.Expand(hItemRoot, TVE_EXPAND);
@@ -1457,4 +1522,11 @@ void CguiconsoleDlg::OnToolBar_StopServer()
 		bool success;
 		bhandler >> success;
 	}
+}
+
+void CguiconsoleDlg::OnClose()
+{
+	// TODO: Add your message handler code here and/or call default
+	g_isDestroyed = true;
+	CDialog::OnClose();
 }
