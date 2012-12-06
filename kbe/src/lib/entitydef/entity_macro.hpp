@@ -461,7 +461,7 @@ public:																										\
 					if(pySetObj != NULL)																	\
 					{																						\
 						onDefDataChanged(propertyDescription, pySetObj);									\
-						if(pySetObj == value && pySetObj->ob_refcnt > ob_refcnt)							\
+						if(pySetObj == value && pySetObj->ob_refcnt - ob_refcnt > 1)						\
 							Py_DECREF(pySetObj);															\
 					}																						\
 																											\
