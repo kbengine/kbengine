@@ -11,6 +11,7 @@
 #endif
 
 int g_diffHeight = 0;
+bool g_isDestroyed = false;
 
 // CguiconsoleApp
 

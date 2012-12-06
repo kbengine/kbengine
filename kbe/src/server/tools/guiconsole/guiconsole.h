@@ -59,3 +59,4 @@ struct ListSortData{
 int CALLBACK CompareFunc(LPARAM lParam1,LPARAM lParam2,LPARAM lParamSort);
 
 extern int g_diffHeight;
+extern bool g_isDestroyed;
