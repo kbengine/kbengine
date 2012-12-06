@@ -91,7 +91,8 @@ enum COMPONENT_TYPE
 	MESSAGELOG_TYPE			= 11,
 	RESOURCEMGR_TYPE		= 12,
 	BOTS_TYPE				= 13,
-	COMPONENT_END_TYPE		= 14,
+	WATCHER_TYPE			= 14,
+	COMPONENT_END_TYPE		= 15,
 };
 
 /** 当前服务器组件类别和ID */
@@ -114,6 +115,7 @@ const char COMPONENT_NAME[][255] = {
 	"messagelog",
 	"resourcemgr",
 	"bots",
+	"watcher",
 };
 
 const char COMPONENT_NAME_1[][255] = {
@@ -131,6 +133,7 @@ const char COMPONENT_NAME_1[][255] = {
 	"messagelog ",
 	"resourcemgr",
 	"bots",
+	"watcher",
 };
 
 inline const char* COMPONENT_NAME_EX(COMPONENT_TYPE CTYPE)
@@ -156,7 +159,7 @@ inline const char* COMPONENT_NAME_EX_1(COMPONENT_TYPE CTYPE)
 // 所有的组件列表
 const COMPONENT_TYPE ALL_COMPONENT_TYPES[] = {BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, DBMGR_TYPE, CELLAPP_TYPE, 
 						BASEAPP_TYPE, LOGINAPP_TYPE, MACHINE_TYPE, CONSOLE_TYPE, MESSAGELOG_TYPE, RESOURCEMGR_TYPE, 
-						CENTER_TYPE, UNKNOWN_COMPONENT_TYPE};
+						CENTER_TYPE, WATCHER_TYPE, UNKNOWN_COMPONENT_TYPE};
 
 // 返回是否是一个有效的组件
 #define VALID_COMPONENT(C_TYPE) ((C_TYPE) > 0 && (C_TYPE) < COMPONENT_END_TYPE)

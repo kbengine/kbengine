@@ -1765,7 +1765,12 @@ void Baseapp::onRemoteCallCellMethodFromClient(Mercury::Channel* pChannel, KBEng
 			(KBEngine::Baseapp::getSingleton().findEntity(srcEntityID));		
 
 	if(e == NULL || e->getCellMailbox() == NULL)
+	{
+		ERROR_MSG(boost::format("Baseapp::onRemoteCallCellMethodFromClient: %1% %2% has no cell.\n") %
+			e->getScriptName() % srcEntityID);
+
 		return;
+	}
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(CellappInterface::onRemoteCallMethodFromClient);
