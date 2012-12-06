@@ -454,12 +454,15 @@ public:																										\
 				}																							\
 				else																						\
 				{																							\
+					Py_ssize_t ob_refcnt = value->ob_refcnt;												\
 					PyObject* pySetObj = propertyDescription->onSetValue(this, value);						\
 																											\
 					/* 如果def属性数据有改变， 那么可能需要广播 */											\
 					if(pySetObj != NULL)																	\
 					{																						\
 						onDefDataChanged(propertyDescription, pySetObj);									\
+						if(pySetObj == value && pySetObj->ob_refcnt > ob_refcnt)							\
+							Py_DECREF(pySetObj);															\
 					}																						\
 																											\
 					free(ccattr);																			\
@@ -722,12 +725,12 @@ public:																										\
 						propertyDescription->getName(), defObj);											\
 			Py_DECREF(defObj);																				\
 																											\
-			/* DEBUG_MSG(#CLASS"::"#CLASS": added [%s] property.\n", 
-			propertyDescription->getName());*/																\
+			/* DEBUG_MSG(boost::format(#CLASS"::"#CLASS": added [%1%] property ref=%2%.\n") %
+							propertyDescription->getName() % defObj->ob_refcnt);*/							\
 		}																									\
 		else																								\
 		{																									\
-		ERROR_MSG(boost::format(#CLASS"::"#CLASS": %1% PropertyDescription the dataType is NULL.\n") %		\
+			ERROR_MSG(boost::format(#CLASS"::"#CLASS": %1% PropertyDescription the dataType is NULL.\n") %	\
 				propertyDescription->getName());															\
 		}																									\
 	}																										\
