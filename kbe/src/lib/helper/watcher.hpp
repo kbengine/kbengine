@@ -514,7 +514,13 @@ protected:
 	WATCHER_MAP watcherObjs_;
 };
 
-#define ADD_WATCH_VAL(NAME, VAL)															\
+#define ADD_WATCH(NAME, OBJTYPE)															\
+{																							\
+	WatcherObject* obj = createWatcher(NAME, OBJTYPE);										\
+	Watchers::getSingleton().addWatcher(obj);												\
+}																							\
+
+#define ADD_WATCH_METHOD(NAME, OBJTYPE, RETURN_TYPE)										\
 {																							\
 }																							\
 

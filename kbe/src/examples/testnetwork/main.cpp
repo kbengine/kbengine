@@ -1238,7 +1238,7 @@ avatarenterworld = false;
 int main(int argc, char* argv[])
 {
 	int32 aaa = 111;
-	 WatcherObject* x = createWatcher("sss", &aaa);
+	ADD_WATCH("sss", &aaa);
 
 	Resmgr::getSingleton().initialize();
 	ServerConfig sss;
