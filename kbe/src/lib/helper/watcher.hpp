@@ -360,7 +360,7 @@ class createMethodWatcher<uint8, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return create<uint8, BIND_METHOD>(name, method);
+		return new WatcherMethod<uint8, BIND_METHOD>(name, method);
 	}
 };
 
@@ -369,7 +369,7 @@ class createMethodWatcher<uint16, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return create<uint16, BIND_METHOD>(name, method);
+		return new WatcherMethod<uint16, BIND_METHOD>(name, method);
 	}
 };
 
@@ -378,7 +378,7 @@ class createMethodWatcher<uint32, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return create<uint32, BIND_METHOD>(name, method);
+		return new WatcherMethod<uint32, BIND_METHOD>(name, method);
 	}
 };
 
@@ -387,7 +387,7 @@ class createMethodWatcher<uint64, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return create<uint64, BIND_METHOD>(name, method);
+		return new WatcherMethod<uint64, BIND_METHOD>(name, method);
 	}
 };
 
@@ -396,7 +396,7 @@ class createMethodWatcher<int8, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return create<int8, BIND_METHOD>(name, method);
+		return new WatcherMethod<int8, BIND_METHOD>(name, method);
 	}
 };
 
@@ -405,7 +405,7 @@ class createMethodWatcher<int16, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return create<int16, BIND_METHOD>(name, method);
+		return new WatcherMethod<int16, BIND_METHOD>(name, method);
 	}
 };
 
@@ -414,7 +414,7 @@ class createMethodWatcher<int32, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return create<int32, BIND_METHOD>(name, method);
+		return new WatcherMethod<int32, BIND_METHOD>(name, method);
 	}
 };
 
@@ -423,7 +423,7 @@ class createMethodWatcher<int64, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return create<int64, BIND_METHOD>(name, method);
+		return new WatcherMethod<int64, BIND_METHOD>(name, method);
 	}
 };
 
@@ -432,7 +432,7 @@ class createMethodWatcher<bool, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return create<uint8, BIND_METHOD>(name, method);
+		return new WatcherMethod<bool, BIND_METHOD>(name, method);
 	}
 };
 
@@ -452,7 +452,7 @@ class createMethodWatcher<char*, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return create<char*, BIND_METHOD>(name, method);
+		return new WatcherMethod<char*, BIND_METHOD>(name, method);
 	}
 };
 
@@ -461,7 +461,7 @@ class createMethodWatcher<std::string, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return create<std::string, BIND_METHOD>(name, method);
+		return new WatcherMethod<std::string, BIND_METHOD>(name, method);
 	}
 };
 
@@ -470,7 +470,7 @@ class createMethodWatcher<float, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return create<float, BIND_METHOD>(name, method);
+		return new WatcherMethod<float, BIND_METHOD>(name, method);
 	}
 };
 
@@ -479,7 +479,7 @@ class createMethodWatcher<double, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return create<double, BIND_METHOD>(name, method);
+		return new WatcherMethod<double, BIND_METHOD>(name, method);
 	}
 };
 
@@ -488,7 +488,7 @@ class createMethodWatcher<COMPONENT_TYPE, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return create<COMPONENT_TYPE, BIND_METHOD>(name, method);
+		return new WatcherMethod<COMPONENT_TYPE, BIND_METHOD>(name, method);
 	}
 };
 
