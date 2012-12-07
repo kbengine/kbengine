@@ -350,8 +350,8 @@ template <class RETURN_TYPE, class BIND_METHOD>
 class createMethodWatcher
 {
 public:
-	static WatcherObject* create(std::string name){
-		return new WatcherMethod<RETURN_TYPE, BIND_METHOD>(name);
+	static WatcherObject* create(std::string name, BIND_METHOD method){
+		return new WatcherMethod<RETURN_TYPE, BIND_METHOD>(name, method);
 	}
 };
 
@@ -359,8 +359,8 @@ template <class BIND_METHOD>
 class createMethodWatcher<uint8, BIND_METHOD>
 {
 public:
-	static WatcherObject* create(std::string name){
-		return create<uint8, BIND_METHOD>(name);
+	static WatcherObject* create(std::string name, BIND_METHOD method){
+		return create<uint8, BIND_METHOD>(name, method);
 	}
 };
 
@@ -368,8 +368,8 @@ template <class BIND_METHOD>
 class createMethodWatcher<uint16, BIND_METHOD>
 {
 public:
-	static WatcherObject* create(std::string name){
-		return create<uint16, BIND_METHOD>(name);
+	static WatcherObject* create(std::string name, BIND_METHOD method){
+		return create<uint16, BIND_METHOD>(name, method);
 	}
 };
 
@@ -377,8 +377,8 @@ template <class BIND_METHOD>
 class createMethodWatcher<uint32, BIND_METHOD>
 {
 public:
-	static WatcherObject* create(std::string name){
-		return create<uint32, BIND_METHOD>(name);
+	static WatcherObject* create(std::string name, BIND_METHOD method){
+		return create<uint32, BIND_METHOD>(name, method);
 	}
 };
 
@@ -386,8 +386,8 @@ template <class BIND_METHOD>
 class createMethodWatcher<uint64, BIND_METHOD>
 {
 public:
-	static WatcherObject* create(std::string name){
-		return create<uint64, BIND_METHOD>(name);
+	static WatcherObject* create(std::string name, BIND_METHOD method){
+		return create<uint64, BIND_METHOD>(name, method);
 	}
 };
 
@@ -395,8 +395,8 @@ template <class BIND_METHOD>
 class createMethodWatcher<int8, BIND_METHOD>
 {
 public:
-	static WatcherObject* create(std::string name){
-		return create<int8, BIND_METHOD>(name);
+	static WatcherObject* create(std::string name, BIND_METHOD method){
+		return create<int8, BIND_METHOD>(name, method);
 	}
 };
 
@@ -404,8 +404,8 @@ template <class BIND_METHOD>
 class createMethodWatcher<int16, BIND_METHOD>
 {
 public:
-	static WatcherObject* create(std::string name){
-		return create<int16, BIND_METHOD>(name);
+	static WatcherObject* create(std::string name, BIND_METHOD method){
+		return create<int16, BIND_METHOD>(name, method);
 	}
 };
 
@@ -413,8 +413,8 @@ template <class BIND_METHOD>
 class createMethodWatcher<int32, BIND_METHOD>
 {
 public:
-	static WatcherObject* create(std::string name){
-		return create<int32, BIND_METHOD>(name);
+	static WatcherObject* create(std::string name, BIND_METHOD method){
+		return create<int32, BIND_METHOD>(name, method);
 	}
 };
 
@@ -422,8 +422,8 @@ template <class BIND_METHOD>
 class createMethodWatcher<int64, BIND_METHOD>
 {
 public:
-	static WatcherObject* create(std::string name){
-		return create<int64, BIND_METHOD>(name);
+	static WatcherObject* create(std::string name, BIND_METHOD method){
+		return create<int64, BIND_METHOD>(name, method);
 	}
 };
 
@@ -431,26 +431,28 @@ template <class BIND_METHOD>
 class createMethodWatcher<bool, BIND_METHOD>
 {
 public:
-	static WatcherObject* create(std::string name){
-		return create<uint8, BIND_METHOD>(name);
+	static WatcherObject* create(std::string name, BIND_METHOD method){
+		return create<uint8, BIND_METHOD>(name, method);
 	}
 };
 
+/*
 template <class BIND_METHOD>
 class createMethodWatcher<char, BIND_METHOD>
 {
 public:
-	static WatcherObject* create(std::string name){
-		return create<char, BIND_METHOD>(name);
+	static WatcherObject* create(std::string name, BIND_METHOD method){
+		return create<char, BIND_METHOD>(name, method);
 	}
 };
+*/
 
 template <class BIND_METHOD>
 class createMethodWatcher<char*, BIND_METHOD>
 {
 public:
-	static WatcherObject* create(std::string name){
-		return create<char*, BIND_METHOD>(name);
+	static WatcherObject* create(std::string name, BIND_METHOD method){
+		return create<char*, BIND_METHOD>(name, method);
 	}
 };
 
@@ -458,8 +460,8 @@ template <class BIND_METHOD>
 class createMethodWatcher<std::string, BIND_METHOD>
 {
 public:
-	static WatcherObject* create(std::string name){
-		return create<std::string, BIND_METHOD>(name);
+	static WatcherObject* create(std::string name, BIND_METHOD method){
+		return create<std::string, BIND_METHOD>(name, method);
 	}
 };
 
@@ -467,8 +469,8 @@ template <class BIND_METHOD>
 class createMethodWatcher<float, BIND_METHOD>
 {
 public:
-	static WatcherObject* create(std::string name){
-		return create<float, BIND_METHOD>(name);
+	static WatcherObject* create(std::string name, BIND_METHOD method){
+		return create<float, BIND_METHOD>(name, method);
 	}
 };
 
@@ -476,8 +478,8 @@ template <class BIND_METHOD>
 class createMethodWatcher<double, BIND_METHOD>
 {
 public:
-	static WatcherObject* create(std::string name){
-		return create<double, BIND_METHOD>(name);
+	static WatcherObject* create(std::string name, BIND_METHOD method){
+		return create<double, BIND_METHOD>(name, method);
 	}
 };
 
@@ -485,8 +487,8 @@ template <class BIND_METHOD>
 class createMethodWatcher<COMPONENT_TYPE, BIND_METHOD>
 {
 public:
-	static WatcherObject* create(std::string name){
-		return create<int32, BIND_METHOD>(name);
+	static WatcherObject* create(std::string name, BIND_METHOD method){
+		return create<COMPONENT_TYPE, BIND_METHOD>(name, method);
 	}
 };
 
