@@ -17,6 +17,9 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
+#ifndef __KBE_LOG4CXX_SCRIPTLOGLEVEL_HPP__
+#define __KBE_LOG4CXX_SCRIPTLOGLEVEL_HPP__
+
 #ifndef NO_USE_LOG4CXX
 #include "log4cxx/level.h"
 
@@ -67,4 +70,5 @@ namespace log4cxx
    };
 }
 
+#endif
 #endif

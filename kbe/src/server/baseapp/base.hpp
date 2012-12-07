@@ -120,7 +120,6 @@ public:
 
 	void destroyCellData(void);
 
-	void addCellDataToStream(uint32 flags, MemoryStream* s);
 	void addPersistentsDataToStream(uint32 flags, MemoryStream* s);
 
 	PyObject* createCellDataDict(uint32 flags);

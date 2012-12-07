@@ -2,6 +2,12 @@
 # OpenSSL/crypto/objects/Makefile
 #
 
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl/crypto/objects,,$(CURDIR))
+endif
+
+LIBDIR= $(KBE_ROOT)/kbe/src/libs
+
 DIR=	objects
 TOP=	../..
 CC=	cc

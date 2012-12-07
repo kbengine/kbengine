@@ -2,6 +2,12 @@
 # OpenSSL/crypto/evp/Makefile
 #
 
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl/crypto/evp,,$(CURDIR))
+endif
+
+LIBDIR= $(KBE_ROOT)/kbe/src/libs
+
 DIR=	evp
 TOP=	../..
 CC=	cc

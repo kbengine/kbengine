@@ -2,6 +2,12 @@
 # OpenSSL/crypto/x509v3/Makefile
 #
 
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl/crypto/x509v3,,$(CURDIR))
+endif
+
+LIBDIR= $(KBE_ROOT)/kbe/src/libs
+
 DIR=	x509v3
 TOP=	../..
 CC=	cc

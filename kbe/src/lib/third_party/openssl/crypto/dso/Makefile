@@ -2,6 +2,12 @@
 # OpenSSL/crypto/dso/Makefile
 #
 
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl/crypto/dso,,$(CURDIR))
+endif
+
+LIBDIR= $(KBE_ROOT)/kbe/src/libs
+
 DIR=	dso
 TOP=	../..
 CC=	cc

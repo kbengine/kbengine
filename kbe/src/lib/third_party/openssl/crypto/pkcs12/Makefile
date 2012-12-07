@@ -2,6 +2,13 @@
 # OpenSSL/crypto/pkcs12/Makefile
 #
 
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl/crypto/pkcs12,,$(CURDIR))
+endif
+
+LIBDIR= $(KBE_ROOT)/kbe/src/libs
+
+
 DIR=	pkcs12
 TOP=	../..
 CC=	cc

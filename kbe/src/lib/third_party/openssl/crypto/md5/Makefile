@@ -2,6 +2,13 @@
 # OpenSSL/crypto/md5/Makefile
 #
 
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl/crypto/md5,,$(CURDIR))
+endif
+
+LIBDIR= $(KBE_ROOT)/kbe/src/libs
+
+
 DIR=    md5
 TOP=    ../..
 CC=     cc

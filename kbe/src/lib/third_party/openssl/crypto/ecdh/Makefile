@@ -2,6 +2,12 @@
 # crypto/ecdh/Makefile
 #
 
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl/crypto/ecdh,,$(CURDIR))
+endif
+
+LIBDIR= $(KBE_ROOT)/kbe/src/libs
+
 DIR=	ecdh
 TOP=	../..
 CC=	cc

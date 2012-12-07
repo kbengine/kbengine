@@ -1,6 +1,7 @@
 #include "cellapp.hpp"
 #include "forward_message_over_handler.hpp"
 #include "entitydef/entities.hpp"
+#include "cstdkbe/memorystream.hpp"
 #include "entity.hpp"
 #include "space.hpp"
 #include "spaces.hpp"
@@ -40,14 +41,12 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
 //-------------------------------------------------------------------------------------
 FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp::
 	FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(
-			std::string& entityType, 
-			 ENTITY_ID createToEntityID, ENTITY_ID entityID, ArraySize cellDataLength, 
-			 std::string& strEntityCellData, bool hasClient, COMPONENT_ID componentID, SPACE_ID spaceID):
+			std::string& entityType, ENTITY_ID createToEntityID, ENTITY_ID entityID, MemoryStream* pCellData, 
+			 bool hasClient, COMPONENT_ID componentID, SPACE_ID spaceID):
 _entityType(entityType),
 _createToEntityID(createToEntityID),
 _entityID(entityID),
-_cellDataLength(cellDataLength),
-_strEntityCellData(strEntityCellData),
+_pCellData(pCellData),
 _hasClient(hasClient),
 _componentID(componentID),
 _spaceID(spaceID)
@@ -57,8 +56,10 @@ _spaceID(spaceID)
 //-------------------------------------------------------------------------------------
 void FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp::process()
 {
-	Cellapp::getSingleton()._onCreateCellEntityFromBaseapp(_entityType, _createToEntityID, _entityID, _cellDataLength, 
-		_strEntityCellData, _hasClient, _componentID, _spaceID);
+	Cellapp::getSingleton()._onCreateCellEntityFromBaseapp(_entityType, _createToEntityID, _entityID, 
+		_pCellData, _hasClient, _componentID, _spaceID);
+
+	MemoryStream::ObjPool().reclaimObject(_pCellData);
 }
 
 //-------------------------------------------------------------------------------------

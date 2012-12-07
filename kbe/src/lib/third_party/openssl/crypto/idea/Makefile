@@ -2,6 +2,12 @@
 # OpenSSL/crypto/idea/Makefile
 #
 
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl/crypto/idea,,$(CURDIR))
+endif
+
+LIBDIR= $(KBE_ROOT)/kbe/src/libs
+
 DIR=	idea
 TOP=	../..
 CC=	cc

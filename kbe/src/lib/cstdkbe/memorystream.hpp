@@ -517,7 +517,7 @@ public:
     void append(const MemoryStream& buffer)
     {
         if(buffer.wpos()){
-            append(buffer.data(), buffer.wpos());
+			append(buffer.data() + buffer.rpos(), buffer.opsize());
         }
     }
 

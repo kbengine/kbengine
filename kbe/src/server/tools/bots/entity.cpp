@@ -169,13 +169,13 @@ int Entity::pySetDirection(PyObject *value)
 
 	Direction3D& dir = getDirection();
 	PyObject* pyItem = PySequence_GetItem(value, 0);
-	dir.roll	= float(PyFloat_AsDouble(PySequence_GetItem(value, 0)));
+	dir.roll	= float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
 	pyItem = PySequence_GetItem(value, 1);
-	dir.pitch	= float(PyFloat_AsDouble(PySequence_GetItem(value, 1)));
+	dir.pitch	= float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
 	pyItem = PySequence_GetItem(value, 2);
-	dir.yaw		= float(PyFloat_AsDouble(PySequence_GetItem(value, 2)));
+	dir.yaw		= float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
 	return 0;
 }
@@ -198,6 +198,11 @@ void Entity::setPosition(Position3D& pos)
 PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * kwargs)
 {
 	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream)
+{
 }
 
 //-------------------------------------------------------------------------------------

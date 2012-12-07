@@ -2,6 +2,13 @@
 # OpenSSL/crypto/pem/Makefile
 #
 
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl/crypto/pem,,$(CURDIR))
+endif
+
+LIBDIR= $(KBE_ROOT)/kbe/src/libs
+
+
 DIR=	pem
 TOP=	../..
 CC=	cc

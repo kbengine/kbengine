@@ -64,10 +64,42 @@ namespace KBEngine{
 																											\
 		s << diruid << posdirLen << x << y << z;															\
 
+
+	#define STREAM_TO_POS_DIR(s, pos, dir)																	\
+	{																										\
+		int32 x = 0;																						\
+		int32 y = 0;																						\
+		int32 z = 0;																						\
+		ArraySize posdirLen;																				\
+		ENTITY_PROPERTY_UID uid;																			\
+																											\
+		s >> uid >> posdirLen >> x >> y >> z;																\
+																											\
+		pos.x = float(x);																					\
+		pos.y = float(y);																					\
+		pos.z = float(z);																					\
+																											\
+		s >> uid >> posdirLen >> x >> y >> z;																\
+		dir.x = float(x);																					\
+		dir.y = float(y);																					\
+		dir.z = float(z);																					\
+	}																										\
+
+
 #else																									
 	#define ADD_POS_DIR_TO_STREAM(s, pos, dir)																\
 		s << posuid << posdirLen << pos.x << pos.y << pos.z;												\
 		s << diruid << posdirLen << dir.x << dir.y << dir.z;												\
+
+
+	#define STREAM_TO_POS_DIR(s, pos, dir)																	\
+	{																										\
+		ArraySize posdirLen;																				\
+		ENTITY_PROPERTY_UID uid;																			\
+		s >> uid >> posdirLen >> pos.x >> pos.y >> pos.z;													\
+		s >> uid >> posdirLen >> dir.x >> dir.y >> dir.z;													\
+	}																										\
+
 
 #endif	
 
@@ -96,6 +128,25 @@ namespace KBEngine{
 		ArraySize posdirLen = 3;																			\
 		ADD_POS_DIR_TO_STREAM(s, pos, dir)																	\
 																											\
+	}																										\
+
+#define ADD_POSDIR_TO_PYDICT(pydict, pos, dir)																\
+	{																										\
+		PyObject* pypos = PyTuple_New(3);																	\
+		PyObject* pydir = PyTuple_New(3);																	\
+																											\
+		PyTuple_SET_ITEM(pypos, 0, PyFloat_FromDouble(pos.x));												\
+		PyTuple_SET_ITEM(pypos, 1, PyFloat_FromDouble(pos.y));												\
+		PyTuple_SET_ITEM(pypos, 2, PyFloat_FromDouble(pos.z));												\
+																											\
+		PyTuple_SET_ITEM(pydir, 0, PyFloat_FromDouble(dir.x));												\
+		PyTuple_SET_ITEM(pydir, 1, PyFloat_FromDouble(dir.y));												\
+		PyTuple_SET_ITEM(pydir, 2, PyFloat_FromDouble(dir.z));												\
+																											\
+		PyDict_SetItemString(pydict, "position", pypos);													\
+		PyDict_SetItemString(pydict, "direction", pydir);													\
+		Py_DECREF(pypos);																					\
+		Py_DECREF(pydir);																					\
 	}																										\
 
 /*
@@ -250,26 +301,34 @@ public:																										\
 		Py_XDECREF(cellDataDict);																			\
 	}																										\
 																											\
-	PyObject* addCellDataToStream(uint32 flags)																\
+	void addCellDataToStream(uint32 flags, MemoryStream* mstream);											\
+																											\
+	PyObject* createCellDataFromStream(MemoryStream* mstream)												\
 	{																										\
 		PyObject* cellData = PyDict_New();																	\
-		PyObject* pydict = PyObject_GetAttrString(this, "__dict__");										\
+		ENTITY_PROPERTY_UID uid;																			\
+		Vector3 pos, dir;																					\
+		STREAM_TO_POS_DIR(*mstream, pos, dir);																\
+		ADD_POSDIR_TO_PYDICT(cellData, pos, dir);															\
 																											\
-		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =											\
-						scriptModule_->getCellPropertyDescriptions();										\
-		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();				\
-		for(; iter != propertyDescrs.end(); iter++)															\
+		ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP& propertyDescrs =										\
+								scriptModule_->getCellPropertyDescriptions_uidmap();						\
+																											\
+		while(mstream->opsize() > 0)																		\
 		{																									\
-			PropertyDescription* propertyDescription = iter->second;										\
-			if((flags & propertyDescription->getFlags()) > 0)												\
+			(*mstream) >> uid;																				\
+			ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP::iterator iter = propertyDescrs.find(uid);			\
+			if(iter == propertyDescrs.end())																\
 			{																								\
-				PyObject* pyVal = PyDict_GetItemString(pydict, propertyDescription->getName());				\
-				PyDict_SetItemString(cellData, propertyDescription->getName(), pyVal);						\
+				ERROR_MSG(boost::format(#CLASS"::createCellDataFromStream: not found uid(%1%)\n") % uid);	\
+				break;																						\
 			}																								\
+																											\
+			PyObject* pyobj = iter->second->createFromStream(mstream);										\
+			PyDict_SetItemString(cellData, iter->second->getName(), pyobj);									\
+			Py_DECREF(pyobj);																				\
 		}																									\
 																											\
-		Py_XDECREF(pydict);																					\
-		SCRIPT_ERROR_CHECK();																				\
 		return cellData;																					\
 	}																										\
 																											\

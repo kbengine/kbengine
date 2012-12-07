@@ -938,8 +938,7 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 
 	ENTITY_ID id = base->getID();
 	std::string entityType = base->ob_type->tp_name;
-	std::string strCellData = script::Pickler::pickle(base->getCellData());
-	ArraySize cellDataLength = strCellData.length();
+
 	EntityMailbox* clientMailbox = base->getClientMailbox();
 	bool hasClient = (clientMailbox != NULL);
 	
@@ -948,10 +947,17 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	(*pBundle) << id;
 	(*pBundle) << componentID_;
 	(*pBundle) << hasClient;
-	(*pBundle) << cellDataLength;
 
-	if(cellDataLength > 0)
-		(*pBundle).append(strCellData.data(), cellDataLength);
+
+	MemoryStream* s = MemoryStream::ObjPool().createObject();
+	base->addPositionAndDirectionToStream(*s);
+	(*pBundle).append(s);
+	MemoryStream::ObjPool().reclaimObject(s);
+
+	s = MemoryStream::ObjPool().createObject();
+	base->addCellDataToStream(ED_FLAG_ALL, s);
+	(*pBundle).append(*s);
+	MemoryStream::ObjPool().reclaimObject(s);
 
 	if(createToCellMailbox->getChannel() == NULL)
 	{
@@ -1790,14 +1796,14 @@ void Baseapp::onBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::Memor
 
 	ENTITY_ID baseID = 0;
 	s >> baseID;
-	
-	INFO_MSG(boost::format("Baseapp::onBackupEntityCellData: entityID=%1%, size=%2%.\n") % 
-		baseID % s.opsize());
 
 	Base* base = this->findEntity(baseID);
 
 	if(base)
 	{
+		INFO_MSG(boost::format("Baseapp::onBackupEntityCellData: %1%(%2%), size=%3%.\n") % 
+			base->getScriptName() % baseID % s.opsize());
+
 		base->onBackupCellData(pChannel, s);
 	}
 	else
@@ -1818,13 +1824,14 @@ void Baseapp::onCellWriteToDBCompleted(Mercury::Channel* pChannel, KBEngine::Mem
 	s >> baseID;
 	s >> callbackID;
 
-	INFO_MSG(boost::format("Baseapp::onCellWriteToDBCompleted: entityID=%1%.\n") %
-		baseID);
-
 	Base* base = this->findEntity(baseID);
 
 	if(base)
 	{
+
+		INFO_MSG(boost::format("Baseapp::onCellWriteToDBCompleted: %1%(%2%).\n") %
+			base->getScriptName() % baseID);
+
 		base->onCellWriteToDBCompleted(callbackID);
 	}
 	else

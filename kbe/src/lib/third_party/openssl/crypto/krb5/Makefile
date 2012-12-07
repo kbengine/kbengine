@@ -2,6 +2,12 @@
 # OpenSSL/krb5/Makefile
 #
 
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl/crypto/krb5,,$(CURDIR))
+endif
+
+LIBDIR= $(KBE_ROOT)/kbe/src/libs
+
 DIR=	krb5
 TOP=	../..
 CC=	cc

@@ -14,6 +14,7 @@ same license as the rest of the engine.
 #include "network/endpoint.hpp"
 #include "network/event_poller.hpp"
 #include "helper/debug_helper.hpp"
+#include "helper/watcher.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/interfaces.hpp"
 #include "network/tcp_packet.hpp"
@@ -385,7 +386,7 @@ void init_network(void)
 		// 连接游戏登陆进程
 		printf("连接游戏登陆进程\n");
 		u_int32_t address;
-		std::string ip = "192.168.4.205";
+		std::string ip = "192.168.10.108";
 		mysocket.convertAddress(ip.c_str(), address );
 		if(mysocket.connect(htons(port), address) == -1)
 		{
@@ -1236,6 +1237,9 @@ avatarenterworld = false;
 
 int main(int argc, char* argv[])
 {
+	int32 aaa = 111;
+	 WatcherObject* x = createWatcher("sss", &aaa);
+
 	Resmgr::getSingleton().initialize();
 	ServerConfig sss;
 	// "../../res/server/kbengine_defs.xml"

@@ -2,6 +2,12 @@
 # OpenSSL/crypto/blowfish/Makefile
 #
 
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl/crypto/blowfish,,$(CURDIR))
+endif
+
+LIBDIR= $(KBE_ROOT)/kbe/src/libs
+
 DIR=	bf
 TOP=	../..
 CC=	cc

@@ -2,6 +2,12 @@
 # OpenSSL/crypto/ripemd/Makefile
 #
 
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl/crypto/ripemd,,$(CURDIR))
+endif
+
+LIBDIR= $(KBE_ROOT)/kbe/src/libs
+
 DIR=    ripemd
 TOP=    ../..
 CC=     cc

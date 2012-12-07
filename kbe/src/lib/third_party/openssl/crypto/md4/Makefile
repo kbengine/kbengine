@@ -2,6 +2,12 @@
 # OpenSSL/crypto/md4/Makefile
 #
 
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl/crypto/md4,,$(CURDIR))
+endif
+
+LIBDIR= $(KBE_ROOT)/kbe/src/libs
+
 DIR=    md4
 TOP=    ../..
 CC=     cc

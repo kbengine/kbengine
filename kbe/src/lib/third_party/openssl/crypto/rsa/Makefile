@@ -2,6 +2,12 @@
 # OpenSSL/crypto/rsa/Makefile
 #
 
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl/crypto/rsa,,$(CURDIR))
+endif
+
+LIBDIR= $(KBE_ROOT)/kbe/src/libs
+
 DIR=	rsa
 TOP=	../..
 CC=	cc

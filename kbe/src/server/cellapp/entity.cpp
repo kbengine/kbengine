@@ -378,40 +378,48 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream)
+{
+	PyObject* cellData = PyObject_GetAttrString(this, "__dict__");
+
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =
+					scriptModule_->getCellPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+	for(; iter != propertyDescrs.end(); iter++)
+	{
+		PropertyDescription* propertyDescription = iter->second;
+		if((flags & propertyDescription->getFlags()) > 0)
+		{
+			PyObject* pyVal = PyDict_GetItemString(cellData, propertyDescription->getName());
+			(*mstream) << propertyDescription->getUType();
+			propertyDescription->getDataType()->addToStream(mstream, pyVal);
+		}
+	}
+
+	Py_XDECREF(cellData);
+	SCRIPT_ERROR_CHECK();
+}
+
+//-------------------------------------------------------------------------------------
 void Entity::backupCellData()
 {
 	if(baseMailbox_ != NULL)
 	{
-		PyObject* cellData = addCellDataToStream(ENTITY_CELL_DATA_FLAGS);
-		// 将entity位置和方向变量也设置进去
-		PyObject* pyPosition = PyTuple_New(3);
-		PyTuple_SET_ITEM(pyPosition, 0, PyFloat_FromDouble(position_.x));
-		PyTuple_SET_ITEM(pyPosition, 1, PyFloat_FromDouble(position_.y));
-		PyTuple_SET_ITEM(pyPosition, 2, PyFloat_FromDouble(position_.z));
-		
-		PyObject* pyDirection = PyTuple_New(3);
-		PyTuple_SET_ITEM(pyDirection, 0, PyFloat_FromDouble(direction_.roll));
-		PyTuple_SET_ITEM(pyDirection, 1, PyFloat_FromDouble(direction_.pitch));
-		PyTuple_SET_ITEM(pyDirection, 2, PyFloat_FromDouble(direction_.yaw));
-		
-		PyDict_SetItemString(cellData, const_cast<char*>("position"), pyPosition);
-		PyDict_SetItemString(cellData, const_cast<char*>("direction"), pyDirection);
-
-		Py_DECREF(pyPosition);
-		Py_DECREF(pyDirection);
-
-		std::string strCellData = script::Pickler::pickle(cellData);
-		ArraySize cellDataLength = strCellData.length();
-		Py_DECREF(cellData);
-	
 		// 将当前的cell部分数据打包 一起发送给base部分备份
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::onBackupEntityCellData);
 		(*pBundle) << id_;
-		(*pBundle) << cellDataLength;
-		if(cellDataLength > 0)
-			(*pBundle).append(strCellData.c_str(), cellDataLength);
-			
+
+		MemoryStream* s = MemoryStream::ObjPool().createObject();
+		addPositionAndDirectionToStream(*s);
+		(*pBundle).append(s);
+		MemoryStream::ObjPool().reclaimObject(s);
+
+		s = MemoryStream::ObjPool().createObject();
+		addCellDataToStream(ENTITY_CELL_DATA_FLAGS, s);
+		(*pBundle).append(s);
+		MemoryStream::ObjPool().reclaimObject(s);
+
 		baseMailbox_->postMail((*pBundle));
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
@@ -651,13 +659,13 @@ int Entity::pySetDirection(PyObject *value)
 
 	Direction3D& dir = getDirection();
 	PyObject* pyItem = PySequence_GetItem(value, 0);
-	dir.roll	= float(PyFloat_AsDouble(PySequence_GetItem(value, 0)));
+	dir.roll	= float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
 	pyItem = PySequence_GetItem(value, 1);
-	dir.pitch	= float(PyFloat_AsDouble(PySequence_GetItem(value, 1)));
+	dir.pitch	= float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
 	pyItem = PySequence_GetItem(value, 2);
-	dir.yaw		= float(PyFloat_AsDouble(PySequence_GetItem(value, 2)));
+	dir.yaw		= float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
 	return 0;
 }

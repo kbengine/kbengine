@@ -168,6 +168,10 @@
 				RelativePath=".\script_loglevel.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\watcher.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -192,6 +196,10 @@
 			</File>
 			<File
 				RelativePath=".\script_loglevel.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\watcher.hpp"
 				>
 			</File>
 		</Filter>

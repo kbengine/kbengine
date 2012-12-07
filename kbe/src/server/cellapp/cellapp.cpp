@@ -593,7 +593,7 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 {
 	std::string entityType;
 	ENTITY_ID createToEntityID, entityID;
-	std::string strEntityCellData;
+	
 	COMPONENT_ID componentID;
 	SPACE_ID spaceID = 1;
 	bool hasClient;
@@ -604,16 +604,17 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 	s >> componentID;
 	s >> hasClient;
 
-	s.readBlob(strEntityCellData);
-
 	// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
+		MemoryStream* pCellData = MemoryStream::ObjPool().createObject();
+		pCellData->append(s);
+
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		ForwardItem* pFI = new ForwardItem();
 		pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(entityType, createToEntityID, 
-			entityID, (ArraySize)strEntityCellData.size(), strEntityCellData, hasClient, componentID, spaceID);
+			entityID, pCellData, hasClient, componentID, spaceID);
 
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
@@ -623,15 +624,15 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		return;
 	}
 
-	_onCreateCellEntityFromBaseapp(entityType, createToEntityID, entityID, (ArraySize)strEntityCellData.size(), 
-		strEntityCellData, hasClient, componentID, spaceID);
+	_onCreateCellEntityFromBaseapp(entityType, createToEntityID, entityID, 
+					&s, hasClient, componentID, spaceID);
+
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID createToEntityID, 
-											 ENTITY_ID entityID, ArraySize cellDataLength, 
-											std::string& strEntityCellData, bool hasClient, 
-											COMPONENT_ID componentID, SPACE_ID spaceID)
+void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID createToEntityID, ENTITY_ID entityID,
+											MemoryStream* pCellData, bool hasClient, COMPONENT_ID componentID, 
+											SPACE_ID spaceID)
 {
 	// 注意：此处理论不会找不到组件， 因为onCreateCellEntityFromBaseapp中已经进行过一次消息缓存判断
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
@@ -662,16 +663,14 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 	if(space != NULL)
 	{
 		// 解包cellData信息.
-		PyObject* params = NULL;
-		if(strEntityCellData.size() > 0)
-			params = script::Pickler::unpickle(strEntityCellData);
+		PyObject* cellData = NULL;
 	
 		// 创建entity
-		Entity* e = createEntityCommon(entityType.c_str(), params, false, entityID);
+		Entity* e = createEntityCommon(entityType.c_str(), cellData, false, entityID);
 		
 		if(e == NULL)
 		{
-			Py_XDECREF(params);
+			Py_XDECREF(cellData);
 			return;
 		}
 
@@ -679,10 +678,12 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		EntityMailbox* mailbox = new EntityMailbox(e->getScriptModule(), NULL, componentID, entityID, MAILBOX_TYPE_BASE);
 		e->setBaseMailbox(mailbox);
 		
+		cellData = e->createCellDataFromStream(pCellData);
+
 		// 添加到space
 		space->addEntity(e);
-		e->initializeEntity(params);
-		Py_XDECREF(params);
+		e->initializeEntity(cellData);
+		Py_XDECREF(cellData);
 
 		// 告知baseapp， entity的cell创建了
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();

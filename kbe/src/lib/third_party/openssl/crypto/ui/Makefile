@@ -2,6 +2,12 @@
 # OpenSSL/crypto/ui/Makefile
 #
 
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl/crypto/ui,,$(CURDIR))
+endif
+
+LIBDIR= $(KBE_ROOT)/kbe/src/libs
+
 DIR=	ui
 TOP=	../..
 CC=	cc

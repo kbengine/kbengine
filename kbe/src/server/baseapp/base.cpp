@@ -174,7 +174,7 @@ void Base::addCellDataToStream(uint32 flags, MemoryStream* s)
 	for(; iter != propertyDescrs.end(); iter++)
 	{
 		PropertyDescription* propertyDescription = iter->second;
-		if((flags & propertyDescription->getFlags()) > 0)
+		if(flags == 0 || (flags & propertyDescription->getFlags()) > 0)
 		{
 			PyObject* pyVal = PyDict_GetItemString(cellDataDict_, propertyDescription->getName());
 			(*s) << propertyDescription->getUType();
@@ -258,6 +258,7 @@ PyObject* Base::createCellDataDict(uint32 flags)
 			PyDict_SetItemString(cellData, propertyDescription->getName(), pyVal);
 		}
 	}
+
 	return cellData;
 }
 
@@ -588,19 +589,10 @@ void Base::reqBackupCellData()
 void Base::onBackupCellData(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	isGetingCellData_ = false;
-	std::string strCellData;
-	PyObject* cellData = NULL;
 
-	s.readBlob(strCellData);
-	
-	if(strCellData.size() > 0)
-	{
-		cellData = script::Pickler::unpickle(strCellData);
-		KBE_ASSERT(cellData != NULL);
-	}
-	
+	PyObject* cellData = createCellDataFromStream(&s);
 	installCellDataAttr(cellData);
-	S_RELEASE(cellData);
+	Py_DECREF(cellData);
 }
 
 //-------------------------------------------------------------------------------------

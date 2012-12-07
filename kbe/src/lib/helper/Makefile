@@ -3,7 +3,8 @@ LIB =	helper
 SRCS =				\
 	debug_helper		\
 	debug_option		\
-	script_loglevel
+	script_loglevel		\
+	watcher
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))

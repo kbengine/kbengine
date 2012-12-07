@@ -2,6 +2,15 @@
 # OpenSSL/ocsp/Makefile
 #
 
+
+ifndef KBE_ROOT
+export KBE_ROOT := $(subst /kbe/src/lib/third_party/openssl/crypto/ocsp,,$(CURDIR))
+endif
+
+LIBDIR= $(KBE_ROOT)/kbe/src/libs
+
+
+
 DIR=	ocsp
 TOP=	../..
 CC=	cc

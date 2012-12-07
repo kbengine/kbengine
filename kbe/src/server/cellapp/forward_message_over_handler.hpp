@@ -49,14 +49,13 @@ class FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp : public For
 {
 public:
 	FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID createToEntityID, 
-		ENTITY_ID entityID, ArraySize cellDataLength, std::string& strEntityCellData, bool hasClient, COMPONENT_ID componentID, SPACE_ID spaceID);
+		ENTITY_ID entityID, MemoryStream* pCellData, bool hasClient, COMPONENT_ID componentID, SPACE_ID spaceID);
 
 	virtual void process();
 private:
 	std::string _entityType;
 	ENTITY_ID _createToEntityID, _entityID;
-	ArraySize _cellDataLength;
-	std::string _strEntityCellData;
+	MemoryStream* _pCellData;
 	bool _hasClient;
 	COMPONENT_ID _componentID;
 	SPACE_ID _spaceID;
