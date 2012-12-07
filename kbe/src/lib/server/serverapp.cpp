@@ -112,7 +112,14 @@ bool ServerApp::initialize()
 	Componentbridge::getSingleton().getComponents().pHandler(this);
 	this->getMainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
 
-	return initializeEnd();
+	return initializeEnd() && initializeWatcher();
+}
+
+//-------------------------------------------------------------------------------------		
+bool ServerApp::initializeWatcher()
+{
+	WATCH_OBJECT("stats/stampsPerSecond", &KBEngine::stampsPerSecond);
+	return true;
 }
 
 //-------------------------------------------------------------------------------------		

@@ -57,9 +57,8 @@ typedef uint8 WATCHERTYPE;
 class WatcherObject
 {
 public:
-	WatcherObject(std::string name, WATCHERTYPE type = WATCHER_TYPE_UNKNOWN):
-	  name_(name),
-	  type_(type)
+	WatcherObject(std::string name):
+	  name_(name)
 	{
 	}
 	
@@ -77,42 +76,119 @@ public:
 
 	const char* name(){ return name_.c_str(); }
 
-	virtual WATCHERTYPE type()const{ return type_; }
-	virtual void type(WATCHERTYPE t){ type_ = t; }
+	template <class T>
+	WATCHERTYPE type()const{ return WATCHER_TYPE_UNKNOWN; }
 protected:
 	std::string name_;
 	WATCHER_ID id_;
-	WATCHERTYPE type_;
-
 };
+
+template <>
+inline WATCHERTYPE WatcherObject::type<uint8>()const
+{
+	return WATCHER_TYPE_UINT8;
+}
+
+template <>
+inline WATCHERTYPE WatcherObject::type<uint16>()const
+{
+	return WATCHER_TYPE_UINT16;
+}
+
+template <>
+inline WATCHERTYPE WatcherObject::type<uint32>()const
+{
+	return WATCHER_TYPE_UINT32;
+}
+
+template <>
+inline WATCHERTYPE WatcherObject::type<uint64>()const
+{
+	return WATCHER_TYPE_UINT64;
+}
+
+template <>
+inline WATCHERTYPE WatcherObject::type<int8>()const
+{
+	return WATCHER_TYPE_INT8;
+}
+
+template <>
+inline WATCHERTYPE WatcherObject::type<int16>()const
+{
+	return WATCHER_TYPE_INT16;
+}
+
+template <>
+inline WATCHERTYPE WatcherObject::type<int32>()const
+{
+	return WATCHER_TYPE_INT32;
+}
+
+template <>
+inline WATCHERTYPE WatcherObject::type<int64>()const
+{
+	return WATCHER_TYPE_INT64;
+}
+
+template <>
+inline WATCHERTYPE WatcherObject::type<float>()const
+{
+	return WATCHER_TYPE_FLOAT;
+}
+
+template <>
+inline WATCHERTYPE WatcherObject::type<double>()const
+{
+	return WATCHER_TYPE_DOUBLE;
+}
+
+template <>
+inline WATCHERTYPE WatcherObject::type<bool>()const
+{
+	return WATCHER_TYPE_BOOL;
+}
+
+template <>
+inline WATCHERTYPE WatcherObject::type<char*>()const
+{
+	return WATCHER_TYPE_STRING;
+}
+
+template <>
+inline WATCHERTYPE WatcherObject::type<std::string>()const
+{
+	return WATCHER_TYPE_STRING;
+}
+
+template <>
+inline WATCHERTYPE WatcherObject::type<COMPONENT_TYPE>()const
+{
+	return WATCHER_TYPE_COMPONENT_TYPE;
+}
 
 /*
 	watcher: 直接监视一个值
 */
-template <typename T>
+template <class T>
 class WatcherValue : public WatcherObject
 {
 public:
-	WatcherValue(std::string name, T* pVal, WATCHERTYPE type):
-	WatcherObject(name, type),
-	pWatchVal_(pVal)
+	WatcherValue(std::string name, const T& pVal):
+	WatcherObject(name),
+	watchVal_(pVal)
 	{
 	}
 	
 	virtual ~WatcherValue(){
-		pWatchVal_ = NULL;
-	}
-	
-	const T* pWatchVal()const{ 
-		return pWatchVal_; 
 	}
 	
 	void addToInitStream(MemoryStream* s){
-		(*s) << id_ << type() << (*pWatchVal_);
+		(*s) << id_ << type<T>() << watchVal_;
 	};
 
 	void addToStream(MemoryStream* s){
-		(*s) << id_ << (*pWatchVal_);
+		(*s) << id_ << watchVal_;
 	};
 
 	virtual void updateFromStream(MemoryStream* s){
@@ -120,21 +196,61 @@ public:
 	}
 
 protected:
-	T* pWatchVal_;
+	const T& watchVal_;
 	T val_;
 };
 
 /*
 	watcher: 监视一个方法返回的值
-	typedef WatcherMethod<std::tr1::function<void(Base*, int64, bool)>> WatcherMethod_XX;
 */
-template <typename RETURN_TYPE, typename BIND_METHOD>
+template <class RETURN_TYPE>
+class WatcherFunction : public WatcherObject
+{
+public:
+	typedef RETURN_TYPE(*FUNC)();
+
+	WatcherFunction(std::string name, RETURN_TYPE (*func)()):
+	WatcherObject(name),
+	func_(func),
+	val_(0)
+	{
+	}
+	
+	virtual ~WatcherFunction(){
+	}
+	
+	void addToInitStream(MemoryStream* s){
+		(*s) << id_ << type<RETURN_TYPE>() << (*func_)();
+	};
+
+	void addToStream(MemoryStream* s)
+	{
+		(*s) << id_ << (*func_)();
+	};
+
+	virtual void updateFromStream(MemoryStream* s){
+		(*s) >> val_;
+	}
+
+protected:
+	FUNC func_;
+	RETURN_TYPE val_;
+};
+
+/*
+	watcher: 监视一个成员函数返回的值
+*/
+template <class RETURN_TYPE, class OBJ_TYPE>
 class WatcherMethod : public WatcherObject
 {
 public:
-	WatcherMethod(std::string name, BIND_METHOD bindmethod, WATCHERTYPE type):
-	WatcherObject(name, type),
-	bindmethod_(bindmethod)
+	typedef RETURN_TYPE(OBJ_TYPE::*FUNC)();
+
+	WatcherMethod(std::string name, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)()):
+	WatcherObject(name),
+	func_(func),
+	val_(0),
+	This_(This)
 	{
 	}
 	
@@ -142,12 +258,12 @@ public:
 	}
 	
 	void addToInitStream(MemoryStream* s){
-		(*s) << id_ << type() << bindmethod_();
+		(*s) << id_ << type<RETURN_TYPE>() << (This_->*func_)();
 	};
 
 	void addToStream(MemoryStream* s)
 	{
-		(*s) << id_ << bindmethod_();
+		(*s) << id_ << (This_->*func_)();
 	};
 
 	virtual void updateFromStream(MemoryStream* s){
@@ -155,233 +271,9 @@ public:
 	}
 
 protected:
-	BIND_METHOD bindmethod_;
+	FUNC func_;
 	RETURN_TYPE val_;
-};
-
-template <typename T>
-inline WatcherObject* createWatcher(std::string name, T* pval)
-{
-	return new WatcherValue<T>(name, pval, WATCHER_TYPE_UNKNOWN);
-}
-
-template <>
-inline WatcherObject* createWatcher<uint8>(std::string name, uint8* pval)
-{
-	return new WatcherValue<uint8>(name, pval, WATCHER_TYPE_UINT8);
-}
-
-template <>
-inline WatcherObject* createWatcher<uint16>(std::string name, uint16* pval)
-{
-	return new WatcherValue<uint16>(name, pval, WATCHER_TYPE_UINT16);
-}
-
-template <>
-inline WatcherObject* createWatcher<uint32>(std::string name, uint32* pval)
-{
-	return new WatcherValue<uint32>(name, pval, WATCHER_TYPE_UINT32);
-}
-
-template <>
-inline WatcherObject* createWatcher<uint64>(std::string name, uint64* pval)
-{
-	return new WatcherValue<uint64>(name, pval, WATCHER_TYPE_UINT64);
-}
-
-template <>
-inline WatcherObject* createWatcher<int8>(std::string name, int8* pval)
-{
-	return new WatcherValue<int8>(name, pval, WATCHER_TYPE_INT8);
-}
-
-template <>
-inline WatcherObject* createWatcher<int16>(std::string name, int16* pval)
-{
-	return new WatcherValue<int16>(name, pval, WATCHER_TYPE_INT16);
-}
-
-template <>
-inline WatcherObject* createWatcher<int32>(std::string name, int32* pval)
-{
-	return new WatcherValue<int32>(name, pval, WATCHER_TYPE_INT32);
-}
-
-template <>
-inline WatcherObject* createWatcher<int64>(std::string name, int64* pval)
-{
-	return new WatcherValue<int64>(name, pval, WATCHER_TYPE_INT64);
-}
-
-template <>
-inline WatcherObject* createWatcher<bool>(std::string name, bool* pval)
-{
-	return new WatcherValue<bool>(name, pval, WATCHER_TYPE_BOOL);
-}
-
-template <>
-inline WatcherObject* createWatcher<char*>(std::string name, char** pval)
-{
-	return new WatcherValue<char*>(name, pval, WATCHER_TYPE_STRING);
-}
-
-template <>
-inline WatcherObject* createWatcher<std::string>(std::string name, std::string* pval)
-{
-	return new WatcherValue<std::string>(name, pval, WATCHER_TYPE_STRING);
-}
-
-template <>
-inline WatcherObject* createWatcher<float>(std::string name, float* pval)
-{
-	return new WatcherValue<float>(name, pval, WATCHER_TYPE_FLOAT);
-}
-
-template <>
-inline WatcherObject* createWatcher<double>(std::string name, double* pval)
-{
-	return new WatcherValue<double>(name, pval, WATCHER_TYPE_DOUBLE);
-}
-
-template <>
-inline WatcherObject* createWatcher<COMPONENT_TYPE>(std::string name, COMPONENT_TYPE* pval)
-{
-	return new WatcherValue<COMPONENT_TYPE>(name, pval, WATCHER_TYPE_COMPONENT_TYPE);
-}
-
-template <class RETURN_TYPE, class BIND_METHOD>
-class createMethodWatcher
-{
-public:
-	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<RETURN_TYPE, BIND_METHOD>(name, method, WATCHER_TYPE_UNKNOWN);
-	}
-};
-
-template <class BIND_METHOD>
-class createMethodWatcher<uint8, BIND_METHOD>
-{
-public:
-	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<uint8, BIND_METHOD>(name, method, WATCHER_TYPE_UINT8);
-	}
-};
-
-template <class BIND_METHOD>
-class createMethodWatcher<uint16, BIND_METHOD>
-{
-public:
-	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<uint16, BIND_METHOD>(name, method, WATCHER_TYPE_UINT16);
-	}
-};
-
-template <class BIND_METHOD>
-class createMethodWatcher<uint32, BIND_METHOD>
-{
-public:
-	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<uint32, BIND_METHOD>(name, method, WATCHER_TYPE_UINT32);
-	}
-};
-
-template <class BIND_METHOD>
-class createMethodWatcher<uint64, BIND_METHOD>
-{
-public:
-	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<uint64, BIND_METHOD>(name, method, WATCHER_TYPE_UINT64);
-	}
-};
-
-template <class BIND_METHOD>
-class createMethodWatcher<int8, BIND_METHOD>
-{
-public:
-	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<int8, BIND_METHOD>(name, method, WATCHER_TYPE_INT8);
-	}
-};
-
-template <class BIND_METHOD>
-class createMethodWatcher<int16, BIND_METHOD>
-{
-public:
-	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<int16, BIND_METHOD>(name, method, WATCHER_TYPE_INT16);
-	}
-};
-
-template <class BIND_METHOD>
-class createMethodWatcher<int32, BIND_METHOD>
-{
-public:
-	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<int32, BIND_METHOD>(name, method, WATCHER_TYPE_INT32);
-	}
-};
-
-template <class BIND_METHOD>
-class createMethodWatcher<int64, BIND_METHOD>
-{
-public:
-	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<int64, BIND_METHOD>(name, method, WATCHER_TYPE_INT64);
-	}
-};
-
-template <class BIND_METHOD>
-class createMethodWatcher<bool, BIND_METHOD>
-{
-public:
-	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<bool, BIND_METHOD>(name, method, WATCHER_TYPE_BOOL);
-	}
-};
-
-template <class BIND_METHOD>
-class createMethodWatcher<char*, BIND_METHOD>
-{
-public:
-	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<char*, BIND_METHOD>(name, method, WATCHER_TYPE_STRING);
-	}
-};
-
-template <class BIND_METHOD>
-class createMethodWatcher<std::string, BIND_METHOD>
-{
-public:
-	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<std::string, BIND_METHOD>(name, method, WATCHER_TYPE_STRING);
-	}
-};
-
-template <class BIND_METHOD>
-class createMethodWatcher<float, BIND_METHOD>
-{
-public:
-	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<float, BIND_METHOD>(name, method, WATCHER_TYPE_FLOAT);
-	}
-};
-
-template <class BIND_METHOD>
-class createMethodWatcher<double, BIND_METHOD>
-{
-public:
-	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<double, BIND_METHOD>(name, method, WATCHER_TYPE_DOUBLE);
-	}
-};
-
-template <class BIND_METHOD>
-class createMethodWatcher<COMPONENT_TYPE, BIND_METHOD>
-{
-public:
-	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<COMPONENT_TYPE, BIND_METHOD>(name, method, WATCHER_TYPE_COMPONENT_TYPE);
-	}
+	OBJ_TYPE* This_;
 };
 
 /*
@@ -406,15 +298,50 @@ protected:
 	WATCHER_MAP watcherObjs_;
 };
 
-#define ADD_WATCH(NAME, OBJTYPE)															\
-{																							\
-	WatcherObject* obj = createWatcher(NAME, OBJTYPE);										\
-	Watchers::getSingleton().addWatcher(obj);												\
-}																							\
+/**
+	用于监视一个值
+	int32 a = 1;
+	addWatcher("a", a);
 
-#define ADD_WATCH_METHOD(NAME, OBJTYPE, RETURN_TYPE)										\
-{																							\
-}																							\
+	AAA a;
+	a.x = 2;
+	addWatcher("a", axxxx.x);
+*/
+template <class TYPE> 
+inline void addWatcher(std::string name, TYPE type)
+{
+	Watchers::getSingleton().addWatcher(new WatcherValue<TYPE>(name, type));
+};
+
+/**
+	用于监视一个函数的返回值
+
+	int32 func(){}
+
+	addWatcher("func", &func);
+*/
+template <class RETURN_TYPE> 
+inline void addWatcher(std::string name, RETURN_TYPE (*func)())
+{
+	Watchers::getSingleton().addWatcher(new WatcherFunction<RETURN_TYPE>(name, func));
+};
+
+/**
+	用于监视一个成员函数的返回值
+
+	int32 AAA::func(){}
+	AAA a;
+
+	addWatcher("func", &a, &AAA::func);
+*/
+template <class RETURN_TYPE, class OBJ_TYPE> 
+inline void addWatcher(std::string name, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)())
+{
+	Watchers::getSingleton().addWatcher(new WatcherMethod<RETURN_TYPE, OBJ_TYPE>(name, This, func));
+};
+
+#define WATCH_OBJECT addWatcher
+
 
 
 }

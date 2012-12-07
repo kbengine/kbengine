@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 //#define NDEBUG
 #include <stdarg.h> 
 #include "helper/debug_helper.hpp"
+#include "helper/watcher.hpp"
 #include "xmlplus/xmlplus.hpp"	
 #include "server/common.hpp"
 #include "server/components.hpp"
@@ -86,6 +87,8 @@ public:
 	virtual bool initThreadPool();
 
 	bool installSingnals();
+
+	virtual bool initializeWatcher();
 
 	virtual bool loadConfig();
 	const char* name(){return COMPONENT_NAME_EX(componentType_);}

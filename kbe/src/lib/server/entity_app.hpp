@@ -107,6 +107,8 @@ public:
 	bool uninstallPyScript();
 	bool installEntityDef();
 	
+	virtual bool initializeWatcher();
+
 	virtual void finalise();
 	virtual bool inInitialize();
 	virtual bool initialize();
@@ -114,6 +116,7 @@ public:
 	virtual void onSignalled(int sigNum);
 	
 	Entities<E>* pEntities()const{ return pEntities_; }
+	ArraySize entitiesSize()const { return pEntities_->size(); }
 
 	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }	
 
@@ -219,6 +222,13 @@ bool EntityApp<E>::initialize()
 								reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 	}
 	return ret;
+}
+
+template<class E>
+bool EntityApp<E>::initializeWatcher()
+{
+	//WATCH_OBJECT("entitiesSize", this, &EntityApp<E>::entitiesSize);
+	return ServerApp::initializeWatcher();
 }
 
 template<class E>
