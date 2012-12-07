@@ -162,7 +162,7 @@ protected:
 template <typename T>
 inline WatcherObject* createWatcher(std::string name, T* pval)
 {
-	return new WatcherValue<T>(name, pval, WATCHER_TYPE_UNKOWN);
+	return new WatcherValue<T>(name, pval, WATCHER_TYPE_UNKNOWN);
 }
 
 template <>
@@ -254,7 +254,7 @@ class createMethodWatcher
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<RETURN_TYPE, BIND_METHOD>(name, method, WATCHER_TYPE_UNKOWN);
+		return new WatcherMethod<RETURN_TYPE, BIND_METHOD>(name, method, WATCHER_TYPE_UNKNOWN);
 	}
 };
 
