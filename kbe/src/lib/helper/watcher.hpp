@@ -57,8 +57,9 @@ typedef uint8 WATCHERTYPE;
 class WatcherObject
 {
 public:
-	WatcherObject(std::string name):
-	  name_(name)
+	WatcherObject(std::string name, WATCHERTYPE type = WATCHER_TYPE_UNKNOWN):
+	  name_(name),
+	  type_(type)
 	{
 	}
 	
@@ -76,10 +77,12 @@ public:
 
 	const char* name(){ return name_.c_str(); }
 
-	virtual WATCHERTYPE type()const{ return WATCHER_TYPE_UNKNOWN; }
+	virtual WATCHERTYPE type()const{ return type_; }
+	virtual void type(WATCHERTYPE t){ type_ = t; }
 protected:
 	std::string name_;
 	WATCHER_ID id_;
+	WATCHERTYPE type_;
 
 };
 
@@ -90,8 +93,8 @@ template <typename T>
 class WatcherValue : public WatcherObject
 {
 public:
-	WatcherValue(std::string name, T* pVal):
-	WatcherObject(name),
+	WatcherValue(std::string name, T* pVal, WATCHERTYPE type):
+	WatcherObject(name, type),
 	pWatchVal_(pVal)
 	{
 	}
@@ -116,103 +119,10 @@ public:
 		(*s) >> val_;
 	}
 
-	virtual WATCHERTYPE type()const{ return WATCHER_TYPE_UNKNOWN; }
 protected:
 	T* pWatchVal_;
 	T val_;
 };
-
-template <>
-WATCHERTYPE WatcherValue<uint8>::type()const
-{ 
-	return WATCHER_TYPE_UINT8; 
-}
-
-template <>
-WATCHERTYPE WatcherValue<uint16>::type()const
-{ 
-	return WATCHER_TYPE_UINT16; 
-}
-
-template <>
-WATCHERTYPE WatcherValue<uint32>::type()const
-{ 
-	return WATCHER_TYPE_UINT32; 
-}
-
-template <>
-WATCHERTYPE WatcherValue<uint64>::type()const
-{ 
-	return WATCHER_TYPE_UINT64; 
-}
-
-template <>
-WATCHERTYPE WatcherValue<int8>::type()const
-{ 
-	return WATCHER_TYPE_INT8; 
-}
-
-template <>
-WATCHERTYPE WatcherValue<int16>::type()const
-{ 
-	return WATCHER_TYPE_INT16; 
-}
-
-template <>
-WATCHERTYPE WatcherValue<int32>::type()const
-{ 
-	return WATCHER_TYPE_INT32; 
-}
-
-template <>
-WATCHERTYPE WatcherValue<int64>::type()const
-{ 
-	return WATCHER_TYPE_INT64; 
-}
-
-template <>
-WATCHERTYPE WatcherValue<float>::type()const
-{ 
-	return WATCHER_TYPE_FLOAT; 
-}
-
-template <>
-WATCHERTYPE WatcherValue<double>::type()const
-{ 
-	return WATCHER_TYPE_DOUBLE; 
-}
-
-template <>
-WATCHERTYPE WatcherValue<bool>::type()const
-{ 
-	return WATCHER_TYPE_BOOL; 
-}
-
-template <>
-WATCHERTYPE WatcherValue<COMPONENT_TYPE>::type()const
-{ 
-	return WATCHER_TYPE_COMPONENT_TYPE; 
-}
-
-/*
-template <>
-WATCHERTYPE WatcherValue<char>::type()const
-{ 
-	return WATCHER_TYPE_CHAR; 
-}
-*/
-
-template <>
-WATCHERTYPE WatcherValue<char*>::type()const
-{ 
-	return WATCHER_TYPE_STRING; 
-}
-
-template <>
-WATCHERTYPE WatcherValue<std::string>::type()const
-{ 
-	return WATCHER_TYPE_STRING; 
-}
 
 /*
 	watcher: 监视一个方法返回的值
@@ -222,8 +132,8 @@ template <typename RETURN_TYPE, typename BIND_METHOD>
 class WatcherMethod : public WatcherObject
 {
 public:
-	WatcherMethod(std::string name, BIND_METHOD bindmethod):
-	WatcherObject(name),
+	WatcherMethod(std::string name, BIND_METHOD bindmethod, WATCHERTYPE type):
+	WatcherObject(name, type),
 	bindmethod_(bindmethod)
 	{
 	}
@@ -243,6 +153,7 @@ public:
 	virtual void updateFromStream(MemoryStream* s){
 		(*s) >> val_;
 	}
+
 protected:
 	BIND_METHOD bindmethod_;
 	RETURN_TYPE val_;
@@ -251,99 +162,91 @@ protected:
 template <typename T>
 inline WatcherObject* createWatcher(std::string name, T* pval)
 {
-	return new WatcherValue<T>(name, pval);
+	return new WatcherValue<T>(name, pval, WATCHER_TYPE_UNKOWN);
 }
 
 template <>
 inline WatcherObject* createWatcher<uint8>(std::string name, uint8* pval)
 {
-	return new WatcherValue<uint8>(name, pval);
+	return new WatcherValue<uint8>(name, pval, WATCHER_TYPE_UINT8);
 }
 
 template <>
 inline WatcherObject* createWatcher<uint16>(std::string name, uint16* pval)
 {
-	return createWatcher<uint16>(name, pval);
+	return new WatcherValue<uint16>(name, pval, WATCHER_TYPE_UINT16);
 }
 
 template <>
 inline WatcherObject* createWatcher<uint32>(std::string name, uint32* pval)
 {
-	return createWatcher<uint32>(name, pval);
+	return new WatcherValue<uint32>(name, pval, WATCHER_TYPE_UINT32);
 }
 
 template <>
 inline WatcherObject* createWatcher<uint64>(std::string name, uint64* pval)
 {
-	return createWatcher<uint64>(name, pval);
+	return new WatcherValue<uint64>(name, pval, WATCHER_TYPE_UINT64);
 }
 
 template <>
 inline WatcherObject* createWatcher<int8>(std::string name, int8* pval)
 {
-	return createWatcher<int8>(name, pval);
+	return new WatcherValue<int8>(name, pval, WATCHER_TYPE_INT8);
 }
 
 template <>
 inline WatcherObject* createWatcher<int16>(std::string name, int16* pval)
 {
-	return createWatcher<int16>(name, pval);
+	return new WatcherValue<int16>(name, pval, WATCHER_TYPE_INT16);
 }
 
 template <>
 inline WatcherObject* createWatcher<int32>(std::string name, int32* pval)
 {
-	return new WatcherValue<int32>(name, pval);
+	return new WatcherValue<int32>(name, pval, WATCHER_TYPE_INT32);
 }
 
 template <>
 inline WatcherObject* createWatcher<int64>(std::string name, int64* pval)
 {
-	return createWatcher<int64>(name, pval);
+	return new WatcherValue<int64>(name, pval, WATCHER_TYPE_INT64);
 }
 
 template <>
 inline WatcherObject* createWatcher<bool>(std::string name, bool* pval)
 {
-	return createWatcher<bool>(name, pval);
+	return new WatcherValue<bool>(name, pval, WATCHER_TYPE_BOOL);
 }
-
-/*
-template <>
-inline WatcherObject* createWatcher<char>(std::string name, char* pval)
-{
-	return createWatcher<char>(name, pval);
-}
-*/
 
 template <>
 inline WatcherObject* createWatcher<char*>(std::string name, char** pval)
 {
-	return createWatcher<char*>(name, pval);
+	return new WatcherValue<char*>(name, pval, WATCHER_TYPE_STRING);
 }
 
 template <>
 inline WatcherObject* createWatcher<std::string>(std::string name, std::string* pval)
 {
-	return createWatcher<std::string>(name, pval);
+	return new WatcherValue<std::string>(name, pval, WATCHER_TYPE_STRING);
 }
 
 template <>
 inline WatcherObject* createWatcher<float>(std::string name, float* pval)
 {
-	return createWatcher<float>(name, pval);
+	return new WatcherValue<float>(name, pval, WATCHER_TYPE_FLOAT);
 }
 
 template <>
 inline WatcherObject* createWatcher<double>(std::string name, double* pval)
 {
-	return createWatcher<double>(name, pval);
+	return new WatcherValue<double>(name, pval, WATCHER_TYPE_DOUBLE);
 }
 
 template <>
 inline WatcherObject* createWatcher<COMPONENT_TYPE>(std::string name, COMPONENT_TYPE* pval)
 {
-	return createWatcher<COMPONENT_TYPE>(name, pval);
+	return new WatcherValue<COMPONENT_TYPE>(name, pval, WATCHER_TYPE_COMPONENT_TYPE);
 }
 
 template <class RETURN_TYPE, class BIND_METHOD>
@@ -351,7 +254,7 @@ class createMethodWatcher
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<RETURN_TYPE, BIND_METHOD>(name, method);
+		return new WatcherMethod<RETURN_TYPE, BIND_METHOD>(name, method, WATCHER_TYPE_UNKOWN);
 	}
 };
 
@@ -360,7 +263,7 @@ class createMethodWatcher<uint8, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<uint8, BIND_METHOD>(name, method);
+		return new WatcherMethod<uint8, BIND_METHOD>(name, method, WATCHER_TYPE_UINT8);
 	}
 };
 
@@ -369,7 +272,7 @@ class createMethodWatcher<uint16, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<uint16, BIND_METHOD>(name, method);
+		return new WatcherMethod<uint16, BIND_METHOD>(name, method, WATCHER_TYPE_UINT16);
 	}
 };
 
@@ -378,7 +281,7 @@ class createMethodWatcher<uint32, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<uint32, BIND_METHOD>(name, method);
+		return new WatcherMethod<uint32, BIND_METHOD>(name, method, WATCHER_TYPE_UINT32);
 	}
 };
 
@@ -387,7 +290,7 @@ class createMethodWatcher<uint64, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<uint64, BIND_METHOD>(name, method);
+		return new WatcherMethod<uint64, BIND_METHOD>(name, method, WATCHER_TYPE_UINT64);
 	}
 };
 
@@ -396,7 +299,7 @@ class createMethodWatcher<int8, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<int8, BIND_METHOD>(name, method);
+		return new WatcherMethod<int8, BIND_METHOD>(name, method, WATCHER_TYPE_INT8);
 	}
 };
 
@@ -405,7 +308,7 @@ class createMethodWatcher<int16, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<int16, BIND_METHOD>(name, method);
+		return new WatcherMethod<int16, BIND_METHOD>(name, method, WATCHER_TYPE_INT16);
 	}
 };
 
@@ -414,7 +317,7 @@ class createMethodWatcher<int32, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<int32, BIND_METHOD>(name, method);
+		return new WatcherMethod<int32, BIND_METHOD>(name, method, WATCHER_TYPE_INT32);
 	}
 };
 
@@ -423,7 +326,7 @@ class createMethodWatcher<int64, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<int64, BIND_METHOD>(name, method);
+		return new WatcherMethod<int64, BIND_METHOD>(name, method, WATCHER_TYPE_INT64);
 	}
 };
 
@@ -432,27 +335,16 @@ class createMethodWatcher<bool, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<bool, BIND_METHOD>(name, method);
+		return new WatcherMethod<bool, BIND_METHOD>(name, method, WATCHER_TYPE_BOOL);
 	}
 };
-
-/*
-template <class BIND_METHOD>
-class createMethodWatcher<char, BIND_METHOD>
-{
-public:
-	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return create<char, BIND_METHOD>(name, method);
-	}
-};
-*/
 
 template <class BIND_METHOD>
 class createMethodWatcher<char*, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<char*, BIND_METHOD>(name, method);
+		return new WatcherMethod<char*, BIND_METHOD>(name, method, WATCHER_TYPE_STRING);
 	}
 };
 
@@ -461,7 +353,7 @@ class createMethodWatcher<std::string, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<std::string, BIND_METHOD>(name, method);
+		return new WatcherMethod<std::string, BIND_METHOD>(name, method, WATCHER_TYPE_STRING);
 	}
 };
 
@@ -470,7 +362,7 @@ class createMethodWatcher<float, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<float, BIND_METHOD>(name, method);
+		return new WatcherMethod<float, BIND_METHOD>(name, method, WATCHER_TYPE_FLOAT);
 	}
 };
 
@@ -479,7 +371,7 @@ class createMethodWatcher<double, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<double, BIND_METHOD>(name, method);
+		return new WatcherMethod<double, BIND_METHOD>(name, method, WATCHER_TYPE_DOUBLE);
 	}
 };
 
@@ -488,7 +380,7 @@ class createMethodWatcher<COMPONENT_TYPE, BIND_METHOD>
 {
 public:
 	static WatcherObject* create(std::string name, BIND_METHOD method){
-		return new WatcherMethod<COMPONENT_TYPE, BIND_METHOD>(name, method);
+		return new WatcherMethod<COMPONENT_TYPE, BIND_METHOD>(name, method, WATCHER_TYPE_COMPONENT_TYPE);
 	}
 };
 
