@@ -142,6 +142,7 @@ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/common
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/server
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party/tinyxml
 
 # Preprocessor output only (useful when debugging macros)
