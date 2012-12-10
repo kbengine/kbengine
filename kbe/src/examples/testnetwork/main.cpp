@@ -1255,12 +1255,16 @@ void addXX(OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*y)())
 	f+=1;
 };
 
+template<class E>
 class AAA
 {
 public:
 	float x;
 
-	float xx(){ return x; }
+	float xx(){ 
+		WATCH_OBJECT("ss", this, &AAA<E>::xx);
+		return x; 
+	}
 };
 
 float aaa1()
@@ -1273,13 +1277,13 @@ int main(int argc, char* argv[])
 	int32 aaa = 111;
 	addWatcher("sss", aaa);
 
-	AAA axxxx;
+	AAA<int> axxxx;
 	axxxx.x = 78;
 	addWatcher("xx", axxxx.x);
 	
 	addWatcher("x1x", &aaa1);
 
-	addWatcher("ss", &axxxx, &AAA::xx);
+	
 
 	Resmgr::getSingleton().initialize();
 	ServerConfig sss;

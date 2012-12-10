@@ -307,7 +307,9 @@ void Channel::send(Bundle * pBundle)
 	pBundle->send(*pNetworkInterface_, this);
 
 	++numPacketsSent_;
+	++g_numPacketsSent;
 	numBytesSent_ += pBundle->totalSize();
+	g_numBytesSent += pBundle->totalSize();
 
 	if (isSendingOwnBundle)
 	{
@@ -390,7 +392,10 @@ void Channel::onPacketReceived(int bytes)
 {
 	lastReceivedTime_ = timestamp();
 	++numPacketsReceived_;
+	++g_numPacketsReceived;
+
 	numBytesReceived_ += bytes;
+	g_numBytesReceived += bytes;
 }
 
 //-------------------------------------------------------------------------------------

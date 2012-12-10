@@ -58,7 +58,8 @@ class WatcherObject
 {
 public:
 	WatcherObject(std::string name):
-	  name_(name)
+	  name_(name),
+	  s_()
 	{
 	}
 	
@@ -69,7 +70,7 @@ public:
 
 	virtual void addToStream(MemoryStream* s) = 0;
 
-	virtual void updateFromStream(MemoryStream* s) = 0;
+	virtual void updateStream(MemoryStream* s) = 0;
 
 	WATCHER_ID id(){ return id_; }
 	void id(WATCHER_ID i){ id_ = i; }
@@ -81,6 +82,7 @@ public:
 protected:
 	std::string name_;
 	WATCHER_ID id_;
+	MemoryStream s_;
 };
 
 template <>
@@ -191,8 +193,10 @@ public:
 		(*s) << id_ << watchVal_;
 	};
 
-	virtual void updateFromStream(MemoryStream* s){
-		(*s) >> val_;
+	virtual void updateStream(MemoryStream* s){
+		s_.clear(false);
+		s_.append(s->data() + s->rpos(), sizeof(T));
+		s->read_skip<T>();
 	}
 
 protected:
@@ -211,8 +215,7 @@ public:
 
 	WatcherFunction(std::string name, RETURN_TYPE (*func)()):
 	WatcherObject(name),
-	func_(func),
-	val_(0)
+	func_(func)
 	{
 	}
 	
@@ -228,13 +231,14 @@ public:
 		(*s) << id_ << (*func_)();
 	};
 
-	virtual void updateFromStream(MemoryStream* s){
-		(*s) >> val_;
+	virtual void updateStream(MemoryStream* s){
+		s_.clear(false);
+		s_.append(s->data() + s->rpos(), sizeof(RETURN_TYPE));
+		s->read_skip<RETURN_TYPE>();
 	}
 
 protected:
 	FUNC func_;
-	RETURN_TYPE val_;
 };
 
 /*
@@ -249,7 +253,6 @@ public:
 	WatcherMethod(std::string name, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)()):
 	WatcherObject(name),
 	func_(func),
-	val_(0),
 	This_(This)
 	{
 	}
@@ -266,13 +269,50 @@ public:
 		(*s) << id_ << (This_->*func_)();
 	};
 
-	virtual void updateFromStream(MemoryStream* s){
-		(*s) >> val_;
+	virtual void updateStream(MemoryStream* s){
+		s_.clear(false);
+		s_.append(s->data() + s->rpos(), sizeof(RETURN_TYPE));
+		s->read_skip<RETURN_TYPE>();
 	}
 
 protected:
 	FUNC func_;
-	RETURN_TYPE val_;
+	OBJ_TYPE* This_;
+};
+
+template <class RETURN_TYPE, class OBJ_TYPE>
+class WatcherMethodConst : public WatcherObject
+{
+public:
+	typedef RETURN_TYPE(OBJ_TYPE::*FUNC)()const;
+
+	WatcherMethodConst(std::string name, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)()const):
+	WatcherObject(name),
+	func_(func),
+	This_(This)
+	{
+	}
+	
+	virtual ~WatcherMethodConst(){
+	}
+	
+	void addToInitStream(MemoryStream* s){
+		(*s) << id_ << type<RETURN_TYPE>() << (This_->*func_)();
+	};
+
+	void addToStream(MemoryStream* s)
+	{
+		(*s) << id_ << (This_->*func_)();
+	};
+
+	virtual void updateStream(MemoryStream* s){
+		s_.clear(false);
+		s_.append(s->data() + s->rpos(), sizeof(RETURN_TYPE));
+		s->read_skip<RETURN_TYPE>();
+	}
+
+protected:
+	FUNC func_;
 	OBJ_TYPE* This_;
 };
 
@@ -293,7 +333,7 @@ public:
 	bool delWatcher(std::string name);
 	bool hasWatcher(std::string name);
 
-	void updateFromStream(MemoryStream* s);
+	void updateStream(MemoryStream* s);
 protected:
 	WATCHER_MAP watcherObjs_;
 };
@@ -338,6 +378,12 @@ template <class RETURN_TYPE, class OBJ_TYPE>
 inline void addWatcher(std::string name, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)())
 {
 	Watchers::getSingleton().addWatcher(new WatcherMethod<RETURN_TYPE, OBJ_TYPE>(name, This, func));
+};
+
+template <class RETURN_TYPE, class OBJ_TYPE> 
+inline void addWatcher(std::string name, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)()const)
+{
+	Watchers::getSingleton().addWatcher(new WatcherMethodConst<RETURN_TYPE, OBJ_TYPE>(name, This, func));
 };
 
 #define WATCH_OBJECT addWatcher

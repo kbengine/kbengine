@@ -66,7 +66,8 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 		// 如果配置了对外端口范围， 如果范围过小这里extEndpoint_可能没有端口可用了
 		if(extlisteningPort_min != -1)
 		{
-			KBE_ASSERT(extEndpoint_.good() && "Channel::EXTERNAL: no available port!\n");
+			KBE_ASSERT(extEndpoint_.good() && "Channel::EXTERNAL: no available port, "
+				"please check for kbengine_defs.xml!\n");
 		}
 	}
 
@@ -78,7 +79,8 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 	}
 
 	
-	KBE_ASSERT(good());
+	KBE_ASSERT(good() && "NetworkInterface::NetworkInterface: no available port, "
+		"please check for kbengine_defs.xml!\n");
 
 	if (pMainDispatcher != NULL)
 	{

@@ -150,6 +150,8 @@ public:
 	}
 
 	static KBE_MD5& md5(){ return __md5; }
+
+	static bool initializeWatcher();
 private:
 	static SCRIPT_MODULES __scriptModules;										// 所有的扩展脚本模块都存储在这里
 

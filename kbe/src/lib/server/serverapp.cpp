@@ -119,7 +119,15 @@ bool ServerApp::initialize()
 bool ServerApp::initializeWatcher()
 {
 	WATCH_OBJECT("stats/stampsPerSecond", &KBEngine::stampsPerSecond);
-	return true;
+	WATCH_OBJECT("uid", &KBEngine::getUserUID);
+	WATCH_OBJECT("username", &KBEngine::getUsername);
+	WATCH_OBJECT("componentType", componentType_);
+	WATCH_OBJECT("componentID", componentID_);
+	WATCH_OBJECT("globalOrder", this, &ServerApp::globalOrder);
+	WATCH_OBJECT("groupOrder", this, &ServerApp::groupOrder);
+	WATCH_OBJECT("gametime", this, &ServerApp::time);
+
+	return Mercury::initializeWatcher();
 }
 
 //-------------------------------------------------------------------------------------		

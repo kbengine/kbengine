@@ -131,7 +131,7 @@ bool EntityDef::initialize(const std::string entitiesPath,
 	if(loadComponentType == DBMGR_TYPE)
 		return true;
 
-	return loadAllScriptModule(entitiesPath, scriptBaseTypes);
+	return loadAllScriptModule(entitiesPath, scriptBaseTypes) && initializeWatcher();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1049,6 +1049,12 @@ bool EntityDef::uninstallScript()
 	EntityMailbox::uninstallScript();
 	FixedArray::uninstallScript();
 	FixedDict::uninstallScript();
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityDef::initializeWatcher()
+{
 	return true;
 }
 

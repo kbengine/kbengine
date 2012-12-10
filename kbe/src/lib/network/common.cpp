@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/tcp_packet_receiver.hpp"
 #include "network/udp_packet_receiver.hpp"
 #include "network/address.hpp"
+#include "helper/watcher.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -34,6 +35,21 @@ namespace Mercury
 
 float g_channelInternalTimeout = 60.f;
 float g_channelExternalTimeout = 60.f;
+
+// mercury stats
+uint64						g_numPacketsSent = 0;
+uint64						g_numPacketsReceived = 0;
+uint64						g_numBytesSent = 0;
+uint64						g_numBytesReceived = 0;
+
+bool initializeWatcher()
+{
+	WATCH_OBJECT("network/numPacketsSent", g_numPacketsSent);
+	WATCH_OBJECT("network/numPacketsReceived", g_numPacketsReceived);
+	WATCH_OBJECT("network/numBytesSent", g_numBytesSent);
+	WATCH_OBJECT("network/numBytesReceived", g_numBytesReceived);
+	return true;
+}
 
 void destroyObjPool()
 {

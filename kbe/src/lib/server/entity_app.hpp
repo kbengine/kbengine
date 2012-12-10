@@ -227,7 +227,7 @@ bool EntityApp<E>::initialize()
 template<class E>
 bool EntityApp<E>::initializeWatcher()
 {
-	//WATCH_OBJECT("entitiesSize", this, &EntityApp<E>::entitiesSize);
+	WATCH_OBJECT("entitiesSize", this, &EntityApp<E>::entitiesSize);
 	return ServerApp::initializeWatcher();
 }
 

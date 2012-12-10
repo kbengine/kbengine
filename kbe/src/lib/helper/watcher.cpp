@@ -49,7 +49,7 @@ void Watchers::addToStream(MemoryStream* s)
 }
 
 //-------------------------------------------------------------------------------------
-void Watchers::updateFromStream(MemoryStream* s)
+void Watchers::updateStream(MemoryStream* s)
 {
 	while(s->opsize() > 0)
 	{
@@ -59,7 +59,7 @@ void Watchers::updateFromStream(MemoryStream* s)
 		WATCHER_MAP::iterator iter = watcherObjs_.find(name);
 		if(iter != watcherObjs_.end())
 		{
-			iter->second->updateFromStream(s);
+			iter->second->updateStream(s);
 		}
 	}
 }
@@ -68,7 +68,10 @@ void Watchers::updateFromStream(MemoryStream* s)
 bool Watchers::addWatcher(WatcherObject* pwo)
 {
 	if(hasWatcher(pwo->name()))
+	{
+		KBE_ASSERT(false && "watcher is exist!\n");
 		return false;
+	}
 
 	static WATCHER_ID id = 1;
 	pwo->id(id++);

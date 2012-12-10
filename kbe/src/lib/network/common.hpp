@@ -88,7 +88,6 @@ enum MERCURY_MESSAGE_TYPE
 	MERCURY_MESSAGE_TYPE_ENTITY = 1,	// entityœ˚œ¢
 };
 
-
 enum ProtocolType
 {
 	PROTOCOL_TCP = 0,
@@ -189,6 +188,14 @@ const char * reasonToString(Reason reason)
 
 
 void destroyObjPool();
+
+// mercury stats
+extern uint64						g_numPacketsSent;
+extern uint64						g_numPacketsReceived;
+extern uint64						g_numBytesSent;
+extern uint64						g_numBytesReceived;
+
+bool initializeWatcher();
 
 }
 }
