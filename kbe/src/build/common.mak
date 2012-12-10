@@ -154,7 +154,7 @@ LDLIBS += -lm
 
 ifndef DISABLE_WATCHERS
 CPPFLAGS += ENABLE_WATCHERS
-#endif
+endif
 
 ifdef USE_PYTHON
 
