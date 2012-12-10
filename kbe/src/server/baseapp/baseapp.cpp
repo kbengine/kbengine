@@ -114,7 +114,7 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 	pendingLoginMgr_(ninterface),
 	forward_messagebuffer_(ninterface),
 	pBackupSender_(),
-	proxicesCount_(0)
+	numProxices_(0)
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
 }
@@ -122,6 +122,15 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 //-------------------------------------------------------------------------------------
 Baseapp::~Baseapp()
 {
+}
+
+//-------------------------------------------------------------------------------------		
+bool Baseapp::initializeWatcher()
+{
+	WATCH_OBJECT("numProxices", this, &Baseapp::numProxices);
+	WATCH_OBJECT("load", this, &Baseapp::getLoad);
+
+	return EntityApp<Base>::initializeWatcher();
 }
 
 //-------------------------------------------------------------------------------------
@@ -295,7 +304,7 @@ void Baseapp::updateLoad()
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappmgrInterface::updateBaseapp);
 		BaseappmgrInterface::updateBaseappArgs4::staticAddToBundle((*pBundle), 
-			componentID_, pEntities_->getEntities().size() - proxicesCount(), proxicesCount(), this->getLoad());
+			componentID_, pEntities_->getEntities().size() - numProxices(), numProxices(), this->getLoad());
 
 		(*pBundle).send(this->getNetworkInterface(), pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);

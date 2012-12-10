@@ -152,6 +152,10 @@ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party/tinyxml
 LDLIBS += $(addprefix -l, $(MY_LIBS))
 LDLIBS += -lm
 
+ifndef DISABLE_WATCHERS
+CPPFLAGS += ENABLE_WATCHERS
+#endif
+
 ifdef USE_PYTHON
 
  USE_KBE_PYTHON = 1

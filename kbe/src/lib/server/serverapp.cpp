@@ -112,7 +112,13 @@ bool ServerApp::initialize()
 	Componentbridge::getSingleton().getComponents().pHandler(this);
 	this->getMainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
 
-	return initializeEnd() && initializeWatcher();
+	bool ret = initializeEnd();
+
+#if ENABLE_WATCHERS
+	return ret && initializeWatcher();
+#else
+	return ret;
+#endif
 }
 
 //-------------------------------------------------------------------------------------		

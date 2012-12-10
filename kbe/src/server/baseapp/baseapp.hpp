@@ -86,6 +86,8 @@ public:
 	bool initializeEnd();
 	void finalise();
 	
+	virtual bool initializeWatcher();
+
 	float getLoad()const { return load_; }
 	
 	void updateLoad();
@@ -295,17 +297,17 @@ public:
 	/**
 		增加proxices计数
 	*/
-	void incProxicesCount(){ ++proxicesCount_; }
+	void incProxicesCount(){ ++numProxices_; }
 
 	/**
 		减少proxices计数
 	*/
-	void decProxicesCount(){ --proxicesCount_; }
+	void decProxicesCount(){ --numProxices_; }
 
 	/**
 		获得proxices计数
 	*/
-	int32 proxicesCount()const{ return proxicesCount_; }
+	int32 numProxices()const{ return numProxices_; }
 
 protected:
 	TimerHandle								loopCheckTimerHandle_;
@@ -325,7 +327,7 @@ protected:
 
 	static uint64							_g_lastTimestamp;
 
-	int32									proxicesCount_;
+	int32									numProxices_;
 	
 };
 
