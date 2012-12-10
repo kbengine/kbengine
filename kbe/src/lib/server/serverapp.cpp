@@ -114,7 +114,7 @@ bool ServerApp::initialize()
 
 	bool ret = initializeEnd();
 
-#if ENABLE_WATCHERS
+#ifdef ENABLE_WATCHERS
 	return ret && initializeWatcher();
 #else
 	return ret;

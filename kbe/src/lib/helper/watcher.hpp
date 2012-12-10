@@ -386,7 +386,14 @@ inline void addWatcher(std::string name, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::
 	Watchers::getSingleton().addWatcher(new WatcherMethodConst<RETURN_TYPE, OBJ_TYPE>(name, This, func));
 };
 
-#define WATCH_OBJECT addWatcher
+#ifdef ENABLE_WATCHERS
+	#define WATCH_OBJECT addWatcher
+#else
+	inline void __addWatcher(...){}
+	#define WATCH_OBJECT __addWatcher
+#endif
+
+
 
 
 
