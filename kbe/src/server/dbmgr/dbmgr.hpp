@@ -162,6 +162,8 @@ public:
 		获取db线程池
 	*/
 	INLINE DBThreadPool& dbThreadPool(){ return dbThreadPool_; }
+
+	virtual bool initializeWatcher();
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;
@@ -182,6 +184,14 @@ protected:
 
 	// 线程池
 	DBThreadPool										dbThreadPool_;	
+
+	// Statistics
+	uint32												numWrittenEntity_;
+	uint32												numRemovedEntity_;
+	uint32												numQueryEntity_;
+	uint32												numExecuteRawDatabaseCommand_;
+	uint32												numCreatedAccount_;
+	
 };
 
 }

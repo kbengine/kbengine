@@ -58,7 +58,12 @@ Dbmgr::Dbmgr(Mercury::EventDispatcher& dispatcher,
 	pGlobalBases_(NULL),
 	pCellAppData_(NULL),
 	bufferedDBTasks_(),
-	dbThreadPool_()
+	dbThreadPool_(),
+	numWrittenEntity_(0),
+	numRemovedEntity_(0),
+	numQueryEntity_(0),
+	numExecuteRawDatabaseCommand_(0),
+	numCreatedAccount_(0)
 {
 }
 
@@ -68,6 +73,17 @@ Dbmgr::~Dbmgr()
 	loopCheckTimerHandle_.cancel();
 	mainProcessTimer_.cancel();
 	KBEngine::sleep(300);
+}
+
+//-------------------------------------------------------------------------------------
+bool Dbmgr::initializeWatcher()
+{
+	WATCH_OBJECT("numWrittenEntity", numWrittenEntity_);
+	WATCH_OBJECT("numRemovedEntity", numRemovedEntity_);
+	WATCH_OBJECT("numQueryEntity", numQueryEntity_);
+	WATCH_OBJECT("numExecuteRawDatabaseCommand", numExecuteRawDatabaseCommand_);
+	WATCH_OBJECT("numCreatedAccount", numCreatedAccount_);
+	return ServerApp::initializeWatcher();
 }
 
 //-------------------------------------------------------------------------------------
@@ -388,6 +404,8 @@ void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel,
 {
 	dbThreadPool_.addTask(new DBTaskCreateAccount(pChannel->addr(), 
 		accountName, password));
+
+	numCreatedAccount_++;
 }
 
 //-------------------------------------------------------------------------------------
@@ -409,6 +427,8 @@ void Dbmgr::queryAccount(Mercury::Channel* pChannel,
 {
 	bufferedDBTasks_.addTask(new DBTaskQueryAccount(pChannel->addr(), 
 		accountName, password, componentID, entityID, entityDBID));
+
+	numQueryEntity_++;
 }
 
 //-------------------------------------------------------------------------------------
@@ -433,6 +453,8 @@ void Dbmgr::executeRawDatabaseCommand(Mercury::Channel* pChannel,
 {
 	dbThreadPool_.addTask(new DBTaskExecuteRawDatabaseCommand(pChannel->addr(), s));
 	s.opfini();
+
+	numExecuteRawDatabaseCommand_++;
 }
 
 //-------------------------------------------------------------------------------------
@@ -447,6 +469,8 @@ void Dbmgr::writeEntity(Mercury::Channel* pChannel,
 
 	bufferedDBTasks_.addTask(new DBTaskWriteEntity(pChannel->addr(), componentID, eid, entityDBID, s));
 	s.opfini();
+
+	numWrittenEntity_++;
 }
 
 //-------------------------------------------------------------------------------------
@@ -463,6 +487,8 @@ void Dbmgr::removeEntity(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 		componentID, eid, entityDBID, s));
 
 	s.opfini();
+
+	numRemovedEntity_++;
 }
 
 //-------------------------------------------------------------------------------------
@@ -471,6 +497,8 @@ void Dbmgr::queryEntity(Mercury::Channel* pChannel, COMPONENT_ID componentID, DB
 {
 	bufferedDBTasks_.addTask(new DBTaskQueryEntity(pChannel->addr(), entityType, 
 		dbid, componentID, callbackID, entityID));
+
+	numQueryEntity_++;
 }
 
 //-------------------------------------------------------------------------------------
