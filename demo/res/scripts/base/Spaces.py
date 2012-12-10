@@ -38,12 +38,12 @@ class Spaces(GameObject):
 			del self._tmpDatas
 			self.delTimer(tid)
 			
-	def loginToSpace(self, avatarEntity, spaceUType):
+	def loginToSpace(self, avatarEntity, spaceUType, context):
 		"""
 		define method.
 		某个玩家请求登陆到某个space中
 		"""
-		self._spaceAllocs[spaceUType].loginToSpace(avatarEntity)
+		self._spaceAllocs[spaceUType].loginToSpace(avatarEntity, context)
 		
 	def teleportSpace(self, entityMailbox, spaceUType, position, direction, context):
 		"""

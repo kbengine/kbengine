@@ -79,12 +79,12 @@ class SpaceAlloc:
 		
 		return list(self._spaces.values())[0]
 		
-	def loginToSpace(self, avatarEntity):
+	def loginToSpace(self, avatarEntity, context):
 		"""
 		virtual method.
 		某个玩家请求登陆到某个space中
 		"""
-		space = self.alloc({"spaceKey" : avatarEntity.databaseID})
+		space = self.alloc({"spaceKey" : context.get("spaceKey", 0)})
 		if space is None:
 			ERROR_MSG("Spaces::loginToSpace: not found space %i. login to space is failed! spaces=%s" % (self._utype, self._spaces))
 			return

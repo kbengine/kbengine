@@ -15,6 +15,7 @@
 		<loginToSpace>
 			<Arg>		MAILBOX		</Arg>
 			<Arg>		ENTITY_UTYPE	</Arg>
+			<Arg>		PYTHON		</Arg>
 		</loginToSpace>
 
 		<teleportSpace>

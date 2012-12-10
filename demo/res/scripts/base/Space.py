@@ -55,7 +55,7 @@ class Space(GameObject):
 									"direction"			: (0, 0, datas.get("spawnYaw", 0)),	\
 									"createToCell"		: self.cell})
 				
-	def loginToSpace(self, avatarMailbox):
+	def loginToSpace(self, avatarMailbox, context):
 		"""
 		define method.
 		某个玩家请求登陆到这个space中
