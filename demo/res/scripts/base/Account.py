@@ -26,7 +26,6 @@ class Account(KBEngine.Proxy):
 		cell部分。
 		"""
 		INFO_MSG("account[%i] entities enable. mailbox:%s" % (self.id, self.client))
-		self.writeToDB()
 		
 	def onLogOnAttempt(self, ip, port, password):
 		"""
