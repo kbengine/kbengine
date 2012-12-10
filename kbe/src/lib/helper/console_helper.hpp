@@ -26,45 +26,46 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #define CONSOLE_COMMANDCB_MSGID 65500
 #define CONSOLE_LOG_MSGID 65501
+#define CONSOLE_WATCHERCB_MSGID 65502
 
 namespace KBEngine{
 namespace ConsoleInterface{
 	
 	class ConsoleExecCommandCBMessageHandlerArgs1 : public Mercury::MessageArgs	
-	{																
-	public:															
-		std::string strarg;										
-	public:															
-		ConsoleExecCommandCBMessageHandlerArgs1():Mercury::MessageArgs(){}						
+	{	
+	public:
+		std::string strarg;
+	public:
+		ConsoleExecCommandCBMessageHandlerArgs1():Mercury::MessageArgs(){}	
 		ConsoleExecCommandCBMessageHandlerArgs1(std::string init_strarg):				
-		Mercury::MessageArgs(),										
-		strarg(init_strarg)									
-		{}															
-		~ConsoleExecCommandCBMessageHandlerArgs1(){}											
-																	
+		Mercury::MessageArgs(),
+		strarg(init_strarg)				
+		{}
+		~ConsoleExecCommandCBMessageHandlerArgs1(){}	
+		
 		static void staticAddToBundle(Mercury::Bundle& s,			
-								std::string init_strarg)			
-		{															
-			s << init_strarg;									
-		}															
+			std::string init_strarg)			
+		{
+			s << init_strarg;				
+		}
 		static void staticAddToStream(MemoryStream& s,			
-								std::string init_strarg)			
-		{															
-			s << init_strarg;									
-		}															
-		virtual int32 msgsize(void)									
-		{															
-			return MERCURY_VARIABLE_MESSAGE;								
-		}															
-		virtual void addToStream(MemoryStream& s)					
-		{															
-			s << strarg;											
-		}															
+			std::string init_strarg)			
+		{
+			s << init_strarg;				
+		}
+		virtual int32 msgsize(void)				
+		{
+			return MERCURY_VARIABLE_MESSAGE;			
+		}
+		virtual void addToStream(MemoryStream& s)
+		{
+			s << strarg;	
+		}
 		virtual void createFromStream(MemoryStream& s)				
-		{															
-			s >> strarg;											
-		}															
-	};																
+		{
+			s >> strarg;	
+		}
+	};	
 				
 	class ConsoleExecCommandCBMessageHandler : public Mercury::MessageHandler
 	{
@@ -93,14 +94,14 @@ namespace ConsoleInterface{
 
 
 	class ConsoleLogMessageHandlerArgsStream : public Mercury::MessageArgs	
-	{																								
-	public:															
-		ConsoleLogMessageHandlerArgsStream():Mercury::MessageArgs(){}																			
-		~ConsoleLogMessageHandlerArgsStream(){}											
-																															
-		virtual int32 msgsize(void)									
-		{															
-			return MERCURY_VARIABLE_MESSAGE;								
+	{				
+	public:
+		ConsoleLogMessageHandlerArgsStream():Mercury::MessageArgs(){}				
+		~ConsoleLogMessageHandlerArgsStream(){}	
+	
+		virtual int32 msgsize(void)				
+		{
+			return MERCURY_VARIABLE_MESSAGE;			
 		}		
 
 		virtual int32 msglenMax()
@@ -108,14 +109,14 @@ namespace ConsoleInterface{
 			return MERCURY_MESSAGE_MAX_SIZE * 1000; 
 		}
 
-		virtual void addToStream(MemoryStream& s)					
-		{																									
+		virtual void addToStream(MemoryStream& s)
+		{
 		}			
 
 		virtual void createFromStream(MemoryStream& s)				
-		{																										
+		{	
 		}	
-	};																
+	};	
 				
 	class ConsoleLogMessageHandler : public Mercury::MessageHandler
 	{
@@ -129,6 +130,51 @@ namespace ConsoleInterface{
 		{
 			// 强制这条协议ID
 			msgID = CONSOLE_LOG_MSGID;
+			msgLen = MERCURY_VARIABLE_MESSAGE;
+		}
+
+		virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
+		{
+		};
+	};
+	
+	class ConsoleWatcherCBHandlerMessageArgsStream : public Mercury::MessageArgs	
+	{				
+	public:
+		ConsoleWatcherCBHandlerMessageArgsStream():Mercury::MessageArgs(){}				
+		~ConsoleWatcherCBHandlerMessageArgsStream(){}	
+	
+		virtual int32 msgsize(void)				
+		{
+			return MERCURY_VARIABLE_MESSAGE;			
+		}		
+
+		virtual int32 msglenMax()
+		{ 
+			return MERCURY_MESSAGE_MAX_SIZE * 1000; 
+		}
+
+		virtual void addToStream(MemoryStream& s)
+		{
+		}			
+
+		virtual void createFromStream(MemoryStream& s)				
+		{	
+		}	
+	};	
+				
+	class ConsoleWatcherCBMessageHandler : public Mercury::MessageHandler
+	{
+	public:
+		ConsoleWatcherCBMessageHandler()
+		{
+			onInstall();
+		}
+
+		virtual void onInstall()
+		{
+			// 强制这条协议ID
+			msgID = CONSOLE_WATCHERCB_MSGID;
 			msgLen = MERCURY_VARIABLE_MESSAGE;
 		}
 

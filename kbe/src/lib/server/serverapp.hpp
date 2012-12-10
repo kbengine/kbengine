@@ -115,6 +115,11 @@ public:
 	virtual void onAddComponent(const Components::ComponentInfos* pInfos);
 	virtual void onRemoveComponent(const Components::ComponentInfos* pInfos);
 
+	/** 网络接口
+		请求查看watcher
+	*/
+	void queryWatcher(Mercury::Channel* pChannel, MemoryStream& s);
+
 	void shutDown();
 
 	int32 globalOrder()const{ return startGlobalOrder_; }

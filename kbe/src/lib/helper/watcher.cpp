@@ -22,10 +22,36 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr/resmgr.hpp"
 
 namespace KBEngine{
-KBE_SINGLETON_INIT(Watchers);
 
-Watchers _g_watchers;
+//-------------------------------------------------------------------------------------
+WatcherObject::WatcherObject(std::string path):
+  path_(path),
+  name_(),
+  id_(0),
+  s_(),
+  numWitness_(0)
+{
+	std::string::size_type fi = path.find_first_of('/');
+	if(fi == std::string::npos)
+	{
+		name_ = path;
+		path_ = "";
+	}
+	else
+	{
+		std::vector<std::string> vec;
+		KBEngine::strutil::kbe_split(path, '/', vec);
 
+		std::vector<std::string>::size_type size = vec.size();
+		name_ = vec[size - 1];
+		path_ = path.erase(path.size() - name_.size() - 1, path.size());
+	}
+}
+
+//-------------------------------------------------------------------------------------
+WatcherObject::~WatcherObject(){
+}
+	
 //-------------------------------------------------------------------------------------
 Watchers::Watchers():
 watcherObjs_()
@@ -36,6 +62,13 @@ watcherObjs_()
 Watchers::~Watchers()
 {
 	watcherObjs_.clear();
+}
+
+//-------------------------------------------------------------------------------------
+Watchers& Watchers::rootWatchers()
+{
+	static Watchers watchers;
+	return watchers;
 }
 
 //-------------------------------------------------------------------------------------
@@ -65,20 +98,15 @@ void Watchers::updateStream(MemoryStream* s)
 }
 
 //-------------------------------------------------------------------------------------
-bool Watchers::addWatcher(WatcherObject* pwo)
+bool Watchers::addWatcher(std::string path, WatcherObject* pwo)
 {
 	if(hasWatcher(pwo->name()))
 	{
-		KBE_ASSERT(false && "watcher is exist!\n");
 		return false;
 	}
 
-	static WATCHER_ID id = 1;
-	pwo->id(id++);
-
 	watcherObjs_[pwo->name()].reset(pwo);
-
-	DEBUG_MSG(boost::format("Watchers::addWatcher: %1%, id=%2%\n") % pwo->name() % pwo->id());
+	DEBUG_MSG(boost::format("Watchers::addWatcher: %1%, id=%2%\n") % pwo->path() % pwo->id());
 	return true;
 }
 
@@ -98,6 +126,197 @@ bool Watchers::hasWatcher(std::string name)
 {
 	WATCHER_MAP::iterator iter = watcherObjs_.find(name);
 	return iter != watcherObjs_.end();
+}
+
+//-------------------------------------------------------------------------------------
+void Watchers::readWatchers(MemoryStream* s)
+{
+	WATCHER_MAP::iterator iter = watcherObjs_.begin();
+	for(; iter != watcherObjs_.end(); iter++)
+	{
+		iter->second->addToInitStream(s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+WatcherPaths::WatcherPaths():
+watcherPaths_(),
+watchers_()
+{
+}
+
+//-------------------------------------------------------------------------------------
+WatcherPaths::~WatcherPaths()
+{
+	watcherPaths_.clear();
+}
+
+//-------------------------------------------------------------------------------------
+WatcherPaths& WatcherPaths::root()
+{
+	static WatcherPaths watcherPaths;
+	return watcherPaths;
+}
+
+//-------------------------------------------------------------------------------------
+void WatcherPaths::addToStream(MemoryStream* s)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void WatcherPaths::updateStream(MemoryStream* s)
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool WatcherPaths::addWatcher(std::string path, WatcherObject* pwo)
+{
+	std::string szpath, name;
+	std::string::size_type fi = path.find_first_of('/');
+	if(fi == std::string::npos)
+	{
+		name = path;
+		szpath = "";
+	}
+	else
+	{
+		std::vector<std::string> vec;
+		KBEngine::strutil::kbe_split(path, '/', vec);
+
+		std::vector<std::string>::size_type size = vec.size();
+		name = vec[size - 1];
+		szpath = path.erase(path.size() - name.size() - 1, path.size());
+	}
+
+	static WATCHER_ID id = 1;
+	pwo->id(id++);
+
+	return _addWatcher(szpath, pwo);
+}
+
+//-------------------------------------------------------------------------------------
+bool WatcherPaths::_addWatcher(std::string path, WatcherObject* pwo)
+{
+	if(path.size() > 0)
+	{
+		std::vector<std::string> vec;
+		KBEngine::strutil::kbe_split(path, '/', vec);
+		
+		path.erase(0, vec[0].size() + 1);
+
+		WATCHER_PATHS::iterator iter = watcherPaths_.find(vec[0]);
+		if(iter != watcherPaths_.end())
+		{
+			return iter->second._addWatcher(path, pwo);
+		}
+		else
+		{
+			WatcherPaths& watcherPaths  = watcherPaths_[vec[0]];
+			return watcherPaths._addWatcher(path, pwo);
+		}
+	}
+
+	if(!watchers_.addWatcher(path, pwo))
+	{
+		KBE_ASSERT(false && "watcher is exist!\n");
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool WatcherPaths::addWatcherFromStream(std::string path, std::string name, 
+										WATCHER_ID wid, WATCHERTYPE wtype, MemoryStream* s)
+{
+	WatcherObject* pWobj = NULL;
+
+	switch(wtype)
+	{
+	case WATCHER_TYPE_UINT8:
+		pWobj = new WatcherValue<uint8>(path + "/" + name);
+		break;
+	case WATCHER_TYPE_UINT16:
+		pWobj = new WatcherValue<uint16>(path + "/" + name);
+		break;
+	case WATCHER_TYPE_UINT32:
+		pWobj = new WatcherValue<uint32>(path + "/" + name);
+		break;
+	case WATCHER_TYPE_UINT64:
+		pWobj = new WatcherValue<uint64>(path + "/" + name);
+		break;
+	case WATCHER_TYPE_INT8:
+		pWobj = new WatcherValue<int8>(path + "/" + name);
+		break;
+	case WATCHER_TYPE_INT16:
+		pWobj = new WatcherValue<int16>(path + "/" + name);
+		break;
+	case WATCHER_TYPE_INT32:
+		pWobj = new WatcherValue<int32>(path + "/" + name);
+		break;
+	case WATCHER_TYPE_INT64:
+		pWobj = new WatcherValue<int64>(path + "/" + name);
+		break;
+	case WATCHER_TYPE_FLOAT:
+		pWobj = new WatcherValue<float>(path + "/" + name);
+		break;
+	case WATCHER_TYPE_DOUBLE:
+		pWobj = new WatcherValue<double>(path + "/" + name);
+		break;
+	case WATCHER_TYPE_CHAR:
+		pWobj = new WatcherValue<char*>(path + "/" + name);
+		break;
+	case WATCHER_TYPE_STRING:
+		pWobj = new WatcherValue<std::string>(path + "/" + name);
+		break;
+	case WATCHER_TYPE_BOOL:
+		pWobj = new WatcherValue<bool>(path + "/" + name);
+		break;
+	case WATCHER_TYPE_COMPONENT_TYPE:
+		pWobj = new WatcherValue<COMPONENT_TYPE>(path + "/" + name);
+		break;
+	default:
+		KBE_ASSERT(false && "no support!\n");
+	};
+
+	pWobj->id(wid);
+	pWobj->updateStream(s);
+	return pWobj != NULL && _addWatcher(path, pWobj);
+}
+
+//-------------------------------------------------------------------------------------
+bool WatcherPaths::delWatcher(std::string fullpath)
+{
+	if(hasWatcher(fullpath))
+		return false;
+
+	watcherPaths_.erase(fullpath);
+	DEBUG_MSG(boost::format("WatcherPaths::delWatcher: %1%\n") % fullpath);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool WatcherPaths::hasWatcher(std::string fullpath)
+{
+	WATCHER_PATHS::iterator iter = watcherPaths_.find(fullpath);
+	return iter != watcherPaths_.end();
+}
+
+//-------------------------------------------------------------------------------------
+void WatcherPaths::readWatchers(std::string path, MemoryStream* s)
+{
+	if(path.size() == 0)
+	{
+		watchers_.readWatchers(s);
+	}
+	else
+	{
+		std::vector<std::string> vec;
+		KBEngine::strutil::kbe_split(path, '/', vec);
+		
+		path.erase(0, vec[0].size() + 1);
+		readWatchers(path, s);
+	}
 }
 
 //-------------------------------------------------------------------------------------		

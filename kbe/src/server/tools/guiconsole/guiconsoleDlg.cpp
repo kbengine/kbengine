@@ -96,6 +96,16 @@ public:
 	};
 };
 
+class ConsoleWatcherCBMessageHandlerEx : public KBEngine::ConsoleInterface::ConsoleWatcherCBMessageHandler
+{
+public:
+	virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
+	{
+		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+		dlg->onReceiveWatcherData(s);
+	};
+};
+
 class FindServersTask : public thread::TPTask
 {
 public:
@@ -406,6 +416,9 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	KBEngine::ConsoleInterface::messageHandlers.add("Console::onReceiveRemoteLog", new KBEngine::ConsoleInterface::ConsoleLogMessageHandlerArgsStream, MERCURY_VARIABLE_MESSAGE, 
 		new ConsoleLogMessageHandlerEx);
 
+	KBEngine::ConsoleInterface::messageHandlers.add("Console::onReceiveWatcherData", new KBEngine::ConsoleInterface::ConsoleWatcherCBHandlerMessageArgsStream, MERCURY_VARIABLE_MESSAGE, 
+		new ConsoleWatcherCBMessageHandlerEx);
+	
 	threadPool_.createThreadPool(1, 1, 16);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -1070,6 +1083,22 @@ void CguiconsoleDlg::OnNMRClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
     pPopup->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
 }
 
+void CguiconsoleDlg::reqQueryWatcher(std::string paths)
+{
+	COMPONENT_TYPE debugComponentType = getTreeItemComponent(m_tree.GetSelectedItem());
+	Mercury::Address addr = getTreeItemAddr(m_tree.GetSelectedItem());
+
+	Mercury::Channel* pChannel = _networkInterface.findChannel(addr);
+
+	if(pChannel)
+	{
+		Mercury::Bundle bundle;
+		COMMON_MERCURY_MESSAGE(debugComponentType, bundle, queryWatcher);
+		bundle << paths;
+		bundle.send(_networkInterface, pChannel);
+	}
+}
+
 COMPONENT_TYPE CguiconsoleDlg::getTreeItemComponent(HTREEITEM hItem)
 {
 	if(hItem == NULL)
@@ -1529,4 +1558,9 @@ void CguiconsoleDlg::OnClose()
 	// TODO: Add your message handler code here and/or call default
 	g_isDestroyed = true;
 	CDialog::OnClose();
+}
+
+void CguiconsoleDlg::onReceiveWatcherData(MemoryStream& s)
+{
+	m_watcherWnd.onReceiveWatcherData(s);
 }

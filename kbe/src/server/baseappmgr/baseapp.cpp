@@ -26,7 +26,8 @@ Baseapp::Baseapp():
 numBases_(0),
 numProxices_(0),
 load_(0.f),
-isDestroyed_(false)
+isDestroyed_(false),
+watchers_()
 {
 }
 

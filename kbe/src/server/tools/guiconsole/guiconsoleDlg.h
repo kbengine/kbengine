@@ -71,6 +71,9 @@ public:
 		m_tree.DeleteAllItems();
 		m_statusWnd.m_statusList.DeleteAllItems();
 	}
+
+	void reqQueryWatcher(std::string paths);
+	void onReceiveWatcherData(MemoryStream& s);
 protected:
 	HICON m_hIcon;
 

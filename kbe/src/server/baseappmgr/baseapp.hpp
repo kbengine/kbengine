@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // #define NDEBUG
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
+#include "helper/watcher.hpp"
 
 namespace KBEngine{ 
 
@@ -51,6 +52,8 @@ protected:
 	float load_;
 
 	bool isDestroyed_;
+
+	Watchers watchers_;
 };
 
 }

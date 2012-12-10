@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle.hpp"
 #include "network/common.hpp"
 #include "cstdkbe/memorystream.hpp"
+#include "helper/console_helper.hpp"
 
 #include "../../server/baseappmgr/baseappmgr_interface.hpp"
 #include "../../server/cellappmgr/cellappmgr_interface.hpp"
@@ -134,6 +135,22 @@ bool ServerApp::initializeWatcher()
 	WATCH_OBJECT("gametime", this, &ServerApp::time);
 
 	return Mercury::initializeWatcher();
+}
+
+//-------------------------------------------------------------------------------------		
+void ServerApp::queryWatcher(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	std::string path;
+	s >> path;
+
+	MemoryStream::SmartPoolObjectPtr readStreamPtr = MemoryStream::createSmartPoolObj();
+	WatcherPaths::root().readWatchers(path, readStreamPtr.get()->get());
+
+	Mercury::Bundle bundle;
+	ConsoleInterface::ConsoleWatcherCBMessageHandler msgHandler;
+	bundle.newMessage(msgHandler);
+	bundle.append(readStreamPtr.get()->get());
+	bundle.send(getNetworkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------		

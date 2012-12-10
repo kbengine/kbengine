@@ -51,21 +51,18 @@ typedef uint8 WATCHERTYPE;
 #define WATCHER_TYPE_BOOL				13
 #define WATCHER_TYPE_COMPONENT_TYPE		14
 
+class Watchers;
+
 /*
 	watcher基础对象
 */
 class WatcherObject
 {
 public:
-	WatcherObject(std::string name):
-	  name_(name),
-	  s_()
-	{
-	}
+	WatcherObject(std::string path);
 	
-	virtual ~WatcherObject(){
-	}
-	
+	virtual ~WatcherObject();
+
 	virtual void addToInitStream(MemoryStream* s) = 0;
 
 	virtual void addToStream(MemoryStream* s) = 0;
@@ -75,14 +72,21 @@ public:
 	WATCHER_ID id(){ return id_; }
 	void id(WATCHER_ID i){ id_ = i; }
 
+	const char* path(){ return path_.c_str(); }
 	const char* name(){ return name_.c_str(); }
 
 	template <class T>
 	WATCHERTYPE type()const{ return WATCHER_TYPE_UNKNOWN; }
+
+	void addWitness(){ numWitness_++; }
+	void delWitness(){ numWitness_--; }
+
+	int32 numWitness()const{ return numWitness_; }
 protected:
-	std::string name_;
+	std::string path_, name_;
 	WATCHER_ID id_;
 	MemoryStream s_;
+	int32 numWitness_;
 };
 
 template <>
@@ -176,21 +180,27 @@ template <class T>
 class WatcherValue : public WatcherObject
 {
 public:
-	WatcherValue(std::string name, const T& pVal):
-	WatcherObject(name),
-	watchVal_(pVal)
+	WatcherValue(std::string path, const T& pVal):
+	WatcherObject(path),
+	pWatchVal_(&pVal)
 	{
 	}
 	
+	WatcherValue(std::string path):
+	WatcherObject(path),
+	pWatchVal_(NULL)
+	{
+	}
+
 	virtual ~WatcherValue(){
 	}
 	
 	void addToInitStream(MemoryStream* s){
-		(*s) << id_ << type<T>() << watchVal_;
+		(*s) << path() << name() << id_ << type<T>() << (*pWatchVal_);
 	};
 
 	void addToStream(MemoryStream* s){
-		(*s) << id_ << watchVal_;
+		(*s) << id_ << (*pWatchVal_);
 	};
 
 	virtual void updateStream(MemoryStream* s){
@@ -200,7 +210,7 @@ public:
 	}
 
 protected:
-	const T& watchVal_;
+	const T* pWatchVal_;
 	T val_;
 };
 
@@ -213,8 +223,8 @@ class WatcherFunction : public WatcherObject
 public:
 	typedef RETURN_TYPE(*FUNC)();
 
-	WatcherFunction(std::string name, RETURN_TYPE (*func)()):
-	WatcherObject(name),
+	WatcherFunction(std::string path, RETURN_TYPE (*func)()):
+	WatcherObject(path),
 	func_(func)
 	{
 	}
@@ -223,7 +233,7 @@ public:
 	}
 	
 	void addToInitStream(MemoryStream* s){
-		(*s) << id_ << type<RETURN_TYPE>() << (*func_)();
+		(*s) << path() << name() << id_ << type<RETURN_TYPE>() << (*func_)();
 	};
 
 	void addToStream(MemoryStream* s)
@@ -250,8 +260,8 @@ class WatcherMethod : public WatcherObject
 public:
 	typedef RETURN_TYPE(OBJ_TYPE::*FUNC)();
 
-	WatcherMethod(std::string name, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)()):
-	WatcherObject(name),
+	WatcherMethod(std::string path, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)()):
+	WatcherObject(path),
 	func_(func),
 	This_(This)
 	{
@@ -261,7 +271,7 @@ public:
 	}
 	
 	void addToInitStream(MemoryStream* s){
-		(*s) << id_ << type<RETURN_TYPE>() << (This_->*func_)();
+		(*s) << path() << name() << id_ << type<RETURN_TYPE>() << (This_->*func_)();
 	};
 
 	void addToStream(MemoryStream* s)
@@ -286,8 +296,8 @@ class WatcherMethodConst : public WatcherObject
 public:
 	typedef RETURN_TYPE(OBJ_TYPE::*FUNC)()const;
 
-	WatcherMethodConst(std::string name, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)()const):
-	WatcherObject(name),
+	WatcherMethodConst(std::string path, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)()const):
+	WatcherObject(path),
 	func_(func),
 	This_(This)
 	{
@@ -297,7 +307,7 @@ public:
 	}
 	
 	void addToInitStream(MemoryStream* s){
-		(*s) << id_ << type<RETURN_TYPE>() << (This_->*func_)();
+		(*s) << path() << name() << id_ << type<RETURN_TYPE>() << (This_->*func_)();
 	};
 
 	void addToStream(MemoryStream* s)
@@ -319,23 +329,56 @@ protected:
 /*
 	watcher管理器
 */
-class Watchers: public Singleton<Watchers>
+class Watchers
 {
 public:
 	Watchers();
 	~Watchers();
 
+	static Watchers& rootWatchers();
+
 	void addToStream(MemoryStream* s);
 
+	void readWatchers(MemoryStream* s);
 	typedef std::tr1::unordered_map<std::string, std::tr1::shared_ptr< WatcherObject > > WATCHER_MAP;
 
-	bool addWatcher(WatcherObject* pwo);
+	bool addWatcher(std::string path, WatcherObject* pwo);
 	bool delWatcher(std::string name);
 	bool hasWatcher(std::string name);
 
 	void updateStream(MemoryStream* s);
 protected:
 	WATCHER_MAP watcherObjs_;
+};
+
+class WatcherPaths
+{
+public:
+	WatcherPaths();
+	~WatcherPaths();
+
+	static WatcherPaths& root();
+
+	void addToStream(MemoryStream* s);
+
+	void readWatchers(std::string path, MemoryStream* s);
+	typedef std::tr1::unordered_map<std::string, WatcherPaths> WATCHER_PATHS;
+
+	bool addWatcher(std::string path, WatcherObject* pwo);
+	bool _addWatcher(std::string path, WatcherObject* pwo);
+
+	bool addWatcherFromStream(std::string path, std::string name, 
+		WATCHER_ID wid, WATCHERTYPE wtype, MemoryStream* s);
+
+	bool delWatcher(std::string fullpath);
+	bool hasWatcher(std::string fullpath);
+
+	void updateStream(MemoryStream* s);
+
+	Watchers& watchers(){ return watchers_; }
+protected:
+	WATCHER_PATHS watcherPaths_;
+	Watchers watchers_;
 };
 
 /**
@@ -348,9 +391,9 @@ protected:
 	addWatcher("a", axxxx.x);
 */
 template <class TYPE> 
-inline void addWatcher(std::string name, TYPE type)
+inline void addWatcher(std::string path, TYPE type)
 {
-	Watchers::getSingleton().addWatcher(new WatcherValue<TYPE>(name, type));
+	WatcherPaths::root().addWatcher(path, new WatcherValue<TYPE>(path, type));
 };
 
 /**
@@ -361,9 +404,9 @@ inline void addWatcher(std::string name, TYPE type)
 	addWatcher("func", &func);
 */
 template <class RETURN_TYPE> 
-inline void addWatcher(std::string name, RETURN_TYPE (*func)())
+inline void addWatcher(std::string path, RETURN_TYPE (*func)())
 {
-	Watchers::getSingleton().addWatcher(new WatcherFunction<RETURN_TYPE>(name, func));
+	WatcherPaths::root().addWatcher(path, new WatcherFunction<RETURN_TYPE>(path, func));
 };
 
 /**
@@ -375,15 +418,15 @@ inline void addWatcher(std::string name, RETURN_TYPE (*func)())
 	addWatcher("func", &a, &AAA::func);
 */
 template <class RETURN_TYPE, class OBJ_TYPE> 
-inline void addWatcher(std::string name, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)())
+inline void addWatcher(std::string path, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)())
 {
-	Watchers::getSingleton().addWatcher(new WatcherMethod<RETURN_TYPE, OBJ_TYPE>(name, This, func));
+	WatcherPaths::root().addWatcher(path, new WatcherMethod<RETURN_TYPE, OBJ_TYPE>(path, This, func));
 };
 
 template <class RETURN_TYPE, class OBJ_TYPE> 
-inline void addWatcher(std::string name, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)()const)
+inline void addWatcher(std::string path, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)()const)
 {
-	Watchers::getSingleton().addWatcher(new WatcherMethodConst<RETURN_TYPE, OBJ_TYPE>(name, This, func));
+	WatcherPaths::root().addWatcher(path, new WatcherMethodConst<RETURN_TYPE, OBJ_TYPE>(path, This, func));
 };
 
 #ifdef ENABLE_WATCHERS

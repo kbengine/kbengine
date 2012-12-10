@@ -194,6 +194,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// createBaseFromDBID的回调
 	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseFromDBIDCallback,			MERCURY_FIXED_MESSAGE)
 
+	// 请求查询watcher数据
+	BASEAPP_MESSAGE_DECLARE_STREAM(queryWatcher,							MERCURY_VARIABLE_MESSAGE)
+
 	//--------------------------------------------Base----------------------------------------------------------
 	// 远程呼叫entity方法
 	BASE_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,							MERCURY_VARIABLE_MESSAGE)

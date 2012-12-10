@@ -102,6 +102,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 									ENTITY_ID,								numProxices,
 									float,									load)
 
+	// 请求查询watcher数据
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(queryWatcher,							MERCURY_VARIABLE_MESSAGE)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE
