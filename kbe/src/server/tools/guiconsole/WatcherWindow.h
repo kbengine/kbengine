@@ -1,6 +1,7 @@
 #pragma once
 #include "afxcmn.h"
 #include "cstdkbe/memorystream.hpp"
+#include "helper/watcher.hpp"
 
 // CWatcherWindow dialog
 
@@ -20,6 +21,12 @@ public:
 
 
 	void onReceiveWatcherData(KBEngine::MemoryStream& s);
+	void addHeader(std::string name);
+	void addItem(KBEngine::WatcherObject* wo);
+	void changePath(std::string path);
+	void addPath(std::string path);
+
+	void clearAllData(bool clearTree = true);
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 

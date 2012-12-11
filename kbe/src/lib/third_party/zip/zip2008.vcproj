@@ -42,6 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories=""
+				PreprocessorDefinitions="ENABLE_WATCHERS"
 				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				ObjectFile="$(IntDir)\"
@@ -108,6 +109,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories=""
+				PreprocessorDefinitions="ENABLE_WATCHERS"
 				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				ObjectFile="$(IntDir)\"

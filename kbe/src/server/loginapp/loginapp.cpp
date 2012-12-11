@@ -223,6 +223,12 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	// ÃÜÂë
 	s >> password;
 	
+	if(accountName.size() == 0)
+	{
+		ERROR_MSG("Loginapp::login: accountName is NULL.\n");
+		return;
+	}
+
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(accountName);
 	if(ptinfos != NULL)
 	{

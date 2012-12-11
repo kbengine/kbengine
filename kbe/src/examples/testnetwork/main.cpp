@@ -1260,7 +1260,7 @@ class AAA
 {
 public:
 	float x;
-
+	
 	float xx(){ 
 		WATCH_OBJECT("ss", this, &AAA<E>::xx);
 		return x; 
@@ -1272,9 +1272,15 @@ float aaa1()
 	return 222;
 };
 
+
 int main(int argc, char* argv[])
 {
 	int32 aaa = 111;
+	KBEngine::COMPONENT_TYPE s = BASEAPP_TYPE;
+	const KBEngine::COMPONENT_TYPE &s11 = s;
+	WatcherValue<COMPONENT_TYPE>* xxxxx = static_cast<WatcherValue<COMPONENT_TYPE>*>(addWatcher("111/222/sss1", s));
+	MemoryStream sx;
+	xxxxx->addToInitStream(&sx);
 	addWatcher("111/222/sss", aaa);
 	addWatcher("111/222/xxx", aaa);
 	AAA<int> axxxx;

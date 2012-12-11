@@ -27,6 +27,7 @@ namespace KBEngine{
 WatcherObject::WatcherObject(std::string path):
   path_(path),
   name_(),
+  strval_(),
   id_(0),
   s_(),
   numWitness_(0)
@@ -217,7 +218,7 @@ bool WatcherPaths::_addWatcher(std::string path, WatcherObject* pwo)
 }
 
 //-------------------------------------------------------------------------------------
-bool WatcherPaths::addWatcherFromStream(std::string path, std::string name, 
+WatcherObject* WatcherPaths::addWatcherFromStream(std::string path, std::string name, 
 										WATCHER_ID wid, WATCHERTYPE wtype, MemoryStream* s)
 {
 	WatcherObject* pWobj = NULL;
@@ -229,62 +230,50 @@ bool WatcherPaths::addWatcherFromStream(std::string path, std::string name,
 	else
 		fullpath = path + "/" + name;
 
+	pWobj = new WatcherObject(fullpath);
+
 	switch(wtype)
 	{
 	case WATCHER_TYPE_UINT8:
-		pWobj = new WatcherValue<uint8>(fullpath);
 		pWobj->updateStream<uint8>(s);
 		break;
 	case WATCHER_TYPE_UINT16:
-		pWobj = new WatcherValue<uint16>(fullpath);
 		pWobj->updateStream<uint16>(s);
 		break;
 	case WATCHER_TYPE_UINT32:
-		pWobj = new WatcherValue<uint32>(fullpath);
 		pWobj->updateStream<uint32>(s);
 		break;
 	case WATCHER_TYPE_UINT64:
-		pWobj = new WatcherValue<uint64>(fullpath);
 		pWobj->updateStream<uint64>(s);
 		break;
 	case WATCHER_TYPE_INT8:
-		pWobj = new WatcherValue<int8>(fullpath);
 		pWobj->updateStream<int8>(s);
 		break;
 	case WATCHER_TYPE_INT16:
-		pWobj = new WatcherValue<int16>(fullpath);
 		pWobj->updateStream<int16>(s);
 		break;
 	case WATCHER_TYPE_INT32:
-		pWobj = new WatcherValue<int32>(fullpath);
 		pWobj->updateStream<int32>(s);
 		break;
 	case WATCHER_TYPE_INT64:
-		pWobj = new WatcherValue<int64>(fullpath);
 		pWobj->updateStream<int64>(s);
 		break;
 	case WATCHER_TYPE_FLOAT:
-		pWobj = new WatcherValue<float>(fullpath);
 		pWobj->updateStream<float>(s);
 		break;
 	case WATCHER_TYPE_DOUBLE:
-		pWobj = new WatcherValue<double>(fullpath);
 		pWobj->updateStream<double>(s);
 		break;
 	case WATCHER_TYPE_CHAR:
-		pWobj = new WatcherValue<char*>(fullpath);
 		pWobj->updateStream<char*>(s);
 		break;
 	case WATCHER_TYPE_STRING:
-		pWobj = new WatcherValue<std::string>(fullpath);
 		pWobj->updateStream<std::string>(s);
 		break;
 	case WATCHER_TYPE_BOOL:
-		pWobj = new WatcherValue<bool>(fullpath);
 		pWobj->updateStream<bool>(s);
 		break;
 	case WATCHER_TYPE_COMPONENT_TYPE:
-		pWobj = new WatcherValue<COMPONENT_TYPE>(fullpath);
 		pWobj->updateStream<COMPONENT_TYPE>(s);
 		break;
 	default:
@@ -292,7 +281,10 @@ bool WatcherPaths::addWatcherFromStream(std::string path, std::string name,
 	};
 
 	pWobj->id(wid);
-	return pWobj != NULL && _addWatcher(path, pWobj);
+	bool ret = _addWatcher(path, pWobj);
+	KBE_ASSERT(ret);
+
+	return pWobj;
 }
 
 //-------------------------------------------------------------------------------------
