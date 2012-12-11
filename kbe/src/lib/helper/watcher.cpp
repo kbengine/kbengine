@@ -197,12 +197,13 @@ bool WatcherPaths::_addWatcher(std::string path, WatcherObject* pwo)
 		WATCHER_PATHS::iterator iter = watcherPaths_.find(vec[0]);
 		if(iter != watcherPaths_.end())
 		{
-			return iter->second._addWatcher(path, pwo);
+			return iter->second->_addWatcher(path, pwo);
 		}
 		else
 		{
-			WatcherPaths& watcherPaths  = watcherPaths_[vec[0]];
-			return watcherPaths._addWatcher(path, pwo);
+			WatcherPaths* watcherPaths = new WatcherPaths();
+			watcherPaths_[vec[0]].reset(watcherPaths);
+			return watcherPaths->_addWatcher(path, pwo);
 		}
 	}
 

@@ -395,7 +395,7 @@ public:
 	void addToStream(MemoryStream* s);
 
 	void readWatchers(std::string path, MemoryStream* s);
-	typedef std::tr1::unordered_map<std::string, WatcherPaths> WATCHER_PATHS;
+	typedef std::tr1::unordered_map<std::string, std::tr1::shared_ptr<WatcherPaths> > WATCHER_PATHS;
 
 	bool addWatcher(std::string path, WatcherObject* pwo);
 	bool _addWatcher(std::string path, WatcherObject* pwo);
