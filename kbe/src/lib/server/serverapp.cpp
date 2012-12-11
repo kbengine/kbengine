@@ -125,7 +125,7 @@ bool ServerApp::initialize()
 //-------------------------------------------------------------------------------------		
 bool ServerApp::initializeWatcher()
 {
-	WATCH_OBJECT("stats/stampsPerSecond", &KBEngine::stampsPerSecond);
+	WATCH_OBJECT("stats/111/222/333/stampsPerSecond", &KBEngine::stampsPerSecond);
 	WATCH_OBJECT("uid", &KBEngine::getUserUID);
 	WATCH_OBJECT("username", &KBEngine::getUsername);
 	WATCH_OBJECT("componentType", componentType_);
@@ -146,11 +146,25 @@ void ServerApp::queryWatcher(Mercury::Channel* pChannel, MemoryStream& s)
 	MemoryStream::SmartPoolObjectPtr readStreamPtr = MemoryStream::createSmartPoolObj();
 	WatcherPaths::root().readWatchers(path, readStreamPtr.get()->get());
 
+	MemoryStream::SmartPoolObjectPtr readStreamPtr1 = MemoryStream::createSmartPoolObj();
+	WatcherPaths::root().readChildPaths(path, path, readStreamPtr1.get()->get());
+
 	Mercury::Bundle bundle;
 	ConsoleInterface::ConsoleWatcherCBMessageHandler msgHandler;
 	bundle.newMessage(msgHandler);
+
+	uint8 type = 0;
+	bundle << type;
 	bundle.append(readStreamPtr.get()->get());
 	bundle.send(getNetworkInterface(), pChannel);
+
+	Mercury::Bundle bundle1;
+	bundle1.newMessage(msgHandler);
+
+	type = 1;
+	bundle1 << type;
+	bundle1.append(readStreamPtr1.get()->get());
+	bundle1.send(getNetworkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------		

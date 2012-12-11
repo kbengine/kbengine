@@ -24,9 +24,12 @@ public:
 	void addHeader(std::string name);
 	void addItem(KBEngine::WatcherObject* wo);
 	void changePath(std::string path);
-	void addPath(std::string path);
+	void addPath(std::string rootpath, std::string path);
 
+	HTREEITEM findAndCreatePathItem(std::string path, HTREEITEM rootItem);
 	void clearAllData(bool clearTree = true);
+
+	std::string getCurrSelPath();
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
@@ -35,4 +38,5 @@ public:
 	CTreeCtrl m_tree;
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	CListCtrl m_status;
+	afx_msg void OnTvnSelchangedTree1(NMHDR *pNMHDR, LRESULT *pResult);
 };

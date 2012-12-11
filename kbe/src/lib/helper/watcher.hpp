@@ -404,6 +404,8 @@ public:
 	void addToStream(MemoryStream* s);
 
 	void readWatchers(std::string path, MemoryStream* s);
+	void readChildPaths(std::string srcPath, std::string path, MemoryStream* s);
+
 	typedef std::tr1::unordered_map<std::string, std::tr1::shared_ptr<WatcherPaths> > WATCHER_PATHS;
 
 	bool addWatcher(std::string path, WatcherObject* pwo);
@@ -435,6 +437,7 @@ protected:
 template <class TYPE> 
 inline WatcherObject* addWatcher(std::string path, const TYPE& type)
 {
+	path = std::string("root/") + path;
 	WatcherValue<TYPE>* pwo = new WatcherValue<TYPE>(path, type);
 	WatcherPaths::root().addWatcher(path, pwo);
 	return pwo;
@@ -450,6 +453,7 @@ inline WatcherObject* addWatcher(std::string path, const TYPE& type)
 template <class RETURN_TYPE> 
 inline WatcherObject* addWatcher(std::string path, RETURN_TYPE (*func)())
 {
+	path = std::string("root/") + path;
 	WatcherFunction<RETURN_TYPE>* pwo = new WatcherFunction<RETURN_TYPE>(path, func);
 	WatcherPaths::root().addWatcher(path, pwo);
 	return pwo;
@@ -466,6 +470,7 @@ inline WatcherObject* addWatcher(std::string path, RETURN_TYPE (*func)())
 template <class RETURN_TYPE, class OBJ_TYPE> 
 inline WatcherObject* addWatcher(std::string path, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)())
 {
+	path = std::string("root/") + path;
 	WatcherMethod<RETURN_TYPE, OBJ_TYPE>* pwo = new WatcherMethod<RETURN_TYPE, OBJ_TYPE>(path, This, func);
 	WatcherPaths::root().addWatcher(path, pwo);
 	return pwo;
@@ -474,6 +479,7 @@ inline WatcherObject* addWatcher(std::string path, OBJ_TYPE* This, RETURN_TYPE (
 template <class RETURN_TYPE, class OBJ_TYPE> 
 inline WatcherObject* addWatcher(std::string path, OBJ_TYPE* This, RETURN_TYPE (OBJ_TYPE::*func)()const)
 {
+	path = std::string("root/") + path;
 	WatcherMethodConst<RETURN_TYPE, OBJ_TYPE>* pwo = new WatcherMethodConst<RETURN_TYPE, OBJ_TYPE>(path, This, func);
 	WatcherPaths::root().addWatcher(path, pwo);
 	return pwo;

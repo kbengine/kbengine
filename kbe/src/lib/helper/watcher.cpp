@@ -318,7 +318,51 @@ void WatcherPaths::readWatchers(std::string path, MemoryStream* s)
 		KBEngine::strutil::kbe_split(path, '/', vec);
 		
 		path.erase(0, vec[0].size() + 1);
-		readWatchers(path, s);
+
+		WATCHER_PATHS::iterator iter = watcherPaths_.begin();
+		for(; iter != watcherPaths_.end(); iter++)
+		{
+			if(iter->first == vec[0])
+			{
+				iter->second->readWatchers(path, s);
+				break;
+			}
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void WatcherPaths::readChildPaths(std::string srcPath, std::string path, MemoryStream* s)
+{
+	if(path.size() == 0)
+	{
+		if(srcPath.size() == 0)
+			srcPath = "/";
+
+		(*s) << srcPath;
+
+		WATCHER_PATHS::iterator iter = watcherPaths_.begin();
+		for(; iter != watcherPaths_.end(); iter++)
+		{
+			(*s) << iter->first;
+		}
+	}
+	else
+	{
+		std::vector<std::string> vec;
+		KBEngine::strutil::kbe_split(path, '/', vec);
+		
+		path.erase(0, vec[0].size() + 1);
+
+		WATCHER_PATHS::iterator iter = watcherPaths_.begin();
+		for(; iter != watcherPaths_.end(); iter++)
+		{
+			if(iter->first == vec[0])
+			{
+				iter->second->readChildPaths(srcPath, path, s);
+				break;
+			}
+		}
 	}
 }
 

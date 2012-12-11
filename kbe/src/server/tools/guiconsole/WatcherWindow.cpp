@@ -9,7 +9,6 @@
 #include "helper/watcher.hpp"
 
 // CWatcherWindow dialog
-bool g_changePath = true;
 
 IMPLEMENT_DYNAMIC(CWatcherWindow, CDialog)
 
@@ -41,6 +40,10 @@ BOOL CWatcherWindow::OnInitDialog()
 	//dwStyle |= LVS_EX_ONECLICKACTIVATE;
 	m_status.SetExtendedStyle(dwStyle);					//设置扩展风格
 
+	DWORD styles = ::GetWindowLong(m_tree.m_hWnd, GWL_STYLE);
+	styles |= TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS;
+	::SetWindowLong(m_tree.m_hWnd, GWL_STYLE, styles);
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -55,6 +58,7 @@ void CWatcherWindow::autoWndSize()
 
 BEGIN_MESSAGE_MAP(CWatcherWindow, CDialog)
 	ON_WM_TIMER()
+	ON_NOTIFY(TVN_SELCHANGED, IDC_TREE1, &CWatcherWindow::OnTvnSelchangedTree1)
 END_MESSAGE_MAP()
 
 
@@ -69,7 +73,7 @@ void CWatcherWindow::OnTimer(UINT_PTR nIDEvent)
 		return;
 
 	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
-	dlg->reqQueryWatcher("");
+	dlg->reqQueryWatcher(getCurrSelPath());
 }
 
 void CWatcherWindow::addHeader(std::string name)
@@ -139,7 +143,9 @@ void CWatcherWindow::addItem(KBEngine::WatcherObject* wo)
 
 void CWatcherWindow::clearAllData(bool clearTree)
 {
-	m_tree.DeleteAllItems();
+	if(clearTree)
+		m_tree.DeleteAllItems();
+
 	m_status.DeleteAllItems();
 	if(m_status.GetHeaderCtrl())
 	{
@@ -156,7 +162,7 @@ void CWatcherWindow::changePath(std::string path)
 	clearAllData(false);
 }
 
-void CWatcherWindow::addPath(std::string path)
+void CWatcherWindow::addPath(std::string rootpath, std::string path)
 {
 	if(path.size() == 0)
 		return;
@@ -165,39 +171,223 @@ void CWatcherWindow::addPath(std::string path)
 	CString s = ws;
 	free(ws);
 
-	HTREEITEM hItemRoot;
+	HTREEITEM hItemRoot = m_tree.GetRootItem();
+	hItemRoot = findAndCreatePathItem(rootpath, hItemRoot);
+
+	HTREEITEM item = hItemRoot;
+	
+	if(item == NULL)
+	{
+		item = m_tree.GetRootItem();
+	}
+	else
+	{
+		item = m_tree.GetChildItem(hItemRoot);
+	}
+
+	if(item)
+	{
+		do
+		{
+			CString s1 = m_tree.GetItemText(item);
+			if(s == s1)
+			{
+				return;
+			}
+		}while(item = m_tree.GetNextItem(item, TVGN_NEXT));
+	}
+
 	TV_INSERTSTRUCT tcitem;
-	tcitem.hParent = TVI_ROOT;
+	tcitem.hParent = hItemRoot;
 	tcitem.hInsertAfter = TVI_LAST;
 	tcitem.item.mask = TVIF_TEXT|TVIF_PARAM|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
 	tcitem.item.pszText = s.GetBuffer(0);
 	tcitem.item.lParam = 0;
 	tcitem.item.iImage = 0;
 	tcitem.item.iSelectedImage = 1;
-	hItemRoot = m_tree.InsertItem(&tcitem);
+	m_tree.InsertItem(&tcitem);
+
+	m_tree.Expand(hItemRoot, TVE_EXPAND);
+	m_tree.Expand(m_tree.GetRootItem(), TVE_EXPAND);
+}
+
+HTREEITEM CWatcherWindow::findAndCreatePathItem(std::string path, HTREEITEM rootItem)
+{
+	if(path == "")
+		return NULL;
+
+	std::vector<std::string> vec;
+	KBEngine::strutil::kbe_split(path, '/', vec);
+	
+	wchar_t* ws = KBEngine::char2wchar(vec[0].c_str());
+	CString pathitem = ws;
+	free(ws);
+
+	if(vec.size() > 1)
+	{
+		path.erase(0, vec[0].size() + 1);
+		
+		HTREEITEM item = rootItem, hasItem = NULL;
+		if(item)
+		{
+			do
+			{
+				CString s = m_tree.GetItemText(item);
+				if(pathitem == s)
+				{
+					hasItem = item;
+					break;
+				}
+			}while(item = m_tree.GetNextItem(item, TVGN_NEXT));
+		}
+
+		if(hasItem == NULL)
+		{
+			TV_INSERTSTRUCT tcitem;
+			tcitem.hParent = rootItem;
+			tcitem.hInsertAfter = TVI_LAST;
+			tcitem.item.mask = TVIF_TEXT|TVIF_PARAM|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
+			tcitem.item.pszText = pathitem.GetBuffer(0);
+			tcitem.item.lParam = 0;
+			tcitem.item.iImage = 0;
+			tcitem.item.iSelectedImage = 1;
+			rootItem = m_tree.InsertItem(&tcitem);
+			m_tree.Expand(rootItem, TVE_EXPAND);
+		}
+		else
+		{
+			rootItem = hasItem;
+			rootItem = m_tree.GetChildItem(hasItem);
+			if(rootItem == NULL)
+			{
+				ws = KBEngine::char2wchar(vec[1].c_str());
+				pathitem = ws;
+				free(ws);
+				TV_INSERTSTRUCT tcitem;
+				tcitem.hParent = rootItem;
+				tcitem.hInsertAfter = TVI_LAST;
+				tcitem.item.mask = TVIF_TEXT|TVIF_PARAM|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
+				tcitem.item.pszText = pathitem.GetBuffer(0);
+				tcitem.item.lParam = 0;
+				tcitem.item.iImage = 0;
+				tcitem.item.iSelectedImage = 1;
+				rootItem = m_tree.InsertItem(&tcitem);
+				m_tree.Expand(rootItem, TVE_EXPAND);
+			}
+		}
+		return findAndCreatePathItem(path, rootItem);
+	}
+	else
+	{
+		HTREEITEM item = rootItem;
+
+		if(item)
+		{
+			do
+			{
+				CString s = m_tree.GetItemText(item);
+				if(pathitem == s)
+				{
+					return item;
+				}
+			}while(item = m_tree.GetNextItem(item, TVGN_NEXT));
+		}
+		else
+		{
+			TV_INSERTSTRUCT tcitem;
+			tcitem.hParent = rootItem;
+			tcitem.hInsertAfter = TVI_LAST;
+			tcitem.item.mask = TVIF_TEXT|TVIF_PARAM|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
+			tcitem.item.pszText = pathitem.GetBuffer(0);
+			tcitem.item.lParam = 0;
+			tcitem.item.iImage = 0;
+			tcitem.item.iSelectedImage = 1;
+			rootItem = m_tree.InsertItem(&tcitem);
+			m_tree.Expand(rootItem, TVE_EXPAND);
+			return rootItem;
+		}
+	}
+
+	return NULL;
 }
 
 void CWatcherWindow::onReceiveWatcherData(KBEngine::MemoryStream& s)
 {
-	KBEngine::WatcherPaths watcherPaths;
+	uint8 type = 0;
+	s >> type;
 
-	while(s.opsize() > 0)
+	if(type == 0)
 	{
-		std::string path;
-		s >> path;
+		KBEngine::WatcherPaths watcherPaths;
 
-		std::string name;
-		s >> name;
+		while(s.opsize() > 0)
+		{
+			std::string path;
+			s >> path;
 
-		KBEngine::WATCHER_ID id = 0;
-		s >> id;
+			std::string name;
+			s >> name;
 
-		KBEngine::WATCHERTYPE type;
-		s >> type;
+			KBEngine::WATCHER_ID id = 0;
+			s >> id;
 
-		KBEngine::WatcherObject* wo = watcherPaths.addWatcherFromStream(path, name, id, type, &s);
-		addHeader(name);
-		addItem(wo);
-		addPath(wo->path());
-	};
+			KBEngine::WATCHERTYPE type;
+			s >> type;
+
+			KBEngine::WatcherObject* wo = watcherPaths.addWatcherFromStream(path, name, id, type, &s);
+			addHeader(name);
+			addItem(wo);
+		};
+	}
+	else
+	{
+		std::string rootpath;
+		s >> rootpath;
+		if(rootpath == "/")
+			rootpath = "";
+
+		while(s.opsize() > 0)
+		{
+			std::string path;
+			s >> path;
+			addPath(rootpath, path);
+		}
+	}
+}
+
+std::string CWatcherWindow::getCurrSelPath()
+{
+	HTREEITEM item = m_tree.GetSelectedItem();
+	if(item == NULL)
+		return "";
+	
+	CString path;
+
+	do
+	{
+		CString s;
+		if(path.GetLength() == 0)
+		{
+			path = m_tree.GetItemText(item);
+		}
+		else
+		{
+			s = m_tree.GetItemText(item) + "/" + path;
+			path = s;
+		}
+	}while(item = m_tree.GetNextItem(item, TVGN_PARENT));
+
+	char* str = KBEngine::wchar2char(path.GetBuffer(0));
+	std::string ret = str;
+	free(str);
+	return ret;
+}
+
+void CWatcherWindow::OnTvnSelchangedTree1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
+	// TODO: Add your control notification handler code here
+	*pResult = 0;
+
+	clearAllData(false);
 }
