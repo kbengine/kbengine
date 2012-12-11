@@ -27,4 +27,5 @@ protected:
 public:
 	CTreeCtrl m_tree;
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	CListCtrl m_status;
 };

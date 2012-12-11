@@ -402,6 +402,12 @@ void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel,
 							 std::string& accountName, 
 							 std::string& password)
 {
+	if(accountName.size() == 0)
+	{
+		ERROR_MSG("Dbmgr::reqCreateAccount: accountName is empty.\n");
+		return;
+	}
+
 	dbThreadPool_.addTask(new DBTaskCreateAccount(pChannel->addr(), 
 		accountName, password));
 
@@ -413,6 +419,12 @@ void Dbmgr::onAccountLogin(Mercury::Channel* pChannel,
 						   std::string& accountName, 
 						   std::string& password)
 {
+	if(accountName.size() == 0)
+	{
+		ERROR_MSG("Dbmgr::onAccountLogin: accountName is empty.\n");
+		return;
+	}
+
 	dbThreadPool_.addTask(new DBTaskAccountLogin(pChannel->addr(), 
 		accountName, password));
 }
@@ -425,6 +437,12 @@ void Dbmgr::queryAccount(Mercury::Channel* pChannel,
 						 ENTITY_ID entityID,
 						 DBID entityDBID)
 {
+	if(accountName.size() == 0)
+	{
+		ERROR_MSG("Dbmgr::queryAccount: accountName is empty.\n");
+		return;
+	}
+
 	bufferedDBTasks_.addTask(new DBTaskQueryAccount(pChannel->addr(), 
 		accountName, password, componentID, entityID, entityDBID));
 

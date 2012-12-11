@@ -319,17 +319,36 @@ bool DBTaskCreateAccount::db_thread_process()
 
 	ACCOUNT_INFOS info;
 	if(pTable->queryAccount(pdbi_, accountName_, info))
-		return false;
+	{
+		if(pdbi_->getlasterror() > 0)
+		{
+			WARNING_MSG(boost::format("DBTaskCreateAccount::db_thread_process(): queryAccount error: %1%\n") % 
+				pdbi_->getstrerror());
+		}
 
-	DBID entityDBID = EntityTables::getSingleton().writeEntity(pdbi_, 0, &pTable->accountDefMemoryStream(), pModule);
+		return false;
+	}
+
+	DBID entityDBID = EntityTables::getSingleton().writeEntity(pdbi_, 0, 
+		&pTable->accountDefMemoryStream(), pModule);
+
 	pTable->accountDefMemoryStream().rpos(0);
 	KBE_ASSERT(entityDBID > 0);
 
 	info.name = accountName_;
 	info.password = password_;
 	info.dbid = entityDBID;
+
 	if(!pTable->logAccount(pdbi_, info))
+	{
+		if(pdbi_->getlasterror() > 0)
+		{
+			WARNING_MSG(boost::format("DBTaskCreateAccount::db_thread_process(): logAccount error:%1%\n") % 
+				pdbi_->getstrerror());
+		}
+
 		return false;
+	}
 
 	success_ = true;
 	return false;

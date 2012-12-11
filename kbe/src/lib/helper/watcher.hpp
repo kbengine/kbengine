@@ -67,8 +67,6 @@ public:
 
 	virtual void addToStream(MemoryStream* s) = 0;
 
-	virtual void updateStream(MemoryStream* s) = 0;
-
 	WATCHER_ID id(){ return id_; }
 	void id(WATCHER_ID i){ id_ = i; }
 
@@ -77,6 +75,13 @@ public:
 
 	template <class T>
 	WATCHERTYPE type()const{ return WATCHER_TYPE_UNKNOWN; }
+
+	template <class T>
+	void updateStream(MemoryStream* s){
+		s_.clear(false);
+		s_.append(s->data() + s->rpos(), sizeof(T));
+		s->read_skip<T>();
+	}
 
 	void addWitness(){ numWitness_++; }
 	void delWitness(){ numWitness_--; }
@@ -162,7 +167,25 @@ inline WATCHERTYPE WatcherObject::type<char*>()const
 }
 
 template <>
+inline WATCHERTYPE WatcherObject::type<const char*>()const
+{
+	return WATCHER_TYPE_STRING;
+}
+
+template <>
 inline WATCHERTYPE WatcherObject::type<std::string>()const
+{
+	return WATCHER_TYPE_STRING;
+}
+
+template <>
+inline WATCHERTYPE WatcherObject::type<std::string&>()const
+{
+	return WATCHER_TYPE_STRING;
+}
+
+template <>
+inline WATCHERTYPE WatcherObject::type<const std::string&>()const
 {
 	return WATCHER_TYPE_STRING;
 }
@@ -172,6 +195,40 @@ inline WATCHERTYPE WatcherObject::type<COMPONENT_TYPE>()const
 {
 	return WATCHER_TYPE_COMPONENT_TYPE;
 }
+
+template <>
+inline void WatcherObject::updateStream<std::string>(MemoryStream* s)
+{
+	s_.clear(false);
+	std::string str;
+	(*s) >> str;
+	s_ << str;
+}
+
+template <>
+inline void WatcherObject::updateStream<std::string&>(MemoryStream* s)
+{
+	updateStream<std::string>(s);
+}
+
+template <>
+inline void WatcherObject::updateStream<const std::string&>(MemoryStream* s)
+{
+	updateStream<std::string>(s);
+}
+
+template <>
+inline void WatcherObject::updateStream<char*>(MemoryStream* s)
+{
+	updateStream<std::string>(s);
+}
+
+template <>
+inline void WatcherObject::updateStream<const char*>(MemoryStream* s)
+{
+	updateStream<std::string>(s);
+}
+
 
 /*
 	watcher: 直接监视一个值
@@ -202,12 +259,6 @@ public:
 	void addToStream(MemoryStream* s){
 		(*s) << id_ << (*pWatchVal_);
 	};
-
-	virtual void updateStream(MemoryStream* s){
-		s_.clear(false);
-		s_.append(s->data() + s->rpos(), sizeof(T));
-		s->read_skip<T>();
-	}
 
 protected:
 	const T* pWatchVal_;
@@ -241,12 +292,6 @@ public:
 		(*s) << id_ << (*func_)();
 	};
 
-	virtual void updateStream(MemoryStream* s){
-		s_.clear(false);
-		s_.append(s->data() + s->rpos(), sizeof(RETURN_TYPE));
-		s->read_skip<RETURN_TYPE>();
-	}
-
 protected:
 	FUNC func_;
 };
@@ -279,12 +324,6 @@ public:
 		(*s) << id_ << (This_->*func_)();
 	};
 
-	virtual void updateStream(MemoryStream* s){
-		s_.clear(false);
-		s_.append(s->data() + s->rpos(), sizeof(RETURN_TYPE));
-		s->read_skip<RETURN_TYPE>();
-	}
-
 protected:
 	FUNC func_;
 	OBJ_TYPE* This_;
@@ -314,12 +353,6 @@ public:
 	{
 		(*s) << id_ << (This_->*func_)();
 	};
-
-	virtual void updateStream(MemoryStream* s){
-		s_.clear(false);
-		s_.append(s->data() + s->rpos(), sizeof(RETURN_TYPE));
-		s->read_skip<RETURN_TYPE>();
-	}
 
 protected:
 	FUNC func_;

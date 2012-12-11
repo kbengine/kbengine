@@ -84,17 +84,6 @@ void Watchers::addToStream(MemoryStream* s)
 //-------------------------------------------------------------------------------------
 void Watchers::updateStream(MemoryStream* s)
 {
-	while(s->opsize() > 0)
-	{
-		std::string name;
-		(*s) >> name;
-		
-		WATCHER_MAP::iterator iter = watcherObjs_.find(name);
-		if(iter != watcherObjs_.end())
-		{
-			iter->second->updateStream(s);
-		}
-	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -106,7 +95,8 @@ bool Watchers::addWatcher(std::string path, WatcherObject* pwo)
 	}
 
 	watcherObjs_[pwo->name()].reset(pwo);
-	DEBUG_MSG(boost::format("Watchers::addWatcher: %1%, id=%2%\n") % pwo->path() % pwo->id());
+	DEBUG_MSG(boost::format("Watchers::addWatcher: path=%1%, name=%2%, id=%3%\n") % 
+		pwo->path() % pwo->name() % pwo->id());
 	return true;
 }
 
@@ -231,56 +221,76 @@ bool WatcherPaths::addWatcherFromStream(std::string path, std::string name,
 {
 	WatcherObject* pWobj = NULL;
 
+	std::string fullpath = "";
+
+	if(path.size() == 0)
+		fullpath = name;
+	else
+		fullpath = path + "/" + name;
+
 	switch(wtype)
 	{
 	case WATCHER_TYPE_UINT8:
-		pWobj = new WatcherValue<uint8>(path + "/" + name);
+		pWobj = new WatcherValue<uint8>(fullpath);
+		pWobj->updateStream<uint8>(s);
 		break;
 	case WATCHER_TYPE_UINT16:
-		pWobj = new WatcherValue<uint16>(path + "/" + name);
+		pWobj = new WatcherValue<uint16>(fullpath);
+		pWobj->updateStream<uint16>(s);
 		break;
 	case WATCHER_TYPE_UINT32:
-		pWobj = new WatcherValue<uint32>(path + "/" + name);
+		pWobj = new WatcherValue<uint32>(fullpath);
+		pWobj->updateStream<uint32>(s);
 		break;
 	case WATCHER_TYPE_UINT64:
-		pWobj = new WatcherValue<uint64>(path + "/" + name);
+		pWobj = new WatcherValue<uint64>(fullpath);
+		pWobj->updateStream<uint64>(s);
 		break;
 	case WATCHER_TYPE_INT8:
-		pWobj = new WatcherValue<int8>(path + "/" + name);
+		pWobj = new WatcherValue<int8>(fullpath);
+		pWobj->updateStream<int8>(s);
 		break;
 	case WATCHER_TYPE_INT16:
-		pWobj = new WatcherValue<int16>(path + "/" + name);
+		pWobj = new WatcherValue<int16>(fullpath);
+		pWobj->updateStream<int16>(s);
 		break;
 	case WATCHER_TYPE_INT32:
-		pWobj = new WatcherValue<int32>(path + "/" + name);
+		pWobj = new WatcherValue<int32>(fullpath);
+		pWobj->updateStream<int32>(s);
 		break;
 	case WATCHER_TYPE_INT64:
-		pWobj = new WatcherValue<int64>(path + "/" + name);
+		pWobj = new WatcherValue<int64>(fullpath);
+		pWobj->updateStream<int64>(s);
 		break;
 	case WATCHER_TYPE_FLOAT:
-		pWobj = new WatcherValue<float>(path + "/" + name);
+		pWobj = new WatcherValue<float>(fullpath);
+		pWobj->updateStream<float>(s);
 		break;
 	case WATCHER_TYPE_DOUBLE:
-		pWobj = new WatcherValue<double>(path + "/" + name);
+		pWobj = new WatcherValue<double>(fullpath);
+		pWobj->updateStream<double>(s);
 		break;
 	case WATCHER_TYPE_CHAR:
-		pWobj = new WatcherValue<char*>(path + "/" + name);
+		pWobj = new WatcherValue<char*>(fullpath);
+		pWobj->updateStream<char*>(s);
 		break;
 	case WATCHER_TYPE_STRING:
-		pWobj = new WatcherValue<std::string>(path + "/" + name);
+		pWobj = new WatcherValue<std::string>(fullpath);
+		pWobj->updateStream<std::string>(s);
 		break;
 	case WATCHER_TYPE_BOOL:
-		pWobj = new WatcherValue<bool>(path + "/" + name);
+		pWobj = new WatcherValue<bool>(fullpath);
+		pWobj->updateStream<bool>(s);
 		break;
 	case WATCHER_TYPE_COMPONENT_TYPE:
-		pWobj = new WatcherValue<COMPONENT_TYPE>(path + "/" + name);
+		pWobj = new WatcherValue<COMPONENT_TYPE>(fullpath);
+		pWobj->updateStream<COMPONENT_TYPE>(s);
 		break;
 	default:
 		KBE_ASSERT(false && "no support!\n");
 	};
 
 	pWobj->id(wid);
-	pWobj->updateStream(s);
 	return pWobj != NULL && _addWatcher(path, pWobj);
 }
 
