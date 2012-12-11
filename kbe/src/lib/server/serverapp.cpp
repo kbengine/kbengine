@@ -125,7 +125,7 @@ bool ServerApp::initialize()
 //-------------------------------------------------------------------------------------		
 bool ServerApp::initializeWatcher()
 {
-	WATCH_OBJECT("stats/111/222/333/stampsPerSecond", &KBEngine::stampsPerSecond);
+	WATCH_OBJECT("stats/stampsPerSecond", &KBEngine::stampsPerSecond);
 	WATCH_OBJECT("uid", &KBEngine::getUserUID);
 	WATCH_OBJECT("username", &KBEngine::getUsername);
 	WATCH_OBJECT("componentType", componentType_);
