@@ -155,14 +155,31 @@ namespace strutil {
 
 // utf-8
 namespace strutil {
+	
 	char* wchar2char(const wchar_t* ts);
 	wchar_t* char2wchar(const char* cs);
 
+	/*
 	int wchar2utf8(const wchar_t* in, int in_len, char* out, int out_max);
 	int wchar2utf8(const std::wstring& in, std::string& out);
   
 	int utf82wchar(const char* in, int in_len, wchar_t* out, int out_max);
 	int utf82wchar(const std::string& in, std::wstring& out);
+	*/
+
+	bool utf82wchar(const std::string& utf8str, std::wstring& wstr);
+
+	bool utf82wchar(char const* utf8str, size_t csize, wchar_t* wstr, size_t& wsize);
+	inline bool utf82wchar(const std::string& utf8str, wchar_t* wstr, size_t& wsize)
+	{
+		return utf82wchar(utf8str.c_str(), utf8str.size(), wstr, wsize);
+	}
+
+	bool wchar2utf8(const std::wstring& wstr, std::string& utf8str);
+	bool wchar2utf8(const wchar_t* wstr, size_t size, std::string& utf8str);
+
+	size_t utf8length(const std::string& utf8str);                    // set string to "" if invalid utf8 sequence
+	void utf8truncate(const std::string& utf8str, size_t len);
 }
 
 }
