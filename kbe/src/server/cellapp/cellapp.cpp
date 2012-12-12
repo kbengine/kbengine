@@ -541,7 +541,7 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 			params = script::Pickler::unpickle(strEntityCellData);
 	
 		// 创建entity
-		Entity* e = createEntityCommon(entityType.c_str(), params, false, mailboxEntityID);
+		Entity* e = createEntityCommon(entityType.c_str(), params, false, mailboxEntityID, false);
 		
 		if(e == NULL)
 		{
@@ -666,7 +666,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		PyObject* cellData = NULL;
 	
 		// 创建entity
-		Entity* e = createEntityCommon(entityType.c_str(), cellData, false, entityID);
+		Entity* e = createEntityCommon(entityType.c_str(), cellData, false, entityID, false);
 		
 		if(e == NULL)
 		{

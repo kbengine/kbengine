@@ -612,7 +612,8 @@ public:																										\
 																											\
 	void destroyEntity();																					\
 	static PyObject* __py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * kwargs);				\
-
+																											\
+	void initProperty();																					\
 
 
 #define ENTITY_CPP_IMPL(APP, CLASS)																			\
@@ -748,6 +749,34 @@ public:																										\
 		}																									\
 																											\
 	}																										\
+																											\
+	void CLASS::initProperty()																				\
+	{																										\
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->begin();			\
+		for(; iter != lpPropertyDescrs_->end(); iter++)														\
+		{																									\
+			PropertyDescription* propertyDescription = iter->second;										\
+			DataType* dataType = propertyDescription->getDataType();										\
+																											\
+			if(dataType)																					\
+			{																								\
+				PyObject* defObj = propertyDescription->newDefaultVal();									\
+				PyObject_SetAttrString(static_cast<PyObject*>(this),										\
+							propertyDescription->getName(), defObj);										\
+				Py_DECREF(defObj);																			\
+																											\
+				/* DEBUG_MSG(boost::format(#CLASS"::"#CLASS": added [%1%] property ref=%2%.\n") %
+								propertyDescription->getName() % defObj->ob_refcnt);*/						\
+			}																								\
+			else																							\
+			{																								\
+				ERROR_MSG(boost::format(#CLASS"::initProperty: %1% dataType is NULL.\n") %					\
+					propertyDescription->getName());														\
+			}																								\
+		}																									\
+																											\
+		initing_ = false;																					\
+	}																										\
 
 
 #define ENTITY_CONSTRUCTION(CLASS)																			\
@@ -771,30 +800,6 @@ public:																										\
 
 
 #define ENTITY_INIT_PROPERTYS(CLASS)																		\
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->begin();				\
-	for(; iter != lpPropertyDescrs_->end(); iter++)															\
-	{																										\
-		PropertyDescription* propertyDescription = iter->second;											\
-		DataType* dataType = propertyDescription->getDataType();											\
-																											\
-		if(dataType)																						\
-		{																									\
-			PyObject* defObj = propertyDescription->newDefaultVal();										\
-			PyObject_SetAttrString(static_cast<PyObject*>(this),											\
-						propertyDescription->getName(), defObj);											\
-			Py_DECREF(defObj);																				\
-																											\
-			/* DEBUG_MSG(boost::format(#CLASS"::"#CLASS": added [%1%] property ref=%2%.\n") %
-							propertyDescription->getName() % defObj->ob_refcnt);*/							\
-		}																									\
-		else																								\
-		{																									\
-			ERROR_MSG(boost::format(#CLASS"::"#CLASS": %1% PropertyDescription the dataType is NULL.\n") %	\
-				propertyDescription->getName());															\
-		}																									\
-	}																										\
-	initing_ = false;																						\
-																											\
 
 
 

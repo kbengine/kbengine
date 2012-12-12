@@ -123,8 +123,8 @@ public:
 	/**
 		创建一个entity 
 	*/
-	E* createEntityCommon(const char* entityType, PyObject* params, 
-		bool isInitializeScript = true, ENTITY_ID eid = 0);
+	E* createEntityCommon(const char* entityType, PyObject* params,
+		bool isInitializeScript = true, ENTITY_ID eid = 0, bool initProperty = true);
 
 	virtual E* onCreateEntityCommon(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid);
 
@@ -400,8 +400,8 @@ bool EntityApp<E>::uninstallPyModules()
 }
 
 template<class E>
-E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params, 
-										 bool isInitializeScript, ENTITY_ID eid)
+E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
+										 bool isInitializeScript, ENTITY_ID eid, bool initProperty)
 {
 	// 检查ID是否足够, 不足返回NULL
 	if(eid <= 0 && idClient_.getSize() == 0)
@@ -433,6 +433,9 @@ E* EntityApp<E>::createEntityCommon(const char* entityType, PyObject* params,
 		id = idClient_.alloc();
 	
 	E* entity = onCreateEntityCommon(obj, sm, id);
+
+	if(initProperty)
+		entity->initProperty();
 
 	// 将entity加入entities
 	pEntities_->add(id, entity); 
