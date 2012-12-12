@@ -1275,22 +1275,6 @@ float aaa1()
 
 int main(int argc, char* argv[])
 {
-	int32 aaa = 111;
-	KBEngine::COMPONENT_TYPE s = BASEAPP_TYPE;
-	const KBEngine::COMPONENT_TYPE &s11 = s;
-	WatcherValue<COMPONENT_TYPE>* xxxxx = static_cast<WatcherValue<COMPONENT_TYPE>*>(addWatcher("111/222/sss1", s));
-	MemoryStream sx;
-	xxxxx->addToInitStream(&sx);
-	addWatcher("111/222/sss", aaa);
-	addWatcher("111/222/xxx", aaa);
-	AAA<int> axxxx;
-	axxxx.x = 78;
-	addWatcher("xx", axxxx.x);
-	
-	addWatcher("x1x", &aaa1);
-
-	
-
 	Resmgr::getSingleton().initialize();
 	ServerConfig sss;
 	// "../../res/server/kbengine_defs.xml"
