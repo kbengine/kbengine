@@ -103,7 +103,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	}  
 
 	Py_SetPath(pyPaths.c_str()); 
-	char* tmpchar = wchar2char(const_cast<wchar_t*>(pyPaths.c_str()));
+	char* tmpchar = strutil::wchar2char(const_cast<wchar_t*>(pyPaths.c_str()));
 	DEBUG_MSG(boost::format("Script::install: paths=%1%.\n") % tmpchar);
 	free(tmpchar);
 	
