@@ -44,7 +44,7 @@ ScriptStdOutErrHook::~ScriptStdOutErrHook()
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptStdOutErrHook::onPrint(const Py_UNICODE* msg, Py_ssize_t msglen)
+void ScriptStdOutErrHook::onPrint(const wchar_t* msg, uint32 msglen)
 {
 	ScriptStdOutErr::onPrint(msg, msglen);
 

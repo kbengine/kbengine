@@ -46,7 +46,7 @@ public:
 	bool uninstall(void);
 	bool isInstall(void)const{ return isInstall_; }
 
-	virtual void onPrint(const Py_UNICODE* msg, Py_ssize_t msglen);
+	virtual void onPrint(const wchar_t* msg, uint32 msglen);
 
 	std::wstring& buffer(){ return sbuffer_; }
 protected:

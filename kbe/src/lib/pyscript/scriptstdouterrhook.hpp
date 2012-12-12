@@ -34,7 +34,7 @@ public:
 	ScriptStdOutErrHook();
 	~ScriptStdOutErrHook();
 
-	void onPrint(const Py_UNICODE* msg, Py_ssize_t msglen);
+	void onPrint(const wchar_t* msg, uint32 msglen);
 
 	void setHookBuffer(std::string* buffer){ 
 		buffer_ = buffer; 
