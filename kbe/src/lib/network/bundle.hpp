@@ -314,6 +314,16 @@ public:
 		return *this;
 	}
 
+	Bundle &appendBlob(const std::string& str)
+	{
+		return appendBlob((const uint8 *)str.data(), str.size());
+	}
+
+	Bundle &appendBlob(const char* str, uint32 n)
+	{
+		return appendBlob((const uint8 *)str, n);
+	}
+
 	Bundle &appendBlob(const uint8 *str, uint32 n)
 	{
 		(*this) << n;
