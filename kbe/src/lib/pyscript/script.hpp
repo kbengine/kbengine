@@ -66,7 +66,7 @@ public:
 	int run_simpleString(const char* command, std::string* retBufferPtr);
 	int run_simpleString(std::string command, std::string* retBufferPtr)
 	{
-		run_simpleString(command.c_str(), retBufferPtr);
+		return run_simpleString(command.c_str(), retBufferPtr);
 	}
 
 	int registerToModule(const char* attrName, PyObject* pyObj);
