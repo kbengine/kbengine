@@ -46,12 +46,12 @@ namespace ConsoleInterface{
 		static void staticAddToBundle(Mercury::Bundle& s,			
 			std::string init_strarg)			
 		{
-			s << init_strarg;				
+			s.appendBlob(init_strarg);		
 		}
 		static void staticAddToStream(MemoryStream& s,			
 			std::string init_strarg)			
 		{
-			s << init_strarg;				
+			s.appendBlob(init_strarg);			
 		}
 		virtual int32 msgsize(void)				
 		{
@@ -59,11 +59,11 @@ namespace ConsoleInterface{
 		}
 		virtual void addToStream(MemoryStream& s)
 		{
-			s << strarg;	
+			s.appendBlob(strarg);	
 		}
 		virtual void createFromStream(MemoryStream& s)				
 		{
-			s >> strarg;	
+			s.readBlob(strarg);	
 		}
 	};	
 				

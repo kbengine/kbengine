@@ -62,8 +62,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	CELLAPP_MESSAGE_DECLARE_ARGS0(lookApp,									MERCURY_FIXED_MESSAGE)
 
 	// console远程执行python语句。
-	CELLAPP_MESSAGE_DECLARE_ARGS1(onExecScriptCommand,						MERCURY_VARIABLE_MESSAGE,
-									std::string,							strcommand)
+	CELLAPP_MESSAGE_DECLARE_STREAM(onExecScriptCommand,						MERCURY_VARIABLE_MESSAGE)
 
 	// dbmgr告知已经启动的其他baseapp或者cellapp的地址
 	// 当前app需要主动的去与他们建立连接

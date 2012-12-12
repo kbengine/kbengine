@@ -18,14 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-	kbengine-脚本系统::重定向python输入输出：
-		重写sys.stdout stderr
-		
-		使用例子:
-			将本模块实例覆盖 python.sys.stdout and stderr 就行了， 
-			使用完还原stdout and stderr
-*/
 #ifndef __SCRIPTSTDOUTERR_H__
 #define __SCRIPTSTDOUTERR_H__
 #include "helper/debug_helper.hpp"
@@ -54,14 +46,16 @@ public:
 	bool uninstall(void);
 	bool isInstall(void)const{ return isInstall_; }
 
-	virtual void onPrint(const char* msg);
+	virtual void onPrint(const Py_UNICODE* msg, Py_ssize_t msglen);
+
+	std::wstring& buffer(){ return sbuffer_; }
 protected:
 	bool softspace_;
 	PyObject* sysModule_;
 	PyObject* prevStderr_;
 	PyObject* prevStdout_;
 	bool isInstall_;
-	std::string sbuffer_;
+	std::wstring sbuffer_;
 } ;
 
 }

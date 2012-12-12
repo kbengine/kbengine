@@ -79,7 +79,7 @@ public:
 	{
 		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 		std::string strarg;	
-		s >> strarg;
+		s.readBlob(strarg);
 		dlg->onExecScriptCommandCB(pChannel, strarg);
 	};
 };
@@ -492,6 +492,7 @@ HTREEITEM CguiconsoleDlg::hasCheckApp(COMPONENT_TYPE type)
 
 void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 {
+	strCommand.Replace(L"\r", L"");
 	if(strCommand.GetLength() <= 0)
 		return;
 
@@ -503,36 +504,31 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 	}
 	
 	m_isUsingHistroy = false;
-	char* buffer = new char[strCommand.GetLength() * 2 + 1];
-
-	int len = WideCharToMultiByte(CP_ACP, 0, strCommand, strCommand.GetLength(), NULL, 0, NULL, NULL);
-	WideCharToMultiByte(CP_ACP,0, strCommand, strCommand.GetLength(), buffer, len, NULL, NULL);
-	buffer[len] = '\0';
-
-	int charLen = strlen(buffer);
-	std::string s = buffer;
 
 	m_historyCommand.push_back(strCommand);
 	historyCommandCheck();
 	m_historyCommandIndex = m_historyCommand.size() - 1;
 
-	int i = 0;
-	while((i = s.rfind("\r")) != -1)
-		s.erase(i, 1);
+	CString strCommand1 = strCommand;
 
 	// 对普通的输入加入print 让服务器回显信息
-    if((s.find("=")) == -1 &&
-		(s.find("print(")) == -1 &&
-		(s.find("import ")) == -1 &&
-		(s.find("class ")) == -1 &&
-		(s.find("def ")) == -1 &&
-		(s.find("del ")) == -1 &&
-		(s.find("if ")) == -1 &&
-		(s.find("for ")) == -1 &&
-		(s.find("while ")) == -1
+    if((strCommand.Find(L"=")) == -1 &&
+		(strCommand.Find(L"print(")) == -1 &&
+		(strCommand.Find(L"import ")) == -1 &&
+		(strCommand.Find(L"class ")) == -1 &&
+		(strCommand.Find(L"def ")) == -1 &&
+		(strCommand.Find(L"del ")) == -1 &&
+		(strCommand.Find(L"if ")) == -1 &&
+		(strCommand.Find(L"for ")) == -1 &&
+		(strCommand.Find(L"while ")) == -1
 		)
-        s = "print(" + s + ")";
+        strCommand = L"print(" + strCommand + L")";
 
+	std::wstring incmd = strCommand.GetBuffer(0);
+	std::string outcmd;
+	strutil::wchar2utf8(incmd, outcmd);
+
+	
 	Mercury::Channel* pChannel = _networkInterface.findChannel(this->getTreeItemAddr(m_tree.GetSelectedItem()));
 	if(pChannel)
 	{
@@ -541,29 +537,23 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 			bundle.newMessage(BaseappInterface::onExecScriptCommand);
 		else
 			bundle.newMessage(CellappInterface::onExecScriptCommand);
-
-		bundle << s;
+		
+		ArraySize size = outcmd.size();
+		bundle << size;
+		bundle.append(outcmd.data(), size);
 		bundle.send(this->getNetworkInterface(), pChannel);
-
-		int len = MultiByteToWideChar(CP_ACP,0, buffer, charLen, NULL,0);
-		wchar_t *buf = new wchar_t[len + 1];
-		MultiByteToWideChar(CP_ACP, 0, buffer, charLen, buf, len);
-		buf[len] = L'\0';
 
 		CString str1, str2;
 		m_debugWnd.displaybufferWnd()->GetWindowText(str2);
 		wchar_t sign[10] = {L">>>"};
 		str1.Append(sign);
-		str1.Append(buf);
-		delete[] buf;
+		str1.Append(strCommand1);
 		g_sendData = TRUE;
 		str2 += str1;
 		m_debugWnd.displaybufferWnd()->SetWindowTextW(str2);
 
 		saveHistory();
 	}
-
-	delete[] buffer;
 }
 
 void CguiconsoleDlg::saveHistory()
@@ -583,17 +573,12 @@ void CguiconsoleDlg::saveHistory()
 		TiXmlElement *rootElementChild = new TiXmlElement(key);
 		rootElement->LinkEndChild(rootElementChild);
 
-		CString strCommand = (*iter);
-		char* buffer = new char[strCommand.GetLength() * 2 + 1];
-
-		int len = WideCharToMultiByte(CP_ACP, 0, strCommand, strCommand.GetLength(), NULL, 0, NULL, NULL);
-		WideCharToMultiByte(CP_ACP,0, strCommand, strCommand.GetLength(), buffer, len, NULL, NULL);
-		buffer[len] = '\0';
-
-
-		TiXmlText *content = new TiXmlText(buffer);
+		std::wstring strCommand = (*iter);
+		std::string str;
+		
+		strutil::wchar2utf8(strCommand, str);
+		TiXmlText *content = new TiXmlText(str.data());
 		rootElementChild->LinkEndChild(content);
-		delete[] buffer;
 	}
 
     CString appPath = GetAppPath();
@@ -634,9 +619,10 @@ void CguiconsoleDlg::loadHistory()
 				std::string c = node->FirstChild()->Value();
 				if(c.size() > 0)
 				{
-					wchar_t* strCommand = strutil::char2wchar(c.c_str());
-					m_historyCommand.push_back(strCommand);
-					free(strCommand);
+					std::wstring strCommand;
+					strutil::utf82wchar(c, strCommand);
+					CString sstrCommand = strCommand.data();
+					m_historyCommand.push_back(sstrCommand);
 				}
 			}
 		}while((node = node->NextSibling()));												
@@ -810,35 +796,38 @@ void CguiconsoleDlg::onExecScriptCommandCB(Mercury::Channel* pChannel, std::stri
 {
 	DEBUG_MSG(boost::format("CguiconsoleDlg::onExecScriptCommandCB: %1%\n") % command.c_str());
 
+	std::wstring wcmd;
+	strutil::utf82wchar(command, wcmd);
+
 	CString str;
 	CEdit* lpEdit = (CEdit*)m_debugWnd.displaybufferWnd();
 	lpEdit->GetWindowText(str);
 
 	if(str.GetLength() > 0)
-		str += "\r\n";
+		str += L"\r\n";
 	else
-		str += "";
+		str += L"";
 
-	for(unsigned int i=0; i<command.size(); i++)
+	for(unsigned int i=0; i<wcmd.size(); i++)
 	{
-		char c = command.c_str()[i];
+		wchar_t c = wcmd.c_str()[i];
 		switch(c)
 		{
 		case 10:
-			str += "\r\n";
+			str += L"\r\n";
 			break;
 		case 32:
 			str += c;
 			break;
 		case 34:
-			str += "\t";
+			str += L"\t";
 			break;
 		default:
 			str += c;
 		}
 	}
 
-	str += "\r\n";
+	str += L"\r\n";
 	lpEdit->SetWindowText(str.GetBuffer(0));
 	int nline = lpEdit->GetLineCount();   
 	lpEdit->LineScroll(nline - 1);

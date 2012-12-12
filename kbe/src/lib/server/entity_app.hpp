@@ -152,7 +152,7 @@ public:
 	/** 网络接口
 		请求执行一段python指令
 	*/
-	void onExecScriptCommand(Mercury::Channel* pChannel, std::string& strcommand);
+	void onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 protected:
 	KBEngine::script::Script								script_;
@@ -624,13 +624,25 @@ void EntityApp<E>::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEng
 }
 
 template<class E>
-void EntityApp<E>::onExecScriptCommand(Mercury::Channel* pChannel, std::string& strcommand)
+void EntityApp<E>::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	std::string cmd;
+	s.readBlob(cmd);
+
+	PyObject* pycmd = PyUnicode_DecodeUTF8(cmd.data(), cmd.size(), NULL);
+	if(pycmd == NULL)
+	{
+		SCRIPT_ERROR_CHECK();
+		return;
+	}
+
 	DEBUG_MSG(boost::format("EntityApp::onExecScriptCommand: size(%1%), command=%2%.\n") % 
-		strcommand.size() % strcommand);
+		cmd.size() % cmd);
 
 	std::string retbuf = "";
-	if(script_.run_simpleString(strcommand, &retbuf) == 0)
+	PyObject* pycmd1 = PyUnicode_AsEncodedString(pycmd, "utf-8", NULL);
+
+	if(script_.run_simpleString(PyBytes_AsString(pycmd1), &retbuf) == 0)
 	{
 		// 将结果返回给客户端
 		Mercury::Bundle bundle;
@@ -639,6 +651,9 @@ void EntityApp<E>::onExecScriptCommand(Mercury::Channel* pChannel, std::string& 
 		ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1::staticAddToBundle(bundle, retbuf);
 		bundle.send(this->getNetworkInterface(), pChannel);
 	}
+
+	Py_DECREF(pycmd);
+	Py_DECREF(pycmd1);
 }
 
 }

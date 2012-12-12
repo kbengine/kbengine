@@ -55,8 +55,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASEAPP_MESSAGE_DECLARE_ARGS0(lookApp,									MERCURY_FIXED_MESSAGE)
 
 	// console远程执行python语句。
-	BASEAPP_MESSAGE_DECLARE_ARGS1(onExecScriptCommand,						MERCURY_VARIABLE_MESSAGE,
-									std::string,							strcommand)
+	BASEAPP_MESSAGE_DECLARE_STREAM(onExecScriptCommand,						MERCURY_VARIABLE_MESSAGE)
 
 	// 某app注册自己的接口地址到本app
 	BASEAPP_MESSAGE_DECLARE_ARGS8(onRegisterNewApp,							MERCURY_VARIABLE_MESSAGE,

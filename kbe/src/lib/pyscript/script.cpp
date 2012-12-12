@@ -54,27 +54,34 @@ Script::~Script()
 }
 
 //-------------------------------------------------------------------------------------
-int Script::run_simpleString(std::string command, std::string* retBufferPtr)
+int Script::run_simpleString(const char* command, std::string* retBufferPtr)
 {
+	if(command == NULL)
+	{
+		ERROR_MSG("Script::Run_SimpleString: command is NULL!\n");
+		return 0;
+	}
+
 	if(retBufferPtr != NULL)
 	{
 		if(!pyStdouterrHook_->install()){												
-			ERROR_MSG("Script::Run_SimpleString::pyStdouterrHook_->install() is failed!\n");
+			ERROR_MSG("Script::Run_SimpleString: pyStdouterrHook_->install() is failed!\n");
 			SCRIPT_ERROR_CHECK();
 			return -1;
 		}
 			
 		pyStdouterrHook_->setHookBuffer(retBufferPtr);
-		PyRun_SimpleString(command.c_str());
-		SCRIPT_ERROR_CHECK();														// 检查是否有错误产生
+		PyRun_SimpleString(command);
+		SCRIPT_ERROR_CHECK();
 		
 		pyStdouterrHook_->uninstall();
 		
 		return 0;
 	}
 
-	PyRun_SimpleString(command.c_str());
-	SCRIPT_ERROR_CHECK();															// 检查是否有错误产生
+	PyRun_SimpleString(command);
+
+	SCRIPT_ERROR_CHECK();
 	return 0;
 }
 

@@ -56,15 +56,15 @@ ScriptStdOutErr::~ScriptStdOutErr()
 //-------------------------------------------------------------------------------------
 PyObject* ScriptStdOutErr::__py_write(PyObject* self, PyObject *args)
 {
-	char * msg;
+	Py_UNICODE * msg;
 	Py_ssize_t msglen;
-	if (!PyArg_ParseTuple(args, "s#", &msg, &msglen))
+	if (!PyArg_ParseTuple(args, "u#", &msg, &msglen))
 	{
 		ERROR_MSG("ScriptStdOutErr::write: Bad args\n");
 		return NULL;
 	}
 		
-	static_cast<ScriptStdOutErr*>(self)->onPrint(msg);
+	static_cast<ScriptStdOutErr*>(self)->onPrint(msg, msglen);
 	S_Return;
 }
 
@@ -75,13 +75,18 @@ PyObject* ScriptStdOutErr::__py_flush(PyObject* self, PyObject *args)
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptStdOutErr::onPrint(const char* msg)
+void ScriptStdOutErr::onPrint(const Py_UNICODE* msg, Py_ssize_t msglen)
 {
-	sbuffer_ += msg;
-	if(msg[0] == '\n')
+	std::wstring str;
+	str.assign(msg, msglen);
+	sbuffer_ += str;
+
+	if(msg[0] == L'\n')
 	{
-		SCRIPT_MSG(sbuffer_);
-		sbuffer_ = "";
+		std::string out;
+		strutil::wchar2utf8(sbuffer_, out);
+		SCRIPT_MSG(out);
+		sbuffer_ = L"";
 	}
 }
 

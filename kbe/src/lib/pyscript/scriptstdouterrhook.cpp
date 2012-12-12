@@ -44,11 +44,23 @@ ScriptStdOutErrHook::~ScriptStdOutErrHook()
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptStdOutErrHook::onPrint(const char* msg)
+void ScriptStdOutErrHook::onPrint(const Py_UNICODE* msg, Py_ssize_t msglen)
 {
-	if(buffer_)
-		(*buffer_) += msg;
-	ScriptStdOutErr::onPrint(msg);
+	ScriptStdOutErr::onPrint(msg, msglen);
+
+	std::wstring str;
+	str.assign(msg, msglen);
+	wbuffer_ += str;
+
+	if(msg[0] == L'\n')
+	{
+		if(buffer_)
+		{
+			std::string out;
+			strutil::wchar2utf8(wbuffer_, out);		
+			(*buffer_) += out;
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------

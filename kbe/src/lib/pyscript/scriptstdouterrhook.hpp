@@ -18,15 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-	
-/*
-	kbengine-脚本系统::重定向python输入输出：
-		重写sys.stdout stderr
-		
-		使用例子:
-			将本模块实例覆盖 python.sys.stdout and stderr 就行了， 
-			使用完还原stdout and stderr
-*/
 #ifndef __SCRIPTSTDOUTERRHOOK_H__
 #define __SCRIPTSTDOUTERRHOOK_H__
 #include "cstdkbe/cstdkbe.hpp"
@@ -43,12 +34,16 @@ public:
 	ScriptStdOutErrHook();
 	~ScriptStdOutErrHook();
 
-	void onPrint(const char* msg);
+	void onPrint(const Py_UNICODE* msg, Py_ssize_t msglen);
 
-	void setHookBuffer(std::string* buffer){ buffer_ = buffer; };
+	void setHookBuffer(std::string* buffer){ 
+		buffer_ = buffer; 
+		wbuffer_ = L""; 
+	};
 
 protected:
 	std::string* buffer_;
+	std::wstring wbuffer_;
 } ;
 
 }
