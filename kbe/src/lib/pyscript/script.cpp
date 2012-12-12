@@ -83,7 +83,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	const char* moduleName, COMPONENT_TYPE componentType)
 {
 	std::wstring pySysPaths = SCRIPT_PATH;
-	wchar_t* pwpySysResPath = char2wchar(const_cast<char*>(Resmgr::getSingleton().getPySysResPath().c_str()));
+	wchar_t* pwpySysResPath = strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().getPySysResPath().c_str()));
 	strutil::kbe_replace(pySysPaths, L"../../res/", pwpySysResPath);
 	pyPaths += pySysPaths;
 	free(pwpySysResPath);

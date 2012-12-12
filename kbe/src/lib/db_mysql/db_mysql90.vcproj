@@ -157,7 +157,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\db_exception.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\db_interface_mysql.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\db_transaction.cpp"
 				>
 			</File>
 			<File
@@ -183,7 +191,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\db_exception.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\db_interface_mysql.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\db_transaction.hpp"
 				>
 			</File>
 			<File

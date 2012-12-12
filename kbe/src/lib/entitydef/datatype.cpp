@@ -581,7 +581,7 @@ PyObject* StringType::parseDefaultStr(std::string defaultVal)
 void StringType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
 	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyValue, NULL);
-	char* ccattr = wchar2char(PyUnicode_AsWideCharStringRet0);
+	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 	PyMem_Free(PyUnicode_AsWideCharStringRet0);
 
 	(*mstream) << ccattr;

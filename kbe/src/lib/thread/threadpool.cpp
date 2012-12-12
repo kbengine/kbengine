@@ -402,9 +402,10 @@ void* TPThread::threadFunc(void* arg)
 		
 		while(task && !tptd->threadPool()->isDestroyed())
 		{
-			tptd->onProcessTask(task);
+			tptd->onProcessTaskStart(task);
+			tptd->processTask(task);							// 处理该任务								
+			tptd->onProcessTaskEnd(task);
 
-			task->process();									// 处理该任务
 			TPTask * task1 = tptd->tryGetTask();				// 尝试继续从任务队列里取出一个繁忙的未处理的任务
 
 			if(!task1)

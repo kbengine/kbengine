@@ -290,7 +290,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 	if(pDescr != NULL)
 	{
 		wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(pyDesc, NULL);
-		pDescr = wchar2char(PyUnicode_AsWideCharStringRet1);
+		pDescr = strutil::wchar2char(PyUnicode_AsWideCharStringRet1);
 		PyMem_Free(PyUnicode_AsWideCharStringRet1);
 	}
 
@@ -385,7 +385,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 	if(pDescr != NULL)
 	{
 		wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(pyDesc, NULL);
-		pDescr = wchar2char(PyUnicode_AsWideCharStringRet1);
+		pDescr = strutil::wchar2char(PyUnicode_AsWideCharStringRet1);
 		PyMem_Free(PyUnicode_AsWideCharStringRet1);
 	}
 

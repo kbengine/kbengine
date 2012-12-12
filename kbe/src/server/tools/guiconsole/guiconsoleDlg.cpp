@@ -634,7 +634,7 @@ void CguiconsoleDlg::loadHistory()
 				std::string c = node->FirstChild()->Value();
 				if(c.size() > 0)
 				{
-					wchar_t* strCommand = char2wchar(c.c_str());
+					wchar_t* strCommand = strutil::char2wchar(c.c_str());
 					m_historyCommand.push_back(strCommand);
 					free(strCommand);
 				}
@@ -886,7 +886,7 @@ bool CguiconsoleDlg::hasTreeComponent(Components::ComponentInfos& cinfos)
 
 	char sbuf[1024];
 	kbe_snprintf(sbuf, 1024, "%s[%s]", COMPONENT_NAME_EX(cinfos.componentType), cinfos.pIntAddr->c_str());
-	wchar_t* wbuf = KBEngine::char2wchar(sbuf);
+	wchar_t* wbuf = KBEngine::strutil::char2wchar(sbuf);
 	CString s1 = wbuf;
 	free(wbuf);
 
@@ -995,7 +995,7 @@ void CguiconsoleDlg::updateTree()
 		
 		char sbuf[1024];
 		kbe_snprintf(sbuf, 1024, "%s[%s]", COMPONENT_NAME_EX(cinfos.componentType), cinfos.pIntAddr->c_str());
-		wchar_t* wbuf = KBEngine::char2wchar(sbuf);
+		wchar_t* wbuf = KBEngine::strutil::char2wchar(sbuf);
 		tcitem.hParent = hasUIDItem;
 		tcitem.hInsertAfter = TVI_LAST;
 		tcitem.item.mask = TVIF_TEXT|TVIF_PARAM|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
@@ -1197,7 +1197,7 @@ Mercury::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 		return Mercury::Address::NONE;
 	}
 
-	char* buf = KBEngine::wchar2char(s.GetBuffer(0));
+	char* buf = KBEngine::strutil::wchar2char(s.GetBuffer(0));
 	std::string sbuf = buf;
 
 	std::string::size_type i = sbuf.find("[");
@@ -1410,7 +1410,7 @@ void CguiconsoleDlg::OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
 		return;
 
 	CString title;
-	wchar_t* tbuf = char2wchar(currAddr.c_str());
+	wchar_t* tbuf = strutil::char2wchar(currAddr.c_str());
 	title.Format(L"guiconsole : selected[%s]", tbuf);
 	free(tbuf);
 	this->SetWindowTextW(title.GetBuffer(0));

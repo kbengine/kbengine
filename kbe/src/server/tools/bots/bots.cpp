@@ -107,7 +107,7 @@ bool Bots::installPyScript()
 	}
 
 	std::wstring root_path = L"";
-	wchar_t* tbuf = KBEngine::char2wchar(const_cast<char*>(Resmgr::getSingleton().respaths()[1].c_str()));
+	wchar_t* tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().respaths()[1].c_str()));
 	if(tbuf != NULL)
 	{
 		root_path += tbuf;
@@ -126,7 +126,7 @@ bool Bots::installPyScript()
 	std::string kbe_res_path = Resmgr::getSingleton().respaths()[0].c_str();
 	kbe_res_path += "scripts/common";
 
-	tbuf = KBEngine::char2wchar(const_cast<char*>(kbe_res_path.c_str()));
+	tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(kbe_res_path.c_str()));
 	bool ret = getScript().install(tbuf, pyPaths, "KBEngine", componentType_);
 	// 此处经测试传入python之后被python释放了
 	// free(tbuf);

@@ -54,7 +54,7 @@ BOOL CConnectRemoteMachineWindow::OnInitDialog()
 			AfxExtractSubString(output, (*iter), 0, _T(':'));
 			AfxExtractSubString(output1, (*iter), 1, _T(':'));
 
-			char* ip = KBEngine::wchar2char(output.GetBuffer(0));
+			char* ip = KBEngine::strutil::wchar2char(output.GetBuffer(0));
 			m_ip.SetAddress(ntohl(inet_addr(ip)));
 			free(ip);
 
@@ -86,7 +86,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	KBEngine::u_int16_t port = 0;
 	CString sport;
 	m_port.GetWindowTextW(sport);
-	char* csport = KBEngine::wchar2char(sport.GetBuffer(0));
+	char* csport = KBEngine::strutil::wchar2char(sport.GetBuffer(0));
 	port = atoi(csport);
 	std::string command = strip;
 	command += ":";
@@ -175,7 +175,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 END:
 	dlg->updateTree();
 	delete endpoint;
-	wchar_t* wcommand = KBEngine::char2wchar(command.c_str());
+	wchar_t* wcommand = KBEngine::strutil::char2wchar(command.c_str());
 	bool found = false;
 	std::deque<CString>::iterator iter = m_historyCommand.begin();
 	for(; iter != m_historyCommand.end(); iter++)
@@ -263,7 +263,7 @@ void CConnectRemoteMachineWindow::loadHistory()
 		do																				
 		{																				
 			std::string c = node->FirstChild()->Value();
-			wchar_t* strCommand = char2wchar(c.c_str());
+			wchar_t* strCommand = strutil::char2wchar(c.c_str());
 			m_historyCommand.push_back(strCommand);
 			free(strCommand);
 		}while((node = node->NextSibling()));												
@@ -283,7 +283,7 @@ void CConnectRemoteMachineWindow::OnLbnDblclkList1()
 	AfxExtractSubString(output, str, 0, _T(':'));
 	AfxExtractSubString(output1, str, 1, _T(':'));
 
-	char* ip = KBEngine::wchar2char(output.GetBuffer(0));
+	char* ip = KBEngine::strutil::wchar2char(output.GetBuffer(0));
 	m_ip.SetAddress(ntohl(inet_addr(ip)));
 	free(ip);
 

@@ -158,10 +158,10 @@ namespace KBEngine{
 		if(g_debugEntity)																					\
 		{																									\
 			wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(key, NULL);				\
-			char* ccattr_DEBUG_CREATE_ENTITY_NAMESPACE = wchar2char(PyUnicode_AsWideCharStringRet1);		\
+			char* ccattr_DEBUG_CREATE_ENTITY_NAMESPACE= strutil::wchar2char(PyUnicode_AsWideCharStringRet1);\
 			PyObject* pytsval = PyObject_Str(value);														\
 			wchar_t* cwpytsval = PyUnicode_AsWideCharString(pytsval, NULL);									\
-			char* cccpytsval = wchar2char(cwpytsval);														\
+			char* cccpytsval = strutil::wchar2char(cwpytsval);												\
 			Py_DECREF(pytsval);																				\
 			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_createNamespace:add %4%(%5%).\n") %		\
 												getScriptName() %											\
@@ -180,7 +180,7 @@ namespace KBEngine{
 		if(g_debugEntity)																					\
 		{																									\
 			wchar_t* PyUnicode_AsWideCharStringRet2 = PyUnicode_AsWideCharString(ccattr, NULL);				\
-			char* ccattr_DEBUG_OP_ATTRIBUTE = wchar2char(PyUnicode_AsWideCharStringRet2);					\
+			char* ccattr_DEBUG_OP_ATTRIBUTE = strutil::wchar2char(PyUnicode_AsWideCharStringRet2);			\
 			DEBUG_MSG(boost::format("%1%(refc=%2%, id=%3%)::debug_op_attr:op=%4%, %5%.\n") %				\
 												getScriptName() %											\
 												static_cast<PyObject*>(this)->ob_refcnt % this->getID() %	\
@@ -455,7 +455,7 @@ public:																										\
 	int onScriptDelAttribute(PyObject* attr)																\
 	{																										\
 		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);					\
-		char* ccattr = wchar2char(PyUnicode_AsWideCharStringRet0);											\
+		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);									\
 		PyMem_Free(PyUnicode_AsWideCharStringRet0);															\
 		DEBUG_OP_ATTRIBUTE("del", attr)																		\
 																											\
@@ -492,7 +492,7 @@ public:																										\
 	{																										\
 		DEBUG_OP_ATTRIBUTE("set", attr)																		\
 		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);					\
-		char* ccattr = wchar2char(PyUnicode_AsWideCharStringRet0);											\
+		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);									\
 		PyMem_Free(PyUnicode_AsWideCharStringRet0);															\
 																											\
 		if(lpPropertyDescrs_)																				\

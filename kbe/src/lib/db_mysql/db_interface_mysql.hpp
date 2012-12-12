@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __KBE_DB_INTERFACE_MYSQL__
 
 #include "common.hpp"
+#include "db_transaction.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
 #include "cstdkbe/memorystream.hpp"
@@ -65,6 +66,21 @@ public:
 	virtual bool attach(const char* databaseName);
 	virtual bool detach();
 
+	bool ping(){ 
+		return mysql_ping(pMysql_) == 0; 
+	}
+
+	bool reattach();
+
+	void inTransaction(bool value)
+	{
+		KBE_ASSERT(inTransaction_ != value);
+		inTransaction_ = value;
+	}
+
+	bool hasLostConnection() const		{ return hasLostConnection_; }
+	void hasLostConnection( bool v )	{ hasLostConnection_ = v; }
+
 	virtual bool query(const char* strCommand, uint32 size, bool showexecinfo = true);
 
 	bool execute(const char* strCommand, uint32 size, MemoryStream * resdata);
@@ -85,6 +101,8 @@ public:
 	virtual bool dropEntityTableItemFromDB(const char* tablename, const char* tableItemName);
 
 	MYSQL* mysql(){ return pMysql_; }
+
+	void throwError();
 
 	my_ulonglong insertID()		{ return mysql_insert_id( pMysql_ ); }
 
@@ -123,9 +141,22 @@ public:
 		从数据库删除entity表
 	*/
 	virtual bool dropEntityTableFromDB(const char* tablename);
+
+	/**
+		锁住接口操作
+	*/
+	virtual bool lock();
+	virtual bool unlock();
+
+	/**
+		处理异常
+	*/
+	bool processException(std::exception & e);
 protected:
 	MYSQL* pMysql_;
 	bool hasLostConnection_;
+	bool inTransaction_;
+	DBTransaction lock_;
 };
 
 

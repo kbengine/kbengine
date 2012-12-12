@@ -70,7 +70,7 @@ void StatusWindow::addApp(Components::ComponentInfos& cinfos)
 	CString str;
 	std::string tstr;
 	stream >> tstr;
-	wchar_t* ws = KBEngine::char2wchar(tstr.c_str());
+	wchar_t* ws = KBEngine::strutil::char2wchar(tstr.c_str());
 	str = ws;
 	free(ws);
 
@@ -94,7 +94,7 @@ void StatusWindow::addApp(Components::ComponentInfos& cinfos)
 		m_statusList.SetItemData(0, ndata++);
 
 		CString cname;
-		ws = KBEngine::char2wchar(COMPONENT_NAME_EX(cinfos.componentType));
+		ws = KBEngine::strutil::char2wchar(COMPONENT_NAME_EX(cinfos.componentType));
 		cname = ws;
 		free(ws);
 		m_statusList.SetItemText(0, 1, cname);
@@ -102,12 +102,12 @@ void StatusWindow::addApp(Components::ComponentInfos& cinfos)
 		m_statusList.SetItemText(0, 2, str);
 
 
-		ws = KBEngine::char2wchar(cinfos.pIntAddr->c_str());
+		ws = KBEngine::strutil::char2wchar(cinfos.pIntAddr->c_str());
 		str = ws;
 		free(ws);
 		m_statusList.SetItemText(0, 7, str);
 
-		ws = KBEngine::char2wchar(cinfos.username);
+		ws = KBEngine::strutil::char2wchar(cinfos.username);
 		str = ws;
 		free(ws);
 		m_statusList.SetItemText(0, 8, str);

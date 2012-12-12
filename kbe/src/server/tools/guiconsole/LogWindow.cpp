@@ -97,7 +97,7 @@ void CLogWindow::onReceiveRemoteLog(std::string str)
 		return;
 	
 	CString s;
-	wchar_t* wstr = KBEngine::char2wchar(str.c_str());
+	wchar_t* wstr = KBEngine::strutil::char2wchar(str.c_str());
 	s = wstr;
 	free(wstr);
 	s.Replace(L"\n", L"");
@@ -149,7 +149,7 @@ void CLogWindow::OnBnClickedButton1()
 	CString apporder;
 	m_appIDEdit.GetWindowTextW(apporder);
 
-	char* cs = KBEngine::wchar2char(apporder.GetBuffer(0));
+	char* cs = KBEngine::strutil::wchar2char(apporder.GetBuffer(0));
 	COMPONENT_ORDER order = atoi(cs);
 	free(cs);
 

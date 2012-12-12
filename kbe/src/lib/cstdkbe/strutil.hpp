@@ -153,6 +153,18 @@ namespace strutil {
 
 }
 
+// utf-8
+namespace strutil {
+	char* wchar2char(const wchar_t* ts);
+	wchar_t* char2wchar(const char* cs);
+
+	int wchar2utf8(const wchar_t* in, int in_len, char* out, int out_max);
+	int wchar2utf8(const std::wstring& in, std::string& out);
+  
+	int utf82wchar(const char* in, int in_len, wchar_t* out, int out_max);
+	int utf82wchar(const std::string& in, std::wstring& out);
+}
+
 }
 
 #endif // __KBE_STRUTIL__

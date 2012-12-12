@@ -25,7 +25,7 @@ static wchar_t _g_fileName[512] = {0};
 //-------------------------------------------------------------------------------------
 void installCrashHandler(int svnVer, const char* dumpType)
 {
-	wchar_t* wsz = char2wchar(const_cast<char*>(dumpType));
+	wchar_t* wsz = strutil::char2wchar(const_cast<char*>(dumpType));
 	wsprintf(_g_fileName, L"CrashDumps\\%ls_v%d.dmp", wsz, svnVer);
 	free(wsz);
 }

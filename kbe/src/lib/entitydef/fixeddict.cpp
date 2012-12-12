@@ -213,7 +213,7 @@ int FixedDict::mp_length(PyObject* self)
 int FixedDict::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 {
 	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(key, NULL);					
-	char* dictKeyName = wchar2char(PyUnicode_AsWideCharStringRet0);											
+	char* dictKeyName = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);											
 	PyMem_Free(PyUnicode_AsWideCharStringRet0);															
 
 	FixedDict* fixedDict = static_cast<FixedDict*>(self);

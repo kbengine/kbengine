@@ -537,7 +537,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 	if(pyEntityType)
 	{
 		wEntityType = PyUnicode_AsWideCharString(pyEntityType, NULL);					
-		entityType = wchar2char(wEntityType);									
+		entityType = strutil::wchar2char(wEntityType);									
 		PyMem_Free(wEntityType);		
 	}
 

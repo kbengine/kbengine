@@ -446,8 +446,8 @@ void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	str += COMPONENT_NAME[componentType];
 	str += ".exe";
 
-	wchar_t* szCmdline = KBEngine::char2wchar(str.c_str());
-	wchar_t* currdir = KBEngine::char2wchar(Resmgr::getSingleton().getEnv().hybrid_path.c_str());
+	wchar_t* szCmdline = KBEngine::strutil::char2wchar(str.c_str());
+	wchar_t* currdir = KBEngine::strutil::char2wchar(Resmgr::getSingleton().getEnv().hybrid_path.c_str());
 
 	ZeroMemory( &si, sizeof(si));
 	si.cb = sizeof(si);

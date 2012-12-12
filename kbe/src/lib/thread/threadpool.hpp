@@ -112,7 +112,10 @@ public:
 	
 	virtual void onStart(){}
 	virtual void onEnd(){}
-	virtual void onProcessTask(TPTask* pTask){}
+
+	virtual void onProcessTaskStart(TPTask* pTask){}
+	virtual void processTask(TPTask* pTask){ pTask->process(); }
+	virtual void onProcessTaskEnd(TPTask* pTask){}
 
 	INLINE THREAD_ID getID(void)const;
 	

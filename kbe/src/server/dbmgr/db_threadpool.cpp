@@ -58,9 +58,36 @@ public:
 		DEBUG_MSG(boost::format("DBThread:: %1% end!\n") % this);
 	}
 
-	virtual void onProcessTask(thread::TPTask* pTask)
+	virtual void onProcessTaskStart(thread::TPTask* pTask)
 	{
 		static_cast<DBTask*>(pTask)->pdbi(_pDBInterface);
+		_pDBInterface->lock();
+	}
+
+	virtual void processTask(thread::TPTask* pTask)
+	{ 
+		bool retry;
+
+		do
+		{
+			retry = false;
+			try
+			{
+				thread::TPThread::processTask(pTask); 
+			}
+			catch (std::exception & e)
+			{
+				if(!_pDBInterface->processException(e))
+					break;
+			}
+		}
+		while (retry);
+	}
+
+	virtual void onProcessTaskEnd(thread::TPTask* pTask)
+	{
+		static_cast<DBTask*>(pTask)->pdbi(_pDBInterface);
+		_pDBInterface->unlock();
 	}
 private:
 	DBInterface* _pDBInterface;

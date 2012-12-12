@@ -78,7 +78,7 @@ void CWatcherWindow::OnTimer(UINT_PTR nIDEvent)
 
 void CWatcherWindow::addHeader(std::string name)
 {
-	wchar_t* ws = KBEngine::char2wchar(name.c_str());
+	wchar_t* ws = KBEngine::strutil::char2wchar(name.c_str());
 	CString s = ws;
 	free(ws);
 	int nColumnCount = 0;
@@ -108,11 +108,11 @@ void CWatcherWindow::addHeader(std::string name)
 void CWatcherWindow::addItem(KBEngine::WatcherObject* wo)
 {
 	int idx = 0;
-	wchar_t* ws = KBEngine::char2wchar(wo->str());
+	wchar_t* ws = KBEngine::strutil::char2wchar(wo->str());
 	CString s = ws;
 	free(ws);
 
-	ws = KBEngine::char2wchar(wo->name());
+	ws = KBEngine::strutil::char2wchar(wo->name());
 	CString s1 = ws;
 	free(ws);
 
@@ -167,7 +167,7 @@ void CWatcherWindow::addPath(std::string rootpath, std::string path)
 	if(path.size() == 0)
 		return;
 
-	wchar_t* ws = KBEngine::char2wchar(path.c_str());
+	wchar_t* ws = KBEngine::strutil::char2wchar(path.c_str());
 	CString s = ws;
 	free(ws);
 
@@ -219,7 +219,7 @@ HTREEITEM CWatcherWindow::findAndCreatePathItem(std::string path, HTREEITEM root
 	std::vector<std::string> vec;
 	KBEngine::strutil::kbe_split(path, '/', vec);
 	
-	wchar_t* ws = KBEngine::char2wchar(vec[0].c_str());
+	wchar_t* ws = KBEngine::strutil::char2wchar(vec[0].c_str());
 	CString pathitem = ws;
 	free(ws);
 
@@ -260,7 +260,7 @@ HTREEITEM CWatcherWindow::findAndCreatePathItem(std::string path, HTREEITEM root
 			rootItem = m_tree.GetChildItem(hasItem);
 			if(rootItem == NULL)
 			{
-				ws = KBEngine::char2wchar(vec[1].c_str());
+				ws = KBEngine::strutil::char2wchar(vec[1].c_str());
 				pathitem = ws;
 				free(ws);
 				TV_INSERTSTRUCT tcitem;
@@ -377,7 +377,7 @@ std::string CWatcherWindow::getCurrSelPath()
 		}
 	}while(item = m_tree.GetNextItem(item, TVGN_PARENT));
 
-	char* str = KBEngine::wchar2char(path.GetBuffer(0));
+	char* str = KBEngine::strutil::wchar2char(path.GetBuffer(0));
 	std::string ret = str;
 	free(str);
 	return ret;

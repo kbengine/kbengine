@@ -386,7 +386,7 @@ void init_network(void)
 		// 连接游戏登陆进程
 		printf("连接游戏登陆进程\n");
 		u_int32_t address;
-		std::string ip = "192.168.10.108";
+		std::string ip = "192.168.4.205";
 		mysocket.convertAddress(ip.c_str(), address );
 		if(mysocket.connect(htons(port), address) == -1)
 		{
@@ -703,7 +703,7 @@ void init_network(void)
 			{
 				std::string outstr;
 				packet88.readBlob(outstr);
-				utf82wchar(outstr, name);
+				strutil::utf82wchar(outstr, name);
 			}
 			else if(41004 == propertyID)
 			{
@@ -829,7 +829,7 @@ void init_network(void)
 				{
 					std::string outstr;
 					packet99.readBlob(outstr);
-					utf82wchar(outstr, name);
+					strutil::utf82wchar(outstr, name);
 				}
 				else if(40000 == propertyID)
 				{
@@ -890,7 +890,7 @@ void init_network(void)
 					std::string outstr;
 					packet99.readBlob(outstr);
 					if(outstr.size() > 0)
-						utf82wchar(outstr, descr);
+						strutil::utf82wchar(outstr, descr);
 				}
 				else if(41010 == propertyID)
 				{
@@ -1107,7 +1107,7 @@ avatarenterworld = false;
 				{
 					std::string outstr;
 					packet99.readBlob(outstr);
-					utf82wchar(outstr, name);
+					strutil::utf82wchar(outstr, name);
 				}
 				else if(40000 == propertyID)
 				{
@@ -1168,7 +1168,7 @@ avatarenterworld = false;
 					std::string outstr;
 					packet99.readBlob(outstr);
 					if(outstr.size() > 0)
-						utf82wchar(outstr, descr);
+						strutil::utf82wchar(outstr, descr);
 				}
 				else if(41010 == propertyID)
 				{

@@ -60,6 +60,10 @@ public:
 		查询表
 	*/
 	virtual bool query(const char* strCommand, uint32 size, bool showexecinfo = true) = 0;
+	virtual bool query(const std::string& cmd, bool showexecinfo = true)
+	{
+		return query(cmd.c_str(), cmd.size(), showexecinfo);
+	}
 
 	/**
 		返回这个接口的描述
@@ -90,6 +94,17 @@ public:
 		从数据库删除entity表字段
 	*/
 	virtual bool dropEntityTableItemFromDB(const char* tablename, const char* tableItemName) = 0;
+
+	/**
+		锁住接口操作
+	*/
+	virtual bool lock() = 0;
+	virtual bool unlock() = 0;
+
+	/**
+		处理异常
+	*/
+	virtual bool processException(std::exception & e) = 0;
 protected:
 	char db_type_[MAX_BUF];									// 数据库的类别
 	uint32 db_port_;										// 数据库的端口

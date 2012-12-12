@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "db_interface_mysql.hpp"
 #include "entity_table_mysql.hpp"
+#include "db_exception.hpp"
 
 namespace KBEngine { 
 
@@ -28,8 +29,11 @@ namespace KBEngine {
 DBInterfaceMysql::DBInterfaceMysql() :
 DBInterface(),
 pMysql_(NULL),
-hasLostConnection_(false)
+hasLostConnection_(false),
+inTransaction_(false),
+lock_(NULL, false)
 {
+	lock_.pdbi(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -86,7 +90,26 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 		return false;
 	}
 
-    return mysql() != NULL;
+    return mysql() != NULL && ping();
+}
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceMysql::reattach()
+{
+	detach();
+
+	bool ret = false;
+
+	try
+	{
+		ret = attach(db_name_);
+	}
+	catch (...)
+	{
+		return false;
+	}
+
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------
@@ -133,6 +156,19 @@ bool DBInterfaceMysql::dropEntityTableItemFromDB(const char* tablename, const ch
 }
 
 //-------------------------------------------------------------------------------------
+void DBInterfaceMysql::throwError()
+{
+	DBException e( this );
+
+	if (e.isLostConnection())
+	{
+		this->hasLostConnection(true);
+	}
+
+	throw e;
+}
+
+//-------------------------------------------------------------------------------------
 bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexecinfo)
 {
 	if(pMysql_ == NULL)
@@ -141,6 +177,7 @@ bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexeci
 		{
 			ERROR_MSG("DBInterfaceMysql::query: has no attach(db).\n");
 		}
+
 		return false;
 	}
 
@@ -152,6 +189,8 @@ bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexeci
 			ERROR_MSG(boost::format("DBInterfaceMysql::query: mysql is error(%1%:%2%)!\n") % 
 				mysql_errno(pMysql_) % mysql_error(pMysql_)); 
 		}
+
+		this->throwError();
         return false;
     }  
     else
@@ -329,6 +368,72 @@ void DBInterfaceMysql::getFields(TABLE_FIELDS& outs, const char* tablename)
 	}
 
 	mysql_free_result(result);
+}
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceMysql::lock()
+{
+	lock_.start();
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceMysql::unlock()
+{
+	lock_.commit();
+	lock_.end();
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool DBInterfaceMysql::processException(std::exception & e)
+{
+	DBException* dbe = static_cast<DBException*>(&e);
+	bool retry = false;
+
+	if (dbe->isLostConnection())
+	{
+		INFO_MSG(boost::format("DBInterfaceMysql::processException: "
+				"Thread %p lost connection to database. Exception: %s. "
+				"Attempting to reconnect.\n") %
+			this %
+			dbe->what() );
+
+		int attempts = 1;
+
+		while (!this->reattach())
+		{
+			ERROR_MSG(boost::format("DBInterfaceMysql::processException: "
+							"Thread %p reconnect attempt %d failed.\n") %
+						this %
+						attempts);
+
+			KBEngine::sleep(30);
+			++attempts;
+		}
+
+		INFO_MSG(boost::format("DBInterfaceMysql::processException: "
+					"Thread %p reconnected. Attempts = %d\n") %
+				this %
+				attempts);
+
+		retry = true;
+	}
+	else if (dbe->shouldRetry())
+	{
+		WARNING_MSG(boost::format("DBInterfaceMysql::processException: Retrying %1%\n") %
+				this );
+
+		retry = true;
+	}
+	else
+	{
+		WARNING_MSG(boost::format("DBInterfaceMysql::processException: "
+				"Exception: %s\n") %
+			dbe->what() );
+	}
+
+	return retry;
 }
 
 //-------------------------------------------------------------------------------------

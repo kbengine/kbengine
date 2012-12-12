@@ -201,7 +201,7 @@ FileDataDownload::FileDataDownload(PyObjectPtr objptr,
 DataDownload(objptr, descr, id)
 {
 	wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(objptr.get(), NULL);
-	char* pDescr = wchar2char(PyUnicode_AsWideCharStringRet1);
+	char* pDescr = strutil::wchar2char(PyUnicode_AsWideCharStringRet1);
 	PyMem_Free(PyUnicode_AsWideCharStringRet1);
 
 	path_ = pDescr;
