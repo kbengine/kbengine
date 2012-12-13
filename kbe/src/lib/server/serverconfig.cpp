@@ -285,19 +285,19 @@ bool ServerConfig::loadConfig(std::string fileName)
 				_dbmgrInfo.db_unicodeString_characterSet = xml->getValStr(childnode);
 			}
 
-			if(_dbmgrInfo.db_unicodeString_characterSet.size() == 0)
-				_dbmgrInfo.db_unicodeString_characterSet = "utf8";
-
 			childnode = xml->enterNode(node, "collation");
 			if(childnode)
 			{
 				_dbmgrInfo.db_unicodeString_collation = xml->getValStr(childnode);
 			}
-
-			if(_dbmgrInfo.db_unicodeString_collation.size() == 0)
-				_dbmgrInfo.db_unicodeString_collation = "utf8_bin";
 		}
 	}
+
+	if(_dbmgrInfo.db_unicodeString_characterSet.size() == 0)
+		_dbmgrInfo.db_unicodeString_characterSet = "utf8";
+
+	if(_dbmgrInfo.db_unicodeString_collation.size() == 0)
+		_dbmgrInfo.db_unicodeString_collation = "utf8_bin";
 
 	rootNode = NULL;
 	rootNode = xml->getRootNode("loginapp");
