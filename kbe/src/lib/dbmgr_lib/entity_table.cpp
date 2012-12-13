@@ -126,42 +126,50 @@ bool EntityTables::load(DBInterface* dbi)
 //-------------------------------------------------------------------------------------
 bool EntityTables::syncToDB(DBInterface* dbi)
 {
-	// 开始同步所有表
-	EntityTables::TABLES_MAP::iterator kiter = kbe_tables_.begin();
-	for(; kiter != kbe_tables_.end(); kiter++)
+	try
 	{
-		if(!kiter->second->syncToDB(dbi))
-			return false;
-	}
-
-	EntityTables::TABLES_MAP::iterator iter = tables_.begin();
-	for(; iter != tables_.end(); iter++)
-	{
-		if(!iter->second->hasSync())
+		// 开始同步所有表
+		EntityTables::TABLES_MAP::iterator kiter = kbe_tables_.begin();
+		for(; kiter != kbe_tables_.end(); kiter++)
 		{
-			if(!iter->second->syncToDB(dbi))
+			if(!kiter->second->syncToDB(dbi))
 				return false;
 		}
-	}
 
-	std::vector<std::string> dbTableNames;
-	dbi->getTableNames(dbTableNames, "");
-
-	// 检查是否有需要删除的表
-	std::vector<std::string>::iterator iter0 = dbTableNames.begin();
-	for(; iter0 != dbTableNames.end(); iter0++)
-	{
-		std::string tname = (*iter0);
-		if(std::string::npos == tname.find(ENTITY_TABLE_PERFIX"_"))
-			continue;
-
-		KBEngine::strutil::kbe_replace(tname, ENTITY_TABLE_PERFIX"_", "");
-		EntityTables::TABLES_MAP::iterator iter = tables_.find(tname);
-		if(iter == tables_.end())
+		EntityTables::TABLES_MAP::iterator iter = tables_.begin();
+		for(; iter != tables_.end(); iter++)
 		{
-			if(!dbi->dropEntityTableFromDB((std::string(ENTITY_TABLE_PERFIX"_") + tname).c_str()))
-				return false;
+			if(!iter->second->hasSync())
+			{
+				if(!iter->second->syncToDB(dbi))
+					return false;
+			}
 		}
+
+		std::vector<std::string> dbTableNames;
+		dbi->getTableNames(dbTableNames, "");
+
+		// 检查是否有需要删除的表
+		std::vector<std::string>::iterator iter0 = dbTableNames.begin();
+		for(; iter0 != dbTableNames.end(); iter0++)
+		{
+			std::string tname = (*iter0);
+			if(std::string::npos == tname.find(ENTITY_TABLE_PERFIX"_"))
+				continue;
+
+			KBEngine::strutil::kbe_replace(tname, ENTITY_TABLE_PERFIX"_", "");
+			EntityTables::TABLES_MAP::iterator iter = tables_.find(tname);
+			if(iter == tables_.end())
+			{
+				if(!dbi->dropEntityTableFromDB((std::string(ENTITY_TABLE_PERFIX"_") + tname).c_str()))
+					return false;
+			}
+		}
+	}
+	catch (std::exception& e)
+	{
+		ERROR_MSG(boost::format("EntityTables::syncToDB: %1%\n") % e.what());
+		return false;
 	}
 
 	return true;

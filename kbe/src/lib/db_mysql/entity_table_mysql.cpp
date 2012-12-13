@@ -60,20 +60,30 @@ bool sync_item_to_db(DBInterface* dbi,
 	kbe_snprintf(__sql_str__, MAX_BUF, "alter table "ENTITY_TABLE_PERFIX"_%s add %s %s;",
 		tablename, itemname, datatype);	
 
-	bool ret = dbi->query(__sql_str__, strlen(__sql_str__), false);	
-	if(!ret)
+	bool ret = false;
+
+	try
 	{
-		if(dbi->getlasterror() == 1060)	
-		{
-			kbe_snprintf(__sql_str__, MAX_BUF, "alter table "ENTITY_TABLE_PERFIX"_%s modify %s %s;",	
-				tablename, itemname, datatype);
-
-			ret = dbi->query(__sql_str__, strlen(__sql_str__), false);	
-		}
-
-		if(!ret)
-			return false;
+		ret = dbi->query(__sql_str__, strlen(__sql_str__), false);	
+	}
+	catch(...)
+	{
 	}	
+
+	if(dbi->getlasterror() == 1060)	
+	{
+		kbe_snprintf(__sql_str__, MAX_BUF, "alter table "ENTITY_TABLE_PERFIX"_%s modify %s %s;",	
+			tablename, itemname, datatype);
+		try
+		{
+			if(dbi->query(__sql_str__, strlen(__sql_str__), false))
+				return true;
+		}
+		catch(...)
+		{
+			return false;
+		}
+	}
 
 	return true;
 }		
@@ -201,8 +211,15 @@ bool EntityTableMysql::syncToDB(DBInterface* dbi)
 		"ENGINE="MYSQL_ENGINE_TYPE, 
 		tableName(), exItems.c_str());
 
-	bool ret = dbi->query(sql_str, strlen(sql_str), false);
-	if(!ret)
+	try
+	{
+		bool ret = dbi->query(sql_str, strlen(sql_str), false);
+		if(!ret)
+		{
+			return false;
+		}
+	}
+	catch(...)
 	{
 		return false;
 	}
