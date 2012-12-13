@@ -213,6 +213,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\GraphsWindow.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\guiconsole.cpp"
 				>
 			</File>
@@ -284,6 +288,10 @@
 			</File>
 			<File
 				RelativePath=".\EditSendbuffer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GraphsWindow.h"
 				>
 			</File>
 			<File

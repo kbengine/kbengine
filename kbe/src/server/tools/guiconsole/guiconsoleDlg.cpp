@@ -295,6 +295,7 @@ CguiconsoleDlg::CguiconsoleDlg(CWnd* pParent /*=NULL*/)
 	m_profileWnd(),
 	m_watcherWnd(),
 	m_spaceViewWnd(),
+	m_graphsWindow(),
 	m_isInit(false),
 	m_historyCommand(),
 	m_historyCommandIndex(0),
@@ -384,24 +385,27 @@ BOOL CguiconsoleDlg::OnInitDialog()
 
 	m_isInit = true;
 	
-	m_tab.InsertItem(0, _T("STATUS"), 0); 
+	m_tab.InsertItem(0, _T("Status"), 0); 
 	m_statusWnd.Create(IDD_STATUS, GetDlgItem(IDC_TAB1));
 	
-	m_tab.InsertItem(1, _T("DEBUG"), 0); 
+	m_tab.InsertItem(1, _T("Debug"), 0); 
 	m_debugWnd.Create(IDD_DEBUG, GetDlgItem(IDC_TAB1));
 
-	m_tab.InsertItem(2, _T("LOG"), 0); 
+	m_tab.InsertItem(2, _T("Log"), 0); 
 	m_logWnd.Create(IDD_LOG, GetDlgItem(IDC_TAB1));
 
-	m_tab.InsertItem(3, _T("PROFILE"), 0); 
+	m_tab.InsertItem(3, _T("Profile"), 0); 
 	m_profileWnd.Create(IDD_PROFILE, GetDlgItem(IDC_TAB1));
 
-	m_tab.InsertItem(4, _T("WATCHER"), 0); 
+	m_tab.InsertItem(4, _T("Watcher"), 0); 
 	m_watcherWnd.Create(IDD_WATCHER, GetDlgItem(IDC_TAB1));
 
-	m_tab.InsertItem(5, _T("SPACEVIEW"), 0); 
+	m_tab.InsertItem(5, _T("SpaceView"), 0); 
 	m_spaceViewWnd.Create(IDD_SPACEVIEW, GetDlgItem(IDC_TAB1));
 
+	m_tab.InsertItem(6, _T("Graphs"), 0); 
+	m_graphsWindow.Create(IDD_GRAPHS, GetDlgItem(IDC_TAB1));
+	
 	DWORD styles = ::GetWindowLong(m_tree.m_hWnd, GWL_STYLE);
 	styles |= TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS;
 	::SetWindowLong(m_tree.m_hWnd, GWL_STYLE, styles);
@@ -1055,6 +1059,9 @@ void CguiconsoleDlg::autoWndSize()
 	m_spaceViewWnd.MoveWindow(&rect);
 	m_spaceViewWnd.autoWndSize();
 
+	m_graphsWindow.MoveWindow(&rect);
+	m_graphsWindow.autoWndSize();
+
 	autoShowWindow();
 }
 
@@ -1292,6 +1299,7 @@ void CguiconsoleDlg::autoShowWindow()
 		m_profileWnd.ShowWindow(SW_HIDE);
 		m_watcherWnd.ShowWindow(SW_HIDE);
 		m_spaceViewWnd.ShowWindow(SW_HIDE);
+		m_graphsWindow.ShowWindow(SW_HIDE);
 		break;
     case 1:
 		m_statusWnd.ShowWindow(SW_HIDE);
@@ -1300,6 +1308,7 @@ void CguiconsoleDlg::autoShowWindow()
 		m_profileWnd.ShowWindow(SW_HIDE);
 		m_watcherWnd.ShowWindow(SW_HIDE);
 		m_spaceViewWnd.ShowWindow(SW_HIDE);
+		m_graphsWindow.ShowWindow(SW_HIDE);
 		break;
     case 2:
 		m_statusWnd.ShowWindow(SW_HIDE);
@@ -1308,6 +1317,7 @@ void CguiconsoleDlg::autoShowWindow()
 		m_profileWnd.ShowWindow(SW_HIDE);
 		m_watcherWnd.ShowWindow(SW_HIDE);
 		m_spaceViewWnd.ShowWindow(SW_HIDE);
+		m_graphsWindow.ShowWindow(SW_HIDE);
 		break;
     case 3:
 		m_statusWnd.ShowWindow(SW_HIDE);
@@ -1316,6 +1326,7 @@ void CguiconsoleDlg::autoShowWindow()
 		m_profileWnd.ShowWindow(SW_SHOW);
 		m_watcherWnd.ShowWindow(SW_HIDE);
 		m_spaceViewWnd.ShowWindow(SW_HIDE);
+		m_graphsWindow.ShowWindow(SW_HIDE);
 		break;
     case 4:
 		m_statusWnd.ShowWindow(SW_HIDE);
@@ -1324,6 +1335,7 @@ void CguiconsoleDlg::autoShowWindow()
 		m_profileWnd.ShowWindow(SW_HIDE);
 		m_watcherWnd.ShowWindow(SW_SHOW);
 		m_spaceViewWnd.ShowWindow(SW_HIDE);
+		m_graphsWindow.ShowWindow(SW_HIDE);
 		break;
     case 5:
 		m_statusWnd.ShowWindow(SW_HIDE);
@@ -1332,6 +1344,16 @@ void CguiconsoleDlg::autoShowWindow()
 		m_profileWnd.ShowWindow(SW_HIDE);
 		m_watcherWnd.ShowWindow(SW_HIDE);
 		m_spaceViewWnd.ShowWindow(SW_SHOW);
+		m_graphsWindow.ShowWindow(SW_HIDE);
+		break;
+    case 6:
+		m_statusWnd.ShowWindow(SW_HIDE);
+		m_debugWnd.ShowWindow(SW_HIDE);
+		m_logWnd.ShowWindow(SW_HIDE);
+		m_profileWnd.ShowWindow(SW_HIDE);
+		m_watcherWnd.ShowWindow(SW_HIDE);
+		m_spaceViewWnd.ShowWindow(SW_HIDE);
+		m_graphsWindow.ShowWindow(SW_SHOW);
 		break;
     };
 }

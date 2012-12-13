@@ -10,6 +10,7 @@
 #include "ProfileWindow.h"
 #include "WatcherWindow.h"
 #include "SpaceViewWindow.h"
+#include "GraphsWindow.h"
 #include "ConnectRemoteMachineWindow.h"
 #include "thread/threadpool.hpp"
 #include <sstream>
@@ -108,6 +109,7 @@ private:
 	CProfileWindow m_profileWnd;
 	CWatcherWindow m_watcherWnd;
 	CSpaceViewWindow m_spaceViewWnd;
+	CGraphsWindow	m_graphsWindow;
 
 	bool m_isInit;
 	std::deque<CString> m_historyCommand;
