@@ -308,7 +308,7 @@ public:
 
 	Bundle &append(MemoryStream& s)
 	{
-		if(s.wpos() > 0)
+		if(s.opsize() > 0)
 			return append(s.data() + s.rpos(), s.opsize());
 
 		return *this;

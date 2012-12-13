@@ -518,7 +518,6 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 {
 	std::string entityType;
 	ENTITY_ID mailboxEntityID;
-	std::string strEntityCellData;
 	COMPONENT_ID componentID;
 	SPACE_ID spaceID = 1;
 
@@ -527,27 +526,22 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 	s >> spaceID;
 	s >> componentID;
 
-	s.readBlob(strEntityCellData);
-
 	// DEBUG_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
 	//	spaceID, entityType.c_str(), mailboxEntityID, componentID);
 
 	Space* space = Spaces::createNewSpace(spaceID);
 	if(space != NULL)
 	{
-		// 解包cellData信息.
-		PyObject* params = NULL;
-		if(strEntityCellData.size() > 0)
-			params = script::Pickler::unpickle(strEntityCellData);
-	
 		// 创建entity
-		Entity* e = createEntityCommon(entityType.c_str(), params, false, mailboxEntityID, false);
+		Entity* e = createEntityCommon(entityType.c_str(), NULL, false, mailboxEntityID, false);
 		
 		if(e == NULL)
 		{
-			Py_XDECREF(params);
+			s.opfini();
 			return;
 		}
+
+		PyObject* cellData = e->createCellDataFromStream(&s);
 
 		// 设置entity的baseMailbox
 		EntityMailbox* mailbox = new EntityMailbox(e->getScriptModule(), NULL, componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
@@ -559,8 +553,8 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		{
 			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 			ForwardItem* pFI = new ForwardItem();
-			pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(e, spaceID, params);
-			//Py_XDECREF(params);
+			pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(e, spaceID, cellData);
+			//Py_XDECREF(cellData);
 			pFI->pBundle = pBundle;
 			(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
 			BaseappInterface::onEntityGetCellArgs3::staticAddToBundle((*pBundle), mailboxEntityID, componentID_, spaceID);
@@ -573,8 +567,8 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		space->creatorID(e->getID());
 		space->addEntity(e);
 		
-		e->initializeEntity(params);
-		Py_XDECREF(params);
+		e->initializeEntity(cellData);
+		Py_XDECREF(cellData);
 
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);

@@ -128,7 +128,7 @@ void Cellappmgr::forwardMessage(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::Channel* Cellappmgr::findFreeCellapp(void)
+Mercury::Channel* Cellappmgr::findBestCellapp(void)
 {
 	Components::COMPONENTS& components = Components::getSingleton().getComponents(CELLAPP_TYPE);
 	if(components.size() == 0)
@@ -148,7 +148,7 @@ Mercury::Channel* Cellappmgr::findFreeCellapp(void)
 		index = 0;
 
 	Components::COMPONENTS::iterator iter = components.begin();
-	DEBUG_MSG(boost::format("Cellappmgr::findFreeCellapp: index=%1%.\n") % index);
+	DEBUG_MSG(boost::format("Cellappmgr::findBestCellapp: index=%1%.\n") % index);
 	std::advance(iter, index++);
 	return (*iter).pChannel;
 }
@@ -158,15 +158,11 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 {
 	std::string entityType;
 	ENTITY_ID id;
-	ArraySize cellDataLength;
-	std::string strEntityCellData;
 	COMPONENT_ID componentID;
 
 	s >> entityType;
 	s >> id;
 	s >> componentID;
-
-	cellDataLength = s.readBlob(strEntityCellData);
 
 	static SPACE_ID spaceID = 1;
 
@@ -180,15 +176,13 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 	(*pBundle) << id;
 	(*pBundle) << spaceID++;
 	(*pBundle) << componentID;
-	(*pBundle) << cellDataLength;
-	
-	if(cellDataLength > 0)
-		(*pBundle).append(strEntityCellData.data(), cellDataLength);
+
+	(*pBundle).append(&s);
 
 	DEBUG_MSG(boost::format("Cellappmgr::reqCreateInNewSpace: entityType=%1%, entityID=%2%, componentID=%3%.\n") %
 		entityType.c_str() % id % componentID);
 
-	Mercury::Channel* lpChannel = findFreeCellapp();
+	Mercury::Channel* lpChannel = findBestCellapp();
 
 	if(lpChannel == NULL)
 	{

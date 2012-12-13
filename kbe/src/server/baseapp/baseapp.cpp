@@ -690,8 +690,7 @@ void Baseapp::createInNewSpace(Base* base, PyObject* cell)
 {
 	ENTITY_ID id = base->getID();
 	std::string entityType = base->ob_type->tp_name;
-	std::string strCellData = script::Pickler::pickle(base->getCellData());
-	ArraySize cellDataLength = strCellData.length();
+
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
@@ -700,10 +699,16 @@ void Baseapp::createInNewSpace(Base* base, PyObject* cell)
 	(*pBundle) << entityType;
 	(*pBundle) << id;
 	(*pBundle) << componentID_;
-	(*pBundle) << cellDataLength;
 
-	if(cellDataLength > 0)
-		(*pBundle).append(strCellData.data(), cellDataLength);
+	MemoryStream* s = MemoryStream::ObjPool().createObject();
+	base->addPositionAndDirectionToStream(*s);
+	(*pBundle).append(s);
+	MemoryStream::ObjPool().reclaimObject(s);
+
+	s = MemoryStream::ObjPool().createObject();
+	base->addCellDataToStream(ED_FLAG_ALL, s);
+	(*pBundle).append(*s);
+	MemoryStream::ObjPool().reclaimObject(s);
 	
 	Components::COMPONENTS& components = Components::getSingleton().getComponents(CELLAPPMGR_TYPE);
 	Components::COMPONENTS::iterator iter = components.begin();

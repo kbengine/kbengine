@@ -69,7 +69,7 @@ public:
 	void finalise();
 
 	/** 找出一个最空闲的cellapp */
-	Mercury::Channel* findFreeCellapp(void);
+	Mercury::Channel* findBestCellapp(void);
 
 	/** 网络接口
 		baseEntity请求创建在一个新的space中
