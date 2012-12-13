@@ -26,12 +26,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 
 //-------------------------------------------------------------------------------------
-DBInterfaceMysql::DBInterfaceMysql() :
+DBInterfaceMysql::DBInterfaceMysql(std::string characterSet, std::string collation) :
 DBInterface(),
 pMysql_(NULL),
 hasLostConnection_(false),
 inTransaction_(false),
-lock_(NULL, false)
+lock_(NULL, false),
+characterSet_(characterSet),
+collation_(collation)
 {
 	lock_.pdbi(this);
 }
@@ -82,6 +84,12 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 		{
 			ERROR_MSG("DBInterfaceMysql::attach: Could not set client connection character set to UTF-8\n" );
 		}
+
+		char characterset_sql[MAX_BUF];
+		kbe_snprintf(characterset_sql, MAX_BUF, "ALTER DATABASE CHARACTER SET %s COLLATE %s", 
+			characterSet_.c_str(), collation_.c_str());
+
+		query(&characterset_sql[0], strlen(characterset_sql), false);
 	}
 	catch (std::exception& e)
 	{

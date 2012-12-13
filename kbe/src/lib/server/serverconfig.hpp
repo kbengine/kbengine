@@ -79,6 +79,8 @@ typedef struct EngineComponentInfo
 	char db_password[MAX_BUF];								// 数据库的密码
 	char db_name[MAX_BUF];									// 数据库名
 	uint16 db_numConnections;								// 数据库最大连接
+	std::string db_unicodeString_characterSet;				// 设置数据库字符集
+	std::string db_unicodeString_collation;
 
 	float archivePeriod;									// entity存储数据库周期
 	float backupPeriod;										// entity备份周期

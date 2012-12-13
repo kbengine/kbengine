@@ -35,6 +35,11 @@
 		<password> kbe </password>	<!-- Type: String -->
 		<databaseName> kbe </databaseName> <!-- Type: String -->
 		<numConnections> 5 </numConnections>	<!-- Type: Integer -->
+		
+		<unicodeString>
+			<characterSet> utf8 </characterSet> <!-- Type: String -->
+			<collation> utf8_bin </collation> <!-- Type: String -->
+		</unicodeString>
 	</dbmgr>
 	
 	<cellapp>

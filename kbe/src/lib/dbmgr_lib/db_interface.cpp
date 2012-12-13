@@ -79,7 +79,7 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 
 	if(strcmp(dbcfg.db_type, "mysql") == 0)
 	{
-		dbinterface = new DBInterfaceMysql;
+		dbinterface = new DBInterfaceMysql(dbcfg.db_unicodeString_characterSet, dbcfg.db_unicodeString_collation);
 	}
 
 	kbe_snprintf(dbinterface->db_type_, MAX_BUF, "%s", dbcfg.db_type);

@@ -57,7 +57,7 @@ struct TABLE_FIELD
 class DBInterfaceMysql : public DBInterface
 {
 public:
-	DBInterfaceMysql();
+	DBInterfaceMysql(std::string characterSet, std::string collation);
 	virtual ~DBInterfaceMysql();
 
 	/**
@@ -154,9 +154,15 @@ public:
 	bool processException(std::exception & e);
 protected:
 	MYSQL* pMysql_;
+
 	bool hasLostConnection_;
+
 	bool inTransaction_;
+
 	DBTransaction lock_;
+
+	std::string characterSet_;
+	std::string collation_;
 };
 
 

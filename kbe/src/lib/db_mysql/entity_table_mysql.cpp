@@ -307,7 +307,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 	}
 	else if(type == "UNICODE")
 	{
-		return new EntityTableItemMysql_UNICODE("blob", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_UNICODE("text", 0, 0, FIELD_TYPE_BLOB);
 	}
 	else if(type == "PYTHON")
 	{
@@ -1268,11 +1268,11 @@ bool EntityTableItemMysql_STRING::syncToDB(DBInterface* dbi, void* pData)
 
 	if(length > 0)
 	{
-		kbe_snprintf(sql_str, MAX_BUF, "text(%u)", length);
+		kbe_snprintf(sql_str, MAX_BUF, "%s(%u)", itemDBType_.c_str(), length);
 	}
 	else
 	{
-		kbe_snprintf(sql_str, MAX_BUF, "text");
+		kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
 	}
 
 	return sync_item_to_db(dbi, sql_str, tableName_.c_str(), db_item_name(), length, 
@@ -1331,11 +1331,11 @@ bool EntityTableItemMysql_UNICODE::syncToDB(DBInterface* dbi, void* pData)
 
 	if(length > 0)
 	{
-		kbe_snprintf(sql_str, MAX_BUF, "text(%u)", length);
+		kbe_snprintf(sql_str, MAX_BUF, "%s(%u)", itemDBType_.c_str(), length);
 	}
 	else
 	{
-		kbe_snprintf(sql_str, MAX_BUF, "text");
+		kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
 	}
 
 	return sync_item_to_db(dbi, sql_str, tableName_.c_str(), db_item_name(), length, 
@@ -1361,15 +1361,14 @@ void EntityTableItemMysql_UNICODE::getWriteSqlItem(DBInterface* dbi, MemoryStrea
 	std::string val;
 	s->readBlob(val);
 
-	pSotvs->extraDatas = "\"";
-	char* tbuf = new char[val.size() * 2 + 1];
+	char* tbuf = new char[val.size() + 1];
 
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
 		tbuf, val.c_str(), val.size());
-
+	
+	pSotvs->extraDatas = "\"";
 	pSotvs->extraDatas += tbuf;
 	pSotvs->extraDatas += "\"";
-
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
@@ -1410,15 +1409,12 @@ void EntityTableItemMysql_BLOB::getWriteSqlItem(DBInterface* dbi, MemoryStream* 
 	std::string val;
 	s->readBlob(val);
 
-	pSotvs->extraDatas = "\"";
-	char* tbuf = new char[val.size() * 2 + 1];
+	char* tbuf = new char[val.size() + 1];
 
-	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
-		tbuf, val.c_str(), val.size());
+	//mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+	//	tbuf, val.c_str(), val.size());
 
-	pSotvs->extraDatas += tbuf;
-	pSotvs->extraDatas += "\"";
-
+	pSotvs->extraDatas = tbuf;
 	SAFE_RELEASE_ARRAY(tbuf);
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
