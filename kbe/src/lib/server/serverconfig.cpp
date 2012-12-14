@@ -62,11 +62,30 @@ bool ServerConfig::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("trace_packet");
 	if(rootNode != NULL)
 	{
-		Mercury::g_trace_packet = xml->getValInt(rootNode);
-		rootNode = NULL;
+		TiXmlNode* childnode = xml->enterNode(rootNode, "debug_type");
+		if(childnode)
+			Mercury::g_trace_packet = xml->getValInt(childnode);
 
 		if(Mercury::g_trace_packet > 3)
 			Mercury::g_trace_packet = 0;
+
+		childnode = NULL;
+		childnode = xml->enterNode(rootNode, "disables");
+		if(childnode)
+		{
+			do																				
+			{	
+				if(childnode->FirstChild() != NULL)
+				{
+					std::string c = childnode->FirstChild()->Value();
+					c = strutil::kbe_trim(c);
+					if(c.size() > 0)
+					{
+						Mercury::g_trace_packet_disables.push_back(c);
+					}
+				}
+			}while((childnode = childnode->NextSibling()));												
+		}
 	}
 
 	rootNode = xml->getRootNode("debugEntity");

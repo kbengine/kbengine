@@ -54,27 +54,42 @@ class Channel;
 #define TRACE_BUNDLE_DATA(isrecv, bundle, pCurrMsgHandler, length)											\
 	if(Mercury::g_trace_packet > 0)																			\
 	{																										\
+		bool isprint = true;																				\
 		if(pCurrMsgHandler)																					\
 		{																									\
-			DEBUG_MSG(boost::format("%1% %2%:msgID:%3%, currMsgLength:%4%\n") %								\
-				((isrecv == true) ? "====>" : "<====") %													\
-				pCurrMsgHandler->name.c_str() %																\
-				bundle->messageID() %																		\
-				length);																					\
+		std::vector<std::string>::iterator iter = std::find(Mercury::g_trace_packet_disables.begin(),		\
+														Mercury::g_trace_packet_disables.end(),				\
+															pCurrMsgHandler->name);							\
+																											\
+			if(iter != Mercury::g_trace_packet_disables.end())												\
+			{																								\
+				isprint = false;																			\
+			}																								\
+			else																							\
+			{																								\
+				DEBUG_MSG(boost::format("%1% %2%:msgID:%3%, currMsgLength:%4%\n") %							\
+					((isrecv == true) ? "====>" : "<====") %												\
+					pCurrMsgHandler->name.c_str() %															\
+					bundle->messageID() %																	\
+					length);																				\
+			}																								\
 		}																									\
 																											\
-		switch(Mercury::g_trace_packet)																		\
+		if(isprint)																							\
 		{																									\
-		case 1:																								\
-			bundle->hexlike();																				\
-			break;																							\
-		case 2:																								\
-			bundle->textlike();																				\
-			break;																							\
-		default:																							\
-			bundle->print_storage();																		\
-			break;																							\
-		};																									\
+			switch(Mercury::g_trace_packet)																	\
+			{																								\
+			case 1:																							\
+				bundle->hexlike();																			\
+				break;																						\
+			case 2:																							\
+				bundle->textlike();																			\
+				break;																						\
+			default:																						\
+				bundle->print_storage();																	\
+				break;																						\
+			};																								\
+		}																									\
 	}																										\
 
 

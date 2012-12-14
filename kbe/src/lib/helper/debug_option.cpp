@@ -25,8 +25,13 @@ namespace KBEngine {
 	
 namespace Mercury
 {
+
 bool g_packetAlwaysContainLength = false;
+
 uint8 g_trace_packet = 0;
+
+std::vector<std::string> g_trace_packet_disables;
+
 }
 
 bool g_debugEntity = false;

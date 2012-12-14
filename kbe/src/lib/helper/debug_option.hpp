@@ -35,14 +35,17 @@ namespace Mercury
 extern bool g_packetAlwaysContainLength;
 
 /**
-	是否需要将任何接收和发送的包以文本输出到log中提供调试
-		0: 不输出
-		1: 16进制输出
-		2: 字符流输出
-		3: 10进制输出
+是否需要将任何接收和发送的包以文本输出到log中提供调试
+		g_trace_packet:
+			0: 不输出
+			1: 16进制输出
+			2: 字符流输出
+			3: 10进制输出
+		g_trace_packet_disables:
+			关闭某些包的输出
 */
 extern uint8 g_trace_packet;
-
+extern std::vector<std::string> g_trace_packet_disables;
 }
 
 /**

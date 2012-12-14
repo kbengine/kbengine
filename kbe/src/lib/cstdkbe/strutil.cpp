@@ -55,10 +55,6 @@ namespace strutil {
 		return s;
 	}
 
-	std::string &kbe_trim(std::string &s) 
-	{
-		return kbe_ltrim(kbe_rtrim(s));
-	}
 
 	std::string kbe_trim(std::string s) 
 	{
