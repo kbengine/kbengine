@@ -353,7 +353,8 @@ public:
 	}
 	
 	void addToInitStream(MemoryStream* s){
-		(*s) << path() << name() << id_ << type<RETURN_TYPE>() << (This_->*func_)();
+		RETURN_TYPE v = (This_->*func_)();
+		(*s) << path() << name() << id_ << type<RETURN_TYPE>() << v;
 	};
 
 	void addToStream(MemoryStream* s)

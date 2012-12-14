@@ -61,6 +61,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// 某app主动请求look。
 	CELLAPP_MESSAGE_DECLARE_ARGS0(lookApp,									MERCURY_FIXED_MESSAGE)
 
+	// 某个app请求查看该app负载状态。
+	CELLAPP_MESSAGE_DECLARE_ARGS0(queryLoad,								MERCURY_FIXED_MESSAGE)
+
 	// console远程执行python语句。
 	CELLAPP_MESSAGE_DECLARE_STREAM(onExecScriptCommand,						MERCURY_VARIABLE_MESSAGE)
 

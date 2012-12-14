@@ -421,5 +421,10 @@ void ServerApp::reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s)
 	this->getMainDispatcher().breakProcessing();
 }
 
+//-------------------------------------------------------------------------------------
+void ServerApp::queryLoad(Mercury::Channel* pChannel)
+{
+}
+
 //-------------------------------------------------------------------------------------		
 }

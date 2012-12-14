@@ -64,6 +64,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	// 某app主动请求look。
 	DBMGR_MESSAGE_DECLARE_ARGS0(lookApp,							MERCURY_FIXED_MESSAGE)
 
+	// 某个app请求查看该app负载状态。
+	DBMGR_MESSAGE_DECLARE_ARGS0(queryLoad,							MERCURY_FIXED_MESSAGE)
+
 	// 某app请求获取一个entityID段 
 	DBMGR_MESSAGE_DECLARE_ARGS2(onReqAllocEntityID,					MERCURY_FIXED_MESSAGE,
 								int8,								componentType,

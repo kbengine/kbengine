@@ -154,6 +154,11 @@ public:
 		请求关闭服务器
 	*/
 	virtual void reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		某个app请求查看该app负载状态， 通常是console请求查看
+	*/
+	virtual void queryLoad(Mercury::Channel* pChannel);
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID

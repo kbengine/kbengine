@@ -54,6 +54,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// 某app主动请求look。
 	BASEAPP_MESSAGE_DECLARE_ARGS0(lookApp,									MERCURY_FIXED_MESSAGE)
 
+	// 某个app请求查看该app负载状态。
+	BASEAPP_MESSAGE_DECLARE_ARGS0(queryLoad,								MERCURY_FIXED_MESSAGE)
+
 	// console远程执行python语句。
 	BASEAPP_MESSAGE_DECLARE_STREAM(onExecScriptCommand,						MERCURY_VARIABLE_MESSAGE)
 

@@ -60,6 +60,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MessagelogInterface)
 	// 某app主动请求look。
 	MESSAGELOG_MESSAGE_DECLARE_ARGS0(lookApp,								MERCURY_FIXED_MESSAGE)
 
+	// 某个app请求查看该app负载状态。
+	MESSAGELOG_MESSAGE_DECLARE_ARGS0(queryLoad,								MERCURY_FIXED_MESSAGE)
+
 	// 某个app向本app告知处于活动状态。
 	MESSAGELOG_MESSAGE_DECLARE_ARGS2(onAppActiveTick,						MERCURY_FIXED_MESSAGE,
 									COMPONENT_TYPE,							componentType, 

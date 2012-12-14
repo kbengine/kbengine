@@ -1409,7 +1409,7 @@ void CguiconsoleDlg::OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
 		m_debugWnd.displaybufferWnd()->GetWindowTextW(s);
 		
 		if(s.GetLength() <= 0)
-			s += L">>>请在下面的窗口写python代码来调试服务器。\r\n>>>ctrl+enter 发送\r\n>>>↑↓使用历史命令\r\n\r\n";
+			s += L">>>请在下面的窗口写python代码来调试服务端。\r\n>>>ctrl+enter 发送\r\n>>>↑↓使用历史命令\r\n\r\n";
 		else
 			s += L">>>";
 
@@ -1425,6 +1425,8 @@ void CguiconsoleDlg::OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
 	title.Format(L"guiconsole : selected[%s]", tbuf);
 	free(tbuf);
 	this->SetWindowTextW(title.GetBuffer(0));
+
+	m_watcherWnd.clearAllData();
 
 }
 
