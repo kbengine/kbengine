@@ -110,7 +110,12 @@ public:
 
 	const char* info()			{ return mysql_info( pMysql_ ); }
 
-	const char* getLastError()	{ return mysql_error( pMysql_ ); }
+	const char* getLastError()	
+	{
+		if(pMysql_ == NULL)
+			return "pMysql is NULL";
+		return mysql_error( pMysql_ ); 
+	}
 
 	unsigned int getLastErrorNum() { return mysql_errno( pMysql_ ); }
 

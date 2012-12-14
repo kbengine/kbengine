@@ -225,6 +225,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\LineChartCtrl.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\LogWindow.cpp"
 				>
 			</File>
@@ -303,7 +307,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\LineChartCtrl.h"
+				>
+			</File>
+			<File
 				RelativePath=".\LogWindow.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MemDC.h"
 				>
 			</File>
 			<File

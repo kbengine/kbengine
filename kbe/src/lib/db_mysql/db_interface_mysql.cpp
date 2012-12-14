@@ -412,9 +412,10 @@ bool DBInterfaceMysql::processException(std::exception & e)
 		while (!this->reattach())
 		{
 			ERROR_MSG(boost::format("DBInterfaceMysql::processException: "
-							"Thread %p reconnect attempt %d failed.\n") %
+							"Thread %p reconnect attempt %d failed(%s).\n") %
 						this %
-						attempts);
+						attempts %
+						getLastError());
 
 			KBEngine::sleep(30);
 			++attempts;

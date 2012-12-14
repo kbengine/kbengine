@@ -1,5 +1,5 @@
 #pragma once
-
+#include "LineChartCtrl.h"
 
 // CGraphsWindow dialog
 
@@ -21,4 +21,8 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	DECLARE_MESSAGE_MAP()
+
+	CLineChartCtrl m_plot;
+public:
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 };
