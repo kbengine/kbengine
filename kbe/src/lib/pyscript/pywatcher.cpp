@@ -26,7 +26,7 @@ namespace KBEngine{ namespace script{
 template <class TYPE> 
 inline WatcherObject* _addWatcher(std::string path, PyObject* pyobj)
 {
-	path = std::string("root/script/") + path;
+	path = std::string("root/scripts/") + path;
 	PyWatcherObject<TYPE>* pwo = new PyWatcherObject<TYPE>(path, pyobj);
 	WatcherPaths::root().addWatcher(path, pwo);
 	return pwo;
@@ -49,7 +49,7 @@ static PyObject* addWatcher(PyObject* self, PyObject* args)
 	if(PyArg_ParseTuple(args, "O|O|O", &pyName, &pyType, &pyObj) == -1)
 	{
 		PyErr_Format(PyExc_Exception, "KBEngine::addWatcher: args is error! "
-			"arg(watcherName, deftype[UINT32|STRING...], pyCallable).\n");
+			"arg(watcherPath, deftype[UINT32|STRING...], pyCallable).\n");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -57,7 +57,7 @@ static PyObject* addWatcher(PyObject* self, PyObject* args)
 	if(!PyUnicode_Check(pyName))
 	{
 		PyErr_Format(PyExc_Exception, "KBEngine::addWatcher: args1 is error! "
-			"arg=watcherName\n");
+			"arg=watcherPath\n");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -106,51 +106,51 @@ static PyObject* addWatcher(PyObject* self, PyObject* args)
 
 	if(strcmp("UINT8", type.c_str()) == 0)
 	{
-		_addWatcher<uint8>(type, pyObj);
+		_addWatcher<uint8>(pwatchername, pyObj);
 	}
 	else if(strcmp("UINT16", type.c_str()) == 0)
 	{
-		_addWatcher<uint16>(type, pyObj);
+		_addWatcher<uint16>(pwatchername, pyObj);
 	}
 	else if(strcmp("UINT32", type.c_str()) == 0)
 	{
-		_addWatcher<uint32>(type, pyObj);
+		_addWatcher<uint32>(pwatchername, pyObj);
 	}
 	else if(strcmp("UINT64", type.c_str()) == 0)
 	{
-		_addWatcher<uint64>(type, pyObj);
+		_addWatcher<uint64>(pwatchername, pyObj);
 	}
 	else if(strcmp("INT8", type.c_str()) == 0)
 	{
-		_addWatcher<int8>(type, pyObj);
+		_addWatcher<int8>(pwatchername, pyObj);
 	}
 	else if(strcmp("INT16", type.c_str()) == 0)
 	{
-		_addWatcher<int16>(type, pyObj);
+		_addWatcher<int16>(pwatchername, pyObj);
 	}
 	else if(strcmp("INT32", type.c_str()) == 0)
 	{
-		_addWatcher<int32>(type, pyObj);
+		_addWatcher<int32>(pwatchername, pyObj);
 	}
 	else if(strcmp("INT64", type.c_str()) == 0)
 	{
-		_addWatcher<int64>(type, pyObj);
+		_addWatcher<int64>(pwatchername, pyObj);
 	}
 	else if(strcmp("FLOAT", type.c_str()) == 0)
 	{
-		_addWatcher<float>(type, pyObj);
+		_addWatcher<float>(pwatchername, pyObj);
 	}
 	else if(strcmp("DOUBLE", type.c_str()) == 0)
 	{
-		_addWatcher<double>(type, pyObj);
+		_addWatcher<double>(pwatchername, pyObj);
 	}
 	else if(strcmp("BOOL", type.c_str()) == 0)
 	{
-		_addWatcher<uint8>(type, pyObj);
+		_addWatcher<uint8>(pwatchername, pyObj);
 	}
 	else if(strcmp("STRING", type.c_str()) == 0)
 	{
-		_addWatcher<std::string>(type, pyObj);
+		_addWatcher<std::string>(pwatchername, pyObj);
 	}
 
 	Py_DECREF(pyObj1);
