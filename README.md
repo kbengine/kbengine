@@ -133,9 +133,13 @@ windows:
 
 注意: 
 
-	1: 如使用其他版本编译器最好将python、log4cxx、 mysql也重新编译。
+	1: 如使用其他版本编译器最好将python、log4cxx(kbe\src\libs\*.a)也重新编译。
 
-	2: 在linux上编译完成如因为python无法初始化无法正常运行的情况(这是个bug http://bugs.python.org/issue11320):
+	2: 某些平台上的mysql路径可能不是/usr/lib64/mysql/mysql_config
+
+	修改kbe\src\build\common.mak中的MYSQL_CONFIG_PATH=/usr/lib64/mysql/mysql_config
+
+	3: 在linux上编译完成如因为python无法初始化无法正常运行的情况(这是个bug http://bugs.python.org/issue11320):
 
 	cd src\lib\python
 
@@ -162,7 +166,7 @@ windows:
 	3: 新建一个数据库， 假设数据库名为"kbe"
 		create database kbe;
 
-	4: 在res\server\kbengine_defs.xml的dbmgr节修改相关参数(推荐在demo\res\server\kbengine.xml进行重载修改)。
+	4: 在res\server\kbengine_defs.xml的dbmgr节修改databaseName参数(推荐在demo\res\server\kbengine.xml进行重载修改)。
 
 
 
