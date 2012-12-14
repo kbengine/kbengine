@@ -461,8 +461,9 @@ PyObject* Baseapp::__py_createBase(PyObject* self, PyObject* args)
 
 	if(entityType == NULL || ret == -1)
 	{
-		ERROR_MSG("Baseapp::createBase: args is error!");
-		S_Return;
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBase: args is error!");
+		PyErr_PrintEx(0);
+		return NULL;
 	}
 	
 	PyObject* e = Baseapp::getSingleton().createEntityCommon(entityType, params);
@@ -495,8 +496,9 @@ PyObject* Baseapp::__py_createBaseAnywhere(PyObject* self, PyObject* args)
 
 	if(entityType == NULL || ret == -1)
 	{
-		ERROR_MSG("Baseapp::createBaseAnywhere: args is error!");
-		S_Return;
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhere: args is error!");
+		PyErr_PrintEx(0);
+		return NULL;
 	}
 
 	if(!PyCallable_Check(pyCallback))
@@ -530,7 +532,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 			PyErr_Format(PyExc_AssertionError, "%s: args require 2 or 3 args, gived %d!\n",
 				__FUNCTION__, argCount);	
 			PyErr_PrintEx(0);
-			S_Return;
+			return NULL;
 		}
 	};
 
@@ -549,7 +551,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 		if(entityType)
 			free(entityType);
 
-		S_Return;
+		return NULL;
 	}
 
 	if(EntityDef::findScriptModule(entityType) == NULL)
@@ -557,7 +559,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: entityType is error!");
 		PyErr_PrintEx(0);
 		free(entityType);
-		S_Return;
+		return NULL;
 	}
 
 	if(dbid <= 0)
@@ -565,7 +567,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: dbid is error!");
 		PyErr_PrintEx(0);
 		free(entityType);
-		S_Return;
+		return NULL;
 	}
 
 	if(pyCallback && !PyCallable_Check(pyCallback))
@@ -575,7 +577,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: callback is error!");
 		PyErr_PrintEx(0);
 		free(entityType);
-		S_Return;
+		return NULL;
 	}
 
 	Baseapp::getSingleton().createBaseFromDBID(entityType, dbid, pyCallback);
@@ -595,7 +597,8 @@ void Baseapp::createBaseFromDBID(const char* entityType, DBID dbid, PyObject* py
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		ERROR_MSG("Baseapp::createBaseFromDBID: not found dbmgr!\n");
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: not found dbmgr!\n");
+		PyErr_PrintEx(0);
 		return;
 	}
 

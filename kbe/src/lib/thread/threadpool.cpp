@@ -422,7 +422,8 @@ void* TPThread::threadFunc(void* arg)
 		}
 	}
 
-	tptd->onEnd();
+	if(tptd)
+		tptd->onEnd();
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	return 0;

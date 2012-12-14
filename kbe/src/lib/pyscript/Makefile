@@ -5,6 +5,7 @@ SRCS =				\
 	map			\
 	math			\
 	pickler			\
+	pywatcher		\
 	script			\
 	scriptobject		\
 	scriptstdouterr		\

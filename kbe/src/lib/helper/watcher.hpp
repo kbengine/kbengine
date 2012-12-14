@@ -375,6 +375,8 @@ class Watchers
 public:
 	Watchers();
 	~Watchers();
+	
+	void clear();
 
 	static Watchers& rootWatchers();
 
@@ -399,6 +401,8 @@ class WatcherPaths
 public:
 	WatcherPaths();
 	~WatcherPaths();
+
+	void clear();
 
 	static WatcherPaths& root();
 
@@ -488,9 +492,11 @@ inline WatcherObject* addWatcher(std::string path, OBJ_TYPE* This, RETURN_TYPE (
 
 #ifdef ENABLE_WATCHERS
 	#define WATCH_OBJECT addWatcher
+	#define WATCH_FINALIZE WatcherPaths::root().clear();
 #else
 	inline WatcherObject* __addWatcher(...){ return NULL; }
 	#define WATCH_OBJECT __addWatcher
+	#define WATCH_FINALIZE
 #endif
 
 

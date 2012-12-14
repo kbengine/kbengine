@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/timer.hpp"
 #include "cstdkbe/smartpointer.hpp"
 #include "pyscript/pyobject_pointer.hpp"
+#include "pyscript/pywatcher.hpp"
 #include "helper/debug_helper.hpp"
 #include "server/script_timers.hpp"
 #include "server/idallocate.hpp"
@@ -236,6 +237,8 @@ void EntityApp<E>::finalise(void)
 {
 	gameTimer_.cancel();
 
+	WATCH_FINALIZE;
+
 	ScriptTimers::finalise(*this);
 	pEntities_->finalise();
 	
@@ -376,6 +379,10 @@ bool EntityApp<E>::installPyModules()
 			return false;
 		}
 	}
+
+	// 添加pywatcher支持
+	if(!initializePyWatcher(&this->getScript()))
+		return false;
 
 	// 添加globalData, globalBases支持
 	pGlobalData_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_DATA);

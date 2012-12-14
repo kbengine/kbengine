@@ -298,7 +298,7 @@ PyObject* Base::pyDestroyCellEntity()
 {
 	if(cellMailbox_ == NULL) 
 	{
-		PyErr_Format(PyExc_Exception, "%s::destroyCellEntity: id:%i no cell! creatingCell=%s\n", 
+		PyErr_Format(PyExc_AssertionError, "%s::destroyCellEntity: id:%i no cell! creatingCell=%s\n", 
 			this->getScriptName(), this->getID(),
 			creatingCell_ ? "true" : "false");
 		PyErr_PrintEx(0);
@@ -323,7 +323,7 @@ PyObject* Base::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * 
 
 	if(pobj->isDestroyed())	
 	{
-		PyErr_Format(PyExc_Exception, "%s::destroy: %d is destroyed!\n",
+		PyErr_Format(PyExc_AssertionError, "%s::destroy: %d is destroyed!\n",
 			pobj->getScriptName(), pobj->getID());
 		PyErr_PrintEx(0);
 		return NULL;
@@ -360,7 +360,7 @@ PyObject* Base::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * 
 		// 这种情况需要返回给用户一个错误， 用户可以继续尝试这个操作
 		if(pobj->hasDB() && pobj->getDBID() == 0)
 		{
-			PyErr_Format(PyExc_Exception, "%s::destroy: id:%i has db, but not dbid. "
+			PyErr_Format(PyExc_AssertionError, "%s::destroy: id:%i has db, but not dbid. "
 				"please wait for dbmgr to processing!\n", 
 				pobj->getScriptName(), pobj->getID());
 			PyErr_PrintEx(0);
@@ -421,7 +421,7 @@ PyObject* Base::pyGetCellMailbox()
 { 
 	if(isDestroyed())	
 	{
-		PyErr_Format(PyExc_Exception, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		S_Return;																						
@@ -440,7 +440,7 @@ PyObject* Base::pyGetDBID()
 { 
 	if(isDestroyed())	
 	{
-		PyErr_Format(PyExc_Exception, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		S_Return;																						
@@ -454,7 +454,7 @@ PyObject* Base::pyGetClientMailbox()
 {
 	if(isDestroyed())	
 	{
-		PyErr_Format(PyExc_Exception, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
 		S_Return;																						
@@ -748,7 +748,7 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 {
 	if(isDestroyed())																				
 	{																										
-		PyErr_Format(PyExc_Exception, "%s::createCellEntity: %d is destroyed!\n",											
+		PyErr_Format(PyExc_AssertionError, "%s::createCellEntity: %d is destroyed!\n",											
 			getScriptName(), getID());												
 		PyErr_PrintEx(0);																					
 		S_Return;																								
@@ -756,7 +756,7 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 
 	if(Baseapp::getSingleton().findEntity(getID()) == NULL)
 	{
-		PyErr_Format(PyExc_Exception, "%s::createCellEntity: %d not found!\n", 
+		PyErr_Format(PyExc_AssertionError, "%s::createCellEntity: %d not found!\n", 
 			getScriptName(), getID());
 
 		PyErr_PrintEx(0);
@@ -765,7 +765,7 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 
 	if(creatingCell_ || this->getCellMailbox())
 	{
-		PyErr_Format(PyExc_Exception, "%s::createCellEntity: %d has a cell!\n", 
+		PyErr_Format(PyExc_AssertionError, "%s::createCellEntity: %d has a cell!\n", 
 			getScriptName(), getID());
 
 		PyErr_PrintEx(0);
@@ -801,7 +801,7 @@ PyObject* Base::createInNewSpace(PyObject* params)
 {
 	if(isDestroyed())																				
 	{																										
-		PyErr_Format(PyExc_Exception, "%s::createInNewSpace: %d is destroyed!\n",											
+		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d is destroyed!\n",											
 			getScriptName(), getID());												
 		PyErr_PrintEx(0);																					
 		S_Return;																								
@@ -809,7 +809,7 @@ PyObject* Base::createInNewSpace(PyObject* params)
 
 	if(createdSpace_)
 	{
-		PyErr_Format(PyExc_Exception, "%s::createInNewSpace: %d has a space!\n", 
+		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d has a space!\n", 
 			getScriptName(), getID());
 
 		PyErr_PrintEx(0);
@@ -851,7 +851,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 {
 	if(isDestroyed())																				
 	{																										
-		PyErr_Format(PyExc_Exception, "%s::teleport: %d is destroyed!\n",											
+		PyErr_Format(PyExc_AssertionError, "%s::teleport: %d is destroyed!\n",											
 			getScriptName(), getID());												
 		PyErr_PrintEx(0);																					
 		S_Return;																								
@@ -859,7 +859,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 
 	if(this->getCellMailbox() == NULL)
 	{
-		PyErr_Format(PyExc_Exception, "%s::teleport: %d no has cell!\n", 
+		PyErr_Format(PyExc_AssertionError, "%s::teleport: %d no has cell!\n", 
 			getScriptName(), getID());
 
 		PyErr_PrintEx(0);
@@ -881,7 +881,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 
 	if(!isMailbox && !isEntity)
 	{
-		PyErr_Format(PyExc_Exception, "%s::teleport: %d invalid baseEntityMB!\n", 
+		PyErr_Format(PyExc_AssertionError, "%s::teleport: %d invalid baseEntityMB!\n", 
 			getScriptName(), getID());
 
 		PyErr_PrintEx(0);
@@ -897,7 +897,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 
 		if(mb->getType() != MAILBOX_TYPE_BASE && mb->getType() != MAILBOX_TYPE_CELL_VIA_BASE)
 		{
-			PyErr_Format(PyExc_Exception, "%s::teleport: %d baseEntityMB is not baseMailbox!\n", 
+			PyErr_Format(PyExc_AssertionError, "%s::teleport: %d baseEntityMB is not baseMailbox!\n", 
 				getScriptName(), getID());
 
 			PyErr_PrintEx(0);
@@ -926,7 +926,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 		}
 		else
 		{
-			PyErr_Format(PyExc_Exception, "%s::teleport: %d baseEntity is destroyed!\n", 
+			PyErr_Format(PyExc_AssertionError, "%s::teleport: %d baseEntity is destroyed!\n", 
 				getScriptName(), getID());
 
 			PyErr_PrintEx(0);
