@@ -129,6 +129,14 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 			entityID() % id() % totalSentBytes_ % this->totalBytes() % 100.0f % datasize % type());
 
 		pDataDownloads_->onDownloadCompleted(this);
+
+		Mercury::Bundle::SmartPoolObjectPtr pBundle = Mercury::Bundle::createSmartPoolObj();
+
+
+		(*pBundle)->newMessage(ClientInterface::onStreamDataCompleted);
+		(*(*pBundle)) << this->id();
+
+		send((*(*pBundle)));
 		return thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 	

@@ -232,5 +232,10 @@ void ClientApp::onStreamDataRecv(Mercury::Channel* pChannel, MemoryStream& s)
 {
 }
 
+//-------------------------------------------------------------------------------------
+void ClientApp::onStreamDataCompleted(Mercury::Channel* pChannel, int16 id)
+{
+}
+
 //-------------------------------------------------------------------------------------		
 }

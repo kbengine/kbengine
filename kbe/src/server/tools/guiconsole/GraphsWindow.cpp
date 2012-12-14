@@ -40,13 +40,12 @@ BOOL CGraphsWindow::OnInitDialog()
 	m_plot.AddLine(PS_SOLID,RGB(0,255,0));
 
 	m_plot.GetAxisY().m_color=RGB(0,255,0);
-	m_plot.GetAxisY().m_dMinValue=5000;
-	m_plot.GetAxisY().m_dMaxValue=6000;
+	m_plot.GetAxisY().m_dMinValue=0;
+	m_plot.GetAxisY().m_dMaxValue=100;
 	m_plot.CalcLayout();
 
-	SetTimer(1,150,NULL);
-	m_plot.SetRate(150);//
-	m_plot.Start();
+	SetTimer(1,100,NULL);
+	startPlot();
 	return TRUE; 
 };
 
@@ -54,9 +53,27 @@ void CGraphsWindow::autoWndSize()
 {
 	CRect rect;
 	GetClientRect(&rect);
+
+	m_plot.MoveWindow(0, 0, rect.right, rect.bottom, TRUE);
 }
 
 // CGraphsWindow message handlers
+void CGraphsWindow::resetPlot()
+{
+	m_plot.Stop();
+	for(int i=0;i<m_plot.GetLineCount();i++)
+	{
+		m_plot.GetLine(i).RemoveAllPoints();
+	}
+	m_plot.Invalidate();
+}
+
+void CGraphsWindow::startPlot()
+{
+	resetPlot();
+	m_plot.SetRate(100);//
+	m_plot.Start();
+}
 
 void CGraphsWindow::OnTimer(UINT_PTR nIDEvent)
 {
@@ -65,8 +82,8 @@ void CGraphsWindow::OnTimer(UINT_PTR nIDEvent)
 	CDialog::OnTimer(nIDEvent);
 
 	double x=(double)time(0);
-	double y0=(double)GET_RANDOM(4000,6899);
-	double y1=(double)GET_RANDOM(6000,8899);
+	double y0=(double)GET_RANDOM(0,100);
+	double y1=(double)GET_RANDOM(0,100);
 	if(y0<m_plot.GetAxisY().m_dMinValue)
 	{
 		m_plot.GetAxisY().m_dMinValue=y0*0.95;

@@ -17,6 +17,10 @@ public:
 	virtual BOOL OnInitDialog();
 
 	void autoWndSize();
+
+	void resetPlot();
+
+	void startPlot();
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 

@@ -201,6 +201,11 @@ public:
 		接收到streamData
 	*/
 	virtual void onStreamDataRecv(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		download stream完成了 
+	*/
+	virtual void onStreamDataCompleted(Mercury::Channel* pChannel, int16 id);
 protected:
 	COMPONENT_TYPE											componentType_;
 

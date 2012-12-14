@@ -199,6 +199,13 @@
 		<arg>UINT8_ARRAY</arg> <!-- 二进制流 -->
 	</Client::onStreamDataRecv>
 	
+	<Client::onStreamDataCompleted>
+		<id>516</id>
+		<descr>服务器告知客户端数据流下载完成。
+		</descr>
+		<arg>INT16</arg> <!-- 一个下载句柄 INT16 -->
+	</Client::onStreamDataCompleted>
+	
 	<Property::position>
 		<id>40000</id>
 		<descr>位置属性。</descr>
