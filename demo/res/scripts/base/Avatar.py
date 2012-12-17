@@ -28,7 +28,7 @@ class Avatar(KBEngine.Proxy,
 		cell部分。
 		"""
 		INFO_MSG("Avatar[%i-%s] entities enable. mailbox:%s" % (self.id, self.nameB, self.client))
-		KBEngine.globalData["SpaceMgr"].loginToSpace(self, self.spaceUTypeB)
+		KBEngine.globalData["SpaceMgr"].loginToSpace(self, self.spaceUTypeB, {})
 		
 	def onGetCell(self):
 		"""
