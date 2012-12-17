@@ -218,6 +218,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "html5", "lib\html5\html5-90
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zip", "lib\third_party\zip\zip2008.vcproj", "{1ABB1158-909C-4AD4-9F81-CB38BBA5D950}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "billingsystem", "server\tools\billing_system\billingsystem90.vcproj", "{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Consumer_Release_Indie|Win32 = Consumer_Release_Indie|Win32
@@ -992,6 +994,34 @@ Global
 		{1ABB1158-909C-4AD4-9F81-CB38BBA5D950}.Release|Win32.Build.0 = Release|Win32
 		{1ABB1158-909C-4AD4-9F81-CB38BBA5D950}.Static_Release|Win32.ActiveCfg = Static_Release|Win32
 		{1ABB1158-909C-4AD4-9F81-CB38BBA5D950}.Static_Release|Win32.Build.0 = Static_Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Consumer_Release_Indie|Win32.ActiveCfg = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Consumer_Release_Indie|Win32.Build.0 = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Consumer_Release|Win32.ActiveCfg = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Consumer_Release|Win32.Build.0 = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Debug|Win32.Build.0 = Debug|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Editor_Debug|Win32.ActiveCfg = Debug|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Editor_Debug|Win32.Build.0 = Debug|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Editor_Hybrid_Indie|Win32.ActiveCfg = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Editor_Hybrid_Indie|Win32.Build.0 = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Editor_Hybrid|Win32.ActiveCfg = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Editor_Hybrid|Win32.Build.0 = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Evaluation|Win32.ActiveCfg = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Evaluation|Win32.Build.0 = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Exporter_Debug|Win32.ActiveCfg = Debug|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Exporter_Debug|Win32.Build.0 = Debug|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Exporter_Release|Win32.ActiveCfg = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Exporter_Release|Win32.Build.0 = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Hybrid|Win32.ActiveCfg = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Hybrid|Win32.Build.0 = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.PyModule_Hybrid|Win32.ActiveCfg = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.PyModule_Hybrid|Win32.Build.0 = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Release_Indie|Win32.ActiveCfg = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Release_Indie|Win32.Build.0 = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Release|Win32.ActiveCfg = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Release|Win32.Build.0 = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Static_Release|Win32.ActiveCfg = Release|Win32
+		{7817D13F-1FAA-47D8-8C9F-B790FE2D6B0A}.Static_Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
