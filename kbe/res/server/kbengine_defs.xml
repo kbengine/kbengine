@@ -33,7 +33,7 @@
 	
 	<billingSystem>
 		<!-- normal: 普通, thirdparty: 第三方此时需要提供ip地址 -->
-		<type> thirdparty </type>
+		<type> normal </type>
 		<host> localhost </host>
 		<port> 30099 	</port>
 	</billingSystem>
