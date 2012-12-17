@@ -24,7 +24,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include	
 #include "db_threadpool.hpp"
 #include "buffered_dbtasks.hpp"
-#include "billinghandler.hpp"
 #include "server/kbemain.hpp"
 #include "pyscript/script.hpp"
 #include "pyscript/pyobject_pointer.hpp"
@@ -49,6 +48,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class DBInterface;
+class BillingHandler;
 
 class Dbmgr :	public ServerApp, 
 				public Singleton<Dbmgr>

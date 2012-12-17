@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "dbmgr.hpp"
 #include "dbmgr_interface.hpp"
 #include "dbtasks.hpp"
+#include "billinghandler.hpp"
 #include "db_mysql/kbe_table_mysql.hpp"
 #include "network/common.hpp"
 #include "network/tcp_packet.hpp"
