@@ -1,27 +1,19 @@
-BIN  = dbmgr
+BIN  = billingsystem
 SRCS =						\
-	dbmgr					\
-	dbmgr_interface				\
-	dbtasks					\
-	db_threadpool				\
-	buffered_dbtasks			\
+	billingsystem				\
+	billingsystem_interface			\
 	main
 
 ASMS =
 
 MY_LIBS =		\
-	entitydef	\
 	server		\
-	pyscript	\
 	network		\
 	html5		\
-	thread		\
-	dbmgr_lib	\
-	db_mysql
+	thread		
 	
 
 BUILD_TIME_FILE = main
-USE_PYTHON = 1
 USE_G3DMATH = 1
 USE_MYSQL = 1
 USE_OPENSSL = 1
@@ -33,10 +25,10 @@ ifndef NO_USE_LOG4CXX
 endif
 
 #HAS_PCH = 1
-CPPFLAGS += -DKBE_DBMGR
+CPPFLAGS += -DKBE_BILLINGSYSTEM
 
 ifndef KBE_ROOT
-export KBE_ROOT := $(subst /kbe/src/server/$(BIN),,$(CURDIR))
+export KBE_ROOT := $(subst /kbe/src/server/tools/$(BIN),,$(CURDIR))
 endif
 
 #KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party/mysql/include
