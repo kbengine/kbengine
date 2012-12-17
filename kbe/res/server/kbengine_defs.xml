@@ -31,61 +31,68 @@
 		<external> 60.0 </external>
 	</channelTimeout>
 	
+	<billingSystem>
+		<host> localhost </host>
+		<port> 30099 	</port>
+	</billingSystem>
+	
 	<dbmgr>
-		<dbAccountEntityScriptType>	Account						</dbAccountEntityScriptType>
+		<dbAccountEntityScriptType>	Account	</dbAccountEntityScriptType>
+		
+		<allowEmptyDigest> false </allowEmptyDigest>					<!-- Type: Boolean -->
 		
 		<internalInterface>  </internalInterface>
 		
-		<type> mysql </type>		<!-- Type: String -->
-		<host> localhost </host>	<!-- Type: String -->
-		<port> 0 </port>			<!-- Type: Integer -->
-		<username> kbe </username>	<!-- Type: String -->
-		<password> kbe </password>	<!-- Type: String -->
-		<databaseName> kbe </databaseName> <!-- Type: String -->
-		<numConnections> 5 </numConnections>	<!-- Type: Integer -->
+		<type> mysql </type>											<!-- Type: String -->
+		<host> localhost </host>										<!-- Type: String -->
+		<port> 0 </port>												<!-- Type: Integer -->
+		<username> kbe </username>										<!-- Type: String -->
+		<password> kbe </password>										<!-- Type: String -->
+		<databaseName> kbe </databaseName> 								<!-- Type: String -->
+		<numConnections> 5 </numConnections>							<!-- Type: Integer -->
 		
 		<unicodeString>
-			<characterSet> utf8 </characterSet> <!-- Type: String -->
-			<collation> utf8_bin </collation> <!-- Type: String -->
+			<characterSet> utf8 </characterSet> 						<!-- Type: String -->
+			<collation> utf8_bin </collation> 							<!-- Type: String -->
 		</unicodeString>
 	</dbmgr>
 	
 	<cellapp>
-		<entryScriptFile>			kbengine					</entryScriptFile>
+		<entryScriptFile> kbengine </entryScriptFile>
 		
 		<defaultAoIRadius>			
-			<radius>				80.0						</radius>
-			<hysteresisArea>		5.0							</hysteresisArea>
+			<radius> 80.0 </radius>
+			<hysteresisArea> 5.0 </hysteresisArea>
 		</defaultAoIRadius>
 		
 		<internalInterface>  </internalInterface>
 		
 		<ids>
-			<criticallyLowSize> 500 </criticallyLowSize> <!-- Type: Integer -->
+			<criticallyLowSize> 500 </criticallyLowSize>				<!-- Type: Integer -->
 		</ids>
 	</cellapp>
 	
 	<baseapp>
-		<entryScriptFile>			kbengine					</entryScriptFile>
+		<entryScriptFile> kbengine </entryScriptFile>
 		
 		<internalInterface>  </internalInterface>
-		<externalInterface>  </externalInterface>					<!-- Type: String -->
-		<externalPorts_min> 20015 </externalPorts_min>				<!-- Type: Integer -->
-		<externalPorts_max> 20019 </externalPorts_max>				<!-- Type: Integer -->
+		<externalInterface>  </externalInterface>						<!-- Type: String -->
+		<externalPorts_min> 20015 </externalPorts_min>					<!-- Type: Integer -->
+		<externalPorts_max> 20019 </externalPorts_max>					<!-- Type: Integer -->
 		
-		<archivePeriod> 100 </archivePeriod> 						<!-- Type: Float -->
-		<backupPeriod> 10 </backupPeriod>							<!-- Type: Float -->
-		<backUpUndefinedProperties> 0 </backUpUndefinedProperties>	<!-- Type: Boolean -->
+		<archivePeriod> 100 </archivePeriod> 							<!-- Type: Float -->
+		<backupPeriod> 10 </backupPeriod>								<!-- Type: Float -->
+		<backUpUndefinedProperties> 0 </backUpUndefinedProperties>		<!-- Type: Boolean -->
 		
 		<loadSmoothingBias> 0.01 </loadSmoothingBias>
 		
 		<downloadStreaming>
-			<bitsPerSecondTotal> 1000000 </bitsPerSecondTotal> <!-- Type: Int -->
-			<bitsPerSecondPerClient> 100000 </bitsPerSecondPerClient> <!-- Type: Int -->
+			<bitsPerSecondTotal> 1000000 </bitsPerSecondTotal>			<!-- Type: Int -->
+			<bitsPerSecondPerClient> 100000 </bitsPerSecondPerClient>	<!-- Type: Int -->
 		</downloadStreaming>
 		
 		<ids>
-			<criticallyLowSize> 500 </criticallyLowSize> <!-- Type: Integer -->
+			<criticallyLowSize> 500 </criticallyLowSize>				<!-- Type: Integer -->
 		</ids>
 	</baseapp>
 	
@@ -99,14 +106,17 @@
 	
 	<loginapp>
 		<internalInterface>  </internalInterface>
-		<externalInterface>  </externalInterface>		<!-- Type: String -->
-		<externalPorts_min> 20013 </externalPorts_min>	<!-- Type: Integer -->
-		<externalPorts_max> 0 </externalPorts_max>		<!-- Type: Integer -->
+		<externalInterface>  </externalInterface>						<!-- Type: String -->
+		<externalPorts_min> 20013 </externalPorts_min>					<!-- Type: Integer -->
+		<externalPorts_max> 0 </externalPorts_max>						<!-- Type: Integer -->
+		
+		<allowUnencryptedLogins> false </allowUnencryptedLogins>		<!-- Type: Boolean -->
+		<privateKey> server/loginapp.privkey </privateKey>				<!-- Type: String -->
 	</loginapp>		
 	
 	<kbmachine>
-		<externalPorts_min> 20099 </externalPorts_min>	<!-- Type: Integer -->
-		<externalPorts_max> 0 </externalPorts_max>		<!-- Type: Integer -->
+		<externalPorts_min> 20099 </externalPorts_min>					<!-- Type: Integer -->
+		<externalPorts_max> 0 </externalPorts_max>						<!-- Type: Integer -->
 	</kbmachine>
 	
 	<kbcenter>
@@ -115,8 +125,8 @@
 	
 	<bots>
 		<internalInterface>  </internalInterface>
-		<host> localhost </host>						<!-- Type: String -->
-		<port> 20013 </port>							<!-- Type: Integer -->
+		<host> localhost </host>										<!-- Type: String -->
+		<port> 20013 </port>											<!-- Type: Integer -->
 	</bots>
 	
 	<messagelog>
@@ -127,8 +137,8 @@
 		<internalInterface>  </internalInterface>
 		
 		<downloadStreaming>
-			<bitsPerSecondTotal> 1000000 </bitsPerSecondTotal> <!-- Type: Int -->
-			<bitsPerSecondPerClient> 100000 </bitsPerSecondPerClient> <!-- Type: Int -->
+			<bitsPerSecondTotal> 1000000 </bitsPerSecondTotal>			<!-- Type: Int -->
+			<bitsPerSecondPerClient> 100000 </bitsPerSecondPerClient>	<!-- Type: Int -->
 		</downloadStreaming>
 	</resourcemgr>
 </root>
