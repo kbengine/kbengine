@@ -113,8 +113,11 @@ public:
 	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
 									MERCURY_ERR_ACCOUNT_CREATE:创建失败（已经存在）, 
 									MERCURY_SUCCESS:账号创建成功
+
+									SERVER_ERROR_CODE failedcode;
+		@二进制附带数据:二进制额外数据: uint32长度 + bytearray
 	*/
-	virtual void onCreateAccountResult(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+	virtual void onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 	   登录失败回调

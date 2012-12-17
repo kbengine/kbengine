@@ -152,8 +152,13 @@ void ClientApp::onChannelTimeOut(Mercury::Channel * pChannel)
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onCreateAccountResult(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientApp::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s)
 {
+	SERVER_ERROR_CODE failedcode;
+	std::string datas;
+
+	s >> failedcode;
+	s.readBlob(datas);
 }
 
 //-------------------------------------------------------------------------------------	

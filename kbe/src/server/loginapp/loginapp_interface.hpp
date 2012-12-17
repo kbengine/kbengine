@@ -56,9 +56,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	LOGINAPP_MESSAGE_DECLARE_ARGS0(queryLoad,										MERCURY_FIXED_MESSAGE)
 
 	// 请求创建账号
-	LOGINAPP_MESSAGE_DECLARE_ARGS2(reqCreateAccount,								MERCURY_VARIABLE_MESSAGE,
-									std::string,									accountName,
-									std::string,									password)
+	LOGINAPP_MESSAGE_DECLARE_STREAM(reqCreateAccount,								MERCURY_VARIABLE_MESSAGE)
 
 	// 用户登录服务器 
 	LOGINAPP_MESSAGE_DECLARE_STREAM(login,											MERCURY_VARIABLE_MESSAGE)
@@ -83,10 +81,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 									uint16,											port)
 
 	// 向dbmgr请求创建账号返回结果
-	LOGINAPP_MESSAGE_DECLARE_ARGS3(onReqCreateAccountResult,						MERCURY_VARIABLE_MESSAGE,
-									SERVER_ERROR_CODE,								failedcode,
-									std::string,									accountName,
-									std::string,									password)
+	LOGINAPP_MESSAGE_DECLARE_STREAM(onReqCreateAccountResult,						MERCURY_VARIABLE_MESSAGE)
 
 	// 请求关闭服务器
 	LOGINAPP_MESSAGE_DECLARE_STREAM(reqCloseServer,									MERCURY_VARIABLE_MESSAGE)

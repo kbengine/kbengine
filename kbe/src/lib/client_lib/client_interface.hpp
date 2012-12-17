@@ -49,8 +49,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	// 创建账号失败。
-	CLIENT_MESSAGE_DECLARE_ARGS1(onCreateAccountResult,			MERCURY_FIXED_MESSAGE,
-									SERVER_ERROR_CODE,			failedcode)
+	CLIENT_MESSAGE_DECLARE_STREAM(onCreateAccountResult,		MERCURY_FIXED_MESSAGE)
 
 	// 登录成功。
 	CLIENT_MESSAGE_DECLARE_STREAM(onLoginSuccessfully,			MERCURY_VARIABLE_MESSAGE)

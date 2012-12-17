@@ -73,14 +73,12 @@ public:
 	/** 网络接口
 		创建账号
 	*/
-	void reqCreateAccount(Mercury::Channel* pChannel, std::string& accountName, 
-		std::string& password);
+	void reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		创建账号
 	*/
-	void onReqCreateAccountResult(Mercury::Channel* pChannel, SERVER_ERROR_CODE failedcode, std::string& accountName, 
-		std::string& password);
+	void onReqCreateAccountResult(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		用户登录服务器

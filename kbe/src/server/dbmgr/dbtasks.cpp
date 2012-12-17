@@ -294,10 +294,12 @@ thread::TPTask::TPTaskState DBTaskRemoveEntity::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskCreateAccount::DBTaskCreateAccount(const Mercury::Address& addr, std::string& accountName, std::string& password):
+DBTaskCreateAccount::DBTaskCreateAccount(const Mercury::Address& addr, std::string& accountName, 
+										 std::string& password, std::string& datas):
 DBTask(addr),
 accountName_(accountName),
 password_(password),
+datas_(datas),
 success_(false)
 {
 }
@@ -366,7 +368,10 @@ thread::TPTask::TPTaskState DBTaskCreateAccount::presentMainThread()
 	if(!success_)
 		failedcode = SERVER_ERR_ACCOUNT_CREATE;
 
-	LoginappInterface::onReqCreateAccountResultArgs3::staticAddToBundle((*pBundle), failedcode, accountName_, password_);
+	(*pBundle) << failedcode << accountName_ << password_;
+
+	std::string datas = accountName_;
+	(*pBundle).appendBlob(datas);
 
 	if(!this->send((*pBundle)))
 	{

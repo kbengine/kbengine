@@ -356,7 +356,7 @@ void init_network(void)
 	}
 
 	srand(getSystemTime());
-	std::string accountname = "kebiao";
+	std::string accountname = "kebiaooooo";
 	char ttt1[256];
 	memset(ttt1, 0, 256);
 	int nnn = rand() % 65535;
@@ -411,6 +411,9 @@ void init_network(void)
 		avatarname += ttt;
 		bundle1 << accountname;
 		bundle1 << "123456";
+
+		std::string bindatas;
+		bundle1.appendBlob(bindatas);
 		bundle1.send(mysocket);
 		//::sleep(300);
 
@@ -420,8 +423,12 @@ void init_network(void)
 		int len = mysocket.recv(packet1.data(), 65535);
 		packet1.wpos(len);
 		uint16 failedcode = 0;
-		packet1 >> msgID;
+		packet1 >> msgID >> msgLength;
+	
 		packet1 >> failedcode;
+
+		bindatas = "";
+		packet1.readBlob(bindatas);
 		printf("Client::onCreateAccountResult: 创建账号[%s]%s size(%d) failedcode=%u.\n", 
 			accountname.c_str(), failedcode == 0 ? "成功" : "失败",len, failedcode);
 
@@ -448,7 +455,7 @@ void init_network(void)
 		uint16 iport;
 		packet2 >> msgID;
 		packet2 >> msgLength;
-		bundle2 >> accountname;
+		packet2 >> accountname;
 		packet2 >> ip;
 		packet2 >> iport;
 		printf("Client::onLoginSuccessfully: 获取返回的网关ip地址 size(%d) msgID=%u, ip:%s, port=%u.\n", len, msgID, ip.c_str(), iport);

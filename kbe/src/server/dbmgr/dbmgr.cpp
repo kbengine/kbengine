@@ -398,10 +398,12 @@ void Dbmgr::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::Me
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel, 
-							 std::string& accountName, 
-							 std::string& password)
+void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	std::string accountName, password, datas;
+	s >> accountName >> password;
+	s.readBlob(datas);
+
 	if(accountName.size() == 0)
 	{
 		ERROR_MSG("Dbmgr::reqCreateAccount: accountName is empty.\n");
@@ -409,7 +411,7 @@ void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel,
 	}
 
 	dbThreadPool_.addTask(new DBTaskCreateAccount(pChannel->addr(), 
-		accountName, password));
+		accountName, password, datas));
 
 	numCreatedAccount_++;
 }

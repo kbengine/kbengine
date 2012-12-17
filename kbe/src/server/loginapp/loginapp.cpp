@@ -135,9 +135,13 @@ void Loginapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, int32 startGloba
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, std::string& accountName, 
-							 std::string& password)
+void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s)
 {
+	std::string accountName, password, datas, retdatas = "";
+
+	s >> accountName >> password;
+	s.readBlob(datas);
+
 	DEBUG_MSG(boost::format("Loginapp::reqCreateAccount: accountName=%1%, password=%2%.\n") %
 		accountName.c_str() % password.c_str());
 
@@ -146,7 +150,8 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, std::string& account
 	{
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onCreateAccountResult);
-		ClientInterface::onCreateAccountResultArgs1::staticAddToBundle(bundle, SERVER_ERR_BUSY);
+		bundle << SERVER_ERR_BUSY;
+		bundle.appendBlob(retdatas);
 		bundle.send(this->getNetworkInterface(), pChannel);
 		return;
 	}
@@ -154,6 +159,7 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, std::string& account
 	ptinfos = new PendingLoginMgr::PLInfos;
 	ptinfos->accountName = accountName;
 	ptinfos->password = password;
+	ptinfos->datas = datas;
 	ptinfos->addr = pChannel->addr();
 	pendingLoginMgr_.add(ptinfos);
 
@@ -167,21 +173,30 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, std::string& account
 	{
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onCreateAccountResult);
-		ClientInterface::onCreateAccountResultArgs1::staticAddToBundle(bundle, SERVER_ERR_SRV_NO_READY);
+		bundle << SERVER_ERR_SRV_NO_READY;
+		bundle.appendBlob(retdatas);
 		bundle.send(this->getNetworkInterface(), pChannel);
 		return;
 	}
 
 	Mercury::Bundle bundle;
 	bundle.newMessage(DbmgrInterface::reqCreateAccount);
-	DbmgrInterface::reqCreateAccountArgs2::staticAddToBundle(bundle, accountName, password);
+	bundle << accountName << password;
+	bundle.appendBlob(datas);
 	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::onReqCreateAccountResult(Mercury::Channel* pChannel, SERVER_ERROR_CODE failedcode, std::string& accountName, 
-							 std::string& password)
+void Loginapp::onReqCreateAccountResult(Mercury::Channel* pChannel, MemoryStream& s)
 {
+	SERVER_ERROR_CODE failedcode;
+	std::string accountName;
+	std::string password;
+	std::string retdatas = "";
+
+	s >> failedcode >> accountName >> password;
+	s.readBlob(retdatas);
+
 	DEBUG_MSG(boost::format("Loginapp::onReqCreateAccountResult: accountName=%1%, failedcode=%2%.\n") %
 		accountName.c_str() % failedcode);
 
@@ -195,7 +210,9 @@ void Loginapp::onReqCreateAccountResult(Mercury::Channel* pChannel, SERVER_ERROR
 
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onCreateAccountResult);
-	ClientInterface::onCreateAccountResultArgs1::staticAddToBundle(bundle, failedcode);
+	bundle << failedcode;
+	bundle.appendBlob(retdatas);
+
 	bundle.send(this->getNetworkInterface(), pClientChannel);
 
 	SAFE_RELEASE(ptinfos);

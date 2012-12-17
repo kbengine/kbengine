@@ -108,7 +108,7 @@ public:
 	/** 网络接口
 		请求创建账号
 	*/
-	void reqCreateAccount(Mercury::Channel* pChannel, std::string& accountName, std::string& password);
+	void reqCreateAccount(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		一个新用户登录， 需要检查合法性
