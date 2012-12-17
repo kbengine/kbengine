@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverconfig.hpp"
 #include "network/endpoint.hpp"
 #include "network/channel.hpp"
+#include "network/bundle.hpp"
 
 namespace KBEngine{
 
@@ -109,6 +110,11 @@ bool BillingHandler_ThirdParty::createAccount(Mercury::Channel* pChannel, std::s
 {
 	KBE_ASSERT(pBillingChannel_);
 
+	Mercury::Bundle bundle;
+	bundle << accountName << password;
+	bundle.appendBlob(datas);
+
+	bundle.send(Dbmgr::getSingleton().getNetworkInterface(), pBillingChannel_);
 	return true;
 }
 
@@ -118,6 +124,11 @@ bool BillingHandler_ThirdParty::loginAccount(Mercury::Channel* pChannel, std::st
 {
 	KBE_ASSERT(pBillingChannel_);
 
+	Mercury::Bundle bundle;
+	bundle << loginName << password;
+	bundle.appendBlob(datas);
+
+	bundle.send(Dbmgr::getSingleton().getNetworkInterface(), pBillingChannel_);
 	return true;
 }
 
