@@ -550,9 +550,10 @@ thread::TPTask::TPTaskState DBTaskEntityOffline::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskAccountLogin::DBTaskAccountLogin(const Mercury::Address& addr, std::string& accountName, std::string& password):
+DBTaskAccountLogin::DBTaskAccountLogin(const Mercury::Address& addr, std::string& loginName, std::string& password):
 DBTask(addr),
-accountName_(accountName),
+loginName_(loginName),
+accountName_(),
 password_(password),
 success_(false),
 componentID_(0),
@@ -578,7 +579,7 @@ bool DBTaskAccountLogin::db_thread_process()
 
 	ACCOUNT_INFOS info;
 	info.dbid = 0;
-	if(!pTable->queryAccount(pdbi_, accountName_, info))
+	if(!pTable->queryAccount(pdbi_, loginName_, info))
 		return false;
 
 	if(info.dbid == 0)
@@ -610,7 +611,10 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::onLoginAccountQueryResultFromDbmgr);
 
+	accountName_ = loginName_;
+
 	(*pBundle) << success_;
+	(*pBundle) << loginName_;
 	(*pBundle) << accountName_;
 	(*pBundle) << password_;
 	(*pBundle) << componentID_;   // 如果大于0则表示账号还存活在某个baseapp上

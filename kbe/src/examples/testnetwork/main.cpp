@@ -448,6 +448,7 @@ void init_network(void)
 		uint16 iport;
 		packet2 >> msgID;
 		packet2 >> msgLength;
+		bundle2 >> accountname;
 		packet2 >> ip;
 		packet2 >> iport;
 		printf("Client::onLoginSuccessfully: 获取返回的网关ip地址 size(%d) msgID=%u, ip:%s, port=%u.\n", len, msgID, ip.c_str(), iport);

@@ -206,7 +206,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	COMPONENT_CLIENT_TYPE ctype;
 	int8 tctype = 0;
-	std::string accountName;
+	std::string loginName;
 	std::string password;
 	std::string datas;
 
@@ -217,35 +217,35 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	// 附带数据
 	s >> datas;
 
-	// 帐号名
-	s >> accountName;
+	// 帐号登录名
+	s >> loginName;
 
 	// 密码
 	s >> password;
 	
-	if(accountName.size() == 0)
+	if(loginName.size() == 0)
 	{
-		ERROR_MSG("Loginapp::login: accountName is NULL.\n");
+		ERROR_MSG("Loginapp::login: loginName is NULL.\n");
 		return;
 	}
 
-	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(accountName);
+	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(loginName);
 	if(ptinfos != NULL)
 	{
-		_loginFailed(pChannel, accountName, SERVER_ERR_BUSY);
+		_loginFailed(pChannel, loginName, SERVER_ERR_BUSY);
 		return;
 	}
 
 	ptinfos = new PendingLoginMgr::PLInfos;
 	ptinfos->ctype = ctype;
 	ptinfos->datas = datas;
-	ptinfos->accountName = accountName;
+	ptinfos->accountName = loginName;
 	ptinfos->password = password;
 	ptinfos->addr = pChannel->addr();
 	pendingLoginMgr_.add(ptinfos);
 
-	INFO_MSG(boost::format("Loginapp::login: new client[%1%], accountName=%2%, datas=%3%.\n") %
-		COMPONENT_CLIENT_NAME[ctype] % accountName.c_str() % datas.c_str());
+	INFO_MSG(boost::format("Loginapp::login: new client[%1%], loginName=%2%, datas=%3%.\n") %
+		COMPONENT_CLIENT_NAME[ctype] % loginName.c_str() % datas.c_str());
 
 	// 首先必须baseappmgr和dbmgr都已经准备完毕了。
 	Components::COMPONENTS cts = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
@@ -255,7 +255,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(baseappmgrinfos == NULL || baseappmgrinfos->pChannel == NULL || baseappmgrinfos->cid == 0)
 	{
-		_loginFailed(pChannel, accountName, SERVER_ERR_SRV_NO_READY);
+		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY);
 		return;
 	}
 
@@ -267,24 +267,24 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		_loginFailed(pChannel, accountName, SERVER_ERR_SRV_NO_READY);
+		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY);
 		return;
 	}
 
 	// 向dbmgr查询用户合法性
 	Mercury::Bundle bundle;
 	bundle.newMessage(DbmgrInterface::onAccountLogin);
-	DbmgrInterface::onAccountLoginArgs2::staticAddToBundle(bundle, accountName, password);
+	DbmgrInterface::onAccountLoginArgs2::staticAddToBundle(bundle, loginName, password);
 	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& accountName, SERVER_ERROR_CODE failedcode)
+void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& loginName, SERVER_ERROR_CODE failedcode)
 {
-	DEBUG_MSG(boost::format("Loginapp::loginFailed: accountName=%1% login is failed. failedcode=%2%.\n") %
-		accountName.c_str() % SERVER_ERR_STR[failedcode]);
+	DEBUG_MSG(boost::format("Loginapp::loginFailed: loginName=%1% login is failed. failedcode=%2%.\n") %
+		loginName.c_str() % SERVER_ERR_STR[failedcode]);
 	
-	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(accountName);
+	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(loginName);
 	if(infos == NULL)
 		return;
 
@@ -312,14 +312,22 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 	if(pChannel->isExternal())
 		return;
 
-	std::string accountName, password;
+	std::string loginName, accountName, password;
 	bool success = true;
 	COMPONENT_ID componentID;
 	ENTITY_ID entityID;
 	DBID dbid;
 
 	s >> success;
+
+	// 登录名既登录时客户端输入的名称， 账号名则是dbmgr查询得到的名称
+	// 这个机制用于一个账号多名称系统或者多个第三方账号系统登入服务器
+	// accountName为本游戏服务器账号所绑定的终身名称
+	// 客户端得到baseapp地址的同时也会返回这个账号名称
+	// 客户端登陆baseapp应该使用这个账号名称登陆
+	s >> loginName;
 	s >> accountName;
+
 	s >> password;
 	s >> componentID;
 	s >> entityID;
@@ -327,7 +335,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 
 	if(!success)
 	{
-		_loginFailed(NULL, accountName, SERVER_ERR_NAME_PASSWORD);
+		_loginFailed(NULL, loginName, SERVER_ERR_NAME_PASSWORD);
 		return;
 	}
 
@@ -339,7 +347,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 
 	if(baseappmgrinfos == NULL || baseappmgrinfos->pChannel == NULL || baseappmgrinfos->cid == 0)
 	{
-		_loginFailed(NULL, accountName, SERVER_ERR_SRV_NO_READY);
+		_loginFailed(NULL, loginName, SERVER_ERR_SRV_NO_READY);
 		return;
 	}
 
@@ -391,6 +399,7 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pC
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onLoginSuccessfully);
 	uint16 fport = ntohs(port);
+	bundle << accountName;
 	bundle << inet_ntoa((struct in_addr&)addr);
 	bundle << fport;
 	bundle.send(this->getNetworkInterface(), pClientChannel);

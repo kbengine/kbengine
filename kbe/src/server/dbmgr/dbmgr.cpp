@@ -416,17 +416,17 @@ void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel,
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::onAccountLogin(Mercury::Channel* pChannel, 
-						   std::string& accountName, 
+						   std::string& loginName, 
 						   std::string& password)
 {
-	if(accountName.size() == 0)
+	if(loginName.size() == 0)
 	{
-		ERROR_MSG("Dbmgr::onAccountLogin: accountName is empty.\n");
+		ERROR_MSG("Dbmgr::onAccountLogin: loginName is empty.\n");
 		return;
 	}
 
 	dbThreadPool_.addTask(new DBTaskAccountLogin(pChannel->addr(), 
-		accountName, password));
+		loginName, password));
 }
 
 //-------------------------------------------------------------------------------------

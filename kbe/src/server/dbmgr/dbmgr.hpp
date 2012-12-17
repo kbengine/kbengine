@@ -113,7 +113,7 @@ public:
 	/** 网络接口
 		一个新用户登录， 需要检查合法性
 	*/
-	void onAccountLogin(Mercury::Channel* pChannel, std::string& accountName, std::string& password);
+	void onAccountLogin(Mercury::Channel* pChannel, std::string& loginName, std::string& password);
 
 	/** 网络接口
 		baseapp请求查询account信息

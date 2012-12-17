@@ -87,7 +87,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 
 	// 某个app向本app告知处于活动状态。
 	DBMGR_MESSAGE_DECLARE_ARGS2(onAccountLogin,						MERCURY_VARIABLE_MESSAGE,
-									std::string,					accountName,
+									std::string,					loginName,
 									std::string,					password)
 
 	// baseapp查询账号信息。
