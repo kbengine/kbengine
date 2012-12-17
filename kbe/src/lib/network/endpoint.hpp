@@ -40,6 +40,7 @@ public:
 	static void destroyObjPool();
 	void onReclaimObject();
 
+	EndPoint(Address address);
 	EndPoint(u_int32_t networkAddr = 0, u_int16_t networkPort = 0);
 	virtual ~EndPoint();
 	operator KBESOCKET() const;
@@ -65,11 +66,16 @@ public:
 	int setnodelay(bool nodelay = true);
 	
 	int bind(u_int16_t networkPort = 0, u_int32_t networkAddr = INADDR_ANY);
+
 	int listen(int backlog = 5);
+
 	int connect(u_int16_t networkPort, u_int32_t networkAddr = INADDR_BROADCAST, bool autosetflags = true);
+	int connect(bool autosetflags = true);
+
 	EndPoint* accept(u_int16_t * networkPort = NULL, u_int32_t * networkAddr = NULL, bool autosetflags = true);
 	
 	INLINE int send(const void * gramData, int gramSize);
+
 	int recv(void * gramData, int gramSize);
 	bool recvAll(void * gramData, int gramSize);
 	

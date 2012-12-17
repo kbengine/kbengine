@@ -69,6 +69,8 @@ namespace tcp{
 #define KBE_PORT_BROADCAST_DISCOVERY		KBE_PORT_START + 87
 #define KBE_MACHINE_TCP_PORT				KBE_PORT_START + 88
 
+#define KBE_BILLING_TCP_PORT				30099
+
 /*
 	网络消息类型， 定长或者变长。
 	如果需要自定义长度则在NETWORK_INTERFACE_DECLARE_BEGIN中声明时填入长度即可。

@@ -83,10 +83,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	// loginapp请求创建账号。
 	DBMGR_MESSAGE_DECLARE_STREAM(reqCreateAccount,					MERCURY_VARIABLE_MESSAGE)
 
-	// 某个app向本app告知处于活动状态。
-	DBMGR_MESSAGE_DECLARE_ARGS2(onAccountLogin,						MERCURY_VARIABLE_MESSAGE,
-									std::string,					loginName,
-									std::string,					password)
+	// 登陆账号。
+	DBMGR_MESSAGE_DECLARE_STREAM(onAccountLogin,					MERCURY_VARIABLE_MESSAGE)
 
 	// baseapp查询账号信息。
 	DBMGR_MESSAGE_DECLARE_ARGS5(queryAccount,						MERCURY_VARIABLE_MESSAGE,

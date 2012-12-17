@@ -37,6 +37,19 @@ socket_(-1)
 	}
 }
 
+INLINE EndPoint::EndPoint(Address address):
+#if KBE_PLATFORM == PLATFORM_WIN32
+socket_(INVALID_SOCKET)
+#else
+socket_(-1)
+#endif
+{
+	if(address.ip > 0)
+	{
+		address_ = address;
+	}
+}
+
 INLINE EndPoint::~EndPoint()
 {
 	this->close();
@@ -325,6 +338,11 @@ INLINE int EndPoint::listen(int backlog)
 	return ::listen(socket_, backlog);
 }
 
+INLINE int EndPoint::connect(bool autosetflags)
+{
+	return connect(address_.port, address_.ip, autosetflags);
+}
+
 INLINE int EndPoint::connect(u_int16_t networkPort, u_int32_t networkAddr, bool autosetflags)
 {
 	sockaddr_in	sin;
@@ -338,6 +356,7 @@ INLINE int EndPoint::connect(u_int16_t networkPort, u_int32_t networkAddr, bool 
 		setnonblocking(true);
 		setnodelay(true);
 	}
+	
 	return ret;
 }
 

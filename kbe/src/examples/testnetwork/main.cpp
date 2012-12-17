@@ -438,7 +438,8 @@ void init_network(void)
 		bundle2.newMessage(LoginappInterface::login);
 		int8 tclient = 1;
 		bundle2 << tclient;
-		bundle2 << "phone";
+		bindatas = "phone";
+		bundle2.appendBlob(bindatas);
 		bundle2 << accountname;
 		bundle2 << "123456";
 		bundle2.send(mysocket);

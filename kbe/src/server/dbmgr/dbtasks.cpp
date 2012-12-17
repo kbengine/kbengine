@@ -555,11 +555,13 @@ thread::TPTask::TPTaskState DBTaskEntityOffline::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskAccountLogin::DBTaskAccountLogin(const Mercury::Address& addr, std::string& loginName, std::string& password):
+DBTaskAccountLogin::DBTaskAccountLogin(const Mercury::Address& addr, std::string& loginName, 
+									   std::string& password, std::string& datas):
 DBTask(addr),
 loginName_(loginName),
 accountName_(),
 password_(password),
+datas_(datas),
 success_(false),
 componentID_(0),
 entityID_(0),

@@ -63,7 +63,8 @@ Dbmgr::Dbmgr(Mercury::EventDispatcher& dispatcher,
 	numRemovedEntity_(0),
 	numQueryEntity_(0),
 	numExecuteRawDatabaseCommand_(0),
-	numCreatedAccount_(0)
+	numCreatedAccount_(0),
+	pBillingHandler_(NULL)
 {
 }
 
@@ -73,6 +74,8 @@ Dbmgr::~Dbmgr()
 	loopCheckTimerHandle_.cancel();
 	mainProcessTimer_.cancel();
 	KBEngine::sleep(300);
+
+	SAFE_RELEASE(pBillingHandler_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -170,7 +173,19 @@ bool Dbmgr::initializeEnd()
 	pGlobalData_->addConcernComponentType(BASEAPP_TYPE);
 	pGlobalBases_->addConcernComponentType(BASEAPP_TYPE);
 	pCellAppData_->addConcernComponentType(CELLAPP_TYPE);
-	return initDB();
+	return initBillingHandler() && initDB();
+}
+
+//-------------------------------------------------------------------------------------		
+bool Dbmgr::initBillingHandler()
+{
+	pBillingHandler_ = BillingHandlerFactory::create(g_kbeSrvConfig.billingSystemType(), threadPool(), dbThreadPool_);
+
+	INFO_MSG(boost::format("Dbmgr::initBillingHandler: billing addr(%1%), type:%2%.\n") % 
+		g_kbeSrvConfig.billingSystemAddr().c_str() %
+		g_kbeSrvConfig.billingSystemType());
+
+	return pBillingHandler_->initialize();
 }
 
 //-------------------------------------------------------------------------------------		
@@ -410,25 +425,24 @@ void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel, KBEngine::MemoryStream&
 		return;
 	}
 
-	dbThreadPool_.addTask(new DBTaskCreateAccount(pChannel->addr(), 
-		accountName, password, datas));
-
+	pBillingHandler_->createAccount(pChannel, accountName, password, datas);
 	numCreatedAccount_++;
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::onAccountLogin(Mercury::Channel* pChannel, 
-						   std::string& loginName, 
-						   std::string& password)
+void Dbmgr::onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryStream& s) 
 {
+	std::string loginName, password, datas;
+	s >> loginName >> password;
+	s.readBlob(datas);
+
 	if(loginName.size() == 0)
 	{
 		ERROR_MSG("Dbmgr::onAccountLogin: loginName is empty.\n");
 		return;
 	}
 
-	dbThreadPool_.addTask(new DBTaskAccountLogin(pChannel->addr(), 
-		loginName, password));
+	pBillingHandler_->loginAccount(pChannel, loginName, password, datas);
 }
 
 //-------------------------------------------------------------------------------------

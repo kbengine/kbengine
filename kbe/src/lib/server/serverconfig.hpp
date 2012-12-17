@@ -125,6 +125,10 @@ public:
  				const Mercury::Address& internalAddr, const Mercury::Address& externalAddr);
  	
 	inline int16 gameUpdateHertz(void)const { return gameUpdateHertz_;}
+
+	inline Mercury::Address billingSystemAddr(void)const { return billingSystemAddr_;}
+	
+	inline const char* billingSystemType()const { return billingSystem_type_.c_str(); }
 private:
 	ENGINE_COMPONENT_INFO _cellAppInfo;
 	ENGINE_COMPONENT_INFO _baseAppInfo;
@@ -141,7 +145,10 @@ public:
 	int16 gameUpdateHertz_;
 
 	// 每个客户端每秒占用的最大带宽
-	uint32 bitsPerSecondToClient_;							
+	uint32 bitsPerSecondToClient_;		
+
+	Mercury::Address billingSystemAddr_;
+	std::string billingSystem_type_;						// 计费系统类别
 };
 
 #define g_kbeSrvConfig ServerConfig::getSingleton()

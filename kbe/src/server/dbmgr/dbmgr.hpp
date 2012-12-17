@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include	
 #include "db_threadpool.hpp"
 #include "buffered_dbtasks.hpp"
+#include "billinghandler.hpp"
 #include "server/kbemain.hpp"
 #include "pyscript/script.hpp"
 #include "pyscript/pyobject_pointer.hpp"
@@ -78,6 +79,8 @@ public:
 	bool initializeEnd();
 	void finalise();
 	
+	bool initBillingHandler();
+
 	bool initDB();
 
 	/** 获取ID服务器指针 */
@@ -113,7 +116,7 @@ public:
 	/** 网络接口
 		一个新用户登录， 需要检查合法性
 	*/
-	void onAccountLogin(Mercury::Channel* pChannel, std::string& loginName, std::string& password);
+	void onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		baseapp请求查询account信息
@@ -191,6 +194,8 @@ protected:
 	uint32												numQueryEntity_;
 	uint32												numExecuteRawDatabaseCommand_;
 	uint32												numCreatedAccount_;
+
+	BillingHandler*										pBillingHandler_;
 	
 };
 

@@ -238,7 +238,7 @@ protected:
 class DBTaskAccountLogin : public DBTask
 {
 public:
-	DBTaskAccountLogin(const Mercury::Address& addr, std::string& loginName, std::string& password);
+	DBTaskAccountLogin(const Mercury::Address& addr, std::string& loginName, std::string& password, std::string& datas);
 	virtual ~DBTaskAccountLogin();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
@@ -246,6 +246,7 @@ protected:
 	std::string loginName_;
 	std::string accountName_;
 	std::string password_;
+	std::string datas_;
 	bool success_;
 	COMPONENT_ID componentID_;
 	ENTITY_ID entityID_;

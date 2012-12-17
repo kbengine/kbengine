@@ -232,7 +232,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	ctype = static_cast<COMPONENT_CLIENT_TYPE>(tctype);
 	
 	// 附带数据
-	s >> datas;
+	s.readBlob(datas);
 
 	// 帐号登录名
 	s >> loginName;
@@ -291,7 +291,8 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	// 向dbmgr查询用户合法性
 	Mercury::Bundle bundle;
 	bundle.newMessage(DbmgrInterface::onAccountLogin);
-	DbmgrInterface::onAccountLoginArgs2::staticAddToBundle(bundle, loginName, password);
+	bundle << loginName << password;
+	bundle.appendBlob(datas);
 	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 }
 

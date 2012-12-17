@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "address.hpp"
+#include "endpoint.hpp"
 #include "helper/debug_helper.hpp"
 
 namespace KBEngine { 
@@ -59,6 +60,16 @@ void Address::onReclaimObject()
 	ip = 0;
 	port = 0;
 }
+
+//-------------------------------------------------------------------------------------
+Address::Address(std::string ipArg, uint16 portArg):
+ip(0),
+	port(htons(portArg))
+{
+	u_int32_t addr;
+	Mercury::EndPoint::convertAddress(ipArg.c_str(), addr);
+	ip = (uint32)addr;
+} 
 
 //-------------------------------------------------------------------------------------
 int Address::writeToString(char * str, int length) const

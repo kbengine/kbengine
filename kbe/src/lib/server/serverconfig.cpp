@@ -29,7 +29,9 @@ KBE_SINGLETON_INIT(ServerConfig);
 
 //-------------------------------------------------------------------------------------
 ServerConfig::ServerConfig():
-gameUpdateHertz_(10)
+gameUpdateHertz_(10),
+billingSystemAddr_(),
+billingSystem_type_("")
 {
 }
 
@@ -119,6 +121,38 @@ bool ServerConfig::loadConfig(std::string fileName)
 	if(rootNode != NULL){
 		bitsPerSecondToClient_ = xml->getValInt(rootNode);
 		rootNode = NULL;
+	}
+
+	rootNode = xml->getRootNode("billingSystem");
+	if(rootNode != NULL)
+	{
+		TiXmlNode* childnode = xml->enterNode(rootNode, "type");
+		if(childnode)
+			billingSystem_type_ = xml->getValStr(childnode);
+
+		std::string ip = "";
+		childnode = NULL;
+		childnode = xml->enterNode(rootNode, "host");
+		if(childnode)
+			ip = xml->getValStr(childnode);
+
+		uint16 port = 0;
+		childnode = NULL;
+		childnode = xml->enterNode(rootNode, "port");
+		if(childnode)
+			port = xml->getValInt(childnode);
+
+		if(billingSystem_type_.size() == 0)
+			billingSystem_type_ = "normal";
+
+		if(ip.size() == 0)
+			ip = "localhost";
+
+		if(port <= 0)
+			port = KBE_BILLING_TCP_PORT;
+
+		Mercury::Address addr(ip, port);
+		billingSystemAddr_ = addr;
 	}
 
 	rootNode = xml->getRootNode("cellapp");

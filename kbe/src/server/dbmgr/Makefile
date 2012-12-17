@@ -1,5 +1,6 @@
 BIN  = dbmgr
 SRCS =						\
+	billinghandler				\
 	dbmgr					\
 	dbmgr_interface				\
 	dbtasks					\
