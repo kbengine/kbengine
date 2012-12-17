@@ -92,7 +92,8 @@ enum COMPONENT_TYPE
 	RESOURCEMGR_TYPE		= 12,
 	BOTS_TYPE				= 13,
 	WATCHER_TYPE			= 14,
-	COMPONENT_END_TYPE		= 15,
+	BILLING_TYPE			= 15,
+	COMPONENT_END_TYPE		= 16,
 };
 
 /** 当前服务器组件类别和ID */
@@ -116,6 +117,7 @@ const char COMPONENT_NAME[][255] = {
 	"resourcemgr",
 	"bots",
 	"watcher",
+	"billing",
 };
 
 const char COMPONENT_NAME_1[][255] = {
@@ -134,6 +136,7 @@ const char COMPONENT_NAME_1[][255] = {
 	"resourcemgr",
 	"bots",
 	"watcher",
+	"billing",
 };
 
 inline const char* COMPONENT_NAME_EX(COMPONENT_TYPE CTYPE)

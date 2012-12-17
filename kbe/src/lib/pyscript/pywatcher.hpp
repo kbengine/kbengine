@@ -83,73 +83,73 @@ private:
 };
 
 template <>
-void PyWatcherObject<uint8>::readVal(PyObject* pyVal, uint8& v)
+inline void PyWatcherObject<uint8>::readVal(PyObject* pyVal, uint8& v)
 {
 	v = (uint8)PyLong_AsLong(pyVal);
 }
 
 template <>
-void PyWatcherObject<uint16>::readVal(PyObject* pyVal, uint16& v)
+inline void PyWatcherObject<uint16>::readVal(PyObject* pyVal, uint16& v)
 {
 	v = (uint16)PyLong_AsLong(pyVal);
 }
 
 template <>
-void PyWatcherObject<uint32>::readVal(PyObject* pyVal, uint32& v)
+inline void PyWatcherObject<uint32>::readVal(PyObject* pyVal, uint32& v)
 {
 	v = (uint32)PyLong_AsLong(pyVal);
 }
 
 template <>
-void PyWatcherObject<uint64>::readVal(PyObject* pyVal, uint64& v)
+inline void PyWatcherObject<uint64>::readVal(PyObject* pyVal, uint64& v)
 {
 	v = (uint64)PyLong_AsLong(pyVal);
 }
 
 template <>
-void PyWatcherObject<int8>::readVal(PyObject* pyVal, int8& v)
+inline void PyWatcherObject<int8>::readVal(PyObject* pyVal, int8& v)
 {
 	v = (int8)PyLong_AsLong(pyVal);
 }
 
 template <>
-void PyWatcherObject<int16>::readVal(PyObject* pyVal, int16& v)
+inline void PyWatcherObject<int16>::readVal(PyObject* pyVal, int16& v)
 {
 	v = (int16)PyLong_AsLong(pyVal);
 }
 
 template <>
-void PyWatcherObject<int32>::readVal(PyObject* pyVal, int32& v)
+inline void PyWatcherObject<int32>::readVal(PyObject* pyVal, int32& v)
 {
 	v = (int32)PyLong_AsLong(pyVal);
 }
 
 template <>
-void PyWatcherObject<int64>::readVal(PyObject* pyVal, int64& v)
+inline void PyWatcherObject<int64>::readVal(PyObject* pyVal, int64& v)
 {
 	v = (int64)PyLong_AsLong(pyVal);
 }
 
 template <>
-void PyWatcherObject<bool>::readVal(PyObject* pyVal, bool& v)
+inline void PyWatcherObject<bool>::readVal(PyObject* pyVal, bool& v)
 {
 	v = PyLong_AsLong(pyVal) > 0;
 }
 
 template <>
-void PyWatcherObject<float>::readVal(PyObject* pyVal, float& v)
+inline void PyWatcherObject<float>::readVal(PyObject* pyVal, float& v)
 {
 	v = (float)PyFloat_AsDouble(pyVal);
 }
 
 template <>
-void PyWatcherObject<double>::readVal(PyObject* pyVal, double& v)
+inline void PyWatcherObject<double>::readVal(PyObject* pyVal, double& v)
 {
 	v = PyFloat_AsDouble(pyVal);
 }
 
 template <>
-void PyWatcherObject<std::string>::readVal(PyObject* pyVal, std::string& v)
+inline void PyWatcherObject<std::string>::readVal(PyObject* pyVal, std::string& v)
 {
 	wchar_t* wstr = PyUnicode_AsWideCharString(pyVal, NULL);					
 	char* p = strutil::wchar2char(wstr);	

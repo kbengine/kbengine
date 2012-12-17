@@ -87,7 +87,9 @@ Componentbridge::Componentbridge(Mercury::NetworkInterface & networkInterface,
 		findComponentTypes_[0] = MESSAGELOG_TYPE;
 		break;
 	default:
-		if(componentType_ != MESSAGELOG_TYPE && componentType_ != MACHINE_TYPE)
+		if(componentType_ != MESSAGELOG_TYPE && 
+			componentType_ != MACHINE_TYPE && 
+			componentType_ != BILLING_TYPE)
 			findComponentTypes_[0] = MESSAGELOG_TYPE;
 		break;
 	};
