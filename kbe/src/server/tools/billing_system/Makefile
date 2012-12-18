@@ -1,6 +1,7 @@
 BIN  = billingsystem
 SRCS =						\
 	billingsystem				\
+	billing_tasks				\
 	billingsystem_interface			\
 	main
 

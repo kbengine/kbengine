@@ -172,7 +172,7 @@ bool ServerApp::initThreadPool()
 {
 	if(!threadPool_.isInitialize())
 	{
-		threadPool_.createThreadPool(4, 4, 16);
+		threadPool_.createThreadPool(1, 2, 8);
 		return true;
 	}
 

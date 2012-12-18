@@ -49,7 +49,7 @@ public:
 	{
 		TIMEOUT_TICK = TIMEOUT_SERVERAPP_MAX + 1
 	};
-	
+
 	BillingSystem(Mercury::EventDispatcher& dispatcher, 
 		Mercury::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,

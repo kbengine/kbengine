@@ -356,7 +356,7 @@ void init_network(void)
 	}
 
 	srand(getSystemTime());
-	std::string accountname = "kebiaooooo";
+	std::string accountname = "kebiaooo43oo";
 	char ttt1[256];
 	memset(ttt1, 0, 256);
 	int nnn = rand() % 65535;
@@ -415,7 +415,7 @@ void init_network(void)
 		std::string bindatas;
 		bundle1.appendBlob(bindatas);
 		bundle1.send(mysocket);
-		//::sleep(300);
+		::sleep(300);
 
 		// 创建账号成功 failedcode == 0
 		TCPPacket packet1;
@@ -431,7 +431,7 @@ void init_network(void)
 		packet1.readBlob(bindatas);
 		printf("Client::onCreateAccountResult: 创建账号[%s]%s size(%d) failedcode=%u.\n", 
 			accountname.c_str(), failedcode == 0 ? "成功" : "失败",len, failedcode);
-
+		
 		// 提交账号密码请求登录
 		printf("提交账号密码请求登录\n");
 		Mercury::Bundle bundle2;
@@ -444,7 +444,7 @@ void init_network(void)
 		bundle2 << "123456";
 		bundle2.send(mysocket);
 
-
+		::sleep(300);
 		// 获取返回的网关ip地址
 		TCPPacket packet2;
 		packet2.resize(65535);

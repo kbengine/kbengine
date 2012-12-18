@@ -182,6 +182,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\billing_tasks.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\billingsystem.cpp"
 				>
 			</File>
@@ -205,6 +209,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\billing_tasks.hpp"
+				>
+			</File>
 			<File
 				RelativePath=".\billingsystem.hpp"
 				>

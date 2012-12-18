@@ -142,8 +142,8 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s)
 	s >> accountName >> password;
 	s.readBlob(datas);
 
-	DEBUG_MSG(boost::format("Loginapp::reqCreateAccount: accountName=%1%, password=%2%.\n") %
-		accountName.c_str() % password.c_str());
+	DEBUG_MSG(boost::format("Loginapp::reqCreateAccount: accountName=%1%, passwordsize=%2%.\n") %
+		accountName.c_str() % password.size());
 
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(accountName);
 	if(ptinfos != NULL)
