@@ -416,18 +416,24 @@ void Dbmgr::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::Me
 //-------------------------------------------------------------------------------------
 void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	std::string accountName, password, datas;
-	s >> accountName >> password;
+	std::string registerName, password, datas;
+	s >> registerName >> password;
 	s.readBlob(datas);
 
-	if(accountName.size() == 0)
+	if(registerName.size() == 0)
 	{
-		ERROR_MSG("Dbmgr::reqCreateAccount: accountName is empty.\n");
+		ERROR_MSG("Dbmgr::reqCreateAccount: registerName is empty.\n");
 		return;
 	}
 
-	pBillingHandler_->createAccount(pChannel, accountName, password, datas);
+	pBillingHandler_->createAccount(pChannel, registerName, password, datas);
 	numCreatedAccount_++;
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::onCreateAccountCBFromBilling(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	pBillingHandler_->onCreateAccountCB(s);
 }
 
 //-------------------------------------------------------------------------------------
@@ -444,6 +450,12 @@ void Dbmgr::onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 	}
 
 	pBillingHandler_->loginAccount(pChannel, loginName, password, datas);
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::onLoginAccountCBBFromBilling(Mercury::Channel* pChannel, KBEngine::MemoryStream& s) 
+{
+	pBillingHandler_->onLoginAccountCB(s);
 }
 
 //-------------------------------------------------------------------------------------

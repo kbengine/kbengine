@@ -46,6 +46,13 @@ const ChannelID CHANNEL_ID_NULL = 0;
 extern float g_channelInternalTimeout;
 extern float g_channelExternalTimeout;
 
+// 不做频道超时检查
+#define CLOSE_CHANNEL_INACTIVITIY_DETECTION()										\
+{																					\
+	Mercury::g_channelExternalTimeout = Mercury::g_channelInternalTimeout = -1.0f;	\
+}																					\
+
+	
 namespace udp{
 }
 

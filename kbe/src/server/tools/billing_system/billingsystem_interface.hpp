@@ -61,20 +61,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BillingSystemInterface)
 									uint32,							extaddr, 
 									uint16,							extport)
 
-	// 某个app向本app告知处于活动状态。
-	BILLINGSYSTEM_MESSAGE_DECLARE_ARGS2(onAppActiveTick,			MERCURY_FIXED_MESSAGE,
-									COMPONENT_TYPE,					componentType, 
-									COMPONENT_ID,					componentID)
+	// 请求创建账号。
+	BILLINGSYSTEM_MESSAGE_DECLARE_STREAM(reqCreateAccount,					MERCURY_VARIABLE_MESSAGE)
 
-	// loginapp请求创建账号。
-	BILLINGSYSTEM_MESSAGE_DECLARE_ARGS2(reqCreateAccount,			MERCURY_VARIABLE_MESSAGE,
-									std::string,					accountName,
-									std::string,					password)
-
-	// 某个app向本app告知处于活动状态。
-	BILLINGSYSTEM_MESSAGE_DECLARE_ARGS2(onAccountLogin,				MERCURY_VARIABLE_MESSAGE,
-									std::string,					accountName,
-									std::string,					password)
+	// 登陆账号。
+	BILLINGSYSTEM_MESSAGE_DECLARE_STREAM(onAccountLogin,					MERCURY_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 

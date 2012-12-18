@@ -107,6 +107,8 @@ public:
 	void startInactivityDetection( float inactivityPeriod,
 			float checkPeriod = 1.f );
 	
+	void stopInactivityDetection();
+
 	PacketFilterPtr pFilter() const { return pFilter_; }
 	void pFilter(PacketFilterPtr pFilter) { pFilter_ = pFilter; }
 
@@ -168,6 +170,9 @@ public:
 
 	ENTITY_ID proxyID()const { return proxyID_; }
 	void proxyID(ENTITY_ID pid){ proxyID_ = pid; }
+
+	COMPONENT_ID componentID()const{ return componentID_; }
+	void componentID(COMPONENT_ID cid){ componentID_ = cid; }
 
 	virtual void handshake();
 private:
@@ -234,6 +239,8 @@ private:
 
 	// 通道类别
 	ChannelTypes				channelType_;
+
+	COMPONENT_ID				componentID_;
 };
 
 typedef SmartPointer<Channel> ChannelPtr;

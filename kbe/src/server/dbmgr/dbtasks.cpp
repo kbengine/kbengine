@@ -294,9 +294,13 @@ thread::TPTask::TPTaskState DBTaskRemoveEntity::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskCreateAccount::DBTaskCreateAccount(const Mercury::Address& addr, std::string& accountName, 
-										 std::string& password, std::string& datas):
+DBTaskCreateAccount::DBTaskCreateAccount(const Mercury::Address& addr, 
+										 std::string& registerName,
+										 std::string& accountName, 
+										 std::string& password, 
+										 std::string& datas):
 DBTask(addr),
+registerName_(registerName),
 accountName_(accountName),
 password_(password),
 datas_(datas),
@@ -312,6 +316,11 @@ DBTaskCreateAccount::~DBTaskCreateAccount()
 //-------------------------------------------------------------------------------------
 bool DBTaskCreateAccount::db_thread_process()
 {
+	if(accountName_.size() == 0)
+	{
+		return false;
+	}
+
 	// 寻找dblog是否有此账号， 如果有则创建失败
 	// 如果没有则向account表新建一个entity数据同时在accountlog表写入一个log关联dbid
 	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
@@ -359,7 +368,7 @@ bool DBTaskCreateAccount::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskCreateAccount::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::reqCreateAccount:%1%.\n") % accountName_.c_str());
+	DEBUG_MSG(boost::format("Dbmgr::reqCreateAccount:%1%.\n") % registerName_.c_str());
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::onReqCreateAccountResult);
@@ -368,10 +377,8 @@ thread::TPTask::TPTaskState DBTaskCreateAccount::presentMainThread()
 	if(!success_)
 		failedcode = SERVER_ERR_ACCOUNT_CREATE;
 
-	(*pBundle) << failedcode << accountName_ << password_;
-
-	std::string datas = accountName_;
-	(*pBundle).appendBlob(datas);
+	(*pBundle) << failedcode << registerName_ << password_;
+	(*pBundle).appendBlob(datas_);
 
 	if(!this->send((*pBundle)))
 	{
@@ -405,6 +412,11 @@ DBTaskQueryAccount::~DBTaskQueryAccount()
 //-------------------------------------------------------------------------------------
 bool DBTaskQueryAccount::db_thread_process()
 {
+	if(accountName_.size() == 0)
+	{
+		return false;
+	}
+
 	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
 	KBE_ASSERT(pTable);
 
@@ -555,11 +567,14 @@ thread::TPTask::TPTaskState DBTaskEntityOffline::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskAccountLogin::DBTaskAccountLogin(const Mercury::Address& addr, std::string& loginName, 
-									   std::string& password, std::string& datas):
+DBTaskAccountLogin::DBTaskAccountLogin(const Mercury::Address& addr, 
+									   std::string& loginName, 
+									   std::string& accountName, 
+									   std::string& password, 
+									   std::string& datas):
 DBTask(addr),
 loginName_(loginName),
-accountName_(),
+accountName_(accountName),
 password_(password),
 datas_(datas),
 success_(false),
@@ -577,6 +592,11 @@ DBTaskAccountLogin::~DBTaskAccountLogin()
 //-------------------------------------------------------------------------------------
 bool DBTaskAccountLogin::db_thread_process()
 {
+	if(accountName_.size() == 0)
+	{
+		return false;
+	}
+
 	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
 					(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
 	KBE_ASSERT(pELTable);
@@ -586,7 +606,7 @@ bool DBTaskAccountLogin::db_thread_process()
 
 	ACCOUNT_INFOS info;
 	info.dbid = 0;
-	if(!pTable->queryAccount(pdbi_, loginName_, info))
+	if(!pTable->queryAccount(pdbi_, accountName_, info))
 		return false;
 
 	if(info.dbid == 0)
@@ -612,13 +632,11 @@ bool DBTaskAccountLogin::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::onAccountLogin:%1%.\n") % accountName_.c_str());
+	DEBUG_MSG(boost::format("Dbmgr::onAccountLogin:%1%.\n") % loginName_.c_str());
 
 	// 一个用户登录， 构造一个数据库查询指令并加入到执行队列， 执行完毕将结果返回给loginapp
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::onLoginAccountQueryResultFromDbmgr);
-
-	accountName_ = loginName_;
 
 	(*pBundle) << success_;
 	(*pBundle) << loginName_;

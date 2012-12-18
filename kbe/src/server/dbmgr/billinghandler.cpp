@@ -28,6 +28,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/channel.hpp"
 #include "network/bundle.hpp"
 
+#include "tools/billing_system/billingsystem_interface.hpp"
+
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
@@ -71,13 +73,18 @@ BillingHandler_Normal::~BillingHandler_Normal()
 }
 
 //-------------------------------------------------------------------------------------
-bool BillingHandler_Normal::createAccount(Mercury::Channel* pChannel, std::string& accountName, 
+bool BillingHandler_Normal::createAccount(Mercury::Channel* pChannel, std::string& registerName, 
 										  std::string& password, std::string& datas)
 {
 	dbThreadPool_.addTask(new DBTaskCreateAccount(pChannel->addr(), 
-		accountName, password, datas));
+		registerName, registerName, password, datas));
 
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void BillingHandler_Normal::onCreateAccountCB(KBEngine::MemoryStream& s)
+{
 }
 
 //-------------------------------------------------------------------------------------
@@ -85,9 +92,14 @@ bool BillingHandler_Normal::loginAccount(Mercury::Channel* pChannel, std::string
 										 std::string& password, std::string& datas)
 {
 	dbThreadPool_.addTask(new DBTaskAccountLogin(pChannel->addr(), 
-		loginName, password, datas));
+		loginName, loginName, password, datas));
 
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void BillingHandler_Normal::onLoginAccountCB(KBEngine::MemoryStream& s)
+{
 }
 
 //-------------------------------------------------------------------------------------
@@ -105,17 +117,46 @@ BillingHandler_ThirdParty::~BillingHandler_ThirdParty()
 }
 
 //-------------------------------------------------------------------------------------
-bool BillingHandler_ThirdParty::createAccount(Mercury::Channel* pChannel, std::string& accountName, 
+bool BillingHandler_ThirdParty::createAccount(Mercury::Channel* pChannel, std::string& registerName, 
 											  std::string& password, std::string& datas)
 {
 	KBE_ASSERT(pBillingChannel_);
 
-	Mercury::Bundle bundle;
-	bundle << accountName << password;
-	bundle.appendBlob(datas);
+	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+	
+	(*(*bundle)).newMessage(BillingSystemInterface::reqCreateAccount);
+	(*(*bundle)) << pChannel->componentID();
+	(*(*bundle)) << registerName << password;
+	(*(*bundle)).appendBlob(datas);
 
-	bundle.send(Dbmgr::getSingleton().getNetworkInterface(), pBillingChannel_);
+	(*(*bundle)).send(Dbmgr::getSingleton().getNetworkInterface(), pBillingChannel_);
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void BillingHandler_ThirdParty::onCreateAccountCB(KBEngine::MemoryStream& s)
+{
+	std::string registerName, accountName, password, datas;
+	COMPONENT_ID cid;
+	bool success = false;
+
+	s >> cid >> registerName >> accountName >> password >> success;
+	s.readBlob(datas);
+
+	if(!success)
+	{
+		accountName = "";
+	}
+
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(LOGINAPP_TYPE, cid);
+	if(cinfos == NULL || cinfos->pChannel == NULL)
+	{
+		ERROR_MSG("BillingHandler_ThirdParty::onCreateAccountCB: loginapp not found!\n");
+		return;
+	}
+
+	dbThreadPool_.addTask(new DBTaskCreateAccount(cinfos->pChannel->addr(), 
+		registerName, accountName, password, datas));
 }
 
 //-------------------------------------------------------------------------------------
@@ -124,12 +165,41 @@ bool BillingHandler_ThirdParty::loginAccount(Mercury::Channel* pChannel, std::st
 {
 	KBE_ASSERT(pBillingChannel_);
 
-	Mercury::Bundle bundle;
-	bundle << loginName << password;
-	bundle.appendBlob(datas);
+	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 
-	bundle.send(Dbmgr::getSingleton().getNetworkInterface(), pBillingChannel_);
+	(*(*bundle)).newMessage(BillingSystemInterface::onAccountLogin);
+	(*(*bundle)) << pChannel->componentID();
+	(*(*bundle)) << loginName << password;
+	(*(*bundle)).appendBlob(datas);
+
+	(*(*bundle)).send(Dbmgr::getSingleton().getNetworkInterface(), pBillingChannel_);
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void BillingHandler_ThirdParty::onLoginAccountCB(KBEngine::MemoryStream& s)
+{
+	std::string loginName, accountName, password, datas;
+	COMPONENT_ID cid;
+	bool success = false;
+
+	s >> cid >> loginName >> accountName >> password >> success;
+	s.readBlob(datas);
+
+	if(!success)
+	{
+		accountName = "";
+	}
+
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(LOGINAPP_TYPE, cid);
+	if(cinfos == NULL || cinfos->pChannel == NULL)
+	{
+		ERROR_MSG("BillingHandler_ThirdParty::onCreateAccountCB: loginapp not found!\n");
+		return;
+	}
+
+	dbThreadPool_.addTask(new DBTaskAccountLogin(cinfos->pChannel->addr(), 
+		loginName, accountName, password, datas));
 }
 
 //-------------------------------------------------------------------------------------
@@ -202,6 +272,8 @@ bool BillingHandler_ThirdParty::reconnect()
 		}
 	}
 
+	// ²»¼ì²é³¬Ê±
+	pBillingChannel_->stopInactivityDetection();
 	return true;
 }
 

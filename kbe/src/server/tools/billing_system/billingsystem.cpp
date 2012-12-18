@@ -34,6 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "baseappmgr/baseappmgr_interface.hpp"
 #include "cellappmgr/cellappmgr_interface.hpp"
 #include "loginapp/loginapp_interface.hpp"
+#include "dbmgr/dbmgr_interface.hpp"
 
 namespace KBEngine{
 	
@@ -55,12 +56,6 @@ BillingSystem::~BillingSystem()
 {
 	mainProcessTimer_.cancel();
 	KBEngine::sleep(300);
-}
-
-//-------------------------------------------------------------------------------------
-bool BillingSystem::initializeWatcher()
-{
-	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -113,6 +108,8 @@ bool BillingSystem::initializeEnd()
 	mainProcessTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_TICK));
 
+	// 不做频道超时检查
+	CLOSE_CHANNEL_INACTIVITIY_DETECTION();
 	return initDB();
 }
 
@@ -129,28 +126,53 @@ void BillingSystem::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-void BillingSystem::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string& username, 
-						int8 componentType, uint64 componentID, 
-						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
+void BillingSystem::reqCreateAccount(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	ServerApp::onRegisterNewApp(pChannel, uid, username, componentType, componentID, 
-						intaddr, intport, extaddr, extport);
+	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 
+	std::string registerName, accountName, password, datas;
+	COMPONENT_ID cid;
+
+	s >> cid >> registerName >> password;
+	s.readBlob(datas);
+
+	(*(*bundle)).newMessage(DbmgrInterface::onCreateAccountCBFromBilling);
+
+	bool success = true;
+
+	accountName = registerName;
+	datas = accountName;
+
+	(*(*bundle)) << cid << registerName << accountName << password << success;
+
+	(*(*bundle)).appendBlob(datas);
+
+	(*(*bundle)).send(this->getNetworkInterface(), pChannel);
 }
 
-
 //-------------------------------------------------------------------------------------
-void BillingSystem::reqCreateAccount(Mercury::Channel* pChannel, 
-							 std::string& accountName, 
-							 std::string& password)
+void BillingSystem::onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryStream& s) 
 {
-}
+	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 
-//-------------------------------------------------------------------------------------
-void BillingSystem::onAccountLogin(Mercury::Channel* pChannel, 
-						   std::string& accountName, 
-						   std::string& password)
-{
+	std::string loginName, accountName, password, datas;
+	COMPONENT_ID cid;
+
+	s >> cid >> loginName >> password;
+	s.readBlob(datas);
+
+	(*(*bundle)).newMessage(DbmgrInterface::onLoginAccountCBBFromBilling);
+
+	bool success = true;
+
+	accountName = loginName;
+	datas = accountName;
+
+	(*(*bundle)) << cid << loginName << accountName << password << success;
+
+	(*(*bundle)).appendBlob(datas);
+
+	(*(*bundle)).send(this->getNetworkInterface(), pChannel);
 }
 
 

@@ -128,6 +128,9 @@ void Components::addComponent(int32 uid, const char* username,
 	componentInfos.pChannel = pChannel;
 	componentInfos.componentType = componentType;
 
+	if(pChannel)
+		pChannel->componentID(componentID);
+
 	strncpy(componentInfos.username, username, MAX_NAME);
 
 	if(cinfos == NULL)
@@ -253,6 +256,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 	if(ret == 0)
 	{
 		pComponentInfos->pChannel = new Mercury::Channel(*_pNetworkInterface, pEndpoint, Mercury::Channel::INTERNAL);
+		pComponentInfos->pChannel->componentID(componentID);
 		if(!_pNetworkInterface->registerChannel(pComponentInfos->pChannel))
 		{
 			ERROR_MSG(boost::format("Components::connectComponent: registerChannel(%1%) is failed!\n") %

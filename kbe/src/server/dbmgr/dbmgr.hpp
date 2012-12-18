@@ -112,11 +112,13 @@ public:
 		请求创建账号
 	*/
 	void reqCreateAccount(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onCreateAccountCBFromBilling(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		一个新用户登录， 需要检查合法性
 	*/
 	void onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onLoginAccountCBBFromBilling(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		baseapp请求查询account信息

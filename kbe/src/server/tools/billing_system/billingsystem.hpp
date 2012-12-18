@@ -47,8 +47,7 @@ class BillingSystem : public ServerApp,
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_TICK = TIMEOUT_SERVERAPP_MAX + 1,
-		TIMEOUT_CHECK_STATUS
+		TIMEOUT_TICK = TIMEOUT_SERVERAPP_MAX + 1
 	};
 	
 	BillingSystem(Mercury::EventDispatcher& dispatcher, 
@@ -70,30 +69,17 @@ public:
 	void finalise();
 	
 	bool initDB();
-
-	/* 网络接口
-		注册一个新激活的baseapp或者cellapp或者dbmgr
-		通常是一个新的app被启动了， 它需要向某些组件注册自己。
-	*/
-	virtual void onRegisterNewApp(Mercury::Channel* pChannel, 
-							int32 uid, 
-							std::string& username, 
-							int8 componentType, uint64 componentID, 
-							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport);
-
 	
 	/** 网络接口
 		请求创建账号
 	*/
-	void reqCreateAccount(Mercury::Channel* pChannel, std::string& accountName, std::string& password);
+	void reqCreateAccount(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		一个新用户登录， 需要检查合法性
 	*/
-	void onAccountLogin(Mercury::Channel* pChannel, std::string& accountName, std::string& password);
+	void onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
-
-	virtual bool initializeWatcher();
 protected:
 	TimerHandle											mainProcessTimer_;
 };

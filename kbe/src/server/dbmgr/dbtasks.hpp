@@ -165,12 +165,13 @@ protected:
 class DBTaskCreateAccount : public DBTask
 {
 public:
-	DBTaskCreateAccount(const Mercury::Address& addr, std::string& accountName, 
+	DBTaskCreateAccount(const Mercury::Address& addr, std::string& registerName, std::string& accountName, 
 		std::string& password, std::string& datas);
 	virtual ~DBTaskCreateAccount();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 protected:
+	std::string registerName_; 
 	std::string accountName_;
 	std::string password_;
 	std::string datas_;
@@ -238,7 +239,9 @@ protected:
 class DBTaskAccountLogin : public DBTask
 {
 public:
-	DBTaskAccountLogin(const Mercury::Address& addr, std::string& loginName, std::string& password, std::string& datas);
+	DBTaskAccountLogin(const Mercury::Address& addr, std::string& loginName, 
+		std::string& accountName, std::string& password, std::string& datas);
+
 	virtual ~DBTaskAccountLogin();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();

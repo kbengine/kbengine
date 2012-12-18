@@ -90,7 +90,8 @@ Channel::Channel(NetworkInterface & networkInterface,
 	isCondemn_(false),
 	proxyID_(0),
 	isHandshake_(false),
-	channelType_(CHANNEL_NORMAL)
+	channelType_(CHANNEL_NORMAL),
+	componentID_(UNKNOWN_COMPONENT_TYPE)
 {
 	this->incRef();
 	this->clearBundle();
@@ -140,7 +141,8 @@ Channel::Channel():
 	isCondemn_(false),
 	proxyID_(0),
 	isHandshake_(false),
-	channelType_(CHANNEL_NORMAL)
+	channelType_(CHANNEL_NORMAL),
+	componentID_(UNKNOWN_COMPONENT_TYPE)
 {
 	this->incRef();
 	this->clearBundle();
@@ -186,14 +188,24 @@ Channel * get(NetworkInterface & networkInterface,
 //-------------------------------------------------------------------------------------
 void Channel::startInactivityDetection( float period, float checkPeriod )
 {
+	stopInactivityDetection();
+
+	// 如果周期为负数则不检查
+	if(period > 0.f)
+	{
+		inactivityExceptionPeriod_ = uint64( period * stampsPerSecond() );
+		lastReceivedTime_ = timestamp();
+
+		inactivityTimerHandle_ =
+			this->dispatcher().addTimer( int( checkPeriod * 1000000 ),
+										this, (void *)TIMEOUT_INACTIVITY_CHECK );
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::stopInactivityDetection()
+{
 	inactivityTimerHandle_.cancel();
-
-	inactivityExceptionPeriod_ = uint64( period * stampsPerSecond() );
-	lastReceivedTime_ = timestamp();
-
-	inactivityTimerHandle_ =
-		this->dispatcher().addTimer( int( checkPeriod * 1000000 ),
-									this, (void *)TIMEOUT_INACTIVITY_CHECK );
 }
 
 //-------------------------------------------------------------------------------------
@@ -275,7 +287,7 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	MemoryStream::ObjPool().reclaimObject(pFragmentStream_);
 	pFragmentStream_ = NULL;
 
-	inactivityTimerHandle_.cancel();
+	stopInactivityDetection();
 	this->endpoint(NULL);
 }
 

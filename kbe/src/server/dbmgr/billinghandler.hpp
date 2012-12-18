@@ -49,11 +49,16 @@ public:
 	
 	virtual bool initialize() = 0;
 
-	virtual bool createAccount(Mercury::Channel* pChannel, std::string& accountName, 
+	virtual bool createAccount(Mercury::Channel* pChannel, std::string& registerName, 
 		std::string& password, std::string& datas) = 0;
+
 
 	virtual bool loginAccount(Mercury::Channel* pChannel, std::string& loginName, 
 		std::string& password, std::string& datas) = 0;
+
+	virtual void onCreateAccountCB(KBEngine::MemoryStream& s) = 0;
+
+	virtual void onLoginAccountCB(KBEngine::MemoryStream& s) = 0;
 protected:
 	DBThreadPool& dbThreadPool_;
 	thread::ThreadPool& threadPool_;
@@ -67,11 +72,15 @@ public:
 	
 	virtual bool initialize(){ return true; }
 
-	virtual bool createAccount(Mercury::Channel* pChannel, std::string& accountName, 
+	virtual bool createAccount(Mercury::Channel* pChannel, std::string& registerName, 
 		std::string& password, std::string& datas);
 
 	virtual bool loginAccount(Mercury::Channel* pChannel, std::string& loginName, 
 		std::string& password, std::string& datas);
+
+	virtual void onCreateAccountCB(KBEngine::MemoryStream& s);
+
+	virtual void onLoginAccountCB(KBEngine::MemoryStream& s);
 protected:
 };
 
@@ -83,11 +92,15 @@ public:
 	
 	virtual bool initialize();
 
-	virtual bool createAccount(Mercury::Channel* pChannel, std::string& accountName, 
+	virtual bool createAccount(Mercury::Channel* pChannel, std::string& registerName, 
 		std::string& password, std::string& datas);
 
 	virtual bool loginAccount(Mercury::Channel* pChannel, std::string& loginName, 
 		std::string& password, std::string& datas);
+
+	virtual void onCreateAccountCB(KBEngine::MemoryStream& s);
+
+	virtual void onLoginAccountCB(KBEngine::MemoryStream& s);
 
 	bool reconnect();
 
