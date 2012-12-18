@@ -111,7 +111,7 @@ bool DBInterfaceMysql::reattach()
 
 	try
 	{
-		ret = attach(db_name_);
+		ret = attach();
 	}
 	catch (...)
 	{
