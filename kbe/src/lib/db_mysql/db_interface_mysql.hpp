@@ -63,7 +63,7 @@ public:
 	/**
 		与某个数据库关联
 	*/
-	virtual bool attach(const char* databaseName);
+	virtual bool attach(const char* databaseName = NULL);
 	virtual bool detach();
 
 	bool ping(){ 

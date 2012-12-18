@@ -244,10 +244,10 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
-	if(currargsSize > 3)
+	if(currargsSize > 3 || currargsSize == 0)
 	{
 		PyErr_Format(PyExc_AssertionError,
-						"Proxy::streamFileToClient: args max require 3 args, gived %d! is script[%s].\n",
+						"Proxy::streamFileToClient: args max require 3, gived %d! is script[%s].\n",
 			currargsSize, pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return NULL;
@@ -257,7 +257,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 	PyObject* pyDesc = NULL;
 	int16 id = -1;
 
-	if(currargsSize >= 1)
+	if(currargsSize == 1)
 	{
 		if(PyArg_ParseTuple(args, "O", &pyResourceName) == -1)
 		{
@@ -296,7 +296,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 
 	if(pDescr && strlen(pDescr) > 255)
 	{
-		PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: the descr-size(%d > 255) too big!", 
+		PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: the descr-size(%d > 255)!", 
 			strlen(pDescr));
 
 		PyErr_PrintEx(0);
@@ -339,10 +339,10 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
-	if(currargsSize > 3)
+	if(currargsSize > 3 || currargsSize == 0)
 	{
 		PyErr_Format(PyExc_AssertionError,
-						"Proxy::streamStringToClient: args max require 3 args, gived %d! is script[%s].\n",
+						"Proxy::streamStringToClient: args max require 3, gived %d! is script[%s].\n",
 			currargsSize, pobj->getScriptName());
 		PyErr_PrintEx(0);
 		return NULL;
@@ -352,7 +352,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 	PyObject* pyDesc = NULL;
 	int16 id = -1;
 
-	if(currargsSize >= 1)
+	if(currargsSize == 1)
 	{
 		if(PyArg_ParseTuple(args, "O", &pyData) == -1)
 		{
@@ -391,7 +391,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 
 	if(pDescr && strlen(pDescr) > 255)
 	{
-		PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: the descr-size(%d > 255) too big!", 
+		PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: the descr-size(%d > 255)!", 
 			strlen(pDescr));
 
 		PyErr_PrintEx(0);

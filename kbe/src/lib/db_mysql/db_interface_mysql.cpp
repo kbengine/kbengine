@@ -49,7 +49,8 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 	if(db_port_ == 0)
 		db_port_ = 3306;
 	
-	kbe_snprintf(db_name_, MAX_BUF, "%s", databaseName);
+	if(databaseName != NULL)
+		kbe_snprintf(db_name_, MAX_BUF, "%s", databaseName);
 
 	hasLostConnection_ = false;
 
@@ -67,10 +68,10 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 	    
 		if(mysql())
 		{
-			if(mysql_select_db(mysql(), databaseName) != 0)
+			if(mysql_select_db(mysql(), db_name_) != 0)
 			{
 				ERROR_MSG(boost::format("DBInterfaceMysql::attach: Could not set active db[%1%]\n") %
-					databaseName);
+					db_name_);
 
 				return false;
 			}
@@ -412,8 +413,9 @@ bool DBInterfaceMysql::processException(std::exception & e)
 		while (!this->reattach())
 		{
 			ERROR_MSG(boost::format("DBInterfaceMysql::processException: "
-							"Thread %p reconnect attempt %d failed(%s).\n") %
+							"Thread %p reconnect(%s) attempt %d failed(%s).\n") %
 						this %
+						db_name_ %
 						attempts %
 						getLastError());
 
@@ -422,8 +424,9 @@ bool DBInterfaceMysql::processException(std::exception & e)
 		}
 
 		INFO_MSG(boost::format("DBInterfaceMysql::processException: "
-					"Thread %p reconnected. Attempts = %d\n") %
+					"Thread %p reconnected(%s). Attempts = %d\n") %
 				this %
+				db_name_ %
 				attempts);
 
 		retry = true;
