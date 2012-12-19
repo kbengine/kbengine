@@ -95,7 +95,7 @@ class SpaceAlloc:
 			return
 		
 		DEBUG_MSG("Spaces::loginToSpace: avatarEntity=%s" % avatarEntity.id)
-		space.loginToSpace(avatarEntity)
+		space.loginToSpace(avatarEntity, context)
 
 	def teleportSpace(self, entityMailbox, position, direction, context):
 		"""
