@@ -17,12 +17,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-/*
-	使用方法:
-	ObjectPool<TimerData>* objPool = new ObjectPool<TimerData>();
-	struct TimerData * td = objPool->createObject();
-	objPool->reclaimObject(td);		// 归还对象
-*/
+
 #ifndef __OBJECTPOOL_H__
 #define __OBJECTPOOL_H__
 	
@@ -34,6 +29,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>	
 #include <map>	
 #include <list>	
+#include "thread/threadmutex.hpp"
+
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
 #else
@@ -58,14 +55,16 @@ public:
 	ObjectPool():
 		objects_(),
 		max_(OBJECT_POOL_INIT_MAX_SIZE),
-		isDestroyed_(false)
+		isDestroyed_(false),
+		mutex_()
 	{
 	}
 
 	ObjectPool(unsigned int preAssignVal, size_t max):
 		objects_(),
 		max_((max == 0 ? 1 : max)),
-		isDestroyed_(false)
+		isDestroyed_(false),
+		mutex_()
 	{
 	}
 
@@ -76,6 +75,7 @@ public:
 	
 	void destroy()
 	{
+		mutex_.lockMutex();
 		isDestroyed_ = true;
 		typename OBJECTS::iterator iter = objects_.begin();
 		for(; iter!=objects_.end(); iter++)
@@ -87,6 +87,7 @@ public:
 		}
 				
 		objects_.clear();	
+		mutex_.unlockMutex();
 	}
 
 	const OBJECTS& objects(void)const { return objects_; }
@@ -105,17 +106,23 @@ public:
 	template<typename T1>
 	T* createObject(void)
 	{
+		mutex_.lockMutex();
+
 		while(true)
 		{
-			if(objects_.size() > 0){
+			if(objects_.size() > 0)
+			{
 				T* t = static_cast<T1*>(*objects_.begin());
 				objects_.pop_front();
+
+				mutex_.unlockMutex();
 				return t;
 			}
 
 			assignObjs();
 		}
 
+		mutex_.unlockMutex();
 		// INFO_MSG("ObjectPool:create new object! total:%d\n", m_totalCount_);
 		return NULL;
 	}
@@ -126,6 +133,8 @@ public:
 	*/
 	T* createObject(void)
 	{
+		mutex_.lockMutex();
+
 		while(true)
 		{
 			if(objects_.size() > 0){
@@ -134,12 +143,15 @@ public:
 
 				// 先重置状态
 				t->onReclaimObject();
+
+				mutex_.unlockMutex();
 				return t;
 			}
 
 			assignObjs();
 		}
 
+		mutex_.unlockMutex();
 		// INFO_MSG("ObjectPool:create new object! total:%d\n", m_totalCount_);
 		return NULL;
 	}
@@ -149,6 +161,8 @@ public:
 	*/
 	void reclaimObject(T* obj)
 	{
+		mutex_.lockMutex();
+
 		if(obj != NULL)
 		{
 			if(size() >= max_ || isDestroyed_)
@@ -160,6 +174,8 @@ public:
 				objects_.push_back(obj);
 			}
 		}
+
+		mutex_.unlockMutex();
 	}
 
 	size_t size(void)const{ return objects_.size(); }
@@ -170,6 +186,8 @@ protected:
 	size_t max_;
 
 	bool isDestroyed_;
+
+	KBEngine::thread::ThreadMutex mutex_;
 };
 
 /*

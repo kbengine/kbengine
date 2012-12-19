@@ -60,6 +60,8 @@ public:
 	virtual ~CreateAccountTask();
 	
 	virtual bool process();
+
+	thread::TPTask::TPTaskState presentMainThread();
 protected:
 };
 
@@ -70,6 +72,8 @@ public:
 	virtual ~LoginAccountTask();
 	
 	virtual bool process();
+
+	thread::TPTask::TPTaskState presentMainThread();
 protected:
 };
 

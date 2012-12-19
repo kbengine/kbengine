@@ -72,6 +72,15 @@ CreateAccountTask::~CreateAccountTask()
 //-------------------------------------------------------------------------------------
 bool CreateAccountTask::process()
 {
+	// 默认我们总是成功的
+	success = true;
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState CreateAccountTask::presentMainThread()
+{
 	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 
 	// 默认我们总是成功的
@@ -96,7 +105,7 @@ bool CreateAccountTask::process()
 		ERROR_MSG(boost::format("BillingTask::process: not found channel. commitName=%1%\n") % commitName);
 	}
 
-	return false;
+	return thread::TPTask::TPTASK_STATE_COMPLETED; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -113,10 +122,16 @@ LoginAccountTask::~LoginAccountTask()
 //-------------------------------------------------------------------------------------
 bool LoginAccountTask::process()
 {
-	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
-
 	// 默认我们总是成功的
-	bool success = true;
+	success = true;
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
+{
+	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 	
 	(*(*bundle)).newMessage(DbmgrInterface::onLoginAccountCBBFromBilling);
 	(*(*bundle)) << baseappID << commitName << accountName << password << success;
@@ -137,7 +152,7 @@ bool LoginAccountTask::process()
 		ERROR_MSG(boost::format("BillingTask::process: not found channel. commitName=%1%\n") % commitName);
 	}
 
-	return false;
+	return thread::TPTask::TPTASK_STATE_COMPLETED; 
 }
 
 //-------------------------------------------------------------------------------------
