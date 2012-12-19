@@ -72,9 +72,164 @@ CreateAccountTask::~CreateAccountTask()
 //-------------------------------------------------------------------------------------
 bool CreateAccountTask::process()
 {
-	// 默认我们总是成功的
-	success = true;
+	// 如果没有设置第三方服务地址则我们默认为成功
+	if(strlen(g_kbeSrvConfig.billingSystemThirdpartyServiceAddr()) == 0)
+	{
+		success = true;
+		getDatas = postDatas;
+		return false;
+	}
 
+	Mercury::EndPoint endpoint;
+	endpoint.socket(SOCK_STREAM);
+
+	if (!endpoint.good())
+	{
+		ERROR_MSG("BillingTask::process: couldn't create a socket\n");
+		return false;
+	}
+
+	if(postDatas.size() == 0)
+	{
+		ERROR_MSG(boost::format("BillingTask::process: %1% postData is NULL.\n") % commitName);
+		return false;
+	}
+
+	endpoint.setnonblocking(true);
+
+	u_int32_t addr;
+	KBEngine::Mercury::EndPoint::convertAddress(g_kbeSrvConfig.billingSystemThirdpartyServiceAddr(), addr);
+
+	int trycount = 0;
+
+	while(true)
+	{
+		fd_set	frds, fwds;
+		struct timeval tv = { 0, 100000 }; // 100ms
+
+		FD_ZERO( &frds );
+		FD_ZERO( &fwds );
+		FD_SET((int)endpoint, &frds);
+		FD_SET((int)endpoint, &fwds);
+
+		if(endpoint.connect(htons(g_kbeSrvConfig.billingSystemThirdpartyServicePort()), addr) == -1)
+		{
+			int selgot = select(endpoint+1, &frds, &fwds, NULL, &tv);
+			if(selgot > 0)
+			{
+				break;
+			}
+
+			trycount++;
+			if(trycount > 3)
+			{
+				ERROR_MSG(boost::format("BillingTask::process: connect billing server is error(%1%)!\n") % 
+					kbe_strerror());
+
+				endpoint.close();
+				return false;
+			}
+		}
+	}
+
+	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+	(*(*bundle)).append(postDatas.data(), postDatas.size());
+	(*(*bundle)).send(endpoint);
+
+	Mercury::TCPPacket packet;
+	packet.resize(1024);
+
+	fd_set	frds;
+	struct timeval tv = { 0, 300000 }; // 300ms
+
+	FD_ZERO( &frds );
+	FD_SET((int)endpoint, &frds);
+	int selgot = select(endpoint+1, &frds, NULL, NULL, &tv);
+	if(selgot <= 0)
+	{
+		ERROR_MSG(boost::format("BillingTask::process: %1% recv is error(%2%).\n") % commitName % KBEngine::kbe_strerror());
+		endpoint.close();
+		return false;
+	}
+
+	int len = endpoint.recv(packet.data(), 1024);
+
+	if(len <= 0)
+	{
+		ERROR_MSG(boost::format("BillingTask::process: %1% recv is size<= 0.\n") % commitName);
+		endpoint.close();
+		return false;
+	}
+
+	packet.wpos(len);
+
+	getDatas.assign((const char *)(packet.data() + packet.rpos()), packet.opsize());
+
+	try
+	{
+		std::string::size_type fi = getDatas.find("\r\n\r\n");
+		if(fi > 0)
+		{
+			fi += 4;
+			MemoryStream s;
+			s.append(getDatas.data() + fi, getDatas.size() - fi);
+
+			while(s.opsize() > 0)
+			{
+				int32 type, len;
+				s >> type >> len;
+				EndianConvertReverse<int32>(type);
+				EndianConvertReverse<int32>(len);
+				
+				int32 error = 0;
+
+				switch(type)
+				{
+				case 1:
+					s >> error;
+					EndianConvertReverse<int32>(error);
+
+					if(error != 0)
+					{
+						success = false;
+						endpoint.close();
+						return false;
+					}
+					else
+					{
+						success = true;
+					}
+
+					break;
+				case 2:
+					{
+						s.read_skip(len);
+					}
+					break;
+				case 3:
+					{
+						char* buf = new char[len + 1];
+						memcpy(buf, s.data() + s.rpos(), len);
+						buf[len] = 0;
+						accountName = buf;
+						delete[] buf;
+
+						s.read_skip(len);
+					}
+					break;
+				default:
+					break;
+				};
+			}
+		}
+	}
+	catch(...)
+	{
+		success = false;
+		ERROR_MSG(boost::format("BillingTask::process: %1% recv is error.\n") % commitName);
+	}
+
+	endpoint.close();
 	return false;
 }
 
@@ -83,14 +238,8 @@ thread::TPTask::TPTaskState CreateAccountTask::presentMainThread()
 {
 	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 
-	// 默认我们总是成功的
-	bool success = true;
-	
 	(*(*bundle)).newMessage(DbmgrInterface::onCreateAccountCBFromBilling);
 	(*(*bundle)) << baseappID << commitName << accountName << password << success;
-
-	//  默认提交什么返回什么
-	getDatas = postDatas;
 
 	(*(*bundle)).appendBlob(getDatas);
 
@@ -110,7 +259,7 @@ thread::TPTask::TPTaskState CreateAccountTask::presentMainThread()
 
 //-------------------------------------------------------------------------------------
 LoginAccountTask::LoginAccountTask():
-BillingTask()
+CreateAccountTask()
 {
 }
 
@@ -120,24 +269,18 @@ LoginAccountTask::~LoginAccountTask()
 }
 
 //-------------------------------------------------------------------------------------
-bool LoginAccountTask::process()
-{
-	// 默认我们总是成功的
-	success = true;
-
-	return false;
-}
-
-//-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 {
 	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 	
+	if(success)
+	{
+		if(accountName.size() == 0)
+			accountName = commitName;
+	}
+
 	(*(*bundle)).newMessage(DbmgrInterface::onLoginAccountCBBFromBilling);
 	(*(*bundle)) << baseappID << commitName << accountName << password << success;
-
-	//  默认提交什么返回什么
-	getDatas = postDatas;
 
 	(*(*bundle)).appendBlob(getDatas);
 

@@ -571,13 +571,14 @@ DBTaskAccountLogin::DBTaskAccountLogin(const Mercury::Address& addr,
 									   std::string& loginName, 
 									   std::string& accountName, 
 									   std::string& password, 
+									   bool success,
 									   std::string& datas):
 DBTask(addr),
 loginName_(loginName),
 accountName_(accountName),
 password_(password),
 datas_(datas),
-success_(false),
+success_(success),
 componentID_(0),
 entityID_(0),
 dbid_(0)
@@ -592,6 +593,14 @@ DBTaskAccountLogin::~DBTaskAccountLogin()
 //-------------------------------------------------------------------------------------
 bool DBTaskAccountLogin::db_thread_process()
 {
+	// 如果billing已经判断不成功就没必要继续下去
+	if(!success_)
+	{
+		return false;
+	}
+
+	success_ = false;
+
 	if(accountName_.size() == 0)
 	{
 		return false;
@@ -645,6 +654,7 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 	(*pBundle) << componentID_;   // 如果大于0则表示账号还存活在某个baseapp上
 	(*pBundle) << entityID_;
 	(*pBundle) << dbid_;
+	(*pBundle).appendBlob(datas_);
 
 	if(!this->send((*pBundle)))
 	{

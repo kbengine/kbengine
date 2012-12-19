@@ -412,7 +412,7 @@ void init_network(void)
 		bundle1 << accountname;
 		bundle1 << "123456";
 
-		std::string bindatas;
+		std::string bindatas = "1";
 		bundle1.appendBlob(bindatas);
 		bundle1.send(mysocket);
 		::sleep(300);

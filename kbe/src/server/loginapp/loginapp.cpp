@@ -249,7 +249,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(loginName);
 	if(ptinfos != NULL)
 	{
-		_loginFailed(pChannel, loginName, SERVER_ERR_BUSY);
+		_loginFailed(pChannel, loginName, SERVER_ERR_BUSY, std::string(""));
 		return;
 	}
 
@@ -272,7 +272,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(baseappmgrinfos == NULL || baseappmgrinfos->pChannel == NULL || baseappmgrinfos->cid == 0)
 	{
-		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY);
+		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY, std::string(""));
 		return;
 	}
 
@@ -284,7 +284,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY);
+		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY, std::string(""));
 		return;
 	}
 
@@ -297,10 +297,10 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& loginName, SERVER_ERROR_CODE failedcode)
+void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& loginName, SERVER_ERROR_CODE failedcode, std::string& datas)
 {
-	DEBUG_MSG(boost::format("Loginapp::loginFailed: loginName=%1% login is failed. failedcode=%2%.\n") %
-		loginName.c_str() % SERVER_ERR_STR[failedcode]);
+	DEBUG_MSG(boost::format("Loginapp::loginFailed: loginName=%1% login is failed. failedcode=%2%, datas=%3%.\n") %
+		loginName.c_str() % SERVER_ERR_STR[failedcode] % datas);
 	
 	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(loginName);
 	if(infos == NULL)
@@ -309,6 +309,7 @@ void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& loginName, 
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onLoginFailed);
 	bundle << failedcode;
+	bundle.appendBlob(datas);
 
 	if(pChannel)
 	{
@@ -330,7 +331,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 	if(pChannel->isExternal())
 		return;
 
-	std::string loginName, accountName, password;
+	std::string loginName, accountName, password, datas;
 	bool success = true;
 	COMPONENT_ID componentID;
 	ENTITY_ID entityID;
@@ -351,9 +352,20 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 	s >> entityID;
 	s >> dbid;
 
+	s.readBlob(datas);
+
+	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.find(loginName);
+	if(infos == NULL)
+	{
+		_loginFailed(NULL, loginName, SERVER_ERR_SRV_OVERLOAD, datas);
+		return;
+	}
+
+	infos->datas = datas;
+
 	if(!success)
 	{
-		_loginFailed(NULL, loginName, SERVER_ERR_NAME_PASSWORD);
+		_loginFailed(NULL, loginName, SERVER_ERR_NAME_PASSWORD, datas);
 		return;
 	}
 
@@ -365,7 +377,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 
 	if(baseappmgrinfos == NULL || baseappmgrinfos->pChannel == NULL || baseappmgrinfos->cid == 0)
 	{
-		_loginFailed(NULL, loginName, SERVER_ERR_SRV_NO_READY);
+		_loginFailed(NULL, loginName, SERVER_ERR_SRV_NO_READY, datas);
 		return;
 	}
 
@@ -374,7 +386,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 	{
 		Mercury::Bundle bundle;
 		bundle.newMessage(BaseappmgrInterface::registerPendingAccountToBaseappAddr);
-		bundle << componentID << accountName << password << entityID << dbid;
+		bundle << componentID << loginName >> accountName << password << entityID << dbid;
 		bundle.send(this->getNetworkInterface(), baseappmgrinfos->pChannel);
 		return;
 	}
@@ -384,6 +396,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 		Mercury::Bundle bundle;
 		bundle.newMessage(BaseappmgrInterface::registerPendingAccountToBaseapp);
 
+		bundle << loginName;
 		bundle << accountName;
 		bundle << password;
 		bundle << dbid;
@@ -392,7 +405,8 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pChannel, std::string& accountName, uint32 addr, uint16 port)
+void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pChannel, std::string& loginName, 
+															std::string& accountName, uint32 addr, uint16 port)
 {
 	if(pChannel->isExternal())
 		return;
@@ -403,16 +417,18 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pC
 		address.c_str());
 
 	// 这里可以不做删除， 仍然使其保留一段时间避免同一时刻同时登录造成意外影响
-	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(accountName);
+	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(loginName);
 	if(infos == NULL)
 		return;
 	
 	infos->lastProcessTime = timestamp();
 	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(infos->addr);
-	SAFE_RELEASE(infos);
 
 	if(pClientChannel == NULL)
+	{
+		SAFE_RELEASE(infos);
 		return;
+	}
 
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onLoginSuccessfully);
@@ -420,7 +436,10 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pC
 	bundle << accountName;
 	bundle << inet_ntoa((struct in_addr&)addr);
 	bundle << fport;
+	bundle.appendBlob(infos->datas);
 	bundle.send(this->getNetworkInterface(), pClientChannel);
+
+	SAFE_RELEASE(infos);
 }
 
 //-------------------------------------------------------------------------------------

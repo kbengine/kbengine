@@ -36,6 +36,10 @@
 		<type> normal </type>
 		<host> localhost </host>
 		<port> 30099 	</port>
+		
+		<!-- 第三方运营服务接口 如: www.google.com, 当type是thirdparty时有效 -->
+		<thirdpartyService_addr></thirdpartyService_addr>
+		<thirdpartyService_port> 80 </thirdpartyService_port>
 	</billingSystem>
 	
 	<dbmgr>

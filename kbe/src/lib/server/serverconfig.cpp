@@ -31,7 +31,9 @@ KBE_SINGLETON_INIT(ServerConfig);
 ServerConfig::ServerConfig():
 gameUpdateHertz_(10),
 billingSystemAddr_(),
-billingSystem_type_("")
+billingSystem_type_(""),
+billingSystem_thirdpartyServiceAddr_(""),
+billingSystem_thirdpartyServicePort_(80)
 {
 }
 
@@ -128,31 +130,52 @@ bool ServerConfig::loadConfig(std::string fileName)
 	{
 		TiXmlNode* childnode = xml->enterNode(rootNode, "type");
 		if(childnode)
+		{
 			billingSystem_type_ = xml->getValStr(childnode);
+			if(billingSystem_type_.size() == 0)
+				billingSystem_type_ = "normal";
+		}
 
 		std::string ip = "";
 		childnode = NULL;
 		childnode = xml->enterNode(rootNode, "host");
 		if(childnode)
+		{
 			ip = xml->getValStr(childnode);
+			if(ip.size() == 0)
+				ip = "localhost";
+
+			Mercury::Address addr(ip, ntohs(billingSystemAddr_.port));
+			billingSystemAddr_ = addr;
+		}
 
 		uint16 port = 0;
 		childnode = NULL;
 		childnode = xml->enterNode(rootNode, "port");
 		if(childnode)
+		{
 			port = xml->getValInt(childnode);
 
-		if(billingSystem_type_.size() == 0)
-			billingSystem_type_ = "normal";
+			if(port <= 0)
+				port = KBE_BILLING_TCP_PORT;
 
-		if(ip.size() == 0)
-			ip = "localhost";
+			Mercury::Address addr(inet_ntoa((struct in_addr&)billingSystemAddr_.ip), port);
+			billingSystemAddr_ = addr;
+		}
 
-		if(port <= 0)
-			port = KBE_BILLING_TCP_PORT;
+		childnode = NULL;
+		childnode = xml->enterNode(rootNode, "thirdpartyService_addr");
+		if(childnode)
+		{
+			billingSystem_thirdpartyServiceAddr_ = xml->getValStr(childnode);
+		}
 
-		Mercury::Address addr(ip, port);
-		billingSystemAddr_ = addr;
+		childnode = NULL;
+		childnode = xml->enterNode(rootNode, "thirdpartyService_port");
+		if(childnode)
+		{
+			billingSystem_thirdpartyServicePort_ = xml->getValInt(childnode);
+		}
 	}
 
 	rootNode = xml->getRootNode("cellapp");

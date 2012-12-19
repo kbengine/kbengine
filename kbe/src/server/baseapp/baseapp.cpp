@@ -67,6 +67,7 @@ PyObject* create_celldatadict_from_stream(MemoryStream& s, const char* entityTyp
 		const char* attrname = propertyDescription->getName();
 		PyObject* pyVal = propertyDescription->createFromStream(&s);
 		PyDict_SetItemString(pyDict, attrname, pyVal);
+		Py_DECREF(pyVal);
 	}
 	
 	if(scriptModule->hasCell())
@@ -1326,7 +1327,7 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& accountName, 
+void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& loginName, std::string& accountName, 
 								   std::string& password, ENTITY_ID entityID, DBID entityDBID)
 {
 	if(pChannel->isExternal())
@@ -1335,6 +1336,7 @@ void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& acco
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappmgrInterface::onPendingAccountGetBaseappAddr);
 
+	(*pBundle) << loginName;
 	(*pBundle) << accountName;
 	(*pBundle) << this->getNetworkInterface().extaddr().ip;
 	(*pBundle) << this->getNetworkInterface().extaddr().port;
@@ -1567,6 +1569,11 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 	base->setDBID(dbid);
 
 	PyObject* pyDict = create_celldatadict_from_stream(s, g_serverConfig.getDBMgr().dbAccountEntityScriptType);
+
+	PyObject* py__ACCOUNT_NAME__ = PyUnicode_FromString(accountName.c_str());
+	PyDict_SetItemString(pyDict, "__account_name__", py__ACCOUNT_NAME__);
+	Py_DECREF(py__ACCOUNT_NAME__);
+
 	base->initializeEntity(pyDict);
 	Py_DECREF(pyDict);
 

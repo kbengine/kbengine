@@ -129,6 +129,9 @@ public:
 	inline Mercury::Address billingSystemAddr(void)const { return billingSystemAddr_;}
 	
 	inline const char* billingSystemType()const { return billingSystem_type_.c_str(); }
+
+	inline const char* billingSystemThirdpartyServiceAddr()const { return billingSystem_thirdpartyServiceAddr_.c_str(); }
+	inline uint16 billingSystemThirdpartyServicePort()const { return billingSystem_thirdpartyServicePort_; }
 private:
 	ENGINE_COMPONENT_INFO _cellAppInfo;
 	ENGINE_COMPONENT_INFO _baseAppInfo;
@@ -149,6 +152,8 @@ public:
 
 	Mercury::Address billingSystemAddr_;
 	std::string billingSystem_type_;						// 计费系统类别
+	std::string billingSystem_thirdpartyServiceAddr_;		// 第三方运营服务地址(当type是thirdparty时有效)
+	uint16	billingSystem_thirdpartyServicePort_;			
 };
 
 #define g_kbeSrvConfig ServerConfig::getSingleton()

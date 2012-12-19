@@ -240,7 +240,7 @@ class DBTaskAccountLogin : public DBTask
 {
 public:
 	DBTaskAccountLogin(const Mercury::Address& addr, std::string& loginName, 
-		std::string& accountName, std::string& password, std::string& datas);
+		std::string& accountName, std::string& password, bool success, std::string& datas);
 
 	virtual ~DBTaskAccountLogin();
 	virtual bool db_thread_process();

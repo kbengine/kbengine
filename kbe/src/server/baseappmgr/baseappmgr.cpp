@@ -206,7 +206,8 @@ void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream&
 
 //-------------------------------------------------------------------------------------
 void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel, 
-							  std::string& accountName, std::string& password, DBID entityDBID)
+												 std::string& loginName, std::string& accountName, 
+												 std::string& password, DBID entityDBID)
 {
 	ENTITY_ID eid = 0;
 	Components::ComponentInfos* cinfos = 
@@ -219,7 +220,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
-		(*pBundle) << accountName << password << eid << entityDBID;
+		(*pBundle) << loginName << accountName << password << eid << entityDBID;
 
 		WARNING_MSG("Baseappmgr::registerAccountToBaseapp: not found baseapp, message is buffered.\n");
 		pFI->pHandler = NULL;
@@ -233,14 +234,15 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
-	(*pBundle) << accountName << password << eid << entityDBID;
+	(*pBundle) << loginName << accountName << password << eid << entityDBID;
 	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
 void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel, COMPONENT_ID componentID,
-								std::string& accountName, std::string& password, ENTITY_ID entityID, DBID entityDBID)
+								std::string& loginName, std::string& accountName, std::string& password, 
+								ENTITY_ID entityID, DBID entityDBID)
 {
 	DEBUG_MSG(boost::format("Baseappmgr::registerPendingAccountToBaseappAddr:%1%, componentID=%2%, entityID=%3%.\n") % 
 		accountName.c_str() % componentID % entityID);
@@ -253,14 +255,14 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel,
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
-	(*pBundle) << accountName << password << entityID << entityDBID;
+	(*pBundle) << loginName << accountName << password << entityID << entityDBID;
 	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
 void Baseappmgr::onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel, 
-							  std::string& accountName, uint32 addr, uint16 port)
+							  std::string& loginName, std::string& accountName, uint32 addr, uint16 port)
 {
 	Components::COMPONENTS& components = Components::getSingleton().getComponents(LOGINAPP_TYPE);
 	size_t componentSize = components.size();
@@ -270,7 +272,10 @@ void Baseappmgr::onPendingAccountGetBaseappAddr(Mercury::Channel* pChannel,
 
 	Mercury::Bundle* pBundleToLoginapp = Mercury::Bundle::ObjPool().createObject();
 	(*pBundleToLoginapp).newMessage(LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgr);
-	LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgrArgs3::staticAddToBundle((*pBundleToLoginapp), accountName, addr, port);
+
+	LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgrArgs4::staticAddToBundle((*pBundleToLoginapp), loginName, 
+		accountName, addr, port);
+
 	(*pBundleToLoginapp).send(this->getNetworkInterface(), lpChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundleToLoginapp);
 }

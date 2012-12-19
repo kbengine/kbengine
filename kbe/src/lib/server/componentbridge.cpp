@@ -191,7 +191,7 @@ bool Componentbridge::findInterfaces()
 				INFO_MSG(boost::format("Componentbridge::process: found %1%, addr:%2%:%3%\n") %
 					COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType) % 
 					inet_ntoa((struct in_addr&)args.intaddr) %
-					ntohs(args.intaddr));
+					ntohs(args.intport));
 
 				Componentbridge::getComponents().addComponent(args.uid, args.username.c_str(), 
 					(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, 

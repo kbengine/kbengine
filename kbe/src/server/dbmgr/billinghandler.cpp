@@ -92,7 +92,7 @@ bool BillingHandler_Normal::loginAccount(Mercury::Channel* pChannel, std::string
 										 std::string& password, std::string& datas)
 {
 	dbThreadPool_.addTask(new DBTaskAccountLogin(pChannel->addr(), 
-		loginName, loginName, password, datas));
+		loginName, loginName, password, true, datas));
 
 	return true;
 }
@@ -199,7 +199,7 @@ void BillingHandler_ThirdParty::onLoginAccountCB(KBEngine::MemoryStream& s)
 	}
 
 	dbThreadPool_.addTask(new DBTaskAccountLogin(cinfos->pChannel->addr(), 
-		loginName, accountName, password, datas));
+		loginName, accountName, password, success, datas));
 }
 
 //-------------------------------------------------------------------------------------

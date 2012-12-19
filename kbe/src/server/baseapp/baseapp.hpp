@@ -205,7 +205,7 @@ public:
 	/** 网络接口
 		注册将要登录的账号, 注册后则允许登录到此网关
 	*/
-	void registerPendingLogin(Mercury::Channel* pChannel, std::string& accountName, 
+	void registerPendingLogin(Mercury::Channel* pChannel, std::string& loginName, std::string& accountName, 
 		std::string& password, ENTITY_ID entityID, DBID entityDBID);
 
 	/** 网络接口

@@ -65,14 +65,12 @@ public:
 protected:
 };
 
-class LoginAccountTask : public BillingTask
+class LoginAccountTask : public CreateAccountTask
 {
 public:
 	LoginAccountTask();
 	virtual ~LoginAccountTask();
 	
-	virtual bool process();
-
 	thread::TPTask::TPTaskState presentMainThread();
 protected:
 };

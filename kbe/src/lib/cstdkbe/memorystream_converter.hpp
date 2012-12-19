@@ -54,6 +54,15 @@ namespace MemoryStreamConverter
     {
         convert<sizeof(T)>((char *)(val));
     }
+
+	inline void convert(char *val, size_t size)
+	{
+		if(size < 2)
+			return;
+
+		std::swap(*val, *(val + size - 1));
+		convert(val + 1, size - 2);
+	}
 }
 
 #if KBENGINE_ENDIAN == KBENGINE_BIG_ENDIAN			// 可以使用sys.isPlatformLittleEndian() 进行测试

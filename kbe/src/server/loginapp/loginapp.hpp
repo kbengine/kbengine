@@ -95,7 +95,7 @@ public:
 									MERCURY_ERR_SRV_OVERLOAD:服务器负载过重, 
 									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	void _loginFailed(Mercury::Channel* pChannel, std::string& loginName, SERVER_ERROR_CODE failedcode);
+	void _loginFailed(Mercury::Channel* pChannel, std::string& loginName, SERVER_ERROR_CODE failedcode, std::string& datas);
 	
 	/** 网络接口
 		dbmgr返回的登录账号检测结果
@@ -105,7 +105,9 @@ public:
 	/** 网络接口
 		baseappmgr返回的登录网关地址
 	*/
-	void onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pChannel, std::string& accountName, uint32 addr, uint16 port);
+	void onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pChannel, std::string& loginName, 
+		std::string& accountName, uint32 addr, uint16 port);
+
 
 	/** 网络接口
 		dbmgr发送初始信息
