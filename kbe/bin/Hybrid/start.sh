@@ -1,10 +1,9 @@
 #!/bin/sh
 
-export KBE_ROOT='/root/kbe/'
-export KBE_RES_PATH='/root/kbe/kbe/res/;/root/kbe/demo/;/root/kbe/demo/res/'
-export KBE_HYBRID_PATH='/root/kbe/kbe/bin/Hybrid64/'
-
+./billingsystem&
 ./kbmachine&
+sleep 1s
+./messagelog&
 sleep 1s
 ./dbmgr&
 sleep 2s
@@ -25,3 +24,4 @@ sleep 1s
 ./cellapp&
 sleep 1s
 ./loginapp&
+
