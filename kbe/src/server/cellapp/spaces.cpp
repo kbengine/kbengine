@@ -15,16 +15,16 @@ Spaces::~Spaces()
 //-------------------------------------------------------------------------------------
 Space* Spaces::createNewSpace(SPACE_ID spaceID)
 {
-	Space* space = new Space(spaceID);
 	SPACES::iterator iter = spaces_.find(spaceID);
-	
 	if(iter != spaces_.end())
 	{
 		ERROR_MSG(boost::format("Spaces::createNewSpace: space %1% is exist!\n") % spaceID);
 		return NULL;
 	}
 	
+	Space* space = new Space(spaceID);
 	spaces_[spaceID].reset(space);
+	
 	DEBUG_MSG(boost::format("Spaces::createNewSpace: new space %1%.\n") % spaceID);
 	return space;
 }
