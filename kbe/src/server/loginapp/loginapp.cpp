@@ -249,7 +249,8 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(loginName);
 	if(ptinfos != NULL)
 	{
-		_loginFailed(pChannel, loginName, SERVER_ERR_BUSY, std::string(""));
+		datas = "";
+		_loginFailed(pChannel, loginName, SERVER_ERR_BUSY, datas);
 		return;
 	}
 
@@ -272,7 +273,8 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(baseappmgrinfos == NULL || baseappmgrinfos->pChannel == NULL || baseappmgrinfos->cid == 0)
 	{
-		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY, std::string(""));
+		datas = "";
+		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY, datas);
 		return;
 	}
 
@@ -284,7 +286,8 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY, std::string(""));
+		datas = "";
+		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY, datas);
 		return;
 	}
 
