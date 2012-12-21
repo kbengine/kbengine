@@ -73,7 +73,7 @@ CreateAccountTask::~CreateAccountTask()
 bool CreateAccountTask::process()
 {
 	// 如果没有设置第三方服务地址则我们默认为成功
-	if(strlen(g_kbeSrvConfig.billingSystemThirdpartyServiceAddr()) == 0)
+	if(strlen(g_kbeSrvConfig.billingSystemThirdpartyAccountServiceAddr()) == 0)
 	{
 		success = true;
 		getDatas = postDatas;
@@ -98,7 +98,7 @@ bool CreateAccountTask::process()
 	endpoint.setnonblocking(true);
 
 	u_int32_t addr;
-	KBEngine::Mercury::EndPoint::convertAddress(g_kbeSrvConfig.billingSystemThirdpartyServiceAddr(), addr);
+	KBEngine::Mercury::EndPoint::convertAddress(g_kbeSrvConfig.billingSystemThirdpartyAccountServiceAddr(), addr);
 
 	int trycount = 0;
 
@@ -112,7 +112,7 @@ bool CreateAccountTask::process()
 		FD_SET((int)endpoint, &frds);
 		FD_SET((int)endpoint, &fwds);
 
-		if(endpoint.connect(htons(g_kbeSrvConfig.billingSystemThirdpartyServicePort()), addr) == -1)
+		if(endpoint.connect(htons(g_kbeSrvConfig.billingSystemThirdpartyAccountServicePort()), addr) == -1)
 		{
 			int selgot = select(endpoint+1, &frds, &fwds, NULL, &tv);
 			if(selgot > 0)

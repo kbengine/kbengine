@@ -1443,8 +1443,8 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 	if(dictSize != (Py_ssize_t)keyTypes_.size())
 	{
 		PyErr_Format(PyExc_TypeError, 
-			"FIXED_DICT key no match. size:%d-%d, keyNames=[%s].", 
-			dictSize, keyTypes_.size(), 
+			"FIXED_DICT(%s) key no match. size:%d-%d, keyNames=[%s].", 
+			this->aliasName(),dictSize, keyTypes_.size(), 
 			getKeyNames().c_str());
 		
 		PyErr_PrintEx(0);
@@ -1528,7 +1528,14 @@ void FixedDictType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool
 		PyObject* pyObject = 
 			PyDict_GetItemString(pydict, const_cast<char*>(iter->first.c_str()));
 		
-		KBE_ASSERT(pyObject != NULL);
+		if(pyObject == NULL)
+		{
+			ERROR_MSG(boost::format("FixedDictType::addToStreamEx: %1% not found key[%2%]. keyNames:%3%\n") % 
+				this->aliasName_ % iter->first % this->getKeyNames());
+
+			KBE_ASSERT(pyObject != NULL);
+		}
+
 		iter->second->dataType->addToStream(mstream, pyObject);
 	}
 

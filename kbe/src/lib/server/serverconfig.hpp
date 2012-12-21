@@ -130,8 +130,11 @@ public:
 	
 	inline const char* billingSystemType()const { return billingSystem_type_.c_str(); }
 
-	inline const char* billingSystemThirdpartyServiceAddr()const { return billingSystem_thirdpartyServiceAddr_.c_str(); }
-	inline uint16 billingSystemThirdpartyServicePort()const { return billingSystem_thirdpartyServicePort_; }
+	inline const char* billingSystemThirdpartyAccountServiceAddr()const { return billingSystem_thirdpartyAccountServiceAddr_.c_str(); }
+	inline uint16 billingSystemThirdpartyAccountServicePort()const { return billingSystem_thirdpartyAccountServicePort_; }
+
+	inline const char* billingSystemThirdpartyChargeServiceAddr()const { return billingSystem_thirdpartyChargeServiceAddr_.c_str(); }
+	inline uint16 billingSystemThirdpartyChargeServicePort()const { return billingSystem_thirdpartyChargeServicePort_; }
 private:
 	ENGINE_COMPONENT_INFO _cellAppInfo;
 	ENGINE_COMPONENT_INFO _baseAppInfo;
@@ -151,9 +154,11 @@ public:
 	uint32 bitsPerSecondToClient_;		
 
 	Mercury::Address billingSystemAddr_;
-	std::string billingSystem_type_;						// 计费系统类别
-	std::string billingSystem_thirdpartyServiceAddr_;		// 第三方运营服务地址(当type是thirdparty时有效)
-	uint16	billingSystem_thirdpartyServicePort_;			
+	std::string billingSystem_type_;								// 计费系统类别
+	std::string billingSystem_thirdpartyAccountServiceAddr_;		// 第三方运营账号服务地址(当type是thirdparty时有效)
+	uint16	billingSystem_thirdpartyAccountServicePort_;			
+	std::string billingSystem_thirdpartyChargeServiceAddr_;			// 第三方运营充值服务地址(当type是thirdparty时有效)
+	uint16	billingSystem_thirdpartyChargeServicePort_;	
 };
 
 #define g_kbeSrvConfig ServerConfig::getSingleton()

@@ -37,9 +37,13 @@
 		<host> localhost </host>
 		<port> 30099 	</port>
 		
-		<!-- 第三方运营服务接口 如: www.google.com, 当type是thirdparty时有效 -->
-		<thirdpartyService_addr></thirdpartyService_addr>
-		<thirdpartyService_port> 80 </thirdpartyService_port>
+		<!-- 第三方运营账号服务接口 如: www.google.com, 当type是thirdparty时有效 -->
+		<thirdpartyAccountService_addr></thirdpartyAccountService_addr>
+		<thirdpartyAccountService_port> 80 </thirdpartyAccountService_port>
+		
+			<!-- 第三方运营充值服务接口 如: www.google.com, 当type是thirdparty时有效 -->
+		<thirdpartyChargeService_addr></thirdpartyChargeService_addr>
+		<thirdpartyChargeService_port> 80 </thirdpartyChargeService_port>
 	</billingSystem>
 	
 	<dbmgr>

@@ -32,8 +32,10 @@ ServerConfig::ServerConfig():
 gameUpdateHertz_(10),
 billingSystemAddr_(),
 billingSystem_type_(""),
-billingSystem_thirdpartyServiceAddr_(""),
-billingSystem_thirdpartyServicePort_(80)
+billingSystem_thirdpartyAccountServiceAddr_(""),
+billingSystem_thirdpartyAccountServicePort_(80),
+billingSystem_thirdpartyChargeServiceAddr_(""),
+billingSystem_thirdpartyChargeServicePort_(80)
 {
 }
 
@@ -164,17 +166,31 @@ bool ServerConfig::loadConfig(std::string fileName)
 		}
 
 		childnode = NULL;
-		childnode = xml->enterNode(rootNode, "thirdpartyService_addr");
+		childnode = xml->enterNode(rootNode, "thirdpartyAccountService_addr");
 		if(childnode)
 		{
-			billingSystem_thirdpartyServiceAddr_ = xml->getValStr(childnode);
+			billingSystem_thirdpartyAccountServiceAddr_ = xml->getValStr(childnode);
 		}
 
 		childnode = NULL;
-		childnode = xml->enterNode(rootNode, "thirdpartyService_port");
+		childnode = xml->enterNode(rootNode, "thirdpartyAccountService_port");
 		if(childnode)
 		{
-			billingSystem_thirdpartyServicePort_ = xml->getValInt(childnode);
+			billingSystem_thirdpartyAccountServicePort_ = xml->getValInt(childnode);
+		}
+		
+		childnode = NULL;
+		childnode = xml->enterNode(rootNode, "thirdpartyChargeService_addr");
+		if(childnode)
+		{
+			billingSystem_thirdpartyChargeServiceAddr_ = xml->getValStr(childnode);
+		}
+
+		childnode = NULL;
+		childnode = xml->enterNode(rootNode, "thirdpartyChargeService_port");
+		if(childnode)
+		{
+			billingSystem_thirdpartyChargeServicePort_ = xml->getValInt(childnode);
 		}
 	}
 

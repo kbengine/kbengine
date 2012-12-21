@@ -186,11 +186,18 @@ bool Dbmgr::initBillingHandler()
 		g_kbeSrvConfig.billingSystemAddr().c_str() %
 		g_kbeSrvConfig.billingSystemType());
 
-	if(strlen(g_kbeSrvConfig.billingSystemThirdpartyServiceAddr()) > 0)
+	if(strlen(g_kbeSrvConfig.billingSystemThirdpartyAccountServiceAddr()) > 0)
 	{
-		INFO_MSG(boost::format("Dbmgr::initBillingHandler: thirdpartyService_addr(%1%:%2%).\n") % 
-			g_kbeSrvConfig.billingSystemThirdpartyServiceAddr() %
-			g_kbeSrvConfig.billingSystemThirdpartyServicePort());
+		INFO_MSG(boost::format("Dbmgr::initBillingHandler: thirdpartyAccountService_addr(%1%:%2%).\n") % 
+			g_kbeSrvConfig.billingSystemThirdpartyAccountServiceAddr() %
+			g_kbeSrvConfig.billingSystemThirdpartyAccountServicePort());
+	}
+
+	if(strlen(g_kbeSrvConfig.billingSystemThirdpartyChargeServiceAddr()) > 0)
+	{
+		INFO_MSG(boost::format("Dbmgr::initBillingHandler: thirdpartyChargeService_addr(%1%:%2%).\n") % 
+			g_kbeSrvConfig.billingSystemThirdpartyChargeServiceAddr() %
+			g_kbeSrvConfig.billingSystemThirdpartyChargeServicePort());
 	}
 
 	return pBillingHandler_->initialize();
