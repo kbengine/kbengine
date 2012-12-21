@@ -877,7 +877,10 @@ bool EntityTableItemMysql_ARRAY::initialize(const PropertyDescription* pProperty
 	else
 	{
 		tablename += TABLE_ARRAY_ITEM_VALUES_CONST_STR;
+	}
 
+	if(itemName.size() == 0)
+	{
 		if(static_cast<FixedArrayType*>(const_cast<DataType*>(pDataType))->getDataType()->type() != DATA_TYPE_FIXEDDICT)
 			itemName = TABLE_ARRAY_ITEM_VALUE_CONST_STR;
 	}
@@ -1109,7 +1112,7 @@ bool EntityTableItemMysql_DIGIT::syncToDB(DBInterface* dbi, void* pData)
 {
 	if(datalength_ == 0)
 	{
-		return sync_item_to_db(dbi, itemDBType_.c_str(), this->pParentTable_->tableName(), 
+		return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), 
 			db_item_name(), datalength_, this->mysqlItemtype_, this->flags(), pData);
 	}
 
