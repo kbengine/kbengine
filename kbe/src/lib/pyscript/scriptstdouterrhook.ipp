@@ -19,34 +19,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __PY_MEMORYSTREAM_H__
-#define __PY_MEMORYSTREAM_H__
+namespace KBEngine {
+namespace script{
 
-#include "scriptobject.hpp"
-#include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/memorystream.hpp"
+INLINE void ScriptStdOutErrHook::setHookBuffer(std::string* buffer){ 
+	buffer_ = buffer; 
+	wbuffer_ = L""; 
+};
 
-namespace KBEngine{ namespace script{
-
-class PyMemoryStream : public ScriptObject
-{		
-	/** 子类化 将一些py操作填充进派生类 */
-	INSTANCE_SCRIPT_HREADER(PyMemoryStream, ScriptObject)
-public:	
-	PyMemoryStream(PyTypeObject* pyType, bool isInitialised = false);
-	virtual ~PyMemoryStream();
-
-	INLINE MemoryStream& stream();
-protected:
-	MemoryStream stream_;
-} ;
 
 }
 }
 
-#ifdef CODE_INLINE
-#include "py_memorystream.ipp"
-#endif
-
-#endif

@@ -157,7 +157,7 @@
 			<File
 				RelativePath=".\copy.cpp"
 				>
-			</File>
+			</File> 
 			<File
 				RelativePath=".\map.cpp"
 				>
@@ -183,15 +183,15 @@
 				>
 			</File>
 			<File
-				RelativePath="scriptObject.cpp"
+				RelativePath="scriptobject.cpp"
 				>
 			</File>
 			<File
-				RelativePath="scriptStdOutErr.cpp"
+				RelativePath="scriptstdouterr.cpp"
 				>
 			</File>
 			<File
-				RelativePath="scriptStdOutErrHook.cpp"
+				RelativePath="scriptstdouterrhook.cpp"
 				>
 			</File>
 			<File
@@ -261,15 +261,15 @@
 				>
 			</File>
 			<File
-				RelativePath="scriptObject.hpp"
+				RelativePath="scriptobject.hpp"
 				>
 			</File>
 			<File
-				RelativePath="scriptStdOutErr.hpp"
+				RelativePath="scriptstdouterr.hpp"
 				>
 			</File>
 			<File
-				RelativePath="scriptStdOutErrHook.hpp"
+				RelativePath="scriptstdouterrhook.hpp"
 				>
 			</File>
 			<File
@@ -300,7 +300,39 @@
 			>
 		</Filter>
 		<File
+			RelativePath=".\map.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\py_memorystream.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\pywatcher.ipp"
+			>
+		</File>
+		<File
 			RelativePath=".\ReadMe.txt"
+			>
+		</File>
+		<File
+			RelativePath=".\script.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\scriptobject.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\scriptstdouterr.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\scriptstdouterrhook.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\sequence.ipp"
 			>
 		</File>
 	</Files>

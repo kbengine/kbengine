@@ -36,14 +36,18 @@ public:
 	Map(PyTypeObject* pyType, bool isInitialised = false);
 	virtual ~Map();
 
-	/** 暴露一些字典方法给python */
+	/** 
+		暴露一些字典方法给python 
+	*/
 	static PyObject* __py_has_key(PyObject* self, PyObject* args);
 	static PyObject* __py_keys(PyObject* self, PyObject* args);
 	static PyObject* __py_values(PyObject* self, PyObject* args);
 	static PyObject* __py_items(PyObject* self, PyObject* args);
 	static PyObject* __py_update(PyObject* self, PyObject* args);
 	
-	/** map操作函数相关 */
+	/** 
+		map操作函数相关 
+	*/
 	static PyObject* mp_subscript(PyObject* self, PyObject* key);
 
 	static int mp_ass_subscript(PyObject* self, 
@@ -51,10 +55,14 @@ public:
 
 	static int mp_length(PyObject* self);
 
-	/** 获取字典对象 */
-	PyObject* getDictObject(void)const{ return pyDict_;}
+	/** 
+		获取字典对象 
+	*/
+	INLINE PyObject* getDictObject(void)const;
 	
-	/** 数据改变通知 */
+	/** 
+		数据改变通知 
+	*/
 	virtual void onDataChanged(std::string& key, std::string& value, 
 		bool isDelete = false);
 
@@ -64,4 +72,9 @@ protected:
 
 }
 }
+
+#ifdef CODE_INLINE
+#include "map.ipp"
+#endif
+
 #endif

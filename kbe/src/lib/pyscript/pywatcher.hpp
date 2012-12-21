@@ -54,26 +54,7 @@ public:
 		(*s) << id_ << getVal();
 	};
 
-	T getVal()
-	{
-		T v;
-
-		PyObject* pyObj1 = PyObject_CallFunction(pyCallable_, const_cast<char*>(""));
-		if(!pyObj1)
-		{
-			PyErr_Format(PyExc_Exception, "PyWatcherObject::addToStream: callFunction is error! path=%s name=%s.\n",
-				path(), name());
-			PyErr_PrintEx(0);
-		}
-		else
-		{
-			readVal(pyObj1, v);
-			SCRIPT_ERROR_CHECK();
-			Py_DECREF(pyObj1);
-		}
-
-		return v;
-	}
+	INLINE T getVal();
 
 	void readVal(PyObject* pyVal, T& v)
 	{
@@ -162,4 +143,9 @@ bool initializePyWatcher(Script* pScript);
 
 }
 }
+
+#ifdef CODE_INLINE
+#include "pywatcher.ipp"
+#endif
+
 #endif

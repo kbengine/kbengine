@@ -19,34 +19,31 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef __PY_MEMORYSTREAM_H__
-#define __PY_MEMORYSTREAM_H__
+namespace KBEngine {
+namespace script{
 
-#include "scriptobject.hpp"
-#include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/memorystream.hpp"
+template <class T>
+INLINE T PyWatcherObject<T>::getVal()
+{
+	T v;
 
-namespace KBEngine{ namespace script{
+	PyObject* pyObj1 = PyObject_CallFunction(pyCallable_, const_cast<char*>(""));
+	if(!pyObj1)
+	{
+		PyErr_Format(PyExc_Exception, "PyWatcherObject::addToStream: callFunction is error! path=%s name=%s.\n",
+			path(), name());
+		PyErr_PrintEx(0);
+	}
+	else
+	{
+		readVal(pyObj1, v);
+		SCRIPT_ERROR_CHECK();
+		Py_DECREF(pyObj1);
+	}
 
-class PyMemoryStream : public ScriptObject
-{		
-	/** 子类化 将一些py操作填充进派生类 */
-	INSTANCE_SCRIPT_HREADER(PyMemoryStream, ScriptObject)
-public:	
-	PyMemoryStream(PyTypeObject* pyType, bool isInitialised = false);
-	virtual ~PyMemoryStream();
-
-	INLINE MemoryStream& stream();
-protected:
-	MemoryStream stream_;
-} ;
-
+	return v;
+}
+	
 }
 }
 
-#ifdef CODE_INLINE
-#include "py_memorystream.ipp"
-#endif
-
-#endif

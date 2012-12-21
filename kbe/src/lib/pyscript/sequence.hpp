@@ -46,8 +46,9 @@ public:
 	static PyObject* seq_inplace_concat(PyObject* self, PyObject* oterSeq);
 	static PyObject* seq_inplace_repeat(PyObject * self, Py_ssize_t n);
 	
-	int length(void){ return values_.size(); }
-	std::vector<PyObject*>& getValues(void){ return values_; }
+	INLINE int length(void)const;
+	INLINE std::vector<PyObject*>& getValues(void);
+
 	int findFrom(uint32 startIndex, PyObject* value);
 	
 	virtual bool isSameType(PyObject* pyValue);
@@ -59,4 +60,9 @@ protected:
 
 }
 }
+
+#ifdef CODE_INLINE
+#include "sequence.ipp"
+#endif
+
 #endif

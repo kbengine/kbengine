@@ -36,11 +36,7 @@ public:
 
 	void onPrint(const wchar_t* msg, uint32 msglen);
 
-	void setHookBuffer(std::string* buffer){ 
-		buffer_ = buffer; 
-		wbuffer_ = L""; 
-	};
-
+	INLINE void setHookBuffer(std::string* buffer);
 protected:
 	std::string* buffer_;
 	std::wstring wbuffer_;
@@ -48,4 +44,9 @@ protected:
 
 }
 }
+
+#ifdef CODE_INLINE
+#include "scriptstdouterrhook.ipp"
+#endif
+
 #endif

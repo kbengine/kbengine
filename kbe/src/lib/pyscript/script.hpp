@@ -54,20 +54,21 @@ public:
 	Script();
 	virtual ~Script();
 	
-	/** 安装和卸载脚本模块 */
+	/** 
+		安装和卸载脚本模块 
+	*/
 	virtual bool install(const wchar_t* pythonHomeDir, std::wstring pyPaths, 
 		const char* moduleName, COMPONENT_TYPE componentType);
 
 	virtual bool uninstall(void);
 	
-	/** 获取脚本基础模块 */
-	PyObject* getModule(void)const { return module_; }
+	/** 
+		获取脚本基础模块 
+	*/
+	INLINE PyObject* getModule(void)const;
 
 	int run_simpleString(const char* command, std::string* retBufferPtr);
-	int run_simpleString(std::string command, std::string* retBufferPtr)
-	{
-		return run_simpleString(command.c_str(), retBufferPtr);
-	}
+	INLINE int run_simpleString(std::string command, std::string* retBufferPtr);
 
 	int registerToModule(const char* attrName, PyObject* pyObj);
 	int unregisterToModule(const char* attrName);
@@ -86,4 +87,9 @@ protected:
 
 }
 }
+
+#ifdef CODE_INLINE
+#include "script.ipp"
+#endif
+
 #endif

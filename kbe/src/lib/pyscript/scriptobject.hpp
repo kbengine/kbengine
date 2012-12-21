@@ -525,4 +525,10 @@ public:
 
 }
 }
+
+
+#ifdef CODE_INLINE
+#include "scriptobject.ipp"
+#endif
+
 #endif

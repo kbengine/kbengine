@@ -48,7 +48,7 @@ public:
 
 	virtual void onPrint(const wchar_t* msg, uint32 msglen);
 
-	std::wstring& buffer(){ return sbuffer_; }
+	INLINE std::wstring& buffer();
 protected:
 	bool softspace_;
 	PyObject* sysModule_;
@@ -60,4 +60,9 @@ protected:
 
 }
 }
+
+#ifdef CODE_INLINE
+#include "scriptstdouterr.ipp"
+#endif
+
 #endif
