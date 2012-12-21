@@ -156,7 +156,7 @@ bool CreateAccountTask::process()
 
 	if(len <= 0)
 	{
-		ERROR_MSG(boost::format("BillingTask::process: %1% recv is size<= 0.\n") % commitName);
+		ERROR_MSG(boost::format("BillingTask::process: %1% recv is size<= 0.\n===>postdatas=%2%\n") % commitName % postDatas);
 		endpoint.close();
 		return false;
 	}
@@ -226,7 +226,8 @@ bool CreateAccountTask::process()
 	catch(...)
 	{
 		success = false;
-		ERROR_MSG(boost::format("BillingTask::process: %1% recv is error.\n") % commitName);
+		ERROR_MSG(boost::format("BillingTask::process: %1% recv is error.\n===>postdatas=%2%\n===>recv=%3%\n") % 
+			commitName % postDatas % getDatas);
 	}
 
 	endpoint.close();

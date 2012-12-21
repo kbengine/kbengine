@@ -153,6 +153,7 @@ bool Baseapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		createBaseFromDBID,				__py_createBaseFromDBID,			METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		executeRawDatabaseCommand,		__py_executeRawDatabaseCommand,		METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		quantumPassedPercent,			__py_quantumPassedPercent,			METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		charge,							__py_charge,						METH_VARARGS,			0);
 
 	return EntityApp<Base>::installPyModules();
 }
@@ -1231,6 +1232,48 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine
 	Py_XDECREF(pResultSet);
 	Py_XDECREF(pAffectedRows);
 	Py_XDECREF(pErrorMsg);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
+{
+	if(PyTuple_Size(args) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge: args != (dbid, bytedatas, pycallback)!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	PyObject* pyDatas = NULL, *pycallback = NULL;
+	DBID dbid = 0;
+
+	if(PyArg_ParseTuple(args, "k|O|O", &dbid, &pyDatas, &pycallback) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge: args is error!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+	
+	std::string datas;
+
+	Baseapp::getSingleton().charge(dbid, datas, pycallback);
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::charge(DBID dbid, const std::string& datas, PyObject* pycallback)
+{
+	INFO_MSG(boost::format("Baseapp::charge: dbid=%1%, datas=%2%, pycallback=%3%.\n") % 
+		dbid %
+		datas %
+		pycallback);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	DBID dbid = 0;
+	s >> dbid;
 }
 
 //-------------------------------------------------------------------------------------

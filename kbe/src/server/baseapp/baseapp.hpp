@@ -181,7 +181,7 @@ public:
 	bool createClientProxies(Proxy* base, bool reload = false);
 
 	/** 
-		想dbmgr请求执行一个数据库命令
+		向dbmgr请求执行一个数据库命令
 	*/
 	static PyObject* __py_executeRawDatabaseCommand(PyObject* self, PyObject* args);
 	void executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback);
@@ -308,6 +308,13 @@ public:
 		获得proxices计数
 	*/
 	int32 numProxices()const{ return numProxices_; }
+
+	/** 
+		请求充值
+	*/
+	static PyObject* __py_charge(PyObject* self, PyObject* args);
+	void charge(DBID dbid, const std::string& datas, PyObject* pycallback);
+	void onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 protected:
 	TimerHandle								loopCheckTimerHandle_;
