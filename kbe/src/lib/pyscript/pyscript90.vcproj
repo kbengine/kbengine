@@ -171,6 +171,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\py_memorystream.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\pywatcher.cpp"
 				>
 			</File>
@@ -230,6 +234,10 @@
 			</File>
 			<File
 				RelativePath="pickler.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\py_memorystream.hpp"
 				>
 			</File>
 			<File

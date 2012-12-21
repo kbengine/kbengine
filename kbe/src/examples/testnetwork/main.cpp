@@ -579,6 +579,11 @@ void init_network(void)
 		uint16 methodID = 10001;
 		bundle44 << eid;
 		bundle44 << methodID;
+
+		TCPPacket packet443214321;
+
+		packet443214321 << methodID << "111";
+		
 		bundle44.send(mysocket);
 		//::sleep(300);
 

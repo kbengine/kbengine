@@ -5,6 +5,7 @@ SRCS =				\
 	map			\
 	math			\
 	pickler			\
+	py_memorystream		\
 	pywatcher		\
 	script			\
 	scriptobject		\
