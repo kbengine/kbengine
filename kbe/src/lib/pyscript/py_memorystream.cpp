@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "pickler.hpp"
 #include "py_memorystream.hpp"
 
 namespace KBEngine{ namespace script{
@@ -39,6 +39,7 @@ PySequenceMethods PyMemoryStream::seqMethods =
 
 SCRIPT_METHOD_DECLARE_BEGIN(PyMemoryStream)
 SCRIPT_METHOD_DECLARE("append",				append,			METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("pop",				pop,			METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(PyMemoryStream)
@@ -120,7 +121,119 @@ Py_ssize_t PyMemoryStream::seq_length(PyObject* self)
 PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyMemoryStream* pyobj = static_cast<PyMemoryStream*>(self);
-	return NULL;	
+
+	int argCount = PyTuple_Size(args);
+	if(argCount != 2)
+	{
+		PyErr_Format(PyExc_AssertionError, "Blob::append: args is error! arg1 is type[UINT8|STRING|...], arg2 is val.");
+		PyErr_PrintEx(0);
+	}
+	
+	char* type;
+	PyObject* pyVal = NULL;
+
+	if(PyArg_ParseTuple(args, "s|O", &type, &pyVal) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "Blob::append: args is error!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	if(strcmp(type, "UINT8") == 0)
+	{
+		uint8 v = (uint8)PyLong_AsUnsignedLong(pyVal);
+		pyobj->stream() << v;
+	}
+	else if(strcmp(type, "UINT16") == 0)
+	{
+		uint16 v = (uint16)PyLong_AsUnsignedLong(pyVal);
+		pyobj->stream() << v;
+	}
+	else if(strcmp(type, "UINT32") == 0)
+	{
+		uint32 v = PyLong_AsUnsignedLong(pyVal);
+		pyobj->stream() << v;
+	}
+	else if(strcmp(type, "UINT64") == 0)
+	{
+		uint64 v = PyLong_AsUnsignedLongLong(pyVal);
+		pyobj->stream() << v;
+	}
+	else if(strcmp(type, "INT8") == 0)
+	{
+		int8 v = (int8)PyLong_AsLong(pyVal);
+		pyobj->stream() << v;
+	}
+	else if(strcmp(type, "INT16") == 0)
+	{
+		int16 v = (int16)PyLong_AsLong(pyVal);
+		pyobj->stream() << v;
+	}
+	else if(strcmp(type, "INT32") == 0)
+	{
+		int32 v = PyLong_AsLong(pyVal);
+		pyobj->stream() << v;
+	}
+	else if(strcmp(type, "INT64") == 0)
+	{
+		int64 v = PyLong_AsLongLong(pyVal);
+		pyobj->stream() << v;
+	}
+	else if(strcmp(type, "STRING") == 0)
+	{
+		wchar_t* ws = PyUnicode_AsWideCharString(pyVal, NULL);					
+		char* s = strutil::wchar2char(ws);									
+		PyMem_Free(ws);
+
+		pyobj->stream() << s;
+		free(s);
+	}
+	else if(strcmp(type, "UNICODE") == 0)
+	{
+		PyObject* obj = PyUnicode_AsUTF8String(pyVal);
+		if(obj == NULL)
+		{
+			PyErr_Format(PyExc_TypeError, "Blob::append: val is not UNICODE!");
+			PyErr_PrintEx(0);
+			return NULL;
+		}	
+
+		pyobj->stream().appendBlob(PyBytes_AS_STRING(obj), PyBytes_GET_SIZE(obj));
+		Py_DECREF(obj);
+	}
+	else if(strcmp(type, "PYTHON") == 0 || strcmp(type, "PY_DICT") == 0
+		 || strcmp(type, "PY_TUPLE") == 0  || strcmp(type, "PY_LIST") == 0)
+	{
+		std::string datas = Pickler::pickle(pyVal);
+		pyobj->stream().appendBlob(datas);
+	}
+	else if(strcmp(type, "BLOB") == 0)
+	{
+		if(!PyObject_TypeCheck(pyVal, PyMemoryStream::getScriptType()))
+		{
+			PyErr_Format(PyExc_TypeError, "Blob::append: val is not BLOB!");
+			PyErr_PrintEx(0);
+			return NULL;
+		}
+
+		PyMemoryStream* obj = static_cast<PyMemoryStream*>(pyVal);
+		pyobj->stream().append(obj->stream());
+	}
+	else
+	{
+		PyErr_Format(PyExc_TypeError, "Blob::append: type %s no support!", type);
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	S_Return;	
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+	PyMemoryStream* pyobj = static_cast<PyMemoryStream*>(self);
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------

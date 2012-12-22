@@ -54,6 +54,7 @@ public:
 	PyObject* tp_str();
 
 	static PyObject* __py_append(PyObject* self, PyObject* args, PyObject* kwargs);	
+	static PyObject* __py_pop(PyObject* self, PyObject* args, PyObject* kwargs);	
 	static Py_ssize_t seq_length(PyObject* self);
 	INLINE int length(void)const;
 protected:

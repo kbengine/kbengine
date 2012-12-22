@@ -1331,7 +1331,9 @@ void EntityTableItemMysql_STRING::getWriteSqlItem(DBInterface* dbi,
 	(*s) >> val;
 
 	pSotvs->extraDatas = "\"";
+
 	char* tbuf = new char[val.size() * 2 + 1];
+	memset(tbuf, 0, val.size() * 2 + 1);
 
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
 		tbuf, val.c_str(), val.size());
@@ -1393,7 +1395,8 @@ void EntityTableItemMysql_UNICODE::getWriteSqlItem(DBInterface* dbi, MemoryStrea
 	std::string val;
 	s->readBlob(val);
 
-	char* tbuf = new char[val.size() * 2];
+	char* tbuf = new char[val.size() * 2 + 1];
+	memset(tbuf, 0, val.size() * 2 + 1);
 
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
 		tbuf, val.c_str(), val.size());
@@ -1460,7 +1463,8 @@ void EntityTableItemMysql_BLOB::getWriteSqlItem(DBInterface* dbi, MemoryStream* 
 		s->read_skip(size);
 	}
 
-	char* tbuf = new char[val.size() * 2];
+	char* tbuf = new char[val.size() * 2 + 1];
+	memset(tbuf, 0, val.size() * 2 + 1);
 
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
 		tbuf, val.c_str(), val.size());
@@ -1507,7 +1511,8 @@ void EntityTableItemMysql_PYTHON::getWriteSqlItem(DBInterface* dbi, MemoryStream
 	std::string val;
 	s->readBlob(val);
 
-	char* tbuf = new char[val.size() * 2];
+	char* tbuf = new char[val.size() * 2 + 1];
+	memset(tbuf, 0, val.size() * 2 + 1);
 
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
 		tbuf, val.c_str(), val.size());
