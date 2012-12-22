@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pickler.hpp"
 #include "copy.hpp"
 #include "uuid.hpp"
+#include "pystruct.hpp"
 #include "resmgr/resmgr.hpp"
 #include "thread/concurrency.hpp"
 
@@ -186,6 +187,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	}
 	
 	Pickler::initialize();
+	PyStruct::initialize();
 	Copy::initialize();
 	Uuid::initialize();
 
@@ -199,6 +201,7 @@ bool Script::uninstall()
 {
 	math::uninstallModule();
 	Pickler::finalise();
+	PyStruct::finalise();
 	Copy::finalise();
 	Uuid::finalise();
 	SCRIPT_ERROR_CHECK();															// 检查是否有错误产生
