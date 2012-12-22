@@ -83,7 +83,7 @@ std::string PyStruct::pack(PyObject* fmt, PyObject* args)
 
 	if (!pyRet)
 	{
-		ERROR_MSG(boost::format("PyStruct::pack: is failed.\n"));
+		ERROR_MSG("PyStruct::pack: is failed.\n");
 		SCRIPT_ERROR_CHECK();
 	}
 	else
