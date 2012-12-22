@@ -187,6 +187,36 @@ public:
 	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
 };
 
+class EntityTableItemMysql_PYTHON : public EntityTableItemMysqlBase
+{
+public:
+	EntityTableItemMysql_PYTHON(std::string itemDBType, 
+		uint32 datalength, uint32 flags, enum_field_types mysqlItemtype):
+	  EntityTableItemMysqlBase(itemDBType, datalength, flags, mysqlItemtype)
+	  {
+	  }
+
+	virtual ~EntityTableItemMysql_PYTHON(){};
+
+	uint8 type()const{ return TABLE_ITEM_TYPE_PYTHON; }
+
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB(DBInterface* dbi, void* pData = NULL);
+
+	/**
+		获取某个表所有的数据放到流中
+	*/
+	void addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID);
+
+	/**
+		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
+	*/
+	virtual void getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+	virtual void getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox);
+};
+
 class EntityTableItemMysql_BLOB : public EntityTableItemMysqlBase
 {
 public:

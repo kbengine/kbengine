@@ -70,6 +70,9 @@ bool DataTypes::initialize(std::string file)
 	addDateType("FLOAT",	new FloatType);
 	addDateType("DOUBLE",	new DoubleType);
 	addDateType("PYTHON",	new PythonType);
+	addDateType("PY_DICT",	new PyDictType);
+	addDateType("PY_TUPLE",	new PyTupleType);
+	addDateType("PY_LIST",	new PyListType);
 	addDateType("MAILBOX",	new MailboxType);
 	addDateType("BLOB",		new BlobType);
 

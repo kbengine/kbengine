@@ -328,7 +328,19 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 	}
 	else if(type == "PYTHON")
 	{
-		return new EntityTableItemMysql_BLOB("blob", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_PYTHON("blob", 0, 0, FIELD_TYPE_BLOB);
+	}
+	else if(type == "PY_DICT")
+	{
+		return new EntityTableItemMysql_PYTHON("blob", 0, 0, FIELD_TYPE_BLOB);
+	}
+	else if(type == "PY_TUPLE")
+	{
+		return new EntityTableItemMysql_PYTHON("blob", 0, 0, FIELD_TYPE_BLOB);
+	}
+	else if(type == "PY_LIST")
+	{
+		return new EntityTableItemMysql_PYTHON("blob", 0, 0, FIELD_TYPE_BLOB);
 	}
 	else if(type == "BLOB")
 	{
@@ -1463,6 +1475,53 @@ void EntityTableItemMysql_BLOB::getWriteSqlItem(DBInterface* dbi, MemoryStream* 
 
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_BLOB::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+{
+	DB_OP_TABLE_ITEM_DATA* pSotvs = new DB_OP_TABLE_ITEM_DATA();
+	pSotvs->sqlkey = db_item_name();
+	memset(pSotvs->sqlval, 0, MAX_BUF);
+	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_PYTHON::syncToDB(DBInterface* dbi, void* pData)
+{
+	return sync_item_to_db(dbi, itemDBType_.c_str(), tableName_.c_str(), db_item_name(), 0, 
+		this->mysqlItemtype_, this->flags(), pData);
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_PYTHON::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID)
+{
+	std::string& datas = opTableItemDataBox.results[opTableItemDataBox.readresultIdx++];
+	(*s).appendBlob(datas);
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_PYTHON::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
+{
+	if(s == NULL)
+		return;
+
+	DB_OP_TABLE_ITEM_DATA* pSotvs = new DB_OP_TABLE_ITEM_DATA();
+
+	std::string val;
+	s->readBlob(val);
+
+	char* tbuf = new char[val.size() * 2];
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, val.c_str(), val.size());
+
+	pSotvs->extraDatas = tbuf;
+	SAFE_RELEASE_ARRAY(tbuf);
+
+	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
+	pSotvs->sqlkey = db_item_name();
+	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_PYTHON::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox)
 {
 	DB_OP_TABLE_ITEM_DATA* pSotvs = new DB_OP_TABLE_ITEM_DATA();
 	pSotvs->sqlkey = db_item_name();

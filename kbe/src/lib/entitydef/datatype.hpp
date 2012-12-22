@@ -329,16 +329,64 @@ public:
 	PythonType(DATATYPE_UID did = 0);
 	virtual ~PythonType();	
 
-	bool isSameType(PyObject* pyValue);
-	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+	virtual bool isSameType(PyObject* pyValue);
+	virtual void addToStream(MemoryStream* mstream, PyObject* pyValue);
 
-	PyObject* createFromStream(MemoryStream* mstream);
+	virtual PyObject* createFromStream(MemoryStream* mstream);
 
-	PyObject* parseDefaultStr(std::string defaultVal);
+	virtual PyObject* parseDefaultStr(std::string defaultVal);
 
 	const char* getName(void)const{ return "PYTHON";}
 
 	virtual DATATYPE type()const{ return DATA_TYPE_PYTHON; }
+};
+
+class PyDictType : public PythonType
+{
+protected:
+public:	
+	PyDictType(DATATYPE_UID did = 0);
+	virtual ~PyDictType();	
+
+	bool isSameType(PyObject* pyValue);
+
+	PyObject* parseDefaultStr(std::string defaultVal);
+
+	const char* getName(void)const{ return "PY_DICT";}
+
+	virtual DATATYPE type()const{ return DATA_TYPE_PYDICT; }
+};
+
+class PyTupleType : public PythonType
+{
+protected:
+public:	
+	PyTupleType(DATATYPE_UID did = 0);
+	virtual ~PyTupleType();	
+
+	bool isSameType(PyObject* pyValue);
+
+	PyObject* parseDefaultStr(std::string defaultVal);
+
+	const char* getName(void)const{ return "PY_TUPLE";}
+
+	virtual DATATYPE type()const{ return DATA_TYPE_PYTUPLE; }
+};
+
+class PyListType : public PythonType
+{
+protected:
+public:	
+	PyListType(DATATYPE_UID did = 0);
+	virtual ~PyListType();	
+
+	bool isSameType(PyObject* pyValue);
+
+	PyObject* parseDefaultStr(std::string defaultVal);
+
+	const char* getName(void)const{ return "PY_LIST";}
+
+	virtual DATATYPE type()const{ return DATA_TYPE_PYLIST; }
 };
 
 class BlobType : public DataType

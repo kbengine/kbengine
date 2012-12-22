@@ -48,6 +48,7 @@ class MemoryStream;
 #define TABLE_ITEM_TYPE_VECTOR4		8
 #define TABLE_ITEM_TYPE_UNICODE		9
 #define TABLE_ITEM_TYPE_MAILBOX		10
+#define TABLE_ITEM_TYPE_PYTHON		11
 
 #define ENTITY_TABLE_PERFIX						"tbl"
 #define TABLE_ID_CONST_STR						"id"

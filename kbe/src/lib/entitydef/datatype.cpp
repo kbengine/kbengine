@@ -733,32 +733,130 @@ PyObject* PythonType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void PythonType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	std::string sdata = script::Pickler::pickle(pyValue);
-	
-	uint32 length = sdata.length();
-	(*mstream) << length;
-	
-	mstream->append(sdata.c_str(), length);
+	std::string datas = script::Pickler::pickle(pyValue);
+	mstream->appendBlob(datas);
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* PythonType::createFromStream(MemoryStream* mstream)
 {
-	std::string val = "";
-	uint8* udata = NULL;
-	uint32 udataLen = 0;
+	std::string datas = "";
+	mstream->readBlob(datas);
+	return script::Pickler::unpickle(datas);
+}
 
-	(*mstream) >> udataLen;
-	
-	udata = new uint8[udataLen + 1];
-	
-	mstream->read(udata, udataLen);
-	
-	val.assign((char*)udata, udataLen);
-	
-	SAFE_RELEASE_ARRAY(udata);
-	
-	return script::Pickler::unpickle(val);
+//-------------------------------------------------------------------------------------
+PyDictType::PyDictType(DATATYPE_UID did):
+PythonType(did)
+{
+}
+
+//-------------------------------------------------------------------------------------
+PyDictType::~PyDictType()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool PyDictType::isSameType(PyObject* pyValue)
+{
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("PY_DICT");
+		return false;
+	}
+
+	if(!PyDict_Check(pyValue))
+	{
+		OUT_TYPE_ERROR("PY_DICT");
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyDictType::parseDefaultStr(std::string defaultVal)
+{
+	if(defaultVal.size() == 0)
+		return PyDict_New();
+
+	return PythonType::parseDefaultStr(defaultVal);
+}
+
+//-------------------------------------------------------------------------------------
+PyTupleType::PyTupleType(DATATYPE_UID did):
+PythonType(did)
+{
+}
+
+//-------------------------------------------------------------------------------------
+PyTupleType::~PyTupleType()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool PyTupleType::isSameType(PyObject* pyValue)
+{
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("PY_TUPLE");
+		return false;
+	}
+
+	if(!PyTuple_Check(pyValue))
+	{
+		OUT_TYPE_ERROR("PY_TUPLE");
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyTupleType::parseDefaultStr(std::string defaultVal)
+{
+	if(defaultVal.size() == 0)
+		return PyTuple_New(0);
+
+	return PythonType::parseDefaultStr(defaultVal);
+}
+
+//-------------------------------------------------------------------------------------
+PyListType::PyListType(DATATYPE_UID did):
+PythonType(did)
+{
+}
+
+//-------------------------------------------------------------------------------------
+PyListType::~PyListType()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool PyListType::isSameType(PyObject* pyValue)
+{
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("PY_LIST");
+		return false;
+	}
+
+	if(!PyList_Check(pyValue))
+	{
+		OUT_TYPE_ERROR("PY_LIST");
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyListType::parseDefaultStr(std::string defaultVal)
+{
+	if(defaultVal.size() == 0)
+		return PyList_New(0);
+
+	return PythonType::parseDefaultStr(defaultVal);
 }
 
 //-------------------------------------------------------------------------------------

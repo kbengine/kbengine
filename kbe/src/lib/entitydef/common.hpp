@@ -109,6 +109,9 @@ typedef uint8  DATATYPE;
 #define DATA_TYPE_VECTOR		7
 #define DATA_TYPE_UNICODE		8
 #define DATA_TYPE_MAILBOX		9
+#define DATA_TYPE_PYDICT		10
+#define DATA_TYPE_PYTUPLE		11
+#define DATA_TYPE_PYLIST		12
 
 // 对entity的一些系统级别的可变属性进行编号以便网络传输时进行辨别
 enum ENTITY_BASE_PROPERTY_UTYPE
