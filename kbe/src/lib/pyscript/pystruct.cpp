@@ -76,7 +76,7 @@ void PyStruct::finalise(void)
 //-------------------------------------------------------------------------------------
 std::string PyStruct::pack(PyObject* fmt, PyObject* args)
 {
-	PyObject* pyRet = PyObject_CallFunction(unpack_, 
+	PyObject* pyRet = PyObject_CallFunction(pack_, 
 			const_cast<char*>("(OO)"), fmt, args);
 	
 	std::string datas;
