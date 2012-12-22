@@ -157,7 +157,7 @@
 			<File
 				RelativePath=".\copy.cpp"
 				>
-			</File> 
+			</File>
 			<File
 				RelativePath=".\map.cpp"
 				>
@@ -172,6 +172,10 @@
 			</File>
 			<File
 				RelativePath=".\py_memorystream.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\pystruct.cpp"
 				>
 			</File>
 			<File
@@ -250,6 +254,10 @@
 			</File>
 			<File
 				RelativePath="pyobject_pointer.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\pystruct.hpp"
 				>
 			</File>
 			<File
