@@ -111,7 +111,7 @@ PyObject* PyStruct::unpack(PyObject* fmt, PyObject* args)
 	
 	if (!pyRet)
 	{
-		ERROR_MSG(boost::format("PyStruct::unpack: is failed.\n"));
+		ERROR_MSG("PyStruct::unpack: is failed.\n");
 	}
 	
 	SCRIPT_ERROR_CHECK();
