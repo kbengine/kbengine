@@ -34,10 +34,28 @@ class PyMemoryStream : public ScriptObject
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(PyMemoryStream, ScriptObject)
 public:	
+	static PySequenceMethods seqMethods;
+
 	PyMemoryStream(PyTypeObject* pyType, bool isInitialised = false);
 	virtual ~PyMemoryStream();
 
 	INLINE MemoryStream& stream();
+
+	INLINE PyObject* pyBytes();
+
+	void addToStream(MemoryStream* mstream);
+
+	void createFromStream(MemoryStream* mstream);
+
+	/** 
+		获得对象的描述 
+	*/
+	PyObject* tp_repr();
+	PyObject* tp_str();
+
+	static PyObject* __py_append(PyObject* self, PyObject* args, PyObject* kwargs);	
+	static Py_ssize_t seq_length(PyObject* self);
+	INLINE int length(void)const;
 protected:
 	MemoryStream stream_;
 } ;

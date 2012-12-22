@@ -27,6 +27,22 @@ INLINE MemoryStream& PyMemoryStream::stream()
 	return stream_;
 }
 
+INLINE PyObject* PyMemoryStream::pyBytes()
+{
+	if(stream_.size() == 0)
+	{
+		return PyBytes_FromString("");
+	}
+	
+	return PyBytes_FromStringAndSize((char*)stream_.data(), stream_.size());
+}
+
+INLINE int PyMemoryStream::length(void)const
+{ 
+	return stream_.size(); 
+}
+
+
 }
 }
 

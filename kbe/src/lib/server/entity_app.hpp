@@ -251,7 +251,7 @@ void EntityApp<E>::finalise(void)
 template<class E>
 bool EntityApp<E>::installEntityDef()
 {
-	if(!EntityDef::installScript(NULL))
+	if(!EntityDef::installScript(this->getScript().getModule()))
 		return false;
 
 	// 初始化数据类别

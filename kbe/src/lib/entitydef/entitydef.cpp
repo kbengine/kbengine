@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "scriptdef_module.hpp"
 #include "datatypes.hpp"
 #include "common.hpp"
+#include "blob.hpp"
 #include "resmgr/resmgr.hpp"
 #include "cstdkbe/smartpointer.hpp"
 #include "entitydef/entity_mailbox.hpp"
@@ -1037,7 +1038,10 @@ ScriptDefModule* EntityDef::findScriptModule(const char* scriptName)
 //-------------------------------------------------------------------------------------
 bool EntityDef::installScript(PyObject* mod)
 {
-	EntityMailbox::installScript(mod);
+	Blob::installScript(NULL);
+	APPEND_SCRIPT_MODULE_METHOD(mod, Blob, Blob::py_new, METH_VARARGS, 0);
+
+	EntityMailbox::installScript(NULL);
 	FixedArray::installScript(NULL);
 	FixedDict::installScript(NULL);
 	return true;
@@ -1046,6 +1050,7 @@ bool EntityDef::installScript(PyObject* mod)
 //-------------------------------------------------------------------------------------
 bool EntityDef::uninstallScript()
 {
+	Blob::uninstallScript();
 	EntityMailbox::uninstallScript();
 	FixedArray::uninstallScript();
 	FixedDict::uninstallScript();

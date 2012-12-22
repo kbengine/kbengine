@@ -1,6 +1,7 @@
 LIB =	entitydef
 
 SRCS =				\
+	blob			\
 	fixedarray		\
 	common			\
 	datatype		\

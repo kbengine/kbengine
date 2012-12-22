@@ -1381,7 +1381,7 @@ void EntityTableItemMysql_UNICODE::getWriteSqlItem(DBInterface* dbi, MemoryStrea
 	std::string val;
 	s->readBlob(val);
 
-	char* tbuf = new char[val.size() + 1];
+	char* tbuf = new char[val.size() * 2];
 
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
 		tbuf, val.c_str(), val.size());
@@ -1415,7 +1415,16 @@ bool EntityTableItemMysql_BLOB::syncToDB(DBInterface* dbi, void* pData)
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_BLOB::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM_DATA_BOX& opTableItemDataBox, DBID resultDBID)
 {
-	s->appendBlob(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++]);
+	std::string& datas = opTableItemDataBox.results[opTableItemDataBox.readresultIdx++];
+	ArraySize size = datas.size(), rpos = 0, wpos = 0;
+	wpos = size;
+
+	(*s) << size;
+	if(size > 0)
+	{
+		(*s) << rpos << wpos;
+		(*s).append(datas.data(), size);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -1427,12 +1436,22 @@ void EntityTableItemMysql_BLOB::getWriteSqlItem(DBInterface* dbi, MemoryStream* 
 	DB_OP_TABLE_ITEM_DATA* pSotvs = new DB_OP_TABLE_ITEM_DATA();
 
 	std::string val;
-	s->readBlob(val);
+	ArraySize size, rpos, wpos;
 
-	char* tbuf = new char[val.size() + 1];
+	(*s) >> size;
 
-	//mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
-	//	tbuf, val.c_str(), val.size());
+	if(size > 0)
+	{
+		(*s) >> rpos >> wpos;
+
+		val.assign((const char*)s->data() + s->rpos(), size);
+		s->read_skip(size);
+	}
+
+	char* tbuf = new char[val.size() * 2];
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, val.c_str(), val.size());
 
 	pSotvs->extraDatas = tbuf;
 	SAFE_RELEASE_ARRAY(tbuf);

@@ -175,7 +175,7 @@ PyObject* FixedDict::__unpickle__(PyObject* self, PyObject* args)
 	Py_ssize_t size = PyTuple_Size(args);
 	if(size != 2)
 	{
-		ERROR_MSG("FixedDict::__unpickle__: args is error! size != 1");
+		ERROR_MSG("FixedDict::__unpickle__: args is error! size != 2");
 		S_Return;
 	}
 

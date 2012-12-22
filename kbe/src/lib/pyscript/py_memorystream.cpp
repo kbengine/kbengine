@@ -23,26 +23,104 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{ namespace script{
 
-SCRIPT_METHOD_DECLARE_BEGIN(PyMemoryStream)
-SCRIPT_METHOD_DECLARE_END()
+PySequenceMethods PyMemoryStream::seqMethods =
+{
+	seq_length,		// inquiry sq_length;				len(x)
+	0,				// binaryfunc sq_concat;			x + y
+	0,				// intargfunc sq_repeat;			x * n
+	0,				// intargfunc sq_item;				x[i]
+	0,				//seq_slice,				// intintargfunc sq_slice;			x[i:j]
+	0,				// intobjargproc sq_ass_item;		x[i] = v
+	0,				//seq_ass_slice,			// intintobjargproc sq_ass_slice;	x[i:j] = v
+	0,				// objobjproc sq_contains;			v in x
+	0,				// binaryfunc sq_inplace_concat;	x += y
+	0				// intargfunc sq_inplace_repeat;	x *= n
+};
 
+SCRIPT_METHOD_DECLARE_BEGIN(PyMemoryStream)
+SCRIPT_METHOD_DECLARE("append",				append,			METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(PyMemoryStream)
 SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(PyMemoryStream)
 SCRIPT_GETSET_DECLARE_END()
-SCRIPT_INIT(PyMemoryStream, 0, 0, 0, 0, 0)		
+SCRIPT_INIT(PyMemoryStream, 0, &PyMemoryStream::seqMethods, 0, 0, 0)		
 	
 //-------------------------------------------------------------------------------------
 PyMemoryStream::PyMemoryStream(PyTypeObject* pyType, bool isInitialised):
-ScriptObject(getScriptType(), isInitialised)
+ScriptObject(pyType, isInitialised)
 {
 }
 
 //-------------------------------------------------------------------------------------
 PyMemoryStream::~PyMemoryStream()
 {
+}
+
+//-------------------------------------------------------------------------------------
+void PyMemoryStream::addToStream(MemoryStream* mstream)
+{
+	ArraySize size = stream().size();
+
+	(*mstream) << size;
+	if(size > 0)
+	{
+		ArraySize rpos = stream().rpos(), wpos = stream().wpos();
+		(*mstream) << rpos;
+		(*mstream) << wpos;
+		(*mstream).append(stream().data(), size);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void PyMemoryStream::createFromStream(MemoryStream* mstream)
+{
+	ArraySize size;
+	ArraySize rpos, wpos;
+
+	(*mstream) >> size;
+	if(size > 0)
+	{
+		(*mstream) >> rpos;
+		(*mstream) >> wpos;
+
+		stream().append(mstream->data() + mstream->rpos(), size);
+		stream().rpos(rpos);
+		stream().wpos(wpos);
+
+		mstream->read_skip(size);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyMemoryStream::tp_repr()
+{
+	PyObject* pybytes = this->pyBytes();
+	PyObject* pyStr = PyObject_Str(pybytes);
+	Py_DECREF(pybytes);
+	return pyStr;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyMemoryStream::tp_str()
+{
+	return tp_repr();
+}
+
+//-------------------------------------------------------------------------------------
+Py_ssize_t PyMemoryStream::seq_length(PyObject* self)
+{
+	PyMemoryStream* seq = static_cast<PyMemoryStream*>(self);
+	return seq->length();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+	PyMemoryStream* pyobj = static_cast<PyMemoryStream*>(self);
+	return NULL;	
 }
 
 //-------------------------------------------------------------------------------------

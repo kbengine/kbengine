@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "blob.hpp"
 #include "datatype.hpp"
 #include "datatypes.hpp"
 #include "entitydef.hpp"
@@ -781,56 +781,37 @@ bool BlobType::isSameType(PyObject* pyValue)
 		return false;
 	}
 
-	bool ret = PyBytes_Check(pyValue);
-	if(!ret)
+	if(!PyObject_TypeCheck(pyValue, Blob::getScriptType()))
+	{
 		OUT_TYPE_ERROR("BLOB");
+		return false;
+	}
 
-	return ret;
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* BlobType::parseDefaultStr(std::string defaultVal)
 {
-	return PyBytes_FromString("");
+	return new Blob(defaultVal);
 }
 
 //-------------------------------------------------------------------------------------
 void BlobType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	char *buffer;
-	Py_ssize_t length;
-
-	if(PyBytes_AsStringAndSize(pyValue, &buffer, &length) < 0)
-	{
-		OUT_TYPE_ERROR("BLOB");
-	}
-
-	if(length > 0)
-		mstream->append(buffer, length);
+	Blob* pBlob = static_cast<Blob*>(pyValue);
+	pBlob->addToStream(mstream);
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* BlobType::createFromStream(MemoryStream* mstream)
 {
-	uint32 size = 0;
-	std::string val = "";
-	if(mstream)
-	{
-		(*mstream) >> size;
-		val.assign((char*)(mstream->data() + mstream->rpos()), size);
-		mstream->read_skip(size);
-	}
+	Blob* pBlob = new Blob();
+	pBlob->createFromStream(mstream);
 
-	if(size == 0)
+	if (pBlob && !PyErr_Occurred())
 	{
-		S_Return;
-	}
-
-	PyObject* pyobj = PyBytes_FromStringAndSize(val.data(), size);
-
-	if (pyobj && !PyErr_Occurred())
-	{
-		return pyobj;
+		return pBlob;
 	}
 
 	OUT_TYPE_ERROR("BLOB");
