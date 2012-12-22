@@ -35,29 +35,29 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(Blob, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-Blob::Blob(std::string& strDictInitData):
-PyMemoryStream(getScriptType(), false)
+Blob::Blob(std::string& strDictInitData, bool readonly):
+PyMemoryStream(getScriptType(), false, readonly)
 {
 	initialize(strDictInitData);
 }
 
 //-------------------------------------------------------------------------------------
-Blob::Blob(PyObject* pyDictInitData):
-PyMemoryStream(getScriptType(), false)
+Blob::Blob(PyObject* pyDictInitData, bool readonly):
+PyMemoryStream(getScriptType(), false, readonly)
 {
 	initialize(pyDictInitData);
 }
 
 //-------------------------------------------------------------------------------------
-Blob::Blob(MemoryStream* streamInitData):
-PyMemoryStream(getScriptType(), false)
+Blob::Blob(MemoryStream* streamInitData, bool readonly):
+PyMemoryStream(getScriptType(), false, readonly)
 {
 	initialize(streamInitData);
 }
 
 //-------------------------------------------------------------------------------------
-Blob::Blob():
-PyMemoryStream(getScriptType(), false)
+Blob::Blob(bool readonly):
+PyMemoryStream(getScriptType(), false, readonly)
 {
 	initialize("");
 }

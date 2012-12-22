@@ -36,12 +36,14 @@ class PyMemoryStream : public ScriptObject
 public:	
 	static PySequenceMethods seqMethods;
 
-	PyMemoryStream(PyTypeObject* pyType, bool isInitialised = false);
+	PyMemoryStream(PyTypeObject* pyType, bool isInitialised = false, bool readonly = false);
 	virtual ~PyMemoryStream();
 
 	INLINE MemoryStream& stream();
 
 	INLINE PyObject* pyBytes();
+
+	INLINE bool readonly()const;
 
 	void addToStream(MemoryStream* mstream);
 
@@ -59,6 +61,7 @@ public:
 	INLINE int length(void)const;
 protected:
 	MemoryStream stream_;
+	bool readonly_;
 } ;
 
 }

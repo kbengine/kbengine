@@ -50,8 +50,9 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(PyMemoryStream, 0, &PyMemoryStream::seqMethods, 0, 0, 0)		
 	
 //-------------------------------------------------------------------------------------
-PyMemoryStream::PyMemoryStream(PyTypeObject* pyType, bool isInitialised):
-ScriptObject(pyType, isInitialised)
+PyMemoryStream::PyMemoryStream(PyTypeObject* pyType, bool isInitialised, bool readonly):
+ScriptObject(pyType, isInitialised),
+readonly_(readonly)
 {
 }
 
@@ -121,6 +122,12 @@ Py_ssize_t PyMemoryStream::seq_length(PyObject* self)
 PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyMemoryStream* pyobj = static_cast<PyMemoryStream*>(self);
+	if(pyobj->readonly())
+	{
+		PyErr_Format(PyExc_AssertionError, "Blob::append: read only!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
 
 	int argCount = PyTuple_Size(args);
 	if(argCount != 2)
@@ -179,6 +186,16 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 		int64 v = PyLong_AsLongLong(pyVal);
 		pyobj->stream() << v;
 	}
+	else if(strcmp(type, "FLOAT") == 0)
+	{
+		float v = (float)PyFloat_AsDouble(pyVal);
+		pyobj->stream() << v;
+	}
+	else if(strcmp(type, "DOUBLE") == 0)
+	{
+		double v = (double)PyFloat_AsDouble(pyVal);
+		pyobj->stream() << v;
+	}
 	else if(strcmp(type, "STRING") == 0)
 	{
 		wchar_t* ws = PyUnicode_AsWideCharString(pyVal, NULL);					
@@ -233,7 +250,136 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyMemoryStream* pyobj = static_cast<PyMemoryStream*>(self);
-	return NULL;
+
+	if(pyobj->readonly())
+	{
+		PyErr_Format(PyExc_AssertionError, "Blob::pop: read only!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	int argCount = PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_AssertionError, "Blob::pop: args is error! arg1 is type[UINT8|STRING|...].");
+		PyErr_PrintEx(0);
+	}
+	
+	char* type;
+	if(PyArg_ParseTuple(args, "s", &type) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "Blob::pop: args is error!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	try
+	{
+		if(strcmp(type, "UINT8") == 0)
+		{
+			uint8 v;
+			pyobj->stream() >> v;
+			return PyLong_FromUnsignedLong(v);
+		}
+		else if(strcmp(type, "UINT16") == 0)
+		{
+			uint16 v;
+			pyobj->stream() >> v;
+			return PyLong_FromUnsignedLong(v);
+		}
+		else if(strcmp(type, "UINT32") == 0)
+		{
+			uint32 v;
+			pyobj->stream() >> v;
+			return PyLong_FromUnsignedLong(v);
+		}
+		else if(strcmp(type, "UINT64") == 0)
+		{
+			uint64 v;
+			pyobj->stream() >> v;
+			return PyLong_FromUnsignedLongLong(v);
+		}
+		else if(strcmp(type, "INT8") == 0)
+		{
+			int8 v;
+			pyobj->stream() >> v;
+			return PyLong_FromLong(v);
+		}
+		else if(strcmp(type, "INT16") == 0)
+		{
+			int16 v;
+			pyobj->stream() >> v;
+			return PyLong_FromLong(v);
+		}
+		else if(strcmp(type, "INT32") == 0)
+		{
+			int32 v;
+			pyobj->stream() >> v;
+			return PyLong_FromLong(v);
+		}
+		else if(strcmp(type, "INT64") == 0)
+		{
+			int8 v;
+			pyobj->stream() >> v;
+			return PyLong_FromLongLong(v);
+		}
+		else if(strcmp(type, "FLOAT") == 0)
+		{
+			float v;
+			pyobj->stream() >> v;
+			return PyFloat_FromDouble(v);
+		}
+		else if(strcmp(type, "DOUBLE") == 0)
+		{
+			double v;
+			pyobj->stream() >> v;
+			return PyFloat_FromDouble(v);
+		}
+		else if(strcmp(type, "STRING") == 0)
+		{
+			std::string s;
+			pyobj->stream() >> s;
+			return PyUnicode_FromString(s.c_str());
+			
+		}
+		else if(strcmp(type, "UNICODE") == 0)
+		{
+			std::string s;
+			pyobj->stream().readBlob(s);
+			PyObject* ret = PyUnicode_DecodeUTF8(s.data(), s.length(), NULL);
+			if(ret == NULL)
+			{
+				SCRIPT_ERROR_CHECK();
+				PyErr_Format(PyExc_TypeError, "Blob::pop: val is not UNICODE!");
+				PyErr_PrintEx(0);
+				return NULL;
+			}
+
+			return ret;
+		}
+		else if(strcmp(type, "PYTHON") == 0 || strcmp(type, "PY_DICT") == 0
+			 || strcmp(type, "PY_TUPLE") == 0  || strcmp(type, "PY_LIST") == 0)
+		{
+			std::string s;
+			pyobj->stream().readBlob(s);
+			return Pickler::unpickle(s);
+		}
+		else
+		{
+			PyErr_Format(PyExc_TypeError, "Blob::pop: type %s no support!", type);
+			PyErr_PrintEx(0);
+			return NULL;
+		}
+	}
+	catch(MemoryStreamException &e)
+	{
+		PyErr_Format(PyExc_Exception, "Blob::pop: get stream is error!");
+		e.PrintPosError();
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	S_Return;	
 }
 
 //-------------------------------------------------------------------------------------

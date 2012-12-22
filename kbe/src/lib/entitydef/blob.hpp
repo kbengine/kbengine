@@ -31,10 +31,10 @@ class Blob : public script::PyMemoryStream
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(Blob, PyMemoryStream)
 public:	
-	Blob();
-	Blob(std::string& strInitData);
-	Blob(PyObject* pyBytesInitData);
-	Blob(MemoryStream* streamInitData);
+	Blob(bool readonly = false);
+	Blob(std::string& strInitData, bool readonly = false);
+	Blob(PyObject* pyBytesInitData, bool readonly = false);
+	Blob(MemoryStream* streamInitData, bool readonly = false);
 
 	virtual ~Blob();
 
