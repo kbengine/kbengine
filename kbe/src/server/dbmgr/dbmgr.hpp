@@ -169,6 +169,16 @@ public:
 	INLINE DBThreadPool& dbThreadPool(){ return dbThreadPool_; }
 
 	virtual bool initializeWatcher();
+
+	/** 网络接口
+		请求充值
+	*/
+	void charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+		充值回调
+	*/
+	void onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;

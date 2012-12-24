@@ -313,7 +313,7 @@ public:
 		«Î«Û≥‰÷µ
 	*/
 	static PyObject* __py_charge(PyObject* self, PyObject* args);
-	void charge(DBID dbid, const std::string& datas, PyObject* pycallback);
+	void charge(std::string chargeID, DBID dbid, const std::string& datas, PyObject* pycallback);
 	void onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 protected:

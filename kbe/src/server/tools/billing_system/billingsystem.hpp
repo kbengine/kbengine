@@ -40,6 +40,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class DBInterface;
+class Orders;
 
 class BillingSystem : public ServerApp, 
 				public Singleton<BillingSystem>
@@ -80,8 +81,16 @@ public:
 	*/
 	void onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
+	/** 网络接口
+		请求充值
+	*/
+	void charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
-	TimerHandle											mainProcessTimer_;
+	TimerHandle																mainProcessTimer_;
+
+	// 订单
+	typedef std::tr1::unordered_map<std::string, std::tr1::shared_ptr<Orders> > ORDERS;
+	ORDERS orders_;
 };
 
 }

@@ -135,6 +135,8 @@ public:
 
 	inline const char* billingSystemThirdpartyChargeServiceAddr()const { return billingSystem_thirdpartyChargeServiceAddr_.c_str(); }
 	inline uint16 billingSystemThirdpartyChargeServicePort()const { return billingSystem_thirdpartyChargeServicePort_; }
+
+	inline uint16 billingSystemThirdpartyServiceCBPort()const { return billingSystem_thirdpartyServiceCBPort_; }
 private:
 	ENGINE_COMPONENT_INFO _cellAppInfo;
 	ENGINE_COMPONENT_INFO _baseAppInfo;
@@ -159,6 +161,7 @@ public:
 	uint16	billingSystem_thirdpartyAccountServicePort_;			
 	std::string billingSystem_thirdpartyChargeServiceAddr_;			// 第三方运营充值服务地址(当type是thirdparty时有效)
 	uint16	billingSystem_thirdpartyChargeServicePort_;	
+	uint16	billingSystem_thirdpartyServiceCBPort_;	
 };
 
 #define g_kbeSrvConfig ServerConfig::getSingleton()

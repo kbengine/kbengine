@@ -31,6 +31,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{ 
 
+class Orders;
+
 class BillingTask : public thread::TPTask
 {
 public:
@@ -41,6 +43,9 @@ public:
 	
 	virtual thread::TPTask::TPTaskState presentMainThread();
 	
+	virtual const char* serviceAddr() const = 0;
+	virtual uint16 servicePort() const = 0;
+
 	std::string commitName;			// 提交时用的名称
 	std::string accountName;		// 在游戏服务器数据库中与account绑定的名称
 	std::string password;			// 密码
@@ -62,6 +67,9 @@ public:
 	virtual bool process();
 
 	thread::TPTask::TPTaskState presentMainThread();
+
+	virtual const char* serviceAddr() const{ return g_kbeSrvConfig.billingSystemThirdpartyAccountServiceAddr(); }
+	virtual uint16 servicePort() const{ return g_kbeSrvConfig.billingSystemThirdpartyAccountServicePort(); }
 protected:
 };
 
@@ -74,6 +82,22 @@ public:
 	thread::TPTask::TPTaskState presentMainThread();
 protected:
 };
+
+class ChargeTask : public BillingTask
+{
+public:
+	ChargeTask();
+	virtual ~ChargeTask();
+	
+	virtual bool process();
+	thread::TPTask::TPTaskState presentMainThread();
+
+	virtual const char* serviceAddr() const{ return g_kbeSrvConfig.billingSystemThirdpartyChargeServiceAddr(); }
+	virtual uint16 servicePort() const{ return g_kbeSrvConfig.billingSystemThirdpartyChargeServicePort(); }
+
+	Orders* pOrders;
+};
+
 
 }
 #endif

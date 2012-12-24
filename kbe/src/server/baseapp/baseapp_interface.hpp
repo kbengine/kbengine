@@ -200,6 +200,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// 请求查询watcher数据
 	BASEAPP_MESSAGE_DECLARE_STREAM(queryWatcher,							MERCURY_VARIABLE_MESSAGE)
 
+	// 充值回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(onChargeCB,								MERCURY_VARIABLE_MESSAGE)
+
 	//--------------------------------------------Base----------------------------------------------------------
 	// 远程呼叫entity方法
 	BASE_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,							MERCURY_VARIABLE_MESSAGE)

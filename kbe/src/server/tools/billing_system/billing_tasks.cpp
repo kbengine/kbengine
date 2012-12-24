@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "orders.hpp"
 #include "billingsystem.hpp"
 #include "billing_tasks.hpp"
 #include "network/common.hpp"
@@ -73,7 +74,7 @@ CreateAccountTask::~CreateAccountTask()
 bool CreateAccountTask::process()
 {
 	// 如果没有设置第三方服务地址则我们默认为成功
-	if(strlen(g_kbeSrvConfig.billingSystemThirdpartyAccountServiceAddr()) == 0)
+	if(strlen(serviceAddr()) == 0)
 	{
 		success = true;
 		getDatas = postDatas;
@@ -98,7 +99,7 @@ bool CreateAccountTask::process()
 	endpoint.setnonblocking(true);
 
 	u_int32_t addr;
-	KBEngine::Mercury::EndPoint::convertAddress(g_kbeSrvConfig.billingSystemThirdpartyAccountServiceAddr(), addr);
+	KBEngine::Mercury::EndPoint::convertAddress(serviceAddr(), addr);
 
 	int trycount = 0;
 
@@ -112,7 +113,7 @@ bool CreateAccountTask::process()
 		FD_SET((int)endpoint, &frds);
 		FD_SET((int)endpoint, &fwds);
 
-		if(endpoint.connect(htons(g_kbeSrvConfig.billingSystemThirdpartyAccountServicePort()), addr) == -1)
+		if(endpoint.connect(htons(servicePort()), addr) == -1)
 		{
 			int selgot = select(endpoint+1, &frds, &fwds, NULL, &tv);
 			if(selgot > 0)
@@ -151,7 +152,7 @@ bool CreateAccountTask::process()
 		endpoint.close();
 		return false;
 	}
-
+	
 	int len = endpoint.recv(packet.data(), 1024);
 
 	if(len <= 0)
@@ -296,6 +297,99 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 		ERROR_MSG(boost::format("BillingTask::process: not found channel. commitName=%1%\n") % commitName);
 	}
 
+	return thread::TPTask::TPTASK_STATE_COMPLETED; 
+}
+
+//-------------------------------------------------------------------------------------
+ChargeTask::ChargeTask():
+BillingTask(),
+pOrders(NULL)
+{
+}
+
+//-------------------------------------------------------------------------------------
+ChargeTask::~ChargeTask()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool ChargeTask::process()
+{
+	KBE_ASSERT(pOrders != NULL);
+	pOrders->state = Orders::STATE_FAILED;
+
+	// 如果没有设置第三方服务地址则我们默认为成功
+	if(strlen(serviceAddr()) == 0)
+	{
+		pOrders->state = Orders::STATE_SUCCESS;
+		pOrders->getDatas = pOrders->postDatas;
+		return false;
+	}
+
+	Mercury::EndPoint endpoint;
+	endpoint.socket(SOCK_STREAM);
+
+	if (!endpoint.good())
+	{
+		ERROR_MSG("ChargeTask::process: couldn't create a socket\n");
+		return false;
+	}
+
+	if(pOrders->postDatas.size() == 0)
+	{
+		ERROR_MSG("ChargeTask::process: postData is NULL.\n");
+		return false;
+	}
+
+	endpoint.setnonblocking(true);
+
+	u_int32_t addr;
+	KBEngine::Mercury::EndPoint::convertAddress(serviceAddr(), addr);
+
+	int trycount = 0;
+
+	while(true)
+	{
+		fd_set	frds, fwds;
+		struct timeval tv = { 0, 100000 }; // 100ms
+
+		FD_ZERO( &frds );
+		FD_ZERO( &fwds );
+		FD_SET((int)endpoint, &frds);
+		FD_SET((int)endpoint, &fwds);
+
+		if(endpoint.connect(htons(servicePort()), addr) == -1)
+		{
+			int selgot = select(endpoint+1, &frds, &fwds, NULL, &tv);
+			if(selgot > 0)
+			{
+				break;
+			}
+
+			trycount++;
+			if(trycount > 3)
+			{
+				ERROR_MSG(boost::format("ChargeTask::process: connect billing server is error(%1%)!\n") % 
+					kbe_strerror());
+
+				endpoint.close();
+				return false;
+			}
+		}
+	}
+
+	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+	(*(*bundle)).append(pOrders->postDatas.data(), pOrders->postDatas.size());
+	(*(*bundle)).send(endpoint);
+
+	endpoint.close();
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState ChargeTask::presentMainThread()
+{
+	// 使用异步接收处理
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 
 }
 

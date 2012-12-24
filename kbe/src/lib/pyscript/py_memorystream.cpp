@@ -226,15 +226,31 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 	}
 	else if(strcmp(type, "BLOB") == 0)
 	{
-		if(!PyObject_TypeCheck(pyVal, PyMemoryStream::getScriptType()))
+		if(!PyObject_TypeCheck(pyVal, PyMemoryStream::getScriptType()) && !PyBytes_Check(pyVal))
 		{
 			PyErr_Format(PyExc_TypeError, "Blob::append: val is not BLOB!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}
 
-		PyMemoryStream* obj = static_cast<PyMemoryStream*>(pyVal);
-		pyobj->stream().append(obj->stream());
+		if(PyBytes_Check(pyVal))
+		{
+			char *buffer;
+			Py_ssize_t length;
+			
+			if(PyBytes_AsStringAndSize(pyVal, &buffer, &length) < 0)
+			{
+				SCRIPT_ERROR_CHECK();
+				return NULL;
+			}
+
+			pyobj->stream().append(buffer, length);
+		}
+		else
+		{
+			PyMemoryStream* obj = static_cast<PyMemoryStream*>(pyVal);
+			pyobj->stream().append(obj->stream());
+		}
 	}
 	else
 	{

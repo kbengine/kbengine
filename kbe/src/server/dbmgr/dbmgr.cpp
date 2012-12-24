@@ -575,5 +575,17 @@ void Dbmgr::syncEntityStreamTemplate(Mercury::Channel* pChannel, KBEngine::Memor
 }
 
 //-------------------------------------------------------------------------------------
+void Dbmgr::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	pBillingHandler_->charge(pChannel, s);
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	pBillingHandler_->onChargeCB(s);
+}
+
+//-------------------------------------------------------------------------------------
 
 }

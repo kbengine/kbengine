@@ -59,6 +59,9 @@ public:
 	virtual void onCreateAccountCB(KBEngine::MemoryStream& s) = 0;
 
 	virtual void onLoginAccountCB(KBEngine::MemoryStream& s) = 0;
+
+	virtual void charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s) = 0;
+	virtual void onChargeCB(KBEngine::MemoryStream& s) = 0;
 protected:
 	DBThreadPool& dbThreadPool_;
 	thread::ThreadPool& threadPool_;
@@ -81,6 +84,10 @@ public:
 	virtual void onCreateAccountCB(KBEngine::MemoryStream& s);
 
 	virtual void onLoginAccountCB(KBEngine::MemoryStream& s);
+
+	virtual void charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	virtual void onChargeCB(KBEngine::MemoryStream& s);
 protected:
 };
 
@@ -101,6 +108,10 @@ public:
 	virtual void onCreateAccountCB(KBEngine::MemoryStream& s);
 
 	virtual void onLoginAccountCB(KBEngine::MemoryStream& s);
+
+	virtual void charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	virtual void onChargeCB(KBEngine::MemoryStream& s);
 
 	bool reconnect();
 

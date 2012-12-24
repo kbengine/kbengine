@@ -18,8 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "orders.hpp"
 #include "billingsystem.hpp"
 #include "billing_tasks.hpp"
+#include "anonymous_channel.hpp"
 #include "billingsystem_interface.hpp"
 #include "network/common.hpp"
 #include "network/tcp_packet.hpp"
@@ -111,6 +113,9 @@ bool BillingSystem::initializeEnd()
 
 	// 不做频道超时检查
 	CLOSE_CHANNEL_INACTIVITIY_DETECTION();
+
+	this->threadPool().addTask(new AnonymousChannel());
+
 	return initDB();
 }
 
@@ -172,6 +177,37 @@ void BillingSystem::onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryS
 	this->threadPool().addTask(pinfo);
 }
 
+//-------------------------------------------------------------------------------------
+void BillingSystem::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	OrdersCharge* pOrdersCharge = new OrdersCharge();
+	pOrdersCharge->dbmgrID = pChannel->componentID();
+	pOrdersCharge->address = pChannel->addr();
+
+	s >> pOrdersCharge->baseappID;
+	s >> pOrdersCharge->orderID;
+	s >> pOrdersCharge->dbid;
+	s.readBlob(pOrdersCharge->postDatas);
+	s >> pOrdersCharge->cbid;
+
+	INFO_MSG(boost::format("BillingSystem::charge: componentID=%4%, chargeID=%1%, dbid=%4%, cbid=%2%, datas=%3%!\n") %
+		pOrdersCharge->orderID % pOrdersCharge->dbid % pOrdersCharge->cbid % pOrdersCharge->postDatas % pOrdersCharge->baseappID);
+
+	ORDERS::iterator iter = orders_.find(pOrdersCharge->orderID);
+	if(iter != orders_.end())
+	{
+		ERROR_MSG(boost::format("BillingSystem::charge: chargeID=%1% is exist!\n") % pOrdersCharge->orderID);
+		delete pOrdersCharge;
+		return;
+	}
+
+	ChargeTask* pinfo = new ChargeTask();
+	pinfo->pOrders = pOrdersCharge;
+	
+	orders_[pOrdersCharge->orderID].reset(pOrdersCharge);
+
+	this->threadPool().addTask(pinfo);
+}
 
 //-------------------------------------------------------------------------------------
 

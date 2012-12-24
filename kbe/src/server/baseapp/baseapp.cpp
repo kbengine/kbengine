@@ -35,6 +35,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/componentbridge.hpp"
 #include "server/components.hpp"
 #include "math/math.hpp"
+#include "entitydef/blob.hpp"
 #include "client_lib/client_interface.hpp"
 
 #include "../../server/baseappmgr/baseappmgr_interface.hpp"
@@ -1239,41 +1240,124 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 {
 	if(PyTuple_Size(args) != 3)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::charge: args != (dbid, bytedatas, pycallback)!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge: args != (dbid, byteDatas[bytes|BLOB], pycallback)!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
 
 	PyObject* pyDatas = NULL, *pycallback = NULL;
-	DBID dbid = 0;
+	char* pChargeID;
+	DBID dbid;
 
-	if(PyArg_ParseTuple(args, "k|O|O", &dbid, &pyDatas, &pycallback) == -1)
+	if(PyArg_ParseTuple(args, "s|k|O|O", &pChargeID, &dbid, &pyDatas, &pycallback) == -1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::charge: args is error!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
 	
+	if(pChargeID == NULL || strlen(pChargeID) <= 0)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge: chargeID is NULL!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	if(dbid == 0)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge: dbid is 0!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	if(!PyBytes_Check(pyDatas) && !PyObject_TypeCheck(pyDatas, Blob::getScriptType()))
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge: byteDatas != bytes|BLOB!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+	
+	if(!PyCallable_Check(pycallback))
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge: invalid pycallback!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
 	std::string datas;
 
-	Baseapp::getSingleton().charge(dbid, datas, pycallback);
+	if(!PyBytes_Check(pyDatas))
+	{
+		static_cast<Blob*>(pyDatas)->stream().readBlob(datas);
+	}
+	else
+	{
+		char *buffer;
+		Py_ssize_t length;
+
+		if(PyBytes_AsStringAndSize(pyDatas, &buffer, &length) < 0)
+		{
+			SCRIPT_ERROR_CHECK();
+			return NULL;
+		}
+
+		datas.assign(buffer, length);
+	}
+
+	Baseapp::getSingleton().charge(pChargeID, dbid, datas, pycallback);
 	S_Return;
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::charge(DBID dbid, const std::string& datas, PyObject* pycallback)
+void Baseapp::charge(std::string chargeID, DBID dbid, const std::string& datas, PyObject* pycallback)
 {
-	INFO_MSG(boost::format("Baseapp::charge: dbid=%1%, datas=%2%, pycallback=%3%.\n") % 
-		dbid %
+	INFO_MSG(boost::format("Baseapp::charge: chargeID=%1%, dbid=%4%, datas=%2%, pycallback=%3%.\n") % 
+		chargeID %
 		datas %
-		pycallback);
+		pycallback %
+		dbid);
+
+	CALLBACK_ID callbackID = callbackMgr().save(pycallback);
+
+	Mercury::Bundle::SmartPoolObjectPtr pBundle = Mercury::Bundle::createSmartPoolObj();
+
+	(*(*pBundle)).newMessage(DbmgrInterface::charge);
+	(*(*pBundle)) << chargeID;
+	(*(*pBundle)) << dbid;
+	(*(*pBundle)).appendBlob(datas);
+	(*(*pBundle)) << callbackID;
+
+	Mercury::Channel* pChannel = Components::getSingleton().getDbmgrChannel();
+
+	if(pChannel == NULL)
+	{
+		ERROR_MSG("Baseapp::charge: not found dbmgr!\n");
+		return;
+	}
+
+	(*(*pBundle)).send(this->getNetworkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------
 void Baseapp::onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	DBID dbid = 0;
+	std::string chargeID = 0;
+	CALLBACK_ID callbackID;
+	std::string datas;
+	DBID dbid;
+
+	s >> chargeID;
 	s >> dbid;
+	s.readBlob(datas);
+	s >> callbackID;
+
+	PyObjectPtr pycallback = callbackMgr().take(callbackID);
+
+	INFO_MSG(boost::format("Baseapp::onChargeCB: chargeID=%1%, dbid=%4%, datas=%2%, pycallback=%3%.\n") % 
+		chargeID %
+		datas %
+		pycallback.get() %
+		dbid);
 }
 
 //-------------------------------------------------------------------------------------

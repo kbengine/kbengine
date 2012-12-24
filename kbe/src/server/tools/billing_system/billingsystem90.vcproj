@@ -182,6 +182,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\anonymous_channel.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\billing_tasks.cpp"
 				>
 			</File>
@@ -197,6 +201,10 @@
 				RelativePath="main.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\orders.cpp"
+				>
+			</File>
 			<Filter
 				Name="Resource Files"
 				Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
@@ -209,6 +217,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\anonymous_channel.hpp"
+				>
+			</File>
 			<File
 				RelativePath=".\billing_tasks.hpp"
 				>
@@ -223,6 +235,10 @@
 			</File>
 			<File
 				RelativePath=".\billingsystem_interface_macros.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\orders.hpp"
 				>
 			</File>
 		</Filter>

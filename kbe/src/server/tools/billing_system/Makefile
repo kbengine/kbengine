@@ -1,8 +1,10 @@
 BIN  = billingsystem
 SRCS =						\
+	anonymous_channel			\
 	billingsystem				\
 	billing_tasks				\
 	billingsystem_interface			\
+	orders					\
 	main
 
 ASMS =

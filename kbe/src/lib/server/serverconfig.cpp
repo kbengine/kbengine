@@ -35,7 +35,8 @@ billingSystem_type_(""),
 billingSystem_thirdpartyAccountServiceAddr_(""),
 billingSystem_thirdpartyAccountServicePort_(80),
 billingSystem_thirdpartyChargeServiceAddr_(""),
-billingSystem_thirdpartyChargeServicePort_(80)
+billingSystem_thirdpartyChargeServicePort_(80),
+billingSystem_thirdpartyServiceCBPort_(0)
 {
 }
 
@@ -191,6 +192,13 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(childnode)
 		{
 			billingSystem_thirdpartyChargeServicePort_ = xml->getValInt(childnode);
+		}
+
+		childnode = NULL;
+		childnode = xml->enterNode(rootNode, "thirdpartyService_cbport");
+		if(childnode)
+		{
+			billingSystem_thirdpartyServiceCBPort_ = xml->getValInt(childnode);
 		}
 	}
 

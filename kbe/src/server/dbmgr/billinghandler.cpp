@@ -28,6 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/channel.hpp"
 #include "network/bundle.hpp"
 
+#include "baseapp/baseapp_interface.hpp"
 #include "tools/billing_system/billingsystem_interface.hpp"
 
 namespace KBEngine{
@@ -100,6 +101,18 @@ bool BillingHandler_Normal::loginAccount(Mercury::Channel* pChannel, std::string
 //-------------------------------------------------------------------------------------
 void BillingHandler_Normal::onLoginAccountCB(KBEngine::MemoryStream& s)
 {
+}
+
+//-------------------------------------------------------------------------------------
+void BillingHandler_Normal::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	INFO_MSG("BillingHandler_Normal::charge: no implement!\n");
+}
+
+//-------------------------------------------------------------------------------------
+void BillingHandler_Normal::onChargeCB(KBEngine::MemoryStream& s)
+{
+	INFO_MSG("BillingHandler_Normal::onChargeCB: no implement!\n");
 }
 
 //-------------------------------------------------------------------------------------
@@ -281,6 +294,72 @@ bool BillingHandler_ThirdParty::reconnect()
 bool BillingHandler_ThirdParty::process()
 {
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void BillingHandler_ThirdParty::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	std::string chargeID;
+	std::string datas;
+	CALLBACK_ID cbid;
+	DBID dbid;
+
+	s >> chargeID;
+	s >> dbid;
+	s.readBlob(datas);
+	s >> cbid;
+
+	INFO_MSG(boost::format("BillingHandler_ThirdParty::charge: chargeID=%1%, dbid=%4%, cbid=%2%, datas=%3%!\n") %
+		chargeID % cbid % datas % dbid);
+
+	KBE_ASSERT(pBillingChannel_);
+
+	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+
+	(*(*bundle)).newMessage(BillingSystemInterface::charge);
+	(*(*bundle)) << pChannel->componentID();
+	(*(*bundle)) << chargeID;
+	(*(*bundle)) << dbid;
+	(*(*bundle)).appendBlob(datas);
+	(*(*bundle)) << cbid;
+
+	(*(*bundle)).send(Dbmgr::getSingleton().getNetworkInterface(), pBillingChannel_);
+}
+
+//-------------------------------------------------------------------------------------
+void BillingHandler_ThirdParty::onChargeCB(KBEngine::MemoryStream& s)
+{
+	std::string chargeID;
+	std::string datas;
+	CALLBACK_ID cbid;
+	COMPONENT_ID cid;
+	DBID dbid;
+
+	s >> cid;
+	s >> chargeID;
+	s >> dbid;
+	s.readBlob(datas);
+	s >> cbid;
+
+	INFO_MSG(boost::format("BillingHandler_ThirdParty::onChargeCB: chargeID=%1%, dbid=%4%, cbid=%2%, datas=%3%!\n") %
+		chargeID % cbid % datas % dbid);
+
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, cid);
+	if(cinfos == NULL || cinfos->pChannel == NULL)
+	{
+		ERROR_MSG("BillingHandler_ThirdParty::onChargeCB: baseapp not found!\n");
+		return;
+	}
+
+	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+
+	(*(*bundle)).newMessage(BaseappInterface::onChargeCB);
+	(*(*bundle)) << chargeID;
+	(*(*bundle)) << dbid;
+	(*(*bundle)).appendBlob(datas);
+	(*(*bundle)) << cbid;
+
+	(*(*bundle)).send(Dbmgr::getSingleton().getNetworkInterface(), cinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------
