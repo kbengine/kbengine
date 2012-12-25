@@ -27,7 +27,7 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 Orders::Orders():
 address(),
-orderID(),
+ordersID(),
 cbid(0),
 dbid(0),
 baseappID(UNKNOWN_COMPONENT_TYPE),

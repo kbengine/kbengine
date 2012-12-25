@@ -85,11 +85,13 @@ public:
 		«Î«Û≥‰÷µ
 	*/
 	void charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	typedef std::tr1::unordered_map<std::string, std::tr1::shared_ptr<Orders> > ORDERS;
+	BillingSystem::ORDERS& orders(){ return orders_; }
 protected:
 	TimerHandle																mainProcessTimer_;
 
 	// ∂©µ•
-	typedef std::tr1::unordered_map<std::string, std::tr1::shared_ptr<Orders> > ORDERS;
 	ORDERS orders_;
 };
 

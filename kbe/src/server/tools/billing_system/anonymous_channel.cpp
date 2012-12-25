@@ -20,7 +20,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle.hpp"
 #include "billingsystem.hpp"
 #include "anonymous_channel.hpp"
+#include "orders.hpp"
 
+#include "dbmgr/dbmgr_interface.hpp"
 
 namespace KBEngine{
 
@@ -132,6 +134,8 @@ bool AnonymousChannel::process()
 			continue;
 		}
 
+		std::string retstr = "HTTP/1.1 200 OK\r\nServer: unknown\r\nCache-Control: private\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 8\r\n\r\nretcode1";
+		pEndpoint->send(retstr.data(), retstr.size());
 		pEndpoint->close();
 		delete pEndpoint;
 
@@ -139,6 +143,18 @@ bool AnonymousChannel::process()
 
 		std::string getDatas;
 		getDatas.assign((const char *)(packet.data() + packet.rpos()), packet.opsize());
+		
+		std::string::size_type fi1 = getDatas.find("&chargeID=");
+		std::string::size_type fi2 = getDatas.find("&");
+
+		std::string orderid;
+		if(fi1 != std::string::npos && fi2 != std::string::npos)
+		{
+			int ilen = strlen("&chargeID=");
+			orderid.assign(getDatas.c_str() + fi1 + ilen, fi2 - (fi1 + ilen));
+		}
+
+		backOrdersDatas_[orderid] = getDatas;
 	}
 
 	return false;
@@ -147,25 +163,55 @@ bool AnonymousChannel::process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 {
-	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
-
-	/*
-	(*(*bundle)).newMessage(DbmgrInterface::onCreateAccountCBFromBilling);
-	(*(*bundle)) << baseappID << commitName << accountName << password << success;
-
-	(*(*bundle)).appendBlob(getDatas);
-
-	Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(address);
-
-	if(pChannel)
+	std::tr1::unordered_map<std::string, std::string>::iterator iter = backOrdersDatas_.begin();
+	for(; iter != backOrdersDatas_.end(); iter++)
 	{
-		(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+		BillingSystem::ORDERS& orders = BillingSystem::getSingleton().orders();
+		
+		BillingSystem::ORDERS::iterator orderiter = orders.find(iter->first);
+		if(orderiter == orders.end())
+			continue;
+		
+		bool success = false;
+
+		std::string::size_type fi = iter->second.find("state=");
+		std::string::size_type fi1 = iter->second.find("&chargeID=");
+
+		if(fi != std::string::npos && fi1 != std::string::npos)
+		{
+			std::string s;
+			int ilen = strlen("state=");
+			s.assign(iter->second.c_str() + fi + ilen, fi1 - (fi + ilen));
+			success = atoi(s.c_str()) > 0;
+		}
+
+		INFO_MSG(boost::format("AnonymousChannel::presentMainThread: orders=%1%, success=%2%\n") % 
+			orderiter->second->ordersID % success);
+
+		Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+
+		(*(*bundle)).newMessage(DbmgrInterface::onChargeCB);
+		(*(*bundle)) << orderiter->second->baseappID << orderiter->second->ordersID << orderiter->second->dbid;
+		(*(*bundle)).appendBlob(iter->second);
+		(*(*bundle)) << orderiter->second->cbid;
+		(*(*bundle)) << success;
+
+		Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(orderiter->second->address);
+
+		if(pChannel)
+		{
+			(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+		}
+		else
+		{
+			ERROR_MSG(boost::format("AnonymousChannel::presentMainThread: not found channel. orders=%1%\n") % 
+				orderiter->second->ordersID);
+		}
+		
+		orders.erase(orderiter);
 	}
-	else
-	{
-		ERROR_MSG(boost::format("AnonymousChannel::process: not found channel. commitName=%1%\n") % commitName);
-	}
-	*/
+
+	backOrdersDatas_.clear();
 	return thread::TPTask::TPTASK_STATE_CONTINUE_CHILDTHREAD; 
 }
 

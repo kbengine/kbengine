@@ -45,7 +45,7 @@ public:
 	virtual ~Orders();
 	
 	Mercury::Address address;
-	std::string orderID;
+	std::string ordersID;
 	CALLBACK_ID cbid;
 	DBID dbid;
 	COMPONENT_ID baseappID;

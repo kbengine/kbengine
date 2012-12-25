@@ -1238,9 +1238,9 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine
 //-------------------------------------------------------------------------------------
 PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 {
-	if(PyTuple_Size(args) != 3)
+	if(PyTuple_Size(args) != 4)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::charge: args != (dbid, byteDatas[bytes|BLOB], pycallback)!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge: args != (ordersID, dbid, byteDatas[bytes|BLOB], pycallback)!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -1249,7 +1249,7 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 	char* pChargeID;
 	DBID dbid;
 
-	if(PyArg_ParseTuple(args, "s|k|O|O", &pChargeID, &dbid, &pyDatas, &pycallback) == -1)
+	if(PyArg_ParseTuple(args, "s|K|O|O", &pChargeID, &dbid, &pyDatas, &pycallback) == -1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::charge: args is error!");
 		PyErr_PrintEx(0);
@@ -1258,7 +1258,7 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 	
 	if(pChargeID == NULL || strlen(pChargeID) <= 0)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::charge: chargeID is NULL!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge: ordersID is NULL!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -1288,7 +1288,8 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 
 	if(!PyBytes_Check(pyDatas))
 	{
-		static_cast<Blob*>(pyDatas)->stream().readBlob(datas);
+		Blob* pBlob = static_cast<Blob*>(pyDatas);
+		pBlob->stream().readBlob(datas);
 	}
 	else
 	{
@@ -1311,13 +1312,13 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Baseapp::charge(std::string chargeID, DBID dbid, const std::string& datas, PyObject* pycallback)
 {
+	CALLBACK_ID callbackID = callbackMgr().save(pycallback);
+
 	INFO_MSG(boost::format("Baseapp::charge: chargeID=%1%, dbid=%4%, datas=%2%, pycallback=%3%.\n") % 
 		chargeID %
 		datas %
-		pycallback %
+		callbackID %
 		dbid);
-
-	CALLBACK_ID callbackID = callbackMgr().save(pycallback);
 
 	Mercury::Bundle::SmartPoolObjectPtr pBundle = Mercury::Bundle::createSmartPoolObj();
 
@@ -1341,23 +1342,47 @@ void Baseapp::charge(std::string chargeID, DBID dbid, const std::string& datas, 
 //-------------------------------------------------------------------------------------
 void Baseapp::onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	std::string chargeID = 0;
+	std::string chargeID;
 	CALLBACK_ID callbackID;
 	std::string datas;
 	DBID dbid;
+	bool success;
 
 	s >> chargeID;
 	s >> dbid;
 	s.readBlob(datas);
 	s >> callbackID;
-
-	PyObjectPtr pycallback = callbackMgr().take(callbackID);
+	s >> success;
 
 	INFO_MSG(boost::format("Baseapp::onChargeCB: chargeID=%1%, dbid=%4%, datas=%2%, pycallback=%3%.\n") % 
 		chargeID %
 		datas %
-		pycallback.get() %
+		callbackID %
 		dbid);
+
+	if(callbackID > 0)
+	{
+		PyObjectPtr pycallback = callbackMgr().take(callbackID);
+
+		PyObject* pyOrder = PyUnicode_FromString(chargeID.c_str());
+		PyObject* pydbid = PyLong_FromUnsignedLongLong(dbid);
+		PyObject* pySuccess = PyBool_FromLong(success);
+		Blob* pBlob = new Blob(datas);
+
+		PyObject* pyResult = PyObject_CallFunction(pycallback.get(), 
+											const_cast<char*>("OOOO"), 
+											pyOrder, pydbid, pySuccess, static_cast<PyObject*>(pBlob));
+
+		Py_DECREF(pyOrder);
+		Py_DECREF(pydbid);
+		Py_DECREF(pySuccess);
+		Py_DECREF(pBlob);
+
+		if(pyResult != NULL)
+			Py_DECREF(pyResult);
+		else
+			SCRIPT_ERROR_CHECK();
+	}
 }
 
 //-------------------------------------------------------------------------------------

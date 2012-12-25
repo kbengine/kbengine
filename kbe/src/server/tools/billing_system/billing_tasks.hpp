@@ -96,6 +96,8 @@ public:
 	virtual uint16 servicePort() const{ return g_kbeSrvConfig.billingSystemThirdpartyChargeServicePort(); }
 
 	Orders* pOrders;
+
+	bool success;
 };
 
 

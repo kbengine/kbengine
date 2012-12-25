@@ -334,12 +334,14 @@ void BillingHandler_ThirdParty::onChargeCB(KBEngine::MemoryStream& s)
 	CALLBACK_ID cbid;
 	COMPONENT_ID cid;
 	DBID dbid;
+	bool success;
 
 	s >> cid;
 	s >> chargeID;
 	s >> dbid;
 	s.readBlob(datas);
 	s >> cbid;
+	s >> success;
 
 	INFO_MSG(boost::format("BillingHandler_ThirdParty::onChargeCB: chargeID=%1%, dbid=%4%, cbid=%2%, datas=%3%!\n") %
 		chargeID % cbid % datas % dbid);
@@ -358,6 +360,7 @@ void BillingHandler_ThirdParty::onChargeCB(KBEngine::MemoryStream& s)
 	(*(*bundle)) << dbid;
 	(*(*bundle)).appendBlob(datas);
 	(*(*bundle)) << cbid;
+	(*(*bundle)) << success;
 
 	(*(*bundle)).send(Dbmgr::getSingleton().getNetworkInterface(), cinfos->pChannel);
 }

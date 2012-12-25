@@ -97,7 +97,8 @@ bool CreateAccountTask::process()
 	}
 
 	endpoint.setnonblocking(true);
-
+	endpoint.setnodelay(true);
+	
 	u_int32_t addr;
 	KBEngine::Mercury::EndPoint::convertAddress(serviceAddr(), addr);
 
@@ -253,7 +254,7 @@ thread::TPTask::TPTaskState CreateAccountTask::presentMainThread()
 	}
 	else
 	{
-		ERROR_MSG(boost::format("BillingTask::process: not found channel. commitName=%1%\n") % commitName);
+		ERROR_MSG(boost::format("BillingTask::presentMainThread: not found channel. commitName=%1%\n") % commitName);
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 
@@ -294,7 +295,7 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 	}
 	else
 	{
-		ERROR_MSG(boost::format("BillingTask::process: not found channel. commitName=%1%\n") % commitName);
+		ERROR_MSG(boost::format("BillingTask::presentMainThread: not found channel. commitName=%1%\n") % commitName);
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 
@@ -303,7 +304,8 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 //-------------------------------------------------------------------------------------
 ChargeTask::ChargeTask():
 BillingTask(),
-pOrders(NULL)
+pOrders(NULL),
+success(false)
 {
 }
 
@@ -323,6 +325,7 @@ bool ChargeTask::process()
 	{
 		pOrders->state = Orders::STATE_SUCCESS;
 		pOrders->getDatas = pOrders->postDatas;
+		success = true;
 		return false;
 	}
 
@@ -332,16 +335,19 @@ bool ChargeTask::process()
 	if (!endpoint.good())
 	{
 		ERROR_MSG("ChargeTask::process: couldn't create a socket\n");
+		pOrders->getDatas = "couldn't create a socket!";
 		return false;
 	}
 
 	if(pOrders->postDatas.size() == 0)
 	{
 		ERROR_MSG("ChargeTask::process: postData is NULL.\n");
+		pOrders->getDatas = "postDatas is error!";
 		return false;
 	}
 
 	endpoint.setnonblocking(true);
+	endpoint.setnodelay(true);
 
 	u_int32_t addr;
 	KBEngine::Mercury::EndPoint::convertAddress(serviceAddr(), addr);
@@ -372,7 +378,7 @@ bool ChargeTask::process()
 				ERROR_MSG(boost::format("ChargeTask::process: connect billing server is error(%1%)!\n") % 
 					kbe_strerror());
 
-				endpoint.close();
+				pOrders->getDatas = "connect is error!";
 				return false;
 			}
 		}
@@ -382,14 +388,74 @@ bool ChargeTask::process()
 	(*(*bundle)).append(pOrders->postDatas.data(), pOrders->postDatas.size());
 	(*(*bundle)).send(endpoint);
 
+	Mercury::TCPPacket packet;
+	packet.resize(1024);
+
+	fd_set	frds;
+	struct timeval tv = { 0, 300000 }; // 300ms
+
+	FD_ZERO( &frds );
+	FD_SET((int)endpoint, &frds);
+	int selgot = select(endpoint+1, &frds, NULL, NULL, &tv);
+	if(selgot <= 0)
+	{
+		ERROR_MSG(boost::format("BillingTask::process: recv is error(%1%).\n") % KBEngine::kbe_strerror());
+		pOrders->getDatas = "recv is error!";
+		return false;
+	}
+	
+	int len = endpoint.recv(packet.data(), 1024);
+
+	if(len <= 0)
+	{
+		ERROR_MSG(boost::format("BillingTask::process: recv is size<= 0.\n===>postdatas=%1%\n") % pOrders->postDatas);
+		pOrders->getDatas = "recv is error!";
+		return false;
+	}
+
+	packet.wpos(len);
+
+	pOrders->getDatas.assign((const char *)(packet.data() + packet.rpos()), packet.opsize());
+
+	std::string::size_type fi = pOrders->getDatas.find("retcode1");
+	success = fi != std::string::npos;
 	endpoint.close();
+
+	INFO_MSG(boost::format("ChargeTask::process: orders=%1%, commit=%2%\n") % 
+		pOrders->ordersID % success);
+
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 {
-	// 使用异步接收处理
+	// 如果成功使用异步接收处理
+	if(!success)
+	{
+		Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+
+		(*(*bundle)).newMessage(DbmgrInterface::onChargeCB);
+		(*(*bundle)) << pOrders->baseappID << pOrders->ordersID << pOrders->dbid;
+		(*(*bundle)).appendBlob(pOrders->getDatas);
+		(*(*bundle)) << pOrders->cbid;
+		(*(*bundle)) << success;
+
+		Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(pOrders->address);
+
+		if(pChannel)
+		{
+			(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+		}
+		else
+		{
+			ERROR_MSG(boost::format("ChargeTask::presentMainThread: not found channel. orders=%1%\n") % 
+				pOrders->ordersID);
+		}
+
+		BillingSystem::getSingleton().orders().erase(pOrders->ordersID);
+	}
+
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 
 }
 

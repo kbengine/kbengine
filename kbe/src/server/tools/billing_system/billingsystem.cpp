@@ -185,18 +185,18 @@ void BillingSystem::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 	pOrdersCharge->address = pChannel->addr();
 
 	s >> pOrdersCharge->baseappID;
-	s >> pOrdersCharge->orderID;
+	s >> pOrdersCharge->ordersID;
 	s >> pOrdersCharge->dbid;
 	s.readBlob(pOrdersCharge->postDatas);
 	s >> pOrdersCharge->cbid;
 
-	INFO_MSG(boost::format("BillingSystem::charge: componentID=%4%, chargeID=%1%, dbid=%4%, cbid=%2%, datas=%3%!\n") %
-		pOrdersCharge->orderID % pOrdersCharge->dbid % pOrdersCharge->cbid % pOrdersCharge->postDatas % pOrdersCharge->baseappID);
+	INFO_MSG(boost::format("BillingSystem::charge: componentID=%5%, chargeID=%1%, dbid=%2%, cbid=%3%, datas=%4%!\n") %
+		pOrdersCharge->ordersID % pOrdersCharge->dbid % pOrdersCharge->cbid % pOrdersCharge->postDatas % pOrdersCharge->baseappID);
 
-	ORDERS::iterator iter = orders_.find(pOrdersCharge->orderID);
+	ORDERS::iterator iter = orders_.find(pOrdersCharge->ordersID);
 	if(iter != orders_.end())
 	{
-		ERROR_MSG(boost::format("BillingSystem::charge: chargeID=%1% is exist!\n") % pOrdersCharge->orderID);
+		ERROR_MSG(boost::format("BillingSystem::charge: chargeID=%1% is exist!\n") % pOrdersCharge->ordersID);
 		delete pOrdersCharge;
 		return;
 	}
@@ -204,7 +204,7 @@ void BillingSystem::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 	ChargeTask* pinfo = new ChargeTask();
 	pinfo->pOrders = pOrdersCharge;
 	
-	orders_[pOrdersCharge->orderID].reset(pOrdersCharge);
+	orders_[pOrdersCharge->ordersID].reset(pOrdersCharge);
 
 	this->threadPool().addTask(pinfo);
 }
