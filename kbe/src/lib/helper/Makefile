@@ -3,6 +3,8 @@ LIB =	helper
 SRCS =				\
 	debug_helper		\
 	debug_option		\
+	profile			\
+	profiler		
 	script_loglevel		\
 	watcher
 

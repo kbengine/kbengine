@@ -165,6 +165,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\profile.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\profiler.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\script_loglevel.cpp"
 				>
 			</File>
@@ -195,6 +203,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\profile.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\profiler.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\script_loglevel.hpp"
 				>
 			</File>
@@ -209,6 +225,14 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
+		<File
+			RelativePath=".\profile.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\profiler.ipp"
+			>
+		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>
