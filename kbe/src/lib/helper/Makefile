@@ -4,7 +4,7 @@ SRCS =				\
 	debug_helper		\
 	debug_option		\
 	profile			\
-	profiler		
+	profiler		\
 	script_loglevel		\
 	watcher
 
