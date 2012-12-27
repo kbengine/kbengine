@@ -68,7 +68,7 @@ public:
 		TimeStamp now = timestamp();
 
 		// 记录第几次处理
-		if (++inProgress_ == 0)
+		if (inProgress_++ == 0)
 			lastTime_ = now;
 
 		ProfileGroup::PROFILEVALS & stack = pProfileGroup_->stack();
