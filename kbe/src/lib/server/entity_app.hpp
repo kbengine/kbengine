@@ -28,6 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/pyobject_pointer.hpp"
 #include "pyscript/pywatcher.hpp"
 #include "helper/debug_helper.hpp"
+#include "helper/profile.hpp"
 #include "server/script_timers.hpp"
 #include "server/idallocate.hpp"
 #include "server/serverconfig.hpp"
@@ -551,6 +552,7 @@ bool EntityApp<E>::destroyEntity(ENTITY_ID entityID)
 template<class E>
 E* EntityApp<E>::findEntity(ENTITY_ID entityID)
 {
+	AUTO_SCOPED_PROFILE("findEntity");
 	return pEntities_->find(entityID);
 }
 

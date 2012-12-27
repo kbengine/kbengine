@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __BOTS_H__
 	
 // common include	
+#include "profile.hpp"
 #include "cstdkbe/timer.hpp"
 #include "pyscript/script.hpp"
 #include "network/endpoint.hpp"

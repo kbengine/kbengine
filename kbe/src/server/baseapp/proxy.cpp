@@ -1,5 +1,6 @@
 #include "baseapp.hpp"
 #include "proxy.hpp"
+#include "profile.hpp"
 #include "data_download.hpp"
 #include "client_lib/client_interface.hpp"
 #include "network/fixed_messages.hpp"
@@ -99,12 +100,16 @@ void Proxy::initClientCellPropertys()
 //-------------------------------------------------------------------------------------
 void Proxy::onEntitiesEnabled(void)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEntitiesEnabled"));
 }
 
 //-------------------------------------------------------------------------------------
 int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	PyObject* pyResult = PyObject_CallMethod(this, 
 		const_cast<char*>("onLogOnAttempt"), const_cast<char*>("uku"), 
 		PyUnicode_FromString(addr), 
@@ -128,6 +133,8 @@ int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 //-------------------------------------------------------------------------------------
 void Proxy::onClientDeath(void)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	DEBUG_MSG(boost::format("%1%::onClientDeath: %2%.\n") % this->getScriptName() % this->getID());
 
 	if(getClientMailbox() != NULL)
@@ -143,6 +150,8 @@ void Proxy::onClientDeath(void)
 //-------------------------------------------------------------------------------------
 void Proxy::onClientGetCell(Mercury::Channel* pChannel)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientGetCell"));
 }
 
@@ -161,6 +170,8 @@ PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
 //-------------------------------------------------------------------------------------
 void Proxy::onGiveClientToFailure()
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGiveClientToFailure"));
 }
 

@@ -650,6 +650,8 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 
 		if(callbackID > 0)
 		{
+			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 			Py_INCREF(Py_None);
 			// baseRef, dbid, wasActive
 			PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
@@ -679,6 +681,8 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 	{
 		//if(e != NULL)
 		//	Py_INCREF(e);
+
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 		// baseRef, dbid, wasActive
 		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
@@ -928,6 +932,8 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 
 		Py_INCREF(base);
 		PyTuple_SET_ITEM(pyargs, 0, base);
+
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 		PyObject* pyRet = PyObject_CallObject(pyCallback.get(), pyargs);
 		if(pyRet == NULL)
@@ -1221,6 +1227,8 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine
 
 	if(callbackID > 0)
 	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
 		PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
 											const_cast<char*>("OOO"), 
@@ -1371,6 +1379,8 @@ void Baseapp::onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 		PyObject* pySuccess = PyBool_FromLong(success);
 		Blob* pBlob = new Blob(datas);
 
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 		PyObject* pyResult = PyObject_CallFunction(pycallback.get(), 
 											const_cast<char*>("OOOO"), 
 											pyOrder, pydbid, pySuccess, static_cast<PyObject*>(pBlob));
@@ -1396,6 +1406,8 @@ void Baseapp::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 
 	EntityApp<Base>::onDbmgrInitCompleted(pChannel, gametime, startID, endID, 
 		startGlobalOrder, startGroupOrder);
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onInit"), 
@@ -1450,6 +1462,8 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 	{
 		if(pGlobalBases_->del(pyKey))
 		{
+			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 			// 通知脚本
 			SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onGlobalBasesDel"), 
 				const_cast<char*>("O"), pyKey);
@@ -1469,6 +1483,8 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 
 		if(pGlobalBases_->write(pyKey, pyValue))
 		{
+			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 			// 通知脚本
 			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onGlobalBases"), 
 				const_cast<char*>("OO"), pyKey, pyValue);

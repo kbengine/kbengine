@@ -24,9 +24,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __BASE_H__
 	
 // common include	
+#include "profile.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
-//#include "entityMailbox.hpp"
 #include "pyscript/math.hpp"
 #include "pyscript/scriptobject.hpp"
 #include "entitydef/datatypes.hpp"	

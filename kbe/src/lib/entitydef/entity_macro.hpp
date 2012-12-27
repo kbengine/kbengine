@@ -247,6 +247,7 @@ protected:																									\
 public:																										\
 	void initializeScript()																					\
 	{																										\
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);																	\
 		if(PyObject_HasAttrString(this, "__init__"))														\
 		{																									\
 			PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("__init__"),					\
@@ -406,6 +407,8 @@ public:																										\
 	inline ScriptTimers& scriptTimers(){ return scriptTimers_; }											\
 	void onTimer(ScriptID timerID, int useraAgs)															\
 	{																										\
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);																	\
+		SCOPED_PROFILE(ONTIMER_PROFILE);																	\
 		PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTimer"),						\
 			const_cast<char*>("Ii"), timerID, useraAgs);													\
 																											\

@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include	
 #include "base.hpp"
 #include "proxy.hpp"
+#include "profile.hpp"
 #include "server/entity_app.hpp"
 #include "server/pendingLoginmgr.hpp"
 #include "server/forward_messagebuffer.hpp"

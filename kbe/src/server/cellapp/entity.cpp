@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cellapp.hpp"
 #include "entity.hpp"
 #include "witness.hpp"	
+#include "profile.hpp"
 #include "space.hpp"
 #include "all_clients.hpp"
 #include "entitydef/entity_mailbox.hpp"
@@ -105,6 +106,8 @@ Entity::~Entity()
 //-------------------------------------------------------------------------------------
 void Entity::onDestroy(void)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"));
 
 	if(baseMailbox_ != NULL)
@@ -332,6 +335,8 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 //-------------------------------------------------------------------------------------
 void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	if(isDestroyed())																				
 	{																										
 		ERROR_MSG(boost::format("%1%::onRemoteMethodCall: %2% is destroyed!\n") %											
@@ -403,6 +408,8 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream)
 //-------------------------------------------------------------------------------------
 void Entity::backupCellData()
 {
+	AUTO_SCOPED_PROFILE("backup");
+
 	if(baseMailbox_ != NULL)
 	{
 		// 将当前的cell部分数据打包 一起发送给base部分备份
@@ -457,6 +464,8 @@ void Entity::writeToDB(void* data)
 //-------------------------------------------------------------------------------------
 void Entity::onWriteToDB()
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	DEBUG_MSG(boost::format("%1%::onWriteToDB(): %2%.\n") % 
 		this->getScriptName() % this->getID());
 
@@ -568,6 +577,8 @@ PyObject* Entity::pyDelProximity(uint16 id)
 //-------------------------------------------------------------------------------------
 void Entity::onEnterTrap(Entity* entity, float range, int controllerID)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS3(this, const_cast<char*>("onEnterTrap"), 
 		const_cast<char*>("Ofi"), entity, range, controllerID);
 }
@@ -575,6 +586,8 @@ void Entity::onEnterTrap(Entity* entity, float range, int controllerID)
 //-------------------------------------------------------------------------------------
 void Entity::onLeaveTrap(Entity* entity, float range, int controllerID)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS3(this, const_cast<char*>("onLeaveTrap"), 
 		const_cast<char*>("Ofi"), entity, range, controllerID);
 }
@@ -582,6 +595,8 @@ void Entity::onLeaveTrap(Entity* entity, float range, int controllerID)
 //-------------------------------------------------------------------------------------
 void Entity::onLeaveTrapID(ENTITY_ID entityID, float range, int controllerID)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS3(this, const_cast<char*>("onLeaveTrapID"), 
 		const_cast<char*>("kfi"), entityID, range, controllerID);
 }
@@ -712,6 +727,8 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 		space->onEntityAttachWitness(this);
 	}
 
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetWitness"));
 }
 
@@ -725,6 +742,8 @@ void Entity::onLoseWitness(Mercury::Channel* pChannel)
 	setClientMailbox(NULL);
 
 	Witness::ObjPool().reclaimObject(pWitness_);
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLoseWitness"));
 }
@@ -820,6 +839,8 @@ PyObject* Entity::pyStopMove()
 //-------------------------------------------------------------------------------------
 void Entity::onMove(PyObject* userData)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCOPED_PROFILE(ONMOVE_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onMove"), const_cast<char*>("O"), userData);
 }
 
@@ -1046,30 +1067,40 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 //-------------------------------------------------------------------------------------
 void Entity::onTeleport()
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleport"));
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onTeleportFailure()
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportFailure"));
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportSuccess"));
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onEnteredCell()
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnteredCell"));
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onEnteringCell()
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnteringCell"));
 }
 
@@ -1077,12 +1108,16 @@ void Entity::onEnteringCell()
 //-------------------------------------------------------------------------------------
 void Entity::onLeavingCell()
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeavingCell"));
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onLeftCell()
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeftCell"));
 }
 

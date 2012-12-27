@@ -1,5 +1,6 @@
 #include "baseapp.hpp"
 #include "base.hpp"
+#include "profile.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 #include "network/fixed_messages.hpp"
@@ -70,6 +71,8 @@ void Base::onDefDataChanged(const PropertyDescription* propertyDescription,
 //-------------------------------------------------------------------------------------
 void Base::onDestroy(void)																					
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"));
 
 	if(this->hasDB())
@@ -471,6 +474,8 @@ PyObject* Base::pyGetClientMailbox()
 //-------------------------------------------------------------------------------------
 void Base::onCreateCellFailure(void)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	creatingCell_ = false;
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onCreateCellFailure"));
@@ -479,6 +484,8 @@ void Base::onCreateCellFailure(void)
 //-------------------------------------------------------------------------------------
 void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	// 如果是外部通道调用则判断来源性
 	if(pChannel->isExternal())
 	{
@@ -540,6 +547,8 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Base::onGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	creatingCell_ = false;
 
 	// 删除cellData属性
@@ -554,12 +563,16 @@ void Base::onGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID)
 //-------------------------------------------------------------------------------------
 void Base::onClientDeath()
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientDeath"));
 }
 
 //-------------------------------------------------------------------------------------
 void Base::onLoseCell(Mercury::Channel* pChannel, MemoryStream& s)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	S_RELEASE(cellMailbox_);
 	
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLoseCell"));
@@ -698,6 +711,8 @@ void Base::onWriteToDBCallback(ENTITY_ID eid,
 //-------------------------------------------------------------------------------------
 void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onPreArchive"));
 
 	hasDB(true);
@@ -739,6 +754,8 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 //-------------------------------------------------------------------------------------
 void Base::onWriteToDB()
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWriteToDB"), 
 		const_cast<char*>("O"), cellDataDict_);
 }
@@ -953,12 +970,16 @@ void Base::onTeleportCB(Mercury::Channel* pChannel, SPACE_ID spaceID)
 //-------------------------------------------------------------------------------------
 void Base::onTeleportFailure()
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportFailure"));
 }
 
 //-------------------------------------------------------------------------------------
 void Base::onTeleportSuccess(SPACE_ID spaceID)
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	this->setSpaceID(spaceID);
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportSuccess"));
 }

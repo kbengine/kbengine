@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cellapp.hpp"
 #include "space.hpp"
+#include "profile.hpp"
 #include "cellapp_interface.hpp"
 #include "forward_message_over_handler.hpp"
 #include "network/tcp_packet.hpp"
@@ -128,6 +129,7 @@ void Cellapp::handleTimeout(TimerHandle handle, void * arg)
 //-------------------------------------------------------------------------------------
 void Cellapp::handleGameTick()
 {
+	AUTO_SCOPED_PROFILE("gameTick");
 	EntityApp<Entity>::handleGameTick();
 }
 
@@ -393,6 +395,8 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine
 
 	if(callbackID > 0)
 	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
 		PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
 											const_cast<char*>("OOO"), 
@@ -450,6 +454,8 @@ void Cellapp::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 {
 	EntityApp<Entity>::onDbmgrInitCompleted(pChannel, gametime, startID, endID, startGlobalOrder, startGroupOrder);
 	
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	// 所有脚本都加载完毕
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onInit"), 
@@ -490,6 +496,8 @@ void Cellapp::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, KBEngine:
 	{
 		if(pCellAppData_->del(pyKey))
 		{
+			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 			// 通知脚本
 			SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onCellAppDataDel"), 
 				const_cast<char*>("O"), pyKey);
@@ -510,6 +518,8 @@ void Cellapp::onBroadcastCellAppDataChange(Mercury::Channel* pChannel, KBEngine:
 
 		if(pCellAppData_->write(pyKey, pyValue))
 		{
+			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 			// 通知脚本
 			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onCellAppData"), 
 				const_cast<char*>("OO"), pyKey, pyValue);

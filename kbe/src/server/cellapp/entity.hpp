@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 // common include
 //#include "entitymovecontroller.hpp"
+#include "profile.hpp"
 #include "cstdkbe/timer.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/smartpointer.hpp"

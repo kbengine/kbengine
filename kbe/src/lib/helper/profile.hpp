@@ -192,17 +192,17 @@ private:
 
 #define STOP_PROFILE( PROFILE )	PROFILE.stop( __FILE__, __LINE__ );
 
-#define AUTO_SCOPED_PROFILE( NAME )											\
-	static ProfileVal _localProfile( NAME );								\
+#define AUTO_SCOPED_PROFILE( NAME )												\
+	static ProfileVal _localProfile( NAME );									\
 	ScopedProfile _autoScopedProfile( _localProfile, __FILE__, __LINE__ );
 
-#define SCOPED_PROFILE(PROFILEVAL)											\
-	ScopedProfile _scopedProfile(PROFILE, __FILE__, __LINE__);
+#define SCOPED_PROFILE(PROFILE)													\
+	ScopedProfile PROFILE##_scopedProfile(PROFILE, __FILE__, __LINE__);
 
-#define STOP_PROFILE_WITH_CHECK( PROFILE )									\
+#define STOP_PROFILE_WITH_CHECK( PROFILE )										\
 	if (PROFILE.stop( __FILE__, __LINE__ ))
 
-#define STOP_PROFILE_WITH_DATA( PROFILE, DATA )								\
+#define STOP_PROFILE_WITH_DATA( PROFILE, DATA )									\
 	PROFILE.stop( __FILE__, __LINE__ , DATA );
 
 #else

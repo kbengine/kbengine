@@ -11,7 +11,8 @@ SRCS =						\
 	spaces					\
 	updatable				\
 	updatables				\
-	witness
+	witness					\
+	profile
 
 ASMS =
 

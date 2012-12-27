@@ -140,6 +140,8 @@ bool ServerApp::initializeWatcher()
 //-------------------------------------------------------------------------------------		
 void ServerApp::queryWatcher(Mercury::Channel* pChannel, MemoryStream& s)
 {
+	AUTO_SCOPED_PROFILE("watchers");
+
 	std::string path;
 	s >> path;
 
@@ -244,6 +246,7 @@ void ServerApp::startActiveTick(float period)
 //-------------------------------------------------------------------------------------
 void ServerApp::handleTimers()
 {
+	AUTO_SCOPED_PROFILE("callTimers");
 	timers().process(g_kbetime);
 }
 

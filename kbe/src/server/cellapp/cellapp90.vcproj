@@ -214,6 +214,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\profile.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\space.cpp"
 				>
 			</File>
@@ -275,6 +279,10 @@
 			</File>
 			<File
 				RelativePath=".\forward_message_over_handler.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\profile.hpp"
 				>
 			</File>
 			<File
