@@ -4,6 +4,7 @@ SRCS =						\
 	bots_interface				\
 	client					\
 	entity					\
+	profile					\
 	main
 
 ASMS =
