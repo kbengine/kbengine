@@ -129,11 +129,11 @@ Baseapp::~Baseapp()
 //-------------------------------------------------------------------------------------		
 bool Baseapp::initializeWatcher()
 {
-	WATCH_OBJECT("numProxices", this, &Baseapp::numProxices);
-	WATCH_OBJECT("load", this, &Baseapp::getLoad);
-
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
 
+	WATCH_OBJECT("numProxices", this, &Baseapp::numProxices);
+	WATCH_OBJECT("load", this, &Baseapp::getLoad);
+	WATCH_OBJECT("stats/runningTime", &runningTime);
 	return EntityApp<Base>::initializeWatcher();
 }
 

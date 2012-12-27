@@ -30,7 +30,12 @@ INLINE double ProfileVal::sumIntTimeInSeconds() const { return stampsToSeconds( 
 
 INLINE TimeStamp ProfileVal::lastTime() const
 {
-	return lastTime_;
+	return this->running() ? TimeStamp( 0 ) : lastTime_;
+}
+
+INLINE bool ProfileVal::running() const
+{
+	return inProgress_ > 0;
 }
 
 INLINE bool ProfileVal::stop(const char * filename, int lineNum, uint32 qty)
@@ -53,7 +58,7 @@ INLINE bool ProfileVal::stop(const char * filename, int lineNum, uint32 qty)
 
 INLINE bool ProfileVal::isTooLong() const
 {
-	return (lastTime_ > warningPeriod_);
+	return !this->running() && (lastTime_ > warningPeriod_);
 }
 
 }

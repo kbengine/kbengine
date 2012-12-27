@@ -64,6 +64,7 @@ bool Cellapp::initializeWatcher()
 {
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
 
+	WATCH_OBJECT("stats/runningTime", &runningTime);
 	return EntityApp<Entity>::initializeWatcher();
 }
 

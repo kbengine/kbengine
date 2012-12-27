@@ -49,6 +49,10 @@ public:
 
 	iterator begin() { return profiles_.begin(); }
 	iterator end() { return profiles_.end(); }
+
+	ProfileVal * pRunningTime() { return profiles_[0]; }
+	const ProfileVal * pRunningTime() const { return profiles_[0]; }
+	TimeStamp runningTime() const;
 private:
 	PROFILEVALS profiles_;
 
@@ -120,8 +124,10 @@ public:
 			stack.back()->lastIntTime_ = now;
 	}
 
-
+	
 	INLINE bool stop( const char * filename, int lineNum, uint32 qty = 0);
+
+	INLINE bool running() const;
 
 	INLINE const char * c_str() const;
 
@@ -205,11 +211,24 @@ private:
 #define STOP_PROFILE_WITH_DATA( PROFILE, DATA )									\
 	PROFILE.stop( __FILE__, __LINE__ , DATA );
 
+// 由此可得到系统profile时间
+uint64 runningTime();
+
 #else
 
 #define AUTO_SCOPED_PROFILE( NAME )
+#define STOP_PROFILE_WITH_DATA( PROFILE, DATA )
+#define STOP_PROFILE_WITH_CHECK( PROFILE )
+#define SCOPED_PROFILE(PROFILE)
+#define STOP_PROFILE( PROFILE )
+#define START_PROFILE( PROFILE )
+
+uint64 runningTime(){
+	return 0;
+}
 
 #endif //ENABLE_WATCHERS
+
 
 }
 

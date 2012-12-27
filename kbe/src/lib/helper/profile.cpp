@@ -27,14 +27,30 @@ std::tr1::shared_ptr< ProfileGroup > ProfileGroup::pDefaultGroup_;
 TimeStamp ProfileVal::warningPeriod_;
 
 //-------------------------------------------------------------------------------------
+uint64 runningTime()
+{
+	return ProfileGroup::defaultGroup().runningTime();
+}
+
+//-------------------------------------------------------------------------------------
 ProfileGroup::ProfileGroup()
 {
 	stampsPerSecond();
+
+	ProfileVal * pRunningTime = new ProfileVal("RunningTime", this);
+	pRunningTime->start();
 }
 
 //-------------------------------------------------------------------------------------
 ProfileGroup::~ProfileGroup()
 {
+	delete this->pRunningTime();
+}
+
+//-------------------------------------------------------------------------------------
+TimeStamp ProfileGroup::runningTime() const
+{
+	return timestamp() - this->pRunningTime()->lastTime_;
 }
 
 //-------------------------------------------------------------------------------------
