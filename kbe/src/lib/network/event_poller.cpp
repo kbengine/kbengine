@@ -20,8 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "event_poller.hpp"
+#include "helper/profile.hpp"
 
 namespace KBEngine { 
+
+ProfileVal g_idleProfile("Idle");
+
 namespace Mercury
 {
 	
@@ -265,7 +269,7 @@ int SelectPoller::processPendingEvents(double maxWait)
 	fd_set	readFDs;
 	fd_set	writeFDs;
 	struct timeval		nextTimeout;
-	// Is this needed?
+
 	FD_ZERO(&readFDs);
 	FD_ZERO(&writeFDs);
 
@@ -276,7 +280,12 @@ int SelectPoller::processPendingEvents(double maxWait)
 	nextTimeout.tv_usec =
 		(int)((maxWait - (double)nextTimeout.tv_sec) * 1000000.0);
 
+#if ENABLE_WATCHERS
+	g_idleProfile.start();
+#else
 	uint64 startTime = timestamp();
+#endif
+
 	KBEConcurrency::startMainThreadIdling();
 
 	int countReady = 0;
@@ -297,8 +306,13 @@ int SelectPoller::processPendingEvents(double maxWait)
 
 	KBEConcurrency::endMainThreadIdling();
 
+#if ENABLE_WATCHERS
+	g_idleProfile.stop();
+	spareTime_ += g_idleProfile.lastTime_;
+#else
 	spareTime_ += timestamp() - startTime;
-
+#endif
+	
 	if (countReady > 0)
 	{
 		this->handleInputNotifications(countReady, readFDs, writeFDs);
@@ -542,14 +556,24 @@ int EPoller::processPendingEvents(double maxWait)
 	const int MAX_EVENTS = 10;
 	struct epoll_event events[ MAX_EVENTS ];
 	int maxWaitInMilliseconds = int(ceil(maxWait * 1000));
+
+#if ENABLE_WATCHERS
+	g_idleProfile.start();
+#else
 	uint64 startTime = timestamp();
+#endif
 
 	KBEConcurrency::startMainThreadIdling();
 	int nfds = epoll_wait(epfd_, events, MAX_EVENTS, maxWaitInMilliseconds);
 	KBEConcurrency::endMainThreadIdling();
 
 
+#if ENABLE_WATCHERS
+	g_idleProfile.stop();
+	spareTime_ += g_idleProfile.lastTime_;
+#else
 	spareTime_ += timestamp() - startTime;
+#endif
 
 	for (int i = 0; i < nfds; ++i)
 	{

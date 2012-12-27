@@ -30,6 +30,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdarg.h> 
 #include "helper/debug_helper.hpp"
 #include "helper/watcher.hpp"
+#include "helper/profile.hpp"
+#include "helper/profiler.hpp"
 #include "xmlplus/xmlplus.hpp"	
 #include "server/common.hpp"
 #include "server/components.hpp"

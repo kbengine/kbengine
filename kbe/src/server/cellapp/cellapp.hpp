@@ -58,6 +58,8 @@ public:
 	
 	bool run();
 	
+	virtual bool initializeWatcher();
+
 	/**  
 		相关处理接口 
 	*/

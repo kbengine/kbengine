@@ -23,14 +23,68 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine
 {
 
+std::tr1::shared_ptr< ProfileGroup > ProfileGroup::pDefaultGroup_;
+TimeStamp ProfileVal::warningPeriod_;
+
 //-------------------------------------------------------------------------------------
-Profile::Profile()
+ProfileGroup::ProfileGroup()
+{
+	stampsPerSecond();
+}
+
+//-------------------------------------------------------------------------------------
+ProfileGroup::~ProfileGroup()
 {
 }
 
 //-------------------------------------------------------------------------------------
-Profile::~Profile()
+void ProfileGroup::add( ProfileVal * pVal )
 {
+	profiles_.push_back( pVal );
+}
+
+//-------------------------------------------------------------------------------------
+ProfileGroup & ProfileGroup::defaultGroup()
+{
+	if (pDefaultGroup_.get() == NULL)
+	{
+		pDefaultGroup_.reset(new ProfileGroup());
+	}
+
+	return *pDefaultGroup_.get();
+}
+
+//-------------------------------------------------------------------------------------
+ProfileVal::ProfileVal(std::string name, ProfileGroup * pGroup):
+	name_(name),
+	pProfileGroup_(pGroup),
+	lastTime_(0),
+	sumTime_(0),
+	lastIntTime_(0),
+	sumIntTime_(0),
+	lastQuantity_(0),
+	sumQuantity_(0),
+	count_(0),
+	inProgress_(0)
+{
+	if (pProfileGroup_ == NULL)
+	{
+		pProfileGroup_ = &ProfileGroup::defaultGroup();
+	}
+
+	if (!name_.empty())
+	{
+		pProfileGroup_->add( this );
+	}
+}
+
+//-------------------------------------------------------------------------------------
+ProfileVal::~ProfileVal()
+{
+	if (pProfileGroup_)
+	{
+		std::remove( pProfileGroup_->begin(), pProfileGroup_->end(), this );
+	}
 }
 
 //-------------------------------------------------------------------------------------

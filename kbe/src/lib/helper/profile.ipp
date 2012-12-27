@@ -21,4 +21,39 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine
 {
 
+INLINE const char * ProfileVal::c_str() const { return name_.c_str(); }
+
+INLINE double ProfileVal::lastTimeInSeconds() const { return stampsToSeconds(lastTime_); }
+INLINE double ProfileVal::sumTimeInSeconds() const  { return stampsToSeconds( sumTime_ ); }
+INLINE double ProfileVal::lastIntTimeInSeconds() const { return stampsToSeconds( lastIntTime_ ); }
+INLINE double ProfileVal::sumIntTimeInSeconds() const { return stampsToSeconds( sumIntTime_ ); }
+
+INLINE TimeStamp ProfileVal::lastTime() const
+{
+	return lastTime_;
+}
+
+INLINE bool ProfileVal::stop(const char * filename, int lineNum, uint32 qty)
+{
+	this->stop(qty);
+
+	const bool tooLong = isTooLong();
+
+	if (tooLong)
+	{
+		WARNING_MSG(boost::format("%s:%d: Profile %s took %.2f seconds\n") %
+			filename %
+			lineNum %
+			name_.c_str() %
+			(lastTime_  / stampsPerSecondD()));
+	}
+
+	return true;
+}
+
+INLINE bool ProfileVal::isTooLong() const
+{
+	return (lastTime_ > warningPeriod_);
+}
+
 }

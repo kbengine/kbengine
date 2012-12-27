@@ -21,22 +21,195 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __KBENGINE_PROFILE__
 #define __KBENGINE_PROFILE__
 
+#include "debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/timer.hpp"
+#include "cstdkbe/timestamp.hpp"
 
 namespace KBEngine
 {
 
-class Profile
+#if ENABLE_WATCHERS
+
+class ProfileVal;
+
+class ProfileGroup
 {
 public:
-	Profile();
-	~Profile();
+	ProfileGroup();
+	~ProfileGroup();
 
+	typedef std::vector<ProfileVal*> PROFILEVALS;
+	typedef PROFILEVALS::iterator iterator;
 
+	static ProfileGroup & defaultGroup();
+
+	PROFILEVALS & stack() { return stack_; }
+	void add(ProfileVal * pVal);
+
+	iterator begin() { return profiles_.begin(); }
+	iterator end() { return profiles_.end(); }
 private:
+	PROFILEVALS profiles_;
 
+	PROFILEVALS stack_;
+
+	static std::tr1::shared_ptr< ProfileGroup > pDefaultGroup_;
 };
 
+class ProfileVal
+{
+public:
+	ProfileVal(std::string name, ProfileGroup * pGroup = NULL);
+	~ProfileVal();
+
+	void start()
+	{
+		TimeStamp now = timestamp();
+
+		// 记录第几次处理
+		if (++inProgress_ == 0)
+			lastTime_ = now;
+
+		ProfileGroup::PROFILEVALS & stack = pProfileGroup_->stack();
+
+		// 如果栈中有对象则自己是从上一个ProfileVal函数进入调用的
+		// 我们可以在此得到上一个函数进入到本函数之前的一段时间片
+		// 然后将其加入到sumIntTime_
+		if (!stack.empty()){
+			ProfileVal & profile = *stack.back();
+			profile.lastIntTime_ = now - profile.lastIntTime_;
+			profile.sumIntTime_ += profile.lastIntTime_;
+		}
+
+		// 将自己压栈
+		stack.push_back(this);
+
+		// 记录开始时间
+		lastIntTime_ = now;
+	}
+
+	void stop(uint32 qty = 0)
+	{
+		TimeStamp now = timestamp();
+
+		// 如果为0则表明自己是调用栈的产生着
+		// 在此我们可以得到这个函数总共耗费的时间
+		if (--inProgress_ == 0){
+			lastTime_ = now - lastTime_;
+			sumTime_ += lastTime_;
+		}
+
+		lastQuantity_ = qty;
+		sumQuantity_ += qty;
+		++count_;
+
+		ProfileGroup::PROFILEVALS & stack = pProfileGroup_->stack();
+		KBE_ASSERT( stack.back() == this );
+
+		stack.pop_back();
+
+		// 得到本函数所耗费的时间
+		lastIntTime_ = now - lastIntTime_;
+		sumIntTime_ += lastIntTime_;
+
+		// 我们需要在此重设上一个函数中的profile对象的最后一次内部时间
+		// 使其能够在start时正确得到自调用完本函数之后进入下一个profile函数中时所消耗
+		// 的时间片段
+		if (!stack.empty())
+			stack.back()->lastIntTime_ = now;
+	}
+
+
+	INLINE bool stop( const char * filename, int lineNum, uint32 qty = 0);
+
+	INLINE const char * c_str() const;
+
+	INLINE double lastTimeInSeconds() const;
+	INLINE double sumTimeInSeconds() const ;
+	INLINE double lastIntTimeInSeconds() const ;
+	INLINE double sumIntTimeInSeconds() const;
+
+	INLINE TimeStamp lastTime() const;
+
+	// 名称
+	std::string	name_;
+
+	// ProfileGroup指针
+	ProfileGroup * pProfileGroup_;
+
+	// startd后的时间.
+	TimeStamp		lastTime_;
+
+	// count_次的总时间
+	TimeStamp		sumTime_;
+
+	// 记录最后一次内部时间片
+	TimeStamp		lastIntTime_;
+
+	// count_次内部总时间
+	TimeStamp		sumIntTime_;
+
+	uint32		lastQuantity_;	///< The last value passed into stop.
+	uint32		sumQuantity_;	///< The total of all values passed into stop.
+	uint32		count_;			///< The number of times stop has been called.
+
+	// 记录第几次处理, 如递归等
+	int			inProgress_;
+
+	INLINE bool isTooLong() const;
+
+	static void setWarningPeriod( TimeStamp warningPeriod )
+							{ warningPeriod_ = warningPeriod; }
+
+private:
+	static TimeStamp warningPeriod_;
+};
+
+class ScopedProfile
+{
+public:
+	ScopedProfile(ProfileVal & profile, const char * filename, int lineNum) :
+		profile_(profile),
+		filename_(filename),
+		lineNum_(lineNum)
+	{
+		profile_.start();
+	}
+
+	~ScopedProfile()
+	{
+		profile_.stop(filename_, lineNum_);
+	}
+
+private:
+	ProfileVal & profile_;
+	const char * filename_;
+	int lineNum_;
+};
+
+#define START_PROFILE( PROFILE ) PROFILE.start();
+
+#define STOP_PROFILE( PROFILE )	PROFILE.stop( __FILE__, __LINE__ );
+
+#define AUTO_SCOPED_PROFILE( NAME )											\
+	static ProfileVal _localProfile( NAME );								\
+	ScopedProfile _autoScopedProfile( _localProfile, __FILE__, __LINE__ );
+
+#define SCOPED_PROFILE(PROFILEVAL)											\
+	ScopedProfile _scopedProfile(PROFILE, __FILE__, __LINE__);
+
+#define STOP_PROFILE_WITH_CHECK( PROFILE )									\
+	if (PROFILE.stop( __FILE__, __LINE__ ))
+
+#define STOP_PROFILE_WITH_DATA( PROFILE, DATA )								\
+	PROFILE.stop( __FILE__, __LINE__ , DATA );
+
+#else
+
+#define AUTO_SCOPED_PROFILE( NAME )
+
+#endif //ENABLE_WATCHERS
 
 }
 

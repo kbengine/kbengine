@@ -58,6 +58,14 @@ Cellapp::~Cellapp()
 {
 }
 
+//-------------------------------------------------------------------------------------		
+bool Cellapp::initializeWatcher()
+{
+	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
+
+	return EntityApp<Entity>::initializeWatcher();
+}
+
 //-------------------------------------------------------------------------------------
 bool Cellapp::installPyModules()
 {
