@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "script.hpp"
 #include "math.hpp"
 #include "pickler.hpp"
+#include "pyprofile.hpp"
 #include "copy.hpp"
 #include "uuid.hpp"
 #include "pystruct.hpp"
@@ -187,6 +188,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	}
 	
 	Pickler::initialize();
+	PyProfile::initialize(this);
 	PyStruct::initialize();
 	Copy::initialize();
 	Uuid::initialize();
@@ -201,6 +203,7 @@ bool Script::uninstall()
 {
 	math::uninstallModule();
 	Pickler::finalise();
+	PyProfile::finalise();
 	PyStruct::finalise();
 	Copy::finalise();
 	Uuid::finalise();

@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __ENTITY_APP_H__
 // common include
 #include "pyscript/script.hpp"
+#include "pyscript/pyprofile.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/timer.hpp"
 #include "cstdkbe/smartpointer.hpp"

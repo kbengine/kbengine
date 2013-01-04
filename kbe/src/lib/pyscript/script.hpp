@@ -78,6 +78,8 @@ public:
 
 	static void acquireLock();
 	static void releaseLock();
+
+	INLINE ScriptStdOutErrHook* pyStdouterrHook()const;
 protected:
 	PyObject* 					module_;
 

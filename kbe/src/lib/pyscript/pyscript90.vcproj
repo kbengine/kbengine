@@ -177,6 +177,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\pyprofile.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\pystruct.cpp"
 				>
 			</File>
@@ -256,6 +260,10 @@
 			</File>
 			<File
 				RelativePath="pyobject_pointer.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\pyprofile.hpp"
 				>
 			</File>
 			<File

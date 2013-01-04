@@ -6,6 +6,7 @@ SRCS =				\
 	math			\
 	pickler			\
 	pystruct		\
+	pyprofile		\
 	py_memorystream		\
 	pywatcher		\
 	script			\
