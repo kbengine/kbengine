@@ -96,43 +96,20 @@ bool CreateAccountTask::process()
 		return false;
 	}
 
-	endpoint.setnonblocking(true);
-	endpoint.setnodelay(true);
-	
 	u_int32_t addr;
 	KBEngine::Mercury::EndPoint::convertAddress(serviceAddr(), addr);
 
-	int trycount = 0;
-
-	while(true)
+	if(endpoint.connect(htons(servicePort()), addr) == -1)
 	{
-		fd_set	frds, fwds;
-		struct timeval tv = { 0, 100000 }; // 100ms
+		ERROR_MSG(boost::format("BillingTask::process: connect billing server is error(%1%)!\n") % 
+			kbe_strerror());
 
-		FD_ZERO( &frds );
-		FD_ZERO( &fwds );
-		FD_SET((int)endpoint, &frds);
-		FD_SET((int)endpoint, &fwds);
-
-		if(endpoint.connect(htons(servicePort()), addr) == -1)
-		{
-			int selgot = select(endpoint+1, &frds, &fwds, NULL, &tv);
-			if(selgot > 0)
-			{
-				break;
-			}
-
-			trycount++;
-			if(trycount > 3)
-			{
-				ERROR_MSG(boost::format("BillingTask::process: connect billing server is error(%1%)!\n") % 
-					kbe_strerror());
-
-				endpoint.close();
-				return false;
-			}
-		}
+		endpoint.close();
+		return false;
 	}
+
+	endpoint.setnonblocking(true);
+	endpoint.setnodelay(true);
 
 	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 	(*(*bundle)).append(postDatas.data(), postDatas.size());
@@ -142,7 +119,7 @@ bool CreateAccountTask::process()
 	packet.resize(1024);
 
 	fd_set	frds;
-	struct timeval tv = { 0, 300000 }; // 300ms
+	struct timeval tv = { 0, 500000 }; // 500ms
 
 	FD_ZERO( &frds );
 	FD_SET((int)endpoint, &frds);
@@ -346,43 +323,20 @@ bool ChargeTask::process()
 		return false;
 	}
 
-	endpoint.setnonblocking(true);
-	endpoint.setnodelay(true);
-
 	u_int32_t addr;
 	KBEngine::Mercury::EndPoint::convertAddress(serviceAddr(), addr);
 
-	int trycount = 0;
-
-	while(true)
+	if(endpoint.connect(htons(servicePort()), addr) == -1)
 	{
-		fd_set	frds, fwds;
-		struct timeval tv = { 0, 100000 }; // 100ms
+		ERROR_MSG(boost::format("ChargeTask::process: connect billing server is error(%1%)!\n") % 
+			kbe_strerror());
 
-		FD_ZERO( &frds );
-		FD_ZERO( &fwds );
-		FD_SET((int)endpoint, &frds);
-		FD_SET((int)endpoint, &fwds);
-
-		if(endpoint.connect(htons(servicePort()), addr) == -1)
-		{
-			int selgot = select(endpoint+1, &frds, &fwds, NULL, &tv);
-			if(selgot > 0)
-			{
-				break;
-			}
-
-			trycount++;
-			if(trycount > 3)
-			{
-				ERROR_MSG(boost::format("ChargeTask::process: connect billing server is error(%1%)!\n") % 
-					kbe_strerror());
-
-				pOrders->getDatas = "connect is error!";
-				return false;
-			}
-		}
+		pOrders->getDatas = "connect is error!";
+		return false;
 	}
+
+	endpoint.setnonblocking(true);
+	endpoint.setnodelay(true);
 
 	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 	(*(*bundle)).append(pOrders->postDatas.data(), pOrders->postDatas.size());
@@ -392,7 +346,7 @@ bool ChargeTask::process()
 	packet.resize(1024);
 
 	fd_set	frds;
-	struct timeval tv = { 0, 300000 }; // 300ms
+	struct timeval tv = { 0, 500000 }; // 500ms
 
 	FD_ZERO( &frds );
 	FD_SET((int)endpoint, &frds);
