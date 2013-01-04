@@ -155,6 +155,7 @@ bool ThreadPool::createThreadPool(uint32 inewThreadCount,
 			currentThreadCount_ % extraNewAddThreadCount_ % normalThreadCount_ % maxThreadCount_);
 
 	isInitialize_ = true;
+	KBEngine::sleep(100);
 	return true;
 }
 
