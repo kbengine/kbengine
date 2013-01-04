@@ -83,6 +83,10 @@
 		<ids>
 			<criticallyLowSize> 500 </criticallyLowSize>				<!-- Type: Integer -->
 		</ids>
+		
+		<profiles>
+			<pyprofile> false </pyprofile>
+		</profiles>
 	</cellapp>
 	
 	<baseapp>
@@ -107,6 +111,10 @@
 		<ids>
 			<criticallyLowSize> 500 </criticallyLowSize>				<!-- Type: Integer -->
 		</ids>
+		
+		<profiles>
+			<pyprofile> false </pyprofile>
+		</profiles>
 	</baseapp>
 	
 	<cellappmgr>
