@@ -20,6 +20,7 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
+			OutputDirectory="../../../_objs\pythoncore/"
 			ConfigurationType="4"
 			InheritedPropertySheets=".\pyproject.vsprops;.\release.vsprops"
 			UseOfMFC="0"
@@ -60,7 +61,7 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Generate build information..."
-				CommandLine="&quot;$(SolutionDir)make_buildinfo.exe&quot; Release &quot;$(IntDir)\&quot;"
+				CommandLine="&quot;$(ProjectDir)make_buildinfo.exe&quot; Release &quot;$(IntDir)\&quot;"
 			/>
 			<Tool
 				Name="VCLibrarianTool"
@@ -84,6 +85,7 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
+			IntermediateDirectory="../../../_objs\pythoncore/"
 			ConfigurationType="4"
 			InheritedPropertySheets=".\pyproject.vsprops;.\debug.vsprops"
 			UseOfMFC="0"
@@ -128,7 +130,7 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Generate build information..."
-				CommandLine="&quot;$(SolutionDir)make_buildinfo.exe&quot; Debug &quot;$(IntDir)\&quot;"
+				CommandLine="&quot;$(ProjectDir)make_buildinfo.exe&quot; Debug &quot;$(IntDir)\&quot;"
 			/>
 			<Tool
 				Name="VCLibrarianTool"

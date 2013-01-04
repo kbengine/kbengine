@@ -4,7 +4,7 @@
 	Version="8.00"
 	Name="pyproject"
 	OutputDirectory="$(SolutionDir)"
-	IntermediateDirectory="$(SolutionDir)$(PlatformName)-temp-$(ConfigurationName)\$(ProjectName)\"
+	IntermediateDirectory="_objs\$(ProjectName)\"
 	>
 	<Tool
 		Name="VCCLCompilerTool"
