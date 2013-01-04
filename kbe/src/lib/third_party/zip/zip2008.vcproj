@@ -46,7 +46,7 @@
 				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				ObjectFile="$(IntDir)\"
-				ProgramDataBaseFileName="$(IntDir)\vc80.pdb"
+				ProgramDataBaseFileName="../../../libs\$(ProjectName).pdb"
 				BrowseInformation="1"
 				CompileAs="0"
 			/>
@@ -113,7 +113,7 @@
 				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				ObjectFile="$(IntDir)\"
-				ProgramDataBaseFileName="$(IntDir)\vc80.pdb"
+				ProgramDataBaseFileName="../../../libs\$(ProjectName).pdb"
 				BrowseInformation="1"
 				CompileAs="0"
 			/>

@@ -46,6 +46,7 @@
 				AdditionalIncludeDirectories="..\Python;..\Modules\zlib"
 				PreprocessorDefinitions="_USRDLL;Py_BUILD_CORE;Py_ENABLE_SHARED;WIN32"
 				RuntimeLibrary="0"
+				ProgramDataBaseFileName="../../../libs\python32.pdb"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -113,6 +114,7 @@
 				AdditionalIncludeDirectories="..\Python;..\Modules\zlib"
 				PreprocessorDefinitions="_USRDLL;Py_BUILD_CORE;Py_ENABLE_SHARED;WIN32"
 				RuntimeLibrary="1"
+				ProgramDataBaseFileName="../../../libs\python32_d.pdb"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
