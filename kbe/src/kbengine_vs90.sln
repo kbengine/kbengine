@@ -10,6 +10,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "math", "lib\math\math90.vcproj", "{F67B2C56-D1B1-4EA7-B16E-EF8E7F1B6C5F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pyscript", "lib\pyscript\pyscript90.vcproj", "{7A411D5D-DA3B-474D-B08B-3DD787A1F375}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26} = {CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xmlplus", "lib\xmlplus\xmlplus90.vcproj", "{2992ABDB-0853-4C43-B9E2-98D4211192EE}"
 EndProject
