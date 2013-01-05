@@ -1577,3 +1577,24 @@ void CguiconsoleDlg::onReceiveWatcherData(MemoryStream& s)
 {
 	m_watcherWnd.onReceiveWatcherData(s);
 }
+
+bool CguiconsoleDlg::startProfile(std::string name, int8 type, uint32 timinglen)
+{
+	Mercury::Channel* pChannel = _networkInterface.findChannel(this->getTreeItemAddr(m_tree.GetSelectedItem()));
+	if(pChannel)
+	{
+		Mercury::Bundle bundle;
+		if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPP_TYPE)
+			bundle.newMessage(BaseappInterface::startProfile);
+		else
+			bundle.newMessage(CellappInterface::startProfile);
+
+		bundle << name;
+		bundle << type;
+		bundle << timinglen;
+		bundle.send(getNetworkInterface(), pChannel);
+		return true;
+	}
+
+	return false;
+}

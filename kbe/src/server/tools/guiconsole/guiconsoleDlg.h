@@ -75,6 +75,8 @@ public:
 
 	void reqQueryWatcher(std::string paths);
 	void onReceiveWatcherData(MemoryStream& s);
+
+	bool startProfile(std::string name, int8 type, uint32 timinglen);
 protected:
 	HICON m_hIcon;
 

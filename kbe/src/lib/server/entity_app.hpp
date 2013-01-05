@@ -35,6 +35,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverconfig.hpp"
 #include "server/globaldata_client.hpp"
 #include "server/globaldata_server.hpp"
+#include "server/profile_handler.hpp"
 #include "server/callbackmgr.hpp"	
 #include "entitydef/entitydef.hpp"
 #include "entitydef/entities.hpp"
@@ -168,14 +169,19 @@ protected:
 	PyObjectPtr												entryScript_;
 
 	EntityIDClient											idClient_;
-	Entities<E>*											pEntities_;										// 存储所有的entity的容器
+
+	// 存储所有的entity的容器
+	Entities<E>*											pEntities_;										
 
 	TimerHandle												gameTimer_;
 
-	GlobalDataClient*										pGlobalData_;									// globalData
+	// globalData
+	GlobalDataClient*										pGlobalData_;									
 
 	PY_CALLBACKMGR											pyCallbackMgr_;
-	
+
+	// profile timers
+	std::vector<ProfileHandler*>							profileHandler_;
 };
 
 
@@ -577,9 +583,12 @@ void EntityApp<E>::startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStre
 
 	s >> profileName >> profileType >> timelen;
 
+	ProfileHandler* ph = NULL;
+
 	switch(profileType)
 	{
 	case 0:	// pyprofile
+		ph = new PyProfileHandler(this->getMainDispatcher(), timelen, profileName);
 		break;
 	case 1:	// cprofile
 		break;
@@ -590,6 +599,9 @@ void EntityApp<E>::startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStre
 			profileType % profileName);
 		break;
 	};
+
+	if(ph)
+		profileHandler_.push_back(ph);
 }
 
 template<class E>

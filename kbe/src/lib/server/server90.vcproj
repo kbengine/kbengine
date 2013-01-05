@@ -191,7 +191,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\profile_timer.cpp"
+				RelativePath=".\profile_handler.cpp"
 				>
 			</File>
 			<File
@@ -265,7 +265,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\profile_timer.hpp"
+				RelativePath=".\profile_handler.hpp"
 				>
 			</File>
 			<File
