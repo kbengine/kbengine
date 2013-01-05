@@ -1072,8 +1072,8 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 	base->initClientBasePropertys();
 
 	// 本应该由客户端告知已经创建好entity后调用这个接口。
-	if(!reload)
-		base->onEntitiesEnabled();
+	//if(!reload)
+	base->onEntitiesEnabled();
 
 	return true;
 }

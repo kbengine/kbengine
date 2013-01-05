@@ -178,8 +178,7 @@ void Proxy::onGiveClientToFailure()
 //-------------------------------------------------------------------------------------
 void Proxy::giveClientTo(Proxy* proxy)
 {
-	Mercury::Channel* lpChannel = clientMailbox_->getChannel();
-	if(lpChannel == NULL)
+	if(clientMailbox_ == NULL || clientMailbox_->getChannel() == NULL)
 	{
 		char err[255];																				
 		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: no has client.\n", getScriptName());			
@@ -188,6 +187,8 @@ void Proxy::giveClientTo(Proxy* proxy)
 		onGiveClientToFailure();
 		return;
 	}
+
+	Mercury::Channel* lpChannel = clientMailbox_->getChannel();
 
 	if(proxy)
 	{
