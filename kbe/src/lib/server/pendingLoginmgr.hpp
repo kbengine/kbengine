@@ -56,7 +56,7 @@ public:
 		DBID entityDBID;
 	};
 
-	typedef std::tr1::unordered_map<std::string, PLInfos*> PTINFO_MAP;
+	typedef KBEUnordered_map<std::string, PLInfos*> PTINFO_MAP;
 public:
 	PendingLoginMgr(Mercury::NetworkInterface & networkInterface);
 	~PendingLoginMgr();

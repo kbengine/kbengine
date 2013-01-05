@@ -174,7 +174,7 @@ public:
 
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
 
-	typedef std::vector<std::pair<std::string, std::tr1::shared_ptr<PropertyDescription> > > CHILD_PROPERTYS;
+	typedef std::vector<std::pair<std::string, KBEShared_ptr<PropertyDescription> > > CHILD_PROPERTYS;
 protected:
 	CHILD_PROPERTYS childPropertys_;
 };

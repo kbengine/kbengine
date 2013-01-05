@@ -100,7 +100,7 @@ public:
 		DB_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
 		for(; tableValIter != tableItemDatas.end(); tableValIter++)
 		{
-			std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
+			KBEShared_ptr<DB_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
 
 			if(dbid > 0)
 			{
@@ -177,7 +177,7 @@ public:
 		DB_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
 		for(; tableValIter != tableItemDatas.end(); tableValIter++)
 		{
-			std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
+			KBEShared_ptr<DB_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
 			
 			sqlstr_ += pSotvs->sqlkey;
 			sqlstr_ += "=";
@@ -241,7 +241,7 @@ public:
 		DB_OP_TABLE_ITEM_DATAS::iterator tableValIter = tableItemDatas.begin();
 		for(; tableValIter != tableItemDatas.end(); tableValIter++)
 		{
-			std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
+			KBEShared_ptr<DB_OP_TABLE_ITEM_DATA> pSotvs = (*tableValIter);
 			
 			sqlstr_ += pSotvs->sqlkey;
 			sqlstr_ += ",";

@@ -58,7 +58,7 @@ private:
 
 	PROFILEVALS stack_;
 
-	static std::tr1::shared_ptr< ProfileGroup > pDefaultGroup_;
+	static KBEShared_ptr< ProfileGroup > pDefaultGroup_;
 };
 
 class ProfileVal

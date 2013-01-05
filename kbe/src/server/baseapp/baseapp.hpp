@@ -328,8 +328,8 @@ protected:
 	ForwardComponent_MessageBuffer			forward_messagebuffer_;
 
 	// 备份存档相关
-	std::tr1::shared_ptr< BackupSender >	pBackupSender_;	
-	std::tr1::shared_ptr< Archiver >		pArchiver_;	
+	KBEShared_ptr< BackupSender >	pBackupSender_;	
+	KBEShared_ptr< Archiver >		pArchiver_;	
 
 	float									load_;
 

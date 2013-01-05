@@ -48,7 +48,7 @@ class Entities : public script::ScriptObject
 	*/
 	INSTANCE_SCRIPT_HREADER(Entities, ScriptObject)	
 public:
-	typedef std::tr1::unordered_map<ENTITY_ID, PyObjectPtr> ENTITYS_MAP;
+	typedef KBEUnordered_map<ENTITY_ID, PyObjectPtr> ENTITYS_MAP;
 
 	Entities():
 	ScriptObject(getScriptType(), false)

@@ -49,7 +49,7 @@ public:
 	FixedMessages::MSGInfo* isFixed(const char* msgName);
 	bool isFixed(MessageID msgid);
 public:
-	typedef std::tr1::unordered_map<std::string, MSGInfo> MSGINFO_MAP;
+	typedef KBEUnordered_map<std::string, MSGInfo> MSGINFO_MAP;
 private:
 	MSGINFO_MAP _infomap;
 };

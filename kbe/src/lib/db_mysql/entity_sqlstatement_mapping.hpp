@@ -49,9 +49,9 @@ public:
 	SqlStatement* findInsertSqlStatement(const std::string& tablename);
 	SqlStatement* findUpdateSqlStatement(const std::string& tablename);
 protected:
-	std::tr1::unordered_map< std::string, std::tr1::shared_ptr< SqlStatement > > query_sqlStatements_;
-	std::tr1::unordered_map< std::string, std::tr1::shared_ptr< SqlStatement > > update_sqlStatements_;
-	std::tr1::unordered_map< std::string, std::tr1::shared_ptr< SqlStatement > > insert_sqlStatements_;
+	KBEUnordered_map< std::string, KBEShared_ptr< SqlStatement > > query_sqlStatements_;
+	KBEUnordered_map< std::string, KBEShared_ptr< SqlStatement > > update_sqlStatements_;
+	KBEUnordered_map< std::string, KBEShared_ptr< SqlStatement > > insert_sqlStatements_;
 };
 
 

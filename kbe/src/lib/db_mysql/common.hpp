@@ -37,7 +37,7 @@ struct DB_OP_TABLE_ITEM_DATA;
 /**
 	存储所有要操作的表item结构
 */
-typedef std::vector< std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>  > DB_OP_TABLE_ITEM_DATAS;
+typedef std::vector< KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>  > DB_OP_TABLE_ITEM_DATAS;
 
 /**
 	存储要操作的表的所有内容
@@ -47,7 +47,7 @@ struct DB_OP_TABLE_ITEM_DATA_BOX;
 /**
 	所有要操作的表数据结构
 */
-typedef std::vector< std::pair< std::string/*tableName*/, std::tr1::shared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > > > DB_OP_TABLE_DATAS;
+typedef std::vector< std::pair< std::string/*tableName*/, KBEShared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > > > DB_OP_TABLE_DATAS;
 
 struct DB_OP_TABLE_ITEM_DATA
 {

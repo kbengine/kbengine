@@ -514,8 +514,8 @@ void EntityTableMysql::getWriteSqlItem(DBInterface* dbi, MemoryStream* s, DB_OP_
 	opTableItemDataBox1->isEmpty = (s == NULL);
 	opTableItemDataBox1->readresultIdx = 0;
 
-	std::tr1::shared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > opTableValBox1Ptr(opTableItemDataBox1);
-	opTableItemDataBox.optable.push_back( std::make_pair<std::string/*tableName*/, std::tr1::shared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > >
+	KBEShared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > opTableValBox1Ptr(opTableItemDataBox1);
+	opTableItemDataBox.optable.push_back( std::make_pair<std::string/*tableName*/, KBEShared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > >
 		((*iter)->tableName(), opTableValBox1Ptr));
 
 	for(; iter != tableFixedOrderItems_.end(); iter++)
@@ -540,8 +540,8 @@ void EntityTableMysql::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTableItemData
 	opTableItemDataBox1->isEmpty = true;
 	opTableItemDataBox1->readresultIdx = 0;
 
-	std::tr1::shared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > opTableValBox1Ptr(opTableItemDataBox1);
-	opTableItemDataBox.optable.push_back( std::make_pair<std::string/*tableName*/, std::tr1::shared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > >
+	KBEShared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > opTableValBox1Ptr(opTableItemDataBox1);
+	opTableItemDataBox.optable.push_back( std::make_pair<std::string/*tableName*/, KBEShared_ptr< DB_OP_TABLE_ITEM_DATA_BOX > >
 		((*iter)->tableName(), opTableValBox1Ptr));
 
 	for(; iter != tableFixedOrderItems_.end(); iter++)
@@ -625,7 +625,7 @@ void EntityTableItemMysql_VECTOR2::getWriteSqlItem(DBInterface* dbi, MemoryStrea
 		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%f", v);
 #endif
 		
-		opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+		opTableItemDataBox.items.push_back(KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
 	}
 }
 
@@ -638,7 +638,7 @@ void EntityTableItemMysql_VECTOR2::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opT
 		DB_OP_TABLE_ITEM_DATA* pSotvs = new DB_OP_TABLE_ITEM_DATA();
 		pSotvs->sqlkey = db_item_names_[i];
 		memset(pSotvs->sqlval, 0, MAX_BUF);
-		opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+		opTableItemDataBox.items.push_back(KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
 	}
 }
 
@@ -715,7 +715,7 @@ void EntityTableItemMysql_VECTOR3::getWriteSqlItem(DBInterface* dbi, MemoryStrea
 		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%f", v);
 #endif
 
-		opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+		opTableItemDataBox.items.push_back(KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
 	}
 }
 
@@ -728,7 +728,7 @@ void EntityTableItemMysql_VECTOR3::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opT
 		DB_OP_TABLE_ITEM_DATA* pSotvs = new DB_OP_TABLE_ITEM_DATA();
 		pSotvs->sqlkey = db_item_names_[i];
 		memset(pSotvs->sqlval, 0, MAX_BUF);
-		opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+		opTableItemDataBox.items.push_back(KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
 	}
 }
 
@@ -805,7 +805,7 @@ void EntityTableItemMysql_VECTOR4::getWriteSqlItem(DBInterface* dbi, MemoryStrea
 		kbe_snprintf(pSotvs->sqlval, MAX_BUF, "%f", v);
 #endif
 
-		opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+		opTableItemDataBox.items.push_back(KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
 	}
 }
 
@@ -818,7 +818,7 @@ void EntityTableItemMysql_VECTOR4::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opT
 		DB_OP_TABLE_ITEM_DATA* pSotvs = new DB_OP_TABLE_ITEM_DATA();
 		pSotvs->sqlkey = db_item_names_[i];
 		memset(pSotvs->sqlval, 0, MAX_BUF);
-		opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+		opTableItemDataBox.items.push_back(KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
 	}
 }
 
@@ -1041,7 +1041,7 @@ bool EntityTableItemMysql_FIXED_DICT::initialize(const PropertyDescription* pPro
 		if(!tableItem->initialize(pPropertyDescription, iter->second->dataType, iter->first))
 			return false;
 
-		std::pair< std::string, std::tr1::shared_ptr<EntityTableItem> > itemVal;
+		std::pair< std::string, KBEShared_ptr<EntityTableItem> > itemVal;
 		itemVal.first = iter->first;
 		itemVal.second.reset(tableItem);
 
@@ -1279,7 +1279,7 @@ void EntityTableItemMysql_DIGIT::getWriteSqlItem(DBInterface* dbi, MemoryStream*
 	}
 
 	pSotvs->sqlkey = db_item_name();
-	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+	opTableItemDataBox.items.push_back(KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
 	
 }
 
@@ -1289,7 +1289,7 @@ void EntityTableItemMysql_DIGIT::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTab
 	DB_OP_TABLE_ITEM_DATA* pSotvs = new DB_OP_TABLE_ITEM_DATA();
 	pSotvs->sqlkey = db_item_name();
 	memset(pSotvs->sqlval, 0, MAX_BUF);
-	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+	opTableItemDataBox.items.push_back(KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1345,7 +1345,7 @@ void EntityTableItemMysql_STRING::getWriteSqlItem(DBInterface* dbi,
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
 	pSotvs->sqlkey = db_item_name();
-	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+	opTableItemDataBox.items.push_back(KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1354,7 +1354,7 @@ void EntityTableItemMysql_STRING::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTa
 	DB_OP_TABLE_ITEM_DATA* pSotvs = new DB_OP_TABLE_ITEM_DATA();
 	pSotvs->sqlkey = db_item_name();
 	memset(pSotvs->sqlval, 0, MAX_BUF);
-	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+	opTableItemDataBox.items.push_back(KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1408,7 +1408,7 @@ void EntityTableItemMysql_UNICODE::getWriteSqlItem(DBInterface* dbi, MemoryStrea
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
 	pSotvs->sqlkey = db_item_name();
-	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+	opTableItemDataBox.items.push_back(KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1417,7 +1417,7 @@ void EntityTableItemMysql_UNICODE::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opT
 	DB_OP_TABLE_ITEM_DATA* pSotvs = new DB_OP_TABLE_ITEM_DATA();
 	pSotvs->sqlkey = db_item_name();
 	memset(pSotvs->sqlval, 0, MAX_BUF);
-	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+	opTableItemDataBox.items.push_back(KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1474,7 +1474,7 @@ void EntityTableItemMysql_BLOB::getWriteSqlItem(DBInterface* dbi, MemoryStream* 
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
 	pSotvs->sqlkey = db_item_name();
-	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+	opTableItemDataBox.items.push_back(KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1483,7 +1483,7 @@ void EntityTableItemMysql_BLOB::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTabl
 	DB_OP_TABLE_ITEM_DATA* pSotvs = new DB_OP_TABLE_ITEM_DATA();
 	pSotvs->sqlkey = db_item_name();
 	memset(pSotvs->sqlval, 0, MAX_BUF);
-	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+	opTableItemDataBox.items.push_back(KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1522,7 +1522,7 @@ void EntityTableItemMysql_PYTHON::getWriteSqlItem(DBInterface* dbi, MemoryStream
 
 	memset(pSotvs, 0, sizeof(pSotvs->sqlval));
 	pSotvs->sqlkey = db_item_name();
-	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+	opTableItemDataBox.items.push_back(KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1531,7 +1531,7 @@ void EntityTableItemMysql_PYTHON::getReadSqlItem(DB_OP_TABLE_ITEM_DATA_BOX& opTa
 	DB_OP_TABLE_ITEM_DATA* pSotvs = new DB_OP_TABLE_ITEM_DATA();
 	pSotvs->sqlkey = db_item_name();
 	memset(pSotvs->sqlval, 0, MAX_BUF);
-	opTableItemDataBox.items.push_back(std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
+	opTableItemDataBox.items.push_back(KBEShared_ptr<DB_OP_TABLE_ITEM_DATA>(pSotvs));
 }
 
 //-------------------------------------------------------------------------------------

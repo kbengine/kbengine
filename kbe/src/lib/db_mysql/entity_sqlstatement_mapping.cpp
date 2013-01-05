@@ -47,7 +47,7 @@ void EntitySqlStatementMapping::addUpdateSqlStatement(const std::string& tablena
 //-------------------------------------------------------------------------------------
 SqlStatement* EntitySqlStatementMapping::findQuerySqlStatement(const std::string& tablename)
 {
-	std::tr1::unordered_map< std::string, std::tr1::shared_ptr< SqlStatement > >::iterator iter = 
+	KBEUnordered_map< std::string, KBEShared_ptr< SqlStatement > >::iterator iter = 
 		query_sqlStatements_.find(tablename);
 
 	if(iter != query_sqlStatements_.end())
@@ -59,7 +59,7 @@ SqlStatement* EntitySqlStatementMapping::findQuerySqlStatement(const std::string
 //-------------------------------------------------------------------------------------
 SqlStatement* EntitySqlStatementMapping::findInsertSqlStatement(const std::string& tablename)
 {
-	std::tr1::unordered_map< std::string, std::tr1::shared_ptr< SqlStatement > >::iterator iter = 
+	KBEUnordered_map< std::string, KBEShared_ptr< SqlStatement > >::iterator iter = 
 		insert_sqlStatements_.find(tablename);
 
 	if(iter != insert_sqlStatements_.end())
@@ -71,7 +71,7 @@ SqlStatement* EntitySqlStatementMapping::findInsertSqlStatement(const std::strin
 //-------------------------------------------------------------------------------------
 SqlStatement* EntitySqlStatementMapping::findUpdateSqlStatement(const std::string& tablename)
 {
-	std::tr1::unordered_map< std::string, std::tr1::shared_ptr< SqlStatement > >::iterator iter = 
+	KBEUnordered_map< std::string, KBEShared_ptr< SqlStatement > >::iterator iter = 
 		update_sqlStatements_.find(tablename);
 
 	if(iter != update_sqlStatements_.end())

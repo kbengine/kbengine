@@ -163,7 +163,7 @@ bool AnonymousChannel::process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 {
-	std::tr1::unordered_map<std::string, std::string>::iterator iter = backOrdersDatas_.begin();
+	KBEUnordered_map<std::string, std::string>::iterator iter = backOrdersDatas_.begin();
 	for(; iter != backOrdersDatas_.end(); iter++)
 	{
 		BillingSystem::ORDERS& orders = BillingSystem::getSingleton().orders();

@@ -162,7 +162,7 @@ protected:
 class EntityTable
 {
 public:
-	typedef std::map<int32/*ENTITY_PROPERTY_UID*/, std::tr1::shared_ptr<EntityTableItem> > TABLEITEM_MAP;
+	typedef std::map<int32/*ENTITY_PROPERTY_UID*/, KBEShared_ptr<EntityTableItem> > TABLEITEM_MAP;
 
 	EntityTable():
 	tableName_(),
@@ -242,7 +242,7 @@ protected:
 class EntityTables : public Singleton<EntityTables>
 {
 public:
-	typedef std::tr1::unordered_map<std::string, std::tr1::shared_ptr<EntityTable> > TABLES_MAP;
+	typedef KBEUnordered_map<std::string, KBEShared_ptr<EntityTable> > TABLES_MAP;
 	EntityTables();
 	virtual ~EntityTables();
 	

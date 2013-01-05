@@ -54,7 +54,7 @@ public:
 
 	struct ComponentInfos
 	{
-		std::tr1::shared_ptr<Mercury::Address > pIntAddr, pExtAddr; // 内部和外部地址
+		KBEShared_ptr<Mercury::Address > pIntAddr, pExtAddr; // 内部和外部地址
 		int32 uid;
 		COMPONENT_ID cid;
 		char username[MAX_NAME + 1];

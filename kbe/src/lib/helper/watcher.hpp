@@ -383,7 +383,7 @@ public:
 	void addToStream(MemoryStream* s);
 
 	void readWatchers(MemoryStream* s);
-	typedef std::tr1::unordered_map<std::string, std::tr1::shared_ptr< WatcherObject > > WATCHER_MAP;
+	typedef KBEUnordered_map<std::string, KBEShared_ptr< WatcherObject > > WATCHER_MAP;
 
 	bool addWatcher(std::string path, WatcherObject* pwo);
 	bool delWatcher(std::string name);
@@ -411,7 +411,7 @@ public:
 	void readWatchers(std::string path, MemoryStream* s);
 	void readChildPaths(std::string srcPath, std::string path, MemoryStream* s);
 
-	typedef std::tr1::unordered_map<std::string, std::tr1::shared_ptr<WatcherPaths> > WATCHER_PATHS;
+	typedef KBEUnordered_map<std::string, KBEShared_ptr<WatcherPaths> > WATCHER_PATHS;
 
 	bool addWatcher(std::string path, WatcherObject* pwo);
 	bool _addWatcher(std::string path, WatcherObject* pwo);

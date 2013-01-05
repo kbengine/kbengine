@@ -839,7 +839,6 @@ PyObject* Entity::pyStopMove()
 //-------------------------------------------------------------------------------------
 void Entity::onMove(PyObject* userData)
 {
-	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCOPED_PROFILE(ONMOVE_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onMove"), const_cast<char*>("O"), userData);
 }

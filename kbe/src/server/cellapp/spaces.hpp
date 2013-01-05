@@ -40,7 +40,7 @@ public:
 	Spaces();
 	~Spaces();
 
-	typedef std::map<SPACE_ID, std::tr1::shared_ptr<Space> > SPACES;
+	typedef std::map<SPACE_ID, KBEShared_ptr<Space> > SPACES;
 
 	/** 
 		创建一个新的space 

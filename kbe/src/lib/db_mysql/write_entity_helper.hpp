@@ -111,7 +111,7 @@ public:
 			// 然后将内存中的数据顺序更新至数据库， 如果数据库中有存在的条目则顺序覆盖更新已有的条目， 如果数据数量
 			// 大于数据库中已有的条目则插入剩余的数据， 如果数据少于数据库中的条目则删除数据库中的条目
 			// select id from tbl_SpawnPoint_xxx_values where parentID = 7;
-			std::tr1::unordered_map< std::string, std::vector<DBID> > childTableDBIDs;
+			KBEUnordered_map< std::string, std::vector<DBID> > childTableDBIDs;
 
 			if(opTableItemDataBox.dbid > 0)
 			{
@@ -120,7 +120,7 @@ public:
 				{
 					DB_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
 
-					std::tr1::unordered_map<std::string, std::vector<DBID> >::iterator iter = 
+					KBEUnordered_map<std::string, std::vector<DBID> >::iterator iter = 
 						childTableDBIDs.find(opTableItemDataBox.tableName);
 
 					if(iter == childTableDBIDs.end())
@@ -133,7 +133,7 @@ public:
 				if(childTableDBIDs.size() > 1)
 				{
 					std::string sqlstr_getids;
-					std::tr1::unordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
+					KBEUnordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
 					for(; tabiter != childTableDBIDs.end();)
 					{
 						char sqlstr[MAX_BUF * 10];
@@ -185,7 +185,7 @@ public:
 				}
 				else if(childTableDBIDs.size() == 1)
 				{
-					std::tr1::unordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
+					KBEUnordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
 						char sqlstr[MAX_BUF * 10];
 						kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID, 
 							tabiter->first.c_str(),
@@ -225,7 +225,7 @@ public:
 					// 绑定表关系
 					wbox.parentTableDBID = opTableItemDataBox.dbid;
 
-					std::tr1::unordered_map<std::string, std::vector<DBID> >::iterator iter = 
+					KBEUnordered_map<std::string, std::vector<DBID> >::iterator iter = 
 						childTableDBIDs.find(wbox.tableName);
 					
 					if(iter != childTableDBIDs.end())
@@ -248,7 +248,7 @@ public:
 			}
 			
 			// 删除废弃的数据项
-			std::tr1::unordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
+			KBEUnordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
 			for(; tabiter != childTableDBIDs.end(); tabiter++)
 			{
 				if(tabiter->second.size() == 0)

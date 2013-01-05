@@ -44,7 +44,7 @@ public:
 
 	Mercury::EndPoint listen;
 
-	std::tr1::unordered_map<std::string, std::string> backOrdersDatas_;
+	KBEUnordered_map<std::string, std::string> backOrdersDatas_;
 };
 
 }

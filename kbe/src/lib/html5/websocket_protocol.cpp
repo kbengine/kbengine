@@ -95,7 +95,7 @@ bool WebSocketProtocol::handshake(Mercury::Channel* pChannel, MemoryStream* s)
 		return false;
 	}
 
-	std::tr1::unordered_map<std::string, std::string> headers;
+	KBEUnordered_map<std::string, std::string> headers;
 	std::vector<std::string> values;
 	
 	values = KBEngine::strutil::kbe_splits(header_and_data[0], "\r\n");
@@ -111,7 +111,7 @@ bool WebSocketProtocol::handshake(Mercury::Channel* pChannel, MemoryStream* s)
 
 	std::string szKey, szOrigin, szHost;
 
-	std::tr1::unordered_map<std::string, std::string>::iterator findIter = headers.find("Sec-WebSocket-Origin");
+	KBEUnordered_map<std::string, std::string>::iterator findIter = headers.find("Sec-WebSocket-Origin");
 	if(findIter == headers.end())
 	{
 		findIter = headers.find("Origin");

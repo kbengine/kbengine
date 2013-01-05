@@ -39,7 +39,7 @@ namespace Mercury
 class UDPPacket : public Packet
 {
 public:
-	typedef std::tr1::shared_ptr< SmartPoolObject< UDPPacket > > SmartPoolObjectPtr;
+	typedef KBEShared_ptr< SmartPoolObject< UDPPacket > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<UDPPacket>& ObjPool();
 	static void destroyObjPool();

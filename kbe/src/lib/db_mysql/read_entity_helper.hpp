@@ -90,7 +90,7 @@ public:
 					KBE_ASSERT(nfields == opTableItemDataBox.items.size() + 1);
 					for (uint32 i = 1; i < nfields; i++)
 					{
-						std::tr1::shared_ptr<DB_OP_TABLE_ITEM_DATA> pSotvs = opTableItemDataBox.items[i - 1];
+						KBEShared_ptr<DB_OP_TABLE_ITEM_DATA> pSotvs = opTableItemDataBox.items[i - 1];
 						std::string data;
 						data.assign(arow[i], lengths[i]);
 

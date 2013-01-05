@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine
 {
 
-std::tr1::shared_ptr< ProfileGroup > ProfileGroup::pDefaultGroup_;
+KBEShared_ptr< ProfileGroup > ProfileGroup::pDefaultGroup_;
 TimeStamp ProfileVal::warningPeriod_;
 
 //-------------------------------------------------------------------------------------

@@ -71,14 +71,14 @@ public:
 	{
 		bool ret = true;
 
-		std::tr1::unordered_map< std::string, std::vector<DBID> > childTableDBIDs;
+		KBEUnordered_map< std::string, std::vector<DBID> > childTableDBIDs;
 
 		DB_OP_TABLE_DATAS::iterator iter1 = opTableItemDataBox.optable.begin();
 		for(; iter1 != opTableItemDataBox.optable.end(); iter1++)
 		{
 			DB_OP_TABLE_ITEM_DATA_BOX& wbox = *iter1->second.get();
 
-			std::tr1::unordered_map<std::string, std::vector<DBID> >::iterator iter = 
+			KBEUnordered_map<std::string, std::vector<DBID> >::iterator iter = 
 				childTableDBIDs.find(opTableItemDataBox.tableName);
 
 			if(iter == childTableDBIDs.end())
@@ -91,7 +91,7 @@ public:
 		if(childTableDBIDs.size() > 1)
 		{
 			std::string sqlstr_getids;
-			std::tr1::unordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
+			KBEUnordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
 			for(; tabiter != childTableDBIDs.end();)
 			{
 				char sqlstr[MAX_BUF * 10];
@@ -143,7 +143,7 @@ public:
 		}
 		else if(childTableDBIDs.size() == 1)
 		{
-			std::tr1::unordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
+			KBEUnordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
 				char sqlstr[MAX_BUF * 10];
 				kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID, 
 					tabiter->first.c_str(),
@@ -168,7 +168,7 @@ public:
 		}
 	
 		// 删除废弃的数据项
-		std::tr1::unordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
+		KBEUnordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
 		for(; tabiter != childTableDBIDs.end(); tabiter++)
 		{
 			if(tabiter->second.size() == 0)

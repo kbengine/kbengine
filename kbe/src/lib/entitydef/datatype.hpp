@@ -474,7 +474,7 @@ public:
 		bool persistent;
 	};
 
-	typedef std::vector< std::pair< std::string, std::tr1::shared_ptr< DictItemDataType > > > FIXEDDICT_KEYTYPE_MAP;
+	typedef std::vector< std::pair< std::string, KBEShared_ptr< DictItemDataType > > > FIXEDDICT_KEYTYPE_MAP;
 public:	
 	FixedDictType(DATATYPE_UID did = 0);
 	virtual ~FixedDictType();
