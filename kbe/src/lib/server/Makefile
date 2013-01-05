@@ -10,6 +10,7 @@ SRCS =				\
 	globaldata_server	\
 	idallocate		\
 	pendingLoginmgr		\
+	profile_timer		\
 	script_timers		\
 	serverapp		\
 	serverconfig		\

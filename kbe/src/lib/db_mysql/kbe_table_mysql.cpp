@@ -113,7 +113,7 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * dbi, DBID dbid, EntityLog
 	sqlstr += tbuf;
 	
 	sqlstr += " and entityType=";
-	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, dbid);
+	kbe_snprintf(tbuf, MAX_BUF, "%u", entityType);
 	sqlstr += tbuf;
 
 	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))

@@ -157,6 +157,10 @@ public:
 	*/
 	void onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
+	/** 网络接口
+		console请求开始profile
+	*/
+	void startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	KBEngine::script::Script								script_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
@@ -562,6 +566,30 @@ void EntityApp<E>::onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID star
 {
 	// INFO_MSG("EntityApp::onReqAllocEntityID: entityID alloc(%d-%d).\n", startID, endID);
 	idClient_.onAddRange(startID, endID);
+}
+
+template<class E>
+void EntityApp<E>::startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	std::string profileName;
+	int8 profileType;
+	uint32 timelen;
+
+	s >> profileName >> profileType >> timelen;
+
+	switch(profileType)
+	{
+	case 0:	// pyprofile
+		break;
+	case 1:	// cprofile
+		break;
+	case 2:	// eventprofile
+		break;
+	default:
+		ERROR_MSG(boost::format("EntityApp::startProfile: type(%1%:%2%) not support!\n") % 
+			profileType % profileName);
+		break;
+	};
 }
 
 template<class E>

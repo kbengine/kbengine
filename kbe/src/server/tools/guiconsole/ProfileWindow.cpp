@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "guiconsole.h"
 #include "ProfileWindow.h"
-
+#include "TimingLengthWindow.h"
 
 // CProfileWindow dialog
 
@@ -62,7 +62,21 @@ void CProfileWindow::autoWndSize()
 
 
 BEGIN_MESSAGE_MAP(CProfileWindow, CDialog)
+	ON_BN_CLICKED(IDC_BUTTON1, &CProfileWindow::OnBnClickedButton1)
 END_MESSAGE_MAP()
 
 
 // CProfileWindow message handlers
+
+void CProfileWindow::OnBnClickedButton1()
+{
+	m_pyprofile.EnableWindow(FALSE);
+
+	CTimingLengthWindow wnd;
+	if(wnd.DoModal() == IDOK)
+	{
+		return;
+	}
+
+	m_pyprofile.EnableWindow(TRUE);
+}

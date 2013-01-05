@@ -150,6 +150,17 @@ BEGIN
     LTEXT           "Static",IDC_GRAPH,29,98,249,57
 END
 
+IDD_TIMINGLENGTH DIALOGEX 0, 0, 195, 46
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,88,24,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,138,24,50,14
+    EDITTEXT        IDC_EDIT1,76,7,112,14,ES_AUTOHSCROLL | ES_NUMBER,WS_EX_CLIENTEDGE
+    LTEXT           "TimingLength(s):",IDC_STATIC,7,7,64,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -221,6 +232,14 @@ BEGIN
         RIGHTMARGIN, 309
         TOPMARGIN, 7
         BOTTOMMARGIN, 173
+    END
+
+    IDD_TIMINGLENGTH, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 188
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 39
     END
 END
 #endif    // APSTUDIO_INVOKED

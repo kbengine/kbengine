@@ -20,6 +20,8 @@
 #define IDR_MAIN_MENU1                  137
 #define IDR_TOOLBAR1                    138
 #define IDD_GRAPHS                      140
+#define IDD_DIALOG2                     141
+#define IDD_TIMINGLENGTH                141
 #define IDC_TAB1                        1000
 #define IDC_LIST1                       1001
 #define IDC_EDIT1                       1002
@@ -52,7 +54,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        141
+#define _APS_NEXT_RESOURCE_VALUE        142
 #define _APS_NEXT_COMMAND_VALUE         32785
 #define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           101

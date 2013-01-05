@@ -191,6 +191,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\profile_timer.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\script_timers.cpp"
 				>
 			</File>
@@ -258,6 +262,10 @@
 			</File>
 			<File
 				RelativePath=".\pendingLoginmgr.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\profile_timer.hpp"
 				>
 			</File>
 			<File

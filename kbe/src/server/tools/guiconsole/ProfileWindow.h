@@ -27,4 +27,5 @@ public:
 	CButton m_cprofile;
 	CButton m_eventprofile;
 	CListCtrl m_profileShowList;
+	afx_msg void OnBnClickedButton1();
 };

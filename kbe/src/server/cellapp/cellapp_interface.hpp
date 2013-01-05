@@ -135,6 +135,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// 请求查询watcher数据
 	CELLAPP_MESSAGE_DECLARE_STREAM(queryWatcher,							MERCURY_VARIABLE_MESSAGE)
 
+	// 开始profile
+	CELLAPP_MESSAGE_DECLARE_STREAM(startProfile,							MERCURY_VARIABLE_MESSAGE)
+
 	//--------------------------------------------Entity----------------------------------------------------------
 	//远程呼叫entity方法
 	ENTITY_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,						MERCURY_VARIABLE_MESSAGE)
