@@ -366,7 +366,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 
 	infos->datas = datas;
 
-	if(!success)
+	if(!success && entityID == 0 && componentID == 0)
 	{
 		_loginFailed(NULL, loginName, SERVER_ERR_NAME_PASSWORD, datas);
 		return;
@@ -389,7 +389,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 	{
 		Mercury::Bundle bundle;
 		bundle.newMessage(BaseappmgrInterface::registerPendingAccountToBaseappAddr);
-		bundle << componentID << loginName >> accountName << password << entityID << dbid;
+		bundle << componentID << loginName << accountName << password << entityID << dbid;
 		bundle.send(this->getNetworkInterface(), baseappmgrinfos->pChannel);
 		return;
 	}

@@ -222,14 +222,14 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 		(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
 		(*pBundle) << loginName << accountName << password << eid << entityDBID;
 
-		WARNING_MSG("Baseappmgr::registerAccountToBaseapp: not found baseapp, message is buffered.\n");
+		WARNING_MSG("Baseappmgr::registerPendingAccountToBaseapp: not found baseapp, message is buffered.\n");
 		pFI->pHandler = NULL;
 		forward_baseapp_messagebuffer_.push(pFI);
 		return;
 	}
 
 
-	DEBUG_MSG(boost::format("Baseappmgr::registerAccountToBaseapp:%1%. allocBaseapp=[%2%].\n") %
+	DEBUG_MSG(boost::format("Baseappmgr::registerPendingAccountToBaseapp:%1%. allocBaseapp=[%2%].\n") %
 		accountName.c_str() % bestBaseappID_);
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
