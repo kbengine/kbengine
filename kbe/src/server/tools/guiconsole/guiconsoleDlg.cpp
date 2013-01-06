@@ -247,6 +247,16 @@ RESTART_RECV:
 	}
 };
 
+class ConsoleProfileHandlerArgsStreamEx : public KBEngine::ConsoleInterface::ConsoleProfileHandlerArgsStream
+{
+public:
+	virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
+	{
+		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+		dlg->onReceiveProfileData(s);
+	};
+};
+
 // CAboutDlg dialog used for App About
 
 class CAboutDlg : public CDialog
@@ -492,6 +502,10 @@ HTREEITEM CguiconsoleDlg::hasCheckApp(COMPONENT_TYPE type)
 	}while((rootitem = m_tree.GetNextItem(rootitem, TVGN_NEXT)) != NULL);
 
 	return NULL;
+}
+
+void CguiconsoleDlg::onReceiveProfileData(MemoryStream& s)
+{
 }
 
 void CguiconsoleDlg::commitPythonCommand(CString strCommand)

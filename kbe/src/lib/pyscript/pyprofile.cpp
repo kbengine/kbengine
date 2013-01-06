@@ -93,6 +93,10 @@ bool PyProfile::start(std::string profile)
 	Py_DECREF(pyRet1);
 
 	profiles_[profile] = pyRet;
+
+	char buf[MAX_BUF];
+	kbe_snprintf(buf, MAX_BUF, "print(\"PyProfile::start: profile=%s.\")", profile.c_str());
+	pScript_->run_simpleString(buf, NULL);
 	return true;
 }
 
@@ -116,6 +120,10 @@ bool PyProfile::stop(std::string profile)
 	}
 	
 	Py_DECREF(pyRet);
+
+	char buf[MAX_BUF];
+	kbe_snprintf(buf, MAX_BUF, "print(\"PyProfile::stop: profile=%s.\")", profile.c_str());
+	pScript_->run_simpleString(buf, NULL);
 	return true;
 }
 

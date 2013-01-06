@@ -20,18 +20,29 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "profile_handler.hpp"
+#include "network/network_interface.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/address.hpp"
+#include "network/bundle.hpp"
 #include "pyscript/pyprofile.hpp"
+#include "cstdkbe/memorystream.hpp"
+#include "helper/console_helper.hpp"
 
 namespace KBEngine { 
 
+KBEUnordered_map<std::string, KBEShared_ptr< ProfileHandler > > ProfileHandler::profiles;
+
 //-------------------------------------------------------------------------------------
-ProfileHandler::ProfileHandler(Mercury::EventDispatcher & dispatcher, uint32 timinglen, std::string name) :
+ProfileHandler::ProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
+							   std::string name, const Mercury::Address& addr) :
+	networkInterface_(networkInterface),
 	reportLimitTimerHandle_(),
-	name_(name)
+	name_(name),
+	addr_(addr)
 {
-	reportLimitTimerHandle_ = dispatcher.addTimer(
+	profiles[name].reset(this);
+
+	reportLimitTimerHandle_ = networkInterface_.dispatcher().addTimer(
 							timinglen * 1000000, this);
 }
 
@@ -46,11 +57,14 @@ void ProfileHandler::handleTimeout(TimerHandle handle, void * arg)
 {
 	KBE_ASSERT(handle == reportLimitTimerHandle_);
 	timeout();
+
+	profiles.erase(name_);
 }
 
 //-------------------------------------------------------------------------------------
-PyProfileHandler::PyProfileHandler(Mercury::EventDispatcher & dispatcher, uint32 timinglen, std::string name) :
-ProfileHandler(dispatcher, timinglen, name)
+PyProfileHandler::PyProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
+							   std::string name, const Mercury::Address& addr) :
+ProfileHandler(networkInterface, timinglen, name, addr)
 {
 	script::PyProfile::start(name_);
 }
@@ -65,11 +79,33 @@ PyProfileHandler::~PyProfileHandler()
 void PyProfileHandler::timeout()
 {
 	script::PyProfile::stop(name_);
+
+	MemoryStream s;
+	script::PyProfile::addToStream(name_, &s);
+
+	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
+	if(pChannel == NULL)
+	{
+		WARNING_MSG(boost::format("PyProfileHandler::timeout: not found %1% addr(%2%)\n") % 
+			name_ % addr_.c_str());
+		return;
+	}
+
+	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+
+	ConsoleInterface::ConsoleProfileHandler msgHandler;
+	(*(*bundle)).newMessage(msgHandler);
+
+	int8 type = 0;
+	(*(*bundle)) << type;
+	(*(*bundle)).append(&s);
+	(*(*bundle)).send(networkInterface_, pChannel);
 }
 
 //-------------------------------------------------------------------------------------
-CProfileHandler::CProfileHandler(Mercury::EventDispatcher & dispatcher, uint32 timinglen, std::string name) :
-ProfileHandler(dispatcher, timinglen, name)
+CProfileHandler::CProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
+							   std::string name, const Mercury::Address& addr) :
+ProfileHandler(networkInterface, timinglen, name, addr)
 {
 }
 
@@ -84,8 +120,9 @@ void CProfileHandler::timeout()
 }
 
 //-------------------------------------------------------------------------------------
-EventProfileHandler::EventProfileHandler(Mercury::EventDispatcher & dispatcher, uint32 timinglen, std::string name) :
-ProfileHandler(dispatcher, timinglen, name)
+EventProfileHandler::EventProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
+							   std::string name, const Mercury::Address& addr) :
+ProfileHandler(networkInterface, timinglen, name, addr)
 {
 }
 

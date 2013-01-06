@@ -179,9 +179,6 @@ protected:
 	GlobalDataClient*										pGlobalData_;									
 
 	PY_CALLBACKMGR											pyCallbackMgr_;
-
-	// profile timers
-	std::vector<ProfileHandler*>							profileHandler_;
 };
 
 
@@ -583,12 +580,10 @@ void EntityApp<E>::startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStre
 
 	s >> profileName >> profileType >> timelen;
 
-	ProfileHandler* ph = NULL;
-
 	switch(profileType)
 	{
 	case 0:	// pyprofile
-		ph = new PyProfileHandler(this->getMainDispatcher(), timelen, profileName);
+		new PyProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
 		break;
 	case 1:	// cprofile
 		break;
@@ -599,9 +594,6 @@ void EntityApp<E>::startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStre
 			profileType % profileName);
 		break;
 	};
-
-	if(ph)
-		profileHandler_.push_back(ph);
 }
 
 template<class E>

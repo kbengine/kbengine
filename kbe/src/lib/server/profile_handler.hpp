@@ -28,19 +28,24 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 namespace Mercury
 {
-class EventDispatcher;
+class NetworkInterface;
 class Address;
 }
 
 class ProfileHandler : public TimerHandler
 {
 public:
-	ProfileHandler(Mercury::EventDispatcher & dispatcher, uint32 timinglen, std::string name);
+	ProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Mercury::Address& addr);
 	virtual ~ProfileHandler();
 	
 	virtual void timeout() = 0;
+
+	static KBEUnordered_map<std::string, KBEShared_ptr< ProfileHandler > > profiles;
 protected:
 	virtual void handleTimeout(TimerHandle handle, void * arg);
+
+	Mercury::NetworkInterface& networkInterface_;
 
 	TimerHandle reportLimitTimerHandle_;
 	
@@ -52,7 +57,8 @@ protected:
 class PyProfileHandler : public ProfileHandler
 {
 public:
-	PyProfileHandler(Mercury::EventDispatcher & dispatcher, uint32 timinglen, std::string name);
+	PyProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Mercury::Address& addr);
 	~PyProfileHandler();
 	
 	void timeout();
@@ -61,7 +67,8 @@ public:
 class CProfileHandler : public ProfileHandler
 {
 public:
-	CProfileHandler(Mercury::EventDispatcher & dispatcher, uint32 timinglen, std::string name);
+	CProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Mercury::Address& addr);
 	~CProfileHandler();
 	
 	void timeout();
@@ -70,7 +77,8 @@ public:
 class EventProfileHandler : public ProfileHandler
 {
 public:
-	EventProfileHandler(Mercury::EventDispatcher & dispatcher, uint32 timinglen, std::string name);
+	EventProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Mercury::Address& addr);
 	~EventProfileHandler();
 	
 	void timeout();

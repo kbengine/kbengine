@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define CONSOLE_COMMANDCB_MSGID 65500
 #define CONSOLE_LOG_MSGID 65501
 #define CONSOLE_WATCHERCB_MSGID 65502
+#define CONSOLE_PROFILECB_MSGID 65503
 
 namespace KBEngine{
 namespace ConsoleInterface{
@@ -182,6 +183,52 @@ namespace ConsoleInterface{
 		{
 		};
 	};
+
+	class ConsoleProfileHandlerArgsStream : public Mercury::MessageArgs	
+	{				
+	public:
+		ConsoleProfileHandlerArgsStream():Mercury::MessageArgs(){}				
+		~ConsoleProfileHandlerArgsStream(){}	
+	
+		virtual int32 msgsize(void)				
+		{
+			return MERCURY_VARIABLE_MESSAGE;			
+		}		
+
+		virtual int32 msglenMax()
+		{ 
+			return MERCURY_MESSAGE_MAX_SIZE * 1000; 
+		}
+
+		virtual void addToStream(MemoryStream& s)
+		{
+		}			
+
+		virtual void createFromStream(MemoryStream& s)				
+		{	
+		}	
+	};	
+				
+	class ConsoleProfileHandler : public Mercury::MessageHandler
+	{
+	public:
+		ConsoleProfileHandler()
+		{
+			onInstall();
+		}
+
+		virtual void onInstall()
+		{
+			// 强制这条协议ID
+			msgID = CONSOLE_PROFILECB_MSGID;
+			msgLen = MERCURY_VARIABLE_MESSAGE;
+		}
+
+		virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
+		{
+		};
+	};
+
 }
 }
 
