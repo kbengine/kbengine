@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/pyprofile.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "helper/console_helper.hpp"
+#include "server/serverconfig.hpp"
 
 namespace KBEngine { 
 
@@ -72,18 +73,22 @@ ProfileHandler(networkInterface, timinglen, name, addr)
 //-------------------------------------------------------------------------------------
 PyProfileHandler::~PyProfileHandler()
 {
-	if(name_ != "kbengine")
+	if(name_ != "kbengine" || !g_kbeSrvConfig.getBaseApp().profiles.open_pyprofile)
 		script::PyProfile::remove(name_);
 }
 
 //-------------------------------------------------------------------------------------
 void PyProfileHandler::timeout()
 {
-	script::PyProfile::stop(name_);
+	if(name_ != "kbengine" || !g_kbeSrvConfig.getBaseApp().profiles.open_pyprofile)
+		script::PyProfile::stop(name_);
 
 	MemoryStream s;
 	script::PyProfile::addToStream(name_, &s);
 
+	if(name_ == "kbengine" && g_kbeSrvConfig.getBaseApp().profiles.open_pyprofile)
+		script::PyProfile::start(name_);
+	
 	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
 	if(pChannel == NULL)
 	{

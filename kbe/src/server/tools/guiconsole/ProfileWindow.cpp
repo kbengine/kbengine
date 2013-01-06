@@ -92,9 +92,10 @@ void CProfileWindow::OnBnClickedButton1()
 	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 
 	CTimingLengthWindow wnd;
+	wnd.m_profileName = profilename;
 	if(wnd.DoModal() == IDOK)
 	{
-		if(dlg->startProfile(profilename, 0, wnd.m_timingLength))
+		if(dlg->startProfile(wnd.m_profileName, 0, wnd.m_timingLength))
 		{
 			m_results.SetWindowText(L"please wait for the result.");
 			return;
@@ -116,9 +117,10 @@ void CProfileWindow::OnBnClickedButton2()
 	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 
 	CTimingLengthWindow wnd;
+	wnd.m_profileName = profilename;
 	if(wnd.DoModal() == IDOK)
 	{
-		if(dlg->startProfile(profilename, 1, wnd.m_timingLength))
+		if(dlg->startProfile(wnd.m_profileName, 1, wnd.m_timingLength))
 		{
 			m_results.SetWindowText(L"please wait for the result.");
 			return;
@@ -140,9 +142,10 @@ void CProfileWindow::OnBnClickedButton3()
 	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 
 	CTimingLengthWindow wnd;
+	wnd.m_profileName = profilename;
 	if(wnd.DoModal() == IDOK)
 	{
-		if(dlg->startProfile(profilename, 2, wnd.m_timingLength))
+		if(dlg->startProfile(wnd.m_profileName, 2, wnd.m_timingLength))
 		{
 			m_results.SetWindowText(L"please wait for the result.");
 			return;

@@ -22,4 +22,6 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	UINT m_timingLength;
+	std::string m_profileName;
+	afx_msg void OnBnClickedOk();
 };
