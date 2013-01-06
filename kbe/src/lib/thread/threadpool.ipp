@@ -42,6 +42,16 @@ ThreadPool* TPThread::threadPool()
 	return threadPool_;
 }
 
+INLINE uint32 ThreadPool::bufferTaskSize()const
+{
+	return bufferedTaskList_.size();
+}
+
+INLINE uint32 ThreadPool::finiTaskSize()const
+{
+	return finiTaskList_.size();
+}
+
 INLINE THREAD_ID TPThread::getID(void)const
 {
 	return tidp_;
@@ -66,5 +76,7 @@ INLINE int TPThread::getState(void)const
 {
 	return state_;
 }
+
+
 }
 }

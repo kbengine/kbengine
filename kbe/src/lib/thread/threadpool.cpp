@@ -100,6 +100,8 @@ bool ThreadPool::initializeWatcher()
 	WATCH_OBJECT("threadpool/extraNewAddThreadCount", this->extraNewAddThreadCount_);
 	WATCH_OBJECT("threadpool/currentFreeThreadCount", this->currentFreeThreadCount_);
 	WATCH_OBJECT("threadpool/normalThreadCount", this->normalThreadCount_);
+	WATCH_OBJECT("threadpool/bufferedTaskSize", this, &ThreadPool::bufferTaskSize);
+	WATCH_OBJECT("threadpool/finiTaskSize", this, &ThreadPool::finiTaskSize);
 	return true;
 }
 
