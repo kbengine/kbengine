@@ -27,6 +27,10 @@ INLINE void ScriptStdOutErrHook::setHookBuffer(std::string* buffer){
 	wbuffer_ = L""; 
 };
 
+INLINE void ScriptStdOutErrHook::setPrint(bool v)
+{
+	isPrint_ = v;
+}
 
 }
 }

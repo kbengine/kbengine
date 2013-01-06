@@ -93,7 +93,17 @@ void Cellapp::onInstallPyModules()
 
 //-------------------------------------------------------------------------------------
 bool Cellapp::uninstallPyModules()
-{	
+{
+	if(g_kbeSrvConfig.getBaseApp().profiles.open_pyprofile)
+	{
+		script::PyProfile::stop("kbengine");
+
+		char buf[MAX_BUF];
+		kbe_snprintf(buf, MAX_BUF, "baseapp%u.prof", startGroupOrder_);
+		script::PyProfile::dump("kbengine", buf);
+		script::PyProfile::remove("kbengine");
+	}
+
 	unregisterPyObjectToScript("cellAppData");
 	S_RELEASE(pCellAppData_); 
 
@@ -143,6 +153,13 @@ bool Cellapp::initializeBegin()
 //-------------------------------------------------------------------------------------
 bool Cellapp::initializeEnd()
 {
+	// 如果需要pyprofile则在此处安装
+	// 结束时卸载并输出结果
+	if(g_kbeSrvConfig.getBaseApp().profiles.open_pyprofile)
+	{
+		script::PyProfile::start("kbengine");
+	}
+
 	mainDispatcher_.clearSpareTime();
 	return true;
 }

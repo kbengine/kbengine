@@ -161,9 +161,11 @@ void PyProfile::addToStream(std::string profile, MemoryStream* s)
 
 	std::string retBufferPtr;
 	pScript_->pyStdouterrHook()->setHookBuffer(&retBufferPtr);
+	pScript_->pyStdouterrHook()->setPrint(false);
 	PyObject* pyRet = PyObject_CallMethod(iter->second.get(), "print_stats",
 		const_cast<char*>(""));
 	
+	pScript_->pyStdouterrHook()->setPrint(true);
 	pScript_->pyStdouterrHook()->uninstall();
 
 	SCRIPT_ERROR_CHECK();
@@ -175,9 +177,48 @@ void PyProfile::addToStream(std::string profile, MemoryStream* s)
 	
 	(*s) << retBufferPtr;
 
-	DEBUG_MSG(boost::format("PyProfile::addToStream:%1%") % retBufferPtr);
+	// DEBUG_MSG(boost::format("PyProfile::addToStream:%1%") % retBufferPtr);
 
 	Py_DECREF(pyRet);
+}
+
+//-------------------------------------------------------------------------------------
+bool PyProfile::dump(std::string profile, std::string fileName)
+{
+	/* ╪сть╫А╧Ш
+		import pstats
+		p = pstats.Stats("*.prof")
+		p.sort_stats("time").print_stats()
+	*/
+
+	PyProfile::PROFILES::iterator iter = profiles_.find(profile);
+	if(iter == profiles_.end())
+	{
+		ERROR_MSG(boost::format("PyProfile::dump: profile(%1%) is not exists!\n") % profile);
+		return false;
+	}
+
+	FILE* f = fopen(fileName.c_str(), "rw+");
+	if(f == NULL)
+	{
+		ERROR_MSG(boost::format("PyProfile::dump: profile(%1%) can't open fileName=%2%!\n") % profile % fileName);
+		return false;
+	}
+
+	PyObject* pyRet = PyObject_CallMethod(iter->second.get(), "dump_stats",
+		const_cast<char*>("s"), fileName.c_str());
+
+	SCRIPT_ERROR_CHECK();
+
+	if(!pyRet)
+	{
+		return false;
+	}
+	
+	DEBUG_MSG(boost::format("PyProfile::dump: save to %1%.") % fileName);
+
+	Py_DECREF(pyRet);
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

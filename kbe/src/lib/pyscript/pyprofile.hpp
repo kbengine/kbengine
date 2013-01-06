@@ -40,6 +40,7 @@ public:
 	*/
 	static bool start(std::string profile);
 	static bool stop(std::string profile);
+	static bool dump(std::string profile, std::string fileName);
 	static void addToStream(std::string profile, MemoryStream* s);
 	static bool remove(std::string profile);
 	/** 

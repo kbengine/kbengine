@@ -242,6 +242,17 @@ bool ServerConfig::loadConfig(std::string fileName)
 					_cellAppInfo.criticallyLowSize = 100;
 			}
 		}
+
+		node = NULL;			
+		node = xml->enterNode(rootNode, "profiles");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "pyprofile");
+			if(childnode)
+			{
+				_cellAppInfo.profiles.open_pyprofile = (xml->getValStr(childnode) == "true");
+			}
+		}
 	}
 	
 	rootNode = NULL;
@@ -323,6 +334,17 @@ bool ServerConfig::loadConfig(std::string fileName)
 			childnode = xml->enterNode(node, "bitsPerSecondPerClient");
 			if(childnode)
 				_baseAppInfo.downloadBitsPerSecondPerClient = xml->getValInt(childnode);
+		}
+
+		node = NULL;			
+		node = xml->enterNode(rootNode, "profiles");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "pyprofile");
+			if(childnode)
+			{
+				_baseAppInfo.profiles.open_pyprofile = (xml->getValStr(childnode) == "true");
+			}
 		}
 	}
 

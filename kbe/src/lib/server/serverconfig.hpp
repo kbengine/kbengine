@@ -53,6 +53,16 @@ namespace Mercury
 class Address;
 }
 
+struct profiles_config
+{
+	profiles_config():
+		open_pyprofile(false)
+	{
+	}
+
+	bool open_pyprofile;
+};
+
 // 引擎组件信息结构体
 typedef struct EngineComponentInfo
 {
@@ -97,6 +107,7 @@ typedef struct EngineComponentInfo
 
 	uint32 channelTimeout;									// 频道超时时间
 
+	profiles_config profiles;
 }ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>

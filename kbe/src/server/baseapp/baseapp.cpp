@@ -187,6 +187,16 @@ void Baseapp::onInstallPyModules()
 //-------------------------------------------------------------------------------------
 bool Baseapp::uninstallPyModules()
 {	
+	if(g_kbeSrvConfig.getBaseApp().profiles.open_pyprofile)
+	{
+		script::PyProfile::stop("kbengine");
+
+		char buf[MAX_BUF];
+		kbe_snprintf(buf, MAX_BUF, "baseapp%u.prof", startGroupOrder_);
+		script::PyProfile::dump("kbengine", buf);
+		script::PyProfile::remove("kbengine");
+	}
+
 	unregisterPyObjectToScript("globalBases");
 	S_RELEASE(pGlobalBases_); 
 
@@ -359,6 +369,13 @@ bool Baseapp::initializeEnd()
 	new SyncEntityStreamTemplateHandler(this->getNetworkInterface());
 
 	_g_lastTimestamp = timestamp();
+
+	// 如果需要pyprofile则在此处安装
+	// 结束时卸载并输出结果
+	if(g_kbeSrvConfig.getBaseApp().profiles.open_pyprofile)
+	{
+		script::PyProfile::start("kbengine");
+	}
 
 	return true;
 }

@@ -18,6 +18,12 @@ public:
 	void autoWndSize();
 
 	BOOL OnInitDialog();
+
+	void onReceiveData(KBEngine::int8 type, std::string& data);
+
+	void onReceivePyProfileData(std::string& data);
+	void onReceiveCProfileData(std::string& data);
+	void onReceiveEventProfileData(std::string& data);
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
@@ -30,4 +36,5 @@ public:
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnBnClickedButton2();
 	afx_msg void OnBnClickedButton3();
+	CEdit m_results;
 };

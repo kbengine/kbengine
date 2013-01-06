@@ -33,6 +33,7 @@ void CProfileWindow::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BUTTON2, m_cprofile);
 	DDX_Control(pDX, IDC_BUTTON3, m_eventprofile);
 	DDX_Control(pDX, IDC_LIST1, m_profileShowList);
+	DDX_Control(pDX, IDC_RESULT, m_results);
 }
 
 BOOL CProfileWindow::OnInitDialog()
@@ -68,7 +69,8 @@ void CProfileWindow::autoWndSize()
 	m_cprofile.MoveWindow(int(rect.right * 0.33) + 3, int(rect.bottom * 0.95), rect.right / 3, int(rect.bottom * 0.05), TRUE);
 	m_eventprofile.MoveWindow(int(rect.right * 0.66) + 3, int(rect.bottom * 0.95), rect.right / 3, int(rect.bottom * 0.05), TRUE);
 	
-	m_profileShowList.MoveWindow(2, 3, rect.right, rect.bottom - int(rect.bottom * 0.05) - 5, TRUE);
+	//m_profileShowList.MoveWindow(2, 3, rect.right, rect.bottom - int(rect.bottom * 0.05) - 5, TRUE);
+	m_results.MoveWindow(2, 3, rect.right, rect.bottom - int(rect.bottom * 0.05) - 5, TRUE);
 }
 
 
@@ -84,37 +86,31 @@ END_MESSAGE_MAP()
 void CProfileWindow::OnBnClickedButton1()
 {
 	m_pyprofile.EnableWindow(FALSE);
-	
+	m_cprofile.EnableWindow(FALSE);
+	m_eventprofile.EnableWindow(FALSE);
+
 	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 
 	CTimingLengthWindow wnd;
 	if(wnd.DoModal() == IDOK)
 	{
-		if(!dlg->startProfile(profilename, 0, wnd.m_timingLength))
+		if(dlg->startProfile(profilename, 0, wnd.m_timingLength))
+		{
+			m_results.SetWindowText(L"please wait for the result.");
 			return;
+		}
 	}
 
 	m_pyprofile.EnableWindow(TRUE);
+	m_cprofile.EnableWindow(TRUE);
+	m_eventprofile.EnableWindow(TRUE);
+	::AfxMessageBox(L"please select the baseapp|cellapp.");
 }
 
 void CProfileWindow::OnBnClickedButton2()
 {
+	m_pyprofile.EnableWindow(FALSE);
 	m_cprofile.EnableWindow(FALSE);
-	
-	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
-
-	CTimingLengthWindow wnd;
-	if(wnd.DoModal() == IDOK)
-	{
-		if(!dlg->startProfile(profilename, 1, wnd.m_timingLength))
-			return;
-	}
-
-	m_cprofile.EnableWindow(TRUE);
-}
-
-void CProfileWindow::OnBnClickedButton3()
-{
 	m_eventprofile.EnableWindow(FALSE);
 	
 	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
@@ -122,9 +118,82 @@ void CProfileWindow::OnBnClickedButton3()
 	CTimingLengthWindow wnd;
 	if(wnd.DoModal() == IDOK)
 	{
-		if(!dlg->startProfile(profilename, 2, wnd.m_timingLength))
+		if(dlg->startProfile(profilename, 1, wnd.m_timingLength))
+		{
+			m_results.SetWindowText(L"please wait for the result.");
 			return;
+		}
 	}
 
+	m_pyprofile.EnableWindow(TRUE);
+	m_cprofile.EnableWindow(TRUE);
 	m_eventprofile.EnableWindow(TRUE);
+	::AfxMessageBox(L"please select the baseapp|cellapp.");
+}
+
+void CProfileWindow::OnBnClickedButton3()
+{
+	m_pyprofile.EnableWindow(FALSE);
+	m_cprofile.EnableWindow(FALSE);
+	m_eventprofile.EnableWindow(FALSE);
+	
+	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+
+	CTimingLengthWindow wnd;
+	if(wnd.DoModal() == IDOK)
+	{
+		if(dlg->startProfile(profilename, 2, wnd.m_timingLength))
+		{
+			m_results.SetWindowText(L"please wait for the result.");
+			return;
+		}
+	}
+
+	m_pyprofile.EnableWindow(TRUE);
+	m_cprofile.EnableWindow(TRUE);
+	m_eventprofile.EnableWindow(TRUE);
+	::AfxMessageBox(L"please select the baseapp|cellapp.");
+}
+
+void CProfileWindow::onReceiveData(KBEngine::int8 type, std::string& data)
+{
+	m_pyprofile.EnableWindow(TRUE);
+	m_cprofile.EnableWindow(TRUE);
+	m_eventprofile.EnableWindow(TRUE);
+
+	switch(type)
+	{
+	case 0:	// pyprofile
+		onReceivePyProfileData(data);
+		break;
+	case 1:	// cprofile
+		onReceiveCProfileData(data);
+		break;
+	case 2:	// eventprofile
+		onReceiveEventProfileData(data);
+		break;
+	default:
+		ERROR_MSG(boost::format("CProfileWindow::onReceiveData: type(%1%) not support!\n") % 
+			type);
+		break;
+	};
+}
+
+void CProfileWindow::onReceivePyProfileData(std::string& data)
+{
+	CString s;
+	wchar_t* ws = KBEngine::strutil::char2wchar(data.c_str());
+	s = ws;
+	s.Replace(L"\n", L"\r\n");
+	free(ws);
+
+	m_results.SetWindowText(s);
+}
+
+void CProfileWindow::onReceiveCProfileData(std::string& data)
+{
+}
+
+void CProfileWindow::onReceiveEventProfileData(std::string& data)
+{
 }

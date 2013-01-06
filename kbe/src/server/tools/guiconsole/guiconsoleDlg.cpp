@@ -106,6 +106,16 @@ public:
 	};
 };
 
+class ConsoleProfileHandlerEx : public KBEngine::ConsoleInterface::ConsoleProfileHandler
+{
+public:
+	virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
+	{
+		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+		dlg->onReceiveProfileData(s);
+	};
+};
+
 class FindServersTask : public thread::TPTask
 {
 public:
@@ -247,15 +257,6 @@ RESTART_RECV:
 	}
 };
 
-class ConsoleProfileHandlerArgsStreamEx : public KBEngine::ConsoleInterface::ConsoleProfileHandlerArgsStream
-{
-public:
-	virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
-	{
-		CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
-		dlg->onReceiveProfileData(s);
-	};
-};
 
 // CAboutDlg dialog used for App About
 
@@ -433,6 +434,9 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	KBEngine::ConsoleInterface::messageHandlers.add("Console::onReceiveWatcherData", new KBEngine::ConsoleInterface::ConsoleWatcherCBHandlerMessageArgsStream, MERCURY_VARIABLE_MESSAGE, 
 		new ConsoleWatcherCBMessageHandlerEx);
 	
+	KBEngine::ConsoleInterface::messageHandlers.add("Console::onReceiveProfileData", new KBEngine::ConsoleInterface::ConsoleProfileHandlerArgsStream, MERCURY_VARIABLE_MESSAGE, 
+		new ConsoleProfileHandlerEx);
+
 	threadPool_.createThreadPool(1, 1, 16);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -506,6 +510,12 @@ HTREEITEM CguiconsoleDlg::hasCheckApp(COMPONENT_TYPE type)
 
 void CguiconsoleDlg::onReceiveProfileData(MemoryStream& s)
 {
+	std::string data;
+	KBEngine::int8 type;
+	s >> type;
+	s >> data;
+
+	m_profileWnd.onReceiveData(type, data);
 }
 
 void CguiconsoleDlg::commitPythonCommand(CString strCommand)

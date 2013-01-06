@@ -37,9 +37,12 @@ public:
 	void onPrint(const wchar_t* msg, uint32 msglen);
 
 	INLINE void setHookBuffer(std::string* buffer);
+
+	INLINE void setPrint(bool v);
 protected:
 	std::string* buffer_;
 	std::wstring wbuffer_;
+	bool isPrint_;
 } ;
 
 }

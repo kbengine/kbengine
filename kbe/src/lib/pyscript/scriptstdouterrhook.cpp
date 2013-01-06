@@ -34,7 +34,8 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(ScriptStdOutErrHook, 0, 0, 0, 0, 0)		
 
 //-------------------------------------------------------------------------------------
-ScriptStdOutErrHook::ScriptStdOutErrHook()
+ScriptStdOutErrHook::ScriptStdOutErrHook():
+isPrint_(true)
 {
 }
 
@@ -46,7 +47,8 @@ ScriptStdOutErrHook::~ScriptStdOutErrHook()
 //-------------------------------------------------------------------------------------
 void ScriptStdOutErrHook::onPrint(const wchar_t* msg, uint32 msglen)
 {
-	ScriptStdOutErr::onPrint(msg, msglen);
+	if(isPrint_)
+		ScriptStdOutErr::onPrint(msg, msglen);
 
 	std::wstring str;
 	str.assign(msg, msglen);
@@ -59,6 +61,7 @@ void ScriptStdOutErrHook::onPrint(const wchar_t* msg, uint32 msglen)
 			std::string out;
 			strutil::wchar2utf8(wbuffer_, out);		
 			(*buffer_) += out;
+			wbuffer_ = L"";
 		}
 	}
 }
