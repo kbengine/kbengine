@@ -36,7 +36,7 @@ INLINE bool Entity::isWitnessed(void)const
 //-------------------------------------------------------------------------------------
 INLINE bool Entity::hasWitness(void)const
 { 
-	return pWitness_ != NULL; 
+	return pWitness_ != NULL &&  clientMailbox_ != NULL; 
 }
 
 //-------------------------------------------------------------------------------------
