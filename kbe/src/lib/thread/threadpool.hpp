@@ -18,18 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-	线程池
-	
-	使用用法:
-	if(ThreadPool::getSingletonPtr() && !ThreadPool::getSingleton().isInitialize())
-		ThreadPool::getSingleton().createThreadPool(inewThreadCount, inormalMaxThreadCount, imaxThreadCount);
 
-	@param inewThreadCount			: 当系统繁忙时线程池会新增加这么多线程（临时）
-	@param inormalMaxThreadCount	: 线程池会一直保持这么多个数的线程
-	@param imaxThreadCount			: 线程池最多只能有这么多个线程
-	当线程池线程到达最大数量时， 一些没有处理的任务会被暂时保存到队列里等待空闲线程来处理
-*/
 #ifndef __THREADPOOL_H__
 #define __THREADPOOL_H__
 
@@ -310,6 +299,7 @@ public:
 	*/	
 	bool removeHangThread(TPThread* tptd);
 
+	bool initializeWatcher();
 protected:
 	bool isInitialize_;												// 线程池是否被初始化过
 	

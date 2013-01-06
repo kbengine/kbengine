@@ -67,6 +67,8 @@ public:
 	std::string getPySysResPath();
 
 	FILE* openResource(const char* res, const char* model);
+
+	bool initializeWatcher();
 private:
 	KBEEnv kb_env_;
 	std::vector<std::string> respaths_;

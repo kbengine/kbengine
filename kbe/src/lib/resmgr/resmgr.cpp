@@ -19,6 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "resmgr.hpp"
+#include "helper/watcher.hpp"
 
 namespace KBEngine{
 KBE_SINGLETON_INIT(Resmgr);
@@ -31,6 +32,15 @@ Resmgr::Resmgr()
 //-------------------------------------------------------------------------------------
 Resmgr::~Resmgr()
 {
+}
+
+//-------------------------------------------------------------------------------------
+bool Resmgr::initializeWatcher()
+{
+	WATCH_OBJECT("syspaths/KBE_ROOT", kb_env_.root);
+	WATCH_OBJECT("syspaths/KBE_RES_PATH", kb_env_.res_path);
+	WATCH_OBJECT("syspaths/KBE_HYBRID_PATH", kb_env_.hybrid_path);
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

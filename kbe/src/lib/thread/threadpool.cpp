@@ -20,6 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "threadpool.hpp"
+#include "helper/watcher.hpp"
+
 namespace KBEngine{ 
 KBE_SINGLETON_INIT(KBEngine::thread::ThreadPool);
 namespace thread{
@@ -89,6 +91,16 @@ ThreadPool::~ThreadPool()
 		bufferedTaskList_.pop();
 		delete tptask;
 	}
+}
+
+//-------------------------------------------------------------------------------------
+bool ThreadPool::initializeWatcher()
+{
+	WATCH_OBJECT("threadpool/maxThreadCount", this->maxThreadCount_);
+	WATCH_OBJECT("threadpool/extraNewAddThreadCount", this->extraNewAddThreadCount_);
+	WATCH_OBJECT("threadpool/currentFreeThreadCount", this->currentFreeThreadCount_);
+	WATCH_OBJECT("threadpool/normalThreadCount", this->normalThreadCount_);
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "helper/console_helper.hpp"
+#include "resmgr/resmgr.hpp"
 
 #include "../../server/baseappmgr/baseappmgr_interface.hpp"
 #include "../../server/cellappmgr/cellappmgr_interface.hpp"
@@ -134,7 +135,8 @@ bool ServerApp::initializeWatcher()
 	WATCH_OBJECT("groupOrder", this, &ServerApp::groupOrder);
 	WATCH_OBJECT("gametime", this, &ServerApp::time);
 
-	return Mercury::initializeWatcher();
+	return Mercury::initializeWatcher() && Resmgr::getSingleton().initializeWatcher() &&
+		threadPool_.initializeWatcher();
 }
 
 //-------------------------------------------------------------------------------------		
