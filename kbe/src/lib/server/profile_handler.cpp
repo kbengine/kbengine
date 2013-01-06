@@ -72,7 +72,8 @@ ProfileHandler(networkInterface, timinglen, name, addr)
 //-------------------------------------------------------------------------------------
 PyProfileHandler::~PyProfileHandler()
 {
-	script::PyProfile::remove(name_);
+	if(name_ != "kbengine")
+		script::PyProfile::remove(name_);
 }
 
 //-------------------------------------------------------------------------------------
