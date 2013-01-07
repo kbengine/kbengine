@@ -24,7 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine
 {
 
-KBEShared_ptr< ProfileGroup > ProfileGroup::pDefaultGroup_;
+ProfileGroup* g_pDefaultGroup = NULL;
 TimeStamp ProfileVal::warningPeriod_;
 
 //-------------------------------------------------------------------------------------
@@ -50,6 +50,12 @@ ProfileGroup::~ProfileGroup()
 }
 
 //-------------------------------------------------------------------------------------
+void ProfileGroup::finalise(void)
+{
+	SAFE_RELEASE(g_pDefaultGroup);
+}
+
+//-------------------------------------------------------------------------------------
 TimeStamp ProfileGroup::runningTime() const
 {
 	return timestamp() - this->pRunningTime()->lastTime_;
@@ -64,12 +70,9 @@ void ProfileGroup::add( ProfileVal * pVal )
 //-------------------------------------------------------------------------------------
 ProfileGroup & ProfileGroup::defaultGroup()
 {
-	if (pDefaultGroup_.get() == NULL)
-	{
-		pDefaultGroup_.reset(new ProfileGroup());
-	}
-
-	return *pDefaultGroup_.get();
+	if(g_pDefaultGroup == NULL)
+		g_pDefaultGroup = new ProfileGroup();
+	return *g_pDefaultGroup;
 }
 
 //-------------------------------------------------------------------------------------

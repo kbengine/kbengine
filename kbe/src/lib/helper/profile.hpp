@@ -58,13 +58,13 @@ public:
 
 	bool initializeWatcher();
 
+	static void finalise(void);
+
 	INLINE const ProfileGroup::PROFILEVALS& profiles()const;
 private:
 	PROFILEVALS profiles_;
 
 	PROFILEVALS stack_;
-
-	static KBEShared_ptr< ProfileGroup > pDefaultGroup_;
 
 	std::string name_;
 };

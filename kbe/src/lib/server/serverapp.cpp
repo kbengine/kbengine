@@ -186,6 +186,7 @@ bool ServerApp::initThreadPool()
 //-------------------------------------------------------------------------------------		
 void ServerApp::finalise(void)
 {
+	ProfileGroup::finalise();
 	threadPool_.finalise();
 	pActiveTimerHandle_.cancel();
 
