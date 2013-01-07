@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __PROFILE_HANDLER__
 
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/tasks.hpp"
 #include "cstdkbe/timer.hpp"
 #include "helper/debug_helper.hpp"
 
@@ -64,7 +65,8 @@ public:
 	void timeout();
 };
 
-class CProfileHandler : public ProfileHandler
+class CProfileHandler : public Task, 
+						public ProfileHandler
 {
 public:
 	CProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
@@ -72,6 +74,38 @@ public:
 	~CProfileHandler();
 	
 	void timeout();
+	
+	bool process();
+private:
+	struct ProfileVal
+	{
+		// 名称
+		std::string		name;
+
+		// startd后的时间.
+		TimeStamp		lastTime;
+		TimeStamp		diff_lastTime;
+
+		// count_次的总时间
+		TimeStamp		sumTime;
+		TimeStamp		diff_sumTime;
+
+		// 记录最后一次内部时间片
+		TimeStamp		lastIntTime;
+		TimeStamp		diff_lastIntTime;
+
+		// count_次内部总时间
+		TimeStamp		sumIntTime;
+		TimeStamp		diff_sumIntTime;
+
+		uint32			count;
+		TimeStamp		diff_count;
+	};
+
+	// 此ProfileVal只在计时器开始时记录default.profiles的初始值
+	// 在结束时取出差值得到结果
+	typedef KBEUnordered_map<std::string,  ProfileVal> PROFILEVALS;
+	PROFILEVALS profileVals_;
 };
 
 class EventProfileHandler : public ProfileHandler

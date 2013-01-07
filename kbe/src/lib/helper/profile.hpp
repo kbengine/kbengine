@@ -54,9 +54,11 @@ public:
 	const ProfileVal * pRunningTime() const { return profiles_[0]; }
 	TimeStamp runningTime() const;
 
-	const char* name()const{ return name_.c_str(); }
+	INLINE const char* name()const;
 
 	bool initializeWatcher();
+
+	INLINE const ProfileGroup::PROFILEVALS& profiles()const;
 private:
 	PROFILEVALS profiles_;
 
@@ -142,12 +144,21 @@ public:
 
 	INLINE const char * c_str() const;
 
+	INLINE TimeStamp sumTime() const;
+	INLINE TimeStamp lastIntTime() const ;
+	INLINE TimeStamp sumIntTime() const ;
+	INLINE TimeStamp lastTime() const;
+
 	INLINE double lastTimeInSeconds() const;
 	INLINE double sumTimeInSeconds() const ;
 	INLINE double lastIntTimeInSeconds() const ;
 	INLINE double sumIntTimeInSeconds() const;
 
-	INLINE TimeStamp lastTime() const;
+	
+
+	INLINE const char* name()const;
+
+	INLINE uint32 count() const;
 
 	// Ãû³Æ
 	std::string	name_;

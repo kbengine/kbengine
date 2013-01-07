@@ -1,7 +1,7 @@
 #pragma once
 #include "afxwin.h"
 #include "afxcmn.h"
-
+#include "cstdkbe/memorystream.hpp"
 
 // CProfileWindow dialog
 
@@ -19,11 +19,11 @@ public:
 
 	BOOL OnInitDialog();
 
-	void onReceiveData(KBEngine::int8 type, std::string& data);
+	void onReceiveData(KBEngine::int8 type, KBEngine::MemoryStream& s);
 
 	void onReceivePyProfileData(std::string& data);
-	void onReceiveCProfileData(std::string& data);
-	void onReceiveEventProfileData(std::string& data);
+	void onReceiveCProfileData(KBEngine::MemoryStream& s);
+	void onReceiveEventProfileData(KBEngine::MemoryStream& s);
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 

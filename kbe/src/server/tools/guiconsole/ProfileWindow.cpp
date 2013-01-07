@@ -69,7 +69,7 @@ void CProfileWindow::autoWndSize()
 	m_cprofile.MoveWindow(int(rect.right * 0.33) + 3, int(rect.bottom * 0.95), rect.right / 3, int(rect.bottom * 0.05), TRUE);
 	m_eventprofile.MoveWindow(int(rect.right * 0.66) + 3, int(rect.bottom * 0.95), rect.right / 3, int(rect.bottom * 0.05), TRUE);
 	
-	//m_profileShowList.MoveWindow(2, 3, rect.right, rect.bottom - int(rect.bottom * 0.05) - 5, TRUE);
+	m_profileShowList.MoveWindow(2, 3, rect.right, rect.bottom - int(rect.bottom * 0.05) - 5, TRUE);
 	m_results.MoveWindow(2, 3, rect.right, rect.bottom - int(rect.bottom * 0.05) - 5, TRUE);
 }
 
@@ -158,7 +158,7 @@ void CProfileWindow::OnBnClickedButton3()
 	::AfxMessageBox(L"please select the baseapp|cellapp.");
 }
 
-void CProfileWindow::onReceiveData(KBEngine::int8 type, std::string& data)
+void CProfileWindow::onReceiveData(KBEngine::int8 type, KBEngine::MemoryStream& s)
 {
 	m_pyprofile.EnableWindow(TRUE);
 	m_cprofile.EnableWindow(TRUE);
@@ -167,13 +167,23 @@ void CProfileWindow::onReceiveData(KBEngine::int8 type, std::string& data)
 	switch(type)
 	{
 	case 0:	// pyprofile
-		onReceivePyProfileData(data);
+		{
+			m_profileShowList.ShowWindow(FALSE);
+			m_results.ShowWindow(TRUE);
+			std::string data;
+			s >> data;
+			onReceivePyProfileData(data);
+		}
 		break;
 	case 1:	// cprofile
-		onReceiveCProfileData(data);
+		m_profileShowList.ShowWindow(TRUE);
+		m_results.ShowWindow(FALSE);
+		onReceiveCProfileData(s);
 		break;
 	case 2:	// eventprofile
-		onReceiveEventProfileData(data);
+		m_profileShowList.ShowWindow(TRUE);
+		m_results.ShowWindow(FALSE);
+		onReceiveEventProfileData(s);
 		break;
 	default:
 		ERROR_MSG(boost::format("CProfileWindow::onReceiveData: type(%1%) not support!\n") % 
@@ -193,10 +203,54 @@ void CProfileWindow::onReceivePyProfileData(std::string& data)
 	m_results.SetWindowText(s);
 }
 
-void CProfileWindow::onReceiveCProfileData(std::string& data)
+void CProfileWindow::onReceiveCProfileData(KBEngine::MemoryStream& s)
 {
+	m_profileShowList.DeleteAllItems();
+
+	KBEngine::ArraySize size;
+	s >> size;
+
+	while(size-- > 0)
+	{
+		uint32 count;
+		float lastTime;
+		float sumTime;
+		float lastIntTime;
+		float sumIntTime;
+		std::string name;
+
+		s >> name >> count >> lastTime >> sumTime >> lastIntTime >> sumIntTime;
+
+		CString str;
+		str.Format(L"%u", count);
+		m_profileShowList.InsertItem(0, str);
+
+		str.Format(L"%.3f", sumTime);
+		m_profileShowList.SetItemText(0, 1, str);
+
+		str.Format(L"%.3f", lastTime);
+		m_profileShowList.SetItemText(0, 2, str);
+
+		str.Format(L"%.3f", sumIntTime);
+		m_profileShowList.SetItemText(0, 3, str);
+
+		str.Format(L"%.3f", lastIntTime);
+		m_profileShowList.SetItemText(0, 4, str);
+
+		wchar_t* ws = KBEngine::strutil::char2wchar(name.c_str());
+		str = ws;
+		free(ws);
+		m_profileShowList.SetItemText(0, 5, str);
+	};
+
+	ListSortData *tmpp = new ListSortData;
+	tmpp->listctrl = &m_profileShowList;
+	tmpp->isub = 3;
+	tmpp->seq = 1;
+	m_profileShowList.SortItems(CompareFloatFunc,(LPARAM)tmpp);
+	delete tmpp;
 }
 
-void CProfileWindow::onReceiveEventProfileData(std::string& data)
+void CProfileWindow::onReceiveEventProfileData(KBEngine::MemoryStream& s)
 {
 }

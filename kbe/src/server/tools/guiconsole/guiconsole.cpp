@@ -39,6 +39,34 @@ int CALLBACK CompareFunc(LPARAM lParam1,LPARAM lParam2,LPARAM lParamSort)
 		return -_tcscmp(strItem2, strItem1);
 }
 
+int CALLBACK CompareFloatFunc(LPARAM lParam1,LPARAM lParam2,LPARAM lParamSort)
+{
+	ListSortData *p = (ListSortData *)lParamSort;
+	CListCtrl* list = p->listctrl;
+	int isub = p->isub;
+	LVFINDINFO findInfo;
+	findInfo.flags = LVFI_PARAM;
+	findInfo.lParam = lParam1;
+	int iItem1 = list->FindItem(&findInfo, -1);
+	findInfo.lParam = lParam2;
+	int iItem2 = list->FindItem(&findInfo, -1);
+
+	CString strItem1 =list->GetItemText(iItem1,isub);
+	CString strItem2 =list->GetItemText(iItem2,isub);
+
+	char* cs1 = KBEngine::strutil::wchar2char(strItem1.GetBuffer(0));
+	char* cs2 = KBEngine::strutil::wchar2char(strItem2.GetBuffer(0));
+	double v1 = atof(cs1);
+	double v2 = atof(cs2);
+	free(cs1);
+	free(cs2);
+
+	if(p->seq)
+		return cs1 < cs2;
+	else
+		return cs1 > cs2;
+}
+
 // CguiconsoleApp construction
 
 CguiconsoleApp::CguiconsoleApp()

@@ -510,12 +510,10 @@ HTREEITEM CguiconsoleDlg::hasCheckApp(COMPONENT_TYPE type)
 
 void CguiconsoleDlg::onReceiveProfileData(MemoryStream& s)
 {
-	std::string data;
 	KBEngine::int8 type;
 	s >> type;
-	s >> data;
 
-	m_profileWnd.onReceiveData(type, data);
+	m_profileWnd.onReceiveData(type, s);
 }
 
 void CguiconsoleDlg::commitPythonCommand(CString strCommand)
@@ -1035,6 +1033,7 @@ void CguiconsoleDlg::updateTree()
 	tmpp->isub = 0;
 	tmpp->seq = 0;
 	m_statusWnd.m_statusList.SortItems(CompareFunc,(LPARAM)tmpp);
+	delete tmpp;
 }
 
 void CguiconsoleDlg::autoWndSize()

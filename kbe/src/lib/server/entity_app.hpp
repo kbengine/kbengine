@@ -586,8 +586,10 @@ void EntityApp<E>::startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStre
 		new PyProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
 		break;
 	case 1:	// cprofile
+		new CProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
 		break;
 	case 2:	// eventprofile
+		new EventProfileHandler(this->getNetworkInterface(), timelen, profileName, pChannel->addr());
 		break;
 	default:
 		ERROR_MSG(boost::format("EntityApp::startProfile: type(%1%:%2%) not support!\n") % 
