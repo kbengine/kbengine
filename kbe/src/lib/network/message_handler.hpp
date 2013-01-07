@@ -45,8 +45,8 @@ public:
 class MessageHandler
 {
 public:
-	MessageHandler():pArgs(NULL){};
-	~MessageHandler(){SAFE_RELEASE(pArgs);};
+	MessageHandler();
+	virtual ~MessageHandler();
 
 	std::string name;
 	MessageID msgID;
@@ -62,6 +62,8 @@ public:
 	}
 
 	virtual int32 msglenMax(){ return MERCURY_MESSAGE_MAX_SIZE / 2; }
+
+	const char* c_str();
 
 	/**
 		当这个handler被正是安装到MessageHandlers后被调用
@@ -90,6 +92,8 @@ public:
 	MessageHandler* find(MessageID msgID);
 	
 	MessageID lastMsgID() {return msgID_ - 1;}
+
+	bool initializeWatcher();
 private:
 	MessageHandlerMap msgHandlers_;
 	MessageID msgID_;

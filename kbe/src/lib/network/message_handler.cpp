@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/network_interface.hpp"
 #include "network/packet_receiver.hpp"
 #include "network/fixed_messages.hpp"
+#include "helper/watcher.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -59,13 +60,47 @@ MessageHandlers::~MessageHandlers()
 }
 
 //-------------------------------------------------------------------------------------
+MessageHandler::MessageHandler():
+pArgs(NULL)
+{
+}
+
+//-------------------------------------------------------------------------------------
+MessageHandler::~MessageHandler()
+{
+	SAFE_RELEASE(pArgs);
+}
+
+//-------------------------------------------------------------------------------------
+const char* MessageHandler::c_str()
+{
+	static char buf[MAX_BUF];
+	kbe_snprintf(buf, MAX_BUF, "id:%u, len:%d", msgID, msgLen);
+	return buf;
+}
+
+//-------------------------------------------------------------------------------------
+bool MessageHandlers::initializeWatcher()
+{
+	MessageHandlerMap::iterator iter = msgHandlers_.begin();
+	for(; iter != msgHandlers_.end(); iter++)
+	{
+		char buf[MAX_BUF];
+		kbe_snprintf(buf, MAX_BUF, "network/messages/%s", iter->second->name.c_str());
+		WATCH_OBJECT(buf, iter->second, &MessageHandler::c_str);
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args, 
 	int32 msgLen, MessageHandler* msgHandler)
 {
 	if(msgID_ == 1)
 	{
-		printf("\n------------------------------------------------------------------\n");
-		printf("KBEMessage_handlers begin:\n");
+		//printf("\n------------------------------------------------------------------\n");
+		//printf("KBEMessage_handlers begin:\n");
 	}
 	
 	bool isfixedMsg = false;
@@ -101,8 +136,8 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	
 	if(msgLen == MERCURY_VARIABLE_MESSAGE)
 	{
-		printf("\tMessageHandlers::add(%d): name=%s, msgID=%d, size=Variable.\n", 
-			(int32)msgHandlers_.size(), ihName.c_str(), msgHandler->msgID);
+		//printf("\tMessageHandlers::add(%d): name=%s, msgID=%d, size=Variable.\n", 
+		//	(int32)msgHandlers_.size(), ihName.c_str(), msgHandler->msgID);
 	}
 	else
 	{
@@ -116,12 +151,13 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 			}
 		}
 		
-		printf("\tMessageHandlers::add(%d): name=%s, msgID=%d, size=Fixed(%d).\n", 
-				(int32)msgHandlers_.size(), ihName.c_str(), msgHandler->msgID, msgHandler->msgLen);
+		//printf("\tMessageHandlers::add(%d): name=%s, msgID=%d, size=Fixed(%d).\n", 
+		//		(int32)msgHandlers_.size(), ihName.c_str(), msgHandler->msgID, msgHandler->msgLen);
 	}
 
-	if(isfixedMsg)
-		printf("\t\t!!!message is fixed.!!!\n");
+	//if(isfixedMsg)
+	//	printf("\t\t!!!message is fixed.!!!\n");
+
 	return msgHandlers_[msgHandler->msgID];
 }
 

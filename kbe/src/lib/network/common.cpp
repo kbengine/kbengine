@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
+#include "network/message_handler.hpp"
 #include "network/tcp_packet_receiver.hpp"
 #include "network/udp_packet_receiver.hpp"
 #include "network/address.hpp"
@@ -48,6 +49,11 @@ bool initializeWatcher()
 	WATCH_OBJECT("network/numPacketsReceived", g_numPacketsReceived);
 	WATCH_OBJECT("network/numBytesSent", g_numBytesSent);
 	WATCH_OBJECT("network/numBytesReceived", g_numBytesReceived);
+	
+	if(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers != NULL)
+		if(!KBEngine::Mercury::MessageHandlers::pMainMessageHandlers->initializeWatcher())
+			return false;
+
 	return true;
 }
 
