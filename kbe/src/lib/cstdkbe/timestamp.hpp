@@ -159,6 +159,8 @@ public:
 
 	operator uint64 &()				{ return stamp_; }
 	operator uint64() const			{ return stamp_; }
+	
+	inline uint64 stamp(){ return stamp_; }
 
 	inline double inSeconds() const;
 	inline void setInSeconds( double seconds );

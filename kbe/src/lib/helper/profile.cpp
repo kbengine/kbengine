@@ -19,6 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "profile.hpp"
+#include "helper/watcher.hpp"
 
 namespace KBEngine
 {
@@ -33,7 +34,8 @@ uint64 runningTime()
 }
 
 //-------------------------------------------------------------------------------------
-ProfileGroup::ProfileGroup()
+ProfileGroup::ProfileGroup(std::string name):
+name_(name)
 {
 	stampsPerSecond();
 
@@ -71,6 +73,12 @@ ProfileGroup & ProfileGroup::defaultGroup()
 }
 
 //-------------------------------------------------------------------------------------
+bool ProfileGroup::initializeWatcher()
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 ProfileVal::ProfileVal(std::string name, ProfileGroup * pGroup):
 	name_(name),
 	pProfileGroup_(pGroup),
@@ -81,7 +89,8 @@ ProfileVal::ProfileVal(std::string name, ProfileGroup * pGroup):
 	lastQuantity_(0),
 	sumQuantity_(0),
 	count_(0),
-	inProgress_(0)
+	inProgress_(0),
+	initWatcher_(false)
 {
 	if (pProfileGroup_ == NULL)
 	{
@@ -101,6 +110,42 @@ ProfileVal::~ProfileVal()
 	{
 		std::remove( pProfileGroup_->begin(), pProfileGroup_->end(), this );
 	}
+}
+
+//-------------------------------------------------------------------------------------
+bool ProfileVal::initializeWatcher()
+{
+	if(initWatcher_)
+		return false;
+
+	initWatcher_ = true;
+
+	char buf[MAX_BUF];
+	kbe_snprintf(buf, MAX_BUF, "cprofiles/%s/%s/lastTime", pProfileGroup_->name(), name_.c_str());
+	WATCH_OBJECT(buf, &lastTime_, &TimeStamp::stamp);
+
+	kbe_snprintf(buf, MAX_BUF, "cprofiles/%s/%s/sumTime", pProfileGroup_->name(), name_.c_str());
+	WATCH_OBJECT(buf, &sumTime_, &TimeStamp::stamp);
+
+	kbe_snprintf(buf, MAX_BUF, "cprofiles/%s/%s/lastIntTime", pProfileGroup_->name(), name_.c_str());
+	WATCH_OBJECT(buf, &lastIntTime_, &TimeStamp::stamp);
+
+	kbe_snprintf(buf, MAX_BUF, "cprofiles/%s/%s/sumIntTime", pProfileGroup_->name(), name_.c_str());
+	WATCH_OBJECT(buf, &sumIntTime_, &TimeStamp::stamp);
+
+	kbe_snprintf(buf, MAX_BUF, "cprofiles/%s/%s/lastQuantity", pProfileGroup_->name(), name_.c_str());
+	WATCH_OBJECT(buf, lastQuantity_);
+
+	kbe_snprintf(buf, MAX_BUF, "cprofiles/%s/%s/sumQuantity", pProfileGroup_->name(), name_.c_str());
+	WATCH_OBJECT(buf, sumQuantity_);
+
+	kbe_snprintf(buf, MAX_BUF, "cprofiles/%s/%s/count", pProfileGroup_->name(), name_.c_str());
+	WATCH_OBJECT(buf, count_);
+
+	kbe_snprintf(buf, MAX_BUF, "cprofiles/%s/%s/inProgress", pProfileGroup_->name(), name_.c_str());
+	WATCH_OBJECT(buf, inProgress_);
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

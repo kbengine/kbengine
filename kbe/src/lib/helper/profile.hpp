@@ -36,7 +36,7 @@ class ProfileVal;
 class ProfileGroup
 {
 public:
-	ProfileGroup();
+	ProfileGroup(std::string name = "default");
 	~ProfileGroup();
 
 	typedef std::vector<ProfileVal*> PROFILEVALS;
@@ -53,12 +53,18 @@ public:
 	ProfileVal * pRunningTime() { return profiles_[0]; }
 	const ProfileVal * pRunningTime() const { return profiles_[0]; }
 	TimeStamp runningTime() const;
+
+	const char* name()const{ return name_.c_str(); }
+
+	bool initializeWatcher();
 private:
 	PROFILEVALS profiles_;
 
 	PROFILEVALS stack_;
 
 	static KBEShared_ptr< ProfileGroup > pDefaultGroup_;
+
+	std::string name_;
 };
 
 class ProfileVal
@@ -67,8 +73,13 @@ public:
 	ProfileVal(std::string name, ProfileGroup * pGroup = NULL);
 	~ProfileVal();
 
+	bool initializeWatcher();
+
 	void start()
 	{
+		if(!initWatcher_ && count_ > 10)
+			initializeWatcher();
+
 		TimeStamp now = timestamp();
 
 		// 记录第几次处理
@@ -162,6 +173,8 @@ public:
 
 	// 记录第几次处理, 如递归等
 	int			inProgress_;
+
+	bool initWatcher_;
 
 	INLINE bool isTooLong() const;
 
