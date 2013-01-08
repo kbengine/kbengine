@@ -934,13 +934,13 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel
 //-------------------------------------------------------------------------------------
 bool Cellapp::addUpdatable(Updatable* pObject)
 {
-	return true;
+	return updatables_.add(pObject);
 }
 
 //-------------------------------------------------------------------------------------
 bool Cellapp::removeUpdatable(Updatable* pObject)
 {
-	return true;
+	return updatables_.remove(pObject);
 }
 
 //-------------------------------------------------------------------------------------

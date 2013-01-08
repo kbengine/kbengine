@@ -71,6 +71,12 @@ EntityMailbox::~EntityMailbox()
 }
 
 //-------------------------------------------------------------------------------------
+RemoteEntityMethod* EntityMailbox::createRemoteMethod(MethodDescription* md)
+{
+	return new RemoteEntityMethod(md, this);
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 {
 	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
@@ -109,7 +115,7 @@ PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 	if(md != NULL)
 	{
 		free(ccattr);
-		return new RemoteEntityMethod(md, this);
+		return createRemoteMethod(md);
 	}
 
 	// 首先要求名称不能为自己  比如：自身是一个cell， 不能使用cell.cell

@@ -2,6 +2,8 @@
 import KBEngine
 import random
 import wtimer
+import d_spaces
+import d_avatar_inittab
 from KBEDebug import *
 from interfaces.GameObject import GameObject
 from interfaces.Teleport import Teleport
@@ -14,13 +16,21 @@ class Avatar(KBEngine.Proxy,
 		GameObject.__init__(self)
 		Teleport.__init__(self)
 		
+		# 如果登录是一个副本, 无论如何登录都放置在主场景上
+		spacedatas = d_spaces.datas [self.cellData["spaceUType"]]
+		if "Copy" in spacedatas["entityType"] and \
+				self.cellData["spaceUType"] != d_avatar_inittab.datas[self.roleType]["spaceUType"]:
+			self.cellData["spaceUType"] = spacedatas["spaceUType"]
+			self.cellData["direction"] = (0, 0, spacedatas["spawnYaw"])
+			self.cellData["position"] = spacedatas["spawnPos"]
+			
 		self.accountEntity = None
 		self.cellData["dbid"] = self.databaseID
 		self.nameB = self.cellData["name"]
 		self.spaceUTypeB = self.cellData["spaceUType"]
 		
 		self._destroyTimer = 0
-		
+			
 	def onEntitiesEnabled(self):
 		"""
 		KBEngine method.

@@ -128,8 +128,11 @@ public:
 	INLINE const Address& addr() const;
 	void endpoint(const EndPoint* endpoint);
 	INLINE EndPoint * endpoint() const;
-	Bundle & bundle();
-	const Bundle & bundle() const;
+
+	typedef std::vector<Bundle*> Bundles;
+	Bundles & bundles();
+	const Bundles & bundles() const;
+
 	void clearBundle();
 
 	void send(Bundle * pBundle = NULL);
@@ -200,7 +203,8 @@ private:
 	
 	uint64						lastReceivedTime_;
 	
-	Bundle*						pBundle_;
+	Bundles						bundles_;
+
 	uint32						windowSize_;
 	uint64						roundTripTime_;
 	

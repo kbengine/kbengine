@@ -233,14 +233,18 @@ void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
 	addr(lpChannel->addr());
 	Baseapp::getSingleton().createClientProxies(this);
 
+	/*
+	如果有cell则已经绑定了witness， 在此我们不需要再次绑定。
 	if(getCellMailbox())
 	{
 		// 通知cell获得客户端
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappInterface::onGetWitness);
+		(*pBundle) << this->getID();
 		getCellMailbox()->postMail((*pBundle));
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
+	*/
 }
 
 //-------------------------------------------------------------------------------------

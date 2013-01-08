@@ -45,6 +45,9 @@ public:
 	~Updatable();
 
 	virtual void update() = 0;
+
+	int removeIdx;					// 自身在Updatables容器中的位置
+
 };
 
 }

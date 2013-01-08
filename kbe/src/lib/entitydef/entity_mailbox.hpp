@@ -48,6 +48,8 @@ class Channel;
 }
 
 class ScriptDefModule;
+class RemoteEntityMethod;
+class MethodDescription;
 
 class EntityMailbox : public EntityMailboxAbstract
 {
@@ -89,6 +91,7 @@ public:
 		__getEntityFunc = func; 
 	};
 
+	virtual RemoteEntityMethod* createRemoteMethod(MethodDescription* md);
 private:
 	static GetEntityFunc					__getEntityFunc;		// 获得一个entity的实体的函数地址
 protected:

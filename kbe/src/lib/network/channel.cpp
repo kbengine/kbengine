@@ -64,7 +64,7 @@ Channel::Channel(NetworkInterface & networkInterface,
 	inactivityTimerHandle_(),
 	inactivityExceptionPeriod_(0),
 	lastReceivedTime_(0),
-	pBundle_(NULL),
+	bundles_(),
 	windowSize_(	(traits != INTERNAL)    ? EXTERNAL_CHANNEL_SIZE :
 					(id == CHANNEL_ID_NULL) ? INTERNAL_CHANNEL_SIZE :
 											  INDEXED_CHANNEL_SIZE),
@@ -118,7 +118,7 @@ Channel::Channel():
 	inactivityTimerHandle_(),
 	inactivityExceptionPeriod_(0),
 	lastReceivedTime_(0),
-	pBundle_(NULL),
+	bundles_(),
 	windowSize_(EXTERNAL_CHANNEL_SIZE),
 	bufferedReceives_(),
 	pFragmentDatas_(NULL),
@@ -167,7 +167,6 @@ Channel::~Channel()
 	this->clearState();
 	
 	SAFE_RELEASE(pPacketReceiver_);
-	SAFE_RELEASE(pBundle_);
 	SAFE_RELEASE(pEndPoint_);
 }
 
@@ -292,15 +291,15 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 }
 
 //-------------------------------------------------------------------------------------
-Bundle & Channel::bundle()
+Channel::Bundles & Channel::bundles()
 {
-	return *pBundle_;
+	return bundles_;
 }
 
 //-------------------------------------------------------------------------------------
-const Bundle & Channel::bundle() const
+const Channel::Bundles & Channel::bundles() const
 {
-	return *pBundle_;
+	return bundles_;
 }
 
 //-------------------------------------------------------------------------------------
@@ -311,25 +310,31 @@ void Channel::send(Bundle * pBundle)
 		ERROR_MSG(boost::format("Channel::send(%1%): Channel is destroyed.") % this->c_str());
 	}
 	
-	bool isSendingOwnBundle = (pBundle == NULL);
-
-	if(isSendingOwnBundle)
-		pBundle = pBundle_;
-
-	pBundle->send(*pNetworkInterface_, this);
-
-	++numPacketsSent_;
-	++g_numPacketsSent;
-	numBytesSent_ += pBundle->totalSize();
-	g_numBytesSent += pBundle->totalSize();
-
-	if (isSendingOwnBundle)
+	if(pBundle)
 	{
-		this->clearBundle();
+		pBundle->send(*pNetworkInterface_, this);
+
+		++numPacketsSent_;
+		++g_numPacketsSent;
+		numBytesSent_ += pBundle->totalSize();
+		g_numBytesSent += pBundle->totalSize();
+
+		pBundle->clear(true);
 	}
 	else
 	{
-		pBundle->clear(true);
+		Bundles::iterator iter = bundles_.begin();
+		for(; iter != bundles_.end(); iter++)
+		{
+			(*iter)->send(*pNetworkInterface_, this);
+
+			++numPacketsSent_;
+			++g_numPacketsSent;
+			numBytesSent_ += (*iter)->totalSize();
+			g_numBytesSent += (*iter)->totalSize();
+		}
+
+		this->clearBundle();
 	}
 }
 
@@ -356,14 +361,13 @@ const char * Channel::c_str() const
 //-------------------------------------------------------------------------------------
 void Channel::clearBundle()
 {
-	if(!pBundle_)
+	Bundles::iterator iter = bundles_.begin();
+	for(; iter != bundles_.end(); iter++)
 	{
-		pBundle_ = new Bundle(this);
+		Bundle::ObjPool().reclaimObject((*iter));
 	}
-	else
-	{
-		pBundle_->clear(true);
-	}
+
+	bundles_.clear();
 }
 
 //-------------------------------------------------------------------------------------

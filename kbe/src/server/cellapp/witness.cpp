@@ -5,6 +5,8 @@
 #include "network/channel.hpp"	
 #include "network/bundle.hpp"
 
+#include "../../server/baseapp/baseapp_interface.hpp"
+
 namespace KBEngine{	
 
 
@@ -63,19 +65,22 @@ void Witness::onReclaimObject()
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::Bundle & Witness::bundle()
+Witness::Bundles & Witness::bundles()
 {
 	KBE_ASSERT(pEntity_->clientMailbox_);
 	Mercury::Channel* pChannel = pEntity_->clientMailbox_->getChannel();
 	KBE_ASSERT(pChannel);
 
-	return pChannel->bundle();
+	return pChannel->bundles();
 }
 
 //-------------------------------------------------------------------------------------
 void Witness::update()
 {
 	SCOPED_PROFILE(CLIENT_UPDATE_PROFILE);
+
+	if(pEntity_ == NULL)
+		return;
 
 	if(!pEntity_->clientMailbox_)
 		return;
@@ -85,14 +90,20 @@ void Witness::update()
 		return;
 
 	{
+		// 如果数据大量阻塞发不出去将会报警
 		AUTO_SCOPED_PROFILE("updateClientSend");
 		pChannel->send();
 	}
 }
 
 //-------------------------------------------------------------------------------------
-bool Witness::sendToClient(const Mercury::MessageHandler& msgHandler, MemoryStream& s)
+bool Witness::sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle)
 {
+	Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pBundle));
+	//Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+	
+	bundles().push_back(pSendBundle);
 	return true;
 }
 

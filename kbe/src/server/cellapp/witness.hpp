@@ -68,6 +68,10 @@ struct WitnessInfo
 	std::vector<uint32> changeDefDataLogs[3];	// entity离开了某个详情级别(没有脱离witness)后， 这期间有某个详情级别的属性改变均记录在这里
 };
 
+/**
+	这个模块用来监视我们感兴趣的entity数据， 如：aoi， 属性更新， 调用entity的方法
+	并将其传输给监视者。
+*/
 class Witness : public PoolObject, public Updatable
 {
 public:
@@ -87,14 +91,15 @@ public:
 
 	INLINE void setAoiRadius(float radius, float hyst);
 
-	Mercury::Bundle & bundle();
+	typedef std::vector<Mercury::Bundle*> Bundles;
+	Bundles & bundles();
 
 	void update();
 
 	/**
 		向witness客户端推送一条消息
 	*/
-	bool sendToClient(const Mercury::MessageHandler& msgHandler, MemoryStream& s);
+	bool sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle);
 
 	friend Entity;
 private:

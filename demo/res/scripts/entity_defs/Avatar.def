@@ -19,6 +19,7 @@
 		<roleType>
 			<Type>	UINT8	</Type>
 			<Flags>	BASE		</Flags>
+			<Persistent>		true				</Persistent>
 		</roleType>
 
 		<level>
