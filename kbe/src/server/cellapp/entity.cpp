@@ -776,7 +776,7 @@ PyObject* Entity::pySetAoiRadius(float radius, float hyst)
 float Entity::getAoiRadius(void)const
 {
 	if(pWitness_)
-		return pWitness_->aoiRadius_;
+		return pWitness_->aoiRadius();
 		
 	return 0.0; 
 }
@@ -785,7 +785,7 @@ float Entity::getAoiRadius(void)const
 float Entity::getAoiHystArea(void)const
 {
 	if(pWitness_)
-		return pWitness_->aoiHysteresisArea_;
+		return pWitness_->aoiHysteresisArea();
 		
 	return 0.0; 
 }

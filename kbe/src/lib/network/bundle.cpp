@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/channel.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
+#include "helper/profile.hpp"
 
 #ifndef CODE_INLINE
 #include "bundle.ipp"
@@ -241,6 +242,7 @@ void Bundle::clear(bool isRecl)
 //-------------------------------------------------------------------------------------
 void Bundle::send(NetworkInterface & networkInterface, Channel * pChannel)
 {
+	AUTO_SCOPED_PROFILE("sendBundle");
 	finish();
 	networkInterface.send(*this, pChannel);
 }
@@ -248,12 +250,14 @@ void Bundle::send(NetworkInterface & networkInterface, Channel * pChannel)
 //-------------------------------------------------------------------------------------
 void Bundle::send(EndPoint& ep)
 {
+	AUTO_SCOPED_PROFILE("sendBundle");
 	BUNDLE_SEND_OP(ep.send(pPacket->data(), pPacket->totalSize()));
 }
 
 //-------------------------------------------------------------------------------------
 void Bundle::sendto(EndPoint& ep, u_int16_t networkPort, u_int32_t networkAddr)
 {
+	AUTO_SCOPED_PROFILE("sendToBundle");
 	BUNDLE_SEND_OP(ep.sendto(pPacket->data(), pPacket->totalSize(), networkPort, networkAddr));
 }
 

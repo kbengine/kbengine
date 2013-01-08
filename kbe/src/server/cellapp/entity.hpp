@@ -362,8 +362,6 @@ public:
 	*/
 	INLINE SPACE_ENTITIES::size_type spaceEntityIdx()const;
 	INLINE void spaceEntityIdx(SPACE_ENTITIES::size_type idx);
-
-	friend Witness;
 private:
 	/** 
 		发送teleport结果到base端

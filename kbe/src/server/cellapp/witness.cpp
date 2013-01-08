@@ -67,8 +67,8 @@ void Witness::onReclaimObject()
 //-------------------------------------------------------------------------------------
 Witness::Bundles & Witness::bundles()
 {
-	KBE_ASSERT(pEntity_->clientMailbox_);
-	Mercury::Channel* pChannel = pEntity_->clientMailbox_->getChannel();
+	KBE_ASSERT(pEntity_->getClientMailbox());
+	Mercury::Channel* pChannel = pEntity_->getClientMailbox()->getChannel();
 	KBE_ASSERT(pChannel);
 
 	return pChannel->bundles();
@@ -82,10 +82,10 @@ void Witness::update()
 	if(pEntity_ == NULL)
 		return;
 
-	if(!pEntity_->clientMailbox_)
+	if(!pEntity_->getClientMailbox())
 		return;
 
-	Mercury::Channel* pChannel = pEntity_->clientMailbox_->getChannel();
+	Mercury::Channel* pChannel = pEntity_->getClientMailbox()->getChannel();
 	if(!pChannel)
 		return;
 

@@ -41,4 +41,16 @@ INLINE void Witness::setAoiRadius(float radius, float hyst)
 }
 
 //-------------------------------------------------------------------------------------
+INLINE float Witness::aoiRadius()const
+{ 
+	return aoiRadius_; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE float Witness::aoiHysteresisArea()const
+{ 
+	return aoiHysteresisArea_; 
+}
+	
+//-------------------------------------------------------------------------------------
 }

@@ -90,6 +90,9 @@ public:
 	void detach(Entity* pEntity);
 
 	INLINE void setAoiRadius(float radius, float hyst);
+	
+	INLINE float aoiRadius()const;
+	INLINE float aoiHysteresisArea()const;
 
 	typedef std::vector<Mercury::Bundle*> Bundles;
 	Bundles & bundles();
@@ -100,8 +103,6 @@ public:
 		向witness客户端推送一条消息
 	*/
 	bool sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle);
-
-	friend Entity;
 private:
 	Entity*									pEntity_;
 
