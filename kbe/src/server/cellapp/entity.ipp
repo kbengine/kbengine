@@ -58,18 +58,6 @@ INLINE void Entity::setTopSpeed(float speed)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE float Entity::getAoiRadius(void)const
-{ 
-	return aoiRadius_; 
-}
-
-//-------------------------------------------------------------------------------------
-INLINE float Entity::getAoiHystArea(void)const
-{ 
-	return aoiHysteresisArea_; 
-}
-
-//-------------------------------------------------------------------------------------
 INLINE void Entity::setDirection(Direction3D& dir)
 { 
 	direction_ = dir; 
@@ -151,12 +139,6 @@ INLINE void Entity::spaceEntityIdx(SPACE_ENTITIES::size_type idx)
 INLINE Witness* Entity::witness()const
 {
 	return pWitness_;
-}
-
-//-------------------------------------------------------------------------------------
-INLINE void Entity::witness(Witness* w)
-{
-	pWitness_ = w;
 }
 
 //-------------------------------------------------------------------------------------

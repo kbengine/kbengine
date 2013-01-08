@@ -141,7 +141,12 @@ void Cellapp::handleTimeout(TimerHandle handle, void * arg)
 void Cellapp::handleGameTick()
 {
 	AUTO_SCOPED_PROFILE("gameTick");
+
+	updateLoad();
+
 	EntityApp<Entity>::handleGameTick();
+
+	updatables_.update();
 }
 
 //-------------------------------------------------------------------------------------
@@ -212,6 +217,11 @@ void Cellapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 	
 	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::updateLoad()
+{
 }
 
 //-------------------------------------------------------------------------------------

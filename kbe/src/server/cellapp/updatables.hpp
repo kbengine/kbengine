@@ -39,6 +39,13 @@ class Updatables
 public:
 	Updatables();
 	~Updatables();
+
+	bool add(Updatable* updatable);
+	bool remove(Updatable* updatable);
+
+	void update();
+private:
+	std::vector<Updatable*> objects_;
 };
 
 }

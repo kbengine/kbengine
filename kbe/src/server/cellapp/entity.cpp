@@ -78,11 +78,9 @@ ENTITY_CONSTRUCTION(Entity),
 clientMailbox_(NULL),
 baseMailbox_(NULL),
 isReal_(true),
-aoiRadius_(0.0f),
-aoiHysteresisArea_(0.0f),
-isWitnessed_(false),
 topSpeed_(-0.1f),
 topSpeedY_(-0.1f),
+isWitnessed_(false),
 pWitness_(NULL),
 allClients_(new AllClients(scriptModule, id, true)),
 otherClients_(new AllClients(scriptModule, id, false))
@@ -751,22 +749,46 @@ void Entity::onLoseWitness(Mercury::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 int32 Entity::setAoiRadius(float radius, float hyst)
 {
-	aoiRadius_ = radius;
-	aoiHysteresisArea_ = hyst;
-
-	if(aoiRadius_ + aoiHysteresisArea_ > CELL_BORDER_WIDTH)
+	if(pWitness_)
 	{
-		aoiRadius_ = CELL_BORDER_WIDTH - 15.0f;
-		aoiHysteresisArea_ = 15.0f;
+		pWitness_->setAoiRadius(radius, hyst);
+		return 1;
 	}
-	
-	return 1;
+
+	PyErr_Format(PyExc_AssertionError, "Entity::setAoiRadius: did not get witness.");
+	PyErr_PrintEx(0);
+	return -1;
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pySetAoiRadius(float radius, float hyst)
 {
 	return PyLong_FromLong(setAoiRadius(radius, hyst));
+}
+
+//-------------------------------------------------------------------------------------
+float Entity::getAoiRadius(void)const
+{
+	if(pWitness_)
+		return pWitness_->aoiRadius_;
+		
+	return 0.0; 
+}
+
+//-------------------------------------------------------------------------------------
+float Entity::getAoiHystArea(void)const
+{
+	if(pWitness_)
+		return pWitness_->aoiHysteresisArea_;
+		
+	return 0.0; 
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::witness(Witness* w)
+{
+	pWitness_ = w;
+	pWitness_->pEntity(this);
 }
 
 //-------------------------------------------------------------------------------------

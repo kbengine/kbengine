@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __KBE_WITNESS_HPP__
 
 // common include
+#include "updatable.hpp"
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/objectpool.hpp"
@@ -34,7 +35,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 namespace KBEngine{
+
+namespace Mercury
+{
+	class Bundle;
+	class MessageHandler;
+}
+
 class Entity;
+class MemoryStream;
 
 /** 观察者信息结构 */
 struct WitnessInfo
@@ -59,7 +68,7 @@ struct WitnessInfo
 	std::vector<uint32> changeDefDataLogs[3];	// entity离开了某个详情级别(没有脱离witness)后， 这期间有某个详情级别的属性改变均记录在这里
 };
 
-class Witness : public PoolObject
+class Witness : public PoolObject, public Updatable
 {
 public:
 	Witness();
@@ -71,7 +80,32 @@ public:
 	static ObjectPool<Witness>& ObjPool();
 	void onReclaimObject();
 
+	INLINE Entity* pEntity();
+	INLINE void pEntity(Entity* pEntity);
+
+	INLINE void setAoiRadius(float radius, float hyst);
+
+	Mercury::Bundle & bundle();
+
+	void update();
+
+	/**
+		向witness客户端推送一条消息
+	*/
+	bool sendToClient(const Mercury::MessageHandler& msgHandler, MemoryStream& s);
+
+	friend Entity;
+private:
+	Entity*									pEntity_;
+
+	float									aoiRadius_;							// 当前entity的aoi半径
+	float									aoiHysteresisArea_;					// 当前entityAoi的一个滞后范围
+
 };
 
 }
+
+#ifdef CODE_INLINE
+#include "witness.ipp"
+#endif
 #endif

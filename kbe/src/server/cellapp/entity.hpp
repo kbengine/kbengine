@@ -201,8 +201,8 @@ public:
 		当前entity设置自身的Aoi半径范围 
 	*/
 	int32 setAoiRadius(float radius, float hyst);
-	INLINE float getAoiRadius(void)const;
-	INLINE float getAoiHystArea(void)const;
+	float getAoiRadius(void)const;
+	float getAoiHystArea(void)const;
 	DECLARE_PY_MOTHOD_ARG2(pySetAoiRadius, float, float);
 	
 	/** 
@@ -363,6 +363,7 @@ public:
 	INLINE SPACE_ENTITIES::size_type spaceEntityIdx()const;
 	INLINE void spaceEntityIdx(SPACE_ENTITIES::size_type idx);
 
+	friend Witness;
 private:
 	/** 
 		发送teleport结果到base端
@@ -377,17 +378,13 @@ protected:
 
 	bool									isReal_;							// 自己是否是一个realEntity
 
-	float									aoiRadius_;							// 当前entity的aoi半径
-	float									aoiHysteresisArea_;					// 当前entityAoi的一个滞后范围
-
-	bool									isWitnessed_;						// 是否被任何观察者监视到
-
 
 	float									topSpeed_;							// entity x,z轴最高移动速度
 	float									topSpeedY_;							// entity y轴最高移动速度
 
 	SPACE_ENTITIES::size_type				spaceEntityIdx_;					// 自身在space的entities中的位置
 
+	bool									isWitnessed_;						// 是否被任何观察者监视到
 	Witness*								pWitness_;							// 观察者对象
 
 	AllClients*								allClients_;

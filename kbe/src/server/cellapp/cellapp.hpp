@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include	
 #include "entity.hpp"
 #include "spaces.hpp"
+#include "updatables.hpp"
 #include "server/entity_app.hpp"
 #include "server/forward_messagebuffer.hpp"
 
@@ -156,9 +157,13 @@ public:
 		获取游戏时间
 	*/
 	static PyObject* __py_gametime(PyObject* self, PyObject* args);
+
+	void updateLoad();
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;
+
+	Updatables updatables_;
 };
 
 }

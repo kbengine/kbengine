@@ -1,4 +1,6 @@
 #include "updatables.hpp"	
+#include "helper/profile.hpp"	
+
 namespace KBEngine{	
 
 
@@ -10,6 +12,24 @@ Updatables::Updatables()
 //-------------------------------------------------------------------------------------
 Updatables::~Updatables()
 {
+}
+
+//-------------------------------------------------------------------------------------
+bool Updatables::add(Updatable* updatable)
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool Updatables::remove(Updatable* updatable)
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void Updatables::update()
+{
+	AUTO_SCOPED_PROFILE("callUpdates");
 }
 
 //-------------------------------------------------------------------------------------

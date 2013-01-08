@@ -316,6 +316,10 @@
 			RelativePath=".\ReadMe.txt"
 			>
 		</File>
+		<File
+			RelativePath=".\witness.ipp"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
