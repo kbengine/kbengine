@@ -356,7 +356,7 @@ void init_network(void)
 	}
 
 	srand(getSystemTime());
-	std::string accountname = "kebiaooo43oo";
+	std::string accountname = "kebiao32101";
 	char ttt1[256];
 	memset(ttt1, 0, 256);
 	int nnn = rand() % 65535;
@@ -600,7 +600,7 @@ void init_network(void)
 		uint32 size;
 
 		std::vector<AvatarInfos> vargs;
-
+		DBID lastDBID = 0;
 		packet444 >> size;
 		for(uint32 i=0; i<size; i++)
 		{
@@ -609,6 +609,7 @@ void init_network(void)
 			packet444 >> ainfo.name;
 			packet444 >> ainfo.roleType;
 			packet444 >> ainfo.level;
+			lastDBID = ainfo.dbid;
 			vargs.push_back(ainfo);
 			printf("接收角色列表:dbid=%"PRIu64",name=%s,roleType=%u,level=%u\n", ainfo.dbid, ainfo.name.c_str(),ainfo.roleType, ainfo.level);
 		}
@@ -640,7 +641,7 @@ void init_network(void)
 		uint8 errorcode = 0;
 		packet555 >> errorcode;
 		AvatarInfos retainfo;
-		DBID lastDBID = retainfo.dbid;
+		
 		packet555 >> retainfo.dbid;
 		packet555 >> retainfo.name;
 		packet555 >> retainfo.roleType;

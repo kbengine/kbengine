@@ -735,10 +735,6 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		// 如果是有client的entity则设置它的clientmailbox, baseapp部分的onEntityGetCell会告知客户端enterworld.
 		if(hasClient)
 		{
-			// 初始化默认AOI范围
-			ENGINE_COMPONENT_INFO& ecinfo = ServerConfig::getSingleton().getCellApp();
-			e->setAoiRadius(ecinfo.defaultAoIRadius, ecinfo.defaultAoIHysteresisArea);
-
 			e->onGetWitness(cinfos->pChannel);
 		}
 
@@ -933,6 +929,18 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Mercury::Channel* pChannel
 
 		s.wpos(wpos);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+bool Cellapp::addUpdatable(Updatable* pObject)
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool Cellapp::removeUpdatable(Updatable* pObject)
+{
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

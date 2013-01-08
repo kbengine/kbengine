@@ -81,7 +81,9 @@ public:
 	void onReclaimObject();
 
 	INLINE Entity* pEntity();
-	INLINE void pEntity(Entity* pEntity);
+
+	void attach(Entity* pEntity);
+	void detach(Entity* pEntity);
 
 	INLINE void setAoiRadius(float radius, float hyst);
 

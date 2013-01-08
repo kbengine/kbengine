@@ -1,5 +1,7 @@
 #include "witness.hpp"
 #include "entity.hpp"	
+#include "profile.hpp"
+#include "cellapp.hpp"
 #include "network/channel.hpp"	
 #include "network/bundle.hpp"
 
@@ -18,6 +20,28 @@ aoiHysteresisArea_(0.0f)
 Witness::~Witness()
 {
 	pEntity_ = NULL;
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::attach(Entity* pEntity)
+{
+	pEntity_ = pEntity;
+
+	// ³õÊ¼»¯Ä¬ÈÏAOI·¶Î§
+	ENGINE_COMPONENT_INFO& ecinfo = ServerConfig::getSingleton().getCellApp();
+	setAoiRadius(ecinfo.defaultAoIRadius, ecinfo.defaultAoIHysteresisArea);
+
+	Cellapp::getSingleton().addUpdatable(this);
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::detach(Entity* pEntity)
+{
+	pEntity_ = NULL;
+	aoiRadius_ = 0.0f;
+	aoiHysteresisArea_ = 0.0f;
+
+	Cellapp::getSingleton().removeUpdatable(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -51,6 +75,19 @@ Mercury::Bundle & Witness::bundle()
 //-------------------------------------------------------------------------------------
 void Witness::update()
 {
+	SCOPED_PROFILE(CLIENT_UPDATE_PROFILE);
+
+	if(!pEntity_->clientMailbox_)
+		return;
+
+	Mercury::Channel* pChannel = pEntity_->clientMailbox_->getChannel();
+	if(!pChannel)
+		return;
+
+	{
+		AUTO_SCOPED_PROFILE("updateClientSend");
+		pChannel->send();
+	}
 }
 
 //-------------------------------------------------------------------------------------

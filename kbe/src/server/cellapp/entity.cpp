@@ -97,8 +97,12 @@ Entity::~Entity()
 	S_RELEASE(baseMailbox_);
 	S_RELEASE(allClients_);
 	S_RELEASE(otherClients_);
-
-	Witness::ObjPool().reclaimObject(pWitness_);
+	
+	if(pWitness_)
+	{
+		pWitness_->detach(this);
+		Witness::ObjPool().reclaimObject(pWitness_);
+	}
 }	
 
 //-------------------------------------------------------------------------------------
@@ -540,13 +544,16 @@ uint16 Entity::addProximity(float range)
 	// 不允许范围大于cell边界
 	if(range > CELL_BORDER_WIDTH)
 		range = CELL_BORDER_WIDTH;
+
 	/*
 	// 在space中投放一个陷阱
 	Proximity* p = new Proximity(this, range, 0.0f);
 	trapMgr_.addProximity(p);
 	if(currChunk_ != NULL)
 		currChunk_->getSpace()->placeProximity(currChunk_, p);
-	return p->getID();*/return 0;
+	return p->getID();*/
+	
+	return 0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -718,6 +725,7 @@ void Entity::onGetWitness(Mercury::Channel* pChannel)
 	setClientMailbox(client);
 
 	pWitness_ = Witness::ObjPool().createObject();
+	pWitness_->attach(this);
 
 	Space* space = Spaces::findSpace(this->getSpaceID());
 	if(space)
@@ -788,7 +796,6 @@ float Entity::getAoiHystArea(void)const
 void Entity::witness(Witness* w)
 {
 	pWitness_ = w;
-	pWitness_->pEntity(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1106,7 +1113,8 @@ void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportSuccess"));
+	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onTeleportSuccess"), 
+		const_cast<char*>("O"), nearbyEntity);
 }
 
 //-------------------------------------------------------------------------------------

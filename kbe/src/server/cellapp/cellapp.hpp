@@ -158,7 +158,16 @@ public:
 	*/
 	static PyObject* __py_gametime(PyObject* self, PyObject* args);
 
+	/**
+		更新负载情况
+	*/
 	void updateLoad();
+
+	/**
+		添加与删除一个Updatable对象
+	*/
+	bool addUpdatable(Updatable* pObject);
+	bool removeUpdatable(Updatable* pObject);
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;
