@@ -2,7 +2,6 @@ BIN  = cellapp
 SRCS =						\
 	all_clients				\
 	cell					\
-	cells					\
 	cellapp					\
 	cellapp_interface			\
 	clients_remote_entity_method		\
