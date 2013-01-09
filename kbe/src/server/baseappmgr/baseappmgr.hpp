@@ -21,8 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef __BASEAPPMGR_H__
 #define __BASEAPPMGR_H__
-	
-// common include	
+
 #include "baseapp.hpp"
 #include "server/kbemain.hpp"
 #include "server/serverapp.hpp"
@@ -31,14 +30,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/forward_messagebuffer.hpp"
 #include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
-
-//#define NDEBUG
-#include <map>	
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
 	
 namespace KBEngine{
 

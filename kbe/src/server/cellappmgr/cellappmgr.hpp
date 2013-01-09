@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __CELLAPPMGR_H__
 #define __CELLAPPMGR_H__
 	
-// common include	
+#include "cellapp.hpp"
 #include "server/kbemain.hpp"
 #include "server/serverapp.hpp"
 #include "server/idallocate.hpp"
@@ -31,14 +31,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
 
-//#define NDEBUG
-#include <map>	
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
-	
 namespace KBEngine{
 
 class Cellappmgr :	public ServerApp, 
@@ -80,9 +72,16 @@ public:
 		消息转发， 由某个app想通过本app将消息转发给某个app。
 	*/
 	void forwardMessage(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		更新cellapp情况。
+	*/
+	void updateCellapp(Mercury::Channel* pChannel, COMPONENT_ID componentID, float load);
 protected:
 	TimerHandle							gameTimer_;
 	ForwardAnywhere_MessageBuffer		forward_cellapp_messagebuffer_;
+
+	std::map< COMPONENT_ID, Cellapp >	cellapps_;
 };
 
 }

@@ -44,13 +44,15 @@ Cellappmgr::Cellappmgr(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_ID componentID):
 	ServerApp(dispatcher, ninterface, componentType, componentID),
 	gameTimer_(),
-	forward_cellapp_messagebuffer_(ninterface, CELLAPP_TYPE)
+	forward_cellapp_messagebuffer_(ninterface, CELLAPP_TYPE),
+	cellapps_()
 {
 }
 
 //-------------------------------------------------------------------------------------
 Cellappmgr::~Cellappmgr()
 {
+	cellapps_.clear();
 }
 
 //-------------------------------------------------------------------------------------
@@ -196,6 +198,11 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		SAFE_RELEASE(pFI);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void Cellappmgr::updateCellapp(Mercury::Channel* pChannel, COMPONENT_ID componentID, float load)
+{
 }
 
 //-------------------------------------------------------------------------------------

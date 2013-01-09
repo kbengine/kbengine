@@ -18,40 +18,23 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __BASEAPPMGR_BASEAPP_H__
-#define __BASEAPPMGR_BASEAPP_H__
+#ifndef __CELLS_HPP__
+#define __CELLS_HPP__
 
-#include "cstdkbe/cstdkbe.hpp"
+// common include
 #include "helper/debug_helper.hpp"
-#include "helper/watcher.hpp"
+#include "cstdkbe/cstdkbe.hpp"
 
-namespace KBEngine{ 
 
-class Baseapp
+namespace KBEngine{
+
+class Cells
 {
 public:
-	Baseapp();
-	virtual ~Baseapp();
-	
-	ENTITY_ID numBases()const { return numBases_; }
-	void numBases(ENTITY_ID num) { numBases_ = num; }
-	
-	ENTITY_ID numProxices()const { return numProxices_; }
-	void numProxices(ENTITY_ID num) { numProxices_ = num; }
-	
-	float load()const { return load_; }
-	void load(float v) { load_ = v; }
-	
-	void destroy(){ isDestroyed_ = true; }
-	bool isDestroyed()const { return isDestroyed_; }
-protected:
-	ENTITY_ID numBases_;
-	ENTITY_ID numProxices_;
-	float load_;
+	Cells();
+	~Cells();
 
-	bool isDestroyed_;
-
-	Watchers watchers_;
+private:
 };
 
 }

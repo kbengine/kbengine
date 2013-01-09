@@ -1,5 +1,8 @@
 BIN  = cellappmgr
 SRCS =						\
+	cell					\
+	cells					\
+	cellapp					\
 	cellappmgr				\
 	cellappmgr_interface			\
 	main

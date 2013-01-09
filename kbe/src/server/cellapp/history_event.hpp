@@ -18,40 +18,52 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __BASEAPPMGR_BASEAPP_H__
-#define __BASEAPPMGR_BASEAPP_H__
+#ifndef __HISTORY_EVENT_HPP__
+#define __HISTORY_EVENT_HPP__
 
-#include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
-#include "helper/watcher.hpp"
+#include "cstdkbe/cstdkbe.hpp"	
 
-namespace KBEngine{ 
 
-class Baseapp
+namespace KBEngine{
+namespace Mercury{
+	class MessageHandler;
+}
+
+typedef uint32 HistoryEventID;
+
+/**
+	描述一个历史事件
+*/
+class HistoryEvent
 {
 public:
-	Baseapp();
-	virtual ~Baseapp();
-	
-	ENTITY_ID numBases()const { return numBases_; }
-	void numBases(ENTITY_ID num) { numBases_ = num; }
-	
-	ENTITY_ID numProxices()const { return numProxices_; }
-	void numProxices(ENTITY_ID num) { numProxices_ = num; }
-	
-	float load()const { return load_; }
-	void load(float v) { load_ = v; }
-	
-	void destroy(){ isDestroyed_ = true; }
-	bool isDestroyed()const { return isDestroyed_; }
+	HistoryEvent(HistoryEventID id, const Mercury::MessageHandler& msgHandler, uint32 msglen);
+	virtual ~HistoryEvent();
+
+	HistoryEventID id()const{ return id_; }
+	uint32 msglen()const { return msglen_; }
+
+	void addMsgLen(uint32 v){ msglen_ += v; }
 protected:
-	ENTITY_ID numBases_;
-	ENTITY_ID numProxices_;
-	float load_;
+	HistoryEventID id_;
+	uint32 msglen_;
+	const Mercury::MessageHandler& msgHandler_;
+};
 
-	bool isDestroyed_;
+/**
+	管理所有的历史事件
+*/
+class EventHistory
+{
+public:
+	EventHistory();
+	virtual ~EventHistory();
 
-	Watchers watchers_;
+	bool add(HistoryEvent* phe);
+	bool remove(HistoryEvent* phe);
+protected:
+	std::map<HistoryEventID, HistoryEvent*> events_;
 };
 
 }

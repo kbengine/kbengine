@@ -1,11 +1,14 @@
 BIN  = cellapp
 SRCS =						\
 	all_clients				\
+	cell					\
+	cells					\
 	cellapp					\
 	cellapp_interface			\
 	clients_remote_entity_method		\
 	forward_message_over_handler		\
 	entity					\
+	history_event				\
 	main					\
 	space					\
 	spaces					\

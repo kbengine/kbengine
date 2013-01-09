@@ -79,6 +79,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappmgrInterface)
 	// 请求查询watcher数据
 	CELLAPPMGR_MESSAGE_DECLARE_STREAM(queryWatcher,				MERCURY_VARIABLE_MESSAGE)
 
+	// 更新cellapp信息。
+	CELLAPPMGR_MESSAGE_DECLARE_ARGS2(updateCellapp,				MERCURY_FIXED_MESSAGE,
+									COMPONENT_ID,				componentID,
+									float,						load)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

@@ -188,11 +188,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\cell.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\cellapp.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\cellapp_interface.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\cells.cpp"
 				>
 			</File>
 			<File
@@ -209,6 +217,10 @@
 			</File>
 			<File
 				RelativePath="..\..\lib\python\Modules\getbuildinfo.c"
+				>
+			</File>
+			<File
+				RelativePath=".\history_event.cpp"
 				>
 			</File>
 			<File
@@ -256,6 +268,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\cell.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\cellapp.hpp"
 				>
 			</File>
@@ -265,6 +281,10 @@
 			</File>
 			<File
 				RelativePath=".\cellapp_interface_macros.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\cells.hpp"
 				>
 			</File>
 			<File
@@ -281,6 +301,10 @@
 			</File>
 			<File
 				RelativePath=".\forward_message_over_handler.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\history_event.hpp"
 				>
 			</File>
 			<File

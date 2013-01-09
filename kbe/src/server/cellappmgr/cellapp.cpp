@@ -17,42 +17,24 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "cellapp.hpp"
 
-#ifndef __BASEAPPMGR_BASEAPP_H__
-#define __BASEAPPMGR_BASEAPP_H__
+namespace KBEngine{
 
-#include "cstdkbe/cstdkbe.hpp"
-#include "helper/debug_helper.hpp"
-#include "helper/watcher.hpp"
-
-namespace KBEngine{ 
-
-class Baseapp
+//-------------------------------------------------------------------------------------
+Cellapp::Cellapp():
+numEntities_(0),
+load_(0.f),
+isDestroyed_(false),
+watchers_()
 {
-public:
-	Baseapp();
-	virtual ~Baseapp();
-	
-	ENTITY_ID numBases()const { return numBases_; }
-	void numBases(ENTITY_ID num) { numBases_ = num; }
-	
-	ENTITY_ID numProxices()const { return numProxices_; }
-	void numProxices(ENTITY_ID num) { numProxices_ = num; }
-	
-	float load()const { return load_; }
-	void load(float v) { load_ = v; }
-	
-	void destroy(){ isDestroyed_ = true; }
-	bool isDestroyed()const { return isDestroyed_; }
-protected:
-	ENTITY_ID numBases_;
-	ENTITY_ID numProxices_;
-	float load_;
-
-	bool isDestroyed_;
-
-	Watchers watchers_;
-};
-
 }
-#endif
+
+//-------------------------------------------------------------------------------------
+Cellapp::~Cellapp()
+{
+}
+
+
+//-------------------------------------------------------------------------------------
+}
