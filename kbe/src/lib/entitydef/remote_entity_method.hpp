@@ -26,21 +26,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #pragma warning (disable : 4910)
 #pragma warning (disable : 4251)
 #endif
-// common include	
 #include "datatype.hpp"
 #include "datatypes.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/packet.hpp"
 #include "entitymailboxabstract.hpp"
 #include "pyscript/scriptobject.hpp"	
-//#define NDEBUG
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
+
 
 namespace KBEngine{
+
+class MethodDescription;
 
 class RemoteEntityMethod : public script::ScriptObject
 {
@@ -48,14 +44,11 @@ class RemoteEntityMethod : public script::ScriptObject
 	INSTANCE_SCRIPT_HREADER(RemoteEntityMethod, script::ScriptObject)	
 public:	
 	RemoteEntityMethod(MethodDescription* methodDescription, 
-						EntityMailboxAbstract* mailbox);
+						EntityMailboxAbstract* mailbox, PyTypeObject* pyType = NULL);
 	
 	virtual ~RemoteEntityMethod();
 
-	const char* getName(void)const
-	{ 
-		return methodDescription_->getName(); 
-	};
+	const char* getName(void)const;
 
 	MethodDescription* getDescription(void)const
 	{ 

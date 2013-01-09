@@ -112,6 +112,10 @@ public:
 
 	const Mercury::Address& addr()const{ return addr_; }
 	void addr(const Mercury::Address& saddr){ addr_ = saddr; }
+
+	bool isClient();
+	bool isCell();
+	bool isBase();
 protected:
 	COMPONENT_ID							componentID_;			// 远端机器组件的ID
 	Mercury::Address						addr_;					// 频道地址

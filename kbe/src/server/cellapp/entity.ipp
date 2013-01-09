@@ -136,9 +136,15 @@ INLINE void Entity::spaceEntityIdx(SPACE_ENTITIES::size_type idx)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE Witness* Entity::witness()const
+INLINE Witness* Entity::pWitness()const
 {
 	return pWitness_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::pWitness(Witness* w)
+{
+	pWitness_ = w;
 }
 
 //-------------------------------------------------------------------------------------

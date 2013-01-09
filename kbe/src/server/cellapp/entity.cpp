@@ -791,12 +791,6 @@ float Entity::getAoiHystArea(void)const
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::witness(Witness* w)
-{
-	pWitness_ = w;
-}
-
-//-------------------------------------------------------------------------------------
 bool Entity::navigateStep(const Position3D& destination, float velocity, float maxMoveDistance, float maxDistance, 
 	bool faceMovement, float girth, PyObject* userData)
 {

@@ -492,9 +492,10 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 		ENTITY_ID srcEntityID = pChannel->proxyID();
 		if(srcEntityID <= 0 || srcEntityID != this->getID())
 		{
-			WARNING_MSG(boost::format("Base::onRemoteMethodCall: srcEntityID:%1%, thisEntityID:%2%.\n") % 
+			WARNING_MSG(boost::format("Base::onRemoteMethodCall: srcEntityID:%1% != thisEntityID:%2%.\n") % 
 				srcEntityID % this->getID());
 
+			s.opfini();
 			return;
 		}
 	}
@@ -504,7 +505,7 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 		ERROR_MSG(boost::format("%1%::onRemoteMethodCall: %2% is destroyed!\n") %											
 			getScriptName() % getID());
 
-		s.read_skip(s.opsize());
+		s.opfini();
 		return;																							
 	}
 

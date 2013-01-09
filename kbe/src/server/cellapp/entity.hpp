@@ -285,8 +285,8 @@ public:
 	/**
 		观察者
 	*/
-	INLINE Witness* witness()const;
-	INLINE void witness(Witness* w);
+	INLINE Witness* pWitness()const;
+	INLINE void pWitness(Witness* w);
 
 	/** 
 		是否被任何proxy监视到, 如果这个entity没有客户端， 则这个值有效 
@@ -362,6 +362,7 @@ public:
 	*/
 	INLINE SPACE_ENTITIES::size_type spaceEntityIdx()const;
 	INLINE void spaceEntityIdx(SPACE_ENTITIES::size_type idx);
+
 private:
 	/** 
 		发送teleport结果到base端

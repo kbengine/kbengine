@@ -135,7 +135,8 @@ void Proxy::onClientDeath(void)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	DEBUG_MSG(boost::format("%1%::onClientDeath: %2%.\n") % this->getScriptName() % this->getID());
+	DEBUG_MSG(boost::format("%1%::onClientDeath: %2%.\n") % 
+		this->getScriptName() % this->getID());
 
 	if(getClientMailbox() != NULL)
 	{
@@ -181,7 +182,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 	if(clientMailbox_ == NULL || clientMailbox_->getChannel() == NULL)
 	{
 		char err[255];																				
-		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: no has client.\n", getScriptName());			
+		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: no has client.", getScriptName());			
 		PyErr_SetString(PyExc_TypeError, err);														
 		PyErr_PrintEx(0);	
 		onGiveClientToFailure();
@@ -195,7 +196,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 		EntityMailbox* mb = proxy->getClientMailbox();
 		if(mb != NULL)
 		{
-			ERROR_MSG(boost::format("Proxy::giveClientTo: %1%[%2%] give client to %3%[%4%], %5% have clientMailbox.") % 
+			ERROR_MSG(boost::format("Proxy::giveClientTo: %1%[%2%] give client to %3%[%4%], %5% have clientMailbox.\n") % 
 					getScriptName() %
 					getID() %
 					proxy->getScriptName() % 
@@ -256,7 +257,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 	if(pobj->getClientMailbox() == NULL)
 	{
 		PyErr_Format(PyExc_AssertionError,
-						"Proxy::streamStringToClient: has no client.\n");
+						"Proxy::streamStringToClient: has no client.");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -351,7 +352,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 	if(pobj->getClientMailbox() == NULL)
 	{
 		PyErr_Format(PyExc_AssertionError,
-						"Proxy::streamStringToClient: has no client.\n");
+						"Proxy::streamStringToClient: has no client.");
 		PyErr_PrintEx(0);
 		return NULL;
 	}

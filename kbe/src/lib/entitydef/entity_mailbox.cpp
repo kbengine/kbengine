@@ -34,8 +34,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine
 {
+
 // 获得某个entity的函数地址
-GetEntityFunc EntityMailbox::__getEntityFunc;
+EntityMailbox::GetEntityFunc EntityMailbox::__getEntityFunc;
+
+EntityMailbox::MailboxCallHookFunc*	EntityMailbox::__hookCallFuncPtr = NULL;
 
 SCRIPT_METHOD_DECLARE_BEGIN(EntityMailbox)
 SCRIPT_METHOD_DECLARE_END()
@@ -73,6 +76,11 @@ EntityMailbox::~EntityMailbox()
 //-------------------------------------------------------------------------------------
 RemoteEntityMethod* EntityMailbox::createRemoteMethod(MethodDescription* md)
 {
+	if(__hookCallFuncPtr != NULL)
+	{
+		return (*__hookCallFuncPtr)(md, this);
+	}
+
 	return new RemoteEntityMethod(md, this);
 }
 

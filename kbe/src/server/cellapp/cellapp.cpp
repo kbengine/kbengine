@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "space.hpp"
 #include "profile.hpp"
 #include "cellapp_interface.hpp"
+#include "entity_remotemethod.hpp"
 #include "forward_message_over_handler.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
@@ -53,6 +54,12 @@ Cellapp::Cellapp(Mercury::EventDispatcher& dispatcher,
 	cells_()
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &CellappInterface::messageHandlers;
+
+	// hook mailboxcall
+	static EntityMailbox::MailboxCallHookFunc mailboxCallHookFunc = std::tr1::bind(&Cellapp::createMailboxCallEntityRemoteMethod, this, 
+		std::tr1::placeholders::_1, std::tr1::placeholders::_2);
+
+	EntityMailbox::setMailboxCallHookFunc(&mailboxCallHookFunc);
 }
 
 //-------------------------------------------------------------------------------------
@@ -750,6 +757,12 @@ void Cellapp::onDestroyCellEntityFromBaseapp(Mercury::Channel* pChannel, ENTITY_
 {
 	// DEBUG_MSG("Cellapp::onDestroyCellEntityFromBaseapp:entityID=%d.\n", eid);
 	destroyEntity(eid);
+}
+
+//-------------------------------------------------------------------------------------
+RemoteEntityMethod* Cellapp::createMailboxCallEntityRemoteMethod(MethodDescription* md, EntityMailbox* pMailbox)
+{
+	return new EntityRemoteMethod(md, pMailbox);
 }
 
 //-------------------------------------------------------------------------------------

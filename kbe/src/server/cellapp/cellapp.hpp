@@ -169,6 +169,11 @@ public:
 	*/
 	bool addUpdatable(Updatable* pObject);
 	bool removeUpdatable(Updatable* pObject);
+
+	/**
+		hook mailboxcall
+	*/
+	RemoteEntityMethod* createMailboxCallEntityRemoteMethod(MethodDescription* md, EntityMailbox* pMailbox);
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;

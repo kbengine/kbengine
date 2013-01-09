@@ -208,11 +208,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\spaces.cpp"
+				RelativePath=".\space.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\space.cpp"
+				RelativePath=".\spaces.cpp"
 				>
 			</File>
 			<Filter

@@ -39,8 +39,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 	
 namespace KBEngine{
-	
-typedef std::tr1::function<PyObject* (COMPONENT_ID componentID, ENTITY_ID& eid)> GetEntityFunc;
 
 namespace Mercury
 {
@@ -56,6 +54,9 @@ class EntityMailbox : public EntityMailboxAbstract
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(EntityMailbox, EntityMailboxAbstract)
 public:
+	typedef std::tr1::function<RemoteEntityMethod* (MethodDescription* md, EntityMailbox* pMailbox)> MailboxCallHookFunc;
+	typedef std::tr1::function<PyObject* (COMPONENT_ID componentID, ENTITY_ID& eid)> GetEntityFunc;
+
 	EntityMailbox(ScriptDefModule* scriptModule, const Mercury::Address* pAddr, COMPONENT_ID componentID, 
 		ENTITY_ID eid, ENTITY_MAILBOX_TYPE type);
 
@@ -91,9 +92,18 @@ public:
 		__getEntityFunc = func; 
 	};
 
+	/** 
+		设置mailbox的__hookCallFunc函数地址 
+	*/
+	static void setMailboxCallHookFunc(MailboxCallHookFunc* pFunc){ 
+		__hookCallFuncPtr = pFunc; 
+	};
+
 	virtual RemoteEntityMethod* createRemoteMethod(MethodDescription* md);
+
 private:
 	static GetEntityFunc					__getEntityFunc;		// 获得一个entity的实体的函数地址
+	static MailboxCallHookFunc*				__hookCallFuncPtr;
 protected:
 	ScriptDefModule*						scriptModule_;			// 该entity所使用的脚本模块对象
 };

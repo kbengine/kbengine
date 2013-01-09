@@ -1870,6 +1870,7 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 	if(base == NULL)
 	{
 		ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: entityID %1% not found.\n") % eid);
+		s.opfini();
 		return;
 	}
 
@@ -1880,6 +1881,7 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 			"occur a error(can't found clientMailbox)! entityID=%1%.\n") % 
 			eid);
 
+		s.opfini();
 		return;
 	}
 	
