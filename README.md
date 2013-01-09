@@ -39,8 +39,8 @@ bigworld引擎的特点是理论支持无限大世界，多进程分布式负载
 
 
 	· cellapp:
-	一个cellapp负责处理一个(尽量)或者多个cell，每个cell处理一个space的部分或者整个space，当一个space上消耗过大时kbe将会
-	寻找空闲的cellapp来均衡负载， 整个游戏的实时处理逻辑部分也在cellapp，包括aoi, 逻辑层的ai, entity移动导航等等。 
+	一个cellapp负责处理一个(尽量)或者多个space，每个space包含一个cell, cell可以维护整个space区域或者部分区域，当一个space上消耗过大时
+	cellappmgr将会寻找空闲的cellapp来均衡负载， 整个游戏的实时处理逻辑部分也在cellapp，包括aoi, 逻辑层的ai, entity移动导航等等。 
 	cellapp部署的数量可自由配置。
 
 	· loginapp:
