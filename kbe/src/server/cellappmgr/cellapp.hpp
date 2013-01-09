@@ -21,7 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef __CELLAPPMGR_CELLAPP_H__
 #define __CELLAPPMGR_CELLAPP_H__
-	
+
+#include "spaces.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
 #include "helper/watcher.hpp"
@@ -50,6 +51,8 @@ protected:
 	bool isDestroyed_;
 
 	Watchers watchers_;
+	
+	Spaces spaces_;
 };
 
 }

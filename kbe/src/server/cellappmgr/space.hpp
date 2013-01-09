@@ -18,23 +18,25 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __CELLS_HPP__
-#define __CELLS_HPP__
+#ifndef __MGR_SPACE_HPP__
+#define __MGR_SPACE_HPP__
 
 // common include
+#include "cells.hpp"
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 
 
 namespace KBEngine{
 
-class Cells
+class Space
 {
 public:
-	Cells();
-	~Cells();
+	Space();
+	~Space();
 
 private:
+	Cells cells_;
 };
 
 }

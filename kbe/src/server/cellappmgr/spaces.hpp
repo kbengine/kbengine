@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __CELL_HPP__
-#define __CELL_HPP__
+#ifndef __MGR_SPACES_HPP__
+#define __MGR_SPACES_HPP__
 
 // common include
 #include "helper/debug_helper.hpp"
@@ -28,15 +28,16 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-class Cell
+class Space;
+
+class Spaces
 {
 public:
-	Cell(CELL_ID id);
-	~Cell();
+	Spaces();
+	~Spaces();
 
-	CELL_ID id()const{ return id_; }
 private:
-	CELL_ID id_;
+	std::map<SPACE_ID, Space> spaces_;
 };
 
 }

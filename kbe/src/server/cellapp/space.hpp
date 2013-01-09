@@ -21,16 +21,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __SPACE_HPP__
 #define __SPACE_HPP__
 
-// common include
+#include "cell.hpp"
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/smartpointer.hpp"
-// #define NDEBUG
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
+
 
 namespace KBEngine{
 
@@ -98,6 +93,8 @@ protected:
 	bool isLoadGeometry_;								// 是否加载过地形数据
 	int32 mapSize_;										// 地图大小
 	std::string loadGeometryPathName_;					// 加载几何的路径
+	
+	Cell* pCell_;
 };
 
 

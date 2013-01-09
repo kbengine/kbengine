@@ -5,7 +5,9 @@ SRCS =						\
 	cellapp					\
 	cellappmgr				\
 	cellappmgr_interface			\
-	main
+	main					\
+	space					\
+	spaces
 
 ASMS =
 

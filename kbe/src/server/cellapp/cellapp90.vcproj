@@ -200,10 +200,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\cells.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\clients_remote_entity_method.cpp"
 				>
 			</File>
@@ -281,10 +277,6 @@
 			</File>
 			<File
 				RelativePath=".\cellapp_interface_macros.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\cells.hpp"
 				>
 			</File>
 			<File

@@ -1,17 +1,20 @@
-#include "cells.hpp"	
+#include "space.hpp"
+#include "spaces.hpp"
 #include "helper/profile.hpp"	
 
 namespace KBEngine{	
 
 
 //-------------------------------------------------------------------------------------
-Cells::Cells()
+Spaces::Spaces():
+spaces_()
 {
 }
 
 //-------------------------------------------------------------------------------------
-Cells::~Cells()
+Spaces::~Spaces()
 {
+	spaces_.clear();
 }
 
 //-------------------------------------------------------------------------------------

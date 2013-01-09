@@ -18,13 +18,15 @@ id_(spaceID),
 entities_(),
 isLoadGeometry_(false),
 mapSize_(mapSize),
-loadGeometryPathName_()
+loadGeometryPathName_(),
+pCell_(NULL)
 {
 }
 
 //-------------------------------------------------------------------------------------
 Space::~Space()
 {
+	SAFE_RELEASE(pCell_);
 }
 
 //-------------------------------------------------------------------------------------

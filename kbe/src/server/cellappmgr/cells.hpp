@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __MGR_CELLS_HPP__
 
 // common include
+#include "cell.hpp"
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 
@@ -35,6 +36,7 @@ public:
 	~Cells();
 
 private:
+	std::map<CELL_ID, Cell> cells_;
 };
 
 }

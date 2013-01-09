@@ -31,10 +31,12 @@ namespace KBEngine{
 class Cell
 {
 public:
-	Cell();
+	Cell(CELL_ID id);
 	~Cell();
 
+	CELL_ID id()const{ return id_; }
 private:
+	CELL_ID id_;
 };
 
 }
