@@ -49,7 +49,8 @@ Cellapp::Cellapp(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_ID componentID):
 	EntityApp<Entity>(dispatcher, ninterface, componentType, componentID),
 	pCellAppData_(NULL),
-	forward_messagebuffer_(ninterface)
+	forward_messagebuffer_(ninterface),
+	cells_()
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &CellappInterface::messageHandlers;
 }

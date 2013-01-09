@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include	
 #include "entity.hpp"
 #include "spaces.hpp"
+#include "cells.hpp"
 #include "updatables.hpp"
 #include "server/entity_app.hpp"
 #include "server/forward_messagebuffer.hpp"
@@ -173,6 +174,9 @@ protected:
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;
 
 	Updatables updatables_;
+
+	// ËùÓÐµÄcell
+	Cells cells_;
 };
 
 }

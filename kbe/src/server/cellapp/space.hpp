@@ -36,7 +36,7 @@ typedef std::vector<EntityPtr> SPACE_ENTITIES;
 class Space
 {
 public:
-	Space(SPACE_ID spaceID, int32 mapSize = 0);
+	Space(SPACE_ID spaceID);
 	~Space();
 
 	void loadSpaceGeometry(const char* path);
@@ -84,16 +84,29 @@ public:
 		销毁
 	*/
 	bool destroy(ENTITY_ID entityID);
+
+	/**
+		这个space的cell
+	*/
+	Cell * pCell() const	{ return pCell_; }
+	void pCell( Cell * pCell );
 protected:
-	SPACE_ID id_;										// 这个space的ID
-	ENTITY_ID creatorID_;								// 创造者ID 一般来说就是spaceEntity的ID
+	// 这个space的ID
+	SPACE_ID id_;	
 
-	SPACE_ENTITIES entities_;							// 这个space上的entity
+	// 创造者ID 一般来说就是spaceEntity的ID
+	ENTITY_ID creatorID_;								
 
-	bool isLoadGeometry_;								// 是否加载过地形数据
-	int32 mapSize_;										// 地图大小
-	std::string loadGeometryPathName_;					// 加载几何的路径
+	// 这个space上的entity
+	SPACE_ENTITIES entities_;							
+
+	// 是否加载过地形数据
+	bool isLoadGeometry_;
+
+	// 加载几何的路径
+	std::string loadGeometryPathName_;					
 	
+	// 每个space最多只有一个cell
 	Cell* pCell_;
 };
 

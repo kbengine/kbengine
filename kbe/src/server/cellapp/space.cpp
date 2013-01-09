@@ -13,11 +13,10 @@
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-Space::Space(SPACE_ID spaceID, int32 mapSize):
+Space::Space(SPACE_ID spaceID):
 id_(spaceID),
 entities_(),
 isLoadGeometry_(false),
-mapSize_(mapSize),
 loadGeometryPathName_(),
 pCell_(NULL)
 {
