@@ -18,12 +18,14 @@ class Avatar(KBEngine.Proxy,
 		
 		# 如果登录是一个副本, 无论如何登录都放置在主场景上
 		spacedatas = d_spaces.datas [self.cellData["spaceUType"]]
+		avatar_inittab = d_avatar_inittab.datas[self.roleType]
+
 		if "Copy" in spacedatas["entityType"] and \
-				self.cellData["spaceUType"] != d_avatar_inittab.datas[self.roleType]["spaceUType"]:
-			self.cellData["spaceUType"] = spacedatas["spaceUType"]
-			self.cellData["direction"] = (0, 0, spacedatas["spawnYaw"])
-			self.cellData["position"] = spacedatas["spawnPos"]
-			
+				self.cellData["spaceUType"] != avatar_inittab["spaceUType"]:
+			self.cellData["spaceUType"] = avatar_inittab["spaceUType"]
+			self.cellData["direction"] = (0, 0, avatar_inittab["spawnYaw"])
+			self.cellData["position"] = avatar_inittab["spawnPos"]
+
 		self.accountEntity = None
 		self.cellData["dbid"] = self.databaseID
 		self.nameB = self.cellData["name"]
