@@ -333,19 +333,19 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 		(*pForwardBundle) << getID();
 		pForwardBundle->append(*mstream);
 		
-		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(getID(), (*pSendBundle), (*pForwardBundle));
-		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
-
-		pWitness_->sendToClient(ClientInterface::onUpdatePropertys, pSendBundle);
-
 		// 记录这个事件产生的数据量大小
 		if((flags & ENTITY_BROADCAST_OTHER_CLIENT_FLAGS) <= 0)
 		{
-			g_privateClientEventHistoryStats.add(getScriptName(), 
+			g_privateClientEventHistoryStats.trackEvent(getScriptName(), 
 				propertyDescription->getName(), 
-				pSendBundle->currMsgLength());
+				pForwardBundle->currMsgLength());
 		}
+
+		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(getID(), (*pSendBundle), (*pForwardBundle));
+
+		pWitness_->sendToClient(ClientInterface::onUpdatePropertys, pSendBundle);
+		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	}
 
 	MemoryStream::ObjPool().reclaimObject(mstream);

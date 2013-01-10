@@ -40,7 +40,8 @@ ProfileHandler::ProfileHandler(Mercury::NetworkInterface & networkInterface, uin
 	networkInterface_(networkInterface),
 	reportLimitTimerHandle_(),
 	name_(name),
-	addr_(addr)
+	addr_(addr),
+	timinglen_(timinglen)
 {
 	profiles[name].reset(this);
 
@@ -105,6 +106,7 @@ void PyProfileHandler::timeout()
 
 	int8 type = 0;
 	(*(*bundle)) << type;
+	(*(*bundle)) << timinglen_;
 	(*(*bundle)).append(&s);
 	(*(*bundle)).send(networkInterface_, pChannel);
 }
@@ -127,6 +129,8 @@ CProfileHandler::~CProfileHandler()
 void CProfileHandler::timeout()
 {
 	MemoryStream s;
+	
+	s << timinglen_;
 
 	ArraySize size = profileVals_.size();
 	s << size - 1;
@@ -228,7 +232,7 @@ std::vector<EventProfileHandler*> EventProfileHandler::eventProfileHandlers_;
 EventProfileHandler::EventProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
 							   std::string name, const Mercury::Address& addr) :
 ProfileHandler(networkInterface, timinglen, name, addr),
-profileVals_(),
+profileMaps_(),
 removeHandle_(-1)
 {
 	eventProfileHandlers_.push_back(this);
@@ -247,31 +251,113 @@ EventProfileHandler::~EventProfileHandler()
 //-------------------------------------------------------------------------------------
 void EventProfileHandler::timeout()
 {
+	MemoryStream s;
+
+	s << timinglen_;
+
+	ArraySize size = profileMaps_.size();
+	s << size;
+
+	EventProfileHandler::PROFILEVALMAP::iterator iter = profileMaps_.begin();
+	for(; iter != profileMaps_.end(); iter++)
+	{
+		std::string type_name = iter->first;
+		PROFILEVALS& vals = iter->second;
+		
+		s << type_name;
+
+		size = vals.size();
+		s << size;
+
+		EventProfileHandler::PROFILEVALS::iterator iter1 = vals.begin();
+		for(; iter1 != vals.end(); iter1++)
+		{
+			ProfileVal& val = iter1->second;
+
+			s << val.name;
+			s << val.count;
+			s << val.size;
+		}
+	}
+
+	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
+	if(pChannel == NULL)
+	{
+		WARNING_MSG(boost::format("CProfileHandler::timeout: not found %1% addr(%2%)\n") % 
+			name_ % addr_.c_str());
+		return;
+	}
+
+	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+
+	ConsoleInterface::ConsoleProfileHandler msgHandler;
+	(*(*bundle)).newMessage(msgHandler);
+
+	int8 type = 2;
+	(*(*bundle)) << type;
+	(*(*bundle)).append(&s);
+	(*(*bundle)).send(networkInterface_, pChannel);
 }
 
 //-------------------------------------------------------------------------------------
-void EventProfileHandler::onTriggerEvent(const EventHistoryStats& eventHistory, const EventHistoryStats::Stats& stats)
+void EventProfileHandler::onTriggerEvent(const EventHistoryStats& eventHistory, const EventHistoryStats::Stats& stats, 
+										 uint32 size)
 {
-	/*
-	EventProfileHandler::PROFILEVALS::iterator iter = profileVals_.find(stats.name);
-	if(iter != profileVals_.end())
+	EventProfileHandler::PROFILEVALMAP::iterator iter = profileMaps_.find(eventHistory.name());
+
+	ProfileVal* pval = NULL;
+	if(iter == profileMaps_.end())
 	{
-		iter->second->count
-	}
+		PROFILEVALS& vals = profileMaps_[eventHistory.name()];
+		pval = &vals[stats.name];
+		pval->name = stats.name;
+	}	
 	else
 	{
+		PROFILEVALS& vals = iter->second;
+
+		EventProfileHandler::PROFILEVALS::iterator iter1 = vals.find(stats.name);
+		if(iter1 == vals.end())
+		{
+			pval = &vals[stats.name];
+			pval->name = stats.name;
+		}
+		else
+		{
+			pval = &iter1->second;
+		}
 	}
-	*/
+
+	pval->count++;
+	pval->size += size;
 }
 
 //-------------------------------------------------------------------------------------
-void EventProfileHandler::triggerEvent(const EventHistoryStats& eventHistory, const EventHistoryStats::Stats& stats)
+void EventProfileHandler::triggerEvent(const EventHistoryStats& eventHistory, const EventHistoryStats::Stats& stats, 
+									  uint32 size)
 {
 	std::vector<EventProfileHandler*>::iterator iter = eventProfileHandlers_.begin();
 	for(; iter != eventProfileHandlers_.end(); iter++)
 	{
-		(*iter)->onTriggerEvent(eventHistory, stats);
+		(*iter)->onTriggerEvent(eventHistory, stats, size);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+MercuryProfileHandler::MercuryProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
+							   std::string name, const Mercury::Address& addr) :
+ProfileHandler(networkInterface, timinglen, name, addr)
+{
+}
+
+//-------------------------------------------------------------------------------------
+MercuryProfileHandler::~MercuryProfileHandler()
+{
+}
+
+//-------------------------------------------------------------------------------------
+void MercuryProfileHandler::timeout()
+{
 }
 
 //-------------------------------------------------------------------------------------

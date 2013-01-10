@@ -54,6 +54,8 @@ protected:
 	std::string name_;
 	
 	Mercury::Address addr_;
+
+	uint32 timinglen_;
 };
 
 class PyProfileHandler : public ProfileHandler
@@ -100,7 +102,7 @@ private:
 		TimeStamp		diff_sumIntTime;
 
 		uint32			count;
-		TimeStamp		diff_count;
+		uint32			diff_count;
 	};
 
 	// 此ProfileVal只在计时器开始时记录default.profiles的初始值
@@ -118,14 +120,48 @@ public:
 	
 	void timeout();
 	
-	void onTriggerEvent(const EventHistoryStats& eventHistory, const EventHistoryStats::Stats& stats);
-	static void triggerEvent(const EventHistoryStats& eventHistory, const EventHistoryStats::Stats& stats);
+	void onTriggerEvent(const EventHistoryStats& eventHistory, const EventHistoryStats::Stats& stats, 
+		uint32 size);
+	static void triggerEvent(const EventHistoryStats& eventHistory, const EventHistoryStats::Stats& stats, 
+		uint32 size);
 private:
-	typedef KBEUnordered_map<std::string,  EventHistoryStats> PROFILEVALS;
-	PROFILEVALS profileVals_;
+	struct ProfileVal
+	{
+		ProfileVal()
+		{
+			name = "";
+			size = 0;
+			count = 0;
+		}
+
+		// 名称
+		std::string		name;
+
+		uint32			size;
+		uint32			count;
+	};
+
+	// 此ProfileVal只在计时器开始时记录default.profiles的初始值
+	// 在结束时取出差值得到结果
+	typedef KBEUnordered_map<std::string,  ProfileVal> PROFILEVALS;
+
+	typedef KBEUnordered_map< std::string,  PROFILEVALS > PROFILEVALMAP;
+	PROFILEVALMAP profileMaps_;
 	
 	static std::vector<EventProfileHandler*> eventProfileHandlers_;
 	int removeHandle_;
+};
+
+class MercuryProfileHandler : public ProfileHandler
+{
+public:
+	MercuryProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Mercury::Address& addr);
+	~MercuryProfileHandler();
+	
+	void timeout();
+	
+private:
 };
 
 }

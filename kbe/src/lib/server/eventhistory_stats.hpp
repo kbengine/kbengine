@@ -51,7 +51,7 @@ public:
 	EventHistoryStats(std::string name);
 	~EventHistoryStats();
 
-	void add(const std::string& type, const std::string& name, uint32 size);
+	void trackEvent(const std::string& type, const std::string& name, uint32 size, const char* flags = ".");
 
 	EventHistoryStats::STATS& stats(){ return stats_; }
 

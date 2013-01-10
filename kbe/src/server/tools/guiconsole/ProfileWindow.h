@@ -21,9 +21,10 @@ public:
 
 	void onReceiveData(KBEngine::int8 type, KBEngine::MemoryStream& s);
 
-	void onReceivePyProfileData(std::string& data);
+	void onReceivePyProfileData(KBEngine::MemoryStream& s);
 	void onReceiveCProfileData(KBEngine::MemoryStream& s);
 	void onReceiveEventProfileData(KBEngine::MemoryStream& s);
+	void onReceiveMercuryProfileData(KBEngine::MemoryStream& s);
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 

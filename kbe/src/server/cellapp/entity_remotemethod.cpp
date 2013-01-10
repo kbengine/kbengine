@@ -73,9 +73,10 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		MemoryStream::ObjPool().reclaimObject(mstream);
 
 		// 记录这个事件产生的数据量大小
-		g_privateClientEventHistoryStats.add(pEntity->getScriptName(), 
+		g_privateClientEventHistoryStats.trackEvent(pEntity->getScriptName(), 
 			methodDescription->getName(), 
-			pBundle->currMsgLength());
+			pBundle->currMsgLength(), 
+			"::");
 	}
 	
 	S_Return;

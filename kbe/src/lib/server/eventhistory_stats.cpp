@@ -37,9 +37,9 @@ EventHistoryStats::~EventHistoryStats()
 }
 
 //-------------------------------------------------------------------------------------
-void EventHistoryStats::add(const std::string& type, const std::string& name, uint32 size)
+void EventHistoryStats::trackEvent(const std::string& type, const std::string& name, uint32 size, const char* flags)
 {
-	std::string fullname = type + "." + name;
+	std::string fullname = type + flags + name;
 	
 	STATS::iterator iter = stats_.find(fullname);
 	if(iter == stats_.end())
@@ -47,14 +47,14 @@ void EventHistoryStats::add(const std::string& type, const std::string& name, ui
 		stats_[name].name = fullname;
 		stats_[name].size += size;
 		stats_[name].count++;
-		EventProfileHandler::triggerEvent(*this, stats_[name]);
+		EventProfileHandler::triggerEvent(*this, stats_[name], size);
 		return;
 	}
 
 	iter->second.size += size;
 	iter->second.count++;
 	
-	EventProfileHandler::triggerEvent(*this, iter->second);
+	EventProfileHandler::triggerEvent(*this, iter->second, size);
 }
 
 //-------------------------------------------------------------------------------------

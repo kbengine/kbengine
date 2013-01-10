@@ -97,7 +97,7 @@ void CProfileWindow::OnBnClickedButton1()
 	{
 		if(dlg->startProfile(wnd.m_profileName, 0, wnd.m_timingLength))
 		{
-			m_results.SetWindowText(L"please wait for the result.");
+			m_results.SetWindowText(L"please waiting for the result.");
 			return;
 		}
 	}
@@ -122,7 +122,7 @@ void CProfileWindow::OnBnClickedButton2()
 	{
 		if(dlg->startProfile(wnd.m_profileName, 1, wnd.m_timingLength))
 		{
-			m_results.SetWindowText(L"please wait for the result.");
+			m_results.SetWindowText(L"please waiting for the result.");
 			return;
 		}
 	}
@@ -147,7 +147,7 @@ void CProfileWindow::OnBnClickedButton3()
 	{
 		if(dlg->startProfile(wnd.m_profileName, 2, wnd.m_timingLength))
 		{
-			m_results.SetWindowText(L"please wait for the result.");
+			m_results.SetWindowText(L"please waiting for the result.");
 			return;
 		}
 	}
@@ -157,6 +157,7 @@ void CProfileWindow::OnBnClickedButton3()
 	m_eventprofile.EnableWindow(TRUE);
 	::AfxMessageBox(L"please select the baseapp|cellapp.");
 }
+
 
 void CProfileWindow::onReceiveData(KBEngine::int8 type, KBEngine::MemoryStream& s)
 {
@@ -170,9 +171,7 @@ void CProfileWindow::onReceiveData(KBEngine::int8 type, KBEngine::MemoryStream& 
 		{
 			m_profileShowList.ShowWindow(FALSE);
 			m_results.ShowWindow(TRUE);
-			std::string data;
-			s >> data;
-			onReceivePyProfileData(data);
+			onReceivePyProfileData(s);
 		}
 		break;
 	case 1:	// cprofile
@@ -181,9 +180,14 @@ void CProfileWindow::onReceiveData(KBEngine::int8 type, KBEngine::MemoryStream& 
 		onReceiveCProfileData(s);
 		break;
 	case 2:	// eventprofile
-		m_profileShowList.ShowWindow(TRUE);
-		m_results.ShowWindow(FALSE);
+		m_profileShowList.ShowWindow(FALSE);
+		m_results.ShowWindow(TRUE);
 		onReceiveEventProfileData(s);
+		break;
+	case 3:	// mercuryprofile
+		m_profileShowList.ShowWindow(FALSE);
+		m_results.ShowWindow(FALSE);
+		onReceiveMercuryProfileData(s);
 		break;
 	default:
 		ERROR_MSG(boost::format("CProfileWindow::onReceiveData: type(%1%) not support!\n") % 
@@ -192,20 +196,47 @@ void CProfileWindow::onReceiveData(KBEngine::int8 type, KBEngine::MemoryStream& 
 	};
 }
 
-void CProfileWindow::onReceivePyProfileData(std::string& data)
+void CProfileWindow::onReceivePyProfileData(KBEngine::MemoryStream& s)
 {
-	CString s;
+	std::string data;
+	uint32 timinglen;
+	s >> timinglen;
+	s >> data;
+
+	CString str;
 	wchar_t* ws = KBEngine::strutil::char2wchar(data.c_str());
-	s = ws;
-	s.Replace(L"\n", L"\r\n");
+	str = ws;
+	str.Replace(L"\n", L"\r\n");
 	free(ws);
 
-	m_results.SetWindowText(s);
+	m_results.SetWindowText(str);
 }
 
 void CProfileWindow::onReceiveCProfileData(KBEngine::MemoryStream& s)
 {
 	m_profileShowList.DeleteAllItems();
+
+	/*
+	if(m_profileShowList.GetHeaderCtrl())
+	{
+		int nColumnCount = m_profileShowList.GetHeaderCtrl()->GetItemCount();       
+		for (int i=0;i < nColumnCount;i++)
+		{
+			m_profileShowList.DeleteColumn(0);
+		}
+	}
+	
+	int idx = 0;
+	m_profileShowList.InsertColumn(idx++, _T("ncalls "),					LVCFMT_CENTER,	50);
+	m_profileShowList.InsertColumn(idx++, _T("tottime"),					LVCFMT_CENTER,	80);
+	m_profileShowList.InsertColumn(idx++, _T("percall"),					LVCFMT_CENTER,	80);
+	m_profileShowList.InsertColumn(idx++, _T("cumtime"),					LVCFMT_CENTER,	80);
+	m_profileShowList.InsertColumn(idx++, _T("percall"),					LVCFMT_CENTER,	80);
+	m_profileShowList.InsertColumn(idx++, _T("filename:lineno(function)"),	LVCFMT_CENTER,	300);
+	*/
+
+	uint32 timinglen;
+	s >> timinglen;
 
 	KBEngine::ArraySize size;
 	s >> size;
@@ -253,4 +284,59 @@ void CProfileWindow::onReceiveCProfileData(KBEngine::MemoryStream& s)
 
 void CProfileWindow::onReceiveEventProfileData(KBEngine::MemoryStream& s)
 {
+	uint32 timinglen;
+	s >> timinglen;
+
+	KBEngine::ArraySize size;
+	s >> size;
+	
+	CString outstr;
+	outstr.Format(L"Waiting %.2f secs...\r\n\r\n", (float)timinglen);
+	
+	if(size == 0)
+		outstr += L"\r\nresults is empty!";
+
+	CString str;
+
+	while(size-- > 0)
+	{
+		std::string type_name;
+		s >> type_name;
+		
+		wchar_t* ws = KBEngine::strutil::char2wchar(type_name.c_str());
+
+		str.Format(L"Event Type:%s\r\n\r\n(name|count|size)\r\n---------------------\r\n\r\n", ws);
+		outstr += str;
+		free(ws);
+
+		KBEngine::ArraySize size1;
+		s >> size1;
+
+		while(size1-- > 0)
+		{
+			uint32 count;
+			uint32 eventSize;
+			std::string name;
+
+			s >> name >> count >> eventSize;
+			
+			if(count == 0)
+				continue;
+
+			ws = KBEngine::strutil::char2wchar(name.c_str());
+			str.Format(L"%s\t\t\t\t\t%u\t%u\r\n", ws, count, eventSize);
+			outstr += str;
+			free(ws);
+		}
+
+		outstr += L"\r\n\r\n";
+	};
+
+	m_results.SetWindowText(outstr);
 }
+
+void CProfileWindow::onReceiveMercuryProfileData(KBEngine::MemoryStream& s)
+{
+
+}
+

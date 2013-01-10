@@ -66,9 +66,10 @@ PyObject* BaseRemoteMethod::tp_call(PyObject* self, PyObject* args,
 			(*pBundle).append(mstream->data(), mstream->wpos());
 
 		// 记录这个事件产生的数据量大小
-		g_privateClientEventHistoryStats.add(pEntity->getScriptName(), 
+		g_privateClientEventHistoryStats.trackEvent(pEntity->getScriptName(), 
 			methodDescription->getName(), 
-			pBundle->currMsgLength());
+			pBundle->currMsgLength(), 
+			"::");
 
 		mailbox->postMail((*pBundle));
 
