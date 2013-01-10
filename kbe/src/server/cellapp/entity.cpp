@@ -325,8 +325,11 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 		(*pForwardBundle) << getID();
 		pForwardBundle->append(*mstream);
 		
-		pWitness_->sendToClient(ClientInterface::onUpdatePropertys, pForwardBundle);
+		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(getID(), (*pSendBundle), (*pForwardBundle));
 		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+
+		pWitness_->sendToClient(ClientInterface::onUpdatePropertys, pSendBundle);
 	}
 
 	MemoryStream::ObjPool().reclaimObject(mstream);

@@ -99,11 +99,7 @@ void Witness::update()
 //-------------------------------------------------------------------------------------
 bool Witness::sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle)
 {
-	Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pBundle));
-	//Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
-	
-	bundles().push_back(pSendBundle);
+	bundles().push_back(pBundle);
 	return true;
 }
 

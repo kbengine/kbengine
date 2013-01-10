@@ -68,7 +68,7 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		//mailbox->postMail((*pBundle));
 		pEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
 
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		MemoryStream::ObjPool().reclaimObject(mstream);
 	}
 	
