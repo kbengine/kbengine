@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "proxy.hpp"
 #include "base.hpp"
 #include "baseapp_interface.hpp"
+#include "base_remotemethod.hpp"
 #include "archiver.hpp"
 #include "backup_sender.hpp"
 #include "forward_message_over_handler.hpp"
@@ -119,6 +120,12 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 	numProxices_(0)
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
+
+	// hook mailboxcall
+	static EntityMailbox::MailboxCallHookFunc mailboxCallHookFunc = std::tr1::bind(&Baseapp::createMailboxCallEntityRemoteMethod, this, 
+		std::tr1::placeholders::_1, std::tr1::placeholders::_2);
+
+	EntityMailbox::setMailboxCallHookFunc(&mailboxCallHookFunc);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1893,6 +1900,12 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 	s.read_skip(s.opsize());
 	mailbox->postMail((*pBundle));
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+RemoteEntityMethod* Baseapp::createMailboxCallEntityRemoteMethod(MethodDescription* md, EntityMailbox* pMailbox)
+{
+	return new BaseRemoteMethod(md, pMailbox);
 }
 
 //-------------------------------------------------------------------------------------

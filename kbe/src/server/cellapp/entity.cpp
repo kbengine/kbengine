@@ -30,6 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle.hpp"	
 #include "network/fixed_messages.hpp"
 #include "client_lib/client_interface.hpp"
+#include "server/eventhistory_stats.hpp"
 
 #include "../../server/baseapp/baseapp_interface.hpp"
 
@@ -312,6 +313,13 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 							witnessInfo->changeDefDataLogs[detailLevel].push_back(utype);
 					}
 				}
+
+				// 记录这个事件产生的数据量大小
+				std::string event_name = this->getScriptName();
+				event_name += ".";
+				event_name += propertyDescription->getName();
+				
+				g_publicClientEventHistoryStats.add(getScriptName(), propertyDescription->getName(), pSendBundle->currMsgLength());
 			}
 		}
 	}
@@ -330,6 +338,14 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 
 		pWitness_->sendToClient(ClientInterface::onUpdatePropertys, pSendBundle);
+
+		// 记录这个事件产生的数据量大小
+		if((flags & ENTITY_BROADCAST_OTHER_CLIENT_FLAGS) <= 0)
+		{
+			g_privateClientEventHistoryStats.add(getScriptName(), 
+				propertyDescription->getName(), 
+				pSendBundle->currMsgLength());
+		}
 	}
 
 	MemoryStream::ObjPool().reclaimObject(mstream);

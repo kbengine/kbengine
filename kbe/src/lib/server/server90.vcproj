@@ -171,6 +171,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\eventhistory_stats.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\forward_messagebuffer.cpp"
 				>
 			</File>
@@ -238,6 +242,10 @@
 			</File>
 			<File
 				RelativePath=".\entity_app.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\eventhistory_stats.hpp"
 				>
 			</File>
 			<File

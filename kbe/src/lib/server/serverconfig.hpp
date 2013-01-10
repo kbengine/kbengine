@@ -56,11 +56,17 @@ class Address;
 struct profiles_config
 {
 	profiles_config():
-		open_pyprofile(false)
+		open_pyprofile(false),
+		open_cprofile(false),
+		open_eventprofile(false),
+		open_mercuryprofile(false)
 	{
 	}
 
 	bool open_pyprofile;
+	bool open_cprofile;
+	bool open_eventprofile;
+	bool open_mercuryprofile;
 };
 
 // 引擎组件信息结构体

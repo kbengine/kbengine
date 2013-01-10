@@ -7,6 +7,7 @@ SRCS =						\
 	backup_sender				\
 	data_download				\
 	data_downloads				\
+	base_remotemethod			\
 	forward_message_over_handler		\
 	sync_entitystreamtemplate_handler	\
 	main					\

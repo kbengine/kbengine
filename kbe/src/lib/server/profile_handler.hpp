@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/tasks.hpp"
 #include "cstdkbe/timer.hpp"
 #include "helper/debug_helper.hpp"
+#include "server/eventhistory_stats.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -116,6 +117,15 @@ public:
 	~EventProfileHandler();
 	
 	void timeout();
+	
+	void onTriggerEvent(const EventHistoryStats& eventHistory, const EventHistoryStats::Stats& stats);
+	static void triggerEvent(const EventHistoryStats& eventHistory, const EventHistoryStats::Stats& stats);
+private:
+	typedef KBEUnordered_map<std::string,  EventHistoryStats> PROFILEVALS;
+	PROFILEVALS profileVals_;
+	
+	static std::vector<EventProfileHandler*> eventProfileHandlers_;
+	int removeHandle_;
 };
 
 }

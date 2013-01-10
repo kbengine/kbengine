@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/method.hpp"
 #include "clients_remote_entity_method.hpp"
 #include "network/bundle.hpp"
+#include "server/eventhistory_stats.hpp"
 
 namespace KBEngine{
 
@@ -62,6 +63,10 @@ PyObject* ClientsRemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 
 	if(methodDescription->checkArgs(args))
 	{
+		// 记录这个事件产生的数据量大小
+		//g_publicClientEventHistoryStats.add(pEntity->getScriptName(), 
+		//	methodDescription->getName(), 
+		//	pBundle->currMsgLength());
 	}
 
 	S_Return;

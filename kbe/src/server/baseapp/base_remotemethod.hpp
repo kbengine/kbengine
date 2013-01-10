@@ -18,21 +18,31 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __APP_PROFILE_HPP__
-#define __APP_PROFILE_HPP__
+#ifndef __KBE_BASE_REMOTE_METHOD_HPP__
+#define __KBE_BASE_REMOTE_METHOD_HPP__
 
-#include "cstdkbe/cstdkbe.hpp"
+
 #include "helper/debug_helper.hpp"
-#include "helper/profile.hpp"
-#include "server/eventhistory_stats.hpp"
+#include "cstdkbe/cstdkbe.hpp"	
+#include "entitydef/remote_entity_method.hpp"
 
 namespace KBEngine{
 
-extern ProfileVal SCRIPTCALL_PROFILE;
-extern ProfileVal ONTIMER_PROFILE;
+class BaseRemoteMethod : public RemoteEntityMethod
+{
+	/** 子类化 将一些py操作填充进派生类 */
+	INSTANCE_SCRIPT_HREADER(BaseRemoteMethod, RemoteEntityMethod)	
+public:
+	BaseRemoteMethod(MethodDescription* methodDescription, 
+						EntityMailboxAbstract* mailbox);
 
-extern EventHistoryStats g_privateClientEventHistoryStats;
-extern EventHistoryStats g_publicClientEventHistoryStats;
+	~BaseRemoteMethod();
+
+	static PyObject* tp_call(PyObject* self, 
+			PyObject* args, PyObject* kwds);
+private:
+
+};
 
 }
 #endif

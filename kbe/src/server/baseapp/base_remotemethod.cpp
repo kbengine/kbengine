@@ -1,6 +1,5 @@
-#include "cellapp.hpp"
-#include "witness.hpp"
-#include "entity_remotemethod.hpp"
+#include "baseapp.hpp"
+#include "base_remotemethod.hpp"
 #include "entitydef/method.hpp"
 #include "helper/profile.hpp"	
 #include "network/bundle.hpp"
@@ -10,33 +9,33 @@
 
 namespace KBEngine{	
 
-SCRIPT_METHOD_DECLARE_BEGIN(EntityRemoteMethod)
+SCRIPT_METHOD_DECLARE_BEGIN(BaseRemoteMethod)
 SCRIPT_METHOD_DECLARE_END()
 
-SCRIPT_MEMBER_DECLARE_BEGIN(EntityRemoteMethod)
+SCRIPT_MEMBER_DECLARE_BEGIN(BaseRemoteMethod)
 SCRIPT_MEMBER_DECLARE_END()
 
-SCRIPT_GETSET_DECLARE_BEGIN(EntityRemoteMethod)
+SCRIPT_GETSET_DECLARE_BEGIN(BaseRemoteMethod)
 SCRIPT_GETSET_DECLARE_END()
-SCRIPT_INIT(EntityRemoteMethod, tp_call, 0, 0, 0, 0)	
+SCRIPT_INIT(BaseRemoteMethod, tp_call, 0, 0, 0, 0)	
 
 //-------------------------------------------------------------------------------------
-EntityRemoteMethod::EntityRemoteMethod(MethodDescription* methodDescription, 
+BaseRemoteMethod::BaseRemoteMethod(MethodDescription* methodDescription, 
 						EntityMailboxAbstract* mailbox):
 RemoteEntityMethod(methodDescription, mailbox, getScriptType())
 {
 }
 
 //-------------------------------------------------------------------------------------
-EntityRemoteMethod::~EntityRemoteMethod()
+BaseRemoteMethod::~BaseRemoteMethod()
 {
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args, 
+PyObject* BaseRemoteMethod::tp_call(PyObject* self, PyObject* args, 
 	PyObject* kwds)	
 {	
-	EntityRemoteMethod* rmethod = static_cast<EntityRemoteMethod*>(self);
+	BaseRemoteMethod* rmethod = static_cast<BaseRemoteMethod*>(self);
 	MethodDescription* methodDescription = rmethod->getDescription();
 	EntityMailboxAbstract* mailbox = rmethod->getMailbox();
 
@@ -45,10 +44,10 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		return RemoteEntityMethod::tp_call(self, args, kwds);
 	}
 
-	Entity* pEntity = Cellapp::getSingleton().findEntity(mailbox->getID());
-	if(pEntity == NULL || pEntity->pWitness() == NULL)
+	Base* pEntity = Baseapp::getSingleton().findEntity(mailbox->getID());
+	if(pEntity == NULL)
 	{
-		//WARNING_MSG(boost::format("EntityRemoteMethod::callClientMethod: not found entity(%1%).\n") % 
+		//WARNING_MSG(boost::format("BaseRemoteMethod::callClientMethod: not found entity(%1%).\n") % 
 		//	mailbox->getID());
 
 		return RemoteEntityMethod::tp_call(self, args, kwds);
@@ -66,16 +65,15 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		if(mstream->wpos() > 0)
 			(*pBundle).append(mstream->data(), mstream->wpos());
 
-		//mailbox->postMail((*pBundle));
-		pEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
-
-		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-		MemoryStream::ObjPool().reclaimObject(mstream);
-
 		// 记录这个事件产生的数据量大小
 		g_privateClientEventHistoryStats.add(pEntity->getScriptName(), 
 			methodDescription->getName(), 
 			pBundle->currMsgLength());
+
+		mailbox->postMail((*pBundle));
+
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		MemoryStream::ObjPool().reclaimObject(mstream);
 	}
 	
 	S_Return;

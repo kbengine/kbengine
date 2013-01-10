@@ -196,6 +196,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\base_remotemethod.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\baseapp.cpp"
 				>
 			</File>
@@ -261,6 +265,10 @@
 			</File>
 			<File
 				RelativePath=".\base_interface_macros.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\base_remotemethod.hpp"
 				>
 			</File>
 			<File

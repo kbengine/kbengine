@@ -63,7 +63,6 @@ bool ServerConfig::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("packetAlwaysContainLength");
 	if(rootNode != NULL){
 		Mercury::g_packetAlwaysContainLength = xml->getValInt(rootNode) != 0;
-		rootNode = NULL;
 	}
 
 	rootNode = xml->getRootNode("trace_packet");
@@ -99,7 +98,6 @@ bool ServerConfig::loadConfig(std::string fileName)
 	if(rootNode != NULL)
 	{
 		g_debugEntity = xml->getValInt(rootNode) > 0;
-		rootNode = NULL;
 	}
 
 	rootNode = xml->getRootNode("channelTimeout");
@@ -112,20 +110,16 @@ bool ServerConfig::loadConfig(std::string fileName)
 		childnode = xml->enterNode(rootNode, "external");
 		if(childnode)
 			Mercury::g_channelExternalTimeout = KBE_MAX(1.f, float(xml->getValFloat(childnode)));
-
-		rootNode = NULL;
 	}
 
 	rootNode = xml->getRootNode("gameUpdateHertz");
 	if(rootNode != NULL){
 		gameUpdateHertz_ = xml->getValInt(rootNode);
-		rootNode = NULL;
 	}
 
 	rootNode = xml->getRootNode("bitsPerSecondToClient");
 	if(rootNode != NULL){
 		bitsPerSecondToClient_ = xml->getValInt(rootNode);
-		rootNode = NULL;
 	}
 
 	rootNode = xml->getRootNode("billingSystem");
@@ -140,7 +134,6 @@ bool ServerConfig::loadConfig(std::string fileName)
 		}
 
 		std::string ip = "";
-		childnode = NULL;
 		childnode = xml->enterNode(rootNode, "host");
 		if(childnode)
 		{
@@ -153,7 +146,6 @@ bool ServerConfig::loadConfig(std::string fileName)
 		}
 
 		uint16 port = 0;
-		childnode = NULL;
 		childnode = xml->enterNode(rootNode, "port");
 		if(childnode)
 		{
@@ -166,35 +158,30 @@ bool ServerConfig::loadConfig(std::string fileName)
 			billingSystemAddr_ = addr;
 		}
 
-		childnode = NULL;
 		childnode = xml->enterNode(rootNode, "thirdpartyAccountService_addr");
 		if(childnode)
 		{
 			billingSystem_thirdpartyAccountServiceAddr_ = xml->getValStr(childnode);
 		}
 
-		childnode = NULL;
 		childnode = xml->enterNode(rootNode, "thirdpartyAccountService_port");
 		if(childnode)
 		{
 			billingSystem_thirdpartyAccountServicePort_ = xml->getValInt(childnode);
 		}
 		
-		childnode = NULL;
 		childnode = xml->enterNode(rootNode, "thirdpartyChargeService_addr");
 		if(childnode)
 		{
 			billingSystem_thirdpartyChargeServiceAddr_ = xml->getValStr(childnode);
 		}
 
-		childnode = NULL;
 		childnode = xml->enterNode(rootNode, "thirdpartyChargeService_port");
 		if(childnode)
 		{
 			billingSystem_thirdpartyChargeServicePort_ = xml->getValInt(childnode);
 		}
 
-		childnode = NULL;
 		childnode = xml->enterNode(rootNode, "thirdpartyService_cbport");
 		if(childnode)
 		{
@@ -205,17 +192,14 @@ bool ServerConfig::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("cellapp");
 	if(rootNode != NULL)
 	{
-		node = NULL;
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_cellAppInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "entryScriptFile");	
 		if(node != NULL)
 			strncpy((char*)&_cellAppInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
 		
-		node = NULL;
 		TiXmlNode* aoiNode = xml->enterNode(rootNode, "defaultAoIRadius");
 		if(aoiNode != NULL)
 		{
@@ -223,14 +207,12 @@ bool ServerConfig::loadConfig(std::string fileName)
 			node = xml->enterNode(aoiNode, "radius");
 			if(node != NULL)
 				_cellAppInfo.defaultAoIRadius = float(xml->getValFloat(node));
-			
-			node = NULL;			
+					
 			node = xml->enterNode(aoiNode, "hysteresisArea");
 			if(node != NULL)
 				_cellAppInfo.defaultAoIHysteresisArea = float(xml->getValFloat(node));
 		}
-
-		node = NULL;			
+			
 		node = xml->enterNode(rootNode, "ids");
 		if(node != NULL)
 		{
@@ -242,44 +224,55 @@ bool ServerConfig::loadConfig(std::string fileName)
 					_cellAppInfo.criticallyLowSize = 100;
 			}
 		}
-
-		node = NULL;			
+		
 		node = xml->enterNode(rootNode, "profiles");
 		if(node != NULL)
 		{
-			TiXmlNode* childnode = xml->enterNode(node, "pyprofile");
+			TiXmlNode* childnode = xml->enterNode(node, "cprofile");
+			if(childnode)
+			{
+				_cellAppInfo.profiles.open_cprofile = (xml->getValStr(childnode) == "true");
+			}
+
+			childnode = xml->enterNode(node, "pyprofile");
 			if(childnode)
 			{
 				_cellAppInfo.profiles.open_pyprofile = (xml->getValStr(childnode) == "true");
 			}
+
+			childnode = xml->enterNode(node, "eventprofile");
+			if(childnode)
+			{
+				_cellAppInfo.profiles.open_eventprofile = (xml->getValStr(childnode) == "true");
+			}
+
+			childnode = xml->enterNode(node, "mercuryprofile");
+			if(childnode)
+			{
+				_cellAppInfo.profiles.open_mercuryprofile = (xml->getValStr(childnode) == "true");
+			}
 		}
 	}
 	
-	rootNode = NULL;
 	rootNode = xml->getRootNode("baseapp");
 	if(rootNode != NULL)
 	{
-		node = NULL;
 		node = xml->enterNode(rootNode, "entryScriptFile");	
 		if(node != NULL)
 			strncpy((char*)&_baseAppInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_baseAppInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "externalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_baseAppInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "externalPorts_min");
 		if(node != NULL)	
 			_baseAppInfo.externalPorts_min = xml->getValInt(node);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "externalPorts_max");
 		if(node != NULL)	
 			_baseAppInfo.externalPorts_max = xml->getValInt(node);
@@ -289,28 +282,22 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(_baseAppInfo.externalPorts_max < _baseAppInfo.externalPorts_min)
 			_baseAppInfo.externalPorts_max = _baseAppInfo.externalPorts_min;
 
-
-		node = NULL;
 		node = xml->enterNode(rootNode, "archivePeriod");
 		if(node != NULL)
 			_baseAppInfo.archivePeriod = float(xml->getValFloat(node));
-		
-		node = NULL;			
+				
 		node = xml->enterNode(rootNode, "backupPeriod");
 		if(node != NULL)
 			_baseAppInfo.backupPeriod = float(xml->getValFloat(node));
-
-		node = NULL;			
+		
 		node = xml->enterNode(rootNode, "backUpUndefinedProperties");
 		if(node != NULL)
 			_baseAppInfo.backUpUndefinedProperties = xml->getValInt(node) > 0;
-
-		node = NULL;			
+			
 		node = xml->enterNode(rootNode, "loadSmoothingBias");
 		if(node != NULL)
 			_baseAppInfo.loadSmoothingBias = float(xml->getValFloat(node));
-
-		node = NULL;			
+		
 		node = xml->enterNode(rootNode, "ids");
 		if(node != NULL)
 		{
@@ -322,8 +309,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 					_baseAppInfo.criticallyLowSize = 100;
 			}
 		}
-
-		node = NULL;			
+		
 		node = xml->enterNode(rootNode, "downloadStreaming");
 		if(node != NULL)
 		{
@@ -335,69 +321,75 @@ bool ServerConfig::loadConfig(std::string fileName)
 			if(childnode)
 				_baseAppInfo.downloadBitsPerSecondPerClient = xml->getValInt(childnode);
 		}
-
-		node = NULL;			
+	
 		node = xml->enterNode(rootNode, "profiles");
 		if(node != NULL)
 		{
-			TiXmlNode* childnode = xml->enterNode(node, "pyprofile");
+			TiXmlNode* childnode = xml->enterNode(node, "cprofile");
+			if(childnode)
+			{
+				_baseAppInfo.profiles.open_cprofile = (xml->getValStr(childnode) == "true");
+			}
+
+			childnode = xml->enterNode(node, "pyprofile");
 			if(childnode)
 			{
 				_baseAppInfo.profiles.open_pyprofile = (xml->getValStr(childnode) == "true");
 			}
+
+			childnode = xml->enterNode(node, "eventprofile");
+			if(childnode)
+			{
+				_baseAppInfo.profiles.open_eventprofile = (xml->getValStr(childnode) == "true");
+			}
+
+			childnode = xml->enterNode(node, "mercuryprofile");
+			if(childnode)
+			{
+				_baseAppInfo.profiles.open_mercuryprofile = (xml->getValStr(childnode) == "true");
+			}
 		}
 	}
 
-	rootNode = NULL;
 	rootNode = xml->getRootNode("dbmgr");
 	if(rootNode != NULL)
 	{
-		node = NULL;
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_dbmgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "dbAccountEntityScriptType");	
 		if(node != NULL)
 			strncpy((char*)&_dbmgrInfo.dbAccountEntityScriptType, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "type");	
 		if(node != NULL)
 			strncpy((char*)&_dbmgrInfo.db_type, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "host");	
 		if(node != NULL)
 			strncpy((char*)&_dbmgrInfo.db_ip, xml->getValStr(node).c_str(), MAX_IP);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "port");	
 		if(node != NULL)
 			_dbmgrInfo.db_port = xml->getValInt(node);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "username");	
 		if(node != NULL)
 			strncpy((char*)&_dbmgrInfo.db_username, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "password");	
 		if(node != NULL)
 			strncpy((char*)&_dbmgrInfo.db_password, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "databaseName");	
 		if(node != NULL)
 			strncpy((char*)&_dbmgrInfo.db_name, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "numConnections");	
 		if(node != NULL)
 			_dbmgrInfo.db_numConnections = xml->getValInt(node);
-
-		node = NULL;			
+		
 		node = xml->enterNode(rootNode, "unicodeString");
 		if(node != NULL)
 		{
@@ -421,26 +413,21 @@ bool ServerConfig::loadConfig(std::string fileName)
 	if(_dbmgrInfo.db_unicodeString_collation.size() == 0)
 		_dbmgrInfo.db_unicodeString_collation = "utf8_bin";
 
-	rootNode = NULL;
 	rootNode = xml->getRootNode("loginapp");
 	if(rootNode != NULL)
 	{
-		node = NULL;
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_loginAppInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "externalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_loginAppInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "externalPorts_min");
 		if(node != NULL)	
 			_loginAppInfo.externalPorts_min = xml->getValInt(node);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "externalPorts_max");
 		if(node != NULL)	
 			_loginAppInfo.externalPorts_max = xml->getValInt(node);
@@ -451,46 +438,37 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_loginAppInfo.externalPorts_max = _loginAppInfo.externalPorts_min;
 	}
 	
-	rootNode = NULL;
 	rootNode = xml->getRootNode("cellappmgr");
 	if(rootNode != NULL)
 	{
-		node = NULL;
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_cellAppMgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 	}
 	
-	rootNode = NULL;
 	rootNode = xml->getRootNode("baseappmgr");
 	if(rootNode != NULL)
 	{
-		node = NULL;
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_baseAppMgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 	}
 	
-	rootNode = NULL;
 	rootNode = xml->getRootNode("kbmachine");
 	if(rootNode != NULL)
 	{
-		node = NULL;
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_kbMachineInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "externalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_kbMachineInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "externalPorts_min");
 		if(node != NULL)	
 			_kbMachineInfo.externalPorts_min = xml->getValInt(node);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "externalPorts_max");
 		if(node != NULL)	
 			_kbMachineInfo.externalPorts_max = xml->getValInt(node);
@@ -501,51 +479,41 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_kbMachineInfo.externalPorts_max = _kbMachineInfo.externalPorts_min;
 	}
 
-	rootNode = NULL;
 	rootNode = xml->getRootNode("kbcenter");
 	if(rootNode != NULL)
 	{
-		node = NULL;
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_kbCenterInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 	}
 	
-	rootNode = NULL;
 	rootNode = xml->getRootNode("bots");
 	if(rootNode != NULL)
 	{
-		node = NULL;
 		node = xml->enterNode(rootNode, "bots");	
 		if(node != NULL)
 			strncpy((char*)&_botsInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "host");	
 		if(node != NULL)
 			strncpy((char*)&_botsInfo.login_ip, xml->getValStr(node).c_str(), MAX_IP);
 
-		node = NULL;
 		node = xml->enterNode(rootNode, "port");	
 		if(node != NULL)
 			_botsInfo.login_port = xml->getValInt(node);
 	}
 
-	rootNode = NULL;
 	rootNode = xml->getRootNode("messagelog");
 	if(rootNode != NULL)
 	{
-		node = NULL;
 		node = xml->enterNode(rootNode, "messagelog");	
 		if(node != NULL)
 			strncpy((char*)&_messagelogInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 	}
 
-	rootNode = NULL;
 	rootNode = xml->getRootNode("resourcemgr");
 	if(rootNode != NULL)
 	{
-		node = NULL;
 		node = xml->enterNode(rootNode, "resourcemgr");	
 		if(node != NULL)
 			strncpy((char*)&_resourcemgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);

@@ -18,21 +18,50 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __APP_PROFILE_HPP__
-#define __APP_PROFILE_HPP__
+#ifndef __EVENT_HISTORY_STATS__
+#define __EVENT_HISTORY_STATS__
 
 #include "cstdkbe/cstdkbe.hpp"
-#include "helper/debug_helper.hpp"
-#include "helper/profile.hpp"
-#include "server/eventhistory_stats.hpp"
 
-namespace KBEngine{
+namespace KBEngine { 
 
-extern ProfileVal SCRIPTCALL_PROFILE;
-extern ProfileVal ONTIMER_PROFILE;
+/*
+	¼ÇÂ¼event_historyÁ÷Á¿
+*/
+class EventHistoryStats
+{
+public:
 
-extern EventHistoryStats g_privateClientEventHistoryStats;
-extern EventHistoryStats g_publicClientEventHistoryStats;
+	struct Stats
+	{
+		Stats()
+		{
+			name = "";
+			size = 0;
+			count = 0;
+		}
+
+		std::string name;
+		uint32 size;
+		uint32 count;
+	};
+
+	typedef KBEUnordered_map<std::string, Stats> STATS;
+
+	EventHistoryStats(std::string name);
+	~EventHistoryStats();
+
+	void add(const std::string& type, const std::string& name, uint32 size);
+
+	EventHistoryStats::STATS& stats(){ return stats_; }
+
+	const char* name()const { return name_.c_str(); }
+private:
+	STATS stats_;
+
+	std::string name_;
+};
 
 }
-#endif
+
+#endif // __EVENT_HISTORY_STATS__

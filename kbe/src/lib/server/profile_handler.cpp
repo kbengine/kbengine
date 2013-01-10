@@ -223,20 +223,55 @@ bool CProfileHandler::process()
 }
 
 //-------------------------------------------------------------------------------------
+std::vector<EventProfileHandler*> EventProfileHandler::eventProfileHandlers_;
+	
 EventProfileHandler::EventProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
 							   std::string name, const Mercury::Address& addr) :
-ProfileHandler(networkInterface, timinglen, name, addr)
+ProfileHandler(networkInterface, timinglen, name, addr),
+profileVals_(),
+removeHandle_(-1)
 {
+	eventProfileHandlers_.push_back(this);
+	removeHandle_ = eventProfileHandlers_.size() - 1;
 }
 
 //-------------------------------------------------------------------------------------
 EventProfileHandler::~EventProfileHandler()
 {
+	KBE_ASSERT(eventProfileHandlers_[removeHandle_] == this);
+	EventProfileHandler* pBack = eventProfileHandlers_.back();
+	eventProfileHandlers_[removeHandle_] = pBack;
+	eventProfileHandlers_.resize(eventProfileHandlers_.size() - 1);
 }
 
 //-------------------------------------------------------------------------------------
 void EventProfileHandler::timeout()
 {
+}
+
+//-------------------------------------------------------------------------------------
+void EventProfileHandler::onTriggerEvent(const EventHistoryStats& eventHistory, const EventHistoryStats::Stats& stats)
+{
+	/*
+	EventProfileHandler::PROFILEVALS::iterator iter = profileVals_.find(stats.name);
+	if(iter != profileVals_.end())
+	{
+		iter->second->count
+	}
+	else
+	{
+	}
+	*/
+}
+
+//-------------------------------------------------------------------------------------
+void EventProfileHandler::triggerEvent(const EventHistoryStats& eventHistory, const EventHistoryStats::Stats& stats)
+{
+	std::vector<EventProfileHandler*>::iterator iter = eventProfileHandlers_.begin();
+	for(; iter != eventProfileHandlers_.end(); iter++)
+	{
+		(*iter)->onTriggerEvent(eventHistory, stats);
+	}
 }
 
 //-------------------------------------------------------------------------------------
