@@ -381,7 +381,7 @@ void CProfileWindow::onReceiveMercuryProfileData(KBEngine::MemoryStream& s)
 	
 	int idx = 0;
 	m_profileShowList.InsertColumn(idx++, _T("name "),					LVCFMT_CENTER,	230);
-	m_profileShowList.InsertColumn(idx++, _T("send#"),					LVCFMT_CENTER,	50);
+	m_profileShowList.InsertColumn(idx++, _T("sent#"),					LVCFMT_CENTER,	50);
 	m_profileShowList.InsertColumn(idx++, _T("size"),					LVCFMT_CENTER,	50);
 	m_profileShowList.InsertColumn(idx++, _T("savg"),					LVCFMT_CENTER,	50);
 	m_profileShowList.InsertColumn(idx++, _T("total#"),					LVCFMT_CENTER,	50);
