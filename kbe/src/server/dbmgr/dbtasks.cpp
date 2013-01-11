@@ -133,11 +133,18 @@ bool DBTaskExecuteRawDatabaseCommand::db_thread_process()
 	(*pDatas_) >> callbackID_;
 	(*pDatas_).readBlob(sdatas_);
 
-	if(!static_cast<DBInterfaceMysql*>(pdbi_)->execute(sdatas_.data(), sdatas_.size(), &execret_))
+	try
 	{
-		error_ = pdbi_->getstrerror();
+		if(!static_cast<DBInterfaceMysql*>(pdbi_)->execute(sdatas_.data(), sdatas_.size(), &execret_))
+		{
+			error_ = pdbi_->getstrerror();
+		}
 	}
-	
+	catch (std::exception & e)
+	{
+		error_ = e.what();
+	}
+
 	return false;
 }
 
@@ -163,6 +170,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommand::presentMainThread()
 
 	(*pBundle) << callbackID_;
 	(*pBundle) << error_;
+
 	if(error_.size() <= 0)
 		(*pBundle).append(execret_);
 
