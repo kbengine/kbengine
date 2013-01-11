@@ -497,8 +497,6 @@ HTREEITEM CguiconsoleDlg::hasCheckApp(COMPONENT_TYPE type)
 			{
 				if(m_tree.GetCheck(childItem))
 					return childItem;
-				else
-					return NULL;
 			}
 
 			childItem = m_tree.GetNextItem(childItem, TVGN_NEXT);
