@@ -190,7 +190,7 @@ void ServerApp::finalise(void)
 	threadPool_.finalise();
 	pActiveTimerHandle_.cancel();
 
-	Mercury::destroyObjPool();
+	Mercury::finalise();
 }
 
 //-------------------------------------------------------------------------------------		

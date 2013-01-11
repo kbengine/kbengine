@@ -25,6 +25,7 @@ namespace KBEngine {
 namespace Mercury
 {
 class Channel;
+class MessageHandler;
 
 /** 此类接口用于接收普通的Mercury输入消息
 */
@@ -59,6 +60,16 @@ class ChannelDeregisterHandler
 public:
 	virtual void onChannelDeregister(Channel * pChannel) = 0;
 };
+
+/** 此类接口用于监听MercuryStats事件
+*/
+class MercuryStatsHandler
+{
+public:
+	virtual void onSendMessage(const MessageHandler& msgHandler, int size) = 0;
+	virtual void onRecvMessage(const MessageHandler& msgHandler, int size) = 0;
+};
+
 
 }
 }

@@ -50,9 +50,12 @@ bool initializeWatcher()
 	WATCH_OBJECT("network/numBytesSent", g_numBytesSent);
 	WATCH_OBJECT("network/numBytesReceived", g_numBytesReceived);
 	
-	if(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers != NULL)
-		if(!KBEngine::Mercury::MessageHandlers::pMainMessageHandlers->initializeWatcher())
+	std::vector<MessageHandlers*>::iterator iter = MessageHandlers::messageHandlers().begin();
+	for(; iter != MessageHandlers::messageHandlers().end(); iter++)
+	{
+		if(!(*iter)->initializeWatcher())
 			return false;
+	}
 
 	return true;
 }
@@ -65,6 +68,17 @@ void destroyObjPool()
 	Address::destroyObjPool();
 	TCPPacketReceiver::destroyObjPool();
 	UDPPacketReceiver::destroyObjPool();
+}
+
+void finalise(void)
+{
+#ifdef ENABLE_WATCHERS
+	WatcherPaths::finalise();
+#endif
+
+	MessageHandlers::finalise();
+	
+	Mercury::destroyObjPool();
 }
 
 //-------------------------------------------------------------------------------------

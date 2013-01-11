@@ -22,6 +22,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr/resmgr.hpp"
 
 namespace KBEngine{
+WatcherPaths* pWatcherPaths = NULL;
+Watchers* pWatchers = NULL;
 
 //-------------------------------------------------------------------------------------
 WatcherObject::WatcherObject(std::string path):
@@ -74,8 +76,9 @@ void Watchers::clear()
 //-------------------------------------------------------------------------------------
 Watchers& Watchers::rootWatchers()
 {
-	static Watchers watchers;
-	return watchers;
+	if(pWatchers == NULL)
+		pWatchers = new Watchers;
+	return *pWatchers;
 }
 
 //-------------------------------------------------------------------------------------
@@ -102,8 +105,10 @@ bool Watchers::addWatcher(std::string path, WatcherObject* pwo)
 	}
 
 	watcherObjs_[pwo->name()].reset(pwo);
-	DEBUG_MSG(boost::format("Watchers::addWatcher: path=%1%, name=%2%, id=%3%\n") % 
-		pwo->path() % pwo->name() % pwo->id());
+
+	//DEBUG_MSG(boost::format("Watchers::addWatcher: path=%1%, name=%2%, id=%3%\n") % 
+	//	pwo->path() % pwo->name() % pwo->id());
+
 	return true;
 }
 
@@ -155,10 +160,22 @@ void WatcherPaths::clear()
 }
 
 //-------------------------------------------------------------------------------------
+bool WatcherPaths::finalise()
+{
+	SAFE_RELEASE(pWatcherPaths);
+	SAFE_RELEASE(pWatchers);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 WatcherPaths& WatcherPaths::root()
 {
-	static WatcherPaths watcherPaths;
-	return watcherPaths;
+	if(pWatcherPaths == NULL)
+	{
+		pWatcherPaths = new WatcherPaths();
+	}
+
+	return *pWatcherPaths;
 }
 
 //-------------------------------------------------------------------------------------

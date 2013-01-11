@@ -405,6 +405,7 @@ public:
 	void clear();
 
 	static WatcherPaths& root();
+	static bool finalise();
 
 	void addToStream(MemoryStream* s);
 

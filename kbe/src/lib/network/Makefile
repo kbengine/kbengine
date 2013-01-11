@@ -13,6 +13,7 @@ SRCS =				\
 	fixed_messages		\
 	interface_defs		\
 	message_handler		\
+	mercurystats		\
 	listener_receiver	\
 	network_interface	\
 	packet_filter		\

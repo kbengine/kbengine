@@ -81,6 +81,7 @@ namespace ConsoleInterface{
 			// 强制这条协议ID
 			msgID = CONSOLE_COMMANDCB_MSGID;
 			msgLen = MERCURY_VARIABLE_MESSAGE;
+			name = "console::execPythonCommand";
 		}
 
 		virtual int32 msglenMax()
@@ -132,6 +133,7 @@ namespace ConsoleInterface{
 			// 强制这条协议ID
 			msgID = CONSOLE_LOG_MSGID;
 			msgLen = MERCURY_VARIABLE_MESSAGE;
+			name = "console::querylogs";
 		}
 
 		virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
@@ -177,6 +179,7 @@ namespace ConsoleInterface{
 			// 强制这条协议ID
 			msgID = CONSOLE_WATCHERCB_MSGID;
 			msgLen = MERCURY_VARIABLE_MESSAGE;
+			name = "console::queryWatcher";
 		}
 
 		virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)
@@ -222,6 +225,7 @@ namespace ConsoleInterface{
 			// 强制这条协议ID
 			msgID = CONSOLE_PROFILECB_MSGID;
 			msgLen = MERCURY_VARIABLE_MESSAGE;
+			name = "console::profile";
 		}
 
 		virtual void handle(Mercury::Channel* pChannel, MemoryStream& s)

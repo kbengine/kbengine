@@ -207,6 +207,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mercurystats.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\message_handler.cpp"
 				>
 			</File>
@@ -306,6 +310,10 @@
 			</File>
 			<File
 				RelativePath=".\listener_receiver.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\mercurystats.hpp"
 				>
 			</File>
 			<File

@@ -23,7 +23,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/network_interface.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/address.hpp"
+#include "network/mercurystats.hpp"
 #include "network/bundle.hpp"
+#include "network/message_handler.hpp"
 #include "pyscript/pyprofile.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "helper/console_helper.hpp"
@@ -283,7 +285,7 @@ void EventProfileHandler::timeout()
 	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
 	if(pChannel == NULL)
 	{
-		WARNING_MSG(boost::format("CProfileHandler::timeout: not found %1% addr(%2%)\n") % 
+		WARNING_MSG(boost::format("EventProfileHandler::timeout: not found %1% addr(%2%)\n") % 
 			name_ % addr_.c_str());
 		return;
 	}
@@ -346,18 +348,109 @@ void EventProfileHandler::triggerEvent(const EventHistoryStats& eventHistory, co
 //-------------------------------------------------------------------------------------
 MercuryProfileHandler::MercuryProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
 							   std::string name, const Mercury::Address& addr) :
-ProfileHandler(networkInterface, timinglen, name, addr)
+ProfileHandler(networkInterface, timinglen, name, addr),
+profileVals_()
 {
+	Mercury::MercuryStats::getSingleton().addHandler(this);
 }
 
 //-------------------------------------------------------------------------------------
 MercuryProfileHandler::~MercuryProfileHandler()
 {
+	Mercury::MercuryStats::getSingleton().removeHandler(this);
 }
 
 //-------------------------------------------------------------------------------------
 void MercuryProfileHandler::timeout()
 {
+	MemoryStream s;
+
+	s << timinglen_;
+
+	ArraySize size = profileVals_.size();
+	s << size;
+
+	MercuryProfileHandler::PROFILEVALS::iterator iter = profileVals_.begin();
+	for(; iter != profileVals_.end(); iter++)
+	{
+		MercuryProfileHandler::ProfileVal& profileVal = iter->second;
+
+		s << profileVal.name;
+
+		s << profileVal.send_count << profileVal.send_size << profileVal.send_avgsize << 
+			profileVal.total_send_size << profileVal.total_send_count;
+
+		s << profileVal.recv_count << profileVal.recv_size << profileVal.recv_avgsize << 
+			profileVal.total_recv_size << profileVal.total_recv_count;
+	}
+
+	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
+	if(pChannel == NULL)
+	{
+		WARNING_MSG(boost::format("MercuryProfileHandler::timeout: not found %1% addr(%2%)\n") % 
+			name_ % addr_.c_str());
+		return;
+	}
+
+	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+
+	ConsoleInterface::ConsoleProfileHandler msgHandler;
+	(*(*bundle)).newMessage(msgHandler);
+
+	int8 type = 3;
+	(*(*bundle)) << type;
+	(*(*bundle)).append(&s);
+	(*(*bundle)).send(networkInterface_, pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void MercuryProfileHandler::onSendMessage(const Mercury::MessageHandler& msgHandler, int size)
+{
+	MercuryProfileHandler::PROFILEVALS::iterator iter1 = profileVals_.find(msgHandler.name);
+	
+	MercuryProfileHandler::ProfileVal* pProfileVal = NULL;
+	if(iter1 == profileVals_.end())
+	{
+		MercuryProfileHandler::ProfileVal& profileVal = profileVals_[msgHandler.name];
+		pProfileVal = &profileVal;
+		profileVal.name = msgHandler.name;
+	}
+	else
+	{
+		pProfileVal = &iter1->second;
+	}
+
+	pProfileVal->send_size += size;
+	pProfileVal->send_count++;
+	
+	pProfileVal->send_avgsize = msgHandler.sendavgsize();
+	pProfileVal->total_send_size = msgHandler.sendsize();
+	pProfileVal->total_send_count = msgHandler.sendcount();
+}
+
+//-------------------------------------------------------------------------------------
+void MercuryProfileHandler::onRecvMessage(const Mercury::MessageHandler& msgHandler, int size)
+{
+	MercuryProfileHandler::PROFILEVALS::iterator iter1 = profileVals_.find(msgHandler.name);
+	
+	MercuryProfileHandler::ProfileVal* pProfileVal = NULL;
+	if(iter1 == profileVals_.end())
+	{
+		MercuryProfileHandler::ProfileVal& profileVal = profileVals_[msgHandler.name];
+		pProfileVal = &profileVal;
+		profileVal.name = msgHandler.name;
+	}
+	else
+	{
+		pProfileVal = &iter1->second;
+	}
+
+	pProfileVal->recv_size += size;
+	pProfileVal->recv_count++;
+	
+	pProfileVal->recv_avgsize = msgHandler.recvavgsize();
+	pProfileVal->total_recv_size = msgHandler.recvsize();
+	pProfileVal->total_recv_count = msgHandler.recvcount();
 }
 
 //-------------------------------------------------------------------------------------

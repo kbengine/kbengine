@@ -205,6 +205,7 @@ extern uint64						g_numBytesSent;
 extern uint64						g_numBytesReceived;
 
 bool initializeWatcher();
+void finalise(void);
 
 }
 }

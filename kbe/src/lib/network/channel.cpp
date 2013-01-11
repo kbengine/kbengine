@@ -32,6 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
+#include "network/mercurystats.hpp"
 
 namespace KBEngine { 
 namespace Mercury
@@ -533,10 +534,18 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 								break;
 							}
 							else
+							{
 								(*pPacket) >> currMsgLen_;
+								MercuryStats::getSingleton().trackMessage(MercuryStats::RECV, *pMsgHandler, 
+									currMsgLen_ + MERCURY_MESSAGE_ID_SIZE + MERCURY_MESSAGE_LENGTH_SIZE);
+							}
 						}
 						else
+						{
 							currMsgLen_ = pMsgHandler->msgLen;
+							MercuryStats::getSingleton().trackMessage(MercuryStats::RECV, *pMsgHandler, 
+								currMsgLen_ + MERCURY_MESSAGE_LENGTH_SIZE);
+						}
 					}
 					
 					if(currMsgLen_ > pMsgHandler->msglenMax())

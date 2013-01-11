@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "bundle.hpp"
+#include "network/mercurystats.hpp"
 #include "network/network_interface.hpp"
 #include "network/packet.hpp"
 #include "network/channel.hpp"
@@ -162,6 +163,15 @@ void Bundle::finish(bool issend)
 		packets_.push_back(pCurrPacket_);
 	}
 
+	// 对消息进行跟踪
+	if(pCurrMsgHandler_){
+		if(issend || numMessages_ > 1)
+		{
+			MercuryStats::getSingleton().trackMessage(MercuryStats::SEND, 
+				*pCurrMsgHandler_, currMsgLength_);
+		}
+	}
+
 	// 此处对于非固定长度的消息来说需要设置它的最终长度信息
 	if(currMsgHandlerLength_ < 0 || g_packetAlwaysContainLength)
 	{
@@ -174,9 +184,8 @@ void Bundle::finish(bool issend)
 
 		memcpy(&pPacket->data()[currMsgLengthPos_], 
 			(uint8*)&currMsgLength_, MERCURY_MESSAGE_LENGTH_SIZE);
-
 	}
-	
+
 	if(issend)
 	{
 		currMsgHandlerLength_ = 0;

@@ -26,12 +26,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/timer.hpp"
 #include "helper/debug_helper.hpp"
 #include "server/eventhistory_stats.hpp"
+#include "network/interfaces.hpp"
 
 namespace KBEngine { 
 namespace Mercury
 {
 class NetworkInterface;
 class Address;
+class MessageHandler;
 }
 
 class ProfileHandler : public TimerHandler
@@ -152,7 +154,7 @@ private:
 	int removeHandle_;
 };
 
-class MercuryProfileHandler : public ProfileHandler
+class MercuryProfileHandler : public ProfileHandler, public Mercury::MercuryStatsHandler
 {
 public:
 	MercuryProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
@@ -161,7 +163,47 @@ public:
 	
 	void timeout();
 	
+	virtual void onSendMessage(const Mercury::MessageHandler& msgHandler, int size);
+	virtual void onRecvMessage(const Mercury::MessageHandler& msgHandler, int size);
 private:
+	struct ProfileVal
+	{
+		ProfileVal()
+		{
+			name = "";
+			send_size = 0;
+			send_count = 0;
+			send_avgsize = 0;
+			total_send_size = 0;
+			total_send_count = 0;
+
+			recv_size = 0;
+			recv_count = 0;
+			recv_avgsize = 0;
+			total_recv_size = 0;
+			total_recv_count = 0;
+		}
+
+		// Ãû³Æ
+		std::string		name;
+
+		uint32			send_size;
+		uint32			send_avgsize;
+		uint32			send_count;
+
+		uint32			total_send_size;
+		uint32			total_send_count;
+
+		uint32			recv_size;
+		uint32			recv_count;
+		uint32			recv_avgsize;
+
+		uint32			total_recv_size;
+		uint32			total_recv_count;
+	};
+
+	typedef KBEUnordered_map<std::string,  ProfileVal> PROFILEVALS;
+	PROFILEVALS profileVals_;
 };
 
 }

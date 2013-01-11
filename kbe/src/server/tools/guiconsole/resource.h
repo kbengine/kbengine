@@ -42,6 +42,7 @@
 #define IDC_STATUS_LIST1                1018
 #define IDC_GRAPH                       1020
 #define IDC_RESULT                      1021
+#define IDC_BUTTON4                     1022
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_HELP_ABOUT                   32773
@@ -56,7 +57,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        142
 #define _APS_NEXT_COMMAND_VALUE         32785
-#define _APS_NEXT_CONTROL_VALUE         1022
+#define _APS_NEXT_CONTROL_VALUE         1023
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

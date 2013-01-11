@@ -30,6 +30,8 @@ namespace KBEngine {
 namespace Mercury
 {
 Mercury::MessageHandlers* MessageHandlers::pMainMessageHandlers = 0;
+std::vector<MessageHandlers*>* g_pMessageHandlers;
+
 static Mercury::FixedMessages* g_fm;
 
 //-------------------------------------------------------------------------------------
@@ -39,18 +41,15 @@ msgID_(1)
 {
 	g_fm = Mercury::FixedMessages::getSingletonPtr();
 	if(g_fm == NULL)
-	{
 		g_fm = new Mercury::FixedMessages;
-	}
 
 	Mercury::FixedMessages::getSingleton().loadConfig("server/fixed_mercury_messages.xml");
+	messageHandlers().push_back(this);
 }
 
 //-------------------------------------------------------------------------------------
 MessageHandlers::~MessageHandlers()
 {
-	SAFE_RELEASE(g_fm);
-
 	MessageHandlerMap::iterator iter = msgHandlers_.begin();
 	for(; iter != msgHandlers_.end(); iter++)
 	{
@@ -61,7 +60,11 @@ MessageHandlers::~MessageHandlers()
 
 //-------------------------------------------------------------------------------------
 MessageHandler::MessageHandler():
-pArgs(NULL)
+pArgs(NULL),
+send_size(0),
+send_count(0),
+recv_size(0),
+recv_count(0)
 {
 }
 
@@ -86,8 +89,29 @@ bool MessageHandlers::initializeWatcher()
 	for(; iter != msgHandlers_.end(); iter++)
 	{
 		char buf[MAX_BUF];
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s", iter->second->name.c_str());
-		WATCH_OBJECT(buf, iter->second, &MessageHandler::c_str);
+		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/id", iter->second->name.c_str());
+		WATCH_OBJECT(buf, iter->second->msgID);
+
+		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/len", iter->second->name.c_str());
+		WATCH_OBJECT(buf, iter->second->msgLen);
+
+		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/sentSize", iter->second->name.c_str());
+		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendsize);
+
+		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/sentCount", iter->second->name.c_str());
+		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendcount);
+
+		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/sentAvgSize", iter->second->name.c_str());
+		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendavgsize);
+
+		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/recvSize", iter->second->name.c_str());
+		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvsize);
+
+		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/recvCount", iter->second->name.c_str());
+		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvsize);
+
+		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/recvAvgSize", iter->second->name.c_str());
+		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvavgsize);
 	}
 
 	return true;
@@ -171,6 +195,22 @@ MessageHandler* MessageHandlers::find(MessageID msgID)
 	};
 	
 	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+std::vector<MessageHandlers*>& MessageHandlers::messageHandlers()
+{
+	if(g_pMessageHandlers == NULL)
+		g_pMessageHandlers = new std::vector<MessageHandlers*>;
+
+	return *g_pMessageHandlers;
+}
+
+//-------------------------------------------------------------------------------------
+void MessageHandlers::finalise(void)
+{
+	SAFE_RELEASE(g_fm);
+	SAFE_RELEASE(g_pMessageHandlers);
 }
 
 //-------------------------------------------------------------------------------------
