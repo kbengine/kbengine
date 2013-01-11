@@ -100,7 +100,11 @@ void CProfileWindow::OnBnClickedButton1()
 	{
 		if(dlg->startProfile(wnd.m_profileName, 0, wnd.m_timingLength))
 		{
-			m_results.SetWindowText(L"please waiting for the result.");
+			CString outstr;
+			outstr.Format(L"Waiting %.2f secs...\r\n\r\n", (float)wnd.m_timingLength);
+			m_results.SetWindowText(outstr);
+			m_profileShowList.ShowWindow(FALSE);
+			m_results.ShowWindow(TRUE);
 			return;
 		}
 	}
@@ -126,7 +130,11 @@ void CProfileWindow::OnBnClickedButton2()
 	{
 		if(dlg->startProfile(wnd.m_profileName, 1, wnd.m_timingLength))
 		{
-			m_results.SetWindowText(L"please waiting for the result.");
+			CString outstr;
+			outstr.Format(L"Waiting %.2f secs...\r\n\r\n", (float)wnd.m_timingLength);
+			m_results.SetWindowText(outstr);
+			m_profileShowList.ShowWindow(FALSE);
+			m_results.ShowWindow(TRUE);
 			return;
 		}
 	}
@@ -152,7 +160,11 @@ void CProfileWindow::OnBnClickedButton3()
 	{
 		if(dlg->startProfile(wnd.m_profileName, 2, wnd.m_timingLength))
 		{
-			m_results.SetWindowText(L"please waiting for the result.");
+			CString outstr;
+			outstr.Format(L"Waiting %.2f secs...\r\n\r\n", (float)wnd.m_timingLength);
+			m_results.SetWindowText(outstr);
+			m_profileShowList.ShowWindow(FALSE);
+			m_results.ShowWindow(TRUE);
 			return;
 		}
 	}
@@ -178,7 +190,11 @@ void CProfileWindow::OnBnClickedButton4()
 	{
 		if(dlg->startProfile(wnd.m_profileName, 3, wnd.m_timingLength))
 		{
-			m_results.SetWindowText(L"please waiting for the result.");
+			CString outstr;
+			outstr.Format(L"Waiting %.2f secs...\r\n\r\n", (float)wnd.m_timingLength);
+			m_results.SetWindowText(outstr);
+			m_profileShowList.ShowWindow(FALSE);
+			m_results.ShowWindow(TRUE);
 			return;
 		}
 	}
@@ -383,7 +399,7 @@ void CProfileWindow::onReceiveMercuryProfileData(KBEngine::MemoryStream& s)
 	m_profileShowList.InsertColumn(idx++, _T("name "),					LVCFMT_CENTER,	230);
 	m_profileShowList.InsertColumn(idx++, _T("sent#"),					LVCFMT_CENTER,	50);
 	m_profileShowList.InsertColumn(idx++, _T("size"),					LVCFMT_CENTER,	50);
-	m_profileShowList.InsertColumn(idx++, _T("savg"),					LVCFMT_CENTER,	50);
+	m_profileShowList.InsertColumn(idx++, _T("avg"),					LVCFMT_CENTER,	50);
 	m_profileShowList.InsertColumn(idx++, _T("total#"),					LVCFMT_CENTER,	50);
 	m_profileShowList.InsertColumn(idx++, _T("totalsize"),				LVCFMT_CENTER,	50);
 	m_profileShowList.InsertColumn(idx++, _T("recv#"),					LVCFMT_CENTER,	50);
