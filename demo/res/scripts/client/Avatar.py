@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import KBEngine
-import KBExtend
+import KBExtra
 from KBEDebug import *
 from interfaces.GameObject import GameObject
 from interfaces.Dialog import Dialog
