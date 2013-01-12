@@ -8,3 +8,4 @@ taskkill /f /t /im baseapp.exe
 taskkill /f /t /im cellapp.exe
 taskkill /f /t /im loginapp.exe
 taskkill /f /t /im billingsystem.exe
+taskkill /f /t /im bots.exe
