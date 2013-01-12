@@ -37,6 +37,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/loginapp/loginapp_interface.hpp"
 #include "../../server/resourcemgr/resourcemgr_interface.hpp"
 #include "../../server/tools/message_log/messagelog_interface.hpp"
+#include "../../server/tools/billing_system/billingsystem_interface.hpp"
 
 namespace KBEngine{
 COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;

@@ -60,6 +60,16 @@
 #define DEFINE_IN_INTERFACE
 #include "tools/message_log/messagelog_interface.hpp"
 
+#undef DEFINE_IN_INTERFACE
+#include "tools/bots/bots_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "tools/bots/bots_interface.hpp"
+
+#undef DEFINE_IN_INTERFACE
+#include "tools/billing_system/billingsystem_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "tools/billing_system/billingsystem_interface.hpp"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -132,7 +142,7 @@ public:
 
 	virtual bool process()
 	{
-		int8 findComponentTypes[] = {MESSAGELOG_TYPE, RESOURCEMGR_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, UNKNOWN_COMPONENT_TYPE};
+		int8 findComponentTypes[] = {MESSAGELOG_TYPE, RESOURCEMGR_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
 		int ifind = 0;
 
 		if(g_isDestroyed)
@@ -929,6 +939,7 @@ void CguiconsoleDlg::updateTree()
 	Components::COMPONENTS cts5 = Components::getSingleton().getComponents(LOGINAPP_TYPE);
 	Components::COMPONENTS cts6 = Components::getSingleton().getComponents(MESSAGELOG_TYPE);
 	Components::COMPONENTS cts7 = Components::getSingleton().getComponents(RESOURCEMGR_TYPE);
+	Components::COMPONENTS cts8 = Components::getSingleton().getComponents(BOTS_TYPE);
 	Components::COMPONENTS cts;
 	
 	if(cts0.size() > 0)
@@ -947,6 +958,8 @@ void CguiconsoleDlg::updateTree()
 		cts.insert(cts.begin(), cts6.begin(), cts6.end());
 	if(cts7.size() > 0)
 		cts.insert(cts.begin(), cts7.begin(), cts7.end());
+	if(cts8.size() > 0)
+		cts.insert(cts.begin(), cts8.begin(), cts8.end());
 
 	HTREEITEM hItemRoot;
 	TV_INSERTSTRUCT tcitem;
@@ -1134,6 +1147,7 @@ COMPONENT_TYPE CguiconsoleDlg::getTreeItemComponent(HTREEITEM hItem)
 	int fi_dbmgr = s.Find(L"dbmgr", 0);
 	int fi_messagelog = s.Find(L"messagelog", 0);
 	int fi_resourcemgr = s.Find(L"resourcemgr", 0);
+	int fi_bots = s.Find(L"bots", 0);
 
 	if(fi_cellapp  < 0 &&
 		fi_baseapp < 0 &&
@@ -1142,7 +1156,8 @@ COMPONENT_TYPE CguiconsoleDlg::getTreeItemComponent(HTREEITEM hItem)
 		fi_loginapp < 0 &&
 		fi_messagelog < 0 &&
 		fi_resourcemgr < 0 &&
-		fi_dbmgr < 0)
+		fi_dbmgr < 0 &&
+		fi_bots < 0)
 	{
 		return UNKNOWN_COMPONENT_TYPE;
 	}
@@ -1179,6 +1194,10 @@ COMPONENT_TYPE CguiconsoleDlg::getTreeItemComponent(HTREEITEM hItem)
 	{
 		return RESOURCEMGR_TYPE;
 	}
+	else if(fi_bots >= 0)
+	{
+		return BOTS_TYPE;
+	}
 
 	return UNKNOWN_COMPONENT_TYPE;
 }
@@ -1201,6 +1220,7 @@ Mercury::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 	int fi_dbmgr = s.Find(L"dbmgr", 0);
 	int fi_messagelog = s.Find(L"messagelog", 0);
 	int fi_resourcemgr = s.Find(L"resourcemgr", 0);
+	int fi_bots = s.Find(L"bots", 0);
 
 	if(fi_cellapp  < 0 &&
 		fi_baseapp < 0 &&
@@ -1209,7 +1229,8 @@ Mercury::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 		fi_loginapp < 0 &&
 		fi_messagelog < 0 &&
 		fi_resourcemgr < 0 &&
-		fi_dbmgr < 0)
+		fi_dbmgr < 0 &&
+		fi_bots < 0)
 	{
 		return Mercury::Address::NONE;
 	}
@@ -1306,6 +1327,7 @@ void CguiconsoleDlg::OnMenu_Update()
 	Components::getSingleton().clear();
 	Components::getSingleton().delComponent(Components::ANY_UID, MESSAGELOG_TYPE, 0, true, false);
 	Components::getSingleton().delComponent(Components::ANY_UID, RESOURCEMGR_TYPE, 0, true, false);
+	Components::getSingleton().delComponent(Components::ANY_UID, BOTS_TYPE, 0, true, false);
 	::SetTimer(m_hWnd, 2, 100, NULL);
 }
 
@@ -1473,7 +1495,7 @@ void CguiconsoleDlg::OnToolBar_Find()
 
 void CguiconsoleDlg::OnToolBar_StartServer()
 {
-	COMPONENT_TYPE startComponentTypes[] = {BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, UNKNOWN_COMPONENT_TYPE};
+	COMPONENT_TYPE startComponentTypes[] = {BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
 	
 	int i = 0;
 
@@ -1529,12 +1551,13 @@ void CguiconsoleDlg::OnToolBar_StartServer()
 	Components::getSingleton().clear();
 	Components::getSingleton().delComponent(Components::ANY_UID, MESSAGELOG_TYPE, 0, true, false);
 	Components::getSingleton().delComponent(Components::ANY_UID, RESOURCEMGR_TYPE, 0, true, false);
+	Components::getSingleton().delComponent(Components::ANY_UID, BOTS_TYPE, 0, true, false);
 	::SetTimer(m_hWnd, 2, 1000, NULL);
 }
 
 void CguiconsoleDlg::OnToolBar_StopServer()
 {
-	COMPONENT_TYPE startComponentTypes[] = {BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, UNKNOWN_COMPONENT_TYPE};
+	COMPONENT_TYPE startComponentTypes[] = {BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
 	
 	int i = 0;
 

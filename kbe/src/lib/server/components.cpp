@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/address.hpp"	
 #include "network/bundle.hpp"	
 #include "network/network_interface.hpp"
+#include "client_lib/client_interface.hpp"
 
 #include "../../server/baseappmgr/baseappmgr_interface.hpp"
 #include "../../server/cellappmgr/cellappmgr_interface.hpp"
@@ -35,7 +36,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/loginapp/loginapp_interface.hpp"
 #include "../../server/resourcemgr/resourcemgr_interface.hpp"
 #include "../../server/tools/message_log/messagelog_interface.hpp"
-
+#include "../../server/tools/bots/bots_interface.hpp"
+#include "../../server/tools/billing_system/billingsystem_interface.hpp"
 
 namespace KBEngine
 {
@@ -490,7 +492,17 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 	epListen.setnodelay(true);
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-	COMMON_MERCURY_MESSAGE(info->componentType, (*pBundle), lookApp);
+
+	// 由于COMMON_MERCURY_MESSAGE不包含client， 如果是bots， 我们需要单独处理
+	if(info->componentType != BOTS_TYPE)
+	{
+		COMMON_MERCURY_MESSAGE(info->componentType, (*pBundle), lookApp);
+	}
+	else
+	{
+		(*pBundle).newMessage(BotsInterface::lookApp);
+	}
+
 	epListen.send(pBundle->pCurrPacket()->data(), pBundle->pCurrPacket()->wpos());
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 

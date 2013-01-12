@@ -27,12 +27,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
+#include "server/componentbridge.hpp"
 #include "server/serverconfig.hpp"
 #include "../../../server/baseapp/baseapp_interface.hpp"
 #include "../../../server/loginapp/loginapp_interface.hpp"
 
 namespace KBEngine{
 ServerConfig g_serverConfig;
+Componentbridge* g_pComponentbridge = NULL;
 
 //-------------------------------------------------------------------------------------
 Bots::Bots(Mercury::EventDispatcher& dispatcher, 
@@ -41,11 +43,13 @@ Bots::Bots(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_ID componentID):
 ClientApp(dispatcher, ninterface, componentType, componentID)
 {
+	g_pComponentbridge = new Componentbridge(ninterface, componentType, componentID);
 }
 
 //-------------------------------------------------------------------------------------
 Bots::~Bots()
 {
+	SAFE_RELEASE(g_pComponentbridge);
 }
 
 //-------------------------------------------------------------------------------------
@@ -61,6 +65,9 @@ bool Bots::initialize()
 	// "../../../demo/res/server/kbengine.xml"
 	if(!g_kbeSrvConfig.loadConfig("server/kbengine.xml"))
 		return false;
+
+	// 广播自己的地址给网上上的所有kbemachine
+	this->getMainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
 
 	return true;
 }
@@ -157,6 +164,20 @@ bool Bots::uninstallPyModules()
 {
 	EntityDef::uninstallScript();
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::lookApp(Mercury::Channel* pChannel)
+{
+	DEBUG_MSG(boost::format("Bots::lookApp: %1%\n") % pChannel->c_str());
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	(*pBundle) << g_componentType;
+	(*pBundle) << componentID_;
+	(*pBundle).send(getNetworkInterface(), pChannel);
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

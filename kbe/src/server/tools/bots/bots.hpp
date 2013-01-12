@@ -80,6 +80,11 @@ public:
 	*/
 	virtual bool destroyEntity(ENTITY_ID entityID){ return true; }
 
+	/** 网络接口
+		某个app请求查看该app
+	*/
+	virtual void lookApp(Mercury::Channel* pChannel);
+
 	KBEngine::script::Script& getScript(){ return script_; }
 protected:
 	KBEngine::script::Script								script_;

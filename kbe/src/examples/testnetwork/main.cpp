@@ -69,6 +69,11 @@ same license as the rest of the engine.
 #define DEFINE_IN_INTERFACE
 #include "machine/machine_interface.hpp"
 
+#undef DEFINE_IN_INTERFACE
+#include "tools/bots/bots_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "tools/bots/bots_interface.hpp"
+
 #include "log4cxx/logger.h"
 #include "log4cxx/propertyconfigurator.h"
 #include "boost/format.hpp"

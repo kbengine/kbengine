@@ -101,6 +101,11 @@ namespace KBEngine {
 				BUNDLE.newMessage(ResourcemgrInterface::MESSAGENAME);										\
 			}																								\
 			break;																							\
+		case BILLING_TYPE:																					\
+			{																								\
+				BUNDLE.newMessage(BillingSystemInterface::MESSAGENAME);										\
+			}																								\
+			break;																							\
 		default:																							\
 			KBE_ASSERT(false && "not support!\n");															\
 			break;																							\

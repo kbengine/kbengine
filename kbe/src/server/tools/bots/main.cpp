@@ -66,6 +66,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "tools/message_log/messagelog_interface.hpp"
 
 #undef DEFINE_IN_INTERFACE
+#include "tools/billing_system/billingsystem_interface.hpp"
+#define DEFINE_IN_INTERFACE
+#include "tools/billing_system/billingsystem_interface.hpp"
+
+#undef DEFINE_IN_INTERFACE
 #include "resourcemgr/resourcemgr_interface.hpp"
 #define DEFINE_IN_INTERFACE
 #include "resourcemgr/resourcemgr_interface.hpp"

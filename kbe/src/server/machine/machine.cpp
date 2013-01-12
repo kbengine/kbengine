@@ -37,6 +37,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../loginapp/loginapp_interface.hpp"
 #include "../resourcemgr/resourcemgr_interface.hpp"
 #include "../tools/message_log/messagelog_interface.hpp"
+#include "../../server/tools/billing_system/billingsystem_interface.hpp"
 
 namespace KBEngine{
 	
