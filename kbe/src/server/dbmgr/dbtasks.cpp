@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverconfig.hpp"
 #include "dbmgr_lib/db_interface.hpp"
 #include "dbmgr_lib/kbe_tables.hpp"
+#include "db_mysql/db_exception.hpp"
 #include "db_mysql/db_interface_mysql.hpp"
 #include "entitydef/scriptdef_module.hpp"
 #include "openssl/md5.h"
@@ -142,6 +143,13 @@ bool DBTaskExecuteRawDatabaseCommand::db_thread_process()
 	}
 	catch (std::exception & e)
 	{
+		DBException& dbe = static_cast<DBException&>(e);
+		if(dbe.isLostConnection())
+		{
+			static_cast<DBInterfaceMysql*>(pdbi_)->processException(e);
+			return true;
+		}
+
 		error_ = e.what();
 	}
 

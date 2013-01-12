@@ -144,13 +144,13 @@ bool AnonymousChannel::process()
 		std::string getDatas;
 		getDatas.assign((const char *)(packet.data() + packet.rpos()), packet.opsize());
 		
-		std::string::size_type fi1 = getDatas.find("&chargeID=");
-		std::string::size_type fi2 = getDatas.find("&");
+		std::string::size_type fi1 = getDatas.find("&orderid=");
+		std::string::size_type fi2 = getDatas.find("&amt=");
 
 		std::string orderid;
 		if(fi1 != std::string::npos && fi2 != std::string::npos)
 		{
-			int ilen = strlen("&chargeID=");
+			int ilen = strlen("&orderid=");
 			orderid.assign(getDatas.c_str() + fi1 + ilen, fi2 - (fi1 + ilen));
 		}
 
@@ -174,13 +174,13 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 		
 		bool success = false;
 
-		std::string::size_type fi = iter->second.find("state=");
-		std::string::size_type fi1 = iter->second.find("&chargeID=");
+		std::string::size_type fi = iter->second.find("cstate=");
+		std::string::size_type fi1 = iter->second.find("&orderid=");
 
 		if(fi != std::string::npos && fi1 != std::string::npos)
 		{
 			std::string s;
-			int ilen = strlen("state=");
+			int ilen = strlen("cstate=");
 			s.assign(iter->second.c_str() + fi + ilen, fi1 - (fi + ilen));
 			success = atoi(s.c_str()) > 0;
 		}
