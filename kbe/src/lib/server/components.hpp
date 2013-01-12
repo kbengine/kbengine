@@ -132,6 +132,7 @@ public:
 	Components::ComponentInfos* getDbmgr();
 	Components::ComponentInfos* getResourcemgr();
 	Components::ComponentInfos* getMessagelog();
+	Components::ComponentInfos* getBillings();
 
 	Mercury::Channel* getBaseappmgrChannel();
 	Mercury::Channel* getCellappmgrChannel();
@@ -149,6 +150,8 @@ private:
 	COMPONENTS								_machines;
 	COMPONENTS								_messagelogs;
 	COMPONENTS								_resourcemgrs;
+	COMPONENTS								_billings;
+	COMPONENTS								_bots;
 	COMPONENTS								_consoles;
 
 	Mercury::NetworkInterface*				_pNetworkInterface;

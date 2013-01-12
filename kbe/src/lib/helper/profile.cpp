@@ -111,7 +111,7 @@ ProfileVal::~ProfileVal()
 {
 	if (pProfileGroup_)
 	{
-		std::remove( pProfileGroup_->begin(), pProfileGroup_->end(), this );
+		// std::remove( pProfileGroup_->begin(), pProfileGroup_->end(), this );
 	}
 }
 

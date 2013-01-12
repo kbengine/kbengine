@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "bots.hpp"
+#include "entity.hpp"
 #include "bots_interface.hpp"
 #include "resmgr/resmgr.hpp"
 #include "network/common.hpp"
@@ -29,6 +30,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.hpp"
 #include "server/componentbridge.hpp"
 #include "server/serverconfig.hpp"
+#include "helper/console_helper.hpp"
+
 #include "../../../server/baseapp/baseapp_interface.hpp"
 #include "../../../server/loginapp/loginapp_interface.hpp"
 
@@ -41,8 +44,12 @@ Bots::Bots(Mercury::EventDispatcher& dispatcher,
 			 Mercury::NetworkInterface& ninterface, 
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
-ClientApp(dispatcher, ninterface, componentType, componentID)
+ClientApp(dispatcher, ninterface, componentType, componentID),
+script_(),
+scriptBaseTypes_(),
+gameTimer_()
 {
+	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BotsInterface::messageHandlers;
 	g_pComponentbridge = new Componentbridge(ninterface, componentType, componentID);
 }
 
@@ -69,13 +76,29 @@ bool Bots::initialize()
 	// 广播自己的地址给网上上的所有kbemachine
 	this->getMainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
 
-	return true;
+	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
+
+	if(!installPyScript())
+		return false;
+
+	if(!installPyModules())
+		return false;
+	
+	return installEntityDef();
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::finalise()
+{
+	gameTimer_.cancel();
+	ClientApp::finalise();
 }
 
 //-------------------------------------------------------------------------------------
 bool Bots::installEntityDef()
 {
-	if(!EntityDef::installScript(NULL))
+	if(!EntityDef::installScript(getScript().getModule()))
 		return false;
 
 	// 初始化数据类别
@@ -155,6 +178,9 @@ bool Bots::uninstallPyScript()
 //-------------------------------------------------------------------------------------
 bool Bots::installPyModules()
 {
+	Entity::installScript(getScript().getModule());
+	registerScript(Entity::getScriptType());
+
 	onInstallPyModules();
 	return true;
 }
@@ -162,8 +188,43 @@ bool Bots::installPyModules()
 //-------------------------------------------------------------------------------------
 bool Bots::uninstallPyModules()
 {
+	Entity::uninstallScript();
 	EntityDef::uninstallScript();
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool Bots::run(void)
+{
+	return ClientApp::run();
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::handleTimeout(TimerHandle handle, void * arg)
+{
+	switch (reinterpret_cast<uintptr>(arg))
+	{
+		case TIMEOUT_GAME_TICK:
+		{
+			handleGameTick();
+		}
+		default:
+			break;
+	}
+
+	ClientApp::handleTimeout(handle, arg);
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::handleGameTick()
+{
+	// time_t t = ::time(NULL);
+	// DEBUG_MSG("EntityApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
+
+	g_kbetime++;
+	threadPool_.onMainThreadTick();
+	handleTimers();
+	getNetworkInterface().handleChannels(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
 }
 
 //-------------------------------------------------------------------------------------
@@ -178,6 +239,55 @@ void Bots::lookApp(Mercury::Channel* pChannel)
 	(*pBundle).send(getNetworkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	DEBUG_MSG(boost::format("Bots::reqCloseServer: %1%\n") % pChannel->c_str());
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	bool success = true;
+	(*pBundle) << success;
+	(*pBundle).send(getNetworkInterface(), pChannel);
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	this->getMainDispatcher().breakProcessing();
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	std::string cmd;
+	s.readBlob(cmd);
+
+	PyObject* pycmd = PyUnicode_DecodeUTF8(cmd.data(), cmd.size(), NULL);
+	if(pycmd == NULL)
+	{
+		SCRIPT_ERROR_CHECK();
+		return;
+	}
+
+	DEBUG_MSG(boost::format("EntityApp::onExecScriptCommand: size(%1%), command=%2%.\n") % 
+		cmd.size() % cmd);
+
+	std::string retbuf = "";
+	PyObject* pycmd1 = PyUnicode_AsEncodedString(pycmd, "utf-8", NULL);
+
+	if(script_.run_simpleString(PyBytes_AsString(pycmd1), &retbuf) == 0)
+	{
+		// 将结果返回给客户端
+		Mercury::Bundle bundle;
+		ConsoleInterface::ConsoleExecCommandCBMessageHandler msgHandler;
+		bundle.newMessage(msgHandler);
+		ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1::staticAddToBundle(bundle, retbuf);
+		bundle.send(this->getNetworkInterface(), pChannel);
+	}
+
+	Py_DECREF(pycmd);
+	Py_DECREF(pycmd1);
 }
 
 //-------------------------------------------------------------------------------------

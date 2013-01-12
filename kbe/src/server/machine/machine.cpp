@@ -38,6 +38,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../resourcemgr/resourcemgr_interface.hpp"
 #include "../tools/message_log/messagelog_interface.hpp"
 #include "../../server/tools/billing_system/billingsystem_interface.hpp"
+#include "../../server/tools/bots/bots_interface.hpp"
 
 namespace KBEngine{
 	
@@ -529,7 +530,14 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 		}
 
 		Mercury::Bundle closebundle;
-		COMMON_MERCURY_MESSAGE(componentType, closebundle, reqCloseServer);
+		if(componentType != BOTS_TYPE)
+		{
+			COMMON_MERCURY_MESSAGE(componentType, closebundle, reqCloseServer);
+		}
+		else
+		{
+			closebundle.newMessage(BotsInterface::reqCloseServer);
+		}
 
 		Mercury::EndPoint ep1;
 		ep1.socket(SOCK_STREAM);

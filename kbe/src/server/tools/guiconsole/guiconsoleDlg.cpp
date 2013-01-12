@@ -531,9 +531,10 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 		return;
 
 	if(getTreeItemComponent(m_tree.GetSelectedItem()) != CELLAPP_TYPE 
-		&& getTreeItemComponent(m_tree.GetSelectedItem()) != BASEAPP_TYPE)
+		&& getTreeItemComponent(m_tree.GetSelectedItem()) != BASEAPP_TYPE
+		&& getTreeItemComponent(m_tree.GetSelectedItem()) != BOTS_TYPE)
 	{
-		::AfxMessageBox(L"the component can not debug!");
+		::AfxMessageBox(L"Component can not debug!");
 		return;
 	}
 	
@@ -569,9 +570,11 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 		Mercury::Bundle bundle;
 		if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPP_TYPE)
 			bundle.newMessage(BaseappInterface::onExecScriptCommand);
-		else
+		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == CELLAPP_TYPE)
 			bundle.newMessage(CellappInterface::onExecScriptCommand);
-		
+		else
+			bundle.newMessage(BotsInterface::onExecScriptCommand);
+
 		ArraySize size = outcmd.size();
 		bundle << size;
 		bundle.append(outcmd.data(), size);
@@ -1443,7 +1446,7 @@ void CguiconsoleDlg::OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
 	}
 
 	COMPONENT_TYPE debugComponentType = getTreeItemComponent(hItem);
-	BOOL isread_only = debugComponentType != CELLAPP_TYPE && debugComponentType != BASEAPP_TYPE;
+	BOOL isread_only = debugComponentType != CELLAPP_TYPE && debugComponentType != BASEAPP_TYPE && debugComponentType != BOTS_TYPE;
 	m_debugWnd.sendbufferWnd()->SetReadOnly(isread_only || !changeToChecked && !m_tree.GetCheck(hItem));
 
 	if(!isread_only && changeToChecked)

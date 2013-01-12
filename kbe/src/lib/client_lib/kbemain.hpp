@@ -51,6 +51,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	START_MSG(COMPONENT_NAME_EX(componentType), g_componentID);
 	if(!app.initialize()){
 		ERROR_MSG("app::initialize is error!\n");
+		app.finalise();
 		return -1;
 	}
 	

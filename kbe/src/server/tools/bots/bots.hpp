@@ -59,6 +59,7 @@ public:
 	~Bots();
 
 	virtual bool initialize();
+	virtual void finalise();
 
 	void registerScript(PyTypeObject*);
 	int registerPyObjectToScript(const char* attrName, PyObject* pyObj);
@@ -71,9 +72,14 @@ public:
 	bool uninstallPyScript();
 	bool installEntityDef();
 
+	virtual void handleTimeout(TimerHandle, void * pUser);
+	void handleGameTick();
+
 	static Bots& getSingleton(){ 
 		return *static_cast<Bots*>(ClientApp::getSingletonPtr()); 
 	}
+
+	bool run(void);
 
 	/**
 		通过entityID销毁一个entity 
@@ -85,10 +91,19 @@ public:
 	*/
 	virtual void lookApp(Mercury::Channel* pChannel);
 
+	/** 网络接口
+		请求关闭服务器
+	*/
+	virtual void reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s);
+
+	void onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
 	KBEngine::script::Script& getScript(){ return script_; }
 protected:
 	KBEngine::script::Script								script_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
+
+	TimerHandle												gameTimer_;
 };
 
 }

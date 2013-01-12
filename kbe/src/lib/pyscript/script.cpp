@@ -46,6 +46,7 @@ static PyObject* __py_genUUID64(PyObject *self, void *closure)
 //-------------------------------------------------------------------------------------
 Script::Script():
 module_(NULL),
+extraModule_(NULL),
 pyStdouterr_(NULL)
 {
 }
@@ -195,7 +196,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 
 	math::installModule("Math");
 	INFO_MSG("Script::install is successfully!\n");
-	return true;
+	return installExtraModule("KBExtra");
 }
 
 //-------------------------------------------------------------------------------------
@@ -232,9 +233,43 @@ bool Script::uninstall()
 	}
 #endif
 
-	Py_Finalize();																	// 卸载python解释器
+	Py_Finalize();																// 卸载python解释器
 	INFO_MSG("Script::uninstall is successfully!\n");
 	return true;	
+}
+
+//-------------------------------------------------------------------------------------
+bool Script::installExtraModule(const char* moduleName)
+{
+	PyObject *m = PyImport_AddModule("__main__");
+	extraModule_ = PyImport_AddModule(moduleName);								// 添加一个脚本扩展模块
+	if (extraModule_ == NULL)
+		return false;
+	
+	PyObject *module_ = PyImport_AddModule(moduleName);							// 初始化扩展模块
+	if (module_ == NULL)
+		return false;
+
+	PyObject_SetAttrString(m, moduleName, extraModule_);						// 将扩展模块对象加入main
+
+	INFO_MSG(boost::format("Script::install %1% is successfully!\n") 
+		% moduleName);
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool Script::registerExtraMethod(const char* attrName, PyMethodDef* pyFunc)
+{
+	PyObject* obj = PyCFunction_New(pyFunc, NULL);
+	bool ret = PyModule_AddObject(extraModule_, attrName, obj) != -1;
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+bool Script::registerExtraObject(const char* attrName, PyObject* pyObj)
+{
+	return PyObject_SetAttrString(extraModule_, attrName, pyObj) != -1;
 }
 
 //-------------------------------------------------------------------------------------

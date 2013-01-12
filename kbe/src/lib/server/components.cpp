@@ -57,6 +57,8 @@ _baseappmgrs(),
 _machines(),
 _messagelogs(),
 _resourcemgrs(),
+_billings(),
+_bots(),
 _consoles(),
 _pNetworkInterface(NULL),
 _globalOrderLog(),
@@ -390,6 +392,10 @@ Components::COMPONENTS& Components::getComponents(COMPONENT_TYPE componentType)
 		return _messagelogs;		
 	case RESOURCEMGR_TYPE:
 		return _resourcemgrs;	
+	case BILLING_TYPE:
+		return _billings;	
+	case BOTS_TYPE:
+		return _bots;	
 	default:
 		break;
 	};
@@ -578,6 +584,12 @@ Components::ComponentInfos* Components::getResourcemgr()
 Components::ComponentInfos* Components::getMessagelog()
 {
 	return findComponent(MESSAGELOG_TYPE, getUserUID(), 0);
+}
+
+//-------------------------------------------------------------------------------------		
+Components::ComponentInfos* Components::getBillings()
+{
+	return findComponent(BILLING_TYPE, getUserUID(), 0);
 }
 
 //-------------------------------------------------------------------------------------		

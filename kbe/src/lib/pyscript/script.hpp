@@ -62,10 +62,27 @@ public:
 
 	virtual bool uninstall(void);
 	
+	bool installExtraModule(const char* moduleName);
+
+	/** 
+		添加一个扩展接口到引擎扩展模块 
+	*/
+	bool registerExtraMethod(const char* attrName, PyMethodDef* pyFunc);
+
+	/** 
+		添加一个扩展属性到引擎扩展模块 
+	*/
+	bool registerExtraObject(const char* attrName, PyObject* pyObj);
+
 	/** 
 		获取脚本基础模块 
 	*/
 	INLINE PyObject* getModule(void)const;
+
+	/** 
+		获取脚本扩展模块 
+	*/
+	INLINE PyObject* getExtraModule(void)const;
 
 	int run_simpleString(const char* command, std::string* retBufferPtr);
 	INLINE int run_simpleString(std::string command, std::string* retBufferPtr);
@@ -82,6 +99,7 @@ public:
 	INLINE ScriptStdOutErrHook* pyStdouterrHook()const;
 protected:
 	PyObject* 					module_;
+	PyObject*					extraModule_;		// 扩展脚本模块
 
 	ScriptStdOutErr*			pyStdouterr_;
 	ScriptStdOutErrHook*		pyStdouterrHook_;	// 提供telnet 执行脚本回显用

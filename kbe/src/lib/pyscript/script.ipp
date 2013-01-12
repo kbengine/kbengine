@@ -32,6 +32,11 @@ INLINE PyObject* Script::getModule(void)const
 	return module_; 
 }
 
+INLINE PyObject* Script::getExtraModule(void)const 
+{ 
+	return extraModule_; 
+}
+
 INLINE ScriptStdOutErrHook* Script::pyStdouterrHook()const
 {
 	return pyStdouterrHook_;
