@@ -6,4 +6,4 @@ class Combat:
 	def __init__(self):
 		pass
 
-dialog._timermap = {}
+Combat._timermap = {}
