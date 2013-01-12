@@ -2,7 +2,7 @@
 import KBEngine
 from KBEDebug import * 
 
-class Dialog:
+class Teleport:
 	def __init__(self):
 		pass
 
