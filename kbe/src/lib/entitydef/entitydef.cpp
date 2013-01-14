@@ -820,6 +820,7 @@ bool EntityDef::isLoadScriptModule(ScriptDefModule* scriptModule)
 			return false;
 		break;
 	case CLIENT_TYPE:
+	case BOTS_TYPE:
 		if(!scriptModule->hasClient())
 			return false;
 		break;
@@ -849,6 +850,7 @@ bool EntityDef::checkDefMethod(ScriptDefModule* scriptModule,
 			(ScriptDefModule::METHODDESCRIPTION_MAP*)&scriptModule->getCellMethodDescriptions();
 		break;
 	case CLIENT_TYPE:
+	case BOTS_TYPE:
 		methodDescrsPtr = 
 			(ScriptDefModule::METHODDESCRIPTION_MAP*)&scriptModule->getClientMethodDescriptions();
 		break;
@@ -893,6 +895,7 @@ void EntityDef::setScriptModuleHasComponentEntity(ScriptDefModule* scriptModule,
 		scriptModule->setCell(has);
 		return;
 	case CLIENT_TYPE:
+	case BOTS_TYPE:
 		scriptModule->setClient(has);
 		return;
 	default:
