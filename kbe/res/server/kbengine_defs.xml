@@ -25,11 +25,23 @@
 	<!-- 是否输出entity的创建， 脚本获取属性， 初始化属性等调试信息 -->
 	<debugEntity>0</debugEntity>
 
-	<!-- 频道最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该频道 -->
-	<channelTimeout> 
-		<internal> 60.0 </internal>
-		<external> 60.0 </external>
-	</channelTimeout>
+	<channelCommon> 
+		<!-- 频道最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该频道 -->
+		<timeout> 
+			<internal> 60.0 </internal>
+			<external> 60.0 </external>
+		</timeout>
+		
+		<!-- socket读写缓冲大小 -->
+		<readBufferSize> 
+			<internal>	16777216	</internal> 			<!-- 16M -->
+			<external>	0			</external>				<!-- 系统默认 -->
+		</readBufferSize>
+		<writeBufferSize> 
+			<internal>	0	</internal>						<!-- 系统默认 -->
+			<external>	0			</external>				<!-- 系统默认 -->
+		</writeBufferSize>
+	</channelCommon> 
 	
 	<billingSystem>
 		<!-- normal: 普通, thirdparty: 第三方此时需要提供ip地址 -->
