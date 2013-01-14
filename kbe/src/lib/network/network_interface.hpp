@@ -51,7 +51,10 @@ public:
 	
 	NetworkInterface(EventDispatcher * pMainDispatcher,
 		int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
-		int32 intlisteningPort = 0, const char * intlisteningInterface = "");
+		uint32 extrbuffer = 0, uint32 extwbuffer = 0, 
+		int32 intlisteningPort = 0, const char * intlisteningInterface = "",
+		uint32 intrbuffer = 0, uint32 intwbuffer = 0);
+
 	~NetworkInterface();
 	
 	void attach(EventDispatcher & mainDispatcher);
@@ -61,7 +64,7 @@ public:
 	INLINE const Address & intaddr() const;
 
 	bool recreateListeningSocket(const char* pEndPointName, uint16 listeningPort_min, uint16 listeningPort_max, 
-		const char * listeningInterface, EndPoint* pEP, ListenerReceiver* pLR);
+		const char * listeningInterface, EndPoint* pEP, ListenerReceiver* pLR, uint32 rbuffer = 0, uint32 wbuffer = 0);
 
 	bool registerChannel(Channel* pChannel);
 	bool deregisterChannel(Channel* pChannel);

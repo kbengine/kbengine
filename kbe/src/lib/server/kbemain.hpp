@@ -80,9 +80,13 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 
 	Mercury::EventDispatcher dispatcher;
 	DebugHelper::getSingleton().pDispatcher(&dispatcher);
+
+	const ChannelCommon& channelCommon = g_kbeSrvConfig.channelCommon();
 	Mercury::NetworkInterface networkInterface(&dispatcher, 
-		extlisteningPort_min, extlisteningPort_max, extlisteningInterface,
-		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface);
+		extlisteningPort_min, extlisteningPort_max, extlisteningInterface, 
+		channelCommon.extReadBufferSize, channelCommon.extWriteBufferSize,
+		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface,
+		channelCommon.intReadBufferSize, channelCommon.intWriteBufferSize);
 	
 	DebugHelper::getSingleton().pNetworkInterface(&networkInterface);
 

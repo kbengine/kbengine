@@ -100,16 +100,50 @@ bool ServerConfig::loadConfig(std::string fileName)
 		g_debugEntity = xml->getValInt(rootNode) > 0;
 	}
 
-	rootNode = xml->getRootNode("channelTimeout");
+	rootNode = xml->getRootNode("channelCommon");
 	if(rootNode != NULL)
 	{
-		TiXmlNode* childnode = xml->enterNode(rootNode, "internal");
+		TiXmlNode* childnode = xml->enterNode(rootNode, "timeout");
 		if(childnode)
-			Mercury::g_channelInternalTimeout = KBE_MAX(1.f, float(xml->getValFloat(childnode)));
+		{
+			TiXmlNode* childnode1 = xml->enterNode(childnode, "internal");
+			if(childnode1)
+			{
+				channelCommon_.channelInternalTimeout = KBE_MAX(1.f, float(xml->getValFloat(childnode1)));
+				Mercury::g_channelInternalTimeout = channelCommon_.channelInternalTimeout;
+			}
 
-		childnode = xml->enterNode(rootNode, "external");
+			childnode1 = xml->enterNode(childnode, "external");
+			if(childnode)
+			{
+				channelCommon_.channelExternalTimeout = KBE_MAX(1.f, float(xml->getValFloat(childnode1)));
+				Mercury::g_channelExternalTimeout = channelCommon_.channelExternalTimeout;
+			}
+		}
+
+		childnode = xml->enterNode(rootNode, "readBufferSize");
 		if(childnode)
-			Mercury::g_channelExternalTimeout = KBE_MAX(1.f, float(xml->getValFloat(childnode)));
+		{
+			TiXmlNode* childnode1 = xml->enterNode(childnode, "internal");
+			if(childnode1)
+				channelCommon_.intReadBufferSize = KBE_MAX(0, xml->getValInt(childnode1));
+
+			childnode1 = xml->enterNode(childnode, "external");
+			if(childnode1)
+				channelCommon_.extReadBufferSize = KBE_MAX(0, xml->getValInt(childnode1));
+		}
+
+		childnode = xml->enterNode(rootNode, "writeBufferSize");
+		if(childnode)
+		{
+			TiXmlNode* childnode1 = xml->enterNode(childnode, "internal");
+			if(childnode1)
+				channelCommon_.intWriteBufferSize = KBE_MAX(0, xml->getValInt(childnode1));
+
+			childnode1 = xml->enterNode(childnode, "external");
+			if(childnode1)
+				channelCommon_.extWriteBufferSize = KBE_MAX(0, xml->getValInt(childnode1));
+		}
 	}
 
 	rootNode = xml->getRootNode("gameUpdateHertz");

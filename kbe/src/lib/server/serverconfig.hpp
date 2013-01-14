@@ -53,9 +53,9 @@ namespace Mercury
 class Address;
 }
 
-struct profiles_config
+struct Profiles_Config
 {
-	profiles_config():
+	Profiles_Config():
 		open_pyprofile(false),
 		open_cprofile(false),
 		open_eventprofile(false),
@@ -67,6 +67,16 @@ struct profiles_config
 	bool open_cprofile;
 	bool open_eventprofile;
 	bool open_mercuryprofile;
+};
+
+struct ChannelCommon
+{
+	float channelInternalTimeout;
+	float channelExternalTimeout;
+	uint32 extReadBufferSize;
+	uint32 extWriteBufferSize;
+	uint32 intReadBufferSize;
+	uint32 intWriteBufferSize;
 };
 
 // 引擎组件信息结构体
@@ -111,9 +121,7 @@ typedef struct EngineComponentInfo
 	uint32 downloadBitsPerSecondTotal;						// 所有客户端每秒下载带宽总上限
 	uint32 downloadBitsPerSecondPerClient;					// 每个客户端每秒的下载带宽
 
-	uint32 channelTimeout;									// 频道超时时间
-
-	profiles_config profiles;
+	Profiles_Config profiles;
 }ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>
@@ -154,6 +162,8 @@ public:
 	inline uint16 billingSystemThirdpartyChargeServicePort()const { return billingSystem_thirdpartyChargeServicePort_; }
 
 	inline uint16 billingSystemThirdpartyServiceCBPort()const { return billingSystem_thirdpartyServiceCBPort_; }
+
+	const ChannelCommon& channelCommon(){ return channelCommon_; }
 private:
 	ENGINE_COMPONENT_INFO _cellAppInfo;
 	ENGINE_COMPONENT_INFO _baseAppInfo;
@@ -168,6 +178,8 @@ private:
 	ENGINE_COMPONENT_INFO _messagelogInfo;
 public:
 	int16 gameUpdateHertz_;
+
+	ChannelCommon channelCommon_;
 
 	// 每个客户端每秒占用的最大带宽
 	uint32 bitsPerSecondToClient_;		

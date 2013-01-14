@@ -43,7 +43,9 @@ const char * NetworkInterface::USE_KBEMACHINED = "kbemachined";
 //-------------------------------------------------------------------------------------
 NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 		int32 extlisteningPort_min, int32 extlisteningPort_max, const char * extlisteningInterface,
-		int32 intlisteningPort, const char * intlisteningInterface):
+		uint32 extrbuffer, uint32 extwbuffer,
+		int32 intlisteningPort, const char * intlisteningInterface,
+		uint32 intrbuffer, uint32 intwbuffer):
 	extEndpoint_(),
 	intEndpoint_(),
 	channelMap_(),
@@ -61,7 +63,7 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 	{
 		pExtListenerReceiver_ = new ListenerReceiver(extEndpoint_, Channel::EXTERNAL, *this);
 		this->recreateListeningSocket("EXTERNAL", htons(extlisteningPort_min), htons(extlisteningPort_max), 
-			extlisteningInterface, &extEndpoint_, pExtListenerReceiver_);
+			extlisteningInterface, &extEndpoint_, pExtListenerReceiver_, extrbuffer, extwbuffer);
 
 		// 如果配置了对外端口范围， 如果范围过小这里extEndpoint_可能没有端口可用了
 		if(extlisteningPort_min != -1)
@@ -75,7 +77,7 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 	{
 		pIntListenerReceiver_ = new ListenerReceiver(intEndpoint_, Channel::INTERNAL, *this);
 		this->recreateListeningSocket("INTERNAL", intlisteningPort, intlisteningPort, 
-			intlisteningInterface, &intEndpoint_, pIntListenerReceiver_);
+			intlisteningInterface, &intEndpoint_, pIntListenerReceiver_, intrbuffer, intwbuffer);
 	}
 
 	
@@ -159,7 +161,8 @@ void NetworkInterface::closeSocket()
 
 //-------------------------------------------------------------------------------------
 bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16 listeningPort_min, uint16 listeningPort_max, 
-										const char * listeningInterface, EndPoint* pEP, ListenerReceiver* pLR)
+										const char * listeningInterface, EndPoint* pEP, ListenerReceiver* pLR, uint32 rbuffer, 
+										uint32 wbuffer)
 {
 	KBE_ASSERT(listeningInterface && pEP && pLR);
 
@@ -285,11 +288,23 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	pEP->addr(address);
 	
 #ifdef KBE_SERVER
-	if (!pEP->setBufferSize(SO_RCVBUF, RECV_BUFFER_SIZE))
+	if(rbuffer > 0)
 	{
-		WARNING_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
-			"Operating with a receive buffer of only %2% bytes (instead of %3%)\n") %
-			pEndPointName % pEP->getBufferSize(SO_RCVBUF) % RECV_BUFFER_SIZE);
+		if (!pEP->setBufferSize(SO_RCVBUF, rbuffer))
+		{
+			WARNING_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
+				"Operating with a receive buffer of only %2% bytes (instead of %3%)\n") %
+				pEndPointName % pEP->getBufferSize(SO_RCVBUF) % rbuffer);
+		}
+	}
+	if(wbuffer > 0)
+	{
+		if (!pEP->setBufferSize(SO_SNDBUF, wbuffer))
+		{
+			WARNING_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
+				"Operating with a receive buffer of only %2% bytes (instead of %3%)\n") %
+				pEndPointName % pEP->getBufferSize(SO_SNDBUF) % wbuffer);
+		}
 	}
 #endif
 

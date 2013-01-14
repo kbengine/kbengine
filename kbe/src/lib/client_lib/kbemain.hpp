@@ -44,8 +44,8 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 
 	Mercury::EventDispatcher dispatcher;
 	Mercury::NetworkInterface networkInterface(&dispatcher, 
-		extlisteningPort_min, extlisteningPort_max, extlisteningInterface,
-		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface);
+		extlisteningPort_min, extlisteningPort_max, extlisteningInterface, 0, 0,
+		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface, 0, 0);
 	
 	CLIENT_APP app(dispatcher, networkInterface, componentType, g_componentID);
 	START_MSG(COMPONENT_NAME_EX(componentType), g_componentID);
