@@ -95,12 +95,5 @@ class Combat(CombatPropertys):
 				self.die(attackerID)
 		else:
 			self.setHP(self.HP - damage)
-			
-	def commitFight(self, exposed, targetID, skillID):
-		"""
-		Exposed method.
-		"""
-		DEBUG_MSG("Combat::commitFight: targetID=%i, skillID=%i" % (targetID, skillID))
-		self.getCurrSpace().commitFight(self.id, targetID, skillID)
 		
 Combat._timermap = {}

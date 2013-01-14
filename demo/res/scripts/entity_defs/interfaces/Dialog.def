@@ -10,4 +10,26 @@
 			<Arg>		UINT32		</Arg>
 		</dialog>
 	</CellMethods>
+
+	<ClientMethods>
+		<dialog_addOption>
+			<Utype> 10101			</Utype>
+			<Arg>	UINT8			</Arg>
+			<Arg>	UINT32			</Arg>
+			<Arg>	UNICODE			</Arg>
+			<Arg>	INT32			</Arg>
+		</dialog_addOption>
+
+		<dialog_setText>
+			<Utype> 10102			</Utype>
+			<Arg>	UNICODE			</Arg>
+			<Arg>	BOOL			</Arg>
+			<Arg>	UINT32			</Arg>
+			<Arg>	UNICODE			</Arg>
+		</dialog_setText>
+
+		<dialog_close>
+			<Utype> 10104			</Utype>
+		</dialog_close>
+	</ClientMethods>
 </root>

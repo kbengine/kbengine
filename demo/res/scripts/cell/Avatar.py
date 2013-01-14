@@ -46,25 +46,6 @@ class Avatar(GameObject,
 		"""
 		DEBUG_MSG("Avatar::onDestroy: %i." % self.id)
 		Teleport.onDestroy(self)
-		
-	def queryCurrSpaceRes(self, srcEntityID):
-		"""
-		exposed.
-		查询当前场景引用的资源
-		"""
-		if srcEntityID != self.id:
-			return
-		
-		DEBUG_MSG("Avatar::queryCurrSpaceRes(%i):srcEntityID=%i." % (self.id, srcEntityID))
-		self.client.onQuerySpaceResResult("pic/xxx.png;pic/xxx1.png;")
-		
-	def queryCurrSpaceEntitys(self, srcEntityID, count):
-		"""
-		exposed.
-		查询当前场景上的entity信息
-		"""
-		if srcEntityID != self.id:
-			return
 
 		
 Avatar._timermap = {}

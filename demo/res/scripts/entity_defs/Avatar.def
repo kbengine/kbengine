@@ -28,12 +28,6 @@
 			<Flags>			CELL_PUBLIC_AND_OWN		</Flags>
 			<Persistent>		true				</Persistent>
 		</level>
-
-		<fightSeat>
-			<Utype> 41010 </Utype>
-			<Type>			INT8				</Type>
-			<Flags>			ALL_CLIENTS			</Flags>
-		</fightSeat>
 	</Properties>
 
 	<BaseMethods>
@@ -43,51 +37,8 @@
 	</BaseMethods>
 
 	<CellMethods>
-		<queryCurrSpaceEntitys>
-			<Exposed/>
-			<Utype> 11002 </Utype>
-			<Arg>		UINT8		</Arg>
-		</queryCurrSpaceEntitys>
-		<queryCurrSpaceRes>
-			<Exposed/>
-			<Utype> 11004 </Utype>
-		</queryCurrSpaceRes>
 	</CellMethods>
 
 	<ClientMethods>
-		<onQueryEntityResult>
-			<Utype> 10100			</Utype>
-			<Arg>	ENTITY_INFOS 		</Arg>
-		</onQueryEntityResult>
-
-		<dialog_addOption>
-			<Utype> 10101			</Utype>
-			<Arg>	UINT8			</Arg>
-			<Arg>	UINT32			</Arg>
-			<Arg>	UNICODE			</Arg>
-			<Arg>	INT32			</Arg>
-		</dialog_addOption>
-
-		<dialog_setText>
-			<Utype> 10102			</Utype>
-			<Arg>	UNICODE			</Arg>
-			<Arg>	BOOL			</Arg>
-			<Arg>	UINT32			</Arg>
-			<Arg>	UNICODE			</Arg>
-		</dialog_setText>
-
-		<dialog_close>
-			<Utype> 10104			</Utype>
-		</dialog_close>
-
-		<onQuerySpaceResResult>
-			<Utype> 10103			</Utype>
-			<Arg>	STRING	 		</Arg>
-		</onQuerySpaceResResult>
-
-		<startInputFigth>
-			<Utype> 10105			</Utype>
-			<Arg>	INT16			</Arg>
-		</startInputFigth>
 	</ClientMethods>
 </root>
