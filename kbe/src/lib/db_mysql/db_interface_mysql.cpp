@@ -57,16 +57,14 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 	try
 	{
 		pMysql_ = mysql_init(0);
-
 		if(pMysql_ == NULL)
 		{
+			ERROR_MSG("DBInterfaceMysql::attach: mysql_init is error!\n");
 			return false;
 		}
 
-		pMysql_ = mysql_real_connect(mysql(), db_ip_, db_username_, 
-    		db_password_, db_name_, db_port_, NULL, 0); // CLIENT_MULTI_STATEMENTS  
-	    
-		if(mysql())
+		if(mysql_real_connect(mysql(), db_ip_, db_username_, 
+    		db_password_, db_name_, db_port_, NULL, 0)) // CLIENT_MULTI_STATEMENTS  
 		{
 			if(mysql_select_db(mysql(), db_name_) != 0)
 			{
@@ -78,6 +76,8 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 		}
 		else
 		{
+			ERROR_MSG(boost::format("DBInterfaceMysql::attach: mysql_errno=%1%, mysql_error=%2%\n") %
+				mysql_errno(pMysql_) % mysql_error(pMysql_));
 			return false;
 		}
 
