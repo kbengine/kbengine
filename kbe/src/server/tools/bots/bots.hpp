@@ -107,6 +107,8 @@ public:
 	CLIENTS& clients(){ return clients_; }
 
 	uint32 reqCreateAndLoginTotalCount(){ return reqCreateAndLoginTotalCount_; }
+
+	bool addClient(Client* pClient);
 protected:
 	KBEngine::script::Script								script_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;

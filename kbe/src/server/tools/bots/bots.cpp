@@ -299,5 +299,12 @@ void Bots::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStrea
 }
 
 //-------------------------------------------------------------------------------------
+bool Bots::addClient(Client* pClient)
+{
+	clients().push_back(KBEShared_ptr<Client>(pClient));
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 
 }

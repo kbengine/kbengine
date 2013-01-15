@@ -57,6 +57,7 @@ void CreateAndLoginHandler::handleTimeout(TimerHandle handle, void * arg)
 	while(createCount > 0)
 	{
 		Client* pClient = new Client(KBEngine::StringConv::val2str(accountID++));
+		Bots::getSingleton().addClient(pClient);
 	}
 }
 
