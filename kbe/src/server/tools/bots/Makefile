@@ -3,6 +3,7 @@ SRCS =						\
 	bots					\
 	bots_interface				\
 	client					\
+	create_and_login_handler		\
 	entity					\
 	profile					\
 	main

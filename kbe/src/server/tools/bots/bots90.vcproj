@@ -196,6 +196,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\create_and_login_handler.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\entity.cpp"
 				>
 			</File>
@@ -237,6 +241,10 @@
 			</File>
 			<File
 				RelativePath=".\client.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\create_and_login_handler.hpp"
 				>
 			</File>
 			<File

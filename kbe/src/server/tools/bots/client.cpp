@@ -41,13 +41,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-Client::Client(const Mercury::Address& addr):
-s_(0),
-addr_(addr),
-endpoint_(),
-name_(),
-password_(),
-getewayAddr_()
+Client::Client(std::string name):
+pChannel_(NULL),
+name_(name),
+password_()
 {
 }
 
@@ -57,41 +54,40 @@ Client::~Client()
 }
 
 //-------------------------------------------------------------------------------------
-bool Client::send(Mercury::Bundle& bundle)
-{
-	Mercury::Channel* pChannel = Bots::getSingleton().getNetworkInterface().findChannel(addr_);
-	
-	if(pChannel){
-		bundle.send(Bots::getSingleton().getNetworkInterface(), pChannel);
-	}
-	else{
-		return false;
-	}
-
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
 bool Client::initNetwork()
 {
-	endpoint_.socket(SOCK_STREAM);
-	if (!endpoint_.good())
+	Mercury::EndPoint* pEndpoint = new Mercury::EndPoint();
+	
+	pEndpoint->socket(SOCK_STREAM);
+	if (!pEndpoint->good())
 	{
 		ERROR_MSG("Client::initNetwork: couldn't create a socket\n");
+		delete pEndpoint;
 		return false;
 	}
 	
 	ENGINE_COMPONENT_INFO& infos = g_kbeSrvConfig.getBots();
 	u_int32_t address;
 
-	endpoint_.convertAddress(infos.login_ip, address);
-	if(endpoint_.connect(htons(infos.login_port), address) == -1)
+	pEndpoint->convertAddress(infos.login_ip, address);
+	if(pEndpoint->connect(htons(infos.login_port), address) == -1)
 	{
 		ERROR_MSG(boost::format("Client::initNetwork: connect server is error(%1%)!\n") %
 			kbe_strerror());
 
+		delete pEndpoint;
 		return false;
 	}
+
+	Mercury::Address addr(infos.login_ip, infos.login_port);
+	pEndpoint->addr(addr);
+	pChannel_ = new Mercury::Channel(Bots::getSingleton().getNetworkInterface(), pEndpoint, Mercury::Channel::EXTERNAL);
+
+	pEndpoint->setnonblocking(true);
+	pEndpoint->setnodelay(true);
+
+	if(!Bots::getSingleton().getNetworkInterface().registerChannel(pChannel_))
+		return false;
 
 	return true;
 }
@@ -99,11 +95,10 @@ bool Client::initNetwork()
 //-------------------------------------------------------------------------------------
 bool Client::login()
 {
-	endpoint_.setnonblocking(false);
-
 	Mercury::MessageID msgID = 0;
 	Mercury::MessageLength msgLength = 0;
 
+/*
 	char tmp[256];
 	sprintf(tmp, "%"PRIu64, KBEngine::genUUID64());
 	name_ = tmp;
@@ -155,7 +150,7 @@ bool Client::login()
 	packet >> iport;
 	DEBUG_MSG(boost::format("Client::onLoginSuccessfully: 获取返回的网关ip地址 size(%d) msgID=%u, ip:%s, port=%u.\n") %
 		len % msgID % ip.c_str() % iport);
-
+	
 	// 连接网关
 	endpoint_.close();
 	endpoint_.socket(SOCK_STREAM);
@@ -207,70 +202,14 @@ bool Client::login()
 			len % msgID % uuid % eid % entityType.c_str());
 	}
 
+	*/
 	return true;
 }
 
-//-------------------------------------------------------------------------------------
-bool Client::messageloop()
-{
-	endpoint_.setnonblocking(true);
-
-	fd_set fds;
-	//Mercury::MessageID msgID = 0;
-	//Mercury::MessageLength msgLength = 0;
-
-	while (true)
-	{
-		FD_ZERO( &fds );
-		FD_SET((int)endpoint_, &fds);
-		int selgot = select(endpoint_+1, &fds, NULL, NULL, NULL);
-
-		if (selgot == 0)
-		{
-			DEBUG_MSG("Client::process: is failed!\n");
-
-			break;
-		}
-		else if (selgot == -1)
-		{
-			ERROR_MSG(boost::format("Client::process: select error. %1%.\n") %
-					kbe_strerror());
-
-			break;
-		}
-		else
-		{
-			sockaddr_in	sin;
-
-			Mercury::TCPPacket packet;
-			int len = endpoint_.recvfrom(packet.data(), PACKET_MAX_SIZE_TCP, sin);
-			if (len == -1)
-			{
-				ERROR_MSG(boost::format("Client::process: recvfrom error. %1%.\n") %
-						kbe_strerror());
-
-				break;
-			}
-			
-			DEBUG_MSG(boost::format("Client::process: from %1%, datalen=%2%.\n") %
-				inet_ntoa((struct in_addr&)sin.sin_addr.s_addr) % len);
-
-			break;
-
-		}
-	}
-
-	return true;
-}
 
 //-------------------------------------------------------------------------------------
 bool Client::process()
 {
-	if(!initNetwork())
-		return false;
-	
-	messageloop();
-
 	return false;
 }
 

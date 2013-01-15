@@ -103,6 +103,7 @@ Entity::~Entity()
 	{
 		pWitness_->detach(this);
 		Witness::ObjPool().reclaimObject(pWitness_);
+		pWitness_ = NULL;
 	}
 }	
 
@@ -764,7 +765,9 @@ void Entity::onLoseWitness(Mercury::Channel* pChannel)
 	Py_DECREF(getClientMailbox());
 	setClientMailbox(NULL);
 
+	pWitness_->detach(this);
 	Witness::ObjPool().reclaimObject(pWitness_);
+	pWitness_ = NULL;
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 

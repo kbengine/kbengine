@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "bots.hpp"
 #include "entity.hpp"
+#include "client.hpp"
 #include "bots_interface.hpp"
 #include "resmgr/resmgr.hpp"
 #include "network/common.hpp"
@@ -47,7 +48,10 @@ Bots::Bots(Mercury::EventDispatcher& dispatcher,
 ClientApp(dispatcher, ninterface, componentType, componentID),
 script_(),
 scriptBaseTypes_(),
-gameTimer_()
+gameTimer_(),
+clients_(),
+reqCreateAndLoginTotalCount_(0),
+pCreateAndLoginHandler_(NULL)
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BotsInterface::messageHandlers;
 	g_pComponentbridge = new Componentbridge(ninterface, componentType, componentID);
@@ -92,6 +96,9 @@ bool Bots::initialize()
 void Bots::finalise()
 {
 	gameTimer_.cancel();
+	
+	reqCreateAndLoginTotalCount_ = 0;
+	SAFE_RELEASE(pCreateAndLoginHandler_);
 	ClientApp::finalise();
 }
 
@@ -196,6 +203,7 @@ bool Bots::uninstallPyModules()
 //-------------------------------------------------------------------------------------
 bool Bots::run(void)
 {
+	pCreateAndLoginHandler_ = new CreateAndLoginHandler();
 	return ClientApp::run();
 }
 

@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 // common include	
 #include "profile.hpp"
+#include "create_and_login_handler.hpp"
 #include "cstdkbe/timer.hpp"
 #include "pyscript/script.hpp"
 #include "network/endpoint.hpp"
@@ -47,6 +48,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 	
 namespace KBEngine{
+
+class Client;
 
 class Bots : public ClientApp
 {
@@ -99,11 +102,24 @@ public:
 	void onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	KBEngine::script::Script& getScript(){ return script_; }
+
+	typedef std::vector< KBEShared_ptr<Client> > CLIENTS;
+	CLIENTS& clients(){ return clients_; }
+
+	uint32 reqCreateAndLoginTotalCount(){ return reqCreateAndLoginTotalCount_; }
 protected:
 	KBEngine::script::Script								script_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
 
 	TimerHandle												gameTimer_;
+
+	CLIENTS													clients_;
+
+	// console请求创建到服务端的bots数量
+	uint32													reqCreateAndLoginTotalCount_;
+
+	// 处理创建与登录的handler
+	CreateAndLoginHandler*									pCreateAndLoginHandler_;
 };
 
 }

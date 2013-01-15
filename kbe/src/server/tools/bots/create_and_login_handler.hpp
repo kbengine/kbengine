@@ -18,53 +18,31 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __CLIENT_TASKS_H__
-#define __CLIENT_TASKS_H__
+#ifndef __CREATE_AND_LOGIN_HANDLER__
+#define __CREATE_AND_LOGIN_HANDLER__
 
-// common include	
-// #define NDEBUG
 #include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/memorystream.hpp"
-#include "thread/threadtask.hpp"
+#include "cstdkbe/tasks.hpp"
+#include "cstdkbe/timer.hpp"
 #include "helper/debug_helper.hpp"
-#include "entitydef/entitydef.hpp"
-#include "network/address.hpp"
-#include "network/endpoint.hpp"
-#include "network/bundle.hpp"
-#include "pyscript/script.hpp"
-#include "pyscript/pyobject_pointer.hpp"
 
-namespace KBEngine{ 
+namespace KBEngine { 
 
-/*
-*/
-
-class Client : public thread::TPTask
+class CreateAndLoginHandler : public TimerHandler
 {
 public:
-	Client(std::string name);
-	virtual ~Client();
+	CreateAndLoginHandler();
+	virtual ~CreateAndLoginHandler();
 
-	virtual bool process();
-
-	virtual thread::TPTask::TPTaskState presentMainThread(){ 
-		return thread::TPTask::TPTASK_STATE_COMPLETED; 
-	}
-
-	bool initNetwork();
-
-	bool login();
-
-	const char* name(){ return name_.c_str(); }
 protected:
-	Mercury::Channel* pChannel_;
+	virtual void handleTimeout(TimerHandle handle, void * arg);
 
-	std::string name_;
-	std::string password_;
+	TimerHandle timerHandle_;
 
-	PyObjectPtr	entryScript_;
 };
 
 
+
 }
+
 #endif

@@ -361,7 +361,7 @@ void init_network(void)
 	}
 
 	srand(getSystemTime());
-	std::string accountname = "kebiao32101211321";
+	std::string accountname = "kebiao32101211321132";
 	char ttt1[256];
 	memset(ttt1, 0, 256);
 	int nnn = rand() % 65535;
