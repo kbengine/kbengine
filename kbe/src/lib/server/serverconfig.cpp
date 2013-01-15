@@ -535,6 +535,28 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "port");	
 		if(node != NULL)
 			_botsInfo.login_port = xml->getValInt(node);
+
+		node = xml->enterNode(rootNode, "defaultAddBots");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "totalcount");
+			if(childnode)
+			{
+				_botsInfo.defaultAddBots_totalCount = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "tickcount");
+			if(childnode)
+			{
+				_botsInfo.defaultAddBots_tickCount = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "ticktime");
+			if(childnode)
+			{
+				_botsInfo.defaultAddBots_tickTime = (float)xml->getValFloat(childnode);
+			}
+		}
 	}
 
 	rootNode = xml->getRootNode("messagelog");

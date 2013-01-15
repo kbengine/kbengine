@@ -103,12 +103,30 @@ public:
 
 	KBEngine::script::Script& getScript(){ return script_; }
 
-	typedef std::vector< KBEShared_ptr<Client> > CLIENTS;
+	typedef std::map< int, KBEShared_ptr<Client> > CLIENTS;
 	CLIENTS& clients(){ return clients_; }
 
 	uint32 reqCreateAndLoginTotalCount(){ return reqCreateAndLoginTotalCount_; }
+	uint32 reqCreateAndLoginTickCount(){ return reqCreateAndLoginTickCount_; }
+	float reqCreateAndLoginTickTime(){ return reqCreateAndLoginTickTime_; }
 
 	bool addClient(Client* pClient);
+
+	Client* findClient(int fd);
+
+	/** 网络接口
+		创建账号成功和失败回调
+	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_ACCOUNT_CREATE:创建失败（已经存在）, 
+									MERCURY_SUCCESS:账号创建成功
+
+									SERVER_ERROR_CODE failedcode;
+		@二进制附带数据:二进制额外数据: uint32长度 + bytearray
+	*/
+	virtual void onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s);
+
+	fd_set	frds;
+	int maxFD();
 protected:
 	KBEngine::script::Script								script_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
@@ -119,6 +137,8 @@ protected:
 
 	// console请求创建到服务端的bots数量
 	uint32													reqCreateAndLoginTotalCount_;
+	uint32													reqCreateAndLoginTickCount_;
+	float													reqCreateAndLoginTickTime_;
 
 	// 处理创建与登录的handler
 	CreateAndLoginHandler*									pCreateAndLoginHandler_;

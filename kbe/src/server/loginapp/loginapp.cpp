@@ -150,7 +150,8 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s)
 	{
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onCreateAccountResult);
-		bundle << SERVER_ERR_BUSY;
+		SERVER_ERROR_CODE retcode = SERVER_ERR_BUSY;
+		bundle << retcode;
 		bundle.appendBlob(retdatas);
 		bundle.send(this->getNetworkInterface(), pChannel);
 		return;
@@ -173,7 +174,8 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s)
 	{
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onCreateAccountResult);
-		bundle << SERVER_ERR_SRV_NO_READY;
+		SERVER_ERROR_CODE retcode = SERVER_ERR_SRV_NO_READY;
+		bundle << retcode;
 		bundle.appendBlob(retdatas);
 		bundle.send(this->getNetworkInterface(), pChannel);
 		return;

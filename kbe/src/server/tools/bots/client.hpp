@@ -42,6 +42,13 @@ namespace KBEngine{
 class Client : public thread::TPTask
 {
 public:
+	enum C_ERROR
+	{
+		C_ERROR_NONE = 0,
+		C_ERROR_INIT_NETWORK_FAILED = 1,
+		C_ERROR_CREATE_FAILED = 2,
+	};
+
 	Client(std::string name);
 	virtual ~Client();
 
@@ -57,7 +64,24 @@ public:
 
 	bool login();
 
+	void gameTick();
+
 	const char* name(){ return name_.c_str(); }
+
+	Mercury::Channel* pChannel(){ return pChannel_; }
+
+	/**
+		创建账号成功和失败回调
+	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_ACCOUNT_CREATE:创建失败（已经存在）, 
+									MERCURY_SUCCESS:账号创建成功
+
+									SERVER_ERROR_CODE failedcode;
+		@二进制附带数据:二进制额外数据: uint32长度 + bytearray
+	*/
+	void onCreateAccountResult(SERVER_ERROR_CODE retcode, std::string datas);
+
+	Client::C_ERROR lasterror(){ return error_; }
 protected:
 	Mercury::Channel* pChannel_;
 
@@ -65,6 +89,8 @@ protected:
 	std::string password_;
 
 	PyObjectPtr	entryScript_;
+
+	C_ERROR error_;
 };
 
 

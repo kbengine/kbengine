@@ -92,7 +92,8 @@ Channel::Channel(NetworkInterface & networkInterface,
 	proxyID_(0),
 	isHandshake_(false),
 	channelType_(CHANNEL_NORMAL),
-	componentID_(UNKNOWN_COMPONENT_TYPE)
+	componentID_(UNKNOWN_COMPONENT_TYPE),
+	pMsgHandlers_(NULL)
 {
 	this->incRef();
 	this->clearBundle();
@@ -399,7 +400,9 @@ void Channel::reset(const EndPoint* endpoint, bool warnOnDiscard)
 	}
 
 	// 让网络接口下一个tick处理自己
-	pNetworkInterface_->sendIfDelayed( *this );
+	if(pNetworkInterface_)
+		pNetworkInterface_->sendIfDelayed(*this);
+
 	this->clearState(warnOnDiscard);
 	this->endpoint(endpoint);
 }
@@ -467,6 +470,11 @@ void Channel::handshake()
 //-------------------------------------------------------------------------------------
 void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 {
+	if(pMsgHandlers_ != NULL)
+	{
+		pMsgHandlers = pMsgHandlers_;
+	}
+
 	if (this->isDestroyed())
 	{
 		ERROR_MSG(boost::format("Channel::handleMessage(%1%): channel[%2%] is destroyed.\n") % this->c_str() % this);

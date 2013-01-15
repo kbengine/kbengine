@@ -29,7 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/components.hpp"
 #include "server/serverconfig.hpp"
 #include "entitydef/scriptdef_module.hpp"
-
+#include "client_lib/client_interface.hpp"
 
 #include "baseapp/baseapp_interface.hpp"
 #include "cellapp/cellapp_interface.hpp"
@@ -44,7 +44,8 @@ namespace KBEngine{
 Client::Client(std::string name):
 pChannel_(NULL),
 name_(name),
-password_()
+password_(),
+error_(C_ERROR_NONE)
 {
 }
 
@@ -63,6 +64,7 @@ bool Client::initNetwork()
 	{
 		ERROR_MSG("Client::initNetwork: couldn't create a socket\n");
 		delete pEndpoint;
+		error_ = C_ERROR_INIT_NETWORK_FAILED;
 		return false;
 	}
 	
@@ -76,19 +78,28 @@ bool Client::initNetwork()
 			kbe_strerror());
 
 		delete pEndpoint;
+		error_ = C_ERROR_INIT_NETWORK_FAILED;
 		return false;
 	}
 
 	Mercury::Address addr(infos.login_ip, infos.login_port);
 	pEndpoint->addr(addr);
-	pChannel_ = new Mercury::Channel(Bots::getSingleton().getNetworkInterface(), pEndpoint, Mercury::Channel::EXTERNAL);
 
+	pChannel_ = new Mercury::Channel();
+	pChannel_->endpoint(pEndpoint);
 	pEndpoint->setnonblocking(true);
 	pEndpoint->setnodelay(true);
 
+	/*
 	if(!Bots::getSingleton().getNetworkInterface().registerChannel(pChannel_))
+	{
+		error_ = C_ERROR_INIT_NETWORK_FAILED;
 		return false;
+	}
+	*/
 
+	pChannel_->pMsgHandlers(&ClientInterface::messageHandlers);
+	FD_SET((int)(*pEndpoint), &Bots::getSingleton().frds);
 	return true;
 }
 
@@ -100,8 +111,21 @@ bool Client::createAccount()
 	bundle.newMessage(LoginappInterface::reqCreateAccount);
 	bundle << name_;
 	bundle << password_;
-	bundle.send(Bots::getSingleton().getNetworkInterface(), pChannel_);
+	bundle.send(*pChannel_->endpoint());
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void Client::onCreateAccountResult(SERVER_ERROR_CODE retcode, std::string datas)
+{
+	if(retcode != 0)
+	{
+		error_ = C_ERROR_CREATE_FAILED;
+		INFO_MSG(boost::format("Client::onCreateAccountResult: %1% create is failed! code=%2%.\n") % name_ % retcode);
+		return;
+	}
+
+	INFO_MSG(boost::format("Client::onCreateAccountResult: %1% create is successfully!\n") % name_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -208,6 +232,10 @@ bool Client::login()
 	return true;
 }
 
+//-------------------------------------------------------------------------------------
+void Client::gameTick()
+{
+}
 
 //-------------------------------------------------------------------------------------
 bool Client::process()

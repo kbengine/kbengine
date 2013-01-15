@@ -18,13 +18,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBEMAIN__
-#define __KBEMAIN__
+#ifndef __KBEMAIN_CLIENT__
+#define __KBEMAIN_CLIENT__
 #include "clientapp.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
+#include "server/serverinfos.hpp"
+#include "server/serverconfig.hpp"
+#include "resmgr/resmgr.hpp"
 
 namespace KBEngine{
 
@@ -66,6 +69,15 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 kbeMain(int argc, char* argv[]);																						\
 int main(int argc, char* argv[])																						\
 {																														\
+	if(!Resmgr::getSingleton().initialize())																			\
+		return -1;																										\
+																														\
+	if(!g_kbeSrvConfig.loadConfig("server/kbengine_defs.xml"))															\
+		return -1;																										\
+																														\
+	if(!g_kbeSrvConfig.loadConfig("server/kbengine.xml"))																\
+		return -1;																										\
+																														\
 	return kbeMain(argc, argv);																							\
 }																														\
 int kbeMain

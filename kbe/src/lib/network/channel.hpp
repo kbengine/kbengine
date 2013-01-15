@@ -167,7 +167,7 @@ public:
 	BufferedReceives& bufferedReceives(){ return bufferedReceives_; }
 		
 	void handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers);
-
+	
 	bool isCondemn()const { return isCondemn_; }
 	void condemn();
 
@@ -178,6 +178,9 @@ public:
 	void componentID(COMPONENT_ID cid){ componentID_ = cid; }
 
 	virtual void handshake();
+
+	KBEngine::Mercury::MessageHandlers* pMsgHandlers()const { return pMsgHandlers_; }
+	void pMsgHandlers(KBEngine::Mercury::MessageHandlers* pMsgHandlers) { pMsgHandlers_ = pMsgHandlers; }
 private:
 	enum TimeOutType
 	{
@@ -245,6 +248,9 @@ private:
 	ChannelTypes				channelType_;
 
 	COMPONENT_ID				componentID_;
+
+	// 支持指定某个通道使用某个消息handlers
+	KBEngine::Mercury::MessageHandlers* pMsgHandlers_;
 };
 
 typedef SmartPointer<Channel> ChannelPtr;

@@ -122,6 +122,10 @@ typedef struct EngineComponentInfo
 	uint32 downloadBitsPerSecondPerClient;					// 每个客户端每秒的下载带宽
 
 	Profiles_Config profiles;
+
+	uint32 defaultAddBots_totalCount;									// 默认启动进程后自动添加这么多个bots 添加总数量
+	float defaultAddBots_tickTime;									// 默认启动进程后自动添加这么多个bots 每次添加所用时间(s)
+	uint32 defaultAddBots_tickCount;									// 默认启动进程后自动添加这么多个bots 每次添加数量
 }ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>

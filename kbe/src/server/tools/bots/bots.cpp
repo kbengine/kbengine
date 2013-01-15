@@ -50,11 +50,15 @@ script_(),
 scriptBaseTypes_(),
 gameTimer_(),
 clients_(),
-reqCreateAndLoginTotalCount_(0),
+reqCreateAndLoginTotalCount_(g_serverConfig.getBots().defaultAddBots_totalCount),
+reqCreateAndLoginTickCount_(g_serverConfig.getBots().defaultAddBots_tickCount),
+reqCreateAndLoginTickTime_(g_serverConfig.getBots().defaultAddBots_tickTime),
 pCreateAndLoginHandler_(NULL)
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BotsInterface::messageHandlers;
 	g_pComponentbridge = new Componentbridge(ninterface, componentType, componentID);
+
+	FD_ZERO( &frds );
 }
 
 //-------------------------------------------------------------------------------------
@@ -66,17 +70,6 @@ Bots::~Bots()
 //-------------------------------------------------------------------------------------
 bool Bots::initialize()
 {
-	if(!Resmgr::getSingleton().initialize())
-		return false;
-
-	// "../../res/server/kbengine_defs.xml"
-	if(!g_kbeSrvConfig.loadConfig("server/kbengine_defs.xml"))
-		return false;
-
-	// "../../../demo/res/server/kbengine.xml"
-	if(!g_kbeSrvConfig.loadConfig("server/kbengine.xml"))
-		return false;
-
 	// 广播自己的地址给网上上的所有kbemachine
 	this->getMainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
 
@@ -224,6 +217,22 @@ void Bots::handleTimeout(TimerHandle handle, void * arg)
 }
 
 //-------------------------------------------------------------------------------------
+int Bots::maxFD()
+{
+	int maxfd = -1;
+
+	CLIENTS::iterator iter = clients().begin();
+	for(;iter != clients().end(); iter++)
+	{
+		Client* pClient = iter->second.get();
+		if((int)(*pClient->pChannel()->endpoint()) > maxfd)
+			maxfd = (int)(*pClient->pChannel()->endpoint());
+	}
+
+	return maxfd;
+}
+
+//-------------------------------------------------------------------------------------
 void Bots::handleGameTick()
 {
 	// time_t t = ::time(NULL);
@@ -232,7 +241,51 @@ void Bots::handleGameTick()
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
 	handleTimers();
+
+	CLIENTS::iterator iter = clients().begin();
+	for(;iter != clients().end(); iter++)
+	{
+		iter->second.get()->gameTick();
+	}
+
 	getNetworkInterface().handleChannels(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
+
+	int maxfd = maxFD() + 1;
+	while(true)
+	{
+		struct timeval tv = { 0, 100000 }; // 100ms
+		
+		int selgot = select(maxfd, &frds, NULL, NULL, &tv);
+		if(selgot == 0)
+		{
+			break;
+		}
+		else if(selgot == -1)
+		{
+			break;
+		}
+		else
+		{
+			CLIENTS::iterator iter = clients().begin();
+			for(;iter != clients().end(); iter++)
+			{
+				Client* pClient = iter->second.get();
+				
+				while(1)
+				{
+					if(FD_ISSET(*pClient->pChannel()->endpoint(), &frds))
+					{
+						Mercury::TCPPacket* packet = new Mercury::TCPPacket();
+						packet->resize(65535);
+						packet->recvFromEndPoint(*pClient->pChannel()->endpoint(), NULL);
+						pClient->pChannel()->addReceiveWindow(packet);
+					}
+				}
+
+				pClient->pChannel()->handleMessage(NULL);
+			}
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -301,8 +354,38 @@ void Bots::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStrea
 //-------------------------------------------------------------------------------------
 bool Bots::addClient(Client* pClient)
 {
-	clients().push_back(KBEShared_ptr<Client>(pClient));
+	clients().insert(std::make_pair< int, KBEShared_ptr<Client> >(*pClient->pChannel()->endpoint(), 
+		KBEShared_ptr<Client>(pClient)));
+
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+Client* Bots::findClient(int fd)
+{
+	CLIENTS::iterator iter = clients().find(fd);
+	if(iter != clients().end())
+	{
+		return iter->second.get();
+	}
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	SERVER_ERROR_CODE retcode;
+	std::string retdatas = "";
+
+	s >> retcode;
+	s.readBlob(retdatas);
+
+	//Client* pClient = findClient(pChannel);
+	//if(pClient)
+	//{
+	//	pClient->onCreateAccountResult(retcode, retdatas);
+	//}
 }
 
 //-------------------------------------------------------------------------------------

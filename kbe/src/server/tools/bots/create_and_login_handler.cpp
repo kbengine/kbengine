@@ -49,16 +49,33 @@ void CreateAndLoginHandler::handleTimeout(TimerHandle handle, void * arg)
 	KBE_ASSERT(handle == timerHandle_);
 	
 	Bots& bots = Bots::getSingleton();
-	uint32 createCount = bots.reqCreateAndLoginTotalCount() - bots.clients().size();
+
+	static float lasttick = bots.reqCreateAndLoginTickTime();
+
+	if(lasttick > 0.f)
+	{
+		// 每个tick减去0.1秒， 为0则可以创建一次且重置;
+		lasttick -= 0.1f;
+		return;
+	}
 
 	time_t t = time(NULL);
 	uint64 accountID = t * 100000;
+	uint32 count = bots.reqCreateAndLoginTickCount();
 
-	while(createCount > 0)
+	while(bots.reqCreateAndLoginTotalCount() - bots.clients().size() > 0 && count-- > 0)
 	{
 		Client* pClient = new Client(KBEngine::StringConv::val2str(accountID++));
+
+		if(!pClient->initNetwork())
+			continue;
+
+		if(!pClient->createAccount())
+			continue;
+
 		Bots::getSingleton().addClient(pClient);
 	}
+
 }
 
 //-------------------------------------------------------------------------------------
