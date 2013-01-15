@@ -168,6 +168,17 @@
 		<internalInterface>  </internalInterface>
 		<host> localhost </host>										<!-- Type: String -->
 		<port> 20013 </port>											<!-- Type: Integer -->
+		
+		<!-- 默认启动进程后自动添加这么多个bots 
+			totalcount： 添加总数量
+			ticktime： 每次添加所用时间(s)
+			tickcount： 每次添加数量
+		-->
+		<defaultAddBots> 
+			<totalcount> 10  </totalcount> <!-- Type: Integer -->
+			<ticktime> 0.1  </ticktime> <!-- Type: Float -->
+			<tickcount> 2  </tickcount> <!-- Type: Integer -->
+		</defaultAddBots>							
 	</bots>
 	
 	<messagelog>
