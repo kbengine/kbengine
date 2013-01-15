@@ -93,24 +93,26 @@ bool Client::initNetwork()
 }
 
 //-------------------------------------------------------------------------------------
-bool Client::login()
+bool Client::createAccount()
 {
-	Mercury::MessageID msgID = 0;
-	Mercury::MessageLength msgLength = 0;
-
-/*
-	char tmp[256];
-	sprintf(tmp, "%"PRIu64, KBEngine::genUUID64());
-	name_ = tmp;
-	password_ = "123456";
-
-	Mercury::Bundle bundle;
-
 	// 创建账号
+	Mercury::Bundle bundle;
 	bundle.newMessage(LoginappInterface::reqCreateAccount);
 	bundle << name_;
 	bundle << password_;
-	bundle.send(endpoint_);
+	bundle.send(Bots::getSingleton().getNetworkInterface(), pChannel_);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool Client::login()
+{
+	/*
+	Mercury::MessageID msgID = 0;
+	Mercury::MessageLength msgLength = 0;
+
+	Mercury::Bundle bundle;
+
 
 	// 接收创建结果
 	// 创建账号成功 failedcode == 0

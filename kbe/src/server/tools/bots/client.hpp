@@ -53,6 +53,8 @@ public:
 
 	bool initNetwork();
 
+	bool createAccount();
+
 	bool login();
 
 	const char* name(){ return name_.c_str(); }
