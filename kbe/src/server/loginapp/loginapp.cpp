@@ -134,6 +134,16 @@ void Loginapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, int32 startGloba
 	startGroupOrder_ = startGroupOrder;
 }
 
+
+//-------------------------------------------------------------------------------------
+void Loginapp::onClientActiveTick(Mercury::Channel* pChannel)
+{
+	if(!pChannel->isExternal())
+		return;
+
+	onAppActiveTick(pChannel, CLIENT_TYPE, 0);
+}
+
 //-------------------------------------------------------------------------------------
 void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s)
 {
@@ -224,7 +234,7 @@ void Loginapp::onReqCreateAccountResult(Mercury::Channel* pChannel, MemoryStream
 void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	COMPONENT_CLIENT_TYPE ctype;
-	int8 tctype = 0;
+	CLIENT_CTYPE tctype = UNKNOWN_CLIENT_COMPONENT_TYPE;
 	std::string loginName;
 	std::string password;
 	std::string datas;

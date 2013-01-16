@@ -170,6 +170,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	//entity丢失了一个观察者(客户端)
 	ENTITY_MESSAGE_DECLARE_ARGS0(onLoseWitness,								MERCURY_FIXED_MESSAGE)
 
+	//entity 观察者重置(客户端)通常是由于客户端重新绑定造成的
+	ENTITY_MESSAGE_DECLARE_ARGS0(onResetWitness,							MERCURY_FIXED_MESSAGE)
+
 	// entity传送。
 	ENTITY_MESSAGE_DECLARE_ARGS3(teleportFromBaseapp,						MERCURY_FIXED_MESSAGE,
 									COMPONENT_ID,							cellAppID,

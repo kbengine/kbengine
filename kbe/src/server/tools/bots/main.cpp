@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #undef DEFINE_IN_INTERFACE
 #include "client_lib/client_interface.hpp"
 #define DEFINE_IN_INTERFACE
+#define CLIENT
 #include "client_lib/client_interface.hpp"
 
 #undef DEFINE_IN_INTERFACE

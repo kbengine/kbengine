@@ -42,20 +42,29 @@ namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 Client::Client(std::string name):
-pChannel_(NULL),
+pChannel_(new Mercury::Channel()),
 name_(name),
 password_(),
-error_(C_ERROR_NONE)
+error_(C_ERROR_NONE),
+state_(C_STATE_INIT),
+entityID_(0),
+dbid_(0),
+ip_(),
+port_(),
+lastSentActiveTickTime_(timestamp()),
+connectedGateway_(false)
 {
+	pChannel_->incRef();
 }
 
 //-------------------------------------------------------------------------------------
 Client::~Client()
 {
+	pChannel_->decRef();
 }
 
 //-------------------------------------------------------------------------------------
-bool Client::initNetwork()
+bool Client::initCreate()
 {
 	Mercury::EndPoint* pEndpoint = new Mercury::EndPoint();
 	
@@ -85,21 +94,58 @@ bool Client::initNetwork()
 	Mercury::Address addr(infos.login_ip, infos.login_port);
 	pEndpoint->addr(addr);
 
-	pChannel_ = new Mercury::Channel();
 	pChannel_->endpoint(pEndpoint);
 	pEndpoint->setnonblocking(true);
 	pEndpoint->setnodelay(true);
 
-	/*
-	if(!Bots::getSingleton().getNetworkInterface().registerChannel(pChannel_))
+	pChannel_->pMsgHandlers(&ClientInterface::messageHandlers);
+	Bots::getSingleton().pEventPoller()->registerForRead((*pEndpoint), this);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool Client::processSocket(bool expectingPacket)
+{
+	
+	Mercury::TCPPacket* pReceiveWindow = Mercury::TCPPacket::ObjPool().createObject();
+	int len = pReceiveWindow->recvFromEndPoint(*pChannel_->endpoint());
+
+	if (len < 0)
 	{
-		error_ = C_ERROR_INIT_NETWORK_FAILED;
+		Mercury::TCPPacket::ObjPool().reclaimObject(pReceiveWindow);
+
+		PacketReceiver::RecvState rstate = this->checkSocketErrors(len, expectingPacket);
+
+		if(rstate == Mercury::PacketReceiver::RECV_STATE_INTERRUPT)
+		{
+			Bots::getSingleton().pEventPoller()->deregisterForRead(*pChannel_->endpoint());
+			pChannel_->destroy();
+			Bots::getSingleton().delClient(this);
+			return false;
+		}
+
+		return rstate == Mercury::PacketReceiver::RECV_STATE_CONTINUE;
+	}
+	else if(len == 0) // 客户端正常退出
+	{
+		Mercury::TCPPacket::ObjPool().reclaimObject(pReceiveWindow);
+
+		Bots::getSingleton().pEventPoller()->deregisterForRead(*pChannel_->endpoint());
+		pChannel_->destroy();
+		Bots::getSingleton().delClient(this);
 		return false;
 	}
-	*/
 
-	pChannel_->pMsgHandlers(&ClientInterface::messageHandlers);
-	FD_SET((int)(*pEndpoint), &Bots::getSingleton().frds);
+	pChannel_->addReceiveWindow(pReceiveWindow);
+	Mercury::Reason ret = this->processPacket(pChannel_, pReceiveWindow);
+
+	if(ret != Mercury::REASON_SUCCESS)
+	{
+		ERROR_MSG(boost::format("Client::processSocket: "
+					"Throwing %1%\n") %
+					Mercury::reasonToString(ret));
+	}
+
 	return true;
 }
 
@@ -116,8 +162,14 @@ bool Client::createAccount()
 }
 
 //-------------------------------------------------------------------------------------
-void Client::onCreateAccountResult(SERVER_ERROR_CODE retcode, std::string datas)
+void Client::onCreateAccountResult(MemoryStream& s)
 {
+	SERVER_ERROR_CODE retcode;
+	std::string datas = "";
+
+	s >> retcode;
+	s.readBlob(datas);
+
 	if(retcode != 0)
 	{
 		error_ = C_ERROR_CREATE_FAILED;
@@ -125,122 +177,237 @@ void Client::onCreateAccountResult(SERVER_ERROR_CODE retcode, std::string datas)
 		return;
 	}
 
+	state_ = C_STATE_LOGIN;
 	INFO_MSG(boost::format("Client::onCreateAccountResult: %1% create is successfully!\n") % name_);
 }
 
 //-------------------------------------------------------------------------------------
 bool Client::login()
 {
-	/*
-	Mercury::MessageID msgID = 0;
-	Mercury::MessageLength msgLength = 0;
+	if(error_ != C_ERROR_NONE)
+		return false;
 
 	Mercury::Bundle bundle;
 
-
-	// 接收创建结果
-	// 创建账号成功 failedcode == 0
-	Mercury::TCPPacket packet;
-	packet.resize(65535);
-	int len = endpoint_.recv(packet.data(), 65535);
-
-	packet.wpos(len);
-	uint16 failedcode = 0;
-	packet >> msgID;
-	packet >> failedcode;
-	DEBUG_MSG(boost::format("Client::onCreateAccountResult: 创建账号[%s]%s size(%d) failedcode=%u.\n") % 
-		name_.c_str() % (failedcode == 0 ? "成功" : "失败") % len % failedcode);
-	
-	if(failedcode > 0)
-		return false;
+	std::string bindatas = "bots client";
 
 	// 提交账号密码请求登录
-	Mercury::Bundle bundle2;
-	bundle2.newMessage(LoginappInterface::login);
-	int8 tclient = 1;
-	bundle2 << tclient;
-	bundle2 << "phone";
-	bundle2 << name_;
-	bundle2 << password_;
-	bundle2.send(endpoint_);
+	bundle.newMessage(LoginappInterface::login);
+	CLIENT_CTYPE tclient = CLIENT_TYPE_BOTS;
+	bundle << tclient;
+	bundle.appendBlob(bindatas);
+	bundle << name_;
+	bundle << password_;
+	bundle.send(*pChannel_->endpoint());
+	return true;
+}
 
-	// 获取返回的网关ip地址
-	packet.clear(false);
-	len = endpoint_.recv(packet.data(), 65535);
-	packet.wpos(len);
-	uint16 iport;
-	std::string ip;
-	packet >> msgID;
-	packet >> msgLength;
-	packet >> ip;
-	packet >> iport;
-	DEBUG_MSG(boost::format("Client::onLoginSuccessfully: 获取返回的网关ip地址 size(%d) msgID=%u, ip:%s, port=%u.\n") %
-		len % msgID % ip.c_str() % iport);
+//-------------------------------------------------------------------------------------
+bool Client::initLoginGateWay()
+{
+	Bots::getSingleton().pEventPoller()->deregisterForRead(*pChannel_->endpoint());
+	Mercury::EndPoint* pEndpoint = new Mercury::EndPoint();
 	
-	// 连接网关
-	endpoint_.close();
-	endpoint_.socket(SOCK_STREAM);
+	pEndpoint->socket(SOCK_STREAM);
+	if (!pEndpoint->good())
+	{
+		ERROR_MSG("Client::initLogin: couldn't create a socket\n");
+		delete pEndpoint;
+		error_ = C_ERROR_INIT_NETWORK_FAILED;
+		return false;
+	}
+	
 	u_int32_t address;
-	endpoint_.convertAddress(ip.c_str(), address);
-	getewayAddr_.ip = address;
-	getewayAddr_.port = htons(iport);
-	if(endpoint_.connect(getewayAddr_.port, getewayAddr_.ip) == -1)
+
+	pEndpoint->convertAddress(ip_.c_str(), address);
+	if(pEndpoint->connect(htons(port_), address) == -1)
 	{
-		DEBUG_MSG(boost::format("Client::login: connect server is error(%s)!\n") % kbe_strerror());
+		ERROR_MSG(boost::format("Client::initLogin: connect server is error(%1%)!\n") %
+			kbe_strerror());
+
+		delete pEndpoint;
+		error_ = C_ERROR_INIT_NETWORK_FAILED;
 		return false;
 	}
-	
-	endpoint_.setnonblocking(false);
 
+	Mercury::Address addr(ip_.c_str(), port_);
+	pEndpoint->addr(addr);
+
+	pChannel_->endpoint(pEndpoint);
+	pEndpoint->setnonblocking(true);
+	pEndpoint->setnodelay(true);
+
+	Bots::getSingleton().pEventPoller()->registerForRead((*pEndpoint), this);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool Client::loginGateWay()
+{
 	// 请求登录网关
-	Mercury::Bundle bundle3;
-	bundle3.newMessage(BaseappInterface::loginGateway);
-	bundle3 << name_;
-	bundle3 << password_;
-	bundle3.send(endpoint_);
-
-	// 服务器返回 Client::onCreatedProxies:服务器端已经创建了一个与客户端关联的代理Entity
-	packet.clear(false);
-	len = endpoint_.recv(packet.data(), 65535);
-	packet.wpos(len);
-
-	uint64 uuid;
-	ENTITY_ID eid;
-	std::string entityType;
-	packet >> msgID;
-
-	Mercury::FixedMessages::MSGInfo* msgInfo =
-				Mercury::FixedMessages::getSingleton().isFixed("Client::onLoginGatewayFailed");
-
-	if(msgID == msgInfo->msgid) // 登录失败
-	{
-		packet >> failedcode;
-		DEBUG_MSG(boost::format("登录网关失败:msgID=%u, err=%u\n") % msgID % failedcode);
-		return false;
-	}
-	else
-	{
-		packet >> msgLength;
-		packet >> uuid;
-		packet >> eid;
-		packet >> entityType;
-		DEBUG_MSG(boost::format("Client::onCreatedProxies: size(%1%) : msgID=%2%, uuid:%3%, eid=%4%, entityType=%5%.\n") %
-			len % msgID % uuid % eid % entityType.c_str());
-	}
-
-	*/
+	Mercury::Bundle bundle;
+	bundle.newMessage(BaseappInterface::loginGateway);
+	bundle << name_;
+	bundle << password_;
+	bundle.send(*pChannel_->endpoint());
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 void Client::gameTick()
 {
+	if(pChannel()->endpoint())
+	{
+		pChannel()->handleMessage(NULL);
+		sendTick();
+	}
+
+	switch(state_)
+	{
+		case C_STATE_INIT:
+
+			state_ = C_STATE_PLAY;
+
+			if(!initCreate() || !createAccount())
+				return;
+
+			break;
+		case C_STATE_LOGIN:
+
+			state_ = C_STATE_PLAY;
+
+			if(!login())
+				return;
+
+			break;
+		case C_STATE_LOGIN_GATEWAY:
+
+			state_ = C_STATE_PLAY;
+
+			if(!initLoginGateWay() || !loginGateWay())
+				return;
+
+			break;
+		case C_STATE_PLAY:
+			break;
+		default:
+			KBE_ASSERT(false);
+			break;
+	};
+}
+
+//-------------------------------------------------------------------------------------
+void Client::sendTick()
+{
+	// 向服务器发送tick
+	uint64 check = uint64( Mercury::g_channelExternalTimeout * stampsPerSecond() ) / 2;
+	if (timestamp() - lastSentActiveTickTime_ > check)
+	{
+		lastSentActiveTickTime_ = timestamp();
+
+		Mercury::Bundle bundle;
+		if(connectedGateway_)
+			bundle.newMessage(BaseappInterface::onClientActiveTick);
+		else
+			bundle.newMessage(LoginappInterface::onClientActiveTick);
+		bundle.send(*pChannel_->endpoint());
+	}
 }
 
 //-------------------------------------------------------------------------------------
 bool Client::process()
 {
 	return false;
+}
+
+//-------------------------------------------------------------------------------------	
+void Client::onLoginSuccessfully(MemoryStream& s)
+{
+	std::string accountName, datas;
+
+	s >> accountName;
+	s >> ip_;
+	s >> port_;
+	s.readBlob(datas);
+
+	INFO_MSG(boost::format("Client::onLoginSuccessfully: %1% addr=%2%:%3%!\n") % name_ % ip_ % port_);
+
+	state_ = C_STATE_LOGIN_GATEWAY;
+}
+
+//-------------------------------------------------------------------------------------	
+void Client::onLoginFailed(MemoryStream& s)
+{
+	SERVER_ERROR_CODE failedcode;
+	std::string datas;
+
+	s >> failedcode;
+	s.readBlob(datas);
+
+	INFO_MSG(boost::format("Client::onLoginFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
+
+	error_ = C_ERROR_LOGIN_FAILED;
+}
+
+//-------------------------------------------------------------------------------------	
+void Client::onLoginGatewayFailed(SERVER_ERROR_CODE failedcode)
+{
+	INFO_MSG(boost::format("Client::onLoginGatewayFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
+}
+
+//-------------------------------------------------------------------------------------	
+void Client::onCreatedProxies(uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
+{
+	connectedGateway_ = true;
+
+	entityID_ = eid;
+	INFO_MSG(boost::format("Client::onCreatedProxies(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
+		name_ % rndUUID % eid % entityType);
+}
+
+//-------------------------------------------------------------------------------------	
+void Client::onCreatedEntity(ENTITY_ID eid, std::string& entityType)
+{
+}
+
+//-------------------------------------------------------------------------------------	
+void Client::onEntityGetCell(ENTITY_ID eid)
+{
+}
+
+//-------------------------------------------------------------------------------------	
+void Client::onEntityEnterWorld(ENTITY_ID eid, SPACE_ID spaceID)
+{
+}
+
+//-------------------------------------------------------------------------------------	
+void Client::onEntityLeaveWorld(ENTITY_ID eid, SPACE_ID spaceID)
+{
+}
+
+//-------------------------------------------------------------------------------------	
+void Client::onEntityEnterSpace(SPACE_ID spaceID, ENTITY_ID eid)
+{
+}
+
+//-------------------------------------------------------------------------------------	
+void Client::onEntityLeaveSpace(SPACE_ID spaceID, ENTITY_ID eid)
+{
+}
+
+//-------------------------------------------------------------------------------------	
+void Client::onEntityDestroyed(ENTITY_ID eid)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void Client::onRemoteMethodCall(KBEngine::MemoryStream& s)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void Client::onUpdatePropertys(MemoryStream& s)
+{
 }
 
 //-------------------------------------------------------------------------------------

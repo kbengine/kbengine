@@ -53,18 +53,18 @@ clients_(),
 reqCreateAndLoginTotalCount_(g_serverConfig.getBots().defaultAddBots_totalCount),
 reqCreateAndLoginTickCount_(g_serverConfig.getBots().defaultAddBots_tickCount),
 reqCreateAndLoginTickTime_(g_serverConfig.getBots().defaultAddBots_tickTime),
-pCreateAndLoginHandler_(NULL)
+pCreateAndLoginHandler_(NULL),
+pEventPoller_(Mercury::EventPoller::create())
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BotsInterface::messageHandlers;
 	g_pComponentbridge = new Componentbridge(ninterface, componentType, componentID);
-
-	FD_ZERO( &frds );
 }
 
 //-------------------------------------------------------------------------------------
 Bots::~Bots()
 {
 	SAFE_RELEASE(g_pComponentbridge);
+	SAFE_RELEASE(pEventPoller_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -217,22 +217,6 @@ void Bots::handleTimeout(TimerHandle handle, void * arg)
 }
 
 //-------------------------------------------------------------------------------------
-int Bots::maxFD()
-{
-	int maxfd = -1;
-
-	CLIENTS::iterator iter = clients().begin();
-	for(;iter != clients().end(); iter++)
-	{
-		Client* pClient = iter->second.get();
-		if((int)(*pClient->pChannel()->endpoint()) > maxfd)
-			maxfd = (int)(*pClient->pChannel()->endpoint());
-	}
-
-	return maxfd;
-}
-
-//-------------------------------------------------------------------------------------
 void Bots::handleGameTick()
 {
 	// time_t t = ::time(NULL);
@@ -242,50 +226,12 @@ void Bots::handleGameTick()
 	threadPool_.onMainThreadTick();
 	handleTimers();
 
+	getNetworkInterface().handleChannels(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
+	pEventPoller_->processPendingEvents(0.1);
+
 	CLIENTS::iterator iter = clients().begin();
 	for(;iter != clients().end(); iter++)
-	{
 		iter->second.get()->gameTick();
-	}
-
-	getNetworkInterface().handleChannels(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
-
-	int maxfd = maxFD() + 1;
-	while(true)
-	{
-		struct timeval tv = { 0, 100000 }; // 100ms
-		
-		int selgot = select(maxfd, &frds, NULL, NULL, &tv);
-		if(selgot == 0)
-		{
-			break;
-		}
-		else if(selgot == -1)
-		{
-			break;
-		}
-		else
-		{
-			CLIENTS::iterator iter = clients().begin();
-			for(;iter != clients().end(); iter++)
-			{
-				Client* pClient = iter->second.get();
-				
-				while(1)
-				{
-					if(FD_ISSET(*pClient->pChannel()->endpoint(), &frds))
-					{
-						Mercury::TCPPacket* packet = new Mercury::TCPPacket();
-						packet->resize(65535);
-						packet->recvFromEndPoint(*pClient->pChannel()->endpoint(), NULL);
-						pClient->pChannel()->addReceiveWindow(packet);
-					}
-				}
-
-				pClient->pChannel()->handleMessage(NULL);
-			}
-		}
-	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -354,16 +300,23 @@ void Bots::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStrea
 //-------------------------------------------------------------------------------------
 bool Bots::addClient(Client* pClient)
 {
-	clients().insert(std::make_pair< int, KBEShared_ptr<Client> >(*pClient->pChannel()->endpoint(), 
+	clients().insert(std::make_pair< Mercury::Channel*, KBEShared_ptr<Client> >(pClient->pChannel(), 
 		KBEShared_ptr<Client>(pClient)));
 
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-Client* Bots::findClient(int fd)
+bool Bots::delClient(Client* pClient)
 {
-	CLIENTS::iterator iter = clients().find(fd);
+	clients().erase(pClient->pChannel());
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+Client* Bots::findClient(Mercury::Channel * pChannel)
+{
+	CLIENTS::iterator iter = clients().find(pChannel);
 	if(iter != clients().end())
 	{
 		return iter->second.get();
@@ -375,17 +328,142 @@ Client* Bots::findClient(int fd)
 //-------------------------------------------------------------------------------------
 void Bots::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s)
 {
-	SERVER_ERROR_CODE retcode;
-	std::string retdatas = "";
+	Client* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onCreateAccountResult(s);
+	}
+}
 
-	s >> retcode;
-	s.readBlob(retdatas);
+//-------------------------------------------------------------------------------------	
+void Bots::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	Client* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onLoginSuccessfully(s);
+	}
+}
 
-	//Client* pClient = findClient(pChannel);
-	//if(pClient)
-	//{
-	//	pClient->onCreateAccountResult(retcode, retdatas);
-	//}
+//-------------------------------------------------------------------------------------	
+void Bots::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	Client* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onLoginFailed(s);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
+void Bots::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+{
+	Client* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onLoginGatewayFailed(failedcode);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
+void Bots::onCreatedProxies(Mercury::Channel * pChannel, 
+								 uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
+{
+	Client* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onCreatedProxies(rndUUID, eid, entityType);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
+void Bots::onCreatedEntity(Mercury::Channel * pChannel, ENTITY_ID eid, std::string& entityType)
+{
+	Client* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onCreatedEntity(eid, entityType);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
+void Bots::onEntityGetCell(Mercury::Channel * pChannel, ENTITY_ID eid)
+{
+	Client* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onEntityGetCell(eid);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
+void Bots::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID)
+{
+	Client* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onEntityEnterWorld(eid, spaceID);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
+void Bots::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID)
+{
+	Client* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onEntityLeaveWorld(eid, spaceID);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
+void Bots::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
+{
+	Client* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onEntityEnterSpace(eid, spaceID);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
+void Bots::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
+{
+	Client* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onEntityLeaveSpace(eid, spaceID);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
+void Bots::onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID eid)
+{
+	Client* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onEntityDestroyed(eid);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onRemoteMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	Client* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onRemoteMethodCall(s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	Client* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdatePropertys(s);
+	}
 }
 
 //-------------------------------------------------------------------------------------

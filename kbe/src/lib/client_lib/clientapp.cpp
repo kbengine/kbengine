@@ -167,7 +167,7 @@ void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onLoginFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientApp::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
 {
 }
 

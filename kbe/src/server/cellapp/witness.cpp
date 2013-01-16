@@ -27,6 +27,9 @@ Witness::~Witness()
 //-------------------------------------------------------------------------------------
 void Witness::attach(Entity* pEntity)
 {
+	DEBUG_MSG(boost::format("Witness::attach: %1%(%2%).") % 
+		pEntity->getScriptName() % pEntity->getID());
+
 	pEntity_ = pEntity;
 
 	// ³õÊ¼»¯Ä¬ÈÏAOI·¶Î§
@@ -39,6 +42,9 @@ void Witness::attach(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Witness::detach(Entity* pEntity)
 {
+	DEBUG_MSG(boost::format("Witness::detach: %1%(%2%).") % 
+		pEntity->getScriptName() % pEntity->getID());
+
 	pEntity_ = NULL;
 	aoiRadius_ = 0.0f;
 	aoiHysteresisArea_ = 0.0f;

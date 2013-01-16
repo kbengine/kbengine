@@ -211,7 +211,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 		{
 			// 通知cell丢失客户端
 			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-			(*pBundle).newMessage(CellappInterface::onLoseWitness);
+			(*pBundle).newMessage(CellappInterface::onResetWitness);
 			(*pBundle) << this->getID();
 			getCellMailbox()->postMail((*pBundle));
 			Mercury::Bundle::ObjPool().reclaimObject(pBundle);

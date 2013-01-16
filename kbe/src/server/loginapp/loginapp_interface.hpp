@@ -55,6 +55,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	// 某个app请求查看该app负载状态。
 	LOGINAPP_MESSAGE_DECLARE_ARGS0(queryLoad,										MERCURY_FIXED_MESSAGE)
 
+	// 某个app向本app告知处于活动状态。
+	LOGINAPP_MESSAGE_DECLARE_ARGS0(onClientActiveTick,								MERCURY_FIXED_MESSAGE)
+
 	// 请求创建账号
 	LOGINAPP_MESSAGE_DECLARE_STREAM(reqCreateAccount,								MERCURY_VARIABLE_MESSAGE)
 

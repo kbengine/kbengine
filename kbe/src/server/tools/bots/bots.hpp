@@ -36,6 +36,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/interfaces.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
+#include "network/event_poller.hpp"
 #include "client_lib/clientapp.hpp"
 #include "pyscript/pyobject_pointer.hpp"
 #include "entitydef/entitydef.hpp"
@@ -103,7 +104,7 @@ public:
 
 	KBEngine::script::Script& getScript(){ return script_; }
 
-	typedef std::map< int, KBEShared_ptr<Client> > CLIENTS;
+	typedef std::map< Mercury::Channel*, KBEShared_ptr<Client> > CLIENTS;
 	CLIENTS& clients(){ return clients_; }
 
 	uint32 reqCreateAndLoginTotalCount(){ return reqCreateAndLoginTotalCount_; }
@@ -111,8 +112,9 @@ public:
 	float reqCreateAndLoginTickTime(){ return reqCreateAndLoginTickTime_; }
 
 	bool addClient(Client* pClient);
+	bool delClient(Client* pClient);
 
-	Client* findClient(int fd);
+	Client* findClient(Mercury::Channel * pChannel);
 
 	/** 网络接口
 		创建账号成功和失败回调
@@ -125,8 +127,83 @@ public:
 	*/
 	virtual void onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s);
 
-	fd_set	frds;
-	int maxFD();
+	Mercury::EventPoller* pEventPoller(){ return pEventPoller_; }
+
+	/** 网络接口
+	   登录失败回调
+	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_SRV_OVERLOAD:服务器负载过重, 
+									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
+	*/
+	virtual void onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s);
+
+	/** 网络接口
+	   登录成功
+	   @ip: 服务器ip地址
+	   @port: 服务器端口
+	*/
+	virtual void onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
+
+	/** 网络接口
+	   登录失败回调
+	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
+									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
+									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
+	*/
+	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+
+	/** 网络接口
+		服务器端已经创建了一个与客户端关联的代理Entity
+	   在登录时也可表达成功回调
+	   @datas: 账号entity的信息
+	*/
+	virtual void onCreatedProxies(Mercury::Channel * pChannel, uint64 rndUUID, 
+		ENTITY_ID eid, std::string& entityType);
+
+	/** 网络接口
+		服务器端已经创建了一个Entity
+	*/
+	virtual void onCreatedEntity(Mercury::Channel * pChannel, ENTITY_ID eid, std::string& entityType);
+
+	/** 网络接口
+		服务器上的entity已经有了一个cell部分
+	*/
+	virtual void onEntityGetCell(Mercury::Channel * pChannel, ENTITY_ID eid);
+
+	/** 网络接口
+		服务器上的entity已经进入游戏世界了
+	*/
+	virtual void onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID);
+
+	/** 网络接口
+		服务器上的entity已经离开游戏世界了
+	*/
+	virtual void onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID);
+
+	/** 网络接口
+		告诉客户端某个entity销毁了， 此类entity通常是还未onEntityEnterWorld
+	*/
+	virtual void onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID eid);
+
+	/** 网络接口
+		服务器上的entity已经进入space了
+	*/
+	virtual void onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid);
+
+	/** 网络接口
+		服务器上的entity已经离开space了
+	*/
+	virtual void onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid);
+
+	/** 网络接口
+		远程调用entity的方法 
+	*/
+	virtual void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		服务器更新entity属性
+	*/
+	virtual void onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s);
 protected:
 	KBEngine::script::Script								script_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
@@ -142,6 +219,8 @@ protected:
 
 	// 处理创建与登录的handler
 	CreateAndLoginHandler*									pCreateAndLoginHandler_;
+
+	Mercury::EventPoller*									pEventPoller_;
 };
 
 }

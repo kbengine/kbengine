@@ -71,6 +71,11 @@ public:
 	void finalise();
 	
 	/** 网络接口
+		某个client向本app告知处于活动状态。
+	*/
+	void onClientActiveTick(Mercury::Channel* pChannel);
+
+	/** 网络接口
 		创建账号
 	*/
 	void reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s);

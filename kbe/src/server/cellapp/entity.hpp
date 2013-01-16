@@ -322,6 +322,12 @@ public:
 	*/
 	void onLoseWitness(Mercury::Channel* pChannel);
 
+	/** 网络接口
+		entity丢失了一个观察者(客户端)
+
+	*/
+	void onResetWitness(Mercury::Channel* pChannel);
+
 	/** 
 		添加一个陷阱 
 	*/

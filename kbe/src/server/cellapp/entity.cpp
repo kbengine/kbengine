@@ -775,6 +775,12 @@ void Entity::onLoseWitness(Mercury::Channel* pChannel)
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::onResetWitness(Mercury::Channel* pChannel)
+{
+	INFO_MSG(boost::format("%1%::onResetWitness: %2%.\n") % this->getScriptName() % this->getID());
+}
+
+//-------------------------------------------------------------------------------------
 int32 Entity::setAoiRadius(float radius, float hyst)
 {
 	if(pWitness_)

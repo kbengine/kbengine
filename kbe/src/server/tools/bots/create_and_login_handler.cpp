@@ -59,20 +59,12 @@ void CreateAndLoginHandler::handleTimeout(TimerHandle handle, void * arg)
 		return;
 	}
 
-	time_t t = time(NULL);
-	uint64 accountID = t * 100000;
+	uint64 accountID = KBEngine::genUUID64() * 100000;
 	uint32 count = bots.reqCreateAndLoginTickCount();
 
 	while(bots.reqCreateAndLoginTotalCount() - bots.clients().size() > 0 && count-- > 0)
 	{
 		Client* pClient = new Client(KBEngine::StringConv::val2str(accountID++));
-
-		if(!pClient->initNetwork())
-			continue;
-
-		if(!pClient->createAccount())
-			continue;
-
 		Bots::getSingleton().addClient(pClient);
 	}
 
