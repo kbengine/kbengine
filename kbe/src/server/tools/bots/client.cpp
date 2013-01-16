@@ -416,7 +416,7 @@ void Client::onCreatedProxies(uint64 rndUUID, ENTITY_ID eid, std::string& entity
 	INFO_MSG(boost::format("Client::onCreatedProxies(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
 		name_ % rndUUID % eid % entityType);
 
-	createEntityCommon(entityType.c_str(), NULL, false, eid, true);
+	createEntityCommon(entityType.c_str(), NULL, true, eid, true);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -425,7 +425,7 @@ void Client::onCreatedEntity(ENTITY_ID eid, std::string& entityType)
 	INFO_MSG(boost::format("Client::onCreatedEntity(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
 		name_ % eid % entityType);
 
-	createEntityCommon(entityType.c_str(), NULL, false, eid, true);
+	createEntityCommon(entityType.c_str(), NULL, true, eid, true);
 }
 
 //-------------------------------------------------------------------------------------	
