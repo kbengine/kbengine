@@ -52,7 +52,9 @@ dbid_(0),
 ip_(),
 port_(),
 lastSentActiveTickTime_(timestamp()),
-connectedGateway_(false)
+connectedGateway_(false),
+pEntities_(new Entities<Entity>()),
+pyCallbackMgr_()
 {
 	pChannel_->incRef();
 }
@@ -61,6 +63,9 @@ connectedGateway_(false)
 Client::~Client()
 {
 	pChannel_->decRef();
+
+	pEntities_->finalise();
+	S_RELEASE(pEntities_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -238,6 +243,7 @@ bool Client::initLoginGateWay()
 	pEndpoint->setnodelay(true);
 
 	Bots::getSingleton().pEventPoller()->registerForRead((*pEndpoint), this);
+	connectedGateway_ = true;
 	return true;
 }
 
@@ -321,6 +327,54 @@ bool Client::process()
 }
 
 //-------------------------------------------------------------------------------------	
+Entity* Client::createEntityCommon(const char* entityType, PyObject* params,
+	bool isInitializeScript, ENTITY_ID eid, bool initProperty)
+{
+	KBE_ASSERT(eid > 0);
+
+	ScriptDefModule* sm = EntityDef::findScriptModule(entityType);
+	if(sm == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "Client::createEntityCommon: entity [%s] not found.\n", entityType);
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+	else if(!sm->hasClient())
+	{
+		PyErr_Format(PyExc_TypeError, "Client::createEntityCommon: entity [%s] not found.\n", entityType);
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	PyObject* obj = sm->createObject();
+	
+	Entity* entity = new(obj) Entity(eid, sm);
+
+	if(initProperty)
+		entity->initProperty();
+
+	// 将entity加入entities
+	pEntities_->add(eid, entity); 
+
+	// 初始化脚本
+	if(isInitializeScript)
+		entity->initializeEntity(params);
+
+	SCRIPT_ERROR_CHECK();
+
+	if(g_debugEntity)
+	{
+		INFO_MSG(boost::format("Client::createEntityCommon: new %1% (%2%) refc=%3%.\n") % entityType % eid % obj->ob_refcnt);
+	}
+	else
+	{
+		INFO_MSG(boost::format("Client::createEntityCommon: new %1% (%2%)\n") % entityType % eid);
+	}
+
+	return entity;
+}
+
+//-------------------------------------------------------------------------------------	
 void Client::onLoginSuccessfully(MemoryStream& s)
 {
 	std::string accountName, datas;
@@ -358,56 +412,128 @@ void Client::onLoginGatewayFailed(SERVER_ERROR_CODE failedcode)
 //-------------------------------------------------------------------------------------	
 void Client::onCreatedProxies(uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
 {
-	connectedGateway_ = true;
-
 	entityID_ = eid;
 	INFO_MSG(boost::format("Client::onCreatedProxies(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
 		name_ % rndUUID % eid % entityType);
+
+	createEntityCommon(entityType.c_str(), NULL, false, eid, true);
 }
 
 //-------------------------------------------------------------------------------------	
 void Client::onCreatedEntity(ENTITY_ID eid, std::string& entityType)
 {
+	INFO_MSG(boost::format("Client::onCreatedEntity(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
+		name_ % eid % entityType);
+
+	createEntityCommon(entityType.c_str(), NULL, false, eid, true);
 }
 
 //-------------------------------------------------------------------------------------	
 void Client::onEntityGetCell(ENTITY_ID eid)
 {
+	Entity* entity = pEntities_->find(eid);
+	if(entity == NULL)
+	{	
+		ERROR_MSG(boost::format("Client::onEntityGetCell: not found entity(%1%).\n") % eid);
+		return;
+	}
 }
 
 //-------------------------------------------------------------------------------------	
 void Client::onEntityEnterWorld(ENTITY_ID eid, SPACE_ID spaceID)
 {
+	Entity* entity = pEntities_->find(eid);
+	if(entity == NULL)
+	{	
+		ERROR_MSG(boost::format("Client::onEntityEnterWorld: not found entity(%1%).\n") % eid);
+		return;
+	}
 }
 
 //-------------------------------------------------------------------------------------	
 void Client::onEntityLeaveWorld(ENTITY_ID eid, SPACE_ID spaceID)
 {
+	Entity* entity = pEntities_->find(eid);
+	if(entity == NULL)
+	{	
+		ERROR_MSG(boost::format("Client::onEntityLeaveWorld: not found entity(%1%).\n") % eid);
+		return;
+	}
 }
 
 //-------------------------------------------------------------------------------------	
 void Client::onEntityEnterSpace(SPACE_ID spaceID, ENTITY_ID eid)
 {
+	Entity* entity = pEntities_->find(eid);
+	if(entity == NULL)
+	{	
+		ERROR_MSG(boost::format("Client::onEntityEnterSpace: not found entity(%1%).\n") % eid);
+		return;
+	}
 }
 
 //-------------------------------------------------------------------------------------	
 void Client::onEntityLeaveSpace(SPACE_ID spaceID, ENTITY_ID eid)
 {
+	Entity* entity = pEntities_->find(eid);
+	if(entity == NULL)
+	{	
+		ERROR_MSG(boost::format("Client::onEntityLeaveSpace: not found entity(%1%).\n") % eid);
+		return;
+	}
 }
 
 //-------------------------------------------------------------------------------------	
 void Client::onEntityDestroyed(ENTITY_ID eid)
 {
+	Entity* entity = pEntities_->find(eid);
+	if(entity == NULL)
+	{	
+		ERROR_MSG(boost::format("Client::onEntityDestroyed: not found entity(%1%).\n") % eid);
+		return;
+	}
 }
 
 //-------------------------------------------------------------------------------------
 void Client::onRemoteMethodCall(KBEngine::MemoryStream& s)
 {
+	ENTITY_ID eid;
+	s >> eid;
+
+	Entity* entity = pEntities_->find(eid);
+	if(entity == NULL)
+	{	
+		s.opfini();
+		ERROR_MSG(boost::format("Client::onRemoteMethodCall: not found entity(%1%).\n") % eid);
+		return;
+	}
+
+	entity->onRemoteMethodCall(this->pChannel(), s);
 }
 
 //-------------------------------------------------------------------------------------
 void Client::onUpdatePropertys(MemoryStream& s)
 {
+	ENTITY_ID eid;
+	s >> eid;
+
+	Entity* entity = pEntities_->find(eid);
+	if(entity == NULL)
+	{	
+		s.opfini();
+		ERROR_MSG(boost::format("Client::onUpdatePropertys: not found entity(%1%).\n") % eid);
+		return;
+	}
+
+	if(s.wpos() > 0)
+	{
+		ENTITY_PROPERTY_UID uid;
+		s >> uid;
+		PropertyDescription* pPropertyDescription = entity->getScriptModule()->findClientPropertyDescription(uid);
+		PyObject* pyobj = pPropertyDescription->createFromStream(&s);
+		PyObject_SetAttrString(entity, pPropertyDescription->getName(), pyobj);
+		Py_DECREF(pyobj);
+	}
 }
 
 //-------------------------------------------------------------------------------------

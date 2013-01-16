@@ -23,11 +23,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 // common include	
 // #define NDEBUG
+#include "entity.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "thread/threadtask.hpp"
 #include "helper/debug_helper.hpp"
 #include "entitydef/entitydef.hpp"
+#include "entitydef/entities.hpp"
+#include "entitydef/entity_mailbox.hpp"
 #include "network/address.hpp"
 #include "network/endpoint.hpp"
 #include "network/bundle.hpp"
@@ -175,6 +178,16 @@ public:
 	virtual void onUpdatePropertys(MemoryStream& s);
 
 	void sendTick();
+
+	Entities<Entity>* pEntities()const{ return pEntities_; }
+
+	/**
+		创建一个entity 
+	*/
+	Entity* createEntityCommon(const char* entityType, PyObject* params,
+		bool isInitializeScript = true, ENTITY_ID eid = 0, bool initProperty = true);
+
+	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }	
 protected:
 	Mercury::Channel* pChannel_;
 
@@ -195,6 +208,11 @@ protected:
 	uint64 lastSentActiveTickTime_;
 
 	bool connectedGateway_;
+
+	// 存储所有的entity的容器
+	Entities<Entity>* pEntities_;	
+
+	PY_CALLBACKMGR	pyCallbackMgr_;
 };
 
 
