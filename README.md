@@ -5,8 +5,8 @@ kbengine
 [![kbengine](https://sourceforge.net/p/kbengine/screenshot/323758.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
 
 ##控制台截图:
-[![kbengine](https://github.com/downloads/kbengine/kbengine/guiconsole_debug.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
-[![kbengine](https://github.com/downloads/kbengine/kbengine/guiconsole_log.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
+[![kbengine](https://sourceforge.net/p/kbengine/screenshot/guiconsole_debug.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
+[![kbengine](https://sourceforge.net/p/kbengine/screenshot/guiconsole_log.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
 
 ##什么是KBEngine?
 
