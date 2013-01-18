@@ -190,7 +190,7 @@ windows:
 
 	~.bat
 
-	或者使用tools\server\guiconsole\guiconsole.exe来启动和关闭服务器。
+	或者使用tools\server\guiconsole\guiconsole.exe来启动和关闭服务端。
 
 ##日志:
 
