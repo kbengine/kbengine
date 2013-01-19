@@ -105,11 +105,11 @@ public:
 	*/
 	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol);
 	
-	Mercury::Channel* getChannel(void);
+	virtual Mercury::Channel* getChannel(void) = 0;
 
-	bool postMail(Mercury::Bundle& bundle);
+	virtual bool postMail(Mercury::Bundle& bundle);
 
-	void newMail(Mercury::Bundle& bundle);
+	virtual void newMail(Mercury::Bundle& bundle);
 	
 	const Mercury::Address& addr()const{ return addr_; }
 	void addr(const Mercury::Address& saddr){ addr_ = saddr; }

@@ -52,9 +52,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
+class EntityMailbox;
+
 namespace Mercury
 {
-
 class Channel;
 }
 
@@ -105,6 +106,11 @@ public:
 
 	virtual void onChannelTimeOut(Mercury::Channel * pChannel);
 	virtual void onChannelDeregister(Mercury::Channel * pChannel);
+
+	/**
+		由mailbox来尝试获取一个channel的实例
+	*/
+	virtual Mercury::Channel* findChannelByMailbox(EntityMailbox& mailbox);
 
 	void shutDown();
 	
@@ -222,7 +228,10 @@ protected:
 	Timers													timers_;
 
 	// 线程池
-	thread::ThreadPool										threadPool_;		
+	thread::ThreadPool										threadPool_;
+
+	// 服务端网络通道
+	Mercury::Channel*										serverChannel_;
 
 };
 

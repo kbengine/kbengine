@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "clientapp.hpp"
 #include "network/channel.hpp"
 #include "thread/threadpool.hpp"
+#include "entitydef/entity_mailbox.hpp"
 
 #include "../../server/baseapp/baseapp_interface.hpp"
 #include "../../server/loginapp/loginapp_interface.hpp"
@@ -46,16 +47,22 @@ componentID_(componentID),
 mainDispatcher_(dispatcher),
 networkInterface_(ninterface),
 timers_(),
-threadPool_()
+threadPool_(),
+serverChannel_(NULL)
 {
 	networkInterface_.pExtensionData(this);
 	networkInterface_.pChannelTimeOutHandler(this);
 	networkInterface_.pChannelDeregisterHandler(this);
+
+	// 初始化mailbox模块获取channel函数地址
+	EntityMailbox::setFindChannelFunc(std::tr1::bind(&ClientApp::findChannelByMailbox, this, 
+		std::tr1::placeholders::_1));
 }
 
 //-------------------------------------------------------------------------------------
 ClientApp::~ClientApp()
 {
+	serverChannel_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -149,6 +156,12 @@ void ClientApp::onChannelTimeOut(Mercury::Channel * pChannel)
 
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->destroy();
+}
+
+//-------------------------------------------------------------------------------------	
+Mercury::Channel* ClientApp::findChannelByMailbox(EntityMailbox& mailbox)
+{
+	return serverChannel_;
 }
 
 //-------------------------------------------------------------------------------------	

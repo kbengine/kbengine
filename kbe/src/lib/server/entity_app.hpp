@@ -97,6 +97,11 @@ public:
 	*/
 	PyObject* tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_ID eid);
 
+	/**
+		由mailbox来尝试获取一个channel的实例
+	*/
+	Mercury::Channel* findChannelByMailbox(EntityMailbox& mailbox);
+
 	KBEngine::script::Script& getScript(){ return script_; }
 	PyObjectPtr getEntryScript(){ return entryScript_; }
 
@@ -203,6 +208,10 @@ pyCallbackMgr_()
 	// 初始化mailbox模块获取entity实体函数地址
 	EntityMailbox::setGetEntityFunc(std::tr1::bind(&EntityApp<E>::tryGetEntityByMailbox, this, 
 		std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+
+	// 初始化mailbox模块获取channel函数地址
+	EntityMailbox::setFindChannelFunc(std::tr1::bind(&EntityApp<E>::findChannelByMailbox, this, 
+		std::tr1::placeholders::_1));
 }
 
 template<class E>
@@ -515,6 +524,26 @@ PyObject* EntityApp<E>::tryGetEntityByMailbox(COMPONENT_ID componentID, ENTITY_I
 	}
 
 	return entity;
+}
+
+template<class E>
+Mercury::Channel* EntityApp<E>::findChannelByMailbox(EntityMailbox& mailbox)
+{
+	// 如果组件ID大于0则查找组件
+	if(mailbox.getComponentID() > 0)
+	{
+		Components::ComponentInfos* cinfos = 
+			Components::getSingleton().findComponent(mailbox.getComponentID());
+
+		if(cinfos != NULL && cinfos->pChannel != NULL)
+			return cinfos->pChannel; 
+	}
+	else
+	{
+		return Components::getSingleton().pNetworkInterface()->findChannel(mailbox.addr());
+	}
+
+	return NULL;
 }
 
 template<class E>

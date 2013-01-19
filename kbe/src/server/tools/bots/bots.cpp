@@ -254,6 +254,19 @@ void Bots::handleGameTick()
 }
 
 //-------------------------------------------------------------------------------------
+Mercury::Channel* Bots::findChannelByMailbox(EntityMailbox& mailbox)
+{
+	int32 appID = (int32)mailbox.getComponentID();
+	ClientObject* pClient = findClientByAppID(appID);
+	if(pClient)
+	{
+		return pClient->pChannel();
+	}
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
 void Bots::lookApp(Mercury::Channel* pChannel)
 {
 	DEBUG_MSG(boost::format("Bots::lookApp: %1%\n") % pChannel->c_str());

@@ -46,11 +46,11 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/third_party/g3dlite;../../../server;../../../lib/third_party/log4cxx/include;../../../lib/third_party"
-				PreprocessorDefinitions="ENABLE_WATCHERS;WIN32;_WINDOWS;_DEBUG;KBE_USE_ASSERTS"
+				PreprocessorDefinitions="ENABLE_WATCHERS;WIN32;_WINDOWS;Py_NO_ENABLE_SHARED;USE_PYTHON;_DEBUG;KBE_USE_ASSERTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)\$(ProjectName).pdb"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -69,7 +69,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/ignore:4049"
+				AdditionalOptions="/ignore:4049&#x0D;&#x0A;/ignore:4217"
 				AdditionalDependencies="resmgr_d.lib python32_d.lib pyscript_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib network_d.lib vldmt.lib thread_d.lib client_lib_d.lib ws2_32.lib"
 				OutputFile="../../../../tools/server/guiconsole/$(ProjectName).exe"
 				LinkIncremental="2"
@@ -133,11 +133,11 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/third_party/g3dlite;../../../server;../../../lib/third_party/log4cxx/include;../../../lib/third_party"
-				PreprocessorDefinitions="ENABLE_WATCHERS;WIN32;_WINDOWS;NDEBUG;KBE_USE_ASSERTS"
+				PreprocessorDefinitions="ENABLE_WATCHERS;WIN32;_WINDOWS;NDEBUG;Py_NO_ENABLE_SHARED;USE_PYTHON;KBE_USE_ASSERTS"
 				MinimalRebuild="false"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)\$(ProjectName).pdb"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -156,7 +156,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/ignore:4049"
+				AdditionalOptions="/ignore:4049&#x0D;&#x0A;/ignore:4217"
 				AdditionalDependencies="resmgr.lib python32.lib pyscript.lib xmlplus.lib cstdkbe.lib helper.lib network.lib vldmt.lib thread.lib client_lib.lib ws2_32.lib"
 				OutputFile="../../../../tools/server/guiconsole/$(ProjectName).exe"
 				LinkIncremental="1"
@@ -212,6 +212,10 @@
 			</File>
 			<File
 				RelativePath=".\EditSendbuffer.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\lib\python\Modules\getbuildinfo.c"
 				>
 			</File>
 			<File

@@ -88,6 +88,11 @@ public:
 	bool run(void);
 
 	/**
+		由mailbox来尝试获取一个channel的实例
+	*/
+	virtual Mercury::Channel* findChannelByMailbox(EntityMailbox& mailbox);
+
+	/**
 		通过entityID销毁一个entity 
 	*/
 	virtual bool destroyEntity(ENTITY_ID entityID){ return true; }

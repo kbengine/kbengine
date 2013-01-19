@@ -56,6 +56,7 @@ class EntityMailbox : public EntityMailboxAbstract
 public:
 	typedef std::tr1::function<RemoteEntityMethod* (MethodDescription* md, EntityMailbox* pMailbox)> MailboxCallHookFunc;
 	typedef std::tr1::function<PyObject* (COMPONENT_ID componentID, ENTITY_ID& eid)> GetEntityFunc;
+	typedef std::tr1::function<Mercury::Channel* (EntityMailbox&)> FindChannelFunc;
 
 	EntityMailbox(ScriptDefModule* scriptModule, const Mercury::Address* pAddr, COMPONENT_ID componentID, 
 		ENTITY_ID eid, ENTITY_MAILBOX_TYPE type);
@@ -93,6 +94,13 @@ public:
 	};
 
 	/** 
+		设置mailbox的__getEntityFunc函数地址 
+	*/
+	static void setFindChannelFunc(FindChannelFunc func){ 
+		__findChannelFunc = func; 
+	};
+
+	/** 
 		设置mailbox的__hookCallFunc函数地址 
 	*/
 	static void setMailboxCallHookFunc(MailboxCallHookFunc* pFunc){ 
@@ -101,9 +109,11 @@ public:
 
 	virtual RemoteEntityMethod* createRemoteMethod(MethodDescription* md);
 
+	virtual Mercury::Channel* getChannel(void);
 private:
 	static GetEntityFunc					__getEntityFunc;		// 获得一个entity的实体的函数地址
 	static MailboxCallHookFunc*				__hookCallFuncPtr;
+	static FindChannelFunc					__findChannelFunc;
 protected:
 	ScriptDefModule*						scriptModule_;			// 该entity所使用的脚本模块对象
 };

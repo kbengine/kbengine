@@ -198,24 +198,5 @@ PyObject* EntityMailboxAbstract::pyGetID()
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::Channel* EntityMailboxAbstract::getChannel(void)
-{
-	if(componentID_ > 0)
-	{
-		Components::ComponentInfos* cinfos = 
-			Components::getSingleton().findComponent(componentID_);
-
-		if(cinfos != NULL && cinfos->pChannel != NULL)
-			return cinfos->pChannel; 
-	}
-	else
-	{
-		return Components::getSingleton().pNetworkInterface()->findChannel(addr_);
-	}
-
-	return NULL;
-}
-
-//-------------------------------------------------------------------------------------
 
 }

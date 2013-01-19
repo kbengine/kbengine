@@ -440,7 +440,7 @@ void ClientObject::onCreatedProxies(uint64 rndUUID, ENTITY_ID eid, std::string& 
 	Entity* pEntity = createEntityCommon(entityType.c_str(), NULL, true, eid, true);
 
 	// ÉèÖÃentityµÄbaseMailbox
-	EntityMailbox* mailbox = new EntityMailbox(pEntity->getScriptModule(), NULL, 0, eid, MAILBOX_TYPE_BASE);
+	EntityMailbox* mailbox = new EntityMailbox(pEntity->getScriptModule(), NULL, appID(), eid, MAILBOX_TYPE_BASE);
 	pEntity->setBaseMailbox(mailbox);
 }
 

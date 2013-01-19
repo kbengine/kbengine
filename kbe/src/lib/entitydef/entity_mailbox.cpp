@@ -28,16 +28,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "remote_entity_method.hpp"
 #include "entitydef/entitydef.hpp"
 
-#ifdef KBE_SERVER
-#include "server/components.hpp"
-#endif
-
 namespace KBEngine
 {
 
 // 获得某个entity的函数地址
 EntityMailbox::GetEntityFunc EntityMailbox::__getEntityFunc;
-
+EntityMailbox::FindChannelFunc EntityMailbox::__findChannelFunc;
 EntityMailbox::MailboxCallHookFunc*	EntityMailbox::__hookCallFuncPtr = NULL;
 
 SCRIPT_METHOD_DECLARE_BEGIN(EntityMailbox)
@@ -213,7 +209,6 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 {
 	ENTITY_ID eid = 0;
 	COMPONENT_ID componentID = 0;
-	COMPONENT_TYPE componentType;
 	ENTITY_SCRIPT_UID utype = 0;
 	int16 type = 0;
 
@@ -237,45 +232,14 @@ PyObject* EntityMailbox::__unpickle__(PyObject* self, PyObject* args)
 		S_Return;
 	}
 
-	// Mercury::Channel* pChannel = NULL;
-	componentType = ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[(ENTITY_MAILBOX_TYPE)type];
+	// COMPONENT_TYPE componentType = ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[(ENTITY_MAILBOX_TYPE)type];
 	
-#ifdef KBE_SERVER
-	// 如果组件类别和组件ID和当前服务器相同， 则说明这个entity在本服务器上存在， 那么直接返回entity的实例
-	if(componentType == g_componentType)
-	{
-		PyObject* entity = __getEntityFunc(componentID, eid);
-		if(entity != NULL)
-		{
-			Py_INCREF(entity);
-			return entity;
-		}
-	}
-	else
-	{
-		Components::ComponentInfos* pcomponent = 
-			Components::getSingleton().findComponent(componentType, componentID);
-
-		if(pcomponent != NULL)
-		{
-			// pChannel = pcomponent->pChannel;
-		}
-		else
-		{
-			// 在服务器起来的时候可能会出现找不到， 因为组件先连接了dbmgr， dbmgr就开始初始化了
-			// ERROR_MSG("EntityMailbox::__unpickle__: not found %s%ld!\n", 
-			// COMPONENT_NAME_EX(componentType), componentID);
-			// S_Return;
-		}
-	}
-#else
 	PyObject* entity = __getEntityFunc(componentID, eid);
 	if(entity != NULL)
 	{
 		Py_INCREF(entity);
 		return entity;
 	}
-#endif
 
 	return new EntityMailbox(sm, NULL, componentID, eid, (ENTITY_MAILBOX_TYPE)type);
 }
@@ -290,6 +254,12 @@ void EntityMailbox::onInstallScript(PyObject* mod)
 	script::Pickler::registerUnpickleFunc(pyFunc, "Mailbox");
 
 	Py_DECREF(pyFunc);
+}
+
+//-------------------------------------------------------------------------------------
+Mercury::Channel* EntityMailbox::getChannel(void)
+{
+	return __findChannelFunc(*this);
 }
 
 //-------------------------------------------------------------------------------------

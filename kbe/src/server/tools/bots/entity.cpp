@@ -117,7 +117,7 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 	DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: entityID %1%, methodType %2%.\n") % 
 				id_ % utype);
 	
-	MethodDescription* md = scriptModule_->findCellMethodDescription(utype);
+	MethodDescription* md = scriptModule_->findClientMethodDescription(utype);
 	
 	if(md == NULL)
 	{
@@ -126,8 +126,6 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 
 		return;
 	}
-
-	md->currCallerID(this->getID());
 
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
 						(md->getName()));
