@@ -87,6 +87,8 @@ public:
 
 	Mercury::Channel* pChannel(){ return pChannel_; }
 
+	DECLARE_PY_GET_MOTHOD(pyGetEntities);
+
 	/**
 		创建账号成功和失败回调
 	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
@@ -189,6 +191,10 @@ public:
 	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }	
 
 	int32 appID()const{ return appID_; }
+	static PyObject* __pyget_pyGetID(ClientObject *self, void *closure){
+		return PyLong_FromLong(self->appID());	
+	}
+
 protected:
 	int32 appID_;
 

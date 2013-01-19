@@ -182,6 +182,7 @@ bool Bots::uninstallPyScript()
 bool Bots::installPyModules()
 {
 	Entity::installScript(getScript().getModule());
+	Entities<Entity>::installScript(NULL);
 	registerScript(Entity::getScriptType());
 	
 	ClientObject::installScript(NULL);
@@ -201,6 +202,7 @@ bool Bots::uninstallPyModules()
 	pPyBots_ = NULL;
 
 	Entity::uninstallScript();
+	Entities<Entity>::uninstallScript();
 	ClientObject::uninstallScript();
 	PyBots::uninstallScript();
 	EntityDef::uninstallScript();
@@ -241,7 +243,7 @@ void Bots::handleGameTick()
 	handleTimers();
 
 	getNetworkInterface().handleChannels(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
-	pEventPoller_->processPendingEvents(0.1);
+	pEventPoller_->processPendingEvents(0.0);
 
 	CLIENTS::iterator iter = clients().begin();
 	for(;iter != clients().end(); iter++)

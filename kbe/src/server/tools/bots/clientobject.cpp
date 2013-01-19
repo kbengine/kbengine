@@ -47,6 +47,8 @@ SCRIPT_MEMBER_DECLARE_BEGIN(ClientObject)
 SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(ClientObject)
+SCRIPT_GET_DECLARE("id",							pyGetID,					0,					0)
+SCRIPT_GET_DECLARE("entities",						pyGetEntities,				0,					0)
 SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(ClientObject, 0, 0, 0, 0, 0)		
 
@@ -82,6 +84,13 @@ ClientObject::~ClientObject()
 
 	pEntities_->finalise();
 	S_RELEASE(pEntities_);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ClientObject::pyGetEntities()
+{ 
+	Py_INCREF(pEntities_);
+	return pEntities_; 
 }
 
 //-------------------------------------------------------------------------------------

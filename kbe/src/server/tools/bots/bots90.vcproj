@@ -192,6 +192,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\clientobject.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\create_and_login_handler.cpp"
 				>
 			</File>
@@ -237,10 +241,6 @@
 			</File>
 			<File
 				RelativePath=".\bots_interface_macros.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\clientobject.cpp"
 				>
 			</File>
 			<File
