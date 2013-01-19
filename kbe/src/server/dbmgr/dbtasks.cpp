@@ -356,10 +356,12 @@ bool DBTaskCreateAccount::db_thread_process()
 		return false;
 	}
 
-	DBID entityDBID = EntityTables::getSingleton().writeEntity(pdbi_, 0, 
-		&pTable->accountDefMemoryStream(), pModule);
+	// 防止多线程问题， 这里做一个拷贝。
+	MemoryStream copyAccountDefMemoryStream(pTable->accountDefMemoryStream());
 
-	pTable->accountDefMemoryStream().rpos(0);
+	DBID entityDBID = EntityTables::getSingleton().writeEntity(pdbi_, 0, 
+		&copyAccountDefMemoryStream, pModule);
+
 	KBE_ASSERT(entityDBID > 0);
 
 	info.name = accountName_;

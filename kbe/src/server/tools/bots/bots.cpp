@@ -181,6 +181,7 @@ bool Bots::uninstallPyScript()
 //-------------------------------------------------------------------------------------
 bool Bots::installPyModules()
 {
+	EntityDef::installScript(getScript().getModule());
 	Entity::installScript(getScript().getModule());
 	Entities<Entity>::installScript(NULL);
 	registerScript(Entity::getScriptType());
@@ -198,6 +199,8 @@ bool Bots::installPyModules()
 //-------------------------------------------------------------------------------------
 bool Bots::uninstallPyModules()
 {
+	EntityDef::uninstallScript();
+
 	Py_DECREF(pPyBots_);
 	pPyBots_ = NULL;
 

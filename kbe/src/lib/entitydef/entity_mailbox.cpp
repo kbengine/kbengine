@@ -156,8 +156,17 @@ PyObject* EntityMailbox::onScriptGetAttribute(PyObject* attr)
 		if(mbtype != -1)
 		{
 			free(ccattr);
-			return new EntityMailbox(scriptModule_, &addr_, componentID_, 
-				id_, (ENTITY_MAILBOX_TYPE)mbtype);
+
+			if(g_componentType != CLIENT_TYPE && g_componentType != BOTS_TYPE)
+			{
+				return new EntityMailbox(scriptModule_, &addr_, componentID_, 
+					id_, (ENTITY_MAILBOX_TYPE)mbtype);
+			}
+			else
+			{
+				Py_INCREF(this);
+				return this;
+			}
 		}
 	}
 	

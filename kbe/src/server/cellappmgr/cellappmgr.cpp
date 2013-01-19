@@ -126,7 +126,7 @@ void Cellappmgr::forwardMessage(Mercury::Channel* pChannel, MemoryStream& s)
 	Mercury::Bundle bundle;
 	bundle.append((char*)s.data() + s.rpos(), s.opsize());
 	bundle.send(this->getNetworkInterface(), cinfos->pChannel);
-	s.read_skip(s.opsize());
+	s.opfini();
 }
 
 //-------------------------------------------------------------------------------------
@@ -180,6 +180,7 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 	(*pBundle) << componentID;
 
 	(*pBundle).append(&s);
+	s.opfini();
 
 	DEBUG_MSG(boost::format("Cellappmgr::reqCreateInNewSpace: entityType=%1%, entityID=%2%, componentID=%3%.\n") %
 		entityType.c_str() % id % componentID);

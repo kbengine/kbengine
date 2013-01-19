@@ -108,8 +108,9 @@ public:
 	Mercury::Channel* getChannel(void);
 
 	bool postMail(Mercury::Bundle& bundle);
-	void newMail(Mercury::Bundle& bundle);
 
+	void newMail(Mercury::Bundle& bundle);
+	
 	const Mercury::Address& addr()const{ return addr_; }
 	void addr(const Mercury::Address& saddr){ addr_ = saddr; }
 

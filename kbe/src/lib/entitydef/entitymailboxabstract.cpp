@@ -90,37 +90,59 @@ bool EntityMailboxAbstract::isBase()
 //-------------------------------------------------------------------------------------
 void EntityMailboxAbstract::newMail(Mercury::Bundle& bundle)
 {
-	if(componentID_ == 0)	// 客户端
+	// 如果是server端的mailbox
+	if(g_componentType != CLIENT_TYPE && g_componentType != BOTS_TYPE)
 	{
-		bundle.newMessage(ClientInterface::onRemoteMethodCall);
-	}
-	else					// 服务器组件
-	{
-		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID_);
-
-		if(cinfos != NULL)
+		if(componentID_ == 0)	// 客户端
 		{
-			// 找到对应的组件投递过去， 如果这个mailbox还需要中转比如 e.base.cell ， 则由baseapp转往cellapp
-			if(cinfos->componentType == BASEAPP_TYPE)
+			bundle.newMessage(ClientInterface::onRemoteMethodCall);
+		}
+		else					// 服务器组件
+		{
+			Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID_);
+
+			if(cinfos != NULL)
 			{
-				bundle.newMessage(BaseappInterface::onEntityMail);
+				// 找到对应的组件投递过去， 如果这个mailbox还需要中转比如 e.base.cell ， 则由baseapp转往cellapp
+				if(cinfos->componentType == BASEAPP_TYPE)
+				{
+					bundle.newMessage(BaseappInterface::onEntityMail);
+				}
+				else
+				{
+					bundle.newMessage(CellappInterface::onEntityMail);
+				}
 			}
 			else
 			{
-				bundle.newMessage(CellappInterface::onEntityMail);
+				ERROR_MSG("EntityMailboxAbstract::newMail: not found component!\n");
 			}
 		}
-		else
-		{
-			ERROR_MSG("EntityMailboxAbstract::newMail: not found component!\n");
-		}
-	}
 
-	bundle << id_;
-	
-	// 如果是发往客户端的包则无需附加这样一个类型
-	if(componentID_ > 0)
-		bundle << type_;
+		bundle << id_;
+		
+		// 如果是发往客户端的包则无需附加这样一个类型
+		if(componentID_ > 0)
+			bundle << type_;
+	}
+	else
+	{
+		// 如果是客户端上的mailbox调用服务端方法只存在调用cell或者base
+		switch(type_)
+		{
+		case MAILBOX_TYPE_BASE:
+			bundle.newMessage(BaseappInterface::onRemoteMethodCall);
+			break;
+		case MAILBOX_TYPE_CELL:
+			bundle.newMessage(BaseappInterface::onRemoteCallCellMethodFromClient);
+			break;
+		default:
+			KBE_ASSERT(false && "no support!\n");
+			break;
+		};
+
+		bundle << id_;
+	}
 }
 
 //-------------------------------------------------------------------------------------

@@ -437,7 +437,11 @@ void ClientObject::onCreatedProxies(uint64 rndUUID, ENTITY_ID eid, std::string& 
 	INFO_MSG(boost::format("ClientObject::onCreatedProxies(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
 		name_ % rndUUID % eid % entityType);
 
-	createEntityCommon(entityType.c_str(), NULL, true, eid, true);
+	Entity* pEntity = createEntityCommon(entityType.c_str(), NULL, true, eid, true);
+
+	// ÉèÖÃentityµÄbaseMailbox
+	EntityMailbox* mailbox = new EntityMailbox(pEntity->getScriptModule(), NULL, 0, eid, MAILBOX_TYPE_BASE);
+	pEntity->setBaseMailbox(mailbox);
 }
 
 //-------------------------------------------------------------------------------------	

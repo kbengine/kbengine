@@ -583,7 +583,8 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 					std::string argType = xml->getKey(argNode);
 					if(argType == "Exposed")
 					{
-						methodDescription->setExposed();
+						if(__loadComponentType == BASEAPP_TYPE || __loadComponentType == CELLAPP_TYPE)
+							methodDescription->setExposed();
 					}
 					else if(argType == "Arg")
 					{
@@ -665,7 +666,10 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 				{
 					std::string argType = xml->getKey(argNode);
 					if(argType == "Exposed")
-						methodDescription->setExposed();
+					{
+						if(__loadComponentType == BASEAPP_TYPE || __loadComponentType == CELLAPP_TYPE)
+							methodDescription->setExposed();
+					}
 					else if(argType == "Arg")
 					{
 						DataType* dataType = NULL;
