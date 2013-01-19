@@ -59,7 +59,7 @@ class Entity : public script::ScriptObject
 	BASE_SCRIPT_HREADER(Entity, ScriptObject)	
 	ENTITY_HEADER(Entity)
 public:
-	Entity(ENTITY_ID id, const ScriptDefModule* scriptModule);
+	Entity(ENTITY_ID id, const ScriptDefModule* scriptModule, EntityMailbox* base, EntityMailbox* cell);
 	~Entity();
 	
 	/** 
@@ -68,11 +68,6 @@ public:
 	void onDefDataChanged(const PropertyDescription* propertyDescription, 
 			PyObject* pyData);
 	
-	/** 
-		该entity通信通道
-	*/
-	INLINE void pChannel(Mercury::Channel* pchannel);
-	INLINE Mercury::Channel* pChannel(void)const ;
 public:
 	/** 
 		mailbox section
@@ -110,6 +105,10 @@ public:
 	DECLARE_PY_GET_MOTHOD(pyGetClientApp);
 	INLINE void pClientApp(ClientObject* p);
 	INLINE ClientObject* pClientApp()const;
+
+	void onEntitiesEnabled(void);
+	void onEnterWorld();
+	void onLeaveWorld();
 public:
 	/** 网络接口
 		远程呼叫本entity的方法 
@@ -123,10 +122,7 @@ protected:
 	Position3D								position_;							// entity的当前位置
 	Direction3D								direction_;							// entity的当前方向
 
-	Mercury::Channel *						pChannel_;							// 该entity的通信频道
-
 	ClientObject*							pClientApp_;
-
 };																										
 
 

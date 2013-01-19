@@ -347,7 +347,8 @@ void ClientObject::sendTick()
 
 //-------------------------------------------------------------------------------------	
 Entity* ClientObject::createEntityCommon(const char* entityType, PyObject* params,
-	bool isInitializeScript, ENTITY_ID eid, bool initProperty)
+	bool isInitializeScript, ENTITY_ID eid, bool initProperty,
+	EntityMailbox* base, EntityMailbox* cell)
 {
 	KBE_ASSERT(eid > 0);
 
@@ -367,7 +368,7 @@ Entity* ClientObject::createEntityCommon(const char* entityType, PyObject* param
 
 	PyObject* obj = sm->createObject();
 	
-	Entity* entity = new(obj) Entity(eid, sm);
+	Entity* entity = new(obj) Entity(eid, sm, base, cell);
 
 	entity->pClientApp(this);
 
@@ -437,11 +438,11 @@ void ClientObject::onCreatedProxies(uint64 rndUUID, ENTITY_ID eid, std::string& 
 	INFO_MSG(boost::format("ClientObject::onCreatedProxies(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
 		name_ % rndUUID % eid % entityType);
 
-	Entity* pEntity = createEntityCommon(entityType.c_str(), NULL, true, eid, true);
-
 	// 设置entity的baseMailbox
-	EntityMailbox* mailbox = new EntityMailbox(pEntity->getScriptModule(), NULL, appID(), eid, MAILBOX_TYPE_BASE);
-	pEntity->setBaseMailbox(mailbox);
+	EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
+		NULL, appID(), eid, MAILBOX_TYPE_BASE);
+
+	createEntityCommon(entityType.c_str(), NULL, true, eid, true, mailbox, NULL);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -450,7 +451,11 @@ void ClientObject::onCreatedEntity(ENTITY_ID eid, std::string& entityType)
 	INFO_MSG(boost::format("ClientObject::onCreatedEntity(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
 		name_ % eid % entityType);
 
-	createEntityCommon(entityType.c_str(), NULL, true, eid, true);
+	// 设置entity的cellMailbox
+	EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
+		NULL, appID(), eid, MAILBOX_TYPE_CELL);
+
+	createEntityCommon(entityType.c_str(), NULL, true, eid, true, NULL, mailbox);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -459,9 +464,12 @@ void ClientObject::onEntityGetCell(ENTITY_ID eid)
 	Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(boost::format("ClientObject::onEntityGetCell: not found entity(%1%).\n") % eid);
+		ERROR_MSG(boost::format("ClientObject::onEntitiesEnabled: not found entity(%1%).\n") % eid);
 		return;
 	}
+
+	DEBUG_MSG(boost::format("ClientObject::onEntitiesEnabled: %1%.\n") % eid);
+	entity->onEntitiesEnabled();
 }
 
 //-------------------------------------------------------------------------------------	
@@ -473,6 +481,9 @@ void ClientObject::onEntityEnterWorld(ENTITY_ID eid, SPACE_ID spaceID)
 		ERROR_MSG(boost::format("ClientObject::onEntityEnterWorld: not found entity(%1%).\n") % eid);
 		return;
 	}
+
+	DEBUG_MSG(boost::format("ClientObject::onEntityEnterWorld: %1%.\n") % eid);
+	entity->onEnterWorld();
 }
 
 //-------------------------------------------------------------------------------------	
@@ -484,6 +495,9 @@ void ClientObject::onEntityLeaveWorld(ENTITY_ID eid, SPACE_ID spaceID)
 		ERROR_MSG(boost::format("ClientObject::onEntityLeaveWorld: not found entity(%1%).\n") % eid);
 		return;
 	}
+
+	DEBUG_MSG(boost::format("ClientObject::onEntityLeaveWorld: %1%.\n") % eid);
+	entity->onLeaveWorld();
 }
 
 //-------------------------------------------------------------------------------------	
@@ -495,6 +509,8 @@ void ClientObject::onEntityEnterSpace(SPACE_ID spaceID, ENTITY_ID eid)
 		ERROR_MSG(boost::format("ClientObject::onEntityEnterSpace: not found entity(%1%).\n") % eid);
 		return;
 	}
+
+	DEBUG_MSG(boost::format("ClientObject::onEntityEnterSpace: %1%.\n") % eid);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -506,6 +522,8 @@ void ClientObject::onEntityLeaveSpace(SPACE_ID spaceID, ENTITY_ID eid)
 		ERROR_MSG(boost::format("ClientObject::onEntityLeaveSpace: not found entity(%1%).\n") % eid);
 		return;
 	}
+
+	DEBUG_MSG(boost::format("ClientObject::onEntityLeaveSpace: %1%.\n") % eid);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -517,6 +535,8 @@ void ClientObject::onEntityDestroyed(ENTITY_ID eid)
 		ERROR_MSG(boost::format("ClientObject::onEntityDestroyed: not found entity(%1%).\n") % eid);
 		return;
 	}
+
+	DEBUG_MSG(boost::format("ClientObject::onEntityDestroyed: %1%.\n") % eid);
 }
 
 //-------------------------------------------------------------------------------------
@@ -549,11 +569,28 @@ void ClientObject::onUpdatePropertys(MemoryStream& s)
 		ERROR_MSG(boost::format("ClientObject::onUpdatePropertys: not found entity(%1%).\n") % eid);
 		return;
 	}
-
+				
 	if(s.wpos() > 0)
 	{
 		ENTITY_PROPERTY_UID uid;
 		s >> uid;
+
+		// 如果是位置或者朝向信息则
+		switch(uid)
+		{
+		case ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ:
+			break;
+		case ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW:
+			break;
+		case ENTITY_BASE_PROPERTY_UTYPE_SPACEID:
+			{
+				SPACE_ID spaceID;
+				s >> spaceID;
+				//entity->spaceID(spaceID);
+			}
+			break;
+		};
+
 		PropertyDescription* pPropertyDescription = entity->getScriptModule()->findClientPropertyDescription(uid);
 		PyObject* pyobj = pPropertyDescription->createFromStream(&s);
 		PyObject_SetAttrString(entity, pPropertyDescription->getName(), pyobj);

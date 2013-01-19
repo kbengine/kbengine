@@ -53,12 +53,11 @@ ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-Entity::Entity(ENTITY_ID id, const ScriptDefModule* scriptModule):
+Entity::Entity(ENTITY_ID id, const ScriptDefModule* scriptModule, EntityMailbox* base, EntityMailbox* cell):
 ScriptObject(getScriptType(), true),
 ENTITY_CONSTRUCTION(Entity),
-cellMailbox_(NULL),
-baseMailbox_(NULL),
-pChannel_(NULL),
+cellMailbox_(cell),
+baseMailbox_(base),
 pClientApp_(NULL)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
@@ -196,6 +195,30 @@ int Entity::pySetDirection(PyObject *value)
 PyObject* Entity::pyGetDirection()
 {
 	return new script::ScriptVector3(getDirection().asVector3());
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onEntitiesEnabled(void)
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEntitiesEnabled"));
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onEnterWorld()
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterWorld"));
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onLeaveWorld()
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveWorld"));
 }
 
 //-------------------------------------------------------------------------------------

@@ -186,7 +186,8 @@ public:
 		创建一个entity 
 	*/
 	Entity* createEntityCommon(const char* entityType, PyObject* params,
-		bool isInitializeScript = true, ENTITY_ID eid = 0, bool initProperty = true);
+		bool isInitializeScript = true, ENTITY_ID eid = 0, bool initProperty = true, 
+		EntityMailbox* base = NULL, EntityMailbox* cell = NULL);
 
 	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }	
 

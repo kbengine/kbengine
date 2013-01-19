@@ -77,16 +77,4 @@ INLINE void Entity::setBaseMailbox(EntityMailbox* mailbox)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::pChannel(Mercury::Channel* pchannel)
-{ 
-	pChannel_ = pchannel; 
-}
-
-//-------------------------------------------------------------------------------------
-INLINE Mercury::Channel* Entity::pChannel(void)const 
-{ 
-	return pChannel_; 
-}
-
-//-------------------------------------------------------------------------------------
 }
