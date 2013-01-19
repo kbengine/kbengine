@@ -27,7 +27,7 @@ Witness::~Witness()
 //-------------------------------------------------------------------------------------
 void Witness::attach(Entity* pEntity)
 {
-	DEBUG_MSG(boost::format("Witness::attach: %1%(%2%).") % 
+	DEBUG_MSG(boost::format("Witness::attach: %1%(%2%).\n") % 
 		pEntity->getScriptName() % pEntity->getID());
 
 	pEntity_ = pEntity;
@@ -42,7 +42,7 @@ void Witness::attach(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Witness::detach(Entity* pEntity)
 {
-	DEBUG_MSG(boost::format("Witness::detach: %1%(%2%).") % 
+	DEBUG_MSG(boost::format("Witness::detach: %1%(%2%).\n") % 
 		pEntity->getScriptName() % pEntity->getID());
 
 	pEntity_ = NULL;
