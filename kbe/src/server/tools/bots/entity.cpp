@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "bots.hpp"
 #include "entity.hpp"
-#include "clientappex.hpp"
+#include "clientobject.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 #include "network/bundle.hpp"	
@@ -95,7 +95,7 @@ PyObject* Entity::pyGetCellMailbox()
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetClientApp()
 { 
-	ClientAppEx* app = pClientApp();
+	ClientObject* app = pClientApp();
 	if(app == NULL)
 		S_Return;
 

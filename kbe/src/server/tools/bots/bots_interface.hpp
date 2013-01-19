@@ -44,7 +44,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 /**
-	BASEAPPMGR所有消息接口在此定义
+	Bots所有消息接口在此定义
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(BotsInterface)
 
@@ -56,6 +56,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BotsInterface)
 
 	// console远程执行python语句。
 	BOTS_MESSAGE_DECLARE_STREAM(onExecScriptCommand,					MERCURY_VARIABLE_MESSAGE)
+
+	// 某个app向本app告知处于活动状态。
+	BOTS_MESSAGE_DECLARE_ARGS2(onAppActiveTick,							MERCURY_FIXED_MESSAGE,
+								COMPONENT_TYPE,							componentType, 
+								COMPONENT_ID,							componentID)
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

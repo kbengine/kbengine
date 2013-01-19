@@ -18,10 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "pybots.hpp"
 #include "bots.hpp"
 #include "entity.hpp"
-#include "clientappex.hpp"
+#include "clientobject.hpp"
 #include "bots_interface.hpp"
 #include "resmgr/resmgr.hpp"
 #include "network/common.hpp"
@@ -49,6 +49,7 @@ ClientApp(dispatcher, ninterface, componentType, componentID),
 script_(),
 scriptBaseTypes_(),
 gameTimer_(),
+pPyBots_(NULL),
 clients_(),
 reqCreateAndLoginTotalCount_(g_serverConfig.getBots().defaultAddBots_totalCount),
 reqCreateAndLoginTickCount_(g_serverConfig.getBots().defaultAddBots_tickCount),
@@ -82,6 +83,8 @@ bool Bots::initialize()
 	if(!installPyModules())
 		return false;
 	
+	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
+
 	return installEntityDef();
 }
 
@@ -180,7 +183,13 @@ bool Bots::installPyModules()
 {
 	Entity::installScript(getScript().getModule());
 	registerScript(Entity::getScriptType());
+	
+	ClientObject::installScript(NULL);
+	PyBots::installScript(NULL);
 
+	pPyBots_ = new PyBots();
+	registerPyObjectToScript("bots", pPyBots_);
+	
 	onInstallPyModules();
 	return true;
 }
@@ -188,7 +197,12 @@ bool Bots::installPyModules()
 //-------------------------------------------------------------------------------------
 bool Bots::uninstallPyModules()
 {
+	Py_DECREF(pPyBots_);
+	pPyBots_ = NULL;
+
 	Entity::uninstallScript();
+	ClientObject::uninstallScript();
+	PyBots::uninstallScript();
 	EntityDef::uninstallScript();
 	return true;
 }
@@ -298,23 +312,23 @@ void Bots::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStrea
 }
 
 //-------------------------------------------------------------------------------------
-bool Bots::addClient(ClientAppEx* pClient)
+bool Bots::addClient(ClientObject* pClient)
 {
-	clients().insert(std::make_pair< Mercury::Channel*, ClientAppPtr >(pClient->pChannel(), 
-		ClientAppPtr(pClient)));
+	clients().insert(std::make_pair< Mercury::Channel*, ClientObjectPtr >(pClient->pChannel(), 
+		ClientObjectPtr(pClient)));
 
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool Bots::delClient(ClientAppEx* pClient)
+bool Bots::delClient(ClientObject* pClient)
 {
 	clients().erase(pClient->pChannel());
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-ClientAppEx* Bots::findClient(Mercury::Channel * pChannel)
+ClientObject* Bots::findClient(Mercury::Channel * pChannel)
 {
 	CLIENTS::iterator iter = clients().find(pChannel);
 	if(iter != clients().end())
@@ -326,9 +340,56 @@ ClientAppEx* Bots::findClient(Mercury::Channel * pChannel)
 }
 
 //-------------------------------------------------------------------------------------
+ClientObject* Bots::findClientByAppID(int32 appID)
+{
+	CLIENTS::iterator iter = clients().begin();
+	for(; iter != clients().end(); iter++)
+	{
+		if(iter->second.get()->appID() == appID)
+			return iter->second.get();
+	}
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID)
+{
+	if(componentType != CLIENT_TYPE)
+		if(pChannel->isExternal())
+			return;
+	
+	Mercury::Channel* pTargetChannel = NULL;
+	if(componentType != CONSOLE_TYPE && componentType != CLIENT_TYPE)
+	{
+		Components::ComponentInfos* cinfos = 
+			Componentbridge::getComponents().findComponent(componentType, KBEngine::getUserUID(), componentID);
+
+		if(cinfos == NULL)
+		{
+			ERROR_MSG(boost::format("Bots::onAppActiveTick[%1%]: %2%:%3% not found.\n") % 
+				pChannel % COMPONENT_NAME_EX(componentType) % componentID);
+
+			return;
+		}
+
+		pTargetChannel = cinfos->pChannel;
+		pTargetChannel->updateLastReceivedTime();
+	}
+	else
+	{
+		pChannel->updateLastReceivedTime();
+		pTargetChannel = pChannel;
+	}
+
+	//DEBUG_MSG("ServerApp::onAppActiveTick[%x]: %s:%"PRAppID" lastReceivedTime:%"PRIu64" at %s.\n", 
+	//	pChannel, COMPONENT_NAME_EX(componentType), componentID, pChannel->lastReceivedTime(), pTargetChannel->c_str());
+}
+
+//-------------------------------------------------------------------------------------
 void Bots::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s)
 {
-	ClientAppEx* pClient = findClient(pChannel);
+	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
 		pClient->onCreateAccountResult(s);
@@ -338,7 +399,7 @@ void Bots::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------	
 void Bots::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
 {
-	ClientAppEx* pClient = findClient(pChannel);
+	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
 		pClient->onLoginSuccessfully(s);
@@ -348,7 +409,7 @@ void Bots::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------	
 void Bots::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
 {
-	ClientAppEx* pClient = findClient(pChannel);
+	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
 		pClient->onLoginFailed(s);
@@ -358,7 +419,7 @@ void Bots::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------	
 void Bots::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
-	ClientAppEx* pClient = findClient(pChannel);
+	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
 		pClient->onLoginGatewayFailed(failedcode);
@@ -369,7 +430,7 @@ void Bots::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE f
 void Bots::onCreatedProxies(Mercury::Channel * pChannel, 
 								 uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
 {
-	ClientAppEx* pClient = findClient(pChannel);
+	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
 		pClient->onCreatedProxies(rndUUID, eid, entityType);
@@ -379,7 +440,7 @@ void Bots::onCreatedProxies(Mercury::Channel * pChannel,
 //-------------------------------------------------------------------------------------	
 void Bots::onCreatedEntity(Mercury::Channel * pChannel, ENTITY_ID eid, std::string& entityType)
 {
-	ClientAppEx* pClient = findClient(pChannel);
+	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
 		pClient->onCreatedEntity(eid, entityType);
@@ -389,7 +450,7 @@ void Bots::onCreatedEntity(Mercury::Channel * pChannel, ENTITY_ID eid, std::stri
 //-------------------------------------------------------------------------------------	
 void Bots::onEntityGetCell(Mercury::Channel * pChannel, ENTITY_ID eid)
 {
-	ClientAppEx* pClient = findClient(pChannel);
+	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
 		pClient->onEntityGetCell(eid);
@@ -399,7 +460,7 @@ void Bots::onEntityGetCell(Mercury::Channel * pChannel, ENTITY_ID eid)
 //-------------------------------------------------------------------------------------	
 void Bots::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID)
 {
-	ClientAppEx* pClient = findClient(pChannel);
+	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
 		pClient->onEntityEnterWorld(eid, spaceID);
@@ -409,7 +470,7 @@ void Bots::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_
 //-------------------------------------------------------------------------------------	
 void Bots::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID)
 {
-	ClientAppEx* pClient = findClient(pChannel);
+	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
 		pClient->onEntityLeaveWorld(eid, spaceID);
@@ -419,7 +480,7 @@ void Bots::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_
 //-------------------------------------------------------------------------------------	
 void Bots::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
 {
-	ClientAppEx* pClient = findClient(pChannel);
+	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
 		pClient->onEntityEnterSpace(eid, spaceID);
@@ -429,7 +490,7 @@ void Bots::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENT
 //-------------------------------------------------------------------------------------	
 void Bots::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
 {
-	ClientAppEx* pClient = findClient(pChannel);
+	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
 		pClient->onEntityLeaveSpace(eid, spaceID);
@@ -439,7 +500,7 @@ void Bots::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENT
 //-------------------------------------------------------------------------------------	
 void Bots::onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID eid)
 {
-	ClientAppEx* pClient = findClient(pChannel);
+	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
 		pClient->onEntityDestroyed(eid);
@@ -449,7 +510,7 @@ void Bots::onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID eid)
 //-------------------------------------------------------------------------------------
 void Bots::onRemoteMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	ClientAppEx* pClient = findClient(pChannel);
+	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
 		pClient->onRemoteMethodCall(s);
@@ -459,7 +520,7 @@ void Bots::onRemoteMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream
 //-------------------------------------------------------------------------------------
 void Bots::onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s)
 {
-	ClientAppEx* pClient = findClient(pChannel);
+	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
 		pClient->onUpdatePropertys(s);

@@ -192,10 +192,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\clientappex.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\create_and_login_handler.cpp"
 				>
 			</File>
@@ -213,6 +209,10 @@
 			</File>
 			<File
 				RelativePath=".\profile.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\pybots.cpp"
 				>
 			</File>
 			<Filter
@@ -240,7 +240,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\clientappex.hpp"
+				RelativePath=".\clientobject.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\clientobject.hpp"
 				>
 			</File>
 			<File
@@ -253,6 +257,10 @@
 			</File>
 			<File
 				RelativePath=".\profile.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\pybots.hpp"
 				>
 			</File>
 		</Filter>

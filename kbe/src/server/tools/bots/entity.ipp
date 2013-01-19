@@ -41,13 +41,13 @@ INLINE Position3D& Entity::getPosition()
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::pClientApp(ClientAppEx* p)
+INLINE void Entity::pClientApp(ClientObject* p)
 { 
 	pClientApp_ = p; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE ClientAppEx* Entity::pClientApp()const
+INLINE ClientObject* Entity::pClientApp()const
 {
 	return pClientApp_;
 }

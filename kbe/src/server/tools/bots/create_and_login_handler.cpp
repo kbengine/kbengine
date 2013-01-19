@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "bots.hpp"
-#include "clientappex.hpp"
+#include "clientobject.hpp"
 #include "create_and_login_handler.hpp"
 #include "network/network_interface.hpp"
 #include "network/event_dispatcher.hpp"
@@ -64,7 +64,7 @@ void CreateAndLoginHandler::handleTimeout(TimerHandle handle, void * arg)
 
 	while(bots.reqCreateAndLoginTotalCount() - bots.clients().size() > 0 && count-- > 0)
 	{
-		ClientAppEx* pClient = new ClientAppEx(KBEngine::StringConv::val2str(accountID++));
+		ClientObject* pClient = new ClientObject(KBEngine::StringConv::val2str(accountID++));
 		Bots::getSingleton().addClient(pClient);
 	}
 

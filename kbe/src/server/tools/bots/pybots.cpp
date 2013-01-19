@@ -1,0 +1,196 @@
+/*
+This source file is part of KBEngine
+For the latest info, see http://www.kbengine.org/
+
+Copyright (c) 2008-2012 KBEngine.
+
+KBEngine is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+KBEngine is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+ 
+You should have received a copy of the GNU Lesser General Public License
+along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+
+#include "bots.hpp"
+#include "pybots.hpp"
+#include "entity.hpp"
+#include "clientobject.hpp"
+#include "bots_interface.hpp"
+#include "resmgr/resmgr.hpp"
+#include "network/common.hpp"
+#include "network/tcp_packet.hpp"
+#include "network/udp_packet.hpp"
+#include "network/message_handler.hpp"
+#include "thread/threadpool.hpp"
+#include "server/componentbridge.hpp"
+#include "server/serverconfig.hpp"
+#include "helper/console_helper.hpp"
+
+#include "../../../server/baseapp/baseapp_interface.hpp"
+#include "../../../server/loginapp/loginapp_interface.hpp"
+
+namespace KBEngine{
+
+PyMappingMethods PyBots::mappingMethods =
+{
+	(lenfunc)mp_length,								// mp_length
+	(binaryfunc)mp_subscript,						// mp_subscript
+	NULL											// mp_ass_subscript
+};
+
+SCRIPT_METHOD_DECLARE_BEGIN(PyBots)
+SCRIPT_METHOD_DECLARE("has_key",			pyHas_key,		METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("keys",				pyKeys,			METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("values",				pyValues,		METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("items",				pyItems,		METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE("get",				pyGet,			METH_VARARGS,		0)
+SCRIPT_METHOD_DECLARE_END()
+
+SCRIPT_MEMBER_DECLARE_BEGIN(PyBots)
+SCRIPT_MEMBER_DECLARE_END()
+
+SCRIPT_GETSET_DECLARE_BEGIN(PyBots)
+SCRIPT_GETSET_DECLARE_END()
+SCRIPT_INIT(PyBots, 0, 0, &PyBots::mappingMethods, 0, 0)	
+
+//-------------------------------------------------------------------------------------
+PyBots::PyBots():
+ScriptObject(getScriptType(), false)
+{
+}
+
+//-------------------------------------------------------------------------------------
+PyBots::~PyBots()
+{
+}
+
+//-------------------------------------------------------------------------------------
+int PyBots::mp_length(PyObject * self)
+{
+	return Bots::getSingleton().clients().size();
+}
+	
+//-------------------------------------------------------------------------------------
+PyObject * PyBots::mp_subscript(PyObject* self, PyObject* key /*entityID*/)
+{
+	Bots* bots = &Bots::getSingleton();
+	int32 clientID = PyLong_AsLong(key);
+	if (PyErr_Occurred())
+		return NULL;
+
+	ClientObject * pyClient = bots->findClientByAppID(clientID);
+
+	if(pyClient == NULL)
+	{
+		PyErr_Format(PyExc_KeyError, "%d", clientID);
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	Py_INCREF(pyClient);
+	return pyClient;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyBots::pyHas_key(int32 clientID)
+{
+	return PyLong_FromLong((Bots::getSingleton().findClientByAppID(clientID) != NULL));
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyBots::pyKeys()
+{
+	Bots::CLIENTS& refclients = Bots::getSingleton().clients();
+	PyObject* pyList = PyList_New(refclients.size());
+	int i = 0;
+
+	Bots::CLIENTS::const_iterator iter = refclients.begin();
+	while (iter != refclients.end())
+	{
+		PyObject* clientID = PyLong_FromLong(iter->second.get()->appID());
+		PyList_SET_ITEM(pyList, i, clientID);
+
+		i++;
+		iter++;
+	}
+
+	return pyList;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyBots::pyValues()
+{
+	Bots::CLIENTS& refclients = Bots::getSingleton().clients();
+	PyObject* pyList = PyList_New(refclients.size());
+	int i = 0;
+
+	Bots::CLIENTS::const_iterator iter = refclients.begin();
+	while (iter != refclients.end())
+	{
+		Py_INCREF(iter->second.get());
+		PyList_SET_ITEM(pyList, i, iter->second.get());
+
+		i++;
+		iter++;
+	}
+
+	return pyList;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyBots::pyItems()
+{
+	Bots::CLIENTS& refclients = Bots::getSingleton().clients();
+	PyObject* pyList = PyList_New(refclients.size());
+	int i = 0;
+
+	Bots::CLIENTS::const_iterator iter = refclients.begin();
+	while (iter != refclients.end())
+	{
+		PyObject * pTuple = PyTuple_New(2);
+		PyObject* clientID = PyLong_FromLong(iter->second.get()->appID());
+		Py_INCREF(iter->second.get());							// PyObject Entity* 增加一个引用
+
+		PyTuple_SET_ITEM(pTuple, 0, clientID);
+		PyTuple_SET_ITEM(pTuple, 1, iter->second.get());
+		PyList_SET_ITEM(pyList, i, pTuple);
+		i++;
+		iter++;
+	}
+
+	return pyList;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyBots::__py_pyGet(PyObject* self, PyObject * args, PyObject* kwds)
+{
+	Bots* bots = &Bots::getSingleton();
+	PyObject * pDefault = Py_None;
+	int32 id = 0;
+	if (!PyArg_ParseTuple( args, "i|O", &id, &pDefault))
+	{
+		return NULL;
+	}
+
+	PyObject* pClient = static_cast<PyObject*>(bots->findClientByAppID(id));
+
+	if (!pClient)
+	{
+		pClient = pDefault;
+	}
+
+	Py_INCREF(pClient);
+	return pClient;
+}
+
+//-------------------------------------------------------------------------------------
+
+}

@@ -814,12 +814,23 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 			for(; iter != channels.end(); iter++)
 			{
 				Mercury::Channel* pChannel = const_cast<KBEngine::Mercury::Channel*>(iter->second);
+
+
 				Mercury::Bundle bundle;
-				COMMON_MERCURY_MESSAGE(pChannel->proxyID(), bundle, onAppActiveTick);
-				
+
+				if(pChannel->proxyID() != BOTS_TYPE)
+				{
+					COMMON_MERCURY_MESSAGE(pChannel->proxyID(), bundle, onAppActiveTick);
+				}
+				else
+				{
+					bundle.newMessage(BotsInterface::onAppActiveTick);
+				}
+
 				bundle << _componentType;
 				bundle << _componentID;
 				bundle.send(getNetworkInterface(), pChannel);
+
 				pChannel->updateLastReceivedTime();
 			}
 		}

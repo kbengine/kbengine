@@ -2,11 +2,12 @@ BIN  = bots
 SRCS =						\
 	bots					\
 	bots_interface				\
-	clientappex				\
+	clientobject				\
 	create_and_login_handler		\
 	entity					\
 	profile					\
-	main
+	main					\
+	pybots
 
 ASMS =
 

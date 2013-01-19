@@ -46,7 +46,7 @@ namespace KBEngine{
 class Chunk;
 class Entity;
 class EntityMailbox;
-class ClientAppEx;
+class ClientObject;
 
 namespace Mercury
 {
@@ -108,8 +108,8 @@ public:
 		pClientApp section
 	*/
 	DECLARE_PY_GET_MOTHOD(pyGetClientApp);
-	INLINE void pClientApp(ClientAppEx* p);
-	INLINE ClientAppEx* pClientApp()const;
+	INLINE void pClientApp(ClientObject* p);
+	INLINE ClientObject* pClientApp()const;
 public:
 	/** 网络接口
 		远程呼叫本entity的方法 
@@ -125,7 +125,7 @@ protected:
 
 	Mercury::Channel *						pChannel_;							// 该entity的通信频道
 
-	ClientAppEx*							pClientApp_;
+	ClientObject*							pClientApp_;
 
 };																										
 

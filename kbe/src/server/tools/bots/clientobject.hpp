@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __CLIENT_TASKS_H__
-#define __CLIENT_TASKS_H__
+#ifndef __CLIENT_OBJECT_H__
+#define __CLIENT_OBJECT_H__
 
 // common include	
 // #define NDEBUG
@@ -45,12 +45,12 @@ namespace KBEngine{
 /*
 */
 
-class ClientAppEx : public script::ScriptObject, Mercury::TCPPacketReceiver
+class ClientObject : public script::ScriptObject, Mercury::TCPPacketReceiver
 {
 	/** 
 		子类化 将一些py操作填充进派生类 
 	*/
-	INSTANCE_SCRIPT_HREADER(ClientAppEx, ScriptObject)	
+	INSTANCE_SCRIPT_HREADER(ClientObject, ScriptObject)	
 public:
 	enum C_ERROR
 	{
@@ -69,8 +69,8 @@ public:
 		C_STATE_PLAY = 3,
 	};
 
-	ClientAppEx(std::string name);
-	virtual ~ClientAppEx();
+	ClientObject(std::string name);
+	virtual ~ClientObject();
 
 	bool processSocket(bool expectingPacket);
 
@@ -98,7 +98,7 @@ public:
 	*/
 	void onCreateAccountResult(MemoryStream& s);
 
-	ClientAppEx::C_ERROR lasterror(){ return error_; }
+	ClientObject::C_ERROR lasterror(){ return error_; }
 
 	/** 网络接口
 	   登录失败回调
@@ -187,7 +187,11 @@ public:
 		bool isInitializeScript = true, ENTITY_ID eid = 0, bool initProperty = true);
 
 	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }	
+
+	int32 appID()const{ return appID_; }
 protected:
+	int32 appID_;
+
 	Mercury::Channel* pChannel_;
 
 	std::string name_;

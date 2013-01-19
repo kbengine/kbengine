@@ -246,7 +246,7 @@ PyObject* Entities<T>::__py_pyGet(PyObject* self, PyObject * args, PyObject* kwd
 {
 	Entities* lpEntities = static_cast<Entities*>(self);
 	PyObject * pDefault = Py_None;
-	int id = 0;
+	ENTITY_ID id = 0;
 	if (!PyArg_ParseTuple( args, "i|O", &id, &pDefault))
 	{
 		return NULL;
