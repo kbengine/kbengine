@@ -2,11 +2,11 @@ kbengine
 ========
 
 ##演示截图(点击图片看视频):
-[![kbengine](https://github.com/downloads/kbengine/kbengine/demo.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
+[![kbengine](https://sourceforge.net/p/kbengine/screenshot/323758.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
 
 ##控制台截图:
-[![kbengine](https://github.com/downloads/kbengine/kbengine/guiconsole_debug.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
-[![kbengine](https://github.com/downloads/kbengine/kbengine/guiconsole_log.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
+[![kbengine](https://sourceforge.net/p/kbengine/screenshot/guiconsole_debug.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
+[![kbengine](https://sourceforge.net/p/kbengine/screenshot/guiconsole_log.jpg)](http://v.youku.com/v_show/id_XMTc2MDcxMDUy.html)
 
 ##什么是KBEngine?
 
@@ -149,7 +149,7 @@ windows:
 
 	make install
 
-	再启动服务器
+	再启动服务端。
 
 
 ##配置数据库:
@@ -170,7 +170,7 @@ windows:
 
 
 
-##启动服务器:
+##启动服务端:
 
 
 linux:
@@ -190,7 +190,7 @@ windows:
 
 	~.bat
 
-	或者使用tools\server\guiconsole\guiconsole.exe来启动和关闭服务器。
+	或者使用tools\server\guiconsole\guiconsole.exe来启动和关闭服务端。
 
 ##日志:
 
