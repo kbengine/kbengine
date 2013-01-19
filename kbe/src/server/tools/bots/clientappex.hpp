@@ -37,6 +37,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/tcp_packet.hpp"
 #include "network/tcp_packet_receiver.hpp"
 #include "pyscript/script.hpp"
+#include "pyscript/scriptobject.hpp"
 #include "pyscript/pyobject_pointer.hpp"
 
 namespace KBEngine{ 
@@ -44,8 +45,12 @@ namespace KBEngine{
 /*
 */
 
-class Client : public thread::TPTask, Mercury::TCPPacketReceiver
+class ClientAppEx : public script::ScriptObject, Mercury::TCPPacketReceiver
 {
+	/** 
+		子类化 将一些py操作填充进派生类 
+	*/
+	INSTANCE_SCRIPT_HREADER(ClientAppEx, ScriptObject)	
 public:
 	enum C_ERROR
 	{
@@ -64,14 +69,8 @@ public:
 		C_STATE_PLAY = 3,
 	};
 
-	Client(std::string name);
-	virtual ~Client();
-
-	virtual bool process();
-
-	virtual thread::TPTask::TPTaskState presentMainThread(){ 
-		return thread::TPTask::TPTASK_STATE_COMPLETED; 
-	}
+	ClientAppEx(std::string name);
+	virtual ~ClientAppEx();
 
 	bool processSocket(bool expectingPacket);
 
@@ -99,7 +98,7 @@ public:
 	*/
 	void onCreateAccountResult(MemoryStream& s);
 
-	Client::C_ERROR lasterror(){ return error_; }
+	ClientAppEx::C_ERROR lasterror(){ return error_; }
 
 	/** 网络接口
 	   登录失败回调

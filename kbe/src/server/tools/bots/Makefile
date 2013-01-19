@@ -2,7 +2,7 @@ BIN  = bots
 SRCS =						\
 	bots					\
 	bots_interface				\
-	client					\
+	clientappex				\
 	create_and_login_handler		\
 	entity					\
 	profile					\

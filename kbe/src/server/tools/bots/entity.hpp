@@ -46,6 +46,7 @@ namespace KBEngine{
 class Chunk;
 class Entity;
 class EntityMailbox;
+class ClientAppEx;
 
 namespace Mercury
 {
@@ -102,6 +103,13 @@ public:
 		销毁这个entity 
 	*/
 	void onDestroy(void){};
+
+	/** 
+		pClientApp section
+	*/
+	DECLARE_PY_GET_MOTHOD(pyGetClientApp);
+	INLINE void pClientApp(ClientAppEx* p);
+	INLINE ClientAppEx* pClientApp()const;
 public:
 	/** 网络接口
 		远程呼叫本entity的方法 
@@ -111,9 +119,13 @@ public:
 protected:
 	EntityMailbox*							cellMailbox_;						// 这个entity的客户端mailbox
 	EntityMailbox*							baseMailbox_;						// 这个entity的baseapp mailbox
+
 	Position3D								position_;							// entity的当前位置
 	Direction3D								direction_;							// entity的当前方向
+
 	Mercury::Channel *						pChannel_;							// 该entity的通信频道
+
+	ClientAppEx*							pClientApp_;
 
 };																										
 

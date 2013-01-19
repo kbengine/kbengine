@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "bots.hpp"
-#include "client.hpp"
+#include "clientappex.hpp"
 #include "network/common.hpp"
 #include "network/message_handler.hpp"
 #include "network/tcp_packet.hpp"
@@ -40,8 +40,19 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
+SCRIPT_METHOD_DECLARE_BEGIN(ClientAppEx)
+SCRIPT_METHOD_DECLARE_END()
+
+SCRIPT_MEMBER_DECLARE_BEGIN(ClientAppEx)
+SCRIPT_MEMBER_DECLARE_END()
+
+SCRIPT_GETSET_DECLARE_BEGIN(ClientAppEx)
+SCRIPT_GETSET_DECLARE_END()
+SCRIPT_INIT(ClientAppEx, 0, 0, 0, 0, 0)		
+
 //-------------------------------------------------------------------------------------
-Client::Client(std::string name):
+ClientAppEx::ClientAppEx(std::string name):
+ScriptObject(getScriptType(), false),
 pChannel_(new Mercury::Channel()),
 name_(name),
 password_(),
@@ -60,7 +71,7 @@ pyCallbackMgr_()
 }
 
 //-------------------------------------------------------------------------------------
-Client::~Client()
+ClientAppEx::~ClientAppEx()
 {
 	pChannel_->decRef();
 
@@ -69,14 +80,14 @@ Client::~Client()
 }
 
 //-------------------------------------------------------------------------------------
-bool Client::initCreate()
+bool ClientAppEx::initCreate()
 {
 	Mercury::EndPoint* pEndpoint = new Mercury::EndPoint();
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{
-		ERROR_MSG("Client::initNetwork: couldn't create a socket\n");
+		ERROR_MSG("ClientAppEx::initNetwork: couldn't create a socket\n");
 		delete pEndpoint;
 		error_ = C_ERROR_INIT_NETWORK_FAILED;
 		return false;
@@ -88,7 +99,7 @@ bool Client::initCreate()
 	pEndpoint->convertAddress(infos.login_ip, address);
 	if(pEndpoint->connect(htons(infos.login_port), address) == -1)
 	{
-		ERROR_MSG(boost::format("Client::initNetwork: connect server is error(%1%)!\n") %
+		ERROR_MSG(boost::format("ClientAppEx::initNetwork: connect server is error(%1%)!\n") %
 			kbe_strerror());
 
 		delete pEndpoint;
@@ -109,7 +120,7 @@ bool Client::initCreate()
 }
 
 //-------------------------------------------------------------------------------------
-bool Client::processSocket(bool expectingPacket)
+bool ClientAppEx::processSocket(bool expectingPacket)
 {
 	
 	Mercury::TCPPacket* pReceiveWindow = Mercury::TCPPacket::ObjPool().createObject();
@@ -146,7 +157,7 @@ bool Client::processSocket(bool expectingPacket)
 
 	if(ret != Mercury::REASON_SUCCESS)
 	{
-		ERROR_MSG(boost::format("Client::processSocket: "
+		ERROR_MSG(boost::format("ClientAppEx::processSocket: "
 					"Throwing %1%\n") %
 					Mercury::reasonToString(ret));
 	}
@@ -155,7 +166,7 @@ bool Client::processSocket(bool expectingPacket)
 }
 
 //-------------------------------------------------------------------------------------
-bool Client::createAccount()
+bool ClientAppEx::createAccount()
 {
 	// 创建账号
 	Mercury::Bundle bundle;
@@ -167,7 +178,7 @@ bool Client::createAccount()
 }
 
 //-------------------------------------------------------------------------------------
-void Client::onCreateAccountResult(MemoryStream& s)
+void ClientAppEx::onCreateAccountResult(MemoryStream& s)
 {
 	SERVER_ERROR_CODE retcode;
 	std::string datas = "";
@@ -178,16 +189,16 @@ void Client::onCreateAccountResult(MemoryStream& s)
 	if(retcode != 0)
 	{
 		error_ = C_ERROR_CREATE_FAILED;
-		INFO_MSG(boost::format("Client::onCreateAccountResult: %1% create is failed! code=%2%.\n") % name_ % retcode);
+		INFO_MSG(boost::format("ClientAppEx::onCreateAccountResult: %1% create is failed! code=%2%.\n") % name_ % retcode);
 		return;
 	}
 
 	state_ = C_STATE_LOGIN;
-	INFO_MSG(boost::format("Client::onCreateAccountResult: %1% create is successfully!\n") % name_);
+	INFO_MSG(boost::format("ClientAppEx::onCreateAccountResult: %1% create is successfully!\n") % name_);
 }
 
 //-------------------------------------------------------------------------------------
-bool Client::login()
+bool ClientAppEx::login()
 {
 	if(error_ != C_ERROR_NONE)
 		return false;
@@ -208,7 +219,7 @@ bool Client::login()
 }
 
 //-------------------------------------------------------------------------------------
-bool Client::initLoginGateWay()
+bool ClientAppEx::initLoginGateWay()
 {
 	Bots::getSingleton().pEventPoller()->deregisterForRead(*pChannel_->endpoint());
 	Mercury::EndPoint* pEndpoint = new Mercury::EndPoint();
@@ -216,7 +227,7 @@ bool Client::initLoginGateWay()
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{
-		ERROR_MSG("Client::initLogin: couldn't create a socket\n");
+		ERROR_MSG("ClientAppEx::initLogin: couldn't create a socket\n");
 		delete pEndpoint;
 		error_ = C_ERROR_INIT_NETWORK_FAILED;
 		return false;
@@ -227,7 +238,7 @@ bool Client::initLoginGateWay()
 	pEndpoint->convertAddress(ip_.c_str(), address);
 	if(pEndpoint->connect(htons(port_), address) == -1)
 	{
-		ERROR_MSG(boost::format("Client::initLogin: connect server is error(%1%)!\n") %
+		ERROR_MSG(boost::format("ClientAppEx::initLogin: connect server is error(%1%)!\n") %
 			kbe_strerror());
 
 		delete pEndpoint;
@@ -248,7 +259,7 @@ bool Client::initLoginGateWay()
 }
 
 //-------------------------------------------------------------------------------------
-bool Client::loginGateWay()
+bool ClientAppEx::loginGateWay()
 {
 	// 请求登录网关
 	Mercury::Bundle bundle;
@@ -260,7 +271,7 @@ bool Client::loginGateWay()
 }
 
 //-------------------------------------------------------------------------------------
-void Client::gameTick()
+void ClientAppEx::gameTick()
 {
 	if(pChannel()->endpoint())
 	{
@@ -303,7 +314,7 @@ void Client::gameTick()
 }
 
 //-------------------------------------------------------------------------------------
-void Client::sendTick()
+void ClientAppEx::sendTick()
 {
 	// 向服务器发送tick
 	uint64 check = uint64( Mercury::g_channelExternalTimeout * stampsPerSecond() ) / 2;
@@ -320,14 +331,8 @@ void Client::sendTick()
 	}
 }
 
-//-------------------------------------------------------------------------------------
-bool Client::process()
-{
-	return false;
-}
-
 //-------------------------------------------------------------------------------------	
-Entity* Client::createEntityCommon(const char* entityType, PyObject* params,
+Entity* ClientAppEx::createEntityCommon(const char* entityType, PyObject* params,
 	bool isInitializeScript, ENTITY_ID eid, bool initProperty)
 {
 	KBE_ASSERT(eid > 0);
@@ -335,7 +340,7 @@ Entity* Client::createEntityCommon(const char* entityType, PyObject* params,
 	ScriptDefModule* sm = EntityDef::findScriptModule(entityType);
 	if(sm == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "Client::createEntityCommon: entity [%s] not found.\n", entityType);
+		PyErr_Format(PyExc_TypeError, "ClientAppEx::createEntityCommon: entity [%s] not found.\n", entityType);
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -349,6 +354,8 @@ Entity* Client::createEntityCommon(const char* entityType, PyObject* params,
 	PyObject* obj = sm->createObject();
 	
 	Entity* entity = new(obj) Entity(eid, sm);
+
+	entity->pClientApp(this);
 
 	if(initProperty)
 		entity->initProperty();
@@ -364,18 +371,18 @@ Entity* Client::createEntityCommon(const char* entityType, PyObject* params,
 
 	if(g_debugEntity)
 	{
-		INFO_MSG(boost::format("Client::createEntityCommon: new %1% (%2%) refc=%3%.\n") % entityType % eid % obj->ob_refcnt);
+		INFO_MSG(boost::format("ClientAppEx::createEntityCommon: new %1% (%2%) refc=%3%.\n") % entityType % eid % obj->ob_refcnt);
 	}
 	else
 	{
-		INFO_MSG(boost::format("Client::createEntityCommon: new %1% (%2%)\n") % entityType % eid);
+		INFO_MSG(boost::format("ClientAppEx::createEntityCommon: new %1% (%2%)\n") % entityType % eid);
 	}
 
 	return entity;
 }
 
 //-------------------------------------------------------------------------------------	
-void Client::onLoginSuccessfully(MemoryStream& s)
+void ClientAppEx::onLoginSuccessfully(MemoryStream& s)
 {
 	std::string accountName, datas;
 
@@ -384,13 +391,13 @@ void Client::onLoginSuccessfully(MemoryStream& s)
 	s >> port_;
 	s.readBlob(datas);
 
-	INFO_MSG(boost::format("Client::onLoginSuccessfully: %1% addr=%2%:%3%!\n") % name_ % ip_ % port_);
+	INFO_MSG(boost::format("ClientAppEx::onLoginSuccessfully: %1% addr=%2%:%3%!\n") % name_ % ip_ % port_);
 
 	state_ = C_STATE_LOGIN_GATEWAY;
 }
 
 //-------------------------------------------------------------------------------------	
-void Client::onLoginFailed(MemoryStream& s)
+void ClientAppEx::onLoginFailed(MemoryStream& s)
 {
 	SERVER_ERROR_CODE failedcode;
 	std::string datas;
@@ -398,104 +405,104 @@ void Client::onLoginFailed(MemoryStream& s)
 	s >> failedcode;
 	s.readBlob(datas);
 
-	INFO_MSG(boost::format("Client::onLoginFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
+	INFO_MSG(boost::format("ClientAppEx::onLoginFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
 
 	error_ = C_ERROR_LOGIN_FAILED;
 }
 
 //-------------------------------------------------------------------------------------	
-void Client::onLoginGatewayFailed(SERVER_ERROR_CODE failedcode)
+void ClientAppEx::onLoginGatewayFailed(SERVER_ERROR_CODE failedcode)
 {
-	INFO_MSG(boost::format("Client::onLoginGatewayFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
+	INFO_MSG(boost::format("ClientAppEx::onLoginGatewayFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
 }
 
 //-------------------------------------------------------------------------------------	
-void Client::onCreatedProxies(uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
+void ClientAppEx::onCreatedProxies(uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
 {
 	entityID_ = eid;
-	INFO_MSG(boost::format("Client::onCreatedProxies(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
+	INFO_MSG(boost::format("ClientAppEx::onCreatedProxies(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
 		name_ % rndUUID % eid % entityType);
 
 	createEntityCommon(entityType.c_str(), NULL, true, eid, true);
 }
 
 //-------------------------------------------------------------------------------------	
-void Client::onCreatedEntity(ENTITY_ID eid, std::string& entityType)
+void ClientAppEx::onCreatedEntity(ENTITY_ID eid, std::string& entityType)
 {
-	INFO_MSG(boost::format("Client::onCreatedEntity(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
+	INFO_MSG(boost::format("ClientAppEx::onCreatedEntity(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
 		name_ % eid % entityType);
 
 	createEntityCommon(entityType.c_str(), NULL, true, eid, true);
 }
 
 //-------------------------------------------------------------------------------------	
-void Client::onEntityGetCell(ENTITY_ID eid)
+void ClientAppEx::onEntityGetCell(ENTITY_ID eid)
 {
 	Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(boost::format("Client::onEntityGetCell: not found entity(%1%).\n") % eid);
+		ERROR_MSG(boost::format("ClientAppEx::onEntityGetCell: not found entity(%1%).\n") % eid);
 		return;
 	}
 }
 
 //-------------------------------------------------------------------------------------	
-void Client::onEntityEnterWorld(ENTITY_ID eid, SPACE_ID spaceID)
+void ClientAppEx::onEntityEnterWorld(ENTITY_ID eid, SPACE_ID spaceID)
 {
 	Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(boost::format("Client::onEntityEnterWorld: not found entity(%1%).\n") % eid);
+		ERROR_MSG(boost::format("ClientAppEx::onEntityEnterWorld: not found entity(%1%).\n") % eid);
 		return;
 	}
 }
 
 //-------------------------------------------------------------------------------------	
-void Client::onEntityLeaveWorld(ENTITY_ID eid, SPACE_ID spaceID)
+void ClientAppEx::onEntityLeaveWorld(ENTITY_ID eid, SPACE_ID spaceID)
 {
 	Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(boost::format("Client::onEntityLeaveWorld: not found entity(%1%).\n") % eid);
+		ERROR_MSG(boost::format("ClientAppEx::onEntityLeaveWorld: not found entity(%1%).\n") % eid);
 		return;
 	}
 }
 
 //-------------------------------------------------------------------------------------	
-void Client::onEntityEnterSpace(SPACE_ID spaceID, ENTITY_ID eid)
+void ClientAppEx::onEntityEnterSpace(SPACE_ID spaceID, ENTITY_ID eid)
 {
 	Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(boost::format("Client::onEntityEnterSpace: not found entity(%1%).\n") % eid);
+		ERROR_MSG(boost::format("ClientAppEx::onEntityEnterSpace: not found entity(%1%).\n") % eid);
 		return;
 	}
 }
 
 //-------------------------------------------------------------------------------------	
-void Client::onEntityLeaveSpace(SPACE_ID spaceID, ENTITY_ID eid)
+void ClientAppEx::onEntityLeaveSpace(SPACE_ID spaceID, ENTITY_ID eid)
 {
 	Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(boost::format("Client::onEntityLeaveSpace: not found entity(%1%).\n") % eid);
+		ERROR_MSG(boost::format("ClientAppEx::onEntityLeaveSpace: not found entity(%1%).\n") % eid);
 		return;
 	}
 }
 
 //-------------------------------------------------------------------------------------	
-void Client::onEntityDestroyed(ENTITY_ID eid)
+void ClientAppEx::onEntityDestroyed(ENTITY_ID eid)
 {
 	Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(boost::format("Client::onEntityDestroyed: not found entity(%1%).\n") % eid);
+		ERROR_MSG(boost::format("ClientAppEx::onEntityDestroyed: not found entity(%1%).\n") % eid);
 		return;
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void Client::onRemoteMethodCall(KBEngine::MemoryStream& s)
+void ClientAppEx::onRemoteMethodCall(KBEngine::MemoryStream& s)
 {
 	ENTITY_ID eid;
 	s >> eid;
@@ -504,7 +511,7 @@ void Client::onRemoteMethodCall(KBEngine::MemoryStream& s)
 	if(entity == NULL)
 	{	
 		s.opfini();
-		ERROR_MSG(boost::format("Client::onRemoteMethodCall: not found entity(%1%).\n") % eid);
+		ERROR_MSG(boost::format("ClientAppEx::onRemoteMethodCall: not found entity(%1%).\n") % eid);
 		return;
 	}
 
@@ -512,7 +519,7 @@ void Client::onRemoteMethodCall(KBEngine::MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Client::onUpdatePropertys(MemoryStream& s)
+void ClientAppEx::onUpdatePropertys(MemoryStream& s)
 {
 	ENTITY_ID eid;
 	s >> eid;
@@ -521,7 +528,7 @@ void Client::onUpdatePropertys(MemoryStream& s)
 	if(entity == NULL)
 	{	
 		s.opfini();
-		ERROR_MSG(boost::format("Client::onUpdatePropertys: not found entity(%1%).\n") % eid);
+		ERROR_MSG(boost::format("ClientAppEx::onUpdatePropertys: not found entity(%1%).\n") % eid);
 		return;
 	}
 

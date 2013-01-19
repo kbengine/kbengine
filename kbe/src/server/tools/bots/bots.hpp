@@ -50,7 +50,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
-class Client;
+class ClientAppEx;
+typedef SmartPointer<ClientAppEx> ClientAppPtr;
 
 class Bots : public ClientApp
 {
@@ -104,17 +105,17 @@ public:
 
 	KBEngine::script::Script& getScript(){ return script_; }
 
-	typedef std::map< Mercury::Channel*, KBEShared_ptr<Client> > CLIENTS;
+	typedef std::map< Mercury::Channel*, ClientAppPtr > CLIENTS;
 	CLIENTS& clients(){ return clients_; }
 
 	uint32 reqCreateAndLoginTotalCount(){ return reqCreateAndLoginTotalCount_; }
 	uint32 reqCreateAndLoginTickCount(){ return reqCreateAndLoginTickCount_; }
 	float reqCreateAndLoginTickTime(){ return reqCreateAndLoginTickTime_; }
 
-	bool addClient(Client* pClient);
-	bool delClient(Client* pClient);
+	bool addClient(ClientAppEx* pClient);
+	bool delClient(ClientAppEx* pClient);
 
-	Client* findClient(Mercury::Channel * pChannel);
+	ClientAppEx* findClient(Mercury::Channel * pChannel);
 
 	/** 网络接口
 		创建账号成功和失败回调

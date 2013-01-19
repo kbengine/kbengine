@@ -192,7 +192,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\client.cpp"
+				RelativePath=".\clientappex.cpp"
 				>
 			</File>
 			<File
@@ -240,7 +240,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\client.hpp"
+				RelativePath=".\clientappex.hpp"
 				>
 			</File>
 			<File

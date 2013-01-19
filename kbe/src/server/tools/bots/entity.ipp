@@ -41,6 +41,18 @@ INLINE Position3D& Entity::getPosition()
 }
 
 //-------------------------------------------------------------------------------------
+INLINE void Entity::pClientApp(ClientAppEx* p)
+{ 
+	pClientApp_ = p; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE ClientAppEx* Entity::pClientApp()const
+{
+	return pClientApp_;
+}
+
+//-------------------------------------------------------------------------------------
 INLINE EntityMailbox* Entity::getBaseMailbox()const
 { 
 	return baseMailbox_; 

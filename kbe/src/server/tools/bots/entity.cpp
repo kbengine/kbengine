@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "bots.hpp"
 #include "entity.hpp"
+#include "clientappex.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 #include "network/bundle.hpp"	
@@ -45,6 +46,7 @@ SCRIPT_MEMBER_DECLARE_END()
 ENTITY_GETSET_DECLARE_BEGIN(Entity)
 SCRIPT_GET_DECLARE("base",							pyGetBaseMailbox,				0,					0)
 SCRIPT_GET_DECLARE("cell",							pyGetCellMailbox,				0,					0)
+SCRIPT_GET_DECLARE("clientapp",						pyGetClientApp	,				0,					0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,		0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,		0,		0)
 ENTITY_GETSET_DECLARE_END()
@@ -56,7 +58,8 @@ ScriptObject(getScriptType(), true),
 ENTITY_CONSTRUCTION(Entity),
 cellMailbox_(NULL),
 baseMailbox_(NULL),
-pChannel_(NULL)
+pChannel_(NULL),
+pClientApp_(NULL)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
 }
@@ -87,6 +90,17 @@ PyObject* Entity::pyGetCellMailbox()
 
 	Py_INCREF(mailbox);
 	return mailbox; 
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetClientApp()
+{ 
+	ClientAppEx* app = pClientApp();
+	if(app == NULL)
+		S_Return;
+
+	Py_INCREF(app);
+	return app; 
 }
 
 //-------------------------------------------------------------------------------------
