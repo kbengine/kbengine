@@ -233,7 +233,6 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 
 		Py_DECREF(pyobj);
 		Py_DECREF(pyOld);
-		
 	}
 }
 
