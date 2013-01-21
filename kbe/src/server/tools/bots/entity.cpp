@@ -198,19 +198,11 @@ PyObject* Entity::pyGetDirection()
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onEntitiesEnabled(void)
-{
-	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEntitiesEnabled"));
-}
-
-//-------------------------------------------------------------------------------------
 void Entity::onEnterWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterWorld"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("enterWorld"));
 }
 
 //-------------------------------------------------------------------------------------
@@ -218,15 +210,13 @@ void Entity::onLeaveWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveWorld"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("leaveWorld"));
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::setPosition(Position3D& pos)
 { 
 	position_ = pos; 
-//	if(currChunk_ != NULL)
-//		currChunk_->getSpace()->onEntityPositionChanged(this, currChunk_, position_);
 }
 
 //-------------------------------------------------------------------------------------

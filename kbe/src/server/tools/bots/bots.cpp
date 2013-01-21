@@ -456,26 +456,6 @@ void Bots::onCreatedProxies(Mercury::Channel * pChannel,
 }
 
 //-------------------------------------------------------------------------------------	
-void Bots::onCreatedEntity(Mercury::Channel * pChannel, ENTITY_ID eid, std::string& entityType)
-{
-	ClientObject* pClient = findClient(pChannel);
-	if(pClient)
-	{
-		pClient->onCreatedEntity(eid, entityType);
-	}
-}
-
-//-------------------------------------------------------------------------------------	
-void Bots::onEntityGetCell(Mercury::Channel * pChannel, ENTITY_ID eid)
-{
-	ClientObject* pClient = findClient(pChannel);
-	if(pClient)
-	{
-		pClient->onEntityGetCell(eid);
-	}
-}
-
-//-------------------------------------------------------------------------------------	
 void Bots::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, 
 							  ENTITY_SCRIPT_UID scriptType, SPACE_ID spaceID)
 {

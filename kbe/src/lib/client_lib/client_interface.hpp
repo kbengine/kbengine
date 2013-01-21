@@ -64,18 +64,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 									ENTITY_ID,					eid,
 									std::string,				entityType)
 
-	// 服务器端已经创建了一个Entity。
-	CLIENT_MESSAGE_DECLARE_ARGS2(onCreatedEntity,				MERCURY_VARIABLE_MESSAGE,
-									ENTITY_ID,					eid,
-									std::string,				entityType)
-
 	// 登录网关失败。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginGatewayFailed,			MERCURY_FIXED_MESSAGE,
 									SERVER_ERROR_CODE,			failedcode)
-
-	// 服务器上的entity已经有了一个cell部分。
-	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityGetCell,				MERCURY_FIXED_MESSAGE,
-									ENTITY_ID,					eid)
 
 	// 服务器上的entity已经进入游戏世界了。
 	CLIENT_MESSAGE_DECLARE_ARGS3(onEntityEnterWorld,			MERCURY_FIXED_MESSAGE,

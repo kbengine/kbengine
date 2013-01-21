@@ -134,16 +134,6 @@ public:
 		ENTITY_ID eid, std::string& entityType);
 
 	/** 网络接口
-		服务器端已经创建了一个Entity
-	*/
-	virtual void onCreatedEntity(ENTITY_ID eid, std::string& entityType);
-
-	/** 网络接口
-		服务器上的entity已经有了一个cell部分
-	*/
-	virtual void onEntityGetCell(ENTITY_ID eid);
-
-	/** 网络接口
 		服务器上的entity已经进入游戏世界了
 	*/
 	virtual void onEntityEnterWorld(ENTITY_ID eid, ENTITY_SCRIPT_UID scriptType, SPACE_ID spaceID);

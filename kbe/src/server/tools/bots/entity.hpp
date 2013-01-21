@@ -106,7 +106,6 @@ public:
 	INLINE void pClientApp(ClientObject* p);
 	INLINE ClientObject* pClientApp()const;
 
-	void onEntitiesEnabled(void);
 	void onEnterWorld();
 	void onLeaveWorld();
 public:

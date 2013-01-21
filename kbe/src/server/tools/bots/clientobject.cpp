@@ -448,33 +448,6 @@ void ClientObject::onCreatedProxies(uint64 rndUUID, ENTITY_ID eid, std::string& 
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObject::onCreatedEntity(ENTITY_ID eid, std::string& entityType)
-{
-	INFO_MSG(boost::format("ClientObject::onCreatedEntity(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
-		name_ % eid % entityType);
-
-	// ÉèÖÃentityµÄcellMailbox
-	EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
-		NULL, appID(), eid, MAILBOX_TYPE_CELL);
-
-	createEntityCommon(entityType.c_str(), NULL, true, eid, true, NULL, mailbox);
-}
-
-//-------------------------------------------------------------------------------------	
-void ClientObject::onEntityGetCell(ENTITY_ID eid)
-{
-	Entity* entity = pEntities_->find(eid);
-	if(entity == NULL)
-	{	
-		ERROR_MSG(boost::format("ClientObject::onEntitiesEnabled: not found entity(%1%).\n") % eid);
-		return;
-	}
-
-	DEBUG_MSG(boost::format("ClientObject::onEntitiesEnabled: %1%.\n") % eid);
-	entity->onEntitiesEnabled();
-}
-
-//-------------------------------------------------------------------------------------	
 void ClientObject::onEntityEnterWorld(ENTITY_ID eid, ENTITY_SCRIPT_UID scriptType, SPACE_ID spaceID)
 {
 	Entity* entity = pEntities_->find(eid);
@@ -518,6 +491,7 @@ void ClientObject::onEntityLeaveWorld(ENTITY_ID eid, SPACE_ID spaceID)
 
 	DEBUG_MSG(boost::format("ClientObject::onEntityLeaveWorld: %1%.\n") % eid);
 	entity->onLeaveWorld();
+	pEntities_->erase(eid);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -557,6 +531,7 @@ void ClientObject::onEntityDestroyed(ENTITY_ID eid)
 	}
 
 	DEBUG_MSG(boost::format("ClientObject::onEntityDestroyed: %1%.\n") % eid);
+	pEntities_->erase(eid);
 }
 
 //-------------------------------------------------------------------------------------
