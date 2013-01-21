@@ -67,10 +67,6 @@ public:
 	virtual bool initialize();
 	virtual void finalise();
 
-	void registerScript(PyTypeObject*);
-	int registerPyObjectToScript(const char* attrName, PyObject* pyObj);
-	int unregisterPyObjectToScript(const char* attrName);
-
 	bool installPyScript();
 	virtual bool installPyModules();
 	virtual void onInstallPyModules() {};
@@ -79,7 +75,7 @@ public:
 	bool installEntityDef();
 
 	virtual void handleTimeout(TimerHandle, void * pUser);
-	void handleGameTick();
+	virtual void handleGameTick();
 
 	static Bots& getSingleton(){ 
 		return *static_cast<Bots*>(ClientApp::getSingletonPtr()); 
@@ -108,8 +104,6 @@ public:
 	virtual void reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s);
 
 	void onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
-
-	KBEngine::script::Script& getScript(){ return script_; }
 
 	typedef std::map< Mercury::Channel*, ClientObjectPtr > CLIENTS;
 	CLIENTS& clients(){ return clients_; }
@@ -210,11 +204,6 @@ public:
 	*/
 	virtual void onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s);
 protected:
-	KBEngine::script::Script								script_;
-	std::vector<PyTypeObject*>								scriptBaseTypes_;
-
-	TimerHandle												gameTimer_;
-
 	PyBots*													pPyBots_;
 
 	CLIENTS													clients_;

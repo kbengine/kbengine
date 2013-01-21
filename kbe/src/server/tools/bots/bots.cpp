@@ -46,9 +46,6 @@ Bots::Bots(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
 ClientApp(dispatcher, ninterface, componentType, componentID),
-script_(),
-scriptBaseTypes_(),
-gameTimer_(),
 pPyBots_(NULL),
 clients_(),
 reqCreateAndLoginTotalCount_(g_serverConfig.getBots().defaultAddBots_totalCount),
@@ -73,26 +70,12 @@ bool Bots::initialize()
 {
 	// 广播自己的地址给网上上的所有kbemachine
 	this->getMainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
-
-	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
-							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
-
-	if(!installPyScript())
-		return false;
-
-	if(!installPyModules())
-		return false;
-	
-	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
-
-	return installEntityDef();
+	return ClientApp::initialize();
 }
 
 //-------------------------------------------------------------------------------------
 void Bots::finalise()
 {
-	gameTimer_.cancel();
-	
 	reqCreateAndLoginTotalCount_ = 0;
 	SAFE_RELEASE(pCreateAndLoginHandler_);
 	ClientApp::finalise();
@@ -101,33 +84,7 @@ void Bots::finalise()
 //-------------------------------------------------------------------------------------
 bool Bots::installEntityDef()
 {
-	if(!EntityDef::installScript(getScript().getModule()))
-		return false;
-
-	// 初始化数据类别
-	// demo/res/scripts/entity_defs/alias.xml
-	if(!DataTypes::initialize("scripts/entity_defs/alias.xml"))
-		return false;
-
-	// 初始化所有扩展模块
-	// demo/res/scripts/
-	if(!EntityDef::initialize(Resmgr::getSingleton().respaths()[1] + "res/scripts/", scriptBaseTypes_, BOTS_TYPE)){
-		return false;
-	}
-
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
-int Bots::registerPyObjectToScript(const char* attrName, PyObject* pyObj)
-{ 
-	return script_.registerToModule(attrName, pyObj); 
-}
-
-//-------------------------------------------------------------------------------------
-int Bots::unregisterPyObjectToScript(const char* attrName)
-{ 
-	return script_.unregisterToModule(attrName); 
+	return ClientApp::installEntityDef();
 }
 
 //-------------------------------------------------------------------------------------
@@ -135,7 +92,7 @@ bool Bots::installPyScript()
 {
 	if(Resmgr::getSingleton().respaths().size() <= 0)
 	{
-		ERROR_MSG("EntityApp::installPyScript: KBE_RES_PATH is error!\n");
+		ERROR_MSG("Bots::installPyScript: KBE_RES_PATH is error!\n");
 		return false;
 	}
 
@@ -167,21 +124,14 @@ bool Bots::installPyScript()
 }
 
 //-------------------------------------------------------------------------------------
-void Bots::registerScript(PyTypeObject* pto)
-{
-	scriptBaseTypes_.push_back(pto);
-}
-
-//-------------------------------------------------------------------------------------
 bool Bots::uninstallPyScript()
 {
-	return uninstallPyModules() && getScript().uninstall();
+	return ClientApp::uninstallPyScript();
 }
 
 //-------------------------------------------------------------------------------------
 bool Bots::installPyModules()
 {
-	EntityDef::installScript(getScript().getModule());
 	Entity::installScript(getScript().getModule());
 	Entities<Entity>::installScript(NULL);
 	registerScript(Entity::getScriptType());
@@ -192,15 +142,12 @@ bool Bots::installPyModules()
 	pPyBots_ = new PyBots();
 	registerPyObjectToScript("bots", pPyBots_);
 	
-	onInstallPyModules();
-	return true;
+	return ClientApp::installPyModules();
 }
 
 //-------------------------------------------------------------------------------------
 bool Bots::uninstallPyModules()
 {
-	EntityDef::uninstallScript();
-
 	Py_DECREF(pPyBots_);
 	pPyBots_ = NULL;
 
@@ -208,8 +155,7 @@ bool Bots::uninstallPyModules()
 	Entities<Entity>::uninstallScript();
 	ClientObject::uninstallScript();
 	PyBots::uninstallScript();
-	EntityDef::uninstallScript();
-	return true;
+	return ClientApp::uninstallPyModules();
 }
 
 //-------------------------------------------------------------------------------------
@@ -222,16 +168,6 @@ bool Bots::run(void)
 //-------------------------------------------------------------------------------------
 void Bots::handleTimeout(TimerHandle handle, void * arg)
 {
-	switch (reinterpret_cast<uintptr>(arg))
-	{
-		case TIMEOUT_GAME_TICK:
-		{
-			handleGameTick();
-		}
-		default:
-			break;
-	}
-
 	ClientApp::handleTimeout(handle, arg);
 }
 
@@ -240,12 +176,8 @@ void Bots::handleGameTick()
 {
 	// time_t t = ::time(NULL);
 	// DEBUG_MSG("EntityApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
+	ClientApp::handleGameTick();
 
-	g_kbetime++;
-	threadPool_.onMainThreadTick();
-	handleTimers();
-
-	getNetworkInterface().handleChannels(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
 	pEventPoller_->processPendingEvents(0.0);
 
 	CLIENTS::iterator iter = clients().begin();

@@ -41,8 +41,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
 #include "server/server_errors.hpp"
+#include "server/callbackmgr.hpp"
 #include "thread/threadpool.hpp"
+#include "pyscript/script.hpp"
 #include "entitydef/common.hpp"
+#include "resmgr/resmgr.hpp"
 
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -86,17 +89,31 @@ public:
 	virtual void finalise();
 	virtual bool run();
 	
+	virtual bool installPyScript();
+	virtual bool installPyModules();
+	virtual void onInstallPyModules(){};
+	virtual bool uninstallPyModules();
+	virtual bool uninstallPyScript();
+	virtual bool installEntityDef();
+
 	bool installSingnals();
+
+	void registerScript(PyTypeObject*);
+	int registerPyObjectToScript(const char* attrName, PyObject* pyObj);
+	int unregisterPyObjectToScript(const char* attrName);
 
 	virtual bool loadConfig();
 	const char* name(){return COMPONENT_NAME_EX(componentType_);}
 	
 	virtual void handleTimeout(TimerHandle, void * pUser);
+	virtual void handleGameTick();
 
 	GAME_TIME time() const { return time_; }
 	Timers & timers() { return timers_; }
 	double gameTimeInSeconds() const;
 	void handleTimers();
+
+	void sendTick();
 
 	Mercury::EventDispatcher & getMainDispatcher()				{ return mainDispatcher_; }
 	Mercury::NetworkInterface & getNetworkInterface()			{ return networkInterface_; }
@@ -104,6 +121,7 @@ public:
 	COMPONENT_ID componentID()const	{ return componentID_; }
 	COMPONENT_TYPE componentType()const	{ return componentType_; }
 		
+	KBEngine::script::Script& getScript(){ return script_; }
 
 	virtual void onChannelTimeOut(Mercury::Channel * pChannel);
 	virtual void onChannelDeregister(Mercury::Channel * pChannel);
@@ -208,6 +226,11 @@ public:
 	*/
 	virtual void onStreamDataCompleted(Mercury::Channel* pChannel, int16 id);
 protected:
+	KBEngine::script::Script								script_;
+	std::vector<PyTypeObject*>								scriptBaseTypes_;
+
+	TimerHandle												gameTimer_;
+
 	COMPONENT_TYPE											componentType_;
 
 	// 本组件的ID
@@ -224,6 +247,18 @@ protected:
 
 	// 服务端网络通道
 	Mercury::Channel*										serverChannel_;
+
+	PY_CALLBACKMGR											pyCallbackMgr_;
+
+	// 当前服务端地址
+	std::string ip_;
+	uint16 port_;
+
+	// 最后一次发送活动tick时间
+	uint64													lastSentActiveTickTime_;
+
+	// 是否连接网关了
+	bool													connectedGateway_;
 
 };
 

@@ -43,7 +43,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 	
 namespace KBEngine{
-class Chunk;
 class Entity;
 class EntityMailbox;
 class ClientObject;
