@@ -109,11 +109,15 @@ public:
 	void onEnterWorld();
 	void onLeaveWorld();
 public:
-	/** 网络接口
+	/**
 		远程呼叫本entity的方法 
 	*/
 	void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
 
+	/**
+		服务器更新entity属性
+	*/
+	void onUpdatePropertys(MemoryStream& s);
 protected:
 	EntityMailbox*							cellMailbox_;						// 这个entity的客户端mailbox
 	EntityMailbox*							baseMailbox_;						// 这个entity的baseapp mailbox

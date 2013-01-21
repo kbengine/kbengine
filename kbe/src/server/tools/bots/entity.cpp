@@ -140,6 +140,104 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::onUpdatePropertys(MemoryStream& s)
+{
+	ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
+	ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
+	ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
+
+	Mercury::FixedMessages::MSGInfo* msgInfo =
+				Mercury::FixedMessages::getSingleton().isFixed("Property::position");
+
+	if(msgInfo != NULL)
+		posuid = msgInfo->msgid;
+
+	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
+	if(msgInfo != NULL)
+		diruid = msgInfo->msgid;
+
+	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::spaceID");
+	if(msgInfo != NULL)
+		spaceuid = msgInfo->msgid;
+
+	while(s.opsize() > 0)
+	{
+		ENTITY_PROPERTY_UID uid;
+		s >> uid;
+
+		// 如果是位置或者朝向信息则
+		if(uid == posuid)
+		{
+			Position3D pos;
+			ArraySize size;
+
+#ifdef CLIENT_NO_FLOAT		
+			int32 x, y, z;
+			s >> size >> x >> y >> z;
+
+			pos.x = (float)x;
+			pos.y = (float)y;
+			pos.z = (float)z;
+#else
+			s >> size >> pos.x >> pos.y >> pos.z;
+#endif
+			setPosition(pos);
+			continue;
+		}
+		else if(uid == diruid)
+		{
+			Direction3D dir;
+			ArraySize size;
+
+#ifdef CLIENT_NO_FLOAT		
+			int32 x, y, z;
+			s >> size >> x >> y >> z;
+
+			dir.roll = (float)x;
+			dir.pitch = (float)y;
+			dir.yaw = (float)z;
+#else
+			s >> size >> dir.roll >> dir.pitch >> dir.yaw;
+#endif
+
+			setDirection(dir);
+			continue;
+		}
+		else if(uid == spaceuid)
+		{
+			SPACE_ID spaceID;
+			s >> spaceID;
+			setSpaceID(spaceID);
+			continue;
+		}
+
+		PropertyDescription* pPropertyDescription = getScriptModule()->findClientPropertyDescription(uid);
+		PyObject* pyobj = pPropertyDescription->createFromStream(&s);
+
+		PyObject* pyOld = PyObject_GetAttrString(this, pPropertyDescription->getName());
+		PyObject_SetAttrString(this, pPropertyDescription->getName(), pyobj);
+
+		std::string setname = "set_";
+		setname += pPropertyDescription->getName();
+
+		PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>(setname.c_str()), "O", pyOld);
+		
+		if(pyResult)
+		{
+			Py_DECREF(pyResult);
+		}
+		else
+		{
+			PyErr_Clear();
+		}
+
+		Py_DECREF(pyobj);
+		Py_DECREF(pyOld);
+		
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void Entity::writeToDB(void* data)
 {
 }
