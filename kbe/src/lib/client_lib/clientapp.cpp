@@ -206,7 +206,8 @@ void ClientApp::onEntityGetCell(Mercury::Channel * pChannel, ENTITY_ID eid)
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID)
+void ClientApp::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, 
+								   ENTITY_SCRIPT_UID scriptType, SPACE_ID spaceID)
 {
 }
 

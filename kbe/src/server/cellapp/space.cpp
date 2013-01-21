@@ -96,6 +96,7 @@ void Space::_onEnterWorld(Entity* pEntity)
 
 		(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
 		(*pForwardBundle) << pEntity->getID();
+		(*pForwardBundle) << pEntity->getScriptModule()->getUType();
 		(*pForwardBundle) << this->getID();
 
 		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->getID(), (*pSendBundle), (*pForwardBundle));
@@ -155,6 +156,7 @@ void Space::onEnterWorld(Entity* pEntity)
 		
 				(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
 				(*pForwardBundle2) << entity->getID();
+				(*pForwardBundle2) << entity->getScriptModule()->getUType();
 				(*pForwardBundle2) << this->getID();
 
 				MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle1));
@@ -221,6 +223,7 @@ void Space::broadcastEntityToAOIEntities(Entity* pEntity, SPACE_ENTITIES& aoiEnt
 
 			(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
 			(*pForwardBundle2) << pEntity->getID();
+			(*pForwardBundle2) << pEntity->getScriptModule()->getUType();
 			(*pForwardBundle2) << this->getID();
 
 			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(entity->getID(), (*pSendBundle), (*pForwardBundle1));
@@ -271,6 +274,7 @@ void Space::broadcastAOIEntitiesToEntity(Entity* pEntity)
 	
 			(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
 			(*pForwardBundle2) << entity->getID();
+			(*pForwardBundle2) << entity->getScriptModule()->getUType();
 			(*pForwardBundle2) << this->getID();
 
 			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle1));

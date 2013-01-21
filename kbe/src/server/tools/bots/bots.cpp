@@ -476,12 +476,13 @@ void Bots::onEntityGetCell(Mercury::Channel * pChannel, ENTITY_ID eid)
 }
 
 //-------------------------------------------------------------------------------------	
-void Bots::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID)
+void Bots::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, 
+							  ENTITY_SCRIPT_UID scriptType, SPACE_ID spaceID)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onEntityEnterWorld(eid, spaceID);
+		pClient->onEntityEnterWorld(eid, scriptType, spaceID);
 	}
 }
 

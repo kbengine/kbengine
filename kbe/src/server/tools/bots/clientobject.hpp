@@ -146,7 +146,7 @@ public:
 	/** 网络接口
 		服务器上的entity已经进入游戏世界了
 	*/
-	virtual void onEntityEnterWorld(ENTITY_ID eid, SPACE_ID spaceID);
+	virtual void onEntityEnterWorld(ENTITY_ID eid, ENTITY_SCRIPT_UID scriptType, SPACE_ID spaceID);
 
 	/** 网络接口
 		服务器上的entity已经离开游戏世界了
@@ -223,6 +223,9 @@ protected:
 	Entities<Entity>* pEntities_;	
 
 	PY_CALLBACKMGR	pyCallbackMgr_;
+
+	typedef std::map<ENTITY_ID, KBEShared_ptr<MemoryStream> > BUFFEREDMESSAGE;
+	BUFFEREDMESSAGE bufferedCreateEntityMessage_;
 };
 
 

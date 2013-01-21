@@ -33,6 +33,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "client_interface_macros.hpp"
 #include "network/interface_defs.hpp"
 #include "server/server_errors.hpp"
+#include "entitydef/common.hpp"
 #include "common.hpp"
 
 //#define NDEBUG
@@ -77,8 +78,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 									ENTITY_ID,					eid)
 
 	// 服务器上的entity已经进入游戏世界了。
-	CLIENT_MESSAGE_DECLARE_ARGS2(onEntityEnterWorld,			MERCURY_FIXED_MESSAGE,
+	CLIENT_MESSAGE_DECLARE_ARGS3(onEntityEnterWorld,			MERCURY_FIXED_MESSAGE,
 									ENTITY_ID,					eid,
+									ENTITY_SCRIPT_UID,			scriptType,
 									SPACE_ID,					spaceID)
 
 	// 服务器上的entity已经离开游戏世界了。

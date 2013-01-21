@@ -42,6 +42,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/network_interface.hpp"
 #include "server/server_errors.hpp"
 #include "thread/threadpool.hpp"
+#include "entitydef/common.hpp"
 
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -169,7 +170,8 @@ public:
 	/** 网络接口
 		服务器上的entity已经进入游戏世界了
 	*/
-	virtual void onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID);
+	virtual void onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, 
+		ENTITY_SCRIPT_UID scriptType, SPACE_ID spaceID);
 
 	/** 网络接口
 		服务器上的entity已经离开游戏世界了

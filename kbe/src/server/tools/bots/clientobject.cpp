@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/components.hpp"
 #include "server/serverconfig.hpp"
 #include "entitydef/scriptdef_module.hpp"
+#include "entitydef/entitydef.hpp"
 #include "client_lib/client_interface.hpp"
 
 #include "baseapp/baseapp_interface.hpp"
@@ -70,7 +71,8 @@ port_(),
 lastSentActiveTickTime_(timestamp()),
 connectedGateway_(false),
 pEntities_(new Entities<Entity>()),
-pyCallbackMgr_()
+pyCallbackMgr_(),
+bufferedCreateEntityMessage_()
 {
 	pChannel_->incRef();
 
@@ -473,12 +475,30 @@ void ClientObject::onEntityGetCell(ENTITY_ID eid)
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObject::onEntityEnterWorld(ENTITY_ID eid, SPACE_ID spaceID)
+void ClientObject::onEntityEnterWorld(ENTITY_ID eid, ENTITY_SCRIPT_UID scriptType, SPACE_ID spaceID)
 {
 	Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(boost::format("ClientObject::onEntityEnterWorld: not found entity(%1%).\n") % eid);
+		BUFFEREDMESSAGE::iterator iter = bufferedCreateEntityMessage_.find(eid);
+		if(iter != bufferedCreateEntityMessage_.end())
+		{
+			ScriptDefModule* sm = EntityDef::findScriptModule(scriptType);
+			KBE_ASSERT(sm);
+			
+			// 设置entity的cellMailbox
+			EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(sm->getName()), 
+				NULL, appID(), eid, MAILBOX_TYPE_CELL);
+
+			createEntityCommon(sm->getName(), NULL, true, eid, true, NULL, mailbox);
+
+			this->onUpdatePropertys(*iter->second.get());
+			bufferedCreateEntityMessage_.erase(iter);
+		}
+		else
+		{
+			ERROR_MSG(boost::format("ClientObject::onEntityEnterWorld: not found entity(%1%).\n") % eid);
+		}
 		return;
 	}
 
@@ -565,31 +585,89 @@ void ClientObject::onUpdatePropertys(MemoryStream& s)
 	Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		s.opfini();
-		ERROR_MSG(boost::format("ClientObject::onUpdatePropertys: not found entity(%1%).\n") % eid);
+		if(bufferedCreateEntityMessage_.find(eid) == bufferedCreateEntityMessage_.end())
+		{
+			MemoryStream* buffered = new MemoryStream();
+			(*buffered) << eid;
+			(*buffered).append(s.data() + s.rpos(), s.opsize());
+			bufferedCreateEntityMessage_[eid].reset(buffered);
+			s.opfini();
+		}
+		else
+		{
+			ERROR_MSG(boost::format("ClientObject::onUpdatePropertys: not found entity(%1%).\n") % eid);
+		}
 		return;
 	}
-				
-	if(s.wpos() > 0)
+
+	ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
+	ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
+	ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
+
+	Mercury::FixedMessages::MSGInfo* msgInfo =
+				Mercury::FixedMessages::getSingleton().isFixed("Property::position");
+
+	if(msgInfo != NULL)
+		posuid = msgInfo->msgid;
+
+	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
+	if(msgInfo != NULL)
+		diruid = msgInfo->msgid;
+
+	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::spaceID");
+	if(msgInfo != NULL)
+		spaceuid = msgInfo->msgid;
+
+	while(s.opsize() > 0)
 	{
 		ENTITY_PROPERTY_UID uid;
 		s >> uid;
 
 		// 如果是位置或者朝向信息则
-		switch(uid)
+		if(uid == posuid)
 		{
-		case ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ:
-			break;
-		case ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW:
-			break;
-		case ENTITY_BASE_PROPERTY_UTYPE_SPACEID:
-			{
-				SPACE_ID spaceID;
-				s >> spaceID;
-				//entity->spaceID(spaceID);
-			}
-			break;
-		};
+			Position3D pos;
+			ArraySize size;
+
+#ifdef CLIENT_NO_FLOAT		
+			int32 x, y, z;
+			s >> size >> x >> y >> z;
+
+			pos.x = (float)x;
+			pos.y = (float)y;
+			pos.z = (float)z;
+#else
+			s >> size >> pos.x >> pos.y >> pos.z;
+#endif
+			entity->setPosition(pos);
+			continue;
+		}
+		else if(uid == diruid)
+		{
+			Direction3D dir;
+			ArraySize size;
+
+#ifdef CLIENT_NO_FLOAT		
+			int32 x, y, z;
+			s >> size >> x >> y >> z;
+
+			dir.roll = (float)x;
+			dir.pitch = (float)y;
+			dir.yaw = (float)z;
+#else
+			s >> size >> dir.roll >> dir.pitch >> dir.yaw;
+#endif
+
+			entity->setDirection(dir);
+			continue;
+		}
+		else if(uid == spaceuid)
+		{
+			SPACE_ID spaceID;
+			s >> spaceID;
+			entity->setSpaceID(spaceID);
+			continue;
+		}
 
 		PropertyDescription* pPropertyDescription = entity->getScriptModule()->findClientPropertyDescription(uid);
 		PyObject* pyobj = pPropertyDescription->createFromStream(&s);
