@@ -51,6 +51,9 @@ namespace Mercury
 class Channel;
 }
 
+namespace client
+{
+
 class Entity : public script::ScriptObject
 {
 	/** 子类化 将一些py操作填充进派生类 */
@@ -126,6 +129,7 @@ protected:
 	ClientObjectBase*						pClientApp_;
 };																										
 
+}
 }
 
 #ifdef CODE_INLINE

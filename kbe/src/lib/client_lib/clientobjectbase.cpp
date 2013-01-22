@@ -48,11 +48,11 @@ SCRIPT_INIT(ClientObjectBase, 0, 0, 0, 0, 0)
 static int32 g_appID = 1;
 
 //-------------------------------------------------------------------------------------
-ClientObjectBase::ClientObjectBase(PyTypeObject* pyType):
+ClientObjectBase::ClientObjectBase(Mercury::NetworkInterface& ninterface, PyTypeObject* pyType):
 ScriptObject(pyType != NULL ? pyType : getScriptType(), false),
 appID_(0),
 pServerChannel_(new Mercury::Channel()),
-pEntities_(new Entities<Entity>()),
+pEntities_(new Entities<client::Entity>()),
 pyCallbackMgr_(),
 entityID_(0),
 dbid_(0),
@@ -68,6 +68,8 @@ bufferedCreateEntityMessage_()
 {
 	pServerChannel_->incRef();
 	appID_ = g_appID++;
+
+	pServerChannel_->pNetworkInterface(&ninterface);
 }
 
 //-------------------------------------------------------------------------------------
@@ -86,9 +88,9 @@ void ClientObjectBase::finalise(void)
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::sendTick()
+void ClientObjectBase::tickSend()
 {
-	if(!pServerChannel_ && !pServerChannel_->endpoint())
+	if(!pServerChannel_ || !pServerChannel_->endpoint())
 		return;
 
 	// 向服务器发送tick
@@ -105,6 +107,8 @@ void ClientObjectBase::sendTick()
 
 		pServerChannel_->bundles().push_back(pBundle);
 	}
+
+	pServerChannel_->send();
 }
 
 //-------------------------------------------------------------------------------------	
@@ -120,7 +124,7 @@ Mercury::Channel* ClientObjectBase::findChannelByMailbox(EntityMailbox& mailbox)
 }
 
 //-------------------------------------------------------------------------------------	
-Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyObject* params,
+client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyObject* params,
 	bool isInitializeScript, ENTITY_ID eid, bool initProperty,
 	EntityMailbox* base, EntityMailbox* cell)
 {
@@ -142,7 +146,7 @@ Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyObject* p
 
 	PyObject* obj = sm->createObject();
 	
-	Entity* entity = new(obj) Entity(eid, sm, base, cell);
+	client::Entity* entity = new(obj) client::Entity(eid, sm, base, cell);
 
 	entity->pClientApp(this);
 
@@ -174,26 +178,28 @@ Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyObject* p
 bool ClientObjectBase::createAccount()
 {
 	// 创建账号
-	Mercury::Bundle bundle;
-	bundle.newMessage(LoginappInterface::reqCreateAccount);
-	bundle << name_;
-	bundle << password_;
-	bundle.send(*pServerChannel_->endpoint());
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(LoginappInterface::reqCreateAccount);
+	(*pBundle) << name_;
+	(*pBundle) << password_;
+
+	pServerChannel_->bundles().push_back(pBundle);
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientObjectBase::login()
 {
-	Mercury::Bundle bundle;
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
 	// 提交账号密码请求登录
-	bundle.newMessage(LoginappInterface::login);
-	bundle << typeClient_;
-	bundle.appendBlob(extradatas_);
-	bundle << name_;
-	bundle << password_;
-	bundle.send(*pServerChannel_->endpoint());
+	(*pBundle).newMessage(LoginappInterface::login);
+	(*pBundle) << typeClient_;
+	(*pBundle).appendBlob(extradatas_);
+	(*pBundle) << name_;
+	(*pBundle) << password_;
+	
+	pServerChannel_->bundles().push_back(pBundle);
 	return true;
 }
 
@@ -201,11 +207,11 @@ bool ClientObjectBase::login()
 bool ClientObjectBase::loginGateWay()
 {
 	// 请求登录网关
-	Mercury::Bundle bundle;
-	bundle.newMessage(BaseappInterface::loginGateway);
-	bundle << name_;
-	bundle << password_;
-	bundle.send(*pServerChannel_->endpoint());
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::loginGateway);
+	(*pBundle) << name_;
+	(*pBundle) << password_;
+	pServerChannel_->bundles().push_back(pBundle);
 	return true;
 }
 
@@ -275,7 +281,7 @@ void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndU
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, ENTITY_SCRIPT_UID scriptType, SPACE_ID spaceID)
 {
-	Entity* entity = pEntities_->find(eid);
+	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
 		BUFFEREDMESSAGE::iterator iter = bufferedCreateEntityMessage_.find(eid);
@@ -307,7 +313,7 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID)
 {
-	Entity* entity = pEntities_->find(eid);
+	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
 		ERROR_MSG(boost::format("ClientObjectBase::onEntityLeaveWorld: not found entity(%1%).\n") % eid);
@@ -322,7 +328,7 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
 {
-	Entity* entity = pEntities_->find(eid);
+	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
 		ERROR_MSG(boost::format("ClientObjectBase::onEntityEnterSpace: not found entity(%1%).\n") % eid);
@@ -335,7 +341,7 @@ void ClientObjectBase::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID 
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
 {
-	Entity* entity = pEntities_->find(eid);
+	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
 		ERROR_MSG(boost::format("ClientObjectBase::onEntityLeaveSpace: not found entity(%1%).\n") % eid);
@@ -348,7 +354,7 @@ void ClientObjectBase::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID 
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID eid)
 {
-	Entity* entity = pEntities_->find(eid);
+	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
 		ERROR_MSG(boost::format("ClientObjectBase::onEntityDestroyed: not found entity(%1%).\n") % eid);
@@ -365,7 +371,7 @@ void ClientObjectBase::onRemoteMethodCall(Mercury::Channel * pChannel, KBEngine:
 	ENTITY_ID eid;
 	s >> eid;
 
-	Entity* entity = pEntities_->find(eid);
+	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
 		s.opfini();
@@ -382,7 +388,7 @@ void ClientObjectBase::onUpdatePropertys(Mercury::Channel * pChannel, MemoryStre
 	ENTITY_ID eid;
 	s >> eid;
 
-	Entity* entity = pEntities_->find(eid);
+	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
 		if(bufferedCreateEntityMessage_.find(eid) == bufferedCreateEntityMessage_.end())

@@ -33,7 +33,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
+namespace client{
 class Entity;
+}
+
 class EntityMailbox;
 
 namespace Mercury
@@ -48,19 +51,19 @@ class ClientObjectBase : public script::ScriptObject
 	*/
 	INSTANCE_SCRIPT_HREADER(ClientObjectBase, ScriptObject)	
 public:
-	ClientObjectBase(PyTypeObject* pyType = NULL);
+	ClientObjectBase(Mercury::NetworkInterface& ninterface, PyTypeObject* pyType = NULL);
 	~ClientObjectBase();
 
 	Mercury::Channel* pServerChannel()const{ return pServerChannel_; }
 
 	void finalise(void);
 
-	Entities<Entity>* pEntities()const{ return pEntities_; }
+	Entities<client::Entity>* pEntities()const{ return pEntities_; }
 
 	/**
 		创建一个entity 
 	*/
-	Entity* createEntityCommon(const char* entityType, PyObject* params,
+	client::Entity* createEntityCommon(const char* entityType, PyObject* params,
 		bool isInitializeScript = true, ENTITY_ID eid = 0, bool initProperty = true, 
 		EntityMailbox* base = NULL, EntityMailbox* cell = NULL);
 
@@ -71,7 +74,7 @@ public:
 	*/
 	virtual bool destroyEntity(ENTITY_ID entityID);
 
-	void sendTick();
+	void tickSend();
 	
 	bool createAccount();
 	bool login();
@@ -197,7 +200,7 @@ protected:
 	Mercury::Channel*										pServerChannel_;
 
 	// 存储所有的entity的容器
-	Entities<Entity>*										pEntities_;	
+	Entities<client::Entity>*								pEntities_;	
 
 	PY_CALLBACKMGR											pyCallbackMgr_;
 

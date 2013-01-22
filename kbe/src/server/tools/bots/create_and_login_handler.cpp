@@ -64,7 +64,7 @@ void CreateAndLoginHandler::handleTimeout(TimerHandle handle, void * arg)
 
 	while(bots.reqCreateAndLoginTotalCount() - bots.clients().size() > 0 && count-- > 0)
 	{
-		ClientObject* pClient = new ClientObject(KBEngine::StringConv::val2str(accountID++));
+		ClientObject* pClient = new ClientObject(KBEngine::StringConv::val2str(accountID++), Bots::getSingleton().getNetworkInterface());
 		Bots::getSingleton().addClient(pClient);
 	}
 

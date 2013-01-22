@@ -52,8 +52,8 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(ClientObject, 0, 0, 0, 0, 0)		
 
 //-------------------------------------------------------------------------------------
-ClientObject::ClientObject(std::string name):
-ClientObjectBase(getScriptType()),
+ClientObject::ClientObject(std::string name, Mercury::NetworkInterface& ninterface):
+ClientObjectBase(ninterface, getScriptType()),
 error_(C_ERROR_NONE),
 state_(C_STATE_INIT)
 {
@@ -197,10 +197,7 @@ bool ClientObject::initLoginGateWay()
 void ClientObject::gameTick()
 {
 	if(pServerChannel()->endpoint())
-	{
 		pServerChannel()->handleMessage(NULL);
-		sendTick();
-	}
 
 	switch(state_)
 	{
@@ -234,6 +231,8 @@ void ClientObject::gameTick()
 			KBE_ASSERT(false);
 			break;
 	};
+
+	tickSend();
 }
 
 //-------------------------------------------------------------------------------------

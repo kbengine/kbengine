@@ -55,7 +55,7 @@ public:
 		C_STATE_PLAY = 3,
 	};
 
-	ClientObject(std::string name);
+	ClientObject(std::string name, Mercury::NetworkInterface& ninterface);
 	virtual ~ClientObject();
 
 	bool processSocket(bool expectingPacket);

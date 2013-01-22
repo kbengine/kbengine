@@ -35,6 +35,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 namespace KBEngine{
+namespace client
+{
 
 //-------------------------------------------------------------------------------------
 ENTITY_METHOD_DECLARE_BEGIN(ClientApp, Entity)
@@ -327,6 +329,7 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
+}
 }
 
 

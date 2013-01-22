@@ -20,6 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 namespace KBEngine{
+namespace client
+{
 
 //-------------------------------------------------------------------------------------
 INLINE void Entity::setDirection(Direction3D& dir)
@@ -76,5 +78,6 @@ INLINE void Entity::setBaseMailbox(EntityMailbox* mailbox)
 }
 
 //-------------------------------------------------------------------------------------
+}
 }
 

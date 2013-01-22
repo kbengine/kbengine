@@ -124,7 +124,8 @@ public:
 		{ return !isDestroyed_; }
 
 	NetworkInterface & networkInterface()			{ return *pNetworkInterface_; }
-		
+	void pNetworkInterface(NetworkInterface* pNetworkInterface) { pNetworkInterface_ = pNetworkInterface; }
+
 	INLINE const Address& addr() const;
 	void endpoint(const EndPoint* endpoint);
 	INLINE EndPoint * endpoint() const;

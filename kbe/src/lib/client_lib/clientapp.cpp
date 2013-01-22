@@ -45,7 +45,7 @@ ClientApp::ClientApp(Mercury::EventDispatcher& dispatcher,
 					 Mercury::NetworkInterface& ninterface, 
 					 COMPONENT_TYPE componentType,
 					 COMPONENT_ID componentID):
-ClientObjectBase(),
+ClientObjectBase(ninterface),
 TimerHandler(),
 Mercury::ChannelTimeOutHandler(),
 scriptBaseTypes_(),
@@ -146,9 +146,9 @@ bool ClientApp::uninstallPyScript()
 bool ClientApp::installPyModules()
 {
 	EntityDef::installScript(getScript().getModule());
-	Entity::installScript(getScript().getModule());
-	Entities<Entity>::installScript(NULL);
-	registerScript(Entity::getScriptType());
+	client::Entity::installScript(getScript().getModule());
+	Entities<client::Entity>::installScript(NULL);
+	registerScript(client::Entity::getScriptType());
 
 	onInstallPyModules();
 	return true;
@@ -159,8 +159,8 @@ bool ClientApp::uninstallPyModules()
 {
 	EntityDef::uninstallScript();
 
-	Entity::uninstallScript();
-	Entities<Entity>::uninstallScript();
+	client::Entity::uninstallScript();
+	Entities<client::Entity>::uninstallScript();
 	return true;
 }
 
@@ -203,12 +203,7 @@ void ClientApp::handleGameTick()
 	handleTimers();
 
 	getNetworkInterface().handleChannels(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
-
-	if(pServerChannel_ && pServerChannel_->endpoint())
-	{
-		sendTick();
-		pServerChannel_->send();
-	}
+	tickSend();
 }
 
 //-------------------------------------------------------------------------------------
