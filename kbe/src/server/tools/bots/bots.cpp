@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "pybots.hpp"
 #include "bots.hpp"
-#include "entity.hpp"
+#include "client_lib/entity.hpp"
 #include "clientobject.hpp"
 #include "bots_interface.hpp"
 #include "resmgr/resmgr.hpp"
@@ -88,42 +88,6 @@ bool Bots::installEntityDef()
 }
 
 //-------------------------------------------------------------------------------------
-bool Bots::installPyScript()
-{
-	if(Resmgr::getSingleton().respaths().size() <= 0)
-	{
-		ERROR_MSG("Bots::installPyScript: KBE_RES_PATH is error!\n");
-		return false;
-	}
-
-	std::wstring root_path = L"";
-	wchar_t* tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().respaths()[1].c_str()));
-	if(tbuf != NULL)
-	{
-		root_path += tbuf;
-		free(tbuf);
-	}
-	else
-	{
-		return false;
-	}
-
-	std::wstring pyPaths = root_path + L"res/scripts/common;";
-	pyPaths += root_path + L"res/scripts/data;";
-	pyPaths += root_path + L"res/scripts/user_type;";
-	pyPaths += root_path + L"res/scripts/bots;";
-	
-	std::string kbe_res_path = Resmgr::getSingleton().respaths()[0].c_str();
-	kbe_res_path += "scripts/common";
-
-	tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(kbe_res_path.c_str()));
-	bool ret = getScript().install(tbuf, pyPaths, "KBEngine", componentType_);
-	// 此处经测试传入python之后被python释放了
-	// free(tbuf);
-	return ret;
-}
-
-//-------------------------------------------------------------------------------------
 bool Bots::uninstallPyScript()
 {
 	return ClientApp::uninstallPyScript();
@@ -132,10 +96,6 @@ bool Bots::uninstallPyScript()
 //-------------------------------------------------------------------------------------
 bool Bots::installPyModules()
 {
-	Entity::installScript(getScript().getModule());
-	Entities<Entity>::installScript(NULL);
-	registerScript(Entity::getScriptType());
-	
 	ClientObject::installScript(NULL);
 	PyBots::installScript(NULL);
 
@@ -151,8 +111,6 @@ bool Bots::uninstallPyModules()
 	Py_DECREF(pPyBots_);
 	pPyBots_ = NULL;
 
-	Entity::uninstallScript();
-	Entities<Entity>::uninstallScript();
 	ClientObject::uninstallScript();
 	PyBots::uninstallScript();
 	return ClientApp::uninstallPyModules();
@@ -190,10 +148,9 @@ Mercury::Channel* Bots::findChannelByMailbox(EntityMailbox& mailbox)
 {
 	int32 appID = (int32)mailbox.getComponentID();
 	ClientObject* pClient = findClientByAppID(appID);
+
 	if(pClient)
-	{
-		return pClient->pChannel();
-	}
+		return pClient->findChannelByMailbox(mailbox);
 
 	return NULL;
 }
@@ -247,7 +204,7 @@ void Bots::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStrea
 	std::string retbuf = "";
 	PyObject* pycmd1 = PyUnicode_AsEncodedString(pycmd, "utf-8", NULL);
 
-	if(script_.run_simpleString(PyBytes_AsString(pycmd1), &retbuf) == 0)
+	if(getScript().run_simpleString(PyBytes_AsString(pycmd1), &retbuf) == 0)
 	{
 		// 将结果返回给客户端
 		Mercury::Bundle bundle;
@@ -264,7 +221,7 @@ void Bots::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::MemoryStrea
 //-------------------------------------------------------------------------------------
 bool Bots::addClient(ClientObject* pClient)
 {
-	clients().insert(std::make_pair< Mercury::Channel*, ClientObjectPtr >(pClient->pChannel(), 
+	clients().insert(std::make_pair< Mercury::Channel*, ClientObjectPtr >(pClient->pServerChannel(), 
 		ClientObjectPtr(pClient)));
 
 	return true;
@@ -273,7 +230,7 @@ bool Bots::addClient(ClientObject* pClient)
 //-------------------------------------------------------------------------------------
 bool Bots::delClient(ClientObject* pClient)
 {
-	clients().erase(pClient->pChannel());
+	clients().erase(pClient->pServerChannel());
 	return true;
 }
 
@@ -342,7 +299,7 @@ void Bots::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s)
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onCreateAccountResult(s);
+		pClient->onCreateAccountResult(pChannel, s);
 	}
 }
 
@@ -352,7 +309,7 @@ void Bots::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onLoginSuccessfully(s);
+		pClient->onLoginSuccessfully(pChannel, s);
 	}
 }
 
@@ -362,7 +319,7 @@ void Bots::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onLoginFailed(s);
+		pClient->onLoginFailed(pChannel, s);
 	}
 }
 
@@ -372,7 +329,7 @@ void Bots::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE f
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onLoginGatewayFailed(failedcode);
+		pClient->onLoginGatewayFailed(pChannel, failedcode);
 	}
 }
 
@@ -383,7 +340,7 @@ void Bots::onCreatedProxies(Mercury::Channel * pChannel,
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onCreatedProxies(rndUUID, eid, entityType);
+		pClient->onCreatedProxies(pChannel, rndUUID, eid, entityType);
 	}
 }
 
@@ -394,7 +351,7 @@ void Bots::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid,
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onEntityEnterWorld(eid, scriptType, spaceID);
+		pClient->onEntityEnterWorld(pChannel, eid, scriptType, spaceID);
 	}
 }
 
@@ -404,7 +361,7 @@ void Bots::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onEntityLeaveWorld(eid, spaceID);
+		pClient->onEntityLeaveWorld(pChannel, eid, spaceID);
 	}
 }
 
@@ -414,7 +371,7 @@ void Bots::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENT
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onEntityEnterSpace(eid, spaceID);
+		pClient->onEntityEnterSpace(pChannel, eid, spaceID);
 	}
 }
 
@@ -424,7 +381,7 @@ void Bots::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENT
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onEntityLeaveSpace(eid, spaceID);
+		pClient->onEntityLeaveSpace(pChannel, eid, spaceID);
 	}
 }
 
@@ -434,7 +391,7 @@ void Bots::onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID eid)
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onEntityDestroyed(eid);
+		pClient->onEntityDestroyed(pChannel, eid);
 	}
 }
 
@@ -444,7 +401,7 @@ void Bots::onRemoteMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onRemoteMethodCall(s);
+		pClient->onRemoteMethodCall(pChannel, s);
 	}
 }
 
@@ -454,7 +411,7 @@ void Bots::onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s)
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onUpdatePropertys(s);
+		pClient->onUpdatePropertys(pChannel, s);
 	}
 }
 

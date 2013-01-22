@@ -200,10 +200,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\entity.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\lib\python\Modules\getbuildinfo.c"
 				>
 			</File>
@@ -252,10 +248,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\entity.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\profile.hpp"
 				>
 			</File>
@@ -264,10 +256,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\entity.ipp"
-			>
-		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>

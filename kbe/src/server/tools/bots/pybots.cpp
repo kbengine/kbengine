@@ -21,7 +21,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "bots.hpp"
 #include "pybots.hpp"
-#include "entity.hpp"
 #include "clientobject.hpp"
 #include "bots_interface.hpp"
 #include "resmgr/resmgr.hpp"

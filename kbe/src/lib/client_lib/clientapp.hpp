@@ -21,17 +21,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef __CLIENT_APP_H__
 #define __CLIENT_APP_H__
-// common include
+
+#include "clientobjectbase.hpp"
 #include "cstdkbe/cstdkbe.hpp"
-#if KBE_PLATFORM == PLATFORM_WIN32
-#pragma warning (disable : 4996)
-#endif
-//#define NDEBUG
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <iostream>	
-#include <stdarg.h> 
 #include "helper/debug_helper.hpp"
 #include "xmlplus/xmlplus.hpp"	
 #include "cstdkbe/singleton.hpp"
@@ -40,23 +32,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/interfaces.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
-#include "server/server_errors.hpp"
-#include "server/callbackmgr.hpp"
 #include "thread/threadpool.hpp"
 #include "pyscript/script.hpp"
-#include "entitydef/common.hpp"
 #include "resmgr/resmgr.hpp"
-
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#include <errno.h>
-#endif
 	
 namespace KBEngine{
-
-class EntityMailbox;
 
 namespace Mercury
 {
@@ -65,6 +45,7 @@ class Channel;
 
 class ClientApp : 
 	public Singleton<ClientApp>,
+	public ClientObjectBase,
 	public TimerHandler, 
 	public Mercury::ChannelTimeOutHandler,
 	public Mercury::ChannelDeregisterHandler
@@ -89,31 +70,27 @@ public:
 	virtual void finalise();
 	virtual bool run();
 	
-	virtual bool installPyScript();
 	virtual bool installPyModules();
 	virtual void onInstallPyModules(){};
 	virtual bool uninstallPyModules();
 	virtual bool uninstallPyScript();
 	virtual bool installEntityDef();
 
-	bool installSingnals();
-
 	void registerScript(PyTypeObject*);
 	int registerPyObjectToScript(const char* attrName, PyObject* pyObj);
 	int unregisterPyObjectToScript(const char* attrName);
 
-	virtual bool loadConfig();
 	const char* name(){return COMPONENT_NAME_EX(componentType_);}
 	
 	virtual void handleTimeout(TimerHandle, void * pUser);
 	virtual void handleGameTick();
 
+	void shutDown();
+
 	GAME_TIME time() const { return time_; }
 	Timers & timers() { return timers_; }
 	double gameTimeInSeconds() const;
 	void handleTimers();
-
-	void sendTick();
 
 	Mercury::EventDispatcher & getMainDispatcher()				{ return mainDispatcher_; }
 	Mercury::NetworkInterface & getNetworkInterface()			{ return networkInterface_; }
@@ -121,112 +98,13 @@ public:
 	COMPONENT_ID componentID()const	{ return componentID_; }
 	COMPONENT_TYPE componentType()const	{ return componentType_; }
 		
-	KBEngine::script::Script& getScript(){ return script_; }
+	KBEngine::script::Script& getScript(){ return *pScript_; }
+	void setScript(KBEngine::script::Script* p){ pScript_ = p; }
 
 	virtual void onChannelTimeOut(Mercury::Channel * pChannel);
 	virtual void onChannelDeregister(Mercury::Channel * pChannel);
-
-	/**
-		由mailbox来尝试获取一个channel的实例
-	*/
-	virtual Mercury::Channel* findChannelByMailbox(EntityMailbox& mailbox);
-
-	void shutDown();
-	
-	/** 网络接口
-		创建账号成功和失败回调
-	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
-									MERCURY_ERR_ACCOUNT_CREATE:创建失败（已经存在）, 
-									MERCURY_SUCCESS:账号创建成功
-
-									SERVER_ERROR_CODE failedcode;
-		@二进制附带数据:二进制额外数据: uint32长度 + bytearray
-	*/
-	virtual void onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s);
-
-	/** 网络接口
-	   登录失败回调
-	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
-									MERCURY_ERR_SRV_OVERLOAD:服务器负载过重, 
-									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
-	*/
-	virtual void onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s);
-
-	/** 网络接口
-	   登录成功
-	   @ip: 服务器ip地址
-	   @port: 服务器端口
-	*/
-	virtual void onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
-
-	/** 网络接口
-	   登录失败回调
-	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
-									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
-									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
-	*/
-	virtual void onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
-
-	/** 网络接口
-		服务器端已经创建了一个与客户端关联的代理Entity
-	   在登录时也可表达成功回调
-	   @datas: 账号entity的信息
-	*/
-	virtual void onCreatedProxies(Mercury::Channel * pChannel, uint64 rndUUID, 
-		ENTITY_ID eid, std::string& entityType);
-
-	/** 网络接口
-		服务器上的entity已经进入游戏世界了
-	*/
-	virtual void onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID eid, 
-		ENTITY_SCRIPT_UID scriptType, SPACE_ID spaceID);
-
-	/** 网络接口
-		服务器上的entity已经离开游戏世界了
-	*/
-	virtual void onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid, SPACE_ID spaceID);
-
-	/** 网络接口
-		告诉客户端某个entity销毁了， 此类entity通常是还未onEntityEnterWorld
-	*/
-	virtual void onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID eid);
-
-	/** 网络接口
-		服务器上的entity已经进入space了
-	*/
-	virtual void onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid);
-
-	/** 网络接口
-		服务器上的entity已经离开space了
-	*/
-	virtual void onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid);
-
-	/** 网络接口
-		远程调用entity的方法 
-	*/
-	virtual void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
-
-	/** 网络接口
-		服务器更新entity属性
-	*/
-	virtual void onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s);
-
-	/** 网络接口
-		download stream开始了 
-	*/
-	virtual void onStreamDataStarted(Mercury::Channel* pChannel, int16 id, uint32 datasize, std::string& descr);
-
-	/** 网络接口
-		接收到streamData
-	*/
-	virtual void onStreamDataRecv(Mercury::Channel* pChannel, MemoryStream& s);
-
-	/** 网络接口
-		download stream完成了 
-	*/
-	virtual void onStreamDataCompleted(Mercury::Channel* pChannel, int16 id);
 protected:
-	KBEngine::script::Script								script_;
+	KBEngine::script::Script*								pScript_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
 
 	TimerHandle												gameTimer_;
@@ -244,21 +122,6 @@ protected:
 
 	// 线程池
 	thread::ThreadPool										threadPool_;
-
-	// 服务端网络通道
-	Mercury::Channel*										serverChannel_;
-
-	PY_CALLBACKMGR											pyCallbackMgr_;
-
-	// 当前服务端地址
-	std::string ip_;
-	uint16 port_;
-
-	// 最后一次发送活动tick时间
-	uint64													lastSentActiveTickTime_;
-
-	// 是否连接网关了
-	bool													connectedGateway_;
 
 };
 

@@ -67,7 +67,6 @@ public:
 	virtual bool initialize();
 	virtual void finalise();
 
-	bool installPyScript();
 	virtual bool installPyModules();
 	virtual void onInstallPyModules() {};
 	virtual bool uninstallPyModules();
@@ -87,11 +86,6 @@ public:
 		由mailbox来尝试获取一个channel的实例
 	*/
 	virtual Mercury::Channel* findChannelByMailbox(EntityMailbox& mailbox);
-
-	/**
-		通过entityID销毁一个entity 
-	*/
-	virtual bool destroyEntity(ENTITY_ID entityID){ return true; }
 
 	/** 网络接口
 		某个app请求查看该app

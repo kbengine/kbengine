@@ -35,6 +35,60 @@ inline void START_MSG(const char * name, uint64 appuid)
 {
 }
 
+inline bool installPyScript(KBEngine::script::Script& script, COMPONENT_TYPE componentType)
+{
+	if(Resmgr::getSingleton().respaths().size() <= 0)
+	{
+		ERROR_MSG("installPyScript: KBE_RES_PATH is error!\n");
+		return false;
+	}
+
+	std::wstring root_path = L"";
+	wchar_t* tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(Resmgr::getSingleton().respaths()[1].c_str()));
+	if(tbuf != NULL)
+	{
+		root_path += tbuf;
+		free(tbuf);
+	}
+	else
+	{
+		return false;
+	}
+
+	std::wstring pyPaths = root_path + L"res/scripts/common;";
+	pyPaths += root_path + L"res/scripts/data;";
+	pyPaths += root_path + L"res/scripts/user_type;";
+
+	if(componentType == CLIENT_TYPE)
+		pyPaths += root_path + L"res/scripts/client;";
+	else
+		pyPaths += root_path + L"res/scripts/bots;";
+
+	std::string kbe_res_path = Resmgr::getSingleton().respaths()[0].c_str();
+	kbe_res_path += "scripts/common";
+
+	tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(kbe_res_path.c_str()));
+	bool ret = script.install(tbuf, pyPaths, "KBEngine", componentType);
+	// 此处经测试传入python之后被python释放了
+	// free(tbuf);
+	return ret;
+}
+
+inline bool loadConfig()
+{
+	Resmgr::getSingleton().initialize();
+
+	if(g_componentType == BOTS_TYPE)
+	{
+		// "../../res/server/kbengine_defs.xml"
+		g_kbeSrvConfig.loadConfig("server/kbengine_defs.xml");
+
+		// "../../../demo/res/server/kbengine.xml"
+		g_kbeSrvConfig.loadConfig("server/kbengine.xml");
+	}
+	return true;
+}
+
 template <class CLIENT_APP>
 int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType, 
 			 int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
@@ -42,6 +96,13 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 {
 	g_componentID = genUUID64();
 	g_componentType = componentType;
+
+	if(!loadConfig())
+	{
+		ERROR_MSG("app::initialize is error!\n");
+		return -1;
+	}
+	
 	DebugHelper::initHelper(componentType);
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
 
@@ -50,17 +111,28 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 		extlisteningPort_min, extlisteningPort_max, extlisteningInterface, 0, 0,
 		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface, 0, 0);
 	
-	CLIENT_APP app(dispatcher, networkInterface, componentType, g_componentID);
-	START_MSG(COMPONENT_NAME_EX(componentType), g_componentID);
-	if(!app.initialize()){
+	KBEngine::script::Script script;
+	if(!installPyScript(script, componentType))
+	{
 		ERROR_MSG("app::initialize is error!\n");
-		app.finalise();
+		return -1;
+	}
+	
+	CLIENT_APP* pApp = new CLIENT_APP(dispatcher, networkInterface, componentType, g_componentID);
+	pApp->setScript(&script);
+
+	START_MSG(COMPONENT_NAME_EX(componentType), g_componentID);
+	if(!pApp->initialize()){
+		ERROR_MSG("app::initialize is error!\n");
+		pApp->finalise();
+		script.uninstall();
 		return -1;
 	}
 	
 	INFO_MSG(boost::format("---- %1% is running ----\n") % COMPONENT_NAME_EX(componentType));
-	int ret = app.run();
-	app.finalise();
+	int ret = pApp->run();
+	pApp->finalise();
+	script.uninstall();
 	INFO_MSG(boost::format("%1% has shut down.\n") % COMPONENT_NAME_EX(componentType));
 	return ret;
 }
@@ -69,15 +141,6 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 kbeMain(int argc, char* argv[]);																						\
 int main(int argc, char* argv[])																						\
 {																														\
-	if(!Resmgr::getSingleton().initialize())																			\
-		return -1;																										\
-																														\
-	if(!g_kbeSrvConfig.loadConfig("server/kbengine_defs.xml"))															\
-		return -1;																										\
-																														\
-	if(!g_kbeSrvConfig.loadConfig("server/kbengine.xml"))																\
-		return -1;																										\
-																														\
 	return kbeMain(argc, argv);																							\
 }																														\
 int kbeMain

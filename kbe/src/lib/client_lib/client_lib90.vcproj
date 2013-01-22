@@ -163,6 +163,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\clientobjectbase.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\entity.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\profile.cpp"
 				>
 			</File>
@@ -185,7 +193,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\clientobjectbase.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\common.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\entity.hpp"
 				>
 			</File>
 			<File
@@ -203,6 +219,10 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
+		<File
+			RelativePath=".\entity.ipp"
+			>
+		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>
