@@ -3,6 +3,8 @@ LIB =	client_lib
 SRCS =				\
 	client_interface	\
 	clientapp		\
+	clientobjectbase	\
+	entity			\
 	profile
 
 ifndef KBE_ROOT
