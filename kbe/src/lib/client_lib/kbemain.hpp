@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __KBEMAIN_CLIENT__
 #define __KBEMAIN_CLIENT__
 #include "clientapp.hpp"
+#include "entity.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/event_dispatcher.hpp"
@@ -71,7 +72,20 @@ inline bool installPyScript(KBEngine::script::Script& script, COMPONENT_TYPE com
 	bool ret = script.install(tbuf, pyPaths, "KBEngine", componentType);
 	// 此处经测试传入python之后被python释放了
 	// free(tbuf);
+
+	EntityDef::installScript(script.getModule());
+	client::Entity::installScript(script.getModule());
+	Entities<client::Entity>::installScript(NULL);
 	return ret;
+}
+
+inline bool uninstallPyScript(KBEngine::script::Script& script)
+{
+	EntityDef::uninstallScript();
+
+	client::Entity::uninstallScript();
+	Entities<client::Entity>::uninstallScript();
+	return script.uninstall();
 }
 
 inline bool loadConfig()
@@ -117,7 +131,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 		ERROR_MSG("app::initialize is error!\n");
 		return -1;
 	}
-	
+
 	CLIENT_APP* pApp = new CLIENT_APP(dispatcher, networkInterface, componentType, g_componentID);
 	pApp->setScript(&script);
 
@@ -125,14 +139,14 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	if(!pApp->initialize()){
 		ERROR_MSG("app::initialize is error!\n");
 		pApp->finalise();
-		script.uninstall();
+		uninstallPyScript(script);
 		return -1;
 	}
 	
 	INFO_MSG(boost::format("---- %1% is running ----\n") % COMPONENT_NAME_EX(componentType));
 	int ret = pApp->run();
 	pApp->finalise();
-	script.uninstall();
+	uninstallPyScript(script);
 	INFO_MSG(boost::format("%1% has shut down.\n") % COMPONENT_NAME_EX(componentType));
 	return ret;
 }

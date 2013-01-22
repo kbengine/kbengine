@@ -145,11 +145,7 @@ bool ClientApp::uninstallPyScript()
 //-------------------------------------------------------------------------------------
 bool ClientApp::installPyModules()
 {
-	EntityDef::installScript(getScript().getModule());
-	client::Entity::installScript(getScript().getModule());
-	Entities<client::Entity>::installScript(NULL);
 	registerScript(client::Entity::getScriptType());
-
 	onInstallPyModules();
 	return true;
 }
@@ -157,10 +153,6 @@ bool ClientApp::installPyModules()
 //-------------------------------------------------------------------------------------
 bool ClientApp::uninstallPyModules()
 {
-	EntityDef::uninstallScript();
-
-	client::Entity::uninstallScript();
-	Entities<client::Entity>::uninstallScript();
 	return true;
 }
 
