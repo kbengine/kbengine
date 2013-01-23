@@ -102,6 +102,8 @@ bool Bots::installPyModules()
 	pPyBots_ = new PyBots();
 	registerPyObjectToScript("bots", pPyBots_);
 	
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), addBots, __py_addBots,	METH_VARARGS, 0);
+
 	return ClientApp::installPyModules();
 }
 
@@ -153,6 +155,77 @@ Mercury::Channel* Bots::findChannelByMailbox(EntityMailbox& mailbox)
 		return pClient->findChannelByMailbox(mailbox);
 
 	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::addBots(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	uint32	reqCreateAndLoginTotalCount;
+	uint32 reqCreateAndLoginTickCount = 0;
+	float reqCreateAndLoginTickTime = 0;
+
+	s >> reqCreateAndLoginTotalCount;
+
+	reqCreateAndLoginTotalCount_ += reqCreateAndLoginTotalCount;
+
+	if(s.opsize() > 0)
+	{
+		s >> reqCreateAndLoginTickCount >> reqCreateAndLoginTickTime;
+
+		if(reqCreateAndLoginTickCount > 0)
+			reqCreateAndLoginTickCount_ = reqCreateAndLoginTickCount;
+		
+		if(reqCreateAndLoginTickTime > 0)
+			reqCreateAndLoginTickTime_ = reqCreateAndLoginTickTime;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Bots::__py_addBots(PyObject* self, PyObject* args)
+{
+	uint32	reqCreateAndLoginTotalCount;
+	uint32 reqCreateAndLoginTickCount = 0;
+	float reqCreateAndLoginTickTime = 0;
+
+	if(PyTuple_Size(args) == 1)
+	{
+		if(PyArg_ParseTuple(args, "I", &reqCreateAndLoginTotalCount) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args is error!");
+			PyErr_PrintEx(0);
+			return NULL;
+		}
+
+		Bots::getSingleton().reqCreateAndLoginTotalCount(
+			Bots::getSingleton().reqCreateAndLoginTotalCount() + reqCreateAndLoginTotalCount);
+	}
+	else if(PyTuple_Size(args) == 3)
+	{
+		if(PyArg_ParseTuple(args, "I|I|f", &reqCreateAndLoginTotalCount, 
+			&reqCreateAndLoginTickCount, &reqCreateAndLoginTickTime) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args is error!");
+			PyErr_PrintEx(0);
+			return NULL;
+		}
+
+		Bots::getSingleton().reqCreateAndLoginTotalCount(
+			Bots::getSingleton().reqCreateAndLoginTotalCount() + reqCreateAndLoginTotalCount);
+
+		if(reqCreateAndLoginTickCount > 0)
+			Bots::getSingleton().reqCreateAndLoginTickCount(reqCreateAndLoginTickCount);
+		
+		if(reqCreateAndLoginTickTime > 0)
+			Bots::getSingleton().reqCreateAndLoginTickTime(reqCreateAndLoginTickTime);
+	}
+	else
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args is error!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------

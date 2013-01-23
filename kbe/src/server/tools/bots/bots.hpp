@@ -103,14 +103,29 @@ public:
 	CLIENTS& clients(){ return clients_; }
 
 	uint32 reqCreateAndLoginTotalCount(){ return reqCreateAndLoginTotalCount_; }
+	void reqCreateAndLoginTotalCount(uint32 v){ reqCreateAndLoginTotalCount_ = v; }
+
 	uint32 reqCreateAndLoginTickCount(){ return reqCreateAndLoginTickCount_; }
+	void reqCreateAndLoginTickCount(uint32 v){ reqCreateAndLoginTickCount_ = v; }
+
 	float reqCreateAndLoginTickTime(){ return reqCreateAndLoginTickTime_; }
+	void reqCreateAndLoginTickTime(float v){ reqCreateAndLoginTickTime_ = v; }
 
 	bool addClient(ClientObject* pClient);
 	bool delClient(ClientObject* pClient);
 
 	ClientObject* findClient(Mercury::Channel * pChannel);
 	ClientObject* findClientByAppID(int32 appID);
+
+	static PyObject* __py_addBots(PyObject* self, PyObject* args);
+
+	/** 网络接口
+	   添加bots
+	   @total uint32: 总共添加的个数
+	   @ticknum uint32: 每个tick添加多少个
+	   @ticktime float: 一个tick的时间
+	*/
+	virtual void addBots(Mercury::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 		某个app向本app告知处于活动状态。
