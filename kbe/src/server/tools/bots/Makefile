@@ -4,7 +4,6 @@ SRCS =						\
 	bots_interface				\
 	clientobject				\
 	create_and_login_handler		\
-	entity					\
 	profile					\
 	main					\
 	pybots

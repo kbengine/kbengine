@@ -117,7 +117,15 @@ PyObject* UInt64Type::parseDefaultStr(std::string defaultVal)
 		stream >> val;
 	}
 
-	return PyLong_FromUnsignedLongLong(val);
+	PyObject* pyval = PyLong_FromUnsignedLongLong(val);
+
+	if (PyErr_Occurred()) 
+	{
+		S_RELEASE(pyval);
+		return PyLong_FromUnsignedLongLong(0);
+	}
+
+	return pyval;
 }
 
 //-------------------------------------------------------------------------------------
@@ -133,7 +141,18 @@ PyObject* UInt64Type::createFromStream(MemoryStream* mstream)
 	uint64 val = 0;
 	if(mstream)
 		(*mstream) >> val;	
-	return PyLong_FromUnsignedLongLong(val);
+
+	PyObject* pyval = PyLong_FromUnsignedLongLong(val);
+
+	if (PyErr_Occurred()) 
+	{
+		PyErr_Format(PyExc_TypeError, "UInt64Type::createFromStream: errval=%"PRIu64", default return is 0", val);
+		PyErr_PrintEx(0);
+		S_RELEASE(pyval);
+		return PyLong_FromUnsignedLongLong(0);
+	}
+
+	return pyval;
 }
 
 //-------------------------------------------------------------------------------------
@@ -191,7 +210,15 @@ PyObject* UInt32Type::parseDefaultStr(std::string defaultVal)
 		stream >> val;
 	}
 
-	return PyLong_FromUnsignedLong(val);
+	PyObject* pyval = PyLong_FromUnsignedLong(val);
+
+	if (PyErr_Occurred()) 
+	{
+		S_RELEASE(pyval);
+		return PyLong_FromUnsignedLong(0);
+	}
+
+	return pyval;
 }
 
 //-------------------------------------------------------------------------------------
@@ -207,7 +234,18 @@ PyObject* UInt32Type::createFromStream(MemoryStream* mstream)
 	uint32 val = 0;
 	if(mstream)
 		(*mstream) >> val;	
-	return PyLong_FromUnsignedLong(val);
+
+	PyObject* pyval = PyLong_FromUnsignedLong(val);
+
+	if (PyErr_Occurred()) 
+	{
+		PyErr_Format(PyExc_TypeError, "UInt32Type::createFromStream: errval=%u, default return is 0", val);
+		PyErr_PrintEx(0);
+		S_RELEASE(pyval);
+		return PyLong_FromUnsignedLong(0);
+	}
+
+	return pyval;
 }
 
 //-------------------------------------------------------------------------------------
@@ -260,7 +298,15 @@ PyObject* Int64Type::parseDefaultStr(std::string defaultVal)
 		stream >> val;
 	}
 
-	return PyLong_FromLongLong(val);
+	PyObject* pyval = PyLong_FromLongLong(val);
+
+	if (PyErr_Occurred()) 
+	{
+		S_RELEASE(pyval);
+		return PyLong_FromLongLong(0);
+	}
+
+	return pyval;
 }
 
 //-------------------------------------------------------------------------------------
@@ -276,7 +322,18 @@ PyObject* Int64Type::createFromStream(MemoryStream* mstream)
 	int64 val = 0;
 	if(mstream)
 		(*mstream) >> val;	
-	return PyLong_FromLongLong(val);
+
+	PyObject* pyval = PyLong_FromLongLong(val);
+
+	if (PyErr_Occurred()) 
+	{
+		PyErr_Format(PyExc_TypeError, "Int64Type::createFromStream: errval=%"PRI64", default return is 0", val);
+		PyErr_PrintEx(0);
+		S_RELEASE(pyval);
+		return PyLong_FromLongLong(0);
+	}
+
+	return pyval;
 }
 
 //-------------------------------------------------------------------------------------
@@ -316,7 +373,15 @@ PyObject* FloatType::parseDefaultStr(std::string defaultVal)
 		stream >> val;
 	}
 
-	return PyFloat_FromDouble(val);
+	PyObject* pyval = PyFloat_FromDouble(val);
+
+	if (PyErr_Occurred()) 
+	{
+		S_RELEASE(pyval);
+		return PyFloat_FromDouble(0.0f);
+	}
+
+	return pyval;
 }
 
 //-------------------------------------------------------------------------------------
@@ -332,7 +397,18 @@ PyObject* FloatType::createFromStream(MemoryStream* mstream)
 	float val = 0.0;
 	if(mstream)
 		(*mstream) >> val;	
-	return PyFloat_FromDouble(val);
+
+	PyObject* pyval = PyFloat_FromDouble(val);
+
+	if (PyErr_Occurred()) 
+	{
+		PyErr_Format(PyExc_TypeError, "UInt32Type::createFromStream: errval=%f, default return is 0", val);
+		PyErr_PrintEx(0);
+		S_RELEASE(pyval);
+		return PyFloat_FromDouble(0);
+	}
+
+	return pyval;
 }
 
 //-------------------------------------------------------------------------------------
@@ -372,7 +448,15 @@ PyObject* DoubleType::parseDefaultStr(std::string defaultVal)
 		stream >> val;
 	}
 
-	return PyFloat_FromDouble(val);
+	PyObject* pyval = PyFloat_FromDouble(val);
+
+	if (PyErr_Occurred()) 
+	{
+		S_RELEASE(pyval);
+		return PyFloat_FromDouble(0.0f);
+	}
+
+	return pyval;
 }
 
 //-------------------------------------------------------------------------------------
@@ -387,7 +471,18 @@ PyObject* DoubleType::createFromStream(MemoryStream* mstream)
 	double val = 0.0;
 	if(mstream)
 		(*mstream) >> val;	
-	return PyFloat_FromDouble(val);
+
+	PyObject* pyval = PyFloat_FromDouble(val);
+
+	if (PyErr_Occurred()) 
+	{
+		PyErr_Format(PyExc_TypeError, "UInt32Type::createFromStream: errval=%lf, default return is 0", val);
+		PyErr_PrintEx(0);
+		S_RELEASE(pyval);
+		return PyFloat_FromDouble(0);
+	}
+
+	return pyval;
 }
 
 //-------------------------------------------------------------------------------------

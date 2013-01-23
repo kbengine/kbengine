@@ -98,7 +98,15 @@ PyObject* IntType<SPECIFY_TYPE>::parseDefaultStr(std::string defaultVal)
 		stream >> i;
 	}
 
-	return PyLong_FromLong(i);
+	PyObject* pyval = PyLong_FromLong(i);
+
+	if (PyErr_Occurred()) 
+	{
+		S_RELEASE(pyval);
+		return PyLong_FromLong(0);
+	}
+
+	return pyval;
 }
 
 //-------------------------------------------------------------------------------------
@@ -118,7 +126,17 @@ PyObject* IntType<SPECIFY_TYPE>::createFromStream(MemoryStream* mstream)
 	if(mstream)
 		(*mstream) >> val;
 
-	return PyLong_FromLong(val);
+	PyObject* pyval = PyLong_FromLong(val);
+
+	if (PyErr_Occurred()) 
+	{
+		PyErr_Format(PyExc_TypeError, "IntType::createFromStream: errval=%d, default return is 0", val);
+		PyErr_PrintEx(0);
+		S_RELEASE(pyval);
+		return PyLong_FromLong(0);
+	}
+
+	return pyval;
 }
 
 }
