@@ -110,7 +110,7 @@ bool Bots::installPyModules()
 //-------------------------------------------------------------------------------------
 bool Bots::uninstallPyModules()
 {
-	Py_DECREF(pPyBots_);
+	Py_XDECREF(pPyBots_);
 	pPyBots_ = NULL;
 
 	ClientObject::uninstallScript();
@@ -304,6 +304,8 @@ bool Bots::addClient(ClientObject* pClient)
 bool Bots::delClient(ClientObject* pClient)
 {
 	clients().erase(pClient->pServerChannel());
+	pClient->finalise();
+	Py_DECREF(pClient);
 	return true;
 }
 

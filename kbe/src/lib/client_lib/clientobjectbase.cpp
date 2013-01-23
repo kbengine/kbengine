@@ -75,16 +75,23 @@ bufferedCreateEntityMessage_()
 //-------------------------------------------------------------------------------------
 ClientObjectBase::~ClientObjectBase()
 {
-	pServerChannel_->decRef();
-	pServerChannel_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------		
 void ClientObjectBase::finalise(void)
 {
-	pEntities_->finalise();
-	S_RELEASE(pEntities_);
-	Py_DECREF(this);
+	if(pEntities_)
+	{
+		pEntities_->finalise();
+		S_RELEASE(pEntities_);
+	}
+
+	if(pServerChannel_)
+	{
+		pServerChannel_->destroy();
+		pServerChannel_->decRef();
+		pServerChannel_ = NULL;
+	}
 }
 
 //-------------------------------------------------------------------------------------

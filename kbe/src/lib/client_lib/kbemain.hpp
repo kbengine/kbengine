@@ -139,6 +139,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	if(!pApp->initialize()){
 		ERROR_MSG("app::initialize is error!\n");
 		pApp->finalise();
+		Py_DECREF(pApp);
 		uninstallPyScript(script);
 		return -1;
 	}
@@ -146,6 +147,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	INFO_MSG(boost::format("---- %1% is running ----\n") % COMPONENT_NAME_EX(componentType));
 	int ret = pApp->run();
 	pApp->finalise();
+	Py_DECREF(pApp);
 	uninstallPyScript(script);
 	INFO_MSG(boost::format("%1% has shut down.\n") % COMPONENT_NAME_EX(componentType));
 	return ret;
