@@ -43,7 +43,7 @@ extern bool g_packetAlwaysContainLength;
 			3: 10进制输出
 		use_logfile:
 			是否独立一个log文件来记录包内容，文件名通常为
-			appname_packets.log
+			appname_packetlogs.log
 		g_trace_packet_disables:
 			关闭某些包的输出
 */

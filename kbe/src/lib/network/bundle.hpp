@@ -55,11 +55,7 @@ class Channel;
 	if(Mercury::g_trace_packet > 0)																			\
 	{																										\
 		if(Mercury::g_trace_packet_use_logfile)																\
-		{																									\
-			std::string logname = COMPONENT_NAME_EX(g_componentType);										\
-			logname += "_packets";																			\
-			DebugHelper::getSingleton().changeLogger(logname);												\
-		}																									\
+			DebugHelper::getSingleton().changeLogger("packetlogs");											\
 																											\
 		bool isprint = true;																				\
 		if(pCurrMsgHandler)																					\
@@ -74,12 +70,12 @@ class Channel;
 			}																								\
 			else																							\
 			{																								\
-			DEBUG_MSG(boost::format("%1% %2%:msgID:%3%, currMsgLength:%4%, addr:%5%\n") %					\
-					((isrecv == true) ? "====>" : "<====") %												\
-					pCurrMsgHandler->name.c_str() %															\
-					bundle->messageID() %																	\
-					length %																				\
-					addr);																					\
+				DEBUG_MSG(boost::format("%1% %2%:msgID:%3%, currMsgLength:%4%, addr:%5%\n") %				\
+						((isrecv == true) ? "====>" : "<====") %											\
+						pCurrMsgHandler->name.c_str() %														\
+						bundle->messageID() %																\
+						length %																			\
+						addr);																				\
 			}																								\
 		}																									\
 																											\
@@ -100,7 +96,7 @@ class Channel;
 		}																									\
 																											\
 		if(Mercury::g_trace_packet_use_logfile)																\
-			DebugHelper::getSingleton().changeLogger("default");											\
+			DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));					\
 	}																										\
 
 
