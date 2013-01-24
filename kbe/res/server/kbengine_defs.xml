@@ -20,7 +20,7 @@
 	-->
 	<trace_packet>
 		<debug_type>0</debug_type>
-		<use_logfile>true</use_logfile>
+		<use_logfile>false</use_logfile>
 		<disables>
 			<item>Baseappmgr::updateBaseapp</item>
 		</disables>
