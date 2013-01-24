@@ -189,7 +189,10 @@ void Bundle::finish(bool issend)
 	if(issend)
 	{
 		currMsgHandlerLength_ = 0;
-		TRACE_BUNDLE_DATA(false, pCurrPacket_, pCurrMsgHandler_, this->totalSize());
+
+		TRACE_BUNDLE_DATA(false, pCurrPacket_, pCurrMsgHandler_, this->totalSize(), 
+			(pChannel_ != NULL ? pChannel_->c_str() : "None"));
+
 		pCurrPacket_ = NULL;
 	}
 
@@ -252,6 +255,7 @@ void Bundle::clear(bool isRecl)
 void Bundle::send(NetworkInterface & networkInterface, Channel * pChannel)
 {
 	//AUTO_SCOPED_PROFILE("sendBundle");
+	pChannel_ = pChannel;
 	finish();
 	networkInterface.send(*this, pChannel);
 }

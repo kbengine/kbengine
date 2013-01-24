@@ -29,7 +29,7 @@ namespace Mercury
 bool g_packetAlwaysContainLength = false;
 
 uint8 g_trace_packet = 0;
-
+bool g_trace_packet_use_logfile = false;
 std::vector<std::string> g_trace_packet_disables;
 
 }

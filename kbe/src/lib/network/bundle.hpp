@@ -51,9 +51,16 @@ class Channel;
 	return *this;																							\
 
 
-#define TRACE_BUNDLE_DATA(isrecv, bundle, pCurrMsgHandler, length)											\
+#define TRACE_BUNDLE_DATA(isrecv, bundle, pCurrMsgHandler, length, addr)									\
 	if(Mercury::g_trace_packet > 0)																			\
 	{																										\
+		if(Mercury::g_trace_packet_use_logfile)																\
+		{																									\
+			std::string logname = COMPONENT_NAME_EX(g_componentType);										\
+			logname += "_packets";																			\
+			DebugHelper::getSingleton().changeLogger(logname);												\
+		}																									\
+																											\
 		bool isprint = true;																				\
 		if(pCurrMsgHandler)																					\
 		{																									\
@@ -67,11 +74,12 @@ class Channel;
 			}																								\
 			else																							\
 			{																								\
-				DEBUG_MSG(boost::format("%1% %2%:msgID:%3%, currMsgLength:%4%\n") %							\
+			DEBUG_MSG(boost::format("%1% %2%:msgID:%3%, currMsgLength:%4%, addr:%s\n") %					\
 					((isrecv == true) ? "====>" : "<====") %												\
 					pCurrMsgHandler->name.c_str() %															\
 					bundle->messageID() %																	\
-					length);																				\
+					length %																				\
+					addr);																					\
 			}																								\
 		}																									\
 																											\
@@ -90,6 +98,9 @@ class Channel;
 				break;																						\
 			};																								\
 		}																									\
+																											\
+		if(Mercury::g_trace_packet_use_logfile)																\
+			DebugHelper::getSingleton().changeLogger("default");											\
 	}																										\
 
 
@@ -154,7 +165,7 @@ public:
 
 		if(fwpos >= packetmaxsize)
 		{
-			TRACE_BUNDLE_DATA(false, pCurrPacket_, pCurrMsgHandler_, totalsize);
+			TRACE_BUNDLE_DATA(false, pCurrPacket_, pCurrMsgHandler_, totalsize, "None");
 			packets_.push_back(pCurrPacket_);
 			currMsgPacketCount_++;
 			newPacket();

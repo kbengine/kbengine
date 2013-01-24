@@ -515,7 +515,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 
 					if(pMsgHandler == NULL)
 					{
-						TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, pPacket->totalSize());
+						TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, pPacket->totalSize(), this->c_str());
 						WARNING_MSG(boost::format("Channel::handleMessage: invalide msgID=%1%, msglen=%2%, from %3%.\n") %
 							currMsgID_ % pPacket->totalSize() % c_str());
 
@@ -525,7 +525,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 						break;
 					}
 
-					TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, pPacket->totalSize());
+					TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, pPacket->totalSize(), this->c_str());
 
 					// 如果没有可操作的数据了则退出等待下一个包处理。
 					//if(pPacket->opsize() == 0)	// 可能是一个无参数数据包

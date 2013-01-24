@@ -75,7 +75,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(Mercury::g_trace_packet > 3)
 			Mercury::g_trace_packet = 0;
 
-		childnode = NULL;
+		childnode = xml->enterNode(rootNode, "use_logfile");
+		if(childnode)
+			Mercury::g_trace_packet_use_logfile = (xml->getValStr(childnode) == "true");
+
 		childnode = xml->enterNode(rootNode, "disables");
 		if(childnode)
 		{

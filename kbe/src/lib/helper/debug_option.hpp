@@ -41,11 +41,16 @@ extern bool g_packetAlwaysContainLength;
 			1: 16进制输出
 			2: 字符流输出
 			3: 10进制输出
+		use_logfile:
+			是否独立一个log文件来记录包内容，文件名通常为
+			appname_packets.log
 		g_trace_packet_disables:
 			关闭某些包的输出
 */
 extern uint8 g_trace_packet;
 extern std::vector<std::string> g_trace_packet_disables;
+extern bool g_trace_packet_use_logfile;
+
 }
 
 /**
