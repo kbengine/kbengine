@@ -222,7 +222,11 @@ PyObject* MethodDescription::call(PyObject* func, PyObject* args)
 			pyResult = PyObject_CallObject(func, args);
 	}
 
-	SCRIPT_ERROR_CHECK();
+ 	if (PyErr_Occurred())
+ 	{
+		PyErr_PrintEx(0);
+	}
+
 	return pyResult;
 }
 

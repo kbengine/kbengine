@@ -95,7 +95,7 @@ public:
 	INLINE float aoiHysteresisArea()const;
 
 	typedef std::vector<Mercury::Bundle*> Bundles;
-	Bundles & bundles();
+	Bundles* pBundles();
 
 	void update();
 

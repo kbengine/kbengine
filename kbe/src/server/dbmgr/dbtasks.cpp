@@ -639,6 +639,25 @@ bool DBTaskAccountLogin::db_thread_process()
 	if(info.dbid == 0)
 		return false;
 
+	if(kbe_stricmp(g_kbeSrvConfig.billingSystemType(), "normal") == 0)
+	{
+		unsigned char md[16];
+		MD5((unsigned char *)password_.c_str(), password_.length(), md);
+
+		char tmp[3]={'\0'}, md5password[33] = {'\0'};
+		for (int i = 0; i < 16; i++)
+		{
+			sprintf(tmp,"%2.2X", md[i]);
+			strcat(md5password, tmp);
+		}
+
+		if(kbe_stricmp(info.password.c_str(), md5password) != 0)
+		{
+			success_ = false;
+			return false;
+		}
+	}
+
 	KBEEntityLogTable::EntityLog entitylog;
 
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();

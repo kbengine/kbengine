@@ -91,14 +91,19 @@ void Witness::onReclaimObject()
 }
 
 //-------------------------------------------------------------------------------------
-Witness::Bundles & Witness::bundles()
+Witness::Bundles* Witness::pBundles()
 {
-	KBE_ASSERT(pEntity_);
-	KBE_ASSERT(pEntity_->getClientMailbox());
-	Mercury::Channel* pChannel = pEntity_->getClientMailbox()->getChannel();
-	KBE_ASSERT(pChannel);
+	if(pEntity_ == NULL)
+		return NULL;
 
-	return pChannel->bundles();
+	if(!pEntity_->getClientMailbox())
+		return NULL;
+
+	Mercury::Channel* pChannel = pEntity_->getClientMailbox()->getChannel();
+	if(!pChannel)
+		return NULL;
+
+	return &pChannel->bundles();
 }
 
 //-------------------------------------------------------------------------------------
@@ -126,8 +131,16 @@ void Witness::update()
 //-------------------------------------------------------------------------------------
 bool Witness::sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle)
 {
-	bundles().push_back(pBundle);
-	return true;
+	Bundles* lpBundles = pBundles();
+
+	if(lpBundles)
+	{
+		lpBundles->push_back(pBundle);
+		return true;
+	}
+
+	ERROR_MSG(boost::format("Witness::sendToClient: %1% pBundles is NULL, not found channel.\n") % pEntity_->getID());
+	return false;
 }
 
 //-------------------------------------------------------------------------------------

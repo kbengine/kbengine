@@ -93,6 +93,11 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	g_kbeSrvConfig.updateInfos(true, componentType, g_componentID, 
 			networkInterface.intaddr(), networkInterface.extaddr());
 	
+	if(getUserUID() <= 0)
+	{
+		WARNING_MSG(boost::format("invalid UID(%1%) <= 0, please check UID for environment!\n") % getUserUID());
+	}
+
 	Componentbridge* pComponentbridge = new Componentbridge(networkInterface, componentType, g_componentID);
 	SERVER_APP app(dispatcher, networkInterface, componentType, g_componentID);
 	START_MSG(COMPONENT_NAME_EX(componentType), g_componentID);

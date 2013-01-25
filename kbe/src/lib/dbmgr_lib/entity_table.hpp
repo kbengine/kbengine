@@ -69,6 +69,13 @@ enum DB_TABLE_OP
 
 struct ACCOUNT_INFOS
 {
+	ACCOUNT_INFOS()
+	{
+		name = "";
+		password = "";
+		dbid = 0;
+	}
+
 	std::string name, password;
 	DBID dbid;
 };
