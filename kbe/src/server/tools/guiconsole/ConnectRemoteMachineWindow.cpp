@@ -272,6 +272,7 @@ void CConnectRemoteMachineWindow::loadHistory()
 	pDocument->Clear();
 	delete pDocument;
 }	
+
 void CConnectRemoteMachineWindow::OnLbnDblclkList1()
 {
 	// TODO: Add your control notification handler code here

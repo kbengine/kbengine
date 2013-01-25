@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "guiconsole.h"
 #include "guiconsoleDlg.h"
+#include "StartServerWindow.h"
 #include "network/bundle_broadcast.hpp"
 #include "network/message_handler.hpp"
 #include "server/components.hpp"
@@ -1509,6 +1510,7 @@ void CguiconsoleDlg::OnToolBar_Find()
 
 void CguiconsoleDlg::OnToolBar_StartServer()
 {
+	/*
 	COMPONENT_TYPE startComponentTypes[] = {BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
 	
 	int i = 0;
@@ -1567,6 +1569,11 @@ void CguiconsoleDlg::OnToolBar_StartServer()
 	Components::getSingleton().delComponent(Components::ANY_UID, RESOURCEMGR_TYPE, 0, true, false);
 	Components::getSingleton().delComponent(Components::ANY_UID, BOTS_TYPE, 0, true, false);
 	::SetTimer(m_hWnd, 2, 1000, NULL);
+	*/
+
+
+	CStartServerWindow dlg;
+	dlg.DoModal();
 }
 
 void CguiconsoleDlg::OnToolBar_StopServer()

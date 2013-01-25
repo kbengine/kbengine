@@ -251,6 +251,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\StartServerLayoutWindow.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\StartServerWindow.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\StatusWindow.cpp"
 				>
 			</File>
@@ -342,6 +350,14 @@
 			</File>
 			<File
 				RelativePath=".\SpaceViewWindow.h"
+				>
+			</File>
+			<File
+				RelativePath=".\StartServerLayoutWindow.h"
+				>
+			</File>
+			<File
+				RelativePath=".\StartServerWindow.h"
 				>
 			</File>
 			<File
