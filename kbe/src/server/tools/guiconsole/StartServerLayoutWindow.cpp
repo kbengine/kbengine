@@ -33,6 +33,7 @@ void CStartServerLayoutWindow::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CStartServerLayoutWindow, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON1, &CStartServerLayoutWindow::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BUTTON2, &CStartServerLayoutWindow::OnBnClickedButton2)
 END_MESSAGE_MAP()
 
 // CStartServerWindow message handlers
@@ -82,6 +83,7 @@ BOOL CStartServerLayoutWindow::OnInitDialog()
 		i++;
 		m_log.AddString((*iter));
 	}
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -124,6 +126,13 @@ void CStartServerLayoutWindow::saveHistory()
 	fname[len + 1] = '\0';
 
 	pDocument->SaveFile(fname);
+
+	m_log.ResetContent();
+	std::deque<CString>::iterator iter1 = m_historyCommand.begin();
+	for(; iter1 != m_historyCommand.end(); iter1++)
+	{
+		m_log.AddString((*iter1));
+	}
 }
 
 void CStartServerLayoutWindow::loadHistory()
@@ -161,6 +170,75 @@ void CStartServerLayoutWindow::loadHistory()
 // CStartServerLayoutWindow message handlers
 
 void CStartServerLayoutWindow::OnBnClickedButton1()
+{
+	// TODO: Add your control notification handler code here
+
+	int i = m_componentlist.GetCurSel();
+
+	if(i < 0)
+	{
+		AfxMessageBox(L"no select componentType!");
+		return;
+	}
+
+	CString s;
+	m_componentlist.GetText(i, s);
+
+	byte ips[4];
+
+	if (0 == m_ip.GetAddress(ips[0],ips[1],ips[2],ips[3]))
+	{
+		AfxMessageBox(L"address is error!");
+		return;
+	}
+	
+	char strip[256];
+	sprintf_s(strip, 256, "%d.%d.%d.%d", ips[0],ips[1],ips[2],ips[3]);
+	
+	KBEngine::u_int16_t port = 0;
+	CString sport;
+	m_port.GetWindowTextW(sport);
+
+	char* csport = KBEngine::strutil::wchar2char(sport.GetBuffer(0));
+	port = atoi(csport);
+
+	std::string command = strip;
+	command += ":";
+	command += csport;
+	free(csport);
+
+	m_list.InsertItem(0, s.GetBuffer());
+
+	wchar_t* ws = KBEngine::strutil::char2wchar(command.c_str());
+	m_list.SetItemText(0, 1, ws);
+	free(ws);
+
+
+	wchar_t* wcommand = KBEngine::strutil::char2wchar(command.c_str());
+	bool found = false;
+	std::deque<CString>::iterator iter = m_historyCommand.begin();
+	for(; iter != m_historyCommand.end(); iter++)
+	{
+		if((*iter) == wcommand)
+		{
+			found = true;
+			break;
+		}
+	}
+	
+	if(!found)
+	{
+		m_historyCommand.push_front(wcommand);
+		if(m_historyCommand.size() > 10)
+			m_historyCommand.pop_back();
+
+		saveHistory();
+	}
+
+	free(wcommand);
+}
+
+void CStartServerLayoutWindow::OnBnClickedButton2()
 {
 	// TODO: Add your control notification handler code here
 }

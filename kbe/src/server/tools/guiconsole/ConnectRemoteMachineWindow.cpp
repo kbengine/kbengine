@@ -41,6 +41,8 @@ BOOL CConnectRemoteMachineWindow::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 	
+	m_port.SetWindowTextW(L"20099");
+
 	loadHistory();
 
 	int i = 0;
@@ -78,6 +80,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	if (0 == m_ip.GetAddress(ips[0],ips[1],ips[2],ips[3]))
 	{
 		AfxMessageBox(L"address is error!");
+		return;
 	}
 	
 	char strip[256];
@@ -197,6 +200,7 @@ END:
 	}
 
 	free(wcommand);
+
 	OnOK(); 
 }
 
@@ -239,6 +243,13 @@ void CConnectRemoteMachineWindow::saveHistory()
 	fname[len + 1] = '\0';
 
 	pDocument->SaveFile(fname);
+
+	m_log.ResetContent();
+	std::deque<CString>::iterator iter1 = m_historyCommand.begin();
+	for(; iter1 != m_historyCommand.end(); iter1++)
+	{
+		m_log.AddString((*iter1));
+	}
 }
 
 void CConnectRemoteMachineWindow::loadHistory()

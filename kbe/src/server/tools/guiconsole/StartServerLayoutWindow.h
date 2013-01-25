@@ -33,4 +33,5 @@ public:
 	std::deque<CString> m_historyCommand;
 	CListBox m_log;
 	CIPAddressCtrl m_ip;
+	afx_msg void OnBnClickedButton2();
 };
