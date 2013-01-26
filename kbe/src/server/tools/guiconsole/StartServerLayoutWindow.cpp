@@ -248,7 +248,9 @@ void CStartServerLayoutWindow::OnBnClickedButton2()
 	CString layoutname = dlg.m_name;
 	if(layoutname.GetLength() <= 0)
 	{
-		::AfxMessageBox(L"no name.");
+		::AfxMessageBox(L"is failed!");
 		return;
 	}
+
+	::AfxMessageBox(L"successfully!");
 }

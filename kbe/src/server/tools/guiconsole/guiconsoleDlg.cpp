@@ -217,6 +217,7 @@ RESTART_RECV:
 						//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
 						//	COMPONENT_NAME_EX(findComponentType));
 						//ifind++;
+						isContinue = true;
 						continue;
 					}
 

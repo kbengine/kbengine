@@ -115,7 +115,8 @@ void EntityMailboxAbstract::newMail(Mercury::Bundle& bundle)
 			}
 			else
 			{
-				ERROR_MSG("EntityMailboxAbstract::newMail: not found component!\n");
+				ERROR_MSG(boost::format("EntityMailboxAbstract::newMail: not found component(%1%)!\n") 
+					% componentID_);
 			}
 		}
 
