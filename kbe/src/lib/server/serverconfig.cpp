@@ -153,13 +153,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		{
 			TiXmlNode* childnode1 = xml->enterNode(childnode, "internal");
 			if(childnode1)
-				Mercury::g_intReceiveWindowOverflow = KBE_MAX(16, xml->getValInt(childnode));
+				Mercury::g_intReceiveWindowOverflow = KBE_MAX(16, xml->getValInt(childnode1));
 
 			childnode1 = xml->enterNode(childnode, "external");
 			if(childnode1)
-				Mercury::g_extReceiveWindowOverflow = KBE_MAX(16, xml->getValInt(childnode));
-
-			
+				Mercury::g_extReceiveWindowOverflow = KBE_MAX(16, xml->getValInt(childnode1));
 		};
 	}
 
