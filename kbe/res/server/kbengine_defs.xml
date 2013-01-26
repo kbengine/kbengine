@@ -42,7 +42,7 @@
 			<external>	0			</external>				<!-- 系统默认 -->
 		</readBufferSize>
 		<writeBufferSize> 
-			<internal>	0	</internal>						<!-- 系统默认 -->
+			<internal>	16777216	</internal>				<!-- 16M -->
 			<external>	0			</external>				<!-- 系统默认 -->
 		</writeBufferSize>
 	</channelCommon> 
@@ -179,7 +179,7 @@
 			tickcount： 每次添加数量
 		-->
 		<defaultAddBots> 
-			<totalcount> 10  </totalcount> <!-- Type: Integer -->
+			<totalcount> 100  </totalcount> <!-- Type: Integer -->
 			<ticktime> 0.1  </ticktime> <!-- Type: Float -->
 			<tickcount> 2  </tickcount> <!-- Type: Integer -->
 		</defaultAddBots>							
