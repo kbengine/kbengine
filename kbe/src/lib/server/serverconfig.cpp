@@ -147,6 +147,20 @@ bool ServerConfig::loadConfig(std::string fileName)
 			if(childnode1)
 				channelCommon_.extWriteBufferSize = KBE_MAX(0, xml->getValInt(childnode1));
 		}
+
+		childnode = xml->enterNode(rootNode, "receiveWindowOverflow");
+		if(childnode)
+		{
+			TiXmlNode* childnode1 = xml->enterNode(childnode, "internal");
+			if(childnode1)
+				Mercury::g_intReceiveWindowOverflow = KBE_MAX(16, xml->getValInt(childnode));
+
+			childnode1 = xml->enterNode(childnode, "external");
+			if(childnode1)
+				Mercury::g_extReceiveWindowOverflow = KBE_MAX(16, xml->getValInt(childnode));
+
+			
+		};
 	}
 
 	rootNode = xml->getRootNode("gameUpdateHertz");

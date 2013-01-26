@@ -779,6 +779,7 @@ void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 	if(entity == NULL)
 	{
 		ERROR_MSG(boost::format("Cellapp::onEntityMail: entityID %1% not found.\n") % eid);
+		s.opfini();
 		return;
 	}
 	
@@ -831,6 +832,7 @@ void Cellapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 	};
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	s.opfini();
 }
 
 //-------------------------------------------------------------------------------------

@@ -45,6 +45,12 @@
 			<internal>	16777216	</internal>				<!-- 16M -->
 			<external>	0			</external>				<!-- 系统默认 -->
 		</writeBufferSize>
+		
+		<!-- channel接收窗口溢出值 -->
+		<receiveWindowOverflow>
+			<internal>	65535		</internal>
+			<external>	256			</external>	
+		</receiveWindowOverflow>
 	</channelCommon> 
 	
 	<billingSystem>

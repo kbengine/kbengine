@@ -428,7 +428,8 @@ void Channel::addReceiveWindow(Packet* pPacket)
 		WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: channel(%2%), buffered is overload(%3%).\n") % 
 			this % this->c_str() % (int)bufferedReceives_.size());
 
-		if(bufferedReceives_.size() > 256)
+		if(bufferedReceives_.size() > (this->isExternal() ? Mercury::g_extReceiveWindowOverflow : 
+			Mercury::g_intReceiveWindowOverflow))
 		{
 			this->condemn();
 		}

@@ -204,6 +204,10 @@ extern uint64						g_numPacketsReceived;
 extern uint64						g_numBytesSent;
 extern uint64						g_numBytesReceived;
 
+// 包接收窗口溢出
+extern uint32						g_intReceiveWindowOverflow;
+extern uint32						g_extReceiveWindowOverflow;
+
 bool initializeWatcher();
 void finalise(void);
 
