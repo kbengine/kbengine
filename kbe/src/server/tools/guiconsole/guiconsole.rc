@@ -194,6 +194,17 @@ BEGIN
     PUSHBUTTON      "save",IDC_BUTTON2,274,132,36,14
 END
 
+IDD_SET_LAYOUT_NAME DIALOGEX 0, 0, 262, 81
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "layout name"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,149,60,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,205,60,50,14
+    EDITTEXT        IDC_EDIT1,7,32,248,18,ES_AUTOHSCROLL
+    LTEXT           "layout name:",IDC_STATIC,7,19,43,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -288,6 +299,14 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 309
         TOPMARGIN, 7
+    END
+
+    IDD_SET_LAYOUT_NAME, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 255
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 74
     END
 END
 #endif    // APSTUDIO_INVOKED

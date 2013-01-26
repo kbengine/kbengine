@@ -247,6 +247,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SetLayoutNameWindow.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SpaceViewWindow.cpp"
 				>
 			</File>
@@ -346,6 +350,10 @@
 			</File>
 			<File
 				RelativePath=".\Resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SetLayoutNameWindow.h"
 				>
 			</File>
 			<File

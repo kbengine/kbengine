@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "guiconsole.h"
+#include "SetLayoutNameWindow.h"
 #include "StartServerLayoutWindow.h"
 #include "server/serverconfig.hpp"
 
@@ -241,4 +242,13 @@ void CStartServerLayoutWindow::OnBnClickedButton1()
 void CStartServerLayoutWindow::OnBnClickedButton2()
 {
 	// TODO: Add your control notification handler code here
+	CSetLayoutNameWindow dlg;
+	dlg.DoModal();
+
+	CString layoutname = dlg.m_name;
+	if(layoutname.GetLength() <= 0)
+	{
+		::AfxMessageBox(L"no name.");
+		return;
+	}
 }

@@ -23,6 +23,8 @@
 #define IDD_TIMINGLENGTH                141
 #define IDD_STARTSERVER                 142
 #define IDD_STARTSERVERLAYOUT           143
+#define IDD_DIALOG2                     144
+#define IDD_SET_LAYOUT_NAME             144
 #define IDC_TAB1                        1000
 #define IDC_LIST1                       1001
 #define IDC_EDIT1                       1002
@@ -47,7 +49,6 @@
 #define IDC_BUTTON4                     1022
 #define IDC_LIST2                       1025
 #define IDC_COMBO3                      1026
-#define IDC_APP_LIST11                  1027
 #define IDC_LIST3                       1028
 #define ID_32771                        32771
 #define ID_32772                        32772
@@ -61,7 +62,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        144
+#define _APS_NEXT_RESOURCE_VALUE        145
 #define _APS_NEXT_COMMAND_VALUE         32785
 #define _APS_NEXT_CONTROL_VALUE         1029
 #define _APS_NEXT_SYMED_VALUE           101
