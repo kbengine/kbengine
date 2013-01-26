@@ -192,6 +192,7 @@ windows:
 	~.bat
 
 	或者使用tools\server\guiconsole\guiconsole.exe来启动和关闭服务端。
+	(注意: windows版本仅用于测试， 由于使用select目前不支持大量连接。)
 
 ##日志:
 
