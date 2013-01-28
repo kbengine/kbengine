@@ -6,6 +6,7 @@
 #include "SetLayoutNameWindow.h"
 #include "StartServerLayoutWindow.h"
 #include "server/serverconfig.hpp"
+#include "StartServerWindow.h"
 
 // CStartServerLayoutWindow dialog
 
@@ -29,12 +30,17 @@ void CStartServerLayoutWindow::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT1, m_port);
 	DDX_Control(pDX, IDC_LIST2, m_log);
 	DDX_Control(pDX, IDC_IPADDRESS1, m_ip);
+	DDX_Control(pDX, IDC_COMBO1, m_layoutlist);
 }
 
 
 BEGIN_MESSAGE_MAP(CStartServerLayoutWindow, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON1, &CStartServerLayoutWindow::OnBnClickedButton1)
 	ON_BN_CLICKED(IDC_BUTTON2, &CStartServerLayoutWindow::OnBnClickedButton2)
+	ON_CBN_SELCHANGE(IDC_COMBO1, &CStartServerLayoutWindow::OnCbnSelchangeCombo1)
+	ON_BN_CLICKED(IDC_BUTTON3, &CStartServerLayoutWindow::OnBnClickedButton3)
+	ON_NOTIFY(HDN_ITEMCHANGED, 0, &CStartServerLayoutWindow::OnHdnItemchangedList1)
+	ON_BN_CLICKED(IDC_BUTTON4, &CStartServerLayoutWindow::OnBnClickedButton4)
 END_MESSAGE_MAP()
 
 // CStartServerWindow message handlers
@@ -83,6 +89,14 @@ BOOL CStartServerLayoutWindow::OnInitDialog()
 
 		i++;
 		m_log.AddString((*iter));
+	}
+
+	int count = static_cast<CStartServerWindow*>(this->GetParent())->m_layoutlist.GetCount();
+	for(int i=0; i<count; i++)
+	{
+		CString s;
+		static_cast<CStartServerWindow*>(this->GetParent())->m_layoutlist.GetLBText(i, s);
+		m_layoutlist.AddString(s);
 	}
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -253,4 +267,172 @@ void CStartServerLayoutWindow::OnBnClickedButton2()
 	}
 
 	::AfxMessageBox(L"successfully!");
+
+	char* cs = KBEngine::strutil::wchar2char(layoutname.GetBuffer(0));
+	std::vector<CStartServerWindow::LAYOUT_ITEM>& vec = static_cast<CStartServerWindow*>(this->GetParent())->layouts_[cs];
+	vec.clear();
+	free(cs);
+
+	int count = m_list.GetItemCount();
+	for(int i=0; i<count; i++)
+	{
+		CString s = m_list.GetItemText(i, 0);
+		cs = KBEngine::strutil::wchar2char(s.GetBuffer(0));
+		CStartServerWindow::LAYOUT_ITEM item;
+
+		item.componentName = cs;
+		free(cs);
+
+		s = m_list.GetItemText(i, 1);
+		cs = KBEngine::strutil::wchar2char(s.GetBuffer(0));
+		item.addr = cs;
+		free(cs);
+
+		vec.push_back(item);
+	}
+
+	static_cast<CStartServerWindow*>(this->GetParent())->saveLayouts();
+	static_cast<CStartServerWindow*>(this->GetParent())->loadLayouts();
+}
+
+void CStartServerLayoutWindow::OnCbnSelchangeCombo1()
+{
+	// TODO: Add your control notification handler code here
+	CString s;
+
+	if(m_layoutlist.GetEditSel() < 0 || m_layoutlist.GetEditSel() > (DWORD)m_layoutlist.GetCount())
+		return;
+
+	m_layoutlist.GetLBText(m_layoutlist.GetEditSel(), s);
+	
+	if(s.GetLength() <= 0 )
+		return;
+
+	m_list.DeleteAllItems();
+
+	char* cs = KBEngine::strutil::wchar2char(s.GetBuffer(0));
+	KBEUnordered_map< std::string, std::vector<CStartServerWindow::LAYOUT_ITEM> >::iterator iter = 
+		static_cast<CStartServerWindow*>(this->GetParent())->layouts_.find(cs);
+
+	free(cs);
+
+	if(iter == static_cast<CStartServerWindow*>(this->GetParent())->layouts_.end())
+	{
+		return;
+	}
+
+	std::vector<CStartServerWindow::LAYOUT_ITEM>::iterator iter1 = iter->second.begin();
+	for(; iter1 != iter->second.end(); iter1++)
+	{
+		CStartServerWindow::LAYOUT_ITEM& item = (*iter1);
+
+		wchar_t* ws1 = KBEngine::strutil::char2wchar(item.componentName.c_str());
+		wchar_t* ws2 = KBEngine::strutil::char2wchar(item.addr.c_str());
+
+		m_list.InsertItem(0, ws1);
+		m_list.SetItemText(0, 1, ws2);
+
+		free(ws1);
+		free(ws2);
+	}
+}
+
+void CStartServerLayoutWindow::OnBnClickedButton3()
+{
+	// TODO: Add your control notification handler code here
+	POSITION pos = m_list.GetFirstSelectedItemPosition(); 
+
+	if(NULL == pos) 
+		return; 
+
+	int nItem = m_list.GetNextSelectedItem(pos);
+
+	CStartServerWindow::LAYOUT_ITEM item1;
+
+	CString s = m_list.GetItemText(nItem, 0);
+	char* cs = KBEngine::strutil::wchar2char(s.GetBuffer(0));
+
+	item1.componentName = cs;
+	free(cs);
+
+	s = m_list.GetItemText(nItem, 1);
+	cs = KBEngine::strutil::wchar2char(s.GetBuffer(0));
+	item1.addr = cs;
+	free(cs);
+
+
+	if(m_layoutlist.GetEditSel() < 0 || m_layoutlist.GetEditSel() > (DWORD)m_layoutlist.GetCount())
+		return;
+
+	m_layoutlist.GetLBText(m_layoutlist.GetEditSel(), s);
+	
+	if(s.GetLength() <= 0 )
+		return;
+
+	cs = KBEngine::strutil::wchar2char(s.GetBuffer(0));
+	KBEUnordered_map< std::string, std::vector<CStartServerWindow::LAYOUT_ITEM> >::iterator iter = 
+		static_cast<CStartServerWindow*>(this->GetParent())->layouts_.find(cs);
+
+	free(cs);
+
+	if(iter == static_cast<CStartServerWindow*>(this->GetParent())->layouts_.end())
+	{
+		return;
+	}
+
+	bool found = false;
+	std::vector<CStartServerWindow::LAYOUT_ITEM>::iterator iter1 = iter->second.begin();
+	for(; iter1 != iter->second.end(); iter1++)
+	{
+		CStartServerWindow::LAYOUT_ITEM& item = (*iter1);
+		
+		if(item.addr == item1.addr && item.componentName == item1.componentName)
+		{
+			found = true;
+			iter->second.erase(iter1);
+			break;
+		}
+	}
+
+	if(found)
+		m_list.DeleteItem(nItem);
+}
+
+void CStartServerLayoutWindow::OnHdnItemchangedList1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMHEADER phdr = reinterpret_cast<LPNMHEADER>(pNMHDR);
+	// TODO: Add your control notification handler code here
+	*pResult = 0;
+
+}
+
+void CStartServerLayoutWindow::OnBnClickedButton4()
+{
+	CString s;
+
+	if(m_layoutlist.GetCurSel() < 0 || m_layoutlist.GetCurSel() > m_layoutlist.GetCount())
+		return;
+
+	m_layoutlist.GetLBText(m_layoutlist.GetCurSel(), s);
+
+	if(s.GetLength() <= 0 )
+		return;
+
+	m_list.DeleteAllItems();
+	m_layoutlist.DeleteString(m_layoutlist.GetCurSel());
+
+	char* cs = KBEngine::strutil::wchar2char(s.GetBuffer(0));
+	KBEUnordered_map< std::string, std::vector<CStartServerWindow::LAYOUT_ITEM> >::iterator iter = 
+		static_cast<CStartServerWindow*>(this->GetParent())->layouts_.find(cs);
+
+	free(cs);
+
+	if(iter == static_cast<CStartServerWindow*>(this->GetParent())->layouts_.end())
+	{
+		return;
+	}
+
+	static_cast<CStartServerWindow*>(this->GetParent())->layouts_.erase(iter);
+	static_cast<CStartServerWindow*>(this->GetParent())->saveLayouts();
+	static_cast<CStartServerWindow*>(this->GetParent())->loadLayouts();
 }

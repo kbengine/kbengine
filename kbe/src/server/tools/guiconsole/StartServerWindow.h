@@ -1,6 +1,8 @@
 #pragma once
 #include "afxcmn.h"
-
+#include "afxwin.h"
+#include <string>
+#include "cstdkbe/cstdkbe.hpp"
 
 // CStartServerWindow dialog
 
@@ -16,6 +18,9 @@ public:
 	enum { IDD = IDD_STARTSERVER };
 	
 	BOOL OnInitDialog();
+
+	void loadLayouts();
+	void saveLayouts();
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
@@ -25,4 +30,16 @@ public:
 	afx_msg void OnBnClickedButton4();
 	afx_msg void OnBnClickedButton2();
 	afx_msg void OnBnClickedButton3();
+	CComboBox m_layoutlist;
+
+	struct LAYOUT_ITEM
+	{
+		std::string componentName;
+		std::string addr;
+	};
+
+	KBEUnordered_map< std::string, std::vector<LAYOUT_ITEM> > layouts_;
+//	afx_msg void OnCbnSelchangeCombo3();
+	afx_msg void OnCbnSelchangeCombo3();
+	afx_msg void OnNMThemeChangedCombo3(NMHDR *pNMHDR, LRESULT *pResult);
 };
