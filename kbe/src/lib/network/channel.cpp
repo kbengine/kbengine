@@ -423,15 +423,25 @@ void Channel::addReceiveWindow(Packet* pPacket)
 {
 	bufferedReceives_.push_back(pPacket);
 
-	if(bufferedReceives_.size() > 10)
+	if(bufferedReceives_.size() > 32)
 	{
-		WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: channel(%2%), buffered is overload(%3%).\n") % 
-			this % this->c_str() % (int)bufferedReceives_.size());
-
-		if(bufferedReceives_.size() > (this->isExternal() ? Mercury::g_extReceiveWindowOverflow : 
-			Mercury::g_intReceiveWindowOverflow))
+		if(!this->isExternal())
 		{
-			this->condemn();
+			if(bufferedReceives_.size() >  Mercury::g_extReceiveWindowOverflow)
+			{
+				WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: internal channel(%2%), buffered is overload(%3%).\n") % 
+					this % this->c_str() % (int)bufferedReceives_.size());
+			}
+		}
+		else
+		{
+			WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: external channel(%2%), buffered is overload(%3%).\n") % 
+				this % this->c_str() % (int)bufferedReceives_.size());
+
+			if(bufferedReceives_.size() > Mercury::g_intReceiveWindowOverflow)
+			{
+				this->condemn();
+			}
 		}
 	}
 }
