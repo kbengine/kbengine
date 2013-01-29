@@ -416,29 +416,16 @@ void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	int32 uid = 0;
 	COMPONENT_TYPE componentType;
-	uint32 recvip;
-	uint16 recvport;
+
 	Mercury::Bundle bundle;
 	bool success = true;
 
 	s >> uid;
 	s >> componentType;
-	s >> recvip;
-	s >> recvport;
 
 
-	INFO_MSG(boost::format("Machine::startserver: uid=%1%, [%2%], addr:%3%, recvPort:%4%.\n") % 
-		uid %  COMPONENT_NAME[componentType] % 
-		inet_ntoa((struct in_addr&)recvip) % ntohs(recvport));
-
-	Mercury::EndPoint ep;
-	ep.socket(SOCK_DGRAM);
-
-	if (!ep.good())
-	{
-		ERROR_MSG("Machine::startserver: Failed to create socket.\n");
-		return;
-	}
+	INFO_MSG(boost::format("Machine::startserver: uid=%1%, [%2%], addr=%3%\n") % 
+		uid %  COMPONENT_NAME[componentType] % pChannel->c_str());
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	STARTUPINFO si;
@@ -479,7 +466,7 @@ void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 #endif
 	
 	bundle << success;
-	bundle.sendto(ep, recvport, recvip);
+	bundle.send(this->getNetworkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------
@@ -487,25 +474,15 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	int32 uid = 0;
 	COMPONENT_TYPE componentType;
-	uint32 recvip;
-	uint16 recvport;
 	Mercury::Bundle bundle;
 	bool success = true;
 
 	s >> uid;
 	s >> componentType;
-	s >> recvip;
-	s >> recvport;
-
-	Mercury::EndPoint ep;
-	ep.socket(SOCK_DGRAM);
-
-	if (!ep.good())
-	{
-		ERROR_MSG("Machine::stopserver: Failed to create socket.\n");
-		return;
-	}
 	
+	INFO_MSG(boost::format("Machine::stopserver: uid=%1%, [%2%], addr=%3%\n") % 
+		uid %  COMPONENT_NAME[componentType] % pChannel->c_str());
+
 	Components::COMPONENTS& components = Componentbridge::getComponents().getComponents(componentType);
 	Components::COMPONENTS::iterator iter = components.begin();
 
@@ -571,7 +548,7 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	}
 
 	bundle << success;
-	bundle.sendto(ep, recvport, recvip);
+	bundle.send(this->getNetworkInterface(), pChannel);
 }
 
 
