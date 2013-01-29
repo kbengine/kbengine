@@ -533,6 +533,7 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 			break;
 		}
 
+		ep1.setnonblocking(false);
 		closebundle.send(ep1);
 		Mercury::TCPPacket recvpacket;
 		recvpacket.resize(255);
