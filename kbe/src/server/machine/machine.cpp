@@ -491,10 +491,14 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 		Components::ComponentInfos* cinfos = &(*iter);
 
 		if(cinfos->uid != uid)
+		{
+			iter++;
 			continue;
+		}
 
 		if(componentType != cinfos->componentType)
 		{
+			iter++;
 			continue;
 		}
 
@@ -502,8 +506,8 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 		
 		if(!usable)
 		{
-			success = true;
-			break;
+			iter = components.erase(iter);
+			continue;
 		}
 
 		Mercury::Bundle closebundle;

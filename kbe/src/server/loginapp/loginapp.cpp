@@ -428,8 +428,8 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pC
 
 	Mercury::Address address(addr, port);
 
-	DEBUG_MSG(boost::format("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:%1%.\n") % 
-		address.c_str());
+	DEBUG_MSG(boost::format("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:accountName=%1%, addr=%2%.\n") % 
+		loginName % address.c_str());
 
 	// 这里可以不做删除， 仍然使其保留一段时间避免同一时刻同时登录造成意外影响
 	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(loginName);

@@ -180,6 +180,7 @@ bool Cellapp::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Cellapp::finalise()
 {
+	Spaces::finalise();
 	EntityApp<Entity>::finalise();
 }
 

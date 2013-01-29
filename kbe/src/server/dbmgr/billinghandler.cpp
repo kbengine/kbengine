@@ -125,7 +125,9 @@ pBillingChannel_(NULL)
 //-------------------------------------------------------------------------------------
 BillingHandler_ThirdParty::~BillingHandler_ThirdParty()
 {
-	//pBillingChannel_->decRef(); 由networkInterface自己解决
+	if(pBillingChannel_)
+		pBillingChannel_->decRef();
+
 	pBillingChannel_ = NULL;
 }
 
@@ -141,6 +143,12 @@ bool BillingHandler_ThirdParty::createAccount(Mercury::Channel* pChannel, std::s
 	(*(*bundle)) << pChannel->componentID();
 	(*(*bundle)) << registerName << password;
 	(*(*bundle)).appendBlob(datas);
+
+	if(pBillingChannel_->isDestroyed())
+	{
+		if(!this->reconnect())
+			return false;
+	}
 
 	(*(*bundle)).send(Dbmgr::getSingleton().getNetworkInterface(), pBillingChannel_);
 	return true;
@@ -185,6 +193,12 @@ bool BillingHandler_ThirdParty::loginAccount(Mercury::Channel* pChannel, std::st
 	(*(*bundle)) << loginName << password;
 	(*(*bundle)).appendBlob(datas);
 
+	if(pBillingChannel_->isDestroyed())
+	{
+		if(!this->reconnect())
+			return false;
+	}
+
 	(*(*bundle)).send(Dbmgr::getSingleton().getNetworkInterface(), pBillingChannel_);
 	return true;
 }
@@ -218,6 +232,20 @@ void BillingHandler_ThirdParty::onLoginAccountCB(KBEngine::MemoryStream& s)
 //-------------------------------------------------------------------------------------
 bool BillingHandler_ThirdParty::initialize()
 {
+	return reconnect();
+}
+
+//-------------------------------------------------------------------------------------
+bool BillingHandler_ThirdParty::reconnect()
+{
+	if(pBillingChannel_)
+	{
+		if(!pBillingChannel_->isDestroyed())
+			Dbmgr::getSingleton().getNetworkInterface().deregisterChannel(pBillingChannel_);
+
+		pBillingChannel_->decRef();
+	}
+
 	Mercury::Address addr = g_kbeSrvConfig.billingSystemAddr();
 	Mercury::EndPoint* pEndPoint = new Mercury::EndPoint(addr);
 
@@ -232,26 +260,7 @@ bool BillingHandler_ThirdParty::initialize()
 	pEndPoint->setnodelay(true);
 
 	pBillingChannel_ = new Mercury::Channel(Dbmgr::getSingleton().getNetworkInterface(), pEndPoint, Mercury::Channel::INTERNAL);
-
-	bool ret = reconnect();
-	if(ret)
-	{
-		Dbmgr::getSingleton().getNetworkInterface().registerChannel(pBillingChannel_);
-	}
-	else
-	{
-		pBillingChannel_->decRef();
-		pBillingChannel_ = NULL;
-	}
-
-	return ret;
-}
-
-//-------------------------------------------------------------------------------------
-bool BillingHandler_ThirdParty::reconnect()
-{
-	if(pBillingChannel_ == NULL)
-		return false;
+	pBillingChannel_->incRef();
 
 	int trycount = 0;
 
@@ -279,7 +288,8 @@ bool BillingHandler_ThirdParty::reconnect()
 			{
 				ERROR_MSG(boost::format("BillingHandler_ThirdParty::reconnect(): couldn't connect to:%1%\n") % 
 					pBillingChannel_->endpoint()->addr().c_str());
-
+				
+				pBillingChannel_->destroy();
 				return false;
 			}
 		}
@@ -287,6 +297,7 @@ bool BillingHandler_ThirdParty::reconnect()
 
 	// 不检查超时
 	pBillingChannel_->stopInactivityDetection();
+	Dbmgr::getSingleton().getNetworkInterface().registerChannel(pBillingChannel_);
 	return true;
 }
 
@@ -322,6 +333,12 @@ void BillingHandler_ThirdParty::charge(Mercury::Channel* pChannel, KBEngine::Mem
 	(*(*bundle)) << dbid;
 	(*(*bundle)).appendBlob(datas);
 	(*(*bundle)) << cbid;
+
+	if(pBillingChannel_->isDestroyed())
+	{
+		if(!this->reconnect())
+			return;
+	}
 
 	(*(*bundle)).send(Dbmgr::getSingleton().getNetworkInterface(), pBillingChannel_);
 }

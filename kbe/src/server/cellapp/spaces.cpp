@@ -33,6 +33,12 @@ Spaces::~Spaces()
 }
 
 //-------------------------------------------------------------------------------------
+void Spaces::finalise()
+{
+	spaces_.clear();
+}
+
+//-------------------------------------------------------------------------------------
 Space* Spaces::createNewSpace(SPACE_ID spaceID)
 {
 	SPACES::iterator iter = spaces_.find(spaceID);

@@ -39,6 +39,8 @@ class Spaces
 public:
 	Spaces();
 	~Spaces();
+	
+	static void finalise();
 
 	typedef std::map<SPACE_ID, KBEShared_ptr<Space> > SPACES;
 
