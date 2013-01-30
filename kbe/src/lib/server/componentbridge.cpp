@@ -141,8 +141,9 @@ bool Componentbridge::findInterfaces()
 
 			int8 findComponentType = findComponentTypes_[findIdx_];
 
-			INFO_MSG(boost::format("Componentbridge::process: finding %1%...\n") %
-				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+			static int count = 0;
+			INFO_MSG(boost::format("Componentbridge::process: finding %1%(%2%)...\n") %
+				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType) % ++count);
 			
 			Mercury::BundleBroadcast bhandler(networkInterface_, nport);
 			if(!bhandler.good())
@@ -181,7 +182,7 @@ bool Componentbridge::findInterfaces()
 							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 
 						findComponentTypes_[findIdx_] = -1; // 跳过标志
-
+						count = 0;
 						findIdx_++;
 					}
 
@@ -192,7 +193,8 @@ bool Componentbridge::findInterfaces()
 					COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType) % 
 					inet_ntoa((struct in_addr&)args.intaddr) %
 					ntohs(args.intport));
-
+				
+				count = 0;
 				Componentbridge::getComponents().addComponent(args.uid, args.username.c_str(), 
 					(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, 
 					args.intaddr, args.intport, args.extaddr, args.extport);
@@ -232,7 +234,7 @@ bool Componentbridge::findInterfaces()
 						COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 
 					findComponentTypes_[findIdx_] = -1; // 跳过标志
-
+					count = 0;
 					findIdx_++;
 				}
 
@@ -302,8 +304,21 @@ bool Componentbridge::process()
 	else
 	{
 		if(componentType_ != MACHINE_TYPE)
-			if(!findInterfaces())
+		{
+			static uint64 lastTime = timestamp();
+			
+			if(timestamp() - lastTime > uint64(stampsPerSecond()))
+			{
+				if(!findInterfaces())
+				{
+					if(state_ != 2)
+						lastTime = timestamp();
+					return true;
+				}
+			}
+			else
 				return true;
+		}
 	}
 
 	return false;

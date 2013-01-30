@@ -79,7 +79,7 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 				epListen_.addr(htons(bindPort), htonl(INADDR_ANY));
 				good_ = true;
 
-				DEBUG_MSG(boost::format("BundleBroadcast::BundleBroadcast: epListen %1%\n") % epListen_.c_str());
+				// DEBUG_MSG(boost::format("BundleBroadcast::BundleBroadcast: epListen %1%\n") % epListen_.c_str());
 				break;
 			}
 		}
@@ -193,8 +193,8 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 				continue;
 			}
 			
-			DEBUG_MSG(boost::format("BundleBroadcast::receive: from %1%, datalen=%2%.\n") % 
-				inet_ntoa((struct in_addr&)psin->sin_addr.s_addr) % len);
+			//DEBUG_MSG(boost::format("BundleBroadcast::receive: from %1%, datalen=%2%.\n") % 
+			//	inet_ntoa((struct in_addr&)psin->sin_addr.s_addr) % len);
 
 			pCurrPacket()->wpos(len);
 

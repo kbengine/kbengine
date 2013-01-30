@@ -26,6 +26,7 @@ void CStartServerWindow::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_LIST1, m_list);
 	DDX_Control(pDX, IDC_COMBO3, m_layoutlist);
+	DDX_Control(pDX, IDC_LIST2, m_list1);
 }
 
 
@@ -48,11 +49,22 @@ BOOL CStartServerWindow::OnInitDialog()
 	dwStyle |= LVS_EX_FULLROWSELECT;					//选中某行使整行高亮（只适用与report风格的listctrl）
 	dwStyle |= LVS_EX_GRIDLINES;						//网格线（只适用与report风格的listctrl）
 	//dwStyle |= LVS_EX_ONECLICKACTIVATE;
-	m_list.SetExtendedStyle(dwStyle);				//设置扩展风格
+	m_list.SetExtendedStyle(dwStyle);					//设置扩展风格
+
+	dwStyle = m_list1.GetExtendedStyle();
+	dwStyle |= LVS_EX_FULLROWSELECT;					//选中某行使整行高亮（只适用与report风格的listctrl）
+	dwStyle |= LVS_EX_GRIDLINES;						//网格线（只适用与report风格的listctrl）
+	//dwStyle |= LVS_EX_ONECLICKACTIVATE;
+	m_list1.SetExtendedStyle(dwStyle);					//设置扩展风格
 
 	int idx = 0;
-	m_list.InsertColumn(idx++, _T("componentType"),				LVCFMT_CENTER,	200);
-	m_list.InsertColumn(idx++, _T("addr"),						LVCFMT_CENTER,	250);
+	m_list.InsertColumn(idx++, _T("componentType"),				LVCFMT_CENTER,	150);
+	m_list.InsertColumn(idx++, _T("addr"),						LVCFMT_CENTER,	200);
+	m_list.InsertColumn(idx++, _T("running"),					LVCFMT_CENTER,	200);
+
+	idx = 0;
+	m_list1.InsertColumn(idx++, _T("componentType"),			LVCFMT_CENTER,	200);
+	m_list1.InsertColumn(idx++, _T("addr"),						LVCFMT_CENTER,	250);
 
 	loadLayouts();
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -134,7 +146,7 @@ void CStartServerWindow::OnBnClickedButton2()
 			continue;
 		}
 		
-		endpoint->setnonblocking(false);
+		endpoint->setnonblocking(true);
 
 		KBEngine::Mercury::Bundle bundle;
 		bundle.newMessage(KBEngine::MachineInterface::startserver);
@@ -144,10 +156,55 @@ void CStartServerWindow::OnBnClickedButton2()
 
 		KBEngine::Mercury::TCPPacket packet;
 		packet.resize(1024);
-		endpoint->recv(packet.data(), 1024);
+
+		fd_set	fds;
+		struct timeval tv = { 0, 1000000 }; // 1000ms
+
+		FD_ZERO( &fds );
+		FD_SET((int)(*endpoint), &fds);
+		
+		int selgot = select((*endpoint)+1, &fds, NULL, NULL, &tv);
+		if(selgot == 0)
+		{
+			delete endpoint;
+			continue;	// 超时可能对方繁忙
+		}
+		else if(selgot == -1)
+		{
+			delete endpoint;
+			continue;
+		}
+		else
+		{
+			endpoint->recv(packet.data(), 1024);
+		}
 
 		bool success = true;
 		packet << success;
+
+		if(success)
+		{
+			for(int row = 0; row < m_list.GetItemCount(); row++)
+			{
+				CString name = m_list.GetItemText(row, 0);
+				CString addr = m_list.GetItemText(row, 1); 
+				CString running = m_list.GetItemText(row, 2); 
+
+				char* cs1 = KBEngine::strutil::wchar2char(name.GetBuffer(0));
+				char* cs2 = KBEngine::strutil::wchar2char(addr.GetBuffer(0));
+
+				if(item.componentName == cs1 && item.addr == cs2 && running == L"false")
+				{
+					free(cs1);
+					free(cs2);
+					m_list.SetItemText(row, 2, L"true");
+					break;
+				}
+
+				free(cs1);
+				free(cs2);
+			}
+		}
 
 		delete endpoint;
 	}
@@ -222,7 +279,7 @@ void CStartServerWindow::OnBnClickedButton3()
 			continue;
 		}
 		
-		endpoint->setnonblocking(false);
+		endpoint->setnonblocking(true);
 
 		KBEngine::Mercury::Bundle bundle;
 		bundle.newMessage(KBEngine::MachineInterface::stopserver);
@@ -232,10 +289,55 @@ void CStartServerWindow::OnBnClickedButton3()
 
 		KBEngine::Mercury::TCPPacket packet;
 		packet.resize(1024);
-		endpoint->recv(packet.data(), 1024);
+
+		fd_set	fds;
+		struct timeval tv = { 0, 1000000 }; // 1000ms
+
+		FD_ZERO( &fds );
+		FD_SET((int)(*endpoint), &fds);
+		
+		int selgot = select((*endpoint)+1, &fds, NULL, NULL, &tv);
+		if(selgot == 0)
+		{
+			delete endpoint;
+			continue;	// 超时可能对方繁忙
+		}
+		else if(selgot == -1)
+		{
+			delete endpoint;
+			continue;
+		}
+		else
+		{
+			endpoint->recv(packet.data(), 1024);
+		}
 
 		bool success = true;
 		packet << success;
+
+		if(success)
+		{
+			for(int row = 0; row < m_list.GetItemCount(); row++)
+			{
+				CString name = m_list.GetItemText(row, 0);
+				CString addr = m_list.GetItemText(row, 1); 
+				CString running = m_list.GetItemText(row, 2); 
+
+				char* cs1 = KBEngine::strutil::wchar2char(name.GetBuffer(0));
+				char* cs2 = KBEngine::strutil::wchar2char(addr.GetBuffer(0));
+
+				if(item.componentName == cs1 && item.addr == cs2 && running == L"true")
+				{
+					free(cs1);
+					free(cs2);
+					m_list.SetItemText(row, 2, L"false");
+					break;
+				}
+
+				free(cs1);
+				free(cs2);
+			}
+		}
 
 		delete endpoint;
 	}
@@ -366,6 +468,7 @@ void CStartServerWindow::OnCbnSelchangeCombo3()
 
 		m_list.InsertItem(0, ws1);
 		m_list.SetItemText(0, 1, ws2);
+		m_list.SetItemText(0, 2, L"false");
 
 		free(ws1);
 		free(ws2);

@@ -42,4 +42,5 @@ public:
 //	afx_msg void OnCbnSelchangeCombo3();
 	afx_msg void OnCbnSelchangeCombo3();
 	afx_msg void OnNMThemeChangedCombo3(NMHDR *pNMHDR, LRESULT *pResult);
+	CListCtrl m_list1;
 };
