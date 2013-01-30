@@ -735,8 +735,22 @@ bool DBTaskQueryEntity::db_thread_process()
 						(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
 		KBE_ASSERT(pELTable);
 
-		success_ = pELTable->logEntity(pdbi_, addr_.ipAsString(), addr_.port, dbid_, 
-			componentID_, entityID_, pModule->getUType());
+		try
+		{
+			success_ = pELTable->logEntity(pdbi_, addr_.ipAsString(), addr_.port, dbid_, 
+				componentID_, entityID_, pModule->getUType());
+		}
+		catch (std::exception & e)
+		{
+			DBException& dbe = static_cast<DBException&>(e);
+			if(dbe.isLostConnection())
+			{
+				static_cast<DBInterfaceMysql*>(pdbi_)->processException(e);
+				return true;
+			}
+			else
+				success_ = false;
+		}
 
 		if(!success_)
 			wasActive_ = true;
