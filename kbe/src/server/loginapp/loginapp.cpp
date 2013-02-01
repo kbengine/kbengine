@@ -58,17 +58,7 @@ Loginapp::~Loginapp()
 //-------------------------------------------------------------------------------------
 bool Loginapp::run()
 {
-	bool ret = true;
-
-	while(!this->getMainDispatcher().isBreakProcessing())
-	{
-		threadPool_.onMainThreadTick();
-		this->getMainDispatcher().processOnce(false);
-		getNetworkInterface().handleChannels(&LoginappInterface::messageHandlers);
-		KBEngine::sleep(100);
-	};
-
-	return ret;
+	return ServerApp::run();
 }
 
 //-------------------------------------------------------------------------------------
@@ -89,6 +79,9 @@ void Loginapp::handleTimeout(TimerHandle handle, void * arg)
 //-------------------------------------------------------------------------------------
 void Loginapp::handleCheckStatusTick()
 {
+	threadPool_.onMainThreadTick();
+	this->getMainDispatcher().processOnce(false);
+	getNetworkInterface().handleChannels(&LoginappInterface::messageHandlers);
 	pendingLoginMgr_.process();
 }
 
