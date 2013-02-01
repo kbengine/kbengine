@@ -1,0 +1,44 @@
+uniform float uInterpolation;
+uniform vec3 uSunDirection;
+uniform vec3 uAmbientColor;
+uniform vec3 uSunColor;
+uniform vec4 uLightResponse;
+uniform vec4 uAmbientFactors;
+uniform sampler3D uDensity0;
+uniform sampler3D uDensity1;
+uniform sampler2D uNoise;
+
+varying vec3 o3DCoord;
+varying vec2 oNoiseUV;
+varying float oOpacity;
+varying vec3 oEyePixel;
+varying float oDistance;
+
+void main(void)
+{
+    vec3 noise = texture2D(uNoise, oNoiseUV*5.0).rgb;
+    vec3 final3DCoord = o3DCoord + 0.002575 * (noise - 0.5) * 2.0;
+    final3DCoord.z = clamp(final3DCoord.z,0.0,1.0);
+    
+    vec3 density0 = texture3D(uDensity0, final3DCoord).rgb;
+    vec3 density1 = texture3D(uDensity1, final3DCoord).rgb;
+    vec3 density = density0 * (1.0 - uInterpolation) + density1 * uInterpolation;
+    
+    vec3 finalColor = vec3(0,0,0);
+    float opacity = 0.0;
+    
+    if (density.x > 0.0)
+    {
+        float cos0 = clamp(dot(uSunDirection, oEyePixel),0.0,1.0);
+        float c3 = cos0*cos0;
+        c3*=c3;
+        
+        float beta = c3*uLightResponse.y*(0.5+0.5*density.y);
+        
+        float sunAccumulation = clamp(beta+density.y*uLightResponse.x+pow(oDistance,1.5)*uLightResponse.w,0.0,1.0);
+        float ambientAccumulation = clamp(uAmbientFactors.x + uAmbientFactors.y*o3DCoord.z + uAmbientFactors.z*pow(o3DCoord.z,2.0) + uAmbientFactors.w*pow(o3DCoord.z,3.0),0.0,1.0)*uLightResponse.z;
+        opacity = (1.0 - exp(-density.x*(7.5 - 6.5*o3DCoord.z)))*oOpacity;
+    }
+    
+    gl_FragColor = vec4(finalColor, opacity);
+}

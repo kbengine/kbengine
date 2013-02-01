@@ -1,0 +1,122 @@
+material tree.05.branch1/ALPHA/TEX/tree.05.png/TWOSIDE
+{
+	
+	technique
+	{
+		pass
+		{
+			cull_hardware none
+			cull_software none				
+      			alpha_rejection greater 192
+      			//
+			texture_unit
+			{
+				texture tree.05.png
+			}
+		}
+	}
+}
+material tree.05.branch6/ALPHA/TEX/tree.05.png/TWOSIDE
+{
+	
+	technique
+	{
+		pass
+		{
+			cull_hardware none
+			cull_software none				
+      			alpha_rejection greater 192
+      			//
+			texture_unit
+			{
+				texture tree.05.png
+			}
+		}
+	}
+}
+material tree.05.branch4/ALPHA/TEX/tree.05.png/TWOSIDE
+{
+	
+	technique
+	{
+		pass
+		{
+			cull_hardware none
+			cull_software none				
+      			alpha_rejection greater 192
+      			//
+			texture_unit
+			{
+				texture tree.05.png
+			}
+		}
+	}
+}
+material tree.05.branch2/ALPHA/TEX/tree.05.png/TWOSIDE
+{
+	
+	technique
+	{
+		pass
+		{
+			cull_hardware none
+			cull_software none				
+      			alpha_rejection greater 192
+      			//
+			texture_unit
+			{
+				texture tree.05.png
+			}
+		}
+	}
+}
+material tree.05.branch3/ALPHA/TEX/tree.05.png/TWOSIDE
+{
+	receive_shadows off
+	technique
+	{
+		pass
+		{
+			cull_hardware none
+			cull_software none				
+      			alpha_rejection greater 192
+      			//
+			texture_unit
+			{
+				texture tree.05.png
+			}
+		}
+	}
+}
+material tree.05.branch2/SOLID/TEX/tree.05.png
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture tree.05.png
+			}
+		}
+	}
+}
+material tree.05.branch5/ALPHA/TEX/tree.05.png/TWOSIDE
+{
+	
+	technique
+	{
+		pass
+		{
+			cull_hardware none
+			cull_software none				
+      			alpha_rejection greater 192
+      			//
+			texture_unit
+			{
+				texture tree.05.png
+			}
+		}
+	}
+}

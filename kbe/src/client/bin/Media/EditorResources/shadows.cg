@@ -1,0 +1,144 @@
+/* Copyright Torus Knot Software Ltd 2009
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
+// Simple PCF 
+// Number of samples in one dimension (square for total samples)
+#define NUM_SHADOW_SAMPLES_1D 2.0
+#define SHADOW_FILTER_SCALE 1
+
+#define SHADOW_SAMPLES NUM_SHADOW_SAMPLES_1D*NUM_SHADOW_SAMPLES_1D
+
+float4 offsetSample(float4 uv, float2 offset, float invMapSize)
+{
+	return float4(uv.xy + offset * invMapSize * uv.w, uv.z, uv.w);
+}
+
+float calcDepthShadow(sampler2D shadowMap, float4 uv, float invShadowMapSize)
+{
+	// 4-sample PCF
+	
+	float shadow = 0.0;
+	float offset = (NUM_SHADOW_SAMPLES_1D/2 - 0.5) * SHADOW_FILTER_SCALE;
+	for (float y = -offset; y <= offset; y += SHADOW_FILTER_SCALE)
+		for (float x = -offset; x <= offset; x += SHADOW_FILTER_SCALE)
+		{
+			float depth = tex2Dproj(shadowMap, offsetSample(uv, float2(x, y), invShadowMapSize)).x;
+			if (depth >= 1 || depth >= uv.z)
+				shadow += 1.0;
+		}
+
+	shadow /= SHADOW_SAMPLES;
+
+	return shadow;
+}
+
+
+float calcSimpleShadow(sampler2D shadowMap, float4 shadowMapPos)
+{
+	return tex2Dproj(shadowMap, shadowMapPos).x;
+}
+
+float calcPSSMDepthShadow(sampler2D shadowMap0, sampler2D shadowMap1, sampler2D shadowMap2, 
+						   float4 lsPos0, float4 lsPos1, float4 lsPos2,
+						   float invShadowmapSize0, float invShadowmapSize1, float invShadowmapSize2,
+						   float4 pssmSplitPoints, float camDepth)
+{
+
+	float shadow;
+	float4 splitColour;
+	// calculate shadow
+	if (camDepth <= pssmSplitPoints.y)
+	{
+		splitColour = float4(0.3, 0.0, 0, 0);
+		shadow = calcDepthShadow(shadowMap0, lsPos0, invShadowmapSize0);
+	}
+	else if (camDepth <= pssmSplitPoints.z)
+	{
+		splitColour = float4(0, 0.3, 0, 0);
+		shadow = calcDepthShadow(shadowMap1, lsPos1, invShadowmapSize1);
+	}
+	else
+	{
+		splitColour = float4(0.0, 0.0, 0.3, 0);
+		shadow = calcDepthShadow(shadowMap2, lsPos2, invShadowmapSize2);
+	}
+
+	return shadow;
+}
+
+float calcPSSMSimpleShadow(sampler2D shadowMap0, sampler2D shadowMap1, sampler2D shadowMap2, 
+						   float4 lsPos0, float4 lsPos1, float4 lsPos2,
+						   float4 pssmSplitPoints, float camDepth)
+{
+
+	float shadow;
+	float4 splitColour;
+	// calculate shadow
+	if (camDepth <= pssmSplitPoints.y)
+	{
+		splitColour = float4(0.3, 0.0, 0, 0);
+		shadow = calcSimpleShadow(shadowMap0, lsPos0);
+	}
+	else if (camDepth <= pssmSplitPoints.z)
+	{
+		splitColour = float4(0, 0.3, 0, 0);
+		shadow = calcSimpleShadow(shadowMap1, lsPos1);
+	}
+	else
+	{
+		splitColour = float4(0.0, 0.0, 0.3, 0);
+		shadow = calcSimpleShadow(shadowMap2, lsPos2);
+	}
+
+	return shadow;
+}
+
+
+
+float3 calcPSSMDebugShadow(sampler2D shadowMap0, sampler2D shadowMap1, sampler2D shadowMap2, 
+						   float4 lsPos0, float4 lsPos1, float4 lsPos2,
+						   float invShadowmapSize0, float invShadowmapSize1, float invShadowmapSize2,
+						   float4 pssmSplitPoints, float camDepth)
+{
+
+	float4 splitColour;
+	// calculate shadow
+	if (camDepth <= pssmSplitPoints.y)
+	{
+		//splitColour = float4(0.3, 0.0, 0, 0);
+		//splitColour = lsPos0 / lsPos0.w;
+		splitColour.rgb = tex2Dproj(shadowMap0, lsPos0).x;
+	}
+	else if (camDepth <= pssmSplitPoints.z)
+	{
+		//splitColour = float4(0, 0.3, 0, 0);
+		//splitColour = lsPos1 / lsPos1.w;
+		splitColour.rgb = tex2Dproj(shadowMap1, lsPos1).x;
+	}
+	else
+	{
+		//splitColour = float4(0.0, 0.0, 0.3, 0);
+		//splitColour = lsPos2 / lsPos2.w;
+		splitColour.rgb = tex2Dproj(shadowMap2, lsPos2).x;
+	}
+
+	return splitColour.rgb;
+}

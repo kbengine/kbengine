@@ -1,0 +1,26 @@
+The original diffuse textures are from the NVIDIA texture library, with other maps generated from them by Steve Streeting. The following license applies to all textures.
+
+Single Product or Project Use of NVSDK-Art Imagery 
+THIS IS A LEGAL AGREEMENT (the "License Agreement") between you and NVIDIA, Inc. ("Company"). If you do not agree to all the terms and conditions of this License Agreement, immediately delete the NVSDK-Art Imagery from your hard disk. If you proceed to use any of the images (the "Images") contained therein, you thereby signify that you have agreed to all of the terms and conditions set forth below.
+
+You may not use, copy, display, modify or distribute the Images except in strict accordance with this License Agreement. Company hereby grants to you the following worldwide, non-exclusive, non-transferable, non-sublicensable license for the Term below, with respect to its rights in the Images:
+
+You may install the Images on an unlimited number of computers; provided that all such computers are physically located at your place of business located at a single specific street address (or its equivalent). You may use and access the Images only at that one location and only as follows: You may use, copy and modify the Images in the creation and presentation of videogames, animations and renderings; provided that you may neither: (a) separately publish, market, distribute, transfer, sell or sublicense all or any part of the Images except in derivative form from which the original, or a substantially similar version of the original Image can be extracted; (b) output the Images to a print format other than for collateral materials (such as sales literature and illustrations) which support your primary electronic use of the Images. Subject to the foregoing limitations, and the rights, you may copy and distribute your animations and renderings incorporating the Images.
+
+All other rights with respect to the Images and their use are reserved to Company.
+
+The Images are protected by United States copyright laws, international treaty provisions, and other laws.
+
+TERM. You may use the Images for incorporation in a single product or production, or for visualization purposes within a single project of duration not more than three years.
+
+INFRINGEMENT WARRANTY. NVIDIA warrants to you that, to the best of its knowledge, the digital data for the Images do not infringe the rights, including patent, copyright and trade secret rights, of any third party; provided, however, that NVIDIA makes no representation or warranties with respect to infringement of any third party's rights by any image or object depicted by such digital data.
+
+LIMITATION OF LIABILITY AND WARRANTIES. YOU ASSUME THE ENTIRE COST OF ANY DAMAGE, LOSSES OR EXPENSE RESULTING FROM YOUR USE OR EXPLOITATION OF THE IMAGES. YOU ASSUME ALL RESPONSIBILITIES FOR SELECTION OF THE IMAGES TO ACHIEVE YOUR INTENDED RESULTS, AND FOR THE INSTALLATION OF, USE OF, AND RESULTS OBTAINED FROM THE IMAGES.
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, COMPANY HEREBY DISCLAIMS ALL WARRANTIES, EXPRESS AND IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, NONINFRINGEMENT (except as provided in the section titled "Infringement Warranty" above), AND FITNESS FOR A PARTICULAR PURPOSE WITH RESPECT TO THE IMAGES AND ANY ACCOMPANYING SOFTWARE OR MATERIALS.
+
+This License Agreement is the entire agreement between you and Company with respect to the Images and supersedes any other communications or advertising, whether written or oral, with respect thereto. If any provision of this License Agreement is held invalid or unenforceable, the remainder shall continue in full force and effect, provided that, if any limitation on the grant to you of any right herein is held invalid or unenforceable, such right shall immediately terminate.
+
+No Warranty. THE SOFTWARE AND ANY OTHER MATERIALS PROVIDED BY NVIDIA TO DEVELOPER HEREUNDER ARE PROVIDED "AS IS." NVIDIA DISCLAIMS ALL WARRANTIES, EXPRESS, IMPLIED OR STATUTORY, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+Limitation of Liability. NVIDIA SHALL NOT BE LIABLE TO DEVELOPER, DEVELOPER'S CUSTOMERS, OR ANY OTHER PERSON OR ENTITY CLAIMING THROUGH OR UNDER DEVELOPER FOR ANY LOSS OF PROFITS, INCOME, SAVINGS, OR ANY OTHER CONSEQUENTIAL, INCIDENTAL, SPECIAL, PUNITIVE, DIRECT OR INDIRECT DAMAGES (WHETHER IN AN ACTION IN CONTRACT, TORT OR BASED ON A WARRANTY), EVEN IF NVIDIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF THE ESSENTIAL PURPOSE OF ANY LIMITED REMEDY. IN NO EVENT SHALL NVIDIA'S AGGREGATE LIABILITY TO DEVELOPER OR ANY OTHER PERSON OR ENTITY CLAIMING THROUGH OR UNDER DEVELOPER EXCEED THE AMOUNT OF MONEY ACTUALLY PAID BY DEVELOPER TO NVIDIA FOR THE SOFTWARE OR ANY OTHER MATERIALS.
+

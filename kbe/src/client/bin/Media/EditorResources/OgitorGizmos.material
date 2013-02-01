@@ -1,0 +1,233 @@
+material MAT_GIZMO_X
+{
+	technique
+	{
+		pass
+		{
+			ambient 0 0 0 0.9
+			diffuse 0.2 0.2 0.2 0.9
+                  specular 0 0 0 0.9
+                  emissive 0.5 0 0 0.9
+                  polygon_mode solid
+                  polygon_mode_overrideable false
+                  cull_hardware none
+                  cull_software none
+                  depth_check off
+		}
+	}
+}
+
+material MAT_GIZMO_X_L
+{
+	technique
+	{
+		pass
+		{
+			ambient 0 0 0 0.9
+			diffuse 0.2 0.2 0.2 0.9
+                  specular 0 0 0 0.9
+                  emissive 1 0 0 0.9
+                  polygon_mode solid
+                  polygon_mode_overrideable false
+                  depth_check off
+                  cull_hardware none
+                  cull_software none
+                  depth_check off
+		}
+	}
+}
+
+material MAT_GIZMO_Y
+{
+	technique
+	{
+		pass
+		{
+			ambient 0 0 0 0.9
+			diffuse 0.2 0.2 0.2 0.9
+                  specular 0 0 0 0.9
+                  emissive 0 0.5 0 0.9
+                  polygon_mode solid
+                  polygon_mode_overrideable false
+                  cull_hardware none
+                  cull_software none
+                  depth_check off
+		}
+	}
+}
+
+material MAT_GIZMO_Y_L
+{
+	technique
+	{
+		pass
+		{
+			ambient 0 0 0 0.9
+			diffuse 0.2 0.2 0.2 0.9
+                  specular 0 0 0 0.9
+                  emissive 0 1 0 0.9
+                  polygon_mode solid
+                  polygon_mode_overrideable false
+                  cull_hardware none
+                  cull_software none
+                  depth_check off
+		}
+	}
+}
+
+material MAT_GIZMO_Z
+{
+	technique
+	{
+		pass
+		{
+			ambient 0 0 0 0.9
+			diffuse 0.2 0.2 0.2 0.9
+                  specular 0 0 0 0.9
+                  emissive 0 0 0.5 0.9
+                  polygon_mode solid
+                  polygon_mode_overrideable false
+                  cull_hardware none
+                  cull_software none
+                  depth_check off
+		}
+	}
+}
+
+material MAT_GIZMO_Z_L
+{
+	technique
+	{
+		pass
+		{
+			ambient 0 0 0 0.9
+			diffuse 0.2 0.2 0.2 0.9
+                  specular 0 0 0 0.9
+                  emissive 0.2 0.8 1 0.9
+                  polygon_mode solid
+                  polygon_mode_overrideable false
+                  cull_hardware none
+                  cull_software none
+                  depth_check off
+		}
+	}
+}
+
+material MAT_GIZMO_XY
+{
+	technique
+	{
+		pass
+		{
+			ambient 0 0 0 0.6
+			diffuse 0.2 0.2 0.2 0.6
+                  specular 0 0 0 0.6
+                  emissive 0.5 0.5 0 0.6
+                  polygon_mode solid
+                  polygon_mode_overrideable false
+                  cull_hardware none
+                  cull_software none
+                  depth_check off
+                  scene_blend alpha_blend
+		}
+	}
+}
+
+material MAT_GIZMO_XY_L
+{
+	technique
+	{
+		pass
+		{
+			ambient 0 0 0 0.9
+			diffuse 0.2 0.2 0.2 0.9
+                  specular 0 0 0 0.9
+                  emissive 1 1 0 0.9
+                  polygon_mode solid
+                  polygon_mode_overrideable false
+                  depth_check off
+                  cull_hardware none
+                  cull_software none
+                  depth_check off
+		}
+	}
+}
+
+material MAT_GIZMO_YZ
+{
+	technique
+	{
+		pass
+		{
+			ambient 0 0 0 0.6
+			diffuse 0.2 0.2 0.2 0.6
+                  specular 0 0 0 0.6
+                  emissive 0 0.5 0.5 0.6
+                  polygon_mode solid
+                  polygon_mode_overrideable false
+                  cull_hardware none
+                  cull_software none
+                  depth_check off
+                  scene_blend alpha_blend
+		}
+	}
+}
+
+material MAT_GIZMO_YZ_L
+{
+	technique
+	{
+		pass
+		{
+			ambient 0 0 0 0.9
+			diffuse 0.2 0.2 0.2 0.9
+                  specular 0 0 0 0.9
+                  emissive 0 1 1 0.9
+                  polygon_mode solid
+                  polygon_mode_overrideable false
+                  cull_hardware none
+                  cull_software none
+                  depth_check off
+		}
+	}
+}
+
+material MAT_GIZMO_ZX
+{
+	technique
+	{
+		pass
+		{
+			ambient 0 0 0 0.6
+			diffuse 0.2 0.2 0.2 0.6
+                  specular 0 0 0 0.6
+                  emissive 0.5 0 0.5 0.6
+                  polygon_mode solid
+                  polygon_mode_overrideable false
+                  cull_hardware none
+                  cull_software none
+                  depth_check off
+                  scene_blend alpha_blend
+		}
+	}
+}
+
+material MAT_GIZMO_ZX_L
+{
+	technique
+	{
+		pass
+		{
+			ambient 0 0 0 0.9
+			diffuse 0.2 0.2 0.2 0.9
+                  specular 0 0 0 0.9
+                  emissive 1 0 1 0.9
+                  polygon_mode solid
+                  polygon_mode_overrideable false
+                  cull_hardware none
+                  cull_software none
+                  depth_check off
+		}
+	}
+}
+

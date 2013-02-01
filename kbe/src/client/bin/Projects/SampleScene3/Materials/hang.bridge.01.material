@@ -1,0 +1,71 @@
+material hang.bridge.01.mat/SOLID/TEX/hang.bridge.01.pole.jpg/VertCol
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture hang.bridge.01.pole.jpg
+			}
+		}
+	}
+}
+material hang.bridge.01.mat/SOLID/TEX/hang.bridge.01.pole.end.jpg/VertCol
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture hang.bridge.01.pole.end.jpg
+			}
+		}
+	}
+}
+material ropes01.mat/ALPHA/TEX/hang.bridge.01.ropes.png/VertCol/TWOSIDE
+{
+	technique
+	{
+		pass
+		{ 
+			cull_hardware none
+			cull_software none
+			alpha_rejection greater 192
+			texture_unit
+			{
+				texture hang.bridge.01.ropes.png
+			}
+		}
+	}
+}
+material steps.mat/SOLID/TEX/hang.bridge.01.boards.jpg/VertCol
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture hang.bridge.01.boards.jpg
+			}
+		}
+	}
+}
+material ropes02.mat/ALPHA/TEX/hang.bridge.01.ropes.png/VertCol/TWOSIDE
+{
+	technique
+	{
+		pass
+		{ 
+			cull_hardware none
+			cull_software none
+			alpha_rejection greater 192
+			texture_unit
+			{
+				texture hang.bridge.01.ropes.png
+			}
+		}
+	}
+}

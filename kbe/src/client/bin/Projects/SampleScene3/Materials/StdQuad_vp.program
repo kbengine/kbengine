@@ -1,0 +1,72 @@
+vertex_program Ogre/Compositor/StdQuad_Cg_vp cg
+{
+	source StdQuad_vp.cg
+	entry_point StdQuad_vp
+	profiles vs_1_1 arbvp1
+
+	default_params
+	{
+		param_named_auto worldViewProj worldviewproj_matrix
+	}
+}
+
+vertex_program Ogre/Compositor/StdQuad_Tex2_vp cg
+{
+	source StdQuad_vp.cg
+	entry_point StdQuad_Tex2_vp
+	profiles vs_1_1 arbvp1
+
+	default_params
+	{
+		param_named_auto worldViewProj worldviewproj_matrix
+	}
+}
+
+vertex_program Ogre/Compositor/StdQuad_Tex2a_vp cg
+{
+	source StdQuad_vp.cg
+	entry_point StdQuad_Tex2a_vp
+	profiles vs_1_1 arbvp1
+
+	default_params
+	{
+		param_named_auto worldViewProj worldviewproj_matrix
+	}
+}
+
+vertex_program Ogre/Compositor/StdQuad_Tex3_vp cg
+{
+	source StdQuad_vp.cg
+	entry_point StdQuad_Tex3_vp
+	profiles vs_1_1 arbvp1
+
+	default_params
+	{
+		param_named_auto worldViewProj worldviewproj_matrix
+	}
+}
+
+vertex_program Ogre/Compositor/StdQuad_Tex4_vp cg
+{
+	source StdQuad_vp.cg
+	entry_point StdQuad_Tex4_vp
+	profiles vs_1_1 arbvp1
+
+	default_params
+	{
+		param_named_auto worldViewProj worldviewproj_matrix
+	}
+}
+
+vertex_program Ogre/Compositor/StdQuad_GLSL_vp glsl
+{
+	source StdQuad_vp.glsl
+}
+
+
+vertex_program Ogre/Compositor/StdQuad_vp unified
+{
+	delegate Ogre/Compositor/StdQuad_GLSL_vp
+	delegate Ogre/Compositor/StdQuad_Cg_vp
+}
+

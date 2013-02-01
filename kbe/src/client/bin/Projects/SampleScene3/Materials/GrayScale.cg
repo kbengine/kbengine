@@ -1,0 +1,19 @@
+sampler RT : register(s0);
+
+float4 GrayScale_ps(float2 iTexCoord : TEXCOORD0) : COLOR
+{
+    float3 greyscale = dot(tex2D(RT, iTexCoord).rgb, float3(0.3, 0.59, 0.11));
+	return float4(greyscale, 1.0);
+}
+
+float4 Embossed_ps(float2 iTexCoord : TEXCOORD0) : COLOR
+{
+    float4 Color;
+    Color.a = 1.0f;
+    Color.rgb = 0.5f;
+    Color -= tex2D( RT, iTexCoord - 0.001)*2.0f;
+    Color += tex2D( RT, iTexCoord + 0.001)*2.0f;
+    Color.rgb = (Color.r+Color.g+Color.b)/3.0f;
+    return Color;
+}
+
