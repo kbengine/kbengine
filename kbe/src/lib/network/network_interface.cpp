@@ -308,7 +308,11 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	}
 #endif
 
-	if(pEP->listen(SOMAXCONN) == -1)
+	int backlog = SOMAXCONN;
+	if(backlog < 16)
+		backlog = 16;
+
+	if(pEP->listen(backlog) == -1)
 	{
 		ERROR_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
 			"listen to %2% (%3%)\n") %
@@ -319,8 +323,8 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 		return false;
 	}
 	
-	INFO_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): address %2%\n") % 
-		pEndPointName % address.c_str());
+	INFO_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): address %2%, backlog=%3%.\n") % 
+		pEndPointName % address.c_str() % backlog);
 
 	return true;
 }
