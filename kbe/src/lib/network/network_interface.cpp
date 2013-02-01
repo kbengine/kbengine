@@ -308,7 +308,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	}
 #endif
 
-	if(pEP->listen(5) == -1)
+	if(pEP->listen(SOMAXCONN) == -1)
 	{
 		ERROR_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
 			"listen to %2% (%3%)\n") %
