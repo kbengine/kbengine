@@ -69,6 +69,9 @@
 		
 		<!-- 第三方运营回调端口，这个通道是一个未定义的协议通道， 相关协议需要开发者根据需要自己解析-->
 		<thirdpartyService_cbport> 30040 </thirdpartyService_cbport>
+		
+		<!-- listen监听队列最大值 -->
+		<SOMAXCONN> 128 </SOMAXCONN>
 	</billingSystem>
 	
 	<dbmgr>
@@ -145,6 +148,9 @@
 			<eventprofile> false </eventprofile>
 			<mercuryprofile> false </mercuryprofile>
 		</profiles>
+		
+		<!-- listen监听队列最大值 -->
+		<SOMAXCONN> 128 </SOMAXCONN>
 	</baseapp>
 	
 	<cellappmgr>
@@ -163,6 +169,9 @@
 		
 		<allowUnencryptedLogins> false </allowUnencryptedLogins>		<!-- Type: Boolean -->
 		<privateKey> server/loginapp.privkey </privateKey>				<!-- Type: String -->
+		
+		<!-- listen监听队列最大值 -->
+		<SOMAXCONN> 128 </SOMAXCONN>
 	</loginapp>		
 	
 	<kbmachine>
@@ -202,5 +211,8 @@
 			<bitsPerSecondTotal> 1000000 </bitsPerSecondTotal>			<!-- Type: Int -->
 			<bitsPerSecondPerClient> 100000 </bitsPerSecondPerClient>	<!-- Type: Int -->
 		</downloadStreaming>
+		
+		<!-- listen监听队列最大值 -->
+		<SOMAXCONN> 128 </SOMAXCONN>
 	</resourcemgr>
 </root>

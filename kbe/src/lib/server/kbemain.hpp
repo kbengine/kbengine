@@ -82,6 +82,9 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	DebugHelper::getSingleton().pDispatcher(&dispatcher);
 
 	const ChannelCommon& channelCommon = g_kbeSrvConfig.channelCommon();
+
+	Mercury::g_SOMAXCONN = g_kbeSrvConfig.tcp_SOMAXCONN(g_componentType);
+
 	Mercury::NetworkInterface networkInterface(&dispatcher, 
 		extlisteningPort_min, extlisteningPort_max, extlisteningInterface, 
 		channelCommon.extReadBufferSize, channelCommon.extWriteBufferSize,

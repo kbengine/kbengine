@@ -236,6 +236,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		{
 			billingSystem_thirdpartyServiceCBPort_ = xml->getValInt(childnode);
 		}
+
+		node =  xml->enterNode(rootNode, "SOMAXCONN");
+		if(node != NULL){
+			_billingInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
 	}
 
 	rootNode = xml->getRootNode("cellapp");
@@ -300,6 +305,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 			{
 				_cellAppInfo.profiles.open_mercuryprofile = (xml->getValStr(childnode) == "true");
 			}
+		}
+
+		node =  xml->enterNode(rootNode, "SOMAXCONN");
+		if(node != NULL){
+			_cellAppInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
 	}
 	
@@ -398,6 +408,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 				_baseAppInfo.profiles.open_mercuryprofile = (xml->getValStr(childnode) == "true");
 			}
 		}
+
+		node =  xml->enterNode(rootNode, "SOMAXCONN");
+		if(node != NULL){
+			_baseAppInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
 	}
 
 	rootNode = xml->getRootNode("dbmgr");
@@ -454,6 +469,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 				_dbmgrInfo.db_unicodeString_collation = xml->getValStr(childnode);
 			}
 		}
+
+		node =  xml->enterNode(rootNode, "SOMAXCONN");
+		if(node != NULL){
+			_dbmgrInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
 	}
 
 	if(_dbmgrInfo.db_unicodeString_characterSet.size() == 0)
@@ -485,6 +505,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_loginAppInfo.externalPorts_min = 0;
 		if(_loginAppInfo.externalPorts_max < _loginAppInfo.externalPorts_min)
 			_loginAppInfo.externalPorts_max = _loginAppInfo.externalPorts_min;
+
+		node =  xml->enterNode(rootNode, "SOMAXCONN");
+		if(node != NULL){
+			_loginAppInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
 	}
 	
 	rootNode = xml->getRootNode("cellappmgr");
@@ -493,6 +518,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_cellAppMgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node =  xml->enterNode(rootNode, "SOMAXCONN");
+		if(node != NULL){
+			_cellAppMgrInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
 	}
 	
 	rootNode = xml->getRootNode("baseappmgr");
@@ -501,6 +531,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_baseAppMgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node =  xml->enterNode(rootNode, "SOMAXCONN");
+		if(node != NULL){
+			_baseAppMgrInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
 	}
 	
 	rootNode = xml->getRootNode("kbmachine");
@@ -526,6 +561,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_kbMachineInfo.externalPorts_min = 0;
 		if(_kbMachineInfo.externalPorts_max < _kbMachineInfo.externalPorts_min)
 			_kbMachineInfo.externalPorts_max = _kbMachineInfo.externalPorts_min;
+
+		node =  xml->enterNode(rootNode, "SOMAXCONN");
+		if(node != NULL){
+			_kbMachineInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
 	}
 
 	rootNode = xml->getRootNode("kbcenter");
@@ -534,6 +574,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_kbCenterInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node =  xml->enterNode(rootNode, "SOMAXCONN");
+		if(node != NULL){
+			_kbCenterInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
 	}
 	
 	rootNode = xml->getRootNode("bots");
@@ -572,6 +617,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 				_botsInfo.defaultAddBots_tickTime = (float)xml->getValFloat(childnode);
 			}
 		}
+
+		node =  xml->enterNode(rootNode, "SOMAXCONN");
+		if(node != NULL){
+			_botsInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
 	}
 
 	rootNode = xml->getRootNode("messagelog");
@@ -580,6 +630,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "messagelog");	
 		if(node != NULL)
 			strncpy((char*)&_messagelogInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node =  xml->enterNode(rootNode, "SOMAXCONN");
+		if(node != NULL){
+			_messagelogInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
 	}
 
 	rootNode = xml->getRootNode("resourcemgr");
@@ -588,6 +643,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "resourcemgr");	
 		if(node != NULL)
 			strncpy((char*)&_resourcemgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node =  xml->enterNode(rootNode, "SOMAXCONN");
+		if(node != NULL){
+			_resourcemgrInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
 	}
 
 	SAFE_RELEASE(xml);
@@ -690,6 +750,13 @@ ENGINE_COMPONENT_INFO& ServerConfig::getComponent(COMPONENT_TYPE componentType)
 	};
 
 	return getBaseApp();	
+}
+
+//-------------------------------------------------------------------------------------	
+uint32 ServerConfig::tcp_SOMAXCONN(COMPONENT_TYPE componentType)
+{
+	ENGINE_COMPONENT_INFO& cinfo = getComponent(componentType);
+	return cinfo.tcp_SOMAXCONN;
 }
 
 //-------------------------------------------------------------------------------------	

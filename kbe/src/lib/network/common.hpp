@@ -46,6 +46,9 @@ const ChannelID CHANNEL_ID_NULL = 0;
 extern float g_channelInternalTimeout;
 extern float g_channelExternalTimeout;
 
+// listen监听队列最大值
+extern uint32 g_SOMAXCONN;
+
 // 不做频道超时检查
 #define CLOSE_CHANNEL_INACTIVITIY_DETECTION()										\
 {																					\

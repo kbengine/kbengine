@@ -82,6 +82,15 @@ struct ChannelCommon
 // 引擎组件信息结构体
 typedef struct EngineComponentInfo
 {
+	EngineComponentInfo()
+	{
+		tcp_SOMAXCONN = 5;
+	}
+
+	~EngineComponentInfo()
+	{
+	}
+
 	uint32 port;											// 组件的运行后监听的端口
 	char ip[MAX_BUF];										// 组件的运行期ip地址
 
@@ -123,9 +132,11 @@ typedef struct EngineComponentInfo
 
 	Profiles_Config profiles;
 
-	uint32 defaultAddBots_totalCount;									// 默认启动进程后自动添加这么多个bots 添加总数量
-	float defaultAddBots_tickTime;									// 默认启动进程后自动添加这么多个bots 每次添加所用时间(s)
-	uint32 defaultAddBots_tickCount;									// 默认启动进程后自动添加这么多个bots 每次添加数量
+	uint32 defaultAddBots_totalCount;						// 默认启动进程后自动添加这么多个bots 添加总数量
+	float defaultAddBots_tickTime;							// 默认启动进程后自动添加这么多个bots 每次添加所用时间(s)
+	uint32 defaultAddBots_tickCount;						// 默认启动进程后自动添加这么多个bots 每次添加数量
+
+	uint32 tcp_SOMAXCONN;									// listen监听队列最大值
 }ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>
@@ -147,8 +158,9 @@ public:
 	ENGINE_COMPONENT_INFO& getBots(void);
 	ENGINE_COMPONENT_INFO& getResourcemgr(void);
 	ENGINE_COMPONENT_INFO& getMessagelog(void);
+	ENGINE_COMPONENT_INFO& getBilling(void);
 
-	inline ENGINE_COMPONENT_INFO& getComponent(COMPONENT_TYPE ComponentType);
+	inline ENGINE_COMPONENT_INFO& getComponent(COMPONENT_TYPE componentType);
  	
  	void updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
  				const Mercury::Address& internalAddr, const Mercury::Address& externalAddr);
@@ -168,6 +180,8 @@ public:
 	inline uint16 billingSystemThirdpartyServiceCBPort()const { return billingSystem_thirdpartyServiceCBPort_; }
 
 	const ChannelCommon& channelCommon(){ return channelCommon_; }
+
+	uint32 tcp_SOMAXCONN(COMPONENT_TYPE componentType);
 private:
 	ENGINE_COMPONENT_INFO _cellAppInfo;
 	ENGINE_COMPONENT_INFO _baseAppInfo;
@@ -180,6 +194,7 @@ private:
 	ENGINE_COMPONENT_INFO _botsInfo;
 	ENGINE_COMPONENT_INFO _resourcemgrInfo;
 	ENGINE_COMPONENT_INFO _messagelogInfo;
+	ENGINE_COMPONENT_INFO _billingInfo;
 public:
 	int16 gameUpdateHertz_;
 

@@ -308,9 +308,9 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	}
 #endif
 
-	int backlog = SOMAXCONN;
-	if(backlog < 16)
-		backlog = 16;
+	int backlog = Mercury::g_SOMAXCONN;
+	if(backlog < 5)
+		backlog = 5;
 
 	if(pEP->listen(backlog) == -1)
 	{
@@ -323,7 +323,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 		return false;
 	}
 	
-	INFO_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): address %2%, backlog=%3%.\n") % 
+	INFO_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): address %2%, SOMAXCONN=%3%.\n") % 
 		pEndPointName % address.c_str() % backlog);
 
 	return true;
