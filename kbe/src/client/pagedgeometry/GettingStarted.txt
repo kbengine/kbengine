@@ -1,0 +1,15 @@
+==== What is PagedGeometry? ====
+
+The PagedGeometry engine is an add-on to the OGRE Graphics Engine, which provides highly optimized methods for rendering massive amounts of small meshes covering a possibly infinite area. This is especially well suited for dense forests and outdoor scenes, with millions of trees, bushes, grass, rocks, etc., etc.
+
+Paged geometry gives you many advantages over plain entities, the main one being speed: With proper usage of detail levels, outdoor scenes managed by PagedGeometry can be >100x faster than plain entities. Another advantage is that the geometry is paged; in other words, only entities which are immediately needed (to be displayed) are loaded. This allows you to expand the boundaries of your virtual world almost infinitely (only limited by floating point precision), providing the player with a more realistically scaled game area.
+
+==== Getting Started ====
+
+The first thing you should do after extracting PagedGeometry somewhere is compile it. By default, the PagedGeometry library files (PagedGeometry.lib, and PagedGeometry_d.lib) are not included in the download, so you'll have to compile them yourself. Fortunately, this is fairly easy to do, since PagedGeometry doesn't require any external libraries besides Ogre. First, double-click on “PagedGeometry.sln” to open up the PagedGeometry library project in Visual Studio. Then find the “Solution Explorer” window right-click on “Solution 'PagedGeometry' (1 project)”, and select “Batch Build”. Click “Select All”, then “Build”, and wait until PagedGeometry has finished compiling (the status bar at the bottom of the screen should say “Build succeeded” when finished).
+
+Next, find Ogre's release and debug DLLs (usually C:\OgreSDK\bin\[release|debug]), and copy them appropriately into the \PagedGeometry\examples\bin\[release|debug] folders. This is necessary because, in order for the examples to run properly, they need to have access to Ogre's DLLs. Note that Plugin_ParticleFX.dll, Plugin_BSPSceneManager.dll, OgreGUIRenderer.dll, and CEGUI DLLs are not used by the examples, and don't need to be copied.
+
+Now you can try running the example applications. Open "Examples.sln" (in the "examples" folder) in Visual Studio. You should see a list of example projects on the left. To choose one, right click on the project name (for example, "Example 7 - Lightmaps"), and select "Set as StartUp Project". Make sure "Release" is selected ("Debug" mode is very slow) in the configuration drop-down, and run (Debug -> Start Debugging).
+
+When you're ready to start learning how to use PagedGeometry, the best place to start is with Tutorial 1 (in the docs folder). The tutorials will teach you how to use many important PagedGeometry features, step by step. The API reference isn't recommended for learning, but is a valuable resource when you need specific in-depth information about a certain function or class.

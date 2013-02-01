@@ -1,0 +1,7 @@
+# Path to ogre plugins.
+PluginFolder=__OGRE_PLUGIN_PATH_HERE__
+
+# Plugins required for caelum's demo.
+Plugin=RenderSystem_GL.so
+Plugin=Plugin_CgProgramManager.so
+Plugin=Plugin_OctreeSceneManager.so

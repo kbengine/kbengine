@@ -1,0 +1,10 @@
+# Caelum's own resources
+# Caelum does NOT depend on Ogre resources.
+[Caelum]
+FileSystem=samples/resources/gui
+FileSystem=samples/resources/trees
+FileSystem=samples/resources
+FileSystem=main/resources
+
+[Core]
+Zip=samples/resources/OgreCore.zip

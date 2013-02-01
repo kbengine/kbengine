@@ -41,11 +41,11 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\lib;$(OGRE_HOME)\include;$(OGRE_HOME)\OgreMain\include;$(OGRE_HOME)\Components\Terrain\include;$(OGRE_HOME)\include\OIS;$(OGRE_HOME)\include\OGRE;$(OGRE_HOME)\Samples\Common\include;$(OGRE_HOME)\boost"
+				AdditionalIncludeDirectories="..\pagedgeometry\include;$(OGRE_HOME)\include;$(OGRE_HOME)\OgreMain\include;$(OGRE_HOME)\Components\Terrain\include;$(OGRE_HOME)\include\OIS;$(OGRE_HOME)\include\OGRE;$(OGRE_HOME)\Samples\Common\include;$(OGRE_HOME)\boost"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -61,9 +61,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="client_lib.lib OgreMain_d.lib OgreTerrain_d.lib OgreRTShaderSystem_d.lib OgrePaging_d.lib OIS_d.lib freetype_d.lib FreeImage_d.lib OgreProperty_d.lib"
+				AdditionalDependencies="PagedGeometry_d.lib OgreMain_d.lib OgreTerrain_d.lib OgreRTShaderSystem_d.lib OgrePaging_d.lib OIS_d.lib freetype_d.lib FreeImage_d.lib OgreProperty_d.lib"
+				OutputFile="..\bin\$(ProjectName)_d.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\libs;$(OGRE_HOME)\lib\debug;$(OGRE_HOME)\boost\lib"
+				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -95,7 +97,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="..\_objs\$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -117,7 +119,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\lib;$(OGRE_HOME)\include;$(OGRE_HOME)\OgreMain\include;$(OGRE_HOME)\Components\Terrain\include;$(OGRE_HOME)\include\OIS;$(OGRE_HOME)\include\OGRE;$(OGRE_HOME)\Samples\Common\include;$(OGRE_HOME)\boost"
+				AdditionalIncludeDirectories="..\pagedgeometry\include;$(OGRE_HOME)\include;$(OGRE_HOME)\OgreMain\include;$(OGRE_HOME)\Components\Terrain\include;$(OGRE_HOME)\include\OIS;$(OGRE_HOME)\include\OGRE;$(OGRE_HOME)\Samples\Common\include;$(OGRE_HOME)\boost"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -136,9 +138,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="client_lib.lib OgreMain.lib OgreTerrain.lib OgreRTShaderSystem.lib OgrePaging.lib OIS.lib freetype.lib FreeImage.lib OgreProperty.lib"
+				AdditionalDependencies="PagedGeometry.lib OgreMain.lib OgreTerrain.lib OgreRTShaderSystem.lib OgrePaging.lib OIS.lib freetype.lib FreeImage.lib OgreProperty.lib"
+				OutputFile="..\bin\$(ProjectName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\libs;$(OGRE_HOME)\lib\debug;$(OGRE_HOME)\boost\lib"
+				AdditionalLibraryDirectories="..\libs;&quot;$(OGRE_HOME)\lib\release&quot;;&quot;$(OGRE_HOME)\boost\lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -181,6 +184,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DotSceneLoader.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\OgreApplication.cpp"
 				>
 			</File>
@@ -195,7 +202,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DotSceneLoader.h"
+				>
+			</File>
+			<File
 				RelativePath=".\OgreApplication.h"
+				>
+			</File>
+			<File
+				RelativePath=".\rapidxml.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Resource.h"
 				>
 			</File>
 		</Filter>

@@ -1,0 +1,57 @@
+__PagedGeometry________________________
+
++	Add minimum tree scale for treeloaders
++	Enforce tree scales with debug-only exceptions in treeloaders
++	Add support for alternate coordinate systems (for example, where Z is up)
++	Update docs (recompile API, no more updateAnimation(), new frameUpdate() function in PageLoader)
++	Add #defines for alternate coordinate system support
++	Fix impostor rotation point
++	Add grass layer delete
++	Fix impostor rotation point problem
++	Add userData parameter support to height functions
+
+Fixed:
++	Fix tree scale issue
++	Fix StaticBillboardSet reference bug
++	Fix possible grass animation bug
++	Fix grass reload bug
++	Supplying an invalid material to GrassLayer will crash without a descriptive error
++	Fix impostor filename issue
++	Batches and impostors do not correctly handle per-subentity materials
+
+	Add shared vertex data support
+
+Confirmed:
+
+
+--- Release Version 1.0 ---
+
++	Sprite grass
+	Angled grass
+	Add density map tree loader
+	Fix batching of shared vertices
+	Density map editing functions
+	Add BillboardPage
+	Add Impostor autoregeneration	
+
+--- Release Version 1.1 ---
+
+	Improve impostor customization
+		setDefaultImpostorResolution(), setDefaultImpostorColor(), setDefaultImpostorRenders()
+		setImpostorResolution(), setImpostorColor(), setImpostorRenders()
+	Implement InstancePage
+	Add hard disk tree loader
+
+	Dynamic lighting
+	Swaying trees
+	Add functions to reload rectangular and circular regions of geometry
+	Add progressive reloading option
+	
+
+	Add a maximum view height as well as a maximum view distance for detail levels
+	Optimize impostor generator for tall, skinny trees
+	Fix Ogre's billboard system for camera roll
+	Experement with single-triangle billboards and point-sprites
+	Add collision interface
+	Possibly add a pseudo-volumetric-texture GeometryPage implementation
+	Add automated terrain lightmapper to PagedGeometry

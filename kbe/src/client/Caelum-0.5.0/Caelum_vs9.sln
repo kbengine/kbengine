@@ -1,0 +1,46 @@
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Other files", "Other files", "{5CC25CBF-D65A-4FBF-80C2-9A78A9D4643A}"
+	ProjectSection(SolutionItems) = preProject
+		Caelum.doxygen = Caelum.doxygen
+		Contributors.txt = Contributors.txt
+		gpl.txt = gpl.txt
+		lgpl.txt = lgpl.txt
+		ReadMe.txt = ReadMe.txt
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CaelumDemo", "samples\CaelumDemo_vs9.vcproj", "{E5C9CE61-79E6-664E-A809-FF6FECAA41C1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A46CAB97-7D11-2041-998E-0040A09A0D47} = {A46CAB97-7D11-2041-998E-0040A09A0D47}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CaelumLab", "samples\CaelumLab_vs9.vcproj", "{D699DDCE-3A35-4F73-84C8-E65E11758892}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A46CAB97-7D11-2041-998E-0040A09A0D47} = {A46CAB97-7D11-2041-998E-0040A09A0D47}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Caelum", "main\Caelum_vs9.vcproj", "{A46CAB97-7D11-2041-998E-0040A09A0D47}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E5C9CE61-79E6-664E-A809-FF6FECAA41C1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E5C9CE61-79E6-664E-A809-FF6FECAA41C1}.Debug|Win32.Build.0 = Debug|Win32
+		{E5C9CE61-79E6-664E-A809-FF6FECAA41C1}.Release|Win32.ActiveCfg = Release|Win32
+		{E5C9CE61-79E6-664E-A809-FF6FECAA41C1}.Release|Win32.Build.0 = Release|Win32
+		{D699DDCE-3A35-4F73-84C8-E65E11758892}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D699DDCE-3A35-4F73-84C8-E65E11758892}.Debug|Win32.Build.0 = Debug|Win32
+		{D699DDCE-3A35-4F73-84C8-E65E11758892}.Release|Win32.ActiveCfg = Release|Win32
+		{D699DDCE-3A35-4F73-84C8-E65E11758892}.Release|Win32.Build.0 = Release|Win32
+		{A46CAB97-7D11-2041-998E-0040A09A0D47}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A46CAB97-7D11-2041-998E-0040A09A0D47}.Debug|Win32.Build.0 = Debug|Win32
+		{A46CAB97-7D11-2041-998E-0040A09A0D47}.Release|Win32.ActiveCfg = Release|Win32
+		{A46CAB97-7D11-2041-998E-0040A09A0D47}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
