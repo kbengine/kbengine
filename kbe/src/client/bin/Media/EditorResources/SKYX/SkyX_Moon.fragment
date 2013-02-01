@@ -1,9 +1,0 @@
-uniform sampler2D uMoon;
-
-varying vec4 vUVYLength;
-
-void main(void)
-{
-    gl_FragColor = texture2D(uMoon, vUVYLength.xy);
-    gl_FragColor.w *= clamp((vUVYLength.z/vUVYLength.w) * 3.5,0.0,1.0);
-}

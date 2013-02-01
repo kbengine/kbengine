@@ -6,6 +6,12 @@
 #include "ImpostorPage.h"
 #include "TreeLoader3D.h"
 
+#include "../kbengine_dll/kbengine_dll.h"
+
+#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
+HINSTANCE g_hKBEngineDll = NULL;
+#endif
+
 //-------------------------------------------------------------------------------------
 OgreApplication::OgreApplication(void)
 :    mLoader(0),
@@ -247,6 +253,28 @@ extern "C" {
     int main(int argc, char *argv[])
 #endif
     {
+#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
+#ifdef _DEBUG
+		std::string kbenginedll_name = "kbengine_d.dll";
+#else
+		std::string kbenginedll_name = "kbengine.dll";
+#endif
+
+		g_hKBEngineDll = LoadLibrary(kbenginedll_name.c_str());
+		if (g_hKBEngineDll == NULL)
+		{
+			std::string kbenginedll_name_failed = "load " + kbenginedll_name + " is failed!";
+			MessageBox( NULL, kbenginedll_name_failed.c_str(), "An exception has occured!", MB_OK | MB_ICONERROR | MB_TASKMODAL);
+			return 0;
+		}
+#endif
+
+		if(!kbengine_init())
+		{
+			MessageBox( NULL, "kbengine_init() is failed!", "An exception has occured!", MB_OK | MB_ICONERROR | MB_TASKMODAL);
+			return 0;
+		}
+
         // Create application object
         OgreApplication app;
 
@@ -260,6 +288,12 @@ extern "C" {
                 e.getFullDescription().c_str() << std::endl;
 #endif
         }
+
+		kbengine_destroy();
+
+#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
+		FreeLibrary(g_hKBEngineDll);
+#endif
 
         return 0;
     }

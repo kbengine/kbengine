@@ -62,7 +62,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="PagedGeometry_d.lib OgreMain_d.lib OgreTerrain_d.lib OgreRTShaderSystem_d.lib OgrePaging_d.lib OIS_d.lib freetype_d.lib FreeImage_d.lib OgreProperty_d.lib"
-				OutputFile="..\bin\$(ProjectName)_d.exe"
+				OutputFile="..\..\..\bin\client\$(ProjectName)_d.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\libs;$(OGRE_HOME)\lib\debug;$(OGRE_HOME)\boost\lib"
 				IgnoreDefaultLibraryNames=""
@@ -139,7 +139,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="PagedGeometry.lib OgreMain.lib OgreTerrain.lib OgreRTShaderSystem.lib OgrePaging.lib OIS.lib freetype.lib FreeImage.lib OgreProperty.lib"
-				OutputFile="..\bin\$(ProjectName).exe"
+				OutputFile="..\..\..\bin\client\$(ProjectName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\libs;&quot;$(OGRE_HOME)\lib\release&quot;;&quot;$(OGRE_HOME)\boost\lib&quot;"
 				GenerateDebugInformation="true"

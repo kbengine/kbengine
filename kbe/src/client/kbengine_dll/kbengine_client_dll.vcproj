@@ -61,8 +61,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="html5_d.lib server_d.lib resmgr_d.lib python32_d.lib pyscript_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib math_d.lib network_d.lib thread_d.lib entitydef_d.lib client_lib_d.lib ws2_32.lib"
-				OutputFile="..\bin\kbengine_d.dll"
+				AdditionalDependencies="html5_d.lib resmgr_d.lib python32_d.lib pyscript_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib math_d.lib network_d.lib thread_d.lib entitydef_d.lib client_lib_d.lib server_d.lib ws2_32.lib"
+				OutputFile="..\..\..\bin\client\kbengine_d.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\libs;"
 				ManifestFile="$(IntDir)\$(TargetFileName).intermediate.manifest"
@@ -139,8 +139,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="html5.lib server.lib resmgr.lib python32.lib pyscript.lib xmlplus.lib cstdkbe.lib helper.lib math.lib network.lib thread.lib entitydef.lib client_lib.lib ws2_32.lib"
-				OutputFile="..\bin\kbengine.dll"
+				AdditionalDependencies="html5.lib resmgr.lib python32.lib pyscript.lib xmlplus.lib cstdkbe.lib helper.lib math.lib network.lib thread.lib entitydef.lib client_lib.lib server.lib ws2_32.lib"
+				OutputFile="..\..\..\bin\client\kbengine.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\libs;"
 				GenerateDebugInformation="true"
@@ -195,6 +195,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\kbengine_dll.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
