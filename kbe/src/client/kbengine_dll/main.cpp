@@ -4,6 +4,10 @@
 #include "cstdkbe/cstdkbe.hpp"
 #include "client_lib/kbemain.hpp"
 #include "server/serverconfig.hpp"
+#include "cstdkbe/memorystream.hpp"
+#include "thread/threadtask.hpp"
+#include "helper/debug_helper.hpp"
+#include "network/address.hpp"
 
 #undef DEFINE_IN_INTERFACE
 #include "client_lib/client_interface.hpp"
@@ -68,7 +72,10 @@
 using namespace KBEngine;
 
 ClientApp* g_pApp = NULL;
-KBEngine::script::Script g_script;
+KBEngine::script::Script* g_pScript = NULL;
+Mercury::EventDispatcher* g_pDispatcher = NULL;
+Mercury::NetworkInterface* pNetworkInterface = NULL;
+thread::ThreadPool* g_pThreadPool = NULL;
 
 BOOL APIENTRY DllMain( HANDLE hModule,
 					  DWORD ul_reason_for_call,
@@ -94,6 +101,28 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 	return TRUE;
 }
 
+class KBEMainTask : public thread::TPTask
+{
+public:
+	KBEMainTask()
+	{
+	}
+
+	virtual ~KBEMainTask()
+	{
+	}
+	
+	virtual bool process()
+	{
+		g_pApp->run();
+		return false;
+	}
+	
+	virtual thread::TPTask::TPTaskState presentMainThread()
+	{
+		return thread::TPTask::TPTASK_STATE_COMPLETED;
+	}
+};
 
 bool kbengine_init()
 {
@@ -112,36 +141,72 @@ bool kbengine_init()
 
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
 
-	Mercury::EventDispatcher dispatcher;
-	Mercury::NetworkInterface networkInterface(&dispatcher, 
-		0, 0, "", 0, 0,
-		0, "", 0, 0);
-	
-	if(!installPyScript(g_script, g_componentType))
+	if(g_pScript == NULL)
+		g_pScript = new KBEngine::script::Script();
+
+	if(g_pDispatcher == NULL)
+		g_pDispatcher = new Mercury::EventDispatcher();
+
+	if(pNetworkInterface == NULL)
+	{
+		pNetworkInterface = new Mercury::NetworkInterface(g_pDispatcher, 
+			0, 0, "", 0, 0,
+			0, "", 0, 0);
+	}
+
+	if(!installPyScript(*g_pScript, g_componentType))
 	{
 		ERROR_MSG("installPyScript() is error!\n");
 		return false;
 	}
 
-	g_pApp = new ClientApp(dispatcher, networkInterface, g_componentType, g_componentID);
-	g_pApp->setScript(&g_script);
+	g_pApp = new ClientApp(*g_pDispatcher, *pNetworkInterface, g_componentType, g_componentID);
+	g_pApp->setScript(g_pScript);
 
 	START_MSG(COMPONENT_NAME_EX(g_componentType), g_componentID);
-	if(!g_pApp->initialize()){
+	if(!g_pApp->initialize())
+	{
 		ERROR_MSG("app::initialize is error!\n");
 		g_pApp->finalise();
 		Py_DECREF(g_pApp);
 		g_pApp = NULL;
-		uninstallPyScript(g_script);
+
+		uninstallPyScript(*g_pScript);
+
+		SAFE_RELEASE(pNetworkInterface);
+		SAFE_RELEASE(g_pScript);
+		SAFE_RELEASE(g_pDispatcher);
 		return false;
 	}
 
+	if(g_pThreadPool == NULL)
+	{
+		g_pThreadPool = new thread::ThreadPool();
+		if(!g_pThreadPool->isInitialize())
+		{
+			g_pThreadPool->createThreadPool(1, 1, 4);
+		}
+		else
+		{
+			ERROR_MSG("g_threadPool.isInitialize() is error!\n");
+			return false;
+		}
+	}
+
 	INFO_MSG(boost::format("---- %1% is running ----\n") % COMPONENT_NAME_EX(g_componentType));
+
+	g_pThreadPool->addTask(new KBEMainTask());
 	return true;
 }
 
 bool kbengine_destroy()
 {
+	g_pApp->getMainDispatcher().breakProcessing();
+	g_pThreadPool->finalise();
+	KBEngine::sleep(100);
+	
+	delete g_pThreadPool;
+
 	if(g_pApp)
 	{
 		g_pApp->finalise();
@@ -149,7 +214,11 @@ bool kbengine_destroy()
 		g_pApp = NULL;
 	}
 	
-	bool ret = uninstallPyScript(g_script);
+	bool ret = uninstallPyScript(*g_pScript);
+
+	SAFE_RELEASE(pNetworkInterface);
+	SAFE_RELEASE(g_pScript);
+	SAFE_RELEASE(g_pDispatcher);
 
 	INFO_MSG(boost::format("%1% has shut down.\n") % COMPONENT_NAME_EX(g_componentType));
 	return ret;
