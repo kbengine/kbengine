@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<scene formatVersion="1.0.0" generator="Ogitor SceneBuilder 0.4.2">
+    <resourceLocations>
+        <resourceLocation type="FileSystem" name="./Models" />
+        <resourceLocation type="FileSystem" name="./Materials" />
+    </resourceLocations>
+    <environment>
+        <scenemanager name="SceneManager" id="925717952" type="OctreeSceneManager" />
+        <colourAmbient r="0.5" g="0.5" b="0.5" a="1" />
+        <skyDome active="true" material="Ogitor/CloudySky" />
+        <fog mode="none" start="0" end="1000" density="0">
+            <colour r="0.5" g="0.5" b="0.5" a="1" />
+        </fog>
+        <viewport name="Viewport1" id="539353600" index="1">
+            <colour r="0" g="0" b="0" a="1" />
+        </viewport>
+        <camera name="intViewCamera1" viewMode="0" polyMode="3" fov="1">
+            <clipping near="0.1" far="40000" />
+            <position x="-97.9299" y="195.209" z="-158.922" />
+            <rotation qw="0.106498" qx="-0.021715" qy="0.974034" qz="0.198605" />
+        </camera>
+    </environment>
+    <terrain worldSize="4000" mapSize="513" pagenameprefix="Page" colourmapEnabled="false" colourMapTextureSize="128" tuningCompositeMapDistance="2000" tuningMaxPixelError="3" tuningMinBatchSize="33" tuningMaxBatchSize="65">
+        <terrainPages>
+            <terrainPage name="Page_00000000.ogt" pageX="0" pageY="0" />
+        </terrainPages>
+    </terrain>
+    <nodes>
+        <node name="rock#0" id="949156160">
+            <position x="-93.9104" y="188.236" z="-144.088" />
+            <rotation qw="-0.774393" qx="0" qy="0.632705" qz="0" />
+            <scale x="0.130284" y="0.130284" z="0.130284" />
+            <entity name="rock#0" meshFile="rock.05.mesh" castShadows="false">
+                <subentity index="0" materialName="rock.05.mat/SOLID/TEX/rock.05.png" />
+            </entity>
+        </node>
+        <node name="Camera#2" id="316873664">
+            <position x="-110.358" y="189.027" z="-146.066" />
+            <rotation qw="0.551937" qx="0" qy="-0.833886" qz="0" />
+            <scale x="1" y="1" z="1" />
+            <camera name="Camera#2" id="316873664" fov="1" projectionType="perspective">
+                <position x="-110.358" y="189.027" z="-146.066" />
+                <rotation qw="0.551937" qx="0" qy="-0.833886" qz="0" />
+                <clipping near="0.1" far="0" />
+            </camera>
+        </node>
+        <node name="Light#0" id="168980992">
+            <position x="-104.672" y="277.223" z="-212.24" />
+            <rotation qw="1" qx="0" qy="0" qz="0" />
+            <scale x="1" y="1" z="1" />
+            <light name="Light#0" id="168980992" type="directional" castShadows="true">
+                <position x="-104.672" y="277.223" z="-212.24" />
+                <directionVector x="0" y="-0.694658" z="0.71934" />
+                <colourDiffuse r="1" g="1" b="1" a="1" />
+                <colourSpecular r="0" g="0" b="0" a="1" />
+                <lightAttenuation range="100" constant="1" linear="0.5" quadratic="0" />
+            </light>
+        </node>
+        <node name="Ogre#0" id="108279672">
+            <position x="-100.062" y="188.885" z="-143.734" />
+            <rotation qw="0.382683" qx="0" qy="0.92388" qz="0" />
+            <scale x="0.231773" y="0.231773" z="0.231773" />
+            <entity name="Ogre#0" meshFile="Ogre.mesh" castShadows="false">
+                <subentity index="0" materialName="ogre.mat/SOLID/TEX/ogre.tex.jpg/VertCol" />
+                <subentity index="1" materialName="ogre.mat/ALPHA/TEX/ogre.tex.jpg/VertCol/TWOSIDE" />
+                <subentity index="2" materialName="Material.001/SOLID/TEX/ogreahead.tex.jpg/VertCol" />
+            </entity>
+        </node>
+        <node name="tree#2" id="572405184">
+            <position x="-89.6646" y="186.756" z="-129.662" />
+            <rotation qw="0.983255" qx="0" qy="0.182236" qz="0" />
+            <scale x="1" y="1" z="1" />
+            <entity name="tree#2" meshFile="tree.09.mesh" castShadows="false">
+                <subentity index="0" materialName="tree.09.mat/ALPHA/TEX/tree.09.png/VertCol/TWOSIDE" />
+                <subentity index="1" materialName="tree.09.mat/SOLID/TEX/tree.09.png/VertCol" />
+                <subentity index="2" materialName="leaves.09.mat/ALPHA/TEX/tree.09.png/VertCol/TWOSIDE" />
+                <subentity index="3" materialName="tree.09.branch1.mat/ALPHA/TEX/tree.09.png/VertCol/TWOSIDE" />
+                <subentity index="4" materialName="tree.09.moss.mat/ALPHA/TEX/tree.09.png/VertCol/TWOSIDE" />
+            </entity>
+        </node>
+        <node name="Camera#0" id="755851904">
+            <position x="-99.3915" y="189.871" z="-150.025" />
+            <rotation qw="0.0565869" qx="-0.003461" qy="0.99653" qz="0.0609504" />
+            <scale x="1" y="1" z="1" />
+            <camera name="Camera#0" id="755851904" fov="1" projectionType="perspective">
+                <position x="-99.3915" y="189.871" z="-150.025" />
+                <rotation qw="0.0565869" qx="-0.003461" qy="0.99653" qz="0.0609504" />
+                <clipping near="0.1" far="0" />
+            </camera>
+        </node>
+        <node name="tree#1" id="608966336">
+            <position x="-103.008" y="190.834" z="-126.283" />
+            <rotation qw="1" qx="0" qy="0" qz="0" />
+            <scale x="1" y="1" z="1" />
+            <entity name="tree#1" meshFile="tree.09.mesh" castShadows="false">
+                <subentity index="0" materialName="tree.09.mat/ALPHA/TEX/tree.09.png/VertCol/TWOSIDE" />
+                <subentity index="1" materialName="tree.09.mat/SOLID/TEX/tree.09.png/VertCol" />
+                <subentity index="2" materialName="leaves.09.mat/ALPHA/TEX/tree.09.png/VertCol/TWOSIDE" />
+                <subentity index="3" materialName="tree.09.branch1.mat/ALPHA/TEX/tree.09.png/VertCol/TWOSIDE" />
+                <subentity index="4" materialName="tree.09.moss.mat/ALPHA/TEX/tree.09.png/VertCol/TWOSIDE" />
+            </entity>
+        </node>
+        <node name="Barrel#0" id="721915392">
+            <position x="-104.805" y="188.235" z="-146.296" />
+            <rotation qw="1" qx="0" qy="0" qz="0" />
+            <scale x="1" y="1" z="1" />
+            <entity name="Barrel#0" meshFile="Barrel.mesh" castShadows="false">
+                <subentity index="0" materialName="RustyBarrel" />
+            </entity>
+        </node>
+        <node name="Camera#1" id="582049024">
+            <position x="-101.335" y="189.291" z="-142.142" />
+            <rotation qw="0.949699" qx="0" qy="-0.313164" qz="0" />
+            <scale x="1" y="1" z="1" />
+            <camera name="Camera#1" id="582049024" fov="1" projectionType="perspective">
+                <position x="-101.335" y="189.291" z="-142.142" />
+                <rotation qw="0.949699" qx="0" qy="-0.313164" qz="0" />
+                <clipping near="0.1" far="0" />
+            </camera>
+        </node>
+        <node name="tree#0" id="877254528">
+            <position x="-113.687" y="188.235" z="-143.319" />
+            <rotation qw="1" qx="0" qy="0" qz="0" />
+            <scale x="1" y="1" z="1" />
+            <entity name="tree#0" meshFile="tree.09.mesh" castShadows="false">
+                <subentity index="0" materialName="tree.09.mat/ALPHA/TEX/tree.09.png/VertCol/TWOSIDE" />
+                <subentity index="1" materialName="tree.09.mat/SOLID/TEX/tree.09.png/VertCol" />
+                <subentity index="2" materialName="leaves.09.mat/ALPHA/TEX/tree.09.png/VertCol/TWOSIDE" />
+                <subentity index="3" materialName="tree.09.branch1.mat/ALPHA/TEX/tree.09.png/VertCol/TWOSIDE" />
+                <subentity index="4" materialName="tree.09.moss.mat/ALPHA/TEX/tree.09.png/VertCol/TWOSIDE" />
+            </entity>
+        </node>
+        <node name="highlanderhouse#0" id="205359056">
+            <position x="-101.565" y="188.051" z="-142.497" />
+            <rotation qw="0.0566926" qx="0" qy="0.998392" qz="0" />
+            <scale x="1" y="1" z="1" />
+            <entity name="highlanderhouse#0" meshFile="highlanderhouse.01.mesh" castShadows="false">
+                <subentity index="0" materialName="house.01.crossbeams/SOLID/TEX/highlander.house.01.jpg/VertCol" />
+                <subentity index="1" materialName="house.01.rooftiles/SOLID/TEX/highlander.house.01.jpg/VertCol/TWOSIDE" />
+                <subentity index="2" materialName="house.01.rooftiles/SOLID/TEX/highlander.house.01.jpg/VertCol" />
+                <subentity index="3" materialName="highlanderhouse.01.ma/SOLID/TEX/highlander.house.01.jpg/VertCol" />
+                <subentity index="4" materialName="house.01.mortar/SOLID/TEX/highlander.house.01.jpg/VertCol" />
+                <subentity index="5" materialName="house.01.stepston/SOLID/TEX/highlander.house.01.jpg/VertCol" />
+            </entity>
+        </node>
+    </nodes>
+</scene>

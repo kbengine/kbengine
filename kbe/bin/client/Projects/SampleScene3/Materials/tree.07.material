@@ -1,0 +1,61 @@
+material tree.07.leaves.mat/ALPHA/TEX/tree.07.png/VertCol/TWOSIDE
+{
+	technique
+	{
+		pass
+		{ 
+			cull_hardware none
+			cull_software none
+			alpha_rejection greater 192
+			texture_unit
+			{
+				texture tree.07.png
+			}
+		}
+	}
+}
+material tree.07.branch1.mat/ALPHA/TEX/tree.07.png/VertCol/TWOSIDE
+{
+	technique
+	{
+		pass
+		{
+			cull_hardware none
+			cull_software none
+			alpha_rejection greater 192
+			texture_unit
+			{
+				texture tree.07.png
+			}
+		}
+	}
+}
+material tree.07.branch2.mat/ALPHA/TEX/tree.07.png/VertCol/TWOSIDE
+{
+	technique
+	{
+		pass
+		{
+			cull_hardware none
+			cull_software none
+			alpha_rejection greater 192
+			texture_unit
+			{
+				texture tree.07.png
+			}
+		}
+	}
+}
+material tree.07.mat/SOLID/TEX/tree.07.png/VertCol
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture tree.07.png
+			}
+		}
+	}
+}

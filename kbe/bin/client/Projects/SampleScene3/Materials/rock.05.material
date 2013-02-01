@@ -1,0 +1,13 @@
+material rock.05.mat/SOLID/TEX/rock.05.png
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture rock.05.png
+			}
+		}
+	}
+}

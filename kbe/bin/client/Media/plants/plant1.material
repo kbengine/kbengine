@@ -1,0 +1,21 @@
+material 3D-Diggers/plant1sprite
+{
+	technique Default
+	{
+		pass Main
+		{
+			cull_hardware none
+			cull_software none
+
+			ambient 0.5 0.5 0.5 1
+			diffuse 0.6 0.6 0.6 1
+
+			alpha_rejection greater_equal 128
+
+			texture_unit
+			{
+				texture plant1.png alpha
+			}
+		}
+	}
+}

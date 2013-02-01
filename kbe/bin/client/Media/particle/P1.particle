@@ -1,0 +1,53 @@
+particle_system EmptyParticle
+{
+	quota	500
+	material	lensflare
+	particle_width	2
+	particle_height	12
+	cull_each	false
+	renderer	billboard
+
+	emitter Box
+	{
+		angle	2
+		colour	1 0.189474 0.0631577 1
+		colour_range_start	1 0.189474 0.0631577 1
+		colour_range_end	1 0.189474 0.0631577 1
+		direction	0 -1 0
+		emission_rate	10
+		position	0 20 0
+		velocity	6
+		velocity_min	6
+		velocity_max	6
+		time_to_live	6
+		time_to_live_min	6
+		time_to_live_max	6
+		duration	0
+		duration_min	0
+		duration_max	0
+		repeat_delay	0
+		repeat_delay_min	0
+		repeat_delay_max	0
+		width	2
+		height	2
+		depth	2
+	}
+
+	affector Scaler
+	{
+		rate	2
+	}
+
+	affector ColourFader2
+	{
+		red1	0
+		green1	0.05
+		blue1	0.01
+		alpha1	0
+		red2	0
+		green2	1
+		blue2	1
+		alpha2	0
+		state_change	0.8
+	}
+}

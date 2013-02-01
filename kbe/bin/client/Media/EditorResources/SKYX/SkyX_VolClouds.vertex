@@ -1,0 +1,33 @@
+uniform vec3 uCameraPosition;
+uniform float uRadius;
+
+attribute vec3 uv0;
+attribute vec2 uv1;
+attribute float uv2;
+
+varying vec3 o3DCoord;
+varying vec2 oNoiseUV;
+varying float oOpacity;
+varying vec3 oEyePixel;
+varying float oDistance;
+
+void main(void)
+{
+    // Clip space position
+    gl_Position = ftransform();
+    
+    // 3D Coords
+    o3DCoord = uv0;
+    
+    // Noise coords
+    oNoiseUV = uv1;
+    
+    // Opacity
+    oOpacity = uv2;
+    
+    // Eye to pixel vector
+    oEyePixel = normalize(gl_Vertex.xyz - uCameraPosition);
+    
+    // Distance in [0,1] range
+    oDistance = length(vec2(gl_Vertex.x, gl_Vertex.z)) / uRadius;
+}

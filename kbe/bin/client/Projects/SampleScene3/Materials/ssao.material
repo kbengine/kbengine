@@ -1,0 +1,148 @@
+
+// full screen quad with camera-to-pixel ray calculations
+
+vertex_program ssao_vs cg
+{
+    source ssao.cg
+    profiles vs_1_1 arbvp1
+    entry_point ssao_vs
+    default_params
+    {
+        param_named_auto wvp worldviewproj_matrix
+    }
+}
+
+fragment_program ssao_ps cg
+{
+    source ssao.cg
+    entry_point ssao_ps
+    // will run on anything with pixel shader 2.b and up
+    profiles ps_2_x arbfp1
+    default_params
+    {
+    }
+}
+
+fragment_program ssaoBlurX_ps cg
+{
+    source ssao.cg
+    entry_point ssaoBlurX_ps
+    profiles ps_2_x arbfp1
+    default_params
+    {
+        param_named_auto invTexSize inverse_texture_size 0
+    }
+}
+
+fragment_program ssaoBlurY_ps cg
+{
+    source ssao.cg
+    entry_point ssaoBlurY_ps
+    profiles ps_2_x arbfp1
+    default_params
+    {
+        param_named_auto invTexSize inverse_texture_size 0
+    }
+}
+
+material ssao
+{
+    technique
+    {
+        pass
+        {
+            vertex_program_ref ssao_vs
+            {
+            }
+
+            fragment_program_ref ssao_ps
+            {
+            }
+
+            texture_unit geomMap
+            {
+                tex_address_mode clamp
+                filtering bilinear
+            }
+
+            texture_unit randMap
+            {
+                texture random.png
+                filtering none
+            }
+        }
+    }
+}
+
+material ssaoBlurX
+{
+    technique
+    {
+        pass
+        {
+            fragment_program_ref ssaoBlurX_ps
+            {
+            }
+
+            texture_unit map
+            {
+                tex_address_mode clamp
+                filtering bilinear
+            }
+
+            texture_unit geomMap
+            {
+                tex_address_mode clamp
+                filtering bilinear
+            }
+        }
+    }
+}
+
+material ssaoBlurY
+{
+    technique
+    {
+        pass
+        {
+            fragment_program_ref ssaoBlurY_ps
+            {
+            }
+
+            texture_unit map
+            {
+                tex_address_mode clamp
+                filtering bilinear
+            }
+
+            texture_unit geomMap
+            {
+                tex_address_mode clamp
+                filtering bilinear
+            }
+        }
+    }
+}
+
+material modulate
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+
+            texture_unit
+            {
+                texture white.bmp
+                filtering bilinear
+            }
+
+            texture_unit
+            {
+                texture white.bmp
+                filtering bilinear
+            }
+        }
+    }
+}
