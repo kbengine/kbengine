@@ -53,23 +53,35 @@ ListenerReceiver::~ListenerReceiver()
 //-------------------------------------------------------------------------------------
 int ListenerReceiver::handleInputNotification(int fd)
 {
-	EndPoint* pNewEndPoint = endpoint_.accept();
-	if(pNewEndPoint == NULL){
-		WARNING_MSG(boost::format("PacketReceiver::handleInputNotification: accept endpoint(%1%) %2%!\n") %
-			 fd % kbe_strerror());
-		
-		this->dispatcher().errorReporter().reportException(
-				REASON_GENERAL_NETWORK);
-	}
-	else
+	int tickcount = 0;
+
+	while(tickcount ++ < 1024)
 	{
-		Channel* pchannel = new Channel(networkInterface_, pNewEndPoint, traits_);
-		if(!networkInterface_.registerChannel(pchannel))
+		EndPoint* pNewEndPoint = endpoint_.accept();
+		if(pNewEndPoint == NULL){
+
+			if(tickcount == 1)
+			{
+				WARNING_MSG(boost::format("PacketReceiver::handleInputNotification: accept endpoint(%1%) %2%!\n") %
+					 fd % kbe_strerror());
+				
+				this->dispatcher().errorReporter().reportException(
+						REASON_GENERAL_NETWORK);
+			}
+
+			break;
+		}
+		else
 		{
-			ERROR_MSG(boost::format("ListenerReceiver::handleInputNotification:registerChannel(%1%) is failed!\n") %
-				pchannel->c_str());
+			Channel* pchannel = new Channel(networkInterface_, pNewEndPoint, traits_);
+			if(!networkInterface_.registerChannel(pchannel))
+			{
+				ERROR_MSG(boost::format("ListenerReceiver::handleInputNotification:registerChannel(%1%) is failed!\n") %
+					pchannel->c_str());
+			}
 		}
 	}
+
 	return 0;
 }
 
