@@ -28,7 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 KBE_SINGLETON_INIT(PendingLoginMgr);
 
-#define OP_TIME_OUT_MAX 15 * stampsPerSecondD()
+#define OP_TIME_OUT_MAX 120 * stampsPerSecondD()
 
 //-------------------------------------------------------------------------------------
 PendingLoginMgr::PendingLoginMgr(Mercury::NetworkInterface & networkInterface) :
