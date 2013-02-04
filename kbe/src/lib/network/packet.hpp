@@ -39,7 +39,8 @@ public:
 	Packet(MessageID msgID = 0, bool isTCPPacket = true, size_t res = 200):
 	MemoryStream(res),
 	msgID_(msgID),
-	isTCPPacket_(isTCPPacket)
+	isTCPPacket_(isTCPPacket),
+	sentSize(0)
 	{
 	};
 	
@@ -74,6 +75,8 @@ public:
 protected:
 	MessageID msgID_;
 	bool isTCPPacket_;
+public:
+	uint32 sentSize;
 
 };
 

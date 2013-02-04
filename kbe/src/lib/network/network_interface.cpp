@@ -484,6 +484,8 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 	// 尝试发送的次数
 	int retries = 0;
 	Reason reason;
+	
+	pPacket->sentSize = 0;
 
 	while(true)
 	{
@@ -494,14 +496,15 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 		if (reason == REASON_SUCCESS)
 			return reason;
 
-		// 如果发送出现错误那么我们可以继续尝试一次， 超过3次退出
+		// 如果发送出现错误那么我们可以继续尝试一次， 外部通道超过3次退出
+		// 内部通道则无限尝试
 		if (reason == REASON_NO_SUCH_PORT && retries <= 3)
 		{
 			continue;
 		}
 
 		// 如果系统发送缓冲已经满了，则我们等待10ms
-		if (reason == REASON_RESOURCE_UNAVAILABLE && retries <= 3)
+		if (reason == REASON_RESOURCE_UNAVAILABLE && (pChannel->isInternal() || retries <= 3))
 		{
 			WARNING_MSG(boost::format("NetworkInterface::basicSendWithRetries: "
 				"Transmit queue full, waiting for space... (%1%)\n") %
@@ -523,9 +526,10 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 Reason NetworkInterface::basicSendSingleTry(Channel * pChannel, Packet * pPacket)
 {
 	EndPoint * endpoint = pChannel->endpoint();
-	int len = endpoint->send(pPacket->data(), pPacket->totalSize());
+	int len = endpoint->send(pPacket->data() + pPacket->sentSize, pPacket->totalSize() - pPacket->sentSize);
+	pPacket->sentSize += len;
 
-	if (len == (int)pPacket->totalSize())
+	if (pPacket->sentSize == pPacket->totalSize())
 	{
 		return REASON_SUCCESS;
 	}

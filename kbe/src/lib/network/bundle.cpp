@@ -42,23 +42,25 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 		Packet* pPacket = (*iter);																			\
 		int retries = 0;																					\
 		Reason reason;																						\
+		pPacket->sentSize = 0;																				\
 																											\
 		while(true)																							\
 		{																									\
 			retries++;																						\
 			int slen = op;																					\
+			pPacket->sentSize += slen;																		\
 																											\
-			if(slen != (int)pPacket->totalSize())															\
+			if(pPacket->sentSize != pPacket->totalSize())													\
 			{																								\
 				reason = NetworkInterface::getSendErrorReason(&ep, slen, pPacket->totalSize());				\
-				/* 如果发送出现错误那么我们可以继续尝试一次， 超过3次退出	*/								\
+				/* 如果发送出现错误那么我们可以继续尝试一次， 超过60次退出	*/								\
 				if (reason == REASON_NO_SUCH_PORT && retries <= 3)											\
 				{																							\
 					continue;																				\
 				}																							\
 																											\
 				/* 如果系统发送缓冲已经满了，则我们等待10ms	*/												\
-				if (reason == REASON_RESOURCE_UNAVAILABLE && retries <= 3)									\
+				if (reason == REASON_RESOURCE_UNAVAILABLE && retries <= 60)									\
 				{																							\
 					WARNING_MSG(boost::format("%1%: "														\
 						"Transmit queue full, waiting for space... (%2%)\n") %								\
@@ -68,7 +70,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 					continue;																				\
 				}																							\
 																											\
-				if(retries > 3 && reason != REASON_SUCCESS)													\
+				if(retries > 60 && reason != REASON_SUCCESS)												\
 				{																							\
 					ERROR_MSG("Bundle::send: packet discarded.\n");											\
 					break;																					\
@@ -264,14 +266,15 @@ void Bundle::send(NetworkInterface & networkInterface, Channel * pChannel)
 void Bundle::send(EndPoint& ep)
 {
 	//AUTO_SCOPED_PROFILE("sendBundle");
-	BUNDLE_SEND_OP(ep.send(pPacket->data(), pPacket->totalSize()));
+	BUNDLE_SEND_OP(ep.send(pPacket->data() + pPacket->sentSize, pPacket->totalSize() - pPacket->sentSize));
 }
 
 //-------------------------------------------------------------------------------------
 void Bundle::sendto(EndPoint& ep, u_int16_t networkPort, u_int32_t networkAddr)
 {
 	//AUTO_SCOPED_PROFILE("sendToBundle");
-	BUNDLE_SEND_OP(ep.sendto(pPacket->data(), pPacket->totalSize(), networkPort, networkAddr));
+	BUNDLE_SEND_OP(ep.sendto(pPacket->data() + pPacket->sentSize, pPacket->totalSize() - pPacket->sentSize, 
+		networkPort, networkAddr));
 }
 
 //-------------------------------------------------------------------------------------
