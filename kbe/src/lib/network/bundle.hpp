@@ -73,7 +73,7 @@ class Channel;
 				DEBUG_MSG(boost::format("%1% %2%:msgID:%3%, currMsgLength:%4%, addr:%5%\n") %				\
 						((isrecv == true) ? "====>" : "<====") %											\
 						pCurrMsgHandler->name.c_str() %														\
-						bundle->messageID() %																\
+						pCurrMsgHandler->msgID %															\
 						length %																			\
 						addr);																				\
 			}																								\

@@ -548,8 +548,6 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 						break;
 					}
 
-					TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, pPacket->totalSize(), this->c_str());
-
 					// 如果没有可操作的数据了则退出等待下一个包处理。
 					//if(pPacket->opsize() == 0)	// 可能是一个无参数数据包
 					//	break;
@@ -581,6 +579,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					
 					if(currMsgLen_ > pMsgHandler->msglenMax())
 					{
+						TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, pPacket->totalSize(), this->c_str());
 						WARNING_MSG(boost::format("Channel::handleMessage(%1%): msglen is error! msgID=%2%, msglen=(%3%:%4%), from %5%.\n") % 
 							pMsgHandler->name.c_str() % currMsgID_ % currMsgLen_ % pPacket->totalSize() % c_str());
 
@@ -591,6 +590,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 
 					if(pFragmentStream_ != NULL)
 					{
+						TRACE_BUNDLE_DATA(true, pFragmentStream_, pMsgHandler, currMsgLen_, this->c_str());
 						pMsgHandler->handle(this, *pFragmentStream_);
 						MemoryStream::ObjPool().reclaimObject(pFragmentStream_);
 						pFragmentStream_ = NULL;
@@ -608,6 +608,8 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 						// size_t rpos = pPacket->rpos();
 						size_t frpos = pPacket->rpos() + currMsgLen_;
 						pPacket->wpos(frpos);
+
+						TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, currMsgLen_, this->c_str());
 						pMsgHandler->handle(this, *pPacket);
 
 						// 防止handle中没有将数据导出获取非法操作
