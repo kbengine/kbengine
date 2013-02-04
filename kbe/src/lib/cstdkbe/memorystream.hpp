@@ -566,7 +566,7 @@ public:
 		kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 		fbuffer += buf;
 
-        for(uint32 i = 0; i < opsize(); ++i)
+        for(uint32 i = rpos(); i < wpos(); ++i)
 		{
 			kbe_snprintf(buf, 1024, "%u ", read<uint8>(i));
 			fbuffer += buf;
@@ -585,7 +585,7 @@ public:
 		kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 		fbuffer += buf;
 
-        for(uint32 i = 0; i < opsize(); ++i)
+        for(uint32 i = rpos(); i < wpos(); ++i)
 		{
 			kbe_snprintf(buf, 1024, "%c", read<uint8>(i));
 			fbuffer += buf;
@@ -603,33 +603,35 @@ public:
 
 		kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 		fbuffer += buf;
-
-        for(uint32 i = 0; i < opsize(); ++i)
+		
+		int i = 0;
+        for(uint32 idx = rpos(); idx < wpos(); ++idx)
         {
+			++i;
             if ((i == (j * 8)) && ((i != (k * 16))))
             {
-                if (read<uint8>(i) < 0x10)
+                if (read<uint8>(idx) < 0x10)
                 {
-					kbe_snprintf(buf, 1024, "| 0%X ", read<uint8>(i));
+					kbe_snprintf(buf, 1024, "| 0%X ", read<uint8>(idx));
 					fbuffer += buf;
                 }
                 else
                 {
-					kbe_snprintf(buf, 1024, "| %X ", read<uint8>(i));
+					kbe_snprintf(buf, 1024, "| %X ", read<uint8>(idx));
 					fbuffer += buf;
                 }
                 ++j;
             }
             else if (i == (k * 16))
             {
-                if (read<uint8>(i) < 0x10)
+                if (read<uint8>(idx) < 0x10)
                 {
-					kbe_snprintf(buf, 1024, "\n0%X ", read<uint8>(i));
+					kbe_snprintf(buf, 1024, "\n0%X ", read<uint8>(idx));
 					fbuffer += buf;
                 }
                 else
                 {
-					kbe_snprintf(buf, 1024, "\n%X ", read<uint8>(i));
+					kbe_snprintf(buf, 1024, "\n%X ", read<uint8>(idx));
 					fbuffer += buf;
                 }
 
@@ -638,14 +640,14 @@ public:
             }
             else
             {
-                if (read<uint8>(i) < 0x10)
+                if (read<uint8>(idx) < 0x10)
                 {
-					kbe_snprintf(buf, 1024, "0%X ", read<uint8>(i));
+					kbe_snprintf(buf, 1024, "0%X ", read<uint8>(idx));
 					fbuffer += buf;
                 }
                 else
                 {
-					kbe_snprintf(buf, 1024, "%X ", read<uint8>(i));
+					kbe_snprintf(buf, 1024, "%X ", read<uint8>(idx));
 					fbuffer += buf;
                 }
             }
