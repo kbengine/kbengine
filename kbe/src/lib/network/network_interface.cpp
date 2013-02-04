@@ -302,7 +302,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 		if (!pEP->setBufferSize(SO_SNDBUF, wbuffer))
 		{
 			WARNING_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
-				"Operating with a receive buffer of only %2% bytes (instead of %3%)\n") %
+				"Operating with a send buffer of only %2% bytes (instead of %3%)\n") %
 				pEndPointName % pEP->getBufferSize(SO_SNDBUF) % wbuffer);
 		}
 	}
