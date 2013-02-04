@@ -604,7 +604,7 @@ public:
 		kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 		fbuffer += buf;
 		
-		int i = 0;
+		uint32 i = 0;
         for(uint32 idx = rpos(); idx < wpos(); ++idx)
         {
 			++i;
