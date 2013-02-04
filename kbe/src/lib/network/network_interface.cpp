@@ -535,7 +535,7 @@ Reason NetworkInterface::basicSendSingleTry(Channel * pChannel, Packet * pPacket
 	}
 	else
 	{
-		return NetworkInterface::getSendErrorReason(endpoint, len, pPacket->totalSize());
+		return NetworkInterface::getSendErrorReason(endpoint, len, pPacket->totalSize() - pPacket->sentSize - len);
 	}
 }
 
