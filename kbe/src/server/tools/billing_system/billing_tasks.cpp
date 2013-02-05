@@ -68,6 +68,9 @@ BillingTask()
 //-------------------------------------------------------------------------------------
 CreateAccountTask::~CreateAccountTask()
 {
+	BillingSystem::getSingleton().lockthread();
+	BillingSystem::getSingleton().reqAccountLogin_requests().erase(commitName);
+	BillingSystem::getSingleton().unlockthread();
 }
 
 //-------------------------------------------------------------------------------------
@@ -119,13 +122,14 @@ bool CreateAccountTask::process()
 	packet.resize(1024);
 
 	fd_set	frds;
-	struct timeval tv = { 0, 500000 }; // 500ms
+	struct timeval tv = { 0, 5000000 }; // 5000ms
 
 	FD_ZERO( &frds );
 	FD_SET((int)endpoint, &frds);
 	int selgot = select(endpoint+1, &frds, NULL, NULL, &tv);
 	if(selgot <= 0)
 	{
+		ERROR_MSG(boost::format("BillingTask::process: %1% send(%2%).\n") % commitName % postDatas);
 		ERROR_MSG(boost::format("BillingTask::process: %1% recv is error(%2%).\n") % commitName % KBEngine::kbe_strerror());
 		endpoint.close();
 		return false;
@@ -371,7 +375,7 @@ bool ChargeTask::process()
 
 	pOrders->getDatas.assign((const char *)(packet.data() + packet.rpos()), packet.opsize());
 
-	std::string::size_type fi = pOrders->getDatas.find("retcode1");
+	std::string::size_type fi = pOrders->getDatas.find("retcode:1");
 	success = fi != std::string::npos;
 	endpoint.close();
 
@@ -407,7 +411,9 @@ thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 				pOrders->ordersID);
 		}
 
+		BillingSystem::getSingleton().lockthread();
 		BillingSystem::getSingleton().orders().erase(pOrders->ordersID);
+		BillingSystem::getSingleton().unlockthread();
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 

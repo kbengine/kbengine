@@ -50,7 +50,10 @@ BillingSystem::BillingSystem(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
 	ServerApp(dispatcher, ninterface, componentType, componentID),
-	mainProcessTimer_()
+	mainProcessTimer_(),
+	reqCreateAccount_requests_(),
+	reqAccountLogin_requests_(),
+	mutex_()
 {
 }
 
@@ -59,6 +62,18 @@ BillingSystem::~BillingSystem()
 {
 	mainProcessTimer_.cancel();
 	KBEngine::sleep(300);
+}
+
+//-------------------------------------------------------------------------------------
+void BillingSystem::lockthread()
+{
+	mutex_.lockMutex();
+}
+
+//-------------------------------------------------------------------------------------
+void BillingSystem::unlockthread()
+{
+	mutex_.unlockMutex();
 }
 
 //-------------------------------------------------------------------------------------
@@ -139,6 +154,15 @@ void BillingSystem::reqCreateAccount(Mercury::Channel* pChannel, KBEngine::Memor
 
 	s >> cid >> registerName >> password;
 	s.readBlob(datas);
+	
+	lockthread();
+
+	REQCREATE_MAP::iterator iter = reqCreateAccount_requests_.find(registerName);
+	if(iter != reqCreateAccount_requests_.end())
+	{
+		unlockthread();
+		return;
+	}
 
 	CreateAccountTask* pinfo = new CreateAccountTask();
 	pinfo->commitName = registerName;
@@ -150,6 +174,9 @@ void BillingSystem::reqCreateAccount(Mercury::Channel* pChannel, KBEngine::Memor
 	pinfo->baseappID = cid;
 	pinfo->dbmgrID = pChannel->componentID();
 	pinfo->address = pChannel->addr();
+
+	reqCreateAccount_requests_[pinfo->commitName] = pinfo;
+	unlockthread();
 
 	this->threadPool().addTask(pinfo);
 }
@@ -163,6 +190,15 @@ void BillingSystem::onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryS
 	s >> cid >> loginName >> password;
 	s.readBlob(datas);
 
+	lockthread();
+
+	REQLOGIN_MAP::iterator iter = reqAccountLogin_requests_.find(loginName);
+	if(iter != reqAccountLogin_requests_.end())
+	{
+		unlockthread();
+		return;
+	}
+
 	LoginAccountTask* pinfo = new LoginAccountTask();
 	pinfo->commitName = loginName;
 	pinfo->accountName = loginName;
@@ -173,6 +209,9 @@ void BillingSystem::onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryS
 	pinfo->baseappID = cid;
 	pinfo->dbmgrID = pChannel->componentID();
 	pinfo->address = pChannel->addr();
+
+	reqAccountLogin_requests_[pinfo->commitName] = pinfo;
+	unlockthread();
 
 	this->threadPool().addTask(pinfo);
 }
@@ -193,11 +232,14 @@ void BillingSystem::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 	INFO_MSG(boost::format("BillingSystem::charge: componentID=%5%, chargeID=%1%, dbid=%2%, cbid=%3%, datas=%4%!\n") %
 		pOrdersCharge->ordersID % pOrdersCharge->dbid % pOrdersCharge->cbid % pOrdersCharge->postDatas % pOrdersCharge->baseappID);
 
+	lockthread();
+
 	ORDERS::iterator iter = orders_.find(pOrdersCharge->ordersID);
 	if(iter != orders_.end())
 	{
 		ERROR_MSG(boost::format("BillingSystem::charge: chargeID=%1% is exist!\n") % pOrdersCharge->ordersID);
 		delete pOrdersCharge;
+		unlockthread();
 		return;
 	}
 
@@ -205,7 +247,8 @@ void BillingSystem::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 	pinfo->pOrders = pOrdersCharge;
 	
 	orders_[pOrdersCharge->ordersID].reset(pOrdersCharge);
-
+	unlockthread();
+	
 	this->threadPool().addTask(pinfo);
 }
 

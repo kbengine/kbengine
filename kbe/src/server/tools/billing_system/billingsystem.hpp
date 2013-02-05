@@ -41,6 +41,8 @@ namespace KBEngine{
 
 class DBInterface;
 class Orders;
+class CreateAccountTask;
+class LoginAccountTask;
 
 class BillingSystem : public ServerApp, 
 				public Singleton<BillingSystem>
@@ -71,6 +73,9 @@ public:
 	
 	bool initDB();
 	
+	void lockthread();
+	void unlockthread();
+
 	/** 网络接口
 		请求创建账号
 	*/
@@ -88,11 +93,24 @@ public:
 
 	typedef KBEUnordered_map<std::string, KBEShared_ptr<Orders> > ORDERS;
 	BillingSystem::ORDERS& orders(){ return orders_; }
+
+	typedef KBEUnordered_map<std::string, CreateAccountTask*> REQCREATE_MAP;
+	typedef KBEUnordered_map<std::string, LoginAccountTask*> REQLOGIN_MAP;
+
+	REQCREATE_MAP& reqCreateAccount_requests(){ return reqCreateAccount_requests_; }
+	REQLOGIN_MAP& reqAccountLogin_requests(){ return reqAccountLogin_requests_; }
+
 protected:
 	TimerHandle																mainProcessTimer_;
 
 	// 订单
 	ORDERS orders_;
+
+	// 所有的请求记录， 避免某类重复性请求。
+	KBEUnordered_map<std::string, CreateAccountTask*>						reqCreateAccount_requests_;
+	KBEUnordered_map<std::string, LoginAccountTask*>						reqAccountLogin_requests_;
+
+	KBEngine::thread::ThreadMutex											mutex_;
 };
 
 }
