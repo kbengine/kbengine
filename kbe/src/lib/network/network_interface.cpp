@@ -526,6 +526,7 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 Reason NetworkInterface::basicSendSingleTry(Channel * pChannel, Packet * pPacket)
 {
 	EndPoint * endpoint = pChannel->endpoint();
+	KBE_ASSERT(pPacket->rpos() == 0);
 	int len = endpoint->send(pPacket->data() + pPacket->sentSize, pPacket->totalSize() - pPacket->sentSize);
 	pPacket->sentSize += len;
 
