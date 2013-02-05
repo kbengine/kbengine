@@ -341,12 +341,12 @@ public:
 		return appendBlob((const uint8 *)str.data(), str.size());
 	}
 
-	Bundle &appendBlob(const char* str, uint32 n)
+	Bundle &appendBlob(const char* str, ArraySize n)
 	{
 		return appendBlob((const uint8 *)str, n);
 	}
 
-	Bundle &appendBlob(const uint8 *str, uint32 n)
+	Bundle &appendBlob(const uint8 *str, ArraySize n)
 	{
 		(*this) << n;
 		return assign((char*)str, n);
