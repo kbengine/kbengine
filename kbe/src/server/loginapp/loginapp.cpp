@@ -46,6 +46,7 @@ Loginapp::Loginapp(Mercury::EventDispatcher& dispatcher,
 			 COMPONENT_ID componentID):
 	ServerApp(dispatcher, ninterface, componentType, componentID),
 	loopCheckTimerHandle_(),
+	pendingCreateMgr_(ninterface),
 	pendingLoginMgr_(ninterface)
 {
 }
@@ -83,6 +84,7 @@ void Loginapp::handleCheckStatusTick()
 	this->getMainDispatcher().processOnce(false);
 	getNetworkInterface().handleChannels(&LoginappInterface::messageHandlers);
 	pendingLoginMgr_.process();
+	pendingCreateMgr_.process();
 }
 
 //-------------------------------------------------------------------------------------
@@ -148,7 +150,7 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s)
 	DEBUG_MSG(boost::format("Loginapp::reqCreateAccount: accountName=%1%, passwordsize=%2%.\n") %
 		accountName.c_str() % password.size());
 
-	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(accountName);
+	PendingLoginMgr::PLInfos* ptinfos = pendingCreateMgr_.find(accountName);
 	if(ptinfos != NULL)
 	{
 		Mercury::Bundle bundle;
@@ -165,7 +167,7 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s)
 	ptinfos->password = password;
 	ptinfos->datas = datas;
 	ptinfos->addr = pChannel->addr();
-	pendingLoginMgr_.add(ptinfos);
+	pendingCreateMgr_.add(ptinfos);
 
 	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
@@ -205,7 +207,7 @@ void Loginapp::onReqCreateAccountResult(Mercury::Channel* pChannel, MemoryStream
 	DEBUG_MSG(boost::format("Loginapp::onReqCreateAccountResult: accountName=%1%, failedcode=%2%.\n") %
 		accountName.c_str() % failedcode);
 
-	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
+	PendingLoginMgr::PLInfos* ptinfos = pendingCreateMgr_.remove(accountName);
 	if(ptinfos == NULL)
 		return;
 

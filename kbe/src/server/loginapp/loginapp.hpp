@@ -123,6 +123,9 @@ public:
 protected:
 	TimerHandle							loopCheckTimerHandle_;
 
+	// 记录注册账号还未登陆的请求
+	PendingLoginMgr						pendingCreateMgr_;
+
 	// 记录登录到服务器但还未处理完毕的账号
 	PendingLoginMgr						pendingLoginMgr_;
 };
