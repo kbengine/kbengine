@@ -538,9 +538,11 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 
 					if(pMsgHandler == NULL)
 					{
-						TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, pPacket->totalSize(), this->c_str());
+						MemoryStream* pPacket1 = pFragmentStream_ != NULL ? pFragmentStream_ : pPacket;
+						TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
+
 						WARNING_MSG(boost::format("Channel::handleMessage: invalide msgID=%1%, msglen=%2%, from %3%.\n") %
-							currMsgID_ % pPacket->totalSize() % c_str());
+							currMsgID_ % pPacket1->opsize() % c_str());
 
 						currMsgID_ = 0;
 						currMsgLen_ = 0;
@@ -579,9 +581,10 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					
 					if(currMsgLen_ > pMsgHandler->msglenMax())
 					{
-						TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, pPacket->totalSize(), this->c_str());
+						MemoryStream* pPacket1 = pFragmentStream_ != NULL ? pFragmentStream_ : pPacket;
+						TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
 						WARNING_MSG(boost::format("Channel::handleMessage(%1%): msglen is error! msgID=%2%, msglen=(%3%:%4%), from %5%.\n") % 
-							pMsgHandler->name.c_str() % currMsgID_ % currMsgLen_ % pPacket->totalSize() % c_str());
+							pMsgHandler->name.c_str() % currMsgID_ % currMsgLen_ % pPacket1->opsize() % c_str());
 
 						currMsgLen_ = 0;
 						condemn();
