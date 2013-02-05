@@ -60,10 +60,14 @@ public:
 
 	~CallbackMgr()
 	{
-		cbMap_.clear();
+		finalise();
 	}	
 	
-	
+	void finalise()
+	{
+		cbMap_.clear();
+	}
+
 	/** 向管理器添加一个回调 */
 	CALLBACK_ID save(T callback)
 	{
@@ -91,7 +95,7 @@ protected:
 };
 
 template<>
-inline CallbackMgr<PyObject*>::~CallbackMgr()
+inline void CallbackMgr<PyObject*>::finalise()
 {
 	std::map<CALLBACK_ID, PyObject*>::iterator iter = cbMap_.begin();
 	for(; iter!= cbMap_.end(); iter++)

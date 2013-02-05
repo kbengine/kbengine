@@ -80,6 +80,8 @@ ClientObjectBase::~ClientObjectBase()
 //-------------------------------------------------------------------------------------		
 void ClientObjectBase::finalise(void)
 {
+	pyCallbackMgr_.finalise();
+
 	if(pEntities_)
 	{
 		pEntities_->finalise();

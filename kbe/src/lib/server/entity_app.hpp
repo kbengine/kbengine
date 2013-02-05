@@ -256,7 +256,8 @@ void EntityApp<E>::finalise(void)
 	gameTimer_.cancel();
 
 	WATCH_FINALIZE;
-
+	
+	pyCallbackMgr_.finalise();
 	ScriptTimers::finalise(*this);
 	pEntities_->finalise();
 	
