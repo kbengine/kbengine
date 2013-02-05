@@ -160,8 +160,8 @@ windows:
 		lower_case_table_names=2
 
 	2: 创建一个数据库账户， 假设用户名密码都为"kbe"
-		grant all privileges on mydb.* to kbe@% identified by 'kbe';
-		grant select,insert,update,delete,create,drop on mydb.* to kbe@% identified by 'kbe';
+		grant all privileges on mydb.* to kbe@'%' identified by 'kbe';
+		grant select,insert,update,delete,create,drop on mydb.* to kbe@'%' identified by 'kbe';
 		FLUSH PRIVILEGES;
 
 	3: 新建一个数据库， 假设数据库名为"kbe"
