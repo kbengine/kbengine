@@ -26,7 +26,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/network_interface.hpp"
 
 namespace KBEngine { 
-KBE_SINGLETON_INIT(PendingLoginMgr);
 
 #define OP_TIME_OUT_MAX 120 * stampsPerSecondD()
 
