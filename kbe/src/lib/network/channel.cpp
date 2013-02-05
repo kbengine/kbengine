@@ -540,6 +540,12 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					{
 						MemoryStream* pPacket1 = pFragmentStream_ != NULL ? pFragmentStream_ : pPacket;
 						TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
+						
+						// 用作调试时比对
+						uint32 rpos = pPacket1->rpos();
+						pPacket1->rpos(0);
+						TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
+						pPacket1->rpos(rpos);
 
 						WARNING_MSG(boost::format("Channel::handleMessage: invalide msgID=%1%, msglen=%2%, from %3%.\n") %
 							currMsgID_ % pPacket1->opsize() % c_str());
@@ -583,6 +589,13 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 					{
 						MemoryStream* pPacket1 = pFragmentStream_ != NULL ? pFragmentStream_ : pPacket;
 						TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
+
+						// 用作调试时比对
+						uint32 rpos = pPacket1->rpos();
+						pPacket1->rpos(0);
+						TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
+						pPacket1->rpos(rpos);
+
 						WARNING_MSG(boost::format("Channel::handleMessage(%1%): msglen is error! msgID=%2%, msglen=(%3%:%4%), from %5%.\n") % 
 							pMsgHandler->name.c_str() % currMsgID_ % currMsgLen_ % pPacket1->opsize() % c_str());
 
