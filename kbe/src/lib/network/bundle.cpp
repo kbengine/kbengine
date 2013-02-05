@@ -48,7 +48,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 		{																									\
 			retries++;																						\
 			int slen = op;																					\
-			pPacket->sentSize += slen;																		\
+																											\
+			if(slen > 0)																					\
+				pPacket->sentSize += slen;																	\
 																											\
 			if(pPacket->sentSize != pPacket->totalSize())													\
 			{																								\
