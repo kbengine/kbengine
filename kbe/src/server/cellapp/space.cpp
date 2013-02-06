@@ -186,8 +186,8 @@ void Space::onEnterWorld(Entity* pEntity)
 				Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle2);
 			}
 
-			Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
 			pEntity->getClientMailbox()->postMail(*pSendBundle);
+			Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
 		}
 	}
 	else
@@ -304,8 +304,8 @@ void Space::broadcastAOIEntitiesToEntity(Entity* pEntity)
 			Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle2);
 		}
 
-		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
 		pEntity->getClientMailbox()->postMail(*pSendBundle);
+		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
 	}
 }
 
