@@ -1968,6 +1968,15 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 				
 				mailbox->newMail(bundle);
 				bundle.append(s);
+
+				if(Mercury::g_trace_packet > 0)
+				{
+					ENTITY_METHOD_UID utype = 0;
+					s >> utype;
+					DEBUG_MSG(boost::format("Baseapp::onEntityMail: onRemoteMethodCall(entityID=%1%, method=%2%).\n") %
+						eid % utype);
+				}
+
 				s.read_skip(s.opsize());
 				mailbox->postMail(bundle);
 			}
