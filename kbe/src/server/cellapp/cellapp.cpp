@@ -614,7 +614,8 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 			(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
 			BaseappInterface::onEntityGetCellArgs3::staticAddToBundle((*pBundle), mailboxEntityID, componentID_, spaceID);
 			forward_messagebuffer_.push(componentID, pFI);
-			WARNING_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: not found baseapp, message is buffered.\n");
+			WARNING_MSG(boost::format("Cellapp::onCreateInNewSpaceFromBaseapp: not found baseapp(%1%), message is buffered.\n") %
+				componentID);
 			return;
 		}
 
@@ -669,7 +670,9 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
 		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle((*pBundle), entityID, componentID_, spaceID);
 		forward_messagebuffer_.push(componentID, pFI);
-		WARNING_MSG("Cellapp::onCreateCellEntityFromBaseapp: not found baseapp, message is buffered.\n");
+
+		WARNING_MSG(boost::format("Cellapp::onCreateCellEntityFromBaseapp: not found baseapp(%1%), message is buffered.\n") %
+			componentID);
 		return;
 	}
 
