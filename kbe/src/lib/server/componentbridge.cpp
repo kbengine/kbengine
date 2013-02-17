@@ -167,7 +167,7 @@ bool Componentbridge::findInterfaces()
 				return false;
 			}
 		
-			int32 timeout = 300000;
+			int32 timeout = 3000000;
 			bool showerr = true;
 			MachineInterface::onBroadcastInterfaceArgs8 args;
 
@@ -177,7 +177,7 @@ RESTART_RECV:
 			{
 				bool isContinue = false;
 				showerr = false;
-				timeout = 100000;
+				timeout = 1000000;
 
 				do
 				{
