@@ -233,8 +233,8 @@ RESTART_RECV:
 				}
 				else
 				{
-					ERROR_MSG(boost::format("Componentbridge::process: %1% not found. receive data is error!\n") %
-						COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+					ERROR_MSG(boost::format("Componentbridge::process: %1% not found. receive data is error(found:%2%)!\n") %
+						COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType) % args.componentType);
 				}
 			}
 			else
