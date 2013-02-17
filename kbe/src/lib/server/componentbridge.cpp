@@ -170,6 +170,7 @@ bool Componentbridge::findInterfaces()
 			int32 timeout = 3000000;
 			bool showerr = true;
 			MachineInterface::onBroadcastInterfaceArgs8 args;
+			int32 unknown_try = 0;
 
 RESTART_RECV:
 
@@ -208,6 +209,7 @@ RESTART_RECV:
 						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
 
 					isContinue = true;
+					unknown_try = 0;
 				}while(bhandler.pCurrPacket()->opsize() > 0);
 
 
@@ -233,8 +235,11 @@ RESTART_RECV:
 				}
 				else
 				{
-					ERROR_MSG(boost::format("Componentbridge::process: %1% not found. receive data is error(found:%2%)!\n") %
-						COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType) % args.componentType);
+					//ERROR_MSG(boost::format("Componentbridge::process: %1% not found. receive data is error(found:%2%)!\n") %
+					//	COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType) % args.componentType);
+
+					if(unknown_try++ < 1)
+						goto RESTART_RECV;
 				}
 			}
 			else
