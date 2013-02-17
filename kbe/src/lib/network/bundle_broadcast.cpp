@@ -131,7 +131,7 @@ bool BundleBroadcast::broadcast(uint16 port)
 }
 
 //-------------------------------------------------------------------------------------
-bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 timeout)
+bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 timeout, bool showerr)
 {
 	if (!epListen_.good())
 		return false;
@@ -156,8 +156,10 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 		{
 			if(icount > itry_)
 			{
-				DEBUG_MSG("BundleBroadcast::receive: is failed!\n");
-
+				if(showerr)
+				{
+					ERROR_MSG("BundleBroadcast::receive: is failed!\n");
+				}
 				return false;
 			}
 			else
@@ -171,9 +173,11 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 		}
 		else if (selgot == -1)
 		{
-			ERROR_MSG(boost::format("BundleBroadcast::receive: select error. %1%.\n") %
-					kbe_strerror());
-
+			if(showerr)
+			{
+				ERROR_MSG(boost::format("BundleBroadcast::receive: select error. %1%.\n") %
+						kbe_strerror());
+			}
 			return false;
 		}
 		else
@@ -187,9 +191,11 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 			int len = epListen_.recvfrom(pCurrPacket()->data(), recvWindowSize_, *psin);
 			if (len == -1)
 			{
-				ERROR_MSG(boost::format("BundleBroadcast::receive: recvfrom error. %1%.\n") %
-						kbe_strerror());
-
+				if(showerr)
+				{
+					ERROR_MSG(boost::format("BundleBroadcast::receive: recvfrom error. %1%.\n") %
+							kbe_strerror());
+				}
 				continue;
 			}
 			

@@ -167,38 +167,52 @@ bool Componentbridge::findInterfaces()
 				return false;
 			}
 		
+			int32 timeout = 300000;
+			bool showerr = true;
 			MachineInterface::onBroadcastInterfaceArgs8 args;
-			if(bhandler.receive(&args, 0, 10000000))
-			{
-				if(args.componentType == UNKNOWN_COMPONENT_TYPE)
-				{
-					//INFO_MSG("Componentbridge::process: not found %s, try again...\n",
-					//	COMPONENT_NAME_EX(findComponentType));
-					
-					// 如果是这些辅助组件没找到则跳过
-					if(findComponentType == MESSAGELOG_TYPE || findComponentType == RESOURCEMGR_TYPE)
-					{
-						WARNING_MSG(boost::format("Componentbridge::process: not found %1%!\n") %
-							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
 
-						findComponentTypes_[findIdx_] = -1; // 跳过标志
-						count = 0;
-						findIdx_++;
+RESTART_RECV:
+
+			if(bhandler.receive(&args, 0, timeout, showerr))
+			{
+				bool isContinue = false;
+				showerr = false;
+				timeout = 100000;
+
+				do
+				{
+					if(isContinue)
+					{
+						try
+						{
+							args.createFromStream(*bhandler.pCurrPacket());
+						}catch(MemoryStreamException &)
+						{
+							break;
+						}
+					}
+					
+					// 如果找不到
+					if(args.componentType == UNKNOWN_COMPONENT_TYPE)
+					{
+						isContinue = true;
+						continue;
 					}
 
-					return false;
-				}
+					INFO_MSG(boost::format("Componentbridge::process: found %1%, addr:%2%:%3%\n") %
+						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType) % 
+						inet_ntoa((struct in_addr&)args.intaddr) %
+						ntohs(args.intport));
 
-				INFO_MSG(boost::format("Componentbridge::process: found %1%, addr:%2%:%3%\n") %
-					COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType) % 
-					inet_ntoa((struct in_addr&)args.intaddr) %
-					ntohs(args.intport));
-				
+					Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
+						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
+
+					isContinue = true;
+				}while(bhandler.pCurrPacket()->opsize() > 0);
+
+
 				count = 0;
-				Componentbridge::getComponents().addComponent(args.uid, args.username.c_str(), 
-					(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, 
-					args.intaddr, args.intport, args.extaddr, args.extport);
-				
+
 				// 防止接收到的数据不是想要的数据
 				if(findComponentType == args.componentType)
 				{
@@ -215,7 +229,7 @@ bool Componentbridge::findInterfaces()
 						}
 					}
 
-					findIdx_++;
+					goto RESTART_RECV;
 				}
 				else
 				{
@@ -225,17 +239,25 @@ bool Componentbridge::findInterfaces()
 			}
 			else
 			{
-				ERROR_MSG("Componentbridge::process: receive error!\n");
-
-				// 如果是这些辅助组件没找到则跳过
-				if(findComponentType == MESSAGELOG_TYPE || findComponentType == RESOURCEMGR_TYPE)
+				if(Components::getSingleton().getComponents((COMPONENT_TYPE)findComponentType).size() > 0)
 				{
-					WARNING_MSG(boost::format("Componentbridge::process: not found %1%!\n") %
-						COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
-
-					findComponentTypes_[findIdx_] = -1; // 跳过标志
-					count = 0;
 					findIdx_++;
+				}
+				else
+				{
+					ERROR_MSG("Componentbridge::process: receive error!\n");
+
+					// 如果是这些辅助组件没找到则跳过
+					if(findComponentType == MESSAGELOG_TYPE || findComponentType == RESOURCEMGR_TYPE)
+					{
+						WARNING_MSG(boost::format("Componentbridge::process: not found %1%!\n") %
+							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+
+						findComponentTypes_[findIdx_] = -1; // 跳过标志
+						count = 0;
+						findIdx_++;
+						return false;
+					}
 				}
 
 				return false;
