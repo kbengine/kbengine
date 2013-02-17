@@ -154,7 +154,8 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 		
 		if(usable)
 		{
-			if(ep_.addr().ip == pinfos->pIntAddr->ip)
+			if(ep_.addr().ip == pinfos->pIntAddr->ip || this->getNetworkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
+				this->getNetworkInterface().extaddr().ip == pinfos->pIntAddr->ip)
 			{
 				found = true;
 				MachineInterface::onBroadcastInterfaceArgs8::staticAddToBundle(bundle, pinfos->uid, 
