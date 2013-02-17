@@ -182,7 +182,8 @@ linux:
 
 	sh kill.sh
 
-	(注意: 如有开放防火墙请对外开放这些端口tcp:loginapp登录端口, baseapp登录端口具体请看kbengine_defs.xml. 并且允许udp广播端口20086-20088)
+	(注意: 如有开放防火墙请对外开放这些端口tcp:loginapp登录端口、 baseapp登录端口具体请看kbengine_defs.xml。 
+	并且允许udp广播端口20086-20088)
 
 windows:
 
