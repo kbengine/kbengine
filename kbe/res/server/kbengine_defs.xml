@@ -29,6 +29,9 @@
 	<!-- 是否输出entity的创建， 脚本获取属性， 初始化属性等调试信息 -->
 	<debugEntity>0</debugEntity>
 
+	<cellapps> 1 </cellapps>
+	<baseapps> 1 </baseapps>
+	
 	<channelCommon> 
 		<!-- 频道最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该频道 -->
 		<timeout> 
