@@ -68,8 +68,14 @@ BillingTask()
 //-------------------------------------------------------------------------------------
 CreateAccountTask::~CreateAccountTask()
 {
+	removeLog();
+}
+
+//-------------------------------------------------------------------------------------
+void CreateAccountTask::removeLog()
+{
 	BillingSystem::getSingleton().lockthread();
-	BillingSystem::getSingleton().reqAccountLogin_requests().erase(commitName);
+	BillingSystem::getSingleton().reqCreateAccount_requests().erase(commitName);
 	BillingSystem::getSingleton().unlockthread();
 }
 
@@ -250,6 +256,14 @@ CreateAccountTask()
 //-------------------------------------------------------------------------------------
 LoginAccountTask::~LoginAccountTask()
 {
+}
+
+//-------------------------------------------------------------------------------------
+void LoginAccountTask::removeLog()
+{
+	BillingSystem::getSingleton().lockthread();
+	BillingSystem::getSingleton().reqAccountLogin_requests().erase(commitName);
+	BillingSystem::getSingleton().unlockthread();
 }
 
 //-------------------------------------------------------------------------------------

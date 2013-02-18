@@ -65,6 +65,8 @@ public:
 	virtual ~CreateAccountTask();
 	
 	virtual bool process();
+	
+	virtual void removeLog();
 
 	thread::TPTask::TPTaskState presentMainThread();
 
@@ -79,6 +81,7 @@ public:
 	LoginAccountTask();
 	virtual ~LoginAccountTask();
 	
+	virtual void removeLog();
 	thread::TPTask::TPTaskState presentMainThread();
 protected:
 };
