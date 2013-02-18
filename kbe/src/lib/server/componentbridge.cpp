@@ -167,7 +167,7 @@ bool Componentbridge::findInterfaces()
 				return false;
 			}
 		
-			int32 timeout = 3000000;
+			int32 timeout = 1500000;
 			bool showerr = true;
 			MachineInterface::onBroadcastInterfaceArgs8 args;
 			int32 unknown_try = 0;
@@ -226,6 +226,7 @@ RESTART_RECV:
 						{
 							ERROR_MSG(boost::format("Componentbridge::register self to %1% is error!\n") %
 							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+							findIdx_++;
 							//dispatcher().breakProcessing();
 							return false;
 						}
@@ -239,7 +240,23 @@ RESTART_RECV:
 					//	COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType) % args.componentType);
 
 					if(unknown_try++ < 1)
+					{
 						goto RESTART_RECV;
+					}
+					else
+					{
+						// 如果是这些辅助组件没找到则跳过
+						if(findComponentType == MESSAGELOG_TYPE || findComponentType == RESOURCEMGR_TYPE)
+						{
+							WARNING_MSG(boost::format("Componentbridge::process: not found %1%!\n") %
+								COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+
+							findComponentTypes_[findIdx_] = -1; // 跳过标志
+							count = 0;
+							findIdx_++;
+							return false;
+						}
+					}
 				}
 			}
 			else
