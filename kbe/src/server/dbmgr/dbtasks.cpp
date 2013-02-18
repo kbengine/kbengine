@@ -634,7 +634,11 @@ bool DBTaskAccountLogin::db_thread_process()
 	ACCOUNT_INFOS info;
 	info.dbid = 0;
 	if(!pTable->queryAccount(pdbi_, accountName_, info))
+	{
+		WARNING_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): not found account[%1%], login is failed!\n") % 
+			accountName_);
 		return false;
+	}
 
 	if(info.dbid == 0)
 		return false;

@@ -1898,9 +1898,19 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).append(s);
-	s.read_skip(s.opsize());
 	mailbox->postMail((*pBundle));
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	
+	if(Mercury::g_trace_packet > 0 && s.opsize() >= sizeof(Mercury::MessageID))
+	{
+		Mercury::MessageID fmsgid = 0;
+		s >> fmsgid;
+		Mercury::MessageHandler* pMessageHandler = ClientInterface::messageHandlers.find(fmsgid);
+		DEBUG_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: %1%(msgid=%2%).\n") %
+			(pMessageHandler == NULL ? "unknown" : pMessageHandler->name) % fmsgid);
+	}
+
+	s.read_skip(s.opsize());
 }
 
 //-------------------------------------------------------------------------------------
@@ -1969,7 +1979,7 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 				mailbox->newMail(bundle);
 				bundle.append(s);
 
-				if(Mercury::g_trace_packet > 0)
+				if(Mercury::g_trace_packet > 0 && s.opsize() >= sizeof(ENTITY_METHOD_UID))
 				{
 					ENTITY_METHOD_UID utype = 0;
 					s >> utype;
