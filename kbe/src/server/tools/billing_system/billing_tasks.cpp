@@ -68,7 +68,6 @@ BillingTask()
 //-------------------------------------------------------------------------------------
 CreateAccountTask::~CreateAccountTask()
 {
-	removeLog();
 }
 
 //-------------------------------------------------------------------------------------
@@ -244,6 +243,7 @@ thread::TPTask::TPTaskState CreateAccountTask::presentMainThread()
 		ERROR_MSG(boost::format("BillingTask::presentMainThread: not found channel. commitName=%1%\n") % commitName);
 	}
 
+	removeLog();
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 
 }
 
@@ -293,6 +293,7 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 		ERROR_MSG(boost::format("BillingTask::presentMainThread: not found channel. commitName=%1%\n") % commitName);
 	}
 
+	removeLog();
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 
 }
 
