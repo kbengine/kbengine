@@ -3,8 +3,9 @@
 		<debug_type>0</debug_type>
 	</trace_packet>
 	
+	<app_publish>0</app_publish>
+	
 	<dbmgr>
-		<host> 192.168.10.108 </host>
 		<databaseName> demo </databaseName>
 	</dbmgr>
 	

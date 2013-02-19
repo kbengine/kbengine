@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
+import KBEngine
 
 def getClassName(frame):
 	try:
@@ -30,7 +31,7 @@ def getClassName(frame):
 		return ""
 
 def printMsg(keyword, args, isPrintPath):
-	f = sys._getframe(2)
+	# f = sys._getframe(2)
 
 	# 打印文件名和行数
 	#if isPrintPath:
@@ -43,7 +44,8 @@ def TRACE_MSG(*args):
 	printMsg("Trace:",   args, False)
 	
 def DEBUG_MSG(*args): 
-	printMsg("Debug:",   args, True)
+	if KBEngine.publish() == 0:
+		printMsg("Debug:",   args, True)
 	
 def INFO_MSG(*args): 
 	printMsg("Info:",    args, False)
