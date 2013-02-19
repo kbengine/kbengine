@@ -167,6 +167,11 @@ public:
 		console请求开始profile
 	*/
 	void startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/**
+		获取apps发布状态, 可在脚本中获取该值
+	*/
+	static PyObject* __py_getAppPublish(PyObject* self, PyObject* args);
 protected:
 	KBEngine::script::Script								script_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
@@ -406,6 +411,11 @@ bool EntityApp<E>::installPyModules()
 	// 添加globalData, globalBases支持
 	pGlobalData_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_DATA);
 	registerPyObjectToScript("globalData", pGlobalData_);
+
+	// 注册创建entity的方法到py
+	// 向脚本注册app发布状态
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	publish,	__py_getAppPublish,		METH_VARARGS,	0)
+
 	onInstallPyModules();
 	return true;
 }
@@ -599,6 +609,12 @@ void EntityApp<E>::onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID star
 {
 	// INFO_MSG("EntityApp::onReqAllocEntityID: entityID alloc(%d-%d).\n", startID, endID);
 	idClient_.onAddRange(startID, endID);
+}
+
+template<class E>
+PyObject* EntityApp<E>::__py_getAppPublish(PyObject* self, PyObject* args)
+{
+	return PyLong_FromUnsignedLong(g_appPublish);
 }
 
 template<class E>

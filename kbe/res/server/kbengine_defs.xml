@@ -29,8 +29,11 @@
 	<!-- 是否输出entity的创建， 脚本获取属性， 初始化属性等调试信息 -->
 	<debugEntity>0</debugEntity>
 
-	<!-- 服务端是否处于debug状态 -->
-	<debug>0</debug>
+	<!-- apps发布状态, 可在脚本中获取该值
+		0 : debug
+		1 : release
+	-->
+	<app_publish>1</app_publish>
 	
 	<cellapps> 1 </cellapps>
 	<baseapps> 1 </baseapps>

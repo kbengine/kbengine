@@ -58,6 +58,13 @@ extern bool g_trace_packet_use_logfile;
 */
 extern bool g_debugEntity;
 
+/**
+	apps发布状态, 可在脚本中获取该值
+		0 : debug
+		1 : release
+*/
+extern uint8 g_appPublish;
+
 }
 
 #endif // __KBE_DEBUG_OPTION_HPP__

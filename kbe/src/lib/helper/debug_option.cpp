@@ -35,5 +35,6 @@ std::vector<std::string> g_trace_packet_disables;
 }
 
 bool g_debugEntity = false;
+uint8 g_appPublish = 1;
 
 }

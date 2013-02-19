@@ -103,6 +103,12 @@ bool ServerConfig::loadConfig(std::string fileName)
 		g_debugEntity = xml->getValInt(rootNode) > 0;
 	}
 
+	rootNode = xml->getRootNode("app_publish");
+	if(rootNode != NULL)
+	{
+		g_appPublish = xml->getValInt(rootNode) > 0;
+	}
+	
 	rootNode = xml->getRootNode("channelCommon");
 	if(rootNode != NULL)
 	{
