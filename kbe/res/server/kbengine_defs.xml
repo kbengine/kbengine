@@ -29,6 +29,9 @@
 	<!-- 是否输出entity的创建， 脚本获取属性， 初始化属性等调试信息 -->
 	<debugEntity>0</debugEntity>
 
+	<!-- 服务端是否处于debug状态 -->
+	<debug>0</debug>
+	
 	<cellapps> 1 </cellapps>
 	<baseapps> 1 </baseapps>
 	
