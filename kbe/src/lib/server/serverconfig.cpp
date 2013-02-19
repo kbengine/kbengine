@@ -106,7 +106,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("app_publish");
 	if(rootNode != NULL)
 	{
-		g_appPublish = xml->getValInt(rootNode) > 0;
+		g_appPublish = xml->getValInt(rootNode);
 	}
 	
 	rootNode = xml->getRootNode("channelCommon");

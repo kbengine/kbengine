@@ -30,8 +30,10 @@
 	<debugEntity>0</debugEntity>
 
 	<!-- apps发布状态, 可在脚本中获取该值
+		Type: Integer8
 		0 : debug
 		1 : release
+		其他自定义
 	-->
 	<app_publish>1</app_publish>
 	

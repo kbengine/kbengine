@@ -63,7 +63,7 @@ extern bool g_debugEntity;
 		0 : debug
 		1 : release
 */
-extern uint8 g_appPublish;
+extern int8 g_appPublish;
 
 }
 

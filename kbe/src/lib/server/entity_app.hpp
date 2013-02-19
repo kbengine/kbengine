@@ -614,7 +614,7 @@ void EntityApp<E>::onReqAllocEntityID(Mercury::Channel* pChannel, ENTITY_ID star
 template<class E>
 PyObject* EntityApp<E>::__py_getAppPublish(PyObject* self, PyObject* args)
 {
-	return PyLong_FromUnsignedLong(g_appPublish);
+	return PyLong_FromLong(g_appPublish);
 }
 
 template<class E>
