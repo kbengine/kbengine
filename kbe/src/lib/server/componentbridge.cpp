@@ -245,22 +245,15 @@ RESTART_RECV:
 					}
 					else
 					{
-						// 如果是这些辅助组件没找到则跳过
-						if(findComponentType == MESSAGELOG_TYPE || findComponentType == RESOURCEMGR_TYPE)
-						{
-							WARNING_MSG(boost::format("Componentbridge::process: not found %1%!\n") %
-								COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
-
-							findComponentTypes_[findIdx_] = -1; // 跳过标志
-							count = 0;
-							findIdx_++;
-							return false;
-						}
+						goto FIND_END;
 					}
+
+					return false;
 				}
 			}
 			else
 			{
+FIND_END:
 				if(Components::getSingleton().getComponents((COMPONENT_TYPE)findComponentType).size() > 0)
 				{
 					findIdx_++;
