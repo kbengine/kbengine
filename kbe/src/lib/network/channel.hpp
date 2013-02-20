@@ -230,6 +230,7 @@ private:
 	uint32						numPacketsReceived_;
 	uint32						numBytesSent_;
 	uint32						numBytesReceived_;
+	uint32						lastTickBytesReceived_;
 
 	PacketFilterPtr				pFilter_;
 	

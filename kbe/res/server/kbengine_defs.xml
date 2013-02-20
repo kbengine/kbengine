@@ -1,5 +1,6 @@
 <root>
 	<gameUpdateHertz> 10 </gameUpdateHertz>
+	<bitsPerSecondToClient> 20000 </bitsPerSecondToClient> <!-- Type: Integer -->
 	
 	<!-- 非0则不优化， 不带包长信息的包强制都携带长度信息， 某些情况下方便某些前端对接协议
 	什么样的包不带长度信息? 所有能够预先计算出包大小的且永远不变的包不带长度信息， 
@@ -57,10 +58,16 @@
 			<external>	0			</external>				<!-- 系统默认 -->
 		</writeBufferSize>
 		
-		<!-- channel接收窗口溢出值 -->
+		<!-- 一个游戏周期channel接收窗口溢出值 0无限制-->
 		<receiveWindowOverflow>
-			<internal>	65535		</internal>
-			<external>	256			</external>	
+			<messages>
+				<internal>	65535		</internal>
+				<external>	256			</external>
+			</messages>
+			<bytes>
+				<internal>	0			</internal>
+				<external>	65535		</external>
+			</bytes>
 		</receiveWindowOverflow>
 	</channelCommon> 
 	

@@ -157,13 +157,29 @@ bool ServerConfig::loadConfig(std::string fileName)
 		childnode = xml->enterNode(rootNode, "receiveWindowOverflow");
 		if(childnode)
 		{
-			TiXmlNode* childnode1 = xml->enterNode(childnode, "internal");
+			TiXmlNode* childnode1 = xml->enterNode(childnode, "messages");
 			if(childnode1)
-				Mercury::g_intReceiveWindowOverflow = KBE_MAX(16, xml->getValInt(childnode1));
+			{
+				childnode1 = xml->enterNode(childnode, "internal");
+				if(childnode1)
+					Mercury::g_intReceiveWindowMessagesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
 
-			childnode1 = xml->enterNode(childnode, "external");
+				childnode1 = xml->enterNode(childnode, "external");
+				if(childnode1)
+					Mercury::g_extReceiveWindowMessagesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
+			}
+
+			childnode1 = xml->enterNode(childnode, "bytes");
 			if(childnode1)
-				Mercury::g_extReceiveWindowOverflow = KBE_MAX(16, xml->getValInt(childnode1));
+			{
+				childnode1 = xml->enterNode(childnode, "internal");
+				if(childnode1)
+					Mercury::g_intReceiveWindowBytesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
+
+				childnode1 = xml->enterNode(childnode, "external");
+				if(childnode1)
+					Mercury::g_extReceiveWindowBytesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
+			}
 		};
 	}
 

@@ -208,8 +208,10 @@ extern uint64						g_numBytesSent;
 extern uint64						g_numBytesReceived;
 
 // 包接收窗口溢出
-extern uint32						g_intReceiveWindowOverflow;
-extern uint32						g_extReceiveWindowOverflow;
+extern uint32						g_intReceiveWindowMessagesOverflow;
+extern uint32						g_extReceiveWindowMessagesOverflow;
+extern uint32						g_intReceiveWindowBytesOverflow;
+extern uint32						g_extReceiveWindowBytesOverflow;
 
 bool initializeWatcher();
 void finalise(void);

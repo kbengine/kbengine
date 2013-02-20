@@ -85,6 +85,7 @@ Channel::Channel(NetworkInterface & networkInterface,
 	numPacketsReceived_(0),
 	numBytesSent_(0),
 	numBytesReceived_(0),
+	lastTickBytesReceived_(0),
 	pFilter_(pFilter),
 	pEndPoint_(NULL),
 	pPacketReceiver_(NULL),
@@ -137,6 +138,7 @@ Channel::Channel():
 	numPacketsReceived_(0),
 	numBytesSent_(0),
 	numBytesReceived_(0),
+	lastTickBytesReceived_(0),
 	pFilter_(NULL),
 	pEndPoint_(NULL),
 	pPacketReceiver_(NULL),
@@ -287,6 +289,7 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	numPacketsReceived_ = 0;
 	numBytesSent_ = 0;
 	numBytesReceived_ = 0;
+	lastTickBytesReceived_ = 0;
 	fragmentDatasFlag_ = FRAGMENT_DATA_UNKNOW;
 	pFragmentDatasWpos_ = 0;
 	pFragmentDatasRemain_ = 0;
@@ -427,7 +430,29 @@ void Channel::onPacketReceived(int bytes)
 	++g_numPacketsReceived;
 
 	numBytesReceived_ += bytes;
+	lastTickBytesReceived_ += bytes;
 	g_numBytesReceived += bytes;
+
+	if(this->isExternal())
+	{
+		if(g_extReceiveWindowBytesOverflow > 0 && 
+			lastTickBytesReceived_ >= g_extReceiveWindowBytesOverflow)
+		{
+			WARNING_MSG(boost::format("Channel::onPacketReceived[%1%]: external channel(%2%), bufferedBytes is overflow(%3%).\n") % 
+				this % this->c_str() % lastTickBytesReceived_);
+
+			this->condemn();
+		}
+	}
+	else
+	{
+		if(g_intReceiveWindowBytesOverflow > 0 && 
+			lastTickBytesReceived_ >= g_intReceiveWindowBytesOverflow)
+		{
+			WARNING_MSG(boost::format("Channel::onPacketReceived[%1%]: internal channel(%2%), bufferedBytes is overflow(%3%).\n") % 
+				this % this->c_str() % lastTickBytesReceived_);
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -437,22 +462,24 @@ void Channel::addReceiveWindow(Packet* pPacket)
 
 	if(bufferedReceives_.size() > 32)
 	{
-		if(!this->isExternal())
+		if(this->isExternal())
 		{
-			if(bufferedReceives_.size() >  Mercury::g_extReceiveWindowOverflow)
+			WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: external channel(%2%), bufferedMessages is overflow(%3%).\n") % 
+				this % this->c_str() % (int)bufferedReceives_.size());
+
+			if(Mercury::g_extReceiveWindowMessagesOverflow > 0 && 
+				bufferedReceives_.size() >  Mercury::g_extReceiveWindowMessagesOverflow)
 			{
-				WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: internal channel(%2%), buffered is overload(%3%).\n") % 
-					this % this->c_str() % (int)bufferedReceives_.size());
+				this->condemn();
 			}
 		}
 		else
 		{
-			WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: external channel(%2%), buffered is overload(%3%).\n") % 
-				this % this->c_str() % (int)bufferedReceives_.size());
-
-			if(bufferedReceives_.size() > Mercury::g_intReceiveWindowOverflow)
+			if(Mercury::g_intReceiveWindowMessagesOverflow > 0 && 
+				bufferedReceives_.size() > Mercury::g_intReceiveWindowMessagesOverflow)
 			{
-				this->condemn();
+				WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: internal channel(%2%), bufferedMessages is overflow(%3%).\n") % 
+					this % this->c_str() % (int)bufferedReceives_.size());
 			}
 		}
 	}
@@ -493,6 +520,8 @@ void Channel::handshake()
 //-------------------------------------------------------------------------------------
 void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 {
+	lastTickBytesReceived_ = 0;
+
 	if(pMsgHandlers_ != NULL)
 	{
 		pMsgHandlers = pMsgHandlers_;
@@ -510,7 +539,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 		//this->destroy();
 		return;
 	}
-
+	
 	try
 	{
 		BufferedReceives::iterator packetIter = bufferedReceives_.begin();

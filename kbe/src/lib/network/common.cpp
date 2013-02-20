@@ -45,8 +45,10 @@ uint64						g_numPacketsReceived = 0;
 uint64						g_numBytesSent = 0;
 uint64						g_numBytesReceived = 0;
 
-uint32						g_intReceiveWindowOverflow = 65535;
-uint32						g_extReceiveWindowOverflow = 256;
+uint32						g_intReceiveWindowMessagesOverflow = 65535;
+uint32						g_extReceiveWindowMessagesOverflow = 256;
+uint32						g_intReceiveWindowBytesOverflow = 0;
+uint32						g_extReceiveWindowBytesOverflow = 65535;
 
 bool initializeWatcher()
 {
