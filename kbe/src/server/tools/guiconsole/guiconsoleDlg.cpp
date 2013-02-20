@@ -179,8 +179,9 @@ public:
 			}
 
 			bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
-			MachineInterface::onFindInterfaceAddrArgs6::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
-				dlg->componentType(), findComponentType, dlg->getNetworkInterface().intaddr().ip, bhandler.epListen().addr().port);
+			MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+				dlg->componentType(), dlg->componentID(), findComponentType, dlg->getNetworkInterface().intaddr().ip, 
+				bhandler.epListen().addr().port);
 
 			if(!bhandler.broadcast())
 			{
@@ -189,7 +190,7 @@ public:
 				return false;
 			}
 
-			MachineInterface::onBroadcastInterfaceArgs8 args;
+			MachineInterface::onBroadcastInterfaceArgs9 args;
 			int32 timeout = 100000;
 RESTART_RECV:
 			if(bhandler.receive(&args, 0, timeout))

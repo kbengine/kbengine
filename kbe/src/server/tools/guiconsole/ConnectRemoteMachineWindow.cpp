@@ -143,8 +143,9 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 
 		KBEngine::Mercury::Bundle bhandler;
 		bhandler.newMessage(KBEngine::MachineInterface::onFindInterfaceAddr);
-		KBEngine::MachineInterface::onFindInterfaceAddrArgs6::staticAddToBundle(bhandler, KBEngine::getUserUID(), KBEngine::getUsername(), 
-			CONSOLE_TYPE, findComponentType, 0, 0);
+
+		KBEngine::MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, KBEngine::getUserUID(), KBEngine::getUsername(), 
+			CONSOLE_TYPE, g_componentID, findComponentType, 0, 0);
 
 		bhandler.send(*endpoint);
 
@@ -157,7 +158,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 
 		while(packet.opsize() > 0)
 		{
-			MachineInterface::onBroadcastInterfaceArgs8 args;
+			MachineInterface::onBroadcastInterfaceArgs9 args;
 			
 			try
 			{

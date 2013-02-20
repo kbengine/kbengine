@@ -65,6 +65,7 @@ public:
 	void onReceiveRemoteLog(std::string str);
 
 	COMPONENT_TYPE componentType()const { return _componentType; }
+	COMPONENT_ID componentID()const { return _componentID; }
 
 	void updateFindTreeStatus();
 

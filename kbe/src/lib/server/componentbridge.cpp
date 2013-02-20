@@ -158,8 +158,8 @@ bool Componentbridge::findInterfaces()
 			}
 
 			bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
-			MachineInterface::onFindInterfaceAddrArgs6::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
-				componentType_, findComponentType, networkInterface_.intaddr().ip, bhandler.epListen().addr().port);
+			MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+				componentType_, componentID_, findComponentType, networkInterface_.intaddr().ip, bhandler.epListen().addr().port);
 
 			if(!bhandler.broadcast())
 			{
@@ -169,8 +169,7 @@ bool Componentbridge::findInterfaces()
 		
 			int32 timeout = 1500000;
 			bool showerr = true;
-			MachineInterface::onBroadcastInterfaceArgs8 args;
-			int32 unknown_try = 0;
+			MachineInterface::onBroadcastInterfaceArgs9 args;
 
 RESTART_RECV:
 
@@ -193,6 +192,15 @@ RESTART_RECV:
 						}
 					}
 					
+					if(args.componentIDEx != componentID_)
+					{
+						WARNING_MSG(boost::format("Componentbridge::process: msg.componentID %1% != %2%.\n") % 
+							args.componentIDEx % componentID_);
+						
+						args.componentIDEx = 0;
+						goto RESTART_RECV;
+					}
+
 					// 如果找不到
 					if(args.componentType == UNKNOWN_COMPONENT_TYPE)
 					{
@@ -209,7 +217,6 @@ RESTART_RECV:
 						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
 
 					isContinue = true;
-					unknown_try = 0;
 				}while(bhandler.pCurrPacket()->opsize() > 0);
 
 
@@ -231,29 +238,12 @@ RESTART_RECV:
 							return false;
 						}
 					}
-
-					goto RESTART_RECV;
 				}
-				else
-				{
-					//ERROR_MSG(boost::format("Componentbridge::process: %1% not found. receive data is error(found:%2%)!\n") %
-					//	COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType) % args.componentType);
-
-					if(unknown_try++ < 1)
-					{
-						goto RESTART_RECV;
-					}
-					else
-					{
-						goto FIND_END;
-					}
-
-					return false;
-				}
+				
+				goto RESTART_RECV;
 			}
 			else
 			{
-FIND_END:
 				if(Components::getSingleton().getComponents((COMPONENT_TYPE)findComponentType).size() > 0)
 				{
 					findIdx_++;
@@ -327,8 +317,9 @@ bool Componentbridge::process()
 		Mercury::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
 
 		bhandler.newMessage(MachineInterface::onBroadcastInterface);
-		MachineInterface::onBroadcastInterfaceArgs8::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
-			componentType_, componentID_, 
+		uint64 cidex = 0;
+		MachineInterface::onBroadcastInterfaceArgs9::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+			componentType_, componentID_, cidex,
 			networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
 			networkInterface_.extaddr().ip, networkInterface_.extaddr().port);
 		
