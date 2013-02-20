@@ -70,7 +70,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/ignore:4049&#x0D;&#x0A;/ignore:4217"
-				AdditionalDependencies="vld.lib resmgr_d.lib python32_d.lib pyscript_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib network_d.lib thread_d.lib client_lib_d.lib ws2_32.lib"
+				AdditionalDependencies="resmgr_d.lib python32_d.lib pyscript_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib network_d.lib thread_d.lib client_lib_d.lib ws2_32.lib"
 				OutputFile="../../../../tools/server/guiconsole/$(ProjectName).exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../../../libs;../../../lib/third_party/vld"

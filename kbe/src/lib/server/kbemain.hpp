@@ -74,6 +74,8 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 			 int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
 			 int32 intlisteningPort = 0, const char * intlisteningInterface = "")
 {
+	startLeakDetection(componentType, g_componentID);
+
 	g_componentType = componentType;
 	DebugHelper::initHelper(componentType);
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
