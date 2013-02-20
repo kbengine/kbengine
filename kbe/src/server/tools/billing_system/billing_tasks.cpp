@@ -390,7 +390,7 @@ bool ChargeTask::process()
 
 	pOrders->getDatas.assign((const char *)(packet.data() + packet.rpos()), packet.opsize());
 
-	std::string::size_type fi = pOrders->getDatas.find("retcode:1");
+	std::string::size_type fi = pOrders->getDatas.find("SXHRES:1");
 	success = fi != std::string::npos;
 	endpoint.close();
 

@@ -63,10 +63,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/ignore:4049&#x0D;&#x0A;/ignore:4217"
-				AdditionalDependencies="resmgr_d.lib dbmgr_lib_d.lib server_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib math_d.lib network_d.lib vldmt.lib thread_d.lib ws2_32.lib"
+				AdditionalDependencies="resmgr_d.lib dbmgr_lib_d.lib server_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib math_d.lib network_d.lib thread_d.lib ws2_32.lib"
 				OutputFile="../../../bin/Hybrid/$(ProjectName).exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="../../libs"
+				AdditionalLibraryDirectories="../../libs;../../lib/third_party/vld"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -142,7 +142,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/ignore:4049&#x0D;&#x0A;/ignore:4217"
-				AdditionalDependencies="resmgr.lib dbmgr_lib.lib server.lib xmlplus.lib cstdkbe.lib helper.lib math.lib network.lib vldmt.lib thread.lib ws2_32.lib"
+				AdditionalDependencies="resmgr.lib dbmgr_lib.lib server.lib xmlplus.lib cstdkbe.lib helper.lib math.lib network.lib thread.lib ws2_32.lib"
 				OutputFile="../../../bin/Hybrid\$(ProjectName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../../libs"

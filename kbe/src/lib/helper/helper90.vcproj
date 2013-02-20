@@ -205,6 +205,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\memory_helper.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\profile.hpp"
 				>
 			</File>

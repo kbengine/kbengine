@@ -20,6 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef __KBEMAIN__
 #define __KBEMAIN__
+#include "helper/memory_helper.hpp"
+
 #include "serverapp.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
