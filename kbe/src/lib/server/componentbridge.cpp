@@ -219,9 +219,6 @@ RESTART_RECV:
 					isContinue = true;
 				}while(bhandler.pCurrPacket()->opsize() > 0);
 
-
-				count = 0;
-
 				// 防止接收到的数据不是想要的数据
 				if(findComponentType == args.componentType)
 				{
@@ -247,10 +244,14 @@ RESTART_RECV:
 				if(Components::getSingleton().getComponents((COMPONENT_TYPE)findComponentType).size() > 0)
 				{
 					findIdx_++;
+					count = 0;
 				}
 				else
 				{
-					ERROR_MSG("Componentbridge::process: receive error!\n");
+					if(showerr)
+					{
+						ERROR_MSG("Componentbridge::process: receive error!\n");
+					}
 
 					// 如果是这些辅助组件没找到则跳过
 					if(findComponentType == MESSAGELOG_TYPE || findComponentType == RESOURCEMGR_TYPE)
