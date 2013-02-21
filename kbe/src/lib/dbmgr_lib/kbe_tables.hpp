@@ -105,7 +105,7 @@ public:
 	{
 	}
 
-	virtual bool queryAccount(DBInterface * dbi, std::string& name, ACCOUNT_INFOS& info) = 0;
+	virtual bool queryAccount(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info) = 0;
 	virtual bool logAccount(DBInterface * dbi, ACCOUNT_INFOS& info) = 0;
 
 	MemoryStream& accountDefMemoryStream()

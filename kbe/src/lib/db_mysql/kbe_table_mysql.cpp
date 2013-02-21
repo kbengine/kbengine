@@ -194,7 +194,7 @@ KBEAccountTableMysql::KBEAccountTableMysql():
 
 
 //-------------------------------------------------------------------------------------
-bool KBEAccountTableMysql::queryAccount(DBInterface * dbi, std::string& name, ACCOUNT_INFOS& info)
+bool KBEAccountTableMysql::queryAccount(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info)
 {
 	std::string sqlstr = "select entityDBID, password from kbe_accountinfos where accountName like \"";
 

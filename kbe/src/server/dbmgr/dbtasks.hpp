@@ -35,6 +35,7 @@ namespace KBEngine{
 
 class DBInterface;
 class Buffered_DBTasks;
+struct ACCOUNT_INFOS;
 
 /*
 	数据库线程任务基础类
@@ -170,6 +171,9 @@ public:
 	virtual ~DBTaskCreateAccount();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	static bool writeAccount(DBInterface* pdbi, const std::string& accountName, 
+		const std::string& passwd, ACCOUNT_INFOS& info);
 protected:
 	std::string registerName_; 
 	std::string accountName_;

@@ -332,7 +332,17 @@ DBTaskCreateAccount::~DBTaskCreateAccount()
 //-------------------------------------------------------------------------------------
 bool DBTaskCreateAccount::db_thread_process()
 {
-	if(accountName_.size() == 0)
+	ACCOUNT_INFOS info;
+	success_ = DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, info) && info.dbid > 0;
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& accountName, 
+									   const std::string& passwd, ACCOUNT_INFOS& info)
+{
+	info.dbid = 0;
+	if(accountName.size() == 0)
 	{
 		return false;
 	}
@@ -344,13 +354,12 @@ bool DBTaskCreateAccount::db_thread_process()
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
 
-	ACCOUNT_INFOS info;
-	if(pTable->queryAccount(pdbi_, accountName_, info))
+	if(pTable->queryAccount(pdbi, accountName, info))
 	{
-		if(pdbi_->getlasterror() > 0)
+		if(pdbi->getlasterror() > 0)
 		{
-			WARNING_MSG(boost::format("DBTaskCreateAccount::db_thread_process(): queryAccount error: %1%\n") % 
-				pdbi_->getstrerror());
+			WARNING_MSG(boost::format("DBTaskCreateAccount::writeAccount(): queryAccount error: %1%\n") % 
+				pdbi->getstrerror());
 		}
 
 		return false;
@@ -359,28 +368,27 @@ bool DBTaskCreateAccount::db_thread_process()
 	// 防止多线程问题， 这里做一个拷贝。
 	MemoryStream copyAccountDefMemoryStream(pTable->accountDefMemoryStream());
 
-	DBID entityDBID = EntityTables::getSingleton().writeEntity(pdbi_, 0, 
+	DBID entityDBID = EntityTables::getSingleton().writeEntity(pdbi, 0, 
 		&copyAccountDefMemoryStream, pModule);
 
 	KBE_ASSERT(entityDBID > 0);
 
-	info.name = accountName_;
-	info.password = password_;
+	info.name = accountName;
+	info.password = passwd;
 	info.dbid = entityDBID;
 
-	if(!pTable->logAccount(pdbi_, info))
+	if(!pTable->logAccount(pdbi, info))
 	{
-		if(pdbi_->getlasterror() > 0)
+		if(pdbi->getlasterror() > 0)
 		{
-			WARNING_MSG(boost::format("DBTaskCreateAccount::db_thread_process(): logAccount error:%1%\n") % 
-				pdbi_->getstrerror());
+			WARNING_MSG(boost::format("DBTaskCreateAccount::writeAccount(): logAccount error:%1%\n") % 
+				pdbi->getstrerror());
 		}
 
 		return false;
 	}
 
-	success_ = true;
-	return false;
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -635,9 +643,15 @@ bool DBTaskAccountLogin::db_thread_process()
 	info.dbid = 0;
 	if(!pTable->queryAccount(pdbi_, accountName_, info))
 	{
-		WARNING_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): not found account[%1%], login is failed!\n") % 
+		if(!DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, info) || info.dbid == 0)
+		{
+			ERROR_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): not found account[%1%], autocreate failed!\n") % 
+				accountName_);
+			return false;
+		}
+
+		INFO_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): not found account[%1%], autocreate successfully!\n") % 
 			accountName_);
-		return false;
 	}
 
 	if(info.dbid == 0)
