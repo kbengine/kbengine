@@ -193,8 +193,6 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	bool listeningInterfaceEmpty =
 		(listeningInterface == NULL || listeningInterface[0] == 0);
 
-	// Query kbemachined over the local interface (dev: lo) for what it
-	// believes the internal interface is.
 	if (listeningInterface &&
 		(strcmp(listeningInterface, USE_KBEMACHINED) == 0))
 	{
@@ -252,8 +250,8 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	if(!foundport)
 	{
 		ERROR_MSG(boost::format("NetworkInterface::recreateListeningSocket(%1%): "
-				"Couldn't bind the socket to %2% (%3%)\n") %
-			pEndPointName % address.c_str() % kbe_strerror());
+				"Couldn't bind the socket to %2%:%3% (%4%)\n") %
+			pEndPointName % inet_ntoa((struct in_addr&)ifaddr) % ntohs(listeningPort) % kbe_strerror());
 		
 		pEP->close();
 		pEP->detach();
