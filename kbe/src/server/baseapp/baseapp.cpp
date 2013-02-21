@@ -117,6 +117,7 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 	pendingLoginMgr_(ninterface),
 	forward_messagebuffer_(ninterface),
 	pBackupSender_(),
+	load_(0.f),
 	numProxices_(0)
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
