@@ -44,7 +44,7 @@ def TRACE_MSG(*args):
 	printMsg("Trace:",   args, False)
 	
 def DEBUG_MSG(*args): 
-	if KBEngine.publish() <= 0:
+	if KBEngine.publish() == 0:
 		printMsg("Debug:",   args, True)
 	
 def INFO_MSG(*args): 
