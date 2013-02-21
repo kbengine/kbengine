@@ -85,6 +85,7 @@ typedef struct EngineComponentInfo
 	EngineComponentInfo()
 	{
 		tcp_SOMAXCONN = 5;
+		notFoundAccountAutoCreate = false;
 	}
 
 	~EngineComponentInfo()
@@ -116,6 +117,7 @@ typedef struct EngineComponentInfo
 	uint16 db_numConnections;								// 数据库最大连接
 	std::string db_unicodeString_characterSet;				// 设置数据库字符集
 	std::string db_unicodeString_collation;
+	bool notFoundAccountAutoCreate;							// 登录合法时游戏数据库找不到游戏账号则自动创建
 
 	float archivePeriod;									// entity存储数据库周期
 	float backupPeriod;										// entity备份周期

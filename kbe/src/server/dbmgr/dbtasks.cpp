@@ -643,15 +643,24 @@ bool DBTaskAccountLogin::db_thread_process()
 	info.dbid = 0;
 	if(!pTable->queryAccount(pdbi_, accountName_, info))
 	{
-		if(!DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, info) || info.dbid == 0)
+		if(g_kbeSrvConfig.getDBMgr().notFoundAccountAutoCreate)
 		{
-			ERROR_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): not found account[%1%], autocreate failed!\n") % 
+			if(!DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, info) || info.dbid == 0)
+			{
+				ERROR_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): not found account[%1%], autocreate failed!\n") % 
+					accountName_);
+				return false;
+			}
+
+			INFO_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): not found account[%1%], autocreate successfully!\n") % 
+				accountName_);
+		}
+		else
+		{
+			ERROR_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): not found account[%1%], login failed!\n") % 
 				accountName_);
 			return false;
 		}
-
-		INFO_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): not found account[%1%], autocreate successfully!\n") % 
-			accountName_);
 	}
 
 	if(info.dbid == 0)

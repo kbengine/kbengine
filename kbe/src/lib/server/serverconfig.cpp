@@ -496,6 +496,12 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL){
 			_dbmgrInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
+
+		node =  xml->enterNode(rootNode, "notFoundAccountAutoCreate");
+		if(node != NULL){
+			_dbmgrInfo.notFoundAccountAutoCreate = (xml->getValStr(node) == "true");
+		}
+		
 	}
 
 	if(_dbmgrInfo.db_unicodeString_characterSet.size() == 0)

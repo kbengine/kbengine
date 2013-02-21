@@ -111,6 +111,9 @@
 			<characterSet> utf8 </characterSet> 						<!-- Type: String -->
 			<collation> utf8_bin </collation> 							<!-- Type: String -->
 		</unicodeString>
+		
+		<!-- 登录合法时游戏数据库找不到游戏账号则自动创建 -->
+		<notFoundAccountAutoCreate> true </notFoundAccountAutoCreate>
 	</dbmgr>
 	
 	<cellapp>
