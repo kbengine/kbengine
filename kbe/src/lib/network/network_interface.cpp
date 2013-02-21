@@ -185,7 +185,13 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 
 		return false;
 	}
-
+	
+	/*
+	int val = 1;
+	setsockopt((*pEP), SOL_SOCKET, SO_REUSEADDR,
+			(const char*)&val, sizeof(val));
+	*/
+	
 	this->dispatcher().registerFileDescriptor(*pEP, pLR);
 	
 	char ifname[IFNAMSIZ];
