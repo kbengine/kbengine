@@ -222,7 +222,7 @@ void BaseApplication::go(void)
 bool BaseApplication::setup(void)
 {
 #ifdef _DEBUG
-    mRoot = new Ogre::Root("plugins_debug.cfg");
+    mRoot = new Ogre::Root("plugins_d.cfg");
 #else
     mRoot = new Ogre::Root();
 #endif
