@@ -22,7 +22,7 @@ Space::~Space(void)
 	if (mCameraMan) delete mCameraMan;
 	if(mWindow) mWindow->removeAllViewports();
 	if(mRoot && mSceneMgr)mRoot->destroySceneManager(mSceneMgr);
-	Ogre::ResourceGroupManager::getSingleton().clearResourceGroup("SpaceWorld");
+	Ogre::ResourceGroupManager::getSingleton().clearResourceGroup("Space");
 	OgreApplication::getSingleton().setCurrCameraMan(NULL);
 }
 

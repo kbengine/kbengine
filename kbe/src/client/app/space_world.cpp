@@ -62,23 +62,23 @@ void SpaceWorld::setupResources(void)
 
     // add sample project directory to the resource paths
     Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-        "" + projectDir, "FileSystem", "SpaceWorld");
+        "" + projectDir, "FileSystem", "Space");
 
     Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-        "" + projectDir + "/Materials", "FileSystem", "SpaceWorld");
+        "" + projectDir + "/Materials", "FileSystem", "Space");
     Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-        "" + projectDir + "/Models", "FileSystem", "SpaceWorld");
+        "" + projectDir + "/Models", "FileSystem", "Space");
     Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-        "" + projectDir + "/Terrain", "FileSystem", "SpaceWorld");
+        "" + projectDir + "/Terrain", "FileSystem", "Space");
 
-	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("SpaceWorld");
+	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("Space");
 }
 
 //-------------------------------------------------------------------------------------
 void SpaceWorld::createScene(void)
 {
     mLoader = new DotSceneLoader();
-    mLoader->parseDotScene(mSceneFile, "SpaceWorld", mSceneMgr);
+    mLoader->parseDotScene(mSceneFile, "Space", mSceneMgr);
 
     // Loop through all cameras and grab their name and set their debug representation
     Ogre::SceneManager::CameraIterator cameras = mSceneMgr->getCameraIterator();
