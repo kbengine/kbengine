@@ -26,5 +26,15 @@ Space::~Space(void)
 	OgreApplication::getSingleton().setCurrCameraMan(NULL);
 }
 
+//-------------------------------------------------------------------------------------
+bool Space::setup()
+{
+	setupResources();
+
+    // Create the scene
+    createScene();
+
+	return true;
+}
 
 //-------------------------------------------------------------------------------------

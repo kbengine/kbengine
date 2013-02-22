@@ -23,7 +23,6 @@ public:
 		OIS::InputManager* pInputMgr, OgreBites::SdkTrayManager* pTrayMgr);
     virtual ~SpaceWorld(void);
 
-	virtual bool setup();
     virtual void setupResources();
     virtual void createScene(void);
     virtual bool keyPressed( const OIS::KeyEvent &arg );

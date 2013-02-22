@@ -12,7 +12,7 @@ public:
 
     virtual ~Space(void);
 
-	virtual bool setup() = 0;
+	virtual bool setup();
     virtual void setupResources() = 0;
     virtual void createScene(void) = 0;
     virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt) = 0;

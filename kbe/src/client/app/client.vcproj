@@ -196,6 +196,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\space_login.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\space_world.cpp"
 				>
 			</File>
@@ -227,6 +231,10 @@
 			</File>
 			<File
 				RelativePath=".\space.h"
+				>
+			</File>
+			<File
+				RelativePath=".\space_login.h"
 				>
 			</File>
 			<File

@@ -25,6 +25,8 @@ public:
 	virtual void go(void);
 
 	void setCurrCameraMan(OgreBites::SdkCameraMan* pCameraMan){ mCameraMan = pCameraMan; }
+
+	virtual void buttonHit(OgreBites::Button* button);
 protected:
 	virtual bool setup();
     virtual void setupResources();

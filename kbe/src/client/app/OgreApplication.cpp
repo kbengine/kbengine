@@ -6,6 +6,7 @@
 #include "ImpostorPage.h"
 #include "TreeLoader3D.h"
 #include "space_world.h"
+#include "space_login.h"
 
 #include "../kbengine_dll/kbengine_dll.h"
 
@@ -83,7 +84,8 @@ bool OgreApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
 	if(space == NULL)
 	{
-		space = new SpaceWorld(mRoot, mWindow, mInputManager, mTrayMgr);
+		space = new SpaceLogin(mRoot, mWindow, mInputManager, mTrayMgr);
+		space->setup();
 	}
 	else
 	{
@@ -104,6 +106,11 @@ bool OgreApplication::keyPressed( const OIS::KeyEvent &arg )
 	}
 
     return BaseApplication::keyPressed( arg );
+}
+
+//-------------------------------------------------------------------------------------
+void OgreApplication::buttonHit(OgreBites::Button* button)
+{
 }
 
 //-------------------------------------------------------------------------------------

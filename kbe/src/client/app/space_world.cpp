@@ -21,27 +21,12 @@ SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
     mCamNames.clear(); 
 
     mHelpInfo = Ogre::String("Use [W][A][S][D] keys for movement.\nKeys [1]-[9] to switch between cameras.\n[0] toggles SceneNode debug visuals.\n\nPress [C] to toggle clamp to terrain (gravity).\n\n[G] toggles the detail panel.\n[R] cycles polygonModes (Solid/Wireframe/Points).\n[T] cycles various filtering.\n\n\nPress [ESC] to quit.");
-
-	setup();
 }
 
 //-------------------------------------------------------------------------------------
 SpaceWorld::~SpaceWorld(void)
 {
 	delete mLoader;
-}
-
-//-------------------------------------------------------------------------------------
-bool SpaceWorld::setup()
-{
-	mSceneMgr = mRoot->createSceneManager(Ogre::ST_GENERIC);
-
-	setupResources();
-
-    // Create the scene
-    createScene();
-
-	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -71,14 +56,20 @@ void SpaceWorld::setupResources(void)
     Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
         "" + projectDir + "/Terrain", "FileSystem", "Space");
 
+	mTrayMgr->showLoadingBar(1, 0);
 	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("Space");
+	mTrayMgr->hideLoadingBar();
 }
 
 //-------------------------------------------------------------------------------------
 void SpaceWorld::createScene(void)
 {
+	mSceneMgr = mRoot->createSceneManager(Ogre::ST_GENERIC);
+
     mLoader = new DotSceneLoader();
     mLoader->parseDotScene(mSceneFile, "Space", mSceneMgr);
+
+	mTrayMgr->showCursor();
 
     // Loop through all cameras and grab their name and set their debug representation
     Ogre::SceneManager::CameraIterator cameras = mSceneMgr->getCameraIterator();
