@@ -16,35 +16,22 @@ namespace Forests
     class GrassLayer;
 }
 
-class OgreApplication : public BaseApplication
+class OgreApplication : public BaseApplication, public Ogre::Singleton<OgreApplication>
 {
 public:
     OgreApplication(void);
     virtual ~OgreApplication(void);
 
 	virtual void go(void);
+
+	void setCurrCameraMan(OgreBites::SdkCameraMan* pCameraMan){ mCameraMan = pCameraMan; }
 protected:
+	virtual bool setup();
     virtual void setupResources();
-    virtual void createScene(void);
+	virtual void createScene(void){}
     virtual bool keyPressed( const OIS::KeyEvent &arg );
     virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
 private:
-    std::vector<Ogre::String> mCamNames;
-    void switchCamera(int idx);
-    Ogre::TerrainGroup* mTerrainGroup;
-    DotSceneLoader* mLoader;
-    bool mTerrainImported;
-    Ogre::String mSceneFile;
-    Ogre::String mHelpInfo;
-    bool mFly;
-    Ogre::Real mFallVelocity;
-
-    Forests::PagedGeometry* mPGHandle;                         /** Handle to Forests::PagedGeometry object */
-    Forests::GrassLoader* mGrassLoaderHandle;                /** Handle to Forests::GrassLoader object */
-    Forests::GrassLayer* mPGLayers[4];
-    float* mPGLayerData[4];
-    Ogre::Image mPGDensityMap;
-    Ogre::Rect mPGDirtyRect;
 };
 
 #endif // #ifndef __OgreApplication_h_

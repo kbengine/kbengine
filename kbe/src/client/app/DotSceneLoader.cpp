@@ -276,7 +276,7 @@ void DotSceneLoader::processTerrain(rapidxml::xml_node<>* XMLNode)
     mTerrainGroup = OGRE_NEW Ogre::TerrainGroup(mSceneMgr, Ogre::Terrain::ALIGN_X_Z, mapSize, worldSize);
     mTerrainGroup->setOrigin(Ogre::Vector3::ZERO);
 
-    mTerrainGroup->setResourceGroup("General");
+    mTerrainGroup->setResourceGroup(m_sGroupName);
 
     rapidxml::xml_node<>* pElement;
     rapidxml::xml_node<>* pPageElement;
@@ -825,7 +825,7 @@ void DotSceneLoader::processPlane(rapidxml::xml_node<>* XMLNode, Ogre::SceneNode
 
     Ogre::Plane plane(normal, distance);
     Ogre::MeshPtr res = Ogre::MeshManager::getSingletonPtr()->createPlane(
-                        name + "mesh", "General", plane, width, height, xSegments, ySegments, hasNormals,
+                        name + "mesh", m_sGroupName, plane, width, height, xSegments, ySegments, hasNormals,
     numTexCoordSets, uTile, vTile, up);
     Ogre::Entity* ent = mSceneMgr->createEntity(name, name + "mesh");
 

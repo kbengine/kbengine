@@ -191,6 +191,14 @@
 				RelativePath=".\OgreApplication.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\space.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\space_world.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -215,6 +223,14 @@
 			</File>
 			<File
 				RelativePath=".\Resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\space.h"
+				>
+			</File>
+			<File
+				RelativePath=".\space_world.h"
 				>
 			</File>
 		</Filter>

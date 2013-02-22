@@ -265,7 +265,9 @@ bool BaseApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
     if (!mTrayMgr->isDialogVisible())
     {
-        mCameraMan->frameRenderingQueued(evt);   // if dialog isn't up, then update the camera
+        if(mCameraMan)
+		    mCameraMan->frameRenderingQueued(evt);   // if dialog isn't up, then update the camera
+
         if (mDetailsPanel->isVisible())   // if details panel is visible, then update its contents
         {
             mDetailsPanel->setParamValue(0, Ogre::StringConverter::toString(mActiveCamera->getDerivedPosition().x));
@@ -371,14 +373,18 @@ bool BaseApplication::keyPressed( const OIS::KeyEvent &arg )
         mShutDown = true;
     }
 
-    mCameraMan->injectKeyDown(arg);
+    if(mCameraMan)
+        mCameraMan->injectKeyDown(arg);
     return true;
 }
 
 bool BaseApplication::keyReleased( const OIS::KeyEvent &arg )
 {
     if (mTrayMgr->isDialogVisible()) return true;   // don't process any more keys if dialog is up
-    mCameraMan->injectKeyUp(arg);
+
+    if(mCameraMan)
+       mCameraMan->injectKeyUp(arg);
+
     return true;
 }
 
@@ -386,7 +392,9 @@ bool BaseApplication::mouseMoved( const OIS::MouseEvent &arg )
 {
     mTrayMgr->injectMouseMove(arg);
     if (mTrayMgr->isDialogVisible()) return true;   // don't process any more keys if dialog is up
-    mCameraMan->injectMouseMove(arg);
+
+    if(mCameraMan)
+       mCameraMan->injectMouseMove(arg);
     return true;
 }
 
@@ -394,7 +402,9 @@ bool BaseApplication::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButton
 {
     mTrayMgr->injectMouseDown(arg, id);
     if (mTrayMgr->isDialogVisible()) return true;   // don't process any more keys if dialog is up
-    mCameraMan->injectMouseDown(arg, id);
+
+    if(mCameraMan)
+       mCameraMan->injectMouseDown(arg, id);
     return true;
 }
 
@@ -402,7 +412,9 @@ bool BaseApplication::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButto
 {
     mTrayMgr->injectMouseUp(arg, id);
     if (mTrayMgr->isDialogVisible()) return true;   // don't process any more keys if dialog is up
-    mCameraMan->injectMouseUp(arg, id);
+
+    if(mCameraMan)
+       mCameraMan->injectMouseUp(arg, id);
     return true;
 }
 
