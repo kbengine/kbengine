@@ -22,6 +22,7 @@ public:
     OgreApplication(void);
     virtual ~OgreApplication(void);
 
+	virtual void go(void);
 protected:
     virtual void setupResources();
     virtual void createScene(void);

@@ -33,6 +33,24 @@ OgreApplication::~OgreApplication(void)
 }
 
 //-------------------------------------------------------------------------------------
+void OgreApplication::go(void)
+{
+    if (!setup())
+        return;
+
+	while(!mShutDown)
+	{
+		mRoot->renderOneFrame();
+
+		// 通知系统分派消息
+		Ogre::WindowEventUtilities::messagePump();
+	}
+
+    // clean up
+    destroyScene();
+}
+
+//-------------------------------------------------------------------------------------
 void OgreApplication::setupResources(void)
 {
     BaseApplication::setupResources();
