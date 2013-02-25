@@ -1,5 +1,10 @@
 #include "space_login.h"
 #include "OgreApplication.h"
+#include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/stringconv.hpp"
+#include "../kbengine_dll/kbengine_dll.h"
+
+Ogre::String g_accountName;
 
 //-------------------------------------------------------------------------------------
 SpaceLogin::SpaceLogin(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin, 
@@ -12,18 +17,37 @@ SpaceLogin::SpaceLogin(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
 SpaceLogin::~SpaceLogin(void)
 {
 	mTrayMgr->removeWidgetFromTray("login");
+	mTrayMgr->removeWidgetFromTray("accountName");
 }
 
 //-------------------------------------------------------------------------------------
 void SpaceLogin::setupResources(void)
 {
+	// ogre²»ÏÔÊ¾ÎÄ×Öbug
+	// http://www.ogre3d.org/forums/viewtopic.php?f=4&t=59197
+	Ogre::ResourceManager::ResourceMapIterator iter = Ogre::FontManager::getSingleton().getResourceIterator();
+	while (iter.hasMoreElements()) { 
+		iter.getNext()->load(); 
+	}
 }
 
 //-------------------------------------------------------------------------------------
 void SpaceLogin::createScene(void)
 {
+	if(g_accountName.size() == 0)
+		g_accountName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
+
 	mTrayMgr->createButton(OgreBites::TL_CENTER, "login", "login", 120);
+
+	Ogre::StringVector values;
+	values.push_back(g_accountName);
+	mTrayMgr->createParamsPanel(OgreBites::TL_CENTER, "accountName", 300, values);
+
 	mTrayMgr->showCursor();
+	
+	mTrayMgr->hideFrameStats();
+	mTrayMgr->hideLogo();
+	mTrayMgr->hideBackdrop();
 
 	mSceneMgr = mRoot->createSceneManager(Ogre::ST_GENERIC);
 
@@ -64,4 +88,11 @@ bool SpaceLogin::keyPressed( const OIS::KeyEvent &arg )
     return true;
 }
 
-
+//-------------------------------------------------------------------------------------
+void SpaceLogin::buttonHit(OgreBites::Button* button)
+{
+	if(button->getCaption() == "login")
+	{
+		kbe_login(g_accountName.c_str(), "123456", "127.0.0.1", 20013);
+	}
+}

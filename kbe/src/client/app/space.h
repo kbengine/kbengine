@@ -18,6 +18,7 @@ public:
     virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt) = 0;
 
 	virtual bool keyPressed( const OIS::KeyEvent &arg ){ return true; }
+	virtual void buttonHit(OgreBites::Button* button){}
 protected:
     Ogre::Root *mRoot;
     Ogre::Camera* mCamera;

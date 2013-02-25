@@ -144,5 +144,11 @@ inline uint64 secondsToStamps(float seconds)
 	return (uint64)(seconds * stampsPerSecondD());
 }
 
+/*
+ 账号和密码最大长度
+*/
+#define ACCOUNT_NAME_MAX_LENGTH 64
+#define ACCOUNT_PASSWD_MAX_LENGTH 64
+
 }
 #endif

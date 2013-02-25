@@ -146,7 +146,8 @@ Channel::Channel():
 	proxyID_(0),
 	isHandshake_(false),
 	channelType_(CHANNEL_NORMAL),
-	componentID_(UNKNOWN_COMPONENT_TYPE)
+	componentID_(UNKNOWN_COMPONENT_TYPE),
+	pMsgHandlers_(NULL)
 {
 	this->incRef();
 	this->clearBundle();

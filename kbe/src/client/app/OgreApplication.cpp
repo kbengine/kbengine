@@ -7,12 +7,19 @@
 #include "TreeLoader3D.h"
 #include "space_world.h"
 #include "space_login.h"
+#include "cstdkbe/cstdkbe.hpp"
 
 #include "../kbengine_dll/kbengine_dll.h"
 
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
 HINSTANCE g_hKBEngineDll = NULL;
 #endif
+
+namespace KBEngine{
+	COMPONENT_TYPE g_componentType = CLIENT_TYPE;
+	COMPONENT_ID g_componentID = 1;
+	COMPONENT_ORDER g_componentOrder = 1;
+}
 
 template<> OgreApplication* Ogre::Singleton<OgreApplication>::msSingleton = 0;
 
@@ -81,6 +88,8 @@ void OgreApplication::setupResources(void)
 bool OgreApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
 {
     bool ret = BaseApplication::frameRenderingQueued(evt);
+	
+	kbe_update(); 
 
 	if(space == NULL)
 	{
@@ -111,6 +120,10 @@ bool OgreApplication::keyPressed( const OIS::KeyEvent &arg )
 //-------------------------------------------------------------------------------------
 void OgreApplication::buttonHit(OgreBites::Button* button)
 {
+	if(space)
+	{
+		space->buttonHit(button);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -145,7 +158,7 @@ extern "C" {
 		}
 #endif
 
-		if(!kbengine_init())
+		if(!kbe_init())
 		{
 			MessageBox( NULL, "kbengine_init() is failed!", "An exception has occured!", MB_OK | MB_ICONERROR | MB_TASKMODAL);
 			return 0;
@@ -165,7 +178,7 @@ extern "C" {
 #endif
         }
 
-		kbengine_destroy();
+		kbe_destroy();
 
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
 		FreeLibrary(g_hKBEngineDll);

@@ -74,7 +74,7 @@ using namespace KBEngine;
 ClientApp* g_pApp = NULL;
 KBEngine::script::Script* g_pScript = NULL;
 Mercury::EventDispatcher* g_pDispatcher = NULL;
-Mercury::NetworkInterface* pNetworkInterface = NULL;
+Mercury::NetworkInterface* g_pNetworkInterface = NULL;
 thread::ThreadPool* g_pThreadPool = NULL;
 
 BOOL APIENTRY DllMain( HANDLE hModule,
@@ -124,7 +124,7 @@ public:
 	}
 };
 
-bool kbengine_init()
+bool kbe_init()
 {
 	g_componentID = genUUID64();
 	g_componentType = CLIENT_TYPE;
@@ -147,9 +147,9 @@ bool kbengine_init()
 	if(g_pDispatcher == NULL)
 		g_pDispatcher = new Mercury::EventDispatcher();
 
-	if(pNetworkInterface == NULL)
+	if(g_pNetworkInterface == NULL)
 	{
-		pNetworkInterface = new Mercury::NetworkInterface(g_pDispatcher, 
+		g_pNetworkInterface = new Mercury::NetworkInterface(g_pDispatcher, 
 			0, 0, "", 0, 0,
 			0, "", 0, 0);
 	}
@@ -160,7 +160,7 @@ bool kbengine_init()
 		return false;
 	}
 
-	g_pApp = new ClientApp(*g_pDispatcher, *pNetworkInterface, g_componentType, g_componentID);
+	g_pApp = new ClientApp(*g_pDispatcher, *g_pNetworkInterface, g_componentType, g_componentID);
 	g_pApp->setScript(g_pScript);
 
 	START_MSG(COMPONENT_NAME_EX(g_componentType), g_componentID);
@@ -173,7 +173,7 @@ bool kbengine_init()
 
 		uninstallPyScript(*g_pScript);
 
-		SAFE_RELEASE(pNetworkInterface);
+		SAFE_RELEASE(g_pNetworkInterface);
 		SAFE_RELEASE(g_pScript);
 		SAFE_RELEASE(g_pDispatcher);
 		return false;
@@ -199,7 +199,7 @@ bool kbengine_init()
 	return true;
 }
 
-bool kbengine_destroy()
+bool kbe_destroy()
 {
 	g_pApp->getMainDispatcher().breakProcessing();
 	g_pThreadPool->finalise();
@@ -216,10 +216,39 @@ bool kbengine_destroy()
 	
 	bool ret = uninstallPyScript(*g_pScript);
 
-	SAFE_RELEASE(pNetworkInterface);
+	SAFE_RELEASE(g_pNetworkInterface);
 	SAFE_RELEASE(g_pScript);
 	SAFE_RELEASE(g_pDispatcher);
 
 	INFO_MSG(boost::format("%1% has shut down.\n") % COMPONENT_NAME_EX(g_componentType));
 	return ret;
 }
+
+KBEngine::uint64 kbe_genUUID64()
+{
+	return KBEngine::genUUID64();
+}
+
+void kbe_sleep(KBEngine::uint32 ms)
+{
+	return KBEngine::sleep(ms);
+}
+
+KBEngine::uint32 kbe_getSystemTime()
+{
+	return KBEngine::getSystemTime();
+}
+
+bool kbe_login(const char* accountName, const char* passwd, const char* ip, KBEngine::uint32 port)
+{
+	return g_pApp->login(accountName, passwd, ip, port);
+}
+
+void kbe_update()
+{
+//	if(g_pClientObject)
+	{
+	//	g_pClientObject->update();
+	}
+}
+

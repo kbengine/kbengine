@@ -146,6 +146,22 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s)
 
 	s >> accountName >> password;
 	s.readBlob(datas);
+	
+	if(accountName.size() > ACCOUNT_NAME_MAX_LENGTH)
+	{
+		ERROR_MSG(boost::format("Loginapp::reqCreateAccount: accountName too big, size=%1%, limit=%2%.\n") %
+			accountName.size() % ACCOUNT_NAME_MAX_LENGTH);
+
+		return;
+	}
+
+	if(password.size() > ACCOUNT_PASSWD_MAX_LENGTH)
+	{
+		ERROR_MSG(boost::format("Loginapp::reqCreateAccount: password too big, size=%1%, limit=%2%.\n") %
+			password.size() % ACCOUNT_PASSWD_MAX_LENGTH);
+
+		return;
+	}
 
 	DEBUG_MSG(boost::format("Loginapp::reqCreateAccount: accountName=%1%, passwordsize=%2%.\n") %
 		accountName.c_str() % password.size());
@@ -250,6 +266,22 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	if(loginName.size() == 0)
 	{
 		ERROR_MSG("Loginapp::login: loginName is NULL.\n");
+		return;
+	}
+
+	if(loginName.size() > ACCOUNT_NAME_MAX_LENGTH)
+	{
+		ERROR_MSG(boost::format("Loginapp::login: loginName too big, size=%1%, limit=%2%.\n") %
+			loginName.size() % ACCOUNT_NAME_MAX_LENGTH);
+
+		return;
+	}
+
+	if(password.size() > ACCOUNT_PASSWD_MAX_LENGTH)
+	{
+		ERROR_MSG(boost::format("Loginapp::login: password too big, size=%1%, limit=%2%.\n") %
+			password.size() % ACCOUNT_PASSWD_MAX_LENGTH);
+
 		return;
 	}
 

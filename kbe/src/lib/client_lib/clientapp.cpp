@@ -22,12 +22,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "clientapp.hpp"
 #include "entity.hpp"
 #include "network/channel.hpp"
+#include "network/tcp_packet_receiver.hpp"
 #include "thread/threadpool.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "entitydef/entitydef.hpp"
 #include "server/componentbridge.hpp"
 #include "server/serverconfig.hpp"
 #include "helper/profile.hpp"
+#include "client_lib/client_interface.hpp"
 
 #include "../../server/baseapp/baseapp_interface.hpp"
 #include "../../server/loginapp/loginapp_interface.hpp"
@@ -55,7 +57,8 @@ componentID_(componentID),
 mainDispatcher_(dispatcher),
 networkInterface_(ninterface),
 timers_(),
-threadPool_()
+threadPool_(),
+pTCPPacketReceiver_(NULL)
 {
 	networkInterface_.pExtensionData(this);
 	networkInterface_.pChannelTimeOutHandler(this);
@@ -64,6 +67,8 @@ threadPool_()
 	// 初始化mailbox模块获取channel函数地址
 	EntityMailbox::setFindChannelFunc(std::tr1::bind(&ClientApp::findChannelByMailbox, this, 
 		std::tr1::placeholders::_1));
+
+	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &ClientInterface::messageHandlers;
 }
 
 //-------------------------------------------------------------------------------------
@@ -159,6 +164,11 @@ bool ClientApp::uninstallPyModules()
 //-------------------------------------------------------------------------------------		
 void ClientApp::finalise(void)
 {
+	if(pServerChannel_)
+		getNetworkInterface().deregisterChannel(pServerChannel_);
+
+	SAFE_RELEASE(pTCPPacketReceiver_);
+
 	gameTimer_.cancel();
 	threadPool_.finalise();
 	ClientObjectBase::finalise();
@@ -231,6 +241,23 @@ void ClientApp::onChannelTimeOut(Mercury::Channel * pChannel)
 
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->destroy();
+}
+
+//-------------------------------------------------------------------------------------	
+bool ClientApp::login(std::string accountName, std::string passwd, 
+								   std::string ip, KBEngine::uint32 port)
+{
+	bool ret = initLoginappChannel(accountName, passwd, ip, port) != NULL;
+	if(ret)
+	{
+		getNetworkInterface().registerChannel(pServerChannel_);
+		pTCPPacketReceiver_ = new Mercury::TCPPacketReceiver(*pServerChannel_->endpoint(), getNetworkInterface());
+		getNetworkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
+		
+		ret = ClientObjectBase::login();
+	}
+
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------		

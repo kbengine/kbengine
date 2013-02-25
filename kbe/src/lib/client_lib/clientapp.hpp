@@ -41,6 +41,7 @@ namespace KBEngine{
 namespace Mercury
 {
 class Channel;
+class TCPPacketReceiver;
 }
 
 class ClientApp : 
@@ -87,6 +88,9 @@ public:
 
 	void shutDown();
 
+	bool login(std::string accountName, std::string passwd, 
+		std::string ip, KBEngine::uint32 port);
+
 	GAME_TIME time() const { return time_; }
 	Timers & timers() { return timers_; }
 	double gameTimeInSeconds() const;
@@ -117,6 +121,8 @@ protected:
 	Mercury::EventDispatcher& 								mainDispatcher_;
 	Mercury::NetworkInterface&								networkInterface_;
 	
+	Mercury::TCPPacketReceiver*								pTCPPacketReceiver_;
+
 	GAME_TIME												time_;
 	Timers													timers_;
 

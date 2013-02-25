@@ -70,6 +70,9 @@ void SpaceWorld::createScene(void)
     mLoader->parseDotScene(mSceneFile, "Space", mSceneMgr);
 
 	mTrayMgr->showCursor();
+	mTrayMgr->showFrameStats(OgreBites::TL_BOTTOMLEFT);
+	mTrayMgr->showBackdrop();
+	mTrayMgr->showLogo(OgreBites::TL_BOTTOMRIGHT);
 
     // Loop through all cameras and grab their name and set their debug representation
     Ogre::SceneManager::CameraIterator cameras = mSceneMgr->getCameraIterator();

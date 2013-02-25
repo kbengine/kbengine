@@ -1583,6 +1583,22 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 						   std::string& accountName, 
 						   std::string& password)
 {
+	if(accountName.size() > ACCOUNT_NAME_MAX_LENGTH)
+	{
+		ERROR_MSG(boost::format("Baseapp::loginGateway: accountName too big, size=%1%, limit=%2%.\n") %
+			accountName.size() % ACCOUNT_NAME_MAX_LENGTH);
+
+		return;
+	}
+
+	if(password.size() > ACCOUNT_PASSWD_MAX_LENGTH)
+	{
+		ERROR_MSG(boost::format("Baseapp::loginGateway: password too big, size=%1%, limit=%2%.\n") %
+			password.size() % ACCOUNT_PASSWD_MAX_LENGTH);
+
+		return;
+	}
+
 	DEBUG_MSG(boost::format("Baseapp::loginGateway: new user[%1%].\n") % accountName.c_str());
 
 	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);

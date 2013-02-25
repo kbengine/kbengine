@@ -16,6 +16,7 @@ public:
     virtual void createScene(void);
     virtual bool keyPressed( const OIS::KeyEvent &arg );
     virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
+	virtual void buttonHit(OgreBites::Button* button);
 private:
 };
 

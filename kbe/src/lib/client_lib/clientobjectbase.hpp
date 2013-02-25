@@ -52,7 +52,7 @@ class ClientObjectBase : public script::ScriptObject
 	INSTANCE_SCRIPT_HREADER(ClientObjectBase, ScriptObject)	
 public:
 	ClientObjectBase(Mercury::NetworkInterface& ninterface, PyTypeObject* pyType = NULL);
-	~ClientObjectBase();
+	virtual ~ClientObjectBase();
 
 	Mercury::Channel* pServerChannel()const{ return pServerChannel_; }
 
@@ -76,6 +76,9 @@ public:
 
 	void tickSend();
 	
+	Mercury::Channel* initLoginappChannel(std::string accountName, std::string passwd, std::string ip, KBEngine::uint32 port);
+	Mercury::Channel* initBaseappChannel();
+
 	bool createAccount();
 	bool login();
 	bool loginGateWay();
