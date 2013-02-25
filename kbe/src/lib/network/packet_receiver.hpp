@@ -61,6 +61,8 @@ public:
 		pEndpoint_ = NULL;
 		pNetworkInterface_ = NULL;
 	}
+
+	void endpoint(EndPoint* pEndpoint){ pEndpoint_ = pEndpoint; }
 protected:
 	virtual int handleInputNotification(int fd);
 	virtual bool processSocket(bool expectingPacket) = 0;

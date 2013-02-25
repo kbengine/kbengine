@@ -282,6 +282,7 @@ bool ClientObjectBase::login()
 	(*pBundle) << password_;
 	
 	pServerChannel_->bundles().push_back(pBundle);
+	connectedGateway_ = false;
 	return true;
 }
 
@@ -289,6 +290,7 @@ bool ClientObjectBase::login()
 bool ClientObjectBase::loginGateWay()
 {
 	// ÇëÇóµÇÂ¼Íø¹Ø
+	connectedGateway_ = false;
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::loginGateway);
 	(*pBundle) << name_;
@@ -325,7 +327,8 @@ void ClientObjectBase::onLoginSuccessfully(Mercury::Channel * pChannel, MemorySt
 	s >> ip_;
 	s >> port_;
 	s.readBlob(extradatas_);
-
+	
+	connectedGateway_ = false;
 	INFO_MSG(boost::format("ClientObjectBase::onLoginSuccessfully: %1% addr=%2%:%3%!\n") % name_ % ip_ % port_);
 }
 
@@ -336,7 +339,8 @@ void ClientObjectBase::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& 
 
 	s >> failedcode;
 	s.readBlob(extradatas_);
-
+	
+	connectedGateway_ = false;
 	INFO_MSG(boost::format("ClientObjectBase::onLoginFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
 }
 
@@ -344,6 +348,7 @@ void ClientObjectBase::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& 
 void ClientObjectBase::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
 	INFO_MSG(boost::format("ClientObjectBase::onLoginGatewayFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
+	connectedGateway_ = false;
 }
 
 //-------------------------------------------------------------------------------------	

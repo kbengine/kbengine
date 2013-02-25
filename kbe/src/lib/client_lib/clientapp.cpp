@@ -40,6 +40,7 @@ COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;
 COMPONENT_ID g_componentID = 0;
 COMPONENT_ORDER g_componentOrder = 1;
 GAME_TIME g_kbetime = 0;
+bool resetChannel = false;
 
 KBE_SINGLETON_INIT(ClientApp);
 //-------------------------------------------------------------------------------------
@@ -203,6 +204,13 @@ void ClientApp::handleGameTick()
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
 	handleTimers();
+	
+	if(resetChannel)
+	{
+		getNetworkInterface().deregisterChannel(pServerChannel_);
+		getNetworkInterface().registerChannel(pServerChannel_);
+		resetChannel = false;
+	}
 
 	getNetworkInterface().handleChannels(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
 	tickSend();
@@ -247,17 +255,69 @@ void ClientApp::onChannelTimeOut(Mercury::Channel * pChannel)
 bool ClientApp::login(std::string accountName, std::string passwd, 
 								   std::string ip, KBEngine::uint32 port)
 {
+	connectedGateway_ = false;
+
+	bool exist = false;
+
+	if(pServerChannel_->endpoint())
+	{
+		getNetworkInterface().dispatcher().deregisterFileDescriptor(*pServerChannel_->endpoint());
+		exist = getNetworkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
+	}
+
 	bool ret = initLoginappChannel(accountName, passwd, ip, port) != NULL;
 	if(ret)
 	{
-		getNetworkInterface().registerChannel(pServerChannel_);
-		pTCPPacketReceiver_ = new Mercury::TCPPacketReceiver(*pServerChannel_->endpoint(), getNetworkInterface());
+		if(!exist)
+		{
+			getNetworkInterface().registerChannel(pServerChannel_);
+			pTCPPacketReceiver_ = new Mercury::TCPPacketReceiver(*pServerChannel_->endpoint(), getNetworkInterface());
+		}
+		else
+		{
+			pTCPPacketReceiver_->endpoint(pServerChannel_->endpoint());
+			resetChannel = true;
+		}
+
 		getNetworkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
 		
 		ret = ClientObjectBase::login();
 	}
 
 	return ret;
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
+{
+	ClientObjectBase::onLoginSuccessfully(pChannel, s);
+
+	bool exist = false;
+
+	if(pServerChannel_->endpoint())
+	{
+		getNetworkInterface().dispatcher().deregisterFileDescriptor(*pServerChannel_->endpoint());
+		exist = getNetworkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
+	}
+
+	bool ret = initBaseappChannel() != NULL;
+	if(ret)
+	{
+		if(!exist)
+		{
+			getNetworkInterface().registerChannel(pServerChannel_);
+			pTCPPacketReceiver_ = new Mercury::TCPPacketReceiver(*pServerChannel_->endpoint(), getNetworkInterface());
+		}
+		else
+		{
+			pTCPPacketReceiver_->endpoint(pServerChannel_->endpoint());
+			resetChannel = true;
+		}
+
+		getNetworkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
+		
+		ret = ClientObjectBase::loginGateWay();
+	}
 }
 
 //-------------------------------------------------------------------------------------		
