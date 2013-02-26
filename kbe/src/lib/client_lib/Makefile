@@ -5,6 +5,7 @@ SRCS =				\
 	clientapp		\
 	clientobjectbase	\
 	entity			\
+	entity_aspect		\
 	event			\
 	profile
 
