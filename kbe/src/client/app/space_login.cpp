@@ -37,7 +37,7 @@ void SpaceLogin::createScene(void)
 	if(g_accountName.size() == 0)
 		g_accountName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
 
-	mTrayMgr->createButton(OgreBites::TL_CENTER, "login", "login", 120);
+	mTrayMgr->createButton(OgreBites::TL_CENTER, "login", "fast login", 120);
 
 	Ogre::StringVector values;
 	values.push_back(g_accountName);

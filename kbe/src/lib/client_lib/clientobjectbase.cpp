@@ -354,6 +354,7 @@ void ClientObjectBase::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
 {
+	connectedGateway_ = true;
 	entityID_ = eid;
 	INFO_MSG(boost::format("ClientObject::onCreatedProxies(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
 		name_ % rndUUID % eid % entityType);

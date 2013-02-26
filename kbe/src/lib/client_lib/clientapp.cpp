@@ -169,7 +169,7 @@ bool ClientApp::uninstallPyModules()
 //-------------------------------------------------------------------------------------		
 void ClientApp::finalise(void)
 {
-	if(pServerChannel_)
+	if(pServerChannel_ && pServerChannel_->endpoint())
 		getNetworkInterface().deregisterChannel(pServerChannel_);
 
 	SAFE_RELEASE(pTCPPacketReceiver_);
