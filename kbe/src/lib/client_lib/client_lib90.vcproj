@@ -171,6 +171,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\entity_aspect.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\event.cpp"
 				>
 			</File>
@@ -206,6 +210,10 @@
 			</File>
 			<File
 				RelativePath=".\entity.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\entity_aspect.hpp"
 				>
 			</File>
 			<File

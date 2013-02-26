@@ -91,7 +91,7 @@ bool SpaceLogin::keyPressed( const OIS::KeyEvent &arg )
 //-------------------------------------------------------------------------------------
 void SpaceLogin::buttonHit(OgreBites::Button* button)
 {
-	if(button->getCaption() == "login")
+	if(button->getCaption() == "fast login")
 	{
 		kbe_login(g_accountName.c_str(), "123456", "127.0.0.1", 20013);
 	}

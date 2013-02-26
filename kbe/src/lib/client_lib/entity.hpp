@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __CLIENTAPP_ENTITY_H__
 	
 // common include
+#include "entity_aspect.hpp"
 #include "client_lib/profile.hpp"
 #include "cstdkbe/timer.hpp"
 #include "cstdkbe/cstdkbe.hpp"
@@ -101,7 +102,8 @@ public:
 	DECLARE_PY_GET_MOTHOD(pyGetClientApp);
 	INLINE void pClientApp(ClientObjectBase* p);
 	INLINE ClientObjectBase* pClientApp()const;
-
+	
+	const EntityAspect* getAspect()const{ return &aspect_; }
 	/** 
 		销毁这个entity 
 	*/
@@ -127,6 +129,8 @@ protected:
 	Direction3D								direction_;							// entity的当前方向
 
 	ClientObjectBase*						pClientApp_;
+
+	EntityAspect							aspect_;
 };																										
 
 }

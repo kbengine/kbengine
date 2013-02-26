@@ -53,7 +53,10 @@ bool EventHandler::deregisterHandle(EventHandle* pHhandle)
 	for(; iter != eventHandles_.end(); iter++)
 	{
 		if((*iter) == pHhandle)
+		{
 			eventHandles_.erase(iter);
+			return true;
+		}
 	}
 
 	return false;

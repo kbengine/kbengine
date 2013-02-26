@@ -59,7 +59,8 @@ Entity::Entity(ENTITY_ID id, const ScriptDefModule* scriptModule, EntityMailbox*
 ScriptObject(getScriptType(), true),
 ENTITY_CONSTRUCTION(Entity),
 cellMailbox_(cell),
-baseMailbox_(base)
+baseMailbox_(base),
+aspect_(id)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
 }

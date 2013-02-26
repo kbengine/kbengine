@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __CLIENT_EVENT_HPP__
 #define __CLIENT_EVENT_HPP__
 
-//#include "client_lib/entity.hpp"
+#include "client_lib/entity_aspect.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 
 
@@ -70,52 +70,54 @@ struct EventData_EnterWorld : public EventData
 {
 	EventData_EnterWorld():
 	EventData(CLIENT_EVENT_ENTERWORLD),
-	spaceID(0)
-	//pEntity(NULL)
+	spaceID(0),
+	pEntity(NULL),
+	res()
 	{
 	}
 
 	SPACE_ID spaceID;
-	//client::Entity* pEntity;
+	const EntityAspect* pEntity;
+	std::string res;
 };
 
 struct EventData_LeaveWorld : public EventData
 {
 	EventData_LeaveWorld():
 	EventData(CLIENT_EVENT_LEAVEWORLD),
-	spaceID(0)
-	//pEntity(NULL)
+	spaceID(0),
+	pEntity(NULL)
 	{
 	}
 
 	SPACE_ID spaceID;
-	//client::Entity* pEntity;
+	const EntityAspect* pEntity;
 };
 
 struct EventData_EnterSpace : public EventData
 {
 	EventData_EnterSpace():
 	EventData(CLIENT_EVENT_ENTERSPACE),
-	spaceID(0)
-	//pEntity(NULL)
+	spaceID(0),
+	pEntity(NULL)
 	{
 	}
 
 	SPACE_ID spaceID;
-	//client::Entity* pEntity;
+	const EntityAspect* pEntity;
 };
 
 struct EventData_LeaveSpace : public EventData
 {
 	EventData_LeaveSpace():
 	EventData(CLIENT_EVENT_LEAVESPACE),
-	spaceID(0)
-	//pEntity(NULL)
+	spaceID(0),
+	pEntity(NULL)
 	{
 	}
 
 	SPACE_ID spaceID;
-	//client::Entity* pEntity;
+	const EntityAspect* pEntity;
 };
 
 }

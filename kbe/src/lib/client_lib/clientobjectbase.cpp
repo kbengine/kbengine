@@ -411,7 +411,7 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 
 	EventData_EnterWorld eventdata;
 	eventdata.spaceID = spaceID;
-	//eventdata.pEntity = entity;
+	eventdata.pEntity = entity->getAspect();
 
 	eventHandler_.trigger(&eventdata);
 
@@ -433,7 +433,7 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 
 	EventData_LeaveWorld eventdata;
 	eventdata.spaceID = spaceID;
-	//eventdata.pEntity = entity;
+	eventdata.pEntity = entity->getAspect();
 
 	eventHandler_.trigger(&eventdata);
 
@@ -454,7 +454,7 @@ void ClientObjectBase::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID 
 
 	EventData_EnterSpace eventdata;
 	eventdata.spaceID = spaceID;
-	//eventdata.pEntity = entity;
+	eventdata.pEntity = entity->getAspect();
 
 	eventHandler_.trigger(&eventdata);
 }
@@ -473,7 +473,7 @@ void ClientObjectBase::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID 
 
 	EventData_LeaveSpace eventdata;
 	eventdata.spaceID = spaceID;
-	//eventdata.pEntity = entity;
+	eventdata.pEntity = entity->getAspect();
 	eventHandler_.trigger(&eventdata);
 }
 
