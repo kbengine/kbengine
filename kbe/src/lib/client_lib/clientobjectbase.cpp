@@ -64,7 +64,8 @@ name_(),
 password_(),
 extradatas_("unknown"),
 typeClient_(CLIENT_TYPE_PC),
-bufferedCreateEntityMessage_()
+bufferedCreateEntityMessage_(),
+eventHandler_()
 {
 	pServerChannel_->incRef();
 	appID_ = g_appID++;
@@ -181,6 +182,18 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 	}
 
 	return entity;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientObjectBase::registerEventHandle(EventHandle* pEventHandle)
+{
+	return eventHandler_.registerHandle(pEventHandle);
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientObjectBase::deregisterEventHandle(EventHandle* pEventHandle)
+{
+	return eventHandler_.deregisterHandle(pEventHandle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -395,6 +408,13 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 	}
 
 	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%.\n") % eid);
+
+	EventData_EnterWorld eventdata;
+	eventdata.spaceID = spaceID;
+	//eventdata.pEntity = entity;
+
+	eventHandler_.trigger(&eventdata);
+
 	entity->onEnterWorld();
 }
 
@@ -410,6 +430,13 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 
 	DEBUG_MSG(boost::format("ClientObjectBase::onEntityLeaveWorld: %1%.\n") % eid);
 	entity->onLeaveWorld();
+
+	EventData_LeaveWorld eventdata;
+	eventdata.spaceID = spaceID;
+	//eventdata.pEntity = entity;
+
+	eventHandler_.trigger(&eventdata);
+
 	pEntities_->erase(eid);
 }
 
@@ -424,6 +451,12 @@ void ClientObjectBase::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID 
 	}
 
 	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterSpace: %1%.\n") % eid);
+
+	EventData_EnterSpace eventdata;
+	eventdata.spaceID = spaceID;
+	//eventdata.pEntity = entity;
+
+	eventHandler_.trigger(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -437,6 +470,11 @@ void ClientObjectBase::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID 
 	}
 
 	DEBUG_MSG(boost::format("ClientObjectBase::onEntityLeaveSpace: %1%.\n") % eid);
+
+	EventData_LeaveSpace eventdata;
+	eventdata.spaceID = spaceID;
+	//eventdata.pEntity = entity;
+	eventHandler_.trigger(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------	

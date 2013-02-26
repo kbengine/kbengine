@@ -119,7 +119,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../lib;..\pagedgeometry\include;$(OGRE_HOME)\include;$(OGRE_HOME)\OgreMain\include;$(OGRE_HOME)\Components\Terrain\include;$(OGRE_HOME)\include\OIS;$(OGRE_HOME)\include\OGRE;$(OGRE_HOME)\Samples\Common\include;$(OGRE_HOME)\boost"
+				AdditionalIncludeDirectories="../../lib/third_party;../../lib;..\pagedgeometry\include;$(OGRE_HOME)\include;$(OGRE_HOME)\OgreMain\include;$(OGRE_HOME)\Components\Terrain\include;$(OGRE_HOME)\include\OIS;$(OGRE_HOME)\include\OGRE;$(OGRE_HOME)\Samples\Common\include;$(OGRE_HOME)\boost"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"

@@ -27,11 +27,13 @@ Space* space = NULL;
 //-------------------------------------------------------------------------------------
 OgreApplication::OgreApplication(void)
 {
+	kbe_registerEventHandle(this);
 }
 
 //-------------------------------------------------------------------------------------
 OgreApplication::~OgreApplication(void)
 {
+	kbe_deregisterEventHandle(this);
 	mCameraMan = NULL;
 }
 
@@ -124,6 +126,11 @@ void OgreApplication::buttonHit(OgreBites::Button* button)
 	{
 		space->buttonHit(button);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void OgreApplication::kbengine_onEvent(const KBEngine::EventData* lpEventData)
+{
 }
 
 //-------------------------------------------------------------------------------------

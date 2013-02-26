@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __CLIENTAPP_ENTITY_H__
 	
 // common include
-#include "profile.hpp"
+#include "client_lib/profile.hpp"
 #include "cstdkbe/timer.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"

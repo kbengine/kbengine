@@ -6,6 +6,7 @@
 #include <Terrain/OgreTerrain.h>
 #include <Terrain/OgreTerrainGroup.h>
 #include <OgreImage.h>
+#include "client_lib/event.hpp"
 
 class DotSceneLoader;
 
@@ -16,7 +17,7 @@ namespace Forests
     class GrassLayer;
 }
 
-class OgreApplication : public BaseApplication, public Ogre::Singleton<OgreApplication>
+class OgreApplication : public BaseApplication, public Ogre::Singleton<OgreApplication>, public KBEngine::EventHandle
 {
 public:
     OgreApplication(void);
@@ -27,6 +28,8 @@ public:
 	void setCurrCameraMan(OgreBites::SdkCameraMan* pCameraMan){ mCameraMan = pCameraMan; }
 
 	virtual void buttonHit(OgreBites::Button* button);
+
+	void kbengine_onEvent(const KBEngine::EventData* lpEventData);
 protected:
 	virtual bool setup();
     virtual void setupResources();

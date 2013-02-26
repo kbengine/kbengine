@@ -57,9 +57,10 @@ componentType_(componentType),
 componentID_(componentID),
 mainDispatcher_(dispatcher),
 networkInterface_(ninterface),
+pTCPPacketReceiver_(NULL),
+time_(),
 timers_(),
-threadPool_(),
-pTCPPacketReceiver_(NULL)
+threadPool_()
 {
 	networkInterface_.pExtensionData(this);
 	networkInterface_.pChannelTimeOutHandler(this);

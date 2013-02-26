@@ -171,6 +171,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\event.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\profile.cpp"
 				>
 			</File>
@@ -202,6 +206,10 @@
 			</File>
 			<File
 				RelativePath=".\entity.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\event.hpp"
 				>
 			</File>
 			<File

@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __CLIENT_OBJECT_BASE_H__
 #define __CLIENT_OBJECT_BASE_H__
 
+#include "event.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "helper/debug_helper.hpp"
@@ -85,6 +86,12 @@ public:
 
 	int32 appID()const{ return appID_; }
 	const char* name(){ return name_.c_str(); }
+
+	ENTITY_ID entityID(){ return entityID_; }
+	DBID dbid(){ return dbid_; }
+
+	bool registerEventHandle(EventHandle* pEventHandle);
+	bool deregisterEventHandle(EventHandle* pEventHandle);
 
 	static PyObject* __pyget_pyGetEntities(PyObject *self, void *closure)
 	{
@@ -224,7 +231,9 @@ protected:
 	CLIENT_CTYPE typeClient_;
 
 	typedef std::map<ENTITY_ID, KBEShared_ptr<MemoryStream> > BUFFEREDMESSAGE;
-	BUFFEREDMESSAGE bufferedCreateEntityMessage_;
+	BUFFEREDMESSAGE											bufferedCreateEntityMessage_;
+
+	EventHandler											eventHandler_;
 };
 
 }

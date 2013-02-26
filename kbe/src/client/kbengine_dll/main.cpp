@@ -8,6 +8,7 @@
 #include "thread/threadtask.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/address.hpp"
+#include "client_lib/event.hpp"
 
 #undef DEFINE_IN_INTERFACE
 #include "client_lib/client_interface.hpp"
@@ -252,3 +253,22 @@ void kbe_update()
 	}
 }
 
+KBEngine::ENTITY_ID kbe_playerID()
+{
+	return g_pApp->entityID();
+}
+
+KBEngine::DBID kbe_playerDBID()
+{
+	return g_pApp->dbid();
+}
+
+bool kbe_registerEventHandle(KBEngine::EventHandle* pHandle)
+{
+	return g_pApp->registerEventHandle(pHandle);
+}
+
+bool kbe_deregisterEventHandle(KBEngine::EventHandle* pHandle)
+{
+	return g_pApp->deregisterEventHandle(pHandle);
+}

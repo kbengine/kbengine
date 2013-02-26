@@ -137,7 +137,6 @@ protected:
 
 	// Ïß³Ì³Ø
 	thread::ThreadPool										threadPool_;
-
 };
 
 }

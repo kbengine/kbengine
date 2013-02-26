@@ -5,6 +5,7 @@ SRCS =				\
 	clientapp		\
 	clientobjectbase	\
 	entity			\
+	event			\
 	profile
 
 ifndef KBE_ROOT
