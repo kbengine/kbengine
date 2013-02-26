@@ -105,6 +105,8 @@ public:
 	KBEngine::script::Script& getScript(){ return *pScript_; }
 	void setScript(KBEngine::script::Script* p){ pScript_ = p; }
 
+	static PyObject* __py_getAppPublish(PyObject* self, PyObject* args);
+
 	virtual void onChannelTimeOut(Mercury::Channel * pChannel);
 	virtual void onChannelDeregister(Mercury::Channel * pChannel);
 

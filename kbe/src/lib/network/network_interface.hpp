@@ -68,6 +68,7 @@ public:
 
 	bool registerChannel(Channel* pChannel);
 	bool deregisterChannel(Channel* pChannel);
+	bool deregisterChannel(const Address & addr);
 	bool deregisterAllChannels();
 	Channel * findChannel(const Address & addr);
 

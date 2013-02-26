@@ -40,7 +40,7 @@ COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;
 COMPONENT_ID g_componentID = 0;
 COMPONENT_ORDER g_componentOrder = 1;
 GAME_TIME g_kbetime = 0;
-bool resetChannel = false;
+Mercury::Address lastAddr = Mercury::Address::NONE;
 
 KBE_SINGLETON_INIT(ClientApp);
 //-------------------------------------------------------------------------------------
@@ -133,6 +133,10 @@ bool ClientApp::installEntityDef()
 		return false;
 	}
 
+	// 注册创建entity的方法到py
+	// 向脚本注册app发布状态
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	publish,	__py_getAppPublish,		METH_VARARGS,	0)
+
 	return true;
 }
 
@@ -205,11 +209,11 @@ void ClientApp::handleGameTick()
 	threadPool_.onMainThreadTick();
 	handleTimers();
 	
-	if(resetChannel)
+	if(lastAddr.ip != 0)
 	{
-		getNetworkInterface().deregisterChannel(pServerChannel_);
+		getNetworkInterface().deregisterChannel(lastAddr);
 		getNetworkInterface().registerChannel(pServerChannel_);
-		resetChannel = false;
+		lastAddr.ip = 0;
 	}
 
 	getNetworkInterface().handleChannels(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
@@ -227,6 +231,12 @@ bool ClientApp::run(void)
 {
 	mainDispatcher_.processUntilBreak();
 	return true;
+}
+
+//-------------------------------------------------------------------------------------		
+PyObject* ClientApp::__py_getAppPublish(PyObject* self, PyObject* args)
+{
+	return PyLong_FromLong(g_appPublish);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -261,6 +271,7 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 
 	if(pServerChannel_->endpoint())
 	{
+		lastAddr = pServerChannel_->endpoint()->addr();
 		getNetworkInterface().dispatcher().deregisterFileDescriptor(*pServerChannel_->endpoint());
 		exist = getNetworkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
 	}
@@ -276,7 +287,6 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 		else
 		{
 			pTCPPacketReceiver_->endpoint(pServerChannel_->endpoint());
-			resetChannel = true;
 		}
 
 		getNetworkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
@@ -296,6 +306,7 @@ void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s
 
 	if(pServerChannel_->endpoint())
 	{
+		lastAddr = pServerChannel_->endpoint()->addr();
 		getNetworkInterface().dispatcher().deregisterFileDescriptor(*pServerChannel_->endpoint());
 		exist = getNetworkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
 	}
@@ -311,7 +322,6 @@ void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s
 		else
 		{
 			pTCPPacketReceiver_->endpoint(pServerChannel_->endpoint());
-			resetChannel = true;
 		}
 
 		getNetworkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
