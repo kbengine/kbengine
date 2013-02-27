@@ -137,7 +137,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	// Py_TabcheckFlag = 1;
 	Py_NoSiteFlag = 1;
 	Py_IgnoreEnvironmentFlag = 1;
-	Py_Initialize();                      												// python解释器的初始化  
+	Py_Initialize();                      											// python解释器的初始化  
     if (!Py_IsInitialized())
     {
     	ERROR_MSG("Script::install::Py_Initialize is failed!\n");
@@ -308,7 +308,7 @@ PyThreadState* Script::createInterpreter()
 #ifndef KBE_SINGLE_THREADED
 		PyDict_Merge( PySys_GetObject( "modules" ), s_pOurInitTimeModules, 0 );
 #endif
-		// Restore original intepreter.
+
 		PyThreadState* pSwapped = PyThreadState_Swap( pCurInterpreter );
 		if( pSwapped != pNewInterpreter )
 		{
@@ -357,14 +357,11 @@ void Script::initThread( bool plusOwnInterpreter )
 	{
 		newTState = Py_NewInterpreter();
 
-		// set the path again
 		PyObject * pMainPyPath = PyDict_GetItemString(
 			s_pMainThreadState->interp->sysdict, "path" );
 		PySys_SetObject( "path", pMainPyPath );
 
-		// put in any modules created by our init-time jobs
-		PyDict_Merge( PySys_GetObject( "modules" ), s_pOurInitTimeModules,
-			/*override:*/0 );
+		PyDict_Merge( PySys_GetObject( "modules" ), s_pOurInitTimeModules, 0);
 	}
 	else
 	{
@@ -378,7 +375,6 @@ void Script::initThread( bool plusOwnInterpreter )
 
 	PyEval_ReleaseLock();
 
-	// and make our thread be the one global python one
 	s_defaultContext = newTState;
 	Script::acquireLock();
 }
@@ -393,12 +389,7 @@ void Script::finiThread( bool plusOwnInterpreter )
 
 	if (plusOwnInterpreter)
 	{
-		//Py_EndInterpreter( s_defaultContext );
-		// for now we do not want our modules + sys dict destroyed...
-		// ... really should make a way of migrating between threads
-		// but for now this will do
 		{
-			//PyImport_Cleanup();	// this is the one we can't call
 			PyInterpreterState_Clear( s_defaultContext->interp );
 			PyThreadState_Swap( NULL );
 			PyInterpreterState_Delete( s_defaultContext->interp );
@@ -409,7 +400,7 @@ void Script::finiThread( bool plusOwnInterpreter )
 	else
 	{
 		PyThreadState_Clear( s_defaultContext );
-		PyThreadState_DeleteCurrent();	// releases GIL
+		PyThreadState_DeleteCurrent();								// releases GIL
 	}
 
 	s_defaultContext = NULL;
@@ -423,11 +414,6 @@ void Script::acquireLock()
 #ifndef KBE_SINGLE_THREADED
 	if (s_defaultContext == NULL) return;
 
-	//KBE_ASSERT( PyThreadState_Get() != s_defaultContext );
-	// can't do assert above because PyThreadState_Get can't (since 2.4)
-	// be called when the thread state is null - it generates a fatal
-	// error. NULL is what we expect it to be as set by releaseLock anyway...
-	// there doesn't appear to be a good way to assert this here. Oh well.
 	PyEval_RestoreThread( s_defaultContext );
 #endif
 }
