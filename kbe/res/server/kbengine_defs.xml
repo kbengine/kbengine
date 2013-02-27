@@ -36,7 +36,7 @@
 		1 : release
 		其他自定义
 	-->
-	<app_publish>1</app_publish>
+	<app_publish>0</app_publish>
 	
 	<cellapps> 1 </cellapps>
 	<baseapps> 1 </baseapps>
