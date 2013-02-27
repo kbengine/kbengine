@@ -9,6 +9,7 @@
 #include "helper/debug_helper.hpp"
 #include "network/address.hpp"
 #include "client_lib/event.hpp"
+#include "client_lib/config.hpp"
 
 #undef DEFINE_IN_INTERFACE
 #include "client_lib/client_interface.hpp"
@@ -77,6 +78,8 @@ KBEngine::script::Script* g_pScript = NULL;
 Mercury::EventDispatcher* g_pDispatcher = NULL;
 Mercury::NetworkInterface* g_pNetworkInterface = NULL;
 thread::ThreadPool* g_pThreadPool = NULL;
+ServerConfig* pserverconfig = NULL;
+Config* pconfig = NULL;
 
 BOOL APIENTRY DllMain( HANDLE hModule,
 					  DWORD ul_reason_for_call,
@@ -130,7 +133,8 @@ bool kbe_init()
 	g_componentID = genUUID64();
 	g_componentType = CLIENT_TYPE;
 
-	ServerConfig* pconfig = new ServerConfig;
+	//pserverconfig = new ServerConfig;
+	pconfig = new Config;
 
 	if(!loadConfig())
 	{
@@ -177,6 +181,8 @@ bool kbe_init()
 		SAFE_RELEASE(g_pNetworkInterface);
 		SAFE_RELEASE(g_pScript);
 		SAFE_RELEASE(g_pDispatcher);
+		SAFE_RELEASE(pserverconfig);
+		SAFE_RELEASE(pconfig);
 		return false;
 	}
 
@@ -220,6 +226,8 @@ bool kbe_destroy()
 	SAFE_RELEASE(g_pNetworkInterface);
 	SAFE_RELEASE(g_pScript);
 	SAFE_RELEASE(g_pDispatcher);
+	SAFE_RELEASE(pserverconfig);
+	SAFE_RELEASE(pconfig);
 
 	INFO_MSG(boost::format("%1% has shut down.\n") % COMPONENT_NAME_EX(g_componentType));
 	return ret;
@@ -242,6 +250,12 @@ KBEngine::uint32 kbe_getSystemTime()
 
 bool kbe_login(const char* accountName, const char* passwd, const char* ip, KBEngine::uint32 port)
 {
+	if(ip == NULL || port == 0)
+	{
+		ip = pconfig->ip();
+		port = pconfig->port();
+	}
+
 	return g_pApp->login(accountName, passwd, ip, port);
 }
 
@@ -271,4 +285,28 @@ bool kbe_registerEventHandle(KBEngine::EventHandle* pHandle)
 bool kbe_deregisterEventHandle(KBEngine::EventHandle* pHandle)
 {
 	return g_pApp->deregisterEventHandle(pHandle);
+}
+
+PyObject* kbe_callEntityMethod(KBEngine::ENTITY_ID entityID, const char *method, 
+							   PyObject *args, PyObject *kw)
+{
+	client::Entity* pEntity = g_pApp->pEntities()->find(entityID);
+	if(!pEntity)
+	{
+		ERROR_MSG(boost::format("kbe_callEntityMethod::entity %1% not found!\n") % entityID);
+		return NULL;
+	}
+
+	PyObject* pyfunc = PyObject_GetAttrString(pEntity, method);
+	if(pyfunc == NULL)
+	{
+		ERROR_MSG(boost::format("kbe_callEntityMethod::entity %1% method(%2%) not found!\n") % 
+			entityID % method);
+
+		return NULL;
+	}
+
+	PyObject* ret = PyObject_Call(pyfunc, args, kw); 
+	Py_DECREF(pyfunc);
+	return ret;
 }

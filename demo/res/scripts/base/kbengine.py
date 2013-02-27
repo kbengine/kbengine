@@ -9,7 +9,7 @@ def onBaseAppReady(bootstrapIdx):
 	@param isBootstrap: 是否是第一个baseapp启动
 	@type isBootstrap: bool
 	"""
-	DEBUG_MSG('baseapp准备完毕! bootstrapIdx=%s' % bootstrapIdx)
+	DEBUG_MSG('onBaseAppReady: bootstrapIdx=%s' % bootstrapIdx)
 	if bootstrapIdx == 1:
 		# 创建spacemanager
 		KBEngine.createBaseLocally( "Spaces", {} )
@@ -23,7 +23,7 @@ def onBaseAppShutDown(state):
 						 2 : 所有entity被写入数据库之后
 	@type state: int					 
 	"""
-	DEBUG_MSG('baseapp将要关闭了! state=%i' % state)
+	DEBUG_MSG('onBaseAppShutDown: state=%i' % state)
 		
 def onInit(isReload):
 	"""
@@ -32,7 +32,7 @@ def onInit(isReload):
 	@param isReload: 是否是被重写加载脚本后触发的
 	@type isReload: bool
 	"""
-	DEBUG_MSG('所有的脚本初始化完毕。游戏初始化... isReload:%s' % isReload)
+	DEBUG_MSG('onInit::isReload:%s' % isReload)
 
 def onFini():
 	pass

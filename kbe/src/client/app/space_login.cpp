@@ -1,4 +1,5 @@
 #include "space_login.h"
+#include "space_avatarselect.h"
 #include "OgreApplication.h"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/stringconv.hpp"
@@ -16,8 +17,11 @@ SpaceLogin::SpaceLogin(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
 //-------------------------------------------------------------------------------------
 SpaceLogin::~SpaceLogin(void)
 {
-	mTrayMgr->removeWidgetFromTray("login");
-	mTrayMgr->removeWidgetFromTray("accountName");
+	//mTrayMgr->removeWidgetFromTray("login");
+	//mTrayMgr->removeWidgetFromTray("accountName");
+
+	mTrayMgr->destroyWidget("login");
+	mTrayMgr->destroyWidget("accountName");
 }
 
 //-------------------------------------------------------------------------------------
@@ -93,6 +97,27 @@ void SpaceLogin::buttonHit(OgreBites::Button* button)
 {
 	if(button->getCaption() == "fast login")
 	{
-		kbe_login(g_accountName.c_str(), "123456", "127.0.0.1", 20013);
+		kbe_login(g_accountName.c_str(), "123456");
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void SpaceLogin::kbengine_onEvent(const KBEngine::EventData* lpEventData)
+{
+	switch(lpEventData->id)
+	{
+	case CLIENT_EVENT_LOGIN_SUCCESS:
+		break;
+	case CLIENT_EVENT_LOGIN_FAILED:
+		MessageBox( NULL, "SpaceLogin::kbengine_onEvent login is failed!", "warning!", MB_OK);
+		break;
+	case CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS:
+		OgreApplication::getSingleton().changeSpace(new SpaceAvatarSelect(mRoot, mWindow, mInputManager, mTrayMgr));
+		break;
+	case CLIENT_EVENT_LOGIN_GATEWAY_FAILED:
+		MessageBox( NULL, "SpaceLogin::kbengine_onEvent loginGateway is failed!", "warning!", MB_OK);
+		break;
+	default:
+		break;
+	};
 }

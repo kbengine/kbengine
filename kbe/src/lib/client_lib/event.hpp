@@ -34,6 +34,11 @@ typedef int32 EventID;
 #define CLIENT_EVENT_LEAVEWORLD 2
 #define CLIENT_EVENT_ENTERSPACE 3
 #define CLIENT_EVENT_LEAVESPACE 4
+#define CLIENT_EVENT_CREATEDENTITY 5
+#define CLIENT_EVENT_LOGIN_SUCCESS 6
+#define CLIENT_EVENT_LOGIN_FAILED 7
+#define CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS 8
+#define CLIENT_EVENT_LOGIN_GATEWAY_FAILED 9
 
 struct EventData
 {
@@ -65,6 +70,50 @@ protected:
 	EVENT_HANDLES eventHandles_;
 };
 
+struct EventData_LoginSuccess : public EventData
+{
+	EventData_LoginSuccess():
+	EventData(CLIENT_EVENT_LOGIN_SUCCESS)
+	{
+	}
+};
+
+struct EventData_LoginFailed : public EventData
+{
+	EventData_LoginFailed():
+	EventData(CLIENT_EVENT_LOGIN_FAILED)
+	{
+	}
+};
+
+struct EventData_LoginGatewaySuccess : public EventData
+{
+	EventData_LoginGatewaySuccess():
+	EventData(CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS)
+	{
+	}
+};
+
+struct EventData_LoginGatewayFailed : public EventData
+{
+	EventData_LoginGatewayFailed():
+	EventData(CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS)
+	{
+	}
+};
+
+struct EventData_CreatedEntity : public EventData
+{
+	EventData_CreatedEntity():
+	EventData(CLIENT_EVENT_CREATEDENTITY),
+	pEntity(NULL),
+	res()
+	{
+	}
+
+	const EntityAspect* pEntity;
+	std::string res;
+};
 
 struct EventData_EnterWorld : public EventData
 {
@@ -119,6 +168,93 @@ struct EventData_LeaveSpace : public EventData
 	SPACE_ID spaceID;
 	const EntityAspect* pEntity;
 };
+
+
+inline EventData* newKBEngineEvent(EventID v)
+{
+	switch(v)
+	{
+		case CLIENT_EVENT_ENTERWORLD:
+			return new EventData_EnterWorld();
+			break;
+		case CLIENT_EVENT_LEAVEWORLD:
+			return new EventData_LeaveWorld();
+			break;
+		case CLIENT_EVENT_ENTERSPACE:
+			return new EventData_EnterSpace();
+			break;
+		case CLIENT_EVENT_LEAVESPACE:
+			return new EventData_LeaveSpace();
+			break;
+		case CLIENT_EVENT_CREATEDENTITY:
+			return new EventData_CreatedEntity();
+			break;
+		case CLIENT_EVENT_LOGIN_SUCCESS:
+			return new EventData_LoginSuccess();
+			break;
+		case CLIENT_EVENT_LOGIN_FAILED:
+			return new EventData_LoginFailed();
+			break;
+		case CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS:
+			return new EventData_LoginGatewaySuccess();
+			break;
+		case CLIENT_EVENT_LOGIN_GATEWAY_FAILED:
+			return new EventData_LoginGatewayFailed();
+			break;
+		default:
+			break;
+	}
+
+	return NULL;
+}
+
+inline EventData* copyKBEngineEvent(const KBEngine::EventData* lpEventData)
+{
+	KBEngine::EventData* peventdata = NULL;
+	switch(lpEventData->id)
+	{
+		case CLIENT_EVENT_ENTERWORLD:
+			peventdata = new EventData_EnterWorld();
+			(*static_cast<EventData_EnterWorld*>(peventdata)) = (*static_cast<const EventData_EnterWorld*>(lpEventData));
+			break;
+		case CLIENT_EVENT_LEAVEWORLD:
+			peventdata = new EventData_LeaveWorld();
+			(*static_cast<EventData_LeaveWorld*>(peventdata)) = (*static_cast<const EventData_LeaveWorld*>(lpEventData));
+			break;
+		case CLIENT_EVENT_ENTERSPACE:
+			peventdata = new EventData_EnterSpace();
+			(*static_cast<EventData_EnterSpace*>(peventdata)) = (*static_cast<const EventData_EnterSpace*>(lpEventData));
+			break;
+		case CLIENT_EVENT_LEAVESPACE:
+			peventdata = new EventData_LeaveSpace();
+			(*static_cast<EventData_LeaveSpace*>(peventdata)) = (*static_cast<const EventData_LeaveSpace*>(lpEventData));
+			break;
+		case CLIENT_EVENT_CREATEDENTITY:
+			peventdata = new EventData_CreatedEntity();
+			(*static_cast<EventData_CreatedEntity*>(peventdata)) = (*static_cast<const EventData_CreatedEntity*>(lpEventData));
+			break;
+		case CLIENT_EVENT_LOGIN_SUCCESS:
+			peventdata = new EventData_LoginSuccess();
+			(*static_cast<EventData_LoginSuccess*>(peventdata)) = (*static_cast<const EventData_LoginSuccess*>(lpEventData));
+			break;
+		case CLIENT_EVENT_LOGIN_FAILED:
+			peventdata = new EventData_LoginFailed();
+			(*static_cast<EventData_LoginFailed*>(peventdata)) = (*static_cast<const EventData_LoginFailed*>(lpEventData));
+			break;
+		case CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS:
+			peventdata = new EventData_LoginGatewaySuccess();
+			(*static_cast<EventData_LoginGatewaySuccess*>(peventdata)) = (*static_cast<const EventData_LoginGatewaySuccess*>(lpEventData));
+			break;
+		case CLIENT_EVENT_LOGIN_GATEWAY_FAILED:
+			peventdata = new EventData_LoginGatewayFailed();
+			(*static_cast<EventData_LoginGatewayFailed*>(peventdata)) = (*static_cast<const EventData_LoginGatewayFailed*>(lpEventData));
+			break;
+		default:
+			break;
+	}
+
+	return peventdata;
+}
 
 }
 #endif

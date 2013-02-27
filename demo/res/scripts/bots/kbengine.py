@@ -2,14 +2,14 @@
 import KBEngine
 from KBEDebug import *
 
-def onInitialize(isReload):
+def onInit(isReload):
 	"""
 	KBEngine method.
 	当引擎启动后初始化完所有的脚本后这个接口被调用
 	@param isReload: 是否是被重写加载脚本后触发的
 	@type isReload: bool
 	"""
-	DEBUG_MSG('所有的脚本初始化完毕。游戏初始化... isReload:%s' % isReload)
+	DEBUG_MSG('onInit::isReload:%s' % isReload)
 
 def onStart():
 	"""

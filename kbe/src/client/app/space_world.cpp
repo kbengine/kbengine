@@ -250,3 +250,7 @@ bool SpaceWorld::keyPressed( const OIS::KeyEvent &arg )
 }
 
 
+//-------------------------------------------------------------------------------------
+void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
+{
+}

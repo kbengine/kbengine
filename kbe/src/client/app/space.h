@@ -3,6 +3,7 @@
 #define __SPACE_CLIENT_h_
 
 #include "BaseApplication.h"
+#include "client_lib/event.hpp"
 
 class Space
 {
@@ -19,6 +20,8 @@ public:
 
 	virtual bool keyPressed( const OIS::KeyEvent &arg ){ return true; }
 	virtual void buttonHit(OgreBites::Button* button){}
+
+	virtual void kbengine_onEvent(const KBEngine::EventData* lpEventData){};
 protected:
     Ogre::Root *mRoot;
     Ogre::Camera* mCamera;

@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "clientapp.hpp"
 #include "entity.hpp"
+#include "config.hpp"
 #include "network/channel.hpp"
 #include "network/tcp_packet_receiver.hpp"
 #include "thread/threadpool.hpp"
@@ -60,7 +61,8 @@ networkInterface_(ninterface),
 pTCPPacketReceiver_(NULL),
 time_(),
 timers_(),
-threadPool_()
+threadPool_(),
+entryScript_()
 {
 	networkInterface_.pExtensionData(this);
 	networkInterface_.pChannelTimeOutHandler(this);
@@ -71,6 +73,8 @@ threadPool_()
 		std::tr1::placeholders::_1));
 
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &ClientInterface::messageHandlers;
+
+	Components::getSingleton().pNetworkInterface(&ninterface);
 }
 
 //-------------------------------------------------------------------------------------
@@ -99,7 +103,7 @@ bool ClientApp::initialize()
 	if(!initializeBegin())
 		return false;
 
-	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
 
 	if(!installPyModules())
@@ -108,12 +112,25 @@ bool ClientApp::initialize()
 	if(!installEntityDef())
 		return false;
 
-	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
+	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeConfig.gameUpdateHertz());
 
 	if(!inInitialize())
 		return false;
 
-	return initializeEnd();
+	bool ret = initializeEnd();
+
+	// 所有脚本都加载完毕
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onInit"), 
+										const_cast<char*>("i"), 
+										0);
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		SCRIPT_ERROR_CHECK();
+
+	return ret;
 }
 
 
@@ -158,6 +175,21 @@ bool ClientApp::installPyModules()
 {
 	registerScript(client::Entity::getScriptType());
 	onInstallPyModules();
+
+	// 安装入口模块
+	PyObject *entryScriptFileName = PyUnicode_FromString(g_kbeConfig.entryScriptFile());
+	if(entryScriptFileName != NULL)
+	{
+		entryScript_ = PyImport_Import(entryScriptFileName);
+		SCRIPT_ERROR_CHECK();
+		S_RELEASE(entryScriptFileName);
+
+		if(entryScript_.get() == NULL)
+		{
+			return false;
+		}
+	}
+
 	return true;
 }
 

@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverinfos.hpp"
 #include "server/serverconfig.hpp"
 #include "resmgr/resmgr.hpp"
+#include "client_lib/config.hpp"
 
 namespace KBEngine{
 
@@ -91,7 +92,7 @@ inline bool uninstallPyScript(KBEngine::script::Script& script)
 inline bool loadConfig()
 {
 	Resmgr::getSingleton().initialize();
-
+	
 	if(g_componentType == BOTS_TYPE)
 	{
 		// "../../res/server/kbengine_defs.xml"
@@ -100,6 +101,11 @@ inline bool loadConfig()
 		// "../../../demo/res/server/kbengine.xml"
 		g_kbeSrvConfig.loadConfig("server/kbengine.xml");
 	}
+	else
+	{
+		Config::getSingleton().loadConfig("kbengine.xml");
+	}
+
 	return true;
 }
 

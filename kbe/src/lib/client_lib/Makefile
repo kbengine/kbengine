@@ -4,6 +4,7 @@ SRCS =				\
 	client_interface	\
 	clientapp		\
 	clientobjectbase	\
+	config			\
 	entity			\
 	entity_aspect		\
 	event			\

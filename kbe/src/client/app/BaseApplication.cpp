@@ -151,9 +151,9 @@ void BaseApplication::createFrameListener(void)
     mDetailsPanel->hide();
 
     // a friendly reminder
-    Ogre::StringVector names;
-    names.push_back("Help");
-    mTrayMgr->createParamsPanel(OgreBites::TL_TOPLEFT, "Help", 100, names)->setParamValue(0, "H/F1");
+    //Ogre::StringVector names;
+    //names.push_back("Help");
+    //mTrayMgr->createParamsPanel(OgreBites::TL_TOPLEFT, "Help", 100, names)->setParamValue(0, "H/F1");
 
     mRoot->addFrameListener(this);
 }
@@ -265,7 +265,7 @@ bool BaseApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
     if (!mTrayMgr->isDialogVisible())
     {
-        if(mCameraMan)
+        if(mCameraMan != NULL)
 		    mCameraMan->frameRenderingQueued(evt);   // if dialog isn't up, then update the camera
 
         if (mDetailsPanel->isVisible() && mActiveCamera)   // if details panel is visible, then update its contents

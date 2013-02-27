@@ -7,6 +7,7 @@
 #include "TreeLoader3D.h"
 #include "space_world.h"
 #include "space_login.h"
+#include "space_avatarselect.h"
 #include "cstdkbe/cstdkbe.hpp"
 
 #include "../kbengine_dll/kbengine_dll.h"
@@ -23,9 +24,12 @@ namespace KBEngine{
 
 template<> OgreApplication* Ogre::Singleton<OgreApplication>::msSingleton = 0;
 
-Space* space = NULL;
+Space* g_space = NULL;
+boost::mutex g_spaceMutex;
+
 //-------------------------------------------------------------------------------------
-OgreApplication::OgreApplication(void)
+OgreApplication::OgreApplication(void):
+events_()
 {
 	kbe_registerEventHandle(this);
 }
@@ -35,6 +39,7 @@ OgreApplication::~OgreApplication(void)
 {
 	kbe_deregisterEventHandle(this);
 	mCameraMan = NULL;
+	SAFE_RELEASE(g_space);
 }
 
 //-------------------------------------------------------------------------------------
@@ -77,8 +82,19 @@ bool OgreApplication::setup(void)
 
     createFrameListener();
 
+	changeSpace(new SpaceLogin(mRoot, mWindow, mInputManager, mTrayMgr));
     return true;
 };
+
+//-------------------------------------------------------------------------------------
+void OgreApplication::changeSpace(Space* space)
+{
+	if(g_space)
+		delete g_space;
+
+	g_space = space;
+	space->setup();
+}
 
 //-------------------------------------------------------------------------------------
 void OgreApplication::setupResources(void)
@@ -91,18 +107,20 @@ bool OgreApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
 {
     bool ret = BaseApplication::frameRenderingQueued(evt);
 	
-	kbe_update(); 
+	if(g_space == NULL)
+		return false;
 
-	if(space == NULL)
+	boost::mutex::scoped_lock lock(g_spaceMutex);
+	std::vector<const KBEngine::EventData*>::iterator iter = events_.begin();
+	for(; iter != events_.end(); iter++)
 	{
-		space = new SpaceLogin(mRoot, mWindow, mInputManager, mTrayMgr);
-		space->setup();
+		g_space->kbengine_onEvent((*iter));
+		delete (*iter);
 	}
-	else
-	{
-		space->frameRenderingQueued(evt);
-	}
+	
+	events_.clear();
 
+	g_space->frameRenderingQueued(evt);
     return ret;
 }
 
@@ -111,9 +129,9 @@ bool OgreApplication::keyPressed( const OIS::KeyEvent &arg )
 {
     if (mTrayMgr->isDialogVisible()) return true;   // don't process any more keys if dialog is up
 
-	if(space)
+	if(g_space)
 	{
-		space->keyPressed(arg);
+		g_space->keyPressed(arg);
 	}
 
     return BaseApplication::keyPressed( arg );
@@ -122,15 +140,23 @@ bool OgreApplication::keyPressed( const OIS::KeyEvent &arg )
 //-------------------------------------------------------------------------------------
 void OgreApplication::buttonHit(OgreBites::Button* button)
 {
-	if(space)
+	if(g_space)
 	{
-		space->buttonHit(button);
+		g_space->buttonHit(button);
 	}
 }
 
 //-------------------------------------------------------------------------------------
 void OgreApplication::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 {
+	KBEngine::EventData* peventdata = KBEngine::newKBEngineEvent(lpEventData->id);
+
+	if(peventdata)
+	{
+		*peventdata = *lpEventData;
+		boost::mutex::scoped_lock lock(g_spaceMutex);
+		events_.push_back(peventdata);
+	}
 }
 
 //-------------------------------------------------------------------------------------

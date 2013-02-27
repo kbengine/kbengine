@@ -17,6 +17,7 @@ public:
     virtual bool keyPressed( const OIS::KeyEvent &arg );
     virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
 	virtual void buttonHit(OgreBites::Button* button);
+	virtual void kbengine_onEvent(const KBEngine::EventData* lpEventData);
 private:
 };
 

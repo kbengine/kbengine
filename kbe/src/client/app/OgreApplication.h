@@ -9,6 +9,7 @@
 #include "client_lib/event.hpp"
 
 class DotSceneLoader;
+class Space;
 
 namespace Forests
 {
@@ -30,6 +31,8 @@ public:
 	virtual void buttonHit(OgreBites::Button* button);
 
 	void kbengine_onEvent(const KBEngine::EventData* lpEventData);
+
+	void changeSpace(Space* space);
 protected:
 	virtual bool setup();
     virtual void setupResources();
@@ -37,6 +40,7 @@ protected:
     virtual bool keyPressed( const OIS::KeyEvent &arg );
     virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
 private:
+	std::vector<const KBEngine::EventData*> events_;
 };
 
 #endif // #ifndef __OgreApplication_h_

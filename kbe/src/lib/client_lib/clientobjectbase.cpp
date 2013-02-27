@@ -181,6 +181,10 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 		INFO_MSG(boost::format("ClientObjectBase::createEntityCommon: new %1% (%2%)\n") % entityType % eid);
 	}
 
+	EventData_CreatedEntity eventdata;
+	eventdata.pEntity = entity->getAspect();
+	eventHandler_.trigger(&eventdata);
+
 	return entity;
 }
 
@@ -343,6 +347,9 @@ void ClientObjectBase::onLoginSuccessfully(Mercury::Channel * pChannel, MemorySt
 	
 	connectedGateway_ = false;
 	INFO_MSG(boost::format("ClientObjectBase::onLoginSuccessfully: %1% addr=%2%:%3%!\n") % name_ % ip_ % port_);
+
+	EventData_LoginSuccess eventdata;
+	eventHandler_.trigger(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -355,6 +362,8 @@ void ClientObjectBase::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& 
 	
 	connectedGateway_ = false;
 	INFO_MSG(boost::format("ClientObjectBase::onLoginFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
+	EventData_LoginFailed eventdata;
+	eventHandler_.trigger(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -362,11 +371,20 @@ void ClientObjectBase::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_
 {
 	INFO_MSG(boost::format("ClientObjectBase::onLoginGatewayFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
 	connectedGateway_ = false;
+
+	EventData_LoginGatewayFailed eventdata;
+	eventHandler_.trigger(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
 {
+	if(entityID_ == 0)
+	{
+		EventData_LoginGatewaySuccess eventdata;
+		eventHandler_.trigger(&eventdata);
+	}
+
 	connectedGateway_ = true;
 	entityID_ = eid;
 	INFO_MSG(boost::format("ClientObject::onCreatedProxies(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 

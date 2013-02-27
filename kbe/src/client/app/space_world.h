@@ -27,6 +27,7 @@ public:
     virtual void createScene(void);
     virtual bool keyPressed( const OIS::KeyEvent &arg );
     virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
+	virtual void kbengine_onEvent(const KBEngine::EventData* lpEventData);
 private:
     std::vector<Ogre::String> mCamNames;
     void switchCamera(int idx);

@@ -22,7 +22,12 @@ Space::~Space(void)
 	if (mCameraMan) delete mCameraMan;
 	if(mWindow) mWindow->removeAllViewports();
 	if(mRoot && mSceneMgr)mRoot->destroySceneManager(mSceneMgr);
+
+    Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+        "/Space::~Space", "FileSystem", "Space");
+
 	Ogre::ResourceGroupManager::getSingleton().clearResourceGroup("Space");
+
 	OgreApplication::getSingleton().setCurrCameraMan(NULL);
 }
 

@@ -1,0 +1,64 @@
+<root>
+	<gameUpdateHertz> 10 </gameUpdateHertz>
+	
+	<!-- 非0则不优化， 不带包长信息的包强制都携带长度信息， 某些情况下方便某些前端对接协议
+	什么样的包不带长度信息? 所有能够预先计算出包大小的且永远不变的包不带长度信息， 
+	如果有可变字符串参数则一定需要带长度信息 -->
+	<packetAlwaysContainLength>0</packetAlwaysContainLength>
+	
+	<!-- 是否需要将任何接收和发送的包以文本输出到log中提供调试
+		debug_type:
+			0: 不输出
+			1: 16进制输出
+			2: 字符流输出
+			3: 10进制输出
+		use_logfile:
+			是否独立一个log文件来记录包内容，文件名通常为
+			appname_packetlogs.log
+		disable_msgs:
+			关闭某些包的输出
+	-->
+	<trace_packet>
+		<debug_type>0</debug_type>
+		<use_logfile>false</use_logfile>
+		<disables>
+			<item>Baseappmgr::updateBaseapp</item>
+		</disables>
+	</trace_packet>
+	
+	<!-- 是否输出entity的创建， 脚本获取属性， 初始化属性等调试信息 -->
+	<debugEntity>0</debugEntity>
+
+	<!-- apps发布状态, 可在脚本中获取该值
+		Type: Integer8
+		0 : debug
+		1 : release
+		其他自定义
+	-->
+	<app_publish>0</app_publish>
+	
+	<channelCommon> 
+		<!-- 频道最后一次通信时间超过此时间则被认定为超时通道， 服务器将踢出该频道 -->
+		<timeout> 
+			<internal> 60.0 </internal>
+			<external> 60.0 </external>
+		</timeout>
+		
+		<!-- 一个游戏周期channel接收窗口溢出值 0无限制-->
+		<receiveWindowOverflow>
+			<messages>
+				<internal>	0		</internal>
+				<external>	0		</external>
+			</messages>
+			<bytes>
+				<internal>	0		</internal>
+				<external>	0		</external>
+			</bytes>
+		</receiveWindowOverflow>
+	</channelCommon> 
+	
+	<ip> localhost </ip>
+	<port> 20013 </port>
+	
+	<entryScriptFile> kbengine </entryScriptFile>
+</root>

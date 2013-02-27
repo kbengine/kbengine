@@ -81,6 +81,8 @@ public:
 	int registerPyObjectToScript(const char* attrName, PyObject* pyObj);
 	int unregisterPyObjectToScript(const char* attrName);
 
+	PyObjectPtr getEntryScript(){ return entryScript_; }
+
 	const char* name(){return COMPONENT_NAME_EX(componentType_);}
 	
 	virtual void handleTimeout(TimerHandle, void * pUser);
@@ -137,6 +139,8 @@ protected:
 
 	// Ïß³Ì³Ø
 	thread::ThreadPool										threadPool_;
+
+	PyObjectPtr												entryScript_;
 };
 
 }

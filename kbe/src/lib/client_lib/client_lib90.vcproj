@@ -167,6 +167,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\config.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\entity.cpp"
 				>
 			</File>
@@ -206,6 +210,10 @@
 			</File>
 			<File
 				RelativePath=".\common.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\config.hpp"
 				>
 			</File>
 			<File
