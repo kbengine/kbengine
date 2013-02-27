@@ -61,4 +61,7 @@
 	<port> 20013 </port>
 	
 	<entryScriptFile> kbengine </entryScriptFile>
+	
+	<useLastAccountName>false</useLastAccountName>
+	<accountName>kbengine</accountName>
 </root>

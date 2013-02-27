@@ -334,6 +334,7 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	ClientObjectBase::onLoginSuccessfully(pChannel, s);
+	Config::getSingleton().writeAccountName(name_.c_str());
 
 	bool exist = false;
 

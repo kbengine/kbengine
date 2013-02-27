@@ -267,6 +267,11 @@ void kbe_update()
 	}
 }
 
+const char* kbe_getLastAccountName()
+{
+	return pconfig->accountName();
+}
+
 KBEngine::ENTITY_ID kbe_playerID()
 {
 	return g_pApp->entityID();

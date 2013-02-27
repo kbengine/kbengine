@@ -48,8 +48,14 @@ public:
 
 	const char* entryScriptFile()const{ return &entryScriptFile_[0]; }
 
+	const char* accountName()const{ return &accountName_[0]; }
+
 	const char* ip()const{ return &ip_[0]; }
 	uint32 port()const{ return port_; }
+
+	void writeAccountName(const char* name);
+
+	bool useLastAccountName()const{ return useLastAccountName_; }
 public:
 	int16 gameUpdateHertz_;
 
@@ -62,6 +68,12 @@ public:
 
 	float channelInternalTimeout_;
 	float channelExternalTimeout_;
+
+	char accountName_[MAX_NAME];
+
+	std::string fileName_;
+
+	bool useLastAccountName_;
 };
 
 #define g_kbeConfig Config::getSingleton()

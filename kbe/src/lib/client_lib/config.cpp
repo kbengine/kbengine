@@ -33,7 +33,9 @@ gameUpdateHertz_(10),
 tcp_SOMAXCONN_(5),
 port_(0),
 channelInternalTimeout_(60.0f),
-channelExternalTimeout_(60.0f)
+channelExternalTimeout_(60.0f),
+fileName_(),
+useLastAccountName_(false)
 {
 }
 
@@ -45,8 +47,9 @@ Config::~Config()
 //-------------------------------------------------------------------------------------
 bool Config::loadConfig(std::string fileName)
 {
+	fileName_ = fileName;
 	TiXmlNode* node = NULL, *rootNode = NULL;
-	XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes(fileName).c_str());
+	XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes(fileName_).c_str());
 
 	if(!xml->isGood())
 	{
@@ -178,6 +181,18 @@ bool Config::loadConfig(std::string fileName)
 		strcpy(entryScriptFile_, xml->getValStr(rootNode).c_str());
 	}
 
+	rootNode = xml->getRootNode("accountName");
+	if(rootNode != NULL)
+	{
+		strcpy(accountName_, xml->getValStr(rootNode).c_str());
+	}
+
+	rootNode = xml->getRootNode("useLastAccountName");
+	if(rootNode != NULL)
+	{
+		useLastAccountName_ = xml->getValStr(rootNode) != "false";
+	}
+	
 	SAFE_RELEASE(xml);
 	return true;
 }
@@ -186,6 +201,34 @@ bool Config::loadConfig(std::string fileName)
 uint32 Config::tcp_SOMAXCONN()
 {
 	return tcp_SOMAXCONN_;
+}
+
+//-------------------------------------------------------------------------------------	
+void Config::writeAccountName(const char* name)
+{
+	if(!useLastAccountName_)
+		return;
+
+	TiXmlNode* node = NULL, *rootNode = NULL;
+	XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes(fileName_).c_str());
+
+	if(!xml->isGood())
+	{
+		ERROR_MSG(boost::format("Config::writeAccountName: load %1% is failed!\n") %
+			fileName_.c_str());
+
+		SAFE_RELEASE(xml);
+		return;
+	}
+
+	rootNode = xml->getRootNode("accountName");
+	if(rootNode != NULL)
+	{
+		rootNode->SetValue(name);
+	}
+
+	xml->getTxdoc()->SaveFile(fileName_.c_str());
+	SAFE_RELEASE(xml);
 }
 
 //-------------------------------------------------------------------------------------		
