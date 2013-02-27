@@ -42,7 +42,18 @@ static PyObject* __py_genUUID64(PyObject *self, void *closure)
 {
 	return PyLong_FromUnsignedLongLong(genUUID64());
 }
-			
+
+PyObject * PyTuple_FromStringVector(const std::vector< std::string > & v)
+{
+	int sz = v.size();
+	PyObject * t = PyTuple_New( sz );
+	for (int i = 0; i < sz; i++)
+	{
+		PyTuple_SetItem( t, i, PyUnicode_FromString( v[i].c_str() ) );
+	}
+	return t;
+}
+
 //-------------------------------------------------------------------------------------
 Script::Script():
 module_(NULL),
@@ -283,6 +294,128 @@ int Script::unregisterToModule(const char* attrName)
 {
 	return PyObject_DelAttrString(module_, attrName);
 }
+
+//-------------------------------------------------------------------------------------
+PyThreadState* Script::createInterpreter()
+{
+	PyThreadState* 	pCurInterpreter = PyThreadState_Get();
+	PyObject * 		pCurPath = PySys_GetObject( "path" );
+
+	PyThreadState* pNewInterpreter = Py_NewInterpreter();
+	if (pNewInterpreter)
+	{
+		PySys_SetObject( "path", pCurPath );
+#ifndef KBE_SINGLE_THREADED
+		PyDict_Merge( PySys_GetObject( "modules" ), s_pOurInitTimeModules, 0 );
+#endif
+		// Restore original intepreter.
+		PyThreadState* pSwapped = PyThreadState_Swap( pCurInterpreter );
+		if( pSwapped != pNewInterpreter )
+		{
+			KBE_EXIT( "error creating new python interpreter" );
+		}
+	}
+
+	return pNewInterpreter;
+}
+
+//-------------------------------------------------------------------------------------
+void Script::destroyInterpreter( PyThreadState* pInterpreter )
+{
+	if( pInterpreter == PyThreadState_Get() )
+	{
+		KBE_EXIT( "trying to destroy current interpreter" );
+	}
+
+	PyInterpreterState_Clear( pInterpreter->interp );
+	PyInterpreterState_Delete( pInterpreter->interp );
+}
+
+//-------------------------------------------------------------------------------------
+PyThreadState* Script::swapInterpreter( PyThreadState* pInterpreter )
+{
+#ifndef KBE_SINGLE_THREADED
+	s_defaultContext = pInterpreter;
+#endif
+	return PyThreadState_Swap( pInterpreter );
+}
+
+//-------------------------------------------------------------------------------------
+#ifndef KBE_SINGLE_THREADED
+void Script::initThread( bool plusOwnInterpreter )
+{
+	if( s_defaultContext != NULL )
+	{
+		KBE_EXIT( "trying to initialise scripting when already initialised" );
+	}
+
+	PyEval_AcquireLock();
+
+	PyThreadState * newTState = NULL;
+
+	if (plusOwnInterpreter)
+	{
+		newTState = Py_NewInterpreter();
+
+		// set the path again
+		PyObject * pMainPyPath = PyDict_GetItemString(
+			s_pMainThreadState->interp->sysdict, "path" );
+		PySys_SetObject( "path", pMainPyPath );
+
+		// put in any modules created by our init-time jobs
+		PyDict_Merge( PySys_GetObject( "modules" ), s_pOurInitTimeModules,
+			/*override:*/0 );
+	}
+	else
+	{
+		newTState = PyThreadState_New( s_pMainThreadState->interp );
+	}
+
+	if( newTState == NULL )
+	{
+		KBE_EXIT( "failed to create a new thread object" );
+	}
+
+	PyEval_ReleaseLock();
+
+	// and make our thread be the one global python one
+	s_defaultContext = newTState;
+	Script::acquireLock();
+}
+
+//-------------------------------------------------------------------------------------
+void Script::finiThread( bool plusOwnInterpreter )
+{
+	if( s_defaultContext != PyThreadState_Get() )
+	{
+		KBE_EXIT( "trying to finalise script thread when not in default context" );
+	}
+
+	if (plusOwnInterpreter)
+	{
+		//Py_EndInterpreter( s_defaultContext );
+		// for now we do not want our modules + sys dict destroyed...
+		// ... really should make a way of migrating between threads
+		// but for now this will do
+		{
+			//PyImport_Cleanup();	// this is the one we can't call
+			PyInterpreterState_Clear( s_defaultContext->interp );
+			PyThreadState_Swap( NULL );
+			PyInterpreterState_Delete( s_defaultContext->interp );
+		}
+
+		PyEval_ReleaseLock();
+	}
+	else
+	{
+		PyThreadState_Clear( s_defaultContext );
+		PyThreadState_DeleteCurrent();	// releases GIL
+	}
+
+	s_defaultContext = NULL;
+}
+
+#endif
 
 //-------------------------------------------------------------------------------------
 void Script::acquireLock()

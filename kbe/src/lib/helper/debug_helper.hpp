@@ -191,8 +191,10 @@ private:
 #ifdef KBE_USE_ASSERTS
 void myassert(const char* exp, const char * func, const char * file, unsigned int line);
 #define KBE_ASSERT(exp) if(!(exp))myassert(#exp, __FUNCTION__, __FILE__, __LINE__);
+#define KBE_REAL_ASSERT assert(0);
 #else
 #define KBE_ASSERT(exp) NULL;
+#define KBE_REAL_ASSERT
 #endif
 
 #ifdef _DEBUG
@@ -200,6 +202,11 @@ void myassert(const char* exp, const char * func, const char * file, unsigned in
 #else
 #define KBE_VERIFY(exp) (exp)
 #endif
+
+#define KBE_EXIT(msg) {														\
+			CRITICAL_MSG(msg);												\
+			KBE_REAL_ASSERT	}												\
+
 
 }
 
