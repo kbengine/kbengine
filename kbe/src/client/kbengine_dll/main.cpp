@@ -82,6 +82,8 @@ Mercury::NetworkInterface* g_pNetworkInterface = NULL;
 thread::ThreadPool* g_pThreadPool = NULL;
 ServerConfig* pserverconfig = NULL;
 Config* pconfig = NULL;
+KBEngine::script::PyThreadStateLock* g_pLock = NULL;
+KBEngine::script::PyThreadStateLock* g_pNewLock = NULL;
 
 //-------------------------------------------------------------------------------------
 BOOL APIENTRY DllMain( HANDLE hModule,
@@ -124,8 +126,9 @@ public:
 	{
 		while(!g_pApp->getMainDispatcher().isBreakProcessing())
 		{
-			KBEngine::script::PyThreadStateLock lock;
+			g_pLock = new KBEngine::script::PyThreadStateLock;
 			g_pApp->processOnce(true);
+			SAFE_RELEASE(g_pLock);
 		}
 
 		return false;
@@ -141,6 +144,8 @@ public:
 void acquireLock()
 {
 #ifndef KBE_SINGLE_THREADED
+	if(g_pLock == NULL)
+		g_pLock = new KBEngine::script::PyThreadStateLock;
 #endif
 }
 
@@ -148,18 +153,21 @@ void acquireLock()
 void releaseLock()
 {
 #ifndef KBE_SINGLE_THREADED
+	SAFE_RELEASE(g_pLock);
 #endif
 }
 
 //-------------------------------------------------------------------------------------
 void kbe_lock()
 {
-	g_pApp->getScript().acquireLock();
+	//g_pApp->getScript().acquireLock();
+	g_pNewLock = new KBEngine::script::PyThreadStateLock;
 }
 
 void kbe_unlock()
 {
-	g_pApp->getScript().releaseLock();
+	//g_pApp->getScript().releaseLock();
+	SAFE_RELEASE(g_pNewLock);
 }
 
 //-------------------------------------------------------------------------------------
@@ -346,6 +354,7 @@ bool kbe_deregisterEventHandle(KBEngine::EventHandle* pHandle)
 PyObject* kbe_callEntityMethod(KBEngine::ENTITY_ID entityID, const char *method, 
 							   PyObject *args, PyObject *kw)
 {
+	KBEngine::script::PyThreadStateLock lock;
 	client::Entity* pEntity = g_pApp->pEntities()->find(entityID);
 	if(!pEntity)
 	{
