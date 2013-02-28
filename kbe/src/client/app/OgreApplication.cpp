@@ -120,13 +120,17 @@ bool OgreApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
 		KBEngine::script::PyThreadStateLock* lock = NULL;
 
 		if((*iter)->id == CLIENT_EVENT_SCRIPT)
+		{
 			lock = new KBEngine::script::PyThreadStateLock();
+		}
 
 		g_space->kbengine_onEvent((*iter));
 		delete (*iter);
 
 		if(lock != NULL)
+		{
 			delete lock;
+		}
 	}
 	
 	events_.clear();

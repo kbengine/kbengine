@@ -82,8 +82,8 @@ Mercury::NetworkInterface* g_pNetworkInterface = NULL;
 thread::ThreadPool* g_pThreadPool = NULL;
 ServerConfig* pserverconfig = NULL;
 Config* pconfig = NULL;
-PyThreadState * oldState = NULL;
 
+//-------------------------------------------------------------------------------------
 BOOL APIENTRY DllMain( HANDLE hModule,
 					  DWORD ul_reason_for_call,
 					  LPVOID lpReserved
@@ -108,6 +108,7 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 	return TRUE;
 }
 
+//-------------------------------------------------------------------------------------
 class KBEMainTask : public thread::TPTask
 {
 public:
@@ -151,7 +152,17 @@ void releaseLock()
 }
 
 //-------------------------------------------------------------------------------------
+void kbe_lock()
+{
+	g_pApp->getScript().acquireLock();
+}
 
+void kbe_unlock()
+{
+	g_pApp->getScript().releaseLock();
+}
+
+//-------------------------------------------------------------------------------------
 bool kbe_init()
 {
 	g_componentID = genUUID64();
@@ -233,6 +244,7 @@ bool kbe_init()
 	return true;
 }
 
+//-------------------------------------------------------------------------------------
 bool kbe_destroy()
 {
 	g_pApp->getMainDispatcher().breakProcessing();
@@ -261,21 +273,25 @@ bool kbe_destroy()
 	return ret;
 }
 
+//-------------------------------------------------------------------------------------
 KBEngine::uint64 kbe_genUUID64()
 {
 	return KBEngine::genUUID64();
 }
 
+//-------------------------------------------------------------------------------------
 void kbe_sleep(KBEngine::uint32 ms)
 {
 	return KBEngine::sleep(ms);
 }
 
+//-------------------------------------------------------------------------------------
 KBEngine::uint32 kbe_getSystemTime()
 {
 	return KBEngine::getSystemTime();
 }
 
+//-------------------------------------------------------------------------------------
 bool kbe_login(const char* accountName, const char* passwd, const char* ip, KBEngine::uint32 port)
 {
 	if(ip == NULL || port == 0)
@@ -287,6 +303,7 @@ bool kbe_login(const char* accountName, const char* passwd, const char* ip, KBEn
 	return g_pApp->login(accountName, passwd, ip, port);
 }
 
+//-------------------------------------------------------------------------------------
 void kbe_update()
 {
 //	if(g_pClientObject)
@@ -295,31 +312,37 @@ void kbe_update()
 	}
 }
 
+//-------------------------------------------------------------------------------------
 const char* kbe_getLastAccountName()
 {
 	return pconfig->accountName();
 }
 
+//-------------------------------------------------------------------------------------
 KBEngine::ENTITY_ID kbe_playerID()
 {
 	return g_pApp->entityID();
 }
 
+//-------------------------------------------------------------------------------------
 KBEngine::DBID kbe_playerDBID()
 {
 	return g_pApp->dbid();
 }
 
+//-------------------------------------------------------------------------------------
 bool kbe_registerEventHandle(KBEngine::EventHandle* pHandle)
 {
 	return g_pApp->registerEventHandle(pHandle);
 }
 
+//-------------------------------------------------------------------------------------
 bool kbe_deregisterEventHandle(KBEngine::EventHandle* pHandle)
 {
 	return g_pApp->deregisterEventHandle(pHandle);
 }
 
+//-------------------------------------------------------------------------------------
 PyObject* kbe_callEntityMethod(KBEngine::ENTITY_ID entityID, const char *method, 
 							   PyObject *args, PyObject *kw)
 {
@@ -343,3 +366,6 @@ PyObject* kbe_callEntityMethod(KBEngine::ENTITY_ID entityID, const char *method,
 	Py_DECREF(pyfunc);
 	return ret;
 }
+
+//-------------------------------------------------------------------------------------
+
