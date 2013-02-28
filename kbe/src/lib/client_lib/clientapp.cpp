@@ -282,9 +282,42 @@ PyObject* ClientApp::__py_getAppPublish(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------		
 PyObject* ClientApp::__py_fireEvent(PyObject* self, PyObject* args)
 {
+	if(PyTuple_Size(args) < 1)
+	{
+		PyErr_Format(PyExc_AssertionError, "ClientApp::fireEvent: arg1(eventName) not found!\n");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	PyObject* pyname = PyTuple_GetItem(args, 0);
+
+	if(!pyname || !PyUnicode_Check(pyname))
+	{
+		PyErr_Format(PyExc_AssertionError, "ClientApp::fireEvent: arg1(eventName) not found!\n");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyname, NULL);
+	char* name = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+
 	EventData_Script eventdata;
-	eventdata.pyDatas = args;
-	Py_INCREF(args);
+	eventdata.name = name;
+	eventdata.argsSize = PyTuple_Size(args) - 1;
+	free(name);
+
+	if(eventdata.argsSize > 0)
+	{
+		eventdata.pyDatas = PyTuple_New(eventdata.argsSize + 1);
+		for(uint32 i=0; i<eventdata.argsSize; i++)
+		{
+			PyObject* pyitem = PyTuple_GetItem(args, i + 1);
+			PyTuple_SetItem(eventdata.pyDatas, i, pyitem);
+			Py_INCREF(pyitem);
+		}
+	}
+
 	ClientApp::getSingleton().fireEvent(&eventdata);
 	S_Return;
 }

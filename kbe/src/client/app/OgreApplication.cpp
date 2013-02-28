@@ -165,11 +165,10 @@ void OgreApplication::buttonHit(OgreBites::Button* button)
 //-------------------------------------------------------------------------------------
 void OgreApplication::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 {
-	KBEngine::EventData* peventdata = KBEngine::newKBEngineEvent(lpEventData->id);
+	KBEngine::EventData* peventdata = KBEngine::copyKBEngineEvent(lpEventData);
 
 	if(peventdata)
 	{
-		*peventdata = *lpEventData;
 		boost::mutex::scoped_lock lock(g_spaceMutex);
 		events_.push_back(peventdata);
 	}

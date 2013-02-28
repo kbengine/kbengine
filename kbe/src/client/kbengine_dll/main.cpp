@@ -373,6 +373,12 @@ PyObject* kbe_callEntityMethod(KBEngine::ENTITY_ID entityID, const char *method,
 
 	PyObject* ret = PyObject_Call(pyfunc, args, kw); 
 	Py_DECREF(pyfunc);
+
+	if(ret == NULL)
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+
 	return ret;
 }
 

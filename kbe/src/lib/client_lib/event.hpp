@@ -174,6 +174,8 @@ struct EventData_Script : public EventData
 {
 	EventData_Script():
 	EventData(CLIENT_EVENT_SCRIPT),
+	argsSize(0),
+	name(),
 	pyDatas(NULL)
 	{
 	}
@@ -185,7 +187,9 @@ struct EventData_Script : public EventData
 			Py_DECREF(pyDatas);
 		}
 	}
-
+	
+	uint8 argsSize;
+	std::string name;
 	PyObject* pyDatas;
 };
 
