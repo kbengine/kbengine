@@ -34,12 +34,14 @@ namespace KBEConcurrency
 {
 inline void startMainThreadIdling()
 {
-	(*pMainThreadIdleStartFunc)();
+	if(pMainThreadIdleStartFunc)
+		(*pMainThreadIdleStartFunc)();
 }
 
 inline void endMainThreadIdling()
 {
-	(*pMainThreadIdleEndFunc)();
+	if(pMainThreadIdleEndFunc)
+		(*pMainThreadIdleEndFunc)();
 }
 
 inline

@@ -1,28 +1,25 @@
-#include "space_login.h"
 #include "space_avatarselect.h"
 #include "OgreApplication.h"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/stringconv.hpp"
 #include "../kbengine_dll/kbengine_dll.h"
 
-Ogre::String g_accountName;
-
 //-------------------------------------------------------------------------------------
-SpaceLogin::SpaceLogin(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin, 
+SpaceAvatarSelect::SpaceAvatarSelect(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin, 
 		OIS::InputManager* pInputMgr, OgreBites::SdkTrayManager* pTrayMgr)
 :   Space(pOgreRoot, pRenderWin, pInputMgr, pTrayMgr)
 {
 }
 
 //-------------------------------------------------------------------------------------
-SpaceLogin::~SpaceLogin(void)
+SpaceAvatarSelect::~SpaceAvatarSelect(void)
 {
-	mTrayMgr->destroyWidget("login");
-	mTrayMgr->destroyWidget("accountName");
+	mTrayMgr->destroyWidget("start");
+	mTrayMgr->destroyWidget("create");
 }
 
 //-------------------------------------------------------------------------------------
-void SpaceLogin::setupResources(void)
+void SpaceAvatarSelect::setupResources(void)
 {
 	// ogre²»ÏÔÊ¾ÎÄ×Öbug
 	// http://www.ogre3d.org/forums/viewtopic.php?f=4&t=59197
@@ -33,17 +30,10 @@ void SpaceLogin::setupResources(void)
 }
 
 //-------------------------------------------------------------------------------------
-void SpaceLogin::createScene(void)
+void SpaceAvatarSelect::createScene(void)
 {
-	if(g_accountName.size() == 0)
-		g_accountName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
-
-	mTrayMgr->createButton(OgreBites::TL_CENTER, "login", "fast login", 120);
-
-	Ogre::StringVector values;
-	values.push_back(g_accountName);
-	mTrayMgr->createParamsPanel(OgreBites::TL_CENTER, "accountName", 300, values);
-
+	mTrayMgr->createButton(OgreBites::TL_BOTTOMRIGHT, "start", "start", 120);
+	mTrayMgr->createButton(OgreBites::TL_BOTTOMLEFT, "create", "create avatar", 120);
 	mTrayMgr->showCursor();
 	
 	mTrayMgr->hideFrameStats();
@@ -77,47 +67,34 @@ void SpaceLogin::createScene(void)
 }
 
 //-------------------------------------------------------------------------------------
-bool SpaceLogin::frameRenderingQueued(const Ogre::FrameEvent& evt)
+bool SpaceAvatarSelect::frameRenderingQueued(const Ogre::FrameEvent& evt)
 {
 	mTrayMgr->frameRenderingQueued(evt);
     return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool SpaceLogin::keyPressed( const OIS::KeyEvent &arg )
+bool SpaceAvatarSelect::keyPressed( const OIS::KeyEvent &arg )
 {
     return true;
 }
 
 //-------------------------------------------------------------------------------------
-void SpaceLogin::buttonHit(OgreBites::Button* button)
+void SpaceAvatarSelect::buttonHit(OgreBites::Button* button)
 {
-	if(button->getCaption() == "fast login")
+	if(button->getCaption() == "start")
 	{
-		if(!kbe_login(g_accountName.c_str(), "123456"))
-		{
-			MessageBox( NULL, "SpaceLogin::connect is error!", "warning!", MB_OK);
-		}
+	}
+	else if(button->getCaption() == "create avatar")
+	{
+		PyObject* args = Py_BuildValue("is", 1, "kbengine");
+		PyObject* ret = kbe_callEntityMethod(kbe_playerID(), "reqCreateAvatar", args);
+		Py_DECREF(args);
+		Py_DECREF(ret);
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void SpaceLogin::kbengine_onEvent(const KBEngine::EventData* lpEventData)
+void SpaceAvatarSelect::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 {
-	switch(lpEventData->id)
-	{
-	case CLIENT_EVENT_LOGIN_SUCCESS:
-		break;
-	case CLIENT_EVENT_LOGIN_FAILED:
-		MessageBox( NULL, "SpaceLogin::kbengine_onEvent login is failed!", "warning!", MB_OK);
-		break;
-	case CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS:
-		OgreApplication::getSingleton().changeSpace(new SpaceAvatarSelect(mRoot, mWindow, mInputManager, mTrayMgr));
-		break;
-	case CLIENT_EVENT_LOGIN_GATEWAY_FAILED:
-		MessageBox( NULL, "SpaceLogin::kbengine_onEvent loginGateway is failed!", "warning!", MB_OK);
-		break;
-	default:
-		break;
-	};
 }
