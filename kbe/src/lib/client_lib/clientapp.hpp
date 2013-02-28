@@ -71,6 +71,8 @@ public:
 	virtual void finalise();
 	virtual bool run();
 	
+	virtual int processOnce(bool shouldIdle = false);
+
 	virtual bool installPyModules();
 	virtual void onInstallPyModules(){};
 	virtual bool uninstallPyModules();

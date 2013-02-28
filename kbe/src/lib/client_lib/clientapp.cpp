@@ -267,6 +267,12 @@ bool ClientApp::run(void)
 }
 
 //-------------------------------------------------------------------------------------		
+int ClientApp::processOnce(bool shouldIdle)
+{
+	return mainDispatcher_.processOnce(shouldIdle);
+}
+
+//-------------------------------------------------------------------------------------		
 PyObject* ClientApp::__py_getAppPublish(PyObject* self, PyObject* args)
 {
 	return PyLong_FromLong(g_appPublish);

@@ -85,22 +85,6 @@ inline PyObject * PyTuple_FromIntVector<uint64>(const std::vector< uint64 > & v)
 	return t;
 }
 
-class PyThreadStateLock
-{
-public:
-    PyThreadStateLock(void)
-    {
-        state = PyGILState_Ensure();
-    }
-
-    ~PyThreadStateLock(void)
-    {
-         PyGILState_Release( state );
-    }
-private:
-    PyGILState_STATE state;
-};
-
 class Script
 {						
 public:	
