@@ -31,15 +31,21 @@ class PyThreadStateLock
 public:
     PyThreadStateLock(void)
     {
+#ifndef KBE_SINGLE_THREADED
         state = PyGILState_Ensure();
+#endif
     }
 
     ~PyThreadStateLock(void)
     {
+#ifndef KBE_SINGLE_THREADED
          PyGILState_Release( state );
+ #endif
     }
 private:
+#ifndef KBE_SINGLE_THREADED
     PyGILState_STATE state;
+#endif
 };
 
 }

@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "clientapp.hpp"
+#include "event.hpp"
 #include "entity.hpp"
 #include "config.hpp"
 #include "network/channel.hpp"
@@ -154,7 +155,7 @@ bool ClientApp::installEntityDef()
 	// 注册创建entity的方法到py
 	// 向脚本注册app发布状态
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	publish,	__py_getAppPublish,		METH_VARARGS,	0)
-
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	fireEvent,	__py_fireEvent,			METH_VARARGS,	0)
 	return true;
 }
 
@@ -276,6 +277,16 @@ int ClientApp::processOnce(bool shouldIdle)
 PyObject* ClientApp::__py_getAppPublish(PyObject* self, PyObject* args)
 {
 	return PyLong_FromLong(g_appPublish);
+}
+
+//-------------------------------------------------------------------------------------		
+PyObject* ClientApp::__py_fireEvent(PyObject* self, PyObject* args)
+{
+	EventData_Script eventdata;
+	eventdata.pyDatas = args;
+	Py_INCREF(args);
+	ClientApp::getSingleton().fireEvent(&eventdata);
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------	

@@ -92,6 +92,8 @@ public:
 
 	bool registerEventHandle(EventHandle* pEventHandle);
 	bool deregisterEventHandle(EventHandle* pEventHandle);
+	
+	void fireEvent(const EventData* pEventData);
 
 	static PyObject* __pyget_pyGetEntities(PyObject *self, void *closure)
 	{

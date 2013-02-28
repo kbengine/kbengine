@@ -9,6 +9,7 @@
 #include "space_login.h"
 #include "space_avatarselect.h"
 #include "cstdkbe/cstdkbe.hpp"
+#include "pyscript/pythread_lock.hpp"
 
 #include "../kbengine_dll/kbengine_dll.h"
 
@@ -54,6 +55,8 @@ void OgreApplication::go(void)
 
 		// 通知系统分派消息
 		Ogre::WindowEventUtilities::messagePump();
+
+		Sleep(5);
 	}
 
     // clean up
@@ -114,8 +117,16 @@ bool OgreApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
 	std::vector<const KBEngine::EventData*>::iterator iter = events_.begin();
 	for(; iter != events_.end(); iter++)
 	{
+		KBEngine::script::PyThreadStateLock* lock = NULL;
+
+		if((*iter)->id == CLIENT_EVENT_SCRIPT)
+			lock = new KBEngine::script::PyThreadStateLock();
+
 		g_space->kbengine_onEvent((*iter));
 		delete (*iter);
+
+		if(lock != NULL)
+			delete lock;
 	}
 	
 	events_.clear();

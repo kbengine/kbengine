@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "client_lib/entity_aspect.hpp"
 #include "cstdkbe/cstdkbe.hpp"
-
+#include "python.h"
 
 namespace KBEngine{
 
@@ -39,6 +39,7 @@ typedef int32 EventID;
 #define CLIENT_EVENT_LOGIN_FAILED 7
 #define CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS 8
 #define CLIENT_EVENT_LOGIN_GATEWAY_FAILED 9
+#define CLIENT_EVENT_SCRIPT 10
 
 struct EventData
 {
@@ -65,7 +66,7 @@ public:
 	bool registerHandle(EventHandle* pHhandle);
 	bool deregisterHandle(EventHandle* pHhandle);
 
-	void trigger(const EventData* lpEventData);
+	void fire(const EventData* lpEventData);
 protected:
 	EVENT_HANDLES eventHandles_;
 };
@@ -169,6 +170,24 @@ struct EventData_LeaveSpace : public EventData
 	const EntityAspect* pEntity;
 };
 
+struct EventData_Script : public EventData
+{
+	EventData_Script():
+	EventData(CLIENT_EVENT_SCRIPT),
+	pyDatas(NULL)
+	{
+	}
+	
+	~EventData_Script()
+	{
+		if(pyDatas != NULL)
+		{
+			Py_DECREF(pyDatas);
+		}
+	}
+
+	PyObject* pyDatas;
+};
 
 inline EventData* newKBEngineEvent(EventID v)
 {
@@ -200,6 +219,9 @@ inline EventData* newKBEngineEvent(EventID v)
 			break;
 		case CLIENT_EVENT_LOGIN_GATEWAY_FAILED:
 			return new EventData_LoginGatewayFailed();
+			break;
+		case CLIENT_EVENT_SCRIPT:
+			return new EventData_Script();
 			break;
 		default:
 			break;
@@ -248,6 +270,11 @@ inline EventData* copyKBEngineEvent(const KBEngine::EventData* lpEventData)
 		case CLIENT_EVENT_LOGIN_GATEWAY_FAILED:
 			peventdata = new EventData_LoginGatewayFailed();
 			(*static_cast<EventData_LoginGatewayFailed*>(peventdata)) = (*static_cast<const EventData_LoginGatewayFailed*>(lpEventData));
+			break;
+		case CLIENT_EVENT_SCRIPT:
+			peventdata = new EventData_Script();
+			(*static_cast<EventData_Script*>(peventdata)) = (*static_cast<const EventData_Script*>(lpEventData));
+			Py_INCREF(static_cast<EventData_Script*>(peventdata)->pyDatas);
 			break;
 		default:
 			break;

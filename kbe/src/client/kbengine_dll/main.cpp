@@ -6,10 +6,12 @@
 #include "server/serverconfig.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "thread/threadtask.hpp"
+#include "thread/concurrency.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/address.hpp"
 #include "client_lib/event.hpp"
 #include "client_lib/config.hpp"
+#include "pyscript/pythread_lock.hpp"
 
 #undef DEFINE_IN_INTERFACE
 #include "client_lib/client_interface.hpp"
@@ -80,6 +82,7 @@ Mercury::NetworkInterface* g_pNetworkInterface = NULL;
 thread::ThreadPool* g_pThreadPool = NULL;
 ServerConfig* pserverconfig = NULL;
 Config* pconfig = NULL;
+PyThreadState * oldState = NULL;
 
 BOOL APIENTRY DllMain( HANDLE hModule,
 					  DWORD ul_reason_for_call,
@@ -118,7 +121,12 @@ public:
 	
 	virtual bool process()
 	{
-		g_pApp->run();
+		while(!g_pApp->getMainDispatcher().isBreakProcessing())
+		{
+			KBEngine::script::PyThreadStateLock lock;
+			g_pApp->processOnce(true);
+		}
+
 		return false;
 	}
 	
@@ -127,6 +135,22 @@ public:
 		return thread::TPTask::TPTASK_STATE_COMPLETED;
 	}
 };
+
+//-------------------------------------------------------------------------------------
+void acquireLock()
+{
+#ifndef KBE_SINGLE_THREADED
+#endif
+}
+
+//-------------------------------------------------------------------------------------
+void releaseLock()
+{
+#ifndef KBE_SINGLE_THREADED
+#endif
+}
+
+//-------------------------------------------------------------------------------------
 
 bool kbe_init()
 {
@@ -202,6 +226,9 @@ bool kbe_init()
 
 	INFO_MSG(boost::format("---- %1% is running ----\n") % COMPONENT_NAME_EX(g_componentType));
 
+	PyEval_ReleaseThread(PyThreadState_Get());
+	KBEConcurrency::setMainThreadIdleFunctions(&releaseLock, &acquireLock);
+
 	g_pThreadPool->addTask(new KBEMainTask());
 	return true;
 }
@@ -216,6 +243,7 @@ bool kbe_destroy()
 
 	if(g_pApp)
 	{
+		PyGILState_Ensure();
 		g_pApp->finalise();
 		Py_DECREF(g_pApp);
 		g_pApp = NULL;

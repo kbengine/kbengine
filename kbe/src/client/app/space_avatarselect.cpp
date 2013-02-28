@@ -2,6 +2,7 @@
 #include "OgreApplication.h"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/stringconv.hpp"
+#include "pyscript/pythread_lock.hpp"
 #include "../kbengine_dll/kbengine_dll.h"
 
 //-------------------------------------------------------------------------------------
@@ -97,4 +98,11 @@ void SpaceAvatarSelect::buttonHit(OgreBites::Button* button)
 //-------------------------------------------------------------------------------------
 void SpaceAvatarSelect::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 {
+	switch(lpEventData->id)
+	{
+		case CLIENT_EVENT_SCRIPT:
+			break;
+		default:
+			break;
+	};
 }

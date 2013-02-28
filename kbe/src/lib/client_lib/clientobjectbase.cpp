@@ -183,7 +183,7 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 
 	EventData_CreatedEntity eventdata;
 	eventdata.pEntity = entity->getAspect();
-	eventHandler_.trigger(&eventdata);
+	eventHandler_.fire(&eventdata);
 
 	return entity;
 }
@@ -286,6 +286,13 @@ Mercury::Channel* ClientObjectBase::initBaseappChannel()
 	return pServerChannel_;
 }
 
+
+//-------------------------------------------------------------------------------------	
+void ClientObjectBase::fireEvent(const EventData* pEventData)
+{
+	eventHandler_.fire(pEventData);
+}
+
 //-------------------------------------------------------------------------------------
 bool ClientObjectBase::login()
 {
@@ -349,7 +356,7 @@ void ClientObjectBase::onLoginSuccessfully(Mercury::Channel * pChannel, MemorySt
 	INFO_MSG(boost::format("ClientObjectBase::onLoginSuccessfully: %1% addr=%2%:%3%!\n") % name_ % ip_ % port_);
 
 	EventData_LoginSuccess eventdata;
-	eventHandler_.trigger(&eventdata);
+	eventHandler_.fire(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -363,7 +370,7 @@ void ClientObjectBase::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& 
 	connectedGateway_ = false;
 	INFO_MSG(boost::format("ClientObjectBase::onLoginFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
 	EventData_LoginFailed eventdata;
-	eventHandler_.trigger(&eventdata);
+	eventHandler_.fire(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -373,7 +380,7 @@ void ClientObjectBase::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_
 	connectedGateway_ = false;
 
 	EventData_LoginGatewayFailed eventdata;
-	eventHandler_.trigger(&eventdata);
+	eventHandler_.fire(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -382,7 +389,7 @@ void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndU
 	if(entityID_ == 0)
 	{
 		EventData_LoginGatewaySuccess eventdata;
-		eventHandler_.trigger(&eventdata);
+		eventHandler_.fire(&eventdata);
 	}
 
 	connectedGateway_ = true;
@@ -431,7 +438,7 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 	eventdata.spaceID = spaceID;
 	eventdata.pEntity = entity->getAspect();
 
-	eventHandler_.trigger(&eventdata);
+	eventHandler_.fire(&eventdata);
 
 	entity->onEnterWorld();
 }
@@ -453,7 +460,7 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 	eventdata.spaceID = spaceID;
 	eventdata.pEntity = entity->getAspect();
 
-	eventHandler_.trigger(&eventdata);
+	eventHandler_.fire(&eventdata);
 
 	pEntities_->erase(eid);
 }
@@ -474,7 +481,7 @@ void ClientObjectBase::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID 
 	eventdata.spaceID = spaceID;
 	eventdata.pEntity = entity->getAspect();
 
-	eventHandler_.trigger(&eventdata);
+	eventHandler_.fire(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -492,7 +499,7 @@ void ClientObjectBase::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID 
 	EventData_LeaveSpace eventdata;
 	eventdata.spaceID = spaceID;
 	eventdata.pEntity = entity->getAspect();
-	eventHandler_.trigger(&eventdata);
+	eventHandler_.fire(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------	

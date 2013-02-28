@@ -63,7 +63,7 @@ bool EventHandler::deregisterHandle(EventHandle* pHhandle)
 }
 
 //-------------------------------------------------------------------------------------
-void EventHandler::trigger(const EventData* lpEventData)
+void EventHandler::fire(const EventData* lpEventData)
 {
 	EVENT_HANDLES::iterator iter = eventHandles_.begin();
 	for(; iter != eventHandles_.end(); iter++)
