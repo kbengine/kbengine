@@ -99,7 +99,7 @@ int ClientApp::unregisterPyObjectToScript(const char* attrName)
 bool ClientApp::initialize()
 {
 	if(!threadPool_.isInitialize())
-		threadPool_.createThreadPool(4, 4, 256);
+		threadPool_.createThreadPool(1, 1, 4);
 	
 	if(!initializeBegin())
 		return false;
