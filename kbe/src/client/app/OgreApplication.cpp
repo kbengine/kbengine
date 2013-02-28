@@ -117,19 +117,20 @@ bool OgreApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
 	std::vector<const KBEngine::EventData*>::iterator iter = events_.begin();
 	for(; iter != events_.end(); iter++)
 	{
-		KBEngine::script::PyThreadStateLock* lock = NULL;
+		KBEngine::EventID id = (*iter)->id;
 
-		if((*iter)->id == CLIENT_EVENT_SCRIPT)
+		// 如果需要在本线程访问脚本层则需要锁住引擎
+		if(id == CLIENT_EVENT_SCRIPT)
 		{
-			lock = new KBEngine::script::PyThreadStateLock();
+			kbe_lock();
 		}
 
 		g_space->kbengine_onEvent((*iter));
 		delete (*iter);
 
-		if(lock != NULL)
+		if(id == CLIENT_EVENT_SCRIPT)
 		{
-			delete lock;
+			kbe_unlock();
 		}
 	}
 	
