@@ -1,4 +1,5 @@
 #include "space_avatarselect.h"
+#include "space_world.h"
 #include "OgreApplication.h"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/stringconv.hpp"
@@ -6,6 +7,7 @@
 #include "../kbengine_dll/kbengine_dll.h"
 
 std::vector<Ogre::String> g_avatars;
+KBEngine::DBID g_selAvatarDBID = 0;
 
 char* wchar2char(const wchar_t* ts)
 {
@@ -62,12 +64,6 @@ void SpaceAvatarSelect::createScene(void)
 {
 	mTrayMgr->createButton(OgreBites::TL_BOTTOMRIGHT, "start", "start", 120);
 	mTrayMgr->createButton(OgreBites::TL_BOTTOMLEFT, "create", "create avatar", 120);
-	
-	/*
-	mTrayMgr->createButton(OgreBites::TL_CENTER, "avatar1", "avatar", 300);
-	mTrayMgr->createButton(OgreBites::TL_CENTER, "avatar2", "avatar", 300);
-	mTrayMgr->createButton(OgreBites::TL_CENTER, "avatar3", "avatar", 300);
-	*/
 
 	mTrayMgr->showCursor();
 	
@@ -117,8 +113,22 @@ bool SpaceAvatarSelect::keyPressed( const OIS::KeyEvent &arg )
 //-------------------------------------------------------------------------------------
 void SpaceAvatarSelect::buttonHit(OgreBites::Button* button)
 {
-	if(button->getCaption() == "start")
+	if(button->getCaption().find("start") != Ogre::UTFString::npos)
 	{
+		if(g_selAvatarDBID == 0)
+		{
+			MessageBox( NULL, "SpaceAvatarSelect::no selected avatar!", "warning!", MB_OK);
+			return;
+		}
+
+		PyObject* arg = Py_BuildValue("K", g_selAvatarDBID);
+		PyObject* args = PyTuple_New(1);
+		PyTuple_SetItem(args, 0, arg);
+		PyObject* ret = kbe_callEntityMethod(kbe_playerID(), "selectAvatarGame", args);
+		Py_DECREF(args);
+		Py_XDECREF(ret);
+
+		OgreApplication::getSingleton().changeSpace(new SpaceWorld(mRoot, mWindow, mInputManager, mTrayMgr));
 	}
 	else if(button->getCaption() == "create avatar")
 	{
@@ -126,6 +136,18 @@ void SpaceAvatarSelect::buttonHit(OgreBites::Button* button)
 		PyObject* ret = kbe_callEntityMethod(kbe_playerID(), "reqCreateAvatar", args);
 		Py_DECREF(args);
 		Py_XDECREF(ret);
+	}
+	else
+	{
+		for(KBEngine::uint32 i=0; i<g_avatars.size(); i++)
+		{
+			if(button->getCaption() == g_avatars[i])
+			{
+				Ogre::String dbid = Ogre::StringUtil::split(button->getCaption(), "_")[1];
+				g_selAvatarDBID = KBEngine::StringConv::str2value<KBEngine::DBID>(dbid.c_str());
+				((OgreBites::Button*)mTrayMgr->getWidget("start"))->setCaption(Ogre::String("start[") + dbid + Ogre::String("]"));
+			}
+		}
 	}
 }
 

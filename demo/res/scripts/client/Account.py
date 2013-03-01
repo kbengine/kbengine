@@ -35,3 +35,11 @@ class Account(KBEngine.Entity):
 		"""
 		DEBUG_MSG("Account:reqCreateAvatar::roleType=%i, name=%s" % (roleType, name))
 		self.base.reqCreateAvatar(roleType, name)
+
+	def selectAvatarGame(self, dbid):
+		"""
+		选择某个角色进行游戏
+		"""
+		DEBUG_MSG("Account:selectAvatarGame::dbid=%i" % (dbid))
+		self.base.selectAvatarGame(dbid)
+
