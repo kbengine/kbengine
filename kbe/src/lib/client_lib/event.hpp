@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "client_lib/entity_aspect.hpp"
 #include "cstdkbe/cstdkbe.hpp"
-#include "python.h"
+#include "Python.h"
 
 namespace KBEngine{
 
