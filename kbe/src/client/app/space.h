@@ -18,7 +18,8 @@ public:
     virtual void createScene(void) = 0;
     virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt) = 0;
 
-	virtual bool keyPressed( const OIS::KeyEvent &arg ){ return true; }
+	virtual bool keyPressed(const OIS::KeyEvent &arg){ return true; }
+	virtual bool keyReleased(const OIS::KeyEvent &arg){ return true; }
 	virtual void buttonHit(OgreBites::Button* button){}
 
 	virtual void kbengine_onEvent(const KBEngine::EventData* lpEventData){};
