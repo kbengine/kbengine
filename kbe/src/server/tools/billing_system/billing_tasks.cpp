@@ -394,8 +394,8 @@ bool ChargeTask::process()
 	success = fi != std::string::npos;
 	endpoint.close();
 
-	INFO_MSG(boost::format("ChargeTask::process: orders=%1%, commit=%2%\n") % 
-		pOrders->ordersID % success);
+	INFO_MSG(boost::format("ChargeTask::process: orders=%1%, commit=%2%\n==>postdatas=%3%\n") % 
+		pOrders->ordersID % success % pOrders->getDatas);
 
 	return false;
 }

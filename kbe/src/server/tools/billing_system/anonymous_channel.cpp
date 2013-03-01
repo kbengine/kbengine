@@ -164,6 +164,8 @@ bool AnonymousChannel::process()
 thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 {
 	KBEUnordered_map<std::string, std::string>::iterator iter = backOrdersDatas_.begin();
+	BillingSystem::getSingleton().lockthread();
+
 	for(; iter != backOrdersDatas_.end(); iter++)
 	{
 		BillingSystem::ORDERS& orders = BillingSystem::getSingleton().orders();
@@ -212,6 +214,8 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 	}
 
 	backOrdersDatas_.clear();
+
+	BillingSystem::getSingleton().unlockthread();
 	return thread::TPTask::TPTASK_STATE_CONTINUE_CHILDTHREAD; 
 }
 
