@@ -71,7 +71,7 @@ BillingSystem::~BillingSystem()
 		REQCREATE_MAP::iterator iter = reqCreateAccount_requests_.begin();
 		for(; iter != reqCreateAccount_requests_.end(); iter++)
 		{
-			WARNING_MSG(boost::format("BillingSystem::~BillingSystem(): Discarding %1%/%2% reqCreateAccount tasks.\n") % 
+			WARNING_MSG(boost::format("BillingSystem::~BillingSystem(): Discarding %1%/%2% reqCreateAccount[%3%] tasks.\n") % 
 				++i % reqCreateAccount_requests_.size() % iter->second);
 		}
 	}
@@ -82,7 +82,7 @@ BillingSystem::~BillingSystem()
 		REQLOGIN_MAP::iterator iter = reqAccountLogin_requests_.begin();
 		for(; iter != reqAccountLogin_requests_.end(); iter++)
 		{
-			WARNING_MSG(boost::format("BillingSystem::~BillingSystem(): Discarding %1%/%2% reqAccountLogin tasks.\n") % 
+			WARNING_MSG(boost::format("BillingSystem::~BillingSystem(): Discarding %1%/%2% reqAccountLogin[%3%] tasks.\n") % 
 				++i % reqAccountLogin_requests_.size() % iter->second);
 		}
 	}
