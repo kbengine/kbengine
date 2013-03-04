@@ -73,6 +73,22 @@ bool Bots::initialize()
 	return ClientApp::initialize();
 }
 
+//-------------------------------------------------------------------------------------	
+bool Bots::initializeBegin()
+{
+	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
+
+	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
+	return true;
+}
+
+//-------------------------------------------------------------------------------------	
+bool Bots::initializeEnd()
+{
+	return true;
+}
+
 //-------------------------------------------------------------------------------------
 void Bots::finalise()
 {
@@ -104,7 +120,10 @@ bool Bots::installPyModules()
 	
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), addBots, __py_addBots,	METH_VARARGS, 0);
 
-	return ClientApp::installPyModules();
+	registerScript(client::Entity::getScriptType());
+	onInstallPyModules();
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

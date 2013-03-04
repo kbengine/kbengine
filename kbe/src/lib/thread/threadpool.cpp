@@ -77,16 +77,25 @@ ThreadPool::~ThreadPool()
 		}
 	}
 	
+	allThreadList_.clear();
 	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 
 	THREAD_MUTEX_LOCK(finiTaskList_mutex_);
-
-	std::list<TPTask*>::iterator finiiter  = finiTaskList_.begin();
-	for(; finiiter != finiTaskList_.end(); finiiter++)
-	{
-		delete (*finiiter);
-	}
 	
+	if(finiTaskList_.size() > 0)
+	{
+		WARNING_MSG(boost::format("ThreadPool::~ThreadPool(): Discarding %1% finished tasks.\n") % 
+			bufferedTaskList_.size());
+
+		std::list<TPTask*>::iterator finiiter  = finiTaskList_.begin();
+		for(; finiiter != finiTaskList_.end(); finiiter++)
+		{
+			delete (*finiiter);
+		}
+	
+		finiTaskList_.clear();
+	}
+
 	THREAD_MUTEX_UNLOCK(finiTaskList_mutex_);
 
 	THREAD_MUTEX_LOCK(bufferedTaskList_mutex_);
@@ -182,7 +191,7 @@ bool ThreadPool::createThreadPool(uint32 inewThreadCount,
 		allThreadList_.push_back(tptd);										// 所有的线程列表
 	}
 	
-	INFO_MSG(boost::format("ThreadPool::createThreadPool: is successfully(%1%), "
+	INFO_MSG(boost::format("ThreadPool::createThreadPool: successfully(%1%), "
 		"newThreadCount=%2%, normalMaxThreadCount=%3%, maxThreadCount=%4%\n") %
 			currentThreadCount_ % extraNewAddThreadCount_ % normalThreadCount_ % maxThreadCount_);
 
@@ -261,7 +270,8 @@ bool ThreadPool::addFreeThread(TPThread* tptd)
 
 		ERROR_MSG(boost::format("ThreadPool::addFreeThread: busyThreadList_ not found thread.%1%\n") %
 		 (uint32)tptd->getID());
-
+		
+		delete tptd;
 		return false;
 	}
 		
@@ -289,6 +299,7 @@ bool ThreadPool::addBusyThread(TPThread* tptd)
 					"found thread.%1%\n") %
 					(uint32)tptd->getID());
 		
+		delete tptd;
 		return false;
 	}
 		
@@ -453,6 +464,17 @@ void* TPThread::threadFunc(void* arg)
 				tptd->setTask(task1);
 			}
 		}
+	}
+
+	TPTask * task = tptd->getTask();
+	if(task)
+	{
+		WARNING_MSG(boost::format("TPThread::threadFunc: task %1% not finish, thread.%2% will exit.\n") % 
+			task % tptd);
+
+		delete task;
+
+		KBE_ASSERT(tptd->threadPool()->isDestroyed());
 	}
 
 	if(tptd)

@@ -65,9 +65,9 @@ public:
 	~ClientApp();
 
 	virtual bool initialize();
-	virtual bool initializeBegin(){return true;};
+	virtual bool initializeBegin();
 	virtual bool inInitialize(){ return true; }
-	virtual bool initializeEnd(){return true;};
+	virtual bool initializeEnd();
 	virtual void finalise();
 	virtual bool run();
 	

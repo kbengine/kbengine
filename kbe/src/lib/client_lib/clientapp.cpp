@@ -95,6 +95,38 @@ int ClientApp::unregisterPyObjectToScript(const char* attrName)
 	return getScript().unregisterToModule(attrName); 
 }
 
+//-------------------------------------------------------------------------------------	
+bool ClientApp::initializeBegin()
+{
+	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeConfig.gameUpdateHertz(), this,
+							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
+
+	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeConfig.gameUpdateHertz());
+	return true;
+}
+
+//-------------------------------------------------------------------------------------	
+bool ClientApp::initializeEnd()
+{
+	// 所有脚本都加载完毕
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onInit"), 
+										const_cast<char*>("i"), 
+										0);
+
+	if(pyResult != NULL)
+	{
+		Py_DECREF(pyResult);
+	}
+	else
+	{
+		SCRIPT_ERROR_CHECK();
+		return false;
+	}
+
+	return true;
+}
+
 //-------------------------------------------------------------------------------------		
 bool ClientApp::initialize()
 {
@@ -104,34 +136,16 @@ bool ClientApp::initialize()
 	if(!initializeBegin())
 		return false;
 
-	gameTimer_ = this->getMainDispatcher().addTimer(1000000 / g_kbeConfig.gameUpdateHertz(), this,
-							reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
-
 	if(!installPyModules())
 		return false;
 	
 	if(!installEntityDef())
 		return false;
 
-	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeConfig.gameUpdateHertz());
-
 	if(!inInitialize())
 		return false;
 
-	bool ret = initializeEnd();
-
-	// 所有脚本都加载完毕
-	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-										const_cast<char*>("onInit"), 
-										const_cast<char*>("i"), 
-										0);
-
-	if(pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
-
-	return ret;
+	return initializeEnd();
 }
 
 

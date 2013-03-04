@@ -67,6 +67,9 @@ public:
 	virtual bool initialize();
 	virtual void finalise();
 
+	virtual bool initializeBegin();
+	virtual bool initializeEnd();
+
 	virtual bool installPyModules();
 	virtual void onInstallPyModules() {};
 	virtual bool uninstallPyModules();
