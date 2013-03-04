@@ -85,7 +85,7 @@ ThreadPool::~ThreadPool()
 	if(finiTaskList_.size() > 0)
 	{
 		WARNING_MSG(boost::format("ThreadPool::~ThreadPool(): Discarding %1% finished tasks.\n") % 
-			bufferedTaskList_.size());
+			finiTaskList_.size());
 
 		std::list<TPTask*>::iterator finiiter  = finiTaskList_.begin();
 		for(; finiiter != finiTaskList_.end(); finiiter++)
@@ -408,7 +408,7 @@ bool ThreadPool::addTask(TPTask* tptask)
 		
 	}
 	
-	INFO_MSG(boost::format("ThreadPool::addTask: createNewThread-> currThreadCount: %1%\n") % 
+	INFO_MSG(boost::format("ThreadPool::addTask: new Thread, currThreadCount: %1%\n") % 
 		currentThreadCount_);
 
 	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
