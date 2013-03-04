@@ -62,6 +62,32 @@ BillingSystem::~BillingSystem()
 {
 	mainProcessTimer_.cancel();
 	KBEngine::sleep(300);
+	
+	lockthread();
+
+	if(reqCreateAccount_requests_.size() > 0)
+	{	
+		int i = 0;
+		REQCREATE_MAP::iterator iter = reqCreateAccount_requests_.begin();
+		for(; iter != reqCreateAccount_requests_.end(); iter++)
+		{
+			WARNING_MSG(boost::format("BillingSystem::~BillingSystem(): Discarding %1%/%2% reqCreateAccount tasks.\n") % 
+				++i % reqCreateAccount_requests_.size() % iter->second);
+		}
+	}
+
+	if(reqAccountLogin_requests_.size() > 0)
+	{
+		int i = 0;
+		REQLOGIN_MAP::iterator iter = reqAccountLogin_requests_.begin();
+		for(; iter != reqAccountLogin_requests_.end(); iter++)
+		{
+			WARNING_MSG(boost::format("BillingSystem::~BillingSystem(): Discarding %1%/%2% reqAccountLogin tasks.\n") % 
+				++i % reqAccountLogin_requests_.size() % iter->second);
+		}
+	}
+
+	unlockthread();
 }
 
 //-------------------------------------------------------------------------------------
