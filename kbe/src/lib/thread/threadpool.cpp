@@ -65,10 +65,8 @@ isDestroyed_(false)
 //-------------------------------------------------------------------------------------
 ThreadPool::~ThreadPool()
 {
-	THREAD_MUTEX_DELETE(threadStateList_mutex_);
-	THREAD_MUTEX_DELETE(bufferedTaskList_mutex_);
-	THREAD_MUTEX_DELETE(finiTaskList_mutex_);
-	
+	THREAD_MUTEX_LOCK(threadStateList_mutex_);
+
 	std::list<TPThread*>::iterator itr = allThreadList_.begin();
 	for(; itr != allThreadList_.end(); itr++)
 	{
@@ -79,18 +77,38 @@ ThreadPool::~ThreadPool()
 		}
 	}
 	
+	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
+
+	THREAD_MUTEX_LOCK(finiTaskList_mutex_);
+
 	std::list<TPTask*>::iterator finiiter  = finiTaskList_.begin();
 	for(; finiiter != finiTaskList_.end(); finiiter++)
 	{
 		delete (*finiiter);
 	}
 	
-	while(bufferedTaskList_.size() > 0)
+	THREAD_MUTEX_UNLOCK(finiTaskList_mutex_);
+
+	THREAD_MUTEX_LOCK(bufferedTaskList_mutex_);
+
+	if(bufferedTaskList_.size() > 0)
 	{
-		TPTask* tptask = bufferedTaskList_.front();
-		bufferedTaskList_.pop();
-		delete tptask;
+		WARNING_MSG(boost::format("ThreadPool::~ThreadPool(): Discarding %1% buffered tasks.\n") % 
+			bufferedTaskList_.size());
+
+		while(bufferedTaskList_.size() > 0)
+		{
+			TPTask* tptask = bufferedTaskList_.front();
+			bufferedTaskList_.pop();
+			delete tptask;
+		}
 	}
+	
+	THREAD_MUTEX_UNLOCK(bufferedTaskList_mutex_);
+
+	THREAD_MUTEX_DELETE(threadStateList_mutex_);
+	THREAD_MUTEX_DELETE(bufferedTaskList_mutex_);
+	THREAD_MUTEX_DELETE(finiTaskList_mutex_);
 }
 
 //-------------------------------------------------------------------------------------
