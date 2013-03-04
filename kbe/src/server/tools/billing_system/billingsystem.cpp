@@ -175,7 +175,7 @@ void BillingSystem::reqCreateAccount(Mercury::Channel* pChannel, KBEngine::Memor
 	pinfo->dbmgrID = pChannel->componentID();
 	pinfo->address = pChannel->addr();
 
-	reqCreateAccount_requests_[pinfo->commitName].reset(pinfo);
+	reqCreateAccount_requests_[pinfo->commitName] = pinfo;
 	unlockthread();
 
 	this->threadPool().addTask(pinfo);
@@ -210,7 +210,7 @@ void BillingSystem::onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryS
 	pinfo->dbmgrID = pChannel->componentID();
 	pinfo->address = pChannel->addr();
 
-	reqAccountLogin_requests_[pinfo->commitName].reset(pinfo);
+	reqAccountLogin_requests_[pinfo->commitName] = pinfo;
 	unlockthread();
 
 	this->threadPool().addTask(pinfo);
