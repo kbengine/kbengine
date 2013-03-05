@@ -434,16 +434,26 @@ void* TPThread::threadFunc(void* arg)
 
 	while(isRun)
 	{
-		isRun = tptd->onWaitCondSignal();
+		if(tptd->getTask() != NULL)
+		{
+			isRun = true;
+		}
+		else
+		{
+			isRun = tptd->onWaitCondSignal();
+		}
+
 		if(!isRun || tptd->threadPool()->isDestroyed())
 		{
 			tptd = NULL;
 			break;
 		}
 
-		tptd->state_ = THREAD_STATE_BUSY;
 		TPTask * task = tptd->getTask();
-		
+		if(task == NULL)
+			continue;
+
+		tptd->state_ = THREAD_STATE_BUSY;
 		while(task && !tptd->threadPool()->isDestroyed())
 		{
 			tptd->onProcessTaskStart(task);
