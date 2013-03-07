@@ -179,6 +179,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\encryption_filter.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\endpoint.cpp"
 				>
 			</File>
@@ -278,6 +282,10 @@
 			</File>
 			<File
 				RelativePath=".\delayed_channels.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\encryption_filter.hpp"
 				>
 			</File>
 			<File
