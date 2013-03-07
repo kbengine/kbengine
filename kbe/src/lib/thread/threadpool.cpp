@@ -110,7 +110,7 @@ ThreadPool::~ThreadPool()
 	isDestroyed_ = true;
 	THREAD_MUTEX_LOCK(threadStateList_mutex_);
 
-	WARNING_MSG(boost::format("ThreadPool::~ThreadPool(): size %1%.\n") % 
+	DEBUG_MSG(boost::format("ThreadPool::~ThreadPool(): size %1%.\n") % 
 		allThreadList_.size());
 
 	std::list<TPThread*>::iterator itr = allThreadList_.begin();
@@ -189,6 +189,13 @@ void ThreadPool::destroy()
 {
 	isDestroyed_ = true;
 
+	THREAD_MUTEX_LOCK(threadStateList_mutex_);
+
+	DEBUG_MSG(boost::format("ThreadPool::destroy(): starting size %1%.\n") % 
+		allThreadList_.size());
+	
+	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
+
 	int itry = 0;
 	while(true)
 	{
@@ -220,6 +227,8 @@ void ThreadPool::destroy()
 			WARNING_MSG(boost::format("ThreadPool::destroy(): waiting for thread(%1%), try=%2%\n") % count % itry);
 		}
 	}
+
+	DEBUG_MSG("ThreadPool::destroy(): successfully!\n");
 }
 
 //-------------------------------------------------------------------------------------
