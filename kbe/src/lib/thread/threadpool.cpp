@@ -26,9 +26,6 @@ namespace KBEngine{
 KBE_SINGLETON_INIT(KBEngine::thread::ThreadPool);
 namespace thread{
 
-// 全局数据的定义
-ThreadPool g_stp;
-
 //-------------------------------------------------------------------------------------
 THREAD_ID TPThread::createThread(void)
 {
@@ -107,11 +104,72 @@ isDestroyed_(false)
 //-------------------------------------------------------------------------------------
 ThreadPool::~ThreadPool()
 {
+	KBE_ASSERT(isDestroyed_ && allThreadList_.size() == 0);
+}
+
+//-------------------------------------------------------------------------------------
+bool ThreadPool::initializeWatcher()
+{
+	WATCH_OBJECT("threadpool/maxThreadCount", this->maxThreadCount_);
+	WATCH_OBJECT("threadpool/extraNewAddThreadCount", this->extraNewAddThreadCount_);
+	WATCH_OBJECT("threadpool/currentFreeThreadCount", this->currentFreeThreadCount_);
+	WATCH_OBJECT("threadpool/normalThreadCount", this->normalThreadCount_);
+	WATCH_OBJECT("threadpool/bufferedTaskSize", this, &ThreadPool::bufferTaskSize);
+	WATCH_OBJECT("threadpool/finiTaskSize", this, &ThreadPool::finiTaskSize);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void ThreadPool::finalise()
+{
+	destroy();
+}
+
+//-------------------------------------------------------------------------------------
+void ThreadPool::destroy()
+{
 	isDestroyed_ = true;
+
 	THREAD_MUTEX_LOCK(threadStateList_mutex_);
 
-	DEBUG_MSG(boost::format("ThreadPool::~ThreadPool(): size %1%.\n") % 
+	DEBUG_MSG(boost::format("ThreadPool::destroy(): starting size %1%.\n") % 
 		allThreadList_.size());
+	
+	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
+
+	int itry = 0;
+	while(true)
+	{
+		KBEngine::sleep(300);
+		itry++;
+
+		THREAD_MUTEX_LOCK(threadStateList_mutex_);
+		int count = allThreadList_.size();
+		std::list<TPThread*>::iterator itr = allThreadList_.begin();
+		for(; itr != allThreadList_.end(); itr++)
+		{
+			if((*itr))
+			{
+				if((*itr)->getState() != TPThread::THREAD_STATE_END)
+					(*itr)->sendCondSignal();
+				else
+					count--;
+			}
+		}
+
+		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
+
+		if(count <= 0)
+		{
+			break;
+		}
+		else
+		{
+			WARNING_MSG(boost::format("ThreadPool::destroy(): waiting for thread(%1%), try=%2%\n") % count % itry);
+		}
+	}
+
+	THREAD_MUTEX_LOCK(threadStateList_mutex_);
 
 	std::list<TPThread*>::iterator itr = allThreadList_.begin();
 	for(; itr != allThreadList_.end(); itr++)
@@ -164,69 +222,6 @@ ThreadPool::~ThreadPool()
 	THREAD_MUTEX_DELETE(threadStateList_mutex_);
 	THREAD_MUTEX_DELETE(bufferedTaskList_mutex_);
 	THREAD_MUTEX_DELETE(finiTaskList_mutex_);
-}
-
-//-------------------------------------------------------------------------------------
-bool ThreadPool::initializeWatcher()
-{
-	WATCH_OBJECT("threadpool/maxThreadCount", this->maxThreadCount_);
-	WATCH_OBJECT("threadpool/extraNewAddThreadCount", this->extraNewAddThreadCount_);
-	WATCH_OBJECT("threadpool/currentFreeThreadCount", this->currentFreeThreadCount_);
-	WATCH_OBJECT("threadpool/normalThreadCount", this->normalThreadCount_);
-	WATCH_OBJECT("threadpool/bufferedTaskSize", this, &ThreadPool::bufferTaskSize);
-	WATCH_OBJECT("threadpool/finiTaskSize", this, &ThreadPool::finiTaskSize);
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
-void ThreadPool::finalise()
-{
-	destroy();
-}
-
-//-------------------------------------------------------------------------------------
-void ThreadPool::destroy()
-{
-	isDestroyed_ = true;
-
-	THREAD_MUTEX_LOCK(threadStateList_mutex_);
-
-	DEBUG_MSG(boost::format("ThreadPool::destroy(): starting size %1%.\n") % 
-		allThreadList_.size());
-	
-	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
-
-	int itry = 0;
-	while(true)
-	{
-		KBEngine::sleep(10);
-		itry++;
-
-		THREAD_MUTEX_LOCK(threadStateList_mutex_);
-		int count = allThreadList_.size();
-		std::list<TPThread*>::iterator itr = allThreadList_.begin();
-		for(; itr != allThreadList_.end(); itr++)
-		{
-			if((*itr))
-			{
-				if((*itr)->getState() != TPThread::THREAD_STATE_END)
-					(*itr)->sendCondSignal();
-				else
-					count--;
-			}
-		}
-
-		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
-
-		if(count <= 0)
-		{
-			break;
-		}
-		else
-		{
-			WARNING_MSG(boost::format("ThreadPool::destroy(): waiting for thread(%1%), try=%2%\n") % count % itry);
-		}
-	}
 
 	DEBUG_MSG("ThreadPool::destroy(): successfully!\n");
 }
@@ -535,8 +530,7 @@ void* TPThread::threadFunc(void* arg)
 
 		if(!isRun || tptd->threadPool()->isDestroyed())
 		{
-			tptd = NULL;
-			break;
+			goto __THREAD_END__;
 		}
 
 		TPTask * task = tptd->getTask();
@@ -566,6 +560,7 @@ void* TPThread::threadFunc(void* arg)
 		}
 	}
 
+__THREAD_END__:
 	TPTask * task = tptd->getTask();
 	if(task)
 	{
@@ -573,8 +568,6 @@ void* TPThread::threadFunc(void* arg)
 			task % tptd);
 
 		delete task;
-
-		KBE_ASSERT(tptd->threadPool()->isDestroyed());
 	}
 
 	if(tptd)
