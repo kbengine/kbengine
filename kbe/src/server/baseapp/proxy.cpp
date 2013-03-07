@@ -48,7 +48,11 @@ Proxy::Proxy(ENTITY_ID id, const ScriptDefModule* scriptModule):
 Base(id, scriptModule, getScriptType(), true),
 rndUUID_(KBEngine::genUUID64()),
 addr_(Mercury::Address::NONE),
-dataDownloads_()
+dataDownloads_(),
+entitiesEnabled_(false),
+bandwidthPerSecond_(0),
+roundTripTime_(0),
+encryptionKey()
 {
 	Baseapp::getSingleton().incProxicesCount();
 }

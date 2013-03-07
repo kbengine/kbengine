@@ -119,10 +119,14 @@ protected:
 
 	bool entitiesEnabled_;
 
-	// Set this to limit the amount of bandwidth this Client wishes to receive per second 
+	// 限制客户端每秒所能使用的带宽
 	int32 bandwidthPerSecond_;
-	// This is the average round trip time in seconds for communication to the client. 
+
+	// 与客户端通信的平均往返时间. 
 	int32 roundTripTime_;
+
+	// 通信加密key 默认blowfish
+	std::string encryptionKey;
 };
 
 }
