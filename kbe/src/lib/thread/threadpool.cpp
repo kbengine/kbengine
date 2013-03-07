@@ -77,9 +77,9 @@ bool TPThread::join(void)
 	}
 #else
 	void* status;
-	if(pthread_join(tidp, &status))
+	if(pthread_join(getID(), &status))
 	{
-		ERROR_MSG(boost::format("TPThread::join: can't join thread(%1%)\n") % (*itr));
+		ERROR_MSG(boost::format("TPThread::join: can't join thread(%1%)\n") % this);
 		return false;
 	}
 #endif
