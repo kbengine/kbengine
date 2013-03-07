@@ -110,6 +110,9 @@ ThreadPool::~ThreadPool()
 	isDestroyed_ = true;
 	THREAD_MUTEX_LOCK(threadStateList_mutex_);
 
+	WARNING_MSG(boost::format("ThreadPool::~ThreadPool(): size %1%.\n") % 
+		allThreadList_.size());
+
 	std::list<TPThread*>::iterator itr = allThreadList_.begin();
 	for(; itr != allThreadList_.end(); itr++)
 	{
