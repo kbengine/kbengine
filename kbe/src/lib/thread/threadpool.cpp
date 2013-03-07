@@ -46,6 +46,48 @@ THREAD_ID TPThread::createThread(void)
 }
 
 //-------------------------------------------------------------------------------------
+bool TPThread::join(void)
+{
+#if KBE_PLATFORM == PLATFORM_WIN32
+	int i = 0;
+	while(true)
+	{
+		++i;
+		DWORD dw = WaitForSingleObject(getID(), 3000);  
+		switch (dw)
+		{
+		case WAIT_OBJECT_0:
+			return true;
+		case WAIT_TIMEOUT:
+			if(i > 20)
+			{
+				ERROR_MSG(boost::format("TPThread::join: can't join thread(%1%)\n") % this);
+				return false;
+			}
+			else
+			{
+				WARNING_MSG(boost::format("TPThread::join: waiting for thread(%1%), try=%2%\n") % this % i);
+			}
+			break;
+		case WAIT_FAILED:
+		default:
+			ERROR_MSG(boost::format("TPThread::join: can't join thread(%1%)\n") % this);
+			return false;
+		};
+	}
+#else
+	void* status;
+	if(pthread_join(tidp, &status))
+	{
+		ERROR_MSG(boost::format("TPThread::join: can't join thread(%1%)\n") % (*itr));
+		return false;
+	}
+#endif
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 ThreadPool::ThreadPool():
 isInitialize_(false),
 bufferedTaskList_(),
@@ -65,6 +107,7 @@ isDestroyed_(false)
 //-------------------------------------------------------------------------------------
 ThreadPool::~ThreadPool()
 {
+	isDestroyed_ = true;
 	THREAD_MUTEX_LOCK(threadStateList_mutex_);
 
 	std::list<TPThread*>::iterator itr = allThreadList_.begin();
@@ -136,9 +179,44 @@ bool ThreadPool::initializeWatcher()
 void ThreadPool::finalise()
 {
 	destroy();
+}
 
-	// 延时一下， 避免销毁时的极端情况导致出错
-	KBEngine::sleep(100);
+//-------------------------------------------------------------------------------------
+void ThreadPool::destroy()
+{
+	isDestroyed_ = true;
+
+	int itry = 0;
+	while(true)
+	{
+		KBEngine::sleep(10);
+		itry++;
+
+		THREAD_MUTEX_LOCK(threadStateList_mutex_);
+		int count = allThreadList_.size();
+		std::list<TPThread*>::iterator itr = allThreadList_.begin();
+		for(; itr != allThreadList_.end(); itr++)
+		{
+			if((*itr))
+			{
+				if((*itr)->getState() != TPThread::THREAD_STATE_END)
+					(*itr)->sendCondSignal();
+				else
+					count--;
+			}
+		}
+
+		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
+
+		if(count <= 0)
+		{
+			break;
+		}
+		else
+		{
+			WARNING_MSG(boost::format("ThreadPool::destroy(): waiting for thread(%1%), try=%2%\n") % count % itry);
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -489,6 +567,8 @@ void* TPThread::threadFunc(void* arg)
 
 	if(tptd)
 		tptd->onEnd();
+	
+	tptd->state_ = THREAD_STATE_END;
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	return 0;

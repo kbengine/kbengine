@@ -77,7 +77,8 @@ public:
 	{
 		THREAD_STATE_STOP = -1,
 		THREAD_STATE_SLEEP = 0,
-		THREAD_STATE_BUSY = 1
+		THREAD_STATE_BUSY = 1,
+		THREAD_STATE_END = 2
 	};
 
 public:
@@ -161,6 +162,8 @@ public:
 		线程通知 等待条件信号
 	*/
 	bool onWaitCondSignal(void);
+	
+	bool join(void);
 
 	/**
 		获取本线程要处理的任务

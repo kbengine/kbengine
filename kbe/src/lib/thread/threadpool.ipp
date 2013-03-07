@@ -32,11 +32,6 @@ INLINE bool ThreadPool::isDestroyed()const
 	return isDestroyed_; 
 }
 
-INLINE void ThreadPool::destroy()
-{
-	isDestroyed_ = true;
-}
-
 ThreadPool* TPThread::threadPool()
 {
 	return threadPool_;
