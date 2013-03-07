@@ -61,8 +61,6 @@ BillingSystem::BillingSystem(Mercury::EventDispatcher& dispatcher,
 BillingSystem::~BillingSystem()
 {
 	mainProcessTimer_.cancel();
-	KBEngine::sleep(300);
-	
 	lockthread();
 
 	if(reqCreateAccount_requests_.size() > 0)
