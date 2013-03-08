@@ -78,7 +78,7 @@ bool BillingHandler_Normal::createAccount(Mercury::Channel* pChannel, std::strin
 										  std::string& password, std::string& datas)
 {
 	dbThreadPool_.addTask(new DBTaskCreateAccount(pChannel->addr(), 
-		registerName, registerName, password, datas));
+		registerName, registerName, password, datas, datas));
 
 	return true;
 }
@@ -93,7 +93,7 @@ bool BillingHandler_Normal::loginAccount(Mercury::Channel* pChannel, std::string
 										 std::string& password, std::string& datas)
 {
 	dbThreadPool_.addTask(new DBTaskAccountLogin(pChannel->addr(), 
-		loginName, loginName, password, true, datas));
+		loginName, loginName, password, true, datas, datas));
 
 	return true;
 }
@@ -157,12 +157,13 @@ bool BillingHandler_ThirdParty::createAccount(Mercury::Channel* pChannel, std::s
 //-------------------------------------------------------------------------------------
 void BillingHandler_ThirdParty::onCreateAccountCB(KBEngine::MemoryStream& s)
 {
-	std::string registerName, accountName, password, datas;
+	std::string registerName, accountName, password, postdatas, getdatas;
 	COMPONENT_ID cid;
 	bool success = false;
 
 	s >> cid >> registerName >> accountName >> password >> success;
-	s.readBlob(datas);
+	s.readBlob(postdatas);
+	s.readBlob(getdatas);
 
 	if(!success)
 	{
@@ -177,7 +178,7 @@ void BillingHandler_ThirdParty::onCreateAccountCB(KBEngine::MemoryStream& s)
 	}
 
 	dbThreadPool_.addTask(new DBTaskCreateAccount(cinfos->pChannel->addr(), 
-		registerName, accountName, password, datas));
+		registerName, accountName, password, postdatas, getdatas));
 }
 
 //-------------------------------------------------------------------------------------
@@ -206,12 +207,13 @@ bool BillingHandler_ThirdParty::loginAccount(Mercury::Channel* pChannel, std::st
 //-------------------------------------------------------------------------------------
 void BillingHandler_ThirdParty::onLoginAccountCB(KBEngine::MemoryStream& s)
 {
-	std::string loginName, accountName, password, datas;
+	std::string loginName, accountName, password, postdatas, getdatas;
 	COMPONENT_ID cid;
 	bool success = false;
 
 	s >> cid >> loginName >> accountName >> password >> success;
-	s.readBlob(datas);
+	s.readBlob(postdatas);
+	s.readBlob(getdatas);
 
 	if(!success)
 	{
@@ -226,7 +228,7 @@ void BillingHandler_ThirdParty::onLoginAccountCB(KBEngine::MemoryStream& s)
 	}
 
 	dbThreadPool_.addTask(new DBTaskAccountLogin(cinfos->pChannel->addr(), 
-		loginName, accountName, password, success, datas));
+		loginName, accountName, password, success, postdatas, getdatas));
 }
 
 //-------------------------------------------------------------------------------------

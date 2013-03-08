@@ -314,12 +314,14 @@ DBTaskCreateAccount::DBTaskCreateAccount(const Mercury::Address& addr,
 										 std::string& registerName,
 										 std::string& accountName, 
 										 std::string& password, 
-										 std::string& datas):
+										 std::string& postdatas, 
+										std::string& getdatas):
 DBTask(addr),
 registerName_(registerName),
 accountName_(accountName),
 password_(password),
-datas_(datas),
+postdatas_(postdatas),
+getdatas_(getdatas),
 success_(false)
 {
 }
@@ -333,13 +335,13 @@ DBTaskCreateAccount::~DBTaskCreateAccount()
 bool DBTaskCreateAccount::db_thread_process()
 {
 	ACCOUNT_INFOS info;
-	success_ = DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, info) && info.dbid > 0;
+	success_ = DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, postdatas_, info) && info.dbid > 0;
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& accountName, 
-									   const std::string& passwd, ACCOUNT_INFOS& info)
+									   const std::string& passwd, const std::string& datas, ACCOUNT_INFOS& info)
 {
 	info.dbid = 0;
 	if(accountName.size() == 0)
@@ -376,7 +378,7 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 	info.name = accountName;
 	info.password = passwd;
 	info.dbid = entityDBID;
-
+	info.datas = datas;
 	if(!pTable->logAccount(pdbi, info))
 	{
 		if(pdbi->getlasterror() > 0)
@@ -404,7 +406,7 @@ thread::TPTask::TPTaskState DBTaskCreateAccount::presentMainThread()
 		failedcode = SERVER_ERR_ACCOUNT_CREATE;
 
 	(*pBundle) << failedcode << registerName_ << password_;
-	(*pBundle).appendBlob(datas_);
+	(*pBundle).appendBlob(getdatas_);
 
 	if(!this->send((*pBundle)))
 	{
@@ -598,12 +600,14 @@ DBTaskAccountLogin::DBTaskAccountLogin(const Mercury::Address& addr,
 									   std::string& accountName, 
 									   std::string& password, 
 									   bool success,
-									   std::string& datas):
+									   std::string& postdatas, 
+									   std::string& getdatas):
 DBTask(addr),
 loginName_(loginName),
 accountName_(accountName),
 password_(password),
-datas_(datas),
+postdatas_(postdatas),
+getdatas_(getdatas),
 success_(success),
 componentID_(0),
 entityID_(0),
@@ -645,7 +649,7 @@ bool DBTaskAccountLogin::db_thread_process()
 	{
 		if(g_kbeSrvConfig.getDBMgr().notFoundAccountAutoCreate)
 		{
-			if(!DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, info) || info.dbid == 0)
+			if(!DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, postdatas_, info) || info.dbid == 0)
 			{
 				ERROR_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): not found account[%1%], autocreate failed!\n") % 
 					accountName_);
@@ -733,7 +737,7 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 	(*pBundle) << componentID_;   // 如果大于0则表示账号还存活在某个baseapp上
 	(*pBundle) << entityID_;
 	(*pBundle) << dbid_;
-	(*pBundle).appendBlob(datas_);
+	(*pBundle).appendBlob(getdatas_);
 
 	if(!this->send((*pBundle)))
 	{

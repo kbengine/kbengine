@@ -178,6 +178,7 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* dbi)
 	std::string sqlstr = "CREATE TABLE IF NOT EXISTS kbe_accountinfos "
 			"(accountName varchar(255) not null, PRIMARY KEY idKey (accountName),"
 			"password varchar(255),"
+			"bindata blob,"
 			"entityDBID bigint(20) not null DEFAULT 0)"
 		"ENGINE="MYSQL_ENGINE_TYPE;
 
@@ -238,7 +239,7 @@ bool KBEAccountTableMysql::queryAccount(DBInterface * dbi, const std::string& na
 //-------------------------------------------------------------------------------------
 bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
 {
-	std::string sqlstr = "insert into kbe_accountinfos (accountName, password, entityDBID) values(";
+	std::string sqlstr = "insert into kbe_accountinfos (accountName, password, bindata, entityDBID) values(";
 
 	char* tbuf = new char[MAX_BUF * 3];
 
@@ -255,6 +256,13 @@ bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
 	sqlstr += "md5(\"";
 	sqlstr += tbuf;
 	sqlstr += "\"),";
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, info.datas.data(), info.datas.size());
+
+	sqlstr += "\"";
+	sqlstr += tbuf;
+	sqlstr += "\",";
 
 	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, info.dbid);
 

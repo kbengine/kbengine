@@ -167,18 +167,18 @@ class DBTaskCreateAccount : public DBTask
 {
 public:
 	DBTaskCreateAccount(const Mercury::Address& addr, std::string& registerName, std::string& accountName, 
-		std::string& password, std::string& datas);
+		std::string& password, std::string& postdatas, std::string& getdatas);
 	virtual ~DBTaskCreateAccount();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 
 	static bool writeAccount(DBInterface* pdbi, const std::string& accountName, 
-		const std::string& passwd, ACCOUNT_INFOS& info);
+		const std::string& passwd, const std::string& datas, ACCOUNT_INFOS& info);
 protected:
 	std::string registerName_; 
 	std::string accountName_;
 	std::string password_;
-	std::string datas_;
+	std::string postdatas_, getdatas_;
 	bool success_;
 	
 };
@@ -244,7 +244,7 @@ class DBTaskAccountLogin : public DBTask
 {
 public:
 	DBTaskAccountLogin(const Mercury::Address& addr, std::string& loginName, 
-		std::string& accountName, std::string& password, bool success, std::string& datas);
+		std::string& accountName, std::string& password, bool success, std::string& postdatas, std::string& getdatas);
 
 	virtual ~DBTaskAccountLogin();
 	virtual bool db_thread_process();
@@ -253,7 +253,7 @@ protected:
 	std::string loginName_;
 	std::string accountName_;
 	std::string password_;
-	std::string datas_;
+	std::string postdatas_, getdatas_;
 	bool success_;
 	COMPONENT_ID componentID_;
 	ENTITY_ID entityID_;
