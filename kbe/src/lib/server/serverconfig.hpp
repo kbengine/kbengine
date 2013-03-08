@@ -118,6 +118,7 @@ typedef struct EngineComponentInfo
 	std::string db_unicodeString_characterSet;				// 设置数据库字符集
 	std::string db_unicodeString_collation;
 	bool notFoundAccountAutoCreate;							// 登录合法时游戏数据库找不到游戏账号则自动创建
+	bool db_passwordEncrypt;								// db密码是否是加密的
 
 	float archivePeriod;									// entity存储数据库周期
 	float backupPeriod;										// entity备份周期

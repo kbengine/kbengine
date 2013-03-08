@@ -110,11 +110,12 @@
 		<type> mysql </type>											<!-- Type: String -->
 		<host> localhost </host>										<!-- Type: String -->
 		<port> 0 </port>												<!-- Type: Integer -->
-		<username> kbe </username>										<!-- Type: String -->
-		<password> kbe 													<!-- Type: String -->
-			<!-- 为true则表示password是加密的, 可防止明文配置 -->
+		<auth>  
+			<username> kbe </username>									<!-- Type: String -->
+			<password> kbe </password>									<!-- Type: String -->
+			<!-- 为true则表示password是加密(rsa)的, 可防止明文配置 -->
 			<encrypt>false</encrypt>
-		</password>
+		</auth>
 		<databaseName> kbe </databaseName> 								<!-- Type: String -->
 		<numConnections> 5 </numConnections>							<!-- Type: Integer -->
 		

@@ -458,16 +458,30 @@ bool ServerConfig::loadConfig(std::string fileName)
 
 		node = xml->enterNode(rootNode, "port");	
 		if(node != NULL)
-			_dbmgrInfo.db_port = xml->getValInt(node);
+			_dbmgrInfo.db_port = xml->getValInt(node);	
 
-		node = xml->enterNode(rootNode, "username");	
+		node = xml->enterNode(rootNode, "auth");	
 		if(node != NULL)
-			strncpy((char*)&_dbmgrInfo.db_username, xml->getValStr(node).c_str(), MAX_NAME);
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "password");
+			if(childnode)
+			{
+				strncpy((char*)&_dbmgrInfo.db_password, xml->getValStr(childnode).c_str(), MAX_NAME);
+			}
 
-		node = xml->enterNode(rootNode, "password");	
-		if(node != NULL)
-			strncpy((char*)&_dbmgrInfo.db_password, xml->getValStr(node).c_str(), MAX_NAME);
+			childnode = xml->enterNode(node, "username");
+			if(childnode)
+			{
+				strncpy((char*)&_dbmgrInfo.db_username, xml->getValStr(childnode).c_str(), MAX_NAME);
+			}
 
+			childnode = xml->enterNode(node, "encrypt");
+			if(childnode)
+			{
+				_dbmgrInfo.db_passwordEncrypt = xml->getValStr(childnode) == "true";
+			}
+		}
+		
 		node = xml->enterNode(rootNode, "databaseName");	
 		if(node != NULL)
 			strncpy((char*)&_dbmgrInfo.db_name, xml->getValStr(node).c_str(), MAX_NAME);
