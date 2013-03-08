@@ -163,6 +163,14 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
+	if(datas.size() > ACCOUNT_DATA_MAX_LENGTH)
+	{
+		ERROR_MSG(boost::format("Loginapp::login: bindatas too big, size=%1%, limit=%2%.\n") %
+			datas.size() % ACCOUNT_DATA_MAX_LENGTH);
+
+		return;
+	}
+
 	DEBUG_MSG(boost::format("Loginapp::reqCreateAccount: accountName=%1%, passwordsize=%2%.\n") %
 		accountName.c_str() % password.size());
 
@@ -281,6 +289,14 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	{
 		ERROR_MSG(boost::format("Loginapp::login: password too big, size=%1%, limit=%2%.\n") %
 			password.size() % ACCOUNT_PASSWD_MAX_LENGTH);
+
+		return;
+	}
+	
+	if(datas.size() > ACCOUNT_DATA_MAX_LENGTH)
+	{
+		ERROR_MSG(boost::format("Loginapp::login: bindatas too big, size=%1%, limit=%2%.\n") %
+			datas.size() % ACCOUNT_DATA_MAX_LENGTH);
 
 		return;
 	}
