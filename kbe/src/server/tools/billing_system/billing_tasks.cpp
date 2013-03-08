@@ -230,6 +230,7 @@ thread::TPTask::TPTaskState CreateAccountTask::presentMainThread()
 	(*(*bundle)).newMessage(DbmgrInterface::onCreateAccountCBFromBilling);
 	(*(*bundle)) << baseappID << commitName << accountName << password << success;
 
+	(*(*bundle)).appendBlob(postDatas);
 	(*(*bundle)).appendBlob(getDatas);
 
 	Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(address);
@@ -280,6 +281,7 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 	(*(*bundle)).newMessage(DbmgrInterface::onLoginAccountCBBFromBilling);
 	(*(*bundle)) << baseappID << commitName << accountName << password << success;
 
+	(*(*bundle)).appendBlob(postDatas);
 	(*(*bundle)).appendBlob(getDatas);
 
 	Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(address);
