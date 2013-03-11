@@ -54,9 +54,17 @@ public:
 
 	const Resmgr::KBEEnv& getEnv() { return kb_env_; }
 
-	// 从资源路径中(环境变量中指定的)匹配到完整的资源地址
-	std::string matchRes(std::string path);
-	std::string matchRes(const char* path);
+	/*
+		从资源路径中(环境变量中指定的)匹配到完整的资源地址
+	*/
+	std::string matchRes(std::string res);
+	std::string matchRes(const char* res);
+
+	/*
+		从资源路径中(环境变量中指定的)匹配到目录
+	*/
+	std::string matchPath(std::string path);
+	std::string matchPath(const char* path);
 
 	const std::vector<std::string>& respaths() { return respaths_; }
 

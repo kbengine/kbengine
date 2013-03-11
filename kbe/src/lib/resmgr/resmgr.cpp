@@ -21,6 +21,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr.hpp"
 #include "helper/watcher.hpp"
 
+#if KBE_PLATFORM != PLATFORM_WIN32
+#include <unistd.h>
+#include <fcntl.h>
+#endif
+
 namespace KBEngine{
 KBE_SINGLETON_INIT(Resmgr);
 
@@ -125,19 +130,19 @@ void Resmgr::pirnt(void)
 }
 
 //-------------------------------------------------------------------------------------
-std::string Resmgr::matchRes(std::string path)
+std::string Resmgr::matchRes(std::string res)
 {
-	return matchRes(path.c_str());
+	return matchRes(res.c_str());
 }
 
 //-------------------------------------------------------------------------------------
-std::string Resmgr::matchRes(const char* path)
+std::string Resmgr::matchRes(const char* res)
 {
 	std::vector<std::string>::iterator iter = respaths_.begin();
 
 	for(; iter != respaths_.end(); iter++)
 	{
-		std::string fpath = ((*iter) + path);
+		std::string fpath = ((*iter) + res);
 
 		strutil::kbe_replace(fpath, "\\", "/");
 		strutil::kbe_replace(fpath, "//", "/");
@@ -149,7 +154,38 @@ std::string Resmgr::matchRes(const char* path)
 			return fpath;
 		}
 	}
-	return path;
+	return res;
+}
+
+//-------------------------------------------------------------------------------------
+std::string Resmgr::matchPath(std::string path)
+{
+	return matchPath(path.c_str());
+}
+
+//-------------------------------------------------------------------------------------
+std::string Resmgr::matchPath(const char* path)
+{
+	std::vector<std::string>::iterator iter = respaths_.begin();
+	
+	std::string npath = path;
+	strutil::kbe_replace(npath, "\\", "/");
+	strutil::kbe_replace(npath, "//", "/");
+
+	for(; iter != respaths_.end(); iter++)
+	{
+		std::string fpath = ((*iter) + npath);
+
+		strutil::kbe_replace(fpath, "\\", "/");
+		strutil::kbe_replace(fpath, "//", "/");
+		
+		if(!access(fpath.c_str(), 0))
+		{
+			return fpath;
+		}
+	}
+
+	return "";
 }
 
 //-------------------------------------------------------------------------------------

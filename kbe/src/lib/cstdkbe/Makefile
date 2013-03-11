@@ -8,6 +8,7 @@ SRCS =				\
 	strutil			\
 	kbeversion		\
 	md5			\
+	rsa			\
 	memorystream
 
 ifndef KBE_ROOT

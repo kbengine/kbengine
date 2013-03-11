@@ -171,6 +171,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\rsa.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\strutil.cpp"
 				>
 			</File>
@@ -226,6 +230,10 @@
 			</File>
 			<File
 				RelativePath=".\refcountable.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\rsa.hpp"
 				>
 			</File>
 			<File

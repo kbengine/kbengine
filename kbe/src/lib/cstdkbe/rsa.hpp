@@ -18,43 +18,45 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBENGINE_MD5__
-#define __KBENGINE_MD5__
+#ifndef __KBENGINE_RSA__
+#define __KBENGINE_RSA__
 
-#include "openssl/md5.h"
 #include <string>
 
 namespace KBEngine
 {
 
+
 /**
- *	openssl md5的封装
+ *	openssl rsa的封装
  */
-class KBE_MD5
+class KBE_RSA
 {
 public:
-	KBE_MD5();
-	~KBE_MD5();
+	KBE_RSA(const std::string& pubkeyname, 
+		const std::string& prikeyname);
 
-	void append(const void * data, int numBytes);
-	const unsigned char* getDigest();
-	
-	void clear();
-	
-	void final();
+	KBE_RSA();
 
-	bool operator==( const KBE_MD5 & other ) const;
-	bool operator!=( const KBE_MD5 & other ) const
-		{ return !(*this == other); }
+	~KBE_RSA();
 
-	bool operator<( const KBE_MD5 & other ) const;
+	bool generateKey(const std::string& pubkeyname, 
+		const std::string& prikeyname, int keySize = 1024, int e = 65537);
+
+	int encrypt(const std::string& instr, std::string& outCertifdata);
+	int decrypt(const std::string& inCertifdata, std::string& outstr);
+
+	static void hexCertifData(const std::string& inCertifdata);
+
+	bool loadPublic(const std::string& keyname);
+	bool loadPrivate(const std::string& keyname);
+
+	bool isGood()const { return rsa_public != NULL && rsa_private != NULL; }
 private:
-	MD5_CTX state_;
-	unsigned char bytes_[16];
-	bool isFinal_;
+	void* rsa_public, *rsa_private;
 };
 
 
 }
 
-#endif // __KBENGINE_MD5__
+#endif // __KBENGINE_RSA__
