@@ -94,8 +94,9 @@ bool KBE_RSA::loadPublic(const std::string& keyname)
 			return false;
 		}
 	}
-
-	fclose(fp);
+	
+	if(fp)
+		fclose(fp);
 	return rsa_public != NULL;
 }
 
@@ -120,7 +121,8 @@ bool KBE_RSA::loadPrivate(const std::string& keyname)
 		}
 	}
 
-	fclose(fp);
+	if(fp)
+		fclose(fp);
 	return rsa_private != NULL;
 }
 
