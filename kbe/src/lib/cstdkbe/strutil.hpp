@@ -101,6 +101,10 @@ namespace strutil {
 	}
 
     std::vector< std::string > kbe_splits(const std::string& s, const std::string& delim, const bool keep_empty = true);
+
+	int bytes2string(unsigned char *pSrc, int nSrcLen, unsigned char *pDst, int nDstMaxLen);
+	int string2bytes(unsigned char* szSrc, unsigned char* pDst, int nDstMaxLen);
+	  
 }
 
 namespace strutil {

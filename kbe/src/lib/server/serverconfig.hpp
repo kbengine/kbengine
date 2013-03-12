@@ -111,9 +111,9 @@ typedef struct EngineComponentInfo
 	char db_type[MAX_BUF];									// 数据库的类别
 	uint32 db_port;											// 数据库的端口
 	char db_ip[MAX_BUF];									// 数据库的ip地址
-	char db_username[MAX_BUF];								// 数据库的用户名
-	char db_password[MAX_BUF];								// 数据库的密码
-	char db_name[MAX_BUF];									// 数据库名
+	char db_username[MAX_NAME];								// 数据库的用户名
+	char db_password[MAX_BUF * 10];							// 数据库的密码
+	char db_name[MAX_NAME];									// 数据库名
 	uint16 db_numConnections;								// 数据库最大连接
 	std::string db_unicodeString_characterSet;				// 设置数据库字符集
 	std::string db_unicodeString_collation;

@@ -32,6 +32,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine
 {
 
+#define TOLOWER(x) ((x) | 0x20) 
+#define isxdigit(c) (('0' <= (c) && (c) <= '9') || ('a' <= (c) && (c) <= 'f') || ('A' <= (c) && (c) <= 'F'))
+#define isdigit(c) ('0' <= (c) && (c) <= '9') 
+
+//-------------------------------------------------------------------------------------
 KBE_RSA::KBE_RSA(const std::string& pubkeyname, const std::string& prikeyname):
 rsa_public(0),
 rsa_private(0)
@@ -46,6 +51,7 @@ rsa_private(0)
 	}
 }
 
+//-------------------------------------------------------------------------------------
 KBE_RSA::KBE_RSA():
 rsa_public(0),
 rsa_private(0)
@@ -66,6 +72,30 @@ KBE_RSA::~KBE_RSA()
 		RSA_free(static_cast<RSA*>(rsa_private));
 		rsa_private = NULL;
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void KBE_RSA::rsa2str(unsigned char* in, char* out, int size, int base)
+{
+    unsigned char* pt1 = in;
+    char* pt2 = out;
+    do
+    {
+        pt2 += sprintf(pt2,"%02X",*pt1++);
+        size--;
+    }while(*pt1 && size);
+}
+
+//-------------------------------------------------------------------------------------
+void KBE_RSA::str2rsa(char* in, unsigned char* out, int size, int base)
+{
+    unsigned char* pt1 = (unsigned char*)in;
+    unsigned char* pt2 = out; 
+    while (isxdigit(*pt1) && size--)
+    { 
+        *pt2++ = base * ( isdigit(*pt1) ? *pt1++-'0' : TOLOWER(*pt1++)-'a'+10) + ( isdigit(*pt1) ? 
+			*pt1++-'0' : TOLOWER(*pt1++)-'a'+10);
+    } 
 }
 
 //-------------------------------------------------------------------------------------

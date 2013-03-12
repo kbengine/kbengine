@@ -7,6 +7,7 @@ SRCS =				\
 	timestamp		\
 	strutil			\
 	kbeversion		\
+	kbekey			\
 	md5			\
 	rsa			\
 	memorystream

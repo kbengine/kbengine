@@ -466,7 +466,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 			TiXmlNode* childnode = xml->enterNode(node, "password");
 			if(childnode)
 			{
-				strncpy((char*)&_dbmgrInfo.db_password, xml->getValStr(childnode).c_str(), MAX_NAME);
+				strncpy((char*)&_dbmgrInfo.db_password, xml->getValStr(childnode).c_str(), MAX_BUF * 10);
 			}
 
 			childnode = xml->enterNode(node, "username");

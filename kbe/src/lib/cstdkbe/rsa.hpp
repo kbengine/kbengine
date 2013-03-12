@@ -38,7 +38,7 @@ public:
 
 	KBE_RSA();
 
-	~KBE_RSA();
+	virtual ~KBE_RSA();
 
 	bool generateKey(const std::string& pubkeyname, 
 		const std::string& prikeyname, int keySize = 1024, int e = 65537);
@@ -47,12 +47,14 @@ public:
 	int decrypt(const std::string& inCertifdata, std::string& outstr);
 
 	static void hexCertifData(const std::string& inCertifdata);
+	static void rsa2str(unsigned char* in, char* out, int size, int base);
+	static void str2rsa(char* in, unsigned char* out, int size, int base);
 
 	bool loadPublic(const std::string& keyname);
 	bool loadPrivate(const std::string& keyname);
 
-	bool isGood()const { return rsa_public != NULL && rsa_private != NULL; }
-private:
+	virtual bool isGood()const { return rsa_public != NULL && rsa_private != NULL; }
+protected:
 	void* rsa_public, *rsa_private;
 };
 

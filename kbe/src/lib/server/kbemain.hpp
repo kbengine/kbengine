@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "serverapp.hpp"
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/kbekey.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
@@ -80,6 +81,9 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	DebugHelper::initHelper(componentType);
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
 	
+	KBEKey kbekey(Resmgr::getSingleton().matchPath("key/") + "kbengine_public.key", 
+		Resmgr::getSingleton().matchPath("key/") + "kbengine_private.key");
+
 	Resmgr::getSingleton().pirnt();
 
 	Mercury::EventDispatcher dispatcher;

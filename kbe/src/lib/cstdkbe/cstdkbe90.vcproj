@@ -159,6 +159,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\kbekey.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\kbeversion.cpp"
 				>
 			</File>
@@ -198,6 +202,10 @@
 			>
 			<File
 				RelativePath=".\cstdkbe.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\kbekey.hpp"
 				>
 			</File>
 			<File

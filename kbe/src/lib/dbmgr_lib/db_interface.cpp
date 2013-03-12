@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "db_interface.hpp"
 #include "entity_table.hpp"
+#include "cstdkbe/kbekey.hpp"
 #include "db_mysql/db_interface_mysql.hpp"
 #include "db_mysql/kbe_table_mysql.hpp"
 #include "server/serverconfig.hpp"
@@ -86,9 +87,43 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 	dbinterface->db_port_ = dbcfg.db_port;	
 	kbe_snprintf(dbinterface->db_ip_, MAX_IP, "%s", dbcfg.db_ip);
 	kbe_snprintf(dbinterface->db_username_, MAX_BUF, "%s", dbcfg.db_username);
-	kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", dbcfg.db_password);
 	dbinterface->db_numConnections_ = dbcfg.db_numConnections;
 	
+	if(!dbcfg.db_passwordEncrypt)
+	{
+		kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", dbcfg.db_password);
+	}
+	else
+	{
+		// 如果小于64则表示目前还是明文密码
+		if(strlen(dbcfg.db_password) < 64)
+		{
+			std::string encrypted;
+			KBEKey::getSingleton().encrypt(dbcfg.db_password, encrypted);
+			
+			char* strencrypted = new char[1024];
+			memset(strencrypted, 0, 1024);
+			strutil::bytes2string((unsigned char *)encrypted.data(), encrypted.size(), (unsigned char *)strencrypted, 1024);
+			WARNING_MSG(boost::format("DBUtil::createInterface: db password is not encrypted!\nplease to use rsa(1024) password:\n%1%\n") 
+				% strencrypted);
+			delete[] strencrypted;
+
+			kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", dbcfg.db_password);
+		}
+		else
+		{
+			unsigned char* strencrypted = new unsigned char[1024];
+			memset(strencrypted, 0, 1024);
+			strutil::string2bytes((unsigned char *)dbcfg.db_password, strencrypted, 1024);
+			std::string encrypted;
+			encrypted.assign((char*)strencrypted, 1024);
+			delete[] strencrypted;
+			std::string out;
+			KBEKey::getSingleton().decrypt(encrypted, out);
+			kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", out.c_str());
+		}
+	}
+
 	if(dbinterface == NULL)
 	{
 		ERROR_MSG("DBUtil::createInterface: can't create dbinterface!\n");
