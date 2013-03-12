@@ -80,9 +80,11 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	g_componentType = componentType;
 	DebugHelper::initHelper(componentType);
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
-	
+
+#ifdef USE_OPENSSL	
 	KBEKey kbekey(Resmgr::getSingleton().matchPath("key/") + "kbengine_public.key", 
 		Resmgr::getSingleton().matchPath("key/") + "kbengine_private.key");
+#endif
 
 	Resmgr::getSingleton().pirnt();
 

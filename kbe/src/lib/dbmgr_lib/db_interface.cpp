@@ -95,6 +95,7 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 	}
 	else
 	{
+#ifdef USE_OPENSSL
 		// 如果小于64则表示目前还是明文密码
 		if(strlen(dbcfg.db_password) < 64)
 		{
@@ -122,6 +123,9 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 			KBEKey::getSingleton().decrypt(encrypted, out);
 			kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", out.c_str());
 		}
+#else
+		kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", dbcfg.db_password);
+#endif
 	}
 
 	if(dbinterface == NULL)
