@@ -73,6 +73,38 @@ namespace strutil {
 	int kbe_replace(std::string& str,  const std::string& pattern,  const std::string& newpat);
 	int kbe_replace(std::wstring& str,  const std::wstring& pattern,  const std::wstring& newpat);
 
+	/*
+	 转换为大写
+	*/
+	inline char* str_toupper(char* s)
+	{
+	  assert(s != NULL);
+
+	  while(*s)
+	  {
+		*s = toupper((unsigned char)*s);
+		 s++;
+	  };
+
+	  return s; 
+	}
+
+	/*
+	 转换为小写
+	*/
+	inline char* str_tolower(char* s)
+	{
+	  assert(s != NULL);
+
+	  while(*s)
+	  {
+		*s = tolower((unsigned char)*s);
+		 s++;
+	  };
+
+	  return s; 
+	}
+
 	template<typename T>
 	inline void kbe_split(const std::basic_string<T>& s, T c, std::vector< std::basic_string<T> > &v)
 	{

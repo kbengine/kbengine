@@ -67,7 +67,7 @@ namespace strutil {
 		}  
 	      
 		iLen /= 2;  
-		strupr((char *)src);  
+		str_toupper((char *)src); 
 		for (int i=0; i<iLen; i++)  
 		{  
 			int iVal = 0;  
