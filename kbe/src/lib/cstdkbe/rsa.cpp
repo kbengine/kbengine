@@ -75,30 +75,6 @@ KBE_RSA::~KBE_RSA()
 }
 
 //-------------------------------------------------------------------------------------
-void KBE_RSA::rsa2str(unsigned char* in, char* out, int size, int base)
-{
-    unsigned char* pt1 = in;
-    char* pt2 = out;
-    do
-    {
-        pt2 += sprintf(pt2,"%02X",*pt1++);
-        size--;
-    }while(*pt1 && size);
-}
-
-//-------------------------------------------------------------------------------------
-void KBE_RSA::str2rsa(char* in, unsigned char* out, int size, int base)
-{
-    unsigned char* pt1 = (unsigned char*)in;
-    unsigned char* pt2 = out; 
-    while (isxdigit(*pt1) && size--)
-    { 
-        *pt2++ = base * ( isdigit(*pt1) ? *pt1++-'0' : TOLOWER(*pt1++)-'a'+10) + ( isdigit(*pt1) ? 
-			*pt1++-'0' : TOLOWER(*pt1++)-'a'+10);
-    } 
-}
-
-//-------------------------------------------------------------------------------------
 bool KBE_RSA::loadPublic(const std::string& keyname)
 {
     FILE *fp = NULL;

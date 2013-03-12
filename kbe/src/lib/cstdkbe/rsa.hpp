@@ -47,8 +47,6 @@ public:
 	int decrypt(const std::string& inCertifdata, std::string& outstr);
 
 	static void hexCertifData(const std::string& inCertifdata);
-	static void rsa2str(unsigned char* in, char* out, int size, int base);
-	static void str2rsa(char* in, unsigned char* out, int size, int base);
 
 	bool loadPublic(const std::string& keyname);
 	bool loadPrivate(const std::string& keyname);
