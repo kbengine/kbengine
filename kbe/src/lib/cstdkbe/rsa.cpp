@@ -89,7 +89,9 @@ bool KBE_RSA::loadPublic(const std::string& keyname)
 		rsa_public = PEM_read_RSAPublicKey(fp, NULL, NULL, NULL);
 		if(NULL == rsa_public)
 		{
-			ERROR_MSG("KBE_RSA::loadPublic: PEM_read_RSAPublicKey is error!\n");
+			ERROR_MSG(boost::format("KBE_RSA::loadPrivate: PEM_read_RSAPublicKey is error.(%1%)\n") %
+				ERR_error_string(ERR_get_error(), NULL));
+
 			fclose(fp);
 			return false;
 		}
@@ -115,7 +117,9 @@ bool KBE_RSA::loadPrivate(const std::string& keyname)
 		rsa_private = PEM_read_RSAPrivateKey(fp, NULL, NULL, NULL);
 		if(NULL == rsa_private)
 		{
-			ERROR_MSG("KBE_RSA::loadPrivate: PEM_read_RSAPrivateKey is error!\n");
+			ERROR_MSG(boost::format("KBE_RSA::loadPrivate: PEM_read_RSAPrivateKey is error.(%1%)\n") %
+				ERR_error_string(ERR_get_error(), NULL));
+
 			fclose(fp);
 			return false;
 		}
@@ -158,7 +162,9 @@ bool KBE_RSA::generateKey(const std::string& pubkeyname,
 
 	if (!PEM_write_RSAPrivateKey(fp, static_cast<RSA*>(rsa), NULL, NULL, 0, 0, NULL)) 
 	{
-		ERROR_MSG("KBE_RSA::generateKey: problems while writing RSA Private Key.\n");
+		ERROR_MSG(boost::format("KBE_RSA::generateKey: problems while writing RSA Private Key.(%1%)\n") %
+			ERR_error_string(ERR_get_error(), NULL));
+
 		fclose(fp);
 		RSA_free(rsa);
 		return false;
@@ -173,7 +179,9 @@ bool KBE_RSA::generateKey(const std::string& pubkeyname,
 
 	if (!PEM_write_RSAPublicKey(fp, static_cast<RSA*>(rsa))) 
 	{
-		ERROR_MSG("KBE_RSA::generateKey: problems while writing RSA Public Key.\n");
+		ERROR_MSG(boost::format("KBE_RSA::generateKey: problems while writing RSA Public Key.(%1%)\n") %
+			ERR_error_string(ERR_get_error(), NULL));
+
 		fclose(fp);
 		RSA_free(rsa);
 		return false;
@@ -199,9 +207,9 @@ int KBE_RSA::encrypt(const std::string& instr, std::string& outCertifdata)
 
 	if (certifsize < 0)
 	{
-		fprintf(stderr, "%s\n",
-            ERR_error_string(ERR_get_error(), NULL));
-		ERROR_MSG("KBE_RSA::encrypt: RSA_public_encrypt is error!\n");
+		ERROR_MSG(boost::format("KBE_RSA::encrypt: RSA_public_encrypt is error: %1%\n") %
+			ERR_error_string(ERR_get_error(), NULL));
+
 		free(certifdata);
 		return 0;
 	}
@@ -239,7 +247,9 @@ int KBE_RSA::decrypt(const std::string& inCertifdata, std::string& outstr)
 
 	if (keysize < 0)
 	{
-		ERROR_MSG("KBE_RSA::decrypt: RSA_private_decrypt is error!\n");
+		ERROR_MSG(boost::format("KBE_RSA::decrypt: RSA_private_decrypt is error: %1%\n") %
+			ERR_error_string(ERR_get_error(), NULL));
+
 		free(keydata);
 		return 0;
 	}
