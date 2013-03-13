@@ -54,7 +54,7 @@ public:
 
 	typedef std::string Key;
 
-	virtual ~BlowfishFilter() {}
+	virtual ~BlowfishFilter();
 	BlowfishFilter(const Key & key);
 	
 	const Key & key() const { return key_; }

@@ -26,6 +26,8 @@ SRCS =				\
 	udp_packet		\
 	udp_packet_receiver
 
+USE_OPENSSL = 1
+
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))
 endif

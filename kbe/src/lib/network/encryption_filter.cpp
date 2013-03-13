@@ -44,13 +44,20 @@ pBFKey_(0)
 }
 
 //-------------------------------------------------------------------------------------
+BlowfishFilter::~BlowfishFilter()
+{
+	delete this->pBFKey();
+	pBFKey_ = NULL;
+}
+
+//-------------------------------------------------------------------------------------
 bool BlowfishFilter::initKey()
 {
 	pBFKey_ = new BF_KEY;
 
 	if ((MIN_KEY_SIZE <= keySize_) && (keySize_ <= MAX_KEY_SIZE))
 	{
-		BF_set_key( this->pBFKey(), key_.size(), (unsigned char*)key_.c_str() );
+		BF_set_key(this->pBFKey(), key_.size(), (unsigned char*)key_.c_str() );
 		isGood_ = true;
 	}
 	else
@@ -68,13 +75,13 @@ bool BlowfishFilter::initKey()
 //-------------------------------------------------------------------------------------
 const char * BlowfishFilter::readableKey() const
 {
-	static char buf[ 1024 ];
+	static char buf[1024];
 
 	char *c = buf;
 
 	for (int i=0; i < keySize_; i++)
 	{
-		c += sprintf( c, "%02hhX ", (unsigned char)key_[i] );
+		c += sprintf(c, "%02hhX ", (unsigned char)key_[i]);
 	}
 
 	c[-1] = '\0';
@@ -97,6 +104,7 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 			return REASON_GENERAL_NETWORK;
 		}
 	}
+
 	return networkInterface.basicSendWithRetries(pChannel, pPacket);
 }
 
@@ -115,6 +123,7 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 			return REASON_GENERAL_NETWORK;
 		}
 	}
+
 	return receiver.processFilteredPacket(pChannel, pPacket);
 }
 
@@ -125,7 +134,15 @@ void BlowfishFilter::encrypt(Packet * pPacket)
 	// 不足8字节则填充0
 	if (pPacket->totalSize() % BLOCK_SIZE != 0)
 	{
+		// 得到不足大小
 		int padSize = BLOCK_SIZE - (pPacket->totalSize() % BLOCK_SIZE);
+
+		// 向pPacket中填充这么多
+		pPacket->reserve(pPacket->size() + padSize + 1);
+		pPacket->wpos(pPacket->wpos() + padSize);
+
+		// 填充0
+		memset(pPacket->data() + pPacket->wpos(), 0, padSize);
 	}
 }
 
@@ -138,6 +155,7 @@ void BlowfishFilter::decrypt(Packet * pPacket)
 int BlowfishFilter::encrypt( const unsigned char * src, unsigned char * dest,
 	int length )
 {
+	// BLOCK_SIZE的整数倍
 	if(length % BLOCK_SIZE != 0)
 	{
 		CRITICAL_MSG(boost::format("BlowfishFilter::encrypt: "

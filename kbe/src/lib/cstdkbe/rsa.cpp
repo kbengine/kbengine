@@ -32,10 +32,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine
 {
 
-#define TOLOWER(x) ((x) | 0x20) 
-#define isxdigit(c) (('0' <= (c) && (c) <= '9') || ('a' <= (c) && (c) <= 'f') || ('A' <= (c) && (c) <= 'F'))
-#define isdigit(c) ('0' <= (c) && (c) <= '9') 
-
 //-------------------------------------------------------------------------------------
 KBE_RSA::KBE_RSA(const std::string& pubkeyname, const std::string& prikeyname):
 rsa_public(0),
