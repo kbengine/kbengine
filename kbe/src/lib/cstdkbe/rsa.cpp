@@ -89,8 +89,11 @@ bool KBE_RSA::loadPublic(const std::string& keyname)
 		rsa_public = PEM_read_RSAPublicKey(fp, NULL, NULL, NULL);
 		if(NULL == rsa_public)
 		{
-			ERROR_MSG(boost::format("KBE_RSA::loadPrivate: PEM_read_RSAPublicKey is error.(%1%)\n") %
-				ERR_error_string(ERR_get_error(), NULL));
+			ERR_load_crypto_strings();
+			char err[1024];
+			char* errret = ERR_error_string(ERR_get_error(), err);
+			ERROR_MSG(boost::format("KBE_RSA::loadPublic: PEM_read_RSAPublicKey is error.(%1% : %2%)\n") %
+				errret % err);
 
 			fclose(fp);
 			return false;
@@ -117,8 +120,11 @@ bool KBE_RSA::loadPrivate(const std::string& keyname)
 		rsa_private = PEM_read_RSAPrivateKey(fp, NULL, NULL, NULL);
 		if(NULL == rsa_private)
 		{
-			ERROR_MSG(boost::format("KBE_RSA::loadPrivate: PEM_read_RSAPrivateKey is error.(%1%)\n") %
-				ERR_error_string(ERR_get_error(), NULL));
+			ERR_load_crypto_strings();
+			char err[1024];
+			char* errret = ERR_error_string(ERR_get_error(), err);
+			ERROR_MSG(boost::format("KBE_RSA::loadPrivate: PEM_read_RSAPrivateKey is error.(%1% : %2%)\n") %
+				errret % err);
 
 			fclose(fp);
 			return false;
@@ -141,8 +147,11 @@ bool KBE_RSA::generateKey(const std::string& pubkeyname,
 
 	if ((rsa = RSA_generate_key(keySize, e, NULL, NULL)) == NULL) 
 	{
-		ERROR_MSG(boost::format("KBE_RSA::generateKey: %1%\n") %
-			ERR_error_string(ERR_get_error(), NULL));
+		ERR_load_crypto_strings();
+		char err[1024];
+		char* errret = ERR_error_string(ERR_get_error(), err);
+		ERROR_MSG(boost::format("KBE_RSA::generateKey: RSA_generate_key is error.(%1% : %2%)\n") %
+			errret % err);
 
 		return false;
 	}
@@ -162,8 +171,11 @@ bool KBE_RSA::generateKey(const std::string& pubkeyname,
 
 	if (!PEM_write_RSAPrivateKey(fp, static_cast<RSA*>(rsa), NULL, NULL, 0, 0, NULL)) 
 	{
-		ERROR_MSG(boost::format("KBE_RSA::generateKey: problems while writing RSA Private Key.(%1%)\n") %
-			ERR_error_string(ERR_get_error(), NULL));
+		ERR_load_crypto_strings();
+		char err[1024];
+		char* errret = ERR_error_string(ERR_get_error(), err);
+		ERROR_MSG(boost::format("KBE_RSA::generateKey: PEM_write_RSAPrivateKey is error.(%1% : %2%)\n") %
+			errret % err);
 
 		fclose(fp);
 		RSA_free(rsa);
@@ -179,8 +191,11 @@ bool KBE_RSA::generateKey(const std::string& pubkeyname,
 
 	if (!PEM_write_RSAPublicKey(fp, static_cast<RSA*>(rsa))) 
 	{
-		ERROR_MSG(boost::format("KBE_RSA::generateKey: problems while writing RSA Public Key.(%1%)\n") %
-			ERR_error_string(ERR_get_error(), NULL));
+		ERR_load_crypto_strings();
+		char err[1024];
+		char* errret = ERR_error_string(ERR_get_error(), err);
+		ERROR_MSG(boost::format("KBE_RSA::generateKey: PEM_write_RSAPublicKey is error.(%1% : %2%)\n") %
+			errret % err);
 
 		fclose(fp);
 		RSA_free(rsa);
@@ -207,8 +222,11 @@ int KBE_RSA::encrypt(const std::string& instr, std::string& outCertifdata)
 
 	if (certifsize < 0)
 	{
-		ERROR_MSG(boost::format("KBE_RSA::encrypt: RSA_public_encrypt is error: %1%\n") %
-			ERR_error_string(ERR_get_error(), NULL));
+		ERR_load_crypto_strings();
+		char err[1024];
+		char* errret = ERR_error_string(ERR_get_error(), err);
+		ERROR_MSG(boost::format("KBE_RSA::encrypt: RSA_public_encrypt is error.(%1% : %2%)\n") %
+			errret % err);
 
 		free(certifdata);
 		return 0;
@@ -247,8 +265,11 @@ int KBE_RSA::decrypt(const std::string& inCertifdata, std::string& outstr)
 
 	if (keysize < 0)
 	{
-		ERROR_MSG(boost::format("KBE_RSA::decrypt: RSA_private_decrypt is error: %1%\n") %
-			ERR_error_string(ERR_get_error(), NULL));
+		ERR_load_crypto_strings();
+		char err[1024];
+		char* errret = ERR_error_string(ERR_get_error(), err);
+		ERROR_MSG(boost::format("KBE_RSA::decrypt: RSA_private_decrypt is error.(%1% : %2%)\n") %
+			errret % err);
 
 		free(keydata);
 		return 0;
