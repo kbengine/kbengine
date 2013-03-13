@@ -128,27 +128,35 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 }
 
 //-------------------------------------------------------------------------------------
-void BlowfishFilter::encrypt(Packet * pPacket)
+void BlowfishFilter::encrypt(Packet * pInPacket, Packet * pOutPacket)
 {
 	// BlowFish 每次只能加密和解密8字节数据
 	// 不足8字节则填充0
-	if (pPacket->totalSize() % BLOCK_SIZE != 0)
+	if (pInPacket->totalSize() % BLOCK_SIZE != 0)
 	{
 		// 得到不足大小
-		int padSize = BLOCK_SIZE - (pPacket->totalSize() % BLOCK_SIZE);
+		int padSize = BLOCK_SIZE - (pInPacket->totalSize() % BLOCK_SIZE);
 
 		// 向pPacket中填充这么多
-		pPacket->reserve(pPacket->size() + padSize + 1);
-		pPacket->wpos(pPacket->wpos() + padSize);
+		pInPacket->reserve(pInPacket->size() + padSize + 1);
 
 		// 填充0
-		memset(pPacket->data() + pPacket->wpos(), 0, padSize);
+		memset(pInPacket->data() + pInPacket->wpos(), 0, padSize);
+
+		pInPacket->wpos(pInPacket->wpos() + padSize);
 	}
+	
+	pOutPacket->reserve(pInPacket->size());
+	int size = encrypt(pInPacket->data(), pOutPacket->data() + pOutPacket->rpos(),  pInPacket->wpos());
+	pOutPacket->wpos(size + pOutPacket->rpos());
 }
 
 //-------------------------------------------------------------------------------------
-void BlowfishFilter::decrypt(Packet * pPacket)
+void BlowfishFilter::decrypt(Packet * pInPacket, Packet * pOutPacket)
 {
+	pOutPacket->reserve(pInPacket->size());
+	int size = decrypt(pInPacket->data(), pOutPacket->data() + pOutPacket->rpos(),  pInPacket->wpos());
+	pOutPacket->wpos(size + pOutPacket->rpos());
 }
 
 //-------------------------------------------------------------------------------------

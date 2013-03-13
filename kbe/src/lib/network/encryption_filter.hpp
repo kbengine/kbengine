@@ -37,8 +37,8 @@ class EncryptionFilter : public PacketFilter
 public:
 	virtual ~EncryptionFilter() {}
 
-	virtual void encrypt(Packet * pPacket) = 0;
-	virtual void decrypt(Packet * pPacket) = 0;
+	virtual void encrypt(Packet * pInPacket, Packet * pOutPacket) = 0;
+	virtual void decrypt(Packet * pInPacket, Packet * pOutPacket) = 0;
 };
 
 #ifdef USE_OPENSSL
@@ -65,8 +65,8 @@ public:
 
 	virtual Reason recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket);
 
-	void encrypt(Packet * pPacket);
-	void decrypt(Packet * pPacket);
+	void encrypt(Packet * pInPacket, Packet * pOutPacket);
+	void decrypt(Packet * pInPacket, Packet * pOutPacket);
 
 	BF_KEY * pBFKey() { return (BF_KEY*)pBFKey_; }
 private:
@@ -87,8 +87,8 @@ private:
 class BlowfishFilter : public EncryptionFilter
 {
 	virtual ~BlowfishFilter() {}
-	void encrypt(Packet * pPacket){}
-	void decrypt(Packet * pPacket){}
+	void encrypt(Packet * pInPacket, Packet * pOutPacket){}
+	void decrypt(Packet * pInPacket, Packet * pOutPacket){}
 };
 
 #endif
