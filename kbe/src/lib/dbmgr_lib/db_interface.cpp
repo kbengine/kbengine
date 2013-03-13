@@ -73,6 +73,48 @@ bool DBUtil::finiThread()
 }
 
 //-------------------------------------------------------------------------------------
+bool DBUtil::initialize()
+{
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+
+	if(dbcfg.db_passwordEncrypt)
+	{
+#ifdef USE_OPENSSL
+		// 如果小于64则表示目前还是明文密码
+		if(strlen(dbcfg.db_password) < 64)
+		{
+			std::string encrypted;
+			KBEKey::getSingleton().encrypt(dbcfg.db_password, encrypted);
+			
+			char* strencrypted = new char[1024];
+			memset(strencrypted, 0, 1024);
+			strutil::bytes2string((unsigned char *)encrypted.data(), encrypted.size(), (unsigned char *)strencrypted, 1024);
+			WARNING_MSG(boost::format("DBUtil::createInterface: db password is not encrypted!\nplease to use rsa(1024) password:\n%1%\n") 
+				% strencrypted);
+			delete[] strencrypted;
+		}
+		else
+		{
+			unsigned char* strencrypted = new unsigned char[1024];
+			memset(strencrypted, 0, 1024);
+			strutil::string2bytes((unsigned char *)dbcfg.db_password, strencrypted, 1024);
+			std::string encrypted;
+			encrypted.assign((char*)strencrypted, 1024);
+			delete[] strencrypted;
+			std::string out;
+
+			if(KBEKey::getSingleton().decrypt(encrypted, out) < 0)
+				return false;
+
+			kbe_snprintf(dbcfg.db_password, MAX_BUF, "%s", out.c_str());
+		}
+#endif
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 DBInterface* DBUtil::createInterface(bool showinfo)
 {
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
@@ -88,45 +130,7 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 	kbe_snprintf(dbinterface->db_ip_, MAX_IP, "%s", dbcfg.db_ip);
 	kbe_snprintf(dbinterface->db_username_, MAX_BUF, "%s", dbcfg.db_username);
 	dbinterface->db_numConnections_ = dbcfg.db_numConnections;
-	
-	if(!dbcfg.db_passwordEncrypt)
-	{
-		kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", dbcfg.db_password);
-	}
-	else
-	{
-#ifdef USE_OPENSSL
-		// 如果小于64则表示目前还是明文密码
-		if(strlen(dbcfg.db_password) < 64)
-		{
-			std::string encrypted;
-			KBEKey::getSingleton().encrypt(dbcfg.db_password, encrypted);
-			
-			char* strencrypted = new char[1024];
-			memset(strencrypted, 0, 1024);
-			strutil::bytes2string((unsigned char *)encrypted.data(), encrypted.size(), (unsigned char *)strencrypted, 1024);
-			WARNING_MSG(boost::format("DBUtil::createInterface: db password is not encrypted!\nplease to use rsa(1024) password:\n%1%\n") 
-				% strencrypted);
-			delete[] strencrypted;
-
-			kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", dbcfg.db_password);
-		}
-		else
-		{
-			unsigned char* strencrypted = new unsigned char[1024];
-			memset(strencrypted, 0, 1024);
-			strutil::string2bytes((unsigned char *)dbcfg.db_password, strencrypted, 1024);
-			std::string encrypted;
-			encrypted.assign((char*)strencrypted, 1024);
-			delete[] strencrypted;
-			std::string out;
-			KBEKey::getSingleton().decrypt(encrypted, out);
-			kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", out.c_str());
-		}
-#else
-		kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", dbcfg.db_password);
-#endif
-	}
+	kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", dbcfg.db_password);
 
 	if(dbinterface == NULL)
 	{
@@ -175,7 +179,7 @@ const char* DBUtil::accountScriptName()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBUtil::initialize(DBInterface* dbi)
+bool DBUtil::initInterface(DBInterface* dbi)
 {
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 	if(strcmp(dbcfg.db_type, "mysql") == 0)

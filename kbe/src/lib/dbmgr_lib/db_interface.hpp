@@ -123,6 +123,8 @@ class DBUtil : public Singleton<DBUtil>
 public:
 	DBUtil();
 	~DBUtil();
+	
+	static bool initialize();
 
 	static bool initThread();
 	static bool finiThread();
@@ -131,7 +133,7 @@ public:
 	static const char* dbname();
 	static const char* dbtype();
 	static const char* accountScriptName();
-	static bool initialize(DBInterface* dbi);
+	static bool initInterface(DBInterface* dbi);
 private:
 
 };

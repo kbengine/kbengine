@@ -229,7 +229,7 @@ int KBE_RSA::encrypt(const std::string& instr, std::string& outCertifdata)
 			errret % err);
 
 		free(certifdata);
-		return 0;
+		return certifsize;
 	}
 	
 	outCertifdata.assign((const char*)certifdata, certifsize);
@@ -272,7 +272,7 @@ int KBE_RSA::decrypt(const std::string& inCertifdata, std::string& outstr)
 			errret % err);
 
 		free(keydata);
-		return 0;
+		return keysize;
 	}
 	
 	outstr.assign((const char*)keydata, keysize);
