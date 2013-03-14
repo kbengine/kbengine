@@ -1308,13 +1308,6 @@ int main(int argc, char* argv[])
 	DebugHelper::initHelper(UNKNOWN_COMPONENT_TYPE);
     INFO_MSG(boost::format("ÄãºÃ£¬log4cxx---%1%!---%2%") % 1 % __FUNCTION__);
 
-	TCPPacket packet99, packet00, packet11;
-	BlowfishFilter aaa("asdfghjk");
-	packet00 << 123456;
-	packet00 << "abcdefh";
-	aaa.encrypt(&packet00, &packet99);
-
-	aaa.decrypt(&packet99, &packet99);
 	//LOG4CXX_INFO("Attempted to " << " in MemoryStream (pos:" << 111 <<  "size: " << 222 << ").\n");
 	init_network();
 	gdispatcher.processUntilBreak();
