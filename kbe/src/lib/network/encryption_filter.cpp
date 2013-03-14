@@ -21,6 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/profile.hpp"
 #include "encryption_filter.hpp"
 #include "helper/debug_helper.hpp"
+#include "network/tcp_packet.hpp"
+#include "network/udp_packet.hpp"
 #include "network/channel.hpp"
 #include "network/network_interface.hpp"
 #include "network/packet_receiver.hpp"
@@ -39,7 +41,7 @@ pBFKey_(0)
 {
 	if (initKey())
 	{
-		DEBUG_MSG(boost::format("Using Blowfish key: %1%\n") % this->readableKey() );
+		DEBUG_MSG(boost::format("Using Blowfish key: %1%\n") % this->readableKey());
 	}
 }
 
@@ -76,7 +78,6 @@ bool BlowfishFilter::initKey()
 const char * BlowfishFilter::readableKey() const
 {
 	static char buf[1024];
-
 	char *c = buf;
 
 	for (int i=0; i < keySize_; i++)
@@ -85,7 +86,6 @@ const char * BlowfishFilter::readableKey() const
 	}
 
 	c[-1] = '\0';
-
 	return buf;
 }
 
@@ -103,6 +103,26 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 
 			return REASON_GENERAL_NETWORK;
 		}
+
+		Packet * pSendPacket = NULL;
+		if(pPacket->isTCPPacket())
+			pSendPacket = TCPPacket::ObjPool().createObject();
+		else
+			pSendPacket = UDPPacket::ObjPool().createObject();
+
+		pSendPacket->messageID(pPacket->messageID());
+		encrypt(pPacket, pSendPacket);
+		Reason reason = networkInterface.basicSendWithRetries(pChannel, pSendPacket);
+		
+		// 如果本次包只成功发送了一部分则等待下一tick再次加密send
+		pPacket->sentSize = pSendPacket->sentSize;
+
+		if(pPacket->isTCPPacket())
+			TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket *>(pSendPacket));
+		else
+			UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket *>(pSendPacket));
+		
+		return reason;
 	}
 
 	return networkInterface.basicSendWithRetries(pChannel, pPacket);
@@ -122,6 +142,8 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 
 			return REASON_GENERAL_NETWORK;
 		}
+
+		decrypt(pPacket, pPacket);
 	}
 
 	return receiver.processFilteredPacket(pChannel, pPacket);
@@ -146,17 +168,31 @@ void BlowfishFilter::encrypt(Packet * pInPacket, Packet * pOutPacket)
 		pInPacket->wpos(pInPacket->wpos() + padSize);
 	}
 	
-	pOutPacket->reserve(pInPacket->size());
-	int size = encrypt(pInPacket->data(), pOutPacket->data() + pOutPacket->rpos(),  pInPacket->wpos());
-	pOutPacket->wpos(size + pOutPacket->rpos());
+	if(pInPacket != pOutPacket)
+	{
+		pOutPacket->reserve(pInPacket->size());
+		int size = encrypt(pInPacket->data(), pOutPacket->data() + pOutPacket->rpos(),  pInPacket->wpos());
+		pOutPacket->wpos(size + pOutPacket->rpos());
+	}
+	else
+	{
+		encrypt(pInPacket->data(), pInPacket->data(),  pInPacket->wpos());
+	}
 }
 
 //-------------------------------------------------------------------------------------
 void BlowfishFilter::decrypt(Packet * pInPacket, Packet * pOutPacket)
 {
-	pOutPacket->reserve(pInPacket->size());
-	int size = decrypt(pInPacket->data(), pOutPacket->data() + pOutPacket->rpos(),  pInPacket->wpos());
-	pOutPacket->wpos(size + pOutPacket->rpos());
+	if(pInPacket != pOutPacket)
+	{
+		pOutPacket->reserve(pInPacket->size());
+		int size = decrypt(pInPacket->data(), pOutPacket->data() + pOutPacket->rpos(),  pInPacket->wpos());
+		pOutPacket->wpos(size + pOutPacket->rpos());
+	}
+	else
+	{
+		decrypt(pInPacket->data(), pInPacket->data(),  pInPacket->wpos());
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -196,7 +232,7 @@ int BlowfishFilter::decrypt( const unsigned char * src, unsigned char * dest,
 {
 	if (length % BLOCK_SIZE != 0)
 	{
-		WARNING_MSG(boost::format("BlowfishFilter::decrypt: "
+		WARNING_MSG(boost::format("BlowfishFilter::decrypt:"
 			"Input stream size (%1%) is not a multiple of the block size (%2%)\n") %
 			length % BLOCK_SIZE);
 

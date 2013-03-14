@@ -392,7 +392,7 @@ void init_network(void)
 		// 连接游戏登陆进程
 		printf("连接游戏登陆进程\n");
 		u_int32_t address;
-		std::string ip = "192.168.2.36";
+		std::string ip = "127.0.0.1";
 		mysocket.convertAddress(ip.c_str(), address );
 		if(mysocket.connect(htons(port), address) == -1)
 		{
@@ -1314,7 +1314,7 @@ int main(int argc, char* argv[])
 	packet00 << "abcdefh";
 	aaa.encrypt(&packet00, &packet99);
 
-	aaa.decrypt(&packet99, &packet11);
+	aaa.decrypt(&packet99, &packet99);
 	//LOG4CXX_INFO("Attempted to " << " in MemoryStream (pos:" << 111 <<  "size: " << 222 << ").\n");
 	init_network();
 	gdispatcher.processUntilBreak();
