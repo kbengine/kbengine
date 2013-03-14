@@ -41,7 +41,8 @@ public:
 
 	virtual ~KBEBlowfish();
 	KBEBlowfish(const Key & key);
-	
+	KBEBlowfish(int keySize = DEFAULT_KEY_SIZE);
+
 	const Key & key() const { return key_; }
 	const char * readableKey() const;
 	bool isGood() const { return isGood_; }

@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "blowfish.hpp"
 #include "helper/debug_helper.hpp"
+#include "openssl/rand.h"
 
 namespace KBEngine { 
 
@@ -32,7 +33,25 @@ pBFKey_(0)
 {
 	if (initKey())
 	{
-		DEBUG_MSG(boost::format("Using Blowfish key: %1%\n") % this->readableKey());
+		DEBUG_MSG(boost::format("KBEBlowfish::KBEBlowfish(): Using Blowfish key: %1%\n") % 
+			this->readableKey());
+	}
+}
+
+//-------------------------------------------------------------------------------------
+KBEBlowfish::KBEBlowfish(int keySize):
+	key_(keySize, 0),
+	keySize_(keySize),
+	isGood_(false),
+	pBFKey_(0)
+{
+	RAND_bytes((unsigned char*)const_cast<char *>(key_.c_str()), 
+		key_.size());
+
+	if (this->initKey())
+	{
+		DEBUG_MSG(boost::format("KBEBlowfish::KBEBlowfish(): Using Blowfish key: %1%\n") % 
+			this->readableKey());
 	}
 }
 
