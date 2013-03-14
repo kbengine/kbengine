@@ -74,7 +74,7 @@
 			可选加密:
 				0: 无加密
 				1: blowfish
-				2: rsa
+				2: rsa (res\key\*)
 		 -->
 		<encrypt_type> 0 </encrypt_type>
 	</channelCommon> 
@@ -114,7 +114,7 @@
 			<username> kbe </username>									<!-- Type: String -->
 			<password> kbe </password>									<!-- Type: String -->
 			<!-- 为true则表示password是加密(rsa)的, 可防止明文配置 -->
-			<encrypt>false</encrypt>
+			<encrypt>true</encrypt>
 		</auth>
 		<databaseName> kbe </databaseName> 								<!-- Type: String -->
 		<numConnections> 5 </numConnections>							<!-- Type: Integer -->
@@ -201,7 +201,14 @@
 		<externalPorts_max> 0 </externalPorts_max>						<!-- Type: Integer -->
 		
 		<allowUnencryptedLogins> false </allowUnencryptedLogins>		<!-- Type: Boolean -->
-		<privateKey> server/loginapp.privkey </privateKey>				<!-- Type: String -->
+		
+		<!-- 加密登录信息
+			可选加密:
+				0: 无加密
+				1: blowfish
+				2: rsa (res\key\*)
+		 -->
+		<encrypt_login> 0 </encrypt_login>
 		
 		<!-- listen监听队列最大值 -->
 		<SOMAXCONN> 128 </SOMAXCONN>
