@@ -1,4 +1,6 @@
 <root>
+	<version_info> 0.1.0 </version_info>
+	
 	<gameUpdateHertz> 10 </gameUpdateHertz>
 	<bitsPerSecondToClient> 20000 </bitsPerSecondToClient> <!-- Type: Integer -->
 	
