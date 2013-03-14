@@ -74,7 +74,7 @@
 			可选加密:
 				0: 无加密
 				1: blowfish
-				2: rsa (res\key\*)
+				2: rsa (res\key\kbengine_private.key)
 		 -->
 		<encrypt_type> 0 </encrypt_type>
 	</channelCommon> 
@@ -206,7 +206,7 @@
 			可选加密:
 				0: 无加密
 				1: blowfish
-				2: rsa (res\key\*)
+				2: rsa (res\key\kbengine_private.key)
 		 -->
 		<encrypt_login> 0 </encrypt_login>
 		
