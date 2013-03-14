@@ -161,6 +161,16 @@ public:
 		某个app请求查看该app负载状态， 通常是console请求查看
 	*/
 	virtual void queryLoad(Mercury::Channel* pChannel);
+
+	/** 网络接口
+		客户端与服务端第一次建立交互, 客户端发送自己的版本号与通讯密钥等信息
+		给服务端， 服务端返回是否握手成功
+	*/
+	virtual void hello(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onHello(Mercury::Channel* pChannel, 
+		const std::string& verInfo, 
+		const std::string& encryptedKey);
+
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID

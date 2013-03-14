@@ -33,6 +33,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
 #include "network/fixed_messages.hpp"
+#include "network/encryption_filter.hpp"
 #include "server/componentbridge.hpp"
 #include "server/components.hpp"
 #include "math/math.hpp"
@@ -2130,6 +2131,16 @@ void Baseapp::onWriteToDBCallback(Mercury::Channel* pChannel, ENTITY_ID eid,
 	}
 
 	base->onWriteToDBCallback(eid, entityDBID, callbackID, success);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onHello(Mercury::Channel* pChannel, 
+						const std::string& verInfo, 
+						const std::string& encryptedKey)
+{
+	// 替换为一个加密的过滤器
+	Mercury::BlowfishFilter* pFilter = new Mercury::BlowfishFilter(encryptedKey);
+	pChannel->pFilter(new Mercury::BlowfishFilter(encryptedKey));
 }
 
 //-------------------------------------------------------------------------------------

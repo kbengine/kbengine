@@ -33,8 +33,8 @@ pBFKey_(0)
 {
 	if (initKey())
 	{
-		DEBUG_MSG(boost::format("KBEBlowfish::KBEBlowfish(): Using Blowfish key: %1%\n") % 
-			this->readableKey());
+		//DEBUG_MSG(boost::format("KBEBlowfish::KBEBlowfish(): Using Blowfish key: %1%\n") % 
+		//	this->readableKey());
 	}
 }
 

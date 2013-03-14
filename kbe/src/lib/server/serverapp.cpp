@@ -439,5 +439,36 @@ void ServerApp::queryLoad(Mercury::Channel* pChannel)
 {
 }
 
+//-------------------------------------------------------------------------------------
+void ServerApp::hello(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	std::string verInfo, encryptedKey;
+
+	s >> verInfo;
+	s.readBlob(encryptedKey);
+
+	char buf[1024];
+	char *c = buf;
+
+	for (int i=0; i < (int)encryptedKey.size(); i++)
+	{
+		c += sprintf(c, "%02hhX ", (unsigned char)encryptedKey.data()[i]);
+	}
+
+	c[-1] = '\0';
+
+	INFO_MSG(boost::format("ServerApp::onHello: verInfo=%1%, encryptedKey=%2%, addr:%3%") % 
+		verInfo % buf % pChannel->c_str());
+
+	onHello(pChannel, verInfo, encryptedKey);
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::onHello(Mercury::Channel* pChannel, 
+						const std::string& verInfo, 
+						const std::string& encryptedKey)
+{
+}
+
 //-------------------------------------------------------------------------------------		
 }

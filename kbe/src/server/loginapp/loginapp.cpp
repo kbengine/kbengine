@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/componentbridge.hpp"
 #include "server/components.hpp"
 #include "client_lib/client_interface.hpp"
+#include "network/encryption_filter.hpp"
 
 #include "baseapp/baseapp_interface.hpp"
 #include "baseappmgr/baseappmgr_interface.hpp"
@@ -498,6 +499,15 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Mercury::Channel* pC
 	bundle.send(this->getNetworkInterface(), pClientChannel);
 
 	SAFE_RELEASE(infos);
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::onHello(Mercury::Channel* pChannel, 
+						const std::string& verInfo, 
+						const std::string& encryptedKey)
+{
+	// 替换为一个加密的过滤器
+	pChannel->pFilter(new Mercury::BlowfishFilter(encryptedKey));
 }
 
 //-------------------------------------------------------------------------------------

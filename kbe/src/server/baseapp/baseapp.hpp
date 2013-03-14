@@ -321,6 +321,10 @@ public:
 		hook mailboxcall
 	*/
 	RemoteEntityMethod* createMailboxCallEntityRemoteMethod(MethodDescription* md, EntityMailbox* pMailbox);
+
+	virtual void onHello(Mercury::Channel* pChannel, 
+		const std::string& verInfo, 
+		const std::string& encryptedKey);
 protected:
 	TimerHandle								loopCheckTimerHandle_;
 

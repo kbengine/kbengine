@@ -70,6 +70,10 @@ public:
 	bool initializeEnd();
 	void finalise();
 	
+	virtual void onHello(Mercury::Channel* pChannel, 
+		const std::string& verInfo, 
+		const std::string& encryptedKey);
+
 	/** 网络接口
 		某个client向本app告知处于活动状态。
 	*/
