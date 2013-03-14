@@ -89,7 +89,7 @@ int KBEBlowfish::encrypt( const unsigned char * src, unsigned char * dest,
 	{
 		CRITICAL_MSG(boost::format("Blowfish::encrypt: "
 			"Input length (%1%) is not a multiple of block size (%2%)\n") %
-			length % BLOCK_SIZE);
+			length % (BLOCK_SIZE));
 	}
 
 	uint64 * pPrevBlock = NULL;
@@ -119,7 +119,7 @@ int KBEBlowfish::decrypt( const unsigned char * src, unsigned char * dest,
 	{
 		WARNING_MSG(boost::format("Blowfish::decrypt:"
 			"Input stream size (%1%) is not a multiple of the block size (%2%)\n") %
-			length % BLOCK_SIZE);
+			length % (BLOCK_SIZE));
 
 		return -1;
 	}
