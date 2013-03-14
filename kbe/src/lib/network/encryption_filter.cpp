@@ -34,66 +34,20 @@ namespace Mercury
 
 //-------------------------------------------------------------------------------------
 BlowfishFilter::BlowfishFilter(const Key & key):
-key_(key),
-keySize_(key.size()),
-isGood_(false),
-pBFKey_(0)
+KBEBlowfish(key)
 {
-	if (initKey())
-	{
-		DEBUG_MSG(boost::format("Using Blowfish key: %1%\n") % this->readableKey());
-	}
 }
 
 //-------------------------------------------------------------------------------------
 BlowfishFilter::~BlowfishFilter()
 {
-	delete this->pBFKey();
-	pBFKey_ = NULL;
-}
-
-//-------------------------------------------------------------------------------------
-bool BlowfishFilter::initKey()
-{
-	pBFKey_ = new BF_KEY;
-
-	if ((MIN_KEY_SIZE <= keySize_) && (keySize_ <= MAX_KEY_SIZE))
-	{
-		BF_set_key(this->pBFKey(), key_.size(), (unsigned char*)key_.c_str() );
-		isGood_ = true;
-	}
-	else
-	{
-		ERROR_MSG(boost::format("BlowfishFilter::initKey: "
-			"invalid length %1%\n") %
-			keySize_ );
-
-		isGood_ = false;
-	}
-
-	return isGood_;
-}
-
-//-------------------------------------------------------------------------------------
-const char * BlowfishFilter::readableKey() const
-{
-	static char buf[1024];
-	char *c = buf;
-
-	for (int i=0; i < keySize_; i++)
-	{
-		c += sprintf(c, "%02hhX ", (unsigned char)key_[i]);
-	}
-
-	c[-1] = '\0';
-	return buf;
 }
 
 //-------------------------------------------------------------------------------------
 Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChannel, Packet * pPacket)
 {
 	{
-		AUTO_SCOPED_PROFILE( "encryptSend" )
+		AUTO_SCOPED_PROFILE("encryptSend")
 
 		if (!isGood_)
 		{
@@ -132,7 +86,7 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket)
 {
 	{
-		AUTO_SCOPED_PROFILE( "encryptRecv" )
+		AUTO_SCOPED_PROFILE("encryptRecv")
 
 		if (!isGood_)
 		{
@@ -171,12 +125,12 @@ void BlowfishFilter::encrypt(Packet * pInPacket, Packet * pOutPacket)
 	if(pInPacket != pOutPacket)
 	{
 		pOutPacket->reserve(pInPacket->size());
-		int size = encrypt(pInPacket->data(), pOutPacket->data() + pOutPacket->rpos(),  pInPacket->wpos());
+		int size = KBEBlowfish::encrypt(pInPacket->data(), pOutPacket->data() + pOutPacket->rpos(),  pInPacket->wpos());
 		pOutPacket->wpos(size + pOutPacket->rpos());
 	}
 	else
 	{
-		encrypt(pInPacket->data(), pInPacket->data(),  pInPacket->wpos());
+		KBEBlowfish::encrypt(pInPacket->data(), pInPacket->data(),  pInPacket->wpos());
 	}
 }
 
@@ -186,73 +140,13 @@ void BlowfishFilter::decrypt(Packet * pInPacket, Packet * pOutPacket)
 	if(pInPacket != pOutPacket)
 	{
 		pOutPacket->reserve(pInPacket->size());
-		int size = decrypt(pInPacket->data(), pOutPacket->data() + pOutPacket->rpos(),  pInPacket->wpos());
+		int size = KBEBlowfish::decrypt(pInPacket->data(), pOutPacket->data() + pOutPacket->rpos(),  pInPacket->wpos());
 		pOutPacket->wpos(size + pOutPacket->rpos());
 	}
 	else
 	{
-		decrypt(pInPacket->data(), pInPacket->data(),  pInPacket->wpos());
+		KBEBlowfish::decrypt(pInPacket->data(), pInPacket->data(),  pInPacket->wpos());
 	}
-}
-
-//-------------------------------------------------------------------------------------
-int BlowfishFilter::encrypt( const unsigned char * src, unsigned char * dest,
-	int length )
-{
-	// BLOCK_SIZEµÄÕûÊý±¶
-	if(length % BLOCK_SIZE != 0)
-	{
-		CRITICAL_MSG(boost::format("BlowfishFilter::encrypt: "
-			"Input length (%1%) is not a multiple of block size (%2%)\n") %
-			length % BLOCK_SIZE);
-	}
-
-	uint64 * pPrevBlock = NULL;
-	for (int i=0; i < length; i += BLOCK_SIZE)
-	{
-		if (pPrevBlock)
-		{
-			*(uint64*)(dest + i) = *(uint64*)(src + i) ^ (*pPrevBlock);
-		}
-		else
-		{
-			*(uint64*)(dest + i) = *(uint64*)(src + i);
-		}
-
-		BF_ecb_encrypt(dest + i, dest + i, this->pBFKey(), BF_ENCRYPT);
-		pPrevBlock = (uint64*)(src + i);
-	}
-
-	return length;
-}
-
-//-------------------------------------------------------------------------------------
-int BlowfishFilter::decrypt( const unsigned char * src, unsigned char * dest,
-	int length )
-{
-	if (length % BLOCK_SIZE != 0)
-	{
-		WARNING_MSG(boost::format("BlowfishFilter::decrypt:"
-			"Input stream size (%1%) is not a multiple of the block size (%2%)\n") %
-			length % BLOCK_SIZE);
-
-		return -1;
-	}
-
-	uint64 * pPrevBlock = NULL;
-	for (int i=0; i < length; i += BLOCK_SIZE)
-	{
-		BF_ecb_encrypt(src + i, dest + i, this->pBFKey(), BF_DECRYPT);
-
-		if (pPrevBlock)
-		{
-			*(uint64*)(dest + i) ^= *pPrevBlock;
-		}
-
-		pPrevBlock = (uint64*)(dest + i);
-	}
-
-	return length;
 }
 
 //-------------------------------------------------------------------------------------

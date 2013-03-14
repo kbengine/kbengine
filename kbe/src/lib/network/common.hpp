@@ -46,6 +46,9 @@ const ChannelID CHANNEL_ID_NULL = 0;
 extern float g_channelInternalTimeout;
 extern float g_channelExternalTimeout;
 
+// 外部通道加密类别
+extern int8 g_channelExternalEncryptType;
+
 // listen监听队列最大值
 extern uint32 g_SOMAXCONN;
 

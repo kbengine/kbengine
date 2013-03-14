@@ -1,6 +1,7 @@
 LIB =	cstdkbe
 
 SRCS =				\
+	blowfish		\
 	cstdkbe			\
 	tasks			\
 	timer			\

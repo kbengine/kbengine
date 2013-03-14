@@ -181,6 +181,12 @@ bool ServerConfig::loadConfig(std::string fileName)
 					Mercury::g_extReceiveWindowBytesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
 			}
 		};
+
+		childnode = xml->enterNode(rootNode, "encrypt_type");
+		if(childnode)
+		{
+			Mercury::g_channelExternalEncryptType = xml->getValInt(childnode);
+		}
 	}
 
 	rootNode = xml->getRootNode("gameUpdateHertz");
@@ -551,6 +557,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node =  xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
 			_loginAppInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
+
+		node =  xml->enterNode(rootNode, "encrypt_login");
+		if(node != NULL){
+			_loginAppInfo.encrypt_login = xml->getValInt(node);
 		}
 	}
 	

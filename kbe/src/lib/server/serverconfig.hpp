@@ -140,6 +140,8 @@ typedef struct EngineComponentInfo
 	uint32 defaultAddBots_tickCount;						// 默认启动进程后自动添加这么多个bots 每次添加数量
 
 	uint32 tcp_SOMAXCONN;									// listen监听队列最大值
+
+	int8 encrypt_login;										// 加密登录信息
 }ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>

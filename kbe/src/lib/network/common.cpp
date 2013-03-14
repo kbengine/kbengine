@@ -37,6 +37,8 @@ namespace Mercury
 float g_channelInternalTimeout = 60.f;
 float g_channelExternalTimeout = 60.f;
 
+int8 g_channelExternalEncryptType = 0;
+
 uint32 g_SOMAXCONN = 5;
 
 // mercury stats
