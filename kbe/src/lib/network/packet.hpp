@@ -40,6 +40,7 @@ public:
 	MemoryStream(res),
 	msgID_(msgID),
 	isTCPPacket_(isTCPPacket),
+	encrypted_(false),
 	sentSize(0)
 	{
 	};
@@ -48,9 +49,10 @@ public:
 	{
 	};
 	
-	void onReclaimObject()
+	virtual void onReclaimObject()
 	{
 		MemoryStream::onReclaimObject();
+		resetPacket();
 	}
 
 	virtual int recvFromEndPoint(EndPoint & ep, Address* pAddr = NULL) = 0;
@@ -62,6 +64,9 @@ public:
 	{
 		wpos(0);
 		rpos(0);
+		encrypted_ = false;
+		sentSize = 0;
+		msgID_ = 0;
 		// memset(data(), 0, size());
 	};
 	
@@ -72,9 +77,12 @@ public:
 	inline MessageID messageID() const { return msgID_; }
 
 	bool isTCPPacket()const { return isTCPPacket_; }
+
+	bool encrypted()const { return encrypted_; }
 protected:
 	MessageID msgID_;
 	bool isTCPPacket_;
+	bool encrypted_;
 public:
 	uint32 sentSize;
 

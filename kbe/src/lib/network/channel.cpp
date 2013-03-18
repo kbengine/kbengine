@@ -530,13 +530,17 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 
 	if (this->isDestroyed())
 	{
-		ERROR_MSG(boost::format("Channel::handleMessage(%1%): channel[%2%] is destroyed.\n") % this->c_str() % this);
+		ERROR_MSG(boost::format("Channel::handleMessage(%1%): channel[%2%] is destroyed.\n") % 
+			this->c_str() % this);
+
 		return;
 	}
 
 	if(this->isCondemn())
 	{
-		ERROR_MSG(boost::format("Channel::handleMessage(%1%): channel[%2%] is condemn.\n") % this->c_str() % this);
+		ERROR_MSG(boost::format("Channel::handleMessage(%1%): channel[%2%] is condemn.\n") % 
+			this->c_str() % this);
+
 		//this->destroy();
 		return;
 	}

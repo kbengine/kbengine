@@ -65,6 +65,9 @@ namespace udp{
 namespace tcp{
 }
 
+// 加密额外存储的信息占用字节(长度+填充)
+#define ENCRYPTTION_WASTAGE_SIZE			(1 + 7)
+
 #define PACKET_MAX_SIZE						1500
 #define PACKET_MAX_SIZE_TCP					1460
 #define PACKET_MAX_SIZE_UDP					1472
@@ -74,7 +77,8 @@ namespace tcp{
 #define MERCURY_MESSAGE_MAX_SIZE			65535
 
 // 游戏内容可用包大小
-#define GAME_PACKET_MAX_SIZE_TCP			PACKET_MAX_SIZE_TCP - MERCURY_MESSAGE_ID_SIZE - MERCURY_MESSAGE_LENGTH_SIZE
+#define GAME_PACKET_MAX_SIZE_TCP			PACKET_MAX_SIZE_TCP - MERCURY_MESSAGE_ID_SIZE - \
+											MERCURY_MESSAGE_LENGTH_SIZE - ENCRYPTTION_WASTAGE_SIZE
 
 /** kbe machine端口 */
 #define KBE_PORT_START						20000

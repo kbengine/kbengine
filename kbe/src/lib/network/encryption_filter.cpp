@@ -63,26 +63,9 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 
 			return REASON_GENERAL_NETWORK;
 		}
-
-		Packet * pSendPacket = NULL;
-		if(pPacket->isTCPPacket())
-			pSendPacket = TCPPacket::ObjPool().createObject();
-		else
-			pSendPacket = UDPPacket::ObjPool().createObject();
-
-		pSendPacket->messageID(pPacket->messageID());
-		encrypt(pPacket, pSendPacket);
-		Reason reason = networkInterface.basicSendWithRetries(pChannel, pSendPacket);
 		
-		// 如果本次包只成功发送了一部分则等待下一tick再次加密send
-		pPacket->sentSize = pSendPacket->sentSize;
-
-		if(pPacket->isTCPPacket())
-			TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket *>(pSendPacket));
-		else
-			UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket *>(pSendPacket));
-		
-		return reason;
+		if(pPacket->encrypted())
+			encrypt(pPacket, pPacket);
 	}
 
 	return networkInterface.basicSendWithRetries(pChannel, pPacket);
