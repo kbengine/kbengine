@@ -49,6 +49,9 @@ namespace KBEngine{
 	CLIENT所有消息接口在此定义
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
+	// 服务端hello返回。
+	CLIENT_MESSAGE_DECLARE_STREAM(onHelloCB,					MERCURY_FIXED_MESSAGE)
+
 	// 创建账号失败。
 	CLIENT_MESSAGE_DECLARE_STREAM(onCreateAccountResult,		MERCURY_FIXED_MESSAGE)
 

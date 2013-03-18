@@ -31,6 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/scriptdef_module.hpp"
 #include "entitydef/entitydef.hpp"
 #include "client_lib/client_interface.hpp"
+#include "cstdkbe/kbeversion.hpp"
 
 #include "baseapp/baseapp_interface.hpp"
 #include "cellapp/cellapp_interface.hpp"
@@ -55,7 +56,8 @@ SCRIPT_INIT(ClientObject, 0, 0, 0, 0, 0)
 ClientObject::ClientObject(std::string name, Mercury::NetworkInterface& ninterface):
 ClientObjectBase(ninterface, getScriptType()),
 error_(C_ERROR_NONE),
-state_(C_STATE_INIT)
+state_(C_STATE_INIT),
+pBlowfishFilter_(0)
 {
 	name_ = name;
 	typeClient_ = CLIENT_TYPE_BOTS;
@@ -65,6 +67,7 @@ state_(C_STATE_INIT)
 //-------------------------------------------------------------------------------------
 ClientObject::~ClientObject()
 {
+	SAFE_RELEASE(pBlowfishFilter_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -104,6 +107,23 @@ bool ClientObject::initCreate()
 
 	pServerChannel_->pMsgHandlers(&ClientInterface::messageHandlers);
 	Bots::getSingleton().pEventPoller()->registerForRead((*pEndpoint), this);
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(LoginappInterface::hello);
+	(*pBundle) << KBEVersion::versionString();
+
+	if(Mercury::g_channelExternalEncryptType > 0)
+	{
+		pBlowfishFilter_ = new Mercury::BlowfishFilter();
+		(*pBundle).appendBlob(pBlowfishFilter_->key());
+	}
+	else
+	{
+		std::string key = "";
+		(*pBundle).appendBlob(key);
+	}
+
+	pServerChannel_->bundles().push_back(pBundle);
 	return true;
 }
 
@@ -190,6 +210,24 @@ bool ClientObject::initLoginGateWay()
 
 	Bots::getSingleton().pEventPoller()->registerForRead((*pEndpoint), this);
 	connectedGateway_ = true;
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::hello);
+	(*pBundle) << KBEVersion::versionString();
+	
+	if(Mercury::g_channelExternalEncryptType > 0)
+	{
+		pBlowfishFilter_ = new Mercury::BlowfishFilter();
+		(*pBundle).appendBlob(pBlowfishFilter_->key());
+		pServerChannel_->pFilter(NULL);
+	}
+	else
+	{
+		std::string key = "";
+		(*pBundle).appendBlob(key);
+	}
+
+	pServerChannel_->bundles().push_back(pBundle);
 	return true;
 }
 
@@ -205,7 +243,15 @@ void ClientObject::gameTick()
 
 			state_ = C_STATE_PLAY;
 
-			if(!initCreate() || !createAccount())
+			if(!initCreate())
+				return;
+
+			break;
+		case C_STATE_CREATE:
+
+			state_ = C_STATE_PLAY;
+
+			if(!createAccount())
 				return;
 
 			break;
@@ -217,11 +263,19 @@ void ClientObject::gameTick()
 				return;
 
 			break;
+		case C_STATE_LOGIN_GATEWAY_CREATE:
+
+			state_ = C_STATE_PLAY;
+
+			if(!initLoginGateWay())
+				return;
+
+			break;
 		case C_STATE_LOGIN_GATEWAY:
 
 			state_ = C_STATE_PLAY;
 
-			if(!initLoginGateWay() || !loginGateWay())
+			if(!loginGateWay())
 				return;
 
 			break;
@@ -233,6 +287,26 @@ void ClientObject::gameTick()
 	};
 
 	tickSend();
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientObject::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
+		COMPONENT_TYPE componentType)
+{
+	if(Mercury::g_channelExternalEncryptType > 0)
+	{
+		pChannel->pFilter(pBlowfishFilter_);
+		pBlowfishFilter_ = NULL;
+	}
+
+	if(componentType == LOGINAPP_TYPE)
+	{
+		state_ = C_STATE_CREATE;
+	}
+	else
+	{
+		state_ = C_STATE_LOGIN_GATEWAY;
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -266,7 +340,7 @@ void ClientObject::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream
 
 	INFO_MSG(boost::format("ClientObject::onLoginSuccessfully: %1% addr=%2%:%3%!\n") % name_ % ip_ % port_);
 
-	state_ = C_STATE_LOGIN_GATEWAY;
+	state_ = C_STATE_LOGIN_GATEWAY_CREATE;
 }
 
 //-------------------------------------------------------------------------------------	

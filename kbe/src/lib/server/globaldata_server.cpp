@@ -70,8 +70,8 @@ bool GlobalDataServer::del(Mercury::Channel* pChannel, COMPONENT_TYPE componentT
 void GlobalDataServer::broadcastDataChange(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, 
 										const std::string& key, const std::string& value, bool isDelete)
 {
-	INFO_MSG(boost::format("GlobalDataServer::broadcastDataChange: writer(%1%), key_size=%2%, val_size=%3%, isdelete=%4%.\n") %
-		COMPONENT_NAME_EX(componentType) % key.size() % value.size() % (int)isDelete);
+	INFO_MSG(boost::format("GlobalDataServer::broadcastDataChange: writer(%1%, addr=%5%), key_size=%2%, val_size=%3%, isdelete=%4%\n") %
+		COMPONENT_NAME_EX(componentType) % key.size() % value.size() % (int)isDelete % pChannel->c_str());
 
 	std::vector<COMPONENT_TYPE>::iterator iter = concernComponentTypes_.begin();
 	for(; iter != concernComponentTypes_.end(); iter++)
@@ -88,16 +88,22 @@ void GlobalDataServer::broadcastDataChange(Mercury::Channel* pChannel, COMPONENT
 			if(pChannel == lpChannel)
 				continue;
 
+			if(dataType_ == GLOBAL_BASES && iter1->componentType != BASEAPP_TYPE)
+				continue;
+				
+			if(dataType_ == CELLAPP_DATA && iter1->componentType != CELLAPP_TYPE)
+				continue;
+
 			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
 			switch(dataType_)
 			{
 			case GLOBAL_DATA:
-				if(componentType == CELLAPP_TYPE)
+				if(iter1->componentType == CELLAPP_TYPE)
 				{
 					(*pBundle).newMessage(CellappInterface::onBroadcastGlobalDataChange);
 				}
-				else if(componentType == BASEAPP_TYPE)
+				else if(iter1->componentType == BASEAPP_TYPE)
 				{
 					(*pBundle).newMessage(BaseappInterface::onBroadcastGlobalDataChange);
 				}
@@ -163,10 +169,22 @@ void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONE
 			}
 			break;
 		case GLOBAL_BASES:
-			(*pBundle).newMessage(BaseappInterface::onBroadcastGlobalDataChange);
+			if(componentType != BASEAPP_TYPE)
+			{
+				Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+				continue;
+			}
+
+			(*pBundle).newMessage(BaseappInterface::onBroadcastGlobalBasesChange);
 			break;
 		case CELLAPP_DATA:
-			(*pBundle).newMessage(CellappInterface::onBroadcastGlobalDataChange);
+			if(componentType != CELLAPP_TYPE)
+			{
+				Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+				continue;
+			}
+
+			(*pBundle).newMessage(CellappInterface::onBroadcastCellAppDataChange);
 			break;
 		default:
 			KBE_ASSERT(false && "dataType is error!\n");

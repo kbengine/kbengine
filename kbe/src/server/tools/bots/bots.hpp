@@ -135,6 +135,9 @@ public:
 	*/
 	void onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, COMPONENT_ID componentID);
 
+	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
+		COMPONENT_TYPE componentType);
+
 	/** 网络接口
 		创建账号成功和失败回调
 	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 

@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "client_lib/entity.hpp"
 #include "client_lib/clientobjectbase.hpp"
 #include "network/tcp_packet_receiver.hpp"
+#include "network/encryption_filter.hpp"
 #include "pyscript/pyobject_pointer.hpp"
 
 namespace KBEngine{ 
@@ -50,9 +51,11 @@ public:
 	enum C_STATE
 	{
 		C_STATE_INIT = 0,
-		C_STATE_LOGIN = 1,
-		C_STATE_LOGIN_GATEWAY = 2,
-		C_STATE_PLAY = 3,
+		C_STATE_CREATE = 1,
+		C_STATE_LOGIN = 2,
+		C_STATE_LOGIN_GATEWAY_CREATE = 3,
+		C_STATE_LOGIN_GATEWAY = 4,
+		C_STATE_PLAY = 5,
 	};
 
 	ClientObject(std::string name, Mercury::NetworkInterface& ninterface);
@@ -66,6 +69,9 @@ public:
 	void gameTick();
 
 	ClientObject::C_ERROR lasterror(){ return error_; }
+
+	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
+		COMPONENT_TYPE componentType);
 
 	/** 网络接口
 		创建账号成功和失败回调
@@ -95,6 +101,7 @@ public:
 protected:
 	C_ERROR error_;
 	C_STATE state_;
+	Mercury::BlowfishFilter* pBlowfishFilter_;
 };
 
 

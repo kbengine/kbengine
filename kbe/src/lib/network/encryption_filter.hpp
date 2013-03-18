@@ -49,7 +49,8 @@ public:
 
 	virtual ~BlowfishFilter();
 	BlowfishFilter(const Key & key);
-	
+	BlowfishFilter();
+
 	virtual Reason send(NetworkInterface & networkInterface, Channel * pChannel, Packet * pPacket);
 
 	virtual Reason recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket);
@@ -71,6 +72,21 @@ class BlowfishFilter : public EncryptionFilter
 #endif
 
 typedef SmartPointer<BlowfishFilter> BlowfishFilterPtr;
+
+inline EncryptionFilter* createEncryptionFilter(int8 type, const std::string& datas)
+{
+	EncryptionFilter* pEncryptionFilter = NULL;
+	switch(type)
+	{
+	case 1:
+		pEncryptionFilter = new BlowfishFilter(datas);
+		break;
+	default:
+		break;
+	}
+
+	return pEncryptionFilter;
+}
 
 }
 }

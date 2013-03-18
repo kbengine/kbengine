@@ -114,6 +114,14 @@ public:
 	virtual Mercury::Channel* findChannelByMailbox(EntityMailbox& mailbox);
 
 	/** 网络接口
+		客户端与服务端第一次建立交互, 服务端返回
+	*/
+	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
+		COMPONENT_TYPE componentType);
+
+	virtual void onHelloCB(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
 		创建账号成功和失败回调
 	   @failedcode: 失败返回码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
 									MERCURY_ERR_ACCOUNT_CREATE:创建失败（已经存在）, 

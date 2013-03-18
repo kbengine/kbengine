@@ -97,6 +97,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									int32,									startGlobalOrder,
 									int32,									startGroupOrder)
 
+	// hello握手。
+	BASEAPP_MESSAGE_DECLARE_STREAM(hello,									MERCURY_VARIABLE_MESSAGE)
+
 	// global数据改变
 	BASEAPP_MESSAGE_DECLARE_STREAM(onBroadcastGlobalDataChange,				MERCURY_VARIABLE_MESSAGE)
 	BASEAPP_MESSAGE_DECLARE_STREAM(onBroadcastGlobalBasesChange,			MERCURY_VARIABLE_MESSAGE)

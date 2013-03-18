@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
 #include "thread/threadpool.hpp"
+#include "cstdkbe/kbeversion.hpp"
 #include "server/componentbridge.hpp"
 #include "server/components.hpp"
 #include "client_lib/client_interface.hpp"
@@ -506,8 +507,28 @@ void Loginapp::onHello(Mercury::Channel* pChannel,
 						const std::string& verInfo, 
 						const std::string& encryptedKey)
 {
-	// 替换为一个加密的过滤器
-	pChannel->pFilter(new Mercury::BlowfishFilter(encryptedKey));
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	pBundle->newMessage(ClientInterface::onHelloCB);
+	(*pBundle) << KBEVersion::versionString();
+	(*pBundle) << g_componentType;
+	(*pBundle).send(getNetworkInterface(), pChannel);
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	if(Mercury::g_channelExternalEncryptType > 0)
+	{
+		if(encryptedKey.size() > 3)
+		{
+			// 替换为一个加密的过滤器
+			pChannel->pFilter(Mercury::createEncryptionFilter(Mercury::g_channelExternalEncryptType, encryptedKey));
+		}
+		else
+		{
+			WARNING_MSG(boost::format("Loginapp::onHello: client is not encrypted, addr=%1%\n") 
+				% pChannel->c_str());
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------

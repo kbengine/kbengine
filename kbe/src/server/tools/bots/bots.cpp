@@ -388,6 +388,17 @@ void Bots::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE componentT
 }
 
 //-------------------------------------------------------------------------------------
+void Bots::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
+		COMPONENT_TYPE componentType)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onHelloCB_(pChannel, verInfo, componentType);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void Bots::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	ClientObject* pClient = findClient(pChannel);

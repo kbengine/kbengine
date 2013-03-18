@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "forward_message_over_handler.hpp"
 #include "sync_entitystreamtemplate_handler.hpp"
 #include "cstdkbe/timestamp.hpp"
+#include "cstdkbe/kbeversion.hpp"
 #include "network/common.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/udp_packet.hpp"
@@ -2138,9 +2139,28 @@ void Baseapp::onHello(Mercury::Channel* pChannel,
 						const std::string& verInfo, 
 						const std::string& encryptedKey)
 {
-	// 替换为一个加密的过滤器
-	Mercury::BlowfishFilter* pFilter = new Mercury::BlowfishFilter(encryptedKey);
-	pChannel->pFilter(new Mercury::BlowfishFilter(encryptedKey));
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	pBundle->newMessage(ClientInterface::onHelloCB);
+	(*pBundle) << KBEVersion::versionString();
+	(*pBundle) << g_componentType;
+	(*pBundle).send(getNetworkInterface(), pChannel);
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	if(Mercury::g_channelExternalEncryptType > 0)
+	{
+		if(encryptedKey.size() > 3)
+		{
+			// 替换为一个加密的过滤器
+			pChannel->pFilter(Mercury::createEncryptionFilter(Mercury::g_channelExternalEncryptType, encryptedKey));
+		}
+		else
+		{
+			WARNING_MSG(boost::format("Baseapp::onHello: client is not encrypted, addr=%1%\n") 
+				% pChannel->c_str());
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------

@@ -395,6 +395,12 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 }
 
 //-------------------------------------------------------------------------------------	
+void ClientApp::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
+		COMPONENT_TYPE componentType)
+{
+}
+
+//-------------------------------------------------------------------------------------	
 void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
 {
 	ClientObjectBase::onLoginSuccessfully(pChannel, s);

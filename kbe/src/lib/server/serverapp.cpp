@@ -448,16 +448,26 @@ void ServerApp::hello(Mercury::Channel* pChannel, MemoryStream& s)
 	s.readBlob(encryptedKey);
 
 	char buf[1024];
-	char *c = buf;
 
-	for (int i=0; i < (int)encryptedKey.size(); i++)
+	if(encryptedKey.size() > 3)
 	{
-		c += sprintf(c, "%02hhX ", (unsigned char)encryptedKey.data()[i]);
+		char *c = buf;
+
+		for (int i=0; i < (int)encryptedKey.size(); i++)
+		{
+			c += sprintf(c, "%02hhX ", (unsigned char)encryptedKey.data()[i]);
+		}
+
+		c[-1] = '\0';
+	}
+	else
+	{
+		encryptedKey = "";
+		sprintf(buf, "None");
+		buf[4] = '\0';
 	}
 
-	c[-1] = '\0';
-
-	INFO_MSG(boost::format("ServerApp::onHello: verInfo=%1%, encryptedKey=%2%, addr:%3%") % 
+	INFO_MSG(boost::format("ServerApp::onHello: verInfo=%1%, encryptedKey=%2%, addr:%3%\n") % 
 		verInfo % buf % pChannel->c_str());
 
 	onHello(pChannel, verInfo, encryptedKey);

@@ -116,6 +116,9 @@ public:
 	virtual void onChannelTimeOut(Mercury::Channel * pChannel);
 	virtual void onChannelDeregister(Mercury::Channel * pChannel);
 
+	virtual void onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
+		COMPONENT_TYPE componentType);
+
 	/** 网络接口
 	   登录成功
 	   @ip: 服务器ip地址

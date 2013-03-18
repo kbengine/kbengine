@@ -293,6 +293,27 @@ void ClientObjectBase::fireEvent(const EventData* pEventData)
 	eventHandler_.fire(pEventData);
 }
 
+//-------------------------------------------------------------------------------------	
+void ClientObjectBase::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
+		COMPONENT_TYPE componentType)
+{
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientObjectBase::onHelloCB(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	std::string verInfo;
+	s >> verInfo;
+	
+	COMPONENT_TYPE ctype;
+	s >> ctype;
+
+	INFO_MSG(boost::format("ClientObjectBase::onHelloCB: verInfo=%1%, addr:%2%\n") % 
+		verInfo % pChannel->c_str());
+
+	onHelloCB_(pChannel, verInfo, ctype);
+}
+
 //-------------------------------------------------------------------------------------
 bool ClientObjectBase::login()
 {
