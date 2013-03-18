@@ -372,7 +372,7 @@ bool Machine::run()
 	{
 		threadPool_.onMainThreadTick();
 		this->getMainDispatcher().processOnce(false);
-		getNetworkInterface().handleChannels(&MachineInterface::messageHandlers);
+		getNetworkInterface().processAllChannelPackets(&MachineInterface::messageHandlers);
 		KBEngine::sleep(100);
 	};
 

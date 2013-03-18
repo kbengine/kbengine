@@ -84,7 +84,7 @@ void Loginapp::handleCheckStatusTick()
 {
 	threadPool_.onMainThreadTick();
 	this->getMainDispatcher().processOnce(false);
-	getNetworkInterface().handleChannels(&LoginappInterface::messageHandlers);
+	getNetworkInterface().processAllChannelPackets(&LoginappInterface::messageHandlers);
 	pendingLoginMgr_.process();
 	pendingCreateMgr_.process();
 }

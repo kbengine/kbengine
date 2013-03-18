@@ -64,8 +64,11 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 			return REASON_GENERAL_NETWORK;
 		}
 		
-		if(pPacket->encrypted())
+		if(!pPacket->encrypted())
+		{
 			encrypt(pPacket, pPacket);
+			pPacket->encrypted(true);
+		}
 	}
 
 	return networkInterface.basicSendWithRetries(pChannel, pPacket);

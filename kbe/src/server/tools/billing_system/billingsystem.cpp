@@ -129,7 +129,7 @@ void BillingSystem::handleMainTick()
 	
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
-	getNetworkInterface().handleChannels(&BillingSystemInterface::messageHandlers);
+	getNetworkInterface().processAllChannelPackets(&BillingSystemInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------

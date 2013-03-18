@@ -58,7 +58,7 @@ bool Resourcemgr::run()
 	{
 		threadPool_.onMainThreadTick();
 		this->getMainDispatcher().processOnce(false);
-		getNetworkInterface().handleChannels(&ResourcemgrInterface::messageHandlers);
+		getNetworkInterface().processAllChannelPackets(&ResourcemgrInterface::messageHandlers);
 		KBEngine::sleep(100);
 	};
 

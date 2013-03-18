@@ -802,7 +802,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 	case 1:
 		threadPool_.onMainThreadTick();
 		_dispatcher.processOnce(false);
-		_networkInterface.handleChannels(&KBEngine::ConsoleInterface::messageHandlers);
+		_networkInterface.processAllChannelPackets(&KBEngine::ConsoleInterface::messageHandlers);
 		break;
 	case 2:
 		{
@@ -817,8 +817,6 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 			for(; iter != channels.end(); iter++)
 			{
 				Mercury::Channel* pChannel = const_cast<KBEngine::Mercury::Channel*>(iter->second);
-
-
 				Mercury::Bundle bundle;
 
 				if(pChannel->proxyID() != BOTS_TYPE)

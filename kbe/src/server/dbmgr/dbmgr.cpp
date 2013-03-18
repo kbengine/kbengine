@@ -123,7 +123,7 @@ void Dbmgr::handleMainTick()
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
 	dbThreadPool_.onMainThreadTick();
-	getNetworkInterface().handleChannels(&DbmgrInterface::messageHandlers);
+	getNetworkInterface().processAllChannelPackets(&DbmgrInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------

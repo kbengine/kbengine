@@ -581,7 +581,7 @@ void EntityApp<E>::handleGameTick()
 	g_kbetime++;
 	threadPool_.onMainThreadTick();
 	handleTimers();
-	getNetworkInterface().handleChannels(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
+	getNetworkInterface().processAllChannelPackets(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
 }
 
 template<class E>

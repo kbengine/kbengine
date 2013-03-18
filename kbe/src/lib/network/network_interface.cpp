@@ -640,13 +640,13 @@ void NetworkInterface::onPacketOut(const Packet & packet)
 }
 
 //-------------------------------------------------------------------------------------
-void NetworkInterface::handleChannels(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
+void NetworkInterface::processAllChannelPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 {
 	ChannelMap::iterator iter = channelMap_.begin();
 	for(; iter != channelMap_.end(); iter++)
 	{
 		Mercury::Channel* pChannel = iter->second;
-		pChannel->handleMessage(pMsgHandlers);
+		pChannel->processPackets(pMsgHandlers);
 	}
 }
 //-------------------------------------------------------------------------------------

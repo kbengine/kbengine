@@ -168,8 +168,9 @@ public:
 	
 	BufferedReceives& bufferedReceives(){ return bufferedReceives_; }
 		
-	void handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers);
-	
+	void processPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers);
+	void processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandlers, Packet* pPacket);
+
 	bool isCondemn()const { return isCondemn_; }
 	void condemn();
 

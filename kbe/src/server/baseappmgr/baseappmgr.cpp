@@ -88,7 +88,7 @@ void Baseappmgr::handleGameTick()
 	g_kbetime++;
 	updateBestBaseapp();
 	threadPool_.onMainThreadTick();
-	getNetworkInterface().handleChannels(&BaseappmgrInterface::messageHandlers);
+	getNetworkInterface().processAllChannelPackets(&BaseappmgrInterface::messageHandlers);
 }
 
 //-------------------------------------------------------------------------------------

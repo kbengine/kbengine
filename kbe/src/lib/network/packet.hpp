@@ -79,6 +79,8 @@ public:
 	bool isTCPPacket()const { return isTCPPacket_; }
 
 	bool encrypted()const { return encrypted_; }
+
+	void encrypted(bool v) { encrypted_ = v; }
 protected:
 	MessageID msgID_;
 	bool isTCPPacket_;

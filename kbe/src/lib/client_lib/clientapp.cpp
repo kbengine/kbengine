@@ -264,7 +264,7 @@ void ClientApp::handleGameTick()
 		lastAddr.ip = 0;
 	}
 
-	getNetworkInterface().handleChannels(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
+	getNetworkInterface().processAllChannelPackets(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
 	tickSend();
 }
 

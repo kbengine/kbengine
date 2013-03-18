@@ -59,7 +59,7 @@ bool Messagelog::run()
 	{
 		threadPool_.onMainThreadTick();
 		this->getMainDispatcher().processOnce(false);
-		getNetworkInterface().handleChannels(&MessagelogInterface::messageHandlers);
+		getNetworkInterface().processAllChannelPackets(&MessagelogInterface::messageHandlers);
 		KBEngine::sleep(10);
 	};
 

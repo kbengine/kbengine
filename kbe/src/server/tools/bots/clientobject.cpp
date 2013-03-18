@@ -235,7 +235,7 @@ bool ClientObject::initLoginGateWay()
 void ClientObject::gameTick()
 {
 	if(pServerChannel()->endpoint())
-		pServerChannel()->handleMessage(NULL);
+		pServerChannel()->processPackets(NULL);
 
 	switch(state_)
 	{

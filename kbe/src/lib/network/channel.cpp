@@ -519,7 +519,7 @@ void Channel::handshake()
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
+void Channel::processPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 {
 	lastTickBytesReceived_ = 0;
 
@@ -530,7 +530,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 
 	if (this->isDestroyed())
 	{
-		ERROR_MSG(boost::format("Channel::handleMessage(%1%): channel[%2%] is destroyed.\n") % 
+		ERROR_MSG(boost::format("Channel::processPackets(%1%): channel[%2%] is destroyed.\n") % 
 			this->c_str() % this);
 
 		return;
@@ -538,7 +538,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 
 	if(this->isCondemn())
 	{
-		ERROR_MSG(boost::format("Channel::handleMessage(%1%): channel[%2%] is condemn.\n") % 
+		ERROR_MSG(boost::format("Channel::processPackets(%1%): channel[%2%] is condemn.\n") % 
 			this->c_str() % this);
 
 		//this->destroy();
@@ -552,139 +552,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 		{
 			Packet* pPacket = (*packetIter);
 
-			while(pPacket->totalSize() > 0 || pFragmentStream_ != NULL)
-			{
-				if(fragmentDatasFlag_ == FRAGMENT_DATA_UNKNOW)
-				{
-					if(currMsgID_ == 0)
-					{
-						if(MERCURY_MESSAGE_ID_SIZE > 1 && pPacket->opsize() < MERCURY_MESSAGE_ID_SIZE)
-						{
-							writeFragmentMessage(FRAGMENT_DATA_MESSAGE_ID, pPacket, MERCURY_MESSAGE_ID_SIZE);
-							break;
-						}
-
-						(*pPacket) >> currMsgID_;
-						pPacket->messageID(currMsgID_);
-					}
-
-					Mercury::MessageHandler* pMsgHandler = pMsgHandlers->find(currMsgID_);
-
-					if(pMsgHandler == NULL)
-					{
-						MemoryStream* pPacket1 = pFragmentStream_ != NULL ? pFragmentStream_ : pPacket;
-						TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
-						
-						// 用作调试时比对
-						uint32 rpos = pPacket1->rpos();
-						pPacket1->rpos(0);
-						TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
-						pPacket1->rpos(rpos);
-
-						WARNING_MSG(boost::format("Channel::handleMessage: invalide msgID=%1%, msglen=%2%, from %3%.\n") %
-							currMsgID_ % pPacket1->opsize() % c_str());
-
-						currMsgID_ = 0;
-						currMsgLen_ = 0;
-						condemn();
-						break;
-					}
-
-					// 如果没有可操作的数据了则退出等待下一个包处理。
-					//if(pPacket->opsize() == 0)	// 可能是一个无参数数据包
-					//	break;
-					
-					if(currMsgLen_ == 0)
-					{
-						if(pMsgHandler->msgLen == MERCURY_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
-						{
-							// 如果长度信息不完整， 则等待下一个包处理
-							if(pPacket->opsize() < MERCURY_MESSAGE_LENGTH_SIZE)
-							{
-								writeFragmentMessage(FRAGMENT_DATA_MESSAGE_LENGTH, pPacket, MERCURY_MESSAGE_LENGTH_SIZE);
-								break;
-							}
-							else
-							{
-								(*pPacket) >> currMsgLen_;
-								MercuryStats::getSingleton().trackMessage(MercuryStats::RECV, *pMsgHandler, 
-									currMsgLen_ + MERCURY_MESSAGE_ID_SIZE + MERCURY_MESSAGE_LENGTH_SIZE);
-							}
-						}
-						else
-						{
-							currMsgLen_ = pMsgHandler->msgLen;
-							MercuryStats::getSingleton().trackMessage(MercuryStats::RECV, *pMsgHandler, 
-								currMsgLen_ + MERCURY_MESSAGE_LENGTH_SIZE);
-						}
-					}
-					
-					if(currMsgLen_ > pMsgHandler->msglenMax())
-					{
-						MemoryStream* pPacket1 = pFragmentStream_ != NULL ? pFragmentStream_ : pPacket;
-						TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
-
-						// 用作调试时比对
-						uint32 rpos = pPacket1->rpos();
-						pPacket1->rpos(0);
-						TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
-						pPacket1->rpos(rpos);
-
-						WARNING_MSG(boost::format("Channel::handleMessage(%1%): msglen is error! msgID=%2%, msglen=(%3%:%4%), from %5%.\n") % 
-							pMsgHandler->name.c_str() % currMsgID_ % currMsgLen_ % pPacket1->opsize() % c_str());
-
-						currMsgLen_ = 0;
-						condemn();
-						break;
-					}
-
-					if(pFragmentStream_ != NULL)
-					{
-						TRACE_BUNDLE_DATA(true, pFragmentStream_, pMsgHandler, currMsgLen_, this->c_str());
-						pMsgHandler->handle(this, *pFragmentStream_);
-						MemoryStream::ObjPool().reclaimObject(pFragmentStream_);
-						pFragmentStream_ = NULL;
-					}
-					else
-					{
-						if(pPacket->opsize() < currMsgLen_)
-						{
-							writeFragmentMessage(FRAGMENT_DATA_MESSAGE_BODY, pPacket, currMsgLen_);
-							break;
-						}
-
-						// 临时设置有效读取位， 防止接口中溢出操作
-						size_t wpos = pPacket->wpos();
-						// size_t rpos = pPacket->rpos();
-						size_t frpos = pPacket->rpos() + currMsgLen_;
-						pPacket->wpos(frpos);
-
-						TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, currMsgLen_, this->c_str());
-						pMsgHandler->handle(this, *pPacket);
-
-						// 防止handle中没有将数据导出获取非法操作
-						if(currMsgLen_ > 0)
-						{
-							if(frpos != pPacket->rpos())
-							{
-								CRITICAL_MSG(boost::format("Channel::handleMessage(%s): rpos(%d) invalid, expect=%d. msgID=%d, msglen=%d.\n") %
-									pMsgHandler->name.c_str() % pPacket->rpos() % frpos % currMsgID_ % currMsgLen_);
-
-								pPacket->rpos(frpos);
-							}
-						}
-
-						pPacket->wpos(wpos);
-					}
-
-					currMsgID_ = 0;
-					currMsgLen_ = 0;
-				}
-				else
-				{
-					mergeFragmentMessage(pPacket);
-				}
-			}
+			processMessages(pMsgHandlers, pPacket);
 
 			if(pPacket->isTCPPacket())
 				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
@@ -694,7 +562,7 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 		}
 	}catch(MemoryStreamException &)
 	{
-		WARNING_MSG(boost::format("Channel::handleMessage(%1%): packet invalid. currMsgID=%2%, currMsgLen=%3%\n") %
+		WARNING_MSG(boost::format("Channel::processPackets(%1%): packet invalid. currMsgID=%2%, currMsgLen=%3%\n") %
 																this->c_str() % currMsgID_ % currMsgLen_);
 
 		currMsgID_ = 0;
@@ -703,6 +571,144 @@ void Channel::handleMessage(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 	}
 
 	bufferedReceives_.clear();
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandlers, Packet* pPacket)
+{
+	while(pPacket->totalSize() > 0 || pFragmentStream_ != NULL)
+	{
+		if(fragmentDatasFlag_ == FRAGMENT_DATA_UNKNOW)
+		{
+			if(currMsgID_ == 0)
+			{
+				if(MERCURY_MESSAGE_ID_SIZE > 1 && pPacket->opsize() < MERCURY_MESSAGE_ID_SIZE)
+				{
+					writeFragmentMessage(FRAGMENT_DATA_MESSAGE_ID, pPacket, MERCURY_MESSAGE_ID_SIZE);
+					break;
+				}
+
+				(*pPacket) >> currMsgID_;
+				pPacket->messageID(currMsgID_);
+			}
+
+			Mercury::MessageHandler* pMsgHandler = pMsgHandlers->find(currMsgID_);
+
+			if(pMsgHandler == NULL)
+			{
+				MemoryStream* pPacket1 = pFragmentStream_ != NULL ? pFragmentStream_ : pPacket;
+				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
+				
+				// 用作调试时比对
+				uint32 rpos = pPacket1->rpos();
+				pPacket1->rpos(0);
+				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
+				pPacket1->rpos(rpos);
+
+				WARNING_MSG(boost::format("Channel::processMessages: invalide msgID=%1%, msglen=%2%, from %3%.\n") %
+					currMsgID_ % pPacket1->opsize() % c_str());
+
+				currMsgID_ = 0;
+				currMsgLen_ = 0;
+				condemn();
+				break;
+			}
+
+			// 如果没有可操作的数据了则退出等待下一个包处理。
+			//if(pPacket->opsize() == 0)	// 可能是一个无参数数据包
+			//	break;
+			
+			if(currMsgLen_ == 0)
+			{
+				if(pMsgHandler->msgLen == MERCURY_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
+				{
+					// 如果长度信息不完整， 则等待下一个包处理
+					if(pPacket->opsize() < MERCURY_MESSAGE_LENGTH_SIZE)
+					{
+						writeFragmentMessage(FRAGMENT_DATA_MESSAGE_LENGTH, pPacket, MERCURY_MESSAGE_LENGTH_SIZE);
+						break;
+					}
+					else
+					{
+						(*pPacket) >> currMsgLen_;
+						MercuryStats::getSingleton().trackMessage(MercuryStats::RECV, *pMsgHandler, 
+							currMsgLen_ + MERCURY_MESSAGE_ID_SIZE + MERCURY_MESSAGE_LENGTH_SIZE);
+					}
+				}
+				else
+				{
+					currMsgLen_ = pMsgHandler->msgLen;
+					MercuryStats::getSingleton().trackMessage(MercuryStats::RECV, *pMsgHandler, 
+						currMsgLen_ + MERCURY_MESSAGE_LENGTH_SIZE);
+				}
+			}
+			
+			if(currMsgLen_ > pMsgHandler->msglenMax())
+			{
+				MemoryStream* pPacket1 = pFragmentStream_ != NULL ? pFragmentStream_ : pPacket;
+				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
+
+				// 用作调试时比对
+				uint32 rpos = pPacket1->rpos();
+				pPacket1->rpos(0);
+				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
+				pPacket1->rpos(rpos);
+
+				WARNING_MSG(boost::format("Channel::processMessages(%1%): msglen is error! msgID=%2%, msglen=(%3%:%4%), from %5%.\n") % 
+					pMsgHandler->name.c_str() % currMsgID_ % currMsgLen_ % pPacket1->opsize() % c_str());
+
+				currMsgLen_ = 0;
+				condemn();
+				break;
+			}
+
+			if(pFragmentStream_ != NULL)
+			{
+				TRACE_BUNDLE_DATA(true, pFragmentStream_, pMsgHandler, currMsgLen_, this->c_str());
+				pMsgHandler->handle(this, *pFragmentStream_);
+				MemoryStream::ObjPool().reclaimObject(pFragmentStream_);
+				pFragmentStream_ = NULL;
+			}
+			else
+			{
+				if(pPacket->opsize() < currMsgLen_)
+				{
+					writeFragmentMessage(FRAGMENT_DATA_MESSAGE_BODY, pPacket, currMsgLen_);
+					break;
+				}
+
+				// 临时设置有效读取位， 防止接口中溢出操作
+				size_t wpos = pPacket->wpos();
+				// size_t rpos = pPacket->rpos();
+				size_t frpos = pPacket->rpos() + currMsgLen_;
+				pPacket->wpos(frpos);
+
+				TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, currMsgLen_, this->c_str());
+				pMsgHandler->handle(this, *pPacket);
+
+				// 防止handle中没有将数据导出获取非法操作
+				if(currMsgLen_ > 0)
+				{
+					if(frpos != pPacket->rpos())
+					{
+						CRITICAL_MSG(boost::format("Channel::processMessages(%s): rpos(%d) invalid, expect=%d. msgID=%d, msglen=%d.\n") %
+							pMsgHandler->name.c_str() % pPacket->rpos() % frpos % currMsgID_ % currMsgLen_);
+
+						pPacket->rpos(frpos);
+					}
+				}
+
+				pPacket->wpos(wpos);
+			}
+
+			currMsgID_ = 0;
+			currMsgLen_ = 0;
+		}
+		else
+		{
+			mergeFragmentMessage(pPacket);
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
