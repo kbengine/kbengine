@@ -32,6 +32,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "bundle.ipp"
 #endif
 
+#ifdef USE_OPENSSL
+#include "cstdkbe/blowfish.hpp"
+#endif
 
 #define BUNDLE_SEND_OP(op)																					\
 	finish();																								\
@@ -143,6 +146,49 @@ Bundle::~Bundle()
 void Bundle::onReclaimObject()
 {
 	clear(true);
+}
+
+//-------------------------------------------------------------------------------------
+int32 Bundle::onPacketAppend(int32 addsize, bool inseparable)
+{
+	if(pCurrPacket_ == NULL)
+	{
+		newPacket();
+	}
+
+	int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
+
+#ifdef USE_OPENSSL
+	// 如果使用了openssl加密通讯则我们保证一个包最大能被Blowfish::BLOCK_SIZE除尽
+	// 这样我们在加密一个满载包时不需要额外填充字节
+	if(g_channelExternalEncryptType == 1)
+		packetmaxsize -=  packetmaxsize % KBEngine::KBEBlowfish::BLOCK_SIZE;
+#endif
+
+	int32 totalsize = (int32)pCurrPacket_->totalSize();
+	int32 fwpos = (int32)pCurrPacket_->wpos();
+
+	if(inseparable)
+		fwpos += addsize;
+
+	if(fwpos >= packetmaxsize)
+	{
+		TRACE_BUNDLE_DATA(false, pCurrPacket_, pCurrMsgHandler_, totalsize, "None");
+		packets_.push_back(pCurrPacket_);
+		currMsgPacketCount_++;
+		newPacket();
+		totalsize = 0;
+	}
+
+	int32 remainsize = packetmaxsize - totalsize;
+	int32 taddsize = addsize;
+
+	// 如果 当前包剩余空间小于要添加的字节则本次填满此包
+	if(remainsize < addsize)
+		taddsize = remainsize;
+	
+	currMsgLength_ += taddsize;
+	return taddsize;
 }
 
 //-------------------------------------------------------------------------------------

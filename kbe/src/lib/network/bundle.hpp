@@ -146,39 +146,7 @@ public:
 	
 	inline MessageID messageID() const { return currMsgID_; }
 public:
-	int32 onPacketAppend(int32 addsize, bool inseparable = true)
-	{
-		if(pCurrPacket_ == NULL)
-		{
-			newPacket();
-		}
-
-		int32 packetmaxsize = PACKET_MAX_CHUNK_SIZE();
-		int32 totalsize = (int32)pCurrPacket_->totalSize();
-		int32 fwpos = (int32)pCurrPacket_->wpos();
-
-		if(inseparable)
-			fwpos += addsize;
-
-		if(fwpos >= packetmaxsize)
-		{
-			TRACE_BUNDLE_DATA(false, pCurrPacket_, pCurrMsgHandler_, totalsize, "None");
-			packets_.push_back(pCurrPacket_);
-			currMsgPacketCount_++;
-			newPacket();
-			totalsize = 0;
-		}
-
-		int32 remainsize = packetmaxsize - totalsize;
-		int32 taddsize = addsize;
-
-		// 如果 当前包剩余空间小于要添加的字节则本次填满此包
-		if(remainsize < addsize)
-			taddsize = remainsize;
-		
-		currMsgLength_ += taddsize;
-		return taddsize;
-	}
+	int32 onPacketAppend(int32 addsize, bool inseparable = true);
 
     Bundle &operator<<(uint8 value)
     {
