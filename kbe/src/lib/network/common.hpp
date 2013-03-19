@@ -72,6 +72,9 @@ namespace tcp{
 #define PACKET_MAX_SIZE_TCP					1460
 #define PACKET_MAX_SIZE_UDP					1472
 
+typedef uint16								PacketLength; // ×î´ó65535
+#define PACKET_LENGTH_SIZE					sizeof(PacketLength)
+
 #define MERCURY_MESSAGE_ID_SIZE				sizeof(Mercury::MessageID)
 #define MERCURY_MESSAGE_LENGTH_SIZE			sizeof(Mercury::MessageLength)
 #define MERCURY_MESSAGE_MAX_SIZE			65535

@@ -18,30 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-	byte流：
-		能够将一些常用的数据类型以byte数据存储在一个vector中， 该对于一些占位比较大的数据类型
-		再最后一个位置存放一个0标示结束， 这种存储结构适合网络间打包传输一些数据。
-		
-		注意：网络间传输可能涉及到一些字节序的问题， 需要进行转换。
-		具体看 MemoryStreamConverter.hpp
-
-	使用方法:
-			MemoryStream stream; 
-			stream << (int64)100000000;
-			stream << (uint8)1;
-			stream << (uint8)32;
-			stream << "kebiao";
-			stream.print_storage();
-			uint8 n, n1;
-			int64 x;
-			std::string a;
-			stream >> x;
-			stream >> n;
-			stream >> n1;
-			stream >> a;
-			printf("还原: %lld, %d, %d, %s", x, n, n1, a.c_str());
-*/
 #ifndef __MEMORYSTREAM_H__
 #define __MEMORYSTREAM_H__
 // common include	
@@ -85,6 +61,30 @@ class MemoryStreamException
         size_t 		_m_size;
 };
 
+/*
+	byte流：
+		能够将一些常用的数据类型以byte数据存储在一个vector中， 该对于一些占位比较大的数据类型
+		再最后一个位置存放一个0标示结束， 这种存储结构适合网络间打包传输一些数据。
+		
+		注意：网络间传输可能涉及到一些字节序的问题， 需要进行转换。
+		具体看 MemoryStreamConverter.hpp
+
+	使用方法:
+			MemoryStream stream; 
+			stream << (int64)100000000;
+			stream << (uint8)1;
+			stream << (uint8)32;
+			stream << "kebiao";
+			stream.print_storage();
+			uint8 n, n1;
+			int64 x;
+			std::string a;
+			stream >> x;
+			stream >> n;
+			stream >> n1;
+			stream >> a;
+			printf("还原: %lld, %d, %d, %s", x, n, n1, a.c_str());
+*/
 class MemoryStream : public PoolObject
 {
 public:
@@ -137,6 +137,16 @@ public:
         EndianConvert(value);
         put(pos,(uint8 *)&value,sizeof(value));
     }
+	
+	void swap(MemoryStream & s)
+	{
+		size_t rpos = s.rpos(), wpos = s.wpos();
+		std::swap(data_, s.data_);
+		s.rpos(rpos_);
+		s.wpos(wpos_);
+		rpos_ = rpos;
+		wpos_ = wpos;
+	}
 
     MemoryStream &operator<<(uint8 value)
     {

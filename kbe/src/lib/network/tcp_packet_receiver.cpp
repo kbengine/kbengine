@@ -112,7 +112,6 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 		return false;
 	}
 	
-	pChannel->addReceiveWindow(pReceiveWindow);
 	Reason ret = this->processPacket(pChannel, pReceiveWindow);
 
 	if(ret != REASON_SUCCESS)
@@ -124,7 +123,13 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 //-------------------------------------------------------------------------------------
 Reason TCPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * pPacket)
 {
-	pNetworkInterface_->onPacketIn(*pPacket);
+	// 如果为None， 则可能是被过滤器过滤掉了(过滤器正在按照自己的规则组包解密)
+	if(pPacket)
+	{
+		pNetworkInterface_->onPacketIn(*pPacket);
+		pChannel->addReceiveWindow(pPacket);
+	}
+
 	return REASON_SUCCESS;
 }
 
