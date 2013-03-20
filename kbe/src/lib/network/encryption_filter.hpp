@@ -67,6 +67,8 @@ private:
 
 class BlowfishFilter : public EncryptionFilter
 {
+	BlowfishFilter(const std::string & key){}
+	BlowfishFilter(){}
 	virtual ~BlowfishFilter() {}
 	void encrypt(Packet * pInPacket, Packet * pOutPacket){}
 	void decrypt(Packet * pInPacket, Packet * pOutPacket){}

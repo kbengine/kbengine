@@ -108,7 +108,7 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 
 		if(Mercury::g_trace_packet > 0)
 		{
-			DEBUG_MSG(boost::format("BlowfishFilter::send: encrypt: packetLen=%1%, padSize=%2%\n") % 
+			DEBUG_MSG(boost::format("BlowfishFilter::send: packetLen=%1%, padSize=%2%\n") % 
 				packetLen % (int)padSize);
 		}
 	}
@@ -222,7 +222,7 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 
 		if(Mercury::g_trace_packet > 0)
 		{
-			DEBUG_MSG(boost::format("BlowfishFilter::recv: decrypt_real: packetLen=%1%, padSize=%2%\n") % 
+			DEBUG_MSG(boost::format("BlowfishFilter::recv: packetLen=%1%, padSize=%2%\n") % 
 				(packetLen_ + 1) % (int)padSize_);
 		}
 
