@@ -1,0 +1,11 @@
+* kbe\src\lib\python\PC\dl_nt.c ×¢ÊÍµôdllmain
+* ×¢ÊÍµô pyconfig -> //#define _POSIX_C_SOURCE 200112L
+* ×¢ÊÍµô pyconfig -> //#define _XOPEN_SOURCE 600
+
+$ sudo vi Modules/Setup.dist
+# Socket module helper for SSL support; you must comment out the other
+# socket line above, and possibly edit the SSL variable:
+SSL=$(KBE_ROOT)/kbe/src/lib/third_party/openssl
+_ssl _ssl.c \
+        -DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
+        -L$(SSL)/lib -lssl -lcrypto
