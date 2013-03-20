@@ -321,6 +321,12 @@ const Channel::Bundles & Channel::bundles() const
 }
 
 //-------------------------------------------------------------------------------------
+void Channel::pushBundle(Bundle* pBundle)
+{
+	bundles_.push_back(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
 void Channel::send(Bundle * pBundle)
 {
 	if (this->isDestroyed())

@@ -112,7 +112,7 @@ bool ClientObject::initCreate()
 	(*pBundle).newMessage(LoginappInterface::hello);
 	(*pBundle) << KBEVersion::versionString();
 
-	if(Mercury::g_channelExternalEncryptType > 0)
+	if(Mercury::g_channelExternalEncryptType == 1)
 	{
 		pBlowfishFilter_ = new Mercury::BlowfishFilter();
 		(*pBundle).appendBlob(pBlowfishFilter_->key());
@@ -123,7 +123,7 @@ bool ClientObject::initCreate()
 		(*pBundle).appendBlob(key);
 	}
 
-	pServerChannel_->bundles().push_back(pBundle);
+	pServerChannel_->pushBundle(pBundle);
 	return true;
 }
 
@@ -160,7 +160,6 @@ bool ClientObject::processSocket(bool expectingPacket)
 		return false;
 	}
 
-	pServerChannel_->addReceiveWindow(pReceiveWindow);
 	Mercury::Reason ret = this->processPacket(pServerChannel_, pReceiveWindow);
 
 	if(ret != Mercury::REASON_SUCCESS)
@@ -215,7 +214,7 @@ bool ClientObject::initLoginGateWay()
 	(*pBundle).newMessage(BaseappInterface::hello);
 	(*pBundle) << KBEVersion::versionString();
 	
-	if(Mercury::g_channelExternalEncryptType > 0)
+	if(Mercury::g_channelExternalEncryptType == 1)
 	{
 		pBlowfishFilter_ = new Mercury::BlowfishFilter();
 		(*pBundle).appendBlob(pBlowfishFilter_->key());
@@ -227,7 +226,7 @@ bool ClientObject::initLoginGateWay()
 		(*pBundle).appendBlob(key);
 	}
 
-	pServerChannel_->bundles().push_back(pBundle);
+	pServerChannel_->pushBundle(pBundle);
 	return true;
 }
 
@@ -293,7 +292,7 @@ void ClientObject::gameTick()
 void ClientObject::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
 		COMPONENT_TYPE componentType)
 {
-	if(Mercury::g_channelExternalEncryptType > 0)
+	if(Mercury::g_channelExternalEncryptType == 1)
 	{
 		pChannel->pFilter(pBlowfishFilter_);
 		pBlowfishFilter_ = NULL;

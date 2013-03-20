@@ -34,19 +34,34 @@ namespace Mercury
 
 //-------------------------------------------------------------------------------------
 BlowfishFilter::BlowfishFilter(const Key & key):
-KBEBlowfish(key)
+KBEBlowfish(key),
+pPacket_(NULL),
+packetLen_(0),
+padSize_(0)
 {
 }
 
 //-------------------------------------------------------------------------------------
 BlowfishFilter::BlowfishFilter():
-KBEBlowfish()
+KBEBlowfish(),
+pPacket_(NULL),
+packetLen_(0),
+padSize_(0)
 {
 }
 
 //-------------------------------------------------------------------------------------
 BlowfishFilter::~BlowfishFilter()
 {
+	if(pPacket_)
+	{
+		if(pPacket_->isTCPPacket())
+			TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket *>(pPacket_));
+		else
+			UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket *>(pPacket_));
+
+		pPacket_ = NULL;
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -55,7 +70,7 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 	if(!pPacket->encrypted())
 	{
 		AUTO_SCOPED_PROFILE("encryptSend")
-
+		
 		if (!isGood_)
 		{
 			WARNING_MSG(boost::format("BlowfishFilter::send: "
@@ -64,7 +79,7 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 
 			return REASON_GENERAL_NETWORK;
 		}
-		
+
 		Packet * pOutPacket = NULL;
 		if(pPacket->isTCPPacket())
 			pOutPacket = TCPPacket::ObjPool().createObject();
@@ -72,6 +87,7 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 			pOutPacket = UDPPacket::ObjPool().createObject();
 		
 		PacketLength oldlen = pPacket->opsize();
+		pOutPacket->wpos(PACKET_LENGTH_SIZE + 1);
 		encrypt(pPacket, pOutPacket);
 
 		PacketLength packetLen = pPacket->opsize() + 1;
@@ -89,6 +105,12 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 			TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket *>(pOutPacket));
 		else
 			UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket *>(pOutPacket));
+
+		if(Mercury::g_trace_packet > 0)
+		{
+			DEBUG_MSG(boost::format("BlowfishFilter::send: encrypt: packetLen=%1%, padSize=%2%\n") % 
+				packetLen % (int)padSize);
+		}
 	}
 
 	return networkInterface.basicSendWithRetries(pChannel, pPacket);
@@ -97,6 +119,7 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 //-------------------------------------------------------------------------------------
 Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket)
 {
+	while(pPacket || pPacket_)
 	{
 		AUTO_SCOPED_PROFILE("encryptRecv")
 
@@ -109,15 +132,122 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 			return REASON_GENERAL_NETWORK;
 		}
 
-		Mercury::PacketLength packetLen;
-		uint8 padSize;
-		
-		(*pPacket) >> packetLen >> padSize;
+		if(pPacket_)
+		{
+			if(pPacket)
+			{
+				pPacket_->append(pPacket->data() + pPacket->rpos(), pPacket->opsize());
+				
+				if(pPacket->isTCPPacket())
+					TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket *>(pPacket));
+				else
+					UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket *>(pPacket));
+			}
+
+			pPacket = pPacket_;
+		}
+
+		if(packetLen_ <= 0)
+		{
+			// 如果满足一个最小包则尝试解包, 否则缓存这个包待与下一个包合并然后解包
+			if(pPacket->opsize() >= (PACKET_LENGTH_SIZE + 1 + BLOCK_SIZE))
+			{
+				(*pPacket) >> packetLen_;
+				(*pPacket) >> padSize_;
+				
+				packetLen_ -= 1;
+
+				// 如果包是完整下面流出会解密， 如果有多余的内容需要将其剪裁出来待与下一个包合并
+				if(pPacket->opsize() > packetLen_)
+				{
+					if(pPacket->isTCPPacket())
+						pPacket_ = TCPPacket::ObjPool().createObject();
+					else
+						pPacket_ = UDPPacket::ObjPool().createObject();
+
+					pPacket_->append(pPacket->data() + pPacket->rpos() + packetLen_, pPacket->wpos() - (packetLen_ + pPacket->rpos()));
+					pPacket->wpos(pPacket->rpos() + packetLen_);
+				}
+				else if(pPacket->opsize() == packetLen_)
+				{
+					if(pPacket_ != NULL)
+						pPacket_ = NULL;
+				}
+				else
+				{
+					if(pPacket_ == NULL)
+						pPacket_ = pPacket;
+
+					return receiver.processFilteredPacket(pChannel, NULL);
+				}
+			}
+			else
+			{
+				if(pPacket_ == NULL)
+					pPacket_ = pPacket;
+
+				return receiver.processFilteredPacket(pChannel, NULL);
+			}
+		}
+		else
+		{
+			// 如果上一次有做过解包行为但包还没有完整则继续处理
+			if(pPacket->opsize() > packetLen_)
+			{
+				if(pPacket->isTCPPacket())
+					pPacket_ = TCPPacket::ObjPool().createObject();
+				else
+					pPacket_ = UDPPacket::ObjPool().createObject();
+
+				pPacket_->append(pPacket->data() + pPacket->rpos() + packetLen_, pPacket->wpos() - (packetLen_ + pPacket->rpos()));
+				pPacket->wpos(pPacket->rpos() + packetLen_);
+			}
+			else if(pPacket->opsize() == packetLen_)
+			{
+				if(pPacket_ != NULL)
+					pPacket_ = NULL;
+			}
+			else
+			{
+				if(pPacket_ == NULL)
+					pPacket_ = pPacket;
+
+				return receiver.processFilteredPacket(pChannel, NULL);
+			}
+		}
 
 		decrypt(pPacket, pPacket);
+
+		pPacket->wpos(pPacket->wpos() - padSize_);
+
+		if(Mercury::g_trace_packet > 0)
+		{
+			DEBUG_MSG(boost::format("BlowfishFilter::recv: decrypt_real: packetLen=%1%, padSize=%2%\n") % 
+				(packetLen_ + 1) % (int)padSize_);
+		}
+
+		packetLen_ = 0;
+		padSize_ = 0;
+
+		Reason ret = receiver.processFilteredPacket(pChannel, pPacket);
+		if(ret != REASON_SUCCESS)
+		{
+			if(pPacket_)
+			{
+				if(pPacket_->isTCPPacket())
+					TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket *>(pPacket));
+				else
+					UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket *>(pPacket));
+
+				pPacket_ = NULL;
+			}
+			return ret;
+		}
+
+		pPacket = NULL;
 	}
 
-	return receiver.processFilteredPacket(pChannel, pPacket);
+	return REASON_SUCCESS;
 }
 
 //-------------------------------------------------------------------------------------

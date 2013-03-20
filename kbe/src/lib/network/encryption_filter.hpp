@@ -58,6 +58,9 @@ public:
 	void encrypt(Packet * pInPacket, Packet * pOutPacket);
 	void decrypt(Packet * pInPacket, Packet * pOutPacket);
 private:
+	Packet * pPacket_;
+	Mercury::PacketLength packetLen_;
+	uint8 padSize_;
 };
 
 #else

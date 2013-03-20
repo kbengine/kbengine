@@ -115,7 +115,7 @@ void ClientObjectBase::tickSend()
 		else
 			(*pBundle).newMessage(LoginappInterface::onClientActiveTick);
 
-		pServerChannel_->bundles().push_back(pBundle);
+		pServerChannel_->pushBundle(pBundle);
 	}
 
 	pServerChannel_->send();
@@ -209,7 +209,7 @@ bool ClientObjectBase::createAccount()
 	(*pBundle) << name_;
 	(*pBundle) << password_;
 
-	pServerChannel_->bundles().push_back(pBundle);
+	pServerChannel_->pushBundle(pBundle);
 	return true;
 }
 
@@ -326,7 +326,7 @@ bool ClientObjectBase::login()
 	(*pBundle) << name_;
 	(*pBundle) << password_;
 	
-	pServerChannel_->bundles().push_back(pBundle);
+	pServerChannel_->pushBundle(pBundle);
 	connectedGateway_ = false;
 	return true;
 }
@@ -340,7 +340,7 @@ bool ClientObjectBase::loginGateWay()
 	(*pBundle).newMessage(BaseappInterface::loginGateway);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
-	pServerChannel_->bundles().push_back(pBundle);
+	pServerChannel_->pushBundle(pBundle);
 	return true;
 }
 

@@ -133,6 +133,9 @@ public:
 
 	typedef std::vector<Bundle*> Bundles;
 	Bundles & bundles();
+
+	void pushBundle(Bundle* pBundle);
+
 	const Bundles & bundles() const;
 
 	void clearBundle();

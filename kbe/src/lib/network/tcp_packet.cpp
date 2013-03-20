@@ -74,7 +74,7 @@ int TCPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 	KBE_ASSERT(rpos() == 0);
 	wpos(len);
 
-	// DEBUG_MSG("TCPPacket::recvFromEndPoint: datasize=%d, wpos=%d.\n", len, wpos());
+	//DEBUG_MSG(boost::format("TCPPacket::recvFromEndPoint: datasize=%1%, wpos=%2%.\n") % len % wpos());
 	return len;
 }
 
