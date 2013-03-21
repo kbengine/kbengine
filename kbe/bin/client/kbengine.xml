@@ -55,6 +55,14 @@
 				<external>	0		</external>
 			</bytes>
 		</receiveWindowOverflow>
+		
+		<!-- 加密通信，只对外部通道
+			可选加密:
+				0: 无加密
+				1: blowfish
+				2: rsa (res\key\kbengine_private.key)
+		 -->
+		<encrypt_type> 0 </encrypt_type>
 	</channelCommon> 
 	
 	<ip> localhost </ip>
