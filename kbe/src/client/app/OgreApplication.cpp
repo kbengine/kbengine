@@ -154,6 +154,19 @@ bool OgreApplication::keyPressed( const OIS::KeyEvent &arg )
 }
 
 //-------------------------------------------------------------------------------------
+bool OgreApplication::keyReleased( const OIS::KeyEvent &arg )
+{
+    if (mTrayMgr->isDialogVisible()) return true;   // don't process any more keys if dialog is up
+
+	if(g_space)
+	{
+		g_space->keyReleased(arg);
+	}
+
+    return true;
+}
+
+//-------------------------------------------------------------------------------------
 void OgreApplication::buttonHit(OgreBites::Button* button)
 {
 	if(g_space)

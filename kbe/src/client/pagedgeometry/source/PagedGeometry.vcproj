@@ -55,7 +55,7 @@
 				AdditionalOptions=" /Zm1000 /MP"
 				Optimization="0"
 				InlineFunctionExpansion="0"
-				AdditionalIncludeDirectories="D:\ogre\boost;D:\kbengine\kbe\src\client\pagedgeometry\include;D:\ogre\include\Ogre;"
+				AdditionalIncludeDirectories="../include;$(OGRE_HOME)\include;$(OGRE_HOME)\OgreMain\include;$(OGRE_HOME)\include\OIS;$(OGRE_HOME)\include\OGRE;$(OGRE_HOME)\boost"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR=\&quot;Debug\&quot;"
 				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
@@ -142,7 +142,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="D:\ogre\boost;D:\kbengine\kbe\src\client\pagedgeometry\include;D:\ogre\include\Ogre"
+				AdditionalIncludeDirectories="../include;$(OGRE_HOME)\include;$(OGRE_HOME)\OgreMain\include;$(OGRE_HOME)\include\OIS;$(OGRE_HOME)\include\OGRE;$(OGRE_HOME)\boost"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR=\&quot;Release\&quot;"
 				ExceptionHandling="1"
 				RuntimeLibrary="2"
@@ -226,7 +226,7 @@
 				AdditionalOptions=" /Zm1000 /MP"
 				Optimization="1"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="D:\boost_1_51_0;D:\kbengine_client_ogre\src\pagedgeometry\include;D:\ogre\include\Ogre;"
+				AdditionalIncludeDirectories="../include;$(OGRE_HOME)\include;$(OGRE_HOME)\OgreMain\include;$(OGRE_HOME)\include\OIS;$(OGRE_HOME)\include\OGRE;$(OGRE_HOME)\boost"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR=\&quot;MinSizeRel\&quot;"
 				ExceptionHandling="1"
 				RuntimeLibrary="2"
@@ -308,7 +308,7 @@
 				AdditionalOptions=" /Zm1000 /MP"
 				Optimization="0"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="D:\boost_1_51_0;D:\kbengine_client_ogre\src\pagedgeometry\include;D:\ogre\include\Ogre;"
+				AdditionalIncludeDirectories="../include;$(OGRE_HOME)\include;$(OGRE_HOME)\OgreMain\include;$(OGRE_HOME)\include\OIS;$(OGRE_HOME)\include\OGRE;$(OGRE_HOME)\boost"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR=\&quot;RelWithDebInfo\&quot;"
 				ExceptionHandling="1"
 				RuntimeLibrary="2"
@@ -359,47 +359,47 @@
 			Name="Source Files"
 			>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\source\BatchedGeometry.cpp"
+				RelativePath="..\source\BatchedGeometry.cpp"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\source\BatchPage.cpp"
+				RelativePath="..\source\BatchPage.cpp"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\source\GrassLoader.cpp"
+				RelativePath="..\source\GrassLoader.cpp"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\source\ImpostorPage.cpp"
+				RelativePath="..\source\ImpostorPage.cpp"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\source\PagedGeometry.cpp"
+				RelativePath="..\source\PagedGeometry.cpp"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\source\PropertyMaps.cpp"
+				RelativePath="..\source\PropertyMaps.cpp"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\source\StaticBillboardSet.cpp"
+				RelativePath="..\source\StaticBillboardSet.cpp"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\source\TreeLoader2D.cpp"
+				RelativePath="..\source\TreeLoader2D.cpp"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\source\TreeLoader3D.cpp"
+				RelativePath="..\source\TreeLoader3D.cpp"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\source\WindBatchedGeometry.cpp"
+				RelativePath="..\source\WindBatchedGeometry.cpp"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\source\WindBatchPage.cpp"
+				RelativePath="..\source\WindBatchPage.cpp"
 				>
 			</File>
 		</Filter>
@@ -407,110 +407,62 @@
 			Name="Header Files"
 			>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\include\BatchedGeometry.h"
+				RelativePath="..\include\BatchedGeometry.h"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\include\BatchPage.h"
+				RelativePath="..\include\BatchPage.h"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\include\GrassLoader.h"
+				RelativePath="..\include\GrassLoader.h"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\include\ImpostorPage.h"
+				RelativePath="..\include\ImpostorPage.h"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\include\MersenneTwister.h"
+				RelativePath="..\include\MersenneTwister.h"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\include\PagedGeometry.h"
+				RelativePath="..\include\PagedGeometry.h"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\include\PagedGeometryConfig.h"
+				RelativePath="..\include\PagedGeometryConfig.h"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\include\PropertyMaps.h"
+				RelativePath="..\include\PropertyMaps.h"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\include\RandomTable.h"
+				RelativePath="..\include\RandomTable.h"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\include\StaticBillboardSet.h"
+				RelativePath="..\include\StaticBillboardSet.h"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\include\TreeLoader2D.h"
+				RelativePath="..\include\TreeLoader2D.h"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\include\TreeLoader3D.h"
+				RelativePath="..\include\TreeLoader3D.h"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\include\WindBatchedGeometry.h"
+				RelativePath="..\include\WindBatchedGeometry.h"
 				>
 			</File>
 			<File
-				RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\include\WindBatchPage.h"
+				RelativePath="..\include\WindBatchPage.h"
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath="D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeLists.txt"
-			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Building Custom Rule D:/kbengine_client_ogre/src/pagedgeometry/source/CMakeLists.txt"
-					CommandLine="&quot;C:\Program Files\CMake 2.8\bin\cmake.exe&quot; -HD:/kbengine_client_ogre/src/pagedgeometry -BD:/kbengine_client_ogre/src/pagedgeometry --check-stamp-file D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeFiles\generate.stamp&#x0D;&#x0A;if errorlevel 1 goto :VCReportError&#x0D;&#x0A;"
-					AdditionalDependencies="D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeLists.txt;D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeLists.txt;"
-					Outputs="D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeFiles\generate.stamp"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Building Custom Rule D:/kbengine_client_ogre/src/pagedgeometry/source/CMakeLists.txt"
-					CommandLine="&quot;C:\Program Files\CMake 2.8\bin\cmake.exe&quot; -HD:/kbengine_client_ogre/src/pagedgeometry -BD:/kbengine_client_ogre/src/pagedgeometry --check-stamp-file D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeFiles\generate.stamp&#x0D;&#x0A;if errorlevel 1 goto :VCReportError&#x0D;&#x0A;"
-					AdditionalDependencies="D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeLists.txt;D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeLists.txt;"
-					Outputs="D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeFiles\generate.stamp"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="MinSizeRel|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Building Custom Rule D:/kbengine_client_ogre/src/pagedgeometry/source/CMakeLists.txt"
-					CommandLine="&quot;C:\Program Files\CMake 2.8\bin\cmake.exe&quot; -HD:/kbengine_client_ogre/src/pagedgeometry -BD:/kbengine_client_ogre/src/pagedgeometry --check-stamp-file D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeFiles\generate.stamp&#x0D;&#x0A;if errorlevel 1 goto :VCReportError&#x0D;&#x0A;"
-					AdditionalDependencies="D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeLists.txt;D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeLists.txt;"
-					Outputs="D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeFiles\generate.stamp"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="RelWithDebInfo|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					Description="Building Custom Rule D:/kbengine_client_ogre/src/pagedgeometry/source/CMakeLists.txt"
-					CommandLine="&quot;C:\Program Files\CMake 2.8\bin\cmake.exe&quot; -HD:/kbengine_client_ogre/src/pagedgeometry -BD:/kbengine_client_ogre/src/pagedgeometry --check-stamp-file D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeFiles\generate.stamp&#x0D;&#x0A;if errorlevel 1 goto :VCReportError&#x0D;&#x0A;"
-					AdditionalDependencies="D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeLists.txt;D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeLists.txt;"
-					Outputs="D:\kbengine_client_ogre\src\pagedgeometry\source\CMakeFiles\generate.stamp"
-				/>
-			</FileConfiguration>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

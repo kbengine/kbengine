@@ -37,7 +37,8 @@ protected:
 	virtual bool setup();
     virtual void setupResources();
 	virtual void createScene(void){}
-    virtual bool keyPressed( const OIS::KeyEvent &arg );
+    virtual bool keyPressed(const OIS::KeyEvent &arg);
+	virtual bool keyReleased(const OIS::KeyEvent &arg);
     virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
 private:
 	std::vector<const KBEngine::EventData*> events_;
