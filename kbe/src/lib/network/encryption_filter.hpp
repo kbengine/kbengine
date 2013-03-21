@@ -67,6 +67,7 @@ private:
 
 class BlowfishFilter : public EncryptionFilter
 {
+public:
 	BlowfishFilter(const std::string & key){}
 	BlowfishFilter(){}
 	virtual ~BlowfishFilter() {}

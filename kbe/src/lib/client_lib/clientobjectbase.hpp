@@ -77,8 +77,8 @@ public:
 
 	void tickSend();
 	
-	Mercury::Channel* initLoginappChannel(std::string accountName, std::string passwd, std::string ip, KBEngine::uint32 port);
-	Mercury::Channel* initBaseappChannel();
+	virtual Mercury::Channel* initLoginappChannel(std::string accountName, std::string passwd, std::string ip, KBEngine::uint32 port);
+	virtual Mercury::Channel* initBaseappChannel();
 
 	bool createAccount();
 	bool login();

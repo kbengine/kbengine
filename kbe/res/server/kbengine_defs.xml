@@ -76,7 +76,7 @@
 				1: blowfish
 				2: rsa (res\key\kbengine_private.key)
 		 -->
-		<encrypt_type> 0 </encrypt_type>
+		<encrypt_type> 1 </encrypt_type>
 	</channelCommon> 
 	
 	<billingSystem>
@@ -208,7 +208,7 @@
 				1: blowfish
 				2: rsa (res\key\kbengine_private.key)
 		 -->
-		<encrypt_login> 0 </encrypt_login>
+		<encrypt_login> 2 </encrypt_login>
 		
 		<!-- listen监听队列最大值 -->
 		<SOMAXCONN> 128 </SOMAXCONN>

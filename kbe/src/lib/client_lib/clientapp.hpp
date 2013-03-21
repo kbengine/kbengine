@@ -30,6 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/smartpointer.hpp"
 #include "cstdkbe/timer.hpp"
 #include "network/interfaces.hpp"
+#include "network/encryption_filter.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
 #include "thread/threadpool.hpp"
@@ -140,6 +141,7 @@ protected:
 	Mercury::NetworkInterface&								networkInterface_;
 	
 	Mercury::TCPPacketReceiver*								pTCPPacketReceiver_;
+	Mercury::BlowfishFilter*								pBlowfishFilter_;
 
 	GAME_TIME												time_;
 	Timers													timers_;
@@ -148,6 +150,7 @@ protected:
 	thread::ThreadPool										threadPool_;
 
 	PyObjectPtr												entryScript_;
+
 };
 
 }

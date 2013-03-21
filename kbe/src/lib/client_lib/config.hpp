@@ -56,6 +56,8 @@ public:
 	void writeAccountName(const char* name);
 
 	bool useLastAccountName()const{ return useLastAccountName_; }
+
+	int8 encryptLogin()const { return encrypt_login_; }
 public:
 	int16 gameUpdateHertz_;
 
@@ -70,6 +72,8 @@ public:
 	float channelExternalTimeout_;
 
 	char accountName_[MAX_NAME];
+	
+	int8 encrypt_login_;
 
 	std::string fileName_;
 

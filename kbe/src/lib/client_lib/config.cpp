@@ -34,6 +34,7 @@ tcp_SOMAXCONN_(5),
 port_(0),
 channelInternalTimeout_(60.0f),
 channelExternalTimeout_(60.0f),
+encrypt_login_(0),
 fileName_(),
 useLastAccountName_(false)
 {
@@ -157,6 +158,12 @@ bool Config::loadConfig(std::string fileName)
 					Mercury::g_extReceiveWindowBytesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
 			}
 		};
+
+		childnode = xml->enterNode(rootNode, "encrypt_type");
+		if(childnode)
+		{
+			Mercury::g_channelExternalEncryptType = xml->getValInt(childnode);
+		}
 	}
 
 	rootNode = xml->getRootNode("gameUpdateHertz");
@@ -191,6 +198,12 @@ bool Config::loadConfig(std::string fileName)
 	if(rootNode != NULL)
 	{
 		useLastAccountName_ = xml->getValStr(rootNode) != "false";
+	}
+	
+	rootNode = xml->getRootNode("encrypt_login");
+	if(rootNode != NULL)
+	{
+		encrypt_login_ = xml->getValInt(rootNode);
 	}
 	
 	SAFE_RELEASE(xml);

@@ -5,6 +5,7 @@
 #include "client_lib/kbemain.hpp"
 #include "server/serverconfig.hpp"
 #include "cstdkbe/memorystream.hpp"
+#include "cstdkbe/kbekey.hpp"
 #include "thread/threadtask.hpp"
 #include "thread/concurrency.hpp"
 #include "helper/debug_helper.hpp"
@@ -188,6 +189,11 @@ bool kbe_init()
 	DebugHelper::initHelper(g_componentType);
 
 	INFO_MSG( "-----------------------------------------------------------------------------------------\n\n\n");
+
+#ifdef USE_OPENSSL	
+	if(KBEngine::KBEKey::getSingletonPtr() == NULL)
+		KBEngine::KBEKey kbekey(KBEngine::Resmgr::getSingleton().matchPath("key/") + "kbengine_public.key", "");
+#endif
 
 	if(g_pScript == NULL)
 		g_pScript = new KBEngine::script::Script();

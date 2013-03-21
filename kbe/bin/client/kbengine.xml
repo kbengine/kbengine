@@ -62,7 +62,7 @@
 				1: blowfish
 				2: rsa (res\key\kbengine_private.key)
 		 -->
-		<encrypt_type> 0 </encrypt_type>
+		<encrypt_type> 1 </encrypt_type>
 	</channelCommon> 
 	
 	<ip> localhost </ip>
@@ -72,4 +72,12 @@
 	
 	<useLastAccountName>false</useLastAccountName>
 	<accountName>kbengine</accountName>
+	
+	<!-- 加密登录信息
+		可选加密:
+			0: 无加密
+			1: blowfish
+			2: rsa (res\key\kbengine_private.key)
+	 -->
+	<encrypt_login> 2 </encrypt_login>
 </root>

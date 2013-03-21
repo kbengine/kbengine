@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "event.hpp"
 #include "entity.hpp"
 #include "config.hpp"
+#include "cstdkbe/kbeversion.hpp"
 #include "network/channel.hpp"
 #include "network/tcp_packet_receiver.hpp"
 #include "thread/threadpool.hpp"
@@ -60,6 +61,7 @@ componentID_(componentID),
 mainDispatcher_(dispatcher),
 networkInterface_(ninterface),
 pTCPPacketReceiver_(NULL),
+pBlowfishFilter_(NULL),
 time_(),
 timers_(),
 threadPool_(),
@@ -81,6 +83,7 @@ entryScript_()
 //-------------------------------------------------------------------------------------
 ClientApp::~ClientApp()
 {
+	SAFE_RELEASE(pBlowfishFilter_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -388,7 +391,24 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 
 		getNetworkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
 		
-		ret = ClientObjectBase::login();
+		// 先握手然后等helloCB之后再进行登录
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(LoginappInterface::hello);
+		(*pBundle) << KBEVersion::versionString();
+
+		if(Mercury::g_channelExternalEncryptType == 1)
+		{
+			pBlowfishFilter_ = new Mercury::BlowfishFilter();
+			(*pBundle).appendBlob(pBlowfishFilter_->key());
+		}
+		else
+		{
+			std::string key = "";
+			(*pBundle).appendBlob(key);
+		}
+
+		pServerChannel_->pushBundle(pBundle);
+		//ret = ClientObjectBase::login();
 	}
 
 	return ret;
@@ -398,6 +418,28 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 void ClientApp::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
 		COMPONENT_TYPE componentType)
 {
+	if(Mercury::g_channelExternalEncryptType == 1)
+	{
+		pServerChannel_->pFilter(pBlowfishFilter_);
+		pBlowfishFilter_ = NULL;
+	}
+
+	if(componentType == LOGINAPP_TYPE)
+	{
+		if(!ClientObjectBase::login())
+		{
+			WARNING_MSG("ClientApp::onHelloCB_: login is failed!\n");
+			return;
+		}
+	}
+	else
+	{
+		if(!ClientObjectBase::loginGateWay())
+		{
+			WARNING_MSG("ClientApp::onHelloCB_: login is failed!\n");
+			return;
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------	
@@ -430,7 +472,25 @@ void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s
 
 		getNetworkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
 		
-		ret = ClientObjectBase::loginGateWay();
+		// 先握手然后等helloCB之后再进行登录
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(BaseappInterface::hello);
+		(*pBundle) << KBEVersion::versionString();
+		
+		if(Mercury::g_channelExternalEncryptType == 1)
+		{
+			pBlowfishFilter_ = new Mercury::BlowfishFilter();
+			(*pBundle).appendBlob(pBlowfishFilter_->key());
+			pServerChannel_->pFilter(NULL);
+		}
+		else
+		{
+			std::string key = "";
+			(*pBundle).appendBlob(key);
+		}
+
+		pServerChannel_->pushBundle(pBundle);
+		// ret = ClientObjectBase::loginGateWay();
 	}
 }
 
