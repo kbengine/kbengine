@@ -467,7 +467,7 @@ bool ThreadPool::addTask(TPTask* tptask)
 	{
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 
-		WARNING_MSG(boost::format("ThreadPool::addTask: thread create is failed, count is full(%1%).\n") % 
+		WARNING_MSG(boost::format("ThreadPool::addTask: can't createthread, the poolsize is full(%1%).\n") % 
 			maxThreadCount_);
 
 		return false;
@@ -479,9 +479,9 @@ bool ThreadPool::addTask(TPTask* tptask)
 		if(!tptd)
 		{
 #if KBE_PLATFORM == PLATFORM_WIN32		
-			ERROR_MSG("ThreadPool::addTask: ThreadPool create new Thread error! ... \n");
+			ERROR_MSG("ThreadPool::addTask: the ThreadPool create thread is error! ... \n");
 #else
-			ERROR_MSG(boost::format("boost::format(ThreadPool::addTask: ThreadPool create new Thread error:%1% ... \n") % 
+			ERROR_MSG(boost::format("boost::format(ThreadPool::addTask: the ThreadPool create thread is error:%1%\n") % 
 				kbe_strerror());
 #endif				
 		}
