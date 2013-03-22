@@ -436,7 +436,7 @@ void ClientApp::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInf
 	{
 		if(!ClientObjectBase::loginGateWay())
 		{
-			WARNING_MSG("ClientApp::onHelloCB_: login is failed!\n");
+			WARNING_MSG("ClientApp::onHelloCB_: loginGateWay is failed!\n");
 			return;
 		}
 	}
