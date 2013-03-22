@@ -3,6 +3,7 @@
 #define __SPACEWORLD_CLIENT_h_
 
 #include "space.h"
+#include "SinbadCharacterController.h"
 #include <Terrain/OgreTerrain.h>
 #include <Terrain/OgreTerrainGroup.h>
 #include <OgreImage.h>
@@ -26,6 +27,10 @@ public:
     virtual void setupResources();
     virtual void createScene(void);
     virtual bool keyPressed( const OIS::KeyEvent &arg );
+	virtual bool keyReleased(const OIS::KeyEvent &arg);
+    virtual bool mouseMoved( const OIS::MouseEvent &arg );
+    virtual bool mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
+    virtual bool mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
     virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
 	virtual void kbengine_onEvent(const KBEngine::EventData* lpEventData);
 private:
@@ -45,6 +50,8 @@ private:
     float* mPGLayerData[4];
     Ogre::Image mPGDensityMap;
     Ogre::Rect mPGDirtyRect;
+
+	SinbadCharacterController* mChara;
 };
 
 #endif // #ifndef __SPACEWORLD_CLIENT_h_

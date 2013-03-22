@@ -341,24 +341,27 @@ bool BaseApplication::keyPressed( const OIS::KeyEvent &arg )
     {
         Ogre::String newVal;
         Ogre::PolygonMode pm;
+		
+		if(mActiveCamera)
+		{
+			switch (mActiveCamera->getPolygonMode())
+			{
+			case Ogre::PM_SOLID:
+				newVal = "Wireframe";
+				pm = Ogre::PM_WIREFRAME;
+				break;
+			case Ogre::PM_WIREFRAME:
+				newVal = "Points";
+				pm = Ogre::PM_POINTS;
+				break;
+			default:
+				newVal = "Solid";
+				pm = Ogre::PM_SOLID;
+			}
 
-        switch (mActiveCamera->getPolygonMode())
-        {
-        case Ogre::PM_SOLID:
-            newVal = "Wireframe";
-            pm = Ogre::PM_WIREFRAME;
-            break;
-        case Ogre::PM_WIREFRAME:
-            newVal = "Points";
-            pm = Ogre::PM_POINTS;
-            break;
-        default:
-            newVal = "Solid";
-            pm = Ogre::PM_SOLID;
-        }
-
-        mActiveCamera->setPolygonMode(pm);
-        mDetailsPanel->setParamValue(10, newVal);
+			mActiveCamera->setPolygonMode(pm);
+			mDetailsPanel->setParamValue(10, newVal);
+		}
     }
     else if(arg.key == OIS::KC_F5)   // refresh all textures
     {

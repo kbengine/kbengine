@@ -234,6 +234,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SinbadCharacterController.h"
+				>
+			</File>
+			<File
 				RelativePath=".\space.h"
 				>
 			</File>

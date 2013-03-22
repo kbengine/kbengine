@@ -16,7 +16,8 @@ SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
     mSceneFile(Ogre::StringUtil::BLANK),
     mHelpInfo(Ogre::StringUtil::BLANK),
     mFly(false),
-    mFallVelocity(0)
+    mFallVelocity(0),
+	mChara(0)
 {
     mCamNames.clear(); 
 
@@ -26,7 +27,10 @@ SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
 //-------------------------------------------------------------------------------------
 SpaceWorld::~SpaceWorld(void)
 {
+	mSceneMgr->destroyCamera("mainCamera");
+	mActiveCamera = NULL;
 	delete mLoader;
+	SAFE_RELEASE(mChara);
 }
 
 //-------------------------------------------------------------------------------------
@@ -74,60 +78,34 @@ void SpaceWorld::createScene(void)
 	mTrayMgr->showBackdrop();
 	mTrayMgr->showLogo(OgreBites::TL_BOTTOMRIGHT);
 
-    // Loop through all cameras and grab their name and set their debug representation
-    Ogre::SceneManager::CameraIterator cameras = mSceneMgr->getCameraIterator();
-    while (cameras.hasMoreElements())
-    {
-        Ogre::Camera* camera = cameras.getNext();
-        mCamNames.push_back(camera->getName());
-        Ogre::Entity* debugEnt = mSceneMgr->createEntity(camera->getName() + Ogre::String("_debug"), "scbCamera.mesh");
+	// set shadow properties
+	mSceneMgr->setShadowTechnique(SHADOWTYPE_TEXTURE_MODULATIVE);
+	mSceneMgr->setShadowColour(ColourValue(0.5, 0.5, 0.5));
+	mSceneMgr->setShadowTextureSize(1024);
+	mSceneMgr->setShadowTextureCount(1);
 
-        try{
-            Ogre::SceneNode* sNode = mSceneMgr->getSceneNode(camera->getName());
-            sNode->attachObject(debugEnt);
-            sNode->scale(0.5, 0.5, 0.5);
-        }catch (...){
-            Ogre::SceneNode* pNode = mSceneMgr->getRootSceneNode()->createChildSceneNode(camera->getName());
-            pNode->setPosition(camera->getPosition());
-            pNode->setOrientation(camera->getOrientation());
+	mActiveCamera = mSceneMgr->createCamera("mainCamera");
+	// Create one viewport, entire window
+	Ogre::Viewport* vp = mWindow->addViewport(mActiveCamera);
+	vp->setBackgroundColour(Ogre::ColourValue(0,0,0));
 
-            pNode->attachObject(debugEnt);
-            pNode->scale(0.5, 0.5, 0.5);
-        }
-    }
-    // Grab the first available camera, for now
-    Ogre::String cameraName = mCamNames[0];
-    try
-    {
-        mActiveCamera = mSceneMgr->getCamera(cameraName);
+	// Alter the camera aspect ratio to match the viewport
+	mActiveCamera->setAspectRatio(
+		Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));
 
-		// Create one viewport, entire window
-		Ogre::Viewport* vp = mWindow->addViewport(mActiveCamera);
-		vp->setBackgroundColour(Ogre::ColourValue(0,0,0));
+    mWindow->getViewport(0)->setCamera(mActiveCamera);
 
-		// Alter the camera aspect ratio to match the viewport
-		mActiveCamera->setAspectRatio(
-			Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));
+	mCameraMan = new OgreBites::SdkCameraMan(mActiveCamera);   // create a default camera controller
+	mCameraMan->setTopSpeed(7.0f);
+    mCameraMan->setCamera(mActiveCamera);
+	OgreApplication::getSingleton().setCurrCameraMan(mCameraMan);
 
-        mWindow->getViewport(0)->setCamera(mActiveCamera);
 
-		mCameraMan = new OgreBites::SdkCameraMan(mActiveCamera);   // create a default camera controller
-		mCameraMan->setTopSpeed(7.0f);
-        mCameraMan->setCamera(mActiveCamera);
-        mSceneMgr->getEntity(mActiveCamera->getName() + Ogre::String("_debug"))->setVisible(false);
-		OgreApplication::getSingleton().setCurrCameraMan(mCameraMan);
+	mCameraMan->setStyle(OgreBites::CS_MANUAL);
+	mChara = new SinbadCharacterController(mActiveCamera);
 
-        for(unsigned int ij = 0;ij < mLoader->mPGHandles.size();ij++)
-        {
-            mLoader->mPGHandles[ij]->setCamera(mActiveCamera);
-        }
-        
-    }
-    catch (Ogre::Exception& e)
-    {
-        Ogre::LogManager::getSingleton().logMessage("SpaceWorld::createScene : setting the active camera to (\"" +
-            cameraName + ") failed: " + e.getFullDescription());
-    }
+	mChara->setPosition(-97.9299, 191.0, -158.922);
+	mChara->scale(0.3, 0.3, 0.3);
 }
 
 //-------------------------------------------------------------------------------------
@@ -138,13 +116,14 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
     if (!mFly)
     {
         // clamp to terrain
-        Ogre::Vector3 camPos = mActiveCamera->getPosition();
+		
+        Ogre::Vector3 camPos = mChara->getPosition();
         Ogre::Ray ray;
         ray.setOrigin(Ogre::Vector3(camPos.x, 10000, camPos.z));
         ray.setDirection(Ogre::Vector3::NEGATIVE_UNIT_Y);
 
         Ogre::TerrainGroup::RayResult rayResult = mLoader->getTerrainGroup()->rayIntersects(ray);
-        Ogre::Real distanceAboveTerrain = 1.4f;
+        Ogre::Real distanceAboveTerrain = 1.46f;
         Ogre::Real fallSpeed = 200;
         Ogre::Real newy = camPos.y;
         if (rayResult.hit)
@@ -157,7 +136,7 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
             }
             newy = std::max(rayResult.position.y + distanceAboveTerrain, newy);
-            mActiveCamera->setPosition(camPos.x, newy, camPos.z);
+            mChara->setPosition(camPos.x, newy, camPos.z);
         }
     }
 
@@ -174,6 +153,8 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
     {
         mLoader->mPGHandles[ij]->update();
     }
+
+	mChara->addTime(evt.timeSinceLastFrame);
 
     return ret;
 }
@@ -246,9 +227,36 @@ bool SpaceWorld::keyPressed( const OIS::KeyEvent &arg )
         mFly = !mFly;
     }
 
-    return true;
+	mChara->injectKeyDown(arg);
+    return false; 
 }
 
+//-------------------------------------------------------------------------------------
+bool SpaceWorld::keyReleased(const OIS::KeyEvent &arg)
+{
+	mChara->injectKeyUp(arg);
+    return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool SpaceWorld::mouseMoved( const OIS::MouseEvent &arg )
+{
+    mChara->injectMouseMove(arg);
+    return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool SpaceWorld::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
+{
+    mChara->injectMouseDown(arg, id);
+    return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool SpaceWorld::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
+{
+    return true;
+}
 
 //-------------------------------------------------------------------------------------
 void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
