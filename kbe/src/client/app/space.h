@@ -20,6 +20,9 @@ public:
 
 	virtual bool keyPressed(const OIS::KeyEvent &arg){ return true; }
 	virtual bool keyReleased(const OIS::KeyEvent &arg){ return true; }
+    virtual bool mouseMoved( const OIS::MouseEvent &arg ){ return true; }
+    virtual bool mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id ){ return true; }
+    virtual bool mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id ){ return true; }
 	virtual void buttonHit(OgreBites::Button* button){}
 
 	virtual void kbengine_onEvent(const KBEngine::EventData* lpEventData){};

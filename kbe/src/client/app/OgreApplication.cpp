@@ -108,10 +108,10 @@ void OgreApplication::setupResources(void)
 //-------------------------------------------------------------------------------------
 bool OgreApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
 {
-    bool ret = BaseApplication::frameRenderingQueued(evt);
-	
 	if(g_space == NULL)
-		return false;
+	{
+		return BaseApplication::frameRenderingQueued(evt);
+	}
 
 	boost::mutex::scoped_lock lock(g_spaceMutex);
 	std::vector<const KBEngine::EventData*>::iterator iter = events_.begin();
@@ -136,8 +136,10 @@ bool OgreApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
 	
 	events_.clear();
 
-	g_space->frameRenderingQueued(evt);
-    return ret;
+	if(!g_space->frameRenderingQueued(evt))
+		return true;
+
+    return BaseApplication::frameRenderingQueued(evt);
 }
 
 //-------------------------------------------------------------------------------------
@@ -147,7 +149,8 @@ bool OgreApplication::keyPressed( const OIS::KeyEvent &arg )
 
 	if(g_space)
 	{
-		g_space->keyPressed(arg);
+		if(!g_space->keyPressed(arg))
+			return true;
 	}
 
     return BaseApplication::keyPressed( arg );
@@ -160,7 +163,62 @@ bool OgreApplication::keyReleased( const OIS::KeyEvent &arg )
 
 	if(g_space)
 	{
-		g_space->keyReleased(arg);
+		if(!g_space->keyReleased(arg))
+			return true;
+	}
+
+    return BaseApplication::keyReleased(arg);
+}
+
+//-------------------------------------------------------------------------------------
+bool OgreApplication::mouseMoved( const OIS::MouseEvent &arg )
+{
+    mTrayMgr->injectMouseMove(arg);
+    if (mTrayMgr->isDialogVisible()) return true;   // don't process any more keys if dialog is up
+
+    if(mCameraMan)
+       mCameraMan->injectMouseMove(arg);
+
+	if(g_space)
+	{
+		if(!g_space->mouseMoved(arg))
+			return true;
+	}
+
+    return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool OgreApplication::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
+{
+    mTrayMgr->injectMouseDown(arg, id);
+    if (mTrayMgr->isDialogVisible()) return true;   // don't process any more keys if dialog is up
+
+    if(mCameraMan)
+       mCameraMan->injectMouseDown(arg, id);
+
+	if(g_space)
+	{
+		if(!g_space->mousePressed(arg, id))
+			return true;
+	}
+
+    return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool OgreApplication::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
+{
+    mTrayMgr->injectMouseUp(arg, id);
+    if (mTrayMgr->isDialogVisible()) return true;   // don't process any more keys if dialog is up
+
+    if(mCameraMan)
+       mCameraMan->injectMouseUp(arg, id);
+
+	if(g_space)
+	{
+		if(!g_space->mouseReleased(arg, id))
+			return true;
 	}
 
     return true;
