@@ -7,6 +7,8 @@
 #include "TreeLoader3D.h"
 #include "OgreApplication.h"
 
+#include "../kbengine_dll/kbengine_dll.h"
+
 //-------------------------------------------------------------------------------------
 SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin, 
 		OIS::InputManager* pInputMgr, OgreBites::SdkTrayManager* pTrayMgr)
@@ -16,7 +18,8 @@ SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
     mSceneFile(Ogre::StringUtil::BLANK),
     mHelpInfo(Ogre::StringUtil::BLANK),
     mFly(false),
-	mPlayerPtr(0)
+	mPlayerPtr(0),
+	mEntities()
 {
     mHelpInfo = Ogre::String("Use [W][A][S][D] keys for movement.\nKeys [1]-[9] to switch between cameras.\n[0] toggles SceneNode debug visuals.\n\nPress [C] to toggle clamp to terrain (gravity).\n\n[G] toggles the detail panel.\n[R] cycles polygonModes (Solid/Wireframe/Points).\n[T] cycles various filtering.\n\n\nPress [ESC] to quit.");
 }
@@ -28,6 +31,7 @@ SpaceWorld::~SpaceWorld(void)
 	mActiveCamera = NULL;
 	delete mLoader;
 	SAFE_RELEASE(mPlayerPtr);
+	mEntities.clear();
 }
 
 //-------------------------------------------------------------------------------------
@@ -102,14 +106,6 @@ void SpaceWorld::createScene(void)
 
 
 	mCameraMan->setStyle(OgreBites::CS_MANUAL);
-
-	mPlayerPtr = new KBEntity(this);
-	mPlayerPtr->setupBody(mSceneMgr);
-	mPlayerPtr->setupCamera(mActiveCamera);
-	mPlayerPtr->setupAnimations();
-
-	mPlayerPtr->setPosition(-97.9299, 191.0, -158.922);
-	mPlayerPtr->scale(0.3, 0.3, 0.3);
 }
 
 //-------------------------------------------------------------------------------------
@@ -131,6 +127,12 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
 	if(mPlayerPtr) 
 		mPlayerPtr->addTime(evt.timeSinceLastFrame);
+	
+	ENTITIES::iterator iter = mEntities.begin();
+	for(; iter != mEntities.end(); iter++)
+	{
+		iter->second->addTime(evt.timeSinceLastFrame);
+	}
 
     return true;
 }
@@ -186,4 +188,43 @@ bool SpaceWorld::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID i
 //-------------------------------------------------------------------------------------
 void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 {
+	switch(lpEventData->id)
+	{
+	case CLIENT_EVENT_CREATEDENTITY:
+		break;
+	case CLIENT_EVENT_ENTERWORLD:
+		{
+			const KBEngine::EventData_EnterWorld* pEventData_EnterWorld = static_cast<const KBEngine::EventData_EnterWorld*>(lpEventData);
+			KBEngine::ENTITY_ID eid = pEventData_EnterWorld->pEntity->aspectID();
+			KBEntity* pEntity = new KBEntity(this, eid);
+			pEntity->setupBody(mSceneMgr);
+			pEntity->setupAnimations();
+
+			pEntity->setPosition(pEventData_EnterWorld->x, pEventData_EnterWorld->y, pEventData_EnterWorld->z);
+			pEntity->scale(0.3, 0.3, 0.3);
+
+			if(kbe_playerID() == eid)
+			{
+				pEntity->setupCamera(mActiveCamera);
+				mPlayerPtr = pEntity;
+			}
+			else
+			{
+				mEntities[eid].reset(pEntity);
+			}
+		}
+		break;
+	case CLIENT_EVENT_LEAVEWORLD:
+		if(kbe_playerID() == static_cast<const KBEngine::EventData_EnterWorld*>(lpEventData)->pEntity->aspectID())
+		{
+			SAFE_RELEASE(mPlayerPtr);
+		}
+		else
+		{
+			mEntities.erase(static_cast<const KBEngine::EventData_EnterWorld*>(lpEventData)->pEntity->aspectID());
+		}
+		break;
+	default:
+		break;
+	};
 }

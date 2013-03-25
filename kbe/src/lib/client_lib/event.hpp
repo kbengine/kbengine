@@ -129,6 +129,8 @@ struct EventData_EnterWorld : public EventData
 	SPACE_ID spaceID;
 	const EntityAspect* pEntity;
 	std::string res;
+	float x, y, z;
+	float pitch, roll, yaw;
 };
 
 struct EventData_LeaveWorld : public EventData

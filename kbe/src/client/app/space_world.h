@@ -51,6 +51,9 @@ private:
     Ogre::Rect mPGDirtyRect;
 
 	KBEntity* mPlayerPtr;
+
+	typedef std::map<KBEngine::ENTITY_ID, std::tr1::shared_ptr<KBEntity> > ENTITIES;
+	ENTITIES mEntities;
 };
 
 #endif // #ifndef __SPACEWORLD_CLIENT_h_

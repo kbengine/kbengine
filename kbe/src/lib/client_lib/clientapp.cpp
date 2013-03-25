@@ -65,7 +65,8 @@ pBlowfishFilter_(NULL),
 time_(),
 timers_(),
 threadPool_(),
-entryScript_()
+entryScript_(),
+state_(C_STATE_INIT)
 {
 	networkInterface_.pExtensionData(this);
 	networkInterface_.pChannelTimeOutHandler(this);
@@ -269,6 +270,93 @@ void ClientApp::handleGameTick()
 
 	getNetworkInterface().processAllChannelPackets(KBEngine::Mercury::MessageHandlers::pMainMessageHandlers);
 	tickSend();
+
+	switch(state_)
+	{
+		case C_STATE_INIT:
+			state_ = C_STATE_PLAY;
+			break;
+		case C_STATE_INITLOGINAPP_CHANNEL:
+			state_ = C_STATE_PLAY;
+			break;
+		case C_STATE_LOGIN:
+
+			state_ = C_STATE_PLAY;
+
+			if(!ClientObjectBase::login())
+			{
+				WARNING_MSG("ClientApp::handleGameTick: login is failed!\n");
+				return;
+			}
+
+			break;
+		case C_STATE_LOGIN_GATEWAY_CHANNEL:
+			{
+				state_ = C_STATE_PLAY;
+
+				bool exist = false;
+
+				if(pServerChannel_->endpoint())
+				{
+					lastAddr = pServerChannel_->endpoint()->addr();
+					getNetworkInterface().dispatcher().deregisterFileDescriptor(*pServerChannel_->endpoint());
+					exist = getNetworkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
+				}
+
+				bool ret = initBaseappChannel() != NULL;
+				if(ret)
+				{
+					if(!exist)
+					{
+						getNetworkInterface().registerChannel(pServerChannel_);
+						pTCPPacketReceiver_ = new Mercury::TCPPacketReceiver(*pServerChannel_->endpoint(), getNetworkInterface());
+					}
+					else
+					{
+						pTCPPacketReceiver_->endpoint(pServerChannel_->endpoint());
+					}
+
+					getNetworkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
+					
+					// 先握手然后等helloCB之后再进行登录
+					Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+					(*pBundle).newMessage(BaseappInterface::hello);
+					(*pBundle) << KBEVersion::versionString();
+					
+					if(Mercury::g_channelExternalEncryptType == 1)
+					{
+						pBlowfishFilter_ = new Mercury::BlowfishFilter();
+						(*pBundle).appendBlob(pBlowfishFilter_->key());
+						pServerChannel_->pFilter(NULL);
+					}
+					else
+					{
+						std::string key = "";
+						(*pBundle).appendBlob(key);
+					}
+
+					pServerChannel_->pushBundle(pBundle);
+					// ret = ClientObjectBase::loginGateWay();
+				}
+			}
+			break;
+		case C_STATE_LOGIN_GATEWAY:
+
+			state_ = C_STATE_PLAY;
+
+			if(!ClientObjectBase::loginGateWay())
+			{
+				WARNING_MSG("ClientApp::handleGameTick: loginGateWay is failed!\n");
+				return;
+			}
+
+			break;
+		case C_STATE_PLAY:
+			break;
+		default:
+			KBE_ASSERT(false);
+			break;
+	};
 }
 
 //-------------------------------------------------------------------------------------
@@ -426,19 +514,11 @@ void ClientApp::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInf
 
 	if(componentType == LOGINAPP_TYPE)
 	{
-		if(!ClientObjectBase::login())
-		{
-			WARNING_MSG("ClientApp::onHelloCB_: login is failed!\n");
-			return;
-		}
+		state_ = C_STATE_LOGIN;
 	}
 	else
 	{
-		if(!ClientObjectBase::loginGateWay())
-		{
-			WARNING_MSG("ClientApp::onHelloCB_: loginGateWay is failed!\n");
-			return;
-		}
+		state_ = C_STATE_LOGIN_GATEWAY;
 	}
 }
 
@@ -448,50 +528,7 @@ void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s
 	ClientObjectBase::onLoginSuccessfully(pChannel, s);
 	Config::getSingleton().writeAccountName(name_.c_str());
 
-	bool exist = false;
-
-	if(pServerChannel_->endpoint())
-	{
-		lastAddr = pServerChannel_->endpoint()->addr();
-		getNetworkInterface().dispatcher().deregisterFileDescriptor(*pServerChannel_->endpoint());
-		exist = getNetworkInterface().findChannel(pServerChannel_->endpoint()->addr()) != NULL;
-	}
-
-	bool ret = initBaseappChannel() != NULL;
-	if(ret)
-	{
-		if(!exist)
-		{
-			getNetworkInterface().registerChannel(pServerChannel_);
-			pTCPPacketReceiver_ = new Mercury::TCPPacketReceiver(*pServerChannel_->endpoint(), getNetworkInterface());
-		}
-		else
-		{
-			pTCPPacketReceiver_->endpoint(pServerChannel_->endpoint());
-		}
-
-		getNetworkInterface().dispatcher().registerFileDescriptor(*pServerChannel_->endpoint(), pTCPPacketReceiver_);
-		
-		// 先握手然后等helloCB之后再进行登录
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		(*pBundle).newMessage(BaseappInterface::hello);
-		(*pBundle) << KBEVersion::versionString();
-		
-		if(Mercury::g_channelExternalEncryptType == 1)
-		{
-			pBlowfishFilter_ = new Mercury::BlowfishFilter();
-			(*pBundle).appendBlob(pBlowfishFilter_->key());
-			pServerChannel_->pFilter(NULL);
-		}
-		else
-		{
-			std::string key = "";
-			(*pBundle).appendBlob(key);
-		}
-
-		pServerChannel_->pushBundle(pBundle);
-		// ret = ClientObjectBase::loginGateWay();
-	}
+	state_ = C_STATE_LOGIN_GATEWAY_CHANNEL;
 }
 
 //-------------------------------------------------------------------------------------		

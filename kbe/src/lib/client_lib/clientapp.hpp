@@ -57,6 +57,16 @@ public:
 	{
 		TIMEOUT_GAME_TICK
 	};
+
+	enum C_STATE
+	{
+		C_STATE_INIT = 0,
+		C_STATE_INITLOGINAPP_CHANNEL = 1,
+		C_STATE_LOGIN = 2,
+		C_STATE_LOGIN_GATEWAY_CHANNEL = 3,
+		C_STATE_LOGIN_GATEWAY = 4,
+		C_STATE_PLAY = 5,
+	};
 public:
 	ClientApp(Mercury::EventDispatcher& dispatcher, 
 			Mercury::NetworkInterface& ninterface, 
@@ -150,6 +160,8 @@ protected:
 	thread::ThreadPool										threadPool_;
 
 	PyObjectPtr												entryScript_;
+
+	C_STATE state_;
 
 };
 

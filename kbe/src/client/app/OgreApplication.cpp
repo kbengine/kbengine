@@ -85,7 +85,7 @@ bool OgreApplication::setup(void)
 
     createFrameListener();
 
-	changeSpace(new SpaceWorld(mRoot, mWindow, mInputManager, mTrayMgr));
+	changeSpace(new SpaceLogin(mRoot, mWindow, mInputManager, mTrayMgr));
     return true;
 };
 

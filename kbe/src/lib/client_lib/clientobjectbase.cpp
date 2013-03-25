@@ -441,7 +441,7 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 			EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(sm->getName()), 
 				NULL, appID(), eid, MAILBOX_TYPE_CELL);
 
-			createEntityCommon(sm->getName(), NULL, true, eid, true, NULL, mailbox);
+			entity = createEntityCommon(sm->getName(), NULL, true, eid, true, NULL, mailbox);
 
 			this->onUpdatePropertys(pChannel, *iter->second.get());
 			bufferedCreateEntityMessage_.erase(iter);
@@ -449,8 +449,8 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 		else
 		{
 			ERROR_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: not found entity(%1%).\n") % eid);
+			return;
 		}
-		return;
 	}
 
 	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%.\n") % eid);
@@ -458,6 +458,12 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 	EventData_EnterWorld eventdata;
 	eventdata.spaceID = spaceID;
 	eventdata.pEntity = entity->getAspect();
+	eventdata.x = entity->getPosition().x;
+	eventdata.y = entity->getPosition().y;
+	eventdata.z = entity->getPosition().z;
+	eventdata.pitch = entity->getDirection().pitch;
+	eventdata.roll = entity->getDirection().roll;
+	eventdata.yaw = entity->getDirection().yaw;
 
 	eventHandler_.fire(&eventdata);
 

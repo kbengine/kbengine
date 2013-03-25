@@ -44,23 +44,54 @@ private:
 
 public:
 	
-	KBEntity(SpaceWorld* pSpace):
+	KBEntity(SpaceWorld* pSpace, KBEngine::ENTITY_ID eid):
 	  mCamera(NULL),
 	  mBodyNode(NULL),
+      mCameraPivot(NULL),
+	  mCameraGoal(NULL),
+	  mCameraNode(NULL),
+      mPivotPitch(0.0f),
+      mBodyEnt(NULL),
+      mSword1(NULL),
+      mSword2(NULL),
+      mSwordTrail(NULL),
 	  mFallVelocity(0),
+	  mID(eid),
 	  mIsJump(false),
-	  mSpacePtr(pSpace)
+	  mSpacePtr(pSpace),
+	  mSceneMgr(NULL)
 	{
 		//setupBody(cam->getSceneManager());
 		//setupCamera(cam);
 		//setupAnimations();
 	}
 
+	~KBEntity()
+	{
+		if(mBodyEnt)mSceneMgr->destroyEntity(mBodyEnt);
+		if(mSword1)mSceneMgr->destroyEntity(mSword1);
+		if(mSword2)mSceneMgr->destroyEntity(mSword2);
+
+		if(mSwordTrail)mSceneMgr->destroyMovableObject(mSwordTrail);
+
+		if(mBodyNode)mSceneMgr->destroySceneNode(mBodyNode);
+		if(mCameraPivot)mSceneMgr->destroySceneNode(mCameraPivot);
+		if(mCameraGoal)mSceneMgr->destroySceneNode(mCameraGoal);
+		if(mCameraNode)mSceneMgr->destroySceneNode(mCameraNode);
+	}
+
 	void addTime(Real deltaTime);
 	
 	void scale(float x, float y, float z)
 	{
+		mScale = (x + y + z) / 3.0f;
 		mBodyNode->scale(x, y, z);
+	}
+
+	void scale(float v)
+	{
+		mScale = v;
+		mBodyNode->scale(v, v, v);
 	}
 
 	void setPosition(float x, float y, float z)
@@ -178,15 +209,18 @@ public:
 
 	void setupBody(SceneManager* sceneMgr)
 	{
+		mSceneMgr = sceneMgr;
 		// create main model
 		mBodyNode = sceneMgr->getRootSceneNode()->createChildSceneNode(Vector3::UNIT_Y * CHAR_HEIGHT);
-		mBodyEnt = sceneMgr->createEntity("SinbadBody", "Sinbad.mesh");
+
+		Ogre::String sKey = Ogre::StringConverter::toString(mID);
+		mBodyEnt = sceneMgr->createEntity(sKey + "Body", "Sinbad.mesh");
 		mBodyNode->attachObject(mBodyEnt);
 
 		// create swords and attach to sheath
 		LogManager::getSingleton().logMessage("Creating swords");
-		mSword1 = sceneMgr->createEntity("SinbadSword1", "Sword.mesh");
-		mSword2 = sceneMgr->createEntity("SinbadSword2", "Sword.mesh");
+		mSword1 = sceneMgr->createEntity(sKey + "Sword1", "Sword.mesh");
+		mSword2 = sceneMgr->createEntity(sKey + "Sword2", "Sword.mesh");
 		mBodyEnt->attachObjectToBone("Sheath.L", mSword1);
 		mBodyEnt->attachObjectToBone("Sheath.R", mSword2);
 
@@ -561,6 +595,8 @@ private:
 	bool mIsJump;
 	
 	SpaceWorld*	mSpacePtr;
+
+	SceneManager* mSceneMgr;
 };
 
 #endif
