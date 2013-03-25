@@ -3,7 +3,7 @@
 #define __SPACEWORLD_CLIENT_h_
 
 #include "space.h"
-#include "SinbadCharacterController.h"
+#include "Entity.h"
 #include <Terrain/OgreTerrain.h>
 #include <Terrain/OgreTerrainGroup.h>
 #include <OgreImage.h>
@@ -33,16 +33,15 @@ public:
     virtual bool mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
     virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
 	virtual void kbengine_onEvent(const KBEngine::EventData* lpEventData);
+
+	DotSceneLoader* getDotSceneLoader(){ return mLoader; }
 private:
-    std::vector<Ogre::String> mCamNames;
-    void switchCamera(int idx);
     Ogre::TerrainGroup* mTerrainGroup;
     DotSceneLoader* mLoader;
     bool mTerrainImported;
     Ogre::String mSceneFile;
     Ogre::String mHelpInfo;
     bool mFly;
-    Ogre::Real mFallVelocity;
 
     Forests::PagedGeometry* mPGHandle;                         /** Handle to Forests::PagedGeometry object */
     Forests::GrassLoader* mGrassLoaderHandle;                /** Handle to Forests::GrassLoader object */
@@ -51,7 +50,7 @@ private:
     Ogre::Image mPGDensityMap;
     Ogre::Rect mPGDirtyRect;
 
-	SinbadCharacterController* mChara;
+	KBEntity* mPlayerPtr;
 };
 
 #endif // #ifndef __SPACEWORLD_CLIENT_h_

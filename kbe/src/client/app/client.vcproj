@@ -188,6 +188,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Entity.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\OgreApplication.cpp"
 				>
 			</File>
@@ -222,6 +226,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Entity.h"
+				>
+			</File>
+			<File
 				RelativePath=".\OgreApplication.h"
 				>
 			</File>
@@ -231,10 +239,6 @@
 			</File>
 			<File
 				RelativePath=".\Resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SinbadCharacterController.h"
 				>
 			</File>
 			<File

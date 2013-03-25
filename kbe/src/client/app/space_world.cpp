@@ -16,11 +16,8 @@ SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
     mSceneFile(Ogre::StringUtil::BLANK),
     mHelpInfo(Ogre::StringUtil::BLANK),
     mFly(false),
-    mFallVelocity(0),
-	mChara(0)
+	mPlayerPtr(0)
 {
-    mCamNames.clear(); 
-
     mHelpInfo = Ogre::String("Use [W][A][S][D] keys for movement.\nKeys [1]-[9] to switch between cameras.\n[0] toggles SceneNode debug visuals.\n\nPress [C] to toggle clamp to terrain (gravity).\n\n[G] toggles the detail panel.\n[R] cycles polygonModes (Solid/Wireframe/Points).\n[T] cycles various filtering.\n\n\nPress [ESC] to quit.");
 }
 
@@ -30,7 +27,7 @@ SpaceWorld::~SpaceWorld(void)
 	mSceneMgr->destroyCamera("mainCamera");
 	mActiveCamera = NULL;
 	delete mLoader;
-	SAFE_RELEASE(mChara);
+	SAFE_RELEASE(mPlayerPtr);
 }
 
 //-------------------------------------------------------------------------------------
@@ -95,6 +92,9 @@ void SpaceWorld::createScene(void)
 
     mWindow->getViewport(0)->setCamera(mActiveCamera);
 
+	mActiveCamera->setNearClipDistance(0.1);
+	mActiveCamera->setFarClipDistance(30000);
+
 	mCameraMan = new OgreBites::SdkCameraMan(mActiveCamera);   // create a default camera controller
 	mCameraMan->setTopSpeed(7.0f);
     mCameraMan->setCamera(mActiveCamera);
@@ -102,44 +102,19 @@ void SpaceWorld::createScene(void)
 
 
 	mCameraMan->setStyle(OgreBites::CS_MANUAL);
-	mChara = new SinbadCharacterController(mActiveCamera);
 
-	mChara->setPosition(-97.9299, 191.0, -158.922);
-	mChara->scale(0.3, 0.3, 0.3);
+	mPlayerPtr = new KBEntity(this);
+	mPlayerPtr->setupBody(mSceneMgr);
+	mPlayerPtr->setupCamera(mActiveCamera);
+	mPlayerPtr->setupAnimations();
+
+	mPlayerPtr->setPosition(-97.9299, 191.0, -158.922);
+	mPlayerPtr->scale(0.3, 0.3, 0.3);
 }
 
 //-------------------------------------------------------------------------------------
 bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
 {
-    bool ret = true;
-
-    if (!mFly)
-    {
-        // clamp to terrain
-		
-        Ogre::Vector3 camPos = mChara->getPosition();
-        Ogre::Ray ray;
-        ray.setOrigin(Ogre::Vector3(camPos.x, 10000, camPos.z));
-        ray.setDirection(Ogre::Vector3::NEGATIVE_UNIT_Y);
-
-        Ogre::TerrainGroup::RayResult rayResult = mLoader->getTerrainGroup()->rayIntersects(ray);
-        Ogre::Real distanceAboveTerrain = 1.46f;
-        Ogre::Real fallSpeed = 200;
-        Ogre::Real newy = camPos.y;
-        if (rayResult.hit)
-        {
-            if (camPos.y > rayResult.position.y + distanceAboveTerrain)
-            {
-                mFallVelocity += evt.timeSinceLastFrame * 10;
-                mFallVelocity = std::min(mFallVelocity, fallSpeed);
-                newy = camPos.y - mFallVelocity * evt.timeSinceLastFrame;
-
-            }
-            newy = std::max(rayResult.position.y + distanceAboveTerrain, newy);
-            mChara->setPosition(camPos.x, newy, camPos.z);
-        }
-    }
-
     if (!mLoader->getTerrainGroup()->isDerivedDataUpdateInProgress())
     {
         if (mTerrainImported)
@@ -154,24 +129,10 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
         mLoader->mPGHandles[ij]->update();
     }
 
-	mChara->addTime(evt.timeSinceLastFrame);
+	if(mPlayerPtr) 
+		mPlayerPtr->addTime(evt.timeSinceLastFrame);
 
-    return ret;
-}
-
-//-------------------------------------------------------------------------------------
-void SpaceWorld::switchCamera(int idx)
-{
-    if (idx <= (int)mCamNames.size())
-    {
-        mSceneMgr->getEntity(mActiveCamera->getName() + Ogre::String("_debug"))->setVisible(true);
-        mSceneMgr->getSceneNode(mActiveCamera->getName())->setPosition(mActiveCamera->getPosition());
-        mSceneMgr->getSceneNode(mActiveCamera->getName())->setOrientation(mActiveCamera->getOrientation());
-        mActiveCamera = mSceneMgr->getCamera(mCamNames[idx-1]);
-        mWindow->getViewport(0)->setCamera(mActiveCamera);
-        mCameraMan->setCamera(mActiveCamera);
-        mSceneMgr->getEntity(mActiveCamera->getName() + Ogre::String("_debug"))->setVisible(false);
-    }
+    return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -186,69 +147,33 @@ bool SpaceWorld::keyPressed( const OIS::KeyEvent &arg )
     {
         mSceneMgr->setDisplaySceneNodes(!mSceneMgr->getDisplaySceneNodes());
     }
-    if (arg.key == OIS::KC_1)   // switch to camera 1
-    {
-        switchCamera(1);
-    }
-    if (arg.key == OIS::KC_2)   // switch to camera 2
-    {
-        switchCamera(2);
-    }
-    if (arg.key == OIS::KC_3)   // switch to camera 3
-    {
-        switchCamera(3);
-    }
-    if (arg.key == OIS::KC_4)   // switch to camera 4
-    {
-        switchCamera(4);
-    }
-    if (arg.key == OIS::KC_5)   // switch to camera 5
-    {
-        switchCamera(5);
-    }
-    if (arg.key == OIS::KC_6)   // switch to camera 6
-    {
-        switchCamera(6);
-    }
-    if (arg.key == OIS::KC_7)   // switch to camera 7
-    {
-        switchCamera(7);
-    }
-    if (arg.key == OIS::KC_8)   // switch to camera 8
-    {
-        switchCamera(8);
-    }
-    if (arg.key == OIS::KC_9)   // switch to camera 9
-    {
-        switchCamera(9);
-    }
     if (arg.key == OIS::KC_C)   // toggle fly/walk
     {
         mFly = !mFly;
     }
 
-	mChara->injectKeyDown(arg);
-    return false; 
+	if(mPlayerPtr) mPlayerPtr->injectKeyDown(arg);
+    return true; 
 }
 
 //-------------------------------------------------------------------------------------
 bool SpaceWorld::keyReleased(const OIS::KeyEvent &arg)
 {
-	mChara->injectKeyUp(arg);
-    return false;
+	if(mPlayerPtr) mPlayerPtr->injectKeyUp(arg);
+    return true;
 }
 
 //-------------------------------------------------------------------------------------
 bool SpaceWorld::mouseMoved( const OIS::MouseEvent &arg )
 {
-    mChara->injectMouseMove(arg);
+    if(mPlayerPtr) mPlayerPtr->injectMouseMove(arg);
     return false;
 }
 
 //-------------------------------------------------------------------------------------
 bool SpaceWorld::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
-    mChara->injectMouseDown(arg, id);
+	if(mPlayerPtr) mPlayerPtr->injectMouseDown(arg, id);
     return false;
 }
 

@@ -3,19 +3,22 @@
 
 #include "Ogre.h"
 #include "OIS.h"
+#include "cstdkbe/cstdkbe.hpp"
 
 using namespace Ogre;
 
-#define NUM_ANIMS 13           // number of animations the character has
+class SpaceWorld;
+
+#define NUM_ANIMS 13				// number of animations the character has
 #define CHAR_HEIGHT 5 * 0.3         // height of character's center of mass above ground
-#define CAM_HEIGHT 2* 0.3           // height of camera above character's center of mass
+#define CAM_HEIGHT 2 * 0.3          // height of camera above character's center of mass
 #define RUN_SPEED 17 * 0.3          // character running speed in units per second
 #define TURN_SPEED 500.0f * 0.3     // character turning in degrees per second
 #define ANIM_FADE_SPEED 7.5f * 0.3  // animation crossfade speed in % of full weight per second
 #define JUMP_ACCEL 30.0f * 0.3      // character jump acceleration in upward units per squared second
-#define GRAVITY 90.0f* 0.3          // gravity in downward units per squared second
+#define GRAVITY 90.0f * 0.3         // gravity in downward units per squared second
 
-class SinbadCharacterController
+class KBEntity
 {
 private:
 
@@ -41,19 +44,19 @@ private:
 
 public:
 	
-	SinbadCharacterController(Camera* cam)
+	KBEntity(SpaceWorld* pSpace):
+	  mCamera(NULL),
+	  mBodyNode(NULL),
+	  mFallVelocity(0),
+	  mIsJump(false),
+	  mSpacePtr(pSpace)
 	{
-		setupBody(cam->getSceneManager());
-		setupCamera(cam);
-		setupAnimations();
+		//setupBody(cam->getSceneManager());
+		//setupCamera(cam);
+		//setupAnimations();
 	}
 
-	void addTime(Real deltaTime)
-	{
-		updateBody(deltaTime);
-		updateAnimations(deltaTime);
-		updateCamera(deltaTime);
-	}
+	void addTime(Real deltaTime);
 	
 	void scale(float x, float y, float z)
 	{
@@ -69,6 +72,8 @@ public:
 	{
 		return mBodyNode->getPosition();
 	}
+	
+	bool isJump()const { return mIsJump; }
 
 	void injectKeyDown(const OIS::KeyEvent& evt)
 	{
@@ -171,8 +176,6 @@ public:
 	}
 #endif
 
-private:
-
 	void setupBody(SceneManager* sceneMgr)
 	{
 		// create main model
@@ -204,7 +207,7 @@ private:
 			mSwordTrail->setInitialColour(i, 1, 0.8, 0);
 			mSwordTrail->setColourChange(i, 0.75, 1.25, 1.25, 1.25);
 			mSwordTrail->setWidthChange(i, 1);
-			mSwordTrail->setInitialWidth(i, 0.5);
+			mSwordTrail->setInitialWidth(i, 0.3);
 		}
 
 		mKeyDirection = Vector3::ZERO;
@@ -241,6 +244,8 @@ private:
 
 	void setupCamera(Camera* cam)
 	{
+		mCamera = cam;
+
 		// create a pivot at roughly the character's shoulder
 		mCameraPivot = cam->getSceneManager()->getRootSceneNode()->createChildSceneNode();
 		// this is where the camera should be soon, and it spins around the pivot
@@ -254,8 +259,6 @@ private:
 		mCameraNode->setFixedYawAxis(true);
 
 		// our model is quite small, so reduce the clipping planes
-		cam->setNearClipDistance(0.1);
-		cam->setFarClipDistance(30000);
 		mCameraNode->attachObject(cam);
 
 		mPivotPitch = 0;
@@ -299,12 +302,8 @@ private:
 			mBodyNode->translate(0, mVerticalVelocity * deltaTime, 0, Node::TS_LOCAL);
 			mVerticalVelocity -= GRAVITY * deltaTime;
 			
-			Vector3 pos = mBodyNode->getPosition();
-			if (pos.y <= CHAR_HEIGHT)
+			if(_checkJumpEnd())
 			{
-				// if we've hit the ground, change to landing state
-				pos.y = CHAR_HEIGHT;
-				mBodyNode->setPosition(pos);
 				setBaseAnimation(ANIM_JUMP_END, true);
 				mTimer = 0;
 			}
@@ -382,6 +381,7 @@ private:
 		{
 			if (mTimer >= mAnims[mBaseAnimID]->getLength())
 			{
+				mIsJump = true;
 				// takeoff animation finished, so time to leave the ground!
 				setBaseAnimation(ANIM_JUMP_LOOP, true);
 				// apply a jump acceleration to the character
@@ -392,6 +392,7 @@ private:
 		{
 			if (mTimer >= mAnims[mBaseAnimID]->getLength())
 			{
+				mIsJump = false;
 				// safely landed, so go back to running or idling
 				if (mKeyDirection == Vector3::ZERO)
 				{
@@ -516,27 +517,50 @@ private:
 			if (reset) mAnims[id]->setTimePosition(0);
 		}
 	}
-
+private:
+	bool _checkJumpEnd();
+private:
 	Camera* mCamera;
 	SceneNode* mBodyNode;
+
 	SceneNode* mCameraPivot;
 	SceneNode* mCameraGoal;
 	SceneNode* mCameraNode;
+
 	Real mPivotPitch;
+
 	Entity* mBodyEnt;
 	Entity* mSword1;
 	Entity* mSword2;
+
 	RibbonTrail* mSwordTrail;
-	AnimationState* mAnims[NUM_ANIMS];    // master animation list
-	AnimID mBaseAnimID;                   // current base (full- or lower-body) animation
-	AnimID mTopAnimID;                    // current top (upper-body) animation
-	bool mFadingIn[NUM_ANIMS];            // which animations are fading in
-	bool mFadingOut[NUM_ANIMS];           // which animations are fading out
+
+	AnimationState* mAnims[NUM_ANIMS];		 // master animation list
+	AnimID mBaseAnimID;						 // current base (full- or lower-body) animation
+	AnimID mTopAnimID;						 // current top (upper-body) animation
+
+	bool mFadingIn[NUM_ANIMS];				 // which animations are fading in
+	bool mFadingOut[NUM_ANIMS];				 // which animations are fading out
+
 	bool mSwordsDrawn;
-	Vector3 mKeyDirection;      // player's local intended direction based on WASD keys
-	Vector3 mGoalDirection;     // actual intended direction in world-space
-	Real mVerticalVelocity;     // for jumping
-	Real mTimer;                // general timer to see how long animations have been playing
+
+	Vector3 mKeyDirection;					 // player's local intended direction based on WASD keys
+	Vector3 mGoalDirection;					 // actual intended direction in world-space
+	Real mVerticalVelocity;					 // for jumping
+
+	Ogre::Real mFallVelocity;				// 掉落的速度
+
+	Real mTimer;							 // general timer to see how long animations have been playing
+
+	float mMoveSpeed;						// 移动速度
+	float mScale;							// 模型缩放比
+
+	std::string mName;						// 名称
+	KBEngine::ENTITY_ID mID;				// entityID
+
+	bool mIsJump;
+	
+	SpaceWorld*	mSpacePtr;
 };
 
 #endif
