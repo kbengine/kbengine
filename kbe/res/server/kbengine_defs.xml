@@ -149,6 +149,10 @@
 			<eventprofile> false </eventprofile>
 			<mercuryprofile> false </mercuryprofile>
 		</profiles>
+		
+		<ghostDistance> 500.0 </ghostDistance>
+		<ghostingMaxPerCheck> 64 </ghostingMaxPerCheck> <!-- Type: Integer -->
+		<ghostUpdateHertz> 50 </ghostUpdateHertz> <!-- Type: Integer -->
 	</cellapp>
 	
 	<baseapp>
