@@ -38,7 +38,8 @@ id_(spaceID),
 entities_(),
 isLoadGeometry_(false),
 loadGeometryPathName_(),
-pCell_(NULL)
+pCell_(NULL),
+rangeList_()
 {
 }
 

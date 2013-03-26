@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __SPACE_HPP__
 #define __SPACE_HPP__
 
+#include "range_list.hpp"
 #include "cell.hpp"
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
@@ -108,6 +109,8 @@ protected:
 	
 	// 每个space最多只有一个cell
 	Cell* pCell_;
+
+	RangeList rangeList_;
 };
 
 

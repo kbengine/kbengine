@@ -236,6 +236,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\range_list.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\range_node.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\space.cpp"
 				>
 			</File>
@@ -320,6 +328,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\range_list.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\range_node.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\space.hpp"
 				>
 			</File>
@@ -341,7 +357,19 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\aoi.ipp"
+			>
+		</File>
+		<File
 			RelativePath=".\entity.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\range_list.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\range_node.ipp"
 			>
 		</File>
 		<File

@@ -1,6 +1,5 @@
 BIN  = cellapp
 SRCS =						\
-	aoi					\
 	all_clients				\
 	cell					\
 	cells					\
@@ -17,7 +16,9 @@ SRCS =						\
 	updatable				\
 	updatables				\
 	witness					\
-	profile
+	profile					\
+	range_node				\
+	range_list
 
 ASMS =
 
