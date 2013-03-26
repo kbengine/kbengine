@@ -339,6 +339,21 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL){
 			_cellAppInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
+
+		node =  xml->enterNode(rootNode, "ghostDistance");
+		if(node != NULL){
+			_cellAppInfo.ghostDistance = (float)xml->getValFloat(node);
+		}
+
+		node =  xml->enterNode(rootNode, "ghostingMaxPerCheck");
+		if(node != NULL){
+			_cellAppInfo.ghostingMaxPerCheck = xml->getValInt(node);
+		}
+
+		node =  xml->enterNode(rootNode, "ghostUpdateHertz");
+		if(node != NULL){
+			_cellAppInfo.ghostUpdateHertz = xml->getValInt(node);
+		}
 	}
 	
 	rootNode = xml->getRootNode("baseapp");

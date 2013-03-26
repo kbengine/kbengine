@@ -103,6 +103,10 @@ typedef struct EngineComponentInfo
 	const Mercury::Address* internalAddr;					// 内部地址
 	COMPONENT_ID componentID;
 
+	float ghostDistance;									// ghost区域距离
+	uint16 ghostingMaxPerCheck;								// 每秒检查ghost次数
+	uint16 ghostUpdateHertz;								// ghost更新hz
+
 	char internalInterface[MAX_NAME];						// 内部网卡接口名称
 	char externalInterface[MAX_NAME];						// 外部网卡接口名称
 	int32 externalPorts_min;								// 对外socket端口使用指定范围
