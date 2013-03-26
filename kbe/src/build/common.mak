@@ -54,7 +54,7 @@ endif
 ifeq ($(KBE_CONFIG), Hybrid64)
 PYTHONLIB = python64_3.2
 else
-PYTHONLIB = python3.2
+PYTHONLIB = python32_3.2
 endif
 
 # If SEPARATE_DEBUG_INFO is defined, the debug information for an executable

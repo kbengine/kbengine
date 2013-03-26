@@ -1,5 +1,6 @@
 BIN  = cellapp
 SRCS =						\
+	aoi					\
 	all_clients				\
 	cell					\
 	cells					\
