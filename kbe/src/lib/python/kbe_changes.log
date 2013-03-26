@@ -14,4 +14,4 @@ _ssl _ssl.c \
 
 cp Modules/Setup.dist to Modules/Setup
 
-* 改变了Makefile， 使其能够和kbengine兼容编译
+* 改变了Makefile.pre.in， 使其能够和kbengine兼容编译
