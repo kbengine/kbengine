@@ -68,6 +68,7 @@ void Space::addEntity(Entity* pEntity)
 	pEntity->setSpaceID(this->id_);
 	pEntity->spaceEntityIdx(entities_.size());
 	entities_.push_back(pEntity);
+	rangeList_.insert((KBEngine::RangeNode*)pEntity->pEntityRangeNode());
 
 	onEnterWorld(pEntity);
 }
@@ -90,6 +91,8 @@ void Space::removeEntity(Entity* pEntity)
 	pEntity->spaceEntityIdx(SPACE_ENTITIES::size_type(-1));
 	entities_.pop_back();
 	
+	rangeList_.remove((KBEngine::RangeNode*)pEntity->pEntityRangeNode());
+
 	onLeaveWorld(pEntity);
 
 	// 如果没有entity了则需要销毁space, 因为space最少存在一个entity

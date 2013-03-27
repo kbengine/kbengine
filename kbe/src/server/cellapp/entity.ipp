@@ -148,4 +148,10 @@ INLINE void Entity::pWitness(Witness* w)
 }
 
 //-------------------------------------------------------------------------------------
+INLINE EntityRangeNode* Entity::pEntityRangeNode()const
+{
+	return pEntityRangeNode_;
+}
+
+//-------------------------------------------------------------------------------------
 }

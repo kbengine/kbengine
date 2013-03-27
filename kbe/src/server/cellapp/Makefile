@@ -9,6 +9,7 @@ SRCS =						\
 	forward_message_over_handler		\
 	entity					\
 	entity_remotemethod			\
+	entity_range_node			\
 	history_event				\
 	main					\
 	space					\

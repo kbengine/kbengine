@@ -18,57 +18,40 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "range_node.hpp"
-#include "range_list.hpp"
+#include "entity_range_node.hpp"
+#include "entity.hpp"
 
 namespace KBEngine{	
 
 
 //-------------------------------------------------------------------------------------
-RangeNode::RangeNode(RangeList* pRangeList):
-pPrevX_(NULL),
-pNextX_(NULL),
-pPrevY_(NULL),
-pNextY_(NULL),
-pPrevZ_(NULL),
-pNextZ_(NULL),
-pRangeList_(pRangeList),
-x_(0.f),
-y_(0.f),
-z_(0.f),
-old_x_(0.f),
-old_y_(0.f),
-old_z_(0.f)
-{
-	old_x_ = x();
-	old_y_ = y();
-	old_z_ = z();
-}
-
-//-------------------------------------------------------------------------------------
-RangeNode::~RangeNode()
+EntityRangeNode::EntityRangeNode(Entity* pEntity):
+RangeNode(NULL),
+pEntity_(pEntity)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::update()
-{
-	pRangeList_->update(this);
-}
-
-//-------------------------------------------------------------------------------------
-void RangeNode::onNodePassX(RangeNode* pNode, bool isfront)
+EntityRangeNode::~EntityRangeNode()
 {
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::onNodePassY(RangeNode* pNode, bool isfront)
+float EntityRangeNode::x()const
 {
+	return pEntity_->getPosition().x;
 }
 
 //-------------------------------------------------------------------------------------
-void RangeNode::onNodePassZ(RangeNode* pNode, bool isfront)
+float EntityRangeNode::y()const
 {
+	return pEntity_->getPosition().y;
+}
+
+//-------------------------------------------------------------------------------------
+float EntityRangeNode::z()const
+{
+	return pEntity_->getPosition().z;
 }
 
 //-------------------------------------------------------------------------------------

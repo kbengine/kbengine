@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "profile.hpp"
 #include "space.hpp"
 #include "all_clients.hpp"
+#include "entity_range_node.hpp"
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 #include "network/bundle.hpp"	
@@ -84,9 +85,11 @@ topSpeedY_(-0.1f),
 isWitnessed_(false),
 pWitness_(NULL),
 allClients_(new AllClients(scriptModule, id, true)),
-otherClients_(new AllClients(scriptModule, id, false))
+otherClients_(new AllClients(scriptModule, id, false)),
+pEntityRangeNode_(NULL)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
+	pEntityRangeNode_ = new EntityRangeNode(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -105,6 +108,8 @@ Entity::~Entity()
 		Witness::ObjPool().reclaimObject(pWitness_);
 		pWitness_ = NULL;
 	}
+
+	S_RELEASE(pEntityRangeNode_);
 }	
 
 //-------------------------------------------------------------------------------------
@@ -560,8 +565,8 @@ uint16 Entity::addProximity(float range)
 	}
 
 	// 不允许范围大于cell边界
-	if(range > CELL_BORDER_WIDTH)
-		range = CELL_BORDER_WIDTH;
+	if(range > g_kbeSrvConfig.getCellApp().ghostDistance)
+		range = g_kbeSrvConfig.getCellApp().ghostDistance;
 
 	/*
 	// 在space中投放一个陷阱

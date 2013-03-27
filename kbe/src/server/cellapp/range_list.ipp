@@ -26,13 +26,19 @@ namespace KBEngine{
 INLINE RangeNode * RangeList::pFirstXNode()const { return first_x_rangeNode_; }
 
 //-------------------------------------------------------------------------------------
-INLINE RangeNode * RangeList::pLastXNode()const { return last_x_rangeNode_; }
+INLINE RangeNode * RangeList::pFirstYNode()const { return first_y_rangeNode_; }
 
 //-------------------------------------------------------------------------------------
 INLINE RangeNode * RangeList::pFirstZNode()const { return first_z_rangeNode_; }
 
 //-------------------------------------------------------------------------------------
-INLINE RangeNode * RangeList::pLastZNode()const { return last_z_rangeNode_; }
+INLINE uint32 RangeList::size()const{ return size_; }
+
+//-------------------------------------------------------------------------------------
+INLINE bool RangeList::isEmpty()const 
+{ 
+	return first_x_rangeNode_ == NULL && first_y_rangeNode_ == NULL && first_z_rangeNode_ == NULL;
+}
 
 //-------------------------------------------------------------------------------------
 

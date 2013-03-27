@@ -28,19 +28,6 @@ INLINE Entity* Witness::pEntity()
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Witness::setAoiRadius(float radius, float hyst)
-{
-	aoiRadius_ = radius;
-	aoiHysteresisArea_ = hyst;
-
-	if(aoiRadius_ + aoiHysteresisArea_ > CELL_BORDER_WIDTH)
-	{
-		aoiRadius_ = CELL_BORDER_WIDTH - 15.0f;
-		aoiHysteresisArea_ = 15.0f;
-	}
-}
-
-//-------------------------------------------------------------------------------------
 INLINE float Witness::aoiRadius()const
 { 
 	return aoiRadius_; 

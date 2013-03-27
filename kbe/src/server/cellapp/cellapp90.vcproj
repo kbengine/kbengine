@@ -212,6 +212,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\entity_range_node.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\entity_remotemethod.cpp"
 				>
 			</File>
@@ -309,6 +313,10 @@
 			</File>
 			<File
 				RelativePath=".\entity_interface_macros.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\entity_range_node.hpp"
 				>
 			</File>
 			<File

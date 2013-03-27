@@ -89,7 +89,7 @@ public:
 	void attach(Entity* pEntity);
 	void detach(Entity* pEntity);
 
-	INLINE void setAoiRadius(float radius, float hyst);
+	void setAoiRadius(float radius, float hyst = 5.0f);
 	
 	INLINE float aoiRadius()const;
 	INLINE float aoiHysteresisArea()const;

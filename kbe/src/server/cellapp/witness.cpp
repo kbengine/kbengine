@@ -34,7 +34,7 @@ namespace KBEngine{
 Witness::Witness():
 pEntity_(NULL),
 aoiRadius_(0.0f),
-aoiHysteresisArea_(0.0f)
+aoiHysteresisArea_(5.0f)
 {
 }
 
@@ -88,6 +88,19 @@ Witness::SmartPoolObjectPtr Witness::createSmartPoolObj()
 //-------------------------------------------------------------------------------------
 void Witness::onReclaimObject()
 {
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::setAoiRadius(float radius, float hyst)
+{
+	aoiRadius_ = radius;
+	aoiHysteresisArea_ = hyst;
+
+	if(aoiRadius_ + aoiHysteresisArea_ > g_kbeSrvConfig.getCellApp().ghostDistance)
+	{
+		aoiRadius_ = g_kbeSrvConfig.getCellApp().ghostDistance - 5.0f;
+		aoiHysteresisArea_ = 5.0f;
+	}
 }
 
 //-------------------------------------------------------------------------------------

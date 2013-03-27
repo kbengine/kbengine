@@ -18,57 +18,33 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_RANGE_LIST_HPP__
-#define __KBE_RANGE_LIST_HPP__
+#ifndef __KBE_ENTITY_RANGE_NODE_HPP__
+#define __KBE_ENTITY_RANGE_NODE_HPP__
 
-#include "helper/debug_helper.hpp"
-#include "cstdkbe/cstdkbe.hpp"	
+#include "range_node.hpp"
 
 namespace KBEngine{
 
-class RangeNode;
+class Entity;
 
-class RangeList
+class EntityRangeNode : public RangeNode
 {
 public:
-	RangeList();
-	~RangeList();
+	EntityRangeNode(Entity* pEntity);
+	virtual ~EntityRangeNode();
 
 	/**
-		向list中插入节点
+		x && z由不同的应用实现(从不同处获取)
 	*/
-	bool insert(RangeNode* pNode);
+	virtual float x()const;
+	virtual float y()const;
+	virtual float z()const;
 
-	/**
-		将节点从list中移除
-	*/
-	bool remove(RangeNode* pNode);
-
-	/**
-		当某个节点有变动时，需要更新它在list中的
-		相关位置等信息
-	*/
-	void update(RangeNode* pNode);
-
-	INLINE RangeNode * pFirstXNode()const;
-	INLINE RangeNode * pFirstYNode()const;
-	INLINE RangeNode * pFirstZNode()const;
-
-	INLINE bool isEmpty()const;
-
-	INLINE uint32 size()const;
-private:
-	uint32 size_;
-
-	// 链表的首尾指针
-	RangeNode* first_x_rangeNode_;
-	RangeNode* first_y_rangeNode_;
-	RangeNode* first_z_rangeNode_;
+	Entity* pEntity()const { return pEntity_; }
+protected:
+	Entity* pEntity_;
 };
 
 }
 
-#ifdef CODE_INLINE
-#include "range_list.ipp"
-#endif
 #endif

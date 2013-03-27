@@ -45,12 +45,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 	
 namespace KBEngine{
+
 class Chunk;
 class Entity;
 class EntityMailbox;
 class Cellapp;
 class Witness;
 class AllClients;
+class EntityRangeNode;
 
 namespace Mercury
 {
@@ -369,6 +371,10 @@ public:
 	INLINE SPACE_ENTITIES::size_type spaceEntityIdx()const;
 	INLINE void spaceEntityIdx(SPACE_ENTITIES::size_type idx);
 
+	/**
+		获取entity所在节点
+	*/
+	INLINE EntityRangeNode* pEntityRangeNode()const;
 private:
 	/** 
 		发送teleport结果到base端
@@ -394,6 +400,8 @@ protected:
 
 	AllClients*								allClients_;
 	AllClients*								otherClients_;
+
+	EntityRangeNode*						pEntityRangeNode_;					// entity节点
 };																										
 																											
 
