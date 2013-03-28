@@ -188,6 +188,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\aoi_trigger.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\cell.cpp"
 				>
 			</File>
@@ -248,11 +252,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\range_trigger.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\space.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\spaces.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\trap_trigger.cpp"
 				>
 			</File>
 			<File
@@ -281,6 +293,10 @@
 			>
 			<File
 				RelativePath=".\all_clients.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\aoi_trigger.hpp"
 				>
 			</File>
 			<File
@@ -344,11 +360,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\range_trigger.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\space.hpp"
 				>
 			</File>
 			<File
 				RelativePath=".\spaces.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\trap_trigger.hpp"
 				>
 			</File>
 			<File
@@ -369,6 +393,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\aoi_trigger.ipp"
+			>
+		</File>
+		<File
 			RelativePath=".\entity.ipp"
 			>
 		</File>
@@ -381,7 +409,15 @@
 			>
 		</File>
 		<File
+			RelativePath=".\range_trigger.ipp"
+			>
+		</File>
+		<File
 			RelativePath=".\ReadMe.txt"
+			>
+		</File>
+		<File
+			RelativePath=".\trap_trigger.ipp"
 			>
 		</File>
 		<File

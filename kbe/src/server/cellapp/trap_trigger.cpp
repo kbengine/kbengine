@@ -18,30 +18,31 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "trap_trigger.hpp"
 
-namespace KBEngine{
+namespace KBEngine{	
 
-//-------------------------------------------------------------------------------------
-INLINE RangeNode* RangeNode::pPrevX()const { return pPrevX_; }
-INLINE RangeNode* RangeNode::pNextX()const { return pNextX_; }
-INLINE RangeNode* RangeNode::pPrevY()const { return pPrevY_; }
-INLINE RangeNode* RangeNode::pNextY()const { return pNextY_; }
-INLINE RangeNode* RangeNode::pPrevZ()const { return pPrevZ_; }
-INLINE RangeNode* RangeNode::pNextZ()const { return pNextZ_; }
 
 //-------------------------------------------------------------------------------------
-INLINE void RangeNode::pPrevX(RangeNode* pNode){ pPrevX_ = pNode; }
-INLINE void RangeNode::pNextX(RangeNode* pNode){ pNextX_ = pNode; }
-INLINE void RangeNode::pPrevY(RangeNode* pNode){ pPrevY_ = pNode; }
-INLINE void RangeNode::pNextY(RangeNode* pNode){ pNextY_ = pNode; }
-INLINE void RangeNode::pPrevZ(RangeNode* pNode){ pPrevZ_ = pNode; }
-INLINE void RangeNode::pNextZ(RangeNode* pNode){ pNextZ_ = pNode; }
+TrapTrigger::TrapTrigger(RangeNode* origin, float xz, float y):
+RangeTrigger(origin, xz, y)
+{
+}
 
 //-------------------------------------------------------------------------------------
-INLINE void RangeNode::pRangeList(RangeList* p){ pRangeList_ = p; }
+TrapTrigger::~TrapTrigger()
+{
+}
 
 //-------------------------------------------------------------------------------------
-INLINE RangeList* RangeNode::pRangeList()const{ return pRangeList_; }
+void TrapTrigger::onEnter(RangeNode * pNode)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void TrapTrigger::onLeave(RangeNode * pNode)
+{
+}
 
 //-------------------------------------------------------------------------------------
 }

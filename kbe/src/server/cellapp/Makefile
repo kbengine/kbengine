@@ -1,6 +1,7 @@
 BIN  = cellapp
 SRCS =						\
 	all_clients				\
+	aoi_trigger				\
 	cell					\
 	cells					\
 	cellapp					\
@@ -14,12 +15,14 @@ SRCS =						\
 	main					\
 	space					\
 	spaces					\
+	trap_trigger				\
 	updatable				\
 	updatables				\
 	witness					\
 	profile					\
 	range_node				\
-	range_list
+	range_list				\
+	range_trigger				
 
 ASMS =
 

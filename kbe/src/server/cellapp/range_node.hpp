@@ -30,7 +30,7 @@ class RangeList;
 class RangeNode
 {
 public:
-	RangeNode(RangeList* pRangeList);
+	RangeNode(RangeList* pRangeList = NULL);
 	virtual ~RangeNode();
 
 	/**
@@ -55,6 +55,7 @@ public:
 	}
 
 	INLINE void pRangeList(RangeList* p);
+	INLINE RangeList* pRangeList()const;
 
 	/**
 		获取链表的前后端指针

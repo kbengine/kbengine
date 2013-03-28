@@ -89,7 +89,9 @@ otherClients_(new AllClients(scriptModule, id, false)),
 pEntityRangeNode_(NULL)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
-	pEntityRangeNode_ = new EntityRangeNode(this);
+
+	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
+		pEntityRangeNode_ = new EntityRangeNode(this);
 }
 
 //-------------------------------------------------------------------------------------

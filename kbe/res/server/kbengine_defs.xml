@@ -153,6 +153,9 @@
 		<ghostDistance> 500.0 </ghostDistance>
 		<ghostingMaxPerCheck> 64 </ghostingMaxPerCheck> <!-- Type: Integer -->
 		<ghostUpdateHertz> 50 </ghostUpdateHertz> <!-- Type: Integer -->
+		
+		<!-- 是否使用坐标系统 如果为false， aoi,trap, move等功能将不再维护 -->
+		<coordinate_system> true </coordinate_system>
 	</cellapp>
 	
 	<baseapp>

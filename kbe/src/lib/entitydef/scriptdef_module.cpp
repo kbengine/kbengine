@@ -46,7 +46,7 @@ name_(name)
 	detailLevel_.level[DETAIL_LEVEL_FAR] = new DetailLevel::Level();
 	detailLevel_.level[DETAIL_LEVEL_UNKNOW] = new DetailLevel::Level();
 	
-	detailLevel_.level[DETAIL_LEVEL_NEAR]->radius = CELL_BORDER_WIDTH;
+	detailLevel_.level[DETAIL_LEVEL_NEAR]->radius = CELL_DEF_MIN_AREA_SIZE;
 	detailLevel_.level[DETAIL_LEVEL_NEAR]->hyst = 0.0f;
 	
 	detailLevel_.level[DETAIL_LEVEL_MEDIUM]->radius = 0.0f;

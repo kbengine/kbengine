@@ -86,6 +86,7 @@ typedef struct EngineComponentInfo
 	{
 		tcp_SOMAXCONN = 5;
 		notFoundAccountAutoCreate = false;
+		use_coordinate_system = true;
 	}
 
 	~EngineComponentInfo()
@@ -106,6 +107,8 @@ typedef struct EngineComponentInfo
 	float ghostDistance;									// ghost区域距离
 	uint16 ghostingMaxPerCheck;								// 每秒检查ghost次数
 	uint16 ghostUpdateHertz;								// ghost更新hz
+	
+	bool use_coordinate_system;								// 是否使用坐标系统 如果为false， aoi,trap, move等功能将不再维护
 
 	char internalInterface[MAX_NAME];						// 内部网卡接口名称
 	char externalInterface[MAX_NAME];						// 外部网卡接口名称

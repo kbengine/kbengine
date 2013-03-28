@@ -22,26 +22,55 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-INLINE RangeNode* RangeNode::pPrevX()const { return pPrevX_; }
-INLINE RangeNode* RangeNode::pNextX()const { return pNextX_; }
-INLINE RangeNode* RangeNode::pPrevY()const { return pPrevY_; }
-INLINE RangeNode* RangeNode::pNextY()const { return pNextY_; }
-INLINE RangeNode* RangeNode::pPrevZ()const { return pPrevZ_; }
-INLINE RangeNode* RangeNode::pNextZ()const { return pNextZ_; }
+INLINE void RangeTrigger::range(float xz, float y)
+{
+	range_xz_ = fabs(xz);
+	range_y_ = fabs(y);
+}
 
 //-------------------------------------------------------------------------------------
-INLINE void RangeNode::pPrevX(RangeNode* pNode){ pPrevX_ = pNode; }
-INLINE void RangeNode::pNextX(RangeNode* pNode){ pNextX_ = pNode; }
-INLINE void RangeNode::pPrevY(RangeNode* pNode){ pPrevY_ = pNode; }
-INLINE void RangeNode::pNextY(RangeNode* pNode){ pNextY_ = pNode; }
-INLINE void RangeNode::pPrevZ(RangeNode* pNode){ pPrevZ_ = pNode; }
-INLINE void RangeNode::pNextZ(RangeNode* pNode){ pNextZ_ = pNode; }
+INLINE float RangeTrigger::range_xz()const
+{
+	return range_xz_;
+}
 
 //-------------------------------------------------------------------------------------
-INLINE void RangeNode::pRangeList(RangeList* p){ pRangeList_ = p; }
+INLINE float RangeTrigger::range_y()const
+{
+	return range_y_;
+}
 
 //-------------------------------------------------------------------------------------
-INLINE RangeList* RangeNode::pRangeList()const{ return pRangeList_; }
+INLINE RangeNode* RangeTrigger::origin()const
+{
+	return origin_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void RangeTriggerNode::range(float xz, float y)
+{
+	range_xz_ = fabs(xz);
+	range_y_ = fabs(y);
+}
+
+
+//-------------------------------------------------------------------------------------
+INLINE float RangeTriggerNode::range_xz()const
+{
+	return range_xz_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE float RangeTriggerNode::range_y()const
+{
+	return range_y_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE RangeTrigger* RangeTriggerNode::pRangeTrigger()const
+{
+	return pRangeTrigger_;
+}
 
 //-------------------------------------------------------------------------------------
 }

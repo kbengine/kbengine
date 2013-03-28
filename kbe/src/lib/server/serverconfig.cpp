@@ -354,6 +354,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL){
 			_cellAppInfo.ghostUpdateHertz = xml->getValInt(node);
 		}
+
+		node =  xml->enterNode(rootNode, "coordinate_system");
+		if(node != NULL){
+			_cellAppInfo.use_coordinate_system = (xml->getValStr(node) == "true");
+		}
 	}
 	
 	rootNode = xml->getRootNode("baseapp");
