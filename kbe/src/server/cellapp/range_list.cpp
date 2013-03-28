@@ -312,9 +312,20 @@ void RangeList::update(RangeNode* pNode)
 
 		while(pCurrNode && pCurrNode->x() > px)
 		{
-			pCurrNode->onNodePassX(pNode, true);
-			pNode->onNodePassX(pCurrNode, false);
-			
+			if((pNode->flags() & RANGENODE_FLAG_HIDE) <= 0)
+			{
+				DEBUG_MSG(boost::format("RangeList::update: [X] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
+					pNode->old_x() % pNode->old_y() % pNode->old_z() % px % py % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
+					pNode % pCurrNode);
+
+				pCurrNode->onNodePassX(pNode, true);
+			}
+
+			if((pCurrNode->flags() & RANGENODE_FLAG_HIDE) <= 0)
+			{
+				pNode->onNodePassX(pCurrNode, false);
+			}
+
 			if(pCurrNode->pPrevX() == NULL)
 				break;
 
@@ -323,21 +334,40 @@ void RangeList::update(RangeNode* pNode)
 		
 		if(pCurrNode != NULL)
 		{
-			RangeNode* pPreNode = pCurrNode->pPrevX();
-			pCurrNode->pPrevX(pNode);
-			if(pPreNode)
-				pPreNode->pNextX(pNode);
+			if(pCurrNode->x() > px)
+			{
+				RangeNode* pPreNode = pCurrNode->pPrevX();
+				pCurrNode->pPrevX(pNode);
+				if(pPreNode)
+					pPreNode->pNextX(pNode);
+				else
+					first_x_rangeNode_ = pNode;
+
+				if(pNode->pPrevX())
+					pNode->pPrevX()->pNextX(pNode->pNextX());
+
+				if(pNode->pNextX())
+					pNode->pNextX()->pPrevX(pNode->pPrevX());
+
+				pNode->pPrevX(pPreNode);
+				pNode->pNextX(pCurrNode);
+			}
 			else
-				first_x_rangeNode_ = pNode;
+			{
+				RangeNode* pNextNode = pCurrNode->pNextX();
+				pCurrNode->pNextX(pNode);
+				if(pNextNode)
+					pNextNode->pPrevX(pNode);
 
-			if(pNode->pPrevX())
-				pNode->pPrevX()->pNextX(pNode->pNextX());
+				if(pNode->pPrevX())
+					pNode->pPrevX()->pNextX(pNode->pNextX());
 
-			if(pNode->pNextX())
-				pNode->pNextX()->pPrevX(pNode->pPrevX());
+				if(pNode->pNextX())
+					pNode->pNextX()->pPrevX(pNode->pPrevX());
 
-			pNode->pPrevX(pPreNode);
-			pNode->pNextX(pCurrNode);
+				pNode->pPrevX(pCurrNode);
+				pNode->pNextX(pNextNode);
+			}
 		}
 	}
 
@@ -347,8 +377,17 @@ void RangeList::update(RangeNode* pNode)
 
 		while(pCurrNode && pCurrNode->y() > py)
 		{
-			pCurrNode->onNodePassY(pNode, true);
-			pNode->onNodePassY(pCurrNode, false);
+			if((pNode->flags() & RANGENODE_FLAG_HIDE) <= 0)
+			{
+				DEBUG_MSG(boost::format("RangeList::update: [Y] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
+					pNode->old_x() % pNode->old_y() % pNode->old_z() % px % py % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
+					pNode % pCurrNode);
+
+				pCurrNode->onNodePassY(pNode, true);
+			}
+
+			if((pCurrNode->flags() & RANGENODE_FLAG_HIDE) <= 0)
+				pNode->onNodePassY(pCurrNode, false);
 			
 			if(pCurrNode->pPrevY() == NULL)
 				break;
@@ -358,21 +397,40 @@ void RangeList::update(RangeNode* pNode)
 		
 		if(pCurrNode != NULL)
 		{
-			RangeNode* pPreNode = pCurrNode->pPrevY();
-			pCurrNode->pPrevY(pNode);
-			if(pPreNode)
-				pPreNode->pNextY(pNode);
+			if(pCurrNode->y() > py)
+			{
+				RangeNode* pPreNode = pCurrNode->pPrevY();
+				pCurrNode->pPrevY(pNode);
+				if(pPreNode)
+					pPreNode->pNextY(pNode);
+				else
+					first_y_rangeNode_ = pNode;
+
+				if(pNode->pPrevY())
+					pNode->pPrevY()->pNextY(pNode->pNextY());
+
+				if(pNode->pNextY())
+					pNode->pNextY()->pPrevY(pNode->pPrevY());
+
+				pNode->pPrevY(pPreNode);
+				pNode->pNextY(pCurrNode);
+			}
 			else
-				first_y_rangeNode_ = pNode;
+			{
+				RangeNode* pNextNode = pCurrNode->pNextY();
+				pCurrNode->pNextY(pNode);
+				if(pNextNode)
+					pNextNode->pPrevY(pNode);
 
-			if(pNode->pPrevY())
-				pNode->pPrevY()->pNextY(pNode->pNextY());
+				if(pNode->pPrevY())
+					pNode->pPrevY()->pNextY(pNode->pNextY());
 
-			if(pNode->pNextY())
-				pNode->pNextY()->pPrevY(pNode->pPrevY());
+				if(pNode->pNextY())
+					pNode->pNextY()->pPrevY(pNode->pPrevY());
 
-			pNode->pPrevY(pPreNode);
-			pNode->pNextY(pCurrNode);
+				pNode->pPrevY(pCurrNode);
+				pNode->pNextY(pNextNode);
+			}
 		}
 	}
 
@@ -382,8 +440,17 @@ void RangeList::update(RangeNode* pNode)
 
 		while(pCurrNode && pCurrNode->z() > pz)
 		{
-			pCurrNode->onNodePassZ(pNode, true);
-			pNode->onNodePassZ(pCurrNode, false);
+			if((pNode->flags() & RANGENODE_FLAG_HIDE) <= 0)
+			{
+				DEBUG_MSG(boost::format("RangeList::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
+					pNode->old_x() % pNode->old_y() % pNode->old_z() % px % py % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
+					pNode % pCurrNode);
+
+				pCurrNode->onNodePassZ(pNode, true);
+			}
+
+			if((pCurrNode->flags() & RANGENODE_FLAG_HIDE) <= 0)
+				pNode->onNodePassZ(pCurrNode, false);
 			
 			if(pCurrNode->pPrevZ() == NULL)
 				break;
@@ -393,21 +460,40 @@ void RangeList::update(RangeNode* pNode)
 		
 		if(pCurrNode != NULL)
 		{
-			RangeNode* pPreNode = pCurrNode->pPrevZ();
-			pCurrNode->pPrevZ(pNode);
-			if(pPreNode)
-				pPreNode->pNextZ(pNode);
+			if(pCurrNode->z() > pz)
+			{
+				RangeNode* pPreNode = pCurrNode->pPrevZ();
+				pCurrNode->pPrevZ(pNode);
+				if(pPreNode)
+					pPreNode->pNextZ(pNode);
+				else
+					first_z_rangeNode_ = pNode;
+
+				if(pNode->pPrevZ())
+					pNode->pPrevZ()->pNextZ(pNode->pNextZ());
+
+				if(pNode->pNextZ())
+					pNode->pNextZ()->pPrevZ(pNode->pPrevZ());
+
+				pNode->pPrevZ(pPreNode);
+				pNode->pNextZ(pCurrNode);
+			}
 			else
-				first_z_rangeNode_ = pNode;
+			{
+				RangeNode* pNextNode = pCurrNode->pNextZ();
+				pCurrNode->pNextZ(pNode);
+				if(pNextNode)
+					pNextNode->pPrevZ(pNode);
 
-			if(pNode->pPrevZ())
-				pNode->pPrevZ()->pNextZ(pNode->pNextZ());
+				if(pNode->pPrevZ())
+					pNode->pPrevZ()->pNextZ(pNode->pNextZ());
 
-			if(pNode->pNextZ())
-				pNode->pNextZ()->pPrevZ(pNode->pPrevZ());
+				if(pNode->pNextZ())
+					pNode->pNextZ()->pPrevZ(pNode->pPrevZ());
 
-			pNode->pPrevZ(pPreNode);
-			pNode->pNextZ(pCurrNode);
+				pNode->pPrevZ(pCurrNode);
+				pNode->pNextZ(pNextNode);
+			}
 		}
 	}
 

@@ -30,6 +30,7 @@ range_xz_(xz),
 range_y_(y),
 pRangeTrigger_(pRangeTrigger)
 {
+	flags_ = RANGENODE_FLAG_HIDE;
 }
 
 //-------------------------------------------------------------------------------------
@@ -58,22 +59,19 @@ float RangeTriggerNode::z()const
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onNodePassX(RangeNode* pNode, bool isfront)
 {
-	if(pNode == pRangeTrigger_->origin())
-		return;
+	pRangeTrigger_->onNodePassX(this, pNode, isfront);
 }
 
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onNodePassY(RangeNode* pNode, bool isfront)
 {
-	if(pNode == pRangeTrigger_->origin())
-		return;
+	pRangeTrigger_->onNodePassY(this, pNode, isfront);
 }
 
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onNodePassZ(RangeNode* pNode, bool isfront)
 {
-	if(pNode == pRangeTrigger_->origin())
-		return;
+	pRangeTrigger_->onNodePassZ(this, pNode, isfront);
 }
 
 //-------------------------------------------------------------------------------------
@@ -112,6 +110,29 @@ bool RangeTrigger::initBoundary()
 bool RangeTrigger::inRange(RangeNode * pNode)
 {
 	return false;
+}
+
+//-------------------------------------------------------------------------------------
+void RangeTrigger::onNodePassX(RangeTriggerNode* pRangeTriggerNode, RangeNode* pNode, bool isfront)
+{
+	if(pNode == origin())
+		return;
+
+	// 先判断是否在y或者z中, 
+}
+
+//-------------------------------------------------------------------------------------
+void RangeTrigger::onNodePassY(RangeTriggerNode* pRangeTriggerNode, RangeNode* pNode, bool isfront)
+{
+	if(pNode == origin())
+		return;
+}
+
+//-------------------------------------------------------------------------------------
+void RangeTrigger::onNodePassZ(RangeTriggerNode* pRangeTriggerNode, RangeNode* pNode, bool isfront)
+{
+	if(pNode == origin())
+		return;
 }
 
 //-------------------------------------------------------------------------------------

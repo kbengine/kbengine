@@ -82,6 +82,14 @@ public:
 	virtual void onLeave(RangeNode * pNode) = 0;
 	
 	bool inRange(RangeNode * pNode);
+
+	/**
+		某个节点变动经过了本节点
+		@isfront: 向前移动还是向后移动
+	*/
+	virtual void onNodePassX(RangeTriggerNode* pRangeTriggerNode, RangeNode* pNode, bool isfront);
+	virtual void onNodePassY(RangeTriggerNode* pRangeTriggerNode, RangeNode* pNode, bool isfront);
+	virtual void onNodePassZ(RangeTriggerNode* pRangeTriggerNode, RangeNode* pNode, bool isfront);
 protected:
 	float range_xz_, range_y_;
 

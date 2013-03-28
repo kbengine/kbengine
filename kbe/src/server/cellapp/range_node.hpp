@@ -26,12 +26,20 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
+#define RANGENODE_FLAG_UNKNOWN				0x00000000
+#define RANGENODE_FLAG_ENTITY				0x00000001		// 一个entity节点
+#define RANGENODE_FLAG_TRIGGER				0x00000002		// 一个触发器节点
+#define RANGENODE_FLAG_HIDE					0x00000004		// 隐藏节点(其他节点不可见)
+
 class RangeList;
 class RangeNode
 {
 public:
 	RangeNode(RangeList* pRangeList = NULL);
 	virtual ~RangeNode();
+	
+	INLINE void flags(uint32 v);
+	INLINE uint32 flags()const;
 
 	/**
 		x && z由不同的应用实现(从不同处获取)
@@ -103,6 +111,8 @@ protected:
 
 	float x_, y_, z_;
 	float old_x_, old_y_, old_z_;
+
+	uint32 flags_;
 };
 
 }

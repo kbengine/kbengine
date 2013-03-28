@@ -41,6 +41,12 @@ INLINE void RangeNode::pNextZ(RangeNode* pNode){ pNextZ_ = pNode; }
 INLINE void RangeNode::pRangeList(RangeList* p){ pRangeList_ = p; }
 
 //-------------------------------------------------------------------------------------
+INLINE void RangeNode::flags(uint32 v){ flags_ = v; }
+	
+//-------------------------------------------------------------------------------------
+INLINE uint32 RangeNode::flags()const{ return flags_; }
+	
+//-------------------------------------------------------------------------------------
 INLINE RangeList* RangeNode::pRangeList()const{ return pRangeList_; }
 
 //-------------------------------------------------------------------------------------
