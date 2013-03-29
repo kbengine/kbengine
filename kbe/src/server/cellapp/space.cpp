@@ -20,7 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cellapp.hpp"
 #include "space.hpp"	
-#include "entity.hpp"	
+#include "entity.hpp"
+#include "witness.hpp"	
 #include "entitydef/entities.hpp"
 #include "client_lib/client_interface.hpp"
 
@@ -92,15 +93,18 @@ void Space::removeEntity(Entity* pEntity)
 	entities_[idx] = pBack;
 	pEntity->spaceEntityIdx(SPACE_ENTITIES::size_type(-1));
 	entities_.pop_back();
-	
-	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
-		rangeList_.remove((KBEngine::RangeNode*)pEntity->pEntityRangeNode());
 
 	onLeaveWorld(pEntity);
 
+	// 这句必须在onLeaveWorld之后， 因为可能rangeTrigger需要参考pEntityRangeNode
+	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
+		rangeList_.remove((KBEngine::RangeNode*)pEntity->pEntityRangeNode());
+
 	// 如果没有entity了则需要销毁space, 因为space最少存在一个entity
+	// 这个entity通常是spaceEntity
 	if(entities_.empty())
 	{
+		Spaces::destroySpace(this->getID(), this->creatorID());
 	}
 }
 
@@ -109,29 +113,7 @@ void Space::_onEnterWorld(Entity* pEntity)
 {
 	if(pEntity->hasWitness())
 	{
-		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
-		Mercury::Bundle* pForwardPosDirBundle = Mercury::Bundle::ObjPool().createObject();
-		
-		(*pForwardPosDirBundle).newMessage(ClientInterface::onUpdatePropertys);
-		MemoryStream* s1 = MemoryStream::ObjPool().createObject();
-		(*pForwardPosDirBundle) << pEntity->getID();
-		pEntity->addPositionAndDirectionToStream(*s1);
-		(*pForwardPosDirBundle).append(*s1);
-		MemoryStream::ObjPool().reclaimObject(s1);
-		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->getID(), (*pSendBundle), (*pForwardPosDirBundle));
-
-		(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
-		(*pForwardBundle) << pEntity->getID();
-		(*pForwardBundle) << pEntity->getScriptModule()->getUType();
-		(*pForwardBundle) << this->getID();
-
-		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->getID(), (*pSendBundle), (*pForwardBundle));
-		pEntity->getClientMailbox()->postMail(*pSendBundle);
-
-		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pForwardPosDirBundle);
+		pEntity->pWitness()->onEnterSpace(this);
 	}
 }
 
@@ -360,17 +342,7 @@ void Space::onLeaveWorld(Entity* pEntity)
 	// 向客户端发送onLeaveWorld消息
 	if(pEntity->hasWitness())
 	{
-		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
-
-		(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
-		(*pForwardBundle) << pEntity->getID();
-		(*pForwardBundle) << this->getID();
-
-		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->getID(), (*pSendBundle), (*pForwardBundle));
-		pEntity->getClientMailbox()->postMail(*pSendBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+		pEntity->pWitness()->onLeaveSpace(this);
 	}
 }
 
@@ -425,6 +397,7 @@ bool Space::destroy(ENTITY_ID entityID)
 	// 最后销毁创建者
 	if(creator)
 		creator->destroyEntity();
+
 	return true;
 }
 

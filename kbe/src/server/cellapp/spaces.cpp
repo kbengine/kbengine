@@ -61,7 +61,14 @@ bool Spaces::destroySpace(SPACE_ID spaceID, ENTITY_ID entityID)
 	INFO_MSG(boost::format("Spaces::destroySpace: %1%.\n") % spaceID);
 
 	Space* pSpace = Spaces::findSpace(spaceID);
-	return pSpace->destroy(entityID);
+	if(!pSpace->destroy(entityID))
+	{
+		ERROR_MSG("Spaces::destroySpace: is error!\n");
+		return false;
+	}
+
+	spaces_.erase(spaceID);
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

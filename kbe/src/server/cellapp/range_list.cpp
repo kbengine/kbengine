@@ -305,7 +305,7 @@ void RangeList::update(RangeNode* pNode)
 	float px = pNode->x();
 	float py = pNode->y();
 	float pz = pNode->z();
-
+	
 	if(px != pNode->old_x())
 	{
 		RangeNode* pCurrNode = pNode->pPrevX();

@@ -67,7 +67,8 @@ public:
 	RangeTrigger(RangeNode* origin, float xz, float y);
 	virtual ~RangeTrigger();
 
-	bool initBoundary();
+	bool install();
+	bool uninstall(bool isDestroy = true);
 
 	INLINE void range(float xz, float y);
 	INLINE float range_xz()const;
@@ -81,7 +82,13 @@ public:
 	virtual void onEnter(RangeNode * pNode) = 0;
 	virtual void onLeave(RangeNode * pNode) = 0;
 	
-	bool inRange(RangeNode * pNode);
+	INLINE bool isInXRange(RangeNode * pNode);
+	INLINE bool isInYRange(RangeNode * pNode);
+	INLINE bool isInZRange(RangeNode * pNode);
+
+	INLINE bool wasInXRange(RangeNode * pNode);
+	INLINE bool wasInYRange(RangeNode * pNode);
+	INLINE bool wasInZRange(RangeNode * pNode);
 
 	/**
 		某个节点变动经过了本节点

@@ -82,34 +82,42 @@ origin_(origin),
 positiveBoundary_(NULL),
 negativeBoundary_(NULL)
 {
-	bool ret = initBoundary();
-	KBE_ASSERT(ret);
 }
 
 //-------------------------------------------------------------------------------------
 RangeTrigger::~RangeTrigger()
 {
-	if(positiveBoundary_)origin_->pRangeList()->remove(positiveBoundary_);
-	if(negativeBoundary_)origin_->pRangeList()->remove(negativeBoundary_);
-
-	SAFE_RELEASE(positiveBoundary_);
-	SAFE_RELEASE(negativeBoundary_);
+	uninstall();
 }
 
 //-------------------------------------------------------------------------------------
-bool RangeTrigger::initBoundary()
+bool RangeTrigger::install()
 {
-	positiveBoundary_ = new RangeTriggerNode(this, range_xz_, range_y_);
-	negativeBoundary_ = new RangeTriggerNode(this, -range_xz_, -range_y_);
+	if(positiveBoundary_ == NULL)
+		positiveBoundary_ = new RangeTriggerNode(this, range_xz_, range_y_);
+
+	if(negativeBoundary_ == NULL)
+		negativeBoundary_ = new RangeTriggerNode(this, -range_xz_, -range_y_);
+
 	origin_->pRangeList()->insert(positiveBoundary_);
 	origin_->pRangeList()->insert(negativeBoundary_);
+
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool RangeTrigger::inRange(RangeNode * pNode)
+bool RangeTrigger::uninstall(bool isDestroy)
 {
-	return false;
+	if(positiveBoundary_)origin_->pRangeList()->remove(positiveBoundary_);
+	if(negativeBoundary_)origin_->pRangeList()->remove(negativeBoundary_);
+
+	if(isDestroy)
+	{
+		SAFE_RELEASE(positiveBoundary_);
+		SAFE_RELEASE(negativeBoundary_);
+	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -118,7 +126,19 @@ void RangeTrigger::onNodePassX(RangeTriggerNode* pRangeTriggerNode, RangeNode* p
 	if(pNode == origin())
 		return;
 
-	// 先判断是否在y或者z中, 
+	bool wasIn = wasInXRange(pNode) && wasInYRange(pNode) && wasInZRange(pNode);
+	bool isIn = isInXRange(pNode) && isInYRange(pNode) && isInZRange(pNode);
+
+	if(!wasIn)
+	{
+		if(isIn)
+			this->onEnter(pNode);
+	}
+	else
+	{
+		if(!isIn)
+			this->onLeave(pNode);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -126,6 +146,20 @@ void RangeTrigger::onNodePassY(RangeTriggerNode* pRangeTriggerNode, RangeNode* p
 {
 	if(pNode == origin())
 		return;
+
+	bool wasIn = wasInXRange(pNode) && wasInYRange(pNode) && wasInZRange(pNode);
+	bool isIn = isInXRange(pNode) && isInYRange(pNode) && isInZRange(pNode);
+
+	if(!wasIn)
+	{
+		if(isIn)
+			this->onEnter(pNode);
+	}
+	else
+	{
+		if(!isIn)
+			this->onLeave(pNode);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -133,6 +167,20 @@ void RangeTrigger::onNodePassZ(RangeTriggerNode* pRangeTriggerNode, RangeNode* p
 {
 	if(pNode == origin())
 		return;
+
+	bool wasIn = wasInXRange(pNode) && wasInYRange(pNode) && wasInZRange(pNode);
+	bool isIn = isInXRange(pNode) && isInYRange(pNode) && isInZRange(pNode);
+
+	if(!wasIn)
+	{
+		if(isIn)
+			this->onEnter(pNode);
+	}
+	else
+	{
+		if(!isIn)
+			this->onLeave(pNode);
+	}
 }
 
 //-------------------------------------------------------------------------------------

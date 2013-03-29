@@ -44,6 +44,8 @@ namespace Mercury
 
 class Entity;
 class MemoryStream;
+class AOITrigger;
+class Space;
 
 /** 观察者信息结构 */
 struct WitnessInfo
@@ -98,16 +100,28 @@ public:
 	Bundles* pBundles();
 
 	void update();
+	
+	void onEnterSpace(Space* pSpace);
+	void onLeaveSpace(Space* pSpace);
+
+	void onEnterAOI(Entity* pEntity);
+	void onLeaveAOI(Entity* pEntity);
 
 	/**
 		向witness客户端推送一条消息
 	*/
 	bool sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle);
+
+	typedef std::vector<Entity*> AOI_ENTITIES;
 private:
 	Entity*									pEntity_;
 
 	float									aoiRadius_;							// 当前entity的aoi半径
 	float									aoiHysteresisArea_;					// 当前entityAoi的一个滞后范围
+
+	AOITrigger*								pAOITrigger_;
+
+	AOI_ENTITIES							aoiEntities_;
 
 };
 

@@ -22,8 +22,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entity.hpp"	
 #include "profile.hpp"
 #include "cellapp.hpp"
+#include "aoi_trigger.hpp"
 #include "network/channel.hpp"	
 #include "network/bundle.hpp"
+#include "client_lib/client_interface.hpp"
 
 #include "../../server/baseapp/baseapp_interface.hpp"
 
@@ -34,7 +36,9 @@ namespace KBEngine{
 Witness::Witness():
 pEntity_(NULL),
 aoiRadius_(0.0f),
-aoiHysteresisArea_(5.0f)
+aoiHysteresisArea_(5.0f),
+pAOITrigger_(NULL),
+aoiEntities_()
 {
 }
 
@@ -42,6 +46,7 @@ aoiHysteresisArea_(5.0f)
 Witness::~Witness()
 {
 	pEntity_ = NULL;
+	SAFE_RELEASE(pAOITrigger_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -55,6 +60,9 @@ void Witness::attach(Entity* pEntity)
 	// ³õÊ¼»¯Ä¬ÈÏAOI·¶Î§
 	ENGINE_COMPONENT_INFO& ecinfo = ServerConfig::getSingleton().getCellApp();
 	setAoiRadius(ecinfo.defaultAoIRadius, ecinfo.defaultAoIHysteresisArea);
+	
+	if(aoiRadius_ > 0.0f)
+		pAOITrigger_ = new AOITrigger((RangeNode*)pEntity->pEntityRangeNode(), aoiRadius_, aoiRadius_);
 
 	Cellapp::getSingleton().addUpdatable(this);
 }
@@ -68,7 +76,9 @@ void Witness::detach(Entity* pEntity)
 	pEntity_ = NULL;
 	aoiRadius_ = 0.0f;
 	aoiHysteresisArea_ = 0.0f;
-
+	SAFE_RELEASE(pAOITrigger_);
+	
+	aoiEntities_.clear();
 	Cellapp::getSingleton().removeUpdatable(this);
 }
 
@@ -101,6 +111,90 @@ void Witness::setAoiRadius(float radius, float hyst)
 		aoiRadius_ = g_kbeSrvConfig.getCellApp().ghostDistance - 5.0f;
 		aoiHysteresisArea_ = 5.0f;
 	}
+
+	if(aoiRadius_ > 0.0f)
+	{
+		if(pAOITrigger_ == NULL)
+		{
+			pAOITrigger_ = new AOITrigger((RangeNode*)pEntity_->pEntityRangeNode(), aoiRadius_, aoiRadius_);
+		}
+		else
+		{
+			pAOITrigger_->range(aoiRadius_, aoiRadius_);
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::onEnterAOI(Entity* pEntity)
+{
+	AOI_ENTITIES::iterator iter = std::find(aoiEntities_.begin(), aoiEntities_.end(), pEntity);
+	if(iter != aoiEntities_.end())
+		return;
+
+	DEBUG_MSG(boost::format("Witness::onEnterAOI: %1% entity=%2%\n") % pEntity_->getID() % pEntity->getID());
+
+	aoiEntities_.push_back(pEntity);
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::onLeaveAOI(Entity* pEntity)
+{
+	AOI_ENTITIES::iterator iter = std::find(aoiEntities_.begin(), aoiEntities_.end(), pEntity);
+	if(iter == aoiEntities_.end())
+		return;
+
+	DEBUG_MSG(boost::format("Witness::onLeaveAOI: %1% entity=%2%\n") % pEntity_->getID() % pEntity->getID());
+
+	aoiEntities_.erase(iter);
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::onEnterSpace(Space* pSpace)
+{
+	Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+	Mercury::Bundle* pForwardPosDirBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	(*pForwardPosDirBundle).newMessage(ClientInterface::onUpdatePropertys);
+	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
+	(*pForwardPosDirBundle) << pEntity_->getID();
+	pEntity_->addPositionAndDirectionToStream(*s1);
+	(*pForwardPosDirBundle).append(*s1);
+	MemoryStream::ObjPool().reclaimObject(s1);
+	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pForwardPosDirBundle));
+
+	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
+	(*pForwardBundle) << pEntity_->getID();
+	(*pForwardBundle) << pEntity_->getScriptModule()->getUType();
+	(*pForwardBundle) << pSpace->getID();
+
+	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pForwardBundle));
+	pEntity_->getClientMailbox()->postMail(*pSendBundle);
+
+	Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	Mercury::Bundle::ObjPool().reclaimObject(pForwardPosDirBundle);
+
+	pAOITrigger_->install();
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::onLeaveSpace(Space* pSpace)
+{
+	pAOITrigger_->uninstall();
+
+	Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+
+	(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
+	(*pForwardBundle) << pEntity_->getID();
+	(*pForwardBundle) << pSpace->getID();
+
+	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->getID(), (*pSendBundle), (*pForwardBundle));
+	pEntity_->getClientMailbox()->postMail(*pSendBundle);
+	Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 }
 
 //-------------------------------------------------------------------------------------

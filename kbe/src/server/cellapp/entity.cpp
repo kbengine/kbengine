@@ -111,7 +111,7 @@ Entity::~Entity()
 		pWitness_ = NULL;
 	}
 
-	S_RELEASE(pEntityRangeNode_);
+	SAFE_RELEASE(pEntityRangeNode_);
 }	
 
 //-------------------------------------------------------------------------------------
@@ -376,14 +376,16 @@ void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
 	
-	DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: entityID %1%, methodType %2%.\n") % 
-				id_ % utype);
-	
 	MethodDescription* md = scriptModule_->findCellMethodDescription(utype);
 	
+	DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: %1%, %4%::%2%(utype=%3%).\n") % 
+		id_ % (md ? md->getName() : "unknown") % utype % this->getScriptName());
+
 	if(md == NULL)
 	{
-		ERROR_MSG(boost::format("Entity::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") % utype % id_);
+		ERROR_MSG(boost::format("Entity::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") 
+			% utype % id_);
+
 		return;
 	}
 

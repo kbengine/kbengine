@@ -541,8 +541,8 @@ void Base::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	DEBUG_MSG(boost::format("Base::onRemoteMethodCall: entityID:%1%, methodType:%2%(%3%).\n") % 
-		id_ % md->getName() % utype);
+	DEBUG_MSG(boost::format("Base::onRemoteMethodCall: %1%, %4%::%2%(utype=%3%).\n") % 
+		id_ % (md ? md->getName() : "unknown") % utype % this->getScriptName());
 
 	md->currCallerID(this->getID());
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
