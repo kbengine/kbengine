@@ -57,12 +57,15 @@ void Witness::attach(Entity* pEntity)
 
 	pEntity_ = pEntity;
 
-	// 初始化默认AOI范围
-	ENGINE_COMPONENT_INFO& ecinfo = ServerConfig::getSingleton().getCellApp();
-	setAoiRadius(ecinfo.defaultAoIRadius, ecinfo.defaultAoIHysteresisArea);
-	
-	if(aoiRadius_ > 0.0f)
-		pAOITrigger_ = new AOITrigger((RangeNode*)pEntity->pEntityRangeNode(), aoiRadius_, aoiRadius_);
+	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
+	{
+		// 初始化默认AOI范围
+		ENGINE_COMPONENT_INFO& ecinfo = ServerConfig::getSingleton().getCellApp();
+		setAoiRadius(ecinfo.defaultAoIRadius, ecinfo.defaultAoIHysteresisArea);
+		
+		if(aoiRadius_ > 0.0f)
+			pAOITrigger_ = new AOITrigger((RangeNode*)pEntity->pEntityRangeNode(), aoiRadius_, aoiRadius_);
+	}
 
 	Cellapp::getSingleton().addUpdatable(this);
 }
@@ -75,7 +78,7 @@ void Witness::detach(Entity* pEntity)
 
 	pEntity_ = NULL;
 	aoiRadius_ = 0.0f;
-	aoiHysteresisArea_ = 0.0f;
+	aoiHysteresisArea_ = 5.0f;
 	SAFE_RELEASE(pAOITrigger_);
 	
 	aoiEntities_.clear();
@@ -103,6 +106,9 @@ void Witness::onReclaimObject()
 //-------------------------------------------------------------------------------------
 void Witness::setAoiRadius(float radius, float hyst)
 {
+	if(!g_kbeSrvConfig.getCellApp().use_coordinate_system)
+		return;
+
 	aoiRadius_ = radius;
 	aoiHysteresisArea_ = hyst;
 
@@ -176,13 +182,15 @@ void Witness::onEnterSpace(Space* pSpace)
 	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	Mercury::Bundle::ObjPool().reclaimObject(pForwardPosDirBundle);
 
-	pAOITrigger_->install();
+	if(pAOITrigger_)
+		pAOITrigger_->install();
 }
 
 //-------------------------------------------------------------------------------------
 void Witness::onLeaveSpace(Space* pSpace)
 {
-	pAOITrigger_->uninstall();
+	if(pAOITrigger_)
+		pAOITrigger_->uninstall();
 
 	Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
 	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
