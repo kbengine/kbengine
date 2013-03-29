@@ -17,42 +17,21 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#include "entity_range_node.hpp"
+#include "entityref.hpp"
 #include "entity.hpp"
 
 namespace KBEngine{	
 
-
 //-------------------------------------------------------------------------------------
-EntityRangeNode::EntityRangeNode(Entity* pEntity):
-RangeNode(NULL),
-pEntity_(pEntity)
-{
-	flags(RANGENODE_FLAG_ENTITY);
-}
-
-//-------------------------------------------------------------------------------------
-EntityRangeNode::~EntityRangeNode()
+EntityRef::EntityRef(Entity* pEntity):
+pEntity_(pEntity),
+flags_(ENTITYREF_FLAG_UNKONWN)
 {
 }
 
 //-------------------------------------------------------------------------------------
-float EntityRangeNode::x()const
+EntityRef::~EntityRef()
 {
-	return pEntity_->getPosition().x;
-}
-
-//-------------------------------------------------------------------------------------
-float EntityRangeNode::y()const
-{
-	return pEntity_->getPosition().y;
-}
-
-//-------------------------------------------------------------------------------------
-float EntityRangeNode::z()const
-{
-	return pEntity_->getPosition().z;
 }
 
 //-------------------------------------------------------------------------------------

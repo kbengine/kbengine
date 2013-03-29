@@ -165,6 +165,11 @@ public:
 	*/
 	void setPosition_XYZ_float(Mercury::Channel* pChannel, float x, float y, float z);
 
+	/**
+		写Volatile数据到流
+	*/
+	void addVolatileDataToStream(MemoryStream* mstream);
+
 	/** 
 		脚本请求为当前所在space设置一个几何映射 
 	*/

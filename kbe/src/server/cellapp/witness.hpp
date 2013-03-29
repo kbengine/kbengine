@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 // common include
 #include "updatable.hpp"
+#include "entityref.hpp"
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/objectpool.hpp"
@@ -112,7 +113,7 @@ public:
 	*/
 	bool sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle);
 
-	typedef std::vector<Entity*> AOI_ENTITIES;
+	typedef std::vector<EntityRef*> AOI_ENTITIES;
 private:
 	Entity*									pEntity_;
 

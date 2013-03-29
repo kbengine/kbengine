@@ -30,7 +30,7 @@ range_xz_(xz),
 range_y_(y),
 pRangeTrigger_(pRangeTrigger)
 {
-	flags_ = RANGENODE_FLAG_HIDE;
+	flags(RANGENODE_FLAG_HIDE);
 }
 
 //-------------------------------------------------------------------------------------

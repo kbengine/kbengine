@@ -17,15 +17,18 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#include "witness.hpp"
+#include "entity.hpp"
 #include "aoi_trigger.hpp"
+#include "entity_range_node.hpp"
 
 namespace KBEngine{	
 
 
 //-------------------------------------------------------------------------------------
 AOITrigger::AOITrigger(RangeNode* origin, float xz, float y):
-RangeTrigger(origin, xz, y)
+RangeTrigger(origin, xz, y),
+pWitness_(static_cast<EntityRangeNode*>(origin)->pEntity()->pWitness())
 {
 }
 
@@ -37,11 +40,29 @@ AOITrigger::~AOITrigger()
 //-------------------------------------------------------------------------------------
 void AOITrigger::onEnter(RangeNode * pNode)
 {
+	if((pNode->flags() & RANGENODE_FLAG_ENTITY) <= 0)
+		return;
+
+	EntityRangeNode* pEntityRangeNode = static_cast<EntityRangeNode*>(pNode);
+	Entity* pEntity = pEntityRangeNode->pEntity();
+	if(!pEntity->getScriptModule()->hasClient())
+		return;
+
+	pWitness_->onEnterAOI(pEntity);
 }
 
 //-------------------------------------------------------------------------------------
 void AOITrigger::onLeave(RangeNode * pNode)
 {
+	if((pNode->flags() & RANGENODE_FLAG_ENTITY) <= 0)
+		return;
+
+	EntityRangeNode* pEntityRangeNode = static_cast<EntityRangeNode*>(pNode);
+	Entity* pEntity = pEntityRangeNode->pEntity();
+	if(!pEntity->getScriptModule()->hasClient())
+		return;
+
+	pWitness_->onLeaveAOI(pEntity);
 }
 
 //-------------------------------------------------------------------------------------

@@ -134,24 +134,27 @@ void Witness::setAoiRadius(float radius, float hyst)
 //-------------------------------------------------------------------------------------
 void Witness::onEnterAOI(Entity* pEntity)
 {
-	AOI_ENTITIES::iterator iter = std::find(aoiEntities_.begin(), aoiEntities_.end(), pEntity);
+	AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), findif_vector_entityref_exist_handler(pEntity));
 	if(iter != aoiEntities_.end())
 		return;
 
 	DEBUG_MSG(boost::format("Witness::onEnterAOI: %1% entity=%2%\n") % pEntity_->getID() % pEntity->getID());
-
-	aoiEntities_.push_back(pEntity);
+	
+	EntityRef* pEntityRef = new EntityRef(pEntity);
+	pEntityRef->flags(pEntityRef->flags() | ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
+	aoiEntities_.push_back(pEntityRef);
 }
 
 //-------------------------------------------------------------------------------------
 void Witness::onLeaveAOI(Entity* pEntity)
 {
-	AOI_ENTITIES::iterator iter = std::find(aoiEntities_.begin(), aoiEntities_.end(), pEntity);
+	AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), findif_vector_entityref_exist_handler(pEntity));
 	if(iter == aoiEntities_.end())
 		return;
 
 	DEBUG_MSG(boost::format("Witness::onLeaveAOI: %1% entity=%2%\n") % pEntity_->getID() % pEntity->getID());
 
+	delete (*iter);
 	aoiEntities_.erase(iter);
 }
 
@@ -235,6 +238,90 @@ void Witness::update()
 	Mercury::Channel* pChannel = pEntity_->getClientMailbox()->getChannel();
 	if(!pChannel)
 		return;
+	
+	// 获取每帧剩余可写大小， 将优先更新的内容写入， 剩余的内容往下一个周期递推
+	int currPacketSize = pChannel->bundlesLength();
+	int remainPacketSize = PACKET_MAX_SIZE_TCP - currPacketSize;
+	if(remainPacketSize <= 0)
+		return;
+	
+	SPACE_ID spaceID = pEntity_->getSpaceID();
+
+	Mercury::Bundle* pSendBundle = NEW_BUNDLE();
+	if(aoiEntities_.size() > 0)
+	{
+		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->getID(), (*pSendBundle));
+
+		AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+		for(; iter != aoiEntities_.end(); iter++)
+		{
+			if(remainPacketSize <= 0)
+				break;
+
+			Entity* otherEntity = (*iter)->pEntity();
+
+			if(((*iter)->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) > 0)
+			{
+				(*iter)->removeflags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
+
+				Mercury::Bundle* pForwardBundle1 = Mercury::Bundle::ObjPool().createObject();
+				Mercury::Bundle* pForwardBundle2 = Mercury::Bundle::ObjPool().createObject();
+
+				MemoryStream* s1 = MemoryStream::ObjPool().createObject();
+				otherEntity->addPositionAndDirectionToStream(*s1);
+				otherEntity->addClientDataToStream(s1);
+
+				(*pForwardBundle1).newMessage(ClientInterface::onUpdatePropertys);
+				(*pForwardBundle1) << otherEntity->getID();
+				(*pForwardBundle1).append(*s1);
+				MemoryStream::ObjPool().reclaimObject(s1);
+		
+				(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
+				(*pForwardBundle2) << otherEntity->getID();
+				(*pForwardBundle2) << otherEntity->getScriptModule()->getUType();
+				(*pForwardBundle2) << spaceID;
+
+				MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle1));
+				MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle2));
+				
+				remainPacketSize -= pForwardBundle1->packetsLength();
+				remainPacketSize -= pForwardBundle2->packetsLength();
+
+				Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle1);
+				Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle2);
+			}
+			else if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
+			{
+				(*iter)->removeflags(ENTITYREF_FLAG_LEAVE_CLIENT_PENDING);
+
+				Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+
+				(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
+				(*pForwardBundle) << otherEntity->getID();
+				(*pForwardBundle) << spaceID;
+
+				MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
+				Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+			}
+			else
+			{
+				Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+				MemoryStream* s1 = MemoryStream::ObjPool().createObject();
+				otherEntity->addVolatileDataToStream(s1);
+
+				(*pForwardBundle).newMessage(ClientInterface::onUpdateVolatileData);
+				(*pForwardBundle) << otherEntity->getID();
+				(*pForwardBundle).append(*s1);
+				MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
+				Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+			}
+		}
+	}
+
+	if(!pSendBundle->isEmpty())
+		pChannel->bundles().push_back(pSendBundle);
+	else
+		DELETE_BUNDLE(pSendBundle);
 
 	{
 		// 如果数据大量阻塞发不出去将会报警

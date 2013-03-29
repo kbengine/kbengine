@@ -200,6 +200,11 @@ public:
 	virtual void onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
+		服务器更新VolatileData
+	*/
+	virtual void onUpdateVolatileData(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
 		download stream开始了 
 	*/
 	virtual void onStreamDataStarted(Mercury::Channel* pChannel, int16 id, uint32 datasize, std::string& descr);

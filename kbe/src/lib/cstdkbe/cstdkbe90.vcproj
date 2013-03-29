@@ -261,6 +261,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\stdfindif_handers.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stringconv.hpp"
 				>
 			</File>

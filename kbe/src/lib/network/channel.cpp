@@ -321,6 +321,19 @@ const Channel::Bundles & Channel::bundles() const
 }
 
 //-------------------------------------------------------------------------------------
+int32 Channel::bundlesLength()
+{
+	int32 len = 0;
+	Bundles::iterator iter = bundles_.begin();
+	for(; iter != bundles_.end(); iter++)
+	{
+		len += (*iter)->packetsLength();
+	}
+
+	return len;
+}
+
+//-------------------------------------------------------------------------------------
 void Channel::pushBundle(Bundle* pBundle)
 {
 	bundles_.push_back(pBundle);

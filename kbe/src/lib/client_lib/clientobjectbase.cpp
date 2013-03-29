@@ -588,6 +588,20 @@ void ClientObjectBase::onUpdatePropertys(Mercury::Channel * pChannel, MemoryStre
 }
 
 //-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateVolatileData(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid;
+	s >> eid;
+
+	client::Entity* entity = pEntities_->find(eid);
+	if(entity == NULL)
+	{
+		ERROR_MSG(boost::format("onUpdateVolatileData::onUpdatePropertys: not found entity(%1%).\n") % eid);
+		return;
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void ClientObjectBase::onStreamDataStarted(Mercury::Channel* pChannel, int16 id, uint32 datasize, std::string& descr)
 {
 }

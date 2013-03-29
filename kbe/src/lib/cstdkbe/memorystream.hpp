@@ -774,5 +774,9 @@ inline void MemoryStream::read_skip<std::string>()
     read_skip<char*>();
 }
 
+// 从对象池中创建与回收
+#define NEW_MEMORY_STREAM() MemoryStream::ObjPool().createObject()
+#define DELETE_MEMORY_STREAM(obj) { MemoryStream::ObjPool().reclaimObject(obj); obj = NULL; }
+
 }
 #endif

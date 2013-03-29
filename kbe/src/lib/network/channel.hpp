@@ -133,6 +133,8 @@ public:
 
 	typedef std::vector<Bundle*> Bundles;
 	Bundles & bundles();
+	
+	int32 bundlesLength();
 
 	void pushBundle(Bundle* pBundle);
 

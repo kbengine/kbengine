@@ -25,6 +25,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
+class Witness;
+
 class AOITrigger : public RangeTrigger
 {
 public:
@@ -38,7 +40,10 @@ public:
 	*/
 	virtual void onEnter(RangeNode * pNode);
 	virtual void onLeave(RangeNode * pNode);
+
+	INLINE Witness* pWitness()const;
 protected:
+	Witness* pWitness_;
 };
 
 }

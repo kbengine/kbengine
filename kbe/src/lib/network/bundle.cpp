@@ -148,6 +148,22 @@ void Bundle::onReclaimObject()
 	clear(true);
 }
 
+int32 Bundle::packetsLength(bool calccurr)
+{
+	int32 len = 0;
+
+	Packets::iterator iter = packets_.begin();
+	for (; iter != packets_.end(); iter++)
+	{
+		len += (*iter)->opsize();
+	}
+
+	if(calccurr && pCurrPacket_)
+		len += pCurrPacket_->opsize();
+
+	return len;
+}
+
 //-------------------------------------------------------------------------------------
 int32 Bundle::onPacketAppend(int32 addsize, bool inseparable)
 {

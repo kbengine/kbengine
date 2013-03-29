@@ -101,6 +101,10 @@ class Channel;
 	}																										\
 
 
+// 从对象池中创建与回收
+#define NEW_BUNDLE() Mercury::Bundle::ObjPool().createObject()
+#define DELETE_BUNDLE(obj) { Mercury::Bundle::ObjPool().reclaimObject(obj); obj = NULL; }
+
 class Bundle : public PoolObject
 {
 public:
@@ -127,6 +131,11 @@ public:
 	void clearPackets(){packets_.clear();}
 
 	MessageLength currMsgLength()const { return currMsgLength_; }
+	
+	/**
+		计算所有包包括当前还未写完的包的总长度
+	*/
+	int32 packetsLength(bool calccurr = true);
 
 	void clear(bool isRecl);
 	bool isEmpty() const;
