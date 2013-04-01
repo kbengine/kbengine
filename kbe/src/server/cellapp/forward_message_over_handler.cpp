@@ -52,10 +52,12 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
 		return;
 	}
 
-	// 添加到space
-	space->addEntity(_e);
+	_e->setSpaceID(space->getID());
 	_e->initializeEntity(params_);
 	Py_XDECREF(params_);
+
+	// 添加到space
+	space->addEntity(_e);
 }
 
 //-------------------------------------------------------------------------------------

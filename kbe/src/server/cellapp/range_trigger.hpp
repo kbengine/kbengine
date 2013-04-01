@@ -35,6 +35,7 @@ public:
 	virtual ~RangeTriggerNode();
 
 	INLINE void range(float xz, float y);
+	INLINE void old_range(float xz, float y);
 	INLINE float range_xz()const;
 	INLINE float range_y()const;
 
@@ -47,6 +48,20 @@ public:
 	virtual float y()const;
 	virtual float z()const;
 
+	INLINE bool isInXRange(RangeNode * pNode);
+	INLINE bool isInYRange(RangeNode * pNode);
+	INLINE bool isInZRange(RangeNode * pNode);
+
+	INLINE bool wasInXRange(RangeNode * pNode);
+	INLINE bool wasInYRange(RangeNode * pNode);
+	INLINE bool wasInZRange(RangeNode * pNode);
+
+	virtual void resetOld(){ 
+		RangeNode::resetOld();
+		old_range_xz_ = range_xz_;
+		old_range_y_ = range_y_;
+	}
+
 	/**
 		某个节点变动经过了本节点
 		@isfront: 向前移动还是向后移动
@@ -55,7 +70,7 @@ public:
 	virtual void onNodePassY(RangeNode* pNode, bool isfront);
 	virtual void onNodePassZ(RangeNode* pNode, bool isfront);
 protected:
-	float range_xz_, range_y_;
+	float range_xz_, range_y_, old_range_xz_, old_range_y_;
 	RangeTrigger* pRangeTrigger_;
 };
 
@@ -81,14 +96,6 @@ public:
 	*/
 	virtual void onEnter(RangeNode * pNode) = 0;
 	virtual void onLeave(RangeNode * pNode) = 0;
-	
-	INLINE bool isInXRange(RangeNode * pNode);
-	INLINE bool isInYRange(RangeNode * pNode);
-	INLINE bool isInZRange(RangeNode * pNode);
-
-	INLINE bool wasInXRange(RangeNode * pNode);
-	INLINE bool wasInYRange(RangeNode * pNode);
-	INLINE bool wasInZRange(RangeNode * pNode);
 
 	/**
 		某个节点变动经过了本节点

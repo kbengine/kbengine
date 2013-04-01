@@ -52,14 +52,18 @@ public:
 	virtual void y(float v){ y_ = v; }
 	virtual void z(float v){ z_ = v; }
 
+	void old_x(float v) { old_x_ = v; }
+	void old_y(float v) { old_y_ = v; }
+	void old_z(float v) { old_z_ = v; }
+
 	float old_x()const { return old_x_; }
 	float old_y()const { return old_y_; }
 	float old_z()const { return old_z_; }
 
-	void resetOld(){ 
-		old_x_ = x_;
-		old_y_ = y_;
-		old_z_ = z_;
+	virtual void resetOld(){ 
+		old_x_ = x();
+		old_y_ = y();
+		old_z_ = z();
 	}
 
 	INLINE void pRangeList(RangeList* p);

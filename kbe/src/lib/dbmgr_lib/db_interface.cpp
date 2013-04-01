@@ -89,7 +89,7 @@ bool DBUtil::initialize()
 			char* strencrypted = new char[1024];
 			memset(strencrypted, 0, 1024);
 			strutil::bytes2string((unsigned char *)encrypted.data(), encrypted.size(), (unsigned char *)strencrypted, 1024);
-			WARNING_MSG(boost::format("DBUtil::createInterface: db password is not encrypted!\nplease to use rsa(1024) password:\n%1%\n") 
+			WARNING_MSG(boost::format("DBUtil::createInterface: db password is not encrypted!\nplease use password(rsa):\n%1%\n") 
 				% strencrypted);
 			delete[] strencrypted;
 		}

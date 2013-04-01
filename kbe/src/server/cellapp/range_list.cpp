@@ -60,173 +60,26 @@ bool RangeList::insert(RangeNode* pNode)
 		return true;
 	}
 
-	// 如果x小于第一个节点则设置当前节点为第一个节点
-	if(x < first_x_rangeNode_->x())
-	{
-		pNode->pPrevX(NULL);
-		pNode->pNextX(first_x_rangeNode_);
-		first_x_rangeNode_->pPrevX(pNode);
-		first_x_rangeNode_ = pNode;
-	}
-	else
-	{
-		if(size_ == 1)
-		{
-			if(x < first_z_rangeNode_->x())
-			{
-				first_x_rangeNode_->pPrevX(pNode);
-				pNode->pNextX(first_x_rangeNode_);
-				first_x_rangeNode_ = pNode;
-			}
-			else
-			{
-				first_x_rangeNode_->pNextX(pNode);
-				pNode->pPrevX(first_x_rangeNode_);
-			}
-		}
-		else
-		{
-			// 否则遍历找到合适的插入位置
-			RangeNode* pCurrInsertPTNode = first_x_rangeNode_->pNextX();
-			while(pCurrInsertPTNode != NULL)
-			{
-				if(x < pCurrInsertPTNode->x())
-				{
-					pCurrInsertPTNode->pPrevX()->pNextX(pNode);
-					pNode->pPrevX(pCurrInsertPTNode->pPrevX());
-					pNode->pNextX(pCurrInsertPTNode);
-					pCurrInsertPTNode->pPrevX(pNode);
-					break;
-				}
+	pNode->old_x(-FLT_MAX);
+	pNode->old_y(-FLT_MAX);
+	pNode->old_z(-FLT_MAX);
 
-				if(pCurrInsertPTNode->pNextX())
-				{
-					pCurrInsertPTNode = pCurrInsertPTNode->pNextX();
-				}
-				else
-				{
-					// 如果是最后一个节点则挂接上去
-					pCurrInsertPTNode->pNextX(pNode);
-					pNode->pPrevX(pCurrInsertPTNode);
-					pNode->pNextX(NULL);
-					break;
-				}
-			}
-		}
-	}
+	first_x_rangeNode_->pPrevX(pNode);
+	pNode->pNextX(first_x_rangeNode_);
+	first_x_rangeNode_ = pNode;
 
-	// 如果y小于第一个节点则设置当前节点为第一个节点
-	if(y < first_y_rangeNode_->y())
-	{
-		pNode->pPrevY(NULL);
-		pNode->pNextY(first_y_rangeNode_);
-		first_y_rangeNode_->pPrevY(pNode);
-		first_y_rangeNode_ = pNode;
-	}
-	else
-	{
-		if(size_ == 1)
-		{
-			if(y < first_y_rangeNode_->y())
-			{
-				first_y_rangeNode_->pPrevY(pNode);
-				pNode->pNextY(first_y_rangeNode_);
-				first_y_rangeNode_ = pNode;
-			}
-			else
-			{
-				first_y_rangeNode_->pNextY(pNode);
-				pNode->pPrevY(first_y_rangeNode_);
-			}
-		}
-		else
-		{
-			// 否则遍历找到合适的插入位置
-			RangeNode* pCurrInsertPTNode = first_y_rangeNode_->pNextY();
-			while(pCurrInsertPTNode != NULL)
-			{
-				if(y < pCurrInsertPTNode->y())
-				{
-					pCurrInsertPTNode->pPrevY()->pNextY(pNode);
-					pNode->pPrevY(pCurrInsertPTNode->pPrevY());
-					pNode->pNextY(pCurrInsertPTNode);
-					pCurrInsertPTNode->pPrevY(pNode);
-					break;
-				}
+	first_y_rangeNode_->pPrevY(pNode);
+	pNode->pNextY(first_y_rangeNode_);
+	first_y_rangeNode_ = pNode;
 
-				if(pCurrInsertPTNode->pNextY())
-				{
-					pCurrInsertPTNode = pCurrInsertPTNode->pNextY();
-				}
-				else
-				{
-					// 如果是最后一个节点则挂接上去
-					pCurrInsertPTNode->pNextY(pNode);
-					pNode->pPrevY(pCurrInsertPTNode);
-					pNode->pNextY(NULL);
-					break;
-				}
-			}
-		}
-	}
-
-	// 如果x小于第一个节点则设置当前节点为第一个节点
-	if(z < first_z_rangeNode_->z())
-	{
-		pNode->pPrevZ(NULL);
-		pNode->pNextZ(first_z_rangeNode_);
-		first_z_rangeNode_->pPrevZ(pNode);
-		first_z_rangeNode_ = pNode;
-	}
-	else
-	{
-		if(size_ == 1)
-		{
-			if(z < first_z_rangeNode_->z())
-			{
-				first_z_rangeNode_->pPrevZ(pNode);
-				pNode->pNextZ(first_z_rangeNode_);
-				first_z_rangeNode_ = pNode;
-			}
-			else
-			{
-				first_z_rangeNode_->pNextZ(pNode);
-				pNode->pPrevZ(first_z_rangeNode_);
-			}
-		}
-		else
-		{
-			// 否则遍历找到合适的插入位置
-			RangeNode* pCurrInsertPTNode = first_z_rangeNode_->pNextZ();
-			while(pCurrInsertPTNode != NULL)
-			{
-				if(z < pCurrInsertPTNode->z())
-				{
-					pCurrInsertPTNode->pPrevZ()->pNextZ(pNode);
-					pNode->pPrevZ(pCurrInsertPTNode->pPrevZ());
-					pNode->pNextZ(pCurrInsertPTNode);
-					pCurrInsertPTNode->pPrevZ(pNode);
-					break;
-				}
-
-				if(pCurrInsertPTNode->pNextZ())
-				{
-					pCurrInsertPTNode = pCurrInsertPTNode->pNextZ();
-				}
-				else
-				{
-					// 如果是最后一个节点则挂接上去
-					pCurrInsertPTNode->pNextZ(pNode);
-					pNode->pPrevZ(pCurrInsertPTNode);
-					pNode->pNextZ(NULL);
-					break;
-				}
-			}
-		}
-	}
+	first_z_rangeNode_->pPrevZ(pNode);
+	pNode->pNextZ(first_z_rangeNode_);
+	first_z_rangeNode_ = pNode;
 
 	pNode->pRangeList(this);
 	++size_;
+
+	update(pNode);
 	return true;
 }
 
@@ -314,9 +167,11 @@ void RangeList::update(RangeNode* pNode)
 		{
 			if((pNode->flags() & RANGENODE_FLAG_HIDE) <= 0)
 			{
+				/*
 				DEBUG_MSG(boost::format("RangeList::update: [X] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
 					pNode->old_x() % pNode->old_y() % pNode->old_z() % px % py % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
 					pNode % pCurrNode);
+				*/
 
 				pCurrNode->onNodePassX(pNode, true);
 			}
@@ -332,6 +187,35 @@ void RangeList::update(RangeNode* pNode)
 			pCurrNode = pCurrNode->pPrevX();
 		};
 		
+		if(pNode->pNextX() && pNode->pNextX()->x() < px)
+		{
+			pCurrNode = pNode->pNextX();
+
+			while(pCurrNode && pCurrNode->x() < px)
+			{
+				if((pNode->flags() & RANGENODE_FLAG_HIDE) <= 0)
+				{
+					/*
+					DEBUG_MSG(boost::format("RangeList::update: [X] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
+						pNode->old_x() % pNode->old_y() % pNode->old_z() % px % py % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
+						pNode % pCurrNode);
+					*/
+
+					pCurrNode->onNodePassX(pNode, true);
+				}
+
+				if((pCurrNode->flags() & RANGENODE_FLAG_HIDE) <= 0)
+				{
+					pNode->onNodePassX(pCurrNode, false);
+				}
+
+				if(pCurrNode->pNextX() == NULL)
+					break;
+
+				pCurrNode = pCurrNode->pNextX();
+			};
+		}
+
 		if(pCurrNode != NULL)
 		{
 			if(pCurrNode->x() > px)
@@ -363,7 +247,12 @@ void RangeList::update(RangeNode* pNode)
 					pNode->pPrevX()->pNextX(pNode->pNextX());
 
 				if(pNode->pNextX())
+				{
 					pNode->pNextX()->pPrevX(pNode->pPrevX());
+				
+					if(pNode == first_x_rangeNode_)
+						first_x_rangeNode_ = pNode->pNextX();
+				}
 
 				pNode->pPrevX(pCurrNode);
 				pNode->pNextX(pNextNode);
@@ -379,9 +268,11 @@ void RangeList::update(RangeNode* pNode)
 		{
 			if((pNode->flags() & RANGENODE_FLAG_HIDE) <= 0)
 			{
+				/*
 				DEBUG_MSG(boost::format("RangeList::update: [Y] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
 					pNode->old_x() % pNode->old_y() % pNode->old_z() % px % py % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
 					pNode % pCurrNode);
+				*/
 
 				pCurrNode->onNodePassY(pNode, true);
 			}
@@ -395,6 +286,35 @@ void RangeList::update(RangeNode* pNode)
 			pCurrNode = pCurrNode->pPrevY();
 		};
 		
+		if(pNode->pNextY() && pNode->pNextY()->y() < py)
+		{
+			pCurrNode = pNode->pNextY();
+
+			while(pCurrNode && pCurrNode->y() < py)
+			{
+				if((pNode->flags() & RANGENODE_FLAG_HIDE) <= 0)
+				{
+					/*
+					DEBUG_MSG(boost::format("RangeList::update: [Y] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
+						pNode->old_x() % pNode->old_y() % pNode->old_z() % px % py % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
+						pNode % pCurrNode);
+					*/
+
+					pCurrNode->onNodePassY(pNode, true);
+				}
+
+				if((pCurrNode->flags() & RANGENODE_FLAG_HIDE) <= 0)
+				{
+					pNode->onNodePassY(pCurrNode, false);
+				}
+
+				if(pCurrNode->pNextY() == NULL)
+					break;
+
+				pCurrNode = pCurrNode->pNextY();
+			};
+		}
+
 		if(pCurrNode != NULL)
 		{
 			if(pCurrNode->y() > py)
@@ -426,7 +346,12 @@ void RangeList::update(RangeNode* pNode)
 					pNode->pPrevY()->pNextY(pNode->pNextY());
 
 				if(pNode->pNextY())
+				{
 					pNode->pNextY()->pPrevY(pNode->pPrevY());
+				
+					if(pNode == first_y_rangeNode_)
+						first_y_rangeNode_ = pNode->pNextY();
+				}
 
 				pNode->pPrevY(pCurrNode);
 				pNode->pNextY(pNextNode);
@@ -442,9 +367,11 @@ void RangeList::update(RangeNode* pNode)
 		{
 			if((pNode->flags() & RANGENODE_FLAG_HIDE) <= 0)
 			{
+				/*
 				DEBUG_MSG(boost::format("RangeList::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
 					pNode->old_x() % pNode->old_y() % pNode->old_z() % px % py % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
 					pNode % pCurrNode);
+				*/
 
 				pCurrNode->onNodePassZ(pNode, true);
 			}
@@ -458,6 +385,35 @@ void RangeList::update(RangeNode* pNode)
 			pCurrNode = pCurrNode->pPrevZ();
 		};
 		
+		if(pNode->pNextZ() && pNode->pNextZ()->z() < pz)
+		{
+			pCurrNode = pNode->pNextZ();
+
+			while(pCurrNode && pCurrNode->z() < pz)
+			{
+				if((pNode->flags() & RANGENODE_FLAG_HIDE) <= 0)
+				{
+					/*
+					DEBUG_MSG(boost::format("RangeList::update: [Z] node_%10%(%1%, %2%, %3%)->(%4%, %5%, %6%), passNode_%11%(%7%, %8%, %9%)\n") %
+						pNode->old_x() % pNode->old_y() % pNode->old_z() % px % py % pz % pCurrNode->x() % pCurrNode->y() % pCurrNode->z() %
+						pNode % pCurrNode);
+					*/
+
+					pCurrNode->onNodePassZ(pNode, true);
+				}
+
+				if((pCurrNode->flags() & RANGENODE_FLAG_HIDE) <= 0)
+				{
+					pNode->onNodePassZ(pCurrNode, false);
+				}
+
+				if(pCurrNode->pNextZ() == NULL)
+					break;
+
+				pCurrNode = pCurrNode->pNextZ();
+			};
+		}
+
 		if(pCurrNode != NULL)
 		{
 			if(pCurrNode->z() > pz)
@@ -489,7 +445,12 @@ void RangeList::update(RangeNode* pNode)
 					pNode->pPrevZ()->pNextZ(pNode->pNextZ());
 
 				if(pNode->pNextZ())
+				{
 					pNode->pNextZ()->pPrevZ(pNode->pPrevZ());
+				
+					if(pNode == first_z_rangeNode_)
+						first_z_rangeNode_ = pNode->pNextZ();
+				}
 
 				pNode->pPrevZ(pCurrNode);
 				pNode->pNextZ(pNextNode);

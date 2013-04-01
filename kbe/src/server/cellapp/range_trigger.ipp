@@ -47,70 +47,77 @@ INLINE RangeNode* RangeTrigger::origin()const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool RangeTrigger::isInXRange(RangeNode * pNode)
+INLINE bool RangeTriggerNode::isInXRange(RangeNode * pNode)
 {
-	float originX = origin_->x();
+	float originX = pRangeTrigger_->origin()->x();
 
-	volatile float lowerBound = originX - range_xz_;
-	volatile float upperBound = originX + range_xz_;
+	volatile float lowerBound = originX - fabs(range_xz_);
+	volatile float upperBound = originX + fabs(range_xz_);
 	return (lowerBound < pNode->x()) && (pNode->x() <= upperBound);
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool RangeTrigger::isInYRange(RangeNode * pNode)
+INLINE bool RangeTriggerNode::isInYRange(RangeNode * pNode)
 {
-	float originY = origin_->y();
+	float originY = pRangeTrigger_->origin()->y();
 
-	volatile float lowerBound = originY - range_y_;
-	volatile float upperBound = originY + range_y_;
+	volatile float lowerBound = originY - fabs(range_y_);
+	volatile float upperBound = originY + fabs(range_y_);
 	return (lowerBound < pNode->y()) && (pNode->y() <= upperBound);
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool RangeTrigger::isInZRange(RangeNode * pNode)
+INLINE bool RangeTriggerNode::isInZRange(RangeNode * pNode)
 {
-	float originZ = origin_->z();
+	float originZ = pRangeTrigger_->origin()->z();
 
-	volatile float lowerBound = originZ - range_xz_;
-	volatile float upperBound = originZ + range_xz_;
+	volatile float lowerBound = originZ - fabs(range_xz_);
+	volatile float upperBound = originZ + fabs(range_xz_);
 	return (lowerBound < pNode->z()) && (pNode->z() <= upperBound);
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool RangeTrigger::wasInXRange(RangeNode * pNode)
+INLINE bool RangeTriggerNode::wasInXRange(RangeNode * pNode)
 {
-	float originX = origin_->old_x();
+	float originX = old_x() - old_range_xz_;
 
-	volatile float lowerBound = originX - range_xz_;
-	volatile float upperBound = originX + range_xz_;
+	volatile float lowerBound = originX - fabs(old_range_xz_);
+	volatile float upperBound = originX + fabs(old_range_xz_);
 	return (lowerBound < pNode->old_x()) && (pNode->old_x() <= upperBound);
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool RangeTrigger::wasInYRange(RangeNode * pNode)
+INLINE bool RangeTriggerNode::wasInYRange(RangeNode * pNode)
 {
-	float originY = origin_->old_y();
+	float originY = old_y() - old_range_y_;
 
-	volatile float lowerBound = originY - range_y_;
-	volatile float upperBound = originY + range_y_;
+	volatile float lowerBound = originY - fabs(old_range_y_);
+	volatile float upperBound = originY + fabs(old_range_y_);
 	return (lowerBound < pNode->old_y()) && (pNode->old_y() <= upperBound);
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool RangeTrigger::wasInZRange(RangeNode * pNode)
+INLINE bool RangeTriggerNode::wasInZRange(RangeNode * pNode)
 {
-	float originZ = origin_->old_z();
+	float originZ = old_z() - old_range_xz_;
 
-	volatile float lowerBound = originZ - range_xz_;
-	volatile float upperBound = originZ + range_xz_;
+	volatile float lowerBound = originZ - fabs(old_range_xz_);
+	volatile float upperBound = originZ + fabs(old_range_xz_);
 	return (lowerBound < pNode->old_z()) && (pNode->old_z() <= upperBound);
 }
 
 //-------------------------------------------------------------------------------------
 INLINE void RangeTriggerNode::range(float xz, float y)
 {
-	range_xz_ = fabs(xz);
-	range_y_ = fabs(y);
+	range_xz_ = xz;
+	range_y_ = y;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void RangeTriggerNode::old_range(float xz, float y)
+{
+	old_range_xz_ = xz;
+	old_range_y_ = y;
 }
 
 //-------------------------------------------------------------------------------------

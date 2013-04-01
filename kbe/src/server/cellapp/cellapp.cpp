@@ -22,6 +22,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cellapp.hpp"
 #include "space.hpp"
 #include "profile.hpp"
+#include "range_node.hpp"
+#include "aoi_trigger.hpp"
 #include "cellapp_interface.hpp"
 #include "entity_remotemethod.hpp"
 #include "forward_message_over_handler.hpp"
@@ -60,6 +62,60 @@ Cellapp::Cellapp(Mercury::EventDispatcher& dispatcher,
 		std::tr1::placeholders::_1, std::tr1::placeholders::_2);
 
 	EntityMailbox::setMailboxCallHookFunc(&mailboxCallHookFunc);
+
+	RangeList aaa;
+	RangeNode a(&aaa), b(&aaa), c(&aaa), d(&aaa);
+
+	a.x(0.1);
+	a.y(0.1);
+	a.z(0.1);
+
+	b.x(0.2);
+	b.y(0.2);
+	b.z(0.2);
+
+	c.x(0.3);
+	c.y(0.3);
+	c.z(0.3);
+
+	d.x(0.1);
+	d.y(0.1);
+	d.z(0.1);
+
+	
+	aaa.insert(&c);
+	aaa.remove(&c);
+	aaa.insert(&c);
+	aaa.insert(&a);
+	aaa.remove(&c);
+	aaa.insert(&b);
+	aaa.insert(&d);
+	aaa.insert(&c);
+	
+//	AOITrigger* aoi = new AOITrigger(&d, 10.0, 10.0);
+
+	c.resetOld();
+	c.x(-110.0);
+	c.y(-110.0);
+	c.z(-110.0);
+	c.update();
+	
+	a.resetOld();
+	a.x(110.0);
+	a.y(110.0);
+	a.z(110.0);
+	a.update();
+	a.resetOld();
+	a.x(-110.0);
+	a.y(-110.0);
+	a.z(-110.0);
+	a.update();
+	//delete aoi;
+	aaa.remove(&b);
+	aaa.remove(&c);
+	aaa.remove(&a);
+	aaa.remove(&d);
+
 }
 
 //-------------------------------------------------------------------------------------
@@ -270,6 +326,7 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 	if(pEntity != NULL)
 	{
 		Py_INCREF(pEntity);
+		pEntity->setSpaceID(space->getID());
 		pEntity->initializeEntity(params);
 		pEntity->pySetPosition(position);
 		pEntity->pySetDirection(direction);	
@@ -618,13 +675,14 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 				componentID);
 			return;
 		}
+		
+		e->setSpaceID(space->getID());
+		e->initializeEntity(cellData);
+		Py_XDECREF(cellData);
 
 		// 添加到space
 		space->creatorID(e->getID());
 		space->addEntity(e);
-		
-		e->initializeEntity(cellData);
-		Py_XDECREF(cellData);
 
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
@@ -733,8 +791,10 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		cellData = e->createCellDataFromStream(pCellData);
 
 		// 添加到space
-		space->addEntity(e);
+		e->setSpaceID(space->getID());
 		e->initializeEntity(cellData);
+		space->addEntity(e);
+
 		Py_XDECREF(cellData);
 
 		// 告知baseapp， entity的cell创建了

@@ -28,6 +28,8 @@ RangeTriggerNode::RangeTriggerNode(RangeTrigger* pRangeTrigger, float xz, float 
 RangeNode(NULL),
 range_xz_(xz),
 range_y_(y),
+old_range_xz_(range_xz_),
+old_range_y_(range_y_),
 pRangeTrigger_(pRangeTrigger)
 {
 	flags(RANGENODE_FLAG_HIDE);
@@ -47,13 +49,13 @@ float RangeTriggerNode::x()const
 //-------------------------------------------------------------------------------------
 float RangeTriggerNode::y()const 
 { 
-	return pRangeTrigger_->origin()->x() + range_y_; 
+	return pRangeTrigger_->origin()->y() + range_y_; 
 }
 
 //-------------------------------------------------------------------------------------
 float RangeTriggerNode::z()const 
 { 
-	return pRangeTrigger_->origin()->x() + range_xz_; 
+	return pRangeTrigger_->origin()->z() + range_xz_; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -94,14 +96,32 @@ RangeTrigger::~RangeTrigger()
 bool RangeTrigger::install()
 {
 	if(positiveBoundary_ == NULL)
-		positiveBoundary_ = new RangeTriggerNode(this, range_xz_, range_y_);
+		positiveBoundary_ = new RangeTriggerNode(this, 0, 0);
 
 	if(negativeBoundary_ == NULL)
-		negativeBoundary_ = new RangeTriggerNode(this, -range_xz_, -range_y_);
+		negativeBoundary_ = new RangeTriggerNode(this, 0, 0);
+
+	positiveBoundary_->range(0.0f, 0.0f);
+	negativeBoundary_->range(0.0f, 0.0f);
 
 	origin_->pRangeList()->insert(positiveBoundary_);
 	origin_->pRangeList()->insert(negativeBoundary_);
+	
+	positiveBoundary_->old_x(FLT_MAX);
+	positiveBoundary_->old_y(FLT_MAX);
+	positiveBoundary_->old_z(FLT_MAX);
 
+	negativeBoundary_->old_x(-FLT_MAX);
+	negativeBoundary_->old_y(-FLT_MAX);
+	negativeBoundary_->old_z(-FLT_MAX);
+
+	positiveBoundary_->range(range_xz_, range_y_);
+	positiveBoundary_->old_range(range_xz_, range_y_);
+	negativeBoundary_->range(-range_xz_, -range_y_);
+	negativeBoundary_->old_range(-range_xz_, -range_y_);
+
+	positiveBoundary_->update();
+	negativeBoundary_->update();
 	return true;
 }
 
@@ -126,8 +146,13 @@ void RangeTrigger::onNodePassX(RangeTriggerNode* pRangeTriggerNode, RangeNode* p
 	if(pNode == origin())
 		return;
 
-	bool wasIn = wasInXRange(pNode) && wasInYRange(pNode) && wasInZRange(pNode);
-	bool isIn = isInXRange(pNode) && isInYRange(pNode) && isInZRange(pNode);
+	bool wasIn = pRangeTriggerNode->wasInXRange(pNode) && 
+		pRangeTriggerNode->wasInYRange(pNode) && 
+		pRangeTriggerNode->wasInZRange(pNode);
+
+	bool isIn = pRangeTriggerNode->isInXRange(pNode) && 
+		pRangeTriggerNode->isInYRange(pNode) && 
+		pRangeTriggerNode->isInZRange(pNode);
 
 	if(!wasIn)
 	{
@@ -147,8 +172,13 @@ void RangeTrigger::onNodePassY(RangeTriggerNode* pRangeTriggerNode, RangeNode* p
 	if(pNode == origin())
 		return;
 
-	bool wasIn = wasInXRange(pNode) && wasInYRange(pNode) && wasInZRange(pNode);
-	bool isIn = isInXRange(pNode) && isInYRange(pNode) && isInZRange(pNode);
+	bool wasIn = pRangeTriggerNode->wasInXRange(pNode) && 
+		pRangeTriggerNode->wasInYRange(pNode) && 
+		pRangeTriggerNode->wasInZRange(pNode);
+
+	bool isIn = pRangeTriggerNode->isInXRange(pNode) && 
+		pRangeTriggerNode->isInYRange(pNode) && 
+		pRangeTriggerNode->isInZRange(pNode);
 
 	if(!wasIn)
 	{
@@ -168,8 +198,13 @@ void RangeTrigger::onNodePassZ(RangeTriggerNode* pRangeTriggerNode, RangeNode* p
 	if(pNode == origin())
 		return;
 
-	bool wasIn = wasInXRange(pNode) && wasInYRange(pNode) && wasInZRange(pNode);
-	bool isIn = isInXRange(pNode) && isInYRange(pNode) && isInZRange(pNode);
+	bool wasIn = pRangeTriggerNode->wasInXRange(pNode) && 
+		pRangeTriggerNode->wasInYRange(pNode) && 
+		pRangeTriggerNode->wasInZRange(pNode);
+
+	bool isIn = pRangeTriggerNode->isInXRange(pNode) && 
+		pRangeTriggerNode->isInYRange(pNode) && 
+		pRangeTriggerNode->isInZRange(pNode);
 
 	if(!wasIn)
 	{
