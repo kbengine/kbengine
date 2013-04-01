@@ -19,16 +19,14 @@ class GameObject(KBEngine.Entity):
 		KBEngine method.
 		这个entity已经进入世界了
 		"""
-		# 通知APP创建一个entity
-		KBExtra.createEntity(self.id, self.name, tuple(self.position), tuple(self.direction), \
-								self.modelNumber, self.modelScale, self.moveSpeed, self.modelYOffset, faceToTable[self.modelNumber])
+		pass
 		
 	def leaveWorld(self):
 		"""
 		KBEngine method.
 		这个entity将要离开世界了
 		"""
-		KBExtra.destroyEntity(self.id)
+		pass
 		
 	def onMoveToPoint(self, destination, velocity, faceMovement, moveVertically):
 		"""
