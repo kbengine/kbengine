@@ -43,6 +43,7 @@ bigworld引擎的特点是理论支持无限大世界，多进程分布式负载
 	cellappmgr将会寻找空闲的cellapp来均衡负载， 整个游戏的实时处理逻辑部分也在cellapp，包括aoi, 逻辑层的ai, entity移动导航等等。 
 	cellapp部署的数量可自由配置。
 
+
 	· loginapp:
 	它只处理client的登录接入, 账号由dbmgr检查通过就会从baseappmgr得到一个baseapp的地址发给客户端，
 	然后就与客户端断开连接， 客户端需要主动连接获得到的baseapp，可在多台机器部署多个loginapp进程。 
