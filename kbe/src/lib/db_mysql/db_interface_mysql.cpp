@@ -62,7 +62,8 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 			ERROR_MSG("DBInterfaceMysql::attach: mysql_init is error!\n");
 			return false;
 		}
-
+		
+		DEBUG_MSG(boost::format("DBInterfaceMysql::mysql_real_connect: %1%:%2%\n") % db_ip_ % db_port_);
 		if(mysql_real_connect(mysql(), db_ip_, db_username_, 
     		db_password_, db_name_, db_port_, NULL, 0)) // CLIENT_MULTI_STATEMENTS  
 		{

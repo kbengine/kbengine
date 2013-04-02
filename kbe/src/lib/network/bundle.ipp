@@ -30,12 +30,12 @@ INLINE bool Bundle::isEmpty() const
 
 INLINE int Bundle::totalSize() const
 {
-	return packets_.size();
+	return packets_.size() + (pCurrPacket_ ? 1 : 0);
 }
 
 INLINE int Bundle::sizeInPackets()
 {
-	return packets_.size();
+	return packets_.size() + (pCurrPacket_ ? 1 : 0);
 }
 
 }
