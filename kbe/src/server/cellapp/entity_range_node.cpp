@@ -40,6 +40,9 @@ EntityRangeNode::~EntityRangeNode()
 //-------------------------------------------------------------------------------------
 float EntityRangeNode::x()const
 {
+	if((flags() & RANGENODE_FLAG_REMOVE) > 0)
+		return -FLT_MAX;
+
 	return pEntity_->getPosition().x;
 }
 

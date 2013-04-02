@@ -30,6 +30,7 @@ namespace KBEngine{
 #define RANGENODE_FLAG_ENTITY				0x00000001		// 一个entity节点
 #define RANGENODE_FLAG_TRIGGER				0x00000002		// 一个触发器节点
 #define RANGENODE_FLAG_HIDE					0x00000004		// 隐藏节点(其他节点不可见)
+#define RANGENODE_FLAG_REMOVE				0x00000008		// 删除节点
 
 class RangeList;
 class RangeNode
@@ -96,6 +97,8 @@ public:
 	virtual void onNodePassX(RangeNode* pNode, bool isfront);
 	virtual void onNodePassY(RangeNode* pNode, bool isfront);
 	virtual void onNodePassZ(RangeNode* pNode, bool isfront);
+
+	virtual void onRemove();
 
 	/**
 		当节点有变动时，需要更新它在list中的

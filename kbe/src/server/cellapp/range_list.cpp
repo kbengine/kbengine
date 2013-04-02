@@ -82,6 +82,10 @@ bool RangeList::insert(RangeNode* pNode)
 //-------------------------------------------------------------------------------------
 bool RangeList::remove(RangeNode* pNode)
 {
+	pNode->flags(pNode->flags() | RANGENODE_FLAG_REMOVE);
+	pNode->onRemove();
+	update(pNode);
+
 	// 如果是第一个节点
 	if(first_x_rangeNode_ == pNode)
 	{

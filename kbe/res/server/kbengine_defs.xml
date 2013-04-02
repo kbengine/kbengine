@@ -24,6 +24,7 @@
 		<use_logfile>false</use_logfile>
 		<disables>
 			<item>Baseappmgr::updateBaseapp</item>
+			<item>Client::onUpdateVolatileData</item>
 		</disables>
 	</trace_packet>
 	
@@ -241,7 +242,7 @@
 			tickcount： 每次添加数量
 		-->
 		<defaultAddBots> 
-			<totalcount> 50  </totalcount> <!-- Type: Integer -->
+			<totalcount> 3  </totalcount> <!-- Type: Integer -->
 			<ticktime> 0.1  </ticktime> <!-- Type: Float -->
 			<tickcount> 2  </tickcount> <!-- Type: Integer -->
 		</defaultAddBots>							

@@ -23,6 +23,7 @@
 		<use_logfile>false</use_logfile>
 		<disables>
 			<item>Baseappmgr::updateBaseapp</item>
+			<item>Client::onUpdateVolatileData</item>
 		</disables>
 	</trace_packet>
 	

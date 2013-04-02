@@ -42,19 +42,19 @@ RangeTriggerNode::~RangeTriggerNode()
 
 //-------------------------------------------------------------------------------------
 float RangeTriggerNode::x()const 
-{ 
+{
 	return pRangeTrigger_->origin()->x() + range_xz_; 
 }
 
 //-------------------------------------------------------------------------------------
 float RangeTriggerNode::y()const 
-{ 
+{
 	return pRangeTrigger_->origin()->y() + range_y_; 
 }
 
 //-------------------------------------------------------------------------------------
 float RangeTriggerNode::z()const 
-{ 
+{
 	return pRangeTrigger_->origin()->z() + range_xz_; 
 }
 

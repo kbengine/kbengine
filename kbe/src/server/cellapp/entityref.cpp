@@ -27,11 +27,25 @@ EntityRef::EntityRef(Entity* pEntity):
 pEntity_(pEntity),
 flags_(ENTITYREF_FLAG_UNKONWN)
 {
+	id_ = pEntity->getID();
 }
 
 //-------------------------------------------------------------------------------------
 EntityRef::~EntityRef()
 {
+}
+
+//-------------------------------------------------------------------------------------
+void EntityRef::pEntity(Entity* e)
+{
+	pEntity_ = e; 
+	id_ = e->getID(); 
+}
+
+//-------------------------------------------------------------------------------------
+bool findif_vector_entityref_exist_handler::operator()(const EntityRef* obj)
+{
+	return obj->id() == obj_->getID();
 }
 
 //-------------------------------------------------------------------------------------

@@ -136,9 +136,21 @@ void Witness::onEnterAOI(Entity* pEntity)
 {
 	AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), findif_vector_entityref_exist_handler(pEntity));
 	if(iter != aoiEntities_.end())
-		return;
+	{
+		if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
+		{
+			DEBUG_MSG(boost::format("Witness::onEnterAOI: %1% entity=%2%\n") % 
+				pEntity_->getID() % pEntity->getID());
 
-	DEBUG_MSG(boost::format("Witness::onEnterAOI: %1% entity=%2%\n") % pEntity_->getID() % pEntity->getID());
+			(*iter)->removeflags(ENTITYREF_FLAG_LEAVE_CLIENT_PENDING);
+			(*iter)->pEntity(pEntity);
+		}
+
+		return;
+	}
+
+	DEBUG_MSG(boost::format("Witness::onEnterAOI: %1% entity=%2%\n") % 
+		pEntity_->getID() % pEntity->getID());
 	
 	EntityRef* pEntityRef = new EntityRef(pEntity);
 	pEntityRef->flags(pEntityRef->flags() | ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
@@ -154,8 +166,11 @@ void Witness::onLeaveAOI(Entity* pEntity)
 
 	DEBUG_MSG(boost::format("Witness::onLeaveAOI: %1% entity=%2%\n") % pEntity_->getID() % pEntity->getID());
 
-	delete (*iter);
-	aoiEntities_.erase(iter);
+	// 这里不delete， 我们需要待update将此行为更新至客户端时再进行
+	//delete (*iter);
+	//aoiEntities_.erase(iter);
+
+	(*iter)->flags((*iter)->flags() | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING);
 }
 
 //-------------------------------------------------------------------------------------
@@ -253,7 +268,7 @@ void Witness::update()
 		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->getID(), (*pSendBundle));
 
 		AOI_ENTITIES::iterator iter = aoiEntities_.begin();
-		for(; iter != aoiEntities_.end(); iter++)
+		for(; iter != aoiEntities_.end(); )
 		{
 			if(remainPacketSize <= 0)
 				break;
@@ -297,11 +312,15 @@ void Witness::update()
 				Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 
 				(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
-				(*pForwardBundle) << otherEntity->getID();
+				(*pForwardBundle) << (*iter)->id();
 				(*pForwardBundle) << spaceID;
 
 				MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
 				Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+
+				delete (*iter);
+				iter = aoiEntities_.erase(iter);
+				continue;
 			}
 			else
 			{
@@ -315,6 +334,8 @@ void Witness::update()
 				MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
 				Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 			}
+
+			++iter;
 		}
 	}
 

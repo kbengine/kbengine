@@ -43,7 +43,11 @@ public:
 	uint32 flags(){ return flags_; }
 	
 	Entity* pEntity()const { return pEntity_; }
+	void pEntity(Entity* e);
+
+	ENTITY_ID id()const{ return id_; }
 private:
+	ENTITY_ID id_;
 	Entity* pEntity_;
 	uint32 flags_;
 };
@@ -55,10 +59,7 @@ public:
 	findif_vector_entityref_exist_handler(Entity* obj)
 	: obj_(obj) {}
 
-	bool operator()(const EntityRef* obj)
-	{
-		return obj->pEntity() == obj_;
-	}
+	bool operator()(const EntityRef* obj);
 private:
 	Entity* obj_;
 };

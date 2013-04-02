@@ -143,13 +143,17 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 	ScriptDefModule* sm = EntityDef::findScriptModule(entityType);
 	if(sm == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "ClientObjectBase::createEntityCommon: entity [%s] not found.\n", entityType);
+		PyErr_Format(PyExc_TypeError, "ClientObjectBase::createEntityCommon: entity [%s] not found.\n", 
+			entityType);
+
 		PyErr_PrintEx(0);
 		return NULL;
 	}
 	else if(!sm->hasClient())
 	{
-		PyErr_Format(PyExc_TypeError, "ClientObjectBase::createEntityCommon: entity [%s] not found.\n", entityType);
+		PyErr_Format(PyExc_TypeError, "ClientObjectBase::createEntityCommon: entity [%s] not found.\n", 
+			entityType);
+
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -174,11 +178,13 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 
 	if(g_debugEntity)
 	{
-		INFO_MSG(boost::format("ClientObjectBase::createEntityCommon: new %1% (%2%) refc=%3%.\n") % entityType % eid % obj->ob_refcnt);
+		INFO_MSG(boost::format("ClientObjectBase::createEntityCommon: new %1% (%2%) refc=%3%.\n") % 
+			entityType % eid % obj->ob_refcnt);
 	}
 	else
 	{
-		INFO_MSG(boost::format("ClientObjectBase::createEntityCommon: new %1% (%2%)\n") % entityType % eid);
+		INFO_MSG(boost::format("ClientObjectBase::createEntityCommon: new %1% (%2%)\n") % 
+			entityType % eid);
 	}
 
 	EventData_CreatedEntity eventdata;
@@ -453,7 +459,8 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 		}
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%.\n") % eid);
+	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%(%2%).\n") % 
+		entity->getScriptName() % eid);
 
 	EventData_EnterWorld eventdata;
 	eventdata.spaceID = spaceID;
@@ -480,7 +487,9 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 		return;
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::onEntityLeaveWorld: %1%.\n") % eid);
+	DEBUG_MSG(boost::format("ClientObjectBase::onEntityLeaveWorld: %1%(%2%).\n") % 
+		entity->getScriptName() % eid);
+
 	entity->onLeaveWorld();
 
 	EventData_LeaveWorld eventdata;
@@ -502,7 +511,8 @@ void ClientObjectBase::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID 
 		return;
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterSpace: %1%.\n") % eid);
+	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterSpace: %1%(%2%).\n") % 
+		entity->getScriptName() % eid);
 
 	EventData_EnterSpace eventdata;
 	eventdata.spaceID = spaceID;
@@ -521,7 +531,8 @@ void ClientObjectBase::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID 
 		return;
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::onEntityLeaveSpace: %1%.\n") % eid);
+	DEBUG_MSG(boost::format("ClientObjectBase::onEntityLeaveSpace: %1%(%2%).\n") % 
+		entity->getScriptName() % eid);
 
 	EventData_LeaveSpace eventdata;
 	eventdata.spaceID = spaceID;
@@ -539,7 +550,9 @@ void ClientObjectBase::onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID 
 		return;
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::onEntityDestroyed: %1%.\n") % eid);
+	DEBUG_MSG(boost::format("ClientObjectBase::onEntityDestroyed: %1%(%2%).\n") % 
+		entity->getScriptName() % eid);
+
 	pEntities_->erase(eid);
 }
 
