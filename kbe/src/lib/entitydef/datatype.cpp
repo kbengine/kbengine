@@ -1279,6 +1279,26 @@ std::string FixedDictType::getKeyNames(void)
 }
 
 //-------------------------------------------------------------------------------------
+std::string FixedDictType::debugInfos(void)
+{
+	std::string retstr = "";
+
+	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
+	for(; iter != keyTypes_.end(); iter++)
+	{
+		retstr += iter->first;
+		retstr += "(";
+		retstr += iter->second->dataType->aliasName();
+		retstr += "), ";
+	}
+	
+	if(retstr.size() > 0)
+		retstr.erase(retstr.size() - 2, 2);
+
+	return retstr;
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* FixedDictType::createNewItemFromObj(const char* keyName, PyObject* pyobj)
 {
 	DataType* dataType = isSameItemType(keyName, pyobj);
@@ -1565,9 +1585,11 @@ DataType* FixedDictType::isSameItemType(const char* keyName, PyObject* pyValue)
 			if(pyValue == NULL || !iter->second->dataType->isSameType(pyValue))
 			{
 				PyErr_Format(PyExc_TypeError, 
-					"set FIXED_DICT(%s) is error! at key: %s, keyNames=[%s].", 
-					this->aliasName(), iter->first.c_str(), 
-					getKeyNames().c_str());
+					"set FIXED_DICT(%s) is error! at key: %s(%s), keyNames=[%s].", 
+					this->aliasName(), 
+					iter->first.c_str(),
+					(pyValue == NULL ? "NULL" : pyValue->ob_type->tp_name),
+					debugInfos().c_str());
 				
 				PyErr_PrintEx(0);
 				return NULL;
@@ -1619,7 +1641,7 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 		PyErr_Format(PyExc_TypeError, 
 			"FIXED_DICT(%s) key no match. size:%d-%d, keyNames=[%s].", 
 			this->aliasName(),dictSize, keyTypes_.size(), 
-			getKeyNames().c_str());
+			debugInfos().c_str());
 		
 		PyErr_PrintEx(0);
 		return false;
@@ -1631,10 +1653,12 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 		PyObject* pyObject = PyDict_GetItemString(pyValue, const_cast<char*>(iter->first.c_str()));
 		if(pyObject == NULL || !iter->second->dataType->isSameType(pyObject))
 		{
-			PyErr_Format(PyExc_TypeError, 
-				"set FIXED_DICT(%s) is error! at key: %s, keyNames=[%s].", 
-				this->aliasName(), iter->first.c_str(), 
-				getKeyNames().c_str());
+				PyErr_Format(PyExc_TypeError, 
+					"set FIXED_DICT(%s) is error! at key: %s(%s), keyNames=[%s].", 
+					this->aliasName(), 
+					iter->first.c_str(),
+					(pyObject == NULL ? "NULL" : pyObject->ob_type->tp_name),
+					debugInfos().c_str());
 			
 			PyErr_PrintEx(0);
 			return false;
@@ -1704,8 +1728,8 @@ void FixedDictType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool
 		
 		if(pyObject == NULL)
 		{
-			ERROR_MSG(boost::format("FixedDictType::addToStreamEx: %1% not found key[%2%]. keyNames:%3%\n") % 
-				this->aliasName_ % iter->first % this->getKeyNames());
+			ERROR_MSG(boost::format("FixedDictType::addToStreamEx: %1% not found key[%2%]. keyNames[%3%]\n") % 
+				this->aliasName_ % iter->first % this->debugInfos());
 
 			KBE_ASSERT(pyObject != NULL);
 		}

@@ -511,6 +511,11 @@ public:
 	std::string getKeyNames(void);
 
 	/** 
+		获得debug信息，返回固定字典所有的key名称和类型
+	*/
+	std::string debugInfos(void);
+
+	/** 
 		加载impl模块
 	*/
 	bool loadImplModule(std::string moduleName);
