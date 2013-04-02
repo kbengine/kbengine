@@ -60,6 +60,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #else
 // linux include
 #include <errno.h>
+#include <float.h>
 #include <pthread.h>	
 #include <fcntl.h>
 #include <unistd.h>
