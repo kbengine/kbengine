@@ -63,7 +63,7 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 			return false;
 		}
 		
-		DEBUG_MSG(boost::format("DBInterfaceMysql::mysql_real_connect: %1%:%2%\n starting...") % db_ip_ % db_port_);
+		DEBUG_MSG(boost::format("DBInterfaceMysql::attach: connect: %1%:%2% starting...\n") % db_ip_ % db_port_);
 		if(mysql_real_connect(mysql(), db_ip_, db_username_, 
     		db_password_, db_name_, db_port_, NULL, 0)) // CLIENT_MULTI_STATEMENTS  
 		{
@@ -100,7 +100,14 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 		return false;
 	}
 
-    return mysql() != NULL && ping();
+	bool ret = mysql() != NULL && ping();
+
+	if(ret)
+	{
+		DEBUG_MSG(boost::format("DBInterfaceMysql::attach: successfully! addr: %1%:%2%\n") % db_ip_ % db_port_);
+	}
+
+    return ret;
 }
 
 //-------------------------------------------------------------------------------------
