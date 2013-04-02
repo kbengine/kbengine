@@ -39,10 +39,6 @@ RangeList::~RangeList()
 //-------------------------------------------------------------------------------------
 bool RangeList::insert(RangeNode* pNode)
 {
-	float x = pNode->x();
-	float y = pNode->y();
-	float z = pNode->z();
-	
 	// 如果链表是空的, 初始第一个和最后一个xz节点为该节点
 	if(isEmpty())
 	{
