@@ -86,6 +86,31 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		if(mstream->wpos() > 0)
 			(*pBundle).append(mstream->data(), mstream->wpos());
 
+		if(Mercury::g_trace_packet > 0)
+		{
+			if(Mercury::g_trace_packet_use_logfile)
+				DebugHelper::getSingleton().changeLogger("packetlogs");
+
+			DEBUG_MSG(boost::format("EntityRemoteMethod::tp_call: pushUpdateData: ClientInterface::onRemoteMethodCall(%1%::%2%)\n") % 
+				pEntity->getScriptName() % methodDescription->getName());
+																								
+			switch(Mercury::g_trace_packet)																	
+			{																								
+			case 1:																							
+				mstream->hexlike();																			
+				break;																						
+			case 2:																							
+				mstream->textlike();																			
+				break;																						
+			default:																						
+				mstream->print_storage();																	
+				break;																						
+			};																								
+
+			if(Mercury::g_trace_packet_use_logfile)	
+				DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));																				
+		}
+
 		//mailbox->postMail((*pBundle));
 		pEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
 
