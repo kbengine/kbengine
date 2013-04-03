@@ -53,7 +53,7 @@ public:
 	INLINE bool isInZRange(RangeNode * pNode);
 
 	INLINE bool wasInXRange(RangeNode * pNode);
-	INLINE bool wasInYRange(RangeNode * pNode);
+	bool wasInYRange(RangeNode * pNode);
 	INLINE bool wasInZRange(RangeNode * pNode);
 
 	virtual void resetOld(){ 

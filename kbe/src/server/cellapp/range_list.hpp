@@ -57,6 +57,8 @@ public:
 	INLINE bool isEmpty()const;
 
 	INLINE uint32 size()const;
+
+	static bool hasY;
 private:
 	uint32 size_;
 

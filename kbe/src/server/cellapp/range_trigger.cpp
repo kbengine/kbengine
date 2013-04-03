@@ -166,10 +166,22 @@ void RangeTrigger::onNodePassX(RangeTriggerNode* pRangeTriggerNode, RangeNode* p
 	}
 }
 
+bool RangeTriggerNode::wasInYRange(RangeNode * pNode)
+{
+	if(!RangeList::hasY)
+		return true;
+
+	float originY = old_y() - old_range_y_;
+
+	volatile float lowerBound = originY - fabs(old_range_y_);
+	volatile float upperBound = originY + fabs(old_range_y_);
+	return (lowerBound < pNode->old_y()) && (pNode->old_y() <= upperBound);
+}
+
 //-------------------------------------------------------------------------------------
 void RangeTrigger::onNodePassY(RangeTriggerNode* pRangeTriggerNode, RangeNode* pNode, bool isfront)
 {
-	if(pNode == origin())
+	if(pNode == origin() || !RangeList::hasY)
 		return;
 
 	bool wasIn = pRangeTriggerNode->wasInXRange(pNode) && 

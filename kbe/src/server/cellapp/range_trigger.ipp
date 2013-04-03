@@ -87,16 +87,6 @@ INLINE bool RangeTriggerNode::wasInXRange(RangeNode * pNode)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool RangeTriggerNode::wasInYRange(RangeNode * pNode)
-{
-	float originY = old_y() - old_range_y_;
-
-	volatile float lowerBound = originY - fabs(old_range_y_);
-	volatile float upperBound = originY + fabs(old_range_y_);
-	return (lowerBound < pNode->old_y()) && (pNode->old_y() <= upperBound);
-}
-
-//-------------------------------------------------------------------------------------
 INLINE bool RangeTriggerNode::wasInZRange(RangeNode * pNode)
 {
 	float originZ = old_z() - old_range_xz_;

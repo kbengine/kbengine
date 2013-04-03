@@ -22,6 +22,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{	
 
+bool RangeList::hasY = false;
+
 //-------------------------------------------------------------------------------------
 RangeList::RangeList():
 size_(0),
@@ -43,7 +45,10 @@ bool RangeList::insert(RangeNode* pNode)
 	if(isEmpty())
 	{
 		first_x_rangeNode_ = pNode;
-		first_y_rangeNode_ = pNode;
+
+		if(RangeList::hasY)
+			first_y_rangeNode_ = pNode;
+
 		first_z_rangeNode_ = pNode;
 
 		pNode->pPrevX(NULL);
@@ -64,9 +69,12 @@ bool RangeList::insert(RangeNode* pNode)
 	pNode->pNextX(first_x_rangeNode_);
 	first_x_rangeNode_ = pNode;
 
-	first_y_rangeNode_->pPrevY(pNode);
-	pNode->pNextY(first_y_rangeNode_);
-	first_y_rangeNode_ = pNode;
+	if(RangeList::hasY)
+	{
+		first_y_rangeNode_->pPrevY(pNode);
+		pNode->pNextY(first_y_rangeNode_);
+		first_y_rangeNode_ = pNode;
+	}
 
 	first_z_rangeNode_->pPrevZ(pNode);
 	pNode->pNextZ(first_z_rangeNode_);
@@ -104,22 +112,25 @@ bool RangeList::remove(RangeNode* pNode)
 			pNode->pNextX()->pPrevX(pNode->pPrevX());
 	}
 
-	// 如果是第一个节点
-	if(first_y_rangeNode_ == pNode)
+	if(RangeList::hasY)
 	{
-		first_y_rangeNode_ = first_y_rangeNode_->pNextY();
-
-		if(first_y_rangeNode_)
+		// 如果是第一个节点
+		if(first_y_rangeNode_ == pNode)
 		{
-			first_y_rangeNode_->pPrevY(NULL);
-		}
-	}
-	else
-	{
-		pNode->pPrevY()->pNextY(pNode->pNextY());
+			first_y_rangeNode_ = first_y_rangeNode_->pNextY();
 
-		if(pNode->pNextY())
-			pNode->pNextY()->pPrevY(pNode->pPrevY());
+			if(first_y_rangeNode_)
+			{
+				first_y_rangeNode_->pPrevY(NULL);
+			}
+		}
+		else
+		{
+			pNode->pPrevY()->pNextY(pNode->pNextY());
+
+			if(pNode->pNextY())
+				pNode->pNextY()->pPrevY(pNode->pPrevY());
+		}
 	}
 
 	// 如果是第一个节点
@@ -146,6 +157,7 @@ bool RangeList::remove(RangeNode* pNode)
 	pNode->pNextY(NULL);
 	pNode->pPrevZ(NULL);
 	pNode->pNextZ(NULL);
+	pNode->flags(pNode->flags() & ~RANGENODE_FLAG_REMOVE);
 	pNode->pRangeList(NULL);
 
 	--size_;
@@ -260,7 +272,7 @@ void RangeList::update(RangeNode* pNode)
 		}
 	}
 
-	if(py != pNode->old_y())
+	if(RangeList::hasY && py != pNode->old_y())
 	{
 		RangeNode* pCurrNode = pNode->pPrevY();
 
