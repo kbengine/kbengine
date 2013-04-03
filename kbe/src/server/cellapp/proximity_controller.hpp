@@ -18,36 +18,30 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KBE_TRAP_TRIGGER_HPP__
-#define __KBE_TRAP_TRIGGER_HPP__
+#ifndef __KBE_PROXIMITYCONTROLLER_HPP__
+#define __KBE_PROXIMITYCONTROLLER_HPP__
 
-#include "range_trigger.hpp"
+#include "controller.hpp"	
+
 
 namespace KBEngine{
 
-class Entity;
-class ProximityController;
+class TrapTrigger;
 
-class TrapTrigger : public RangeTrigger
+/*
+	管理trap。
+*/
+class ProximityController : public Controller
 {
 public:
-	TrapTrigger(RangeNode* origin, ProximityController* pProximityController, float xz = 0.0f, float y = 0.0f);
-	virtual ~TrapTrigger();
-
-
+	ProximityController(Entity* pEntity, float xz, float y, uint32 id = 0);
+	~ProximityController();
 	
-	/**
-		某个节点进入或者离开了rangeTrigger
-	*/
-	virtual void onEnter(RangeNode * pNode);
-	virtual void onLeave(RangeNode * pNode);
+	void onEnter(Entity* pEntity, float xz, float y);
+	void onLeave(Entity* pEntity, float xz, float y);
 protected:
-	ProximityController* pProximityController_;
+	TrapTrigger* pTrapTrigger_;
 };
 
 }
-
-#ifdef CODE_INLINE
-#include "trap_trigger.ipp"
-#endif
-#endif
+#endif // __KBE_PROXIMITYCONTROLLER_HPP__

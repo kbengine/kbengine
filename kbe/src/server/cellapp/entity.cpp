@@ -25,7 +25,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "profile.hpp"
 #include "space.hpp"
 #include "all_clients.hpp"
+#include "controllers.hpp"	
 #include "entity_range_node.hpp"
+#include "proximity_controller.hpp"	
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 #include "network/bundle.hpp"	
@@ -47,7 +49,7 @@ SCRIPT_METHOD_DECLARE("addSpaceGeometryMapping",	pyAddSpaceGeometryMapping,		MET
 SCRIPT_METHOD_DECLARE("setAoiRadius",				pySetAoiRadius,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("isReal",						pyIsReal,						METH_VARARGS,				0)	
 SCRIPT_METHOD_DECLARE("addProximity",				pyAddProximity,					METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("delProximity",				pyDelProximity,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("cancel",						pyCancelController,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("navigateStep",				pyNavigateStep,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("stopMove",					pyStopMove,						METH_VARARGS,				0)
@@ -86,7 +88,8 @@ isWitnessed_(false),
 pWitness_(NULL),
 allClients_(new AllClients(scriptModule, id, true)),
 otherClients_(new AllClients(scriptModule, id, false)),
-pEntityRangeNode_(NULL)
+pEntityRangeNode_(NULL),
+pControllers_(new Controllers())
 {
 	ENTITY_INIT_PROPERTYS(Entity);
 
@@ -111,6 +114,7 @@ Entity::~Entity()
 		pWitness_ = NULL;
 	}
 
+	SAFE_RELEASE(pControllers_);
 	SAFE_RELEASE(pEntityRangeNode_);
 }	
 
@@ -563,79 +567,71 @@ PyObject* Entity::pyHasWitness()
 }
 
 //-------------------------------------------------------------------------------------
-uint16 Entity::addProximity(float range)
+uint32 Entity::addProximity(float range_xz, float range_y)
 {
-	if(range <= 0.0f)
+	if(range_xz <= 0.0f || (RangeList::hasY && range_y <= 0.0f))
 	{
-		ERROR_MSG(boost::format("Entity::addProximity: range(%1%) <= 0.0f! entity[%2%:%3%]\n") % 
-			range % getScriptName() % getID());
+		ERROR_MSG(boost::format("Entity::addProximity: range(xz=%1%, y=%2%) <= 0.0f! entity[%3%:%4%]\n") % 
+			range_xz % range_y % getScriptName() % getID());
 
 		return 0;
 	}
 
-	// 不允许范围大于cell边界
-	if(range > g_kbeSrvConfig.getCellApp().ghostDistance)
-		range = g_kbeSrvConfig.getCellApp().ghostDistance;
-
-	/*
 	// 在space中投放一个陷阱
-	Proximity* p = new Proximity(this, range, 0.0f);
-	trapMgr_.addProximity(p);
-	if(currChunk_ != NULL)
-		currChunk_->getSpace()->placeProximity(currChunk_, p);
-	return p->getID();*/
-	
-	return 0;
+	ProximityController* p = new ProximityController(this, range_xz, range_y);
+	bool ret = pControllers_->add(p);
+	KBE_ASSERT(ret);
+	return p->id();
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyAddProximity(float range)
+PyObject* Entity::pyAddProximity(float range_xz, float range_y)
 {
-	return PyLong_FromLong(addProximity(range));
+	return PyLong_FromLong(addProximity(range_xz, range_y));
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::delProximity(uint16 id)
+void Entity::cancelController(uint32 id)
 {
-//	if(!trapMgr_.delProximity(id))
-//		ERROR_MSG("Entity::delProximity: not found proximity %ld.\n", id);
-
-	// 从chunk中清除这个陷阱
-	//currChunk_->clearProximity(p);
+	if(!pControllers_->remove(id))
+	{
+		ERROR_MSG(boost::format("%1%::cancel: %2% not found %3%.\n") % 
+			this->getScriptName() % this->getID() % id);
+	}
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyDelProximity(uint16 id)
+PyObject* Entity::pyCancelController(uint32 id)
 {
-	delProximity(id);
+	cancelController(id);
 	S_Return;
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onEnterTrap(Entity* entity, float range, int controllerID)
+void Entity::onEnterTrap(Entity* entity, float range_xz, float range_y, int controllerID)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS3(this, const_cast<char*>("onEnterTrap"), 
-		const_cast<char*>("Ofi"), entity, range, controllerID);
+	SCRIPT_OBJECT_CALL_ARGS4(this, const_cast<char*>("onEnterTrap"), 
+		const_cast<char*>("Offi"), entity, range_xz, range_y, controllerID);
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onLeaveTrap(Entity* entity, float range, int controllerID)
+void Entity::onLeaveTrap(Entity* entity, float range_xz, float range_y, int controllerID)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS3(this, const_cast<char*>("onLeaveTrap"), 
-		const_cast<char*>("Ofi"), entity, range, controllerID);
+	SCRIPT_OBJECT_CALL_ARGS4(this, const_cast<char*>("onLeaveTrap"), 
+		const_cast<char*>("Offi"), entity, range_xz, range_y, controllerID);
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onLeaveTrapID(ENTITY_ID entityID, float range, int controllerID)
+void Entity::onLeaveTrapID(ENTITY_ID entityID, float range_xz, float range_y, int controllerID)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS3(this, const_cast<char*>("onLeaveTrapID"), 
-		const_cast<char*>("kfi"), entityID, range, controllerID);
+	SCRIPT_OBJECT_CALL_ARGS4(this, const_cast<char*>("onLeaveTrapID"), 
+		const_cast<char*>("kffi"), entityID, range_xz, range_y, controllerID);
 }
 
 //-------------------------------------------------------------------------------------

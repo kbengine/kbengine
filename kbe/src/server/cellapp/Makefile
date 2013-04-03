@@ -7,6 +7,8 @@ SRCS =						\
 	cellapp					\
 	cellapp_interface			\
 	clients_remote_entity_method		\
+	controller				\
+	controllers				\
 	forward_message_over_handler		\
 	entity					\
 	entityref				\
@@ -21,6 +23,7 @@ SRCS =						\
 	updatables				\
 	witness					\
 	profile					\
+	proximity_controller			\
 	range_node				\
 	range_list				\
 	range_trigger				

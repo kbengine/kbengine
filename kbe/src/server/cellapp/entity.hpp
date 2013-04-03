@@ -53,6 +53,8 @@ class Cellapp;
 class Witness;
 class AllClients;
 class EntityRangeNode;
+class Controller;
+class Controllers;
 
 namespace Mercury
 {
@@ -338,32 +340,32 @@ public:
 	/** 
 		添加一个陷阱 
 	*/
-	uint16 addProximity(float range);
-	DECLARE_PY_MOTHOD_ARG1(pyAddProximity, float);
+	uint32 addProximity(float range_xz, float range_y);
+	DECLARE_PY_MOTHOD_ARG2(pyAddProximity, float, float);
 
 	/** 
 		删除一个陷阱 
 	*/
-	void delProximity(uint16 id);
-	DECLARE_PY_MOTHOD_ARG1(pyDelProximity, uint16);
+	void cancelController(uint32 id);
+	DECLARE_PY_MOTHOD_ARG1(pyCancelController, uint32);
 
 	/** 
 		一个entity进入了这个entity的某个陷阱 
 	*/
-	void onEnterTrap(Entity* entity, float range, 
+	void onEnterTrap(Entity* entity, float range_xz, float range_y, 
 							int controllerID);
 
 	/** 
 		一个entity离开了这个entity的某个陷阱 
 	*/
-	void onLeaveTrap(Entity* entity, float range, 
+	void onLeaveTrap(Entity* entity, float range_xz, float range_y, 
 							int controllerID);
 
 	/** 
 		当entity跳到一个新的space上去后，离开陷阱陷阱事件将触发这个接口 
 	*/
 	void onLeaveTrapID(ENTITY_ID entityID, 
-							float range, int controllerID);
+							float range_xz, float range_y, int controllerID);
 
 	/** 
 		entity的一次移动完成 
@@ -407,6 +409,8 @@ protected:
 	AllClients*								otherClients_;
 
 	EntityRangeNode*						pEntityRangeNode_;					// entity节点
+
+	Controllers*							pControllers_;						// 控制器管理器
 };																										
 																											
 

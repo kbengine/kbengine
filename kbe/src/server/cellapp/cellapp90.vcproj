@@ -212,6 +212,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\controller.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\controllers.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\entity.cpp"
 				>
 			</File>
@@ -245,6 +253,10 @@
 			</File>
 			<File
 				RelativePath=".\profile.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\proximity_controller.cpp"
 				>
 			</File>
 			<File
@@ -328,6 +340,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\controller.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\controllers.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\entity.hpp"
 				>
 			</File>
@@ -357,6 +377,10 @@
 			</File>
 			<File
 				RelativePath=".\profile.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\proximity_controller.hpp"
 				>
 			</File>
 			<File

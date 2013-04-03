@@ -18,42 +18,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "trap_trigger.hpp"
-#include "entity.hpp"
-#include "entity_range_node.hpp"
-#include "proximity_controller.hpp"	
-
+#include "controller.hpp"	
 namespace KBEngine{	
 
 
 //-------------------------------------------------------------------------------------
-TrapTrigger::TrapTrigger(RangeNode* origin, ProximityController* pProximityController, float xz, float y):
-RangeTrigger(origin, xz, y),
-pProximityController_(pProximityController)
+Controller::Controller(Entity* pEntity, uint32 id):
+id_(id),
+pEntity_(pEntity)
 {
 }
 
 //-------------------------------------------------------------------------------------
-TrapTrigger::~TrapTrigger()
+Controller::~Controller()
 {
-}
-
-//-------------------------------------------------------------------------------------
-void TrapTrigger::onEnter(RangeNode * pNode)
-{
-	if((pNode->flags() & RANGENODE_FLAG_ENTITY) <= 0)
-		return;
-
-	pProximityController_->onEnter(static_cast<EntityRangeNode*>(pNode)->pEntity(), range_xz_, range_y_);
-}
-
-//-------------------------------------------------------------------------------------
-void TrapTrigger::onLeave(RangeNode * pNode)
-{
-	if((pNode->flags() & RANGENODE_FLAG_ENTITY) <= 0)
-		return;
-
-	pProximityController_->onLeave(static_cast<EntityRangeNode*>(pNode)->pEntity(), range_xz_, range_y_);
+	id_ = 0;
 }
 
 //-------------------------------------------------------------------------------------
