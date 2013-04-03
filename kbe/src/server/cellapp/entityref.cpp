@@ -39,7 +39,9 @@ EntityRef::~EntityRef()
 void EntityRef::pEntity(Entity* e)
 {
 	pEntity_ = e; 
-	id_ = e->getID(); 
+
+	if(e)
+		id_ = e->getID(); 
 }
 
 //-------------------------------------------------------------------------------------

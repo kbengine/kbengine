@@ -27,12 +27,14 @@ namespace KBEngine{
 
 
 //-------------------------------------------------------------------------------------
-ProximityController::ProximityController(Entity* pEntity, float xz, float y, uint32 id):
-Controller(pEntity, id),
+ProximityController::ProximityController(Entity* pEntity, float xz, float y, uint32 userarg, uint32 id):
+Controller(pEntity, userarg, id),
 pTrapTrigger_(NULL)
 {
 	pTrapTrigger_ = new TrapTrigger(static_cast<EntityRangeNode*>(pEntity->pEntityRangeNode()), 
 								this, xz, y);
+
+	pTrapTrigger_->install();
 }
 
 //-------------------------------------------------------------------------------------
@@ -44,13 +46,13 @@ ProximityController::~ProximityController()
 //-------------------------------------------------------------------------------------
 void ProximityController::onEnter(Entity* pEntity, float xz, float y)
 {
-	pEntity_->onEnterTrap(pEntity, xz, y, id());
+	pEntity_->onEnterTrap(pEntity, xz, y, id(), userarg());
 }
 
 //-------------------------------------------------------------------------------------
 void ProximityController::onLeave(Entity* pEntity, float xz, float y)
 {
-	pEntity_->onLeaveTrap(pEntity, xz, y, id());
+	pEntity_->onLeaveTrap(pEntity, xz, y, id(), userarg());
 }
 
 //-------------------------------------------------------------------------------------

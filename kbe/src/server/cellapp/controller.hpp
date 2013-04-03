@@ -36,7 +36,7 @@ class Entity;
 class Controller
 {
 public:
-	Controller(Entity* pEntity, uint32 id = 0);
+	Controller(Entity* pEntity, uint32 userarg, uint32 id = 0);
 	virtual ~Controller();
 
 	virtual void update() {}
@@ -44,10 +44,14 @@ public:
 	uint32 id(){ return id_; }
 	void id(uint32 v){ id_ = v; }
 	
+	uint32 userarg()const{ return userarg_; }
+	
 	Entity* pEntity()const{ return pEntity_; }
 protected:
 	uint32 id_;
 	Entity* pEntity_;
+	
+	uint32 userarg_;
 
 };
 

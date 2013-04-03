@@ -312,12 +312,12 @@ public:
 	/** 
 		自身被一个观察者观察到了 
 	*/
-	void onWitnessed(Entity* entity, float range);
+	void addWitnessed(Entity* entity);
 
 	/** 
 		移除一个观察自身的观察者 
 	*/
-	void onRemoveWitness(Entity* entity);
+	void delWitnessed(Entity* entity);
 
 	/** 网络接口
 		entity绑定了一个观察者(客户端)
@@ -340,8 +340,8 @@ public:
 	/** 
 		添加一个陷阱 
 	*/
-	uint32 addProximity(float range_xz, float range_y);
-	DECLARE_PY_MOTHOD_ARG2(pyAddProximity, float, float);
+	uint32 addProximity(float range_xz, float range_y, uint32 userarg);
+	DECLARE_PY_MOTHOD_ARG3(pyAddProximity, float, float, uint32);
 
 	/** 
 		删除一个陷阱 
@@ -353,19 +353,20 @@ public:
 		一个entity进入了这个entity的某个陷阱 
 	*/
 	void onEnterTrap(Entity* entity, float range_xz, float range_y, 
-							int controllerID);
+							uint32 controllerID, uint32 userarg);
 
 	/** 
 		一个entity离开了这个entity的某个陷阱 
 	*/
 	void onLeaveTrap(Entity* entity, float range_xz, float range_y, 
-							int controllerID);
+							uint32 controllerID, uint32 userarg);
 
 	/** 
 		当entity跳到一个新的space上去后，离开陷阱陷阱事件将触发这个接口 
 	*/
 	void onLeaveTrapID(ENTITY_ID entityID, 
-							float range_xz, float range_y, int controllerID);
+							float range_xz, float range_y, 
+							uint32 controllerID, uint32 userarg);
 
 	/** 
 		entity的一次移动完成 
@@ -402,7 +403,7 @@ protected:
 
 	SPACE_ENTITIES::size_type				spaceEntityIdx_;					// 自身在space的entities中的位置
 
-	bool									isWitnessed_;						// 是否被任何观察者监视到
+	uint16									witnessedNum_;						// 是否被任何观察者监视到
 	Witness*								pWitness_;							// 观察者对象
 
 	AllClients*								allClients_;

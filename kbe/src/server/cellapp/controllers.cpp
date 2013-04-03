@@ -38,8 +38,12 @@ Controllers::~Controllers()
 //-------------------------------------------------------------------------------------
 bool Controllers::add(Controller* pController)
 {
-	objects_[++lastid_] = pController;
-	pController->id(lastid_);
+	uint32 id = pController->id();
+	if(id == 0)
+		id = freeID();
+
+	objects_[id] = pController;
+	pController->id(id);
 	return true;
 }
 

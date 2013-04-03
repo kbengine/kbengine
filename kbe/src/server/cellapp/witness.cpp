@@ -73,14 +73,27 @@ void Witness::attach(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Witness::detach(Entity* pEntity)
 {
+	KBE_ASSERT(pEntity == pEntity_);
+
 	DEBUG_MSG(boost::format("Witness::detach: %1%(%2%).\n") % 
 		pEntity->getScriptName() % pEntity->getID());
+
+	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+	for(; iter != aoiEntities_.end(); iter++)
+	{
+		if((*iter)->pEntity())
+		{
+			(*iter)->pEntity()->delWitnessed(pEntity_);
+		}
+
+		delete (*iter);
+	}
 
 	pEntity_ = NULL;
 	aoiRadius_ = 0.0f;
 	aoiHysteresisArea_ = 5.0f;
 	SAFE_RELEASE(pAOITrigger_);
-	
+
 	aoiEntities_.clear();
 	Cellapp::getSingleton().removeUpdatable(this);
 }
@@ -134,7 +147,9 @@ void Witness::setAoiRadius(float radius, float hyst)
 //-------------------------------------------------------------------------------------
 void Witness::onEnterAOI(Entity* pEntity)
 {
-	AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), findif_vector_entityref_exist_handler(pEntity));
+	AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
+		findif_vector_entityref_exist_handler(pEntity));
+
 	if(iter != aoiEntities_.end())
 	{
 		if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
@@ -155,22 +170,29 @@ void Witness::onEnterAOI(Entity* pEntity)
 	EntityRef* pEntityRef = new EntityRef(pEntity);
 	pEntityRef->flags(pEntityRef->flags() | ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
 	aoiEntities_.push_back(pEntityRef);
+
+	pEntity->addWitnessed(pEntity_);
 }
 
 //-------------------------------------------------------------------------------------
 void Witness::onLeaveAOI(Entity* pEntity)
 {
-	AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), findif_vector_entityref_exist_handler(pEntity));
+	AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
+		findif_vector_entityref_exist_handler(pEntity));
+
 	if(iter == aoiEntities_.end())
 		return;
 
-	DEBUG_MSG(boost::format("Witness::onLeaveAOI: %1% entity=%2%\n") % pEntity_->getID() % pEntity->getID());
+	DEBUG_MSG(boost::format("Witness::onLeaveAOI: %1% entity=%2%\n") % 
+		pEntity_->getID() % pEntity->getID());
 
 	// 这里不delete， 我们需要待update将此行为更新至客户端时再进行
 	//delete (*iter);
 	//aoiEntities_.erase(iter);
 
 	(*iter)->flags((*iter)->flags() | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING);
+	(*iter)->pEntity(NULL);
+	pEntity->delWitnessed(pEntity_);
 }
 
 //-------------------------------------------------------------------------------------

@@ -34,7 +34,7 @@ class TrapTrigger;
 class ProximityController : public Controller
 {
 public:
-	ProximityController(Entity* pEntity, float xz, float y, uint32 id = 0);
+	ProximityController(Entity* pEntity, float xz, float y, uint32 userarg, uint32 id = 0);
 	~ProximityController();
 	
 	void onEnter(Entity* pEntity, float xz, float y);

@@ -84,7 +84,7 @@ baseMailbox_(NULL),
 isReal_(true),
 topSpeed_(-0.1f),
 topSpeedY_(-0.1f),
-isWitnessed_(false),
+witnessedNum_(0),
 pWitness_(NULL),
 allClients_(new AllClients(scriptModule, id, true)),
 otherClients_(new AllClients(scriptModule, id, false)),
@@ -523,8 +523,11 @@ PyObject* Entity::pyIsReal()
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onWitnessed(Entity* entity, float range)
-{/*
+void Entity::addWitnessed(Entity* entity)
+{
+	witnessedNum_++;
+
+	/*
 	int8 detailLevel = scriptModule_->getDetailLevel().getLevelByRange(range);
 	WitnessInfo* info = new WitnessInfo(detailLevel, entity, range);
 	ENTITY_ID id = entity->getID();
@@ -541,17 +544,26 @@ void Entity::onWitnessed(Entity* entity, float range)
 	witnessEntityDetailLevelMap_[id] = info;
 	witnessEntities_[detailLevel][id] = entity;
 	onEntityInitDetailLevel(entity, detailLevel);
-	
-	if(!isWitnessed_)
+	*/
+
+	if(witnessedNum_ == 1)
 	{
-		isWitnessed_ = true; 
-		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWitnessed"), const_cast<char*>("O"), PyBool_FromLong(1));
-	}*/
+		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWitnessed"), 
+			const_cast<char*>("O"), PyBool_FromLong(1));
+	}
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onRemoveWitness(Entity* entity)
+void Entity::delWitnessed(Entity* entity)
 {
+	KBE_ASSERT(witnessedNum_ > 0);
+
+	--witnessedNum_; 
+	if(witnessedNum_ == 0)
+	{
+		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWitnessed"), 
+			const_cast<char*>("O"), PyBool_FromLong(0));
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -567,7 +579,7 @@ PyObject* Entity::pyHasWitness()
 }
 
 //-------------------------------------------------------------------------------------
-uint32 Entity::addProximity(float range_xz, float range_y)
+uint32 Entity::addProximity(float range_xz, float range_y, uint32 userarg)
 {
 	if(range_xz <= 0.0f || (RangeList::hasY && range_y <= 0.0f))
 	{
@@ -578,16 +590,16 @@ uint32 Entity::addProximity(float range_xz, float range_y)
 	}
 
 	// 在space中投放一个陷阱
-	ProximityController* p = new ProximityController(this, range_xz, range_y);
+	ProximityController* p = new ProximityController(this, range_xz, range_y, userarg, pControllers_->freeID());
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
 	return p->id();
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyAddProximity(float range_xz, float range_y)
+PyObject* Entity::pyAddProximity(float range_xz, float range_y, uint32 userarg)
 {
-	return PyLong_FromLong(addProximity(range_xz, range_y));
+	return PyLong_FromLong(addProximity(range_xz, range_y, userarg));
 }
 
 //-------------------------------------------------------------------------------------
@@ -608,25 +620,25 @@ PyObject* Entity::pyCancelController(uint32 id)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onEnterTrap(Entity* entity, float range_xz, float range_y, int controllerID)
+void Entity::onEnterTrap(Entity* entity, float range_xz, float range_y, uint32 controllerID, uint32 userarg)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	SCRIPT_OBJECT_CALL_ARGS4(this, const_cast<char*>("onEnterTrap"), 
-		const_cast<char*>("Offi"), entity, range_xz, range_y, controllerID);
+		const_cast<char*>("OffI"), entity, range_xz, range_y, controllerID);
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onLeaveTrap(Entity* entity, float range_xz, float range_y, int controllerID)
+void Entity::onLeaveTrap(Entity* entity, float range_xz, float range_y, uint32 controllerID, uint32 userarg)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	SCRIPT_OBJECT_CALL_ARGS4(this, const_cast<char*>("onLeaveTrap"), 
-		const_cast<char*>("Offi"), entity, range_xz, range_y, controllerID);
+		const_cast<char*>("OffI"), entity, range_xz, range_y, controllerID);
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onLeaveTrapID(ENTITY_ID entityID, float range_xz, float range_y, int controllerID)
+void Entity::onLeaveTrapID(ENTITY_ID entityID, float range_xz, float range_y, uint32 controllerID, uint32 userarg)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
@@ -1162,7 +1174,6 @@ void Entity::onEnteringCell()
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnteringCell"));
 }
-
 
 //-------------------------------------------------------------------------------------
 void Entity::onLeavingCell()

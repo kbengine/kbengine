@@ -36,6 +36,8 @@ public:
 	bool remove(uint32 id);
 
 	void update();
+	
+	uint32 freeID(){ return ++lastid_; }
 private:
 	std::map<uint32, Controller*> objects_;
 

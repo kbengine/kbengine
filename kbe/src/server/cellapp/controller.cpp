@@ -23,9 +23,10 @@ namespace KBEngine{
 
 
 //-------------------------------------------------------------------------------------
-Controller::Controller(Entity* pEntity, uint32 id):
+Controller::Controller(Entity* pEntity, uint32 userarg, uint32 id):
 id_(id),
-pEntity_(pEntity)
+pEntity_(pEntity),
+userarg_(userarg)
 {
 }
 
