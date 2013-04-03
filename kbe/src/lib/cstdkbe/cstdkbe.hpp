@@ -186,7 +186,8 @@ enum COMPONENT_CLIENT_TYPE
 	CLIENT_TYPE_MOBILE				= 1,	// 手机类
 	CLIENT_TYPE_PC					= 2,	// pc， 一般都是exe客户端
 	CLIENT_TYPE_BROWSER				= 3,	// web应用， html5，flash
-	CLIENT_TYPE_BOTS				= 4		// bots
+	CLIENT_TYPE_BOTS				= 4,	// bots
+	CLIENT_TYPE_END					= 5		// end
 };
 
 /** 定义前端应用的类别名称 */

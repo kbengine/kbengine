@@ -318,6 +318,9 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	ptinfos->password = password;
 	ptinfos->addr = pChannel->addr();
 	pendingLoginMgr_.add(ptinfos);
+	
+	if(ctype < UNKNOWN_CLIENT_COMPONENT_TYPE || ctype >= CLIENT_TYPE_END)
+		ctype = UNKNOWN_CLIENT_COMPONENT_TYPE;
 
 	INFO_MSG(boost::format("Loginapp::login: new client[%1%], loginName=%2%, datas=%3%.\n") %
 		COMPONENT_CLIENT_NAME[ctype] % loginName.c_str() % datas.c_str());
