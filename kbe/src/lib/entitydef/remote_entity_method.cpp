@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "method.hpp"
 #include "remote_entity_method.hpp"
 #include "network/bundle.hpp"
+#include "helper/debug_helper.hpp"
 
 namespace KBEngine{
 
@@ -64,7 +65,7 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 	RemoteEntityMethod* rmethod = static_cast<RemoteEntityMethod*>(self);
 	MethodDescription* methodDescription = rmethod->getDescription();
 	EntityMailboxAbstract* mailbox = rmethod->getMailbox();
-	// DEBUG_MSG("RemoteEntityMethod::tp_call:%s.\n", methodDescription->getName());
+	// DEBUG_MSG(boost::format("RemoteEntityMethod::tp_call:%1%.\n") % methodDescription->getName());
 
 	if(methodDescription->checkArgs(args))
 	{
@@ -80,7 +81,12 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 		mailbox->postMail((*pBundle));
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-	
+	else
+	{
+        ERROR_MSG(boost::format("RemoteEntityMethod::tp_call:%1% checkArgs is error!\n") %
+                methodDescription->getName());
+	}
+
 	S_Return;
 }		
 	

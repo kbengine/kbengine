@@ -137,7 +137,8 @@ bool MethodDescription::checkArgs(PyObject* args)
 			Py_DECREF(pExample);
 			return false;
 		}
-	}	
+	}
+
 	return true;
 }
 
