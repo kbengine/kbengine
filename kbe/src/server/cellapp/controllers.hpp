@@ -39,7 +39,7 @@ public:
 	
 	uint32 freeID(){ return ++lastid_; }
 private:
-	std::map<uint32, Controller*> objects_;
+	std::map<uint32, KBEShared_ptr< Controller > > objects_;
 
 	uint32 lastid_;
 };

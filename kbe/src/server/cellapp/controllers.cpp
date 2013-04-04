@@ -42,7 +42,7 @@ bool Controllers::add(Controller* pController)
 	if(id == 0)
 		id = freeID();
 
-	objects_[id] = pController;
+	objects_[id].reset(pController);
 	pController->id(id);
 	return true;
 }
@@ -65,7 +65,7 @@ void Controllers::update()
 {
 	AUTO_SCOPED_PROFILE("updateControllers");
 
-	std::map<uint32, Controller*>::iterator iter = objects_.begin();
+	std::map<uint32, KBEShared_ptr< Controller > >::iterator iter = objects_.begin();
 	for(; iter != objects_.end(); iter++)
 	{
 		iter->second->update();
