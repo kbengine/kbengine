@@ -40,6 +40,7 @@ pTrapTrigger_(NULL)
 //-------------------------------------------------------------------------------------
 ProximityController::~ProximityController()
 {
+	pTrapTrigger_->uninstall();
 	delete pTrapTrigger_;
 }
 
