@@ -59,7 +59,8 @@ class Monster(GameObject, Combat, Spell):
 		可以在适当的时候激活或者停止这个entity的任意行为。
 		@param isWitnessed	: 为false时， entity脱离了任何观察者的观察
 		"""
-		DEBUG_MSG("monster %i isWitnessed=%i." % (self.id, isWitnessed))
+		DEBUG_MSG("%s::onWitnessed: %i isWitnessed=%i." % (self.getScriptName(), self.id, isWitnessed))
+		
 		if isWitnessed:
 			self.enable()
 		else:

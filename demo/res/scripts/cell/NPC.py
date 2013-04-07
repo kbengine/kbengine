@@ -9,6 +9,6 @@ from interfaces.GameObject import GameObject
 class NPC(GameObject):
 	def __init__(self):
 		GameObject.__init__(self)
-
+		
 NPC._timermap = {}
 NPC._timermap.update(GameObject._timermap)

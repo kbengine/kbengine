@@ -42,5 +42,30 @@ class GameObject(KBEngine.Entity):
 		"""
 		return KBEngine.globalData["SpaceMgr"]
 
+	def onWitnessed(self, isWitnessed):
+		"""
+		KBEngine method.
+		此实体是否被观察者(player)观察到, 此接口主要是提供给服务器做一些性能方面的优化工作，
+		在通常情况下，一些entity不被任何客户端所观察到的时候， 他们不需要做任何工作， 利用此接口
+		可以在适当的时候激活或者停止这个entity的任意行为。
+		@param isWitnessed	: 为false时， entity脱离了任何观察者的观察
+		"""
+		DEBUG_MSG("%s::onWitnessed: %i isWitnessed=%i." % (self.getScriptName(), self.id, isWitnessed))
+		
+	def onEnterTrap(self, entity, range_xz, range_y, controllerID):
+		"""
+		KBEngine method.
+		引擎回调进入陷阱触发
+		"""
+		DEBUG_MSG("%s::onEnterTrap: %i entity=%i, range_xz=%s, range_y=%s, controllerID=%i" % \
+						(self.getScriptName(), self.id, entity.id, range_xz, range_y, controllerID))
 
+	def onLeaveTrap(self, entity, range_xz, range_y, controllerID):
+		"""
+		KBEngine method.
+		引擎回调离开陷阱触发
+		"""
+		DEBUG_MSG("%s::onLeaveTrap: %i entity=%i, range_xz=%s, range_y=%s, controllerID=%i" % \
+						(self.getScriptName(), self.id, entity.id, range_xz, range_y, controllerID))
+						
 GameObject._timermap = {}
