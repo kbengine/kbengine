@@ -39,10 +39,10 @@ z_(0.f),
 old_x_(0.f),
 old_y_(0.f),
 old_z_(0.f),
-flags_(RANGENODE_FLAG_UNKNOWN),
 #ifdef _DEBUG
-descr_()
+descr_(),
 #endif
+flags_(RANGENODE_FLAG_UNKNOWN)
 {
 	old_x_ = x();
 	old_y_ = y();

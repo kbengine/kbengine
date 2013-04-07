@@ -131,11 +131,11 @@ protected:
 	float x_, y_, z_;
 	float old_x_, old_y_, old_z_;
 
-	uint32 flags_;
-
 #ifdef _DEBUG
 	std::string descr_;
 #endif
+
+	uint32 flags_;
 };
 
 }
