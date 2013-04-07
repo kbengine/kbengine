@@ -39,7 +39,10 @@ z_(0.f),
 old_x_(0.f),
 old_y_(0.f),
 old_z_(0.f),
-flags_(RANGENODE_FLAG_UNKNOWN)
+flags_(RANGENODE_FLAG_UNKNOWN),
+#ifdef _DEBUG
+descr_()
+#endif
 {
 	old_x_ = x();
 	old_y_ = y();
@@ -55,6 +58,24 @@ RangeNode::~RangeNode()
 void RangeNode::update()
 {
 	pRangeList_->update(this);
+}
+
+//-------------------------------------------------------------------------------------
+void RangeNode::c_str()
+{
+	DEBUG_MSG(boost::format("RangeNode::c_str(): %1% curr(%2%, %3%, %4%), old(%5%, %6%, %7%) pPreX=%8% pNextX=%9% descr=%10%\n") % 
+		this % x() % y() % z() %
+		old_x_ % old_y_ % old_z_ %
+		pPrevX_ % pNextX_ % descr());
+}
+
+//-------------------------------------------------------------------------------------
+void RangeNode::debug()
+{
+	c_str();
+
+	if(pNextY_)
+		this->pNextY_->debug();
 }
 
 //-------------------------------------------------------------------------------------

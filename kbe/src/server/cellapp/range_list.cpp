@@ -235,39 +235,48 @@ void RangeList::update(RangeNode* pNode)
 				RangeNode* pPreNode = pCurrNode->pPrevX();
 				pCurrNode->pPrevX(pNode);
 				if(pPreNode)
+				{
 					pPreNode->pNextX(pNode);
+					if(pNode == first_x_rangeNode_ && pNode->pNextX())
+						first_x_rangeNode_ = pNode->pNextX();
+				}
 				else
+				{
 					first_x_rangeNode_ = pNode;
+				}
 
 				if(pNode->pPrevX())
 					pNode->pPrevX()->pNextX(pNode->pNextX());
 
 				if(pNode->pNextX())
 					pNode->pNextX()->pPrevX(pNode->pPrevX());
-
+				
 				pNode->pPrevX(pPreNode);
 				pNode->pNextX(pCurrNode);
 			}
 			else
 			{
 				RangeNode* pNextNode = pCurrNode->pNextX();
-				pCurrNode->pNextX(pNode);
-				if(pNextNode)
-					pNextNode->pPrevX(pNode);
-
-				if(pNode->pPrevX())
-					pNode->pPrevX()->pNextX(pNode->pNextX());
-
-				if(pNode->pNextX())
+				if(pNextNode != pNode)
 				{
-					pNode->pNextX()->pPrevX(pNode->pPrevX());
-				
-					if(pNode == first_x_rangeNode_)
-						first_x_rangeNode_ = pNode->pNextX();
-				}
+					pCurrNode->pNextX(pNode);
+					if(pNextNode)
+						pNextNode->pPrevX(pNode);
 
-				pNode->pPrevX(pCurrNode);
-				pNode->pNextX(pNextNode);
+					if(pNode->pPrevX())
+						pNode->pPrevX()->pNextX(pNode->pNextX());
+
+					if(pNode->pNextX())
+					{
+						pNode->pNextX()->pPrevX(pNode->pPrevX());
+					
+						if(pNode == first_x_rangeNode_)
+							first_x_rangeNode_ = pNode->pNextX();
+					}
+
+					pNode->pPrevX(pCurrNode);
+					pNode->pNextX(pNextNode);
+				}
 			}
 		}
 	}
@@ -334,9 +343,15 @@ void RangeList::update(RangeNode* pNode)
 				RangeNode* pPreNode = pCurrNode->pPrevY();
 				pCurrNode->pPrevY(pNode);
 				if(pPreNode)
+				{
 					pPreNode->pNextY(pNode);
+					if(pNode == first_y_rangeNode_ && pNode->pNextY())
+						first_y_rangeNode_ = pNode->pNextY();
+				}
 				else
+				{
 					first_y_rangeNode_ = pNode;
+				}
 
 				if(pNode->pPrevY())
 					pNode->pPrevY()->pNextY(pNode->pNextY());
@@ -350,23 +365,26 @@ void RangeList::update(RangeNode* pNode)
 			else
 			{
 				RangeNode* pNextNode = pCurrNode->pNextY();
-				pCurrNode->pNextY(pNode);
-				if(pNextNode)
-					pNextNode->pPrevY(pNode);
-
-				if(pNode->pPrevY())
-					pNode->pPrevY()->pNextY(pNode->pNextY());
-
-				if(pNode->pNextY())
+				if(pNextNode != pNode)
 				{
-					pNode->pNextY()->pPrevY(pNode->pPrevY());
-				
-					if(pNode == first_y_rangeNode_)
-						first_y_rangeNode_ = pNode->pNextY();
-				}
+					pCurrNode->pNextY(pNode);
+					if(pNextNode)
+						pNextNode->pPrevY(pNode);
 
-				pNode->pPrevY(pCurrNode);
-				pNode->pNextY(pNextNode);
+					if(pNode->pPrevY())
+						pNode->pPrevY()->pNextY(pNode->pNextY());
+
+					if(pNode->pNextY())
+					{
+						pNode->pNextY()->pPrevY(pNode->pPrevY());
+					
+						if(pNode == first_y_rangeNode_)
+							first_y_rangeNode_ = pNode->pNextY();
+					}
+
+					pNode->pPrevY(pCurrNode);
+					pNode->pNextY(pNextNode);
+				}
 			}
 		}
 	}
@@ -433,9 +451,15 @@ void RangeList::update(RangeNode* pNode)
 				RangeNode* pPreNode = pCurrNode->pPrevZ();
 				pCurrNode->pPrevZ(pNode);
 				if(pPreNode)
+				{
 					pPreNode->pNextZ(pNode);
+					if(pNode == first_z_rangeNode_ && pNode->pNextZ())
+						first_z_rangeNode_ = pNode->pNextZ();
+				}
 				else
+				{
 					first_z_rangeNode_ = pNode;
+				}
 
 				if(pNode->pPrevZ())
 					pNode->pPrevZ()->pNextZ(pNode->pNextZ());
@@ -449,28 +473,33 @@ void RangeList::update(RangeNode* pNode)
 			else
 			{
 				RangeNode* pNextNode = pCurrNode->pNextZ();
-				pCurrNode->pNextZ(pNode);
-				if(pNextNode)
-					pNextNode->pPrevZ(pNode);
-
-				if(pNode->pPrevZ())
-					pNode->pPrevZ()->pNextZ(pNode->pNextZ());
-
-				if(pNode->pNextZ())
+				if(pNextNode != pNode)
 				{
-					pNode->pNextZ()->pPrevZ(pNode->pPrevZ());
-				
-					if(pNode == first_z_rangeNode_)
-						first_z_rangeNode_ = pNode->pNextZ();
-				}
+					pCurrNode->pNextZ(pNode);
+					if(pNextNode)
+						pNextNode->pPrevZ(pNode);
 
-				pNode->pPrevZ(pCurrNode);
-				pNode->pNextZ(pNextNode);
+					if(pNode->pPrevZ())
+						pNode->pPrevZ()->pNextZ(pNode->pNextZ());
+
+					if(pNode->pNextZ())
+					{
+						pNode->pNextZ()->pPrevZ(pNode->pPrevZ());
+					
+						if(pNode == first_z_rangeNode_)
+							first_z_rangeNode_ = pNode->pNextZ();
+					}
+
+					pNode->pPrevZ(pCurrNode);
+					pNode->pNextZ(pNextNode);
+				}
 			}
 		}
 	}
 
 	pNode->resetOld();
+
+	//first_x_rangeNode_->debug();
 }
 
 //-------------------------------------------------------------------------------------

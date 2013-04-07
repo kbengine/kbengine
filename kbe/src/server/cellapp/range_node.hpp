@@ -67,6 +67,9 @@ public:
 		old_z_ = z();
 	}
 
+	void c_str();
+	void debug();
+
 	INLINE void pRangeList(RangeList* p);
 	INLINE RangeList* pRangeList()const;
 
@@ -105,6 +108,15 @@ public:
 		相关位置等信息
 	*/
 	void update();
+
+#ifdef _DEBUG
+	void descr(const std::string& str){ descr_ = str; }
+	virtual const char* descr(){ return descr_.c_str(); }
+#else
+	void descr(const std::string& str){}
+	virtual const char* descr(){ return ""; }
+#endif
+
 protected:
 	// 链表的前端和后端
 	RangeNode* pPrevX_;
@@ -120,6 +132,10 @@ protected:
 	float old_x_, old_y_, old_z_;
 
 	uint32 flags_;
+
+#ifdef _DEBUG
+	std::string descr_;
+#endif
 };
 
 }

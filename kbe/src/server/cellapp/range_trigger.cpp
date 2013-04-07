@@ -33,6 +33,10 @@ old_range_y_(range_y_),
 pRangeTrigger_(pRangeTrigger)
 {
 	flags(RANGENODE_FLAG_HIDE);
+
+#ifdef _DEBUG
+	descr((boost::format("RangeTriggerNode(origin=%1%->%2%)") % pRangeTrigger_->origin() % pRangeTrigger_->origin()->descr()).str());
+#endif
 }
 
 //-------------------------------------------------------------------------------------
@@ -146,26 +150,46 @@ void RangeTrigger::onNodePassX(RangeTriggerNode* pRangeTriggerNode, RangeNode* p
 	if(pNode == origin())
 		return;
 
-	bool wasIn = pRangeTriggerNode->wasInXRange(pNode) && 
-		pRangeTriggerNode->wasInYRange(pNode) && 
-		pRangeTriggerNode->wasInZRange(pNode);
+	bool wasInZ = pRangeTriggerNode->wasInZRange(pNode);
+	bool isInZ = pRangeTriggerNode->isInZRange(pNode);
 
-	bool isIn = pRangeTriggerNode->isInXRange(pNode) && 
-		pRangeTriggerNode->isInYRange(pNode) && 
-		pRangeTriggerNode->isInZRange(pNode);
+	if(wasInZ != isInZ)
+		return;
 
-	if(!wasIn)
+	bool wasIn = false;
+	bool isIn = false;
+
+	if(RangeList::hasY)
 	{
-		if(isIn)
-			this->onEnter(pNode);
+		bool wasInY = pRangeTriggerNode->wasInYRange(pNode);
+		bool isInY = pRangeTriggerNode->isInYRange(pNode);
+
+		if(wasInY != isInY)
+			return;
+
+		wasIn = pRangeTriggerNode->wasInXRange(pNode) && wasInY && wasInZ;
+		isIn = pRangeTriggerNode->isInXRange(pNode) && isInY && isInZ;
 	}
 	else
 	{
-		if(!isIn)
-			this->onLeave(pNode);
+		wasIn = pRangeTriggerNode->wasInXRange(pNode) && wasInZ;
+		isIn = pRangeTriggerNode->isInXRange(pNode) && isInZ;
+	}
+
+	if(wasIn == isIn)
+		return;
+
+	if(isIn)
+	{
+		this->onEnter(pNode);
+	}
+	else
+	{
+		this->onLeave(pNode);
 	}
 }
 
+//-------------------------------------------------------------------------------------
 bool RangeTriggerNode::wasInYRange(RangeNode * pNode)
 {
 	if(!RangeList::hasY)
@@ -184,23 +208,31 @@ void RangeTrigger::onNodePassY(RangeTriggerNode* pRangeTriggerNode, RangeNode* p
 	if(pNode == origin() || !RangeList::hasY)
 		return;
 
-	bool wasIn = pRangeTriggerNode->wasInXRange(pNode) && 
-		pRangeTriggerNode->wasInYRange(pNode) && 
-		pRangeTriggerNode->wasInZRange(pNode);
+	bool wasInZ = pRangeTriggerNode->wasInZRange(pNode);
+	bool isInZ = pRangeTriggerNode->isInZRange(pNode);
 
-	bool isIn = pRangeTriggerNode->isInXRange(pNode) && 
-		pRangeTriggerNode->isInYRange(pNode) && 
-		pRangeTriggerNode->isInZRange(pNode);
+	if(wasInZ != isInZ)
+		return;
 
-	if(!wasIn)
+	bool wasInY = pRangeTriggerNode->wasInYRange(pNode);
+	bool isInY = pRangeTriggerNode->isInYRange(pNode);
+
+	if(wasInY == isInY)
+		return;
+
+	bool wasIn = pRangeTriggerNode->wasInXRange(pNode) && wasInY && wasInZ;
+	bool isIn = pRangeTriggerNode->isInXRange(pNode) && isInY && isInZ;
+
+	if(wasIn == isIn)
+		return;
+
+	if(isIn)
 	{
-		if(isIn)
-			this->onEnter(pNode);
+		this->onEnter(pNode);
 	}
 	else
 	{
-		if(!isIn)
-			this->onLeave(pNode);
+		this->onLeave(pNode);
 	}
 }
 
@@ -210,23 +242,56 @@ void RangeTrigger::onNodePassZ(RangeTriggerNode* pRangeTriggerNode, RangeNode* p
 	if(pNode == origin())
 		return;
 
-	bool wasIn = pRangeTriggerNode->wasInXRange(pNode) && 
-		pRangeTriggerNode->wasInYRange(pNode) && 
-		pRangeTriggerNode->wasInZRange(pNode);
-
-	bool isIn = pRangeTriggerNode->isInXRange(pNode) && 
-		pRangeTriggerNode->isInYRange(pNode) && 
-		pRangeTriggerNode->isInZRange(pNode);
-
-	if(!wasIn)
+	if(RangeList::hasY)
 	{
+		bool wasInZ = pRangeTriggerNode->wasInZRange(pNode);
+		bool isInZ = pRangeTriggerNode->isInZRange(pNode);
+
+		if(wasInZ == isInZ)
+			return;
+
+		bool wasIn = pRangeTriggerNode->wasInXRange(pNode) && 
+			pRangeTriggerNode->wasInYRange(pNode) && 
+			wasInZ;
+
+		bool isIn = pRangeTriggerNode->isInXRange(pNode) && 
+			pRangeTriggerNode->isInYRange(pNode) && 
+			isInZ;
+
+		if(wasIn == isIn)
+			return;
+
 		if(isIn)
+		{
 			this->onEnter(pNode);
+		}
+		else
+		{
+			this->onLeave(pNode);
+		}
 	}
 	else
 	{
-		if(!isIn)
+		bool wasInZ = pRangeTriggerNode->wasInZRange(pNode);
+		bool isInZ = pRangeTriggerNode->isInZRange(pNode);
+
+		if(wasInZ == isInZ)
+			return;
+
+		bool wasIn = pRangeTriggerNode->wasInXRange(pNode) && wasInZ;
+		bool isIn = pRangeTriggerNode->isInXRange(pNode) && isInZ;
+
+		if(wasIn == isIn)
+			return;
+
+		if(isIn)
+		{
+			this->onEnter(pNode);
+		}
+		else
+		{
 			this->onLeave(pNode);
+		}
 	}
 }
 

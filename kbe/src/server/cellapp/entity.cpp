@@ -94,7 +94,9 @@ pControllers_(new Controllers())
 	ENTITY_INIT_PROPERTYS(Entity);
 
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
+	{
 		pEntityRangeNode_ = new EntityRangeNode(this);
+	}
 }
 
 //-------------------------------------------------------------------------------------

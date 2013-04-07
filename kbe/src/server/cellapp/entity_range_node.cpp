@@ -30,6 +30,10 @@ RangeNode(NULL),
 pEntity_(pEntity)
 {
 	flags(RANGENODE_FLAG_ENTITY);
+
+#ifdef _DEBUG
+	descr_ = (boost::format("EntityRangeNode(%1%_%2%)") % pEntity->getScriptName() % pEntity->getID()).str();
+#endif
 }
 
 //-------------------------------------------------------------------------------------
