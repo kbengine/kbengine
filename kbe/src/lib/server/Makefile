@@ -16,7 +16,8 @@ SRCS =				\
 	serverapp		\
 	serverconfig		\
 	serverinfos		\
-	signal_handler		
+	signal_handler		\
+	telnet_handler		
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))
