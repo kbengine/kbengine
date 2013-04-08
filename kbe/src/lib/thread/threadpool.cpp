@@ -20,6 +20,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "threadpool.hpp"
+
+#ifndef CODE_INLINE
+#include "threadpool.ipp"
+#endif
+
 #include "helper/watcher.hpp"
 
 namespace KBEngine{ 

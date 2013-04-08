@@ -21,6 +21,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "range_trigger.hpp"
 #include "range_list.hpp"
 
+#ifndef CODE_INLINE
+#include "range_trigger.ipp"
+#endif
+
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------

@@ -22,6 +22,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 #include "thread/threadguard.hpp"
 
+#ifndef CODE_INLINE
+#include "timer.ipp"
+#endif
+
 namespace KBEngine
 {
 //-------------------------------------------------------------------------------------

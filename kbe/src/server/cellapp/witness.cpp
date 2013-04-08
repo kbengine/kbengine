@@ -29,6 +29,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../../server/baseapp/baseapp_interface.hpp"
 
+#ifndef CODE_INLINE
+#include "witness.ipp"
+#endif
+
 namespace KBEngine{	
 
 

@@ -22,6 +22,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef.hpp"
 #include "network/bundle.hpp"
 
+#ifndef CODE_INLINE
+#include "method.ipp"
+#endif
+
 namespace KBEngine{
 
 uint32	MethodDescription::methodDescriptionCount_ = 0;

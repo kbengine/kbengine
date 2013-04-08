@@ -23,6 +23,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entity_range_node.hpp"
 #include "proximity_controller.hpp"	
 
+#ifndef CODE_INLINE
+#include "trap_trigger.ipp"
+#endif
+
 namespace KBEngine{	
 
 

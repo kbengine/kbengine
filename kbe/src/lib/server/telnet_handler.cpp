@@ -23,10 +23,16 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle.hpp"
 #include "network/endpoint.hpp"
 
+#ifndef CODE_INLINE
+#include "telnet_handler.ipp"
+#endif
+
 namespace KBEngine { 
 
 //-------------------------------------------------------------------------------------
-TelnetHandler::TelnetHandler()
+TelnetHandler::TelnetHandler():
+buffer_(),
+pChannel_(NULL)
 {
 }
 

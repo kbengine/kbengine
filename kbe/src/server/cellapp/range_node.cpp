@@ -21,8 +21,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "range_node.hpp"
 #include "range_list.hpp"
 
-namespace KBEngine{	
+#ifndef CODE_INLINE
+#include "range_node.ipp"
+#endif
 
+namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
 RangeNode::RangeNode(RangeList* pRangeList):

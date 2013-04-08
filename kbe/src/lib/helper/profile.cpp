@@ -21,6 +21,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "profile.hpp"
 #include "helper/watcher.hpp"
 
+#ifndef CODE_INLINE
+#include "profile.ipp"
+#endif
+
+
 namespace KBEngine
 {
 

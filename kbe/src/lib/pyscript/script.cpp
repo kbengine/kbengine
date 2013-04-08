@@ -29,6 +29,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr/resmgr.hpp"
 #include "thread/concurrency.hpp"
 
+#ifndef CODE_INLINE
+#include "script.ipp"
+#endif
+
 namespace KBEngine{ 
 namespace script{
 

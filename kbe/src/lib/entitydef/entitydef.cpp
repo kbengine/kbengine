@@ -28,6 +28,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/smartpointer.hpp"
 #include "entitydef/entity_mailbox.hpp"
 
+#ifndef CODE_INLINE
+#include "entitydef.ipp"
+#endif
+
 namespace KBEngine{
 std::vector<ScriptDefModulePtr>	EntityDef::__scriptModules;
 std::map<std::string, ENTITY_SCRIPT_UID> EntityDef::__scriptTypeMappingUType;

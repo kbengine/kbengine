@@ -30,8 +30,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../../server/baseapp/baseapp_interface.hpp"
 #include "../../../server/cellapp/cellapp_interface.hpp"
 
-#ifdef CODE_INLINE
-//#include "entity.ipp"
+#ifndef CODE_INLINE
+#include "entity.ipp"
 #endif
 
 namespace KBEngine{

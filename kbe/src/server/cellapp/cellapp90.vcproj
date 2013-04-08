@@ -421,10 +421,6 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\aoi.ipp"
-			>
-		</File>
-		<File
 			RelativePath=".\aoi_trigger.ipp"
 			>
 		</File>

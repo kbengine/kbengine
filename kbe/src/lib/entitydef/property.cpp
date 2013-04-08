@@ -26,6 +26,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/vector4.hpp"
 #include "pyscript/copy.hpp"
 
+#ifndef CODE_INLINE
+#include "property.ipp"
+#endif
+
+
 namespace KBEngine{
 
 uint32 PropertyDescription::propertyDescriptionCount_ = 0;

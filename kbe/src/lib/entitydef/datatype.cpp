@@ -29,6 +29,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/vector4.hpp"
 #include "pyscript/copy.hpp"
 
+#ifndef CODE_INLINE
+#include "datatype.ipp"
+#endif
+
 namespace KBEngine{
 static DATATYPE_UID _g_dataTypeUID = 1;
 

@@ -20,6 +20,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "sequence.hpp"
+
+#ifndef CODE_INLINE
+#include "sequence.ipp"
+#endif
+
 namespace KBEngine{ namespace script{
 
 PySequenceMethods Sequence::seqMethods =

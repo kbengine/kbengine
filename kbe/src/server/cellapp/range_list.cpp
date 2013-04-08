@@ -20,6 +20,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "range_node.hpp"
 #include "range_list.hpp"
 
+#ifndef CODE_INLINE
+#include "range_list.ipp"
+#endif
+
 namespace KBEngine{	
 
 bool RangeList::hasY = false;

@@ -29,6 +29,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "dbmgr_lib/entity_table.hpp"
 #include "network/fixed_messages.hpp"
 
+#ifndef CODE_INLINE
+#include "entity_table_mysql.ipp"
+#endif
+
 namespace KBEngine { 
 
 

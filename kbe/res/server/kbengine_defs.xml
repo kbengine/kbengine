@@ -164,7 +164,8 @@
 			<rangemgr_y> false </rangemgr_y>
 		</coordinate_system>
 		
-
+		<!-- 如果被占用则向后尝试50001.. -->
+		<python_port>50000</python_port>
 	</cellapp>
 	
 	<baseapp>
@@ -200,6 +201,9 @@
 		
 		<!-- listen监听队列最大值 -->
 		<SOMAXCONN> 128 </SOMAXCONN>
+		
+		<!-- 如果被占用则向后尝试40001.. -->
+		<python_port>40000</python_port>
 	</baseapp>
 	
 	<cellappmgr>

@@ -28,6 +28,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr/resmgr.hpp"
 #include "pyscript/script.hpp"
 
+#ifndef CODE_INLINE
+#include "scriptdef_module.ipp"
+#endif
+
+
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------

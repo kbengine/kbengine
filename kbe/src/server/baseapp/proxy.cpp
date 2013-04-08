@@ -28,6 +28,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/cellapp/cellapp_interface.hpp"
 #include "../../server/dbmgr/dbmgr_interface.hpp"
 
+#ifndef CODE_INLINE
+#include "proxy.ipp"
+#endif
+
 namespace KBEngine{
 
 SCRIPT_METHOD_DECLARE_BEGIN(Proxy)

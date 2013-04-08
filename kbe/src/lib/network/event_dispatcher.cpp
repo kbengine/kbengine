@@ -23,6 +23,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/event_poller.hpp"
 #include "network/error_reporter.hpp"
 
+#ifndef CODE_INLINE
+#include "event_dispatcher.ipp"
+#endif
+
 namespace KBEngine { 
 namespace Mercury
 {

@@ -20,6 +20,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "profiler.hpp"
 
+#ifndef CODE_INLINE
+#include "profiler.ipp"
+#endif
+
+
 namespace KBEngine
 {
 

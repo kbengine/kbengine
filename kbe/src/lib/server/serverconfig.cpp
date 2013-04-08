@@ -370,6 +370,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 				_cellAppInfo.rangelist_hasY = (xml->getValStr(childnode) == "true");
 			}
 		}
+
+		node = xml->enterNode(rootNode, "python_port");
+		if(node != NULL){
+			_cellAppInfo.python_port = xml->getValInt(node);
+		}
 	}
 	
 	rootNode = xml->getRootNode("baseapp");
@@ -471,6 +476,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
 			_baseAppInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
+
+		node = xml->enterNode(rootNode, "python_port");
+		if(node != NULL){
+			_baseAppInfo.python_port = xml->getValInt(node);
 		}
 	}
 

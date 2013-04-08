@@ -150,6 +150,8 @@ typedef struct EngineComponentInfo
 	uint32 tcp_SOMAXCONN;									// listen监听队列最大值
 
 	int8 encrypt_login;										// 加密登录信息
+
+	uint32 python_port;
 }ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>

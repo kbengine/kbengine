@@ -20,6 +20,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "scriptobject.hpp"
+
+#ifndef CODE_INLINE
+#include "scriptobject.ipp"
+#endif
+
 namespace KBEngine{ namespace script{
 
 SCRIPT_METHOD_DECLARE_BEGIN(ScriptObject)

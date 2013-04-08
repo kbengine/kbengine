@@ -20,6 +20,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "scriptstdouterrhook.hpp"
+
+#ifndef CODE_INLINE
+#include "scriptstdouterrhook.ipp"
+#endif
+
 namespace KBEngine{ namespace script{
 								
 SCRIPT_METHOD_DECLARE_BEGIN(ScriptStdOutErrHook)	

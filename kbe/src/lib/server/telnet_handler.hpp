@@ -21,21 +21,30 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __TELNET_HANDLER_H__
 #define __TELNET_HANDLER_H__
 	
-
+#include "cstdkbe/cstdkbe.hpp"
+#include "helper/debug_helper.hpp"
 	
 namespace KBEngine{
+namespace Mercury{
+	class Channel;
+}
 
 class TelnetHandler
 {
 public:
     TelnetHandler();
 	virtual ~TelnetHandler(void);
+	
+	INLINE Mercury::Channel* pChannel()const;
+private:
+	std::string buffer_;
+	Mercury::Channel* pChannel_;
 };
 
 
 }
 
-#ifndef CODE_INLINE
+#ifdef CODE_INLINE
 #include "telnet_handler.ipp"
 #endif
 #endif

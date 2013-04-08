@@ -25,8 +25,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/channel.hpp"	
 #include "network/fixed_messages.hpp"
 
-#ifdef CODE_INLINE
-//#include "base.ipp"
+#ifndef CODE_INLINE
+#include "base.ipp"
 #endif
 
 #include "../../server/baseapp/baseapp_interface.hpp"
