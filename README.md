@@ -183,9 +183,14 @@ linux:
 
 	sh kill.sh
 
-	(注意: 如有开放防火墙请对外开放这些端口tcp:loginapp登录端口、 baseapp登录端口具体请看kbengine_defs.xml。 
+	(注意: 如有开放防火墙请对外开放这些端口tcp:loginapp登录端口、 baseapp登录端口具体请看kbengine.xml|kbengine_defs.xml。 
 	并且允许udp广播端口20086-20088)
-
+	(注意: 如果有二块网卡如果有eth0(公网ip)、eth1(局域网ip)
+	请设置kbengine.xml|kbengine_defs.xml除baseapp|loginapp|billingsystem的externalInterface设置为eth0以外, 
+	其他相关{internal|external}Interface为局域网ip的那块网卡(eth1), 并设置使用局域网ip来接收udp广播:
+	/sbin/ip route del broadcast 255.255.255.255 dev eth0
+	/sbin/ip route add broadcast 255.255.255.255 dev eth1
+	)
 windows:
 
 	cd KBE_HYBRID_PATH
