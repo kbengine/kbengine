@@ -57,6 +57,8 @@ private:
 	void processCommand();
 	void processPythonCommand();
 
+	bool checkUDLR();
+
 	void sendEnter();
 	void sendDelChar();
 	void sendNewLine();
@@ -64,12 +66,20 @@ private:
 
 	std::string getInputStartString();
 
+	void historyCommandCheck();
+	std::string getHistoryCommand(bool isNextCommand);
+
 	std::deque<unsigned char> buffer_;
+	std::deque<std::string> historyCommand_;
+	int8 historyCommandIndex_;
+
 	std::string command_;
 	Mercury::EndPoint* pEndPoint_;
 	TelnetServer* pTelnetServer_;
 
 	uint8 state_;
+
+	int32 currPos_;
 };
 
 
