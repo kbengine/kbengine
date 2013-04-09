@@ -222,6 +222,10 @@
 				RelativePath=".\telnet_handler.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\telnet_server.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -308,6 +312,10 @@
 				RelativePath=".\telnet_handler.hpp"
 				>
 			</File>
+			<File
+				RelativePath=".\telnet_server.hpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -321,6 +329,10 @@
 		</File>
 		<File
 			RelativePath=".\telnet_handler.ipp"
+			>
+		</File>
+		<File
+			RelativePath=".\telnet_server.ipp"
 			>
 		</File>
 	</Files>

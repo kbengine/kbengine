@@ -47,6 +47,7 @@ namespace Mercury{
 class Proxy;
 class BackupSender;
 class Archiver;
+class TelnetServer;
 
 class Baseapp :	public EntityApp<Base>, 
 				public Singleton<Baseapp>
@@ -336,15 +337,16 @@ protected:
 	ForwardComponent_MessageBuffer			forward_messagebuffer_;
 
 	// 备份存档相关
-	KBEShared_ptr< BackupSender >	pBackupSender_;	
-	KBEShared_ptr< Archiver >		pArchiver_;	
+	KBEShared_ptr< BackupSender >			pBackupSender_;	
+	KBEShared_ptr< Archiver >				pArchiver_;	
 
 	float									load_;
 
 	static uint64							_g_lastTimestamp;
 
 	int32									numProxices_;
-	
+
+	TelnetServer*							pTelnetServer_;
 };
 
 }

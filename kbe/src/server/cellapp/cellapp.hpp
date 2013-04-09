@@ -38,6 +38,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
+class TelnetServer;
+
 class Cellapp:	public EntityApp<Entity>, 
 				public Singleton<Cellapp>
 {
@@ -178,10 +180,12 @@ protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;
 
-	Updatables updatables_;
+	Updatables							updatables_;
 
 	// ËùÓÐµÄcell
-	Cells cells_;
+	Cells								cells_;
+
+	TelnetServer*						pTelnetServer_;
 };
 
 }

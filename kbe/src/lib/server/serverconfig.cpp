@@ -371,9 +371,26 @@ bool ServerConfig::loadConfig(std::string fileName)
 			}
 		}
 
-		node = xml->enterNode(rootNode, "python_port");
-		if(node != NULL){
-			_cellAppInfo.python_port = xml->getValInt(node);
+		node = xml->enterNode(rootNode, "telnet_service");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if(childnode)
+			{
+				_cellAppInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if(childnode)
+			{
+				_cellAppInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if(childnode)
+			{
+				_cellAppInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
 		}
 	}
 	
@@ -478,9 +495,26 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_baseAppInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
 
-		node = xml->enterNode(rootNode, "python_port");
-		if(node != NULL){
-			_baseAppInfo.python_port = xml->getValInt(node);
+		node = xml->enterNode(rootNode, "telnet_service");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if(childnode)
+			{
+				_baseAppInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if(childnode)
+			{
+				_baseAppInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if(childnode)
+			{
+				_baseAppInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
 		}
 	}
 

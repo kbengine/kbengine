@@ -549,6 +549,7 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 
 	CString strCommand1 = strCommand;
 
+	/*
 	// 对普通的输入加入print 让服务器回显信息
     if((strCommand.Find(L"=")) == -1 &&
 		(strCommand.Find(L"print(")) == -1 &&
@@ -561,6 +562,7 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 		(strCommand.Find(L"while ")) == -1
 		)
         strCommand = L"print(" + strCommand + L")";
+	*/
 
 	std::wstring incmd = strCommand.GetBuffer(0);
 	std::string outcmd;

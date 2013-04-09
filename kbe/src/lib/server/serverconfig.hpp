@@ -151,7 +151,9 @@ typedef struct EngineComponentInfo
 
 	int8 encrypt_login;										// º”√‹µ«¬º–≈œ¢
 
-	uint32 python_port;
+	uint32 telnet_port;
+	std::string telnet_passwd;
+	std::string telnet_deflayer;
 }ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>

@@ -165,7 +165,12 @@
 		</coordinate_system>
 		
 		<!-- 如果被占用则向后尝试50001.. -->
-		<python_port>50000</python_port>
+		<telnet_service>
+			<port> 50000 </port>
+			<password> kbe </password>
+			<!-- 命令默认层 -->
+			<default_layer> root </default_layer>
+		</telnet_service>
 	</cellapp>
 	
 	<baseapp>
@@ -203,7 +208,12 @@
 		<SOMAXCONN> 128 </SOMAXCONN>
 		
 		<!-- 如果被占用则向后尝试40001.. -->
-		<python_port>40000</python_port>
+		<telnet_service>
+			<port> 40000 </port>
+			<password> kbe </password>
+			<!-- 命令默认层 -->
+			<default_layer> root </default_layer>
+		</telnet_service>
 	</baseapp>
 	
 	<cellappmgr>

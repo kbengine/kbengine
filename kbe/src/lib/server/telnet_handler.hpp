@@ -23,22 +23,53 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
-	
+#include "network/interfaces.hpp"
+
 namespace KBEngine{
 namespace Mercury{
-	class Channel;
+	class EndPoint;
 }
 
-class TelnetHandler
+class TelnetServer;
+class TelnetHandler : public Mercury::InputNotificationHandler
 {
 public:
-    TelnetHandler();
+	enum TELNET_STATE
+	{
+		TELNET_STATE_PASSWD,
+		TELNET_STATE_ROOT,
+		TELNET_STATE_PYTHON
+	};
+
+    TelnetHandler(Mercury::EndPoint* pEndPoint, TelnetServer* pTelnetServer, 
+		TELNET_STATE defstate = TELNET_STATE_ROOT);
+
 	virtual ~TelnetHandler(void);
 	
-	INLINE Mercury::Channel* pChannel()const;
+	INLINE Mercury::EndPoint* pEndPoint()const;
+
+	std::string help();
+	std::string getWelcome();
 private:
-	std::string buffer_;
-	Mercury::Channel* pChannel_;
+
+	int	handleInputNotification(int fd);
+	void onRecvInput();
+	void processCommand();
+	void processPythonCommand();
+
+	void sendEnter();
+	void sendDelChar();
+	void sendNewLine();
+	void resetStartPosition();
+
+	std::string getInputStartString();
+
+	std::deque<unsigned char> buffer_;
+	std::string command_;
+	Mercury::EndPoint* pEndPoint_;
+	TelnetServer* pTelnetServer_;
+
+	uint8 state_;
 };
 
 

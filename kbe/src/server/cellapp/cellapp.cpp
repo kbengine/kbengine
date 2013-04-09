@@ -31,6 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/udp_packet.hpp"
 #include "server/componentbridge.hpp"
 #include "server/components.hpp"
+#include "server/telnet_server.hpp"
 #include "dbmgr/dbmgr_interface.hpp"
 
 #include "../../server/baseappmgr/baseappmgr_interface.hpp"
@@ -53,7 +54,8 @@ Cellapp::Cellapp(Mercury::EventDispatcher& dispatcher,
 	EntityApp<Entity>(dispatcher, ninterface, componentType, componentID),
 	pCellAppData_(NULL),
 	forward_messagebuffer_(ninterface),
-	cells_()
+	cells_(),
+	pTelnetServer_(NULL)
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &CellappInterface::messageHandlers;
 
@@ -179,12 +181,20 @@ bool Cellapp::initializeEnd()
 	RangeList::hasY = g_kbeSrvConfig.getCellApp().rangelist_hasY;
 
 	mainDispatcher_.clearSpareTime();
-	return true;
+
+	pTelnetServer_ = new TelnetServer(&this->getMainDispatcher());
+	pTelnetServer_->pScript(&this->getScript());
+	return pTelnetServer_->start(g_kbeSrvConfig.getCellApp().telnet_passwd, 
+		g_kbeSrvConfig.getCellApp().telnet_deflayer, 
+		g_kbeSrvConfig.getCellApp().telnet_port);
 }
 
 //-------------------------------------------------------------------------------------
 void Cellapp::finalise()
 {
+	pTelnetServer_->stop();
+	SAFE_RELEASE(pTelnetServer_);
+
 	Spaces::finalise();
 	EntityApp<Entity>::finalise();
 }

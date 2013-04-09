@@ -37,6 +37,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/encryption_filter.hpp"
 #include "server/componentbridge.hpp"
 #include "server/components.hpp"
+#include "server/telnet_server.hpp"
 #include "math/math.hpp"
 #include "entitydef/blob.hpp"
 #include "client_lib/client_interface.hpp"
@@ -120,7 +121,8 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 	forward_messagebuffer_(ninterface),
 	pBackupSender_(),
 	load_(0.f),
-	numProxices_(0)
+	numProxices_(0),
+	pTelnetServer_(NULL)
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
 
@@ -387,12 +389,19 @@ bool Baseapp::initializeEnd()
 		script::PyProfile::start("kbengine");
 	}
 
-	return true;
+	pTelnetServer_ = new TelnetServer(&this->getMainDispatcher());
+	pTelnetServer_->pScript(&this->getScript());
+	return pTelnetServer_->start(g_kbeSrvConfig.getBaseApp().telnet_passwd, 
+		g_kbeSrvConfig.getBaseApp().telnet_deflayer, 
+		g_kbeSrvConfig.getBaseApp().telnet_port);
 }
 
 //-------------------------------------------------------------------------------------
 void Baseapp::finalise()
 {
+	pTelnetServer_->stop();
+	SAFE_RELEASE(pTelnetServer_);
+
 	loopCheckTimerHandle_.cancel();
 	EntityApp<Base>::finalise();
 }
