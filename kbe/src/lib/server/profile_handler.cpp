@@ -93,10 +93,16 @@ void PyProfileHandler::timeout()
 	if(name_ == "kbengine" && g_kbeSrvConfig.getBaseApp().profiles.open_pyprofile)
 		script::PyProfile::start(name_);
 	
+	sendStream(&s);
+}
+
+//-------------------------------------------------------------------------------------
+void PyProfileHandler::sendStream(MemoryStream* s)
+{
 	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
 	if(pChannel == NULL)
 	{
-		WARNING_MSG(boost::format("PyProfileHandler::timeout: not found %1% addr(%2%)\n") % 
+		WARNING_MSG(boost::format("PyProfileHandler::sendStream: not found %1% addr(%2%)\n") % 
 			name_ % addr_.c_str());
 		return;
 	}
@@ -109,7 +115,7 @@ void PyProfileHandler::timeout()
 	int8 type = 0;
 	(*(*bundle)) << type;
 	(*(*bundle)) << timinglen_;
-	(*(*bundle)).append(&s);
+	(*(*bundle)).append(s);
 	(*(*bundle)).send(networkInterface_, pChannel);
 }
 
@@ -167,10 +173,16 @@ void CProfileHandler::timeout()
 		s << iter->first << count << lastTime << sumTime << lastIntTime << sumIntTime;
 	}
 
+	sendStream(&s);
+}
+
+//-------------------------------------------------------------------------------------
+void CProfileHandler::sendStream(MemoryStream* s)
+{
 	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
 	if(pChannel == NULL)
 	{
-		WARNING_MSG(boost::format("CProfileHandler::timeout: not found %1% addr(%2%)\n") % 
+		WARNING_MSG(boost::format("CProfileHandler::sendStream: not found %1% addr(%2%)\n") % 
 			name_ % addr_.c_str());
 		return;
 	}
@@ -182,7 +194,7 @@ void CProfileHandler::timeout()
 
 	int8 type = 1;
 	(*(*bundle)) << type;
-	(*(*bundle)).append(&s);
+	(*(*bundle)).append(s);
 	(*(*bundle)).send(networkInterface_, pChannel);
 }
 
@@ -282,10 +294,16 @@ void EventProfileHandler::timeout()
 		}
 	}
 
+	sendStream(&s);
+}
+
+//-------------------------------------------------------------------------------------
+void EventProfileHandler::sendStream(MemoryStream* s)
+{
 	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
 	if(pChannel == NULL)
 	{
-		WARNING_MSG(boost::format("EventProfileHandler::timeout: not found %1% addr(%2%)\n") % 
+		WARNING_MSG(boost::format("EventProfileHandler::sendStream: not found %1% addr(%2%)\n") % 
 			name_ % addr_.c_str());
 		return;
 	}
@@ -297,7 +315,7 @@ void EventProfileHandler::timeout()
 
 	int8 type = 2;
 	(*(*bundle)) << type;
-	(*(*bundle)).append(&s);
+	(*(*bundle)).append(s);
 	(*(*bundle)).send(networkInterface_, pChannel);
 }
 
@@ -384,10 +402,16 @@ void MercuryProfileHandler::timeout()
 			profileVal.total_recv_size << profileVal.total_recv_count;
 	}
 
+	sendStream(&s);
+}
+
+//-------------------------------------------------------------------------------------
+void MercuryProfileHandler::sendStream(MemoryStream* s)
+{
 	Mercury::Channel* pChannel = networkInterface_.findChannel(addr_);
 	if(pChannel == NULL)
 	{
-		WARNING_MSG(boost::format("MercuryProfileHandler::timeout: not found %1% addr(%2%)\n") % 
+		WARNING_MSG(boost::format("MercuryProfileHandler::sendStream: not found %1% addr(%2%)\n") % 
 			name_ % addr_.c_str());
 		return;
 	}
@@ -399,7 +423,7 @@ void MercuryProfileHandler::timeout()
 
 	int8 type = 3;
 	(*(*bundle)) << type;
-	(*(*bundle)).append(&s);
+	(*(*bundle)).append(s);
 	(*(*bundle)).send(networkInterface_, pChannel);
 }
 

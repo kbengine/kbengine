@@ -37,6 +37,75 @@ char _g_state_str[][256] = {
 	"python"
 };
 
+/*
+	格式: echo "\033[字背景颜色;字体颜色m字符串\033[0m" 
+
+	例如: 
+	echo "\033[41;36m something here \033[0m"  
+
+	其中41的位置代表底色, 36的位置是代表字的颜色 
+
+
+	那些ascii code 是对颜色调用的始末.  
+	\033[ ; m …… \033[0m  
+
+
+
+	字背景颜色范围:40----49 
+	40:黑 
+	41:深红 
+	42:绿 
+	43:黄色 
+	44:蓝色 
+	45:紫色 
+	46:深绿 
+	47:白色 
+
+	字颜色:30-----------39 
+	30:黑 
+	31:红 
+	32:绿 
+	33:黄 
+	34:蓝色 
+	35:紫色 
+	36:深绿 
+	37:白色 
+
+	\33[0m 关闭所有属性  
+	\33[1m 设置高亮度  
+	\33[4m 下划线  
+	\33[5m 闪烁  
+	\33[7m 反显  
+	\33[8m 消隐  
+	\33[30m -- \33[37m 设置前景色  
+	\33[40m -- \33[47m 设置背景色  
+	\33[nA 光标上移n行  
+	\33[nB 光标下移n行  
+	\33[nC 光标右移n行  
+	\33[nD 光标左移n行  
+	\33[y;xH设置光标位置  
+	\33[2J 清屏  
+	\33[K 清除从光标到行尾的内容  
+	\33[s 保存光标位置  
+	\33[u 恢复光标位置  
+	\33[?25l 隐藏光标  
+	\33[?25h 显示光标  
+
+	使用格式能更复杂： 
+	^[[..m;..m;..m;..m
+	例如： \033[2;7;1m高亮\033[2;7;0m
+*/
+
+#define TELNET_CMD_LEFT							"\033[D"			// 左
+#define TELNET_CMD_RIGHT						"\033[C"			// 右
+#define TELNET_CMD_UP							"\033[A"			// 上
+#define TELNET_CMD_DOWN							"\033[B"			// 下
+
+#define TELNET_CMD_DEL							"\033[K"			// 删除字符
+#define TELNET_CMD_NEWLINE						"\r\n"				// 新行
+#define TELNET_CMD_MOVE_FOCUS_LEFT_MAX			"\33[9999999999D"	// 左移光标到最前面
+#define TELNET_CMD_MOVE_FOCUS_RIGHT_MAX			"\33[9999999999C"	// 右移光标到最后面
+
 //-------------------------------------------------------------------------------------
 TelnetHandler::TelnetHandler(Mercury::EndPoint* pEndPoint, TelnetServer* pTelnetServer, TELNET_STATE defstate):
 buffer_(),
@@ -173,14 +242,12 @@ void TelnetHandler::onRecvInput()
 					buffer_.pop_front();
 					processCommand();
 					command_ = "";
-					currPos_ = 0;
 					sendNewLine();
 				}
 			}
 			break;
 		case 8:		// 退格
 			sendDelChar();
-			currPos_--;
 			break;
 		case ' ':	// 空格
 		default:
@@ -195,6 +262,7 @@ void TelnetHandler::onRecvInput()
 					if(currPos_ != command_.size())
 					{
 						s = command_.substr(currPos_, command_.size() - currPos_);
+						s += (boost::format("\33[%1%D") % s.size()).str();
 						pEndPoint_->send(s.c_str(), s.size());
 					}
 				}
@@ -207,9 +275,9 @@ void TelnetHandler::onRecvInput()
 //-------------------------------------------------------------------------------------
 bool TelnetHandler::checkUDLR()
 {
-	if(command_.find("\033[A") != -1)		// 上 
+	if(command_.find(TELNET_CMD_UP) != -1)		// 上 
 	{
-		pEndPoint_->send("\33[9999999999D", strlen("\33[9999999999D"));
+		pEndPoint_->send(TELNET_CMD_MOVE_FOCUS_LEFT_MAX, strlen(TELNET_CMD_MOVE_FOCUS_LEFT_MAX));
 		sendDelChar();
 		std::string startstr = getInputStartString();
 		pEndPoint_->send(startstr.c_str(), startstr.size());
@@ -221,9 +289,9 @@ bool TelnetHandler::checkUDLR()
 		currPos_ = s.size();
 		return true;
 	}
-	else if(command_.find("\033[B") != -1)	// 下
+	else if(command_.find(TELNET_CMD_DOWN) != -1)	// 下
 	{
-		pEndPoint_->send("\33[9999999999D", strlen("\33[9999999999D"));
+		pEndPoint_->send(TELNET_CMD_MOVE_FOCUS_LEFT_MAX, strlen(TELNET_CMD_MOVE_FOCUS_LEFT_MAX));
 		sendDelChar();
 		std::string startstr = getInputStartString();
 		pEndPoint_->send(startstr.c_str(), startstr.size());
@@ -235,22 +303,33 @@ bool TelnetHandler::checkUDLR()
 		currPos_ = s.size();
 		return true;
 	}
-	else if(command_.find("\033[C") != -1)	// 右
+	else if(command_.find(TELNET_CMD_RIGHT) != -1)	// 右
 	{
-		currPos_-= strlen("\033[C");
-		command_.erase(command_.find("\033[C"), strlen("\033[C"));
+		int cmdlen = strlen(TELNET_CMD_RIGHT);
+		currPos_-= cmdlen;
+		command_.erase(command_.find(TELNET_CMD_RIGHT), cmdlen);
+
 		if(currPos_ < (int)command_.size())
+		{
 			currPos_++;
-		pEndPoint_->send("\033[C", strlen("\033[C"));
+			pEndPoint_->send(TELNET_CMD_RIGHT, cmdlen);
+		}
 		return true;
 	}
-	else if(command_.find("\033[D") != -1)	// 左 
+	else if(command_.find(TELNET_CMD_LEFT) != -1)	// 左 
 	{
-		currPos_-= (strlen("\033[D") + 1);
-		if(currPos_ < 0) currPos_ = 0;
+		int cmdlen = strlen(TELNET_CMD_LEFT);
+		currPos_-= (int)(cmdlen + 1);
+		if(currPos_ < 0)
+		{
+			currPos_ = 0;
+		}
+		else
+		{
+			pEndPoint_->send(TELNET_CMD_LEFT, cmdlen);
+		}
 
-		command_.erase(command_.find("\033[D"), strlen("\033[D"));
-		pEndPoint_->send("\033[D", strlen("\033[D"));
+		command_.erase(command_.find(TELNET_CMD_LEFT), cmdlen);
 		return true;
 	}
 
@@ -366,7 +445,7 @@ void TelnetHandler::processPythonCommand()
 //-------------------------------------------------------------------------------------
 void TelnetHandler::sendEnter()
 {
-	pEndPoint_->send("\r\n", strlen("\r\n"));
+	pEndPoint_->send(TELNET_CMD_NEWLINE, strlen(TELNET_CMD_NEWLINE));
 }
 
 //-------------------------------------------------------------------------------------
@@ -375,7 +454,8 @@ void TelnetHandler::sendDelChar()
 	if(command_.size() > 0)
 	{
 		command_.erase(command_.size() - 1, 1);
-		pEndPoint_->send("\033[K", strlen("\033[K"));
+		currPos_--;
+		pEndPoint_->send(TELNET_CMD_DEL, strlen(TELNET_CMD_DEL));
 	}
 	else
 	{
@@ -389,12 +469,13 @@ void TelnetHandler::sendNewLine()
 	std::string startstr = getInputStartString();
 	pEndPoint_->send(startstr.c_str(), startstr.size());
 	resetStartPosition();
+	currPos_ = 0;
 }
 
 //-------------------------------------------------------------------------------------
 void TelnetHandler::resetStartPosition()
 {
-	pEndPoint_->send("\33[9999999999D", strlen("\33[9999999999D"));
+	pEndPoint_->send(TELNET_CMD_MOVE_FOCUS_LEFT_MAX, strlen(TELNET_CMD_MOVE_FOCUS_LEFT_MAX));
 	std::string startstr = getInputStartString();
 	std::string backcmd = (boost::format("\33[%1%C") % startstr.size()).str();
 	pEndPoint_->send(backcmd.c_str(), backcmd.size());

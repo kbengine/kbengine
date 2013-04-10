@@ -36,7 +36,7 @@ handlers_(),
 listener_(),
 pDispatcher_(pDispatcher),
 passwd_(),
-deflayer_(0)
+deflayer_(TelnetHandler::TELNET_STATE_ROOT)
 {
 }
 

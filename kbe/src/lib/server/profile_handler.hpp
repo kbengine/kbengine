@@ -36,6 +36,8 @@ class Address;
 class MessageHandler;
 }
 
+class MemoryStream;
+
 class ProfileHandler : public TimerHandler
 {
 public:
@@ -44,6 +46,7 @@ public:
 	virtual ~ProfileHandler();
 	
 	virtual void timeout() = 0;
+	virtual void sendStream(MemoryStream* s) = 0;
 
 	static KBEUnordered_map<std::string, KBEShared_ptr< ProfileHandler > > profiles;
 protected:
@@ -68,6 +71,7 @@ public:
 	~PyProfileHandler();
 	
 	void timeout();
+	void sendStream(MemoryStream* s);
 };
 
 class CProfileHandler : public Task, 
@@ -79,7 +83,7 @@ public:
 	~CProfileHandler();
 	
 	void timeout();
-	
+	void sendStream(MemoryStream* s);
 	bool process();
 private:
 	struct ProfileVal
@@ -121,7 +125,8 @@ public:
 	~EventProfileHandler();
 	
 	void timeout();
-	
+	void sendStream(MemoryStream* s);
+
 	void onTriggerEvent(const EventHistoryStats& eventHistory, const EventHistoryStats::Stats& stats, 
 		uint32 size);
 	static void triggerEvent(const EventHistoryStats& eventHistory, const EventHistoryStats::Stats& stats, 
@@ -162,7 +167,8 @@ public:
 	~MercuryProfileHandler();
 	
 	void timeout();
-	
+	void sendStream(MemoryStream* s);
+
 	virtual void onSendMessage(const Mercury::MessageHandler& msgHandler, int size);
 	virtual void onRecvMessage(const Mercury::MessageHandler& msgHandler, int size);
 private:
