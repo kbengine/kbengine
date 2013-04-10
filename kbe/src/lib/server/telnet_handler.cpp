@@ -34,7 +34,8 @@ namespace KBEngine {
 char _g_state_str[][256] = {
 	"password",
 	"root",
-	"python"
+	"python",
+	"readonly"
 };
 
 /*
@@ -115,13 +116,18 @@ historyCommandIndex_(0),
 pEndPoint_(pEndPoint),
 pTelnetServer_(pTelnetServer),
 state_(defstate),
-currPos_(0)
+currPos_(0),
+pProfileHandler_(NULL)
 {
 }
 
 //-------------------------------------------------------------------------------------
 TelnetHandler::~TelnetHandler(void)
 {
+	if(pProfileHandler_) {
+		pProfileHandler_->destroy();
+		pProfileHandler_ = NULL;
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -154,15 +160,17 @@ std::string TelnetHandler::getWelcome()
 std::string TelnetHandler::help()
 {
 	return 	"\033[1;32m\r\nCommand List:"
-		"\r\n[:help        ]: list commands."
-		"\r\n[:python      ]: python console."
-		"\r\n[:root        ]: return to the root layer."
-		"\r\n[:cprofile    ]: collects and reports the internal c++ profiles \r\n\t\tof a server process over a period of time."
+		"\r\n[:help          ]: list commands."
+		"\r\n[:python        ]: python console."
+		"\r\n[:root          ]: return to the root layer."
+		"\r\n[:cprofile      ]: collects and reports the internal c++ profiles \r\n\t\tof a server process over a period of time."
 		"\r\n\t\t usage: \":cprofile 30\""
-		"\r\n[:pyprofile    ]: collects and reports the python profiles \r\n\t\tof a server process over a period of time."
+		"\r\n[:pyprofile     ]: collects and reports the python profiles \r\n\t\tof a server process over a period of time."
 		"\r\n\t\t usage: \":pyprofile 30\""
-		"\r\n[:eventprofile]: a server process over a period of time, \r\n\t\tcollects and reports the all non-volatile cummunication \r\n\t\tdown to the client."
+		"\r\n[:eventprofile  ]: a server process over a period of time, \r\n\t\tcollects and reports the all non-volatile cummunication \r\n\t\tdown to the client."
 		"\r\n\t\t usage: \":eventprofile 30\""
+		"\r\n[:mercuryprofile]: collects and reports the mercury profiles \r\n\t\tof a server process over a period of time."
+		"\r\n\t\t usage: \":mercuryprofile 30\""
 		"\r\n\r\n\033[0m";
 };
 
@@ -214,6 +222,9 @@ int	TelnetHandler::handleInputNotification(int fd)
 		return 0;
 	}
 	
+	if(state_ == TELNET_STATE_READONLY)
+		return 0;
+
 	for(int i = 0; i < recvsize; i++)
 	{
 		buffer_.push_back(data[i]);
@@ -240,9 +251,10 @@ void TelnetHandler::onRecvInput()
 				if(cc == '\n')
 				{
 					buffer_.pop_front();
-					processCommand();
+					if(processCommand())
+						sendNewLine();
+
 					command_ = "";
-					sendNewLine();
 				}
 			}
 			break;
@@ -337,10 +349,10 @@ bool TelnetHandler::checkUDLR()
 }
 
 //-------------------------------------------------------------------------------------
-void TelnetHandler::processCommand()
+bool TelnetHandler::processCommand()
 {
 	if(command_.size() == 0)
-		return;
+		return true;
 
 	bool logcmd = true;
 	for(int i=0; i<(int)historyCommand_.size(); i++)
@@ -362,39 +374,122 @@ void TelnetHandler::processCommand()
 	if(command_ == ":python")
 	{
 		if(pTelnetServer_->pScript() == NULL)
-			return;
+			return true;
 
 		state_ = TELNET_STATE_PYTHON;
-		return;
+		return true;
 	}
 	else if(command_ == ":help")
 	{
 		std::string str = help();
 		pEndPoint_->send(str.c_str(), str.size());
-		return;
+		return true;
 	}
 	else if(command_ == ":root")
 	{
 		state_ = TELNET_STATE_ROOT;
-		return;
+		return true;
 	}
-	else if(command_ == ":cprofile")
+	else if(command_.find(":cprofile") == 0)
 	{
-		return;
+		uint32 timelen = 10;
+		
+		command_.erase(command_.find(":cprofile"), strlen(":cprofile"));
+		if(command_.size() > 0)
+		{
+			KBEngine::StringConv::str2value(timelen, command_.c_str());
+			if(timelen < 1 || timelen > 999999999)
+				timelen = 10;
+		}
+
+		std::string str = (boost::format("Waiting for %1% secs.\r\n") % timelen).str();
+		pEndPoint_->send(str.c_str(), str.size());
+		
+		std::string profileName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
+
+		if(pProfileHandler_) pProfileHandler_->destroy();
+		pProfileHandler_ = new TelnetCProfileHandler(this, *pTelnetServer_->pNetworkInterface(), 
+			timelen, profileName, pEndPoint_->addr());
+
+		readonly();
+		return false;
 	}
-	else if(command_ == ":pyprofile")
+	else if(command_.find(":pyprofile") == 0)
 	{
-		return;
+		uint32 timelen = 10;
+
+		command_.erase(command_.find(":pyprofile"), strlen(":pyprofile"));
+		if(command_.size() > 0)
+		{
+			KBEngine::StringConv::str2value(timelen, command_.c_str());
+			if(timelen < 1 || timelen > 999999999)
+				timelen = 10;
+		}
+
+		std::string str = (boost::format("Waiting for %1% secs.\r\n") % timelen).str();
+		pEndPoint_->send(str.c_str(), str.size());
+
+		std::string profileName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
+
+		if(pProfileHandler_) pProfileHandler_->destroy();
+		pProfileHandler_ = new TelnetPyProfileHandler(this, *pTelnetServer_->pNetworkInterface(), 
+			timelen, profileName, pEndPoint_->addr());
+
+		readonly();
+		return false;
 	}
-	else if(command_ == ":eventprofile")
+	else if(command_.find(":eventprofile") == 0)
 	{
-		return;
+		uint32 timelen = 10;
+
+		command_.erase(command_.find(":eventprofile"), strlen(":eventprofile"));
+		if(command_.size() > 0)
+		{
+			KBEngine::StringConv::str2value(timelen, command_.c_str());
+			if(timelen < 1 || timelen > 999999999)
+				timelen = 10;
+		}
+
+		std::string str = (boost::format("Waiting for %1% secs.\r\n") % timelen).str();
+		pEndPoint_->send(str.c_str(), str.size());
+
+		std::string profileName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
+
+		if(pProfileHandler_) pProfileHandler_->destroy();
+		pProfileHandler_ = new TelnetEventProfileHandler(this, *pTelnetServer_->pNetworkInterface(), 
+			timelen, profileName, pEndPoint_->addr());
+
+		readonly();
+		return false;
+	}
+	else if(command_.find(":mercuryprofile") == 0)
+	{
+		uint32 timelen = 10;
+
+		command_.erase(command_.find(":mercuryprofile"), strlen(":mercuryprofile"));
+		if(command_.size() > 0)
+		{
+			KBEngine::StringConv::str2value(timelen, command_.c_str());
+			if(timelen < 1 || timelen > 999999999)
+				timelen = 10;
+		}
+
+		std::string str = (boost::format("Waiting for %1% secs.\r\n") % timelen).str();
+		pEndPoint_->send(str.c_str(), str.size());
+
+		std::string profileName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
+
+		if(pProfileHandler_) pProfileHandler_->destroy();
+		pProfileHandler_ = new TelnetMercuryProfileHandler(this, *pTelnetServer_->pNetworkInterface(), 
+			timelen, profileName, pEndPoint_->addr());
+
+		readonly();
+		return false;
 	}
 
 	if(state_ == TELNET_STATE_PYTHON)
 	{
 		processPythonCommand();
-		return;
 	}
 	else if(state_ == TELNET_STATE_PASSWD)
 	{
@@ -405,9 +500,9 @@ void TelnetHandler::processCommand()
 			pEndPoint_->send(s.c_str(), s.size());
 			sendEnter();
 		}
-
-		return;
 	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -479,6 +574,62 @@ void TelnetHandler::resetStartPosition()
 	std::string startstr = getInputStartString();
 	std::string backcmd = (boost::format("\33[%1%C") % startstr.size()).str();
 	pEndPoint_->send(backcmd.c_str(), backcmd.size());
+}
+
+//-------------------------------------------------------------------------------------
+void TelnetHandler::setReadWrite()
+{
+	state_ = TELNET_STATE_ROOT;
+}
+
+//-------------------------------------------------------------------------------------
+void TelnetHandler::readonly()
+{
+	state_ = TELNET_STATE_READONLY;
+}
+
+//-------------------------------------------------------------------------------------
+void TelnetHandler::onProfileEnd(const std::string& datas)
+{
+	sendEnter();
+	pEndPoint()->send(datas.c_str(), datas.size());
+	setReadWrite();
+	sendEnter();
+	sendNewLine();
+	pProfileHandler_ = NULL;
+}
+
+//-------------------------------------------------------------------------------------
+void TelnetPyProfileHandler::sendStream(MemoryStream* s)
+{
+	if(isDestroyed_) return;
+
+	std::string datas;
+	(*s) >> datas;
+
+	pTelnetHandler_->onProfileEnd(datas);
+}
+
+//-------------------------------------------------------------------------------------
+void TelnetCProfileHandler::sendStream(MemoryStream* s)
+{
+	if(isDestroyed_) return;
+
+	uint32 timinglen;
+	ArraySize size;
+}
+
+//-------------------------------------------------------------------------------------
+void TelnetEventProfileHandler::sendStream(MemoryStream* s)
+{
+	if(isDestroyed_) return;
+
+}
+
+//-------------------------------------------------------------------------------------
+void TelnetMercuryProfileHandler::sendStream(MemoryStream* s)
+{
+	if(isDestroyed_) return;
 }
 
 //-------------------------------------------------------------------------------------

@@ -31,12 +31,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 
 //-------------------------------------------------------------------------------------
-TelnetServer::TelnetServer(Mercury::EventDispatcher* pDispatcher):
+TelnetServer::TelnetServer(Mercury::EventDispatcher* pDispatcher, Mercury::NetworkInterface* networkInterface):
 handlers_(),
 listener_(),
 pDispatcher_(pDispatcher),
 passwd_(),
-deflayer_(TelnetHandler::TELNET_STATE_ROOT)
+deflayer_(TelnetHandler::TELNET_STATE_ROOT),
+pNetworkInterface_(networkInterface)
 {
 }
 

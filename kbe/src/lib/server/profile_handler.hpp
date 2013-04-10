@@ -68,7 +68,7 @@ class PyProfileHandler : public ProfileHandler
 public:
 	PyProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
 		std::string name, const Mercury::Address& addr);
-	~PyProfileHandler();
+	virtual ~PyProfileHandler();
 	
 	void timeout();
 	void sendStream(MemoryStream* s);
@@ -80,7 +80,7 @@ class CProfileHandler : public Task,
 public:
 	CProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
 		std::string name, const Mercury::Address& addr);
-	~CProfileHandler();
+	virtual ~CProfileHandler();
 	
 	void timeout();
 	void sendStream(MemoryStream* s);
@@ -122,7 +122,7 @@ class EventProfileHandler : public ProfileHandler
 public:
 	EventProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
 		std::string name, const Mercury::Address& addr);
-	~EventProfileHandler();
+	virtual ~EventProfileHandler();
 	
 	void timeout();
 	void sendStream(MemoryStream* s);
@@ -164,7 +164,7 @@ class MercuryProfileHandler : public ProfileHandler, public Mercury::MercuryStat
 public:
 	MercuryProfileHandler(Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
 		std::string name, const Mercury::Address& addr);
-	~MercuryProfileHandler();
+	virtual ~MercuryProfileHandler();
 	
 	void timeout();
 	void sendStream(MemoryStream* s);

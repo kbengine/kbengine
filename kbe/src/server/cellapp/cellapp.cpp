@@ -182,7 +182,7 @@ bool Cellapp::initializeEnd()
 
 	mainDispatcher_.clearSpareTime();
 
-	pTelnetServer_ = new TelnetServer(&this->getMainDispatcher());
+	pTelnetServer_ = new TelnetServer(&this->getMainDispatcher(), &this->getNetworkInterface());
 	pTelnetServer_->pScript(&this->getScript());
 	return pTelnetServer_->start(g_kbeSrvConfig.getCellApp().telnet_passwd, 
 		g_kbeSrvConfig.getCellApp().telnet_deflayer, 

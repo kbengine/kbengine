@@ -40,7 +40,7 @@ class TelnetHandler;
 class TelnetServer : public Mercury::InputNotificationHandler
 {
 public:
-    TelnetServer(Mercury::EventDispatcher* pDispatcher);
+    TelnetServer(Mercury::EventDispatcher* pDispatcher, Mercury::NetworkInterface* networkInterface);
 	virtual ~TelnetServer(void);
 	
 	typedef std::map<int, KBEShared_ptr< TelnetHandler > >	TelnetHandlers;
@@ -55,6 +55,8 @@ public:
 
 	INLINE std::string passwd();
 	INLINE int deflayer();
+
+	INLINE Mercury::NetworkInterface* pNetworkInterface()const;
 private:
 	int	handleInputNotification(int fd);
 
@@ -67,6 +69,8 @@ private:
 
 	std::string passwd_;
 	int deflayer_;
+
+	Mercury::NetworkInterface* pNetworkInterface_;
 };
 
 

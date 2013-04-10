@@ -20,7 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef __TELNET_HANDLER_H__
 #define __TELNET_HANDLER_H__
-	
+
+#include "profile_handler.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/interfaces.hpp"
@@ -30,6 +31,24 @@ namespace Mercury{
 	class EndPoint;
 }
 
+class TelnetHandler;
+class TelnetProfileHandler
+{
+public:
+	TelnetProfileHandler(TelnetHandler* pTelnetHandler):
+	pTelnetHandler_(pTelnetHandler),
+	isDestroyed_(false)
+	{
+	}
+
+	virtual ~TelnetProfileHandler(){}
+
+	void destroy(){ isDestroyed_ = true; }
+protected:
+	TelnetHandler* pTelnetHandler_;
+	bool isDestroyed_;
+};
+
 class TelnetServer;
 class TelnetHandler : public Mercury::InputNotificationHandler
 {
@@ -38,7 +57,8 @@ public:
 	{
 		TELNET_STATE_PASSWD,
 		TELNET_STATE_ROOT,
-		TELNET_STATE_PYTHON
+		TELNET_STATE_PYTHON,
+		TELNET_STATE_READONLY
 	};
 
     TelnetHandler(Mercury::EndPoint* pEndPoint, TelnetServer* pTelnetServer, 
@@ -47,22 +67,27 @@ public:
 	virtual ~TelnetHandler(void);
 	
 	INLINE Mercury::EndPoint* pEndPoint()const;
+	
+	void setReadWrite();
+	void readonly();
 
 	std::string help();
 	std::string getWelcome();
-private:
-
-	int	handleInputNotification(int fd);
-	void onRecvInput();
-	void processCommand();
-	void processPythonCommand();
-
-	bool checkUDLR();
 
 	void sendEnter();
 	void sendDelChar();
 	void sendNewLine();
 	void resetStartPosition();
+
+	void onProfileEnd(const std::string& datas);
+private:
+
+	int	handleInputNotification(int fd);
+	void onRecvInput();
+	bool processCommand();
+	void processPythonCommand();
+
+	bool checkUDLR();
 
 	std::string getInputStartString();
 
@@ -80,8 +105,70 @@ private:
 	uint8 state_;
 
 	int32 currPos_;
+
+	TelnetProfileHandler* pProfileHandler_;
 };
 
+
+class TelnetPyProfileHandler : public TelnetProfileHandler, public PyProfileHandler
+{
+public:
+	TelnetPyProfileHandler(TelnetHandler* pTelnetHandler, Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Mercury::Address& addr):
+	TelnetProfileHandler(pTelnetHandler),
+	PyProfileHandler(networkInterface, timinglen, name, addr)
+	{
+	}
+
+	virtual ~TelnetPyProfileHandler(){}
+
+	void sendStream(MemoryStream* s);
+};
+
+class TelnetCProfileHandler : public TelnetProfileHandler, public CProfileHandler
+{
+public:
+	TelnetCProfileHandler(TelnetHandler* pTelnetHandler, Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Mercury::Address& addr):
+	TelnetProfileHandler(pTelnetHandler),
+	CProfileHandler(networkInterface, timinglen, name, addr)
+	{
+	}
+
+	virtual ~TelnetCProfileHandler(){}
+
+	void sendStream(MemoryStream* s);
+};
+
+class TelnetEventProfileHandler : public TelnetProfileHandler, public EventProfileHandler
+{
+public:
+	TelnetEventProfileHandler(TelnetHandler* pTelnetHandler, Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Mercury::Address& addr):
+	TelnetProfileHandler(pTelnetHandler),
+	EventProfileHandler(networkInterface, timinglen, name, addr)
+	{
+	}
+
+	virtual ~TelnetEventProfileHandler(){}
+
+	void sendStream(MemoryStream* s);
+};
+
+class TelnetMercuryProfileHandler : public TelnetProfileHandler, public MercuryProfileHandler
+{
+public:
+	TelnetMercuryProfileHandler(TelnetHandler* pTelnetHandler, Mercury::NetworkInterface & networkInterface, uint32 timinglen, 
+		std::string name, const Mercury::Address& addr):
+	TelnetProfileHandler(pTelnetHandler),
+	MercuryProfileHandler(networkInterface, timinglen, name, addr)
+	{
+	}
+
+	virtual ~TelnetMercuryProfileHandler(){}
+
+	void sendStream(MemoryStream* s);
+};
 
 }
 

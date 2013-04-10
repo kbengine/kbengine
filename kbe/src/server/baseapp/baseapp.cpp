@@ -389,7 +389,7 @@ bool Baseapp::initializeEnd()
 		script::PyProfile::start("kbengine");
 	}
 
-	pTelnetServer_ = new TelnetServer(&this->getMainDispatcher());
+	pTelnetServer_ = new TelnetServer(&this->getMainDispatcher(), &this->getNetworkInterface());
 	pTelnetServer_->pScript(&this->getScript());
 	return pTelnetServer_->start(g_kbeSrvConfig.getBaseApp().telnet_passwd, 
 		g_kbeSrvConfig.getBaseApp().telnet_deflayer, 
