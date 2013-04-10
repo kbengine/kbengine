@@ -110,9 +110,9 @@ char _g_state_str[][256] = {
 //-------------------------------------------------------------------------------------
 TelnetHandler::TelnetHandler(Mercury::EndPoint* pEndPoint, TelnetServer* pTelnetServer, TELNET_STATE defstate):
 buffer_(),
-command_(),
 historyCommand_(),
 historyCommandIndex_(0),
+command_(),
 pEndPoint_(pEndPoint),
 pTelnetServer_(pTelnetServer),
 state_(defstate),
@@ -283,7 +283,7 @@ void TelnetHandler::onRecvInput()
 //-------------------------------------------------------------------------------------
 void TelnetHandler::checkAfterStr()
 {
-	if(currPos_ != command_.size())
+	if(currPos_ != (int32)command_.size())
 	{
 		std::string s = "";
 		s = command_.substr(currPos_, command_.size() - currPos_);
@@ -295,7 +295,7 @@ void TelnetHandler::checkAfterStr()
 //-------------------------------------------------------------------------------------
 bool TelnetHandler::checkUDLR()
 {
-	if(command_.find(TELNET_CMD_UP) != -1)		// 上 
+	if(command_.find(TELNET_CMD_UP) != std::string::npos)		// 上 
 	{
 		pEndPoint_->send(TELNET_CMD_MOVE_FOCUS_LEFT_MAX, strlen(TELNET_CMD_MOVE_FOCUS_LEFT_MAX));
 		sendDelChar();
@@ -309,7 +309,7 @@ bool TelnetHandler::checkUDLR()
 		currPos_ = s.size();
 		return true;
 	}
-	else if(command_.find(TELNET_CMD_DOWN) != -1)	// 下
+	else if(command_.find(TELNET_CMD_DOWN) != std::string::npos)	// 下
 	{
 		pEndPoint_->send(TELNET_CMD_MOVE_FOCUS_LEFT_MAX, strlen(TELNET_CMD_MOVE_FOCUS_LEFT_MAX));
 		sendDelChar();
@@ -323,7 +323,7 @@ bool TelnetHandler::checkUDLR()
 		currPos_ = s.size();
 		return true;
 	}
-	else if(command_.find(TELNET_CMD_RIGHT) != -1)	// 右
+	else if(command_.find(TELNET_CMD_RIGHT) != std::string::npos)	// 右
 	{
 		int cmdlen = strlen(TELNET_CMD_RIGHT);
 		currPos_-= cmdlen;
@@ -336,7 +336,7 @@ bool TelnetHandler::checkUDLR()
 		}
 		return true;
 	}
-	else if(command_.find(TELNET_CMD_LEFT) != -1)	// 左 
+	else if(command_.find(TELNET_CMD_LEFT) != std::string::npos)	// 左 
 	{
 		int cmdlen = strlen(TELNET_CMD_LEFT);
 		currPos_-= (int)(cmdlen + 1);

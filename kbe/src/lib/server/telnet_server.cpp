@@ -60,7 +60,7 @@ bool TelnetServer::start(std::string passwd, std::string deflayer, u_int16_t por
 	int tryn = 0;
 	while(true)
 	{
-		if (listener_.bind(htons(port), ip) == -1)
+		if (listener_.bind(htons(port), htonl(ip)) == -1)
 		{
 			port++;
 			tryn++;
