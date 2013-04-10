@@ -260,6 +260,7 @@ void TelnetHandler::onRecvInput()
 			break;
 		case 8:		// ÍË¸ñ
 			sendDelChar();
+			checkAfterStr();
 			break;
 		case ' ':	// ¿Õ¸ñ
 		default:
@@ -271,16 +272,23 @@ void TelnetHandler::onRecvInput()
 				
 				if(!checkUDLR())
 				{
-					if(currPos_ != command_.size())
-					{
-						s = command_.substr(currPos_, command_.size() - currPos_);
-						s += (boost::format("\33[%1%D") % s.size()).str();
-						pEndPoint_->send(s.c_str(), s.size());
-					}
+					checkAfterStr();
 				}
 				break;
 			}
 		};
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void TelnetHandler::checkAfterStr()
+{
+	if(currPos_ != command_.size())
+	{
+		std::string s = "";
+		s = command_.substr(currPos_, command_.size() - currPos_);
+		s += (boost::format("\33[%1%D") % s.size()).str();
+		pEndPoint_->send(s.c_str(), s.size());
 	}
 }
 
@@ -548,7 +556,7 @@ void TelnetHandler::sendDelChar()
 {
 	if(command_.size() > 0)
 	{
-		command_.erase(command_.size() - 1, 1);
+		command_.erase(currPos_ - 1, 1);
 		currPos_--;
 		pEndPoint_->send(TELNET_CMD_DEL, strlen(TELNET_CMD_DEL));
 	}
@@ -614,9 +622,52 @@ void TelnetPyProfileHandler::sendStream(MemoryStream* s)
 void TelnetCProfileHandler::sendStream(MemoryStream* s)
 {
 	if(isDestroyed_) return;
-
+	
+	std::string datas;
 	uint32 timinglen;
 	ArraySize size;
+
+	(*s) >> timinglen >> size;
+
+	datas = "ncalls\ttottime\tpercall\tcumtime\tpercall\tfilename:lineno(function)\r\n";
+
+	while(size-- > 0)
+	{
+		uint32 count;
+		float lastTime;
+		float sumTime;
+		float lastIntTime;
+		float sumIntTime;
+		std::string name;
+
+		(*s) >> name >> count >> lastTime >> sumTime >> lastIntTime >> sumIntTime;
+
+		char buf[256];
+		kbe_snprintf(buf, 256, "%u", count);
+		datas += buf;
+		datas += "\t";
+
+		kbe_snprintf(buf, 256, "%.3f", sumTime);
+		datas += buf;
+		datas += "\t";
+
+		kbe_snprintf(buf, 256, "%.3f", lastTime);
+		datas += buf;
+		datas += "\t";
+
+		kbe_snprintf(buf, 256, "%.3f", sumIntTime);
+		datas += buf;
+		datas += "\t";
+
+		kbe_snprintf(buf, 256, "%.3f", lastIntTime);
+		datas += buf;
+		datas += "\t";
+
+		datas += name;
+		datas += "\r\n";
+	};
+
+	pTelnetHandler_->onProfileEnd(datas);
 }
 
 //-------------------------------------------------------------------------------------
@@ -624,12 +675,127 @@ void TelnetEventProfileHandler::sendStream(MemoryStream* s)
 {
 	if(isDestroyed_) return;
 
+	std::string datas;
+	uint32 timinglen;
+	ArraySize size;
+
+	(*s) >> timinglen >> size;
+
+	if(size == 0)
+		datas += "results is empty!";
+
+	while(size-- > 0)
+	{
+		std::string type_name;
+		(*s) >> type_name;
+		
+		datas += (boost::format("Event Type:%1%\r\n\r\n(name|count|size)\r\n---------------------\r\n\r\n") % type_name).str();
+
+		KBEngine::ArraySize size1;
+		(*s) >> size1;
+
+		while(size1-- > 0)
+		{
+			uint32 count;
+			uint32 eventSize;
+			std::string name;
+
+			(*s) >> name >> count >> eventSize;
+			
+			if(count == 0)
+				continue;
+
+			datas += (boost::format("%1%\t\t\t\t\t%2%\t%3%\r\n") % name % count % eventSize).str();
+		}
+
+		datas += "\r\n\r\n";
+	};
+
+	pTelnetHandler_->onProfileEnd(datas);
 }
 
 //-------------------------------------------------------------------------------------
 void TelnetMercuryProfileHandler::sendStream(MemoryStream* s)
 {
 	if(isDestroyed_) return;
+
+	std::string datas;
+	uint32 timinglen;
+	ArraySize size;
+
+	(*s) >> timinglen >> size;
+
+	datas = "name\tsent#\tsize\tavg\ttotal#\ttotalsize\trecv#\tsize\tavg\ttotal#\ttotalsize\r\n";
+
+	while(size-- > 0)
+	{
+		std::string name;
+
+		uint32			send_size;
+		uint32			send_avgsize;
+		uint32			send_count;
+
+		uint32			total_send_size;
+		uint32			total_send_count;
+
+		uint32			recv_size;
+		uint32			recv_count;
+		uint32			recv_avgsize;
+
+		uint32			total_recv_size;
+		uint32			total_recv_count;
+
+		(*s) >> name >> send_count >> send_size >> send_avgsize >> total_send_size >> total_send_count;
+		(*s)  >> recv_count >> recv_size >> recv_avgsize >> total_recv_size >> total_recv_count;
+
+		char buf[256];
+
+		datas += name;
+		datas += "\t";
+
+		kbe_snprintf(buf, 256, "%u", send_count);
+		datas += buf;
+		datas += "\t";
+
+		kbe_snprintf(buf, 256, "%u", send_size);
+		datas += buf;
+		datas += "\t";
+
+		kbe_snprintf(buf, 256, "%u", send_avgsize);
+		datas += buf;
+		datas += "\t";
+
+		kbe_snprintf(buf, 256, "%u", total_send_count);
+		datas += buf;
+		datas += "\t";
+
+		kbe_snprintf(buf, 256, "%u", total_send_size);
+		datas += buf;
+		datas += "\t";
+
+		kbe_snprintf(buf, 256, "%u", recv_count);
+		datas += buf;
+		datas += "\t";
+
+		kbe_snprintf(buf, 256, "%u", recv_size);
+		datas += buf;
+		datas += "\t";
+
+		kbe_snprintf(buf, 256, "%u", recv_avgsize);
+		datas += buf;
+		datas += "\t";
+
+		kbe_snprintf(buf, 256, "%u", total_recv_count);
+		datas += buf;
+		datas += "\t";
+
+		kbe_snprintf(buf, 256, "%u", total_recv_size);
+		datas += buf;
+
+		datas += "\r\n";
+	};
+
+	pTelnetHandler_->onProfileEnd(datas);
 }
 
 //-------------------------------------------------------------------------------------

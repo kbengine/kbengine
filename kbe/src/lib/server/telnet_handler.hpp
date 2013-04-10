@@ -81,6 +81,7 @@ public:
 
 	void onProfileEnd(const std::string& datas);
 private:
+	void checkAfterStr();
 
 	int	handleInputNotification(int fd);
 	void onRecvInput();
