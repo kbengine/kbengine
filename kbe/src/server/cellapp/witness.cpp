@@ -352,7 +352,7 @@ void Witness::update()
 				{
 					Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 					MemoryStream* s1 = MemoryStream::ObjPool().createObject();
-					otherEntity->addVolatileDataToStream(s1);
+					otherEntity->addVolatileDataToStream(s1, pEntity_->getPosition());
 
 					(*pForwardBundle).newMessage(ClientInterface::onUpdateVolatileData);
 					(*pForwardBundle) << otherEntity->getID();

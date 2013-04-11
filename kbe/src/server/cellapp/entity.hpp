@@ -170,7 +170,7 @@ public:
 	/**
 		写Volatile数据到流
 	*/
-	void addVolatileDataToStream(MemoryStream* mstream);
+	void addVolatileDataToStream(MemoryStream* mstream, const Position3D& basePos);
 
 	/** 
 		脚本请求为当前所在space设置一个几何映射 

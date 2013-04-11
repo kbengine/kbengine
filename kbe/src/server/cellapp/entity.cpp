@@ -366,7 +366,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::addVolatileDataToStream(MemoryStream* mstream)
+void Entity::addVolatileDataToStream(MemoryStream* mstream, const Position3D& basePos)
 {
 }
 
