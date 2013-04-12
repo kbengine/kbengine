@@ -63,8 +63,9 @@ bool MoveToPointController::update()
 
 	if(KBEVec3Length(&movement) < velocity_ + range_)
 	{
+		float y = currpos.y;
 		currpos = dstPos;
-		
+
 		if(range_ > 0.0f)
 		{
 			// 单位化向量
@@ -72,6 +73,9 @@ bool MoveToPointController::update()
 			movement *= range_;
 			currpos -= movement;
 		}
+
+		if (!moveVertically_)
+			currpos.y = y;
 
 		ret = false;
 	}

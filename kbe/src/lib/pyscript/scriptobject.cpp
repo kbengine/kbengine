@@ -58,6 +58,7 @@ ScriptObject::~ScriptObject()
 	assert(this->ob_refcnt == 0);
 }
 
+//-------------------------------------------------------------------------------------
 PyObject* ScriptObject::tp_new(PyTypeObject* type, 
 	PyObject* args, PyObject* kwds)
 {

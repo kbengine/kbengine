@@ -94,17 +94,23 @@ int Script::run_simpleString(const char* command, std::string* retBufferPtr)
 		PyObject *m, *d, *v;
 		m = PyImport_AddModule("__main__");
 		if (m == NULL)
+		{
+			SCRIPT_ERROR_CHECK();
+			pyStdouterrHook_->uninstall();
 			return -1;
+		}
+
 		d = PyModule_GetDict(m);
 
 		v = PyRun_String(command, Py_single_input, d, d);
-
-		if (v == NULL) {
+		if (v == NULL) 
+		{
 			PyErr_Print();
+			pyStdouterrHook_->uninstall();
 			return -1;
 		}
-		Py_DECREF(v);
 
+		Py_DECREF(v);
 		SCRIPT_ERROR_CHECK();
 		
 		pyStdouterrHook_->uninstall();
