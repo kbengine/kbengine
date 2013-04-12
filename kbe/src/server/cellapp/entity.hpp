@@ -131,7 +131,7 @@ public:
 		脚本获取和设置entity的position 
 	*/
 	INLINE Position3D& getPosition();
-	void setPosition(Position3D& pos);
+	INLINE void setPosition(Position3D& pos);
 	DECLARE_PY_GETSET_MOTHOD(pyGetPosition, pySetPosition);
 
 	/** 
@@ -152,6 +152,9 @@ public:
 	*/
 	void setPositionAndDirection(Position3D& position, 
 		Direction3D& direction);
+	
+	void onPositionChanged();
+	void onDirectionChanged();
 
 	/** 网络接口
 		客户端设置新位置
@@ -211,6 +214,12 @@ public:
 	void onEnteringCell();
 	void onLeavingCell();
 	void onLeftCell();
+	
+	/**
+		脚本调试aoi
+	*/
+	void debugAOI();
+	DECLARE_PY_MOTHOD_ARG0(pyDebugAOI);
 
 	/** 
 		当前entity设置自身的Aoi半径范围 
@@ -275,9 +284,14 @@ public:
 	DECLARE_PY_GETSET_MOTHOD(pyGetTopSpeedY, pySetTopSpeedY);
 	
 	/** 
-		脚本请求获得一定范围类的某种类型的entities 
+		脚本请求获得一定范围内的某种类型的entities 
 	*/
-	DECLARE_PY_MOTHOD_ARG3(pyEntitiesInRange, float, PyObject_ptr, PyObject_ptr);
+	static PyObject* __py_pyEntitiesInRange(PyObject* self, PyObject* args);
+
+	/** 
+		脚本请求获得AOI范围内的entities 
+	*/
+	DECLARE_PY_MOTHOD_ARG0(pyEntitiesInAOI);
 public:
 	/** 网络接口
 		远程呼叫本entity的方法 

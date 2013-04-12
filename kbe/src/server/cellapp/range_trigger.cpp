@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "range_trigger.hpp"
 #include "range_list.hpp"
+#include "entity_range_node.hpp"
 
 #ifndef CODE_INLINE
 #include "range_trigger.ipp"
@@ -41,11 +42,14 @@ pRangeTrigger_(pRangeTrigger)
 #ifdef _DEBUG
 	descr((boost::format("RangeTriggerNode(origin=%1%->%2%)") % pRangeTrigger_->origin() % pRangeTrigger_->origin()->descr()).str());
 #endif
+
+	static_cast<EntityRangeNode*>(pRangeTrigger_->origin())->addWatcherNode(this);
 }
 
 //-------------------------------------------------------------------------------------
 RangeTriggerNode::~RangeTriggerNode()
 {
+	static_cast<EntityRangeNode*>(pRangeTrigger_->origin())->delWatcherNode(this);
 }
 
 //-------------------------------------------------------------------------------------

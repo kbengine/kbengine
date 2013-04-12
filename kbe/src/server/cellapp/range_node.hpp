@@ -107,7 +107,7 @@ public:
 		当节点有变动时，需要更新它在list中的
 		相关位置等信息
 	*/
-	void update();
+	virtual void update();
 
 #ifdef _DEBUG
 	void descr(const std::string& str){ descr_ = str; }

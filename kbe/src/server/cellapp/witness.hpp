@@ -114,6 +114,8 @@ public:
 	bool sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle);
 
 	typedef std::vector<EntityRef*> AOI_ENTITIES;
+
+	AOI_ENTITIES& aoiEntities(){ return aoiEntities_; }
 private:
 	Entity*									pEntity_;
 

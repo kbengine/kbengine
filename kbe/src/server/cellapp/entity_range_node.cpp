@@ -27,7 +27,8 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 EntityRangeNode::EntityRangeNode(Entity* pEntity):
 RangeNode(NULL),
-pEntity_(pEntity)
+pEntity_(pEntity),
+watcherNodes_()
 {
 	flags(RANGENODE_FLAG_ENTITY);
 
@@ -39,6 +40,7 @@ pEntity_(pEntity)
 //-------------------------------------------------------------------------------------
 EntityRangeNode::~EntityRangeNode()
 {
+	watcherNodes_.clear();
 }
 
 //-------------------------------------------------------------------------------------
@@ -60,6 +62,106 @@ float EntityRangeNode::y()const
 float EntityRangeNode::z()const
 {
 	return pEntity_->getPosition().z;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityRangeNode::update()
+{
+	RangeNode::update();
+	std::vector<RangeNode*>::iterator iter = watcherNodes_.begin();
+	for(; iter != watcherNodes_.end(); iter++)
+	{
+		(*iter)->update();
+	}
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityRangeNode::addWatcherNode(RangeNode* pNode)
+{
+	std::vector<RangeNode*>::iterator iter = std::find(watcherNodes_.begin(), watcherNodes_.end(), pNode);
+	if(iter != watcherNodes_.end())
+		return false;
+
+	watcherNodes_.push_back(pNode);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityRangeNode::delWatcherNode(RangeNode* pNode)
+{
+	std::vector<RangeNode*>::iterator iter = std::find(watcherNodes_.begin(), watcherNodes_.end(), pNode);
+	if(iter == watcherNodes_.end())
+		return false;
+
+	watcherNodes_.erase(iter);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityRangeNode::entitiesInRange(std::vector<Entity*>& findentities, RangeNode* rootNode, 
+									  const Position3D& orginpos, float radius, int entityUType)
+{
+	if((rootNode->flags() & RANGENODE_FLAG_ENTITY) > 0)
+	{
+		Entity* pEntity = static_cast<EntityRangeNode*>(rootNode)->pEntity();
+		if(entityUType == -1 || pEntity->getScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+		{
+			Position3D distVec = orginpos - pEntity->getPosition();
+			float dist = KBEVec3Length(&distVec);
+
+			if(dist <= radius)
+			{
+				findentities.push_back(pEntity);
+			}
+		}
+	}
+
+	RangeNode* pRangeNode = rootNode;
+	while(pRangeNode->pPrevX())
+	{
+		RangeNode* pPrevRangeNode = pRangeNode->pPrevX();
+		if((pPrevRangeNode->flags() & RANGENODE_FLAG_ENTITY) > 0)
+		{
+			Entity* pEntity = static_cast<EntityRangeNode*>(pPrevRangeNode)->pEntity();
+			
+			if(entityUType == -1 || pEntity->getScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+			{
+				Position3D distVec = orginpos - pEntity->getPosition();
+				float dist = KBEVec3Length(&distVec);
+
+				if(dist <= radius)
+				{
+					findentities.push_back(pEntity);
+				}
+			}
+		}
+
+		pRangeNode = pPrevRangeNode;
+	};
+
+	pRangeNode = rootNode;
+	
+	while(pRangeNode->pNextX())
+	{
+		RangeNode* pNextRangeNode = pRangeNode->pNextX();
+		if((pNextRangeNode->flags() & RANGENODE_FLAG_ENTITY) > 0)
+		{
+			Entity* pEntity = static_cast<EntityRangeNode*>(pNextRangeNode)->pEntity();
+			
+			if(entityUType == -1 || pEntity->getScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+			{
+				Position3D distVec = orginpos - pEntity->getPosition();
+				float dist = KBEVec3Length(&distVec);
+
+				if(dist <= radius)
+				{
+					findentities.push_back(pEntity);
+				}
+			}
+		}
+
+		pRangeNode = pNextRangeNode;
+	};
 }
 
 //-------------------------------------------------------------------------------------

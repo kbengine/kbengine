@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define __KBE_ENTITY_RANGE_NODE_HPP__
 
 #include "range_node.hpp"
+#include "math/math.hpp"
 
 namespace KBEngine{
 
@@ -40,9 +41,19 @@ public:
 	virtual float y()const;
 	virtual float z()const;
 
+	virtual void update();
+
 	Entity* pEntity()const { return pEntity_; }
+
+	bool addWatcherNode(RangeNode* pNode);
+	bool delWatcherNode(RangeNode* pNode);
+
+	static void entitiesInRange(std::vector<Entity*>& findentities, RangeNode* rootNode, 
+		const Position3D& orginpos, float radius, int entityUType = -1);
 protected:
 	Entity* pEntity_;
+
+	std::vector<RangeNode*> watcherNodes_;
 };
 
 }

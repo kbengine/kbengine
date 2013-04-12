@@ -56,8 +56,10 @@ SCRIPT_METHOD_DECLARE("navigateStep",				pyNavigateStep,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToEntity",				pyMoveToEntity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInRange",			pyEntitiesInRange,				METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("entitiesInAOI",				pyEntitiesInAOI,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("teleport",					pyTeleport,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("destroySpace",				pyDestroySpace,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("debugAOI",					pyDebugAOI,						METH_VARARGS,				0)
 ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
@@ -658,7 +660,9 @@ int Entity::pySetPosition(PyObject *value)
 	if(!script::ScriptVector3::check(value))
 		return -1;
 
-	script::ScriptVector3::convertPyObjectToVector3(getPosition(), value);
+	Position3D pos;
+	script::ScriptVector3::convertPyObjectToVector3(pos, value);
+	setPosition(pos);
 	return 0;
 }
 
@@ -673,6 +677,7 @@ void Entity::setPosition_XZ_int(Mercury::Channel* pChannel, int32 x, int32 z)
 {
 	getPosition().x = float(x);
 	getPosition().z = float(z);
+	onPositionChanged();
 }
 
 //-------------------------------------------------------------------------------------
@@ -681,6 +686,7 @@ void Entity::setPosition_XYZ_int(Mercury::Channel* pChannel, int32 x, int32 y, i
 	getPosition().x = float(x);
 	getPosition().y = float(y);
 	getPosition().z = float(z);
+	onPositionChanged();
 }
 
 //-------------------------------------------------------------------------------------
@@ -688,6 +694,7 @@ void Entity::setPosition_XZ_float(Mercury::Channel* pChannel, float x, float z)
 {
 	getPosition().x = x;
 	getPosition().z = z;
+	onPositionChanged();
 }
 
 //-------------------------------------------------------------------------------------
@@ -696,6 +703,7 @@ void Entity::setPosition_XYZ_float(Mercury::Channel* pChannel, float x, float y,
 	getPosition().x = x;
 	getPosition().y = y;
 	getPosition().z = z;
+	onPositionChanged();
 }
 
 //-------------------------------------------------------------------------------------
@@ -736,16 +744,21 @@ PyObject* Entity::pyGetDirection()
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::setPosition(Position3D& pos)
-{ 
-	position_ = pos; 
-}
-
-//-------------------------------------------------------------------------------------
 void Entity::setPositionAndDirection(Position3D& position, Direction3D& direction)
 {
 	setPosition(position);
 	setDirection(direction);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onPositionChanged()
+{
+	this->pEntityRangeNode()->update();
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onDirectionChanged()
+{
 }
 
 //-------------------------------------------------------------------------------------
@@ -934,15 +947,147 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyEntitiesInRange(float radius, PyObject_ptr pyEntityType, PyObject_ptr pyPosition)
+void Entity::debugAOI()
 {
+	if(pWitness_ == NULL)
+	{
+		ERROR_MSG(boost::format("%1%::debugAOI: %2% has no witness!\n") % getScriptName() % this->getID());
+		return;
+	}
 	
+	INFO_MSG(boost::format("%1%::debugAOI: %2% size=%3%\n") % getScriptName() % this->getID() % 
+		pWitness_->aoiEntities().size());
+
+	Witness::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
+	for(; iter != pWitness_->aoiEntities().end(); iter++)
+	{
+		Entity* pEntity = (*iter)->pEntity();
+		Position3D epos;
+		float dist = 0.0f;
+
+		if(pEntity)
+		{
+			epos = pEntity->getPosition();
+			Vector3 distvec = epos - this->getPosition();
+			dist = KBEVec3Length(&distvec);
+		}
+
+		INFO_MSG(boost::format("%8%::debugAOI: %1% %2%(%3%), position(%4%.%5%.%6%), dist=%7%\n") % 
+			this->getID() % 
+			(pEntity != NULL ? pEntity->getScriptName() : "unknown") % 
+			(*iter)->id() % 
+			epos.x % epos.y % epos.z %
+			dist % 
+			this->getScriptName());
+	}
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyDebugAOI()
+{
+	debugAOI();
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyEntitiesInAOI()
+{
+	PyObject* pyList = PyList_New(pWitness_->aoiEntities().size());
+
+	Witness::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
+	int i = 0;
+	for(; iter != pWitness_->aoiEntities().end(); iter++)
+	{
+		Entity* pEntity = (*iter)->pEntity();
+
+		if(pEntity)
+		{
+			Py_INCREF(pEntity);
+			PyList_SET_ITEM(pyList, i++, pEntity);
+		}
+	}
+
+	return pyList;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
+{
+	uint16 currargsSize = PyTuple_Size(args);
+	Entity* pobj = static_cast<Entity*>(self);
+	PyObject* pyPosition = NULL, *pyEntityType = NULL;
+	float radius = 0.f;
+
+	if(currargsSize == 1)
+	{
+		if(PyArg_ParseTuple(args, "f", &radius) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args is error!");
+			PyErr_PrintEx(0);
+			S_Return;
+		}
+	}
+	else if(currargsSize == 2)
+	{
+		if(PyArg_ParseTuple(args, "fO", &radius, &pyEntityType) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args is error!");
+			PyErr_PrintEx(0);
+			S_Return;
+		}
+
+		if(pyEntityType != Py_None && !PyUnicode_Check(pyEntityType))
+		{
+			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(entityType) is error!");
+			PyErr_PrintEx(0);
+			S_Return;
+		}
+
+	}
+	else if(currargsSize == 3)
+	{
+		if(PyArg_ParseTuple(args, "fOO", &radius, &pyEntityType, &pyPosition) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args is error!");
+			PyErr_PrintEx(0);
+			S_Return;
+		}
+		
+		if(pyEntityType != Py_None && !PyUnicode_Check(pyEntityType))
+		{
+			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(entityType) is error!");
+			PyErr_PrintEx(0);
+			S_Return;
+		}
+
+		if(!PySequence_Check(pyPosition) || PySequence_Size(pyPosition) < 3)
+		{
+			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(position) is error!");
+			PyErr_PrintEx(0);
+			S_Return;
+		}
+	}
+	else
+	{
+		PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args is error!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
 	char* pEntityType = NULL;
-	Position3D pos;
+	Position3D orginpos;
 	
 	// 将坐标信息提取出来
-	script::ScriptVector3::convertPyObjectToVector3(pos, pyPosition);
-	if(pyEntityType != Py_None)
+	if(pyPosition)
+	{
+		script::ScriptVector3::convertPyObjectToVector3(orginpos, pyPosition);
+	}
+	else
+	{
+		orginpos = pobj->getPosition();
+	}
+
+	if(pyEntityType && pyEntityType != Py_None)
 	{
 		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyEntityType, NULL);
 		pEntityType = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
@@ -950,40 +1095,38 @@ PyObject* Entity::pyEntitiesInRange(float radius, PyObject_ptr pyEntityType, PyO
 	}
 	
 	int entityUType = -1;
-
+	
 	if(pEntityType)
 	{
 		ScriptDefModule* sm = EntityDef::findScriptModule(pEntityType);
 		if(sm == NULL)
 		{
-			PyErr_Format(PyExc_AssertionError, "Entity::entitiesInRange: entityType[%s] not found.\n", pEntityType);
-			PyErr_PrintEx(0);
 			free(pEntityType);
-			return 0;
+			return PyList_New(0);
 		}
 
 		free(pEntityType);
 		entityUType = sm->getUType();
 	}
-
-/*
-	// 查询所有范围内的entity
-	Chunk* currChunk = entity->getAtChunk();
-	if(currChunk != NULL && radius > 0.0f)
-		currChunk->getSpace()->getRangeEntities(currChunk, pos, radius, &viewEntities, entityUType);
 	
-	// 将结果返回给脚本
-	PyObject* pyList = PyList_New(viewEntities.size());
-	std::vector<std::pair<Entity*, float>>::iterator iter = viewEntities.begin();
-	while(iter != viewEntities.end())
+	std::vector<Entity*> findentities;
+
+	// 用户总是期望在entity附近搜寻， 因此我们从身边搜索
+	EntityRangeNode::entitiesInRange(findentities,  pobj->pEntityRangeNode(), orginpos, radius, entityUType);
+
+	PyObject* pyList = PyList_New(findentities.size());
+
+	std::vector<Entity*>::iterator iter = findentities.begin();
+	int i = 0;
+	for(; iter != findentities.end(); iter++)
 	{
-		Entity* e = iter->first;
-		Py_INCREF(e);
-		PyList_SET_ITEM(pyList, i++, e);
-		iter++;
+		Entity* pEntity = (*iter);
+
+		Py_INCREF(pEntity);
+		PyList_SET_ITEM(pyList, i++, pEntity);
 	}
 
-	return pyList;*/return 0;
+	return pyList;
 }
 
 //-------------------------------------------------------------------------------------

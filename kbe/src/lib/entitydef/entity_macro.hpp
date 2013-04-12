@@ -586,7 +586,6 @@ public:																										\
 			{																								\
 				PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args1 not is callback!");				\
 				PyErr_PrintEx(0);																			\
-				Py_DECREF(pycallback);																		\
 				S_Return;																					\
 			}																								\
 		}																									\

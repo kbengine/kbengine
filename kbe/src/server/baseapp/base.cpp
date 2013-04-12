@@ -652,19 +652,19 @@ void Base::writeToDB(void* data)
 
 	if(isArchiveing_)
 	{
-		if(pyCallback != NULL)
-			Py_DECREF(pyCallback);
-
+		// __py_pyWriteToDB没有增加引用
+		//if(pyCallback != NULL)
+		//	Py_DECREF(pyCallback);
 		return;
 	}
 
 	isArchiveing_ = true;
 
 	if(isDestroyed())																				
-	{			
-		if(pyCallback != NULL)
-			Py_DECREF(pyCallback);
-
+	{	
+		// __py_pyWriteToDB没有增加引用
+		//if(pyCallback != NULL)
+		//	Py_DECREF(pyCallback);
 		return;																							
 	}
 
