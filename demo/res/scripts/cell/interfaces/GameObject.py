@@ -52,20 +52,22 @@ class GameObject(KBEngine.Entity):
 		"""
 		DEBUG_MSG("%s::onWitnessed: %i isWitnessed=%i." % (self.getScriptName(), self.id, isWitnessed))
 		
-	def onEnterTrap(self, entity, range_xz, range_y, controllerID):
+	def onEnterTrap(self, entity, range_xz, range_y, controllerID, userarg):
 		"""
 		KBEngine method.
 		引擎回调进入陷阱触发
 		"""
-		DEBUG_MSG("%s::onEnterTrap: %i entity=%i, range_xz=%s, range_y=%s, controllerID=%i" % \
-						(self.getScriptName(), self.id, entity.id, range_xz, range_y, controllerID))
+		if entity.getScriptName() == "Avatar":
+			DEBUG_MSG("%s::onEnterTrap: %i entity=%i, range_xz=%s, range_y=%s, controllerID=%i, userarg=%i" % \
+							(self.getScriptName(), self.id, entity.id, range_xz, range_y, controllerID, userarg))
 
 	def onLeaveTrap(self, entity, range_xz, range_y, controllerID):
 		"""
 		KBEngine method.
 		引擎回调离开陷阱触发
 		"""
-		DEBUG_MSG("%s::onLeaveTrap: %i entity=%i, range_xz=%s, range_y=%s, controllerID=%i" % \
-						(self.getScriptName(), self.id, entity.id, range_xz, range_y, controllerID))
+		if entity.getScriptName() == "Avatar":
+			DEBUG_MSG("%s::onLeaveTrap: %i entity=%i, range_xz=%s, range_y=%s, controllerID=%i, userarg=%i" % \
+							(self.getScriptName(), self.id, entity.id, range_xz, range_y, controllerID, userarg))
 						
 GameObject._timermap = {}

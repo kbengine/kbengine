@@ -29,28 +29,6 @@ class Monster(GameObject, Combat, Spell):
 		self.delTimer(self.heartBeatTimerID)
 		self.heartBeatTimerID = 0
 		
-	def onEnterTrap(self, entity, range, trapID):
-		"""
-		KBEngine method.
-		一个entity进入了自己所投放的某个陷阱区域
-		@param entity	: 被捕获到的entity
-		@param range	: 被捕获到的entity离自身的距离
-		@param trapID	: 这个陷阱的唯一ID addProximity的返回值
-		"""
-		if entity.__class__.__name__ == "Avatar":
-			DEBUG_MSG("entity:%s %d enterTrap. trapID=%i, range=%f" % (entity.__class__.__name__, entity.id, trapID, range))
-	
-	def onLeaveTrap(self, entity, range, trapID):
-		"""
-		KBEngine method.
-		一个entity离开了自己所投放的某个陷阱区域
-		@param entity	: 被捕获到的entity
-		@param range	: 被捕获到的entity离自身的距离
-		@param trapID	: 这个陷阱的唯一ID addProximity的返回值
-		"""
-		if entity.__class__.__name__ == "Avatar":
-			DEBUG_MSG("entity:%s %d leaveTrap. trapID=%i, range=%f" % (entity.__class__.__name__, entity.id, trapID, range))
-			
 	def onWitnessed(self, isWitnessed):
 		"""
 		KBEngine method.
