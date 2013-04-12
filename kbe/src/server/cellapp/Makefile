@@ -22,6 +22,8 @@ SRCS =						\
 	updatable				\
 	updatables				\
 	witness					\
+	movetoentity_controller			\
+	movetopoint_controller			\
 	profile					\
 	proximity_controller			\
 	range_node				\

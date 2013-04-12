@@ -172,6 +172,21 @@ inline bool Vector4::isFinite() const {
 }
 
 //----------------------------------------------------------------------------
+inline void Vector4::normalise()
+{
+    float fLength = length();
+
+	if (!(fLength < 0.00000001f && fLength > -0.00000001f))
+	{
+        float fInvLength = 1.f / fLength;
+        x *= fInvLength;
+        y *= fInvLength;
+		z *= fInvLength;
+		w *= fInvLength;
+	}
+}
+
+//----------------------------------------------------------------------------
 
 inline bool Vector4::isUnit() const {
     return squaredLength() == 1.0;

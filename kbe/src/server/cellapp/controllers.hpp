@@ -34,8 +34,6 @@ public:
 	bool add(Controller* pController);
 	bool remove(Controller* pController);
 	bool remove(uint32 id);
-
-	void update();
 	
 	uint32 freeID(){ return ++lastid_; }
 private:

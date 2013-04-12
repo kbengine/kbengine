@@ -44,6 +44,7 @@ bool Controllers::add(Controller* pController)
 
 	objects_[id].reset(pController);
 	pController->id(id);
+	pController->pControllers(this);
 	return true;
 }
 
@@ -58,18 +59,6 @@ bool Controllers::remove(uint32 id)
 {
 	objects_.erase(id);
 	return true;
-}
-
-//-------------------------------------------------------------------------------------
-void Controllers::update()
-{
-	AUTO_SCOPED_PROFILE("updateControllers");
-
-	std::map<uint32, KBEShared_ptr< Controller > >::iterator iter = objects_.begin();
-	for(; iter != objects_.end(); iter++)
-	{
-		iter->second->update();
-	}
 }
 
 //-------------------------------------------------------------------------------------

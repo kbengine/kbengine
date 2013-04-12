@@ -67,7 +67,7 @@ class Monster(GameObject, Combat, Spell):
 		self.isMoving = True
 		self.moveWaitCount = 0
 		
-	def onMove(self, userData):
+	def onMove(self, controllerId, userarg):
 		"""
 		KBEngine method.
 		使用引擎的任何移动相关接口， 在entity一次移动完成时均会调用此接口

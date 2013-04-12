@@ -242,6 +242,8 @@ public:
         return squaredMagnitude();
     }
 
+    inline void normalise();
+
     float dot(const Vector3& rkVector) const;
     
     float G3D_DEPRECATED unitize(float fTolerance = 1e-06);

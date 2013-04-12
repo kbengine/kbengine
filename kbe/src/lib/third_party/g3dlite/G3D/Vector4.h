@@ -103,7 +103,9 @@ public:
     inline float sum() const {
         return x + y + z + w;
     }
-
+	
+	inline void normalise();
+	
     /** Returns true if this vector has finite length */
     bool isFinite() const;
 

@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class Entity;
+class Controllers;
 
 /*
 	控制器， 管理trap、Vision等。
@@ -36,22 +37,24 @@ class Entity;
 class Controller
 {
 public:
-	Controller(Entity* pEntity, uint32 userarg, uint32 id = 0);
+	Controller(Entity* pEntity, int32 userarg, uint32 id = 0);
 	virtual ~Controller();
-
-	virtual void update() {}
 	
 	uint32 id(){ return id_; }
 	void id(uint32 v){ id_ = v; }
 	
-	uint32 userarg()const{ return userarg_; }
+	int32 userarg()const{ return userarg_; }
 	
 	Entity* pEntity()const{ return pEntity_; }
+	
+	void pControllers(Controllers* v){ pControllers_ = v; }
 protected:
 	uint32 id_;
 	Entity* pEntity_;
 	
-	uint32 userarg_;
+	int32 userarg_;
+	
+	Controllers* pControllers_;
 
 };
 

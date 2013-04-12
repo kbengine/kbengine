@@ -141,6 +141,12 @@ public:
 	INLINE void setDirection(Direction3D& dir);
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
 	
+	/**
+		是否在地面上
+	*/
+	INLINE void isOnGround(bool v);
+	INLINE bool isOnGround()const;
+
 	/** 
 		设置entity方向和位置 
 	*/
@@ -237,20 +243,22 @@ public:
 					bool faceMovement, float girth, PyObject* userData);
 
 	DECLARE_PY_MOTHOD_ARG7(pyNavigateStep, PyObject_ptr, float, float, float, int8, float, PyObject_ptr);
-	
-	/** 
-		停止任何方式的移动行为 
-	*/
-	bool stopMove();
-	DECLARE_PY_MOTHOD_ARG0(pyStopMove);
 
 	/** 
 		entity移动到某个点 
 	*/
-	bool moveToPoint(const Position3D& destination, float velocity, 
+	uint32 moveToPoint(const Position3D& destination, float velocity, 
 			PyObject* userData, bool faceMovement, bool moveVertically);
 	
 	DECLARE_PY_MOTHOD_ARG5(pyMoveToPoint, PyObject_ptr, float, PyObject_ptr, int32, int32);
+
+	/** 
+		entity移动到某个entity 
+	*/
+	uint32 moveToEntity(ENTITY_ID targetID, float velocity, 
+			PyObject* userData, bool faceMovement, bool moveVertically);
+	
+	DECLARE_PY_MOTHOD_ARG5(pyMoveToEntity, int32, float, PyObject_ptr, int32, int32);
 
 	/** 
 		脚本获取和设置entity的最高xz移动速度 
@@ -275,21 +283,6 @@ public:
 		远程呼叫本entity的方法 
 	*/
 	void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
-
-	/** 
-		设置这个entity当前所在chunk的ID 
-	*/
-	//void setCurrentChunk(Chunk* chunk){ Chunk* oldchunk = currChunk_; currChunk_ = chunk; onCurrentChunkChanged(oldchunk); }
-
-	/** 
-		当前chunk被改变 
-	*/
-	//void onCurrentChunkChanged(Chunk* oldChunk);
-
-	/** 
-		获得这个entity当前所在chunk的ID 
-	*/
-	//Chunk* getAtChunk(void)const{ return currChunk_; }
 
 	/**
 		观察者
@@ -340,8 +333,8 @@ public:
 	/** 
 		添加一个陷阱 
 	*/
-	uint32 addProximity(float range_xz, float range_y, uint32 userarg);
-	DECLARE_PY_MOTHOD_ARG3(pyAddProximity, float, float, uint32);
+	uint32 addProximity(float range_xz, float range_y, int32 userarg);
+	DECLARE_PY_MOTHOD_ARG3(pyAddProximity, float, float, int32);
 
 	/** 
 		删除一个陷阱 
@@ -353,25 +346,30 @@ public:
 		一个entity进入了这个entity的某个陷阱 
 	*/
 	void onEnterTrap(Entity* entity, float range_xz, float range_y, 
-							uint32 controllerID, uint32 userarg);
+							uint32 controllerID, int32 userarg);
 
 	/** 
 		一个entity离开了这个entity的某个陷阱 
 	*/
 	void onLeaveTrap(Entity* entity, float range_xz, float range_y, 
-							uint32 controllerID, uint32 userarg);
+							uint32 controllerID, int32 userarg);
 
 	/** 
 		当entity跳到一个新的space上去后，离开陷阱陷阱事件将触发这个接口 
 	*/
 	void onLeaveTrapID(ENTITY_ID entityID, 
 							float range_xz, float range_y, 
-							uint32 controllerID, uint32 userarg);
+							uint32 controllerID, int32 userarg);
 
 	/** 
 		entity的一次移动完成 
 	*/
-	void onMove(PyObject* userData);
+	void onMove(uint32 controllerId, PyObject* userarg);
+
+	/** 
+		entity移动失败
+	*/
+	void onMoveFailure(uint32 controllerId, PyObject* userarg);
 
 	/**
 		获取自身在space的entities中的位置
@@ -396,7 +394,7 @@ protected:
 	Direction3D								direction_;							// entity的当前方向
 
 	bool									isReal_;							// 自己是否是一个realEntity
-
+	bool									isOnGround_;						// 是否在地面上
 
 	float									topSpeed_;							// entity x,z轴最高移动速度
 	float									topSpeedY_;							// entity y轴最高移动速度

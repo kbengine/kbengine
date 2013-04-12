@@ -60,9 +60,16 @@ void Updatables::update()
 	AUTO_SCOPED_PROFILE("callUpdates");
 
 	std::map<uint32, Updatable*>::iterator iter = objects_.begin();
-	for(; iter != objects_.end(); iter++)
+	for(; iter != objects_.end(); )
 	{
-		iter->second->update();
+		if(!iter->second->update())
+		{
+			objects_.erase(iter++);
+		}
+		else
+		{
+			++iter;
+		}
 	}
 }
 

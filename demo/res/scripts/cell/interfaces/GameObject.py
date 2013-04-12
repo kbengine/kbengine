@@ -61,7 +61,7 @@ class GameObject(KBEngine.Entity):
 			DEBUG_MSG("%s::onEnterTrap: %i entity=%i, range_xz=%s, range_y=%s, controllerID=%i, userarg=%i" % \
 							(self.getScriptName(), self.id, entity.id, range_xz, range_y, controllerID, userarg))
 
-	def onLeaveTrap(self, entity, range_xz, range_y, controllerID):
+	def onLeaveTrap(self, entity, range_xz, range_y, controllerID, userarg):
 		"""
 		KBEngine method.
 		引擎回调离开陷阱触发
@@ -69,5 +69,21 @@ class GameObject(KBEngine.Entity):
 		if entity.getScriptName() == "Avatar":
 			DEBUG_MSG("%s::onLeaveTrap: %i entity=%i, range_xz=%s, range_y=%s, controllerID=%i, userarg=%i" % \
 							(self.getScriptName(), self.id, entity.id, range_xz, range_y, controllerID, userarg))
+
+	def onMove(self, controllerId, userarg):
+		"""
+		KBEngine method.
+		使用引擎的任何移动相关接口， 在entity一次移动完成时均会调用此接口
+		"""
+		DEBUG_MSG("%s::onMove: %i controllerId =%i, userarg=%s" % \
+						(self.getScriptName(), self.id, controllerId, userarg))
+
+	def onMoveFailure(self, controllerId, userarg):
+		"""
+		KBEngine method.
+		使用引擎的任何移动相关接口， 在entity一次移动完成时均会调用此接口
+		"""
+		DEBUG_MSG("%s::onMove: %i controllerId =%i, userarg=%s" % \
+						(self.getScriptName(), self.id, controllerId, userarg))
 						
 GameObject._timermap = {}

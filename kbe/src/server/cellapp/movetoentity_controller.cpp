@@ -18,43 +18,48 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "trap_trigger.hpp"
+#include "cellapp.hpp"
 #include "entity.hpp"
-#include "proximity_controller.hpp"	
-#include "entity_range_node.hpp"
+#include "movetoentity_controller.hpp"	
 
 namespace KBEngine{	
 
 
 //-------------------------------------------------------------------------------------
-ProximityController::ProximityController(Entity* pEntity, float xz, float y, int32 userarg, uint32 id):
-Controller(pEntity, userarg, id),
-pTrapTrigger_(NULL)
+MoveToEntityController::MoveToEntityController(Entity* pEntity, ENTITY_ID pTargetID, float velocity, bool faceMovement, 
+		bool moveVertically, PyObject* userarg, uint32 id):
+MoveToPointController(pEntity, pEntity->getPosition(), velocity, faceMovement, moveVertically, userarg, id),
+pTargetID_(pTargetID)
 {
-	pTrapTrigger_ = new TrapTrigger(static_cast<EntityRangeNode*>(pEntity->pEntityRangeNode()), 
-								this, xz, y);
-
-	pTrapTrigger_->install();
 }
 
 //-------------------------------------------------------------------------------------
-ProximityController::~ProximityController()
+MoveToEntityController::~MoveToEntityController()
 {
-	pTrapTrigger_->uninstall();
-	delete pTrapTrigger_;
 }
 
 //-------------------------------------------------------------------------------------
-void ProximityController::onEnter(Entity* pEntity, float xz, float y)
+const Position3D& MoveToEntityController::destPos()
 {
-	pEntity_->onEnterTrap(pEntity, xz, y, id(), userarg());
+	Entity* pEntity = Cellapp::getSingleton().findEntity(pTargetID_);
+	return pEntity->getPosition();
 }
 
 //-------------------------------------------------------------------------------------
-void ProximityController::onLeave(Entity* pEntity, float xz, float y)
+bool MoveToEntityController::update()
 {
-	pEntity_->onLeaveTrap(pEntity, xz, y, id(), userarg());
+	Entity* pEntity = Cellapp::getSingleton().findEntity(pTargetID_);
+	if(pEntity == NULL)
+	{
+		pEntity_->onMoveFailure(id(), pyuserarg_);
+
+		delete this;
+		return false;
+	}
+
+	return MoveToPointController::update();
 }
 
 //-------------------------------------------------------------------------------------
 }
+

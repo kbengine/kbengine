@@ -27,7 +27,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "all_clients.hpp"
 #include "controllers.hpp"	
 #include "entity_range_node.hpp"
-#include "proximity_controller.hpp"	
+#include "proximity_controller.hpp"
+#include "movetopoint_controller.hpp"	
+#include "movetoentity_controller.hpp"	
 #include "entitydef/entity_mailbox.hpp"
 #include "network/channel.hpp"	
 #include "network/bundle.hpp"	
@@ -52,7 +54,7 @@ SCRIPT_METHOD_DECLARE("addProximity",				pyAddProximity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("cancel",						pyCancelController,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("navigateStep",				pyNavigateStep,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("stopMove",					pyStopMove,						METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("moveToEntity",				pyMoveToEntity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInRange",			pyEntitiesInRange,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("teleport",					pyTeleport,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("destroySpace",				pyDestroySpace,					METH_VARARGS,				0)
@@ -82,6 +84,7 @@ ENTITY_CONSTRUCTION(Entity),
 clientMailbox_(NULL),
 baseMailbox_(NULL),
 isReal_(true),
+isOnGround_(false),
 topSpeed_(-0.1f),
 topSpeedY_(-0.1f),
 witnessedNum_(0),
@@ -513,12 +516,6 @@ void Entity::onWriteToDB()
 }
 
 //-------------------------------------------------------------------------------------
-/*
-void Entity::onCurrentChunkChanged(Chunk* oldChunk)
-{
-}
-*/
-//-------------------------------------------------------------------------------------
 PyObject* Entity::pyIsReal()
 {
 	return PyBool_FromLong(isReal());
@@ -581,7 +578,7 @@ PyObject* Entity::pyHasWitness()
 }
 
 //-------------------------------------------------------------------------------------
-uint32 Entity::addProximity(float range_xz, float range_y, uint32 userarg)
+uint32 Entity::addProximity(float range_xz, float range_y, int32 userarg)
 {
 	if(range_xz <= 0.0f || (RangeList::hasY && range_y <= 0.0f))
 	{
@@ -599,7 +596,7 @@ uint32 Entity::addProximity(float range_xz, float range_y, uint32 userarg)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyAddProximity(float range_xz, float range_y, uint32 userarg)
+PyObject* Entity::pyAddProximity(float range_xz, float range_y, int32 userarg)
 {
 	return PyLong_FromLong(addProximity(range_xz, range_y, userarg));
 }
@@ -622,30 +619,30 @@ PyObject* Entity::pyCancelController(uint32 id)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onEnterTrap(Entity* entity, float range_xz, float range_y, uint32 controllerID, uint32 userarg)
+void Entity::onEnterTrap(Entity* entity, float range_xz, float range_y, uint32 controllerID, int32 userarg)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS4(this, const_cast<char*>("onEnterTrap"), 
-		const_cast<char*>("OffI"), entity, range_xz, range_y, controllerID);
+	SCRIPT_OBJECT_CALL_ARGS5(this, const_cast<char*>("onEnterTrap"), 
+		const_cast<char*>("OffIi"), entity, range_xz, range_y, controllerID, userarg);
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onLeaveTrap(Entity* entity, float range_xz, float range_y, uint32 controllerID, uint32 userarg)
+void Entity::onLeaveTrap(Entity* entity, float range_xz, float range_y, uint32 controllerID, int32 userarg)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS4(this, const_cast<char*>("onLeaveTrap"), 
-		const_cast<char*>("OffI"), entity, range_xz, range_y, controllerID);
+	SCRIPT_OBJECT_CALL_ARGS5(this, const_cast<char*>("onLeaveTrap"), 
+		const_cast<char*>("OffIi"), entity, range_xz, range_y, controllerID, userarg);
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onLeaveTrapID(ENTITY_ID entityID, float range_xz, float range_y, uint32 controllerID, uint32 userarg)
+void Entity::onLeaveTrapID(ENTITY_ID entityID, float range_xz, float range_y, uint32 controllerID, int32 userarg)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS4(this, const_cast<char*>("onLeaveTrapID"), 
-		const_cast<char*>("kffi"), entityID, range_xz, range_y, controllerID);
+	SCRIPT_OBJECT_CALL_ARGS5(this, const_cast<char*>("onLeaveTrapID"), 
+		const_cast<char*>("kffIi"), entityID, range_xz, range_y, controllerID, userarg);
 }
 
 //-------------------------------------------------------------------------------------
@@ -742,17 +739,13 @@ PyObject* Entity::pyGetDirection()
 void Entity::setPosition(Position3D& pos)
 { 
 	position_ = pos; 
-//	if(currChunk_ != NULL)
-//		currChunk_->getSpace()->onEntityPositionChanged(this, currChunk_, position_);
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::setPositionAndDirection(Position3D& position, Direction3D& direction)
 {
-	position_ = position;
-	direction_ = direction;
-//	if(currChunk_ != NULL)
-//		currChunk_->getSpace()->onEntityPositionChanged(this, currChunk_, position_);
+	setPosition(position);
+	setDirection(direction);
 }
 
 //-------------------------------------------------------------------------------------
@@ -851,6 +844,8 @@ bool Entity::navigateStep(const Position3D& destination, float velocity, float m
 		getScriptName() % id_ % destination.x % destination.y % destination.z % velocity % maxMoveDistance %
 		maxDistance % faceMovement % girth % userData);
 
+	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
+
 	return true;
 }
 
@@ -873,11 +868,18 @@ PyObject* Entity::pyNavigateStep(PyObject_ptr pyDestination, float velocity, flo
 }
 
 //-------------------------------------------------------------------------------------
-bool Entity::moveToPoint(const Position3D& destination, float velocity, PyObject* userData, 
+uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObject* userData, 
 						 bool faceMovement, bool moveVertically)
 {
-//	EntityMoveControllerMgr::addMovement(id_, new EntityMoveToPointController(this, destination, velocity, userData, faceMovement, moveVertically));
-	return true;
+	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
+
+	MoveToPointController* p = new MoveToPointController(this, destination, velocity, 
+		faceMovement, moveVertically, userData, pControllers_->freeID());
+
+	bool ret = pControllers_->add(p);
+	KBE_ASSERT(ret);
+
+	return p->id();
 }
 
 //-------------------------------------------------------------------------------------
@@ -890,62 +892,81 @@ PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, PyOb
 	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
 	Py_INCREF(userData);
 
-	if(moveToPoint(destination, velocity, userData, faceMovement > 0, moveVertically > 0)){
-		Py_RETURN_TRUE;
-	}
-
-	Py_RETURN_FALSE;
+	return PyLong_FromLong(moveToPoint(destination, velocity, userData, faceMovement > 0, moveVertically > 0));
 }
 
 //-------------------------------------------------------------------------------------
-bool Entity::stopMove()
+uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, PyObject* userData, 
+						 bool faceMovement, bool moveVertically)
 {
-	return true;
+	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
+
+	MoveToEntityController* p = new MoveToEntityController(this, targetID, velocity, 
+		faceMovement, moveVertically, userData, pControllers_->freeID());
+
+	bool ret = pControllers_->add(p);
+	KBE_ASSERT(ret);
+
+	return p->id();
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyStopMove()
+PyObject* Entity::pyMoveToEntity(ENTITY_ID targetID, float velocity, PyObject_ptr userData,
+								 int32 faceMovement, int32 moveVertically)
 {
-	return PyBool_FromLong(stopMove());
+	Py_INCREF(userData);
+	return PyLong_FromLong(moveToEntity(targetID, velocity, userData, faceMovement > 0, moveVertically > 0));
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onMove(PyObject* userData)
+void Entity::onMove(uint32 controllerId, PyObject* userarg)
 {
 	SCOPED_PROFILE(ONMOVE_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onMove"), const_cast<char*>("O"), userData);
+	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMove"), 
+		const_cast<char*>("IO"), controllerId, userarg);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
+{
+	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 
+		const_cast<char*>("IO"), controllerId, userarg);
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyEntitiesInRange(float radius, PyObject_ptr pyEntityType, PyObject_ptr pyPosition)
 {
-	/*
-	std::string entityType = "";
+	
+	char* pEntityType = NULL;
 	Position3D pos;
 	
 	// 将坐标信息提取出来
 	script::ScriptVector3::convertPyObjectToVector3(pos, pyPosition);
 	if(pyEntityType != Py_None)
 	{
-		entityType = PyString_AsString(pyEntityType);
+		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyEntityType, NULL);
+		pEntityType = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+		PyMem_Free(PyUnicode_AsWideCharStringRet0);
 	}
 	
-	int i = 0, entityUType = -1;
-	std::vector<std::pair<Entity*, float>> viewEntities;
-	Entity* entity = static_cast<Entity*>(self);
+	int entityUType = -1;
 
-	if(entityType.size() > 0)
+	if(pEntityType)
 	{
-		ScriptDefModule* sm = ExtendScriptModuleMgr::findScriptModule(entityType.c_str());
+		ScriptDefModule* sm = EntityDef::findScriptModule(pEntityType);
 		if(sm == NULL)
 		{
-			ERROR_MSG("Entity::entitiesInRange: args entityType[%s] not found.\n", entityType.c_str());
+			PyErr_Format(PyExc_AssertionError, "Entity::entitiesInRange: entityType[%s] not found.\n", pEntityType);
+			PyErr_PrintEx(0);
+			free(pEntityType);
 			return 0;
 		}
 
+		free(pEntityType);
 		entityUType = sm->getUType();
 	}
 
+/*
 	// 查询所有范围内的entity
 	Chunk* currChunk = entity->getAtChunk();
 	if(currChunk != NULL && radius > 0.0f)

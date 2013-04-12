@@ -100,7 +100,7 @@ public:
 	typedef std::vector<Mercury::Bundle*> Bundles;
 	Bundles* pBundles();
 
-	void update();
+	bool update();
 	
 	void onEnterSpace(Space* pSpace);
 	void onLeaveSpace(Space* pSpace);

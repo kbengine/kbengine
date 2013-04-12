@@ -252,6 +252,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\movetoentity_controller.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\movetopoint_controller.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\profile.cpp"
 				>
 			</File>
@@ -373,6 +381,14 @@
 			</File>
 			<File
 				RelativePath=".\history_event.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\movetoentity_controller.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\movetopoint_controller.hpp"
 				>
 			</File>
 			<File

@@ -14,6 +14,19 @@
   Copyright 2000-2006, Morgan McGuire.
   All rights reserved.
  */
+namespace G3D {
+//----------------------------------------------------------------------------
+inline void Vector2::normalise()
+{
+    float fLength = length();
+
+	if (!(fLength < 0.00000001f && fLength > -0.00000001f))
+	{
+        float fInvLength = 1.f / fLength;
+        x *= fInvLength;
+        y *= fInvLength;
+	}
+}
 
 
 }

@@ -82,6 +82,8 @@ public:
     inline float sum() const {
         return x + y;
     }
+	
+	inline void normalise();
 
     /**
      Linear interpolation
@@ -442,5 +444,5 @@ inline G3D::Vector2 operator*(int s, const G3D::Vector2& v) {
 
 inline unsigned int hashCode(const G3D::Vector2& v);
 
-
+#include "Vector2.inl"
 #endif

@@ -266,19 +266,19 @@ Witness::Bundles* Witness::pBundles()
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::update()
+bool Witness::update()
 {
 	SCOPED_PROFILE(CLIENT_UPDATE_PROFILE);
 
 	if(pEntity_ == NULL)
-		return;
+		return true;
 
 	if(!pEntity_->getClientMailbox())
-		return;
+		return true;
 
 	Mercury::Channel* pChannel = pEntity_->getClientMailbox()->getChannel();
 	if(!pChannel)
-		return;
+		return true;
 	
 	// 获取每帧剩余可写大小， 将优先更新的内容写入， 剩余的内容往下一个周期递推
 	int currPacketSize = pChannel->bundlesLength();
@@ -376,6 +376,8 @@ void Witness::update()
 		AUTO_SCOPED_PROFILE("updateClientSend");
 		pChannel->send();
 	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

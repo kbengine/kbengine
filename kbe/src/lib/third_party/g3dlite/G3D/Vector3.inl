@@ -208,6 +208,19 @@ inline Vector3 Vector3::fastDirection () const {
 }
 
 //----------------------------------------------------------------------------
+inline void Vector3::normalise()
+{
+    float fLength = length();
+	if (!(fLength < 0.00000001f && fLength > -0.00000001f))
+	{
+        float fInvLength = 1.f / fLength;
+        x *= fInvLength;
+        y *= fInvLength;
+        z *= fInvLength;
+	}
+}
+
+//----------------------------------------------------------------------------
 inline float Vector3::dot (const Vector3& rkVector) const {
     return x*rkVector.x + y*rkVector.y + z*rkVector.z;
 }

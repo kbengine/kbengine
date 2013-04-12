@@ -154,4 +154,16 @@ INLINE EntityRangeNode* Entity::pEntityRangeNode()const
 }
 
 //-------------------------------------------------------------------------------------
+INLINE void Entity::isOnGround(bool v)
+{
+	isOnGround_ = v;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE bool Entity::isOnGround()const
+{
+	return isOnGround_;
+}
+
+//-------------------------------------------------------------------------------------
 }
