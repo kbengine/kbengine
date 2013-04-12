@@ -887,7 +887,7 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObje
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
 	MoveToPointController* p = new MoveToPointController(this, destination, velocity, 
-		faceMovement, moveVertically, userData, pControllers_->freeID());
+		faceMovement, moveVertically, 0.0f, userData, pControllers_->freeID());
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
@@ -909,12 +909,12 @@ PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, PyOb
 }
 
 //-------------------------------------------------------------------------------------
-uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, PyObject* userData, 
+uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float range, PyObject* userData, 
 						 bool faceMovement, bool moveVertically)
 {
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
-	MoveToEntityController* p = new MoveToEntityController(this, targetID, velocity, 
+	MoveToEntityController* p = new MoveToEntityController(this, targetID, velocity, range,
 		faceMovement, moveVertically, userData, pControllers_->freeID());
 
 	bool ret = pControllers_->add(p);
@@ -924,11 +924,11 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, PyObject* userDa
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyMoveToEntity(ENTITY_ID targetID, float velocity, PyObject_ptr userData,
+PyObject* Entity::pyMoveToEntity(ENTITY_ID targetID, float velocity, float range, PyObject_ptr userData,
 								 int32 faceMovement, int32 moveVertically)
 {
 	Py_INCREF(userData);
-	return PyLong_FromLong(moveToEntity(targetID, velocity, userData, faceMovement > 0, moveVertically > 0));
+	return PyLong_FromLong(moveToEntity(targetID, velocity, range, userData, faceMovement > 0, moveVertically > 0));
 }
 
 //-------------------------------------------------------------------------------------

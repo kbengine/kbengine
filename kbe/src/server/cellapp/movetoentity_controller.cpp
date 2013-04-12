@@ -26,9 +26,9 @@ namespace KBEngine{
 
 
 //-------------------------------------------------------------------------------------
-MoveToEntityController::MoveToEntityController(Entity* pEntity, ENTITY_ID pTargetID, float velocity, bool faceMovement, 
+MoveToEntityController::MoveToEntityController(Entity* pEntity, ENTITY_ID pTargetID, float velocity, float range, bool faceMovement, 
 		bool moveVertically, PyObject* userarg, uint32 id):
-MoveToPointController(pEntity, pEntity->getPosition(), velocity, faceMovement, moveVertically, userarg, id),
+MoveToPointController(pEntity, pEntity->getPosition(), velocity, range, faceMovement, moveVertically, userarg, id),
 pTargetID_(pTargetID)
 {
 }

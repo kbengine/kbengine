@@ -264,10 +264,10 @@ public:
 	/** 
 		entity移动到某个entity 
 	*/
-	uint32 moveToEntity(ENTITY_ID targetID, float velocity, 
+	uint32 moveToEntity(ENTITY_ID targetID, float velocity, float range,
 			PyObject* userData, bool faceMovement, bool moveVertically);
 	
-	DECLARE_PY_MOTHOD_ARG5(pyMoveToEntity, int32, float, PyObject_ptr, int32, int32);
+	DECLARE_PY_MOTHOD_ARG6(pyMoveToEntity, int32, float, float, PyObject_ptr, int32, int32);
 
 	/** 
 		脚本获取和设置entity的最高xz移动速度 
