@@ -882,7 +882,7 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObje
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
 	MoveToPointController* p = new MoveToPointController(this, destination, velocity, 
-		faceMovement, moveVertically, 0.0f, userData, pControllers_->freeID());
+		0.0f, faceMovement, moveVertically, userData, pControllers_->freeID());
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);

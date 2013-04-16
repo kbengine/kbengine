@@ -4,6 +4,8 @@
 #include <Terrain/OgreTerrain.h>
 #include <Terrain/OgreTerrainGroup.h>
 
+#include "../kbengine_dll/kbengine_dll.h"
+
 //-------------------------------------------------------------------------------------
 void KBEntity::addTime(Real deltaTime)
 {
@@ -38,6 +40,29 @@ void KBEntity::addTime(Real deltaTime)
 			newy = std::max(rayResult.position.y + distanceAboveTerrain, newy);
 			setPosition(camPos.x, newy, camPos.z);
 		}
+	}
+
+	if(kbe_playerID() != mID)
+	{
+		Ogre::Vector3 currpos = getPosition();
+		Ogre::Vector3 movement = destPos_ - currpos;
+		
+		movement.y = 0.f;
+
+		if(movement.length() < mMoveSpeed)
+		{
+			currpos = destPos_;
+		}
+		else
+		{
+			movement.normalise();
+
+			// ÒÆ¶¯Î»ÖÃ
+			movement *= mMoveSpeed;
+			currpos += movement;
+		}
+		
+		setPosition(currpos.x, currpos.y, currpos.z);
 	}
 }
 

@@ -56,6 +56,7 @@ public:
       mSword2(NULL),
       mSwordTrail(NULL),
 	  mFallVelocity(0),
+	  mMoveSpeed(1.0f),
 	  mID(eid),
 	  mIsJump(false),
 	  mSpacePtr(pSpace),

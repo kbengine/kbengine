@@ -320,6 +320,14 @@ inline EventData* copyKBEngineEvent(const KBEngine::EventData* lpEventData)
 			(*static_cast<EventData_Script*>(peventdata)) = (*static_cast<const EventData_Script*>(lpEventData));
 			Py_INCREF(static_cast<EventData_Script*>(peventdata)->pyDatas);
 			break;
+		case CLIENT_EVENT_POSITION_CHANGED:
+			peventdata = new EventData_PositionChanged();
+			(*static_cast<EventData_PositionChanged*>(peventdata)) = (*static_cast<const EventData_PositionChanged*>(lpEventData));
+			break;
+		case CLIENT_EVENT_DIRECTION_CHANGED:
+			peventdata = new EventData_DirectionChanged();
+			(*static_cast<EventData_DirectionChanged*>(peventdata)) = (*static_cast<const EventData_DirectionChanged*>(lpEventData));
+			break;
 		default:
 			break;
 	}
