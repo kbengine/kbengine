@@ -180,6 +180,15 @@ bool EntityDef::loadDefInfo(const std::string& defFilePath,
 
 		return false;
 	}
+
+	// ³¢ÊÔ¼ÓÔØVolatileInfoÊý¾Ý
+	if(!loadVolatileInfo(defFilePath, moduleName, defxml, defNode, scriptModule))
+	{
+		ERROR_MSG(boost::format("EntityDef::loadDefInfo: failed to load entity:%1% VolatileInfo.\n") %
+			moduleName.c_str());
+
+		return false;
+	}
 	
 	scriptModule->autoMatchCompOwn();
 	return true;
@@ -250,6 +259,74 @@ bool EntityDef::loadDetailLevelInfo(const std::string& defFilePath,
 
 	return true;
 
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityDef::loadVolatileInfo(const std::string& defFilePath, 
+									const std::string& moduleName, 
+									XmlPlus* defxml, 
+									TiXmlNode* defNode, 
+									ScriptDefModule* scriptModule)
+{
+	TiXmlNode* pNode = defxml->enterNode(defNode, "Volatile");
+	if(pNode == NULL)
+		return true;
+
+	VolatileInfo& vInfo = scriptModule->getVolatileInfo();
+	
+	TiXmlNode* node = defxml->enterNode(pNode, "position");
+	if(node) 
+	{
+		vInfo.position((float)defxml->getValFloat(node));
+	}
+	else
+	{
+		if(defxml->hasNode(pNode, "position"))
+			vInfo.position(VolatileInfo::ALWAYS);
+		else
+			vInfo.position(-1.f);
+	}
+
+	node = defxml->enterNode(pNode, "yaw");
+	if(node) 
+	{
+		vInfo.yaw((float)defxml->getValFloat(node));
+	}
+	else
+	{
+		if(defxml->hasNode(pNode, "yaw"))
+			vInfo.yaw(VolatileInfo::ALWAYS);
+		else
+			vInfo.yaw(-1.f);
+	}
+
+	node = defxml->enterNode(pNode, "pitch");
+	if(node) 
+	{
+		vInfo.pitch((float)defxml->getValFloat(node));
+	}
+	else
+	{
+		if(defxml->hasNode(pNode, "pitch"))
+			vInfo.pitch(VolatileInfo::ALWAYS);
+		else
+			vInfo.pitch(-1.f);
+	}
+
+	node = defxml->enterNode(pNode, "roll");
+	if(node) 
+	{
+		vInfo.roll((float)defxml->getValFloat(node));
+	}
+	else
+	{
+		if(defxml->hasNode(pNode, "roll"))
+			vInfo.roll(VolatileInfo::ALWAYS);
+		else
+			vInfo.roll(-1.f);
+	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

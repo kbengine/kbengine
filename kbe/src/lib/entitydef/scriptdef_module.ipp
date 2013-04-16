@@ -32,6 +32,11 @@ INLINE DetailLevel& ScriptDefModule::getDetailLevel(void)
 	return detailLevel_; 
 }
 
+INLINE VolatileInfo& ScriptDefModule::getVolatileInfo(void)
+{
+	return volatileinfo_; 
+}
+
 INLINE void ScriptDefModule::setCell(bool have)
 { 
 	hasCell_ = have; 

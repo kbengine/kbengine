@@ -20,6 +20,8 @@ namespace Forests
 class SpaceWorld : public Space
 {
 public:
+	typedef std::map<KBEngine::ENTITY_ID, std::tr1::shared_ptr<KBEntity> > ENTITIES;
+
     SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin, 
 		OIS::InputManager* pInputMgr, OgreBites::SdkTrayManager* pTrayMgr);
     virtual ~SpaceWorld(void);
@@ -52,7 +54,6 @@ private:
 
 	KBEntity* mPlayerPtr;
 
-	typedef std::map<KBEngine::ENTITY_ID, std::tr1::shared_ptr<KBEntity> > ENTITIES;
 	ENTITIES mEntities;
 };
 

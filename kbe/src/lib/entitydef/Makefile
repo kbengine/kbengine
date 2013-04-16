@@ -6,6 +6,7 @@ SRCS =				\
 	common			\
 	datatype		\
 	datatypes		\
+	detaillevel		\
 	entity_mailbox		\
 	entitydef		\
 	entitymailboxabstract	\
@@ -13,7 +14,8 @@ SRCS =				\
 	method			\
 	property		\
 	remote_entity_method	\
-	scriptdef_module
+	scriptdef_module	\
+	volatileinfo
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))

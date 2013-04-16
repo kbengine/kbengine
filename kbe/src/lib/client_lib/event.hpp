@@ -40,6 +40,8 @@ typedef int32 EventID;
 #define CLIENT_EVENT_LOGIN_GATEWAY_SUCCESS 8
 #define CLIENT_EVENT_LOGIN_GATEWAY_FAILED 9
 #define CLIENT_EVENT_SCRIPT 10
+#define CLIENT_EVENT_POSITION_CHANGED 11
+#define CLIENT_EVENT_DIRECTION_CHANGED 12
 
 struct EventData
 {
@@ -195,6 +197,36 @@ struct EventData_Script : public EventData
 	PyObject* pyDatas;
 };
 
+struct EventData_PositionChanged : public EventData
+{
+	EventData_PositionChanged():
+	EventData(CLIENT_EVENT_POSITION_CHANGED),
+	x(0.f),
+	y(0.f),
+	z(0.f),
+	pEntity(NULL)
+	{
+	}
+
+	float x, y, z;
+	const EntityAspect* pEntity;
+};
+
+struct EventData_DirectionChanged : public EventData
+{
+	EventData_DirectionChanged():
+	EventData(CLIENT_EVENT_DIRECTION_CHANGED),
+	yaw(0.f),
+	pitch(0.f),
+	roll(0.f),
+	pEntity(NULL)
+	{
+	}
+
+	float yaw, pitch, roll;
+	const EntityAspect* pEntity;
+};
+
 inline EventData* newKBEngineEvent(EventID v)
 {
 	switch(v)
@@ -228,6 +260,12 @@ inline EventData* newKBEngineEvent(EventID v)
 			break;
 		case CLIENT_EVENT_SCRIPT:
 			return new EventData_Script();
+			break;
+		case CLIENT_EVENT_POSITION_CHANGED:
+			return new EventData_PositionChanged();
+			break;
+		case CLIENT_EVENT_DIRECTION_CHANGED:
+			return new EventData_DirectionChanged();
 			break;
 		default:
 			break;

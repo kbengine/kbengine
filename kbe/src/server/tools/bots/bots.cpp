@@ -521,5 +521,275 @@ void Bots::onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Bots::onUpdateData(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_ypr(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_ypr(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_yp(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_yp(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_yr(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_yr(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_pr(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_pr(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_y(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_y(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_p(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_p(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_r(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_r(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_xz(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_xz(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_xz_ypr(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_xz_ypr(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_xz_yp(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_xz_yp(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_xz_yr(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_xz_yr(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_xz_pr(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_xz_pr(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_xz_y(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_xz_y(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_xz_p(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_xz_p(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_xz_r(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_xz_r(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_xyz(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_xyz(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_xyz_ypr(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_xyz_ypr(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_xyz_yp(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_xyz_yp(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_xyz_yr(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_xyz_yr(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_xyz_pr(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_xyz_pr(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_xyz_y(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_xyz_y(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_xyz_p(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_xyz_p(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateData_xyz_r(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onUpdateData_xyz_r(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onStreamDataStarted(Mercury::Channel* pChannel, int16 id, uint32 datasize, std::string& descr)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onStreamDataStarted(pChannel, id, datasize, descr);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onStreamDataRecv(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onStreamDataRecv(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onStreamDataCompleted(Mercury::Channel* pChannel, int16 id)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onStreamDataCompleted(pChannel, id);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 
 }

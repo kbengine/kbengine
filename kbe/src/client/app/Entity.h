@@ -59,7 +59,9 @@ public:
 	  mID(eid),
 	  mIsJump(false),
 	  mSpacePtr(pSpace),
-	  mSceneMgr(NULL)
+	  mSceneMgr(NULL),
+	  destPos_(),
+	  destDir_()
 	{
 		//setupBody(cam->getSceneManager());
 		//setupCamera(cam);
@@ -92,6 +94,27 @@ public:
 	{
 		mScale = v;
 		mBodyNode->scale(v, v, v);
+	}
+
+	void setDestDirection(float yaw, float pitch, float roll)
+	{
+		destDir_.x = yaw;
+		destDir_.y = pitch;
+		destDir_.z = roll;
+	}
+
+	void setDestPosition(float x, float y, float z)
+	{
+		destPos_.x = x;
+		destPos_.y = y;
+		destPos_.z = z;
+	}
+
+	void setDirection(float yaw, float pitch, float roll)
+	{
+		mBodyNode->yaw(Ogre::Radian(yaw));
+		mBodyNode->pitch(Ogre::Radian(pitch));
+		mBodyNode->roll(Ogre::Radian(roll));
 	}
 
 	void setPosition(float x, float y, float z)
@@ -597,6 +620,8 @@ private:
 	SpaceWorld*	mSpacePtr;
 
 	SceneManager* mSceneMgr;
+
+	Ogre::Vector3 destPos_, destDir_;
 };
 
 #endif

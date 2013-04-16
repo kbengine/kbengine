@@ -113,7 +113,7 @@ typedef G3D::Vector2							Vector2;
 typedef G3D::Vector3							Vector3;
 typedef G3D::Vector4							Vector4;
 
-#define KBE_PI									G3D::G3D_PI
+#define KBE_PI									3.1415926535898
 #define KBE_DegreeToRadian						G3D::toRadians
 #define KBE_RadianToDegree						G3D::toRadians
 	
@@ -169,6 +169,26 @@ inline float KBEVec3CalcVec2Length(const Vector3& v1, const Vector3& v2)
 	return sqrt(x*x + z*z);
 }
 
+inline float int82angle(KBEngine::int8 angle, bool half = false)
+{
+	return float(angle) * float((KBE_PI / (half ? 254.f : 128.f)));
+}
+
+inline KBEngine::int8 angle2int8(float v, bool half = false)
+{
+	KBEngine::int8 angle = 0;
+	if(!half)
+	{
+		angle = (KBEngine::int8)floorf((v * 128.f) / float(KBE_PI) + 0.5f);
+	}
+	else
+	{
+		angle = (KBEngine::int8)KBEClamp(floorf( (v * 254.f) / float(KBE_PI) + 0.5f ), -128.f, 127.f );
+	}
+
+	return angle;
+}
+
 typedef Vector3													Position3D;												// 表示3D位置变量类型																						// mailbox 所投递的mail类别的类别
 
 struct Direction3D																										// 表示方向位置变量类型
@@ -180,38 +200,6 @@ struct Direction3D																										// 表示方向位置变量类型
 	float roll;		
 	float pitch;	
 	float yaw;		
-};
-
-/** entity 详情级别类型定义 */
-struct DetailLevel
-{
-	struct Level
-	{
-		Level():radius(0.0f), hyst(0.0f){};
-		float radius;
-		float hyst;
-	};
-	
-	DetailLevel()
-	{
-		level[0] = NULL;
-		level[1] = NULL;
-		level[2] = NULL;
-		level[3] = NULL;
-	}
-
-	~DetailLevel()
-	{
-		SAFE_RELEASE(level[0]);
-		SAFE_RELEASE(level[1]);
-		SAFE_RELEASE(level[2]);
-		SAFE_RELEASE(level[3]);
-	}
-
-
-
-
-	Level* level[4];
 };
 
 #endif

@@ -86,7 +86,8 @@ public:
 		脚本获取和设置entity的position 
 	*/
 	INLINE Position3D& getPosition();
-	void setPosition(Position3D& pos);
+	INLINE void setPosition(Position3D& pos);
+	void onPositionChanged();
 	DECLARE_PY_GETSET_MOTHOD(pyGetPosition, pySetPosition);
 
 	/** 
@@ -94,6 +95,7 @@ public:
 	*/
 	INLINE Direction3D& getDirection();
 	INLINE void setDirection(Direction3D& dir);
+	void onDirectionChanged();
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
 	
 	/** 

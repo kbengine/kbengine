@@ -371,11 +371,6 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::addVolatileDataToStream(MemoryStream* mstream, const Position3D& basePos)
-{
-}
-
-//-------------------------------------------------------------------------------------
 void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);

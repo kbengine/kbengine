@@ -218,6 +218,52 @@ public:
 		服务器更新entity属性
 	*/
 	virtual void onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		服务器更新VolatileData
+	*/
+	virtual void onUpdateData(Mercury::Channel* pChannel, MemoryStream& s);
+
+	virtual void onUpdateData_ypr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_yp(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_yr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_pr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_y(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_p(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_r(Mercury::Channel* pChannel, MemoryStream& s);
+
+	virtual void onUpdateData_xz(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_ypr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_yp(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_yr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_pr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_y(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_p(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_r(Mercury::Channel* pChannel, MemoryStream& s);
+
+	virtual void onUpdateData_xyz(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_ypr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_yp(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_yr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_pr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_y(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_p(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_r(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		download stream开始了 
+	*/
+	virtual void onStreamDataStarted(Mercury::Channel* pChannel, int16 id, uint32 datasize, std::string& descr);
+
+	/** 网络接口
+		接收到streamData
+	*/
+	virtual void onStreamDataRecv(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		download stream完成了 
+	*/
+	virtual void onStreamDataCompleted(Mercury::Channel* pChannel, int16 id);
 protected:
 	PyBots*													pPyBots_;
 

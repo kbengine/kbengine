@@ -107,6 +107,21 @@ public:
 
 	void onEnterAOI(Entity* pEntity);
 	void onLeaveAOI(Entity* pEntity);
+	
+	/**
+		写Volatile数据到流
+	*/
+	uint32 addEntityVolatileDataToStream(MemoryStream* mstream, Entity* otherEntity);
+	
+	/**
+		如果aoi中entity数量小于256则只发送索引位置
+	*/
+	void addAOIEntityIDToStream(MemoryStream* mstream, ENTITY_ID entityID);
+	
+	/**
+		使用何种协议来更新客户端
+	*/
+	void addUpdateHeadToStream(Mercury::Bundle* pForwardBundle, uint32 flags);
 
 	/**
 		向witness客户端推送一条消息

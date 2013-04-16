@@ -27,6 +27,14 @@ namespace client
 INLINE void Entity::setDirection(Direction3D& dir)
 { 
 	direction_ = dir; 
+	onDirectionChanged();
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::setPosition(Position3D& pos)
+{ 
+	position_ = pos; 
+	onPositionChanged();
 }
 
 //-------------------------------------------------------------------------------------

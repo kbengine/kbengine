@@ -224,6 +224,30 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 			mEntities.erase(static_cast<const KBEngine::EventData_EnterWorld*>(lpEventData)->pEntity->aspectID());
 		}
 		break;
+	case CLIENT_EVENT_POSITION_CHANGED:
+		{
+			const KBEngine::EventData_PositionChanged* pEventData = static_cast<const KBEngine::EventData_PositionChanged*>(lpEventData);
+			KBEngine::ENTITY_ID eid = pEventData->pEntity->aspectID();
+
+			ENTITIES::iterator iter = mEntities.find(eid);
+			if(iter == mEntities.end())
+				break;
+
+			iter->second->setDestPosition(pEventData->x, pEventData->y, pEventData->z);
+		}
+		break;
+	case CLIENT_EVENT_DIRECTION_CHANGED:
+		{
+			const KBEngine::EventData_DirectionChanged* pEventData = static_cast<const KBEngine::EventData_DirectionChanged*>(lpEventData);
+			KBEngine::ENTITY_ID eid = pEventData->pEntity->aspectID();
+
+			ENTITIES::iterator iter = mEntities.find(eid);
+			if(iter == mEntities.end())
+				break;
+
+			iter->second->setDestDirection(pEventData->yaw, pEventData->pitch, pEventData->roll);
+		}
+		break;
 	default:
 		break;
 	};

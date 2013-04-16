@@ -119,7 +119,12 @@ public:
 		TiXmlNode* defNode, 
 		ScriptDefModule* scriptModule);
 
-	
+	static bool loadVolatileInfo(const std::string& defFilePath, 
+		const std::string& moduleName, 
+		XmlPlus* defxml, 
+		TiXmlNode* defNode, 
+		ScriptDefModule* scriptModule);
+
 	/** 
 		是否加载这个脚本模块 
 	*/

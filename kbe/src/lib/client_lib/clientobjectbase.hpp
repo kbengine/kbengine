@@ -107,6 +107,13 @@ public:
 		ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
 		return PyLong_FromLong(pClientObjectBase->appID());	
 	}
+	
+	/**
+		如果entitiessize小于256
+		通过索引位置来获取entityID
+		否则直接取ID
+	*/
+	ENTITY_ID readEntityIDFromStream(MemoryStream& s);
 
 	/**
 		由mailbox来尝试获取一个channel的实例
@@ -202,7 +209,35 @@ public:
 	/** 网络接口
 		服务器更新VolatileData
 	*/
-	virtual void onUpdateVolatileData(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData(Mercury::Channel* pChannel, MemoryStream& s);
+
+	virtual void onUpdateData_ypr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_yp(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_yr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_pr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_y(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_p(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_r(Mercury::Channel* pChannel, MemoryStream& s);
+
+	virtual void onUpdateData_xz(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_ypr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_yp(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_yr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_pr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_y(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_p(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xz_r(Mercury::Channel* pChannel, MemoryStream& s);
+
+	virtual void onUpdateData_xyz(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_ypr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_yp(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_yr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_pr(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_y(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_p(Mercury::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateData_xyz_r(Mercury::Channel* pChannel, MemoryStream& s);
+	
+	void _updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float yaw, float pitch, float roll);
 
 	/** 网络接口
 		download stream开始了 
@@ -218,6 +253,11 @@ public:
 		download stream完成了 
 	*/
 	virtual void onStreamDataCompleted(Mercury::Channel* pChannel, int16 id);
+
+	/** 
+		获得player实例
+	*/
+	client::Entity* pPlayer();
 protected:				
 	int32 appID_;
 
@@ -226,6 +266,7 @@ protected:
 
 	// 存储所有的entity的容器
 	Entities<client::Entity>*								pEntities_;	
+	std::vector<ENTITY_ID>									pEntityIDAliasIDList_;
 
 	PY_CALLBACKMGR											pyCallbackMgr_;
 

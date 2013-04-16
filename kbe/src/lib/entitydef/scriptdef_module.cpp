@@ -42,6 +42,7 @@ uType_(0),
 hasCell_(false),
 hasBase_(false),
 hasClient_(false),
+volatileinfo_(),
 name_(name)
 {
 	EntityDef::md5().append((void*)name.c_str(), name.size());

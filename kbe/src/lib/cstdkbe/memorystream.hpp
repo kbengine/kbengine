@@ -87,6 +87,12 @@ class MemoryStreamException
 */
 class MemoryStream : public PoolObject
 {
+	union PackFloatXType
+	{
+		float	fv;
+		uint32	uv;
+		int		iv;
+	};
 public:
 	static ObjectPool<MemoryStream>& ObjPool();
 	static void destroyObjPool();
@@ -428,6 +434,65 @@ public:
 		return rsize;
 	}
 
+	void readPackXYZ(float& x, float&y, float& z, float minf = -256.f)
+	{
+		uint32 packed = 0;
+		(*this) >> packed;
+		x = ((packed & 0x7FF) << 21 >> 21) * 0.25f;
+		z = ((((packed >> 11) & 0x7FF) << 21) >> 21) * 0.25f;
+		y = ((packed >> 22 << 22) >> 22) * 0.25f;
+
+		x += minf;
+		y += minf / 2.f;
+		z += minf;
+	}
+
+	void readPackXZ(float& x, float& z)
+	{
+		PackFloatXType & xPackData = (PackFloatXType&)x;
+		PackFloatXType & zPackData = (PackFloatXType&)z;
+
+		// 0x40000000 = 1000000000000000000000000000000.
+		xPackData.uv = 0x40000000;
+		zPackData.uv = 0x40000000;
+		
+		uint8 tv;
+		uint32 data = 0;
+
+		(*this) >> tv;
+		data |= (tv << 16);
+
+		(*this) >> tv;
+		data |= (tv << 8);
+
+		(*this) >> tv;
+		data |= tv;
+
+		// 复制指数和尾数
+		xPackData.uv |= (data & 0x7ff000) << 3;
+		zPackData.uv |= (data & 0x0007ff) << 15;
+
+		xPackData.fv -= 2.0f;
+		zPackData.fv -= 2.0f;
+
+		// 设置标记位
+		xPackData.uv |= (data & 0x800000) << 8;
+		zPackData.uv |= (data & 0x000800) << 20;
+	}
+
+	void readPackY(float& y)
+	{
+		PackFloatXType yPackData; 
+		yPackData.uv = 0x40000000;
+
+		uint16 data = 0;
+		(*this) >> data;
+		yPackData.uv |= (data & 0x7fff) << 12;
+		yPackData.fv -= 2.f;
+		yPackData.uv |= (data & 0x8000) << 16;
+		y = yPackData.fv;
+	}
+
     bool readPackGUID(uint64& guid)
     {
         if(opsize() == 0)
@@ -531,15 +596,88 @@ public:
         }
     }
 
-    /** 将一个坐标信息加入到流 */
-    void appendPackXYZ(float x, float y, float z)
+    void appendPackXYZ(float x, float y, float z, float minf = -256.f)
     {
+		x -= minf;
+		y -= minf / 2.f;
+		z -= minf;
+
+		// 最大值不要超过-256~256
+		// y 不要超过-128~128
         uint32 packed = 0;
         packed |= ((int)(x / 0.25f) & 0x7FF);
-        packed |= ((int)(y / 0.25f) & 0x7FF) << 11;
-        packed |= ((int)(z / 0.25f) & 0x3FF) << 22;
+        packed |= ((int)(z / 0.25f) & 0x7FF) << 11;
+        packed |= ((int)(y / 0.25f) & 0x3FF) << 22;
         *this << packed;
     }
+
+    void appendPackXZ(float x, float z)
+    {
+		PackFloatXType xPackData; 
+		xPackData.fv = x;
+
+		PackFloatXType zPackData; 
+		zPackData.fv = z;
+		
+		// 0-7位存放尾数, 8-10位存放指数, 11位存放标志
+		// 由于使用了24位来存储2个float， 并且要求能够达到-512~512之间的数
+		// 8位尾数只能放最大值256, 指数只有3位(决定浮点数最大值为2^(2^3)=256) 
+		// 我们舍去第一位使范围达到(-512~-2), (2~512)之间
+		// 因此这里我们保证最小数为-2.f或者2.f
+		xPackData.fv += xPackData.iv < 0 ? -2.f : 2.f;
+		zPackData.fv += zPackData.iv < 0 ? -2.f : 2.f;
+
+		uint32 data = 0;
+
+		// 0x7ff000 = 11111111111000000000000
+		// 0x0007ff = 00000000000011111111111
+		const uint32 xCeilingValues[] = { 0, 0x7ff000 };
+		const uint32 zCeilingValues[] = { 0, 0x0007ff };
+
+		// 这里如果这个浮点数溢出了则设置浮点数为最大数
+		// 这里检查了指数高4位和标记位， 如果高四位不为0则肯定溢出， 如果低4位和8位尾数不为0则溢出
+		// 0x7c000000 = 1111100000000000000000000000000
+		// 0x40000000 = 1000000000000000000000000000000
+		// 0x3ffc000  = 0000011111111111100000000000000
+		data |= xCeilingValues[((xPackData.uv & 0x7c000000) != 0x40000000) || ((xPackData.uv & 0x3ffc000) == 0x3ffc000)];
+		data |= zCeilingValues[((zPackData.uv & 0x7c000000) != 0x40000000) || ((zPackData.uv & 0x3ffc000) == 0x3ffc000)];
+		
+		// 复制8位尾数和3位指数， 如果浮点数剩余尾数最高位是1则+1四舍五入, 并且存放到data中
+		// 0x7ff000 = 11111111111000000000000
+		// 0x0007ff = 00000000000011111111111
+		// 0x4000	= 00000000100000000000000
+		data |= ((xPackData.uv >>  3) & 0x7ff000) + ((xPackData.uv & 0x4000) >> 2);
+		data |= ((zPackData.uv >> 15) & 0x0007ff) + ((zPackData.uv & 0x4000) >> 14);
+		
+		// 确保值在范围内
+		// 0x7ff7ff = 11111111111011111111111
+		data &= 0x7ff7ff;
+
+		// 复制标记位
+		// 0x800000 = 100000000000000000000000
+		// 0x000800 = 000000000000100000000000
+		data |=  (xPackData.uv >>  8) & 0x800000;
+		data |=  (zPackData.uv >> 20) & 0x000800;
+
+		uint8 packs[3];
+		packs[0] = (uint8)(data >> 16);
+		packs[1] = (uint8)(data >> 8);
+		packs[2] = (uint8)data;
+		(*this).append(packs, 3);
+    }
+
+	void appendPackY(float y)
+	{
+		PackFloatXType yPackData; 
+		yPackData.fv = y;
+
+		yPackData.fv += yPackData.iv < 0 ? -2.f : 2.f;
+		uint16 data = 0;
+		data = (yPackData.uv >> 12) & 0x7fff;
+ 		data |= ((yPackData.uv >> 16) & 0x8000);
+
+		(*this) << data;
+	}
 
     void appendPackGUID(uint64 guid)
     {

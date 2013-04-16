@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "aoi_trigger.hpp"
 #include "network/channel.hpp"	
 #include "network/bundle.hpp"
+#include "math/math.hpp"
 #include "client_lib/client_interface.hpp"
 
 #include "../../server/baseapp/baseapp_interface.hpp"
@@ -32,6 +33,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef CODE_INLINE
 #include "witness.ipp"
 #endif
+
+#define UPDATE_FLAG_NULL				0x00000000
+#define UPDATE_FLAG_XZ					0x00000001
+#define UPDATE_FLAG_XYZ					0x00000002
+#define UPDATE_FLAG_YAW					0x00000004
+#define UPDATE_FLAG_ROLL				0x00000008
+#define UPDATE_FLAG_PITCH				0x00000010
+#define UPDATE_FLAG_YAW_PITCH_ROLL		0x00000020
+#define UPDATE_FLAG_YAW_PITCH			0x00000040
+#define UPDATE_FLAG_YAW_ROLL			0x00000080
+#define UPDATE_FLAG_PITCH_ROLL			0x00000100
 
 namespace KBEngine{	
 
@@ -266,6 +278,12 @@ Witness::Bundles* Witness::pBundles()
 }
 
 //-------------------------------------------------------------------------------------
+void Witness::addAOIEntityIDToStream(MemoryStream* mstream, ENTITY_ID entityID)
+{
+	(*mstream) << entityID;
+}
+
+//-------------------------------------------------------------------------------------
 bool Witness::update()
 {
 	SCOPED_PROFILE(CLIENT_UPDATE_PROFILE);
@@ -352,11 +370,12 @@ bool Witness::update()
 				{
 					Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 					MemoryStream* s1 = MemoryStream::ObjPool().createObject();
-					otherEntity->addVolatileDataToStream(s1, pEntity_->getPosition());
+					
+					addAOIEntityIDToStream(s1, otherEntity->getID());
+					addUpdateHeadToStream(pForwardBundle, addEntityVolatileDataToStream(s1, otherEntity));
 
-					(*pForwardBundle).newMessage(ClientInterface::onUpdateVolatileData);
-					(*pForwardBundle) << otherEntity->getID();
 					(*pForwardBundle).append(*s1);
+					MemoryStream::ObjPool().reclaimObject(s1);
 					MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
 					Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 				}
@@ -378,6 +397,215 @@ bool Witness::update()
 	}
 
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::addUpdateHeadToStream(Mercury::Bundle* pForwardBundle, uint32 flags)
+{
+	switch(flags)
+	{
+	case UPDATE_FLAG_NULL:
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData);
+		}
+		break;
+	case UPDATE_FLAG_XZ:
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz);
+		}
+		break;
+	case UPDATE_FLAG_XYZ:
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz);
+		}
+		break;
+	case UPDATE_FLAG_YAW:
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_y);
+		}
+		break;
+	case UPDATE_FLAG_ROLL:
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_r);
+		}
+		break;
+	case UPDATE_FLAG_PITCH:
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_p);
+		}
+		break;
+	case UPDATE_FLAG_YAW_PITCH_ROLL:
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_ypr);
+		}
+		break;
+	case UPDATE_FLAG_YAW_PITCH:
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_yp);
+		}
+		break;
+	case UPDATE_FLAG_YAW_ROLL:
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_yr);
+		}
+		break;
+	case UPDATE_FLAG_PITCH_ROLL:
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_pr);
+		}
+		break;
+
+	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW):
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_y);
+		}
+		break;
+	case (UPDATE_FLAG_XZ | UPDATE_FLAG_PITCH):
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_p);
+		}
+		break;
+	case (UPDATE_FLAG_XZ | UPDATE_FLAG_ROLL):
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_r);
+		}
+		break;
+	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW_ROLL):
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_yr);
+		}
+		break;
+	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW_PITCH):
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_yp);
+		}
+		break;
+	case (UPDATE_FLAG_XZ | UPDATE_FLAG_PITCH_ROLL):
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_pr);
+		}
+		break;
+	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW_PITCH_ROLL):
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_ypr);
+		}
+		break;
+
+	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW):
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_y);
+		}
+		break;
+	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_PITCH):
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_p);
+		}
+		break;
+	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_ROLL):
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_r);
+		}
+		break;
+	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_ROLL):
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_yr);
+		}
+		break;
+	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_PITCH):
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_yp);
+		}
+		break;
+	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_PITCH_ROLL):
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_pr);
+		}
+		break;
+	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_PITCH_ROLL):
+		{
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_ypr);
+		}
+		break;
+	default:
+		KBE_ASSERT(false);
+		break;
+	};
+}
+
+//-------------------------------------------------------------------------------------
+uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* otherEntity)
+{
+	uint32 flags = UPDATE_FLAG_NULL;
+
+	Position3D relativePos = otherEntity->getPosition() - this->pEntity()->getPosition();
+	const Direction3D& dir = otherEntity->getDirection();
+
+	const VolatileInfo& volatileInfo = otherEntity->getScriptModule()->getVolatileInfo();
+
+	if(volatileInfo.position() > 0.f)
+	{
+		mstream->appendPackXZ(relativePos.x, relativePos.z);
+
+		if(otherEntity->isOnGround())
+		{
+			mstream->appendPackY(relativePos.y);
+			flags |= UPDATE_FLAG_XYZ; 
+		}
+		else
+		{
+			flags |= UPDATE_FLAG_XZ; 
+		}
+	}
+
+	if(volatileInfo.yaw() > 0.f && volatileInfo.roll() > 0.f && volatileInfo.pitch() > 0.f)
+	{
+		(*mstream) << angle2int8(dir.yaw);
+		(*mstream) << angle2int8(dir.pitch);
+		(*mstream) << angle2int8(dir.roll);
+
+		flags |= UPDATE_FLAG_YAW_PITCH_ROLL; 
+	}
+	else if(volatileInfo.roll() > 0.f && volatileInfo.pitch() > 0.f)
+	{
+		(*mstream) << angle2int8(dir.pitch);
+		(*mstream) << angle2int8(dir.roll);
+
+		flags |= UPDATE_FLAG_PITCH_ROLL; 
+	}
+	else if(volatileInfo.yaw() > 0.f && volatileInfo.pitch() > 0.f)
+	{
+		(*mstream) << angle2int8(dir.yaw);
+		(*mstream) << angle2int8(dir.pitch);
+
+		flags |= UPDATE_FLAG_YAW_PITCH; 
+	}
+	else if(volatileInfo.yaw() > 0.f && volatileInfo.roll() > 0.f)
+	{
+		(*mstream) << angle2int8(dir.yaw);
+		(*mstream) << angle2int8(dir.roll);
+
+		flags |= UPDATE_FLAG_YAW_ROLL; 
+	}
+	else if(volatileInfo.yaw() > 0.f)
+	{
+		(*mstream) << angle2int8(dir.yaw);
+
+		flags |= UPDATE_FLAG_YAW; 
+	}
+	else if(volatileInfo.roll() > 0.f)
+	{
+		(*mstream) << angle2int8(dir.roll);
+
+		flags |= UPDATE_FLAG_ROLL; 
+	}
+	else if(volatileInfo.pitch() > 0.f)
+	{
+		(*mstream) << angle2int8(dir.pitch);
+
+		flags |= UPDATE_FLAG_PITCH; 
+	}
+
+	return flags;
 }
 
 //-------------------------------------------------------------------------------------

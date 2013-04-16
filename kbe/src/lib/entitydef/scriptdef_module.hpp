@@ -29,6 +29,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include
 #include "method.hpp"	
 #include "property.hpp"
+#include "detaillevel.hpp"
+#include "volatileinfo.hpp"
 #include "math/math.hpp"
 #include "pyscript/scriptobject.hpp"
 #include "xmlplus/xmlplus.hpp"	
@@ -65,7 +67,8 @@ public:
 	INLINE void setScriptType(PyTypeObject* scriptType);
 
 	INLINE DetailLevel& getDetailLevel(void);
-	
+	INLINE VolatileInfo& getVolatileInfo(void);
+
 	PyObject* createObject(void);
 	PyObject* getInitDict(void);
 
@@ -174,6 +177,7 @@ protected:
 	
 	// entity的详情级别数据
 	DetailLevel							detailLevel_;							
+	VolatileInfo						volatileinfo_;
 
 	// 这个模块的名称
 	std::string							name_;									

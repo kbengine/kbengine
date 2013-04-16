@@ -313,9 +313,27 @@ void Entity::onLeaveWorld()
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::setPosition(Position3D& pos)
-{ 
-	position_ = pos; 
+void Entity::onPositionChanged()
+{
+	EventData_PositionChanged eventdata;
+	eventdata.x = position_.x;
+	eventdata.y = position_.y;
+	eventdata.z = position_.z;
+	eventdata.pEntity = getAspect();
+
+	pClientApp_->fireEvent(&eventdata);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onDirectionChanged()
+{
+	EventData_DirectionChanged eventdata;
+	eventdata.yaw = direction_.yaw;
+	eventdata.pitch = direction_.pitch;
+	eventdata.roll = direction_.roll;
+	eventdata.pEntity = getAspect();
+
+	pClientApp_->fireEvent(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------
