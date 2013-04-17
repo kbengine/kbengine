@@ -475,7 +475,7 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 	eventdata.pitch = entity->getDirection().pitch;
 	eventdata.roll = entity->getDirection().roll;
 	eventdata.yaw = entity->getDirection().yaw;
-
+	eventdata.speed = entity->getMoveSpeed();
 	eventHandler_.fire(&eventdata);
 
 	entity->onEnterWorld();

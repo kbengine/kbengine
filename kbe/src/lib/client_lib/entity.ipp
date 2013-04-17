@@ -38,6 +38,19 @@ INLINE void Entity::setPosition(Position3D& pos)
 }
 
 //-------------------------------------------------------------------------------------
+INLINE void Entity::setMoveSpeed(float speed)
+{
+	velocity_ = speed; 
+	onMoveSpeedChanged();
+}
+
+//-------------------------------------------------------------------------------------
+INLINE float Entity::getMoveSpeed()const
+{
+	return velocity_;
+}
+
+//-------------------------------------------------------------------------------------
 INLINE Direction3D& Entity::getDirection()
 { 
 	return direction_; 

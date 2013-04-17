@@ -202,6 +202,7 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 
 			pEntity->setPosition(pEventData_EnterWorld->x, pEventData_EnterWorld->y, pEventData_EnterWorld->z);
 			pEntity->scale(0.3, 0.3, 0.3);
+			pEntity->setMoveSpeed(pEventData_EnterWorld->speed);
 
 			if(kbe_playerID() == eid)
 			{
@@ -246,6 +247,18 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 				break;
 
 			iter->second->setDestDirection(pEventData->yaw, pEventData->pitch, pEventData->roll);
+		}
+		break;
+	case CLIENT_EVENT_MOVESPEED_CHANGED:
+		{
+			const KBEngine::EventData_MoveSpeedChanged* pEventData = static_cast<const KBEngine::EventData_MoveSpeedChanged*>(lpEventData);
+			KBEngine::ENTITY_ID eid = pEventData->pEntity->aspectID();
+
+			ENTITIES::iterator iter = mEntities.find(eid);
+			if(iter == mEntities.end())
+				break;
+
+			iter->second->setMoveSpeed(pEventData->speed);
 		}
 		break;
 	default:

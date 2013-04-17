@@ -70,7 +70,6 @@ public:
 	void onDefDataChanged(const PropertyDescription* propertyDescription, 
 			PyObject* pyData);
 	
-public:
 	/** 
 		mailbox section
 	*/
@@ -98,6 +97,14 @@ public:
 	void onDirectionChanged();
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
 	
+	/**
+		移动速度
+	*/
+	INLINE void setMoveSpeed(float speed);
+	INLINE float getMoveSpeed()const;
+	void onMoveSpeedChanged();
+	DECLARE_PY_GETSET_MOTHOD(pyGetMoveSpeed, pySetMoveSpeed);
+
 	/** 
 		pClientApp section
 	*/
@@ -113,7 +120,7 @@ public:
 
 	void onEnterWorld();
 	void onLeaveWorld();
-public:
+
 	/**
 		远程呼叫本entity的方法 
 	*/
@@ -133,6 +140,8 @@ protected:
 	ClientObjectBase*						pClientApp_;
 
 	EntityAspect							aspect_;
+
+	float									velocity_;
 };																										
 
 }

@@ -17,6 +17,32 @@ void KBEntity::addTime(Real deltaTime)
 
 	if(mCamera)
 		updateCamera(deltaTime);
+	
+	if(kbe_playerID() != mID)
+	{
+		Ogre::Vector3 currpos = getPosition();
+		Ogre::Vector3 movement = destPos_ - currpos;
+		float speed = mMoveSpeed * deltaTime;
+
+		movement.y = 0.f;
+
+		if(movement.length() < speed)
+		{
+			float y = currpos.y;
+			currpos = destPos_;
+			currpos.y = y;
+		}
+		else
+		{
+			movement.normalise();
+
+			// 移动位置
+			movement *= speed;
+			currpos += movement;
+		}
+		
+		setPosition(currpos.x, currpos.y, currpos.z);
+	}
 
 	if(!isJump())
 	{
@@ -40,29 +66,6 @@ void KBEntity::addTime(Real deltaTime)
 			newy = std::max(rayResult.position.y + distanceAboveTerrain, newy);
 			setPosition(camPos.x, newy, camPos.z);
 		}
-	}
-
-	if(kbe_playerID() != mID)
-	{
-		Ogre::Vector3 currpos = getPosition();
-		Ogre::Vector3 movement = destPos_ - currpos;
-		
-		movement.y = 0.f;
-
-		if(movement.length() < mMoveSpeed)
-		{
-			currpos = destPos_;
-		}
-		else
-		{
-			movement.normalise();
-
-			// 移动位置
-			movement *= mMoveSpeed;
-			currpos += movement;
-		}
-		
-		setPosition(currpos.x, currpos.y, currpos.z);
 	}
 }
 

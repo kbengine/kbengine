@@ -575,6 +575,11 @@ public:
 			if (reset) mAnims[id]->setTimePosition(0);
 		}
 	}
+
+	void setMoveSpeed(float speed){ 
+		mMoveSpeed = speed; 
+	}
+
 private:
 	bool _checkJumpEnd();
 private:

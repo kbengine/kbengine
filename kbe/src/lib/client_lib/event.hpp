@@ -42,6 +42,7 @@ typedef int32 EventID;
 #define CLIENT_EVENT_SCRIPT 10
 #define CLIENT_EVENT_POSITION_CHANGED 11
 #define CLIENT_EVENT_DIRECTION_CHANGED 12
+#define CLIENT_EVENT_MOVESPEED_CHANGED 13
 
 struct EventData
 {
@@ -133,6 +134,7 @@ struct EventData_EnterWorld : public EventData
 	std::string res;
 	float x, y, z;
 	float pitch, roll, yaw;
+	float speed;
 };
 
 struct EventData_LeaveWorld : public EventData
@@ -204,11 +206,13 @@ struct EventData_PositionChanged : public EventData
 	x(0.f),
 	y(0.f),
 	z(0.f),
+	speed(0.f),
 	pEntity(NULL)
 	{
 	}
 
 	float x, y, z;
+	float speed;
 	const EntityAspect* pEntity;
 };
 
@@ -226,6 +230,20 @@ struct EventData_DirectionChanged : public EventData
 	float yaw, pitch, roll;
 	const EntityAspect* pEntity;
 };
+
+struct EventData_MoveSpeedChanged : public EventData
+{
+	EventData_MoveSpeedChanged():
+	EventData(CLIENT_EVENT_MOVESPEED_CHANGED),
+	speed(0.f),
+	pEntity(NULL)
+	{
+	}
+
+	float speed;
+	const EntityAspect* pEntity;
+};
+
 
 inline EventData* newKBEngineEvent(EventID v)
 {
@@ -266,6 +284,9 @@ inline EventData* newKBEngineEvent(EventID v)
 			break;
 		case CLIENT_EVENT_DIRECTION_CHANGED:
 			return new EventData_DirectionChanged();
+			break;
+		case CLIENT_EVENT_MOVESPEED_CHANGED:
+			return new EventData_MoveSpeedChanged();
 			break;
 		default:
 			break;
@@ -327,6 +348,10 @@ inline EventData* copyKBEngineEvent(const KBEngine::EventData* lpEventData)
 		case CLIENT_EVENT_DIRECTION_CHANGED:
 			peventdata = new EventData_DirectionChanged();
 			(*static_cast<EventData_DirectionChanged*>(peventdata)) = (*static_cast<const EventData_DirectionChanged*>(lpEventData));
+			break;
+		case CLIENT_EVENT_MOVESPEED_CHANGED:
+			peventdata = new EventData_MoveSpeedChanged();
+			(*static_cast<EventData_MoveSpeedChanged*>(peventdata)) = (*static_cast<const EventData_MoveSpeedChanged*>(lpEventData));
 			break;
 		default:
 			break;

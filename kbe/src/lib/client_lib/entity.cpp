@@ -51,6 +51,7 @@ SCRIPT_GET_DECLARE("cell",							pyGetCellMailbox,				0,					0)
 SCRIPT_GET_DECLARE("clientapp",						pyGetClientApp	,				0,					0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,		0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,		0,		0)
+SCRIPT_GETSET_DECLARE("velocity",					pyGetMoveSpeed,					pySetMoveSpeed,		0,		0)
 ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 	
@@ -60,7 +61,8 @@ ScriptObject(getScriptType(), true),
 ENTITY_CONSTRUCTION(Entity),
 cellMailbox_(cell),
 baseMailbox_(base),
-aspect_(id)
+aspect_(id),
+velocity_(3.0f)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
 }
@@ -260,6 +262,20 @@ PyObject* Entity::pyGetPosition()
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::onPositionChanged()
+{
+	EventData_PositionChanged eventdata;
+	eventdata.x = position_.x;
+	eventdata.y = position_.y;
+	eventdata.z = position_.z;
+	eventdata.speed = velocity_;
+	
+	eventdata.pEntity = getAspect();
+
+	pClientApp_->fireEvent(&eventdata);
+}
+
+//-------------------------------------------------------------------------------------
 int Entity::pySetDirection(PyObject *value)
 {
 	if(PySequence_Check(value) <= 0)
@@ -297,6 +313,41 @@ PyObject* Entity::pyGetDirection()
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::onDirectionChanged()
+{
+	EventData_DirectionChanged eventdata;
+	eventdata.yaw = direction_.yaw;
+	eventdata.pitch = direction_.pitch;
+	eventdata.roll = direction_.roll;
+	eventdata.pEntity = getAspect();
+
+	pClientApp_->fireEvent(&eventdata);
+}
+
+//-------------------------------------------------------------------------------------
+int Entity::pySetMoveSpeed(PyObject *value)
+{
+	velocity_ = (float)PyFloat_AsDouble(value);
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetMoveSpeed()
+{
+	return PyFloat_FromDouble(velocity_);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onMoveSpeedChanged()
+{
+	EventData_MoveSpeedChanged eventdata;
+	eventdata.speed = velocity_;
+	eventdata.pEntity = getAspect();
+
+	pClientApp_->fireEvent(&eventdata);
+}
+
+//-------------------------------------------------------------------------------------
 void Entity::onEnterWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
@@ -310,30 +361,6 @@ void Entity::onLeaveWorld()
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("leaveWorld"));
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::onPositionChanged()
-{
-	EventData_PositionChanged eventdata;
-	eventdata.x = position_.x;
-	eventdata.y = position_.y;
-	eventdata.z = position_.z;
-	eventdata.pEntity = getAspect();
-
-	pClientApp_->fireEvent(&eventdata);
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::onDirectionChanged()
-{
-	EventData_DirectionChanged eventdata;
-	eventdata.yaw = direction_.yaw;
-	eventdata.pitch = direction_.pitch;
-	eventdata.roll = direction_.roll;
-	eventdata.pEntity = getAspect();
-
-	pClientApp_->fireEvent(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------

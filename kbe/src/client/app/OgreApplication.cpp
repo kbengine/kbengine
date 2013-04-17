@@ -27,6 +27,7 @@ template<> OgreApplication* Ogre::Singleton<OgreApplication>::msSingleton = 0;
 
 Space* g_space = NULL;
 boost::mutex g_spaceMutex;
+volatile bool g_hasEvent = false;
 
 //-------------------------------------------------------------------------------------
 OgreApplication::OgreApplication(void):
@@ -56,7 +57,8 @@ void OgreApplication::go(void)
 		// 通知系统分派消息
 		Ogre::WindowEventUtilities::messagePump();
 
-		Sleep(5);
+		if(!g_hasEvent)
+			Sleep(1);
 	}
 
     // clean up
@@ -134,6 +136,7 @@ bool OgreApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
 		}
 	}
 	
+	g_hasEvent = false;
 	events_.clear();
 
 	if(!g_space->frameRenderingQueued(evt))
@@ -242,6 +245,7 @@ void OgreApplication::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 	{
 		boost::mutex::scoped_lock lock(g_spaceMutex);
 		events_.push_back(peventdata);
+		g_hasEvent = true;
 	}
 }
 
