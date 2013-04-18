@@ -389,4 +389,15 @@ PyObject* kbe_callEntityMethod(KBEngine::ENTITY_ID entityID, const char *method,
 }
 
 //-------------------------------------------------------------------------------------
+void kbe_updateVolatile(float x, float y, float z, float yaw, float pitch, float roll)
+{
+	//client::Entity* pEntity = g_pApp->pPlayer();
+	//if(pEntity == NULL)
+	//	return;
+
+	g_pApp->setPlayerPosition(x, y, z);
+	g_pApp->setPlayerDirection(roll, pitch, yaw);
+}
+
+//-------------------------------------------------------------------------------------
 

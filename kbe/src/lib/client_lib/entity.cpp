@@ -264,6 +264,9 @@ PyObject* Entity::pyGetPosition()
 //-------------------------------------------------------------------------------------
 void Entity::onPositionChanged()
 {
+	if(pClientApp_->entityID() == this->getID())
+		return;
+
 	EventData_PositionChanged eventdata;
 	eventdata.x = position_.x;
 	eventdata.y = position_.y;
@@ -315,6 +318,9 @@ PyObject* Entity::pyGetDirection()
 //-------------------------------------------------------------------------------------
 void Entity::onDirectionChanged()
 {
+	if(pClientApp_->entityID() == this->getID())
+		return;
+
 	EventData_DirectionChanged eventdata;
 	eventdata.yaw = direction_.yaw;
 	eventdata.pitch = direction_.pitch;

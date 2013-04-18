@@ -31,6 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/common.hpp"
 #include "server/callbackmgr.hpp"
 #include "server/server_errors.hpp"
+#include "math/math.hpp"
 
 namespace KBEngine{
 
@@ -239,6 +240,11 @@ public:
 	
 	void _updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float yaw, float pitch, float roll);
 
+	/** 
+		更新玩家到服务端 
+	*/
+	virtual void updatePlayerToServer();
+
 	/** 网络接口
 		download stream开始了 
 	*/
@@ -258,6 +264,8 @@ public:
 		获得player实例
 	*/
 	client::Entity* pPlayer();
+	void setPlayerPosition(float x, float y, float z){ entityPos_ = Position3D(x, y, z); }
+	void setPlayerDirection(float yaw, float pitch, float roll){ entityDir_ = Direction3D(roll, pitch, yaw); }
 protected:				
 	int32 appID_;
 
@@ -271,6 +279,10 @@ protected:
 	PY_CALLBACKMGR											pyCallbackMgr_;
 
 	ENTITY_ID entityID_;
+
+	Position3D entityPos_;
+	Direction3D entityDir_;
+
 	DBID dbid_;
 
 	std::string ip_;

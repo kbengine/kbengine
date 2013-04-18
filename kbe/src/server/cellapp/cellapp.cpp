@@ -871,12 +871,39 @@ void Cellapp::onRemoteCallMethodFromClient(Mercury::Channel* pChannel, KBEngine:
 	{	
 		WARNING_MSG(boost::format("Cellapp::onRemoteCallMethodFromClient: can't found entityID:%1%, by srcEntityID:%2%.\n") % 
 			targetID % srcEntityID);
-
+		
+		s.read_skip(s.opsize());
 		return;
 	}
 
 	// 这个方法呼叫如果不是这个proxy自己的方法则必须呼叫的entity和proxy的cellEntity在一个space中。
 	e->onRemoteMethodCall(pChannel, s);
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::onUpdateDataFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	ENTITY_ID srcEntityID = 0;
+
+	s >> srcEntityID;
+	if(srcEntityID <= 0)
+		return;
+	
+	if(s.opsize() <= 0)
+		return;
+
+	KBEngine::Entity* e = findEntity(srcEntityID);	
+
+	if(e == NULL)
+	{
+		ERROR_MSG(boost::format("Baseapp::onUpdateDataFromClient: not found entity %1%!\n") % srcEntityID);
+		
+		s.read_skip(s.opsize());
+		return;
+	}
+
+	e->onUpdateDataFromClient(s);
+	s.read_skip(s.opsize());
 }
 
 //-------------------------------------------------------------------------------------

@@ -117,6 +117,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// client访问entity的cell方法
 	CELLAPP_MESSAGE_DECLARE_STREAM(onRemoteCallMethodFromClient,			MERCURY_VARIABLE_MESSAGE)
 
+	// client更新数据
+	CELLAPP_MESSAGE_DECLARE_STREAM(onUpdateDataFromClient,					MERCURY_VARIABLE_MESSAGE)
+
 	// executeRawDatabaseCommand从dbmgr的回调
 	CELLAPP_MESSAGE_DECLARE_STREAM(onExecuteRawDatabaseCommandCB,			MERCURY_VARIABLE_MESSAGE)
 

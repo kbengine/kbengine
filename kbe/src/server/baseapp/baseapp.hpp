@@ -272,6 +272,12 @@ public:
 	void onRemoteCallCellMethodFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
+		client更新数据
+	*/
+	void onUpdateDataFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+
+	/** 网络接口
 		cellapp备份entity的cell数据
 	*/
 	void onBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);

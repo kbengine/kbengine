@@ -62,7 +62,9 @@ public:
 	  mSpacePtr(pSpace),
 	  mSceneMgr(NULL),
 	  destPos_(),
-	  destDir_()
+	  lastPos_(),
+	  destDir_(),
+	  currDir_()
 	{
 		//setupBody(cam->getSceneManager());
 		//setupCamera(cam);
@@ -99,9 +101,9 @@ public:
 
 	void setDestDirection(float yaw, float pitch, float roll)
 	{
-		destDir_.x = yaw;
+		destDir_.x = roll;
 		destDir_.y = pitch;
-		destDir_.z = roll;
+		destDir_.z = yaw;
 	}
 
 	void setDestPosition(float x, float y, float z)
@@ -113,19 +115,51 @@ public:
 
 	void setDirection(float yaw, float pitch, float roll)
 	{
-		mBodyNode->yaw(Ogre::Radian(yaw));
-		mBodyNode->pitch(Ogre::Radian(pitch));
-		mBodyNode->roll(Ogre::Radian(roll));
+		Ogre::Vector3 dir(roll, pitch, yaw);
+		mBodyNode->setDirection(dir, Ogre::Node::TS_WORLD);
+		
+		/*
+		if(currDir_.x != yaw)
+		{
+			mBodyNode->yaw(Ogre::Radian(3.1415926 / 2));
+			currDir_.x = yaw;
+		}
+
+		if(currDir_.y != pitch)
+		{
+			mBodyNode->pitch(Ogre::Radian(pitch));
+			currDir_.y = pitch;
+		}
+
+		if(currDir_.z != roll)
+		{
+			mBodyNode->roll(Ogre::Radian(roll));
+			currDir_.z = roll;
+		}
+		*/
 	}
 
 	void setPosition(float x, float y, float z)
 	{
+		lastPos_.x = x;
+		lastPos_.y = y;
+		lastPos_.z = z;
 		mBodyNode->setPosition(x, y, z);
 	}
 
+	const Ogre::Vector3& getLastPosition()
+	{
+		return lastPos_;
+	}
+	
 	const Ogre::Vector3& getPosition()
 	{
 		return mBodyNode->getPosition();
+	}
+	
+	const Ogre::Vector3& getDirection()
+	{
+		return mGoalDirection;
 	}
 	
 	bool isJump()const { return mIsJump; }
@@ -200,7 +234,7 @@ public:
 	void injectMouseMove(const OIS::MultiTouchEvent& evt)
 	{
 		// update camera goal based on mouse movement
-		updateCameraGoal(-0.05f * evt.state.X.rel, -0.05f * evt.state.Y.rel, -0.0005f * evt.state.Z.rel);
+		updateCameraGoal(-0.05f * evt.state.X.rel, -0.05f * evt.state.Y.rel, -0.1f * evt.state.Z.rel);
 	}
 
 	void injectMouseDown(const OIS::MultiTouchEvent& evt)
@@ -216,7 +250,10 @@ public:
 	void injectMouseMove(const OIS::MouseEvent& evt)
 	{
 		// update camera goal based on mouse movement
-		updateCameraGoal(-0.05f * evt.state.X.rel, -0.05f * evt.state.Y.rel, -0.0005f * evt.state.Z.rel);
+		if (evt.state.buttonDown(OIS::MB_Right)) //按下右键后旋转
+		{
+			updateCameraGoal(-0.1f * evt.state.X.rel, -0.1f * evt.state.Y.rel, -0.1f * evt.state.Z.rel);
+		}
 	}
 
 	void injectMouseDown(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
@@ -627,7 +664,7 @@ private:
 
 	SceneManager* mSceneMgr;
 
-	Ogre::Vector3 destPos_, destDir_;
+	Ogre::Vector3 destPos_, lastPos_, destDir_, currDir_;
 };
 
 #endif

@@ -94,7 +94,8 @@ pWitness_(NULL),
 allClients_(new AllClients(scriptModule, id, true)),
 otherClients_(new AllClients(scriptModule, id, false)),
 pEntityRangeNode_(NULL),
-pControllers_(new Controllers())
+pControllers_(new Controllers()),
+pMoveController_(NULL)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
 
@@ -609,9 +610,47 @@ void Entity::cancelController(uint32 id)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyCancelController(uint32 id)
+PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 {
-	cancelController(id);
+	uint16 currargsSize = PyTuple_Size(args);
+	Entity* pobj = static_cast<Entity*>(self);
+	
+	uint32 id = 0;
+	PyObject* pystr = NULL;
+
+	if(currargsSize != 1)
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::cancel: args require 1 args, gived %d! is script[%s].\n",								
+			pobj->getScriptName(), currargsSize);														
+																																
+		PyErr_PrintEx(0);																										
+		return 0;																								
+	}
+
+	if(PyArg_ParseTuple(args, "I", &id) == -1 || PyArg_ParseTuple(args, "O", &pystr) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "%s::cancel: args is error!", pobj->getScriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(pystr)
+	{
+		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pystr, NULL);
+		char* s = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+		PyMem_Free(PyUnicode_AsWideCharStringRet0);
+		
+		if(strcmp(s, "Movement") == 0)
+		{
+			pobj->stopMove();
+		}
+
+		free(s);
+
+		S_Return;
+	}
+	
+	pobj->cancelController(id);
 	S_Return;
 }
 
@@ -802,7 +841,20 @@ void Entity::onLoseWitness(Mercury::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void Entity::onResetWitness(Mercury::Channel* pChannel)
 {
-	INFO_MSG(boost::format("%1%::onResetWitness: %2%.\n") % this->getScriptName() % this->getID());
+	INFO_MSG(boost::format("%1%::onResetWitness: %2%.\n") % 
+		this->getScriptName() % this->getID());
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
+{
+	Position3D pos;
+	Direction3D dir;
+
+	s >> pos.x >> pos.y >> pos.z >> dir.yaw >> dir.pitch >> dir.roll;
+
+	this->setPosition(pos);
+	this->setDirection(dir);
 }
 
 //-------------------------------------------------------------------------------------
@@ -844,6 +896,19 @@ float Entity::getAoiHystArea(void)const
 }
 
 //-------------------------------------------------------------------------------------
+bool Entity::stopMove()
+{
+	if(pMoveController_)
+	{
+		static_cast<MoveToPointController*>(pMoveController_)->destroyed();
+		pMoveController_ = NULL;
+		return true;
+	}
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
 bool Entity::navigateStep(const Position3D& destination, float velocity, float maxMoveDistance, float maxDistance, 
 	bool faceMovement, float girth, PyObject* userData)
 {
@@ -879,6 +944,8 @@ PyObject* Entity::pyNavigateStep(PyObject_ptr pyDestination, float velocity, flo
 uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObject* userData, 
 						 bool faceMovement, bool moveVertically)
 {
+	stopMove();
+
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
 	MoveToPointController* p = new MoveToPointController(this, destination, velocity, 
@@ -886,6 +953,8 @@ uint32 Entity::moveToPoint(const Position3D& destination, float velocity, PyObje
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
+	
+	pMoveController_ = p;
 
 	return p->id();
 }
@@ -907,6 +976,8 @@ PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, PyOb
 uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float range, PyObject* userData, 
 						 bool faceMovement, bool moveVertically)
 {
+	stopMove();
+
 	velocity = velocity / g_kbeSrvConfig.gameUpdateHertz();
 
 	MoveToEntityController* p = new MoveToEntityController(this, targetID, velocity, range,
@@ -914,7 +985,8 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float range, PyO
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
-
+	
+	pMoveController_ = p;
 	return p->id();
 }
 
@@ -932,6 +1004,12 @@ void Entity::onMove(uint32 controllerId, PyObject* userarg)
 	SCOPED_PROFILE(ONMOVE_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMove"), 
 		const_cast<char*>("IO"), controllerId, userarg);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onMoveOver(uint32 controllerId, PyObject* userarg)
+{
+	pMoveController_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------

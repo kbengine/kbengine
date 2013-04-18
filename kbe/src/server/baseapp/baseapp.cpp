@@ -2050,12 +2050,45 @@ void Baseapp::onRemoteCallCellMethodFromClient(Mercury::Channel* pChannel, KBEng
 	{
 		ERROR_MSG(boost::format("Baseapp::onRemoteCallCellMethodFromClient: %1% %2% has no cell.\n") %
 			e->getScriptName() % srcEntityID);
-
+		
+		s.read_skip(s.opsize());
 		return;
 	}
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(CellappInterface::onRemoteCallMethodFromClient);
+	(*pBundle) << srcEntityID;
+	(*pBundle).append(s);
+	
+	e->getCellMailbox()->postMail((*pBundle));
+	s.read_skip(s.opsize());
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onUpdateDataFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	ENTITY_ID srcEntityID = pChannel->proxyID();
+	if(srcEntityID <= 0)
+		return;
+	
+	if(s.opsize() <= 0)
+		return;
+
+	KBEngine::Proxy* e = static_cast<KBEngine::Proxy*>
+			(KBEngine::Baseapp::getSingleton().findEntity(srcEntityID));	
+
+	if(e == NULL || e->getCellMailbox() == NULL)
+	{
+		ERROR_MSG(boost::format("Baseapp::onUpdateDataFromClient: %1% %2% has no cell.\n") %
+			(e == NULL ? "unknown" : e->getScriptName()) % srcEntityID);
+		
+		s.read_skip(s.opsize());
+		return;
+	}
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(CellappInterface::onUpdateDataFromClient);
 	(*pBundle) << srcEntityID;
 	(*pBundle).append(s);
 	
@@ -2085,6 +2118,7 @@ void Baseapp::onBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::Memor
 	else
 	{
 		ERROR_MSG(boost::format("Baseapp::onBackupEntityCellData: not found entityID=%1%\n") % baseID);
+		s.read_skip(s.opsize());
 	}
 }
 

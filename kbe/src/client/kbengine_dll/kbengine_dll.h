@@ -70,6 +70,11 @@ KBE_DLL_API KBEngine::ENTITY_ID kbe_playerID();
 KBE_DLL_API KBEngine::DBID kbe_playerDBID();
 
 /**
+	更新player的坐标与朝向
+*/
+KBE_DLL_API void kbe_updateVolatile(float x, float y, float z, float yaw, float pitch, float roll);
+
+/**
 	注册一个事件handle来监听引擎产生的事件
 	然后根据事件可以做相应的表现
 */

@@ -127,6 +127,9 @@ public:
     /** Returns true if this vector has length ~= 1 */
     bool isUnit() const;
     
+ 	inline float yaw() const;
+	inline float pitch() const;
+	
     // arithmetic operations
     Vector3 operator+ (const Vector3& v) const;
     Vector3 operator- (const Vector3& v) const;

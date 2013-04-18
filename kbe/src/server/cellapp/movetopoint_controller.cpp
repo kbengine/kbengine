@@ -35,7 +35,8 @@ velocity_(velocity),
 faceMovement_(faceMovement),
 moveVertically_(moveVertically),
 pyuserarg_(userarg),
-range_(range)
+range_(range),
+destroyed_(false)
 {
 	Cellapp::getSingleton().addUpdatable(this);
 }
@@ -52,6 +53,9 @@ MoveToPointController::~MoveToPointController()
 //-------------------------------------------------------------------------------------
 bool MoveToPointController::update()
 {
+	if(destroyed_)
+		return false;
+
 	const Position3D& dstPos = destPos();
 	Position3D currpos = pEntity_->getPosition();
 	Direction3D direction = pEntity_->getDirection();
@@ -91,7 +95,7 @@ bool MoveToPointController::update()
 	
 	// 是否需要改变面向
 	if (faceMovement_ && (movement.x != 0.f || movement.z != 0.f))
-		direction.yaw = atan2f(movement.x, movement.z);
+		direction.yaw = movement.yaw();
 	
 	// 设置entity的新位置和面向
 	pEntity_->setPositionAndDirection(currpos, direction);
@@ -105,6 +109,7 @@ bool MoveToPointController::update()
 	// 如果达到目的地则返回true
 	if(!ret)
 	{
+		pEntity_->onMoveOver(id(), pyuserarg_);
 		delete this;
 		return false;
 	}

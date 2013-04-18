@@ -56,6 +56,8 @@ pEntities_(new Entities<client::Entity>()),
 pEntityIDAliasIDList_(),
 pyCallbackMgr_(),
 entityID_(0),
+entityPos_(),
+entityDir_(),
 dbid_(0),
 ip_(),
 port_(),
@@ -119,6 +121,7 @@ void ClientObjectBase::tickSend()
 		pServerChannel_->pushBundle(pBundle);
 	}
 
+	updatePlayerToServer();
 	pServerChannel_->send();
 }
 
@@ -462,6 +465,16 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 			return;
 		}
 	}
+	else
+	{
+		KBE_ASSERT(entity->getCellMailbox() == NULL);
+
+		// ÉèÖÃentityµÄcellMailbox
+		EntityMailbox* mailbox = new EntityMailbox(entity->getScriptModule(), 
+			NULL, appID(), eid, MAILBOX_TYPE_CELL);
+
+		entity->setCellMailbox(mailbox);
+	}
 
 	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%(%2%).\n") % 
 		entity->getScriptName() % eid);
@@ -630,6 +643,31 @@ ENTITY_ID ClientObjectBase::readEntityIDFromStream(MemoryStream& s)
 	}
 
 	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::updatePlayerToServer()
+{
+	client::Entity* pEntity = pEntities_->find(entityID_);
+	if(pEntity == NULL || !connectedGateway_ || 
+		pServerChannel_ == NULL || pEntity->getCellMailbox() == NULL)
+		return;
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::onUpdateDataFromClient);
+	
+	pEntity->setPosition(entityPos_);
+	pEntity->setDirection(entityDir_);
+
+	(*pBundle) << pEntity->getPosition().x;
+	(*pBundle) << pEntity->getPosition().y;
+	(*pBundle) << pEntity->getPosition().z;
+
+	(*pBundle) << pEntity->getDirection().yaw;
+	(*pBundle) << pEntity->getDirection().pitch;
+	(*pBundle) << pEntity->getDirection().roll;
+
+	pServerChannel_->pushBundle(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -858,7 +896,8 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 		
 		Position3D basepos = player->getPosition();
 		basepos += relativePos;
-
+		
+		// DEBUG_MSG(boost::format("ClientObjectBase::_updateVolatileData: %1%-%2%-%3%--%4%-%5%-%6%-\n") % x % y % z % basepos.x % basepos.y % basepos.z);
 		entity->setPosition(basepos);
 	}
 

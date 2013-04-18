@@ -195,6 +195,7 @@ struct Direction3D																										// 表示方向位置变量类型
 {
 	Direction3D():roll(0.0f), pitch(0.0f), yaw(0.0f) {};
 	Direction3D(const Vector3 & v):roll(v[0]), pitch(v[1]), yaw(v[2]) {}
+	Direction3D(float r, float p, float y):roll(r), pitch(p), yaw(y) {}
 	Vector3 asVector3() const { return Vector3(roll, pitch, yaw); }
 
 	float roll;		

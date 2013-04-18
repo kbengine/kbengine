@@ -344,7 +344,11 @@ void Channel::send(Bundle * pBundle)
 {
 	if (this->isDestroyed())
 	{
-		ERROR_MSG(boost::format("Channel::send(%1%): Channel is destroyed.") % this->c_str());
+		ERROR_MSG(boost::format("Channel::send(%1%): Channel is destroyed.\n") % 
+			this->c_str());
+		
+		this->clearBundle();
+		return;
 	}
 	
 	if(pBundle)

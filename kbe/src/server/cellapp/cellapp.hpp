@@ -142,6 +142,11 @@ public:
 	void onRemoteCallMethodFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
+		client更新数据
+	*/
+	void onUpdateDataFromClient(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
 		base请求获取celldata
 	*/
 	void reqBackupEntityCellData(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);

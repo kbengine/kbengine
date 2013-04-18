@@ -133,6 +133,16 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
 	{
 		iter->second->addTime(evt.timeSinceLastFrame);
 	}
+	
+	if(mPlayerPtr) 
+	{
+		// kbe_lock();
+
+		kbe_updateVolatile(mPlayerPtr->getPosition().x, mPlayerPtr->getPosition().y, mPlayerPtr->getPosition().z,
+			mPlayerPtr->getDirection().x, mPlayerPtr->getDirection().y, mPlayerPtr->getDirection().z);
+
+		// kbe_unlock();
+	}
 
     return true;
 }

@@ -255,9 +255,21 @@ inline bool Vector3::isZero() const {
 }
 
 //----------------------------------------------------------------------------
-
 inline bool Vector3::isUnit() const {
     return G3D::fuzzyEq(squaredMagnitude(), 1.0f);
 }
+
+//----------------------------------------------------------------------------
+inline float Vector3::pitch() const
+{
+	return -atan2f( y, sqrtf( x*x + z*z ) );
+}
+
+//----------------------------------------------------------------------------
+inline float Vector3::yaw() const
+{
+	return atan2f( x, z );
+}
+
 
 } // namespace

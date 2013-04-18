@@ -37,6 +37,8 @@ public:
 	virtual bool update();
 
 	virtual const Position3D& destPos(){ return destPos_; }
+
+	void destroyed(){ destroyed_ = true; }
 protected:
 	Position3D destPos_;
 	float velocity_;			// 速度
@@ -44,6 +46,7 @@ protected:
 	bool moveVertically_;		// true则可以飞起来移动否则贴地
 	PyObject* pyuserarg_;
 	float range_;
+	bool destroyed_;
 };
  
 }

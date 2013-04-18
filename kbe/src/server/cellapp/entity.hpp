@@ -340,6 +340,11 @@ public:
 	void onResetWitness(Mercury::Channel* pChannel);
 
 	/** 
+		client更新数据
+	*/
+	void onUpdateDataFromClient(KBEngine::MemoryStream& s);
+
+	/** 
 		添加一个陷阱 
 	*/
 	uint32 addProximity(float range_xz, float range_y, int32 userarg);
@@ -349,7 +354,7 @@ public:
 		删除一个陷阱 
 	*/
 	void cancelController(uint32 id);
-	DECLARE_PY_MOTHOD_ARG1(pyCancelController, uint32);
+	static PyObject* __py_pyCancelController(PyObject* self, PyObject* args);
 
 	/** 
 		一个entity进入了这个entity的某个陷阱 
@@ -371,9 +376,19 @@ public:
 							uint32 controllerID, int32 userarg);
 
 	/** 
+		停止任何移动行为
+	*/
+	bool stopMove();
+
+	/** 
 		entity的一次移动完成 
 	*/
 	void onMove(uint32 controllerId, PyObject* userarg);
+
+	/** 
+		entity的移动完成 
+	*/
+	void onMoveOver(uint32 controllerId, PyObject* userarg);
 
 	/** 
 		entity移动失败
@@ -419,6 +434,7 @@ protected:
 	EntityRangeNode*						pEntityRangeNode_;					// entity节点
 
 	Controllers*							pControllers_;						// 控制器管理器
+	Controller*								pMoveController_;
 };																										
 																											
 
