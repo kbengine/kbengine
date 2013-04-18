@@ -115,7 +115,8 @@ public:
 
 	void setDirection(float yaw, float pitch, float roll)
 	{
-		Ogre::Vector3 dir(roll, pitch, yaw);
+		Ogre::Vector3 dir(-yaw, roll, pitch);
+		mBodyNode->setFixedYawAxis(true); 
 		mBodyNode->setDirection(dir, Ogre::Node::TS_WORLD);
 		
 		/*
