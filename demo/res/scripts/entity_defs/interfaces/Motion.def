@@ -5,7 +5,7 @@
 	<Properties>
 		<moveSpeed>
 			<Type>			FLOAT			</Type>
-			<Flags>			CELL_PRIVATE		</Flags>
+			<Flags>			ALL_CLIENTS		</Flags>
 			<Default>		5.0			</Default>
 		</moveSpeed>
 	</Properties>

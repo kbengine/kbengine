@@ -43,6 +43,7 @@ typedef int32 EventID;
 #define CLIENT_EVENT_POSITION_CHANGED 11
 #define CLIENT_EVENT_DIRECTION_CHANGED 12
 #define CLIENT_EVENT_MOVESPEED_CHANGED 13
+#define CLIENT_EVENT_SERVER_CLOSED 14
 
 struct EventData
 {
@@ -244,6 +245,13 @@ struct EventData_MoveSpeedChanged : public EventData
 	const EntityAspect* pEntity;
 };
 
+struct EventData_ServerCloased : public EventData
+{
+	EventData_ServerCloased():
+	EventData(CLIENT_EVENT_SERVER_CLOSED)
+	{
+	}
+};
 
 inline EventData* newKBEngineEvent(EventID v)
 {
@@ -287,6 +295,9 @@ inline EventData* newKBEngineEvent(EventID v)
 			break;
 		case CLIENT_EVENT_MOVESPEED_CHANGED:
 			return new EventData_MoveSpeedChanged();
+			break;
+		case CLIENT_EVENT_SERVER_CLOSED:
+			return new EventData_ServerCloased();
 			break;
 		default:
 			break;
@@ -352,6 +363,10 @@ inline EventData* copyKBEngineEvent(const KBEngine::EventData* lpEventData)
 		case CLIENT_EVENT_MOVESPEED_CHANGED:
 			peventdata = new EventData_MoveSpeedChanged();
 			(*static_cast<EventData_MoveSpeedChanged*>(peventdata)) = (*static_cast<const EventData_MoveSpeedChanged*>(lpEventData));
+			break;
+		case CLIENT_EVENT_SERVER_CLOSED:
+			peventdata = new EventData_ServerCloased();
+			(*static_cast<EventData_ServerCloased*>(peventdata)) = (*static_cast<const EventData_ServerCloased*>(lpEventData));
 			break;
 		default:
 			break;

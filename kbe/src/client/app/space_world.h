@@ -35,6 +35,8 @@ public:
     virtual bool mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
     virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
 	virtual void kbengine_onEvent(const KBEngine::EventData* lpEventData);
+	
+	void buttonHit(OgreBites::Button* button);
 
 	DotSceneLoader* getDotSceneLoader(){ return mLoader; }
 private:
@@ -55,6 +57,8 @@ private:
 	KBEntity* mPlayerPtr;
 
 	ENTITIES mEntities;
+
+	bool serverClosed_;
 };
 
 #endif // #ifndef __SPACEWORLD_CLIENT_h_

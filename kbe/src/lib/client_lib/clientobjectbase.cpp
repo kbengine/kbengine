@@ -63,12 +63,14 @@ ip_(),
 port_(),
 lastSentActiveTickTime_(timestamp()),
 connectedGateway_(false),
+canReset_(false),
 name_(),
 password_(),
 extradatas_("unknown"),
 typeClient_(CLIENT_TYPE_PC),
 bufferedCreateEntityMessage_(),
-eventHandler_()
+eventHandler_(),
+ninterface_(ninterface)
 {
 	pServerChannel_->incRef();
 	appID_ = g_appID++;
@@ -100,11 +102,53 @@ void ClientObjectBase::finalise(void)
 	}
 }
 
+//-------------------------------------------------------------------------------------		
+void ClientObjectBase::reset(void)
+{
+	pEntities_->finalise();
+	pEntityIDAliasIDList_.clear();
+	pyCallbackMgr_.finalise();
+	entityID_ = 0;
+	dbid_ = 0;
+	ip_ = "";
+	port_ = 0;
+	lastSentActiveTickTime_ = 0;
+	connectedGateway_ = false;
+	name_ = "";
+	password_ = "";
+	extradatas_ = "";
+	bufferedCreateEntityMessage_.clear();
+	canReset_ = false;
+
+	if(pServerChannel_)
+	{
+		pServerChannel_->destroy();
+		pServerChannel_->decRef();
+		pServerChannel_ = NULL;
+	}
+
+	pServerChannel_ = new Mercury::Channel();
+	pServerChannel_->pNetworkInterface(&ninterface_);
+}
+
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::tickSend()
 {
 	if(!pServerChannel_ || !pServerChannel_->endpoint())
 		return;
+	
+	if(pServerChannel_ && pServerChannel_->isDestroyed())
+	{
+		if(connectedGateway_)
+		{
+			EventData_ServerCloased eventdata;
+			eventHandler_.fire(&eventdata);
+			connectedGateway_ = false;
+			canReset_ = true;
+		}
+
+		return;
+	}
 
 	// 向服务器发送tick
 	uint64 check = uint64( Mercury::g_channelExternalTimeout * stampsPerSecond() ) / 2;
@@ -871,7 +915,8 @@ void ClientObjectBase::onUpdateData_xz_yp(Mercury::Channel* pChannel, MemoryStre
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y, float z, float yaw, float pitch, float roll)
+void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y, float z, 
+										   float yaw, float pitch, float roll)
 {
 	client::Entity* entity = pEntities_->find(entityID);
 	if(entity == NULL)

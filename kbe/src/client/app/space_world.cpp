@@ -1,4 +1,5 @@
 #include "space_world.h"
+#include "space_login.h"
 #include "DotSceneLoader.h"
 #include "PagedGeometry.h"
 #include "GrassLoader.h"
@@ -19,7 +20,8 @@ SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
     mHelpInfo(Ogre::StringUtil::BLANK),
     mFly(false),
 	mPlayerPtr(0),
-	mEntities()
+	mEntities(),
+	serverClosed_(false)
 {
     mHelpInfo = Ogre::String("Use [W][A][S][D] keys for movement.\nKeys [1]-[9] to switch between cameras.\n[0] toggles SceneNode debug visuals.\n\nPress [C] to toggle clamp to terrain (gravity).\n\n[G] toggles the detail panel.\n[R] cycles polygonModes (Solid/Wireframe/Points).\n[T] cycles various filtering.\n\n\nPress [ESC] to quit.");
 }
@@ -27,6 +29,7 @@ SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
 //-------------------------------------------------------------------------------------
 SpaceWorld::~SpaceWorld(void)
 {
+	mTrayMgr->destroyWidget("backlogin");
 	mSceneMgr->destroyCamera("mainCamera");
 	mActiveCamera = NULL;
 	delete mLoader;
@@ -143,8 +146,24 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
 		// kbe_unlock();
 	}
+	
+	// ·þÎñÆ÷¹Ø±Õ
+	if(serverClosed_)
+	{
+		mTrayMgr->createButton(OgreBites::TL_CENTER, "backlogin", "back login", 120);
+		serverClosed_ = false;
+	}
 
     return true;
+}
+
+//-------------------------------------------------------------------------------------
+void SpaceWorld::buttonHit(OgreBites::Button* button)
+{
+	if(button->getCaption() == "back login")
+	{
+		OgreApplication::getSingleton().changeSpace(new SpaceLogin(mRoot, mWindow, mInputManager, mTrayMgr));
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -269,6 +288,11 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 				break;
 
 			iter->second->setMoveSpeed(pEventData->speed);
+		}
+		break;
+	case CLIENT_EVENT_SERVER_CLOSED:
+		{
+			serverClosed_ = true;
 		}
 		break;
 	default:

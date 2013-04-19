@@ -87,6 +87,13 @@ ClientApp::~ClientApp()
 	SAFE_RELEASE(pBlowfishFilter_);
 }
 
+//-------------------------------------------------------------------------------------		
+void ClientApp::reset(void)
+{
+	state_ = C_STATE_INIT;
+	ClientObjectBase::reset();
+}
+
 //-------------------------------------------------------------------------------------
 int ClientApp::registerPyObjectToScript(const char* attrName, PyObject* pyObj)
 { 
@@ -456,6 +463,9 @@ bool ClientApp::login(std::string accountName, std::string passwd,
 	connectedGateway_ = false;
 
 	bool exist = false;
+	
+	if(canReset_)
+		reset();
 
 	if(pServerChannel_->endpoint())
 	{

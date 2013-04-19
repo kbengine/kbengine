@@ -166,6 +166,28 @@ bool Config::loadConfig(std::string fileName)
 		}
 	}
 
+	rootNode = xml->getRootNode("telnet_service");
+	if(rootNode != NULL)
+	{
+		TiXmlNode* childnode = xml->enterNode(rootNode, "port");
+		if(childnode)
+		{
+			telnet_port = xml->getValInt(childnode);
+		}
+
+		childnode = xml->enterNode(rootNode, "password");
+		if(childnode)
+		{
+			telnet_passwd = xml->getValStr(childnode);
+		}
+
+		childnode = xml->enterNode(rootNode, "default_layer");
+		if(childnode)
+		{
+			telnet_deflayer = xml->getValStr(childnode);
+		}
+	}
+
 	rootNode = xml->getRootNode("gameUpdateHertz");
 	if(rootNode != NULL){
 		gameUpdateHertz_ = xml->getValInt(rootNode);

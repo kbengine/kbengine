@@ -59,6 +59,7 @@ public:
 	Mercury::Channel* pServerChannel()const{ return pServerChannel_; }
 
 	void finalise(void);
+	virtual void reset(void);
 
 	Entities<client::Entity>* pEntities()const{ return pEntities_; }
 
@@ -291,6 +292,7 @@ protected:
 	uint64 lastSentActiveTickTime_;
 
 	bool connectedGateway_;
+	bool canReset_;
 
 	std::string name_;
 	std::string password_;
@@ -302,6 +304,8 @@ protected:
 	BUFFEREDMESSAGE											bufferedCreateEntityMessage_;
 
 	EventHandler											eventHandler_;
+
+	Mercury::NetworkInterface& ninterface_;
 };
 
 }

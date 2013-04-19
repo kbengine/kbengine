@@ -234,7 +234,19 @@ bool ClientObject::initLoginGateWay()
 void ClientObject::gameTick()
 {
 	if(pServerChannel()->endpoint())
+	{
 		pServerChannel()->processPackets(NULL);
+	}
+	else
+	{
+		if(connectedGateway_)
+		{
+			EventData_ServerCloased eventdata;
+			eventHandler_.fire(&eventdata);
+			connectedGateway_ = false;
+			canReset_ = true;
+		}
+	}
 
 	switch(state_)
 	{

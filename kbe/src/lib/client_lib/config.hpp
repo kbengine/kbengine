@@ -78,6 +78,10 @@ public:
 	std::string fileName_;
 
 	bool useLastAccountName_;
+
+	uint32 telnet_port;
+	std::string telnet_passwd;
+	std::string telnet_deflayer;
 };
 
 #define g_kbeConfig Config::getSingleton()
