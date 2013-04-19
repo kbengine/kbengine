@@ -2,7 +2,7 @@
 title=kttools::ktexcel
 mode con cols=100 lines=46
 color 2
-set ktexcels=../策划
+set ktexcels=.
 set ktpydatas=pydatas
 set haskt=1
 echo 输入目录:[%ktexcels%]
