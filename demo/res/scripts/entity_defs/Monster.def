@@ -10,16 +10,12 @@
 	<Implements>
 		<Interface>			GameObject		</Interface>
 		<Interface>			NPCObject		</Interface>
+		<Interface>			Motion			</Interface>
 		<Interface>			Combat			</Interface>
 		<Interface>			Spell			</Interface>
 	</Implements>
 
 	<Properties>
-		<fightSeat>
-			<Utype> 41010 </Utype>
-			<Type>			INT8				</Type>
-			<Flags>			ALL_CLIENTS			</Flags>
-		</fightSeat>
 	</Properties>
 
 	<CellMethods>

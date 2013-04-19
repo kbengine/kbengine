@@ -439,6 +439,13 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream)
 			PyObject* pyVal = PyDict_GetItemString(cellData, propertyDescription->getName());
 			(*mstream) << propertyDescription->getUType();
 			propertyDescription->getDataType()->addToStream(mstream, pyVal);
+
+			if (PyErr_Occurred())
+ 			{	
+				PyErr_PrintEx(0);
+				DEBUG_MSG(boost::format("%1%::addCellDataToStream: %2% is error!\n") % this->getScriptName() % 
+					propertyDescription->getName());
+			}
 		}
 	}
 
@@ -476,6 +483,8 @@ void Entity::backupCellData()
 		WARNING_MSG(boost::format("Entity::backupCellData(): %1% %2% has no base!\n") % 
 			this->getScriptName() % this->getID());
 	}
+
+	SCRIPT_ERROR_CHECK();
 }
 
 //-------------------------------------------------------------------------------------

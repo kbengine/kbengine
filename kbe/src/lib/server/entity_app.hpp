@@ -739,15 +739,17 @@ void EntityApp<E>::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::Mem
 	PyObject* pycmd1 = PyUnicode_AsEncodedString(pycmd, "utf-8", NULL);
 	script_.run_simpleString(PyBytes_AsString(pycmd1), &retbuf);
 
-	if(retbuf.size() > 0)
+	if(retbuf.size() == 0)
 	{
-		// 将结果返回给客户端
-		Mercury::Bundle bundle;
-		ConsoleInterface::ConsoleExecCommandCBMessageHandler msgHandler;
-		bundle.newMessage(msgHandler);
-		ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1::staticAddToBundle(bundle, retbuf);
-		bundle.send(this->getNetworkInterface(), pChannel);
+		retbuf = "\r\n";
 	}
+
+	// 将结果返回给客户端
+	Mercury::Bundle bundle;
+	ConsoleInterface::ConsoleExecCommandCBMessageHandler msgHandler;
+	bundle.newMessage(msgHandler);
+	ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1::staticAddToBundle(bundle, retbuf);
+	bundle.send(this->getNetworkInterface(), pChannel);
 
 	Py_DECREF(pycmd);
 	Py_DECREF(pycmd1);

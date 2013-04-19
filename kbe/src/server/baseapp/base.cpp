@@ -168,7 +168,8 @@ void Base::createCellData(void)
 			ERROR_MSG(boost::format("Base::createCellData: %1% PropertyDescription the dataType is NULL.\n") %
 				propertyDescription->getName());	
 		}
-			
+		
+		SCRIPT_ERROR_CHECK();
 	}
 	
 	// 初始化cellEntity的位置和方向变量
@@ -187,6 +188,8 @@ void Base::createCellData(void)
 
 	Py_DECREF(position);
 	Py_DECREF(direction);
+
+	SCRIPT_ERROR_CHECK();
 }
 
 //-------------------------------------------------------------------------------------
@@ -201,7 +204,15 @@ void Base::addCellDataToStream(uint32 flags, MemoryStream* s)
 		{
 			PyObject* pyVal = PyDict_GetItemString(cellDataDict_, propertyDescription->getName());
 			(*s) << propertyDescription->getUType();
+
 			propertyDescription->getDataType()->addToStream(s, pyVal);
+
+			if (PyErr_Occurred())
+ 			{	
+				PyErr_PrintEx(0);
+				DEBUG_MSG(boost::format("%1%::addCellDataToStream: %2% is error!\n") % this->getScriptName() % 
+					propertyDescription->getName());
+			}
 		}
 	}
 }
@@ -260,9 +271,12 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 
 			Py_DECREF(key);
 		}
+
+		SCRIPT_ERROR_CHECK();
 	}
 
 	Py_XDECREF(pydict);
+	SCRIPT_ERROR_CHECK();
 }
 
 //-------------------------------------------------------------------------------------
@@ -279,6 +293,7 @@ PyObject* Base::createCellDataDict(uint32 flags)
 		{
 			PyObject* pyVal = PyDict_GetItemString(cellDataDict_, propertyDescription->getName());
 			PyDict_SetItemString(cellData, propertyDescription->getName(), pyVal);
+			SCRIPT_ERROR_CHECK();
 		}
 	}
 

@@ -125,6 +125,12 @@ PyObject* UInt64Type::parseDefaultStr(std::string defaultVal)
 
 	if (PyErr_Occurred()) 
 	{
+		PyErr_Clear();
+		PyErr_Format(PyExc_TypeError, "UInt64Type::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
+
+		PyErr_PrintEx(0);
+
 		S_RELEASE(pyval);
 		return PyLong_FromUnsignedLongLong(0);
 	}
@@ -135,8 +141,31 @@ PyObject* UInt64Type::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void UInt64Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	uint64 udata = static_cast<uint64>(PyLong_AsUnsignedLongLong(pyValue));
-	(*mstream) << udata;
+	uint64 v = static_cast<uint64>(PyLong_AsUnsignedLongLong(pyValue));
+
+	if (PyErr_Occurred())
+	{	
+		PyErr_Clear();
+		v = (uint64)PyLong_AsUnsignedLong(pyValue);
+		if (PyErr_Occurred())
+		{	
+			PyErr_Clear();
+			v = (uint64)PyLong_AsLong(pyValue);
+
+			if(PyErr_Occurred())
+			{
+				PyErr_Clear();
+				PyErr_Format(PyExc_TypeError, "UInt64Type::addToStream: pyValue(%s) is error!", 
+					pyValue->ob_type->tp_name);
+
+				PyErr_PrintEx(0);
+
+				v = 0;
+			}
+		}
+	}
+
+	(*mstream) << v;
 }
 
 //-------------------------------------------------------------------------------------
@@ -218,6 +247,12 @@ PyObject* UInt32Type::parseDefaultStr(std::string defaultVal)
 
 	if (PyErr_Occurred()) 
 	{
+		PyErr_Clear();
+		PyErr_Format(PyExc_TypeError, "UInt32Type::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
+
+		PyErr_PrintEx(0);
+
 		S_RELEASE(pyval);
 		return PyLong_FromUnsignedLong(0);
 	}
@@ -229,6 +264,25 @@ PyObject* UInt32Type::parseDefaultStr(std::string defaultVal)
 void UInt32Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
 	uint32 v = PyLong_AsUnsignedLong(pyValue);
+
+	if (PyErr_Occurred())
+	{	
+		PyErr_Clear();
+		v = (uint32)PyLong_AsLong(pyValue);
+
+		if(PyErr_Occurred())
+		{
+			PyErr_Clear();
+
+			PyErr_Format(PyExc_TypeError, "UInt32Type::addToStream: pyValue(%s) is error!", 
+				pyValue->ob_type->tp_name);
+
+			PyErr_PrintEx(0);
+
+			v = 0;
+		}
+	}
+
 	(*mstream) << v;
 }
 
@@ -306,6 +360,12 @@ PyObject* Int64Type::parseDefaultStr(std::string defaultVal)
 
 	if (PyErr_Occurred()) 
 	{
+		PyErr_Clear();
+		PyErr_Format(PyExc_TypeError, "Int64Type::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
+
+		PyErr_PrintEx(0);
+
 		S_RELEASE(pyval);
 		return PyLong_FromLongLong(0);
 	}
@@ -317,6 +377,25 @@ PyObject* Int64Type::parseDefaultStr(std::string defaultVal)
 void Int64Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
 	int64 v = PyLong_AsLongLong(pyValue);
+
+	if (PyErr_Occurred())
+	{	
+		PyErr_Clear();
+		v = (uint32)PyLong_AsLong(pyValue);
+
+		if(PyErr_Occurred())
+		{
+			PyErr_Clear();
+
+			PyErr_Format(PyExc_TypeError, "Int64Type::addToStream: pyValue(%s) is error!", 
+				pyValue->ob_type->tp_name);
+
+			PyErr_PrintEx(0);
+
+			v = 0;
+		}
+	}
+
 	(*mstream) << v;
 }
 
@@ -381,6 +460,12 @@ PyObject* FloatType::parseDefaultStr(std::string defaultVal)
 
 	if (PyErr_Occurred()) 
 	{
+		PyErr_Clear();
+		PyErr_Format(PyExc_TypeError, "FloatType::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
+
+		PyErr_PrintEx(0);
+
 		S_RELEASE(pyval);
 		return PyFloat_FromDouble(0.0f);
 	}
@@ -456,6 +541,12 @@ PyObject* DoubleType::parseDefaultStr(std::string defaultVal)
 
 	if (PyErr_Occurred()) 
 	{
+		PyErr_Clear();
+		PyErr_Format(PyExc_TypeError, "DoubleType::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
+
+		PyErr_PrintEx(0);
+
 		S_RELEASE(pyval);
 		return PyFloat_FromDouble(0.0f);
 	}
@@ -673,6 +764,11 @@ PyObject* StringType::parseDefaultStr(std::string defaultVal)
 		return pyobj;
 
 	PyErr_Clear();
+	PyErr_Format(PyExc_TypeError, "StringType::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+		pyobj != NULL ? pyobj->ob_type->tp_name : "NULL", defaultVal.c_str());
+
+	PyErr_PrintEx(0);
+
 	return PyUnicode_FromString("");
 }
 
@@ -741,6 +837,11 @@ PyObject* UnicodeType::parseDefaultStr(std::string defaultVal)
 	}
 
 	PyErr_Clear();
+	PyErr_Format(PyExc_TypeError, "UnicodeType::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+		pyobj != NULL ? pyobj->ob_type->tp_name : "NULL", defaultVal.c_str());
+
+	PyErr_PrintEx(0);
+
 	return PyUnicode_DecodeUTF8("", 0, "");
 }
 

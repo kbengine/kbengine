@@ -8,10 +8,12 @@ from KBEDebug import *
 from interfaces.GameObject import GameObject
 from interfaces.Combat import Combat
 from interfaces.Spell import Spell
+from interfaces.Motion import Motion
 
-class Monster(GameObject, Combat, Spell):
+class Monster(GameObject, Motion, Combat, Spell):
 	def __init__(self):
 		GameObject.__init__(self)
+		Motion.__init__(self) 
 		Combat.__init__(self) 
 		Spell.__init__(self) 
 		
@@ -77,6 +79,7 @@ class Monster(GameObject, Combat, Spell):
 
 Monster._timermap = {}
 Monster._timermap.update(GameObject._timermap)
+Monster._timermap.update(Motion._timermap)
 Monster._timermap.update(Combat._timermap)
 Monster._timermap.update(Spell._timermap)
 Monster._timermap[wtimer.TIMER_TYPE_HEARDBEAT] = Monster.onHeardTimer

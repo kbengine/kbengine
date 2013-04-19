@@ -1022,7 +1022,7 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	base->addCellDataToStream(ED_FLAG_ALL, s);
 	(*pBundle).append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);
-
+	
 	if(createToCellMailbox->getChannel() == NULL)
 	{
 		ERROR_MSG(boost::format("Baseapp::createCellEntity: not found cellapp(createToCellMailbox:"

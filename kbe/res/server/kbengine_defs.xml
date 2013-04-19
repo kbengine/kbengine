@@ -264,7 +264,7 @@
 			tickcount： 每次添加数量
 		-->
 		<defaultAddBots> 
-			<totalcount> 3  </totalcount> <!-- Type: Integer -->
+			<totalcount> 1  </totalcount> <!-- Type: Integer -->
 			<ticktime> 0.1  </ticktime> <!-- Type: Float -->
 			<tickcount> 2  </tickcount> <!-- Type: Integer -->
 		</defaultAddBots>							

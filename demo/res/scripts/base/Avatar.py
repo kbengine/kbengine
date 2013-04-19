@@ -39,7 +39,7 @@ class Avatar(KBEngine.Proxy,
 		该entity被正式激活为可使用， 此时entity已经建立了client对应实体， 可以在此创建它的
 		cell部分。
 		"""
-		INFO_MSG("Avatar[%i-%s] entities enable. mailbox:%s" % (self.id, self.nameB, self.client))
+		INFO_MSG("Avatar[%i-%s] entities enable. spaceUTypeB=%s, mailbox:%s" % (self.id, self.nameB, self.spaceUTypeB, self.client))
 		KBEngine.globalData["SpaceMgr"].loginToSpace(self, self.spaceUTypeB, {})
 		
 	def onGetCell(self):

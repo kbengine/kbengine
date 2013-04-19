@@ -192,8 +192,11 @@ bool Cellapp::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Cellapp::finalise()
 {
-	pTelnetServer_->stop();
-	SAFE_RELEASE(pTelnetServer_);
+	if(pTelnetServer_)
+	{
+		pTelnetServer_->stop();
+		SAFE_RELEASE(pTelnetServer_);
+	}
 
 	Spaces::finalise();
 	EntityApp<Entity>::finalise();

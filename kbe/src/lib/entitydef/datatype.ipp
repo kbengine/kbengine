@@ -102,6 +102,12 @@ PyObject* IntType<SPECIFY_TYPE>::parseDefaultStr(std::string defaultVal)
 
 	if (PyErr_Occurred()) 
 	{
+		PyErr_Clear();
+		PyErr_Format(PyExc_TypeError, "IntType::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
+
+		PyErr_PrintEx(0);
+
 		S_RELEASE(pyval);
 		return PyLong_FromLong(0);
 	}
@@ -115,6 +121,25 @@ void IntType<SPECIFY_TYPE>::addToStream(MemoryStream* mstream,
 	PyObject* pyValue)
 {
 	SPECIFY_TYPE v = (SPECIFY_TYPE)PyLong_AsLong(pyValue);
+	
+	if(PyErr_Occurred())
+	{
+		PyErr_Clear();
+		
+		v = (SPECIFY_TYPE)PyLong_AsUnsignedLong(pyValue);
+		
+		if(PyErr_Occurred())
+		{
+			PyErr_Clear();
+			PyErr_Format(PyExc_TypeError, "IntType::addToStream: pyValue(%s) is error!", 
+				pyValue->ob_type->tp_name);
+
+			PyErr_PrintEx(0);
+
+			v = 0;
+		}
+	}
+			
 	(*mstream) << v;
 }
 

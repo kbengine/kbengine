@@ -154,9 +154,8 @@ class Account(KBEngine.Proxy):
 			return
 
 		info = self.characters[dbid]
-		avatar.cellData["headID"] = d_avatar_inittab.datas[info[1]]["headResID"]
-		avatar.cellData["modelID"] = d_avatar_inittab.datas[info[1]]["modelResID"]
-												
+		avatar.cellData["modelID"] = d_avatar_inittab.datas[info[1]]["modelID"]
+		avatar.cellData["modelID"] = d_avatar_inittab.datas[info[1]]["moveSpeed"]
 		avatar.accountEntity = self
 		self.activeCharacter = avatar
 		self.giveClientTo(avatar)

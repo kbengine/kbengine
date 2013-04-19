@@ -9,6 +9,7 @@
 		<Interface>	GameObject		</Interface>
 		<Interface>	State			</Interface>
 		<Interface>	Flags			</Interface>
+		<Interface>	Motion			</Interface>
 		<Interface>	Combat			</Interface>
 		<Interface>	Spell			</Interface>
 		<Interface>	Teleport		</Interface>

@@ -9,6 +9,7 @@ from interfaces.State import State
 from interfaces.Flags import Flags
 from interfaces.Combat import Combat
 from interfaces.Spell import Spell
+from interfaces.Motion import Motion
 
 class Avatar(GameObject,
 			Flags,

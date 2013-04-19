@@ -1,0 +1,18 @@
+<root>
+	<Implements>
+	</Implements>
+
+	<Properties>
+		<moveSpeed>
+			<Type>			FLOAT			</Type>
+			<Flags>			CELL_PRIVATE		</Flags>
+			<Default>		5.0			</Default>
+		</moveSpeed>
+	</Properties>
+
+	<CellMethods>
+	</CellMethods>
+
+	<ClientMethods>
+	</ClientMethods>
+</root>

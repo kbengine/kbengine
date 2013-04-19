@@ -8,6 +8,7 @@
 	<Implements>
 		<Interface>	GameObject		</Interface>
 		<Interface>	NPCObject		</Interface>
+		<Interface>	Motion			</Interface>
 	</Implements>
 
 	<Properties>
