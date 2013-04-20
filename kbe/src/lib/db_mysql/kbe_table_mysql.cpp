@@ -47,7 +47,7 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* dbi)
 			"(entityDBID bigint(20) not null DEFAULT 0,"
 			"entityType int unsigned not null DEFAULT 0,"
 			"entityID int unsigned not null DEFAULT 0,"
-			"ip int unsigned not null DEFAULT 0,"
+			"ip varchar(64),"
 			"port int unsigned not null DEFAULT 0,"
 			"componentID bigint unsigned not null DEFAULT 0,"
 			"PRIMARY KEY (entityDBID, entityType))"
