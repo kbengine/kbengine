@@ -796,7 +796,8 @@ void Entity::setPositionAndDirection(Position3D& position, Direction3D& directio
 //-------------------------------------------------------------------------------------
 void Entity::onPositionChanged()
 {
-	this->pEntityRangeNode()->update();
+	if(this->pEntityRangeNode())
+		this->pEntityRangeNode()->update();
 }
 
 //-------------------------------------------------------------------------------------
