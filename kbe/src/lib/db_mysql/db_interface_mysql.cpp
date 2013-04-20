@@ -33,7 +33,8 @@ hasLostConnection_(false),
 inTransaction_(false),
 lock_(NULL, false),
 characterSet_(characterSet),
-collation_(collation)
+collation_(collation),
+lastquery_()
 {
 	lock_.pdbi(this);
 }
@@ -198,6 +199,7 @@ bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexeci
 		return false;
 	}
 
+	lastquery_ = strCommand;
     int nResult = mysql_real_query(pMysql_, strCommand, size);  
     if(nResult != 0)  
     {  
@@ -449,8 +451,8 @@ bool DBInterfaceMysql::processException(std::exception & e)
 	else
 	{
 		WARNING_MSG(boost::format("DBInterfaceMysql::processException: "
-				"Exception: %s\n") %
-			dbe->what() );
+				"Exception: %1%\nlastquery=%2%\n") %
+			dbe->what() % lastquery_);
 	}
 
 	return retry;

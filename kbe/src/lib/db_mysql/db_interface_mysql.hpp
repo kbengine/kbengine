@@ -168,6 +168,8 @@ protected:
 
 	std::string characterSet_;
 	std::string collation_;
+	
+	std::string lastquery_;
 };
 
 
