@@ -1161,7 +1161,7 @@ void Baseapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 		return;
 	}
 
-	DEBUG_MSG(boost::format("KBEngine::executeRawDatabaseCommand:%1%.\n") % datas);
+	INFO_MSG(boost::format("KBEngine::executeRawDatabaseCommand:%1%.\n") % datas);
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(DbmgrInterface::executeRawDatabaseCommand);
@@ -1610,7 +1610,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 		return;
 	}
 
-	DEBUG_MSG(boost::format("Baseapp::loginGateway: new user[%1%].\n") % accountName.c_str());
+	INFO_MSG(boost::format("Baseapp::loginGateway: new user[%1%].\n") % accountName.c_str());
 
 	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
@@ -1640,7 +1640,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 	// 如果entityID大于0则说明此entity是存活状态登录
 	if(ptinfos->entityID > 0)
 	{
-		DEBUG_MSG(boost::format("Baseapp::loginGateway: user[%1%] has entity(%2%).\n") %
+		INFO_MSG(boost::format("Baseapp::loginGateway: user[%1%] has entity(%2%).\n") %
 			accountName.c_str() % ptinfos->entityID);
 
 		Proxy* base = static_cast<Proxy*>(findEntity(ptinfos->entityID));
@@ -1657,18 +1657,24 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 		switch(ret)
 		{
 		case LOG_ON_ACCEPT:
-			DEBUG_MSG("Baseapp::loginGateway: script LOG_ON_ACCEPT.\n");
 			if(base->getClientMailbox() != NULL)
 			{
 				// 通告在别处登录
 				Mercury::Channel* pOldClientChannel = base->getClientMailbox()->getChannel();
 				if(pOldClientChannel != NULL)
 				{
+					INFO_MSG(boost::format("Baseapp::loginGateway: script LOG_ON_ACCEPT. oldClientChannel=%1%\n") %
+						pOldClientChannel->c_str());
+					
 					loginGatewayFailed(pOldClientChannel, accountName, SERVER_ERR_ANOTHER_LOGON);
 					pOldClientChannel->proxyID(0);
 					pOldClientChannel->condemn();
 				}
-
+				else
+				{
+					INFO_MSG("Baseapp::loginGateway: script LOG_ON_ACCEPT.\n");
+				}
+				
 				base->getClientMailbox()->addr(pChannel->addr());
 				base->addr(pChannel->addr());
 				createClientProxies(base, true);
@@ -1689,7 +1695,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 			break;
 		case LOG_ON_WAIT_FOR_DESTROY:
 		default:
-			DEBUG_MSG("Baseapp::loginGateway: script LOG_ON_REJECT.\n");
+			INFO_MSG("Baseapp::loginGateway: script LOG_ON_REJECT.\n");
 			loginGatewayFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_ONLINE);
 			return;
 		};
@@ -1717,7 +1723,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountName, 
 							 std::string& password, uint64 key, ENTITY_ID entityID)
 {
-	DEBUG_MSG(boost::format("Baseapp::reLoginGateway: accountName=%1%, key=%2%, entityID=%3%.\n") %
+	INFO_MSG(boost::format("Baseapp::reLoginGateway: accountName=%1%, key=%2%, entityID=%3%.\n") %
 		accountName % key % entityID);
 
 	Base* base = findEntity(entityID);
@@ -1821,7 +1827,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
-	DEBUG_MSG(boost::format("Baseapp::onQueryAccountCBFromDbmgr: user[%1%], uuid[%2%], entityID=%3%.\n") %
+	INFO_MSG(boost::format("Baseapp::onQueryAccountCBFromDbmgr: user[%1%], uuid[%2%], entityID=%3%.\n") %
 		accountName % base->rndUUID() % base->getID());
 
 	SAFE_RELEASE(ptinfos);

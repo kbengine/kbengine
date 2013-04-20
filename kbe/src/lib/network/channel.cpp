@@ -394,7 +394,8 @@ const char * Channel::c_str() const
 	if(pEndPoint_ && !pEndPoint_->addr().isNone())
 		pEndPoint_->addr().writeToString(tdodgyString, MAX_BUF);
 
-	kbe_snprintf(dodgyString, MAX_BUF, "%s/%d", tdodgyString, id_);
+	kbe_snprintf(dodgyString, MAX_BUF, "%s/%d/%d/%d", tdodgyString, id_, 
+		this->isCondemn(), this->isDead());
 
 	return dodgyString;
 }
