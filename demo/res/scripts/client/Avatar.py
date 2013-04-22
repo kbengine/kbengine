@@ -14,6 +14,7 @@ from interfaces.Motion import Motion
 class Avatar(GameObject,
 			Flags,
 			State,
+			Motion,
 			Combat, 
 			Spell, 
 			Dialog,
@@ -22,6 +23,7 @@ class Avatar(GameObject,
 		GameObject.__init__(self)
 		Flags.__init__(self) 
 		State.__init__(self) 
+		Motion.__init__(self) 
 		Combat.__init__(self) 
 		Spell.__init__(self) 
 		Dialog.__init__(self)
