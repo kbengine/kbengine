@@ -58,7 +58,7 @@ private:
 
 	ENTITIES mEntities;
 
-	bool serverClosed_;
+	bool serverClosed_, showCloseButton_;
 };
 
 #endif // #ifndef __SPACEWORLD_CLIENT_h_

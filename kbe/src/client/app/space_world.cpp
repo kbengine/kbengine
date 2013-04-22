@@ -21,7 +21,8 @@ SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
     mFly(false),
 	mPlayerPtr(0),
 	mEntities(),
-	serverClosed_(false)
+	serverClosed_(false),
+	showCloseButton_(false)
 {
     mHelpInfo = Ogre::String("Use [W][A][S][D] keys for movement.\nKeys [1]-[9] to switch between cameras.\n[0] toggles SceneNode debug visuals.\n\nPress [C] to toggle clamp to terrain (gravity).\n\n[G] toggles the detail panel.\n[R] cycles polygonModes (Solid/Wireframe/Points).\n[T] cycles various filtering.\n\n\nPress [ESC] to quit.");
 }
@@ -29,7 +30,9 @@ SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
 //-------------------------------------------------------------------------------------
 SpaceWorld::~SpaceWorld(void)
 {
-	mTrayMgr->destroyWidget("backlogin");
+	if(showCloseButton_)
+		mTrayMgr->destroyWidget("backlogin");
+
 	mSceneMgr->destroyCamera("mainCamera");
 	mActiveCamera = NULL;
 	delete mLoader;
@@ -152,6 +155,7 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
 	{
 		mTrayMgr->createButton(OgreBites::TL_CENTER, "backlogin", "back login", 120);
 		serverClosed_ = false;
+		showCloseButton_ = true;
 	}
 
     return true;
@@ -160,7 +164,7 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
 //-------------------------------------------------------------------------------------
 void SpaceWorld::buttonHit(OgreBites::Button* button)
 {
-	if(button->getCaption() == "back login")
+	if(button->getCaption() == "back login" && showCloseButton_)
 	{
 		OgreApplication::getSingleton().changeSpace(new SpaceLogin(mRoot, mWindow, mInputManager, mTrayMgr));
 	}

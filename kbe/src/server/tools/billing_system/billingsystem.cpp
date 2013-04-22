@@ -244,6 +244,9 @@ void BillingSystem::onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryS
 void BillingSystem::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	OrdersCharge* pOrdersCharge = new OrdersCharge();
+
+	pOrdersCharge->timeout = timestamp()  + uint64( 600.0 * stampsPerSecond() );
+
 	pOrdersCharge->dbmgrID = pChannel->componentID();
 	pOrdersCharge->address = pChannel->addr();
 

@@ -54,6 +54,8 @@ public:
 	
 	std::string postDatas;
 	std::string getDatas;
+
+	uint64 timeout;
 };
 
 class OrdersCharge : public Orders

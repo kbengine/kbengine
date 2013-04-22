@@ -115,29 +115,20 @@ public:
 
 	void setDirection(float yaw, float pitch, float roll)
 	{
-		Ogre::Vector3 dir(-yaw, roll, pitch);
-		mBodyNode->setFixedYawAxis(true); 
-		mBodyNode->setDirection(dir, Ogre::Node::TS_WORLD);
+		//Ogre::Vector3 dir(-yaw, roll, pitch);
+		//mBodyNode->setFixedYawAxis(true); 
+		//mBodyNode->setDirection(dir, Ogre::Node::TS_WORLD);
 		
-		/*
-		if(currDir_.x != yaw)
-		{
-			mBodyNode->yaw(Ogre::Radian(3.1415926 / 2));
-			currDir_.x = yaw;
-		}
+		mBodyNode->resetOrientation();
+		mBodyNode->yaw(Ogre::Radian(yaw));
+		currDir_.z = yaw;
 
-		if(currDir_.y != pitch)
-		{
-			mBodyNode->pitch(Ogre::Radian(pitch));
-			currDir_.y = pitch;
-		}
+		mBodyNode->pitch(Ogre::Radian(pitch));
+		currDir_.y = pitch;
 
-		if(currDir_.z != roll)
-		{
-			mBodyNode->roll(Ogre::Radian(roll));
-			currDir_.z = roll;
-		}
-		*/
+
+		mBodyNode->roll(Ogre::Radian(roll));
+		currDir_.x = roll;
 	}
 
 	void setPosition(float x, float y, float z)

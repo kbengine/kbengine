@@ -44,7 +44,12 @@ public:
 
 	Mercury::EndPoint listen;
 
-	KBEUnordered_map<std::string, std::string> backOrdersDatas_;
+	struct BACK_ORDERS_DATA
+	{
+		std::string data;
+	};
+
+	KBEUnordered_map<std::string, BACK_ORDERS_DATA> backOrdersDatas_;
 };
 
 }

@@ -316,7 +316,15 @@ ChargeTask::~ChargeTask()
 bool ChargeTask::process()
 {
 	KBE_ASSERT(pOrders != NULL);
+
 	pOrders->state = Orders::STATE_FAILED;
+
+	// 如果是不需要请求的直接返回成功
+	if(pOrders->postDatas.size() == 0)
+	{
+		success = true;
+		return false;
+	}
 
 	// 如果没有设置第三方服务地址则我们默认为成功
 	if(strlen(serviceAddr()) == 0)

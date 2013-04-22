@@ -153,8 +153,10 @@ bool AnonymousChannel::process()
 			int ilen = strlen("&chargeID=");
 			orderid.assign(getDatas.c_str() + fi1 + ilen, fi2 - (fi1 + ilen));
 		}
-
-		backOrdersDatas_[orderid] = getDatas;
+		
+		BACK_ORDERS_DATA orderdata;
+		orderdata.data = getDatas;
+		backOrdersDatas_[orderid] = orderdata;
 	}
 
 	return false;
@@ -163,27 +165,66 @@ bool AnonymousChannel::process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 {
-	KBEUnordered_map<std::string, std::string>::iterator iter = backOrdersDatas_.begin();
+	KBEUnordered_map<std::string, BACK_ORDERS_DATA>::iterator iter = backOrdersDatas_.begin();
 	BillingSystem::getSingleton().lockthread();
+
+	BillingSystem::ORDERS& orders = BillingSystem::getSingleton().orders();
+	BillingSystem::ORDERS::iterator oiter = orders.begin();
+	for(; oiter != orders.end(); )
+	{
+		if(oiter->second->timeout < timestamp())
+		{
+			INFO_MSG(boost::format("AnonymousChannel::presentMainThread: order(%1%) timeout!\n") % oiter->second->ordersID);
+
+
+			Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+
+			(*(*bundle)).newMessage(DbmgrInterface::onChargeCB);
+			(*(*bundle)) << oiter->second->baseappID << oiter->second->ordersID << oiter->second->dbid;
+			std::string backdata = "timeout";
+			(*(*bundle)).appendBlob(backdata);
+
+			(*(*bundle)) << oiter->second->cbid;
+
+			bool success = false;
+			(*(*bundle)) << success;
+
+			Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(oiter->second->address);
+
+			if(pChannel)
+			{
+				(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+			}
+			else
+			{
+				ERROR_MSG(boost::format("AnonymousChannel::presentMainThread: not found channel. orders=%1%\n") % 
+					oiter->second->ordersID);
+			}
+
+			oiter = orders.erase(oiter);
+		}
+		else
+		{
+			++oiter;
+		}
+	}
 
 	for(; iter != backOrdersDatas_.end(); iter++)
 	{
-		BillingSystem::ORDERS& orders = BillingSystem::getSingleton().orders();
-		
 		BillingSystem::ORDERS::iterator orderiter = orders.find(iter->first);
 		if(orderiter == orders.end())
 			continue;
 		
 		bool success = false;
 
-		std::string::size_type fi = iter->second.find("state=");
-		std::string::size_type fi1 = iter->second.find("&chargeID=");
+		std::string::size_type fi = iter->second.data.find("state=");
+		std::string::size_type fi1 = iter->second.data.find("&chargeID=");
 
 		if(fi != std::string::npos && fi1 != std::string::npos)
 		{
 			std::string s;
 			int ilen = strlen("state=");
-			s.assign(iter->second.c_str() + fi + ilen, fi1 - (fi + ilen));
+			s.assign(iter->second.data.c_str() + fi + ilen, fi1 - (fi + ilen));
 			success = atoi(s.c_str()) > 0;
 		}
 
@@ -194,7 +235,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 
 		(*(*bundle)).newMessage(DbmgrInterface::onChargeCB);
 		(*(*bundle)) << orderiter->second->baseappID << orderiter->second->ordersID << orderiter->second->dbid;
-		(*(*bundle)).appendBlob(iter->second);
+		(*(*bundle)).appendBlob(iter->second.data);
 		(*(*bundle)) << orderiter->second->cbid;
 		(*(*bundle)) << success;
 

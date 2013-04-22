@@ -34,7 +34,8 @@ baseappID(UNKNOWN_COMPONENT_TYPE),
 dbmgrID(UNKNOWN_COMPONENT_TYPE),
 state(Orders::STATE_FAILED),
 postDatas(),
-getDatas()
+getDatas(),
+timeout(0)
 {
 }
 
