@@ -66,7 +66,7 @@ public:
 	{
 		DBID dbid;
 		ENTITY_ID entityID;
-		uint32 ip;
+		char ip[MAX_IP];
 		uint16 port;
 		COMPONENT_ID componentID;
 	};

@@ -124,7 +124,7 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * dbi, DBID dbid, EntityLog
 	entitylog.dbid = dbid;
 	entitylog.componentID = 0;
 	entitylog.entityID = 0;
-	entitylog.ip = 0;
+	entitylog.ip[0] = '\0';
 	entitylog.port = 0;
 
 	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
@@ -134,7 +134,7 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * dbi, DBID dbid, EntityLog
 		while((arow = mysql_fetch_row(pResult)) != NULL)
 		{
 			StringConv::str2value(entitylog.entityID, arow[0]);
-			StringConv::str2value(entitylog.ip, arow[1]);
+			kbe_snprintf(entitylog.ip, MAX_IP, arow[1]);
 			StringConv::str2value(entitylog.port, arow[2]);
 			StringConv::str2value(entitylog.componentID, arow[3]);
 			break;
