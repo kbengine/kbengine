@@ -405,7 +405,15 @@ bool TelnetHandler::processCommand()
 		command_.erase(command_.find(":cprofile"), strlen(":cprofile"));
 		if(command_.size() > 0)
 		{
-			KBEngine::StringConv::str2value(timelen, command_.c_str());
+			try
+			{
+				KBEngine::StringConv::str2value(timelen, command_.c_str());
+			}
+			catch(...)  
+			{
+				timelen = 10;
+			}
+
 			if(timelen < 1 || timelen > 999999999)
 				timelen = 10;
 		}
@@ -429,7 +437,15 @@ bool TelnetHandler::processCommand()
 		command_.erase(command_.find(":pyprofile"), strlen(":pyprofile"));
 		if(command_.size() > 0)
 		{
-			KBEngine::StringConv::str2value(timelen, command_.c_str());
+			try
+			{
+				KBEngine::StringConv::str2value(timelen, command_.c_str());
+			}
+			catch(...)  
+			{
+				timelen = 10;
+			}
+
 			if(timelen < 1 || timelen > 999999999)
 				timelen = 10;
 		}
@@ -453,7 +469,15 @@ bool TelnetHandler::processCommand()
 		command_.erase(command_.find(":eventprofile"), strlen(":eventprofile"));
 		if(command_.size() > 0)
 		{
-			KBEngine::StringConv::str2value(timelen, command_.c_str());
+			try
+			{
+				KBEngine::StringConv::str2value(timelen, command_.c_str());
+			}
+			catch(...)  
+			{
+				timelen = 10;
+			}
+
 			if(timelen < 1 || timelen > 999999999)
 				timelen = 10;
 		}
@@ -477,7 +501,15 @@ bool TelnetHandler::processCommand()
 		command_.erase(command_.find(":mercuryprofile"), strlen(":mercuryprofile"));
 		if(command_.size() > 0)
 		{
-			KBEngine::StringConv::str2value(timelen, command_.c_str());
+			try
+			{
+				KBEngine::StringConv::str2value(timelen, command_.c_str());
+			}
+			catch(...)  
+			{
+				timelen = 10;
+			}
+
 			if(timelen < 1 || timelen > 999999999)
 				timelen = 10;
 		}
