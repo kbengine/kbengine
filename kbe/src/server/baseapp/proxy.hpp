@@ -61,14 +61,25 @@ public:
 	/** 
 		脚本请求获取连接的rtt值
 	*/
-	INLINE uint32 getRoundTripTime()const;
+	uint32 getRoundTripTime()const;
 	DECLARE_PY_GET_MOTHOD(pyGetRoundTripTime);
 
 	/** 
 		This is the number of seconds since a packet from the client was last received. 
 	*/
-	INLINE double getTimeSinceHeardFromClient()const;
+	double getTimeSinceHeardFromClient()const;
 	DECLARE_PY_GET_MOTHOD(pyGetTimeSinceHeardFromClient);
+
+	/** 
+		脚本请求获取是否有client绑定到proxy上
+	*/
+	bool hasClient()const;
+	DECLARE_PY_GET_MOTHOD(pyHasClient);
+
+	/** 
+		脚本请求获取client地址
+	*/
+	DECLARE_PY_GET_MOTHOD(pyClientAddr);
 
 	/**
 		这个entity被激活了, 在客户端初始化好对应的entity后， 这个方法被调用
@@ -133,9 +144,6 @@ protected:
 
 	// 限制客户端每秒所能使用的带宽
 	int32 bandwidthPerSecond_;
-
-	// 与客户端通信的平均往返时间. 
-	int32 roundTripTime_;
 
 	// 通信加密key 默认blowfish
 	std::string encryptionKey;

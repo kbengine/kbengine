@@ -46,6 +46,8 @@ SCRIPT_MEMBER_DECLARE_END()
 SCRIPT_GETSET_DECLARE_BEGIN(Proxy)
 SCRIPT_GET_DECLARE("roundTripTime",						pyGetRoundTripTime,				0,						0)	
 SCRIPT_GET_DECLARE("timeSinceHeardFromClient",			pyGetTimeSinceHeardFromClient,	0,						0)	
+SCRIPT_GET_DECLARE("clientAddr",						pyClientAddr,					0,						0)	
+SCRIPT_GET_DECLARE("hasClient",							pyHasClient,					0,						0)	
 SCRIPT_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)	
 	
@@ -57,7 +59,6 @@ addr_(Mercury::Address::NONE),
 dataDownloads_(),
 entitiesEnabled_(false),
 bandwidthPerSecond_(0),
-roundTripTime_(0),
 encryptionKey()
 {
 	Baseapp::getSingleton().incProxicesCount();
@@ -324,6 +325,64 @@ PyObject* Proxy::pyGetTimeSinceHeardFromClient()
 	}
 	
 	return PyFloat_FromDouble(this->getTimeSinceHeardFromClient()); 
+}
+
+//-------------------------------------------------------------------------------------
+bool Proxy::hasClient()const
+{
+	if(getClientMailbox() == NULL || getClientMailbox()->getChannel() == NULL || 
+		getClientMailbox()->getChannel()->endpoint() == NULL)
+		return false;
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Proxy::pyHasClient()
+{ 
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;																				
+	}
+
+	if(this->hasClient())
+	{
+		Py_RETURN_TRUE;
+	}
+
+	Py_RETURN_FALSE;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Proxy::pyClientAddr()
+{ 
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;																				
+	}
+
+	PyObject* pyobj = PyTuple_New(2);
+
+	if(getClientMailbox() == NULL || getClientMailbox()->getChannel() == NULL || 
+		getClientMailbox()->getChannel()->endpoint() == NULL)
+	{
+		PyTuple_SetItem(pyobj, 0, PyLong_FromLong(0));
+		PyTuple_SetItem(pyobj, 1, PyLong_FromLong(0));
+	}
+	else
+	{
+		const Mercury::Address& addr = getClientMailbox()->getChannel()->endpoint()->addr();
+		PyTuple_SetItem(pyobj, 0, PyLong_FromUnsignedLong(addr.ip));
+		PyTuple_SetItem(pyobj, 1, PyLong_FromUnsignedLong(addr.port));
+	}
+
+	return pyobj;
 }
 
 //-------------------------------------------------------------------------------------
