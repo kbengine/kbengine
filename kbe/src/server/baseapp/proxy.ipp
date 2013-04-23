@@ -40,5 +40,10 @@ INLINE const Mercury::Address& Proxy::addr()const
 { 
 	return addr_; 
 }
-	
+
+INLINE bool Proxy::entitiesEnabled()const
+{ 
+	return entitiesEnabled_;
+}
+
 }

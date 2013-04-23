@@ -48,6 +48,7 @@ SCRIPT_GET_DECLARE("roundTripTime",						pyGetRoundTripTime,				0,						0)
 SCRIPT_GET_DECLARE("timeSinceHeardFromClient",			pyGetTimeSinceHeardFromClient,	0,						0)	
 SCRIPT_GET_DECLARE("clientAddr",						pyClientAddr,					0,						0)	
 SCRIPT_GET_DECLARE("hasClient",							pyHasClient,					0,						0)	
+SCRIPT_GET_DECLARE("entitiesEnabled",					pyGetEntitiesEnabled,			0,						0)	
 SCRIPT_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)	
 	
@@ -132,7 +133,7 @@ void Proxy::initClientCellPropertys()
 void Proxy::onEntitiesEnabled(void)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
+	entitiesEnabled_ = true;
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEntitiesEnabled"));
 }
 
@@ -176,6 +177,7 @@ void Proxy::onClientDeath(void)
 		addr(Mercury::Address::NONE);
 	}
 
+	entitiesEnabled = false;
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientDeath"));
 }
 
@@ -248,6 +250,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 
+		entitiesEnabled_ = false;
 		getClientMailbox()->addr(Mercury::Address::NONE);
 		Py_DECREF(getClientMailbox());
 		proxy->onGiveClientTo(lpChannel);
@@ -280,13 +283,13 @@ void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
 }
 
 //-------------------------------------------------------------------------------------
-uint32 Proxy::getRoundTripTime()const
+double Proxy::getRoundTripTime()const
 {
 	if(getClientMailbox() == NULL || getClientMailbox()->getChannel() == NULL || 
 		getClientMailbox()->getChannel()->endpoint() == NULL)
-		return 0;
+		return 0.0;
 
-	return getClientMailbox()->getChannel()->endpoint()->getRTT();
+	return double(getClientMailbox()->getChannel()->endpoint()->getRTT()) / 1000000.0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -300,7 +303,7 @@ PyObject* Proxy::pyGetRoundTripTime()
 		return 0;																				
 	}
 
-	return PyLong_FromUnsignedLong(this->getRoundTripTime()); 
+	return PyFloat_FromDouble(this->getRoundTripTime()); 
 }
 
 //-------------------------------------------------------------------------------------
@@ -383,6 +386,25 @@ PyObject* Proxy::pyClientAddr()
 	}
 
 	return pyobj;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Proxy::pyGetEntitiesEnabled()
+{ 
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;																				
+	}
+
+	if(this->entitiesEnabled())
+	{
+		Py_RETURN_TRUE;
+	}
+
+	Py_RETURN_FALSE;
 }
 
 //-------------------------------------------------------------------------------------

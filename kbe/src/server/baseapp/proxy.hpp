@@ -61,7 +61,7 @@ public:
 	/** 
 		脚本请求获取连接的rtt值
 	*/
-	uint32 getRoundTripTime()const;
+	double getRoundTripTime()const;
 	DECLARE_PY_GET_MOTHOD(pyGetRoundTripTime);
 
 	/** 
@@ -80,6 +80,12 @@ public:
 		脚本请求获取client地址
 	*/
 	DECLARE_PY_GET_MOTHOD(pyClientAddr);
+
+	/** 
+		脚本请求获取连接的rtt值
+	*/
+	INLINE bool entitiesEnabled()const;
+	DECLARE_PY_GET_MOTHOD(pyGetEntitiesEnabled);
 
 	/**
 		这个entity被激活了, 在客户端初始化好对应的entity后， 这个方法被调用
