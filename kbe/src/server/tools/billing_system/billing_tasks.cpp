@@ -181,6 +181,7 @@ bool CreateAccountTask::process()
 					{
 						success = false;
 						endpoint.close();
+						DEBUG_MSG(boost::format("BillingTask::process: (%1%)op is failed! send(%2%).\n") % commitName % postDatas);
 						return false;
 					}
 					else

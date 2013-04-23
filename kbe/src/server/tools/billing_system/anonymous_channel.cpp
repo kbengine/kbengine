@@ -144,19 +144,22 @@ bool AnonymousChannel::process()
 		std::string getDatas;
 		getDatas.assign((const char *)(packet.data() + packet.rpos()), packet.opsize());
 		
-		std::string::size_type fi1 = getDatas.find("&chargeID=");
-		std::string::size_type fi2 = getDatas.find("&");
+		std::string::size_type fi1 = getDatas.find("&chaseid=");
+		std::string::size_type fi2 = getDatas.find("&=");
 
 		std::string orderid;
 		if(fi1 != std::string::npos && fi2 != std::string::npos)
 		{
-			int ilen = strlen("&chargeID=");
+			int ilen = strlen("&chaseid=");
 			orderid.assign(getDatas.c_str() + fi1 + ilen, fi2 - (fi1 + ilen));
 		}
 		
 		BACK_ORDERS_DATA orderdata;
 		orderdata.data = getDatas;
 		backOrdersDatas_[orderid] = orderdata;
+
+		DEBUG_MSG(boost::format("AnonymousChannel::process: getDatas=%1%\nfi1=%2%\nfi2=%3%\n") % 
+			getDatas % fi1 % fi2);
 	}
 
 	return false;
@@ -213,12 +216,17 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 	{
 		BillingSystem::ORDERS::iterator orderiter = orders.find(iter->first);
 		if(orderiter == orders.end())
+		{
+			ERROR_MSG(boost::format("AnonymousChannel::presentMainThread: orders=%1% not found!\n") % 
+			iter->first);
+
 			continue;
+		}
 		
 		bool success = false;
 
 		std::string::size_type fi = iter->second.data.find("state=");
-		std::string::size_type fi1 = iter->second.data.find("&chargeID=");
+		std::string::size_type fi1 = iter->second.data.find("&chaseid=");
 
 		if(fi != std::string::npos && fi1 != std::string::npos)
 		{
