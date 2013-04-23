@@ -44,6 +44,7 @@ SCRIPT_MEMBER_DECLARE_BEGIN(Proxy)
 SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(Proxy)
+SCRIPT_GET_DECLARE("roundTripTime",						pyGetRoundTripTime,				0,						0)	
 SCRIPT_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)	
 	
@@ -274,6 +275,30 @@ void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 	*/
+}
+
+//-------------------------------------------------------------------------------------
+uint32 Proxy::getRoundTripTime()const
+{
+	return getClientMailbox()->getChannel()->endpoint()->getRTT();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Proxy::pyGetRoundTripTime()
+{ 
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		S_Return;																						
+	}
+	
+	if(getClientMailbox() == NULL || getClientMailbox()->getChannel() == NULL || 
+		getClientMailbox()->getChannel()->endpoint() == NULL)
+		return PyLong_FromUnsignedLong(0);
+
+	return PyLong_FromUnsignedLong(this->getRoundTripTime()); 
 }
 
 //-------------------------------------------------------------------------------------

@@ -55,6 +55,19 @@ INLINE EndPoint::~EndPoint()
 	this->close();
 }
 
+uint32 EndPoint::getRTT()
+{
+#if KBE_PLATFORM != PLATFORM_WIN32
+	struct tcp_info tcpinfo;
+	socklen_t len = sizeof(tcpinfo);
+
+	if (getsockopt((*this), SOL_TCP, TCP_INFO, &tcpinfo, &len) != -1)
+		return tcpinfo->tcpi_rtt;
+#endif
+
+	return 0;
+}
+
 INLINE bool EndPoint::good() const
 {
 #if KBE_PLATFORM == PLATFORM_WIN32

@@ -281,8 +281,6 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	}
 	
 	lastReceivedTime_ = timestamp();
-	roundTripTime_ =
-		this->isInternal() ? stampsPerSecond() / 10 : stampsPerSecond();
 
 	isCondemn_ = false;
 	shouldDropNextSend_ = false;

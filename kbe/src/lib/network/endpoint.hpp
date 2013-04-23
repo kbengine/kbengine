@@ -79,6 +79,8 @@ public:
 	int recv(void * gramData, int gramSize);
 	bool recvAll(void * gramData, int gramSize);
 	
+	INLINE uint32 getRTT();
+
 	int getInterfaceFlags(char * name, int & flags);
 	int getInterfaceAddress(const char * name, u_int32_t & address);
 	int getInterfaceNetmask(const char * name, u_int32_t & netmask);

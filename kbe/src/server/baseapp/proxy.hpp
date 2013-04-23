@@ -58,6 +58,12 @@ public:
 	INLINE void addr(const Mercury::Address& address);
 	INLINE const Mercury::Address& addr()const;
 
+	/** 
+		脚本请求获取连接的rtt值
+	*/
+	INLINE uint32 getRoundTripTime()const;
+	DECLARE_PY_GET_MOTHOD(pyGetRoundTripTime);
+
 	/**
 		这个entity被激活了, 在客户端初始化好对应的entity后， 这个方法被调用
 	*/

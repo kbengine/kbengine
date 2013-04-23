@@ -217,7 +217,6 @@ private:
 	Bundles						bundles_;
 
 	uint32						windowSize_;
-	uint64						roundTripTime_;
 	
 	BufferedReceives			bufferedReceives_;
 
