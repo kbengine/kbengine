@@ -62,7 +62,7 @@ uint32 EndPoint::getRTT()
 	socklen_t len = sizeof(tcpinfo);
 
 	if (getsockopt((*this), SOL_TCP, TCP_INFO, &tcpinfo, &len) != -1)
-		return tcpinfo->tcpi_rtt;
+		return tcpinfo.tcpi_rtt;
 #endif
 
 	return 0;
