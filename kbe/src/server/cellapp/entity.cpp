@@ -1107,7 +1107,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 		{
 			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args is error!");
 			PyErr_PrintEx(0);
-			S_Return;
+			return 0;
 		}
 	}
 	else if(currargsSize == 2)
@@ -1116,14 +1116,14 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 		{
 			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args is error!");
 			PyErr_PrintEx(0);
-			S_Return;
+			return 0;
 		}
 
 		if(pyEntityType != Py_None && !PyUnicode_Check(pyEntityType))
 		{
 			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(entityType) is error!");
 			PyErr_PrintEx(0);
-			S_Return;
+			return 0;
 		}
 
 	}
@@ -1133,28 +1133,28 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 		{
 			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args is error!");
 			PyErr_PrintEx(0);
-			S_Return;
+			return 0;
 		}
 		
 		if(pyEntityType != Py_None && !PyUnicode_Check(pyEntityType))
 		{
 			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(entityType) is error!");
 			PyErr_PrintEx(0);
-			S_Return;
+			return 0;
 		}
 
 		if(!PySequence_Check(pyPosition) || PySequence_Size(pyPosition) < 3)
 		{
 			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(position) is error!");
 			PyErr_PrintEx(0);
-			S_Return;
+			return 0;
 		}
 	}
 	else
 	{
 		PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args is error!");
 		PyErr_PrintEx(0);
-		S_Return;
+		return 0;
 	}
 
 	char* pEntityType = NULL;
@@ -1298,14 +1298,14 @@ PyObject* Entity::pyTeleport(PyObject* nearbyMBRef, PyObject* pyposition, PyObje
 	{
 		PyErr_Format(PyExc_Exception, "%s::teleport: %d position not is Sequence!\n", getScriptName(), getID());
 		PyErr_PrintEx(0);
-		S_Return;
+		return 0;
 	}
 
 	if(!PySequence_Check(pydirection) || PySequence_Size(pydirection) != 3)
 	{
 		PyErr_Format(PyExc_Exception, "%s::teleport: %d direction not is Sequence!\n", getScriptName(), getID());
 		PyErr_PrintEx(0);
-		S_Return;
+		return 0;
 	}
 
 	Position3D pos;

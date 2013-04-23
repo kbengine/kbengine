@@ -45,6 +45,7 @@ SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(Proxy)
 SCRIPT_GET_DECLARE("roundTripTime",						pyGetRoundTripTime,				0,						0)	
+SCRIPT_GET_DECLARE("timeSinceHeardFromClient",			pyGetTimeSinceHeardFromClient,	0,						0)	
 SCRIPT_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)	
 	
@@ -280,6 +281,10 @@ void Proxy::onGiveClientTo(Mercury::Channel* lpChannel)
 //-------------------------------------------------------------------------------------
 uint32 Proxy::getRoundTripTime()const
 {
+	if(getClientMailbox() == NULL || getClientMailbox()->getChannel() == NULL || 
+		getClientMailbox()->getChannel()->endpoint() == NULL)
+		return 0;
+
 	return getClientMailbox()->getChannel()->endpoint()->getRTT();
 }
 
@@ -291,14 +296,34 @@ PyObject* Proxy::pyGetRoundTripTime()
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
-		S_Return;																						
+		return 0;																				
 	}
-	
-	if(getClientMailbox() == NULL || getClientMailbox()->getChannel() == NULL || 
-		getClientMailbox()->getChannel()->endpoint() == NULL)
-		return PyLong_FromUnsignedLong(0);
 
 	return PyLong_FromUnsignedLong(this->getRoundTripTime()); 
+}
+
+//-------------------------------------------------------------------------------------
+double Proxy::getTimeSinceHeardFromClient()const
+{
+	if(getClientMailbox() == NULL || getClientMailbox()->getChannel() == NULL || 
+		getClientMailbox()->getChannel()->endpoint() == NULL)
+		return DBL_MAX;
+
+	return double(timestamp() - getClientMailbox()->getChannel()->lastReceivedTime()) / stampsPerSecondD();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Proxy::pyGetTimeSinceHeardFromClient()
+{ 
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;																					
+	}
+	
+	return PyFloat_FromDouble(this->getTimeSinceHeardFromClient()); 
 }
 
 //-------------------------------------------------------------------------------------

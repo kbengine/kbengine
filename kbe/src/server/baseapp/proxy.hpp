@@ -64,6 +64,12 @@ public:
 	INLINE uint32 getRoundTripTime()const;
 	DECLARE_PY_GET_MOTHOD(pyGetRoundTripTime);
 
+	/** 
+		This is the number of seconds since a packet from the client was last received. 
+	*/
+	INLINE double getTimeSinceHeardFromClient()const;
+	DECLARE_PY_GET_MOTHOD(pyGetTimeSinceHeardFromClient);
+
 	/**
 		这个entity被激活了, 在客户端初始化好对应的entity后， 这个方法被调用
 	*/

@@ -340,7 +340,7 @@ PyObject* Base::pyDestroyCellEntity()
 			this->getScriptName(), this->getID(),
 			creatingCell_ ? "true" : "false");
 		PyErr_PrintEx(0);
-		S_Return;
+		return 0;
 	}
 	else
 		destroyCellEntity();
@@ -462,7 +462,7 @@ PyObject* Base::pyGetCellMailbox()
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
-		S_Return;																						
+		return 0;																					
 	}
 
 	EntityMailbox* mailbox = getCellMailbox();
@@ -481,7 +481,7 @@ PyObject* Base::pyGetDBID()
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
-		S_Return;																						
+		return 0;																					
 	}
 
 	return PyLong_FromUnsignedLongLong(this->getDBID()); 
@@ -495,7 +495,7 @@ PyObject* Base::pyGetClientMailbox()
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			getScriptName(), getID());		
 		PyErr_PrintEx(0);
-		S_Return;																						
+		return 0;																				
 	}
 
 	EntityMailbox* mailbox = getClientMailbox();
@@ -804,7 +804,7 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 		PyErr_Format(PyExc_AssertionError, "%s::createCellEntity: %d is destroyed!\n",											
 			getScriptName(), getID());												
 		PyErr_PrintEx(0);																					
-		S_Return;																								
+		return 0;																						
 	}																										
 
 	if(Baseapp::getSingleton().findEntity(getID()) == NULL)
@@ -813,7 +813,7 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 			getScriptName(), getID());
 
 		PyErr_PrintEx(0);
-		S_Return;
+		return 0;
 	}
 
 	if(creatingCell_ || this->getCellMailbox())
@@ -822,7 +822,7 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 			getScriptName(), getID());
 
 		PyErr_PrintEx(0);
-		S_Return;
+		return 0;
 	}
 
 	if(!PyObject_TypeCheck(pyobj, EntityMailbox::getScriptType()))
@@ -831,7 +831,7 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 			this->getScriptName());
 
 		PyErr_PrintEx(0);
-		S_Return;
+		return 0;
 	}
 	
 	EntityMailboxAbstract* cellMailbox = static_cast<EntityMailboxAbstract*>(pyobj);
@@ -841,7 +841,7 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 			this->getScriptName());
 
 		PyErr_PrintEx(0);
-		S_Return;
+		return 0;
 	}
 	
 	creatingCell_ = true;
@@ -857,7 +857,7 @@ PyObject* Base::createInNewSpace(PyObject* params)
 		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d is destroyed!\n",											
 			getScriptName(), getID());												
 		PyErr_PrintEx(0);																					
-		S_Return;																								
+		return 0;																						
 	}	
 
 	if(createdSpace_)
@@ -866,7 +866,7 @@ PyObject* Base::createInNewSpace(PyObject* params)
 			getScriptName(), getID());
 
 		PyErr_PrintEx(0);
-		S_Return;
+		return 0;
 	}
 
 	createdSpace_ = true;
@@ -907,7 +907,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 		PyErr_Format(PyExc_AssertionError, "%s::teleport: %d is destroyed!\n",											
 			getScriptName(), getID());												
 		PyErr_PrintEx(0);																					
-		S_Return;																								
+		return 0;																					
 	}	
 
 	if(this->getCellMailbox() == NULL)
@@ -916,7 +916,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 			getScriptName(), getID());
 
 		PyErr_PrintEx(0);
-		S_Return;
+		return 0;
 	}
 
 	if(baseEntityMB == NULL)
@@ -925,7 +925,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 			getScriptName(), getID());
 
 		PyErr_PrintEx(0);
-		S_Return;
+		return 0;
 	}
 
 	bool isMailbox = PyObject_TypeCheck(baseEntityMB, EntityMailbox::getScriptType());
@@ -938,7 +938,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 			getScriptName(), getID());
 
 		PyErr_PrintEx(0);
-		S_Return;
+		return 0;
 	}
 
 	ENTITY_ID eid = 0;
@@ -954,7 +954,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 				getScriptName(), getID());
 
 			PyErr_PrintEx(0);
-			S_Return;
+			return 0;
 		}
 
 		eid = mb->getID();
@@ -983,7 +983,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 				getScriptName(), getID());
 
 			PyErr_PrintEx(0);
-			S_Return;
+			return 0;
 		}
 	}
 
