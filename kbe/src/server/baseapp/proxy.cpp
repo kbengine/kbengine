@@ -177,7 +177,7 @@ void Proxy::onClientDeath(void)
 		addr(Mercury::Address::NONE);
 	}
 
-	entitiesEnabled = false;
+	entitiesEnabled_ = false;
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientDeath"));
 }
 
