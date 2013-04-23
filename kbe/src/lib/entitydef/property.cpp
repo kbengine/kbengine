@@ -237,7 +237,12 @@ PyObject* FixedDictDescription::onSetValue(PyObject* parentObj, PyObject* value)
 	if(static_cast<FixedDictType*>(dataType_)->isSameType(value))
 	{
 		FixedDictType* dataType = static_cast<FixedDictType*>(this->getDataType());
-		return PropertyDescription::onSetValue(parentObj, dataType->createNewFromObj(value));
+
+		PyObject* pyobj = dataType->createNewFromObj(value);
+		PropertyDescription::onSetValue(parentObj, pyobj);
+
+		Py_DECREF(pyobj);
+		return pyobj;
 	}
 
 	return NULL;
@@ -285,7 +290,11 @@ PyObject* ArrayDescription::onSetValue(PyObject* parentObj, PyObject* value)
 	if(static_cast<FixedArrayType*>(dataType_)->isSameType(value))
 	{
 		FixedArrayType* dataType = static_cast<FixedArrayType*>(this->getDataType());
-		return PropertyDescription::onSetValue(parentObj, dataType->createNewFromObj(value));
+		PyObject* pyobj = dataType->createNewFromObj(value);
+		PropertyDescription::onSetValue(parentObj, pyobj);
+
+		Py_DECREF(pyobj);
+		return pyobj;
 	}
 
 	return NULL;	

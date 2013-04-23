@@ -274,7 +274,7 @@ void Bots::reqCloseServer(Mercury::Channel* pChannel, MemoryStream& s)
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
-	this->getMainDispatcher().breakProcessing();
+	this->shutDown();
 }
 
 //-------------------------------------------------------------------------------------

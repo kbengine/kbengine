@@ -176,6 +176,8 @@ void ThreadPool::destroy()
 
 	THREAD_MUTEX_LOCK(threadStateList_mutex_);
 
+	KBEngine::sleep(100);
+
 	std::list<TPThread*>::iterator itr = allThreadList_.begin();
 	for(; itr != allThreadList_.end(); itr++)
 	{
