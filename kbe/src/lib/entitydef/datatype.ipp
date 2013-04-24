@@ -82,37 +82,8 @@ bool IntType<SPECIFY_TYPE>::isSameType(PyObject* pyValue)
 		
 		return false;
 	}
+	
 	return true;
-}
-
-
-//-------------------------------------------------------------------------------------
-template <typename SPECIFY_TYPE>
-PyObject* IntType<SPECIFY_TYPE>::parseDefaultStr(std::string defaultVal)
-{
-	SPECIFY_TYPE i = 0;
-	if(!defaultVal.empty())
-	{
-		std::stringstream stream;
-		stream << defaultVal;
-		stream >> i;
-	}
-
-	PyObject* pyval = PyLong_FromLong(i);
-
-	if (PyErr_Occurred()) 
-	{
-		PyErr_Clear();
-		PyErr_Format(PyExc_TypeError, "IntType::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
-			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
-
-		PyErr_PrintEx(0);
-
-		S_RELEASE(pyval);
-		return PyLong_FromLong(0);
-	}
-
-	return pyval;
 }
 
 //-------------------------------------------------------------------------------------
@@ -155,10 +126,17 @@ PyObject* IntType<SPECIFY_TYPE>::createFromStream(MemoryStream* mstream)
 
 	if (PyErr_Occurred()) 
 	{
-		PyErr_Format(PyExc_TypeError, "IntType::createFromStream: errval=%d, default return is 0", val);
-		PyErr_PrintEx(0);
-		S_RELEASE(pyval);
-		return PyLong_FromLong(0);
+		PyErr_Clear();
+		
+		pyval = PyLong_FromUnsignedLong(val);
+		
+		if (PyErr_Occurred()) 
+		{
+			PyErr_Format(PyExc_TypeError, "IntType::createFromStream: errval=%d, default return is 0", val);
+			PyErr_PrintEx(0);
+			S_RELEASE(pyval);
+			return PyLong_FromLong(0);
+		}
 	}
 
 	return pyval;
