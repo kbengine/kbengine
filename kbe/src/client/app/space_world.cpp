@@ -36,7 +36,8 @@ SpaceWorld::~SpaceWorld(void)
 	mSceneMgr->destroyCamera("mainCamera");
 	mActiveCamera = NULL;
 	delete mLoader;
-	SAFE_RELEASE(mPlayerPtr);
+	
+	mPlayerPtr = NULL;
 	mEntities.clear();
 }
 
@@ -102,7 +103,7 @@ void SpaceWorld::createScene(void)
 
     mWindow->getViewport(0)->setCamera(mActiveCamera);
 
-	mActiveCamera->setNearClipDistance(0.1);
+	mActiveCamera->setNearClipDistance(0.1f);
 	mActiveCamera->setFarClipDistance(30000);
 
 	mCameraMan = new OgreBites::SdkCameraMan(mActiveCamera);   // create a default camera controller
@@ -234,29 +235,26 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 			pEntity->setupAnimations();
 
 			pEntity->setPosition(pEventData_EnterWorld->x, pEventData_EnterWorld->y, pEventData_EnterWorld->z);
-			pEntity->scale(0.3, 0.3, 0.3);
+			pEntity->setDestPosition(pEventData_EnterWorld->x, pEventData_EnterWorld->y, pEventData_EnterWorld->z);
+			pEntity->scale(0.3f, 0.3f, 0.3f);
 			pEntity->setMoveSpeed(pEventData_EnterWorld->speed);
+			pEntity->setDestDirection(pEventData_EnterWorld->yaw, pEventData_EnterWorld->pitch, pEventData_EnterWorld->roll);
+			pEntity->setDirection(pEventData_EnterWorld->yaw, pEventData_EnterWorld->pitch, pEventData_EnterWorld->roll);
 
 			if(kbe_playerID() == eid)
 			{
 				pEntity->setupCamera(mActiveCamera);
 				mPlayerPtr = pEntity;
 			}
-			else
-			{
-				mEntities[eid].reset(pEntity);
-			}
+
+			mEntities[eid].reset(pEntity);
 		}
 		break;
 	case CLIENT_EVENT_LEAVEWORLD:
 		if(kbe_playerID() == static_cast<const KBEngine::EventData_EnterWorld*>(lpEventData)->pEntity->aspectID())
-		{
-			SAFE_RELEASE(mPlayerPtr);
-		}
-		else
-		{
-			mEntities.erase(static_cast<const KBEngine::EventData_EnterWorld*>(lpEventData)->pEntity->aspectID());
-		}
+			mPlayerPtr = NULL;
+
+		mEntities.erase(static_cast<const KBEngine::EventData_EnterWorld*>(lpEventData)->pEntity->aspectID());
 		break;
 	case CLIENT_EVENT_POSITION_CHANGED:
 		{
@@ -286,7 +284,7 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 		{
 			const KBEngine::EventData_MoveSpeedChanged* pEventData = static_cast<const KBEngine::EventData_MoveSpeedChanged*>(lpEventData);
 			KBEngine::ENTITY_ID eid = pEventData->pEntity->aspectID();
-
+			
 			ENTITIES::iterator iter = mEntities.find(eid);
 			if(iter == mEntities.end())
 				break;
@@ -299,6 +297,26 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 			serverClosed_ = true;
 		}
 		break;
+		case CLIENT_EVENT_SCRIPT:
+			{
+				const KBEngine::EventData_Script* peventdata = static_cast<const KBEngine::EventData_Script*>(lpEventData);
+				if(peventdata->name == "set_name")
+				{
+					if(peventdata->argsSize > 0)
+					{
+						PyObject* pyitem0 = PyTuple_GetItem(peventdata->pyDatas, 0);
+						PyObject* pyitem1 = PyTuple_GetItem(peventdata->pyDatas, 1);
+						
+						KBEngine::ENTITY_ID eid = PyLong_AsUnsignedLong(pyitem0);
+
+						wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyitem1, NULL);
+						char* name = wchar2char(PyUnicode_AsWideCharStringRet0);
+						PyMem_Free(PyUnicode_AsWideCharStringRet0);
+						free(name);																				
+					}
+				}
+			}
+			break;
 	default:
 		break;
 	};

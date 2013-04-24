@@ -9,24 +9,6 @@
 std::vector<Ogre::String> g_avatars;
 KBEngine::DBID g_selAvatarDBID = 0;
 
-char* wchar2char(const wchar_t* ts)
-{
-	int len = (wcslen(ts) + 1) * 4;
-	char* ccattr =(char *)malloc(len);
-	memset(ccattr, 0, len);
-	wcstombs(ccattr, ts, len);
-	return ccattr;
-};
-
-wchar_t* char2wchar(const char* cs)
-{
-	int len = (strlen(cs) + 1) * 4;
-	wchar_t* ccattr =(wchar_t *)malloc(len);
-	memset(ccattr, 0, len);
-	mbstowcs(ccattr, cs, len);
-	return ccattr;
-};
-
 //-------------------------------------------------------------------------------------
 SpaceAvatarSelect::SpaceAvatarSelect(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin, 
 		OIS::InputManager* pInputMgr, OgreBites::SdkTrayManager* pTrayMgr)

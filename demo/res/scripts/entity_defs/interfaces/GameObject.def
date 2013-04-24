@@ -32,11 +32,18 @@
 		</utype>
 
 		<modelID>
-			<Type>			UINT32			</Type>
+			<Type>			UINT16			</Type>
 			<Utype> 		41006			</Utype>
 			<Flags>			ALL_CLIENTS		</Flags>
 			<Default>		0			</Default>
 		</modelID>
+
+		<modelScale>
+			<Type>			UINT8			</Type>
+			<Utype> 		41007			</Utype>
+			<Flags>			ALL_CLIENTS		</Flags>
+			<Default>		3			</Default>
+		</modelScale>
 	</Properties>
 
 	<CellMethods>

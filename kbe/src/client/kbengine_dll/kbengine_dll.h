@@ -15,6 +15,24 @@ namespace KBEngine{
 	class EventHandle;
 }
 
+inline char* wchar2char(const wchar_t* ts)
+{
+	int len = (wcslen(ts) + 1) * 4;
+	char* ccattr =(char *)malloc(len);
+	memset(ccattr, 0, len);
+	wcstombs(ccattr, ts, len);
+	return ccattr;
+};
+
+inline wchar_t* char2wchar(const char* cs)
+{
+	int len = (strlen(cs) + 1) * 4;
+	wchar_t* ccattr =(wchar_t *)malloc(len);
+	memset(ccattr, 0, len);
+	mbstowcs(ccattr, cs, len);
+	return ccattr;
+};
+
 /**
 	初始化与销毁引擎模块
 */

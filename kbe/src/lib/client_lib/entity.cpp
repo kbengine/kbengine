@@ -216,6 +216,12 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 		}
 
 		PropertyDescription* pPropertyDescription = getScriptModule()->findClientPropertyDescription(uid);
+		if(pPropertyDescription == NULL)
+		{
+			ERROR_MSG(boost::format("Entity::onUpdatePropertys: not found %1%\n") % uid);
+			return;
+		}
+
 		PyObject* pyobj = pPropertyDescription->createFromStream(&s);
 
 		PyObject* pyOld = PyObject_GetAttrString(this, pPropertyDescription->getName());
@@ -224,16 +230,8 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 		std::string setname = "set_";
 		setname += pPropertyDescription->getName();
 
-		PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>(setname.c_str()), "O", pyOld);
-		
-		if(pyResult)
-		{
-			Py_DECREF(pyResult);
-		}
-		else
-		{
-			PyErr_Clear();
-		}
+		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>(setname.c_str()), 
+		const_cast<char*>("O"), pyOld);
 
 		Py_DECREF(pyobj);
 		Py_DECREF(pyOld);
@@ -252,6 +250,7 @@ int Entity::pySetPosition(PyObject *value)
 		return -1;
 
 	script::ScriptVector3::convertPyObjectToVector3(getPosition(), value);
+	onPositionChanged();
 	return 0;
 }
 
@@ -306,6 +305,8 @@ int Entity::pySetDirection(PyObject *value)
 	pyItem = PySequence_GetItem(value, 2);
 	dir.yaw		= float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
+
+	onDirectionChanged();
 	return 0;
 }
 
@@ -333,7 +334,7 @@ void Entity::onDirectionChanged()
 //-------------------------------------------------------------------------------------
 int Entity::pySetMoveSpeed(PyObject *value)
 {
-	velocity_ = (float)PyFloat_AsDouble(value);
+	setMoveSpeed((float)PyFloat_AsDouble(value));
 	return 0;
 }
 

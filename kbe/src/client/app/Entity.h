@@ -379,7 +379,7 @@ public:
 			mBodyNode->yaw(Degree(yawToGoal));
 
 			// move in current body direction (not the goal direction)
-			mBodyNode->translate(0, 0, deltaTime * RUN_SPEED * mAnims[mBaseAnimID]->getWeight(),
+			mBodyNode->translate(0, 0, deltaTime * mMoveSpeed * mAnims[mBaseAnimID]->getWeight(),
 				Node::TS_LOCAL);
 		}
 

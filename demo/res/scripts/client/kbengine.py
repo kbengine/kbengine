@@ -25,22 +25,3 @@ def onFinish():
 	可以在此做一些游戏资源清理工作
 	"""
 	pass
-	
-def onKeyPressed(down, key, mods):
-	"""
-	KBEngine method.
-	某个键按下时的回调
-	@param mods	: 修饰键是否按下 修饰键包括:Shift, Ctrl, Alt
-	"""
-	pass
-
-def onMousePressedInWorld(dx, dy, dz):
-	"""
-	KBEngine method.
-	鼠标在3D场景任意位置按下时的回调
-	注意：如果在gui上按下鼠标， 本处不会触发回调， 这是由于我们客户端
-	的gui等等部分不由脚本处理而是由用户在kbe之外扩展， 因此无需获得相关事件通知。
-	"""
-	player = KBEngine.player()
-	if player:
-		player.seek((dx / 10.0, dy / 10.0, dz / 10.0), player.moveSpeed, 1, 1, None)

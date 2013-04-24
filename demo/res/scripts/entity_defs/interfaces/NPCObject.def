@@ -9,19 +9,12 @@
 			<Default>		30.0 50.0 100		</Default>
 		</spawnPos>
 
-		<dialogID>
+		<entityNO>
 			<Type>			UINT32			</Type>
-			<Utype> 		41007			</Utype>
+			<Utype> 		91007			</Utype>
 			<Flags>			ALL_CLIENTS		</Flags>
 			<Default>		0			</Default>
-		</dialogID>
-
-		<descr>
-			<Type>			UNICODE			</Type>
-			<Utype> 		41009			</Utype>
-			<Flags>			ALL_CLIENTS		</Flags>
-			<DetailLevel>		MEDIUM			</DetailLevel>
-		</descr>
+		</entityNO>
 	</Properties>
 
 	<BaseMethods>
