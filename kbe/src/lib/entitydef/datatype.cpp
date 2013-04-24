@@ -768,6 +768,7 @@ PyObject* StringType::parseDefaultStr(std::string defaultVal)
 		pyobj != NULL ? pyobj->ob_type->tp_name : "NULL", defaultVal.c_str());
 
 	PyErr_PrintEx(0);
+	S_RELEASE(pyobj);
 
 	return PyUnicode_FromString("");
 }
@@ -795,7 +796,8 @@ PyObject* StringType::createFromStream(MemoryStream* mstream)
 	if (pyobj && !PyErr_Occurred()) 
 		return pyobj;
 
-	::PyErr_PrintEx(0);
+	PyErr_PrintEx(0);
+	S_RELEASE(pyobj);
 
 	return NULL;
 }
@@ -823,6 +825,7 @@ bool UnicodeType::isSameType(PyObject* pyValue)
 	bool ret = PyUnicode_Check(pyValue);
 	if(!ret)
 		OUT_TYPE_ERROR("UNICODE");
+
 	return ret;
 }
 
@@ -841,6 +844,7 @@ PyObject* UnicodeType::parseDefaultStr(std::string defaultVal)
 		pyobj != NULL ? pyobj->ob_type->tp_name : "NULL", defaultVal.c_str());
 
 	PyErr_PrintEx(0);
+	S_RELEASE(pyobj);
 
 	return PyUnicode_DecodeUTF8("", 0, "");
 }
@@ -875,7 +879,9 @@ PyObject* UnicodeType::createFromStream(MemoryStream* mstream)
 		return pyobj;
 	}
 
+	S_RELEASE(pyobj);
 	::PyErr_PrintEx(0);
+
 	return NULL;
 }
 
@@ -902,6 +908,7 @@ bool PythonType::isSameType(PyObject* pyValue)
 	bool ret = script::Pickler::pickle(pyValue).empty();
 	if(ret)
 		OUT_TYPE_ERROR("PYTHON");
+
 	return !ret;
 }
 
@@ -1113,6 +1120,7 @@ PyObject* BlobType::createFromStream(MemoryStream* mstream)
 	}
 
 	OUT_TYPE_ERROR("BLOB");
+	S_RELEASE(pBlob);
 	return NULL;
 }
 
@@ -1276,6 +1284,7 @@ bool FixedArrayType::isSameType(PyObject* pyValue)
 		PyObject* pyVal = PySequence_GetItem(pyValue, i);
 		bool ok = dataType_->isSameType(pyVal);
 		Py_DECREF(pyVal);
+
 		if(!ok)
 			return false;
 	}

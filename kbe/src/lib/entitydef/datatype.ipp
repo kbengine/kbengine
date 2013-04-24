@@ -127,6 +127,7 @@ PyObject* IntType<SPECIFY_TYPE>::createFromStream(MemoryStream* mstream)
 	if (PyErr_Occurred()) 
 	{
 		PyErr_Clear();
+		S_RELEASE(pyval);
 		
 		pyval = PyLong_FromUnsignedLong(val);
 		
