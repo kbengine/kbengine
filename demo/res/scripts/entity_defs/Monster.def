@@ -13,6 +13,7 @@
 		<Interface>			Motion			</Interface>
 		<Interface>			Combat			</Interface>
 		<Interface>			Spell			</Interface>
+		<Interface>			AI			</Interface>
 	</Implements>
 
 	<Properties>

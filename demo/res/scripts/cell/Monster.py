@@ -9,28 +9,22 @@ from interfaces.GameObject import GameObject
 from interfaces.Combat import Combat
 from interfaces.Spell import Spell
 from interfaces.Motion import Motion
+from interfaces.AI import AI
 
-class Monster(GameObject, Motion, Combat, Spell):
+class Monster(GameObject, Motion, Combat, Spell, AI):
 	def __init__(self):
 		GameObject.__init__(self)
 		Motion.__init__(self) 
 		Combat.__init__(self) 
 		Spell.__init__(self) 
-		
-	def enable(self):
+		AI.__init__(self) 
+
+	def think(self):
 		"""
-		激活entity
+		virtual method.
 		"""
-		self.heartBeatTimerID = \
-		self.addTimer(random.randint(0, 1000), 1000, wtimer.TIMER_TYPE_HEARDBEAT)				# 心跳timer, 每1秒一次
-	
-	def disable(self):
-		"""
-		禁止这个entity做任何行为
-		"""
-		self.delTimer(self.heartBeatTimerID)
-		self.heartBeatTimerID = 0
-		
+		self.randomWalk(self.spawnPos)
+
 	def onWitnessed(self, isWitnessed):
 		"""
 		KBEngine method.
@@ -39,47 +33,11 @@ class Monster(GameObject, Motion, Combat, Spell):
 		可以在适当的时候激活或者停止这个entity的任意行为。
 		@param isWitnessed	: 为false时， entity脱离了任何观察者的观察
 		"""
-		DEBUG_MSG("%s::onWitnessed: %i isWitnessed=%i." % (self.getScriptName(), self.id, isWitnessed))
+		AI.onWitnessed(self, isWitnessed)
 		
-		if isWitnessed:
-			self.enable()
-		else:
-			self.disable()
-			
-	def onHeardTimer(self, tid, tno):
-		"""
-		entity的心跳
-		"""
-		if not self.isMoving:
-			if self.moveWaitCount == 0:
-				self.randomWalk()
-			else:
-				self.moveWaitCount -= 1
-		
-	def randomWalk(self):
-		"""
-		随机移动entity
-		"""
-		rnd = random.random()
-		a = 30.0 * rnd				# 移动半径距离在30米内
-		b = 360.0 * rnd				# 随机一个角度
-		x = a * math.cos( b ) 		# 半径 * 正余玄
-		z = a * math.sin( b )
-		self.moveToPoint((self.spawnPos.x + x, self.spawnPos.y, self.spawnPos.z + z), self.moveSpeed, 1, True, True)
-		self.isMoving = True
-		self.moveWaitCount = 0
-		
-	def onMove(self, controllerId, userarg):
-		"""
-		KBEngine method.
-		使用引擎的任何移动相关接口， 在entity一次移动完成时均会调用此接口
-		"""
-		self.moveWaitCount = random.randint(5, 15)
-		self.isMoving = False
-
 Monster._timermap = {}
 Monster._timermap.update(GameObject._timermap)
 Monster._timermap.update(Motion._timermap)
 Monster._timermap.update(Combat._timermap)
 Monster._timermap.update(Spell._timermap)
-Monster._timermap[wtimer.TIMER_TYPE_HEARDBEAT] = Monster.onHeardTimer
+Monster._timermap.update(AI._timermap)

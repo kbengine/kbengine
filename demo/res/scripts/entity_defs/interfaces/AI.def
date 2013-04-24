@@ -1,0 +1,18 @@
+<root>
+	<Implements>
+	</Implements>
+
+	<Properties>
+		<heartBeatTimerID>
+			<Type>			UINT32			</Type>
+			<Flags>			CELL_PRIVATE		</Flags>
+			<Default>		0			</Default>
+		</heartBeatTimerID>
+	</Properties>
+
+	<CellMethods>
+	</CellMethods>
+
+	<ClientMethods>
+	</ClientMethods>
+</root>

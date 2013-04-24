@@ -643,7 +643,7 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 		return 0;
 	}
 
-	if(pystr)
+	if(pystr && PyUnicode_Check(pystr))
 	{
 		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pystr, NULL);
 		char* s = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
@@ -658,7 +658,16 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 
 		S_Return;
 	}
-	
+	else
+	{
+		if(!PyLong_Check(pystr))
+		{
+			PyErr_Format(PyExc_TypeError, "%s::cancel: args is error!", pobj->getScriptName());
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+
 	pobj->cancelController(id);
 	S_Return;
 }
@@ -1020,6 +1029,8 @@ void Entity::onMove(uint32 controllerId, PyObject* userarg)
 void Entity::onMoveOver(uint32 controllerId, PyObject* userarg)
 {
 	pMoveController_ = NULL;
+	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveOver"), 
+		const_cast<char*>("IO"), controllerId, userarg);
 }
 
 //-------------------------------------------------------------------------------------
