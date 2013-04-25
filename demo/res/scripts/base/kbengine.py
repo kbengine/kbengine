@@ -35,19 +35,54 @@ def onInit(isReload):
 	DEBUG_MSG('onInit::isReload:%s' % isReload)
 
 def onFini():
+	"""
+	KBEngine method.
+	引擎正式关闭
+	"""
 	pass
 	
 def onCellAppDeath(addr):
+	"""
+	KBEngine method.
+	某个cellapp死亡
+	"""
 	pass
 	
 def onGlobalData(key, value):
+	"""
+	KBEngine method.
+	globalData有改变
+	"""
 	DEBUG_MSG('onGlobalData: %s' % key)
 	
 def onGlobalDataDel(key):
+	"""
+	KBEngine method.
+	globalData有删除
+	"""
 	DEBUG_MSG('onDelGlobalData: %s' % key)
 	
 def onGlobalBases(key, value):
+	"""
+	KBEngine method.
+	globalBases有改变
+	"""
 	DEBUG_MSG('onGlobalBases: %s' % key)
 	
 def onGlobalBasesDel(key):
+	"""
+	KBEngine method.
+	globalBases有删除
+	"""
 	DEBUG_MSG('onGlobalBasesDel: %s' % key)
+
+def onLoseChargeCB(ordersID, dbid, success, datas):
+	"""
+	KBEngine method.
+	有一个不明订单被处理， 可能是超时导致记录被billing
+	清除， 而又收到第三方充值的处理回调
+	"""
+	DEBUG_MSG('onLoseChargeCB: ordersID=%s, dbid=%i, success=%i, datas=%s' % \
+							(ordersID, dbid, success, datas))
+
+

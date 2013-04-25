@@ -181,7 +181,24 @@ bool CreateAccountTask::process()
 					{
 						success = false;
 						endpoint.close();
-						DEBUG_MSG(boost::format("BillingTask::process: (%1%)op is failed! send(%2%).\n") % commitName % postDatas);
+						
+						std::string err;
+						if(s.opsize() >= (sizeof(int32) * 2))
+						{
+							s >> type >> len;
+							
+							if(len > 0 && len < 1024)
+							{
+								char* buf = new char[len + 1];
+								memcpy(buf, s.data() + s.rpos(), len);
+								buf[len] = 0;
+								err = buf;
+								delete[] buf;
+							}
+
+						}
+
+						DEBUG_MSG(boost::format("BillingTask::process: (%1%)op is failed! err=%2%\nsend(%3%).\n") % commitName % err % postDatas);
 						return false;
 					}
 					else

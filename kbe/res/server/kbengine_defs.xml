@@ -86,6 +86,9 @@
 		<host> localhost </host>
 		<port> 30099 	</port>
 		
+		<!-- 订单超时(secs) -->
+		<orders_timeout> 3600 	</orders_timeout>
+		
 		<!-- 第三方运营账号服务接口 如: www.google.com, 当type是thirdparty时有效 -->
 		<thirdpartyAccountService_addr></thirdpartyAccountService_addr>
 		<thirdpartyAccountService_port> 80 </thirdpartyAccountService_port>

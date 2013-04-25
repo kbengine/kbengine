@@ -42,7 +42,7 @@
 			<Type>			UINT8			</Type>
 			<Utype> 		41007			</Utype>
 			<Flags>			ALL_CLIENTS		</Flags>
-			<Default>		3			</Default>
+			<Default>		30			</Default>
 		</modelScale>
 	</Properties>
 

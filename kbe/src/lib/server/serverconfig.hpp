@@ -225,8 +225,9 @@ public:
 	std::string billingSystem_thirdpartyAccountServiceAddr_;		// 第三方运营账号服务地址(当type是thirdparty时有效)
 	uint16	billingSystem_thirdpartyAccountServicePort_;			
 	std::string billingSystem_thirdpartyChargeServiceAddr_;			// 第三方运营充值服务地址(当type是thirdparty时有效)
-	uint16	billingSystem_thirdpartyChargeServicePort_;	
-	uint16	billingSystem_thirdpartyServiceCBPort_;	
+	uint16 billingSystem_thirdpartyChargeServicePort_;	
+	uint16 billingSystem_thirdpartyServiceCBPort_;	
+	uint32 billingSystem_orders_timeout_;
 };
 
 #define g_kbeSrvConfig ServerConfig::getSingleton()

@@ -269,6 +269,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL){
 			_billingInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
+
+		node = xml->enterNode(rootNode, "orders_timeout");
+		if(node != NULL){
+			billingSystem_orders_timeout_ = xml->getValInt(node);
+		}
 	}
 
 	rootNode = xml->getRootNode("cellapp");

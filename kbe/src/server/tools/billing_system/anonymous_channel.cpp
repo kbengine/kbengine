@@ -215,12 +215,23 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 	for(; iter != backOrdersDatas_.end(); iter++)
 	{
 		BillingSystem::ORDERS::iterator orderiter = orders.find(iter->first);
+		COMPONENT_ID baseappID = 0;
+		std::string ordersID = iter->first;
+		DBID dbid = 0;
+		CALLBACK_ID cbid = 0;
+
 		if(orderiter == orders.end())
 		{
-			ERROR_MSG(boost::format("AnonymousChannel::presentMainThread: orders=%1% not found!\n") % 
+			WARNING_MSG(boost::format("AnonymousChannel::presentMainThread: orders=%1% not found!\n") % 
 			iter->first);
 
-			continue;
+			// continue;
+		}
+		else
+		{
+			baseappID = orderiter->second->baseappID;
+			dbid = orderiter->second->dbid;
+			cbid = orderiter->second->cbid;
 		}
 		
 		bool success = false;
@@ -237,14 +248,14 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 		}
 
 		INFO_MSG(boost::format("AnonymousChannel::presentMainThread: orders=%1%, success=%2%\n") % 
-			orderiter->second->ordersID % success);
+			ordersID % success);
 
 		Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 
 		(*(*bundle)).newMessage(DbmgrInterface::onChargeCB);
-		(*(*bundle)) << orderiter->second->baseappID << orderiter->second->ordersID << orderiter->second->dbid;
+		(*(*bundle)) << baseappID << ordersID << dbid;
 		(*(*bundle)).appendBlob(iter->second.data);
-		(*(*bundle)) << orderiter->second->cbid;
+		(*(*bundle)) << cbid;
 		(*(*bundle)) << success;
 
 		Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(orderiter->second->address);
@@ -256,10 +267,11 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 		else
 		{
 			ERROR_MSG(boost::format("AnonymousChannel::presentMainThread: not found channel. orders=%1%\n") % 
-				orderiter->second->ordersID);
+				ordersID);
 		}
 		
-		orders.erase(orderiter);
+		if(orderiter != orders.end())
+			orders.erase(orderiter);
 	}
 
 	backOrdersDatas_.clear();

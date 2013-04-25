@@ -3,17 +3,10 @@ import KBEngine
 import KBExtra
 from KBEDebug import *
 
-# 模型的面向调整(由于用的现成的模型， 一些模型导出时朝向不对， 通过这个值进行调整达到统一朝向)
-faceToTable = {
-	"ninja" : -1,
-	"Ogre"	: 1,
-	"dwarf" : -1,
-}
-
 class GameObject(KBEngine.Entity):
 	def __init__(self):
 		KBEngine.Entity.__init__(self)
-
+		
 	def getScriptName(self):
 		return self.__class__.__name__
 		

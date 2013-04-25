@@ -1408,31 +1408,43 @@ void Baseapp::onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 		callbackID %
 		dbid);
 
+	PyObject* pyOrder = PyUnicode_FromString(chargeID.c_str());
+	PyObject* pydbid = PyLong_FromUnsignedLongLong(dbid);
+	PyObject* pySuccess = PyBool_FromLong(success);
+	Blob* pBlob = new Blob(datas);
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	if(callbackID > 0)
 	{
 		PyObjectPtr pycallback = callbackMgr().take(callbackID);
 
-		PyObject* pyOrder = PyUnicode_FromString(chargeID.c_str());
-		PyObject* pydbid = PyLong_FromUnsignedLongLong(dbid);
-		PyObject* pySuccess = PyBool_FromLong(success);
-		Blob* pBlob = new Blob(datas);
-
-		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
 		PyObject* pyResult = PyObject_CallFunction(pycallback.get(), 
 											const_cast<char*>("OOOO"), 
 											pyOrder, pydbid, pySuccess, static_cast<PyObject*>(pBlob));
-
-		Py_DECREF(pyOrder);
-		Py_DECREF(pydbid);
-		Py_DECREF(pySuccess);
-		Py_DECREF(pBlob);
 
 		if(pyResult != NULL)
 			Py_DECREF(pyResult);
 		else
 			SCRIPT_ERROR_CHECK();
 	}
+	else
+	{
+		PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onLoseChargeCB"), 
+										const_cast<char*>("OOOO"), 
+										pyOrder, pydbid, pySuccess, static_cast<PyObject*>(pBlob));
+
+		if(pyResult != NULL)
+			Py_DECREF(pyResult);
+		else
+			SCRIPT_ERROR_CHECK();
+	}
+
+	Py_DECREF(pyOrder);
+	Py_DECREF(pydbid);
+	Py_DECREF(pySuccess);
+	Py_DECREF(pBlob);
 }
 
 //-------------------------------------------------------------------------------------
