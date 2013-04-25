@@ -4,6 +4,7 @@
 #include "cstdkbe/cstdkbe.hpp"
 #include "client_lib/kbemain.hpp"
 #include "server/serverconfig.hpp"
+#include "server/telnet_server.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "cstdkbe/kbekey.hpp"
 #include "thread/threadtask.hpp"
@@ -85,6 +86,7 @@ ServerConfig* pserverconfig = NULL;
 Config* pconfig = NULL;
 KBEngine::script::PyThreadStateLock* g_pLock = NULL;
 KBEngine::script::PyThreadStateLock* g_pNewLock = NULL;
+TelnetServer* g_pTelnetServer = NULL;
 
 //-------------------------------------------------------------------------------------
 BOOL APIENTRY DllMain( HANDLE hModule,
@@ -235,6 +237,23 @@ bool kbe_init()
 		return false;
 	}
 
+	if(g_pTelnetServer == NULL)
+	{
+		g_pTelnetServer = new TelnetServer(g_pDispatcher, g_pNetworkInterface);
+		g_pTelnetServer->pScript(g_pScript);
+		if(!g_pTelnetServer->start(pconfig->telnet_passwd, 
+			pconfig->telnet_deflayer, 
+			pconfig->telnet_port))
+		{
+			ERROR_MSG("app::initialize: TelnetServer is error!\n");
+			return false;
+		}
+	}
+	else
+	{
+		g_pTelnetServer->pScript(g_pScript);
+	}
+
 	if(g_pThreadPool == NULL)
 	{
 		g_pThreadPool = new thread::ThreadPool();
@@ -261,6 +280,9 @@ bool kbe_init()
 //-------------------------------------------------------------------------------------
 bool kbe_destroy()
 {
+	g_pTelnetServer->stop();
+	SAFE_RELEASE(g_pTelnetServer);
+
 	g_pApp->getMainDispatcher().breakProcessing();
 	g_pThreadPool->finalise();
 	KBEngine::sleep(100);

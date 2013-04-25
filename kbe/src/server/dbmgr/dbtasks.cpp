@@ -724,7 +724,13 @@ bool DBTaskAccountLogin::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::onAccountLogin:%1%.\n") % loginName_.c_str());
+	DEBUG_MSG(boost::format("Dbmgr::onAccountLogin:loginName=%1%, accountName=%2%, success=%3%, componentID=%4%, dbid=%5%\n") % 
+		loginName_ %
+		accountName_ %
+		success_ %
+		componentID_ %
+		dbid_
+		);
 
 	// 一个用户登录， 构造一个数据库查询指令并加入到执行队列， 执行完毕将结果返回给loginapp
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();

@@ -9,14 +9,14 @@ using namespace Ogre;
 
 class SpaceWorld;
 
-#define NUM_ANIMS 13				// number of animations the character has
-#define CHAR_HEIGHT 5 * 0.3         // height of character's center of mass above ground
-#define CAM_HEIGHT 2 * 0.3          // height of camera above character's center of mass
-#define RUN_SPEED 17 * 0.3          // character running speed in units per second
-#define TURN_SPEED 500.0f * 0.3     // character turning in degrees per second
-#define ANIM_FADE_SPEED 7.5f * 0.3  // animation crossfade speed in % of full weight per second
-#define JUMP_ACCEL 30.0f * 0.3      // character jump acceleration in upward units per squared second
-#define GRAVITY 90.0f * 0.3         // gravity in downward units per squared second
+#define NUM_ANIMS 13		  // number of animations the character has
+#define CHAR_HEIGHT 5         // height of character's center of mass above ground
+#define CAM_HEIGHT 2          // height of camera above character's center of mass
+#define RUN_SPEED 17          // character running speed in units per second
+#define TURN_SPEED 500.0f     // character turning in degrees per second
+#define ANIM_FADE_SPEED 7.5f  // animation crossfade speed in % of full weight per second
+#define JUMP_ACCEL 30.0f      // character jump acceleration in upward units per squared second
+#define GRAVITY 90.0f         // gravity in downward units per squared second
 
 class KBEntity
 {
@@ -57,6 +57,7 @@ public:
       mSwordTrail(NULL),
 	  mFallVelocity(0),
 	  mMoveSpeed(1.0f),
+	  mScale(0.3f),
 	  mID(eid),
 	  mIsJump(false),
 	  mSpacePtr(pSpace),
@@ -264,7 +265,7 @@ public:
 	{
 		mSceneMgr = sceneMgr;
 		// create main model
-		mBodyNode = sceneMgr->getRootSceneNode()->createChildSceneNode(Vector3::UNIT_Y * CHAR_HEIGHT);
+		mBodyNode = sceneMgr->getRootSceneNode()->createChildSceneNode(Vector3::UNIT_Y * CHAR_HEIGHT * mScale);
 
 		Ogre::String sKey = Ogre::StringConverter::toString(mID);
 		mBodyEnt = sceneMgr->createEntity(sKey + "Body", "Sinbad.mesh");
@@ -368,7 +369,7 @@ public:
 			// calculate how much the character has to turn to face goal direction
 			Real yawToGoal = toGoal.getYaw().valueDegrees();
 			// this is how much the character CAN turn this frame
-			Real yawAtSpeed = yawToGoal / Math::Abs(yawToGoal) * deltaTime * TURN_SPEED;
+			Real yawAtSpeed = yawToGoal / Math::Abs(yawToGoal) * deltaTime * (TURN_SPEED * mScale);
 			// reduce "turnability" if we're in midair
 			if (mBaseAnimID == ANIM_JUMP_LOOP) yawAtSpeed *= 0.2f;
 
@@ -387,7 +388,7 @@ public:
 		{
 			// if we're jumping, add a vertical offset too, and apply gravity
 			mBodyNode->translate(0, mVerticalVelocity * deltaTime, 0, Node::TS_LOCAL);
-			mVerticalVelocity -= GRAVITY * deltaTime;
+			mVerticalVelocity -= GRAVITY * mScale * deltaTime;
 			
 			if(_checkJumpEnd())
 			{
@@ -472,7 +473,7 @@ public:
 				// takeoff animation finished, so time to leave the ground!
 				setBaseAnimation(ANIM_JUMP_LOOP, true);
 				// apply a jump acceleration to the character
-				mVerticalVelocity = JUMP_ACCEL;
+				mVerticalVelocity = JUMP_ACCEL * mScale;
 			}
 		}
 		else if (mBaseAnimID == ANIM_JUMP_END)
@@ -509,14 +510,14 @@ public:
 			if (mFadingIn[i])
 			{
 				// slowly fade this animation in until it has full weight
-				Real newWeight = mAnims[i]->getWeight() + deltaTime * ANIM_FADE_SPEED;
+				Real newWeight = mAnims[i]->getWeight() + deltaTime * (ANIM_FADE_SPEED * mScale);
 				mAnims[i]->setWeight(Math::Clamp<Real>(newWeight, 0, 1));
 				if (newWeight >= 1) mFadingIn[i] = false;
 			}
 			else if (mFadingOut[i])
 			{
 				// slowly fade this animation out until it has no weight, and then disable it
-				Real newWeight = mAnims[i]->getWeight() - deltaTime * ANIM_FADE_SPEED;
+				Real newWeight = mAnims[i]->getWeight() - deltaTime * (ANIM_FADE_SPEED * mScale);
 				mAnims[i]->setWeight(Math::Clamp<Real>(newWeight, 0, 1));
 				if (newWeight <= 0)
 				{
@@ -530,7 +531,7 @@ public:
 	void updateCamera(Real deltaTime)
 	{
 		// place the camera pivot roughly at the character's shoulder
-		mCameraPivot->setPosition(mBodyNode->getPosition() + Vector3::UNIT_Y * CAM_HEIGHT);
+		mCameraPivot->setPosition(mBodyNode->getPosition() + Vector3::UNIT_Y * (CAM_HEIGHT * mScale));
 		// move the camera smoothly to the goal
 		Vector3 goalOffset = mCameraGoal->_getDerivedPosition() - mCameraNode->getPosition();
 		mCameraNode->translate(goalOffset * deltaTime * 9.0f);

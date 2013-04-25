@@ -74,7 +74,7 @@ void KBEntity::addTime(Real deltaTime)
 		ray.setDirection(Ogre::Vector3::NEGATIVE_UNIT_Y);
 
 		Ogre::TerrainGroup::RayResult rayResult = mSpacePtr->getDotSceneLoader()->getTerrainGroup()->rayIntersects(ray);
-		Ogre::Real distanceAboveTerrain = CHAR_HEIGHT;
+		Ogre::Real distanceAboveTerrain = CHAR_HEIGHT * mScale;
 		Ogre::Real fallSpeed = 200;
 		Ogre::Real newy = currpos.y;
 
@@ -110,7 +110,7 @@ bool KBEntity::_checkJumpEnd()
 
 	if (rayResult.hit)
 	{
-		if (camPos.y <= rayResult.position.y + CHAR_HEIGHT)
+		if (camPos.y <= rayResult.position.y + (CHAR_HEIGHT * mScale))
 		{
 			return true;
 		}

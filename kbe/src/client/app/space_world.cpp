@@ -131,9 +131,6 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
     {
         mLoader->mPGHandles[ij]->update();
     }
-
-	if(mPlayerPtr) 
-		mPlayerPtr->addTime(evt.timeSinceLastFrame);
 	
 	ENTITIES::iterator iter = mEntities.begin();
 	for(; iter != mEntities.end(); iter++)
@@ -264,7 +261,7 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 			ENTITIES::iterator iter = mEntities.find(eid);
 			if(iter == mEntities.end())
 				break;
-
+			
 			iter->second->setDestPosition(pEventData->x, pEventData->y, pEventData->z);
 		}
 		break;
@@ -313,6 +310,23 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 						char* name = wchar2char(PyUnicode_AsWideCharStringRet0);
 						PyMem_Free(PyUnicode_AsWideCharStringRet0);
 						free(name);																				
+					}
+				}
+				else if(peventdata->name == "set_modelScale")
+				{
+					if(peventdata->argsSize > 0)
+					{
+						PyObject* pyitem0 = PyTuple_GetItem(peventdata->pyDatas, 0);
+						PyObject* pyitem1 = PyTuple_GetItem(peventdata->pyDatas, 1);
+						
+						KBEngine::ENTITY_ID eid = PyLong_AsUnsignedLong(pyitem0);
+						uint32 scale = PyLong_AsUnsignedLong(pyitem1);	
+
+						ENTITIES::iterator iter = mEntities.find(eid);
+						if(iter == mEntities.end())
+							break;
+
+						iter->second->scale(scale / 100.0);
 					}
 				}
 			}
