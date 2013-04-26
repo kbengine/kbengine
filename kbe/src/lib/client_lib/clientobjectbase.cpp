@@ -129,6 +129,7 @@ void ClientObjectBase::reset(void)
 
 	pServerChannel_ = new Mercury::Channel();
 	pServerChannel_->pNetworkInterface(&ninterface_);
+	pServerChannel_->incRef();
 }
 
 //-------------------------------------------------------------------------------------
@@ -715,6 +716,19 @@ void ClientObjectBase::updatePlayerToServer()
 }
 
 //-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateBasePos(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	float x, y, z;
+	s >> x >> y >> z;
+	
+	client::Entity* pEntity = pPlayer();
+	if(pEntity)
+	{
+		pEntity->setServerPosition(Position3D(x, y, z));
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid;
@@ -939,7 +953,7 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 		relativePos.y = y;
 		relativePos.z = z;
 		
-		Position3D basepos = player->getPosition();
+		Position3D basepos = player->getServerPosition();
 		basepos += relativePos;
 		
 		// DEBUG_MSG(boost::format("ClientObjectBase::_updateVolatileData: %1%-%2%-%3%--%4%-%5%-%6%-\n") % x % y % z % basepos.x % basepos.y % basepos.z);

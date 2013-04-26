@@ -209,6 +209,11 @@ public:
 	virtual void onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
+		服务器更新avatar基础位置
+	*/
+	virtual void onUpdateBasePos(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
 		服务器更新VolatileData
 	*/
 	virtual void onUpdateData(Mercury::Channel* pChannel, MemoryStream& s);

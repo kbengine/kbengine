@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/objectpool.hpp"
+#include "math/math.hpp"
 
 // #define NDEBUG
 // windows include	
@@ -100,6 +101,11 @@ public:
 	typedef std::vector<Mercury::Bundle*> Bundles;
 	Bundles* pBundles();
 
+	/**
+		基础位置， 如果有坐骑基础位置可能是坐骑等
+	*/
+	const Position3D& getBasePos();
+
 	bool update();
 	
 	void onEnterSpace(Space* pSpace);
@@ -124,6 +130,11 @@ public:
 	void addUpdateHeadToStream(Mercury::Bundle* pForwardBundle, uint32 flags);
 
 	/**
+		添加基础位置到更新包
+	*/
+	void addBasePosToStream(Mercury::Bundle* pSendBundle);
+
+	/**
 		向witness客户端推送一条消息
 	*/
 	bool sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle);
@@ -131,6 +142,7 @@ public:
 	typedef std::vector<EntityRef*> AOI_ENTITIES;
 
 	AOI_ENTITIES& aoiEntities(){ return aoiEntities_; }
+
 private:
 	Entity*									pEntity_;
 

@@ -596,6 +596,18 @@ public:
         }
     }
 
+    void appendPackAnyXYZ(float x, float y, float z, const float epsilon = 0.5f)
+    {
+		if(epsilon > 0.f)
+		{
+			x = floorf(x + epsilon);
+			y = floorf(y + epsilon);
+			z = floorf(z + epsilon);
+		}
+
+        *this << x << y << z;
+    }
+
     void appendPackXYZ(float x, float y, float z, float minf = -256.f)
     {
 		x -= minf;

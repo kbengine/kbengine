@@ -85,7 +85,9 @@ public:
 		脚本获取和设置entity的position 
 	*/
 	INLINE Position3D& getPosition();
+	INLINE Position3D& getServerPosition();
 	INLINE void setPosition(Position3D& pos);
+	INLINE void setServerPosition(Position3D& pos);
 	void onPositionChanged();
 	DECLARE_PY_GETSET_MOTHOD(pyGetPosition, pySetPosition);
 
@@ -134,7 +136,7 @@ protected:
 	EntityMailbox*							cellMailbox_;						// 这个entity的客户端mailbox
 	EntityMailbox*							baseMailbox_;						// 这个entity的baseapp mailbox
 
-	Position3D								position_;							// entity的当前位置
+	Position3D								position_, serverPosition_;			// entity的当前位置
 	Direction3D								direction_;							// entity的当前方向
 
 	ClientObjectBase*						pClientApp_;

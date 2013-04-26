@@ -61,6 +61,10 @@ ScriptObject(getScriptType(), true),
 ENTITY_CONSTRUCTION(Entity),
 cellMailbox_(cell),
 baseMailbox_(base),
+position_(),
+serverPosition_(),
+direction_(),
+pClientApp_(NULL),
 aspect_(id),
 velocity_(3.0f)
 {

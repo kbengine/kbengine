@@ -38,6 +38,12 @@ INLINE void Entity::setPosition(Position3D& pos)
 }
 
 //-------------------------------------------------------------------------------------
+INLINE void Entity::setServerPosition(Position3D& pos)
+{ 
+	serverPosition_ = pos; 
+}
+
+//-------------------------------------------------------------------------------------
 INLINE void Entity::setMoveSpeed(float speed)
 {
 	velocity_ = speed; 
@@ -60,6 +66,12 @@ INLINE Direction3D& Entity::getDirection()
 INLINE Position3D& Entity::getPosition()
 {
 	return position_; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE Position3D& Entity::getServerPosition()
+{
+	return serverPosition_; 
 }
 
 //-------------------------------------------------------------------------------------

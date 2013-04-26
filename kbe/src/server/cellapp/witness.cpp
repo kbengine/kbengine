@@ -284,6 +284,12 @@ void Witness::addAOIEntityIDToStream(MemoryStream* mstream, ENTITY_ID entityID)
 }
 
 //-------------------------------------------------------------------------------------
+const Position3D&  Witness::getBasePos()
+{
+	return pEntity()->getPosition();
+}
+
+//-------------------------------------------------------------------------------------
 bool Witness::update()
 {
 	SCOPED_PROFILE(CLIENT_UPDATE_PROFILE);
@@ -303,13 +309,14 @@ bool Witness::update()
 	int remainPacketSize = PACKET_MAX_SIZE_TCP - currPacketSize;
 	if(remainPacketSize > 0)
 	{
-	
 		SPACE_ID spaceID = pEntity_->getSpaceID();
 
 		Mercury::Bundle* pSendBundle = NEW_BUNDLE();
 		if(aoiEntities_.size() > 0)
 		{
+
 			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->getID(), (*pSendBundle));
+			addBasePosToStream(pSendBundle);
 
 			AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 			for(; iter != aoiEntities_.end(); )
@@ -397,6 +404,21 @@ bool Witness::update()
 	}
 
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::addBasePosToStream(Mercury::Bundle* pSendBundle)
+{
+	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
+
+	(*pForwardBundle).newMessage(ClientInterface::onUpdateBasePos);
+	const Position3D& bpos = getBasePos();
+	s1->appendPackAnyXYZ(bpos.x, bpos.y, bpos.z);
+	(*pForwardBundle).append(*s1);
+	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
+	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	MemoryStream::ObjPool().reclaimObject(s1);
 }
 
 //-------------------------------------------------------------------------------------
