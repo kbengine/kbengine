@@ -24,21 +24,21 @@ namespace client
 {
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setDirection(Direction3D& dir)
+INLINE void Entity::setDirection(const Direction3D& dir)
 { 
 	direction_ = dir; 
 	onDirectionChanged();
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setPosition(Position3D& pos)
+INLINE void Entity::setPosition(const Position3D& pos)
 { 
 	position_ = pos; 
 	onPositionChanged();
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setServerPosition(Position3D& pos)
+INLINE void Entity::setServerPosition(const Position3D& pos)
 { 
 	serverPosition_ = pos; 
 }

@@ -86,8 +86,8 @@ public:
 	*/
 	INLINE Position3D& getPosition();
 	INLINE Position3D& getServerPosition();
-	INLINE void setPosition(Position3D& pos);
-	INLINE void setServerPosition(Position3D& pos);
+	INLINE void setPosition(const Position3D& pos);
+	INLINE void setServerPosition(const Position3D& pos);
 	void onPositionChanged();
 	DECLARE_PY_GETSET_MOTHOD(pyGetPosition, pySetPosition);
 
@@ -95,7 +95,7 @@ public:
 		脚本获取和设置entity的方向 
 	*/
 	INLINE Direction3D& getDirection();
-	INLINE void setDirection(Direction3D& dir);
+	INLINE void setDirection(const Direction3D& dir);
 	void onDirectionChanged();
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
 	
