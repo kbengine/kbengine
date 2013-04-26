@@ -3,6 +3,7 @@
 
 #include "Ogre.h"
 #include "OIS.h"
+#include "OgreMovableText.h"
 #include "cstdkbe/cstdkbe.hpp"
 
 using namespace Ogre;
@@ -300,6 +301,19 @@ public:
 
 		mKeyDirection = Vector3::ZERO;
 		mVerticalVelocity = 0;
+
+		// °ó¶¨Ãû³Æ
+		/*
+		Ogre::SceneNode *LabelNode2 = mBodyNode->createChildSceneNode(Ogre::String("fdsafsadf") + Ogre::StringConverter::toString(mID));
+		Ogre::MovableText *Label2 = new Ogre::MovableText(Ogre::String("fdsafsadf") + Ogre::StringConverter::toString(mID), Ogre::String("fdsafsadf") + Ogre::StringConverter::toString(mID), "BlueHighway", 1.0, Ogre::ColourValue::Black);
+		Label2->setTextAlignment(Ogre::MovableText::H_CENTER, Ogre::MovableText::V_ABOVE); 
+		Label2->setColor(Ogre::ColourValue::Blue);
+
+		Ogre::Vector3 pos = mBodyNode->getPosition();
+		LabelNode2->attachObject(Label2);
+		pos.y = pos.y + mBodyEnt->getBoundingBox().getSize().y  * mScale;
+		LabelNode2->setPosition(pos);
+		*/
 	}
 
 	void setupAnimations()

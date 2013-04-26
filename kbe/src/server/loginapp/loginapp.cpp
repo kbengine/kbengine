@@ -90,6 +90,12 @@ void Loginapp::handleCheckStatusTick()
 }
 
 //-------------------------------------------------------------------------------------
+void Loginapp::onChannelDeregister(Mercury::Channel * pChannel)
+{
+	ServerApp::onChannelDeregister(pChannel);
+}
+
+//-------------------------------------------------------------------------------------
 bool Loginapp::initializeBegin()
 {
 	return true;

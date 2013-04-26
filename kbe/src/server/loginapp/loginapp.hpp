@@ -61,6 +61,8 @@ public:
 	
 	bool run();
 	
+	virtual void onChannelDeregister(Mercury::Channel * pChannel);
+
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 	void handleCheckStatusTick();
 
