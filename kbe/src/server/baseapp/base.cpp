@@ -622,6 +622,9 @@ void Base::onLoseCell(Mercury::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Base::onRestore()
 {
+	if(!inRestore_)
+		return;
+
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onRestore"));

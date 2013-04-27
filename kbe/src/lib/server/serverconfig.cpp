@@ -504,6 +504,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL){
 			_baseAppInfo.entityRestoreSize = xml->getValInt(node);
 		}
+		
+		if(_baseAppInfo.entityRestoreSize <= 0)
+			_baseAppInfo.entityRestoreSize = 32;
 
 		node = xml->enterNode(rootNode, "telnet_service");
 		if(node != NULL)
