@@ -31,6 +31,7 @@ class Space(GameObject):
 		KBEngine method.
 		entity的cell部分实体被创建成功
 		"""
+		DEBUG_MSG("Space::onGetCell: %i" % self.id)
 		self.addTimer(0.1, 0.1, wtimer.TIMER_TYPE_SPACE_SPAWN_TICK)
 		KBEngine.globalData["SpaceMgr"].onSpaceGetCell(self.spaceUTypeB, self, self.spaceKey)
 		GameObject.onGetCell(self)

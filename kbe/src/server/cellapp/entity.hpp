@@ -210,6 +210,12 @@ public:
 	void onLeavingCell();
 	void onLeftCell();
 	
+	/** 
+		当cellapp意外终止后， baseapp如果能找到合适的cellapp则将其恢复后
+		会调用此方法
+	*/
+	void onRestore();
+
 	/**
 		脚本调试aoi
 	*/

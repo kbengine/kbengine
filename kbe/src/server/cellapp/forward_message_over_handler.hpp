@@ -49,7 +49,7 @@ class FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp : public For
 {
 public:
 	FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID createToEntityID, 
-		ENTITY_ID entityID, MemoryStream* pCellData, bool hasClient, COMPONENT_ID componentID, SPACE_ID spaceID);
+		ENTITY_ID entityID, MemoryStream* pCellData, bool hasClient, bool inRescore, COMPONENT_ID componentID, SPACE_ID spaceID);
 
 	virtual void process();
 private:
@@ -59,6 +59,7 @@ private:
 	bool _hasClient;
 	COMPONENT_ID _componentID;
 	SPACE_ID _spaceID;
+	bool _inRescore;
 };
 
 }

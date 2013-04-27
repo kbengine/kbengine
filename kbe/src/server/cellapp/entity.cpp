@@ -1452,4 +1452,12 @@ void Entity::onLeftCell()
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::onRestore()
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onRestore"));
+}
+
+//-------------------------------------------------------------------------------------
 }

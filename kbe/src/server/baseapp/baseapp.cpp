@@ -1135,7 +1135,7 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	(*pBundle) << id;
 	(*pBundle) << componentID_;
 	(*pBundle) << hasClient;
-
+	(*pBundle) << base->inRestore();
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
 	base->addPositionAndDirectionToStream(*s);

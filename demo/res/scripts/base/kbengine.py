@@ -9,7 +9,7 @@ def onBaseAppReady(bootstrapIdx):
 	@param isBootstrap: 是否是第一个baseapp启动
 	@type isBootstrap: bool
 	"""
-	DEBUG_MSG('onBaseAppReady: bootstrapIdx=%s' % bootstrapIdx)
+	INFO_MSG('onBaseAppReady: bootstrapIdx=%s' % bootstrapIdx)
 	if bootstrapIdx == 1:
 		# 创建spacemanager
 		KBEngine.createBaseLocally( "Spaces", {} )
@@ -23,7 +23,7 @@ def onBaseAppShutDown(state):
 						 2 : 所有entity被写入数据库之后
 	@type state: int					 
 	"""
-	DEBUG_MSG('onBaseAppShutDown: state=%i' % state)
+	INFO_MSG('onBaseAppShutDown: state=%i' % state)
 		
 def onInit(isReload):
 	"""
@@ -32,21 +32,21 @@ def onInit(isReload):
 	@param isReload: 是否是被重写加载脚本后触发的
 	@type isReload: bool
 	"""
-	DEBUG_MSG('onInit::isReload:%s' % isReload)
+	INFO_MSG('onInit::isReload:%s' % isReload)
 
 def onFini():
 	"""
 	KBEngine method.
 	引擎正式关闭
 	"""
-	pass
+	INFO_MSG('onFini()')
 	
 def onCellAppDeath(addr):
 	"""
 	KBEngine method.
 	某个cellapp死亡
 	"""
-	pass
+	WARNING_MSG('onCellAppDeath: %s' % (str(addr)))
 	
 def onGlobalData(key, value):
 	"""

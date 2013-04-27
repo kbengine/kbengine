@@ -710,11 +710,13 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Mercury::Channel* pChannel, KBEngi
 		}
 		
 		e->setSpaceID(space->getID());
-		e->initializeEntity(cellData);
+		e->createNamespace(cellData);
 		Py_XDECREF(cellData);
 
 		// 添加到space
 		space->creatorID(e->getID());
+		e->onRestore();
+
 		space->addEntity(e);
 
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
@@ -738,12 +740,14 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 	COMPONENT_ID componentID;
 	SPACE_ID spaceID = 1;
 	bool hasClient;
+	bool inRescore = false;
 
 	s >> createToEntityID;
 	s >> entityType;
 	s >> entityID;
 	s >> componentID;
 	s >> hasClient;
+	s >> inRescore;
 
 	// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
@@ -755,7 +759,7 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		ForwardItem* pFI = new ForwardItem();
 		pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(entityType, createToEntityID, 
-			entityID, pCellData, hasClient, componentID, spaceID);
+			entityID, pCellData, hasClient, inRescore, componentID, spaceID);
 
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
@@ -768,13 +772,13 @@ void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine
 	}
 
 	_onCreateCellEntityFromBaseapp(entityType, createToEntityID, entityID, 
-					&s, hasClient, componentID, spaceID);
+					&s, hasClient, inRescore, componentID, spaceID);
 
 }
 
 //-------------------------------------------------------------------------------------
 void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID createToEntityID, ENTITY_ID entityID,
-											MemoryStream* pCellData, bool hasClient, COMPONENT_ID componentID, 
+											MemoryStream* pCellData, bool hasClient, bool inRescore, COMPONENT_ID componentID, 
 											SPACE_ID spaceID)
 {
 	// 注意：此处理论不会找不到组件， 因为onCreateCellEntityFromBaseapp中已经进行过一次消息缓存判断
@@ -825,7 +829,17 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 
 		// 添加到space
 		e->setSpaceID(space->getID());
-		e->initializeEntity(cellData);
+
+		if(!inRescore)
+		{
+			e->initializeEntity(cellData);
+		}
+		else
+		{
+			e->createNamespace(cellData);
+			e->onRestore();
+		}
+
 		space->addEntity(e);
 
 		Py_XDECREF(cellData);

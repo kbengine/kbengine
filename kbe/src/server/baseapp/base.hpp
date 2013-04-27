@@ -217,6 +217,7 @@ public:
 		为一个baseEntity在指定的cell上还原一个cellEntity 
 	*/
 	void restoreCell(EntityMailboxAbstract* cellMailbox);
+	INLINE bool inRestore();
 
 	/** 
 		创建一个cellEntity在一个新的space上 

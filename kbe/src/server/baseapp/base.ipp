@@ -78,4 +78,9 @@ INLINE bool Base::isCreatedSpace()
 	return createdSpace_;
 }
 
+INLINE bool Base::inRestore()
+{
+	return inRestore_;
+}
+
 }

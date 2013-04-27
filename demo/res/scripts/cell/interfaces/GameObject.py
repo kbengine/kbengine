@@ -70,5 +70,11 @@ class GameObject(KBEngine.Entity):
 			DEBUG_MSG("%s::onLeaveTrap: %i entity=%i, range_xz=%s, range_y=%s, controllerID=%i, userarg=%i" % \
 							(self.getScriptName(), self.id, entity.id, range_xz, range_y, controllerID, userarg))
 
-						
+	def onRestore(self):
+		"""
+		KBEngine method.
+		entity的cell部分实体被恢复成功
+		"""
+		DEBUG_MSG("%s::onRestore: %s" % (self.getScriptName(), self.base))
+		
 GameObject._timermap = {}

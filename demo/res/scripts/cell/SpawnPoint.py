@@ -9,6 +9,14 @@ class SpawnPoint(GameObject):
 	def __init__(self):
 		KBEngine.Entity.__init__(self)
 		self.addTimer(1, 0, wtimer.TIMER_TYPE_SPAWN)
+
+	def onRestore(self):
+		"""
+		KBEngine method.
+		entity的cell部分实体被恢复成功
+		"""
+		GameObject.onRestore(self)
+		self.addTimer(1, 0, wtimer.TIMER_TYPE_SPAWN)
 		
 	def onDestroy(self):
 		"""

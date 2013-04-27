@@ -64,14 +64,15 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
 FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp::
 	FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(
 			std::string& entityType, ENTITY_ID createToEntityID, ENTITY_ID entityID, MemoryStream* pCellData, 
-			 bool hasClient, COMPONENT_ID componentID, SPACE_ID spaceID):
+			 bool hasClient, bool inRescore, COMPONENT_ID componentID, SPACE_ID spaceID):
 _entityType(entityType),
 _createToEntityID(createToEntityID),
 _entityID(entityID),
 _pCellData(pCellData),
 _hasClient(hasClient),
 _componentID(componentID),
-_spaceID(spaceID)
+_spaceID(spaceID),
+_inRescore(inRescore)
 {
 }
 
@@ -79,7 +80,7 @@ _spaceID(spaceID)
 void FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp::process()
 {
 	Cellapp::getSingleton()._onCreateCellEntityFromBaseapp(_entityType, _createToEntityID, _entityID, 
-		_pCellData, _hasClient, _componentID, _spaceID);
+		_pCellData, _hasClient, _inRescore, _componentID, _spaceID);
 
 	MemoryStream::ObjPool().reclaimObject(_pCellData);
 }

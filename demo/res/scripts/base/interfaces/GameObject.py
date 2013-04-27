@@ -47,5 +47,12 @@ class GameObject(KBEngine.Base):
 		"""
 		DEBUG_MSG("%s::onLoseCell: %i" % (self.getScriptName(), self.id))
 		self.destroySelf()
+
+	def onRestore(self):
+		"""
+		KBEngine method.
+		entity的cell部分实体被恢复成功
+		"""
+		DEBUG_MSG("%s::onRestore: %s" % (self.getScriptName(), self.cell))
 		
 GameObject._timermap = {}
