@@ -131,6 +131,7 @@ typedef struct EngineComponentInfo
 	float archivePeriod;									// entity存储数据库周期
 	float backupPeriod;										// entity备份周期
 	bool backUpUndefinedProperties;							// entity是否备份未定义属性
+	uint16 entityRestoreSize;								// entity restore每tick数量 
 
 	float loadSmoothingBias;								// baseapp负载滤平衡调整值， 
 	uint32 login_port;										// 服务器登录端口 目前bots在用

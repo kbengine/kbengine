@@ -500,6 +500,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_baseAppInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
 
+		node = xml->enterNode(rootNode, "entityRestoreSize");
+		if(node != NULL){
+			_baseAppInfo.entityRestoreSize = xml->getValInt(node);
+		}
+
 		node = xml->enterNode(rootNode, "telnet_service");
 		if(node != NULL)
 		{

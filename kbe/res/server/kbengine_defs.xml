@@ -199,6 +199,9 @@
 			<criticallyLowSize> 500 </criticallyLowSize>				<!-- Type: Integer -->
 		</ids>
 		
+		<!-- entity restore每tick数量 -->
+		<entityRestoreSize> 32 </entityRestoreSize>
+		
 		<profiles>
 			<!-- 如果设置为true，引擎启动时就会开始记录相关profile信息， 退出时导出一份记录 -->
 			<cprofile> false </cprofile>

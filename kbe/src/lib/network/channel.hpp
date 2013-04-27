@@ -182,6 +182,9 @@ public:
 	ENTITY_ID proxyID()const { return proxyID_; }
 	void proxyID(ENTITY_ID pid){ proxyID_ = pid; }
 
+	const std::string& extra()const { return strextra_; }
+	void extra(const std::string& s){ strextra_ = s; }
+
 	COMPONENT_ID componentID()const{ return componentID_; }
 	void componentID(COMPONENT_ID cid){ componentID_ = cid; }
 
@@ -248,6 +251,9 @@ private:
 
 	// 如果是外部通道且代理了一个前端则会绑定前端代理ID
 	ENTITY_ID					proxyID_;
+
+	// 扩展用
+	std::string					strextra_;
 
 	// 是否握手完成
 	bool						isHandshake_;

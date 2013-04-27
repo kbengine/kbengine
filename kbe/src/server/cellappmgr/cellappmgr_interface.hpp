@@ -70,6 +70,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappmgrInterface)
 	// baseEntity请求创建在一个新的space中。
 	CELLAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateInNewSpace,		MERCURY_VARIABLE_MESSAGE)
 
+	// baseEntity请求恢复在一个新的space中。
+	CELLAPPMGR_MESSAGE_DECLARE_STREAM(reqRestoreSpaceInCell,	MERCURY_VARIABLE_MESSAGE)
+
 	// 消息转发， 由某个app想通过本app将消息转发给某个app。
 	CELLAPPMGR_MESSAGE_DECLARE_STREAM(forwardMessage,			MERCURY_VARIABLE_MESSAGE)
 

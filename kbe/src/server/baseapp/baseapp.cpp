@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "base_remotemethod.hpp"
 #include "archiver.hpp"
 #include "backup_sender.hpp"
+#include "restore_entity_handler.hpp"
 #include "forward_message_over_handler.hpp"
 #include "sync_entitystreamtemplate_handler.hpp"
 #include "cstdkbe/timestamp.hpp"
@@ -122,7 +123,8 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 	pBackupSender_(),
 	load_(0.f),
 	numProxices_(0),
-	pTelnetServer_(NULL)
+	pTelnetServer_(NULL),
+	pRestoreEntityHandlers_()
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
 
@@ -402,14 +404,91 @@ void Baseapp::finalise()
 	pTelnetServer_->stop();
 	SAFE_RELEASE(pTelnetServer_);
 
+	pRestoreEntityHandlers_.clear();
 	loopCheckTimerHandle_.cancel();
 	EntityApp<Base>::finalise();
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onCellAppDeath(Mercury::Channel * pChannel)
+{
+	PyObject* pyarg = PyTuple_New(1);
+
+	PyObject* pyobj = PyTuple_New(2);
+
+	const Mercury::Address& addr = pChannel->endpoint()->addr();
+	PyTuple_SetItem(pyobj, 0, PyLong_FromUnsignedLong(addr.ip));
+	PyTuple_SetItem(pyobj, 1, PyLong_FromUnsignedLong(addr.port));
+	PyTuple_SetItem(pyarg, 0, pyobj);
+
+	SCRIPT_ERROR_CHECK();
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onCellAppDeath"), 
+										const_cast<char*>("O"), 
+										pyarg);
+
+	Py_DECREF(pyarg);
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		SCRIPT_ERROR_CHECK();
+
+
+	RestoreEntityHandler* pRestoreEntityHandler = new RestoreEntityHandler(this->getNetworkInterface());
+	Entities<Base>::ENTITYS_MAP& entitiesMap = pEntities_->getEntities();
+	Entities<Base>::ENTITYS_MAP::const_iterator iter = entitiesMap.begin();
+	while (iter != entitiesMap.end())
+	{
+		Base* pBase = static_cast<Base*>(iter->second.get());
+		
+		EntityMailbox* cell = pBase->getCellMailbox();
+		if(cell && cell->getComponentID() == pChannel->componentID())
+		{
+			S_RELEASE(cell);
+			pBase->setCellMailbox(NULL);
+			pBase->installCellDataAttr(pBase->getCellData());
+			pRestoreEntityHandler->pushEntity(pBase->getID());
+		}
+
+		iter++;
+	}
+
+	pRestoreEntityHandlers_.push_back(KBEShared_ptr< RestoreEntityHandler >(pRestoreEntityHandler));
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onResoreEntitiesOver(RestoreEntityHandler* pRestoreEntityHandler)
+{
+	std::vector< KBEShared_ptr< RestoreEntityHandler > >::iterator resiter = pRestoreEntityHandlers_.begin();
+	for(; resiter != pRestoreEntityHandlers_.end(); resiter++)
+	{
+		if((*resiter).get() == pRestoreEntityHandler)
+		{
+			pRestoreEntityHandlers_.erase(resiter);
+			return;
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
 void Baseapp::onChannelDeregister(Mercury::Channel * pChannel)
 {
 	ENTITY_ID pid = pChannel->proxyID();
+
+	// 如果是cellapp死亡了
+	if(pChannel->isInternal())
+	{
+		Components::ComponentInfos* cinfo = Components::getSingleton().findComponent(pChannel);
+		if(cinfo)
+		{
+			if(cinfo->componentType == CELLAPP_TYPE)
+			{
+				onCellAppDeath(pChannel);
+			}
+		}
+	}
+
 	EntityApp<Base>::onChannelDeregister(pChannel);
 	
 	// 有关联entity的客户端退出则需要设置entity的client
@@ -739,7 +818,6 @@ void Baseapp::createInNewSpace(Base* base, PyObject* cell)
 	ENTITY_ID id = base->getID();
 	std::string entityType = base->ob_type->tp_name;
 
-
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
 	(*pBundle).newMessage(CellappmgrInterface::reqCreateInNewSpace);
@@ -747,6 +825,52 @@ void Baseapp::createInNewSpace(Base* base, PyObject* cell)
 	(*pBundle) << entityType;
 	(*pBundle) << id;
 	(*pBundle) << componentID_;
+
+	MemoryStream* s = MemoryStream::ObjPool().createObject();
+	base->addPositionAndDirectionToStream(*s);
+	(*pBundle).append(s);
+	MemoryStream::ObjPool().reclaimObject(s);
+
+	s = MemoryStream::ObjPool().createObject();
+	base->addCellDataToStream(ED_FLAG_ALL, s);
+	(*pBundle).append(*s);
+	MemoryStream::ObjPool().reclaimObject(s);
+	
+	Components::COMPONENTS& components = Components::getSingleton().getComponents(CELLAPPMGR_TYPE);
+	Components::COMPONENTS::iterator iter = components.begin();
+	if(iter != components.end())
+	{
+		if((*iter).pChannel != NULL)
+		{
+			(*pBundle).send(this->getNetworkInterface(), (*iter).pChannel);
+		}
+		else
+		{
+			ERROR_MSG("Baseapp::createInNewSpace: cellappmgr channel is NULL.\n");
+		}
+		
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		return;
+	}
+	
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	ERROR_MSG("Baseapp::createInNewSpace: not found cellappmgr.\n");
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::restoreSpaceInCell(Base* base)
+{
+	ENTITY_ID id = base->getID();
+	std::string entityType = base->ob_type->tp_name;
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+
+	(*pBundle).newMessage(CellappmgrInterface::reqRestoreSpaceInCell);
+
+	(*pBundle) << entityType;
+	(*pBundle) << id;
+	(*pBundle) << componentID_;
+	(*pBundle) << base->getSpaceID();
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
 	base->addPositionAndDirectionToStream(*s);
@@ -1061,8 +1185,10 @@ void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id,
 
 	// DEBUG_MSG("Baseapp::onEntityGetCell: entityID %d.\n", id);
 	KBE_ASSERT(base != NULL);
+	
+	if(base->getSpaceID() != spaceID)
+		base->setSpaceID(spaceID);
 
-	base->setSpaceID(spaceID);
 	// 如果是有客户端的entity则需要告知客户端， 自身entity已经进入世界了。
 	if(base->getClientMailbox() != NULL)
 	{

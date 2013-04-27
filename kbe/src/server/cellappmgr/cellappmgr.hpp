@@ -69,6 +69,11 @@ public:
 	void reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
+		baseEntity请求创建在一个新的space中
+	*/
+	void reqRestoreSpaceInCell(Mercury::Channel* pChannel, MemoryStream& s);
+	
+	/** 网络接口
 		消息转发， 由某个app想通过本app将消息转发给某个app。
 	*/
 	void forwardMessage(Mercury::Channel* pChannel, MemoryStream& s);

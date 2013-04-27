@@ -659,6 +659,77 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 }
 
 //-------------------------------------------------------------------------------------
+void Cellapp::onRestoreSpaceInCellFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	std::string entityType;
+	ENTITY_ID mailboxEntityID;
+	COMPONENT_ID componentID;
+	SPACE_ID spaceID = 1;
+
+	s >> entityType;
+	s >> mailboxEntityID;
+	s >> spaceID;
+	s >> componentID;
+
+	// DEBUG_MSG("Cellapp::onRestoreSpaceInCellFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
+	//	spaceID, entityType.c_str(), mailboxEntityID, componentID);
+
+	Space* space = Spaces::createNewSpace(spaceID);
+	if(space != NULL)
+	{
+		// 创建entity
+		Entity* e = createEntityCommon(entityType.c_str(), NULL, false, mailboxEntityID, false);
+		
+		if(e == NULL)
+		{
+			s.opfini();
+			return;
+		}
+
+		PyObject* cellData = e->createCellDataFromStream(&s);
+
+		// 设置entity的baseMailbox
+		EntityMailbox* mailbox = new EntityMailbox(e->getScriptModule(), NULL, componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
+		e->setBaseMailbox(mailbox);
+		
+		// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
+		if(cinfos == NULL || cinfos->pChannel == NULL)
+		{
+			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			ForwardItem* pFI = new ForwardItem();
+			pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(e, spaceID, cellData);
+			//Py_XDECREF(cellData);
+			pFI->pBundle = pBundle;
+			(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
+			BaseappInterface::onEntityGetCellArgs3::staticAddToBundle((*pBundle), mailboxEntityID, componentID_, spaceID);
+			forward_messagebuffer_.push(componentID, pFI);
+			WARNING_MSG(boost::format("Cellapp::onRestoreSpaceInCellFromBaseapp: not found baseapp(%1%), message is buffered.\n") %
+				componentID);
+			return;
+		}
+		
+		e->setSpaceID(space->getID());
+		e->initializeEntity(cellData);
+		Py_XDECREF(cellData);
+
+		// 添加到space
+		space->creatorID(e->getID());
+		space->addEntity(e);
+
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
+		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle((*pBundle), mailboxEntityID, componentID_, spaceID);
+		(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		return;
+	}
+	
+	ERROR_MSG(boost::format("Cellapp::onRestoreSpaceInCellFromBaseapp: not found baseapp[%1%], entityID=%2%, spaceID=%3%.\n") %
+		componentID % mailboxEntityID % spaceID);
+}
+
+//-------------------------------------------------------------------------------------
 void Cellapp::onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	std::string entityType;

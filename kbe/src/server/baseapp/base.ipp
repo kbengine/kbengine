@@ -73,4 +73,9 @@ INLINE void Base::setDBID(DBID id)
 		hasDB_ = true;
 }
 
+INLINE bool Base::isCreatedSpace()
+{
+	return createdSpace_;
+}
+
 }

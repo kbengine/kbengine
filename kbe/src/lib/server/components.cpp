@@ -455,6 +455,28 @@ Components::ComponentInfos* Components::findComponent(COMPONENT_ID componentID)
 }
 
 //-------------------------------------------------------------------------------------		
+Components::ComponentInfos* Components::findComponent(Mercury::Channel * pChannel)
+{
+	int ifind = 0;
+	while(ALL_COMPONENT_TYPES[ifind] != UNKNOWN_COMPONENT_TYPE)
+	{
+		COMPONENT_TYPE componentType = ALL_COMPONENT_TYPES[ifind++];
+		COMPONENTS& components = getComponents(componentType);
+		COMPONENTS::iterator iter = components.begin();
+
+		for(; iter != components.end(); iter++)
+		{
+			if((*iter).pChannel == pChannel)
+			{
+				return &(*iter);
+			}
+		}
+	}
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------		
 bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 {
 	Mercury::EndPoint epListen;

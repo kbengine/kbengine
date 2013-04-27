@@ -202,6 +202,52 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 }
 
 //-------------------------------------------------------------------------------------
+void Cellappmgr::reqRestoreSpaceInCell(Mercury::Channel* pChannel, MemoryStream& s) 
+{
+	std::string entityType;
+	ENTITY_ID id;
+	COMPONENT_ID componentID;
+	SPACE_ID spaceID;
+
+	s >> entityType;
+	s >> id;
+	s >> componentID;
+	s >> spaceID;
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	ForwardItem* pFI = new ForwardItem();
+	pFI->pHandler = NULL;
+	
+	pFI->pBundle = pBundle;
+	(*pBundle).newMessage(CellappInterface::onRestoreSpaceInCellFromBaseapp);
+	(*pBundle) << entityType;
+	(*pBundle) << id;
+	(*pBundle) << spaceID;
+	(*pBundle) << componentID;
+
+	(*pBundle).append(&s);
+	s.opfini();
+
+	DEBUG_MSG(boost::format("Cellappmgr::reqRestoreSpaceInCell: entityType=%1%, entityID=%2%, componentID=%3%, spaceID=%4%.\n") %
+		entityType.c_str() % id % componentID % spaceID);
+
+	Mercury::Channel* lpChannel = findBestCellapp();
+
+	if(lpChannel == NULL)
+	{
+		WARNING_MSG("Cellappmgr::reqCreateInNewSpace: not found cellapp, message is buffered.\n");
+		forward_cellapp_messagebuffer_.push(pFI);
+		return;
+	}
+	else
+	{
+		(*pBundle).send(this->getNetworkInterface(), lpChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		SAFE_RELEASE(pFI);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void Cellappmgr::updateCellapp(Mercury::Channel* pChannel, COMPONENT_ID componentID, float load)
 {
 }

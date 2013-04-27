@@ -120,6 +120,11 @@ public:
 	void onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
+		baseEntity请求创建在一个新的space中
+	*/
+	void onRestoreSpaceInCellFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+	
+	/** 网络接口
 		baseapp请求在这个cellapp上创建一个entity
 	*/
 	void onCreateCellEntityFromBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);

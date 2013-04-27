@@ -65,7 +65,8 @@ DBID_(0),
 isGetingCellData_(false),
 isArchiveing_(false),
 creatingCell_(false),
-createdSpace_(false)
+createdSpace_(false),
+inRestore_(false)
 {
 	ENTITY_INIT_PROPERTYS(Base);
 
@@ -126,11 +127,14 @@ bool Base::installCellDataAttr(PyObject* dictData)
 {
 	if(dictData != NULL)
 	{
-		if(cellDataDict_ != NULL)
-			Py_DECREF(cellDataDict_);
+		if(cellDataDict_ != dictData)
+		{
+			if(cellDataDict_ != NULL)
+				Py_DECREF(cellDataDict_);
 
-		cellDataDict_ = dictData;
-		Py_INCREF(cellDataDict_);
+			cellDataDict_ = dictData;
+			Py_INCREF(cellDataDict_);
+		}
 	}
 	else if(cellDataDict_ == NULL)
 		cellDataDict_ = PyDict_New();
@@ -593,7 +597,8 @@ void Base::onGetCell(Mercury::Channel* pChannel, COMPONENT_ID componentID)
 	// 回调给脚本，获得了cell
 	cellMailbox_ = new EntityMailbox(scriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetCell"));
+	if(!inRestore_)
+		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetCell"));
 }
 
 //-------------------------------------------------------------------------------------
@@ -612,6 +617,15 @@ void Base::onLoseCell(Mercury::Channel* pChannel, MemoryStream& s)
 	S_RELEASE(cellMailbox_);
 	
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLoseCell"));
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onRestore()
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onRestore"));
+	inRestore_ = false;
 }
 
 //-------------------------------------------------------------------------------------
@@ -847,6 +861,24 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 	creatingCell_ = true;
 	Baseapp::getSingleton().createCellEntity(cellMailbox, this);
 	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Base::restoreCell(EntityMailboxAbstract* cellMailbox)
+{
+	if(creatingCell_ || inRestore_) return;
+
+	creatingCell_ = true;
+	inRestore_ = true;
+
+	if(createdSpace_)
+	{
+		Baseapp::getSingleton().restoreSpaceInCell(this);
+	}
+	else
+	{
+		Baseapp::getSingleton().createCellEntity(cellMailbox, this);
+	}
 }
 
 //-------------------------------------------------------------------------------------

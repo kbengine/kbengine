@@ -91,6 +91,7 @@ Channel::Channel(NetworkInterface & networkInterface,
 	pPacketReceiver_(NULL),
 	isCondemn_(false),
 	proxyID_(0),
+	strextra_(),
 	isHandshake_(false),
 	channelType_(CHANNEL_NORMAL),
 	componentID_(UNKNOWN_COMPONENT_TYPE),
@@ -144,6 +145,7 @@ Channel::Channel():
 	pPacketReceiver_(NULL),
 	isCondemn_(false),
 	proxyID_(0),
+	strextra_(),
 	isHandshake_(false),
 	channelType_(CHANNEL_NORMAL),
 	componentID_(UNKNOWN_COMPONENT_TYPE),
@@ -295,6 +297,7 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	currMsgID_ = 0;
 	currMsgLen_ = 0;
 	proxyID_ = 0;
+	strextra_ = "";
 	isHandshake_ = false;
 	channelType_ = CHANNEL_NORMAL;
 

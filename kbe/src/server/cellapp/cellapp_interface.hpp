@@ -99,6 +99,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// baseEntity请求创建在一个新的space中。
 	CELLAPP_MESSAGE_DECLARE_STREAM(onCreateInNewSpaceFromBaseapp,			MERCURY_VARIABLE_MESSAGE)
 
+	// baseEntity请求恢复在一个新的space中。
+	CELLAPP_MESSAGE_DECLARE_STREAM(onRestoreSpaceInCellFromBaseapp,			MERCURY_VARIABLE_MESSAGE)
+
 	// baseapp请求在这个cellapp上创建一个entity。
 	CELLAPP_MESSAGE_DECLARE_STREAM(onCreateCellEntityFromBaseapp,			MERCURY_VARIABLE_MESSAGE)
 

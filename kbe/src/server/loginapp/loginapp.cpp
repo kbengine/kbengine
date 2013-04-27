@@ -92,6 +92,17 @@ void Loginapp::handleCheckStatusTick()
 //-------------------------------------------------------------------------------------
 void Loginapp::onChannelDeregister(Mercury::Channel * pChannel)
 {
+	// 如果是外部通道则处理
+	if(!pChannel->isInternal())
+	{
+		const std::string& extra = pChannel->extra();
+
+		// 通知billing从队列中清除他的请求， 避免拥塞
+		if(extra.size() > 0)
+		{
+		}
+	}
+
 	ServerApp::onChannelDeregister(pChannel);
 }
 
@@ -218,6 +229,8 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
+	pChannel->extra(accountName);
+
 	Mercury::Bundle bundle;
 	bundle.newMessage(DbmgrInterface::reqCreateAccount);
 	bundle << accountName << password;
@@ -246,6 +259,8 @@ void Loginapp::onReqCreateAccountResult(Mercury::Channel* pChannel, MemoryStream
 	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(ptinfos->addr);
 	if(pClientChannel == NULL)
 		return;
+
+	pClientChannel->extra("");
 
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onCreateAccountResult);
@@ -324,7 +339,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	ptinfos->password = password;
 	ptinfos->addr = pChannel->addr();
 	pendingLoginMgr_.add(ptinfos);
-	
+
 	if(ctype < UNKNOWN_CLIENT_COMPONENT_TYPE || ctype >= CLIENT_TYPE_END)
 		ctype = UNKNOWN_CLIENT_COMPONENT_TYPE;
 
@@ -356,6 +371,8 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_NO_READY, datas);
 		return;
 	}
+
+	pChannel->extra(loginName);
 
 	// 向dbmgr查询用户合法性
 	Mercury::Bundle bundle;
@@ -431,6 +448,10 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 	}
 
 	infos->datas = datas;
+
+	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(infos->addr);
+	if(pClientChannel)
+		pClientChannel->extra("");
 
 	if(!success && entityID == 0 && componentID == 0)
 	{

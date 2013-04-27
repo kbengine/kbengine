@@ -111,6 +111,11 @@ public:
 
 	void setClientMailbox(EntityMailbox* mailbox);
 
+	/**
+		是否创建过space
+	*/
+	INLINE bool isCreatedSpace();
+
 	/** 
 		cellData部分 
 	*/
@@ -173,6 +178,12 @@ public:
 	void onLoseCell(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 
+		当cellapp意外终止后， baseapp如果能找到合适的cellapp则将其恢复后
+		会调用此方法
+	*/
+	void onRestore();
+
+	/** 
 		备份cell数据
 	*/
 	void onBackupCellData(Mercury::Channel* pChannel, MemoryStream& s);
@@ -198,9 +209,14 @@ public:
 	void onDestroyEntity(bool deleteFromDB, bool writeToDB);
 
 	/** 
-		为一个baseEntity在制定的cell上创建一个cellEntity 
+		为一个baseEntity在指定的cell上创建一个cellEntity 
 	*/
 	DECLARE_PY_MOTHOD_ARG1(createCellEntity, PyObject_ptr);
+	
+	/** 
+		为一个baseEntity在指定的cell上还原一个cellEntity 
+	*/
+	void restoreCell(EntityMailboxAbstract* cellMailbox);
 
 	/** 
 		创建一个cellEntity在一个新的space上 
@@ -253,6 +269,9 @@ protected:
 
 	// 是否已经创建了一个space
 	bool									createdSpace_;
+
+	// 是否正在恢复
+	bool									inRestore_;
 };
 
 }

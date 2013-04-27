@@ -48,6 +48,7 @@ class Proxy;
 class BackupSender;
 class Archiver;
 class TelnetServer;
+class RestoreEntityHandler;
 
 class Baseapp :	public EntityApp<Base>, 
 				public Singleton<Baseapp>
@@ -101,6 +102,11 @@ public:
 
 	virtual void onChannelDeregister(Mercury::Channel * pChannel);
 
+	/**
+		一个cellapp死亡
+	*/
+	void onCellAppDeath(Mercury::Channel * pChannel);
+
 	/** 网络接口
 		dbmgr告知已经启动的其他baseapp或者cellapp的地址
 		当前app需要主动的去与他们建立连接
@@ -132,6 +138,11 @@ public:
 		创建一个新的space 
 	*/
 	void createInNewSpace(Base* base, PyObject* cell);
+
+	/**
+		恢复一个space 
+	*/
+	void restoreSpaceInCell(Base* base);
 
 	/** 
 		在一个负载较低的baseapp上创建一个baseEntity 
@@ -332,27 +343,34 @@ public:
 	virtual void onHello(Mercury::Channel* pChannel, 
 		const std::string& verInfo, 
 		const std::string& encryptedKey);
-protected:
-	TimerHandle								loopCheckTimerHandle_;
 
-	GlobalDataClient*						pGlobalBases_;								// globalBases
+	/**
+		一个cell的entity都恢复完毕
+	*/
+	void onResoreEntitiesOver(RestoreEntityHandler* pRestoreEntityHandler);
+protected:
+	TimerHandle												loopCheckTimerHandle_;
+
+	GlobalDataClient*										pGlobalBases_;								// globalBases
 
 	// 记录登录到服务器但还未处理完毕的账号
-	PendingLoginMgr							pendingLoginMgr_;
+	PendingLoginMgr											pendingLoginMgr_;
 
-	ForwardComponent_MessageBuffer			forward_messagebuffer_;
+	ForwardComponent_MessageBuffer							forward_messagebuffer_;
 
 	// 备份存档相关
-	KBEShared_ptr< BackupSender >			pBackupSender_;	
-	KBEShared_ptr< Archiver >				pArchiver_;	
+	KBEShared_ptr< BackupSender >							pBackupSender_;	
+	KBEShared_ptr< Archiver >								pArchiver_;	
 
-	float									load_;
+	float													load_;
 
-	static uint64							_g_lastTimestamp;
+	static uint64											_g_lastTimestamp;
 
-	int32									numProxices_;
+	int32													numProxices_;
 
-	TelnetServer*							pTelnetServer_;
+	TelnetServer*											pTelnetServer_;
+
+	std::vector< KBEShared_ptr< RestoreEntityHandler > >	pRestoreEntityHandlers_;
 };
 
 }
