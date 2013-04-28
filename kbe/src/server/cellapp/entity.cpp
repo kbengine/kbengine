@@ -796,7 +796,7 @@ PyObject* Entity::pyGetDirection()
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::setPositionAndDirection(Position3D& position, Direction3D& direction)
+void Entity::setPositionAndDirection(const Position3D& position, const Direction3D& direction)
 {
 	setPosition(position);
 	setDirection(direction);
@@ -865,15 +865,61 @@ void Entity::onResetWitness(Mercury::Channel* pChannel)
 }
 
 //-------------------------------------------------------------------------------------
+bool Entity::checkMoveForTopSpeed(const Position3D& position)
+{
+	Position3D movment = position - this->getPosition();
+	bool move = true;
+	
+	// 检查移动
+	if(topSpeedY_ > 0.f && movment.y > topSpeedY_)
+	{
+		move = false;
+	}
+
+	if(move && topSpeed_ > 0.f)
+	{
+		movment.y = 0.f;
+		
+		if(movment.length() > topSpeed_)
+			move = false;
+	}
+
+	return move;
+}
+
+//-------------------------------------------------------------------------------------
 void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 {
 	Position3D pos;
 	Direction3D dir;
 
 	s >> pos.x >> pos.y >> pos.z >> dir.yaw >> dir.pitch >> dir.roll;
-
-	this->setPosition(pos);
+	
 	this->setDirection(dir);
+
+	if(checkMoveForTopSpeed(pos))
+	{
+		this->setPosition(pos);
+	}
+	else
+	{
+		if(this->pWitness() == NULL)
+			return;
+
+		// 通知重置
+		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+
+		(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
+		(*pForwardBundle) << getID();
+		(*pForwardBundle) << getPosition().x << getPosition().y << getPosition().z;
+		(*pForwardBundle) << getDirection().yaw << getDirection().pitch << getDirection().roll;
+
+		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(getID(), (*pSendBundle), (*pForwardBundle));
+		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
+		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------

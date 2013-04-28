@@ -115,35 +115,42 @@ bool OgreApplication::frameRenderingQueued(const Ogre::FrameEvent& evt)
 		return BaseApplication::frameRenderingQueued(evt);
 	}
 	
+	while(true)
 	{
-		boost::mutex::scoped_lock lock(g_spaceMutex);
-		std::vector< std::tr1::shared_ptr<const KBEngine::EventData> >::iterator iter = events_.begin();
-		for(; iter != events_.end(); iter++)
+		g_spaceMutex.lock();
+
+		if(events_.empty())
 		{
-			KBEngine::EventID id = (*iter)->id;
-			
-			if(id == CLIENT_EVENT_SERVER_CLOSED)
-			{
-				//OgreApplication::getSingleton().changeSpace(new SpaceAvatarSelect(mRoot, mWindow, mInputManager, mTrayMgr));
-				//break;
-			}
-
-			// 如果需要在本线程访问脚本层则需要锁住引擎
-			if(id == CLIENT_EVENT_SCRIPT)
-			{
-				kbe_lock();
-			}
-
-			g_space->kbengine_onEvent((*iter).get());
-
-			if(id == CLIENT_EVENT_SCRIPT)
-			{
-				kbe_unlock();
-			}
+			g_spaceMutex.unlock();
+			break;
 		}
+
+		std::tr1::shared_ptr<const KBEngine::EventData> pEventData = events_.front();
+		events_.pop();
+		g_spaceMutex.unlock();
+
+		KBEngine::EventID id = pEventData->id;
 		
+		if(id == CLIENT_EVENT_SERVER_CLOSED)
+		{
+			//OgreApplication::getSingleton().changeSpace(new SpaceAvatarSelect(mRoot, mWindow, mInputManager, mTrayMgr));
+			//break;
+		}
+
+		// 如果需要在本线程访问脚本层则需要锁住引擎
+		if(id == CLIENT_EVENT_SCRIPT)
+		{
+			kbe_lock();
+		}
+
+		g_space->kbengine_onEvent(pEventData.get());
+
+		if(id == CLIENT_EVENT_SCRIPT)
+		{
+			kbe_unlock();
+		}
+
 		g_hasEvent = false;
-		events_.clear();
 	}
 
 	if(!g_space->frameRenderingQueued(evt))
@@ -251,7 +258,7 @@ void OgreApplication::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 	if(peventdata)
 	{
 		boost::mutex::scoped_lock lock(g_spaceMutex);
-		events_.push_back(std::tr1::shared_ptr<const KBEngine::EventData>(peventdata));
+		events_.push(std::tr1::shared_ptr<const KBEngine::EventData>(peventdata));
 		g_hasEvent = true;
 	}
 }

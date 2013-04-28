@@ -531,6 +531,16 @@ void Bots::onUpdateBasePos(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Bots::onSetEntityPosAndDir(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onSetEntityPosAndDir(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void Bots::onUpdateData(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	ClientObject* pClient = findClient(pChannel);

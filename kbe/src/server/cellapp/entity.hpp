@@ -131,14 +131,14 @@ public:
 		脚本获取和设置entity的position 
 	*/
 	INLINE Position3D& getPosition();
-	INLINE void setPosition(Position3D& pos);
+	INLINE void setPosition(const Position3D& pos);
 	DECLARE_PY_GETSET_MOTHOD(pyGetPosition, pySetPosition);
 
 	/** 
 		脚本获取和设置entity的方向 
 	*/
 	INLINE Direction3D& getDirection();
-	INLINE void setDirection(Direction3D& dir);
+	INLINE void setDirection(const Direction3D& dir);
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
 	
 	/**
@@ -150,11 +150,13 @@ public:
 	/** 
 		设置entity方向和位置 
 	*/
-	void setPositionAndDirection(Position3D& position, 
-		Direction3D& direction);
+	void setPositionAndDirection(const Position3D& position, 
+		const Direction3D& direction);
 	
 	void onPositionChanged();
 	void onDirectionChanged();
+	
+	bool checkMoveForTopSpeed(const Position3D& position);
 
 	/** 网络接口
 		客户端设置新位置

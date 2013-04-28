@@ -225,6 +225,11 @@ public:
 	virtual void onUpdateBasePos(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
+		服务器强制设置entity的位置与朝向
+	*/
+	virtual void onSetEntityPosAndDir(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
 		服务器更新VolatileData
 	*/
 	virtual void onUpdateData(Mercury::Channel* pChannel, MemoryStream& s);

@@ -73,6 +73,11 @@ KBE_DLL_API void kbe_lock();
 KBE_DLL_API void kbe_unlock();
 
 /**
+	告诉引擎渲染层在处理中
+*/
+KBE_DLL_API void kbe_inProcess(bool v);
+
+/**
 	获取最后一次使用的账号
 */
 KBE_DLL_API const char* kbe_getLastAccountName();

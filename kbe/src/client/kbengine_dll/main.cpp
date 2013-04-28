@@ -87,6 +87,7 @@ Config* pconfig = NULL;
 KBEngine::script::PyThreadStateLock* g_pLock = NULL;
 KBEngine::script::PyThreadStateLock* g_pNewLock = NULL;
 TelnetServer* g_pTelnetServer = NULL;
+volatile bool g_inProcess = false;
 
 //-------------------------------------------------------------------------------------
 BOOL APIENTRY DllMain( HANDLE hModule,
@@ -130,7 +131,9 @@ public:
 		while(!g_pApp->getMainDispatcher().isBreakProcessing())
 		{
 			g_pLock = new KBEngine::script::PyThreadStateLock;
+			g_inProcess = true;
 			g_pApp->processOnce(true);
+			g_inProcess = false;
 			SAFE_RELEASE(g_pLock);
 		}
 
@@ -171,6 +174,12 @@ void kbe_unlock()
 {
 	//g_pApp->getScript().releaseLock();
 	SAFE_RELEASE(g_pNewLock);
+}
+
+//-------------------------------------------------------------------------------------
+bool kbe_inProcess()
+{
+	return g_inProcess;
 }
 
 //-------------------------------------------------------------------------------------

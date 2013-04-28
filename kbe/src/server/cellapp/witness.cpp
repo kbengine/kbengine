@@ -78,9 +78,6 @@ void Witness::attach(Entity* pEntity)
 		// ³õÊ¼»¯Ä¬ÈÏAOI·¶Î§
 		ENGINE_COMPONENT_INFO& ecinfo = ServerConfig::getSingleton().getCellApp();
 		setAoiRadius(ecinfo.defaultAoIRadius, ecinfo.defaultAoIHysteresisArea);
-		
-		if(aoiRadius_ > 0.0f)
-			pAOITrigger_ = new AOITrigger((RangeNode*)pEntity->pEntityRangeNode(), aoiRadius_, aoiRadius_);
 	}
 
 	Cellapp::getSingleton().addUpdatable(this);
@@ -147,7 +144,7 @@ void Witness::setAoiRadius(float radius, float hyst)
 		aoiHysteresisArea_ = 5.0f;
 	}
 
-	if(aoiRadius_ > 0.0f)
+	if(aoiRadius_ > 0.f)
 	{
 		if(pAOITrigger_ == NULL)
 		{

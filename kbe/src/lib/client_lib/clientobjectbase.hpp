@@ -96,6 +96,8 @@ public:
 	bool deregisterEventHandle(EventHandle* pEventHandle);
 	
 	void fireEvent(const EventData* pEventData);
+	
+	EventHandler& eventHandler(){ return eventHandler_; }
 
 	static PyObject* __pyget_pyGetEntities(PyObject *self, void *closure)
 	{
@@ -207,6 +209,11 @@ public:
 		服务器更新entity属性
 	*/
 	virtual void onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		服务器强制设置entity的位置与朝向
+	*/
+	virtual void onSetEntityPosAndDir(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器更新avatar基础位置

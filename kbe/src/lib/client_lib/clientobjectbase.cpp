@@ -56,8 +56,8 @@ pEntities_(new Entities<client::Entity>()),
 pEntityIDAliasIDList_(),
 pyCallbackMgr_(),
 entityID_(0),
-entityPos_(),
-entityDir_(),
+entityPos_(FLT_MAX, FLT_MAX, FLT_MAX),
+entityDir_(FLT_MAX, FLT_MAX, FLT_MAX),
 dbid_(0),
 ip_(),
 port_(),
@@ -537,6 +537,12 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 	eventHandler_.fire(&eventdata);
 
 	entity->onEnterWorld();
+
+	if(entityID_ == eid)
+	{
+		entityPos_ = entity->getPosition();
+		entityDir_ = entity->getDirection();
+	}
 }
 
 //-------------------------------------------------------------------------------------	
@@ -726,6 +732,28 @@ void ClientObjectBase::onUpdateBasePos(Mercury::Channel* pChannel, MemoryStream&
 	{
 		pEntity->setServerPosition(Position3D(x, y, z));
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onSetEntityPosAndDir(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID eid;
+	s >> eid;
+
+	client::Entity* entity = pEntities_->find(eid);
+	if(entity == NULL)
+	{
+		ERROR_MSG(boost::format("ClientObjectBase::onSetEntityPosAndDir: not found entity(%1%).\n") % eid);
+		s.opfini();
+		return;
+	}
+
+	Position3D pos;
+	Direction3D dir;
+	s >> pos.x >> pos.y >> pos.z >> dir.yaw >> dir.pitch >> dir.roll;
+
+	entity->setPosition(pos);
+	entity->setDirection(dir);
 }
 
 //-------------------------------------------------------------------------------------

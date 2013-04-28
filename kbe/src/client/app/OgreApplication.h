@@ -44,7 +44,7 @@ protected:
     virtual bool mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
     virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
 private:
-	std::vector< std::tr1::shared_ptr<const KBEngine::EventData> > events_;
+	std::queue< std::tr1::shared_ptr<const KBEngine::EventData> > events_;
 };
 
 #endif // #ifndef __OgreApplication_h_
