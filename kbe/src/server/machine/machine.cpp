@@ -89,7 +89,10 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 		
 		std::vector<int32>::iterator iter = std::find(localuids_.begin(), localuids_.end(), uid);
 		if(iter == localuids_.end())
+		{
+			INFO_MSG(boost::format("Machine::onBroadcastInterface: added newUID %1%.\n") % uid);
 			localuids_.push_back(uid);
+		}
 	}
 
 
