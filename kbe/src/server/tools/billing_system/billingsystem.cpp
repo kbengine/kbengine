@@ -284,7 +284,6 @@ void BillingSystem::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 //-------------------------------------------------------------------------------------
 void BillingSystem::eraseClientReq(Mercury::Channel* pChannel, std::string& logkey)
 {
-	this->threadPool().lockBufferedTaskList();
 	lockthread();
 
 	REQCREATE_MAP::iterator citer = reqCreateAccount_requests_.find(logkey);
@@ -302,7 +301,6 @@ void BillingSystem::eraseClientReq(Mercury::Channel* pChannel, std::string& logk
 	}
 
 	unlockthread();
-	this->threadPool().unlockBufferedTaskList();
 }
 
 //-------------------------------------------------------------------------------------
