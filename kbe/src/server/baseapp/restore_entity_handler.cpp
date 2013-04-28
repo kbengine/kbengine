@@ -105,7 +105,7 @@ bool RestoreEntityHandler::process()
 		
 		if(pBase)
 		{
-			if(++count > g_kbeSrvConfig.getBaseApp().entityRestoreSize)
+			if(++count > (int)g_kbeSrvConfig.getBaseApp().entityRestoreSize)
 			{
 				return true;
 			}
@@ -138,7 +138,7 @@ bool RestoreEntityHandler::process()
 		}
 	}
 	
-	if(spaceCellCount != restoreSpaces_.size())
+	if(spaceCellCount != (int)restoreSpaces_.size())
 		return true;
 
 	// »Ö¸´ÆäËûentity
