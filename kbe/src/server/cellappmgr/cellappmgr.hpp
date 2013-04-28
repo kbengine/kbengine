@@ -51,6 +51,8 @@ public:
 	
 	bool run();
 	
+	virtual void onChannelDeregister(Mercury::Channel * pChannel);
+
 	void handleTimeout(TimerHandle handle, void * arg);
 	void handleGameTick();
 
@@ -61,7 +63,8 @@ public:
 	void finalise();
 
 	/** 找出一个最空闲的cellapp */
-	Mercury::Channel* findBestCellapp(void);
+	COMPONENT_ID findFreeCellapp(void);
+	void updateBestCellapp();
 
 	/** 网络接口
 		baseEntity请求创建在一个新的space中
@@ -85,6 +88,8 @@ public:
 protected:
 	TimerHandle							gameTimer_;
 	ForwardAnywhere_MessageBuffer		forward_cellapp_messagebuffer_;
+
+	COMPONENT_ID						bestCellappID_;
 
 	std::map< COMPONENT_ID, Cellapp >	cellapps_;
 };

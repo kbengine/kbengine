@@ -77,6 +77,36 @@ void Cellappmgr::handleTimeout(TimerHandle handle, void * arg)
 }
 
 //-------------------------------------------------------------------------------------
+void Cellappmgr::onChannelDeregister(Mercury::Channel * pChannel)
+{
+	// 如果是app死亡了
+	if(pChannel->isInternal())
+	{
+		Components::ComponentInfos* cinfo = Components::getSingleton().findComponent(pChannel);
+		if(cinfo)
+		{
+			std::map< COMPONENT_ID, Cellapp >::iterator iter = cellapps_.find(cinfo->cid);
+			if(iter != cellapps_.end())
+			{
+				WARNING_MSG(boost::format("Cellappmgr::onChannelDeregister: erase cellapp[%1%], currsize=%2%\n") % 
+					cinfo->cid % (cellapps_.size() - 1));
+
+				cellapps_.erase(iter);
+				updateBestCellapp();
+			}
+		}
+	}
+
+	ServerApp::onChannelDeregister(pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void Cellappmgr::updateBestCellapp()
+{
+	bestCellappID_ = findFreeCellapp();
+}
+
+//-------------------------------------------------------------------------------------
 void Cellappmgr::handleGameTick()
 {
 	 //time_t t = ::time(NULL);
@@ -130,7 +160,7 @@ void Cellappmgr::forwardMessage(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::Channel* Cellappmgr::findBestCellapp(void)
+COMPONENT_ID Cellappmgr::findFreeCellapp(void)
 {
 	Components::COMPONENTS& components = Components::getSingleton().getComponents(CELLAPP_TYPE);
 	if(components.size() == 0)
@@ -150,9 +180,9 @@ Mercury::Channel* Cellappmgr::findBestCellapp(void)
 		index = 0;
 
 	Components::COMPONENTS::iterator iter = components.begin();
-	DEBUG_MSG(boost::format("Cellappmgr::findBestCellapp: index=%1%.\n") % index);
+	DEBUG_MSG(boost::format("Cellappmgr::findFreeCellapp: index=%1%.\n") % index);
 	std::advance(iter, index++);
-	return (*iter).pChannel;
+	return (*iter).cid;
 }
 
 //-------------------------------------------------------------------------------------
@@ -185,9 +215,12 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 	DEBUG_MSG(boost::format("Cellappmgr::reqCreateInNewSpace: entityType=%1%, entityID=%2%, componentID=%3%.\n") %
 		entityType.c_str() % id % componentID);
 
-	Mercury::Channel* lpChannel = findBestCellapp();
+	updateBestCellapp();
 
-	if(lpChannel == NULL)
+	Components::ComponentInfos* cinfos = 
+		Components::getSingleton().findComponent(CELLAPP_TYPE, bestCellappID_);
+
+	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
 		WARNING_MSG("Cellappmgr::reqCreateInNewSpace: not found cellapp, message is buffered.\n");
 		forward_cellapp_messagebuffer_.push(pFI);
@@ -195,7 +228,7 @@ void Cellappmgr::reqCreateInNewSpace(Mercury::Channel* pChannel, MemoryStream& s
 	}
 	else
 	{
-		(*pBundle).send(this->getNetworkInterface(), lpChannel);
+		(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		SAFE_RELEASE(pFI);
 	}
@@ -231,17 +264,20 @@ void Cellappmgr::reqRestoreSpaceInCell(Mercury::Channel* pChannel, MemoryStream&
 	DEBUG_MSG(boost::format("Cellappmgr::reqRestoreSpaceInCell: entityType=%1%, entityID=%2%, componentID=%3%, spaceID=%4%.\n") %
 		entityType.c_str() % id % componentID % spaceID);
 
-	Mercury::Channel* lpChannel = findBestCellapp();
+	updateBestCellapp();
 
-	if(lpChannel == NULL)
+	Components::ComponentInfos* cinfos = 
+		Components::getSingleton().findComponent(CELLAPP_TYPE, bestCellappID_);
+
+	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
-		WARNING_MSG("Cellappmgr::reqCreateInNewSpace: not found cellapp, message is buffered.\n");
+		WARNING_MSG("Cellappmgr::reqRestoreSpaceInCell: not found cellapp, message is buffered.\n");
 		forward_cellapp_messagebuffer_.push(pFI);
 		return;
 	}
 	else
 	{
-		(*pBundle).send(this->getNetworkInterface(), lpChannel);
+		(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		SAFE_RELEASE(pFI);
 	}
@@ -250,6 +286,7 @@ void Cellappmgr::reqRestoreSpaceInCell(Mercury::Channel* pChannel, MemoryStream&
 //-------------------------------------------------------------------------------------
 void Cellappmgr::updateCellapp(Mercury::Channel* pChannel, COMPONENT_ID componentID, float load)
 {
+	// updateBestCellapp();
 }
 
 //-------------------------------------------------------------------------------------

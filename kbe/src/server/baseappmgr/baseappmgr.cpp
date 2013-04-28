@@ -92,6 +92,30 @@ void Baseappmgr::handleGameTick()
 }
 
 //-------------------------------------------------------------------------------------
+void Baseappmgr::onChannelDeregister(Mercury::Channel * pChannel)
+{
+	// 如果是app死亡了
+	if(pChannel->isInternal())
+	{
+		Components::ComponentInfos* cinfo = Components::getSingleton().findComponent(pChannel);
+		if(cinfo)
+		{
+			std::map< COMPONENT_ID, Baseapp >::iterator iter = baseapps_.find(cinfo->cid);
+			if(iter != baseapps_.end())
+			{
+				WARNING_MSG(boost::format("Baseappmgr::onChannelDeregister: erase baseapp[%1%], currsize=%2%\n") % 
+					cinfo->cid % (baseapps_.size() - 1));
+
+				baseapps_.erase(iter);
+				updateBestBaseapp();
+			}
+		}
+	}
+
+	ServerApp::onChannelDeregister(pChannel);
+}
+
+//-------------------------------------------------------------------------------------
 bool Baseappmgr::initializeBegin()
 {
 	return true;
