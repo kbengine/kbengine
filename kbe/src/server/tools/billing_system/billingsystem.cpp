@@ -198,6 +198,7 @@ void BillingSystem::reqCreateAccount(Mercury::Channel* pChannel, KBEngine::Memor
 	pinfo->baseappID = cid;
 	pinfo->dbmgrID = pChannel->componentID();
 	pinfo->address = pChannel->addr();
+	pinfo->enable = true;
 
 	reqCreateAccount_requests_[pinfo->commitName] = pinfo;
 	unlockthread();
@@ -233,6 +234,7 @@ void BillingSystem::onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryS
 	pinfo->baseappID = cid;
 	pinfo->dbmgrID = pChannel->componentID();
 	pinfo->address = pChannel->addr();
+	pinfo->enable = true;
 
 	reqAccountLogin_requests_[pinfo->commitName] = pinfo;
 	unlockthread();
@@ -277,6 +279,30 @@ void BillingSystem::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 	unlockthread();
 	
 	this->threadPool().addTask(pinfo);
+}
+
+//-------------------------------------------------------------------------------------
+void BillingSystem::eraseClientReq(Mercury::Channel* pChannel, std::string& logkey)
+{
+	this->threadPool().lockBufferedTaskList();
+	lockthread();
+
+	REQCREATE_MAP::iterator citer = reqCreateAccount_requests_.find(logkey);
+	if(citer != reqCreateAccount_requests_.end())
+	{
+		citer->second->enable = false;
+		DEBUG_MSG(boost::format("BillingSystem::eraseClientReq: reqCreateAccount_logkey=%1% set disabled!\n") % logkey);
+	}
+
+	REQLOGIN_MAP::iterator liter = reqAccountLogin_requests_.find(logkey);
+	if(liter != reqAccountLogin_requests_.end())
+	{
+		liter->second->enable = false;
+		DEBUG_MSG(boost::format("BillingSystem::eraseClientReq: reqAccountLogin_logkey=%1% set disabled!\n") % logkey);
+	}
+
+	unlockthread();
+	this->threadPool().unlockBufferedTaskList();
 }
 
 //-------------------------------------------------------------------------------------

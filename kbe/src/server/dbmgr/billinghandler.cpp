@@ -116,6 +116,11 @@ void BillingHandler_Normal::onChargeCB(KBEngine::MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void BillingHandler_Normal::eraseClientReq(Mercury::Channel* pChannel, std::string& logkey)
+{
+}
+
+//-------------------------------------------------------------------------------------
 BillingHandler_ThirdParty::BillingHandler_ThirdParty(thread::ThreadPool& threadPool, DBThreadPool& dbThreadPool):
 BillingHandler_Normal(threadPool, dbThreadPool),
 pBillingChannel_(NULL)
@@ -382,6 +387,25 @@ void BillingHandler_ThirdParty::onChargeCB(KBEngine::MemoryStream& s)
 	(*(*bundle)) << success;
 
 	(*(*bundle)).send(Dbmgr::getSingleton().getNetworkInterface(), cinfos->pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void BillingHandler_ThirdParty::eraseClientReq(Mercury::Channel* pChannel, std::string& logkey)
+{
+	KBE_ASSERT(pBillingChannel_);
+
+	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
+
+	(*(*bundle)).newMessage(BillingSystemInterface::eraseClientReq);
+	(*(*bundle)) << logkey;
+
+	if(pBillingChannel_->isDestroyed())
+	{
+		if(!this->reconnect())
+			return;
+	}
+
+	(*(*bundle)).send(Dbmgr::getSingleton().getNetworkInterface(), pBillingChannel_);
 }
 
 //-------------------------------------------------------------------------------------

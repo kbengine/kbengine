@@ -272,6 +272,17 @@ public:
 	INLINE uint32 bufferTaskSize()const;
 
 	/** 
+		获得缓存的任务
+	*/
+	INLINE std::queue<thread::TPTask*>& bufferedTaskList();
+
+	/** 
+		操作缓存的任务锁
+	*/
+	INLINE void lockBufferedTaskList();
+	INLINE void unlockBufferedTaskList();
+
+	/** 
 		获得已经完成的任务数量
 	*/
 	INLINE uint32 finiTaskSize()const;

@@ -115,6 +115,11 @@ public:
 	void onCreateAccountCBFromBilling(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
+		请求擦除客户端请求任务
+	*/
+	void eraseClientReq(Mercury::Channel* pChannel, std::string& logkey);
+
+	/** 网络接口
 		一个新用户登录， 需要检查合法性
 	*/
 	void onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);

@@ -87,6 +87,11 @@ public:
 	void onAccountLogin(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
+		请求擦除客户端请求任务
+	*/
+	void eraseClientReq(Mercury::Channel* pChannel, std::string& logkey);
+
+	/** 网络接口
 		请求充值
 	*/
 	void charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);

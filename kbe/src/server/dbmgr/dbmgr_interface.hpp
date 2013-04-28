@@ -106,6 +106,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	DBMGR_MESSAGE_DECLARE_ARGS1(onEntityOffline,					MERCURY_VARIABLE_MESSAGE,
 									DBID,							dbid)
 
+	// 请求擦除客户端请求任务。
+	DBMGR_MESSAGE_DECLARE_ARGS1(eraseClientReq,					MERCURY_VARIABLE_MESSAGE,
+									std::string,					logkey)
+
 	// 数据库查询
 	DBMGR_MESSAGE_DECLARE_STREAM(executeRawDatabaseCommand,			MERCURY_VARIABLE_MESSAGE)
 

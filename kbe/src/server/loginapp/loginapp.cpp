@@ -100,6 +100,22 @@ void Loginapp::onChannelDeregister(Mercury::Channel * pChannel)
 		// 通知billing从队列中清除他的请求， 避免拥塞
 		if(extra.size() > 0)
 		{
+			Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+			Components::ComponentInfos* dbmgrinfos = NULL;
+
+			if(cts.size() > 0)
+				dbmgrinfos = &(*cts.begin());
+
+			if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+			{
+			}
+			else
+			{
+				Mercury::Bundle bundle;
+				bundle.newMessage(DbmgrInterface::eraseClientReq);
+				bundle << extra;
+				bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+			}
 		}
 	}
 

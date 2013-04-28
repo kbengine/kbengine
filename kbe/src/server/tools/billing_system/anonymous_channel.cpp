@@ -144,13 +144,13 @@ bool AnonymousChannel::process()
 		std::string getDatas;
 		getDatas.assign((const char *)(packet.data() + packet.rpos()), packet.opsize());
 		
-		std::string::size_type fi1 = getDatas.find("&chaseid=");
+		std::string::size_type fi1 = getDatas.find("&chargeID=");
 		std::string::size_type fi2 = getDatas.find("&=");
 
 		std::string orderid;
 		if(fi1 != std::string::npos && fi2 != std::string::npos)
 		{
-			int ilen = strlen("&chaseid=");
+			int ilen = strlen("&chargeID=");
 			orderid.assign(getDatas.c_str() + fi1 + ilen, fi2 - (fi1 + ilen));
 		}
 		
@@ -237,7 +237,7 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 		bool success = false;
 
 		std::string::size_type fi = iter->second.data.find("state=");
-		std::string::size_type fi1 = iter->second.data.find("&chaseid=");
+		std::string::size_type fi1 = iter->second.data.find("&chargeID=");
 
 		if(fi != std::string::npos && fi1 != std::string::npos)
 		{
@@ -257,17 +257,45 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 		(*(*bundle)).appendBlob(iter->second.data);
 		(*(*bundle)) << cbid;
 		(*(*bundle)) << success;
-
-		Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(orderiter->second->address);
-
-		if(pChannel)
+		
+		if(orderiter != orders.end())
 		{
-			(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+			Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(orderiter->second->address);
+			if(pChannel)
+			{
+				(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+			}
+			else
+			{
+				ERROR_MSG(boost::format("AnonymousChannel::presentMainThread: not found channel. orders=%1%\n") % 
+					ordersID);
+			}
 		}
 		else
 		{
-			ERROR_MSG(boost::format("AnonymousChannel::presentMainThread: not found channel. orders=%1%\n") % 
-				ordersID);
+			const Mercury::NetworkInterface::ChannelMap& channels = BillingSystem::getSingleton().getNetworkInterface().channels();
+			if(channels.size() > 0)
+			{
+				Mercury::NetworkInterface::ChannelMap::const_iterator channeliter = channels.begin();
+				for(; channeliter != channels.end(); channeliter++)
+				{
+					Mercury::Channel* pChannel = channeliter->second;
+					if(pChannel)
+					{
+						(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
+					}
+					else
+					{
+						ERROR_MSG(boost::format("AnonymousChannel::presentMainThread: not found channel. orders=%1%\n") % 
+							ordersID);
+					}
+				}
+			}
+			else
+			{
+				ERROR_MSG(boost::format("AnonymousChannel::presentMainThread: not found channel(channels is NULL). orders=%1%\n") % 
+					ordersID);
+			}
 		}
 		
 		if(orderiter != orders.end())

@@ -239,10 +239,16 @@ TPTask* ThreadPool::popbufferTask(void)
 	TPTask* tptask = NULL;
 	THREAD_MUTEX_LOCK(bufferedTaskList_mutex_);
 
-	if(bufferedTaskList_.size()> 0)
+	if(bufferedTaskList_.size() > 0)
 	{
 		tptask = bufferedTaskList_.front();
 		bufferedTaskList_.pop();
+	}
+	
+	if(bufferedTaskList_.size() > THREAD_BUSY_SIZE)
+	{
+		WARNING_MSG(boost::format("ThreadPool::popbufferTask: task buffered(%1%)!\n") % 
+			bufferedTaskList_.size());
 	}
 
 	THREAD_MUTEX_UNLOCK(bufferedTaskList_mutex_);	
@@ -331,8 +337,11 @@ void ThreadPool::bufferTask(TPTask* tptask)
 	THREAD_MUTEX_LOCK(bufferedTaskList_mutex_);
 	bufferedTaskList_.push(tptask);
 
-	WARNING_MSG(boost::format("ThreadPool::bufferTask: task buffered(%1%)!\n") % 
-		(int)bufferedTaskList_.size());
+	if(bufferedTaskList_.size() > THREAD_BUSY_SIZE)
+	{
+		WARNING_MSG(boost::format("ThreadPool::bufferTask: task buffered(%1%)!\n") % 
+			bufferedTaskList_.size());
+	}
 
 	THREAD_MUTEX_UNLOCK(bufferedTaskList_mutex_);
 }

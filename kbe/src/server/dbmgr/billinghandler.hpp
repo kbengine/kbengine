@@ -49,6 +49,8 @@ public:
 	
 	virtual bool initialize() = 0;
 
+	virtual void eraseClientReq(Mercury::Channel* pChannel, std::string& logkey) = 0;
+
 	virtual bool createAccount(Mercury::Channel* pChannel, std::string& registerName, 
 		std::string& password, std::string& datas) = 0;
 
@@ -75,6 +77,8 @@ public:
 	
 	virtual bool initialize(){ return true; }
 
+	virtual void eraseClientReq(Mercury::Channel* pChannel, std::string& logkey);
+
 	virtual bool createAccount(Mercury::Channel* pChannel, std::string& registerName, 
 		std::string& password, std::string& datas);
 
@@ -98,6 +102,8 @@ public:
 	virtual ~BillingHandler_ThirdParty();
 	
 	virtual bool initialize();
+
+	virtual void eraseClientReq(Mercury::Channel* pChannel, std::string& logkey);
 
 	virtual bool createAccount(Mercury::Channel* pChannel, std::string& registerName, 
 		std::string& password, std::string& datas);

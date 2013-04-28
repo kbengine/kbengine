@@ -75,14 +75,18 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BillingSystemInterface)
 
 	// 某个app向本app告知处于活动状态。
 	BILLINGSYSTEM_MESSAGE_DECLARE_ARGS2(onAppActiveTick,					MERCURY_FIXED_MESSAGE,
-									COMPONENT_TYPE,							componentType, 
-									COMPONENT_ID,							componentID)
+										COMPONENT_TYPE,						componentType, 
+										COMPONENT_ID,						componentID)
 
 	// 请求关闭服务器
 	BILLINGSYSTEM_MESSAGE_DECLARE_STREAM(reqCloseServer,					MERCURY_VARIABLE_MESSAGE)
 
 	// 请求查询watcher数据
 	BILLINGSYSTEM_MESSAGE_DECLARE_STREAM(queryWatcher,						MERCURY_VARIABLE_MESSAGE)
+
+	// 请求擦除客户端请求任务。
+	BILLINGSYSTEM_MESSAGE_DECLARE_ARGS1(eraseClientReq,						MERCURY_VARIABLE_MESSAGE,
+										std::string,						logkey)
 
 NETWORK_INTERFACE_DECLARE_END()
 

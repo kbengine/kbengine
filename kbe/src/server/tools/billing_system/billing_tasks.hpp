@@ -33,6 +33,11 @@ namespace KBEngine{
 
 class Orders;
 
+#define BILLING_TASK_UNKNOWN 0
+#define BILLING_TASK_CREATEACCOUNT 1
+#define BILLING_TASK_LOGIN 2
+#define BILLING_TASK_CHARGE 3
+
 class BillingTask : public thread::TPTask
 {
 public:
@@ -45,6 +50,7 @@ public:
 	
 	virtual const char* serviceAddr() const = 0;
 	virtual uint16 servicePort() const = 0;
+	virtual uint8 type() = 0;
 
 	std::string commitName;			// 提交时用的名称
 	std::string accountName;		// 在游戏服务器数据库中与account绑定的名称
@@ -56,6 +62,8 @@ public:
 	bool success;
 
 	Mercury::Address address;
+
+	bool enable;
 };
 
 class CreateAccountTask : public BillingTask
@@ -64,6 +72,8 @@ public:
 	CreateAccountTask();
 	virtual ~CreateAccountTask();
 	
+	virtual uint8 type(){ return BILLING_TASK_CREATEACCOUNT; }
+
 	virtual bool process();
 	
 	virtual void removeLog();
@@ -81,6 +91,8 @@ public:
 	LoginAccountTask();
 	virtual ~LoginAccountTask();
 	
+	virtual uint8 type(){ return BILLING_TASK_LOGIN; }
+
 	virtual void removeLog();
 	thread::TPTask::TPTaskState presentMainThread();
 protected:
@@ -92,6 +104,8 @@ public:
 	ChargeTask();
 	virtual ~ChargeTask();
 	
+	virtual uint8 type(){ return BILLING_TASK_CHARGE; }
+
 	virtual bool process();
 	thread::TPTask::TPTaskState presentMainThread();
 

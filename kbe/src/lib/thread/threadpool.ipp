@@ -42,6 +42,21 @@ INLINE uint32 ThreadPool::bufferTaskSize()const
 	return bufferedTaskList_.size();
 }
 
+INLINE std::queue<thread::TPTask*>& ThreadPool::bufferedTaskList()
+{
+	return bufferedTaskList_;
+}
+
+INLINE void ThreadPool::lockBufferedTaskList()
+{
+	THREAD_MUTEX_LOCK(bufferedTaskList_mutex_);
+}
+
+INLINE void ThreadPool::unlockBufferedTaskList()
+{
+	THREAD_MUTEX_UNLOCK(bufferedTaskList_mutex_);
+}
+	
 INLINE uint32 ThreadPool::finiTaskSize()const
 {
 	return finiTaskList_.size();

@@ -593,5 +593,11 @@ void Dbmgr::onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Dbmgr::eraseClientReq(Mercury::Channel* pChannel, std::string& logkey)
+{
+	pBillingHandler_->eraseClientReq(pChannel, logkey);
+}
+
+//-------------------------------------------------------------------------------------
 
 }

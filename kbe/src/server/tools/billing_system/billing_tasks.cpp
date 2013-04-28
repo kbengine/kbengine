@@ -81,6 +81,11 @@ void CreateAccountTask::removeLog()
 //-------------------------------------------------------------------------------------
 bool CreateAccountTask::process()
 {
+	if(!enable)
+	{
+		return false;
+	}
+
 	// 如果没有设置第三方服务地址则我们默认为成功
 	if(strlen(serviceAddr()) == 0)
 	{
@@ -237,12 +242,20 @@ bool CreateAccountTask::process()
 	}
 
 	endpoint.close();
+	enable = true;
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState CreateAccountTask::presentMainThread()
 {
+	if(!enable)
+	{
+		removeLog();
+		DEBUG_MSG(boost::format("CreateAccountTask::presentMainThread: commitName=%1% is disable!\n") % commitName);
+		return thread::TPTask::TPTASK_STATE_COMPLETED; 
+	}
+
 	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 
 	(*(*bundle)).newMessage(DbmgrInterface::onCreateAccountCBFromBilling);
@@ -288,6 +301,13 @@ void LoginAccountTask::removeLog()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 {
+	if(!enable)
+	{
+		removeLog();
+		DEBUG_MSG(boost::format("LoginAccountTask::presentMainThread: commitName=%1% is disable!\n") % commitName);
+		return thread::TPTask::TPTASK_STATE_COMPLETED; 
+	}
+
 	Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 	
 	if(success)
