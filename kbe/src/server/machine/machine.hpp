@@ -107,6 +107,9 @@ protected:
 	Mercury::UDPPacketReceiver* pEPPacketReceiver_;
 	Mercury::UDPPacketReceiver* pEBPacketReceiver_;
 	Mercury::UDPPacketReceiver* pEPLocalPacketReceiver_;
+
+	// 本机使用的uid
+	std::vector<int32>			localuids_;
 };
 
 }

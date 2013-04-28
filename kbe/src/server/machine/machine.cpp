@@ -57,8 +57,8 @@ Machine::Machine(Mercury::EventDispatcher& dispatcher,
 	epLocal_(),
 	pEPPacketReceiver_(NULL),
 	pEBPacketReceiver_(NULL),
-	pEPLocalPacketReceiver_(NULL)
-
+	pEPLocalPacketReceiver_(NULL),
+	localuids_()
 {
 }
 
@@ -68,6 +68,7 @@ Machine::~Machine()
 	ep_.close();
 	epBroadcast_.close();
 	epLocal_.close();
+	localuids_.clear();
 
 	SAFE_RELEASE(pEPPacketReceiver_);
 	SAFE_RELEASE(pEBPacketReceiver_);
@@ -80,14 +81,17 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 									uint32 intaddr, uint16 intport,
 									uint32 extaddr, uint16 extport)
 {
-	if(componentType == MACHINE_TYPE)
+	if(intaddr == this->getNetworkInterface().intaddr().ip)
 	{
-		if(uid == getUserUID() && 
-			intaddr == this->getNetworkInterface().intaddr().ip)
-		{
+		// 一台硬件上只能存在一个machine
+		if(componentType == MACHINE_TYPE)
 			return;
-		}
+		
+		std::vector<int32>::iterator iter = std::find(localuids_.begin(), localuids_.end(), uid);
+		if(iter == localuids_.end())
+			localuids_.push_back(uid);
 	}
+
 
 	INFO_MSG(boost::format("Machine::onBroadcastInterface[%1%]: uid:%2%, username:%3%, componentType:%4%, "
 			"componentID:%5%, intaddr:%6%, intport:%7%, extaddr:%8%, extport:%9%.\n") %
@@ -113,8 +117,12 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 	KBEngine::COMPONENT_TYPE tComponentType = (KBEngine::COMPONENT_TYPE)componentType;
 
 	// 如果不是guiconsole发出的, uid也不等于当前服务器的uid则不理会。
-	if(tComponentType != CONSOLE_TYPE && uid != KBEngine::getUserUID())
-		return;
+	if(tComponentType != CONSOLE_TYPE)
+	{
+		std::vector<int32>::iterator iter = std::find(localuids_.begin(), localuids_.end(), uid);
+		if(iter == localuids_.end())
+			return;
+	}
 
 	INFO_MSG(boost::format("Machine::onFindInterfaceAddr[%1%]: uid:%2%, username:%3%, "
 			"componentType:%4%, componentID:%8%, find:%5%, finderaddr:%6%, finderRecvPort:%7%.\n") %
@@ -181,9 +189,11 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 	{
 		// 如果是控制台， 且uid不是一致的则无需返回找不到消息
 		// 控制台可能广播到其他组去了
-		if(tComponentType == CONSOLE_TYPE && KBEngine::getUserUID() != uid)
+		if(tComponentType == CONSOLE_TYPE)
 		{
-			return;
+			std::vector<int32>::iterator iter = std::find(localuids_.begin(), localuids_.end(), uid);
+			if(iter == localuids_.end())
+				return;
 		}
 
 		WARNING_MSG(boost::format("Machine::onFindInterfaceAddr: %1% not found %2%.\n") %
