@@ -87,18 +87,28 @@ public:
 		if(mCameraNode)mSceneMgr->destroySceneNode(mCameraNode);
 	}
 
+	void visable(bool v){
+
+		if(mBodyNode)
+			mBodyNode->setVisible(v);
+	}
+
 	void addTime(Real deltaTime);
 	
 	void scale(float x, float y, float z)
 	{
 		mScale = (x + y + z) / 3.0f;
-		mBodyNode->scale(x, y, z);
+
+		if(mBodyNode)
+			mBodyNode->scale(x, y, z);
 	}
 
 	void scale(float v)
 	{
 		mScale = v;
-		mBodyNode->scale(v, v, v);
+
+		if(mBodyNode)
+			mBodyNode->scale(v, v, v);
 	}
 
 	void setDestDirection(float yaw, float pitch, float roll)
@@ -262,59 +272,7 @@ public:
 	}
 #endif
 
-	void setupBody(SceneManager* sceneMgr)
-	{
-		mSceneMgr = sceneMgr;
-		// create main model
-		mBodyNode = sceneMgr->getRootSceneNode()->createChildSceneNode(Vector3::UNIT_Y * CHAR_HEIGHT * mScale);
-
-		Ogre::String sKey = Ogre::StringConverter::toString(mID);
-		mBodyEnt = sceneMgr->createEntity(sKey + "Body", "Sinbad.mesh");
-		mBodyNode->attachObject(mBodyEnt);
-
-		// create swords and attach to sheath
-		LogManager::getSingleton().logMessage("Creating swords");
-		mSword1 = sceneMgr->createEntity(sKey + "Sword1", "Sword.mesh");
-		mSword2 = sceneMgr->createEntity(sKey + "Sword2", "Sword.mesh");
-		mBodyEnt->attachObjectToBone("Sheath.L", mSword1);
-		mBodyEnt->attachObjectToBone("Sheath.R", mSword2);
-
-		LogManager::getSingleton().logMessage("Creating the chains");
-		// create a couple of ribbon trails for the swords, just for fun
-		NameValuePairList params;
-		params["numberOfChains"] = "2";
-		params["maxElements"] = "80";
-		mSwordTrail = (RibbonTrail*)sceneMgr->createMovableObject("RibbonTrail", &params);
-		mSwordTrail->setMaterialName("Examples/LightRibbonTrail");
-		mSwordTrail->setTrailLength(20);
-		mSwordTrail->setVisible(false);
-		sceneMgr->getRootSceneNode()->attachObject(mSwordTrail);
-
-
-		for (int i = 0; i < 2; i++)
-		{
-			mSwordTrail->setInitialColour(i, 1, 0.8, 0);
-			mSwordTrail->setColourChange(i, 0.75, 1.25, 1.25, 1.25);
-			mSwordTrail->setWidthChange(i, 1);
-			mSwordTrail->setInitialWidth(i, 0.3);
-		}
-
-		mKeyDirection = Vector3::ZERO;
-		mVerticalVelocity = 0;
-
-		// 绑定名称
-		/*
-		Ogre::SceneNode *LabelNode2 = mBodyNode->createChildSceneNode(Ogre::String("fdsafsadf") + Ogre::StringConverter::toString(mID));
-		Ogre::MovableText *Label2 = new Ogre::MovableText(Ogre::String("fdsafsadf") + Ogre::StringConverter::toString(mID), Ogre::String("fdsafsadf") + Ogre::StringConverter::toString(mID), "BlueHighway", 1.0, Ogre::ColourValue::Black);
-		Label2->setTextAlignment(Ogre::MovableText::H_CENTER, Ogre::MovableText::V_ABOVE); 
-		Label2->setColor(Ogre::ColourValue::Blue);
-
-		Ogre::Vector3 pos = mBodyNode->getPosition();
-		LabelNode2->attachObject(Label2);
-		pos.y = pos.y + mBodyEnt->getBoundingBox().getSize().y  * mScale;
-		LabelNode2->setPosition(pos);
-		*/
-	}
+	void setupBody(SceneManager* sceneMgr);
 
 	void setupAnimations()
 	{
@@ -624,6 +582,8 @@ public:
 		mMoveSpeed = speed; 
 	}
 
+	void setName(const Ogre::DisplayString& name){ mName = name; }
+
 private:
 	bool _checkJumpEnd();
 private:
@@ -662,7 +622,7 @@ private:
 	float mMoveSpeed;						// 移动速度
 	float mScale;							// 模型缩放比
 
-	std::string mName;						// 名称
+	Ogre::DisplayString mName;				// 名称
 	KBEngine::ENTITY_ID mID;				// entityID
 
 	bool mIsJump;

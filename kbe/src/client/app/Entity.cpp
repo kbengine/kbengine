@@ -120,3 +120,62 @@ bool KBEntity::_checkJumpEnd()
 }
 
 //-------------------------------------------------------------------------------------
+void KBEntity::setupBody(SceneManager* sceneMgr)
+{
+	mSceneMgr = sceneMgr;
+	// create main model
+	mBodyNode = sceneMgr->getRootSceneNode()->createChildSceneNode(Vector3::UNIT_Y * CHAR_HEIGHT * mScale);
+
+	Ogre::String sKey = Ogre::StringConverter::toString(mID);
+	mBodyEnt = sceneMgr->createEntity(sKey + "Body", "Sinbad.mesh");
+	mBodyNode->attachObject(mBodyEnt);
+
+	// create swords and attach to sheath
+	LogManager::getSingleton().logMessage("Creating swords");
+	mSword1 = sceneMgr->createEntity(sKey + "Sword1", "Sword.mesh");
+	mSword2 = sceneMgr->createEntity(sKey + "Sword2", "Sword.mesh");
+	mBodyEnt->attachObjectToBone("Sheath.L", mSword1);
+	mBodyEnt->attachObjectToBone("Sheath.R", mSword2);
+
+	LogManager::getSingleton().logMessage("Creating the chains");
+	// create a couple of ribbon trails for the swords, just for fun
+	NameValuePairList params;
+	params["numberOfChains"] = "2";
+	params["maxElements"] = "80";
+	mSwordTrail = (RibbonTrail*)sceneMgr->createMovableObject("RibbonTrail", &params);
+	mSwordTrail->setMaterialName("Examples/LightRibbonTrail");
+	mSwordTrail->setTrailLength(20);
+	mSwordTrail->setVisible(false);
+	sceneMgr->getRootSceneNode()->attachObject(mSwordTrail);
+
+
+	for (int i = 0; i < 2; i++)
+	{
+		mSwordTrail->setInitialColour(i, 1, 0.8, 0);
+		mSwordTrail->setColourChange(i, 0.75, 1.25, 1.25, 1.25);
+		mSwordTrail->setWidthChange(i, 1);
+		mSwordTrail->setInitialWidth(i, 0.3);
+	}
+
+	mKeyDirection = Vector3::ZERO;
+	mVerticalVelocity = 0;
+
+	// °ó¶¨Ãû³Æ
+	Ogre::SceneNode *LabelNode = mBodyNode->createChildSceneNode(Ogre::StringConverter::toString(mID));
+	Ogre::MovableText *Label = new Ogre::MovableText(Ogre::StringConverter::toString(mID), mName, 
+		"Yahei", 1.0f, Ogre::ColourValue::Black);
+
+	Label->setTextAlignment(Ogre::MovableText::H_CENTER, Ogre::MovableText::V_ABOVE); 
+	Label->showOnTop(true);
+	Label->setColor(Ogre::ColourValue::Blue);
+
+	Ogre::Vector3 pos = mBodyNode->getPosition();
+	LabelNode->attachObject(Label);
+	pos.y = pos.y + mBodyEnt->getBoundingBox().getSize().y  * mScale;
+	LabelNode->setPosition(pos);
+
+	//scale(mScale);
+}
+
+
+//-------------------------------------------------------------------------------------

@@ -222,12 +222,25 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 	switch(lpEventData->id)
 	{
 	case CLIENT_EVENT_CREATEDENTITY:
+		{
+			const KBEngine::EventData_CreatedEntity* pEventData_createEntity = static_cast<const KBEngine::EventData_CreatedEntity*>(lpEventData);
+			KBEngine::ENTITY_ID eid = pEventData_createEntity->pEntity->aspectID();
+			KBEntity* pEntity = new KBEntity(this, eid);
+			mEntities[eid].reset(pEntity);
+			//pEntity->visable(false);
+		}
 		break;
 	case CLIENT_EVENT_ENTERWORLD:
 		{
 			const KBEngine::EventData_EnterWorld* pEventData_EnterWorld = static_cast<const KBEngine::EventData_EnterWorld*>(lpEventData);
 			KBEngine::ENTITY_ID eid = pEventData_EnterWorld->pEntity->aspectID();
-			KBEntity* pEntity = new KBEntity(this, eid);
+			
+			ENTITIES::iterator iter = mEntities.find(eid);
+			if(iter == mEntities.end())
+				break;
+			
+			KBEntity* pEntity = iter->second.get();
+
 			pEntity->setupBody(mSceneMgr);
 			pEntity->setupAnimations();
 
@@ -244,7 +257,7 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 				mPlayerPtr = pEntity;
 			}
 
-			mEntities[eid].reset(pEntity);
+			//pEntity->visable(true);
 		}
 		break;
 	case CLIENT_EVENT_LEAVEWORLD:
@@ -306,10 +319,17 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 						
 						KBEngine::ENTITY_ID eid = PyLong_AsUnsignedLong(pyitem0);
 
+						ENTITIES::iterator iter = mEntities.find(eid);
+						if(iter == mEntities.end())
+							break;
+						
+						KBEntity* pEntity = iter->second.get();
+
 						wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyitem1, NULL);
-						char* name = wchar2char(PyUnicode_AsWideCharStringRet0);
+						pEntity->setName(PyUnicode_AsWideCharStringRet0);
+						//char* name = wchar2char(PyUnicode_AsWideCharStringRet0);
 						PyMem_Free(PyUnicode_AsWideCharStringRet0);
-						free(name);																				
+						//free(name);																				
 					}
 				}
 				else if(peventdata->name == "set_modelScale")
