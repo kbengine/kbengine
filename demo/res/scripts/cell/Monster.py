@@ -9,22 +9,29 @@ from interfaces.GameObject import GameObject
 from interfaces.Combat import Combat
 from interfaces.Spell import Spell
 from interfaces.Motion import Motion
+from interfaces.State import State
+from interfaces.Flags import Flags
 from interfaces.AI import AI
 
-class Monster(GameObject, Motion, Combat, Spell, AI):
+class Monster(GameObject, 
+			Flags,
+			State,
+			Motion, 
+			Combat, 
+			Spell, 
+			AI):
 	def __init__(self):
 		GameObject.__init__(self)
+		Flags.__init__(self) 
+		State.__init__(self) 
 		Motion.__init__(self) 
 		Combat.__init__(self) 
 		Spell.__init__(self) 
 		AI.__init__(self) 
 
-	def think(self):
-		"""
-		virtual method.
-		"""
-		self.randomWalk(self.spawnPos)
-
+	# ----------------------------------------------------------------
+	# callback
+	# ----------------------------------------------------------------
 	def onWitnessed(self, isWitnessed):
 		"""
 		KBEngine method.
@@ -35,8 +42,56 @@ class Monster(GameObject, Motion, Combat, Spell, AI):
 		"""
 		AI.onWitnessed(self, isWitnessed)
 		
+	def onForbidChanged_(self, forbid, isInc):
+		"""
+		virtual method.
+		entity禁止 条件改变
+		@param isInc		:	是否是增加
+		"""
+		State.onForbidChanged_(self, forbid, isInc)
+		AI.onForbidChanged_(self, forbid, isInc)
+		
+	def onStateChanged_(self, oldstate, newstate):
+		"""
+		virtual method.
+		entity状态改变了
+		"""
+		State.onStateChanged_(self, oldstate, newstate)
+		AI.onStateChanged_(self, oldstate, newstate)
+		
+	def onSubStateChanged_(self, oldSubState, newSubState):
+		"""
+		virtual method.
+		子状态改变了
+		"""
+		State.onSubStateChanged_(self, oldSubState, newSubState)
+		AI.onSubStateChanged_(self, oldSubState, newSubState)
+
+	def onFlagsChanged_(self, flags, isInc):
+		"""
+		virtual method.
+		"""
+		Flags.onFlagsChanged_(self, flags, isInc)
+		AI.onFlagsChanged_(self, flags, isInc)
+
+	def onEnterTrap(self, entity, range_xz, range_y, controllerID, userarg):
+		"""
+		KBEngine method.
+		引擎回调进入陷阱触发
+		"""
+		AI.onEnterTrap(self, entity, range_xz, range_y, controllerID, userarg)
+
+	def onLeaveTrap(self, entity, range_xz, range_y, controllerID, userarg):
+		"""
+		KBEngine method.
+		引擎回调离开陷阱触发
+		"""
+		AI.onLeaveTrap(self, entity, range_xz, range_y, controllerID, userarg)
+							
 Monster._timermap = {}
 Monster._timermap.update(GameObject._timermap)
+Monster._timermap.update(Flags._timermap)
+Monster._timermap.update(State._timermap)
 Monster._timermap.update(Motion._timermap)
 Monster._timermap.update(Combat._timermap)
 Monster._timermap.update(Spell._timermap)
