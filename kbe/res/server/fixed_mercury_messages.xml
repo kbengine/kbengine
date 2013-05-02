@@ -212,6 +212,12 @@
 		<arg>INT16</arg> <!-- 一个下载句柄 INT16 -->
 	</Client::onStreamDataCompleted>
 	
+	<Client::onKicked>
+		<id>517</id>
+		<descr>服务器已经踢出该客户端。
+		</descr>
+	</Client::onKicked>
+	
 	<Property::position>
 		<id>40000</id>
 		<descr>位置属性。</descr>

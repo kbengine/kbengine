@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "clientobjectbase.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
+#include "helper/script_loglevel.hpp"
 #include "xmlplus/xmlplus.hpp"	
 #include "cstdkbe/singleton.hpp"
 #include "cstdkbe/smartpointer.hpp"
@@ -125,6 +126,11 @@ public:
 	static PyObject* __py_getAppPublish(PyObject* self, PyObject* args);
 	
 	static PyObject* __py_fireEvent(PyObject* self, PyObject* args);
+
+	/**
+		设置脚本输出类型前缀
+	*/
+	static PyObject* __py_setScriptLogType(PyObject* self, PyObject* args);
 
 	virtual void onChannelTimeOut(Mercury::Channel * pChannel);
 	virtual void onChannelDeregister(Mercury::Channel * pChannel);

@@ -206,6 +206,11 @@ public:
 	virtual void onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
+	   被踢出服务器
+	*/
+	virtual void onKicked(Mercury::Channel * pChannel, MemoryStream& s);
+
+	/** 网络接口
 		服务器更新entity属性
 	*/
 	virtual void onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s);

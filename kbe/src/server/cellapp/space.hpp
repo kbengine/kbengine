@@ -50,7 +50,7 @@ public:
 	*/
 	void update();
 
-	void addEntity(Entity* pEntity);
+	void addEntity(Entity* pEntity, bool isRestore = false);
 	void removeEntity(Entity* pEntity);
 
 	/**

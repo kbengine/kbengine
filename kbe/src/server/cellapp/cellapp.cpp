@@ -717,7 +717,7 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Mercury::Channel* pChannel, KBEngi
 		space->creatorID(e->getID());
 		e->onRestore();
 
-		space->addEntity(e);
+		space->addEntity(e, true);
 
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);

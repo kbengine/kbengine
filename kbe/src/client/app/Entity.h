@@ -130,16 +130,16 @@ public:
 		//Ogre::Vector3 dir(-yaw, roll, pitch);
 		//mBodyNode->setFixedYawAxis(true); 
 		//mBodyNode->setDirection(dir, Ogre::Node::TS_WORLD);
-		
-		mBodyNode->resetOrientation();
-		mBodyNode->yaw(Ogre::Radian(yaw));
+	
+		if(mBodyNode) mBodyNode->resetOrientation();
+		if(mBodyNode) mBodyNode->yaw(Ogre::Radian(yaw));
 		currDir_.z = yaw;
 
-		mBodyNode->pitch(Ogre::Radian(pitch));
+		if(mBodyNode) mBodyNode->pitch(Ogre::Radian(pitch));
 		currDir_.y = pitch;
 
 
-		mBodyNode->roll(Ogre::Radian(roll));
+		if(mBodyNode) mBodyNode->roll(Ogre::Radian(roll));
 		currDir_.x = roll;
 	}
 
@@ -148,7 +148,9 @@ public:
 		lastPos_.x = x;
 		lastPos_.y = y;
 		lastPos_.z = z;
-		mBodyNode->setPosition(x, y, z);
+
+		if(mBodyNode)
+			mBodyNode->setPosition(x, y, z);
 	}
 
 	const Ogre::Vector3& getLastPosition()

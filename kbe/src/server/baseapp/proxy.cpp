@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "data_download.hpp"
 #include "client_lib/client_interface.hpp"
 #include "network/fixed_messages.hpp"
+#include "network/channel.hpp"
 
 #include "../../server/cellapp/cellapp_interface.hpp"
 #include "../../server/dbmgr/dbmgr_interface.hpp"
@@ -69,6 +70,17 @@ encryptionKey()
 Proxy::~Proxy()
 {
 	Baseapp::getSingleton().decProxicesCount();
+
+	// 如果被销毁频道仍然存活则将其关闭
+	Mercury::Channel* pChannel = Baseapp::getSingleton().getNetworkInterface().findChannel(addr_);
+	if(pChannel && !pChannel->isDead())
+	{
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(ClientInterface::onKicked);
+		pBundle->send(Baseapp::getSingleton().getNetworkInterface(), pChannel);
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		pChannel->condemn();
+	}
 }
 
 //-------------------------------------------------------------------------------------

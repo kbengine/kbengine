@@ -183,6 +183,18 @@ Mercury::Channel* ClientObjectBase::findChannelByMailbox(EntityMailbox& mailbox)
 }
 
 //-------------------------------------------------------------------------------------	
+void ClientObjectBase::onKicked(Mercury::Channel * pChannel, MemoryStream& s)
+{
+#ifdef unix
+	::close(*pChannel->endpoint());
+#elif defined(PLAYSTATION3)
+	::socketclose(*pChannel->endpoint());
+#else
+	::closesocket(*pChannel->endpoint());
+#endif
+}
+
+//-------------------------------------------------------------------------------------	
 client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyObject* params,
 	bool isInitializeScript, ENTITY_ID eid, bool initProperty,
 	EntityMailbox* base, EntityMailbox* cell)

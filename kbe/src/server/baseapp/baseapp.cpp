@@ -1217,8 +1217,10 @@ void Baseapp::onClientEntityEnterWorld(Proxy* base)
 bool Baseapp::createClientProxies(Proxy* base, bool reload)
 {
 	// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
-	base->getClientMailbox()->getChannel()->proxyID(base->getID());
-	
+	Mercury::Channel* pChannel = base->getClientMailbox()->getChannel();
+	pChannel->proxyID(base->getID());
+	base->addr(pChannel->addr());
+
 	// 重新生成一个ID
 	if(reload)
 		base->rndUUID(genUUID64());

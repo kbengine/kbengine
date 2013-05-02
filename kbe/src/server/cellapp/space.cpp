@@ -64,7 +64,7 @@ void Space::update()
 }
 
 //-------------------------------------------------------------------------------------
-void Space::addEntity(Entity* pEntity)
+void Space::addEntity(Entity* pEntity, bool isRestore)
 {
 	pEntity->setSpaceID(this->id_);
 	pEntity->spaceEntityIdx(entities_.size());
@@ -72,7 +72,7 @@ void Space::addEntity(Entity* pEntity)
 
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
 		rangeList_.insert((KBEngine::RangeNode*)pEntity->pEntityRangeNode());
-
+	
 	onEnterWorld(pEntity);
 }
 

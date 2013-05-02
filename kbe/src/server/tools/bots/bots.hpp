@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/script.hpp"
 #include "network/endpoint.hpp"
 #include "helper/debug_helper.hpp"
+#include "helper/script_loglevel.hpp"
 #include "xmlplus/xmlplus.hpp"	
 #include "cstdkbe/singleton.hpp"
 #include "cstdkbe/smartpointer.hpp"
@@ -82,6 +83,11 @@ public:
 	static Bots& getSingleton(){ 
 		return *static_cast<Bots*>(ClientApp::getSingletonPtr()); 
 	}
+
+	/**
+		设置脚本输出类型前缀
+	*/
+	static PyObject* __py_setScriptLogType(PyObject* self, PyObject* args);
 
 	bool run(void);
 
