@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/pyobject_pointer.hpp"
 #include "pyscript/pywatcher.hpp"
 #include "helper/debug_helper.hpp"
+#include "helper/script_loglevel.hpp"
 #include "helper/profile.hpp"
 #include "server/script_timers.hpp"
 #include "server/idallocate.hpp"
@@ -172,6 +173,11 @@ public:
 		获取apps发布状态, 可在脚本中获取该值
 	*/
 	static PyObject* __py_getAppPublish(PyObject* self, PyObject* args);
+
+	/**
+		设置脚本输出类型前缀
+	*/
+	static PyObject* __py_setScriptLogType(PyObject* self, PyObject* args);
 protected:
 	KBEngine::script::Script								script_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
@@ -414,7 +420,34 @@ bool EntityApp<E>::installPyModules()
 
 	// 注册创建entity的方法到py
 	// 向脚本注册app发布状态
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	publish,	__py_getAppPublish,		METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	publish,		__py_getAppPublish,		METH_VARARGS,	0)
+
+	// 注册设置脚本输出类型
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	scriptLogType,	__py_setScriptLogType,	METH_VARARGS,	0)
+	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_NORMAL", log4cxx::ScriptLevel::SCRIPT_INT))
+	{
+		ERROR_MSG( "EntityApp::installPyModules: Unable to set KBEngine.LOG_TYPE_NORMAL.\n");
+	}
+
+	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_INFO", log4cxx::ScriptLevel::SCRIPT_INFO))
+	{
+		ERROR_MSG( "EntityApp::installPyModules: Unable to set KBEngine.LOG_TYPE_INFO.\n");
+	}
+
+	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_ERR", log4cxx::ScriptLevel::SCRIPT_ERR))
+	{
+		ERROR_MSG( "EntityApp::installPyModules: Unable to set KBEngine.LOG_TYPE_ERR.\n");
+	}
+
+	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_DBG", log4cxx::ScriptLevel::SCRIPT_DBG))
+	{
+		ERROR_MSG( "EntityApp::installPyModules: Unable to set KBEngine.LOG_TYPE_DBG.\n");
+	}
+
+	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_WAR", log4cxx::ScriptLevel::SCRIPT_WAR))
+	{
+		ERROR_MSG( "EntityApp::installPyModules: Unable to set KBEngine.LOG_TYPE_WAR.\n");
+	}
 
 	onInstallPyModules();
 	return true;
@@ -615,6 +648,29 @@ template<class E>
 PyObject* EntityApp<E>::__py_getAppPublish(PyObject* self, PyObject* args)
 {
 	return PyLong_FromLong(g_appPublish);
+}
+
+template<class E>
+PyObject* EntityApp<E>::__py_setScriptLogType(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	int type = -1;
+
+	if(PyArg_ParseTuple(args, "i", &type) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
+		PyErr_PrintEx(0);
+	}
+
+	DebugHelper::getSingleton().setScriptMsgType(type);
+	S_Return;
 }
 
 template<class E>

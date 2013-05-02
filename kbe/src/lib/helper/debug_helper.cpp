@@ -105,7 +105,8 @@ logMutex(),
 bufferedLogPackets_(),
 syncStarting_(false),
 pNetworkInterface_(NULL),
-pDispatcher_(NULL)
+pDispatcher_(NULL),
+scriptMsgType_(log4cxx::ScriptLevel::SCRIPT_INT)
 {
 }
 
@@ -383,10 +384,16 @@ void DebugHelper::script_msg(std::string s)
 
 #ifdef NO_USE_LOG4CXX
 #else
-	LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::getScript(), s);
+	LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), s);
 #endif
 
 	onMessage(LOG_SCRIPT, s.c_str(), s.size());
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::setScriptMsgType(int msgtype)
+{
+	scriptMsgType_ = msgtype;
 }
 
 //-------------------------------------------------------------------------------------

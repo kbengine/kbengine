@@ -160,6 +160,8 @@ public:
 	void changeLogger(std::string name);
 
 	void clearBufferedLog();
+
+	void setScriptMsgType(int msgtype);
 private:
 	FILE* _logfile;
 	std::string _currFile, _currFuncName;
@@ -170,6 +172,8 @@ private:
 	bool syncStarting_;
 	Mercury:: NetworkInterface* pNetworkInterface_;
 	Mercury:: EventDispatcher* pDispatcher_;
+
+	int scriptMsgType_;
 };
 
 /*---------------------------------------------------------------------------------

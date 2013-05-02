@@ -594,6 +594,14 @@ uint32 Entity::addProximity(float range_xz, float range_y, int32 userarg)
 
 		return 0;
 	}
+	
+	if(this->pEntityRangeNode() == NULL || this->pEntityRangeNode()->pRangeList() == NULL)
+	{
+		ERROR_MSG(boost::format("Entity::addProximity: %1% %2% not in world. pRangeList() == NULL\n") % 
+			getScriptName() % getID());
+
+		return 0;
+	}
 
 	// 在space中投放一个陷阱
 	ProximityController* p = new ProximityController(this, range_xz, range_y, userarg, pControllers_->freeID());

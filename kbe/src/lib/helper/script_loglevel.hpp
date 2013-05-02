@@ -33,9 +33,17 @@ namespace log4cxx
         enum
         {
             SCRIPT_INT = Level::INFO_INT + 1000,
+			SCRIPT_INFO = Level::INFO_INT + 1001,
+			SCRIPT_ERR = Level::INFO_INT + 1002,
+			SCRIPT_DBG = Level::INFO_INT + 1003,
+			SCRIPT_WAR = Level::INFO_INT + 1004,
         };
 
-      static LevelPtr getScript();
+      static LevelPtr getScriptInfo();
+      static LevelPtr getScriptWarning();
+	  static LevelPtr getScriptError();
+	  static LevelPtr getScriptDebug();
+	  static LevelPtr getScript();
 
 
       ScriptLevel(int level, const LogString& name, int syslogEquivalent);
