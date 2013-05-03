@@ -14,7 +14,7 @@ class Account(KBEngine.Entity):
 		"""
 		
 		DEBUG_MSG("Account:onReqAvatarList::%s" % (list(infos['values'])))
-		self.base.reqCreateAvatar(4, "kbe")
+		self.base.reqCreateAvatar(1, "kbe")
 		
 	def onCreateAvatarResult(self, retcode, info):
 		"""
