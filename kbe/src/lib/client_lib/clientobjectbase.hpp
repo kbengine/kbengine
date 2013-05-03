@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "helper/debug_helper.hpp"
+#include "helper/script_loglevel.hpp"
 #include "pyscript/scriptobject.hpp"
 #include "entitydef/entities.hpp"
 #include "entitydef/common.hpp"
