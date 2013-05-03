@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entity.hpp"
 #include "config.hpp"
 #include "cstdkbe/kbeversion.hpp"
+#include "helper/script_loglevel.hpp"
 #include "network/channel.hpp"
 #include "network/tcp_packet_receiver.hpp"
 #include "thread/threadpool.hpp"
