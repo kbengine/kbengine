@@ -164,7 +164,7 @@ COMPONENT_ID Cellappmgr::findFreeCellapp(void)
 {
 	Components::COMPONENTS& components = Components::getSingleton().getComponents(CELLAPP_TYPE);
 	if(components.size() == 0)
-		return NULL;
+		return 0;
 
 	/*
 	std::tr1::mt19937 engine;
