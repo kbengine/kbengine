@@ -49,6 +49,7 @@ typedef uint16 SERVER_ERROR_CODE;								// 错误码类别
 #define SERVER_ERR_BUSY								8			// 操作过于繁忙(例如：在服务器前一次请求未执行完毕的情况下连续N次创建账号)。
 #define SERVER_ERR_ANOTHER_LOGON					9			// 当前账号在另一处登录了。
 #define SERVER_ERR_ACCOUNT_ONLINE					10			// 你已经登录了， 服务器拒绝再次登录。
+#define SERVER_ERR_PROXY_DESTROYED					11			// 与客户端关联的proxy在服务器上已经销毁。
 
 const char SERVER_ERR_STR[][256] = {
 	"SERVER_SUCCESS",
@@ -61,7 +62,8 @@ const char SERVER_ERR_STR[][256] = {
 	"SERVER_ERR_ACCOUNT_CREATE",
 	"SERVER_ERR_BUSY",
 	"SERVER_ERR_ANOTHER_LOGON",
-	"SERVER_ERR_ACCOUNT_ONLINE"
+	"SERVER_ERR_ACCOUNT_ONLINE",
+	"SERVER_ERR_PROXY_DESTROYED"
 };
 
 }

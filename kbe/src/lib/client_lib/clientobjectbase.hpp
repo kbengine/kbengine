@@ -208,7 +208,7 @@ public:
 	/** 网络接口
 	   被踢出服务器
 	*/
-	virtual void onKicked(Mercury::Channel * pChannel, MemoryStream& s);
+	virtual void onKicked(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode);
 
 	/** 网络接口
 		服务器更新entity属性

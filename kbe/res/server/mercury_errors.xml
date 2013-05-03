@@ -55,5 +55,9 @@
 		<id>10</id>
 		<descr>	你已经登录了， 服务器拒绝再次登录。</descr>
 	</MERCURY_ERR_ACCOUNT_ONLINE>
-	
+
+	<MERCURY_ERR_PROXY_DESTROYED>
+		<id>11</id>
+		<descr>	与客户端关联的proxy在服务器上已经销毁。</descr>
+	</MERCURY_ERR_PROXY_DESTROYED>
 </root>

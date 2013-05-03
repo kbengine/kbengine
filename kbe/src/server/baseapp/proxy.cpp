@@ -77,6 +77,7 @@ Proxy::~Proxy()
 	{
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(ClientInterface::onKicked);
+		ClientInterface::onKickedArgs1::staticAddToBundle(*pBundle, SERVER_ERR_PROXY_DESTROYED);
 		pBundle->send(Baseapp::getSingleton().getNetworkInterface(), pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		pChannel->condemn();

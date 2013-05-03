@@ -216,6 +216,7 @@
 		<id>517</id>
 		<descr>服务器已经踢出该客户端。
 		</descr>
+		<arg>UINT16</arg> <!-- 错误码 mercury_errors.xml -->
 	</Client::onKicked>
 	
 	<Property::position>

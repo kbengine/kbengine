@@ -505,6 +505,15 @@ public:																										\
 				PropertyDescription* propertyDescription = iter->second;									\
 				DataType* dataType = propertyDescription->getDataType();									\
 																											\
+				if(isDestroyed_)																			\
+				{																							\
+					PyErr_Format(PyExc_AssertionError, "can't set %s.%s to %s. entity is destroyed!",		\
+													getScriptName(), ccattr, value->ob_type->tp_name);		\
+					PyErr_PrintEx(0);																		\
+					free(ccattr);																			\
+					return 0;																				\
+				}																							\
+																											\
 				if(!dataType->isSameType(value))															\
 				{																							\
 					PyErr_Format(PyExc_ValueError, "can't set %s.%s to %s.",								\

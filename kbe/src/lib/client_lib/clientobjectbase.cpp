@@ -183,8 +183,10 @@ Mercury::Channel* ClientObjectBase::findChannelByMailbox(EntityMailbox& mailbox)
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onKicked(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onKicked(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
+	INFO_MSG(boost::format("ClientObjectBase::onKicked: code=%1%\n") % failedcode);
+
 #ifdef unix
 	::close(*pChannel->endpoint());
 #elif defined(PLAYSTATION3)

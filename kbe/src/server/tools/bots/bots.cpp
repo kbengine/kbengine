@@ -560,6 +560,16 @@ void Bots::onRemoteMethodCall(Mercury::Channel* pChannel, KBEngine::MemoryStream
 	}
 }
 
+//-------------------------------------------------------------------------------------	
+void Bots::onKicked(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->onKicked(pChannel, failedcode);
+	}
+}
+
 //-------------------------------------------------------------------------------------
 void Bots::onUpdatePropertys(Mercury::Channel* pChannel, MemoryStream& s)
 {
