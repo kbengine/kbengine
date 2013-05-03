@@ -90,7 +90,7 @@ isReal_(true),
 isOnGround_(false),
 topSpeed_(-0.1f),
 topSpeedY_(-0.1f),
-witnessedNum_(0),
+witnesses_(),
 pWitness_(NULL),
 allClients_(new AllClients(scriptModule, id, true)),
 otherClients_(new AllClients(scriptModule, id, false)),
@@ -532,7 +532,7 @@ PyObject* Entity::pyIsReal()
 //-------------------------------------------------------------------------------------
 void Entity::addWitnessed(Entity* entity)
 {
-	witnessedNum_++;
+	witnesses_.push_back(entity->getID());
 
 	/*
 	int8 detailLevel = scriptModule_->getDetailLevel().getLevelByRange(range);
@@ -553,7 +553,7 @@ void Entity::addWitnessed(Entity* entity)
 	onEntityInitDetailLevel(entity, detailLevel);
 	*/
 
-	if(witnessedNum_ == 1)
+	if(witnesses_.size() == 1)
 	{
 		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWitnessed"), 
 			const_cast<char*>("O"), PyBool_FromLong(1));
@@ -563,10 +563,11 @@ void Entity::addWitnessed(Entity* entity)
 //-------------------------------------------------------------------------------------
 void Entity::delWitnessed(Entity* entity)
 {
-	KBE_ASSERT(witnessedNum_ > 0);
+	KBE_ASSERT(witnesses_.size() > 0);
 
-	--witnessedNum_; 
-	if(witnessedNum_ == 0)
+	witnesses_.remove(entity->getID());
+
+	if(witnesses_.size() == 0)
 	{
 		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWitnessed"), 
 			const_cast<char*>("O"), PyBool_FromLong(0));

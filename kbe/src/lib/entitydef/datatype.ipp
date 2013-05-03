@@ -103,7 +103,7 @@ void IntType<SPECIFY_TYPE>::addToStream(MemoryStream* mstream,
 		{
 			PyErr_Clear();
 			PyErr_Format(PyExc_TypeError, "IntType::addToStream: pyValue(%s) is error!", 
-				pyValue->ob_type->tp_name);
+				(pyValue == NULL) ? "NULL": pyValue->ob_type->tp_name);
 
 			PyErr_PrintEx(0);
 

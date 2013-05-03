@@ -30,7 +30,7 @@ INLINE void Entity::setClientMailbox(EntityMailbox* mailbox)
 //-------------------------------------------------------------------------------------
 INLINE bool Entity::isWitnessed(void)const
 { 
-	return witnessedNum_ > 0; 
+	return witnesses_.size() > 0; 
 }
 
 //-------------------------------------------------------------------------------------

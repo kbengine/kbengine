@@ -156,7 +156,7 @@ void UInt64Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
 			{
 				PyErr_Clear();
 				PyErr_Format(PyExc_TypeError, "UInt64Type::addToStream: pyValue(%s) is error!", 
-					pyValue->ob_type->tp_name);
+					(pyValue == NULL) ? "NULL": pyValue->ob_type->tp_name);
 
 				PyErr_PrintEx(0);
 
@@ -275,7 +275,7 @@ void UInt32Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
 			PyErr_Clear();
 
 			PyErr_Format(PyExc_TypeError, "UInt32Type::addToStream: pyValue(%s) is error!", 
-				pyValue->ob_type->tp_name);
+				(pyValue == NULL) ? "NULL": pyValue->ob_type->tp_name);
 
 			PyErr_PrintEx(0);
 
@@ -388,7 +388,7 @@ void Int64Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
 			PyErr_Clear();
 
 			PyErr_Format(PyExc_TypeError, "Int64Type::addToStream: pyValue(%s) is error!", 
-				pyValue->ob_type->tp_name);
+				(pyValue == NULL) ? "NULL": pyValue->ob_type->tp_name);
 
 			PyErr_PrintEx(0);
 
@@ -476,6 +476,15 @@ PyObject* FloatType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void FloatType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
+	if(!PyFloat_Check(pyValue))
+	{
+		PyErr_Format(PyExc_TypeError, "FloatType::addToStream: pyValue(%s) is error!", 
+			(pyValue == NULL) ? "NULL": pyValue->ob_type->tp_name);
+
+		PyErr_PrintEx(0);
+		return;
+	}
+
 	float val = (float)PyFloat_AsDouble(pyValue);
 	(*mstream) << val;
 }
@@ -557,6 +566,15 @@ PyObject* DoubleType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void DoubleType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
+	if(!PyFloat_Check(pyValue))
+	{
+		PyErr_Format(PyExc_TypeError, "DoubleType::addToStream: pyValue(%s) is error!", 
+			(pyValue == NULL) ? "NULL": pyValue->ob_type->tp_name);
+
+		PyErr_PrintEx(0);
+		return;
+	}
+
 	(*mstream) << PyFloat_AsDouble(pyValue);
 }
 

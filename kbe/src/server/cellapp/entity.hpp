@@ -426,29 +426,47 @@ private:
 	*/
 	void _sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, SPACE_ID spaceID, SPACE_ID lastSpaceID);
 protected:
-	EntityMailbox*							clientMailbox_;						// 这个entity的客户端mailbox
-	EntityMailbox*							baseMailbox_;						// 这个entity的baseapp mailbox
+	// 这个entity的客户端mailbox
+	EntityMailbox*							clientMailbox_;						
 
-	Position3D								position_;							// entity的当前位置
-	Direction3D								direction_;							// entity的当前方向
+	// 这个entity的baseapp mailbox
+	EntityMailbox*							baseMailbox_;						
 
-	bool									isReal_;							// 自己是否是一个realEntity
-	bool									isOnGround_;						// 是否在地面上
+	// entity的当前位置
+	Position3D								position_;							
 
-	float									topSpeed_;							// entity x,z轴最高移动速度
-	float									topSpeedY_;							// entity y轴最高移动速度
+	// entity的当前方向
+	Direction3D								direction_;							
 
-	SPACE_ENTITIES::size_type				spaceEntityIdx_;					// 自身在space的entities中的位置
+	// 自己是否是一个realEntity
+	bool									isReal_;	
 
-	uint16									witnessedNum_;						// 是否被任何观察者监视到
-	Witness*								pWitness_;							// 观察者对象
+	// 是否在地面上
+	bool									isOnGround_;						
+
+	// entity x,z轴最高移动速度
+	float									topSpeed_;							
+
+	// entity y轴最高移动速度
+	float									topSpeedY_;							
+
+	// 自身在space的entities中的位置
+	SPACE_ENTITIES::size_type				spaceEntityIdx_;					
+
+	// 是否被任何观察者监视到
+	std::list<ENTITY_ID>					witnesses_;
+
+	// 观察者对象
+	Witness*								pWitness_;							
 
 	AllClients*								allClients_;
 	AllClients*								otherClients_;
 
-	EntityRangeNode*						pEntityRangeNode_;					// entity节点
+	// entity节点
+	EntityRangeNode*						pEntityRangeNode_;					
 
-	Controllers*							pControllers_;						// 控制器管理器
+	// 控制器管理器
+	Controllers*							pControllers_;						
 	Controller*								pMoveController_;
 
 	// 是否进行自动备份 <= 0为false, 1为true, KBE_NEXT_ONLY为执行一次后自动为false
