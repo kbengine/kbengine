@@ -82,6 +82,10 @@ bool BackupSender::backup(Base& base, MemoryStream& s)
 {
 	// 这里开始将需要备份的数据写入流
 	base.writeBackupData(&s);
+
+	if(base.shouldAutoBackup() == KBE_NEXT_ONLY)
+		base.shouldAutoBackup(0);
+
 	return true;
 }
 
@@ -94,7 +98,10 @@ void BackupSender::createBackupTable()
 
 	for(; iter != Baseapp::getSingleton().pEntities()->getEntities().end(); iter++)
 	{
-		backupEntityIDs_.push_back(iter->first);
+		Base* pBase = static_cast<Base*>(iter->second.get());
+
+		if(pBase->shouldAutoBackup() > 0)
+			backupEntityIDs_.push_back(iter->first);
 	}
 
 	// 随机一下序列

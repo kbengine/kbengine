@@ -173,5 +173,15 @@ INLINE bool Entity::isOnGround()const
 	return isOnGround_;
 }
 
+INLINE int8 Entity::shouldAutoBackup()const
+{
+	return shouldAutoBackup_;
+}
+
+INLINE void Entity::shouldAutoBackup(int8 v)
+{
+	shouldAutoBackup_ = v;
+}
+
 //-------------------------------------------------------------------------------------
 }

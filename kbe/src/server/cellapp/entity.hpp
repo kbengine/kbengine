@@ -295,7 +295,14 @@ public:
 		脚本请求获得AOI范围内的entities 
 	*/
 	DECLARE_PY_MOTHOD_ARG0(pyEntitiesInAOI);
-public:
+
+	/**
+		设置获取是否自动备份
+	*/
+	INLINE int8 shouldAutoBackup()const;
+	INLINE void shouldAutoBackup(int8 v);
+	DECLARE_PY_GETSET_MOTHOD(pyGetShouldAutoBackup, pySetShouldAutoBackup);
+
 	/** 网络接口
 		远程呼叫本entity的方法 
 	*/
@@ -443,6 +450,9 @@ protected:
 
 	Controllers*							pControllers_;						// 控制器管理器
 	Controller*								pMoveController_;
+
+	// 是否进行自动备份 <= 0为false, 1为true, KBE_NEXT_ONLY为执行一次后自动为false
+	int8									shouldAutoBackup_;
 };																										
 																											
 

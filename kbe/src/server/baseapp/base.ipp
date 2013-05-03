@@ -83,4 +83,24 @@ INLINE bool Base::inRestore()
 	return inRestore_;
 }
 
+INLINE int8 Base::shouldAutoArchive()const
+{
+	return shouldAutoArchive_;
+}
+
+INLINE void Base::shouldAutoArchive(int8 v)
+{
+	shouldAutoArchive_ = v;
+}
+
+INLINE int8 Base::shouldAutoBackup()const
+{
+	return shouldAutoBackup_;
+}
+
+INLINE void Base::shouldAutoBackup(int8 v)
+{
+	shouldAutoBackup_ = v;
+}
+
 }

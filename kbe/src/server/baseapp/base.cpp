@@ -46,9 +46,11 @@ SCRIPT_MEMBER_DECLARE_BEGIN(Base)
 SCRIPT_MEMBER_DECLARE_END()
 
 ENTITY_GETSET_DECLARE_BEGIN(Base)
-SCRIPT_GET_DECLARE("cell",								pyGetCellMailbox,				0,						0)	
-SCRIPT_GET_DECLARE("client",							pyGetClientMailbox,				0,						0)	
-SCRIPT_GET_DECLARE("databaseID",						pyGetDBID,						0,						0)	
+SCRIPT_GET_DECLARE("cell",								pyGetCellMailbox,				0,								0)	
+SCRIPT_GET_DECLARE("client",							pyGetClientMailbox,				0,								0)	
+SCRIPT_GET_DECLARE("databaseID",						pyGetDBID,						0,								0)	
+SCRIPT_GETSET_DECLARE("shouldAutoBackup",				pyGetShouldAutoBackup,			pySetShouldAutoBackup,			0,		0)
+SCRIPT_GETSET_DECLARE("shouldAutoArchive",				pyGetShouldAutoArchive,			pySetShouldAutoArchive,			0,		0)
 ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Base, 0, 0, 0, 0, 0)	
 	
@@ -64,6 +66,8 @@ hasDB_(false),
 DBID_(0),
 isGetingCellData_(false),
 isArchiveing_(false),
+shouldAutoArchive_(1),
+shouldAutoBackup_(1),
 creatingCell_(false),
 createdSpace_(false),
 inRestore_(false)
@@ -123,7 +127,7 @@ void Base::onDestroy(void)
 }
 
 //-------------------------------------------------------------------------------------
-bool Base::installCellDataAttr(PyObject* dictData)
+bool Base::installCellDataAttr(PyObject* dictData, bool installpy)
 {
 	if(dictData != NULL)
 	{
@@ -136,15 +140,22 @@ bool Base::installCellDataAttr(PyObject* dictData)
 			Py_INCREF(cellDataDict_);
 		}
 	}
-	else if(cellDataDict_ == NULL)
-		cellDataDict_ = PyDict_New();
-	
-	if(PyObject_SetAttrString(this, "cellData", cellDataDict_) == -1)
+
+	if(installpy)
 	{
-		ERROR_MSG("Base::installCellDataAttr: set property cellData is error!\n");
-		SCRIPT_ERROR_CHECK();
-		return false;
+		if(cellDataDict_ == NULL)
+		{
+			cellDataDict_ = PyDict_New();
+		}
+
+		if(PyObject_SetAttrString(this, "cellData", cellDataDict_) == -1)
+		{
+			ERROR_MSG("Base::installCellDataAttr: set property cellData is error!\n");
+			SCRIPT_ERROR_CHECK();
+			return false;
+		}
 	}
+
 	return true;
 }
 
@@ -456,6 +467,9 @@ void Base::onDestroyEntity(bool deleteFromDB, bool writeToDB)
 	{
 		this->hasDB(false);
 	}
+
+	shouldAutoArchive_ = 0;
+	shouldAutoBackup_ = 0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -508,6 +522,64 @@ PyObject* Base::pyGetClientMailbox()
 
 	Py_INCREF(mailbox);
 	return mailbox; 
+}
+
+//-------------------------------------------------------------------------------------
+int Base::pySetShouldAutoArchive(PyObject *value)
+{
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;																				
+	}
+
+	if(!PyLong_Check(value))
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d set shouldAutoArchive value is not int!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;	
+	}
+
+	shouldAutoArchive_ = (int8)PyLong_AsLong(value);
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Base::pyGetShouldAutoArchive()
+{
+	return PyLong_FromLong(shouldAutoArchive_);
+}
+
+//-------------------------------------------------------------------------------------
+int Base::pySetShouldAutoBackup(PyObject *value)
+{
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;																				
+	}
+
+	if(!PyLong_Check(value))
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d set shouldAutoBackup value is not int!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;	
+	}
+
+	shouldAutoBackup_ = (int8)PyLong_AsLong(value);
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Base::pyGetShouldAutoBackup()
+{
+	return PyLong_FromLong(shouldAutoBackup_);
 }
 
 //-------------------------------------------------------------------------------------

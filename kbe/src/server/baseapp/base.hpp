@@ -119,7 +119,7 @@ public:
 	/** 
 		cellData部分 
 	*/
-	bool installCellDataAttr(PyObject* dictData = NULL);
+	bool installCellDataAttr(PyObject* dictData = NULL, bool installpy = true);
 
 	void createCellData(void);
 
@@ -247,6 +247,20 @@ public:
 	void reqTeleportOther(Mercury::Channel* pChannel, ENTITY_ID reqTeleportEntityID, 
 		COMPONENT_ID reqTeleportEntityCellAppID, COMPONENT_ID reqTeleportEntityBaseAppID);
 
+	/**
+		设置获取是否自动存档
+	*/
+	INLINE int8 shouldAutoArchive()const;
+	INLINE void shouldAutoArchive(int8 v);
+	DECLARE_PY_GETSET_MOTHOD(pyGetShouldAutoArchive, pySetShouldAutoArchive);
+
+	/**
+		设置获取是否自动备份
+	*/
+	INLINE int8 shouldAutoBackup()const;
+	INLINE void shouldAutoBackup(int8 v);
+	DECLARE_PY_GETSET_MOTHOD(pyGetShouldAutoBackup, pySetShouldAutoBackup);
+
 protected:
 	// 这个entity的客户端mailbox cellapp mailbox
 	EntityMailbox*							clientMailbox_;			
@@ -264,6 +278,12 @@ protected:
 
 	// 是否正在存档中
 	bool									isArchiveing_;
+
+	// 是否进行自动存档 <= 0为false, 1为true, KBE_NEXT_ONLY为执行一次后自动为false
+	int8									shouldAutoArchive_;
+	
+	// 是否进行自动备份 <= 0为false, 1为true, KBE_NEXT_ONLY为执行一次后自动为false
+	int8									shouldAutoBackup_;
 
 	// 是否正在创建cell中
 	bool									creatingCell_;

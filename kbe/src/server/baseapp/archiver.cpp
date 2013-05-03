@@ -74,6 +74,9 @@ void Archiver::tick()
 void Archiver::archive(Base& base)
 {
 	base.writeToDB(NULL);
+
+	if(base.shouldAutoArchive() == KBE_NEXT_ONLY)
+		base.shouldAutoArchive(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -86,7 +89,9 @@ void Archiver::createArchiveTable()
 
 	for(; iter != Baseapp::getSingleton().pEntities()->getEntities().end(); iter++)
 	{
-		if(static_cast<Base*>(iter->second.get())->hasDB())
+		Base* pBase = static_cast<Base*>(iter->second.get());
+
+		if(pBase->hasDB() && pBase->shouldAutoArchive() > 0)
 		{
 			backupEntityIDs_.push_back(iter->first);
 		}

@@ -66,16 +66,17 @@ SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
 SCRIPT_MEMBER_DECLARE_END()
 
 ENTITY_GETSET_DECLARE_BEGIN(Entity)
-SCRIPT_GET_DECLARE("base",							pyGetBaseMailbox,				0,					0)
-SCRIPT_GET_DECLARE("client",						pyGetClientMailbox,				0,					0)
-SCRIPT_GET_DECLARE("allClients",					pyGetAllClients,				0,					0)
-SCRIPT_GET_DECLARE("otherClients",					pyGetOtherClients,				0,					0)
-SCRIPT_GET_DECLARE("isWitnessed",					pyIsWitnessed,					0,					0)
-SCRIPT_GET_DECLARE("hasWitness",					pyHasWitness,					0,					0)
-SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,		0,		0)
-SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,		0,		0)
-SCRIPT_GETSET_DECLARE("topSpeed",					pyGetTopSpeed,					pySetTopSpeed,		0,		0)
-SCRIPT_GETSET_DECLARE("topSpeedY",					pyGetTopSpeedY,					pySetTopSpeedY,		0,		0)
+SCRIPT_GET_DECLARE("base",							pyGetBaseMailbox,				0,							0)
+SCRIPT_GET_DECLARE("client",						pyGetClientMailbox,				0,							0)
+SCRIPT_GET_DECLARE("allClients",					pyGetAllClients,				0,							0)
+SCRIPT_GET_DECLARE("otherClients",					pyGetOtherClients,				0,							0)
+SCRIPT_GET_DECLARE("isWitnessed",					pyIsWitnessed,					0,							0)
+SCRIPT_GET_DECLARE("hasWitness",					pyHasWitness,					0,							0)
+SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,				0,		0)
+SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,				0,		0)
+SCRIPT_GETSET_DECLARE("topSpeed",					pyGetTopSpeed,					pySetTopSpeed,				0,		0)
+SCRIPT_GETSET_DECLARE("topSpeedY",					pyGetTopSpeedY,					pySetTopSpeedY,				0,		0)
+SCRIPT_GETSET_DECLARE("shouldAutoBackup",			pyGetShouldAutoBackup,			pySetShouldAutoBackup,		0,		0)
 ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 	
@@ -1511,6 +1512,35 @@ void Entity::onRestore()
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onRestore"));
+}
+
+//-------------------------------------------------------------------------------------
+int Entity::pySetShouldAutoBackup(PyObject *value)
+{
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;																				
+	}
+
+	if(!PyLong_Check(value))
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d set shouldAutoBackup value is not int!\n",		
+			getScriptName(), getID());		
+		PyErr_PrintEx(0);
+		return 0;	
+	}
+
+	shouldAutoBackup_ = (int8)PyLong_AsLong(value);
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetShouldAutoBackup()
+{
+	return PyLong_FromLong(shouldAutoBackup_);
 }
 
 //-------------------------------------------------------------------------------------

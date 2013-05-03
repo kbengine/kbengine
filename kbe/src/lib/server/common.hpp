@@ -153,5 +153,8 @@ inline uint64 secondsToStamps(float seconds)
 // 登录注册时附带的信息最大长度
 #define ACCOUNT_DATA_MAX_LENGTH 1024
 
+// 被用来描述任何只做一次后自动设置为不做的选项
+#define KBE_NEXT_ONLY 2
+
 }
 #endif
