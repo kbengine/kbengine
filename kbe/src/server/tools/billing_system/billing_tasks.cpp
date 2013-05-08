@@ -161,7 +161,7 @@ bool CreateAccountTask::process()
 	try
 	{
 		std::string::size_type fi = getDatas.find("\r\n\r\n");
-		if(fi > 0)
+		if(fi != std::string::npos)
 		{
 			fi += 4;
 			MemoryStream s;
@@ -466,6 +466,9 @@ thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 
 		if(pChannel)
 		{
+			WARNING_MSG(boost::format("ChargeTask::presentMainThread: orders=%1% commit is failed!\n") % 
+				pOrders->ordersID);
+
 			(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
 		}
 		else
