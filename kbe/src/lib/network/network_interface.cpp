@@ -364,6 +364,19 @@ Channel * NetworkInterface::findChannel(const Address & addr)
 }
 
 //-------------------------------------------------------------------------------------
+Channel * NetworkInterface::findChannel(int fd)
+{
+	ChannelMap::iterator iter = channelMap_.begin();
+	for(; iter != channelMap_.end(); iter++)
+	{
+		if(iter->second->endpoint() && *iter->second->endpoint() == fd)
+			return iter->second;
+	}
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
 bool NetworkInterface::registerChannel(Channel* pChannel)
 {
 	const Address & addr = pChannel->addr();

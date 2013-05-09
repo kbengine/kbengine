@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 namespace Mercury{
 	class EndPoint;
+	class Mercury::NetworkInterface;
 }
 
 class TelnetHandler;
@@ -58,10 +59,11 @@ public:
 		TELNET_STATE_PASSWD,
 		TELNET_STATE_ROOT,
 		TELNET_STATE_PYTHON,
-		TELNET_STATE_READONLY
+		TELNET_STATE_READONLY,
+		TELNET_STATE_QUIT
 	};
 
-    TelnetHandler(Mercury::EndPoint* pEndPoint, TelnetServer* pTelnetServer, 
+    TelnetHandler(Mercury::EndPoint* pEndPoint, TelnetServer* pTelnetServer, Mercury::NetworkInterface* pNetworkInterface,
 		TELNET_STATE defstate = TELNET_STATE_ROOT);
 
 	virtual ~TelnetHandler(void);
@@ -108,6 +110,8 @@ private:
 	int32 currPos_;
 
 	TelnetProfileHandler* pProfileHandler_;
+
+	Mercury::NetworkInterface* pNetworkInterface_;
 };
 
 

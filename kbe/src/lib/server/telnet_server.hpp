@@ -57,6 +57,8 @@ public:
 	INLINE int deflayer();
 
 	INLINE Mercury::NetworkInterface* pNetworkInterface()const;
+
+	void closeHandler(int fd, TelnetHandler* pTelnetHandler);
 private:
 	int	handleInputNotification(int fd);
 

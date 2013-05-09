@@ -132,6 +132,28 @@ bool TelnetServer::stop()
 }
 
 //-------------------------------------------------------------------------------------
+void TelnetServer::closeHandler(int fd, TelnetHandler* pTelnetHandler)
+{
+	TelnetHandlers::iterator iter = handlers_.find(fd);
+	if(iter == handlers_.end() || iter->second.get() != pTelnetHandler)
+	{
+		ERROR_MSG(boost::format("TelnetServer::closeHandler: not found fd(%1%)!\n") % fd);
+		return;
+	}
+
+	pDispatcher_->deregisterFileDescriptor(fd);
+	handlers_.erase(iter);
+
+#ifdef unix
+	::close(fd);
+#elif defined(PLAYSTATION3)
+	::socketclose(fd);
+#else
+	::closesocket(fd);
+#endif
+}
+
+//-------------------------------------------------------------------------------------
 int	TelnetServer::handleInputNotification(int fd)
 {
 	KBE_ASSERT(listener_ == fd);
@@ -153,7 +175,7 @@ int	TelnetServer::handleInputNotification(int fd)
 		}
 		else
 		{
-			TelnetHandler* pTelnetHandler = new TelnetHandler(pNewEndPoint, this, passwd_.size() > 0 ? 
+			TelnetHandler* pTelnetHandler = new TelnetHandler(pNewEndPoint, this, pNetworkInterface_, passwd_.size() > 0 ? 
 				TelnetHandler::TELNET_STATE_PASSWD : (TelnetHandler::TELNET_STATE)this->deflayer());
 
 			if(!pDispatcher_->registerFileDescriptor((*pNewEndPoint), pTelnetHandler))
@@ -168,7 +190,7 @@ int	TelnetServer::handleInputNotification(int fd)
 			INFO_MSG(boost::format("TelnetServer::handleInputNotification: new handler(%1%)!\n") %
 				pNewEndPoint->c_str());
 
-			handlers_[fd].reset(pTelnetHandler);
+			handlers_[(*pNewEndPoint)].reset(pTelnetHandler);
 
 			std::string s;
 

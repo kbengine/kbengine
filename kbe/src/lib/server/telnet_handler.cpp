@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "telnet_server.hpp"
 #include "network/bundle.hpp"
 #include "network/endpoint.hpp"
+#include "network/network_interface.hpp"
 #include "pyscript/script.hpp"
 
 #ifndef CODE_INLINE
@@ -108,7 +109,7 @@ char _g_state_str[][256] = {
 #define TELNET_CMD_MOVE_FOCUS_RIGHT_MAX			"\33[9999999999C"	// 右移光标到最后面
 
 //-------------------------------------------------------------------------------------
-TelnetHandler::TelnetHandler(Mercury::EndPoint* pEndPoint, TelnetServer* pTelnetServer, TELNET_STATE defstate):
+TelnetHandler::TelnetHandler(Mercury::EndPoint* pEndPoint, TelnetServer* pTelnetServer, Mercury::NetworkInterface* pNetworkInterface, TELNET_STATE defstate):
 buffer_(),
 historyCommand_(),
 historyCommandIndex_(0),
@@ -117,7 +118,8 @@ pEndPoint_(pEndPoint),
 pTelnetServer_(pTelnetServer),
 state_(defstate),
 currPos_(0),
-pProfileHandler_(NULL)
+pProfileHandler_(NULL),
+pNetworkInterface_(pNetworkInterface)
 {
 }
 
@@ -161,6 +163,7 @@ std::string TelnetHandler::help()
 {
 	return 	"\033[1;32m\r\nCommand List:"
 		"\r\n[:help          ]: list commands."
+		"\r\n[:quit          ]: quit the server."
 		"\r\n[:python        ]: python console."
 		"\r\n[:root          ]: return to the root layer."
 		"\r\n[:cprofile      ]: collects and reports the internal c++ profiles \r\n\t\tof a server process over a period of time."
@@ -251,10 +254,8 @@ void TelnetHandler::onRecvInput()
 				if(cc == '\n')
 				{
 					buffer_.pop_front();
-					if(processCommand())
-						sendNewLine();
-
-					command_ = "";
+					if(!processCommand())
+						return;
 				}
 			}
 			break;
@@ -360,7 +361,10 @@ bool TelnetHandler::checkUDLR()
 bool TelnetHandler::processCommand()
 {
 	if(command_.size() == 0)
+	{
+		sendNewLine();
 		return true;
+	}
 
 	bool logcmd = true;
 	for(int i=0; i<(int)historyCommand_.size(); i++)
@@ -379,35 +383,48 @@ bool TelnetHandler::processCommand()
 		historyCommandIndex_ = historyCommand_.size() - 1;
 	}
 
-	if(command_ == ":python")
+	std::string cmd = command_;
+	command_ = "";
+
+	if(cmd == ":python")
 	{
 		if(pTelnetServer_->pScript() == NULL)
 			return true;
 
 		state_ = TELNET_STATE_PYTHON;
+		sendNewLine();
 		return true;
 	}
-	else if(command_ == ":help")
+	else if(cmd == ":help")
 	{
 		std::string str = help();
 		pEndPoint_->send(str.c_str(), str.size());
+		sendNewLine();
 		return true;
 	}
-	else if(command_ == ":root")
+	else if(cmd == ":root")
 	{
+		sendNewLine();
 		state_ = TELNET_STATE_ROOT;
 		return true;
 	}
-	else if(command_.find(":cprofile") == 0)
+	else if(cmd == ":quit")
+	{
+		state_ = TELNET_STATE_QUIT;
+		
+		pTelnetServer_->closeHandler((*pEndPoint_), this);
+		return false;
+	}
+	else if(cmd.find(":cprofile") == 0)
 	{
 		uint32 timelen = 10;
 		
-		command_.erase(command_.find(":cprofile"), strlen(":cprofile"));
-		if(command_.size() > 0)
+		cmd.erase(cmd.find(":cprofile"), strlen(":cprofile"));
+		if(cmd.size() > 0)
 		{
 			try
 			{
-				KBEngine::StringConv::str2value(timelen, command_.c_str());
+				KBEngine::StringConv::str2value(timelen, cmd.c_str());
 			}
 			catch(...)  
 			{
@@ -430,16 +447,16 @@ bool TelnetHandler::processCommand()
 		readonly();
 		return false;
 	}
-	else if(command_.find(":pyprofile") == 0)
+	else if(cmd.find(":pyprofile") == 0)
 	{
 		uint32 timelen = 10;
 
-		command_.erase(command_.find(":pyprofile"), strlen(":pyprofile"));
-		if(command_.size() > 0)
+		cmd.erase(cmd.find(":pyprofile"), strlen(":pyprofile"));
+		if(cmd.size() > 0)
 		{
 			try
 			{
-				KBEngine::StringConv::str2value(timelen, command_.c_str());
+				KBEngine::StringConv::str2value(timelen, cmd.c_str());
 			}
 			catch(...)  
 			{
@@ -462,16 +479,16 @@ bool TelnetHandler::processCommand()
 		readonly();
 		return false;
 	}
-	else if(command_.find(":eventprofile") == 0)
+	else if(cmd.find(":eventprofile") == 0)
 	{
 		uint32 timelen = 10;
 
-		command_.erase(command_.find(":eventprofile"), strlen(":eventprofile"));
-		if(command_.size() > 0)
+		cmd.erase(cmd.find(":eventprofile"), strlen(":eventprofile"));
+		if(cmd.size() > 0)
 		{
 			try
 			{
-				KBEngine::StringConv::str2value(timelen, command_.c_str());
+				KBEngine::StringConv::str2value(timelen, cmd.c_str());
 			}
 			catch(...)  
 			{
@@ -494,16 +511,16 @@ bool TelnetHandler::processCommand()
 		readonly();
 		return false;
 	}
-	else if(command_.find(":mercuryprofile") == 0)
+	else if(cmd.find(":mercuryprofile") == 0)
 	{
 		uint32 timelen = 10;
 
-		command_.erase(command_.find(":mercuryprofile"), strlen(":mercuryprofile"));
-		if(command_.size() > 0)
+		cmd.erase(cmd.find(":mercuryprofile"), strlen(":mercuryprofile"));
+		if(cmd.size() > 0)
 		{
 			try
 			{
-				KBEngine::StringConv::str2value(timelen, command_.c_str());
+				KBEngine::StringConv::str2value(timelen, cmd.c_str());
 			}
 			catch(...)  
 			{
@@ -533,7 +550,7 @@ bool TelnetHandler::processCommand()
 	}
 	else if(state_ == TELNET_STATE_PASSWD)
 	{
-		if(command_ == pTelnetServer_->passwd())
+		if(cmd == pTelnetServer_->passwd())
 		{
 			state_ = (TELNET_STATE)pTelnetServer_->deflayer();
 			std::string s = getWelcome();
@@ -542,6 +559,7 @@ bool TelnetHandler::processCommand()
 		}
 	}
 
+	sendNewLine();
 	return true;
 }
 
