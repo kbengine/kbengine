@@ -206,7 +206,18 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 			pCurrPacket()->wpos(len);
 
 			if(recvArgs != NULL)
-				recvArgs->createFromStream(*pCurrPacket());
+			{
+				try
+				{
+					recvArgs->createFromStream(*pCurrPacket());
+				}catch(MemoryStreamException &)
+				{
+					ERROR_MSG(boost::format("BundleBroadcast::receive: data is error. size=%1%.\n") %
+							len);
+
+					continue;
+				}
+			}
 
 			break;
 
