@@ -723,12 +723,12 @@ void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 	idClient_.onAddRange(startID, endID);
 	g_kbetime = gametime;
 
-	if(digest != EntityDef::dbmgrMD5().getDigestStr())
+	if(digest != EntityDef::md5().getDigestStr())
 	{
 		ERROR_MSG(boost::format("EntityApp::onDbmgrInitCompleted: digest not match. curr(%1%) != dbmgr(%2%)\n") %
-			EntityDef::dbmgrMD5().getDigestStr() % digest);
+			EntityDef::md5().getDigestStr() % digest);
 
-		// this->shutDown();
+		this->shutDown();
 	}
 }
 

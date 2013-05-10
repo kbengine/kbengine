@@ -37,7 +37,6 @@ std::vector<ScriptDefModulePtr>	EntityDef::__scriptModules;
 std::map<std::string, ENTITY_SCRIPT_UID> EntityDef::__scriptTypeMappingUType;
 COMPONENT_TYPE EntityDef::__loadComponentType;
 KBE_MD5 EntityDef::__md5;
-KBE_MD5 EntityDef::__dbmgrMD5;
 
 // 方法产生时自动产生utype用的
 ENTITY_METHOD_UID g_methodUtypeAuto = 1;
@@ -473,7 +472,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			bool						isPersistent = false;
 			bool						isIdentifier = false;													// 是否是一个索引键
 			uint32						databaseLength = 0;														// 这个属性在数据库中的长度
-			DETAIL_TYPE					detailLevel = DETAIL_LEVEL_UNKNOW;
+			DETAIL_TYPE					detailLevel = DETAIL_LEVEL_FAR;
 			std::string					detailLevelStr = "";
 			std::string					strType;
 			std::string					strisPersistent;

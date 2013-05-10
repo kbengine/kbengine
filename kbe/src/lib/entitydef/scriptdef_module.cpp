@@ -46,23 +46,6 @@ volatileinfo_(),
 name_(name)
 {
 	EntityDef::md5().append((void*)name.c_str(), name.size());
-
-	detailLevel_.level[DETAIL_LEVEL_NEAR] = new DetailLevel::Level();
-	detailLevel_.level[DETAIL_LEVEL_MEDIUM] = new DetailLevel::Level();
-	detailLevel_.level[DETAIL_LEVEL_FAR] = new DetailLevel::Level();
-	detailLevel_.level[DETAIL_LEVEL_UNKNOW] = new DetailLevel::Level();
-	
-	detailLevel_.level[DETAIL_LEVEL_NEAR]->radius = CELL_DEF_MIN_AREA_SIZE;
-	detailLevel_.level[DETAIL_LEVEL_NEAR]->hyst = 0.0f;
-	
-	detailLevel_.level[DETAIL_LEVEL_MEDIUM]->radius = 0.0f;
-	detailLevel_.level[DETAIL_LEVEL_MEDIUM]->hyst = 0.0f;
-	
-	detailLevel_.level[DETAIL_LEVEL_FAR]->radius = 0.0f;
-	detailLevel_.level[DETAIL_LEVEL_FAR]->hyst = 0.0f;
-	
-	detailLevel_.level[DETAIL_LEVEL_UNKNOW]->radius = 999999999.0f;
-	detailLevel_.level[DETAIL_LEVEL_UNKNOW]->hyst = 0.0f;
 }
 
 //-------------------------------------------------------------------------------------

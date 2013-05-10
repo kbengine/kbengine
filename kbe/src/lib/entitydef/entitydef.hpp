@@ -155,7 +155,6 @@ public:
 	}
 
 	static KBE_MD5& md5(){ return __md5; }
-	static KBE_MD5& dbmgrMD5(){ return __dbmgrMD5; }
 
 	static bool initializeWatcher();
 private:
@@ -166,7 +165,6 @@ private:
 	static COMPONENT_TYPE __loadComponentType;									// 所需关系的组件类别的相关数据		
 
 	static KBE_MD5 __md5;														// defs-md5
-	static KBE_MD5 __dbmgrMD5;													// 和dbmgr加载defs一致的md5
 };
 
 }

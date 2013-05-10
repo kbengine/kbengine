@@ -1271,7 +1271,6 @@ bool FixedArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 	DATATYPE_UID uid = dataType_->id();
 	EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
 	EntityDef::md5().append((void*)strType.c_str(), strType.size());
-
 	return true;
 }
 
@@ -1573,19 +1572,22 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 	}
 	XML_FOR_END(propertiesNode);
 
-	if(g_componentType == CELLAPP_TYPE || g_componentType == BASEAPP_TYPE ||
-		g_componentType == CLIENT_TYPE)
+	TiXmlNode* implementedByNode = xmlplus->enterNode(node, "implementedBy");
+	if(implementedByNode)
 	{
-		TiXmlNode* implementedByNode = xmlplus->enterNode(node, "implementedBy");
-		if(implementedByNode)
+		strType = xmlplus->getValStr(implementedByNode);
+
+		if(g_componentType == CELLAPP_TYPE || g_componentType == BASEAPP_TYPE ||
+				g_componentType == CLIENT_TYPE)
 		{
-			strType = xmlplus->getValStr(implementedByNode);
 			if(strType.size() > 0 && !loadImplModule(strType))
 				return false;
 
 			moduleName_ = strType;
-			EntityDef::md5().append((void*)moduleName_.c_str(), moduleName_.size());
 		}
+
+		if(strType.size() > 0)
+			EntityDef::md5().append((void*)strType.c_str(), strType.size());
 	}
 
 	return true;
