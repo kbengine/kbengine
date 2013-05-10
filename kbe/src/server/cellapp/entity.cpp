@@ -291,7 +291,6 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	{
 	}
 	
-	/*
 	const Position3D& basePos = this->getPosition(); 
 	if((flags & ENTITY_BROADCAST_OTHER_CLIENT_FLAGS) > 0)
 	{
@@ -305,8 +304,6 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 				continue;
 
 			EntityMailbox* clientMailbox = pEntity->getClientMailbox();
-
-			
 			if(clientMailbox == NULL)
 				continue;
 
@@ -320,7 +317,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 			{
 				Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 				(*pForwardBundle).newMessage(ClientInterface::onUpdatePropertys);
-				(*pForwardBundle) << pEntity->getID();
+				(*pForwardBundle) << getID();
 				pForwardBundle->append(*mstream);
 				
 				// 记录这个事件产生的数据量大小
@@ -337,7 +334,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 		}
 	}
 
-	
+	/*
 	// 判断这个属性是否还需要广播给其他客户端
 	if((flags & ENTITY_BROADCAST_OTHER_CLIENT_FLAGS) > 0)
 	{
