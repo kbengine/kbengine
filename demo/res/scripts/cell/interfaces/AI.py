@@ -10,19 +10,26 @@ class AI:
 	def __init__(self):
 		pass
 	
+	def initEntity(self):
+		"""
+		virtual method.
+		"""
+		pass
+		
 	def addTerritory(self):
 		"""
 		添加领地
 		进入领地范围的某些entity将视为敌人
 		"""
 		xzrange = 30.0
-		INFO_MSG("%s::addTerritory: %i range=%i." % (self.getScriptName(), self.id, xzrange))
 		assert self.territoryControllerID == 0 and "territoryControllerID != 0"
 		self.territoryControllerID = self.addProximity(xzrange, 0, 0)
 		
 		if self.territoryControllerID <= 0:
 			ERROR_MSG("%s::addTerritory: %i, range=%i, is error!" % (self.getScriptName(), self.id, xzrange))
-	
+		else:
+			INFO_MSG("%s::addTerritory: %i range=%i, id=%i." % (self.getScriptName(), self.id, xzrange, self.territoryControllerID))
+			
 	def delTerritory(self):
 		"""
 		删除领地
@@ -62,10 +69,36 @@ class AI:
 			self.onThinkFight()
 		else:
 			self.onThinkOther()
-			
+		
+		if not self.isWitnessed:
+			self.disable()
+		
+	def choiceTarget(self):
+		"""
+		从仇恨表选择一个敌人
+		"""
+		if len(self.enemyLog) > 0:
+			self.targetID = self.enemyLog[0]
+		else:
+			self.targetID = 0
+	
+	def setTarget(self, entityID):
+		"""
+		设置目标
+		"""
+		self.targetID = entityID
+		self.onTargetChanged()
+		
 	# ----------------------------------------------------------------
 	# callback
 	# ----------------------------------------------------------------
+	def onTargetChanged(self):
+		"""
+		virtual method.
+		目标改变
+		"""
+		pass
+		
 	def onWitnessed(self, isWitnessed):
 		"""
 		KBEngine method.
@@ -78,8 +111,6 @@ class AI:
 		
 		if isWitnessed:
 			self.enable()
-		else:
-			self.disable()
 			
 	def onThinkFree(self):
 		"""
@@ -96,7 +127,10 @@ class AI:
 		virtual method.
 		战斗时think
 		"""
-		pass
+		if self.territoryControllerID > 0:
+			self.delTerritory()
+		
+		self.checkEnemys()
 
 	def onThinkOther(self):
 		"""
@@ -139,23 +173,68 @@ class AI:
 		KBEngine method.
 		有entity进入trap
 		"""
-		if controllerID != self.heartBeatTimerID:
+		if controllerID != self.territoryControllerID:
 			return
 		
+		if entityEntering.getScriptName() != "Avatar":
+			return
+		
+		if not self.isState(GlobalDefine.ENTITY_STATE_FREE):
+			return
+			
 		DEBUG_MSG("%s::onEnterTrap: %i entityEntering=(%s)%i, range_xz=%s, range_y=%s, controllerID=%i, userarg=%i" % \
 						(self.getScriptName(), self.id, entityEntering.getScriptName(), entityEntering.id, \
 						range_xz, range_y, controllerID, userarg))
+		
+		self.addEnemy(entityEntering.id, 0)
 
 	def onLeaveTrap(self, entityLeaving, range_xz, range_y, controllerID, userarg):
 		"""
 		KBEngine method.
 		有entity离开trap
 		"""
-		if controllerID != self.heartBeatTimerID:
+		if controllerID != self.territoryControllerID:
 			return
 		
+		if entityLeaving.getScriptName() != "Avatar":
+			return
+			
 		INFO_MSG("%s::onLeaveTrap: %i entityLeaving=(%s)%i." % (self.getScriptName(), self.id, \
 				entityLeaving.getScriptName(), entityLeaving.id))
+
+	def onAddEnemy(self, entityID):
+		"""
+		virtual method.
+		有敌人进入列表
+		"""
+		if not self.isState(GlobalDefine.ENTITY_STATE_FIGHT):
+			self.changeState(GlobalDefine.ENTITY_STATE_FIGHT)
+		
+		if self.targetID == 0:
+			self.setTarget(entityID)
+			
+	def onRemoveEnemy(self, entityID):
+		"""
+		virtual method.
+		删除敌人
+		"""
+		if self.targetID == entityID:
+			self.onLoseTarget()
+
+	def onLoseTarget(self):
+		"""
+		敌人丢失
+		"""
+		INFO_MSG("%s::onLoseTarget: %i target=%i, enemyLogSize=%i." % (self.getScriptName(), self.id, \
+				self.targetID, len(self.enemyLog)))
 				
+		self.targetID = 0
+		
+		if len(self.enemyLog) == 0:
+			if not self.isState(GlobalDefine.ENTITY_STATE_FREE):
+				self.changeState(GlobalDefine.ENTITY_STATE_FREE)
+		else:
+			self.choiceTarget()
+		
 AI._timermap = {}
 AI._timermap[wtimer.TIMER_TYPE_HEARDBEAT] = AI.onHeardTimer

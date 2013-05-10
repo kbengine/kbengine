@@ -29,6 +29,12 @@ class Monster(GameObject,
 		Spell.__init__(self) 
 		AI.__init__(self) 
 
+	def initEntity(self):
+		"""
+		virtual method.
+		"""
+		pass
+		
 	# ----------------------------------------------------------------
 	# callback
 	# ----------------------------------------------------------------
@@ -87,7 +93,23 @@ class Monster(GameObject,
 		引擎回调离开陷阱触发
 		"""
 		AI.onLeaveTrap(self, entity, range_xz, range_y, controllerID, userarg)
-							
+
+	def onAddEnemy(self, entityID):
+		"""
+		virtual method.
+		有敌人进入列表
+		"""
+		AI.onAddEnemy(self, entityID)
+		Combat.onAddEnemy(self, entityID)
+
+	def onRemoveEnemy(self, entityID):
+		"""
+		virtual method.
+		删除敌人
+		"""
+		AI.onRemoveEnemy(self, entityID)
+		Combat.onRemoveEnemy(self, entityID)
+		
 Monster._timermap = {}
 Monster._timermap.update(GameObject._timermap)
 Monster._timermap.update(Flags._timermap)

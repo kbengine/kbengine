@@ -4,6 +4,11 @@
 	</Implements>
 
 	<Properties>
+		<enemyLog>
+			<Type>			ENTITYID_LIST		</Type>
+			<Flags>			CELL_PRIVATE		</Flags>
+			<Default>		0			</Default>
+		</enemyLog>
 	</Properties>
 
 	<CellMethods>
@@ -13,6 +18,11 @@
 			<Arg>	DAMAGE_TYPE									</Arg>
 			<Arg>	HP										</Arg>
 		</recvDamage>
+
+		<addEnemy>
+			<Arg>	ENTITY_ID									</Arg>
+			<Arg>	ENMITY										</Arg>
+		</addEnemy>
 	</CellMethods>
 
 	<ClientMethods>

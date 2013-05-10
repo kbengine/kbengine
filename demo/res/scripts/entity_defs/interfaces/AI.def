@@ -3,6 +3,12 @@
 	</Implements>
 
 	<Properties>
+		<targetID>
+			<Type>			ENTITY_ID		</Type>
+			<Flags>			CELL_PRIVATE		</Flags>
+			<Default>		0			</Default>
+		</targetID>
+
 		<heartBeatTimerID>
 			<Type>			UINT32			</Type>
 			<Flags>			CELL_PRIVATE		</Flags>

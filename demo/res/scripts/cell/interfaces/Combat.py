@@ -85,7 +85,7 @@ class Combat(CombatPropertys):
 		
 	def recvDamage(self, attackerID, skillID, damageType, damage):
 		"""
-		defined
+		defined.
 		"""
 		if self.isDestroyed or self.isDead():
 			return
@@ -95,5 +95,50 @@ class Combat(CombatPropertys):
 				self.die(attackerID)
 		else:
 			self.setHP(self.HP - damage)
+	
+	def addEnemy(self, entityID, enmity):
+		"""
+		defined.
+		添加敌人
+		"""
+		DEBUG_MSG("%s::addEnemy: %i entity=%i, enmity=%i" % \
+						(self.getScriptName(), self.id, entityID, enmity))
 		
+		self.enemyLog.append(entityID)
+		self.onAddEnemy(entityID)
+	
+	def onAddEnemy(self, entityID):
+		"""
+		virtual method.
+		有敌人进入列表
+		"""
+		pass
+	
+	def removeEnemy(self, entityID):
+		"""
+		defined.
+		删除敌人
+		"""
+		DEBUG_MSG("%s::removeEnemy: %i entity=%i" % \
+						(self.getScriptName(), self.id, entityID))
+		
+		self.enemyLog.remove(entityID)
+		self.onRemoveEnemy(entityID)
+
+	def onRemoveEnemy(self, entityID):
+		"""
+		virtual method.
+		删除敌人
+		"""
+		pass
+	
+	def checkEnemys(self):
+		"""
+		检查敌人列表
+		"""
+		for idx in range(len(self.enemyLog) - 1, -1, -1):
+			entity = KBEngine.entities.get(self.enemyLog[idx])
+			if entity is None:
+				self.removeEnemy(self.enemyLog[idx])
+
 Combat._timermap = {}

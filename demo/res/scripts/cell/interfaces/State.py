@@ -10,7 +10,8 @@ class State:
 	"""
 	"""
 	def __init__(self):
-		pass
+		self._forbidCounter = [0] * len(GlobalDefine.FORBID_ALL)
+		self.forbidCounterInc(GlobalDefine.FORBID_ACTIONS[self.state])
 
 	# ----------------------------------------------------------------
 	# public
@@ -19,8 +20,7 @@ class State:
 		"""
 		virtual method.
 		"""
-		self._forbidCounter = [0] * len(GlobalDefine.FORBID_ALL)
-		self.forbidCounterInc(GlobalDefine.FORBID_ACTIONS[self.state])
+		pass
 		
 	# ----------------------------------------------------------------
 	# public
@@ -107,7 +107,8 @@ class State:
 		entity状态改变了
 		"""
 		self.changeSubState(GlobalDefine.ENTITY_SUB_STATE_NORMAL)
-		INFO_MSG("%i oldstate=%i to newstate=%i, forbids=%s, subState=%i." % (self.id, oldstate, newstate, self._forbidCounter, self.subState))
+		INFO_MSG("%s:onStateChanged_: %i oldstate=%i to newstate=%i, forbids=%s, subState=%i." % (self.getScriptName(), \
+				self.id, oldstate, newstate, self._forbidCounter, self.subState))
 
 	def onSubStateChanged_(self, oldSubState, newSubState):
 		"""

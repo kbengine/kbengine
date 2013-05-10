@@ -14,14 +14,17 @@
 	<DIRECTION3D>		VECTOR3		</DIRECTION3D>
 	<ENTITY_UTYPE>		UINT32		</ENTITY_UTYPE>
 	
-	<DAMAGE_TYPE>	INT32		</DAMAGE_TYPE>
-	<HP>		INT32		</HP>
-	<MP>		INT32		</MP>
+	<DAMAGE_TYPE>		INT32		</DAMAGE_TYPE>
+	<ENMITY>			DAMAGE_TYPE	 </ENMITY>
+	<HP>				INT32		</HP>
+	<MP>				INT32		</MP>
 	
 	<ENTITY_STATE> INT8		</ENTITY_STATE>
 	<ENTITY_SUBSTATE> UINT8	</ENTITY_SUBSTATE>
 	<ENTITY_FORBIDS> INT32	</ENTITY_FORBIDS>
 	<ENTITY_FORBID_COUNTER> ARRAY <of> INT8 </of>	</ENTITY_FORBID_COUNTER>
+	
+	<ENTITYID_LIST> ARRAY <of> ENTITY_ID </of>	</ENTITYID_LIST>
 	
 	<AVATAR_INFOS>	FIXED_DICT
 		<Properties>
@@ -49,26 +52,6 @@
 		</Properties>
 	</AVATAR_INFOS_LIST>	
 	
-	<ENTITY_INFOS>	FIXED_DICT
-		<Properties>
-			<entityID>
-				<Type>	ENTITY_ID	</Type>
-			</entityID>
-			<modelID>
-				<Type>	UINT32	</Type>
-			</modelID>
-			<spawnPos>
-				<Type>	VECTOR3	</Type>
-			</spawnPos>
-			<utype>
-				<Type>	UINT32	</Type>
-			</utype>
-			<dialogID>
-				<Type>	UINT32	</Type>
-			</dialogID>
-		</Properties>
-	</ENTITY_INFOS>
-	
 	<BAG>	FIXED_DICT
 		<Properties>
 			<values22>
@@ -76,40 +59,4 @@
 			</values22>
 		</Properties>
 	</BAG>	
-		
-	<LIVINGSKILL>	FIXED_DICT	<!--生活技能-->
-		<Properties>
-			<skillID>			<!--技能编号-->
-				<Type>	INT8	</Type>
-			</skillID>
-			<sleight>			<!--技能熟练度-->
-				<Type>	BAG	</Type>
-			</sleight>
-			<sleightMax>			<!--当前熟练度上限-->
-				<Type>	INT32	</Type>
-			</sleightMax>
-		</Properties>
-	</LIVINGSKILL>	
-	
-	<SKILLEFFECT>	FIXED_DICT
-		<Properties>
-			<eff>
-				<Type>	STRING	</Type>
-			</eff>
-			<val>
-				<Type>	INT32	</Type>
-			</val>
-		</Properties>
-	</SKILLEFFECT>	
-	
-	<XXX>	FIXED_DICT
-		<Properties>
-			<val11>
-				<Type>	INT32	</Type>
-			</val11>
-			<array>
-				<Type>	BAG	</Type>
-			</array>
-		</Properties>
-	</XXX>	
 </root>

@@ -8,6 +8,12 @@ class GameObject(KBEngine.Entity):
 	def __init__(self):
 		KBEngine.Entity.__init__(self)
 
+	def initEntity(self):
+		"""
+		virtual method.
+		"""
+		pass
+		
 	def getScriptName(self):
 		return self.__class__.__name__
 		

@@ -36,7 +36,8 @@ class State:
 		"""
 		virtual method.
 		"""
-		pass
+		# 通知表现层改变表现
+		KBEngine.fireEvent("set_state", self.id, newState)
 
 	def onForbidChanged_(self, oldForbids, newForbids):
 		"""
