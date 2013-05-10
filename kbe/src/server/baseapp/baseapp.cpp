@@ -1577,13 +1577,13 @@ void Baseapp::onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 
 //-------------------------------------------------------------------------------------
 void Baseapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, 
-		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
+		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder, const std::string& digest)
 {
 	if(pChannel->isExternal())
 		return;
 
 	EntityApp<Base>::onDbmgrInitCompleted(pChannel, gametime, startID, endID, 
-		startGlobalOrder, startGroupOrder);
+		startGlobalOrder, startGroupOrder, digest);
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 

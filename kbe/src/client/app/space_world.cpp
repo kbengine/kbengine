@@ -256,6 +256,8 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 				pEntity->setupCamera(mActiveCamera);
 				mPlayerPtr = pEntity;
 			}
+			
+			pEntity->inWorld(true);
 
 			//pEntity->visable(true);
 		}
@@ -347,6 +349,23 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 							break;
 
 						iter->second->scale(scale / 100.0);
+					}
+				}
+				else if(peventdata->name == "set_state")
+				{
+					if(peventdata->argsSize > 0)
+					{
+						PyObject* pyitem0 = PyTuple_GetItem(peventdata->pyDatas, 0);
+						PyObject* pyitem1 = PyTuple_GetItem(peventdata->pyDatas, 1);
+						
+						KBEngine::ENTITY_ID eid = PyLong_AsUnsignedLong(pyitem0);
+						int32 state = PyLong_AsLong(pyitem1);	
+
+						ENTITIES::iterator iter = mEntities.find(eid);
+						if(iter == mEntities.end())
+							break;
+
+						iter->second->setState(state);
 					}
 				}
 			}

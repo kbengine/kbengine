@@ -38,7 +38,8 @@ public:
 
 	void append(const void * data, int numBytes);
 	const unsigned char* getDigest();
-	
+	std::string getDigestStr();
+
 	void clear();
 	
 	void final();

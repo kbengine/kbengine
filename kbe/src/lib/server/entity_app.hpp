@@ -151,7 +151,7 @@ public:
 		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
 	*/
 	void onDbmgrInitCompleted(Mercury::Channel* pChannel, 
-		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder);
+		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder, const std::string& digest);
 
 	/** 网络接口
 		dbmgr广播global数据的改变
@@ -711,10 +711,10 @@ void EntityApp<E>::startProfile(Mercury::Channel* pChannel, KBEngine::MemoryStre
 
 template<class E>
 void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel, 
-		GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder)
+						GAME_TIME gametime, ENTITY_ID startID, ENTITY_ID endID, int32 startGlobalOrder, int32 startGroupOrder, const std::string& digest)
 {
-	INFO_MSG(boost::format("EntityApp::onDbmgrInitCompleted: entityID alloc(%1%-%2%), startGlobalOrder=%3%, startGroupOrder=%4%.\n") %
-		startID % endID % startGlobalOrder % startGroupOrder);
+	INFO_MSG(boost::format("EntityApp::onDbmgrInitCompleted: entityID alloc(%1%-%2%), startGlobalOrder=%3%, startGroupOrder=%4%, digest=%5%.\n") %
+		startID % endID % startGlobalOrder % startGroupOrder % digest);
 
 	startGlobalOrder_ = startGlobalOrder;
 	startGroupOrder_ = startGroupOrder;
@@ -722,6 +722,14 @@ void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 
 	idClient_.onAddRange(startID, endID);
 	g_kbetime = gametime;
+
+	if(digest != EntityDef::dbmgrMD5().getDigestStr())
+	{
+		ERROR_MSG(boost::format("EntityApp::onDbmgrInitCompleted: digest not match. curr(%1%) != dbmgr(%2%)\n") %
+			EntityDef::dbmgrMD5().getDigestStr() % digest);
+
+		// this->shutDown();
+	}
 }
 
 template<class E>

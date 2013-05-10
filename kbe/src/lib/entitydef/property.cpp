@@ -44,7 +44,7 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype,
 										bool isIdentifier, 
 										uint32 databaseLength, 
 										std::string defaultStr, 
-										uint8 detailLevel):
+										DETAIL_TYPE detailLevel):
 	name_(name),
 	dataTypeName_(dataTypeName),
 	flags_(flags),
@@ -129,7 +129,7 @@ PropertyDescription* PropertyDescription::createDescription(ENTITY_PROPERTY_UID 
 															bool isIdentifier, 
 															uint32 databaseLength, 
 															std::string& defaultStr, 
-															uint8 detailLevel)
+															DETAIL_TYPE detailLevel)
 {
 	PropertyDescription* propertyDescription = NULL;
 	if(dataTypeName == "FIXED_DICT" || 
@@ -207,7 +207,7 @@ FixedDictDescription::FixedDictDescription(ENTITY_PROPERTY_UID utype,
 											bool isIdentifier, 
 											uint32 databaseLength, 
 											std::string defaultStr, 
-											uint8 detailLevel):
+											DETAIL_TYPE detailLevel):
 	PropertyDescription(utype, dataTypeName, name, flags, isPersistent, 
 		dataType, isIdentifier, databaseLength, defaultStr, detailLevel)
 {
@@ -273,7 +273,7 @@ ArrayDescription::ArrayDescription(ENTITY_PROPERTY_UID utype,
 											bool isIdentifier, 
 											uint32 databaseLength, 
 											std::string defaultStr, 
-											uint8 detailLevel):
+											DETAIL_TYPE detailLevel):
 	PropertyDescription(utype, dataTypeName, name, flags, isPersistent, 
 		dataType, isIdentifier, databaseLength, defaultStr, detailLevel)
 {
@@ -310,7 +310,7 @@ VectorDescription::VectorDescription(ENTITY_PROPERTY_UID utype,
 									bool isIdentifier, 
 									uint32 databaseLength, 
 									std::string defaultStr, 
-									uint8 detailLevel, 
+									DETAIL_TYPE detailLevel, 
 									uint8 elemCount):
 	PropertyDescription(utype, dataTypeName, name, flags, isPersistent, 
 		dataType, isIdentifier, databaseLength, defaultStr, detailLevel),

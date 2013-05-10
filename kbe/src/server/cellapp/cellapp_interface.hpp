@@ -85,12 +85,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									ENTITY_ID,								endID)
 
 	// 某app请求获取一个entityID段的回调
-	CELLAPP_MESSAGE_DECLARE_ARGS5(onDbmgrInitCompleted,						MERCURY_FIXED_MESSAGE,
+	CELLAPP_MESSAGE_DECLARE_ARGS6(onDbmgrInitCompleted,						MERCURY_VARIABLE_MESSAGE,
 									GAME_TIME,								gametime, 
 									ENTITY_ID,								startID,
 									ENTITY_ID,								endID,
 									int32,									startGlobalOrder,
-									int32,									startGroupOrder)
+									int32,									startGroupOrder,
+									std::string,							digest)
 
 	// global数据改变
 	CELLAPP_MESSAGE_DECLARE_STREAM(onBroadcastGlobalDataChange,				MERCURY_VARIABLE_MESSAGE)

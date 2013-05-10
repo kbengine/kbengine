@@ -292,6 +292,52 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	}
 	
 	/*
+	const Position3D& basePos = this->getPosition(); 
+	if((flags & ENTITY_BROADCAST_OTHER_CLIENT_FLAGS) > 0)
+	{
+		DETAIL_TYPE propertyDetailLevel = propertyDescription->getDetailLevel();
+
+		std::list<ENTITY_ID>::iterator witer = witnesses_.begin();
+		for(; witer != witnesses_.end(); witer++)
+		{
+			Entity* pEntity = Cellapp::getSingleton().findEntity((*witer));
+			if(pEntity == NULL || pEntity->pWitness() == NULL)
+				continue;
+
+			EntityMailbox* clientMailbox = pEntity->getClientMailbox();
+
+			
+			if(clientMailbox == NULL)
+				continue;
+
+			Mercury::Channel* pChannel = clientMailbox->getChannel();
+			if(pChannel == NULL)
+				continue;
+
+			const Position3D& targetPos = pEntity->getPosition();
+			Position3D lengthPos = targetPos - basePos;
+			if(scriptModule_->getDetailLevel().level[propertyDetailLevel].inLevel(lengthPos.length()))
+			{
+				Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+				(*pForwardBundle).newMessage(ClientInterface::onUpdatePropertys);
+				(*pForwardBundle) << pEntity->getID();
+				pForwardBundle->append(*mstream);
+				
+				// 记录这个事件产生的数据量大小
+				g_publicClientEventHistoryStats.trackEvent(getScriptName(), 
+					propertyDescription->getName(), 
+					pForwardBundle->currMsgLength());
+
+				Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+				MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->getID(), (*pSendBundle), (*pForwardBundle));
+
+				pEntity->pWitness()->sendToClient(ClientInterface::onUpdatePropertys, pSendBundle);
+				Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+			}
+		}
+	}
+
+	
 	// 判断这个属性是否还需要广播给其他客户端
 	if((flags & ENTITY_BROADCAST_OTHER_CLIENT_FLAGS) > 0)
 	{

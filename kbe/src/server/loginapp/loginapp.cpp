@@ -49,7 +49,8 @@ Loginapp::Loginapp(Mercury::EventDispatcher& dispatcher,
 	ServerApp(dispatcher, ninterface, componentType, componentID),
 	loopCheckTimerHandle_(),
 	pendingCreateMgr_(ninterface),
-	pendingLoginMgr_(ninterface)
+	pendingLoginMgr_(ninterface),
+	digest_()
 {
 }
 
@@ -152,16 +153,17 @@ void Loginapp::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, int32 startGlobalOrder, int32 startGroupOrder)
+void Loginapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, int32 startGlobalOrder, int32 startGroupOrder, const std::string& digest)
 {
 	if(pChannel->isExternal())
 		return;
 
-	INFO_MSG(boost::format("Loginapp::onDbmgrInitCompleted:startGlobalOrder=%1%, startGroupOrder=%2%.\n") %
-		startGlobalOrder % startGroupOrder);
+	INFO_MSG(boost::format("Loginapp::onDbmgrInitCompleted:startGlobalOrder=%1%, startGroupOrder=%2%, digest=%3%.\n") %
+		startGlobalOrder % startGroupOrder % digest);
 
 	startGlobalOrder_ = startGlobalOrder;
 	startGroupOrder_ = startGroupOrder;
+	digest_ = digest;
 }
 
 

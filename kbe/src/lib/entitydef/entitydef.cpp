@@ -37,6 +37,7 @@ std::vector<ScriptDefModulePtr>	EntityDef::__scriptModules;
 std::map<std::string, ENTITY_SCRIPT_UID> EntityDef::__scriptTypeMappingUType;
 COMPONENT_TYPE EntityDef::__loadComponentType;
 KBE_MD5 EntityDef::__md5;
+KBE_MD5 EntityDef::__dbmgrMD5;
 
 // 方法产生时自动产生utype用的
 ENTITY_METHOD_UID g_methodUtypeAuto = 1;
@@ -218,8 +219,8 @@ bool EntityDef::loadDetailLevelInfo(const std::string& defFilePath,
 		return false;
 	}
 	
-	dlInfo.level[DETAIL_LEVEL_NEAR]->radius = (float)defxml->getValFloat(radiusNode);
-	dlInfo.level[DETAIL_LEVEL_NEAR]->hyst = (float)defxml->getValFloat(hystNode);
+	dlInfo.level[DETAIL_LEVEL_NEAR].radius = (float)defxml->getValFloat(radiusNode);
+	dlInfo.level[DETAIL_LEVEL_NEAR].hyst = (float)defxml->getValFloat(hystNode);
 	
 	node = defxml->enterNode(detailLevelNode, "MEDIUM");
 	radiusNode = defxml->enterNode(node, "radius");
@@ -232,12 +233,12 @@ bool EntityDef::loadDetailLevelInfo(const std::string& defFilePath,
 		return false;
 	}
 	
-	dlInfo.level[DETAIL_LEVEL_MEDIUM]->radius = (float)defxml->getValFloat(radiusNode);
+	dlInfo.level[DETAIL_LEVEL_MEDIUM].radius = (float)defxml->getValFloat(radiusNode);
 
-	dlInfo.level[DETAIL_LEVEL_MEDIUM]->radius += dlInfo.level[DETAIL_LEVEL_NEAR]->radius + 
-												dlInfo.level[DETAIL_LEVEL_NEAR]->hyst;
+	dlInfo.level[DETAIL_LEVEL_MEDIUM].radius += dlInfo.level[DETAIL_LEVEL_NEAR].radius + 
+												dlInfo.level[DETAIL_LEVEL_NEAR].hyst;
 
-	dlInfo.level[DETAIL_LEVEL_MEDIUM]->hyst = (float)defxml->getValFloat(hystNode);
+	dlInfo.level[DETAIL_LEVEL_MEDIUM].hyst = (float)defxml->getValFloat(hystNode);
 	
 	node = defxml->enterNode(detailLevelNode, "FAR");
 	radiusNode = defxml->enterNode(node, "radius");
@@ -250,12 +251,12 @@ bool EntityDef::loadDetailLevelInfo(const std::string& defFilePath,
 		return false;
 	}
 	
-	dlInfo.level[DETAIL_LEVEL_FAR]->radius = (float)defxml->getValFloat(radiusNode);
+	dlInfo.level[DETAIL_LEVEL_FAR].radius = (float)defxml->getValFloat(radiusNode);
 
-	dlInfo.level[DETAIL_LEVEL_FAR]->radius += dlInfo.level[DETAIL_LEVEL_MEDIUM]->radius + 
-													dlInfo.level[DETAIL_LEVEL_MEDIUM]->hyst;
+	dlInfo.level[DETAIL_LEVEL_FAR].radius += dlInfo.level[DETAIL_LEVEL_MEDIUM].radius + 
+													dlInfo.level[DETAIL_LEVEL_MEDIUM].hyst;
 
-	dlInfo.level[DETAIL_LEVEL_FAR]->hyst = (float)defxml->getValFloat(hystNode);
+	dlInfo.level[DETAIL_LEVEL_FAR].hyst = (float)defxml->getValFloat(hystNode);
 
 	return true;
 
@@ -472,8 +473,8 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			bool						isPersistent = false;
 			bool						isIdentifier = false;													// 是否是一个索引键
 			uint32						databaseLength = 0;														// 这个属性在数据库中的长度
-			uint8						detailLevel = DETAIL_LEVEL_NEAR;
-			std::string					detailLevelStr = "NEAR";
+			DETAIL_TYPE					detailLevel = DETAIL_LEVEL_UNKNOW;
+			std::string					detailLevelStr = "";
 			std::string					strType;
 			std::string					strisPersistent;
 			std::string					strFlags;
@@ -586,6 +587,8 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 					detailLevel = DETAIL_LEVEL_MEDIUM;
 				else if(detailLevelStr == "NEAR")
 					detailLevel = DETAIL_LEVEL_NEAR;
+				else
+					detailLevel = DETAIL_LEVEL_FAR;
 			}
 			
 			static ENTITY_PROPERTY_UID auto_puid = 1;

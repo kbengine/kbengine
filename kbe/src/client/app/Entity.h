@@ -66,7 +66,9 @@ public:
 	  destPos_(),
 	  lastPos_(),
 	  destDir_(),
-	  currDir_()
+	  currDir_(),
+	  mState(0),
+	  inWorld_(false)
 	{
 		//setupBody(cam->getSceneManager());
 		//setupCamera(cam);
@@ -111,6 +113,19 @@ public:
 			mBodyNode->scale(v, v, v);
 	}
 
+	void setState(int state)
+	{
+		mState = state;
+
+		if(inWorld_)
+			setTopAnimation(ANIM_DRAW_SWORDS, true);
+	}
+	
+	int getState()
+	{
+		return mState;
+	}
+	
 	void setDestDirection(float yaw, float pitch, float roll)
 	{
 		destDir_.x = roll;
@@ -586,6 +601,26 @@ public:
 
 	void setName(const Ogre::DisplayString& name){ mName = name; }
 
+	void inWorld(bool v)
+	{ 
+		inWorld_ = v; 
+
+		if(inWorld_)
+			onEnterWorld();
+		else
+			onLeaveWorld();
+	}
+
+	void onEnterWorld()
+	{
+		if(mState == 3)
+			setTopAnimation(ANIM_DRAW_SWORDS, true);
+	}
+
+	void onLeaveWorld()
+	{
+	}
+
 private:
 	bool _checkJumpEnd();
 private:
@@ -634,6 +669,10 @@ private:
 	SceneManager* mSceneMgr;
 
 	Ogre::Vector3 destPos_, lastPos_, destDir_, currDir_;
+	
+	int mState;
+
+	bool inWorld_;
 };
 
 #endif

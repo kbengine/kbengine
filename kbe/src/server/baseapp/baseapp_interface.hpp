@@ -90,12 +90,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 
 
 	// 某app请求获取一个entityID段的回调
-	BASEAPP_MESSAGE_DECLARE_ARGS5(onDbmgrInitCompleted,						MERCURY_FIXED_MESSAGE,
+	BASEAPP_MESSAGE_DECLARE_ARGS6(onDbmgrInitCompleted,						MERCURY_VARIABLE_MESSAGE,
 									GAME_TIME,								gametime, 
 									ENTITY_ID,								startID,
 									ENTITY_ID,								endID,
 									int32,									startGlobalOrder,
-									int32,									startGroupOrder)
+									int32,									startGroupOrder,
+									std::string,							digest)
 
 	// hello握手。
 	BASEAPP_MESSAGE_DECLARE_STREAM(hello,									MERCURY_VARIABLE_MESSAGE)

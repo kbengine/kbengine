@@ -27,36 +27,36 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-/** entity 详情级别类型定义 */
+/** entity 详情级别类型定义 
+	默认有3个级别分别为:
+	 近， 中， 远
+*/
 struct DetailLevel
 {
 	struct Level
 	{
-		Level():radius(0.0f), hyst(0.0f){};
+		Level():radius(FLT_MAX), hyst(1.0f){};
 		float radius;
 		float hyst;
+
+		bool inLevel(float dist)
+		{
+			if(radius >= dist)
+				return true;
+
+			return false;
+		}
 	};
 	
 	DetailLevel()
 	{
-		level[0] = NULL;
-		level[1] = NULL;
-		level[2] = NULL;
-		level[3] = NULL;
 	}
 
 	~DetailLevel()
 	{
-		SAFE_RELEASE(level[0]);
-		SAFE_RELEASE(level[1]);
-		SAFE_RELEASE(level[2]);
-		SAFE_RELEASE(level[3]);
 	}
 
-
-
-
-	Level* level[4];
+	Level level[3]; // 近， 中， 远
 };
 
 }

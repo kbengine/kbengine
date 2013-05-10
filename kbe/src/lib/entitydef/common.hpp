@@ -84,6 +84,7 @@ const COMPONENT_TYPE ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[] =
 };
 
 /** 属性的lod广播级别范围的定义 */
+typedef uint8 DETAIL_TYPE;
 #define DETAIL_LEVEL_NEAR													0	// lod级别：近						
 #define DETAIL_LEVEL_MEDIUM													1	// lod级别：中
 #define DETAIL_LEVEL_FAR													2	// lod级别：远	

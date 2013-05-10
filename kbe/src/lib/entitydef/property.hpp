@@ -54,7 +54,7 @@ public:
 		bool isIdentifier, 
 		uint32 databaseLength, 
 		std::string defaultStr, 
-		uint8 detailLevel);
+		DETAIL_TYPE detailLevel);
 
 	virtual ~PropertyDescription();
 	
@@ -126,7 +126,7 @@ public:
 		bool isIdentifier, 
 		uint32 databaseLength,
 		std::string& defaultStr, 
-		uint8 detailLevel);
+		DETAIL_TYPE detailLevel);
 	
 	/** 
 		脚本请求设置这个属性的值 
@@ -147,7 +147,7 @@ protected:
 	uint32						databaseLength_;								// 这个属性在数据库中的长度
 	ENTITY_PROPERTY_UID			utype_;											// 这个属性的数字类别， 用于网络上传输识别
 	std::string					defaultValStr_;									// 这个属性的默认值
-	int8						detailLevel_;									// 这个属性的lod详情级别 看common中的:属性的lod广播级别范围的定义
+	DETAIL_TYPE					detailLevel_;									// 这个属性的lod详情级别 看common中的:属性的lod广播级别范围的定义
 	static uint32				propertyDescriptionCount_;						// 所有的属性描述的数量	
 };
 
@@ -163,7 +163,7 @@ public:
 		bool isIdentifier, 
 		uint32 databaseLength, 
 		std::string defaultStr, 
-		uint8 detailLevel);
+		DETAIL_TYPE detailLevel);
 
 	virtual ~FixedDictDescription();
 	
@@ -191,7 +191,7 @@ public:
 		bool isIdentifier,
 		uint32 databaseLength, 
 		std::string defaultStr, 
-		uint8 detailLevel);
+		DETAIL_TYPE detailLevel);
 
 	virtual ~ArrayDescription();
 	
@@ -214,7 +214,7 @@ public:
 		bool isIdentifier, 
 		uint32 databaseLength, 
 		std::string defaultStr, 
-		uint8 detailLevel, 
+		DETAIL_TYPE detailLevel, 
 		uint8 elemCount);
 
 	virtual ~VectorDescription();

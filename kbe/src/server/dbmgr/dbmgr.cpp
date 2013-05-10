@@ -174,6 +174,10 @@ bool Dbmgr::initializeEnd()
 	pGlobalData_->addConcernComponentType(BASEAPP_TYPE);
 	pGlobalBases_->addConcernComponentType(BASEAPP_TYPE);
 	pCellAppData_->addConcernComponentType(CELLAPP_TYPE);
+
+	INFO_MSG(boost::format("Dbmgr::initializeEnd: digest(%1%)\n") % 
+		EntityDef::md5().getDigestStr());
+
 	return initBillingHandler() && initDB();
 }
 
@@ -275,6 +279,8 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 						intaddr, intport, extaddr, extport);
 
 	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
+	
+	std::string digest = EntityDef::md5().getDigestStr();
 
 	// 下一步:
 	// 如果是连接到dbmgr则需要等待接收app初始信息
@@ -297,8 +303,8 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 
 				std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
 				(*pBundle).newMessage(BaseappInterface::onDbmgrInitCompleted);
-				BaseappInterface::onDbmgrInitCompletedArgs5::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
-					idRange.second, startGlobalOrder, startGroupOrder);
+				BaseappInterface::onDbmgrInitCompletedArgs6::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
+					idRange.second, startGlobalOrder, startGroupOrder, digest);
 			}
 			break;
 		case CELLAPP_TYPE:
@@ -309,16 +315,16 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 
 				std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
 				(*pBundle).newMessage(CellappInterface::onDbmgrInitCompleted);
-				CellappInterface::onDbmgrInitCompletedArgs5::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
-					idRange.second, startGlobalOrder, startGroupOrder);
+				CellappInterface::onDbmgrInitCompletedArgs6::staticAddToBundle((*pBundle), g_kbetime, idRange.first, 
+					idRange.second, startGlobalOrder, startGroupOrder, digest);
 			}
 			break;
 		case LOGINAPP_TYPE:
 			startGroupOrder = Componentbridge::getComponents().getLoginappGroupOrderLog()[getUserUID()];
 
 			(*pBundle).newMessage(LoginappInterface::onDbmgrInitCompleted);
-			LoginappInterface::onDbmgrInitCompletedArgs2::staticAddToBundle((*pBundle), 
-				startGlobalOrder, startGroupOrder);
+			LoginappInterface::onDbmgrInitCompletedArgs3::staticAddToBundle((*pBundle), 
+				startGlobalOrder, startGroupOrder, digest);
 
 			break;
 		default:
