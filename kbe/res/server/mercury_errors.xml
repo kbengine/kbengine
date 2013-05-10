@@ -60,4 +60,9 @@
 		<id>11</id>
 		<descr>	与客户端关联的proxy在服务器上已经销毁。</descr>
 	</MERCURY_ERR_PROXY_DESTROYED>
+	
+	<MERCURY_ERR_DIGEST>
+		<id>12</id>
+		<descr>	def-md5不匹配。</descr>
+	</MERCURY_ERR_DIGEST>
 </root>

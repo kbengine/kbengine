@@ -397,7 +397,7 @@ bool ClientObjectBase::login()
 	(*pBundle).appendBlob(extradatas_);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
-	
+	(*pBundle) << EntityDef::md5().getDigestStr();
 	pServerChannel_->pushBundle(pBundle);
 	connectedGateway_ = false;
 	return true;

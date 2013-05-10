@@ -311,7 +311,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	// ÃÜÂë
 	s >> password;
-	
+
 	if(loginName.size() == 0)
 	{
 		ERROR_MSG("Loginapp::login: loginName is NULL.\n");
@@ -341,6 +341,26 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 		return;
 	}
+
+	if(!g_kbeSrvConfig.getDBMgr().allowEmptyDigest)
+	{
+		std::string clientDigest;
+
+		if(s.opsize() > 0)
+			s >> clientDigest;
+
+		if(clientDigest != digest_)
+		{
+			ERROR_MSG(boost::format("Loginapp::login: loginName(%1%), digest not match. curr(%2%) != dbmgr(%3%)\n") %
+				loginName % clientDigest % digest_);
+
+			datas = "";
+			_loginFailed(pChannel, loginName, SERVER_ERR_DIGEST, datas);
+			return;
+		}
+	}
+
+	s.opfini();
 
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(loginName);
 	if(ptinfos != NULL)

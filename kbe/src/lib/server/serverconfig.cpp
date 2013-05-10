@@ -610,6 +610,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_dbmgrInfo.notFoundAccountAutoCreate = (xml->getValStr(node) == "true");
 		}
 		
+		node = xml->enterNode(rootNode, "allowEmptyDigest");
+		if(node != NULL){
+			_dbmgrInfo.allowEmptyDigest = (xml->getValStr(node) == "true");
+		}
 	}
 
 	if(_dbmgrInfo.db_unicodeString_characterSet.size() == 0)
