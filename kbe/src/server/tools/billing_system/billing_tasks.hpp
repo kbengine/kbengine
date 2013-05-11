@@ -112,8 +112,8 @@ public:
 	virtual const char* serviceAddr() const{ return g_kbeSrvConfig.billingSystemThirdpartyChargeServiceAddr(); }
 	virtual uint16 servicePort() const{ return g_kbeSrvConfig.billingSystemThirdpartyChargeServicePort(); }
 
-	Orders* pOrders;
-
+	OrdersCharge* pOrders;
+	OrdersCharge orders;
 	bool success;
 };
 

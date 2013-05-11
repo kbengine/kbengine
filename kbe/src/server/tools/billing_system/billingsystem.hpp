@@ -105,6 +105,7 @@ public:
 	REQCREATE_MAP& reqCreateAccount_requests(){ return reqCreateAccount_requests_; }
 	REQLOGIN_MAP& reqAccountLogin_requests(){ return reqAccountLogin_requests_; }
 
+	void eraseOrders_s(std::string ordersid);
 protected:
 	TimerHandle																mainProcessTimer_;
 

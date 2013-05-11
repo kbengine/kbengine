@@ -101,6 +101,21 @@ void BillingSystem::unlockthread()
 }
 
 //-------------------------------------------------------------------------------------
+void BillingSystem::eraseOrders_s(std::string ordersid)
+{
+	lockthread();
+
+	ORDERS::iterator iter = orders_.find(ordersid);
+	if(iter != orders_.end())
+	{
+		ERROR_MSG(boost::format("BillingSystem::eraseOrders_s: chargeID=%1% is exist!\n") % ordersid);
+	}
+
+	orders_.erase(iter);
+	unlockthread();
+}
+
+//-------------------------------------------------------------------------------------
 bool BillingSystem::run()
 {
 	return ServerApp::run();
@@ -273,8 +288,8 @@ void BillingSystem::charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 	}
 
 	ChargeTask* pinfo = new ChargeTask();
+	pinfo->orders = *pOrdersCharge;
 	pinfo->pOrders = pOrdersCharge;
-	
 	orders_[pOrdersCharge->ordersID].reset(pOrdersCharge);
 	unlockthread();
 	
