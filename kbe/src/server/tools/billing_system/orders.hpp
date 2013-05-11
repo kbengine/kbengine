@@ -60,6 +60,9 @@ public:
 
 class OrdersCharge : public Orders
 {
+public:
+	OrdersCharge();
+	virtual ~OrdersCharge();
 };
 
 }

@@ -349,6 +349,8 @@ success(false)
 //-------------------------------------------------------------------------------------
 ChargeTask::~ChargeTask()
 {
+	//INFO_MSG(boost::format("ChargeTask::~ChargeTask(): orders=%1%\n") % 
+	//	orders.ordersID);
 }
 
 //-------------------------------------------------------------------------------------
@@ -357,6 +359,7 @@ bool ChargeTask::process()
 	KBE_ASSERT(pOrders != NULL);
 
 	pOrders->state = Orders::STATE_FAILED;
+	orders.state = Orders::STATE_FAILED;
 
 	// 如果是不需要请求的直接返回成功
 	if(pOrders->postDatas.size() == 0)
@@ -369,7 +372,9 @@ bool ChargeTask::process()
 	if(strlen(serviceAddr()) == 0)
 	{
 		pOrders->state = Orders::STATE_SUCCESS;
+		orders.state = Orders::STATE_SUCCESS;
 		pOrders->getDatas = pOrders->postDatas;
+		orders.getDatas = pOrders->postDatas;
 		success = true;
 		return false;
 	}

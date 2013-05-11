@@ -108,7 +108,7 @@ void BillingSystem::eraseOrders_s(std::string ordersid)
 	ORDERS::iterator iter = orders_.find(ordersid);
 	if(iter != orders_.end())
 	{
-		ERROR_MSG(boost::format("BillingSystem::eraseOrders_s: chargeID=%1% is exist!\n") % ordersid);
+		ERROR_MSG(boost::format("BillingSystem::eraseOrders_s: chargeID=%1% not found!\n") % ordersid);
 	}
 
 	orders_.erase(iter);
