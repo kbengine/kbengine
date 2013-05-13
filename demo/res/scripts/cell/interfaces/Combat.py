@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import KBEngine
+import GlobalDefine
 from KBEDebug import * 
 from interfaces.CombatPropertys import CombatPropertys
 
@@ -36,7 +37,7 @@ class Combat(CombatPropertys):
 	def isDead(self):
 		"""
 		"""
-		return self.state == scdefine.ENTITY_STATE_DEAD
+		return self.state == GlobalDefine.ENTITY_STATE_DEAD
 		
 	def die(self, killerID):
 		"""
@@ -54,7 +55,7 @@ class Combat(CombatPropertys):
 			
 		self.onBeforeDie(killerID)
 		self.onDie(killerID)
-		self.changeState(scdefine.ENTITY_STATE_DEAD)
+		self.changeState(GlobalDefine.ENTITY_STATE_DEAD)
 		self.onAfterDie(killerID)
 		
 	def onDie(self, killerID):
@@ -82,6 +83,13 @@ class Combat(CombatPropertys):
 		我击杀了entity
 		"""
 		pass
+	
+	def canDie(self, attackerID, skillID, damageType, damage):
+		"""
+		virtual method.
+		是否可死亡
+		"""
+		return True
 		
 	def recvDamage(self, attackerID, skillID, damageType, damage):
 		"""
@@ -90,12 +98,17 @@ class Combat(CombatPropertys):
 		if self.isDestroyed or self.isDead():
 			return
 		
+		DEBUG_MSG("%s::recvDamage: %i attackerID=%i, skillID=%i, damageType=%i, damage=%i" % \
+			(self.getScriptName(), self.id, attackerID, skillID, damageType, damage))
+			
 		if self.HP <= damage:
 			if self.canDie(attackerID, skillID, damageType, damage):
 				self.die(attackerID)
 		else:
 			self.setHP(self.HP - damage)
-	
+		
+		self.allClients.recvDamage(attackerID, skillID, damageType, damage)
+		
 	def addEnemy(self, entityID, enmity):
 		"""
 		defined.
@@ -132,13 +145,32 @@ class Combat(CombatPropertys):
 		"""
 		pass
 	
+	def checkInTerritory(self):
+		"""
+		virtual method.
+		检查自己是否在可活动领地中
+		"""
+		return True
+
+	def checkEnemyDist(self, entity):
+		"""
+		virtual method.
+		检查敌人距离
+		"""
+		dist = entity.position.distTo(self.position) <= 30.0
+		if dist > 30.0:
+			INFO_MSG("%s::checkEnemyDist: %i id=%i, dist=%f." % (self.getScriptName(), self.id, entity.id, dist))
+			return False
+		
+		return True
+		
 	def checkEnemys(self):
 		"""
 		检查敌人列表
 		"""
 		for idx in range(len(self.enemyLog) - 1, -1, -1):
 			entity = KBEngine.entities.get(self.enemyLog[idx])
-			if entity is None:
+			if entity is None or not self.checkInTerritory() or not self.checkEnemyDist(entity):
 				self.removeEnemy(self.enemyLog[idx])
 
 Combat._timermap = {}

@@ -18,11 +18,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "witness.hpp"
+#include "cellapp.hpp"
 #include "entitydef/method.hpp"
 #include "clients_remote_entity_method.hpp"
 #include "network/bundle.hpp"
 #include "server/eventhistory_stats.hpp"
+
+#include "client_lib/client_interface.hpp"
 
 namespace KBEngine{
 
@@ -55,23 +58,149 @@ ClientsRemoteEntityMethod::~ClientsRemoteEntityMethod()
 //-------------------------------------------------------------------------------------
 PyObject* ClientsRemoteEntityMethod::tp_call(PyObject* self, PyObject* args, 
 	PyObject* kwds)	
-{	
+{
+	ClientsRemoteEntityMethod* rmethod = static_cast<ClientsRemoteEntityMethod*>(self);
+	return rmethod->callmethod(args, kwds);	
+}		
+
+//-------------------------------------------------------------------------------------
+PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
+{
 	// 获取entityAOI范围内其他entity
 	// 向这些entity的client推送这个方法的调用
-	ClientsRemoteEntityMethod* rmethod = static_cast<ClientsRemoteEntityMethod*>(self);
-	MethodDescription* methodDescription = rmethod->getDescription();
+	MethodDescription* methodDescription = getDescription();
+
+	Entity* pEntity = Cellapp::getSingleton().findEntity(id_);
+	if(pEntity == NULL || pEntity->pWitness() == NULL || pEntity->isDestroyed() || pEntity->getClientMailbox() == NULL)
+	{
+		//WARNING_MSG(boost::format("EntityRemoteMethod::callClientMethod: not found entity(%1%).\n") % 
+		//	mailbox->getID());
+
+		S_Return;
+	}
+
+	Witness::AOI_ENTITIES& entities = pEntity->pWitness()->aoiEntities();
+
+	if(otherClients_)
+	{
+		if(entities.size() == 0)
+			S_Return;
+	}
 
 	if(methodDescription->checkArgs(args))
 	{
-		// 记录这个事件产生的数据量大小
-		//g_publicClientEventHistoryStats.add(pEntity->getScriptName(), 
-		//	methodDescription->getName(), 
-		//	pBundle->currMsgLength());
+		MemoryStream* mstream = MemoryStream::ObjPool().createObject();
+		methodDescription->addToStream(mstream, args);
+
+		if(!otherClients_)
+		{
+			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			pEntity->getClientMailbox()->newMail((*pBundle));
+
+			if(mstream->wpos() > 0)
+				(*pBundle).append(mstream->data(), mstream->wpos());
+
+			if(Mercury::g_trace_packet > 0)
+			{
+				if(Mercury::g_trace_packet_use_logfile)
+					DebugHelper::getSingleton().changeLogger("packetlogs");
+
+				DEBUG_MSG(boost::format("ClientsRemoteEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteMethodCall(%1%::%2%)\n") % 
+					pEntity->getScriptName() % methodDescription->getName());
+																									
+				switch(Mercury::g_trace_packet)																	
+				{																								
+				case 1:																							
+					mstream->hexlike();																			
+					break;																						
+				case 2:																							
+					mstream->textlike();																			
+					break;																						
+				default:																						
+					mstream->print_storage();																	
+					break;																						
+				};																								
+
+				if(Mercury::g_trace_packet_use_logfile)	
+					DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));																				
+			}
+
+			//mailbox->postMail((*pBundle));
+			pEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
+
+			//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+			// 记录这个事件产生的数据量大小
+			g_publicClientEventHistoryStats.trackEvent(pEntity->getScriptName(), 
+				methodDescription->getName(), 
+				pBundle->currMsgLength(), 
+				"::");
+		}
+
+		Witness::AOI_ENTITIES::iterator iter = entities.begin();
+		for(; iter != entities.end(); iter++)
+		{
+			Entity* pAoiEntity = Cellapp::getSingleton().findEntity((*iter)->id());
+			if(pAoiEntity == NULL || pAoiEntity->pWitness() == NULL || pAoiEntity->isDestroyed())
+				continue;
+			
+			EntityMailbox* mailbox = pAoiEntity->getClientMailbox();
+			if(mailbox == NULL)
+				continue;
+
+			Mercury::Channel* pChannel = mailbox->getChannel();
+			if(pChannel == NULL)
+				continue;
+
+			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			pEntity->getClientMailbox()->newMail((*pBundle));
+
+			if(mstream->wpos() > 0)
+				(*pBundle).append(mstream->data(), mstream->wpos());
+
+			if(Mercury::g_trace_packet > 0)
+			{
+				if(Mercury::g_trace_packet_use_logfile)
+					DebugHelper::getSingleton().changeLogger("packetlogs");
+
+				DEBUG_MSG(boost::format("ClientsRemoteEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteMethodCall(%1%::%2%)\n") % 
+					pAoiEntity->getScriptName() % methodDescription->getName());
+																									
+				switch(Mercury::g_trace_packet)																	
+				{																								
+				case 1:																							
+					mstream->hexlike();																			
+					break;																						
+				case 2:																							
+					mstream->textlike();																			
+					break;																						
+				default:																						
+					mstream->print_storage();																	
+					break;																						
+				};																								
+
+				if(Mercury::g_trace_packet_use_logfile)	
+					DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));																				
+			}
+
+			//mailbox->postMail((*pBundle));
+			pAoiEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
+
+			//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+			// 记录这个事件产生的数据量大小
+			g_publicClientEventHistoryStats.trackEvent(pAoiEntity->getScriptName(), 
+				methodDescription->getName(), 
+				pBundle->currMsgLength(), 
+				"::");
+		}
+
+		MemoryStream::ObjPool().reclaimObject(mstream);
 	}
 
 	S_Return;
-}		
-	
+}
+
 //-------------------------------------------------------------------------------------
 
 }

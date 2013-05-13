@@ -36,7 +36,8 @@ class State:
 		"""
 		virtual method.
 		"""
-		pass
+		# 通知表现层改变表现
+		KBEngine.fireEvent("set_state", self.id, newState)
 
 	def onForbidChanged_(self, oldForbids, newForbids):
 		"""
@@ -47,11 +48,14 @@ class State:
 	# ----------------------------------------------------------------
 	# property method
 	# ----------------------------------------------------------------
-	def set_state(self, old):
-		self.onStateChanged_(old, self.state)
+	def set_state(self, oldValue):
+		DEBUG_MSG("%s::set_state: %i changed:%s->%s" % (self.getScriptName(), self.id, oldValue, self.state))
+		self.onStateChanged_(oldValue, self.state)
 
-	def set_effStates(self, old):
-		self.onEffectStateChanged_(old, self.effStates)
+	def set_effStates(self, oldValue):
+		DEBUG_MSG("%s::set_effStates: %i changed:%s->%s" % (self.getScriptName(), self.id, oldValue, self.effStates))
+		self.onEffectStateChanged_(oldValue, self.effStates)
 
-	def set_forbids(self, old):
-		self.onForbidChanged_(old, self.forbids)
+	def set_forbids(self, oldValue):
+		DEBUG_MSG("%s::set_forbids: %i changed:%s->%s" % (self.getScriptName(), self.id, oldValue, self.forbids))
+		self.onForbidChanged_(oldValue, self.forbids)

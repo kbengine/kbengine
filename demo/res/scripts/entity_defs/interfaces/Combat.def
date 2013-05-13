@@ -26,5 +26,11 @@
 	</CellMethods>
 
 	<ClientMethods>
+		<recvDamage>
+			<Arg>	ENTITY_ID									</Arg>
+			<Arg>	SKILLID										</Arg>
+			<Arg>	DAMAGE_TYPE									</Arg>
+			<Arg>	HP										</Arg>
+		</recvDamage>
 	</ClientMethods>
 </root>

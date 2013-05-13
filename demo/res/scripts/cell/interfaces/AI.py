@@ -6,6 +6,8 @@ import random
 import GlobalDefine
 from KBEDebug import * 
 
+__TERRITORY_AREA__ = 30.0
+
 class AI:
 	def __init__(self):
 		pass
@@ -15,20 +17,31 @@ class AI:
 		virtual method.
 		"""
 		pass
-		
+
+	def checkInTerritory(self):
+		"""
+		virtual method.
+		检查自己是否在可活动领地中
+		"""
+		ret = self.position.distTo(self.spawnPos) <= __TERRITORY_AREA__
+		if not ret:
+			INFO_MSG("%s::checkInTerritory: %i is False." % (self.getScriptName(), self.id))
+			
+		return ret
+
 	def addTerritory(self):
 		"""
 		添加领地
 		进入领地范围的某些entity将视为敌人
 		"""
-		xzrange = 30.0
 		assert self.territoryControllerID == 0 and "territoryControllerID != 0"
-		self.territoryControllerID = self.addProximity(xzrange, 0, 0)
+		trange = __TERRITORY_AREA__ / 2.0
+		self.territoryControllerID = self.addProximity(trange, 0, 0)
 		
 		if self.territoryControllerID <= 0:
-			ERROR_MSG("%s::addTerritory: %i, range=%i, is error!" % (self.getScriptName(), self.id, xzrange))
+			ERROR_MSG("%s::addTerritory: %i, range=%i, is error!" % (self.getScriptName(), self.id, trange))
 		else:
-			INFO_MSG("%s::addTerritory: %i range=%i, id=%i." % (self.getScriptName(), self.id, xzrange, self.territoryControllerID))
+			INFO_MSG("%s::addTerritory: %i range=%i, id=%i." % (self.getScriptName(), self.id, trange, self.territoryControllerID))
 			
 	def delTerritory(self):
 		"""
@@ -52,12 +65,6 @@ class AI:
 		"""
 		self.delTimer(self.heartBeatTimerID)
 		self.heartBeatTimerID = 0
-			
-	def onHeardTimer(self, tid, tno):
-		"""
-		entity的心跳
-		"""
-		self.think()
 	
 	def think(self):
 		"""
@@ -88,10 +95,16 @@ class AI:
 		"""
 		self.targetID = entityID
 		self.onTargetChanged()
-		
+	
 	# ----------------------------------------------------------------
 	# callback
 	# ----------------------------------------------------------------
+	def onHeardTimer(self, tid, tno):
+		"""
+		entity的心跳
+		"""
+		self.think()
+		
 	def onTargetChanged(self):
 		"""
 		virtual method.
@@ -131,7 +144,17 @@ class AI:
 			self.delTerritory()
 		
 		self.checkEnemys()
-
+		
+		if self.targetID <= 0:
+			return
+		
+		entity = KBEngine.entities.get(self.targetID)
+		if entity.position.distTo(self.position) > 2.0:
+			self.gotoEntity(self.targetID, 1.8)
+			return
+		else:
+			entity.recvDamage(self.id, 1, 0, random.randint(0, 10))
+			
 	def onThinkOther(self):
 		"""
 		virtual method.
@@ -233,6 +256,8 @@ class AI:
 		if len(self.enemyLog) == 0:
 			if not self.isState(GlobalDefine.ENTITY_STATE_FREE):
 				self.changeState(GlobalDefine.ENTITY_STATE_FREE)
+				
+			self.backSpawnPos()
 		else:
 			self.choiceTarget()
 		

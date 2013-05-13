@@ -34,6 +34,13 @@ class Monster(GameObject,
 		virtual method.
 		"""
 		pass
+
+	def checkInTerritory(self):
+		"""
+		virtual method.
+		检查自己是否在可活动领地中
+		"""
+		return AI.checkInTerritory(self)
 		
 	# ----------------------------------------------------------------
 	# callback

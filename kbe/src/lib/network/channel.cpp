@@ -282,6 +282,8 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 		bufferedReceives_.clear();
 	}
 	
+	clearBundle();
+
 	lastReceivedTime_ = timestamp();
 
 	isCondemn_ = false;

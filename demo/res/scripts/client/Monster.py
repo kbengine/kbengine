@@ -6,13 +6,16 @@ from interfaces.GameObject import GameObject
 from interfaces.Motion import Motion
 from interfaces.State import State
 from interfaces.Flags import Flags
+from interfaces.Combat import Combat
 
 class Monster(GameObject, 
 			Flags,
 			State,
-			Motion):
+			Motion,
+			Combat):
 	def __init__(self):
 		GameObject.__init__(self)
 		Motion.__init__(self)
 		Flags.__init__(self) 
 		State.__init__(self) 
+		Combat.__init__(self) 
