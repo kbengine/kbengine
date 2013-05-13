@@ -341,6 +341,7 @@ thread::TPTask::TPTaskState LoginAccountTask::presentMainThread()
 ChargeTask::ChargeTask():
 BillingTask(),
 pOrders(NULL),
+orders(),
 success(false)
 {
 }
@@ -348,6 +349,8 @@ success(false)
 //-------------------------------------------------------------------------------------
 ChargeTask::~ChargeTask()
 {
+	//INFO_MSG(boost::format("ChargeTask::~ChargeTask(): orders=%1%\n") % 
+	//	orders.ordersID);
 }
 
 //-------------------------------------------------------------------------------------
@@ -356,6 +359,7 @@ bool ChargeTask::process()
 	KBE_ASSERT(pOrders != NULL);
 
 	pOrders->state = Orders::STATE_FAILED;
+	orders.state = Orders::STATE_FAILED;
 
 	// 如果是不需要请求的直接返回成功
 	if(pOrders->postDatas.size() == 0)
@@ -368,7 +372,9 @@ bool ChargeTask::process()
 	if(strlen(serviceAddr()) == 0)
 	{
 		pOrders->state = Orders::STATE_SUCCESS;
+		orders.state = Orders::STATE_SUCCESS;
 		pOrders->getDatas = pOrders->postDatas;
+		orders.getDatas = pOrders->postDatas;
 		success = true;
 		return false;
 	}
@@ -380,6 +386,7 @@ bool ChargeTask::process()
 	{
 		ERROR_MSG("ChargeTask::process: couldn't create a socket\n");
 		pOrders->getDatas = "couldn't create a socket!";
+		orders.getDatas = "couldn't create a socket!";
 		return false;
 	}
 
@@ -387,6 +394,7 @@ bool ChargeTask::process()
 	{
 		ERROR_MSG("ChargeTask::process: postData is NULL.\n");
 		pOrders->getDatas = "postDatas is error!";
+		orders.getDatas = "postDatas is error!";
 		return false;
 	}
 
@@ -399,6 +407,7 @@ bool ChargeTask::process()
 			kbe_strerror());
 
 		pOrders->getDatas = "connect is error!";
+		orders.getDatas = "connect is error!";
 		return false;
 	}
 
@@ -421,7 +430,8 @@ bool ChargeTask::process()
 	if(selgot <= 0)
 	{
 		ERROR_MSG(boost::format("BillingTask::process: recv is error(%1%).\n") % KBEngine::kbe_strerror());
-		pOrders->getDatas = "recv is error!";
+		pOrders->getDatas = "select is error!";
+		orders.getDatas = "select is error!";
 		return false;
 	}
 	
@@ -431,6 +441,7 @@ bool ChargeTask::process()
 	{
 		ERROR_MSG(boost::format("BillingTask::process: recv is size<= 0.\n===>postdatas=%1%\n") % pOrders->postDatas);
 		pOrders->getDatas = "recv is error!";
+		orders.getDatas = "recv is error!";
 		return false;
 	}
 
@@ -445,6 +456,7 @@ bool ChargeTask::process()
 	INFO_MSG(boost::format("ChargeTask::process: orders=%1%, commit=%2%\n==>postdatas=%3%\n") % 
 		pOrders->ordersID % success % pOrders->getDatas);
 
+	orders.getDatas = pOrders->getDatas;
 	return false;
 }
 
@@ -457,29 +469,27 @@ thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 		Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 
 		(*(*bundle)).newMessage(DbmgrInterface::onChargeCB);
-		(*(*bundle)) << pOrders->baseappID << pOrders->ordersID << pOrders->dbid;
-		(*(*bundle)).appendBlob(pOrders->getDatas);
-		(*(*bundle)) << pOrders->cbid;
+		(*(*bundle)) << orders.baseappID << orders.ordersID << orders.dbid;
+		(*(*bundle)).appendBlob(orders.getDatas);
+		(*(*bundle)) << orders.cbid;
 		(*(*bundle)) << success;
 
-		Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(pOrders->address);
+		Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(orders.address);
 
 		if(pChannel)
 		{
 			WARNING_MSG(boost::format("ChargeTask::presentMainThread: orders=%1% commit is failed!\n") % 
-				pOrders->ordersID);
+				orders.ordersID);
 
 			(*(*bundle)).send(BillingSystem::getSingleton().getNetworkInterface(), pChannel);
 		}
 		else
 		{
 			ERROR_MSG(boost::format("ChargeTask::presentMainThread: not found channel. orders=%1%\n") % 
-				pOrders->ordersID);
+				orders.ordersID);
 		}
 
-		BillingSystem::getSingleton().lockthread();
-		BillingSystem::getSingleton().orders().erase(pOrders->ordersID);
-		BillingSystem::getSingleton().unlockthread();
+		BillingSystem::getSingleton().eraseOrders_s(orders.ordersID);
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 
