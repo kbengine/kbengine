@@ -8,7 +8,7 @@ from interfaces.GameObject import GameObject
 
 class Gate(GameObject):
 	def __init__(self):
-		GameObject.__init__(self)
+		GameObject.__init__(self) 
 			
 Gate._timermap = {}
 Gate._timermap.update(GameObject._timermap)
