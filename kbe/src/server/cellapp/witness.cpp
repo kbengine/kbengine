@@ -512,37 +512,37 @@ void Witness::addUpdateHeadToStream(Mercury::Bundle* pForwardBundle, uint32 flag
 
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_y);
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_y);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_PITCH):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_p);
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_p);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_ROLL):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_r);
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_r);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_ROLL):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_yr);
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_yr);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_PITCH):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_yp);
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_yp);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_PITCH_ROLL):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_pr);
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_pr);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_PITCH_ROLL):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_ypr);
+			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_ypr);
 		}
 		break;
 	default:
@@ -639,6 +639,7 @@ bool Witness::sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::B
 	}
 
 	ERROR_MSG(boost::format("Witness::sendToClient: %1% pBundles is NULL, not found channel.\n") % pEntity_->getID());
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	return false;
 }
 

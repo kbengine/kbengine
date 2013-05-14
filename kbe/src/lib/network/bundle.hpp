@@ -61,7 +61,7 @@ class Channel;
 		bool isprint = true;																				\
 		if(pCurrMsgHandler)																					\
 		{																									\
-		std::vector<std::string>::iterator iter = std::find(Mercury::g_trace_packet_disables.begin(),		\
+			std::vector<std::string>::iterator iter = std::find(Mercury::g_trace_packet_disables.begin(),	\
 														Mercury::g_trace_packet_disables.end(),				\
 															pCurrMsgHandler->name);							\
 																											\

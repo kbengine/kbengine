@@ -106,11 +106,13 @@ Reason BlowfishFilter::send(NetworkInterface & networkInterface, Channel * pChan
 		else
 			UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket *>(pOutPacket));
 
+		/*
 		if(Mercury::g_trace_packet > 0)
 		{
 			DEBUG_MSG(boost::format("BlowfishFilter::send: packetLen=%1%, padSize=%2%\n") % 
 				packetLen % (int)padSize);
 		}
+		*/
 	}
 
 	return networkInterface.basicSendWithRetries(pChannel, pPacket);
@@ -220,11 +222,13 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 
 		pPacket->wpos(pPacket->wpos() - padSize_);
 
+		/*
 		if(Mercury::g_trace_packet > 0)
 		{
 			DEBUG_MSG(boost::format("BlowfishFilter::recv: packetLen=%1%, padSize=%2%\n") % 
 				(packetLen_ + 1) % (int)padSize_);
 		}
+		*/
 
 		packetLen_ = 0;
 		padSize_ = 0;

@@ -48,7 +48,7 @@ class Combat(CombatPropertys):
 		if killerID == self.id:
 			killerID = 0
 			
-		INFO_MSG("%i i die. killerID:%i." % (self.id, killerID))
+		INFO_MSG("%s::die: %i i die. killerID:%i." % (self.getScriptName(), self.id, killerID))
 		killer = KBEngine.entities.get(killerID)
 		if killer:
 			killer.onKiller(self.id)
@@ -170,7 +170,8 @@ class Combat(CombatPropertys):
 		"""
 		for idx in range(len(self.enemyLog) - 1, -1, -1):
 			entity = KBEngine.entities.get(self.enemyLog[idx])
-			if entity is None or not self.checkInTerritory() or not self.checkEnemyDist(entity):
+			if entity is None or entity.isDestroyed or entity.isDead() or \
+				not self.checkInTerritory() or not self.checkEnemyDist(entity):
 				self.removeEnemy(self.enemyLog[idx])
 
 Combat._timermap = {}

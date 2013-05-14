@@ -199,7 +199,7 @@ class AI:
 		if controllerID != self.territoryControllerID:
 			return
 		
-		if entityEntering.getScriptName() != "Avatar":
+		if entityEntering.isDestroyed or entityEntering.getScriptName() != "Avatar" or entityEntering.isDead():
 			return
 		
 		if not self.isState(GlobalDefine.ENTITY_STATE_FREE):

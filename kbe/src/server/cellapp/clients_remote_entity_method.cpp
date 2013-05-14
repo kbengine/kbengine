@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/eventhistory_stats.hpp"
 
 #include "client_lib/client_interface.hpp"
+#include "../../server/baseapp/baseapp_interface.hpp"
 
 namespace KBEngine{
 
@@ -71,7 +72,8 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	MethodDescription* methodDescription = getDescription();
 
 	Entity* pEntity = Cellapp::getSingleton().findEntity(id_);
-	if(pEntity == NULL || pEntity->pWitness() == NULL || pEntity->isDestroyed() || pEntity->getClientMailbox() == NULL)
+	if(pEntity == NULL || pEntity->pWitness() == NULL || 
+		pEntity->isDestroyed() || pEntity->getClientMailbox() == NULL)
 	{
 		//WARNING_MSG(boost::format("EntityRemoteMethod::callClientMethod: not found entity(%1%).\n") % 
 		//	mailbox->getID());
@@ -152,11 +154,14 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			if(pChannel == NULL)
 				continue;
 
-			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-			pEntity->getClientMailbox()->newMail((*pBundle));
+			Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+			Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 
+			pForwardBundle->newMessage(ClientInterface::onRemoteMethodCall);
+			(*pForwardBundle) << pEntity->getID();
+			
 			if(mstream->wpos() > 0)
-				(*pBundle).append(mstream->data(), mstream->wpos());
+				(*pForwardBundle).append(mstream->data(), mstream->wpos());
 
 			if(Mercury::g_trace_packet > 0)
 			{
@@ -183,16 +188,20 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 					DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));																				
 			}
 
-			//mailbox->postMail((*pBundle));
-			pAoiEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
+			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pAoiEntity->getID(), (*pSendBundle), (*pForwardBundle));
 
-			//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+			//mailbox->postMail((*pBundle));
+			pAoiEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pSendBundle);
+
+			//Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
 
 			// 记录这个事件产生的数据量大小
 			g_publicClientEventHistoryStats.trackEvent(pAoiEntity->getScriptName(), 
 				methodDescription->getName(), 
-				pBundle->currMsgLength(), 
+				pForwardBundle->currMsgLength(), 
 				"::");
+
+			Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 		}
 
 		MemoryStream::ObjPool().reclaimObject(mstream);
