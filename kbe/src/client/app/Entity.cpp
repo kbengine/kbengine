@@ -32,7 +32,16 @@ KBEntity::KBEntity(SpaceWorld* pSpace, KBEngine::ENTITY_ID eid):
   mState(0),
   inWorld_(false),
   pNameLabelNode_(NULL),
-  pNameLabel_(NULL)
+  pNameLabel_(NULL),
+  pDamageLabelNode_(NULL),
+  pDamageLabel_(NULL),
+  damageShowTime_(0.f),
+  pHudNode_(NULL),
+  pHealthHUD_(NULL),
+  hp_(100),
+  hp_max_(100),
+  mp_(100),
+  mp_max_(100)
 {
 	//setupBody(cam->getSceneManager());
 	//setupCamera(cam);
@@ -42,6 +51,16 @@ KBEntity::KBEntity(SpaceWorld* pSpace, KBEngine::ENTITY_ID eid):
 //-------------------------------------------------------------------------------------
 KBEntity::~KBEntity()
 {
+	pNameLabelNode_->detachObject(pNameLabel_);
+	delete pNameLabel_;
+
+	if(pDamageLabel_)
+	{
+		pDamageLabelNode_->detachObject(pDamageLabel_);
+		delete pDamageLabel_;
+		pDamageLabel_ = NULL;
+	}
+
 	if(mBodyEnt)mSceneMgr->destroyEntity(mBodyEnt);
 	if(mSword1)mSceneMgr->destroyEntity(mSword1);
 	if(mSword2)mSceneMgr->destroyEntity(mSword2);
@@ -144,6 +163,20 @@ void KBEntity::addTime(Real deltaTime)
 
 	if(!mCamera)
 		setDirection(destDir_.z, destDir_.y, destDir_.x);
+
+	if(damageShowTime_ > 0.f)
+	{
+		damageShowTime_ -= deltaTime;
+	}
+	else
+	{
+		if(pDamageLabel_)
+		{
+			pDamageLabelNode_->detachObject(pDamageLabel_);
+			delete pDamageLabel_;
+			pDamageLabel_ = NULL;
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -219,8 +252,26 @@ void KBEntity::setupBody(SceneManager* sceneMgr)
 
 	Ogre::Vector3 pos = mBodyNode->getPosition();
 	pNameLabelNode_->attachObject(pNameLabel_);
-	pos.y = pos.y + mBodyEnt->getBoundingBox().getSize().y  * mScale;
+	pos.y = pos.y + mBodyEnt->getBoundingBox().getSize().y  * mScale + 1.0f;
 	pNameLabelNode_->setPosition(pos);
+
+	pDamageLabelNode_ = mBodyNode->createChildSceneNode(Ogre::StringConverter::toString(mID) + "damage");
+	pos.y += (mBodyEnt->getBoundingBox().getSize().y * 0.3 * mScale);
+	pDamageLabelNode_->setPosition(pos);
+
+	// 创建头顶血条
+	pHealthHUD_ = sceneMgr->createBillboardSet();
+	pHealthHUD_->setMaterialName("Examples/Billboard");
+	pHealthHUD_->setDefaultWidth(3);
+	pHealthHUD_->setDefaultHeight(0.3);
+
+	pHudNode_ = mBodyNode->createChildSceneNode(Ogre::StringConverter::toString(mID) + "hud");
+	pHudNode_->attachObject(pHealthHUD_);
+
+	Billboard* b = pHealthHUD_->createBillboard(0, mBodyEnt->getBoundingBox().getSize().y * mScale + 2.0, 0);
+	b->setColour(Ogre::ColourValue::Green);
+	//b->setDimensions(96, 12);
+	b = NULL;
 
 	//scale(mScale);
 }
@@ -646,6 +697,46 @@ void KBEntity::setTopAnimation(AnimID id, bool reset)
 		mFadingIn[id] = true;
 		if (reset) mAnims[id]->setTimePosition(0);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void KBEntity::attack(KBEntity* receiver, uint32 skillID, uint32 damageType, uint32 damage)
+{
+	setTopAnimation(damage % 2 > 0 ? ANIM_SLICE_HORIZONTAL : ANIM_SLICE_VERTICAL, true);
+	mTimer = 0;
+}
+
+//-------------------------------------------------------------------------------------
+void KBEntity::recvDamage(KBEntity* attacker, uint32 skillID, uint32 damageType, uint32 damage)
+{
+	damageShowTime_ = 3.0f;
+
+	if(pDamageLabel_ == NULL)
+	{
+		pDamageLabel_ = new Ogre::MovableText(Ogre::StringConverter::toString(mID) + "damage", "-" + Ogre::StringConverter::toString(damage), 
+			"Yahei", 1.0f, Ogre::ColourValue::Black);
+
+		pDamageLabel_->setTextAlignment(Ogre::MovableText::H_CENTER, Ogre::MovableText::V_ABOVE); 
+		pDamageLabel_->showOnTop(true);
+		pDamageLabel_->setColor(Ogre::ColourValue::Red);
+		pDamageLabelNode_->attachObject(pDamageLabel_);
+	}
+	else
+	{
+		pDamageLabel_->setCaption("- " + Ogre::StringConverter::toString(damage));
+	}
+
+	hp_ -= damage;
+
+	// 改变头顶血量显示
+	Billboard* health = pHealthHUD_->getBillboard(0);
+	float healthPer = hp_ / hp_max_;
+	float healthLength = healthPer * pHealthHUD_->getDefaultWidth();
+	health->setDimensions(healthLength, pHealthHUD_->getDefaultHeight());
+	ColourValue maxHealthCol = ColourValue::Blue;
+	ColourValue minHealthCol = ColourValue::Red;
+	ColourValue currHealthCol = maxHealthCol * healthPer + minHealthCol * (1 - healthPer);
+	health->setColour(currHealthCol);
 }
 
 //-------------------------------------------------------------------------------------

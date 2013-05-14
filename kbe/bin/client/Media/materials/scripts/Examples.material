@@ -18,3 +18,14 @@ material Examples/LightRibbonTrail
 		}
 	}
 }
+
+material Examples/Billboard
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+        }
+    }
+}

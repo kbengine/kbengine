@@ -5,14 +5,14 @@
 			<Utype>			47001				</Utype>
 			<Flags>			ALL_CLIENTS			</Flags>
 			<Persistent>	true					</Persistent> 
-			<Default>		0				</Default>
+			<Default>		100				</Default>
 		</HP>
 
 		<HP_Max>
 			<Type>			HP				</Type>
 			<Utype>			47002				</Utype>
 			<Flags>			ALL_CLIENTS			</Flags>
-			<Default>		0				</Default>
+			<Default>		100				</Default>
 		</HP_Max>
 
 		<MP>
@@ -20,14 +20,14 @@
 			<Utype>			47003				</Utype>
 			<Flags>			ALL_CLIENTS			</Flags>
 			<Persistent>	true					</Persistent> 
-			<Default>		0				</Default>
+			<Default>		100				</Default>
 		</MP>
 
 		<MP_Max>
 			<Type>			HP				</Type>
 			<Utype>			47004				</Utype>
 			<Flags>			ALL_CLIENTS			</Flags>
-			<Default>		0				</Default>
+			<Default>		100				</Default>
 		</MP_Max>
 	</Properties>
 

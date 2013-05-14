@@ -368,6 +368,83 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 						iter->second->setState(state);
 					}
 				}
+				else if(peventdata->name == "set_HP_Max")
+				{
+					if(peventdata->argsSize > 0)
+					{
+						PyObject* pyitem0 = PyTuple_GetItem(peventdata->pyDatas, 0);
+						PyObject* pyitem1 = PyTuple_GetItem(peventdata->pyDatas, 1);
+						
+						KBEngine::ENTITY_ID eid = PyLong_AsUnsignedLong(pyitem0);
+						int32 v = PyLong_AsLong(pyitem1);	
+
+						ENTITIES::iterator iter = mEntities.find(eid);
+						if(iter == mEntities.end())
+							break;
+
+						iter->second->setHPMAX(v);
+					}
+				}
+				else if(peventdata->name == "set_MP_Max")
+				{
+					if(peventdata->argsSize > 0)
+					{
+						PyObject* pyitem0 = PyTuple_GetItem(peventdata->pyDatas, 0);
+						PyObject* pyitem1 = PyTuple_GetItem(peventdata->pyDatas, 1);
+						
+						KBEngine::ENTITY_ID eid = PyLong_AsUnsignedLong(pyitem0);
+						int32 v = PyLong_AsLong(pyitem1);	
+
+						ENTITIES::iterator iter = mEntities.find(eid);
+						if(iter == mEntities.end())
+							break;
+
+						iter->second->setMPMAX(v);
+					}
+				}
+				else if(peventdata->name == "recvDamage")
+				{
+					if(peventdata->argsSize > 0)
+					{
+						PyObject* pyitem0 = PyTuple_GetItem(peventdata->pyDatas, 0);
+						PyObject* pyitem1 = PyTuple_GetItem(peventdata->pyDatas, 1);
+						PyObject* pyitem2 = PyTuple_GetItem(peventdata->pyDatas, 2);
+						PyObject* pyitem3 = PyTuple_GetItem(peventdata->pyDatas, 3);
+						PyObject* pyitem4 = PyTuple_GetItem(peventdata->pyDatas, 4);
+
+						KBEngine::ENTITY_ID eid = PyLong_AsUnsignedLong(pyitem0);
+						KBEngine::ENTITY_ID attackerID = PyLong_AsUnsignedLong(pyitem1);	
+						uint32 skillID = PyLong_AsUnsignedLong(pyitem2);	
+						uint32 damageType = PyLong_AsUnsignedLong(pyitem3);	
+						uint32 damage = PyLong_AsUnsignedLong(pyitem4);	
+
+						ENTITIES::iterator iter = mEntities.find(attackerID);
+						ENTITIES::iterator iter1 = mEntities.find(eid);
+						
+						KBEntity* attacker = NULL;
+						KBEntity* receiver = NULL;
+
+						if(iter != mEntities.end())
+						{
+							attacker = iter->second.get();
+						}
+
+						if(iter1 != mEntities.end())
+						{
+							receiver = iter1->second.get();
+						}
+
+						if(attacker)
+						{
+							attacker->attack(receiver, skillID, damageType, damage);
+						}
+
+						if(receiver)
+						{
+							receiver->recvDamage(attacker, skillID, damageType, damage);
+						}
+					}
+				}
 			}
 			break;
 	default:

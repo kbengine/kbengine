@@ -83,6 +83,19 @@ public:
 		}
 	}
 	
+	void setHPMAX(int v)
+	{
+		hp_max_ = v;
+	}
+	
+	void setMPMAX(int v)
+	{
+		mp_max_ = v;
+	}
+
+	void attack(KBEntity* receiver, uint32 skillID, uint32 damageType, uint32 damage);
+	void recvDamage(KBEntity* attacker, uint32 skillID, uint32 damageType, uint32 damage);
+
 	int getState()
 	{
 		return mState;
@@ -259,6 +272,15 @@ private:
 	
 	Ogre::SceneNode *pNameLabelNode_;
 	Ogre::MovableText *pNameLabel_;
+
+	Ogre::SceneNode *pDamageLabelNode_;
+	Ogre::MovableText *pDamageLabel_;
+	Real damageShowTime_;
+
+	Ogre::SceneNode *pHudNode_;
+	BillboardSet* pHealthHUD_;
+
+	int hp_, hp_max_, mp_, mp_max_;
 };
 
 #endif
