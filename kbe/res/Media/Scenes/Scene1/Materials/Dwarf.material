@@ -1,0 +1,38 @@
+
+material DwarfAxeMat
+{
+	technique
+	{
+		pass
+		{
+			ambient 0.2 0.2 0.2 1
+			diffuse 0.8 0.8 0.8 1
+
+			texture_unit
+			{
+				texture axe.jpg -1
+			}
+		}
+
+	}
+
+}
+
+material DwarfSkin1Mat
+{
+	technique
+	{
+		pass
+		{
+			ambient 0.2 0.2 0.2 1
+			diffuse 0.8 0.8 0.8 1
+
+			texture_unit
+			{
+				texture dwarf2.jpg -1
+			}
+		}
+
+	}
+
+}

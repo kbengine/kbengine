@@ -1,0 +1,38 @@
+Artifex Terra 3D, DragonSnail Model License 1.0
+=========================================================================================
+All models, textures and material files in this folder / archive
+are part of the model pack coming with Artifex Terra 3D
+- Easy and sophisticated Terrain Editor & Painter -
+Free download at: http://www.artifexterra3d.com
+
+The ogre modelpack is consisting of the following mesh-files:
+Ogre.mesh, Ogre.skeleton plus .material and texture files
+
+Copyright (c) 2008, 2009 
+Karolina Sefyrin alias DragonSnail (http://www.dragonsnail.com) - 3D modeling / texturing
+Thomas Gradl alias Nauk (http://www.artifexterra3d.com)
+
+The Ogre model is free of charge and can be used and redistributed for any purpose, 
+as long as this copyright and credit notice is unmodified passed along with it and
+it is part of an Ogre3d (www.ogre3d.org) based software. It or parts of it may not 
+be redistributed standalone or as part of another standalone model- or texturepack.
+
+This license & copyright note covers everything but the Ogres head. The Ogres head
+has been taken from the assets of the Ogre3d engine and modified from there on.
+
+Note: if you should be unsecure wether you are entitled to use the Ogre model 
+for your work, please don't hesitate to contact us for clarification.
+
+THE PRODUCT IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
+PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE 
+FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE PRODUCT OR THE USE OR OTHER 
+DEALINGS IN THE PRODUCT.
+
+THE AUTHOR(S) DOES EXPLICITELY NOT WARRANT THAT THE PRODUCT WILL MEET YOUR REQUIREMENTS AND 
+EXPECTATIONS OR THAT ANY OF THE MATERIALS CONTAINED WITHIN THE PRODUCT ARE ERROR FREE.
+
+You agree that if parts of the above written license agreement are not legally valid in 
+your country the rest of the license will still be valid and binding.
+=========================================================================================

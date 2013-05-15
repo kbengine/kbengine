@@ -1,0 +1,12 @@
+ANIMATIONS:
+
+Idle = 1-100
+Idle2 = 105-210
+Walk = 215-247
+Run = 250-266
+Jump = 270-288
+Battle idle = 290-340
+Attack = 342-372
+Flinch = 374-390
+Dying = 392-435
+Dead = 436-437

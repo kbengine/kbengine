@@ -1,0 +1,13 @@
+uniform float uExposure;
+
+varying vec4 vPosition;
+varying vec3 vRayleighColor;
+
+void main(void)
+{
+    gl_FragColor = vec4(vRayleighColor,1);
+    
+#ifdef LDR
+    gl_FragColor.xyz = 1 - exp(-uExposure * gl_FragColor.xyz);
+#endif // LDR
+}

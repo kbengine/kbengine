@@ -1,0 +1,34 @@
+fragment_program Ogre/Compositor/B&W_FP cg
+{
+	source GrayScale.cg
+	entry_point GrayScale_ps
+	profiles ps_2_0 arbfp1
+}
+
+material Ogre/Compositor/BlackAndWhite
+{
+	technique
+	{
+
+		pass
+		{
+			depth_check off
+
+			vertex_program_ref Ogre/Compositor/StdQuad_Cg_vp
+			{
+			}
+
+			fragment_program_ref Ogre/Compositor/B&W_FP
+			{
+			}
+
+			texture_unit
+			{
+				texture RT
+                tex_coord_set 0
+				tex_address_mode clamp
+				filtering linear linear linear
+			}
+		}
+	}
+}

@@ -1,0 +1,130 @@
+// Template materials for integrated depth shadows
+
+vertex_program Ogre/shadow/caster/depth/vp cg
+{
+	source depthshadowobject.cg
+	profiles vs_1_1 arbvp1
+	entry_point main_vp
+	compile_arguments -DSHADOWCASTER=1 -DDEPTH_SHADOWCASTER=1 -DDEPTH_SHADOWRECEIVER=0
+
+	default_params
+	{
+		param_named_auto worldViewProj		worldviewproj_matrix
+		param_named_auto depthRange			scene_depth_range 0
+	}
+}
+
+fragment_program Ogre/shadow/caster/depth/fp cg
+{
+	source depthshadowobject.cg
+	profiles ps_2_x arbfp1
+	entry_point main_fp
+	compile_arguments -DSHADOWCASTER=1 -DDEPTH_SHADOWCASTER=1 -DDEPTH_SHADOWRECEIVER=0
+
+	default_params
+	{
+	}
+}
+
+
+
+vertex_program Ogre/shadow/receiver/depth/pssm3/vp cg
+{
+	source depthshadowobject.cg
+	profiles vs_1_1 arbvp1
+	entry_point main_vp
+	compile_arguments -DSHADOWCASTER=0 -DDEPTH_SHADOWCASTER=0 -DDEPTH_SHADOWRECEIVER=1 
+
+	default_params
+	{
+		param_named_auto worldViewProj		worldviewproj_matrix
+		param_named_auto lightPosition		light_position_object_space 0
+		param_named_auto lightDiffuse		derived_light_diffuse_colour 0
+		param_named_auto depthRange0		shadow_scene_depth_range 0
+		param_named_auto depthRange1		shadow_scene_depth_range 1
+		param_named_auto depthRange2		shadow_scene_depth_range 2
+		
+		param_named_auto texWorldViewProjMatrix0	texture_worldviewproj_matrix 0
+		param_named_auto texWorldViewProjMatrix1	texture_worldviewproj_matrix 1
+		param_named_auto texWorldViewProjMatrix2	texture_worldviewproj_matrix 2
+	}
+}
+
+fragment_program Ogre/shadow/receiver/depth/pssm3/fp cg
+{
+	source depthshadowobject.cg
+	profiles ps_2_x arbfp1
+	entry_point main_fp
+	compile_arguments -DSHADOWCASTER=0 -DDEPTH_SHADOWCASTER=0 -DDEPTH_SHADOWRECEIVER=1 
+
+	default_params
+	{
+		param_named_auto materialAmbient derived_ambient_light_colour
+		// shadow samplers are indexes 1/2/3
+		param_named_auto inverseShadowmapSize0 inverse_texture_size 1
+		param_named_auto inverseShadowmapSize1 inverse_texture_size 2
+		param_named_auto inverseShadowmapSize2 inverse_texture_size 3
+		//SET THIS MANUALLY!
+		//param_named pssmSplitPoints 0 0 0 0
+	}
+}
+
+material Ogre/shadow/depth/caster
+{
+	technique
+	{
+		pass
+		{
+			vertex_program_ref Ogre/shadow/caster/depth/vp
+			{
+			}
+			fragment_program_ref Ogre/shadow/caster/depth/fp
+			{
+			}
+		}
+	}
+}
+
+material Ogre/shadow/depth/integrated/pssm
+{
+    technique
+	{
+		// link to caster material
+		shadow_caster_material Ogre/shadow/depth/caster
+		
+		pass
+		{
+			vertex_program_ref Ogre/shadow/receiver/depth/pssm3/vp
+			{
+			}
+			fragment_program_ref Ogre/shadow/receiver/depth/pssm3/fp
+			{
+				// you must specify pssmSplitPoints when you instantiate!
+			}
+			
+			texture_unit diffuse
+			{
+				// nothing specified for now, derivers can override
+			}
+			
+			texture_unit shadow0
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1 1 1 1
+			}
+			texture_unit shadow1
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1 1 1 1
+			}
+			texture_unit shadow2
+			{
+				content_type shadow
+				tex_address_mode border
+				tex_border_colour 1 1 1 1
+			}
+		}
+	}
+}

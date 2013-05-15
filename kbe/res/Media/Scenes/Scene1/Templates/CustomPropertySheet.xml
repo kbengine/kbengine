@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CUSTOMPROPERTYDEFINITION>
+  <CUSTOMPROPERTY name="Animation" type="group" restrictions="ETYPE_ENTITY;ETYPE_CAMERA;ETYPE_LIGHT;">
+    <SUBPROPERTY name="Active" type="boolean" default="0"></SUBPROPERTY>
+    <SUBPROPERTY name="FPS" type="float" default="24.0f"></SUBPROPERTY>
+    <SUBPROPERTY name="State" type="string" options="Stand;Walk;Run;" default="Walk"></SUBPROPERTY>
+  </CUSTOMPROPERTY>
+  <CUSTOMPROPERTY name="Physics" type="group" restrictions="ETYPE_ENTITY;ETYPE_CAMERA;ETYPE_LIGHT;">
+    <SUBPROPERTY name="ID" type="integer" default="0"></SUBPROPERTY>
+    <SUBPROPERTY name="Mass" type="float" default="14.0f"></SUBPROPERTY>
+    <SUBPROPERTY name="Gravity" type="string" options="Low;Normal;High;" default="Normal"></SUBPROPERTY>
+    <SUBPROPERTY name="PhysicsAnim" type="Animation"></SUBPROPERTY>
+  </CUSTOMPROPERTY>
+</CUSTOMPROPERTYDEFINITION>

@@ -1,0 +1,92 @@
+material house.01.rooftiles/SOLID/TEX/highlander.house.01.jpg/VertCol/TWOSIDE
+{
+	technique
+	{
+		pass
+		{
+			diffuse vertexcolour
+			specular 0.000000 0.000000 0.000000 12.500000
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture highlander.house.01.jpg
+			}
+		}
+	}
+}
+material highlanderhouse.01.ma/SOLID/TEX/highlander.house.01.jpg/VertCol
+{
+	technique
+	{
+		pass
+		{
+			diffuse vertexcolour
+			specular 0.000000 0.000000 0.000000 12.500000
+			texture_unit
+			{
+				texture highlander.house.01.jpg
+			}
+		}
+	}
+}
+material house.01.crossbeams/SOLID/TEX/highlander.house.01.jpg/VertCol
+{
+	technique
+	{
+		pass
+		{
+			diffuse vertexcolour
+			specular 0.000000 0.000000 0.000000 12.500000
+			texture_unit
+			{
+				texture highlander.house.01.jpg
+			}
+		}
+	}
+}
+material house.01.stepston/SOLID/TEX/highlander.house.01.jpg/VertCol
+{
+	technique
+	{
+		pass
+		{
+			diffuse vertexcolour
+			specular 0.000000 0.000000 0.000000 12.500000
+			texture_unit
+			{
+				texture highlander.house.01.jpg
+			}
+		}
+	}
+}
+material house.01.mortar/SOLID/TEX/highlander.house.01.jpg/VertCol
+{
+	technique
+	{
+		pass
+		{
+			diffuse vertexcolour
+			specular 0.000000 0.000000 0.000000 12.500000
+			texture_unit
+			{
+				texture highlander.house.01.jpg
+			}
+		}
+	}
+}
+material house.01.rooftiles/SOLID/TEX/highlander.house.01.jpg/VertCol
+{
+	technique
+	{
+		pass
+		{
+			diffuse vertexcolour
+			specular 0.000000 0.000000 0.000000 12.500000
+			texture_unit
+			{
+				texture highlander.house.01.jpg
+			}
+		}
+	}
+}
