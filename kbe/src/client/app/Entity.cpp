@@ -141,7 +141,7 @@ void KBEntity::addTime(Real deltaTime)
 		ray.setDirection(Ogre::Vector3::NEGATIVE_UNIT_Y);
 
 		Ogre::TerrainGroup::RayResult rayResult = mSpacePtr->getDotSceneLoader()->getTerrainGroup()->rayIntersects(ray);
-		Ogre::Real distanceAboveTerrain = CHAR_HEIGHT * mScale;
+		Ogre::Real distanceAboveTerrain = calcDistanceAboveTerrain();
 		Ogre::Real fallSpeed = 200;
 		Ogre::Real newy = currpos.y;
 
@@ -208,17 +208,21 @@ void KBEntity::setupBody(SceneManager* sceneMgr)
 	mBodyNode = sceneMgr->getRootSceneNode()->createChildSceneNode(Vector3::UNIT_Y * CHAR_HEIGHT * mScale);
 
 	Ogre::String sKey = Ogre::StringConverter::toString(mID);
-	mBodyEnt = sceneMgr->createEntity(sKey + "Body", "Sinbad.mesh");
+	mBodyEnt = sceneMgr->createEntity(sKey + "_Body", "Sinbad.mesh");
+	mBodyEnt->setQueryFlags(Space::ENTITY_MASK);
 	mBodyNode->attachObject(mBodyEnt);
 
 	// create swords and attach to sheath
 	LogManager::getSingleton().logMessage("Creating swords");
-	mSword1 = sceneMgr->createEntity(sKey + "Sword1", "Sword.mesh");
-	mSword2 = sceneMgr->createEntity(sKey + "Sword2", "Sword.mesh");
+	mSword1 = sceneMgr->createEntity(sKey + "_Sword1", "Sword.mesh");
+	mSword1->setQueryFlags(Space::ENTITY_MASK);
+	mSword2 = sceneMgr->createEntity(sKey + "_Sword2", "Sword.mesh");
+	mSword2->setQueryFlags(Space::ENTITY_MASK);
 	mBodyEnt->attachObjectToBone("Sheath.L", mSword1);
 	mBodyEnt->attachObjectToBone("Sheath.R", mSword2);
 
 	LogManager::getSingleton().logMessage("Creating the chains");
+
 	// create a couple of ribbon trails for the swords, just for fun
 	NameValuePairList params;
 	params["numberOfChains"] = "2";
@@ -229,13 +233,12 @@ void KBEntity::setupBody(SceneManager* sceneMgr)
 	mSwordTrail->setVisible(false);
 	sceneMgr->getRootSceneNode()->attachObject(mSwordTrail);
 
-
 	for (int i = 0; i < 2; i++)
 	{
-		mSwordTrail->setInitialColour(i, 1, 0.8, 0);
-		mSwordTrail->setColourChange(i, 0.75, 1.25, 1.25, 1.25);
-		mSwordTrail->setWidthChange(i, 1);
-		mSwordTrail->setInitialWidth(i, 0.3);
+		mSwordTrail->setInitialColour(i, 1, 0.8f, 0);
+		mSwordTrail->setColourChange(i, 0.75f, 1.25f, 1.25f, 1.25f);
+		mSwordTrail->setWidthChange(i, 1.f);
+		mSwordTrail->setInitialWidth(i, 0.3f);
 	}
 
 	mKeyDirection = Vector3::ZERO;
@@ -243,7 +246,7 @@ void KBEntity::setupBody(SceneManager* sceneMgr)
 
 	// 绑定名称
 	pNameLabelNode_ = mBodyNode->createChildSceneNode(Ogre::StringConverter::toString(mID));
-	pNameLabel_ = new Ogre::MovableText(Ogre::StringConverter::toString(mID), mName, 
+	pNameLabel_ = new Ogre::MovableText(Ogre::StringConverter::toString(mID) + "_name", mName, 
 		"Yahei", 1.0f, Ogre::ColourValue::Black);
 
 	pNameLabel_->setTextAlignment(Ogre::MovableText::H_CENTER, Ogre::MovableText::V_ABOVE); 
@@ -255,20 +258,20 @@ void KBEntity::setupBody(SceneManager* sceneMgr)
 	pos.y = pos.y + mBodyEnt->getBoundingBox().getSize().y  * mScale + 1.0f;
 	pNameLabelNode_->setPosition(pos);
 
-	pDamageLabelNode_ = mBodyNode->createChildSceneNode(Ogre::StringConverter::toString(mID) + "damage");
-	pos.y += (mBodyEnt->getBoundingBox().getSize().y * 0.3 * mScale);
+	pDamageLabelNode_ = mBodyNode->createChildSceneNode(Ogre::StringConverter::toString(mID) + "_damage");
+	pos.y += (mBodyEnt->getBoundingBox().getSize().y * 0.3f * mScale);
 	pDamageLabelNode_->setPosition(pos);
 
 	// 创建头顶血条
 	pHealthHUD_ = sceneMgr->createBillboardSet();
 	pHealthHUD_->setMaterialName("Examples/Billboard");
 	pHealthHUD_->setDefaultWidth(3);
-	pHealthHUD_->setDefaultHeight(0.3);
+	pHealthHUD_->setDefaultHeight(0.3f);
 
-	pHudNode_ = mBodyNode->createChildSceneNode(Ogre::StringConverter::toString(mID) + "hud");
+	pHudNode_ = mBodyNode->createChildSceneNode(Ogre::StringConverter::toString(mID) + "_hud");
 	pHudNode_->attachObject(pHealthHUD_);
 
-	Billboard* b = pHealthHUD_->createBillboard(0, mBodyEnt->getBoundingBox().getSize().y * mScale + 2.0, 0);
+	Billboard* b = pHealthHUD_->createBillboard(0, mBodyEnt->getBoundingBox().getSize().y * mScale + 2.0f, 0);
 	b->setColour(Ogre::ColourValue::Green);
 	//b->setDimensions(96, 12);
 	b = NULL;
@@ -713,7 +716,7 @@ void KBEntity::recvDamage(KBEntity* attacker, uint32 skillID, uint32 damageType,
 
 	if(pDamageLabel_ == NULL)
 	{
-		pDamageLabel_ = new Ogre::MovableText(Ogre::StringConverter::toString(mID) + "damage", "-" + Ogre::StringConverter::toString(damage), 
+		pDamageLabel_ = new Ogre::MovableText(Ogre::StringConverter::toString(mID) + "_damage", "-" + Ogre::StringConverter::toString(damage), 
 			"Yahei", 1.0f, Ogre::ColourValue::Black);
 
 		pDamageLabel_->setTextAlignment(Ogre::MovableText::H_CENTER, Ogre::MovableText::V_ABOVE); 

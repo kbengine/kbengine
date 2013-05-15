@@ -53,26 +53,24 @@ void SpaceLogin::createScene(void)
 	mSceneMgr = mRoot->createSceneManager(Ogre::ST_GENERIC);
 
     // Create the camera
-    mCamera = mSceneMgr->createCamera("PlayerCam");
+    mActiveCamera = mSceneMgr->createCamera("PlayerCam");
 
     // Position it at 500 in Z direction
-    mCamera->setPosition(Ogre::Vector3(0,0,80));
+    mActiveCamera->setPosition(Ogre::Vector3(0,0,80));
     // Look back along -Z
-    mCamera->lookAt(Ogre::Vector3(0,0,-300));
-    mCamera->setNearClipDistance(5);
+    mActiveCamera->lookAt(Ogre::Vector3(0,0,-300));
+    mActiveCamera->setNearClipDistance(5);
 
-    mCameraMan = new OgreBites::SdkCameraMan(mCamera);   // create a default camera controller
+    mCameraMan = new OgreBites::SdkCameraMan(mActiveCamera);   // create a default camera controller
     mCameraMan->setTopSpeed(7.0f);
 	OgreApplication::getSingleton().setCurrCameraMan(mCameraMan);
 
-    mActiveCamera = mCamera;
-
     // Create one viewport, entire window
-    Ogre::Viewport* vp = mWindow->addViewport(mCamera);
+    Ogre::Viewport* vp = mWindow->addViewport(mActiveCamera);
     vp->setBackgroundColour(Ogre::ColourValue(0,0,0));
 
     // Alter the camera aspect ratio to match the viewport
-    mCamera->setAspectRatio(
+    mActiveCamera->setAspectRatio(
         Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));
 }
 

@@ -34,17 +34,6 @@ public:
 
 	void changeSpace(Space* space);
 
-	bool PickEntity(Ogre::RaySceneQuery* mRaySceneQuery, Ogre::Ray &ray, Ogre::Entity **result, Ogre::uint32 mask ,Ogre::Vector3 &hitpoint, 
-		bool excludeInVisible,const Ogre::String& excludeobject, Ogre::Real max_distance);
-
-	void GetMeshInformationEx(const Ogre::MeshPtr mesh,
-		size_t &vertex_count,
-		Ogre::Vector3* &vertices,
-		size_t &index_count,
-		unsigned long* &indices,
-		const Ogre::Vector3 &position,
-		const Ogre::Quaternion &orient,
-		const Ogre::Vector3 &scale);
 protected:
 	virtual bool setup();
     virtual void setupResources();

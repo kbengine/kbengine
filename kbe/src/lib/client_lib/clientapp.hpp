@@ -144,6 +144,8 @@ public:
 	   @port: ·þÎñÆ÷¶Ë¿Ú
 	*/
 	virtual void onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
+
+	virtual void onTargetChanged();
 protected:
 	KBEngine::script::Script*								pScript_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
@@ -169,8 +171,7 @@ protected:
 
 	PyObjectPtr												entryScript_;
 
-	C_STATE state_;
-
+	C_STATE													state_;
 };
 
 }

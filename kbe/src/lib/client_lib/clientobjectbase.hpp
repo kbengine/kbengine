@@ -285,6 +285,14 @@ public:
 	client::Entity* pPlayer();
 	void setPlayerPosition(float x, float y, float z){ entityPos_ = Position3D(x, y, z); }
 	void setPlayerDirection(float yaw, float pitch, float roll){ entityDir_ = Direction3D(roll, pitch, yaw); }
+
+	void setTargetID(ENTITY_ID id){ 
+		targetID_ = id; 
+		onTargetChanged();
+	}
+	ENTITY_ID getTargetID()const{ return targetID_; }
+	virtual void onTargetChanged(){}
+
 protected:				
 	int32 appID_;
 
@@ -324,6 +332,9 @@ protected:
 	EventHandler											eventHandler_;
 
 	Mercury::NetworkInterface& ninterface_;
+
+	// 当前客户端所选择的目标
+	ENTITY_ID												targetID_;
 };
 
 }

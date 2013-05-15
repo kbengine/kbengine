@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import KBEngine
+import kbesystem
 from KBEDebug import *
 
 def onInit(isReload):
@@ -9,7 +10,7 @@ def onInit(isReload):
 	@param isReload: 是否是被重写加载脚本后触发的
 	@type isReload: bool
 	"""
-	DEBUG_MSG('onInit::isReload:%s' % isReload)
+	DEBUG_MSG('onInit::isReload = %s' % isReload)
 
 def onStart():
 	"""
@@ -25,3 +26,11 @@ def onFinish():
 	可以在此做一些游戏资源清理工作
 	"""
 	pass
+
+def onTargetChanged(entityID):
+	"""
+	KBEngine method.
+	客户端选择了某个目标
+	"""
+	DEBUG_MSG('onTargetChanged:: entityID = %i' % entityID)
+	kbesystem.targetMgr.setTargetID(entityID)

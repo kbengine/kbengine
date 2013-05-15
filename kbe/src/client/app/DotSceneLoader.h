@@ -42,7 +42,7 @@
     public:
         Ogre::TerrainGlobalOptions *mTerrainGlobalOptions;
         
-        DotSceneLoader();
+        DotSceneLoader(Ogre::uint32 queryflags = 0xffffffff);
         virtual ~DotSceneLoader();
 
         void parseDotScene(const Ogre::String &SceneName, const Ogre::String &groupName, Ogre::SceneManager *yourSceneMgr, Ogre::SceneNode *pAttachNode = NULL, const Ogre::String &sPrependNode = "");
@@ -106,6 +106,8 @@
         Ogre::TerrainGroup* mTerrainGroup;
         Ogre::Vector3 mTerrainPosition;
         Ogre::Vector3 mLightDirection;
+        
+       	Ogre::uint32 mQueryflags;
     };
 
 #endif // DOT_SCENELOADER_H

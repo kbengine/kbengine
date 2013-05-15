@@ -10,6 +10,9 @@
 
 #include "../kbengine_dll/kbengine_dll.h"
 
+// 记录选择
+KBEngine::ENTITY_ID g_tickSelTargetID = -1;
+
 //-------------------------------------------------------------------------------------
 SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin, 
 		OIS::InputManager* pInputMgr, OgreBites::SdkTrayManager* pTrayMgr)
@@ -20,9 +23,12 @@ SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
     mHelpInfo(Ogre::StringUtil::BLANK),
     mFly(false),
 	mPlayerPtr(0),
+	mTargetPtr(0),
 	mEntities(),
 	serverClosed_(false),
-	showCloseButton_(false)
+	showCloseButton_(false),
+	pDecalObj_(NULL),
+	pSelDecalObj_(NULL)
 {
     mHelpInfo = Ogre::String("Use [W][A][S][D] keys for movement.\nKeys [1]-[9] to switch between cameras.\n[0] toggles SceneNode debug visuals.\n\nPress [C] to toggle clamp to terrain (gravity).\n\n[G] toggles the detail panel.\n[R] cycles polygonModes (Solid/Wireframe/Points).\n[T] cycles various filtering.\n\n\nPress [ESC] to quit.");
 }
@@ -34,10 +40,11 @@ SpaceWorld::~SpaceWorld(void)
 		mTrayMgr->destroyWidget("backlogin");
 
 	mSceneMgr->destroyCamera("mainCamera");
+
 	mActiveCamera = NULL;
 	delete mLoader;
 	
-	mPlayerPtr = NULL;
+	mTargetPtr = mPlayerPtr = NULL;
 	mEntities.clear();
 }
 
@@ -78,7 +85,7 @@ void SpaceWorld::createScene(void)
 {
 	mSceneMgr = mRoot->createSceneManager(Ogre::ST_GENERIC);
 
-    mLoader = new DotSceneLoader();
+    mLoader = new DotSceneLoader(SCENE_MASK);
     mLoader->parseDotScene(mSceneFile, "Space", mSceneMgr);
 
 	mTrayMgr->showCursor();
@@ -113,6 +120,96 @@ void SpaceWorld::createScene(void)
 
 
 	mCameraMan->setStyle(OgreBites::CS_MANUAL);
+
+	mRaySceneQuery = mSceneMgr->createRayQuery(Ray());
+	pDecalObj_ = createDecal("Examples/Decal");
+	pSelDecalObj_ = createDecal("Examples/Sel_Decal");
+}
+
+//----------------------------------------------------------------------------------------
+Ogre::ManualObject* SpaceWorld::createDecal(Ogre::String decalMaterialName)
+{
+	Ogre::ManualObject* pDecalObj = new Ogre::ManualObject(decalMaterialName);
+    mSceneMgr->getRootSceneNode()->createChildSceneNode()->attachObject(pDecalObj);
+   // pDecalObj->setCastShadows(false);
+	//pDecalObj->setDynamic(true);  
+	//pDecalObj->setRenderQueueGroup(Ogre::RENDER_QUEUE_WORLD_GEOMETRY_2);  
+
+	int x_size = 64;  // number of polygons
+	int z_size = 64;
+    pDecalObj->begin(decalMaterialName, Ogre::RenderOperation::OT_TRIANGLE_LIST);
+
+    for (int i=0; i<x_size; i++)
+    {
+        for (int j=0; j<=z_size; j++)
+        {
+            pDecalObj->position(Ogre::Vector3(i, 0, j));
+            pDecalObj->textureCoord((float)i / (float)x_size, (float)j / (float)z_size);
+        }
+    }
+
+    for (int i=0; i<x_size; i++)
+    {
+        for (int j=0; j<z_size; j++)
+        {
+            pDecalObj->quad( i * (x_size+1) + j, i * (x_size+1) + j + 1,
+                (i + 1) * (x_size+1) + j + 1,(i + 1) * (x_size+1) + j);
+        }
+    }
+
+    pDecalObj->end();
+
+	return pDecalObj;
+}
+
+//----------------------------------------------------------------------------------------
+void SpaceWorld::moveDecalTo(Ogre::ManualObject* pDecal, const Ogre::Vector3& position, float radius)
+{
+	Ogre::Real x = position.x;
+	Ogre::Real z = position.z;
+
+    Ogre::Real x1 = x - radius;
+    Ogre::Real z1 = z - radius;
+
+	int x_size = 64;  // number of polygons
+	int z_size = 64;
+
+    Ogre::Real x_step = radius * 2/ x_size;
+    Ogre::Real z_step = radius * 2/ z_size;
+
+    pDecal->beginUpdate(0);
+
+    for (int i=0; i<=x_size; i++)
+    {
+        for (int j=0; j<=z_size; j++)
+        {    
+			pDecal->position(Ogre::Vector3(x1, getPositionHeight(Ogre::Vector3(x1, 0, z1)) + 0.1, z1));
+            pDecal->textureCoord((float)i / (float)x_size, (float)j / (float)z_size);
+
+            z1 += z_step;
+        }
+
+        x1 += x_step;
+
+        z1 = z - radius;
+    }
+
+    for (int i=0; i<x_size; i++)
+    {
+        for (int j=0; j<z_size; j++)
+        {
+            pDecal->quad( i * (x_size+1) + j, i * (x_size+1) + j + 1, 
+                (i + 1) * (x_size+1) + j + 1, (i + 1) * (x_size+1) + j);
+        }
+    }
+
+    pDecal->end();
+}
+
+//----------------------------------------------------------------------------------------
+float SpaceWorld::getPositionHeight(const Ogre::Vector3& pos)
+{ 
+	return mLoader->getTerrainGroup()->getHeightAtWorldPosition(pos); 
 }
 
 //-------------------------------------------------------------------------------------
@@ -142,9 +239,15 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
 	{
 		// kbe_lock();
 
-		kbe_updateVolatile(mPlayerPtr->getPosition().x, mPlayerPtr->getPosition().y, mPlayerPtr->getPosition().z,
-			mPlayerPtr->getDirection().x, mPlayerPtr->getDirection().y, mPlayerPtr->getDirection().z);
+		kbe_updateVolatile(g_tickSelTargetID, 
+							mPlayerPtr->getPosition().x, 
+							mPlayerPtr->getPosition().y, 
+							mPlayerPtr->getPosition().z,
+							mPlayerPtr->getDirection().x, 
+							mPlayerPtr->getDirection().y, 
+							mPlayerPtr->getDirection().z);
 
+		g_tickSelTargetID = -1;
 		// kbe_unlock();
 	}
 	
@@ -207,6 +310,58 @@ bool SpaceWorld::mouseMoved( const OIS::MouseEvent &arg )
 bool SpaceWorld::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
 	if(mPlayerPtr) mPlayerPtr->injectMouseDown(arg, id);
+
+	if(id == OIS::MB_Left)
+	{
+		Ogre::Ray mouseRay = mActiveCamera->getCameraToViewportRay(arg.state.X.abs / float(arg.state.width),
+			arg.state.Y.abs / float(arg.state.height));
+
+		Ogre::Entity* rayResult = NULL;
+		Ogre::Vector3 hitPoint;
+		if(pickEntity(mRaySceneQuery, mouseRay, &rayResult, ENTITY_MASK, 0, hitPoint, "x", 5000))
+		{
+			Ogre::String key = rayResult->getName();
+			Ogre::StringVector vec = Ogre::StringUtil::split(key, "_");
+			if(vec.size() >= 2)
+			{
+				key = vec[0];
+				KBEngine::ENTITY_ID eid = Ogre::StringConverter::parseInt(key);
+
+				ENTITIES::iterator iter = mEntities.find(eid);
+				if(iter != mEntities.end())
+				{
+					g_tickSelTargetID = eid;
+					if(mTargetPtr != iter->second.get())
+					{
+						mTargetPtr = iter->second.get();
+						moveDecalTo(pSelDecalObj_, rayResult->getParentSceneNode()->getPosition(), 1.5f);
+					}
+					else
+					{
+						// 再次选择了该entity
+					}
+				}
+			}
+		}
+		else
+		{
+			Ogre::Ray ray = mTrayMgr->getCursorRay(mActiveCamera);
+			Ogre::TerrainGroup::RayResult rayResult = mLoader->getTerrainGroup()->rayIntersects(ray);
+			if (rayResult.hit)
+			{
+				/*
+				if(m_player_ != NULL)
+				{
+					m_player_->moveTo(target, m_player_->getSpeed());
+					KBEngine::onMousePressedInWorld(target.x, target.y, target.z);
+				}
+				*/
+
+				moveDecalTo(pDecalObj_, rayResult.position, 1.5f);
+			}
+		}
+
+	}
     return false;
 }
 
@@ -263,10 +418,16 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 		}
 		break;
 	case CLIENT_EVENT_LEAVEWORLD:
-		if(kbe_playerID() == static_cast<const KBEngine::EventData_EnterWorld*>(lpEventData)->pEntity->aspectID())
-			mPlayerPtr = NULL;
+		{
+			KBEngine::ENTITY_ID eid = static_cast<const KBEngine::EventData_EnterWorld*>(lpEventData)->pEntity->aspectID();
+			if(kbe_playerID() == eid)
+				mPlayerPtr = NULL;
+			
+			if(mTargetPtr && mTargetPtr->id() == eid)
+				mTargetPtr = NULL;
 
-		mEntities.erase(static_cast<const KBEngine::EventData_EnterWorld*>(lpEventData)->pEntity->aspectID());
+			mEntities.erase(eid);
+		}
 		break;
 	case CLIENT_EVENT_POSITION_CHANGED:
 		{

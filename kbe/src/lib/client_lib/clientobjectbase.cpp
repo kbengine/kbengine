@@ -70,7 +70,8 @@ extradatas_("unknown"),
 typeClient_(CLIENT_TYPE_PC),
 bufferedCreateEntityMessage_(),
 eventHandler_(),
-ninterface_(ninterface)
+ninterface_(ninterface),
+targetID_(0)
 {
 	pServerChannel_->incRef();
 	appID_ = g_appID++;

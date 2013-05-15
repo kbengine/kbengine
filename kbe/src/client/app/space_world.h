@@ -39,6 +39,10 @@ public:
 	void buttonHit(OgreBites::Button* button);
 
 	DotSceneLoader* getDotSceneLoader(){ return mLoader; }
+
+	float getPositionHeight(const Ogre::Vector3& pos);
+	void moveDecalTo(Ogre::ManualObject* pDecal, const Ogre::Vector3& position, float radius);
+	Ogre::ManualObject* createDecal(Ogre::String decalMaterialName);
 private:
     Ogre::TerrainGroup* mTerrainGroup;
     DotSceneLoader* mLoader;
@@ -55,10 +59,13 @@ private:
     Ogre::Rect mPGDirtyRect;
 
 	KBEntity* mPlayerPtr;
+	KBEntity* mTargetPtr;
 
 	ENTITIES mEntities;
 
 	bool serverClosed_, showCloseButton_;
+
+	Ogre::ManualObject*		pDecalObj_, *pSelDecalObj_;
 };
 
 #endif // #ifndef __SPACEWORLD_CLIENT_h_

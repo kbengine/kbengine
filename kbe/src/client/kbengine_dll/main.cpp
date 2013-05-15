@@ -88,6 +88,7 @@ KBEngine::script::PyThreadStateLock* g_pLock = NULL;
 KBEngine::script::PyThreadStateLock* g_pNewLock = NULL;
 TelnetServer* g_pTelnetServer = NULL;
 volatile bool g_inProcess = false;
+volatile int targetID = -1;
 
 //-------------------------------------------------------------------------------------
 BOOL APIENTRY DllMain( HANDLE hModule,
@@ -128,9 +129,16 @@ public:
 	
 	virtual bool process()
 	{
-		while(!g_pApp->getMainDispatcher().isBreakProcessing())
+		while(g_pApp && !g_pApp->getMainDispatcher().isBreakProcessing())
 		{
 			g_pLock = new KBEngine::script::PyThreadStateLock;
+			
+			if(targetID >= 0)
+			{
+				g_pApp->setTargetID(targetID);
+				targetID = -1;
+			}
+
 			g_inProcess = true;
 			g_pApp->processOnce(true);
 			g_inProcess = false;
@@ -420,7 +428,7 @@ PyObject* kbe_callEntityMethod(KBEngine::ENTITY_ID entityID, const char *method,
 }
 
 //-------------------------------------------------------------------------------------
-void kbe_updateVolatile(float x, float y, float z, float yaw, float pitch, float roll)
+void kbe_updateVolatile(KBEngine::ENTITY_ID eid, float x, float y, float z, float yaw, float pitch, float roll)
 {
 	//client::Entity* pEntity = g_pApp->pPlayer();
 	//if(pEntity == NULL)
@@ -428,6 +436,10 @@ void kbe_updateVolatile(float x, float y, float z, float yaw, float pitch, float
 
 	g_pApp->setPlayerPosition(x, y, z);
 	g_pApp->setPlayerDirection(roll, pitch, yaw);
+
+	if(eid >= 0)
+		targetID = eid;
+	//g_pApp->setTargetID(eid);
 }
 
 //-------------------------------------------------------------------------------------

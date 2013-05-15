@@ -48,6 +48,9 @@ public:
 	KBEntity(SpaceWorld* pSpace, KBEngine::ENTITY_ID eid);
 	~KBEntity();
 
+	KBEngine::ENTITY_ID id()const{ return mID; }
+
+	Ogre::Real calcDistanceAboveTerrain(){ return CHAR_HEIGHT * mScale; }
 	void visable(bool v){
 
 		if(mBodyNode)

@@ -413,6 +413,25 @@ int ClientApp::processOnce(bool shouldIdle)
 	return mainDispatcher_.processOnce(shouldIdle);
 }
 
+//-------------------------------------------------------------------------------------
+void ClientApp::onTargetChanged()
+{ 
+	// 所有脚本都加载完毕
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onTargetChanged"), 
+										const_cast<char*>("i"), 
+										targetID_);
+
+	if(pyResult != NULL)
+	{
+		Py_DECREF(pyResult);
+	}
+	else
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+}
+
 //-------------------------------------------------------------------------------------		
 PyObject* ClientApp::__py_getAppPublish(PyObject* self, PyObject* args)
 {

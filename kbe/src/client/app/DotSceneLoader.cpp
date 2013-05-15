@@ -16,7 +16,7 @@
 
 using namespace Forests;
 
-DotSceneLoader::DotSceneLoader() : mSceneMgr(0), mTerrainGroup(0) 
+DotSceneLoader::DotSceneLoader(Ogre::uint32 queryflags) : mSceneMgr(0), mTerrainGroup(0) , mQueryflags(queryflags)
 {
     mTerrainGlobalOptions = OGRE_NEW Ogre::TerrainGlobalOptions();
 }
@@ -723,6 +723,8 @@ void DotSceneLoader::processEntity(rapidxml::xml_node<>* XMLNode, Ogre::SceneNod
         pEntity->setCastShadows(castShadows);
         pParent->attachObject(pEntity);
 
+		pEntity->setQueryFlags(mQueryflags);
+		
         if(!materialFile.empty())
             pEntity->setMaterialName(materialFile);
 		
@@ -828,7 +830,7 @@ void DotSceneLoader::processPlane(rapidxml::xml_node<>* XMLNode, Ogre::SceneNode
                         name + "mesh", m_sGroupName, plane, width, height, xSegments, ySegments, hasNormals,
     numTexCoordSets, uTile, vTile, up);
     Ogre::Entity* ent = mSceneMgr->createEntity(name, name + "mesh");
-
+	ent->setQueryFlags(mQueryflags);
     ent->setMaterialName(material);
 
     pParent->attachObject(ent);
@@ -911,7 +913,7 @@ void DotSceneLoader::processPagedGeometry(rapidxml::xml_node<>* XMLNode, Ogre::S
     if(model != "")
     {
         Ogre::Entity *mEntityHandle = mSceneMgr->createEntity(model + ".mesh");
-
+		mEntityHandle->setQueryFlags(mQueryflags);
         PGInstanceList::iterator it = mInstanceList.begin();
 
         while(it != mInstanceList.end())

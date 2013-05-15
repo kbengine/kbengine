@@ -29,3 +29,42 @@ material Examples/Billboard
         }
     }
 }
+
+material Examples/Decal
+{
+	 technique
+	 {
+	          pass
+	          {
+			lighting off
+			scene_blend alpha_blend
+			depth_write off
+
+	              texture_unit
+	              {
+	               texture decal.png
+	               scale 1 1
+	              }
+	          }
+	 }
+}
+
+material Examples/Sel_Decal
+{
+	 technique
+	 {
+	          pass
+	          {
+			lighting off
+			scene_blend add
+			depth_write off
+
+	              texture_unit
+	              {
+	               texture sel_decal.png
+			tex_address_mode clamp
+	               scale 1 1
+	              }
+	          }
+	 }
+}
