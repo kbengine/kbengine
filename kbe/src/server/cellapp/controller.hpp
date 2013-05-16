@@ -48,6 +48,8 @@ public:
 	Entity* pEntity()const{ return pEntity_; }
 	
 	void pControllers(Controllers* v){ pControllers_ = v; }
+
+	virtual void destroy();
 protected:
 	uint32 id_;
 	Entity* pEntity_;

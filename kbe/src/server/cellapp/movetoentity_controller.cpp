@@ -53,7 +53,7 @@ bool MoveToEntityController::update()
 	{
 		pEntity_->onMoveFailure(id(), pyuserarg_);
 
-		delete this;
+		destroy();
 		return false;
 	}
 

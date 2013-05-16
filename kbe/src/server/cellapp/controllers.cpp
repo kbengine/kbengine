@@ -45,6 +45,12 @@ bool Controllers::add(Controller* pController)
 	objects_[id].reset(pController);
 	pController->id(id);
 	pController->pControllers(this);
+
+	if(objects_.size() > 32)
+	{
+		WARNING_MSG(boost::format("Controllers::add: size = %1%.\n") % objects_.size());
+	}
+
 	return true;
 }
 

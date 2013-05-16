@@ -16,6 +16,6 @@ class EventMgr:
 		else:
 			self._events[eventID].append(eventhandler)
 		
-	def fire(self, event, *args):
+	def fire(self, eventID, *args):
 		for eventhandler in self._events.get(eventID, []):
-			eventhandler.onEvent(event, *args)
+			eventhandler.onEvent(eventID, *args)

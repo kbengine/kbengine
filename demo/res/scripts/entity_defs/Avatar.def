@@ -38,6 +38,7 @@
 	</BaseMethods>
 
 	<CellMethods>
+		<relive/>
 	</CellMethods>
 
 	<ClientMethods>

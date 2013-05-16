@@ -17,8 +17,9 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #include "controller.hpp"	
+#include "controllers.hpp"	
+
 namespace KBEngine{	
 
 
@@ -26,7 +27,8 @@ namespace KBEngine{
 Controller::Controller(Entity* pEntity, int32 userarg, uint32 id):
 id_(id),
 pEntity_(pEntity),
-userarg_(userarg)
+userarg_(userarg),
+pControllers_(0)
 {
 }
 
@@ -34,6 +36,16 @@ userarg_(userarg)
 Controller::~Controller()
 {
 	id_ = 0;
+}
+
+//-------------------------------------------------------------------------------------
+void Controller::destroy()
+{
+	if(pControllers_ && !pControllers_->remove(this))
+	{
+		ERROR_MSG(boost::format("Controller::destroy(): not found %1%.\n") % 
+			id_);
+	}
 }
 
 //-------------------------------------------------------------------------------------

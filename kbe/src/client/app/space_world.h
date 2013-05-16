@@ -63,7 +63,7 @@ private:
 
 	ENTITIES mEntities;
 
-	bool serverClosed_, showCloseButton_;
+	bool serverClosed_, showCloseButton_, createdReliveButton_;
 
 	Ogre::ManualObject*		pDecalObj_, *pSelDecalObj_;
 };

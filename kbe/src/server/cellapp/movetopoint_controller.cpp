@@ -54,7 +54,10 @@ MoveToPointController::~MoveToPointController()
 bool MoveToPointController::update()
 {
 	if(destroyed_)
+	{
+		destroy();
 		return false;
+	}
 
 	const Position3D& dstPos = destPos();
 	Position3D currpos = pEntity_->getPosition();
@@ -110,7 +113,7 @@ bool MoveToPointController::update()
 	if(!ret)
 	{
 		pEntity_->onMoveOver(id(), pyuserarg_);
-		delete this;
+		destroy();
 		return false;
 	}
 

@@ -427,6 +427,32 @@ PyObject* kbe_callEntityMethod(KBEngine::ENTITY_ID entityID, const char *method,
 	return ret;
 }
 
+void kbe_fireEvent(const char *eventID, PyObject *args)
+{
+	KBEngine::script::PyThreadStateLock lock;
+	
+	KBE_ASSERT(eventID != NULL);
+
+	// DEBUG_MSG(boost::format("kbe_fireEvent: %1%!\n") % 
+	//		eventID);
+
+	PyObject* pyEID = PyUnicode_FromString(eventID);
+
+	// 所有脚本都加载完毕
+	PyObject* pyResult = PyObject_CallMethod(g_pApp->getEntryScript().get(), 
+										const_cast<char*>("kbengine_onEvent"), 
+										const_cast<char*>("OO"), 
+										pyEID,
+										args == NULL ? Py_None : args);
+
+	Py_DECREF(pyEID);
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		SCRIPT_ERROR_CHECK();
+}
+
 //-------------------------------------------------------------------------------------
 void kbe_updateVolatile(KBEngine::ENTITY_ID eid, float x, float y, float z, float yaw, float pitch, float roll)
 {

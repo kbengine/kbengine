@@ -49,3 +49,9 @@ class Avatar(GameObject,
 		当这个entity被引擎定义为角色时被调用
 		"""
 		DEBUG_MSG("%s[%i]." % (self.__class__.__name__, self.id))
+		
+	def relive(self):
+		"""
+		复活
+		"""
+		self.cell.relive()

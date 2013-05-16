@@ -1150,6 +1150,7 @@ void Entity::onMoveOver(uint32 controllerId, PyObject* userarg)
 //-------------------------------------------------------------------------------------
 void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 {
+	pMoveController_ = NULL;
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 
 		const_cast<char*>("IO"), controllerId, userarg);
 }

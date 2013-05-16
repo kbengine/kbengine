@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import KBEngine
+import GlobalDefine
 from KBEDebug import *
 from interfaces.GameObject import GameObject
 from interfaces.Combat import Combat
@@ -54,6 +55,14 @@ class Avatar(GameObject,
 		DEBUG_MSG("Avatar::onDestroy: %i." % self.id)
 		Teleport.onDestroy(self)
 
+	def relive(self):
+		"""
+		defined.
+		复活
+		"""
+		DEBUG_MSG("Avatar::relive: %i." % self.id)
+		self.fullPower()
+		self.changeState(GlobalDefine.ENTITY_STATE_FREE)
 		
 Avatar._timermap = {}
 Avatar._timermap.update(GameObject._timermap)

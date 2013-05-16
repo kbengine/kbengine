@@ -111,6 +111,11 @@ KBE_DLL_API PyObject* kbe_callEntityMethod(KBEngine::ENTITY_ID entityID, const c
 										   PyObject *args, PyObject *kw = NULL); 
 
 
-
+/**
+	触发事件到脚本
+	可以触发键盘事件
+	鼠标点击和移动事件等
+*/
+KBE_DLL_API void kbe_fireEvent(const char *eventID, PyObject *args); 
 
 #endif // __KBENGINE_DLL__

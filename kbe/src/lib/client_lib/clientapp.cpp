@@ -182,6 +182,8 @@ bool ClientApp::installEntityDef()
 	// 向脚本注册app发布状态
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	publish,	__py_getAppPublish,		METH_VARARGS,	0)
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	fireEvent,	__py_fireEvent,			METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	player,		__py_getPlayer,			METH_VARARGS,	0)
+	
 	return true;
 }
 
@@ -438,6 +440,19 @@ void ClientApp::onTargetChanged()
 PyObject* ClientApp::__py_getAppPublish(PyObject* self, PyObject* args)
 {
 	return PyLong_FromLong(g_appPublish);
+}
+
+//-------------------------------------------------------------------------------------		
+PyObject* ClientApp::__py_getPlayer(PyObject* self, PyObject* args)
+{
+	client::Entity* pEntity = ClientApp::getSingleton().pPlayer();
+	if(pEntity)
+	{
+		Py_INCREF(pEntity);
+		return pEntity;
+	}
+
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------		

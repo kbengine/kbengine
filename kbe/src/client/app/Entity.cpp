@@ -719,7 +719,7 @@ void KBEntity::recvDamage(KBEntity* attacker, uint32 skillID, uint32 damageType,
 	
 	if(pDamageLabel_ == NULL)
 	{
-		pDamageLabel_ = new Ogre::MovableText(Ogre::StringConverter::toString(mID) + "_damage", "-" + Ogre::StringConverter::toString(damage), 
+		pDamageLabel_ = new Ogre::MovableText(Ogre::StringConverter::toString(mID) + "_damage", damage > 0 ? "-" + Ogre::StringConverter::toString(damage) : "Miss", 
 			"Yahei", 1.0f, Ogre::ColourValue::Black);
 
 		pDamageLabel_->setTextAlignment(Ogre::MovableText::H_CENTER, Ogre::MovableText::V_ABOVE); 

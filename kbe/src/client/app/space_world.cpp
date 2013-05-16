@@ -27,6 +27,7 @@ SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
 	mEntities(),
 	serverClosed_(false),
 	showCloseButton_(false),
+	createdReliveButton_(false),
 	pDecalObj_(NULL),
 	pSelDecalObj_(NULL)
 {
@@ -38,6 +39,9 @@ SpaceWorld::~SpaceWorld(void)
 {
 	if(showCloseButton_)
 		mTrayMgr->destroyWidget("backlogin");
+	
+	if(createdReliveButton_)
+		mTrayMgr->destroyWidget("relive");
 
 	mSceneMgr->destroyCamera("mainCamera");
 
@@ -257,6 +261,35 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
 		mTrayMgr->createButton(OgreBites::TL_CENTER, "backlogin", "back login", 120);
 		serverClosed_ = false;
 		showCloseButton_ = true;
+
+		if(createdReliveButton_)
+		{
+			createdReliveButton_ = false;
+			mTrayMgr->destroyWidget("relive");
+		}
+	}
+	else
+	{
+		if(mPlayerPtr)
+		{
+			if(!createdReliveButton_)
+			{
+				// 死亡了显示复活按钮
+				if(mPlayerPtr->getState() == 1)
+				{
+					mTrayMgr->createButton(OgreBites::TL_CENTER, "relive", "relive", 120);
+					createdReliveButton_ = true;
+				}
+			}
+			else
+			{
+				if(mPlayerPtr->getState() != 1)
+				{
+					createdReliveButton_ = false;
+					mTrayMgr->destroyWidget("relive");
+				}
+			}
+		}
 	}
 
     return true;
@@ -268,6 +301,11 @@ void SpaceWorld::buttonHit(OgreBites::Button* button)
 	if(button->getCaption() == "back login" && showCloseButton_)
 	{
 		OgreApplication::getSingleton().changeSpace(new SpaceLogin(mRoot, mWindow, mInputManager, mTrayMgr));
+		kbe_fireEvent("reset", NULL);
+	}
+	else if(button->getCaption() == "relive")
+	{
+		kbe_fireEvent("relive", NULL);
 	}
 }
 
