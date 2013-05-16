@@ -864,12 +864,23 @@ void Entity::onDirectionChanged()
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onGetWitness(Mercury::Channel* pChannel)
+void Entity::setWitness(Witness* pWitness)
 {
 	KBE_ASSERT(this->getBaseMailbox() != NULL && !this->hasWitness());
-
-	pWitness_ = Witness::ObjPool().createObject();
+	pWitness_ = pWitness;
 	pWitness_->attach(this);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onGetWitness(Mercury::Channel* pChannel)
+{
+	KBE_ASSERT(this->getBaseMailbox() != NULL);
+
+	if(pWitness_ == NULL)
+	{
+		pWitness_ = Witness::ObjPool().createObject();
+		pWitness_->attach(this);
+	}
 
 	Space* space = Spaces::findSpace(this->getSpaceID());
 	if(space)
@@ -953,11 +964,11 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		Position3D movment = pos - currpos;
 		movment.y = 0.f;
 
-		DEBUG_MSG(boost::format("%1%::onUpdateDataFromClient: %2% position[(%3%,%4%,%5%) -> (%6%,%7%,%8%), length=%9%] invalid. reset client!\n") % 
+		DEBUG_MSG(boost::format("%1%::onUpdateDataFromClient: %2% position[(%3%,%4%,%5%) -> (%6%,%7%,%8%), length=%9%>%10%] invalid. reset client!\n") % 
 			this->getScriptName() % this->getID() %
 			this->getPosition().x % this->getPosition().y % this->getPosition().z %
 			pos.x % pos.y % pos.z %
-			movment.length());
+			movment.length() % topSpeed_);
 
 		movment *= topSpeed_ / 2.0f;
 		currpos += movment;

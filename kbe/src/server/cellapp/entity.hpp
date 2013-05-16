@@ -340,6 +340,7 @@ public:
 		entity绑定了一个观察者(客户端)
 
 	*/
+	void setWitness(Witness* pWitness);
 	void onGetWitness(Mercury::Channel* pChannel);
 
 	/** 网络接口

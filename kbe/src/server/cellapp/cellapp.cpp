@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cellapp.hpp"
 #include "space.hpp"
 #include "profile.hpp"
+#include "witness.hpp"
 #include "range_node.hpp"
 #include "aoi_trigger.hpp"
 #include "cellapp_interface.hpp"
@@ -827,15 +828,20 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		
 		cellData = e->createCellDataFromStream(pCellData);
 
-		KBE_ASSERT(e->getBaseMailbox() != NULL && !e->hasWitness());
-		PyObject* clientMailbox = PyObject_GetAttrString(e->getBaseMailbox(), "client");
-		KBE_ASSERT(clientMailbox != Py_None);
+		if(hasClient)
+		{
+			KBE_ASSERT(e->getBaseMailbox() != NULL && !e->hasWitness());
+			PyObject* clientMailbox = PyObject_GetAttrString(e->getBaseMailbox(), "client");
+			KBE_ASSERT(clientMailbox != Py_None);
 
-		EntityMailbox* client = static_cast<EntityMailbox*>(clientMailbox);	
-		// Py_INCREF(clientMailbox); 这里不需要增加引用， 因为每次都会产生一个新的对象
-		e->setClientMailbox(client);
+			EntityMailbox* client = static_cast<EntityMailbox*>(clientMailbox);	
+			// Py_INCREF(clientMailbox); 这里不需要增加引用， 因为每次都会产生一个新的对象
 
-		// 添加到space
+			// 为了能够让entity.__init__中能够修改属性立刻能广播到客户端我们需要提前设置这些
+			e->setClientMailbox(client);
+			e->setWitness(Witness::ObjPool().createObject());
+		}
+
 		space->addEntity(e);
 
 		if(!inRescore)
@@ -858,12 +864,15 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 		space->addEntityToNode(e);
-		space->onEnterWorld(e);
 
 		// 如果是有client的entity则设置它的clientmailbox, baseapp部分的onEntityGetCell会告知客户端enterworld.
 		if(hasClient)
 		{
 			e->onGetWitness(cinfos->pChannel);
+		}
+		else
+		{
+			space->onEnterWorld(e);
 		}
 
 		return;

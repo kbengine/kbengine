@@ -30,12 +30,12 @@ INLINE RangeNode* RangeNode::pPrevZ()const { return pPrevZ_; }
 INLINE RangeNode* RangeNode::pNextZ()const { return pNextZ_; }
 
 //-------------------------------------------------------------------------------------
-INLINE void RangeNode::pPrevX(RangeNode* pNode){ pPrevX_ = pNode; }
-INLINE void RangeNode::pNextX(RangeNode* pNode){ pNextX_ = pNode; }
-INLINE void RangeNode::pPrevY(RangeNode* pNode){ pPrevY_ = pNode; }
-INLINE void RangeNode::pNextY(RangeNode* pNode){ pNextY_ = pNode; }
-INLINE void RangeNode::pPrevZ(RangeNode* pNode){ pPrevZ_ = pNode; }
-INLINE void RangeNode::pNextZ(RangeNode* pNode){ pNextZ_ = pNode; }
+INLINE void RangeNode::pPrevX(RangeNode* pNode){ if(pNode != NULL)KBE_ASSERT(pPrevX_ != pNode); pPrevX_ = pNode; }
+INLINE void RangeNode::pNextX(RangeNode* pNode){ if(pNode != NULL)KBE_ASSERT(pNextX_ != pNode); pNextX_ = pNode; }
+INLINE void RangeNode::pPrevY(RangeNode* pNode){ if(pNode != NULL)KBE_ASSERT(pPrevY_ != pNode); pPrevY_ = pNode; }
+INLINE void RangeNode::pNextY(RangeNode* pNode){ if(pNode != NULL)KBE_ASSERT(pNextY_ != pNode); pNextY_ = pNode; }
+INLINE void RangeNode::pPrevZ(RangeNode* pNode){ if(pNode != NULL)KBE_ASSERT(pPrevZ_ != pNode); pPrevZ_ = pNode; }
+INLINE void RangeNode::pNextZ(RangeNode* pNode){ if(pNode != NULL)KBE_ASSERT(pNextZ_ != pNode); pNextZ_ = pNode; }
 
 //-------------------------------------------------------------------------------------
 INLINE void RangeNode::pRangeList(RangeList* p){ pRangeList_ = p; }

@@ -191,7 +191,7 @@ bool RestoreEntityHandler::process()
 		}
 		else
 		{
-			iter++;
+			iter = entities_.erase(iter);
 		}
 	}
 

@@ -739,7 +739,7 @@ void KBEntity::recvDamage(KBEntity* attacker, uint32 skillID, uint32 damageType,
 
 	// 改变头顶血量显示
 	Billboard* health = pHealthHUD_->getBillboard(0);
-	float healthPer = hp_ / hp_max_;
+	float healthPer = hp_ / float(hp_max_);
 	float healthLength = healthPer * pHealthHUD_->getDefaultWidth();
 	health->setDimensions(healthLength, pHealthHUD_->getDefaultHeight());
 	ColourValue maxHealthCol = ColourValue::Blue;
