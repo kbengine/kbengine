@@ -57,7 +57,7 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
 	Py_XDECREF(params_);
 
 	// Ìí¼Óµ½space
-	space->addEntity(_e);
+	space->addEntityAndEnterWorld(_e);
 }
 
 //-------------------------------------------------------------------------------------

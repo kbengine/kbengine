@@ -294,7 +294,7 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 		pEntity->pySetDirection(direction);	
 		
 		// 添加到space
-		space->addEntity(pEntity);
+		space->addEntityAndEnterWorld(pEntity);
 	}
 	
 	//Py_XDECREF(params);
@@ -644,7 +644,7 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Mercury::Channel* pChannel, KBEngine
 
 		// 添加到space
 		space->creatorID(e->getID());
-		space->addEntity(e);
+		space->addEntityAndEnterWorld(e);
 
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
@@ -717,7 +717,7 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Mercury::Channel* pChannel, KBEngi
 		space->creatorID(e->getID());
 		e->onRestore();
 
-		space->addEntity(e, true);
+		space->addEntityAndEnterWorld(e, true);
 
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
@@ -827,8 +827,16 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		
 		cellData = e->createCellDataFromStream(pCellData);
 
+		KBE_ASSERT(e->getBaseMailbox() != NULL && !e->hasWitness());
+		PyObject* clientMailbox = PyObject_GetAttrString(e->getBaseMailbox(), "client");
+		KBE_ASSERT(clientMailbox != Py_None);
+
+		EntityMailbox* client = static_cast<EntityMailbox*>(clientMailbox);	
+		// Py_INCREF(clientMailbox); 这里不需要增加引用， 因为每次都会产生一个新的对象
+		e->setClientMailbox(client);
+
 		// 添加到space
-		e->setSpaceID(space->getID());
+		space->addEntity(e);
 
 		if(!inRescore)
 		{
@@ -840,8 +848,6 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 			e->onRestore();
 		}
 
-		space->addEntity(e);
-
 		Py_XDECREF(cellData);
 
 		// 告知baseapp， entity的cell创建了
@@ -850,6 +856,9 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle(*pBundle, entityID, componentID_, spaceID);
 		pBundle->send(this->getNetworkInterface(), cinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+		space->addEntityToNode(e);
+		space->onEnterWorld(e);
 
 		// 如果是有client的entity则设置它的clientmailbox, baseapp部分的onEntityGetCell会告知客户端enterworld.
 		if(hasClient)

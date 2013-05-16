@@ -132,6 +132,8 @@ public:
 		服务器更新entity属性
 	*/
 	void onUpdatePropertys(MemoryStream& s);
+
+	bool isEnterword()const{ return enterword_; }
 protected:
 	EntityMailbox*							cellMailbox_;						// 这个entity的客户端mailbox
 	EntityMailbox*							baseMailbox_;						// 这个entity的baseapp mailbox
@@ -144,6 +146,8 @@ protected:
 	EntityAspect							aspect_;
 
 	float									velocity_;
+
+	bool									enterword_;							// 是否已经enterworld了， restore时有用
 };																										
 
 }

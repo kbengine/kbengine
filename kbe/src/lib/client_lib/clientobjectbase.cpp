@@ -527,13 +527,20 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 	}
 	else
 	{
-		KBE_ASSERT(entity->getCellMailbox() == NULL);
+		if(!entity->isEnterword())
+		{
+			KBE_ASSERT(entity->getCellMailbox() == NULL);
 
-		// 设置entity的cellMailbox
-		EntityMailbox* mailbox = new EntityMailbox(entity->getScriptModule(), 
-			NULL, appID(), eid, MAILBOX_TYPE_CELL);
+			// 设置entity的cellMailbox
+			EntityMailbox* mailbox = new EntityMailbox(entity->getScriptModule(), 
+				NULL, appID(), eid, MAILBOX_TYPE_CELL);
 
-		entity->setCellMailbox(mailbox);
+			entity->setCellMailbox(mailbox);
+		}
+		else
+		{
+			return;
+		}
 	}
 
 	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%(%2%).\n") % 

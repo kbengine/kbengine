@@ -64,16 +64,26 @@ void Space::update()
 }
 
 //-------------------------------------------------------------------------------------
-void Space::addEntity(Entity* pEntity, bool isRestore)
+void Space::addEntityAndEnterWorld(Entity* pEntity, bool isRestore)
+{
+	addEntity(pEntity);
+	addEntityToNode(pEntity);
+	onEnterWorld(pEntity);
+}
+
+//-------------------------------------------------------------------------------------
+void Space::addEntity(Entity* pEntity)
 {
 	pEntity->setSpaceID(this->id_);
 	pEntity->spaceEntityIdx(entities_.size());
 	entities_.push_back(pEntity);
+}
 
+//-------------------------------------------------------------------------------------
+void Space::addEntityToNode(Entity* pEntity)
+{
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
 		rangeList_.insert((KBEngine::RangeNode*)pEntity->pEntityRangeNode());
-	
-	onEnterWorld(pEntity);
 }
 
 //-------------------------------------------------------------------------------------

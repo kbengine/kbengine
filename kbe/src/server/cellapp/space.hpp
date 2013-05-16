@@ -50,7 +50,10 @@ public:
 	*/
 	void update();
 
-	void addEntity(Entity* pEntity, bool isRestore = false);
+	void addEntity(Entity* pEntity);
+	void addEntityToNode(Entity* pEntity);
+
+	void addEntityAndEnterWorld(Entity* pEntity, bool isRestore = false);
 	void removeEntity(Entity* pEntity);
 
 	/**

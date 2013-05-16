@@ -55,11 +55,11 @@ void SpaceWorld::setupResources(void)
     rapidxml::xml_node<>* XMLRoot;
 
     std::ifstream fp;
-    fp.open("SampleAppConfig.xml", std::ios::in | std::ios::binary);
-    Ogre::DataStreamPtr stream(OGRE_NEW Ogre::FileStreamDataStream("SampleAppConfig.xml", &fp, false));
+    fp.open("scenes.xml", std::ios::in | std::ios::binary);
+    Ogre::DataStreamPtr stream(OGRE_NEW Ogre::FileStreamDataStream("scenes.xml", &fp, false));
     char* sampleAppConfig = strdup(stream->getAsString().c_str());
     XMLDoc.parse<0>(sampleAppConfig);
-    XMLRoot = XMLDoc.first_node("SampleApp");
+    XMLRoot = XMLDoc.first_node("Scene1");
 
     Ogre::String projectDir = Ogre::String(XMLRoot->first_attribute("projectDir")->value());
     mSceneFile = Ogre::String(XMLRoot->first_attribute("scene")->value());

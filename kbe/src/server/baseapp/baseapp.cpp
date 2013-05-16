@@ -401,8 +401,11 @@ bool Baseapp::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Baseapp::finalise()
 {
-	pTelnetServer_->stop();
-	SAFE_RELEASE(pTelnetServer_);
+	if(pTelnetServer_)
+	{
+		pTelnetServer_->stop();
+		SAFE_RELEASE(pTelnetServer_);
+	}
 
 	pRestoreEntityHandlers_.clear();
 	loopCheckTimerHandle_.cancel();
@@ -1169,7 +1172,10 @@ void Baseapp::onCreateCellFailure(Mercury::Channel* pChannel, ENTITY_ID entityID
 		return;
 
 	Base* base = pEntities_->find(entityID);
-	KBE_ASSERT(base != NULL);
+
+	// 可能客户端在期间掉线了
+	if(base == NULL)
+		return;
 
 	base->onCreateCellFailure();
 }
@@ -1184,8 +1190,11 @@ void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id,
 	Base* base = pEntities_->find(id);
 
 	// DEBUG_MSG("Baseapp::onEntityGetCell: entityID %d.\n", id);
-	KBE_ASSERT(base != NULL);
 	
+	// 可能客户端在期间掉线了
+	if(base == NULL)
+		return;
+
 	if(base->getSpaceID() != spaceID)
 		base->setSpaceID(spaceID);
 

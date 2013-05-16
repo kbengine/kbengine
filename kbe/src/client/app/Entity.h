@@ -64,15 +64,17 @@ public:
 		mScale = (x + y + z) / 3.0f;
 
 		if(mBodyNode)
-			mBodyNode->scale(x, y, z);
+			mBodyNode->setScale(x, y, z);
 	}
 
 	void scale(float v)
 	{
 		mScale = v;
-
+		
 		if(mBodyNode)
-			mBodyNode->scale(v, v, v);
+		{
+			mBodyNode->setScale(v, v, v);
+		}
 	}
 
 	void setState(int state)

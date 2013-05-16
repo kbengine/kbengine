@@ -243,9 +243,7 @@ PyObject* Entity::pyGetOtherClients()
 //-------------------------------------------------------------------------------------
 int Entity::pySetTopSpeedY(PyObject *value)
 {
-	PyObject* pyItem = PySequence_GetItem(value, 0);
-	setTopSpeedY(float(PyFloat_AsDouble(pyItem))); 
-	Py_DECREF(pyItem);
+	setTopSpeedY(float(PyFloat_AsDouble(value)) / g_kbeSrvConfig.gameUpdateHertz()); 
 	return 0; 
 };
 
@@ -264,9 +262,7 @@ PyObject* Entity::pyGetTopSpeed()
 //-------------------------------------------------------------------------------------
 int Entity::pySetTopSpeed(PyObject *value)
 { 
-	PyObject* pyItem = PySequence_GetItem(value, 0);
-	setTopSpeed(float(PyFloat_AsDouble(pyItem))); 
-	Py_DECREF(pyItem);
+	setTopSpeed(float(PyFloat_AsDouble(value)) / g_kbeSrvConfig.gameUpdateHertz()); 
 	return 0; 
 }
 
@@ -871,12 +867,6 @@ void Entity::onDirectionChanged()
 void Entity::onGetWitness(Mercury::Channel* pChannel)
 {
 	KBE_ASSERT(this->getBaseMailbox() != NULL && !this->hasWitness());
-	PyObject* clientMailbox = PyObject_GetAttrString(this->getBaseMailbox(), "client");
-	KBE_ASSERT(clientMailbox != Py_None);
-
-	EntityMailbox* client = static_cast<EntityMailbox*>(clientMailbox);	
-	// Py_INCREF(clientMailbox); 这里不需要增加引用， 因为每次都会产生一个新的对象
-	setClientMailbox(client);
 
 	pWitness_ = Witness::ObjPool().createObject();
 	pWitness_->attach(this);
@@ -959,11 +949,16 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		if(this->pWitness() == NULL)
 			return;
 
+		DEBUG_MSG(boost::format("%1%::onUpdateDataFromClient: %2% position[(%3%,%4%,%5%) -> (%6%,%7%,%8%)] invalid. reset client!\n") % 
+			this->getScriptName() % this->getID() %
+			this->getPosition().x % this->getPosition().y % this->getPosition().z %
+			pos.x % pos.y % pos.z);
+
 		// 通知重置
 		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
 		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 
-		(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
+		(*pForwardBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
 		(*pForwardBundle) << getID();
 		(*pForwardBundle) << getPosition().x << getPosition().y << getPosition().z;
 		(*pForwardBundle) << getDirection().yaw << getDirection().pitch << getDirection().roll;
@@ -1388,7 +1383,7 @@ void Entity::teleportFromBaseapp(Mercury::Channel* pChannel, COMPONENT_ID cellAp
 			
 			Space* currspace = Spaces::findSpace(this->getSpaceID());
 			currspace->removeEntity(this);
-			space->addEntity(this);
+			space->addEntityAndEnterWorld(this);
 			_sendBaseTeleportResult(this->getID(), sourceBaseAppID, spaceID, lastSpaceID);
 		}
 		else
@@ -1480,7 +1475,7 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 				Space* currspace = Spaces::findSpace(this->getSpaceID());
 				Space* space = Spaces::findSpace(spaceID);
 				currspace->removeEntity(this);
-				space->addEntity(this);
+				space->addEntityAndEnterWorld(this);
 				onTeleportSuccess(nearbyMBRef, lastSpaceID);
 			}
 		}

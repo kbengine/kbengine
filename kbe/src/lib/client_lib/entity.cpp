@@ -66,7 +66,8 @@ serverPosition_(),
 direction_(),
 pClientApp_(NULL),
 aspect_(id),
-velocity_(3.0f)
+velocity_(3.0f),
+enterword_(false)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
 }
@@ -74,6 +75,7 @@ velocity_(3.0f)
 //-------------------------------------------------------------------------------------
 Entity::~Entity()
 {
+	enterword_ = false;
 	ENTITY_DECONSTRUCTION(Entity);
 }	
 
@@ -362,7 +364,7 @@ void Entity::onMoveSpeedChanged()
 void Entity::onEnterWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
+	enterword_ = true;
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("enterWorld"));
 }
 
@@ -370,7 +372,7 @@ void Entity::onEnterWorld()
 void Entity::onLeaveWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
+	enterword_ = false;
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("leaveWorld"));
 }
 

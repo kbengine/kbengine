@@ -51,8 +51,11 @@ KBEntity::KBEntity(SpaceWorld* pSpace, KBEngine::ENTITY_ID eid):
 //-------------------------------------------------------------------------------------
 KBEntity::~KBEntity()
 {
-	pNameLabelNode_->detachObject(pNameLabel_);
-	delete pNameLabel_;
+	if(pNameLabelNode_ && pNameLabel_)
+	{
+		pNameLabelNode_->detachObject(pNameLabel_);
+		delete pNameLabel_;
+	}
 
 	if(pDamageLabel_)
 	{
@@ -713,7 +716,7 @@ void KBEntity::attack(KBEntity* receiver, uint32 skillID, uint32 damageType, uin
 void KBEntity::recvDamage(KBEntity* attacker, uint32 skillID, uint32 damageType, uint32 damage)
 {
 	damageShowTime_ = 3.0f;
-
+	
 	if(pDamageLabel_ == NULL)
 	{
 		pDamageLabel_ = new Ogre::MovableText(Ogre::StringConverter::toString(mID) + "_damage", "-" + Ogre::StringConverter::toString(damage), 
@@ -730,6 +733,9 @@ void KBEntity::recvDamage(KBEntity* attacker, uint32 skillID, uint32 damageType,
 	}
 
 	hp_ -= damage;
+	
+	if(hp_max_ <= 0)
+		return;
 
 	// 改变头顶血量显示
 	Billboard* health = pHealthHUD_->getBillboard(0);
