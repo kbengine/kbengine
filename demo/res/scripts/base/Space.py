@@ -84,15 +84,20 @@ class Space(GameObject):
 		进入场景
 		"""
 		self.avatars[entityMailbox.id] = entityMailbox
-		self.cell.onEnter(entityMailbox)
+		
+		if self.cell is not None:
+			self.cell.onEnter(entityMailbox)
 		
 	def onLeave(self, entityID):
 		"""
 		defined method.
 		离开场景
 		"""
-		del self.avatars[entityID]
-		self.cell.onLeave(entityID)
+		if entityID in self.avatars
+			del self.avatars[entityID]
+		
+		if self.cell is not None:
+			self.cell.onLeave(entityID)
 		
 Space._timermap = {}
 Space._timermap.update(GameObject._timermap)

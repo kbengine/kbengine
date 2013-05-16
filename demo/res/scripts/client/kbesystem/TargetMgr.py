@@ -22,9 +22,9 @@ class TargetMgr:
 		return self._preTargetID
 		
 	def setTargetID(self, entityID):
-		self._preTargetID = self._targetID
-		self._targetID = entityID
+		self._preTargetID = self._currTargetID
+		self._currTargetID = entityID
 		self.onTargetChanged()
 		
 	def onTargetChanged(self):
-		kbesystem.fire("TargetMgr.onTargetChanged", self._currTargetID)
+		kbesystem.eventMgr.fire("TargetMgr.onTargetChanged", self._currTargetID)

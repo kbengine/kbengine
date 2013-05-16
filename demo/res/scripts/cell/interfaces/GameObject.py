@@ -37,7 +37,7 @@ class GameObject(KBEngine.Entity):
 
 	def getCurrSpace(self):
 		"""
-		获得当前space的entity baseMailbox
+		获得当前space的entity
 		"""
 		spaceBase = self.getCurrSpaceBase()
 		return KBEngine.entities.get(spaceBase.id, None)

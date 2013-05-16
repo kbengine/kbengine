@@ -24,6 +24,9 @@ class SpaceAlloc:
 		"""
 		self.createSpace(0, {})
 	
+	def getSpaces(self):
+		return self._spaces
+		
 	def createSpace(self, spaceKey, context):
 		"""
 		"""

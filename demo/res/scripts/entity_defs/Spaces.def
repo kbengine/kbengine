@@ -18,6 +18,11 @@
 			<Arg>		PYTHON		</Arg>
 		</loginToSpace>
 
+		<logoutSpace>
+			<Arg>		ENTITY_ID	</Arg>
+			<Arg>		SPACE_ID	</Arg>
+		</logoutSpace>
+
 		<teleportSpace>
 			<Arg>		MAILBOX		</Arg>
 			<Arg>		ENTITY_UTYPE	</Arg>

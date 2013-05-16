@@ -33,6 +33,25 @@ class GameObject(KBEngine.Base):
 		# 销毁base
 		self.destroy()
 
+	def getCurrSpaceBase(self):
+		"""
+		获得当前space的entity baseMailbox
+		"""
+		return KBEngine.globalData["space_%i" % self.spaceID]
+
+	def getCurrSpace(self):
+		"""
+		获得当前space的entity
+		"""
+		spaceBase = self.getCurrSpaceBase()
+		return KBEngine.entities.get(spaceBase.id, None)
+		
+	def getSpaceMgr(self):
+		"""
+		获取场景管理器
+		"""
+		return KBEngine.globalData["SpaceMgr"]
+		
 	def onGetCell(self):
 		"""
 		KBEngine method.

@@ -44,7 +44,17 @@ class Spaces(GameObject):
 		某个玩家请求登陆到某个space中
 		"""
 		self._spaceAllocs[spaceUType].loginToSpace(avatarEntity, context)
-		
+	
+	def logoutSpace(self, avatarID, spaceID):
+		"""
+		define method.
+		某个玩家请求登出这个space
+		"""
+		for spaceAlloc in self._spaceAllocs.values():
+			space = spaceAlloc.getSpaces().get(spaceID)
+			if space:
+				space.logoutSpace(avatarID)
+				
 	def teleportSpace(self, entityMailbox, spaceUType, position, direction, context):
 		"""
 		define method.

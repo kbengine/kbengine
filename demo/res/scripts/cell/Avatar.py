@@ -28,6 +28,10 @@ class Avatar(GameObject,
 		Teleport.__init__(self) 
 		Dialog.__init__(self) 
 		
+		# 设置每秒允许的最快速度, 超速会被拉回去
+		self.topSpeed = 10.0
+		self.topSpeedY = 10.0
+		
 	def onGetWitness(self):
 		"""
 		KBEngine method.

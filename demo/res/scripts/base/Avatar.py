@@ -85,7 +85,12 @@ class Avatar(KBEngine.Proxy,
 		# 防止正在请求创建cell的同时客户端断开了， 我们延时一段时间来执行销毁cell直到销毁base
 		# 这段时间内客户端短连接登录则会激活entity
 		self._destroyTimer = self.addTimer(1, 0, wtimer.TIMER_TYPE_DESTROY)
-
+		
+		if self.spaceID > 0:
+			self.getCurrSpaceBase().logoutSpace(self.id)
+		else:
+			self.getSpaceMgr().logoutSpace(self.id, self.spaceID)
+			
 	def onClientGetCell(self):
 		"""
 		KBEngine method.
