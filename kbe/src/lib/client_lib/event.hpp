@@ -44,6 +44,8 @@ typedef int32 EventID;
 #define CLIENT_EVENT_DIRECTION_CHANGED 12
 #define CLIENT_EVENT_MOVESPEED_CHANGED 13
 #define CLIENT_EVENT_SERVER_CLOSED 14
+#define CLIENT_EVENT_POSITION_FORCE 15
+#define CLIENT_EVENT_DIRECTION_FORCE 16
 
 struct EventData
 {
@@ -217,6 +219,38 @@ struct EventData_PositionChanged : public EventData
 	const EntityAspect* pEntity;
 };
 
+struct EventData_PositionForce : public EventData
+{
+	EventData_PositionForce():
+	EventData(CLIENT_EVENT_POSITION_FORCE),
+	x(0.f),
+	y(0.f),
+	z(0.f),
+	speed(0.f),
+	pEntity(NULL)
+	{
+	}
+
+	float x, y, z;
+	float speed;
+	const EntityAspect* pEntity;
+};
+
+struct EventData_DirectionForce : public EventData
+{
+	EventData_DirectionForce():
+	EventData(CLIENT_EVENT_DIRECTION_FORCE),
+	yaw(0.f),
+	pitch(0.f),
+	roll(0.f),
+	pEntity(NULL)
+	{
+	}
+
+	float yaw, pitch, roll;
+	const EntityAspect* pEntity;
+};
+
 struct EventData_DirectionChanged : public EventData
 {
 	EventData_DirectionChanged():
@@ -299,6 +333,11 @@ inline EventData* newKBEngineEvent(EventID v)
 		case CLIENT_EVENT_SERVER_CLOSED:
 			return new EventData_ServerCloased();
 			break;
+		case CLIENT_EVENT_POSITION_FORCE:
+			return new EventData_PositionForce();
+			break;
+		case CLIENT_EVENT_DIRECTION_FORCE:
+			return new EventData_DirectionForce();
 		default:
 			break;
 	}
@@ -367,6 +406,14 @@ inline EventData* copyKBEngineEvent(const KBEngine::EventData* lpEventData)
 		case CLIENT_EVENT_SERVER_CLOSED:
 			peventdata = new EventData_ServerCloased();
 			(*static_cast<EventData_ServerCloased*>(peventdata)) = (*static_cast<const EventData_ServerCloased*>(lpEventData));
+			break;
+		case CLIENT_EVENT_POSITION_FORCE:
+			peventdata = new EventData_PositionForce();
+			(*static_cast<EventData_PositionForce*>(peventdata)) = (*static_cast<const EventData_PositionForce*>(lpEventData));
+			break;
+		case CLIENT_EVENT_DIRECTION_FORCE:
+			peventdata = new EventData_DirectionForce();
+			(*static_cast<EventData_DirectionForce*>(peventdata)) = (*static_cast<const EventData_DirectionForce*>(lpEventData));
 			break;
 		default:
 			break;

@@ -546,7 +546,7 @@ bool TelnetHandler::processCommand()
 
 	if(state_ == TELNET_STATE_PYTHON)
 	{
-		processPythonCommand();
+		processPythonCommand(cmd);
 	}
 	else if(state_ == TELNET_STATE_PASSWD)
 	{
@@ -564,12 +564,12 @@ bool TelnetHandler::processCommand()
 }
 
 //-------------------------------------------------------------------------------------
-void TelnetHandler::processPythonCommand()
+void TelnetHandler::processPythonCommand(std::string command)
 {
-	if(pTelnetServer_->pScript() == NULL || command_.size() == 0)
+	if(pTelnetServer_->pScript() == NULL || command.size() == 0)
 		return;
 	
-	PyObject* pycmd = PyUnicode_DecodeUTF8(command_.data(), command_.size(), NULL);
+	PyObject* pycmd = PyUnicode_DecodeUTF8(command.data(), command.size(), NULL);
 	if(pycmd == NULL)
 	{
 		SCRIPT_ERROR_CHECK();
@@ -577,12 +577,14 @@ void TelnetHandler::processPythonCommand()
 	}
 
 	DEBUG_MSG(boost::format("TelnetHandler::processPythonCommand: size(%1%), command=%2%.\n") % 
-		command_.size() % command_);
+		command.size() % command);
 
 	std::string retbuf = "";
 	PyObject* pycmd1 = PyUnicode_AsEncodedString(pycmd, "utf-8", NULL);
 
-	if(pTelnetServer_->pScript()->run_simpleString(PyBytes_AsString(pycmd1), &retbuf) == 0)
+	pTelnetServer_->pScript()->run_simpleString(PyBytes_AsString(pycmd1), &retbuf);
+
+	if(retbuf.size() > 0)
 	{
 		// 将结果返回给客户端
 		Mercury::Bundle bundle;

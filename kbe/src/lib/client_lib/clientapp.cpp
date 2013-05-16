@@ -194,6 +194,7 @@ void ClientApp::registerScript(PyTypeObject* pto)
 //-------------------------------------------------------------------------------------
 bool ClientApp::uninstallPyScript()
 {
+	unregisterPyObjectToScript("entities");
 	return uninstallPyModules();
 }
 
@@ -244,6 +245,7 @@ bool ClientApp::installPyModules()
 		ERROR_MSG( "ClientApp::installPyModules: Unable to set KBEngine.LOG_TYPE_WAR.\n");
 	}
 
+	registerPyObjectToScript("entities", pEntities_);
 	return true;
 }
 

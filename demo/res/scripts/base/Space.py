@@ -93,7 +93,7 @@ class Space(GameObject):
 		defined method.
 		离开场景
 		"""
-		if entityID in self.avatars
+		if entityID in self.avatars:
 			del self.avatars[entityID]
 		
 		if self.cell is not None:

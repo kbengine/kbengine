@@ -776,6 +776,20 @@ void ClientObjectBase::onSetEntityPosAndDir(Mercury::Channel* pChannel, MemorySt
 
 	entity->setPosition(pos);
 	entity->setDirection(dir);
+
+	EventData_PositionForce eventdata;
+	eventdata.x = pos.x;
+	eventdata.y = pos.y;
+	eventdata.z = pos.z;
+	eventdata.pEntity = entity->getAspect();
+	fireEvent(&eventdata);
+
+	EventData_DirectionForce direventData;
+	direventData.yaw = dir.yaw;
+	direventData.pitch = dir.pitch;
+	direventData.roll = dir.roll;
+	direventData.pEntity = entity->getAspect();
+	fireEvent(&direventData);
 }
 
 //-------------------------------------------------------------------------------------

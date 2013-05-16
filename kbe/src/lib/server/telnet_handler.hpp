@@ -88,7 +88,7 @@ private:
 	int	handleInputNotification(int fd);
 	void onRecvInput();
 	bool processCommand();
-	void processPythonCommand();
+	void processPythonCommand(std::string command);
 
 	bool checkUDLR();
 

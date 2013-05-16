@@ -914,12 +914,12 @@ bool Entity::checkMoveForTopSpeed(const Position3D& position)
 	bool move = true;
 	
 	// 检查移动
-	if(topSpeedY_ > 0.f && movment.y > topSpeedY_)
+	if(topSpeedY_ > 0.01f && movment.y > topSpeedY_)
 	{
 		move = false;
 	}
 
-	if(move && topSpeed_ > 0.f)
+	if(move && topSpeed_ > 0.01f)
 	{
 		movment.y = 0.f;
 		
@@ -949,10 +949,19 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		if(this->pWitness() == NULL)
 			return;
 
-		DEBUG_MSG(boost::format("%1%::onUpdateDataFromClient: %2% position[(%3%,%4%,%5%) -> (%6%,%7%,%8%)] invalid. reset client!\n") % 
+		Position3D currpos = this->getPosition();
+		Position3D movment = pos - currpos;
+		movment.y = 0.f;
+
+		DEBUG_MSG(boost::format("%1%::onUpdateDataFromClient: %2% position[(%3%,%4%,%5%) -> (%6%,%7%,%8%), length=%9%] invalid. reset client!\n") % 
 			this->getScriptName() % this->getID() %
 			this->getPosition().x % this->getPosition().y % this->getPosition().z %
-			pos.x % pos.y % pos.z);
+			pos.x % pos.y % pos.z %
+			movment.length());
+
+		movment *= topSpeed_ / 2.0f;
+		currpos += movment;
+		this->setPosition(currpos);
 
 		// 通知重置
 		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
@@ -960,12 +969,12 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 
 		(*pForwardBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
 		(*pForwardBundle) << getID();
-		(*pForwardBundle) << getPosition().x << getPosition().y << getPosition().z;
+		(*pForwardBundle) << currpos.x << currpos.y << currpos.z;
 		(*pForwardBundle) << getDirection().yaw << getDirection().pitch << getDirection().roll;
 
 		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(getID(), (*pSendBundle), (*pForwardBundle));
 		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
-		Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+		// Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
 		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	}
 }

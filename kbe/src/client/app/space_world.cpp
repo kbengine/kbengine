@@ -453,6 +453,31 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 			iter->second->setDestDirection(pEventData->yaw, pEventData->pitch, pEventData->roll);
 		}
 		break;
+	case CLIENT_EVENT_POSITION_FORCE:
+		{
+			const KBEngine::EventData_PositionForce* pEventData = static_cast<const KBEngine::EventData_PositionForce*>(lpEventData);
+			KBEngine::ENTITY_ID eid = pEventData->pEntity->aspectID();
+
+			ENTITIES::iterator iter = mEntities.find(eid);
+			if(iter == mEntities.end())
+				break;
+			
+			iter->second->setDestPosition(pEventData->x, pEventData->y, pEventData->z);
+			iter->second->setPosition(pEventData->x, pEventData->y, pEventData->z);
+		}
+		break;
+	case CLIENT_EVENT_DIRECTION_FORCE:
+		{
+			const KBEngine::EventData_DirectionForce* pEventData = static_cast<const KBEngine::EventData_DirectionForce*>(lpEventData);
+			KBEngine::ENTITY_ID eid = pEventData->pEntity->aspectID();
+
+			ENTITIES::iterator iter = mEntities.find(eid);
+			if(iter == mEntities.end())
+				break;
+
+			//iter->second->setDirection(pEventData->yaw, pEventData->pitch, pEventData->roll);
+		}
+		break;
 	case CLIENT_EVENT_MOVESPEED_CHANGED:
 		{
 			const KBEngine::EventData_MoveSpeedChanged* pEventData = static_cast<const KBEngine::EventData_MoveSpeedChanged*>(lpEventData);

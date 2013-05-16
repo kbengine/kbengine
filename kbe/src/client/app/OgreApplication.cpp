@@ -91,7 +91,8 @@ bool OgreApplication::setup(void)
     loadResources();
 
     createFrameListener();
-
+	
+	mWindow->setDeactivateOnFocusChange(false);
 	changeSpace(new SpaceLogin(mRoot, mWindow, mInputManager, mTrayMgr));
     return true;
 };
