@@ -336,6 +336,8 @@ public:
 	*/
 	void delWitnessed(Entity* entity);
 
+	INLINE const std::list<ENTITY_ID>&	witnesses();
+
 	/** 网络接口
 		entity绑定了一个观察者(客户端)
 

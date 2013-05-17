@@ -72,16 +72,16 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	MethodDescription* methodDescription = getDescription();
 
 	Entity* pEntity = Cellapp::getSingleton().findEntity(id_);
-	if(pEntity == NULL || pEntity->pWitness() == NULL || 
-		pEntity->isDestroyed() || pEntity->getClientMailbox() == NULL)
+	if(pEntity == NULL || /*pEntity->pWitness() == NULL ||*/
+		pEntity->isDestroyed() /*|| pEntity->getClientMailbox() == NULL*/)
 	{
 		//WARNING_MSG(boost::format("EntityRemoteMethod::callClientMethod: not found entity(%1%).\n") % 
 		//	mailbox->getID());
 
 		S_Return;
 	}
-
-	Witness::AOI_ENTITIES& entities = pEntity->pWitness()->aoiEntities();
+	
+	const std::list<ENTITY_ID>& entities = pEntity->witnesses();
 
 	if(otherClients_)
 	{
@@ -94,7 +94,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		MemoryStream* mstream = MemoryStream::ObjPool().createObject();
 		methodDescription->addToStream(mstream, args);
 
-		if(!otherClients_)
+		if(!otherClients_ && pEntity->pWitness() || pEntity->getClientMailbox())
 		{
 			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 			pEntity->getClientMailbox()->newMail((*pBundle));
@@ -139,10 +139,10 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 				"::");
 		}
 
-		Witness::AOI_ENTITIES::iterator iter = entities.begin();
+		std::list<ENTITY_ID>::const_iterator iter = entities.begin();
 		for(; iter != entities.end(); iter++)
 		{
-			Entity* pAoiEntity = Cellapp::getSingleton().findEntity((*iter)->id());
+			Entity* pAoiEntity = Cellapp::getSingleton().findEntity((*iter));
 			if(pAoiEntity == NULL || pAoiEntity->pWitness() == NULL || pAoiEntity->isDestroyed())
 				continue;
 			

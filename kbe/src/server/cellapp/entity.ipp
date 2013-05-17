@@ -39,6 +39,11 @@ INLINE bool Entity::hasWitness(void)const
 	return pWitness_ != NULL &&  clientMailbox_ != NULL; 
 }
 
+INLINE const std::list<ENTITY_ID>&	Entity::witnesses()
+{
+	return witnesses_;
+}
+
 //-------------------------------------------------------------------------------------
 INLINE void Entity::setTopSpeedY(float speed)
 { 
