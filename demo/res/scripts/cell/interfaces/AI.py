@@ -219,7 +219,7 @@ class AI:
 		if controllerID != self.territoryControllerID:
 			return
 		
-		if entityLeaving.getScriptName() != "Avatar":
+		if entityLeaving.isDestroyed or entityLeaving.getScriptName() != "Avatar" or entityLeaving.isDead():
 			return
 			
 		INFO_MSG("%s::onLeaveTrap: %i entityLeaving=(%s)%i." % (self.getScriptName(), self.id, \

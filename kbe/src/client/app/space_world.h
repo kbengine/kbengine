@@ -66,6 +66,9 @@ private:
 	bool serverClosed_, showCloseButton_, createdReliveButton_;
 
 	Ogre::ManualObject*		pDecalObj_, *pSelDecalObj_;
+
+	Ogre::Vector3 selPos_;
+	bool showSelPosDecal_;
 };
 
 #endif // #ifndef __SPACEWORLD_CLIENT_h_

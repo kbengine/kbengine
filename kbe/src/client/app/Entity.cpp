@@ -729,7 +729,7 @@ void KBEntity::recvDamage(KBEntity* attacker, uint32 skillID, uint32 damageType,
 	}
 	else
 	{
-		pDamageLabel_->setCaption("- " + Ogre::StringConverter::toString(damage));
+		pDamageLabel_->setCaption(damage > 0 ? "-" + Ogre::StringConverter::toString(damage) : "Miss");
 	}
 
 	hp_ -= damage;

@@ -12,6 +12,8 @@
 
 // ¼ÇÂ¼Ñ¡Ôñ
 KBEngine::ENTITY_ID g_tickSelTargetID = -1;
+float g_decalSize = 1.0f;
+bool g_decalSizeInc = false;
 
 //-------------------------------------------------------------------------------------
 SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin, 
@@ -29,7 +31,9 @@ SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
 	showCloseButton_(false),
 	createdReliveButton_(false),
 	pDecalObj_(NULL),
-	pSelDecalObj_(NULL)
+	pSelDecalObj_(NULL),
+	selPos_(),
+	showSelPosDecal_(false)
 {
     mHelpInfo = Ogre::String("Use [W][A][S][D] keys for movement.\nKeys [1]-[9] to switch between cameras.\n[0] toggles SceneNode debug visuals.\n\nPress [C] to toggle clamp to terrain (gravity).\n\n[G] toggles the detail panel.\n[R] cycles polygonModes (Solid/Wireframe/Points).\n[T] cycles various filtering.\n\n\nPress [ESC] to quit.");
 }
@@ -239,6 +243,28 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
 		iter->second->addTime(evt.timeSinceLastFrame);
 	}
 	
+	if(mTargetPtr)
+	{
+		moveDecalTo(pSelDecalObj_, mTargetPtr->getPosition(), g_decalSize);
+	}
+
+	if(showSelPosDecal_)
+		moveDecalTo(pDecalObj_, selPos_, g_decalSize);
+
+	if(g_decalSizeInc)
+	{
+		g_decalSize += 0.5f * evt.timeSinceLastFrame;
+
+		if(g_decalSize > 1.5f)
+			g_decalSizeInc = false;
+	}
+	else
+	{
+		g_decalSize -= 0.5f * evt.timeSinceLastFrame;
+		if(g_decalSize <= 1.0f)
+			g_decalSizeInc = true;
+	}
+
 	if(mPlayerPtr) 
 	{
 		// kbe_lock();
@@ -270,7 +296,7 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
 	}
 	else
 	{
-		if(mPlayerPtr)
+		if(mPlayerPtr && !showCloseButton_)
 		{
 			if(!createdReliveButton_)
 			{
@@ -372,7 +398,8 @@ bool SpaceWorld::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id
 					if(mTargetPtr != iter->second.get())
 					{
 						mTargetPtr = iter->second.get();
-						moveDecalTo(pSelDecalObj_, rayResult->getParentSceneNode()->getPosition(), 1.5f);
+						g_decalSize = 1.5f;
+						g_decalSizeInc = false;
 					}
 					else
 					{
@@ -395,7 +422,8 @@ bool SpaceWorld::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id
 				}
 				*/
 
-				moveDecalTo(pDecalObj_, rayResult.position, 1.5f);
+				showSelPosDecal_ = true;
+				selPos_ = rayResult.position;
 			}
 		}
 
