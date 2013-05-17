@@ -25,3 +25,18 @@ class SkillInitiative(SObject):
 		@param receiver: 受技能影响者
 		"""
 		pass
+		
+	def cast(self, caster, receiver):
+		"""
+		virtual method.
+		施放技能
+		"""
+		pass
+		
+	def do(self, caster, receiver):
+		"""
+		virtual method.
+		技能已经到达目标
+		可以做一些事情了
+		"""
+		pass

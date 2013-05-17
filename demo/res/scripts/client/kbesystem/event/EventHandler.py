@@ -8,4 +8,8 @@ class EventHandler:
 		pass
 		
 	def onEvent(self, event, *args):
+		"""
+		virtual method.
+		发生事件
+		"""
 		pass

@@ -32,7 +32,7 @@ def onTargetChanged(entityID):
 	KBEngine method.
 	客户端选择了某个目标
 	"""
-	DEBUG_MSG('onTargetChanged:: entityID = %i' % entityID)
+	# DEBUG_MSG('onTargetChanged:: entityID = %i' % entityID)
 	kbesystem.targetMgr.setTargetID(entityID)
 	
 def kbengine_onEvent(eventID, args):

@@ -388,6 +388,51 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::onBecomePlayer()
+{
+	std::string moduleName = "Player";
+	moduleName += this->scriptModule_->getName();
+
+	PyObject* pyModule = 
+		PyImport_ImportModule(const_cast<char*>(this->scriptModule_->getName()));
+
+	if(pyModule == NULL)
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+	else
+	{
+		PyObject* pyClass = 
+			PyObject_GetAttrString(pyModule, const_cast<char *>(moduleName.c_str()));
+
+		if(pyClass == NULL)
+		{
+			SCRIPT_ERROR_CHECK();
+		}
+		else
+		{
+			PyObject_SetAttrString(static_cast<PyObject*>(this), "__class__", pyClass);
+			SCRIPT_ERROR_CHECK();
+		}
+
+		S_RELEASE(pyModule);
+	}
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onBecomePlayer"));
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onBecomeNonPlayer()
+{
+	PyObject_SetAttrString(static_cast<PyObject*>(this), "__class__", (PyObject*)this->scriptModule_->getScriptType());
+	SCRIPT_ERROR_CHECK();
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onBecomeNonPlayer"));
+}
+
+//-------------------------------------------------------------------------------------
 }
 }
 

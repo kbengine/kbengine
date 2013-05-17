@@ -27,4 +27,4 @@ class TargetMgr:
 		self.onTargetChanged()
 		
 	def onTargetChanged(self):
-		kbesystem.eventMgr.fire("TargetMgr.onTargetChanged", self._currTargetID)
+		kbesystem.eventMgr.fire("TargetMgr.onTargetChanged", self._preTargetID, self._currTargetID)

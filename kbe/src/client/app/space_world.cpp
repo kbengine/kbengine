@@ -129,10 +129,8 @@ void SpaceWorld::createScene(void)
 	mCameraMan = new OgreBites::SdkCameraMan(mActiveCamera);   // create a default camera controller
 	mCameraMan->setTopSpeed(7.0f);
     mCameraMan->setCamera(mActiveCamera);
-	OgreApplication::getSingleton().setCurrCameraMan(mCameraMan);
-
-
 	mCameraMan->setStyle(OgreBites::CS_MANUAL);
+	OgreApplication::getSingleton().setCurrCameraMan(mCameraMan);
 
 	mRaySceneQuery = mSceneMgr->createRayQuery(Ray());
 	pDecalObj_ = createDecal("Examples/Decal");

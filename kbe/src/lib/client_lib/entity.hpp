@@ -134,6 +134,9 @@ public:
 	void onUpdatePropertys(MemoryStream& s);
 
 	bool isEnterword()const{ return enterword_; }
+
+	void onBecomePlayer();
+	void onBecomeNonPlayer();
 protected:
 	EntityMailbox*							cellMailbox_;						// 这个entity的客户端mailbox
 	EntityMailbox*							baseMailbox_;						// 这个entity的baseapp mailbox

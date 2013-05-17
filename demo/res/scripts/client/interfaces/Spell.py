@@ -28,10 +28,10 @@ class Spell:
 		"""
 		DEBUG_MSG("onBuffTick:%i" % tid)
 		
-	def spellTarget(self, srcEntityID, skillID, targetID):
+	def spellTarget(self, skillID, targetID):
 		"""
 		对一个目标entity施放一个技能
 		"""
-		pass
+		self.cell.spellTarget(skillID, targetID)
 
 Spell._timermap = {}

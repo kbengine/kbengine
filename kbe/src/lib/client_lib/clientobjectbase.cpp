@@ -558,13 +558,14 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, ENTITY_ID
 	eventdata.speed = entity->getMoveSpeed();
 	eventHandler_.fire(&eventdata);
 
-	entity->onEnterWorld();
-
 	if(entityID_ == eid)
 	{
+		entity->onBecomePlayer();
 		entityPos_ = entity->getPosition();
 		entityDir_ = entity->getDirection();
 	}
+
+	entity->onEnterWorld();
 }
 
 //-------------------------------------------------------------------------------------	
