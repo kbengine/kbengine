@@ -4,6 +4,7 @@
 
 #include "space.h"
 #include "Entity.h"
+#include "LensFlare.h"
 #include <Terrain/OgreTerrain.h>
 #include <Terrain/OgreTerrainGroup.h>
 #include <OgreImage.h>
@@ -60,6 +61,7 @@ private:
 
 	KBEntity* mPlayerPtr;
 	KBEntity* mTargetPtr;
+	KBEntity* mMouseTargetPtr;
 
 	ENTITIES mEntities;
 
@@ -69,6 +71,8 @@ private:
 
 	Ogre::Vector3 selPos_;
 	bool showSelPosDecal_;
+
+	LensFlare *pLensflare_;
 };
 
 #endif // #ifndef __SPACEWORLD_CLIENT_h_

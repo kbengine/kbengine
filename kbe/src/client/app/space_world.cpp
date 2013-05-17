@@ -26,6 +26,7 @@ SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
     mFly(false),
 	mPlayerPtr(0),
 	mTargetPtr(0),
+	mMouseTargetPtr(0),
 	mEntities(),
 	serverClosed_(false),
 	showCloseButton_(false),
@@ -33,7 +34,8 @@ SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
 	pDecalObj_(NULL),
 	pSelDecalObj_(NULL),
 	selPos_(),
-	showSelPosDecal_(false)
+	showSelPosDecal_(false),
+	pLensflare_(0)
 {
     mHelpInfo = Ogre::String("Use [W][A][S][D] keys for movement.\nKeys [1]-[9] to switch between cameras.\n[0] toggles SceneNode debug visuals.\n\nPress [C] to toggle clamp to terrain (gravity).\n\n[G] toggles the detail panel.\n[R] cycles polygonModes (Solid/Wireframe/Points).\n[T] cycles various filtering.\n\n\nPress [ESC] to quit.");
 }
@@ -47,12 +49,15 @@ SpaceWorld::~SpaceWorld(void)
 	if(createdReliveButton_)
 		mTrayMgr->destroyWidget("relive");
 
+	if(pLensflare_)
+		delete pLensflare_;
+
 	mSceneMgr->destroyCamera("mainCamera");
 
 	mActiveCamera = NULL;
 	delete mLoader;
 	
-	mTargetPtr = mPlayerPtr = NULL;
+	mMouseTargetPtr = mTargetPtr = mPlayerPtr = NULL;
 	mEntities.clear();
 }
 
@@ -132,6 +137,8 @@ void SpaceWorld::createScene(void)
 	mRaySceneQuery = mSceneMgr->createRayQuery(Ray());
 	pDecalObj_ = createDecal("Examples/Decal");
 	pSelDecalObj_ = createDecal("Examples/Sel_Decal");
+
+	pLensflare_ = new LensFlare(Ogre::Vector3(1000, 1000, 0), mActiveCamera, mSceneMgr);
 }
 
 //----------------------------------------------------------------------------------------
@@ -318,6 +325,9 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
 		}
 	}
 
+	if(pLensflare_)
+		pLensflare_->update();
+
     return true;
 }
 
@@ -367,6 +377,46 @@ bool SpaceWorld::keyReleased(const OIS::KeyEvent &arg)
 bool SpaceWorld::mouseMoved( const OIS::MouseEvent &arg )
 {
     if(mPlayerPtr) mPlayerPtr->injectMouseMove(arg);
+
+		Ogre::Ray mouseRay = mActiveCamera->getCameraToViewportRay(arg.state.X.abs / float(arg.state.width),
+			arg.state.Y.abs / float(arg.state.height));
+
+	Ogre::Entity* rayResult = NULL;
+	Ogre::Vector3 hitPoint;
+	if(pickEntity(mRaySceneQuery, mouseRay, &rayResult, ENTITY_MASK, 0, hitPoint, "x", 5000))
+	{
+		Ogre::String key = rayResult->getName();
+		Ogre::StringVector vec = Ogre::StringUtil::split(key, "_");
+		if(vec.size() >= 2)
+		{
+			key = vec[0];
+			KBEngine::ENTITY_ID eid = Ogre::StringConverter::parseInt(key);
+
+			ENTITIES::iterator iter = mEntities.find(eid);
+			if(iter != mEntities.end())
+			{
+				if(mMouseTargetPtr != iter->second.get())
+				{
+					if(mMouseTargetPtr)
+						mMouseTargetPtr->setHighlighted(false);
+
+					mMouseTargetPtr = iter->second.get();
+					mMouseTargetPtr->setHighlighted(true);
+				}
+				else
+				{
+				}
+			}
+		}
+	}
+	else
+	{
+		if(mMouseTargetPtr)
+			mMouseTargetPtr->setHighlighted(false);
+
+		mMouseTargetPtr = NULL;
+	}
+
     return false;
 }
 
@@ -491,7 +541,10 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 			
 			if(mTargetPtr && mTargetPtr->id() == eid)
 				mTargetPtr = NULL;
-
+		
+			if(mMouseTargetPtr && mMouseTargetPtr->id() == eid)
+				mMouseTargetPtr = NULL;
+			
 			mEntities.erase(eid);
 		}
 		break;

@@ -247,6 +247,7 @@ protected:																									\
 public:																										\
 	void initializeScript()																					\
 	{																										\
+		initing_ = false;																					\
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);																	\
 		if(PyObject_HasAttrString(this, "__init__"))														\
 		{																									\
@@ -354,7 +355,6 @@ public:																										\
 																											\
 	void addClientDataToStream(MemoryStream* s)																\
 	{																										\
-																											\
 		PyObject* pydict = PyObject_GetAttrString(this, "__dict__");										\
 																											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =											\
@@ -785,7 +785,6 @@ public:																										\
 			}																								\
 		}																									\
 																											\
-		initing_ = false;																					\
 	}																										\
 
 

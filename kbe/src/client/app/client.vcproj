@@ -192,6 +192,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\LensFlare.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\OgreApplication.cpp"
 				>
 			</File>
@@ -231,6 +235,10 @@
 			</File>
 			<File
 				RelativePath=".\Entity.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LensFlare.h"
 				>
 			</File>
 			<File

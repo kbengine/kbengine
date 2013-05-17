@@ -22,8 +22,33 @@
 		<debug_type>0</debug_type>
 		<use_logfile>false</use_logfile>
 		<disables>
-			<item>Baseappmgr::updateBaseapp</item>
+			<item>Baseapp::onUpdateDataFromClient</item>
 			<item>Client::onUpdateVolatileData</item>
+			<item>Client::onUpdateData</item>
+			<item>Client::onUpdateBasePos</item>
+			<item>Client::onUpdateData_xz</item>
+			<item>Client::onUpdateData_xyz</item>
+			<item>Client::onUpdateData_y</item>
+			<item>Client::onUpdateData_r</item>
+			<item>Client::onUpdateData_p</item>
+			<item>Client::onUpdateData_ypr</item>
+			<item>Client::onUpdateData_yp</item>
+			<item>Client::onUpdateData_yr</item>
+			<item>Client::onUpdateData_pr</item>
+			<item>Client::onUpdateData_xz_y</item>
+			<item>Client::onUpdateData_xz_p</item>
+			<item>Client::onUpdateData_xz_r</item>
+			<item>Client::onUpdateData_xz_yr</item>
+			<item>Client::onUpdateData_xz_yp</item>
+			<item>Client::onUpdateData_xz_pr</item>
+			<item>Client::onUpdateData_xz_ypr</item>
+			<item>Client::onUpdateData_xyz_y</item>
+			<item>Client::onUpdateData_xyz_p</item>
+			<item>Client::onUpdateData_xyz_r</item>
+			<item>Client::onUpdateData_xyz_yr</item>
+			<item>Client::onUpdateData_xyz_yp</item>
+			<item>Client::onUpdateData_xyz_pr</item>
+			<item>Client::onUpdateData_xyz_ypr</item>
 		</disables>
 	</trace_packet>
 	

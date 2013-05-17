@@ -749,3 +749,56 @@ void KBEntity::recvDamage(KBEntity* attacker, uint32 skillID, uint32 damageType,
 }
 
 //-------------------------------------------------------------------------------------
+void KBEntity::setHighlighted( bool highlight )
+{
+	Ogre::String nameExtension = "_HighLight";
+    Ogre::Entity* ent = mBodyEnt;
+    int numEnts = ent->getNumSubEntities();
+
+    for( int i = 0; i < numEnts; i++ )
+    {
+        Ogre::SubEntity* subent = ent->getSubEntity(i);
+
+        if( subent == NULL )
+            continue;
+
+        // TODO - optimieren, nur wenn der Typ veraendert wird
+        //if(StringUtil::endsWith(subent->getMaterialName(),nameExtension)
+        // == highlight )
+        //  continue;
+
+        if (ent->isHardwareAnimationEnabled())
+        {
+            subent->setCustomParameter(0,
+                highlight ? Vector4(1, 1, 1, 1) : Vector4(0, 0, 0, 0));
+        }
+
+        Ogre::MaterialPtr oldMaterial = subent->getMaterial();
+
+        // Highlight setzen
+        if( highlight )
+        {
+            Ogre::MaterialPtr material = Ogre::MaterialManager::getSingleton().getByName( oldMaterial->getName()+nameExtension );
+
+            if( material.isNull() )
+            {
+                material = oldMaterial->clone( oldMaterial->getName()+nameExtension );
+
+                material->setAmbient(1.0, 1.0, 1.0);
+                material->setDiffuse(1.0, 1.0, 1.0, 1.0);
+                material->setSelfIllumination(0.4, 0.4, 0.4);
+            }
+
+            subent->setMaterialName(material->getName());
+        }
+        // Highlight entfernen
+        else
+        {
+            Ogre::String matName = oldMaterial->getName();
+            matName = matName.erase(matName.length() - nameExtension.length(), nameExtension.length() );
+            subent->setMaterialName( matName );
+        }
+    }
+}
+
+//-------------------------------------------------------------------------------------

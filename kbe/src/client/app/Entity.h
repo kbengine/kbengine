@@ -106,6 +106,8 @@ public:
 		return mState;
 	}
 	
+	void setHighlighted( bool highlight );
+
 	void setDestDirection(float yaw, float pitch, float roll)
 	{
 		destDir_.x = roll;

@@ -1,0 +1,38 @@
+material lensflare/halo
+ {
+    technique
+    {
+        pass
+        {
+            ambient 1 1 1
+            diffuse 1 1 1
+            lighting off
+            depth_write off
+            scene_blend add
+            texture_unit
+            {
+                texture lensflare6.jpg
+            }
+        }
+    }
+ }
+
+
+ material lensflare/burst
+ {
+    technique
+    {
+        pass
+        {
+            ambient 1 1 1
+            diffuse 1 1 1
+            lighting off
+            depth_write off
+            scene_blend add
+            texture_unit
+            {
+                texture lensflare5.jpg
+            }
+        }
+    }
+ }
