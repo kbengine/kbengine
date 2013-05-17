@@ -269,8 +269,8 @@ int Entity::pySetTopSpeed(PyObject *value)
 //-------------------------------------------------------------------------------------
 void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, PyObject* pyData)
 {
-	// 如果不是一个realEntity则不理会
-	if(!isReal() && initing_)
+	// 如果不是一个realEntity或者在初始化则不理会
+	if(!isReal() || initing_)
 		return;
 
 	const uint32& flags = propertyDescription->getFlags();

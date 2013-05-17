@@ -138,7 +138,7 @@ void SpaceWorld::createScene(void)
 	pDecalObj_ = createDecal("Examples/Decal");
 	pSelDecalObj_ = createDecal("Examples/Sel_Decal");
 
-	pLensflare_ = new LensFlare(Ogre::Vector3(1000, 1000, 0), mActiveCamera, mSceneMgr);
+	pLensflare_ = new LensFlare(Ogre::Vector3(3000, 2000, 0), mActiveCamera, mSceneMgr);
 }
 
 //----------------------------------------------------------------------------------------
