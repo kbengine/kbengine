@@ -68,3 +68,10 @@ for f in FORBID_ALL: FORBID_ACTIONS[ENTITY_STATE_UNKNOW] |= f
 DIALOG_TYPE_NORMAL			= 0 # 普通对话
 DIALOG_TYPE_QUEST			= 1 # 任务对话
 
+# ------------------------------------------------------------------------------
+# 技能相关
+# ------------------------------------------------------------------------------
+# 技能对象类别
+SKILL_OBJECT_TYPE_UNKNOWN	= 0
+SKILL_OBJECT_TYPE_ENTITY	= 1
+SKILL_OBJECT_TYPE_POSITION	= 2

@@ -4,6 +4,7 @@ import skills
 import GlobalConst
 import wtimer
 from KBEDebug import * 
+import skillbases.SCObject as SCObject
 
 class Spell:
 	def __init__(self):
@@ -29,16 +30,29 @@ class Spell:
 		buff的tick
 		"""
 		DEBUG_MSG("onBuffTick:%i" % tid)
+	
+	def intonate(self, skill, scObject):
+		"""
+		吟唱技能
+		"""
+		pass
 		
-	def spellTarget(self, srcEntityID, skillID, targetID):
+	def spellTargetFromClient(self, srcEntityID, skillID, targetID):
 		"""
 		exposed.
 		对一个目标entity施放一个技能
 		"""
 		if srcEntityID != self.id:
 			return
-			 
-		DEBUG_MSG("Spell::spellTarget(%i):skillID=%i, srcEntityID=%i, targetID=%i" % (self.id, skillID, srcEntityID, targetID))
+		
+		self.spellTarget(skillID, targetID)
+		
+	def spellTarget(self, skillID, targetID):
+		"""
+		defined.
+		对一个目标entity施放一个技能
+		"""
+		DEBUG_MSG("Spell::spellTarget(%i):skillID=%i, targetID=%i" % (self.id, skillID, targetID))
 		
 		skill = skills.getSkill(skillID)
 		if skill is None:
@@ -49,13 +63,17 @@ class Spell:
 		if target is None:
 			ERROR_MSG("Spell::spellTarget(%i):targetID=%i not found" % (self.id, targetID))
 			return
-
-		ret = skill.canUse(self, target)
+		
+		scobject = SCObject.createSCEntity(target)
+		ret = skill.canUse(self, scobject)
 		if ret != GlobalConst.GC_OK:
 			ERROR_MSG("Spell::spellTarget(%i): cannot spell skillID=%i, targetID=%i, code=%i" % (self.id, skillID, targetID, ret))
 			return
 			
-		skill.use(self, target)
-
+		skill.use(self, scobject)
+	
+	def spellPosition(self, position):
+		pass
+		
 Spell._timermap = {}
 Spell._timermap[wtimer.TIMER_TYPE_BUFF_TICK] = Spell.onBuffTick

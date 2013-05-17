@@ -3,6 +3,7 @@ import KBEngine
 import skills
 import GlobalConst
 from KBEDebug import * 
+from skillbases.SCObject import SCObject
 
 class Spell:
 	def __init__(self):
@@ -32,6 +33,6 @@ class Spell:
 		"""
 		对一个目标entity施放一个技能
 		"""
-		self.cell.spellTarget(skillID, targetID)
+		self.cell.spellTargetFromClient(skillID, targetID)
 
 Spell._timermap = {}

@@ -5,6 +5,7 @@ import time
 import random
 import GlobalDefine
 from KBEDebug import * 
+from skillbases.SCObject import SCObject
 
 __TERRITORY_AREA__ = 30.0
 
@@ -153,7 +154,7 @@ class AI:
 			self.gotoEntity(self.targetID, 1.8)
 			return
 		else:
-			entity.recvDamage(self.id, 1, 0, random.randint(0, 10))
+			self.spellTarget(1, entity.id)
 			
 	def onThinkOther(self):
 		"""
