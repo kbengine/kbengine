@@ -12,8 +12,6 @@
 
 // 记录选择
 KBEngine::ENTITY_ID g_tickSelTargetID = -1;
-float g_decalSize = 1.0f;
-bool g_decalSizeInc = false;
 
 //-------------------------------------------------------------------------------------
 SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin, 
@@ -51,6 +49,12 @@ SpaceWorld::~SpaceWorld(void)
 
 	if(pLensflare_)
 		delete pLensflare_;
+
+	if(pDecalObj_)
+		delete pDecalObj_;
+
+	if(pSelDecalObj_)
+		delete pSelDecalObj_;
 
 	mSceneMgr->destroyCamera("mainCamera");
 
@@ -133,90 +137,11 @@ void SpaceWorld::createScene(void)
 	OgreApplication::getSingleton().setCurrCameraMan(mCameraMan);
 
 	mRaySceneQuery = mSceneMgr->createRayQuery(Ray());
-	pDecalObj_ = createDecal("Examples/Decal");
-	pSelDecalObj_ = createDecal("Examples/Sel_Decal");
+
+	pDecalObj_ = new DecalObject("Examples/Decal", this, 1.0f, 1.5f);
+	pSelDecalObj_ = new DecalObject("Examples/Sel_Decal", this, 1.0f, 1.5f);
 
 	pLensflare_ = new LensFlare(Ogre::Vector3(3000, 2000, 0), mActiveCamera, mSceneMgr);
-}
-
-//----------------------------------------------------------------------------------------
-Ogre::ManualObject* SpaceWorld::createDecal(Ogre::String decalMaterialName)
-{
-	Ogre::ManualObject* pDecalObj = new Ogre::ManualObject(decalMaterialName);
-    mSceneMgr->getRootSceneNode()->createChildSceneNode()->attachObject(pDecalObj);
-   // pDecalObj->setCastShadows(false);
-	//pDecalObj->setDynamic(true);  
-	//pDecalObj->setRenderQueueGroup(Ogre::RENDER_QUEUE_WORLD_GEOMETRY_2);  
-
-	int x_size = 64;  // number of polygons
-	int z_size = 64;
-    pDecalObj->begin(decalMaterialName, Ogre::RenderOperation::OT_TRIANGLE_LIST);
-
-    for (int i=0; i<x_size; i++)
-    {
-        for (int j=0; j<=z_size; j++)
-        {
-            pDecalObj->position(Ogre::Vector3(i, 0, j));
-            pDecalObj->textureCoord((float)i / (float)x_size, (float)j / (float)z_size);
-        }
-    }
-
-    for (int i=0; i<x_size; i++)
-    {
-        for (int j=0; j<z_size; j++)
-        {
-            pDecalObj->quad( i * (x_size+1) + j, i * (x_size+1) + j + 1,
-                (i + 1) * (x_size+1) + j + 1,(i + 1) * (x_size+1) + j);
-        }
-    }
-
-    pDecalObj->end();
-
-	return pDecalObj;
-}
-
-//----------------------------------------------------------------------------------------
-void SpaceWorld::moveDecalTo(Ogre::ManualObject* pDecal, const Ogre::Vector3& position, float radius)
-{
-	Ogre::Real x = position.x;
-	Ogre::Real z = position.z;
-
-    Ogre::Real x1 = x - radius;
-    Ogre::Real z1 = z - radius;
-
-	int x_size = 64;  // number of polygons
-	int z_size = 64;
-
-    Ogre::Real x_step = radius * 2/ x_size;
-    Ogre::Real z_step = radius * 2/ z_size;
-
-    pDecal->beginUpdate(0);
-
-    for (int i=0; i<=x_size; i++)
-    {
-        for (int j=0; j<=z_size; j++)
-        {    
-			pDecal->position(Ogre::Vector3(x1, getPositionHeight(Ogre::Vector3(x1, 0, z1)) + 0.1, z1));
-            pDecal->textureCoord((float)i / (float)x_size, (float)j / (float)z_size);
-
-            z1 += z_step;
-        }
-
-        x1 += x_step;
-
-        z1 = z - radius;
-    }
-
-    for (int i=0; i<x_size; i++)
-    {
-        for (int j=0; j<z_size; j++)
-        {
-            pDecal->quad( i * (x_size+1) + j, i * (x_size+1) + j + 1, 
-                (i + 1) * (x_size+1) + j + 1, (i + 1) * (x_size+1) + j);
-        }
-    }
-
-    pDecal->end();
 }
 
 //----------------------------------------------------------------------------------------
@@ -250,24 +175,12 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
 	
 	if(mTargetPtr)
 	{
-		moveDecalTo(pSelDecalObj_, mTargetPtr->getPosition(), g_decalSize);
+		pSelDecalObj_->update(evt.timeSinceLastFrame);
 	}
 
 	if(showSelPosDecal_)
-		moveDecalTo(pDecalObj_, selPos_, g_decalSize);
-
-	if(g_decalSizeInc)
 	{
-		g_decalSize += 0.5f * evt.timeSinceLastFrame;
-
-		if(g_decalSize > 1.5f)
-			g_decalSizeInc = false;
-	}
-	else
-	{
-		g_decalSize -= 0.5f * evt.timeSinceLastFrame;
-		if(g_decalSize <= 1.0f)
-			g_decalSizeInc = true;
+		pDecalObj_->update(evt.timeSinceLastFrame);
 	}
 
 	if(mPlayerPtr) 
@@ -442,16 +355,18 @@ bool SpaceWorld::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id
 				ENTITIES::iterator iter = mEntities.find(eid);
 				if(iter != mEntities.end())
 				{
-					g_tickSelTargetID = eid;
-					if(mTargetPtr != iter->second.get())
+					if(g_tickSelTargetID != mPlayerPtr->id()
 					{
-						mTargetPtr = iter->second.get();
-						g_decalSize = 1.5f;
-						g_decalSizeInc = false;
-					}
-					else
-					{
-						// 再次选择了该entity
+						g_tickSelTargetID = eid;
+						if(mTargetPtr != iter->second.get())
+						{
+							mTargetPtr = iter->second.get();
+							pSelDecalObj_->moveDecalTo(mTargetPtr->getPosition());
+						}
+						else
+						{
+							// 再次选择了该entity
+						}
 					}
 				}
 			}
@@ -472,6 +387,7 @@ bool SpaceWorld::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id
 
 				showSelPosDecal_ = true;
 				selPos_ = rayResult.position;
+				pDecalObj_->moveDecalTo(selPos_);
 			}
 		}
 

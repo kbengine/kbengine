@@ -37,6 +37,9 @@ public:
 
 	void getMeshData(const Ogre::MeshPtr mesh, size_t &vertex_count, size_t &index_count,
                                const Ogre::Vector3 &position, const Ogre::Quaternion &orient, const Ogre::Vector3 &scale);
+
+	Ogre::SceneManager* pSceneMgr()const{ return mSceneMgr; }
+	Ogre::Camera* pActiveCamera()const{ return mActiveCamera; }
 protected:
     Ogre::Root *mRoot;
     Ogre::Camera* mActiveCamera;

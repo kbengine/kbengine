@@ -1,0 +1,151 @@
+
+material sword/SwordMat
+{
+  technique
+  {
+    pass
+    {
+	 ambient vertexcolour
+         cull_hardware none
+         cull_software none
+         scene_blend alpha_blend
+         alpha_rejection greater_equal 128
+
+    }
+  }
+}
+
+
+material sword/mat_trail
+{
+  technique
+  {
+    pass
+    {
+      lighting off
+      scene_blend add
+      //scene_blend alpha_blend
+      ambient vertexcolour
+      //diffuse 0 0 0 0.1
+      //diffuse 0 0 0 1
+//diffuse vertexcolour
+      //depth_write off
+      //alpha_rejection less 64
+      //alpha_rejection greater_equal 64
+      //depth_write off
+
+      //cull_hardware none
+      //cull_software none 
+
+			//texture_unit
+			//{
+			//	texture axe_trail.dds
+			//}
+
+    }
+  }
+}
+
+material sword/mat_trail2
+{
+  technique
+  {
+    pass
+    {
+      lighting off
+      scene_blend add
+      //scene_blend alpha_blend
+      ambient vertexcolour
+      //diffuse 0 0 0 0.1
+      //diffuse 0 0 0 1
+      diffuse vertexcolour
+      
+      cull_hardware none
+      cull_software none 
+
+
+    }
+  }
+}
+
+material sword/mat_trail3
+{
+  technique
+  {
+    pass
+    {
+      lighting off
+
+      scene_blend alpha_blend
+      alpha_rejection greater_equal 128
+
+      ambient vertexcolour
+      diffuse vertexcolour
+      
+      cull_hardware none
+      cull_software none 
+
+    }
+  }
+}
+
+
+material sword/mat_2
+{
+  technique
+  {
+    pass
+    {
+	ambient vertexcolour
+	diffuse 0 0 0 1
+         scene_blend alpha_blend
+//         alpha_rejection greater 128
+         cull_hardware none
+
+
+
+    }
+  }
+}
+
+material sword/AxeTrail
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			scene_blend add
+			ambient vertexcolour
+			//ambient 1 1 1 1
+			//diffuse 0 0 0 1
+			diffuse vertexcolour
+			cull_hardware none
+			cull_software none
+			depth_write off
+			
+			texture_unit
+			{
+				texture axe_trail.dds
+			}
+		}
+	}
+}
+
+material sword/swordMaterial
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			cull_hardware none
+			cull_software none
+			scene_blend alpha_blend
+			ambient vertexcolour
+			diffuse 0 0 0 1
+			alpha_rejection greater_equal 128
+
+		}
+	}
+}

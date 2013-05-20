@@ -1,4 +1,5 @@
 #include "Entity.h"
+#include "WeaponTrail.h"
 #include "space_world.h"
 #include "DotSceneLoader.h"
 #include <Terrain/OgreTerrain.h>
@@ -41,7 +42,9 @@ KBEntity::KBEntity(SpaceWorld* pSpace, KBEngine::ENTITY_ID eid):
   hp_(100),
   hp_max_(100),
   mp_(100),
-  mp_max_(100)
+  mp_max_(100),
+  pWeaponTrailLeft_(NULL),
+  pWeaponTrailRight_(NULL)
 {
 	//setupBody(cam->getSceneManager());
 	//setupCamera(cam);
@@ -63,6 +66,9 @@ KBEntity::~KBEntity()
 		delete pDamageLabel_;
 		pDamageLabel_ = NULL;
 	}
+	
+	SAFE_RELEASE(pWeaponTrailLeft_);
+	SAFE_RELEASE(pWeaponTrailRight_);
 
 	if(mBodyEnt)mSceneMgr->destroyEntity(mBodyEnt);
 	if(mSword1)mSceneMgr->destroyEntity(mSword1);
@@ -180,6 +186,12 @@ void KBEntity::addTime(Real deltaTime)
 			pDamageLabel_ = NULL;
 		}
 	}
+
+	if(pWeaponTrailLeft_)
+		pWeaponTrailLeft_->onUpdate(deltaTime);
+
+	if(pWeaponTrailRight_)
+		pWeaponTrailRight_->onUpdate(deltaTime);
 }
 
 //-------------------------------------------------------------------------------------
@@ -223,6 +235,16 @@ void KBEntity::setupBody(SceneManager* sceneMgr)
 	mSword2->setQueryFlags(Space::ENTITY_MASK);
 	mBodyEnt->attachObjectToBone("Sheath.L", mSword1);
 	mBodyEnt->attachObjectToBone("Sheath.R", mSword2);
+	
+	//pWeaponTrailLeft_ = new WeaponTrail(sKey + "WeaponTrailL", sceneMgr);
+	//pWeaponTrailLeft_->setWeaponEntity(mSword1);
+	//pWeaponTrailLeft_->setWidth(2.0f);
+	//pWeaponTrailLeft_->setActive(false);
+
+	//pWeaponTrailRight_ = new WeaponTrail(sKey + "WeaponTrailR", sceneMgr);
+	//pWeaponTrailRight_->setWeaponEntity(mSword2);
+	//pWeaponTrailRight_->setWidth(13.0f);
+	//pWeaponTrailRight_->setActive(false);
 
 	LogManager::getSingleton().logMessage("Creating the chains");
 
@@ -456,9 +478,9 @@ void KBEntity::updateBody(Real deltaTime)
 		mGoalDirection += mKeyDirection.x * mCameraNode->getOrientation().xAxis();
 		mGoalDirection.y = 0;
 		mGoalDirection.normalise();
-
+			
 		Quaternion toGoal = mBodyNode->getOrientation().zAxis().getRotationTo(mGoalDirection);
-
+		
 		// calculate how much the character has to turn to face goal direction
 		Real yawToGoal = toGoal.getYaw().valueDegrees();
 		// this is how much the character CAN turn this frame
@@ -522,12 +544,22 @@ void KBEntity::updateAnimations(Real deltaTime)
 				mSwordTrail->setVisible(false);
 				mSwordTrail->removeNode(mSword1->getParentNode());
 				mSwordTrail->removeNode(mSword2->getParentNode());
+				
+				if(pWeaponTrailRight_)
+				pWeaponTrailRight_->setActive(false);
+				if(pWeaponTrailLeft_)
+				pWeaponTrailLeft_->setActive(false);
 			}
 			else
 			{
 				mSwordTrail->setVisible(true);
 				mSwordTrail->addNode(mSword1->getParentNode());
 				mSwordTrail->addNode(mSword2->getParentNode());
+
+				if(pWeaponTrailRight_)
+				pWeaponTrailRight_->setActive(true);
+				if(pWeaponTrailLeft_)
+				pWeaponTrailLeft_->setActive(true);
 			}
 		}
 
@@ -784,9 +816,9 @@ void KBEntity::setHighlighted( bool highlight )
             {
                 material = oldMaterial->clone( oldMaterial->getName()+nameExtension );
 
-                material->setAmbient(1.0, 1.0, 1.0);
-                material->setDiffuse(1.0, 1.0, 1.0, 1.0);
-                material->setSelfIllumination(0.4, 0.4, 0.4);
+                material->setAmbient(1.0f, 1.0f, 1.0f);
+                material->setDiffuse(1.0f, 1.0f, 1.0f, 1.0f);
+                material->setSelfIllumination(0.4f, 0.4f, 0.4f);
             }
 
             subent->setMaterialName(material->getName());

@@ -5,6 +5,7 @@
 #include "space.h"
 #include "Entity.h"
 #include "LensFlare.h"
+#include "DecalObject.h"
 #include <Terrain/OgreTerrain.h>
 #include <Terrain/OgreTerrainGroup.h>
 #include <OgreImage.h>
@@ -42,8 +43,6 @@ public:
 	DotSceneLoader* getDotSceneLoader(){ return mLoader; }
 
 	float getPositionHeight(const Ogre::Vector3& pos);
-	void moveDecalTo(Ogre::ManualObject* pDecal, const Ogre::Vector3& position, float radius);
-	Ogre::ManualObject* createDecal(Ogre::String decalMaterialName);
 private:
     Ogre::TerrainGroup* mTerrainGroup;
     DotSceneLoader* mLoader;
@@ -67,7 +66,7 @@ private:
 
 	bool serverClosed_, showCloseButton_, createdReliveButton_;
 
-	Ogre::ManualObject*		pDecalObj_, *pSelDecalObj_;
+	DecalObject* pDecalObj_, *pSelDecalObj_;
 
 	Ogre::Vector3 selPos_;
 	bool showSelPosDecal_;

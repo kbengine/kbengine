@@ -184,6 +184,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DecalObject.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\DotSceneLoader.cpp"
 				>
 			</File>
@@ -219,6 +223,10 @@
 				RelativePath=".\space_world.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\WeaponTrail.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -227,6 +235,10 @@
 			>
 			<File
 				RelativePath=".\BaseApplication.h"
+				>
+			</File>
+			<File
+				RelativePath=".\DecalObject.h"
 				>
 			</File>
 			<File
@@ -271,6 +283,10 @@
 			</File>
 			<File
 				RelativePath=".\space_world.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WeaponTrail.h"
 				>
 			</File>
 		</Filter>

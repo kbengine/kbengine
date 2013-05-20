@@ -9,6 +9,7 @@
 using namespace Ogre;
 
 class SpaceWorld;
+class WeaponTrail;
 
 #define NUM_ANIMS 13		  // number of animations the character has
 #define CHAR_HEIGHT 5         // height of character's center of mass above ground
@@ -288,6 +289,8 @@ private:
 	BillboardSet* pHealthHUD_;
 
 	int hp_, hp_max_, mp_, mp_max_;
+
+	WeaponTrail* pWeaponTrailLeft_, *pWeaponTrailRight_;
 };
 
 #endif
