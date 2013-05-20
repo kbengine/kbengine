@@ -87,7 +87,9 @@ void KBEntity::addTime(Real deltaTime)
 {
 	if(mBodyNode)
 	{
-		updateBody(deltaTime);
+		if(mCamera)
+			updateBody(deltaTime);
+
 		updateAnimations(deltaTime);
 	}
 
