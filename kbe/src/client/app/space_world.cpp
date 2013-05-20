@@ -355,7 +355,7 @@ bool SpaceWorld::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id
 				ENTITIES::iterator iter = mEntities.find(eid);
 				if(iter != mEntities.end())
 				{
-					if(g_tickSelTargetID != mPlayerPtr->id()
+					if(g_tickSelTargetID != mPlayerPtr->id())
 					{
 						g_tickSelTargetID = eid;
 						if(mTargetPtr != iter->second.get())

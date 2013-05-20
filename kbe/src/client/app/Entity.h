@@ -1,5 +1,5 @@
-#ifndef __Sinbad_H__
-#define __Sinbad_H__
+#ifndef __ENTITY_CLIENT_OGRE_H__
+#define __ENTITY_CLIENT_OGRE_H__
 
 #include "Ogre.h"
 #include "OIS.h"
