@@ -139,11 +139,6 @@ void Components::addComponent(int32 uid, const char* username,
 
 	strncpy(componentInfos.username, username, MAX_NAME);
 
-	if(cinfos == NULL)
-		components.push_back(componentInfos);
-	else
-		*cinfos = componentInfos;
-
 	_globalOrderLog[uid]++;
 
 	switch(componentType)
@@ -171,6 +166,11 @@ void Components::addComponent(int32 uid, const char* username,
 		componentInfos.globalOrderid = globalorderid;
 	else
 		componentInfos.globalOrderid = _globalOrderLog[uid];
+
+	if(cinfos == NULL)
+		components.push_back(componentInfos);
+	else
+		*cinfos = componentInfos;
 
 	INFO_MSG(boost::format("Components::addComponent[%1%], uid=%2%, "
 		"componentID=%3%, globalorderid=%4%, grouporderid=%5%, totalcount=%6%\n") %
