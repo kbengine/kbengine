@@ -607,6 +607,360 @@ namespace KBEngine{
 											ARG_TYPE8, ARG_NAME8)				\
 
 
+/**
+	Messagelog消息宏，  只有九个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS9
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(MESSAGELOG)
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS9(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9)				\
+	void NAME##MessagelogMessagehandler9::handle(Mercury::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			ARG_TYPE1 ARG_NAME1;												\
+			s >> ARG_NAME1;														\
+			ARG_TYPE2 ARG_NAME2;												\
+			s >> ARG_NAME2;														\
+			ARG_TYPE3 ARG_NAME3;												\
+			s >> ARG_NAME3;														\
+			ARG_TYPE4 ARG_NAME4;												\
+			s >> ARG_NAME4;														\
+			ARG_TYPE5 ARG_NAME5;												\
+			s >> ARG_NAME5;														\
+			ARG_TYPE6 ARG_NAME6;												\
+			s >> ARG_NAME6;														\
+			ARG_TYPE7 ARG_NAME7;												\
+			s >> ARG_NAME7;														\
+			ARG_TYPE8 ARG_NAME8;												\
+			s >> ARG_NAME8;														\
+			ARG_TYPE9 ARG_NAME9;												\
+			s >> ARG_NAME9;														\
+			KBEngine::Messagelog::getSingleton().NAME(pChannel,					\
+										ARG_NAME1, ARG_NAME2, ARG_NAME3, 		\
+										ARG_NAME4, ARG_NAME5, ARG_NAME6,		\
+										ARG_NAME7, ARG_NAME8, ARG_NAME9);		\
+	}																			\
+
+#else
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS9(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9)				\
+	void NAME##MessagelogMessagehandler9::handle(Mercury::Channel* pChannel,	\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS9(NAME, ARG_TYPE1, ARG_NAME1,			\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9)				\
+	class NAME##MessagelogMessagehandler9 : public Mercury::MessageHandler		\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define MESSAGELOG_MESSAGE_DECLARE_ARGS9(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9)				\
+	MESSAGELOG_MESSAGE_HANDLER_ARGS9(NAME, ARG_TYPE1, ARG_NAME1, 				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9)				\
+	NETWORK_MESSAGE_DECLARE_ARGS9(Messagelog, NAME,								\
+				NAME##MessagelogMessagehandler9, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9)				\
+
+/**
+	Messagelog消息宏，  只有十个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS10
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(MESSAGELOG)
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS10(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10)				\
+	void NAME##MessagelogMessagehandler10::handle(Mercury::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			ARG_TYPE1 ARG_NAME1;												\
+			s >> ARG_NAME1;														\
+			ARG_TYPE2 ARG_NAME2;												\
+			s >> ARG_NAME2;														\
+			ARG_TYPE3 ARG_NAME3;												\
+			s >> ARG_NAME3;														\
+			ARG_TYPE4 ARG_NAME4;												\
+			s >> ARG_NAME4;														\
+			ARG_TYPE5 ARG_NAME5;												\
+			s >> ARG_NAME5;														\
+			ARG_TYPE6 ARG_NAME6;												\
+			s >> ARG_NAME6;														\
+			ARG_TYPE7 ARG_NAME7;												\
+			s >> ARG_NAME7;														\
+			ARG_TYPE8 ARG_NAME8;												\
+			s >> ARG_NAME8;														\
+			ARG_TYPE9 ARG_NAME9;												\
+			s >> ARG_NAME9;														\
+			ARG_TYPE10 ARG_NAME10;												\
+			s >> ARG_NAME10;													\
+			KBEngine::Messagelog::getSingleton().NAME(pChannel,					\
+										ARG_NAME1, ARG_NAME2, ARG_NAME3, 		\
+										ARG_NAME4, ARG_NAME5, ARG_NAME6,		\
+										ARG_NAME7, ARG_NAME8, ARG_NAME9,		\
+										ARG_NAME10);							\
+	}																			\
+
+#else
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS10(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10)				\
+	void NAME##MessagelogMessagehandler10::handle(Mercury::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS10(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10)				\
+	class NAME##MessagelogMessagehandler10 : public Mercury::MessageHandler		\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define MESSAGELOG_MESSAGE_DECLARE_ARGS10(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10)				\
+	MESSAGELOG_MESSAGE_HANDLER_ARGS10(NAME, ARG_TYPE1, ARG_NAME1, 					\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10)				\
+	NETWORK_MESSAGE_DECLARE_ARGS10(Messagelog, NAME,								\
+				NAME##MessagelogMessagehandler10, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10)				\
+
+
+/**
+	Messagelog消息宏，  只有十一个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef MESSAGELOG_MESSAGE_HANDLER_ARGS11
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(MESSAGELOG)
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS11(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11)				\
+	void NAME##MessagelogMessagehandler11::handle(Mercury::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			ARG_TYPE1 ARG_NAME1;												\
+			s >> ARG_NAME1;														\
+			ARG_TYPE2 ARG_NAME2;												\
+			s >> ARG_NAME2;														\
+			ARG_TYPE3 ARG_NAME3;												\
+			s >> ARG_NAME3;														\
+			ARG_TYPE4 ARG_NAME4;												\
+			s >> ARG_NAME4;														\
+			ARG_TYPE5 ARG_NAME5;												\
+			s >> ARG_NAME5;														\
+			ARG_TYPE6 ARG_NAME6;												\
+			s >> ARG_NAME6;														\
+			ARG_TYPE7 ARG_NAME7;												\
+			s >> ARG_NAME7;														\
+			ARG_TYPE8 ARG_NAME8;												\
+			s >> ARG_NAME8;														\
+			ARG_TYPE9 ARG_NAME9;												\
+			s >> ARG_NAME9;														\
+			ARG_TYPE10 ARG_NAME10;												\
+			s >> ARG_NAME10;													\
+			ARG_TYPE11 ARG_NAME11;												\
+			s >> ARG_NAME11;													\
+			KBEngine::Messagelog::getSingleton().NAME(pChannel,					\
+										ARG_NAME1, ARG_NAME2, ARG_NAME3, 		\
+										ARG_NAME4, ARG_NAME5, ARG_NAME6,		\
+										ARG_NAME7, ARG_NAME8, ARG_NAME9,		\
+										ARG_NAME10, ARG_NAME11);				\
+	}																			\
+
+#else
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS11(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11)				\
+	void NAME##MessagelogMessagehandler11::handle(Mercury::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define MESSAGELOG_MESSAGE_HANDLER_ARGS11(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11)				\
+	class NAME##MessagelogMessagehandler11 : public Mercury::MessageHandler		\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define MESSAGELOG_MESSAGE_DECLARE_ARGS11(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11)				\
+	MESSAGELOG_MESSAGE_HANDLER_ARGS11(NAME, ARG_TYPE1, ARG_NAME1, 					\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11)				\
+	NETWORK_MESSAGE_DECLARE_ARGS11(Messagelog, NAME,								\
+				NAME##MessagelogMessagehandler11, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11)				\
+
 
 }
 #endif

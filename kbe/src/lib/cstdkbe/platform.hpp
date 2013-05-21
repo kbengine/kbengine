@@ -566,13 +566,14 @@ inline uint32 getSystemTimeDiff(uint32 oldTime, uint32 newTime)
 
 /* 产生一个64位的uuid 
 */
-extern COMPONENT_ORDER g_componentOrder;
+extern COMPONENT_ORDER g_componentGlobalOrder;
+extern COMPONENT_ORDER g_componentGroupOrder;
 
 inline uint64 genUUID64()
 {
 	srand(getSystemTime());
 	
-	if(g_componentOrder <= 0)
+	if(g_componentGlobalOrder <= 0)
 	{
 		// 时间戳32位， 16位随机数， 16位迭代数
 		uint64 tv = getSystemTime();
@@ -584,7 +585,7 @@ inline uint64 genUUID64()
 	{
 		// app顺序数8位，时间戳32位， 8位随机数， 16位迭代数
 		uint32 tv = getSystemTime();
-		uint64 appOrder = g_componentOrder;
+		uint64 appOrder = g_componentGlobalOrder;
 		static uint16 lastNum1 = rand() % 65535;
 		uint32 rnd = rand() % 255;
 		return (appOrder << 56) + (tv << (24)) + (rnd << (8)) + lastNum1++;

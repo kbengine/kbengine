@@ -272,15 +272,23 @@ void Dbmgr::onReqAllocEntityID(Mercury::Channel* pChannel, int8 componentType, C
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string& username, 
-						int8 componentType, uint64 componentID, 
+						int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
 						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
 {
-	ServerApp::onRegisterNewApp(pChannel, uid, username, componentType, componentID, 
+	ServerApp::onRegisterNewApp(pChannel, uid, username, componentType, componentID, globalorderID, grouporderID,
 						intaddr, intport, extaddr, extport);
 
 	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
 	
 	std::string digest = EntityDef::md5().getDigestStr();
+	int32 startGroupOrder = 1;
+	int32 startGlobalOrder = Componentbridge::getComponents().getGlobalOrderLog()[getUserUID()];
+
+	if(grouporderID > 0)
+		startGroupOrder = grouporderID;
+
+	if(globalorderID > 0)
+		startGlobalOrder = globalorderID;
 
 	// 下一步:
 	// 如果是连接到dbmgr则需要等待接收app初始信息
@@ -290,15 +298,15 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 		tcomponentType == LOGINAPP_TYPE)
 	{
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		int32 startGlobalOrder = Componentbridge::getComponents().getGlobalOrderLog()[getUserUID()];
-		int32 startGroupOrder = 0;
-
+		
 		switch(tcomponentType)
 		{
 		case BASEAPP_TYPE:
 			{
-				startGroupOrder = Componentbridge::getComponents().getBaseappGroupOrderLog()[getUserUID()];
-				
+				if(grouporderID <= 0)
+					startGroupOrder = Componentbridge::getComponents().getBaseappGroupOrderLog()[getUserUID()];
+
+
 				onGlobalDataClientLogon(pChannel, BASEAPP_TYPE);
 
 				std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
@@ -309,8 +317,9 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 			break;
 		case CELLAPP_TYPE:
 			{
-				startGroupOrder = Componentbridge::getComponents().getCellappGroupOrderLog()[getUserUID()];
-				
+				if(grouporderID <= 0)
+					startGroupOrder = Componentbridge::getComponents().getCellappGroupOrderLog()[getUserUID()];
+
 				onGlobalDataClientLogon(pChannel, CELLAPP_TYPE);
 
 				std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
@@ -320,7 +329,8 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 			}
 			break;
 		case LOGINAPP_TYPE:
-			startGroupOrder = Componentbridge::getComponents().getLoginappGroupOrderLog()[getUserUID()];
+			if(grouporderID <= 0)
+				startGroupOrder = Componentbridge::getComponents().getLoginappGroupOrderLog()[getUserUID()];
 
 			(*pBundle).newMessage(LoginappInterface::onDbmgrInitCompleted);
 			LoginappInterface::onDbmgrInitCompletedArgs3::staticAddToBundle((*pBundle), 
@@ -354,14 +364,14 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 				
 				if(tcomponentType == BASEAPP_TYPE)
 				{
-					BaseappInterface::onGetEntityAppFromDbmgrArgs8::staticAddToBundle((*pBundle), 
-						uid, username, componentType, componentID, 
+					BaseappInterface::onGetEntityAppFromDbmgrArgs10::staticAddToBundle((*pBundle), 
+						uid, username, componentType, componentID, startGlobalOrder, startGroupOrder,
 							intaddr, intport, extaddr, extport);
 				}
 				else
 				{
-					CellappInterface::onGetEntityAppFromDbmgrArgs8::staticAddToBundle((*pBundle), 
-						uid, username, componentType, componentID, 
+					CellappInterface::onGetEntityAppFromDbmgrArgs10::staticAddToBundle((*pBundle), 
+						uid, username, componentType, componentID, startGlobalOrder, startGroupOrder,
 							intaddr, intport, extaddr, extport);
 				}
 				

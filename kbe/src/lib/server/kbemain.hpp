@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "serverapp.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/kbekey.hpp"
+#include "cstdkbe/stringconv.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/network_interface.hpp"
@@ -133,6 +134,85 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	return ret;
 }
 
+inline void parseMainCommandArgs(int argc, char* argv[])
+{
+	if(argc < 2)
+	{
+		return;
+	}
+
+	for(int argIdx=1; argIdx<argc; argIdx++)
+	{
+		std::string cmd = argv[argIdx];
+		
+		std::string findcmd = "--cid=";
+		std::string::size_type fi1 = cmd.find(findcmd);
+		if(fi1 != std::string::npos)
+		{
+			cmd.erase(fi1, findcmd.size());
+			if(cmd.size() > 0)
+			{
+				uint64 cid = 0;
+				try
+				{
+					StringConv::str2value(cid, cmd.c_str());
+					g_componentID = cid;
+				}
+				catch(...)
+				{
+					ERROR_MSG("parseCommandArgs: --cid=? invalid, no set!\n");
+				}
+			}
+
+			continue;
+		}
+
+		findcmd = "--grouporder=";
+		fi1 = cmd.find(findcmd);
+		if(fi1 != std::string::npos)
+		{
+			cmd.erase(fi1, findcmd.size());
+			if(cmd.size() > 0)
+			{
+				int8 orderid = 0;
+				try
+				{
+					StringConv::str2value(orderid, cmd.c_str());
+					g_componentGroupOrder = orderid;
+				}
+				catch(...)
+				{
+					ERROR_MSG("parseCommandArgs: --grouporder=? invalid, no set!\n");
+				}
+			}
+
+			continue;
+		}
+
+		findcmd = "--globalorder=";
+		fi1 = cmd.find(findcmd);
+		if(fi1 != std::string::npos)
+		{
+			cmd.erase(fi1, findcmd.size());
+			if(cmd.size() > 0)
+			{
+				int8 orderid = 0;
+				try
+				{
+					StringConv::str2value(orderid, cmd.c_str());
+					g_componentGlobalOrder = orderid;
+				}
+				catch(...)
+				{
+					ERROR_MSG("parseCommandArgs: --globalorder=? invalid, no set!\n");
+				}
+			}
+
+			continue;
+		}
+	}
+}
+
 #if KBE_PLATFORM == PLATFORM_WIN32
 #define KBENGINE_MAIN																									\
 kbeMain(int argc, char* argv[]);																						\
@@ -140,6 +220,7 @@ int main(int argc, char* argv[])																						\
 {																														\
 	loadConfig();																										\
 	g_componentID = genUUID64();																						\
+	parseMainCommandArgs(argc, argv);																					\
 	char dumpname[MAX_BUF] = {0};																						\
 	kbe_snprintf(dumpname, MAX_BUF, "%"PRAppID, g_componentID);															\
 	KBEngine::exception::installCrashHandler(1, dumpname);																\

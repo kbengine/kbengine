@@ -66,6 +66,7 @@ public:
 	*/
 	void onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::string& username, 
 							int8 componentType, uint64 componentID, uint64 componentIDEx, 
+							int8 globalorderid, int8 grouporderid,
 							uint32 intaddr, uint16 intport,
 							uint32 extaddr, uint16 extport);
 	

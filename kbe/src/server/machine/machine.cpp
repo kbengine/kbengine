@@ -77,7 +77,8 @@ Machine::~Machine()
 
 //-------------------------------------------------------------------------------------
 void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::string& username,
-								   int8 componentType, uint64 componentID, uint64 componentIDEx,  
+								   int8 componentType, uint64 componentID, uint64 componentIDEx, 
+								   int8 globalorderid, int8 grouporderid,
 									uint32 intaddr, uint16 intport,
 									uint32 extaddr, uint16 extport)
 {
@@ -97,7 +98,7 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 
 
 	INFO_MSG(boost::format("Machine::onBroadcastInterface[%1%]: uid:%2%, username:%3%, componentType:%4%, "
-			"componentID:%5%, intaddr:%6%, intport:%7%, extaddr:%8%, extport:%9%.\n") %
+			"componentID:%5%, globalorderid=%10%, grouporderid=%11%, intaddr:%6%, intport:%7%, extaddr:%8%, extport:%9%.\n") %
 			pChannel->c_str() % 
 			uid %
 			username.c_str() %
@@ -106,10 +107,12 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 			inet_ntoa((struct in_addr&)intaddr) %
 			ntohs(intport) %
 			(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport") %
-			ntohs(extport));
+			ntohs(extport) %
+			((int32)globalorderid) %
+			((int32)grouporderid));
 
 	Componentbridge::getComponents().addComponent(uid, username.c_str(), 
-		(KBEngine::COMPONENT_TYPE)componentType, componentID, intaddr, intport, extaddr, extport);
+		(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderid, grouporderid, intaddr, intport, extaddr, extport);
 }
 
 //-------------------------------------------------------------------------------------
@@ -170,8 +173,9 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 				this->getNetworkInterface().extaddr().ip == pinfos->pIntAddr->ip)
 			{
 				found = true;
-				MachineInterface::onBroadcastInterfaceArgs9::staticAddToBundle(bundle, pinfos->uid, 
-					pinfos->username, findComponentType, pinfos->cid, componentID, pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
+				MachineInterface::onBroadcastInterfaceArgs11::staticAddToBundle(bundle, pinfos->uid, 
+					pinfos->username, findComponentType, pinfos->cid, componentID, pinfos->globalOrderid, pinfos->groupOrderid, 
+					pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
 					pinfos->pExtAddr->ip, pinfos->pExtAddr->port);
 			}
 
@@ -203,8 +207,8 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 			COMPONENT_NAME_EX(tComponentType) % 
 			COMPONENT_NAME_EX(tfindComponentType));
 
-		MachineInterface::onBroadcastInterfaceArgs9::staticAddToBundle(bundle, KBEngine::getUserUID(), 
-			"", UNKNOWN_COMPONENT_TYPE, 0, componentID, 0, 0, 0, 0);
+		MachineInterface::onBroadcastInterfaceArgs11::staticAddToBundle(bundle, KBEngine::getUserUID(), 
+			"", UNKNOWN_COMPONENT_TYPE, 0, componentID, -1, -1, 0, 0, 0, 0);
 	}
 
 	if(finderAddr != 0 && finderRecvPort != 0)

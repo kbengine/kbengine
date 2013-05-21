@@ -61,11 +61,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASEAPP_MESSAGE_DECLARE_STREAM(onExecScriptCommand,						MERCURY_VARIABLE_MESSAGE)
 
 	// 某app注册自己的接口地址到本app
-	BASEAPP_MESSAGE_DECLARE_ARGS8(onRegisterNewApp,							MERCURY_VARIABLE_MESSAGE,
+	BASEAPP_MESSAGE_DECLARE_ARGS10(onRegisterNewApp,						MERCURY_VARIABLE_MESSAGE,
 									int32,									uid, 
 									std::string,							username,
 									int8,									componentType, 
 									uint64,									componentID, 
+									int8,									globalorderID,
+									int8,									grouporderID,
 									uint32,									intaddr, 
 									uint16,									intport,
 									uint32,									extaddr, 
@@ -73,11 +75,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 
 	// dbmgr告知已经启动的其他baseapp或者cellapp的地址
 	// 当前app需要主动的去与他们建立连接
-	BASEAPP_MESSAGE_DECLARE_ARGS8(onGetEntityAppFromDbmgr,					MERCURY_VARIABLE_MESSAGE,
+	BASEAPP_MESSAGE_DECLARE_ARGS10(onGetEntityAppFromDbmgr,					MERCURY_VARIABLE_MESSAGE,
 									int32,									uid, 
 									std::string,							username,
 									int8,									componentType, 
 									uint64,									componentID, 
+									int8,									globalorderID,
+									int8,									grouporderID,
 									uint32,									intaddr, 
 									uint16,									intport,
 									uint32,									extaddr, 

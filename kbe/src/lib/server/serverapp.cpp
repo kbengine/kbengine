@@ -42,7 +42,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;
 COMPONENT_ID g_componentID = 0;
-COMPONENT_ORDER g_componentOrder = -1;
+COMPONENT_ORDER g_componentGlobalOrder = -1;
+COMPONENT_ORDER g_componentGroupOrder = -1;
 GAME_TIME g_kbetime = 0;
 
 //-------------------------------------------------------------------------------------
@@ -324,14 +325,14 @@ void ServerApp::onRemoveComponent(const Components::ComponentInfos* pInfos)
 
 //-------------------------------------------------------------------------------------
 void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string& username, 
-						int8 componentType, uint64 componentID, 
+						int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
 						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
 {
 	if(pChannel->isExternal())
 		return;
 
 	INFO_MSG(boost::format("ServerApp::onRegisterNewApp: uid:%1%, username:%2%, componentType:%3%, "
-			"componentID:%4%, intaddr:%5%, intport:%6%, extaddr:%7%, extport:%8%,  from %9%.\n") %
+			"componentID:%4%, globalorderID=%10%, grouporderID=%11%, intaddr:%5%, intport:%6%, extaddr:%7%, extport:%8%,  from %9%.\n") %
 			uid % 
 			username.c_str() % 
 			COMPONENT_NAME_EX((COMPONENT_TYPE)componentType) % 
@@ -340,7 +341,9 @@ void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::str
 			ntohs(intport) %
 			(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport") %
 			ntohs(extport) %
-			pChannel->c_str());
+			pChannel->c_str() %
+			((int32)globalorderID) % 
+			((int32)grouporderID));
 
 	Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent((
 		KBEngine::COMPONENT_TYPE)componentType, uid, componentID);
@@ -350,7 +353,7 @@ void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::str
 	if(cinfos == NULL)
 	{
 		Componentbridge::getComponents().addComponent(uid, username.c_str(), 
-			(KBEngine::COMPONENT_TYPE)componentType, componentID, intaddr, intport, extaddr, extport, pChannel);
+			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderID, grouporderID, intaddr, intport, extaddr, extport, pChannel);
 	}
 	else
 	{

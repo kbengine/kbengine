@@ -57,6 +57,8 @@ namespace Mercury
 	#undef NETWORK_MESSAGE_DECLARE_ARGS8
 	#undef NETWORK_MESSAGE_DECLARE_ARGS9
 	#undef NETWORK_MESSAGE_DECLARE_ARGS10
+	#undef NETWORK_MESSAGE_DECLARE_ARGS11
+	#undef NETWORK_MESSAGE_DECLARE_ARGS12
 
 	#undef NETWORK_MESSAGE_HANDLER
 	#undef NETWORK_INTERFACE_DECLARE_END
@@ -73,6 +75,8 @@ namespace Mercury
 	#undef MESSAGE_ARGS8
 	#undef MESSAGE_ARGS9
 	#undef MESSAGE_ARGS10
+	#undef MESSAGE_ARGS11
+	#undef MESSAGE_ARGS12
 	#undef SET_MESSAGE_FUNC
 #endif
 
@@ -1333,7 +1337,411 @@ namespace Mercury
 							ARG_TYPE9, ARG_NAME9,					\
 							ARG_TYPE10, ARG_NAME10)					\
 	
+
 	
+/**---------------------------------------------------------------------
+/		十一个参数的消息
+-----------------------------------------------------------------------*/
+#ifdef DEFINE_IN_INTERFACE
+#define MESSAGE_ARGS11(NAME, ARG_TYPE1, ARG_NAME1, 					\
+							ARG_TYPE2, ARG_NAME2,					\
+							ARG_TYPE3, ARG_NAME3,					\
+							ARG_TYPE4, ARG_NAME4,					\
+							ARG_TYPE5, ARG_NAME5,					\
+							ARG_TYPE6, ARG_NAME6,					\
+							ARG_TYPE7, ARG_NAME7,					\
+							ARG_TYPE8, ARG_NAME8,					\
+							ARG_TYPE9, ARG_NAME9,					\
+							ARG_TYPE10, ARG_NAME10,					\
+							ARG_TYPE11, ARG_NAME11)					\
+	
+#else
+#define MESSAGE_ARGS11(NAME, ARG_TYPE1, ARG_NAME1, 					\
+							ARG_TYPE2, ARG_NAME2,					\
+							ARG_TYPE3, ARG_NAME3,					\
+							ARG_TYPE4, ARG_NAME4,					\
+							ARG_TYPE5, ARG_NAME5,					\
+							ARG_TYPE6, ARG_NAME6,					\
+							ARG_TYPE7, ARG_NAME7,					\
+							ARG_TYPE8, ARG_NAME8,					\
+							ARG_TYPE9, ARG_NAME9,					\
+							ARG_TYPE10, ARG_NAME10,					\
+							ARG_TYPE11, ARG_NAME11)					\
+	class NAME##Args11 : public Mercury::MessageArgs				\
+	{																\
+	public:															\
+		ARG_TYPE1 ARG_NAME1;										\
+		ARG_TYPE2 ARG_NAME2;										\
+		ARG_TYPE3 ARG_NAME3;										\
+		ARG_TYPE4 ARG_NAME4;										\
+		ARG_TYPE5 ARG_NAME5;										\
+		ARG_TYPE6 ARG_NAME6;										\
+		ARG_TYPE7 ARG_NAME7;										\
+		ARG_TYPE8 ARG_NAME8;										\
+		ARG_TYPE9 ARG_NAME9;										\
+		ARG_TYPE10 ARG_NAME10;										\
+		ARG_TYPE11 ARG_NAME11;										\
+	public:															\
+		NAME##Args11():Mercury::MessageArgs(){}						\
+		NAME##Args11(ARG_TYPE1 init_##ARG_NAME1, 					\
+		ARG_TYPE2 init_##ARG_NAME2,									\
+		ARG_TYPE3 init_##ARG_NAME3,									\
+		ARG_TYPE4 init_##ARG_NAME4,									\
+		ARG_TYPE5 init_##ARG_NAME5,									\
+		ARG_TYPE6 init_##ARG_NAME6,									\
+		ARG_TYPE7 init_##ARG_NAME7,									\
+		ARG_TYPE8 init_##ARG_NAME8,									\
+		ARG_TYPE9 init_##ARG_NAME9,									\
+		ARG_TYPE10 init_##ARG_NAME10,								\
+		ARG_TYPE11 init_##ARG_NAME11):								\
+		Mercury::MessageArgs(),										\
+		ARG_NAME1(init_##ARG_NAME1),								\
+		ARG_NAME2(init_##ARG_NAME2),								\
+		ARG_NAME3(init_##ARG_NAME3),								\
+		ARG_NAME4(init_##ARG_NAME4),								\
+		ARG_NAME5(init_##ARG_NAME5),								\
+		ARG_NAME6(init_##ARG_NAME6),								\
+		ARG_NAME7(init_##ARG_NAME7),								\
+		ARG_NAME8(init_##ARG_NAME8),								\
+		ARG_NAME9(init_##ARG_NAME9),								\
+		ARG_NAME10(init_##ARG_NAME10),								\
+		ARG_NAME11(init_##ARG_NAME11)								\
+		{}															\
+		~NAME##Args11(){}											\
+																	\
+		static void staticAddToBundle(Mercury::Bundle& s,			\
+								ARG_TYPE1 init_##ARG_NAME1,			\
+								ARG_TYPE2 init_##ARG_NAME2,			\
+								ARG_TYPE3 init_##ARG_NAME3,			\
+								ARG_TYPE4 init_##ARG_NAME4,			\
+								ARG_TYPE5 init_##ARG_NAME5,			\
+								ARG_TYPE6 init_##ARG_NAME6,			\
+								ARG_TYPE7 init_##ARG_NAME7,			\
+								ARG_TYPE8 init_##ARG_NAME8,			\
+								ARG_TYPE9 init_##ARG_NAME9,			\
+								ARG_TYPE10 init_##ARG_NAME10,		\
+								ARG_TYPE11 init_##ARG_NAME11)		\
+		{															\
+			s << init_##ARG_NAME1;									\
+			s << init_##ARG_NAME2;									\
+			s << init_##ARG_NAME3;									\
+			s << init_##ARG_NAME4;									\
+			s << init_##ARG_NAME5;									\
+			s << init_##ARG_NAME6;									\
+			s << init_##ARG_NAME7;									\
+			s << init_##ARG_NAME8;									\
+			s << init_##ARG_NAME9;									\
+			s << init_##ARG_NAME10;									\
+			s << init_##ARG_NAME11;									\
+		}															\
+		static void staticAddToStream(MemoryStream& s,				\
+								ARG_TYPE1 init_##ARG_NAME1,			\
+								ARG_TYPE2 init_##ARG_NAME2,			\
+								ARG_TYPE3 init_##ARG_NAME3,			\
+								ARG_TYPE4 init_##ARG_NAME4,			\
+								ARG_TYPE5 init_##ARG_NAME5,			\
+								ARG_TYPE6 init_##ARG_NAME6,			\
+								ARG_TYPE7 init_##ARG_NAME7,			\
+								ARG_TYPE8 init_##ARG_NAME8,			\
+								ARG_TYPE9 init_##ARG_NAME9,			\
+								ARG_TYPE10 init_##ARG_NAME10,		\
+								ARG_TYPE11 init_##ARG_NAME11)		\
+		{															\
+			s << init_##ARG_NAME1;									\
+			s << init_##ARG_NAME2;									\
+			s << init_##ARG_NAME3;									\
+			s << init_##ARG_NAME4;									\
+			s << init_##ARG_NAME5;									\
+			s << init_##ARG_NAME6;									\
+			s << init_##ARG_NAME7;									\
+			s << init_##ARG_NAME8;									\
+			s << init_##ARG_NAME9;									\
+			s << init_##ARG_NAME10;									\
+			s << init_##ARG_NAME11;									\
+		}															\
+		virtual int32 msgsize(void)									\
+		{															\
+			return	sizeof(ARG_TYPE1) +								\
+					sizeof(ARG_TYPE2) +								\
+					sizeof(ARG_TYPE3) +								\
+					sizeof(ARG_TYPE4) +								\
+					sizeof(ARG_TYPE5) +								\
+					sizeof(ARG_TYPE6) +								\
+					sizeof(ARG_TYPE7) +								\
+					sizeof(ARG_TYPE8) +								\
+					sizeof(ARG_TYPE9) +								\
+					sizeof(ARG_TYPE10) +							\
+					sizeof(ARG_TYPE11);								\
+		}															\
+		virtual void addToStream(MemoryStream& s)					\
+		{															\
+			s << ARG_NAME1;											\
+			s << ARG_NAME2;											\
+			s << ARG_NAME3;											\
+			s << ARG_NAME4;											\
+			s << ARG_NAME5;											\
+			s << ARG_NAME6;											\
+			s << ARG_NAME7;											\
+			s << ARG_NAME8;											\
+			s << ARG_NAME9;											\
+			s << ARG_NAME10;										\
+			s << ARG_NAME11;										\
+		}															\
+		virtual void createFromStream(MemoryStream& s)				\
+		{															\
+			s >> ARG_NAME1;											\
+			s >> ARG_NAME2;											\
+			s >> ARG_NAME3;											\
+			s >> ARG_NAME4;											\
+			s >> ARG_NAME5;											\
+			s >> ARG_NAME6;											\
+			s >> ARG_NAME7;											\
+			s >> ARG_NAME8;											\
+			s >> ARG_NAME9;											\
+			s >> ARG_NAME10;										\
+			s >> ARG_NAME11;										\
+		}															\
+	};																\
+				
+#endif
+
+#define NETWORK_MESSAGE_DECLARE_ARGS11(DOMAIN, NAME, MSGHANDLER,	\
+											MSG_LENGTH,				\
+							ARG_TYPE1, ARG_NAME1,					\
+							ARG_TYPE2, ARG_NAME2,					\
+							ARG_TYPE3, ARG_NAME3,					\
+							ARG_TYPE4, ARG_NAME4,					\
+							ARG_TYPE5, ARG_NAME5,					\
+							ARG_TYPE6, ARG_NAME6,					\
+							ARG_TYPE7, ARG_NAME7,					\
+							ARG_TYPE8, ARG_NAME8,					\
+							ARG_TYPE9, ARG_NAME9,					\
+							ARG_TYPE10, ARG_NAME10,					\
+							ARG_TYPE11, ARG_NAME11)					\
+	NETWORK_MESSAGE_HANDLER(DOMAIN, NAME,MSGHANDLER, MSG_LENGTH, 11)\
+	MESSAGE_ARGS11(NAME, 											\
+							ARG_TYPE1, ARG_NAME1,					\
+							ARG_TYPE2, ARG_NAME2,					\
+							ARG_TYPE3, ARG_NAME3,					\
+							ARG_TYPE4, ARG_NAME4,					\
+							ARG_TYPE5, ARG_NAME5,					\
+							ARG_TYPE6, ARG_NAME6,					\
+							ARG_TYPE7, ARG_NAME7,					\
+							ARG_TYPE8, ARG_NAME8,					\
+							ARG_TYPE9, ARG_NAME9,					\
+							ARG_TYPE10, ARG_NAME10,					\
+							ARG_TYPE11, ARG_NAME11)					\
+
+
+
+/**---------------------------------------------------------------------
+/		十二个参数的消息
+-----------------------------------------------------------------------*/
+#ifdef DEFINE_IN_INTERFACE
+#define MESSAGE_ARGS12(NAME, ARG_TYPE1, ARG_NAME1, 					\
+							ARG_TYPE2, ARG_NAME2,					\
+							ARG_TYPE3, ARG_NAME3,					\
+							ARG_TYPE4, ARG_NAME4,					\
+							ARG_TYPE5, ARG_NAME5,					\
+							ARG_TYPE6, ARG_NAME6,					\
+							ARG_TYPE7, ARG_NAME7,					\
+							ARG_TYPE8, ARG_NAME8,					\
+							ARG_TYPE9, ARG_NAME9,					\
+							ARG_TYPE10, ARG_NAME10,					\
+							ARG_TYPE11, ARG_NAME11,					\
+							ARG_TYPE12, ARG_NAME12)					\
+	
+#else
+#define MESSAGE_ARGS12(NAME, ARG_TYPE1, ARG_NAME1, 					\
+							ARG_TYPE2, ARG_NAME2,					\
+							ARG_TYPE3, ARG_NAME3,					\
+							ARG_TYPE4, ARG_NAME4,					\
+							ARG_TYPE5, ARG_NAME5,					\
+							ARG_TYPE6, ARG_NAME6,					\
+							ARG_TYPE7, ARG_NAME7,					\
+							ARG_TYPE8, ARG_NAME8,					\
+							ARG_TYPE9, ARG_NAME9,					\
+							ARG_TYPE10, ARG_NAME10,					\
+							ARG_TYPE11, ARG_NAME11,					\
+							ARG_TYPE12, ARG_NAME12)					\
+	class NAME##Args12 : public Mercury::MessageArgs				\
+	{																\
+	public:															\
+		ARG_TYPE1 ARG_NAME1;										\
+		ARG_TYPE2 ARG_NAME2;										\
+		ARG_TYPE3 ARG_NAME3;										\
+		ARG_TYPE4 ARG_NAME4;										\
+		ARG_TYPE5 ARG_NAME5;										\
+		ARG_TYPE6 ARG_NAME6;										\
+		ARG_TYPE7 ARG_NAME7;										\
+		ARG_TYPE8 ARG_NAME8;										\
+		ARG_TYPE9 ARG_NAME9;										\
+		ARG_TYPE10 ARG_NAME10;										\
+		ARG_TYPE11 ARG_NAME11;										\
+		ARG_TYPE12 ARG_NAME12;										\
+	public:															\
+		NAME##Args12():Mercury::MessageArgs(){}						\
+		NAME##Args12(ARG_TYPE1 init_##ARG_NAME1, 					\
+		ARG_TYPE2 init_##ARG_NAME2,									\
+		ARG_TYPE3 init_##ARG_NAME3,									\
+		ARG_TYPE4 init_##ARG_NAME4,									\
+		ARG_TYPE5 init_##ARG_NAME5,									\
+		ARG_TYPE6 init_##ARG_NAME6,									\
+		ARG_TYPE7 init_##ARG_NAME7,									\
+		ARG_TYPE8 init_##ARG_NAME8,									\
+		ARG_TYPE9 init_##ARG_NAME9,									\
+		ARG_TYPE10 init_##ARG_NAME10,								\
+		ARG_TYPE11 init_##ARG_NAME11,								\
+		ARG_TYPE12 init_##ARG_NAME12):								\
+		Mercury::MessageArgs(),										\
+		ARG_NAME1(init_##ARG_NAME1),								\
+		ARG_NAME2(init_##ARG_NAME2),								\
+		ARG_NAME3(init_##ARG_NAME3),								\
+		ARG_NAME4(init_##ARG_NAME4),								\
+		ARG_NAME5(init_##ARG_NAME5),								\
+		ARG_NAME6(init_##ARG_NAME6),								\
+		ARG_NAME7(init_##ARG_NAME7),								\
+		ARG_NAME8(init_##ARG_NAME8),								\
+		ARG_NAME9(init_##ARG_NAME9),								\
+		ARG_NAME10(init_##ARG_NAME10),								\
+		ARG_NAME11(init_##ARG_NAME11),								\
+		ARG_NAME12(init_##ARG_NAME12)								\
+		{}															\
+		~NAME##Args12(){}											\
+																	\
+		static void staticAddToBundle(Mercury::Bundle& s,			\
+								ARG_TYPE1 init_##ARG_NAME1,			\
+								ARG_TYPE2 init_##ARG_NAME2,			\
+								ARG_TYPE3 init_##ARG_NAME3,			\
+								ARG_TYPE4 init_##ARG_NAME4,			\
+								ARG_TYPE5 init_##ARG_NAME5,			\
+								ARG_TYPE6 init_##ARG_NAME6,			\
+								ARG_TYPE7 init_##ARG_NAME7,			\
+								ARG_TYPE8 init_##ARG_NAME8,			\
+								ARG_TYPE9 init_##ARG_NAME9,			\
+								ARG_TYPE10 init_##ARG_NAME10,		\
+								ARG_TYPE11 init_##ARG_NAME11,		\
+								ARG_TYPE12 init_##ARG_NAME12)		\
+		{															\
+			s << init_##ARG_NAME1;									\
+			s << init_##ARG_NAME2;									\
+			s << init_##ARG_NAME3;									\
+			s << init_##ARG_NAME4;									\
+			s << init_##ARG_NAME5;									\
+			s << init_##ARG_NAME6;									\
+			s << init_##ARG_NAME7;									\
+			s << init_##ARG_NAME8;									\
+			s << init_##ARG_NAME9;									\
+			s << init_##ARG_NAME10;									\
+			s << init_##ARG_NAME11;									\
+			s << init_##ARG_NAME12;									\
+		}															\
+		static void staticAddToStream(MemoryStream& s,				\
+								ARG_TYPE1 init_##ARG_NAME1,			\
+								ARG_TYPE2 init_##ARG_NAME2,			\
+								ARG_TYPE3 init_##ARG_NAME3,			\
+								ARG_TYPE4 init_##ARG_NAME4,			\
+								ARG_TYPE5 init_##ARG_NAME5,			\
+								ARG_TYPE6 init_##ARG_NAME6,			\
+								ARG_TYPE7 init_##ARG_NAME7,			\
+								ARG_TYPE8 init_##ARG_NAME8,			\
+								ARG_TYPE9 init_##ARG_NAME9,			\
+								ARG_TYPE10 init_##ARG_NAME10,		\
+								ARG_TYPE11 init_##ARG_NAME11,		\
+								ARG_TYPE12 init_##ARG_NAME12)		\
+		{															\
+			s << init_##ARG_NAME1;									\
+			s << init_##ARG_NAME2;									\
+			s << init_##ARG_NAME3;									\
+			s << init_##ARG_NAME4;									\
+			s << init_##ARG_NAME5;									\
+			s << init_##ARG_NAME6;									\
+			s << init_##ARG_NAME7;									\
+			s << init_##ARG_NAME8;									\
+			s << init_##ARG_NAME9;									\
+			s << init_##ARG_NAME10;									\
+			s << init_##ARG_NAME11;									\
+			s << init_##ARG_NAME12;									\
+		}															\
+		virtual int32 msgsize(void)									\
+		{															\
+			return	sizeof(ARG_TYPE1) +								\
+					sizeof(ARG_TYPE2) +								\
+					sizeof(ARG_TYPE3) +								\
+					sizeof(ARG_TYPE4) +								\
+					sizeof(ARG_TYPE5) +								\
+					sizeof(ARG_TYPE6) +								\
+					sizeof(ARG_TYPE7) +								\
+					sizeof(ARG_TYPE8) +								\
+					sizeof(ARG_TYPE9) +								\
+					sizeof(ARG_TYPE10) +							\
+					sizeof(ARG_TYPE11) +							\
+					sizeof(ARG_TYPE12);								\
+		}															\
+		virtual void addToStream(MemoryStream& s)					\
+		{															\
+			s << ARG_NAME1;											\
+			s << ARG_NAME2;											\
+			s << ARG_NAME3;											\
+			s << ARG_NAME4;											\
+			s << ARG_NAME5;											\
+			s << ARG_NAME6;											\
+			s << ARG_NAME7;											\
+			s << ARG_NAME8;											\
+			s << ARG_NAME9;											\
+			s << ARG_NAME10;										\
+			s << ARG_NAME11;										\
+			s << ARG_NAME12;										\
+		}															\
+		virtual void createFromStream(MemoryStream& s)				\
+		{															\
+			s >> ARG_NAME1;											\
+			s >> ARG_NAME2;											\
+			s >> ARG_NAME3;											\
+			s >> ARG_NAME4;											\
+			s >> ARG_NAME5;											\
+			s >> ARG_NAME6;											\
+			s >> ARG_NAME7;											\
+			s >> ARG_NAME8;											\
+			s >> ARG_NAME9;											\
+			s >> ARG_NAME10;										\
+			s >> ARG_NAME11;										\
+			s >> ARG_NAME12;										\
+		}															\
+	};																\
+				
+#endif
+
+#define NETWORK_MESSAGE_DECLARE_ARGS12(DOMAIN, NAME, MSGHANDLER,	\
+											MSG_LENGTH,				\
+							ARG_TYPE1, ARG_NAME1,					\
+							ARG_TYPE2, ARG_NAME2,					\
+							ARG_TYPE3, ARG_NAME3,					\
+							ARG_TYPE4, ARG_NAME4,					\
+							ARG_TYPE5, ARG_NAME5,					\
+							ARG_TYPE6, ARG_NAME6,					\
+							ARG_TYPE7, ARG_NAME7,					\
+							ARG_TYPE8, ARG_NAME8,					\
+							ARG_TYPE9, ARG_NAME9,					\
+							ARG_TYPE10, ARG_NAME10,					\
+							ARG_TYPE11, ARG_NAME11,					\
+							ARG_TYPE12, ARG_NAME12)					\
+	NETWORK_MESSAGE_HANDLER(DOMAIN, NAME,MSGHANDLER, MSG_LENGTH, 12)\
+	MESSAGE_ARGS12(NAME, 											\
+							ARG_TYPE1, ARG_NAME1,					\
+							ARG_TYPE2, ARG_NAME2,					\
+							ARG_TYPE3, ARG_NAME3,					\
+							ARG_TYPE4, ARG_NAME4,					\
+							ARG_TYPE5, ARG_NAME5,					\
+							ARG_TYPE6, ARG_NAME6,					\
+							ARG_TYPE7, ARG_NAME7,					\
+							ARG_TYPE8, ARG_NAME8,					\
+							ARG_TYPE9, ARG_NAME9,					\
+							ARG_TYPE10, ARG_NAME10,					\
+							ARG_TYPE11, ARG_NAME11,					\
+							ARG_TYPE12, ARG_NAME12)					\
+
+
 }
 }
 

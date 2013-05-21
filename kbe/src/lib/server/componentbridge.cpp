@@ -169,7 +169,7 @@ bool Componentbridge::findInterfaces()
 		
 			int32 timeout = 1500000;
 			bool showerr = true;
-			MachineInterface::onBroadcastInterfaceArgs9 args;
+			MachineInterface::onBroadcastInterfaceArgs11 args;
 
 RESTART_RECV:
 
@@ -214,7 +214,8 @@ RESTART_RECV:
 						ntohs(args.intport));
 
 					Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
-						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.intaddr, args.intport, args.extaddr, args.extport);
+						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
+						args.intaddr, args.intport, args.extaddr, args.extport);
 
 					isContinue = true;
 				}while(bhandler.pCurrPacket()->opsize() > 0);
@@ -319,8 +320,8 @@ bool Componentbridge::process()
 
 		bhandler.newMessage(MachineInterface::onBroadcastInterface);
 		uint64 cidex = 0;
-		MachineInterface::onBroadcastInterfaceArgs9::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
-			componentType_, componentID_, cidex,
+		MachineInterface::onBroadcastInterfaceArgs11::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+			componentType_, componentID_, cidex, g_componentGlobalOrder, g_componentGroupOrder,
 			networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
 			networkInterface_.extaddr().ip, networkInterface_.extaddr().port);
 		

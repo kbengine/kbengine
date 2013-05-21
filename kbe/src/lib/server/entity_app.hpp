@@ -718,7 +718,8 @@ void EntityApp<E>::onDbmgrInitCompleted(Mercury::Channel* pChannel,
 
 	startGlobalOrder_ = startGlobalOrder;
 	startGroupOrder_ = startGroupOrder;
-	g_componentOrder = startGlobalOrder;
+	g_componentGlobalOrder = startGlobalOrder;
+	g_componentGroupOrder = startGroupOrder;
 
 	idClient_.onAddRange(startID, endID);
 	g_kbetime = gametime;

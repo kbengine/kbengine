@@ -205,10 +205,10 @@ void Cellapp::finalise()
 
 //-------------------------------------------------------------------------------------
 void Cellapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std::string& username, 
-						int8 componentType, uint64 componentID, 
+						int8 componentType, uint64 componentID, int8 globalorderID, int8 grouporderID,
 						uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport)
 {
-	EntityApp<Entity>::onRegisterNewApp(pChannel, uid, username, componentType, componentID, 
+	EntityApp<Entity>::onRegisterNewApp(pChannel, uid, username, componentType, componentID, globalorderID, grouporderID,
 									intaddr, intport, extaddr, extport);
 
 	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
@@ -228,13 +228,15 @@ void Cellapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 	{
 	case BASEAPP_TYPE:
 		(*pBundle).newMessage(BaseappInterface::onRegisterNewApp);
-		BaseappInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), CELLAPP_TYPE, componentID_, 
+		BaseappInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+			CELLAPP_TYPE, componentID_, startGlobalOrder_, startGroupOrder_,
 			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
 			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port);
 		break;
 	case CELLAPP_TYPE:
 		(*pBundle).newMessage(CellappInterface::onRegisterNewApp);
-		CellappInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), CELLAPP_TYPE, componentID_, 
+		CellappInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+			CELLAPP_TYPE, componentID_, startGlobalOrder_, startGroupOrder_,
 			this->getNetworkInterface().intaddr().ip, this->getNetworkInterface().intaddr().port, 
 			this->getNetworkInterface().extaddr().ip, this->getNetworkInterface().extaddr().port);
 		break;

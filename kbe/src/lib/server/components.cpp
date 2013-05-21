@@ -104,7 +104,7 @@ bool Components::checkComponents(int32 uid, COMPONENT_ID componentID)
 
 //-------------------------------------------------------------------------------------		
 void Components::addComponent(int32 uid, const char* username, 
-			COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
+			COMPONENT_TYPE componentType, COMPONENT_ID componentID, int8 globalorderid, int8 grouporderid,
 			uint32 intaddr, uint16 intport, 
 			uint32 extaddr, uint16 extport, 
 			Mercury::Channel* pChannel)
@@ -131,6 +131,8 @@ void Components::addComponent(int32 uid, const char* username,
 	componentInfos.cid = componentID;
 	componentInfos.pChannel = pChannel;
 	componentInfos.componentType = componentType;
+	componentInfos.groupOrderid = 1;
+	componentInfos.globalOrderid = 1;
 
 	if(pChannel)
 		pChannel->componentID(componentID);
@@ -148,22 +150,35 @@ void Components::addComponent(int32 uid, const char* username,
 	{
 	case BASEAPP_TYPE:
 		_baseappGrouplOrderLog[uid]++;
+		componentInfos.groupOrderid = _baseappGrouplOrderLog[uid];
 		break;
 	case CELLAPP_TYPE:
 		_cellappGrouplOrderLog[uid]++;
+		componentInfos.groupOrderid = _cellappGrouplOrderLog[uid];
 		break;
 	case LOGINAPP_TYPE:
 		_loginappGrouplOrderLog[uid]++;
+		componentInfos.groupOrderid = _loginappGrouplOrderLog[uid];
 		break;
 	default:
 		break;
 	};
+	
+	if(grouporderid > 0)
+		componentInfos.groupOrderid = grouporderid;
 
-	INFO_MSG(boost::format("Components::addComponent[%1%], uid:%2%, "
-		"componentID:%3%, totalcount=%4%\n") %
+	if(globalorderid > 0)
+		componentInfos.globalOrderid = globalorderid;
+	else
+		componentInfos.globalOrderid = _globalOrderLog[uid];
+
+	INFO_MSG(boost::format("Components::addComponent[%1%], uid=%2%, "
+		"componentID=%3%, globalorderid=%4%, grouporderid=%5%, totalcount=%6%\n") %
 			COMPONENT_NAME_EX(componentType) % 
 			uid %
 			componentID % 
+			((int32)componentInfos.globalOrderid) %
+			((int32)componentInfos.groupOrderid) %
 			components.size());
 
 	if(_pHandler)
@@ -277,8 +292,9 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 			{
 				(*pBundle).newMessage(BaseappmgrInterface::onRegisterNewApp);
 				
-				BaseappmgrInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+				BaseappmgrInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
@@ -286,8 +302,9 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 			{
 				(*pBundle).newMessage(CellappmgrInterface::onRegisterNewApp);
 				
-				CellappmgrInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+				CellappmgrInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
@@ -295,8 +312,9 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 			{
 				(*pBundle).newMessage(CellappInterface::onRegisterNewApp);
 				
-				CellappInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+				CellappInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					g_componentGlobalOrder, g_componentGroupOrder,
 						_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
@@ -304,8 +322,9 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 			{
 				(*pBundle).newMessage(BaseappInterface::onRegisterNewApp);
 				
-				BaseappInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+				BaseappInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
@@ -313,8 +332,9 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 			{
 				(*pBundle).newMessage(DbmgrInterface::onRegisterNewApp);
 				
-				DbmgrInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+				DbmgrInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
@@ -322,8 +342,9 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 			{
 				(*pBundle).newMessage(MessagelogInterface::onRegisterNewApp);
 				
-				MessagelogInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+				MessagelogInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}
@@ -331,8 +352,9 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 			{
 				(*pBundle).newMessage(ResourcemgrInterface::onRegisterNewApp);
 				
-				ResourcemgrInterface::onRegisterNewAppArgs8::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+				ResourcemgrInterface::onRegisterNewAppArgs10::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 					Componentbridge::getSingleton().componentType(), Componentbridge::getSingleton().componentID(), 
+					g_componentGlobalOrder, g_componentGroupOrder,
 					_pNetworkInterface->intaddr().ip, _pNetworkInterface->intaddr().port,
 					_pNetworkInterface->extaddr().ip, _pNetworkInterface->extaddr().port);
 			}

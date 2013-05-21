@@ -57,6 +57,7 @@ public:
 		KBEShared_ptr<Mercury::Address > pIntAddr, pExtAddr; // 内部和外部地址
 		int32 uid;
 		COMPONENT_ID cid;
+		COMPONENT_ORDER groupOrderid, globalOrderid;
 		char username[MAX_NAME + 1];
 		Mercury::Channel* pChannel;
 		COMPONENT_TYPE componentType;
@@ -88,7 +89,7 @@ public:
 	}
 
 	void addComponent(int32 uid, const char* username, 
-		COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
+		COMPONENT_TYPE componentType, COMPONENT_ID componentID, int8 globalorderid, int8 grouporderid,
 		uint32 intaddr, uint16 intport, 
 		uint32 extaddr, uint16 extport, 
 		Mercury::Channel* pChannel = NULL);

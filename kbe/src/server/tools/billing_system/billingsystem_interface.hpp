@@ -51,15 +51,17 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(BillingSystemInterface)
 	// 某app注册自己的接口地址到本app
-	BILLINGSYSTEM_MESSAGE_DECLARE_ARGS8(onRegisterNewApp,			MERCURY_VARIABLE_MESSAGE,
-									int32,							uid, 
-									std::string,					username,
-									int8,							componentType, 
-									uint64,							componentID, 
-									uint32,							intaddr, 
-									uint16,							intport,
-									uint32,							extaddr, 
-									uint16,							extport)
+	BILLINGSYSTEM_MESSAGE_DECLARE_ARGS10(onRegisterNewApp,					MERCURY_VARIABLE_MESSAGE,
+									int32,									uid, 
+									std::string,							username,
+									int8,									componentType, 
+									uint64,									componentID, 
+									int8,									globalorderID,
+									int8,									grouporderID,
+									uint32,									intaddr, 
+									uint16,									intport,
+									uint32,									extaddr, 
+									uint16,									extport)
 
 	// 请求创建账号。
 	BILLINGSYSTEM_MESSAGE_DECLARE_STREAM(reqCreateAccount,					MERCURY_VARIABLE_MESSAGE)

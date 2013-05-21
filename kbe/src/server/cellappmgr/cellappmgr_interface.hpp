@@ -46,11 +46,13 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(CellappmgrInterface)
 	// 某app注册自己的接口地址到本app
-	CELLAPPMGR_MESSAGE_DECLARE_ARGS8(onRegisterNewApp,			MERCURY_VARIABLE_MESSAGE,
+	CELLAPPMGR_MESSAGE_DECLARE_ARGS10(onRegisterNewApp,			MERCURY_VARIABLE_MESSAGE,
 									int32,						uid, 
 									std::string,				username,
 									int8,						componentType, 
 									uint64,						componentID, 
+									int8,						globalorderID,
+									int8,						grouporderID,
 									uint32,						intaddr, 
 									uint16,						intport,
 									uint32,						extaddr, 
