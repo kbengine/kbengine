@@ -19,8 +19,9 @@ HINSTANCE g_hKBEngineDll = NULL;
 
 namespace KBEngine{
 	COMPONENT_TYPE g_componentType = CLIENT_TYPE;
+	COMPONENT_ORDER g_componentGlobalOrder = 1;
+	COMPONENT_ORDER g_componentGroupOrder = 1;
 	COMPONENT_ID g_componentID = 1;
-	COMPONENT_ORDER g_componentOrder = 1;
 }
 
 template<> OgreApplication* Ogre::Singleton<OgreApplication>::msSingleton = 0;
