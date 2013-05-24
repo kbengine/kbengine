@@ -34,15 +34,15 @@ class GameObject(KBEngine.Entity):
 		# 通知表现层改变表现
 		KBEngine.fireEvent("set_name", self.id, self.name)
 
-	def set_modelNumber(self, oldValue):
+	def set_modelID(self, oldValue):
 		"""
 		Property method.
 		服务器设置了modelNumber属性
 		"""
-		DEBUG_MSG("%s::set_modelNumber: %i changed:%s->%s" % (self.getScriptName(), self.id, oldValue, self.modelNumber))
+		DEBUG_MSG("%s::set_modelID: %i changed:%s->%s" % (self.getScriptName(), self.id, oldValue, self.modelID))
 		
 		# 通知表现层改变表现
-		KBEngine.fireEvent("set_modelNumber", self.id, self.modelNumber)
+		KBEngine.fireEvent("set_modelID", self.id, self.modelID)
 		
 	def set_modelScale(self, oldValue):
 		"""

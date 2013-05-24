@@ -12,7 +12,6 @@ class SpaceWorld;
 class WeaponTrail;
 
 #define NUM_ANIMS 13		  // number of animations the character has
-#define CHAR_HEIGHT 5         // height of character's center of mass above ground
 #define CAM_HEIGHT 2          // height of camera above character's center of mass
 #define RUN_SPEED 17          // character running speed in units per second
 #define TURN_SPEED 500.0f     // character turning in degrees per second
@@ -22,28 +21,6 @@ class WeaponTrail;
 
 class KBEntity
 {
-private:
-
-	// all the animations our character has, and a null ID
-	// some of these affect separate body parts and will be blended together
-	enum AnimID
-	{
-		ANIM_IDLE_BASE,
-		ANIM_IDLE_TOP,
-		ANIM_RUN_BASE,
-		ANIM_RUN_TOP,
-		ANIM_HANDS_CLOSED,
-		ANIM_HANDS_RELAXED,
-		ANIM_DRAW_SWORDS,
-		ANIM_SLICE_VERTICAL,
-		ANIM_SLICE_HORIZONTAL,
-		ANIM_DANCE,
-		ANIM_JUMP_START,
-		ANIM_JUMP_LOOP,
-		ANIM_JUMP_END,
-		ANIM_NONE
-	};
-
 public:
 	
 	KBEntity(SpaceWorld* pSpace, KBEngine::ENTITY_ID eid);
@@ -51,42 +28,54 @@ public:
 
 	KBEngine::ENTITY_ID id()const{ return mID; }
 
-	Ogre::Real calcDistanceAboveTerrain(){ return CHAR_HEIGHT * mScale; }
+	virtual Ogre::Real calcDistanceAboveTerrain(){ return char_height_; }
+
 	void visable(bool v){
 
 		if(mBodyNode)
 			mBodyNode->setVisible(v);
 	}
 
-	void addTime(Real deltaTime);
+	virtual void addTime(Real deltaTime);
 	
-	void scale(float x, float y, float z)
+	void showBoundingBoxes(bool v){
+		mBodyNode->showBoundingBox(v);
+	}
+
+	virtual Ogre::Real getHeight(){ return char_height_; }
+
+	virtual void scale(float x, float y, float z)
 	{
 		mScale = (x + y + z) / 3.0f;
-
-		if(mBodyNode)
-			mBodyNode->setScale(x, y, z);
+		onScale();
 	}
 
-	void scale(float v)
+	virtual void onScale()
+	{
+		if(mBodyNode)
+		{
+			mBodyNode->setScale(mScale, mScale, mScale);
+			char_height_ = mBodyEnt->getWorldBoundingBox(true).getSize().y;
+		}
+	}
+
+	virtual void scale(float v)
 	{
 		mScale = v;
-		
-		if(mBodyNode)
-		{
-			mBodyNode->setScale(v, v, v);
-		}
+		onScale();
 	}
 
-	void setState(int state)
+	void stickto(Real deltaTime);
+
+	virtual void setState(int state)
 	{
 		mState = state;
-
-		if(inWorld_)
-		{
-			setTopAnimation(ANIM_DRAW_SWORDS, true);
-			mTimer = 0;
-		}
+		onStateChanged();
+	}
+	
+	virtual void onStateChanged()
+	{
+		
 	}
 	
 	void setHPMAX(int v)
@@ -99,8 +88,8 @@ public:
 		mp_max_ = v;
 	}
 
-	void attack(KBEntity* receiver, uint32 skillID, uint32 damageType, uint32 damage);
-	void recvDamage(KBEntity* attacker, uint32 skillID, uint32 damageType, uint32 damage);
+	virtual void attack(KBEntity* receiver, uint32 skillID, uint32 damageType, uint32 damage);
+	virtual void recvDamage(KBEntity* attacker, uint32 skillID, uint32 damageType, uint32 damage);
 
 	int getState()
 	{
@@ -148,7 +137,21 @@ public:
 		lastPos_.z = z;
 
 		if(mBodyNode)
-			mBodyNode->setPosition(x, y, z);
+		{
+			Ogre::Vector3 pos(x, y, z);
+
+			mBodyNode->setPosition(pos);
+
+			pos.y += char_height_ - calcDistanceAboveTerrain();
+
+			pNameLabelNode_->setPosition(pos);
+
+			pos.y += 1.f;
+			pHudNode_->setPosition(pos);
+
+			pos.y += 1.f;
+			pDamageLabelNode_->setPosition(pos);
+		}
 	}
 
 	const Ogre::Vector3& getLastPosition()
@@ -168,30 +171,22 @@ public:
 	
 	bool isJump()const { return mIsJump; }
 
-	void injectKeyDown(const OIS::KeyEvent& evt);
-	void injectKeyUp(const OIS::KeyEvent& evt);
+	virtual void injectKeyDown(const OIS::KeyEvent& evt);
+	virtual void injectKeyUp(const OIS::KeyEvent& evt);
 
 #if (OGRE_PLATFORM == OGRE_PLATFORM_APPLE_IOS) || (OGRE_PLATFORM == OGRE_PLATFORM_ANDROID)
-	void injectMouseMove(const OIS::MultiTouchEvent& evt);
-	void injectMouseDown(const OIS::MultiTouchEvent& evt);
+	virtual void injectMouseMove(const OIS::MultiTouchEvent& evt);
+	virtual void injectMouseDown(const OIS::MultiTouchEvent& evt);
 #else
-	void injectMouseMove(const OIS::MouseEvent& evt);
-	void injectMouseDown(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
+	virtual void injectMouseMove(const OIS::MouseEvent& evt);
+	virtual void injectMouseDown(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
 #endif
 
-	void setupBody(SceneManager* sceneMgr);
+	virtual void setup(SceneManager* sceneMgr);
+	
+	virtual void setupBody(SceneManager* sceneMgr);
 
-	void setupAnimations();
-
-	void setupCamera(Camera* cam);
-
-	void updateBody(Real deltaTime);
-	void updateAnimations(Real deltaTime);
-	void fadeAnimations(Real deltaTime);
-	void updateCamera(Real deltaTime);
-	void updateCameraGoal(Real deltaYaw, Real deltaPitch, Real deltaZoom);
-	void setBaseAnimation(AnimID id, bool reset = false);
-	void setTopAnimation(AnimID id, bool reset = false);
+	virtual void setupAnimations();
 
 	void setMoveSpeed(float speed){ 
 		mMoveSpeed = speed; 
@@ -209,48 +204,23 @@ public:
 			onLeaveWorld();
 	}
 
-	void onEnterWorld()
-	{
-		if(mState == 3)
-		{
-			if(mTopAnimID == ANIM_IDLE_TOP || mTopAnimID == ANIM_RUN_TOP)
-			{
-				setTopAnimation(ANIM_DRAW_SWORDS, true);
-				mTimer = 0;
-			}
-		}
-	}
-
-	void onLeaveWorld()
+	virtual void onEnterWorld()
 	{
 	}
 
-private:
-	bool _checkJumpEnd();
-private:
+	virtual void onLeaveWorld()
+	{
+	}
+
+	void setModelID(Ogre::uint32 modelID){ modelID_ = modelID; }
+protected:
+	virtual bool _checkJumpEnd();
+protected:
 	Camera* mCamera;
+
 	SceneNode* mBodyNode;
 
-	SceneNode* mCameraPivot;
-	SceneNode* mCameraGoal;
-	SceneNode* mCameraNode;
-
-	Real mPivotPitch;
-
 	Entity* mBodyEnt;
-	Entity* mSword1;
-	Entity* mSword2;
-
-	RibbonTrail* mSwordTrail;
-
-	AnimationState* mAnims[NUM_ANIMS];		 // master animation list
-	AnimID mBaseAnimID;						 // current base (full- or lower-body) animation
-	AnimID mTopAnimID;						 // current top (upper-body) animation
-
-	bool mFadingIn[NUM_ANIMS];				 // which animations are fading in
-	bool mFadingOut[NUM_ANIMS];				 // which animations are fading out
-
-	bool mSwordsDrawn;
 
 	Vector3 mKeyDirection;					 // player's local intended direction based on WASD keys
 	Vector3 mGoalDirection;					 // actual intended direction in world-space
@@ -290,7 +260,11 @@ private:
 
 	int hp_, hp_max_, mp_, mp_max_;
 
-	WeaponTrail* pWeaponTrailLeft_, *pWeaponTrailRight_;
+	float char_height_; // height of character's center of mass above ground
+
+	Ogre::String modelName_;
+
+	Ogre::uint32 modelID_;
 };
 
 #endif

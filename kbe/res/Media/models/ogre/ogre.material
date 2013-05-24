@@ -1,0 +1,48 @@
+material ogre.mat/SOLID/TEX/ogre.tex.jpg/VertCol
+{
+	technique
+	{
+		pass
+		{
+			diffuse vertexcolour
+                  specular 0.000000 0.000000 0.000000 12.500000
+			texture_unit
+			{
+				texture ogre.tex.jpg
+			}
+		}
+	}
+}
+material ogre.mat/ALPHA/TEX/ogre.tex.jpg/VertCol/TWOSIDE
+{
+	technique
+	{
+		pass
+		{
+			diffuse vertexcolour
+                  specular 0.000000 0.000000 0.000000 12.500000
+			scene_blend alpha_blend 
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+				texture ogre.tex.jpg
+			}
+		}
+	}
+}
+material Material.001/SOLID/TEX/ogreahead.tex.jpg/VertCol
+{
+	technique
+	{
+		pass
+		{
+			diffuse vertexcolour
+                  specular 0.000000 0.000000 0.000000 12.500000
+			texture_unit
+			{
+				texture ogreahead.tex.jpg
+			}
+		}
+	}
+}

@@ -196,6 +196,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\EntityComplex.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\EntitySimple.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\LensFlare.cpp"
 				>
 			</File>
@@ -247,6 +255,14 @@
 			</File>
 			<File
 				RelativePath=".\Entity.h"
+				>
+			</File>
+			<File
+				RelativePath=".\EntityComplex.h"
+				>
+			</File>
+			<File
+				RelativePath=".\EntitySimple.h"
 				>
 			</File>
 			<File

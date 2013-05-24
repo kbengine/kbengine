@@ -7,6 +7,8 @@
 #include "ImpostorPage.h"
 #include "TreeLoader3D.h"
 #include "OgreApplication.h"
+#include "EntityComplex.h"
+#include "EntitySimple.h"
 
 #include "../kbengine_dll/kbengine_dll.h"
 
@@ -264,11 +266,23 @@ bool SpaceWorld::keyPressed( const OIS::KeyEvent &arg )
         if (!mTrayMgr->isDialogVisible()) mTrayMgr->showOkDialog("Help", mHelpInfo);
         else mTrayMgr->closeDialog();
     }
-    if (arg.key == OIS::KC_0)   // toggle scenenode debug renderables
+    else if (arg.key == OIS::KC_0)   // toggle scenenode debug renderables
     {
         mSceneMgr->setDisplaySceneNodes(!mSceneMgr->getDisplaySceneNodes());
     }
-    if (arg.key == OIS::KC_C)   // toggle fly/walk
+    else if (arg.key == OIS::KC_F2)   // toggle scenenode debug renderables
+    {
+		static bool b = false;
+		b = !b;
+
+		ENTITIES::iterator iter = mEntities.begin();
+		for(; iter != mEntities.end(); iter++)
+		{
+			iter->second->showBoundingBoxes(b);
+		}
+
+    }
+    else if (arg.key == OIS::KC_C)   // toggle fly/walk
     {
         mFly = !mFly;
     }
@@ -410,7 +424,13 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 		{
 			const KBEngine::EventData_CreatedEntity* pEventData_createEntity = static_cast<const KBEngine::EventData_CreatedEntity*>(lpEventData);
 			KBEngine::ENTITY_ID eid = pEventData_createEntity->pEntity->aspectID();
-			KBEntity* pEntity = new KBEntity(this, eid);
+			KBEntity* pEntity = NULL;
+			
+			if(kbe_playerID() == eid)
+				pEntity = new EntityComplex(this, eid);
+			else
+				pEntity = new EntitySimple(this, eid);
+
 			mEntities[eid].reset(pEntity);
 			//pEntity->visable(false);
 		}
@@ -426,8 +446,7 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 			
 			KBEntity* pEntity = iter->second.get();
 
-			pEntity->setupBody(mSceneMgr);
-			pEntity->setupAnimations();
+			pEntity->setup(mSceneMgr);
 
 			pEntity->setPosition(pEventData_EnterWorld->x, pEventData_EnterWorld->y, pEventData_EnterWorld->z);
 			pEntity->setDestPosition(pEventData_EnterWorld->x, pEventData_EnterWorld->y, pEventData_EnterWorld->z);
@@ -438,7 +457,7 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 
 			if(kbe_playerID() == eid)
 			{
-				pEntity->setupCamera(mActiveCamera);
+				static_cast<EntityComplex*>(pEntity)->setupCamera(mActiveCamera);
 				mPlayerPtr = pEntity;
 			}
 			
@@ -568,6 +587,23 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 							break;
 
 						iter->second->scale(scale / 100.0);
+					}
+				}
+				else if(peventdata->name == "set_modelID")
+				{
+					if(peventdata->argsSize > 0)
+					{
+						PyObject* pyitem0 = PyTuple_GetItem(peventdata->pyDatas, 0);
+						PyObject* pyitem1 = PyTuple_GetItem(peventdata->pyDatas, 1);
+						
+						KBEngine::ENTITY_ID eid = PyLong_AsUnsignedLong(pyitem0);
+						uint32 modelID = PyLong_AsUnsignedLong(pyitem1);	
+
+						ENTITIES::iterator iter = mEntities.find(eid);
+						if(iter == mEntities.end())
+							break;
+
+						iter->second->setModelID(modelID);
 					}
 				}
 				else if(peventdata->name == "set_state")

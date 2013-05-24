@@ -367,13 +367,13 @@ bool TelnetHandler::processCommand()
 	}
 
 	bool logcmd = true;
-	for(int i=0; i<(int)historyCommand_.size(); i++)
+	//for(int i=0; i<(int)historyCommand_.size(); i++)
 	{
-		if(historyCommand_[i] == command_)
-		{
-			logcmd = false;
-			break;
-		}
+		//if(historyCommand_[i] == command_)
+		//{
+		//	logcmd = false;
+		//	break;
+		//}
 	}
 
 	if(logcmd)
