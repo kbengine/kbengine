@@ -656,10 +656,20 @@ void NetworkInterface::onPacketOut(const Packet & packet)
 void NetworkInterface::processAllChannelPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 {
 	ChannelMap::iterator iter = channelMap_.begin();
-	for(; iter != channelMap_.end(); iter++)
+	for(; iter != channelMap_.end(); )
 	{
 		Mercury::Channel* pChannel = iter->second;
-		pChannel->processPackets(pMsgHandlers);
+
+		if(pChannel->isDestroyed() || pChannel->isCondemn())
+		{
+			channelMap_.erase(iter++);
+			pChannel->destroy();
+		}
+		else
+		{
+			pChannel->processPackets(pMsgHandlers);
+			++iter;
+		}
 	}
 }
 //-------------------------------------------------------------------------------------
