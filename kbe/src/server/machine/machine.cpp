@@ -86,8 +86,11 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 	{
 		// 一台硬件上只能存在一个machine
 		if(componentType == MACHINE_TYPE)
+		{
+			WARNING_MSG("Machine::onBroadcastInterface: kbmachine has running!\n");
 			return;
-		
+		}
+	
 		std::vector<int32>::iterator iter = std::find(localuids_.begin(), localuids_.end(), uid);
 		if(iter == localuids_.end())
 		{
