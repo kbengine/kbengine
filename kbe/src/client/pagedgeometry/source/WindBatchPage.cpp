@@ -12,6 +12,9 @@ Permission is granted to anyone to use this software for any purpose, including 
 //WindBatchPage is an extension to PagedGeometry which displays entities as static geometry but that is affected by wind.
 //-------------------------------------------------------------------------------------
 
+#include "WindBatchPage.h"
+#include "WindBatchedGeometry.h"
+
 #include <OgreRoot.h>
 #include <OgreCamera.h>
 #include <OgreVector3.h>
@@ -22,99 +25,86 @@ Permission is granted to anyone to use this software for any purpose, including 
 #include <OgreHighLevelGpuProgram.h>
 #include <OgreHighLevelGpuProgramManager.h>
 
-#include "WindBatchPage.h"
-#include "WindBatchedGeometry.h"
-
 // to dump the shader source in a file
 #include <fstream>
-
 using namespace Ogre;
-using namespace Forests;
+
+namespace Forests {
 
 //-------------------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------
-///
+
 void WindBatchPage::init(PagedGeometry *geom, const Any &data)
 {
-   int datacast = !data.isEmpty() ? Ogre::any_cast<int>(data) : 0;
+	int datacast = data.isEmpty() ? 0 : Ogre::any_cast<int>(data);
 #ifdef _DEBUG
-	if (datacast < 0)
-   {
-		OGRE_EXCEPT(Exception::ERR_INVALIDPARAMS,
-         "Data of WindBatchPage must be a positive integer. It representing the LOD level this detail level stores.",
-         "WindBatchPage::WindBatchPage");
-   }
+	if ( datacast < 0)
+		OGRE_EXCEPT(Exception::ERR_INVALIDPARAMS,"Data of WindBatchPage must be a positive integer. It representing the LOD level this detail level stores.","WindBatchPage::WindBatchPage");
 #endif
+	mLODLevel = datacast; 
 
-   m_pBatchGeom   = new WindBatchedGeometry(geom->getSceneManager(), geom->getSceneNode(), geom);
-	m_nLODLevel    = datacast; 
-	m_pPagedGeom   = geom;
-	m_bFadeEnabled = false;
+	mGeom = geom;
+	sceneMgr = geom->getSceneManager();
+	batch = new WindBatchedGeometry(sceneMgr, geom->getSceneNode());
+	dynamic_cast<WindBatchedGeometry*>(batch)->setGeom(geom);
+	fadeEnabled = false;
 
 	const RenderSystemCapabilities *caps = Root::getSingleton().getRenderSystem()->getCapabilities();
-   m_bShadersSupported = caps->hasCapability(RSC_VERTEX_PROGRAM) ? true : false;    // <-- DELETE THIS
+	if (caps->hasCapability(RSC_VERTEX_PROGRAM))
+		shadersSupported = true;
+	else
+		shadersSupported = false;
 
-   ++s_nRefCount;
+	++refCount;
 }
 
-
-//-----------------------------------------------------------------------------
-///
 void WindBatchPage::_updateShaders()
 {
-	if (!m_bShadersSupported)
+	if (!shadersSupported)
 		return;
 
-	unsigned int i = 0;
-	BatchedGeometry::TSubBatchIterator it = m_pBatchGeom->getSubBatchIterator();
-	while (it.hasMoreElements())
-   {
-      BatchedGeometry::SubBatch *subBatch = it.getNext();
-		const MaterialPtr &ptrMat = m_vecUnfadedMaterials[i++];
+	uint32 i = 0;
+	BatchedGeometry::SubBatchIterator it = batch->getSubBatchIterator();
+	while (it.hasMoreElements()){
+		WindBatchedGeometry::WindSubBatch *subBatch = dynamic_cast<WindBatchedGeometry::WindSubBatch*>(it.getNext());
+		MaterialPtr mat = unfadedMaterials[i++];
 
 		//Check if lighting should be enabled
 		bool lightingEnabled = false;
-		for (unsigned short t = 0, techCnt = ptrMat->getNumTechniques(); t < techCnt; ++t)
-      {
-			Technique *tech = ptrMat->getTechnique(t);
-			for (unsigned short p = 0, passCnt = tech->getNumPasses(); p < passCnt; ++p)
-         {
-            if (tech->getPass(p)->getLightingEnabled())
-            {
+		for (unsigned short t = 0; t < mat->getNumTechniques(); ++t){
+			Technique *tech = mat->getTechnique(t);
+			for (unsigned short p = 0; p < tech->getNumPasses(); ++p){
+				Pass *pass = tech->getPass(p);
+				if (pass->getLightingEnabled()) {
 					lightingEnabled = true;
 					break;
 				}
 			}
-
 			if (lightingEnabled)
-            break;
+				break;
 		}
 
 		//Compile the shader script based on various material / fade options
 		StringUtil::StrStreamType tmpName;
 		tmpName << "BatchPage_";
-		if (m_bFadeEnabled)
+		if (fadeEnabled)
 			tmpName << "fade_";
 		if (lightingEnabled)
 			tmpName << "lit_";
-		if (subBatch->m_pVertexData->vertexDeclaration->findElementBySemantic(VES_DIFFUSE) != NULL)
+		if (subBatch->vertexData->vertexDeclaration->findElementBySemantic(VES_DIFFUSE) != NULL)
 			tmpName << "clr_";
 
-		for (unsigned short i = 0; i < subBatch->m_pVertexData->vertexDeclaration->getElementCount(); ++i)
-      {
-			const VertexElement *el = subBatch->m_pVertexData->vertexDeclaration->getElement(i);
-			if (el->getSemantic() == VES_TEXTURE_COORDINATES)
-         {
-				String uvType;
-            switch (el->getType())
-            {
-            case VET_FLOAT1: uvType = "1"; break;
-            case VET_FLOAT2: uvType = "2"; break;
-            case VET_FLOAT3: uvType = "3"; break;
-            case VET_FLOAT4: uvType = "4"; break;
-            }
-            tmpName << uvType << '_';
+		for (unsigned short i = 0; i < subBatch->vertexData->vertexDeclaration->getElementCount(); ++i) {
+			const VertexElement *el = subBatch->vertexData->vertexDeclaration->getElement(i);
+			if (el->getSemantic() == VES_TEXTURE_COORDINATES) {
+				String uvType = "";
+				switch (el->getType()) {
+						case VET_FLOAT1: uvType = "1"; break;
+						case VET_FLOAT2: uvType = "2"; break;
+						case VET_FLOAT3: uvType = "3"; break;
+						case VET_FLOAT4: uvType = "4"; break;
+				}
+				tmpName << uvType << '_';
 			}
 		}
 
@@ -133,7 +123,7 @@ void WindBatchPage::_updateShaders()
 		//If the shader hasn't been created yet, create it
 		if (HighLevelGpuProgramManager::getSingleton().getByName(vertexProgName).isNull())
 		{
-			Pass *pass = ptrMat->getTechnique(0)->getPass(0);
+			Pass *pass = mat->getTechnique(0)->getPass(0);
 			String vertexProgSource;
 
 			if(!shaderLanguage.compare("hlsl") || !shaderLanguage.compare("cg"))
@@ -145,7 +135,7 @@ void WindBatchPage::_updateShaders()
 					"	float3 normal	 : NORMAL, \n"
 					"	out float4 oPosition : POSITION, \n";
 
-				if (subBatch->m_pVertexData->vertexDeclaration->findElementBySemantic(VES_DIFFUSE) != NULL)
+				if (subBatch->vertexData->vertexDeclaration->findElementBySemantic(VES_DIFFUSE) != NULL)
 				{
 					vertexProgSource += 
 						"	float4 iColor	 : COLOR, \n";
@@ -154,18 +144,18 @@ void WindBatchPage::_updateShaders()
 				int texNum = 0;
 
 				unsigned short texCoordCount = 0;
-				for (unsigned short j = 0; j < subBatch->m_pVertexData->vertexDeclaration->getElementCount(); ++j) 
+				for (unsigned short j = 0; j < subBatch->vertexData->vertexDeclaration->getElementCount(); ++j) 
 				{
-					const VertexElement *el = subBatch->m_pVertexData->vertexDeclaration->getElement(j);
+					const VertexElement *el = subBatch->vertexData->vertexDeclaration->getElement(j);
 					if (el->getSemantic() == VES_TEXTURE_COORDINATES) 
 					{
 						++ texCoordCount;
 					}
 				}
 
-				for (unsigned short i = 0; i < subBatch->m_pVertexData->vertexDeclaration->getElementCount(); ++i)
+				for (unsigned short i = 0; i < subBatch->vertexData->vertexDeclaration->getElementCount(); ++i)
 				{
-					const VertexElement *el = subBatch->m_pVertexData->vertexDeclaration->getElement(i);
+					const VertexElement *el = subBatch->vertexData->vertexDeclaration->getElement(i);
 					if (el->getSemantic() == VES_TEXTURE_COORDINATES)
 					{
 						if (el->getIndex() == texCoordCount - 2)
@@ -212,7 +202,7 @@ void WindBatchPage::_updateShaders()
 						"	uniform float4 lightAmbient, \n";
 				}
 
-				if (m_bFadeEnabled)
+				if (fadeEnabled)
 				{
 					vertexProgSource +=
 						"	uniform float3 camPos, \n"
@@ -232,7 +222,7 @@ void WindBatchPage::_updateShaders()
 						"	float3 light = normalize(objSpaceLight.xyz - (iPosition.xyz * objSpaceLight.w)); \n"
 						"	float diffuseFactor = max(dot(normal, light), 0); \n";
 
-					if (subBatch->m_pVertexData->vertexDeclaration->findElementBySemantic(VES_DIFFUSE) != NULL)
+					if (subBatch->vertexData->vertexDeclaration->findElementBySemantic(VES_DIFFUSE) != NULL)
 					{
 						vertexProgSource +=
 							"	oColor = (lightAmbient + diffuseFactor * lightDiffuse) * iColor; \n";
@@ -245,7 +235,7 @@ void WindBatchPage::_updateShaders()
 				}
 				else
 				{
-					if (subBatch->m_pVertexData->vertexDeclaration->findElementBySemantic(VES_DIFFUSE) != NULL)
+					if (subBatch->vertexData->vertexDeclaration->findElementBySemantic(VES_DIFFUSE) != NULL)
 					{
 						vertexProgSource +=
 							"	oColor = iColor; \n";
@@ -257,7 +247,7 @@ void WindBatchPage::_updateShaders()
 					}
 				}
 
-				if (m_bFadeEnabled)
+				if (fadeEnabled)
 				{
 					//Fade out in the distance
 					 vertexProgSource +=
@@ -285,7 +275,7 @@ void WindBatchPage::_updateShaders()
 
 						a sin approximation could be use to optimize performances
 					*/
-	#if 0
+	#if 1
 					"	tmpPos.y += sin(time + originPos.z + tmpPos.y + tmpPos.x) * radiusCoeff * radiusCoeff * factorY; \n"
 					"	tmpPos.x += sin(time + originPos.z ) * heightCoeff * heightCoeff * factorX ; \n"
 	#else
@@ -301,9 +291,9 @@ void WindBatchPage::_updateShaders()
 			if(!shaderLanguage.compare("glsl"))
 			{
 				unsigned short texCoordCount = 0;
-				for (unsigned short j = 0; j < subBatch->m_pVertexData->vertexDeclaration->getElementCount(); ++j) 
+				for (unsigned short j = 0; j < subBatch->vertexData->vertexDeclaration->getElementCount(); ++j) 
 				{
-					const VertexElement *el = subBatch->m_pVertexData->vertexDeclaration->getElement(j);
+					const VertexElement *el = subBatch->vertexData->vertexDeclaration->getElement(j);
 					if (el->getSemantic() == VES_TEXTURE_COORDINATES) 
 					{
 						++ texCoordCount;
@@ -318,7 +308,7 @@ void WindBatchPage::_updateShaders()
 						"uniform vec4 lightAmbient; \n";
 				}
 
-				if (m_bFadeEnabled)
+				if (fadeEnabled)
 				{
 					 vertexProgSource +=
 						"uniform vec3 camPos; \n"
@@ -333,9 +323,9 @@ void WindBatchPage::_updateShaders()
 
 				int texNum = 0;
 
-				for (unsigned short i = 0; i < subBatch->m_pVertexData->vertexDeclaration->getElementCount(); ++i)
+				for (unsigned short i = 0; i < subBatch->vertexData->vertexDeclaration->getElementCount(); ++i)
 				{
-					const VertexElement *el = subBatch->m_pVertexData->vertexDeclaration->getElement(i);
+					const VertexElement *el = subBatch->vertexData->vertexDeclaration->getElement(i);
 					if (el->getSemantic() == VES_TEXTURE_COORDINATES)
 					{
 						if (el->getIndex() == texCoordCount - 2)
@@ -367,7 +357,7 @@ void WindBatchPage::_updateShaders()
 						"	vec3 light = normalize(objSpaceLight.xyz - (gl_Vertex.xyz * objSpaceLight.w)); \n"
 						"	float diffuseFactor = max(dot(gl_Normal.xyz, light), 0.0); \n";
 
-					if (subBatch->m_pVertexData->vertexDeclaration->findElementBySemantic(VES_DIFFUSE) != NULL)
+					if (subBatch->vertexData->vertexDeclaration->findElementBySemantic(VES_DIFFUSE) != NULL)
 					{
 						vertexProgSource +=
 							"	gl_FrontColor = (lightAmbient + diffuseFactor * lightDiffuse) * gl_Color; \n";
@@ -380,7 +370,7 @@ void WindBatchPage::_updateShaders()
 				}
 				else
 				{
-					if (subBatch->m_pVertexData->vertexDeclaration->findElementBySemantic(VES_DIFFUSE) != NULL)
+					if (subBatch->vertexData->vertexDeclaration->findElementBySemantic(VES_DIFFUSE) != NULL)
 					{
 						vertexProgSource += "	gl_FrontColor = gl_Color; \n";
 					}
@@ -390,7 +380,7 @@ void WindBatchPage::_updateShaders()
 					}
 				}
 
-				if (m_bFadeEnabled)
+				if (fadeEnabled)
 				{
 					//Fade out in the distance
 					vertexProgSource +=
@@ -459,19 +449,17 @@ void WindBatchPage::_updateShaders()
 		//Now that the shader is ready to be applied, apply it
 		StringUtil::StrStreamType materialSignature;
 		materialSignature << "BatchMat|";
-		materialSignature << ptrMat->getName() << "|";
-		if (m_bFadeEnabled)
-      {
-			materialSignature << m_fVisibleDist << "|";
-			materialSignature << m_fInvisibleDist << "|";
+		materialSignature << mat->getName() << "|";
+		if (fadeEnabled){
+			materialSignature << visibleDist << "|";
+			materialSignature << invisibleDist << "|";
 		}
 
 		//Search for the desired material
 		MaterialPtr generatedMaterial = MaterialManager::getSingleton().getByName(materialSignature.str());
-		if (generatedMaterial.isNull())
-      {
+		if (generatedMaterial.isNull()){
 			//Clone the material
-			generatedMaterial = ptrMat->clone(materialSignature.str());
+			generatedMaterial = mat->clone(materialSignature.str());
 
 			//And apply the fade shader
 			for (unsigned short t = 0; t < generatedMaterial->getNumTechniques(); ++t){
@@ -501,22 +489,21 @@ void WindBatchPage::_updateShaders()
 							params->setNamedAutoConstant("worldViewProj", GpuProgramParameters::ACT_WORLDVIEWPROJ_MATRIX);
 						}
 
-						if (m_bFadeEnabled)
-                  {
+						if (fadeEnabled){
 							params->setNamedAutoConstant("camPos", GpuProgramParameters::ACT_CAMERA_POSITION_OBJECT_SPACE);
 
 							//Set fade ranges
 							params->setNamedAutoConstant("invisibleDist", GpuProgramParameters::ACT_CUSTOM);
-							params->setNamedConstant("invisibleDist", m_fInvisibleDist);
+							params->setNamedConstant("invisibleDist", invisibleDist);
 
 							params->setNamedAutoConstant("fadeGap", GpuProgramParameters::ACT_CUSTOM);
-							params->setNamedConstant("fadeGap", m_fInvisibleDist - m_fVisibleDist);
+							params->setNamedConstant("fadeGap", invisibleDist - visibleDist);
 
 							if (pass->getAlphaRejectFunction() == CMPF_ALWAYS_PASS)
 								pass->setSceneBlending(SBT_TRANSPARENT_ALPHA);
 						}
 					}
-					catch (const Ogre::Exception &e)
+					catch (Ogre::Exception e)
 					{
 						// test for shader source	
 						std::ofstream shaderOutput;
@@ -524,12 +511,8 @@ void WindBatchPage::_updateShaders()
 						shaderOutput << e.getDescription();
 						shaderOutput.close();
 					}
-					catch (...)
-               {
-						OGRE_EXCEPT(Exception::ERR_INTERNAL_ERROR,
-                     "Error configuring batched geometry transitions. If you're using materials with custom\
-                     vertex shaders, they will need to implement fade transitions to be compatible with BatchPage.",
-                     "BatchPage::_updateShaders()");
+					catch (...) {
+						OGRE_EXCEPT(Exception::ERR_INTERNAL_ERROR, "Error configuring batched geometry transitions. If you're using materials with custom vertex shaders, they will need to implement fade transitions to be compatible with BatchPage.", "BatchPage::_updateShaders()");
 					}
 				}
 			}
@@ -540,4 +523,5 @@ void WindBatchPage::_updateShaders()
 		subBatch->setMaterial(generatedMaterial);
 	}
 
+}
 }

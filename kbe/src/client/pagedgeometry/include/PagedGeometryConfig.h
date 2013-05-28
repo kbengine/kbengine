@@ -4,8 +4,8 @@
 /* Define the library version */
 #define PAGEDGEOMETRY_VERSION_MAJOR 1
 #define PAGEDGEOMETRY_VERSION_MINOR 1
-#define PAGEDGEOMETRY_VERSION_PATCH 1
-#define PAGEDGEOMETRY_VERSION       "1.1.1"
+#define PAGEDGEOMETRY_VERSION_PATCH 0
+#define PAGEDGEOMETRY_VERSION       "1.1.0"
 
 /* Define if we use the alternate coordsystem */
 /* #undef PAGEDGEOMETRY_ALTERNATE_COORDSYSTEM */

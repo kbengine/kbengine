@@ -8,6 +8,9 @@ Permission is granted to anyone to use this software for any purpose, including 
 3. This notice may not be removed or altered from any source distribution.
 -------------------------------------------------------------------------------------*/
 
+#include "PropertyMaps.h"
+#include "PagedGeometry.h"
+
 #include <OgreRoot.h>
 #include <OgrePrerequisites.h>
 #include <OgrePixelFormat.h>
@@ -17,10 +20,6 @@ Permission is granted to anyone to use this software for any purpose, including 
 #include <OgreRenderSystem.h>
 #include <OgreString.h>
 #include <OgreStringConverter.h>
-
-#include "PropertyMaps.h"
-#include "PagedGeometry.h"
-
 using namespace Ogre;
 
 namespace Forests {
@@ -30,7 +29,7 @@ std::map<String, DensityMap*> DensityMap::selfList;
 DensityMap *DensityMap::load(const String &fileName, MapChannel channel)
 {
 	//Load image
-	TexturePtr map = TextureManager::getSingleton().load(fileName, ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, TEX_TYPE_2D, 0);
+	TexturePtr map = TextureManager::getSingleton().load(fileName, ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 
 	//Copy image to pixelbox
 	return load(map, channel);
@@ -97,13 +96,16 @@ DensityMap::DensityMap(TexturePtr map, MapChannel channel)
 		tmpPixels.data = new uint8[tmpPixels.getConsecutiveSize()];
 		buff->blitToMemory(tmpPixels);
 
+        unsigned char rgba_shift[4];
+        Ogre::PixelUtil::getBitShifts(tmpPixels.format, rgba_shift);
+
 		//Pick out a channel from the pixel buffer
 		size_t channelOffset;
 		switch (channel){
-			case CHANNEL_RED: channelOffset = 3; break;
-			case CHANNEL_GREEN: channelOffset = 2; break;
-			case CHANNEL_BLUE: channelOffset = 1; break;
-			case CHANNEL_ALPHA: channelOffset = 0; break;
+			case CHANNEL_RED: channelOffset = rgba_shift[0] / 8; break;
+			case CHANNEL_GREEN: channelOffset = rgba_shift[1] / 8; break;
+			case CHANNEL_BLUE: channelOffset = rgba_shift[2] / 8; break;
+			case CHANNEL_ALPHA: channelOffset = rgba_shift[3] / 8; break;
 			default: OGRE_EXCEPT(0, "Invalid channel", "GrassLayer::setDensityMap()"); break;
 		}
 
@@ -124,72 +126,73 @@ DensityMap::DensityMap(TexturePtr map, MapChannel channel)
 
 //Returns the density map value at the given location
 //Make sure a density map exists before calling this.
-Ogre::Real DensityMap::_getDensityAt_Unfiltered(Ogre::Real x, Ogre::Real z, const TRect<Real> &mapBounds)
+float DensityMap::_getDensityAt_Unfiltered(float x, float z, const TRect<Real> &mapBounds)
 {
 	assert(pixels);
 
 	// Early out if the coordinates are outside map bounds.
 	if(x < mapBounds.left || x >= mapBounds.right || z < mapBounds.top || z >= mapBounds.bottom)
-      return 0.f;
+	{
+		return 0.0f;
+	}
 
-	size_t mapWidth = pixels->getWidth(), mapHeight = pixels->getHeight();
+	uint32 mapWidth = (uint32)pixels->getWidth();
+	uint32 mapHeight = (uint32)pixels->getHeight();
+	float boundsWidth = mapBounds.width();
+	float boundsHeight = mapBounds.height();
 
-#if OGRE_PLATFORM != OGRE_PLATFORM_APPLE
-	// Patch incorrect PixelBox::getWidth() in OpenGL mode
-	if (Root::getSingleton().getRenderSystem()->getName() == "OpenGL Rendering Subsystem")
-		--mapWidth;
-#endif //OGRE_PLATFORM_APPLE
+	uint32 xindex = mapWidth * (x - mapBounds.left) / boundsWidth;
+	uint32 zindex = mapHeight * (z - mapBounds.top) / boundsHeight;
 
-	size_t xindex = size_t(mapWidth * (x - mapBounds.left) / mapBounds.width());
-	size_t zindex = size_t(mapHeight * (z - mapBounds.top) / mapBounds.height());
+	uint8 *data = (uint8*)pixels->data;
+	float val = data[mapWidth * zindex + xindex] / 255.0f;
 
-	uint8 *data = reinterpret_cast<uint8*>(pixels->data);
-	return data[mapWidth * zindex + xindex] * 0.00392157f; // 1/255.0f;
+	return val;
 }
 
 //Returns the density map value at the given location with bilinear filtering
 //Make sure a density map exists before calling this.
-Ogre::Real DensityMap::_getDensityAt_Bilinear(Ogre::Real x, Ogre::Real z, const TRect<Ogre::Real> &mapBounds)
+float DensityMap::_getDensityAt_Bilinear(float x, float z, const TRect<Real> &mapBounds)
 {
 	assert(pixels);
 
 	// Early out if the coordinates are outside map bounds.
 	if(x < mapBounds.left || x >= mapBounds.right || z < mapBounds.top || z >= mapBounds.bottom)
-		return 0.f;
+	{
+		return 0.0f;
+	}
 
 	uint32 mapWidth = (uint32)pixels->getWidth();
 	uint32 mapHeight = (uint32)pixels->getHeight();
+	float boundsWidth = mapBounds.width();
+	float boundsHeight = mapBounds.height();
 
-#if OGRE_PLATFORM != OGRE_PLATFORM_APPLE
-	//Patch incorrect PixelBox::getWidth() in OpenGL mode
-	if (Root::getSingleton().getRenderSystem()->getName() == "OpenGL Rendering Subsystem")
-		--mapWidth;
-#endif //OGRE_PLATFORM_APPLE
+	float xIndexFloat = (mapWidth * (x - mapBounds.left) / boundsWidth) - 0.5f;
+	float zIndexFloat = (mapHeight * (z - mapBounds.top) / boundsHeight) - 0.5f;
 
-	Ogre::Real xIndexFloat = (mapWidth * (x - mapBounds.left) / mapBounds.width()) - 0.5f;
-	Ogre::Real zIndexFloat = (mapHeight * (z - mapBounds.top) / mapBounds.height()) - 0.5f;
-
-	uint32 xIndex = (uint32)xIndexFloat;
-	uint32 zIndex = (uint32)zIndexFloat;
+	uint32 xIndex = xIndexFloat;
+	uint32 zIndex = zIndexFloat;
 	if (xIndex < 0 || zIndex < 0 || xIndex >= mapWidth-1 || zIndex >= mapHeight-1)
 		return 0.0f;
 
-	Ogre::Real xRatio = xIndexFloat - xIndex;
-	Ogre::Real xRatioInv = 1.f - xRatio;
-	Ogre::Real zRatio = zIndexFloat - zIndex;
-	Ogre::Real zRatioInv = 1.f - zRatio;
+	float xRatio = xIndexFloat - xIndex;
+	float xRatioInv = 1 - xRatio;
+	float zRatio = zIndexFloat - zIndex;
+	float zRatioInv = 1 - zRatio;
 
 	uint8 *data = (uint8*)pixels->data;
 
-	Ogre::Real val11 = data[mapWidth * zIndex + xIndex]      * 0.0039215686274509803921568627451f;
-	Ogre::Real val21 = data[mapWidth * zIndex + xIndex + 1]  * 0.0039215686274509803921568627451f;
-	Ogre::Real val12 = data[mapWidth * ++zIndex + xIndex]    * 0.0039215686274509803921568627451f;
-	Ogre::Real val22 = data[mapWidth * zIndex + xIndex + 1]  * 0.0039215686274509803921568627451f;
+	float val11 = data[mapWidth * zIndex + xIndex] / 255.0f;
+	float val21 = data[mapWidth * zIndex + xIndex + 1] / 255.0f;
+	float val12 = data[mapWidth * ++zIndex + xIndex] / 255.0f;
+	float val22 = data[mapWidth * zIndex + xIndex + 1] / 255.0f;
 
-	Ogre::Real val1 = xRatioInv * val11 + xRatio * val21;
-	Ogre::Real val2 = xRatioInv * val12 + xRatio * val22;
+	float val1 = xRatioInv * val11 + xRatio * val21;
+	float val2 = xRatioInv * val12 + xRatio * val22;
 
-	return zRatioInv * val1 + zRatio * val2;
+	float val = zRatioInv * val1 + zRatio * val2;
+
+	return val;
 }
 
 
@@ -313,7 +316,7 @@ ColorMap::ColorMap(TexturePtr map, MapChannel channel)
 }
 
 //Returns the color map value at the given location
-uint32 ColorMap::_getColorAt(Ogre::Real x, Ogre::Real z, const TRect<Real> &mapBounds)
+uint32 ColorMap::_getColorAt(float x, float z, const TRect<Real> &mapBounds)
 {
 	assert(pixels);
 
@@ -325,35 +328,41 @@ uint32 ColorMap::_getColorAt(Ogre::Real x, Ogre::Real z, const TRect<Real> &mapB
 
 	uint32 mapWidth = (uint32)pixels->getWidth();
 	uint32 mapHeight = (uint32)pixels->getHeight();
+	float boundsWidth = mapBounds.width();
+	float boundsHeight = mapBounds.height();
 
-	uint32 xindex = uint32(mapWidth * (x - mapBounds.left) / mapBounds.width());
-	uint32 zindex = uint32(mapHeight * (z - mapBounds.top) / mapBounds.height());
+	uint32 xindex = mapWidth * (x - mapBounds.left) / boundsWidth;
+	uint32 zindex = mapHeight * (z - mapBounds.top) / boundsHeight;
 
 	uint32 *data = (uint32*)pixels->data;
 	return data[mapWidth * zindex + xindex];
 }
 
-uint32 ColorMap::_interpolateColor(uint32 color1, uint32 color2, Ogre::Real ratio, Ogre::Real ratioInv)
+uint32 ColorMap::_interpolateColor(uint32 color1, uint32 color2, float ratio, float ratioInv)
 {
-	uint8 a1 = (color1 & 0xFF);
-	uint8 b1 = (color1 >> 8 & 0xFF);
-	uint8 c1 = (color1 >> 16 & 0xFF);
-	uint8 d1 = (color1 >> 24 & 0xFF);
+	uint8 a1, b1, c1, d1;
+	a1 = (color1 & 0xFF);
+	b1 = (color1 >> 8 & 0xFF);
+	c1 = (color1 >> 16 & 0xFF);
+	d1 = (color1 >> 24 & 0xFF);
 
-	uint8 a2 = (color2 & 0xFF);
-	uint8 b2 = (color2 >> 8 & 0xFF);
-	uint8 c2 = (color2 >> 16 & 0xFF);
-	uint8 d2 = (color2 >> 24 & 0xFF);
+	uint8 a2, b2, c2, d2;
+	a2 = (color2 & 0xFF);
+	b2 = (color2 >> 8 & 0xFF);
+	c2 = (color2 >> 16 & 0xFF);
+	d2 = (color2 >> 24 & 0xFF);
 
-	uint8 a = uint8(ratioInv * a1 + ratio * a2);
-	uint8 b = uint8(ratioInv * b1 + ratio * b2);
-	uint8 c = uint8(ratioInv * c1 + ratio * c2);
-	uint8 d = uint8(ratioInv * d1 + ratio * d2);
+	uint8 a, b, c, d;
+	a = ratioInv * a1 + ratio * a2;
+	b = ratioInv * b1 + ratio * b2;
+	c = ratioInv * c1 + ratio * c2;
+	d = ratioInv * d1 + ratio * d2;
 
-	return a | (b << 8) | (c << 16) | (d << 24);
+	uint32 clr = a | (b << 8) | (c << 16) | (d << 24);
+	return clr;
 }
 
-uint32 ColorMap::_getColorAt_Bilinear(Ogre::Real x, Ogre::Real z, const TRect<Real> &mapBounds)
+uint32 ColorMap::_getColorAt_Bilinear(float x, float z, const TRect<Real> &mapBounds)
 {
 	assert(pixels);
 
@@ -365,18 +374,21 @@ uint32 ColorMap::_getColorAt_Bilinear(Ogre::Real x, Ogre::Real z, const TRect<Re
 
 	uint32 mapWidth = (uint32)pixels->getWidth();
 	uint32 mapHeight = (uint32)pixels->getHeight();
-	Ogre::Real xIndexFloat = (mapWidth * (x - mapBounds.left) / mapBounds.width()) - 0.5f;
-	Ogre::Real zIndexFloat = (mapHeight * (z - mapBounds.top) / mapBounds.height()) - 0.5f;
+	float boundsWidth = mapBounds.width();
+	float boundsHeight = mapBounds.height();
 
-	uint32 xIndex = (uint32)xIndexFloat;
-	uint32 zIndex = (uint32)zIndexFloat;
+	float xIndexFloat = (mapWidth * (x - mapBounds.left) / boundsWidth) - 0.5f;
+	float zIndexFloat = (mapHeight * (z - mapBounds.top) / boundsHeight) - 0.5f;
+
+	uint32 xIndex = xIndexFloat;
+	uint32 zIndex = zIndexFloat;
 	if (xIndex < 0 || zIndex < 0 || xIndex > mapWidth-1 || zIndex > mapHeight-1)
 		return 0xFFFFFFFF;
 
-	Ogre::Real xRatio = xIndexFloat - xIndex;
-	Ogre::Real xRatioInv = 1.f - xRatio;
-	Ogre::Real zRatio = zIndexFloat - zIndex;
-	Ogre::Real zRatioInv = 1.f - zRatio;
+	float xRatio = xIndexFloat - xIndex;
+	float xRatioInv = 1 - xRatio;
+	float zRatio = zIndexFloat - zIndex;
+	float zRatioInv = 1 - zRatio;
 
 	uint32 *data = (uint32*)pixels->data;
 

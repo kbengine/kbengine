@@ -13,6 +13,9 @@ Permission is granted to anyone to use this software for any purpose, including 
 //ImposterPage is an extension to PagedGeometry which displays entities as imposters.
 //-------------------------------------------------------------------------------------
 
+#include "ImpostorPage.h"
+#include "StaticBillboardSet.h"
+
 #include <OgreRoot.h>
 #include <OgreTimer.h>
 #include <OgreCamera.h>
@@ -21,101 +24,63 @@ Permission is granted to anyone to use this software for any purpose, including 
 #include <OgreEntity.h>
 #include <OgreSubEntity.h>
 #include <OgreHardwarePixelBuffer.h>
-
-#include "ImpostorPage.h"
-#include "StaticBillboardSet.h"
-
 using namespace Ogre;
-using namespace Forests;
 
-// static members initialization
-Ogre::uint  Forests::ImpostorPage::s_nImpostorResolution    = 128;
-Ogre::uint  Forests::ImpostorPage::s_nSelfInstances         = 0;
-Ogre::uint  Forests::ImpostorPage::s_nUpdateInstanceID      = 0;
-ColourValue Forests::ImpostorPage::s_clrImpostorBackground  = ColourValue(0.0f, 0.3f, 0.0f, 0.0f);
-BillboardOrigin Forests::ImpostorPage::s_impostorPivot      = BBO_CENTER;
+namespace Forests {
 
+//-------------------------------------------------------------------------------------
 
+uint32 ImpostorPage::selfInstances = 0;
 
-//-----------------------------------------------------------------------------
-/// Default constructor
-ImpostorPage::ImpostorPage() :
-m_pSceneMgr    (NULL),
-m_pPagedGeom   (NULL),
-m_blendMode    (ALPHA_REJECT_IMPOSTOR),
-m_nInstanceID  (0),
-m_nAveCount    (0),
-m_vecCenter    (0, 0, 0)
-{
-   ++s_nSelfInstances;
-}
+int ImpostorPage::impostorResolution = 128;
+ColourValue ImpostorPage::impostorBackgroundColor = ColourValue(0.0f, 0.3f, 0.0f, 0.0f);
+BillboardOrigin ImpostorPage::impostorPivot = BBO_CENTER;
 
 
-//-----------------------------------------------------------------------------
-/// Destructor
-ImpostorPage::~ImpostorPage()
-{
-   TImpostorBatchs::iterator iter = m_mapImpostorBatches.begin(), iend = m_mapImpostorBatches.end();
-   while (iter != iend)
-   {
-      delete iter->second;
-      ++iter;
-   }
-
-   if (--s_nSelfInstances == 0 && m_pPagedGeom)
-   {
-      if (m_pPagedGeom->getSceneNode())
-      {
-         m_pPagedGeom->getSceneNode()->removeAndDestroyChild("ImpostorPage::renderNode");
-         m_pPagedGeom->getSceneNode()->removeAndDestroyChild("ImpostorPage::cameraNode");
-      }
-      else if (m_pSceneMgr)
-      {
-         m_pSceneMgr->destroySceneNode("ImpostorPage::renderNode");
-         m_pSceneMgr->destroySceneNode("ImpostorPage::cameraNode");
-      }
-      else
-      {
-         assert(false && "Who must delete scene node???");
-      }
-
-      ResourceGroupManager::getSingleton().destroyResourceGroup("Impostors");
-   }
-}
-
-
-//-----------------------------------------------------------------------------
-///
 void ImpostorPage::init(PagedGeometry *geom, const Ogre::Any &data)
 {
-   assert(geom && "Null pointer to PagedGeometry");
-	m_pSceneMgr    = geom->getSceneManager();
-	m_pPagedGeom   = geom;
+	//Save pointers to PagedGeometry object
+	sceneMgr = geom->getSceneManager();
+	this->geom = geom;
+
+	//Init. variables
+	setBlendMode(ALPHA_REJECT_IMPOSTOR);
 		
-	if (s_nSelfInstances == 1)  // first instance
-   {
-		// Set up a single instance of a scene node which will be used when rendering impostor textures
+	if (++selfInstances == 1){
+		//Set up a single instance of a scene node which will be used when rendering impostor textures
 		geom->getSceneNode()->createChildSceneNode("ImpostorPage::renderNode");
 		geom->getSceneNode()->createChildSceneNode("ImpostorPage::cameraNode");
-      ResourceGroupManager::getSingleton().createResourceGroup("Impostors");
+        ResourceGroupManager::getSingleton().createResourceGroup("Impostors");
+	}
+}
+
+ImpostorPage::~ImpostorPage()
+{
+	//Delete all impostor batches
+	std::map<String, ImpostorBatch *>::iterator iter;
+	for (iter = impostorBatches.begin(); iter != impostorBatches.end(); ++iter){
+		ImpostorBatch *ibatch = iter->second;
+		delete ibatch;
+	}
+
+	if (--selfInstances == 0){
+		sceneMgr->destroySceneNode("ImpostorPage::renderNode");
+		sceneMgr->destroySceneNode("ImpostorPage::cameraNode");
+        ResourceGroupManager::getSingleton().destroyResourceGroup("Impostors");
 	}
 }
 
 
-//-----------------------------------------------------------------------------
-///
 void ImpostorPage::setRegion(Ogre::Real left, Ogre::Real top, Ogre::Real right, Ogre::Real bottom)
 {
-	// Calculate center of region
-	m_vecCenter.x  = (left + right) * 0.5f;
-	m_vecCenter.z  = (top + bottom) * 0.5f;
-	m_vecCenter.y  = 0.0f; // The center.y value is calculated when the entities are added
-	m_nAveCount    = 0;
+	//Calculate center of region
+	center.x = (left + right) * 0.5f;
+	center.z = (top + bottom) * 0.5f;
+	
+	center.y = 0.0f;	//The center.y value is calculated when the entities are added
+	aveCount = 0;
 }
 
-
-//-----------------------------------------------------------------------------
-///
 void ImpostorPage::addEntity(Entity *ent, const Vector3 &position, const Quaternion &rotation, const Vector3 &scale, const Ogre::ColourValue &color)
 {
 	//Get the impostor batch that this impostor will be added to
@@ -125,109 +90,85 @@ void ImpostorPage::addEntity(Entity *ent, const Vector3 &position, const Quatern
 	ibatch->addBillboard(position, rotation, scale, color);
 
 	//Add the Y position to the center.y value (to be averaged later)
-	m_vecCenter.y += position.y + ent->getBoundingBox().getCenter().y * scale.y;
-	++m_nAveCount;
+	center.y += position.y + ent->getBoundingBox().getCenter().y * scale.y;
+	++aveCount;
 }
 
-
-//-----------------------------------------------------------------------------
-///
 void ImpostorPage::build()
 {
-   if (m_mapImpostorBatches.empty())
-      return;
-
-	// Calculate the average Y value of all the added entities
-   m_vecCenter.y = m_nAveCount > 0 ? m_vecCenter.y /= m_nAveCount : 0;
+	//Calculate the average Y value of all the added entities
+	if (aveCount != 0)
+		center.y /= aveCount;
+	else
+		center.y = 0.0f;
 
 	//Build all batches
-	TImpostorBatchs::iterator it = m_mapImpostorBatches.begin(), iend = m_mapImpostorBatches.end();
-   while (it != iend)
-   {
-      it->second->build();
-      ++it;
-   }
+	std::map<String, ImpostorBatch *>::iterator iter;
+	for (iter = impostorBatches.begin(); iter != impostorBatches.end(); ++iter){
+		ImpostorBatch *ibatch = iter->second;
+		ibatch->build();
+	}
 }
 
-//-----------------------------------------------------------------------------
-///
 void ImpostorPage::setVisible(bool visible)
 {
-	// Update visibility status of all batches
-	TImpostorBatchs::iterator it = m_mapImpostorBatches.begin(), iend = m_mapImpostorBatches.end();
-   while (it != iend)
-   {
-      it->second->setVisible(visible);
-      ++it;
-   }
+	//Update visibility status of all batches
+	std::map<String, ImpostorBatch *>::iterator iter;
+	for (iter = impostorBatches.begin(); iter != impostorBatches.end(); ++iter){
+		ImpostorBatch *ibatch = iter->second;
+		ibatch->setVisible(visible);
+	}
 }
 
-
-//-----------------------------------------------------------------------------
-///
 void ImpostorPage::setFade(bool enabled, Real visibleDist, Real invisibleDist)
 {
-	// Update fade status of all batches
-	TImpostorBatchs::iterator it = m_mapImpostorBatches.begin(), iend = m_mapImpostorBatches.end();
-   while (it != iend)
-   {
-      it->second->setFade(enabled, visibleDist, invisibleDist);
-      ++it;
-   }
+	//Update fade status of all batches
+	std::map<String, ImpostorBatch *>::iterator iter;
+	for (iter = impostorBatches.begin(); iter != impostorBatches.end(); ++iter){
+		ImpostorBatch *ibatch = iter->second;
+		ibatch->setFade(enabled, visibleDist, invisibleDist);
+	}
 }
 
-
-//-----------------------------------------------------------------------------
-///
 void ImpostorPage::removeEntities()
 {
-	TImpostorBatchs::iterator iter = m_mapImpostorBatches.begin(), iend = m_mapImpostorBatches.end();
-   while (iter != iend)
-   {
-      iter->second->clear();
-      ++iter;
+	//Clear all impostor batches
+	std::map<String, ImpostorBatch *>::iterator iter;
+	for (iter = impostorBatches.begin(); iter != impostorBatches.end(); ++iter){
+		ImpostorBatch *ibatch = iter->second;
+		ibatch->clear();
 	}
 
 	//Reset y center
-	m_vecCenter.y  = 0;
-	m_nAveCount    = 0;
+	center.y = 0.0f;
+	aveCount = 0;
 }
 
-
-//-----------------------------------------------------------------------------
-///
 void ImpostorPage::update()
 {
-   if (m_mapImpostorBatches.empty())  // SVA speed up
-      return;
-
 	//Calculate the direction the impostor batches should be facing
-	Vector3 camPos = m_pPagedGeom->_convertToLocal(m_pPagedGeom->getCamera()->getDerivedPosition());
+	Vector3 camPos = geom->_convertToLocal(geom->getCamera()->getDerivedPosition());
 	
-	// Update all batches
-   Ogre::Real distX = camPos.x - m_vecCenter.x;
-	Ogre::Real distZ = camPos.z - m_vecCenter.z;
-	Ogre::Real distY = camPos.y - m_vecCenter.y;
-	Ogre::Real distRelZ = Math::Sqrt(distX * distX + distZ * distZ);
+	//Update all batches
+	float distX = camPos.x - center.x;
+	float distZ = camPos.z - center.z;
+	float distY = camPos.y - center.y;
+	float distRelZ = Math::Sqrt(distX * distX + distZ * distZ);
 	Radian pitch = Math::ATan2(distY, distRelZ);
 
 	Radian yaw;
-	if (distRelZ > m_pPagedGeom->getPageSize() * 3)
-   {
+	if (distRelZ > geom->getPageSize() * 3) {
 		yaw = Math::ATan2(distX, distZ);
-	}
-   else
-   {
-		Vector3 dir = m_pPagedGeom->_convertToLocal(m_pPagedGeom->getCamera()->getDerivedDirection());
+	} else {
+		Vector3 dir = geom->_convertToLocal(geom->getCamera()->getDerivedDirection());
 		yaw = Math::ATan2(-dir.x, -dir.z);
 	}
 
-   TImpostorBatchs::iterator iter = m_mapImpostorBatches.begin(), iend = m_mapImpostorBatches.end();
-   while (iter != iend)
-   {
-      iter->second->setAngle(pitch.valueDegrees(), yaw.valueDegrees());
-      ++iter;
-   }
+	std::map<String, ImpostorBatch *>::iterator iter;
+	for (iter = impostorBatches.begin(); iter != impostorBatches.end(); ++iter){
+		ImpostorBatch *ibatch = iter->second;
+		ibatch->setAngle(pitch.valueDegrees(), yaw.valueDegrees());
+	}
 }
 
 void ImpostorPage::regenerate(Entity *ent)
@@ -242,23 +183,27 @@ void ImpostorPage::regenerateAll()
 	ImpostorTexture::regenerateAll();
 }
 
+void ImpostorPage::setImpostorPivot(BillboardOrigin origin)
+{
+	if (origin != BBO_CENTER && origin != BBO_BOTTOM_CENTER)
+		OGRE_EXCEPT(Exception::ERR_INVALIDPARAMS, "Invalid origin - only BBO_CENTER and BBO_BOTTOM_CENTER is supported", "ImpostorPage::setImpostorPivot()");
+	impostorPivot = origin;
+}
 
 //-------------------------------------------------------------------------------------
 
 unsigned long ImpostorBatch::GUID = 0;
 
-ImpostorBatch::ImpostorBatch(ImpostorPage *group, Entity *entity) :
-m_pTexture  (NULL)
+ImpostorBatch::ImpostorBatch(ImpostorPage *group, Entity *entity)
 {
-	// Render impostor texture for this entity
-	m_pTexture = ImpostorTexture::getTexture(group, entity);
+	//Render impostor texture for this entity
+	tex = ImpostorTexture::getTexture(group, entity);
 	
 	//Create billboard set
-   PagedGeometry *pg = group->getParentPagedGeometry();
-   bbset = new StaticBillboardSet(pg->getSceneManager(), pg->getSceneNode());
+	bbset = new StaticBillboardSet(group->sceneMgr, group->geom->getSceneNode());
 	bbset->setTextureStacksAndSlices(IMPOSTOR_PITCH_ANGLES, IMPOSTOR_YAW_ANGLES);
 
-	setBillboardOrigin(ImpostorPage::getImpostorPivot());
+	setBillboardOrigin(ImpostorPage::impostorPivot);
 
 	//Default the angle to 0 degrees
 	pitchIndex = -1;
@@ -273,9 +218,8 @@ ImpostorBatch::~ImpostorBatch()
 {
 	//Delete billboard set
 	delete bbset;
-
-	// Delete texture
-	ImpostorTexture::removeTexture(m_pTexture);
+	//Delete texture
+	ImpostorTexture::removeTexture(tex);
 }
 
 //Returns a pointer to an ImpostorBatch for the specified entity in the specified
@@ -284,28 +228,39 @@ ImpostorBatch *ImpostorBatch::getBatch(ImpostorPage *group, Entity *entity)
 {
 	//Search for an existing impostor batch for this entity
 	String entityKey = ImpostorBatch::generateEntityKey(entity);
-   ImpostorBatch *batch = group->getImpostorBatch(entityKey);
-   if (batch)  // If found return it
-      return batch;
+	std::map<String, ImpostorBatch *>::iterator iter;
+	iter = group->impostorBatches.find(entityKey);
 
-   // Otherwise, create a new batch
-   batch = new ImpostorBatch(group, entity);
-   group->injectImpostorBatch(entityKey, batch);   // warning! function can return false
-   return batch;
+	//If found..
+	if (iter != group->impostorBatches.end()){
+		//Return it
+		return iter->second;
+	} else {
+		//Otherwise, create a new batch
+		ImpostorBatch *batch = new ImpostorBatch(group, entity);
+
+		//Add it to the impostorBatches list
+		typedef std::pair<String, ImpostorBatch *> ListItem;
+		group->impostorBatches.insert(ListItem(entityKey, batch));
+		
+		//Return it
+		return batch;
+	}
 }
 
 //Rotates all the impostors to the specified angle (virtually - it actually changes
 //their materials to produce this same effect)
-void ImpostorBatch::setAngle(Ogre::Real pitchDeg, Ogre::Real yawDeg)
+void ImpostorBatch::setAngle(float pitchDeg, float yawDeg)
 {
-	// Calculate pitch material index
-	int newPitchIndex = 0;
+	//Calculate pitch material index
+	int newPitchIndex;
 #ifdef IMPOSTOR_RENDER_ABOVE_ONLY
-	if (pitchDeg > 0)
-   {
+	if (pitchDeg > 0) {
 		float maxPitchIndexDeg = (90.0f * (IMPOSTOR_PITCH_ANGLES-1)) / IMPOSTOR_PITCH_ANGLES;
 		newPitchIndex = (int)(IMPOSTOR_PITCH_ANGLES * (pitchDeg / maxPitchIndexDeg));
 		if (newPitchIndex > IMPOSTOR_PITCH_ANGLES-1) newPitchIndex = IMPOSTOR_PITCH_ANGLES-1;
+	} else {
+		newPitchIndex = 0;
 	}
 #else
 	float minPitchIndexDeg = -90.0f;
@@ -315,16 +270,19 @@ void ImpostorBatch::setAngle(Ogre::Real pitchDeg, Ogre::Real yawDeg)
 	if (newPitchIndex < 0) newPitchIndex = 0;
 #endif
 	
-	// Calculate yaw material index
-   int newYawIndex = yawDeg > 0 ? int(IMPOSTOR_YAW_ANGLES * (yawDeg / 360.0f) + 0.5f) % IMPOSTOR_YAW_ANGLES :
-      int(IMPOSTOR_YAW_ANGLES + IMPOSTOR_YAW_ANGLES * (yawDeg / 360.0f) + 0.5f) % IMPOSTOR_YAW_ANGLES;
+	//Calculate yaw material index
+	int newYawIndex;
+	if (yawDeg > 0) {
+		newYawIndex = (int)(IMPOSTOR_YAW_ANGLES * (yawDeg / 360.0f) + 0.5f) % IMPOSTOR_YAW_ANGLES;
+	} else {
+		newYawIndex = (int)(IMPOSTOR_YAW_ANGLES + IMPOSTOR_YAW_ANGLES * (yawDeg / 360.0f) + 0.5f) % IMPOSTOR_YAW_ANGLES;
+	}
 	
-	// Change materials if necessary
-	if (newPitchIndex != pitchIndex || newYawIndex != yawIndex)
-   {
+	//Change materials if necessary
+	if (newPitchIndex != pitchIndex || newYawIndex != yawIndex){
 		pitchIndex = newPitchIndex;
 		yawIndex = newYawIndex;
-		bbset->setMaterial(m_pTexture->material[pitchIndex][yawIndex]->getName());
+		bbset->setMaterial(tex->material[pitchIndex][yawIndex]->getName());
 	}
 }
 
@@ -333,17 +291,16 @@ void ImpostorBatch::setBillboardOrigin(BillboardOrigin origin)
 	bbset->setBillboardOrigin(origin);
 
 	if (bbset->getBillboardOrigin() == BBO_CENTER)
-		entityBBCenter = m_pTexture->entityCenter;
+		entityBBCenter = tex->entityCenter;
 	else if (bbset->getBillboardOrigin() == BBO_BOTTOM_CENTER)
-		entityBBCenter = Vector3(m_pTexture->entityCenter.x, m_pTexture->entityCenter.y - m_pTexture->entityRadius, m_pTexture->entityCenter.z);
+		entityBBCenter = Vector3(tex->entityCenter.x, tex->entityCenter.y - tex->entityRadius, tex->entityCenter.z);
 }
 
 String ImpostorBatch::generateEntityKey(Entity *entity)
 {
 	StringUtil::StrStreamType entityKey;
 	entityKey << entity->getMesh()->getName();
-	for (unsigned int i = 0; i < entity->getNumSubEntities(); ++i)
-   {
+	for (uint32 i = 0; i < entity->getNumSubEntities(); ++i){
 		entityKey << "-" << entity->getSubEntity(i)->getMaterialName();
 	}
 	entityKey << "-" << IMPOSTOR_YAW_ANGLES << "_" << IMPOSTOR_PITCH_ANGLES;
@@ -376,11 +333,11 @@ unsigned long ImpostorTexture::GUID = 0;
 
 //Do not use this constructor yourself - instead, call getTexture()
 //to get/create an ImpostorTexture for an Entity.
-ImpostorTexture::ImpostorTexture(ImpostorPage *group, Entity *entity) :
-loader(0)
+ImpostorTexture::ImpostorTexture(ImpostorPage *group, Entity *entity)
+: loader(0)
 {
 	//Store scene manager and entity
-   ImpostorTexture::sceneMgr = group->getParentPagedGeometry()->getSceneManager();
+	ImpostorTexture::sceneMgr = group->sceneMgr;
 	ImpostorTexture::entity = entity;
 	ImpostorTexture::group = group;
 
@@ -392,7 +349,14 @@ loader(0)
 	//Calculate the entity's bounding box and it's diameter
 	boundingBox = entity->getBoundingBox();
 
-	entityRadius = Math::boundingRadiusFromAABB(boundingBox);
+	//Note - this radius calculation assumes the object is somewhat rounded (like trees/rocks/etc.)
+	Real tmp;
+	entityRadius = boundingBox.getMaximum().x - boundingBox.getCenter().x;
+	tmp = boundingBox.getMaximum().y - boundingBox.getCenter().y;
+	if (tmp > entityRadius) entityRadius = tmp;
+	tmp = boundingBox.getMaximum().z - boundingBox.getCenter().z;
+	if (tmp > entityRadius) entityRadius = tmp;
+
 	entityDiameter = 2.0f * entityRadius;
 	entityCenter = boundingBox.getCenter();
 	
@@ -501,9 +465,8 @@ void ImpostorTexture::renderTextures(bool force)
 	SceneNode *camNode;
 
 	//Set up RTT texture
-   Ogre::uint textureSize = ImpostorPage::getImpostorResolution();
-	if (renderTexture.isNull())
-   {
+	uint32 textureSize = ImpostorPage::impostorResolution;
+	if (renderTexture.isNull()) {
 	renderTexture = TextureManager::getSingleton().createManual(getUniqueID("ImpostorTexture"), "Impostors",
 				TEX_TYPE_2D, textureSize * IMPOSTOR_YAW_ANGLES, textureSize * IMPOSTOR_PITCH_ANGLES, 0, PF_A8R8G8B8, TU_RENDERTARGET, loader.get());
 	}
@@ -522,7 +485,7 @@ void ImpostorTexture::renderTextures(bool force)
 	renderViewport->setOverlaysEnabled(false);
 	renderViewport->setClearEveryFrame(true);
 	renderViewport->setShadowsEnabled(false);
-	renderViewport->setBackgroundColour(ImpostorPage::getImpostorBackgroundColor());
+	renderViewport->setBackgroundColour(ImpostorPage::impostorBackgroundColor);
 	
 	//Set up scene node
 	SceneNode* node = sceneMgr->getSceneNode("ImpostorPage::renderNode");
@@ -531,15 +494,8 @@ void ImpostorTexture::renderTextures(bool force)
 	if (oldSceneNode) {
 		oldSceneNode->detachObject(entity);
 	}
-
-	Ogre::SceneNode *n1= node->createChildSceneNode();
-	n1->attachObject(entity);
-	n1->setPosition(-entityCenter + Vector3(10,0,10));
-
-	Entity *e2 = entity->clone(entity->getName() + "_clone");
-	Ogre::SceneNode *n2= node->createChildSceneNode();
-	n2->attachObject(e2);
-	n2->setPosition(-entityCenter + Vector3(10,0,10));
+	node->attachObject(entity);
+	node->setPosition(-entityCenter);
 	
 	//Set up camera FOV
 	const Real objDist = entityRadius * 100;
@@ -570,17 +526,14 @@ void ImpostorTexture::renderTextures(bool force)
 	Ogre::SceneManager::SpecialCaseRenderQueueMode OldSpecialCaseRenderQueueMode = sceneMgr->getSpecialCaseRenderQueueMode();
 	//Only render the entity
 	sceneMgr->setSpecialCaseRenderQueueMode(Ogre::SceneManager::SCRQM_INCLUDE); 
-   sceneMgr->addSpecialCaseRenderQueue(group->getParentPagedGeometry()->getRenderQueue() + 1);
+	sceneMgr->addSpecialCaseRenderQueue(group->geom->getRenderQueue() + 1);
 
 	uint8 oldRenderQueueGroup = entity->getRenderQueueGroup();
-	entity->setRenderQueueGroup(group->getParentPagedGeometry()->getRenderQueue() + 1);
-	e2->setRenderQueueGroup(entity->getRenderQueueGroup());
+	entity->setRenderQueueGroup(group->geom->getRenderQueue() + 1);
 	bool oldVisible = entity->getVisible();
 	entity->setVisible(true);
-	e2->setVisible(true);
-   Ogre::Real oldMaxDistance = entity->getRenderingDistance();
+	float oldMaxDistance = entity->getRenderingDistance();
 	entity->setRenderingDistance(0);
-	e2->setRenderingDistance(0);
 
 	bool needsRegen = true;
 #ifdef IMPOSTOR_FILE_SAVE
@@ -596,7 +549,7 @@ void ImpostorTexture::renderTextures(bool force)
 	for (i = 0; i < sizeof(key); ++i)
 		key[i] = (key[i] % 26) + 'A';
 
-	String tempdir = this->group->getParentPagedGeometry()->getTempdir();
+	String tempdir = this->group->geom->getTempdir();
 	ResourceGroupManager::getSingleton().addResourceLocation(tempdir, "FileSystem", "BinFolder");
 
 	String fileNamePNG = "Impostor." + String(key, sizeof(key)) + '.' + StringConverter::toString(textureSize) + ".png";
@@ -605,18 +558,28 @@ void ImpostorTexture::renderTextures(bool force)
 	//Attempt to load the pre-render file if allowed
 	needsRegen = force;
 	if (!needsRegen){
-		try{
-			texture = TextureManager::getSingleton().load(fileNameDDS, "BinFolder", TEX_TYPE_2D, MIP_UNLIMITED);
-		}
-		catch (...){
-			try{
-				texture = TextureManager::getSingleton().load(fileNamePNG, "BinFolder", TEX_TYPE_2D, MIP_UNLIMITED);
-			}
-			catch (...){
-				needsRegen = true;
-			}
-		}
-	}
+        Ogre::ResourcePtr ptrRes = TextureManager::getSingleton().getByName(fileNameDDS, "BinFolder");
+        
+        if(ptrRes.isNull())
+        {
+            ptrRes = TextureManager::getSingleton().getByName(fileNamePNG, "BinFolder");
+            
+            if(ptrRes.isNull())
+            {
+                needsRegen = true;
+            }
+            else
+            {
+                ptrRes.setNull();
+                texture = TextureManager::getSingleton().load(fileNamePNG, "BinFolder", TEX_TYPE_2D, MIP_UNLIMITED);
+            }
+        }
+        else
+        {
+            ptrRes.setNull();
+            texture = TextureManager::getSingleton().load(fileNameDDS, "BinFolder", TEX_TYPE_2D, MIP_UNLIMITED);
+        }
+    }
 #endif
 
 	if (needsRegen){
@@ -659,10 +622,7 @@ void ImpostorTexture::renderTextures(bool force)
 	entity->setVisible(oldVisible);
 	entity->setRenderQueueGroup(oldRenderQueueGroup);
 	entity->setRenderingDistance(oldMaxDistance);
-
-	sceneMgr->destroyEntity(e2);
-
-	sceneMgr->removeSpecialCaseRenderQueue(group->getParentPagedGeometry()->getRenderQueue() + 1);
+	sceneMgr->removeSpecialCaseRenderQueue(group->geom->getRenderQueue() + 1);
 	// Restore original state
 	sceneMgr->setSpecialCaseRenderQueueMode(OldSpecialCaseRenderQueueMode); 
 
@@ -678,13 +638,9 @@ void ImpostorTexture::renderTextures(bool force)
 	
 	//Delete scene node
 	node->detachAllObjects();
-	n2->detachAllObjects();
-	n1->detachAllObjects();
-	node->removeAndDestroyAllChildren();
 	if (oldSceneNode) {
 		oldSceneNode->attachObject(entity);
 	}
-
 #ifdef IMPOSTOR_FILE_SAVE
 	//Delete RTT texture
 	assert(!renderTexture.isNull());
@@ -747,4 +703,5 @@ ImpostorTexture *ImpostorTexture::getTexture(ImpostorPage *group, Entity *entity
 			return NULL;
 		}
 	}
+}
 }

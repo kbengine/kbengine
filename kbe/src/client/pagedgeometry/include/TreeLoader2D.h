@@ -227,14 +227,20 @@ public:
 
 	\warning Be sure to call this before adding any trees - otherwise adjusting this value will cause
 	the size of the currently added trees to change. */
-	void setMaximumScale(Ogre::Real maxScale)	{ maximumScale = maxScale;	}
+	void setMaximumScale(Ogre::Real maxScale)
+	{
+		maximumScale = maxScale;
+	}
 
 	/** \brief Gets the maximum tree scale value
 	\returns The maximum tree scale value
 
 	This function will return the maximum tree scale value as set by setMaximumScale(). By
 	default this value will be 2.0. */
-   Ogre::Real getMaximumScale() const  { return maximumScale; }
+	float getMaximumScale()
+	{
+		return maximumScale;
+	}
 
 	/** \brief Sets the minimum tree scale value
 
@@ -245,20 +251,29 @@ public:
 
 	\warning Be sure to call this before adding any trees - otherwise adjusting this value will cause
 	the size of the currently added trees to change. */
-	void setMinimumScale(Ogre::Real minScale)	{ minimumScale = minScale;	}
+	void setMinimumScale(Ogre::Real minScale)
+	{
+		minimumScale = minScale;
+	}
 
 	/** \brief Gets the minimum tree scale value
 	\returns The minimum tree scale value
 
 	This function will return the minimum tree scale value as set by setMinimumScale(). By
 	default this value will be 0. */
-	Ogre::Real getMinimumScale() const { return minimumScale; }
+	float getMinimumScale()
+	{
+		return minimumScale;
+	}
 
 	/** \brief Gets the tree boundary area
 	\returns A TBounds boundary value
 
 	This function returns the boundaries in which all trees are added. This value is set from the constructor. */
-   const TBounds &getBounds() const { return actualBounds; }
+	inline const TBounds &getBounds()
+	{
+		return actualBounds;
+	}
 
 	void loadPage(PageInfo &page);
 

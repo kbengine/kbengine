@@ -93,7 +93,7 @@ Permission is granted to anyone to use this software for any purpose, including 
 // this small snipped disables some warnings under MSVC that can be ignored normally
 #ifdef _MSC_VER
 // disable MSVC warning "... possible loss of data"
-//# pragma warning(disable: 4244)
+# pragma warning(disable: 4244)
 #endif //_MSC_VER
 
 
@@ -713,7 +713,7 @@ public:
 	\param paramName Name of the parameter for this entity
 	\param paramValue Value to assign to the parameter
 	*/
-	void setCustomParam(const Ogre::String &entity, const Ogre::String &paramName, float paramValue);
+	void setCustomParam( std::string entity, std::string paramName, float paramValue);
 
 	/**
 	\brief Sets or creates a custom parameter for an entity managed by PagedGeometry
@@ -733,7 +733,7 @@ public:
 	\param paramName Name of the parameter for this entity
 	\param paramValue Value to assign to the parameter
 	*/
-	void setCustomParam(const Ogre::String &paramName, float paramValue);
+	void setCustomParam( std::string paramName, float paramValue);
 
 	/**
 	\brief Returns the value of the custom parameter
@@ -742,7 +742,7 @@ public:
 	\param defaultParamValue Value to return if no entry is found
 	\returns float value if entry is found or the defaultParamValue if not
 	*/
-	float getCustomParam(const Ogre::String &entity, const Ogre::String &paramName, float defaultParamValue) const;
+	float getCustomParam( std::string entity, std::string paramName, float defaultParamValue) const;
 
 	/**
 	\brief Returns the value of the custom parameter
@@ -751,11 +751,14 @@ public:
 	\param defaultParamValue Value to return if no entry is found
 	\returns float value if entry is found or the defaultParamValue if not
 	*/
-	float getCustomParam(const Ogre::String &paramName, float defaultParamValue) const;
+	float getCustomParam( std::string paramName, float defaultParamValue) const;
 
 
-   /// Returns the rendering queue that paged geometry was constructed with
-   Ogre::uint8 getRenderQueue() const  { return m_nRenderQueue; }
+	/**
+	\brief Returns the rendering queue that paged geometry was constructed with
+	\returns Ogre::RenderQueue number of the rendering queue
+	*/
+	Ogre::RenderQueueGroupID getRenderQueue() const;
 
 protected:
 	//Internal function - do not use
@@ -788,7 +791,8 @@ protected:
 	TBounds m_bounds;
 	//The page size
 	Ogre::Real pageSize;
-   Ogre::uint8 m_nRenderQueue;   ///< The used rendering queue
+	//The used rendering queue
+	Ogre::RenderQueueGroupID mRenderQueue;
 
 	//Time-related data
 	Ogre::Timer timer;
@@ -796,8 +800,7 @@ protected:
 	Ogre::String tempdir;
 
 private:
-   typedef std::map <Ogre::String, float> TStr2FloatMap;
-	TStr2FloatMap  m_mapCustomParam;
+	std::map<std::string, float> customParam;
 };
 
 
