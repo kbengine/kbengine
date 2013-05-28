@@ -2,10 +2,12 @@
 import KBEngine
 import random
 import wtimer
+import copy
 from KBEDebug import *
 from interfaces.GameObject import GameObject
 import d_entities
 import d_spaces
+import d_spaces_spawns
 
 class Space(GameObject):
 	def __init__(self):
@@ -15,7 +17,7 @@ class Space(GameObject):
 		self.spaceUTypeB = self.cellData["spaceUType"]
 		
 		# 这个地图上创建的entity总数
-		self.tmpCreateEntityDatas = list(d_spaces.datas[self.spaceUTypeB].get("entities", []))
+		self.tmpCreateEntityDatas = copy.deepcopy(d_spaces_spawns.datas.get(self.spaceUTypeB, ()))
 		self.avatars = {}
 		
 	def onLoseCell(self):
@@ -44,16 +46,15 @@ class Space(GameObject):
 			self.delTimer(tid)
 			return
 			
-		entityNO = self.tmpCreateEntityDatas.pop(0)
-		datas = d_entities.datas.get(entityNO)
+		datas = self.tmpCreateEntityDatas.pop(0)
 		
 		if datas is None:
-			ERROR_MSG("Space::onTimer: spawn %i is error!" % entityNO)
+			ERROR_MSG("Space::onTimer: spawn %i is error!" % datas[0])
 
 		KBEngine.createBaseAnywhere("SpawnPoint", 
-									{"spawnEntityNO"	: entityNO, 	\
-									"position"			: tuple(datas.get('spawnPos', (0,0,0))), 	\
-									"direction"			: (0, 0, datas.get("spawnYaw", 0)),	\
+									{"spawnEntityNO"	: datas[0], 	\
+									"position"			: datas[1], 	\
+									"direction"			: (0, 0, datas[2]),	\
 									"createToCell"		: self.cell})
 				
 	def loginToSpace(self, avatarMailbox, context):

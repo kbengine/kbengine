@@ -34,7 +34,7 @@ class SpawnPoint(GameObject):
 			return
 			
 		params = {
-			"spawnPos" : tuple(datas["spawnPos"]),
+			"spawnPos" : tuple(self.position),
 			"uid" : datas["id"],
 			"utype" : datas["etype"],
 			"modelID" : datas["modelID"],
