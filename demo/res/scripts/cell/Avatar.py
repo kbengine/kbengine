@@ -32,6 +32,14 @@ class Avatar(GameObject,
 		# 设置每秒允许的最快速度, 超速会被拉回去
 		self.topSpeed = 10.0
 		# self.topSpeedY = 10.0
+
+	def startDestroyTimer(self):
+		"""
+		virtual method.
+		
+		启动销毁entitytimer
+		"""
+		pass
 		
 	def onGetWitness(self):
 		"""
@@ -54,7 +62,8 @@ class Avatar(GameObject,
 		"""
 		DEBUG_MSG("Avatar::onDestroy: %i." % self.id)
 		Teleport.onDestroy(self)
-
+		Combat.onDestroy(self)
+		
 	def relive(self):
 		"""
 		defined.

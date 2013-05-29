@@ -172,6 +172,7 @@ void Witness::onEnterAOI(Entity* pEntity)
 
 			(*iter)->removeflags(ENTITYREF_FLAG_LEAVE_CLIENT_PENDING);
 			(*iter)->pEntity(pEntity);
+			pEntity->addWitnessed(pEntity_);
 		}
 
 		return;
@@ -203,7 +204,7 @@ void Witness::onLeaveAOI(Entity* pEntity)
 	//delete (*iter);
 	//aoiEntities_.erase(iter);
 
-	(*iter)->flags((*iter)->flags() | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING);
+	(*iter)->flags((((*iter)->flags() | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) & ~ENTITYREF_FLAG_ENTER_CLIENT_PENDING));
 	(*iter)->pEntity(NULL);
 	pEntity->delWitnessed(pEntity_);
 }
@@ -372,6 +373,13 @@ bool Witness::update()
 				}
 				else
 				{
+					if(otherEntity == NULL)
+					{
+						delete (*iter);
+						iter = aoiEntities_.erase(iter);
+						continue;
+					}
+
 					Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
 					MemoryStream* s1 = MemoryStream::ObjPool().createObject();
 					

@@ -5,6 +5,7 @@
 #include <Terrain/OgreTerrainMaterialGeneratorA.h>
 
 #include "PagedGeometry.h"
+#include "GrassLoader.h" 
 #include "BatchPage.h"
 #include "ImpostorPage.h"
 #include "TreeLoader3D.h"
@@ -16,14 +17,33 @@
 
 using namespace Forests;
 
-DotSceneLoader::DotSceneLoader(Ogre::uint32 queryflags) : mSceneMgr(0), mTerrainGroup(0) , mQueryflags(queryflags)
+Ogre::TerrainGroup *StaticGroupPtr = 0;
+
+Ogre::Real OgitorTerrainGroupHeightFunction(Ogre::Real x, Ogre::Real z, void *userData)
+{
+    return StaticGroupPtr->getHeightAtWorldPosition(x,0,z);
+}
+
+DotSceneLoader::DotSceneLoader(Ogre::uint32 queryflags) : mSceneMgr(0), mTerrainGroup(0), mQueryflags(queryflags) 
 {
     mTerrainGlobalOptions = OGRE_NEW Ogre::TerrainGlobalOptions();
+	mGrassLoaderHandle = NULL;
 }
 
 
 DotSceneLoader::~DotSceneLoader()
 {
+    if(mGrassLoaderHandle)
+        delete mGrassLoaderHandle;
+
+    std::vector<Forests::PagedGeometry *>::iterator it = mPGHandles.begin();
+    while(it != mPGHandles.end())
+    {
+        delete it[0];
+        it++;
+    }
+    mPGHandles.clear();
+
     if(mTerrainGroup)
     {
         OGRE_DELETE mTerrainGroup;
@@ -257,7 +277,7 @@ void DotSceneLoader::processTerrain(rapidxml::xml_node<>* XMLNode)
     int colourMapTextureSize = Ogre::StringConverter::parseInt(XMLNode->first_attribute("colourMapTextureSize")->value());
     int compositeMapDistance = Ogre::StringConverter::parseInt(XMLNode->first_attribute("tuningCompositeMapDistance")->value());
     int maxPixelError = Ogre::StringConverter::parseInt(XMLNode->first_attribute("tuningMaxPixelError")->value());
-    
+
     Ogre::Vector3 lightdir(0, -0.3, 0.75);
     lightdir.normalise();
     Ogre::Light* l = mSceneMgr->createLight("tstLight");
@@ -272,6 +292,8 @@ void DotSceneLoader::processTerrain(rapidxml::xml_node<>* XMLNode)
     mTerrainGlobalOptions->setLightMapDirection(lightdir);
     mTerrainGlobalOptions->setCompositeMapAmbient(mSceneMgr->getAmbientLight());
     mTerrainGlobalOptions->setCompositeMapDiffuse(l->getDiffuseColour());
+
+    mSceneMgr->destroyLight("tstLight");
 
     mTerrainGroup = OGRE_NEW Ogre::TerrainGroup(mSceneMgr, Ogre::Terrain::ALIGN_X_Z, mapSize, worldSize);
     mTerrainGroup->setOrigin(Ogre::Vector3::ZERO);
@@ -304,10 +326,142 @@ void DotSceneLoader::processTerrainPage(rapidxml::xml_node<>* XMLNode)
     int pageX = Ogre::StringConverter::parseInt(XMLNode->first_attribute("pageX")->value());
     int pageY = Ogre::StringConverter::parseInt(XMLNode->first_attribute("pageY")->value());
 
+    //I don't know why...
+    rapidxml::xml_attribute<>* PGPageSize = XMLNode->first_attribute("pagedGeometryPageSize");
+    if(PGPageSize)
+        mPGPageSize = Ogre::StringConverter::parseInt(PGPageSize->value());
+
+    rapidxml::xml_attribute<>* PGDetailDistance = XMLNode->first_attribute("pagedGeometryDetailDistance");
+    if(PGDetailDistance)
+        mPGDetailDistance = Ogre::StringConverter::parseInt(XMLNode->first_attribute("pagedGeometryDetailDistance")->value());
+
+
+    // error checking
+    if(mPGPageSize < 10){
+        Ogre::LogManager::getSingleton().logMessage("[DotSceneLoader] pagedGeometryPageSize value error!", Ogre::LML_CRITICAL);
+        mPGPageSize = 10;
+    }
+    if(mPGDetailDistance < 100){
+        Ogre::LogManager::getSingleton().logMessage("[DotSceneLoader] pagedGeometryDetailDistance value error!", Ogre::LML_CRITICAL);
+        mPGDetailDistance = 100;
+    }
+
     if (Ogre::ResourceGroupManager::getSingleton().resourceExists(mTerrainGroup->getResourceGroup(), name))
     {
         mTerrainGroup->defineTerrain(pageX, pageY, name);
     }
+    
+    // grass layers
+    rapidxml::xml_node<>* pElement = XMLNode->first_node("grassLayers");
+
+    if(pElement)
+    {
+        processGrassLayers(pElement);
+    }
+}
+
+void DotSceneLoader::processGrassLayers(rapidxml::xml_node<>* XMLNode)
+{
+    Ogre::String dMapName = getAttrib(XMLNode, "densityMap");
+    mTerrainGlobalOptions->setVisibilityFlags(Ogre::StringConverter::parseUnsignedInt(XMLNode->first_attribute("visibilityFlags")->value()));
+
+    // create a temporary camera
+    Ogre::Camera* tempCam = mSceneMgr->createCamera("ThIsNamEShoUlDnOtExisT");
+
+    // create paged geometry what the grass will use
+    Forests::PagedGeometry * mPGHandle = new PagedGeometry(tempCam, mPGPageSize);
+    mPGHandle->addDetailLevel<GrassPage>(mPGDetailDistance);
+
+    //Create a GrassLoader object
+    mGrassLoaderHandle = new GrassLoader(mPGHandle);
+    mGrassLoaderHandle->setVisibilityFlags(mTerrainGlobalOptions->getVisibilityFlags());
+
+    //Assign the "grassLoader" to be used to load geometry for the PagedGrass instance
+    mPGHandle->setPageLoader(mGrassLoaderHandle);    
+    
+    // set the terrain group pointer
+    StaticGroupPtr = mTerrainGroup;
+    
+    //Supply a height function to GrassLoader so it can calculate grass Y values
+    mGrassLoaderHandle->setHeightFunction(OgitorTerrainGroupHeightFunction);
+    
+    // push the page geometry handle into the PGHandles array
+    mPGHandles.push_back(mPGHandle);
+
+    // create the layers and load the options for them
+    rapidxml::xml_node<>* pElement = XMLNode->first_node("grassLayer");
+    rapidxml::xml_node<>* pSubElement;
+    Forests::GrassLayer* gLayer;
+    Ogre::String tempStr;
+    while(pElement)
+    {
+        // grassLayer
+        gLayer = mGrassLoaderHandle->addLayer(pElement->first_attribute("material")->value());
+        gLayer->setId(Ogre::StringConverter::parseInt(pElement->first_attribute("id")->value()));
+        gLayer->setEnabled(Ogre::StringConverter::parseBool(pElement->first_attribute("enabled")->value()));
+        gLayer->setMaxSlope(Ogre::StringConverter::parseReal(pElement->first_attribute("maxSlope")->value()));
+        gLayer->setLightingEnabled(Ogre::StringConverter::parseBool(pElement->first_attribute("lighting")->value()));
+
+        // densityMapProps
+        pSubElement = pElement->first_node("densityMapProps");
+        tempStr = pSubElement->first_attribute("channel")->value();
+        MapChannel mapCh;
+        if(!tempStr.compare("ALPHA")) mapCh = CHANNEL_ALPHA; else
+        if(!tempStr.compare("BLUE"))  mapCh = CHANNEL_BLUE;  else
+        if(!tempStr.compare("COLOR")) mapCh = CHANNEL_COLOR; else
+        if(!tempStr.compare("GREEN")) mapCh = CHANNEL_GREEN; else
+        if(!tempStr.compare("RED"))   mapCh = CHANNEL_RED;
+        
+        gLayer->setDensityMap(dMapName, mapCh);
+        gLayer->setDensity(Ogre::StringConverter::parseReal(pSubElement->first_attribute("density")->value()));
+
+        // mapBounds
+        pSubElement = pElement->first_node("mapBounds");
+        gLayer->setMapBounds( TBounds( 
+                        Ogre::StringConverter::parseReal(pSubElement->first_attribute("left")->value()),  // left
+                        Ogre::StringConverter::parseReal(pSubElement->first_attribute("top")->value()),   // top
+                        Ogre::StringConverter::parseReal(pSubElement->first_attribute("right")->value()), // right
+                        Ogre::StringConverter::parseReal(pSubElement->first_attribute("bottom")->value()) // bottom
+                                )
+                            );
+
+        // grassSizes
+        pSubElement = pElement->first_node("grassSizes");
+        gLayer->setMinimumSize( Ogre::StringConverter::parseReal(pSubElement->first_attribute("minWidth")->value()),   // width
+                                Ogre::StringConverter::parseReal(pSubElement->first_attribute("minHeight")->value()) );// height
+        gLayer->setMaximumSize( Ogre::StringConverter::parseReal(pSubElement->first_attribute("maxWidth")->value()),   // width
+                                Ogre::StringConverter::parseReal(pSubElement->first_attribute("maxHeight")->value()) );// height
+
+        // techniques
+        pSubElement = pElement->first_node("techniques");
+        tempStr = pSubElement->first_attribute("renderTechnique")->value();
+        GrassTechnique rendTech;
+        
+        if(!tempStr.compare("QUAD"))       rendTech = GRASSTECH_QUAD;       else
+        if(!tempStr.compare("CROSSQUADS")) rendTech = GRASSTECH_CROSSQUADS; else
+        if(!tempStr.compare("SPRITE"))     rendTech = GRASSTECH_SPRITE;
+        gLayer->setRenderTechnique( rendTech,
+                                    Ogre::StringConverter::parseBool(pSubElement->first_attribute("blend")->value()) );
+
+        tempStr = pSubElement->first_attribute("fadeTechnique")->value();
+        FadeTechnique fadeTech;
+        if(!tempStr.compare("ALPHA")) fadeTech = FADETECH_ALPHA; else
+        if(!tempStr.compare("GROW"))  fadeTech = FADETECH_GROW; else
+        if(!tempStr.compare("ALPHAGROW")) fadeTech = FADETECH_ALPHAGROW;
+        gLayer->setFadeTechnique(fadeTech);
+        
+        // animation
+        pSubElement = pElement->first_node("animation");
+        gLayer->setAnimationEnabled(Ogre::StringConverter::parseBool(pSubElement->first_attribute("animate")->value()));
+        gLayer->setSwayLength(Ogre::StringConverter::parseReal(pSubElement->first_attribute("swayLength")->value()));
+        gLayer->setSwaySpeed(Ogre::StringConverter::parseReal(pSubElement->first_attribute("swaySpeed")->value()));
+        gLayer->setSwayDistribution(Ogre::StringConverter::parseReal(pSubElement->first_attribute("swayDistribution")->value()));
+
+        // next layer
+        pElement = pElement->next_sibling("grassLayer");
+    }	
+
+    mSceneMgr->destroyCamera(tempCam);
 }
 
 void DotSceneLoader::processUserDataReference(rapidxml::xml_node<>* XMLNode, Ogre::SceneNode *pParent)
@@ -722,25 +876,24 @@ void DotSceneLoader::processEntity(rapidxml::xml_node<>* XMLNode, Ogre::SceneNod
         pEntity = mSceneMgr->createEntity(name, meshFile);
         pEntity->setCastShadows(castShadows);
         pParent->attachObject(pEntity);
-
 		pEntity->setQueryFlags(mQueryflags);
-		
+
         if(!materialFile.empty())
             pEntity->setMaterialName(materialFile);
-		
-		// Process subentity (*)
-		/* if materials defined within subentities, those
-		   materials will be used instead of the materialFile */
-		pElement = XMLNode->first_node("subentities");
+        
+        // Process subentity (*)
+        /* if materials defined within subentities, those
+           materials will be used instead of the materialFile */
+        pElement = XMLNode->first_node("subentities");
 
-		if(pElement)
-		{
-			processSubEntity(pElement, pEntity);
-		}else{
-			// if the .scene file contains the subentites without
-			// the <subentities> </subentities>
-			processSubEntity(XMLNode, pEntity);
-		}
+        if(pElement)
+        {
+            processSubEntity(pElement, pEntity);
+        }else{
+            // if the .scene file contains the subentites without
+            // the <subentities> </subentities>
+            processSubEntity(XMLNode, pEntity);
+        }
     }
     catch(Ogre::Exception &/*e*/)
     {
@@ -757,32 +910,32 @@ void DotSceneLoader::processEntity(rapidxml::xml_node<>* XMLNode, Ogre::SceneNod
 
 void DotSceneLoader::processSubEntity(rapidxml::xml_node<>* XMLNode, Ogre::Entity *pEntity){
     rapidxml::xml_node<>* pElement;
-	int index = 0;
-	Ogre::String materialName;
-	Ogre::String sIndex;
+    int index = 0;
+    Ogre::String materialName;
+    Ogre::String sIndex;
 
     // Process subentity
     pElement = XMLNode->first_node("subentity");
-	
-	while(pElement){
-		
-		sIndex.clear();
-		materialName.clear();
+    
+    while(pElement){
+        
+        sIndex.clear();
+        materialName.clear();
 
-		sIndex = getAttrib(pElement, "index");				// submesh index
-		materialName = getAttrib(pElement, "materialName");	// new material for submesh
-		
-		if(!sIndex.empty() && !materialName.empty()){
-			
-			index = Ogre::StringConverter::parseInt(sIndex);
-			try{
-				pEntity->getSubEntity(index)->setMaterialName(materialName);
-			} catch (...){
-				Ogre::LogManager::getSingleton().logMessage("[DotSceneLoader] Subentity material index invalid!");
-			}
-		}
-		pElement = pElement->next_sibling("subentity");
-	}
+        sIndex = getAttrib(pElement, "index");				// submesh index
+        materialName = getAttrib(pElement, "materialName");	// new material for submesh
+        
+        if(!sIndex.empty() && !materialName.empty()){
+            
+            index = Ogre::StringConverter::parseInt(sIndex);
+            try{
+                pEntity->getSubEntity(index)->setMaterialName(materialName);
+            } catch (...){
+                Ogre::LogManager::getSingleton().logMessage("[DotSceneLoader] Subentity material index invalid!");
+            }
+        }
+        pElement = pElement->next_sibling("subentity");
+    }
 }
 
 void DotSceneLoader::processParticleSystem(rapidxml::xml_node<>* XMLNode, Ogre::SceneNode *pParent)
@@ -830,9 +983,9 @@ void DotSceneLoader::processPlane(rapidxml::xml_node<>* XMLNode, Ogre::SceneNode
                         name + "mesh", m_sGroupName, plane, width, height, xSegments, ySegments, hasNormals,
     numTexCoordSets, uTile, vTile, up);
     Ogre::Entity* ent = mSceneMgr->createEntity(name, name + "mesh");
-	ent->setQueryFlags(mQueryflags);
+	
     ent->setMaterialName(material);
-
+	ent->setQueryFlags(mQueryflags);
     pParent->attachObject(ent);
 }
 

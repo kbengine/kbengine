@@ -5,15 +5,15 @@ import time
 import KBEngine
 import wtimer
 from KBEDebug import *
-from interfaces.GameObject import GameObject
 from interfaces.Combat import Combat
 from interfaces.Spell import Spell
 from interfaces.Motion import Motion
 from interfaces.State import State
 from interfaces.Flags import Flags
 from interfaces.AI import AI
+from interfaces.NPCObject import NPCObject
 
-class Monster(GameObject, 
+class Monster(NPCObject, 
 			Flags,
 			State,
 			Motion, 
@@ -21,7 +21,7 @@ class Monster(GameObject,
 			Spell, 
 			AI):
 	def __init__(self):
-		GameObject.__init__(self)
+		NPCObject.__init__(self)
 		Flags.__init__(self) 
 		State.__init__(self) 
 		Motion.__init__(self) 
@@ -116,9 +116,16 @@ class Monster(GameObject,
 		"""
 		AI.onRemoveEnemy(self, entityID)
 		Combat.onRemoveEnemy(self, entityID)
+
+	def onDestroy(self):
+		"""
+		entity销毁
+		"""
+		NPCObject.onDestroy(self)
+		Combat.onDestroy(self)
 		
 Monster._timermap = {}
-Monster._timermap.update(GameObject._timermap)
+Monster._timermap.update(NPCObject._timermap)
 Monster._timermap.update(Flags._timermap)
 Monster._timermap.update(State._timermap)
 Monster._timermap.update(Motion._timermap)

@@ -3,6 +3,11 @@
 	</Implements>
 
 	<Properties>
+		<spawnID>
+			<Type>			ENTITY_ID		</Type>
+			<Flags>			CELL_PRIVATE		</Flags>
+		</spawnID>
+
 		<spawnPos>
 			<Type>			VECTOR3			</Type>
 			<Flags>			CELL_PRIVATE		</Flags>
@@ -10,7 +15,7 @@
 		</spawnPos>
 
 		<entityNO>
-			<Type>			UINT32			</Type>
+			<Type>			ENTITY_NO		</Type>
 			<Utype> 		91007			</Utype>
 			<Flags>			ALL_CLIENTS		</Flags>
 			<Default>		0			</Default>

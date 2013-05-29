@@ -29,34 +29,43 @@ private:
 	};
 public:
 	EntitySimple(SpaceWorld* pSpace, KBEngine::ENTITY_ID eid);
-	~EntitySimple();
+	virtual ~EntitySimple();
 
 	virtual Ogre::Real calcDistanceAboveTerrain()
 	{ 
 		if(modelID_ == 1001)
+			return 1.0f; 
+
+		if(modelID_ == 1002)
 			return 0.f; 
 
 		return 1.8f; 
 	}
 
+	virtual void setDirection(float yaw, float pitch, float roll)
+	{
+		KBEntity::setDirection(yaw, pitch, roll);
+
+		if(modelID_ == 1002)
+		{
+			mBodyNode->yaw(Ogre::Degree(180));
+		}
+	}
+
 	virtual void scale(float x, float y, float z)
 	{
-		if(modelID_ == 1001)
-			mScale = 2.0f;
-		else
-			mScale = 0.7f;
-
-		onScale();
+		scale((x + y + z) / 3.0f);
 	}
 
 	virtual void scale(float v)
 	{
-		if(modelID_ == 1001)
-			v = 2.0f;
+		if(modelID_ == 1002)
+			mScale = 2.0f;
+		else if(modelID_ == 1003)
+			mScale = 0.7f;
 		else
-			v = 0.7f;
+			mScale = 0.03f;
 
-		mScale = v;
 		onScale();
 	}
 

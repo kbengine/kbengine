@@ -23,6 +23,8 @@
     {
         class PagedGeometry;
         class TreeLoader3D;
+        class GrassLoader;
+        class GrassLayer;
     }
 
     class nodeProperty
@@ -55,7 +57,7 @@
         std::vector<Ogre::String> dynamicObjects;
         std::vector<Forests::PagedGeometry *> mPGHandles;
         std::vector<Forests::TreeLoader3D *> mTreeHandles;
-
+        Forests::GrassLoader* mGrassLoaderHandle;                /** Handle to Forests::GrassLoader object */
     protected:
         void processScene(rapidxml::xml_node<>* XMLRoot);
 
@@ -64,6 +66,7 @@
         void processEnvironment(rapidxml::xml_node<>* XMLNode);
         void processTerrain(rapidxml::xml_node<>* XMLNode);
         void processTerrainPage(rapidxml::xml_node<>* XMLNode);
+        void processGrassLayers(rapidxml::xml_node<>* XMLNode);
         void processBlendmaps(rapidxml::xml_node<>* XMLNode);
         void processUserDataReference(rapidxml::xml_node<>* XMLNode, Ogre::SceneNode *pParent = 0);
         void processUserDataReference(rapidxml::xml_node<>* XMLNode, Ogre::Entity *pEntity);
@@ -106,8 +109,12 @@
         Ogre::TerrainGroup* mTerrainGroup;
         Ogre::Vector3 mTerrainPosition;
         Ogre::Vector3 mLightDirection;
-        
-       	Ogre::uint32 mQueryflags;
+
+        // paged geometry related values
+        int mPGPageSize;
+        int mPGDetailDistance;
+
+		Ogre::uint32 mQueryflags;
     };
 
 #endif // DOT_SCENELOADER_H

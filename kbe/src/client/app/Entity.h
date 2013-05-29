@@ -24,7 +24,7 @@ class KBEntity
 public:
 	
 	KBEntity(SpaceWorld* pSpace, KBEngine::ENTITY_ID eid);
-	~KBEntity();
+	virtual ~KBEntity();
 
 	KBEngine::ENTITY_ID id()const{ return mID; }
 
@@ -98,21 +98,21 @@ public:
 	
 	void setHighlighted( bool highlight );
 
-	void setDestDirection(float yaw, float pitch, float roll)
+	virtual void setDestDirection(float yaw, float pitch, float roll)
 	{
 		destDir_.x = roll;
 		destDir_.y = pitch;
 		destDir_.z = yaw;
 	}
 
-	void setDestPosition(float x, float y, float z)
+	virtual void setDestPosition(float x, float y, float z)
 	{
 		destPos_.x = x;
 		destPos_.y = y;
 		destPos_.z = z;
 	}
 
-	void setDirection(float yaw, float pitch, float roll)
+	virtual void setDirection(float yaw, float pitch, float roll)
 	{
 		//Ogre::Vector3 dir(-yaw, roll, pitch);
 		//mBodyNode->setFixedYawAxis(true); 
@@ -130,7 +130,7 @@ public:
 		currDir_.x = roll;
 	}
 
-	void setPosition(float x, float y, float z)
+	virtual void setPosition(float x, float y, float z)
 	{
 		lastPos_.x = x;
 		lastPos_.y = y;

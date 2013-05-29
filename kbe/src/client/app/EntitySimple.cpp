@@ -84,10 +84,12 @@ void EntitySimple::addTime(Real deltaTime)
 //-------------------------------------------------------------------------------------
 void EntitySimple::setupBody(SceneManager* sceneMgr)
 {
-	if(modelID_ == 1001)
+	if(modelID_ == 1002)
 		modelName_ = "dwarf.mesh";
-	else
+	else if(modelID_ == 1003)
 		modelName_ = "Ogre.mesh";
+	else
+		modelName_ = "ogrehead.mesh";
 
 	KBEntity::setupBody(sceneMgr);
 }
@@ -145,9 +147,6 @@ void EntitySimple::playAnimation(Ogre::String name)
 	if(name != "Die" && mState == 1)
 		name = "Die";
 
-	if(mLastAnimName == name)
-		return;
-
 	AnimationState* astate = NULL;
 	bool loopplay = true;
 
@@ -156,25 +155,32 @@ void EntitySimple::playAnimation(Ogre::String name)
 		srand((unsigned)time(NULL));
 
 		if(mState == 3)
-			astate = mAnims[ANIM_BATTLEIDLE1 + rand() % 1];
+			astate = mAnims[ANIM_BATTLEIDLE1 + (rand() % 1)];
 		else
-			astate = mAnims[ANIM_IDLE_1 + rand() % 1];
+			astate = mAnims[ANIM_IDLE_1 + (rand() % 1)];
 
 		assert(mState != 1);
 	}
 	else if(name == "Die")
 	{
+		if(mLastAnimName == name)
+			return;
+
 		srand((unsigned)time(NULL));
-		astate = mAnims[ANIM_DIE1 + rand() % 1];
+		astate = mAnims[ANIM_DIE1 + (rand() % 1)];
 		loopplay = false;
 	}
 	else if(name == "Attack")
 	{
 		srand((unsigned)time(NULL));
-		astate = mAnims[ANIM_ATTACK1 + rand() % 4];
+		int attackID = ANIM_ATTACK1 + (rand() % 4);
+		astate = mAnims[attackID];
 	}
 	else
 	{
+		if(mLastAnimName == name)
+			return;
+
 		for (int i = 0; i < SIMPLE_NUM_ANIMS; i++)
 		{
 			if(name == animNames[i])
@@ -185,6 +191,9 @@ void EntitySimple::playAnimation(Ogre::String name)
 		}
 	}
 	
+	if(astate == NULL)
+		return;
+
 	if(mLastAnims)
 		mLastAnims->setEnabled(false);
 

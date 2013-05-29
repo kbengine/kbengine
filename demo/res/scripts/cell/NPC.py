@@ -4,14 +4,20 @@ import math
 import time
 import KBEngine
 from KBEDebug import *
-from interfaces.GameObject import GameObject
+from interfaces.NPCObject import NPCObject
 from interfaces.Motion import Motion
 
-class NPC(GameObject, Motion):
+class NPC(NPCObject, Motion):
 	def __init__(self):
-		GameObject.__init__(self)
+		NPCObject.__init__(self)
 		Motion.__init__(self)
+
+	def onDestroy(self):
+		"""
+		entity销毁
+		"""
+		NPCObject.onDestroy(self)
 		
 NPC._timermap = {}
-NPC._timermap.update(GameObject._timermap)
+NPC._timermap.update(NPCObject._timermap)
 NPC._timermap.update(Motion._timermap)

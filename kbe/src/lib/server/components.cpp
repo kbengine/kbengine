@@ -584,7 +584,9 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 		
 		if(recvsize != len)
 		{
-			ERROR_MSG("Components::checkComponentUsable: packet invalid.\n");
+			ERROR_MSG(boost::format("Components::checkComponentUsable: packet invalid(recvsize(%1%) != ctype_cid_len(%2%).\n") 
+				% len % recvsize);
+
 			return true;
 		}
 
@@ -592,7 +594,9 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 
 		if(ctype != info->componentType || cid != info->cid)
 		{
-			ERROR_MSG("Components::checkComponentUsable: invalid component.\n");
+			ERROR_MSG(boost::format("Components::checkComponentUsable: invalid component(ctype=%1%, cid=%2%).\n") %
+				ctype % cid);
+
 			return false;
 		}
 	}

@@ -176,8 +176,10 @@ class AI:
 		virtual method.
 		entity状态改变了
 		"""
-		pass
-
+		if self.isState(GlobalDefine.ENTITY_STATE_DEAD):
+			if self.isMoving:
+				self.stopMotion()
+				
 	def onSubStateChanged_(self, oldSubState, newSubState):
 		"""
 		virtual method.

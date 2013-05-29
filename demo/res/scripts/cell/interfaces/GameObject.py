@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import KBEngine
-from KBEDebug import * 
 import d_spaces
 import wtimer
+import GlobalDefine
+from KBEDebug import * 
 
 class GameObject(KBEngine.Entity):
 	def __init__(self):
@@ -47,7 +48,24 @@ class GameObject(KBEngine.Entity):
 		获取场景管理器
 		"""
 		return KBEngine.globalData["SpaceMgr"]
-
+	
+	def startDestroyTimer(self):
+		"""
+		virtual method.
+		
+		启动销毁entitytimer
+		"""
+		if self.isState(GlobalDefine.ENTITY_STATE_DEAD):
+			self.addTimer(5, 0, wtimer.TIMER_TYPE_DESTROY)
+			DEBUG_MSG("%s::startDestroyTimer: %i running." % (self.getScriptName(), self.id))
+			
+	def onStateChanged_(self, oldstate, newstate):
+		"""
+		virtual method.
+		entity状态改变了
+		"""
+		self.startDestroyTimer()
+			
 	def onWitnessed(self, isWitnessed):
 		"""
 		KBEngine method.
@@ -82,5 +100,12 @@ class GameObject(KBEngine.Entity):
 		entity的cell部分实体被恢复成功
 		"""
 		DEBUG_MSG("%s::onRestore: %s" % (self.getScriptName(), self.base))
+
+	def onDestroyEntityTimer(self, tid, tno):
+		"""
+		entity的延时销毁timer
+		"""
+		self.destroy()
 		
 GameObject._timermap = {}
+GameObject._timermap[wtimer.TIMER_TYPE_DESTROY] = GameObject.onDestroyEntityTimer

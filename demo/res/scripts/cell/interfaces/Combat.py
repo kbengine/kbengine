@@ -90,6 +90,12 @@ class Combat(CombatPropertys):
 		是否可死亡
 		"""
 		return True
+
+	def onDestroy(self):
+		"""
+		entity销毁
+		"""
+		pass
 		
 	def recvDamage(self, attackerID, skillID, damageType, damage):
 		"""

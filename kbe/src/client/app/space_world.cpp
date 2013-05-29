@@ -144,6 +144,11 @@ void SpaceWorld::createScene(void)
 	pSelDecalObj_ = new DecalObject("Examples/Sel_Decal", this, 1.0f, 1.5f);
 
 	pLensflare_ = new LensFlare(Ogre::Vector3(3000, 2000, 0), mActiveCamera, mSceneMgr);
+
+    for(unsigned int ij = 0;ij < mLoader->mPGHandles.size();ij++)
+    {
+        mLoader->mPGHandles[ij]->setCamera(mActiveCamera);
+    }
 }
 
 //----------------------------------------------------------------------------------------

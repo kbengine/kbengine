@@ -26,6 +26,13 @@ class SpawnPoint(GameObject):
 		"""
 		DEBUG_MSG("onDestroy(%i)" % self.id)
 	
+	def onEntityDestroyed(self, entityNO):
+		"""
+		defined.
+		出生的entity销毁了 需要重建?
+		"""
+		self.addTimer(1, 0, wtimer.TIMER_TYPE_SPAWN)
+		
 	def spawnTimer(self, tid, tno):
 		datas = d_entities.datas.get(self.spawnEntityNO)
 		
@@ -34,6 +41,7 @@ class SpawnPoint(GameObject):
 			return
 			
 		params = {
+			"spawnID"	: self.id,
 			"spawnPos" : tuple(self.position),
 			"uid" : datas["id"],
 			"utype" : datas["etype"],

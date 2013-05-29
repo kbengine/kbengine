@@ -61,6 +61,10 @@ KBEntity::~KBEntity()
 		pDamageLabel_ = NULL;
 	}
 
+	if(pNameLabelNode_)mSceneMgr->destroySceneNode(pNameLabelNode_);
+	if(pDamageLabelNode_)mSceneMgr->destroySceneNode(pDamageLabelNode_);
+	if(pHudNode_)mSceneMgr->destroySceneNode(pHudNode_);
+
 	if(mBodyEnt)mSceneMgr->destroyEntity(mBodyEnt);
 
 	if(mBodyNode)mSceneMgr->destroySceneNode(mBodyNode);
