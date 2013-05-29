@@ -34,7 +34,7 @@ public:
 	virtual Ogre::Real calcDistanceAboveTerrain()
 	{ 
 		if(modelID_ == 1001)
-			return 1.0f; 
+			return 0.8f; 
 
 		if(modelID_ == 1002)
 			return 0.f; 

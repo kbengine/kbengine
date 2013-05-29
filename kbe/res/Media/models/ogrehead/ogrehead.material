@@ -41,26 +41,29 @@ material Ogre/Tusks
 	{
 		pass
 		{
-			ambient 0.7 0.7 0.6
+			ambient 0.5 0.5 0.4
+			diffuse 1 1 0.8
 
 			texture_unit
 			{
-				texture tusk.jpg
-				scale 0.2 0.2
+				texture dirt01.jpg
+				colour_op_ex add src_texture src_current
+				colour_op_multipass_fallback one one
 			}
 		}
 	}
 }
-
 material Ogre/Eyes
 {
 	technique
 	{
 		pass
 		{
-			ambient 1 0.4 0.4
-			diffuse 1 0.7 0
-			emissive 0.3 0.1 0
+
+			texture_unit
+			{
+				texture WeirdEye.png
+			}
 		}
 	}
 }

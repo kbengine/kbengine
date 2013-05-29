@@ -71,6 +71,7 @@ class Monster(NPCObject,
 		"""
 		State.onStateChanged_(self, oldstate, newstate)
 		AI.onStateChanged_(self, oldstate, newstate)
+		NPCObject.onStateChanged_(self, oldstate, newstate)
 		
 	def onSubStateChanged_(self, oldSubState, newSubState):
 		"""

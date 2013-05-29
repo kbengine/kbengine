@@ -69,15 +69,22 @@ public:
 
 	virtual void setState(int state)
 	{
+		int oldstate = mState;
 		mState = state;
-		onStateChanged();
+		onStateChanged(oldstate);
 	}
 	
-	virtual void onStateChanged()
+	virtual void onStateChanged(int oldstate)
 	{
-		
+		if(oldstate == 1 && mState == 0)
+		{
+			hp_ = hp_max_;
+			updateHPHud();
+		}
 	}
 	
+	void updateHPHud();
+
 	void setHPMAX(int v)
 	{
 		hp_max_ = v;

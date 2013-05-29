@@ -270,7 +270,12 @@ void KBEntity::recvDamage(KBEntity* attacker, uint32 skillID, uint32 damageType,
 	}
 
 	hp_ -= damage;
-	
+	updateHPHud();
+}
+
+//-------------------------------------------------------------------------------------
+void KBEntity::updateHPHud()
+{
 	if(hp_max_ <= 0)
 		return;
 
