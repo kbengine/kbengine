@@ -128,6 +128,20 @@ Entity::~Entity()
 }	
 
 //-------------------------------------------------------------------------------------
+void Entity::installRangeNodes(RangeList* pRangeList)
+{
+	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
+		pRangeList->insert((KBEngine::RangeNode*)pEntityRangeNode());
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::uninstallRangeNodes(RangeList* pRangeList)
+{
+	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
+		pRangeList->remove((KBEngine::RangeNode*)pEntityRangeNode());
+}
+
+//-------------------------------------------------------------------------------------
 void Entity::onDestroy(void)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);

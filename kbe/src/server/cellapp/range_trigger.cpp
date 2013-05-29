@@ -53,6 +53,13 @@ RangeTriggerNode::~RangeTriggerNode()
 }
 
 //-------------------------------------------------------------------------------------
+void RangeTriggerNode::onParentRemove(RangeNode* pParentNode)
+{
+	if((flags() & RANGENODE_FLAG_REMOVE) <= 0)
+		pParentNode->pRangeList()->remove(this);
+}
+
+//-------------------------------------------------------------------------------------
 float RangeTriggerNode::x()const 
 {
 	return pRangeTrigger_->origin()->x() + range_xz_; 
@@ -140,8 +147,11 @@ bool RangeTrigger::install()
 //-------------------------------------------------------------------------------------
 bool RangeTrigger::uninstall(bool isDestroy)
 {
-	if(positiveBoundary_)origin_->pRangeList()->remove(positiveBoundary_);
-	if(negativeBoundary_)origin_->pRangeList()->remove(negativeBoundary_);
+	if(positiveBoundary_ && positiveBoundary_->pRangeList())
+		positiveBoundary_->pRangeList()->remove(positiveBoundary_);
+
+	if(negativeBoundary_ && negativeBoundary_->pRangeList())
+		negativeBoundary_->pRangeList()->remove(negativeBoundary_);
 
 	if(isDestroy)
 	{

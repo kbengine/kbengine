@@ -63,6 +63,11 @@ public:
 	}
 
 	/**
+		父节点删除
+	*/
+	virtual void onParentRemove(RangeNode* pParentNode);
+
+	/**
 		某个节点变动经过了本节点
 		@isfront: 向前移动还是向后移动
 	*/

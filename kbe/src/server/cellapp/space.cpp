@@ -82,8 +82,7 @@ void Space::addEntity(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Space::addEntityToNode(Entity* pEntity)
 {
-	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
-		rangeList_.insert((KBEngine::RangeNode*)pEntity->pEntityRangeNode());
+	pEntity->installRangeNodes(&rangeList_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -107,8 +106,7 @@ void Space::removeEntity(Entity* pEntity)
 	onLeaveWorld(pEntity);
 
 	// 这句必须在onLeaveWorld之后， 因为可能rangeTrigger需要参考pEntityRangeNode
-	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
-		rangeList_.remove((KBEngine::RangeNode*)pEntity->pEntityRangeNode());
+	pEntity->uninstallRangeNodes(&rangeList_);
 
 	// 如果没有entity了则需要销毁space, 因为space最少存在一个entity
 	// 这个entity通常是spaceEntity

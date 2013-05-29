@@ -50,6 +50,8 @@ public:
 
 	static void entitiesInRange(std::vector<Entity*>& findentities, RangeNode* rootNode, 
 		const Position3D& orginpos, float radius, int entityUType = -1);
+
+	virtual void onRemove();
 protected:
 	Entity* pEntity_;
 

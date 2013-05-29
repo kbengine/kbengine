@@ -52,6 +52,7 @@ class EntityMailbox;
 class Cellapp;
 class Witness;
 class AllClients;
+class RangeList;
 class EntityRangeNode;
 class Controller;
 class Controllers;
@@ -423,6 +424,12 @@ public:
 		获取entity所在节点
 	*/
 	INLINE EntityRangeNode* pEntityRangeNode()const;
+
+	/**
+		安装卸载节点
+	*/
+	void installRangeNodes(RangeList* pRangeList);
+	void uninstallRangeNodes(RangeList* pRangeList);
 private:
 	/** 
 		发送teleport结果到base端

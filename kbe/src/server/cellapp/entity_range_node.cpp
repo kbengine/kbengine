@@ -76,6 +76,18 @@ void EntityRangeNode::update()
 }
 
 //-------------------------------------------------------------------------------------
+void EntityRangeNode::onRemove()
+{
+	std::vector<RangeNode*>::iterator iter = watcherNodes_.begin();
+	for(; iter != watcherNodes_.end(); iter++)
+	{
+		(*iter)->onParentRemove(this);
+	}
+
+	RangeNode::onRemove();
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityRangeNode::addWatcherNode(RangeNode* pNode)
 {
 	std::vector<RangeNode*>::iterator iter = std::find(watcherNodes_.begin(), watcherNodes_.end(), pNode);

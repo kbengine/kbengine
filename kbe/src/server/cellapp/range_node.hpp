@@ -104,6 +104,11 @@ public:
 	virtual void onRemove();
 
 	/**
+		父节点删除
+	*/
+	virtual void onParentRemove(RangeNode* pParentNode){}
+
+	/**
 		当节点有变动时，需要更新它在list中的
 		相关位置等信息
 	*/
