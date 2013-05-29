@@ -589,8 +589,13 @@ void Channel::processPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 		}
 	}catch(MemoryStreamException &)
 	{
-		WARNING_MSG(boost::format("Channel::processPackets(%1%): packet invalid. currMsgID=%2%, currMsgLen=%3%\n") %
-																this->c_str() % currMsgID_ % currMsgLen_);
+		Mercury::MessageHandler* pMsgHandler = pMsgHandlers->find(currMsgID_);
+		WARNING_MSG(boost::format("Channel::processPackets(%1%): packet invalid. currMsg=(name=%2%, id=%3%, len=%4%), currMsgLen=%5%\n") %
+			this->c_str() 
+			% (pMsgHandler == NULL ? "unknown" : pMsgHandler->name) 
+			% currMsgID_ 
+			% (pMsgHandler == NULL ? -1 : pMsgHandler->msgLen) 
+			% currMsgLen_);
 
 		currMsgID_ = 0;
 		currMsgLen_ = 0;

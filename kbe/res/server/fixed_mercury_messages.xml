@@ -1,4 +1,19 @@
 <root>
+	<Machine::onFindInterfaceAddr>
+		<id>1</id>
+		<descr>寻找组件接口地址。</descr>
+	</Machine::onFindInterfaceAddr>
+
+	<Machine::startserver>
+		<id>2</id>
+		<descr>启动服务器。</descr>
+	</Machine::startserver>
+	
+	<Machine::stopserver>
+		<id>3</id>
+		<descr>停止服务器。</descr>
+	</Machine::stopserver>
+	
 	<Loginapp::reqClose>
 		<id>1</id>
 		<descr>客户端请求断线。</descr>
