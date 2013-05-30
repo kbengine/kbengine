@@ -36,7 +36,8 @@ billingSystem_thirdpartyAccountServiceAddr_(""),
 billingSystem_thirdpartyAccountServicePort_(80),
 billingSystem_thirdpartyChargeServiceAddr_(""),
 billingSystem_thirdpartyChargeServicePort_(80),
-billingSystem_thirdpartyServiceCBPort_(0)
+billingSystem_thirdpartyServiceCBPort_(0),
+shutdown_time_(1)
 {
 }
 
@@ -107,6 +108,12 @@ bool ServerConfig::loadConfig(std::string fileName)
 	if(rootNode != NULL)
 	{
 		g_appPublish = xml->getValInt(rootNode);
+	}
+
+	rootNode = xml->getRootNode("shutdown_time");
+	if(rootNode != NULL)
+	{
+		shutdown_time_ = xml->getValInt(rootNode);
 	}
 	
 	rootNode = xml->getRootNode("channelCommon");

@@ -108,6 +108,9 @@
 		<encrypt_type> 1 </encrypt_type>
 	</channelCommon> 
 	
+	<!-- 关服倒计时(秒) -->
+	<shutdown_time> 60 </shutdown_time>
+	
 	<billingSystem>
 		<!-- normal: 普通, thirdparty: 第三方此时需要提供ip地址 -->
 		<type> normal </type>

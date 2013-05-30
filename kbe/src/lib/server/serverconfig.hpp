@@ -230,6 +230,8 @@ public:
 	uint16 billingSystem_thirdpartyChargeServicePort_;	
 	uint16 billingSystem_thirdpartyServiceCBPort_;	
 	uint32 billingSystem_orders_timeout_;
+
+	uint32 shutdown_time_;
 };
 
 #define g_kbeSrvConfig ServerConfig::getSingleton()
