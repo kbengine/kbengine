@@ -28,6 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle_broadcast.hpp"
 #include "thread/threadpool.hpp"
 #include "server/componentbridge.hpp"
+#include "server/component_active_report_handler.hpp"
 
 #include "../baseappmgr/baseappmgr_interface.hpp"
 #include "../cellappmgr/cellappmgr_interface.hpp"
@@ -423,7 +424,7 @@ bool Machine::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Machine::initializeEnd()
 {
-	pActiveTimerHandle_.cancel(); // machine不需要与其他组件保持活动状态关系
+	pActiveTimerHandle_->cancel(); // machine不需要与其他组件保持活动状态关系
 	return true;
 }
 

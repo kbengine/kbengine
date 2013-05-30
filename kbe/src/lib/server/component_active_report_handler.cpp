@@ -48,6 +48,12 @@ ComponentActiveReportHandler::ComponentActiveReportHandler(ServerApp* pApp) :
 //-------------------------------------------------------------------------------------
 ComponentActiveReportHandler::~ComponentActiveReportHandler()
 {
+	cancel();
+}
+
+//-------------------------------------------------------------------------------------
+void ComponentActiveReportHandler::cancel()
+{
 	pActiveTimerHandle_.cancel();
 }
 
