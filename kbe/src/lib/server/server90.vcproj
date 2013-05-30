@@ -159,6 +159,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\component_active_report_handler.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\componentbridge.cpp"
 				>
 			</File>
@@ -238,6 +242,10 @@
 			</File>
 			<File
 				RelativePath=".\common.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\component_active_report_handler.hpp"
 				>
 			</File>
 			<File

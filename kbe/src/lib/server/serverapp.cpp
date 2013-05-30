@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "serverapp.hpp"
+#include "server/component_active_report_handler.hpp"
 #include "server/serverconfig.hpp"
 #include "server/componentbridge.hpp"
 #include "network/channel.hpp"
@@ -62,14 +63,15 @@ networkInterface_(ninterface),
 timers_(),
 startGlobalOrder_(-1),
 startGroupOrder_(-1),
-pActiveTimerHandle_(),
+pActiveTimerHandle_(NULL),
 threadPool_()
 {
 	networkInterface_.pExtensionData(this);
 	networkInterface_.pChannelTimeOutHandler(this);
 	networkInterface_.pChannelDeregisterHandler(this);
 
-	startActiveTick(KBE_MAX(1.f, Mercury::g_channelInternalTimeout / 2.0f));
+	pActiveTimerHandle_ = new ComponentActiveReportHandler(this);
+	pActiveTimerHandle_->startActiveTick(KBE_MAX(1.f, Mercury::g_channelInternalTimeout / 2.0f));
 
 	// 默认所有app都设置为这个值， 如果需要调整则各自在派生类重新赋值
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
@@ -78,7 +80,7 @@ threadPool_()
 //-------------------------------------------------------------------------------------
 ServerApp::~ServerApp()
 {
-	pActiveTimerHandle_.cancel();
+	SAFE_RELEASE(pActiveTimerHandle_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -194,8 +196,6 @@ void ServerApp::finalise(void)
 {
 	ProfileGroup::finalise();
 	threadPool_.finalise();
-	pActiveTimerHandle_.cancel();
-
 	Mercury::finalise();
 }
 
@@ -210,46 +210,9 @@ void ServerApp::handleTimeout(TimerHandle, void * arg)
 {
 	switch (reinterpret_cast<uintptr>(arg))
 	{
-		case TIMEOUT_ACTIVE_TICK:
-		{
-			int8 findComponentTypes[] = {BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, DBMGR_TYPE, CELLAPP_TYPE, 
-								BASEAPP_TYPE, LOGINAPP_TYPE, MESSAGELOG_TYPE, RESOURCEMGR_TYPE, UNKNOWN_COMPONENT_TYPE};
-			
-			int ifind = 0;
-			while(findComponentTypes[ifind] != UNKNOWN_COMPONENT_TYPE)
-			{
-				COMPONENT_TYPE componentType = (COMPONENT_TYPE)findComponentTypes[ifind];
-
-				Components::COMPONENTS& components = Components::getSingleton().getComponents(componentType);
-				Components::COMPONENTS::iterator iter = components.begin();
-				for(; iter != components.end(); iter++)
-				{
-					Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-					COMMON_MERCURY_MESSAGE(componentType, (*pBundle), onAppActiveTick);
-					
-					(*pBundle) << g_componentType;
-					(*pBundle) << componentID_;
-					if((*iter).pChannel != NULL)
-						(*pBundle).send(getNetworkInterface(), (*iter).pChannel);
-
-					Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-				}
-
-				ifind++;
-			}
-			break;
-		}
 		default:
 			break;
 	}
-}
-
-//-------------------------------------------------------------------------------------
-void ServerApp::startActiveTick(float period)
-{
-	pActiveTimerHandle_.cancel();
-	pActiveTimerHandle_ = getMainDispatcher().addTimer(int(period * 1000000),
-									this, (void *)TIMEOUT_ACTIVE_TICK);
 }
 
 //-------------------------------------------------------------------------------------

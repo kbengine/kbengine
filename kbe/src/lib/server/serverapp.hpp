@@ -58,6 +58,8 @@ namespace Mercury
 class Channel;
 }
 
+class ComponentActiveReportHandler;
+
 class ServerApp : 
 	public SignalHandler, 
 	public TimerHandler, 
@@ -68,7 +70,6 @@ class ServerApp :
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_ACTIVE_TICK,
 		TIMEOUT_SERVERAPP_MAX
 	};
 public:
@@ -95,7 +96,6 @@ public:
 	virtual bool loadConfig();
 	const char* name(){return COMPONENT_NAME_EX(componentType_);}
 	
-	void startActiveTick(float period);
 	virtual void handleTimeout(TimerHandle, void * pUser);
 
 	GAME_TIME time() const { return g_kbetime; }
@@ -185,8 +185,7 @@ protected:
 	int32													startGlobalOrder_;
 	int32													startGroupOrder_;
 
-	TimerHandle												pActiveTimerHandle_;
-
+	ComponentActiveReportHandler*							pActiveTimerHandle_;
 
 	// Ïß³Ì³Ø
 	thread::ThreadPool										threadPool_;	

@@ -4,6 +4,7 @@ SRCS =				\
 	common			\
 	componentbridge		\
 	components		\
+	component_active_report_handler \
 	entity_app		\
 	eventhistory_stats	\
 	forward_messagebuffer	\
