@@ -1,7 +1,8 @@
 #!/bin/sh
 
-./billingsystem&
 ./kbmachine&
+sleep 1s
+./billingsystem&
 sleep 1s
 ./messagelog&
 sleep 1s
