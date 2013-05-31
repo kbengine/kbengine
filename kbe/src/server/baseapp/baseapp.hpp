@@ -89,6 +89,11 @@ public:
 	bool initializeEnd();
 	void finalise();
 	
+	virtual bool canShutdown();
+	virtual void onShutdownBegin();
+	virtual void onShutdown(bool first);
+	virtual void onShutdownEnd();
+
 	virtual bool initializeWatcher();
 
 	float getLoad()const { return load_; }

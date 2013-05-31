@@ -80,6 +80,12 @@ Dbmgr::~Dbmgr()
 }
 
 //-------------------------------------------------------------------------------------
+bool Dbmgr::canShutdown()
+{
+	return bufferedDBTasks_.size() == 0;
+}
+
+//-------------------------------------------------------------------------------------
 bool Dbmgr::initializeWatcher()
 {
 	WATCH_OBJECT("numWrittenEntity", numWrittenEntity_);

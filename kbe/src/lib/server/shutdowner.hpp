@@ -18,44 +18,44 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __BUFFERED_DBTASKS_H__
-#define __BUFFERED_DBTASKS_H__
+#ifndef __SHUTDOWNER_HANDLER__
+#define __SHUTDOWNER_HANDLER__
 
-// common include	
-// #define NDEBUG
-#include "dbtasks.hpp"
 #include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/memorystream.hpp"
-#include "thread/threadtask.hpp"
+#include "cstdkbe/timer.hpp"
 #include "helper/debug_helper.hpp"
+#include "server/shutdown_handler.hpp"
 
-namespace KBEngine{ 
+namespace KBEngine { 
+namespace Mercury{
+	class EventDispatcher;
+}
 
-/*
-	数据库线程任务buffer
-*/
-
-class Buffered_DBTasks
+class Shutdowner: public TimerHandler
 {
 public:
-	typedef std::multimap<DBID, EntityDBTask*> DBID_TASKS_MAP;  
-	typedef std::multimap<ENTITY_ID, EntityDBTask*> ENTITYID_TASKS_MAP;  
+	enum TimeOutType
+	{
+		TIMEOUT_SHUTDOWN_TICK,
+		TIMEOUT_SHUTDOWN_END_TICK,
+		TIMEOUT_MAX
+	};
 	
-	Buffered_DBTasks();
-	virtual ~Buffered_DBTasks();
+	Shutdowner(ShutdownHandler* pShutdownHandler);
+	virtual ~Shutdowner();
 	
-	bool hasTask(DBID dbid);
-	bool hasTask(ENTITY_ID entityID);
-
-	void addTask(EntityDBTask* pTask);
-
-	void onFiniTask(EntityDBTask* pTask);
-
-	size_t size(){ return dbid_tasks_.size() + entityid_tasks_.size(); }
+	void shutdown(float period, float tickPeriod, Mercury::EventDispatcher& dispatcher);
+	void cancel();
 protected:
-	DBID_TASKS_MAP dbid_tasks_;
-	ENTITYID_TASKS_MAP entityid_tasks_;
+	virtual void handleTimeout(TimerHandle handle, void * arg);
+
+	ShutdownHandler* pShutdownHandler_;
+	TimerHandle pTimerHandle_;
+	Mercury::EventDispatcher* pDispatcher_;
+	float tickPeriod_;
+
 };
 
 }
+
 #endif

@@ -83,6 +83,8 @@ public:
 
 	bool initDB();
 
+	virtual bool canShutdown();
+
 	/** 获取ID服务器指针 */
 	IDServer<ENTITY_ID>& idServer(void){ return idServer_; }
 

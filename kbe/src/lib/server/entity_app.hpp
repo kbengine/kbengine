@@ -122,7 +122,7 @@ public:
 	virtual void finalise();
 	virtual bool inInitialize();
 	virtual bool initialize();
-		
+
 	virtual void onSignalled(int sigNum);
 	
 	Entities<E>* pEntities()const{ return pEntities_; }

@@ -72,6 +72,8 @@ public:
 	bool initializeEnd();
 	void finalise();
 	
+	virtual void onShutdownBegin();
+
 	virtual void onHello(Mercury::Channel* pChannel, 
 		const std::string& verInfo, 
 		const std::string& encryptedKey);

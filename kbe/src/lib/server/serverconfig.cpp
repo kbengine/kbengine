@@ -113,9 +113,15 @@ bool ServerConfig::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("shutdown_time");
 	if(rootNode != NULL)
 	{
-		shutdown_time_ = xml->getValInt(rootNode);
+		shutdown_time_ = float(xml->getValFloat(rootNode));
 	}
 	
+	rootNode = xml->getRootNode("shutdown_waittick");
+	if(rootNode != NULL)
+	{
+		shutdown_waitTickTime_ = float(xml->getValFloat(rootNode));
+	}
+
 	rootNode = xml->getRootNode("channelCommon");
 	if(rootNode != NULL)
 	{
@@ -404,6 +410,16 @@ bool ServerConfig::loadConfig(std::string fileName)
 				_cellAppInfo.telnet_deflayer = xml->getValStr(childnode);
 			}
 		}
+
+		node = xml->enterNode(rootNode, "shutdown");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "perSecsDestroyEntitySize");
+			if(childnode)
+			{
+				_cellAppInfo.perSecsDestroyEntitySize = float(xml->getValFloat(childnode));
+			}
+		}
 	}
 	
 	rootNode = xml->getRootNode("baseapp");
@@ -534,6 +550,16 @@ bool ServerConfig::loadConfig(std::string fileName)
 			if(childnode)
 			{
 				_baseAppInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
+		}
+
+		node = xml->enterNode(rootNode, "shutdown");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "perSecsDestroyEntitySize");
+			if(childnode)
+			{
+				_baseAppInfo.perSecsDestroyEntitySize = float(xml->getValFloat(childnode));
 			}
 		}
 	}

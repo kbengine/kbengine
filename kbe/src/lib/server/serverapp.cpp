@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "serverapp.hpp"
 #include "server/component_active_report_handler.hpp"
+#include "server/shutdowner.hpp"
 #include "server/serverconfig.hpp"
 #include "server/componentbridge.hpp"
 #include "network/channel.hpp"
@@ -54,6 +55,7 @@ ServerApp::ServerApp(Mercury::EventDispatcher& dispatcher,
 					 COMPONENT_ID componentID):
 SignalHandler(),
 TimerHandler(),
+ShutdownHandler(),
 Mercury::ChannelTimeOutHandler(),
 Components::ComponentsNotificationHandler(),
 componentType_(componentType),
@@ -63,6 +65,7 @@ networkInterface_(ninterface),
 timers_(),
 startGlobalOrder_(-1),
 startGroupOrder_(-1),
+pShutdowner_(NULL),
 pActiveTimerHandle_(NULL),
 threadPool_()
 {
@@ -81,6 +84,32 @@ threadPool_()
 ServerApp::~ServerApp()
 {
 	SAFE_RELEASE(pActiveTimerHandle_);
+	SAFE_RELEASE(pShutdowner_);
+}
+
+//-------------------------------------------------------------------------------------	
+void ServerApp::shutDown()
+{
+	if(pShutdowner_ == NULL)
+		pShutdowner_ = new Shutdowner(this);
+
+	pShutdowner_->shutdown(g_kbeSrvConfig.shutdowntime(), g_kbeSrvConfig.shutdownWaitTickTime(), mainDispatcher_);
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::onShutdownBegin()
+{
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::onShutdown(bool first)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void ServerApp::onShutdownEnd()
+{
+	mainDispatcher_.breakProcessing();
 }
 
 //-------------------------------------------------------------------------------------
@@ -208,11 +237,6 @@ double ServerApp::gameTimeInSeconds() const
 //-------------------------------------------------------------------------------------
 void ServerApp::handleTimeout(TimerHandle, void * arg)
 {
-	switch (reinterpret_cast<uintptr>(arg))
-	{
-		default:
-			break;
-	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -227,13 +251,6 @@ bool ServerApp::run(void)
 {
 	mainDispatcher_.processUntilBreak();
 	return true;
-}
-
-//-------------------------------------------------------------------------------------	
-void ServerApp::shutDown()
-{
-	INFO_MSG( "ServerApp::shutDown: shutting down\n" );
-	mainDispatcher_.breakProcessing();
 }
 
 //-------------------------------------------------------------------------------------	

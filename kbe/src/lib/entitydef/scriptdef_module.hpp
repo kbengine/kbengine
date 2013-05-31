@@ -132,6 +132,8 @@ public:
 	INLINE const char* getName();
 
 	void autoMatchCompOwn();
+
+	INLINE bool isPersistent()const;
 protected:
 	// ½Å±¾Àà±ð
 	PyTypeObject*						scriptType_;	

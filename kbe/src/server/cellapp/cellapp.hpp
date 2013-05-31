@@ -77,6 +77,9 @@ public:
 	bool initializeEnd();
 	void finalise();
 
+	virtual bool canShutdown();
+	virtual void onShutdown(bool first);
+
 	/**  网络接口
 		dbmgr告知已经启动的其他baseapp或者cellapp的地址
 		当前app需要主动的去与他们建立连接

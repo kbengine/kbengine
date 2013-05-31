@@ -65,4 +65,9 @@
 		<id>12</id>
 		<descr>	def-md5不匹配。</descr>
 	</MERCURY_ERR_DIGEST>
+	
+	<SERVER_ERR_SHUTTINGDOWN>
+		<id>13</id>
+		<descr>	服务器正在关闭中。</descr>
+	</SERVER_ERR_SHUTTINGDOWN>
 </root>

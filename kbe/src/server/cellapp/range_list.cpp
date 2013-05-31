@@ -40,6 +40,22 @@ first_z_rangeNode_(NULL)
 //-------------------------------------------------------------------------------------
 RangeList::~RangeList()
 {
+	if(first_x_rangeNode_)
+	{
+		RangeNode* pNode = first_x_rangeNode_;
+		while(pNode != NULL)
+		{
+			RangeNode* pNextNode = pNode->pNextX();
+			pNode->pRangeList(NULL);
+			pNode->pPrevX(NULL);
+			pNode->pNextX(NULL);
+			pNode->pPrevY(NULL);
+			pNode->pNextY(NULL);
+			pNode->pPrevZ(NULL);
+			pNode->pNextZ(NULL);
+			pNode = pNextNode;
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------

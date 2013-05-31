@@ -109,7 +109,9 @@
 	</channelCommon> 
 	
 	<!-- 关服倒计时(秒) -->
-	<shutdown_time> 60 </shutdown_time>
+	<shutdown_time> 60.0 </shutdown_time>
+	<!-- 关服等待任务结束tick(秒) -->
+	<shutdown_waittick> 1.0 </shutdown_waittick>
 	
 	<billingSystem>
 		<!-- normal: 普通, thirdparty: 第三方此时需要提供ip地址 -->
@@ -205,6 +207,11 @@
 			<!-- 命令默认层 -->
 			<default_layer> root </default_layer>
 		</telnet_service>
+		
+		<shutdown>
+			<!-- 每秒销毁有base的entity -->
+			<perSecsDestroyEntitySize> 15 </perSecsDestroyEntitySize>
+		</shutdown>
 	</cellapp>
 	
 	<baseapp>
@@ -251,6 +258,11 @@
 			<!-- 命令默认层 -->
 			<default_layer> root </default_layer>
 		</telnet_service>
+		
+		<shutdown>
+			<!-- 每秒销毁base数量 -->
+			<perSecsDestroyEntitySize> 15 </perSecsDestroyEntitySize>
+		</shutdown>
 	</baseapp>
 	
 	<cellappmgr>

@@ -140,6 +140,82 @@ Baseapp::~Baseapp()
 {
 }
 
+//-------------------------------------------------------------------------------------	
+bool Baseapp::canShutdown()
+{
+	Entities<Base>::ENTITYS_MAP& entities =  this->pEntities()->getEntities();
+	Entities<Base>::ENTITYS_MAP::iterator iter = entities.begin();
+	for(; iter != entities.end(); iter++)
+	{
+		if(static_cast<Base*>(iter->second.get())->hasDB())
+		{
+			lastShutdownFailReason_ = "destroyHasDBBases";
+			return false;
+		}
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------	
+void Baseapp::onShutdownBegin()
+{
+	EntityApp<Base>::onShutdownBegin();
+
+	// 通知脚本
+	SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onBaseAppShutDown"), 
+		const_cast<char*>("i"), 0);
+
+	pRestoreEntityHandlers_.clear();
+}
+
+//-------------------------------------------------------------------------------------	
+void Baseapp::onShutdown(bool first)
+{
+	EntityApp<Base>::onShutdown(first);
+
+	if(first)
+	{
+		// 通知脚本
+		SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onBaseAppShutDown"), 
+			const_cast<char*>("i"), 1);
+	}
+
+	int count = g_serverConfig.getBaseApp().perSecsDestroyEntitySize;
+	Entities<Base>::ENTITYS_MAP& entities =  this->pEntities()->getEntities();
+
+	while(count > 0)
+	{
+		bool done = false;
+		Entities<Base>::ENTITYS_MAP::iterator iter = entities.begin();
+		for(; iter != entities.end(); iter++)
+		{
+			if(static_cast<Base*>(iter->second.get())->hasDB() && 
+				static_cast<Base*>(iter->second.get())->getCellMailbox() == NULL)
+			{
+				this->destroyEntity(static_cast<Base*>(iter->second.get())->getID());
+
+				count--;
+				done = true;
+				break;
+			}
+		}
+
+		if(!done)
+			break;
+	}
+}
+
+//-------------------------------------------------------------------------------------	
+void Baseapp::onShutdownEnd()
+{
+	EntityApp<Base>::onShutdownEnd();
+
+	// 通知脚本
+	SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onBaseAppShutDown"), 
+		const_cast<char*>("i"), 2);
+}
+
 //-------------------------------------------------------------------------------------		
 bool Baseapp::initializeWatcher()
 {

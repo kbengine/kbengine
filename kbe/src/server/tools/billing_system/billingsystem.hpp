@@ -76,6 +76,8 @@ public:
 	void lockthread();
 	void unlockthread();
 
+	virtual void onShutdownEnd();
+
 	/** 网络接口
 		请求创建账号
 	*/

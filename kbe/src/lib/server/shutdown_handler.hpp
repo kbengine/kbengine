@@ -18,44 +18,38 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __BUFFERED_DBTASKS_H__
-#define __BUFFERED_DBTASKS_H__
+#ifndef __SHUTDOWN_HANDLER__
+#define __SHUTDOWN_HANDLER__
 
-// common include	
-// #define NDEBUG
-#include "dbtasks.hpp"
 #include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/memorystream.hpp"
-#include "thread/threadtask.hpp"
+#include "cstdkbe/timer.hpp"
 #include "helper/debug_helper.hpp"
 
-namespace KBEngine{ 
+namespace KBEngine { 
 
-/*
-	数据库线程任务buffer
-*/
-
-class Buffered_DBTasks
+class ShutdownHandler 
 {
 public:
-	typedef std::multimap<DBID, EntityDBTask*> DBID_TASKS_MAP;  
-	typedef std::multimap<ENTITY_ID, EntityDBTask*> ENTITYID_TASKS_MAP;  
+	ShutdownHandler():lastShutdownFailReason_("tasks"),
+	shuttingdown_(false){
+	}
 	
-	Buffered_DBTasks();
-	virtual ~Buffered_DBTasks();
+	virtual ~ShutdownHandler(){}
 	
-	bool hasTask(DBID dbid);
-	bool hasTask(ENTITY_ID entityID);
-
-	void addTask(EntityDBTask* pTask);
-
-	void onFiniTask(EntityDBTask* pTask);
-
-	size_t size(){ return dbid_tasks_.size() + entityid_tasks_.size(); }
+	virtual void onShutdownBegin() = 0;
+	virtual void onShutdown(bool first) = 0;
+	virtual void onShutdownEnd() = 0;
+	
+	virtual bool canShutdown(){ return true; }
+	
+	void setShuttingdown(){ shuttingdown_ = true; }
+	
+	const std::string& lastShutdownFailReason(){ return lastShutdownFailReason_; }
 protected:
-	DBID_TASKS_MAP dbid_tasks_;
-	ENTITYID_TASKS_MAP entityid_tasks_;
+	std::string lastShutdownFailReason_; // 最后一次关机失败的原因
+	bool shuttingdown_;
 };
 
 }
+
 #endif

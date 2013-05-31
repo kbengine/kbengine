@@ -37,6 +37,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/components.hpp"
 #include "server/serverconfig.hpp"
 #include "server/signal_handler.hpp"
+#include "server/shutdown_handler.hpp"
 #include "cstdkbe/smartpointer.hpp"
 #include "cstdkbe/timer.hpp"
 #include "cstdkbe/singleton.hpp"
@@ -58,11 +59,13 @@ namespace Mercury
 class Channel;
 }
 
+class Shutdowner;
 class ComponentActiveReportHandler;
 
 class ServerApp : 
 	public SignalHandler, 
 	public TimerHandler, 
+	public ShutdownHandler,
 	public Mercury::ChannelTimeOutHandler,
 	public Mercury::ChannelDeregisterHandler,
 	public Components::ComponentsNotificationHandler
@@ -116,6 +119,10 @@ public:
 	virtual void onChannelDeregister(Mercury::Channel * pChannel);
 	virtual void onAddComponent(const Components::ComponentInfos* pInfos);
 	virtual void onRemoveComponent(const Components::ComponentInfos* pInfos);
+
+	virtual void onShutdownBegin();
+	virtual void onShutdown(bool first);
+	virtual void onShutdownEnd();
 
 	/** 网络接口
 		请求查看watcher
@@ -185,6 +192,7 @@ protected:
 	int32													startGlobalOrder_;
 	int32													startGroupOrder_;
 
+	Shutdowner*												pShutdowner_;
 	ComponentActiveReportHandler*							pActiveTimerHandle_;
 
 	// 线程池

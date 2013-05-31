@@ -51,6 +51,7 @@ typedef uint16 SERVER_ERROR_CODE;								// 错误码类别
 #define SERVER_ERR_ACCOUNT_ONLINE					10			// 你已经登录了， 服务器拒绝再次登录。
 #define SERVER_ERR_PROXY_DESTROYED					11			// 与客户端关联的proxy在服务器上已经销毁。
 #define SERVER_ERR_DIGEST							12			// defmd5不匹配。
+#define SERVER_ERR_SHUTTINGDOWN						13			// 服务器正在关闭中
 
 const char SERVER_ERR_STR[][256] = {
 	"SERVER_SUCCESS",
@@ -65,7 +66,8 @@ const char SERVER_ERR_STR[][256] = {
 	"SERVER_ERR_ANOTHER_LOGON",
 	"SERVER_ERR_ACCOUNT_ONLINE",
 	"SERVER_ERR_PROXY_DESTROYED",
-	"SERVER_ERR_DIGEST"
+	"SERVER_ERR_DIGEST",
+	"SERVER_ERR_SHUTTINGDOWN"
 };
 
 }

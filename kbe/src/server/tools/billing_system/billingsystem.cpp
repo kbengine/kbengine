@@ -88,6 +88,12 @@ BillingSystem::~BillingSystem()
 	unlockthread();
 }
 
+//-------------------------------------------------------------------------------------	
+void BillingSystem::onShutdownEnd()
+{
+	ServerApp::onShutdownEnd();
+}
+
 //-------------------------------------------------------------------------------------
 void BillingSystem::lockthread()
 {
@@ -156,6 +162,9 @@ bool BillingSystem::initializeBegin()
 //-------------------------------------------------------------------------------------
 bool BillingSystem::inInitialize()
 {
+	// 广播自己的地址给网上上的所有kbemachine
+	Componentbridge::getSingleton().getComponents().pHandler(this);
+	this->getMainDispatcher().addFrequentTask(&Componentbridge::getSingleton());
 	return true;
 }
 

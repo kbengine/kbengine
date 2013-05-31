@@ -219,6 +219,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\shutdowner.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\signal_handler.cpp"
 				>
 			</File>
@@ -310,6 +314,14 @@
 			</File>
 			<File
 				RelativePath=".\serverinfos.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\shutdown_handler.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\shutdowner.hpp"
 				>
 			</File>
 			<File

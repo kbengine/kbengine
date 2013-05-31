@@ -156,6 +156,8 @@ typedef struct EngineComponentInfo
 	uint32 telnet_port;
 	std::string telnet_passwd;
 	std::string telnet_deflayer;
+
+	uint32 perSecsDestroyEntitySize;						// 每秒销毁base|entity数量
 }ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>
@@ -201,6 +203,9 @@ public:
 	const ChannelCommon& channelCommon(){ return channelCommon_; }
 
 	uint32 tcp_SOMAXCONN(COMPONENT_TYPE componentType);
+
+	float shutdowntime(){ return shutdown_time_; }
+	float shutdownWaitTickTime(){ return shutdown_waitTickTime_; }
 private:
 	ENGINE_COMPONENT_INFO _cellAppInfo;
 	ENGINE_COMPONENT_INFO _baseAppInfo;
@@ -231,7 +236,8 @@ public:
 	uint16 billingSystem_thirdpartyServiceCBPort_;	
 	uint32 billingSystem_orders_timeout_;
 
-	uint32 shutdown_time_;
+	float shutdown_time_;
+	float shutdown_waitTickTime_;
 };
 
 #define g_kbeSrvConfig ServerConfig::getSingleton()

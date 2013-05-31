@@ -17,6 +17,7 @@ SRCS =				\
 	serverapp		\
 	serverconfig		\
 	serverinfos		\
+	shutdowner		\
 	signal_handler		\
 	telnet_handler		\
 	telnet_server

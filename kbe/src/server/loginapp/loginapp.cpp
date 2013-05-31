@@ -59,6 +59,12 @@ Loginapp::~Loginapp()
 {
 }
 
+//-------------------------------------------------------------------------------------	
+void Loginapp::onShutdownBegin()
+{
+	ServerApp::onShutdownBegin();
+}
+
 //-------------------------------------------------------------------------------------
 bool Loginapp::run()
 {
@@ -205,6 +211,19 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s)
 		ERROR_MSG(boost::format("Loginapp::login: bindatas too big, size=%1%, limit=%2%.\n") %
 			datas.size() % ACCOUNT_DATA_MAX_LENGTH);
 
+		return;
+	}
+
+	if(shuttingdown_)
+	{
+		INFO_MSG(boost::format("Loginapp::reqCreateAccount: shutting down, create %1% failed!\n") % accountName);
+
+		Mercury::Bundle bundle;
+		bundle.newMessage(ClientInterface::onCreateAccountResult);
+		SERVER_ERROR_CODE retcode = SERVER_ERR_SHUTTINGDOWN;
+		bundle << retcode;
+		bundle.appendBlob(retdatas);
+		bundle.send(this->getNetworkInterface(), pChannel);
 		return;
 	}
 
@@ -380,6 +399,15 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(ctype < UNKNOWN_CLIENT_COMPONENT_TYPE || ctype >= CLIENT_TYPE_END)
 		ctype = UNKNOWN_CLIENT_COMPONENT_TYPE;
+
+	if(shuttingdown_)
+	{
+		INFO_MSG(boost::format("Loginapp::login: shutting down, %1% login failed!\n") % loginName);
+
+		datas = "";
+		_loginFailed(pChannel, loginName, SERVER_ERR_SHUTTINGDOWN, datas);
+		return;
+	}
 
 	INFO_MSG(boost::format("Loginapp::login: new client[%1%], loginName=%2%, datas=%3%.\n") %
 		COMPONENT_CLIENT_NAME[ctype] % loginName.c_str() % datas.c_str());
