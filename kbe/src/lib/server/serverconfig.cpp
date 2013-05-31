@@ -417,7 +417,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 			TiXmlNode* childnode = xml->enterNode(node, "perSecsDestroyEntitySize");
 			if(childnode)
 			{
-				_cellAppInfo.perSecsDestroyEntitySize = float(xml->getValFloat(childnode));
+				_cellAppInfo.perSecsDestroyEntitySize = uint32(xml->getValInt(childnode));
 			}
 		}
 	}
@@ -559,7 +559,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 			TiXmlNode* childnode = xml->enterNode(node, "perSecsDestroyEntitySize");
 			if(childnode)
 			{
-				_baseAppInfo.perSecsDestroyEntitySize = float(xml->getValFloat(childnode));
+				_baseAppInfo.perSecsDestroyEntitySize = uint32(xml->getValInt(childnode));
 			}
 		}
 	}
