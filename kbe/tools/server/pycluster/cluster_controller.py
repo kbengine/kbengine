@@ -14,7 +14,7 @@ MachineInterface_onFindInterfaceAddr = 1
 MachineInterface_startserver = 2
 MachineInterface_stopserver = 3
 
-# 组件类别
+# 
 UNKNOWN_COMPONENT_TYPE	= 0
 DBMGR_TYPE				= 1
 LOGINAPP_TYPE			= 2
@@ -33,7 +33,7 @@ WATCHER_TYPE			= 14
 BILLING_TYPE			= 15
 COMPONENT_END_TYPE		= 16
 
-# 定义服务器各组件名称转换类别
+# 转
 COMPONENT_NAME2TYPE = {
 	"unknown"		: UNKNOWN_COMPONENT_TYPE,
 	"dbmgr"			: DBMGR_TYPE,
@@ -50,10 +50,11 @@ COMPONENT_NAME2TYPE = {
 	"resourcemgr"	: RESOURCEMGR_TYPE,
 	"bots" 			: BOTS_TYPE,
 	"watcher" 		: WATCHER_TYPE,
-	"billing" 		: BILLING_TYPE
+	"billing" 		: BILLING_TYPE,
+	"billingsystem" : BILLING_TYPE
 }
 
-# 定义服务器各组件名称 
+#  
 COMPONENT_NAME = (
 	"unknown",
 	"dbmgr",
