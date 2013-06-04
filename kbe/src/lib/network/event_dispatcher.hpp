@@ -37,6 +37,13 @@ class EventPoller;
 class EventDispatcher
 {
 public:
+	enum EVENT_DISPATCHER_STATUS
+	{
+		EVENT_DISPATCHER_STATUS_RUNNING = 0,
+		EVENT_DISPATCHER_STATUS_WAITING_BREAK_PROCESSING = 1,
+		EVENT_DISPATCHER_STATUS_BREAK_PROCESSING = 2
+	};
+
 	EventDispatcher();
 	virtual ~EventDispatcher();
 	
@@ -44,9 +51,11 @@ public:
 	int  processOnce(bool shouldIdle = false);
 	void processUntilBreak();
 
-	bool isBreakProcessing()const { return breakProcessing_; }
+	bool isBreakProcessing()const { return breakProcessing_ == EVENT_DISPATCHER_STATUS_BREAK_PROCESSING; }
+	bool isWaitBreakProcessing()const { return breakProcessing_ == EVENT_DISPATCHER_STATUS_WAITING_BREAK_PROCESSING; }
 
 	void breakProcessing(bool breakState = true);
+	INLINE void setWaitBreakProcessing();
 	bool processingBroken()const;
 	
 	void attach(EventDispatcher & childDispatcher);
@@ -99,7 +108,8 @@ private:
 	ChildDispatchers childDispatchers_;
 
 protected:
-	bool breakProcessing_;
+	int8 breakProcessing_;
+
 	double maxWait_;
 	uint32 numTimerCalls_;
 	

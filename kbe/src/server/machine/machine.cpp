@@ -641,6 +641,11 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 			continue;
 		}
 
+		if(((*iter).flags & COMPONENT_FLAG_SHUTTINGDOWN) > 0)
+			continue;
+
+		(*iter).flags |= COMPONENT_FLAG_SHUTTINGDOWN;
+
 		Mercury::Bundle closebundle;
 		if(componentType != BOTS_TYPE)
 		{

@@ -570,7 +570,7 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 	}
 
 	// ÆäËû´íÎóÍË³ö³¢ÊÔ
-	ERROR_MSG("NetworkInterface::basicSendWithRetries: packet discarded.\n");
+	ERROR_MSG(boost::format("NetworkInterface::basicSendWithRetries: packet discarded(reason=%1%).\n") % (reasonToString(reason)));
 	return reason;
 }
 

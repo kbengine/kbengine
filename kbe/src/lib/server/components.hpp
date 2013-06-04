@@ -46,6 +46,9 @@ class Address;
 class NetworkInterface;
 }
 
+// ComponentInfos.flags标志
+#define COMPONENT_FLAG_NORMAL 0x00000000
+#define COMPONENT_FLAG_SHUTTINGDOWN 0x00000001
 
 class Components : public Singleton<Components>
 {
@@ -54,6 +57,16 @@ public:
 
 	struct ComponentInfos
 	{
+		ComponentInfos()
+		{
+			uid = 0;
+			flags = COMPONENT_FLAG_NORMAL;
+			cid = 0;
+			groupOrderid = 0;
+			globalOrderid = 0;
+			pChannel = NULL;
+		}
+
 		KBEShared_ptr<Mercury::Address > pIntAddr, pExtAddr; // 内部和外部地址
 		int32 uid;
 		COMPONENT_ID cid;
@@ -61,6 +74,7 @@ public:
 		char username[MAX_NAME + 1];
 		Mercury::Channel* pChannel;
 		COMPONENT_TYPE componentType;
+		uint32 flags;
 	};
 
 	typedef std::vector<ComponentInfos> COMPONENTS;

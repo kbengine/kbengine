@@ -279,8 +279,8 @@ void EventDispatcher::processUntilBreak()
 //-------------------------------------------------------------------------------------
 void EventDispatcher::processContinuously()
 {
-	breakProcessing_ = false;
-	while(!breakProcessing_)
+	breakProcessing_ = EVENT_DISPATCHER_STATUS_RUNNING;
+	while(breakProcessing_ != EVENT_DISPATCHER_STATUS_BREAK_PROCESSING)
 	{
 		this->processOnce(true);
 	}
@@ -289,15 +289,15 @@ void EventDispatcher::processContinuously()
 //-------------------------------------------------------------------------------------
 int EventDispatcher::processOnce(bool shouldIdle)
 {
-	breakProcessing_ = false;
+	breakProcessing_ = EVENT_DISPATCHER_STATUS_RUNNING;
 	this->processFrequentTasks();
-	if(!breakProcessing_){
+	if(breakProcessing_ != EVENT_DISPATCHER_STATUS_BREAK_PROCESSING){
 		this->processTimers();
 	}
 
 	this->processStats();
 	
-	if(!breakProcessing_){
+	if(breakProcessing_ != EVENT_DISPATCHER_STATUS_BREAK_PROCESSING){
 		return this->processNetwork(shouldIdle);
 	}
 

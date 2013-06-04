@@ -35,12 +35,20 @@ INLINE TimerHandle EventDispatcher::addOnceOffTimer(int64 microseconds,
 
 INLINE void EventDispatcher::breakProcessing(bool breakState)
 {
-	breakProcessing_ = breakState;
+	if(breakState)
+		breakProcessing_ = EVENT_DISPATCHER_STATUS_BREAK_PROCESSING;
+	else
+		breakProcessing_ = EVENT_DISPATCHER_STATUS_RUNNING;
+}
+
+INLINE void EventDispatcher::setWaitBreakProcessing()
+{
+	breakProcessing_ = EVENT_DISPATCHER_STATUS_WAITING_BREAK_PROCESSING;
 }
 
 INLINE bool EventDispatcher::processingBroken() const
 {
-	return breakProcessing_;
+	return breakProcessing_ == EVENT_DISPATCHER_STATUS_BREAK_PROCESSING;
 }
 
 INLINE double EventDispatcher::maxWait() const

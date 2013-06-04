@@ -43,7 +43,7 @@ public:
 	virtual bool canShutdown(){ return true; }
 	
 	void setShuttingdown(){ shuttingdown_ = true; }
-	
+	bool shuttingdown()const{ return shuttingdown_; }
 	const std::string& lastShutdownFailReason(){ return lastShutdownFailReason_; }
 protected:
 	std::string lastShutdownFailReason_; // 最后一次关机失败的原因

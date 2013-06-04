@@ -111,7 +111,7 @@ Componentbridge::~Componentbridge()
 //-------------------------------------------------------------------------------------
 Mercury::EventDispatcher & Componentbridge::dispatcher()
 {
-	return networkInterface_.dispatcher();
+	return networkInterface_.mainDispatcher();
 }
 
 //-------------------------------------------------------------------------------------
@@ -136,7 +136,7 @@ bool Componentbridge::findInterfaces()
 
 		while(findComponentTypes_[findIdx_] != UNKNOWN_COMPONENT_TYPE)
 		{
-			if(dispatcher().isBreakProcessing())
+			if(dispatcher().isBreakProcessing() || dispatcher().isWaitBreakProcessing())
 				return false;
 
 			int8 findComponentType = findComponentTypes_[findIdx_];
