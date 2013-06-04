@@ -6,13 +6,15 @@ import os
 import struct
 import traceback
 import select
+import getpass 
+import time
 
 host = '' # Bind to all interfaces
-port = 1234
 
 MachineInterface_onFindInterfaceAddr = 1
 MachineInterface_startserver = 2
 MachineInterface_stopserver = 3
+MachineInterface_onQueryAllInterfaceInfos = 4
 
 # 
 UNKNOWN_COMPONENT_TYPE	= 0
@@ -82,35 +84,123 @@ class ClusterControllerHandler:
 		self._udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self._udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 		
-		self._udp_broadcast_socket.bind((host, port))
+		self._udp_broadcast_socket.bind((host, 0))
+		
+		self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		self.udp_socket.bind((host, 0))
+		
 		self._tcp_socket = socket.socket()
 		self.resetPacket()
+		
+		self._interfaces = {}
 		
 	def do(self):
 		pass
 	
 	def resetPacket(self):
+		self.recvDatas = []
 		self.postDatas = b""
 		
-	def sendto(self):
-		self._udp_broadcast_socket.settimeout(5)
+	def sendto(self, trycount = 1, timeout = 3):
+		self.writePacket("H", socket.htons(self.udp_socket.getsockname()[1]))
+		
+		self._udp_broadcast_socket.settimeout(timeout)
 		self._udp_broadcast_socket.sendto(self.postDatas, ('255.255.255.255', 20086))
-		print("posted udp broadcast(size=%i), waiting for recv..." % len(self.postDatas))
+		#print("posted udp broadcast(size=%i), waiting for recv..." % len(self.postDatas))
 		self.resetPacket()
 		
-		try:
-			data, address = self._udp_broadcast_socket.recvfrom(2345)
-			print ("received %r from %r" % (data, address))
-		except socket.timeout: 
-			print ("recvfrom timeout!")
-		except (KeyboardInterrupt, SystemExit):
-			raise
-		except:
-			traceback.print_exc()
+		self.udp_socket.settimeout(timeout)
+		dectrycount = trycount
+		
+		while(dectrycount > 0):
+			try:
+				dectrycount = trycount
+				recvdata, address = self.udp_socket.recvfrom(4096)
+				self.recvDatas.append(recvdata)
+				#print ("received %r from %r" % (self.recvDatas, address))
+			except socket.timeout: 
+				dectrycount -= 1
+				
+				if dectrycount <= 0:
+					#print ("recvfrom timeout!")
+					break
+			except (KeyboardInterrupt, SystemExit):
+				raise
+			except:
+				traceback.print_exc()
+				break
 
 	def writePacket(self, fmt, data):
 		self.postDatas += struct.pack(fmt, data)
-     	 
+     
+	def queryAllInterfaces(self):
+		# print("queryAllInterfaces...")
+		self.resetPacket()
+		self.writePacket("H", MachineInterface_onQueryAllInterfaceInfos)
+		self.writePacket("H", 6 + len(getpass.getuser().encode()) + 1)
+		self.writePacket("i", self.uid)
+		for x in getpass.getuser().encode():
+			self.writePacket("B", x)
+			
+		self.writePacket("B", 0)
+		self.sendto()
+		
+		self._interfaces = {}
+		if len(self.recvDatas) == 0:
+			return
+		
+		count = 0
+		
+		while(count < len(self.recvDatas)):
+			i = 4
+			uid = struct.unpack("i", self.recvDatas[count][0:i])[0]
+			
+			ii = i
+			for x in self.recvDatas[count][i:]:
+				if x == 0:
+					break
+					
+				ii += 1
+			
+			username = self.recvDatas[count][i: ii].decode()
+			ii += 1
+			
+			componentType = struct.unpack("B", self.recvDatas[count][ii : ii + 1])[0]
+			ii += 1
+			
+			componentID = struct.unpack("Q", self.recvDatas[count][ii : ii + 8])[0]
+			ii += 16
+			
+			globalorderid = struct.unpack("B", self.recvDatas[count][ii : ii + 1])[0]
+			ii += 1
+		
+			grouporderid = struct.unpack("B", self.recvDatas[count][ii : ii + 1])[0]
+			ii += 1
+
+			intaddr = struct.unpack("I", self.recvDatas[count][ii : ii + 4])[0]
+			ii += 4
+
+			intport = struct.unpack("H", self.recvDatas[count][ii : ii + 2])[0]
+			ii += 2
+
+			extaddr = struct.unpack("I", self.recvDatas[count][ii : ii + 4])[0]
+			ii += 4
+
+			extport = struct.unpack("H", self.recvDatas[count][ii : ii + 2])[0]
+			ii += 2
+			
+			#print("%s, uid=%i, cID=%i, gid=%i, groupid=%i, uname=%s" % (COMPONENT_NAME[componentType], \
+			#	uid, componentID, globalorderid, grouporderid, username))
+			
+			componentInfos = self._interfaces.get(componentType)
+			if componentInfos is None:
+				componentInfos = []
+				self._interfaces[componentType] = componentInfos
+			
+			componentInfos.append((uid, componentID, globalorderid, grouporderid, username))
+			
+			count += 1
+			
 class ClusterConsoleHandler(ClusterControllerHandler):
 	def __init__(self, consoleType, startTemplate):
 		ClusterControllerHandler.__init__(self)
@@ -126,7 +216,7 @@ class ClusterConsoleHandler(ClusterControllerHandler):
 				continue
 				
 			self.writePacket("H", MachineInterface_onFindInterfaceAddr)
-			self.writePacket("H", 8)
+			self.writePacket("H", 10)
 			self.writePacket("i", self.uid)
 			self.writePacket("i", COMPONENT_NAME2TYPE[ctype])
 			self.sendto()
@@ -140,17 +230,19 @@ class ClusterStartHandler(ClusterControllerHandler):
 		
 	def do(self):
 		for ctype in self.startTemplate:
-			print ("ClusterStartHandler::do: start uid=%s, type=%s" % (self.uid, ctype))
 			if ctype not in COMPONENT_NAME2TYPE:
 				print("not found %s, start failed!" % ctype)
 				continue
 				
 			self.writePacket("H", MachineInterface_startserver)
-			self.writePacket("H", 8)
+			self.writePacket("H", 10)
 			self.writePacket("i", self.uid)
 			self.writePacket("i", COMPONENT_NAME2TYPE[ctype])
 			self.sendto()
-		
+
+			print ("ClusterStartHandler::do: find uid=%s, type=%s, status=%s" % (self.uid, ctype, \
+				len(self.recvDatas) > 0 and self.recvDatas[0] == b'\x01'))
+			
 class ClusterStopHandler(ClusterControllerHandler):
 	def __init__(self, uid, startTemplate):
 		ClusterControllerHandler.__init__(self)
@@ -158,18 +250,56 @@ class ClusterStopHandler(ClusterControllerHandler):
 		self.startTemplate = startTemplate.split("|")
 		
 	def do(self):
+		self.queryAllInterfaces()
+		interfaces = self._interfaces
+		interfacesCount = {}
+		
+		print("online-components:")
 		for ctype in self.startTemplate:
-			print ("ClusterStopHandler::do: stop uid=%s, type=%s" % (self.uid, ctype))
 			if ctype not in COMPONENT_NAME2TYPE:
 				print("not found %s, stop failed!" % ctype)
 				continue
-				
+			
+			infos = interfaces.get(COMPONENT_NAME2TYPE[ctype], [])
+			interfacesCount[ctype] = len(infos)
+			print("\t\t%s : %i" % (ctype, len(infos)))
 			self.writePacket("H", MachineInterface_stopserver)
-			self.writePacket("H", 8)
+			self.writePacket("H", 10)
 			self.writePacket("i", self.uid)
 			self.writePacket("i", COMPONENT_NAME2TYPE[ctype])
 			self.sendto()
-
+			
+			#print ("ClusterStopHandler::do: stop uid=%s, type=%s, send=%s" % (self.uid, ctype, \
+			#	len(self.recvDatas) > 0 and self.recvDatas[0] == b'\x01'))
+		
+		qcount = 1
+		while(True):
+			print("query status: %i" % qcount)
+			qcount += 1
+			
+			self.queryAllInterfaces()
+			
+			waitcount = 0
+			for ctype in self.startTemplate:
+				if ctype not in COMPONENT_NAME2TYPE:
+					continue
+			
+				infos = self._interfaces.get(COMPONENT_NAME2TYPE[ctype], [])
+				print("\t\t%s : %i" % (ctype, len(infos)))
+				waitcount += len(infos)
+			
+			if waitcount > 0:
+				time.sleep(3)
+			else:
+				break
+		
+		print("[other-online-components:]")
+		for ctype in self._interfaces:
+			infos = self._interfaces.get(ctype, [])
+			print("\t\t%s : %i" % (COMPONENT_NAME[ctype], len(infos)))
+			
+		print("ClusterStopHandler::do: completed!")
+		
 if __name__ == "__main__":
 	clusterHandler = None
 	

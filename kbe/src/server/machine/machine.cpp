@@ -222,6 +222,84 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 }
 
 //-------------------------------------------------------------------------------------
+void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, std::string& username, uint16 finderRecvPort)
+{
+	// uid不等于当前服务器的uid则不理会。
+	std::vector<int32>::iterator iter = std::find(localuids_.begin(), localuids_.end(), uid);
+	if(iter == localuids_.end())
+		return;
+
+	INFO_MSG(boost::format("Machine::onQueryAllInterfaceInfos[%1%]: uid:%2%, username:%3%, "
+			"finderRecvPort:%4%.\n") %
+		pChannel->c_str() % uid % username.c_str() % 
+		ntohs(finderRecvPort));
+
+	Mercury::EndPoint ep;
+	ep.socket(SOCK_DGRAM);
+
+	if (!ep.good())
+	{
+		ERROR_MSG("Machine::onQueryAllInterfaceInfos: Failed to create socket.\n");
+		return;
+	}
+
+	int i = 0;
+
+	while(ALL_SERVER_COMPONENT_TYPES[i] != UNKNOWN_COMPONENT_TYPE)
+	{
+		Mercury::Bundle bundle;
+
+		COMPONENT_TYPE tfindComponentType = ALL_SERVER_COMPONENT_TYPES[i++];
+		int8 findComponentType = (int8)tfindComponentType;
+		Components::COMPONENTS& components = Componentbridge::getComponents().getComponents(tfindComponentType);
+		Components::COMPONENTS::iterator iter = components.begin();
+
+		for(; iter != components.end(); )
+		{
+			if((*iter).uid != uid)
+			{
+				++iter;
+				continue;
+			}
+
+			const Components::ComponentInfos* pinfos = &(*iter);
+			
+			bool usable = Componentbridge::getComponents().checkComponentUsable(pinfos);
+
+			if(usable)
+			{
+				if(ep_.addr().ip == pinfos->pIntAddr->ip || this->getNetworkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
+					this->getNetworkInterface().extaddr().ip == pinfos->pIntAddr->ip)
+				{
+					Mercury::Bundle bundle;
+					
+					MachineInterface::onBroadcastInterfaceArgs11::staticAddToBundle(bundle, pinfos->uid, 
+						pinfos->username, findComponentType, pinfos->cid, pinfos->cid, pinfos->globalOrderid, pinfos->groupOrderid, 
+						pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
+						pinfos->pExtAddr->ip, pinfos->pExtAddr->port);
+
+					if(finderRecvPort != 0)
+						bundle.sendto(ep, finderRecvPort, pChannel->addr().ip);
+					else
+						bundle.send(this->getNetworkInterface(), pChannel);
+				}
+
+				++iter;
+			}
+			else
+			{
+				WARNING_MSG(boost::format("Machine::onQueryAllInterfaceInfos: %1%[%2%] invalid, erase %3%.\n") %
+					COMPONENT_NAME_EX(pinfos->componentType) %
+					pinfos->cid %
+					COMPONENT_NAME_EX(pinfos->componentType));
+
+				iter = components.erase(iter);
+			}
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
 bool Machine::findBroadcastInterface()
 {
 
@@ -443,9 +521,15 @@ void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	Mercury::Bundle bundle;
 	bool success = true;
 
+	uint16 finderRecvPort = 0;
+
 	s >> uid;
 	s >> componentType;
 
+	if(s.opsize() > 0)
+	{
+		s >> finderRecvPort;
+	}
 
 	INFO_MSG(boost::format("Machine::startserver: uid=%1%, [%2%], addr=%3%\n") % 
 		uid %  COMPONENT_NAME[componentType] % pChannel->c_str());
@@ -489,7 +573,24 @@ void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 #endif
 	
 	bundle << success;
-	bundle.send(this->getNetworkInterface(), pChannel);
+
+	if(finderRecvPort != 0)
+	{
+		Mercury::EndPoint ep;
+		ep.socket(SOCK_DGRAM);
+
+		if (!ep.good())
+		{
+			ERROR_MSG("Machine::startserver: Failed to create socket.\n");
+			return;
+		}
+	
+		bundle.sendto(ep, htons(finderRecvPort), pChannel->addr().ip);
+	}
+	else
+	{
+		bundle.send(this->getNetworkInterface(), pChannel);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -500,9 +601,16 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	Mercury::Bundle bundle;
 	bool success = true;
 
+	uint16 finderRecvPort = 0;
+
 	s >> uid;
 	s >> componentType;
 	
+	if(s.opsize() > 0)
+	{
+		s >> finderRecvPort;
+	}
+
 	INFO_MSG(boost::format("Machine::stopserver: uid=%1%, [%2%], addr=%3%\n") % 
 		uid %  COMPONENT_NAME[componentType] % pChannel->c_str());
 
@@ -576,7 +684,24 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	}
 
 	bundle << success;
-	bundle.send(this->getNetworkInterface(), pChannel);
+
+	if(finderRecvPort != 0)
+	{
+		Mercury::EndPoint ep;
+		ep.socket(SOCK_DGRAM);
+
+		if (!ep.good())
+		{
+			ERROR_MSG("Machine::stopserver: Failed to create socket.\n");
+			return;
+		}
+	
+		bundle.sendto(ep, finderRecvPort, pChannel->addr().ip);
+	}
+	else
+	{
+		bundle.send(this->getNetworkInterface(), pChannel);
+	}
 }
 
 

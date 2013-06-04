@@ -70,6 +70,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 									uint32,							addr, 
 									uint16,							finderRecvPort)
 						
+	// 查询所有接口信息
+	MACHINE_MESSAGE_DECLARE_ARGS3(onQueryAllInterfaceInfos,			MERCURY_VARIABLE_MESSAGE,
+									int32,							uid, 
+									std::string,					username,
+									uint16,							finderRecvPort)
+						
 	// 某app主动请求look。
 	MACHINE_MESSAGE_DECLARE_ARGS0(lookApp,							MERCURY_FIXED_MESSAGE)
 

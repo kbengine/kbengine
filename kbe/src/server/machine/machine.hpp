@@ -76,6 +76,12 @@ public:
 	void onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::string& username, 
 		int8 componentType, uint64 componentID, int8 findComponentType, uint32 finderAddr, uint16 finderRecvPort);
 
+	/** 网络接口
+		查询所有接口信息
+	*/
+	void onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, std::string& username, 
+		uint16 finderRecvPort);
+
 	void handleTimeout(TimerHandle handle, void * arg);
 
 	/* 初始化相关接口 */

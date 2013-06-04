@@ -14,6 +14,11 @@
 		<descr>停止服务器。</descr>
 	</Machine::stopserver>
 	
+	<Machine::onQueryAllInterfaceInfos>
+		<id>4</id>
+		<descr>查询所有接口信息。</descr>
+	</Machine::onQueryAllInterfaceInfos>
+	
 	<Loginapp::reqClose>
 		<id>1</id>
 		<descr>客户端请求断线。</descr>

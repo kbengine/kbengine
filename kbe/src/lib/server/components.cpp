@@ -509,13 +509,12 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 		return true;
 	}
 	
-	int trycount = 0;
 	epListen.setnonblocking(true);
 
 	while(true)
 	{
 		fd_set	frds, fwds;
-		struct timeval tv = { 0, 100000 }; // 100ms
+		struct timeval tv = { 0, 300000 }; // 100ms
 
 		FD_ZERO( &frds );
 		FD_ZERO( &fwds );
@@ -530,12 +529,8 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 				break;
 			}
 
-			trycount++;
-			if(trycount > 3)
-			{
-				ERROR_MSG(boost::format("Components::checkComponentUsable: couldn't connect to:%1%\n") % info->pIntAddr->c_str());
-				return false;
-			}
+			ERROR_MSG(boost::format("Components::checkComponentUsable: couldn't connect to:%1%\n") % info->pIntAddr->c_str());
+			return false;
 		}
 	}
 	
@@ -557,7 +552,7 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	fd_set	fds;
-	struct timeval tv = { 0, 100000 }; // 100ms
+	struct timeval tv = { 0, 300000 }; // 100ms
 
 	FD_ZERO( &fds );
 	FD_SET((int)epListen, &fds);
