@@ -556,7 +556,8 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 		}
 
 		// 如果系统发送缓冲已经满了，则我们等待10ms
-		if (reason == REASON_RESOURCE_UNAVAILABLE && (pChannel->isInternal() || retries <= 3))
+		if ((reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK) 
+			&& (pChannel->isInternal() || retries <= 3))
 		{
 			WARNING_MSG(boost::format("NetworkInterface::basicSendWithRetries: "
 				"Transmit queue full, waiting for space... (%1%)\n") %

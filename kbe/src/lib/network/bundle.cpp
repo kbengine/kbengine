@@ -65,7 +65,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 				}																							\
 																											\
 				/* 如果系统发送缓冲已经满了，则我们等待10ms	*/												\
-				if (reason == REASON_RESOURCE_UNAVAILABLE && retries <= 60)									\
+				if ((reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK)				\
+																					&& retries <= 60)		\
 				{																							\
 					WARNING_MSG(boost::format("%1%: "														\
 						"Transmit queue full, waiting for space... (%2%)\n") %								\
@@ -77,7 +78,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 																											\
 				if(retries > 60 && reason != REASON_SUCCESS)												\
 				{																							\
-					ERROR_MSG("Bundle::send: packet discarded.\n");											\
+					ERROR_MSG(boost::format("Bundle::basicSendWithRetries: packet discarded(reason=%1%).\n")\
+															% (reasonToString(reason)));					\
 					break;																					\
 				}																							\
 			}																								\

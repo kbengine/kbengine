@@ -184,7 +184,8 @@ const char * reasonToString(Reason reason)
 			}																							\
 																										\
 			/* 如果系统发送缓冲已经满了，则我们等待10ms	*/												\
-			if (reason == Mercury::REASON_RESOURCE_UNAVAILABLE && retries <= 3)							\
+			if ((reason == REASON_RESOURCE_UNAVAILABLE || reason == REASON_GENERAL_NETWORK)				\
+															&& retries <= 3)							\
 			{																							\
 				WARNING_MSG( "%s: "																		\
 					"Transmit queue full, waiting for space... (%d)\n",									\
@@ -196,7 +197,8 @@ const char * reasonToString(Reason reason)
 																										\
 			if(retries > 3 && reason != Mercury::REASON_SUCCESS)										\
 			{																							\
-				ERROR_MSG("MERCURY_SEND::send: packet discarded.\n");									\
+				ERROR_MSG(boost::format("MERCURY_SEND::send: packet discarded(reason=%1%).\n")			\
+															% (reasonToString(reason)));				\
 				break;																					\
 			}																							\
 		}																								\
