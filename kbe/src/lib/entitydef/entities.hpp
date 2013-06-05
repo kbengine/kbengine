@@ -96,7 +96,7 @@ public:
 	ENTITYS_MAP& getEntities(void){ return _entities; }
 	void add(ENTITY_ID id, T* entity);
 	void clear(void);
-	T* erase(ENTITY_ID id);
+	PyObjectPtr erase(ENTITY_ID id);
 	T* find(ENTITY_ID id);
 
 	size_t size()const { return _entities.size(); }
@@ -307,7 +307,7 @@ T* Entities<T>::find(ENTITY_ID id)
 
 //-------------------------------------------------------------------------------------
 template<typename T>
-T* Entities<T>::erase(ENTITY_ID id)
+PyObjectPtr Entities<T>::erase(ENTITY_ID id)
 {
 	ENTITYS_MAP::iterator iter = _entities.find(id);
 	if(iter != _entities.end())

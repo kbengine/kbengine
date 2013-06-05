@@ -398,6 +398,9 @@ PyObject* Base::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OO", 
 		keywords, &pyDeleteFromDB, &pyWriteToDB))
 	{
+		PyErr_Format(PyExc_AssertionError, "%s::destroy: %d ParseTupleAndKeywords(deleteFromDB, &writeToDB) error!\n",
+			pobj->getScriptName(), pobj->getID());
+		PyErr_PrintEx(0);
 		return NULL;
 	}
 

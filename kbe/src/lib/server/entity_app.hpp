@@ -626,13 +626,14 @@ void EntityApp<E>::handleGameTick()
 template<class E>
 bool EntityApp<E>::destroyEntity(ENTITY_ID entityID)
 {
-	E* entity = pEntities_->erase(entityID);
+	PyObjectPtr entity = pEntities_->erase(entityID);
 	if(entity != NULL)
 	{
-		entity->destroy();
+		static_cast<E*>(entity.get())->destroy();
 		return true;
 	}
 
+	ERROR_MSG(boost::format("EntityApp::destroyEntity: not found %1%!\n") % entityID);
 	return false;
 }
 
