@@ -608,6 +608,8 @@ Reason NetworkInterface::getSendErrorReason(const EndPoint * endpoint,
 		{
 			case ECONNREFUSED:	reason = REASON_NO_SUCH_PORT; break;
 			case EAGAIN:		reason = REASON_RESOURCE_UNAVAILABLE; break;
+			case EPIPE:			reason = REASON_CLIENT_DISCONNECTED; break;
+			case ECONNRESET:	reason = REASON_CLIENT_DISCONNECTED; break;
 			case ENOBUFS:		reason = REASON_TRANSMIT_QUEUE_FULL; break;
 			default:			reason = REASON_GENERAL_NETWORK; break;
 		}
@@ -620,7 +622,12 @@ Reason NetworkInterface::getSendErrorReason(const EndPoint * endpoint,
 		}
 		else
 		{
-			reason = REASON_GENERAL_NETWORK;
+			switch (err)
+			{
+				case WSAECONNREFUSED:	reason = REASON_NO_SUCH_PORT; break;
+				case WSAECONNRESET:	reason = REASON_CLIENT_DISCONNECTED; break;
+				default:reason = REASON_GENERAL_NETWORK;break;
+			}
 		}
 	#endif
 
