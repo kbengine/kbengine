@@ -546,7 +546,7 @@ void DebugHelper::backtrace_msg()
 		
 		print_msg(boost::format("Stack: #%1% %2%\n") % 
 			i %
-			((gotFunctionName) ? functionName.c_str() : traceString.c_str()))
+			((gotFunctionName) ? functionName.c_str() : traceString.c_str()));
 	}
 
 	free(traceStringBuffer);
