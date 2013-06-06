@@ -301,7 +301,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 			break;
 		};
 
-		syslog( LOG_CRIT, "%s", buf );
+		syslog( LOG_CRIT, "%s", str );
 	}
 #endif
 
@@ -543,10 +543,10 @@ void DebugHelper::backtrace_msg()
 				functionName = mangled;
 			}
 		}
-
-		print_msg("Stack: #%d %s\n", 
-			i, 
-			(gotFunctionName) ? functionName.c_str() : traceString.c_str());
+		
+		print_msg(boost::format("Stack: #%d %s\n") % 
+			i %
+			((gotFunctionName) ? functionName.c_str() : traceString.c_str()))
 	}
 
 	free(traceStringBuffer);

@@ -138,7 +138,7 @@ void Messagelog::writeLog(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
     kbe_snprintf(timebuf, MAX_BUF, " [%-4d-%02d-%02d %02d:%02d:%02d %02d] ", aTm->tm_year+1900, aTm->tm_mon+1, 
 		aTm->tm_mday, aTm->tm_hour, aTm->tm_min, aTm->tm_sec, kbetime);
 
-	logstream << LOG_TYPE_NAME_EX(logtype);
+	logstream << KBELOG_TYPE_NAME_EX(logtype);
 	logstream << " ";
 	logstream << COMPONENT_NAME_EX_1(componentType);
 	logstream << " ";

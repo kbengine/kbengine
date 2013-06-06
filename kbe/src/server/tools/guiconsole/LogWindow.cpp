@@ -224,31 +224,31 @@ KBEngine::uint32 CLogWindow::getSelLogTypes()
 
 			if(s == "PRINT")
 			{
-				types |= LOG_PRINT;
+				types |= KBELOG_PRINT;
 			}
 			else if(s == "ERROR")
 			{
-				types |= LOG_ERROR;
+				types |= KBELOG_ERROR;
 			}
 			else if(s == "DEBUG")
 			{
-				types |= LOG_DEBUG;
+				types |= KBELOG_DEBUG;
 			}
 			else if(s == "INFO")
 			{
-				types |= LOG_INFO;
+				types |= KBELOG_INFO;
 			}
 			else if(s == "WARNING")
 			{
-				types |= LOG_WARNING;
+				types |= KBELOG_WARNING;
 			}
 			else if(s == "CRITICAL")
 			{
-				types |= LOG_CRITICAL;
+				types |= KBELOG_CRITICAL;
 			}
 			else if(s == "SCRIPT")
 			{
-				types |= LOG_SCRIPT;
+				types |= KBELOG_SCRIPT;
 			}
 		}
 	}
