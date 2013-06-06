@@ -53,18 +53,18 @@ void vutf8printf(FILE *out, const char *str, va_list* ap);
 void utf8printf(FILE *out, const char *str, ...);
 
 
-#define	LOG_UNKNOWN			0x00000000
-#define	LOG_PRINT			0x00000001
-#define	LOG_ERROR			0x00000002
-#define	LOG_WARNING			0x00000004
-#define	LOG_DEBUG			0x00000008
-#define	LOG_INFO			0x00000010
-#define	LOG_CRITICAL		0x00000020
-#define LOG_SCRIPT			0x00000040
+#define	KBELOG_UNKNOWN		0x00000000
+#define	KBELOG_PRINT		0x00000001
+#define	KBELOG_ERROR		0x00000002
+#define	KBELOG_WARNING		0x00000004
+#define	KBELOG_DEBUG		0x00000008
+#define	KBELOG_INFO			0x00000010
+#define	KBELOG_CRITICAL		0x00000020
+#define KBELOG_SCRIPT		0x00000040
 
-#define LOG_TYPES LOG_UNKNOWN | LOG_PRINT | LOG_ERROR | LOG_WARNING | LOG_DEBUG | LOG_INFO | LOG_CRITICAL | LOG_SCRIPT
+#define KBELOG_TYPES KBELOG_UNKNOWN | KBELOG_PRINT | KBELOG_ERROR | KBELOG_WARNING | KBELOG_DEBUG | KBELOG_INFO | KBELOG_CRITICAL | KBELOG_SCRIPT
 
-const char LOG_TYPE_NAME[][255] = {
+const char KBELOG_TYPE_NAME[][255] = {
 	" UNKNOWN",
 	"        ",
 	"   ERROR",
@@ -75,28 +75,28 @@ const char LOG_TYPE_NAME[][255] = {
 	"  SCRIPT",
 };
 
-inline const char* LOG_TYPE_NAME_EX(uint32 CTYPE)
+inline const char* KBELOG_TYPE_NAME_EX(uint32 CTYPE)
 {									
-	if(CTYPE < 0 || ((CTYPE) & (LOG_TYPES)) <= 0)
+	if(CTYPE < 0 || ((CTYPE) & (KBELOG_TYPES)) <= 0)
 	{
 		return " UNKNOWN";
 	}
 	
 	switch(CTYPE)
 	{
-	case LOG_PRINT:
+	case KBELOG_PRINT:
 		return "        ";
-	case LOG_ERROR:
+	case KBELOG_ERROR:
 		return "   ERROR";
-	case LOG_WARNING:
+	case KBELOG_WARNING:
 		return " WARNING";
-	case LOG_DEBUG:
+	case KBELOG_DEBUG:
 		return "   DEBUG";
-	case LOG_INFO:
+	case KBELOG_INFO:
 		return "    INFO";
-	case LOG_CRITICAL:
+	case KBELOG_CRITICAL:
 		return "CRITICAL";
-	case LOG_SCRIPT:
+	case KBELOG_SCRIPT:
 		return "  SCRIPT";
 	};
 
@@ -148,9 +148,11 @@ public:
 
 	void critical_msg(boost::format& fmt);
 	void critical_msg(std::string s);
-
+	
 	void script_msg(boost::format& fmt);
 	void script_msg(std::string s);
+
+	void backtrace_msg();
 
 	void onMessage(uint32 logType, const char * str, uint32 length);
 
@@ -162,6 +164,8 @@ public:
 	void clearBufferedLog();
 
 	void setScriptMsgType(int msgtype);
+
+	void shouldWriteToSyslog(bool v = true);
 private:
 	FILE* _logfile;
 	std::string _currFile, _currFuncName;

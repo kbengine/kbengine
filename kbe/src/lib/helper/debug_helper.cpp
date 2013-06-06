@@ -29,6 +29,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/network_interface.hpp"
 #include "network/tcp_packet.hpp"
 
+#ifdef unix
+#include <unistd.h>
+#include <syslog.h>
+#endif
+
 #ifndef NO_USE_LOG4CXX
 #include "log4cxx/logger.h"
 #include "log4cxx/net/socketappender.h"
@@ -70,6 +75,8 @@ log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger("default"));
 
 #define DBG_PT_SIZE 1024 * 4
 char _g_buf[DBG_PT_SIZE];
+
+bool g_shouldWriteToSyslog = false;
 
 #ifdef KBE_USE_ASSERTS
 void myassert(const char * exp, const char * func, const char * file, unsigned int line)
@@ -115,6 +122,12 @@ DebugHelper::~DebugHelper()
 {
 	clearBufferedLog();
 }	
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::shouldWriteToSyslog(bool v)
+{
+	g_shouldWriteToSyslog = v;
+}
 
 //-------------------------------------------------------------------------------------
 void DebugHelper::changeLogger(std::string name)
@@ -267,6 +280,31 @@ void DebugHelper::pNetworkInterface(Mercury:: NetworkInterface* networkInterface
 //-------------------------------------------------------------------------------------
 void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 {
+#if !defined( _WIN32 ) && !defined( PLAYSTATION3 )
+	if (g_shouldWriteToSyslog)
+	{
+		int lid = LOG_INFO;
+
+		switch(logType)
+		{
+		case KBELOG_ERROR:
+			lid = LOG_ERR;
+			break;
+		case KBELOG_CRITICAL:
+			lid = LOG_CRIT;
+			break;
+		case KBELOG_WARNING:
+			lid = LOG_WARNING;
+			break;
+		default:
+			lid = LOG_INFO;
+			break;
+		};
+
+		syslog( LOG_CRIT, "%s", buf );
+	}
+#endif
+
 	if(g_componentType == MACHINE_TYPE || 
 		g_componentType == CONSOLE_TYPE || g_componentType == MESSAGELOG_TYPE)
 		return;
@@ -330,7 +368,7 @@ void DebugHelper::print_msg(std::string s)
 	LOG4CXX_INFO(g_logger, s);
 #endif
 
-	onMessage(LOG_PRINT, s.c_str(), s.size());
+	onMessage(KBELOG_PRINT, s.c_str(), s.size());
 }
 
 //-------------------------------------------------------------------------------------
@@ -349,7 +387,7 @@ void DebugHelper::error_msg(std::string s)
 	LOG4CXX_ERROR(g_logger, s);
 #endif
 
-	onMessage(LOG_ERROR, s.c_str(), s.size());
+	onMessage(KBELOG_ERROR, s.c_str(), s.size());
 }
 
 //-------------------------------------------------------------------------------------
@@ -368,7 +406,7 @@ void DebugHelper::info_msg(std::string s)
 	LOG4CXX_INFO(g_logger, s);
 #endif
 
-	onMessage(LOG_INFO, s.c_str(), s.size());
+	onMessage(KBELOG_INFO, s.c_str(), s.size());
 }
 
 //-------------------------------------------------------------------------------------
@@ -387,7 +425,7 @@ void DebugHelper::script_msg(std::string s)
 	LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), s);
 #endif
 
-	onMessage(LOG_SCRIPT, s.c_str(), s.size());
+	onMessage(KBELOG_SCRIPT, s.c_str(), s.size());
 }
 
 //-------------------------------------------------------------------------------------
@@ -412,7 +450,7 @@ void DebugHelper::debug_msg(std::string s)
 	LOG4CXX_DEBUG(g_logger, s);
 #endif
 
-	onMessage(LOG_DEBUG, s.c_str(), s.size());
+	onMessage(KBELOG_DEBUG, s.c_str(), s.size());
 }
 
 //-------------------------------------------------------------------------------------
@@ -431,7 +469,7 @@ void DebugHelper::warning_msg(std::string s)
 	LOG4CXX_WARN(g_logger, s);
 #endif
 
-	onMessage(LOG_WARNING, s.c_str(), s.size());
+	onMessage(KBELOG_WARNING, s.c_str(), s.size());
 }
 
 //-------------------------------------------------------------------------------------
@@ -453,8 +491,73 @@ void DebugHelper::critical_msg(std::string s)
 	LOG4CXX_FATAL(g_logger, buf);
 #endif
 
-	onMessage(LOG_CRITICAL, buf, strlen(buf));
+	onMessage(KBELOG_CRITICAL, buf, strlen(buf));
+	backtrace_msg();
 }
+
+//-------------------------------------------------------------------------------------
+#ifdef unix
+#define MAX_DEPTH 50
+#include <execinfo.h>
+#include <cxxabi.h>
+
+void DebugHelper::backtrace_msg()
+{
+	void ** traceBuffer = new void*[MAX_DEPTH];
+	uint32 depth = backtrace( traceBuffer, MAX_DEPTH );
+	char ** traceStringBuffer = backtrace_symbols( traceBuffer, depth );
+	for (uint32 i = 0; i < depth; i++)
+	{
+		// Format: <executable path>(<mangled-function-name>+<function
+		// instruction offset>) [<eip>]
+		std::string functionName;
+
+		std::string traceString( traceStringBuffer[i] );
+		std::string::size_type begin = traceString.find( '(' );
+		bool gotFunctionName = (begin >= 0);
+
+		if (gotFunctionName)
+		{
+			// Skip the round bracket start.
+			++begin;
+			std::string::size_type bracketEnd = traceString.find( ')', begin );
+			std::string::size_type end = traceString.rfind( '+', bracketEnd );
+			std::string mangled( traceString.substr( begin, end - begin ) );
+
+			int status = 0;
+			size_t demangledBufferLength = 0;
+			char * demangledBuffer = abi::__cxa_demangle( mangled.c_str(), 0, 
+				&demangledBufferLength, &status );
+
+			if (demangledBuffer)
+			{
+				functionName.assign( demangledBuffer, demangledBufferLength );
+
+				// __cxa_demangle allocates the memory for the demangled
+				// output using malloc(), we need to free it.
+				free( demangledBuffer );
+			}
+			else
+			{
+				// Didn't demangle, but we did get a function name, use that.
+				functionName = mangled;
+			}
+		}
+
+		print_msg("Stack: #%d %s\n", 
+			i, 
+			(gotFunctionName) ? functionName.c_str() : traceString.c_str());
+	}
+
+	free(traceStringBuffer);
+	delete[] traceBuffer;
+}
+
+#else
+void DebugHelper::backtrace_msg()
+{
+}
+#endif
 
 //-------------------------------------------------------------------------------------
 
