@@ -543,10 +543,18 @@ void DebugHelper::backtrace_msg()
 				functionName = mangled;
 			}
 		}
-		
-		print_msg(boost::format("Stack: #%1% %2%\n") % 
+
+		std::string ss = (boost::format("Stack: #%1% %2%\n") % 
 			i %
-			((gotFunctionName) ? functionName.c_str() : traceString.c_str()));
+			((gotFunctionName) ? functionName.c_str() : traceString.c_str())).str();
+
+#ifdef NO_USE_LOG4CXX
+#else
+			LOG4CXX_INFO(g_logger, ss);
+#endif
+
+			onMessage(KBELOG_PRINT, ss.c_str(), ss.size());
+
 	}
 
 	free(traceStringBuffer);
