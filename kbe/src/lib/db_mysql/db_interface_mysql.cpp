@@ -193,7 +193,7 @@ bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexeci
 	{
 		if(showexecinfo)
 		{
-			ERROR_MSG("DBInterfaceMysql::query: has no attach(db).\n");
+			ERROR_MSG(boost::format("DBInterfaceMysql::query: has no attach(db).sql:(%1%)\n") % lastquery_);
 		}
 
 		return false;
@@ -205,8 +205,8 @@ bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexeci
     {  
 		if(showexecinfo)
 		{
-			ERROR_MSG(boost::format("DBInterfaceMysql::query: mysql is error(%1%:%2%)!\n") % 
-				mysql_errno(pMysql_) % mysql_error(pMysql_)); 
+			ERROR_MSG(boost::format("DBInterfaceMysql::query: is error(%1%:%2%)!\nsql:(%3%)\n") % 
+				mysql_errno(pMysql_) % mysql_error(pMysql_) % lastquery_); 
 		}
 
 		this->throwError();
