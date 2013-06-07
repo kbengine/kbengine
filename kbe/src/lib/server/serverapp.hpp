@@ -129,7 +129,7 @@ public:
 	*/
 	void queryWatcher(Mercury::Channel* pChannel, MemoryStream& s);
 
-	void shutDown();
+	void shutDown(float shutdowntime = -FLT_MAX);
 
 	int32 globalOrder()const{ return startGlobalOrder_; }
 	int32 groupOrder()const{ return startGroupOrder_; }

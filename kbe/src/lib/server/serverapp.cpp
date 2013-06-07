@@ -88,12 +88,13 @@ ServerApp::~ServerApp()
 }
 
 //-------------------------------------------------------------------------------------	
-void ServerApp::shutDown()
+void ServerApp::shutDown(float shutdowntime)
 {
 	if(pShutdowner_ == NULL)
 		pShutdowner_ = new Shutdowner(this);
 
-	pShutdowner_->shutdown(g_kbeSrvConfig.shutdowntime(), g_kbeSrvConfig.shutdownWaitTickTime(), mainDispatcher_);
+	pShutdowner_->shutdown(shutdowntime >= 0.f ? g_kbeSrvConfig.shutdowntime() : shutdowntime, 
+		g_kbeSrvConfig.shutdownWaitTickTime(), mainDispatcher_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -263,7 +264,7 @@ void ServerApp::onSignalled(int sigNum)
 	{
 	case SIGINT:
 	case SIGHUP:
-		this->shutDown();
+		this->shutDown(1.f);
 	default:
 		break;
 	}
