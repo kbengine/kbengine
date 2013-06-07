@@ -130,7 +130,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 
 	SAFE_RELEASE(pComponentbridge);
 	app.finalise();
-	INFO_MSG(boost::format("%1% has shut down.\n") % COMPONENT_NAME_EX(componentType));
+	INFO_MSG(boost::format("%1%(%2%) has shut down.\n") % COMPONENT_NAME_EX(componentType) % g_componentID);
 	return ret;
 }
 

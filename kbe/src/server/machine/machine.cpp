@@ -611,7 +611,7 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 		s >> finderRecvPort;
 	}
 
-	INFO_MSG(boost::format("Machine::stopserver: uid=%1%, [%2%], addr=%3%\n") % 
+	INFO_MSG(boost::format("Machine::stopserver: request uid=%1%, [%2%], addr=%3%\n") % 
 		uid %  COMPONENT_NAME[componentType] % pChannel->c_str());
 
 	Components::COMPONENTS& components = Componentbridge::getComponents().getComponents(componentType);
@@ -633,6 +633,15 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 			continue;
 		}
 
+		if(((*iter).flags & COMPONENT_FLAG_SHUTTINGDOWN) > 0)
+		{
+			iter++;
+			continue;
+		}
+
+		INFO_MSG(boost::format("--> stop %1%(%2%), addr=%3%\n") % 
+			(*iter).cid % COMPONENT_NAME[componentType] % (cinfos->pIntAddr != NULL ? cinfos->pIntAddr->c_str() : "unknown"));
+
 		bool usable = Componentbridge::getComponents().checkComponentUsable(&(*iter));
 		
 		if(!usable)
@@ -640,9 +649,6 @@ void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 			iter = components.erase(iter);
 			continue;
 		}
-
-		if(((*iter).flags & COMPONENT_FLAG_SHUTTINGDOWN) > 0)
-			continue;
 
 		(*iter).flags |= COMPONENT_FLAG_SHUTTINGDOWN;
 
