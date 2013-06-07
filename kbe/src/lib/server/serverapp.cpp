@@ -93,7 +93,7 @@ void ServerApp::shutDown(float shutdowntime)
 	if(pShutdowner_ == NULL)
 		pShutdowner_ = new Shutdowner(this);
 
-	pShutdowner_->shutdown(shutdowntime >= 0.f ? g_kbeSrvConfig.shutdowntime() : shutdowntime, 
+	pShutdowner_->shutdown(shutdowntime < 0.f ? g_kbeSrvConfig.shutdowntime() : shutdowntime, 
 		g_kbeSrvConfig.shutdownWaitTickTime(), mainDispatcher_);
 }
 
