@@ -400,6 +400,11 @@ void ServerApp::lookApp(Mercury::Channel* pChannel)
 	
 	(*pBundle) << g_componentType;
 	(*pBundle) << componentID_;
+
+	ShutdownHandler::SHUTDOWN_STATE state = shuttingdown();
+	int8 istate = int8(state);
+	(*pBundle) << istate;
+
 	(*pBundle).send(getNetworkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);

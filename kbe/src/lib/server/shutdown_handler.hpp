@@ -30,8 +30,15 @@ namespace KBEngine {
 class ShutdownHandler 
 {
 public:
+	enum SHUTDOWN_STATE{
+		SHUTDOWN_STATE_STOP = 0,
+		SHUTDOWN_STATE_BEGIN = 1,
+		SHUTDOWN_STATE_RUNNING = 2,
+		SHUTDOWN_STATE_END = 0
+	};
+
 	ShutdownHandler():lastShutdownFailReason_("tasks"),
-	shuttingdown_(false){
+	shuttingdown_(SHUTDOWN_STATE_STOP){
 	}
 	
 	virtual ~ShutdownHandler(){}
@@ -42,12 +49,13 @@ public:
 	
 	virtual bool canShutdown(){ return true; }
 	
-	void setShuttingdown(){ shuttingdown_ = true; }
-	bool shuttingdown()const{ return shuttingdown_; }
+	void setShuttingdown(SHUTDOWN_STATE state){ shuttingdown_ = state; }
+	bool isShuttingdown()const{ return shuttingdown_ != SHUTDOWN_STATE_STOP; }
+	SHUTDOWN_STATE shuttingdown()const{ return shuttingdown_; }
 	const std::string& lastShutdownFailReason(){ return lastShutdownFailReason_; }
 protected:
 	std::string lastShutdownFailReason_; // 最后一次关机失败的原因
-	bool shuttingdown_;
+	SHUTDOWN_STATE shuttingdown_;
 };
 
 }

@@ -65,6 +65,7 @@ public:
 			groupOrderid = 0;
 			globalOrderid = 0;
 			pChannel = NULL;
+			shutdownState = 0;
 		}
 
 		KBEShared_ptr<Mercury::Address > pIntAddr, pExtAddr; // 内部和外部地址
@@ -75,6 +76,7 @@ public:
 		Mercury::Channel* pChannel;
 		COMPONENT_TYPE componentType;
 		uint32 flags;
+		int8 shutdownState;
 	};
 
 	typedef std::vector<ComponentInfos> COMPONENTS;

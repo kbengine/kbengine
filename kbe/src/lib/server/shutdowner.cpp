@@ -54,16 +54,18 @@ void Shutdowner::shutdown(float period, float tickPeriod, Mercury::EventDispatch
 		% period % tickPeriod);
 	
 	tickPeriod_ = tickPeriod;
-	pShutdownHandler_->setShuttingdown();
+	pShutdownHandler_->setShuttingdown(ShutdownHandler::SHUTDOWN_STATE_BEGIN);
 	
 	if(period <= 0.f)
 	{
 		pShutdownHandler_->onShutdownBegin();
 		
 		INFO_MSG( "Shutdowner::onShutdown: shutting down\n" );
+		pShutdownHandler_->setShuttingdown(ShutdownHandler::SHUTDOWN_STATE_RUNNING);
 		pShutdownHandler_->onShutdown(true);
 		
 		INFO_MSG( "Shutdowner::onShutdownEnd: shutting down\n" );
+		pShutdownHandler_->setShuttingdown(ShutdownHandler::SHUTDOWN_STATE_END);
 		pShutdownHandler_->onShutdownEnd();
 		return;	
 	}
@@ -83,6 +85,7 @@ void Shutdowner::handleTimeout(TimerHandle handle, void * arg)
 		case TIMEOUT_SHUTDOWN_TICK:
 		{
 			INFO_MSG( "Shutdowner::onShutdown: shutting down\n" );
+			pShutdownHandler_->setShuttingdown(ShutdownHandler::SHUTDOWN_STATE_RUNNING);
 			pShutdownHandler_->onShutdown(true);
 			cancel();
 			
@@ -92,6 +95,7 @@ void Shutdowner::handleTimeout(TimerHandle handle, void * arg)
 			break;
 		}
 		case TIMEOUT_SHUTDOWN_END_TICK:
+			pShutdownHandler_->setShuttingdown(ShutdownHandler::SHUTDOWN_STATE_END);
 			if(!pShutdownHandler_->canShutdown())
 			{
 				INFO_MSG(boost::format("Shutdowner::onShutdownEnd: waiting for %1% to complete!\n") % 

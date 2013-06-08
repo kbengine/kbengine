@@ -570,10 +570,11 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 	{
 		COMPONENT_TYPE ctype;
 		COMPONENT_ID cid;
+		int8 istate = 0;
 
 		Mercury::TCPPacket packet;
 		packet.resize(255);
-		int recvsize = sizeof(ctype) + sizeof(cid);
+		int recvsize = sizeof(ctype) + sizeof(cid) + sizeof(istate);
 		int len = epListen.recv(packet.data(), recvsize);
 		packet.wpos(len);
 		
@@ -585,7 +586,7 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 			return true;
 		}
 
-		packet >> ctype >> cid;
+		packet >> ctype >> cid >> istate;
 
 		if(ctype != info->componentType || cid != info->cid)
 		{
@@ -594,6 +595,9 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 
 			return false;
 		}
+
+		Components::ComponentInfos* winfo = findComponent(info->cid);
+		winfo->shutdownState = istate;
 	}
 
 	return true;

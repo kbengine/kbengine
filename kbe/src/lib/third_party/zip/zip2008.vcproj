@@ -143,6 +143,7 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
+				OutputFile="../../../libs/$(ProjectName).bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
