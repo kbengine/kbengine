@@ -298,7 +298,6 @@ class ClusterStopHandler(ClusterControllerHandler):
 		if len(self.startTemplate) <= 0:
 			for ctype in self._interfaces:
 				infos = self._interfaces.get(ctype, [])
-				print(len(infos))
 				for x in range(0, len(infos)):
 					self.startTemplate.append(COMPONENT_NAME[ctype])
 
