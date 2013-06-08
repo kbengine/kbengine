@@ -89,8 +89,8 @@ bool DBTask::process()
 	uint64 duration = timestamp() - startTime;
 	if (duration > stampsPerSecond())
 	{
-		WARNING_MSG(boost::format("DBTask::presentMainThread(): took %.2f seconds\n") % 
-			(double(duration)/stampsPerSecondD()));
+		WARNING_MSG(boost::format("DBTask::presentMainThread(): took %.2f seconds\nsql:(%s)\n") % 
+			(double(duration)/stampsPerSecondD()) % static_cast<DBInterfaceMysql*>(pdbi_)->lastquery().c_str());
 	}
 
 	return ret;

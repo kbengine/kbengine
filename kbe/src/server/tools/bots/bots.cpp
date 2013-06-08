@@ -306,6 +306,9 @@ void Bots::lookApp(Mercury::Channel* pChannel)
 	
 	(*pBundle) << g_componentType;
 	(*pBundle) << componentID_;
+	int8 istate = 0;
+	(*pBundle) << istate;
+
 	(*pBundle).send(getNetworkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
