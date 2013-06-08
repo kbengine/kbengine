@@ -1,1 +1,1 @@
-python %KBE_ROOT%kbe\tools\server\pycluster\cluster_controller.py stop "billing|loginapp|baseappmgr|cellappmgr|cellapp|baseapp|dbmgr"
+python %KBE_ROOT%kbe\tools\server\pycluster\cluster_controller.py stop

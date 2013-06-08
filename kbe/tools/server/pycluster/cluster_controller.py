@@ -80,12 +80,6 @@ COMPONENT_NAME = (
 
 class ClusterControllerHandler:
 	def __init__(self):
-		self._udp_broadcast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		self._udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		self._udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-		
-		self._udp_broadcast_socket.bind((host, 0))
-		
 		self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		self.udp_socket.bind((host, 0))
 		
@@ -104,8 +98,10 @@ class ClusterControllerHandler:
 	def sendto(self, trycount = 1, timeout = 3):
 		self.writePacket("H", socket.htons(self.udp_socket.getsockname()[1]))
 		
-		self._udp_broadcast_socket.settimeout(timeout)
-		self._udp_broadcast_socket.sendto(self.postDatas, ('255.255.255.255', 20086))
+		_udp_broadcast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		_udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		_udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+		_udp_broadcast_socket.sendto(self.postDatas, ('255.255.255.255', 20086))
 		#print("posted udp broadcast(size=%i), waiting for recv..." % len(self.postDatas))
 		self.resetPacket()
 		
@@ -289,12 +285,23 @@ class ClusterStopHandler(ClusterControllerHandler):
 	def __init__(self, uid, startTemplate):
 		ClusterControllerHandler.__init__(self)
 		self.uid = uid
-		self.startTemplate = startTemplate.split("|")
 		
+		if len(startTemplate) > 0:
+			self.startTemplate = startTemplate.split("|")
+		else:
+			self.startTemplate = []
+			
 	def do(self):
 		self.queryAllInterfaces()
 		interfaces = self._interfaces
 		
+		if len(self.startTemplate) <= 0:
+			for ctype in self._interfaces:
+				infos = self._interfaces.get(ctype, [])
+				print(len(infos))
+				for x in range(0, len(infos)):
+					self.startTemplate.append(COMPONENT_NAME[ctype])
+
 		interfacesCount = {}
 		interfacesCount1 = {}
 		
@@ -356,7 +363,30 @@ class ClusterStopHandler(ClusterControllerHandler):
 			print("\t\t%s : %i" % (COMPONENT_NAME[ctype], len(infos)))
 			
 		print("ClusterStopHandler::do: completed!")
-		
+
+def getDefaultUID():
+	"""
+	"""
+	uid = -1
+	if uid < 0:
+		uid = int(os.environ.get('uid', -1))
+	
+	try:
+		if uid < 0:
+			uid = os.getuid()
+	except:
+		pass
+
+	try:
+		if uid < 0:
+			import pwd
+			pw = pwd.getpwnam(getpass.getuser())
+			uid = pw.pw_uid
+	except:
+		pass
+	
+	return uid
+	
 if __name__ == "__main__":
 	clusterHandler = None
 	
@@ -381,11 +411,11 @@ if __name__ == "__main__":
 					
 			uid = int(uid)
 			if uid < 0:
-				uid = int(os.environ.get('uid', 0))
+				uid = getDefaultUID()
 
 			clusterHandler = ClusterStartHandler(uid, templatestr)
 		elif cmdType == "stop":
-			templatestr = "loginapp|baseappmgr|cellappmgr|cellapp|baseapp|dbmgr"
+			templatestr = ""
 			uid = -1
 			
 			if len(sys.argv) >= 3:
@@ -402,8 +432,8 @@ if __name__ == "__main__":
 					
 			uid = int(uid)
 			if uid < 0:
-				uid = int(os.environ.get('uid', 0))
-
+				uid = getDefaultUID()
+				
 			clusterHandler = ClusterStopHandler(uid, templatestr)
 		elif cmdType == "console":
 			assert(len(sys.argv) == 3)
