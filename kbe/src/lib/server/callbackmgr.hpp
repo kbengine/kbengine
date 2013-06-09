@@ -81,7 +81,8 @@ public:
 			timeout = uint64(ServerConfig::getSingleton().callback_timeout_);
 
 		CALLBACK_ID cbID = idAlloc_.alloc();
-		cbMap_.insert(CALLBACKS::value_type(cbID, std::make_pair< T, uint64 >(callback, timestamp() + (timeout * stampsPerSecond()))));
+		cbMap_.insert(typename CALLBACKS::value_type(cbID, 
+			std::make_pair< T, uint64 >(callback, timestamp() + (timeout * stampsPerSecond()))));
 
 		tick();
 		return cbID;
