@@ -92,7 +92,7 @@ public:
 	*/
 	T take(CALLBACK_ID cbID)
 	{
-		CALLBACKS::iterator itr = cbMap_.find(cbID);
+		typename CALLBACKS::iterator itr = cbMap_.find(cbID);
 		if(itr != cbMap_.end()){
 			T t = itr->second.first;
 			idAlloc_.reclaim(itr->first);
@@ -113,7 +113,7 @@ public:
 			return;
 
 		lastTimestamp_ = timestamp(); 
-		CALLBACKS::iterator iter = cbMap_.begin();
+		typename CALLBACKS::iterator iter = cbMap_.begin();
 		for(; iter!= cbMap_.end(); )
 		{
 			if(lastTimestamp_ > iter->second.second)
