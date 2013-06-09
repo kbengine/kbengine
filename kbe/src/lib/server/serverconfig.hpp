@@ -238,6 +238,8 @@ public:
 
 	float shutdown_time_;
 	float shutdown_waitTickTime_;
+
+	float callback_timeout_;										// callback默认超时时间(秒)
 };
 
 #define g_kbeSrvConfig ServerConfig::getSingleton()

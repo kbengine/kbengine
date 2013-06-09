@@ -847,14 +847,22 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 			Py_INCREF(Py_None);
 			// baseRef, dbid, wasActive
 			PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
-			PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
-												const_cast<char*>("OKi"), 
-												Py_None, dbid, wasActive);
+			if(pyfunc != NULL)
+			{
+				PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
+													const_cast<char*>("OKi"), 
+													Py_None, dbid, wasActive);
 
-			if(pyResult != NULL)
-				Py_DECREF(pyResult);
+				if(pyResult != NULL)
+					Py_DECREF(pyResult);
+				else
+					SCRIPT_ERROR_CHECK();
+			}
 			else
-				SCRIPT_ERROR_CHECK();
+			{
+				ERROR_MSG(boost::format("Baseapp::onCreateBaseFromDBID: can't found callback:%1%.\n") %
+					callbackID);
+			}
 		}
 
 		return;
@@ -878,14 +886,22 @@ void Baseapp::onCreateBaseFromDBIDCallback(Mercury::Channel* pChannel, KBEngine:
 
 		// baseRef, dbid, wasActive
 		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
-		PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
-											const_cast<char*>("OKi"), 
-											e, dbid, wasActive);
+		if(pyfunc != NULL)
+		{
+			PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
+												const_cast<char*>("OKi"), 
+												e, dbid, wasActive);
 
-		if(pyResult != NULL)
-			Py_DECREF(pyResult);
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+		}
 		else
-			SCRIPT_ERROR_CHECK();
+		{
+			ERROR_MSG(boost::format("Baseapp::onCreateBaseFromDBID: can't found callback:%1%.\n") %
+				callbackID);
+		}
 	}
 }
 
@@ -1142,20 +1158,26 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 		KBE_ASSERT(pOtherBaseappChannel != NULL);
 		PyObject* mb = static_cast<EntityMailbox*>(new EntityMailbox(sm, NULL, componentID, eid, MAILBOX_TYPE_BASE));
 		PyTuple_SET_ITEM(pyargs, 0, mb);
-
-		PyObject* pyRet = PyObject_CallObject(pyCallback.get(), pyargs);
-		if(pyRet == NULL)
+		
+		if(pyCallback != NULL)
 		{
-			SCRIPT_ERROR_CHECK();
+			PyObject* pyRet = PyObject_CallObject(pyCallback.get(), pyargs);
+			if(pyRet == NULL)
+			{
+				SCRIPT_ERROR_CHECK();
+			}
+			else
+			{
+				Py_DECREF(pyRet);
+			}
 		}
 		else
 		{
-			Py_DECREF(pyRet);
+			ERROR_MSG(boost::format("Baseapp::onCreateBaseAnywhereCallback: can't found callback:%1%.\n") %
+				callbackID);
 		}
 
 		//Py_DECREF(mb);
-		int i=0;
-		i++;
 	}
 	else
 	{
@@ -1172,14 +1194,22 @@ void Baseapp::_onCreateBaseAnywhereCallback(Mercury::Channel* pChannel, CALLBACK
 
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-		PyObject* pyRet = PyObject_CallObject(pyCallback.get(), pyargs);
-		if(pyRet == NULL)
+		if(pyCallback != NULL)
 		{
-			SCRIPT_ERROR_CHECK();
+			PyObject* pyRet = PyObject_CallObject(pyCallback.get(), pyargs);
+			if(pyRet == NULL)
+			{
+				SCRIPT_ERROR_CHECK();
+			}
+			else
+			{
+				Py_DECREF(pyRet);
+			}
 		}
 		else
 		{
-			Py_DECREF(pyRet);
+			ERROR_MSG(boost::format("Baseapp::onCreateBaseAnywhereCallback: can't found callback:%1%.\n") %
+				callbackID);
 		}
 	}
 
@@ -1479,14 +1509,22 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
-		PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
-											const_cast<char*>("OOO"), 
-											pResultSet, pAffectedRows, pErrorMsg);
+		if(pyfunc != NULL)
+		{
+			PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
+												const_cast<char*>("OOO"), 
+												pResultSet, pAffectedRows, pErrorMsg);
 
-		if(pyResult != NULL)
-			Py_DECREF(pyResult);
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+		}
 		else
-			SCRIPT_ERROR_CHECK();
+		{
+			ERROR_MSG(boost::format("Baseapp::onExecuteRawDatabaseCommandCB: can't found callback:%1%.\n") %
+				callbackID);
+		}
 	}
 
 	Py_XDECREF(pResultSet);
@@ -1571,7 +1609,7 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Baseapp::charge(std::string chargeID, DBID dbid, const std::string& datas, PyObject* pycallback)
 {
-	CALLBACK_ID callbackID = callbackMgr().save(pycallback);
+	CALLBACK_ID callbackID = callbackMgr().save(pycallback, uint64(g_kbeSrvConfig.billingSystem_orders_timeout_ + g_kbeSrvConfig.callback_timeout_));
 
 	INFO_MSG(boost::format("Baseapp::charge: chargeID=%1%, dbid=%4%, datas=%2%, pycallback=%3%.\n") % 
 		chargeID %
@@ -1630,14 +1668,22 @@ void Baseapp::onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 	{
 		PyObjectPtr pycallback = callbackMgr().take(callbackID);
 
-		PyObject* pyResult = PyObject_CallFunction(pycallback.get(), 
-											const_cast<char*>("OOOO"), 
-											pyOrder, pydbid, pySuccess, static_cast<PyObject*>(pBlob));
+		if(pycallback != NULL)
+		{
+			PyObject* pyResult = PyObject_CallFunction(pycallback.get(), 
+												const_cast<char*>("OOOO"), 
+												pyOrder, pydbid, pySuccess, static_cast<PyObject*>(pBlob));
 
-		if(pyResult != NULL)
-			Py_DECREF(pyResult);
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+		}
 		else
-			SCRIPT_ERROR_CHECK();
+		{
+			ERROR_MSG(boost::format("Baseapp::onChargeCB: can't found callback:%1%.\n") %
+				callbackID);
+		}
 	}
 	else
 	{

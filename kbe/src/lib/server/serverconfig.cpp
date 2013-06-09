@@ -37,7 +37,9 @@ billingSystem_thirdpartyAccountServicePort_(80),
 billingSystem_thirdpartyChargeServiceAddr_(""),
 billingSystem_thirdpartyChargeServicePort_(80),
 billingSystem_thirdpartyServiceCBPort_(0),
-shutdown_time_(1)
+shutdown_time_(1.f),
+shutdown_waitTickTime_(1.f),
+callback_timeout_(180.f)
 {
 }
 
@@ -122,6 +124,14 @@ bool ServerConfig::loadConfig(std::string fileName)
 		shutdown_waitTickTime_ = float(xml->getValFloat(rootNode));
 	}
 
+	rootNode = xml->getRootNode("callback_timeout");
+	if(rootNode != NULL)
+	{
+		callback_timeout_ = float(xml->getValFloat(rootNode));
+		if(callback_timeout_ < 5.f)
+			callback_timeout_ = 5.f;
+	}
+	
 	rootNode = xml->getRootNode("channelCommon");
 	if(rootNode != NULL)
 	{

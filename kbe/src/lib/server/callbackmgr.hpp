@@ -37,8 +37,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 // common include	
 #include "Python.h"
 #include "idallocate.hpp"
+#include "serverconfig.hpp"
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/timer.hpp"
 #include "pyscript/pyobject_pointer.hpp"
 
 //#define NDEBUG
@@ -54,6 +56,8 @@ template<typename T>
 class CallbackMgr
 {
 public:
+	typedef std::map< CALLBACK_ID, std::pair< T, uint64 > > CALLBACKS;
+
 	CallbackMgr()
 	{
 	}
@@ -68,43 +72,100 @@ public:
 		cbMap_.clear();
 	}
 
-	/** 向管理器添加一个回调 */
-	CALLBACK_ID save(T callback)
+	/** 
+		向管理器添加一个回调 
+	*/
+	CALLBACK_ID save(T callback, uint64 timeout = 0/*secs*/)
 	{
+		if(timeout == 0)
+			timeout = uint64(ServerConfig::getSingleton().callback_timeout_);
+
 		CALLBACK_ID cbID = idAlloc_.alloc();
-		cbMap_.insert(typename std::map<CALLBACK_ID, T>::value_type(cbID, callback));
+		cbMap_.insert(CALLBACKS::value_type(cbID, std::make_pair< T, uint64 >(callback, timestamp() + (timeout * stampsPerSecond()))));
+
+		tick();
 		return cbID;
 	}
 	
-	/** 通过callbackID取走回调 */
+	/** 
+		通过callbackID取走回调 
+	*/
 	T take(CALLBACK_ID cbID)
 	{
-		typename std::map<CALLBACK_ID, T>::iterator itr = cbMap_.find(cbID);
+		CALLBACKS::iterator itr = cbMap_.find(cbID);
 		if(itr != cbMap_.end()){
-			T t = itr->second;
+			T t = itr->second.first;
 			idAlloc_.reclaim(itr->first);
 			cbMap_.erase(itr);
 			return t;
 		}
 		
+		tick();
 		return NULL;
 	}
+
+	/**
+		tick
+	*/
+	void tick()
+	{
+		if(timestamp() - lastTimestamp_ < (ServerConfig::getSingleton().callback_timeout_ * stampsPerSecond()))
+			return;
+
+		lastTimestamp_ = timestamp(); 
+		CALLBACKS::iterator iter = cbMap_.begin();
+		for(; iter!= cbMap_.end(); )
+		{
+			if(lastTimestamp_ > iter->second.second)
+			{
+				if(processTimeout(iter->first, iter->second.first))
+				{
+					idAlloc_.reclaim(iter->first);
+					cbMap_.erase(iter++);
+					continue;
+				}
+			}
+
+			++iter;
+		}
+	}
+
+	/**
+		超时的callback
+	*/
+	bool processTimeout(CALLBACK_ID cbID, T callback)
+	{
+		INFO_MSG(boost::format("CallbackMgr::processTimeout: %1% timeout!\n") % cbID);
+		return true;
+	}
 protected:
-	typename std::map<CALLBACK_ID, T> cbMap_;					// 所有的回调都存储在这个map中
-	IDAllocate<CALLBACK_ID> idAlloc_;							// 回调的id分配器
+	CALLBACKS cbMap_;	// 所有的回调都存储在这个map中
+	IDAllocate<CALLBACK_ID> idAlloc_;									// 回调的id分配器
+	uint64 lastTimestamp_;
 };
 
 template<>
 inline void CallbackMgr<PyObject*>::finalise()
 {
-	std::map<CALLBACK_ID, PyObject*>::iterator iter = cbMap_.begin();
+	std::map< CALLBACK_ID, std::pair< PyObject*, uint64 > >::iterator iter = cbMap_.begin();
 	for(; iter!= cbMap_.end(); iter++)
 	{
-		Py_DECREF(iter->second);
+		Py_DECREF(iter->second.first);
 	}
 
 	cbMap_.clear();
 }	
+
+template<>
+inline bool CallbackMgr<PyObject*>::processTimeout(CALLBACK_ID cbID, PyObject* callback)
+{
+	std::string name = callback->ob_type->tp_name;
+	INFO_MSG(boost::format("CallbackMgr::processTimeout: callbackID:%1%, callback(%2%) timeout!\n") % cbID % 
+		name);
+
+	Py_DECREF(callback);
+	return true;
+}
 
 typedef CallbackMgr<PyObjectPtr> PY_CALLBACKMGR;
 

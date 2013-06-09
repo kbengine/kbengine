@@ -504,14 +504,22 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Mercury::Channel* pChannel, KBEngine
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
-		PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
-											const_cast<char*>("OOO"), 
-											pResultSet, pAffectedRows, pErrorMsg);
+		if(pyfunc != NULL)
+		{
+			PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
+												const_cast<char*>("OOO"), 
+												pResultSet, pAffectedRows, pErrorMsg);
 
-		if(pyResult != NULL)
-			Py_DECREF(pyResult);
+			if(pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+		}
 		else
-			SCRIPT_ERROR_CHECK();
+		{
+			ERROR_MSG(boost::format("Cellapp::onExecuteRawDatabaseCommandCB: can't found callback:%1%.\n") %
+				callbackID);
+		}
 	}
 
 	Py_XDECREF(pResultSet);

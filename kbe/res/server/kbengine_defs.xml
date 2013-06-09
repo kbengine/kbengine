@@ -113,6 +113,9 @@
 	<!-- 关服等待任务结束tick(秒) -->
 	<shutdown_waittick> 1.0 </shutdown_waittick>
 	
+	<!-- callback默认超时时间(秒) -->
+	<callback_timeout> 300.0 </callback_timeout>
+	
 	<billingSystem>
 		<!-- normal: 普通, thirdparty: 第三方此时需要提供ip地址 -->
 		<type> normal </type>

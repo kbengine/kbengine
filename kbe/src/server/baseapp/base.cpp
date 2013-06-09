@@ -821,15 +821,23 @@ void Base::onWriteToDBCallback(ENTITY_ID eid,
 		Py_INCREF(this);
 		PyTuple_SET_ITEM(pyargs, 0, PyBool_FromLong((long)success));
 		PyTuple_SET_ITEM(pyargs, 1, this);
-
-		PyObject* pyRet = PyObject_CallObject(pyCallback.get(), pyargs);
-		if(pyRet == NULL)
+		
+		if(pyCallback != NULL)
 		{
-			SCRIPT_ERROR_CHECK();
+			PyObject* pyRet = PyObject_CallObject(pyCallback.get(), pyargs);
+			if(pyRet == NULL)
+			{
+				SCRIPT_ERROR_CHECK();
+			}
+			else
+			{
+				Py_DECREF(pyRet);
+			}
 		}
 		else
 		{
-			Py_DECREF(pyRet);
+			ERROR_MSG(boost::format("Base::onWriteToDBCallback: can't found callback:%1%.\n") %
+				callbackID);
 		}
 
 		Py_DECREF(pyargs);
