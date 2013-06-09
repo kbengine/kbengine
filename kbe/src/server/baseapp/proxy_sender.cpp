@@ -29,8 +29,8 @@ namespace KBEngine{
 ProxySender::ProxySender(Proxy * pProxy) : 
 pProxy_(pProxy)
 {
-	timerHandle_ = Baseapp::getSingleton().timers().add(
-		 Baseapp::getSingleton().time() + 1, 1, this, NULL);
+	timerHandle_ = Baseapp::getSingleton().getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+							NULL);
 }
 
 //-------------------------------------------------------------------------------------
