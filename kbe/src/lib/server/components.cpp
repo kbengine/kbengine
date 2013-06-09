@@ -583,7 +583,7 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 			ERROR_MSG(boost::format("Components::checkComponentUsable: packet invalid(recvsize(%1%) != ctype_cid_len(%2%).\n") 
 				% len % recvsize);
 			
-			if(recvsize == 0)
+			if(len == 0)
 				return false;
 
 			return true;
