@@ -1344,8 +1344,9 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 	(*pBundle) << base->rndUUID();
 	(*pBundle) << base->getID();
 	(*pBundle) << base->ob_type->tp_name;
-	base->getClientMailbox()->postMail((*pBundle));
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	//base->getClientMailbox()->postMail((*pBundle));
+	base->sendToClient(ClientInterface::onCreatedProxies, pBundle);
+	//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	base->initClientBasePropertys();
 
@@ -2122,8 +2123,9 @@ void Baseapp::onEntityEnterWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_I
 		ClientInterface::onEntityEnterWorldArgs3::staticAddToBundle((*pBundle), entityID, base->getScriptModule()->getUType(),
 			base->getSpaceID());
 
-		(*pBundle).send(this->getNetworkInterface(), pClientChannel);
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		//(*pBundle).send(this->getNetworkInterface(), pClientChannel);
+		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		base->sendToClient(ClientInterface::onEntityEnterWorld, pBundle);
 	}
 }
 
@@ -2147,8 +2149,9 @@ void Baseapp::onEntityLeaveWorldFromCellapp(Mercury::Channel* pChannel,
 		ClientInterface::onEntityLeaveWorldArgs2::staticAddToBundle((*pBundle), entityID, 
 			base->getSpaceID());
 
-		(*pBundle).send(this->getNetworkInterface(), pClientChannel);
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		//(*pBundle).send(this->getNetworkInterface(), pClientChannel);
+		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		base->sendToClient(ClientInterface::onEntityLeaveWorld, pBundle);
 	}
 }
 
@@ -2190,7 +2193,7 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 	if(mailbox == NULL)
 	{
 		ERROR_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: "
-			"occur a error(can't found clientMailbox)! entityID=%1%.\n") % 
+			"is error(not found clientMailbox)! entityID=%1%.\n") % 
 			eid);
 
 		s.opfini();
@@ -2202,8 +2205,9 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).append(s);
-	mailbox->postMail((*pBundle));
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	static_cast<Proxy*>(base)->sendToClient(pBundle);
+	//mailbox->postMail((*pBundle));
+	//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	
 	if(Mercury::g_trace_packet > 0 && s.opsize() >= sizeof(Mercury::MessageID))
 	{
@@ -2246,6 +2250,7 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 	
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	Mercury::Bundle& bundle = *pBundle;
+	bool reclaim = true;
 
 	switch(mailtype)
 	{
@@ -2292,7 +2297,9 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 				}
 
 				s.read_skip(s.opsize());
-				mailbox->postMail(bundle);
+				//mailbox->postMail(bundle);
+				static_cast<Proxy*>(base)->sendToClient(pBundle);
+				reclaim = false;
 			}
 			break;
 		default:
@@ -2302,7 +2309,9 @@ void Baseapp::onEntityMail(Mercury::Channel* pChannel, KBEngine::MemoryStream& s
 			}
 	};
 
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	if(reclaim)
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
 	s.opfini();
 }
 

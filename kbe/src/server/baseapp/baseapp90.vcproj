@@ -236,6 +236,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\proxy_sender.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\restore_entity_handler.cpp"
 				>
 			</File>
@@ -309,6 +313,10 @@
 			</File>
 			<File
 				RelativePath=".\proxy_interface_macros.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\proxy_sender.hpp"
 				>
 			</File>
 			<File

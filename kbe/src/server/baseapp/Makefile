@@ -13,6 +13,7 @@ SRCS =						\
 	sync_entitystreamtemplate_handler	\
 	main					\
 	proxy					\
+	proxy_sender				\
 	profile
 
 ASMS =

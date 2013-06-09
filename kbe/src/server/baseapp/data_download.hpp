@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "thread/threadtask.hpp"
+#include "network/message_handler.hpp"
 
 namespace KBEngine{
 
@@ -48,7 +49,7 @@ public:
 	void entityID(ENTITY_ID entityID){ entityID_ = entityID; }
 	ENTITY_ID entityID(){ return entityID_; }
 
-	bool send(Mercury::Bundle& bundle);
+	bool send(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle);
 
 	void id(int16 i){ id_ = i; }
 	int16 id()const{ return id_; }

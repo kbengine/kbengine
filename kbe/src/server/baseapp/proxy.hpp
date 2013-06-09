@@ -28,6 +28,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/cstdkbe.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/address.hpp"
+#include "network/message_handler.hpp"
+
 //#define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -43,6 +45,8 @@ namespace Mercury
 class Channel;
 }
 
+class ProxySender;
+
 #define LOG_ON_REJECT  0
 #define LOG_ON_ACCEPT  1
 #define LOG_ON_WAIT_FOR_DESTROY 2
@@ -57,6 +61,16 @@ public:
 	
 	INLINE void addr(const Mercury::Address& address);
 	INLINE const Mercury::Address& addr()const;
+
+	typedef std::vector<Mercury::Bundle*> Bundles;
+	Bundles* pBundles();
+
+	/**
+		向witness客户端推送一条消息
+	*/
+	bool sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle);
+	bool sendToClient(Mercury::Bundle* pBundle);
+	bool sendToClient(bool expectData = true);
 
 	/** 
 		脚本请求获取连接的rtt值
@@ -153,6 +167,8 @@ protected:
 
 	// 通信加密key 默认blowfish
 	std::string encryptionKey;
+
+	ProxySender* pProxySender_;
 };
 
 }

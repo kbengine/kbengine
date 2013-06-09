@@ -52,14 +52,15 @@ DataDownload::~DataDownload()
 }
 
 //-------------------------------------------------------------------------------------
-bool DataDownload::send(Mercury::Bundle& bundle)
+bool DataDownload::send(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle)
 {
 	Proxy* proxy = static_cast<Proxy*>(Baseapp::getSingleton().findEntity(entityID_));
 	
 	if(proxy){
-		proxy->getClientMailbox()->postMail(bundle);
+		proxy->sendToClient(msgHandler, pBundle);
 	}
 	else{
+		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		return false;
 	}
 
@@ -81,18 +82,18 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 
 	if(remainSent_ > 0 && currSent_ < remainSent_)
 	{
-		Mercury::Bundle::SmartPoolObjectPtr pBundle = Mercury::Bundle::createSmartPoolObj();
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
 		if(!sentStart_)
 		{
-			(*pBundle)->newMessage(ClientInterface::onStreamDataStarted);
-			(*(*pBundle)) << this->id();
-			(*(*pBundle)) << totalBytes_;
-			(*(*pBundle)) << descr_;
-			(*(*pBundle)) << type();
+			pBundle->newMessage(ClientInterface::onStreamDataStarted);
+			(*pBundle) << this->id();
+			(*pBundle) << totalBytes_;
+			(*pBundle) << descr_;
+			(*pBundle) << type();
 
 			sentStart_ = true;
-			if(!send((*(*pBundle))))
+			if(!send(ClientInterface::onStreamDataStarted, pBundle))
 			{
 				DEBUG_MSG(boost::format("DataDownload::presentMainThread: proxy(%1%), downloadID(%2%), type(%3%), thread exit.\n") 
 					% entityID() % id() % type());
@@ -103,18 +104,18 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 			return thread::TPTask::TPTASK_STATE_CONTINUE_MAINTHREAD; 
 		}
 
-		(*pBundle)->newMessage(ClientInterface::onStreamDataRecv);
-		(*(*pBundle)) << id();
+		pBundle->newMessage(ClientInterface::onStreamDataRecv);
+		(*pBundle) << id();
 
 		if(remainSent_ - currSent_ > datasize)
 		{
-			(*(*pBundle)) << datasize;
-			(*(*pBundle)).append(getOutStream() + currSent_, datasize);
+			(*pBundle) << datasize;
+			(*pBundle).append(getOutStream() + currSent_, datasize);
 
 			currSent_ += datasize;
 			totalSentBytes_ += datasize;
 
-			if(!send((*(*pBundle))))
+			if(!send(ClientInterface::onStreamDataRecv, pBundle))
 			{
 				DEBUG_MSG(boost::format("DataDownload::presentMainThread: proxy(%1%), downloadID(%2%), type(%3%), thread exit.\n") 
 					% entityID() % id() % type());
@@ -126,10 +127,10 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 		else
 		{
 			datasize = remainSent_ - currSent_;
-			(*(*pBundle)) << datasize;
-			(*(*pBundle)).append(getOutStream() + currSent_, datasize);
+			(*pBundle) << datasize;
+			(*pBundle).append(getOutStream() + currSent_, datasize);
 
-			if(!send((*(*pBundle))))
+			if(!send(ClientInterface::onStreamDataRecv, pBundle))
 			{
 				DEBUG_MSG(boost::format("DataDownload::presentMainThread: proxy(%1%), downloadID(%2%), type(%3%), thread exit.\n") 
 					% entityID() % id() % type());
@@ -150,13 +151,13 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 
 		pDataDownloads_->onDownloadCompleted(this);
 
-		Mercury::Bundle::SmartPoolObjectPtr pBundle = Mercury::Bundle::createSmartPoolObj();
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
 
-		(*pBundle)->newMessage(ClientInterface::onStreamDataCompleted);
-		(*(*pBundle)) << this->id();
+		pBundle->newMessage(ClientInterface::onStreamDataCompleted);
+		(*pBundle) << this->id();
 
-		send((*(*pBundle)));
+		send(ClientInterface::onStreamDataCompleted, pBundle);
 		return thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
 	

@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "baseapp.hpp"
 #include "proxy.hpp"
+#include "proxy_sender.hpp"
 #include "profile.hpp"
 #include "data_download.hpp"
 #include "client_lib/client_interface.hpp"
@@ -61,9 +62,12 @@ addr_(Mercury::Address::NONE),
 dataDownloads_(),
 entitiesEnabled_(false),
 bandwidthPerSecond_(0),
-encryptionKey()
+encryptionKey(),
+pProxySender_(NULL)
 {
 	Baseapp::getSingleton().incProxicesCount();
+
+	pProxySender_ = new ProxySender(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -78,10 +82,14 @@ Proxy::~Proxy()
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(ClientInterface::onKicked);
 		ClientInterface::onKickedArgs1::staticAddToBundle(*pBundle, SERVER_ERR_PROXY_DESTROYED);
-		pBundle->send(Baseapp::getSingleton().getNetworkInterface(), pChannel);
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		//pBundle->send(Baseapp::getSingleton().getNetworkInterface(), pChannel);
+		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		this->sendToClient(ClientInterface::onKicked, pBundle);
+		this->sendToClient();
 		pChannel->condemn();
 	}
+
+	SAFE_RELEASE(pProxySender_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -99,8 +107,9 @@ void Proxy::initClientBasePropertys()
 		(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
 		(*pBundle) << this->getID();
 		(*pBundle).append(*s1);
-		getClientMailbox()->postMail((*pBundle));
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		sendToClient(ClientInterface::onUpdatePropertys, pBundle);
+		//getClientMailbox()->postMail((*pBundle));
+		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
 	MemoryStream::ObjPool().reclaimObject(s1);
@@ -138,8 +147,9 @@ void Proxy::initClientCellPropertys()
 	addCellDataToStream(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, s);
 	(*pBundle).append(*s);
 	MemoryStream::ObjPool().reclaimObject(s);
-	getClientMailbox()->postMail((*pBundle));
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	//getClientMailbox()->postMail((*pBundle));
+	//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	sendToClient(ClientInterface::onUpdatePropertys, pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -608,6 +618,69 @@ int16 Proxy::streamStringToClient(PyObjectPtr objptr,
 
 	pDataDownload->entityID(this->getID());
 	return dataDownloads_.pushDownload(pDataDownload);
+}
+
+//-------------------------------------------------------------------------------------
+Proxy::Bundles* Proxy::pBundles()
+{
+	if(!getClientMailbox())
+		return NULL;
+
+	Mercury::Channel* pChannel = getClientMailbox()->getChannel();
+	if(!pChannel)
+		return NULL;
+
+	return &pChannel->bundles();
+}
+
+//-------------------------------------------------------------------------------------
+bool Proxy::sendToClient(const Mercury::MessageHandler& msgHandler, Mercury::Bundle* pBundle)
+{
+	return sendToClient(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+bool Proxy::sendToClient(Mercury::Bundle* pBundle)
+{
+	Bundles* lpBundles = pBundles();
+
+	if(lpBundles)
+	{
+		lpBundles->push_back(pBundle);
+		return true;
+	}
+
+	ERROR_MSG(boost::format("Proxy::sendToClient: %1% pBundles is NULL, not found channel.\n") % getID());
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool Proxy::sendToClient(bool expectData)
+{
+	if(!getClientMailbox())
+		return false;
+
+	Mercury::Channel* pChannel = getClientMailbox()->getChannel();
+	if(!pChannel)
+		return false;
+
+	if(expectData)
+	{
+		if(pChannel->bundles().size() == 0)
+		{
+			WARNING_MSG("Proxy::sendToClient: no data!\n");
+			return false;
+		}
+	}
+
+	{
+		// 如果数据大量阻塞发不出去将会报警
+		AUTO_SCOPED_PROFILE("sendToClient");
+		pChannel->send();
+	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
