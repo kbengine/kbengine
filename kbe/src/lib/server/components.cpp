@@ -600,7 +600,8 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 		}
 
 		Components::ComponentInfos* winfo = findComponent(info->cid);
-		winfo->shutdownState = istate;
+		if(winfo)
+			winfo->shutdownState = istate;
 	}
 
 	return true;
