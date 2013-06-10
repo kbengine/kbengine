@@ -122,6 +122,19 @@ void BillingSystem::eraseOrders_s(std::string ordersid)
 }
 
 //-------------------------------------------------------------------------------------
+bool BillingSystem::hasOrders(std::string ordersid)
+{
+	bool ret = false;
+	
+	lockthread();
+	ORDERS::iterator iter = orders_.find(ordersid);
+	ret = (iter != orders_.end());
+	unlockthread();
+	
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
 bool BillingSystem::run()
 {
 	return ServerApp::run();

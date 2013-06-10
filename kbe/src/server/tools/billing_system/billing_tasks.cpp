@@ -353,6 +353,13 @@ ChargeTask::~ChargeTask()
 //-------------------------------------------------------------------------------------
 bool ChargeTask::process()
 {
+	if(!BillingSystem::getSingleton().hasOrders(orders.ordersID))
+	{
+		WARNING_MSG(boost::format("ChargeTask::process: not found ordersID(%1%), exit threadProcess.\n")
+			% orders.ordersID);
+		return false;
+	}
+	
 	KBE_ASSERT(pOrders != NULL);
 
 	pOrders->state = Orders::STATE_FAILED;
@@ -454,6 +461,13 @@ thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 	// 如果成功使用异步接收处理
 	if(!success)
 	{
+		if(!BillingSystem::getSingleton().hasOrders(orders.ordersID))
+		{
+			WARNING_MSG(boost::format("ChargeTask::presentMainThread: not found ordersID(%1%), exit thread!\n")
+				% orders.ordersID);
+			return thread::TPTask::TPTASK_STATE_COMPLETED;
+		}
+	
 		Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 
 		(*(*bundle)).newMessage(DbmgrInterface::onChargeCB);

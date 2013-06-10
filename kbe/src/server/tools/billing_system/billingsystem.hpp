@@ -108,6 +108,8 @@ public:
 	REQLOGIN_MAP& reqAccountLogin_requests(){ return reqAccountLogin_requests_; }
 
 	void eraseOrders_s(std::string ordersid);
+	
+	bool hasOrders(std::string ordersid);
 protected:
 	TimerHandle																mainProcessTimer_;
 
