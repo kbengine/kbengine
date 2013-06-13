@@ -107,7 +107,9 @@ namespace KBEngine {
 			}																								\
 			break;																							\
 		default:																							\
-			KBE_ASSERT(false && "not support!\n");															\
+			ERROR_MSG(boost::format("not support componentType=%1%(%2%)")									\
+					% COMPONENTTYPE % COMPONENT_NAME_EX(COMPONENTTYPE));									\
+			KBE_ASSERT(false && "not support componentType!\n");											\
 			break;																							\
 		};																									\
 
@@ -126,7 +128,9 @@ namespace KBEngine {
 			}																								\
 			break;																							\
 		default:																							\
-			KBE_ASSERT(false && "no support!\n");															\
+			ERROR_MSG(boost::format("not support componentType=%1%(%2%)")									\
+					% COMPONENTTYPE % COMPONENT_NAME_EX(COMPONENTTYPE));									\
+			KBE_ASSERT(false && "not support componentType!\n");											\
 			break;																							\
 		};																									\
 
