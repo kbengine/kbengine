@@ -71,11 +71,46 @@ inline void loadConfig()
 	g_kbeSrvConfig.loadConfig("server/kbengine.xml");
 }
 
+inline void setEvns()
+{
+	std::string scomponentGroupOrder = "0";
+	std::string scomponentGlobalOrder = "0";
+	std::string scomponentID = "0";
+
+	if(g_componentGroupOrder > 0)
+	{
+		int32 icomponentGroupOrder = g_componentGroupOrder;
+		scomponentGroupOrder = KBEngine::StringConv::val2str(icomponentGroupOrder);
+	}
+	
+	if(g_componentGlobalOrder > 0)
+	{
+		int32 icomponentGlobalOrder = g_componentGlobalOrder;
+		scomponentGlobalOrder = KBEngine::StringConv::val2str(icomponentGlobalOrder);
+	}
+
+	{
+		uint64 v = g_componentID;
+		scomponentID = KBEngine::StringConv::val2str(v);
+	}
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+		_putenv((std::string("KBE_COMPONENTID=") + scomponentID).c_str());
+		_putenv((std::string("KBE_GLOBALID=") + scomponentGlobalOrder).c_str());
+		_putenv((std::string("KBE_GROUPID=") + scomponentGroupOrder).c_str());
+#else
+		setevn("KBE_COMPONENTID", scomponentID.c_str(), 1);
+		setevn("KBE_GLOBALID", scomponentGlobalOrder.c_str(), 1);
+		setevn("KBE_GROUPID", scomponentGroupOrder.c_str(), 1);
+#endif
+}
+
 template <class SERVER_APP>
 int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType, 
 			 int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
 			 int32 intlisteningPort = 0, const char * intlisteningInterface = "")
 {
+	setEvns();
 	startLeakDetection(componentType, g_componentID);
 
 	g_componentType = componentType;
