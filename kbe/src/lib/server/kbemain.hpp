@@ -99,9 +99,9 @@ inline void setEvns()
 		_putenv((std::string("KBE_GLOBALID=") + scomponentGlobalOrder).c_str());
 		_putenv((std::string("KBE_GROUPID=") + scomponentGroupOrder).c_str());
 #else
-		setevn("KBE_COMPONENTID", scomponentID.c_str(), 1);
-		setevn("KBE_GLOBALID", scomponentGlobalOrder.c_str(), 1);
-		setevn("KBE_GROUPID", scomponentGroupOrder.c_str(), 1);
+		putenv(const_cast<char*>((std::string("KBE_COMPONENTID=") + scomponentID).c_str()));
+		putenv(const_cast<char*>((std::string("KBE_GLOBALID=") + scomponentGlobalOrder).c_str()));
+		putenv(const_cast<char*>((std::string("KBE_GROUPID=") + scomponentGroupOrder).c_str()));
 #endif
 }
 
