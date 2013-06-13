@@ -367,13 +367,15 @@ void BillingHandler_ThirdParty::onChargeCB(KBEngine::MemoryStream& s)
 	s >> cbid;
 	s >> success;
 
-	INFO_MSG(boost::format("BillingHandler_ThirdParty::onChargeCB: chargeID=%1%, dbid=%4%, cbid=%2%, datas=%3%!\n") %
-		chargeID % cbid % datas % dbid);
+	INFO_MSG(boost::format("BillingHandler_ThirdParty::onChargeCB: chargeID=%1%, dbid=%4%, cbid=%2%, cid=%5%, datas=%3%!\n") %
+		chargeID % cbid % datas % dbid % cid);
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, cid);
-	if(cinfos == NULL || cinfos->pChannel == NULL)
+	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->pChannel->isDestroyed())
 	{
-		ERROR_MSG("BillingHandler_ThirdParty::onChargeCB: baseapp not found!\n");
+		ERROR_MSG(boost::format("BillingHandler_ThirdParty::onChargeCB: baseapp not found!, chargeID=%1%, cid=%2%.\n") 
+			% chargeID % cid);
+
 		return;
 	}
 

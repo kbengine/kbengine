@@ -134,7 +134,7 @@ bool AnonymousChannel::process()
 			continue;
 		}
 
-		std::string retstr = "HTTP/1.1 200 OK\r\nServer: unknown\r\nCache-Control: private\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 8\r\n\r\nretcode1";
+		std::string retstr = "HTTP/1.1 200 OK\r\nServer: unknown\r\nCache-Control: private\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 8\r\n\r\nretocde:1";
 		pEndpoint->send(retstr.data(), retstr.size());
 		pEndpoint->close();
 		delete pEndpoint;
@@ -236,19 +236,19 @@ thread::TPTask::TPTaskState AnonymousChannel::presentMainThread()
 		
 		bool success = false;
 
-		std::string::size_type fi = iter->second.data.find("state=");
+		std::string::size_type fi = iter->second.data.find("cstate=");
 		std::string::size_type fi1 = iter->second.data.find("&chargeID=");
 
 		if(fi != std::string::npos && fi1 != std::string::npos)
 		{
 			std::string s;
-			int ilen = strlen("state=");
+			int ilen = strlen("cstate=");
 			s.assign(iter->second.data.c_str() + fi + ilen, fi1 - (fi + ilen));
 			success = atoi(s.c_str()) > 0;
 		}
 
-		INFO_MSG(boost::format("AnonymousChannel::presentMainThread: orders=%1%, success=%2%\n") % 
-			ordersID % success);
+		INFO_MSG(boost::format("AnonymousChannel::presentMainThread: orders=%1%, dbid=%2%, success=%3%\n") % 
+			ordersID % dbid % success);
 
 		Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 
