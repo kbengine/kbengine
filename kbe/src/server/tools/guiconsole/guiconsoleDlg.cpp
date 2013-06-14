@@ -824,7 +824,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 
 				if(pChannel->proxyID() != BOTS_TYPE)
 				{
-					COMMON_MERCURY_MESSAGE(pChannel->proxyID(), bundle, onAppActiveTick);
+					COMMON_MERCURY_MESSAGE((KBEngine::COMPONENT_TYPE)pChannel->proxyID(), bundle, onAppActiveTick);
 				}
 				else
 				{

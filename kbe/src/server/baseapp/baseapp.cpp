@@ -537,7 +537,7 @@ void Baseapp::onCellAppDeath(Mercury::Channel * pChannel)
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onResoreEntitiesOver(RestoreEntityHandler* pRestoreEntityHandler)
+void Baseapp::onRestoreEntitiesOver(RestoreEntityHandler* pRestoreEntityHandler)
 {
 	std::vector< KBEShared_ptr< RestoreEntityHandler > >::iterator resiter = pRestoreEntityHandlers_.begin();
 	for(; resiter != pRestoreEntityHandlers_.end(); resiter++)
@@ -547,6 +547,28 @@ void Baseapp::onResoreEntitiesOver(RestoreEntityHandler* pRestoreEntityHandler)
 			pRestoreEntityHandlers_.erase(resiter);
 			return;
 		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onRestoreSpaceCellFromOtherBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	COMPONENT_ID baseappID = 0, cellappID = 0;
+	SPACE_ID spaceID = 0;
+	ENTITY_ID spaceEntityID = 0;
+	bool destroyed = false;
+	ENTITY_SCRIPT_UID utype = 0;
+
+	s >> baseappID >> cellappID >> spaceID >> spaceEntityID >> utype >> destroyed;
+
+	INFO_MSG(boost::format("Baseapp::onRestoreSpaceCellFromOtherBaseapp: baseappID=%1%, cellappID=%6%, spaceID=%2%, spaceEntityID=%3%, destroyed=%4%, "
+		"restoreEntityHandlers(%5%)\n") %
+		baseappID % spaceID % spaceEntityID % destroyed % pRestoreEntityHandlers_.size() % cellappID);
+
+	std::vector< KBEShared_ptr< RestoreEntityHandler > >::iterator resiter = pRestoreEntityHandlers_.begin();
+	for(; resiter != pRestoreEntityHandlers_.end(); resiter++)
+	{
+		(*resiter)->onRestoreSpaceCellFromOtherBaseapp(baseappID, cellappID, spaceID, spaceEntityID, utype, destroyed);
 	}
 }
 

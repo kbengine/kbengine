@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class Base;
+class EntityMailbox;
 
 class RestoreEntityHandler : public Task
 {
@@ -36,6 +37,7 @@ class RestoreEntityHandler : public Task
 		bool creatingCell;
 		bool processed;
 		SPACE_ID spaceID;
+		EntityMailbox* cell;
 	};
 
 public:
@@ -45,12 +47,26 @@ public:
 	bool process();
 	
 	void pushEntity(ENTITY_ID id);
+
+	/** 
+		某个baseapp上的space恢复了cell， 判断当前baseapp是否有相关entity需要恢复cell
+	*/
+	void onRestoreSpaceCellFromOtherBaseapp(COMPONENT_ID baseappID, COMPONENT_ID cellappID, 
+		SPACE_ID spaceID, ENTITY_ID spaceEntityID, ENTITY_SCRIPT_UID utype, bool destroyed);
 private:
 	Mercury::NetworkInterface & networkInterface_;
 	std::vector<RestoreData> entities_;
 	bool inProcess_;
 
 	std::vector<RestoreData> restoreSpaces_;
+	std::vector<RestoreData> ohterRestoredSpaces_;
+
+	// space创建好cell后广播给其他baseapp
+	bool broadcastOtherBaseapps_;
+
+	uint64 tickReport_;
+
+	std::vector<SPACE_ID> spaceIDs_;
 };
 
 

@@ -352,7 +352,12 @@ public:
 	/**
 		一个cell的entity都恢复完毕
 	*/
-	void onResoreEntitiesOver(RestoreEntityHandler* pRestoreEntityHandler);
+	void onRestoreEntitiesOver(RestoreEntityHandler* pRestoreEntityHandler);
+
+	/** 网络接口
+		某个baseapp上的space恢复了cell， 判断当前baseapp是否有相关entity需要恢复cell
+	*/
+	void onRestoreSpaceCellFromOtherBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 protected:
 	TimerHandle												loopCheckTimerHandle_;
 

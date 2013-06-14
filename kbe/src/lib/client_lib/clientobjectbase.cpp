@@ -592,7 +592,7 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 	pEntities_->erase(eid);
 
 	if(entityID_ != eid)
-		std::remove(pEntityIDAliasIDList_.begin(), pEntityIDAliasIDList_.end(), eid);
+		pEntityIDAliasIDList_.erase(std::remove(pEntityIDAliasIDList_.begin(), pEntityIDAliasIDList_.end(), eid), pEntityIDAliasIDList_.end());
 }
 
 //-------------------------------------------------------------------------------------	

@@ -626,6 +626,7 @@ Reason NetworkInterface::getSendErrorReason(const EndPoint * endpoint,
 			{
 				case WSAECONNREFUSED:	reason = REASON_NO_SUCH_PORT; break;
 				case WSAECONNRESET:	reason = REASON_CLIENT_DISCONNECTED; break;
+				case WSAECONNABORTED:	reason = REASON_CLIENT_DISCONNECTED; break;
 				default:reason = REASON_GENERAL_NETWORK;break;
 			}
 		}

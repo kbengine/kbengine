@@ -20,6 +20,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "base.hpp"
 #include "baseapp.hpp"
 #include "restore_entity_handler.hpp"
+#include "server/componentbridge.hpp"
+#include "server/components.hpp"
+#include "entitydef/entity_mailbox.hpp"
+#include "entitydef/entitydef.hpp"
+
+#include "../../server/baseapp/baseapp_interface.hpp"
+#include "../../server/cellapp/cellapp_interface.hpp"
 
 namespace KBEngine{	
 
@@ -29,7 +36,10 @@ Task(),
 networkInterface_(networkInterface),
 entities_(),
 inProcess_(false),
-restoreSpaces_()
+restoreSpaces_(),
+broadcastOtherBaseapps_(false),
+tickReport_(0),
+spaceIDs_()
 {
 	// networkInterface_.mainDispatcher().addFrequentTask(this);
 }
@@ -39,6 +49,16 @@ RestoreEntityHandler::~RestoreEntityHandler()
 {
 	if(inProcess_)
 		networkInterface_.mainDispatcher().cancelFrequentTask(this);
+
+	std::vector<RestoreData>::iterator restoreSpacesIter = ohterRestoredSpaces_.begin();
+	for(; restoreSpacesIter != ohterRestoredSpaces_.end(); restoreSpacesIter++)
+	{
+		if((*restoreSpacesIter).cell)
+		{
+			Py_DECREF((*restoreSpacesIter).cell);
+			(*restoreSpacesIter).cell = NULL;
+		}
+	}
 
 	 DEBUG_MSG("RestoreEntityHandler::~RestoreEntityHandler()\n");
 }
@@ -66,11 +86,19 @@ void RestoreEntityHandler::pushEntity(ENTITY_ID id)
 		}
 	}
 
+	std::vector<SPACE_ID>::const_iterator iter = std::find(spaceIDs_.begin(), spaceIDs_.end(), data.spaceID);
+	if(iter == spaceIDs_.end())
+	{
+		spaceIDs_.push_back(data.spaceID);
+	}
+
 	if(!inProcess_)
 	{
 		inProcess_ = true;
 		networkInterface_.mainDispatcher().addFrequentTask(this);
 	}
+
+	tickReport_ = timestamp();
 }
 
 //-------------------------------------------------------------------------------------
@@ -91,55 +119,128 @@ bool RestoreEntityHandler::process()
 	if(pChannel == NULL)
 		return true;
 
-	// 首先需要找到这个cell上的space
-	KBE_ASSERT(restoreSpaces_.size() > 0);
-	
 	int count = 0;
-	int spaceCellCount = 0;
 
-	// 必须等待space恢复
-	std::vector<RestoreData>::iterator restoreSpacesIter = restoreSpaces_.begin();
-	for(; restoreSpacesIter != restoreSpaces_.end(); restoreSpacesIter++)
+	// 首先需要找到这个cell上的space
+	// KBE_ASSERT(restoreSpaces_.size() > 0);
+	// 如果spaceEntity不在这个baseapp上创建则继续等待
+	// 当spaceEntity的cell创建好了之后会广播给所有的baseapp， 每个baseapp
+	// 去判断是否有需要恢复的entity
+	if(restoreSpaces_.size() > 0)
 	{
-		Base* pBase = Baseapp::getSingleton().findEntity((*restoreSpacesIter).id);
-		
-		if(pBase)
+		if(timestamp() - tickReport_ > uint64( 3 * stampsPerSecond() ))
 		{
-			if(++count > (int)g_kbeSrvConfig.getBaseApp().entityRestoreSize)
-			{
-				return true;
-			}
+			tickReport_ = timestamp();
+			INFO_MSG(boost::format("RestoreEntityHandler::process(): wait for localSpace to get cell!, entitiesSize(%1%), spaceSize=%2%\n") % 
+				entities_.size() % restoreSpaces_.size());
+		}
 
-			if((*restoreSpacesIter).creatingCell == false)
+		int spaceCellCount = 0;
+
+		// 必须等待space恢复
+		std::vector<RestoreData>::iterator restoreSpacesIter = restoreSpaces_.begin();
+		for(; restoreSpacesIter != restoreSpaces_.end(); restoreSpacesIter++)
+		{
+			Base* pBase = Baseapp::getSingleton().findEntity((*restoreSpacesIter).id);
+			
+			if(pBase)
 			{
-				(*restoreSpacesIter).creatingCell = true;
-				pBase->restoreCell(NULL);
-			}
-			else
-			{
-				if(pBase->getCellMailbox() == NULL)
+				if(++count > (int)g_kbeSrvConfig.getBaseApp().entityRestoreSize)
 				{
 					return true;
 				}
+
+				if((*restoreSpacesIter).creatingCell == false)
+				{
+					(*restoreSpacesIter).creatingCell = true;
+					pBase->restoreCell(NULL);
+				}
 				else
 				{
-					spaceCellCount++;
-					if(!(*restoreSpacesIter).processed)
+					if(pBase->getCellMailbox() == NULL)
 					{
-						(*restoreSpacesIter).processed = true;
-						pBase->onRestore();
+						return true;
+					}
+					else
+					{
+						spaceCellCount++;
+						if(!(*restoreSpacesIter).processed)
+						{
+							(*restoreSpacesIter).processed = true;
+							pBase->onRestore();
+						}
+					}
+				}
+			}
+			else
+			{
+				ERROR_MSG(boost::format("RestoreEntityHandler::process(): lose space(%1%).\n") % (*restoreSpacesIter).id);
+			}
+		}
+		
+		if(spaceCellCount != (int)restoreSpaces_.size())
+			return true;
+
+		// 通知其他baseapp， space恢复了cell
+		if(!broadcastOtherBaseapps_)
+		{
+			broadcastOtherBaseapps_ = true;
+
+			INFO_MSG("RestoreEntityHandler::process(): begin broadcast-spaceGetCell to otherBaseapps...\n");
+
+			std::vector<RestoreData>::iterator restoreSpacesIter = restoreSpaces_.begin();
+			for(; restoreSpacesIter != restoreSpaces_.end(); restoreSpacesIter++)
+			{
+				Base* pBase = Baseapp::getSingleton().findEntity((*restoreSpacesIter).id);
+				bool destroyed = (pBase == NULL || pBase->isDestroyed());
+				COMPONENT_ID baseappID = g_componentID;
+				COMPONENT_ID cellappID = 0;
+				SPACE_ID spaceID = (*restoreSpacesIter).spaceID;
+				ENTITY_ID spaceEntityID = (*restoreSpacesIter).id;
+				ENTITY_SCRIPT_UID utype = 0;
+
+				if(!destroyed)
+				{
+					utype = pBase->getScriptModule()->getUType();
+					cellappID = pBase->getCellMailbox()->getComponentID();
+				}
+
+				spaceIDs_.erase(std::remove(spaceIDs_.begin(), spaceIDs_.end(), spaceID), spaceIDs_.end());
+
+				Mercury::Channel* pChannel = NULL;
+				Components::COMPONENTS cts = Componentbridge::getComponents().getComponents(BASEAPP_TYPE);
+				Components::COMPONENTS::iterator comsiter = cts.begin();
+				for(; comsiter != cts.end(); comsiter++)
+				{
+					pChannel = (*comsiter).pChannel;
+					
+					if(pChannel)
+					{
+						INFO_MSG(boost::format("RestoreEntityHandler::process(): broadcast baseapp[%1%, %2%], spaceID[%3%], utype[%4%]...\n") % 
+							(*comsiter).cid % pChannel->c_str() % spaceID % utype);
+
+						Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+						(*pBundle).newMessage(BaseappInterface::onRestoreSpaceCellFromOtherBaseapp);
+						(*pBundle) << baseappID << cellappID << spaceID << spaceEntityID << utype << destroyed;
+						pBundle->send(Baseapp::getSingleton().getNetworkInterface(), pChannel);
+						Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 					}
 				}
 			}
 		}
-		else
-		{
-			ERROR_MSG(boost::format("RestoreEntityHandler::process(): lose space(%1%).\n") % (*restoreSpacesIter).id);
-		}
 	}
-	
-	if(spaceCellCount != (int)restoreSpaces_.size())
+
+	if(spaceIDs_.size() > 0)
+	{
+		if(timestamp() - tickReport_ > uint64( 3 * stampsPerSecond() ))
+		{
+			tickReport_ = timestamp();
+			INFO_MSG(boost::format("RestoreEntityHandler::process(): wait for otherBaseappSpaces to get cell!, entitiesSize(%1%), spaceSize=%2%\n") % 
+				entities_.size() % spaceIDs_.size());
+		}
+
 		return true;
+	}
 
 	// 恢复其他entity
 	std::vector<RestoreData>::iterator iter = entities_.begin();
@@ -176,14 +277,36 @@ bool RestoreEntityHandler::process()
 					for(; restoreSpacesIter != restoreSpaces_.end(); restoreSpacesIter++)
 					{
 						Base* pSpace = Baseapp::getSingleton().findEntity((*restoreSpacesIter).id);
-						if(pBase->getSpaceID() == pSpace->getSpaceID())
+						if(pSpace && pBase->getSpaceID() == pSpace->getSpaceID())
 						{
 							cellMailbox = pSpace->getCellMailbox();
 							break;
 						}
 					}
 					
-					pBase->restoreCell(cellMailbox);
+					if(cellMailbox == NULL)
+					{
+						restoreSpacesIter = ohterRestoredSpaces_.begin();
+						for(; restoreSpacesIter != ohterRestoredSpaces_.end(); restoreSpacesIter++)
+						{
+							if(pBase->getSpaceID() == (*restoreSpacesIter).spaceID && (*restoreSpacesIter).cell)
+							{
+								cellMailbox = (*restoreSpacesIter).cell;
+								break;
+							}
+						}
+					}
+
+					if(cellMailbox)
+					{
+						pBase->restoreCell(cellMailbox);
+					}
+					else
+					{
+						pBase->destroy();
+						iter = entities_.erase(iter);
+						continue;
+					}
 				}
 
 				iter++;
@@ -197,12 +320,54 @@ bool RestoreEntityHandler::process()
 
 	if(entities_.size() == 0)
 	{
+		std::vector<RestoreData>::iterator restoreSpacesIter = ohterRestoredSpaces_.begin();
+		for(; restoreSpacesIter != ohterRestoredSpaces_.end(); restoreSpacesIter++)
+		{
+			if((*restoreSpacesIter).cell)
+			{
+				Py_DECREF((*restoreSpacesIter).cell);
+				(*restoreSpacesIter).cell = NULL;
+			}
+		}
+		
+		ohterRestoredSpaces_.clear();
+
 		inProcess_ = false;
-		Baseapp::getSingleton().onResoreEntitiesOver(this);
+		Baseapp::getSingleton().onRestoreEntitiesOver(this);
 		return false;
 	}
 
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void RestoreEntityHandler::onRestoreSpaceCellFromOtherBaseapp(COMPONENT_ID baseappID, COMPONENT_ID cellappID,
+															 SPACE_ID spaceID, ENTITY_ID spaceEntityID, ENTITY_SCRIPT_UID utype, bool destroyed)
+{
+	spaceIDs_.erase(std::remove(spaceIDs_.begin(), spaceIDs_.end(), spaceID), spaceIDs_.end());
+
+	RestoreData data;
+	data.id = spaceEntityID;
+	data.creatingCell = false;
+	data.processed = true;
+	data.spaceID = spaceID;
+	data.cell = NULL;
+
+	if(!destroyed)
+	{
+		ScriptDefModule* sm = EntityDef::findScriptModule(utype);
+		if(sm == NULL)
+		{
+			ERROR_MSG(boost::format("RestoreEntityHandler::onRestoreSpaceCellFromOtherBaseapp: not found utype %1%!\n") % utype);
+		}
+		else
+		{
+			if(!destroyed)
+				data.cell = new EntityMailbox(sm, NULL, cellappID, spaceEntityID, MAILBOX_TYPE_CELL);
+		}
+	}
+
+	ohterRestoredSpaces_.push_back(data);
 }
 
 //-------------------------------------------------------------------------------------
