@@ -68,7 +68,8 @@ public:
 							int8 componentType, uint64 componentID, uint64 componentIDEx, 
 							int8 globalorderid, int8 grouporderid,
 							uint32 intaddr, uint16 intport,
-							uint32 extaddr, uint16 extport);
+							uint32 extaddr, uint16 extport,
+							float cpu, float mem, uint32 usedmem, int32 extradata);
 	
 	/** 网络接口
 		某个app寻找另一个app的地址

@@ -107,6 +107,7 @@ void Components::addComponent(int32 uid, const char* username,
 			COMPONENT_TYPE componentType, COMPONENT_ID componentID, int8 globalorderid, int8 grouporderid,
 			uint32 intaddr, uint16 intport, 
 			uint32 extaddr, uint16 extport, 
+			float cpu, float mem, uint32 usedmem, int32 extradata,
 			Mercury::Channel* pChannel)
 {
 	COMPONENTS& components = getComponents(componentType);
@@ -133,6 +134,11 @@ void Components::addComponent(int32 uid, const char* username,
 	componentInfos.componentType = componentType;
 	componentInfos.groupOrderid = 1;
 	componentInfos.globalOrderid = 1;
+
+	componentInfos.mem = mem;
+	componentInfos.cpu = cpu;
+	componentInfos.usedmem = usedmem;
+	componentInfos.extradata = extradata;
 
 	if(pChannel)
 		pChannel->componentID(componentID);

@@ -1059,5 +1059,165 @@ namespace KBEngine{
 											ARG_TYPE11, ARG_NAME11)				\
 
 
+/**
+	Machine消息宏，  只有十五个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef MACHINE_MESSAGE_HANDLER_ARGS15
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(MACHINE)
+#define MACHINE_MESSAGE_HANDLER_ARGS15(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11,				\
+											ARG_TYPE12, ARG_NAME12,				\
+											ARG_TYPE13, ARG_NAME13,				\
+											ARG_TYPE14, ARG_NAME14,				\
+											ARG_TYPE15, ARG_NAME15)				\
+	void NAME##MachineMessagehandler15::handle(Mercury::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			ARG_TYPE1 ARG_NAME1;												\
+			s >> ARG_NAME1;														\
+			ARG_TYPE2 ARG_NAME2;												\
+			s >> ARG_NAME2;														\
+			ARG_TYPE3 ARG_NAME3;												\
+			s >> ARG_NAME3;														\
+			ARG_TYPE4 ARG_NAME4;												\
+			s >> ARG_NAME4;														\
+			ARG_TYPE5 ARG_NAME5;												\
+			s >> ARG_NAME5;														\
+			ARG_TYPE6 ARG_NAME6;												\
+			s >> ARG_NAME6;														\
+			ARG_TYPE7 ARG_NAME7;												\
+			s >> ARG_NAME7;														\
+			ARG_TYPE8 ARG_NAME8;												\
+			s >> ARG_NAME8;														\
+			ARG_TYPE9 ARG_NAME9;												\
+			s >> ARG_NAME9;														\
+			ARG_TYPE10 ARG_NAME10;												\
+			s >> ARG_NAME10;													\
+			ARG_TYPE11 ARG_NAME11;												\
+			s >> ARG_NAME11;													\
+			ARG_TYPE12 ARG_NAME12;												\
+			s >> ARG_NAME12;													\
+			ARG_TYPE13 ARG_NAME13;												\
+			s >> ARG_NAME13;													\
+			ARG_TYPE14 ARG_NAME14;												\
+			s >> ARG_NAME14;													\
+			ARG_TYPE15 ARG_NAME15;												\
+			s >> ARG_NAME15;													\
+			KBEngine::Machine::getSingleton().NAME(pChannel,					\
+										ARG_NAME1, ARG_NAME2, ARG_NAME3, 		\
+										ARG_NAME4, ARG_NAME5, ARG_NAME6,		\
+										ARG_NAME7, ARG_NAME8, ARG_NAME9,		\
+										ARG_NAME10, ARG_NAME11, ARG_NAME12,		\
+										ARG_NAME13, ARG_NAME14, ARG_NAME15);	\
+	}																			\
+
+#else
+#define MACHINE_MESSAGE_HANDLER_ARGS15(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11,				\
+											ARG_TYPE12, ARG_NAME12,				\
+											ARG_TYPE13, ARG_NAME13,				\
+											ARG_TYPE14, ARG_NAME14,				\
+											ARG_TYPE15, ARG_NAME15)				\
+	void NAME##MachineMessagehandler15::handle(Mercury::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define MACHINE_MESSAGE_HANDLER_ARGS15(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11,				\
+											ARG_TYPE12, ARG_NAME12,				\
+											ARG_TYPE13, ARG_NAME13,				\
+											ARG_TYPE14, ARG_NAME14,				\
+											ARG_TYPE15, ARG_NAME15)				\
+	class NAME##MachineMessagehandler15 : public Mercury::MessageHandler		\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define MACHINE_MESSAGE_DECLARE_ARGS15(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11,				\
+											ARG_TYPE12, ARG_NAME12,				\
+											ARG_TYPE13, ARG_NAME13,				\
+											ARG_TYPE14, ARG_NAME14,				\
+											ARG_TYPE15, ARG_NAME15)				\
+	MACHINE_MESSAGE_HANDLER_ARGS15(NAME, ARG_TYPE1, ARG_NAME1, 					\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11,				\
+											ARG_TYPE12, ARG_NAME12,				\
+											ARG_TYPE13, ARG_NAME13,				\
+											ARG_TYPE14, ARG_NAME14,				\
+											ARG_TYPE15, ARG_NAME15)				\
+	NETWORK_MESSAGE_DECLARE_ARGS15(Machine, NAME,								\
+				NAME##MachineMessagehandler15, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11,				\
+											ARG_TYPE12, ARG_NAME12,				\
+											ARG_TYPE13, ARG_NAME13,				\
+											ARG_TYPE14, ARG_NAME14,				\
+											ARG_TYPE15, ARG_NAME15)				\
+
+
 }
 #endif

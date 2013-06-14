@@ -66,6 +66,9 @@ public:
 			globalOrderid = 0;
 			pChannel = NULL;
 			shutdownState = 0;
+			mem = cpu = 0.f;
+			usedmem = 0;
+			extradata = 0;
 		}
 
 		KBEShared_ptr<Mercury::Address > pIntAddr, pExtAddr; // 内部和外部地址
@@ -77,6 +80,10 @@ public:
 		COMPONENT_TYPE componentType;
 		uint32 flags;
 		int8 shutdownState;
+		float cpu;
+		float mem;
+		uint32 usedmem;
+		int32 extradata;
 	};
 
 	typedef std::vector<ComponentInfos> COMPONENTS;
@@ -108,6 +115,7 @@ public:
 		COMPONENT_TYPE componentType, COMPONENT_ID componentID, int8 globalorderid, int8 grouporderid,
 		uint32 intaddr, uint16 intport, 
 		uint32 extaddr, uint16 extport, 
+		float cpu, float mem, uint32 usedmem, int32 extradata,
 		Mercury::Channel* pChannel = NULL);
 
 	void delComponent(int32 uid, COMPONENT_TYPE componentType, 
