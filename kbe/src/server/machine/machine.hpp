@@ -68,7 +68,7 @@ public:
 							int8 componentType, uint64 componentID, uint64 componentIDEx, 
 							int8 globalorderid, int8 grouporderid,
 							uint32 intaddr, uint16 intport,
-							uint32 extaddr, uint16 extport,
+							uint32 extaddr, uint16 extport, uint32 pid,
 							float cpu, float mem, uint32 usedmem, int32 extradata);
 	
 	/** ÍøÂç½Ó¿Ú

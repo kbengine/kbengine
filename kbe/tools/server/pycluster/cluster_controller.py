@@ -185,6 +185,21 @@ class ClusterControllerHandler:
 			extport = struct.unpack("H", self.recvDatas[count][ii : ii + 2])[0]
 			ii += 2
 			
+			pid = struct.unpack("I", self.recvDatas[count][ii : ii + 4])[0]
+			ii += 4
+			
+			cpu = struct.unpack("f", self.recvDatas[count][ii : ii + 4])[0]
+			ii += 4
+
+			mem = struct.unpack("f", self.recvDatas[count][ii : ii + 4])[0]
+			ii += 4
+
+			usedmem = struct.unpack("I", self.recvDatas[count][ii : ii + 4])[0]
+			ii += 4
+
+			extradata = struct.unpack("i", self.recvDatas[count][ii : ii + 4])[0]
+			ii += 4
+			
 			#print("%s, uid=%i, cID=%i, gid=%i, groupid=%i, uname=%s" % (COMPONENT_NAME[componentType], \
 			#	uid, componentID, globalorderid, grouporderid, username))
 			
@@ -193,7 +208,8 @@ class ClusterControllerHandler:
 				componentInfos = []
 				self._interfaces[componentType] = componentInfos
 			
-			componentInfos.append((uid, componentID, globalorderid, grouporderid, username))
+			componentInfos.append((uid, componentID, globalorderid, grouporderid, username, cpu, mem, usedmem, extradata, \
+								intaddr, intport, extaddr, extport, pid))
 			
 			count += 1
 			
@@ -217,6 +233,23 @@ class ClusterConsoleHandler(ClusterControllerHandler):
 			self.writePacket("i", COMPONENT_NAME2TYPE[ctype])
 			self.sendto()
 
+class ClusterQueryHandler(ClusterControllerHandler):
+	def __init__(self, uid):
+		ClusterControllerHandler.__init__(self)
+		self.uid = uid
+		
+	def do(self):
+		self.queryAllInterfaces()
+		interfaces = self._interfaces
+
+		print("[curr-online-components:]")
+		for ctype in self._interfaces:
+			infos = self._interfaces.get(ctype, [])
+			for info in infos:
+				print("\t%s[%i]: uid=%i, pid=%i, gid=%i, tid=%i, %%cpu:%.2f, %%mem:%.2f, mem=%i, addr=%s:%i" % \
+				(COMPONENT_NAME[ctype], info[1], self.uid, info[13], info[2], info[3], info[5], info[6], info[7], \
+				socket.inet_ntoa(struct.pack('I', info[9])), socket.htons(info[10])))
+				
 class ClusterStartHandler(ClusterControllerHandler):
 	def __init__(self, uid, startTemplate):
 		ClusterControllerHandler.__init__(self)
@@ -438,6 +471,20 @@ if __name__ == "__main__":
 			assert(len(sys.argv) == 3)
 			consoleType = sys.argv[2]
 			clusterHandler = ClusterConsoleHandler(consoleType)
+		elif cmdType == "query":
+			uid = -1
+
+			if len(sys.argv) >= 3:
+				if sys.argv[2].isdigit():
+					uid = sys.argv[2]
+
+			uid = int(uid)
+			if uid < 0:
+				uid = getDefaultUID()
+					
+			clusterHandler = ClusterQueryHandler(uid)
+	else:
+		clusterHandler = ClusterQueryHandler(getDefaultUID())
 			
 	if clusterHandler is not None: 
 		clusterHandler.do()

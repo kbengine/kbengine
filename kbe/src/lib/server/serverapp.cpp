@@ -337,7 +337,7 @@ void ServerApp::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::str
 	if(cinfos == NULL)
 	{
 		Componentbridge::getComponents().addComponent(uid, username.c_str(), 
-			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderID, grouporderID, intaddr, intport, extaddr, extport, 
+			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderID, grouporderID, intaddr, intport, extaddr, extport, 0,
 			0.f, 0.f, 0, 0, pChannel);
 	}
 	else
