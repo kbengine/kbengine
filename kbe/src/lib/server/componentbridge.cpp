@@ -33,6 +33,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/packet_receiver.hpp"
 #include "network/error_reporter.hpp"
 #include "network/udp_packet.hpp"
+#include "helper/sys_info.hpp"
 
 #include "../../server/machine/machine_interface.hpp"
 
@@ -324,7 +325,7 @@ bool Componentbridge::process()
 			componentType_, componentID_, cidex, g_componentGlobalOrder, g_componentGroupOrder,
 			networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
 			networkInterface_.extaddr().ip, networkInterface_.extaddr().port, getProcessPID(),
-			0.f, 0.f, 0, 0);
+			SystemInfo::getCPUPerByPID(), 0.f, SystemInfo::getMemUsedByPID(), 0);
 		
 		bhandler.broadcast();
 

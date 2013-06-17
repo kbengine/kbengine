@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../common;../../lib;../../lib/third_party/log4cxx/include;../../lib/third_party"
+				AdditionalIncludeDirectories="../../common;../../lib;../../lib/third_party/log4cxx/include;../../lib/third_party;../../lib/third_party/sigar/win32"
 				PreprocessorDefinitions="ENABLE_WATCHERS;WIN32;_DEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -107,7 +107,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../common;../../lib;../../lib/third_party/log4cxx/include;../../lib/third_party"
+				AdditionalIncludeDirectories="../../common;../../lib;../../lib/third_party/log4cxx/include;../../lib/third_party;../../lib/third_party/sigar/win32"
 				PreprocessorDefinitions="ENABLE_WATCHERS;WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;LOG4CXX_STATIC"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -179,6 +179,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sys_info.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\watcher.cpp"
 				>
 			</File>
@@ -221,6 +225,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sys_info.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\watcher.hpp"
 				>
 			</File>
@@ -230,6 +238,102 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+		</Filter>
+		<Filter
+			Name="sigar"
+			>
+			<File
+				RelativePath="..\third_party\sigar\win32\peb.c"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar.c"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar.rc.in"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_cache.c"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_fileinfo.c"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_fileinfo.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_format.c"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_format.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_getline.c"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_getline.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_log.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_os.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_pdh.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_private.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_ptql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_ptql.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_signal.c"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_util.c"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_util.h"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\sigar_version.c.in"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\win32_sigar.c"
+				>
+			</File>
+			<File
+				RelativePath="..\third_party\sigar\win32\wmi.cpp"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\profile.ipp"
@@ -241,6 +345,10 @@
 		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
+			>
+		</File>
+		<File
+			RelativePath=".\sys_info.ipp"
 			>
 		</File>
 	</Files>

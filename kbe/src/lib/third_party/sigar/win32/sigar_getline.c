@@ -246,6 +246,17 @@ static int (*gl_tab_hook)(char *buf, int prompt_width, int *loc) = gl_tab;
 #include <stdlib.h>
 #include <stdio.h>
 
+#pragma warning(disable:4996)
+#pragma warning(disable:4819)
+#pragma warning(disable:4049)
+#pragma warning(disable:4217)
+#pragma warning(disable:4013)
+#pragma warning(disable:4018)
+#pragma warning(disable:4244)
+#pragma warning(disable:4133)
+#pragma warning(disable:4307)
+#pragma warning(disable:4293)
+
 /******************** internal interface *********************************/
 
 static char   *sigar_getlinem(int mode, char *prompt); /* allows reading char by char */

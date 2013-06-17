@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/udp_packet.hpp"
 #include "network/message_handler.hpp"
 #include "network/bundle_broadcast.hpp"
+#include "helper/sys_info.hpp"
 #include "thread/threadpool.hpp"
 #include "server/componentbridge.hpp"
 #include "server/component_active_report_handler.hpp"

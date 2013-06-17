@@ -26,6 +26,13 @@
  *  gid -> group name
  */
 
+#pragma warning(disable:4996)
+#pragma warning(disable:4819)
+#pragma warning(disable:4049)
+#pragma warning(disable:4217)
+#pragma warning(disable:4013)
+#pragma warning(disable:4018)
+
 #define ENTRIES_SIZE(n) \
     (sizeof(sigar_cache_entry_t *) * (n))
 

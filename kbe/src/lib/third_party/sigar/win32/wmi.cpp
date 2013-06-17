@@ -15,8 +15,14 @@
  * limitations under the License.
  */
 
+#ifndef UNICODE
 #define UNICODE
+#endif
+
+#ifndef _UNICODE
 #define _UNICODE
+#endif
+
 #define _WIN32_DCOM
 
 #include <windows.h>
@@ -199,7 +205,7 @@ extern "C" int sigar_proc_args_wmi_get(sigar_t *sigar, sigar_pid_t pid,
         return wmi->GetLastError();
     }
 
-    if (FAILED(wmi->GetProcCommandLine(pid, buf))) {
+    if (FAILED(wmi->GetProcCommandLine((DWORD)pid, buf))) {
         status = wmi->GetLastError();
     }
     else {
@@ -225,7 +231,7 @@ extern "C" int sigar_proc_exe_wmi_get(sigar_t *sigar, sigar_pid_t pid,
 
     procexe->name[0] = '\0';
 
-    if (FAILED(wmi->GetProcExecutablePath(pid, buf))) {
+    if (FAILED(wmi->GetProcExecutablePath((DWORD)pid, buf))) {
         status = wmi->GetLastError();
     }
     else {

@@ -81,6 +81,18 @@
 
 #include "sigar.h"
 
+
+#pragma warning(disable:4996)
+#pragma warning(disable:4819)
+#pragma warning(disable:4049)
+#pragma warning(disable:4217)
+#pragma warning(disable:4013)
+#pragma warning(disable:4018)
+#pragma warning(disable:4244)
+#pragma warning(disable:4133)
+#pragma warning(disable:4307)
+#pragma warning(disable:4293)
+
 #ifndef WIN32
 #if defined(__FreeBSD__) || defined(__OpenBSD__)
 # include <sys/param.h>

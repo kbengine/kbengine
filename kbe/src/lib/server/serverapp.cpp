@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "helper/console_helper.hpp"
+#include "helper/sys_info.hpp"
 #include "resmgr/resmgr.hpp"
 
 #include "../../server/baseappmgr/baseappmgr_interface.hpp"

@@ -31,6 +31,12 @@
 #include <arpa/inet.h>
 #endif
 
+#pragma warning(disable:4996)
+#pragma warning(disable:4819)
+#pragma warning(disable:4049)
+#pragma warning(disable:4217)
+#pragma warning(disable:4013)
+
 #include "sigar.h"
 #include "sigar_private.h"
 #include "sigar_util.h"
@@ -99,7 +105,7 @@ SIGAR_DECLARE(int) sigar_close(sigar_t *sigar)
 SIGAR_DECLARE(sigar_pid_t) sigar_pid_get(sigar_t *sigar)
 {
     if (!sigar->pid) {
-        sigar->pid = getpid();
+        sigar->pid = (sigar_pid_t)getpid();
     }
 
     return sigar->pid;
@@ -184,7 +190,7 @@ SIGAR_DECLARE(int) sigar_proc_stat_get(sigar_t *sigar,
     pids = sigar->pids;
     procstat->total = pids->number;
 
-    for (i=0; i<pids->number; i++) {
+    for (i=0; i<(int)pids->number; i++) {
         sigar_proc_state_t state;
 
         status = sigar_proc_state_get(sigar, pids->data[i], &state);
@@ -1817,7 +1823,7 @@ sigar_net_interface_config_primary_get(sigar_t *sigar,
         return status;
     }
 
-    for (i=0; i<iflist.number; i++) {
+    for (i=0; i<(int)iflist.number; i++) {
         status = sigar_net_interface_config_get(sigar,
                                                 iflist.data[i], ifconfig);
 
@@ -1956,7 +1962,7 @@ SIGAR_DECLARE(int) sigar_fqdn_get(sigar_t *sigar, char *name, int namelen)
     register int is_debug = SIGAR_LOG_IS_DEBUG(sigar);
     sigar_hostent_t data;
     struct hostent *p;
-    char domain[SIGAR_FQDN_LEN + 1];
+  //  char domain[SIGAR_FQDN_LEN + 1];
 #ifdef WIN32
     int status = sigar_wsa_init(sigar);
 
@@ -2140,7 +2146,7 @@ SIGAR_DECLARE(char *) sigar_password_get(const char *prompt)
     fputs(prompt, stderr);
     fflush(stderr);
 
-    while ((ch = _getch()) != '\r') {
+    while ((ch = (int)_getch()) != '\r') {
         if (ch == EOF) /* EOF */ {
             return NULL;
         }

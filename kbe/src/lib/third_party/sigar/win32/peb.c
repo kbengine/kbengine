@@ -19,8 +19,13 @@
 /*
  * functions for getting info from the Process Environment Block
  */
+#ifndef UNICODE
 #define UNICODE
+#endif
+
+#ifndef _UNICODE
 #define _UNICODE
+#endif
 
 #include "sigar.h"
 #include "sigar_private.h"

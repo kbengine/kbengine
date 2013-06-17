@@ -17,6 +17,11 @@
 #ifndef SIGAR_FORMAT_H
 #define SIGAR_FORMAT_H
 
+#pragma warning(disable:4996)
+#pragma warning(disable:4819)
+#pragma warning(disable:4049)
+#pragma warning(disable:4217)
+
 typedef struct {
     double user;
     double sys;
