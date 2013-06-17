@@ -1,6 +1,6 @@
 LIB =	sigar
 
-SRCS =				\
+CSRCS =				\
 	sigar			\
 	sigar_cache		\
 	sigar_fileinfo		\
