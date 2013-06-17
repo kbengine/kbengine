@@ -1,0 +1,3 @@
+see ../darwin/
+yes, darwin/macosx is based on freebsd (or something like that), but
+sigar was ported to darwin/macosx first so the sources live there.

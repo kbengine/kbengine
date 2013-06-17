@@ -1,0 +1,10 @@
+package org.hyperic.sigar;
+
+class SigarVersion {
+
+    static final String BUILD_DATE = "@@BUILD_DATE@@";
+
+    static final String SCM_REVISION = "@@SCM_REVISION@@";
+
+    static final String VERSION_STRING = "@@VERSION_STRING@@";
+}

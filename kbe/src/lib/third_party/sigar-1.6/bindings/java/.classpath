@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="build/src"/>
+	<classpathentry kind="src" path="hyperic_jni/src"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="var" path="ANT_HOME/lib/ant.jar"/>
+	<classpathentry kind="var" path="ANT_HOME/lib/junit.jar"/>
+	<classpathentry kind="lib" path="hyperic_jni/lib/cpptasks.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/log4j.jar"/>
+	<classpathentry kind="output" path="build/classes"/>
+</classpath>

@@ -1,0 +1,27 @@
+<plist version="1.0">
+
+<dict>
+
+    <key>CFBundleDevelopmentRegion</key>
+
+    <string>English</string>
+
+    <key>CFBundleIdentifier</key>
+
+    <string>org.hyperic.sigar</string>
+
+    <key>CFBundleInfoDictionaryVersion</key>
+
+    <string>6.0</string>
+
+    <key>CFBundleName</key>
+
+    <string>sigar</string>
+
+    <key>CFBundleVersion</key>
+
+    <string>@@VERSION_STRING@@</string>
+
+</dict>
+
+</plist>

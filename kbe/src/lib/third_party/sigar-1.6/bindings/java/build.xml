@@ -1,0 +1,532 @@
+<!DOCTYPE project [
+    <!ENTITY jni-build SYSTEM "hyperic_jni/jni-build.xml">
+]>
+
+<project name="Sigar" default="build" basedir=".">
+
+  <property file="version.properties"/>
+
+  <property name="sigar.version"
+            value="${version.major}.${version.minor}.${version.maint}"/>
+
+  <property file="${user.home}/.sigar-build.properties"/>
+  <property name="project.name" value="sigar"/>
+  <property name="jni.define.name" value="SIGAR"/>
+  <property name="sigar-bin" location="sigar-bin"/>
+  <property name="sigar-bin-dir" location="${sigar-bin}"/>
+  <property name="jni.git" location="../../.git"/>
+  <property name="jni.bin" location="${sigar-bin}"/>
+  <property name="jni.source.dir" location="../.."/>
+  <property name="jni.src.java" value="hyperic_jni/src"/>
+  <property name="jni.info.plist" location="build/src/Info.plist"/>
+  <property name="jni.info.res" location="build/src/sigar.res"/>
+  <property name="jni.libprefix" value=""/> <!-- drop "java" prefix -->
+  <property name="cpptasks.jar"
+            location="hyperic_jni/lib/cpptasks.jar"/>
+
+  <condition property="file.version" value="-${sigar.version}">
+    <isset property="file.versioned"/>
+  </condition>
+  <condition property="file.version" value="">
+   <not>
+    <isset property="versioned"/>
+   </not>
+  </condition>
+
+  <property name="jni.libversion" value="${file.version}"/>
+  <property name="sigar.jar" value="sigar${file.version}.jar"/>
+
+  &jni-build;
+
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="build.javadoc" value="${build}/javadoc"/>
+  <property name="dist.bin.name" value="hyperic-sigar-${sigar.version}"/>
+  <property name="dist.src.name" value="${dist.bin.name}-src"/>
+  <property name="dist.bin" location="${build}/${dist.bin.name}"/>
+  <property name="dist.src" location="${build}/${dist.src.name}"/>
+  <property name="perl" value="perl"/>
+  <!-- trick TestFQDN into passing with: ant test -Dsigar.fdqn=foo.bar -->
+  <property name="sigar.fqdn" value=""/>
+
+  <path id="libjars">
+     <fileset dir="lib" includes="*.jar"/>
+  </path>
+
+  <path id="alljars">
+     <path refid="libjars"/>
+     <fileset dir="${sigar-bin}/lib" includes="${sigar.jar}"/>
+     <fileset dir="${ant.library.dir}" includes="junit*.jar"/>
+  </path>
+
+  <target name="javadoc_check">
+    <uptodate property="javadoc.notrequired"
+              targetfile="${build.javadoc}/packages.html" >
+        <srcfiles dir="src" includes="**/*.java"/>
+    </uptodate>
+  </target>
+
+  <path id="javadoc.path">
+    <pathelement path="src"/>
+    <pathelement path="${build}/src"/>
+    <pathelement path="${jni.src.java}"/>
+  </path>
+
+  <target name="javadoc" depends="javadoc_check">
+    <mkdir dir="${build.javadoc}"/>
+    <javadoc packagenames="org.hyperic.sigar.*"
+             excludepackagenames="org.hyperic.sigar.test.*,org.hyperic.jni.*,org.hyperic.sigar.pager.*,org.hyperic.sigar.jmx.*,org.hyperic.sigar.win32.test.*"
+             useexternalfile="yes"
+             sourcepathref="javadoc.path"
+             destdir="${build.javadoc}"
+             author="false"
+             version="false"
+             windowtitle="Sigar API"
+             doctitle="Sigar">
+      <group title="Sigar" packages="org.hyperic.sigar" />
+      <classpath refid="libjars"/>
+      <classpath><path path="${ant.library.dir}/ant.jar"/></classpath>
+     <bottom>Copyright &#169; ${copyright.year} <![CDATA[<a target="_top" href="http://www.hyperic.com/">Hyperic</a>]]>. All Rights Reserved.</bottom>
+    </javadoc>
+  </target>
+
+  <target name="compile">
+    <mkdir dir="${build}/classes"/>
+    <available classname="junit.framework.TestCase" property="junit.present">
+      <classpath refid="alljars"/>
+    </available>
+    <javac destdir="${build}/classes"
+           source="1.4" target="1.4"
+           sourcepath=""
+           debug="true"
+           classpathref="libjars">
+      <src path="${src}"/>
+      <src path="${build}/src"/>
+      <src path="${jni.src.java}"/>
+      <include name="**/*.java"/>
+      <exclude name="**/test/*.java" unless="junit.present"/>
+    </javac>
+  </target>
+
+  <target name="version-file">
+    <property name="version.file.srcdir"
+              value="."/>
+    <property name="version.file.dstdir"
+              value="."/>
+    <property name="version.tofile"
+              value="${build}/${version.file.dstdir}/${version.file}"/>
+
+    <echo>cp ${version.file.srcdir}/${version.file}.in -> ${version.tofile}</echo>
+    <copy file="${version.file.srcdir}/${version.file}.in"
+          tofile="${version.tofile}" overwrite="true"/>
+
+    <replace file="${version.tofile}">
+      <replacefilter token="@@BUILD_DATE@@" value="${BUILD_DATE}"/>
+      <replacefilter token="@@VERSION_STRING@@" value="${sigar.version}.${version.build}"/>
+      <replacefilter token="@@SCM_REVISION@@" value="${jni.scmrev}"/>
+      <replacefilter token="@@ARCHNAME@@" value="${jni.libarch}"/>
+      <replacefilter token="@@ARCHLIB@@" value="${jni.libname.full}"/>
+      <replacefilter token="@@BINNAME@@" value="${jni.project.archname}"/>
+      <replacefilter token="@@VERSION_MAJOR@@" value="${version.major}"/>
+      <replacefilter token="@@VERSION_MINOR@@" value="${version.minor}"/>
+      <replacefilter token="@@VERSION_MAINT@@" value="${version.maint}"/>
+      <replacefilter token="@@VERSION_BUILD@@" value="${version.build}"/>
+      <replacefilter token="@@COPYRIGHT_YEAR@@" value="${copyright.year}"/>
+    </replace>
+  </target>
+
+  <target name="sigar-version">
+    <tstamp>
+      <format property="BUILD_DATE" pattern="MM/dd/yyyy hh:mm aa"/>
+    </tstamp>
+
+    <echo message="SIGAR git revision ${jni.scmrev}"/>
+
+    <antcall target="version-file">
+       <param name="version.file"
+              value="src/org/hyperic/sigar/SigarVersion.java"/>
+    </antcall>
+
+    <antcall target="version-file">
+       <param name="version.file.srcdir"
+              value="../.."/>
+       <param name="version.file"
+              value="src/sigar_version.c"/>
+       <param name="version.tofile"
+              value="${build}/src/sigar_version.c"/>
+    </antcall>
+
+    <antcall target="version-file">
+       <param name="version.file.srcdir"
+              value="../.."/>
+       <param name="version.file"
+              value="src/os/darwin/Info.plist"/>
+       <param name="version.tofile"
+              value="${build}/src/Info.plist"/>
+    </antcall>
+
+    <antcall target="version-file">
+       <param name="version.file.srcdir"
+              value="../.."/>
+       <param name="version.file"
+              value="src/os/win32/sigar.rc"/>
+       <param name="version.tofile"
+              value="${build}/src/sigar.rc"/>
+    </antcall>
+  </target>
+
+  <target name="sigar.rc" if="win32">
+    <exec executable="rc" dir="${build}/src">
+      <arg value="/r"/>
+      <arg value="sigar.rc"/>
+    </exec>
+  </target>
+
+  <target name="prepare-src" depends="sigar-version,sigar.rc">
+    <mkdir dir="${build}/src"/>
+
+    <exec executable="${perl}" dir=".">
+      <arg value="-Mlib=.."/>
+      <arg value="-MSigarWrapper"/>
+      <arg value="-e"/>
+      <arg value="generate"/>
+      <arg value="Java"/>
+      <arg value="${build}/src"/>
+    </exec>
+
+   <condition property="win32.jni" value="jni/win32">
+     <isset property="win32"/>
+   </condition>
+
+   <condition property="vmware.jni" value="jni/vmware">
+     <or>
+       <isset property="win32"/>
+       <isset property="linux"/>
+     </or>
+   </condition>
+
+    <!-- include sigar *.c files rather than link against libsigar -->
+    <patternset id="jni.source.files">
+      <include name="src/*.c"/>
+      <exclude name="src/sigar_main.c"/>
+      <include name="src/os/${jni.src}/*.c"/>
+      <include name="src/os/${jni.src}/*.cpp"/>
+      <include name="bindings/java/src/jni/*.c"/>
+      <include name="bindings/java/src/${win32.jni}/*.cpp"/>
+      <include name="bindings/java/src/${win32.jni}/*.c"/>
+      <include name="bindings/java/src/${vmware.jni}/*.c"/>
+      <include name="bindings/java/build/src/sigar_version.c"/>
+    </patternset>
+
+    <path id="jni.include.dirs">
+      <path location="../../include"/>
+      <path location="../../src/os/${jni.src}"/>
+      <path location="${build}/src"/>
+      <path location="src/jni"/>
+    </path>
+
+    <!-- extra solaris libs -->
+    <condition property="jni.libset.dir" value="/usr/lib">
+      <isset property="solaris"/>
+    </condition>
+
+    <condition property="jni.libset.libs" value="kstat">
+      <isset property="solaris"/>
+    </condition>
+
+    <!-- extra aix libs -->
+    <condition property="jni.libset.dir" value="/usr/lib">
+      <isset property="aix"/>
+    </condition>
+
+    <condition property="jni.libset.libs" value="odm,cfg,perfstat,pthreads">
+      <isset property="aix"/>
+    </condition>
+  </target>
+
+  <target name="copy-includes">
+   <mkdir dir="${sigar-bin}/include"/>
+   <copy toDir="${sigar-bin}/include" overwrite="true">
+     <fileset dir="../../include">
+         <include name="sigar.h"/>
+         <include name="sigar_fileinfo.h"/>
+         <include name="sigar_format.h"/>
+         <include name="sigar_ptql.h"/>
+         <include name="sigar_log.h"/>
+     </fileset>
+   </copy>
+  </target>
+
+  <target name="sigar-exe-cpptasks">
+    <cc outtype="executable"
+	outfile="${jni.bin}/lib/${jni.libname}"
+	objdir="${jni.objdir}">
+
+      <compiler name="${jni.compiler}" debug="${jni.debug}"/>
+
+      <linker name="${jni.compiler}">
+        <libset dir="${jni.bin}/lib"
+                libs="${jni.libname}"/>
+      </linker>
+
+      <includepath location="../../include"/>
+
+      <fileset dir="${jni.source.dir}">
+        <include name="src/sigar_main.c"/>
+      </fileset>
+    </cc>
+  </target>
+
+  <target name="sigar-exe" if="jni.compiler.isgcc">
+    <exec executable="${jni.compiler}"
+          dir="${jni.source.dir}"
+          failonerror="true">
+      <arg value="-Wall"/>
+      <arg value="-Werror"/>
+      <arg value="-ldl"/>
+      <arg value="-I./include"/>
+      <arg value="src/sigar_main.c"/>
+      <arg value="-o"/>
+      <arg value="${jni.bin}/lib/${jni.libname}"/>
+    </exec>
+    <chmod perm="a+x">
+      <fileset dir="${jni.bin}/lib">
+        <include name="${jni.libname}"/>
+      </fileset>
+    </chmod>
+  </target>
+
+  <target name="build-jni"
+          depends="jni-init,prepare-src,jni-compile,jni-lib-copy,copy-includes"
+          if="jni.libarch"/>
+
+  <target name="pack">
+    <jar jarfile="${sigar-bin}/lib/${sigar.jar}"
+         basedir="${build}/classes">
+
+      <manifest>
+        <attribute name="Main-Class"
+                   value="org.hyperic.sigar.cmd.Runner"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="build" depends="build-jni,compile,pack"/>
+
+  <target name="clean">
+    <delete dir="${build}"/>
+    <delete dir="${sigar-bin}"/>
+  </target>
+
+ <target name="xtest" depends="jni-init">
+   <condition property="win32.test" value="win32/test">
+      <os family="windows"/>
+   </condition>
+
+   <condition property="junit.args" value="${env.ANT_OPTS}">
+     <isset property="env.ANT_OPTS"/>
+   </condition>
+   <condition property="junit.args" value="">
+    <not>
+     <isset property="junit.args"/>
+    </not>
+   </condition>
+
+   <property name="testresults"
+             location="${build}/testresults/${jni.libarch}"/>
+
+   <mkdir dir="${testresults}"/>
+
+   <!-- test/capture sigar.jar version -->
+   <java fork="yes" failonerror="yes"
+         output="${testresults}/version.txt"
+         jvm="${java.home}/bin/java"
+         jvmargs="${junit.args}"
+         jar="${sigar-bin}/lib/${sigar.jar}">
+     <arg value="version"/>
+   </java>
+
+   <junit printsummary="yes" fork="yes"
+          haltonfailure="yes" showoutput="true">
+     <jvmarg line="${junit.args}"/>
+
+     <classpath refid="alljars"/>
+     <formatter type="xml"/>
+
+     <batchtest fork="yes" todir="${testresults}">
+       <fileset dir="${src}">
+         <include name="org/hyperic/sigar/test/Test*.java"/>
+         <include name="org/hyperic/sigar/${win32.test}/Test*.java"/>
+         <exclude name="**/.java"/>
+         <!-- slow; run by hand with bin/run_tests.sh Threads -->
+         <exclude name="**/TestThreads*.java"/>
+       </fileset>
+     </batchtest>
+   </junit>
+ </target>
+
+ <target name="test" depends="build,xtest"/>
+
+ <target name="dist-pack" depends="dist-common">
+   <zip destfile="${dist}.zip"
+        basedir="${build}"
+        includes="${dist.name}/**/*"/>
+
+    <!-- Stupid ant tar task, doesn't preserve file permissions
+         without making you jump through some hoops -->
+   <tar tarfile="${dist}.tar.gz"
+        longfile="gnu"
+        compression="gzip">
+      <tarfileset dir="${dist}/.." mode="755">
+        <include name="${dist.name}/**/bin/*"/>
+        <include name="${dist.name}/**/*.sh"/>
+        <include name="${dist.name}/**/*.bat"/>
+        <include name="${dist.name}/**/*.cmd"/>
+        <include name="${dist.name}/**/*.sl"/>
+      </tarfileset>
+      <tarfileset dir="${dist}/..">
+        <exclude name="${dist.name}/**/bin/*"/>
+        <exclude name="${dist.name}/**/*.sh"/>
+        <exclude name="${dist.name}/**/*.bat"/>
+        <exclude name="${dist.name}/**/*.cmd"/>
+        <exclude name="${dist.name}/**/*.sl"/>
+        <include name="${dist.name}/**"/>
+      </tarfileset>
+   </tar>
+ </target>
+
+ <target name="dist-bin">
+   <!-- binaries -->
+   <mkdir dir="${dist.bin}/sigar-bin"/>
+   <copy toDir="${dist.bin}/sigar-bin">
+     <fileset dir="${sigar-bin-dir}">
+       <include name="lib/*.jar"/>
+       <include name="lib/*.dll"/>
+       <include name="lib/*.sl"/>
+       <include name="lib/*.so"/>
+       <include name="lib/*.dylib"/>
+       <include name="lib/*.lib"/>
+     </fileset>
+     <fileset dir=".">
+       <include name="lib/log4j.jar"/>
+     </fileset>
+   </copy>
+
+   <!-- header files -->
+   <copy toDir="${dist.bin}/sigar-bin">
+     <fileset dir="${sigar-bin}">
+       <include name="include/*.h"/>
+     </fileset>
+   </copy>
+
+   <copy toDir="${dist.bin}/sigar-bin/lib">
+     <fileset dir=".">
+       <include name=".sigar_shellrc"/>
+     </fileset>
+   </copy>
+
+   <mkdir dir="${dist.bin}/bindings/java/examples"/>
+   <copy toDir="${dist.bin}/bindings/java/examples">
+     <fileset dir="src/org/hyperic/sigar/cmd">
+       <include name="*.java"/>
+     </fileset>
+   </copy>
+ </target>
+
+ <target name="dist-bindings">
+
+   <!-- bindings -->
+   <copy toDir="${dist}">
+     <fileset dir="../..">
+       <include name="bindings/SigarWrapper.pm"/>
+       <include name="bindings/java/examples/*.java"/>
+
+       <include name="bindings/perl/Makefile.PL"/>
+       <include name="bindings/perl/typemap"/>
+       <include name="bindings/perl/*.xs"/>
+       <include name="bindings/perl/**/*.pm"/>
+       <include name="bindings/perl/examples/*.pl"/>
+
+       <include name="bindings/dotnet/default.build"/>
+       <include name="bindings/dotnet/**/*.cs"/>
+
+       <include name="bindings/php/config.m4"/>
+       <include name="bindings/php/php_sigar.c"/>
+       <include name="bindings/php/php_sigar.h"/>
+       <include name="bindings/php/examples/*.php"/>
+
+       <include name="bindings/python/_sigar.c"/>
+       <include name="bindings/python/sigar.py"/>
+       <include name="bindings/python/setup.py"/>
+       <include name="bindings/python/examples/*.py"/>
+
+       <include name="bindings/ruby/rbsigar.c"/>
+       <include name="bindings/ruby/extconf.rb"/>
+       <include name="bindings/ruby/examples/*.rb"/>
+     </fileset>
+   </copy>
+
+   <copy toDir="${dist}/bindings/perl">
+     <fileset dir="${build}/src">
+       <include name="Sigar_generated.xs"/>
+     </fileset>
+   </copy>
+ </target>
+
+ <target name="dist-common" depends="javadoc,dist-bindings">
+   <copy toDir="${dist}" overwrite="true">
+     <fileset dir="../..">
+       <include name="AUTHORS"/>
+       <include name="README"/>
+       <include name="LICENSE"/>
+       <include name="NOTICE"/>
+       <include name="ChangeLog"/>
+     </fileset>
+   </copy>
+
+   <!-- docs -->
+   <mkdir dir="${dist}/docs"/>
+   <copy toDir="${dist}/docs">
+     <fileset dir="${build}">
+       <include name="javadoc/**"/>
+     </fileset>
+   </copy>
+ </target>
+
+ <target name="dist" depends="dist-bin">
+
+   <copy toDir="${dist.src}">
+     <fileset dir="../..">
+       <include name="include/*.h"/>
+       <include name="src/**/*.h"/>
+       <include name="src/**/*.c"/>
+       <include name="src/**/*.in"/>
+       <include name="bindings/java/hyperic_jni/**"/>
+       <include name="bindings/java/**/*.java"/>
+       <include name="bindings/java/**/*.java.in"/>
+       <include name="bindings/java/**/*.c"/>
+       <include name="bindings/java/**/*.h"/>
+       <include name="bindings/java/**/*.pl"/>
+       <include name="bindings/java/**/build.xml"/>
+       <include name="bindings/java/version.properties"/>
+       <include name="bindings/java/.classpath"/>
+       <include name="bindings/java/.project"/>
+       <include name="bindings/java/.sigar_shellrc"/>
+       <include name="bindings/java/lib/log4j.jar"/>
+       <include name="bindings/java/lib/junit.jar"/>
+       <exclude name="**/.svn/**"/>
+       <exclude name="bindings/java/build/**"/>
+     </fileset>
+   </copy>
+
+    <antcall target="dist-pack">
+       <param name="dist" value="${dist.bin}"/>
+       <param name="dist.name" value="${dist.bin.name}"/>
+    </antcall>
+
+    <antcall target="dist-pack">
+       <param name="dist" value="${dist.src}"/>
+       <param name="dist.name" value="${dist.src.name}"/>
+    </antcall>
+ </target>
+</project>

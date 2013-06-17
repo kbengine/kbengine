@@ -1,0 +1,515 @@
+<!--
+
+ Copyright (c) 2009 Hyperic, Inc.
+ Copyright (c) 2009 SpringSource, Inc.
+ Copyright (c) 2009-2010 VMware, Inc.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+-->
+
+  <property environment="env"/>
+
+  <property name="build" location="build"/>
+  <property name="jni.bin" location="${build}"/>
+  <property name="jni.define.name" value="JNI"/>
+  <property name="jni.source.dir" value="src"/>
+  <property name="jni.src.java" value="src"/>
+  <property name="jni.libprefix" value="java"/>
+  <property name="jni.libversion" value=""/>
+
+  <property name="cpptasks.jar" location="lib/cpptasks.jar"/>
+
+  <taskdef name="cc" classname="net.sf.antcontrib.cpptasks.CCTask">
+    <classpath location="${cpptasks.jar}"/>
+  </taskdef>
+
+  <target name="jni-init">
+    <mkdir dir="${build}/classes"/>
+
+    <available property="libproc.h" file="/usr/include/libproc.h"/>
+
+    <condition property="jni.debug" value="true">
+      <isset property="jni.dmalloc"/>
+    </condition>
+
+    <condition property="jni.optim" value="true">
+      <not>
+        <istrue value="${jni.debug}"/>
+      </not>
+    </condition>
+
+    <condition property="static.gcc">
+      <os arch="i386"/><!-- only for x86 solaris -->
+    </condition>
+
+    <condition property="jni.javahome" value="${env.JAVA_HOME}">
+      <isset property="env.JAVA_HOME"/>
+    </condition>
+
+    <condition property="linux">
+      <equals arg1="${os.name}" arg2="Linux"/>
+    </condition>
+    <condition property="solaris">
+      <equals arg1="${os.name}" arg2="SunOS"/>
+    </condition>
+    <condition property="win32">
+      <os family="windows"/>
+    </condition>
+    <condition property="hpux">
+      <equals arg1="${os.name}" arg2="HP-UX"/>
+    </condition>
+    <condition property="aix">
+      <equals arg1="${os.name}" arg2="AIX"/>
+    </condition>
+    <condition property="darwin">
+      <equals arg1="${os.name}" arg2="Mac OS X"/>
+    </condition>
+    <condition property="freebsd">
+      <equals arg1="${os.name}" arg2="FreeBSD"/>
+    </condition>
+    <condition property="openbsd">
+      <equals arg1="${os.name}" arg2="OpenBSD"/>
+    </condition>
+    <condition property="netbsd">
+      <equals arg1="${os.name}" arg2="NetBSD"/>
+    </condition>
+    <condition property="osf1">
+      <equals arg1="${os.name}" arg2="OSF1"/>
+    </condition>
+
+    <condition property="jni.os" value="linux">
+      <isset property="linux"/>
+    </condition>
+
+    <condition property="jni.os" value="win32">
+      <isset property="win32"/>
+    </condition>
+
+    <condition property="jni.os" value="solaris">
+      <isset property="solaris"/>
+    </condition>
+
+    <condition property="jni.os" value="aix">
+      <isset property="aix"/>
+    </condition>
+
+    <condition property="jni.os" value="hpux">
+      <isset property="hpux"/>
+    </condition>
+
+    <condition property="jni.os" value="darwin">
+      <isset property="darwin"/>
+    </condition>
+
+    <condition property="jni.os" value="freebsd">
+      <isset property="freebsd"/>
+    </condition>
+
+    <condition property="jni.os" value="openbsd">
+      <isset property="openbsd"/>
+    </condition>
+
+    <condition property="jni.os" value="netbsd">
+      <isset property="netbsd"/>
+    </condition>
+
+    <!-- darwin and freebsd use the same source files -->
+    <condition property="jni.src" value="darwin">
+      <isset property="freebsd"/>
+    </condition>
+    <condition property="jni.src" value="darwin">
+      <isset property="openbsd"/>
+    </condition>
+    <condition property="jni.src" value="darwin">
+      <isset property="netbsd"/>
+    </condition>
+
+    <condition property="jni.os" value="osf1">
+      <isset property="osf1"/>
+    </condition>
+
+    <condition property="jni.jdk.os" value="${jni.os}">
+      <and>
+        <isfalse value="${hpux}"/>
+        <isfalse value="${osf1}"/>
+      </and>
+    </condition>
+
+    <condition property="jni.jdk.os" value="hp-ux">
+      <istrue value="${hpux}"/>
+    </condition>
+
+    <condition property="jni.jdk.os" value="alpha">
+      <istrue value="${osf1}"/>
+    </condition>
+
+    <condition property="jni.src" value="${jni.os}">
+      <isfalse value="${jni.src}"/>
+    </condition>
+
+    <echo message="jni.src=${jni.src}, jni.jdk.os=${jni.jdk.os}, ${sun.arch.data.model}-bit"/>
+
+    <javac srcdir="${jni.src.java}" destdir="${build}/classes" debug="true"
+           source="1.4" target="1.4"
+	   includes="org/hyperic/jni/*.java"/>
+
+    <taskdef name="libarch" classname="org.hyperic.jni.ArchNameTask">
+      <classpath location="${build}/classes"/>
+    </taskdef>
+    <taskdef name="copydep" classname="org.hyperic.jni.CopyDependsTask">
+      <classpath location="${build}/classes"/>
+    </taskdef>
+
+    <libarch/>
+
+    <echo>java.home=${jni.javahome}</echo>
+
+    <checksum file="${jni.javahome}/include/jni.h" property="jni.md5"/>
+
+    <property name="jni.project.archname"
+              value="${project.name}-${jni.libarch}"/>
+
+    <condition property="jni.libname"
+               value="${jni.libprefix}${jni.project.archname}${jni.libversion}">
+      <isfalse value="${jni.libname}"/>
+    </condition>
+
+    <property name="jni.libname.full"
+              value="${jni.libpre}${jni.libname}${jni.libext}"/>
+
+    <property name="jni.objdir" value="${build}/obj/${jni.libarch}"/>
+
+    <condition property="jni.cc" value="uni-cc">
+      <isset property="darwin"/>
+    </condition>
+
+    <property name="jni.cc" value="jni-cc"/>
+
+    <condition property="cc.runtime" value="static">
+      <isset property="win32"/>
+    </condition>
+    <condition property="cc.runtime" value="dynamic">
+      <not>      
+        <isset property="win32"/>
+      </not>
+    </condition>
+  </target>
+
+  <target name="jni-lib-copy" if="jni.libarch">
+    <mkdir dir="${jni.bin}/lib"/>
+
+    <copy toDir="${jni.bin}/lib" overwrite="true">
+      <fileset dir="${jni.objdir}/lib"/>
+    </copy>
+
+    <chmod perm="a+x">
+      <fileset dir="${jni.bin}/lib">
+        <include name="*.sl"/>
+      </fileset>
+    </chmod>
+  </target>
+
+  <target name="jni-compile" if="jni.libarch">
+    <antcall target="${jni.cc}" inheritRefs="true"/>
+  </target>
+
+  <!-- run jni-cc twice {ppc,i386}, then feed both to lipo to build a universal binary -->
+  <target name="uni-cc" if="jni.libarch">
+    <property name="shlib" value="${jni.objdir}/lib/lib${jni.libname}.dylib"/>
+
+    <!-- ppc -->
+    <echo message="build 'ppc' arch"/>
+    <antcall target="jni-cc" inheritRefs="true">
+      <param name="uni.arch" value="ppc"/>
+    </antcall>
+
+    <copy file="${shlib}" tofile="${shlib}.ppc"/>
+
+    <!-- i386 -->
+    <echo message="build 'i386' arch"/>
+    <delete>
+      <fileset dir="${jni.objdir}" includes="*.o"/>
+    </delete>
+
+    <antcall target="jni-cc" inheritRefs="true">
+      <param name="uni.arch" value="i386"/>
+    </antcall>
+
+    <copy file="${shlib}" tofile="${shlib}.i386"/>
+
+    <echo message="lipo 'ppc'+'i386'"/>
+    <exec executable="lipo">
+      <arg line="-create ${shlib}.ppc ${shlib}.i386 -output ${jni.objdir}/lib/lib${jni.libname}.dylib"/>
+    </exec>
+
+    <delete>
+      <fileset dir="${jni.objdir}/lib" includes="*.ppc,*.i386"/>
+    </delete>
+  </target>
+
+  <target name="jni-cc" if="jni.libarch">
+    <mkdir dir="${jni.objdir}/lib"/>
+
+    <echo message="jni libname=${jni.libname}"/>
+
+    <cc outtype="shared"
+	outfile="${jni.objdir}/lib/${jni.libname}"
+	objdir="${jni.objdir}"
+        runtime="${cc.runtime}"
+	relentless="false">
+
+      <!-- HPUX -->
+      <compiler name="hp"  if="hpux">
+        <compilerarg value="+Z"/>
+        <compilerarg value="+DD64" if="jni.arch64"/>
+
+        <defineset>
+          <define name="${jni.define.name}_HPUX"/>
+          <define name="_HPUX_SOURCE"/>
+          <define name="_REENTRANT"/>
+        </defineset>
+      </compiler>
+
+      <linker name="hp" if="hpux">
+        <libset if="jni.libset.libs"
+                dir="${jni.libset.dir}"
+                libs="${jni.libset.libs}"/>
+
+        <syslibset libs="nsl"/>
+        <syslibset libs="nm"/>
+      </linker>
+
+      <!-- Solaris -->
+      <compiler name="gcc" if="solaris">
+        <compilerarg value="-O2" if="jni.optim"/>
+        <compilerarg value="-g" if="jni.debug"/>
+        <compilerarg value="-Wall"/>
+        <compilerarg value="-Werror" if="jni.werror"/>
+        <compilerarg value="-m64" if="jni.arch64"/>
+        <defineset>
+          <define name="${jni.define.name}_SOLARIS"/>
+          <define name="_REENTRANT"/>
+          <define name="_POSIX_PTHREAD_SEMANTICS"/>
+          <define name="DMALLOC" if="jni.dmalloc"/>
+        </defineset>
+      </compiler>
+
+      <linker name="gcc" if="solaris">
+        <!-- required for modern gcc to avoid libgcc_s.so dependency -->
+        <!-- this arg is ignored by older gcc -->
+        <linkerarg value="-static-libgcc"/>
+        <linkerarg value="-m64" if="jni.arch64"/>
+
+        <libset if="jni.libset.libs"
+                dir="${jni.libset.dir}"
+                libs="${jni.libset.libs}"/>
+        <libset if="jni.dmalloc"
+                dir="${jni.dmalloc}/lib"
+                libs="dmallocth"/>
+      </linker>
+
+      <!-- Linux -->
+      <compiler name="gcc" debug="${jni.debug}" if="linux">
+        <compilerarg value="-O2" if="jni.optim"/>
+        <compilerarg value="-g" if="jni.debug"/>
+        <compilerarg value="-Wall"/>
+        <compilerarg value="-Werror" if="jni.werror"/>
+        <compilerarg value="${jni.gccm}" if="jni.gccm"/>
+        <defineset>
+          <define name="${jni.define.name}_LINUX"/>
+          <define name="_REENTRANT"/>
+          <define name="DMALLOC" if="jni.dmalloc"/>
+        </defineset>
+      </compiler>
+
+      <linker name="gcc" if="linux">
+        <libset if="jni.libset.libs"
+                dir="${jni.libset.dir}"
+                libs="${jni.libset.libs}"/>
+        <libset if="jni.dmalloc"
+                dir="${jni.dmalloc}/lib"
+                libs="dmallocth"/>
+        <linkerarg value="${jni.gccm}" if="jni.gccm"/>
+      </linker>
+
+      <!-- Darwin -->
+      <compiler name="gcc" if="darwin">
+        <compilerarg value="-Wall"/>
+        <compilerarg value="-Werror" if="jni.werror"/>
+        <compilerarg value="-m64" if="jni.arch64"/>
+        <compilerarg value="-O2" if="jni.optim"/>
+        <compilerarg value="-g" if="jni.debug"/>
+        <compilerarg value="-isysroot"/>
+        <compilerarg value="${uni.sdk}"/>
+        <compilerarg value="-arch"/>
+        <compilerarg value="${uni.arch}"/>
+        <compilerarg value="-mmacosx-version-min=${osx.min}"/>
+
+        <sysincludepath location="/Developer/Headers/FlatCarbon"/>
+
+        <defineset>
+          <define name="DARWIN"/>
+          <define name="DARWIN_HAS_LIBPROC_H" if="libproc.h"/>
+        </defineset>
+      </compiler>
+
+      <linker name="gcc" if="darwin">
+        <linkerarg value="-m64" if="jni.arch64"/>
+        <linkerarg value="-Wl,-syslibroot,${uni.sdk}"/>
+        <linkerarg value="-arch"/>
+        <linkerarg value="${uni.arch}"/>
+        <linkerarg value="-mmacosx-version-min=${osx.min}"/>
+
+        <!-- for Gestalt() -->
+        <linkerarg value="-framework"/>
+        <linkerarg value="CoreServices"/>
+
+        <linkerarg value="-sectcreate,__TEXT,__info_plist,${jni.info.plist}" if="jni.info.plist"/>
+
+        <libset if="jni.libset.libs"
+                dir="${jni.libset.dir}"
+                libs="${jni.libset.libs}"/>
+
+        <syslibset libs="IOKit"/>
+      </linker>
+
+      <!-- Freebsd -->
+      <compiler name="gcc" if="freebsd">
+        <compilerarg value="-O2" if="jni.optim"/>
+        <compilerarg value="-g" if="jni.debug"/>
+        <compilerarg value="-Wall"/>
+        <compilerarg value="-Werror" if="jni.werror"/>
+        <defineset>
+          <define name="${jni.define.name}_FREEBSD"/>
+        </defineset>
+      </compiler>
+
+      <linker name="gcc" if="freebsd">
+        <libset if="jni.libset.libs"
+                dir="${jni.libset.dir}"
+                libs="${jni.libset.libs}"/>
+        <syslibset libs="kvm"/>
+      </linker>
+
+      <!-- OpenBSD -->
+      <compiler name="gcc" if="openbsd">
+        <compilerarg value="-O2" if="jni.optim"/>
+        <compilerarg value="-g" if="jni.debug"/>
+        <compilerarg value="-Wall"/>
+        <!-- <compilerarg value="-Werror" if="jni.werror"/> -->
+        <defineset>
+          <define name="${jni.define.name}_OPENBSD"/>
+        </defineset>
+      </compiler>
+
+      <linker name="gcc" if="openbsd">
+        <libset if="jni.libset.libs"
+                dir="${jni.libset.dir}"
+                libs="${jni.libset.libs}"/>
+        <syslibset libs="kvm"/>
+      </linker>
+
+      <!-- NetBSD -->
+      <compiler name="gcc" if="netbsd">
+        <compilerarg value="-O2" if="jni.optim"/>
+        <compilerarg value="-g" if="jni.debug"/>
+        <compilerarg value="-Wall"/>
+        <!-- <compilerarg value="-Werror" if="jni.werror"/> -->
+        <defineset>
+          <define name="${jni.define.name}_NETBSD"/>
+        </defineset>
+      </compiler>
+
+      <linker name="gcc" if="netbsd">
+        <libset if="jni.libset.libs"
+                dir="${jni.libset.dir}"
+                libs="${jni.libset.libs}"/>
+        <syslibset libs="kvm"/>
+      </linker>
+
+      <!-- AIX -->
+      <compiler name="xlc_r" if="aix">
+        <compilerarg value="-q64" if="jni.arch64"/>
+        <defineset>
+          <define name="${jni.define.name}_AIX"/>
+          <define name="_ALL_SOURCE"/>
+          <define name="_ANSI_C_SOURCE"/>
+          <define name="_POSIX_SOURCE"/>
+        </defineset>
+      </compiler>
+
+      <linker name="xlc_r" if="aix">
+        <linkerarg value="-b64" if="jni.arch64"/>
+        <libset if="jni.libset.libs"
+                dir="${jni.libset.dir}"
+                libs="${jni.libset.libs}"/>
+      </linker>
+
+      <!-- WIN32 -->
+      <linker name="msvc" debug="${jni.debug}" if="win32">
+        <libset if="jni.libset.libs"
+                dir="${jni.libset.dir}"
+                libs="${jni.libset.libs}"/>
+
+        <linkerarg value="/MACHINE:X64" if="jni.arch64"/>
+        <linkerarg value="${jni.info.res}" if="jni.info.res"/>
+        <syslibset libs="kernel32,user32,advapi32,ws2_32,netapi32,shell32,pdh,version"/>
+      </linker>
+
+      <compiler name="msvc" debug="${jni.debug}" if="win32">
+        <defineset>
+          <define name="WIN32"/>
+          <define name="_CRT_SECURE_NO_DEPRECATE"/>
+          <!-- XXX 2008 MSC express/SDK does not include atl headers -->
+          <define name="SIGAR_NO_ATL" if="jni.noatl"/>
+        </defineset>
+      </compiler>
+
+      <!-- OSF1 -->
+      <compiler name="gcc" if="osf1">
+        <compilerarg value="-Wall"/>
+        <compilerarg value="-pthread"/>
+        <defineset>
+          <define name="${jni.define.name}_OSF1"/>
+        </defineset>
+      </compiler>
+
+      <linker name="gcc" if="osf1">
+        <libset if="jni.libset.libs"
+                dir="${jni.libset.dir}"
+                libs="${jni.libset.libs}"/>
+
+        <syslibset libs="mach"/>
+      </linker>
+
+      <!-- C sources -->
+      <fileset dir="${jni.source.dir}">
+         <patternset refid="jni.source.files"/>
+      </fileset>
+
+      <includepath>
+        <path refid="jni.include.dirs"/>
+      </includepath>
+
+      <sysincludepath location="${jni.javahome}/include"/>
+      <sysincludepath location="${jni.javahome}/include/${jni.jdk.os}"/>
+      <sysincludepath location="${jni.dmalloc}/include"
+                      if="jni.dmalloc"/>
+    </cc>
+  </target>
+
+  <target name="jni-clean">
+    <delete dir="${jni.objdir}"/>
+  </target>
+

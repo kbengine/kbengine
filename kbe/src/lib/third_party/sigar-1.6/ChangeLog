@@ -1,0 +1,1062 @@
+2010-04-28  Doug MacEachern  <dougm@hyperic.com>
+
+	* 1.6.4 release
+
+	* GPL v2 license -> Apache 2 license
+
+	* (SIGAR-188) implement mem actual free/used on Windows
+
+2010-04-27  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-215) use swapctl SC_LIST for Solaris swap_get impl
+
+2010-04-15  Doug MacEachern  <dougm@hyperic.com>
+
+	* osf1 no longer supported
+
+	* netware no longer supported
+
+	* (SIGAR-201) JNIEnv->ExceptionCheck to avoid possible SEGV on OutOfMemoryError
+
+2010-04-14  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-192) avoid possible stack corruption in Windows proc_env impl
+
+	* (SIGAR-213) check ENV.ANT_HOME/lib for junit in Main-Class
+
+2010-04-09  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-214) properly adjust jni.javahome when JAVA_HOME is not set
+
+2010-04-08  Doug MacEachern  <dougm@hyperic.com>
+
+	* cpptasks patches moved to http://github.com/dougm/ant-contrib-cpptasks
+
+	* mv tools/PerfBrowser http://github.com/dougm/csharp-perfbrowser
+
+	* mv exp/ http://github.com/dougm/sigar-stuff
+
+2010-04-07  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-213) remove junit.jar from distribution
+
+	* (SIGAR-188) implement mem actual free/used on HPUX
+
+	* (SIGAR-188) implement mem actual free/used on AIX
+
+2010-04-05  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-188) implement mem actual free/used on OpenBSD and NetBSD
+
+	* (SIGAR-188) implement mem actual free/used on Solaris
+
+2010-04-02  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-212) pass LANG_ENGLISH to FormatMessage in Windows sigar_strerror impl
+
+2010-04-01  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-188) implement mem actual free/used on Windows
+
+2010-04-01  Trevor Pounds  <trevor.pounds@gmail.com>
+
+	* (SIGAR-202) Change CreateFile() access flags to prevent potential inode calculation
+	errors on Windows when tailing a file.
+
+2010-04-01  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-207) append instance index in Pdh.getInstances()
+
+2010-03-31  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-207) Add Pdh.getCounterType method
+
+	* (SIGAR-207) Add Pdh.getDescription method
+
+	* (SIGAR-210) recognize cifs as a network file system
+
+2010-03-30  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-211) HPUX file_system_list needs to read /etc/mnttab instead of /etc/fstab
+
+2010-02-09  Doug MacEachern  <dougm@hyperic.com>
+
+	* add -i (inode format) support to df command
+
+2010-02-05  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-205) Vista and higher changed wireless card type to IF_TYPE_IEEE80211
+
+2010-01-18  Doug MacEachern  <dougm@hyperic.com>
+
+	* rid dup in solaris route_list impl
+
+2010-01-17  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-181) fill-in sigar_net_route_t.ifname on HPUX
+
+2010-01-12  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-196) use pst_processor.psp_cpu_frequency to calculate cpu_info.mhz on HP-UX 11.31+
+
+2010-01-04  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-194) sigar_file_system_t.dev_name on Windows should be the network path for remote drives
+
+2009-12-23  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-193) Migrate from mach/shared_memory_server.h to mach/shared_region.h on Darwin
+
+2009-11-09  Doug MacEachern  <dougm@hyperic.com>
+
+	* only display event code in toString as the Event Viewer does
+
+	* 'N/A' for null user in EventLogRecord.toString
+
+	* include the same fields as Event Viewer in EventLogRecord.toString
+
+	* (SIGAR-191) fix EventLogRecord.computerName
+
+	* (SIGAR-190) add category to EventLogRecord
+
+2009-11-05  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-189) ignore CP_WAIT time on HPUX
+
+2009-11-03  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-187) implement proc_exe on AIX
+
+	* (SIGAR-188) implement mem actual free/used on MacOSX
+
+2009-11-02  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-188) implement mem actual free/used on FreeBSD
+
+2009-10-23  Doug MacEachern  <dougm@hyperic.com>
+
+	* Pdh test adjustments for windows 2000
+
+	* (SIGAR-185) fix RegistryKey open on windows 2000
+
+	* (SIGAR-186) fix Win32.getFileVersion on windows 2000
+
+2009-09-30  Doug MacEachern  <dougm@hyperic.com>
+
+	* hpux pa 64-bit support
+
+2009-09-17  Doug MacEachern  <dougm@hyperic.com>
+
+	* 64-bit MacOSX 10.6 sdk does not support ppc64, switch from universal build to i386 only
+
+2009-09-15  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-181) net_route.ifname impl for Win32
+
+	* (SIGAR-181) net_route.ifname impl for MacOSX and *BSD
+
+	* (SIGAR-182) use mib2_ip_t.ipRouteEntrySize to determine mib2_ipRouteEntry_t size
+
+2009-09-08  Doug MacEachern  <dougm@hyperic.com>
+
+	* fix MacOSX10.6.sdk build issues
+
+2009-09-01  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-168) always fallback to wmi when peb fails for proc_args
+
+2009-08-30  Doug MacEachern  <dougm@hyperic.com>
+
+	* 6.1 == Windows 7
+
+	* 10.6 == Snow Leopard
+
+2009-08-23  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-179) Increase buffer size in cpu_list query from 16 to 128
+
+2009-08-11  Jan Kneschke  <jan@kneschke.de>
+
+	* (SIGAR-137) sdl_data isn't 0-terminated
+
+2009-08-05  Doug MacEachern  <dougm@hyperic.com>
+
+	* try wmi if peb fails for proc_exe
+
+	* add wmi proc_args wrapper
+
+2009-07-31  Doug MacEachern  <dougm@hyperic.com>
+
+	* only exclude nfs/rpcv2.h on FreeBSD 8+
+
+2009-07-30  Doug MacEachern  <dougm@hyperic.com>
+
+	* net_route_list bandaid for FreeBSD 8.0
+
+	* sigar_proc_port_get does not compile on FreeBSD 8.0
+
+	* only need nfs/rpcv2.h on darwin
+
+2009-07-18  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-164) return ENXIO instead of ENOENT in disk_usage win32 impl
+
+	* (SIGAR-164) return ENXIO instead of ENOENT in disk_usage linux impl
+
+	* (SIGAR-164) return ENXIO instead of ENOENT in disk_usage aix impl
+
+	* (SIGAR-164) return ENXIO instead of ESRCH in disk_usage darwin impl
+
+2009-07-17  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-163) Recognize cvfs (StorNext) as local filesystem type
+
+2009-07-16  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-162) plug possible memory leak in sigar_iodev_get util
+
+2009-07-14  Doug MacEachern  <dougm@hyperic.com>
+
+	* remove pdh.dll (only used on NT 4.0)
+
+2009-07-13  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-155) Plug memory leak sigar_proc_exe_get Darwin impl
+
+	* bump version to 1.6.4
+
+2008-07-13  Doug MacEachern  <dougm@hyperic.com>
+
+	* 1.6.3 release
+
+2009-07-08  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-130) Use pstat(PSTAT_GETCOMMANDLINE,...) on HP-UX < 11iv2
+
+	* (SIGAR-130) Use pstat_getcommandline on HP-UX 11iv2+
+
+	* (SIGAR-131) switch to pst_fileinfo2 on all HPUX flavors
+
+2009-07-08  Jon Travis  <jtravis@p00p.org>
+
+	* (SIGAR-150) Wrapper class to synchronize Sigar method invocation
+
+2009-07-07  Doug MacEachern  <dougm@hyperic.com>
+
+	* add getNetServicesName to SigarProxy interface
+
+2009-07-02  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-145) default to 'Irix mode' for proc_cpu.percent
+
+	* (SIGAR-144) Solaris net_interface_stat should use 64-bit kstats
+
+2009-07-01  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-148) statfs usage compiled with LFS flags
+
+2009-06-30  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-152) Add support for 31-bit s390 builds
+
+2009-06-17  Doug MacEachern  <dougm@hyperic.com>
+
+	* darwin sigar_dlinfo_modules impl
+
+2009-06-06  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-151) Add Modules support to PTQL
+
+2009-06-01  Kay Röpke  <kroepke@classdump.local>
+
+	* (SIGAR-149) fix Darwin side of SIGAR-47: integer multlipcation overflow on
+	32bit builds with more than 4GB available memory
+
+2009-05-24  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-142) loosen net_interface_list filters on MacOSX
+
+2009-05-15  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-150) make SigarProxyCached.invoke synchronized
+
+2009-05-13  Doug MacEachern  <dougm@hyperic.com>
+
+	* fix so SigarPermissionDeniedException is throw on open /dev/kmem EACCES
+
+	* add 64-bit compile/link flags for AIX
+
+	* require libperfstat on aix
+
+2009-04-25  Doug MacEachern  <dougm@hyperic.com>
+
+	* getrusage on NetBSD may not return monotonically increasing
+	values for CPU time.
+
+	* (SIGAR-39) Use kern.cp_times in cpu_list on FreeBSD 7.x+
+
+2009-03-27  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-141) sigar.jar location is not required to find native library
+
+2009-03-25  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-140) interface aliases are valid in sigar_net_interface_config_primary_get
+
+2008-02-13  Doug MacEachern  <dougm@hyperic.com>
+
+	* 1.6.2 release
+
+2009-02-12  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-134) use UNICODE in EventLog wrapper
+
+2009-02-10  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-73) check for 'ocfs' in addition to 'ocfs2'
+
+2009-02-08  Doug MacEachern  <dougm@hyperic.com>
+
+	* (SIGAR-138) Recognize zfs as local filesystem type
+
+2009-02-06  Doug MacEachern  <dougm@hyperic.com>
+
+	* fix osx version on 64-bit platforms
+
+	* [SIGAR-133] use InputStream.skip (bytes) instead of Reader.skip (chars) in onChange
+
+	* [SIGAR-132] Fix possible memory leak in sigar_rpc_ping
+
+	* [SIGAR-129] fix possible integer overflow in time_now_millis
+
+	* [SIGAR-129] add another sanity check
+
+	* [SIGAR-129] prevent possible wrapping
+
+	* [SIGAR-129] prevent possible integer overflow
+
+	* [SIGAR-127] use KERN_ARGMAX for KERN_PROCARGS2 buffer size
+
+	* [SIGAR-126] /dev/kmem not usable in aix 6
+
+	* rid "warning: cast from pointer to integer of different size" on 64-bit builds
+
+	* [SIGAR-125] bring back /private/var/vm swap impl for osx 10.3
+
+	* [SIGAR-123] do not include global shared text+data region size
+
+	* [SIGAR-122] ARG_MAX undefined on glibc 2.8
+
+2008-09-13  Doug MacEachern  <dougm@hyperic.com>
+
+	* include ptql and log in dist headers
+
+	* dont include ant and mx4j jars in dist
+
+	* add cpu_perc typemap to bindings/perl
+
+2008-09-11  Doug MacEachern  <dougm@hyperic.com>
+
+	* [SIGAR-120] Support WoW registry reflection
+
+2008-09-08  Doug MacEachern  <dougm@hyperic.com>
+
+	* [SIGAR-119] Use 64-bit performance counter for uptime
+
+2008-09-06  Doug MacEachern  <dougm@hyperic.com>
+
+        * 1.6 released, change summary:
+
+        * OpenBSD support (binaries not included)
+
+        * NetBSD support (binaries not included)
+
+        * CPU list functions now return entry per-core rather than
+          per-socket rollup
+
+        * Added CPU irq, softirq and stolen metrics
+
+        * PTQL enhancements for Windows Services
+
+        * Added interface to Windows GetFileVersionInfo function
+
+        * Bug fixes: http://jira.hyperic.com/secure/IssueNavigator.jspa?requestId=10710
+
+2008-02-01  Doug MacEachern  <dougm@hyperic.com>
+
+        * 1.5 released, change summary:
+
+        * PTQL impl ported from Java to C
+
+        * Added api for TCP-MIB metrics
+
+        * Added api for NFS client+server metrics
+
+        * Started bindings for Ruby, Python and PHP
+
+        * Bug fixes: http://jira.hyperic.com/secure/IssueNavigator.jspa?requestId=10500
+        
+2007-04-14  Doug MacEachern  <dougm@hyperic.com>
+
+        * 1.4 released
+
+2007-04-06  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-47] Fix sigar_mem_get on 64-bit FreeBSD
+
+2007-04-05  Doug MacEachern  <dougm@hyperic.com>
+
+        * Add net_listen_address function to lookup bind address of a listen socket
+
+        * Add net_stat_port function to provide metrics on specific port+address
+
+        * [SIGAR-46] Fix cpu_info.{mhz,cache_size} fields in UML vms
+
+2007-03-29  Doug MacEachern  <dougm@hyperic.com>
+
+        *  Fix cpu ticks to msec on linux/ia64
+           Submitted by: Jan Kneschke <jan.kneschke@mysql.com>
+
+2007-03-24  Doug MacEachern  <dougm@hyperic.com>
+
+        * Implement proc_state_t.threads on OS X
+
+2007-03-11  Doug MacEachern  <dougm@hyperic.com>
+
+        * Implement native sigar_proc_cpu_get function
+
+2007-03-07  Doug MacEachern  <dougm@hyperic.com>
+
+        * Plug various handle+mem leaks on win32
+          Submitted by: Jan Kneschke <jan.kneschke@mysql.com>
+
+2007-03-04  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-29] Add pdh language translation support
+
+        * Add RegistryKey.getMultiStringValue()
+
+        * Add win32.LocaleInfo class
+
+2007-02-28  Doug MacEachern  <dougm@hyperic.com>
+
+        * Add signal name lookup support
+
+2007-02-24  Doug MacEachern  <dougm@hyperic.com>
+
+        * Make Java objects returned by Sigar class Serializable
+
+2007-02-21  Doug MacEachern  <dougm@hyperic.com>
+
+        * Perl binding updates
+          Submitted by: Nicolas Laurent
+
+        * [SIGAR-45] Fix disk reads/writes for LVM managed volumes
+
+2007-02-15  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-42] Honor Solaris mnttab ignore flag in file_system_list
+
+2007-02-12  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-17] Fix possible bad cpu list number on Solaris
+
+2007-02-07  Doug MacEachern  <dougm@hyperic.com>
+
+        * Make sure solaris has _POSIX_PTHREAD_SEMANTICS defined
+          Submitted by: Jan Kneschke <jan.kneschke@mysql.com>
+
+2007-02-06  Doug MacEachern  <dougm@hyperic.com>
+
+        * Fix possible overflow in FreeBSD cpu_get impl
+          Submitted by: Jan Kneschke <jan.kneschke@mysql.com>
+
+2007-02-02  Doug MacEachern  <dougm@hyperic.net>
+
+        * [SIGAR-40] Change win32 file_system_list to ignore removable disks
+          such as floppy, usb, etc.
+        
+2007-01-29  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-38] Change win32 swap_get to use GlobalMemoryStatusEx
+
+2007-01-24  Doug MacEachern  <dougm@hyperic.com>
+
+        * Add proper thread_cpu impl for OS X
+
+2007-01-23  Doug MacEachern  <dougm@hyperic.com>
+
+        * Fix proc_mem.size on HP-UX
+          Submitted by: Ragnar <rr@mima.x.se>
+
+2007-01-22  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-32] Fix FileTail on Windows
+
+2007-01-19  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-31] Improve truncation detection in FileTail
+
+2007-01-18  Doug MacEachern  <dougm@hyperic.com>
+
+        * Add EventLog.getLogNames() method
+
+2007-01-17  Doug MacEachern  <dougm@hyperic.com>
+
+        * Various fixes for sparc64
+
+2007-01-09  Doug MacEachern  <dougm@hyperic.com>
+
+        * Add XenSource vendor support to sys_info api
+
+2006-12-10  Doug MacEachern  <dougm@hyperic.com>
+
+        * 1.3 released
+
+2006-12-04  Doug MacEachern  <dougm@hyperic.com>
+
+        * Added Java wrapper for VMware vmcontrol API
+
+        * [SIGAR-26] Change Pdh.getFormattedValue() to collect 2 counters if needed
+
+2006-12-03  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-19] Change cpu time units to milliseconds
+
+2006-11-05  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-23] Overhaul windows net_interface_* implementations to
+        ensure data is reported for the correct interface
+
+2006-11-03  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-24] Any network adapter with a description of
+        "Microsoft Loopback Adapter" is now flagged LOOPBACK
+
+2006-10-27  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-22] Prevent RuntimeException in FileTail impl from
+        killing the FileWatcherThread 
+
+2006-10-24  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-20] Fix windows sigar_net_inteface_list to handle > 100
+        interfaces (internal buffer size was fixed at 8k)
+
+2006-10-19  Doug MacEachern  <dougm@hyperic.com>
+
+        * Compile on Windows AMD x64
+          Submitted by: Jan Kneschke <jan.kneschke@mysql.com>
+
+        * Changes to compile with modern visual studios on Windows
+        
+2006-10-10  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-18] Change Linux impl to use strtoull() where appropriate
+
+2006-09-30  Doug MacEachern  <dougm@hyperic.com>
+
+        * OperatingSystem.java has been ported to the C sigar_sys_info API
+
+2006-09-21  Doug MacEachern  <dougm@hyperic.net>
+
+        * [SIGAR-15] Fix sigar_fqdn_get so 'hostname' won't be resolved to 'localhost.localdomain'
+
+2006-09-20  Doug MacEachern  <dougm@hyperic.net>
+
+        * Use kstat.cpu_info.brand to determine sigar_cpu_info_t.vendor on Solaris 10+
+
+        * Fix Linux cpu_info /proc/cpuinfo parsing on ia64
+
+2006-09-08  Doug MacEachern  <dougm@hyperic.net>
+
+        * [SIGAR-13] Use EnumProcesses for sigar_proc_list_get on Win32
+
+2006-09-07  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-14] Fix sigar_cpu_t.total on Linux and Solaris with multi-core CPUs
+
+2006-08-25  Doug MacEachern  <dougm@hyperic.com>
+
+        * Implement proc_env for Darwin
+
+2006-08-24  Doug MacEachern  <dougm@hyperic.com>
+
+        * Sigar.getProc*(String) methods now convert PTQL queries
+
+2006-08-04  Doug MacEachern  <dougm@hyperic.com>
+
+        * Port hpux impl to ia64 arch
+
+2006-07-24  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-11] Initialize log fields in solaris_sigar.c:sigar_os_open
+
+2006-07-15  Doug MacEachern  <dougm@hyperic.com>
+
+        * 1.2 released
+
+        * [SIGAR-10] Fix sigar_net_info_get /etc/resolv.conf parsing
+
+2006-07-13  Doug MacEachern  <dougm@hyperic.com>
+
+        * Validate that sigar.jar is binary compatible with the native library
+
+2006-07-11  Doug MacEachern  <dougm@hyperic.com>
+
+        * Port linux impl to ppc64 arch
+
+        * [SIGAR-9] Fix possible overflow in solaris sigar_mem_get impl
+
+2006-07-10  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-4] Implement native sigar_net_stat_get and use w/ Java
+
+2006-07-07  Doug MacEachern  <dougm@hyperic.net>
+
+        * [SIGAR-8] Change win32 mem_get to use GlobalMemoryStatusEx
+
+2006-07-06  Doug MacEachern  <dougm@hyperic.net>
+
+        * Change AIX impl to use libperfstat where available for net_interface_stat
+
+        * Change sigar_net_route_t, net_interface_config_t and
+          sigar_net_connection_t to use sigar_net_address_t 
+
+2006-06-30  Doug MacEachern  <dougm@hyperic.com>
+
+        * Remove mem.shared, gone in Linux 2.6 and which only left Solaris and Win32
+
+2006-06-27  Doug MacEachern  <dougm@hyperic.com>
+
+        * Created SIGAR_1_1 branch, trunk is now 1.2
+
+        * Java net.hyperic package renamed to org.hyperic
+
+2006-06-21  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-7] Convert sectors to bytes in Linux file system
+          read/write bytes metrics
+
+2006-06-09  Doug MacEachern  <dougm@hyperic.com>
+
+        * [SIGAR-6] Use rounding for mem.ram on Linux rather than
+          /proc/mtrr if write-back registers don't add up to a reasonable number
+
+        * [SIGAR-5] Fix netinfo default gateway where the first gateway in the routing table
+          had been selected without checking for the default destination == 0.0.0.0
+
+2006-05-30  Doug MacEachern  <dougm@hyperic.com>
+
+        * Prevent possible integer overflow in filesystem_usage
+
+2006-05-24  Doug MacEachern  <dougm@hyperic.com>
+
+        * ProcUtil.getJavaMainClass improvements
+
+2006-05-04  Doug MacEachern  <dougm@hyperic.net>
+
+        * Fold UltraSPARC-T1 virtual cpus into physical cpus
+        
+        * Fix net_connection_list on linux to handle invalid /proc/net/tcp entries
+
+        * Switch to universal binary for osx
+
+2006-04-03  Doug MacEachern  <dougm@hyperic.net>
+
+        * Fix sigar_proc_args_get on linux and osx when argv has an empty "" arg
+
+2006-03-31  Doug MacEachern  <dougm@hyperic.net>
+
+        * Added binary for FreeBSD 6.x
+
+2006-03-16  Doug MacEachern  <dougm@hyperic.net>
+
+        * Remove Darwin proc_mem.shared impl.  More trouble that it is
+          worth and the code did not compile on x86.
+
+2006-03-14  Doug MacEachern  <dougm@hyperic.net>
+
+        * Enhance native library finder to work with -jar foo.jar and
+          within an IDE such as Eclipse
+
+2006-03-08  Doug MacEachern  <dougm@hyperic.net>
+
+        * 1.1.29 released
+
+2006-03-04  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add net_interface_config.description
+
+        * Use IFMIB (GetIfEntry) rather netbios to get hwaddr on Win32
+
+        * Add net_interface_config.mtu for Win32
+
+2006-03-03  Doug MacEachern  <dougm@hyperic.net>
+
+        * Removed proc_mem.vsize (same as proc_mem.size)
+
+        * Removed proc_mem.rss (same as proc_mem.resident)
+
+2006-03-01  Doug MacEachern  <dougm@hyperic.net>
+
+        * 1.1.28 released
+
+2006-02-28  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add Sigar.getNetListenAddress method
+        
+        * Add Sigar.getNetInterfaceConfig() method
+
+2006-02-26  Doug MacEachern <dougm@hyperic.net>
+
+        * Replace sigar_nfs_ping with generic sigar_rpc_ping
+
+2006-02-23  Doug MacEachern  <dougm@hyperic.net>
+
+        * Use asm/cpuid instead of /proc/cpuinfo to detect
+          HyperThreading on Linux 
+
+        * Use gethostbyname_r in sigar_fqdn_get
+
+2006-01-10  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add ProcUtil class
+        
+        * Pdh: if counter name does not exist, try appending "/sec"
+
+        * Add Win32.findExecutable method
+
+        * Add win32.Service.{pause,resume} methods
+
+2006-01-04  Doug MacEachern  <dougm@hyperic.net>
+
+        * Fix cpu_list on Darwin
+
+        * Add FreeBSD 4.x support
+
+2005-12-19  Doug MacEachern  <dougm@hyperic.net>
+
+        * 1.1.27 released
+
+        * Add net_interface_config.mtu for Solaris, HPUX, AIX
+        
+        * Add version api for native binaries
+
+        * Add dir_usage api, recursive version of dir_stat api
+
+        * Add dir_stat.disk_usage field
+
+2005-12-12  Doug MacEachern  <dougm@hyperic.net>
+
+        * Fix internal hash table used for caching to properly rehash
+        
+        * Fix overzealous cache in net_interface_stat on Darwin
+
+        * Solaris fixes to keep kstat chain up-to-date
+
+        * Fallback to /usr/ucb/ps on solaris for proc_args if permissions
+          deny reading /proc/nnnnn/as
+
+        * Add option to use sudo+cat with FileTail
+        
+2005-12-05  Doug MacEachern  <dougm@hyperic.net>
+
+        * 1.1.26 released
+
+        * Filter out network interface types other than loopback and
+          ethernet on Darwin and FreeBSD
+
+        * Filter out auto-mounted filesystems on Darwin
+        
+2005-12-01  Doug MacEachern  <dougm@hyperic.net>
+
+        * Fix net_route_list for Solaris 10
+
+        * Add sigar_cpu_info_t.{mhz,cache_size,model} for Darwin
+
+        * Fix OperatingSystem.getDescription() for Darwin
+        
+2005-11-28  Doug MacEachern  <dougm@hyperic.net>
+
+        * 1.1.25 released
+
+        * Fix sigar_file_system_usage_t.free_files for Solaris and Darwin
+
+2005-11-23  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add sigar_proc_mem page fault metrics for AIX, Darwin, HPUX,
+          Linux, Solaris and Win32
+ 
+2005-11-22  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add sigar_proc_state.processor for AIX, HPUX, Linux and
+          Solaris
+
+        * Add sigar_proc_state.threads for AIX, HPUX, Linux (2.6+),
+          Solaris and Win32
+
+2005-11-18  Doug MacEachern  <dougm@hyperic.net>
+
+        * net_interface related changes to support VMware vmnic
+        
+        * Add sigar_net_interface_config.type field
+
+2005-11-11  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add dmalloc support for linux and solaris
+          (enable w/ -Djni.dmalloc=true)
+
+2005-11-08  Doug MacEachern  <dougm@hyperic.net>
+
+        * 1.1.24 released
+
+        * fix possible segv in sigar_fqdn_get
+
+        * fix possible fault in sigar_filesystem_usage_get on win32 if
+          LogicalDisk perf counters are uninstalled
+
+2005-11-01  Doug MacEachern  <dougm@hyperic.net>
+
+        * proc_mem.resident for all platforms
+
+2005-10-10  Doug MacEachern  <dougm@hyperic.net>
+
+        * 1.1.23 released
+
+2005-10-08  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add support for solaris 'bge' network interface metrics
+
+        * Add win32 sigar_who_list impl
+
+        * sigar_proc_args fixes for linux and solaris
+
+        * java -Dsigar.nativeLogging=true enables native logging
+
+2005-09-24  Doug MacEachern  <dougm@hyperic.net>
+
+        * 1.1.22 released
+
+2005-07-18  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add net_info function
+
+        * Add various helpers to OperatingSystem class
+
+2005-07-07  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add resource_limit function
+        
+        * Fix sigar_file_attrs_get times on win32
+
+2005-06-25  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add win32 ServiceConfig class and Service.getConfig method
+
+2005-06-16  Doug MacEachern  <dougm@hyperic.net>
+
+        *  1.1.21 released
+
+        * Implement proc_mem for Darwin
+
+        * Include darwin binary (OSX Tiger)
+
+2005-06-14  Doug MacEachern  <dougm@hyperic.net>
+
+        * Pdh.getSingleValue renamed to Pdh.getRawValue
+
+        * Added Pdh.getFormattedValue method
+
+2005-05-25  Doug MacEachern  <dougm@hyperic.net>
+
+        * Implement sigar_proc_args for Darwin
+
+2005-05-11  Doug MacEachern  <dougm@hyperic.net>
+
+        *  1.1.20 released
+	
+        * Use psapi instead of CreateTool32Snapshot in win32 sigar_proc_modules
+        It is possible for the latter to hang on win2k, the former also
+        works on NT.
+        
+        * Implement sigar_net_connection_list for AIX and HPUX
+        
+        * Convert Cpu times to seconds
+
+2005-05-10  Doug MacEachern  <dougm@hyperic.net>
+
+        *  1.1.19 released
+
+2005-04-27  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add disk i/o metrics for Windows 2000
+
+        * Add file_system_usage_t.used field
+        
+2005-04-06  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add new disk i/o metrics (disk_write_bytes, disk_read_bytes,
+        disk_queue) for Win32, Linux, Solaris, AIX and HPUX.
+
+2005-03-19  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add udp support to sigar_proc_port_get win32 impl
+
+        * Implement sigar_proc_port_get for FreeBSD 5.x
+        
+2005-03-15  Doug MacEachern  <dougm@hyperic.net>
+
+        * Change Sigar.getMountedFileSystemUsage to throw
+        NfsUnreachableException if FileSystem is Nfs and nfs ping fails
+
+        * Implement sigar_net_connection for FreeBSD
+
+        * Implement sigar_proc_port_get for AIX
+
+2005-03-11  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add sigar.NetStat class
+
+        * Add sigar_net_connection_t.state field
+
+        * Add sigar_net_connection_t.{send,receive}_queue fields
+
+        * Implement sigar_net_connection for solaris
+        
+        * Netstat enhancements
+        
+2005-03-09  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add CpuTimer class, helper around ThreadCpu class
+
+2005-03-01  Doug MacEachern  <dougm@hyperic.net>
+
+        * 1.1.18 released
+
+        * fix bug in ptql args glob substring operators (Args.*.{sw,ew,ct})
+
+        * fix bug where Pentium III was reported as II
+        
+        * added OperatingSystem class to help determine linux
+        vendor/version info, etc.
+
+2005-02-24  Doug MacEachern  <dougm@hyperic.net>
+
+        * 1.1.17 released
+        
+        * Optimize aix disk i/o metric collection
+
+        * Add 'time' command to the shell
+
+2005-02-23  Doug MacEachern  <dougm@hyperic.net>
+
+        * 1.1.16 released
+        
+        * Add function to get data seen in the 'who' command
+
+2005-02-20  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add NfsFileSystem class w/ ping method
+
+2005-02-16  Doug MacEachern  <dougm@hyperic.net>
+
+        * Add FreeBSD support
+
+        * Add 64-bit linux support
+        
+2005-01-26  Doug MacEachern  <dougm@hyperic.net>
+
+        * 1.1.15 released
+        
+        * fix windows 2003 problem with metrics that use the perfdata
+        registry interface when pdh.dll functions are used by the same
+        process.
+
+        * Pdh.getSingleValue now uses PdhGetRawCounterValue underneath
+
+        * fix win32.Pdh.close method
+
+        * fix win32.Service.finalize method
+        
+2005-01-07  Doug MacEachern  <dougm@hyperic.net>
+
+        * implement thread-cpu metrics for aix
+
+2005-01-06  Doug MacEachern  <dougm@hyperic.net>
+
+        * 1.1.14 released
+        
+        * fix solaris bug w/ multiple network interfaces that have the
+        same name (hme0, hme1, etc)
+
+        * fix bug in MultiProc that sometimes resulted in negative numbers
+        
+        * add win32.Service.getServiceNames method
+        
+2004-12-11  Doug MacEachern  <dougm@hyperic.net>
+
+        * 1.1.13 released
+
+2004-12-06  Doug MacEachern  <dougm@hyperic.net>
+
+        * add iostat shell command
+        
+        * implement disk io metrics for aix, solaris and hpux
+
+2004-12-05  Doug MacEachern  <dougm@hyperic.net>
+
+        * added sigar_file_system_usage_t.disk_{reads,writes} fields.
+          implement only on linux and win32 for the moment.
+
+2004-11-29  Doug MacEachern  <dougm@hyperic.net>
+
+        * fix possible segfault in sigar_group_name_get if gid == -1
+
+2004-11-22  Doug MacEachern  <dougm@hyperic.net>
+
+        * fix bug in RegistryKey.openSubKey under WebSphere 4.0 jdk
+
+2004-11-21  Doug MacEachern  <dougm@hyperic.net>
+
+        * 1.1.11 released
+        
+        * merged hyperic win32bindings package into sigar.win32
+
+        * added sigar_cpu_t.wait metric
+
+2004-11-19  Doug MacEachern  <dougm@hyperic.net>
+
+        * added sigar_mem_t.actual_{used,free} fields.
+        on linux for example adjusts -/+ buffers/cache
+
+2004-11-17  Doug MacEachern  <dougm@hyperic.net>
+
+        * added sigar_thread_cpu_t, per-thread cpu metrics
+        
+2004-11-16  Doug MacEachern  <dougm@hyperic.net>
+
+        * 1.1.10 released
+        
+2004-11-12  John Sachs  <jsachs@hyperic.net>
+
+        * added sysinfo shell command
+
+2004-11-10  Doug MacEachern  <dougm@hyperic.net>
+
+        * added MultiProcCpu and MultiProcMem classes
+
+        * added mps (multi-process ps) shell command
+
+2004-11-02  Doug MacEachern  <dougm@hyperic.net>
+
+        * fix cpu idle metric for windows 2000 and NT versions
+        
+2004-10-05  Doug MacEachern  <dougm@hyperic.net>
+
+        * make sigar_swap and sigar_mem compatible with linux 2.6 kernel
+
+2004-09-07  Doug MacEachern  <dougm@hyperic.net>
+
+        * starting ChangeLog for version 1.1.10
+

@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<!-- NAnt build file: http://sourceforge.net/projects/nant/ -->
+
+<project name="SigarSharp" default="build">
+  <property name="debug" value="true"/>
+  <property name="build.dir" value="build"/>
+  <property name="sigarsharp" value="${build.dir}/SigarSharp.dll"/>
+
+  <target name="clean">
+    <delete dir="${build.dir}"/>
+  </target>
+
+  <target name="build-examples">
+    <nant buildfile="examples/default.build"
+          inheritall="true">
+      <properties>
+        <property name="build.dir" value="../build"/>
+        <property name="sigarsharp" value="../build/SigarSharp.dll"/>
+      </properties>
+    </nant>
+  </target>
+
+  <target name="run-examples">
+    <nant buildfile="examples/default.build"
+          inheritall="true" target="run">
+      <properties>
+        <property name="build.dir" value="../build"/>
+        <property name="sigarsharp" value="../build/SigarSharp.dll"/>
+      </properties>
+    </nant>
+  </target>
+  <target name="build" description="Build C# Sigar bindings">
+    <mkdir dir="${build.dir}"/>
+
+    <csc target="library" debug="${debug}"
+         output="${sigarsharp}">
+      <sources>
+        <include name="src/Sigar.cs"/>
+      </sources>
+    </csc>
+  </target>
+</project>

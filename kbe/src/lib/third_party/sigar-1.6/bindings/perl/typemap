@@ -1,0 +1,51 @@
+Sigar       T_PTROBJ
+sigar_pid_t T_UV
+sigar_uint64_t T_UV
+const char *	T_PV
+Sigar::NetAddress	T_NETADDR
+
+#generated list
+Sigar::Uptime T_PTROBJ
+Sigar::Mem T_PTROBJ
+Sigar::ProcCred T_PTROBJ
+Sigar::ProcFd T_PTROBJ
+Sigar::DirStat T_PTROBJ
+Sigar::ProcCredName T_PTROBJ
+Sigar::FileAttrs T_PTROBJ
+Sigar::Cpu T_PTROBJ
+Sigar::CpuInfo T_PTROBJ
+Sigar::CpuPerc T_PTROBJ
+Sigar::NetInterfaceConfig T_PTROBJ
+Sigar::Swap T_PTROBJ
+Sigar::ProcState T_PTROBJ
+Sigar::NetConnection T_PTROBJ
+Sigar::ProcExe T_PTROBJ
+Sigar::ProcTime T_PTROBJ
+Sigar::ProcCpu T_PTROBJ
+Sigar::ProcMem T_PTROBJ
+Sigar::FileSystem T_PTROBJ
+Sigar::FileSystemUsage T_PTROBJ
+Sigar::DiskUsage T_PTROBJ
+Sigar::ProcStat T_PTROBJ
+Sigar::NetRoute T_PTROBJ
+Sigar::NetInterfaceStat T_PTROBJ
+Sigar::Who T_PTROBJ
+Sigar::ThreadCpu T_PTROBJ
+Sigar::ResourceLimit T_PTROBJ
+Sigar::NetInfo T_PTROBJ
+Sigar::DirUsage T_PTROBJ
+Sigar::SysInfo T_PTROBJ
+Sigar::NetStat T_PTROBJ
+Sigar::Tcp T_PTROBJ
+Sigar::NfsClientV2 T_PTROBJ
+Sigar::NfsServerV2 T_PTROBJ
+Sigar::NfsClientV3 T_PTROBJ
+Sigar::NfsServerV3 T_PTROBJ
+
+OUTPUT
+T_NETADDR
+	{
+	    char addr_str[INET6_ADDRSTRLEN];
+	    sigar_net_address_to_string(NULL, &$var, addr_str);
+	    sv_setpv($arg, addr_str);
+	}
