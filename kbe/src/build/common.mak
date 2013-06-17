@@ -233,6 +233,13 @@ LDLIBS += -lg3dlite
 CPPFLAGS += -DUSE_G3DMATH
 endif
 
+SIGAR_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/sigar-1.6
+KBE_INCLUDES += -I$(SIGAR_DIR)/include
+ifeq ($(USE_SIGAR),1)
+LDLIBS += -lsigar
+CPPFLAGS += -DUSE_SIGAR
+endif
+
 LDLIBS += -ltinyxml
 
 ifneq (,$(findstring 64,$(KBE_CONFIG)))
