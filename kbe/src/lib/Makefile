@@ -38,6 +38,7 @@ all install clean full:
 	cd third_party/zip && $(MAKE) $@
 	cd third_party/g3dlite && $(MAKE) $@
 	cd third_party/tinyxml && $(MAKE) $@
+	cd third_party/sigar && $(MAKE) $@
 
 UNITTEST_LIBS = cstdkbe \
 				entitydef \

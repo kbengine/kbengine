@@ -233,8 +233,9 @@ LDLIBS += -lg3dlite
 CPPFLAGS += -DUSE_G3DMATH
 endif
 
-SIGAR_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/sigar-1.6
+SIGAR_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/sigar
 KBE_INCLUDES += -I$(SIGAR_DIR)/include
+KBE_INCLUDES += -I$(SIGAR_DIR)/src/os/linux
 ifeq ($(USE_SIGAR),1)
 LDLIBS += -lsigar
 CPPFLAGS += -DUSE_SIGAR
