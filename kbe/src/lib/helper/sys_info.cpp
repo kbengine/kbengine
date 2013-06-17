@@ -65,7 +65,7 @@ float SystemInfo::getCPUPer()
 	 
 		// std::cout << "CPU " << perc.combined * 100 << "%\n";
 		old = current;
-		Sleep(1000);
+		sleep(1000);
 	}
 	 
 	 
@@ -134,7 +134,7 @@ float SystemInfo::getCPUPerByPID(uint32 pid)
 		}
     }
 
-    Sleep(1000);
+   sleep(1000);
 
 	// for (size_t i = 0; i < proclist.number; i++)
     {
