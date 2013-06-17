@@ -235,10 +235,10 @@ endif
 
 SIGAR_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/sigar
 KBE_INCLUDES += -I$(SIGAR_DIR)/linux
-ifeq ($(USE_SIGAR),1)
+#ifeq ($(USE_SIGAR),1)
 LDLIBS += -lsigar
 CPPFLAGS += -DUSE_SIGAR
-endif
+#endif
 
 LDLIBS += -ltinyxml
 
