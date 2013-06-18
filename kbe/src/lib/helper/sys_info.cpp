@@ -30,9 +30,15 @@ extern "C"
 #include "sys_info.ipp"
 #endif
 
-
 namespace KBEngine
 {
+KBE_SINGLETON_INIT(SystemInfo);
+
+SystemInfo g_SystemInfo;
+
+sigar_t *_g_sigarproclist = NULL;
+sigar_proc_list_t _g_proclist;
+
 //-------------------------------------------------------------------------------------
 bool hasPID(int pid, sigar_proc_list_t* proclist)
 {
@@ -44,6 +50,138 @@ bool hasPID(int pid, sigar_proc_list_t* proclist)
 	}
 
 	return false;
+}
+
+//-------------------------------------------------------------------------------------
+SystemInfo::SystemInfo()
+{
+	_autocreate();
+}
+
+//-------------------------------------------------------------------------------------
+SystemInfo::~SystemInfo()
+{
+	clear();
+}
+
+//-------------------------------------------------------------------------------------
+void SystemInfo::clear()
+{
+	if(_g_sigarproclist)
+	{
+		sigar_proc_list_destroy(_g_sigarproclist, &_g_proclist);
+		sigar_close(_g_sigarproclist);
+		_g_sigarproclist = NULL;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+bool SystemInfo::_autocreate()
+{
+	if(_g_sigarproclist == NULL)
+	{
+		sigar_open(&_g_sigarproclist);
+
+		int status = sigar_proc_list_get(_g_sigarproclist, &_g_proclist);
+		if (status != SIGAR_OK) 
+		{
+			DEBUG_MSG(boost::format("SystemInfo::autocreate:error: %d (%s) sigar_proc_list_get\n") %
+					   status % sigar_strerror(_g_sigarproclist, status));
+
+			sigar_close(_g_sigarproclist);
+			_g_sigarproclist = NULL;
+			return false;
+		}
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool SystemInfo::hasProcess(uint32 pid)
+{
+    if(!_autocreate())
+		return false;
+
+	return hasPID(pid, &_g_proclist);
+}
+
+//-------------------------------------------------------------------------------------
+void SystemInfo::update()
+{
+    if(!_autocreate())
+		return;
+}
+
+//-------------------------------------------------------------------------------------
+uint32 SystemInfo::countCPU()
+{
+	static uint32 count = 0;
+
+	if(count == 0)
+	{
+		int status = SIGAR_OK;
+		sigar_t *sigarcpulist;
+		sigar_cpu_list_t cpulist;
+		sigar_open(&sigarcpulist);
+		status = sigar_cpu_list_get(sigarcpulist, &cpulist);
+		
+		if (status != SIGAR_OK) 
+		{
+			DEBUG_MSG(boost::format("error: %d (%s) cpu_list_get\n") %
+				   status % sigar_strerror(sigarcpulist, status));
+
+			count = 1;
+		}
+		else
+		{
+			count = cpulist.number;
+			sigar_cpu_list_destroy(sigarcpulist, &cpulist);
+		}
+
+		sigar_close(sigarcpulist);
+	}
+
+	return count;
+}
+
+//-------------------------------------------------------------------------------------
+SystemInfo::PROCESS_INFOS SystemInfo::getProcessInfo(uint32 pid)
+{
+	PROCESS_INFOS infos;
+	infos.cpu = 0.f;
+	infos.memused = 0;
+	infos.error = false;
+
+    if(!_autocreate())
+		goto _END;
+
+	bool tryed = false;
+
+_TRYGET:
+	if(!hasPID(pid, &_g_proclist))
+	{
+		DEBUG_MSG(boost::format("SystemInfo::getProcessInfo: error: not found pid(%d)\n") % pid);
+		
+		if(!tryed)
+		{
+			clear();
+			tryed = true;
+
+			if(_autocreate())
+				goto _TRYGET;
+
+			infos.error = true;
+		}
+
+		goto _END;
+	}
+
+	infos.cpu = getCPUPerByPID(pid);
+	infos.memused = getMemUsedByPID(pid);
+
+_END:
+	return infos;
 }
 
 //-------------------------------------------------------------------------------------
@@ -65,7 +203,7 @@ float SystemInfo::getCPUPer()
 	 
 		// std::cout << "CPU " << perc.combined * 100 << "%\n";
 		old = current;
-		sleep(1000);
+	//	sleep(1000);
 	}
 	 
 	 
@@ -84,88 +222,97 @@ float SystemInfo::getCPUPerByPID(uint32 pid)
 	}
 
 	int status = SIGAR_OK;
-	sigar_t *sigarcpulist;
-	sigar_cpu_list_t cpulist;
-	sigar_open(&sigarcpulist);
-	status = sigar_cpu_list_get(sigarcpulist, &cpulist);
-	sigar_close(sigarcpulist);
-
-	if (status != SIGAR_OK) 
-	{
-		printf("error: %d (%s) cpu_list_get(%d)\n",
-			   status, sigar_strerror(sigarcpulist, status), pid);
-
-		return 0.f;
-	}
 
     float percent = 0.f;
-    sigar_t *sigarproclist;
-    sigar_proc_list_t proclist;
-    sigar_open(&sigarproclist);
-    sigar_proc_list_get(sigarproclist, &proclist);
+	bool tryed = false;
 
-	if (status != SIGAR_OK) 
+_TRYGET:
+	if(!hasPID(pid, &_g_proclist))
 	{
-		printf("error: %d (%s) cpu_list_get(%d)\n",
-			   status, sigar_strerror(sigarproclist, status), pid);
+		DEBUG_MSG(boost::format("SystemInfo::getCPUPerByPID: error: not found pid(%d)\n") % pid);
 
-		sigar_close(sigarproclist);
+		if(!tryed)
+		{
+			clear();
+			tryed = true;
+
+			if(_autocreate())
+				goto _TRYGET;
+		}
+
 		return 0.f;
 	}
 
-	if(!hasPID(pid, &proclist))
-	{
-		printf("error: not found pid(%d)\n", pid);
-		sigar_close(sigarproclist);
-		return 0.f;
-	}
-
+	/*
 	// for (size_t i = 0; i < proclist.number; i++)
     {
         sigar_proc_cpu_t cpu;
-        status = sigar_proc_cpu_get(sigarproclist, pid, &cpu);
+        status = sigar_proc_cpu_get(_g_sigarproclist, pid, &cpu);
 
 		if (status != SIGAR_OK) 
 		{
-			printf("error: %d (%s) proc_cpu_get(%d)\n",
-				   status, sigar_strerror(sigarproclist, status), pid);
+			DEBUG_MSG(boost::format("error: %d (%s) proc_cpu_get(%d)\n") %
+				   status % sigar_strerror(_g_sigarproclist, status) % pid);
 
 			return 0.f;
 		}
     }
-
-   sleep(1000);
+	*/
+  // sleep(1000);
 
 	// for (size_t i = 0; i < proclist.number; i++)
     {
         sigar_proc_cpu_t cpu;
-        int status = sigar_proc_cpu_get(sigarproclist, pid, &cpu);
+        int status = sigar_proc_cpu_get(_g_sigarproclist, pid, &cpu);
         if (status == SIGAR_OK)
         {
+			/*
             sigar_proc_state_t procstate;
             status = sigar_proc_state_get(sigarproclist, pid, &procstate);
 
 			if (status != SIGAR_OK) 
 			{
-				printf("error: %d (%s) proc_state(%d)\n",
-					   status, sigar_strerror(sigarproclist, status), pid);
+				DEBUG_MSG(boost::format("error: %d (%s) proc_state(%d)\n") %
+					   status % sigar_strerror(sigarproclist, status) % pid);
 
 				return 0.f;
 			}
+			*/
+            percent = float(cpu.percent) * 100.f;
 
-            percent = float(cpu.percent) * 100.f / float(cpulist.number);
+#if KBE_PLATFORM == PLATFORM_WIN32
+			percent /= float(countCPU());
+#endif
+
         }
 		else
 		{
-			printf("error: %d (%s) proc_cpu_get(%d)\n",
-				   status, sigar_strerror(sigarproclist, status), pid);
+			DEBUG_MSG(boost::format("error: %d (%s) proc_cpu_get(%d)\n") %
+				   status % sigar_strerror(_g_sigarproclist, status) % pid);
 
 			return 0.f;
 		}
     }
 
-    sigar_close(sigarproclist);
 	return percent;
+}
+
+//-------------------------------------------------------------------------------------
+SystemInfo::MEM_INFOS SystemInfo::getMemInfos()
+{
+	MEM_INFOS infos;
+
+	sigar_t *sigar;
+	sigar_open(&sigar);
+	sigar_mem_t sigar_mem;
+	sigar_mem_get(sigar, &sigar_mem);
+
+	infos.total = sigar_mem.total;
+	infos.free = sigar_mem.free;
+	infos.used = sigar_mem.used;
+
+	sigar_close(sigar);
+	return infos;
 }
 
 //-------------------------------------------------------------------------------------
@@ -176,26 +323,24 @@ uint64 SystemInfo::getMemUsedByPID(uint32 pid)
 		pid = (uint32)getProcessPID();
 	}
 
-   int status;
-    sigar_t *sigar;
-    sigar_proc_list_t proclist;
+	int status;
 	sigar_uint64_t total = 0;
+	bool tryed = false;
 
-    sigar_open(&sigar);
-
-    status = sigar_proc_list_get(sigar, &proclist);
-
-    if (status != SIGAR_OK) {
-        printf("proc_list error: %d (%s)\n",
-               status, sigar_strerror(sigar, status));
-       sigar_close(sigar);
-	   return 0;
-    }
-
-	if(!hasPID(pid, &proclist))
+_TRYGET:
+	if(!hasPID(pid, &_g_proclist))
 	{
-		printf("error: not found pid(%d)\n", pid);
-		sigar_close(sigar);
+		DEBUG_MSG(boost::format("SystemInfo::getMemUsedByPID: error: not found pid(%d)\n") % pid);
+
+		if(!tryed)
+		{
+			clear();
+			tryed = true;
+
+			if(_autocreate())
+				goto _TRYGET;
+		}
+
 		return 0;
 	}
 
@@ -204,31 +349,31 @@ uint64 SystemInfo::getMemUsedByPID(uint32 pid)
         sigar_proc_state_t pstate;
         sigar_proc_time_t ptime;
 
-        status = sigar_proc_state_get(sigar, pid, &pstate);
+        status = sigar_proc_state_get(_g_sigarproclist, pid, &pstate);
         if (status != SIGAR_OK) 
 		{
-            printf("error: %d (%s) proc_state(%d)\n",
-                   status, sigar_strerror(sigar, status), pid);
+            DEBUG_MSG(boost::format("error: %d (%s) proc_state(%d)\n") %
+                   status % sigar_strerror(_g_sigarproclist, status) % pid);
 			
 			goto _END;
         }
 
-        status = sigar_proc_time_get(sigar, pid, &ptime);
+        status = sigar_proc_time_get(_g_sigarproclist, pid, &ptime);
         if (status != SIGAR_OK) 
 		{
-            printf("error: %d (%s) proc_time(%d)\n",
-                   status, sigar_strerror(sigar, status), pid);
+            DEBUG_MSG(boost::format("error: %d (%s) proc_time(%d)\n") %
+                   status % sigar_strerror(_g_sigarproclist, status) % pid);
 
            goto _END;
         }
 
 		sigar_proc_mem_t proc_mem;
-		status = sigar_proc_mem_get(sigar, pid, &proc_mem);
+		status = sigar_proc_mem_get(_g_sigarproclist, pid, &proc_mem);
 
         if (status != SIGAR_OK) 
 		{
-            printf("error: %d (%s) sigar_proc_mem_get(%d)\n",
-                   status, sigar_strerror(sigar, status), pid);
+            DEBUG_MSG(boost::format("error: %d (%s) sigar_proc_mem_get(%d)\n") %
+                   status % sigar_strerror(_g_sigarproclist, status) % pid);
             
 			goto _END;
         }
@@ -237,8 +382,6 @@ uint64 SystemInfo::getMemUsedByPID(uint32 pid)
     }
 
 _END:
-    sigar_proc_list_destroy(sigar, &proclist);
-    sigar_close(sigar);
 	return total;
 }
 

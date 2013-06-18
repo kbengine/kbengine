@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "components.hpp"
 #include "componentbridge.hpp"
 #include "helper/debug_helper.hpp"
+#include "helper/sys_info.hpp"
 #include "network/channel.hpp"	
 #include "network/address.hpp"	
 #include "network/bundle.hpp"	
@@ -508,6 +509,12 @@ Components::ComponentInfos* Components::findComponent(Mercury::Channel * pChanne
 //-------------------------------------------------------------------------------------		
 bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 {
+	// 不对其他machine做处理
+	if(info->componentType == MACHINE_TYPE)
+	{
+		return true;
+	}
+
 	Mercury::EndPoint epListen;
 	epListen.socket(SOCK_STREAM);
 	if (!epListen.good())

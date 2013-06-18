@@ -651,6 +651,7 @@ char *sigar_os_error_string(sigar_t *sigar, int err)
 
 SIGAR_DECLARE(int) sigar_mem_get(sigar_t *sigar, sigar_mem_t *mem)
 {
+	sigar->kernel.memory_status.func = &GlobalMemoryStatusEx;
     DLLMOD_INIT(kernel, TRUE);
 
     if (sigar_GlobalMemoryStatusEx) {

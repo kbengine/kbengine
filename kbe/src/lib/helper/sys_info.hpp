@@ -23,16 +23,46 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
+#include "cstdkbe/singleton.hpp"
 
 namespace KBEngine
 {
 
-class SystemInfo
+class SystemInfo : public Singleton<SystemInfo>
 {
 public:
-	static float getCPUPer();
-	static float getCPUPerByPID(uint32 pid = 0);
-	static uint64 getMemUsedByPID(uint32 pid = 0);
+	SystemInfo();
+	~SystemInfo();
+
+	struct PROCESS_INFOS
+	{
+		float cpu;
+		uint64 memused;
+		bool error;
+	};
+
+	struct MEM_INFOS
+	{
+		uint64 total;
+		uint64 free;
+		uint64 used;
+	};
+
+	SystemInfo::MEM_INFOS getMemInfos();
+	float getCPUPer();
+	float getCPUPerByPID(uint32 pid = 0);
+	uint64 getMemUsedByPID(uint32 pid = 0);
+	bool hasProcess(uint32 pid);
+
+	uint32 countCPU();
+
+	SystemInfo::PROCESS_INFOS getProcessInfo(uint32 pid = 0);
+
+	void update();
+	
+	void clear();
+private:
+	bool _autocreate();
 };
 
 }

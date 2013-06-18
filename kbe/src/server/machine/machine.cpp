@@ -267,12 +267,30 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 
 			const Components::ComponentInfos* pinfos = &(*iter);
 			
+			bool islocal = ep_.addr().ip == pinfos->pIntAddr->ip || this->getNetworkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
+					this->getNetworkInterface().extaddr().ip == pinfos->pIntAddr->ip;
+
 			bool usable = Componentbridge::getComponents().checkComponentUsable(pinfos);
+
+			// 如果是本机应用则判断是否还在运行中
+			if(islocal && pinfos->pid > 0)
+			{
+				SystemInfo::PROCESS_INFOS sysinfos = SystemInfo::getSingleton().getProcessInfo(pinfos->pid);
+				if(sysinfos.error)
+				{
+					WARNING_MSG(boost::format("Components::checkComponentUsable: not found pid(%1%)\n") % pinfos->pid);
+					//return false;
+				}
+				else
+				{
+					(*iter).cpu = sysinfos.cpu;
+					(*iter).usedmem = sysinfos.memused;
+				}
+			}
 
 			if(usable)
 			{
-				if(ep_.addr().ip == pinfos->pIntAddr->ip || this->getNetworkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
-					this->getNetworkInterface().extaddr().ip == pinfos->pIntAddr->ip)
+				if(islocal)
 				{
 					Mercury::Bundle bundle;
 					
@@ -298,6 +316,9 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 					COMPONENT_NAME_EX(pinfos->componentType));
 
 				iter = components.erase(iter);
+
+				if(islocal)
+					SystemInfo::getSingleton().clear();
 			}
 		}
 	}
