@@ -83,7 +83,7 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 								   int8 globalorderid, int8 grouporderid,
 									uint32 intaddr, uint16 intport,
 									uint32 extaddr, uint16 extport, uint32 pid,
-									float cpu, float mem, uint32 usedmem, int32 extradata)
+									float cpu, float mem, uint32 usedmem, int8 state, uint32 machineID, uint64 extradata)
 {
 	if(intaddr == this->getNetworkInterface().intaddr().ip)
 	{
@@ -180,10 +180,11 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 				this->getNetworkInterface().extaddr().ip == pinfos->pIntAddr->ip)
 			{
 				found = true;
-				MachineInterface::onBroadcastInterfaceArgs16::staticAddToBundle(bundle, pinfos->uid, 
+				MachineInterface::onBroadcastInterfaceArgs18::staticAddToBundle(bundle, pinfos->uid, 
 					pinfos->username, findComponentType, pinfos->cid, componentID, pinfos->globalOrderid, pinfos->groupOrderid, 
 					pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
-					pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->pid, pinfos->cpu, pinfos->mem, pinfos->usedmem, pinfos->extradata);
+					pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->pid, pinfos->cpu, pinfos->mem, pinfos->usedmem, 
+					pinfos->shutdownState, KBEngine::getProcessPID(), pinfos->extradata);
 			}
 
 			++iter;
@@ -214,8 +215,8 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 			COMPONENT_NAME_EX(tComponentType) % 
 			COMPONENT_NAME_EX(tfindComponentType));
 
-		MachineInterface::onBroadcastInterfaceArgs16::staticAddToBundle(bundle, KBEngine::getUserUID(), 
-			"", UNKNOWN_COMPONENT_TYPE, 0, componentID, -1, -1, 0, 0, 0, 0, 0, 0.f, 0.f, 0, 0);
+		MachineInterface::onBroadcastInterfaceArgs18::staticAddToBundle(bundle, KBEngine::getUserUID(), 
+			"", UNKNOWN_COMPONENT_TYPE, 0, componentID, -1, -1, 0, 0, 0, 0, 0, 0.f, 0.f, 0, 0, 0, 0);
 	}
 
 	if(finderAddr != 0 && finderRecvPort != 0)
@@ -244,6 +245,25 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 	{
 		ERROR_MSG("Machine::onQueryAllInterfaceInfos: Failed to create socket.\n");
 		return;
+	}
+
+	{
+		Mercury::Bundle bundle;
+		
+		uint64 cidex = 0;
+		float cpu = SystemInfo::getSingleton().getCPUPer();
+		uint64 total = SystemInfo::getSingleton().getMemInfos().total;
+		MachineInterface::onBroadcastInterfaceArgs18::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+			g_componentType, g_componentID, cidex, g_componentGlobalOrder, g_componentGroupOrder,
+			networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
+			networkInterface_.extaddr().ip, networkInterface_.extaddr().port, getProcessPID(),
+			cpu, 0.f, SystemInfo::getSingleton().getMemUsedByPID(), 0, 
+			getProcessPID(), total);
+
+		if(finderRecvPort != 0)
+			bundle.sendto(ep, finderRecvPort, pChannel->addr().ip);
+		else
+			bundle.send(this->getNetworkInterface(), pChannel);
 	}
 
 	int i = 0;
@@ -294,11 +314,12 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 				{
 					Mercury::Bundle bundle;
 					
-					MachineInterface::onBroadcastInterfaceArgs16::staticAddToBundle(bundle, pinfos->uid, 
+					MachineInterface::onBroadcastInterfaceArgs18::staticAddToBundle(bundle, pinfos->uid, 
 						pinfos->username, findComponentType, pinfos->cid, pinfos->cid, pinfos->globalOrderid, pinfos->groupOrderid, 
 						pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
 						pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->pid, 
-						pinfos->cpu, pinfos->mem, pinfos->usedmem, pinfos->extradata);
+						pinfos->cpu, pinfos->mem, pinfos->usedmem, 
+						pinfos->shutdownState, KBEngine::getProcessPID(), pinfos->extradata);
 
 					if(finderRecvPort != 0)
 						bundle.sendto(ep, finderRecvPort, pChannel->addr().ip);

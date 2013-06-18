@@ -47,7 +47,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 	// 其他组件向app广播自己的接口地址
-	MACHINE_MESSAGE_DECLARE_ARGS16(onBroadcastInterface,			MERCURY_VARIABLE_MESSAGE,
+	MACHINE_MESSAGE_DECLARE_ARGS18(onBroadcastInterface,			MERCURY_VARIABLE_MESSAGE,
 									int32,							uid, 
 									std::string,					username,
 									int8,							componentType, 
@@ -63,7 +63,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 									float,							cpu, 
 									float,							mem, 
 									uint32,							usedmem,
-									int32,							extradata)
+									int8,							state,
+									uint32,							machineID, 
+									uint64,							extradata)
 	
 	// 其他组件向app请求获取某个组件类别的地址
 	MACHINE_MESSAGE_DECLARE_ARGS7(onFindInterfaceAddr,				MERCURY_VARIABLE_MESSAGE,

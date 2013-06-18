@@ -38,6 +38,8 @@ SystemInfo g_SystemInfo;
 
 sigar_t *_g_sigarproclist = NULL;
 sigar_proc_list_t _g_proclist;
+sigar_t *_g_sigar_cpu = NULL;
+sigar_cpu_t _g_old_cpu;
 
 //-------------------------------------------------------------------------------------
 bool hasPID(int pid, sigar_proc_list_t* proclist)
@@ -72,6 +74,12 @@ void SystemInfo::clear()
 		sigar_proc_list_destroy(_g_sigarproclist, &_g_proclist);
 		sigar_close(_g_sigarproclist);
 		_g_sigarproclist = NULL;
+	}
+
+	if(_g_sigar_cpu)
+	{
+		sigar_close(_g_sigar_cpu);
+		_g_sigar_cpu = NULL;
 	}
 }
 
@@ -187,29 +195,29 @@ _END:
 //-------------------------------------------------------------------------------------
 float SystemInfo::getCPUPer()
 {
-	sigar_t *sigar_cpu;
-	sigar_cpu_t old;
 	sigar_cpu_t current;
 	 
-	sigar_open(&sigar_cpu);
-	sigar_cpu_get(sigar_cpu, &old);
+	if(_g_sigar_cpu == NULL)
+		sigar_open(&_g_sigar_cpu);
+
+	// sigar_cpu_get(_g_sigar_cpu, &_g_old_cpu);
 	 
 	sigar_cpu_perc_t perc;
 
 	// while(1)
 	{
-		sigar_cpu_get(sigar_cpu, &current);
-		sigar_cpu_perc_calculate(&old, &current, &perc);
+		sigar_cpu_get(_g_sigar_cpu, &current);
+		sigar_cpu_perc_calculate(&_g_old_cpu, &current, &perc);
 	 
 		// std::cout << "CPU " << perc.combined * 100 << "%\n";
-		old = current;
+		_g_old_cpu = current;
 	//	sleep(1000);
 	}
 	 
 	 
-	 float ret = float(perc.combined) * 100.f;
-	 
-	sigar_close(sigar_cpu);
+	float ret = float(perc.combined) * 100.f;
+	//sigar_close(sigar_cpu);
+	DEBUG_MSG(boost::format("SystemInfo::getCPUPer(): %f\n") % ret);
 	return ret;
 }
 

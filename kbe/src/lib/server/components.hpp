@@ -84,7 +84,7 @@ public:
 		float cpu;
 		float mem;
 		uint32 usedmem;
-		int32 extradata;
+		uint64 extradata;
 		uint32 pid;
 	};
 
@@ -117,7 +117,7 @@ public:
 		COMPONENT_TYPE componentType, COMPONENT_ID componentID, int8 globalorderid, int8 grouporderid,
 		uint32 intaddr, uint16 intport, 
 		uint32 extaddr, uint16 extport, uint32 pid,
-		float cpu, float mem, uint32 usedmem, int32 extradata,
+		float cpu, float mem, uint32 usedmem, uint64 extradata,
 		Mercury::Channel* pChannel = NULL);
 
 	void delComponent(int32 uid, COMPONENT_TYPE componentType, 

@@ -190,7 +190,7 @@ public:
 				return false;
 			}
 
-			MachineInterface::onBroadcastInterfaceArgs16 args;
+			MachineInterface::onBroadcastInterfaceArgs18 args;
 			int32 timeout = 100000;
 RESTART_RECV:
 			if(bhandler.receive(&args, 0, timeout))

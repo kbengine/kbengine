@@ -87,6 +87,7 @@ class ClusterControllerHandler:
 		self.resetPacket()
 		
 		self._interfaces = {}
+		self._interfaces_groups = {}
 		
 	def do(self):
 		pass
@@ -197,8 +198,14 @@ class ClusterControllerHandler:
 			usedmem = struct.unpack("I", self.recvDatas[count][ii : ii + 4])[0]
 			ii += 4
 
-			extradata = struct.unpack("i", self.recvDatas[count][ii : ii + 4])[0]
+			state = struct.unpack("b", self.recvDatas[count][ii : ii + 1])[0]
+			ii += 1
+			
+			machineID = struct.unpack("I", self.recvDatas[count][ii : ii + 4])[0]
 			ii += 4
+			
+			extradata = struct.unpack("Q", self.recvDatas[count][ii : ii + 8])[0]
+			ii += 8
 			
 			#print("%s, uid=%i, cID=%i, gid=%i, groupid=%i, uname=%s" % (COMPONENT_NAME[componentType], \
 			#	uid, componentID, globalorderid, grouporderid, username))
@@ -209,10 +216,25 @@ class ClusterControllerHandler:
 				self._interfaces[componentType] = componentInfos
 			
 			componentInfos.append((uid, componentID, globalorderid, grouporderid, username, cpu, mem, usedmem, extradata, \
-								intaddr, intport, extaddr, extport, pid))
+								intaddr, intport, extaddr, extport, pid, machineID, state, componentType))
 			
 			count += 1
-			
+		
+		self._interfaces_groups = {}
+		for ctype in self._interfaces:
+			infos = self._interfaces.get(ctype, [])
+			for info in infos:
+				machineID = info[14]
+				
+				gourps = self._interfaces_machineGroups.get(machineID, [])
+				if machineID not in self._interfaces_machineGroups:
+					self._interfaces_machineGroups[machineID] = gourps
+				
+				if info[13] != machineID:
+					gourps.append(info)
+				else:
+					gourps.insert(0, info)
+				
 class ClusterConsoleHandler(ClusterControllerHandler):
 	def __init__(self, consoleType, startTemplate):
 		ClusterControllerHandler.__init__(self)
@@ -239,15 +261,20 @@ class ClusterQueryHandler(ClusterControllerHandler):
 		self.uid = uid
 		
 	def do(self):
+		self._interfaces_machineGroups = {}
 		self.queryAllInterfaces()
 		interfaces = self._interfaces
-
-		print("[curr-online-components:]")
-		for ctype in self._interfaces:
-			infos = self._interfaces.get(ctype, [])
+		
+		for machineID in self._interfaces_machineGroups:
+			infos = self._interfaces_machineGroups.get(machineID, [])
+			if len(infos) > 0:
+				info = infos.pop(0)
+				print("[[[%s: %%cpu:%.2f, %%mem:%.2f, mpmem=%.2fMB, totalmem=%.2fMB]]]" % \
+					(COMPONENT_NAME[info[16]], info[5], info[6], info[7] / 1024.0 / 1024.0, info[8] / 1024.0 / 1024.0))
+				
 			for info in infos:
-				print("\t%s[%i]: uid=%i, pid=%i, gid=%i, tid=%i, %%cpu:%.2f, %%mem:%.2f, mem=%i, addr=%s:%i" % \
-				(COMPONENT_NAME[ctype], info[1], self.uid, info[13], info[2], info[3], info[5], info[6], info[7], \
+				print("\t%s[%i]: uid=%i, pid=%i, gid=%i, tid=%i, %%cpu:%.2f, %%mem:%.2f, mem=%.2fMB, addr=%s:%i" % \
+				(COMPONENT_NAME[info[16]], info[1], self.uid, info[13], info[2], info[3], info[5], info[6], info[7] / 1024.0 / 1024.0, \
 				socket.inet_ntoa(struct.pack('I', info[9])), socket.htons(info[10])))
 				
 class ClusterStartHandler(ClusterControllerHandler):
