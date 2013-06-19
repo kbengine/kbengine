@@ -613,7 +613,7 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 		COMPONENT_ID cid;
 		int8 istate = 0;
 		ArraySize entitySize = 0, cellSize = 0;
-		int32 clientsSize = 0;
+		int32 clientsSize = 0, proxicesSize = 0;
 
 		Mercury::TCPPacket packet;
 		packet.resize(255);
@@ -626,7 +626,7 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 
 		if(info->componentType == BASEAPP_TYPE)
 		{
-			recvsize += sizeof(entitySize) + sizeof(clientsSize);
+			recvsize += sizeof(entitySize) + sizeof(clientsSize) + sizeof(proxicesSize);
 		}
 
 		int len = epListen.recv(packet.data(), recvsize);
@@ -652,7 +652,7 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 
 		if(ctype == BASEAPP_TYPE)
 		{
-			packet >> entitySize >> clientsSize;
+			packet >> entitySize >> clientsSize >> proxicesSize;
 		}
 
 		if(ctype != info->componentType || cid != info->cid)
@@ -678,6 +678,7 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 			{
 				winfo->extradata = entitySize;
 				winfo->extradata1 = clientsSize;
+				winfo->extradata2 = proxicesSize;
 			}
 		}
 	}

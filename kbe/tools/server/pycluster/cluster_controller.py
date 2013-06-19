@@ -206,6 +206,12 @@ class ClusterControllerHandler:
 			
 			extradata = struct.unpack("Q", self.recvDatas[count][ii : ii + 8])[0]
 			ii += 8
+
+			extradata1 = struct.unpack("Q", self.recvDatas[count][ii : ii + 8])[0]
+			ii += 8
+			
+			extradata2 = struct.unpack("Q", self.recvDatas[count][ii : ii + 8])[0]
+			ii += 8
 			
 			#print("%s, uid=%i, cID=%i, gid=%i, groupid=%i, uname=%s" % (COMPONENT_NAME[componentType], \
 			#	uid, componentID, globalorderid, grouporderid, username))
@@ -215,8 +221,8 @@ class ClusterControllerHandler:
 				componentInfos = []
 				self._interfaces[componentType] = componentInfos
 			
-			componentInfos.append((uid, componentID, globalorderid, grouporderid, username, cpu, mem, usedmem, extradata, \
-								intaddr, intport, extaddr, extport, pid, machineID, state, componentType))
+			componentInfos.append((uid, componentID, globalorderid, grouporderid, username, cpu, mem, usedmem, 0, \
+								intaddr, intport, extaddr, extport, pid, machineID, state, componentType, extradata, extradata1, extradata2))
 			
 			count += 1
 		
@@ -267,16 +273,47 @@ class ClusterQueryHandler(ClusterControllerHandler):
 		
 		for machineID in self._interfaces_machineGroups:
 			infos = self._interfaces_machineGroups.get(machineID, [])
+			print('-----------------------------------------------------')
 			if len(infos) > 0:
 				info = infos.pop(0)
-				print("[[[%s: %%cpu:%.2f, %%mem:%.2f, mpmem=%.2fMB, totalmem=%.2fMB]]]" % \
-					(COMPONENT_NAME[info[16]], info[5], info[6], info[7] / 1024.0 / 1024.0, info[8] / 1024.0 / 1024.0))
-				
+				print("[%s: %%CPU:%.2f, %%MEM:%.2f, procMem=%.2fm, totalMem=%.2fMB/%.2fm, addr=%s]" % \
+					(COMPONENT_NAME[info[16]], info[5], info[6], info[7] / 1024.0 / 1024.0, info[18] / 1024.0 / 1024.0, info[17] / 1024.0 / 1024.0, \
+					socket.inet_ntoa(struct.pack('I', info[9]))))
+			
+			print("      proc\t\tcid\t\tuid\tpid\tgid\ttid\t%CPU\t%MEM\tusedMem\textra1\t\textra2\t\textra3")
 			for info in infos:
-				print("\t%s[%i]: uid=%i, pid=%i, gid=%i, tid=%i, %%cpu:%.2f, %%mem:%.2f, mem=%.2fMB, addr=%s:%i" % \
-				(COMPONENT_NAME[info[16]], info[1], self.uid, info[13], info[2], info[3], info[5], info[6], info[7] / 1024.0 / 1024.0, \
-				socket.inet_ntoa(struct.pack('I', info[9])), socket.htons(info[10])))
-				
+				if info[16] == BASEAPP_TYPE:
+					print("|-%12s\t%i\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\tbases=%i\t\tclients=%i\tproxices=%i" % \
+					(COMPONENT_NAME[info[16]], info[1], self.uid, info[13], info[2], info[3], info[5], info[6], info[7] / 1024.0 / 1024.0, \
+					info[17], info[18], info[19]))
+				elif info[16] == CELLAPP_TYPE:
+					print("|-%12s\t%i\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\tentities=%i\tcells=%i\t\t%i" % \
+					(COMPONENT_NAME[info[16]], info[1], self.uid, info[13], info[2], info[3], info[5], info[6], info[7] / 1024.0 / 1024.0, \
+					info[17], 0, info[18]))
+				else:
+					print("|-%12s\t%i\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\t%i\t\t%i\t\t%i" % \
+					(COMPONENT_NAME[info[16]], info[1], self.uid, info[13], info[2], info[3], info[5], info[6], info[7] / 1024.0 / 1024.0, \
+					0, 0, 0))
+					
+			"""
+			for info in infos:
+				if info[16] == BASEAPP_TYPE:
+					print("\t%s[%i]: uid=%i, pid=%i, gid=%i, tid=%i, %%CPU:%.2f, %%MEM:%.2f, usedMem=%.2fMB, entities=%i, clients=%i, addr=%s:%i" % \
+					(COMPONENT_NAME[info[16]], info[1], self.uid, info[13], info[2], info[3], info[5], info[6], info[7] / 1024.0 / 1024.0, \
+					info[17], info[18], socket.inet_ntoa(struct.pack('I', info[9])), socket.htons(info[10])))
+				elif info[16] == CELLAPP_TYPE:
+					print("\t%s[%i]: uid=%i, pid=%i, gid=%i, tid=%i, %%CPU:%.2f, %%MEM:%.2f, usedMem=%.2fMB, entities=%i, cells=%i, addr=%s:%i" % \
+					(COMPONENT_NAME[info[16]], info[1], self.uid, info[13], info[2], info[3], info[5], info[6], info[7] / 1024.0 / 1024.0, \
+					info[17], info[18], socket.inet_ntoa(struct.pack('I', info[9])), socket.htons(info[10])))
+				else:
+					print("\t%s[%i]: uid=%i, pid=%i, gid=%i, tid=%i, %%CPU:%.2f, %%MEM:%.2f, usedMem=%.2fMB, addr=%s:%i" % \
+					(COMPONENT_NAME[info[16]], info[1], self.uid, info[13], info[2], info[3], info[5], info[6], info[7] / 1024.0 / 1024.0, \
+					socket.inet_ntoa(struct.pack('I', info[9])), socket.htons(info[10])))
+			"""
+			
+		print('-----------------------------------------------------')
+		print("machines: %i, components=%i." % (len(self._interfaces_machineGroups), len(self._interfaces)))
+		
 class ClusterStartHandler(ClusterControllerHandler):
 	def __init__(self, uid, startTemplate):
 		ClusterControllerHandler.__init__(self)

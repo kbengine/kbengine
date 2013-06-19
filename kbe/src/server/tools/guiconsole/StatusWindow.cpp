@@ -48,6 +48,8 @@ BOOL StatusWindow::OnInitDialog()
 	m_statusList.InsertColumn(idx++, _T("memory"),				LVCFMT_CENTER,	100);
 	m_statusList.InsertColumn(idx++, _T("entities"),			LVCFMT_CENTER,	100);
 	m_statusList.InsertColumn(idx++, _T("proxies"),				LVCFMT_CENTER,	100);
+	m_statusList.InsertColumn(idx++, _T("clients"),				LVCFMT_CENTER,	100);
+	m_statusList.InsertColumn(idx++, _T("cells"),				LVCFMT_CENTER,	100);
 	m_statusList.InsertColumn(idx++, _T("address"),				LVCFMT_CENTER,	140);
 	m_statusList.InsertColumn(idx++, _T("username"),			LVCFMT_CENTER,	100);
 
@@ -101,16 +103,39 @@ void StatusWindow::addApp(Components::ComponentInfos& cinfos)
 
 		m_statusList.SetItemText(0, 2, str);
 
+		suid.Format(L"%f", cinfos.cpu);
+		m_statusList.SetItemText(0, 3, suid);
+
+		suid.Format(L"%.2fm", float(cinfos.usedmem) / 1024.f / 1024.f);
+		m_statusList.SetItemText(0, 4, suid);
+
+		if(cinfos.componentType == CELLAPP_TYPE)
+		{
+			suid.Format(L"%d", cinfos.extradata);
+			m_statusList.SetItemText(0, 5, suid);
+			suid.Format(L"%d", cinfos.extradata1);
+			m_statusList.SetItemText(0, 8, suid);
+		}
+
+		if(cinfos.componentType == BASEAPP_TYPE)
+		{
+			suid.Format(L"%d", cinfos.extradata);
+			m_statusList.SetItemText(0, 5, suid);
+			suid.Format(L"%d", cinfos.extradata2);
+			m_statusList.SetItemText(0, 6, suid);
+			suid.Format(L"%d", cinfos.extradata1);
+			m_statusList.SetItemText(0, 7, suid);
+		}
 
 		ws = KBEngine::strutil::char2wchar(cinfos.pIntAddr->c_str());
 		str = ws;
 		free(ws);
-		m_statusList.SetItemText(0, 7, str);
+		m_statusList.SetItemText(0, 9, str);
 
 		ws = KBEngine::strutil::char2wchar(cinfos.username);
 		str = ws;
 		free(ws);
-		m_statusList.SetItemText(0, 8, str);
+		m_statusList.SetItemText(0, 10, str);
 	}
 }
 

@@ -2537,6 +2537,7 @@ void Baseapp::lookApp(Mercury::Channel* pChannel)
 	(*pBundle) << istate;
 	(*pBundle) << this->entitiesSize();
 	(*pBundle) << numClients();
+	(*pBundle) << numProxices();
 	(*pBundle).send(getNetworkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
