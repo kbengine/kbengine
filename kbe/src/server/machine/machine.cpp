@@ -231,9 +231,12 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, std::string& username, uint16 finderRecvPort)
 {
 	// uid不等于当前服务器的uid则不理会。
-	std::vector<int32>::iterator iter = std::find(localuids_.begin(), localuids_.end(), uid);
-	if(iter == localuids_.end())
-		return;
+	if(uid > 0)
+	{
+		std::vector<int32>::iterator iter = std::find(localuids_.begin(), localuids_.end(), uid);
+		if(iter == localuids_.end())
+			return;
+	}
 
 	INFO_MSG(boost::format("Machine::onQueryAllInterfaceInfos[%1%]: uid:%2%, username:%3%, "
 			"finderRecvPort:%4%.\n") %
@@ -262,7 +265,7 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 			networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
 			networkInterface_.extaddr().ip, networkInterface_.extaddr().port, getProcessPID(),
 			cpu, float((totalusedmem * 1.0 / totalmem) * 100.0), SystemInfo::getSingleton().getMemUsedByPID(), 0, 
-			getProcessPID(), totalmem, totalusedmem, SystemInfo::getSingleton().getCPUPerByPID());
+			getProcessPID(), totalmem, totalusedmem, uint64(SystemInfo::getSingleton().getCPUPerByPID() * 100));
 
 		if(finderRecvPort != 0)
 			bundle.sendto(ep, finderRecvPort, pChannel->addr().ip);
@@ -283,7 +286,7 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 
 		for(; iter != components.end(); )
 		{
-			if((*iter).uid != uid)
+			if(uid > 0 && (*iter).uid != uid)
 			{
 				++iter;
 				continue;

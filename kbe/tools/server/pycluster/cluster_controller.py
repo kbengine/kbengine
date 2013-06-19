@@ -88,6 +88,7 @@ class ClusterControllerHandler:
 		
 		self._interfaces = {}
 		self._interfaces_groups = {}
+		self._interfaces_groups_uid = {}
 		
 	def do(self):
 		pass
@@ -227,6 +228,7 @@ class ClusterControllerHandler:
 			count += 1
 		
 		self._interfaces_groups = {}
+		self._interfaces_groups_uid = {}
 		for ctype in self._interfaces:
 			infos = self._interfaces.get(ctype, [])
 			for info in infos:
@@ -235,9 +237,12 @@ class ClusterControllerHandler:
 				gourps = self._interfaces_machineGroups.get(machineID, [])
 				if machineID not in self._interfaces_machineGroups:
 					self._interfaces_machineGroups[machineID] = gourps
-				
+					self._interfaces_groups_uid[machineID] = []
+					
 				if info[13] != machineID:
 					gourps.append(info)
+					if info[0] not in self._interfaces_groups_uid[machineID]:
+						self._interfaces_groups_uid[machineID].append(info[0])
 				else:
 					gourps.insert(0, info)
 				
@@ -270,29 +275,29 @@ class ClusterQueryHandler(ClusterControllerHandler):
 		self._interfaces_machineGroups = {}
 		self.queryAllInterfaces()
 		interfaces = self._interfaces
-		
+
 		for machineID in self._interfaces_machineGroups:
 			infos = self._interfaces_machineGroups.get(machineID, [])
 			print('-----------------------------------------------------')
 			if len(infos) > 0:
 				info = infos.pop(0)
-				print("[%s: %%CPU:%.2f, %%MEM:%.2f, %%pCPU:%.2f, pMem:%.2fm, totalMem=%.2fm/%.2fm, uid=%d, addr=%s]" % \
-					(COMPONENT_NAME[info[16]], info[5], info[6], info[19], info[7] / 1024.0 / 1024.0, info[18] / 1024.0 / 1024.0, info[17] / 1024.0 / 1024.0, \
-					self.uid, socket.inet_ntoa(struct.pack('I', info[9]))))
+				print("[%s: %%CPU:%.2f, %%MEM:%.2f, %%pCPU:%.2f, pMem:%.2fm, totalMem=%.2fm/%.2fm, addr=%s]" % \
+					(COMPONENT_NAME[info[16]], info[5], info[6], info[19] / 100.0, info[7] / 1024.0 / 1024.0, info[18] / 1024.0 / 1024.0, info[17] / 1024.0 / 1024.0, \
+					socket.inet_ntoa(struct.pack('I', info[9]))))
 			
-			print("      proc\t\tcid\t\tpid\tgid\t%CPU\t%MEM\tusedMem\textra1\t\textra2\t\textra3")
+			print("      proc\t\tcid\t\tuid\tpid\tgid\t%CPU\t%MEM\tusedMem\textra1\t\textra2\t\textra3")
 			for info in infos:
 				if info[16] == BASEAPP_TYPE:
-					print("|-%12s%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\tbases=%i\t\tclients=%i\tproxices=%i" % \
-					(COMPONENT_NAME[info[16]], info[3], info[1], info[13], info[2], info[5], info[6], info[7] / 1024.0 / 1024.0, \
+					print("|-%12s%i\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\tbases=%i\t\tclients=%i\tproxices=%i" % \
+					(COMPONENT_NAME[info[16]], info[3], info[1], info[0], info[13], info[2], info[5], info[6], info[7] / 1024.0 / 1024.0, \
 					info[17], info[18], info[19]))
 				elif info[16] == CELLAPP_TYPE:
-					print("|-%12s%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\tentities=%i\tcells=%i\t\t%i" % \
-					(COMPONENT_NAME[info[16]], info[3], info[1], info[13], info[2], info[5], info[6], info[7] / 1024.0 / 1024.0, \
+					print("|-%12s%i\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\tentities=%i\tcells=%i\t\t%i" % \
+					(COMPONENT_NAME[info[16]], info[3], info[1], info[0],info[13], info[2], info[5], info[6], info[7] / 1024.0 / 1024.0, \
 					info[17], 0, info[18]))
 				else:
-					print("|-%12s\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\t%i\t\t%i\t\t%i" % \
-					(COMPONENT_NAME[info[16]], info[1], info[13], info[2], info[5], info[6], info[7] / 1024.0 / 1024.0, \
+					print("|-%12s\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\t%i\t\t%i\t\t%i" % \
+					(COMPONENT_NAME[info[16]], info[1], info[0], info[13], info[2], info[5], info[6], info[7] / 1024.0 / 1024.0, \
 					0, 0, 0))
 					
 			"""
@@ -486,7 +491,7 @@ def getDefaultUID():
 if __name__ == "__main__":
 	clusterHandler = None
 	
-	if len(sys.argv)  > 1:
+	if len(sys.argv)  > 2:
 		cmdType = sys.argv[1]
 		
 		if cmdType == "start":
@@ -548,7 +553,17 @@ if __name__ == "__main__":
 					
 			clusterHandler = ClusterQueryHandler(uid)
 	else:
-		clusterHandler = ClusterQueryHandler(getDefaultUID())
+		uid = -1
+
+		if len(sys.argv) >= 2:
+			if sys.argv[1].isdigit():
+				uid = sys.argv[1]
+
+		uid = int(uid)
+		if uid < 0:
+			uid = getDefaultUID()
+
+		clusterHandler = ClusterQueryHandler(uid)
 			
 	if clusterHandler is not None: 
 		clusterHandler.do()
