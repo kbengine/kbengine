@@ -276,8 +276,8 @@ class ClusterQueryHandler(ClusterControllerHandler):
 			print('-----------------------------------------------------')
 			if len(infos) > 0:
 				info = infos.pop(0)
-				print("[%s: %%CPU:%.2f, %%MEM:%.2f, procMem=%.2fm, totalMem=%.2fMB/%.2fm, addr=%s]" % \
-					(COMPONENT_NAME[info[16]], info[5], info[6], info[7] / 1024.0 / 1024.0, info[18] / 1024.0 / 1024.0, info[17] / 1024.0 / 1024.0, \
+				print("[%s: %%CPU:%.2f, %%MEM:%.2f, %%pCPU:%.2f, pMem:%.2fm, totalMem:%.2fm/%.2fm, addr=%s]" % \
+					(COMPONENT_NAME[info[16]], info[5], info[6], info[19], info[7] / 1024.0 / 1024.0, info[18] / 1024.0 / 1024.0, info[17] / 1024.0 / 1024.0, \
 					socket.inet_ntoa(struct.pack('I', info[9]))))
 			
 			print("      proc\t\tcid\t\tuid\tpid\tgid\ttid\t%CPU\t%MEM\tusedMem\textra1\t\textra2\t\textra3")

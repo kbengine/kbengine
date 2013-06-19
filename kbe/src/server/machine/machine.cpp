@@ -262,7 +262,7 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 			networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
 			networkInterface_.extaddr().ip, networkInterface_.extaddr().port, getProcessPID(),
 			cpu, float((totalusedmem * 1.0 / totalmem) * 100.0), SystemInfo::getSingleton().getMemUsedByPID(), 0, 
-			getProcessPID(), totalmem, totalusedmem, 0);
+			getProcessPID(), totalmem, totalusedmem, SystemInfo::getSingleton().getCPUPerByPID());
 
 		if(finderRecvPort != 0)
 			bundle.sendto(ep, finderRecvPort, pChannel->addr().ip);
