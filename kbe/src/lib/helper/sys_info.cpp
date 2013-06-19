@@ -163,11 +163,11 @@ SystemInfo::PROCESS_INFOS SystemInfo::getProcessInfo(uint32 pid)
 	infos.cpu = 0.f;
 	infos.memused = 0;
 	infos.error = false;
+	
+	bool tryed = false;
 
     if(!_autocreate())
 		goto _END;
-
-	bool tryed = false;
 
 _TRYGET:
 	if(!hasPID(pid, &_g_proclist))
@@ -232,8 +232,6 @@ float SystemInfo::getCPUPerByPID(uint32 pid)
 		pid = (uint32)getProcessPID();
 	}
 
-	int status = SIGAR_OK;
-
     float percent = 0.f;
 	bool tryed = false;
 
@@ -255,6 +253,7 @@ _TRYGET:
 	}
 
 	/*
+	int status = SIGAR_OK;
 	// for (size_t i = 0; i < proclist.number; i++)
     {
         sigar_proc_cpu_t cpu;
