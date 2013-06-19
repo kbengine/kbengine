@@ -190,7 +190,7 @@ public:
 				return false;
 			}
 
-			MachineInterface::onBroadcastInterfaceArgs18 args;
+			MachineInterface::onBroadcastInterfaceArgs20 args;
 			int32 timeout = 100000;
 RESTART_RECV:
 			if(bhandler.receive(&args, 0, timeout))
@@ -227,7 +227,8 @@ RESTART_RECV:
 
 					Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
 						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
-						args.intaddr, args.intport, args.extaddr, args.extport, args.pid, args.cpu, args.mem, args.usedmem, args.extradata);
+						args.intaddr, args.intport, args.extaddr, args.extport, args.pid, args.cpu, args.mem, args.usedmem, 
+						args.extradata, args.extradata1, args.extradata2);
 					
 					isContinue = true;
 				}while(bhandler.pCurrPacket()->opsize() > 0);

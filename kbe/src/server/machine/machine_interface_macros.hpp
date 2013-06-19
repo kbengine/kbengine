@@ -1572,5 +1572,209 @@ namespace KBEngine{
 											ARG_TYPE17, ARG_NAME17,				\
 											ARG_TYPE18, ARG_NAME18)				\
 
+
+/**
+	Machine消息宏，  只有二十个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef MACHINE_MESSAGE_HANDLER_ARGS20
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(MACHINE)
+#define MACHINE_MESSAGE_HANDLER_ARGS20(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11,				\
+											ARG_TYPE12, ARG_NAME12,				\
+											ARG_TYPE13, ARG_NAME13,				\
+											ARG_TYPE14, ARG_NAME14,				\
+											ARG_TYPE15, ARG_NAME15,				\
+											ARG_TYPE16, ARG_NAME16,				\
+											ARG_TYPE17, ARG_NAME17,				\
+											ARG_TYPE18, ARG_NAME18,				\
+											ARG_TYPE19, ARG_NAME19,				\
+											ARG_TYPE20, ARG_NAME20)				\
+	void NAME##MachineMessagehandler20::handle(Mercury::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			ARG_TYPE1 ARG_NAME1;												\
+			s >> ARG_NAME1;														\
+			ARG_TYPE2 ARG_NAME2;												\
+			s >> ARG_NAME2;														\
+			ARG_TYPE3 ARG_NAME3;												\
+			s >> ARG_NAME3;														\
+			ARG_TYPE4 ARG_NAME4;												\
+			s >> ARG_NAME4;														\
+			ARG_TYPE5 ARG_NAME5;												\
+			s >> ARG_NAME5;														\
+			ARG_TYPE6 ARG_NAME6;												\
+			s >> ARG_NAME6;														\
+			ARG_TYPE7 ARG_NAME7;												\
+			s >> ARG_NAME7;														\
+			ARG_TYPE8 ARG_NAME8;												\
+			s >> ARG_NAME8;														\
+			ARG_TYPE9 ARG_NAME9;												\
+			s >> ARG_NAME9;														\
+			ARG_TYPE10 ARG_NAME10;												\
+			s >> ARG_NAME10;													\
+			ARG_TYPE11 ARG_NAME11;												\
+			s >> ARG_NAME11;													\
+			ARG_TYPE12 ARG_NAME12;												\
+			s >> ARG_NAME12;													\
+			ARG_TYPE13 ARG_NAME13;												\
+			s >> ARG_NAME13;													\
+			ARG_TYPE14 ARG_NAME14;												\
+			s >> ARG_NAME14;													\
+			ARG_TYPE15 ARG_NAME15;												\
+			s >> ARG_NAME15;													\
+			ARG_TYPE16 ARG_NAME16;												\
+			s >> ARG_NAME16;													\
+			ARG_TYPE17 ARG_NAME17;												\
+			s >> ARG_NAME17;													\
+			ARG_TYPE18 ARG_NAME18;												\
+			s >> ARG_NAME18;													\
+			ARG_TYPE19 ARG_NAME19;												\
+			s >> ARG_NAME19;													\
+			ARG_TYPE20 ARG_NAME20;												\
+			s >> ARG_NAME20;													\
+			KBEngine::Machine::getSingleton().NAME(pChannel,					\
+										ARG_NAME1, ARG_NAME2, ARG_NAME3, 		\
+										ARG_NAME4, ARG_NAME5, ARG_NAME6,		\
+										ARG_NAME7, ARG_NAME8, ARG_NAME9,		\
+										ARG_NAME10, ARG_NAME11, ARG_NAME12,		\
+										ARG_NAME13, ARG_NAME14, ARG_NAME15,		\
+										ARG_NAME16, ARG_NAME17, ARG_NAME18,		\
+										ARG_NAME19, ARG_NAME20);				\
+	}																			\
+
+#else
+#define MACHINE_MESSAGE_HANDLER_ARGS20(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11,				\
+											ARG_TYPE12, ARG_NAME12,				\
+											ARG_TYPE13, ARG_NAME13,				\
+											ARG_TYPE14, ARG_NAME14,				\
+											ARG_TYPE15, ARG_NAME15,				\
+											ARG_TYPE16, ARG_NAME16,				\
+											ARG_TYPE17, ARG_NAME17,				\
+											ARG_TYPE18, ARG_NAME18,				\
+											ARG_TYPE19, ARG_NAME19,				\
+											ARG_TYPE20, ARG_NAME20)				\
+	void NAME##MachineMessagehandler20::handle(Mercury::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define MACHINE_MESSAGE_HANDLER_ARGS20(NAME, ARG_TYPE1, ARG_NAME1,				\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11,				\
+											ARG_TYPE12, ARG_NAME12,				\
+											ARG_TYPE13, ARG_NAME13,				\
+											ARG_TYPE14, ARG_NAME14,				\
+											ARG_TYPE15, ARG_NAME15,				\
+											ARG_TYPE16, ARG_NAME16,				\
+											ARG_TYPE17, ARG_NAME17,				\
+											ARG_TYPE18, ARG_NAME18,				\
+											ARG_TYPE19, ARG_NAME19,				\
+											ARG_TYPE20, ARG_NAME20)				\
+	class NAME##MachineMessagehandler20 : public Mercury::MessageHandler		\
+	{																			\
+	public:																		\
+		virtual void handle(Mercury::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define MACHINE_MESSAGE_DECLARE_ARGS20(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11,				\
+											ARG_TYPE12, ARG_NAME12,				\
+											ARG_TYPE13, ARG_NAME13,				\
+											ARG_TYPE14, ARG_NAME14,				\
+											ARG_TYPE15, ARG_NAME15,				\
+											ARG_TYPE16, ARG_NAME16,				\
+											ARG_TYPE17, ARG_NAME17,				\
+											ARG_TYPE18, ARG_NAME18,				\
+											ARG_TYPE19, ARG_NAME19,				\
+											ARG_TYPE20, ARG_NAME20)				\
+	MACHINE_MESSAGE_HANDLER_ARGS20(NAME, ARG_TYPE1, ARG_NAME1, 					\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11,				\
+											ARG_TYPE12, ARG_NAME12,				\
+											ARG_TYPE13, ARG_NAME13,				\
+											ARG_TYPE14, ARG_NAME14,				\
+											ARG_TYPE15, ARG_NAME15,				\
+											ARG_TYPE16, ARG_NAME16,				\
+											ARG_TYPE17, ARG_NAME17,				\
+											ARG_TYPE18, ARG_NAME18,				\
+											ARG_TYPE19, ARG_NAME19,				\
+											ARG_TYPE20, ARG_NAME20)				\
+	NETWORK_MESSAGE_DECLARE_ARGS20(Machine, NAME,								\
+				NAME##MachineMessagehandler20, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,\
+											ARG_TYPE2, ARG_NAME2,				\
+											ARG_TYPE3, ARG_NAME3,				\
+											ARG_TYPE4, ARG_NAME4,				\
+											ARG_TYPE5, ARG_NAME5,				\
+											ARG_TYPE6, ARG_NAME6,				\
+											ARG_TYPE7, ARG_NAME7,				\
+											ARG_TYPE8, ARG_NAME8,				\
+											ARG_TYPE9, ARG_NAME9,				\
+											ARG_TYPE10, ARG_NAME10,				\
+											ARG_TYPE11, ARG_NAME11,				\
+											ARG_TYPE12, ARG_NAME12,				\
+											ARG_TYPE13, ARG_NAME13,				\
+											ARG_TYPE14, ARG_NAME14,				\
+											ARG_TYPE15, ARG_NAME15,				\
+											ARG_TYPE16, ARG_NAME16,				\
+											ARG_TYPE17, ARG_NAME17,				\
+											ARG_TYPE18, ARG_NAME18,				\
+											ARG_TYPE19, ARG_NAME19,				\
+											ARG_TYPE20, ARG_NAME20)				\
+
+
+
 }
 #endif

@@ -69,7 +69,8 @@ public:
 							int8 globalorderid, int8 grouporderid,
 							uint32 intaddr, uint16 intport,
 							uint32 extaddr, uint16 extport, uint32 pid,
-							float cpu, float mem, uint32 usedmem, int8 state, uint32 machineID, uint64 extradata);
+							float cpu, float mem, uint32 usedmem, int8 state, uint32 machineID, uint64 extradata,
+							uint64 extradata1, uint64 extradata2);
 	
 	/** 网络接口
 		某个app寻找另一个app的地址

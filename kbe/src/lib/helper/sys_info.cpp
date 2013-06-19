@@ -57,7 +57,10 @@ bool hasPID(int pid, sigar_proc_list_t* proclist)
 //-------------------------------------------------------------------------------------
 SystemInfo::SystemInfo()
 {
+	totalmem_ = 0;
 	_autocreate();
+	// getCPUPer();
+	// getProcessInfo();
 }
 
 //-------------------------------------------------------------------------------------
@@ -217,7 +220,7 @@ float SystemInfo::getCPUPer()
 	 
 	float ret = float(perc.combined) * 100.f;
 	//sigar_close(sigar_cpu);
-	DEBUG_MSG(boost::format("SystemInfo::getCPUPer(): %f\n") % ret);
+	// DEBUG_MSG(boost::format("SystemInfo::getCPUPer(): %f\n") % ret);
 	return ret;
 }
 
@@ -316,11 +319,20 @@ SystemInfo::MEM_INFOS SystemInfo::getMemInfos()
 	sigar_mem_get(sigar, &sigar_mem);
 
 	infos.total = sigar_mem.total;
-	infos.free = sigar_mem.free;
-	infos.used = sigar_mem.used;
+	infos.free = sigar_mem.actual_free;
+	infos.used = sigar_mem.actual_used;
 
 	sigar_close(sigar);
 	return infos;
+}
+
+//-------------------------------------------------------------------------------------
+uint64 SystemInfo::totalmem()
+{
+	if(totalmem_ == 0)
+		totalmem_ = getMemInfos().total;
+
+	return totalmem_;
 }
 
 //-------------------------------------------------------------------------------------

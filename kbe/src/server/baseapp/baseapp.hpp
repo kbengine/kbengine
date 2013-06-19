@@ -333,6 +333,21 @@ public:
 	*/
 	int32 numProxices()const{ return numProxices_; }
 
+	/**
+		增加numClients计数
+	*/
+	void incClientCount(){ ++numClients_; }
+
+	/**
+		减少numClients计数
+	*/
+	void decClientCount(){ --numClients_; }
+
+	/**
+		获得numClients计数
+	*/
+	int32 numClients()const{ return numClients_; }
+	
 	/** 
 		请求充值
 	*/
@@ -358,6 +373,11 @@ public:
 		某个baseapp上的space恢复了cell， 判断当前baseapp是否有相关entity需要恢复cell
 	*/
 	void onRestoreSpaceCellFromOtherBaseapp(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+		某个app请求查看该app
+	*/
+	virtual void lookApp(Mercury::Channel* pChannel);
 protected:
 	TimerHandle												loopCheckTimerHandle_;
 
@@ -377,6 +397,7 @@ protected:
 	static uint64											_g_lastTimestamp;
 
 	int32													numProxices_;
+	int32													numClients_;
 
 	TelnetServer*											pTelnetServer_;
 

@@ -108,7 +108,7 @@ void Components::addComponent(int32 uid, const char* username,
 			COMPONENT_TYPE componentType, COMPONENT_ID componentID, int8 globalorderid, int8 grouporderid,
 			uint32 intaddr, uint16 intport, 
 			uint32 extaddr, uint16 extport, uint32 pid,
-			float cpu, float mem, uint32 usedmem, uint64 extradata,
+			float cpu, float mem, uint32 usedmem, uint64 extradata, uint64 extradata1, uint64 extradata2,
 			Mercury::Channel* pChannel)
 {
 	COMPONENTS& components = getComponents(componentType);
@@ -140,6 +140,8 @@ void Components::addComponent(int32 uid, const char* username,
 	componentInfos.cpu = cpu;
 	componentInfos.usedmem = usedmem;
 	componentInfos.extradata = extradata;
+	componentInfos.extradata1 = extradata1;
+	componentInfos.extradata2 = extradata2;
 	componentInfos.pid = pid;
 
 	if(pChannel)
@@ -515,6 +517,31 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 		return true;
 	}
 
+	bool islocal = _pNetworkInterface->intaddr().ip == info->pIntAddr->ip ||
+			_pNetworkInterface->extaddr().ip == info->pIntAddr->ip;
+
+	// 如果是本机应用则判断是否还在运行中
+	if(islocal && info->pid > 0)
+	{
+		SystemInfo::PROCESS_INFOS sysinfos = SystemInfo::getSingleton().getProcessInfo(info->pid);
+		if(sysinfos.error)
+		{
+			WARNING_MSG(boost::format("Components::checkComponentUsable: not found pid(%1%)\n") % info->pid);
+			//return false;
+		}
+		else
+		{
+			Components::ComponentInfos* winfo = findComponent(info->cid);
+			if(winfo)
+			{
+				winfo->cpu = sysinfos.cpu;
+				winfo->usedmem = sysinfos.memused;
+
+				winfo->mem = float((winfo->usedmem * 1.0 / SystemInfo::getSingleton().totalmem()) * 100.0);
+			}
+		}
+	}
+
 	Mercury::EndPoint epListen;
 	epListen.socket(SOCK_STREAM);
 	if (!epListen.good())
@@ -585,10 +612,23 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 		COMPONENT_TYPE ctype;
 		COMPONENT_ID cid;
 		int8 istate = 0;
+		ArraySize entitySize = 0, cellSize = 0;
+		int32 clientsSize = 0;
 
 		Mercury::TCPPacket packet;
 		packet.resize(255);
 		int recvsize = sizeof(ctype) + sizeof(cid) + sizeof(istate);
+
+		if(info->componentType == CELLAPP_TYPE)
+		{
+			recvsize += sizeof(entitySize) + sizeof(cellSize);
+		}
+
+		if(info->componentType == BASEAPP_TYPE)
+		{
+			recvsize += sizeof(entitySize) + sizeof(clientsSize);
+		}
+
 		int len = epListen.recv(packet.data(), recvsize);
 		packet.wpos(len);
 		
@@ -604,6 +644,16 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 		}
 
 		packet >> ctype >> cid >> istate;
+		
+		if(ctype == CELLAPP_TYPE)
+		{
+			packet >> entitySize >> cellSize;
+		}
+
+		if(ctype == BASEAPP_TYPE)
+		{
+			packet >> entitySize >> clientsSize;
+		}
 
 		if(ctype != info->componentType || cid != info->cid)
 		{
@@ -615,7 +665,21 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 
 		Components::ComponentInfos* winfo = findComponent(info->cid);
 		if(winfo)
+		{
 			winfo->shutdownState = istate;
+
+			if(ctype == CELLAPP_TYPE)
+			{
+				winfo->extradata = entitySize;
+				winfo->extradata1 = cellSize;
+			}
+			
+			if(ctype == BASEAPP_TYPE)
+			{
+				winfo->extradata = entitySize;
+				winfo->extradata1 = clientsSize;
+			}
+		}
 	}
 
 	return true;

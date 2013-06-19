@@ -123,6 +123,7 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 	pBackupSender_(),
 	load_(0.f),
 	numProxices_(0),
+	numClients_(0),
 	pTelnetServer_(NULL),
 	pRestoreEntityHandlers_()
 {
@@ -222,6 +223,7 @@ bool Baseapp::initializeWatcher()
 	ProfileVal::setWarningPeriod(stampsPerSecond() / g_kbeSrvConfig.gameUpdateHertz());
 
 	WATCH_OBJECT("numProxices", this, &Baseapp::numProxices);
+	WATCH_OBJECT("numClients", this, &Baseapp::numClients);
 	WATCH_OBJECT("load", this, &Baseapp::getLoad);
 	WATCH_OBJECT("stats/runningTime", &runningTime);
 	return EntityApp<Base>::initializeWatcher();
@@ -595,6 +597,7 @@ void Baseapp::onChannelDeregister(Mercury::Channel * pChannel)
 	// 有关联entity的客户端退出则需要设置entity的client
 	if(pid > 0)
 	{
+		decClientCount();
 		Proxy* proxy = static_cast<Proxy*>(this->findEntity(pid));
 		if(proxy)
 		{
@@ -1968,6 +1971,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 					INFO_MSG("Baseapp::loginGateway: script LOG_ON_ACCEPT.\n");
 				}
 				
+				incClientCount();
 				base->getClientMailbox()->addr(pChannel->addr());
 				base->addr(pChannel->addr());
 				createClientProxies(base, true);
@@ -1978,6 +1982,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 				EntityMailbox* entityClientMailbox = new EntityMailbox(base->getScriptModule(), 
 					&pChannel->addr(), 0, base->getID(), MAILBOX_TYPE_CLIENT);
 
+				incClientCount();
 				base->setClientMailbox(entityClientMailbox);
 				base->addr(pChannel->addr());
 
@@ -2105,6 +2110,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 		EntityMailbox* entityClientMailbox = new EntityMailbox(base->getScriptModule(), 
 			&pClientChannel->addr(), 0, base->getID(), MAILBOX_TYPE_CLIENT);
 
+		incClientCount();
 		base->setClientMailbox(entityClientMailbox);
 		base->addr(pClientChannel->addr());
 
@@ -2511,6 +2517,29 @@ void Baseapp::onHello(Mercury::Channel* pChannel,
 				% pChannel->c_str());
 		}
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::lookApp(Mercury::Channel* pChannel)
+{
+	if(pChannel->isExternal())
+		return;
+
+	DEBUG_MSG(boost::format("Baseapp::lookApp: %1%\n") % pChannel->c_str());
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	(*pBundle) << g_componentType;
+	(*pBundle) << componentID_;
+
+	ShutdownHandler::SHUTDOWN_STATE state = shuttingdown();
+	int8 istate = int8(state);
+	(*pBundle) << istate;
+	(*pBundle) << this->entitiesSize();
+	(*pBundle) << numClients();
+	(*pBundle).send(getNetworkInterface(), pChannel);
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

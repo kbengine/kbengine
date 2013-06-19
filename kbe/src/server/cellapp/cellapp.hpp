@@ -189,6 +189,11 @@ public:
 		hook mailboxcall
 	*/
 	RemoteEntityMethod* createMailboxCallEntityRemoteMethod(MethodDescription* md, EntityMailbox* pMailbox);
+
+	/** 网络接口
+		某个app请求查看该app
+	*/
+	virtual void lookApp(Mercury::Channel* pChannel);
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;

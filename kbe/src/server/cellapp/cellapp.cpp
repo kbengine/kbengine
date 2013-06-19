@@ -1173,5 +1173,28 @@ bool Cellapp::removeUpdatable(Updatable* pObject)
 }
 
 //-------------------------------------------------------------------------------------
+void Cellapp::lookApp(Mercury::Channel* pChannel)
+{
+	if(pChannel->isExternal())
+		return;
+
+	DEBUG_MSG(boost::format("Cellapp::lookApp: %1%\n") % pChannel->c_str());
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	(*pBundle) << g_componentType;
+	(*pBundle) << componentID_;
+
+	ShutdownHandler::SHUTDOWN_STATE state = shuttingdown();
+	int8 istate = int8(state);
+	(*pBundle) << istate;
+	(*pBundle) << this->entitiesSize();
+	(*pBundle) << cells_.size();
+	(*pBundle).send(getNetworkInterface(), pChannel);
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
 
 }

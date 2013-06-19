@@ -56,6 +56,8 @@ public:
 
 	uint32 countCPU();
 
+	uint64 totalmem();
+
 	SystemInfo::PROCESS_INFOS getProcessInfo(uint32 pid = 0);
 
 	void update();
@@ -63,6 +65,7 @@ public:
 	void clear();
 private:
 	bool _autocreate();
+	uint64 totalmem_;
 };
 
 }
