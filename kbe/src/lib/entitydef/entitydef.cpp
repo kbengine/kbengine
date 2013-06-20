@@ -655,7 +655,7 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 		XML_FOR_BEGIN(defMethodNode)
 		{
 			std::string name = xml->getKey(defMethodNode);
-			MethodDescription* methodDescription = new MethodDescription(0, name);
+			MethodDescription* methodDescription = new MethodDescription(0, CELLAPP_TYPE, name);
 			TiXmlNode* argNode = defMethodNode->FirstChild();
 			
 			// 可能没有参数
@@ -739,7 +739,7 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 		XML_FOR_BEGIN(defMethodNode)
 		{
 			std::string name = xml->getKey(defMethodNode);
-			MethodDescription* methodDescription = new MethodDescription(0, name);
+			MethodDescription* methodDescription = new MethodDescription(0, BASEAPP_TYPE, name);
 			TiXmlNode* argNode = defMethodNode->FirstChild();
 
 			// 可能没有参数
@@ -823,7 +823,7 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml
 		XML_FOR_BEGIN(defMethodNode)
 		{
 			std::string name = xml->getKey(defMethodNode);
-			MethodDescription* methodDescription = new MethodDescription(0, name);
+			MethodDescription* methodDescription = new MethodDescription(0, CLIENT_TYPE, name);
 			TiXmlNode* argNode = defMethodNode->FirstChild();
 
 			// 可能没有参数

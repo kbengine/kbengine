@@ -45,7 +45,7 @@ namespace KBEngine{
 class MethodDescription
 {
 public:	
-	MethodDescription(ENTITY_METHOD_UID utype, 
+	MethodDescription(ENTITY_METHOD_UID utype, COMPONENT_ID domain,
 		std::string name, 
 		bool isExposed = false);
 
@@ -90,7 +90,15 @@ public:
 	PyObject* call(PyObject* func, PyObject* args);	
 
 	INLINE void currCallerID(ENTITY_ID eid);
-protected:	
+
+	COMPONENT_ID domain()const{ return methodDomain_; }
+
+	bool isClient()const{ return !isCell() && !isBase(); }
+	bool isCell()const{ return methodDomain_ == CELLAPP_TYPE; }
+	bool isBase()const{ return methodDomain_ == BASEAPP_TYPE; }
+protected:
+	COMPONENT_ID							methodDomain_;
+
 	static uint32							methodDescriptionCount_;					// 所有的属性描述的数量
 
 	std::string								name_;										// 这个方法的名称

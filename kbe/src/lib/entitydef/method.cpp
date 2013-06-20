@@ -31,9 +31,10 @@ namespace KBEngine{
 uint32	MethodDescription::methodDescriptionCount_ = 0;
 	
 //-------------------------------------------------------------------------------------
-MethodDescription::MethodDescription(ENTITY_METHOD_UID utype, 
+MethodDescription::MethodDescription(ENTITY_METHOD_UID utype, COMPONENT_ID domain,
 									 std::string name, 
 									 bool isExposed):
+methodDomain_(domain),
 name_(name),
 utype_(utype),
 argTypes_(),
@@ -85,15 +86,16 @@ bool MethodDescription::checkArgs(PyObject* args)
 		return false;
 	}
 	
-	int offset = (isExposed() == true && g_componentType == CELLAPP_TYPE) ? 1 : 0;
+	int offset = (isExposed() == true && g_componentType == CELLAPP_TYPE && isCell()) ? 1 : 0;
 	uint8 argsSize = argTypes_.size();
 	uint8 giveArgsSize = PyTuple_Size(args);
 
 	if (giveArgsSize != argsSize + offset)
 	{
-		PyErr_Format(PyExc_TypeError, "Method::checkArgs: method[%s] requires exactly %d argument%s; %d given", 
+		PyErr_Format(PyExc_TypeError, "Method::checkArgs: method[%s] requires exactly %d argument%s%s; %d given", 
 				getName(),
 				argsSize,
+				(offset > 0) ? " + exposed(1)" : "",
 				(argsSize == 1) ? "" : "s",
 				PyTuple_Size(args));
 
@@ -156,7 +158,7 @@ void MethodDescription::addToStream(MemoryStream* mstream, PyObject* args)
 	(*mstream) << utype_;
 
 	// 如果是exposed方法则先将entityID打包进去
-	if(isExposed())
+	if(isExposed() && g_componentType == CELLAPP_TYPE && isCell())
 	{
 		offset = 1;
 		ENTITY_ID eid = PyLong_AsLong(PyTuple_GetItem(args, 0));
@@ -178,7 +180,7 @@ PyObject* MethodDescription::createFromStream(MemoryStream* mstream)
 	PyObject* pyArgsTuple = NULL;
 	int offset = 0;
 	
-	if(isExposed() && g_componentType == CELLAPP_TYPE)
+	if(isExposed() && g_componentType == CELLAPP_TYPE && isCell())
 	{
 		offset = 1;
 		pyArgsTuple = PyTuple_New(argSize + offset);
