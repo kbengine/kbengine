@@ -14,8 +14,8 @@ ifneq ($(CURDIR),$(KBE_ROOT)kbe/src/examples)
 endif
 endif
 
-	$(MAKE) -C ../lib $@
-	$(MAKE) -C testnetwork $@
+	#$(MAKE) -C ../lib $@
+	#$(MAKE) -C testnetwork $@
 
 ifdef KBE_CONFIG
 	@echo completed $@ \(KBE_CONFIG = $(KBE_CONFIG)\)

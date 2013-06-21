@@ -1628,6 +1628,15 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 		datas.assign(buffer, length);
 	}
 
+	if(Baseapp::getSingleton().isShuttingdown())
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge(%s): shuttingdown, operation not allowed! dbid=%"PRIu64, 
+			pChargeID, dbid);
+
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
 	Baseapp::getSingleton().charge(pChargeID, dbid, datas, pycallback);
 	S_Return;
 }
@@ -1635,7 +1644,8 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Baseapp::charge(std::string chargeID, DBID dbid, const std::string& datas, PyObject* pycallback)
 {
-	CALLBACK_ID callbackID = callbackMgr().save(pycallback, uint64(g_kbeSrvConfig.billingSystem_orders_timeout_ + g_kbeSrvConfig.callback_timeout_));
+	CALLBACK_ID callbackID = callbackMgr().save(pycallback, uint64(g_kbeSrvConfig.billingSystem_orders_timeout_ + 
+		g_kbeSrvConfig.callback_timeout_));
 
 	INFO_MSG(boost::format("Baseapp::charge: chargeID=%1%, dbid=%4%, datas=%2%, pycallback=%3%.\n") % 
 		chargeID %
