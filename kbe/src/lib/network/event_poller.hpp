@@ -57,6 +57,7 @@ public:
 
 	static EventPoller * create();
 
+	InputNotificationHandler* find(int fd, bool isForRead);
 protected:
 	virtual bool doRegisterForRead(int fd) = 0;
 	virtual bool doRegisterForWrite(int fd) = 0;
@@ -71,7 +72,7 @@ protected:
 	bool trigger(int fd, FDHandlers & handlers);
 	
 	bool isRegistered(int fd, bool isForRead) const;
-	
+
 	int maxFD() const;
 
 private:

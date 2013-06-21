@@ -23,6 +23,19 @@ namespace KBEngine {
 namespace Mercury
 {
 
+INLINE EndPoint::EndPoint(int fd):
+#if KBE_PLATFORM == PLATFORM_WIN32
+socket_(fd)
+#else
+socket_(fd)
+#endif
+{
+	if(socket_ > 0)
+	{
+		address_ = this->getLocalAddress();
+	}
+}
+
 INLINE EndPoint::EndPoint(u_int32_t networkAddr, u_int16_t networkPort):
 #if KBE_PLATFORM == PLATFORM_WIN32
 socket_(INVALID_SOCKET)

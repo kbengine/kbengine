@@ -88,6 +88,7 @@ public:
 	ErrorReporter & errorReporter()	{ return *pErrorReporter_; }
 
 	INLINE EventPoller* createPoller();
+	EventPoller* pPoller(){ return pPoller_; }
 private:
 	TimerHandle addTimerCommon(int64 microseconds,
 		TimerHandler * handler,

@@ -128,6 +128,20 @@ bool EventPoller::isRegistered(int fd, bool isForRead) const
 }
 
 //-------------------------------------------------------------------------------------
+InputNotificationHandler* EventPoller::find(int fd, bool isForRead)
+{
+	FDHandlers & handlers =
+		isForRead ? fdReadHandlers_ : fdWriteHandlers_;
+
+	FDHandlers::iterator iter = handlers.find(fd);
+	
+	if(iter == handlers.end())
+		return NULL;
+
+	return iter->second;
+}
+
+//-------------------------------------------------------------------------------------
 int EventPoller::handleInputNotification(int fd)
 {
 
