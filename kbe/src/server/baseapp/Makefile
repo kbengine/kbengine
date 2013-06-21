@@ -14,6 +14,7 @@ SRCS =						\
 	main					\
 	proxy					\
 	proxy_sender				\
+	py_file_descriptor			\
 	profile
 
 ASMS =
