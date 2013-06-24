@@ -214,6 +214,8 @@ public:
 
 	virtual void onMainThreadTick();
 	
+	bool hasThread(TPThread* pTPThread);
+
 	/**
 		获取当前线程总数
 	*/	
@@ -287,11 +289,12 @@ public:
 	*/
 	INLINE uint32 finiTaskSize()const;
 public:
+	static int timeout;
 
 	/**
 		创建一个线程池线程
 	*/
-	virtual TPThread* createThread(int threadWaitSecond = 0);
+	virtual TPThread* createThread(int threadWaitSecond = ThreadPool::timeout);
 
 	/**
 		将某个任务保存到未处理列表

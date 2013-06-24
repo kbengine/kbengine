@@ -31,6 +31,8 @@ namespace KBEngine{
 KBE_SINGLETON_INIT(KBEngine::thread::ThreadPool);
 namespace thread{
 
+int ThreadPool::timeout = 300;
+
 //-------------------------------------------------------------------------------------
 THREAD_ID TPThread::createThread(void)
 {
@@ -517,6 +519,18 @@ bool ThreadPool::addTask(TPTask* tptask)
 }
 
 //-------------------------------------------------------------------------------------
+bool ThreadPool::hasThread(TPThread* pTPThread)
+{
+	bool ret = true;
+	THREAD_MUTEX_LOCK(threadStateList_mutex_);
+	std::list<TPThread*>::iterator itr1 = find(allThreadList_.begin(), allThreadList_.end(), pTPThread);
+	if(itr1 == allThreadList_.end())
+		ret = false;
+	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
 #if KBE_PLATFORM == PLATFORM_WIN32
 unsigned __stdcall TPThread::threadFunc(void *arg)
 #else	
@@ -524,6 +538,7 @@ void* TPThread::threadFunc(void* arg)
 #endif
 {
 	TPThread * tptd = static_cast<TPThread*>(arg);
+	ThreadPool* pThreadPool = tptd->threadPool();
 	bool isRun = true;
 
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -544,8 +559,11 @@ void* TPThread::threadFunc(void* arg)
 			isRun = tptd->onWaitCondSignal();
 		}
 
-		if(!isRun || tptd->threadPool()->isDestroyed())
+		if(!isRun || pThreadPool->isDestroyed())
 		{
+			if(!pThreadPool->hasThread(tptd))
+				tptd = NULL;
+
 			goto __THREAD_END__;
 		}
 
@@ -577,19 +595,20 @@ void* TPThread::threadFunc(void* arg)
 	}
 
 __THREAD_END__:
-	TPTask * task = tptd->getTask();
-	if(task)
-	{
-		WARNING_MSG(boost::format("TPThread::threadFunc: task %1% not finish, thread.%2% will exit.\n") % 
-			task % tptd);
-
-		delete task;
-	}
-
 	if(tptd)
+	{
+		TPTask * task = tptd->getTask();
+		if(task)
+		{
+			WARNING_MSG(boost::format("TPThread::threadFunc: task %1% not finish, thread.%2% will exit.\n") % 
+				task % tptd);
+
+			delete task;
+		}
+
 		tptd->onEnd();
-	
-	tptd->state_ = THREAD_STATE_END;
+		tptd->state_ = THREAD_STATE_END;
+	}
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	return 0;

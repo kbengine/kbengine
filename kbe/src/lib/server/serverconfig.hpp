@@ -240,6 +240,9 @@ public:
 	float shutdown_waitTickTime_;
 
 	float callback_timeout_;										// callback默认超时时间(秒)
+
+	float thread_timeout_;											// 默认超时时间(秒)
+	uint32 thread_init_create_, thread_pre_create_, thread_max_create_;
 };
 
 #define g_kbeSrvConfig ServerConfig::getSingleton()

@@ -39,7 +39,11 @@ billingSystem_thirdpartyChargeServicePort_(80),
 billingSystem_thirdpartyServiceCBPort_(0),
 shutdown_time_(1.f),
 shutdown_waitTickTime_(1.f),
-callback_timeout_(180.f)
+callback_timeout_(180.f),
+thread_timeout_(300.f),
+thread_init_create_(1),
+thread_pre_create_(2),
+thread_max_create_(8)
 {
 }
 
@@ -132,6 +136,34 @@ bool ServerConfig::loadConfig(std::string fileName)
 			callback_timeout_ = 5.f;
 	}
 	
+	rootNode = xml->getRootNode("thread_pool");
+	if(rootNode != NULL)
+	{
+		TiXmlNode* childnode = xml->enterNode(rootNode, "timeout");
+		if(childnode)
+		{
+			thread_timeout_ = KBE_MAX(1.f, xml->getValFloat(childnode));
+		}
+
+		childnode = xml->enterNode(rootNode, "init_create");
+		if(childnode)
+		{
+			thread_init_create_ = KBE_MAX(1, xml->getValInt(childnode));
+		}
+
+		childnode = xml->enterNode(rootNode, "pre_create");
+		if(childnode)
+		{
+			thread_pre_create_ = KBE_MAX(1, xml->getValInt(childnode));
+		}
+
+		childnode = xml->enterNode(rootNode, "max_create");
+		if(childnode)
+		{
+			thread_max_create_ = KBE_MAX(1, xml->getValInt(childnode));
+		}
+	}
+
 	rootNode = xml->getRootNode("channelCommon");
 	if(rootNode != NULL)
 	{

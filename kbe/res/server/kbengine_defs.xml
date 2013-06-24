@@ -116,6 +116,15 @@
 	<!-- callback默认超时时间(秒) -->
 	<callback_timeout> 300.0 </callback_timeout>
 	
+	<thread_pool>
+		<!-- 默认超时时间(秒) -->
+		<timeout> 300.0 </timeout>
+		
+		<init_create> 1 </init_create>
+		<pre_create> 2 </pre_create>
+		<max_create> 8 </max_create>
+	</thread_pool>
+	
 	<billingSystem>
 		<!-- normal: 普通, thirdparty: 第三方此时需要提供ip地址 -->
 		<type> normal </type>
