@@ -142,7 +142,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 		TiXmlNode* childnode = xml->enterNode(rootNode, "timeout");
 		if(childnode)
 		{
-			thread_timeout_ = KBE_MAX(1.f, xml->getValFloat(childnode));
+			thread_timeout_ = float(KBE_MAX(1.0, xml->getValFloat(childnode)));
 		}
 
 		childnode = xml->enterNode(rootNode, "init_create");
