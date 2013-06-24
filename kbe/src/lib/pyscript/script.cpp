@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "copy.hpp"
 #include "uuid.hpp"
 #include "pystruct.hpp"
+#include "install_py_dlls.hpp"
 #include "resmgr/resmgr.hpp"
 #include "thread/concurrency.hpp"
 
@@ -189,7 +190,13 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	
 	// 注册产生uuid方法到py
 	APPEND_SCRIPT_MODULE_METHOD(module_,		genUUID64,			__py_genUUID64,					METH_VARARGS,			0);
-	
+
+	if(!install_py_dlls())
+	{
+		ERROR_MSG("Script::init: install_py_dlls() is failed!\n");
+		return false;
+	}
+
 #ifndef KBE_SINGLE_THREADED
 	s_pOurInitTimeModules = PyDict_Copy( PySys_GetObject( "modules" ) );
 	s_pMainThreadState = PyThreadState_Get();

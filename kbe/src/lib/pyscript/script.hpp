@@ -41,6 +41,7 @@ namespace KBEngine{ namespace script{
 					L"../../res/scripts;"						\
 					L"../../res/scripts/common;"				\
 					L"../../res/scripts/common/lib-dynload;"	\
+					L"../../res/scripts/common/DLLs;"			\
 					L"../../res/scripts/common/Lib"
 #endif
 

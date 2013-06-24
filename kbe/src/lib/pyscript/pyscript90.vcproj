@@ -161,6 +161,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\install_py_dlls.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\map.cpp"
 				>
 			</File>
@@ -182,10 +186,6 @@
 			</File>
 			<File
 				RelativePath=".\pystruct.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\pywatcher.cpp"
 				>
 			</File>
 			<File
@@ -235,6 +235,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\install_py_dlls.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\map.hpp"
 				>
 			</File>
@@ -272,6 +276,10 @@
 			</File>
 			<File
 				RelativePath=".\pythread_lock.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\pywatcher.cpp"
 				>
 			</File>
 			<File
