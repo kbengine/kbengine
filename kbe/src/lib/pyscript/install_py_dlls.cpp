@@ -37,8 +37,14 @@ typedef PyObject* (*pyfunc)(void);
 extern "C" PyObject* PyInit__socket(void);
 extern "C" PyObject* PyInit__ssl(void);
 extern "C" PyObject* PyInit__hashlib(void);
+extern "C" PyObject* PyInit_select(void);
+extern "C" PyObject* PyInit__ctypes(void);
+extern "C" PyObject* PyInit__elementtree(void);
+extern "C" PyObject* PyInit_unicodedata(void);
+extern "C" PyObject* PyInit_pyexpat(void);
 
-pyfunc g_funs[] = {&PyInit__socket, &PyInit__ssl, &PyInit__hashlib, NULL};
+pyfunc g_funs[] = {&PyInit_pyexpat, &PyInit__socket, &PyInit__ssl, &PyInit__hashlib, 
+&PyInit_select, &PyInit__ctypes, &PyInit__elementtree, &PyInit_unicodedata, NULL};
 
 //-------------------------------------------------------------------------------------
 bool install_py_dlls(void)
