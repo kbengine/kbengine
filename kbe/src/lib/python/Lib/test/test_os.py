@@ -15,6 +15,8 @@ from test import support
 import contextlib
 import mmap
 import uuid
+import stat
+from test.script_helper import assert_python_ok
 
 # Detect whether we're on a Linux system that uses the (now outdated
 # and unmaintained) linuxthreads threading library.  There's an issue
@@ -162,33 +164,33 @@ class StatAttributeTests(unittest.TestCase):
 
         try:
             result[200]
-            self.fail("No exception thrown")
+            self.fail("No exception raised")
         except IndexError:
             pass
 
         # Make sure that assignment fails
         try:
             result.st_mode = 1
-            self.fail("No exception thrown")
+            self.fail("No exception raised")
         except AttributeError:
             pass
 
         try:
             result.st_rdev = 1
-            self.fail("No exception thrown")
+            self.fail("No exception raised")
         except (AttributeError, TypeError):
             pass
 
         try:
             result.parrot = 1
-            self.fail("No exception thrown")
+            self.fail("No exception raised")
         except AttributeError:
             pass
 
         # Use the stat_result constructor with a too-short tuple.
         try:
             result2 = os.stat_result((10,))
-            self.fail("No exception thrown")
+            self.fail("No exception raised")
         except TypeError:
             pass
 
@@ -231,20 +233,20 @@ class StatAttributeTests(unittest.TestCase):
         # Make sure that assignment really fails
         try:
             result.f_bfree = 1
-            self.fail("No exception thrown")
+            self.fail("No exception raised")
         except AttributeError:
             pass
 
         try:
             result.parrot = 1
-            self.fail("No exception thrown")
+            self.fail("No exception raised")
         except AttributeError:
             pass
 
         # Use the constructor with a too-short tuple.
         try:
             result2 = os.statvfs_result((10,))
-            self.fail("No exception thrown")
+            self.fail("No exception raised")
         except TypeError:
             pass
 
@@ -423,6 +425,20 @@ class EnvironTests(mapping_tests.BasicTestMappingProtocol):
         value_str = value.decode(sys.getfilesystemencoding(), 'surrogateescape')
         self.assertEqual(os.environ['bytes'], value_str)
 
+    # On FreeBSD < 7 and OS X < 10.6, unsetenv() doesn't return a value (issue
+    # #13415).
+    @unittest.skipIf(sys.platform.startswith(('freebsd', 'darwin')),
+                     "due to known OS bug: see issue #13415")
+    def test_unset_error(self):
+        if sys.platform == "win32":
+            # an environment variable is limited to 32,767 characters
+            key = 'x' * 50000
+            self.assertRaises(ValueError, os.environ.__delitem__, key)
+        else:
+            # "=" is not allowed in a variable name
+            key = 'key='
+            self.assertRaises(OSError, os.environ.__delitem__, key)
+
 class WalkTests(unittest.TestCase):
     """Tests for os.walk()."""
 
@@ -462,7 +478,12 @@ class WalkTests(unittest.TestCase):
             f.write("I'm " + path + " and proud of it.  Blame test_os.\n")
             f.close()
         if support.can_symlink():
-            os.symlink(os.path.abspath(t2_path), link_path)
+            if os.name == 'nt':
+                def symlink_to_dir(src, dest):
+                    os.symlink(src, dest, True)
+            else:
+                symlink_to_dir = os.symlink
+            symlink_to_dir(os.path.abspath(t2_path), link_path)
             sub2_tree = (sub2_path, ["link"], ["tmp3"])
         else:
             sub2_tree = (sub2_path, [], ["tmp3"])
@@ -554,12 +575,42 @@ class MakedirTests(unittest.TestCase):
         path = os.path.join(support.TESTFN, 'dir1')
         mode = 0o777
         old_mask = os.umask(0o022)
-        os.makedirs(path, mode)
-        self.assertRaises(OSError, os.makedirs, path, mode)
-        self.assertRaises(OSError, os.makedirs, path, mode, exist_ok=False)
-        self.assertRaises(OSError, os.makedirs, path, 0o776, exist_ok=True)
-        os.makedirs(path, mode=mode, exist_ok=True)
-        os.umask(old_mask)
+        try:
+            os.makedirs(path, mode)
+            self.assertRaises(OSError, os.makedirs, path, mode)
+            self.assertRaises(OSError, os.makedirs, path, mode, exist_ok=False)
+            self.assertRaises(OSError, os.makedirs, path, 0o776, exist_ok=True)
+            os.makedirs(path, mode=mode, exist_ok=True)
+        finally:
+            os.umask(old_mask)
+
+    def test_exist_ok_s_isgid_directory(self):
+        path = os.path.join(support.TESTFN, 'dir1')
+        S_ISGID = stat.S_ISGID
+        mode = 0o777
+        old_mask = os.umask(0o022)
+        try:
+            existing_testfn_mode = stat.S_IMODE(
+                    os.lstat(support.TESTFN).st_mode)
+            try:
+                os.chmod(support.TESTFN, existing_testfn_mode | S_ISGID)
+            except OSError:
+                raise unittest.SkipTest('Cannot set S_ISGID for dir.')
+            if (os.lstat(support.TESTFN).st_mode & S_ISGID != S_ISGID):
+                raise unittest.SkipTest('No support for S_ISGID dir mode.')
+            # The os should apply S_ISGID from the parent dir for us, but
+            # this test need not depend on that behavior.  Be explicit.
+            os.makedirs(path, mode | S_ISGID)
+            # http://bugs.python.org/issue14992
+            # Should not fail when the bit is already set.
+            os.makedirs(path, mode, exist_ok=True)
+            # remove the bit.
+            os.chmod(path, stat.S_IMODE(os.lstat(path).st_mode) & ~S_ISGID)
+            with self.assertRaises(OSError):
+                # Should fail when the bit is not already set when demanded.
+                os.makedirs(path, mode | S_ISGID, exist_ok=True)
+        finally:
+            os.umask(old_mask)
 
     def test_exist_ok_existing_regular_file(self):
         base = support.TESTFN
@@ -583,6 +634,50 @@ class MakedirTests(unittest.TestCase):
 
         os.removedirs(path)
 
+
+class RemoveDirsTests(unittest.TestCase):
+    def setUp(self):
+        os.makedirs(support.TESTFN)
+
+    def tearDown(self):
+        support.rmtree(support.TESTFN)
+
+    def test_remove_all(self):
+        dira = os.path.join(support.TESTFN, 'dira')
+        os.mkdir(dira)
+        dirb = os.path.join(dira, 'dirb')
+        os.mkdir(dirb)
+        os.removedirs(dirb)
+        self.assertFalse(os.path.exists(dirb))
+        self.assertFalse(os.path.exists(dira))
+        self.assertFalse(os.path.exists(support.TESTFN))
+
+    def test_remove_partial(self):
+        dira = os.path.join(support.TESTFN, 'dira')
+        os.mkdir(dira)
+        dirb = os.path.join(dira, 'dirb')
+        os.mkdir(dirb)
+        with open(os.path.join(dira, 'file.txt'), 'w') as f:
+            f.write('text')
+        os.removedirs(dirb)
+        self.assertFalse(os.path.exists(dirb))
+        self.assertTrue(os.path.exists(dira))
+        self.assertTrue(os.path.exists(support.TESTFN))
+
+    def test_remove_nothing(self):
+        dira = os.path.join(support.TESTFN, 'dira')
+        os.mkdir(dira)
+        dirb = os.path.join(dira, 'dirb')
+        os.mkdir(dirb)
+        with open(os.path.join(dirb, 'file.txt'), 'w') as f:
+            f.write('text')
+        with self.assertRaises(OSError):
+            os.removedirs(dirb)
+        self.assertTrue(os.path.exists(dirb))
+        self.assertTrue(os.path.exists(dira))
+        self.assertTrue(os.path.exists(support.TESTFN))
+
+
 class DevNullTests(unittest.TestCase):
     def test_devnull(self):
         with open(os.devnull, 'wb') as f:
@@ -591,15 +686,35 @@ class DevNullTests(unittest.TestCase):
         with open(os.devnull, 'rb') as f:
             self.assertEqual(f.read(), b'')
 
+
 class URandomTests(unittest.TestCase):
-    def test_urandom(self):
-        try:
-            self.assertEqual(len(os.urandom(1)), 1)
-            self.assertEqual(len(os.urandom(10)), 10)
-            self.assertEqual(len(os.urandom(100)), 100)
-            self.assertEqual(len(os.urandom(1000)), 1000)
-        except NotImplementedError:
-            pass
+    def test_urandom_length(self):
+        self.assertEqual(len(os.urandom(0)), 0)
+        self.assertEqual(len(os.urandom(1)), 1)
+        self.assertEqual(len(os.urandom(10)), 10)
+        self.assertEqual(len(os.urandom(100)), 100)
+        self.assertEqual(len(os.urandom(1000)), 1000)
+
+    def test_urandom_value(self):
+        data1 = os.urandom(16)
+        data2 = os.urandom(16)
+        self.assertNotEqual(data1, data2)
+
+    def get_urandom_subprocess(self, count):
+        code = '\n'.join((
+            'import os, sys',
+            'data = os.urandom(%s)' % count,
+            'sys.stdout.buffer.write(data)',
+            'sys.stdout.buffer.flush()'))
+        out = assert_python_ok('-c', code)
+        stdout = out[1]
+        self.assertEqual(len(stdout), 16)
+        return stdout
+
+    def test_urandom_subprocess(self):
+        data1 = self.get_urandom_subprocess(16)
+        data2 = self.get_urandom_subprocess(16)
+        self.assertNotEqual(data1, data2)
 
 @contextlib.contextmanager
 def _execvpe_mockup(defpath=None):
@@ -898,6 +1013,8 @@ if sys.platform != 'win32':
         def setUp(self):
             if support.TESTFN_UNENCODABLE:
                 self.dir = support.TESTFN_UNENCODABLE
+            elif support.TESTFN_NONASCII:
+                self.dir = support.TESTFN_NONASCII
             else:
                 self.dir = support.TESTFN
             self.bdir = os.fsencode(self.dir)
@@ -912,6 +1029,8 @@ if sys.platform != 'win32':
             add_filename(support.TESTFN_UNICODE)
             if support.TESTFN_UNENCODABLE:
                 add_filename(support.TESTFN_UNENCODABLE)
+            if support.TESTFN_NONASCII:
+                add_filename(support.TESTFN_NONASCII)
             if not bytesfn:
                 self.skipTest("couldn't create any non-ascii filename")
 
@@ -941,6 +1060,15 @@ if sys.platform != 'win32':
             for fn in self.unicodefn:
                 f = open(os.path.join(self.dir, fn), 'rb')
                 f.close()
+
+        @unittest.skipUnless(hasattr(os, 'statvfs'),
+                             "need os.statvfs()")
+        def test_statvfs(self):
+            # issue #9645
+            for fn in self.unicodefn:
+                # should not fail with file not found error
+                fullname = os.path.join(self.dir, fn)
+                os.statvfs(fullname)
 
         def test_stat(self):
             for fn in self.unicodefn:
@@ -1092,7 +1220,7 @@ class Win32SymlinkTests(unittest.TestCase):
             os.remove(self.missing_link)
 
     def test_directory_link(self):
-        os.symlink(self.dirlink_target, self.dirlink)
+        os.symlink(self.dirlink_target, self.dirlink, True)
         self.assertTrue(os.path.exists(self.dirlink))
         self.assertTrue(os.path.isdir(self.dirlink))
         self.assertTrue(os.path.islink(self.dirlink))
@@ -1240,6 +1368,7 @@ def test_main():
         PidTests,
         LoginTests,
         LinkTests,
+        RemoveDirsTests,
     )
 
 if __name__ == "__main__":

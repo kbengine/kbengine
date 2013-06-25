@@ -3,8 +3,8 @@
 
 .. module:: unicodedata
    :synopsis: Access the Unicode Database.
-.. moduleauthor:: Marc-Andre Lemburg <mal@lemburg.com>
-.. sectionauthor:: Marc-Andre Lemburg <mal@lemburg.com>
+.. moduleauthor:: Marc-André Lemburg <mal@lemburg.com>
+.. sectionauthor:: Marc-André Lemburg <mal@lemburg.com>
 .. sectionauthor:: Martin v. Löwis <martin@v.loewis.de>
 
 
@@ -66,7 +66,7 @@ following functions:
 
 .. function:: bidirectional(chr)
 
-   Returns the bidirectional category assigned to the character *chr* as
+   Returns the bidirectional class assigned to the character *chr* as
    string. If no such value is defined, an empty string is returned.
 
 
@@ -105,7 +105,7 @@ following functions:
    based on the definition of canonical equivalence and compatibility equivalence.
    In Unicode, several characters can be expressed in various way. For example, the
    character U+00C7 (LATIN CAPITAL LETTER C WITH CEDILLA) can also be expressed as
-   the sequence U+0327 (COMBINING CEDILLA) U+0043 (LATIN CAPITAL LETTER C).
+   the sequence U+0043 (LATIN CAPITAL LETTER C) U+0327 (COMBINING CEDILLA).
 
    For each character, there are two normal forms: normal form C and normal form D.
    Normal form D (NFD) is also known as canonical decomposition, and translates

@@ -112,8 +112,13 @@ class _RandomNameSequence:
 
     characters = "abcdefghijklmnopqrstuvwxyz0123456789_"
 
-    def __init__(self):
-        self.rng = _Random()
+    @property
+    def rng(self):
+        cur_pid = _os.getpid()
+        if cur_pid != getattr(self, '_rng_pid', None):
+            self._rng = _Random()
+            self._rng_pid = cur_pid
+        return self._rng
 
     def __iter__(self):
         return self
@@ -170,11 +175,14 @@ def _get_default_tempdir():
             filename = _os.path.join(dir, name)
             try:
                 fd = _os.open(filename, _bin_openflags, 0o600)
-                fp = _io.open(fd, 'wb')
-                fp.write(b'blat')
-                fp.close()
-                _os.unlink(filename)
-                del fp, fd
+                try:
+                    try:
+                        with _io.open(fd, 'wb', closefd=False) as fp:
+                            fp.write(b'blat')
+                    finally:
+                        _os.close(fd)
+                finally:
+                    _os.unlink(filename)
                 return dir
             except (OSError, IOError) as e:
                 if e.args[0] != _errno.EEXIST:
@@ -474,8 +482,8 @@ else:
             raise
 
 class SpooledTemporaryFile:
-    """Temporary file wrapper, specialized to switch from
-    StringIO to a real file when it exceeds a certain size or
+    """Temporary file wrapper, specialized to switch from BytesIO
+    or StringIO to a real file when it exceeds a certain size or
     when a fileno is needed.
     """
     _rolled = False
@@ -541,7 +549,12 @@ class SpooledTemporaryFile:
 
     @property
     def encoding(self):
-        return self._file.encoding
+        try:
+            return self._file.encoding
+        except AttributeError:
+            if 'b' in self._TemporaryFileArgs['mode']:
+                raise
+            return self._TemporaryFileArgs['encoding']
 
     def fileno(self):
         self.rollover()
@@ -555,18 +568,26 @@ class SpooledTemporaryFile:
 
     @property
     def mode(self):
-        return self._file.mode
+        try:
+            return self._file.mode
+        except AttributeError:
+            return self._TemporaryFileArgs['mode']
 
     @property
     def name(self):
-        return self._file.name
+        try:
+            return self._file.name
+        except AttributeError:
+            return None
 
     @property
     def newlines(self):
-        return self._file.newlines
-
-    def next(self):
-        return self._file.next
+        try:
+            return self._file.newlines
+        except AttributeError:
+            if 'b' in self._TemporaryFileArgs['mode']:
+                raise
+            return self._TemporaryFileArgs['newline']
 
     def read(self, *args):
         return self._file.read(*args)
@@ -602,9 +623,6 @@ class SpooledTemporaryFile:
         self._check(file)
         return rv
 
-    def xreadlines(self, *args):
-        return self._file.xreadlines(*args)
-
 
 class TemporaryDirectory(object):
     """Create and return a temporary directory.  This has the same
@@ -620,7 +638,7 @@ class TemporaryDirectory(object):
 
     def __init__(self, suffix="", prefix=template, dir=None):
         self._closed = False
-        self.name = None # Handle mkdtemp throwing an exception
+        self.name = None # Handle mkdtemp raising an exception
         self.name = mkdtemp(suffix, prefix, dir)
 
     def __repr__(self):

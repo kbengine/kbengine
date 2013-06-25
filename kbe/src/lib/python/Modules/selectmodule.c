@@ -83,7 +83,7 @@ seq2set(PyObject *seq, fd_set *set, pylist fd2obj[FD_SETSIZE + 1])
 {
     int max = -1;
     int index = 0;
-    Py_ssize_t i, len = -1;
+    Py_ssize_t i;
     PyObject* fast_seq = NULL;
     PyObject* o = NULL;
 
@@ -94,14 +94,12 @@ seq2set(PyObject *seq, fd_set *set, pylist fd2obj[FD_SETSIZE + 1])
     if (!fast_seq)
         return -1;
 
-    len = PySequence_Fast_GET_SIZE(fast_seq);
-
-    for (i = 0; i < len; i++)  {
+    for (i = 0; i < PySequence_Fast_GET_SIZE(fast_seq); i++)  {
         SOCKET v;
 
         /* any intervening fileno() calls could decr this refcnt */
         if (!(o = PySequence_Fast_GET_ITEM(fast_seq, i)))
-            return -1;
+            goto finally;
 
         Py_INCREF(o);
         v = PyObject_AsFileDescriptor( o );
@@ -110,7 +108,7 @@ seq2set(PyObject *seq, fd_set *set, pylist fd2obj[FD_SETSIZE + 1])
 #if defined(_MSC_VER)
         max = 0;                             /* not used for Win32 */
 #else  /* !_MSC_VER */
-        if (v < 0 || v >= FD_SETSIZE) {
+        if (!_PyIsSelectable_fd(v)) {
             PyErr_SetString(PyExc_ValueError,
                         "filedescriptor out of range in select()");
             goto finally;
@@ -160,13 +158,6 @@ set2list(fd_set *set, pylist fd2obj[FD_SETSIZE + 1])
     for (j = 0; fd2obj[j].sentinel >= 0; j++) {
         fd = fd2obj[j].fd;
         if (FD_ISSET(fd, set)) {
-#ifndef _MSC_VER
-            if (fd > FD_SETSIZE) {
-                PyErr_SetString(PyExc_SystemError,
-               "filedescriptor out of range returned in select()");
-                goto finally;
-            }
-#endif
             o = fd2obj[j].obj;
             fd2obj[j].obj = NULL;
             /* transfer ownership */
@@ -349,10 +340,13 @@ update_ufd_array(pollObject *self)
 
     i = pos = 0;
     while (PyDict_Next(self->dict, &pos, &key, &value)) {
-        self->ufds[i].fd = PyLong_AsLong(key);
+        assert(i < self->ufd_len);
+        /* Never overflow */
+        self->ufds[i].fd = (int)PyLong_AsLong(key);
         self->ufds[i].events = (short)PyLong_AsLong(value);
         i++;
     }
+    assert(i == self->ufd_len);
     self->ufd_uptodate = 1;
     return 1;
 }
@@ -368,10 +362,11 @@ static PyObject *
 poll_register(pollObject *self, PyObject *args)
 {
     PyObject *o, *key, *value;
-    int fd, events = POLLIN | POLLPRI | POLLOUT;
+    int fd;
+    short events = POLLIN | POLLPRI | POLLOUT;
     int err;
 
-    if (!PyArg_ParseTuple(args, "O|i:register", &o, &events)) {
+    if (!PyArg_ParseTuple(args, "O|h:register", &o, &events)) {
         return NULL;
     }
 
@@ -428,6 +423,7 @@ poll_modify(pollObject *self, PyObject *args)
     if (PyDict_GetItem(self->dict, key) == NULL) {
         errno = ENOENT;
         PyErr_SetFromErrno(PyExc_IOError);
+        Py_DECREF(key);
         return NULL;
     }
     value = PyLong_FromLong(events);
@@ -509,7 +505,7 @@ poll_poll(pollObject *self, PyObject *args)
         tout = PyNumber_Long(tout);
         if (!tout)
             return NULL;
-        timeout = PyLong_AsLong(tout);
+        timeout = _PyLong_AsInt(tout);
         Py_DECREF(tout);
         if (timeout == -1 && PyErr_Occurred())
             return NULL;
@@ -1747,7 +1743,7 @@ descriptors can be used.");
 
 static PyMethodDef select_methods[] = {
     {"select",          select_select,  METH_VARARGS,   select_doc},
-#ifdef HAVE_POLL
+#if defined(HAVE_POLL) && !defined(HAVE_BROKEN_POLL)
     {"poll",            select_poll,    METH_NOARGS,    poll_doc},
 #endif /* HAVE_POLL */
     {0,         0},     /* sentinel */
@@ -1792,7 +1788,7 @@ PyInit_select(void)
     PyModule_AddIntConstant(m, "PIPE_BUF", PIPE_BUF);
 #endif
 
-#if defined(HAVE_POLL)
+#if defined(HAVE_POLL) && !defined(HAVE_BROKEN_POLL)
 #ifdef __APPLE__
     if (select_have_broken_poll()) {
         if (PyObject_DelAttrString(m, "poll") == -1) {

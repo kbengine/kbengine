@@ -208,6 +208,9 @@ class Mailbox:
             raise ValueError("String input must be ASCII-only; "
                 "use bytes or a Message instead")
 
+    # Whether each message must end in a newline
+    _append_newline = False
+
     def _dump_message(self, message, target, mangle_from_=False):
         # This assumes the target file is open in binary mode.
         """Dump message contents to target file."""
@@ -219,6 +222,9 @@ class Mailbox:
             data = buffer.read()
             data = data.replace(b'\n', linesep)
             target.write(data)
+            if self._append_newline and not data.endswith(linesep):
+                # Make sure the message ends with a newline
+                target.write(linesep)
         elif isinstance(message, (str, bytes, io.StringIO)):
             if isinstance(message, io.StringIO):
                 warnings.warn("Use of StringIO input is deprecated, "
@@ -230,11 +236,15 @@ class Mailbox:
                 message = message.replace(b'\nFrom ', b'\n>From ')
             message = message.replace(b'\n', linesep)
             target.write(message)
+            if self._append_newline and not message.endswith(linesep):
+                # Make sure the message ends with a newline
+                target.write(linesep)
         elif hasattr(message, 'read'):
             if hasattr(message, 'buffer'):
                 warnings.warn("Use of text mode files is deprecated, "
                     "use a binary mode file instead", DeprecationWarning, 3)
                 message = message.buffer
+            lastline = None
             while True:
                 line = message.readline()
                 # Universal newline support.
@@ -248,6 +258,10 @@ class Mailbox:
                     line = b'>From ' + line[5:]
                 line = line.replace(b'\n', linesep)
                 target.write(line)
+                lastline = line
+            if self._append_newline and lastline and not lastline.endswith(linesep):
+                # Make sure the message ends with a newline
+                target.write(linesep)
         else:
             raise TypeError('Invalid message type: %s' % type(message))
 
@@ -273,11 +287,9 @@ class Maildir(Mailbox):
             else:
                 raise NoSuchMailboxError(self._path)
         self._toc = {}
-        self._toc_mtimes = {}
-        for subdir in ('cur', 'new'):
-            self._toc_mtimes[subdir] = os.path.getmtime(self._paths[subdir])
-        self._last_read = time.time()  # Records last time we read cur/new
-        self._skewfactor = 0.1         # Adjust if os/fs clocks are skewing
+        self._toc_mtimes = {'cur': 0, 'new': 0}
+        self._last_read = 0         # Records last time we read cur/new
+        self._skewfactor = 0.1      # Adjust if os/fs clocks are skewing
 
     def add(self, message):
         """Add message and return assigned key."""
@@ -589,16 +601,19 @@ class _singlefileMailbox(Mailbox):
         self._file = f
         self._toc = None
         self._next_key = 0
-        self._pending = False   # No changes require rewriting the file.
+        self._pending = False       # No changes require rewriting the file.
+        self._pending_sync = False  # No need to sync the file
         self._locked = False
-        self._file_length = None        # Used to record mailbox size
+        self._file_length = None    # Used to record mailbox size
 
     def add(self, message):
         """Add message and return assigned key."""
         self._lookup()
         self._toc[self._next_key] = self._append_message(message)
         self._next_key += 1
-        self._pending = True
+        # _append_message appends the message to the mailbox file. We
+        # don't need a full rewrite + rename, sync is enough.
+        self._pending_sync = True
         return self._next_key - 1
 
     def remove(self, key):
@@ -644,6 +659,11 @@ class _singlefileMailbox(Mailbox):
     def flush(self):
         """Write any pending changes to disk."""
         if not self._pending:
+            if self._pending_sync:
+                # Messages have only been added, so syncing the file
+                # is enough.
+                _sync_flush(self._file)
+                self._pending_sync = False
             return
 
         # In order to be writing anything out at all, self._toc must
@@ -677,6 +697,7 @@ class _singlefileMailbox(Mailbox):
                     new_file.write(buffer)
                 new_toc[key] = (new_start, new_file.tell())
                 self._post_message_hook(new_file)
+            self._file_length = new_file.tell()
         except:
             new_file.close()
             os.remove(new_file.name)
@@ -684,6 +705,9 @@ class _singlefileMailbox(Mailbox):
         _sync_close(new_file)
         # self._file is about to get replaced, so no need to sync.
         self._file.close()
+        # Make sure the new file's mode is the same as the old file's
+        mode = os.stat(self._path).st_mode
+        os.chmod(new_file.name, mode)
         try:
             os.rename(new_file.name, self._path)
         except OSError as e:
@@ -696,6 +720,7 @@ class _singlefileMailbox(Mailbox):
         self._file = open(self._path, 'rb+')
         self._toc = new_toc
         self._pending = False
+        self._pending_sync = False
         if self._locked:
             _lock_file(self._file, dotlock=False)
 
@@ -732,6 +757,12 @@ class _singlefileMailbox(Mailbox):
         """Append message to mailbox and return (start, stop) offsets."""
         self._file.seek(0, 2)
         before = self._file.tell()
+        if len(self._toc) == 0 and not self._pending:
+            # This is the first message, and the _pre_mailbox_hook
+            # hasn't yet been called. If self._pending is True,
+            # messages have been removed, so _pre_mailbox_hook must
+            # have been called already.
+            self._pre_mailbox_hook(self._file)
         try:
             self._pre_message_hook(self._file)
             offsets = self._install_message(message)
@@ -816,30 +847,48 @@ class mbox(_mboxMMDF):
 
     _mangle_from_ = True
 
+    # All messages must end in a newline character, and
+    # _post_message_hooks outputs an empty line between messages.
+    _append_newline = True
+
     def __init__(self, path, factory=None, create=True):
         """Initialize an mbox mailbox."""
         self._message_factory = mboxMessage
         _mboxMMDF.__init__(self, path, factory, create)
 
-    def _pre_message_hook(self, f):
-        """Called before writing each message to file f."""
-        if f.tell() != 0:
-            f.write(linesep)
+    def _post_message_hook(self, f):
+        """Called after writing each message to file f."""
+        f.write(linesep)
 
     def _generate_toc(self):
         """Generate key-to-(start, stop) table of contents."""
         starts, stops = [], []
+        last_was_empty = False
         self._file.seek(0)
         while True:
             line_pos = self._file.tell()
             line = self._file.readline()
             if line.startswith(b'From '):
                 if len(stops) < len(starts):
-                    stops.append(line_pos - len(linesep))
+                    if last_was_empty:
+                        stops.append(line_pos - len(linesep))
+                    else:
+                        # The last line before the "From " line wasn't
+                        # blank, but we consider it a start of a
+                        # message anyway.
+                        stops.append(line_pos)
                 starts.append(line_pos)
+                last_was_empty = False
             elif not line:
-                stops.append(line_pos)
+                if last_was_empty:
+                    stops.append(line_pos - len(linesep))
+                else:
+                    stops.append(line_pos)
                 break
+            elif line == linesep:
+                last_was_empty = True
+            else:
+                last_was_empty = False
         self._toc = dict(enumerate(zip(starts, stops)))
         self._next_key = len(self._toc)
         self._file_length = self._file.tell()
@@ -1426,17 +1475,24 @@ class Babyl(_singlefileMailbox):
                     line = line[:-1] + b'\n'
                 self._file.write(line.replace(b'\n', linesep))
                 if line == b'\n' or not line:
-                    self._file.write(b'*** EOOH ***' + linesep)
                     if first_pass:
                         first_pass = False
+                        self._file.write(b'*** EOOH ***' + linesep)
                         message.seek(original_pos)
                     else:
                         break
             while True:
-                buffer = message.read(4096)     # Buffer size is arbitrary.
-                if not buffer:
+                line = message.readline()
+                if not line:
                     break
-                self._file.write(buffer.replace(b'\n', linesep))
+                # Universal newline support.
+                if line.endswith(b'\r\n'):
+                    line = line[:-2] + linesep
+                elif line.endswith(b'\r'):
+                    line = line[:-1] + linesep
+                elif line.endswith(b'\n'):
+                    line = line[:-1] + linesep
+                self._file.write(line)
         else:
             raise TypeError('Invalid message type: %s' % type(message))
         stop = self._file.tell()

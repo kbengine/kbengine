@@ -138,12 +138,12 @@ lock_PyThread_acquire_lock(lockobject *self, PyObject *args, PyObject *kwds)
 }
 
 PyDoc_STRVAR(acquire_doc,
-"acquire([wait]) -> None or bool\n\
+"acquire([wait]) -> bool\n\
 (acquire_lock() is an obsolete synonym)\n\
 \n\
 Lock the lock.  Without argument, this blocks if the lock is already\n\
 locked (even by the same thread), waiting for another thread to release\n\
-the lock, and return None once the lock is acquired.\n\
+the lock, and return True once the lock is acquired.\n\
 With an argument, this will only block if the argument is true,\n\
 and the return value reflects whether the lock is acquired.\n\
 The blocking operation is interruptible.");
@@ -994,14 +994,17 @@ t_bootstrap(void *boot_raw)
             PyErr_Clear();
         else {
             PyObject *file;
+            PyObject *exc, *value, *tb;
             PySys_WriteStderr(
                 "Unhandled exception in thread started by ");
+            PyErr_Fetch(&exc, &value, &tb);
             file = PySys_GetObject("stderr");
             if (file != NULL && file != Py_None)
                 PyFile_WriteObject(boot->func, file, 0);
             else
                 PyObject_Print(boot->func, stderr, 0);
             PySys_WriteStderr("\n");
+            PyErr_Restore(exc, value, tb);
             PyErr_PrintEx(0);
         }
     }

@@ -115,167 +115,6 @@ Yes.  The coding style required for standard library modules is documented as
 :pep:`8`.
 
 
-My program is too slow. How do I speed it up?
----------------------------------------------
-
-That's a tough one, in general.  There are many tricks to speed up Python code;
-consider rewriting parts in C as a last resort.
-
-In some cases it's possible to automatically translate Python to C or x86
-assembly language, meaning that you don't have to modify your code to gain
-increased speed.
-
-.. XXX seems to have overlap with other questions!
-
-`Cython <http://cython.org>`_ and `Pyrex <http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/>`_
-can compile a slightly modified version of Python code into a C extension, and
-can be used on many different platforms.
-
-`Psyco <http://psyco.sourceforge.net>`_ is a just-in-time compiler that
-translates Python code into x86 assembly language.  If you can use it, Psyco can
-provide dramatic speedups for critical functions.
-
-The rest of this answer will discuss various tricks for squeezing a bit more
-speed out of Python code.  *Never* apply any optimization tricks unless you know
-you need them, after profiling has indicated that a particular function is the
-heavily executed hot spot in the code.  Optimizations almost always make the
-code less clear, and you shouldn't pay the costs of reduced clarity (increased
-development time, greater likelihood of bugs) unless the resulting performance
-benefit is worth it.
-
-There is a page on the wiki devoted to `performance tips
-<http://wiki.python.org/moin/PythonSpeed/PerformanceTips>`_.
-
-Guido van Rossum has written up an anecdote related to optimization at
-http://www.python.org/doc/essays/list2str.html.
-
-One thing to notice is that function and (especially) method calls are rather
-expensive; if you have designed a purely OO interface with lots of tiny
-functions that don't do much more than get or set an instance variable or call
-another method, you might consider using a more direct way such as directly
-accessing instance variables.  Also see the standard module :mod:`profile` which
-makes it possible to find out where your program is spending most of its time
-(if you have some patience -- the profiling itself can slow your program down by
-an order of magnitude).
-
-Remember that many standard optimization heuristics you may know from other
-programming experience may well apply to Python.  For example it may be faster
-to send output to output devices using larger writes rather than smaller ones in
-order to reduce the overhead of kernel system calls.  Thus CGI scripts that
-write all output in "one shot" may be faster than those that write lots of small
-pieces of output.
-
-Also, be sure to use Python's core features where appropriate.  For example,
-slicing allows programs to chop up lists and other sequence objects in a single
-tick of the interpreter's mainloop using highly optimized C implementations.
-Thus to get the same effect as::
-
-   L2 = []
-   for i in range(3):
-       L2.append(L1[i])
-
-it is much shorter and far faster to use ::
-
-   L2 = list(L1[:3])  # "list" is redundant if L1 is a list.
-
-Note that the functionally-oriented built-in functions such as :func:`map`,
-:func:`zip`, and friends can be a convenient accelerator for loops that
-perform a single task.  For example to pair the elements of two lists
-together::
-
-   >>> list(zip([1, 2, 3], [4, 5, 6]))
-   [(1, 4), (2, 5), (3, 6)]
-
-or to compute a number of sines::
-
-   >>> list(map(math.sin, (1, 2, 3, 4)))
-   [0.841470984808, 0.909297426826, 0.14112000806, -0.756802495308]
-
-The operation completes very quickly in such cases.
-
-Other examples include the ``join()`` and ``split()`` :ref:`methods
-of string objects <string-methods>`.
-
-For example if s1..s7 are large (10K+) strings then
-``"".join([s1,s2,s3,s4,s5,s6,s7])`` may be far faster than the more obvious
-``s1+s2+s3+s4+s5+s6+s7``, since the "summation" will compute many
-subexpressions, whereas ``join()`` does all the copying in one pass.  For
-manipulating strings, use the ``replace()`` and the ``format()`` :ref:`methods
-on string objects <string-methods>`.  Use regular expressions only when you're
-not dealing with constant string patterns.
-
-Be sure to use the :meth:`list.sort` built-in method to do sorting, and see the
-`sorting mini-HOWTO <http://wiki.python.org/moin/HowTo/Sorting>`_ for examples
-of moderately advanced usage.  :meth:`list.sort` beats other techniques for
-sorting in all but the most extreme circumstances.
-
-Another common trick is to "push loops into functions or methods."  For example
-suppose you have a program that runs slowly and you use the profiler to
-determine that a Python function ``ff()`` is being called lots of times.  If you
-notice that ``ff()``::
-
-   def ff(x):
-       ... # do something with x computing result...
-       return result
-
-tends to be called in loops like::
-
-   list = map(ff, oldlist)
-
-or::
-
-   for x in sequence:
-       value = ff(x)
-       ... # do something with value...
-
-then you can often eliminate function call overhead by rewriting ``ff()`` to::
-
-   def ffseq(seq):
-       resultseq = []
-       for x in seq:
-           ... # do something with x computing result...
-           resultseq.append(result)
-       return resultseq
-
-and rewrite the two examples to ``list = ffseq(oldlist)`` and to::
-
-   for value in ffseq(sequence):
-       ... # do something with value...
-
-Single calls to ``ff(x)`` translate to ``ffseq([x])[0]`` with little penalty.
-Of course this technique is not always appropriate and there are other variants
-which you can figure out.
-
-You can gain some performance by explicitly storing the results of a function or
-method lookup into a local variable.  A loop like::
-
-   for key in token:
-       dict[key] = dict.get(key, 0) + 1
-
-resolves ``dict.get`` every iteration.  If the method isn't going to change, a
-slightly faster implementation is::
-
-   dict_get = dict.get  # look up the method once
-   for key in token:
-       dict[key] = dict_get(key, 0) + 1
-
-Default arguments can be used to determine values once, at compile time instead
-of at run time.  This can only be done for functions or objects which will not
-be changed during program execution, such as replacing ::
-
-   def degree_sin(deg):
-       return math.sin(deg * math.pi / 180.0)
-
-with ::
-
-   def degree_sin(deg, factor=math.pi/180.0, sin=math.sin):
-       return sin(deg * factor)
-
-Because this trick uses default arguments for terms which should not be changed,
-it should only be used when you are not concerned with presenting a possibly
-confusing API to your users.
-
-
 Core Language
 =============
 
@@ -365,6 +204,58 @@ for all global references, you'd be using ``global`` all the time.  You'd have
 to declare as global every reference to a built-in function or to a component of
 an imported module.  This clutter would defeat the usefulness of the ``global``
 declaration for identifying side-effects.
+
+
+Why do lambdas defined in a loop with different values all return the same result?
+----------------------------------------------------------------------------------
+
+Assume you use a for loop to define a few different lambdas (or even plain
+functions), e.g.::
+
+   squares = []
+   for x in range(5):
+      squares.append(lambda: x**2)
+
+This gives you a list that contains 5 lambdas that calculate ``x**2``.  You
+might expect that, when called, they would return, respectively, ``0``, ``1``,
+``4``, ``9``, and ``16``.  However, when you actually try you will see that
+they all return ``16``::
+
+   >>> squares[2]()
+   16
+   >>> squares[4]()
+   16
+
+This happens because ``x`` is not local to the lambdas, but is defined in
+the outer scope, and it is accessed when the lambda is called --- not when it
+is defined.  At the end of the loop, the value of ``x`` is ``4``, so all the
+functions now return ``4**2``, i.e. ``16``.  You can also verify this by
+changing the value of ``x`` and see how the results of the lambdas change::
+
+   >>> x = 8
+   >>> squares[2]()
+   64
+
+In order to avoid this, you need to save the values in variables local to the
+lambdas, so that they don't rely on the value of the global ``x``::
+
+   squares = []
+   for x in range(5):
+      squares.append(lambda n=x: n**2)
+
+Here, ``n=x`` creates a new variable ``n`` local to the lambda and computed
+when the lambda is defined so that it has the same value that ``x`` had at
+that point in the loop.  This means that the value of ``n`` will be ``0``
+in the first lambda, ``1`` in the second, ``2`` in the third, and so on.
+Therefore each lambda will now return the correct result::
+
+   >>> squares[2]()
+   4
+   >>> squares[4]()
+   16
+
+Note that this behaviour is not peculiar to lambdas, but applies to regular
+functions too.
 
 
 How do I share global variables across modules?
@@ -472,6 +363,31 @@ calling another function by using ``*`` and ``**``::
        kwargs['width'] = '14.3c'
        ...
        g(x, *args, **kwargs)
+
+
+.. index::
+   single: argument; difference from parameter
+   single: parameter; difference from argument
+
+.. _faq-argument-vs-parameter:
+
+What is the difference between arguments and parameters?
+--------------------------------------------------------
+
+:term:`Parameters <parameter>` are defined by the names that appear in a
+function definition, whereas :term:`arguments <argument>` are the values
+actually passed to a function when calling it.  Parameters define what types of
+arguments a function can accept.  For example, given the function definition::
+
+   def func(foo, bar=None, **kwargs):
+       pass
+
+*foo*, *bar* and *kwargs* are parameters of ``func``.  However, when calling
+``func``, for example::
+
+   func(42, bar=314, extra=somevar)
+
+the values ``42``, ``314``, and ``somevar`` are arguments.
 
 
 How do I write a function with output parameters (call by reference)?
@@ -687,61 +603,21 @@ are not truly operators but syntactic delimiters in assignment statements.
 Is there an equivalent of C's "?:" ternary operator?
 ----------------------------------------------------
 
-Yes, this feature was added in Python 2.5. The syntax would be as follows::
+Yes, there is. The syntax is as follows::
 
    [on_true] if [expression] else [on_false]
 
    x, y = 50, 25
-
    small = x if x < y else y
 
-For versions previous to 2.5 the answer would be 'No'.
+Before this syntax was introduced in Python 2.5, a common idiom was to use
+logical operators::
 
-.. XXX remove rest?
+   [expression] and [on_true] or [on_false]
 
-In many cases you can mimic ``a ? b : c`` with ``a and b or c``, but there's a
-flaw: if *b* is zero (or empty, or ``None`` -- anything that tests false) then
-*c* will be selected instead.  In many cases you can prove by looking at the
-code that this can't happen (e.g. because *b* is a constant or has a type that
-can never be false), but in general this can be a problem.
-
-Tim Peters (who wishes it was Steve Majewski) suggested the following solution:
-``(a and [b] or [c])[0]``.  Because ``[b]`` is a singleton list it is never
-false, so the wrong path is never taken; then applying ``[0]`` to the whole
-thing gets the *b* or *c* that you really wanted.  Ugly, but it gets you there
-in the rare cases where it is really inconvenient to rewrite your code using
-'if'.
-
-The best course is usually to write a simple ``if...else`` statement.  Another
-solution is to implement the ``?:`` operator as a function::
-
-   def q(cond, on_true, on_false):
-       if cond:
-           if not isfunction(on_true):
-               return on_true
-           else:
-               return on_true()
-       else:
-           if not isfunction(on_false):
-               return on_false
-           else:
-               return on_false()
-
-In most cases you'll pass b and c directly: ``q(a, b, c)``.  To avoid evaluating
-b or c when they shouldn't be, encapsulate them within a lambda function, e.g.:
-``q(a, lambda: b, lambda: c)``.
-
-It has been asked *why* Python has no if-then-else expression.  There are
-several answers: many languages do just fine without one; it can easily lead to
-less readable code; no sufficiently "Pythonic" syntax has been discovered; a
-search of the standard library found remarkably few places where using an
-if-then-else expression would make the code more understandable.
-
-In 2002, :pep:`308` was written proposing several possible syntaxes and the
-community was asked to vote on the issue.  The vote was inconclusive.  Most
-people liked one of the syntaxes, but also hated other syntaxes; many votes
-implied that people preferred no ternary operator rather than having a syntax
-they hated.
+However, this idiom is unsafe, as it can give wrong results when *on_true*
+has a false boolean value.  Therefore, it is always better to use
+the ``... if ... else ...`` form.
 
 
 Is it possible to write obfuscated one-liners in Python?
@@ -860,15 +736,21 @@ the :ref:`string-formatting` section, e.g. ``"{:04d}".format(144)`` yields
 How do I modify a string in place?
 ----------------------------------
 
-You can't, because strings are immutable.  If you need an object with this
-ability, try converting the string to a list or use the array module::
+You can't, because strings are immutable.  In most situations, you should
+simply construct a new string from the various parts you want to assemble
+it from.  However, if you need an object with the ability to modify in-place
+unicode data, try using a :class:`io.StringIO` object or the :mod:`array`
+module::
 
    >>> s = "Hello, world"
-   >>> a = list(s)
-   >>> print(a)
-   ['H', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd']
-   >>> a[7:] = list("there!")
-   >>> ''.join(a)
+   >>> sio = io.StringIO(s)
+   >>> sio.getvalue()
+   'Hello, world'
+   >>> sio.seek(7)
+   7
+   >>> sio.write("there!")
+   6
+   >>> sio.getvalue()
    'Hello, there!'
 
    >>> import array
@@ -943,11 +825,11 @@ There are various techniques.
 Is there an equivalent to Perl's chomp() for removing trailing newlines from strings?
 -------------------------------------------------------------------------------------
 
-Starting with Python 2.2, you can use ``S.rstrip("\r\n")`` to remove all
-occurrences of any line terminator from the end of the string ``S`` without
-removing other trailing whitespace.  If the string ``S`` represents more than
-one line, with several empty lines at the end, the line terminators for all the
-blank lines will be removed::
+You can use ``S.rstrip("\r\n")`` to remove all occurrences of any line
+terminator from the end of the string ``S`` without removing other trailing
+whitespace.  If the string ``S`` represents more than one line, with several
+empty lines at the end, the line terminators for all the blank lines will
+be removed::
 
    >>> lines = ("line 1 \r\n"
    ...          "\r\n"
@@ -957,15 +839,6 @@ blank lines will be removed::
 
 Since this is typically only desired when reading text one line at a time, using
 ``S.rstrip()`` this way works well.
-
-For older versions of Python, there are two partial substitutes:
-
-- If you want to remove all trailing whitespace, use the ``rstrip()`` method of
-  string objects.  This removes all trailing whitespace, not just a single
-  newline.
-
-- Otherwise, if there is only one line in the string ``S``, use
-  ``S.splitlines()[0]``.
 
 
 Is there a scanf() or sscanf() equivalent?
@@ -987,6 +860,94 @@ What does 'UnicodeDecodeError' or 'UnicodeEncodeError' error  mean?
 -------------------------------------------------------------------
 
 See the :ref:`unicode-howto`.
+
+
+Performance
+===========
+
+My program is too slow. How do I speed it up?
+---------------------------------------------
+
+That's a tough one, in general.  First, here are a list of things to
+remember before diving further:
+
+* Performance characteristics vary across Python implementations.  This FAQ
+  focusses on :term:`CPython`.
+* Behaviour can vary across operating systems, especially when talking about
+  I/O or multi-threading.
+* You should always find the hot spots in your program *before* attempting to
+  optimize any code (see the :mod:`profile` module).
+* Writing benchmark scripts will allow you to iterate quickly when searching
+  for improvements (see the :mod:`timeit` module).
+* It is highly recommended to have good code coverage (through unit testing
+  or any other technique) before potentially introducing regressions hidden
+  in sophisticated optimizations.
+
+That being said, there are many tricks to speed up Python code.  Here are
+some general principles which go a long way towards reaching acceptable
+performance levels:
+
+* Making your algorithms faster (or changing to faster ones) can yield
+  much larger benefits than trying to sprinkle micro-optimization tricks
+  all over your code.
+
+* Use the right data structures.  Study documentation for the :ref:`bltin-types`
+  and the :mod:`collections` module.
+
+* When the standard library provides a primitive for doing something, it is
+  likely (although not guaranteed) to be faster than any alternative you
+  may come up with.  This is doubly true for primitives written in C, such
+  as builtins and some extension types.  For example, be sure to use
+  either the :meth:`list.sort` built-in method or the related :func:`sorted`
+  function to do sorting (and see the
+  `sorting mini-HOWTO <http://wiki.python.org/moin/HowTo/Sorting>`_ for examples
+  of moderately advanced usage).
+
+* Abstractions tend to create indirections and force the interpreter to work
+  more.  If the levels of indirection outweigh the amount of useful work
+  done, your program will be slower.  You should avoid excessive abstraction,
+  especially under the form of tiny functions or methods (which are also often
+  detrimental to readability).
+
+If you have reached the limit of what pure Python can allow, there are tools
+to take you further away.  For example, `Cython <http://cython.org>`_ can
+compile a slightly modified version of Python code into a C extension, and
+can be used on many different platforms.  Cython can take advantage of
+compilation (and optional type annotations) to make your code significantly
+faster than when interpreted.  If you are confident in your C programming
+skills, you can also :ref:`write a C extension module <extending-index>`
+yourself.
+
+.. seealso::
+   The wiki page devoted to `performance tips
+   <http://wiki.python.org/moin/PythonSpeed/PerformanceTips>`_.
+
+.. _efficient_string_concatenation:
+
+What is the most efficient way to concatenate many strings together?
+--------------------------------------------------------------------
+
+:class:`str` and :class:`bytes` objects are immutable, therefore concatenating
+many strings together is inefficient as each concatenation creates a new
+object.  In the general case, the total runtime cost is quadratic in the
+total string length.
+
+To accumulate many :class:`str` objects, the recommended idiom is to place
+them into a list and call :meth:`str.join` at the end::
+
+   chunks = []
+   for s in my_strings:
+       chunks.append(s)
+   result = ''.join(chunks)
+
+(another reasonably efficient idiom is to use :class:`io.StringIO`)
+
+To accumulate many :class:`bytes` objects, the recommended idiom is to extend
+a :class:`bytearray` object using in-place concatenation (the ``+=`` operator)::
+
+   result = bytearray()
+   for b in my_bytes_objects:
+       result += b
 
 
 Sequences (Tuples/Lists)
@@ -1058,15 +1019,8 @@ list, deleting duplicates as you go::
            else:
                last = mylist[i]
 
-If all elements of the list may be used as dictionary keys (i.e. they are all
-hashable) this is often faster ::
-
-   d = {}
-   for x in mylist:
-       d[x] = 1
-   mylist = list(d.keys())
-
-In Python 2.5 and later, the following is possible instead::
+If all elements of the list may be used as set keys (i.e. they are all
+:term:`hashable`) this is often faster ::
 
    mylist = list(set(mylist))
 
@@ -1436,15 +1390,7 @@ not::
 
    C.count = 314
 
-Static methods are possible since Python 2.2::
-
-   class C:
-       def static(arg1, arg2, arg3):
-           # No 'self' parameter!
-           ...
-       static = staticmethod(static)
-
-With Python 2.4's decorators, this can also be written as ::
+Static methods are possible::
 
    class C:
        @staticmethod

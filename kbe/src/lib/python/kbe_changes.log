@@ -11,9 +11,11 @@ _ssl _ssl.c \
         -DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
         -L$(SSL)/lib -lssl -lcrypto
 
-
+还有其他等功能
 cp Modules/Setup.dist to Modules/Setup
 
 * 改变了Makefile.pre.in， 使其能够和kbengine兼容编译
 
 * 将pythoncore， _socket, _ssl, select等windows项目改变为静态库
+
+* 修改pgupdate.vsprops使其能够被kbengine项目加载python工程

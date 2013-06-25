@@ -205,6 +205,10 @@ SOURCE=..\..\Objects\abstract.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\Objects\accu.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\Parser\acceler.c
 # End Source File
 # Begin Source File
@@ -648,6 +652,10 @@ SOURCE=..\..\Python\pythonrun.c
 # Begin Source File
 
 SOURCE=..\..\Python\pytime.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\Python\random.c
 # End Source File
 # Begin Source File
 

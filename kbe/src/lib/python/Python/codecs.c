@@ -821,8 +821,9 @@ PyCodec_SurrogatePassErrors(PyObject *exc)
         /* Try decoding a single surrogate character. If
            there are more, let the codec call us again. */
         p += start;
-        if ((p[0] & 0xf0) == 0xe0 ||
-            (p[1] & 0xc0) == 0x80 ||
+        if (PyBytes_GET_SIZE(object) - start >= 3 &&
+            (p[0] & 0xf0) == 0xe0 &&
+            (p[1] & 0xc0) == 0x80 &&
             (p[2] & 0xc0) == 0x80) {
             /* it's a three-byte code */
             ch = ((p[0] & 0x0f) << 12) + ((p[1] & 0x3f) << 6) + (p[2] & 0x3f);
@@ -1067,15 +1068,6 @@ static int _PyCodecRegistry_Init(void)
 
     mod = PyImport_ImportModuleNoBlock("encodings");
     if (mod == NULL) {
-        if (PyErr_ExceptionMatches(PyExc_ImportError)) {
-            /* Ignore ImportErrors... this is done so that
-               distributions can disable the encodings package. Note
-               that other errors are not masked, e.g. SystemErrors
-               raised to inform the user of an error in the Python
-               configuration are still reported back to the user. */
-            PyErr_Clear();
-            return 0;
-        }
         return -1;
     }
     Py_DECREF(mod);

@@ -1,4 +1,5 @@
 import sys
+import io
 import linecache
 import time
 import socket
@@ -14,6 +15,8 @@ from idlelib import RemoteDebugger
 from idlelib import RemoteObjectBrowser
 from idlelib import StackViewer
 from idlelib import rpc
+from idlelib import PyShell
+from idlelib import IOBinding
 
 import __main__
 
@@ -157,15 +160,32 @@ def print_exception():
     efile = sys.stderr
     typ, val, tb = excinfo = sys.exc_info()
     sys.last_type, sys.last_value, sys.last_traceback = excinfo
-    tbe = traceback.extract_tb(tb)
-    print('Traceback (most recent call last):', file=efile)
-    exclude = ("run.py", "rpc.py", "threading.py", "queue.py",
-               "RemoteDebugger.py", "bdb.py")
-    cleanup_traceback(tbe, exclude)
-    traceback.print_list(tbe, file=efile)
-    lines = traceback.format_exception_only(typ, val)
-    for line in lines:
-        print(line, end='', file=efile)
+    seen = set()
+
+    def print_exc(typ, exc, tb):
+        seen.add(exc)
+        context = exc.__context__
+        cause = exc.__cause__
+        if cause is not None and cause not in seen:
+            print_exc(type(cause), cause, cause.__traceback__)
+            print("\nThe above exception was the direct cause "
+                  "of the following exception:\n", file=efile)
+        elif context is not None and context not in seen:
+            print_exc(type(context), context, context.__traceback__)
+            print("\nDuring handling of the above exception, "
+                  "another exception occurred:\n", file=efile)
+        if tb:
+            tbe = traceback.extract_tb(tb)
+            print('Traceback (most recent call last):', file=efile)
+            exclude = ("run.py", "rpc.py", "threading.py", "queue.py",
+                       "RemoteDebugger.py", "bdb.py")
+            cleanup_traceback(tbe, exclude)
+            traceback.print_list(tbe, file=efile)
+        lines = traceback.format_exception_only(typ, exc)
+        for line in lines:
+            print(line, end='', file=efile)
+
+    print_exc(typ, val, tb)
 
 def cleanup_traceback(tb, exclude):
     "Remove excluded traces from beginning/end of tb; get cached lines"
@@ -244,22 +264,23 @@ class MyRPCServer(rpc.RPCServer):
             quitting = True
             thread.interrupt_main()
 
-
 class MyHandler(rpc.RPCHandler):
 
     def handle(self):
         """Override base method"""
         executive = Executive(self)
         self.register("exec", executive)
-        sys.stdin = self.console = self.get_remote_proxy("stdin")
-        sys.stdout = self.get_remote_proxy("stdout")
-        sys.stderr = self.get_remote_proxy("stderr")
+        self.console = self.get_remote_proxy("console")
+        sys.stdin = PyShell.PseudoInputFile(self.console, "stdin",
+                IOBinding.encoding)
+        sys.stdout = PyShell.PseudoOutputFile(self.console, "stdout",
+                IOBinding.encoding)
+        sys.stderr = PyShell.PseudoOutputFile(self.console, "stderr",
+                IOBinding.encoding)
+
         # page help() text to shell.
         import pydoc # import must be done here to capture i/o binding
         pydoc.pager = pydoc.plainpager
-        from idlelib import IOBinding
-        sys.stdin.encoding = sys.stdout.encoding = \
-                             sys.stderr.encoding = IOBinding.encoding
         self.interp = self.get_remote_proxy("interp")
         rpc.RPCHandler.getresponse(self, myseq=None, wait=0.05)
 

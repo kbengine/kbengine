@@ -1821,6 +1821,8 @@ class timezone(tzinfo):
         return (self._offset, self._name)
 
     def __eq__(self, other):
+        if type(other) != timezone:
+            return False
         return self._offset == other._offset
 
     def __hash__(self):
@@ -2057,7 +2059,7 @@ z' = z + z.d = 1:MM then, and z'.d=0, and z'.d - z.d = -60 != 0 so [8]
 
 Because we know z.d said z was in daylight time (else [5] would have held and
 we would have stopped then), and we know z.d != z'.d (else [8] would have held
-and we we have stopped then), and there are only 2 possible values dst() can
+and we have stopped then), and there are only 2 possible values dst() can
 return in Eastern, it follows that z'.d must be 0 (which it is in the example,
 but the reasoning doesn't depend on the example -- it depends on there being
 two possible dst() outcomes, one zero and the other non-zero).  Therefore

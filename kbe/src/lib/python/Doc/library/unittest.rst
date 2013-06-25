@@ -99,9 +99,10 @@ need to derive from a specific class.
 
    The script :file:`Tools/unittestgui/unittestgui.py` in the Python source distribution is
    a GUI tool for test discovery and execution.  This is intended largely for ease of use
-   for those new to unit testing.  For production environments it is recommended that
-   tests be driven by a continuous integration system such as `Hudson <http://hudson-ci.org/>`_
-   or `Buildbot <http://buildbot.net/trac>`_.
+   for those new to unit testing.  For production environments it is
+   recommended that tests be driven by a continuous integration system such as
+   `Buildbot <http://buildbot.net/trac>`_, `Jenkins <http://jenkins-ci.org>`_
+   or  `Hudson <http://hudson-ci.org/>`_.
 
 
 .. _unittest-minimal-example:
@@ -293,7 +294,7 @@ used from the command line. The basic command-line usage is::
 
    As a shortcut, ``python -m unittest`` is the equivalent of
    ``python -m unittest discover``. If you want to pass arguments to test
-   discovery the `discover` sub-command must be used explicitly.
+   discovery the ``discover`` sub-command must be used explicitly.
 
 The ``discover`` sub-command has the following options:
 
@@ -303,15 +304,15 @@ The ``discover`` sub-command has the following options:
 
    Verbose output
 
-.. cmdoption:: -s directory
+.. cmdoption:: -s, --start-directory directory
 
-   Directory to start discovery ('.' default)
+   Directory to start discovery (``.`` default)
 
-.. cmdoption:: -p pattern
+.. cmdoption:: -p, --pattern pattern
 
-   Pattern to match test files ('test*.py' default)
+   Pattern to match test files (``test*.py`` default)
 
-.. cmdoption:: -t directory
+.. cmdoption:: -t, --top-level-directory directory
 
    Top level directory of project (defaults to start directory)
 
@@ -376,7 +377,7 @@ The simplest :class:`TestCase` subclass will simply override the
            widget = Widget('The widget')
            self.assertEqual(widget.size(), (50, 50), 'incorrect default size')
 
-Note that in order to test something, we use the one of the :meth:`assert\*`
+Note that in order to test something, we use one of the :meth:`assert\*`
 methods provided by the :class:`TestCase` base class.  If the test fails, an
 exception will be raised, and :mod:`unittest` will identify the test case as a
 :dfn:`failure`.  Any other exceptions will be treated as :dfn:`errors`. This
@@ -608,7 +609,7 @@ that is broken and will fail, but shouldn't be counted as a failure on a
 Skipping a test is simply a matter of using the :func:`skip` :term:`decorator`
 or one of its conditional variants.
 
-Basic skipping looks like this: ::
+Basic skipping looks like this::
 
    class MyTestCase(unittest.TestCase):
 
@@ -627,7 +628,7 @@ Basic skipping looks like this: ::
            # windows specific testing code
            pass
 
-This is the output of running the example above in verbose mode: ::
+This is the output of running the example above in verbose mode::
 
    test_format (__main__.MyTestCase) ... skipped 'not supported in this library version'
    test_nothing (__main__.MyTestCase) ... skipped 'demonstrating skipping'
@@ -638,9 +639,9 @@ This is the output of running the example above in verbose mode: ::
 
    OK (skipped=3)
 
-Classes can be skipped just like methods: ::
+Classes can be skipped just like methods::
 
-   @skip("showing class skipping")
+   @unittest.skip("showing class skipping")
    class MySkippedTestCase(unittest.TestCase):
        def test_not_run(self):
            pass
@@ -657,12 +658,12 @@ Expected failures use the :func:`expectedFailure` decorator. ::
 
 It's easy to roll your own skipping decorators by making a decorator that calls
 :func:`skip` on the test when it wants it to be skipped.  This decorator skips
-the test unless the passed object has a certain attribute: ::
+the test unless the passed object has a certain attribute::
 
    def skipUnlessHasattr(obj, attr):
        if hasattr(obj, attr):
            return lambda func: func
-       return unittest.skip("{0!r} doesn't have {1!r}".format(obj, attr))
+       return unittest.skip("{!r} doesn't have {!r}".format(obj, attr))
 
 The following decorators implement test skipping and expected failures:
 
@@ -683,6 +684,13 @@ The following decorators implement test skipping and expected failures:
 
    Mark the test as an expected failure.  If the test fails when run, the test
    is not counted as a failure.
+
+.. exception:: SkipTest(reason)
+
+   This exception is raised to skip a test.
+
+   Usually you can use :meth:`TestCase.skipTest` or one of the skipping
+   decorators instead of raising this directly.
 
 Skipped tests will not have :meth:`setUp` or :meth:`tearDown` run around them.
 Skipped classes will not have :meth:`setUpClass` or :meth:`tearDownClass` run.
@@ -725,7 +733,7 @@ Test cases
 
    .. versionchanged:: 3.2
       :class:`TestCase` can be instantiated successfully without providing a method
-      name. This makes it easier to experiment with `TestCase` from the
+      name. This makes it easier to experiment with :class:`TestCase` from the
       interactive interpreter.
 
    *methodName* defaults to :meth:`runTest`.
@@ -869,13 +877,13 @@ Test cases
 
       In addition, if *first* and *second* are the exact same type and one of
       list, tuple, dict, set, frozenset or str or any type that a subclass
-      registers with :meth:`addTypeEqualityFunc` the type specific equality
+      registers with :meth:`addTypeEqualityFunc` the type-specific equality
       function will be called in order to generate a more useful default
       error message (see also the :ref:`list of type-specific methods
       <type-specific-methods>`).
 
       .. versionchanged:: 3.1
-         Added the automatic calling of type specific equality function.
+         Added the automatic calling of type-specific equality function.
 
       .. versionchanged:: 3.2
          :meth:`assertMultiLineEqual` added as the default type equality
@@ -929,6 +937,7 @@ Test cases
 
       Test that *obj* is (or is not) an instance of *cls* (which can be a
       class or a tuple of classes, as supported by :func:`isinstance`).
+      To check for the exact type, use :func:`assertIs(type(obj), cls) <assertIs>`.
 
       .. versionadded:: 3.2
 
@@ -940,17 +949,17 @@ Test cases
    +---------------------------------------------------------+--------------------------------------+------------+
    | Method                                                  | Checks that                          | New in     |
    +=========================================================+======================================+============+
-   | :meth:`assertRaises(exc, fun, *args, **kwds)            | ``fun(*args, **kwds)`` raises `exc`  |            |
+   | :meth:`assertRaises(exc, fun, *args, **kwds)            | ``fun(*args, **kwds)`` raises *exc*  |            |
    | <TestCase.assertRaises>`                                |                                      |            |
    +---------------------------------------------------------+--------------------------------------+------------+
-   | :meth:`assertRaisesRegex(exc, re, fun, *args, **kwds)   | ``fun(*args, **kwds)`` raises `exc`  | 3.1        |
-   | <TestCase.assertRaisesRegex>`                           | and the message matches `re`         |            |
+   | :meth:`assertRaisesRegex(exc, re, fun, *args, **kwds)   | ``fun(*args, **kwds)`` raises *exc*  | 3.1        |
+   | <TestCase.assertRaisesRegex>`                           | and the message matches *re*         |            |
    +---------------------------------------------------------+--------------------------------------+------------+
-   | :meth:`assertWarns(warn, fun, *args, **kwds)            | ``fun(*args, **kwds)`` raises `warn` | 3.2        |
+   | :meth:`assertWarns(warn, fun, *args, **kwds)            | ``fun(*args, **kwds)`` raises *warn* | 3.2        |
    | <TestCase.assertWarns>`                                 |                                      |            |
    +---------------------------------------------------------+--------------------------------------+------------+
-   | :meth:`assertWarnsRegex(warn, re, fun, *args, **kwds)   | ``fun(*args, **kwds)`` raises `warn` | 3.2        |
-   | <TestCase.assertWarnsRegex>`                            | and the message matches `re`         |            |
+   | :meth:`assertWarnsRegex(warn, re, fun, *args, **kwds)   | ``fun(*args, **kwds)`` raises *warn* | 3.2        |
+   | <TestCase.assertWarnsRegex>`                            | and the message matches *re*         |            |
    +---------------------------------------------------------+--------------------------------------+------------+
 
    .. method:: assertRaises(exception, callable, *args, **kwds)
@@ -1092,7 +1101,7 @@ Test cases
    | :meth:`assertNotRegex(s, re)          | ``not regex.search(s)``        | 3.2          |
    | <TestCase.assertNotRegex>`            |                                |              |
    +---------------------------------------+--------------------------------+--------------+
-   | :meth:`assertCountEqual(a, b)         | `a` and `b` have the same      | 3.2          |
+   | :meth:`assertCountEqual(a, b)         | *a* and *b* have the same      | 3.2          |
    | <TestCase.assertCountEqual>`          | elements in the same number,   |              |
    |                                       | regardless of their order      |              |
    +---------------------------------------+--------------------------------+--------------+
@@ -1270,7 +1279,7 @@ Test cases
    .. method:: assertListEqual(first, second, msg=None)
                assertTupleEqual(first, second, msg=None)
 
-      Tests that two lists or tuples are equal.  If not an error message is
+      Tests that two lists or tuples are equal.  If not, an error message is
       constructed that shows only the differences between the two.  An error
       is also raised if either of the parameters are of the wrong type.
       These methods are used by default when comparing lists or tuples with
@@ -1552,8 +1561,8 @@ Loading and running tests
    The :class:`TestLoader` class is used to create test suites from classes and
    modules.  Normally, there is no need to create an instance of this class; the
    :mod:`unittest` module provides an instance that can be shared as
-   ``unittest.defaultTestLoader``. Using a subclass or instance, however, allows
-   customization of some configurable properties.
+   :data:`unittest.defaultTestLoader`.  Using a subclass or instance, however,
+   allows customization of some configurable properties.
 
    :class:`TestLoader` objects have the following methods:
 
@@ -1887,7 +1896,7 @@ Loading and running tests
 .. class:: TextTestRunner(stream=None, descriptions=True, verbosity=1, runnerclass=None, warnings=None)
 
    A basic test runner implementation that outputs results to a stream. If *stream*
-   is `None`, the default, `sys.stderr` is used as the output stream. This class
+   is ``None``, the default, :data:`sys.stderr` is used as the output stream. This class
    has a few configurable parameters, but is essentially very simple.  Graphical
    applications which run test suites should provide alternate implementations.
 
@@ -1904,7 +1913,7 @@ Loading and running tests
       Added the ``warnings`` argument.
 
    .. versionchanged:: 3.2
-      The default stream is set to `sys.stderr` at instantiation time rather
+      The default stream is set to :data:`sys.stderr` at instantiation time rather
       than import time.
 
    .. method:: _makeResult()
@@ -1925,9 +1934,10 @@ Loading and running tests
                    testLoader=unittest.defaultTestLoader, exit=True, verbosity=1, \
                    failfast=None, catchbreak=None, buffer=None, warnings=None)
 
-   A command-line program that runs a set of tests; this is primarily for making
-   test modules conveniently executable.  The simplest use for this function is to
-   include the following line at the end of a test script::
+   A command-line program that loads a set of tests from *module* and runs them;
+   this is primarily for making test modules conveniently executable.
+   The simplest use for this function is to include the following line at the
+   end of a test script::
 
       if __name__ == '__main__':
           unittest.main()
@@ -1938,9 +1948,16 @@ Loading and running tests
       if __name__ == '__main__':
           unittest.main(verbosity=2)
 
+   The *argv* argument can be a list of options passed to the program, with the
+   first element being the program name.  If not specified or ``None``,
+   the values of :data:`sys.argv` are used.
+
    The *testRunner* argument can either be a test runner class or an already
    created instance of it. By default ``main`` calls :func:`sys.exit` with
    an exit code indicating success or failure of the tests run.
+
+   The *testLoader* argument has to be a :class:`TestLoader` instance,
+   and defaults to :data:`defaultTestLoader`.
 
    ``main`` supports being used from the interactive interpreter by passing in the
    argument ``exit=False``. This displays the result on standard output without
@@ -1949,7 +1966,7 @@ Loading and running tests
       >>> from unittest import main
       >>> main(module='test_module', exit=False)
 
-   The ``failfast``, ``catchbreak`` and ``buffer`` parameters have the same
+   The *failfast*, *catchbreak* and *buffer* parameters have the same
    effect as the same-name `command-line options`_.
 
    The *warning* argument specifies the :ref:`warning filter <warning-filter>`
@@ -1961,11 +1978,11 @@ Loading and running tests
    This stores the result of the tests run as the ``result`` attribute.
 
    .. versionchanged:: 3.1
-      The ``exit`` parameter was added.
+      The *exit* parameter was added.
 
    .. versionchanged:: 3.2
-      The ``verbosity``, ``failfast``, ``catchbreak``, ``buffer``
-      and ``warnings`` parameters were added.
+      The *verbosity*, *failfast*, *catchbreak*, *buffer*
+      and *warnings* parameters were added.
 
 
 load_tests Protocol
@@ -2007,10 +2024,10 @@ name then the package :file:`__init__.py` will be checked for ``load_tests``.
 
 .. note::
 
-   The default pattern is 'test*.py'. This matches all Python files
-   that start with 'test' but *won't* match any test directories.
+   The default pattern is ``'test*.py'``. This matches all Python files
+   that start with ``'test'`` but *won't* match any test directories.
 
-   A pattern like 'test*' will match test packages as well as
+   A pattern like ``'test*'`` will match test packages as well as
    modules.
 
 If the package :file:`__init__.py` defines ``load_tests`` then it will be
@@ -2095,7 +2112,7 @@ then you must call up to them yourself. The implementations in
 If an exception is raised during a ``setUpClass`` then the tests in the class
 are not run and the ``tearDownClass`` is not run. Skipped classes will not
 have ``setUpClass`` or ``tearDownClass`` run. If the exception is a
-``SkipTest`` exception then the class will be reported as having been skipped
+:exc:`SkipTest` exception then the class will be reported as having been skipped
 instead of as an error.
 
 
@@ -2112,7 +2129,7 @@ These should be implemented as functions::
 
 If an exception is raised in a ``setUpModule`` then none of the tests in the
 module will be run and the ``tearDownModule`` will not be run. If the exception is a
-``SkipTest`` exception then the module will be reported as having been skipped
+:exc:`SkipTest` exception then the module will be reported as having been skipped
 instead of as an error.
 
 

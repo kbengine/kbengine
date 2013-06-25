@@ -1,5 +1,5 @@
-:mod:`email`: Representing an email message
--------------------------------------------
+:mod:`email.message`: Representing an email message
+---------------------------------------------------
 
 .. module:: email.message
    :synopsis: The base class representing email messages.
@@ -291,7 +291,7 @@ Here are the methods of the :class:`Message` class:
 
          Content-Disposition: attachment; filename="bud.gif"
 
-      An example with with non-ASCII characters::
+      An example with non-ASCII characters::
 
          msg.add_header('Content-Disposition', 'attachment',
                         filename=('iso-8859-1', '', 'Fußballer.ppt'))

@@ -45,9 +45,9 @@ for detailed information about platforms with precompiled installers.
       "7 Minutes to "Hello World!""
       by Richard Dooling, 2006
 
-   `Installing on Windows <http://diveintopython.org/installing_python/windows.html>`_
+   `Installing on Windows <http://diveintopython.net/installing_python/windows.html>`_
       in "`Dive into Python: Python from novice to pro
-      <http://diveintopython.org/index.html>`_"
+      <http://diveintopython.net/index.html>`_"
       by Mark Pilgrim, 2004,
       ISBN 1-59059-356-1
 
@@ -81,6 +81,8 @@ Configuring Python
 In order to run Python flawlessly, you might have to change certain environment
 settings in Windows.
 
+
+.. _setting-envvars:
 
 Excursus: Setting environment variables
 ---------------------------------------
@@ -290,7 +292,7 @@ Compiling Python on Windows
 If you want to compile CPython yourself, first thing you should do is get the
 `source <http://python.org/download/source/>`_. You can download either the
 latest release's source or just grab a fresh `checkout
-<http://www.python.org/dev/faq/#how-do-i-get-a-checkout-of-the-repository-read-only-and-read-write>`_.
+<http://docs.python.org/devguide/setup#checking-out-the-code>`_.
 
 For Microsoft Visual C++, which is the compiler with which official Python
 releases are built, the source tree contains solutions/project files.  View the

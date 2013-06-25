@@ -127,7 +127,7 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
 {
     parser_state *ps;
     node *n;
-    int started = 0, handling_import = 0, handling_with = 0;
+    int started = 0;
 
     if ((ps = PyParser_New(g, start)) == NULL) {
         fprintf(stderr, "no mem for new parser\n");
@@ -154,7 +154,6 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
         }
         if (type == ENDMARKER && started) {
             type = NEWLINE; /* Add an extra newline */
-            handling_with = handling_import = 0;
             started = 0;
             /* Add the right number of dedent tokens,
                except if a certain flag is given --
@@ -183,11 +182,13 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
         if (type == NOTEQUAL) {
             if (!(ps->p_flags & CO_FUTURE_BARRY_AS_BDFL) &&
                             strcmp(str, "!=")) {
+                PyObject_FREE(str);
                 err_ret->error = E_SYNTAX;
                 break;
             }
             else if ((ps->p_flags & CO_FUTURE_BARRY_AS_BDFL) &&
                             strcmp(str, "<>")) {
+                PyObject_FREE(str);
                 err_ret->text = "with Barry as BDFL, use '<>' "
                                 "instead of '!='";
                 err_ret->error = E_SYNTAX;

@@ -445,6 +445,9 @@
 			RelativePath="..\..\Objects\abstract.c">
 		</File>
 		<File
+			RelativePath="..\..\Objects\accu.c">
+		</File>
+		<File
 			RelativePath="..\..\Parser\acceler.c">
 		</File>
 		<File
@@ -762,6 +765,9 @@
 		</File>
 		<File
 			RelativePath="..\..\Python\pythonrun.c">
+		</File>
+		<File
+			RelativePath="..\..\Python\random.c">
 		</File>
 		<File
 			RelativePath="..\..\Objects\rangeobject.c">

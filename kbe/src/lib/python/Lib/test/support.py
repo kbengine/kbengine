@@ -23,6 +23,9 @@ import time
 import sysconfig
 import fnmatch
 import logging.handlers
+import struct
+import tempfile
+import _testcapi
 
 try:
     import _thread, threading
@@ -53,7 +56,7 @@ __all__ = [
     "reap_children", "cpython_only", "check_impl_detail", "get_attribute",
     "swap_item", "swap_attr", "requires_IEEE_754",
     "TestHandler", "Matcher", "can_symlink", "skip_unless_symlink",
-    "import_fresh_module", "failfast",
+    "import_fresh_module", "failfast", "run_with_tz", "suppress_crash_popup",
     ]
 
 class Error(Exception):
@@ -197,17 +200,81 @@ def unload(name):
     except KeyError:
         pass
 
+if sys.platform.startswith("win"):
+    def _waitfor(func, pathname, waitall=False):
+        # Peform the operation
+        func(pathname)
+        # Now setup the wait loop
+        if waitall:
+            dirname = pathname
+        else:
+            dirname, name = os.path.split(pathname)
+            dirname = dirname or '.'
+        # Check for `pathname` to be removed from the filesystem.
+        # The exponential backoff of the timeout amounts to a total
+        # of ~1 second after which the deletion is probably an error
+        # anyway.
+        # Testing on a i7@4.3GHz shows that usually only 1 iteration is
+        # required when contention occurs.
+        timeout = 0.001
+        while timeout < 1.0:
+            # Note we are only testing for the existance of the file(s) in
+            # the contents of the directory regardless of any security or
+            # access rights.  If we have made it this far, we have sufficient
+            # permissions to do that much using Python's equivalent of the
+            # Windows API FindFirstFile.
+            # Other Windows APIs can fail or give incorrect results when
+            # dealing with files that are pending deletion.
+            L = os.listdir(dirname)
+            if not (L if waitall else name in L):
+                return
+            # Increase the timeout and try again
+            time.sleep(timeout)
+            timeout *= 2
+        warnings.warn('tests may fail, delete still pending for ' + pathname,
+                      RuntimeWarning, stacklevel=4)
+
+    def _unlink(filename):
+        _waitfor(os.unlink, filename)
+
+    def _rmdir(dirname):
+        _waitfor(os.rmdir, dirname)
+
+    def _rmtree(path):
+        def _rmtree_inner(path):
+            for name in os.listdir(path):
+                fullname = os.path.join(path, name)
+                if os.path.isdir(fullname):
+                    _waitfor(_rmtree_inner, fullname, waitall=True)
+                    os.rmdir(fullname)
+                else:
+                    os.unlink(fullname)
+        _waitfor(_rmtree_inner, path, waitall=True)
+        _waitfor(os.rmdir, path)
+else:
+    _unlink = os.unlink
+    _rmdir = os.rmdir
+    _rmtree = shutil.rmtree
+
 def unlink(filename):
     try:
-        os.unlink(filename)
+        _unlink(filename)
     except OSError as error:
         # The filename need not exist.
         if error.errno not in (errno.ENOENT, errno.ENOTDIR):
             raise
 
+def rmdir(dirname):
+    try:
+        _rmdir(dirname)
+    except OSError as error:
+        # The directory need not exist.
+        if error.errno != errno.ENOENT:
+            raise
+
 def rmtree(path):
     try:
-        shutil.rmtree(path)
+        _rmtree(path)
     except OSError as error:
         # Unix returns ENOENT, Windows returns ESRCH.
         if error.errno not in (errno.ENOENT, errno.ESRCH):
@@ -456,6 +523,49 @@ else:
 # module name.
 TESTFN = "{}_{}_tmp".format(TESTFN, os.getpid())
 
+# FS_NONASCII: non-ASCII character encodable by os.fsencode(),
+# or None if there is no such character.
+FS_NONASCII = None
+for character in (
+    # First try printable and common characters to have a readable filename.
+    # For each character, the encoding list are just example of encodings able
+    # to encode the character (the list is not exhaustive).
+
+    # U+00E6 (Latin Small Letter Ae): cp1252, iso-8859-1
+    '\u00E6',
+    # U+0130 (Latin Capital Letter I With Dot Above): cp1254, iso8859_3
+    '\u0130',
+    # U+0141 (Latin Capital Letter L With Stroke): cp1250, cp1257
+    '\u0141',
+    # U+03C6 (Greek Small Letter Phi): cp1253
+    '\u03C6',
+    # U+041A (Cyrillic Capital Letter Ka): cp1251
+    '\u041A',
+    # U+05D0 (Hebrew Letter Alef): Encodable to cp424
+    '\u05D0',
+    # U+060C (Arabic Comma): cp864, cp1006, iso8859_6, mac_arabic
+    '\u060C',
+    # U+062A (Arabic Letter Teh): cp720
+    '\u062A',
+    # U+0E01 (Thai Character Ko Kai): cp874
+    '\u0E01',
+
+    # Then try more "special" characters. "special" because they may be
+    # interpreted or displayed differently depending on the exact locale
+    # encoding and the font.
+
+    # U+00A0 (No-Break Space)
+    '\u00A0',
+    # U+20AC (Euro Sign)
+    '\u20AC',
+):
+    try:
+        os.fsdecode(os.fsencode(character))
+    except UnicodeError:
+        pass
+    else:
+        FS_NONASCII = character
+        break
 
 # TESTFN_UNICODE is a non-ascii filename
 TESTFN_UNICODE = TESTFN + "-\xe0\xf2\u0258\u0141\u011f"
@@ -500,6 +610,41 @@ elif sys.platform != 'darwin':
         # the byte 0xff. Skip some unicode filename tests.
         pass
 
+# TESTFN_UNDECODABLE is a filename (bytes type) that should *not* be able to be
+# decoded from the filesystem encoding (in strict mode). It can be None if we
+# cannot generate such filename (ex: the latin1 encoding can decode any byte
+# sequence). On UNIX, TESTFN_UNDECODABLE can be decoded by os.fsdecode() thanks
+# to the surrogateescape error handler (PEP 383), but not from the filesystem
+# encoding in strict mode.
+TESTFN_UNDECODABLE = None
+for name in (
+    # b'\xff' is not decodable by os.fsdecode() with code page 932. Windows
+    # accepts it to create a file or a directory, or don't accept to enter to
+    # such directory (when the bytes name is used). So test b'\xe7' first: it is
+    # not decodable from cp932.
+    b'\xe7w\xf0',
+    # undecodable from ASCII, UTF-8
+    b'\xff',
+    # undecodable from iso8859-3, iso8859-6, iso8859-7, cp424, iso8859-8, cp856
+    # and cp857
+    b'\xae\xd5'
+    # undecodable from UTF-8 (UNIX and Mac OS X)
+    b'\xed\xb2\x80', b'\xed\xb4\x80',
+    # undecodable from shift_jis, cp869, cp874, cp932, cp1250, cp1251, cp1252,
+    # cp1253, cp1254, cp1255, cp1257, cp1258
+    b'\x81\x98',
+):
+    try:
+        name.decode(TESTFN_ENCODING)
+    except UnicodeDecodeError:
+        TESTFN_UNDECODABLE = os.fsencode(TESTFN) + name
+        break
+
+if FS_NONASCII:
+    TESTFN_NONASCII = TESTFN + '-' + FS_NONASCII
+else:
+    TESTFN_NONASCII = None
+
 # Save the initial cwd
 SAVEDCWD = os.getcwd()
 
@@ -533,7 +678,7 @@ def temp_cwd(name='tempcwd', quiet=False, path=None):
     except OSError:
         if not quiet:
             raise
-        warnings.warn('tests may fail, unable to change the CWD to ' + name,
+        warnings.warn('tests may fail, unable to change the CWD to ' + path,
                       RuntimeWarning, stacklevel=3)
     try:
         yield os.getcwd()
@@ -877,6 +1022,7 @@ def transient_internet(resource_name, *, timeout=30.0, errnos=()):
     ]
     default_gai_errnos = [
         ('EAI_AGAIN', -3),
+        ('EAI_FAIL', -4),
         ('EAI_NONAME', -2),
         ('EAI_NODATA', -5),
         # Encountered when trying to resolve IPv6-only hostnames
@@ -983,6 +1129,31 @@ def python_is_optimized():
     return final_opt and final_opt != '-O0'
 
 
+_header = '2P'
+if hasattr(sys, "gettotalrefcount"):
+    _header = '2P' + _header
+_vheader = _header + 'P'
+
+def calcobjsize(fmt):
+    return struct.calcsize(_header + fmt + '0P')
+
+def calcvobjsize(fmt):
+    return struct.calcsize(_vheader + fmt + '0P')
+
+
+_TPFLAGS_HAVE_GC = 1<<14
+_TPFLAGS_HEAPTYPE = 1<<9
+
+def check_sizeof(test, o, size):
+    result = sys.getsizeof(o)
+    # add GC header size
+    if ((type(o) == type) and (o.__flags__ & _TPFLAGS_HEAPTYPE) or\
+        ((type(o) != type) and (type(o).__flags__ & _TPFLAGS_HAVE_GC))):
+        size += _testcapi.SIZEOF_PYGC_HEAD
+    msg = 'wrong size for %s: got %d, expected %d' \
+            % (type(o), result, size)
+    test.assertEqual(result, size, msg)
+
 #=======================================================================
 # Decorator for running a function in a different locale, correctly resetting
 # it afterwards.
@@ -1014,6 +1185,39 @@ def run_with_locale(catstr, *locales):
             finally:
                 if locale and orig_locale:
                     locale.setlocale(category, orig_locale)
+        inner.__name__ = func.__name__
+        inner.__doc__ = func.__doc__
+        return inner
+    return decorator
+
+#=======================================================================
+# Decorator for running a function in a specific timezone, correctly
+# resetting it afterwards.
+
+def run_with_tz(tz):
+    def decorator(func):
+        def inner(*args, **kwds):
+            try:
+                tzset = time.tzset
+            except AttributeError:
+                raise unittest.SkipTest("tzset required")
+            if 'TZ' in os.environ:
+                orig_tz = os.environ['TZ']
+            else:
+                orig_tz = None
+            os.environ['TZ'] = tz
+            tzset()
+
+            # now run the function, resetting the tz on exceptions
+            try:
+                return func(*args, **kwds)
+            finally:
+                if orig_tz == None:
+                    del os.environ['TZ']
+                else:
+                    os.environ['TZ'] = orig_tz
+                time.tzset()
+
         inner.__name__ = func.__name__
         inner.__doc__ = func.__doc__
         return inner
@@ -1053,43 +1257,52 @@ def set_memlimit(limit):
         raise ValueError('Memory limit %r too low to be useful' % (limit,))
     max_memuse = memlimit
 
-def bigmemtest(minsize, memuse):
+def _memory_watchdog(start_evt, finish_evt, period=10.0):
+    """A function which periodically watches the process' memory consumption
+    and prints it out.
+    """
+    # XXX: because of the GIL, and because the very long operations tested
+    # in most bigmem tests are uninterruptible, the loop below gets woken up
+    # much less often than expected.
+    # The polling code should be rewritten in raw C, without holding the GIL,
+    # and push results onto an anonymous pipe.
+    try:
+        page_size = os.sysconf('SC_PAGESIZE')
+    except (ValueError, AttributeError):
+        try:
+            page_size = os.sysconf('SC_PAGE_SIZE')
+        except (ValueError, AttributeError):
+            page_size = 4096
+    procfile = '/proc/{pid}/statm'.format(pid=os.getpid())
+    try:
+        f = open(procfile, 'rb')
+    except IOError as e:
+        warnings.warn('/proc not available for stats: {}'.format(e),
+                      RuntimeWarning)
+        sys.stderr.flush()
+        return
+    with f:
+        start_evt.set()
+        old_data = -1
+        while not finish_evt.wait(period):
+            f.seek(0)
+            statm = f.read().decode('ascii')
+            data = int(statm.split()[5])
+            if data != old_data:
+                old_data = data
+                print(" ... process data size: {data:.1f}G"
+                       .format(data=data * page_size / (1024 ** 3)))
+
+def bigmemtest(size, memuse, dry_run=True):
     """Decorator for bigmem tests.
 
     'minsize' is the minimum useful size for the test (in arbitrary,
     test-interpreted units.) 'memuse' is the number of 'bytes per size' for
     the test, or a good estimate of it.
 
-    The decorator tries to guess a good value for 'size' and passes it to
-    the decorated test function. If minsize * memuse is more than the
-    allowed memory use (as defined by max_memuse), the test is skipped.
-    Otherwise, minsize is adjusted upward to use up to max_memuse.
+    if 'dry_run' is False, it means the test doesn't support dummy runs
+    when -M is not specified.
     """
-    def decorator(f):
-        def wrapper(self):
-            # Retrieve values in case someone decided to adjust them
-            minsize = wrapper.minsize
-            memuse = wrapper.memuse
-            if not max_memuse:
-                # If max_memuse is 0 (the default),
-                # we still want to run the tests with size set to a few kb,
-                # to make sure they work. We still want to avoid using
-                # too much memory, though, but we do that noisily.
-                maxsize = 5147
-                self.assertFalse(maxsize * memuse > 20 * _1M)
-            else:
-                maxsize = int(max_memuse / memuse)
-                if maxsize < minsize:
-                    raise unittest.SkipTest(
-                        "not enough memory: %.1fG minimum needed"
-                        % (minsize * memuse / (1024 ** 3)))
-            return f(self, maxsize)
-        wrapper.minsize = minsize
-        wrapper.memuse = memuse
-        return wrapper
-    return decorator
-
-def precisionbigmemtest(size, memuse):
     def decorator(f):
         def wrapper(self):
             size = wrapper.size
@@ -1099,12 +1312,34 @@ def precisionbigmemtest(size, memuse):
             else:
                 maxsize = size
 
-                if real_max_memuse and real_max_memuse < maxsize * memuse:
-                    raise unittest.SkipTest(
-                        "not enough memory: %.1fG minimum needed"
-                        % (size * memuse / (1024 ** 3)))
+            if ((real_max_memuse or not dry_run)
+                and real_max_memuse < maxsize * memuse):
+                raise unittest.SkipTest(
+                    "not enough memory: %.1fG minimum needed"
+                    % (size * memuse / (1024 ** 3)))
 
-            return f(self, maxsize)
+            if real_max_memuse and verbose and threading:
+                print()
+                print(" ... expected peak memory use: {peak:.1f}G"
+                      .format(peak=size * memuse / (1024 ** 3)))
+                sys.stdout.flush()
+                start_evt = threading.Event()
+                finish_evt = threading.Event()
+                t = threading.Thread(target=_memory_watchdog,
+                                     args=(start_evt, finish_evt, 0.5))
+                t.daemon = True
+                t.start()
+                start_evt.set()
+            else:
+                t = None
+
+            try:
+                return f(self, maxsize)
+            finally:
+                if t:
+                    finish_evt.set()
+                    t.join()
+
         wrapper.size = size
         wrapper.memuse = memuse
         return wrapper
@@ -1241,6 +1476,16 @@ def run_unittest(*classes):
         return False
     _filter_suite(suite, case_pred)
     _run_suite(suite)
+
+#=======================================================================
+# Check for the presence of docstrings.
+
+HAVE_DOCSTRINGS = (check_impl_detail(cpython=False) or
+                   sys.platform == 'win32' or
+                   sysconfig.get_config_var('WITH_DOC_STRINGS'))
+
+requires_docstrings = unittest.skipUnless(HAVE_DOCSTRINGS,
+                                          "test requires docstrings")
 
 
 #=======================================================================
@@ -1428,6 +1673,7 @@ def args_from_interpreter_flags():
     flag_opt_map = {
         'bytes_warning': 'b',
         'dont_write_bytecode': 'B',
+        'hash_randomization': 'R',
         'ignore_environment': 'E',
         'no_user_site': 's',
         'no_site': 'S',
@@ -1528,6 +1774,30 @@ def skip_unless_symlink(test):
     ok = can_symlink()
     msg = "Requires functional symlink implementation"
     return test if ok else unittest.skip(msg)(test)
+
+
+if sys.platform.startswith('win'):
+    @contextlib.contextmanager
+    def suppress_crash_popup():
+        """Disable Windows Error Reporting dialogs using SetErrorMode."""
+        # see http://msdn.microsoft.com/en-us/library/windows/desktop/ms680621%28v=vs.85%29.aspx
+        # GetErrorMode is not available on Windows XP and Windows Server 2003,
+        # but SetErrorMode returns the previous value, so we can use that
+        import ctypes
+        k32 = ctypes.windll.kernel32
+        SEM_NOGPFAULTERRORBOX = 0x02
+        old_error_mode = k32.SetErrorMode(SEM_NOGPFAULTERRORBOX)
+        k32.SetErrorMode(old_error_mode | SEM_NOGPFAULTERRORBOX)
+        try:
+            yield
+        finally:
+            k32.SetErrorMode(old_error_mode)
+else:
+    # this is a no-op for other platforms
+    @contextlib.contextmanager
+    def suppress_crash_popup():
+        yield
+
 
 def patch(test_instance, object_to_patch, attr_name, new_value):
     """Override 'object_to_patch'.'attr_name' with 'new_value'.

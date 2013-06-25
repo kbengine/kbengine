@@ -14,6 +14,13 @@
    references to these attributes should be marked using the :member: role.
 
 
+.. warning::
+
+   The :mod:`pyexpat` module is not secure against maliciously
+   constructed data.  If you need to parse untrusted or unauthenticated data see
+   :ref:`xml-vulnerabilities`.
+
+
 .. index:: single: Expat
 
 The :mod:`xml.parsers.expat` module is a Python interface to the Expat
@@ -402,7 +409,7 @@ otherwise stated.
 .. method:: xmlparser.CommentHandler(data)
 
    Called for comments.  *data* is the text of the comment, excluding the leading
-   '``<!-``\ ``-``' and trailing '``-``\ ``->``'.
+   ``'<!-``\ ``-'`` and trailing ``'-``\ ``->'``.
 
 
 .. method:: xmlparser.StartCdataSectionHandler()

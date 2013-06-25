@@ -13,6 +13,10 @@ import warnings
 from test import support, string_tests
 import _string
 
+# decorator to skip tests on narrow builds
+requires_wide_build = unittest.skipIf(sys.maxunicode == 65535,
+                                      'requires wide build')
+
 # Error handling (bad decoder return)
 def search_function(encoding):
     def decode1(input, errors="strict"):
@@ -170,6 +174,7 @@ class UnicodeTest(string_tests.CommonTest,
         self.checkequalnofix(0, 'aaa', 'count',  'a', 0, -10)
 
     def test_find(self):
+        string_tests.CommonTest.test_find(self)
         self.checkequalnofix(0,  'abcdefghiabc', 'find', 'abc')
         self.checkequalnofix(9,  'abcdefghiabc', 'find', 'abc', 1)
         self.checkequalnofix(-1, 'abcdefghiabc', 'find', 'def', 4)
@@ -345,26 +350,69 @@ class UnicodeTest(string_tests.CommonTest,
     def test_islower(self):
         string_tests.MixinStrUnicodeUserStringTest.test_islower(self)
         self.checkequalnofix(False, '\u1FFc', 'islower')
+        # non-BMP, uppercase
+        self.assertFalse('\U00010401'.islower())
+        self.assertFalse('\U00010427'.islower())
+        # non-BMP, lowercase
+        self.assertTrue('\U00010429'.islower())
+        self.assertTrue('\U0001044E'.islower())
+        # non-BMP, non-cased
+        self.assertFalse('\U0001F40D'.islower())
+        self.assertFalse('\U0001F46F'.islower())
 
     def test_isupper(self):
         string_tests.MixinStrUnicodeUserStringTest.test_isupper(self)
         if not sys.platform.startswith('java'):
             self.checkequalnofix(False, '\u1FFc', 'isupper')
+        # non-BMP, uppercase
+        self.assertTrue('\U00010401'.isupper())
+        self.assertTrue('\U00010427'.isupper())
+        # non-BMP, lowercase
+        self.assertFalse('\U00010429'.isupper())
+        self.assertFalse('\U0001044E'.isupper())
+        # non-BMP, non-cased
+        self.assertFalse('\U0001F40D'.isupper())
+        self.assertFalse('\U0001F46F'.isupper())
 
     def test_istitle(self):
-        string_tests.MixinStrUnicodeUserStringTest.test_title(self)
+        string_tests.MixinStrUnicodeUserStringTest.test_istitle(self)
         self.checkequalnofix(True, '\u1FFc', 'istitle')
         self.checkequalnofix(True, 'Greek \u1FFcitlecases ...', 'istitle')
+
+        # non-BMP, uppercase + lowercase
+        self.assertTrue('\U00010401\U00010429'.istitle())
+        self.assertTrue('\U00010427\U0001044E'.istitle())
+        # apparently there are no titlecased (Lt) non-BMP chars in Unicode 6
+        for ch in ['\U00010429', '\U0001044E', '\U0001F40D', '\U0001F46F']:
+            self.assertFalse(ch.istitle(), '{!a} is not title'.format(ch))
 
     def test_isspace(self):
         string_tests.MixinStrUnicodeUserStringTest.test_isspace(self)
         self.checkequalnofix(True, '\u2000', 'isspace')
         self.checkequalnofix(True, '\u200a', 'isspace')
         self.checkequalnofix(False, '\u2014', 'isspace')
+        # apparently there are no non-BMP spaces chars in Unicode 6
+        for ch in ['\U00010401', '\U00010427', '\U00010429', '\U0001044E',
+                   '\U0001F40D', '\U0001F46F']:
+            self.assertFalse(ch.isspace(), '{!a} is not space.'.format(ch))
+
+    def test_isalnum(self):
+        string_tests.MixinStrUnicodeUserStringTest.test_isalnum(self)
+        for ch in ['\U00010401', '\U00010427', '\U00010429', '\U0001044E',
+                   '\U0001D7F6', '\U00011066', '\U000104A0', '\U0001F107']:
+            self.assertTrue(ch.isalnum(), '{!a} is alnum.'.format(ch))
 
     def test_isalpha(self):
         string_tests.MixinStrUnicodeUserStringTest.test_isalpha(self)
         self.checkequalnofix(True, '\u1FFc', 'isalpha')
+        # non-BMP, cased
+        self.assertTrue('\U00010401'.isalpha())
+        self.assertTrue('\U00010427'.isalpha())
+        self.assertTrue('\U00010429'.isalpha())
+        self.assertTrue('\U0001044E'.isalpha())
+        # non-BMP, non-cased
+        self.assertFalse('\U0001F40D'.isalpha())
+        self.assertFalse('\U0001F46F'.isalpha())
 
     def test_isdecimal(self):
         self.checkequalnofix(False, '', 'isdecimal')
@@ -378,11 +426,23 @@ class UnicodeTest(string_tests.CommonTest,
 
         self.checkraises(TypeError, 'abc', 'isdecimal', 42)
 
+        for ch in ['\U00010401', '\U00010427', '\U00010429', '\U0001044E',
+                   '\U0001F40D', '\U0001F46F', '\U00011065', '\U0001F107']:
+            self.assertFalse(ch.isdecimal(), '{!a} is not decimal.'.format(ch))
+        for ch in ['\U0001D7F6', '\U00011066', '\U000104A0']:
+            self.assertTrue(ch.isdecimal(), '{!a} is decimal.'.format(ch))
+
     def test_isdigit(self):
         string_tests.MixinStrUnicodeUserStringTest.test_isdigit(self)
         self.checkequalnofix(True, '\u2460', 'isdigit')
         self.checkequalnofix(False, '\xbc', 'isdigit')
         self.checkequalnofix(True, '\u0660', 'isdigit')
+
+        for ch in ['\U00010401', '\U00010427', '\U00010429', '\U0001044E',
+                   '\U0001F40D', '\U0001F46F', '\U00011065']:
+            self.assertFalse(ch.isdigit(), '{!a} is not a digit.'.format(ch))
+        for ch in ['\U0001D7F6', '\U00011066', '\U000104A0', '\U0001F107']:
+            self.assertTrue(ch.isdigit(), '{!a} is a digit.'.format(ch))
 
     def test_isnumeric(self):
         self.checkequalnofix(False, '', 'isnumeric')
@@ -395,6 +455,13 @@ class UnicodeTest(string_tests.CommonTest,
         self.checkequalnofix(False, '0123456789a', 'isnumeric')
 
         self.assertRaises(TypeError, "abc".isnumeric, 42)
+
+        for ch in ['\U00010401', '\U00010427', '\U00010429', '\U0001044E',
+                   '\U0001F40D', '\U0001F46F']:
+            self.assertFalse(ch.isnumeric(), '{!a} is not numeric.'.format(ch))
+        for ch in ['\U00011065', '\U0001D7F6', '\U00011066',
+                   '\U000104A0', '\U0001F107']:
+            self.assertTrue(ch.isnumeric(), '{!a} is numeric.'.format(ch))
 
     def test_isidentifier(self):
         self.assertTrue("a".isidentifier())
@@ -422,6 +489,100 @@ class UnicodeTest(string_tests.CommonTest,
         self.assertFalse("\u0378".isprintable())
         # single surrogate character
         self.assertFalse("\ud800".isprintable())
+
+        self.assertTrue('\U0001F46F'.isprintable())
+        self.assertFalse('\U000E0020'.isprintable())
+
+    def test_surrogates(self):
+        for s in ('a\uD800b\uDFFF', 'a\uDFFFb\uD800',
+                  'a\uD800b\uDFFFa', 'a\uDFFFb\uD800a'):
+            self.assertTrue(s.islower())
+            self.assertFalse(s.isupper())
+            self.assertFalse(s.istitle())
+        for s in ('A\uD800B\uDFFF', 'A\uDFFFB\uD800',
+                  'A\uD800B\uDFFFA', 'A\uDFFFB\uD800A'):
+            self.assertFalse(s.islower())
+            self.assertTrue(s.isupper())
+            self.assertTrue(s.istitle())
+
+        for meth_name in ('islower', 'isupper', 'istitle'):
+            meth = getattr(str, meth_name)
+            for s in ('\uD800', '\uDFFF', '\uD800\uD800', '\uDFFF\uDFFF'):
+                self.assertFalse(meth(s), '%a.%s() is False' % (s, meth_name))
+
+        for meth_name in ('isalpha', 'isalnum', 'isdigit', 'isspace',
+                          'isdecimal', 'isnumeric',
+                          'isidentifier', 'isprintable'):
+            meth = getattr(str, meth_name)
+            for s in ('\uD800', '\uDFFF', '\uD800\uD800', '\uDFFF\uDFFF',
+                      'a\uD800b\uDFFF', 'a\uDFFFb\uD800',
+                      'a\uD800b\uDFFFa', 'a\uDFFFb\uD800a'):
+                self.assertFalse(meth(s), '%a.%s() is False' % (s, meth_name))
+
+
+    @requires_wide_build
+    def test_lower(self):
+        string_tests.CommonTest.test_lower(self)
+        self.assertEqual('\U00010427'.lower(), '\U0001044F')
+        self.assertEqual('\U00010427\U00010427'.lower(),
+                         '\U0001044F\U0001044F')
+        self.assertEqual('\U00010427\U0001044F'.lower(),
+                         '\U0001044F\U0001044F')
+        self.assertEqual('X\U00010427x\U0001044F'.lower(),
+                         'x\U0001044Fx\U0001044F')
+
+    @requires_wide_build
+    def test_upper(self):
+        string_tests.CommonTest.test_upper(self)
+        self.assertEqual('\U0001044F'.upper(), '\U00010427')
+        self.assertEqual('\U0001044F\U0001044F'.upper(),
+                         '\U00010427\U00010427')
+        self.assertEqual('\U00010427\U0001044F'.upper(),
+                         '\U00010427\U00010427')
+        self.assertEqual('X\U00010427x\U0001044F'.upper(),
+                         'X\U00010427X\U00010427')
+
+    @requires_wide_build
+    def test_capitalize(self):
+        string_tests.CommonTest.test_capitalize(self)
+        self.assertEqual('\U0001044F'.capitalize(), '\U00010427')
+        self.assertEqual('\U0001044F\U0001044F'.capitalize(),
+                         '\U00010427\U0001044F')
+        self.assertEqual('\U00010427\U0001044F'.capitalize(),
+                         '\U00010427\U0001044F')
+        self.assertEqual('\U0001044F\U00010427'.capitalize(),
+                         '\U00010427\U0001044F')
+        self.assertEqual('X\U00010427x\U0001044F'.capitalize(),
+                         'X\U0001044Fx\U0001044F')
+
+    @requires_wide_build
+    def test_title(self):
+        string_tests.MixinStrUnicodeUserStringTest.test_title(self)
+        self.assertEqual('\U0001044F'.title(), '\U00010427')
+        self.assertEqual('\U0001044F\U0001044F'.title(),
+                         '\U00010427\U0001044F')
+        self.assertEqual('\U0001044F\U0001044F \U0001044F\U0001044F'.title(),
+                         '\U00010427\U0001044F \U00010427\U0001044F')
+        self.assertEqual('\U00010427\U0001044F \U00010427\U0001044F'.title(),
+                         '\U00010427\U0001044F \U00010427\U0001044F')
+        self.assertEqual('\U0001044F\U00010427 \U0001044F\U00010427'.title(),
+                         '\U00010427\U0001044F \U00010427\U0001044F')
+        self.assertEqual('X\U00010427x\U0001044F X\U00010427x\U0001044F'.title(),
+                         'X\U0001044Fx\U0001044F X\U0001044Fx\U0001044F')
+
+    @requires_wide_build
+    def test_swapcase(self):
+        string_tests.CommonTest.test_swapcase(self)
+        self.assertEqual('\U0001044F'.swapcase(), '\U00010427')
+        self.assertEqual('\U00010427'.swapcase(), '\U0001044F')
+        self.assertEqual('\U0001044F\U0001044F'.swapcase(),
+                         '\U00010427\U00010427')
+        self.assertEqual('\U00010427\U0001044F'.swapcase(),
+                         '\U0001044F\U00010427')
+        self.assertEqual('\U0001044F\U00010427'.swapcase(),
+                         '\U00010427\U0001044F')
+        self.assertEqual('X\U00010427x\U0001044F'.swapcase(),
+                         'x\U0001044FX\U00010427')
 
     def test_contains(self):
         # Testing Unicode contains method
@@ -730,17 +891,35 @@ class UnicodeTest(string_tests.CommonTest,
         self.assertEqual('{foo._x}'.format_map({'foo': C(20)}), '20')
 
         # test various errors
-        self.assertRaises(TypeError, '{'.format_map)
-        self.assertRaises(TypeError, '}'.format_map)
-        self.assertRaises(TypeError, 'a{'.format_map)
-        self.assertRaises(TypeError, 'a}'.format_map)
-        self.assertRaises(TypeError, '{a'.format_map)
-        self.assertRaises(TypeError, '}a'.format_map)
+        self.assertRaises(TypeError, ''.format_map)
+        self.assertRaises(TypeError, 'a'.format_map)
+
+        self.assertRaises(ValueError, '{'.format_map, {})
+        self.assertRaises(ValueError, '}'.format_map, {})
+        self.assertRaises(ValueError, 'a{'.format_map, {})
+        self.assertRaises(ValueError, 'a}'.format_map, {})
+        self.assertRaises(ValueError, '{a'.format_map, {})
+        self.assertRaises(ValueError, '}a'.format_map, {})
 
         # issue #12579: can't supply positional params to format_map
         self.assertRaises(ValueError, '{}'.format_map, {'a' : 2})
         self.assertRaises(ValueError, '{}'.format_map, 'a')
         self.assertRaises(ValueError, '{a} {}'.format_map, {"a" : 2, "b" : 1})
+
+    def test_format_huge_precision(self):
+        format_string = ".{}f".format(sys.maxsize + 1)
+        with self.assertRaises(ValueError):
+            result = format(2.34, format_string)
+
+    def test_format_huge_width(self):
+        format_string = "{}f".format(sys.maxsize + 1)
+        with self.assertRaises(ValueError):
+            result = format(2.34, format_string)
+
+    def test_format_huge_item_number(self):
+        format_string = "{{{}:.6f}}".format(sys.maxsize + 1)
+        with self.assertRaises(ValueError):
+            result = format_string.format(2.34)
 
     def test_format_auto_numbering(self):
         class C:
@@ -826,6 +1005,18 @@ class UnicodeTest(string_tests.CommonTest,
         self.assertEqual('%f' % INF, 'inf')
         self.assertEqual('%F' % INF, 'INF')
 
+    @support.cpython_only
+    def test_formatting_huge_precision(self):
+        from _testcapi import INT_MAX
+        format_string = "%.{}f".format(INT_MAX + 1)
+        with self.assertRaises(ValueError):
+            result = format_string % 2.34
+
+    def test_formatting_huge_width(self):
+        format_string = "%{}f".format(sys.maxsize + 1)
+        with self.assertRaises(ValueError):
+            result = format_string % 2.34
+
     def test_startswith_endswith_errors(self):
         for meth in ('foo'.startswith, 'foo'.endswith):
             with self.assertRaises(TypeError) as cm:
@@ -909,6 +1100,26 @@ class UnicodeTest(string_tests.CommonTest,
 
         self.assertRaises(TypeError, str, 42, 42, 42)
 
+    def test_constructor_keyword_args(self):
+        """Pass various keyword argument combinations to the constructor."""
+        # The object argument can be passed as a keyword.
+        self.assertEqual(str(object='foo'), 'foo')
+        self.assertEqual(str(object=b'foo', encoding='utf-8'), 'foo')
+        # The errors argument without encoding triggers "decode" mode.
+        self.assertEqual(str(b'foo', errors='strict'), 'foo')  # not "b'foo'"
+        self.assertEqual(str(object=b'foo', errors='strict'), 'foo')
+
+    def test_constructor_defaults(self):
+        """Check the constructor argument defaults."""
+        # The object argument defaults to '' or b''.
+        self.assertEqual(str(), '')
+        self.assertEqual(str(errors='strict'), '')
+        utf8_cent = '¢'.encode('utf-8')
+        # The encoding argument defaults to utf-8.
+        self.assertEqual(str(utf8_cent, errors='strict'), '¢')
+        # The errors argument defaults to strict.
+        self.assertRaises(UnicodeDecodeError, str, utf8_cent, encoding='ascii')
+
     def test_codecs_utf7(self):
         utfTests = [
             ('A\u2262\u0391.', b'A+ImIDkQ.'),             # RFC2152 example
@@ -930,10 +1141,18 @@ class UnicodeTest(string_tests.CommonTest,
         for (x, y) in utfTests:
             self.assertEqual(x.encode('utf-7'), y)
 
-        # Unpaired surrogates not supported
-        self.assertRaises(UnicodeError, str, b'+3ADYAA-', 'utf-7')
+        # Unpaired surrogates are passed through
+        self.assertEqual('\uD801'.encode('utf-7'), b'+2AE-')
+        self.assertEqual('\uD801x'.encode('utf-7'), b'+2AE-x')
+        self.assertEqual('\uDC01'.encode('utf-7'), b'+3AE-')
+        self.assertEqual('\uDC01x'.encode('utf-7'), b'+3AE-x')
+        self.assertEqual(b'+2AE-'.decode('utf-7'), '\uD801')
+        self.assertEqual(b'+2AE-x'.decode('utf-7'), '\uD801x')
+        self.assertEqual(b'+3AE-'.decode('utf-7'), '\uDC01')
+        self.assertEqual(b'+3AE-x'.decode('utf-7'), '\uDC01x')
 
-        self.assertEqual(str(b'+3ADYAA-', 'utf-7', 'replace'), '\ufffd\ufffd')
+        self.assertEqual('\uD801\U000abcde'.encode('utf-7'), b'+2AHab9ze-')
+        self.assertEqual(b'+2AHab9ze-'.decode('utf-7'), '\uD801\U000abcde')
 
         # Issue #2242: crash on some Windows/MSVC versions
         self.assertEqual(b'+\xc1'.decode('utf-7'), '\xc1')
@@ -1597,6 +1816,42 @@ class StringModuleTest(unittest.TestCase):
              (False, 'key2'),
             ]])
         self.assertRaises(TypeError, _string.formatter_field_name_split, 1)
+
+    def test_encode_decimal(self):
+        from _testcapi import unicode_encodedecimal
+        self.assertEqual(unicode_encodedecimal('123'),
+                         b'123')
+        self.assertEqual(unicode_encodedecimal('\u0663.\u0661\u0664'),
+                         b'3.14')
+        self.assertEqual(unicode_encodedecimal("\N{EM SPACE}3.14\N{EN SPACE}"),
+                         b' 3.14 ')
+        self.assertRaises(UnicodeEncodeError,
+                          unicode_encodedecimal, "123\u20ac", "strict")
+        self.assertEqual(unicode_encodedecimal("123\u20ac", "replace"),
+                         b'123?')
+        self.assertEqual(unicode_encodedecimal("123\u20ac", "ignore"),
+                         b'123')
+        self.assertEqual(unicode_encodedecimal("123\u20ac", "xmlcharrefreplace"),
+                         b'123&#8364;')
+        self.assertEqual(unicode_encodedecimal("123\u20ac", "backslashreplace"),
+                         b'123\\u20ac')
+        self.assertEqual(unicode_encodedecimal("123\u20ac\N{EM SPACE}", "replace"),
+                         b'123? ')
+        self.assertEqual(unicode_encodedecimal("123\u20ac\u20ac", "replace"),
+                         b'123??')
+        self.assertEqual(unicode_encodedecimal("123\u20ac\u0660", "replace"),
+                         b'123?0')
+
+    def test_transform_decimal(self):
+        from _testcapi import unicode_transformdecimaltoascii as transform_decimal
+        self.assertEqual(transform_decimal('123'),
+                         '123')
+        self.assertEqual(transform_decimal('\u0663.\u0661\u0664'),
+                         '3.14')
+        self.assertEqual(transform_decimal("\N{EM SPACE}3.14\N{EN SPACE}"),
+                         "\N{EM SPACE}3.14\N{EN SPACE}")
+        self.assertEqual(transform_decimal('123\u20ac'),
+                         '123\u20ac')
 
 
 def test_main():

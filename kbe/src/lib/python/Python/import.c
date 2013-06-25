@@ -252,16 +252,6 @@ _PyImportHooks_Init(void)
     Py_DECREF(path_hooks);
 }
 
-void
-_PyImport_Fini(void)
-{
-    Py_XDECREF(extensions);
-    extensions = NULL;
-    PyMem_DEL(_PyImport_Filetab);
-    _PyImport_Filetab = NULL;
-}
-
-
 /* Locking primitives to prevent parallel imports of the same module
    in different threads to return with a partially loaded module.
    These calls are serialized by the global interpreter lock. */
@@ -372,6 +362,21 @@ imp_release_lock(PyObject *self, PyObject *noargs)
 #endif
     Py_INCREF(Py_None);
     return Py_None;
+}
+
+void
+_PyImport_Fini(void)
+{
+    Py_XDECREF(extensions);
+    extensions = NULL;
+    PyMem_DEL(_PyImport_Filetab);
+    _PyImport_Filetab = NULL;
+#ifdef WITH_THREAD
+    if (import_lock != NULL) {
+        PyThread_free_lock(import_lock);
+        import_lock = NULL;
+    }
+#endif
 }
 
 static void
@@ -1167,15 +1172,21 @@ write_compiled_module(PyCodeObject *co, char *cpathname, struct stat *srcstat)
     FILE *fp;
     char *dirpath;
     time_t mtime = srcstat->st_mtime;
+    int saved;
 #ifdef MS_WINDOWS   /* since Windows uses different permissions  */
     mode_t mode = srcstat->st_mode & ~S_IEXEC;
+    /* Issue #6074: We ensure user write access, so we can delete it later
+     * when the source file changes. (On POSIX, this only requires write
+     * access to the directory, on Windows, we need write access to the file
+     * as well)
+     */
+    mode |= _S_IWRITE;
 #else
     mode_t mode = srcstat->st_mode & ~S_IXUSR & ~S_IXGRP & ~S_IXOTH;
     mode_t dirmode = (srcstat->st_mode |
                       S_IXUSR | S_IXGRP | S_IXOTH |
                       S_IWUSR | S_IWGRP | S_IWOTH);
 #endif
-    int saved;
 
     /* Ensure that the __pycache__ directory exists. */
     dirpath = rightmost_sep(cpathname);
@@ -1221,9 +1232,9 @@ write_compiled_module(PyCodeObject *co, char *cpathname, struct stat *srcstat)
         (void) unlink(cpathname);
         return;
     }
-    /* Now write the true mtime */
+    /* Now write the true mtime (as a 32-bit field) */
     fseek(fp, 4L, 0);
-    assert(mtime < LONG_MAX);
+    assert(mtime <= 0xFFFFFFFF);
     PyMarshal_WriteLongToFile((long)mtime, fp, Py_MARSHAL_VERSION);
     fflush(fp);
     fclose(fp);
@@ -1286,9 +1297,9 @@ load_source_module(char *name, char *pathname, FILE *fp)
 {
     struct stat st;
     FILE *fpc;
-    char buf[MAXPATHLEN+1];
+    char *buf;
     char *cpathname;
-    PyCodeObject *co;
+    PyCodeObject *co = NULL;
     PyObject *m;
 
     if (fstat(fileno(fp), &st) != 0) {
@@ -1297,17 +1308,18 @@ load_source_module(char *name, char *pathname, FILE *fp)
                      pathname);
         return NULL;
     }
-#if SIZEOF_TIME_T > 4
-    /* Python's .pyc timestamp handling presumes that the timestamp fits
-       in 4 bytes. This will be fine until sometime in the year 2038,
-       when a 4-byte signed time_t will overflow.
-     */
-    if (st.st_mtime >> 32) {
-        PyErr_SetString(PyExc_OverflowError,
-            "modification time overflows a 4 byte field");
-        return NULL;
+    if (sizeof st.st_mtime > 4) {
+        /* Python's .pyc timestamp handling presumes that the timestamp fits
+           in 4 bytes. Since the code only does an equality comparison,
+           ordering is not important and we can safely ignore the higher bits
+           (collisions are extremely unlikely).
+         */
+        st.st_mtime &= 0xFFFFFFFF;
     }
-#endif
+    buf = PyMem_MALLOC(MAXPATHLEN+1);
+    if (buf == NULL) {
+        return PyErr_NoMemory();
+    }
     cpathname = make_compiled_pathname(
         pathname, buf, (size_t)MAXPATHLEN + 1, !Py_OptimizeFlag);
     if (cpathname != NULL &&
@@ -1315,9 +1327,9 @@ load_source_module(char *name, char *pathname, FILE *fp)
         co = read_compiled_module(cpathname, fpc);
         fclose(fpc);
         if (co == NULL)
-            return NULL;
+            goto error_exit;
         if (update_compiled_module(co, pathname) < 0)
-            return NULL;
+            goto error_exit;
         if (Py_VerboseFlag)
             PySys_WriteStderr("import %s # precompiled from %s\n",
                 name, cpathname);
@@ -1326,13 +1338,16 @@ load_source_module(char *name, char *pathname, FILE *fp)
     else {
         co = parse_source_module(pathname, fp);
         if (co == NULL)
-            return NULL;
+            goto error_exit;
         if (Py_VerboseFlag)
             PySys_WriteStderr("import %s # from %s\n",
                 name, pathname);
         if (cpathname) {
             PyObject *ro = PySys_GetObject("dont_write_bytecode");
-            if (ro == NULL || !PyObject_IsTrue(ro))
+            int b = (ro == NULL) ? 0 : PyObject_IsTrue(ro);
+            if (b < 0)
+                goto error_exit;
+            if (!b)
                 write_compiled_module(co, cpathname, &st);
         }
     }
@@ -1340,7 +1355,13 @@ load_source_module(char *name, char *pathname, FILE *fp)
         name, (PyObject *)co, pathname, cpathname);
     Py_DECREF(co);
 
+    PyMem_FREE(buf);
     return m;
+
+error_exit:
+    Py_XDECREF(co);
+    PyMem_FREE(buf);
+    return NULL;
 }
 
 /* Get source file -> unicode or None
@@ -1349,7 +1370,7 @@ load_source_module(char *name, char *pathname, FILE *fp)
 static PyObject *
 get_sourcefile(char *file)
 {
-    char py[MAXPATHLEN + 1];
+    char *py = NULL;
     Py_ssize_t len;
     PyObject *u;
     struct stat statbuf;
@@ -1364,6 +1385,10 @@ get_sourcefile(char *file)
         return PyUnicode_DecodeFSDefault(file);
     }
 
+    py = PyMem_MALLOC(MAXPATHLEN+1);
+    if (py == NULL) {
+        return PyErr_NoMemory();
+    }
     /* Start by trying to turn PEP 3147 path into source path.  If that
      * fails, just chop off the trailing character, i.e. legacy pyc path
      * to py.
@@ -1380,6 +1405,7 @@ get_sourcefile(char *file)
     else {
         u = PyUnicode_DecodeFSDefault(file);
     }
+    PyMem_FREE(py);
     return u;
 }
 
@@ -1399,7 +1425,7 @@ load_package(char *name, char *pathname)
     PyObject *file = NULL;
     PyObject *path = NULL;
     int err;
-    char buf[MAXPATHLEN+1];
+    char *buf = NULL;
     FILE *fp = NULL;
     struct filedescr *fdp;
 
@@ -1421,8 +1447,13 @@ load_package(char *name, char *pathname)
         err = PyDict_SetItemString(d, "__path__", path);
     if (err != 0)
         goto error;
+    buf = PyMem_MALLOC(MAXPATHLEN+1);
+    if (buf == NULL) {
+        PyErr_NoMemory();
+        goto error;
+    }
     buf[0] = '\0';
-    fdp = find_module(name, "__init__", path, buf, sizeof(buf), &fp, NULL);
+    fdp = find_module(name, "__init__", path, buf, MAXPATHLEN+1, &fp, NULL);
     if (fdp == NULL) {
         if (PyErr_ExceptionMatches(PyExc_ImportError)) {
             PyErr_Clear();
@@ -1440,6 +1471,8 @@ load_package(char *name, char *pathname)
   error:
     m = NULL;
   cleanup:
+    if (buf)
+        PyMem_FREE(buf);
     Py_XDECREF(path);
     Py_XDECREF(file);
     return m;
@@ -1569,7 +1602,7 @@ find_module(char *fullname, char *subname, PyObject *path, char *buf,
     static struct filedescr fd_frozen = {"", "", PY_FROZEN};
     static struct filedescr fd_builtin = {"", "", C_BUILTIN};
     static struct filedescr fd_package = {"", "", PKG_DIRECTORY};
-    char name[MAXPATHLEN+1];
+    char *name;
 #if defined(PYOS_OS2)
     size_t saved_len;
     size_t saved_namelen;
@@ -1583,6 +1616,11 @@ find_module(char *fullname, char *subname, PyObject *path, char *buf,
                         "module name is too long");
         return NULL;
     }
+    name = PyMem_MALLOC(MAXPATHLEN+1);
+    if (name == NULL) {
+        PyErr_NoMemory();
+        return NULL;
+    }
     strcpy(name, subname);
 
     /* sys.meta_path import hook */
@@ -1591,10 +1629,10 @@ find_module(char *fullname, char *subname, PyObject *path, char *buf,
 
         meta_path = PySys_GetObject("meta_path");
         if (meta_path == NULL || !PyList_Check(meta_path)) {
-            PyErr_SetString(PyExc_ImportError,
+            PyErr_SetString(PyExc_RuntimeError,
                             "sys.meta_path must be a list of "
                             "import hooks");
-            return NULL;
+            goto error_exit;
         }
         Py_INCREF(meta_path);  /* zap guard */
         npath = PyList_Size(meta_path);
@@ -1607,12 +1645,13 @@ find_module(char *fullname, char *subname, PyObject *path, char *buf,
                                          path : Py_None);
             if (loader == NULL) {
                 Py_DECREF(meta_path);
-                return NULL;  /* true error */
+                goto error_exit;  /* true error */
             }
             if (loader != Py_None) {
                 /* a loader was found */
                 *p_loader = loader;
                 Py_DECREF(meta_path);
+                PyMem_FREE(name);
                 return &importhookdescr;
             }
             Py_DECREF(loader);
@@ -1622,18 +1661,21 @@ find_module(char *fullname, char *subname, PyObject *path, char *buf,
 
     if (find_frozen(fullname) != NULL) {
         strcpy(buf, fullname);
+        PyMem_FREE(name);
         return &fd_frozen;
     }
 
     if (path == NULL) {
         if (is_builtin(name)) {
             strcpy(buf, name);
+            PyMem_FREE(name);
             return &fd_builtin;
         }
 #ifdef MS_COREDLL
         fp = PyWin_FindRegisteredModule(name, &fdp, buf, buflen);
         if (fp != NULL) {
             *p_fp = fp;
+            PyMem_FREE(name);
             return fdp;
         }
 #endif
@@ -1641,24 +1683,24 @@ find_module(char *fullname, char *subname, PyObject *path, char *buf,
     }
 
     if (path == NULL || !PyList_Check(path)) {
-        PyErr_SetString(PyExc_ImportError,
+        PyErr_SetString(PyExc_RuntimeError,
                         "sys.path must be a list of directory names");
-        return NULL;
+        goto error_exit;
     }
 
     path_hooks = PySys_GetObject("path_hooks");
     if (path_hooks == NULL || !PyList_Check(path_hooks)) {
-        PyErr_SetString(PyExc_ImportError,
+        PyErr_SetString(PyExc_RuntimeError,
                         "sys.path_hooks must be a list of "
                         "import hooks");
-        return NULL;
+        goto error_exit;
     }
     path_importer_cache = PySys_GetObject("path_importer_cache");
     if (path_importer_cache == NULL ||
         !PyDict_Check(path_importer_cache)) {
-        PyErr_SetString(PyExc_ImportError,
+        PyErr_SetString(PyExc_RuntimeError,
                         "sys.path_importer_cache must be a dict");
-        return NULL;
+        goto error_exit;
     }
 
     npath = PyList_Size(path);
@@ -1669,11 +1711,11 @@ find_module(char *fullname, char *subname, PyObject *path, char *buf,
         const char *base;
         Py_ssize_t size;
         if (!v)
-            return NULL;
+            goto error_exit;
         if (PyUnicode_Check(v)) {
             v = PyUnicode_EncodeFSDefault(v);
             if (v == NULL)
-                return NULL;
+                goto error_exit;
         }
         else if (!PyBytes_Check(v))
             continue;
@@ -1701,7 +1743,7 @@ find_module(char *fullname, char *subname, PyObject *path, char *buf,
             importer = get_path_importer(path_importer_cache,
                                          path_hooks, origv);
             if (importer == NULL) {
-                return NULL;
+                goto error_exit;
             }
             /* Note: importer is a borrowed reference */
             if (importer != Py_None) {
@@ -1710,10 +1752,11 @@ find_module(char *fullname, char *subname, PyObject *path, char *buf,
                                              "find_module",
                                              "s", fullname);
                 if (loader == NULL)
-                    return NULL;  /* error */
+                    goto error_exit;  /* error */
                 if (loader != Py_None) {
                     /* a loader was found */
                     *p_loader = loader;
+                    PyMem_FREE(name);
                     return &importhookdescr;
                 }
                 Py_DECREF(loader);
@@ -1738,19 +1781,20 @@ find_module(char *fullname, char *subname, PyObject *path, char *buf,
             S_ISDIR(statbuf.st_mode) &&         /* it's a directory */
             case_ok(buf, len, namelen, name)) { /* case matches */
             if (find_init_module(buf)) { /* and has __init__.py */
+                PyMem_FREE(name);
                 return &fd_package;
             }
             else {
                 int err;
                 PyObject *unicode = PyUnicode_DecodeFSDefault(buf);
                 if (unicode == NULL)
-                    return NULL;
+                    goto error_exit;
                 err = PyErr_WarnFormat(PyExc_ImportWarning, 1,
                     "Not importing directory '%U': missing __init__.py",
                     unicode);
                 Py_DECREF(unicode);
                 if (err)
-                    return NULL;
+                    goto error_exit;
             }
         }
 #endif
@@ -1763,6 +1807,7 @@ find_module(char *fullname, char *subname, PyObject *path, char *buf,
         saved_namelen = namelen;
 #endif /* PYOS_OS2 */
         for (fdp = _PyImport_Filetab; fdp->suffix != NULL; fdp++) {
+            struct stat statbuf;
 #if defined(PYOS_OS2) && defined(HAVE_DYNAMIC_LOADING)
             /* OS/2 limits DLLs to 8 character names (w/o
                extension)
@@ -1791,10 +1836,16 @@ find_module(char *fullname, char *subname, PyObject *path, char *buf,
             strcpy(buf+len, fdp->suffix);
             if (Py_VerboseFlag > 1)
                 PySys_WriteStderr("# trying %s\n", buf);
+
             filemode = fdp->mode;
             if (filemode[0] == 'U')
                 filemode = "r" PY_STDIOTEXTMODE;
-            fp = fopen(buf, filemode);
+
+            if (stat(buf, &statbuf) == 0 && S_ISDIR(statbuf.st_mode))
+                /* it's a directory */
+                fp = NULL;
+            else
+                fp = fopen(buf, filemode);
             if (fp != NULL) {
                 if (case_ok(buf, len, namelen, name))
                     break;
@@ -1824,10 +1875,15 @@ find_module(char *fullname, char *subname, PyObject *path, char *buf,
     if (fp == NULL) {
         PyErr_Format(PyExc_ImportError,
                      "No module named %.200s", name);
-        return NULL;
+        goto error_exit;
     }
     *p_fp = fp;
+    PyMem_FREE(name);
     return fdp;
+
+error_exit:
+    PyMem_FREE(name);
+    return NULL;
 }
 
 /* case_ok(char* buf, Py_ssize_t len, Py_ssize_t namelen, char* name)
@@ -2157,6 +2213,7 @@ init_builtin(char *name)
 
     for (p = PyImport_Inittab; p->name != NULL; p++) {
         PyObject *mod;
+        PyModuleDef *def;
         if (strcmp(name, p->name) == 0) {
             if (p->initfunc == NULL) {
                 PyErr_Format(PyExc_ImportError,
@@ -2169,6 +2226,9 @@ init_builtin(char *name)
             mod = (*p->initfunc)();
             if (mod == 0)
                 return -1;
+            /* Remember pointer to module init function. */
+            def = PyModule_GetDef(mod);
+            def->m_base.m_init = p->initfunc;
             if (_PyImport_FixupBuiltin(mod, name) < 0)
                 return -1;
             /* FixupExtension has put the module into sys.modules,
@@ -2349,7 +2409,9 @@ PyImport_ImportModuleNoBlock(const char *name)
 {
     PyObject *result;
     PyObject *modules;
+#ifdef WITH_THREAD
     long me;
+#endif
 
     /* Try to get the module from sys.modules[name] */
     modules = PyImport_GetModuleDict();
@@ -2401,7 +2463,7 @@ static PyObject *
 import_module_level(char *name, PyObject *globals, PyObject *locals,
                     PyObject *fromlist, int level)
 {
-    char buf[MAXPATHLEN+1];
+    char *buf;
     Py_ssize_t buflen = 0;
     PyObject *parent, *head, *next, *tail;
 
@@ -2415,14 +2477,18 @@ import_module_level(char *name, PyObject *globals, PyObject *locals,
         return NULL;
     }
 
+    buf = PyMem_MALLOC(MAXPATHLEN+1);
+    if (buf == NULL) {
+        return PyErr_NoMemory();
+    }
     parent = get_parent(globals, buf, &buflen, level);
     if (parent == NULL)
-        return NULL;
+        goto error_exit;
 
     head = load_next(parent, level < 0 ? Py_None : parent, &name, buf,
                         &buflen);
     if (head == NULL)
-        return NULL;
+        goto error_exit;
 
     tail = head;
     Py_INCREF(tail);
@@ -2431,7 +2497,7 @@ import_module_level(char *name, PyObject *globals, PyObject *locals,
         Py_DECREF(tail);
         if (next == NULL) {
             Py_DECREF(head);
-            return NULL;
+            goto error_exit;
         }
         tail = next;
     }
@@ -2443,26 +2509,38 @@ import_module_level(char *name, PyObject *globals, PyObject *locals,
         Py_DECREF(head);
         PyErr_SetString(PyExc_ValueError,
                         "Empty module name");
-        return NULL;
+        goto error_exit;
     }
 
     if (fromlist != NULL) {
-        if (fromlist == Py_None || !PyObject_IsTrue(fromlist))
+        int b = (fromlist == Py_None) ? 0 : PyObject_IsTrue(fromlist);
+        if (b < 0) {
+            Py_DECREF(tail);
+            Py_DECREF(head);
+            goto error_exit;
+        }
+        if (!b)
             fromlist = NULL;
     }
 
     if (fromlist == NULL) {
         Py_DECREF(tail);
+        PyMem_FREE(buf);
         return head;
     }
 
     Py_DECREF(head);
     if (!ensure_fromlist(tail, fromlist, buf, buflen, 0)) {
         Py_DECREF(tail);
-        return NULL;
+        goto error_exit;
     }
 
+    PyMem_FREE(buf);
     return tail;
+
+error_exit:
+    PyMem_FREE(buf);
+    return NULL;
 }
 
 PyObject *
@@ -2865,7 +2943,7 @@ import_submodule(PyObject *mod, char *subname, char *fullname)
     }
     else {
         PyObject *path, *loader = NULL;
-        char buf[MAXPATHLEN+1];
+        char *buf;
         struct filedescr *fdp;
         FILE *fp = NULL;
 
@@ -2880,11 +2958,16 @@ import_submodule(PyObject *mod, char *subname, char *fullname)
             }
         }
 
+        buf = PyMem_MALLOC(MAXPATHLEN+1);
+        if (buf == NULL) {
+            return PyErr_NoMemory();
+        }
         buf[0] = '\0';
         fdp = find_module(fullname, subname, path, buf, MAXPATHLEN+1,
                           &fp, &loader);
         Py_XDECREF(path);
         if (fdp == NULL) {
+            PyMem_FREE(buf);
             if (!PyErr_ExceptionMatches(PyExc_ImportError))
                 return NULL;
             PyErr_Clear();
@@ -2899,6 +2982,7 @@ import_submodule(PyObject *mod, char *subname, char *fullname)
             Py_XDECREF(m);
             m = NULL;
         }
+        PyMem_FREE(buf);
     }
 
     return m;
@@ -2916,7 +3000,7 @@ PyImport_ReloadModule(PyObject *m)
     PyObject *modules = PyImport_GetModuleDict();
     PyObject *path = NULL, *loader = NULL, *existing_m = NULL;
     char *name, *subname;
-    char buf[MAXPATHLEN+1];
+    char *buf;
     struct filedescr *fdp;
     FILE *fp = NULL;
     PyObject *newm;
@@ -2976,6 +3060,11 @@ PyImport_ReloadModule(PyObject *m)
         if (path == NULL)
             PyErr_Clear();
     }
+    buf = PyMem_MALLOC(MAXPATHLEN+1);
+    if (buf == NULL) {
+        Py_XDECREF(path);
+        return PyErr_NoMemory();
+    }
     buf[0] = '\0';
     fdp = find_module(name, subname, path, buf, MAXPATHLEN+1, &fp, &loader);
     Py_XDECREF(path);
@@ -2983,6 +3072,7 @@ PyImport_ReloadModule(PyObject *m)
     if (fdp == NULL) {
         Py_XDECREF(loader);
         imp_modules_reloading_clear();
+        PyMem_FREE(buf);
         return NULL;
     }
 
@@ -3000,6 +3090,7 @@ PyImport_ReloadModule(PyObject *m)
         PyDict_SetItemString(modules, name, m);
     }
     imp_modules_reloading_clear();
+    PyMem_FREE(buf);
     return newm;
 }
 
@@ -3153,24 +3244,32 @@ call_find_module(char *name, PyObject *path)
     PyObject *fob, *ret;
     PyObject *pathobj;
     struct filedescr *fdp;
-    char pathname[MAXPATHLEN+1];
+    char *pathname;
     FILE *fp = NULL;
     int fd = -1;
     char *found_encoding = NULL;
     char *encoding = NULL;
 
+    pathname = PyMem_MALLOC(MAXPATHLEN+1);
+    if (pathname == NULL) {
+        return PyErr_NoMemory();
+    }
     pathname[0] = '\0';
     if (path == Py_None)
         path = NULL;
     fdp = find_module(NULL, name, path, pathname, MAXPATHLEN+1, &fp, NULL);
     if (fdp == NULL)
-        return NULL;
+        goto error_exit;
     if (fp != NULL) {
         fd = fileno(fp);
         if (fd != -1)
             fd = dup(fd);
         fclose(fp);
         fp = NULL;
+        if (fd == -1) {
+            PyErr_SetFromErrno(PyExc_OSError);
+            goto error_exit;
+        }
     }
     if (fd != -1) {
         if (strchr(fdp->mode, 'b') == NULL) {
@@ -3178,8 +3277,10 @@ call_find_module(char *name, PyObject *path)
                memory. */
             found_encoding = PyTokenizer_FindEncoding(fd);
             lseek(fd, 0, 0); /* Reset position */
-            if (found_encoding == NULL && PyErr_Occurred())
-                return NULL;
+            if (found_encoding == NULL && PyErr_Occurred()) {
+                close(fd);
+                goto error_exit;
+            }
             encoding = (found_encoding != NULL) ? found_encoding :
                    (char*)PyUnicode_GetDefaultEncoding();
         }
@@ -3188,7 +3289,7 @@ call_find_module(char *name, PyObject *path)
         if (fob == NULL) {
             close(fd);
             PyMem_FREE(found_encoding);
-            return NULL;
+            goto error_exit;
         }
     }
     else {
@@ -3199,8 +3300,12 @@ call_find_module(char *name, PyObject *path)
     ret = Py_BuildValue("NN(ssi)",
                   fob, pathobj, fdp->suffix, fdp->mode, fdp->type);
     PyMem_FREE(found_encoding);
-
+    PyMem_FREE(pathname);
     return ret;
+
+error_exit:
+    PyMem_FREE(pathname);
+    return NULL;
 }
 
 static PyObject *
@@ -3490,7 +3595,7 @@ imp_cache_from_source(PyObject *self, PyObject *args, PyObject *kws)
 {
     static char *kwlist[] = {"path", "debug_override", NULL};
 
-    char buf[MAXPATHLEN+1];
+    char *buf;
     PyObject *pathbytes;
     char *cpathname;
     PyObject *debug_override = NULL;
@@ -3507,6 +3612,10 @@ imp_cache_from_source(PyObject *self, PyObject *args, PyObject *kws)
         return NULL;
     }
 
+    buf = PyMem_MALLOC(MAXPATHLEN+1);
+    if (buf == NULL) {
+        return PyErr_NoMemory();
+    }
     cpathname = make_compiled_pathname(
         PyBytes_AS_STRING(pathbytes),
         buf, MAXPATHLEN+1, debug);
@@ -3514,13 +3623,19 @@ imp_cache_from_source(PyObject *self, PyObject *args, PyObject *kws)
 
     if (cpathname == NULL) {
         PyErr_Format(PyExc_SystemError, "path buffer too short");
+        PyMem_FREE(buf);
         return NULL;
     }
-    return PyUnicode_DecodeFSDefault(buf);
+    {
+        PyObject *ret = PyUnicode_DecodeFSDefault(buf);
+        PyMem_FREE(buf);
+        return ret;
+    }
 }
 
 PyDoc_STRVAR(doc_cache_from_source,
-"Given the path to a .py file, return the path to its .pyc/.pyo file.\n\
+"cache_from_source(path, [debug_override]) -> path\n\
+Given the path to a .py file, return the path to its .pyc/.pyo file.\n\
 \n\
 The .py file does not need to exist; this simply returns the path to the\n\
 .pyc/.pyo file calculated as if the .py file were imported.  The extension\n\
@@ -3536,7 +3651,7 @@ imp_source_from_cache(PyObject *self, PyObject *args, PyObject *kws)
 
     PyObject *pathname_obj;
     char *pathname;
-    char buf[MAXPATHLEN+1];
+    char *buf;
 
     if (!PyArg_ParseTupleAndKeywords(
                 args, kws, "O&", kwlist,
@@ -3544,18 +3659,28 @@ imp_source_from_cache(PyObject *self, PyObject *args, PyObject *kws)
         return NULL;
 
     pathname = PyBytes_AS_STRING(pathname_obj);
+    buf = PyMem_MALLOC(MAXPATHLEN+1);
+    if (buf == NULL) {
+        return PyErr_NoMemory();
+    }
     if (make_source_pathname(pathname, buf) == NULL) {
         PyErr_Format(PyExc_ValueError, "Not a PEP 3147 pyc path: %s",
                      pathname);
         Py_DECREF(pathname_obj);
+        PyMem_FREE(buf);
         return NULL;
     }
     Py_DECREF(pathname_obj);
-    return PyUnicode_FromString(buf);
+    {
+        PyObject *ret = PyUnicode_FromString(buf);
+        PyMem_FREE(buf);
+        return ret;
+    }
 }
 
 PyDoc_STRVAR(doc_source_from_cache,
-"Given the path to a .pyc./.pyo file, return the path to its .py file.\n\
+"source_from_cache(path) -> path\n\
+Given the path to a .pyc./.pyo file, return the path to its .py file.\n\
 \n\
 The .pyc/.pyo file does not need to exist; this simply returns the path to\n\
 the .py file calculated to correspond to the .pyc/.pyo file.  If path\n\

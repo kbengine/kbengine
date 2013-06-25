@@ -20,7 +20,7 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="../../../_objs\pythoncore/"
+			IntermediateDirectory="../../../_objs\$(ProjectName)\"
 			ConfigurationType="4"
 			InheritedPropertySheets=".\pyproject.vsprops;.\release.vsprops"
 			UseOfMFC="0"
@@ -61,7 +61,7 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Generate build information..."
-				CommandLine="&quot;$(ProjectDir)make_buildinfo.exe&quot; Release &quot;$(IntDir)\&quot;"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCLibrarianTool"
@@ -85,7 +85,7 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			IntermediateDirectory="../../../_objs\pythoncore/"
+			IntermediateDirectory="../../../_objs\$(ProjectName)\"
 			ConfigurationType="4"
 			InheritedPropertySheets=".\pyproject.vsprops;.\debug.vsprops"
 			UseOfMFC="0"
@@ -130,7 +130,7 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Generate build information..."
-				CommandLine="&quot;$(ProjectDir)make_buildinfo.exe&quot; Debug &quot;$(IntDir)\&quot;"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCLibrarianTool"
@@ -614,6 +614,10 @@
 			>
 			<File
 				RelativePath="..\Include\abstract.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Include\accu.h"
 				>
 			</File>
 			<File
@@ -1429,6 +1433,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Objects\accu.c"
+				>
+			</File>
+			<File
 				RelativePath="..\Objects\boolobject.c"
 				>
 			</File>
@@ -1854,6 +1862,10 @@
 			</File>
 			<File
 				RelativePath="..\Python\pytime.c"
+				>
+			</File>
+			<File
+				RelativePath="..\Python\random.c"
 				>
 			</File>
 			<File

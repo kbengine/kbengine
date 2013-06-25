@@ -7,13 +7,13 @@
 .. moduleauthor:: Greg Ward <gward@python.net>
 .. sectionauthor:: Greg Ward <gward@python.net>
 
+.. deprecated:: 3.2
+  The :mod:`optparse` module is deprecated and will not be developed further;
+  development will continue with the :mod:`argparse` module.
+
 **Source code:** :source:`Lib/optparse.py`
 
 --------------
-
-.. deprecated:: 2.7
-  The :mod:`optparse` module is deprecated and will not be developed further;
-  development will continue with the :mod:`argparse` module.
 
 :mod:`optparse` is a more convenient, flexible, and powerful library for parsing
 command-line options than the old :mod:`getopt` module.  :mod:`optparse` uses a
@@ -171,10 +171,10 @@ required option
 
 For example, consider this hypothetical command-line::
 
-   prog -v --report /tmp/report.txt foo bar
+   prog -v --report report.txt foo bar
 
 ``-v`` and ``--report`` are both options.  Assuming that ``--report``
-takes one argument, ``/tmp/report.txt`` is an option argument.  ``foo`` and
+takes one argument, ``report.txt`` is an option argument.  ``foo`` and
 ``bar`` are positional arguments.
 
 
@@ -273,7 +273,8 @@ You're free to define as many short option strings and as many long option
 strings as you like (including zero), as long as there is at least one option
 string overall.
 
-The option strings passed to :meth:`add_option` are effectively labels for the
+The option strings passed to :meth:`OptionParser.add_option` are effectively
+labels for the
 option defined by that call.  For brevity, we will frequently refer to
 *encountering an option* on the command line; in reality, :mod:`optparse`
 encounters *option strings* and looks up options from them.
@@ -607,8 +608,8 @@ This would result in the following help output:
 
        -g                  Group option.
 
-A bit more complete example might invole using more than one group: still
-extendind the previous example::
+A bit more complete example might involve using more than one group: still
+extending the previous example::
 
     group = OptionGroup(parser, "Dangerous Options",
                         "Caution: use these options at your own risk.  "
@@ -892,7 +893,8 @@ long option strings, but you must specify at least one overall option string.
 The canonical way to create an :class:`Option` instance is with the
 :meth:`add_option` method of :class:`OptionParser`.
 
-.. method:: OptionParser.add_option(opt_str[, ...], attr=value, ...)
+.. method:: OptionParser.add_option(option)
+            OptionParser.add_option(*opt_str, attr=value, ...)
 
    To define an option with only a short option string::
 
@@ -1164,6 +1166,17 @@ must specify for any option using that action.
   If, a little later on, ``--tracks=4`` is seen, it does::
 
      options.tracks.append(int("4"))
+
+  The ``append`` action calls the ``append`` method on the current value of the
+  option.  This means that any default value specified must have an ``append``
+  method.  It also means that if the default value is non-empty, the default
+  elements will be present in the parsed value for the option, with any values
+  from the command line appended after those default values::
+
+     >>> parser.add_option("--files", action="append", default=['~/.mypkg/defaults'])
+     >>> opts, args = parser.parse_args(['--files', 'overrides.mypkg'])
+     >>> opts.files
+     ['~/.mypkg/defaults', 'overrides.mypkg']
 
 * ``"append_const"`` [required: :attr:`~Option.const`; relevant:
   :attr:`~Option.dest`]

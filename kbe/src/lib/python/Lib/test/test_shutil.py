@@ -8,6 +8,7 @@ import stat
 import os
 import os.path
 import functools
+import errno
 from test import support
 from test.support import TESTFN
 from os.path import splitdrive
@@ -99,10 +100,59 @@ class TestShutil(unittest.TestCase):
         self.tempdirs.append(d)
         return d
 
+    @support.skip_unless_symlink
+    def test_rmtree_fails_on_symlink(self):
+        tmp = self.mkdtemp()
+        dir_ = os.path.join(tmp, 'dir')
+        os.mkdir(dir_)
+        link = os.path.join(tmp, 'link')
+        os.symlink(dir_, link)
+        self.assertRaises(OSError, shutil.rmtree, link)
+        self.assertTrue(os.path.exists(dir_))
+        self.assertTrue(os.path.lexists(link))
+        errors = []
+        def onerror(*args):
+            errors.append(args)
+        shutil.rmtree(link, onerror=onerror)
+        self.assertEqual(len(errors), 1)
+        self.assertIs(errors[0][0], os.path.islink)
+        self.assertEqual(errors[0][1], link)
+        self.assertIsInstance(errors[0][2][1], OSError)
+
     def test_rmtree_errors(self):
         # filename is guaranteed not to exist
         filename = tempfile.mktemp()
         self.assertRaises(OSError, shutil.rmtree, filename)
+        # test that ignore_errors option is honoured
+        shutil.rmtree(filename, ignore_errors=True)
+
+        # existing file
+        tmpdir = self.mkdtemp()
+        self.write_file((tmpdir, "tstfile"), "")
+        filename = os.path.join(tmpdir, "tstfile")
+        with self.assertRaises(OSError) as cm:
+            shutil.rmtree(filename)
+        # The reason for this rather odd construct is that Windows sprinkles
+        # a \*.* at the end of file names. But only sometimes on some buildbots
+        possible_args = [filename, os.path.join(filename, '*.*')]
+        self.assertIn(cm.exception.filename, possible_args)
+        self.assertTrue(os.path.exists(filename))
+        # test that ignore_errors option is honored
+        shutil.rmtree(filename, ignore_errors=True)
+        self.assertTrue(os.path.exists(filename))
+        errors = []
+        def onerror(*args):
+            errors.append(args)
+        shutil.rmtree(filename, onerror=onerror)
+        self.assertEqual(len(errors), 2)
+        self.assertIs(errors[0][0], os.listdir)
+        self.assertEqual(errors[0][1], filename)
+        self.assertIsInstance(errors[0][2][1], OSError)
+        self.assertIn(errors[0][2][1].filename, possible_args)
+        self.assertIs(errors[1][0], os.rmdir)
+        self.assertEqual(errors[1][1], filename)
+        self.assertIsInstance(errors[1][2][1], OSError)
+        self.assertIn(errors[1][2][1].filename, possible_args)
 
     # See bug #1071513 for why we don't run this on cygwin
     # and bug #1076467 for why we don't run this as root.
@@ -306,6 +356,35 @@ class TestShutil(unittest.TestCase):
             os.remove(dst)
         finally:
             shutil.rmtree(TESTFN, ignore_errors=True)
+
+    @unittest.skipUnless(hasattr(os, 'chflags') and
+                         hasattr(errno, 'EOPNOTSUPP') and
+                         hasattr(errno, 'ENOTSUP'),
+                         "requires os.chflags, EOPNOTSUPP & ENOTSUP")
+    def test_copystat_handles_harmless_chflags_errors(self):
+        tmpdir = self.mkdtemp()
+        file1 = os.path.join(tmpdir, 'file1')
+        file2 = os.path.join(tmpdir, 'file2')
+        self.write_file(file1, 'xxx')
+        self.write_file(file2, 'xxx')
+
+        def make_chflags_raiser(err):
+            ex = OSError()
+
+            def _chflags_raiser(path, flags):
+                ex.errno = err
+                raise ex
+            return _chflags_raiser
+        old_chflags = os.chflags
+        try:
+            for err in errno.EOPNOTSUPP, errno.ENOTSUP:
+                os.chflags = make_chflags_raiser(err)
+                shutil.copystat(file1, file2)
+            # assert others errors break it
+            os.chflags = make_chflags_raiser(errno.EOPNOTSUPP + errno.ENOTSUP)
+            self.assertRaises(OSError, shutil.copystat, file1, file2)
+        finally:
+            os.chflags = old_chflags
 
     @support.skip_unless_symlink
     def test_dont_copy_file_onto_symlink_to_itself(self):

@@ -4,16 +4,15 @@
 .. module:: string
    :synopsis: Common string operations.
 
+**Source code:** :source:`Lib/string.py`
+
+--------------
 
 .. seealso::
 
    :ref:`typesseq`
 
    :ref:`string-methods`
-
-**Source code:** :source:`Lib/string.py`
-
---------------
 
 String constants
 ----------------
@@ -92,8 +91,8 @@ implementation as the built-in :meth:`format` method.
 
    .. method:: format(format_string, *args, **kwargs)
 
-      :meth:`format` is the primary API method.  It takes a format template
-      string, and an arbitrary set of positional and keyword argument.
+      :meth:`format` is the primary API method.  It takes a format string and
+      an arbitrary set of positional and keyword arguments.
       :meth:`format` is just a wrapper that calls :meth:`vformat`.
 
    .. method:: vformat(format_string, args, kwargs)
@@ -101,9 +100,9 @@ implementation as the built-in :meth:`format` method.
       This function does the actual work of formatting.  It is exposed as a
       separate function for cases where you want to pass in a predefined
       dictionary of arguments, rather than unpacking and repacking the
-      dictionary as individual arguments using the ``*args`` and ``**kwds``
-      syntax.  :meth:`vformat` does the work of breaking up the format template
-      string into character data and replacement fields.  It calls the various
+      dictionary as individual arguments using the ``*args`` and ``**kwargs``
+      syntax.  :meth:`vformat` does the work of breaking up the format string
+      into character data and replacement fields.  It calls the various
       methods described below.
 
    In addition, the :class:`Formatter` defines a number of methods that are
@@ -174,7 +173,8 @@ implementation as the built-in :meth:`format` method.
 
       Converts the value (returned by :meth:`get_field`) given a conversion type
       (as in the tuple returned by the :meth:`parse` method).  The default
-      version understands 'r' (repr) and 's' (str) conversion types.
+      version understands 's' (str), 'r' (repr) and 'a' (ascii) conversion
+      types.
 
 
 .. _formatstrings:
@@ -212,7 +212,7 @@ by a colon ``':'``.  These specify a non-default format for the replacement valu
 
 See also the :ref:`formatspec` section.
 
-The *field_name* itself begins with an *arg_name* that is either either a number or a
+The *field_name* itself begins with an *arg_name* that is either a number or a
 keyword.  If it's a number, it refers to a positional argument, and if it's a keyword,
 it refers to a named keyword argument.  If the numerical arg_names in a format string
 are 0, 1, 2, ... in sequence, they can all be omitted (not just some)
@@ -293,7 +293,7 @@ The general form of a *standard format specifier* is:
 
 .. productionlist:: sf
    format_spec: [[`fill`]`align`][`sign`][#][0][`width`][,][.`precision`][`type`]
-   fill: <a character other than '}'>
+   fill: <a character other than '{' or '}'>
    align: "<" | ">" | "=" | "^"
    sign: "+" | "-" | " "
    width: `integer`
@@ -369,9 +369,9 @@ instead.
 *width* is a decimal integer defining the minimum field width.  If not
 specified, then the field width will be determined by the content.
 
-If the *width* field is preceded by a zero (``'0'``) character, this enables
-zero-padding.  This is equivalent to an *alignment* type of ``'='`` and a *fill*
-character of ``'0'``.
+Preceding the *width* field by a zero (``'0'``) character enables
+sign-aware zero-padding for numeric types.  This is equivalent to a *fill*
+character of ``'0'`` with an *alignment* type of ``'='``.
 
 The *precision* is a decimal number indicating how many digits should be
 displayed after the decimal point for a floating point value formatted with
@@ -584,7 +584,7 @@ Expressing a percentage::
 
    >>> points = 19
    >>> total = 22
-   >>> 'Correct answers: {:.2%}.'.format(points/total)
+   >>> 'Correct answers: {:.2%}'.format(points/total)
    'Correct answers: 86.36%'
 
 Using type-specific formatting::
@@ -610,7 +610,7 @@ Nesting arguments and more complex examples::
    3232235521
    >>>
    >>> width = 5
-   >>> for num in range(5,12):
+   >>> for num in range(5,12): #doctest: +NORMALIZE_WHITESPACE
    ...     for base in 'dXob':
    ...         print('{0:{width}{base}}'.format(num, base=base, width=width), end=' ')
    ...     print()
@@ -688,7 +688,7 @@ these rules.  The methods of :class:`Template` are:
       This is the object passed to the constructor's *template* argument.  In
       general, you shouldn't change it, but read-only access is not enforced.
 
-Here is an example of how to use a Template:
+Here is an example of how to use a Template::
 
    >>> from string import Template
    >>> s = Template('$who likes $what')
@@ -697,11 +697,11 @@ Here is an example of how to use a Template:
    >>> d = dict(who='tim')
    >>> Template('Give $who $100').substitute(d)
    Traceback (most recent call last):
-   [...]
-   ValueError: Invalid placeholder in string: line 1, col 10
+   ...
+   ValueError: Invalid placeholder in string: line 1, col 11
    >>> Template('$who likes $what').substitute(d)
    Traceback (most recent call last):
-   [...]
+   ...
    KeyError: 'what'
    >>> Template('$who likes $what').safe_substitute(d)
    'tim likes $what'

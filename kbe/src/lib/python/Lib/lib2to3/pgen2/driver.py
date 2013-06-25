@@ -17,6 +17,7 @@ __all__ = ["Driver", "load_grammar"]
 
 # Python imports
 import codecs
+import io
 import os
 import logging
 import sys
@@ -101,16 +102,8 @@ class Driver(object):
 
     def parse_string(self, text, debug=False):
         """Parse a string and return the syntax tree."""
-        tokens = tokenize.generate_tokens(generate_lines(text).__next__)
+        tokens = tokenize.generate_tokens(io.StringIO(text).readline)
         return self.parse_tokens(tokens, debug)
-
-
-def generate_lines(text):
-    """Generator that behaves like readline without using StringIO."""
-    for line in text.splitlines(True):
-        yield line
-    while True:
-        yield ""
 
 
 def load_grammar(gt="Grammar.txt", gp=None,
@@ -145,3 +138,20 @@ def _newer(a, b):
     if not os.path.exists(b):
         return True
     return os.path.getmtime(a) >= os.path.getmtime(b)
+
+
+def main(*args):
+    """Main program, when run as a script: produce grammar pickle files.
+
+    Calls load_grammar for each argument, a path to a grammar text file.
+    """
+    if not args:
+        args = sys.argv[1:]
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout,
+                        format='%(message)s')
+    for gt in args:
+        load_grammar(gt, save=True, force=True)
+    return True
+
+if __name__ == "__main__":
+    sys.exit(int(not main()))

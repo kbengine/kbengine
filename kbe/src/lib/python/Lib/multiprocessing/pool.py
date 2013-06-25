@@ -151,7 +151,7 @@ class Pool(object):
         if processes < 1:
             raise ValueError("Number of processes must be at least 1")
 
-        if initializer is not None and not hasattr(initializer, '__call__'):
+        if initializer is not None and not callable(initializer):
             raise TypeError('initializer must be a callable')
 
         self._processes = processes
@@ -321,7 +321,11 @@ class Pool(object):
 
     @staticmethod
     def _handle_workers(pool):
-        while pool._worker_handler._state == RUN and pool._state == RUN:
+        thread = threading.current_thread()
+
+        # Keep maintaining workers until the cache gets drained, unless the pool
+        # is terminated.
+        while thread._state == RUN or (pool._cache and thread._state != TERMINATE):
             pool._maintain_pool()
             time.sleep(0.1)
         # send sentinel to stop workers
@@ -489,7 +493,8 @@ class Pool(object):
         # We must wait for the worker handler to exit before terminating
         # workers because we don't want workers to be restarted behind our back.
         debug('joining worker handler')
-        worker_handler.join()
+        if threading.current_thread() is not worker_handler:
+            worker_handler.join()
 
         # Terminate workers which haven't already finished.
         if pool and hasattr(pool[0], 'terminate'):
@@ -499,10 +504,12 @@ class Pool(object):
                     p.terminate()
 
         debug('joining task handler')
-        task_handler.join()
+        if threading.current_thread() is not task_handler:
+            task_handler.join()
 
         debug('joining result handler')
-        result_handler.join()
+        if threading.current_thread() is not result_handler:
+            result_handler.join()
 
         if pool and hasattr(pool[0], 'terminate'):
             debug('joining pool workers')
@@ -580,6 +587,7 @@ class MapResult(ApplyResult):
         if chunksize <= 0:
             self._number_left = 0
             self._ready = True
+            del cache[self._job]
         else:
             self._number_left = length//chunksize + bool(length % chunksize)
 

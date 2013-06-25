@@ -462,6 +462,16 @@ class QueryTestCase(unittest.TestCase):
         self.assertEqual(clean(pprint.pformat(dict.fromkeys(keys))),
             '{' + ','.join('%r:None' % k for k in skeys) + '}')
 
+        # Issue 10017: TypeError on user-defined types as dict keys.
+        self.assertEqual(pprint.pformat({Unorderable: 0, 1: 0}),
+                         '{1: 0, ' + repr(Unorderable) +': 0}')
+
+        # Issue 14998: TypeError on tuples with NoneTypes as dict keys.
+        keys = [(1,), (None,)]
+        self.assertEqual(pprint.pformat(dict.fromkeys(keys, 0)),
+                         '{%r: 0, %r: 0}' % tuple(sorted(keys, key=id)))
+
+
 class DottedPrettyPrinter(pprint.PrettyPrinter):
 
     def format(self, object, context, maxlevels, level):

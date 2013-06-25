@@ -58,13 +58,15 @@ _Py_atomic_thread_fence(_Py_memory_order order)
 static __inline__ void
 _Py_ANNOTATE_MEMORY_ORDER(const volatile void *address, _Py_memory_order order)
 {
+    (void)address;		/* shut up -Wunused-parameter */
     switch(order) {
     case _Py_memory_order_release:
     case _Py_memory_order_acq_rel:
     case _Py_memory_order_seq_cst:
         _Py_ANNOTATE_HAPPENS_BEFORE(address);
         break;
-    default:
+    case _Py_memory_order_relaxed:
+    case _Py_memory_order_acquire:
         break;
     }
     switch(order) {
@@ -73,7 +75,8 @@ _Py_ANNOTATE_MEMORY_ORDER(const volatile void *address, _Py_memory_order order)
     case _Py_memory_order_seq_cst:
         _Py_ANNOTATE_HAPPENS_AFTER(address);
         break;
-    default:
+    case _Py_memory_order_relaxed:
+    case _Py_memory_order_release:
         break;
     }
 }

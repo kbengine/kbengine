@@ -13,6 +13,14 @@ The :class:`Element` type is a flexible container object, designed to store
 hierarchical data structures in memory.  The type can be described as a cross
 between a list and a dictionary.
 
+
+.. warning::
+
+   The :mod:`xml.etree.ElementTree` module is not secure against
+   maliciously constructed data.  If you need to parse untrusted or
+   unauthenticated data see :ref:`xml-vulnerabilities`.
+
+
 Each element has a number of properties associated with it:
 
 * a tag which is a string identifying what kind of data this element represents
@@ -95,11 +103,15 @@ Functions
 .. function:: iterparse(source, events=None, parser=None)
 
    Parses an XML section into an element tree incrementally, and reports what's
-   going on to the user.  *source* is a filename or :term:`file object` containing
-   XML data.  *events* is a list of events to report back.  If omitted, only "end"
-   events are reported.  *parser* is an optional parser instance.  If not
-   given, the standard :class:`XMLParser` parser is used.  Returns an
-   :term:`iterator` providing ``(event, elem)`` pairs.
+   going on to the user.  *source* is a filename or :term:`file object`
+   containing XML data.  *events* is a list of events to report back.  The
+   supported events are the strings ``"start"``, ``"end"``, ``"start-ns"``
+   and ``"end-ns"`` (the "ns" events are used to get detailed namespace
+   information).  If *events* is omitted, only ``"end"`` events are reported.
+   *parser* is an optional parser instance.  If not given, the standard
+   :class:`XMLParser` parser is used.  *parser* is not supported by
+   ``cElementTree``.  Returns an :term:`iterator` providing ``(event, elem)``
+   pairs.
 
    .. note::
 
@@ -335,6 +347,8 @@ Element Objects
       elements whose tag equals *tag* are returned from the iterator.  If the
       tree structure is modified during iteration, the result is undefined.
 
+      .. versionadded:: 3.2
+
 
    .. method:: iterfind(match)
 
@@ -406,26 +420,17 @@ ElementTree Objects
 
    .. method:: find(match)
 
-      Finds the first toplevel element matching *match*.  *match* may be a tag
-      name or path.  Same as getroot().find(match).  Returns the first matching
-      element, or ``None`` if no element was found.
+      Same as :meth:`Element.find`, starting at the root of the tree.
 
 
    .. method:: findall(match)
 
-      Finds all matching subelements, by tag name or path.  Same as
-      getroot().findall(match).  *match* may be a tag name or path.  Returns a
-      list containing all matching elements, in document order.
+      Same as :meth:`Element.findall`, starting at the root of the tree.
 
 
    .. method:: findtext(match, default=None)
 
-      Finds the element text for the first toplevel element with given tag.
-      Same as getroot().findtext(match).  *match* may be a tag name or path.
-      *default* is the value to return if the element was not found.  Returns
-      the text content of the first matching element, or the default value no
-      element was found.  Note that if the element is found, but has no text
-      content, this method returns an empty string.
+      Same as :meth:`Element.findtext`, starting at the root of the tree.
 
 
    .. method:: getiterator(tag=None)
@@ -463,16 +468,18 @@ ElementTree Objects
       root element.
 
 
-   .. method:: write(file, encoding="us-ascii", xml_declaration=None, method="xml")
+   .. method:: write(file, encoding="us-ascii", xml_declaration=None, \
+                     default_namespace=None, method="xml")
 
       Writes the element tree to a file, as XML.  *file* is a file name, or a
-      :term:`file object` opened for writing.  *encoding* [1]_ is the output encoding
-      (default is US-ASCII).  Use ``encoding="unicode"`` to write a Unicode string.
-      *xml_declaration* controls if an XML declaration
+      :term:`file object` opened for writing.  *encoding* [1]_ is the output
+      encoding (default is US-ASCII).  Use ``encoding="unicode"`` to write a
+      Unicode string.  *xml_declaration* controls if an XML declaration
       should be added to the file.  Use False for never, True for always, None
-      for only if not US-ASCII or UTF-8 or Unicode (default is None).  *method* is
-      either ``"xml"``, ``"html"`` or ``"text"`` (default is ``"xml"``).
-      Returns an (optionally) encoded string.
+      for only if not US-ASCII or UTF-8 or Unicode (default is None).
+      *default_namespace* sets the default XML namespace (for "xmlns").
+      *method* is either ``"xml"``, ``"html"`` or ``"text"`` (default is
+      ``"xml"``).  Returns an (optionally) encoded string.
 
 This is the XML file that is going to be manipulated::
 

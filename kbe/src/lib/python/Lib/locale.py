@@ -142,8 +142,6 @@ def _group(s, monetary=False):
     grouping = conv[monetary and 'mon_grouping' or 'grouping']
     if not grouping:
         return (s, 0)
-    result = ""
-    seps = 0
     if s[-1] == ' ':
         stripped = s.rstrip()
         right_spaces = s[len(stripped):]
@@ -442,13 +440,17 @@ def _build_localename(localetuple):
         No aliasing or normalizing takes place.
 
     """
-    language, encoding = localetuple
-    if language is None:
-        language = 'C'
-    if encoding is None:
-        return language
-    else:
-        return language + '.' + encoding
+    try:
+        language, encoding = localetuple
+
+        if language is None:
+            language = 'C'
+        if encoding is None:
+            return language
+        else:
+            return language + '.' + encoding
+    except (TypeError, ValueError):
+        raise TypeError('Locale must be None, a string, or an iterable of two strings -- language code, encoding.')
 
 def getdefaultlocale(envvars=('LC_ALL', 'LC_CTYPE', 'LANG', 'LANGUAGE')):
 
@@ -524,9 +526,10 @@ def getlocale(category=LC_CTYPE):
 def setlocale(category, locale=None):
 
     """ Set the locale for the given category.  The locale can be
-        a string, a locale tuple (language code, encoding), or None.
+        a string, an iterable of two strings (language code and encoding),
+        or None.
 
-        Locale tuples are converted to strings the locale aliasing
+        Iterables are converted to strings using the locale aliasing
         engine.  Locale strings are passed directly to the C lib.
 
         category may be given as one of the LC_* values.
@@ -1595,8 +1598,7 @@ locale_alias = {
 # to include every locale up to Windows Vista.
 #
 # NOTE: this mapping is incomplete.  If your language is missing, please
-# submit a bug report to Python bug manager, which you can find via:
-#     http://www.python.org/dev/
+# submit a bug report to the Python bug tracker at http://bugs.python.org/
 # Make sure you include the missing language identifier and the suggested
 # locale code.
 #

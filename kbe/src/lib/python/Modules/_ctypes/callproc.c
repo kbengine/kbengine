@@ -20,8 +20,8 @@
 
   2. After several checks, _build_callargs() is called which returns another
   tuple 'callargs'.  This may be the same tuple as 'inargs', a slice of
-  'inargs', or a completely fresh tuple, depending on several things (is is a
-  COM method, are 'paramflags' available).
+  'inargs', or a completely fresh tuple, depending on several things (is it a
+  COM method?, are 'paramflags' available?).
 
   3. _build_callargs also calculates bitarrays containing indexes into
   the callargs tuple, specifying how to build the return value(s) of
@@ -397,6 +397,11 @@ static DWORD HandleException(EXCEPTION_POINTERS *ptrs,
 {
     *pdw = ptrs->ExceptionRecord->ExceptionCode;
     *record = *ptrs->ExceptionRecord;
+    /* We don't want to catch breakpoint exceptions, they are used to attach
+     * a debugger to the process.
+     */
+    if (*pdw == EXCEPTION_BREAKPOINT)
+        return EXCEPTION_CONTINUE_SEARCH;
     return EXCEPTION_EXECUTE_HANDLER;
 }
 #endif
@@ -825,11 +830,11 @@ static int _call_function_pointer(int flags,
         space[0] = errno;
         errno = temp;
     }
-    Py_XDECREF(error_object);
 #ifdef WITH_THREAD
     if ((flags & FUNCFLAG_PYTHONAPI) == 0)
         Py_BLOCK_THREADS
 #endif
+    Py_XDECREF(error_object);
 #ifdef MS_WIN32
 #ifndef DONT_USE_SEH
     if (dwExceptionCode) {
@@ -1666,7 +1671,7 @@ resize(PyObject *self, PyObject *args)
         obj->b_size = size;
         goto done;
     }
-    if (obj->b_size <= sizeof(obj->b_value)) {
+    if (!_CDataObject_HasExternalBuffer(obj)) {
         /* We are currently using the objects default buffer, but it
            isn't large enough any more. */
         void *ptr = PyMem_Malloc(size);

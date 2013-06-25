@@ -32,6 +32,27 @@ def create_bound_method():
     return C().method
 
 
+class Object:
+    def __init__(self, arg):
+        self.arg = arg
+    def __repr__(self):
+        return "<Object %r>" % self.arg
+    def __eq__(self, other):
+        if isinstance(other, Object):
+            return self.arg == other.arg
+        return NotImplemented
+    def __lt__(self, other):
+        if isinstance(other, Object):
+            return self.arg < other.arg
+        return NotImplemented
+    def __hash__(self):
+        return hash(self.arg)
+
+class RefCycle:
+    def __init__(self):
+        self.cycle = self
+
+
 class TestBase(unittest.TestCase):
 
     def setUp(self):
@@ -692,6 +713,90 @@ class ReferencesTestCase(TestBase):
         self.assertEqual(a(), None)
         self.assertEqual(l, [a])
 
+    def test_equality(self):
+        # Alive weakrefs defer equality testing to their underlying object.
+        x = Object(1)
+        y = Object(1)
+        z = Object(2)
+        a = weakref.ref(x)
+        b = weakref.ref(y)
+        c = weakref.ref(z)
+        d = weakref.ref(x)
+        # Note how we directly test the operators here, to stress both
+        # __eq__ and __ne__.
+        self.assertTrue(a == b)
+        self.assertFalse(a != b)
+        self.assertFalse(a == c)
+        self.assertTrue(a != c)
+        self.assertTrue(a == d)
+        self.assertFalse(a != d)
+        del x, y, z
+        gc.collect()
+        for r in a, b, c:
+            # Sanity check
+            self.assertIs(r(), None)
+        # Dead weakrefs compare by identity: whether `a` and `d` are the
+        # same weakref object is an implementation detail, since they pointed
+        # to the same original object and didn't have a callback.
+        # (see issue #16453).
+        self.assertFalse(a == b)
+        self.assertTrue(a != b)
+        self.assertFalse(a == c)
+        self.assertTrue(a != c)
+        self.assertEqual(a == d, a is d)
+        self.assertEqual(a != d, a is not d)
+
+    def test_ordering(self):
+        # weakrefs cannot be ordered, even if the underlying objects can.
+        ops = [operator.lt, operator.gt, operator.le, operator.ge]
+        x = Object(1)
+        y = Object(1)
+        a = weakref.ref(x)
+        b = weakref.ref(y)
+        for op in ops:
+            self.assertRaises(TypeError, op, a, b)
+        # Same when dead.
+        del x, y
+        gc.collect()
+        for op in ops:
+            self.assertRaises(TypeError, op, a, b)
+
+    def test_hashing(self):
+        # Alive weakrefs hash the same as the underlying object
+        x = Object(42)
+        y = Object(42)
+        a = weakref.ref(x)
+        b = weakref.ref(y)
+        self.assertEqual(hash(a), hash(42))
+        del x, y
+        gc.collect()
+        # Dead weakrefs:
+        # - retain their hash is they were hashed when alive;
+        # - otherwise, cannot be hashed.
+        self.assertEqual(hash(a), hash(42))
+        self.assertRaises(TypeError, hash, b)
+
+    def test_trashcan_16602(self):
+        # Issue #16602: when a weakref's target was part of a long
+        # deallocation chain, the trashcan mechanism could delay clearing
+        # of the weakref and make the target object visible from outside
+        # code even though its refcount had dropped to 0.  A crash ensued.
+        class C:
+            def __init__(self, parent):
+                if not parent:
+                    return
+                wself = weakref.ref(self)
+                def cb(wparent):
+                    o = wself()
+                self.wparent = weakref.ref(parent, cb)
+
+        d = weakref.WeakKeyDictionary()
+        root = c = C(None)
+        for n in range(100):
+            d[c] = c = C(c)
+        del root
+        gc.collect()
+
 
 class SubclassableWeakrefTestCase(TestBase):
 
@@ -796,26 +901,65 @@ class SubclassableWeakrefTestCase(TestBase):
         self.assertEqual(self.cbcalled, 0)
 
 
-class Object:
-    def __init__(self, arg):
-        self.arg = arg
-    def __repr__(self):
-        return "<Object %r>" % self.arg
-    def __eq__(self, other):
-        if isinstance(other, Object):
-            return self.arg == other.arg
-        return NotImplemented
-    def __lt__(self, other):
-        if isinstance(other, Object):
-            return self.arg < other.arg
-        return NotImplemented
-    def __hash__(self):
-        return hash(self.arg)
-
-
 class MappingTestCase(TestBase):
 
     COUNT = 10
+
+    def check_len_cycles(self, dict_type, cons):
+        N = 20
+        items = [RefCycle() for i in range(N)]
+        dct = dict_type(cons(o) for o in items)
+        # Keep an iterator alive
+        it = dct.items()
+        try:
+            next(it)
+        except StopIteration:
+            pass
+        del items
+        gc.collect()
+        n1 = len(dct)
+        del it
+        gc.collect()
+        n2 = len(dct)
+        # one item may be kept alive inside the iterator
+        self.assertIn(n1, (0, 1))
+        self.assertEqual(n2, 0)
+
+    def test_weak_keyed_len_cycles(self):
+        self.check_len_cycles(weakref.WeakKeyDictionary, lambda k: (k, 1))
+
+    def test_weak_valued_len_cycles(self):
+        self.check_len_cycles(weakref.WeakValueDictionary, lambda k: (1, k))
+
+    def check_len_race(self, dict_type, cons):
+        # Extended sanity checks for len() in the face of cyclic collection
+        self.addCleanup(gc.set_threshold, *gc.get_threshold())
+        for th in range(1, 100):
+            N = 20
+            gc.collect(0)
+            gc.set_threshold(th, th, th)
+            items = [RefCycle() for i in range(N)]
+            dct = dict_type(cons(o) for o in items)
+            del items
+            # All items will be collected at next garbage collection pass
+            it = dct.items()
+            try:
+                next(it)
+            except StopIteration:
+                pass
+            n1 = len(dct)
+            del it
+            n2 = len(dct)
+            self.assertGreaterEqual(n1, 0)
+            self.assertLessEqual(n1, N)
+            self.assertGreaterEqual(n2, 0)
+            self.assertLessEqual(n2, n1)
+
+    def test_weak_keyed_len_race(self):
+        self.check_len_race(weakref.WeakKeyDictionary, lambda k: (k, 1))
+
+    def test_weak_valued_len_race(self):
+        self.check_len_race(weakref.WeakValueDictionary, lambda k: (1, k))
 
     def test_weak_values(self):
         #

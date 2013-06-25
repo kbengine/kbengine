@@ -94,8 +94,7 @@ A value can be assigned to several variables simultaneously::
 Variables must be "defined" (assigned a value) before they can be used, or an
 error will occur::
 
-   >>> # try to access an undefined variable
-   ... n
+   >>> n  # try to access an undefined variable
    Traceback (most recent call last):
      File "<stdin>", line 1, in <module>
    NameError: name 'n' is not defined
@@ -413,7 +412,7 @@ The built-in function :func:`len` returns the length of a string::
 About Unicode
 -------------
 
-.. sectionauthor:: Marc-Andre Lemburg <mal@lemburg.com>
+.. sectionauthor:: Marc-André Lemburg <mal@lemburg.com>
 
 
 Starting with Python 3.0 all strings support Unicode (see
@@ -593,13 +592,13 @@ This example introduces several new features.
   and ``!=`` (not equal to).
 
 * The *body* of the loop is *indented*: indentation is Python's way of grouping
-  statements.  Python does not (yet!) provide an intelligent input line editing
-  facility, so you have to type a tab or space(s) for each indented line.  In
-  practice you will prepare more complicated input for Python with a text editor;
-  most text editors have an auto-indent facility.  When a compound statement is
-  entered interactively, it must be followed by a blank line to indicate
-  completion (since the parser cannot guess when you have typed the last line).
-  Note that each line within a basic block must be indented by the same amount.
+  statements.  At the interactive prompt, you have to type a tab or space(s) for
+  each indented line.  In practice you will prepare more complicated input
+  for Python with a text editor; all decent text editors have an auto-indent
+  facility.  When a compound statement is entered interactively, it must be
+  followed by a blank line to indicate completion (since the parser cannot
+  guess when you have typed the last line).  Note that each line within a basic
+  block must be indented by the same amount.
 
 * The :func:`print` function writes the value of the expression(s) it is
   given.  It differs from just writing the expression you want to write (as we did

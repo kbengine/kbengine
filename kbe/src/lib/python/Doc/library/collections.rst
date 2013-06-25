@@ -1,4 +1,3 @@
-
 :mod:`collections` --- Container datatypes
 ==========================================
 
@@ -122,6 +121,7 @@ For example::
             >>> c = Counter(a=4, b=2, c=0, d=-2)
             >>> d = Counter(a=1, b=2, c=3, d=4)
             >>> c.subtract(d)
+            >>> c
             Counter({'a': 3, 'b': 0, 'c': -3, 'd': -6})
 
       .. versionadded:: 3.2
@@ -192,7 +192,7 @@ counts, but the output will exclude results with counts of zero or less.
    * The multiset methods are designed only for use cases with positive values.
      The inputs may be negative or zero, but only outputs with positive values
      are created.  There are no type restrictions, but the value type needs to
-     support support addition, subtraction, and comparison.
+     support addition, subtraction, and comparison.
 
    * The :meth:`elements` method requires integer counts.  It ignores zero and
      negative counts.
@@ -468,6 +468,11 @@ stack manipulations such as ``dup``, ``drop``, ``swap``, ``over``, ``pick``,
       This method is called by the :meth:`__getitem__` method of the
       :class:`dict` class when the requested key is not found; whatever it
       returns or raises is then returned or raised by :meth:`__getitem__`.
+
+      Note that :meth:`__missing__` is *not* called for any operations besides
+      :meth:`__getitem__`. This means that :meth:`get` will, like normal
+      dictionaries, return ``None`` as a default rather than using
+      :attr:`default_factory`.
 
 
    :class:`defaultdict` objects support the following instance variable:
@@ -874,7 +879,7 @@ are deleted.  But when new keys are added, the keys are appended
 to the end and the sort is not maintained.
 
 It is also straight-forward to create an ordered dictionary variant
-that the remembers the order the keys were *last* inserted.
+that remembers the order the keys were *last* inserted.
 If a new entry overwrites an existing entry, the
 original insertion position is changed and moved to the end::
 
@@ -886,7 +891,7 @@ original insertion position is changed and moved to the end::
                 del self[key]
             OrderedDict.__setitem__(self, key, value)
 
-An ordered dictionary can combined with the :class:`Counter` class
+An ordered dictionary can be combined with the :class:`Counter` class
 so that the counter remembers the order elements are first encountered::
 
    class OrderedCounter(Counter, OrderedDict):
@@ -985,6 +990,7 @@ attribute.
    subclass) or an arbitrary sequence which can be converted into a string using
    the built-in :func:`str` function.
 
+
 .. _collections-abstract-base-classes:
 
 ABCs - abstract base classes
@@ -1051,7 +1057,7 @@ ABC                        Inherits from          Abstract Methods        Mixin 
 
 .. class:: Iterator
 
-   ABC for classes that provide the :meth:`__iter__` and :meth:`next` methods.
+   ABC for classes that provide the :meth:`__iter__` and :meth:`__next__` methods.
    See also the definition of :term:`iterator`.
 
 .. class:: Sequence

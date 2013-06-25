@@ -45,8 +45,8 @@ The modern interface provides:
    at least length 2 (additional characters are ignored) which specifies the
    alternative alphabet used instead of the ``+`` and ``/`` characters.
 
-   The decoded string is returned.  A `binascii.Error` is raised if *s* is
-   incorrectly padded.
+   The decoded string is returned.  A :exc:`binascii.Error` exception is raised
+   if *s* is incorrectly padded.
 
    If *validate* is ``False`` (the default), non-base64-alphabet characters are
    discarded prior to the padding check.  If *validate* is ``True``,
@@ -139,6 +139,8 @@ The legacy interface:
    Decode the byte string *s*, which must contain one or more lines of base64
    encoded data, and return a byte string containing the resulting binary data.
    ``decodestring`` is a deprecated alias.
+
+   .. versionadded:: 3.1
 
 
 .. function:: encode(input, output)

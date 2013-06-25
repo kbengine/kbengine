@@ -714,15 +714,16 @@ read_directory(PyObject *archive_obj)
     PyObject *files = NULL;
     FILE *fp;
     unsigned short flags;
-    long compress, crc, data_size, file_size, file_offset, date, time;
-    long header_offset, name_size, header_size, header_position;
+    short compress, time, date, name_size;
+    long crc, data_size, file_size, header_size;
+    Py_ssize_t file_offset, header_position, header_offset;
     long i, l, count;
     size_t length;
     Py_UNICODE path[MAXPATHLEN + 5];
     char name[MAXPATHLEN + 5];
     PyObject *nameobj = NULL;
     char *p, endof_central_dir[22];
-    long arc_offset; /* offset from beginning of file to start of zip-archive */
+    Py_ssize_t arc_offset;  /* Absolute offset to start of the zip-archive. */
     PyObject *pathobj;
     const char *charset;
     int bootstrap;
@@ -736,10 +737,16 @@ read_directory(PyObject *archive_obj)
 
     fp = _Py_fopen(archive_obj, "rb");
     if (fp == NULL) {
-        PyErr_Format(ZipImportError, "can't open Zip file: '%U'", archive_obj);
+        if (!PyErr_Occurred())
+            PyErr_Format(ZipImportError, "can't open Zip file: '%U'", archive_obj);
         return NULL;
     }
-    fseek(fp, -22, SEEK_END);
+
+    if (fseek(fp, -22, SEEK_END) == -1) {
+        fclose(fp);
+        PyErr_Format(ZipImportError, "can't read Zip file: %U", archive_obj);
+        return NULL;
+    }
     header_position = ftell(fp);
     if (fread(endof_central_dir, 1, 22, fp) != 22) {
         fclose(fp);
@@ -771,11 +778,13 @@ read_directory(PyObject *archive_obj)
         PyObject *t;
         int err;
 
-        fseek(fp, header_offset, 0);  /* Start of file header */
+        if (fseek(fp, header_offset, 0) == -1)  /* Start of file header */
+            goto fseek_error;
         l = PyMarshal_ReadLongFromFile(fp);
         if (l != 0x02014B50)
             break;              /* Bad: Central Dir File Header */
-        fseek(fp, header_offset + 8, 0);
+        if (fseek(fp, header_offset + 8, 0) == -1)
+            goto fseek_error;
         flags = (unsigned short)PyMarshal_ReadShortFromFile(fp);
         compress = PyMarshal_ReadShortFromFile(fp);
         time = PyMarshal_ReadShortFromFile(fp);
@@ -787,7 +796,8 @@ read_directory(PyObject *archive_obj)
         header_size = 46 + name_size +
            PyMarshal_ReadShortFromFile(fp) +
            PyMarshal_ReadShortFromFile(fp);
-        fseek(fp, header_offset + 42, 0);
+        if (fseek(fp, header_offset + 42, 0) == -1)
+            goto fseek_error;
         file_offset = PyMarshal_ReadLongFromFile(fp) + arc_offset;
         if (name_size > MAXPATHLEN)
             name_size = MAXPATHLEN;
@@ -831,7 +841,7 @@ read_directory(PyObject *archive_obj)
         pathobj = PyUnicode_FromUnicode(path, Py_UNICODE_strlen(path));
         if (pathobj == NULL)
             goto error;
-        t = Py_BuildValue("Niiiiiii", pathobj, compress, data_size,
+        t = Py_BuildValue("Nhllnhhl", pathobj, compress, data_size,
                           file_size, file_offset, time, date, crc);
         if (t == NULL)
             goto error;
@@ -847,6 +857,12 @@ read_directory(PyObject *archive_obj)
         PySys_FormatStderr("# zipimport: found %ld names in %U\n",
             count, archive_obj);
     return files;
+fseek_error:
+    fclose(fp);
+    Py_XDECREF(files);
+    Py_XDECREF(nameobj);
+    PyErr_Format(ZipImportError, "can't read Zip file: %U", archive_obj);
+    return NULL;
 error:
     fclose(fp);
     Py_XDECREF(files);
@@ -909,13 +925,19 @@ get_data(PyObject *archive, PyObject *toc_entry)
 
     fp = _Py_fopen(archive, "rb");
     if (!fp) {
-        PyErr_Format(PyExc_IOError,
-           "zipimport: can not open file %U", archive);
+        if (!PyErr_Occurred())
+            PyErr_Format(PyExc_IOError,
+               "zipimport: can not open file %U", archive);
         return NULL;
     }
 
     /* Check to make sure the local file header is correct */
-    fseek(fp, file_offset, 0);
+    if (fseek(fp, file_offset, 0) == -1) {
+        fclose(fp);
+        PyErr_Format(ZipImportError, "can't read Zip file: %U", archive);
+        return NULL;
+    }
+
     l = PyMarshal_ReadLongFromFile(fp);
     if (l != 0x04034B50) {
         /* Bad: Local File Header */
@@ -925,7 +947,12 @@ get_data(PyObject *archive, PyObject *toc_entry)
         fclose(fp);
         return NULL;
     }
-    fseek(fp, file_offset + 26, 0);
+    if (fseek(fp, file_offset + 26, 0) == -1) {
+        fclose(fp);
+        PyErr_Format(ZipImportError, "can't read Zip file: %U", archive);
+        return NULL;
+    }
+
     l = 30 + PyMarshal_ReadShortFromFile(fp) +
         PyMarshal_ReadShortFromFile(fp);        /* local header size */
     file_offset += l;           /* Start of file data */
@@ -942,8 +969,13 @@ get_data(PyObject *archive, PyObject *toc_entry)
     buf = PyBytes_AsString(raw_data);
 
     err = fseek(fp, file_offset, 0);
-    if (err == 0)
+    if (err == 0) {
         bytes_read = fread(buf, 1, data_size, fp);
+    } else {
+        fclose(fp);
+        PyErr_Format(ZipImportError, "can't read Zip file: %U", archive);
+        return NULL;
+    }
     fclose(fp);
     if (err || bytes_read != data_size) {
         PyErr_SetString(PyExc_IOError,

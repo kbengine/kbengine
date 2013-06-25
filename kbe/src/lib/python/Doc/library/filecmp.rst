@@ -54,9 +54,9 @@ The :mod:`filecmp` module defines the following functions:
 Example::
 
    >>> import filecmp
-   >>> filecmp.cmp('undoc.rst', 'undoc.rst')
+   >>> filecmp.cmp('undoc.rst', 'undoc.rst') # doctest: +SKIP
    True
-   >>> filecmp.cmp('undoc.rst', 'index.rst')
+   >>> filecmp.cmp('undoc.rst', 'index.rst') # doctest: +SKIP
    False
 
 
@@ -74,6 +74,9 @@ The :class:`dircmp` class
    *b*. *ignore* is a list of names to ignore, and defaults to ``['RCS', 'CVS',
    'tags']``. *hide* is a list of names to hide, and defaults to ``[os.curdir,
    os.pardir]``.
+
+   The :class:`dircmp` class compares files by doing *shallow* comparisons
+   as described for :func:`filecmp.cmp`.
 
    The :class:`dircmp` class provides the following methods:
 
@@ -94,13 +97,23 @@ The :class:`dircmp` class
       Print a comparison between *a* and *b* and common subdirectories
       (recursively).
 
-   The :class:`dircmp` offers a number of interesting attributes that may be
+   The :class:`dircmp` class offers a number of interesting attributes that may be
    used to get various bits of information about the directory trees being
    compared.
 
    Note that via :meth:`__getattr__` hooks, all attributes are computed lazily,
    so there is no speed penalty if only those attributes which are lightweight
    to compute are used.
+
+
+   .. attribute:: left
+
+      The directory *a*.
+
+
+   .. attribute:: right
+
+      The directory *b*.
 
 
    .. attribute:: left_list
@@ -146,12 +159,14 @@ The :class:`dircmp` class
 
    .. attribute:: same_files
 
-      Files which are identical in both *a* and *b*.
+      Files which are identical in both *a* and *b*, using the class's
+      file comparison operator.
 
 
    .. attribute:: diff_files
 
-      Files which are in both *a* and *b*, whose contents differ.
+      Files which are in both *a* and *b*, whose contents differ according
+      to the class's file comparison operator.
 
 
    .. attribute:: funny_files
@@ -163,4 +178,19 @@ The :class:`dircmp` class
 
       A dictionary mapping names in :attr:`common_dirs` to :class:`dircmp`
       objects.
+
+
+Here is a simplified example of using the ``subdirs`` attribute to search
+recursively through two directories to show common different files::
+
+    >>> from filecmp import dircmp
+    >>> def print_diff_files(dcmp):
+    ...     for name in dcmp.diff_files:
+    ...         print("diff_file %s found in %s and %s" % (name, dcmp.left,
+    ...               dcmp.right))
+    ...     for sub_dcmp in dcmp.subdirs.values():
+    ...         print_diff_files(sub_dcmp)
+    ...
+    >>> dcmp = dircmp('dir1', 'dir2') # doctest: +SKIP
+    >>> print_diff_files(dcmp) # doctest: +SKIP
 

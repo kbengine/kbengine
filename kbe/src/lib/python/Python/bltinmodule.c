@@ -35,9 +35,10 @@ int Py_HasFileSystemDefaultEncoding = 1;
 static PyObject *
 builtin___build_class__(PyObject *self, PyObject *args, PyObject *kwds)
 {
-    PyObject *func, *name, *bases, *mkw, *meta, *prep, *ns, *cell;
+    PyObject *func, *name, *bases, *mkw, *meta, *winner, *prep, *ns, *cell;
     PyObject *cls = NULL;
-    Py_ssize_t nargs, nbases;
+    Py_ssize_t nargs;
+    int isclass;
 
     assert(args != NULL);
     if (!PyTuple_Check(args)) {
@@ -61,7 +62,6 @@ builtin___build_class__(PyObject *self, PyObject *args, PyObject *kwds)
     bases = PyTuple_GetSlice(args, 2, nargs);
     if (bases == NULL)
         return NULL;
-    nbases = nargs - 2;
 
     if (kwds == NULL) {
         meta = NULL;
@@ -82,17 +82,42 @@ builtin___build_class__(PyObject *self, PyObject *args, PyObject *kwds)
                 Py_DECREF(bases);
                 return NULL;
             }
+            /* metaclass is explicitly given, check if it's indeed a class */
+            isclass = PyType_Check(meta);
         }
     }
     if (meta == NULL) {
-        if (PyTuple_GET_SIZE(bases) == 0)
+        /* if there are no bases, use type: */
+        if (PyTuple_GET_SIZE(bases) == 0) {
             meta = (PyObject *) (&PyType_Type);
+        }
+        /* else get the type of the first base */
         else {
             PyObject *base0 = PyTuple_GET_ITEM(bases, 0);
             meta = (PyObject *) (base0->ob_type);
         }
         Py_INCREF(meta);
+        isclass = 1;  /* meta is really a class */
     }
+    if (isclass) {
+        /* meta is really a class, so check for a more derived
+           metaclass, or possible metaclass conflicts: */
+        winner = (PyObject *)_PyType_CalculateMetaclass((PyTypeObject *)meta,
+                                                        bases);
+        if (winner == NULL) {
+            Py_DECREF(meta);
+            Py_XDECREF(mkw);
+            Py_DECREF(bases);
+            return NULL;
+        }
+        if (winner != meta) {
+            Py_DECREF(meta);
+            meta = winner;
+            Py_INCREF(meta);
+        }
+    }
+    /* else: meta is not a class, so we cannot do the metaclass
+       calculation, so we will use the explicitly given object as it is */
     prep = PyObject_GetAttrString(meta, "__prepare__");
     if (prep == NULL) {
         if (PyErr_ExceptionMatches(PyExc_AttributeError)) {
@@ -133,10 +158,8 @@ builtin___build_class__(PyObject *self, PyObject *args, PyObject *kwds)
             cls = PyEval_CallObjectWithKeywords(meta, margs, mkw);
             Py_DECREF(margs);
         }
-        if (cls != NULL && PyCell_Check(cell)) {
-            Py_INCREF(cls);
-            PyCell_SET(cell, cls);
-        }
+        if (cls != NULL && PyCell_Check(cell))
+            PyCell_Set(cell, cls);
         Py_DECREF(cell);
     }
     Py_DECREF(ns);
@@ -239,7 +262,8 @@ builtin_all(PyObject *self, PyObject *v)
 PyDoc_STRVAR(all_doc,
 "all(iterable) -> bool\n\
 \n\
-Return True if bool(x) is True for all values x in the iterable.");
+Return True if bool(x) is True for all values x in the iterable.\n\
+If the iterable is empty, return True.");
 
 static PyObject *
 builtin_any(PyObject *self, PyObject *v)
@@ -281,7 +305,8 @@ builtin_any(PyObject *self, PyObject *v)
 PyDoc_STRVAR(any_doc,
 "any(iterable) -> bool\n\
 \n\
-Return True if bool(x) is True for any x in the iterable.");
+Return True if bool(x) is True for any x in the iterable.\n\
+If the iterable is empty, return False.");
 
 static PyObject *
 builtin_ascii(PyObject *self, PyObject *v)
@@ -405,9 +430,11 @@ filter_next(filterobject *lz)
             ok = PyObject_IsTrue(good);
             Py_DECREF(good);
         }
-        if (ok)
+        if (ok > 0)
             return item;
         Py_DECREF(item);
+        if (ok < 0)
+            return NULL;
     }
 }
 
@@ -469,7 +496,7 @@ builtin_format(PyObject *self, PyObject *args)
     PyObject *format_spec = NULL;
 
     if (!PyArg_ParseTuple(args, "O|U:format", &value, &format_spec))
-    return NULL;
+        return NULL;
 
     return PyObject_Format(value, format_spec);
 }
@@ -606,6 +633,8 @@ builtin_compile(PyObject *self, PyObject *args, PyObject *kwds)
             mod_ty mod;
 
             arena = PyArena_New();
+            if (arena == NULL)
+                goto error;
             mod = PyAST_obj2mod(cmd, arena, mode);
             if (mod == NULL) {
                 PyArena_Free(arena);
@@ -766,7 +795,6 @@ builtin_exec(PyObject *self, PyObject *args)
 {
     PyObject *v;
     PyObject *prog, *globals = Py_None, *locals = Py_None;
-    int plain = 0;
 
     if (!PyArg_UnpackTuple(args, "exec", 1, 3, &prog, &globals, &locals))
         return NULL;
@@ -775,7 +803,6 @@ builtin_exec(PyObject *self, PyObject *args)
         globals = PyEval_GetGlobals();
         if (locals == Py_None) {
             locals = PyEval_GetLocals();
-            plain = 1;
         }
         if (!globals || !locals) {
             PyErr_SetString(PyExc_SystemError,
@@ -1477,10 +1504,8 @@ builtin_print(PyObject *self, PyObject *args, PyObject *kwds)
     PyObject *sep = NULL, *end = NULL, *file = NULL;
     int i, err;
 
-    if (dummy_args == NULL) {
-        if (!(dummy_args = PyTuple_New(0)))
+    if (dummy_args == NULL && !(dummy_args = PyTuple_New(0)))
             return NULL;
-    }
     if (!PyArg_ParseTupleAndKeywords(dummy_args, kwds, "|OOO:print",
                                      kwlist, &sep, &end, &file))
         return NULL;
@@ -1615,76 +1640,65 @@ builtin_input(PyObject *self, PyObject *args)
 
     /* If we're interactive, use (GNU) readline */
     if (tty) {
-        PyObject *po;
+        PyObject *po = NULL;
         char *prompt;
-        char *s;
-        PyObject *stdin_encoding;
-        char *stdin_encoding_str;
+        char *s = NULL;
+        PyObject *stdin_encoding = NULL, *stdin_errors = NULL;
+        PyObject *stdout_encoding = NULL, *stdout_errors = NULL;
+        char *stdin_encoding_str, *stdin_errors_str;
         PyObject *result;
         size_t len;
 
         stdin_encoding = PyObject_GetAttrString(fin, "encoding");
-        if (!stdin_encoding)
+        stdin_errors = PyObject_GetAttrString(fin, "errors");
+        if (!stdin_encoding || !stdin_errors)
             /* stdin is a text stream, so it must have an
                encoding. */
-            return NULL;
+            goto _readline_errors;
         stdin_encoding_str = _PyUnicode_AsString(stdin_encoding);
-        if (stdin_encoding_str  == NULL) {
-            Py_DECREF(stdin_encoding);
-            return NULL;
-        }
+        stdin_errors_str = _PyUnicode_AsString(stdin_errors);
+        if (!stdin_encoding_str || !stdin_errors_str)
+            goto _readline_errors;
         tmp = PyObject_CallMethod(fout, "flush", "");
         if (tmp == NULL)
             PyErr_Clear();
         else
             Py_DECREF(tmp);
         if (promptarg != NULL) {
+            /* We have a prompt, encode it as stdout would */
+            char *stdout_encoding_str, *stdout_errors_str;
             PyObject *stringpo;
-            PyObject *stdout_encoding;
-            char *stdout_encoding_str;
             stdout_encoding = PyObject_GetAttrString(fout, "encoding");
-            if (stdout_encoding == NULL) {
-                Py_DECREF(stdin_encoding);
-                return NULL;
-            }
+            stdout_errors = PyObject_GetAttrString(fout, "errors");
+            if (!stdout_encoding || !stdout_errors)
+                goto _readline_errors;
             stdout_encoding_str = _PyUnicode_AsString(stdout_encoding);
-            if (stdout_encoding_str == NULL) {
-                Py_DECREF(stdin_encoding);
-                Py_DECREF(stdout_encoding);
-                return NULL;
-            }
+            stdout_errors_str = _PyUnicode_AsString(stdout_errors);
+            if (!stdout_encoding_str || !stdout_errors_str)
+                goto _readline_errors;
             stringpo = PyObject_Str(promptarg);
-            if (stringpo == NULL) {
-                Py_DECREF(stdin_encoding);
-                Py_DECREF(stdout_encoding);
-                return NULL;
-            }
+            if (stringpo == NULL)
+                goto _readline_errors;
             po = PyUnicode_AsEncodedString(stringpo,
-                stdout_encoding_str, NULL);
-            Py_DECREF(stdout_encoding);
-            Py_DECREF(stringpo);
-            if (po == NULL) {
-                Py_DECREF(stdin_encoding);
-                return NULL;
-            }
+                stdout_encoding_str, stdout_errors_str);
+            Py_CLEAR(stdout_encoding);
+            Py_CLEAR(stdout_errors);
+            Py_CLEAR(stringpo);
+            if (po == NULL)
+                goto _readline_errors;
             prompt = PyBytes_AsString(po);
-            if (prompt == NULL) {
-                Py_DECREF(stdin_encoding);
-                Py_DECREF(po);
-                return NULL;
-            }
+            if (prompt == NULL)
+                goto _readline_errors;
         }
         else {
             po = NULL;
             prompt = "";
         }
         s = PyOS_Readline(stdin, stdout, prompt);
-        Py_XDECREF(po);
         if (s == NULL) {
             if (!PyErr_Occurred())
                 PyErr_SetNone(PyExc_KeyboardInterrupt);
-            Py_DECREF(stdin_encoding);
-            return NULL;
+            goto _readline_errors;
         }
 
         len = strlen(s);
@@ -1702,12 +1716,22 @@ builtin_input(PyObject *self, PyObject *args)
                 len--;   /* strip trailing '\n' */
                 if (len != 0 && s[len-1] == '\r')
                     len--;   /* strip trailing '\r' */
-                result = PyUnicode_Decode(s, len, stdin_encoding_str, NULL);
+                result = PyUnicode_Decode(s, len, stdin_encoding_str,
+                                                  stdin_errors_str);
             }
         }
         Py_DECREF(stdin_encoding);
+        Py_DECREF(stdin_errors);
+        Py_XDECREF(po);
         PyMem_FREE(s);
         return result;
+    _readline_errors:
+        Py_XDECREF(stdin_encoding);
+        Py_XDECREF(stdout_encoding);
+        Py_XDECREF(stdin_errors);
+        Py_XDECREF(stdout_errors);
+        Py_XDECREF(po);
+        return NULL;
     }
 
     /* Fallback if we're not interactive */

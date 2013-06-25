@@ -49,18 +49,46 @@ listed below.
 Logger Objects
 --------------
 
-Loggers have the following attributes and methods. Note that Loggers are never
+Loggers have the following attributes and methods.  Note that Loggers are never
 instantiated directly, but always through the module-level function
-``logging.getLogger(name)``.
+``logging.getLogger(name)``.  Multiple calls to :func:`getLogger` with the same
+name will always return a reference to the same Logger object.
+
+The ``name`` is potentially a period-separated hierarchical value, like
+``foo.bar.baz`` (though it could also be just plain ``foo``, for example).
+Loggers that are further down in the hierarchical list are children of loggers
+higher up in the list.  For example, given a logger with a name of ``foo``,
+loggers with names of ``foo.bar``, ``foo.bar.baz``, and ``foo.bam`` are all
+descendants of ``foo``.  The logger name hierarchy is analogous to the Python
+package hierarchy, and identical to it if you organise your loggers on a
+per-module basis using the recommended construction
+``logging.getLogger(__name__)``.  That's because in a module, ``__name__``
+is the module's name in the Python package namespace.
+
 
 .. class:: Logger
 
 .. attribute:: Logger.propagate
 
-   If this evaluates to false, logging messages are not passed by this logger or by
-   its child loggers to the handlers of higher level (ancestor) loggers. The
-   constructor sets this attribute to 1.
+   If this evaluates to true, events logged to this logger will be passed to the
+   handlers of higher level (ancestor) loggers, in addition to any handlers
+   attached to this logger. Messages are passed directly to the ancestor
+   loggers' handlers - neither the level nor filters of the ancestor loggers in
+   question are considered.
 
+   If this evaluates to false, logging messages are not passed to the handlers
+   of ancestor loggers.
+
+   The constructor sets this attribute to ``True``.
+
+   .. note:: If you attach a handler to a logger *and* one or more of its
+      ancestors, it may emit the same record multiple times. In general, you
+      should not need to attach a handler to more than one logger - if you just
+      attach it to the appropriate logger which is highest in the logger
+      hierarchy, then it will see all events logged by all descendant loggers,
+      provided that their propagate setting is left set to ``True``. A common
+      scenario is to attach handlers only to the root logger, and to let
+      propagation take care of the rest.
 
 .. method:: Logger.setLevel(lvl)
 
@@ -80,6 +108,11 @@ instantiated directly, but always through the module-level function
 
    If the root is reached, and it has a level of NOTSET, then all messages will be
    processed. Otherwise, the root's level will be used as the effective level.
+
+   .. versionchanged:: 3.2
+      The *lvl* parameter now accepts a string representation of the
+      level such as 'INFO' as an alternative to the integer constants
+      such as :const:`INFO`.
 
 
 .. method:: Logger.isEnabledFor(lvl)
@@ -137,7 +170,7 @@ instantiated directly, but always through the module-level function
 
        Stack (most recent call last):
 
-   This mimics the `Traceback (most recent call last):` which is used when
+   This mimics the ``Traceback (most recent call last):`` which is used when
    displaying exception frames.
 
    The third keyword argument is *extra* which can be used to pass a
@@ -148,7 +181,7 @@ instantiated directly, but always through the module-level function
 
       FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
       logging.basicConfig(format=FORMAT)
-      d = { 'clientip' : '192.168.0.1', 'user' : 'fbloggs' }
+      d = {'clientip': '192.168.0.1', 'user': 'fbloggs'}
       logger = logging.getLogger('tcpserver')
       logger.warning('Protocol problem: %s', 'connection reset', extra=d)
 
@@ -228,7 +261,10 @@ instantiated directly, but always through the module-level function
 .. method:: Logger.filter(record)
 
    Applies this logger's filters to the record and returns a true value if the
-   record is to be processed.
+   record is to be processed. The filters are consulted in turn, until one of
+   them returns a false value. If none of them return a false value, the record
+   will be processed (passed to handlers). If one returns a false value, no
+   further processing of the record occurs.
 
 
 .. method:: Logger.addHandler(hdlr)
@@ -313,6 +349,11 @@ subclasses. However, the :meth:`__init__` method in subclasses needs to call
    severe than *lvl* will be ignored. When a handler is created, the level is set
    to :const:`NOTSET` (which causes all messages to be processed).
 
+   .. versionchanged:: 3.2
+      The *lvl* parameter now accepts a string representation of the
+      level such as 'INFO' as an alternative to the integer constants
+      such as :const:`INFO`.
+
 
 .. method:: Handler.setFormatter(form)
 
@@ -332,7 +373,10 @@ subclasses. However, the :meth:`__init__` method in subclasses needs to call
 .. method:: Handler.filter(record)
 
    Applies this handler's filters to the record and returns a true value if the
-   record is to be processed.
+   record is to be processed. The filters are consulted in turn, until one of
+   them returns a false value. If none of them return a false value, the record
+   will be emitted. If one returns a false value, the handler will not emit the
+   record.
 
 
 .. method:: Handler.flush()
@@ -359,12 +403,14 @@ subclasses. However, the :meth:`__init__` method in subclasses needs to call
 .. method:: Handler.handleError(record)
 
    This method should be called from handlers when an exception is encountered
-   during an :meth:`emit` call. By default it does nothing, which means that
-   exceptions get silently ignored. This is what is mostly wanted for a logging
-   system - most users will not care about errors in the logging system, they are
-   more interested in application errors. You could, however, replace this with a
-   custom handler if you wish. The specified record is the one which was being
-   processed when the exception occurred.
+   during an :meth:`emit` call. If the module-level attribute
+   ``raiseExceptions`` is ``False``, exceptions get silently ignored. This is
+   what is mostly wanted for a logging system - most users will not care about
+   errors in the logging system, they are more interested in application
+   errors. You could, however, replace this with a custom handler if you wish.
+   The specified record is the one which was being processed when the exception
+   occurred. (The default value of ``raiseExceptions`` is ``True``, as that is
+   more useful during development).
 
 
 .. method:: Handler.format(record)
@@ -500,12 +546,12 @@ empty string, all events are passed.
       yes. If deemed appropriate, the record may be modified in-place by this
       method.
 
-Note that filters attached to handlers are consulted whenever an event is
+Note that filters attached to handlers are consulted before an event is
 emitted by the handler, whereas filters attached to loggers are consulted
-whenever an event is logged to the handler (using :meth:`debug`, :meth:`info`,
-etc.) This means that events which have been generated by descendant loggers
-will not be filtered by a logger's filter setting, unless the filter has also
-been applied to those descendant loggers.
+whenever an event is logged (using :meth:`debug`, :meth:`info`,
+etc.), before sending an event to handlers. This means that events which have
+been generated by descendant loggers will not be filtered by a logger's filter
+setting, unless the filter has also been applied to those descendant loggers.
 
 You don't actually need to subclass ``Filter``: you can pass any instance
 which has a ``filter`` method with the same semantics.
@@ -549,7 +595,9 @@ wire).
    record.
 
    :param name:  The name of the logger used to log the event represented by
-                 this LogRecord.
+                 this LogRecord. Note that this name will always have this
+                 value, even though it may be emitted by a handler attached to
+                 a different (ancestor) logger.
    :param level: The numeric level of the logging event (one of DEBUG, INFO etc.)
                  Note that this is converted to *two* attributes of the LogRecord:
                  ``levelno`` for the numeric value and ``levelname`` for the
@@ -699,6 +747,9 @@ the options available to you.
 | threadName     | ``%(threadName)s``      | Thread name (if available).                   |
 +----------------+-------------------------+-----------------------------------------------+
 
+.. versionchanged:: 3.1
+   *processName* was added.
+
 
 .. _logger-adapter:
 
@@ -820,7 +871,7 @@ functions.
 
        Stack (most recent call last):
 
-   This mimics the `Traceback (most recent call last):` which is used when
+   This mimics the ``Traceback (most recent call last):`` which is used when
    displaying exception frames.
 
    The third optional keyword argument is *extra* which can be used to pass a
@@ -894,14 +945,14 @@ functions.
    Logs a message with level *level* on the root logger. The other arguments are
    interpreted as for :func:`debug`.
 
-   PLEASE NOTE: The above module-level functions which delegate to the root
-   logger should *not* be used in threads, in versions of Python earlier than
-   2.7.1 and 3.2, unless at least one handler has been added to the root
-   logger *before* the threads are started. These convenience functions call
-   :func:`basicConfig` to ensure that at least one handler is available; in
-   earlier versions of Python, this can (under rare circumstances) lead to
-   handlers being added multiple times to the root logger, which can in turn
-   lead to multiple messages for the same event.
+   .. note:: The above module-level functions which delegate to the root
+      logger should *not* be used in threads, in versions of Python earlier
+      than 2.7.1 and 3.2, unless at least one handler has been added to the
+      root logger *before* the threads are started. These convenience functions
+      call :func:`basicConfig` to ensure that at least one handler is
+      available; in earlier versions of Python, this can (under rare
+      circumstances) lead to handlers being added multiple times to the root
+      logger, which can in turn lead to multiple messages for the same event.
 
 .. function:: disable(lvl)
 
@@ -911,7 +962,8 @@ functions.
    effect is to disable all logging calls of severity *lvl* and below, so that
    if you call it with a value of INFO, then all INFO and DEBUG events would be
    discarded, whereas those of severity WARNING and above would be processed
-   according to the logger's effective level.
+   according to the logger's effective level. To undo the effect of a call to
+   ``logging.disable(lvl)``, call ``logging.disable(logging.NOTSET)``.
 
 
 .. function:: addLevelName(lvl, levelName)
@@ -923,8 +975,8 @@ functions.
    registered using this function, levels should be positive integers and they
    should increase in increasing order of severity.
 
-   NOTE: If you are thinking of defining your own levels, please see the section
-   on :ref:`custom-levels`.
+   .. note:: If you are thinking of defining your own levels, please see the
+      section on :ref:`custom-levels`.
 
 .. function:: getLevelName(lvl)
 
@@ -956,12 +1008,12 @@ functions.
    This function does nothing if the root logger already has handlers
    configured for it.
 
-   PLEASE NOTE: This function should be called from the main thread
-   before other threads are started. In versions of Python prior to
-   2.7.1 and 3.2, if this function is called from multiple threads,
-   it is possible (in rare circumstances) that a handler will be added
-   to the root logger more than once, leading to unexpected results
-   such as messages being duplicated in the log.
+   .. note:: This function should be called from the main thread
+      before other threads are started. In versions of Python prior to
+      2.7.1 and 3.2, if this function is called from multiple threads,
+      it is possible (in rare circumstances) that a handler will be added
+      to the root logger more than once, leading to unexpected results
+      such as messages being duplicated in the log.
 
    The following keyword arguments are supported.
 
@@ -1045,6 +1097,21 @@ functions.
       :kwargs: Additional keyword arguments.
 
 
+Module-Level Attributes
+-----------------------
+
+.. attribute:: lastResort
+
+   A "handler of last resort" is available through this attribute. This
+   is a :class:`StreamHandler` writing to ``sys.stderr`` with a level of
+   ``WARNING``, and is used to handle logging events in the absence of any
+   logging configuration. The end result is to just print the message to
+   ``sys.stderr``. This replaces the earlier error message saying that
+   "no handlers could be found for logger XYZ". If you need the earlier
+   behaviour for some reason, ``lastResort`` can be set to ``None``.
+
+   .. versionadded:: 3.2
+
 Integration with the warnings module
 ------------------------------------
 
@@ -1059,11 +1126,11 @@ with the :mod:`warnings` module.
    If *capture* is ``True``, warnings issued by the :mod:`warnings` module will
    be redirected to the logging system. Specifically, a warning will be
    formatted using :func:`warnings.formatwarning` and the resulting string
-   logged to a logger named 'py.warnings' with a severity of `WARNING`.
+   logged to a logger named ``'py.warnings'`` with a severity of :const:`WARNING`.
 
    If *capture* is ``False``, the redirection of warnings to the logging system
    will stop, and warnings will be redirected to their original destinations
-   (i.e. those in effect before `captureWarnings(True)` was called).
+   (i.e. those in effect before ``captureWarnings(True)`` was called).
 
 
 .. seealso::

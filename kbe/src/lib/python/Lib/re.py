@@ -69,8 +69,11 @@ resulting RE will match the second character.
              In string patterns without the ASCII flag, it will match the whole
              range of Unicode digits.
     \D       Matches any non-digit character; equivalent to [^\d].
-    \s       Matches any whitespace character; equivalent to [ \t\n\r\f\v].
-    \S       Matches any non-whitespace character; equiv. to [^ \t\n\r\f\v].
+    \s       Matches any whitespace character; equivalent to [ \t\n\r\f\v] in
+             bytes patterns or string patterns with the ASCII flag.
+             In string patterns without the ASCII flag, it will match the whole
+             range of Unicode whitespace characters.
+    \S       Matches any non-whitespace character; equivalent to [^\s].
     \w       Matches any alphanumeric character; equivalent to [a-zA-Z0-9_]
              in bytes patterns or string patterns with the ASCII flag.
              In string patterns without the ASCII flag, it will match the
@@ -179,14 +182,19 @@ def subn(pattern, repl, string, count=0, flags=0):
 
 def split(pattern, string, maxsplit=0, flags=0):
     """Split the source string by the occurrences of the pattern,
-    returning a list containing the resulting substrings."""
+    returning a list containing the resulting substrings.  If
+    capturing parentheses are used in pattern, then the text of all
+    groups in the pattern are also returned as part of the resulting
+    list.  If maxsplit is nonzero, at most maxsplit splits occur,
+    and the remainder of the string is returned as the final element
+    of the list."""
     return _compile(pattern, flags).split(string, maxsplit)
 
 def findall(pattern, string, flags=0):
     """Return a list of all non-overlapping matches in the string.
 
-    If one or more groups are present in the pattern, return a
-    list of groups; this will be a list of tuples if the pattern
+    If one or more capturing groups are present in the pattern, return
+    a list of groups; this will be a list of tuples if the pattern
     has more than one group.
 
     Empty matches are included in the result."""
@@ -207,8 +215,8 @@ def compile(pattern, flags=0):
 
 def purge():
     "Clear the regular expression caches"
-    _compile_typed.cache_clear()
-    _compile_repl.cache_clear()
+    _cache.clear()
+    _cache_repl.clear()
 
 def template(pattern, flags=0):
     "Compile a template pattern, returning a pattern object"
@@ -249,14 +257,19 @@ def escape(pattern):
 # --------------------------------------------------------------------
 # internals
 
+_cache = {}
+_cache_repl = {}
+
 _pattern_type = type(sre_compile.compile("", 0))
 
-def _compile(pattern, flags):
-    return _compile_typed(type(pattern), pattern, flags)
+_MAXCACHE = 512
 
-@functools.lru_cache(maxsize=500)
-def _compile_typed(text_bytes_type, pattern, flags):
+def _compile(pattern, flags):
     # internal: compile pattern
+    try:
+        return _cache[type(pattern), pattern, flags]
+    except KeyError:
+        pass
     if isinstance(pattern, _pattern_type):
         if flags:
             raise ValueError(
@@ -264,12 +277,23 @@ def _compile_typed(text_bytes_type, pattern, flags):
         return pattern
     if not sre_compile.isstring(pattern):
         raise TypeError("first argument must be string or compiled pattern")
-    return sre_compile.compile(pattern, flags)
+    p = sre_compile.compile(pattern, flags)
+    if len(_cache) >= _MAXCACHE:
+        _cache.clear()
+    _cache[type(pattern), pattern, flags] = p
+    return p
 
-@functools.lru_cache(maxsize=500)
 def _compile_repl(repl, pattern):
     # internal: compile replacement pattern
-    return sre_parse.parse_template(repl, pattern)
+    try:
+        return _cache_repl[repl, pattern]
+    except KeyError:
+        pass
+    p = sre_parse.parse_template(repl, pattern)
+    if len(_cache_repl) >= _MAXCACHE:
+        _cache_repl.clear()
+    _cache_repl[repl, pattern] = p
+    return p
 
 def _expand(pattern, match, template):
     # internal: match.expand implementation hook
@@ -326,7 +350,7 @@ class Scanner:
             if i == j:
                 break
             action = self.lexicon[m.lastindex-1][1]
-            if hasattr(action, "__call__"):
+            if callable(action):
                 self.match = m
                 action = action(self, m.group())
             if action is not None:

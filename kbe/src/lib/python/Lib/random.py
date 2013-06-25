@@ -36,7 +36,6 @@ General notes on the underlying Mersenne Twister core generator:
 
 """
 
-from __future__ import division
 from warnings import warn as _warn
 from types import MethodType as _MethodType, BuiltinMethodType as _BuiltinMethodType
 from math import log as _log, exp as _exp, pi as _pi, e as _e, ceil as _ceil
@@ -97,7 +96,7 @@ class Random(_random.Random):
         None or no argument seeds from current time or from an operating
         system specific randomness source if available.
 
-        For version 2 (the default), all of the bits are used if *a *is a str,
+        For version 2 (the default), all of the bits are used if *a* is a str,
         bytes, or bytearray.  For version 1, the hash() of *a* is used instead.
 
         If *a* is an int, all bits are used.
@@ -432,27 +431,25 @@ class Random(_random.Random):
         if kappa <= 1e-6:
             return TWOPI * random()
 
-        a = 1.0 + _sqrt(1.0 + 4.0 * kappa * kappa)
-        b = (a - _sqrt(2.0 * a))/(2.0 * kappa)
-        r = (1.0 + b * b)/(2.0 * b)
+        s = 0.5 / kappa
+        r = s + _sqrt(1.0 + s * s)
 
         while 1:
             u1 = random()
-
             z = _cos(_pi * u1)
-            f = (1.0 + r * z)/(r + z)
-            c = kappa * (r - f)
 
+            d = z / (r + z)
             u2 = random()
-
-            if u2 < c * (2.0 - c) or u2 <= c * _exp(1.0 - c):
+            if u2 < 1.0 - d * d or u2 <= (1.0 - d) * _exp(d):
                 break
 
+        q = 1.0 / r
+        f = (q + z) / (1.0 + q * z)
         u3 = random()
         if u3 > 0.5:
-            theta = (mu % TWOPI) + _acos(f)
+            theta = (mu + _acos(f)) % TWOPI
         else:
-            theta = (mu % TWOPI) - _acos(f)
+            theta = (mu - _acos(f)) % TWOPI
 
         return theta
 

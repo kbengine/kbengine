@@ -1,8 +1,10 @@
 import builtins
+import gc
 import sys
 import types
 import math
 import unittest
+import weakref
 
 from copy import deepcopy
 from test import support
@@ -625,6 +627,174 @@ class ClassPropertiesAndMethods(unittest.TestCase):
         # The most derived metaclass of D is A rather than type.
         class D(B, C):
             pass
+        self.assertIs(A, type(D))
+
+        # issue1294232: correct metaclass calculation
+        new_calls = []  # to check the order of __new__ calls
+        class AMeta(type):
+            @staticmethod
+            def __new__(mcls, name, bases, ns):
+                new_calls.append('AMeta')
+                return super().__new__(mcls, name, bases, ns)
+            @classmethod
+            def __prepare__(mcls, name, bases):
+                return {}
+
+        class BMeta(AMeta):
+            @staticmethod
+            def __new__(mcls, name, bases, ns):
+                new_calls.append('BMeta')
+                return super().__new__(mcls, name, bases, ns)
+            @classmethod
+            def __prepare__(mcls, name, bases):
+                ns = super().__prepare__(name, bases)
+                ns['BMeta_was_here'] = True
+                return ns
+
+        class A(metaclass=AMeta):
+            pass
+        self.assertEqual(['AMeta'], new_calls)
+        new_calls[:] = []
+
+        class B(metaclass=BMeta):
+            pass
+        # BMeta.__new__ calls AMeta.__new__ with super:
+        self.assertEqual(['BMeta', 'AMeta'], new_calls)
+        new_calls[:] = []
+
+        class C(A, B):
+            pass
+        # The most derived metaclass is BMeta:
+        self.assertEqual(['BMeta', 'AMeta'], new_calls)
+        new_calls[:] = []
+        # BMeta.__prepare__ should've been called:
+        self.assertIn('BMeta_was_here', C.__dict__)
+
+        # The order of the bases shouldn't matter:
+        class C2(B, A):
+            pass
+        self.assertEqual(['BMeta', 'AMeta'], new_calls)
+        new_calls[:] = []
+        self.assertIn('BMeta_was_here', C2.__dict__)
+
+        # Check correct metaclass calculation when a metaclass is declared:
+        class D(C, metaclass=type):
+            pass
+        self.assertEqual(['BMeta', 'AMeta'], new_calls)
+        new_calls[:] = []
+        self.assertIn('BMeta_was_here', D.__dict__)
+
+        class E(C, metaclass=AMeta):
+            pass
+        self.assertEqual(['BMeta', 'AMeta'], new_calls)
+        new_calls[:] = []
+        self.assertIn('BMeta_was_here', E.__dict__)
+
+        # Special case: the given metaclass isn't a class,
+        # so there is no metaclass calculation.
+        marker = object()
+        def func(*args, **kwargs):
+            return marker
+        class X(metaclass=func):
+            pass
+        class Y(object, metaclass=func):
+            pass
+        class Z(D, metaclass=func):
+            pass
+        self.assertIs(marker, X)
+        self.assertIs(marker, Y)
+        self.assertIs(marker, Z)
+
+        # The given metaclass is a class,
+        # but not a descendant of type.
+        prepare_calls = []  # to track __prepare__ calls
+        class ANotMeta:
+            def __new__(mcls, *args, **kwargs):
+                new_calls.append('ANotMeta')
+                return super().__new__(mcls)
+            @classmethod
+            def __prepare__(mcls, name, bases):
+                prepare_calls.append('ANotMeta')
+                return {}
+        class BNotMeta(ANotMeta):
+            def __new__(mcls, *args, **kwargs):
+                new_calls.append('BNotMeta')
+                return super().__new__(mcls)
+            @classmethod
+            def __prepare__(mcls, name, bases):
+                prepare_calls.append('BNotMeta')
+                return super().__prepare__(name, bases)
+
+        class A(metaclass=ANotMeta):
+            pass
+        self.assertIs(ANotMeta, type(A))
+        self.assertEqual(['ANotMeta'], prepare_calls)
+        prepare_calls[:] = []
+        self.assertEqual(['ANotMeta'], new_calls)
+        new_calls[:] = []
+
+        class B(metaclass=BNotMeta):
+            pass
+        self.assertIs(BNotMeta, type(B))
+        self.assertEqual(['BNotMeta', 'ANotMeta'], prepare_calls)
+        prepare_calls[:] = []
+        self.assertEqual(['BNotMeta', 'ANotMeta'], new_calls)
+        new_calls[:] = []
+
+        class C(A, B):
+            pass
+        self.assertIs(BNotMeta, type(C))
+        self.assertEqual(['BNotMeta', 'ANotMeta'], new_calls)
+        new_calls[:] = []
+        self.assertEqual(['BNotMeta', 'ANotMeta'], prepare_calls)
+        prepare_calls[:] = []
+
+        class C2(B, A):
+            pass
+        self.assertIs(BNotMeta, type(C2))
+        self.assertEqual(['BNotMeta', 'ANotMeta'], new_calls)
+        new_calls[:] = []
+        self.assertEqual(['BNotMeta', 'ANotMeta'], prepare_calls)
+        prepare_calls[:] = []
+
+        # This is a TypeError, because of a metaclass conflict:
+        # BNotMeta is neither a subclass, nor a superclass of type
+        with self.assertRaises(TypeError):
+            class D(C, metaclass=type):
+                pass
+
+        class E(C, metaclass=ANotMeta):
+            pass
+        self.assertIs(BNotMeta, type(E))
+        self.assertEqual(['BNotMeta', 'ANotMeta'], new_calls)
+        new_calls[:] = []
+        self.assertEqual(['BNotMeta', 'ANotMeta'], prepare_calls)
+        prepare_calls[:] = []
+
+        class F(object(), C):
+            pass
+        self.assertIs(BNotMeta, type(F))
+        self.assertEqual(['BNotMeta', 'ANotMeta'], new_calls)
+        new_calls[:] = []
+        self.assertEqual(['BNotMeta', 'ANotMeta'], prepare_calls)
+        prepare_calls[:] = []
+
+        class F2(C, object()):
+            pass
+        self.assertIs(BNotMeta, type(F2))
+        self.assertEqual(['BNotMeta', 'ANotMeta'], new_calls)
+        new_calls[:] = []
+        self.assertEqual(['BNotMeta', 'ANotMeta'], prepare_calls)
+        prepare_calls[:] = []
+
+        # TypeError: BNotMeta is neither a
+        # subclass, nor a superclass of int
+        with self.assertRaises(TypeError):
+            class X(C, int()):
+                pass
+        with self.assertRaises(TypeError):
+            class X(int(), C):
+                pass
 
     def test_module_subclasses(self):
         # Testing Python subclass of module...
@@ -1018,7 +1188,6 @@ order (MRO) for bases """
         self.assertEqual(Counted.counter, 0)
 
         # Test lookup leaks [SF bug 572567]
-        import gc
         if hasattr(gc, 'get_objects'):
             class G(object):
                 def __eq__(self, other):
@@ -1289,6 +1458,22 @@ order (MRO) for bases """
         self.assertEqual(x, spam.spamlist)
         self.assertEqual(a, a1)
         self.assertEqual(d, d1)
+        spam_cm = spam.spamlist.__dict__['classmeth']
+        x2, a2, d2 = spam_cm(spam.spamlist, *a, **d)
+        self.assertEqual(x2, spam.spamlist)
+        self.assertEqual(a2, a1)
+        self.assertEqual(d2, d1)
+        class SubSpam(spam.spamlist): pass
+        x2, a2, d2 = spam_cm(SubSpam, *a, **d)
+        self.assertEqual(x2, SubSpam)
+        self.assertEqual(a2, a1)
+        self.assertEqual(d2, d1)
+        with self.assertRaises(TypeError):
+            spam_cm()
+        with self.assertRaises(TypeError):
+            spam_cm(spam.spamlist())
+        with self.assertRaises(TypeError):
+            spam_cm(list)
 
     def test_staticmethods(self):
         # Testing static methods...
@@ -4212,7 +4397,6 @@ order (MRO) for bases """
         self.assertRaises(AttributeError, getattr, C(), "attr")
         self.assertEqual(descr.counter, 4)
 
-        import gc
         class EvilGetattribute(object):
             # This used to segfault
             def __getattr__(self, name):
@@ -4224,6 +4408,9 @@ order (MRO) for bases """
                 raise AttributeError(name)
 
         self.assertRaises(AttributeError, getattr, EvilGetattribute(), "attr")
+
+    def test_type___getattribute__(self):
+        self.assertRaises(TypeError, type.__getattribute__, list, type)
 
     def test_abstractmethods(self):
         # type pretends not to have __abstractmethods__.
@@ -4259,7 +4446,30 @@ order (MRO) for bases """
             pass
         Foo.__repr__ = Foo.__str__
         foo = Foo()
-        str(foo)
+        self.assertRaises(RuntimeError, str, foo)
+        self.assertRaises(RuntimeError, repr, foo)
+
+    def test_mixing_slot_wrappers(self):
+        class X(dict):
+            __setattr__ = dict.__setitem__
+        x = X()
+        x.y = 42
+        self.assertEqual(x["y"], 42)
+
+    def test_cycle_through_dict(self):
+        # See bug #1469629
+        class X(dict):
+            def __init__(self):
+                dict.__init__(self)
+                self.__dict__ = self
+        x = X()
+        x.attr = 42
+        wr = weakref.ref(x)
+        del x
+        support.gc_collect()
+        self.assertIsNone(wr())
+        for o in gc.get_objects():
+            self.assertIsNot(type(o), X)
 
 class DictProxyTests(unittest.TestCase):
     def setUp(self):
@@ -4306,8 +4516,18 @@ class DictProxyTests(unittest.TestCase):
 
     def test_repr(self):
         # Testing dict_proxy.__repr__
+        def sorted_dict_repr(repr_):
+            # Given the repr of a dict, sort the keys
+            assert repr_.startswith('{')
+            assert repr_.endswith('}')
+            kvs = repr_[1:-1].split(', ')
+            return '{' + ', '.join(sorted(kvs)) + '}'
         dict_ = {k: v for k, v in self.C.__dict__.items()}
-        self.assertEqual(repr(self.C.__dict__), 'dict_proxy({!r})'.format(dict_))
+        repr_ = repr(self.C.__dict__)
+        self.assertTrue(repr_.startswith('dict_proxy('))
+        self.assertTrue(repr_.endswith(')'))
+        self.assertEqual(sorted_dict_repr(repr_[len('dict_proxy('):-len(')')]),
+                         sorted_dict_repr('{!r}'.format(dict_)))
 
 
 class PTypesLongInitTest(unittest.TestCase):

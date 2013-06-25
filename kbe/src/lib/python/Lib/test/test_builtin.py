@@ -6,12 +6,18 @@ import sys
 import warnings
 import collections
 import io
+import os
 import ast
 import types
 import builtins
 import random
+import traceback
 from test.support import fcmp, TESTFN, unlink,  run_unittest, check_warnings
 from operator import neg
+try:
+    import pty, signal
+except ImportError:
+    pty = signal = None
 
 
 class Squares:
@@ -149,6 +155,7 @@ class BuiltinTest(unittest.TestCase):
         self.assertRaises(TypeError, all)                   # No args
         self.assertRaises(TypeError, all, [2, 4, 6], [])    # Too many args
         self.assertEqual(all([]), True)                     # Empty iterator
+        self.assertEqual(all([0, TestFailingBool()]), False)# Short-circuit
         S = [50, 60]
         self.assertEqual(all(x > 42 for x in S), True)
         S = [50, 40, 60]
@@ -158,11 +165,12 @@ class BuiltinTest(unittest.TestCase):
         self.assertEqual(any([None, None, None]), False)
         self.assertEqual(any([None, 4, None]), True)
         self.assertRaises(RuntimeError, any, [None, TestFailingBool(), 6])
-        self.assertRaises(RuntimeError, all, TestFailingIter())
+        self.assertRaises(RuntimeError, any, TestFailingIter())
         self.assertRaises(TypeError, any, 10)               # Non-iterable
         self.assertRaises(TypeError, any)                   # No args
         self.assertRaises(TypeError, any, [2, 4, 6], [])    # Too many args
         self.assertEqual(any([]), False)                    # Empty iterator
+        self.assertEqual(any([1, TestFailingBool()]), True) # Short-circuit
         S = [40, 60, 30]
         self.assertEqual(any(x > 42 for x in S), True)
         S = [10, 20, 30]
@@ -988,6 +996,82 @@ class BuiltinTest(unittest.TestCase):
             fp.close()
             unlink(TESTFN)
 
+    @unittest.skipUnless(pty, "the pty and signal modules must be available")
+    def check_input_tty(self, prompt, terminal_input, stdio_encoding=None):
+        if not sys.stdin.isatty() or not sys.stdout.isatty():
+            self.skipTest("stdin and stdout must be ttys")
+        r, w = os.pipe()
+        try:
+            pid, fd = pty.fork()
+        except (OSError, AttributeError) as e:
+            os.close(r)
+            os.close(w)
+            self.skipTest("pty.fork() raised {}".format(e))
+        if pid == 0:
+            # Child
+            try:
+                # Make sure we don't get stuck if there's a problem
+                signal.alarm(2)
+                os.close(r)
+                # Check the error handlers are accounted for
+                if stdio_encoding:
+                    sys.stdin = io.TextIOWrapper(sys.stdin.detach(),
+                                                 encoding=stdio_encoding,
+                                                 errors='surrogateescape')
+                    sys.stdout = io.TextIOWrapper(sys.stdout.detach(),
+                                                  encoding=stdio_encoding,
+                                                  errors='replace')
+                with open(w, "w") as wpipe:
+                    print("tty =", sys.stdin.isatty() and sys.stdout.isatty(), file=wpipe)
+                    print(ascii(input(prompt)), file=wpipe)
+            except:
+                traceback.print_exc()
+            finally:
+                # We don't want to return to unittest...
+                os._exit(0)
+        # Parent
+        os.close(w)
+        os.write(fd, terminal_input + b"\r\n")
+        # Get results from the pipe
+        with open(r, "r") as rpipe:
+            lines = []
+            while True:
+                line = rpipe.readline().strip()
+                if line == "":
+                    # The other end was closed => the child exited
+                    break
+                lines.append(line)
+        # Check the result was got and corresponds to the user's terminal input
+        if len(lines) != 2:
+            # Something went wrong, try to get at stderr
+            with open(fd, "r", encoding="ascii", errors="ignore") as child_output:
+                self.fail("got %d lines in pipe but expected 2, child output was:\n%s"
+                          % (len(lines), child_output.read()))
+        os.close(fd)
+        # Check we did exercise the GNU readline path
+        self.assertIn(lines[0], {'tty = True', 'tty = False'})
+        if lines[0] != 'tty = True':
+            self.skipTest("standard IO in should have been a tty")
+        input_result = eval(lines[1])   # ascii() -> eval() roundtrip
+        if stdio_encoding:
+            expected = terminal_input.decode(stdio_encoding, 'surrogateescape')
+        else:
+            expected = terminal_input.decode(sys.stdin.encoding)  # what else?
+        self.assertEqual(input_result, expected)
+
+    def test_input_tty(self):
+        # Test input() functionality when wired to a tty (the code path
+        # is different and invokes GNU readline if available).
+        self.check_input_tty("prompt", b"quux")
+
+    def test_input_tty_non_ascii(self):
+        # Check stdin/stdout encoding is used when invoking GNU readline
+        self.check_input_tty("prompté", b"quux\xe9", "utf-8")
+
+    def test_input_tty_non_ascii_unicode_errors(self):
+        # Check stdin/stdout error handler is used when invoking GNU readline
+        self.check_input_tty("prompté", b"quux\xe9", "ascii")
+
     def test_repr(self):
         self.assertEqual(repr(''), '\'\'')
         self.assertEqual(repr(0), '0')
@@ -1102,6 +1186,7 @@ class BuiltinTest(unittest.TestCase):
         self.assertRaises(TypeError, setattr, sys, 1, 'spam')
         self.assertRaises(TypeError, setattr)
 
+    # test_str(): see test_unicode.py and test_bytes.py for str() tests.
 
     def test_sum(self):
         self.assertEqual(sum([]), 0)

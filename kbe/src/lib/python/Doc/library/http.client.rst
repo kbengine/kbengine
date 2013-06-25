@@ -27,7 +27,8 @@ HTTPS protocols.  It is normally not used directly --- the module
 The module provides the following classes:
 
 
-.. class:: HTTPConnection(host, port=None[, strict[, timeout[, source_address]]])
+.. class:: HTTPConnection(host, port=None[, strict][, timeout], \
+                          source_address=None)
 
    An :class:`HTTPConnection` instance represents one transaction with an HTTP
    server.  It should be instantiated passing it a host and optional port
@@ -50,12 +51,15 @@ The module provides the following classes:
    .. versionchanged:: 3.2
       *source_address* was added.
 
-   .. versionchanged:: 3.2
+   .. deprecated:: 3.2
       The *strict* parameter is deprecated.  HTTP 0.9-style "Simple Responses"
       are not supported anymore.
 
 
-.. class:: HTTPSConnection(host, port=None, key_file=None, cert_file=None[, strict[, timeout[, source_address]]], *, context=None, check_hostname=None)
+.. class:: HTTPSConnection(host, port=None, key_file=None, \
+                           cert_file=None[, strict][, timeout], \
+                           source_address=None, *, context=None, \
+                           check_hostname=None)
 
    A subclass of :class:`HTTPConnection` that uses SSL for communication with
    secure servers.  Default port is ``443``.  If *context* is specified, it
@@ -85,7 +89,7 @@ The module provides the following classes:
       This class now supports HTTPS virtual hosts if possible (that is,
       if :data:`ssl.HAS_SNI` is true).
 
-   .. versionchanged:: 3.2
+   .. deprecated:: 3.2
       The *strict* parameter is deprecated.  HTTP 0.9-style "Simple Responses"
       are not supported anymore.
 
@@ -95,7 +99,7 @@ The module provides the following classes:
    Class whose instances are returned upon successful connection.  Not
    instantiated directly by user.
 
-   .. versionchanged:: 3.2
+   .. deprecated:: 3.2
       The *strict* parameter is deprecated.  HTTP 0.9-style "Simple Responses"
       are not supported anymore.
 
@@ -435,7 +439,7 @@ HTTPConnection Objects
    Set the host and the port for HTTP Connect Tunnelling. Normally used when it
    is required to a HTTPS Connection through a proxy server.
 
-   The headers argument should be a mapping of extra HTTP headers to to sent
+   The headers argument should be a mapping of extra HTTP headers to send
    with the CONNECT request.
 
    .. versionadded:: 3.2
@@ -472,10 +476,13 @@ also send your request step by step, by using the four functions below.
    an argument.
 
 
-.. method:: HTTPConnection.endheaders()
+.. method:: HTTPConnection.endheaders(message_body=None)
 
-   Send a blank line to the server, signalling the end of the headers.
-
+   Send a blank line to the server, signalling the end of the headers. The
+   optional *message_body* argument can be used to pass a message body
+   associated with the request.  The message body will be sent in the same
+   packet as the message headers if it is string, otherwise it is sent in a
+   separate packet.
 
 .. method:: HTTPConnection.send(data)
 
@@ -605,6 +612,22 @@ Here is an example session that shows how to ``POST`` requests::
    b'Redirecting to <a href="http://bugs.python.org/issue12524">http://bugs.python.org/issue12524</a>'
    >>> conn.close()
 
+Client side ``HTTP PUT`` requests are very similar to ``POST`` requests. The
+difference lies only the server side where HTTP server will allow resources to
+be created via ``PUT`` request. Here is an example session that shows how to do
+``PUT`` request using http.client::
+
+    >>> # This creates an HTTP message
+    >>> # with the content of BODY as the enclosed representation
+    >>> # for the resource http://localhost:8080/foobar
+    ...
+    >>> import http.client
+    >>> BODY = "***filecontents***"
+    >>> conn = http.client.HTTPConnection("localhost", 8080)
+    >>> conn.request("PUT", "/file", BODY)
+    >>> response = conn.getresponse()
+    >>> print(resp.status, response.reason)
+    200, OK
 
 .. _httpmessage-objects:
 

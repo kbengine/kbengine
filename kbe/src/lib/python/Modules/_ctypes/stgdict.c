@@ -335,7 +335,7 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
 
     isPacked = PyObject_GetAttrString(type, "_pack_");
     if (isPacked) {
-        pack = PyLong_AsLong(isPacked);
+        pack = _PyLong_AsInt(isPacked);
         if (pack < 0 || PyErr_Occurred()) {
             Py_XDECREF(isPacked);
             PyErr_SetString(PyExc_ValueError,
@@ -482,14 +482,33 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
             char *fieldfmt = dict->format ? dict->format : "B";
             char *fieldname = _PyUnicode_AsString(name);
             char *ptr;
-            Py_ssize_t len = strlen(fieldname) + strlen(fieldfmt);
-            char *buf = alloca(len + 2 + 1);
+            Py_ssize_t len; 
+            char *buf;
 
+            if (fieldname == NULL)
+            {
+                PyErr_Format(PyExc_TypeError,
+                             "structure field name must be string not %s",
+                             name->ob_type->tp_name);
+                                
+                Py_DECREF(pair);
+                return -1;
+            }
+
+            len = strlen(fieldname) + strlen(fieldfmt);
+
+            buf = PyMem_Malloc(len + 2 + 1);
+            if (buf == NULL) {
+                Py_DECREF(pair);
+                PyErr_NoMemory();
+                return -1;
+            }
             sprintf(buf, "%s:%s:", fieldfmt, fieldname);
 
             ptr = stgdict->format;
             stgdict->format = _ctypes_alloc_format_string(stgdict->format, buf);
             PyMem_Free(ptr);
+            PyMem_Free(buf);
 
             if (stgdict->format == NULL) {
                 Py_DECREF(pair);

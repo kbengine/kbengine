@@ -52,9 +52,8 @@ clear_weakref(PyWeakReference *self)
 {
     PyObject *callback = self->wr_callback;
 
-    if (PyWeakref_GET_OBJECT(self) != Py_None) {
-        PyWeakReference **list = GET_WEAKREFS_LISTPTR(
-            PyWeakref_GET_OBJECT(self));
+    if (self->wr_object != Py_None) {
+        PyWeakReference **list = GET_WEAKREFS_LISTPTR(self->wr_object);
 
         if (*list == self)
             /* If 'self' is the end of the list (and thus self->wr_next == NULL)
@@ -168,13 +167,21 @@ weakref_repr(PyWeakReference *self)
                 PyErr_Clear();
         else if (PyUnicode_Check(nameobj))
                 name = _PyUnicode_AsString(nameobj);
-        PyOS_snprintf(buffer, sizeof(buffer),
-                      name ? "<weakref at %p; to '%.50s' at %p (%s)>"
-                           : "<weakref at %p; to '%.50s' at %p>",
-                      self,
-                      Py_TYPE(PyWeakref_GET_OBJECT(self))->tp_name,
-                      PyWeakref_GET_OBJECT(self),
-                      name);
+        if (name != NULL) {
+            PyOS_snprintf(buffer, sizeof(buffer),
+                          "<weakref at %p; to '%.50s' at %p (%s)>",
+                          self,
+                          Py_TYPE(PyWeakref_GET_OBJECT(self))->tp_name,
+                          PyWeakref_GET_OBJECT(self),
+                          name);
+        }
+        else {
+            PyOS_snprintf(buffer, sizeof(buffer),
+                          "<weakref at %p; to '%.50s' at %p>",
+                          self,
+                          Py_TYPE(PyWeakref_GET_OBJECT(self))->tp_name,
+                          PyWeakref_GET_OBJECT(self));
+        }
         Py_XDECREF(nameobj);
     }
     return PyUnicode_FromString(buffer);
@@ -195,9 +202,13 @@ weakref_richcompare(PyWeakReference* self, PyWeakReference* other, int op)
     }
     if (PyWeakref_GET_OBJECT(self) == Py_None
         || PyWeakref_GET_OBJECT(other) == Py_None) {
-        PyObject *res = self==other ? Py_True : Py_False;
-        Py_INCREF(res);
-        return res;
+        int res = (self == other);
+        if (op == Py_NE)
+            res = !res;
+        if (res)
+            Py_RETURN_TRUE;
+        else
+            Py_RETURN_FALSE;
     }
     return PyObject_RichCompare(PyWeakref_GET_OBJECT(self),
                                 PyWeakref_GET_OBJECT(other), op);

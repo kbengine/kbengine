@@ -229,7 +229,7 @@ of which this module provides three different variants:
       to create custom error logging mechanisms. The *format* argument is a
       standard printf-style format string, where the additional arguments to
       :meth:`log_message` are applied as inputs to the formatting. The client
-      address and current date and time are prefixed to every message logged.
+      ip address and current date and time are prefixed to every message logged.
 
    .. method:: version_string()
 
@@ -333,7 +333,7 @@ the current directory. ::
    httpd.serve_forever()
 
 :mod:`http.server` can also be invoked directly using the :option:`-m`
-switch of the interpreter a with ``port number`` argument.  Similar to
+switch of the interpreter with a ``port number`` argument.  Similar to
 the previous example, this serves files relative to the current directory. ::
 
         python -m http.server 8000

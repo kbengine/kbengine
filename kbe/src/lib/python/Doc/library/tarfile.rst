@@ -14,7 +14,8 @@
 
 The :mod:`tarfile` module makes it possible to read and write tar
 archives, including those using gzip or bz2 compression.
-(:file:`.zip` files can be read and written using the :mod:`zipfile` module.)
+Use the :mod:`zipfile` module to read or write :file:`.zip` files, or the
+higher-level functions in :ref:`shutil <archiving-operations>`.
 
 Some facts and figures:
 
@@ -101,10 +102,10 @@ Some facts and figures:
    +-------------+--------------------------------------------+
    | ``'w|'``    | Open an uncompressed *stream* for writing. |
    +-------------+--------------------------------------------+
-   | ``'w|gz'``  | Open an gzip compressed *stream* for       |
+   | ``'w|gz'``  | Open a gzip compressed *stream* for        |
    |             | writing.                                   |
    +-------------+--------------------------------------------+
-   | ``'w|bz2'`` | Open an bzip2 compressed *stream* for      |
+   | ``'w|bz2'`` | Open a bzip2 compressed *stream* for       |
    |             | writing.                                   |
    +-------------+--------------------------------------------+
 

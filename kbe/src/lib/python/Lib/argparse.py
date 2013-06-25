@@ -92,10 +92,6 @@ import textwrap as _textwrap
 from gettext import gettext as _, ngettext
 
 
-def _callable(obj):
-    return hasattr(obj, '__call__') or hasattr(obj, '__bases__')
-
-
 SUPPRESS = '==SUPPRESS=='
 
 OPTIONAL = '?'
@@ -740,10 +736,10 @@ class Action(_AttributeHolder):
 
         - default -- The value to be produced if the option is not specified.
 
-        - type -- The type which the command-line arguments should be converted
-            to, should be one of 'string', 'int', 'float', 'complex' or a
-            callable object that accepts a single string argument. If None,
-            'string' is assumed.
+        - type -- A callable that accepts a single string argument, and
+            returns the converted value.  The standard Python types str, int,
+            float, and complex are useful examples of such callables.  If None,
+            str is used.
 
         - choices -- A container of values that should be allowed. If not None,
             after a command-line argument has been converted to the appropriate
@@ -1286,13 +1282,13 @@ class _ActionsContainer(object):
 
         # create the action object, and add it to the parser
         action_class = self._pop_action_class(kwargs)
-        if not _callable(action_class):
+        if not callable(action_class):
             raise ValueError('unknown action "%s"' % (action_class,))
         action = action_class(**kwargs)
 
         # raise an error if the action type is not callable
         type_func = self._registry_get('type', action.type, action.type)
-        if not _callable(type_func):
+        if not callable(type_func):
             raise ValueError('%r is not callable' % (type_func,))
 
         # raise an error if the metavar does not match the type
@@ -1705,9 +1701,12 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         return args
 
     def parse_known_args(self, args=None, namespace=None):
-        # args default to the system args
         if args is None:
+            # args default to the system args
             args = _sys.argv[1:]
+        else:
+            # make sure that args are mutable
+            args = list(args)
 
         # default Namespace built from parser defaults
         if namespace is None:
@@ -1718,10 +1717,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
             if action.dest is not SUPPRESS:
                 if not hasattr(namespace, action.dest):
                     if action.default is not SUPPRESS:
-                        default = action.default
-                        if isinstance(action.default, str):
-                            default = self._get_value(action, default)
-                        setattr(namespace, action.dest, default)
+                        setattr(namespace, action.dest, action.default)
 
         # add any parser defaults that aren't present
         for dest in self._defaults:
@@ -1949,12 +1945,23 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         if positionals:
             self.error(_('too few arguments'))
 
-        # make sure all required actions were present
+        # make sure all required actions were present, and convert defaults.
         for action in self._actions:
-            if action.required:
-                if action not in seen_actions:
+            if action not in seen_actions:
+                if action.required:
                     name = _get_action_name(action)
                     self.error(_('argument %s is required') % name)
+                else:
+                    # Convert action default now instead of doing it before
+                    # parsing arguments to avoid calling convert functions
+                    # twice (which may fail) if the argument was given, but
+                    # only if it was defined already in the namespace
+                    if (action.default is not None and
+                            isinstance(action.default, str) and
+                            hasattr(namespace, action.dest) and
+                            action.default is getattr(namespace, action.dest)):
+                        setattr(namespace, action.dest,
+                                self._get_value(action, action.default))
 
         # make sure all required groups had one option present
         for group in self._mutually_exclusive_groups:
@@ -1980,7 +1987,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         for arg_string in arg_strings:
 
             # for regular arguments, just add them back into the list
-            if arg_string[0] not in self.fromfile_prefix_chars:
+            if not arg_string or arg_string[0] not in self.fromfile_prefix_chars:
                 new_arg_strings.append(arg_string)
 
             # replace arguments referencing files with the file content
@@ -2190,9 +2197,12 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
     # Value conversion methods
     # ========================
     def _get_values(self, action, arg_strings):
-        # for everything but PARSER args, strip out '--'
+        # for everything but PARSER, REMAINDER args, strip out first '--'
         if action.nargs not in [PARSER, REMAINDER]:
-            arg_strings = [s for s in arg_strings if s != '--']
+            try:
+                arg_strings.remove('--')
+            except ValueError:
+                pass
 
         # optional argument produces a default when not present
         if not arg_strings and action.nargs == OPTIONAL:
@@ -2240,7 +2250,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
 
     def _get_value(self, action, arg_string):
         type_func = self._registry_get('type', action.type, action.type)
-        if not _callable(type_func):
+        if not callable(type_func):
             msg = _('%r is not callable')
             raise ArgumentError(action, msg % type_func)
 

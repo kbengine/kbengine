@@ -1,3 +1,5 @@
+.. _socket-howto:
+
 ****************************
   Socket Programming HOWTO
 ****************************
@@ -60,11 +62,10 @@ Creating a Socket
 Roughly speaking, when you clicked on the link that brought you to this page,
 your browser did something like the following::
 
-   #create an INET, STREAMing socket
+   # create an INET, STREAMing socket
    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-   #now connect to the web server on port 80
-   # - the normal http port
-   s.connect(("www.mcmillan-inc.com", 80))
+   # now connect to the web server on port 80 - the normal http port
+   s.connect(("www.python.org", 80))
 
 When the ``connect`` completes, the socket ``s`` can be used to send
 in a request for the text of the page. The same socket will read the
@@ -75,13 +76,11 @@ exchanges).
 What happens in the web server is a bit more complex. First, the web server
 creates a "server socket"::
 
-   #create an INET, STREAMing socket
-   serversocket = socket.socket(
-       socket.AF_INET, socket.SOCK_STREAM)
-   #bind the socket to a public host,
-   # and a well-known port
+   # create an INET, STREAMing socket
+   serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+   # bind the socket to a public host, and a well-known port
    serversocket.bind((socket.gethostname(), 80))
-   #become a server socket
+   # become a server socket
    serversocket.listen(5)
 
 A couple things to notice: we used ``socket.gethostname()`` so that the socket
@@ -101,10 +100,10 @@ Now that we have a "server" socket, listening on port 80, we can enter the
 mainloop of the web server::
 
    while True:
-       #accept connections from outside
+       # accept connections from outside
        (clientsocket, address) = serversocket.accept()
-       #now do something with the clientsocket
-       #in this case, we'll pretend this is a threaded server
+       # now do something with the clientsocket
+       # in this case, we'll pretend this is a threaded server
        ct = client_thread(clientsocket)
        ct.run()
 
@@ -126,12 +125,13 @@ IPC
 ---
 
 If you need fast IPC between two processes on one machine, you should look into
-whatever form of shared memory the platform offers. A simple protocol based
-around shared memory and locks or semaphores is by far the fastest technique.
+pipes or shared memory.  If you do decide to use AF_INET sockets, bind the
+"server" socket to ``'localhost'``. On most platforms, this will take a
+shortcut around a couple of layers of network code and be quite a bit faster.
 
-If you do decide to use sockets, bind the "server" socket to ``'localhost'``. On
-most platforms, this will take a shortcut around a couple of layers of network
-code and be quite a bit faster.
+.. seealso::
+   The :mod:`multiprocessing` integrates cross-platform IPC into a higher-level
+   API.
 
 
 Using a Socket
@@ -153,7 +153,7 @@ I'm not going to talk about it here, except to warn you that you need to use
 there, you may wait forever for the reply, because the request may still be in
 your output buffer.
 
-Now we come the major stumbling block of sockets - ``send`` and ``recv`` operate
+Now we come to the major stumbling block of sockets - ``send`` and ``recv`` operate
 on the network buffers. They do not necessarily handle all the bytes you hand
 them (or expect from them), because their major focus is handling the network
 buffers. In general, they return when the associated network buffers have been
@@ -164,7 +164,7 @@ been completely dealt with.
 When a ``recv`` returns 0 bytes, it means the other side has closed (or is in
 the process of closing) the connection.  You will not receive any more data on
 this connection. Ever.  You may be able to send data successfully; I'll talk
-about that some on the next page.
+more about this later.
 
 A protocol like HTTP uses a socket for only one transfer. The client sends a
 request, then reads a reply.  That's it. The socket is discarded. This means that
@@ -300,7 +300,7 @@ When Sockets Die
 
 Probably the worst thing about using blocking sockets is what happens when the
 other side comes down hard (without doing a ``close``). Your socket is likely to
-hang. SOCKSTREAM is a reliable protocol, and it will wait a long, long time
+hang. TCP is a reliable protocol, and it will wait a long, long time
 before giving up on a connection. If you're using threads, the entire thread is
 essentially dead. There's not much you can do about it. As long as you aren't
 doing something dumb, like holding a lock while doing a blocking read, the
@@ -395,19 +395,13 @@ Performance
 
 There's no question that the fastest sockets code uses non-blocking sockets and
 select to multiplex them. You can put together something that will saturate a
-LAN connection without putting any strain on the CPU. The trouble is that an app
-written this way can't do much of anything else - it needs to be ready to
-shuffle bytes around at all times.
+LAN connection without putting any strain on the CPU.
 
-Assuming that your app is actually supposed to do something more than that,
-threading is the optimal solution, (and using non-blocking sockets will be
-faster than using blocking sockets). Unfortunately, threading support in Unixes
-varies both in API and quality. So the normal Unix solution is to fork a
-subprocess to deal with each connection. The overhead for this is significant
-(and don't do this on Windows - the overhead of process creation is enormous
-there). It also means that unless each subprocess is completely independent,
-you'll need to use another form of IPC, say a pipe, or shared memory and
-semaphores, to communicate between the parent and child processes.
+The trouble is that an app written this way can't do much of anything else -
+it needs to be ready to shuffle bytes around at all times. Assuming that your
+app is actually supposed to do something more than that, threading is the
+optimal solution, (and using non-blocking sockets will be faster than using
+blocking sockets).
 
 Finally, remember that even though blocking sockets are somewhat slower than
 non-blocking, in many cases they are the "right" solution. After all, if your

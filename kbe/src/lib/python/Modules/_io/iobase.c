@@ -75,7 +75,7 @@ iobase_unsupported(const char *message)
 PyDoc_STRVAR(iobase_seek_doc,
     "Change stream position.\n"
     "\n"
-    "Change the stream position to byte offset offset. offset is\n"
+    "Change the stream position to the given byte offset. The offset is\n"
     "interpreted relative to the position indicated by whence.  Values\n"
     "for whence are:\n"
     "\n"
@@ -154,6 +154,19 @@ static PyObject *
 iobase_closed_get(PyObject *self, void *context)
 {
     return PyBool_FromLong(IS_CLOSED(self));
+}
+
+static PyObject *
+iobase_get_dict(PyObject *self)
+{
+    PyObject **dictptr = _PyObject_GetDictPtr(self);
+    PyObject *dict;
+    assert(dictptr);
+    dict = *dictptr;
+    if (dict == NULL)
+        dict = *dictptr = PyDict_New();
+    Py_XINCREF(dict);
+    return dict;
 }
 
 PyObject *
@@ -438,7 +451,7 @@ PyDoc_STRVAR(iobase_readline_doc,
     "\n"
     "If limit is specified, at most limit bytes will be read.\n"
     "\n"
-    "The line terminator is always b'\n' for binary files; for text\n"
+    "The line terminator is always b'\\n' for binary files; for text\n"
     "files, the newlines argument to open can be used to select the line\n"
     "terminator(s) recognized.\n");
 
@@ -469,8 +482,14 @@ iobase_readline(PyObject *self, PyObject *args)
 
         if (has_peek) {
             PyObject *readahead = PyObject_CallMethod(self, "peek", "i", 1);
-            if (readahead == NULL)
+            if (readahead == NULL) {
+                /* NOTE: PyErr_SetFromErrno() calls PyErr_CheckSignals()
+                   when EINTR occurs so we needn't do it ourselves. */
+                if (_PyIO_trap_eintr()) {
+                    continue;
+                }
                 goto fail;
+            }
             if (!PyBytes_Check(readahead)) {
                 PyErr_Format(PyExc_IOError,
                              "peek() should have returned a bytes object, "
@@ -503,8 +522,14 @@ iobase_readline(PyObject *self, PyObject *args)
         }
 
         b = PyObject_CallMethod(self, "read", "n", nreadahead);
-        if (b == NULL)
+        if (b == NULL) {
+            /* NOTE: PyErr_SetFromErrno() calls PyErr_CheckSignals()
+               when EINTR occurs so we needn't do it ourselves. */
+            if (_PyIO_trap_eintr()) {
+                continue;
+            }
             goto fail;
+        }
         if (!PyBytes_Check(b)) {
             PyErr_Format(PyExc_IOError,
                          "read() should have returned a bytes object, "
@@ -649,7 +674,10 @@ iobase_writelines(PyObject *self, PyObject *args)
                 break; /* Stop Iteration */
         }
 
-        res = PyObject_CallMethodObjArgs(self, _PyIO_str_write, line, NULL);
+        res = NULL;
+        do {
+            res = PyObject_CallMethodObjArgs(self, _PyIO_str_write, line, NULL);
+        } while (res == NULL && _PyIO_trap_eintr());
         Py_DECREF(line);
         if (res == NULL) {
             Py_DECREF(iter);
@@ -691,6 +719,7 @@ static PyMethodDef iobase_methods[] = {
 };
 
 static PyGetSetDef iobase_getset[] = {
+    {"__dict__", (getter)iobase_get_dict, NULL, NULL},
     {"closed", (getter)iobase_closed_get, NULL, NULL},
     {NULL}
 };
@@ -812,6 +841,11 @@ rawiobase_readall(PyObject *self, PyObject *args)
         PyObject *data = PyObject_CallMethod(self, "read",
                                              "i", DEFAULT_BUFFER_SIZE);
         if (!data) {
+            /* NOTE: PyErr_SetFromErrno() calls PyErr_CheckSignals()
+               when EINTR occurs so we needn't do it ourselves. */
+            if (_PyIO_trap_eintr()) {
+                continue;
+            }
             Py_DECREF(chunks);
             return NULL;
         }

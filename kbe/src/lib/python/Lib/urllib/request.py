@@ -95,6 +95,7 @@ import socket
 import sys
 import time
 import collections
+import warnings
 
 from urllib.error import URLError, HTTPError, ContentTooShortError
 from urllib.parse import (
@@ -552,12 +553,11 @@ class HTTPRedirectHandler(BaseHandler):
         # For security reasons we don't allow redirection to anything other
         # than http, https or ftp.
 
-        if not urlparts.scheme in ('http', 'https', 'ftp'):
-            raise HTTPError(newurl, code,
-                            msg +
-                            " - Redirection to url '%s' is not allowed" %
-                            newurl,
-                            headers, fp)
+        if urlparts.scheme not in ('http', 'https', 'ftp', ''):
+            raise HTTPError(
+                newurl, code,
+                "%s - Redirection to url '%s' is not allowed" % (msg, newurl),
+                headers, fp)
 
         if not urlparts.path:
             urlparts = list(urlparts)
@@ -722,7 +722,7 @@ class HTTPPasswordMgr:
         # uri could be a single URI or a sequence
         if isinstance(uri, str):
             uri = [uri]
-        if not realm in self.passwd:
+        if realm not in self.passwd:
             self.passwd[realm] = {}
         for default_port in True, False:
             reduced_uri = tuple(
@@ -795,7 +795,7 @@ class AbstractBasicAuthHandler:
     # allow for double- and single-quoted realm values
     # (single quotes are a violation of the RFC, but appear in the wild)
     rx = re.compile('(?:.*,)*[ \t]*([^ \t]+)[ \t]+'
-                    'realm=(["\'])(.*?)\\2', re.I)
+                    'realm=(["\']?)([^"\']*)\\2', re.I)
 
     # XXX could pre-emptively send auth info already accepted (RFC 2617,
     # end of section 2, and section 1.2 immediately after "credentials"
@@ -828,6 +828,9 @@ class AbstractBasicAuthHandler:
             mo = AbstractBasicAuthHandler.rx.search(authreq)
             if mo:
                 scheme, quote, realm = mo.groups()
+                if quote not in ["'", '"']:
+                    warnings.warn("Basic Auth Realm was unquoted",
+                                  UserWarning, 2)
                 if scheme.lower() == 'basic':
                     response = self.retry_http_basic_auth(host, req, realm)
                     if response and response.code != 401:
@@ -1063,8 +1066,9 @@ class AbstractHTTPHandler(BaseHandler):
         if request.data is not None:  # POST
             data = request.data
             if isinstance(data, str):
-                raise TypeError("POST data should be bytes"
-                        " or an iterable of bytes. It cannot be str.")
+                msg = "POST data should be bytes or an iterable of bytes. "\
+                      "It cannot be of type str."
+                raise TypeError(msg)
             if not request.has_header('Content-type'):
                 request.add_unredirected_header(
                     'Content-type',
@@ -1296,9 +1300,9 @@ class FileHandler(BaseHandler):
                 else:
                     origurl = 'file://' + filename
                 return addinfourl(open(localfile, 'rb'), headers, origurl)
-        except OSError as msg:
+        except OSError as exp:
             # users shouldn't expect OSErrors coming from urlopen()
-            raise URLError(msg)
+            raise URLError(exp)
         raise URLError('file not on local host')
 
 def _safe_gethostbyname(host):
@@ -1357,8 +1361,8 @@ class FTPHandler(BaseHandler):
                 headers += "Content-length: %d\n" % retrlen
             headers = email.message_from_string(headers)
             return addinfourl(fp, headers, req.full_url)
-        except ftplib.all_errors as msg:
-            exc = URLError('ftp error: %s' % msg)
+        except ftplib.all_errors as exp:
+            exc = URLError('ftp error: %r' % exp)
             raise exc.with_traceback(sys.exc_info()[2])
 
     def connect_ftp(self, user, passwd, host, port, dirs, timeout):
@@ -1590,9 +1594,9 @@ class URLopener:
                 size = -1
                 read = 0
                 blocknum = 0
+                if "content-length" in headers:
+                    size = int(headers["Content-Length"])
                 if reporthook:
-                    if "content-length" in headers:
-                        size = int(headers["Content-Length"])
                     reporthook(blocknum, bs, size)
                 while 1:
                     block = fp.read(bs)
@@ -1658,17 +1662,16 @@ class URLopener:
                 if proxy_bypass(realhost):
                     host = realhost
 
-            #print "proxy via http:", host, selector
         if not host: raise IOError('http error', 'no host given')
 
         if proxy_passwd:
-            import base64
+            proxy_passwd = unquote(proxy_passwd)
             proxy_auth = base64.b64encode(proxy_passwd.encode()).decode('ascii')
         else:
             proxy_auth = None
 
         if user_passwd:
-            import base64
+            user_passwd = unquote(user_passwd)
             auth = base64.b64encode(user_passwd.encode()).decode('ascii')
         else:
             auth = None
@@ -1733,7 +1736,6 @@ class URLopener:
 
     def http_error_default(self, url, fp, errcode, errmsg, headers):
         """Default error handler: close the connection and raise IOError."""
-        void = fp.read()
         fp.close()
         raise HTTPError(url, errcode, errmsg, headers, None)
 
@@ -1750,7 +1752,7 @@ class URLopener:
     def open_file(self, url):
         """Use local file or FTP depending on form of URL."""
         if not isinstance(url, str):
-            raise URLError('file error', 'proxy support for file protocol currently not implemented')
+            raise URLError('file error: proxy support for file protocol currently not implemented')
         if url[:2] == '//' and url[2:3] != '/' and url[2:12].lower() != 'localhost/':
             raise ValueError("file:// scheme is supported only on localhost")
         else:
@@ -1765,7 +1767,7 @@ class URLopener:
         try:
             stats = os.stat(localname)
         except OSError as e:
-            raise URLError(e.errno, e.strerror, e.filename)
+            raise URLError(e.strerror, e.filename)
         size = stats.st_size
         modified = email.utils.formatdate(stats.st_mtime, usegmt=True)
         mtype = mimetypes.guess_type(url)[0]
@@ -1779,21 +1781,22 @@ class URLopener:
             return addinfourl(open(localname, 'rb'), headers, urlfile)
         host, port = splitport(host)
         if (not port
-           and socket.gethostbyname(host) in (localhost() + thishost())):
+           and socket.gethostbyname(host) in ((localhost(),) + thishost())):
             urlfile = file
             if file[:1] == '/':
                 urlfile = 'file://' + file
+            elif file[:2] == './':
+                raise ValueError("local file url may start with / or file:. Unknown url of type: %s" % url)
             return addinfourl(open(localname, 'rb'), headers, urlfile)
-        raise URLError('local file error', 'not on local host')
+        raise URLError('local file error: not on local host')
 
     def open_ftp(self, url):
         """Use FTP protocol."""
         if not isinstance(url, str):
-            raise URLError('ftp error', 'proxy support for ftp protocol currently not implemented')
+            raise URLError('ftp error: proxy support for ftp protocol currently not implemented')
         import mimetypes
-        from io import StringIO
         host, path = splithost(url)
-        if not host: raise URLError('ftp error', 'no host given')
+        if not host: raise URLError('ftp error: no host given')
         host, port = splitport(host)
         user, host = splituser(host)
         if user: user, passwd = splitpasswd(user)
@@ -1823,7 +1826,7 @@ class URLopener:
                     del self.ftpcache[k]
                     v.close()
         try:
-            if not key in self.ftpcache:
+            if key not in self.ftpcache:
                 self.ftpcache[key] = \
                     ftpwrapper(user, passwd, host, port, dirs)
             if not file: type = 'D'
@@ -1842,13 +1845,13 @@ class URLopener:
                 headers += "Content-Length: %d\n" % retrlen
             headers = email.message_from_string(headers)
             return addinfourl(fp, headers, "ftp:" + url)
-        except ftperrors() as msg:
-            raise URLError('ftp error', msg).with_traceback(sys.exc_info()[2])
+        except ftperrors() as exp:
+            raise URLError('ftp error %r' % exp).with_traceback(sys.exc_info()[2])
 
     def open_data(self, url, data=None):
         """Use "data" URL."""
         if not isinstance(url, str):
-            raise URLError('data error', 'proxy support for data protocol currently not implemented')
+            raise URLError('data error: proxy support for data protocol currently not implemented')
         # ignore POSTed data
         #
         # syntax of data URLs:
@@ -1873,7 +1876,6 @@ class URLopener:
                                             time.gmtime(time.time())))
         msg.append('Content-type: %s' % type)
         if encoding == 'base64':
-            import base64
             # XXX is this encoding/decoding ok?
             data = base64.decodebytes(data.encode('ascii')).decode('latin1')
         else:
@@ -1924,7 +1926,6 @@ class FancyURLopener(URLopener):
             newurl = headers['uri']
         else:
             return
-        void = fp.read()
         fp.close()
 
         # In case the server sent a relative URL, join with original:
@@ -1938,7 +1939,7 @@ class FancyURLopener(URLopener):
         # We are using newer HTTPError with older redirect_internal method
         # This older method will get deprecated in 3.3
 
-        if not urlparts.scheme in ('http', 'https', 'ftp'):
+        if urlparts.scheme not in ('http', 'https', 'ftp', ''):
             raise HTTPError(newurl, errcode,
                             errmsg +
                             " Redirection to url '%s' is not allowed." % newurl,
@@ -1965,7 +1966,7 @@ class FancyURLopener(URLopener):
             retry=False):
         """Error 401 -- authentication required.
         This function supports Basic authentication only."""
-        if not 'www-authenticate' in headers:
+        if 'www-authenticate' not in headers:
             URLopener.http_error_default(self, url, fp,
                                          errcode, errmsg, headers)
         stuff = headers['www-authenticate']
@@ -1991,7 +1992,7 @@ class FancyURLopener(URLopener):
             retry=False):
         """Error 407 -- proxy authentication required.
         This function supports Basic authentication only."""
-        if not 'proxy-authenticate' in headers:
+        if 'proxy-authenticate' not in headers:
             URLopener.http_error_default(self, url, fp,
                                          errcode, errmsg, headers)
         stuff = headers['proxy-authenticate']
@@ -2116,7 +2117,7 @@ def thishost():
     """Return the IP addresses of the current host."""
     global _thishost
     if _thishost is None:
-        _thishost = tuple(socket.gethostbyname_ex(socket.gethostname()[2]))
+        _thishost = tuple(socket.gethostbyname_ex(socket.gethostname())[2])
     return _thishost
 
 _ftperrors = None
@@ -2181,7 +2182,7 @@ class ftpwrapper:
                 conn, retrlen = self.ftp.ntransfercmd(cmd)
             except ftplib.error_perm as reason:
                 if str(reason)[:3] != '550':
-                    raise URLError('ftp error', reason).with_traceback(
+                    raise URLError('ftp error: %d' % reason).with_traceback(
                         sys.exc_info()[2])
         if not conn:
             # Set transfer mode to ASCII!
@@ -2193,7 +2194,7 @@ class ftpwrapper:
                     try:
                         self.ftp.cwd(file)
                     except ftplib.error_perm as reason:
-                        raise URLError('ftp error', reason) from reason
+                        raise URLError('ftp error: %d' % reason) from reason
                 finally:
                     self.ftp.cwd(pwd)
                 cmd = 'LIST ' + file
@@ -2209,13 +2210,7 @@ class ftpwrapper:
         return (ftpobj, retrlen)
 
     def endtransfer(self):
-        if not self.busy:
-            return
         self.busy = 0
-        try:
-            self.ftp.voidresp()
-        except ftperrors():
-            pass
 
     def close(self):
         self.keepalive = False
@@ -2467,7 +2462,6 @@ elif os.name == 'nt':
             test = test.replace("*", r".*")     # change glob sequence
             test = test.replace("?", r".")      # change glob char
             for val in host:
-                # print "%s <--> %s" %( test, val )
                 if re.match(test, val, re.I):
                     return 1
         return 0

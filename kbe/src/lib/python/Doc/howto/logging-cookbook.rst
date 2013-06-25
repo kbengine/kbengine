@@ -268,12 +268,12 @@ Dealing with handlers that block
 .. currentmodule:: logging.handlers
 
 Sometimes you have to get your logging handlers to do their work without
-blocking the thread you’re logging from. This is common in Web applications,
+blocking the thread you're logging from. This is common in Web applications,
 though of course it also occurs in other scenarios.
 
 A common culprit which demonstrates sluggish behaviour is the
 :class:`SMTPHandler`: sending emails can take a long time, for a
-number of reasons outside the developer’s control (for example, a poorly
+number of reasons outside the developer's control (for example, a poorly
 performing mail or network infrastructure). But almost any network-based
 handler can block: Even a :class:`SocketHandler` operation may do a
 DNS query under the hood which is too slow (and this query can be deep in the
@@ -292,7 +292,7 @@ developers who will use your code.
 
 The second part of the solution is :class:`QueueListener`, which has been
 designed as the counterpart to :class:`QueueHandler`.  A
-:class:`QueueListener` is very simple: it’s passed a queue and some handlers,
+:class:`QueueListener` is very simple: it's passed a queue and some handlers,
 and it fires up an internal thread which listens to its queue for LogRecords
 sent from ``QueueHandlers`` (or any other source of ``LogRecords``, for that
 matter). The ``LogRecords`` are removed from the queue and passed to the
@@ -674,9 +674,10 @@ need to log to a single file from multiple processes, one way of doing this is
 to have all the processes log to a :class:`SocketHandler`, and have a separate
 process which implements a socket server which reads from the socket and logs
 to file. (If you prefer, you can dedicate one thread in one of the existing
-processes to perform this function.) The following section documents this
-approach in more detail and includes a working socket receiver which can be
-used as a starting point for you to adapt in your own applications.
+processes to perform this function.) :ref:`This section <network-logging>`
+documents this approach in more detail and includes a working socket receiver
+which can be used as a starting point for you to adapt in your own
+applications.
 
 If you are using a recent version of Python which includes the
 :mod:`multiprocessing` module, you could write your own handler which uses the
@@ -744,7 +745,7 @@ the basis for code meeting your own specific requirements::
                 raise
             except:
                 import sys, traceback
-                print >> sys.stderr, 'Whoops! Problem:'
+                print('Whoops! Problem:', file=sys.stderr)
                 traceback.print_exc(file=sys.stderr)
 
     # Arrays used for random selections in this demo
@@ -960,8 +961,221 @@ and each time it reaches the size limit it is renamed with the suffix
 ``.1``. Each of the existing backup files is renamed to increment the suffix
 (``.1`` becomes ``.2``, etc.)  and the ``.6`` file is erased.
 
-Obviously this example sets the log length much much too small as an extreme
+Obviously this example sets the log length much too small as an extreme
 example.  You would want to set *maxBytes* to an appropriate value.
+
+.. _format-styles:
+
+Use of alternative formatting styles
+------------------------------------
+
+When logging was added to the Python standard library, the only way of
+formatting messages with variable content was to use the %-formatting
+method. Since then, Python has gained two new formatting approaches:
+:class:`string.Template` (added in Python 2.4) and :meth:`str.format`
+(added in Python 2.6).
+
+Logging (as of 3.2) provides improved support for these two additional
+formatting styles. The :class:`Formatter` class been enhanced to take an
+additional, optional keyword parameter named ``style``. This defaults to
+``'%'``, but other possible values are ``'{'`` and ``'$'``, which correspond
+to the other two formatting styles. Backwards compatibility is maintained by
+default (as you would expect), but by explicitly specifying a style parameter,
+you get the ability to specify format strings which work with
+:meth:`str.format` or :class:`string.Template`. Here's an example console
+session to show the possibilities:
+
+.. code-block:: pycon
+
+    >>> import logging
+    >>> root = logging.getLogger()
+    >>> root.setLevel(logging.DEBUG)
+    >>> handler = logging.StreamHandler()
+    >>> bf = logging.Formatter('{asctime} {name} {levelname:8s} {message}',
+    ...                        style='{')
+    >>> handler.setFormatter(bf)
+    >>> root.addHandler(handler)
+    >>> logger = logging.getLogger('foo.bar')
+    >>> logger.debug('This is a DEBUG message')
+    2010-10-28 15:11:55,341 foo.bar DEBUG    This is a DEBUG message
+    >>> logger.critical('This is a CRITICAL message')
+    2010-10-28 15:12:11,526 foo.bar CRITICAL This is a CRITICAL message
+    >>> df = logging.Formatter('$asctime $name ${levelname} $message',
+    ...                        style='$')
+    >>> handler.setFormatter(df)
+    >>> logger.debug('This is a DEBUG message')
+    2010-10-28 15:13:06,924 foo.bar DEBUG This is a DEBUG message
+    >>> logger.critical('This is a CRITICAL message')
+    2010-10-28 15:13:11,494 foo.bar CRITICAL This is a CRITICAL message
+    >>>
+
+Note that the formatting of logging messages for final output to logs is
+completely independent of how an individual logging message is constructed.
+That can still use %-formatting, as shown here::
+
+    >>> logger.error('This is an%s %s %s', 'other,', 'ERROR,', 'message')
+    2010-10-28 15:19:29,833 foo.bar ERROR This is another, ERROR, message
+    >>>
+
+Logging calls (``logger.debug()``, ``logger.info()`` etc.) only take
+positional parameters for the actual logging message itself, with keyword
+parameters used only for determining options for how to handle the actual
+logging call (e.g. the ``exc_info`` keyword parameter to indicate that
+traceback information should be logged, or the ``extra`` keyword parameter
+to indicate additional contextual information to be added to the log). So
+you cannot directly make logging calls using :meth:`str.format` or
+:class:`string.Template` syntax, because internally the logging package
+uses %-formatting to merge the format string and the variable arguments.
+There would no changing this while preserving backward compatibility, since
+all logging calls which are out there in existing code will be using %-format
+strings.
+
+There is, however, a way that you can use {}- and $- formatting to construct
+your individual log messages. Recall that for a message you can use an
+arbitrary object as a message format string, and that the logging package will
+call ``str()`` on that object to get the actual format string. Consider the
+following two classes::
+
+    class BraceMessage:
+        def __init__(self, fmt, *args, **kwargs):
+            self.fmt = fmt
+            self.args = args
+            self.kwargs = kwargs
+
+        def __str__(self):
+            return self.fmt.format(*self.args, **self.kwargs)
+
+    class DollarMessage:
+        def __init__(self, fmt, **kwargs):
+            self.fmt = fmt
+            self.kwargs = kwargs
+
+        def __str__(self):
+            from string import Template
+            return Template(self.fmt).substitute(**self.kwargs)
+
+Either of these can be used in place of a format string, to allow {}- or
+$-formatting to be used to build the actual "message" part which appears in the
+formatted log output in place of "%(message)s" or "{message}" or "$message".
+It's a little unwieldy to use the class names whenever you want to log
+something, but it's quite palatable if you use an alias such as __ (double
+underscore – not to be confused with _, the single underscore used as a
+synonym/alias for :func:`gettext.gettext` or its brethren).
+
+The above classes are not included in Python, though they're easy enough to
+copy and paste into your own code. They can be used as follows (assuming that
+they're declared in a module called ``wherever``):
+
+.. code-block:: pycon
+
+    >>> from wherever import BraceMessage as __
+    >>> print(__('Message with {0} {name}', 2, name='placeholders'))
+    Message with 2 placeholders
+    >>> class Point: pass
+    ...
+    >>> p = Point()
+    >>> p.x = 0.5
+    >>> p.y = 0.5
+    >>> print(__('Message with coordinates: ({point.x:.2f}, {point.y:.2f})',
+    ...       point=p))
+    Message with coordinates: (0.50, 0.50)
+    >>> from wherever import DollarMessage as __
+    >>> print(__('Message with $num $what', num=2, what='placeholders'))
+    Message with 2 placeholders
+    >>>
+
+While the above examples use ``print()`` to show how the formatting works, you
+would of course use ``logger.debug()`` or similar to actually log using this
+approach.
+
+One thing to note is that you pay no significant performance penalty with this
+approach: the actual formatting happens not when you make the logging call, but
+when (and if) the logged message is actually about to be output to a log by a
+handler. So the only slightly unusual thing which might trip you up is that the
+parentheses go around the format string and the arguments, not just the format
+string. That's because the __ notation is just syntax sugar for a constructor
+call to one of the XXXMessage classes.
+
+
+.. currentmodule:: logging
+
+.. _custom-logrecord:
+
+Customising ``LogRecord``
+-------------------------
+
+Every logging event is represented by a :class:`LogRecord` instance.
+When an event is logged and not filtered out by a logger's level, a
+:class:`LogRecord` is created, populated with information about the event and
+then passed to the handlers for that logger (and its ancestors, up to and
+including the logger where further propagation up the hierarchy is disabled).
+Before Python 3.2, there were only two places where this creation was done:
+
+* :meth:`Logger.makeRecord`, which is called in the normal process of
+  logging an event. This invoked :class:`LogRecord` directly to create an
+  instance.
+* :func:`makeLogRecord`, which is called with a dictionary containing
+  attributes to be added to the LogRecord. This is typically invoked when a
+  suitable dictionary has been received over the network (e.g. in pickle form
+  via a :class:`~handlers.SocketHandler`, or in JSON form via an
+  :class:`~handlers.HTTPHandler`).
+
+This has usually meant that if you need to do anything special with a
+:class:`LogRecord`, you've had to do one of the following.
+
+* Create your own :class:`Logger` subclass, which overrides
+  :meth:`Logger.makeRecord`, and set it using :func:`~logging.setLoggerClass`
+  before any loggers that you care about are instantiated.
+* Add a :class:`Filter` to a logger or handler, which does the
+  necessary special manipulation you need when its
+  :meth:`~Filter.filter` method is called.
+
+The first approach would be a little unwieldy in the scenario where (say)
+several different libraries wanted to do different things. Each would attempt
+to set its own :class:`Logger` subclass, and the one which did this last would
+win.
+
+The second approach works reasonably well for many cases, but does not allow
+you to e.g. use a specialized subclass of :class:`LogRecord`. Library
+developers can set a suitable filter on their loggers, but they would have to
+remember to do this every time they introduced a new logger (which they would
+do simply by adding new packages or modules and doing ::
+
+   logger = logging.getLogger(__name__)
+
+at module level). It's probably one too many things to think about. Developers
+could also add the filter to a :class:`~logging.NullHandler` attached to their
+top-level logger, but this would not be invoked if an application developer
+attached a handler to a lower-level library logger – so output from that
+handler would not reflect the intentions of the library developer.
+
+In Python 3.2 and later, :class:`~logging.LogRecord` creation is done through a
+factory, which you can specify. The factory is just a callable you can set with
+:func:`~logging.setLogRecordFactory`, and interrogate with
+:func:`~logging.getLogRecordFactory`. The factory is invoked with the same
+signature as the :class:`~logging.LogRecord` constructor, as :class:`LogRecord`
+is the default setting for the factory.
+
+This approach allows a custom factory to control all aspects of LogRecord
+creation. For example, you could return a subclass, or just add some additional
+attributes to the record once created, using a pattern similar to this::
+
+    old_factory = logging.getLogRecordFactory()
+
+    def record_factory(*args, **kwargs):
+        record = old_factory(*args, **kwargs)
+        record.custom_attribute = 0xdecafbad
+        return record
+
+    logging.setLogRecordFactory(record_factory)
+
+This pattern allows different libraries to chain factories together, and as
+long as they don't overwrite each other's attributes or unintentionally
+overwrite the attributes provided as standard, there should be no surprises.
+However, it should be borne in mind that each link in the chain adds run-time
+overhead to all logging operations, and the technique should only be used when
+the use of a :class:`Filter` does not provide the desired result.
+
 
 .. _zeromq-handlers:
 
@@ -1037,3 +1251,422 @@ of queues, for example a ZeroMQ 'subscribe' socket. Here's an example::
    :ref:`A basic logging tutorial <logging-basic-tutorial>`
 
    :ref:`A more advanced logging tutorial <logging-advanced-tutorial>`
+
+
+An example dictionary-based configuration
+-----------------------------------------
+
+Below is an example of a logging configuration dictionary - it's taken from
+the `documentation on the Django project <https://docs.djangoproject.com/en/1.3/topics/logging/#configuring-logging>`_.
+This dictionary is passed to :func:`~logging.config.dictConfig` to put the configuration into effect::
+
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': True,
+        'formatters': {
+            'verbose': {
+                'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            },
+            'simple': {
+                'format': '%(levelname)s %(message)s'
+            },
+        },
+        'filters': {
+            'special': {
+                '()': 'project.logging.SpecialFilter',
+                'foo': 'bar',
+            }
+        },
+        'handlers': {
+            'null': {
+                'level':'DEBUG',
+                'class':'django.utils.log.NullHandler',
+            },
+            'console':{
+                'level':'DEBUG',
+                'class':'logging.StreamHandler',
+                'formatter': 'simple'
+            },
+            'mail_admins': {
+                'level': 'ERROR',
+                'class': 'django.utils.log.AdminEmailHandler',
+                'filters': ['special']
+            }
+        },
+        'loggers': {
+            'django': {
+                'handlers':['null'],
+                'propagate': True,
+                'level':'INFO',
+            },
+            'django.request': {
+                'handlers': ['mail_admins'],
+                'level': 'ERROR',
+                'propagate': False,
+            },
+            'myproject.custom': {
+                'handlers': ['console', 'mail_admins'],
+                'level': 'INFO',
+                'filters': ['special']
+            }
+        }
+    }
+
+For more information about this configuration, you can see the `relevant
+section <https://docs.djangoproject.com/en/1.3/topics/logging/#configuring-logging>`_
+of the Django documentation.
+
+A more elaborate multiprocessing example
+----------------------------------------
+
+The following working example shows how logging can be used with multiprocessing
+using configuration files. The configurations are fairly simple, but serve to
+illustrate how more complex ones could be implemented in a real multiprocessing
+scenario.
+
+In the example, the main process spawns a listener process and some worker
+processes. Each of the main process, the listener and the workers have three
+separate configurations (the workers all share the same configuration). We can
+see logging in the main process, how the workers log to a QueueHandler and how
+the listener implements a QueueListener and a more complex logging
+configuration, and arranges to dispatch events received via the queue to the
+handlers specified in the configuration. Note that these configurations are
+purely illustrative, but you should be able to adapt this example to your own
+scenario.
+
+Here's the script - the docstrings and the comments hopefully explain how it
+works::
+
+    import logging
+    import logging.config
+    import logging.handlers
+    from multiprocessing import Process, Queue, Event, current_process
+    import os
+    import random
+    import time
+
+    class MyHandler:
+        """
+        A simple handler for logging events. It runs in the listener process and
+        dispatches events to loggers based on the name in the received record,
+        which then get dispatched, by the logging system, to the handlers
+        configured for those loggers.
+        """
+        def handle(self, record):
+            logger = logging.getLogger(record.name)
+            # The process name is transformed just to show that it's the listener
+            # doing the logging to files and console
+            record.processName = '%s (for %s)' % (current_process().name, record.processName)
+            logger.handle(record)
+
+    def listener_process(q, stop_event, config):
+        """
+        This could be done in the main process, but is just done in a separate
+        process for illustrative purposes.
+
+        This initialises logging according to the specified configuration,
+        starts the listener and waits for the main process to signal completion
+        via the event. The listener is then stopped, and the process exits.
+        """
+        logging.config.dictConfig(config)
+        listener = logging.handlers.QueueListener(q, MyHandler())
+        listener.start()
+        if os.name == 'posix':
+            # On POSIX, the setup logger will have been configured in the
+            # parent process, but should have been disabled following the
+            # dictConfig call.
+            # On Windows, since fork isn't used, the setup logger won't
+            # exist in the child, so it would be created and the message
+            # would appear - hence the "if posix" clause.
+            logger = logging.getLogger('setup')
+            logger.critical('Should not appear, because of disabled logger ...')
+        stop_event.wait()
+        listener.stop()
+
+    def worker_process(config):
+        """
+        A number of these are spawned for the purpose of illustration. In
+        practice, they could be a heterogenous bunch of processes rather than
+        ones which are identical to each other.
+
+        This initialises logging according to the specified configuration,
+        and logs a hundred messages with random levels to randomly selected
+        loggers.
+
+        A small sleep is added to allow other processes a chance to run. This
+        is not strictly needed, but it mixes the output from the different
+        processes a bit more than if it's left out.
+        """
+        logging.config.dictConfig(config)
+        levels = [logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR,
+                  logging.CRITICAL]
+        loggers = ['foo', 'foo.bar', 'foo.bar.baz',
+                   'spam', 'spam.ham', 'spam.ham.eggs']
+        if os.name == 'posix':
+            # On POSIX, the setup logger will have been configured in the
+            # parent process, but should have been disabled following the
+            # dictConfig call.
+            # On Windows, since fork isn't used, the setup logger won't
+            # exist in the child, so it would be created and the message
+            # would appear - hence the "if posix" clause.
+            logger = logging.getLogger('setup')
+            logger.critical('Should not appear, because of disabled logger ...')
+        for i in range(100):
+            lvl = random.choice(levels)
+            logger = logging.getLogger(random.choice(loggers))
+            logger.log(lvl, 'Message no. %d', i)
+            time.sleep(0.01)
+
+    def main():
+        q = Queue()
+        # The main process gets a simple configuration which prints to the console.
+        config_initial = {
+            'version': 1,
+            'formatters': {
+                'detailed': {
+                    'class': 'logging.Formatter',
+                    'format': '%(asctime)s %(name)-15s %(levelname)-8s %(processName)-10s %(message)s'
+                }
+            },
+            'handlers': {
+                'console': {
+                    'class': 'logging.StreamHandler',
+                    'level': 'INFO',
+                },
+            },
+            'root': {
+                'level': 'DEBUG',
+                'handlers': ['console']
+            },
+        }
+        # The worker process configuration is just a QueueHandler attached to the
+        # root logger, which allows all messages to be sent to the queue.
+        # We disable existing loggers to disable the "setup" logger used in the
+        # parent process. This is needed on POSIX because the logger will
+        # be there in the child following a fork().
+        config_worker = {
+            'version': 1,
+            'disable_existing_loggers': True,
+            'handlers': {
+                'queue': {
+                    'class': 'logging.handlers.QueueHandler',
+                    'queue': q,
+                },
+            },
+            'root': {
+                'level': 'DEBUG',
+                'handlers': ['queue']
+            },
+        }
+        # The listener process configuration shows that the full flexibility of
+        # logging configuration is available to dispatch events to handlers however
+        # you want.
+        # We disable existing loggers to disable the "setup" logger used in the
+        # parent process. This is needed on POSIX because the logger will
+        # be there in the child following a fork().
+        config_listener = {
+            'version': 1,
+            'disable_existing_loggers': True,
+            'formatters': {
+                'detailed': {
+                    'class': 'logging.Formatter',
+                    'format': '%(asctime)s %(name)-15s %(levelname)-8s %(processName)-10s %(message)s'
+                },
+                'simple': {
+                    'class': 'logging.Formatter',
+                    'format': '%(name)-15s %(levelname)-8s %(processName)-10s %(message)s'
+                }
+            },
+            'handlers': {
+                'console': {
+                    'class': 'logging.StreamHandler',
+                    'level': 'INFO',
+                    'formatter': 'simple',
+                },
+                'file': {
+                    'class': 'logging.FileHandler',
+                    'filename': 'mplog.log',
+                    'mode': 'w',
+                    'formatter': 'detailed',
+                },
+                'foofile': {
+                    'class': 'logging.FileHandler',
+                    'filename': 'mplog-foo.log',
+                    'mode': 'w',
+                    'formatter': 'detailed',
+                },
+                'errors': {
+                    'class': 'logging.FileHandler',
+                    'filename': 'mplog-errors.log',
+                    'mode': 'w',
+                    'level': 'ERROR',
+                    'formatter': 'detailed',
+                },
+            },
+            'loggers': {
+                'foo': {
+                    'handlers' : ['foofile']
+                }
+            },
+            'root': {
+                'level': 'DEBUG',
+                'handlers': ['console', 'file', 'errors']
+            },
+        }
+        # Log some initial events, just to show that logging in the parent works
+        # normally.
+        logging.config.dictConfig(config_initial)
+        logger = logging.getLogger('setup')
+        logger.info('About to create workers ...')
+        workers = []
+        for i in range(5):
+            wp = Process(target=worker_process, name='worker %d' % (i + 1),
+                         args=(config_worker,))
+            workers.append(wp)
+            wp.start()
+            logger.info('Started worker: %s', wp.name)
+        logger.info('About to create listener ...')
+        stop_event = Event()
+        lp = Process(target=listener_process, name='listener',
+                     args=(q, stop_event, config_listener))
+        lp.start()
+        logger.info('Started listener')
+        # We now hang around for the workers to finish their work.
+        for wp in workers:
+            wp.join()
+        # Workers all done, listening can now stop.
+        # Logging in the parent still works normally.
+        logger.info('Telling listener to stop ...')
+        stop_event.set()
+        lp.join()
+        logger.info('All done.')
+
+    if __name__ == '__main__':
+        main()
+
+
+Inserting a BOM into messages sent to a SysLogHandler
+-----------------------------------------------------
+
+`RFC 5424 <http://tools.ietf.org/html/rfc5424>`_ requires that a
+Unicode message be sent to a syslog daemon as a set of bytes which have the
+following structure: an optional pure-ASCII component, followed by a UTF-8 Byte
+Order Mark (BOM), followed by Unicode encoded using UTF-8. (See the `relevant
+section of the specification <http://tools.ietf.org/html/rfc5424#section-6>`_.)
+
+In Python 3.1, code was added to
+:class:`~logging.handlers.SysLogHandler` to insert a BOM into the message, but
+unfortunately, it was implemented incorrectly, with the BOM appearing at the
+beginning of the message and hence not allowing any pure-ASCII component to
+appear before it.
+
+As this behaviour is broken, the incorrect BOM insertion code is being removed
+from Python 3.2.4 and later. However, it is not being replaced, and if you
+want to produce RFC 5424-compliant messages which include a BOM, an optional
+pure-ASCII sequence before it and arbitrary Unicode after it, encoded using
+UTF-8, then you need to do the following:
+
+#. Attach a :class:`~logging.Formatter` instance to your
+   :class:`~logging.handlers.SysLogHandler` instance, with a format string
+   such as::
+
+      'ASCII section\ufeffUnicode section'
+
+   The Unicode code point U+FEFF, when encoded using UTF-8, will be
+   encoded as a UTF-8 BOM -- the byte-string ``b'\xef\xbb\xbf'``.
+
+#. Replace the ASCII section with whatever placeholders you like, but make sure
+   that the data that appears in there after substitution is always ASCII (that
+   way, it will remain unchanged after UTF-8 encoding).
+
+#. Replace the Unicode section with whatever placeholders you like; if the data
+   which appears there after substitution contains characters outside the ASCII
+   range, that's fine -- it will be encoded using UTF-8.
+
+The formatted message *will* be encoded using UTF-8 encoding by
+``SysLogHandler``. If you follow the above rules, you should be able to produce
+RFC 5424-compliant messages. If you don't, logging may not complain, but your
+messages will not be RFC 5424-compliant, and your syslog daemon may complain.
+
+
+Implementing structured logging
+-------------------------------
+
+Although most logging messages are intended for reading by humans, and thus not
+readily machine-parseable, there might be cirumstances where you want to output
+messages in a structured format which *is* capable of being parsed by a program
+(without needing complex regular expressions to parse the log message). This is
+straightforward to achieve using the logging package. There are a number of
+ways in which this could be achieved, but the following is a simple approach
+which uses JSON to serialise the event in a machine-parseable manner::
+
+    import json
+    import logging
+
+    class StructuredMessage(object):
+        def __init__(self, message, **kwargs):
+            self.message = message
+            self.kwargs = kwargs
+
+        def __str__(self):
+            return '%s >>> %s' % (self.message, json.dumps(self.kwargs))
+
+    _ = StructuredMessage   # optional, to improve readability
+
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
+    logging.info(_('message 1', foo='bar', bar='baz', num=123, fnum=123.456))
+
+If the above script is run, it prints::
+
+    message 1 >>> {"fnum": 123.456, "num": 123, "bar": "baz", "foo": "bar"}
+
+Note that the order of items might be different according to the version of
+Python used.
+
+If you need more specialised processing, you can use a custom JSON encoder,
+as in the following complete example::
+
+    from __future__ import unicode_literals
+
+    import json
+    import logging
+
+    # This next bit is to ensure the script runs unchanged on 2.x and 3.x
+    try:
+        unicode
+    except NameError:
+        unicode = str
+
+    class Encoder(json.JSONEncoder):
+        def default(self, o):
+            if isinstance(o, set):
+                return tuple(o)
+            elif isinstance(o, unicode):
+                return o.encode('unicode_escape').decode('ascii')
+            return super(Encoder, self).default(o)
+
+    class StructuredMessage(object):
+        def __init__(self, message, **kwargs):
+            self.message = message
+            self.kwargs = kwargs
+
+        def __str__(self):
+            s = Encoder().encode(self.kwargs)
+            return '%s >>> %s' % (self.message, s)
+
+    _ = StructuredMessage   # optional, to improve readability
+
+    def main():
+        logging.basicConfig(level=logging.INFO, format='%(message)s')
+        logging.info(_('message 1', set_value=set([1, 2, 3]), snowman='\u2603'))
+
+    if __name__ == '__main__':
+        main()
+
+When the above script is run, it prints::
+
+    message 1 >>> {"snowman": "\u2603", "set_value": [1, 2, 3]}
+
+Note that the order of items might be different according to the version of
+Python used.
+

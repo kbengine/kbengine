@@ -29,6 +29,12 @@ BaseException_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     self->dict = NULL;
     self->traceback = self->cause = self->context = NULL;
 
+    if (args) {
+        self->args = args;
+        Py_INCREF(args);
+        return (PyObject *)self;
+    }
+
     self->args = PyTuple_New(0);
     if (!self->args) {
         Py_DECREF(self);
@@ -41,12 +47,15 @@ BaseException_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static int
 BaseException_init(PyBaseExceptionObject *self, PyObject *args, PyObject *kwds)
 {
+    PyObject *tmp;
+
     if (!_PyArg_NoKeywords(Py_TYPE(self)->tp_name, kwds))
         return -1;
 
-    Py_DECREF(self->args);
+    tmp = self->args;
     self->args = args;
     Py_INCREF(self->args);
+    Py_XDECREF(tmp);
 
     return 0;
 }
@@ -213,7 +222,8 @@ BaseException_set_args(PyBaseExceptionObject *self, PyObject *val)
         return -1;
     }
     seq = PySequence_Tuple(val);
-    if (!seq) return -1;
+    if (!seq)
+        return -1;
     Py_CLEAR(self->args);
     self->args = seq;
     return 0;
@@ -252,7 +262,8 @@ BaseException_set_tb(PyBaseExceptionObject *self, PyObject *tb)
 static PyObject *
 BaseException_get_context(PyObject *self) {
     PyObject *res = PyException_GetContext(self);
-    if (res) return res;  /* new reference already returned above */
+    if (res)
+        return res;  /* new reference already returned above */
     Py_RETURN_NONE;
 }
 
@@ -278,7 +289,8 @@ BaseException_set_context(PyObject *self, PyObject *arg) {
 static PyObject *
 BaseException_get_cause(PyObject *self) {
     PyObject *res = PyException_GetCause(self);
-    if (res) return res;  /* new reference already returned above */
+    if (res)
+        return res;  /* new reference already returned above */
     Py_RETURN_NONE;
 }
 
@@ -672,7 +684,8 @@ EnvironmentError_reduce(PyEnvironmentErrorObject *self)
      * file name given to EnvironmentError. */
     if (PyTuple_GET_SIZE(args) == 2 && self->filename) {
         args = PyTuple_New(3);
-        if (!args) return NULL;
+        if (!args)
+            return NULL;
 
         tmp = PyTuple_GET_ITEM(self->args, 0);
         Py_INCREF(tmp);
@@ -894,7 +907,8 @@ SyntaxError_init(PySyntaxErrorObject *self, PyObject *args, PyObject *kwds)
     if (lenargs == 2) {
         info = PyTuple_GET_ITEM(args, 1);
         info = PySequence_Tuple(info);
-        if (!info) return -1;
+        if (!info)
+            return -1;
 
         if (PyTuple_GET_SIZE(info) != 4) {
             /* not a very good error message, but it's what Python 2.4 gives */
@@ -1959,10 +1973,14 @@ SimpleExtendsException(PyExc_Warning, ResourceWarning,
 */
 PyObject *PyExc_RecursionErrorInst = NULL;
 
-#define PRE_INIT(TYPE) if (PyType_Ready(&_PyExc_ ## TYPE) < 0) \
-    Py_FatalError("exceptions bootstrapping error.");
+#define PRE_INIT(TYPE) \
+    if (!(_PyExc_ ## TYPE.tp_flags & Py_TPFLAGS_READY)) { \
+        if (PyType_Ready(&_PyExc_ ## TYPE) < 0) \
+            Py_FatalError("exceptions bootstrapping error."); \
+        Py_INCREF(PyExc_ ## TYPE); \
+    }
 
-#define POST_INIT(TYPE) Py_INCREF(PyExc_ ## TYPE); \
+#define POST_INIT(TYPE) \
     if (PyDict_SetItemString(bdict, # TYPE, PyExc_ ## TYPE)) \
         Py_FatalError("Module dictionary insertion problem.");
 
@@ -2093,29 +2111,30 @@ _PyExc_Init(void)
 
     preallocate_memerrors();
 
-    PyExc_RecursionErrorInst = BaseException_new(&_PyExc_RuntimeError, NULL, NULL);
-    if (!PyExc_RecursionErrorInst)
-        Py_FatalError("Cannot pre-allocate RuntimeError instance for "
-                        "recursion errors");
-    else {
-        PyBaseExceptionObject *err_inst =
-            (PyBaseExceptionObject *)PyExc_RecursionErrorInst;
-        PyObject *args_tuple;
-        PyObject *exc_message;
-        exc_message = PyUnicode_FromString("maximum recursion depth exceeded");
-        if (!exc_message)
-            Py_FatalError("cannot allocate argument for RuntimeError "
-                            "pre-allocation");
-        args_tuple = PyTuple_Pack(1, exc_message);
-        if (!args_tuple)
-            Py_FatalError("cannot allocate tuple for RuntimeError "
-                            "pre-allocation");
-        Py_DECREF(exc_message);
-        if (BaseException_init(err_inst, args_tuple, NULL))
-            Py_FatalError("init of pre-allocated RuntimeError failed");
-        Py_DECREF(args_tuple);
+    if (!PyExc_RecursionErrorInst) {
+        PyExc_RecursionErrorInst = BaseException_new(&_PyExc_RuntimeError, NULL, NULL);
+        if (!PyExc_RecursionErrorInst)
+            Py_FatalError("Cannot pre-allocate RuntimeError instance for "
+                            "recursion errors");
+        else {
+            PyBaseExceptionObject *err_inst =
+                (PyBaseExceptionObject *)PyExc_RecursionErrorInst;
+            PyObject *args_tuple;
+            PyObject *exc_message;
+            exc_message = PyUnicode_FromString("maximum recursion depth exceeded");
+            if (!exc_message)
+                Py_FatalError("cannot allocate argument for RuntimeError "
+                                "pre-allocation");
+            args_tuple = PyTuple_Pack(1, exc_message);
+            if (!args_tuple)
+                Py_FatalError("cannot allocate tuple for RuntimeError "
+                                "pre-allocation");
+            Py_DECREF(exc_message);
+            if (BaseException_init(err_inst, args_tuple, NULL))
+                Py_FatalError("init of pre-allocated RuntimeError failed");
+            Py_DECREF(args_tuple);
+        }
     }
-
     Py_DECREF(bltinmod);
 }
 

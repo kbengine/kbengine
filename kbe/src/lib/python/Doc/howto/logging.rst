@@ -330,6 +330,9 @@ of components: loggers, handlers, filters, and formatters.
   to output.
 * Formatters specify the layout of log records in the final output.
 
+Log event information is passed between loggers, handlers, filters and
+formatters in a :class:`LogRecord` instance.
+
 Logging is performed by calling methods on instances of the :class:`Logger`
 class (hereafter called :dfn:`loggers`). Each instance has a name, and they are
 conceptually arranged in a namespace hierarchy using dots (periods) as
@@ -374,6 +377,13 @@ You can change this by passing a format string to :func:`basicConfig` with the
 *format* keyword argument. For all options regarding how a format string is
 constructed, see :ref:`formatter-objects`.
 
+Logging Flow
+^^^^^^^^^^^^
+
+The flow of log event information in loggers and handlers is illustrated in the
+following diagram.
+
+.. image:: logging_flow.png
 
 Loggers
 ^^^^^^^
@@ -651,6 +661,22 @@ You can see that the config file approach has a few advantages over the Python
 code approach, mainly separation of configuration and code and the ability of
 noncoders to easily modify the logging properties.
 
+.. warning:: The :func:`fileConfig` function takes a default parameter,
+   ``disable_existing_loggers``, which defaults to ``True`` for reasons of
+   backward compatibility. This may or may not be what you want, since it
+   will cause any loggers existing before the :func:`fileConfig` call to
+   be disabled unless they (or an ancestor) are explicitly named in the
+   configuration.  Please refer to the reference documentation for more
+   information, and specify ``False`` for this parameter if you wish.
+
+   The dictionary passed to :func:`dictConfig` can also specify a Boolean
+   value with key ``disable_existing_loggers``, which if not specified
+   explicitly in the dictionary also defaults to being interpreted as
+   ``True``.  This leads to the logger-disabling behaviour described above,
+   which may not be what you want - in which case, provide the key
+   explicitly with a value of ``False``.
+
+
 .. currentmodule:: logging
 
 Note that the class names referenced in config files need to be either relative
@@ -679,7 +705,7 @@ the new dictionary-based approach::
     version: 1
     formatters:
       simple:
-        format: format=%(asctime)s - %(name)s - %(levelname)s - %(message)s
+        format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     handlers:
       console:
         class: logging.StreamHandler
@@ -764,13 +790,14 @@ should have the desired effect. If an organisation produces a number of
 libraries, then the logger name specified can be 'orgname.foo' rather than
 just 'foo'.
 
-**PLEASE NOTE:** It is strongly advised that you *do not add any handlers other
-than* :class:`~logging.NullHandler` *to your library's loggers*. This is
-because the configuration of handlers is the prerogative of the application
-developer who uses your library. The application developer knows their target
-audience and what handlers are most appropriate for their application: if you
-add handlers 'under the hood', you might well interfere with their ability to
-carry out unit tests and deliver logs which suit their requirements.
+.. note:: It is strongly advised that you *do not add any handlers other
+   than* :class:`~logging.NullHandler` *to your library's loggers*. This is
+   because the configuration of handlers is the prerogative of the application
+   developer who uses your library. The application developer knows their
+   target audience and what handlers are most appropriate for their
+   application: if you add handlers 'under the hood', you might well interfere
+   with their ability to carry out unit tests and deliver logs which suit their
+   requirements.
 
 
 Logging Levels
@@ -953,10 +980,10 @@ The default implementation of :meth:`handleError` in :class:`Handler` checks
 to see if a module-level variable, :data:`raiseExceptions`, is set. If set, a
 traceback is printed to :data:`sys.stderr`. If not set, the exception is swallowed.
 
-**Note:** The default value of :data:`raiseExceptions` is ``True``. This is because
-during development, you typically want to be notified of any exceptions that
-occur. It's advised that you set :data:`raiseExceptions` to ``False`` for production
-usage.
+.. note:: The default value of :data:`raiseExceptions` is ``True``. This is
+   because during development, you typically want to be notified of any
+   exceptions that occur. It's advised that you set :data:`raiseExceptions` to
+   ``False`` for production usage.
 
 .. currentmodule:: logging
 

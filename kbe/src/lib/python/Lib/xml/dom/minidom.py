@@ -1,5 +1,6 @@
-"""\
-minidom.py -- a lightweight DOM implementation.
+"""Simple implementation of the Level 1 DOM.
+
+Namespaces and other minor Level 2 features are also supported.
 
 parse("foo.xml")
 
@@ -836,10 +837,16 @@ class Element(Node):
             _write_data(writer, attrs[a_name].value)
             writer.write("\"")
         if self.childNodes:
-            writer.write(">%s"%(newl))
-            for node in self.childNodes:
-                node.writexml(writer,indent+addindent,addindent,newl)
-            writer.write("%s</%s>%s" % (indent,self.tagName,newl))
+            writer.write(">")
+            if (len(self.childNodes) == 1 and
+                self.childNodes[0].nodeType == Node.TEXT_NODE):
+                self.childNodes[0].writexml(writer, '', '', '')
+            else:
+                writer.write(newl)
+                for node in self.childNodes:
+                    node.writexml(writer, indent+addindent, addindent, newl)
+                writer.write(indent)
+            writer.write("</%s>%s" % (self.tagName, newl))
         else:
             writer.write("/>%s"%(newl))
 
@@ -1061,7 +1068,7 @@ class Text(CharacterData):
         return newText
 
     def writexml(self, writer, indent="", addindent="", newl=""):
-        _write_data(writer, "%s%s%s"%(indent, self.data, newl))
+        _write_data(writer, "%s%s%s" % (indent, self.data, newl))
 
     # DOM Level 3 (WD 9 April 2002)
 

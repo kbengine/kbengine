@@ -4,7 +4,7 @@
 	Version="8.00"
 	Name="pyproject"
 	OutputDirectory="$(SolutionDir)"
-	IntermediateDirectory="_objs\$(ProjectName)\"
+	IntermediateDirectory="$(SolutionDir)$(PlatformName)-temp-$(ConfigurationName)\$(ProjectName)\"
 	>
 	<Tool
 		Name="VCCLCompilerTool"
@@ -54,11 +54,11 @@
 	/>
 	<UserMacro
 		Name="bz2Dir"
-		Value="$(externalsDir)\bzip2-1.0.5"
+		Value="$(externalsDir)\bzip2-1.0.6"
 	/>
 	<UserMacro
 		Name="opensslDir"
-		Value="$(externalsDir)\openssl-1.0.0a"
+		Value="$(externalsDir)\openssl-1.0.0k"
 	/>
 	<UserMacro
 		Name="tcltkDir"

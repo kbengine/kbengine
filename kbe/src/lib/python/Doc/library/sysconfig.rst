@@ -3,14 +3,15 @@
 
 .. module:: sysconfig
    :synopsis: Python's configuration information
-.. moduleauthor:: Tarek Ziade <tarek@ziade.org>
-.. sectionauthor:: Tarek Ziade <tarek@ziade.org>
+.. moduleauthor:: Tarek Ziadé <tarek@ziade.org>
+.. sectionauthor:: Tarek Ziadé <tarek@ziade.org>
+
 .. index::
    single: configuration information
 
-**Source code:** :source:`Lib/sysconfig.py`
-
 .. versionadded:: 3.2
+
+**Source code:** :source:`Lib/sysconfig.py`
 
 --------------
 
@@ -129,7 +130,7 @@ identifier.  Python currently uses eight paths:
    one may call this function and get the default value.
 
    If *scheme* is provided, it must be a value from the list returned by
-   :func:`get_path_names`.  Otherwise, the default scheme for the current
+   :func:`get_scheme_names`.  Otherwise, the default scheme for the current
    platform is used.
 
    If *vars* is provided, it must be a dictionary of variables that will update

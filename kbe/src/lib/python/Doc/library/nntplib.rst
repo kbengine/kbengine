@@ -47,7 +47,7 @@ To post an article from a binary file (this assumes that the article has valid
 headers, and that you have right to post on the particular newsgroup)::
 
    >>> s = nntplib.NNTP('news.gmane.org')
-   >>> f = open('/tmp/article.txt', 'rb')
+   >>> f = open('article.txt', 'rb')
    >>> s.post(f)
    '240 Article posted successfully.'
    >>> s.quit()
@@ -474,10 +474,10 @@ The following are optional NNTP extensions defined in :rfc:`2980`.  Some of
 them have been superseded by newer commands in :rfc:`3977`.
 
 
-.. method:: NNTP.xhdr(header, string, *, file=None)
+.. method:: NNTP.xhdr(hdr, str, *, file=None)
 
-   Send an ``XHDR`` command.  The *header* argument is a header keyword, e.g.
-   ``'subject'``.  The *string* argument should have the form ``'first-last'``
+   Send an ``XHDR`` command.  The *hdr* argument is a header keyword, e.g.
+   ``'subject'``.  The *str* argument should have the form ``'first-last'``
    where *first* and *last* are the first and last article numbers to search.
    Return a pair ``(response, list)``, where *list* is a list of pairs ``(id,
    text)``, where *id* is an article number (as a string) and *text* is the text of

@@ -258,6 +258,21 @@ unless it's `None`:
     >>> e = doctest.Example('raise X()', '', exc_msg)
     >>> e.exc_msg
     '\n'
+
+Compare `Example`:
+    >>> example = doctest.Example('print 1', '1\n')
+    >>> same_example = doctest.Example('print 1', '1\n')
+    >>> other_example = doctest.Example('print 42', '42\n')
+    >>> example == same_example
+    True
+    >>> example != same_example
+    False
+    >>> hash(example) == hash(same_example)
+    True
+    >>> example == other_example
+    False
+    >>> example != other_example
+    True
 """
 
 def test_DocTest(): r"""
@@ -346,6 +361,50 @@ will raise a ValueError:
     >>> parser.get_doctest(docstring, globs, 'some_test', 'filename', 0)
     Traceback (most recent call last):
     ValueError: line 2 of the docstring for some_test lacks blank after ...: '...print(1)'
+
+Compare `DocTest`:
+
+    >>> docstring = '''
+    ...     >>> print 12
+    ...     12
+    ... '''
+    >>> test = parser.get_doctest(docstring, globs, 'some_test',
+    ...                           'some_test', 20)
+    >>> same_test = parser.get_doctest(docstring, globs, 'some_test',
+    ...                                'some_test', 20)
+    >>> test == same_test
+    True
+    >>> test != same_test
+    False
+    >>> hash(test) == hash(same_test)
+    True
+    >>> docstring = '''
+    ...     >>> print 42
+    ...     42
+    ... '''
+    >>> other_test = parser.get_doctest(docstring, globs, 'other_test',
+    ...                                 'other_file', 10)
+    >>> test == other_test
+    False
+    >>> test != other_test
+    True
+
+Compare `DocTestCase`:
+
+    >>> DocTestCase = doctest.DocTestCase
+    >>> test_case = DocTestCase(test)
+    >>> same_test_case = DocTestCase(same_test)
+    >>> other_test_case = DocTestCase(other_test)
+    >>> test_case == same_test_case
+    True
+    >>> test_case != same_test_case
+    False
+    >>> hash(test_case) == hash(same_test_case)
+    True
+    >>> test == other_test_case
+    False
+    >>> test != other_test_case
+    True
 
 """
 
@@ -1924,6 +1983,31 @@ def test_DocTestSuite():
          >>> suite = doctest.DocTestSuite('test.sample_doctest')
          >>> suite.run(unittest.TestResult())
          <unittest.result.TestResult run=9 errors=0 failures=4>
+
+       The module need not contain any doctest examples:
+
+         >>> suite = doctest.DocTestSuite('test.sample_doctest_no_doctests')
+         >>> suite.run(unittest.TestResult())
+         <unittest.result.TestResult run=0 errors=0 failures=0>
+
+       However, if DocTestSuite finds no docstrings, it raises an error:
+
+         >>> try:
+         ...     doctest.DocTestSuite('test.sample_doctest_no_docstrings')
+         ... except ValueError as e:
+         ...     error = e
+
+         >>> print(error.args[1])
+         has no docstrings
+
+       You can prevent this error by passing a DocTestFinder instance with
+       the `exclude_empty` keyword argument set to False:
+
+         >>> finder = doctest.DocTestFinder(exclude_empty=False)
+         >>> suite = doctest.DocTestSuite('test.sample_doctest_no_docstrings',
+         ...                              test_finder=finder)
+         >>> suite.run(unittest.TestResult())
+         <unittest.result.TestResult run=0 errors=0 failures=0>
 
        We can use the current module:
 

@@ -41,9 +41,18 @@ int _PyOS_opterr = 1;          /* generate error messages */
 int _PyOS_optind = 1;          /* index into argv array   */
 wchar_t *_PyOS_optarg = NULL;     /* optional argument       */
 
+static wchar_t *opt_ptr = L"";
+
+void _PyOS_ResetGetOpt(void)
+{
+    _PyOS_opterr = 1;
+    _PyOS_optind = 1;
+    _PyOS_optarg = NULL;
+    opt_ptr = L"";
+}
+
 int _PyOS_GetOpt(int argc, wchar_t **argv, wchar_t *optstring)
 {
-    static wchar_t *opt_ptr = L"";
     wchar_t *ptr;
     wchar_t option;
 
@@ -81,18 +90,18 @@ int _PyOS_GetOpt(int argc, wchar_t **argv, wchar_t *optstring)
         opt_ptr = &argv[_PyOS_optind++][1];
     }
 
-    if ( (option = *opt_ptr++) == L'\0')
+    if ((option = *opt_ptr++) == L'\0')
         return -1;
 
     if (option == 'J') {
-        fprintf(stderr, "-J is reserved for Jython\n");
+        if (_PyOS_opterr)
+            fprintf(stderr, "-J is reserved for Jython\n");
         return '_';
     }
 
     if ((ptr = wcschr(optstring, option)) == NULL) {
         if (_PyOS_opterr)
-          fprintf(stderr, "Unknown option: -%c\n", (char)option);
-
+            fprintf(stderr, "Unknown option: -%c\n", (char)option);
         return '_';
     }
 

@@ -22,6 +22,9 @@ the expense of doing their own locking).
 #endif
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifdef WITH_THREAD
 #include "pythread.h"
@@ -29,10 +32,6 @@ static PyThread_type_lock head_mutex = NULL; /* Protects interp->tstate_head */
 #define HEAD_INIT() (void)(head_mutex || (head_mutex = PyThread_allocate_lock()))
 #define HEAD_LOCK() PyThread_acquire_lock(head_mutex, WAIT_LOCK)
 #define HEAD_UNLOCK() PyThread_release_lock(head_mutex)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* The single PyInterpreterState used by this process'
    GILState implementation
@@ -150,6 +149,12 @@ PyInterpreterState_Delete(PyInterpreterState *interp)
     *p = interp->next;
     HEAD_UNLOCK();
     free(interp);
+#ifdef WITH_THREAD
+    if (interp_head == NULL && head_mutex != NULL) {
+        PyThread_free_lock(head_mutex);
+        head_mutex = NULL;
+    }
+#endif
 }
 
 
@@ -201,6 +206,9 @@ new_threadstate(PyInterpreterState *interp, int init)
         tstate->c_profileobj = NULL;
         tstate->c_traceobj = NULL;
 
+        tstate->trash_delete_nesting = 0;
+        tstate->trash_delete_later = NULL;
+
         if (init)
             _PyThreadState_Init(tstate);
 
@@ -243,7 +251,7 @@ PyState_FindModule(struct PyModuleDef* m)
         return NULL;
     if (state->modules_by_index == NULL)
         return NULL;
-    if (index > PyList_GET_SIZE(state->modules_by_index))
+    if (index >= PyList_GET_SIZE(state->modules_by_index))
         return NULL;
     res = PyList_GET_ITEM(state->modules_by_index, index);
     return res==Py_None ? NULL : res;
@@ -586,9 +594,9 @@ _PyGILState_Fini(void)
     autoInterpreterState = NULL;
 }
 
-/* Reset the TLS key - called by PyOS_AfterFork.
+/* Reset the TLS key - called by PyOS_AfterFork().
  * This should not be necessary, but some - buggy - pthread implementations
- * don't flush TLS on fork, see issue #10517.
+ * don't reset TLS upon fork(), see issue #10517.
  */
 void
 _PyGILState_Reinit(void)
@@ -598,8 +606,9 @@ _PyGILState_Reinit(void)
     if ((autoTLSkey = PyThread_create_key()) == -1)
         Py_FatalError("Could not allocate TLS entry");
 
-    /* re-associate the current thread state with the new key */
-    if (PyThread_set_key_value(autoTLSkey, (void *)tstate) < 0)
+    /* If the thread had an associated auto thread state, reassociate it with
+     * the new key. */
+    if (tstate && PyThread_set_key_value(autoTLSkey, (void *)tstate) < 0)
         Py_FatalError("Couldn't create autoTLSkey mapping");
 }
 
@@ -720,10 +729,10 @@ PyGILState_Release(PyGILState_STATE oldstate)
         PyEval_SaveThread();
 }
 
+#endif /* WITH_THREAD */
+
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* WITH_THREAD */
 
 

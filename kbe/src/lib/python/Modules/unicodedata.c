@@ -1,8 +1,9 @@
 /* ------------------------------------------------------------------------
 
-   unicodedata -- Provides access to the Unicode 5.2 data base.
+   unicodedata -- Provides access to the Unicode database.
 
-   Data was extracted from the Unicode 5.2 UnicodeData.txt file.
+   Data was extracted from the UnicodeData.txt file.
+   The current version number is reported in the unidata_version constant.
 
    Written by Marc-Andre Lemburg (mal@lemburg.com).
    Modified for Python 2.0 by Fredrik Lundh (fredrik@pythonware.com)
@@ -275,7 +276,7 @@ unicodedata_category(PyObject *self, PyObject *args)
 PyDoc_STRVAR(unicodedata_bidirectional__doc__,
 "bidirectional(unichr)\n\
 \n\
-Returns the bidirectional category assigned to the Unicode character\n\
+Returns the bidirectional class assigned to the Unicode character\n\
 unichr as string. If no such value is defined, an empty string is\n\
 returned.");
 
@@ -830,7 +831,7 @@ _gethash(const char *s, int len, int scale)
     unsigned long h = 0;
     unsigned long ix;
     for (i = 0; i < len; i++) {
-        h = (h * scale) + (unsigned char) toupper(Py_CHARMASK(s[i]));
+        h = (h * scale) + (unsigned char) Py_TOUPPER(Py_CHARMASK(s[i]));
         ix = h & 0xff000000;
         if (ix)
             h = (h ^ ((ix>>24) & 0xff)) & 0x00ffffff;
@@ -980,7 +981,7 @@ _cmpname(PyObject *self, int code, const char* name, int namelen)
     if (!_getucname(self, code, buffer, sizeof(buffer)))
         return 0;
     for (i = 0; i < namelen; i++) {
-        if (toupper(Py_CHARMASK(name[i])) != buffer[i])
+        if (Py_TOUPPER(Py_CHARMASK(name[i])) != buffer[i])
             return 0;
     }
     return buffer[namelen] == '\0';
@@ -1241,11 +1242,11 @@ PyDoc_STRVAR(unicodedata_docstring,
 "This module provides access to the Unicode Character Database which\n\
 defines character properties for all Unicode characters. The data in\n\
 this database is based on the UnicodeData.txt file version\n\
-5.2.0 which is publically available from ftp://ftp.unicode.org/.\n\
+6.0.0 which is publically available from ftp://ftp.unicode.org/.\n\
 \n\
 The module uses the same names and symbols as defined by the\n\
-UnicodeData File Format 5.2.0 (see\n\
-http://www.unicode.org/reports/tr44/tr44-4.html).");
+UnicodeData File Format 6.0.0 (see\n\
+http://www.unicode.org/reports/tr44/tr44-6.html).");
 
 
 static struct PyModuleDef unicodedatamodule = {

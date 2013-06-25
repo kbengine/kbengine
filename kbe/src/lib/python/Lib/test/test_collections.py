@@ -272,6 +272,7 @@ class TestNamedTuple(unittest.TestCase):
                 q = loads(dumps(p, protocol))
                 self.assertEqual(p, q)
                 self.assertEqual(p._fields, q._fields)
+                self.assertNotIn(b'OrderedDict', dumps(p, protocol))
 
     def test_copy(self):
         p = TestNT(x=10, y=20, z=30)
@@ -651,6 +652,39 @@ class TestCollectionABCs(ABCTestCase):
         s |= s
         self.assertEqual(s, full)
 
+    def test_issue16373(self):
+        # Recursion error comparing comparable and noncomparable
+        # Set instances
+        class MyComparableSet(Set):
+            def __contains__(self, x):
+                return False
+            def __len__(self):
+                return 0
+            def __iter__(self):
+                return iter([])
+        class MyNonComparableSet(Set):
+            def __contains__(self, x):
+                return False
+            def __len__(self):
+                return 0
+            def __iter__(self):
+                return iter([])
+            def __le__(self, x):
+                return NotImplemented
+            def __lt__(self, x):
+                return NotImplemented
+
+        cs = MyComparableSet()
+        ncs = MyNonComparableSet()
+        with self.assertRaises(TypeError):
+            ncs < cs
+        with self.assertRaises(TypeError):
+            ncs <= cs
+        with self.assertRaises(TypeError):
+            cs > ncs
+        with self.assertRaises(TypeError):
+            cs >= ncs
+
     def test_Mapping(self):
         for sample in [dict]:
             self.assertIsInstance(sample(), Mapping)
@@ -892,6 +926,12 @@ class TestCounter(unittest.TestCase):
         c = Counter('aaabbcd')
         c.subtract('aaaabbcce')
         self.assertEqual(c, Counter(a=-1, b=0, c=-1, d=1, e=-1))
+
+    def test_repr_nonsortable(self):
+        c = Counter(a=2, b=None)
+        r = repr(c)
+        self.assertIn("'a': 2", r)
+        self.assertIn("'b': None", r)
 
     def test_helper_function(self):
         # two paths, one for real dicts and one for other mappings

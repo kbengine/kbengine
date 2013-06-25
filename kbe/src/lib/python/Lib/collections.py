@@ -33,7 +33,7 @@ class OrderedDict(dict):
     # The circular doubly linked list starts and ends with a sentinel element.
     # The sentinel element never gets deleted (this simplifies the algorithm).
     # The sentinel is in self.__hardroot with a weakref proxy in self.__root.
-    # The prev/next links are weakref proxies (to prevent circular references).
+    # The prev links are weakref proxies (to prevent circular references).
     # Individual links are kept alive by the hard reference in self.__map.
     # Those hard references disappear when a key is deleted from an OrderedDict.
 
@@ -280,6 +280,10 @@ class {typename}(tuple):
     def __getnewargs__(self):
         'Return self as a plain tuple.  Used by copy and pickle.'
         return tuple(self)
+
+    def __getstate__(self):
+        'Exclude the OrderedDict from pickling'
+        return None
 
 {field_defs}
 '''
@@ -583,8 +587,12 @@ class Counter(dict):
     def __repr__(self):
         if not self:
             return '%s()' % self.__class__.__name__
-        items = ', '.join(map('%r: %r'.__mod__, self.most_common()))
-        return '%s({%s})' % (self.__class__.__name__, items)
+        try:
+            items = ', '.join(map('%r: %r'.__mod__, self.most_common()))
+            return '%s({%s})' % (self.__class__.__name__, items)
+        except TypeError:
+            # handle case where values are not orderable
+            return '{0}({1!r})'.format(self.__class__.__name__, dict(self))
 
     # Multiset-style mathematical operations discussed in:
     #       Knuth TAOCP Volume II section 4.6.3 exercise 19

@@ -18,9 +18,7 @@ order.  This documentation doesn't attempt to cover all of the permutations;
 consult the zlib manual at http://www.zlib.net/manual.html for authoritative
 information.
 
-For reading and writing ``.gz`` files see the :mod:`gzip` module. For
-other archive formats, see the :mod:`bz2`, :mod:`zipfile`, and
-:mod:`tarfile` modules.
+For reading and writing ``.gz`` files see the :mod:`gzip` module.
 
 The available exception and functions in this module are:
 
@@ -53,19 +51,20 @@ The available exception and functions in this module are:
 
 .. function:: compress(data[, level])
 
-   Compresses the bytes in *data*, returning a bytes object containing compressed data.
-   *level* is an integer from ``1`` to ``9`` controlling the level of compression;
-   ``1`` is fastest and produces the least compression, ``9`` is slowest and
-   produces the most.  The default value is ``6``.  Raises the :exc:`error`
-   exception if any error occurs.
+   Compresses the bytes in *data*, returning a bytes object containing
+   compressed data.  *level* is an integer from ``0`` to ``9`` controlling the
+   level of compression; ``1`` is fastest and produces the least compression,
+   ``9`` is slowest and produces the most. ``0`` is no compression. The default
+   value is ``6``.  Raises the :exc:`error` exception if any error occurs.
 
 
 .. function:: compressobj([level])
 
    Returns a compression object, to be used for compressing data streams that won't
-   fit into memory at once.  *level* is an integer from ``1`` to ``9`` controlling
+   fit into memory at once.  *level* is an integer from ``0`` to ``9`` controlling
    the level of compression; ``1`` is fastest and produces the least compression,
-   ``9`` is slowest and produces the most.  The default value is ``6``.
+   ``9`` is slowest and produces the most.  ``0`` is no compression.  The default
+   value is ``6``.
 
 
 .. function:: crc32(data[, value])

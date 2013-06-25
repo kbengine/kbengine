@@ -27,6 +27,7 @@ parsing quirks from older RFCs are retained. The testcases in
 test_urlparse.py provides a good indicator of parsing behavior.
 """
 
+import re
 import sys
 import collections
 
@@ -44,11 +45,14 @@ uses_netloc = ['ftp', 'http', 'gopher', 'nntp', 'telnet',
                'imap', 'wais', 'file', 'mms', 'https', 'shttp',
                'snews', 'prospero', 'rtsp', 'rtspu', 'rsync', '',
                'svn', 'svn+ssh', 'sftp', 'nfs', 'git', 'git+ssh']
-non_hierarchical = ['gopher', 'hdl', 'mailto', 'news',
-                    'telnet', 'wais', 'imap', 'snews', 'sip', 'sips']
 uses_params = ['ftp', 'hdl', 'prospero', 'http', 'imap',
                'https', 'shttp', 'rtsp', 'rtspu', 'sip', 'sips',
-               'mms', '', 'sftp']
+               'mms', '', 'sftp', 'tel']
+
+# These are not actually used anymore, but should stay for backwards
+# compatibility.  (They are undocumented, but have a public-looking name.)
+non_hierarchical = ['gopher', 'hdl', 'mailto', 'news',
+                    'telnet', 'wais', 'imap', 'snews', 'sip', 'sips']
 uses_query = ['http', 'wais', 'imap', 'https', 'shttp', 'mms',
               'gopher', 'rtsp', 'rtspu', 'sip', 'sips', '']
 uses_fragment = ['ftp', 'hdl', 'http', 'gopher', 'news',
@@ -150,6 +154,9 @@ class _NetlocResultMixinBase(object):
         port = self._hostinfo[1]
         if port is not None:
             port = int(port, 10)
+            # Return None on an illegal port
+            if not ( 0 <= port <= 65535):
+                return None
         return port
 
 
@@ -283,8 +290,8 @@ def urlparse(url, scheme='', allow_fragments=True):
     Note that we don't break the components up in smaller bits
     (e.g. netloc is a single string) and we don't expand % escapes."""
     url, scheme, _coerce_result = _coerce_args(url, scheme)
-    tuple = urlsplit(url, scheme, allow_fragments)
-    scheme, netloc, url, query, fragment = tuple
+    splitresult = urlsplit(url, scheme, allow_fragments)
+    scheme, netloc, url, query, fragment = splitresult
     if scheme in uses_params and ';' in url:
         url, params = _splitparams(url)
     else:
@@ -345,21 +352,21 @@ def urlsplit(url, scheme='', allow_fragments=True):
             if c not in scheme_chars:
                 break
         else:
-            try:
-                # make sure "url" is not actually a port number (in which case
-                # "scheme" is really part of the path
-                _testportnum = int(url[i+1:])
-            except ValueError:
-                scheme, url = url[:i].lower(), url[i+1:]
+            # make sure "url" is not actually a port number (in which case
+            # "scheme" is really part of the path)
+            rest = url[i+1:]
+            if not rest or any(c not in '0123456789' for c in rest):
+                # not a port number
+                scheme, url = url[:i].lower(), rest
 
     if url[:2] == '//':
         netloc, url = _splitnetloc(url, 2)
         if (('[' in netloc and ']' not in netloc) or
                 (']' in netloc and '[' not in netloc)):
             raise ValueError("Invalid IPv6 URL")
-    if allow_fragments and scheme in uses_fragment and '#' in url:
+    if allow_fragments and '#' in url:
         url, fragment = url.split('#', 1)
-    if scheme in uses_query and '?' in url:
+    if '?' in url:
         url, query = url.split('?', 1)
     v = SplitResult(scheme, netloc, url, query, fragment)
     _parse_cache[key] = v
@@ -464,6 +471,10 @@ def urldefrag(url):
         defrag = url
     return _coerce_result(DefragResult(defrag, frag))
 
+_hexdig = '0123456789ABCDEFabcdef'
+_hextobyte = {(a + b).encode(): bytes([int(a + b, 16)])
+              for a in _hexdig for b in _hexdig}
+
 def unquote_to_bytes(string):
     """unquote_to_bytes('abc%20def') -> b'abc def'."""
     # Note: strings are encoded as UTF-8. This is only an issue if it contains
@@ -474,16 +485,21 @@ def unquote_to_bytes(string):
         return b''
     if isinstance(string, str):
         string = string.encode('utf-8')
-    res = string.split(b'%')
-    if len(res) == 1:
+    bits = string.split(b'%')
+    if len(bits) == 1:
         return string
-    string = res[0]
-    for item in res[1:]:
+    res = [bits[0]]
+    append = res.append
+    for item in bits[1:]:
         try:
-            string += bytes([int(item[:2], 16)]) + item[2:]
-        except ValueError:
-            string += b'%' + item
-    return string
+            append(_hextobyte[item[:2]])
+            append(item[2:])
+        except KeyError:
+            append(b'%')
+            append(item)
+    return b''.join(res)
+
+_asciire = re.compile('([\x00-\x7f]+)')
 
 def unquote(string, encoding='utf-8', errors='replace'):
     """Replace %xx escapes by their single-character equivalent. The optional
@@ -495,39 +511,20 @@ def unquote(string, encoding='utf-8', errors='replace'):
 
     unquote('abc%20def') -> 'abc def'.
     """
-    if string == '':
-        return string
-    res = string.split('%')
-    if len(res) == 1:
+    if '%' not in string:
+        string.split
         return string
     if encoding is None:
         encoding = 'utf-8'
     if errors is None:
         errors = 'replace'
-    # pct_sequence: contiguous sequence of percent-encoded bytes, decoded
-    pct_sequence = b''
-    string = res[0]
-    for item in res[1:]:
-        try:
-            if not item:
-                raise ValueError
-            pct_sequence += bytes.fromhex(item[:2])
-            rest = item[2:]
-            if not rest:
-                # This segment was just a single percent-encoded character.
-                # May be part of a sequence of code units, so delay decoding.
-                # (Stored in pct_sequence).
-                continue
-        except ValueError:
-            rest = '%' + item
-        # Encountered non-percent-encoded characters. Flush the current
-        # pct_sequence.
-        string += pct_sequence.decode(encoding, errors) + rest
-        pct_sequence = b''
-    if pct_sequence:
-        # Flush the final pct_sequence
-        string += pct_sequence.decode(encoding, errors)
-    return string
+    bits = _asciire.split(string)
+    res = [bits[0]]
+    append = res.append
+    for i in range(1, len(bits), 2):
+        append(unquote_to_bytes(bits[i]).decode(encoding, errors))
+        append(bits[i + 1])
+    return ''.join(res)
 
 def parse_qs(qs, keep_blank_values=False, strict_parsing=False,
              encoding='utf-8', errors='replace'):
@@ -551,15 +548,15 @@ def parse_qs(qs, keep_blank_values=False, strict_parsing=False,
         encoding and errors: specify how to decode percent-encoded sequences
             into Unicode characters, as accepted by the bytes.decode() method.
     """
-    dict = {}
+    parsed_result = {}
     pairs = parse_qsl(qs, keep_blank_values, strict_parsing,
                       encoding=encoding, errors=errors)
     for name, value in pairs:
-        if name in dict:
-            dict[name].append(value)
+        if name in parsed_result:
+            parsed_result[name].append(value)
         else:
-            dict[name] = [value]
-    return dict
+            parsed_result[name] = [value]
+    return parsed_result
 
 def parse_qsl(qs, keep_blank_values=False, strict_parsing=False,
               encoding='utf-8', errors='replace'):
@@ -711,7 +708,7 @@ def quote_plus(string, safe='', encoding=None, errors=None):
 def quote_from_bytes(bs, safe='/'):
     """Like quote(), but accepts a bytes object rather than a str, and does
     not perform string-to-bytes encoding.  It always returns an ASCII string.
-    quote_from_bytes(b'abc def\xab') -> 'abc%20def%AB'
+    quote_from_bytes(b'abc def\x3f') -> 'abc%20def%3f'
     """
     if not isinstance(bs, (bytes, bytearray)):
         raise TypeError("quote_from_bytes() expected bytes")

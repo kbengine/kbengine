@@ -95,7 +95,7 @@ placeholders unchanged if data is missing::
    >>> d = dict(item='unladen swallow')
    >>> t.substitute(d)
    Traceback (most recent call last):
-     . . .
+     ...
    KeyError: 'owner'
    >>> t.safe_substitute(d)
    'Return the unladen swallow to $owner.'
@@ -218,7 +218,9 @@ At its simplest, log messages are sent to a file or to ``sys.stderr``::
    logging.error('Error occurred')
    logging.critical('Critical error -- shutting down')
 
-This produces the following output::
+This produces the following output:
+
+.. code-block:: none
 
    WARNING:root:Warning:config file server.conf not found
    ERROR:root:Error occurred
@@ -255,9 +257,9 @@ applications include caching objects that are expensive to create::
    >>> import weakref, gc
    >>> class A:
    ...     def __init__(self, value):
-   ...             self.value = value
+   ...         self.value = value
    ...     def __repr__(self):
-   ...             return str(self.value)
+   ...         return str(self.value)
    ...
    >>> a = A(10)                   # create a reference
    >>> d = weakref.WeakValueDictionary()
@@ -308,6 +310,8 @@ tree searches::
    >>> d.append("task4")
    >>> print("Handling", d.popleft())
    Handling task1
+
+::
 
    unsearched = deque([starting_node])
    def breadth_first_search(unsearched):

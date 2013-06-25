@@ -389,7 +389,13 @@ However, there are a few differences that should be taken into account:
   the default value to be visible again.  Trying to delete a default value
   causes a ``KeyError``.
 
-* Trying to delete the ``DEFAULTSECT`` raises ``ValueError``.
+* ``DEFAULTSECT`` cannot be removed from the parser:
+
+  * trying to delete it raises ``ValueError``,
+
+  * ``parser.clear()`` leaves it intact,
+
+  * ``parser.popitem()`` never returns it.
 
 * ``parser.get(section, option, **kwargs)`` - the second argument is **not**
   a fallback value. Note however that the section-level ``get()`` methods are
@@ -770,9 +776,9 @@ An example of writing to a configuration file::
    # values using the mapping protocol or ConfigParser's set() does not allow
    # such assignments to take place.
    config.add_section('Section1')
-   config.set('Section1', 'int', '15')
-   config.set('Section1', 'bool', 'true')
-   config.set('Section1', 'float', '3.1415')
+   config.set('Section1', 'an_int', '15')
+   config.set('Section1', 'a_bool', 'true')
+   config.set('Section1', 'a_float', '3.1415')
    config.set('Section1', 'baz', 'fun')
    config.set('Section1', 'bar', 'Python')
    config.set('Section1', 'foo', '%(bar)s is %(baz)s!')
@@ -790,13 +796,13 @@ An example of reading the configuration file again::
 
    # getfloat() raises an exception if the value is not a float
    # getint() and getboolean() also do this for their respective types
-   float = config.getfloat('Section1', 'float')
-   int = config.getint('Section1', 'int')
-   print(float + int)
+   a_float = config.getfloat('Section1', 'a_float')
+   an_int = config.getint('Section1', 'an_int')
+   print(a_float + an_int)
 
    # Notice that the next output does not interpolate '%(bar)s' or '%(baz)s'.
    # This is because we are using a RawConfigParser().
-   if config.getboolean('Section1', 'bool'):
+   if config.getboolean('Section1', 'a_bool'):
        print(config.get('Section1', 'foo'))
 
 To get interpolation, use :class:`ConfigParser`::
@@ -806,17 +812,17 @@ To get interpolation, use :class:`ConfigParser`::
    cfg = configparser.ConfigParser()
    cfg.read('example.cfg')
 
-   # Set the optional `raw` argument of get() to True if you wish to disable
+   # Set the optional *raw* argument of get() to True if you wish to disable
    # interpolation in a single get operation.
    print(cfg.get('Section1', 'foo', raw=False)) # -> "Python is fun!"
    print(cfg.get('Section1', 'foo', raw=True))  # -> "%(bar)s is %(baz)s!"
 
-   # The optional `vars` argument is a dict with members that will take
+   # The optional *vars* argument is a dict with members that will take
    # precedence in interpolation.
    print(cfg.get('Section1', 'foo', vars={'bar': 'Documentation',
                                              'baz': 'evil'}))
 
-   # The optional `fallback` argument can be used to provide a fallback value
+   # The optional *fallback* argument can be used to provide a fallback value
    print(cfg.get('Section1', 'foo'))
          # -> "Python is fun!"
 
@@ -1007,7 +1013,7 @@ ConfigParser Objects
       .. versionadded:: 3.2
 
 
-   .. method:: get(section, option, raw=False, [vars, fallback])
+   .. method:: get(section, option, *, raw=False, vars=None[, fallback])
 
       Get an *option* value for the named *section*.  If *vars* is provided, it
       must be a dictionary.  The *option* is looked up in *vars* (if provided),
@@ -1025,21 +1031,21 @@ ConfigParser Objects
          (especially when using the mapping protocol).
 
 
-   .. method:: getint(section, option, raw=False, [vars, fallback])
+   .. method:: getint(section, option, *, raw=False, vars=None[, fallback])
 
       A convenience method which coerces the *option* in the specified *section*
       to an integer.  See :meth:`get` for explanation of *raw*, *vars* and
       *fallback*.
 
 
-   .. method:: getfloat(section, option, raw=False, [vars, fallback])
+   .. method:: getfloat(section, option, *, raw=False, vars=None[, fallback])
 
       A convenience method which coerces the *option* in the specified *section*
       to a floating point number.  See :meth:`get` for explanation of *raw*,
       *vars* and *fallback*.
 
 
-   .. method:: getboolean(section, option, raw=False, [vars, fallback])
+   .. method:: getboolean(section, option, *, raw=False, vars=None[, fallback])
 
       A convenience method which coerces the *option* in the specified *section*
       to a Boolean value.  Note that the accepted values for the option are
@@ -1051,7 +1057,8 @@ ConfigParser Objects
       *fallback*.
 
 
-   .. method:: items([section], raw=False, vars=None)
+   .. method:: items(raw=False, vars=None)
+               items(section, raw=False, vars=None)
 
       When *section* is not given, return a list of *section_name*,
       *section_proxy* pairs, including DEFAULTSECT.
@@ -1149,7 +1156,13 @@ ConfigParser Objects
 RawConfigParser Objects
 -----------------------
 
-.. class:: RawConfigParser(defaults=None, dict_type=collections.OrderedDict, allow_no_value=False, delimiters=('=', ':'), comment_prefixes=('#', ';'), inline_comment_prefixes=None, strict=True, empty_lines_in_values=True, default_section=configaparser.DEFAULTSECT, interpolation=None)
+.. class:: RawConfigParser(defaults=None, dict_type=collections.OrderedDict, \
+                           allow_no_value=False, *, delimiters=('=', ':'), \
+                           comment_prefixes=('#', ';'), \
+                           inline_comment_prefixes=None, strict=True, \
+                           empty_lines_in_values=True, \
+                           default_section=configparser.DEFAULTSECT[, \
+                           interpolation])
 
    Legacy variant of the :class:`ConfigParser` with interpolation disabled
    by default and unsafe ``add_section`` and ``set`` methods.

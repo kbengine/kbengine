@@ -15,16 +15,12 @@ wmain(int argc, wchar_t **argv)
 }
 #else
 
-#ifdef __APPLE__
-extern wchar_t* _Py_DecodeUTF8_surrogateescape(const char *s, Py_ssize_t size);
-#endif
-
 int
 main(int argc, char **argv)
 {
-    wchar_t **argv_copy = (wchar_t **)PyMem_Malloc(sizeof(wchar_t*)*argc);
+    wchar_t **argv_copy = (wchar_t **)PyMem_Malloc(sizeof(wchar_t*)*(argc+1));
     /* We need a second copies, as Python might modify the first one. */
-    wchar_t **argv_copy2 = (wchar_t **)PyMem_Malloc(sizeof(wchar_t*)*argc);
+    wchar_t **argv_copy2 = (wchar_t **)PyMem_Malloc(sizeof(wchar_t*)*(argc+1));
     int i, res;
     char *oldloc;
     /* 754 requires that FP exceptions run in "no stop" mode by default,
@@ -45,15 +41,17 @@ main(int argc, char **argv)
     oldloc = strdup(setlocale(LC_ALL, NULL));
     setlocale(LC_ALL, "");
     for (i = 0; i < argc; i++) {
-#ifdef __APPLE__
-        argv_copy[i] = _Py_DecodeUTF8_surrogateescape(argv[i], strlen(argv[i]));
-#else
         argv_copy[i] = _Py_char2wchar(argv[i], NULL);
-#endif
-        if (!argv_copy[i])
+        if (!argv_copy[i]) {
+            fprintf(stderr, "Fatal Python error: "
+                            "unable to decode the command line argument #%i\n",
+                            i + 1);
             return 1;
+        }
         argv_copy2[i] = argv_copy[i];
     }
+    argv_copy2[argc] = argv_copy[argc] = NULL;
+
     setlocale(LC_ALL, oldloc);
     free(oldloc);
     res = Py_Main(argc, argv_copy);

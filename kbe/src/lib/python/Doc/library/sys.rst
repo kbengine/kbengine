@@ -121,6 +121,15 @@ always available.
       Use ``'backslashreplace'`` error handler on :exc:`UnicodeEncodeError`.
 
 
+.. data:: dont_write_bytecode
+
+   If this is true, Python won't try to write ``.pyc`` or ``.pyo`` files on the
+   import of source modules.  This value is initially set to ``True`` or
+   ``False`` depending on the :option:`-B` command line option and the
+   :envvar:`PYTHONDONTWRITEBYTECODE` environment variable, but you can set it
+   yourself to control bytecode file generation.
+
+
 .. function:: excepthook(type, value, traceback)
 
    This function prints out a given traceback and exception to ``sys.stderr``.
@@ -185,16 +194,18 @@ always available.
    Python files are installed; by default, this is also ``'/usr/local'``.  This can
    be set at build time with the ``--exec-prefix`` argument to the
    :program:`configure` script.  Specifically, all configuration files (e.g. the
-   :file:`pyconfig.h` header file) are installed in the directory ``exec_prefix +
-   '/lib/pythonversion/config'``, and shared library modules are installed in
-   ``exec_prefix + '/lib/pythonversion/lib-dynload'``, where *version* is equal to
-   ``version[:3]``.
+   :file:`pyconfig.h` header file) are installed in the directory
+   :file:`{exec_prefix}/lib/python{X.Y}/config`, and shared library modules are
+   installed in :file:`{exec_prefix}/lib/python{X.Y}/lib-dynload`, where *X.Y*
+   is the version number of Python, for example ``3.2``.
 
 
 .. data:: executable
 
-   A string giving the name of the executable binary for the Python interpreter, on
-   systems where this makes sense.
+   A string giving the absolute path of the executable binary for the Python
+   interpreter, on systems where this makes sense. If Python is unable to retrieve
+   the real path to its executable, :data:`sys.executable` will be an empty string
+   or ``None``.
 
 
 .. function:: exit([arg])
@@ -242,10 +253,14 @@ always available.
    :const:`verbose`              :option:`-v`
    :const:`bytes_warning`        :option:`-b`
    :const:`quiet`                :option:`-q`
+   :const:`hash_randomization`   :option:`-R`
    ============================= =============================
 
    .. versionchanged:: 3.2
       Added ``quiet`` attribute for the new :option:`-q` flag.
+
+   .. versionadded:: 3.2.3
+      The ``hash_randomization`` attribute.
 
 
 .. data:: float_info
@@ -287,8 +302,12 @@ always available.
    +---------------------+----------------+--------------------------------------------------+
    | :const:`radix`      | FLT_RADIX      | radix of exponent representation                 |
    +---------------------+----------------+--------------------------------------------------+
-   | :const:`rounds`     | FLT_ROUNDS     | constant representing rounding mode              |
-   |                     |                | used for arithmetic operations                   |
+   | :const:`rounds`     | FLT_ROUNDS     | integer constant representing the rounding mode  |
+   |                     |                | used for arithmetic operations.  This reflects   |
+   |                     |                | the value of the system FLT_ROUNDS macro at      |
+   |                     |                | interpreter startup time.  See section 5.2.4.2.2 |
+   |                     |                | of the C99 standard for an explanation of the    |
+   |                     |                | possible values and their meanings.              |
    +---------------------+----------------+--------------------------------------------------+
 
    The attribute :attr:`sys.float_info.dig` needs further explanation.  If
@@ -720,7 +739,7 @@ always available.
    For other systems, the values are:
 
    ====================== ===========================
-   System                 :data:`platform` value
+   System                 ``platform`` value
    ====================== ===========================
    Linux (2.x *and* 3.x)  ``'linux2'``
    Windows                ``'win32'``
@@ -731,11 +750,13 @@ always available.
    ====================== ===========================
 
    .. seealso::
+
       :attr:`os.name` has a coarser granularity.  :func:`os.uname` gives
       system-dependent version information.
 
       The :mod:`platform` module provides detailed checks for the
       system's identity.
+
 
 .. data:: prefix
 
@@ -743,10 +764,10 @@ always available.
    independent Python files are installed; by default, this is the string
    ``'/usr/local'``.  This can be set at build time with the ``--prefix``
    argument to the :program:`configure` script.  The main collection of Python
-   library modules is installed in the directory ``prefix + '/lib/pythonversion'``
+   library modules is installed in the directory :file:`{prefix}/lib/python{X.Y}`
    while the platform independent header files (all except :file:`pyconfig.h`) are
-   stored in ``prefix + '/include/pythonversion'``, where *version* is equal to
-   ``version[:3]``.
+   stored in :file:`{prefix}/include/python{X.Y}`, where *X.Y* is the version
+   number of Python, for example ``3.2``.
 
 
 .. data:: ps1
@@ -762,15 +783,6 @@ always available.
    assigned to either variable, its :func:`str` is re-evaluated each time the
    interpreter prepares to read a new interactive command; this can be used to
    implement a dynamic prompt.
-
-
-.. data:: dont_write_bytecode
-
-   If this is true, Python won't try to write ``.pyc`` or ``.pyo`` files on the
-   import of source modules.  This value is initially set to ``True`` or ``False``
-   depending on the ``-B`` command line option and the ``PYTHONDONTWRITEBYTECODE``
-   environment variable, but you can set it yourself to control bytecode file
-   generation.
 
 
 .. function:: setcheckinterval(interval)
@@ -930,31 +942,42 @@ always available.
           stdout
           stderr
 
-   :term:`File objects <file object>` corresponding to the interpreter's standard
-   input, output and error streams.  ``stdin`` is used for all interpreter input
-   except for scripts but including calls to :func:`input`.  ``stdout`` is used
-   for the output of :func:`print` and :term:`expression` statements and for the
-   prompts of :func:`input`. The interpreter's own prompts
-   and (almost all of) its error messages go to ``stderr``.  ``stdout`` and
-   ``stderr`` needn't be built-in file objects: any object is acceptable as long
-   as it has a :meth:`write` method that takes a string argument.  (Changing these
-   objects doesn't affect the standard I/O streams of processes executed by
-   :func:`os.popen`, :func:`os.system` or the :func:`exec\*` family of functions in
-   the :mod:`os` module.)
+   :term:`File objects <file object>` used by the interpreter for standard
+   input, output and errors:
 
-   The standard streams are in text mode by default.  To write or read binary
-   data to these, use the underlying binary buffer.  For example, to write bytes
-   to :data:`stdout`, use ``sys.stdout.buffer.write(b'abc')``.  Using
-   :meth:`io.TextIOBase.detach` streams can be made binary by default.  This
+   * ``stdin`` is used for all interactive input (including calls to
+     :func:`input`);
+   * ``stdout`` is used for the output of :func:`print` and :term:`expression`
+     statements and for the prompts of :func:`input`;
+   * The interpreter's own prompts and its error messages go to ``stderr``.
+
+   By default, these streams are regular text streams as returned by the
+   :func:`open` function.  Their parameters are chosen as follows:
+
+   * The character encoding is platform-dependent.  Under Windows, if the stream
+     is interactive (that is, if its :meth:`isatty` method returns True), the
+     console codepage is used, otherwise the ANSI code page.  Under other
+     platforms, the locale encoding is used (see :meth:`locale.getpreferredencoding`).
+
+     Under all platforms though, you can override this value by setting the
+     :envvar:`PYTHONIOENCODING` environment variable.
+
+   * When interactive, standard streams are line-buffered.  Otherwise, they
+     are block-buffered like regular text files.  You can override this
+     value with the :option:`-u` command-line option.
+
+   To write or read binary data from/to the standard streams, use the
+   underlying binary :data:`~io.TextIOBase.buffer`.  For example, to write
+   bytes to :data:`stdout`, use ``sys.stdout.buffer.write(b'abc')``.  Using
+   :meth:`io.TextIOBase.detach`, streams can be made binary by default.  This
    function sets :data:`stdin` and :data:`stdout` to binary::
 
       def make_streams_binary():
           sys.stdin = sys.stdin.detach()
           sys.stdout = sys.stdout.detach()
 
-   Note that the streams can be replaced with objects (like
-   :class:`io.StringIO`) that do not support the
-   :attr:`~io.BufferedIOBase.buffer` attribute or the
+   Note that the streams may be replaced with objects (like :class:`io.StringIO`)
+   that do not support the :attr:`~io.BufferedIOBase.buffer` attribute or the
    :meth:`~io.BufferedIOBase.detach` method and can raise :exc:`AttributeError`
    or :exc:`io.UnsupportedOperation`.
 

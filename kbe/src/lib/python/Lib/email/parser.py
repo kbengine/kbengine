@@ -4,12 +4,12 @@
 
 """A parser of RFC 2822 and MIME email messages."""
 
-__all__ = ['Parser', 'HeaderParser']
+__all__ = ['Parser', 'HeaderParser', 'BytesParser']
 
 import warnings
 from io import StringIO, TextIOWrapper
 
-from email.feedparser import FeedParser
+from email.feedparser import FeedParser, BytesFeedParser
 from email.message import Message
 
 

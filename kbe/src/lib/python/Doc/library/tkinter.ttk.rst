@@ -1240,7 +1240,7 @@ option. If you don't know the class name of a widget, use the method
       *layoutspec*, if specified, is expected to be a list or some other
       sequence type (excluding strings), where each item should be a tuple and
       the first item is the layout name and the second item should have the
-      format described described in `Layouts`_.
+      format described in `Layouts`_.
 
       To understand the format, see the following example (it is not
       intended to do anything useful)::
@@ -1291,7 +1291,7 @@ option. If you don't know the class name of a widget, use the method
 
        * sticky=spec
           Specifies how the image is placed within the final parcel. spec
-          contains zero or more characters “n”, “s”, “w”, or “e”.
+          contains zero or more characters "n", "s", "w", or "e".
 
        * width=width
           Specifies a minimum width for the element. If less than zero, the

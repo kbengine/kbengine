@@ -7,8 +7,6 @@
 *****************************
 
 :Author: Greg Ward
-:Release: |version|
-:Date: |today|
 
 .. TODO: Fill in XXX comments
 
@@ -101,8 +99,8 @@ one command from a terminal::
 
    python setup.py install
 
-For Windows, this command should be run from a command prompt windows ("DOS
-box")::
+For Windows, this command should be run from a command prompt window
+(:menuselection:`Start --> Accessories`)::
 
    setup.py install
 
@@ -144,7 +142,7 @@ archive file to :file:`C:\\Temp`, then it would unpack into
 :file:`C:\\Temp\\foo-1.0`; you can use either a archive manipulator with a
 graphical user interface (such as WinZip) or a command-line tool (such as
 :program:`unzip` or :program:`pkunzip`) to unpack the archive.  Then, open a
-command prompt window ("DOS box"), and run::
+command prompt window and run::
 
    cd c:\Temp\foo-1.0
    python setup.py install
@@ -191,7 +189,7 @@ under the distribution root; if you're excessively concerned with speed, or want
 to keep the source tree pristine, you can change the build directory with the
 :option:`--build-base` option. For example::
 
-   python setup.py build --build-base=/tmp/pybuild/foo-1.0
+   python setup.py build --build-base=/path/to/pybuild/foo-1.0
 
 (Or you could do this permanently with a directive in your system or personal
 Distutils configuration file; see section :ref:`inst-config-files`.)  Normally, this

@@ -125,6 +125,8 @@ class OtherNetworkTests(unittest.TestCase):
         finally:
             os.remove(TESTFN)
 
+        self.assertRaises(ValueError, urllib.request.urlopen,'./relative_path/to/file')
+
     # XXX Following test depends on machine configurations that are internal
     # to CNRI.  Need to set up a public server with the right authentication
     # configuration for test purposes.
@@ -154,12 +156,12 @@ class OtherNetworkTests(unittest.TestCase):
 ##             self._test_urls(urls, self._extra_handlers()+[bauth, dauth])
 
     def test_urlwithfrag(self):
-        urlwith_frag = "http://docs.python.org/glossary.html#glossary"
+        urlwith_frag = "http://docs.python.org/2/glossary.html#glossary"
         with support.transient_internet(urlwith_frag):
             req = urllib.request.Request(urlwith_frag)
             res = urllib.request.urlopen(req)
             self.assertEqual(res.geturl(),
-                    "http://docs.python.org/glossary.html#glossary")
+                    "http://docs.python.org/2/glossary.html#glossary")
 
     def test_custom_headers(self):
         url = "http://www.example.com"

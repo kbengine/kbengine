@@ -754,6 +754,8 @@ PyObject_HashNotImplemented(PyObject *v)
     return -1;
 }
 
+_Py_HashSecret_t _Py_HashSecret;
+
 Py_hash_t
 PyObject_Hash(PyObject *v)
 {
@@ -1625,6 +1627,9 @@ _Py_ReadyTypes(void)
     if (PyType_Ready(&PyWrapperDescr_Type) < 0)
         Py_FatalError("Can't initialize wrapper type");
 
+    if (PyType_Ready(&_PyMethodWrapper_Type) < 0)
+        Py_FatalError("Can't initialize method wrapper type");
+
     if (PyType_Ready(&PyEllipsis_Type) < 0)
         Py_FatalError("Can't initialize ellipsis type");
 
@@ -1639,6 +1644,30 @@ _Py_ReadyTypes(void)
 
     if (PyType_Ready(&PyZip_Type) < 0)
         Py_FatalError("Can't initialize zip type");
+
+    if (PyType_Ready(&PyCapsule_Type) < 0)
+        Py_FatalError("Can't initialize capsule type");
+
+    if (PyType_Ready(&PyLongRangeIter_Type) < 0)
+        Py_FatalError("Can't initialize long range iterator type");
+
+    if (PyType_Ready(&PyCell_Type) < 0)
+        Py_FatalError("Can't initialize cell type");
+
+    if (PyType_Ready(&PyInstanceMethod_Type) < 0)
+        Py_FatalError("Can't initialize instance method type");
+
+    if (PyType_Ready(&PyClassMethodDescr_Type) < 0)
+        Py_FatalError("Can't initialize class method descr type");
+
+    if (PyType_Ready(&PyMethodDescr_Type) < 0)
+        Py_FatalError("Can't initialize method descr type");
+
+    if (PyType_Ready(&PyCallIter_Type) < 0)
+        Py_FatalError("Can't initialize call iter type");
+
+    if (PyType_Ready(&PySeqIter_Type) < 0)
+        Py_FatalError("Can't initialize sequence iterator type");
 }
 
 
@@ -1871,6 +1900,18 @@ _PyTrash_deposit_object(PyObject *op)
     _PyTrash_delete_later = op;
 }
 
+/* The equivalent API, using per-thread state recursion info */
+void
+_PyTrash_thread_deposit_object(PyObject *op)
+{
+    PyThreadState *tstate = PyThreadState_GET();
+    assert(PyObject_IS_GC(op));
+    assert(_Py_AS_GC(op)->gc.gc_refs == _PyGC_REFS_UNTRACKED);
+    assert(op->ob_refcnt == 0);
+    _Py_AS_GC(op)->gc.gc_prev = (PyGC_Head *) tstate->trash_delete_later;
+    tstate->trash_delete_later = op;
+}
+
 /* Dealloccate all the objects in the _PyTrash_delete_later list.  Called when
  * the call-stack unwinds again.
  */
@@ -1894,6 +1935,31 @@ _PyTrash_destroy_chain(void)
         ++_PyTrash_delete_nesting;
         (*dealloc)(op);
         --_PyTrash_delete_nesting;
+    }
+}
+
+/* The equivalent API, using per-thread state recursion info */
+void
+_PyTrash_thread_destroy_chain(void)
+{
+    PyThreadState *tstate = PyThreadState_GET();
+    while (tstate->trash_delete_later) {
+        PyObject *op = tstate->trash_delete_later;
+        destructor dealloc = Py_TYPE(op)->tp_dealloc;
+
+        tstate->trash_delete_later =
+            (PyObject*) _Py_AS_GC(op)->gc.gc_prev;
+
+        /* Call the deallocator directly.  This used to try to
+         * fool Py_DECREF into calling it indirectly, but
+         * Py_DECREF was already called on this object, and in
+         * assorted non-release builds calling Py_DECREF again ends
+         * up distorting allocation statistics.
+         */
+        assert(op->ob_refcnt == 0);
+        ++tstate->trash_delete_nesting;
+        (*dealloc)(op);
+        --tstate->trash_delete_nesting;
     }
 }
 

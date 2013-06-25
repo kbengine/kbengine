@@ -205,6 +205,9 @@ Instances of :class:`Cmd` subclasses have some public instance variables:
    :mod:`readline`, on systems that support it, the interpreter will automatically
    support :program:`Emacs`\ -like line editing  and command-history keystrokes.)
 
+
+.. _cmd-example:
+
 Cmd Example
 -----------
 
@@ -244,7 +247,7 @@ immediate playback::
             right(*parse(arg))
         def do_left(self, arg):
             'Turn turtle left by given number of degrees:  LEFT 90'
-            right(*parse(arg))
+            left(*parse(arg))
         def do_goto(self, arg):
             'Move turtle to an absolute position with changing orientation.  GOTO 100 200'
             goto(*parse(arg))
@@ -273,7 +276,7 @@ immediate playback::
             print('Thank you for using Turtle')
             self.close()
             bye()
-            sys.exit(0)
+            return True
 
         # ----- record and playback -----
         def do_record(self, arg):

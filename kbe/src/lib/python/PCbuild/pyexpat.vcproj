@@ -116,6 +116,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				OutputFile="../../../libs\$(ProjectName).pyd"
 			/>
 			<Tool
 				Name="VCALinkTool"

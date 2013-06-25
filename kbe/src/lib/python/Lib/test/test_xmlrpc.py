@@ -66,15 +66,6 @@ class XMLRPCTestCase(unittest.TestCase):
         (newdt,), m = xmlrpclib.loads(s, use_datetime=0)
         self.assertEqual(newdt, xmlrpclib.DateTime('00010210T11:41:23'))
 
-    def test_cmp_datetime_DateTime(self):
-        now = datetime.datetime.now()
-        dt = xmlrpclib.DateTime(now.timetuple())
-        self.assertTrue(dt == now)
-        self.assertTrue(now == dt)
-        then = now + datetime.timedelta(seconds=4)
-        self.assertTrue(then >= dt)
-        self.assertTrue(dt < then)
-
     def test_bug_1164912 (self):
         d = xmlrpclib.DateTime()
         ((new_d,), dummy) = xmlrpclib.loads(xmlrpclib.dumps((d,),
@@ -149,6 +140,9 @@ class XMLRPCTestCase(unittest.TestCase):
                           ('host.tld',
                            [('Authorization', 'Basic dXNlcg==')], {}))
 
+    def test_dump_bytes(self):
+        self.assertRaises(TypeError, xmlrpclib.dumps, (b"my dog has fleas",))
+
     def test_ssl_presence(self):
         try:
             import ssl
@@ -186,7 +180,7 @@ class FaultTestCase(unittest.TestCase):
         self.assertRaises(xmlrpclib.Fault, xmlrpclib.loads, s)
 
     def test_dotted_attribute(self):
-        # this will raise AttirebuteError because code don't want us to use
+        # this will raise AttributeError because code don't want us to use
         # private methods
         self.assertRaises(AttributeError,
                           xmlrpc.server.resolve_dotted_attribute, str, '__add')
@@ -232,6 +226,45 @@ class DateTimeTestCase(unittest.TestCase):
 
         t2 = xmlrpclib._datetime(d)
         self.assertEqual(t1, tref)
+
+    def test_comparison(self):
+        now = datetime.datetime.now()
+        dtime = xmlrpclib.DateTime(now.timetuple())
+
+        # datetime vs. DateTime
+        self.assertTrue(dtime == now)
+        self.assertTrue(now == dtime)
+        then = now + datetime.timedelta(seconds=4)
+        self.assertTrue(then >= dtime)
+        self.assertTrue(dtime < then)
+
+        # str vs. DateTime
+        dstr = now.strftime("%Y%m%dT%H:%M:%S")
+        self.assertTrue(dtime == dstr)
+        self.assertTrue(dstr == dtime)
+        dtime_then = xmlrpclib.DateTime(then.timetuple())
+        self.assertTrue(dtime_then >= dstr)
+        self.assertTrue(dstr < dtime_then)
+
+        # some other types
+        dbytes = dstr.encode('ascii')
+        dtuple = now.timetuple()
+        with self.assertRaises(TypeError):
+            dtime == 1970
+        with self.assertRaises(TypeError):
+            dtime != dbytes
+        with self.assertRaises(TypeError):
+            dtime == bytearray(dbytes)
+        with self.assertRaises(TypeError):
+            dtime != dtuple
+        with self.assertRaises(TypeError):
+            dtime < float(1970)
+        with self.assertRaises(TypeError):
+            dtime > dbytes
+        with self.assertRaises(TypeError):
+            dtime <= bytearray(dbytes)
+        with self.assertRaises(TypeError):
+            dtime >= dtuple
 
 class BinaryTestCase(unittest.TestCase):
 
@@ -295,7 +328,7 @@ def http_server(evt, numrequests, requestHandler=None):
         global ADDR, PORT, URL
         ADDR, PORT = serv.socket.getsockname()
         #connect to IP address directly.  This avoids socket.create_connection()
-        #trying to connect to to "localhost" using all address families, which
+        #trying to connect to "localhost" using all address families, which
         #causes slowdown e.g. on vista which supports AF_INET6.  The server listens
         #on AF_INET only.
         URL = "http://%s:%d"%(ADDR, PORT)
@@ -346,6 +379,10 @@ def http_multi_server(evt, numrequests, requestHandler=None):
     class MyRequestHandler(requestHandler):
         rpc_paths = []
 
+    class BrokenDispatcher:
+        def _marshaled_dispatch(self, data, dispatch_method=None, path=None):
+            raise RuntimeError("broken dispatcher")
+
     serv = MyXMLRPCServer(("localhost", 0), MyRequestHandler,
                           logRequests=False, bind_and_activate=False)
     serv.socket.settimeout(3)
@@ -354,7 +391,7 @@ def http_multi_server(evt, numrequests, requestHandler=None):
         global ADDR, PORT, URL
         ADDR, PORT = serv.socket.getsockname()
         #connect to IP address directly.  This avoids socket.create_connection()
-        #trying to connect to to "localhost" using all address families, which
+        #trying to connect to "localhost" using all address families, which
         #causes slowdown e.g. on vista which supports AF_INET6.  The server listens
         #on AF_INET only.
         URL = "http://%s:%d"%(ADDR, PORT)
@@ -366,6 +403,7 @@ def http_multi_server(evt, numrequests, requestHandler=None):
             d.register_multicall_functions()
         serv.get_dispatcher(paths[0]).register_function(pow)
         serv.get_dispatcher(paths[1]).register_function(lambda x,y: x+y, 'add')
+        serv.add_dispatcher("/is/broken", BrokenDispatcher())
         evt.set()
 
         # handle up to 'numrequests' requests
@@ -436,12 +474,7 @@ class BaseServerTestCase(unittest.TestCase):
 
     def tearDown(self):
         # wait on the server thread to terminate
-        self.evt.wait(4.0)
-        # XXX this code does not work, and in fact stop_serving doesn't exist.
-        if not self.evt.is_set():
-            self.evt.set()
-            stop_serving()
-            raise RuntimeError("timeout reached, test has failed")
+        self.evt.wait()
 
         # disable traceback reporting
         xmlrpc.server.SimpleXMLRPCServer._send_traceback_header = False
@@ -584,6 +617,17 @@ class SimpleServerTestCase(BaseServerTestCase):
         # This avoids waiting for the socket timeout.
         self.test_simple1()
 
+    def test_unicode_host(self):
+        server = xmlrpclib.ServerProxy("http://%s:%d/RPC2" % (ADDR, PORT))
+        self.assertEqual(server.add("a", "\xe9"), "a\xe9")
+
+    def test_partial_post(self):
+        # Check that a partial POST doesn't make the server loop: issue #14001.
+        conn = http.client.HTTPConnection(ADDR, PORT)
+        conn.request('POST', '/RPC2 HTTP/1.0\r\nContent-Length: 100\r\n\r\nbye')
+        conn.close()
+
+
 class MultiPathServerTestCase(BaseServerTestCase):
     threadFunc = staticmethod(http_multi_server)
     request_count = 2
@@ -591,10 +635,15 @@ class MultiPathServerTestCase(BaseServerTestCase):
         p = xmlrpclib.ServerProxy(URL+"/foo")
         self.assertEqual(p.pow(6,8), 6**8)
         self.assertRaises(xmlrpclib.Fault, p.add, 6, 8)
+
     def test_path2(self):
         p = xmlrpclib.ServerProxy(URL+"/foo/bar")
         self.assertEqual(p.add(6,8), 6+8)
         self.assertRaises(xmlrpclib.Fault, p.pow, 6, 8)
+
+    def test_path3(self):
+        p = xmlrpclib.ServerProxy(URL+"/is/broken")
+        self.assertRaises(xmlrpclib.Fault, p.add, 6, 8)
 
 #A test case that verifies that a server using the HTTP/1.1 keep-alive mechanism
 #does indeed serve subsequent requests on the same connection

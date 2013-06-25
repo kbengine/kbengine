@@ -162,6 +162,12 @@ def _read_short(file):
     except struct.error:
         raise EOFError
 
+def _read_ushort(file):
+    try:
+        return struct.unpack('>H', file.read(2))[0]
+    except struct.error:
+        raise EOFError
+
 def _read_string(file):
     length = ord(file.read(1))
     if length == 0:
@@ -194,13 +200,19 @@ def _read_float(f): # 10 bytes
 def _write_short(f, x):
     f.write(struct.pack('>h', x))
 
+def _write_ushort(f, x):
+    f.write(struct.pack('>H', x))
+
 def _write_long(f, x):
+    f.write(struct.pack('>l', x))
+
+def _write_ulong(f, x):
     f.write(struct.pack('>L', x))
 
 def _write_string(f, s):
     if len(s) > 255:
         raise ValueError("string exceeds maximum pstring length")
-    f.write(struct.pack('b', len(s)))
+    f.write(struct.pack('B', len(s)))
     f.write(s)
     if len(s) & 1 == 0:
         f.write(b'\x00')
@@ -218,7 +230,7 @@ def _write_float(f, x):
         lomant = 0
     else:
         fmant, expon = math.frexp(x)
-        if expon > 16384 or fmant >= 1:     # Infinity or NaN
+        if expon > 16384 or fmant >= 1 or fmant != fmant: # Infinity or NaN
             expon = sign|0x7FFF
             himant = 0
             lomant = 0
@@ -234,9 +246,9 @@ def _write_float(f, x):
             fmant = math.ldexp(fmant - fsmant, 32)
             fsmant = math.floor(fmant)
             lomant = int(fsmant)
-    _write_short(f, expon)
-    _write_long(f, himant)
-    _write_long(f, lomant)
+    _write_ushort(f, expon)
+    _write_ulong(f, himant)
+    _write_ulong(f, lomant)
 
 from chunk import Chunk
 
@@ -539,8 +551,7 @@ class Aifc_write:
         self._aifc = 1      # AIFF-C is default
 
     def __del__(self):
-        if self._file:
-            self.close()
+        self.close()
 
     #
     # User visible methods.
@@ -643,8 +654,8 @@ class Aifc_write:
             raise Error('marker ID must be > 0')
         if pos < 0:
             raise Error('marker position must be >= 0')
-        if not isinstance(name, str):
-            raise Error('marker name must be a string')
+        if not isinstance(name, bytes):
+            raise Error('marker name must be bytes')
         for i in range(len(self._markers)):
             if id == self._markers[i][0]:
                 self._markers[i] = id, pos, name
@@ -681,19 +692,25 @@ class Aifc_write:
             self._patchheader()
 
     def close(self):
-        self._ensure_header_written(0)
-        if self._datawritten & 1:
-            # quick pad to even size
-            self._file.write(b'\x00')
-            self._datawritten = self._datawritten + 1
-        self._writemarkers()
-        if self._nframeswritten != self._nframes or \
-              self._datalength != self._datawritten or \
-              self._marklength:
-            self._patchheader()
-        # Prevent ref cycles
-        self._convert = None
-        self._file.close()
+        if self._file is None:
+            return
+        try:
+            self._ensure_header_written(0)
+            if self._datawritten & 1:
+                # quick pad to even size
+                self._file.write(b'\x00')
+                self._datawritten = self._datawritten + 1
+            self._writemarkers()
+            if self._nframeswritten != self._nframes or \
+                  self._datalength != self._datawritten or \
+                  self._marklength:
+                self._patchheader()
+        finally:
+            # Prevent ref cycles
+            self._convert = None
+            f = self._file
+            self._file = None
+            f.close()
 
     #
     # Internal methods.
@@ -716,18 +733,12 @@ class Aifc_write:
 
     def _ensure_header_written(self, datasize):
         if not self._nframeswritten:
-            if self._comptype in (b'ULAW', b'ALAW'):
+            if self._comptype in (b'ULAW', b'ulaw', b'ALAW', b'alaw', b'G722'):
                 if not self._sampwidth:
                     self._sampwidth = 2
                 if self._sampwidth != 2:
                     raise Error('sample width must be 2 when compressing '
-                                'with ulaw/ULAW or alaw/ALAW')
-            if self._comptype == b'G722':
-                if not self._sampwidth:
-                    self._sampwidth = 2
-                if self._sampwidth != 2:
-                    raise Error('sample width must be 2 when compressing '
-                                'with G7.22 (ADPCM)')
+                                'with ulaw/ULAW, alaw/ALAW or G7.22 (ADPCM)')
             if not self._nchannels:
                 raise Error('# channels not specified')
             if not self._sampwidth:
@@ -743,8 +754,6 @@ class Aifc_write:
             self._convert = self._lin2ulaw
         elif self._comptype in (b'alaw', b'ALAW'):
             self._convert = self._lin2alaw
-        else:
-            raise Error('unsupported compression type')
 
     def _write_header(self, initlength):
         if self._aifc and self._comptype != b'NONE':
@@ -769,15 +778,15 @@ class Aifc_write:
         if self._aifc:
             self._file.write(b'AIFC')
             self._file.write(b'FVER')
-            _write_long(self._file, 4)
-            _write_long(self._file, self._version)
+            _write_ulong(self._file, 4)
+            _write_ulong(self._file, self._version)
         else:
             self._file.write(b'AIFF')
         self._file.write(b'COMM')
-        _write_long(self._file, commlength)
+        _write_ulong(self._file, commlength)
         _write_short(self._file, self._nchannels)
         self._nframes_pos = self._file.tell()
-        _write_long(self._file, self._nframes)
+        _write_ulong(self._file, self._nframes)
         _write_short(self._file, self._sampwidth * 8)
         _write_float(self._file, self._framerate)
         if self._aifc:
@@ -785,9 +794,9 @@ class Aifc_write:
             _write_string(self._file, self._compname)
         self._file.write(b'SSND')
         self._ssnd_length_pos = self._file.tell()
-        _write_long(self._file, self._datalength + 8)
-        _write_long(self._file, 0)
-        _write_long(self._file, 0)
+        _write_ulong(self._file, self._datalength + 8)
+        _write_ulong(self._file, 0)
+        _write_ulong(self._file, 0)
 
     def _write_form_length(self, datalength):
         if self._aifc:
@@ -798,8 +807,8 @@ class Aifc_write:
         else:
             commlength = 18
             verslength = 0
-        _write_long(self._file, 4 + verslength + self._marklength + \
-                    8 + commlength + 16 + datalength)
+        _write_ulong(self._file, 4 + verslength + self._marklength + \
+                     8 + commlength + 16 + datalength)
         return commlength
 
     def _patchheader(self):
@@ -817,9 +826,9 @@ class Aifc_write:
         self._file.seek(self._form_length_pos, 0)
         dummy = self._write_form_length(datalength)
         self._file.seek(self._nframes_pos, 0)
-        _write_long(self._file, self._nframeswritten)
+        _write_ulong(self._file, self._nframeswritten)
         self._file.seek(self._ssnd_length_pos, 0)
-        _write_long(self._file, datalength + 8)
+        _write_ulong(self._file, datalength + 8)
         self._file.seek(curpos, 0)
         self._nframes = self._nframeswritten
         self._datalength = datalength
@@ -834,13 +843,13 @@ class Aifc_write:
             length = length + len(name) + 1 + 6
             if len(name) & 1 == 0:
                 length = length + 1
-        _write_long(self._file, length)
+        _write_ulong(self._file, length)
         self._marklength = length + 8
         _write_short(self._file, len(self._markers))
         for marker in self._markers:
             id, pos, name = marker
             _write_short(self._file, id)
-            _write_long(self._file, pos)
+            _write_ulong(self._file, pos)
             _write_string(self._file, name)
 
 def open(f, mode=None):

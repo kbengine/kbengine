@@ -7,7 +7,8 @@ import os
 import sys
 import subprocess
 import tempfile
-from test.script_helper import spawn_python, kill_python, assert_python_ok, assert_python_failure
+from test.script_helper import (spawn_python, kill_python, assert_python_ok,
+    assert_python_failure)
 
 
 # XXX (ncoghlan): Move to script_helper and make consistent with run_python
@@ -99,15 +100,11 @@ class CmdLineTest(unittest.TestCase):
         # All good if execution is successful
         assert_python_ok('-c', 'pass')
 
-    @unittest.skipIf(sys.getfilesystemencoding() == 'ascii',
-                     'need a filesystem encoding different than ASCII')
+    @unittest.skipUnless(test.support.FS_NONASCII, 'need support.FS_NONASCII')
     def test_non_ascii(self):
         # Test handling of non-ascii data
-        if test.support.verbose:
-            import locale
-            print('locale encoding = %s, filesystem encoding = %s'
-                  % (locale.getpreferredencoding(), sys.getfilesystemencoding()))
-        command = "assert(ord('\xe9') == 0xe9)"
+        command = ("assert(ord(%r) == %s)"
+                   % (test.support.FS_NONASCII, ord(test.support.FS_NONASCII)))
         assert_python_ok('-c', command)
 
     # On Windows, pass bytes to subprocess doesn't test how Python decodes the
@@ -265,11 +262,132 @@ class CmdLineTest(unittest.TestCase):
             "print(repr(input()))",
             b"'abc'")
 
+    def test_output_newline(self):
+        # Issue 13119 Newline for print() should be \r\n on Windows.
+        code = """if 1:
+            import sys
+            print(1)
+            print(2)
+            print(3, file=sys.stderr)
+            print(4, file=sys.stderr)"""
+        rc, out, err = assert_python_ok('-c', code)
+
+        if sys.platform == 'win32':
+            self.assertEqual(b'1\r\n2\r\n', out)
+            self.assertEqual(b'3\r\n4', err)
+        else:
+            self.assertEqual(b'1\n2\n', out)
+            self.assertEqual(b'3\n4', err)
+
     def test_unmached_quote(self):
         # Issue #10206: python program starting with unmatched quote
         # spewed spaces to stdout
         rc, out, err = assert_python_failure('-c', "'")
         self.assertRegex(err.decode('ascii', 'ignore'), 'SyntaxError')
+        self.assertEqual(b'', out)
+
+    def test_stdout_flush_at_shutdown(self):
+        # Issue #5319: if stdout.flush() fails at shutdown, an error should
+        # be printed out.
+        code = """if 1:
+            import os, sys
+            sys.stdout.write('x')
+            os.close(sys.stdout.fileno())"""
+        rc, out, err = assert_python_ok('-c', code)
+        self.assertEqual(b'', out)
+        self.assertRegex(err.decode('ascii', 'ignore'),
+                         'Exception IOError: .* ignored')
+
+    def test_closed_stdout(self):
+        # Issue #13444: if stdout has been explicitly closed, we should
+        # not attempt to flush it at shutdown.
+        code = "import sys; sys.stdout.close()"
+        rc, out, err = assert_python_ok('-c', code)
+        self.assertEqual(b'', err)
+
+    # Issue #7111: Python should work without standard streams
+
+    @unittest.skipIf(os.name != 'posix', "test needs POSIX semantics")
+    def _test_no_stdio(self, streams):
+        code = """if 1:
+            import os, sys
+            for i, s in enumerate({streams}):
+                if getattr(sys, s) is not None:
+                    os._exit(i + 1)
+            os._exit(42)""".format(streams=streams)
+        def preexec():
+            if 'stdin' in streams:
+                os.close(0)
+            if 'stdout' in streams:
+                os.close(1)
+            if 'stderr' in streams:
+                os.close(2)
+        p = subprocess.Popen(
+            [sys.executable, "-E", "-c", code],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            preexec_fn=preexec)
+        out, err = p.communicate()
+        self.assertEqual(test.support.strip_python_stderr(err), b'')
+        self.assertEqual(p.returncode, 42)
+
+    def test_no_stdin(self):
+        self._test_no_stdio(['stdin'])
+
+    def test_no_stdout(self):
+        self._test_no_stdio(['stdout'])
+
+    def test_no_stderr(self):
+        self._test_no_stdio(['stderr'])
+
+    def test_no_std_streams(self):
+        self._test_no_stdio(['stdin', 'stdout', 'stderr'])
+
+    def test_hash_randomization(self):
+        # Verify that -R enables hash randomization:
+        self.verify_valid_flag('-R')
+        hashes = []
+        for i in range(2):
+            code = 'print(hash("spam"))'
+            rc, out, err = assert_python_ok('-R', '-c', code)
+            self.assertEqual(rc, 0)
+            hashes.append(out)
+        self.assertNotEqual(hashes[0], hashes[1])
+
+        # Verify that sys.flags contains hash_randomization
+        code = 'import sys; print("random is", sys.flags.hash_randomization)'
+        rc, out, err = assert_python_ok('-R', '-c', code)
+        self.assertEqual(rc, 0)
+        self.assertIn(b'random is 1', out)
+
+    def test_del___main__(self):
+        # Issue #15001: PyRun_SimpleFileExFlags() did crash because it kept a
+        # borrowed reference to the dict of __main__ module and later modify
+        # the dict whereas the module was destroyed
+        filename = test.support.TESTFN
+        self.addCleanup(test.support.unlink, filename)
+        with open(filename, "w") as script:
+            print("import sys", file=script)
+            print("del sys.modules['__main__']", file=script)
+        assert_python_ok(filename)
+
+    def test_unknown_options(self):
+        rc, out, err = assert_python_failure('-E', '-z')
+        self.assertIn(b'Unknown option: -z', err)
+        self.assertEqual(err.splitlines().count(b'Unknown option: -z'), 1)
+        self.assertEqual(b'', out)
+        # Add "without='-E'" to prevent _assert_python to append -E
+        # to env_vars and change the output of stderr
+        rc, out, err = assert_python_failure('-z', without='-E')
+        self.assertIn(b'Unknown option: -z', err)
+        self.assertEqual(err.splitlines().count(b'Unknown option: -z'), 1)
+        self.assertEqual(b'', out)
+        rc, out, err = assert_python_failure('-a', '-z', without='-E')
+        self.assertIn(b'Unknown option: -a', err)
+        # only the first unknown option is reported
+        self.assertNotIn(b'Unknown option: -z', err)
+        self.assertEqual(err.splitlines().count(b'Unknown option: -a'), 1)
         self.assertEqual(b'', out)
 
 

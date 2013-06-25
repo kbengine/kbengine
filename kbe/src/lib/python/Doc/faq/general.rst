@@ -19,7 +19,7 @@ It has interfaces to many system calls and libraries, as well as to various
 window systems, and is extensible in C or C++.  It is also usable as an
 extension language for applications that need a programmable interface.
 Finally, Python is portable: it runs on many Unix variants, on the Mac, and on
-PCs under MS-DOS, Windows, Windows NT, and OS/2.
+Windows 2000 and later.
 
 To find out more, start with :ref:`tutorial-index`.  The `Beginner's Guide to
 Python <http://wiki.python.org/moin/BeginnersGuide>`_ links to other
@@ -157,16 +157,14 @@ How do I obtain a copy of the Python source?
 
 The latest Python source distribution is always available from python.org, at
 http://www.python.org/download/.  The latest development sources can be obtained
-via anonymous Subversion at http://svn.python.org/projects/python/trunk.
+via anonymous Mercurial access at http://hg.python.org/cpython.
 
 The source distribution is a gzipped tar file containing the complete C source,
 Sphinx-formatted documentation, Python library modules, example programs, and
 several useful pieces of freely distributable software.  The source will compile
 and run out of the box on most UNIX platforms.
 
-.. XXX update link once the dev faq is relocated
-
-Consult the `Developer FAQ <http://www.python.org/dev/faq/>`__ for more
+Consult the `Developer FAQ <http://docs.python.org/devguide/faq>`__ for more
 information on getting the source code and compiling it.
 
 
@@ -221,10 +219,8 @@ releases are announced on the comp.lang.python and comp.lang.python.announce
 newsgroups and on the Python home page at http://www.python.org/; an RSS feed of
 news is available.
 
-.. XXX update link once the dev faq is relocated
-
 You can also access the development version of Python through Subversion.  See
-http://www.python.org/dev/faq/ for details.
+http://docs.python.org/devguide/faq for details.
 
 
 How do I submit bug reports and patches for Python?
@@ -239,10 +235,8 @@ you updates as we act on your bug. If you had previously used SourceForge to
 report bugs to Python, you can obtain your Roundup password through Roundup's
 `password reset procedure <http://bugs.python.org/user?@template=forgotten>`_.
 
-.. XXX adapt link to dev guide
-
 For more information on how Python is developed, consult `the Python Developer's
-Guide <http://python.org/dev/>`_.
+Guide <http://docs.python.org/devguide/>`_.
 
 
 Are there any published articles about Python that I can reference?
@@ -475,38 +469,3 @@ http://www.python.org/editors/ for a full list of Python editing environments.
 If you want to discuss Python's use in education, you may be interested in
 joining `the edu-sig mailing list
 <http://python.org/community/sigs/current/edu-sig>`_.
-
-
-Upgrading Python
-================
-
-What is this bsddb185 module my application keeps complaining about?
---------------------------------------------------------------------
-
-.. XXX remove this question?
-
-Starting with Python2.3, the distribution includes the `PyBSDDB package
-<http://pybsddb.sf.net/>` as a replacement for the old bsddb module.  It
-includes functions which provide backward compatibility at the API level, but
-requires a newer version of the underlying `Berkeley DB
-<http://www.sleepycat.com>`_ library.  Files created with the older bsddb module
-can't be opened directly using the new module.
-
-Using your old version of Python and a pair of scripts which are part of Python
-2.3 (db2pickle.py and pickle2db.py, in the Tools/scripts directory) you can
-convert your old database files to the new format.  Using your old Python
-version, run the db2pickle.py script to convert it to a pickle, e.g.::
-
-   python2.2 <pathto>/db2pickley.py database.db database.pck
-
-Rename your database file::
-
-   mv database.db olddatabase.db
-
-Now convert the pickle file to a new format database::
-
-   python <pathto>/pickle2db.py database.db database.pck
-
-The precise commands you use will vary depending on the particulars of your
-installation.  For full details about operation of these two scripts check the
-doc string at the start of each one.

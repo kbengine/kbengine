@@ -12,7 +12,9 @@ Invoking the Interpreter
 
 The Python interpreter is usually installed as :file:`/usr/local/bin/python3.2`
 on those machines where it is available; putting :file:`/usr/local/bin` in your
-Unix shell's search path makes it possible to start it by typing the command ::
+Unix shell's search path makes it possible to start it by typing the command:
+
+.. code-block:: text
 
    python3.2
 
@@ -60,8 +62,7 @@ if you had spelled out its full name on the command line.
 
 When a script file is used, it is sometimes useful to be able to run the script
 and enter interactive mode afterwards.  This can be done by passing :option:`-i`
-before the script.  (This does not work if the script is read from standard
-input, for the same reason as explained in the previous paragraph.)
+before the script.
 
 
 .. _tut-argpassing:
@@ -95,8 +96,8 @@ prints a welcome message stating its version number and a copyright notice
 before printing the first prompt::
 
    $ python3.2
-   Python 3.2 (py3k, Sep 12 2007, 12:21:02)
-   [GCC 3.4.6 20060404 (Red Hat 3.4.6-8)] on linux2
+   Python 3.2.3 (default, May  3 2012, 15:54:42)
+   [GCC 4.6.3] on linux2
    Type "help", "copyright", "credits" or "license" for more information.
    >>>
 

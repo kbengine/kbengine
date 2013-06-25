@@ -2784,11 +2784,14 @@ generic_hash(unsigned char *data, int len)
     register unsigned char *p;
     register Py_hash_t x;
 
+    assert(_Py_HashSecret_Initialized);
     p = (unsigned char *) data;
-    x = *p << 7;
+    x = _Py_HashSecret.prefix;
+    x ^= *p << 7;
     while (--len >= 0)
         x = (1000003*x) ^ *p++;
     x ^= len;
+    x ^= _Py_HashSecret.suffix;
     if (x == -1)
         x = -2;
 
@@ -3243,6 +3246,12 @@ timezone_richcompare(PyDateTime_TimeZone *self,
     if (op != Py_EQ && op != Py_NE) {
         Py_INCREF(Py_NotImplemented);
         return Py_NotImplemented;
+    }
+    if (Py_TYPE(other) != &PyDateTime_TimeZoneType) {
+	if (op == Py_EQ)
+	    Py_RETURN_FALSE;
+	else
+	    Py_RETURN_TRUE;
     }
     return delta_richcompare(self->offset, other->offset, op);
 }

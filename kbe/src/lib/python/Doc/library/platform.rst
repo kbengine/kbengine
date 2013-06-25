@@ -3,7 +3,7 @@
 
 .. module:: platform
    :synopsis: Retrieves as much platform identifying data as possible.
-.. moduleauthor:: Marc-Andre Lemburg <mal@egenix.com>
+.. moduleauthor:: Marc-André Lemburg <mal@egenix.com>
 .. sectionauthor:: Bjorn Pettersen <bpettersen@corp.fairisaac.com>
 
 **Source code:** :source:`Lib/platform.py`
@@ -188,8 +188,8 @@ Windows Platform
 .. function:: win32_ver(release='', version='', csd='', ptype='')
 
    Get additional version information from the Windows Registry and return a tuple
-   ``(version, csd, ptype)`` referring to version number, CSD level and OS type
-   (multi/single processor).
+   ``(version, csd, ptype)`` referring to version number, CSD level
+   (service pack) and OS type (multi/single processor).
 
    As a hint: *ptype* is ``'Uniprocessor Free'`` on single processor NT machines
    and ``'Multiprocessor Free'`` on multi processor machines. The *'Free'* refers

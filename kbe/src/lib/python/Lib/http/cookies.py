@@ -301,7 +301,7 @@ def _getdate(future=0, weekdayname=_weekdayname, monthname=_monthname):
     from time import gmtime, time
     now = time()
     year, month, day, hh, mm, ss, wd, y, z = gmtime(now + future)
-    return "%s, %02d-%3s-%4d %02d:%02d:%02d GMT" % \
+    return "%s, %02d %3s %4d %02d:%02d:%02d GMT" % \
            (weekdayname[wd], day, monthname[month], year, hh, mm, ss)
 
 
@@ -439,7 +439,7 @@ _CookiePattern = re.compile(r"""
     (?P<val>                       # Start of group 'val'
     "(?:[^\\"]|\\.)*"                # Any doublequoted string
     |                                # or
-    \w{3},\s[\w\d-]{9,11}\s[\d:]{8}\sGMT  # Special case for "expires" attr
+    \w{3},\s[\w\d\s-]{9,11}\s[\d:]{8}\sGMT  # Special case for "expires" attr
     |                                # or
     """ + _LegalCharsPatt + r"""*    # Any word or empty string
     )                              # End of group 'val'

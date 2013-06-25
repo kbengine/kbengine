@@ -4,17 +4,17 @@
 .. module:: concurrent.futures
    :synopsis: Execute computations concurrently using threads or processes.
 
+.. versionadded:: 3.2
+
 **Source code:** :source:`Lib/concurrent/futures/thread.py`
 and :source:`Lib/concurrent/futures/process.py`
-
-.. versionadded:: 3.2
 
 --------------
 
 The :mod:`concurrent.futures` module provides a high-level interface for
 asynchronously executing callables.
 
-The asynchronous execution can be be performed with threads, using
+The asynchronous execution can be performed with threads, using
 :class:`ThreadPoolExecutor`, or separate processes, using
 :class:`ProcessPoolExecutor`.  Both implement the same interface, which is
 defined by the abstract :class:`Executor` class.
@@ -42,12 +42,13 @@ Executor Objects
 
        Equivalent to ``map(func, *iterables)`` except *func* is executed
        asynchronously and several calls to *func* may be made concurrently.  The
-       returned iterator raises a :exc:`TimeoutError` if :meth:`__next__()` is
-       called and the result isn't available after *timeout* seconds from the
-       original call to :meth:`Executor.map`. *timeout* can be an int or a
-       float.  If *timeout* is not specified or ``None``, there is no limit to
-       the wait time.  If a call raises an exception, then that exception will
-       be raised when its value is retrieved from the iterator.
+       returned iterator raises a :exc:`TimeoutError` if
+       :meth:`~iterator.__next__` is called and the result isn't available
+       after *timeout* seconds from the original call to :meth:`Executor.map`.
+       *timeout* can be an int or a float.  If *timeout* is not specified or
+       ``None``, there is no limit to the wait time.  If a call raises an
+       exception, then that exception will be raised when its value is
+       retrieved from the iterator.
 
     .. method:: shutdown(wait=True)
 
@@ -358,10 +359,11 @@ Module Functions
    different :class:`Executor` instances) given by *fs* that yields futures as
    they complete (finished or were cancelled).  Any futures that completed
    before :func:`as_completed` is called will be yielded first.  The returned
-   iterator raises a :exc:`TimeoutError` if :meth:`__next__` is called and the
-   result isn't available after *timeout* seconds from the original call to
-   :func:`as_completed`.  *timeout* can be an int or float.  If *timeout* is not
-   specified or ``None``, there is no limit to the wait time.
+   iterator raises a :exc:`TimeoutError` if :meth:`~iterator.__next__` is
+   called and the result isn't available after *timeout* seconds from the
+   original call to :func:`as_completed`.  *timeout* can be an int or float.
+   If *timeout* is not specified or ``None``, there is no limit to the wait
+   time.
 
 
 .. seealso::

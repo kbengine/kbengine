@@ -137,7 +137,10 @@ def stripid(text):
     return _re_stripid.sub(r'\1', text)
 
 def _is_some_method(obj):
-    return inspect.ismethod(obj) or inspect.ismethoddescriptor(obj)
+    return (inspect.isfunction(obj) or
+            inspect.ismethod(obj) or
+            inspect.isbuiltin(obj) or
+            inspect.ismethoddescriptor(obj))
 
 def allmethods(cl):
     methods = {}
@@ -754,8 +757,15 @@ class HTMLDoc(Doc):
                 hr.maybe()
                 push(msg)
                 for name, kind, homecls, value in ok:
-                    push(self.document(getattr(object, name), name, mod,
-                                       funcs, classes, mdict, object))
+                    try:
+                        value = getattr(object, name)
+                    except Exception:
+                        # Some descriptors may meet a failure in their __get__.
+                        # (bug #1785)
+                        push(self._docdescriptor(name, value, mod))
+                    else:
+                        push(self.document(value, name, mod,
+                                        funcs, classes, mdict, object))
                     push('\n')
             return attrs
 
@@ -775,7 +785,7 @@ class HTMLDoc(Doc):
                 push(msg)
                 for name, kind, homecls, value in ok:
                     base = self.docother(getattr(object, name), name, mod)
-                    if hasattr(value, '__call__') or inspect.isdatadescriptor(value):
+                    if callable(value) or inspect.isdatadescriptor(value):
                         doc = getattr(value, "__doc__", None)
                     else:
                         doc = None
@@ -796,7 +806,12 @@ class HTMLDoc(Doc):
         mdict = {}
         for key, kind, homecls, value in attrs:
             mdict[key] = anchor = '#' + name + '-' + key
-            value = getattr(object, key)
+            try:
+                value = getattr(object, name)
+            except Exception:
+                # Some descriptors may meet a failure in their __get__.
+                # (bug #1785)
+                pass
             try:
                 # The value may not be hashable (e.g., a data attr with
                 # a dict or list value).
@@ -1044,10 +1059,11 @@ class TextDoc(Doc):
         if docloc is not None:
             result = result + self.section('MODULE REFERENCE', docloc + """
 
-The following documentation is automatically generated from the Python source
-files.  It may be incomplete, incorrect or include features that are considered
-implementation detail and may vary between Python implementations.  When in
-doubt, consult the module reference at the location listed above.
+The following documentation is automatically generated from the Python
+source files.  It may be incomplete, incorrect or include features that
+are considered implementation detail and may vary between Python
+implementations.  When in doubt, consult the module reference at the
+location listed above.
 """)
 
         if desc:
@@ -1179,8 +1195,15 @@ doubt, consult the module reference at the location listed above.
                 hr.maybe()
                 push(msg)
                 for name, kind, homecls, value in ok:
-                    push(self.document(getattr(object, name),
-                                       name, mod, object))
+                    try:
+                        value = getattr(object, name)
+                    except Exception:
+                        # Some descriptors may meet a failure in their __get__.
+                        # (bug #1785)
+                        push(self._docdescriptor(name, value, mod))
+                    else:
+                        push(self.document(value,
+                                        name, mod, object))
             return attrs
 
         def spilldescriptors(msg, attrs, predicate):
@@ -1198,7 +1221,7 @@ doubt, consult the module reference at the location listed above.
                 hr.maybe()
                 push(msg)
                 for name, kind, homecls, value in ok:
-                    if hasattr(value, '__call__') or inspect.isdatadescriptor(value):
+                    if callable(value) or inspect.isdatadescriptor(value):
                         doc = getdoc(value)
                     else:
                         doc = None
@@ -1505,7 +1528,8 @@ def resolve(thing, forceload=0):
             raise ImportError('no Python documentation found for %r' % thing)
         return object, thing
     else:
-        return thing, getattr(thing, '__name__', None)
+        name = getattr(thing, '__name__', None)
+        return thing, name if isinstance(name, str) else None
 
 def render_doc(thing, title='Python Library Documentation: %s', forceload=0,
         renderer=None):
@@ -1809,7 +1833,7 @@ has the same effect as typing a particular string at the help> prompt.
 Welcome to Python %s!  This is the online help utility.
 
 If this is your first time using Python, you should definitely check out
-the tutorial on the Internet at http://docs.python.org/tutorial/.
+the tutorial on the Internet at http://docs.python.org/%s/tutorial/.
 
 Enter the name of any module, keyword, or topic to get help on writing
 Python programs and using Python modules.  To quit this help utility and
@@ -1819,7 +1843,7 @@ To get a list of available modules, keywords, or topics, type "modules",
 "keywords", or "topics".  Each module also comes with a one-line summary
 of what it does; to list the modules whose summaries contain a given word
 such as "spam", type "modules spam".
-''' % sys.version[:3])
+''' % tuple([sys.version[:3]]*2))
 
     def list(self, items, columns=4, width=80):
         items = list(sorted(items))

@@ -17,7 +17,7 @@ except ImportError:
 import unittest
 import warnings
 from test import support
-from test.support import _4G, precisionbigmemtest
+from test.support import _4G, bigmemtest
 
 # Were we compiled --with-pydebug or with #define Py_DEBUG?
 COMPILED_WITH_PYDEBUG = hasattr(sys, 'gettotalrefcount')
@@ -111,12 +111,8 @@ class HashLibTestCase(unittest.TestCase):
                             issubset(hashlib.algorithms_available))
 
     def test_unknown_hash(self):
-        try:
-            hashlib.new('spam spam spam spam spam')
-        except ValueError:
-            pass
-        else:
-            self.assertTrue(0 == "hashlib didn't reject bogus hash name")
+        self.assertRaises(ValueError, hashlib.new, 'spam spam spam spam spam')
+        self.assertRaises(TypeError, hashlib.new, 1)
 
     def test_get_builtin_constructor(self):
         get_builtin_constructor = hashlib.__dict__[
@@ -135,6 +131,7 @@ class HashLibTestCase(unittest.TestCase):
                 sys.modules['_md5'] = _md5
             else:
                 del sys.modules['_md5']
+        self.assertRaises(TypeError, get_builtin_constructor, 3)
 
     def test_hexdigest(self):
         for name in self.supported_hash_names:
@@ -196,7 +193,7 @@ class HashLibTestCase(unittest.TestCase):
                    b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
                    'd174ab98d277d9f5a5611c2c9f419d9f')
 
-    @precisionbigmemtest(size=_4G + 5, memuse=1)
+    @bigmemtest(size=_4G + 5, memuse=1)
     def test_case_md5_huge(self, size):
         if size == _4G + 5:
             try:
@@ -204,7 +201,7 @@ class HashLibTestCase(unittest.TestCase):
             except OverflowError:
                 pass # 32-bit arch
 
-    @precisionbigmemtest(size=_4G - 1, memuse=1)
+    @bigmemtest(size=_4G - 1, memuse=1)
     def test_case_md5_uintmax(self, size):
         if size == _4G - 1:
             try:

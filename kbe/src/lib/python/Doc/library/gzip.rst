@@ -21,9 +21,6 @@ Note that additional file formats which can be decompressed by the
 :program:`gzip` and :program:`gunzip` programs, such  as those produced by
 :program:`compress` and :program:`pack`, are not supported by this module.
 
-For other archive formats, see the :mod:`bz2`, :mod:`zipfile`, and
-:mod:`tarfile` modules.
-
 The module defines the following items:
 
 
@@ -47,13 +44,16 @@ The module defines the following items:
 
    The *mode* argument can be any of ``'r'``, ``'rb'``, ``'a'``, ``'ab'``, ``'w'``,
    or ``'wb'``, depending on whether the file will be read or written.  The default
-   is the mode of *fileobj* if discernible; otherwise, the default is ``'rb'``. If
-   not given, the 'b' flag will be added to the mode to ensure the file is opened
-   in binary mode for cross-platform portability.
+   is the mode of *fileobj* if discernible; otherwise, the default is ``'rb'``.
 
-   The *compresslevel* argument is an integer from ``1`` to ``9`` controlling the
-   level of compression; ``1`` is fastest and produces the least compression, and
-   ``9`` is slowest and produces the most compression.  The default is ``9``.
+   Note that the file is always opened in binary mode; text mode is not
+   supported. If you need to read a compressed file in text mode, wrap your
+   :class:`GzipFile` with an :class:`io.TextIOWrapper`.
+
+   The *compresslevel* argument is an integer from ``0`` to ``9`` controlling
+   the level of compression; ``1`` is fastest and produces the least
+   compression, and ``9`` is slowest and produces the most compression. ``0``
+   is no compression. The default is ``9``.
 
    The *mtime* argument is an optional numeric timestamp to be written to
    the stream when compressing.  All :program:`gzip` compressed streams are

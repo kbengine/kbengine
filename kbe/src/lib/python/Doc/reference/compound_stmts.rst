@@ -307,11 +307,23 @@ If :keyword:`finally` is present, it specifies a 'cleanup' handler.  The
 :keyword:`try` clause is executed, including any :keyword:`except` and
 :keyword:`else` clauses.  If an exception occurs in any of the clauses and is
 not handled, the exception is temporarily saved. The :keyword:`finally` clause
-is executed.  If there is a saved exception, it is re-raised at the end of the
-:keyword:`finally` clause. If the :keyword:`finally` clause raises another
-exception or executes a :keyword:`return` or :keyword:`break` statement, the
-saved exception is lost.  The exception information is not available to the
-program during execution of the :keyword:`finally` clause.
+is executed.  If there is a saved exception it is re-raised at the end of the
+:keyword:`finally` clause.  If the :keyword:`finally` clause raises another
+exception, the saved exception is set as the context of the new exception.
+If the :keyword:`finally` clause executes a :keyword:`return` or :keyword:`break`
+statement, the saved exception is discarded::
+
+    def f():
+        try:
+            1/0
+        finally:
+            return 42
+
+    >>> f()
+    42
+
+The exception information is not available to the program during execution of
+the :keyword:`finally` clause.
 
 .. index::
    statement: return
@@ -405,6 +417,9 @@ is equivalent to ::
       statement.
 
 
+.. index::
+   single: parameter; function definition
+
 .. _function:
 .. _def:
 
@@ -427,11 +442,10 @@ A function definition defines a user-defined function object (see section
 .. productionlist::
    funcdef: [`decorators`] "def" `funcname` "(" [`parameter_list`] ")" ["->" `expression`] ":" `suite`
    decorators: `decorator`+
-   decorator: "@" `dotted_name` ["(" [`argument_list` [","]] ")"] NEWLINE
+   decorator: "@" `dotted_name` ["(" [`parameter_list` [","]] ")"] NEWLINE
    dotted_name: `identifier` ("." `identifier`)*
    parameter_list: (`defparameter` ",")*
-                 : (  "*" [`parameter`] ("," `defparameter`)*
-                 : [, "**" `parameter`]
+                 : ( "*" [`parameter`] ("," `defparameter`)* ["," "**" `parameter`]
                  : | "**" `parameter`
                  : | `defparameter` [","] )
    parameter: `identifier` [":" `expression`]
@@ -467,18 +481,21 @@ is equivalent to ::
    def func(): pass
    func = f1(arg)(f2(func))
 
-.. index:: triple: default; parameter; value
+.. index::
+   triple: default; parameter; value
+   single: argument; function definition
 
-When one or more parameters have the form *parameter* ``=`` *expression*, the
-function is said to have "default parameter values."  For a parameter with a
-default value, the corresponding argument may be omitted from a call, in which
+When one or more :term:`parameters <parameter>` have the form *parameter* ``=``
+*expression*, the function is said to have "default parameter values."  For a
+parameter with a default value, the corresponding :term:`argument` may be
+omitted from a call, in which
 case the parameter's default value is substituted.  If a parameter has a default
 value, all following parameters up until the "``*``" must also have a default
 value --- this is a syntactic restriction that is not expressed by the grammar.
 
 **Default parameter values are evaluated when the function definition is
 executed.** This means that the expression is evaluated once, when the function
-is defined, and that that same "pre-computed" value is used for each call.  This
+is defined, and that the same "pre-computed" value is used for each call.  This
 is especially important to understand when a default parameter is a mutable
 object, such as a list or a dictionary: if the function modifies the object
 (e.g. by appending an item to a list), the default value is in effect modified.
@@ -534,6 +551,11 @@ returned or passed around.  Free variables used in the nested function can
 access the local variables of the function containing the def.  See section
 :ref:`naming` for details.
 
+.. seealso::
+
+   :pep:`3107` - Function Annotations
+      The original specification for function annotations.
+
 
 .. _class:
 
@@ -554,7 +576,7 @@ A class definition defines a class object (see section :ref:`types`):
 
 .. productionlist::
    classdef: [`decorators`] "class" `classname` [`inheritance`] ":" `suite`
-   inheritance: "(" [`argument_list` [","] | `comprehension`] ")"
+   inheritance: "(" [`parameter_list`] ")"
    classname: `identifier`
 
 A class definition is an executable statement.  The inheritance list usually

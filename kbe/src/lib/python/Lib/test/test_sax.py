@@ -3,19 +3,23 @@
 
 from xml.sax import make_parser, ContentHandler, \
                     SAXException, SAXReaderNotAvailable, SAXParseException
+import unittest
 try:
     make_parser()
 except SAXReaderNotAvailable:
     # don't try to test this module if we cannot create a parser
-    raise ImportError("no XML parsers available")
+    raise unittest.SkipTest("no XML parsers available")
 from xml.sax.saxutils import XMLGenerator, escape, unescape, quoteattr, \
                              XMLFilterBase
 from xml.sax.expatreader import create_parser
 from xml.sax.handler import feature_namespaces
 from xml.sax.xmlreader import InputSource, AttributesImpl, AttributesNSImpl
-from io import StringIO
+from io import BytesIO, StringIO
+import codecs
+import os.path
+import shutil
+from test import support
 from test.support import findfile, run_unittest
-import unittest
 
 TEST_XMLFILE = findfile("test.xml", subdir="xmltestdata")
 TEST_XMLFILE_OUT = findfile("test.xml.out", subdir="xmltestdata")
@@ -24,6 +28,18 @@ try:
     TEST_XMLFILE_OUT.encode("utf8")
 except UnicodeEncodeError:
     raise unittest.SkipTest("filename is not encodable to utf8")
+
+supports_nonascii_filenames = True
+if not os.path.supports_unicode_filenames:
+    try:
+        support.TESTFN_UNICODE.encode(support.TESTFN_ENCODING)
+    except (UnicodeError, TypeError):
+        # Either the file system encoding is None, or the file name
+        # cannot be encoded in the file system encoding.
+        supports_nonascii_filenames = False
+requires_nonascii_filenames = unittest.skipUnless(
+        supports_nonascii_filenames,
+        'Requires non-ascii filenames support')
 
 ns_uri = "http://www.python.org/xml-ns/saxtest/"
 
@@ -158,31 +174,29 @@ class SaxutilsTest(unittest.TestCase):
 
 # ===== XMLGenerator
 
-start = '<?xml version="1.0" encoding="iso-8859-1"?>\n'
-
-class XmlgenTest(unittest.TestCase):
+class XmlgenTest:
     def test_xmlgen_basic(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result)
         gen.startDocument()
         gen.startElement("doc", {})
         gen.endElement("doc")
         gen.endDocument()
 
-        self.assertEqual(result.getvalue(), start + "<doc></doc>")
+        self.assertEqual(result.getvalue(), self.xml("<doc></doc>"))
 
     def test_xmlgen_basic_empty(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result, short_empty_elements=True)
         gen.startDocument()
         gen.startElement("doc", {})
         gen.endElement("doc")
         gen.endDocument()
 
-        self.assertEqual(result.getvalue(), start + "<doc/>")
+        self.assertEqual(result.getvalue(), self.xml("<doc/>"))
 
     def test_xmlgen_content(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result)
 
         gen.startDocument()
@@ -191,10 +205,10 @@ class XmlgenTest(unittest.TestCase):
         gen.endElement("doc")
         gen.endDocument()
 
-        self.assertEqual(result.getvalue(), start + "<doc>huhei</doc>")
+        self.assertEqual(result.getvalue(), self.xml("<doc>huhei</doc>"))
 
     def test_xmlgen_content_empty(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result, short_empty_elements=True)
 
         gen.startDocument()
@@ -203,10 +217,10 @@ class XmlgenTest(unittest.TestCase):
         gen.endElement("doc")
         gen.endDocument()
 
-        self.assertEqual(result.getvalue(), start + "<doc>huhei</doc>")
+        self.assertEqual(result.getvalue(), self.xml("<doc>huhei</doc>"))
 
     def test_xmlgen_pi(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result)
 
         gen.startDocument()
@@ -215,10 +229,11 @@ class XmlgenTest(unittest.TestCase):
         gen.endElement("doc")
         gen.endDocument()
 
-        self.assertEqual(result.getvalue(), start + "<?test data?><doc></doc>")
+        self.assertEqual(result.getvalue(),
+            self.xml("<?test data?><doc></doc>"))
 
     def test_xmlgen_content_escape(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result)
 
         gen.startDocument()
@@ -228,10 +243,10 @@ class XmlgenTest(unittest.TestCase):
         gen.endDocument()
 
         self.assertEqual(result.getvalue(),
-            start + "<doc>&lt;huhei&amp;</doc>")
+            self.xml("<doc>&lt;huhei&amp;</doc>"))
 
     def test_xmlgen_attr_escape(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result)
 
         gen.startDocument()
@@ -245,13 +260,43 @@ class XmlgenTest(unittest.TestCase):
         gen.endElement("doc")
         gen.endDocument()
 
-        self.assertEqual(result.getvalue(), start +
-            ("<doc a='\"'><e a=\"'\"></e>"
-             "<e a=\"'&quot;\"></e>"
-             "<e a=\"&#10;&#13;&#9;\"></e></doc>"))
+        self.assertEqual(result.getvalue(), self.xml(
+            "<doc a='\"'><e a=\"'\"></e>"
+            "<e a=\"'&quot;\"></e>"
+            "<e a=\"&#10;&#13;&#9;\"></e></doc>"))
+
+    def test_xmlgen_encoding(self):
+        encodings = ('iso-8859-15', 'utf-8', 'utf-8-sig',
+                     'utf-16', 'utf-16be', 'utf-16le',
+                     'utf-32', 'utf-32be', 'utf-32le')
+        for encoding in encodings:
+            result = self.ioclass()
+            gen = XMLGenerator(result, encoding=encoding)
+
+            gen.startDocument()
+            gen.startElement("doc", {"a": '\u20ac'})
+            gen.characters("\u20ac")
+            gen.endElement("doc")
+            gen.endDocument()
+
+            self.assertEqual(result.getvalue(),
+                self.xml('<doc a="\u20ac">\u20ac</doc>', encoding=encoding))
+
+    def test_xmlgen_unencodable(self):
+        result = self.ioclass()
+        gen = XMLGenerator(result, encoding='ascii')
+
+        gen.startDocument()
+        gen.startElement("doc", {"a": '\u20ac'})
+        gen.characters("\u20ac")
+        gen.endElement("doc")
+        gen.endDocument()
+
+        self.assertEqual(result.getvalue(),
+            self.xml('<doc a="&#8364;">&#8364;</doc>', encoding='ascii'))
 
     def test_xmlgen_ignorable(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result)
 
         gen.startDocument()
@@ -260,10 +305,10 @@ class XmlgenTest(unittest.TestCase):
         gen.endElement("doc")
         gen.endDocument()
 
-        self.assertEqual(result.getvalue(), start + "<doc> </doc>")
+        self.assertEqual(result.getvalue(), self.xml("<doc> </doc>"))
 
     def test_xmlgen_ignorable_empty(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result, short_empty_elements=True)
 
         gen.startDocument()
@@ -272,10 +317,10 @@ class XmlgenTest(unittest.TestCase):
         gen.endElement("doc")
         gen.endDocument()
 
-        self.assertEqual(result.getvalue(), start + "<doc> </doc>")
+        self.assertEqual(result.getvalue(), self.xml("<doc> </doc>"))
 
     def test_xmlgen_ns(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result)
 
         gen.startDocument()
@@ -288,12 +333,12 @@ class XmlgenTest(unittest.TestCase):
         gen.endPrefixMapping("ns1")
         gen.endDocument()
 
-        self.assertEqual(result.getvalue(), start + \
-           ('<ns1:doc xmlns:ns1="%s"><udoc></udoc></ns1:doc>' %
+        self.assertEqual(result.getvalue(), self.xml(
+           '<ns1:doc xmlns:ns1="%s"><udoc></udoc></ns1:doc>' %
                                          ns_uri))
 
     def test_xmlgen_ns_empty(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result, short_empty_elements=True)
 
         gen.startDocument()
@@ -306,12 +351,12 @@ class XmlgenTest(unittest.TestCase):
         gen.endPrefixMapping("ns1")
         gen.endDocument()
 
-        self.assertEqual(result.getvalue(), start + \
-           ('<ns1:doc xmlns:ns1="%s"><udoc/></ns1:doc>' %
+        self.assertEqual(result.getvalue(), self.xml(
+           '<ns1:doc xmlns:ns1="%s"><udoc/></ns1:doc>' %
                                          ns_uri))
 
     def test_1463026_1(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result)
 
         gen.startDocument()
@@ -319,10 +364,10 @@ class XmlgenTest(unittest.TestCase):
         gen.endElementNS((None, 'a'), 'a')
         gen.endDocument()
 
-        self.assertEqual(result.getvalue(), start+'<a b="c"></a>')
+        self.assertEqual(result.getvalue(), self.xml('<a b="c"></a>'))
 
     def test_1463026_1_empty(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result, short_empty_elements=True)
 
         gen.startDocument()
@@ -330,10 +375,10 @@ class XmlgenTest(unittest.TestCase):
         gen.endElementNS((None, 'a'), 'a')
         gen.endDocument()
 
-        self.assertEqual(result.getvalue(), start+'<a b="c"/>')
+        self.assertEqual(result.getvalue(), self.xml('<a b="c"/>'))
 
     def test_1463026_2(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result)
 
         gen.startDocument()
@@ -343,10 +388,10 @@ class XmlgenTest(unittest.TestCase):
         gen.endPrefixMapping(None)
         gen.endDocument()
 
-        self.assertEqual(result.getvalue(), start+'<a xmlns="qux"></a>')
+        self.assertEqual(result.getvalue(), self.xml('<a xmlns="qux"></a>'))
 
     def test_1463026_2_empty(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result, short_empty_elements=True)
 
         gen.startDocument()
@@ -356,10 +401,10 @@ class XmlgenTest(unittest.TestCase):
         gen.endPrefixMapping(None)
         gen.endDocument()
 
-        self.assertEqual(result.getvalue(), start+'<a xmlns="qux"/>')
+        self.assertEqual(result.getvalue(), self.xml('<a xmlns="qux"/>'))
 
     def test_1463026_3(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result)
 
         gen.startDocument()
@@ -370,10 +415,10 @@ class XmlgenTest(unittest.TestCase):
         gen.endDocument()
 
         self.assertEqual(result.getvalue(),
-            start+'<my:a xmlns:my="qux" b="c"></my:a>')
+            self.xml('<my:a xmlns:my="qux" b="c"></my:a>'))
 
     def test_1463026_3_empty(self):
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result, short_empty_elements=True)
 
         gen.startDocument()
@@ -384,12 +429,12 @@ class XmlgenTest(unittest.TestCase):
         gen.endDocument()
 
         self.assertEqual(result.getvalue(),
-            start+'<my:a xmlns:my="qux" b="c"/>')
+            self.xml('<my:a xmlns:my="qux" b="c"/>'))
 
     def test_5027_1(self):
         # The xml prefix (as in xml:lang below) is reserved and bound by
         # definition to http://www.w3.org/XML/1998/namespace.  XMLGenerator had
-        # a bug whereby a KeyError is thrown because this namespace is missing
+        # a bug whereby a KeyError is raised because this namespace is missing
         # from a dictionary.
         #
         # This test demonstrates the bug by parsing a document.
@@ -401,13 +446,13 @@ class XmlgenTest(unittest.TestCase):
 
         parser = make_parser()
         parser.setFeature(feature_namespaces, True)
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result)
         parser.setContentHandler(gen)
         parser.parse(test_xml)
 
         self.assertEqual(result.getvalue(),
-                         start + (
+                         self.xml(
                          '<a:g1 xmlns:a="http://example.com/ns">'
                           '<a:g2 xml:lang="en">Hello</a:g2>'
                          '</a:g1>'))
@@ -415,12 +460,12 @@ class XmlgenTest(unittest.TestCase):
     def test_5027_2(self):
         # The xml prefix (as in xml:lang below) is reserved and bound by
         # definition to http://www.w3.org/XML/1998/namespace.  XMLGenerator had
-        # a bug whereby a KeyError is thrown because this namespace is missing
+        # a bug whereby a KeyError is raised because this namespace is missing
         # from a dictionary.
         #
         # This test demonstrates the bug by direct manipulation of the
         # XMLGenerator.
-        result = StringIO()
+        result = self.ioclass()
         gen = XMLGenerator(result)
 
         gen.startDocument()
@@ -435,15 +480,100 @@ class XmlgenTest(unittest.TestCase):
         gen.endDocument()
 
         self.assertEqual(result.getvalue(),
-                         start + (
+                         self.xml(
                          '<a:g1 xmlns:a="http://example.com/ns">'
                           '<a:g2 xml:lang="en">Hello</a:g2>'
                          '</a:g1>'))
 
+    def test_no_close_file(self):
+        result = self.ioclass()
+        def func(out):
+            gen = XMLGenerator(out)
+            gen.startDocument()
+            gen.startElement("doc", {})
+        func(result)
+        self.assertFalse(result.closed)
+
+    def test_xmlgen_fragment(self):
+        result = self.ioclass()
+        gen = XMLGenerator(result)
+
+        # Don't call gen.startDocument()
+        gen.startElement("foo", {"a": "1.0"})
+        gen.characters("Hello")
+        gen.endElement("foo")
+        gen.startElement("bar", {"b": "2.0"})
+        gen.endElement("bar")
+        # Don't call gen.endDocument()
+
+        self.assertEqual(result.getvalue(),
+            self.xml('<foo a="1.0">Hello</foo><bar b="2.0"></bar>')[len(self.xml('')):])
+
+class StringXmlgenTest(XmlgenTest, unittest.TestCase):
+    ioclass = StringIO
+
+    def xml(self, doc, encoding='iso-8859-1'):
+        return '<?xml version="1.0" encoding="%s"?>\n%s' % (encoding, doc)
+
+    test_xmlgen_unencodable = None
+
+class BytesXmlgenTest(XmlgenTest, unittest.TestCase):
+    ioclass = BytesIO
+
+    def xml(self, doc, encoding='iso-8859-1'):
+        return ('<?xml version="1.0" encoding="%s"?>\n%s' %
+                (encoding, doc)).encode(encoding, 'xmlcharrefreplace')
+
+class WriterXmlgenTest(BytesXmlgenTest):
+    class ioclass(list):
+        write = list.append
+        closed = False
+
+        def seekable(self):
+            return True
+
+        def tell(self):
+            # return 0 at start and not 0 after start
+            return len(self)
+
+        def getvalue(self):
+            return b''.join(self)
+
+class StreamWriterXmlgenTest(XmlgenTest, unittest.TestCase):
+    def ioclass(self):
+        raw = BytesIO()
+        writer = codecs.getwriter('ascii')(raw, 'xmlcharrefreplace')
+        writer.getvalue = raw.getvalue
+        return writer
+
+    def xml(self, doc, encoding='iso-8859-1'):
+        return ('<?xml version="1.0" encoding="%s"?>\n%s' %
+                (encoding, doc)).encode('ascii', 'xmlcharrefreplace')
+
+class StreamReaderWriterXmlgenTest(XmlgenTest, unittest.TestCase):
+    fname = support.TESTFN + '-codecs'
+
+    def ioclass(self):
+        writer = codecs.open(self.fname, 'w', encoding='ascii',
+                             errors='xmlcharrefreplace', buffering=0)
+        self.addCleanup(support.unlink, self.fname)
+        writer.getvalue = self.getvalue
+        return writer
+
+    def getvalue(self):
+        with open(self.fname, 'rb') as f:
+            return f.read()
+
+    def xml(self, doc, encoding='iso-8859-1'):
+        return ('<?xml version="1.0" encoding="%s"?>\n%s' %
+                (encoding, doc)).encode('ascii', 'xmlcharrefreplace')
+
+start = b'<?xml version="1.0" encoding="iso-8859-1"?>\n'
+
 
 class XMLFilterBaseTest(unittest.TestCase):
     def test_filter_basic(self):
-        result = StringIO()
+        result = BytesIO()
         gen = XMLGenerator(result)
         filter = XMLFilterBase()
         filter.setContentHandler(gen)
@@ -455,7 +585,7 @@ class XMLFilterBaseTest(unittest.TestCase):
         filter.endElement("doc")
         filter.endDocument()
 
-        self.assertEqual(result.getvalue(), start + "<doc>content </doc>")
+        self.assertEqual(result.getvalue(), start + b"<doc>content </doc>")
 
 # ===========================================================================
 #
@@ -463,7 +593,7 @@ class XMLFilterBaseTest(unittest.TestCase):
 #
 # ===========================================================================
 
-with open(TEST_XMLFILE_OUT) as f:
+with open(TEST_XMLFILE_OUT, 'rb') as f:
     xml_test_out = f.read()
 
 class ExpatReaderTest(XmlTestBase):
@@ -472,12 +602,27 @@ class ExpatReaderTest(XmlTestBase):
 
     def test_expat_file(self):
         parser = create_parser()
-        result = StringIO()
+        result = BytesIO()
         xmlgen = XMLGenerator(result)
 
         parser.setContentHandler(xmlgen)
-        with open(TEST_XMLFILE) as f:
+        with open(TEST_XMLFILE, 'rb') as f:
             parser.parse(f)
+
+        self.assertEqual(result.getvalue(), xml_test_out)
+
+    @requires_nonascii_filenames
+    def test_expat_file_nonascii(self):
+        fname = support.TESTFN_UNICODE
+        shutil.copyfile(TEST_XMLFILE, fname)
+        self.addCleanup(support.unlink, fname)
+
+        parser = create_parser()
+        result = BytesIO()
+        xmlgen = XMLGenerator(result)
+
+        parser.setContentHandler(xmlgen)
+        parser.parse(open(fname))
 
         self.assertEqual(result.getvalue(), xml_test_out)
 
@@ -517,13 +662,13 @@ class ExpatReaderTest(XmlTestBase):
 
         def resolveEntity(self, publicId, systemId):
             inpsrc = InputSource()
-            inpsrc.setByteStream(StringIO("<entity/>"))
+            inpsrc.setByteStream(BytesIO(b"<entity/>"))
             return inpsrc
 
     def test_expat_entityresolver(self):
         parser = create_parser()
         parser.setEntityResolver(self.TestEntityResolver())
-        result = StringIO()
+        result = BytesIO()
         parser.setContentHandler(XMLGenerator(result))
 
         parser.feed('<!DOCTYPE doc [\n')
@@ -533,7 +678,7 @@ class ExpatReaderTest(XmlTestBase):
         parser.close()
 
         self.assertEqual(result.getvalue(), start +
-                         "<doc><entity></entity></doc>")
+                         b"<doc><entity></entity></doc>")
 
     # ===== Attributes support
 
@@ -602,7 +747,7 @@ class ExpatReaderTest(XmlTestBase):
 
     def test_expat_inpsource_filename(self):
         parser = create_parser()
-        result = StringIO()
+        result = BytesIO()
         xmlgen = XMLGenerator(result)
 
         parser.setContentHandler(xmlgen)
@@ -612,7 +757,7 @@ class ExpatReaderTest(XmlTestBase):
 
     def test_expat_inpsource_sysid(self):
         parser = create_parser()
-        result = StringIO()
+        result = BytesIO()
         xmlgen = XMLGenerator(result)
 
         parser.setContentHandler(xmlgen)
@@ -620,14 +765,29 @@ class ExpatReaderTest(XmlTestBase):
 
         self.assertEqual(result.getvalue(), xml_test_out)
 
+    @requires_nonascii_filenames
+    def test_expat_inpsource_sysid_nonascii(self):
+        fname = support.TESTFN_UNICODE
+        shutil.copyfile(TEST_XMLFILE, fname)
+        self.addCleanup(support.unlink, fname)
+
+        parser = create_parser()
+        result = BytesIO()
+        xmlgen = XMLGenerator(result)
+
+        parser.setContentHandler(xmlgen)
+        parser.parse(InputSource(fname))
+
+        self.assertEqual(result.getvalue(), xml_test_out)
+
     def test_expat_inpsource_stream(self):
         parser = create_parser()
-        result = StringIO()
+        result = BytesIO()
         xmlgen = XMLGenerator(result)
 
         parser.setContentHandler(xmlgen)
         inpsrc = InputSource()
-        with open(TEST_XMLFILE) as f:
+        with open(TEST_XMLFILE, 'rb') as f:
             inpsrc.setByteStream(f)
             parser.parse(inpsrc)
 
@@ -636,7 +796,7 @@ class ExpatReaderTest(XmlTestBase):
     # ===== IncrementalParser support
 
     def test_expat_incremental(self):
-        result = StringIO()
+        result = BytesIO()
         xmlgen = XMLGenerator(result)
         parser = create_parser()
         parser.setContentHandler(xmlgen)
@@ -645,10 +805,10 @@ class ExpatReaderTest(XmlTestBase):
         parser.feed("</doc>")
         parser.close()
 
-        self.assertEqual(result.getvalue(), start + "<doc></doc>")
+        self.assertEqual(result.getvalue(), start + b"<doc></doc>")
 
     def test_expat_incremental_reset(self):
-        result = StringIO()
+        result = BytesIO()
         xmlgen = XMLGenerator(result)
         parser = create_parser()
         parser.setContentHandler(xmlgen)
@@ -656,7 +816,7 @@ class ExpatReaderTest(XmlTestBase):
         parser.feed("<doc>")
         parser.feed("text")
 
-        result = StringIO()
+        result = BytesIO()
         xmlgen = XMLGenerator(result)
         parser.setContentHandler(xmlgen)
         parser.reset()
@@ -666,12 +826,12 @@ class ExpatReaderTest(XmlTestBase):
         parser.feed("</doc>")
         parser.close()
 
-        self.assertEqual(result.getvalue(), start + "<doc>text</doc>")
+        self.assertEqual(result.getvalue(), start + b"<doc>text</doc>")
 
     # ===== Locator support
 
     def test_expat_locator_noinfo(self):
-        result = StringIO()
+        result = BytesIO()
         xmlgen = XMLGenerator(result)
         parser = create_parser()
         parser.setContentHandler(xmlgen)
@@ -685,13 +845,28 @@ class ExpatReaderTest(XmlTestBase):
         self.assertEqual(parser.getLineNumber(), 1)
 
     def test_expat_locator_withinfo(self):
-        result = StringIO()
+        result = BytesIO()
         xmlgen = XMLGenerator(result)
         parser = create_parser()
         parser.setContentHandler(xmlgen)
         parser.parse(TEST_XMLFILE)
 
         self.assertEqual(parser.getSystemId(), TEST_XMLFILE)
+        self.assertEqual(parser.getPublicId(), None)
+
+    @requires_nonascii_filenames
+    def test_expat_locator_withinfo_nonascii(self):
+        fname = support.TESTFN_UNICODE
+        shutil.copyfile(TEST_XMLFILE, fname)
+        self.addCleanup(support.unlink, fname)
+
+        result = BytesIO()
+        xmlgen = XMLGenerator(result)
+        parser = create_parser()
+        parser.setContentHandler(xmlgen)
+        parser.parse(fname)
+
+        self.assertEqual(parser.getSystemId(), fname)
         self.assertEqual(parser.getPublicId(), None)
 
 
@@ -706,7 +881,7 @@ class ErrorReportingTest(unittest.TestCase):
         parser = create_parser()
         parser.setContentHandler(ContentHandler()) # do nothing
         source = InputSource()
-        source.setByteStream(StringIO("<foo bar foobar>"))   #ill-formed
+        source.setByteStream(BytesIO(b"<foo bar foobar>"))   #ill-formed
         name = "a file name"
         source.setSystemId(name)
         try:
@@ -797,7 +972,11 @@ class XmlReaderTest(XmlTestBase):
 def test_main():
     run_unittest(MakeParserTest,
                  SaxutilsTest,
-                 XmlgenTest,
+                 StringXmlgenTest,
+                 BytesXmlgenTest,
+                 WriterXmlgenTest,
+                 StreamWriterXmlgenTest,
+                 StreamReaderWriterXmlgenTest,
                  ExpatReaderTest,
                  ErrorReportingTest,
                  XmlReaderTest)

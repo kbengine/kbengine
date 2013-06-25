@@ -469,8 +469,9 @@ PyObject *PyBytes_DecodeEscape(const char *s,
                 break;
             }
             if (!errors || strcmp(errors, "strict") == 0) {
-                PyErr_SetString(PyExc_ValueError,
-                                "invalid \\x escape");
+                PyErr_Format(PyExc_ValueError,
+                             "invalid \\x escape at position %d",
+                              s - 2 - (end - len));
                 goto failed;
             }
             if (strcmp(errors, "replace") == 0) {
@@ -484,6 +485,10 @@ PyObject *PyBytes_DecodeEscape(const char *s,
                              errors);
                 goto failed;
             }
+            /* skip \x */
+            if (s < end && Py_ISXDIGIT(s[0]))
+                s++; /* and a hexdigit */
+            break;
         default:
             *p++ = '\\';
             s--;
@@ -873,16 +878,29 @@ bytes_hash(PyBytesObject *a)
 {
     register Py_ssize_t len;
     register unsigned char *p;
-    register Py_hash_t x;
+    register Py_uhash_t x;  /* Unsigned for defined overflow behavior. */
 
+#ifdef Py_DEBUG
+    assert(_Py_HashSecret_Initialized);
+#endif
     if (a->ob_shash != -1)
         return a->ob_shash;
     len = Py_SIZE(a);
+    /*
+      We make the hash of the empty string be 0, rather than using
+      (prefix ^ suffix), since this slightly obfuscates the hash secret
+    */
+    if (len == 0) {
+        a->ob_shash = 0;
+        return 0;
+    }
     p = (unsigned char *) a->ob_sval;
-    x = *p << 7;
+    x = _Py_HashSecret.prefix;
+    x ^= *p << 7;
     while (--len >= 0)
-        x = (1000003*x) ^ *p++;
+        x = (_PyHASH_MULTIPLIER*x) ^ *p++;
     x ^= Py_SIZE(a);
+    x ^= _Py_HashSecret.suffix;
     if (x == -1)
         x = -2;
     a->ob_shash = x;
@@ -1437,7 +1455,7 @@ PyDoc_STRVAR(strip__doc__,
 "B.strip([bytes]) -> bytes\n\
 \n\
 Strip leading and trailing bytes contained in the argument.\n\
-If the argument is omitted, strip trailing ASCII whitespace.");
+If the argument is omitted, strip leading and trailing ASCII whitespace.");
 static PyObject *
 bytes_strip(PyBytesObject *self, PyObject *args)
 {
@@ -2721,13 +2739,14 @@ PyDoc_STRVAR(bytes_doc,
 "bytes(iterable_of_ints) -> bytes\n\
 bytes(string, encoding[, errors]) -> bytes\n\
 bytes(bytes_or_buffer) -> immutable copy of bytes_or_buffer\n\
-bytes(memory_view) -> bytes\n\
+bytes(int) -> bytes object of size given by the parameter initialized with null bytes\n\
+bytes() -> empty bytes object\n\
 \n\
 Construct an immutable array of bytes from:\n\
   - an iterable yielding integers in range(256)\n\
   - a text string encoded using the specified encoding\n\
-  - a bytes or a buffer object\n\
-  - any object implementing the buffer API.");
+  - any object implementing the buffer API.\n\
+  - an integer");
 
 static PyObject *bytes_iter(PyObject *seq);
 
@@ -2782,8 +2801,7 @@ PyBytes_Concat(register PyObject **pv, register PyObject *w)
     if (*pv == NULL)
         return;
     if (w == NULL) {
-        Py_DECREF(*pv);
-        *pv = NULL;
+        Py_CLEAR(*pv);
         return;
     }
     v = bytes_concat(*pv, w);
@@ -2990,12 +3008,9 @@ void
 PyBytes_Fini(void)
 {
     int i;
-    for (i = 0; i < UCHAR_MAX + 1; i++) {
-        Py_XDECREF(characters[i]);
-        characters[i] = NULL;
-    }
-    Py_XDECREF(nullstring);
-    nullstring = NULL;
+    for (i = 0; i < UCHAR_MAX + 1; i++)
+        Py_CLEAR(characters[i]);
+    Py_CLEAR(nullstring);
 }
 
 /*********************** Bytes Iterator ****************************/

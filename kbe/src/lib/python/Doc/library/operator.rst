@@ -12,11 +12,11 @@
    from operator import itemgetter, iadd
 
 
-The :mod:`operator` module exports a set of functions implemented in C
-corresponding to the intrinsic operators of Python.  For example,
-``operator.add(x, y)`` is equivalent to the expression ``x+y``.  The function
-names are those used for special class methods; variants without leading and
-trailing ``__`` are also provided for convenience.
+The :mod:`operator` module exports a set of efficient functions corresponding to
+the intrinsic operators of Python.  For example, ``operator.add(x, y)`` is
+equivalent to the expression ``x+y``.  The function names are those used for
+special class methods; variants without leading and trailing ``__`` are also
+provided for convenience.
 
 The functions fall into categories that perform object comparisons, logical
 operations, mathematical operations and sequence operations.
@@ -340,7 +340,7 @@ Python syntax and the functions in the :mod:`operator` module.
 +-----------------------+-------------------------+---------------------------------------+
 | Containment Test      | ``obj in seq``          | ``contains(seq, obj)``                |
 +-----------------------+-------------------------+---------------------------------------+
-| Division              | ``a / b``               | ``div(a, b)``                         |
+| Division              | ``a / b``               | ``truediv(a, b)``                     |
 +-----------------------+-------------------------+---------------------------------------+
 | Division              | ``a // b``              | ``floordiv(a, b)``                    |
 +-----------------------+-------------------------+---------------------------------------+
@@ -378,8 +378,6 @@ Python syntax and the functions in the :mod:`operator` module.
 +-----------------------+-------------------------+---------------------------------------+
 | Right Shift           | ``a >> b``              | ``rshift(a, b)``                      |
 +-----------------------+-------------------------+---------------------------------------+
-| Sequence Repetition   | ``seq * i``             | ``repeat(seq, i)``                    |
-+-----------------------+-------------------------+---------------------------------------+
 | Slice Assignment      | ``seq[i:j] = values``   | ``setitem(seq, slice(i, j), values)`` |
 +-----------------------+-------------------------+---------------------------------------+
 | Slice Deletion        | ``del seq[i:j]``        | ``delitem(seq, slice(i, j))``         |
@@ -406,7 +404,7 @@ Python syntax and the functions in the :mod:`operator` module.
 +-----------------------+-------------------------+---------------------------------------+
 
 Inplace Operators
-=================
+-----------------
 
 Many operations have an "in-place" version.  Listed below are functions
 providing a more primitive access to in-place operators than the usual syntax

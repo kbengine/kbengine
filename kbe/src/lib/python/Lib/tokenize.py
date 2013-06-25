@@ -108,7 +108,7 @@ ContStr = group(r"[bB]?[rR]?'[^\n'\\]*(?:\\.[^\n'\\]*)*" +
                 group("'", r'\\\r?\n'),
                 r'[bB]?[rR]?"[^\n"\\]*(?:\\.[^\n"\\]*)*' +
                 group('"', r'\\\r?\n'))
-PseudoExtras = group(r'\\\r?\n', Comment, Triple)
+PseudoExtras = group(r'\\\r?\n|\Z', Comment, Triple)
 PseudoToken = Whitespace + group(PseudoExtras, Number, Funny, ContStr, Name)
 
 def _compile(expr):
@@ -292,9 +292,12 @@ def detect_encoding(readline):
 
     def find_cookie(line):
         try:
-            line_string = line.decode('ascii')
+            # Decode as UTF-8. Either the line is an encoding declaration,
+            # in which case it should be pure ASCII, or it must be UTF-8
+            # per default encoding.
+            line_string = line.decode('utf-8')
         except UnicodeDecodeError:
-            return None
+            raise SyntaxError("invalid or missing encoding declaration")
 
         matches = cookie_re.findall(line_string)
         if not matches:
@@ -307,7 +310,7 @@ def detect_encoding(readline):
             raise SyntaxError("unknown encoding: " + encoding)
 
         if bom_found:
-            if codec.name != 'utf-8':
+            if encoding != 'utf-8':
                 # This behaviour mimics the Python interpreter
                 raise SyntaxError('encoding problem: utf-8')
             encoding += '-sig'
@@ -470,6 +473,8 @@ def _tokenize(readline, encoding):
             if pseudomatch:                                # scan for tokens
                 start, end = pseudomatch.span(1)
                 spos, epos, pos = (lnum, start), (lnum, end), end
+                if start == end:
+                    continue
                 token, initial = line[start:end], line[start]
 
                 if (initial in numchars or                  # ordinary number

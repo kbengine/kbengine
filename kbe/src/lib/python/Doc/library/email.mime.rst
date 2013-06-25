@@ -1,5 +1,5 @@
-:mod:`email`: Creating email and MIME objects from scratch
-----------------------------------------------------------
+:mod:`email.mime`: Creating email and MIME objects from scratch
+---------------------------------------------------------------
 
 .. module:: email.mime
    :synopsis: Build MIME messages.
@@ -116,7 +116,7 @@ Here are the classes:
    this data can be decoded by the standard Python module :mod:`sndhdr`, then the
    subtype will be automatically included in the :mailheader:`Content-Type` header.
    Otherwise you can explicitly specify the audio subtype via the *_subtype*
-   parameter.  If the minor type could not be guessed and *_subtype* was not given,
+   argument.  If the minor type could not be guessed and *_subtype* was not given,
    then :exc:`TypeError` is raised.
 
    Optional *_encoder* is a callable (i.e. function) which will perform the actual
@@ -142,7 +142,7 @@ Here are the classes:
    this data can be decoded by the standard Python module :mod:`imghdr`, then the
    subtype will be automatically included in the :mailheader:`Content-Type` header.
    Otherwise you can explicitly specify the image subtype via the *_subtype*
-   parameter.  If the minor type could not be guessed and *_subtype* was not given,
+   argument.  If the minor type could not be guessed and *_subtype* was not given,
    then :exc:`TypeError` is raised.
 
    Optional *_encoder* is a callable (i.e. function) which will perform the actual
@@ -183,7 +183,17 @@ Here are the classes:
    :class:`MIMEText` class is used to create MIME objects of major type
    :mimetype:`text`. *_text* is the string for the payload.  *_subtype* is the
    minor type and defaults to :mimetype:`plain`.  *_charset* is the character
-   set of the text and is passed as a parameter to the
+   set of the text and is passed as an argument to the
    :class:`~email.mime.nonmultipart.MIMENonMultipart` constructor; it defaults
-   to ``us-ascii``.  No guessing or encoding is performed on the text data.
+   to ``us-ascii``.
+
+   Unless the *_charset* argument is explicitly set to ``None``, the
+   MIMEText object created will have both a :mailheader:`Content-Type` header
+   with a ``charset`` parameter, and a :mailheader:`Content-Transfer-Endcoding`
+   header.  This means that a subsequent ``set_payload`` call will not result
+   in an encoded payload, even if a charset is passed in the ``set_payload``
+   command.  You can "reset" this behavior by deleting the
+   ``Content-Transfer-Encoding`` header, after which a ``set_payload`` call
+   will automatically encode the new payload (and add a new
+   :mailheader:`Content-Transfer-Encoding` header).
 

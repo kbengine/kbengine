@@ -12,17 +12,21 @@
    pair: URL; parsing
    pair: relative; URL
 
+**Source code:** :source:`Lib/urllib/parse.py`
+
+--------------
+
 This module defines a standard interface to break Uniform Resource Locator (URL)
 strings up in components (addressing scheme, network location, path etc.), to
 combine the components back into a URL string, and to convert a "relative URL"
 to an absolute URL given a "base URL."
 
 The module has been designed to match the Internet RFC on Relative Uniform
-Resource Locators (and discovered a bug in an earlier draft!). It supports the
-following URL schemes: ``file``, ``ftp``, ``gopher``, ``hdl``, ``http``,
-``https``, ``imap``, ``mailto``, ``mms``, ``news``, ``nntp``, ``prospero``,
-``rsync``, ``rtsp``, ``rtspu``, ``sftp``, ``shttp``, ``sip``, ``sips``,
-``snews``, ``svn``, ``svn+ssh``, ``telnet``, ``wais``.
+Resource Locators. It supports the following URL schemes: ``file``, ``ftp``,
+``gopher``, ``hdl``, ``http``, ``https``, ``imap``, ``mailto``, ``mms``,
+``news``, ``nntp``, ``prospero``, ``rsync``, ``rtsp``, ``rtspu``, ``sftp``,
+``shttp``, ``sip``, ``sips``, ``snews``, ``svn``, ``svn+ssh``, ``telnet``,
+``wais``.
 
 The :mod:`urllib.parse` module defines functions that fall into two broad
 categories: URL parsing and URL quoting. These are covered in detail in
@@ -65,7 +69,7 @@ or on combining URL components into a URL string.
        >>> urlparse('//www.cwi.nl:80/%7Eguido/Python.html')
        ParseResult(scheme='', netloc='www.cwi.nl:80', path='/%7Eguido/Python.html',
                   params='', query='', fragment='')
-       >>> urlparse('www.cwi.nl:80/%7Eguido/Python.html')
+       >>> urlparse('www.cwi.nl/%7Eguido/Python.html')
        ParseResult(scheme='', netloc='', path='www.cwi.nl:80/%7Eguido/Python.html',
                   params='', query='', fragment='')
        >>> urlparse('help/Python.html')
@@ -508,9 +512,10 @@ task isn't already covered by the URL parsing functions above.
 
    Convert a mapping object or a sequence of two-element tuples, which may
    either be a :class:`str` or a :class:`bytes`,  to a "percent-encoded"
-   string.  The resultant string must be converted to bytes using the
-   user-specified encoding before it is sent to :func:`urlopen` as the optional
-   *data* argument.
+   string.  If the resultant string is to be used as a *data* for POST
+   operation with :func:`urlopen` function, then it should be properly encoded
+   to bytes, otherwise it would result in a :exc:`TypeError`.
+
    The resulting string is a series of ``key=value`` pairs separated by ``'&'``
    characters, where both *key* and *value* are quoted using :func:`quote_plus`
    above. When a sequence of two-element tuples is used as the *query*

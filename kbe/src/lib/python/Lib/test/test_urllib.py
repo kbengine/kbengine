@@ -12,6 +12,9 @@ import os
 import sys
 import tempfile
 
+from base64 import b64encode
+import collections
+
 def hexescape(char):
     """Escape char as RFC 2396 specifies"""
     hex_repr = hex(ord(char))[2:].upper()
@@ -35,6 +38,49 @@ def urlopen(url, data=None, proxies=None):
         return opener.open(url)
     else:
         return opener.open(url, data)
+
+
+class FakeHTTPMixin(object):
+    def fakehttp(self, fakedata):
+        class FakeSocket(io.BytesIO):
+            io_refs = 1
+
+            def sendall(self, data):
+                FakeHTTPConnection.buf = data
+
+            def makefile(self, *args, **kwds):
+                self.io_refs += 1
+                return self
+
+            def read(self, amt=None):
+                if self.closed:
+                    return b""
+                return io.BytesIO.read(self, amt)
+
+            def readline(self, length=None):
+                if self.closed:
+                    return b""
+                return io.BytesIO.readline(self, length)
+
+            def close(self):
+                self.io_refs -= 1
+                if self.io_refs == 0:
+                    io.BytesIO.close(self)
+
+        class FakeHTTPConnection(http.client.HTTPConnection):
+
+            # buffer to store data for verification in urlopen tests.
+            buf = None
+
+            def connect(self):
+                self.sock = FakeSocket(fakedata)
+
+        self._connection_class = http.client.HTTPConnection
+        http.client.HTTPConnection = FakeHTTPConnection
+
+    def unfakehttp(self):
+        http.client.HTTPConnection = self._connection_class
+
 
 class urlopen_FileTests(unittest.TestCase):
     """Test urlopen() opening a temporary file.
@@ -115,6 +161,9 @@ class urlopen_FileTests(unittest.TestCase):
         for line in self.returned_obj:
             self.assertEqual(line, self.text)
 
+    def test_relativelocalfile(self):
+        self.assertRaises(ValueError,urllib.request.urlopen,'./' + self.pathname)
+
 class ProxyTests(unittest.TestCase):
 
     def setUp(self):
@@ -139,34 +188,8 @@ class ProxyTests(unittest.TestCase):
         self.env.set('NO_PROXY', 'localhost, anotherdomain.com, newdomain.com')
         self.assertTrue(urllib.request.proxy_bypass_environment('anotherdomain.com'))
 
-class urlopen_HttpTests(unittest.TestCase):
+class urlopen_HttpTests(unittest.TestCase, FakeHTTPMixin):
     """Test urlopen() opening a fake http connection."""
-
-    def fakehttp(self, fakedata):
-        class FakeSocket(io.BytesIO):
-            io_refs = 1
-            def sendall(self, str): pass
-            def makefile(self, *args, **kwds):
-                self.io_refs += 1
-                return self
-            def read(self, amt=None):
-                if self.closed: return b""
-                return io.BytesIO.read(self, amt)
-            def readline(self, length=None):
-                if self.closed: return b""
-                return io.BytesIO.readline(self, length)
-            def close(self):
-                self.io_refs -= 1
-                if self.io_refs == 0:
-                    io.BytesIO.close(self)
-        class FakeHTTPConnection(http.client.HTTPConnection):
-            def connect(self):
-                self.sock = FakeSocket(fakedata)
-        self._connection_class = http.client.HTTPConnection
-        http.client.HTTPConnection = FakeHTTPConnection
-
-    def unfakehttp(self):
-        http.client.HTTPConnection = self._connection_class
 
     def check_read(self, ver):
         self.fakehttp(b"HTTP/" + ver + b" 200 OK\r\n\r\nHello!")
@@ -245,6 +268,41 @@ Content-Type: text/html; charset=iso-8859-1
         finally:
             self.unfakehttp()
 
+    def test_missing_localfile(self):
+        # Test for #10836
+        with self.assertRaises(urllib.error.URLError) as e:
+            urlopen('file://localhost/a/file/which/doesnot/exists.py')
+        self.assertTrue(e.exception.filename)
+        self.assertTrue(e.exception.reason)
+
+    def test_file_notexists(self):
+        fd, tmp_file = tempfile.mkstemp()
+        tmp_fileurl = 'file://localhost/' + tmp_file.replace(os.path.sep, '/')
+        try:
+            self.assertTrue(os.path.exists(tmp_file))
+            with urlopen(tmp_fileurl) as fobj:
+                self.assertTrue(fobj)
+        finally:
+            os.close(fd)
+            os.unlink(tmp_file)
+        self.assertFalse(os.path.exists(tmp_file))
+        with self.assertRaises(urllib.error.URLError):
+            urlopen(tmp_fileurl)
+
+    def test_ftp_nohost(self):
+        test_ftp_url = 'ftp:///path'
+        with self.assertRaises(urllib.error.URLError) as e:
+            urlopen(test_ftp_url)
+        self.assertFalse(e.exception.filename)
+        self.assertTrue(e.exception.reason)
+
+    def test_ftp_nonexisting(self):
+        with self.assertRaises(urllib.error.URLError) as e:
+            urlopen('ftp://localhost/a/file/which/doesnot/exists.py')
+        self.assertFalse(e.exception.filename)
+        self.assertTrue(e.exception.reason)
+
+
     def test_userpass_inurl(self):
         self.fakehttp(b"HTTP/1.0 200 OK\r\n\r\nHello!")
         try:
@@ -252,6 +310,25 @@ Content-Type: text/html; charset=iso-8859-1
             self.assertEqual(fp.readline(), b"Hello!")
             self.assertEqual(fp.readline(), b"")
             self.assertEqual(fp.geturl(), 'http://user:pass@python.org/')
+            self.assertEqual(fp.getcode(), 200)
+        finally:
+            self.unfakehttp()
+
+    def test_userpass_inurl_w_spaces(self):
+        self.fakehttp(b"HTTP/1.0 200 OK\r\n\r\nHello!")
+        try:
+            userpass = "a b:c d"
+            url = "http://{}@python.org/".format(userpass)
+            fakehttp_wrapper = http.client.HTTPConnection
+            authorization = ("Authorization: Basic %s\r\n" %
+                             b64encode(userpass.encode("ASCII")).decode("ASCII"))
+            fp = urlopen(url)
+            # The authorization header must be in place
+            self.assertIn(authorization, fakehttp_wrapper.buf.decode("UTF-8"))
+            self.assertEqual(fp.readline(), b"Hello!")
+            self.assertEqual(fp.readline(), b"")
+            # the spaces are quoted in URL so no match
+            self.assertNotEqual(fp.geturl(), url)
             self.assertEqual(fp.getcode(), 200)
         finally:
             self.unfakehttp()
@@ -394,6 +471,48 @@ class urlretrieve_FileTests(unittest.TestCase):
         self.assertEqual(report[0][1], 8192)
         self.assertEqual(report[0][2], 8193)
 
+
+class urlretrieve_HttpTests(unittest.TestCase, FakeHTTPMixin):
+    """Test urllib.urlretrieve() using fake http connections"""
+
+    def test_short_content_raises_ContentTooShortError(self):
+        self.fakehttp(b'''HTTP/1.1 200 OK
+Date: Wed, 02 Jan 2008 03:03:54 GMT
+Server: Apache/1.3.33 (Debian GNU/Linux) mod_ssl/2.8.22 OpenSSL/0.9.7e
+Connection: close
+Content-Length: 100
+Content-Type: text/html; charset=iso-8859-1
+
+FF
+''')
+
+        def _reporthook(par1, par2, par3):
+            pass
+
+        with self.assertRaises(urllib.error.ContentTooShortError):
+            try:
+                urllib.request.urlretrieve('http://example.com/',
+                                           reporthook=_reporthook)
+            finally:
+                self.unfakehttp()
+
+    def test_short_content_raises_ContentTooShortError_without_reporthook(self):
+        self.fakehttp(b'''HTTP/1.1 200 OK
+Date: Wed, 02 Jan 2008 03:03:54 GMT
+Server: Apache/1.3.33 (Debian GNU/Linux) mod_ssl/2.8.22 OpenSSL/0.9.7e
+Connection: close
+Content-Length: 100
+Content-Type: text/html; charset=iso-8859-1
+
+FF
+''')
+        with self.assertRaises(urllib.error.ContentTooShortError):
+            try:
+                urllib.request.urlretrieve('http://example.com/')
+            finally:
+                self.unfakehttp()
+
+
 class QuotingTests(unittest.TestCase):
     """Tests for urllib.quote() and urllib.quote_plus()
 
@@ -490,6 +609,7 @@ class QuotingTests(unittest.TestCase):
         result = urllib.parse.quote(partial_quote)
         self.assertEqual(expected, result,
                          "using quote(): %r != %r" % (expected, result))
+        result = urllib.parse.quote_plus(partial_quote)
         self.assertEqual(expected, result,
                          "using quote_plus(): %r != %r" % (expected, result))
 
@@ -869,8 +989,9 @@ class urlencode_Tests(unittest.TestCase):
         self.assertEqual("a=1&a=2", urllib.parse.urlencode({"a": [1, 2]}, True))
         self.assertEqual("a=None&a=a",
                          urllib.parse.urlencode({"a": [None, "a"]}, True))
+        data = collections.OrderedDict([("a", 1), ("b", 1)])
         self.assertEqual("a=a&a=b",
-                         urllib.parse.urlencode({"a": {"a": 1, "b": 1}}, True))
+                         urllib.parse.urlencode({"a": data}, True))
 
     def test_urlencode_encoding(self):
         # ASCII encoding. Expect %3F with errors="replace'
@@ -1056,6 +1177,13 @@ class Utility_Tests(unittest.TestCase):
         self.assertEqual(('user', 'a\fb'),urllib.parse.splitpasswd('user:a\fb'))
         self.assertEqual(('user', 'a\vb'),urllib.parse.splitpasswd('user:a\vb'))
         self.assertEqual(('user', 'a:b'),urllib.parse.splitpasswd('user:a:b'))
+        self.assertEqual(('user', 'a b'),urllib.parse.splitpasswd('user:a b'))
+        self.assertEqual(('user 2', 'ab'),urllib.parse.splitpasswd('user 2:ab'))
+        self.assertEqual(('user+1', 'a+b'),urllib.parse.splitpasswd('user+1:a+b'))
+
+    def test_thishost(self):
+        """Test the urllib.request.thishost utility function returns a tuple"""
+        self.assertIsInstance(urllib.request.thishost(), tuple)
 
 
 class URLopener_Tests(unittest.TestCase):
@@ -1159,6 +1287,7 @@ def test_main():
         urlopen_FileTests,
         urlopen_HttpTests,
         urlretrieve_FileTests,
+        urlretrieve_HttpTests,
         ProxyTests,
         QuotingTests,
         UnquotingTests,

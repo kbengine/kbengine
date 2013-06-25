@@ -816,11 +816,7 @@ static int obj2ast_int(PyObject* obj, int* out, PyArena* arena)
 {
     int i;
     if (!PyLong_Check(obj)) {
-        PyObject *s = PyObject_Repr(obj);
-        if (s == NULL) return 1;
-        PyErr_Format(PyExc_ValueError, "invalid integer value: %.400s",
-                     PyBytes_AS_STRING(s));
-        Py_DECREF(s);
+        PyErr_Format(PyExc_ValueError, "invalid integer value: %R", obj);
         return 1;
     }
 
@@ -1014,7 +1010,7 @@ class ObjVisitor(PickleVisitor):
             self.emit("case %s:" % t.name, 2)
             self.emit("Py_INCREF(%s_singleton);" % t.name, 3)
             self.emit("return %s_singleton;" % t.name, 3)
-        self.emit("default:" % name, 2)
+        self.emit("default:", 2)
         self.emit('/* should never happen, but just in case ... */', 3)
         code = "PyErr_Format(PyExc_SystemError, \"unknown %s found\");" % name
         self.emit(code, 3, reflow=False)

@@ -635,6 +635,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\Include\accu.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Include\asdl.h"
 				>
 			</File>
@@ -1447,6 +1451,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\Objects\accu.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Objects\boolobject.c"
 				>
 			</File>
@@ -1872,6 +1880,10 @@
 			</File>
 			<File
 				RelativePath="..\..\Python\pythonrun.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Python\random.c"
 				>
 			</File>
 			<File

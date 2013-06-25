@@ -1184,7 +1184,7 @@ prepare_s(PyStructObject *self)
     size = 0;
     len = 0;
     while ((c = *s++) != '\0') {
-        if (isspace(Py_CHARMASK(c)))
+        if (Py_ISSPACE(Py_CHARMASK(c)))
             continue;
         if ('0' <= c && c <= '9') {
             num = c - '0';
@@ -1249,7 +1249,7 @@ prepare_s(PyStructObject *self)
     s = fmt;
     size = 0;
     while ((c = *s++) != '\0') {
-        if (isspace(Py_CHARMASK(c)))
+        if (Py_ISSPACE(Py_CHARMASK(c)))
             continue;
         if ('0' <= c && c <= '9') {
             num = c - '0';
@@ -1575,7 +1575,7 @@ s_pack(PyObject *self, PyObject *args)
     if (PyTuple_GET_SIZE(args) != soself->s_len)
     {
         PyErr_Format(StructError,
-            "pack requires exactly %zd arguments", soself->s_len);
+            "pack expected %zd items for packing (got %zd)", soself->s_len, PyTuple_GET_SIZE(args));
         return NULL;
     }
 
@@ -1614,9 +1614,19 @@ s_pack_into(PyObject *self, PyObject *args)
     assert(soself->s_codes != NULL);
     if (PyTuple_GET_SIZE(args) != (soself->s_len + 2))
     {
-        PyErr_Format(StructError,
-                     "pack_into requires exactly %zd arguments",
-                     (soself->s_len + 2));
+        if (PyTuple_GET_SIZE(args) == 0) {
+            PyErr_Format(StructError,
+                        "pack_into expected buffer argument");
+        }
+        else if (PyTuple_GET_SIZE(args) == 1) {
+            PyErr_Format(StructError,
+                        "pack_into expected offset argument");
+        }
+        else {
+            PyErr_Format(StructError,
+                        "pack_into expected %zd items for packing (got %zd)",
+                        soself->s_len, (PyTuple_GET_SIZE(args) - 2));
+        }
         return NULL;
     }
 
@@ -1665,6 +1675,18 @@ s_get_size(PyStructObject *self, void *unused)
     return PyLong_FromSsize_t(self->s_size);
 }
 
+PyDoc_STRVAR(s_sizeof__doc__,
+"S.__sizeof__() -> size of S in memory, in bytes");
+
+static PyObject *
+s_sizeof(PyStructObject *self, void *unused)
+{
+    Py_ssize_t size;
+
+    size = sizeof(PyStructObject) + sizeof(formatcode) * (self->s_len + 1);
+    return PyLong_FromSsize_t(size);
+}
+
 /* List of functions */
 
 static struct PyMethodDef s_methods[] = {
@@ -1673,6 +1695,7 @@ static struct PyMethodDef s_methods[] = {
     {"unpack",          s_unpack,       METH_O, s_unpack__doc__},
     {"unpack_from",     (PyCFunction)s_unpack_from, METH_VARARGS|METH_KEYWORDS,
                     s_unpack_from__doc__},
+    {"__sizeof__",      (PyCFunction)s_sizeof, METH_NOARGS, s_sizeof__doc__},
     {NULL,       NULL}          /* sentinel */
 };
 

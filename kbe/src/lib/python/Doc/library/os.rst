@@ -29,11 +29,6 @@ Notes on the availability of these functions:
   objects, and result in an object of the same type, if a path or file name is
   returned.
 
-.. note::
-
-   If not separately noted, all functions that claim "Availability: Unix" are
-   supported on Mac OS X, which builds on a Unix core.
-
 * An "Availability: Unix" note means that this function is commonly found on
   Unix systems.  It does not make any claims about its existence on a specific
   operating system.
@@ -103,7 +98,7 @@ process and user.
 
 .. data:: environ
 
-   A mapping object representing the string environment. For example,
+   A :term:`mapping` object representing the string environment. For example,
    ``environ['HOME']`` is the pathname of your home directory (on some platforms),
    and is equivalent to ``getenv("HOME")`` in C.
 
@@ -143,7 +138,7 @@ process and user.
 
 .. data:: environb
 
-   Bytes version of :data:`environ`: a mapping object representing the
+   Bytes version of :data:`environ`: a :term:`mapping` object representing the
    environment as byte strings. :data:`environ` and :data:`environb` are
    synchronized (modify :data:`environb` updates :data:`environ`, and vice
    versa).
@@ -231,6 +226,20 @@ process and user.
    Return list of supplemental group ids associated with the current process.
 
    Availability: Unix.
+
+   .. note:: On Mac OS X, :func:`getgroups` behavior differs somewhat from
+      other Unix platforms. If the Python interpreter was built with a
+      deployment target of :const:`10.5` or earlier, :func:`getgroups` returns
+      the list of effective group ids associated with the current user process;
+      this list is limited to a system-defined number of entries, typically 16,
+      and may be modified by calls to :func:`setgroups` if suitably privileged.
+      If built with a deployment target greater than :const:`10.5`,
+      :func:`getgroups` returns the current group access list for the user
+      associated with the effective user id of the process; the group access
+      list may change over the lifetime of the process, it is not affected by
+      calls to :func:`setgroups`, and its length is not limited to 16.  The
+      deployment target value, :const:`MACOSX_DEPLOYMENT_TARGET`, can be
+      obtained with :func:`sysconfig.get_config_var`.
 
 
 .. function:: initgroups(username, gid)
@@ -394,6 +403,10 @@ process and user.
 
    Availability: Unix.
 
+   .. note:: On Mac OS X, the length of *groups* may not exceed the
+      system-defined maximum number of effective group ids, typically 16.
+      See the documentation for :func:`getgroups` for cases where it may not
+      return the same group list set by calling setgroups().
 
 .. function:: setpgrp()
 
@@ -532,22 +545,12 @@ File Object Creation
 These functions create new :term:`file objects <file object>`. (See also :func:`open`.)
 
 
-.. function:: fdopen(fd[, mode[, bufsize]])
+.. function:: fdopen(fd, *args, **kwargs)
 
-   .. index:: single: I/O control; buffering
-
-   Return an open file object connected to the file descriptor *fd*.  The *mode*
-   and *bufsize* arguments have the same meaning as the corresponding arguments to
-   the built-in :func:`open` function.
-
-   When specified, the *mode* argument must start with one of the letters
-   ``'r'``, ``'w'``, or ``'a'``, otherwise a :exc:`ValueError` is raised.
-
-   On Unix, when the *mode* argument starts with ``'a'``, the *O_APPEND* flag is
-   set on the file descriptor (which the :c:func:`fdopen` implementation already
-   does on most platforms).
-
-   Availability: Unix, Windows.
+   Return an open file object connected to the file descriptor *fd*.
+   This is an alias of :func:`open` and accepts the same arguments.
+   The only difference is that the first argument of :func:`fdopen`
+   must always be an integer.
 
 
 .. _os-fd-ops:
@@ -711,7 +714,7 @@ as internal buffering of data.
    by *how*: :const:`SEEK_SET` or ``0`` to set the position relative to the
    beginning of the file; :const:`SEEK_CUR` or ``1`` to set it relative to the
    current position; :const:`os.SEEK_END` or ``2`` to set it relative to the end of
-   the file.
+   the file. Return the new cursor position in bytes, starting from the beginning.
 
    Availability: Unix, Windows.
 
@@ -915,7 +918,7 @@ Files and Directories
          try:
              fp = open("myfile")
          except IOError as e:
-             if e.errno == errno.EACCESS:
+             if e.errno == errno.EACCES:
                  return "some default data"
              # Not a permission error.
              raise
@@ -1132,7 +1135,7 @@ Files and Directories
    Availability: Unix.
 
 
-.. function:: mknod(filename[, mode=0o600[, device]])
+.. function:: mknod(filename[, mode=0o600[, device=0]])
 
    Create a filesystem node (file, device special file or named pipe) named
    *filename*. *mode* specifies both the permissions to use and the type of node
@@ -1180,18 +1183,21 @@ Files and Directories
       single: UNC paths; and os.makedirs()
 
    Recursive directory creation function.  Like :func:`mkdir`, but makes all
-   intermediate-level directories needed to contain the leaf directory.  If
-   the target directory with the same mode as specified already exists,
-   raises an :exc:`OSError` exception if *exist_ok* is False, otherwise no
-   exception is raised.  If the directory cannot be created in other cases,
-   raises an :exc:`OSError` exception.  The default *mode* is ``0o777`` (octal).
-   On some systems, *mode* is ignored.  Where it is used, the current umask
-   value is first masked out.
+   intermediate-level directories needed to contain the leaf directory.
+
+   The default *mode* is ``0o777`` (octal).  On some systems, *mode* is
+   ignored.  Where it is used, the current umask value is first masked out.
+
+   If *exists_ok* is ``False`` (the default), an :exc:`OSError` is raised if
+   the target directory already exists.  If *exists_ok* is ``True`` an
+   :exc:`OSError` is still raised if the umask-masked *mode* is different from
+   the existing mode, on systems where the mode is used.  :exc:`OSError` will
+   also be raised if the directory creation fails.
 
    .. note::
 
       :func:`makedirs` will become confused if the path elements to create
-      include :data:`pardir`.
+      include :data:`pardir` (eg. ".." on UNIX systems).
 
    This function handles UNC paths correctly.
 
@@ -1434,11 +1440,9 @@ Files and Directories
    *target_is_directory*, which defaults to ``False``.
 
    On Windows, a symlink represents a file or a directory, and does not morph to
-   the target dynamically.  For this reason, when creating a symlink on Windows,
-   if the target is not already present, the symlink will default to being a
-   file symlink.  If *target_is_directory* is set to ``True``, the symlink will
-   be created as a directory symlink.  This parameter is ignored if the target
-   exists (and the symlink is created with the same type as the target).
+   the target dynamically.  If *target_is_directory* is set to ``True``, the
+   symlink will be created as a directory symlink, otherwise as a file symlink
+   (the default).
 
    Symbolic link support was introduced in Windows 6.0 (Vista).  :func:`symlink`
    will raise a :exc:`NotImplementedError` on Windows versions earlier than 6.0.
@@ -1450,7 +1454,6 @@ Files and Directories
       users but is available to accounts which can escalate privileges to the
       administrator level. Either obtaining the privilege or running your
       application as an administrator are ways to successfully create symlinks.
-
 
       :exc:`OSError` is raised when the function is called by an unprivileged
       user.
@@ -1519,7 +1522,7 @@ Files and Directories
    ineffective, because in bottom-up mode the directories in *dirnames* are
    generated before *dirpath* itself is generated.
 
-   By default errors from the :func:`listdir` call are ignored.  If optional
+   By default, errors from the :func:`listdir` call are ignored.  If optional
    argument *onerror* is specified, it should be a function; it will be called with
    one argument, an :exc:`OSError` instance.  It can report the error to continue
    with the walk, or raise the exception to abort the walk.  Note that the filename
@@ -2072,7 +2075,7 @@ written in Python, such as a mail server's external command delivery program.
    with :const:`P_NOWAIT` return suitable process handles.
 
 
-.. function:: wait3([options])
+.. function:: wait3(options)
 
    Similar to :func:`waitpid`, except no process id argument is given and a
    3-element tuple containing the child's process id, exit status indication, and

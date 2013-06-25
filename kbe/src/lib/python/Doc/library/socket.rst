@@ -47,7 +47,7 @@ Socket addresses are represented as follows:
 - A pair ``(host, port)`` is used for the :const:`AF_INET` address family,
   where *host* is a string representing either a hostname in Internet domain
   notation like ``'daring.cwi.nl'`` or an IPv4 address like ``'100.50.200.5'``,
-  and *port* is an integral port number.
+  and *port* is an integer.
 
 - For :const:`AF_INET6` address family, a four-tuple ``(host, port, flowinfo,
   scopeid)`` is used, where *flowinfo* and *scopeid* represent the ``sin6_flowinfo``
@@ -64,20 +64,20 @@ Socket addresses are represented as follows:
   tuple, and the fields depend on the address type. The general tuple form is
   ``(addr_type, v1, v2, v3 [, scope])``, where:
 
-  - *addr_type* is one of TIPC_ADDR_NAMESEQ, TIPC_ADDR_NAME, or
-    TIPC_ADDR_ID.
-  - *scope* is one of TIPC_ZONE_SCOPE, TIPC_CLUSTER_SCOPE, and
-    TIPC_NODE_SCOPE.
-  - If *addr_type* is TIPC_ADDR_NAME, then *v1* is the server type, *v2* is
+  - *addr_type* is one of :const:`TIPC_ADDR_NAMESEQ`, :const:`TIPC_ADDR_NAME`,
+    or :const:`TIPC_ADDR_ID`.
+  - *scope* is one of :const:`TIPC_ZONE_SCOPE`, :const:`TIPC_CLUSTER_SCOPE`, and
+    :const:`TIPC_NODE_SCOPE`.
+  - If *addr_type* is :const:`TIPC_ADDR_NAME`, then *v1* is the server type, *v2* is
     the port identifier, and *v3* should be 0.
 
-    If *addr_type* is TIPC_ADDR_NAMESEQ, then *v1* is the server type, *v2*
+    If *addr_type* is :const:`TIPC_ADDR_NAMESEQ`, then *v1* is the server type, *v2*
     is the lower port number, and *v3* is the upper port number.
 
-    If *addr_type* is TIPC_ADDR_ID, then *v1* is the node, *v2* is the
+    If *addr_type* is :const:`TIPC_ADDR_ID`, then *v1* is the node, *v2* is the
     reference, and *v3* should be set to 0.
 
-    If *addr_type* is TIPC_ADDR_ID, then *v1* is the node, *v2* is the
+    If *addr_type* is :const:`TIPC_ADDR_ID`, then *v1* is the node, *v2* is the
     reference, and *v3* should be set to 0.
 
 - Certain other address families (:const:`AF_BLUETOOTH`, :const:`AF_PACKET`)
@@ -236,10 +236,17 @@ The module :mod:`socket` exports the following constants and functions:
 
 .. function:: create_connection(address[, timeout[, source_address]])
 
-   Convenience function.  Connect to *address* (a 2-tuple ``(host, port)``),
-   and return the socket object.  Passing the optional *timeout* parameter will
-   set the timeout on the socket instance before attempting to connect.  If no
-   *timeout* is supplied, the global default timeout setting returned by
+   Connect to a TCP service listening on the Internet *address* (a 2-tuple
+   ``(host, port)``), and return the socket object.  This is a higher-level
+   function than :meth:`socket.connect`: if *host* is a non-numeric hostname,
+   it will try to resolve it for both :data:`AF_INET` and :data:`AF_INET6`,
+   and then try to connect to all possible addresses in turn until a
+   connection succeeds.  This makes it easy to write clients that are
+   compatible to both IPv4 and IPv6.
+
+   Passing the optional *timeout* parameter will set the timeout on the
+   socket instance before attempting to connect.  If no *timeout* is
+   supplied, the global default timeout setting returned by
    :func:`getdefaulttimeout` is used.
 
    If supplied, *source_address* must be a 2-tuple ``(host, port)`` for the
@@ -724,7 +731,8 @@ correspond to Unix system calls applicable to sockets.
    optional *flags* argument has the same meaning as for :meth:`recv` above.
    Returns the number of bytes sent. Applications are responsible for checking that
    all data has been sent; if only some of the data was transmitted, the
-   application needs to attempt delivery of the remaining data.
+   application needs to attempt delivery of the remaining data. For further
+   information on this topic, consult the :ref:`socket-howto`.
 
 
 .. method:: socket.sendall(bytes[, flags])
@@ -737,7 +745,8 @@ correspond to Unix system calls applicable to sockets.
    much data, if any, was successfully sent.
 
 
-.. method:: socket.sendto(bytes[, flags], address)
+.. method:: socket.sendto(bytes, address)
+            socket.sendto(bytes, flags, address)
 
    Send data to the socket.  The socket should not be connected to a remote socket,
    since the destination socket is specified by *address*.  The optional *flags*
@@ -879,8 +888,8 @@ using it.  Note that a server must perform the sequence :func:`socket`,
 :meth:`~socket.bind`, :meth:`~socket.listen`, :meth:`~socket.accept` (possibly
 repeating the :meth:`~socket.accept` to service more than one client), while a
 client only needs the sequence :func:`socket`, :meth:`~socket.connect`.  Also
-note that the server does not :meth:`~socket.send`/:meth:`~socket.recv` on the
-socket it is listening on but on the new socket returned by
+note that the server does not :meth:`~socket.sendall`/:meth:`~socket.recv` on
+the socket it is listening on but on the new socket returned by
 :meth:`~socket.accept`.
 
 The first two examples support IPv4 only. ::
@@ -898,7 +907,7 @@ The first two examples support IPv4 only. ::
    while True:
        data = conn.recv(1024)
        if not data: break
-       conn.send(data)
+       conn.sendall(data)
    conn.close()
 
 ::
@@ -910,7 +919,7 @@ The first two examples support IPv4 only. ::
    PORT = 50007              # The same port as used by the server
    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
    s.connect((HOST, PORT))
-   s.send(b'Hello, world')
+   s.sendall(b'Hello, world')
    data = s.recv(1024)
    s.close()
    print('Received', repr(data))
@@ -982,7 +991,7 @@ sends traffic to the first one connected successfully. ::
    if s is None:
        print('could not open socket')
        sys.exit(1)
-   s.send(b'Hello, world')
+   s.sendall(b'Hello, world')
    data = s.recv(1024)
    s.close()
    print('Received', repr(data))

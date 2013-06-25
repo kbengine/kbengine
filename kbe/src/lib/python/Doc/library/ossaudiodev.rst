@@ -63,7 +63,8 @@ the standard audio interface for Linux and recent versions of FreeBSD.
    ``ossaudiodev.error``.)
 
 
-.. function:: open([device, ]mode)
+.. function:: open(mode)
+              open(device, mode)
 
    Open an audio device and return an OSS audio device object.  This object
    supports many file-like methods, such as :meth:`read`, :meth:`write`, and
@@ -277,7 +278,7 @@ The following convenience methods combine several ioctls, or one ioctl and some
 simple calculations.
 
 
-.. method:: oss_audio_device.setparameters(format, nchannels, samplerate [, strict=False])
+.. method:: oss_audio_device.setparameters(format, nchannels, samplerate[, strict=False])
 
    Set the key audio sampling parameters---sample format, number of channels, and
    sampling rate---in one method call.  *format*,  *nchannels*, and *samplerate*

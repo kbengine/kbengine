@@ -9,7 +9,6 @@ import time
 import base64
 import difflib
 import unittest
-import warnings
 import textwrap
 
 from io import StringIO, BytesIO
@@ -20,7 +19,7 @@ import email
 from email.charset import Charset
 from email.header import Header, decode_header, make_header
 from email.parser import Parser, HeaderParser
-from email.generator import Generator, DecodedGenerator
+from email.generator import Generator, DecodedGenerator, BytesGenerator
 from email.message import Message
 from email.mime.application import MIMEApplication
 from email.mime.audio import MIMEAudio
@@ -38,6 +37,10 @@ from email import quoprimime
 
 from test.support import findfile, run_unittest, unlink
 from email.test import __file__ as landmark
+
+# These imports are documented to work, but we are testing them using a
+# different path, so we import them here just to make sure they are importable.
+from email.parser import FeedParser, BytesFeedParser
 
 
 NL = '\n'
@@ -68,6 +71,7 @@ class TestEmailBase(unittest.TestCase):
         with openfile(findfile(filename)) as fp:
             return email.message_from_file(fp)
 
+    maxDiff = None
 
 
 # Test various aspects of the Message class's API
@@ -619,6 +623,19 @@ class TestMessageAPI(TestEmailBase):
         msg['Dummy'] = 'dummy\nX-Injected-Header: test'
         self.assertRaises(errors.HeaderParseError, msg.as_string)
 
+    def test_unicode_header_defaults_to_utf8_encoding(self):
+        # Issue 14291
+        m = MIMEText('abc\n')
+        m['Subject'] = 'É test'
+        self.assertEqual(str(m),textwrap.dedent("""\
+            Content-Type: text/plain; charset="us-ascii"
+            MIME-Version: 1.0
+            Content-Transfer-Encoding: 7bit
+            Subject: =?utf-8?q?=C3=89_test?=
+
+            abc
+            """))
+
 # Test the email.encoders module
 class TestEncoders(unittest.TestCase):
 
@@ -656,6 +673,27 @@ class TestEncoders(unittest.TestCase):
         eq = self.assertEqual
         msg = MIMEText('文', _charset='euc-jp')
         eq(msg['content-transfer-encoding'], '7bit')
+
+    def test_qp_encode_latin1(self):
+        msg = MIMEText('\xe1\xf6\n', 'text', 'ISO-8859-1')
+        self.assertEqual(str(msg), textwrap.dedent("""\
+            MIME-Version: 1.0
+            Content-Type: text/text; charset="iso-8859-1"
+            Content-Transfer-Encoding: quoted-printable
+
+            =E1=F6
+            """))
+
+    def test_qp_encode_non_latin1(self):
+        # Issue 16948
+        msg = MIMEText('\u017c\n', 'text', 'ISO-8859-2')
+        self.assertEqual(str(msg), textwrap.dedent("""\
+            MIME-Version: 1.0
+            Content-Type: text/text; charset="iso-8859-2"
+            Content-Transfer-Encoding: quoted-printable
+
+            =BF
+            """))
 
 
 # Test long header wrapping
@@ -1060,9 +1098,13 @@ Subject: =?iso-8859-1?q?Britische_Regierung_gibt_gr=FCnes_Licht_f=FCr_Offshore-W
                          'f\xfcr Offshore-Windkraftprojekte '
                          '<a-very-long-address@example.com>')
         msg['Reply-To'] = header_string
-        self.assertRaises(UnicodeEncodeError, msg.as_string)
+        eq(msg.as_string(maxheaderlen=78), """\
+Reply-To: =?utf-8?q?Britische_Regierung_gibt_gr=C3=BCnes_Licht_f=C3=BCr_Offs?=
+ =?utf-8?q?hore-Windkraftprojekte_=3Ca-very-long-address=40example=2Ecom=3E?=
+
+""")
         msg = Message()
-        msg['Reply-To'] = Header(header_string, 'utf-8',
+        msg['Reply-To'] = Header(header_string,
                                  header_name='Reply-To')
         eq(msg.as_string(maxheaderlen=78), """\
 Reply-To: =?utf-8?q?Britische_Regierung_gibt_gr=C3=BCnes_Licht_f=C3=BCr_Offs?=
@@ -1226,7 +1268,6 @@ List: List-Unsubscribe:
              =?utf-8?q?_folding_white_space_works?=""")+'\n')
 
 
-
 # Test mangling of "From " lines in the body of a message
 class TestFromMangling(unittest.TestCase):
     def setUp(self):
@@ -1259,6 +1300,42 @@ From the desk of A.A.A.:
 Blah blah blah
 """)
 
+    def test_mangle_from_in_preamble_and_epilog(self):
+        s = StringIO()
+        g = Generator(s, mangle_from_=True)
+        msg = email.message_from_string(textwrap.dedent("""\
+            From: foo@bar.com
+            Mime-Version: 1.0
+            Content-Type: multipart/mixed; boundary=XXX
+
+            From somewhere unknown
+
+            --XXX
+            Content-Type: text/plain
+
+            foo
+
+            --XXX--
+
+            From somewhere unknowable
+            """))
+        g.flatten(msg)
+        self.assertEqual(len([1 for x in s.getvalue().split('\n')
+                                  if x.startswith('>From ')]), 2)
+
+    def test_mangled_from_with_bad_bytes(self):
+        source = textwrap.dedent("""\
+            Content-Type: text/plain; charset="utf-8"
+            MIME-Version: 1.0
+            Content-Transfer-Encoding: 8bit
+            From: aaa@bbb.org
+
+        """).encode('utf-8')
+        msg = email.message_from_bytes(source + b'From R\xc3\xb6lli\n')
+        b = BytesIO()
+        g = BytesGenerator(b, mangle_from_=True)
+        g.flatten(msg)
+        self.assertEqual(b.getvalue(), source + b'>From R\xc3\xb6lli\n')
 
 
 # Test the basic MIMEAudio class
@@ -1365,6 +1442,39 @@ class TestMIMEApplication(unittest.TestCase):
         eq(msg.get_payload().strip(), '+vv8/f7/')
         eq(msg.get_payload(decode=True), bytesdata)
 
+    def test_binary_body_with_encode_7or8bit(self):
+        # Issue 17171.
+        bytesdata = b'\xfa\xfb\xfc\xfd\xfe\xff'
+        msg = MIMEApplication(bytesdata, _encoder=encoders.encode_7or8bit)
+        # Treated as a string, this will be invalid code points.
+        self.assertEqual(msg.get_payload(), '\uFFFD' * len(bytesdata))
+        self.assertEqual(msg.get_payload(decode=True), bytesdata)
+        self.assertEqual(msg['Content-Transfer-Encoding'], '8bit')
+        s = BytesIO()
+        g = BytesGenerator(s)
+        g.flatten(msg)
+        wireform = s.getvalue()
+        msg2 = email.message_from_bytes(wireform)
+        self.assertEqual(msg.get_payload(), '\uFFFD' * len(bytesdata))
+        self.assertEqual(msg2.get_payload(decode=True), bytesdata)
+        self.assertEqual(msg2['Content-Transfer-Encoding'], '8bit')
+
+    def test_binary_body_with_encode_noop(self):
+        # Issue 16564: This does not produce an RFC valid message, since to be
+        # valid it should have a CTE of binary.  But the below works in
+        # Python2, and is documented as working this way.
+        bytesdata = b'\xfa\xfb\xfc\xfd\xfe\xff'
+        msg = MIMEApplication(bytesdata, _encoder=encoders.encode_noop)
+        # Treated as a string, this will be invalid code points.
+        self.assertEqual(msg.get_payload(), '\uFFFD' * len(bytesdata))
+        self.assertEqual(msg.get_payload(decode=True), bytesdata)
+        s = BytesIO()
+        g = BytesGenerator(s)
+        g.flatten(msg)
+        wireform = s.getvalue()
+        msg2 = email.message_from_bytes(wireform)
+        self.assertEqual(msg.get_payload(), '\uFFFD' * len(bytesdata))
+        self.assertEqual(msg2.get_payload(decode=True), bytesdata)
 
 
 # Test the basic MIMEText class
@@ -2502,14 +2612,11 @@ class TestMiscellaneous(TestEmailBase):
 
     def test__all__(self):
         module = __import__('email')
-        # Can't use sorted() here due to Python 2.3 compatibility
-        all = module.__all__[:]
-        all.sort()
-        self.assertEqual(all, [
-            'base64mime', 'charset', 'encoders', 'errors', 'generator',
-            'header', 'iterators', 'message', 'message_from_binary_file',
-            'message_from_bytes', 'message_from_file',
-            'message_from_string', 'mime', 'parser',
+        self.assertEqual(sorted(module.__all__), [
+            'base64mime', 'charset', 'encoders', 'errors', 'feedparser',
+            'generator', 'header', 'iterators', 'message',
+            'message_from_binary_file', 'message_from_bytes',
+            'message_from_file', 'message_from_string', 'mime', 'parser',
             'quoprimime', 'utils',
             ])
 
@@ -2571,6 +2678,12 @@ class TestMiscellaneous(TestEmailBase):
         t = int(time.mktime(timetup[:9]))
         eq(time.localtime(t)[:6], timetup[:6])
         eq(int(time.strftime('%Y', timetup[:9])), 2003)
+
+    def test_mktime_tz(self):
+        self.assertEqual(utils.mktime_tz((1970, 1, 1, 0, 0, 0,
+                                          -1, -1, -1, 0)), 0)
+        self.assertEqual(utils.mktime_tz((1970, 1, 1, 0, 0, 0,
+                                          -1, -1, -1, 1234)), -1234)
 
     def test_parsedate_y2k(self):
         """Test for parsing a date with a two-digit year.
@@ -2797,6 +2910,40 @@ multipart/report
         self.assertEqual(
             email.utils.make_msgid(domain='testdomain-string')[-19:],
             '@testdomain-string>')
+
+    def test_Generator_linend(self):
+        # Issue 14645.
+        with openfile('msg_26.txt', newline='\n') as f:
+            msgtxt = f.read()
+        msgtxt_nl = msgtxt.replace('\r\n', '\n')
+        msg = email.message_from_string(msgtxt)
+        s = StringIO()
+        g = email.generator.Generator(s)
+        g.flatten(msg)
+        self.assertEqual(s.getvalue(), msgtxt_nl)
+
+    def test_BytesGenerator_linend(self):
+        # Issue 14645.
+        with openfile('msg_26.txt', newline='\n') as f:
+            msgtxt = f.read()
+        msgtxt_nl = msgtxt.replace('\r\n', '\n')
+        msg = email.message_from_string(msgtxt_nl)
+        s = BytesIO()
+        g = email.generator.BytesGenerator(s)
+        g.flatten(msg, linesep='\r\n')
+        self.assertEqual(s.getvalue().decode('ascii'), msgtxt)
+
+    def test_BytesGenerator_linend_with_non_ascii(self):
+        # Issue 14645.
+        with openfile('msg_26.txt', 'rb') as f:
+            msgtxt = f.read()
+        msgtxt = msgtxt.replace(b'with attachment', b'fo\xf6')
+        msgtxt_nl = msgtxt.replace(b'\r\n', b'\n')
+        msg = email.message_from_bytes(msgtxt_nl)
+        s = BytesIO()
+        g = email.generator.BytesGenerator(s)
+        g.flatten(msg, linesep='\r\n')
+        self.assertEqual(s.getvalue(), msgtxt)
 
 
 # Test the iterator/generators
@@ -3423,6 +3570,30 @@ class Test8BitBytesHandling(unittest.TestCase):
         g = email.generator.BytesGenerator(s)
         g.flatten(msg)
         self.assertEqual(s.getvalue(), source)
+
+    def test_bytes_generator_b_encoding_linesep(self):
+        # Issue 14062: b encoding was tacking on an extra \n.
+        m = Message()
+        # This has enough non-ascii that it should always end up b encoded.
+        m['Subject'] = Header('žluťoučký kůň')
+        s = BytesIO()
+        g = email.generator.BytesGenerator(s)
+        g.flatten(m, linesep='\r\n')
+        self.assertEqual(
+            s.getvalue(),
+            b'Subject: =?utf-8?b?xb5sdcWlb3XEjWvDvSBrxa/FiA==?=\r\n\r\n')
+
+    def test_generator_b_encoding_linesep(self):
+        # Since this broke in ByteGenerator, test Generator for completeness.
+        m = Message()
+        # This has enough non-ascii that it should always end up b encoded.
+        m['Subject'] = Header('žluťoučký kůň')
+        s = StringIO()
+        g = email.generator.Generator(s)
+        g.flatten(m, linesep='\r\n')
+        self.assertEqual(
+            s.getvalue(),
+            'Subject: =?utf-8?b?xb5sdcWlb3XEjWvDvSBrxa/FiA==?=\r\n\r\n')
 
     maxDiff = None
 

@@ -65,8 +65,11 @@ highlight_language = 'python3'
 # Options for HTML output
 # -----------------------
 
-html_theme = 'default'
+html_theme = 'pydoctheme'
+html_theme_path = ['tools/sphinxext']
 html_theme_options = {'collapsiblesidebar': True}
+
+html_short_title = '%s Documentation' % release
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -88,7 +91,7 @@ html_additional_pages = {
 }
 
 # Output an OpenSearch description file.
-html_use_opensearch = 'http://docs.python.org/dev/py3k'
+html_use_opensearch = 'http://docs.python.org/3.2'
 
 # Additional static files.
 html_static_path = ['tools/sphinxext/static']
@@ -117,8 +120,6 @@ latex_documents = [
      'The Python/C API', _stdauthor, 'manual'),
     ('distutils/index', 'distutils.tex',
      'Distributing Python Modules', _stdauthor, 'manual'),
-    ('documenting/index', 'documenting.tex',
-     'Documenting Python', 'Georg Brandl', 'manual'),
     ('extending/index', 'extending.tex',
      'Extending and Embedding Python', _stdauthor, 'manual'),
     ('install/index', 'install.tex',

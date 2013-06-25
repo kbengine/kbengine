@@ -46,20 +46,20 @@ from sources provided by the operating system.
 
 Bookkeeping functions:
 
-.. function:: seed([x], version=2)
+.. function:: seed(a=None, version=2)
 
    Initialize the random number generator.
 
-   If *x* is omitted or ``None``, the current system time is used.  If
+   If *a* is omitted or ``None``, the current system time is used.  If
    randomness sources are provided by the operating system, they are used
    instead of the system time (see the :func:`os.urandom` function for details
    on availability).
 
-   If *x* is an int, it is used directly.
+   If *a* is an int, it is used directly.
 
    With version 2 (the default), a :class:`str`, :class:`bytes`, or :class:`bytearray`
    object gets converted to an :class:`int` and all of its bits are used.  With version 1,
-   the :func:`hash` of *x* is used instead.
+   the :func:`hash` of *a* is used instead.
 
    .. versionchanged:: 3.2
       Moved to the version 2 scheme which uses all of the bits in a string seed.
@@ -74,7 +74,7 @@ Bookkeeping functions:
 
    *state* should have been obtained from a previous call to :func:`getstate`, and
    :func:`setstate` restores the internal state of the generator to what it was at
-   the time :func:`setstate` was called.
+   the time :func:`getstate` was called.
 
 
 .. function:: getrandbits(k)
@@ -87,7 +87,8 @@ Bookkeeping functions:
 
 Functions for integers:
 
-.. function:: randrange([start,] stop[, step])
+.. function:: randrange(stop)
+              randrange(start, stop[, step])
 
    Return a randomly selected element from ``range(start, stop, step)``.  This is
    equivalent to ``choice(range(start, stop, step))``, but doesn't actually build a
@@ -163,6 +164,7 @@ be found in any statistics text.
    The end-point value ``b`` may or may not be included in the range
    depending on floating-point rounding in the equation ``a + (b-a) * random()``.
 
+
 .. function:: triangular(low, high, mode)
 
    Return a random floating point number *N* such that ``low <= N <= high`` and
@@ -190,6 +192,12 @@ be found in any statistics text.
 
    Gamma distribution.  (*Not* the gamma function!)  Conditions on the
    parameters are ``alpha > 0`` and ``beta > 0``.
+
+   The probability distribution function is::
+
+                 x ** (alpha - 1) * math.exp(-x / beta)
+       pdf(x) =  --------------------------------------
+                   math.gamma(alpha) * beta ** alpha
 
 
 .. function:: gauss(mu, sigma)
@@ -302,7 +310,7 @@ Basic usage::
    >>> random.sample([1, 2, 3, 4, 5],  3)   # Three samples without replacement
    [4, 1, 5]
 
-A common task is to make a :func:`random.choice` with weighted probababilites.
+A common task is to make a :func:`random.choice` with weighted probabilities.
 
 If the weights are small integer ratios, a simple technique is to build a sample
 population with repeats::

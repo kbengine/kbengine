@@ -260,7 +260,7 @@ performing string substitutions. ::
 
    >>> import re
    >>> p = re.compile('ab*')
-   >>> p
+   >>> p  #doctest: +ELLIPSIS
    <_sre.SRE_Pattern object at 0x...>
 
 :func:`re.compile` also accepts an optional *flags* argument, used to enable
@@ -354,13 +354,13 @@ for a complete listing.
 +------------------+-----------------------------------------------+
 
 :meth:`match` and :meth:`search` return ``None`` if no match can be found.  If
-they're successful, a ``MatchObject`` instance is returned, containing
-information about the match: where it starts and ends, the substring it matched,
-and more.
+they're successful, a :ref:`match object <match-objects>` instance is returned,
+containing information about the match: where it starts and ends, the substring
+it matched, and more.
 
 You can learn about this by interactively experimenting with the :mod:`re`
 module.  If you have :mod:`tkinter` available, you may also want to look at
-:file:`Tools/demo/redemo.py`, a demonstration program included with the
+:source:`Tools/demo/redemo.py`, a demonstration program included with the
 Python distribution.  It allows you to enter REs and strings, and displays
 whether the RE matches or fails. :file:`redemo.py` can be quite useful when
 trying to debug a complicated RE.  Phil Schwartz's `Kodos
@@ -372,7 +372,7 @@ Python interpreter, import the :mod:`re` module, and compile a RE::
 
    >>> import re
    >>> p = re.compile('[a-z]+')
-   >>> p
+   >>> p  #doctest: +ELLIPSIS
    <_sre.SRE_Pattern object at 0x...>
 
 Now, you can try matching various strings against the RE ``[a-z]+``.  An empty
@@ -386,16 +386,16 @@ interpreter to print no output.  You can explicitly print the result of
    None
 
 Now, let's try it on a string that it should match, such as ``tempo``.  In this
-case, :meth:`match` will return a :class:`MatchObject`, so you should store the
-result in a variable for later use. ::
+case, :meth:`match` will return a :ref:`match object <match-objects>`, so you
+should store the result in a variable for later use. ::
 
    >>> m = p.match('tempo')
-   >>> m
+   >>> m  #doctest: +ELLIPSIS
    <_sre.SRE_Match object at 0x...>
 
-Now you can query the :class:`MatchObject` for information about the matching
-string.   :class:`MatchObject` instances also have several methods and
-attributes; the most important ones are:
+Now you can query the :ref:`match object <match-objects>` for information
+about the matching string.  :ref:`match object <match-objects>` instances
+also have several methods and attributes; the most important ones are:
 
 +------------------+--------------------------------------------+
 | Method/Attribute | Purpose                                    |
@@ -429,15 +429,16 @@ case. ::
 
    >>> print(p.match('::: message'))
    None
-   >>> m = p.search('::: message') ; print(m)
+   >>> m = p.search('::: message'); print(m)  #doctest: +ELLIPSIS
    <_sre.SRE_Match object at 0x...>
    >>> m.group()
    'message'
    >>> m.span()
    (4, 11)
 
-In actual programs, the most common style is to store the :class:`MatchObject`
-in a variable, and then check if it was ``None``.  This usually looks like::
+In actual programs, the most common style is to store the
+:ref:`match object <match-objects>` in a variable, and then check if it was
+``None``.  This usually looks like::
 
    p = re.compile( ... )
    m = p.match( 'string goes here' )
@@ -454,11 +455,11 @@ Two pattern methods return all of the matches for a pattern.
    ['12', '11', '10']
 
 :meth:`findall` has to create the entire list before it can be returned as the
-result.  The :meth:`finditer` method returns a sequence of :class:`MatchObject`
-instances as an :term:`iterator`::
+result.  The :meth:`finditer` method returns a sequence of
+:ref:`match object <match-objects>` instances as an :term:`iterator`::
 
    >>> iterator = p.finditer('12 drummers drumming, 11 ... 10 ...')
-   >>> iterator
+   >>> iterator  #doctest: +ELLIPSIS
    <callable_iterator object at 0x...>
    >>> for match in iterator:
    ...     print(match.span())
@@ -476,11 +477,11 @@ You don't have to create a pattern object and call its methods; the
 :func:`search`, :func:`findall`, :func:`sub`, and so forth.  These functions
 take the same arguments as the corresponding pattern method, with
 the RE string added as the first argument, and still return either ``None`` or a
-:class:`MatchObject` instance. ::
+:ref:`match object <match-objects>` instance. ::
 
    >>> print(re.match(r'From\s+', 'Fromage amk'))
    None
-   >>> re.match(r'From\s+', 'From amk Thu May 14 19:12:10 1998')
+   >>> re.match(r'From\s+', 'From amk Thu May 14 19:12:10 1998')  #doctest: +ELLIPSIS
    <_sre.SRE_Match object at 0x...>
 
 Under the hood, these functions simply create a pattern object for you
@@ -495,7 +496,7 @@ more convenient.  If a program contains a lot of regular expressions, or re-uses
 the same ones in several locations, then it might be worthwhile to collect all
 the definitions in one place, in a section of code that compiles all the REs
 ahead of time.  To take an example from the standard library, here's an extract
-from the now deprecated :file:`xmllib.py`::
+from the now-defunct Python 2 standard :mod:`xmllib` module::
 
    ref = re.compile( ... )
    entityref = re.compile( ... )
@@ -682,7 +683,7 @@ given location, they can obviously be matched an infinite number of times.
    For example, if you wish to match the word ``From`` only at the beginning of a
    line, the RE to use is ``^From``. ::
 
-      >>> print(re.search('^From', 'From Here to Eternity'))
+      >>> print(re.search('^From', 'From Here to Eternity'))  #doctest: +ELLIPSIS
       <_sre.SRE_Match object at 0x...>
       >>> print(re.search('^From', 'Reciting From Memory'))
       None
@@ -694,11 +695,11 @@ given location, they can obviously be matched an infinite number of times.
    Matches at the end of a line, which is defined as either the end of the string,
    or any location followed by a newline character.     ::
 
-      >>> print(re.search('}$', '{block}'))
+      >>> print(re.search('}$', '{block}'))  #doctest: +ELLIPSIS
       <_sre.SRE_Match object at 0x...>
       >>> print(re.search('}$', '{block} '))
       None
-      >>> print(re.search('}$', '{block}\n'))
+      >>> print(re.search('}$', '{block}\n'))  #doctest: +ELLIPSIS
       <_sre.SRE_Match object at 0x...>
 
    To match a literal ``'$'``, use ``\$`` or enclose it inside a character class,
@@ -723,7 +724,7 @@ given location, they can obviously be matched an infinite number of times.
    match when it's contained inside another word. ::
 
       >>> p = re.compile(r'\bclass\b')
-      >>> print(p.search('no class at all'))
+      >>> print(p.search('no class at all'))  #doctest: +ELLIPSIS
       <_sre.SRE_Match object at 0x...>
       >>> print(p.search('the declassified algorithm'))
       None
@@ -741,7 +742,7 @@ given location, they can obviously be matched an infinite number of times.
       >>> p = re.compile('\bclass\b')
       >>> print(p.search('no class at all'))
       None
-      >>> print(p.search('\b' + 'class' + '\b')  )
+      >>> print(p.search('\b' + 'class' + '\b'))  #doctest: +ELLIPSIS
       <_sre.SRE_Match object at 0x...>
 
    Second, inside a character class, where there's no use for this assertion,
@@ -786,9 +787,9 @@ Groups indicated with ``'('``, ``')'`` also capture the starting and ending
 index of the text that they match; this can be retrieved by passing an argument
 to :meth:`group`, :meth:`start`, :meth:`end`, and :meth:`span`.  Groups are
 numbered starting with 0.  Group 0 is always present; it's the whole RE, so
-:class:`MatchObject` methods all have group 0 as their default argument.  Later
-we'll see how to express groups that don't capture the span of text that they
-match. ::
+:ref:`match object <match-objects>` methods all have group 0 as their default
+argument.  Later we'll see how to express groups that don't capture the span
+of text that they match. ::
 
    >>> p = re.compile('(a)b')
    >>> m = p.match('ab')
@@ -908,10 +909,10 @@ numbers, groups can be referenced by a name.
 The syntax for a named group is one of the Python-specific extensions:
 ``(?P<name>...)``.  *name* is, obviously, the name of the group.  Named groups
 also behave exactly like capturing groups, and additionally associate a name
-with a group.  The :class:`MatchObject` methods that deal with capturing groups
-all accept either integers that refer to the group by number or strings that
-contain the desired group's name.  Named groups are still given numbers, so you
-can retrieve information about a group in two ways::
+with a group.  The :ref:`match object <match-objects>` methods that deal with
+capturing groups all accept either integers that refer to the group by number
+or strings that contain the desired group's name.  Named groups are still
+given numbers, so you can retrieve information about a group in two ways::
 
    >>> p = re.compile(r'(?P<word>\b\w+\b)')
    >>> m = p.search( '(((( Lots of punctuation )))' )
@@ -1175,16 +1176,16 @@ three variations of the replacement string. ::
 
 *replacement* can also be a function, which gives you even more control.  If
 *replacement* is a function, the function is called for every non-overlapping
-occurrence of *pattern*.  On each call, the function is  passed a
-:class:`MatchObject` argument for the match and can use this information to
-compute the desired replacement string and return it.
+occurrence of *pattern*.  On each call, the function is passed a
+:ref:`match object <match-objects>` argument for the match and can use this
+information to compute the desired replacement string and return it.
 
-In the following example, the replacement function translates  decimals into
+In the following example, the replacement function translates decimals into
 hexadecimal::
 
-   >>> def hexrepl( match ):
+   >>> def hexrepl(match):
    ...     "Return the hex string for a decimal number"
-   ...     value = int( match.group() )
+   ...     value = int(match.group())
    ...     return hex(value)
    ...
    >>> p = re.compile(r'\d+')

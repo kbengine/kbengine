@@ -1,8 +1,8 @@
-:mod:`xml.dom.minidom` --- Lightweight DOM implementation
-=========================================================
+:mod:`xml.dom.minidom` --- Minimal DOM implementation
+=====================================================
 
 .. module:: xml.dom.minidom
-   :synopsis: Lightweight Document Object Model (DOM) implementation.
+   :synopsis: Minimal Document Object Model (DOM) implementation.
 .. moduleauthor:: Paul Prescod <paul@prescod.net>
 .. sectionauthor:: Paul Prescod <paul@prescod.net>
 .. sectionauthor:: Martin v. Löwis <martin@v.loewis.de>
@@ -11,9 +11,19 @@
 
 --------------
 
-:mod:`xml.dom.minidom` is a light-weight implementation of the Document Object
-Model interface.  It is intended to be simpler than the full DOM and also
-significantly smaller.
+:mod:`xml.dom.minidom` is a minimal implementation of the Document Object
+Model interface, with an API similar to that in other languages.  It is intended
+to be simpler than the full DOM and also significantly smaller.  Users who are
+not already proficient with the DOM should consider using the
+:mod:`xml.etree.ElementTree` module for their XML processing instead
+
+
+.. warning::
+
+   The :mod:`xml.dom.minidom` module is not secure against
+   maliciously constructed data.  If you need to parse untrusted or
+   unauthenticated data see :ref:`xml-vulnerabilities`.
+
 
 DOM applications typically start by parsing some XML into a DOM.  With
 :mod:`xml.dom.minidom`, this is done through the parse functions::

@@ -109,7 +109,7 @@ The following utility functions are defined:
    Convert *date_time* to an IMAP4 ``INTERNALDATE`` representation.  The
    return value is a string in the form: ``"DD-Mmm-YYYY HH:MM:SS
    +HHMM"`` (including double-quotes).  The *date_time* argument can be a
-   number (int or float) represening seconds since epoch (as returned
+   number (int or float) representing seconds since epoch (as returned
    by :func:`time.time`), a 9-tuple representing local time (as returned by
    :func:`time.localtime`), or a double-quoted string.  In the last case, it
    is assumed to already be in the correct format.
@@ -176,9 +176,10 @@ An :class:`IMAP4` instance has the following methods:
 
       data = authobject(response)
 
-   It will be called to process server continuation responses. It should return
-   ``data`` that will be encoded and sent to server. It should return ``None`` if
-   the client abort response ``*`` should be sent instead.
+   It will be called to process server continuation responses; the *response*
+   argument it is passed will be ``bytes``.  It should return ``bytes`` *data*
+   that will be base64 encoded and sent to the server.  It should return
+   ``None`` if the client abort response ``*`` should be sent instead.
 
 
 .. method:: IMAP4.check()

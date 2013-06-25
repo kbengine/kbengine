@@ -58,8 +58,8 @@ PyDoc_STRVAR(module_doc,
 "\n"
 "At the top of the I/O hierarchy is the abstract base class IOBase. It\n"
 "defines the basic interface to a stream. Note, however, that there is no\n"
-"seperation between reading and writing to streams; implementations are\n"
-"allowed to throw an IOError if they do not support a given operation.\n"
+"separation between reading and writing to streams; implementations are\n"
+"allowed to raise an IOError if they do not support a given operation.\n"
 "\n"
 "Extending IOBase is RawIOBase which deals simply with the reading and\n"
 "writing of raw bytes to a stream. FileIO subclasses RawIOBase to provide\n"
@@ -264,9 +264,9 @@ PyDoc_STRVAR(open_doc,
 "\n"
 "* On output, if newline is None, any '\\n' characters written are\n"
 "  translated to the system default line separator, os.linesep. If\n"
-"  newline is '', no translation takes place. If newline is any of the\n"
-"  other legal values, any '\\n' characters written are translated to\n"
-"  the given string.\n"
+"  newline is '' or '\\n', no translation takes place. If newline is any\n"
+"  of the other legal values, any '\\n' characters written are translated\n"
+"  to the given string.\n"
 "\n"
 "If closefd is False, the underlying file descriptor will be kept open\n"
 "when the file is closed. This does not work when a file name is given\n"
@@ -303,7 +303,8 @@ io_open(PyObject *self, PyObject *args, PyObject *kwds)
     int text = 0, binary = 0, universal = 0;
 
     char rawmode[5], *m;
-    int line_buffering, isatty;
+    int line_buffering;
+    long isatty;
 
     PyObject *raw, *modeobj = NULL, *buffer = NULL, *wrapper = NULL;
 
@@ -441,12 +442,12 @@ io_open(PyObject *self, PyObject *args, PyObject *kwds)
 #ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
         {
             struct stat st;
-            long fileno;
+            int fileno;
             PyObject *res = PyObject_CallMethod(raw, "fileno", NULL);
             if (res == NULL)
                 goto error;
 
-            fileno = PyLong_AsLong(res);
+            fileno = _PyLong_AsInt(res);
             Py_DECREF(res);
             if (fileno == -1 && PyErr_Occurred())
                 goto error;
@@ -741,58 +742,46 @@ PyInit__io(void)
     ADD_TYPE(&PyIncrementalNewlineDecoder_Type, "IncrementalNewlineDecoder");
 
     /* Interned strings */
-    if (!(_PyIO_str_close = PyUnicode_InternFromString("close")))
+#define ADD_INTERNED(name) \
+    if (!_PyIO_str_ ## name && \
+        !(_PyIO_str_ ## name = PyUnicode_InternFromString(# name))) \
         goto fail;
-    if (!(_PyIO_str_closed = PyUnicode_InternFromString("closed")))
+
+    ADD_INTERNED(close)
+    ADD_INTERNED(closed)
+    ADD_INTERNED(decode)
+    ADD_INTERNED(encode)
+    ADD_INTERNED(fileno)
+    ADD_INTERNED(flush)
+    ADD_INTERNED(getstate)
+    ADD_INTERNED(isatty)
+    ADD_INTERNED(newlines)
+    ADD_INTERNED(read)
+    ADD_INTERNED(read1)
+    ADD_INTERNED(readable)
+    ADD_INTERNED(readinto)
+    ADD_INTERNED(readline)
+    ADD_INTERNED(reset)
+    ADD_INTERNED(seek)
+    ADD_INTERNED(seekable)
+    ADD_INTERNED(setstate)
+    ADD_INTERNED(tell)
+    ADD_INTERNED(truncate)
+    ADD_INTERNED(write)
+    ADD_INTERNED(writable)
+
+    if (!_PyIO_str_nl &&
+        !(_PyIO_str_nl = PyUnicode_InternFromString("\n")))
         goto fail;
-    if (!(_PyIO_str_decode = PyUnicode_InternFromString("decode")))
+
+    if (!_PyIO_empty_str &&
+        !(_PyIO_empty_str = PyUnicode_FromStringAndSize(NULL, 0)))
         goto fail;
-    if (!(_PyIO_str_encode = PyUnicode_InternFromString("encode")))
+    if (!_PyIO_empty_bytes &&
+        !(_PyIO_empty_bytes = PyBytes_FromStringAndSize(NULL, 0)))
         goto fail;
-    if (!(_PyIO_str_fileno = PyUnicode_InternFromString("fileno")))
-        goto fail;
-    if (!(_PyIO_str_flush = PyUnicode_InternFromString("flush")))
-        goto fail;
-    if (!(_PyIO_str_getstate = PyUnicode_InternFromString("getstate")))
-        goto fail;
-    if (!(_PyIO_str_isatty = PyUnicode_InternFromString("isatty")))
-        goto fail;
-    if (!(_PyIO_str_newlines = PyUnicode_InternFromString("newlines")))
-        goto fail;
-    if (!(_PyIO_str_nl = PyUnicode_InternFromString("\n")))
-        goto fail;
-    if (!(_PyIO_str_read = PyUnicode_InternFromString("read")))
-        goto fail;
-    if (!(_PyIO_str_read1 = PyUnicode_InternFromString("read1")))
-        goto fail;
-    if (!(_PyIO_str_readable = PyUnicode_InternFromString("readable")))
-        goto fail;
-    if (!(_PyIO_str_readinto = PyUnicode_InternFromString("readinto")))
-        goto fail;
-    if (!(_PyIO_str_readline = PyUnicode_InternFromString("readline")))
-        goto fail;
-    if (!(_PyIO_str_reset = PyUnicode_InternFromString("reset")))
-        goto fail;
-    if (!(_PyIO_str_seek = PyUnicode_InternFromString("seek")))
-        goto fail;
-    if (!(_PyIO_str_seekable = PyUnicode_InternFromString("seekable")))
-        goto fail;
-    if (!(_PyIO_str_setstate = PyUnicode_InternFromString("setstate")))
-        goto fail;
-    if (!(_PyIO_str_tell = PyUnicode_InternFromString("tell")))
-        goto fail;
-    if (!(_PyIO_str_truncate = PyUnicode_InternFromString("truncate")))
-        goto fail;
-    if (!(_PyIO_str_write = PyUnicode_InternFromString("write")))
-        goto fail;
-    if (!(_PyIO_str_writable = PyUnicode_InternFromString("writable")))
-        goto fail;
-    
-    if (!(_PyIO_empty_str = PyUnicode_FromStringAndSize(NULL, 0)))
-        goto fail;
-    if (!(_PyIO_empty_bytes = PyBytes_FromStringAndSize(NULL, 0)))
-        goto fail;
-    if (!(_PyIO_zero = PyLong_FromLong(0L)))
+    if (!_PyIO_zero &&
+        !(_PyIO_zero = PyLong_FromLong(0L)))
         goto fail;
 
     state->initialized = 1;

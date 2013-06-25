@@ -1,4 +1,4 @@
-from test.support import run_unittest
+from test.support import run_unittest, unload
 import unittest
 import sys
 import imp
@@ -15,11 +15,11 @@ class PkgutilTests(unittest.TestCase):
 
     def setUp(self):
         self.dirname = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.dirname)
         sys.path.insert(0, self.dirname)
 
     def tearDown(self):
         del sys.path[0]
-        shutil.rmtree(self.dirname)
 
     def test_getdata_filesys(self):
         pkg = 'test_getdata_filesys'
@@ -84,6 +84,17 @@ class PkgutilTests(unittest.TestCase):
 
         del sys.modules[pkg]
 
+    def test_unreadable_dir_on_syspath(self):
+        # issue7367 - walk_packages failed if unreadable dir on sys.path
+        package_name = "unreadable_package"
+        d = os.path.join(self.dirname, package_name)
+        # this does not appear to create an unreadable dir on Windows
+        #   but the test should not fail anyway
+        os.mkdir(d, 0)
+        self.addCleanup(os.rmdir, d)
+        for t in pkgutil.walk_packages(path=[self.dirname]):
+            self.fail("unexpected package found")
+
 class PkgutilPEP302Tests(unittest.TestCase):
 
     class MyTestLoader(object):
@@ -126,8 +137,99 @@ class PkgutilPEP302Tests(unittest.TestCase):
         self.assertEqual(foo.loads, 1)
         del sys.modules['foo']
 
+
+class ExtendPathTests(unittest.TestCase):
+    def create_init(self, pkgname):
+        dirname = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, dirname)
+        sys.path.insert(0, dirname)
+
+        pkgdir = os.path.join(dirname, pkgname)
+        os.mkdir(pkgdir)
+        with open(os.path.join(pkgdir, '__init__.py'), 'w') as fl:
+            fl.write('from pkgutil import extend_path\n__path__ = extend_path(__path__, __name__)\n')
+
+        return dirname
+
+    def create_submodule(self, dirname, pkgname, submodule_name, value):
+        module_name = os.path.join(dirname, pkgname, submodule_name + '.py')
+        with open(module_name, 'w') as fl:
+            print('value={}'.format(value), file=fl)
+
+    def setUp(self):
+        # Create 2 directories on sys.path
+        self.pkgname = 'foo'
+        self.dirname_0 = self.create_init(self.pkgname)
+        self.dirname_1 = self.create_init(self.pkgname)
+
+    def tearDown(self):
+        del sys.path[0]
+        del sys.path[0]
+        del sys.modules['foo']
+        del sys.modules['foo.bar']
+        del sys.modules['foo.baz']
+
+    def test_simple(self):
+        self.create_submodule(self.dirname_0, self.pkgname, 'bar', 0)
+        self.create_submodule(self.dirname_1, self.pkgname, 'baz', 1)
+        import foo.bar
+        import foo.baz
+        # Ensure we read the expected values
+        self.assertEqual(foo.bar.value, 0)
+        self.assertEqual(foo.baz.value, 1)
+
+        # Ensure the path is set up correctly
+        self.assertEqual(sorted(foo.__path__),
+                         sorted([os.path.join(self.dirname_0, self.pkgname),
+                                 os.path.join(self.dirname_1, self.pkgname)]))
+
+    # XXX: test .pkg files
+
+
+class NestedNamespacePackageTest(unittest.TestCase):
+
+    def setUp(self):
+        self.basedir = tempfile.mkdtemp()
+        self.old_path = sys.path[:]
+
+    def tearDown(self):
+        sys.path[:] = self.old_path
+        shutil.rmtree(self.basedir)
+
+    def create_module(self, name, contents):
+        base, final = name.rsplit('.', 1)
+        base_path = os.path.join(self.basedir, base.replace('.', os.path.sep))
+        os.makedirs(base_path, exist_ok=True)
+        with open(os.path.join(base_path, final + ".py"), 'w') as f:
+            f.write(contents)
+
+    def test_nested(self):
+        pkgutil_boilerplate = (
+            'import pkgutil; '
+            '__path__ = pkgutil.extend_path(__path__, __name__)')
+        self.create_module('a.pkg.__init__', pkgutil_boilerplate)
+        self.create_module('b.pkg.__init__', pkgutil_boilerplate)
+        self.create_module('a.pkg.subpkg.__init__', pkgutil_boilerplate)
+        self.create_module('b.pkg.subpkg.__init__', pkgutil_boilerplate)
+        self.create_module('a.pkg.subpkg.c', 'c = 1')
+        self.create_module('b.pkg.subpkg.d', 'd = 2')
+        sys.path.insert(0, os.path.join(self.basedir, 'a'))
+        sys.path.insert(0, os.path.join(self.basedir, 'b'))
+        import pkg
+        self.addCleanup(unload, 'pkg')
+        self.assertEqual(len(pkg.__path__), 2)
+        import pkg.subpkg
+        self.addCleanup(unload, 'pkg.subpkg')
+        self.assertEqual(len(pkg.subpkg.__path__), 2)
+        from pkg.subpkg.c import c
+        from pkg.subpkg.d import d
+        self.assertEqual(c, 1)
+        self.assertEqual(d, 2)
+
+
 def test_main():
-    run_unittest(PkgutilTests, PkgutilPEP302Tests)
+    run_unittest(PkgutilTests, PkgutilPEP302Tests, ExtendPathTests,
+                 NestedNamespacePackageTest)
     # this is necessary if test is run repeated (like when finding leaks)
     import zipimport
     zipimport._zip_directory_cache.clear()

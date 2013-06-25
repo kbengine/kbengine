@@ -166,8 +166,12 @@ _set_bool(const char *name, int *target, PyObject *src, int dflt)
 {
     if (src == NULL)
         *target = dflt;
-    else
-        *target = PyObject_IsTrue(src);
+    else {
+        int b = PyObject_IsTrue(src);
+        if (b < 0)
+            return -1;
+        *target = b;
+    }
     return 0;
 }
 
@@ -755,9 +759,13 @@ Reader_iternext(ReaderObj *self)
         lineobj = PyIter_Next(self->input_iter);
         if (lineobj == NULL) {
             /* End of input OR exception */
-            if (!PyErr_Occurred() && self->field_len != 0)
-                PyErr_Format(error_obj,
-                             "newline inside string");
+            if (!PyErr_Occurred() && (self->field_len != 0 ||
+                                      self->state == IN_QUOTED_FIELD)) {
+                if (self->dialect->strict)
+                    PyErr_SetString(error_obj, "unexpected end of data");
+                else if (parse_save_field(self) >= 0)
+                    break;
+            }
             return NULL;
         }
         if (!PyUnicode_Check(lineobj)) {

@@ -1438,6 +1438,51 @@ unicode_aswidecharstring(PyObject *self, PyObject *args)
 }
 
 static PyObject *
+unicode_encodedecimal(PyObject *self, PyObject *args)
+{
+    Py_UNICODE *unicode;
+    Py_ssize_t length;
+    char *errors = NULL;
+    PyObject *decimal;
+    Py_ssize_t decimal_length, new_length;
+    int res;
+
+    if (!PyArg_ParseTuple(args, "u#|s", &unicode, &length, &errors))
+        return NULL;
+
+    decimal_length = length * 7; /* len('&#8364;') */
+    decimal = PyBytes_FromStringAndSize(NULL, decimal_length);
+    if (decimal == NULL)
+        return NULL;
+
+    res = PyUnicode_EncodeDecimal(unicode, length,
+                                  PyBytes_AS_STRING(decimal),
+                                  errors);
+    if (res < 0) {
+        Py_DECREF(decimal);
+        return NULL;
+    }
+
+    new_length = strlen(PyBytes_AS_STRING(decimal));
+    assert(new_length <= decimal_length);
+    res = _PyBytes_Resize(&decimal, new_length);
+    if (res < 0)
+        return NULL;
+
+    return decimal;
+}
+
+static PyObject *
+unicode_transformdecimaltoascii(PyObject *self, PyObject *args)
+{
+    Py_UNICODE *unicode;
+    Py_ssize_t length;
+    if (!PyArg_ParseTuple(args, "u#|s", &unicode, &length))
+        return NULL;
+    return PyUnicode_TransformDecimalToASCII(unicode, length);
+}
+
+static PyObject *
 getargs_w_star(PyObject *self, PyObject *args)
 {
     Py_buffer buffer;
@@ -2255,6 +2300,32 @@ crash_no_current_thread(PyObject *self)
     return NULL;
 }
 
+/* To run some code in a sub-interpreter. */
+static PyObject *
+run_in_subinterp(PyObject *self, PyObject *args)
+{
+    const char *code;
+    int r;
+    PyThreadState *substate, *mainstate;
+
+    if (!PyArg_ParseTuple(args, "s:run_in_subinterp",
+                          &code))
+        return NULL;
+
+    mainstate = PyThreadState_Get();
+
+    PyThreadState_Swap(NULL);
+
+    substate = Py_NewInterpreter();
+    r = PyRun_SimpleString(code);
+    Py_EndInterpreter(substate);
+
+    PyThreadState_Swap(mainstate);
+
+    return PyLong_FromLong(r);
+}
+
+
 static PyMethodDef TestMethods[] = {
     {"raise_exception",         raise_exception,                 METH_VARARGS},
     {"raise_memoryerror",   (PyCFunction)raise_memoryerror,  METH_NOARGS},
@@ -2320,8 +2391,10 @@ static PyMethodDef TestMethods[] = {
     {"test_u_code",             (PyCFunction)test_u_code,        METH_NOARGS},
     {"test_Z_code",             (PyCFunction)test_Z_code,        METH_NOARGS},
     {"test_widechar",           (PyCFunction)test_widechar,      METH_NOARGS},
-    {"unicode_aswidechar",      unicode_aswidechar,                 METH_VARARGS},
-    {"unicode_aswidecharstring",unicode_aswidecharstring,           METH_VARARGS},
+    {"unicode_aswidechar",      unicode_aswidechar,              METH_VARARGS},
+    {"unicode_aswidecharstring",unicode_aswidecharstring,        METH_VARARGS},
+    {"unicode_encodedecimal",   unicode_encodedecimal,           METH_VARARGS},
+    {"unicode_transformdecimaltoascii", unicode_transformdecimaltoascii, METH_VARARGS},
 #ifdef WITH_THREAD
     {"_test_thread_state",      test_thread_state,               METH_VARARGS},
     {"_pending_threadfunc",     pending_threadfunc,              METH_VARARGS},
@@ -2338,6 +2411,7 @@ static PyMethodDef TestMethods[] = {
     {"make_memoryview_from_NULL_pointer", (PyCFunction)make_memoryview_from_NULL_pointer,
      METH_NOARGS},
     {"crash_no_current_thread", (PyCFunction)crash_no_current_thread, METH_NOARGS},
+    {"run_in_subinterp",        run_in_subinterp,                METH_VARARGS},
     {NULL, NULL} /* sentinel */
 };
 

@@ -3,42 +3,22 @@
 Other Graphical User Interface Packages
 =======================================
 
-There are an number of extension widget sets to :mod:`tkinter`.
+Major cross-platform (Windows, Mac OS X, Unix-like) GUI toolkits are
+available for Python:
 
 .. seealso::
 
-   `Python megawidgets <http://pmw.sourceforge.net/>`_
-      is a toolkit for building high-level compound widgets in Python using the
-      :mod:`tkinter` package.  It consists of a set of base classes and a library of
-      flexible and extensible megawidgets built on this foundation. These megawidgets
-      include notebooks, comboboxes, selection widgets, paned widgets, scrolled
-      widgets, dialog windows, etc.  Also, with the Pmw.Blt interface to BLT, the
-      busy, graph, stripchart, tabset and vector commands are be available.
+   `PyGObject <https://live.gnome.org/PyGObject>`_
+      provides introspection bindings for C libraries using
+      `GObject <http://developer.gnome.org/gobject/stable/>`_.  One of
+      these libraries is the `GTK+ 3 <http://www.gtk.org/>`_ widget set.
+      GTK+ comes with many more widgets than Tkinter provides.  An online
+      `Python GTK+ 3 Tutorial <http://python-gtk-3-tutorial.readthedocs.org/en/latest/>`_
+      is available.
 
-      The initial ideas for Pmw were taken from the Tk ``itcl`` extensions ``[incr
-      Tk]`` by Michael McLennan and ``[incr Widgets]`` by Mark Ulferts. Several of the
-      megawidgets are direct translations from the itcl to Python. It offers most of
-      the range of widgets that ``[incr Widgets]`` does, and is almost as complete as
-      Tix, lacking however Tix's fast :class:`HList` widget for drawing trees.
-
-   `Tkinter3000 Widget Construction Kit (WCK) <http://tkinter.effbot.org/>`_
-      is a library that allows you to write new Tkinter widgets in pure Python.  The
-      WCK framework gives you full control over widget creation, configuration, screen
-      appearance, and event handling.  WCK widgets can be very fast and light-weight,
-      since they can operate directly on Python data structures, without having to
-      transfer data through the Tk/Tcl layer.
-
-
-The major cross-platform (Windows, Mac OS X, Unix-like) GUI toolkits that are
-also available for Python:
-
-.. seealso::
-
-   `PyGTK <http://www.pygtk.org/>`_
-      is a set of bindings for the `GTK <http://www.gtk.org/>`_ widget set. It
-      provides an object oriented interface that is slightly higher level than
-      the C one. It comes with many more widgets than Tkinter provides, and has
-      good Python-specific reference documentation. There are also bindings to
+      `PyGTK <http://www.pygtk.org/>`_ provides bindings for an older version
+      of the library, GTK+ 2.  It provides an object oriented interface that
+      is slightly higher level than the C one.  There are also bindings to
       `GNOME <http://www.gnome.org>`_.  One well known PyGTK application is
       `PythonCAD <http://www.pythoncad.org/>`_. An online `tutorial
       <http://www.pygtk.org/pygtk2tutorial/index.html>`_ is available.
@@ -54,6 +34,11 @@ also available for Python:
       Rempt. The *PyQt4* bindings also have a book, `Rapid GUI Programming
       with Python and Qt <http://www.qtrac.eu/pyqtbook.html>`_, by Mark
       Summerfield.
+
+   `PySide <http://www.pyside.org/>`_
+      is a newer binding to the Qt toolkit, provided by Nokia.
+      Compared to PyQt, its licensing scheme is friendlier to non-open source
+      applications.
 
    `wxPython <http://www.wxpython.org>`_
       wxPython is a cross-platform GUI toolkit for Python that is built around

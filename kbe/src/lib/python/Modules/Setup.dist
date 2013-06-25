@@ -199,8 +199,8 @@ _symtable symtablemodule.c
 # socket line above, and possibly edit the SSL variable:
 SSL=$(KBE_ROOT)/kbe/src/lib/third_party/openssl
 _ssl _ssl.c \
-        -DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
-        -L$(SSL)/lib -lssl -lcrypto
+	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
+	-L$(SSL)/lib -lssl -lcrypto
 
 # The crypt module is now disabled by default because it breaks builds
 # on many systems (where -lcrypt is needed), e.g. Linux (I believe).
@@ -291,7 +291,7 @@ _ssl _ssl.c \
 #syslog syslogmodule.c		# syslog daemon interface
 
 
-# Curses support, requring the System V version of curses, often
+# Curses support, requiring the System V version of curses, often
 # provided by the ncurses library.  e.g. on Linux, link with -lncurses
 # instead of -lcurses).
 #

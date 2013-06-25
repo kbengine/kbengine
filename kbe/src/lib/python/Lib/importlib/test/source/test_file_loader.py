@@ -4,6 +4,7 @@ from .. import abc
 from .. import util
 from . import util as source_util
 
+import errno
 import imp
 import marshal
 import os
@@ -126,7 +127,32 @@ class SimpleTest(unittest.TestCase):
         finally:
             os.unlink(file_path)
             pycache = os.path.dirname(imp.cache_from_source(file_path))
-            shutil.rmtree(pycache)
+            if os.path.exists(pycache):
+                shutil.rmtree(pycache)
+
+    def test_timestamp_overflow(self):
+        # When a modification timestamp is larger than 2**32, it should be
+        # truncated rather than raise an OverflowError.
+        with source_util.create_modules('_temp') as mapping:
+            source = mapping['_temp']
+            compiled = imp.cache_from_source(source)
+            with open(source, 'w') as f:
+                f.write("x = 5")
+            try:
+                os.utime(source, (2 ** 33 - 5, 2 ** 33 - 5))
+            except OverflowError:
+                self.skipTest("cannot set modification time to large integer")
+            except OSError as e:
+                if e.errno != getattr(errno, 'EOVERFLOW', None):
+                    raise
+                self.skipTest("cannot set modification time to large integer ({})".format(e))
+            loader = _bootstrap._SourceFileLoader('_temp', mapping['_temp'])
+            mod = loader.load_module('_temp')
+            # Sanity checks.
+            self.assertEqual(mod.__cached__, compiled)
+            self.assertEqual(mod.x, 5)
+            # The pyc file was created.
+            os.stat(compiled)
 
 
 class BadBytecodeTest(unittest.TestCase):
@@ -256,6 +282,8 @@ class SourceLoaderBadBytecodeTest(BadBytecodeTest):
             with open(bytecode_path, 'rb') as file:
                 self.assertGreater(len(file.read()), 8)
 
+        self._test_magic_only(test)
+
     @source_util.writes_bytecode_files
     def test_bad_magic(self):
         # When the magic number is different, the bytecode should be
@@ -275,6 +303,8 @@ class SourceLoaderBadBytecodeTest(BadBytecodeTest):
             self.import_(mapping[name], name)
             with open(bc_path, 'rb') as file:
                 self.assertGreater(len(file.read()), 8)
+
+        self._test_partial_timestamp(test)
 
     @source_util.writes_bytecode_files
     def test_no_marshal(self):

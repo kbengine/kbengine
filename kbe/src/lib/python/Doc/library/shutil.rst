@@ -21,8 +21,8 @@ copying and removal. For operations on individual files, see also the
 
 .. warning::
 
-   Even the higher-level file copying functions (:func:`copy`, :func:`copy2`)
-   cannot copy all file metadata.
+   Even the higher-level file copying functions (:func:`shutil.copy`,
+   :func:`shutil.copy2`) cannot copy all file metadata.
 
    On POSIX platforms, this means that file owner and group are lost as well
    as ACLs.  On Mac OS, the resource fork and other metadata are not used.
@@ -30,6 +30,8 @@ copying and removal. For operations on individual files, see also the
    not be correct. On Windows, file owners, ACLs and alternate data streams
    are not copied.
 
+
+.. _file-operations:
 
 Directory and files operations
 ------------------------------
@@ -47,10 +49,10 @@ Directory and files operations
 
 .. function:: copyfile(src, dst)
 
-   Copy the contents (no metadata) of the file named *src* to a file named *dst*.
-   *dst* must be the complete target file name; look at :func:`copy` for a copy that
-   accepts a target directory path.  If *src* and *dst* are the same files,
-   :exc:`Error` is raised.
+   Copy the contents (no metadata) of the file named *src* to a file named
+   *dst*.  *dst* must be the complete target file name; look at
+   :func:`shutil.copy` for a copy that accepts a target directory path.  If
+   *src* and *dst* are the same files, :exc:`Error` is raised.
    The destination location must be writable; otherwise,  an :exc:`IOError` exception
    will be raised. If *dst* already exists, it will be replaced.   Special files
    such as character or block devices and pipes cannot be copied with this
@@ -80,9 +82,9 @@ Directory and files operations
 
 .. function:: copy2(src, dst)
 
-   Similar to :func:`copy`, but metadata is copied as well -- in fact, this is just
-   :func:`copy` followed by :func:`copystat`.  This is similar to the
-   Unix command :program:`cp -p`.
+   Similar to :func:`shutil.copy`, but metadata is copied as well -- in fact,
+   this is just :func:`shutil.copy` followed by :func:`copystat`.  This is
+   similar to the Unix command :program:`cp -p`.
 
 
 .. function:: ignore_patterns(\*patterns)
@@ -95,10 +97,10 @@ Directory and files operations
 .. function:: copytree(src, dst, symlinks=False, ignore=None, copy_function=copy2, ignore_dangling_symlinks=False)
 
    Recursively copy an entire directory tree rooted at *src*.  The destination
-   directory, named by *dst*, must not already exist; it will be created as well
-   as missing parent directories.  Permissions and times of directories are
-   copied with :func:`copystat`, individual files are copied using
-   :func:`copy2`.
+   directory, named by *dst*, must not already exist; it will be created as
+   well as missing parent directories.  Permissions and times of directories
+   are copied with :func:`copystat`, individual files are copied using
+   :func:`shutil.copy2`.
 
    If *symlinks* is true, symbolic links in the source tree are represented as
    symbolic links in the new tree, but the metadata of the original links is NOT
@@ -124,10 +126,10 @@ Directory and files operations
 
    If exception(s) occur, an :exc:`Error` is raised with a list of reasons.
 
-   If *copy_function* is given, it must be a callable that will be used
-   to copy each file. It will be called with the source path and the
-   destination path as arguments. By default, :func:`copy2` is used, but any
-   function that supports the same signature (like :func:`copy`) can be used.
+   If *copy_function* is given, it must be a callable that will be used to copy
+   each file. It will be called with the source path and the destination path
+   as arguments. By default, :func:`shutil.copy2` is used, but any function
+   that supports the same signature (like :func:`copy`) can be used.
 
    .. versionchanged:: 3.2
       Added the *copy_function* argument to be able to provide a custom copy
@@ -170,8 +172,8 @@ Directory and files operations
    :func:`os.rename` semantics.
 
    If the destination is on the current filesystem, then :func:`os.rename` is
-   used.  Otherwise, *src* is copied (using :func:`copy2`) to *dst* and then
-   removed.
+   used.  Otherwise, *src* is copied (using :func:`shutil.copy2`) to *dst* and
+   then removed.
 
 
 .. exception:: Error
@@ -181,7 +183,7 @@ Directory and files operations
    (*srcname*, *dstname*, *exception*).
 
 
-.. _shutil-example:
+.. _shutil-copytree-example:
 
 copytree example
 ::::::::::::::::
@@ -248,6 +250,9 @@ Another example that uses the *ignore* argument to add a logging call::
 Archiving operations
 --------------------
 
+High-level utilities to create and read compressed and archived files are also
+provided.  They rely on the :mod:`zipfile` and :mod:`tarfile` modules.
+
 .. function:: make_archive(base_name, format, [root_dir, [base_dir, [verbose, [dry_run, [owner, [group, [logger]]]]]]])
 
    Create an archive file (such as zip or tar) and return its name.
@@ -269,7 +274,8 @@ Archiving operations
    *owner* and *group* are used when creating a tar archive. By default,
    uses the current owner and group.
 
-   *logger* is an instance of :class:`logging.Logger`.
+   *logger* must be an object compatible with :pep:`282`, usually an instance of
+   :class:`logging.Logger`.
 
    .. versionadded:: 3.2
 
@@ -374,6 +380,7 @@ Archiving operations
    .. versionadded:: 3.2
 
 
+.. _shutil-archiving-example:
 
 Archiving example
 :::::::::::::::::
@@ -399,5 +406,3 @@ The resulting archive contains::
     -rw------- tarek/staff    1675 2008-06-09 13:26:54 ./id_rsa
     -rw-r--r-- tarek/staff     397 2008-06-09 13:26:54 ./id_rsa.pub
     -rw-r--r-- tarek/staff   37192 2010-02-06 18:23:10 ./known_hosts
-
-

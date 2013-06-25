@@ -4,7 +4,11 @@
 .. module:: copy
    :synopsis: Shallow and deep copy operations.
 
-This module provides generic (shallow and deep) copying operations.
+Assignment statements in Python do not copy objects, they create bindings
+between a target and an object. For collections that are mutable or contain
+mutable items, a copy is sometimes needed so one can change one copy without
+changing the other. This module provides generic shallow and deep copy
+operations (explained below).
 
 
 Interface summary:
@@ -63,8 +67,8 @@ of lists by assigning a slice of the entire list, for example,
 
 Classes can use the same interfaces to control copying that they use to control
 pickling.  See the description of module :mod:`pickle` for information on these
-methods.  The :mod:`copy` module does not use the :mod:`copyreg` registration
-module.
+methods.  In fact, :mod:`copy` module uses the registered pickle functions from
+:mod:`copyreg` module.
 
 .. index::
    single: __copy__() (copy protocol)

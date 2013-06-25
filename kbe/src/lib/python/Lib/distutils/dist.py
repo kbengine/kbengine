@@ -537,7 +537,7 @@ Common commands: (see '--help-commands' for more)
             for (help_option, short, desc, func) in cmd_class.help_options:
                 if hasattr(opts, parser.get_attr_name(help_option)):
                     help_option_found=1
-                    if hasattr(func, '__call__'):
+                    if callable(func):
                         func()
                     else:
                         raise DistutilsClassError(
@@ -1010,17 +1010,16 @@ class DistributionMetadata:
     def write_pkg_info(self, base_dir):
         """Write the PKG-INFO file into the release tree.
         """
-        pkg_info = open(os.path.join(base_dir, 'PKG-INFO'), 'w')
-        try:
+        with open(os.path.join(base_dir, 'PKG-INFO'), 'w',
+                  encoding='UTF-8') as pkg_info:
             self.write_pkg_file(pkg_info)
-        finally:
-            pkg_info.close()
 
     def write_pkg_file(self, file):
         """Write the PKG-INFO format data to a file object.
         """
         version = '1.0'
-        if self.provides or self.requires or self.obsoletes:
+        if (self.provides or self.requires or self.obsoletes or
+            self.classifiers or self.download_url):
             version = '1.1'
 
         file.write('Metadata-Version: %s\n' % version)

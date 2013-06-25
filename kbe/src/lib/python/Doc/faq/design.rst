@@ -43,56 +43,45 @@ Why am I getting strange results with simple arithmetic operations?
 See the next question.
 
 
-Why are floating point calculations so inaccurate?
+Why are floating-point calculations so inaccurate?
 --------------------------------------------------
 
-People are often very surprised by results like this::
+Users are often surprised by results like this::
 
-   >>> 1.2 - 1.0
-   0.199999999999999996
+    >>> 1.2 - 1.0
+    0.199999999999999996
 
-and think it is a bug in Python. It's not.  This has nothing to do with Python,
-but with how the underlying C platform handles floating point numbers, and
-ultimately with the inaccuracies introduced when writing down numbers as a
-string of a fixed number of digits.
+and think it is a bug in Python.  It's not.  This has little to do with Python,
+and much more to do with how the underlying platform handles floating-point
+numbers.
 
-The internal representation of floating point numbers uses a fixed number of
-binary digits to represent a decimal number.  Some decimal numbers can't be
-represented exactly in binary, resulting in small roundoff errors.
+The :class:`float` type in CPython uses a C ``double`` for storage.  A
+:class:`float` object's value is stored in binary floating-point with a fixed
+precision (typically 53 bits) and Python uses C operations, which in turn rely
+on the hardware implementation in the processor, to perform floating-point
+operations. This means that as far as floating-point operations are concerned,
+Python behaves like many popular languages including C and Java.
 
-In decimal math, there are many numbers that can't be represented with a fixed
-number of decimal digits, e.g.  1/3 = 0.3333333333.......
+Many numbers that can be written easily in decimal notation cannot be expressed
+exactly in binary floating-point.  For example, after::
 
-In base 2, 1/2 = 0.1, 1/4 = 0.01, 1/8 = 0.001, etc.  .2 equals 2/10 equals 1/5,
-resulting in the binary fractional number 0.001100110011001...
+    >>> x = 1.2
 
-Floating point numbers only have 32 or 64 bits of precision, so the digits are
-cut off at some point, and the resulting number is 0.199999999999999996 in
-decimal, not 0.2.
+the value stored for ``x`` is a (very good) approximation to the decimal value
+``1.2``, but is not exactly equal to it.  On a typical machine, the actual
+stored value is::
 
-A floating point number's ``repr()`` function prints as many digits are
-necessary to make ``eval(repr(f)) == f`` true for any float f.  The ``str()``
-function prints fewer digits and this often results in the more sensible number
-that was probably intended::
+    1.0011001100110011001100110011001100110011001100110011 (binary)
 
-   >>> 1.1 - 0.9
-   0.20000000000000007
-   >>> print(1.1 - 0.9)
-   0.2
+which is exactly::
 
-One of the consequences of this is that it is error-prone to compare the result
-of some computation to a float with ``==``. Tiny inaccuracies may mean that
-``==`` fails.  Instead, you have to check that the difference between the two
-numbers is less than a certain threshold::
+    1.1999999999999999555910790149937383830547332763671875 (decimal)
 
-   epsilon = 0.0000000000001  # Tiny allowed error
-   expected_result = 0.4
+The typical precision of 53 bits provides Python floats with 15-16
+decimal digits of accuracy.
 
-   if expected_result-epsilon <= computation() <= expected_result+epsilon:
-       ...
-
-Please see the chapter on :ref:`floating point arithmetic <tut-fp-issues>` in
-the Python tutorial for more information.
+For a fuller explanation, please see the :ref:`floating point arithmetic
+<tut-fp-issues>` chapter in the Python tutorial.
 
 
 Why are Python strings immutable?
@@ -225,7 +214,7 @@ The major reason is history. Functions were used for those operations that were
 generic for a group of types and which were intended to work even for objects
 that didn't have methods at all (e.g. tuples).  It is also convenient to have a
 function that can readily be applied to an amorphous collection of objects when
-you use the functional features of Python (``map()``, ``apply()`` et al).
+you use the functional features of Python (``map()``, ``zip()`` et al).
 
 In fact, implementing ``len()``, ``max()``, ``min()`` as a built-in function is
 actually less code than implementing them as methods for each type.  One can
@@ -284,8 +273,9 @@ Similar methods exist for bytes and bytearray objects.
 How fast are exceptions?
 ------------------------
 
-A try/except block is extremely efficient.  Actually catching an exception is
-expensive.  In versions of Python prior to 2.0 it was common to use this idiom::
+A try/except block is extremely efficient if no exceptions are raised.  Actually
+catching an exception is expensive.  In versions of Python prior to 2.0 it was
+common to use this idiom::
 
    try:
        value = mydict[key]
@@ -296,11 +286,10 @@ expensive.  In versions of Python prior to 2.0 it was common to use this idiom::
 This only made sense when you expected the dict to have the key almost all the
 time.  If that wasn't the case, you coded it like this::
 
-   if mydict.has_key(key):
+   if key in mydict:
        value = mydict[key]
    else:
-       mydict[key] = getvalue(key)
-       value = mydict[key]
+       value = mydict[key] = getvalue(key)
 
 For this specific case, you could also use ``value = dict.setdefault(key,
 getvalue(key))``, but only if the ``getvalue()`` call is cheap enough because it
@@ -356,9 +345,6 @@ support for C.
 
 Answer 2: Fortunately, there is `Stackless Python <http://www.stackless.com>`_,
 which has a completely redesigned interpreter loop that avoids the C stack.
-It's still experimental but looks very promising.  Although it is binary
-compatible with standard Python, it's still unclear whether Stackless will make
-it into the core -- maybe it's just too revolutionary.
 
 
 Why can't lambda forms contain statements?
@@ -380,11 +366,24 @@ is exactly the same type of object that a lambda form yields) is assigned!
 Can Python be compiled to machine code, C or some other language?
 -----------------------------------------------------------------
 
-Not easily.  Python's high level data types, dynamic typing of objects and
+Practical answer:
+
+`Cython <http://cython.org/>`_ and `Pyrex <http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/>`_
+compile a modified version of Python with optional annotations into C
+extensions.  `Weave <http://www.scipy.org/Weave>`_ makes it easy to
+intermingle Python and C code in various ways to increase performance.
+`Nuitka <http://www.nuitka.net/>`_ is an up-and-coming compiler of Python
+into C++ code, aiming to support the full Python language.
+
+Theoretical answer:
+
+   .. XXX not sure what to make of this
+
+Not trivially.  Python's high level data types, dynamic typing of objects and
 run-time invocation of the interpreter (using :func:`eval` or :func:`exec`)
-together mean that a "compiled" Python program would probably consist mostly of
-calls into the Python run-time system, even for seemingly simple operations like
-``x+1``.
+together mean that a naïvely "compiled" Python program would probably consist
+mostly of calls into the Python run-time system, even for seemingly simple
+operations like ``x+1``.
 
 Several projects described in the Python newsgroup or at past `Python
 conferences <http://python.org/community/workshops/>`_ have shown that this
@@ -395,99 +394,64 @@ speedups of 1000x are feasible for small demo programs.  See the proceedings
 from the `1997 Python conference
 <http://python.org/workshops/1997-10/proceedings/>`_ for more information.)
 
-Internally, Python source code is always translated into a bytecode
-representation, and this bytecode is then executed by the Python virtual
-machine.  In order to avoid the overhead of repeatedly parsing and translating
-modules that rarely change, this byte code is written into a file whose name
-ends in ".pyc" whenever a module is parsed.  When the corresponding .py file is
-changed, it is parsed and translated again and the .pyc file is rewritten.
-
-There is no performance difference once the .pyc file has been loaded, as the
-bytecode read from the .pyc file is exactly the same as the bytecode created by
-direct translation.  The only difference is that loading code from a .pyc file
-is faster than parsing and translating a .py file, so the presence of
-precompiled .pyc files improves the start-up time of Python scripts.  If
-desired, the Lib/compileall.py module can be used to create valid .pyc files for
-a given set of modules.
-
-Note that the main script executed by Python, even if its filename ends in .py,
-is not compiled to a .pyc file.  It is compiled to bytecode, but the bytecode is
-not saved to a file.  Usually main scripts are quite short, so this doesn't cost
-much speed.
-
-.. XXX check which of these projects are still alive
-
-There are also several programs which make it easier to intermingle Python and C
-code in various ways to increase performance.  See, for example, `Cython
-<http://cython.org/>`_, `Pyrex
-<http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/>`_ and `Weave
-<http://www.scipy.org/Weave>`_.
-
 
 How does Python manage memory?
 ------------------------------
 
 The details of Python memory management depend on the implementation.  The
-standard C implementation of Python uses reference counting to detect
-inaccessible objects, and another mechanism to collect reference cycles,
+standard implementation of Python, :term:`CPython`, uses reference counting to
+detect inaccessible objects, and another mechanism to collect reference cycles,
 periodically executing a cycle detection algorithm which looks for inaccessible
 cycles and deletes the objects involved. The :mod:`gc` module provides functions
 to perform a garbage collection, obtain debugging statistics, and tune the
 collector's parameters.
 
-Jython relies on the Java runtime so the JVM's garbage collector is used.  This
-difference can cause some subtle porting problems if your Python code depends on
-the behavior of the reference counting implementation.
+Other implementations (such as `Jython <http://www.jython.org>`_ or
+`PyPy <http://www.pypy.org>`_), however, can rely on a different mechanism
+such as a full-blown garbage collector.  This difference can cause some
+subtle porting problems if your Python code depends on the behavior of the
+reference counting implementation.
 
-.. XXX relevant for Python 3?
-
-   Sometimes objects get stuck in traceback temporarily and hence are not
-   deallocated when you might expect.  Clear the traceback with::
-
-     import sys
-     sys.last_traceback = None
-
-   Tracebacks are used for reporting errors, implementing debuggers and related
-   things.  They contain a portion of the program state extracted during the
-   handling of an exception (usually the most recent exception).
-
-In the absence of circularities, Python programs do not need to manage memory
-explicitly.
-
-Why doesn't Python use a more traditional garbage collection scheme?  For one
-thing, this is not a C standard feature and hence it's not portable.  (Yes, we
-know about the Boehm GC library.  It has bits of assembler code for *most*
-common platforms, not for all of them, and although it is mostly transparent, it
-isn't completely transparent; patches are required to get Python to work with
-it.)
-
-Traditional GC also becomes a problem when Python is embedded into other
-applications.  While in a standalone Python it's fine to replace the standard
-malloc() and free() with versions provided by the GC library, an application
-embedding Python may want to have its *own* substitute for malloc() and free(),
-and may not want Python's.  Right now, Python works with anything that
-implements malloc() and free() properly.
-
-In Jython, the following code (which is fine in CPython) will probably run out
-of file descriptors long before it runs out of memory::
+In some Python implementations, the following code (which is fine in CPython)
+will probably run out of file descriptors::
 
    for file in very_long_list_of_files:
        f = open(file)
        c = f.read(1)
 
-Using the current reference counting and destructor scheme, each new assignment
-to f closes the previous file.  Using GC, this is not guaranteed.  If you want
-to write code that will work with any Python implementation, you should
-explicitly close the file or use the :keyword:`with` statement; this will work
-regardless of GC::
+Indeed, using CPython's reference counting and destructor scheme, each new
+assignment to *f* closes the previous file.  With a traditional GC, however,
+those file objects will only get collected (and closed) at varying and possibly
+long intervals.
+
+If you want to write code that will work with any Python implementation,
+you should explicitly close the file or use the :keyword:`with` statement;
+this will work regardless of memory management scheme::
 
    for file in very_long_list_of_files:
        with open(file) as f:
            c = f.read(1)
 
 
-Why isn't all memory freed when Python exits?
----------------------------------------------
+Why doesn't CPython use a more traditional garbage collection scheme?
+---------------------------------------------------------------------
+
+For one thing, this is not a C standard feature and hence it's not portable.
+(Yes, we know about the Boehm GC library.  It has bits of assembler code for
+*most* common platforms, not for all of them, and although it is mostly
+transparent, it isn't completely transparent; patches are required to get
+Python to work with it.)
+
+Traditional GC also becomes a problem when Python is embedded into other
+applications.  While in a standalone Python it's fine to replace the standard
+malloc() and free() with versions provided by the GC library, an application
+embedding Python may want to have its *own* substitute for malloc() and free(),
+and may not want Python's.  Right now, CPython works with anything that
+implements malloc() and free() properly.
+
+
+Why isn't all memory freed when CPython exits?
+----------------------------------------------
 
 Objects referenced from the global namespaces of Python modules are not always
 deallocated when Python exits.  This may happen if there are circular
@@ -647,10 +611,10 @@ order to remind you of that fact, it does not return the sorted list.  This way,
 you won't be fooled into accidentally overwriting a list when you need a sorted
 copy but also need to keep the unsorted version around.
 
-In Python 2.4 a new built-in function -- :func:`sorted` -- has been added.
-This function creates a new list from a provided iterable, sorts it and returns
-it.  For example, here's how to iterate over the keys of a dictionary in sorted
-order::
+If you want to return a new list, use the built-in :func:`sorted` function
+instead.  This function creates a new list from a provided iterable, sorts
+it and returns it.  For example, here's how to iterate over the keys of a
+dictionary in sorted order::
 
    for key in sorted(mydict):
        ... # do whatever with mydict[key]...
@@ -740,7 +704,7 @@ of each call to the function, and return the cached value if the same value is
 requested again.  This is called "memoizing", and can be implemented like this::
 
    # Callers will never provide a third parameter for this function.
-   def expensive (arg1, arg2, _cache={}):
+   def expensive(arg1, arg2, _cache={}):
        if (arg1, arg2) in _cache:
            return _cache[(arg1, arg2)]
 
@@ -761,11 +725,11 @@ function calls.  Many feel that exceptions can conveniently emulate all
 reasonable uses of the "go" or "goto" constructs of C, Fortran, and other
 languages.  For example::
 
-   class label: pass  # declare a label
+   class label(Exception): pass  # declare a label
 
    try:
         ...
-        if (condition): raise label()  # goto label
+        if condition: raise label()  # goto label
         ...
    except label:  # where to goto
         pass

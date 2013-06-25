@@ -1461,7 +1461,7 @@ array_fromunicode(arrayobject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "u#:fromunicode", &ustr, &n))
         return NULL;
     typecode = self->ob_descr->typecode;
-    if ((typecode != 'u')) {
+    if (typecode != 'u') {
         PyErr_SetString(PyExc_ValueError,
             "fromunicode() may only be called on "
             "unicode type arrays");
@@ -1484,7 +1484,7 @@ PyDoc_STRVAR(fromunicode_doc,
 \n\
 Extends this array with data from the unicode string ustr.\n\
 The array must be a unicode type array; otherwise a ValueError\n\
-is raised.  Use array.frombytes(ustr.decode(...)) to\n\
+is raised.  Use array.frombytes(ustr.encode(...)) to\n\
 append Unicode data to an array of some other type.");
 
 
@@ -1493,7 +1493,7 @@ array_tounicode(arrayobject *self, PyObject *unused)
 {
     Py_UNICODE typecode;
     typecode = self->ob_descr->typecode;
-    if ((typecode != 'u')) {
+    if (typecode != 'u') {
         PyErr_SetString(PyExc_ValueError,
              "tounicode() may only be called on unicode type arrays");
         return NULL;
@@ -1506,9 +1506,22 @@ PyDoc_STRVAR(tounicode_doc,
 \n\
 Convert the array to a unicode string.  The array must be\n\
 a unicode type array; otherwise a ValueError is raised.  Use\n\
-array.tostring().decode() to obtain a unicode string from\n\
+array.tobytes().decode() to obtain a unicode string from\n\
 an array of some other type.");
 
+
+static PyObject *
+array_sizeof(arrayobject *self, PyObject *unused)
+{
+    Py_ssize_t res;
+    res = sizeof(arrayobject) + self->allocated * self->ob_descr->itemsize;
+    return PyLong_FromSsize_t(res);
+}
+
+PyDoc_STRVAR(sizeof_doc,
+"__sizeof__() -> int\n\
+\n\
+Size of the array in memory, in bytes.");
 
 
 /*********************** Pickling support ************************/
@@ -2077,6 +2090,8 @@ static PyMethodDef array_methods[] = {
      tobytes_doc},
     {"tounicode",   (PyCFunction)array_tounicode,       METH_NOARGS,
      tounicode_doc},
+    {"__sizeof__",      (PyCFunction)array_sizeof,      METH_NOARGS,
+     sizeof_doc},
     {NULL,              NULL}           /* sentinel */
 };
 
@@ -2092,10 +2107,11 @@ array_repr(arrayobject *a)
     if (len == 0) {
         return PyUnicode_FromFormat("array('%c')", (int)typecode);
     }
-    if ((typecode == 'u'))
+    if (typecode == 'u') {
         v = array_tounicode(a, NULL);
-    else
+    } else {
         v = array_tolist(a, NULL);
+    }
 
     s = PyUnicode_FromFormat("array('%c', %R)", (int)typecode, v);
     Py_DECREF(v);
@@ -2543,7 +2559,7 @@ PyDoc_STRVAR(arraytype_doc,
 \n\
 Return a new array whose items are restricted by typecode, and\n\
 initialized from the optional initializer value, which must be a list,\n\
-string. or iterable over elements of the appropriate type.\n\
+string or iterable over elements of the appropriate type.\n\
 \n\
 Arrays represent basic values and behave very much like lists, except\n\
 the type of objects stored in them is constrained.\n\
@@ -2557,7 +2573,7 @@ count() -- return number of occurrences of an object\n\
 extend() -- extend array by appending multiple elements from an iterable\n\
 fromfile() -- read items from a file object\n\
 fromlist() -- append items from the list\n\
-fromstring() -- append items from the string\n\
+frombytes() -- append items from the string\n\
 index() -- return index of first occurrence of an object\n\
 insert() -- insert a new item into the array at a provided position\n\
 pop() -- remove and return item (default last)\n\
@@ -2565,7 +2581,7 @@ remove() -- remove first occurrence of an object\n\
 reverse() -- reverse the order of the items in the array\n\
 tofile() -- write all items to a file object\n\
 tolist() -- return the array converted to an ordinary list\n\
-tostring() -- return the array converted to a string\n\
+tobytes() -- return the array converted to a string\n\
 \n\
 Attributes:\n\
 \n\

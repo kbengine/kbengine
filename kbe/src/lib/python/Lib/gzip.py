@@ -105,6 +105,9 @@ class GzipFile(io.BufferedIOBase):
     """The GzipFile class simulates most of the methods of a file object with
     the exception of the readinto() and truncate() methods.
 
+    This class only supports opening files in binary mode. If you need to open a
+    compressed file in text mode, wrap your GzipFile with an io.TextIOWrapper.
+
     """
 
     myfileobj = None
@@ -131,12 +134,13 @@ class GzipFile(io.BufferedIOBase):
         The mode argument can be any of 'r', 'rb', 'a', 'ab', 'w', or 'wb',
         depending on whether the file will be read or written.  The default
         is the mode of fileobj if discernible; otherwise, the default is 'rb'.
-        Be aware that only the 'rb', 'ab', and 'wb' values should be used
-        for cross-platform portability.
+        A mode of 'r' is equivalent to one of 'rb', and similarly for 'w' and
+        'wb', and 'a' and 'ab'.
 
-        The compresslevel argument is an integer from 1 to 9 controlling the
+        The compresslevel argument is an integer from 0 to 9 controlling the
         level of compression; 1 is fastest and produces the least compression,
-        and 9 is slowest and produces the most compression.  The default is 9.
+        and 9 is slowest and produces the most compression. 0 is no compression
+        at all. The default is 9.
 
         The mtime argument is an optional numeric timestamp to be written
         to the stream when compressing.  All gzip compressed streams
@@ -149,15 +153,16 @@ class GzipFile(io.BufferedIOBase):
 
         """
 
-        # guarantee the file is opened in binary mode on platforms
-        # that care about that sort of thing
+        if mode and ('t' in mode or 'U' in mode):
+            raise IOError("Mode " + mode + " not supported")
         if mode and 'b' not in mode:
             mode += 'b'
         if fileobj is None:
             fileobj = self.myfileobj = builtins.open(filename, mode or 'rb')
         if filename is None:
-            if hasattr(fileobj, 'name'): filename = fileobj.name
-            else: filename = ''
+            filename = getattr(fileobj, 'name', '')
+            if not isinstance(filename, (str, bytes)):
+                filename = ''
         if mode is None:
             if hasattr(fileobj, 'mode'): mode = fileobj.mode
             else: mode = 'rb'
@@ -231,7 +236,8 @@ class GzipFile(io.BufferedIOBase):
             # RFC 1952 requires the FNAME field to be Latin-1. Do not
             # include filenames that cannot be represented that way.
             fname = os.path.basename(self.name)
-            fname = fname.encode('latin-1')
+            if not isinstance(fname, bytes):
+                fname = fname.encode('latin-1')
             if fname.endswith(b'.gz'):
                 fname = fname[:-3]
         except UnicodeEncodeError:
@@ -361,8 +367,10 @@ class GzipFile(io.BufferedIOBase):
             if self.fileobj is None:
                 return b''
             try:
-                # 1024 is the same buffering heuristic used in read()
-                self._read(max(n, 1024))
+                # Ensure that we don't return b"" if we haven't reached EOF.
+                while self.extrasize == 0:
+                    # 1024 is the same buffering heuristic used in read()
+                    self._read(max(n, 1024))
             except EOFError:
                 pass
         offset = self.offset - self.extrastart
@@ -568,7 +576,7 @@ class GzipFile(io.BufferedIOBase):
 
 def compress(data, compresslevel=9):
     """Compress data in one shot and return the compressed string.
-    Optional argument is the compression level, in range of 1-9.
+    Optional argument is the compression level, in range of 0-9.
     """
     buf = io.BytesIO()
     with GzipFile(fileobj=buf, mode='wb', compresslevel=compresslevel) as f:
@@ -616,9 +624,9 @@ def _test():
             if not chunk:
                 break
             g.write(chunk)
-        if g is not sys.stdout:
+        if g is not sys.stdout.buffer:
             g.close()
-        if f is not sys.stdin:
+        if f is not sys.stdin.buffer:
             f.close()
 
 if __name__ == '__main__':

@@ -8,6 +8,10 @@
 
 #include "multiprocessing.h"
 
+#if defined(HAVE_POLL) && !defined(HAVE_BROKEN_POLL)
+#  include "poll.h"
+#endif
+
 #ifdef MS_WINDOWS
 #  define WRITE(h, buffer, length) send((SOCKET)h, buffer, length, 0)
 #  define READ(h, buffer, length) recv((SOCKET)h, buffer, length, 0)
@@ -117,7 +121,7 @@ static Py_ssize_t
 conn_recv_string(ConnectionObject *conn, char *buffer,
                  size_t buflength, char **newbuffer, size_t maxlength)
 {
-    int res;
+    Py_ssize_t res;
     UINT32 ulength;
 
     *newbuffer = NULL;
@@ -132,20 +136,23 @@ conn_recv_string(ConnectionObject *conn, char *buffer,
     if (ulength > maxlength)
         return MP_BAD_MESSAGE_LENGTH;
 
-    if (ulength <= buflength) {
-        Py_BEGIN_ALLOW_THREADS
-        res = _conn_recvall(conn->handle, buffer, (size_t)ulength);
-        Py_END_ALLOW_THREADS
-        return res < 0 ? res : ulength;
-    } else {
-        *newbuffer = PyMem_Malloc((size_t)ulength);
-        if (*newbuffer == NULL)
+    if (ulength > buflength) {
+        *newbuffer = buffer = PyMem_Malloc((size_t)ulength);
+        if (buffer == NULL)
             return MP_MEMORY_ERROR;
-        Py_BEGIN_ALLOW_THREADS
-        res = _conn_recvall(conn->handle, *newbuffer, (size_t)ulength);
-        Py_END_ALLOW_THREADS
-        return res < 0 ? (Py_ssize_t)res : (Py_ssize_t)ulength;
     }
+
+    Py_BEGIN_ALLOW_THREADS
+    res = _conn_recvall(conn->handle, buffer, (size_t)ulength);
+    Py_END_ALLOW_THREADS
+
+    if (res >= 0) {
+        res = (Py_ssize_t)ulength;
+    } else if (*newbuffer != NULL) {
+        PyMem_Free(*newbuffer);
+        *newbuffer = NULL;
+    }
+    return res;
 }
 
 /*
@@ -155,6 +162,34 @@ conn_recv_string(ConnectionObject *conn, char *buffer,
 static int
 conn_poll(ConnectionObject *conn, double timeout, PyThreadState *_save)
 {
+#if defined(HAVE_POLL) && !defined(HAVE_BROKEN_POLL)
+    int res;
+    struct pollfd p;
+
+    p.fd = (int)conn->handle;
+    p.events = POLLIN | POLLPRI;
+    p.revents = 0;
+
+    if (timeout < 0) {
+        res = poll(&p, 1, -1);
+    } else {
+        res = poll(&p, 1, (int)(timeout * 1000 + 0.5));
+    }
+
+    if (res < 0) {
+        return MP_SOCKET_ERROR;
+    } else if (p.revents & (POLLNVAL|POLLERR)) {
+        Py_BLOCK_THREADS
+        PyErr_SetString(PyExc_IOError, "poll() gave POLLNVAL or POLLERR");
+        Py_UNBLOCK_THREADS
+        return MP_EXCEPTION_HAS_BEEN_SET;
+    } else if (p.revents != 0) {
+        return TRUE;
+    } else {
+        assert(res == 0);
+        return FALSE;
+    }
+#else
     int res;
     fd_set rfds;
 
@@ -190,6 +225,7 @@ conn_poll(ConnectionObject *conn, double timeout, PyThreadState *_save)
         assert(res == 0);
         return FALSE;
     }
+#endif
 }
 
 /*

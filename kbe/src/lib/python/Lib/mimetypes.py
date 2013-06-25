@@ -199,7 +199,7 @@ class MimeTypes:
         list of standard types, else to the list of non-standard
         types.
         """
-        with open(filename) as fp:
+        with open(filename, encoding='utf-8') as fp:
             self.readfp(fp, strict)
 
     def readfp(self, fp, strict=True):
@@ -430,7 +430,7 @@ def _default_mime_types():
         '.jpe'    : 'image/jpeg',
         '.jpeg'   : 'image/jpeg',
         '.jpg'    : 'image/jpeg',
-        '.js'     : 'application/x-javascript',
+        '.js'     : 'application/javascript',
         '.ksh'    : 'text/plain',
         '.latex'  : 'application/x-latex',
         '.m1v'    : 'video/mpeg',

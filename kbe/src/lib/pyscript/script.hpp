@@ -34,7 +34,8 @@ namespace KBEngine{ namespace script{
 #define SCRIPT_PATH												\
 					L"../../res/scripts;"						\
 					L"../../res/scripts/common;"				\
-					L"../../res/scripts/common/lib-dynload64;"	\
+					L"../../res/scripts/common/lib-dynload;"	\
+					L"../../res/scripts/common/DLLs;"			\
 					L"../../res/scripts/common/Lib"
 #else
 #define SCRIPT_PATH												\

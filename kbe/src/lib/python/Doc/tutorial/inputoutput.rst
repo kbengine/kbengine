@@ -37,7 +37,7 @@ or :func:`str` functions.
 The :func:`str` function is meant to return representations of values which are
 fairly human-readable, while :func:`repr` is meant to generate representations
 which can be read by the interpreter (or will force a :exc:`SyntaxError` if
-there is not equivalent syntax).  For objects which don't have a particular
+there is no equivalent syntax).  For objects which don't have a particular
 representation for human consumption, :func:`str` will return the same value as
 :func:`repr`.  Many values, such as numbers or structures like lists and
 dictionaries, have the same representation using either function.  Strings, in
@@ -184,7 +184,7 @@ square brackets ``'[]'`` to access the keys ::
 
    >>> table = {'Sjoerd': 4127, 'Jack': 4098, 'Dcab': 8637678}
    >>> print('Jack: {0[Jack]:d}; Sjoerd: {0[Sjoerd]:d}; '
-             'Dcab: {0[Dcab]:d}'.format(table))
+   ...       'Dcab: {0[Dcab]:d}'.format(table))
    Jack: 4098; Sjoerd: 4127; Dcab: 8637678
 
 This could also be done by passing the table as keyword arguments with the '**'
@@ -234,12 +234,12 @@ two arguments: ``open(filename, mode)``.
 
 ::
 
-   >>> f = open('/tmp/workfile', 'w')
+   >>> f = open('workfile', 'w')
 
 .. XXX str(f) is <io.TextIOWrapper object at 0x82e8dc4>
 
    >>> print(f)
-   <open file '/tmp/workfile', mode 'w' at 80a0960>
+   <open file 'workfile', mode 'w' at 80a0960>
 
 The first argument is a string containing the filename.  The second argument is
 another string containing a few characters describing the way in which the file
@@ -256,9 +256,10 @@ default being UTF-8).  ``'b'`` appended to the mode opens the file in
 :dfn:`binary mode`: now the data is read and written in the form of bytes
 objects.  This mode should be used for all files that don't contain text.
 
-In text mode, the default is to convert platform-specific line endings (``\n``
-on Unix, ``\r\n`` on Windows) to just ``\n`` on reading and ``\n`` back to
-platform-specific line endings on writing.  This behind-the-scenes modification
+In text mode, the default when reading is to convert platform-specific line
+endings (``\n`` on Unix, ``\r\n`` on Windows) to just ``\n``.  When writing in
+text mode, the default is to convert occurrences of ``\n`` back to
+platform-specific line endings.  This behind-the-scenes modification
 to file data is fine for text files, but will corrupt binary data like that in
 :file:`JPEG` or :file:`EXE` files.  Be very careful to use binary mode when
 reading and writing such files.
@@ -345,7 +346,7 @@ of the file, 1 uses the current file position, and 2 uses the end of the file as
 the reference point.  *from_what* can be omitted and defaults to 0, using the
 beginning of the file as the reference point. ::
 
-   >>> f = open('/tmp/workfile', 'rb+')
+   >>> f = open('workfile', 'rb+')
    >>> f.write(b'0123456789abcdef')
    16
    >>> f.seek(5)     # Go to the 6th byte in the file
@@ -376,7 +377,7 @@ objects.  This has the advantage that the file is properly closed after its
 suite finishes, even if an exception is raised on the way.  It is also much
 shorter than writing equivalent :keyword:`try`\ -\ :keyword:`finally` blocks::
 
-    >>> with open('/tmp/workfile', 'r') as f:
+    >>> with open('workfile', 'r') as f:
     ...     read_data = f.read()
     >>> f.closed
     True

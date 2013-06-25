@@ -116,11 +116,11 @@ literals.  See section :ref:`literals` for details.
    triple: immutable; data; type
    pair: immutable; object
 
-With the exception of bytes literals, these all correspond to immutable data
-types, and hence the object's identity is less important than its value.
-Multiple evaluations of literals with the same value (either the same occurrence
-in the program text or a different occurrence) may obtain the same object or a
-different object with the same value.
+All literals correspond to immutable data types, and hence the object's identity
+is less important than its value.  Multiple evaluations of literals with the
+same value (either the same occurrence in the program text or a different
+occurrence) may obtain the same object or a different object with the same
+value.
 
 
 .. _parenthesized:
@@ -294,13 +294,13 @@ for comprehensions, except that it is enclosed in parentheses instead of
 brackets or curly braces.
 
 Variables used in the generator expression are evaluated lazily when the
-:meth:`__next__` method is called for generator object (in the same fashion as
-normal generators).  However, the leftmost :keyword:`for` clause is immediately
-evaluated, so that an error produced by it can be seen before any other possible
-error in the code that handles the generator expression.  Subsequent
-:keyword:`for` clauses cannot be evaluated immediately since they may depend on
-the previous :keyword:`for` loop. For example: ``(x*y for x in range(10) for y
-in bar(x))``.
+:meth:`~generator.__next__` method is called for generator object (in the same
+fashion as normal generators).  However, the leftmost :keyword:`for` clause is
+immediately evaluated, so that an error produced by it can be seen before any
+other possible error in the code that handles the generator expression.
+Subsequent :keyword:`for` clauses cannot be evaluated immediately since they
+may depend on the previous :keyword:`for` loop. For example: ``(x*y for x in
+range(10) for y in bar(x))``.
 
 The parentheses can be omitted on calls with only one argument.  See section
 :ref:`calls` for the detail.
@@ -354,8 +354,15 @@ called, allowing any pending :keyword:`finally` clauses to execute.
 
 .. index:: object: generator
 
-The following generator's methods can be used to control the execution of a
-generator function:
+
+Generator-iterator methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This subsection describes the methods of a generator iterator.  They can
+be used to control the execution of a generator function.
+
+Note that calling any of the generator methods below when the generator
+is already executing raises a :exc:`ValueError` exception.
 
 .. index:: exception: StopIteration
 
@@ -364,10 +371,11 @@ generator function:
 
    Starts the execution of a generator function or resumes it at the last
    executed :keyword:`yield` expression.  When a generator function is resumed
-   with a :meth:`__next__` method, the current :keyword:`yield` expression
-   always evaluates to :const:`None`.  The execution then continues to the next
-   :keyword:`yield` expression, where the generator is suspended again, and the
-   value of the :token:`expression_list` is returned to :meth:`next`'s caller.
+   with a :meth:`~generator.__next__` method, the current :keyword:`yield`
+   expression always evaluates to :const:`None`.  The execution then continues
+   to the next :keyword:`yield` expression, where the generator is suspended
+   again, and the value of the :token:`expression_list` is returned to
+   :meth:`next`'s caller.
    If the generator exits without yielding another value, a :exc:`StopIteration`
    exception is raised.
 
@@ -592,17 +600,18 @@ upper bound and stride, respectively, substituting ``None`` for missing
 expressions.
 
 
+.. index::
+   object: callable
+   single: call
+   single: argument; call semantics
+
 .. _calls:
 
 Calls
 -----
 
-.. index:: single: call
-
-.. index:: object: callable
-
-A call calls a callable object (e.g., a function) with a possibly empty series
-of arguments:
+A call calls a callable object (e.g., a :term:`function`) with a possibly empty
+series of :term:`arguments <argument>`:
 
 .. productionlist::
    call: `primary` "(" [`argument_list` [","] | `comprehension`] ")"
@@ -620,11 +629,14 @@ of arguments:
 A trailing comma may be present after the positional and keyword arguments but
 does not affect the semantics.
 
+.. index::
+   single: parameter; call semantics
+
 The primary must evaluate to a callable object (user-defined functions, built-in
 functions, methods of built-in objects, class objects, methods of class
 instances, and all objects having a :meth:`__call__` method are callable).  All
 argument expressions are evaluated before the call is attempted.  Please refer
-to section :ref:`function` for the syntax of formal parameter lists.
+to section :ref:`function` for the syntax of formal :term:`parameter` lists.
 
 .. XXX update with kwonly args PEP
 
@@ -1060,16 +1072,10 @@ Comparison of objects of the same type depends on the type:
   another one is made arbitrarily but consistently within one execution of a
   program.
 
-Comparison of objects of the differing types depends on whether either
-of the types provide explicit support for the comparison.  Most numeric types
-can be compared with one another, but comparisons of :class:`float` and
-:class:`Decimal` are not supported to avoid the inevitable confusion arising
-from representation issues such as ``float('1.1')`` being inexactly represented
-and therefore not exactly equal to ``Decimal('1.1')`` which is.  When
-cross-type comparison is not supported, the comparison method returns
-``NotImplemented``.  This can create the illusion of non-transitivity between
-supported cross-type comparisons and unsupported comparisons.  For example,
-``Decimal(2) == 2`` and ``2 == float(2)`` but ``Decimal(2) != float(2)``.
+Comparison of objects of the differing types depends on whether either of the
+types provide explicit support for the comparison.  Most numeric types can be
+compared with one another.  When cross-type comparison is not supported, the
+comparison method returns ``NotImplemented``.
 
 .. _membership-test-details:
 
@@ -1264,8 +1270,8 @@ their suffixes::
 
 .. _operator-summary:
 
-Summary
-=======
+Operator precedence
+===================
 
 .. index:: pair: operator; precedence
 
@@ -1289,9 +1295,9 @@ groups from right to left).
 +-----------------------------------------------+-------------------------------------+
 | :keyword:`and`                                | Boolean AND                         |
 +-----------------------------------------------+-------------------------------------+
-| :keyword:`not` *x*                            | Boolean NOT                         |
+| :keyword:`not` ``x``                          | Boolean NOT                         |
 +-----------------------------------------------+-------------------------------------+
-| :keyword:`in`, :keyword:`not` :keyword:`in`,  | Comparisons, including membership   |
+| :keyword:`in`, :keyword:`not in`,             | Comparisons, including membership   |
 | :keyword:`is`, :keyword:`is not`, ``<``,      | tests and identity tests,           |
 | ``<=``, ``>``, ``>=``, ``!=``, ``==``         |                                     |
 +-----------------------------------------------+-------------------------------------+
@@ -1317,7 +1323,7 @@ groups from right to left).
 +-----------------------------------------------+-------------------------------------+
 | ``(expressions...)``,                         | Binding or tuple display,           |
 | ``[expressions...]``,                         | list display,                       |
-| ``{key:datum...}``,                           | dictionary display,                 |
+| ``{key: value...}``,                          | dictionary display,                 |
 | ``{expressions...}``                          | set display                         |
 +-----------------------------------------------+-------------------------------------+
 

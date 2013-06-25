@@ -589,8 +589,14 @@ bytearray_ass_subscript(PyByteArrayObject *self, PyObject *index, PyObject *valu
         needed = 0;
     }
     else if (values == (PyObject *)self || !PyByteArray_Check(values)) {
-        /* Make a copy and call this function recursively */
         int err;
+        if (PyNumber_Check(values) || PyUnicode_Check(values)) {
+            PyErr_SetString(PyExc_TypeError,
+                            "can assign only bytes, buffers, or iterables "
+                            "of ints in range(0, 256)");
+            return -1;
+        }
+        /* Make a copy and call this function recursively */
         values = PyByteArray_FromObject(values);
         if (values == NULL)
             return -1;
@@ -2234,8 +2240,10 @@ bytearray_extend(PyByteArrayObject *self, PyObject *arg)
     }
 
     bytearray_obj = PyByteArray_FromStringAndSize(NULL, buf_size);
-    if (bytearray_obj == NULL)
+    if (bytearray_obj == NULL) {
+        Py_DECREF(it);
         return NULL;
+    }
     buf = PyByteArray_AS_STRING(bytearray_obj);
 
     while ((item = PyIter_Next(it)) != NULL) {
@@ -2268,8 +2276,10 @@ bytearray_extend(PyByteArrayObject *self, PyObject *arg)
         return NULL;
     }
 
-    if (bytearray_setslice(self, Py_SIZE(self), Py_SIZE(self), bytearray_obj) == -1)
+    if (bytearray_setslice(self, Py_SIZE(self), Py_SIZE(self), bytearray_obj) == -1) {
+        Py_DECREF(bytearray_obj);
         return NULL;
+    }
     Py_DECREF(bytearray_obj);
 
     Py_RETURN_NONE;
@@ -2797,18 +2807,16 @@ bytearray_methods[] = {
 PyDoc_STRVAR(bytearray_doc,
 "bytearray(iterable_of_ints) -> bytearray\n\
 bytearray(string, encoding[, errors]) -> bytearray\n\
-bytearray(bytes_or_bytearray) -> mutable copy of bytes_or_bytearray\n\
-bytearray(memory_view) -> bytearray\n\
+bytearray(bytes_or_buffer) -> mutable copy of bytes_or_buffer\n\
+bytearray(int) -> bytes array of size given by the parameter initialized with null bytes\n\
+bytearray() -> empty bytes array\n\
 \n\
 Construct an mutable bytearray object from:\n\
   - an iterable yielding integers in range(256)\n\
   - a text string encoded using the specified encoding\n\
-  - a bytes or a bytearray object\n\
+  - a bytes or a buffer object\n\
   - any object implementing the buffer API.\n\
-\n\
-bytearray(int) -> bytearray\n\
-\n\
-Construct a zero-initialized bytearray of the given length.");
+  - an integer");
 
 
 static PyObject *bytearray_iter(PyObject *seq);

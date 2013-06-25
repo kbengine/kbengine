@@ -47,9 +47,9 @@ static PyObject *parsestrplus(struct compiling *, const node *n,
 #define COMP_SETCOMP  2
 
 static identifier
-new_identifier(const char* n, PyArena *arena)
+new_identifier(const char *n, PyArena *arena)
 {
-    PyObject* id = PyUnicode_DecodeUTF8(n, strlen(n), NULL);
+    PyObject *id = PyUnicode_DecodeUTF8(n, strlen(n), NULL);
     Py_UNICODE *u;
     if (!id)
         return NULL;
@@ -89,10 +89,18 @@ new_identifier(const char* n, PyArena *arena)
 static int
 ast_error(const node *n, const char *errstr)
 {
-    PyObject *u = Py_BuildValue("zii", errstr, LINENO(n), n->n_col_offset);
+    PyObject *u = Py_BuildValue("zii", errstr, LINENO(n), n->n_col_offset), *save;
     if (!u)
         return 0;
+    /*
+     * Prevent the error from being chained. PyErr_SetObject will normalize the
+     * exception in order to chain it. ast_error_finish, however, requires the
+     * error not to be normalized.
+     */
+    save = PyThreadState_GET()->exc_value;
+    PyThreadState_GET()->exc_value = NULL;
     PyErr_SetObject(PyExc_SyntaxError, u);
+    PyThreadState_GET()->exc_value = save;
     Py_DECREF(u);
     return 0;
 }
@@ -645,7 +653,7 @@ seq_for_testlist(struct compiling *c, const node *n)
 }
 
 static arg_ty
-compiler_arg(struct compiling *c, const node *n)
+ast_for_arg(struct compiling *c, const node *n)
 {
     identifier name;
     expr_ty annotation = NULL;
@@ -666,12 +674,6 @@ compiler_arg(struct compiling *c, const node *n)
     }
 
     return arg(name, annotation, c->c_arena);
-#if 0
-    result = Tuple(args, Store, LINENO(n), n->n_col_offset, c->c_arena);
-    if (!set_context(c, result, Store, n))
-        return NULL;
-    return result;
-#endif
 }
 
 /* returns -1 if failed to handle keyword only arguments
@@ -859,7 +861,7 @@ ast_for_arguments(struct compiling *c, const node *n)
                              "non-default argument follows default argument");
                     return NULL;
                 }
-                arg = compiler_arg(c, ch);
+                arg = ast_for_arg(c, ch);
                 if (!arg)
                     return NULL;
                 asdl_seq_SET(posargs, k++, arg);
@@ -1366,20 +1368,24 @@ ast_for_atom(struct compiling *c, const node *n)
     case STRING: {
         PyObject *str = parsestrplus(c, n, &bytesmode);
         if (!str) {
-            if (PyErr_ExceptionMatches(PyExc_UnicodeError)) {
+            const char *errtype = NULL;
+            if (PyErr_ExceptionMatches(PyExc_UnicodeError))
+                errtype = "unicode error";
+            else if (PyErr_ExceptionMatches(PyExc_ValueError))
+                errtype = "value error";
+            if (errtype) {
+                char buf[128];
                 PyObject *type, *value, *tback, *errstr;
                 PyErr_Fetch(&type, &value, &tback);
                 errstr = PyObject_Str(value);
                 if (errstr) {
-                    char *s = "";
-                    char buf[128];
-                    s = _PyUnicode_AsString(errstr);
-                    PyOS_snprintf(buf, sizeof(buf), "(unicode error) %s", s);
-                    ast_error(n, buf);
+                    char *s = _PyUnicode_AsString(errstr);
+                    PyOS_snprintf(buf, sizeof(buf), "(%s) %s", errtype, s);
                     Py_DECREF(errstr);
                 } else {
-                    ast_error(n, "(unicode error) unknown error");
+                    PyOS_snprintf(buf, sizeof(buf), "(%s) unknown error", errtype);
                 }
+                ast_error(n, buf);
                 Py_DECREF(type);
                 Py_DECREF(value);
                 Py_XDECREF(tback);
@@ -3303,7 +3309,7 @@ parsestr(struct compiling *c, const node *n, int *bytesmode)
     int quote = Py_CHARMASK(*s);
     int rawmode = 0;
     int need_encoding;
-    if (isalpha(quote)) {
+    if (Py_ISALPHA(quote)) {
         if (quote == 'b' || quote == 'B') {
             quote = *++s;
             *bytesmode = 1;
@@ -3393,6 +3399,7 @@ parsestrplus(struct compiling *c, const node *n, int *bytesmode)
                 goto onError;
             if (*bytesmode != subbm) {
                 ast_error(n, "cannot mix bytes and nonbytes literals");
+                Py_DECREF(s);
                 goto onError;
             }
             if (PyBytes_Check(v) && PyBytes_Check(s)) {

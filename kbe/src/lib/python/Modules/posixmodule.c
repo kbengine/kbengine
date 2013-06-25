@@ -26,6 +26,9 @@
 #define PY_SSIZE_T_CLEAN
 
 #include "Python.h"
+#ifndef MS_WINDOWS
+#include "posixmodule.h"
+#endif
 
 #if defined(__VMS)
 #    include <unixio.h>
@@ -347,9 +350,137 @@ static int win32_can_symlink = 0;
 #endif
 #endif
 
+
+#ifndef MS_WINDOWS
+PyObject *
+_PyLong_FromUid(uid_t uid)
+{
+    if (uid == (uid_t)-1)
+        return PyLong_FromLong(-1);
+    return PyLong_FromUnsignedLong(uid);
+}
+
+PyObject *
+_PyLong_FromGid(gid_t gid)
+{
+    if (gid == (gid_t)-1)
+        return PyLong_FromLong(-1);
+    return PyLong_FromUnsignedLong(gid);
+}
+
+int
+_Py_Uid_Converter(PyObject *obj, void *p)
+{
+    int overflow;
+    long result;
+    if (PyFloat_Check(obj)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "integer argument expected, got float");
+        return 0;
+    }
+    result = PyLong_AsLongAndOverflow(obj, &overflow);
+    if (overflow < 0)
+        goto OverflowDown;
+    if (!overflow && result == -1) {
+        /* error or -1 */
+        if (PyErr_Occurred())
+            return 0;
+        *(uid_t *)p = (uid_t)-1;
+    }
+    else {
+        /* unsigned uid_t */
+        unsigned long uresult;
+        if (overflow > 0) {
+            uresult = PyLong_AsUnsignedLong(obj);
+            if (PyErr_Occurred()) {
+                if (PyErr_ExceptionMatches(PyExc_OverflowError))
+                    goto OverflowUp;
+                return 0;
+            }
+            if ((uid_t)uresult == (uid_t)-1)
+                goto OverflowUp;
+        } else {
+            if (result < 0)
+                goto OverflowDown;
+            uresult = result;
+        }
+        if (sizeof(uid_t) < sizeof(long) &&
+            (unsigned long)(uid_t)uresult != uresult)
+            goto OverflowUp;
+        *(uid_t *)p = (uid_t)uresult;
+    }
+    return 1;
+
+OverflowDown:
+    PyErr_SetString(PyExc_OverflowError,
+                    "user id is less than minimum");
+    return 0;
+
+OverflowUp:
+    PyErr_SetString(PyExc_OverflowError,
+                    "user id is greater than maximum");
+    return 0;
+}
+
+int
+_Py_Gid_Converter(PyObject *obj, void *p)
+{
+    int overflow;
+    long result;
+    if (PyFloat_Check(obj)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "integer argument expected, got float");
+        return 0;
+    }
+    result = PyLong_AsLongAndOverflow(obj, &overflow);
+    if (overflow < 0)
+        goto OverflowDown;
+    if (!overflow && result == -1) {
+        /* error or -1 */
+        if (PyErr_Occurred())
+            return 0;
+        *(gid_t *)p = (gid_t)-1;
+    }
+    else {
+        /* unsigned gid_t */
+        unsigned long uresult;
+        if (overflow > 0) {
+            uresult = PyLong_AsUnsignedLong(obj);
+            if (PyErr_Occurred()) {
+                if (PyErr_ExceptionMatches(PyExc_OverflowError))
+                    goto OverflowUp;
+                return 0;
+            }
+            if ((gid_t)uresult == (gid_t)-1)
+                goto OverflowUp;
+        } else {
+            if (result < 0)
+                goto OverflowDown;
+            uresult = result;
+        }
+        if (sizeof(gid_t) < sizeof(long) &&
+            (unsigned long)(gid_t)uresult != uresult)
+            goto OverflowUp;
+        *(gid_t *)p = (gid_t)uresult;
+    }
+    return 1;
+
+OverflowDown:
+    PyErr_SetString(PyExc_OverflowError,
+                    "group id is less than minimum");
+    return 0;
+
+OverflowUp:
+    PyErr_SetString(PyExc_OverflowError,
+                    "group id is greater than maximum");
+    return 0;
+}
+#endif /* MS_WINDOWS */
+
+
 #if defined _MSC_VER && _MSC_VER >= 1400
 /* Microsoft CRT in VS2005 and higher will verify that a filehandle is
- * valid and throw an assertion if it isn't.
+ * valid and raise an assertion if it isn't.
  * Normally, an invalid fd is likely to be a C program error and therefore
  * an assertion can be useful, but it does contradict the POSIX standard
  * which for write(2) states:
@@ -501,9 +632,10 @@ win32_get_reparse_tag(HANDLE reparse_point_handle, ULONG *reparse_tag)
 #endif /* MS_WINDOWS */
 
 /* Return a dictionary corresponding to the POSIX environment table */
-#ifdef WITH_NEXT_FRAMEWORK
+#if defined(WITH_NEXT_FRAMEWORK) || (defined(__APPLE__) && defined(Py_ENABLE_SHARED))
 /* On Darwin/MacOSX a shared library or framework has no access to
-** environ directly, we must obtain it with _NSGetEnviron().
+** environ directly, we must obtain it with _NSGetEnviron(). See also
+** man environ(7).
 */
 #include <crt_externs.h>
 static char **environ;
@@ -528,7 +660,7 @@ convertenviron(void)
     d = PyDict_New();
     if (d == NULL)
         return NULL;
-#ifdef WITH_NEXT_FRAMEWORK
+#if defined(WITH_NEXT_FRAMEWORK) || (defined(__APPLE__) && defined(Py_ENABLE_SHARED))
     if (environ == NULL)
         environ = *_NSGetEnviron();
 #endif
@@ -694,7 +826,7 @@ os2_formatmsg(char *msgbuf, int msglen, char *reason)
     if (strlen(msgbuf) > 0) { /* If Non-Empty Msg, Trim CRLF */
         char *lastc = &msgbuf[ strlen(msgbuf)-1 ];
 
-        while (lastc > msgbuf && isspace(Py_CHARMASK(*lastc)))
+        while (lastc > msgbuf && Py_ISSPACE(Py_CHARMASK(*lastc)))
             *lastc-- = '\0'; /* Trim Trailing Whitespace (CRLF) */
     }
 
@@ -1642,8 +1774,13 @@ _pystat_fromstructstat(STRUCT_STAT *st)
     PyStructSequence_SET_ITEM(v, 2, PyLong_FromLong((long)st->st_dev));
 #endif
     PyStructSequence_SET_ITEM(v, 3, PyLong_FromLong((long)st->st_nlink));
-    PyStructSequence_SET_ITEM(v, 4, PyLong_FromLong((long)st->st_uid));
-    PyStructSequence_SET_ITEM(v, 5, PyLong_FromLong((long)st->st_gid));
+#if defined(MS_WINDOWS)
+    PyStructSequence_SET_ITEM(v, 4, PyLong_FromLong(0));
+    PyStructSequence_SET_ITEM(v, 5, PyLong_FromLong(0));
+#else
+    PyStructSequence_SET_ITEM(v, 4, _PyLong_FromUid(st->st_uid));
+    PyStructSequence_SET_ITEM(v, 5, _PyLong_FromGid(st->st_gid));
+#endif
 #ifdef HAVE_LARGEFILE_SUPPORT
     PyStructSequence_SET_ITEM(v, 6,
                               PyLong_FromLongLong((PY_LONG_LONG)st->st_size));
@@ -2172,15 +2309,17 @@ posix_chown(PyObject *self, PyObject *args)
 {
     PyObject *opath;
     char *path;
-    long uid, gid;
+    uid_t uid;
+    gid_t gid;
     int res;
-    if (!PyArg_ParseTuple(args, "O&ll:chown",
+    if (!PyArg_ParseTuple(args, "O&O&O&:chown",
                           PyUnicode_FSConverter, &opath,
-                          &uid, &gid))
+                          _Py_Uid_Converter, &uid,
+                          _Py_Gid_Converter, &gid))
         return NULL;
     path = PyBytes_AsString(opath);
     Py_BEGIN_ALLOW_THREADS
-    res = chown(path, (uid_t) uid, (gid_t) gid);
+    res = chown(path, uid, gid);
     Py_END_ALLOW_THREADS
     if (res < 0)
         return posix_error_with_allocated_filename(opath);
@@ -2200,12 +2339,15 @@ static PyObject *
 posix_fchown(PyObject *self, PyObject *args)
 {
     int fd;
-    long uid, gid;
+    uid_t uid;
+    gid_t gid;
     int res;
-    if (!PyArg_ParseTuple(args, "ill:fchown", &fd, &uid, &gid))
+    if (!PyArg_ParseTuple(args, "iO&O&:fchown", &fd,
+                          _Py_Uid_Converter, &uid,
+                          _Py_Gid_Converter, &gid))
         return NULL;
     Py_BEGIN_ALLOW_THREADS
-    res = fchown(fd, (uid_t) uid, (gid_t) gid);
+    res = fchown(fd, uid, gid);
     Py_END_ALLOW_THREADS
     if (res < 0)
         return posix_error();
@@ -2224,15 +2366,17 @@ posix_lchown(PyObject *self, PyObject *args)
 {
     PyObject *opath;
     char *path;
-    long uid, gid;
+    uid_t uid;
+    gid_t gid;
     int res;
-    if (!PyArg_ParseTuple(args, "O&ll:lchown",
+    if (!PyArg_ParseTuple(args, "O&O&O&:lchown",
                           PyUnicode_FSConverter, &opath,
-                          &uid, &gid))
+                          _Py_Uid_Converter, &uid,
+                          _Py_Gid_Converter, &gid))
         return NULL;
     path = PyBytes_AsString(opath);
     Py_BEGIN_ALLOW_THREADS
-    res = lchown(path, (uid_t) uid, (gid_t) gid);
+    res = lchown(path, uid, gid);
     Py_END_ALLOW_THREADS
     if (res < 0)
         return posix_error_with_allocated_filename(opath);
@@ -4001,7 +4145,7 @@ search path to find the file.\n\
 static PyObject *
 posix_spawnvpe(PyObject *self, PyObject *args)
 {
-    PyObject *opath
+    PyObject *opath;
     char *path;
     PyObject *argv, *env;
     char **argvlist;
@@ -4287,7 +4431,7 @@ Return the current process's effective group id.");
 static PyObject *
 posix_getegid(PyObject *self, PyObject *noargs)
 {
-    return PyLong_FromLong((long)getegid());
+    return _PyLong_FromGid(getegid());
 }
 #endif
 
@@ -4300,7 +4444,7 @@ Return the current process's effective user id.");
 static PyObject *
 posix_geteuid(PyObject *self, PyObject *noargs)
 {
-    return PyLong_FromLong((long)geteuid());
+    return _PyLong_FromUid(geteuid());
 }
 #endif
 
@@ -4313,7 +4457,7 @@ Return the current process's group id.");
 static PyObject *
 posix_getgid(PyObject *self, PyObject *noargs)
 {
-    return PyLong_FromLong((long)getgid());
+    return _PyLong_FromGid(getgid());
 }
 #endif
 
@@ -4388,7 +4532,7 @@ posix_getgroups(PyObject *self, PyObject *noargs)
     if (result != NULL) {
         int i;
         for (i = 0; i < n; ++i) {
-            PyObject *o = PyLong_FromLong((long)alt_grouplist[i]);
+            PyObject *o = _PyLong_FromGid(alt_grouplist[i]);
             if (o == NULL) {
                 Py_DECREF(result);
                 result = NULL;
@@ -4419,14 +4563,25 @@ posix_initgroups(PyObject *self, PyObject *args)
     PyObject *oname;
     char *username;
     int res;
-    long gid;
+#ifdef __APPLE__
+    int gid;
+#else
+    gid_t gid;
+#endif
 
-    if (!PyArg_ParseTuple(args, "O&l:initgroups",
-                          PyUnicode_FSConverter, &oname, &gid))
+#ifdef __APPLE__
+    if (!PyArg_ParseTuple(args, "O&i:initgroups",
+                          PyUnicode_FSConverter, &oname,
+                          &gid))
+#else
+    if (!PyArg_ParseTuple(args, "O&O&:initgroups",
+                          PyUnicode_FSConverter, &oname,
+                          _Py_Gid_Converter, &gid))
+#endif
         return NULL;
     username = PyBytes_AS_STRING(oname);
 
-    res = initgroups(username, (gid_t) gid);
+    res = initgroups(username, gid);
     Py_DECREF(oname);
     if (res == -1)
         return PyErr_SetFromErrno(PyExc_OSError);
@@ -4601,7 +4756,7 @@ Return the current process's user id.");
 static PyObject *
 posix_getuid(PyObject *self, PyObject *noargs)
 {
-    return PyLong_FromLong((long)getuid());
+    return _PyLong_FromUid(getuid());
 }
 #endif
 
@@ -4741,15 +4896,9 @@ Set the current process's user id.");
 static PyObject *
 posix_setuid(PyObject *self, PyObject *args)
 {
-    long uid_arg;
     uid_t uid;
-    if (!PyArg_ParseTuple(args, "l:setuid", &uid_arg))
+    if (!PyArg_ParseTuple(args, "O&:setuid", _Py_Uid_Converter, &uid))
         return NULL;
-    uid = uid_arg;
-    if (uid != uid_arg) {
-        PyErr_SetString(PyExc_OverflowError, "user id too big");
-        return NULL;
-    }
     if (setuid(uid) < 0)
         return posix_error();
     Py_INCREF(Py_None);
@@ -4766,15 +4915,9 @@ Set the current process's effective user id.");
 static PyObject *
 posix_seteuid (PyObject *self, PyObject *args)
 {
-    long euid_arg;
     uid_t euid;
-    if (!PyArg_ParseTuple(args, "l", &euid_arg))
+    if (!PyArg_ParseTuple(args, "O&:seteuid", _Py_Uid_Converter, &euid))
         return NULL;
-    euid = euid_arg;
-    if (euid != euid_arg) {
-        PyErr_SetString(PyExc_OverflowError, "user id too big");
-        return NULL;
-    }
     if (seteuid(euid) < 0) {
         return posix_error();
     } else {
@@ -4792,15 +4935,9 @@ Set the current process's effective group id.");
 static PyObject *
 posix_setegid (PyObject *self, PyObject *args)
 {
-    long egid_arg;
     gid_t egid;
-    if (!PyArg_ParseTuple(args, "l", &egid_arg))
+    if (!PyArg_ParseTuple(args, "O&:setegid", _Py_Gid_Converter, &egid))
         return NULL;
-    egid = egid_arg;
-    if (egid != egid_arg) {
-        PyErr_SetString(PyExc_OverflowError, "group id too big");
-        return NULL;
-    }
     if (setegid(egid) < 0) {
         return posix_error();
     } else {
@@ -4818,23 +4955,11 @@ Set the current process's real and effective user ids.");
 static PyObject *
 posix_setreuid (PyObject *self, PyObject *args)
 {
-    long ruid_arg, euid_arg;
     uid_t ruid, euid;
-    if (!PyArg_ParseTuple(args, "ll", &ruid_arg, &euid_arg))
+    if (!PyArg_ParseTuple(args, "O&O&:setreuid",
+                          _Py_Uid_Converter, &ruid,
+                          _Py_Uid_Converter, &euid))
         return NULL;
-    if (ruid_arg == -1)
-        ruid = (uid_t)-1;  /* let the compiler choose how -1 fits */
-    else
-        ruid = ruid_arg;  /* otherwise, assign from our long */
-    if (euid_arg == -1)
-        euid = (uid_t)-1;
-    else
-        euid = euid_arg;
-    if ((euid_arg != -1 && euid != euid_arg) ||
-        (ruid_arg != -1 && ruid != ruid_arg)) {
-        PyErr_SetString(PyExc_OverflowError, "user id too big");
-        return NULL;
-    }
     if (setreuid(ruid, euid) < 0) {
         return posix_error();
     } else {
@@ -4852,23 +4977,11 @@ Set the current process's real and effective group ids.");
 static PyObject *
 posix_setregid (PyObject *self, PyObject *args)
 {
-    long rgid_arg, egid_arg;
     gid_t rgid, egid;
-    if (!PyArg_ParseTuple(args, "ll", &rgid_arg, &egid_arg))
+    if (!PyArg_ParseTuple(args, "O&O&:setregid",
+                          _Py_Gid_Converter, &rgid,
+                          _Py_Gid_Converter, &egid))
         return NULL;
-    if (rgid_arg == -1)
-        rgid = (gid_t)-1;  /* let the compiler choose how -1 fits */
-    else
-        rgid = rgid_arg;  /* otherwise, assign from our long */
-    if (egid_arg == -1)
-        egid = (gid_t)-1;
-    else
-        egid = egid_arg;
-    if ((egid_arg != -1 && egid != egid_arg) ||
-        (rgid_arg != -1 && rgid != rgid_arg)) {
-        PyErr_SetString(PyExc_OverflowError, "group id too big");
-        return NULL;
-    }
     if (setregid(rgid, egid) < 0) {
         return posix_error();
     } else {
@@ -4886,15 +4999,9 @@ Set the current process's group id.");
 static PyObject *
 posix_setgid(PyObject *self, PyObject *args)
 {
-    long gid_arg;
     gid_t gid;
-    if (!PyArg_ParseTuple(args, "l:setgid", &gid_arg))
+    if (!PyArg_ParseTuple(args, "O&:setgid", _Py_Gid_Converter, &gid))
         return NULL;
-    gid = gid_arg;
-    if (gid != gid_arg) {
-        PyErr_SetString(PyExc_OverflowError, "group id too big");
-        return NULL;
-    }
     if (setgid(gid) < 0)
         return posix_error();
     Py_INCREF(Py_None);
@@ -4933,18 +5040,7 @@ posix_setgroups(PyObject *self, PyObject *groups)
             Py_DECREF(elem);
             return NULL;
         } else {
-            unsigned long x = PyLong_AsUnsignedLong(elem);
-            if (PyErr_Occurred()) {
-                PyErr_SetString(PyExc_TypeError,
-                                "group id too big");
-                Py_DECREF(elem);
-                return NULL;
-            }
-            grouplist[i] = x;
-            /* read back the value to see if it fitted in gid_t */
-            if (grouplist[i] != x) {
-                PyErr_SetString(PyExc_TypeError,
-                                "group id too big");
+            if (!_Py_Gid_Converter(elem, &grouplist[i])) {
                 Py_DECREF(elem);
                 return NULL;
             }
@@ -5330,7 +5426,6 @@ win_symlink(PyObject *self, PyObject *args, PyObject *kwargs)
     PyObject *src, *dest;
     int target_is_directory = 0;
     DWORD res;
-    WIN32_FILE_ATTRIBUTE_DATA src_info;
 
     if (!check_CreateSymbolicLinkW())
     {
@@ -5349,16 +5444,6 @@ win_symlink(PyObject *self, PyObject *args, PyObject *kwargs)
     if (!convert_to_unicode(&dest)) {
         Py_DECREF(src);
         return NULL;
-    }
-
-    /* if src is a directory, ensure target_is_directory==1 */
-    if(
-        GetFileAttributesExW(
-            PyUnicode_AsUnicode(src), GetFileExInfoStandard, &src_info
-        ))
-    {
-        target_is_directory = target_is_directory ||
-            (src_info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
     }
 
     Py_BEGIN_ALLOW_THREADS
@@ -5687,7 +5772,8 @@ posix_dup2(PyObject *self, PyObject *args)
 
 PyDoc_STRVAR(posix_lseek__doc__,
 "lseek(fd, pos, how) -> newpos\n\n\
-Set the current position of a file descriptor.");
+Set the current position of a file descriptor.\n\
+Return the new cursor position in bytes, starting from the beginning.");
 
 static PyObject *
 posix_lseek(PyObject *self, PyObject *args)
@@ -6106,6 +6192,12 @@ posix_putenv(PyObject *self, PyObject *args)
        PyBytes_FromStringAndSize does not count that */
 #ifdef MS_WINDOWS
     len = wcslen(s1) + wcslen(s2) + 2;
+    if (_MAX_ENV < (len - 1)) {
+        PyErr_Format(PyExc_ValueError,
+                     "the environment variable is longer than %u characters",
+                     _MAX_ENV);
+        goto error;
+    }
     newstr = PyUnicode_FromUnicode(NULL, (int)len - 1);
 #else
     len = PyBytes_GET_SIZE(os1) + PyBytes_GET_SIZE(os2) + 2;
@@ -6177,42 +6269,38 @@ Delete an environment variable.");
 static PyObject *
 posix_unsetenv(PyObject *self, PyObject *args)
 {
-#ifdef MS_WINDOWS
-    char *s1;
-
-    if (!PyArg_ParseTuple(args, "s:unsetenv", &s1))
-        return NULL;
-#else
     PyObject *os1;
     char *s1;
+#ifndef HAVE_BROKEN_UNSETENV
+    int err;
+#endif
 
     if (!PyArg_ParseTuple(args, "O&:unsetenv",
                           PyUnicode_FSConverter, &os1))
         return NULL;
     s1 = PyBytes_AsString(os1);
-#endif
 
+#ifdef HAVE_BROKEN_UNSETENV
     unsetenv(s1);
+#else
+    err = unsetenv(s1);
+    if (err) {
+        Py_DECREF(os1);
+        return posix_error();
+    }
+#endif
 
     /* Remove the key from posix_putenv_garbage;
      * this will cause it to be collected.  This has to
      * happen after the real unsetenv() call because the
      * old value was still accessible until then.
      */
-    if (PyDict_DelItem(posix_putenv_garbage,
-#ifdef MS_WINDOWS
-                       PyTuple_GET_ITEM(args, 0)
-#else
-                       os1
-#endif
-                       )) {
+    if (PyDict_DelItem(posix_putenv_garbage, os1)) {
         /* really not much we can do; just leak */
         PyErr_Clear();
     }
 
-#ifndef MS_WINDOWS
     Py_DECREF(os1);
-#endif
     Py_RETURN_NONE;
 }
 #endif /* unsetenv */
@@ -6471,18 +6559,22 @@ Perform a statvfs system call on the given path.");
 static PyObject *
 posix_statvfs(PyObject *self, PyObject *args)
 {
+    PyObject *opath, *result = NULL;
     char *path;
     int res;
     struct statvfs st;
-    if (!PyArg_ParseTuple(args, "s:statvfs", &path))
+    if (!PyArg_ParseTuple(args, "O&:statvfs", PyUnicode_FSConverter, &opath))
         return NULL;
+    path = PyBytes_AS_STRING(opath);
     Py_BEGIN_ALLOW_THREADS
     res = statvfs(path, &st);
     Py_END_ALLOW_THREADS
     if (res != 0)
-        return posix_error_with_filename(path);
+        return posix_error_with_allocated_filename(opath);
 
-    return _pystatvfs_fromstructstatvfs(st);
+    result = _pystatvfs_fromstructstatvfs(st);
+    Py_DECREF(opath);
+    return result;
 }
 #endif /* HAVE_STATVFS */
 
@@ -7622,82 +7714,6 @@ posix_getloadavg(PyObject *self, PyObject *noargs)
 }
 #endif
 
-#ifdef MS_WINDOWS
-
-PyDoc_STRVAR(win32_urandom__doc__,
-"urandom(n) -> str\n\n\
-Return n random bytes suitable for cryptographic use.");
-
-typedef BOOL (WINAPI *CRYPTACQUIRECONTEXTA)(HCRYPTPROV *phProv,\
-              LPCSTR pszContainer, LPCSTR pszProvider, DWORD dwProvType,\
-              DWORD dwFlags );
-typedef BOOL (WINAPI *CRYPTGENRANDOM)(HCRYPTPROV hProv, DWORD dwLen,\
-              BYTE *pbBuffer );
-
-static CRYPTGENRANDOM pCryptGenRandom = NULL;
-/* This handle is never explicitly released. Instead, the operating
-   system will release it when the process terminates. */
-static HCRYPTPROV hCryptProv = 0;
-
-static PyObject*
-win32_urandom(PyObject *self, PyObject *args)
-{
-    int howMany;
-    PyObject* result;
-
-    /* Read arguments */
-    if (! PyArg_ParseTuple(args, "i:urandom", &howMany))
-        return NULL;
-    if (howMany < 0)
-        return PyErr_Format(PyExc_ValueError,
-                            "negative argument not allowed");
-
-    if (hCryptProv == 0) {
-        HINSTANCE hAdvAPI32 = NULL;
-        CRYPTACQUIRECONTEXTA pCryptAcquireContext = NULL;
-
-        /* Obtain handle to the DLL containing CryptoAPI
-           This should not fail         */
-        hAdvAPI32 = GetModuleHandle("advapi32.dll");
-        if(hAdvAPI32 == NULL)
-            return win32_error("GetModuleHandle", NULL);
-
-        /* Obtain pointers to the CryptoAPI functions
-           This will fail on some early versions of Win95 */
-        pCryptAcquireContext = (CRYPTACQUIRECONTEXTA)GetProcAddress(
-                                        hAdvAPI32,
-                                        "CryptAcquireContextA");
-        if (pCryptAcquireContext == NULL)
-            return PyErr_Format(PyExc_NotImplementedError,
-                                "CryptAcquireContextA not found");
-
-        pCryptGenRandom = (CRYPTGENRANDOM)GetProcAddress(
-                                        hAdvAPI32, "CryptGenRandom");
-        if (pCryptGenRandom == NULL)
-            return PyErr_Format(PyExc_NotImplementedError,
-                                "CryptGenRandom not found");
-
-        /* Acquire context */
-        if (! pCryptAcquireContext(&hCryptProv, NULL, NULL,
-                                   PROV_RSA_FULL, CRYPT_VERIFYCONTEXT))
-            return win32_error("CryptAcquireContext", NULL);
-    }
-
-    /* Allocate bytes */
-    result = PyBytes_FromStringAndSize(NULL, howMany);
-    if (result != NULL) {
-        /* Get random data */
-        memset(PyBytes_AS_STRING(result), 0, howMany); /* zero seed */
-        if (! pCryptGenRandom(hCryptProv, howMany, (unsigned char*)
-                              PyBytes_AS_STRING(result))) {
-            Py_DECREF(result);
-            return win32_error("CryptGenRandom", NULL);
-        }
-    }
-    return result;
-}
-#endif
-
 PyDoc_STRVAR(device_encoding__doc__,
 "device_encoding(fd) -> str\n\n\
 Return a string describing the encoding of the device\n\
@@ -7735,41 +7751,35 @@ device_encoding(PyObject *self, PyObject *args)
     return Py_None;
 }
 
-#ifdef __VMS
-/* Use openssl random routine */
-#include <openssl/rand.h>
-PyDoc_STRVAR(vms_urandom__doc__,
+PyDoc_STRVAR(posix_urandom__doc__,
 "urandom(n) -> str\n\n\
 Return n random bytes suitable for cryptographic use.");
 
-static PyObject*
-vms_urandom(PyObject *self, PyObject *args)
+static PyObject *
+posix_urandom(PyObject *self, PyObject *args)
 {
-    int howMany;
-    PyObject* result;
+    Py_ssize_t size;
+    PyObject *result;
+    int ret;
 
-    /* Read arguments */
-    if (! PyArg_ParseTuple(args, "i:urandom", &howMany))
+     /* Read arguments */
+    if (!PyArg_ParseTuple(args, "n:urandom", &size))
         return NULL;
-    if (howMany < 0)
+    if (size < 0)
         return PyErr_Format(PyExc_ValueError,
                             "negative argument not allowed");
+    result = PyBytes_FromStringAndSize(NULL, size);
+    if (result == NULL)
+        return NULL;
 
-    /* Allocate bytes */
-    result = PyBytes_FromStringAndSize(NULL, howMany);
-    if (result != NULL) {
-        /* Get random data */
-        if (RAND_pseudo_bytes((unsigned char*)
-                              PyBytes_AS_STRING(result),
-                              howMany) < 0) {
-            Py_DECREF(result);
-            return PyErr_Format(PyExc_ValueError,
-                                "RAND_pseudo_bytes");
-        }
+    ret = _PyOS_URandom(PyBytes_AS_STRING(result),
+                        PyBytes_GET_SIZE(result));
+    if (ret == -1) {
+        Py_DECREF(result);
+        return NULL;
     }
     return result;
 }
-#endif
 
 #ifdef HAVE_SETRESUID
 PyDoc_STRVAR(posix_setresuid__doc__,
@@ -7779,9 +7789,11 @@ Set the current process's real, effective, and saved user ids.");
 static PyObject*
 posix_setresuid (PyObject *self, PyObject *args)
 {
-    /* We assume uid_t is no larger than a long. */
-    long ruid, euid, suid;
-    if (!PyArg_ParseTuple(args, "lll", &ruid, &euid, &suid))
+    uid_t ruid, euid, suid;
+    if (!PyArg_ParseTuple(args, "O&O&O&:setresuid",
+                          _Py_Uid_Converter, &ruid,
+                          _Py_Uid_Converter, &euid,
+                          _Py_Uid_Converter, &suid))
         return NULL;
     if (setresuid(ruid, euid, suid) < 0)
         return posix_error();
@@ -7797,9 +7809,11 @@ Set the current process's real, effective, and saved group ids.");
 static PyObject*
 posix_setresgid (PyObject *self, PyObject *args)
 {
-    /* We assume uid_t is no larger than a long. */
-    long rgid, egid, sgid;
-    if (!PyArg_ParseTuple(args, "lll", &rgid, &egid, &sgid))
+    gid_t rgid, egid, sgid;
+    if (!PyArg_ParseTuple(args, "O&O&O&:setresgid",
+                          _Py_Gid_Converter, &rgid,
+                          _Py_Gid_Converter, &egid,
+                          _Py_Gid_Converter, &sgid))
         return NULL;
     if (setresgid(rgid, egid, sgid) < 0)
         return posix_error();
@@ -7816,14 +7830,11 @@ static PyObject*
 posix_getresuid (PyObject *self, PyObject *noargs)
 {
     uid_t ruid, euid, suid;
-    long l_ruid, l_euid, l_suid;
     if (getresuid(&ruid, &euid, &suid) < 0)
         return posix_error();
-    /* Force the values into long's as we don't know the size of uid_t. */
-    l_ruid = ruid;
-    l_euid = euid;
-    l_suid = suid;
-    return Py_BuildValue("(lll)", l_ruid, l_euid, l_suid);
+    return Py_BuildValue("(NNN)", _PyLong_FromUid(ruid),
+                                  _PyLong_FromUid(euid),
+                                  _PyLong_FromUid(suid));
 }
 #endif
 
@@ -7836,14 +7847,11 @@ static PyObject*
 posix_getresgid (PyObject *self, PyObject *noargs)
 {
     uid_t rgid, egid, sgid;
-    long l_rgid, l_egid, l_sgid;
     if (getresgid(&rgid, &egid, &sgid) < 0)
         return posix_error();
-    /* Force the values into long's as we don't know the size of uid_t. */
-    l_rgid = rgid;
-    l_egid = egid;
-    l_sgid = sgid;
-    return Py_BuildValue("(lll)", l_rgid, l_egid, l_sgid);
+    return Py_BuildValue("(NNN)", _PyLong_FromGid(rgid),
+                                  _PyLong_FromGid(egid),
+                                  _PyLong_FromGid(sgid));
 }
 #endif
 
@@ -8145,12 +8153,7 @@ static PyMethodDef posix_methods[] = {
 #ifdef HAVE_GETLOADAVG
     {"getloadavg",      posix_getloadavg, METH_NOARGS, posix_getloadavg__doc__},
 #endif
- #ifdef MS_WINDOWS
-    {"urandom", win32_urandom, METH_VARARGS, win32_urandom__doc__},
- #endif
- #ifdef __VMS
-    {"urandom", vms_urandom, METH_VARARGS, vms_urandom__doc__},
- #endif
+    {"urandom",         posix_urandom,   METH_VARARGS, posix_urandom__doc__},
 #ifdef HAVE_SETRESUID
     {"setresuid",       posix_setresuid, METH_VARARGS, posix_setresuid__doc__},
 #endif
@@ -8163,7 +8166,6 @@ static PyMethodDef posix_methods[] = {
 #ifdef HAVE_GETRESGID
     {"getresgid",       posix_getresgid, METH_NOARGS, posix_getresgid__doc__},
 #endif
-
     {NULL,              NULL}            /* Sentinel */
 };
 

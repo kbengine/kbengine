@@ -1516,7 +1516,17 @@ class DecimalUsabilityTest(unittest.TestCase):
         for d, n, r in test_triples:
             self.assertEqual(str(round(Decimal(d), n)), r)
 
+    def test_nan_to_float(self):
+        # Test conversions of decimal NANs to float.
+        # See http://bugs.python.org/issue15544
+        for s in ('nan', 'nan1234', '-nan', '-nan2468'):
+            f = float(Decimal(s))
+            self.assertTrue(math.isnan(f))
 
+    def test_snan_to_float(self):
+        for s in ('snan', '-snan', 'snan1357', '-snan1234'):
+            d = Decimal(s)
+            self.assertRaises(ValueError, float, d)
 
     def test_eval_round_trip(self):
 

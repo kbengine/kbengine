@@ -159,24 +159,22 @@ The Module Search Path
 
 .. index:: triple: module; search; path
 
-When a module named :mod:`spam` is imported, the interpreter searches for a
-file named :file:`spam.py` in the directory containing the input script and
-then in the list of directories specified by the environment variable
-:envvar:`PYTHONPATH`.  This has the same syntax as the shell variable
-:envvar:`PATH`, that is, a list of directory names.  When :envvar:`PYTHONPATH`
-is not set, or when the file is not found there, the search continues in an
-installation-dependent default path; on Unix, this is usually
-:file:`.:/usr/local/lib/python`.
+When a module named :mod:`spam` is imported, the interpreter first searches for
+a built-in module with that name. If not found, it then searches for a file
+named :file:`spam.py` in a list of directories given by the variable
+:data:`sys.path`.  :data:`sys.path` is initialized from these locations:
 
-Actually, modules are searched in the list of directories given by the variable
-``sys.path`` which is initialized from the directory containing the input script
-(or the current directory), :envvar:`PYTHONPATH` and the installation- dependent
-default.  This allows Python programs that know what they're doing to modify or
-replace the module search path.  Note that because the directory containing the
-script being run is on the search path, it is important that the script not have
-the same name as a standard module, or Python will attempt to load the script as
-a module when that module is imported. This will generally be an error.  See
-section :ref:`tut-standardmodules` for more information.
+* the directory containing the input script (or the current directory).
+* :envvar:`PYTHONPATH` (a list of directory names, with the same syntax as the
+  shell variable :envvar:`PATH`).
+* the installation-dependent default.
+
+After initialization, Python programs can modify :data:`sys.path`.  The
+directory containing the script being run is placed at the beginning of the
+search path, ahead of the standard library path. This means that scripts in that
+directory will be loaded instead of modules of the same name in the library
+directory. This is an error unless the replacement is intended.  See section
+:ref:`tut-standardmodules` for more information.
 
 .. %
     Do we need stuff on zip files etc. ? DUBOIS
@@ -250,7 +248,7 @@ modules are built into the interpreter; these provide access to operations that
 are not part of the core of the language but are nevertheless built in, either
 for efficiency or to provide access to operating system primitives such as
 system calls.  The set of such modules is a configuration option which also
-depends on the underlying platform For example, the :mod:`winreg` module is only
+depends on the underlying platform.  For example, the :mod:`winreg` module is only
 provided on Windows systems. One particular module deserves some attention:
 :mod:`sys`, which is built into every Python interpreter.  The variables
 ``sys.ps1`` and ``sys.ps2`` define the strings used as primary and secondary
@@ -290,16 +288,21 @@ defines.  It returns a sorted list of strings::
    >>> import fibo, sys
    >>> dir(fibo)
    ['__name__', 'fib', 'fib2']
-   >>> dir(sys)
-   ['__displayhook__', '__doc__', '__excepthook__', '__name__', '__stderr__',
-    '__stdin__', '__stdout__', '_getframe', 'api_version', 'argv',
-    'builtin_module_names', 'byteorder', 'callstats', 'copyright',
-    'displayhook', 'exc_info', 'excepthook',
-    'exec_prefix', 'executable', 'exit', 'getdefaultencoding', 'getdlopenflags',
-    'getrecursionlimit', 'getrefcount', 'hexversion', 'maxint', 'maxunicode',
-    'meta_path', 'modules', 'path', 'path_hooks', 'path_importer_cache',
-    'platform', 'prefix', 'ps1', 'ps2', 'setcheckinterval', 'setdlopenflags',
-    'setprofile', 'setrecursionlimit', 'settrace', 'stderr', 'stdin', 'stdout',
+   >>> dir(sys)  # doctest: +NORMALIZE_WHITESPACE
+   ['__displayhook__', '__doc__', '__excepthook__', '__name__', '__package__',
+    '__stderr__', '__stdin__', '__stdout__', '_clear_type_cache',
+    '_current_frames', '_getframe', '_mercurial', '_xoptions', 'abiflags',
+    'api_version', 'argv', 'builtin_module_names', 'byteorder', 'call_tracing',
+    'callstats', 'copyright', 'displayhook', 'dont_write_bytecode', 'exc_info',
+    'excepthook', 'exec_prefix', 'executable', 'exit', 'flags', 'float_info',
+    'float_repr_style', 'getcheckinterval', 'getdefaultencoding',
+    'getdlopenflags', 'getfilesystemencoding', 'getobjects', 'getprofile',
+    'getrecursionlimit', 'getrefcount', 'getsizeof', 'getswitchinterval',
+    'gettotalrefcount', 'gettrace', 'hash_info', 'hexversion', 'int_info',
+    'intern', 'maxsize', 'maxunicode', 'meta_path', 'modules', 'path',
+    'path_hooks', 'path_importer_cache', 'platform', 'prefix', 'ps1',
+    'setcheckinterval', 'setdlopenflags', 'setprofile', 'setrecursionlimit',
+    'setswitchinterval', 'settrace', 'stderr', 'stdin', 'stdout', 'subversion',
     'version', 'version_info', 'warnoptions']
 
 Without arguments, :func:`dir` lists the names you have defined currently::
@@ -308,7 +311,7 @@ Without arguments, :func:`dir` lists the names you have defined currently::
    >>> import fibo
    >>> fib = fibo.fib
    >>> dir()
-   ['__builtins__', '__doc__', '__file__', '__name__', 'a', 'fib', 'fibo', 'sys']
+   ['__builtins__', '__name__', 'a', 'fib', 'fibo', 'sys']
 
 Note that it lists all types of names: variables, modules, functions, etc.
 
@@ -319,28 +322,31 @@ want a list of those, they are defined in the standard module
 :mod:`builtins`::
 
    >>> import builtins
-   >>> dir(builtins)
-
-   ['ArithmeticError', 'AssertionError', 'AttributeError', 'BaseException', 'Buffer
-   Error', 'BytesWarning', 'DeprecationWarning', 'EOFError', 'Ellipsis', 'Environme
-   ntError', 'Exception', 'False', 'FloatingPointError', 'FutureWarning', 'Generato
-   rExit', 'IOError', 'ImportError', 'ImportWarning', 'IndentationError', 'IndexErr
-   or', 'KeyError', 'KeyboardInterrupt', 'LookupError', 'MemoryError', 'NameError',
-    'None', 'NotImplemented', 'NotImplementedError', 'OSError', 'OverflowError', 'P
-   endingDeprecationWarning', 'ReferenceError', 'RuntimeError', 'RuntimeWarning', '
-   StopIteration', 'SyntaxError', 'SyntaxWarning', 'SystemError', 'SystemExit', 'Ta
-   bError', 'True', 'TypeError', 'UnboundLocalError', 'UnicodeDecodeError', 'Unicod
-   eEncodeError', 'UnicodeError', 'UnicodeTranslateError', 'UnicodeWarning', 'UserW
-   arning', 'ValueError', 'Warning', 'ZeroDivisionError', '__build_class__', '__deb
-   ug__', '__doc__', '__import__', '__name__', '__package__', 'abs', 'all', 'any',
-   'ascii', 'bin', 'bool', 'bytearray', 'bytes', 'chr', 'classmethod', 'compile', '
-   complex', 'copyright', 'credits', 'delattr', 'dict', 'dir', 'divmod', 'enumerate
-   ', 'eval', 'exec', 'exit', 'filter', 'float', 'format', 'frozenset', 'getattr',
-   'globals', 'hasattr', 'hash', 'help', 'hex', 'id', 'input', 'int', 'isinstance',
-    'issubclass', 'iter', 'len', 'license', 'list', 'locals', 'map', 'max', 'memory
-   view', 'min', 'next', 'object', 'oct', 'open', 'ord', 'pow', 'print', 'property'
-   , 'quit', 'range', 'repr', 'reversed', 'round', 'set', 'setattr', 'slice', 'sort
-   ed', 'staticmethod', 'str', 'sum', 'super', 'tuple', 'type', 'vars', 'zip']
+   >>> dir(builtins)  # doctest: +NORMALIZE_WHITESPACE
+   ['ArithmeticError', 'AssertionError', 'AttributeError', 'BaseException',
+    'BufferError', 'BytesWarning', 'DeprecationWarning', 'EOFError',
+    'Ellipsis', 'EnvironmentError', 'Exception', 'False', 'FloatingPointError',
+    'FutureWarning', 'GeneratorExit', 'IOError', 'ImportError',
+    'ImportWarning', 'IndentationError', 'IndexError', 'KeyError',
+    'KeyboardInterrupt', 'LookupError', 'MemoryError', 'NameError', 'None',
+    'NotImplemented', 'NotImplementedError', 'OSError', 'OverflowError',
+    'PendingDeprecationWarning', 'ReferenceError', 'ResourceWarning',
+    'RuntimeError', 'RuntimeWarning', 'StopIteration', 'SyntaxError',
+    'SyntaxWarning', 'SystemError', 'SystemExit', 'TabError', 'True',
+    'TypeError', 'UnboundLocalError', 'UnicodeDecodeError',
+    'UnicodeEncodeError', 'UnicodeError', 'UnicodeTranslateError',
+    'UnicodeWarning', 'UserWarning', 'ValueError', 'Warning',
+    'ZeroDivisionError', '_', '__build_class__', '__debug__', '__doc__',
+    '__import__', '__name__', '__package__', 'abs', 'all', 'any', 'ascii',
+    'bin', 'bool', 'bytearray', 'bytes', 'callable', 'chr', 'classmethod',
+    'compile', 'complex', 'copyright', 'credits', 'delattr', 'dict', 'dir',
+    'divmod', 'enumerate', 'eval', 'exec', 'exit', 'filter', 'float', 'format',
+    'frozenset', 'getattr', 'globals', 'hasattr', 'hash', 'help', 'hex', 'id',
+    'input', 'int', 'isinstance', 'issubclass', 'iter', 'len', 'license',
+    'list', 'locals', 'map', 'max', 'memoryview', 'min', 'next', 'object',
+    'oct', 'open', 'ord', 'pow', 'print', 'property', 'quit', 'range', 'repr',
+    'reversed', 'round', 'set', 'setattr', 'slice', 'sorted', 'staticmethod',
+    'str', 'sum', 'super', 'tuple', 'type', 'vars', 'zip']
 
 .. _tut-packages:
 

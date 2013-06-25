@@ -235,6 +235,8 @@ class TestTimeZone(unittest.TestCase):
         self.assertEqual(timezone(-5 * HOUR), timezone(-5 * HOUR, 'EST'))
         with self.assertRaises(TypeError): timezone(ZERO) < timezone(ZERO)
         self.assertIn(timezone(ZERO), {timezone(ZERO)})
+        self.assertTrue(timezone(ZERO) != None)
+        self.assertFalse(timezone(ZERO) ==  None)
 
     def test_aware_datetime(self):
         # test that timezone instances can be used by datetime
@@ -1780,8 +1782,6 @@ class TestDateTime(TestDate):
         self.assertTrue(abs(from_timestamp - from_now) <= tolerance)
 
     def test_strptime(self):
-        import _strptime
-
         string = '2004-12-01 13:02:47.197'
         format = '%Y-%m-%d %H:%M:%S.%f'
         expected = _strptime._strptime_datetime(self.theclass, string, format)

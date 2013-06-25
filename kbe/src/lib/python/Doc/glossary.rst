@@ -30,23 +30,44 @@ Glossary
       Abstract base classes complement :term:`duck-typing` by
       providing a way to define interfaces when other techniques like
       :func:`hasattr` would be clumsy or subtly wrong (for example with
-      :ref:`magic methods <special-lookup>`). Python comes with many built-in ABCs for
+      :ref:`magic methods <special-lookup>`).  ABCs introduce virtual
+      subclasses, which are classes that don't inherit from a class but are
+      still recognized by :func:`isinstance` and :func:`issubclass`; see the
+      :mod:`abc` module documentation.  Python comes with many built-in ABCs for
       data structures (in the :mod:`collections` module), numbers (in the
       :mod:`numbers` module), streams (in the :mod:`io` module), import finders
       and loaders (in the :mod:`importlib.abc` module).  You can create your own
       ABCs with the :mod:`abc` module.
 
    argument
-      A value passed to a function or method, assigned to a named local
-      variable in the function body.  A function or method may have both
-      positional arguments and keyword arguments in its definition.
-      Positional and keyword arguments may be variable-length: ``*`` accepts
-      or passes (if in the function definition or call) several positional
-      arguments in a list, while ``**`` does the same for keyword arguments
-      in a dictionary.
+      A value passed to a :term:`function` (or :term:`method`) when calling the
+      function.  There are two types of arguments:
 
-      Any expression may be used within the argument list, and the evaluated
-      value is passed to the local variable.
+      * :dfn:`keyword argument`: an argument preceded by an identifier (e.g.
+        ``name=``) in a function call or passed as a value in a dictionary
+        preceded by ``**``.  For example, ``3`` and ``5`` are both keyword
+        arguments in the following calls to :func:`complex`::
+
+           complex(real=3, imag=5)
+           complex(**{'real': 3, 'imag': 5})
+
+      * :dfn:`positional argument`: an argument that is not a keyword argument.
+        Positional arguments can appear at the beginning of an argument list
+        and/or be passed as elements of an :term:`iterable` preceded by ``*``.
+        For example, ``3`` and ``5`` are both positional arguments in the
+        following calls::
+
+           complex(3, 5)
+           complex(*(3, 5))
+
+      Arguments are assigned to the named local variables in a function body.
+      See the :ref:`calls` section for the rules governing this assignment.
+      Syntactically, any expression can be used to represent an argument; the
+      evaluated value is assigned to the local variable.
+
+      See also the :term:`parameter` glossary entry, the FAQ question on
+      :ref:`the difference between arguments and parameters
+      <faq-argument-vs-parameter>`, and :pep:`362`.
 
    attribute
       A value associated with an object which is referenced by name using
@@ -143,9 +164,9 @@ Glossary
       For more information about descriptors' methods, see :ref:`descriptors`.
 
    dictionary
-      An associative array, where arbitrary keys are mapped to values.  The keys
-      can be any object with :meth:`__hash__` function and :meth:`__eq__`
-      methods. Called a hash in Perl.
+      An associative array, where arbitrary keys are mapped to values.  The
+      keys can be any object with :meth:`__hash__` and :meth:`__eq__` methods.
+      Called a hash in Perl.
 
    docstring
       A string literal which appears as the first expression in a class,
@@ -163,8 +184,8 @@ Glossary
       well-designed code improves its flexibility by allowing polymorphic
       substitution.  Duck-typing avoids tests using :func:`type` or
       :func:`isinstance`.  (Note, however, that duck-typing can be complemented
-      with :term:`abstract base class`\ es.)  Instead, it typically employs
-      :func:`hasattr` tests or :term:`EAFP` programming.
+      with :term:`abstract base classes <abstract base class>`.)  Instead, it
+      typically employs :func:`hasattr` tests or :term:`EAFP` programming.
 
    EAFP
       Easier to ask for forgiveness than permission.  This common Python coding
@@ -191,7 +212,7 @@ Glossary
       An object exposing a file-oriented API (with methods such as
       :meth:`read()` or :meth:`write()`) to an underlying resource.  Depending
       on the way it was created, a file object can mediate access to a real
-      on-disk file or to another other type of storage or communication device
+      on-disk file or to another type of storage or communication device
       (for example standard input/output, in-memory buffers, sockets, pipes,
       etc.).  File objects are also called :dfn:`file-like objects` or
       :dfn:`streams`.
@@ -219,8 +240,9 @@ Glossary
 
    function
       A series of statements which returns some value to a caller. It can also
-      be passed zero or more arguments which may be used in the execution of
-      the body. See also :term:`argument` and :term:`method`.
+      be passed zero or more :term:`arguments <argument>` which may be used in
+      the execution of the body. See also :term:`parameter`, :term:`method`,
+      and the :ref:`function` section.
 
    __future__
       A pseudo-module which programmers can use to enable new language features
@@ -298,7 +320,8 @@ Glossary
       All of Python's immutable built-in objects are hashable, while no mutable
       containers (such as lists or dictionaries) are.  Objects which are
       instances of user-defined classes are hashable by default; they all
-      compare unequal, and their hash value is their :func:`id`.
+      compare unequal (except with themselves), and their hash value is their
+      :func:`id`.
 
    IDLE
       An Integrated Development Environment for Python.  IDLE is a basic editor
@@ -334,24 +357,24 @@ Glossary
       slowly.  See also :term:`interactive`.
 
    iterable
-      An object capable of returning its members one at a
-      time. Examples of iterables include all sequence types (such as
-      :class:`list`, :class:`str`, and :class:`tuple`) and some non-sequence
-      types like :class:`dict` and :class:`file` and objects of any classes you
-      define with an :meth:`__iter__` or :meth:`__getitem__` method.  Iterables
-      can be used in a :keyword:`for` loop and in many other places where a
-      sequence is needed (:func:`zip`, :func:`map`, ...).  When an iterable
-      object is passed as an argument to the built-in function :func:`iter`, it
-      returns an iterator for the object.  This iterator is good for one pass
-      over the set of values.  When using iterables, it is usually not necessary
-      to call :func:`iter` or deal with iterator objects yourself.  The ``for``
+      An object capable of returning its members one at a time. Examples of
+      iterables include all sequence types (such as :class:`list`, :class:`str`,
+      and :class:`tuple`) and some non-sequence types like :class:`dict`,
+      :term:`file objects <file object>`, and objects of any classes you define
+      with an :meth:`__iter__` or :meth:`__getitem__` method.  Iterables can be
+      used in a :keyword:`for` loop and in many other places where a sequence is
+      needed (:func:`zip`, :func:`map`, ...).  When an iterable object is passed
+      as an argument to the built-in function :func:`iter`, it returns an
+      iterator for the object.  This iterator is good for one pass over the set
+      of values.  When using iterables, it is usually not necessary to call
+      :func:`iter` or deal with iterator objects yourself.  The ``for``
       statement does that automatically for you, creating a temporary unnamed
       variable to hold the iterator for the duration of the loop.  See also
       :term:`iterator`, :term:`sequence`, and :term:`generator`.
 
    iterator
       An object representing a stream of data.  Repeated calls to the iterator's
-      :meth:`__next__` method (or passing it to the built-in function
+      :meth:`~iterator.__next__` method (or passing it to the built-in function
       :func:`next`) return successive items in the stream.  When no more data
       are available a :exc:`StopIteration` exception is raised instead.  At this
       point, the iterator object is exhausted and any further calls to its
@@ -382,16 +405,13 @@ Glossary
       :meth:`str.lower` method can serve as a key function for case insensitive
       sorts.  Alternatively, an ad-hoc key function can be built from a
       :keyword:`lambda` expression such as ``lambda r: (r[0], r[2])``.  Also,
-      the :mod:`operator` module provides three key function constuctors:
+      the :mod:`operator` module provides three key function constructors:
       :func:`~operator.attrgetter`, :func:`~operator.itemgetter`, and
       :func:`~operator.methodcaller`.  See the :ref:`Sorting HOW TO
       <sortinghowto>` for examples of how to create and use key functions.
 
    keyword argument
-      Arguments which are preceded with a ``variable_name=`` in the call.
-      The variable name designates the local name in the function to which the
-      value is assigned.  ``**`` is used to accept or pass a dictionary of
-      keyword arguments.  See :term:`argument`.
+      See :term:`argument`.
 
    lambda
       An anonymous inline function consisting of a single :term:`expression`
@@ -513,12 +533,55 @@ Glossary
       (methods).  Also the ultimate base class of any :term:`new-style
       class`.
 
+   parameter
+      A named entity in a :term:`function` (or method) definition that
+      specifies an :term:`argument` (or in some cases, arguments) that the
+      function can accept.  There are five types of parameters:
+
+      * :dfn:`positional-or-keyword`: specifies an argument that can be passed
+        either :term:`positionally <argument>` or as a :term:`keyword argument
+        <argument>`.  This is the default kind of parameter, for example *foo*
+        and *bar* in the following::
+
+           def func(foo, bar=None): ...
+
+      * :dfn:`positional-only`: specifies an argument that can be supplied only
+        by position.  Python has no syntax for defining positional-only
+        parameters.  However, some built-in functions have positional-only
+        parameters (e.g. :func:`abs`).
+
+      * :dfn:`keyword-only`: specifies an argument that can be supplied only
+        by keyword.  Keyword-only parameters can be defined by including a
+        single var-positional parameter or bare ``*`` in the parameter list
+        of the function definition before them, for example *kw_only1* and
+        *kw_only2* in the following::
+
+           def func(arg, *, kw_only1, kw_only2): ...
+
+      * :dfn:`var-positional`: specifies that an arbitrary sequence of
+        positional arguments can be provided (in addition to any positional
+        arguments already accepted by other parameters).  Such a parameter can
+        be defined by prepending the parameter name with ``*``, for example
+        *args* in the following::
+
+           def func(*args, **kwargs): ...
+
+      * :dfn:`var-keyword`: specifies that arbitrarily many keyword arguments
+        can be provided (in addition to any keyword arguments already accepted
+        by other parameters).  Such a parameter can be defined by prepending
+        the parameter name with ``**``, for example *kwargs* in the example
+        above.
+
+      Parameters can specify both optional and required arguments, as well as
+      default values for some optional arguments.
+
+      See also the :term:`argument` glossary entry, the FAQ question on
+      :ref:`the difference between arguments and parameters
+      <faq-argument-vs-parameter>`, the :class:`inspect.Parameter` class, the
+      :ref:`function` section, and :pep:`362`.
+
    positional argument
-      The arguments assigned to local names inside a function or method,
-      determined by the order in which they were given in the call.  ``*`` is
-      used to either accept multiple positional arguments (when in the
-      definition), or pass several arguments as a list to a function.  See
-      :term:`argument`.
+      See :term:`argument`.
 
    Python 3000
       Nickname for the Python 3.x release line (coined long ago when the release
@@ -559,7 +622,7 @@ Glossary
    sequence
       An :term:`iterable` which supports efficient element access using integer
       indices via the :meth:`__getitem__` special method and defines a
-      :meth:`len` method that returns the length of the sequence.
+      :meth:`__len__` method that returns the length of the sequence.
       Some built-in sequence types are :class:`list`, :class:`str`,
       :class:`tuple`, and :class:`bytes`. Note that :class:`dict` also
       supports :meth:`__getitem__` and :meth:`__len__`, but is considered a
@@ -596,6 +659,13 @@ Glossary
       The type of a Python object determines what kind of object it is; every
       object has a type.  An object's type is accessible as its
       :attr:`__class__` attribute or can be retrieved with ``type(obj)``.
+
+   universal newlines
+      A manner of interpreting text streams in which all of the following are
+      recognized as ending a line: the Unix end-of-line convention ``'\n'``,
+      the Windows convention ``'\r\n'``, and the old Macintosh convention
+      ``'\r'``.  See :pep:`278` and :pep:`3116`, as well as
+      :func:`str.splitlines` for an additional use.
 
    view
       The objects returned from :meth:`dict.keys`, :meth:`dict.values`, and

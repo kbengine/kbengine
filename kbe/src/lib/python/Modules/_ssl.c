@@ -519,15 +519,20 @@ _create_tuple_for_X509_NAME (X509_NAME *xname)
             goto fail1;
     }
     /* now, there's typically a dangling RDN */
-    if ((rdn != NULL) && (PyList_Size(rdn) > 0)) {
-        rdnt = PyList_AsTuple(rdn);
-        Py_DECREF(rdn);
-        if (rdnt == NULL)
-            goto fail0;
-        retcode = PyList_Append(dn, rdnt);
-        Py_DECREF(rdnt);
-        if (retcode < 0)
-            goto fail0;
+    if (rdn != NULL) {
+        if (PyList_GET_SIZE(rdn) > 0) {
+            rdnt = PyList_AsTuple(rdn);
+            Py_DECREF(rdn);
+            if (rdnt == NULL)
+                goto fail0;
+            retcode = PyList_Append(dn, rdnt);
+            Py_DECREF(rdnt);
+            if (retcode < 0)
+                goto fail0;
+        }
+        else {
+            Py_DECREF(rdn);
+        }
     }
 
     /* convert list to tuple */
@@ -578,7 +583,7 @@ _get_peer_alt_names (X509 *certificate) {
     /* get a memory buffer */
     biobuf = BIO_new(BIO_s_mem());
 
-    i = 0;
+    i = -1;
     while ((i = X509_get_ext_by_NID(
                     certificate, NID_subject_alt_name, i)) >= 0) {
 
@@ -679,6 +684,7 @@ _get_peer_alt_names (X509 *certificate) {
             }
             Py_DECREF(t);
         }
+        sk_GENERAL_NAME_pop_free(names, GENERAL_NAME_free);
     }
     BIO_free(biobuf);
     if (peer_alt_names != Py_None) {
@@ -877,6 +883,7 @@ PySSL_peercert(PySSLSocket *self, PyObject *args)
     int len;
     int verification;
     PyObject *binary_mode = Py_None;
+    int b;
 
     if (!PyArg_ParseTuple(args, "|O:peer_certificate", &binary_mode))
         return NULL;
@@ -884,7 +891,10 @@ PySSL_peercert(PySSLSocket *self, PyObject *args)
     if (!self->peer_cert)
         Py_RETURN_NONE;
 
-    if (PyObject_IsTrue(binary_mode)) {
+    b = PyObject_IsTrue(binary_mode);
+    if (b < 0)
+        return NULL;
+    if (b) {
         /* return cert in DER-encoded format */
 
         unsigned char *bytes_buf = NULL;
@@ -1023,10 +1033,8 @@ check_socket_and_wait_for_timeout(PySocketSockObject *s, int writing)
 #endif
 
     /* Guard against socket too large for select*/
-#ifndef Py_SOCKET_FD_CAN_BE_GE_FD_SETSIZE
-    if (s->sock_fd >= FD_SETSIZE)
+    if (!_PyIsSelectable_fd(s->sock_fd))
         return SOCKET_TOO_LARGE_FOR_SELECT;
-#endif
 
     /* Construct the arguments to select */
     tv.tv_sec = (int)s->sock_timeout;
@@ -1482,7 +1490,8 @@ context_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     self->ctx = ctx;
     /* Defaults */
     SSL_CTX_set_verify(self->ctx, SSL_VERIFY_NONE, NULL);
-    SSL_CTX_set_options(self->ctx, SSL_OP_ALL);
+    SSL_CTX_set_options(self->ctx,
+                        SSL_OP_ALL & ~SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS);
 
 #define SID_CTX "Python"
     SSL_CTX_set_session_id_context(self->ctx, (const unsigned char *) SID_CTX,
@@ -1908,7 +1917,7 @@ PySSL_RAND_egd(PyObject *self, PyObject *args)
     PyObject *path;
     int bytes;
 
-    if (!PyArg_ParseTuple(args, "O&|i:RAND_egd",
+    if (!PyArg_ParseTuple(args, "O&:RAND_egd",
                           PyUnicode_FSConverter, &path))
         return NULL;
 
@@ -2144,7 +2153,8 @@ PyInit__ssl(void)
                             PY_SSL_VERSION_TLS1);
 
     /* protocol options */
-    PyModule_AddIntConstant(m, "OP_ALL", SSL_OP_ALL);
+    PyModule_AddIntConstant(m, "OP_ALL",
+                            SSL_OP_ALL & ~SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS);
     PyModule_AddIntConstant(m, "OP_NO_SSLv2", SSL_OP_NO_SSLv2);
     PyModule_AddIntConstant(m, "OP_NO_SSLv3", SSL_OP_NO_SSLv3);
     PyModule_AddIntConstant(m, "OP_NO_TLSv1", SSL_OP_NO_TLSv1);

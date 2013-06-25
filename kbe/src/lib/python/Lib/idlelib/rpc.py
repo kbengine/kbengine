@@ -2,7 +2,7 @@
 
 For security reasons, GvR requested that Idle's Python execution server process
 connect to the Idle process, which listens for the connection.  Since Idle has
-has only one client per server, this was not a limitation.
+only one client per server, this was not a limitation.
 
    +---------------------------------+ +-------------+
    | socketserver.BaseRequestHandler | | SocketIO    |
@@ -570,7 +570,7 @@ def _getmethods(obj, methods):
     # Adds names to dictionary argument 'methods'
     for name in dir(obj):
         attr = getattr(obj, name)
-        if hasattr(attr, '__call__'):
+        if callable(attr):
             methods[name] = 1
     if isinstance(obj, type):
         for super in obj.__bases__:
@@ -579,7 +579,7 @@ def _getmethods(obj, methods):
 def _getattributes(obj, attributes):
     for name in dir(obj):
         attr = getattr(obj, name)
-        if not hasattr(attr, '__call__'):
+        if not callable(attr):
             attributes[name] = 1
 
 class MethodProxy(object):

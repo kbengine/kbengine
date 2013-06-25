@@ -7,6 +7,7 @@ import errno
 import io
 import socket
 import select
+import _testcapi
 import time
 import traceback
 import queue
@@ -156,8 +157,8 @@ class ThreadableTest:
 
     def clientRun(self, test_func):
         self.server_ready.wait()
-        self.client_ready.set()
         self.clientSetUp()
+        self.client_ready.set()
         if not hasattr(test_func, '__call__'):
             raise TypeError("test_func must be a callable function")
         try:
@@ -441,7 +442,7 @@ class GeneralModuleTests(unittest.TestCase):
         # Try same call with optional protocol omitted
         port2 = socket.getservbyname(service)
         eq(port, port2)
-        # Try udp, but don't barf it it doesn't exist
+        # Try udp, but don't barf if it doesn't exist
         try:
             udpport = socket.getservbyname(service, 'udp')
         except socket.error:
@@ -499,16 +500,30 @@ class GeneralModuleTests(unittest.TestCase):
         from socket import inet_aton as f, inet_pton, AF_INET
         g = lambda a: inet_pton(AF_INET, a)
 
+        assertInvalid = lambda func,a: self.assertRaises(
+            (socket.error, ValueError), func, a
+        )
+
         self.assertEqual(b'\x00\x00\x00\x00', f('0.0.0.0'))
         self.assertEqual(b'\xff\x00\xff\x00', f('255.0.255.0'))
         self.assertEqual(b'\xaa\xaa\xaa\xaa', f('170.170.170.170'))
         self.assertEqual(b'\x01\x02\x03\x04', f('1.2.3.4'))
         self.assertEqual(b'\xff\xff\xff\xff', f('255.255.255.255'))
+        assertInvalid(f, '0.0.0.')
+        assertInvalid(f, '300.0.0.0')
+        assertInvalid(f, 'a.0.0.0')
+        assertInvalid(f, '1.2.3.4.5')
+        assertInvalid(f, '::1')
 
         self.assertEqual(b'\x00\x00\x00\x00', g('0.0.0.0'))
         self.assertEqual(b'\xff\x00\xff\x00', g('255.0.255.0'))
         self.assertEqual(b'\xaa\xaa\xaa\xaa', g('170.170.170.170'))
         self.assertEqual(b'\xff\xff\xff\xff', g('255.255.255.255'))
+        assertInvalid(g, '0.0.0.')
+        assertInvalid(g, '300.0.0.0')
+        assertInvalid(g, 'a.0.0.0')
+        assertInvalid(g, '1.2.3.4.5')
+        assertInvalid(g, '::1')
 
     def testIPv6toString(self):
         if not hasattr(socket, 'inet_pton'):
@@ -520,6 +535,9 @@ class GeneralModuleTests(unittest.TestCase):
         except ImportError:
             return
         f = lambda a: inet_pton(AF_INET6, a)
+        assertInvalid = lambda a: self.assertRaises(
+            (socket.error, ValueError), f, a
+        )
 
         self.assertEqual(b'\x00' * 16, f('::'))
         self.assertEqual(b'\x00' * 16, f('0::0'))
@@ -528,21 +546,62 @@ class GeneralModuleTests(unittest.TestCase):
             b'\x45\xef\x76\xcb\x00\x1a\x56\xef\xaf\xeb\x0b\xac\x19\x24\xae\xae',
             f('45ef:76cb:1a:56ef:afeb:bac:1924:aeae')
         )
+        self.assertEqual(
+            b'\xad\x42\x0a\xbc' + b'\x00' * 4 + b'\x01\x27\x00\x00\x02\x54\x00\x02',
+            f('ad42:abc::127:0:254:2')
+        )
+        self.assertEqual(b'\x00\x12\x00\x0a' + b'\x00' * 12, f('12:a::'))
+        assertInvalid('0x20::')
+        assertInvalid(':::')
+        assertInvalid('::0::')
+        assertInvalid('1::abc::')
+        assertInvalid('1::abc::def')
+        assertInvalid('1:2:3:4:5:6:')
+        assertInvalid('1:2:3:4:5:6')
+        assertInvalid('1:2:3:4:5:6:7:8:')
+        assertInvalid('1:2:3:4:5:6:7:8:0')
+
+        self.assertEqual(b'\x00' * 12 + b'\xfe\x2a\x17\x40',
+            f('::254.42.23.64')
+        )
+        self.assertEqual(
+            b'\x00\x42' + b'\x00' * 8 + b'\xa2\x9b\xfe\x2a\x17\x40',
+            f('42::a29b:254.42.23.64')
+        )
+        self.assertEqual(
+            b'\x00\x42\xa8\xb9\x00\x00\x00\x02\xff\xff\xa2\x9b\xfe\x2a\x17\x40',
+            f('42:a8b9:0:2:ffff:a29b:254.42.23.64')
+        )
+        assertInvalid('255.254.253.252')
+        assertInvalid('1::260.2.3.0')
+        assertInvalid('1::0.be.e.0')
+        assertInvalid('1:2:3:4:5:6:7:1.2.3.4')
+        assertInvalid('::1.2.3.4:0')
+        assertInvalid('0.100.200.0:3:4:5:6:7:8')
 
     def testStringToIPv4(self):
         if not hasattr(socket, 'inet_ntop'):
             return # No inet_ntop() on this platform
         from socket import inet_ntoa as f, inet_ntop, AF_INET
         g = lambda a: inet_ntop(AF_INET, a)
+        assertInvalid = lambda func,a: self.assertRaises(
+            (socket.error, ValueError), func, a
+        )
 
         self.assertEqual('1.0.1.0', f(b'\x01\x00\x01\x00'))
         self.assertEqual('170.85.170.85', f(b'\xaa\x55\xaa\x55'))
         self.assertEqual('255.255.255.255', f(b'\xff\xff\xff\xff'))
         self.assertEqual('1.2.3.4', f(b'\x01\x02\x03\x04'))
+        assertInvalid(f, b'\x00' * 3)
+        assertInvalid(f, b'\x00' * 5)
+        assertInvalid(f, b'\x00' * 16)
 
         self.assertEqual('1.0.1.0', g(b'\x01\x00\x01\x00'))
         self.assertEqual('170.85.170.85', g(b'\xaa\x55\xaa\x55'))
         self.assertEqual('255.255.255.255', g(b'\xff\xff\xff\xff'))
+        assertInvalid(g, b'\x00' * 3)
+        assertInvalid(g, b'\x00' * 5)
+        assertInvalid(g, b'\x00' * 16)
 
     def testStringToIPv6(self):
         if not hasattr(socket, 'inet_ntop'):
@@ -554,6 +613,9 @@ class GeneralModuleTests(unittest.TestCase):
         except ImportError:
             return
         f = lambda a: inet_ntop(AF_INET6, a)
+        assertInvalid = lambda a: self.assertRaises(
+            (socket.error, ValueError), f, a
+        )
 
         self.assertEqual('::', f(b'\x00' * 16))
         self.assertEqual('::1', f(b'\x00' * 15 + b'\x01'))
@@ -561,6 +623,10 @@ class GeneralModuleTests(unittest.TestCase):
             'aef:b01:506:1001:ffff:9997:55:170',
             f(b'\x0a\xef\x0b\x01\x05\x06\x10\x01\xff\xff\x99\x97\x00\x55\x01\x70')
         )
+
+        assertInvalid(b'\x12' * 15)
+        assertInvalid(b'\x12' * 17)
+        assertInvalid(b'\x12' * 4)
 
     # XXX The following don't test module-level functionality...
 
@@ -774,12 +840,36 @@ class GeneralModuleTests(unittest.TestCase):
             fp.close()
             self.assertEqual(repr(fp), "<_io.BufferedReader name=-1>")
 
-    def testListenBacklog0(self):
+    def test_unusable_closed_socketio(self):
+        with socket.socket() as sock:
+            fp = sock.makefile("rb", buffering=0)
+            self.assertTrue(fp.readable())
+            self.assertFalse(fp.writable())
+            self.assertFalse(fp.seekable())
+            fp.close()
+            self.assertRaises(ValueError, fp.readable)
+            self.assertRaises(ValueError, fp.writable)
+            self.assertRaises(ValueError, fp.seekable)
+
+    def test_listen_backlog(self):
+        for backlog in 0, -1:
+            srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            srv.bind((HOST, 0))
+            srv.listen(backlog)
+            srv.close()
+
+        # Issue 15989
         srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         srv.bind((HOST, 0))
-        # backlog = 0
-        srv.listen(0)
+        self.assertRaises(OverflowError, srv.listen, _testcapi.INT_MAX + 1)
         srv.close()
+
+    @unittest.skipUnless(SUPPORTS_IPV6, 'IPv6 required for this test.')
+    def test_flowinfo(self):
+        self.assertRaises(OverflowError, socket.getnameinfo,
+                          ('::1',0, 0xffffffff), 0)
+        with socket.socket(socket.AF_INET6, socket.SOCK_STREAM) as s:
+            self.assertRaises(OverflowError, s.bind, ('::1', 0, -10))
 
 
 @unittest.skipUnless(thread, 'Threading required for this test.')
@@ -871,6 +961,11 @@ class BasicTCPTest(SocketConnectedTest):
 
     def _testShutdown(self):
         self.serv_conn.send(MSG)
+        # Issue 15989
+        self.assertRaises(OverflowError, self.serv_conn.shutdown,
+                          _testcapi.INT_MAX + 1)
+        self.assertRaises(OverflowError, self.serv_conn.shutdown,
+                          2 + (_testcapi.UINT_MAX + 1))
         self.serv_conn.shutdown(2)
 
     def testDetach(self):
@@ -879,6 +974,7 @@ class BasicTCPTest(SocketConnectedTest):
         f = self.cli_conn.detach()
         self.assertEqual(f, fileno)
         # cli_conn cannot be used anymore...
+        self.assertTrue(self.cli_conn._closed)
         self.assertRaises(socket.error, self.cli_conn.recv, 1024)
         self.cli_conn.close()
         # ...but we can create another socket using the (still open)
@@ -983,7 +1079,10 @@ class NonBlockingTCPTests(ThreadedTCPSocketTest):
 
     def testSetBlocking(self):
         # Testing whether set blocking works
-        self.serv.setblocking(0)
+        self.serv.setblocking(True)
+        self.assertIsNone(self.serv.gettimeout())
+        self.serv.setblocking(False)
+        self.assertEqual(self.serv.gettimeout(), 0.0)
         start = time.time()
         try:
             self.serv.accept()
@@ -991,6 +1090,10 @@ class NonBlockingTCPTests(ThreadedTCPSocketTest):
             pass
         end = time.time()
         self.assertTrue((end - start) < 1.0, "Error setting non-blocking mode.")
+        # Issue 15989
+        if _testcapi.UINT_MAX < _testcapi.ULONG_MAX:
+            self.serv.setblocking(_testcapi.UINT_MAX + 1)
+            self.assertIsNone(self.serv.gettimeout())
 
     def _testSetBlocking(self):
         pass
@@ -1554,7 +1657,26 @@ class NetworkConnectionNoServer(unittest.TestCase):
         port = support.find_unused_port()
         with self.assertRaises(socket.error) as cm:
             socket.create_connection((HOST, port))
-        self.assertEqual(cm.exception.errno, errno.ECONNREFUSED)
+
+        # Issue #16257: create_connection() calls getaddrinfo() against
+        # 'localhost'.  This may result in an IPV6 addr being returned
+        # as well as an IPV4 one:
+        #   >>> socket.getaddrinfo('localhost', port, 0, SOCK_STREAM)
+        #   >>> [(2,  2, 0, '', ('127.0.0.1', 41230)),
+        #        (26, 2, 0, '', ('::1', 41230, 0, 0))]
+        #
+        # create_connection() enumerates through all the addresses returned
+        # and if it doesn't successfully bind to any of them, it propagates
+        # the last exception it encountered.
+        #
+        # On Solaris, ENETUNREACH is returned in this circumstance instead
+        # of ECONNREFUSED.  So, if that errno exists, add it to our list of
+        # expected errnos.
+        expected_errnos = [ errno.ECONNREFUSED, ]
+        if hasattr(errno, 'ENETUNREACH'):
+            expected_errnos.append(errno.ENETUNREACH)
+
+        self.assertIn(cm.exception.errno, expected_errnos)
 
     def test_create_connection_timeout(self):
         # Issue #9792: create_connection() should not recast timeout errors
@@ -1722,7 +1844,7 @@ class TCPTimeoutTest(SocketTCPTest):
             # no alarm can be pending.  Safe to restore old handler.
             signal.signal(signal.SIGALRM, old_alarm)
 
-class UDPTimeoutTest(SocketTCPTest):
+class UDPTimeoutTest(SocketUDPTest):
 
     def testUDPTimeout(self):
         def raise_timeout(*args, **kwargs):
@@ -1869,10 +1991,12 @@ def isTipcAvailable():
         print("TIPC module is not loaded, please 'sudo modprobe tipc'")
     return False
 
-class TIPCTest (unittest.TestCase):
+class TIPCTest(unittest.TestCase):
     def testRDM(self):
         srv = socket.socket(socket.AF_TIPC, socket.SOCK_RDM)
         cli = socket.socket(socket.AF_TIPC, socket.SOCK_RDM)
+        self.addCleanup(srv.close)
+        self.addCleanup(cli.close)
 
         srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         srvaddr = (socket.TIPC_ADDR_NAMESEQ, TIPC_STYPE,
@@ -1889,13 +2013,14 @@ class TIPCTest (unittest.TestCase):
         self.assertEqual(msg, MSG)
 
 
-class TIPCThreadableTest (unittest.TestCase, ThreadableTest):
+class TIPCThreadableTest(unittest.TestCase, ThreadableTest):
     def __init__(self, methodName = 'runTest'):
         unittest.TestCase.__init__(self, methodName = methodName)
         ThreadableTest.__init__(self)
 
     def setUp(self):
         self.srv = socket.socket(socket.AF_TIPC, socket.SOCK_STREAM)
+        self.addCleanup(self.srv.close)
         self.srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         srvaddr = (socket.TIPC_ADDR_NAMESEQ, TIPC_STYPE,
                 TIPC_LOWER, TIPC_UPPER)
@@ -1903,6 +2028,7 @@ class TIPCThreadableTest (unittest.TestCase, ThreadableTest):
         self.srv.listen(5)
         self.serverExplicitReady()
         self.conn, self.connaddr = self.srv.accept()
+        self.addCleanup(self.conn.close)
 
     def clientSetUp(self):
         # The is a hittable race between serverExplicitReady() and the
@@ -1910,6 +2036,7 @@ class TIPCThreadableTest (unittest.TestCase, ThreadableTest):
         # we could get an exception
         time.sleep(0.1)
         self.cli = socket.socket(socket.AF_TIPC, socket.SOCK_STREAM)
+        self.addCleanup(self.cli.close)
         addr = (socket.TIPC_ADDR_NAME, TIPC_STYPE,
                 TIPC_LOWER + int((TIPC_UPPER - TIPC_LOWER) / 2), 0)
         self.cli.connect(addr)

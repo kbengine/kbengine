@@ -305,7 +305,7 @@ Sequences
 
          A bytes object is an immutable array.  The items are 8-bit bytes,
          represented by integers in the range 0 <= x < 256.  Bytes literals
-         (like ``b'abc'`` and the built-in function :func:`bytes` can be used to
+         (like ``b'abc'``) and the built-in function :func:`bytes` can be used to
          construct bytes objects.  Also, bytes objects can be decoded to strings
          via the :meth:`decode` method.
 
@@ -588,9 +588,9 @@ Callable types
       A function or method which uses the :keyword:`yield` statement (see section
       :ref:`yield`) is called a :dfn:`generator function`.  Such a function, when
       called, always returns an iterator object which can be used to execute the
-      body of the function:  calling the iterator's :meth:`__next__` method will
-      cause the function to execute until it provides a value using the
-      :keyword:`yield` statement.  When the function executes a
+      body of the function:  calling the iterator's :meth:`iterator__next__`
+      method will cause the function to execute until it provides a value
+      using the :keyword:`yield` statement.  When the function executes a
       :keyword:`return` statement or falls off the end, a :exc:`StopIteration`
       exception is raised and the iterator will have reached the end of the set of
       values to be returned.
@@ -1124,10 +1124,11 @@ Basic customization
       modules are still available at the time when the :meth:`__del__` method is
       called.
 
+      .. index::
+         single: repr() (built-in function); __repr__() (object method)
+
 
 .. method:: object.__repr__(self)
-
-   .. index:: builtin: repr
 
    Called by the :func:`repr` built-in function to compute the "official" string
    representation of an object.  If at all possible, this should look like a
@@ -1141,20 +1142,35 @@ Basic customization
    This is typically used for debugging, so it is important that the representation
    is information-rich and unambiguous.
 
+   .. index::
+      single: string; __str__() (object method)
+      single: format() (built-in function); __str__() (object method)
+      single: print() (built-in function); __str__() (object method)
+
 
 .. method:: object.__str__(self)
 
-   .. index::
-      builtin: str
-      builtin: print
+   Called by :func:`str(object) <str>` and the built-in functions
+   :func:`format` and :func:`print` to compute the "informal" or nicely
+   printable string representation of an object.  The return value must be a
+   :ref:`string <typesseq>` object.
 
-   Called by the :func:`str` built-in function and by the :func:`print` function
-   to compute the "informal" string representation of an object.  This differs
-   from :meth:`__repr__` in that it does not have to be a valid Python
-   expression: a more convenient or concise representation may be used instead.
-   The return value must be a string object.
+   This method differs from :meth:`object.__repr__` in that there is no
+   expectation that :meth:`__str__` return a valid Python expression: a more
+   convenient or concise representation can be used.
+
+   The default implementation defined by the built-in type :class:`object`
+   calls :meth:`object.__repr__`.
 
    .. XXX what about subclasses of string?
+
+
+.. method:: object.__bytes__(self)
+
+   .. index:: builtin: bytes
+
+   Called by :func:`bytes` to compute a byte-string representation of an
+   object. This should return a ``bytes`` object.
 
 
 .. method:: object.__format__(self, format_spec)
@@ -1165,7 +1181,7 @@ Basic customization
       builtin: print
 
    Called by the :func:`format` built-in function (and by extension, the
-   :meth:`format` method of class :class:`str`) to produce a "formatted"
+   :meth:`str.format` method of class :class:`str`) to produce a "formatted"
    string representation of an object. The ``format_spec`` argument is
    a string that contains a description of the formatting options desired.
    The interpretation of the ``format_spec`` argument is up to the type
@@ -1247,22 +1263,24 @@ Basic customization
    by default; with them, all objects compare unequal (except with themselves)
    and ``x.__hash__()`` returns ``id(x)``.
 
-   Classes which inherit a :meth:`__hash__` method from a parent class but
-   change the meaning of :meth:`__eq__` such that the hash value returned is no
-   longer appropriate (e.g. by switching to a value-based concept of equality
-   instead of the default identity based equality) can explicitly flag
-   themselves as being unhashable by setting ``__hash__ = None`` in the class
-   definition. Doing so means that not only will instances of the class raise an
-   appropriate :exc:`TypeError` when a program attempts to retrieve their hash
-   value, but they will also be correctly identified as unhashable when checking
-   ``isinstance(obj, collections.Hashable)`` (unlike classes which define their
-   own :meth:`__hash__` to explicitly raise :exc:`TypeError`).
+   A class that overrides :meth:`__eq__` and does not define :meth:`__hash__`
+   will have its :meth:`__hash__` implicitly set to ``None``.  When the
+   :meth:`__hash__` method of a class is ``None``, instances of the class will
+   raise an appropriate :exc:`TypeError` when a program attempts to retrieve
+   their hash value, and will also be correctly identified as unhashable when
+   checking ``isinstance(obj, collections.Hashable``).
 
    If a class that overrides :meth:`__eq__` needs to retain the implementation
    of :meth:`__hash__` from a parent class, the interpreter must be told this
-   explicitly by setting ``__hash__ = <ParentClass>.__hash__``. Otherwise the
-   inheritance of :meth:`__hash__` will be blocked, just as if :attr:`__hash__`
-   had been explicitly set to :const:`None`.
+   explicitly by setting ``__hash__ = <ParentClass>.__hash__``.
+
+   If a class that does not override :meth:`__eq__` wishes to suppress hash
+   support, it should include ``__hash__ = None`` in the class definition.
+   A class which defines its own :meth:`__hash__` that explicitly raises
+   a :exc:`TypeError` would be incorrectly identified as hashable by
+   an ``isinstance(obj, collections.Hashable)`` call.
+
+   See also the :option:`-R` command-line option.
 
 
 .. method:: object.__bool__(self)

@@ -6,6 +6,7 @@ import os
 import abc
 import codecs
 import warnings
+import errno
 # Import _thread instead of threading to reduce startup cost
 try:
     from _thread import allocate_lock as Lock
@@ -297,7 +298,7 @@ class IOBase(metaclass=abc.ABCMeta):
     def seek(self, pos, whence=0):
         """Change stream position.
 
-        Change the stream position to byte offset offset. offset is
+        Change the stream position to byte offset pos. Argument pos is
         interpreted relative to the position indicated by whence.  Values
         for whence are ints:
 
@@ -720,8 +721,11 @@ class _BufferedIOMixin(BufferedIOBase):
 
     def close(self):
         if self.raw is not None and not self.closed:
-            self.flush()
-            self.raw.close()
+            try:
+                # may raise BlockingIOError or BrokenPipeError etc
+                self.flush()
+            finally:
+                self.raw.close()
 
     def detach(self):
         if self.raw is None:
@@ -885,12 +889,18 @@ class BytesIO(BufferedIOBase):
         return pos
 
     def readable(self):
+        if self.closed:
+            raise ValueError("I/O operation on closed file.")
         return True
 
     def writable(self):
+        if self.closed:
+            raise ValueError("I/O operation on closed file.")
         return True
 
     def seekable(self):
+        if self.closed:
+            raise ValueError("I/O operation on closed file.")
         return True
 
 
@@ -1080,13 +1090,9 @@ class BufferedWriter(_BufferedIOMixin):
             # XXX we can implement some more tricks to try and avoid
             # partial writes
             if len(self._write_buf) > self.buffer_size:
-                # We're full, so let's pre-flush the buffer
-                try:
-                    self._flush_unlocked()
-                except BlockingIOError as e:
-                    # We can't accept anything else.
-                    # XXX Why not just let the exception pass through?
-                    raise BlockingIOError(e.errno, e.strerror, 0)
+                # We're full, so let's pre-flush the buffer.  (This may
+                # raise BlockingIOError with characters_written == 0.)
+                self._flush_unlocked()
             before = len(self._write_buf)
             self._write_buf.extend(b)
             written = len(self._write_buf) - before
@@ -1117,24 +1123,23 @@ class BufferedWriter(_BufferedIOMixin):
     def _flush_unlocked(self):
         if self.closed:
             raise ValueError("flush of closed file")
-        written = 0
-        try:
-            while self._write_buf:
-                try:
-                    n = self.raw.write(self._write_buf)
-                except IOError as e:
-                    if e.errno != EINTR:
-                        raise
-                    continue
-                if n > len(self._write_buf) or n < 0:
-                    raise IOError("write() returned incorrect number of bytes")
-                del self._write_buf[:n]
-                written += n
-        except BlockingIOError as e:
-            n = e.characters_written
+        while self._write_buf:
+            try:
+                n = self.raw.write(self._write_buf)
+            except BlockingIOError:
+                raise RuntimeError("self.raw should implement RawIOBase: it "
+                                   "should not raise BlockingIOError")
+            except IOError as e:
+                if e.errno != EINTR:
+                    raise
+                continue
+            if n is None:
+                raise BlockingIOError(
+                    errno.EAGAIN,
+                    "write could not complete without blocking", 0)
+            if n > len(self._write_buf) or n < 0:
+                raise IOError("write() returned incorrect number of bytes")
             del self._write_buf[:n]
-            written += n
-            raise BlockingIOError(e.errno, e.strerror, written)
 
     def tell(self):
         return _BufferedIOMixin.tell(self) + len(self._write_buf)
@@ -1460,7 +1465,7 @@ class TextIOWrapper(TextIOBase):
     enabled.  With this enabled, on input, the lines endings '\n', '\r',
     or '\r\n' are translated to '\n' before being returned to the
     caller. Conversely, on output, '\n' is translated to the system
-    default line seperator, os.linesep. If newline is any other of its
+    default line separator, os.linesep. If newline is any other of its
     legal values, that newline becomes the newline when the file is read
     and it is returned untranslated. On output, '\n' is converted to the
     newline.
@@ -1568,6 +1573,8 @@ class TextIOWrapper(TextIOBase):
         return self._buffer
 
     def seekable(self):
+        if self.closed:
+            raise ValueError("I/O operation on closed file.")
         return self._seekable
 
     def readable(self):

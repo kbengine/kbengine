@@ -236,10 +236,14 @@ timed intervals.
    +----------------+-----------------------+
    | ``'D'``        | Days                  |
    +----------------+-----------------------+
-   | ``'W'``        | Week day (0=Monday)   |
+   | ``'W0'-'W6'``  | Weekday (0=Monday)    |
    +----------------+-----------------------+
    | ``'midnight'`` | Roll over at midnight |
    +----------------+-----------------------+
+
+   When using weekday-based rotation, specify 'W0' for Monday, 'W1' for
+   Tuesday, and so on up to 'W6' for Sunday. In this case, the value passed for
+   *interval* isn't used.
 
    The system will save old log files by appending extensions to the filename.
    The extensions are date-and-time based, using the strftime format
@@ -654,7 +658,7 @@ event of a certain severity or greater is seen.
 :class:`BufferingHandler`, which is an abstract class. This buffers logging
 records in memory. Whenever each record is added to the buffer, a check is made
 by calling :meth:`shouldFlush` to see if the buffer should be flushed.  If it
-should, then :meth:`flush` is expected to do the needful.
+should, then :meth:`flush` is expected to do the flushing.
 
 
 .. class:: BufferingHandler(capacity)
@@ -790,7 +794,7 @@ possible, while any potentially slow operations (such as sending an email via
 
 
 
-.. queue-listener:
+.. _queue-listener:
 
 QueueListener
 ^^^^^^^^^^^^^

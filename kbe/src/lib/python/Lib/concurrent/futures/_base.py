@@ -112,12 +112,14 @@ class _AllCompletedWaiter(_Waiter):
     def __init__(self, num_pending_calls, stop_on_exception):
         self.num_pending_calls = num_pending_calls
         self.stop_on_exception = stop_on_exception
+        self.lock = threading.Lock()
         super().__init__()
 
     def _decrement_pending_calls(self):
-        self.num_pending_calls -= 1
-        if not self.num_pending_calls:
-            self.event.set()
+        with self.lock:
+            self.num_pending_calls -= 1
+            if not self.num_pending_calls:
+                self.event.set()
 
     def add_result(self, future):
         super().add_result(future)
@@ -517,7 +519,7 @@ class Executor(object):
         """Returns a iterator equivalent to map(fn, iter).
 
         Args:
-            fn: A callable that will take take as many arguments as there are
+            fn: A callable that will take as many arguments as there are
                 passed iterables.
             timeout: The maximum number of seconds to wait. If None, then there
                 is no limit on the wait time.

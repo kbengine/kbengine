@@ -1,12 +1,11 @@
 """Tests for distutils.command.bdist_msi."""
-import unittest
 import sys
-
+import unittest
 from test.support import run_unittest
-
 from distutils.tests import support
 
-@unittest.skipUnless(sys.platform=="win32", "These tests are only for win32")
+
+@unittest.skipUnless(sys.platform == 'win32', 'these tests require Windows')
 class BDistMSITestCase(support.TempdirManager,
                        support.LoggingSilencer,
                        unittest.TestCase):
@@ -14,9 +13,10 @@ class BDistMSITestCase(support.TempdirManager,
     def test_minimal(self):
         # minimal test XXX need more tests
         from distutils.command.bdist_msi import bdist_msi
-        pkg_pth, dist = self.create_dist()
+        project_dir, dist = self.create_dist()
         cmd = bdist_msi(dist)
         cmd.ensure_finalized()
+
 
 def test_suite():
     return unittest.makeSuite(BDistMSITestCase)

@@ -6,8 +6,6 @@
 
 :Authors: Greg Ward, Anthony Baxter
 :Email: distutils-sig@python.org
-:Release: |version|
-:Date: |today|
 
 This document describes the Python Distribution Utilities ("Distutils") from
 the module developer's point of view, describing how to use the Distutils to
@@ -24,7 +22,6 @@ very little overhead for build/release/install mechanics.
    sourcedist.rst
    builtdist.rst
    packageindex.rst
-   uploading.rst
    examples.rst
    extending.rst
    commandref.rst

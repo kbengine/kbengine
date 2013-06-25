@@ -108,37 +108,55 @@ All integers are implemented as "long" integer objects of arbitrary size.
 
 
 .. XXX alias PyLong_AS_LONG (for now)
-.. c:function:: long PyLong_AsLong(PyObject *pylong)
+.. c:function:: long PyLong_AsLong(PyObject *obj)
 
    .. index::
       single: LONG_MAX
       single: OverflowError (built-in exception)
 
-   Return a C :c:type:`long` representation of the contents of *pylong*.  If
-   *pylong* is greater than :const:`LONG_MAX`, raise an :exc:`OverflowError`,
-   and return -1. Convert non-long objects automatically to long first,
-   and return -1 if that raises exceptions.
+   Return a C :c:type:`long` representation of *obj*.  If *obj* is not an
+   instance of :c:type:`PyLongObject`, first call its :meth:`__int__` method
+   (if present) to convert it to a :c:type:`PyLongObject`.
 
-.. c:function:: long PyLong_AsLongAndOverflow(PyObject *pylong, int *overflow)
-
-   Return a C :c:type:`long` representation of the contents of
-   *pylong*.  If *pylong* is greater than :const:`LONG_MAX` or less
-   than :const:`LONG_MIN`, set *\*overflow* to ``1`` or ``-1``,
-   respectively, and return ``-1``; otherwise, set *\*overflow* to
-   ``0``.  If any other exception occurs (for example a TypeError or
-   MemoryError), then ``-1`` will be returned and *\*overflow* will
-   be ``0``.
+   Raise :exc:`OverflowError` if the value of *obj* is out of range for a
+   :c:type:`long`.
 
 
-.. c:function:: PY_LONG_LONG PyLong_AsLongLongAndOverflow(PyObject *pylong, int *overflow)
+.. c:function:: long PyLong_AsLongAndOverflow(PyObject *obj, int *overflow)
 
-   Return a C :c:type:`long long` representation of the contents of
-   *pylong*.  If *pylong* is greater than :const:`PY_LLONG_MAX` or less
-   than :const:`PY_LLONG_MIN`, set *\*overflow* to ``1`` or ``-1``,
-   respectively, and return ``-1``; otherwise, set *\*overflow* to
-   ``0``.  If any other exception occurs (for example a TypeError or
-   MemoryError), then ``-1`` will be returned and *\*overflow* will
-   be ``0``.
+   Return a C :c:type:`long` representation of *obj*.  If *obj* is not an
+   instance of :c:type:`PyLongObject`, first call its :meth:`__int__` method
+   (if present) to convert it to a :c:type:`PyLongObject`.
+
+   If the value of *obj* is greater than :const:`LONG_MAX` or less than
+   :const:`LONG_MIN`, set *\*overflow* to ``1`` or ``-1``, respectively, and
+   return ``-1``; otherwise, set *\*overflow* to ``0``.  If any other exception
+   occurs set *\*overflow* to ``0`` and return ``-1`` as usual.
+
+
+.. c:function:: PY_LONG_LONG PyLong_AsLongLong(PyObject *obj)
+
+   .. index::
+      single: OverflowError (built-in exception)
+
+   Return a C :c:type:`long long` representation of *obj*.  If *obj* is not an
+   instance of :c:type:`PyLongObject`, first call its :meth:`__int__` method
+   (if present) to convert it to a :c:type:`PyLongObject`.
+
+   Raise :exc:`OverflowError` if the value of *obj* is out of range for a
+   :c:type:`long`.
+
+
+.. c:function:: PY_LONG_LONG PyLong_AsLongLongAndOverflow(PyObject *obj, int *overflow)
+
+   Return a C :c:type:`long long` representation of *obj*.  If *obj* is not an
+   instance of :c:type:`PyLongObject`, first call its :meth:`__int__` method
+   (if present) to convert it to a :c:type:`PyLongObject`.
+
+   If the value of *obj* is greater than :const:`PY_LLONG_MAX` or less than
+   :const:`PY_LLONG_MIN`, set *\*overflow* to ``1`` or ``-1``, respectively,
+   and return ``-1``; otherwise, set *\*overflow* to ``0``.  If any other
+   exception occurs set *\*overflow* to ``0`` and return ``-1`` as usual.
 
    .. versionadded:: 3.2
 
@@ -149,9 +167,11 @@ All integers are implemented as "long" integer objects of arbitrary size.
       single: PY_SSIZE_T_MAX
       single: OverflowError (built-in exception)
 
-   Return a C :c:type:`Py_ssize_t` representation of the contents of *pylong*.
-   If *pylong* is greater than :const:`PY_SSIZE_T_MAX`, an :exc:`OverflowError`
-   is raised and ``-1`` will be returned.
+   Return a C :c:type:`Py_ssize_t` representation of *pylong*.  *pylong* must
+   be an instance of :c:type:`PyLongObject`.
+
+   Raise :exc:`OverflowError` if the value of *pylong* is out of range for a
+   :c:type:`Py_ssize_t`.
 
 
 .. c:function:: unsigned long PyLong_AsUnsignedLong(PyObject *pylong)
@@ -160,26 +180,20 @@ All integers are implemented as "long" integer objects of arbitrary size.
       single: ULONG_MAX
       single: OverflowError (built-in exception)
 
-   Return a C :c:type:`unsigned long` representation of the contents of *pylong*.
-   If *pylong* is greater than :const:`ULONG_MAX`, an :exc:`OverflowError` is
-   raised.
+   Return a C :c:type:`unsigned long` representation of *pylong*.  *pylong*
+   must be an instance of :c:type:`PyLongObject`.
+
+   Raise :exc:`OverflowError` if the value of *pylong* is out of range for a
+   :c:type:`unsigned long`.
 
 
 .. c:function:: size_t PyLong_AsSize_t(PyObject *pylong)
 
-   Return a :c:type:`size_t` representation of the contents of *pylong*.  If
-   *pylong* is greater than the maximum value for a :c:type:`size_t`, an
-   :exc:`OverflowError` is raised.
+   Return a C :c:type:`size_t` representation of *pylong*.  *pylong* must be
+   an instance of :c:type:`PyLongObject`.
 
-
-.. c:function:: PY_LONG_LONG PyLong_AsLongLong(PyObject *pylong)
-
-   .. index::
-      single: OverflowError (built-in exception)
-
-   Return a C :c:type:`long long` from a Python integer.  If *pylong*
-   cannot be represented as a :c:type:`long long`, an
-   :exc:`OverflowError` is raised and ``-1`` is returned.
+   Raise :exc:`OverflowError` if the value of *pylong* is out of range for a
+   :c:type:`size_t`.
 
 
 .. c:function:: unsigned PY_LONG_LONG PyLong_AsUnsignedLongLong(PyObject *pylong)
@@ -187,32 +201,43 @@ All integers are implemented as "long" integer objects of arbitrary size.
    .. index::
       single: OverflowError (built-in exception)
 
-   Return a C :c:type:`unsigned long long` from a Python integer. If
-   *pylong* cannot be represented as an :c:type:`unsigned long long`,
-   an :exc:`OverflowError` is raised and ``(unsigned long long)-1`` is
-   returned.
+   Return a C :c:type:`unsigned PY_LONG_LONG` representation of *pylong*.
+   *pylong* must be an instance of :c:type:`PyLongObject`.
+
+   Raise :exc:`OverflowError` if the value of *pylong* is out of range for an
+   :c:type:`unsigned PY_LONG_LONG`.
 
    .. versionchanged:: 3.1
       A negative *pylong* now raises :exc:`OverflowError`, not :exc:`TypeError`.
 
 
-.. c:function:: unsigned long PyLong_AsUnsignedLongMask(PyObject *io)
+.. c:function:: unsigned long PyLong_AsUnsignedLongMask(PyObject *obj)
 
-   Return a C :c:type:`unsigned long` from a Python integer, without checking for
-   overflow.
+   Return a C :c:type:`unsigned long` representation of *obj*.  If *obj*
+   is not an instance of :c:type:`PyLongObject`, first call its :meth:`__int__`
+   method (if present) to convert it to a :c:type:`PyLongObject`.
+
+   If the value of *obj* is out of range for an :c:type:`unsigned long`,
+   return the reduction of that value modulo :const:`ULONG_MAX + 1`.
 
 
-.. c:function:: unsigned PY_LONG_LONG PyLong_AsUnsignedLongLongMask(PyObject *io)
+.. c:function:: unsigned PY_LONG_LONG PyLong_AsUnsignedLongLongMask(PyObject *obj)
 
-   Return a C :c:type:`unsigned long long` from a Python integer, without
-   checking for overflow.
+   Return a C :c:type:`unsigned long long` representation of *obj*.  If *obj*
+   is not an instance of :c:type:`PyLongObject`, first call its :meth:`__int__`
+   method (if present) to convert it to a :c:type:`PyLongObject`.
+
+   If the value of *obj* is out of range for an :c:type:`unsigned long long`,
+   return the reduction of that value modulo :const:`PY_ULLONG_MAX + 1`.
 
 
 .. c:function:: double PyLong_AsDouble(PyObject *pylong)
 
-   Return a C :c:type:`double` representation of the contents of *pylong*.  If
-   *pylong* cannot be approximately represented as a :c:type:`double`, an
-   :exc:`OverflowError` exception is raised and ``-1.0`` will be returned.
+   Return a C :c:type:`double` representation of *pylong*.  *pylong* must be
+   an instance of :c:type:`PyLongObject`.
+
+   Raise :exc:`OverflowError` if the value of *pylong* is out of range for a
+   :c:type:`double`.
 
 
 .. c:function:: void* PyLong_AsVoidPtr(PyObject *pylong)

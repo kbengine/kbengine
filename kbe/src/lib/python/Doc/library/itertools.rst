@@ -363,7 +363,8 @@ loops that truncate the stream.
                   self.currkey = self.keyfunc(self.currvalue)
 
 
-.. function:: islice(iterable, [start,] stop [, step])
+.. function:: islice(iterable, stop)
+              islice(iterable, start, stop[, step])
 
    Make an iterator that returns selected elements from the iterable. If *start* is
    non-zero, then elements from the iterable are skipped until start is reached.
@@ -419,7 +420,7 @@ loops that truncate the stream.
             if r > n:
                 return
             indices = list(range(n))
-            cycles = range(n, n-r, -1)
+            cycles = list(range(n, n-r, -1))
             yield tuple(pool[i] for i in indices[:r])
             while n:
                 for i in reversed(range(r)):
@@ -496,6 +497,11 @@ loops that truncate the stream.
               for i in range(times):
                   yield object
 
+   A common use for *repeat* is to supply a stream of constant values to *map*
+   or *zip*::
+
+      >>> list(map(pow, range(10), repeat(2)))
+      [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
 
 .. function:: starmap(function, iterable)
 
@@ -557,16 +563,25 @@ loops that truncate the stream.
    iterables are of uneven length, missing values are filled-in with *fillvalue*.
    Iteration continues until the longest iterable is exhausted.  Equivalent to::
 
-      def zip_longest(*args, fillvalue=None):
+      class ZipExhausted(Exception):
+          pass
+
+      def zip_longest(*args, **kwds):
           # zip_longest('ABCD', 'xy', fillvalue='-') --> Ax By C- D-
-          def sentinel(counter = ([fillvalue]*(len(args)-1)).pop):
-              yield counter()         # yields the fillvalue, or raises IndexError
+          fillvalue = kwds.get('fillvalue')
+          counter = len(args) - 1
+          def sentinel():
+              nonlocal counter
+              if not counter:
+                  raise ZipExhausted
+              counter -= 1
+              yield fillvalue
           fillers = repeat(fillvalue)
-          iters = [chain(it, sentinel(), fillers) for it in args]
+          iterators = [chain(it, sentinel(), fillers) for it in args]
           try:
-              for tup in zip(*iters):
-                  yield tup
-          except IndexError:
+              while iterators:
+                  yield tuple(map(next, iterators))
+          except ZipExhausted:
               pass
 
    If one of the iterables is potentially infinite, then the :func:`zip_longest`

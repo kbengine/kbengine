@@ -1,3 +1,5 @@
+:keepdoctest:
+
 :mod:`doctest` --- Test interactive Python examples
 ===================================================
 
@@ -338,7 +340,7 @@ The fine print:
      Backslashes in a raw docstring: m\n
 
   Otherwise, the backslash will be interpreted as part of the string. For example,
-  the "\\" above would be interpreted as a newline character.  Alternatively, you
+  the ``\n`` above would be interpreted as a newline character.  Alternatively, you
   can double each backslash in the doctest version (and not use a raw string)::
 
      >>> def f(x):
@@ -652,7 +654,7 @@ example.  Use ``+`` to enable the named behavior, or ``-`` to disable it.
 
 For example, this test passes::
 
-   >>> print(list(range(20))) #doctest: +NORMALIZE_WHITESPACE
+   >>> print(list(range(20))) # doctest: +NORMALIZE_WHITESPACE
    [0,   1,  2,  3,  4,  5,  6,  7,  8,  9,
    10,  11, 12, 13, 14, 15, 16, 17, 18, 19]
 
@@ -664,7 +666,8 @@ so::
    >>> print(list(range(20))) # doctest: +ELLIPSIS
    [0, 1, ..., 18, 19]
 
-Multiple directives can be used on a single physical line, separated by commas::
+Multiple directives can be used on a single physical line, separated by
+commas::
 
    >>> print(list(range(20))) # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
    [0,    1, ...,   18,    19]
@@ -1023,6 +1026,16 @@ from text files and modules with doctests:
    function :func:`DocFileSuite` above.
 
    This function uses the same search technique as :func:`testmod`.
+
+   .. note::
+      Unlike :func:`testmod` and :class:`DocTestFinder`, this function raises
+      a :exc:`ValueError` if *module* contains no docstrings.  You can prevent
+      this error by passing a :class:`DocTestFinder` instance as the
+      *test_finder* argument with its *exclude_empty* keyword argument set
+      to ``False``::
+
+         >>> finder = doctest.DocTestFinder(exclude_empty=False)
+         >>> suite = doctest.DocTestSuite(test_finder=finder)
 
 
 Under the covers, :func:`DocTestSuite` creates a :class:`unittest.TestSuite` out

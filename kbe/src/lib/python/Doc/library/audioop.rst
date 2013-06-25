@@ -7,7 +7,7 @@
 
 The :mod:`audioop` module contains some useful operations on sound fragments.
 It operates on sound fragments consisting of signed integer samples 8, 16 or 32
-bits wide, stored in Python strings.  All scalar items are integers, unless
+bits wide, stored in bytes objects.  All scalar items are integers, unless
 specified otherwise.
 
 .. index::
@@ -36,7 +36,7 @@ The module defines the following variables and functions:
 
    Return a fragment which is the addition of the two samples passed as parameters.
    *width* is the sample width in bytes, either ``1``, ``2`` or ``4``.  Both
-   fragments should have the same length.
+   fragments should have the same length.  Samples are truncated in case of overflow.
 
 
 .. function:: adpcm2lin(adpcmfragment, width, state)
@@ -67,7 +67,7 @@ The module defines the following variables and functions:
 .. function:: bias(fragment, width, bias)
 
    Return a fragment that is the original fragment with a bias added to each
-   sample.
+   sample.  Samples wrap around in case of overflow.
 
 
 .. function:: cross(fragment, width)
@@ -126,7 +126,7 @@ The module defines the following variables and functions:
 .. function:: lin2alaw(fragment, width)
 
    Convert samples in the audio fragment to a-LAW encoding and return this as a
-   Python string.  a-LAW is an audio encoding format whereby you get a dynamic
+   bytes object.  a-LAW is an audio encoding format whereby you get a dynamic
    range of about 13 bits using only 8 bit samples.  It is used by the Sun audio
    hardware, among others.
 
@@ -151,15 +151,9 @@ The module defines the following variables and functions:
 .. function:: lin2ulaw(fragment, width)
 
    Convert samples in the audio fragment to u-LAW encoding and return this as a
-   Python string.  u-LAW is an audio encoding format whereby you get a dynamic
+   bytes object.  u-LAW is an audio encoding format whereby you get a dynamic
    range of about 14 bits using only 8 bit samples.  It is used by the Sun audio
    hardware, among others.
-
-
-.. function:: minmax(fragment, width)
-
-   Return a tuple consisting of the minimum and maximum values of all samples in
-   the sound fragment.
 
 
 .. function:: max(fragment, width)
@@ -172,10 +166,16 @@ The module defines the following variables and functions:
    Return the maximum peak-peak value in the sound fragment.
 
 
+.. function:: minmax(fragment, width)
+
+   Return a tuple consisting of the minimum and maximum values of all samples in
+   the sound fragment.
+
+
 .. function:: mul(fragment, width, factor)
 
    Return a fragment that has all samples in the original fragment multiplied by
-   the floating-point value *factor*.  Overflow is silently ignored.
+   the floating-point value *factor*.  Samples are truncated in case of overflow.
 
 
 .. function:: ratecv(fragment, width, nchannels, inrate, outrate, state[, weightA[, weightB]])

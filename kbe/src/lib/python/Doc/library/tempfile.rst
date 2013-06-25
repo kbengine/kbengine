@@ -76,15 +76,18 @@ The module defines the following user-callable items:
    data is spooled in memory until the file size exceeds *max_size*, or
    until the file's :func:`fileno` method is called, at which point the
    contents are written to disk and operation proceeds as with
-   :func:`TemporaryFile`.
+   :func:`TemporaryFile`.  Also, it's ``truncate`` method does not
+   accept a ``size`` argument.
 
    The resulting file has one additional method, :func:`rollover`, which
    causes the file to roll over to an on-disk file regardless of its size.
 
    The returned object is a file-like object whose :attr:`_file` attribute
-   is either a :class:`StringIO` object or a true file object, depending on
-   whether :func:`rollover` has been called. This file-like object can be
-   used in a :keyword:`with` statement, just like a normal file.
+   is either a :class:`BytesIO` or :class:`StringIO` object (depending on
+   whether binary or text *mode* was specified) or a true file
+   object, depending on whether :func:`rollover` has been called.  This
+   file-like object can be used in a :keyword:`with` statement, just like
+   a normal file.
 
 
 .. function:: TemporaryDirectory(suffix='', prefix='tmp', dir=None)
@@ -176,11 +179,10 @@ The module defines the following user-callable items:
       ``delete=False`` parameter::
 
          >>> f = NamedTemporaryFile(delete=False)
-         >>> f
-         <open file '<fdopen>', mode 'w+b' at 0x384698>
          >>> f.name
-         '/var/folders/5q/5qTPn6xq2RaWqk+1Ytw3-U+++TI/-Tmp-/tmpG7V1Y0'
-         >>> f.write("Hello World!\n")
+         '/tmp/tmptjujjt'
+         >>> f.write(b"Hello World!\n")
+         13
          >>> f.close()
          >>> os.unlink(f.name)
          >>> os.path.exists(f.name)

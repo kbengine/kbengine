@@ -25,7 +25,7 @@ Using the subprocess module
 ===========================
 This module defines one class called Popen:
 
-class Popen(args, bufsize=0, executable=None,
+class Popen(args, bufsize=-1, executable=None,
             stdin=None, stdout=None, stderr=None,
             preexec_fn=None, close_fds=True, shell=False,
             cwd=None, env=None, universal_newlines=False,
@@ -56,12 +56,12 @@ not all MS Windows applications interpret the command line the same
 way: The list2cmdline is designed for applications using the same
 rules as the MS C runtime.
 
-bufsize, if given, has the same meaning as the corresponding argument
-to the built-in open() function: 0 means unbuffered, 1 means line
-buffered, any other positive value means use a buffer of
-(approximately) that size.  A negative bufsize means to use the system
-default, which usually means fully buffered.  The default value for
-bufsize is 0 (unbuffered).
+bufsize will be supplied as the corresponding argument to the io.open()
+function when creating the stdin/stdout/stderr pipe file objects:
+0 means unbuffered (read & write are one system call and can return short),
+1 means line buffered, any other positive value means use a buffer of
+approximately that size.  A negative bufsize, the default, means the system
+default of io.DEFAULT_BUFFER_SIZE will be used.
 
 stdin, stdout and stderr specify the executed programs' standard
 input, standard output and standard error file handles, respectively.
@@ -108,10 +108,9 @@ If universal_newlines is true, the file objects stdout and stderr are
 opened as a text files, but lines may be terminated by any of '\n',
 the Unix end-of-line convention, '\r', the old Macintosh convention or
 '\r\n', the Windows convention.  All of these external representations
-are seen as '\n' by the Python program.  Note: This feature is only
-available if Python is built with universal newline support (the
-default).  Also, the newlines attribute of the file objects stdout,
-stdin and stderr are not updated by the communicate() method.
+are seen as '\n' by the Python program.  Also, the newlines attribute
+of the file objects stdout, stdin and stderr are not updated by the
+communicate() method.
 
 The startupinfo and creationflags, if given, will be passed to the
 underlying CreateProcess() function.  They can specify things such as
@@ -429,12 +428,16 @@ try:
 except:
     MAXFD = 256
 
+# This lists holds Popen instances for which the underlying process had not
+# exited at the time its __del__ method got called: those processes are wait()ed
+# for synchronously from _cleanup() when a new Popen object is created, to avoid
+# zombie processes.
 _active = []
 
 def _cleanup():
     for inst in _active[:]:
         res = inst._internal_poll(_deadstate=sys.maxsize)
-        if res is not None and res >= 0:
+        if res is not None:
             try:
                 _active.remove(inst)
             except ValueError:
@@ -635,7 +638,7 @@ _PLATFORM_DEFAULT_CLOSE_FDS = object()
 
 
 class Popen(object):
-    def __init__(self, args, bufsize=0, executable=None,
+    def __init__(self, args, bufsize=-1, executable=None,
                  stdin=None, stdout=None, stderr=None,
                  preexec_fn=None, close_fds=_PLATFORM_DEFAULT_CLOSE_FDS,
                  shell=False, cwd=None, env=None, universal_newlines=False,
@@ -647,7 +650,7 @@ class Popen(object):
 
         self._child_created = False
         if bufsize is None:
-            bufsize = 0  # Restore default
+            bufsize = -1  # Restore default
         if not isinstance(bufsize, int):
             raise TypeError("bufsize must be an integer")
 
@@ -740,19 +743,33 @@ class Popen(object):
                                 errread, errwrite,
                                 restore_signals, start_new_session)
         except:
-            # Cleanup if the child failed starting
-            for f in filter(None, [self.stdin, self.stdout, self.stderr]):
+            # Cleanup if the child failed starting.
+            for f in filter(None, (self.stdin, self.stdout, self.stderr)):
                 try:
                     f.close()
                 except EnvironmentError:
-                    # Ignore EBADF or other errors
+                    pass  # Ignore EBADF or other errors.
+
+            # Make sure the child pipes are closed as well.
+            to_close = []
+            if stdin == PIPE:
+                to_close.append(p2cread)
+            if stdout == PIPE:
+                to_close.append(c2pwrite)
+            if stderr == PIPE:
+                to_close.append(errwrite)
+            for fd in to_close:
+                try:
+                    os.close(fd)
+                except EnvironmentError:
                     pass
+
             raise
 
 
     def _translate_newlines(self, data, encoding):
-        data = data.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
-        return data.decode(encoding)
+        data = data.decode(encoding)
+        return data.replace("\r\n", "\n").replace("\r", "\n")
 
     def __enter__(self):
         return self
@@ -1071,7 +1088,17 @@ class Popen(object):
         def terminate(self):
             """Terminates the process
             """
-            _subprocess.TerminateProcess(self._handle, 1)
+            try:
+                _subprocess.TerminateProcess(self._handle, 1)
+            except OSError as e:
+                # ERROR_ACCESS_DENIED (winerror 5) is received when the
+                # process already died.
+                if e.winerror != 5:
+                    raise
+                rc = _subprocess.GetExitCodeProcess(self._handle)
+                if rc == _subprocess.STILL_ACTIVE:
+                    raise
+                self.returncode = rc
 
         kill = terminate
 
@@ -1155,6 +1182,7 @@ class Popen(object):
 
             if executable is None:
                 executable = args[0]
+            orig_executable = executable
 
             # For transferring possible exec failure from child to parent.
             # Data format: "exception name:hex errno:description"
@@ -1191,6 +1219,7 @@ class Popen(object):
                                 errread, errwrite,
                                 errpipe_read, errpipe_write,
                                 restore_signals, start_new_session, preexec_fn)
+                        self._child_created = True
                     else:
                         # Pure Python implementation: It is not thread safe.
                         # This implementation may deadlock in the child if your
@@ -1209,6 +1238,7 @@ class Popen(object):
                         self._child_created = True
                         if self.pid == 0:
                             # Child
+                            reached_preexec = False
                             try:
                                 # Close parent's pipe ends
                                 if p2cwrite != -1:
@@ -1273,6 +1303,7 @@ class Popen(object):
                                 if start_new_session and hasattr(os, 'setsid'):
                                     os.setsid()
 
+                                reached_preexec = True
                                 if preexec_fn:
                                     preexec_fn()
 
@@ -1288,6 +1319,8 @@ class Popen(object):
                                         errno_num = exc_value.errno
                                     else:
                                         errno_num = 0
+                                    if not reached_preexec:
+                                        exc_value = "noexec"
                                     message = '%s:%x:%s' % (exc_type.__name__,
                                                             errno_num, exc_value)
                                     message = message.encode(errors="surrogatepass")
@@ -1317,42 +1350,47 @@ class Popen(object):
 
                 # Wait for exec to fail or succeed; possibly raising an
                 # exception (limited in size)
-                data = bytearray()
+                errpipe_data = bytearray()
                 while True:
                     part = _eintr_retry_call(os.read, errpipe_read, 50000)
-                    data += part
-                    if not part or len(data) > 50000:
+                    errpipe_data += part
+                    if not part or len(errpipe_data) > 50000:
                         break
             finally:
                 # be sure the FD is closed no matter what
                 os.close(errpipe_read)
 
-            if data:
+            if errpipe_data:
                 try:
                     _eintr_retry_call(os.waitpid, self.pid, 0)
                 except OSError as e:
                     if e.errno != errno.ECHILD:
                         raise
                 try:
-                    exception_name, hex_errno, err_msg = data.split(b':', 2)
+                    exception_name, hex_errno, err_msg = (
+                            errpipe_data.split(b':', 2))
                 except ValueError:
-                    print('Bad exception data:', repr(data))
                     exception_name = b'RuntimeError'
                     hex_errno = b'0'
-                    err_msg = b'Unknown'
+                    err_msg = (b'Bad exception data from child: ' +
+                               repr(errpipe_data))
                 child_exception_type = getattr(
                         builtins, exception_name.decode('ascii'),
                         RuntimeError)
-                for fd in (p2cwrite, c2pread, errread):
-                    if fd != -1:
-                        os.close(fd)
                 err_msg = err_msg.decode(errors="surrogatepass")
                 if issubclass(child_exception_type, OSError) and hex_errno:
                     errno_num = int(hex_errno, 16)
+                    child_exec_never_called = (err_msg == "noexec")
+                    if child_exec_never_called:
+                        err_msg = ""
                     if errno_num != 0:
                         err_msg = os.strerror(errno_num)
                         if errno_num == errno.ENOENT:
-                            err_msg += ': ' + repr(args[0])
+                            if child_exec_never_called:
+                                # The error must be from chdir(cwd).
+                                err_msg += ': ' + repr(cwd)
+                            else:
+                                err_msg += ': ' + repr(orig_executable)
                     raise child_exception_type(errno_num, err_msg)
                 raise child_exception_type(err_msg)
 
@@ -1372,7 +1410,7 @@ class Popen(object):
 
 
         def _internal_poll(self, _deadstate=None, _waitpid=os.waitpid,
-                _WNOHANG=os.WNOHANG, _os_error=os.error):
+                _WNOHANG=os.WNOHANG, _os_error=os.error, _ECHILD=errno.ECHILD):
             """Check if child process has terminated.  Returns returncode
             attribute.
 
@@ -1385,16 +1423,23 @@ class Popen(object):
                     pid, sts = _waitpid(self.pid, _WNOHANG)
                     if pid == self.pid:
                         self._handle_exitstatus(sts)
-                except _os_error:
+                except _os_error as e:
                     if _deadstate is not None:
                         self.returncode = _deadstate
+                    elif e.errno == _ECHILD:
+                        # This happens if SIGCLD is set to be ignored or
+                        # waiting for child processes has otherwise been
+                        # disabled for our process.  This child is dead, we
+                        # can't get the status.
+                        # http://bugs.python.org/issue15756
+                        self.returncode = 0
             return self.returncode
 
 
         def wait(self):
             """Wait for child process to terminate.  Returns returncode
             attribute."""
-            if self.returncode is None:
+            while self.returncode is None:
                 try:
                     pid, sts = _eintr_retry_call(os.waitpid, self.pid, 0)
                 except OSError as e:
@@ -1403,8 +1448,12 @@ class Popen(object):
                     # This happens if SIGCLD is set to be ignored or waiting
                     # for child processes has otherwise been disabled for our
                     # process.  This child is dead, we can't get the status.
+                    pid = self.pid
                     sts = 0
-                self._handle_exitstatus(sts)
+                # Check the pid and loop as waitpid has been known to return
+                # 0 even without WNOHANG in odd situations.  issue14396.
+                if pid == self.pid:
+                    self._handle_exitstatus(sts)
             return self.returncode
 
 
@@ -1469,6 +1518,8 @@ class Popen(object):
                 fd2output[self.stderr.fileno()] = stderr = []
 
             input_offset = 0
+            if self.universal_newlines and isinstance(input, str):
+                input = input.encode(self.stdin.encoding)
             while fd2file:
                 try:
                     ready = poller.poll()
@@ -1521,6 +1572,8 @@ class Popen(object):
                 stderr = []
 
             input_offset = 0
+            if self.universal_newlines and isinstance(input, str):
+                input = input.encode(self.stdin.encoding)
             while read_set or write_set:
                 try:
                     rlist, wlist, xlist = select.select(read_set, write_set, [])

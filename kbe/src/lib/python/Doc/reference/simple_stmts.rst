@@ -372,7 +372,7 @@ The :keyword:`del` statement
    del_stmt: "del" `target_list`
 
 Deletion is recursively defined very similar to the way assignment is defined.
-Rather that spelling it out in full details, here are some hints.
+Rather than spelling it out in full details, here are some hints.
 
 Deletion of a target list recursively deletes each target, from left to right.
 
@@ -393,7 +393,6 @@ assignment of an empty slice of the right type (but even this is determined by
 the sliced object).
 
 .. versionchanged:: 3.2
-
    Previously it was illegal to delete a name from the local namespace if it
    occurs as a free variable in a nested block.
 
@@ -495,8 +494,8 @@ The :keyword:`raise` statement
 
 If no expressions are present, :keyword:`raise` re-raises the last exception
 that was active in the current scope.  If no exception is active in the current
-scope, a :exc:`TypeError` exception is raised indicating that this is an error
-(if running under IDLE, a :exc:`queue.Empty` exception is raised instead).
+scope, a :exc:`RuntimeError` exception is raised indicating that this is an
+error.
 
 Otherwise, :keyword:`raise` evaluates the first expression as the exception
 object.  It must be either a subclass or an instance of :class:`BaseException`.

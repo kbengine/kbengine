@@ -3,8 +3,6 @@
 #include "Python.h"
 #include "_time.h"
 
-#define TZNAME_ENCODING "utf-8"
-
 #include <ctype.h>
 
 #ifdef HAVE_SYS_TYPES_H
@@ -48,8 +46,6 @@ static long main_thread;
 #if defined(MS_WINDOWS) && !defined(__BORLANDC__)
 /* Win32 has better clock replacement; we have our own version below. */
 #undef HAVE_CLOCK
-#undef TZNAME_ENCODING
-#define TZNAME_ENCODING "mbcs"
 #endif /* MS_WINDOWS && !defined(__BORLANDC__) */
 
 #if defined(PYOS_OS2)
@@ -67,7 +63,7 @@ static int floatsleep(double);
 static double floattime(void);
 
 /* For Y2K check */
-static PyObject *moddict;
+static PyObject *moddict = NULL;
 
 static PyObject *
 time_time(PyObject *self, PyObject *unused)
@@ -431,6 +427,11 @@ checktm(struct tm* buf)
     return 1;
 }
 
+#ifdef MS_WINDOWS
+   /* wcsftime() doesn't format correctly time zones, see issue #10653 */
+#  undef HAVE_WCSFTIME
+#endif
+
 #ifdef HAVE_STRFTIME
 #ifdef HAVE_WCSFTIME
 #define time_char wchar_t
@@ -497,25 +498,26 @@ time_strftime(PyObject *self, PyObject *args)
     fmt = format;
 #else
     /* Convert the unicode string to an ascii one */
-    format = PyUnicode_AsEncodedString(format_arg, TZNAME_ENCODING, NULL);
+    format = PyUnicode_EncodeFSDefault(format_arg);
     if (format == NULL)
         return NULL;
     fmt = PyBytes_AS_STRING(format);
 #endif
 
-#if defined(MS_WINDOWS) && defined(HAVE_WCSFTIME)
+#if defined(MS_WINDOWS) && !defined(HAVE_WCSFTIME)
     /* check that the format string contains only valid directives */
-    for(outbuf = wcschr(fmt, L'%');
+    for(outbuf = strchr(fmt, '%');
         outbuf != NULL;
-        outbuf = wcschr(outbuf+2, L'%'))
+        outbuf = strchr(outbuf+2, '%'))
     {
         if (outbuf[1]=='#')
             ++outbuf; /* not documented by python, */
         if (outbuf[1]=='\0' ||
-            !wcschr(L"aAbBcdHIjmMpSUwWxXyYzZ%", outbuf[1]))
+            !strchr("aAbBcdHIjmMpSUwWxXyYzZ%", outbuf[1]))
         {
             PyErr_SetString(PyExc_ValueError, "Invalid format string");
-            return 0;
+            Py_DECREF(format);
+            return NULL;
         }
     }
 #endif
@@ -526,12 +528,18 @@ time_strftime(PyObject *self, PyObject *args)
      * will be ahead of time...
      */
     for (i = 1024; ; i += i) {
+#if defined _MSC_VER && _MSC_VER >= 1400 && defined(__STDC_SECURE_LIB__)
+        int err;
+#endif
         outbuf = (time_char *)PyMem_Malloc(i*sizeof(time_char));
         if (outbuf == NULL) {
             PyErr_NoMemory();
             break;
         }
         buflen = format_time(outbuf, i, fmt, &buf);
+#if defined _MSC_VER && _MSC_VER >= 1400 && defined(__STDC_SECURE_LIB__)
+        err = errno;
+#endif
         if (buflen > 0 || i >= 256 * fmtlen) {
             /* If the buffer is 256 times as long as the format,
                it's probably not failing for lack of room!
@@ -541,8 +549,7 @@ time_strftime(PyObject *self, PyObject *args)
 #ifdef HAVE_WCSFTIME
             ret = PyUnicode_FromWideChar(outbuf, buflen);
 #else
-            ret = PyUnicode_Decode(outbuf, buflen,
-                                   TZNAME_ENCODING, NULL);
+            ret = PyUnicode_DecodeFSDefaultAndSize(outbuf, buflen);
 #endif
             PyMem_Free(outbuf);
             break;
@@ -550,7 +557,7 @@ time_strftime(PyObject *self, PyObject *args)
         PyMem_Free(outbuf);
 #if defined _MSC_VER && _MSC_VER >= 1400 && defined(__STDC_SECURE_LIB__)
         /* VisualStudio .NET 2005 does this properly */
-        if (buflen == 0 && errno == EINVAL) {
+        if (buflen == 0 && err == EINVAL) {
             PyErr_SetString(PyExc_ValueError, "Invalid format string");
             break;
         }
@@ -784,8 +791,8 @@ PyInit_timezone(PyObject *m) {
 #endif /* PYOS_OS2 */
 #endif
     PyModule_AddIntConstant(m, "daylight", daylight);
-    otz0 = PyUnicode_Decode(tzname[0], strlen(tzname[0]), TZNAME_ENCODING, NULL);
-    otz1 = PyUnicode_Decode(tzname[1], strlen(tzname[1]), TZNAME_ENCODING, NULL);
+    otz0 = PyUnicode_DecodeFSDefaultAndSize(tzname[0], strlen(tzname[0]));
+    otz1 = PyUnicode_DecodeFSDefaultAndSize(tzname[1], strlen(tzname[1]));
     PyModule_AddObject(m, "tzname", Py_BuildValue("(NN)", otz0, otz1));
 #else /* !HAVE_TZNAME || __GLIBC__ || __CYGWIN__*/
 #ifdef HAVE_STRUCT_TM_TM_ZONE
@@ -934,6 +941,11 @@ PyInit_time(void)
     /* Accept 2-digit dates unless PYTHONY2K is set and non-empty */
     p = Py_GETENV("PYTHONY2K");
     PyModule_AddIntConstant(m, "accept2dyear", (long) (!p || !*p));
+    /* If an embedded interpreter is shutdown and reinitialized the old
+       moddict was not decrefed on shutdown and the next import of this
+       module leads to a leak.  Conditionally decref here to prevent that.
+    */
+    Py_XDECREF(moddict);
     /* Squirrel away the module's dictionary for the y2k check */
     moddict = PyModule_GetDict(m);
     Py_INCREF(moddict);
