@@ -196,16 +196,18 @@ def nti(s):
     """
     # There are two possible encodings for a number field, see
     # itn() below.
-    if s[0] != chr(0o200):
+    if s[0] in (0o200, 0o377):
+        n = 0
+        for i in range(len(s) - 1):
+            n <<= 8
+            n += s[i + 1]
+        if s[0] == 0o377:
+            n = -(256 ** (len(s) - 1) - n)
+    else:
         try:
             n = int(nts(s, "ascii", "strict") or "0", 8)
         except ValueError:
             raise InvalidHeaderError("invalid header")
-    else:
-        n = 0
-        for i in range(len(s) - 1):
-            n <<= 8
-            n += ord(s[i + 1])
     return n
 
 def itn(n, digits=8, format=DEFAULT_FORMAT):
@@ -214,25 +216,26 @@ def itn(n, digits=8, format=DEFAULT_FORMAT):
     # POSIX 1003.1-1988 requires numbers to be encoded as a string of
     # octal digits followed by a null-byte, this allows values up to
     # (8**(digits-1))-1. GNU tar allows storing numbers greater than
-    # that if necessary. A leading 0o200 byte indicates this particular
-    # encoding, the following digits-1 bytes are a big-endian
-    # representation. This allows values up to (256**(digits-1))-1.
+    # that if necessary. A leading 0o200 or 0o377 byte indicate this
+    # particular encoding, the following digits-1 bytes are a big-endian
+    # base-256 representation. This allows values up to (256**(digits-1))-1.
+    # A 0o200 byte indicates a positive number, a 0o377 byte a negative
+    # number.
     if 0 <= n < 8 ** (digits - 1):
         s = bytes("%0*o" % (digits - 1, n), "ascii") + NUL
-    else:
-        if format != GNU_FORMAT or n >= 256 ** (digits - 1):
-            raise ValueError("overflow in number field")
+    elif format == GNU_FORMAT and -256 ** (digits - 1) <= n < 256 ** (digits - 1):
+        if n >= 0:
+            s = bytearray([0o200])
+        else:
+            s = bytearray([0o377])
+            n = 256 ** digits + n
 
-        if n < 0:
-            # XXX We mimic GNU tar's behaviour with negative numbers,
-            # this could raise OverflowError.
-            n = struct.unpack("L", struct.pack("l", n))[0]
-
-        s = bytearray()
         for i in range(digits - 1):
-            s.insert(0, n & 0o377)
+            s.insert(1, n & 0o377)
             n >>= 8
-        s.insert(0, 0o200)
+    else:
+        raise ValueError("overflow in number field")
+
     return s
 
 def calc_chksums(buf):
@@ -624,7 +627,7 @@ class _StreamProxy(object):
     def getcomptype(self):
         if self.buf.startswith(b"\037\213\010"):
             return "gz"
-        if self.buf.startswith(b"BZh91"):
+        if self.buf[0:3] == b"BZh" and self.buf[4:10] == b"1AY&SY":
             return "bz2"
         return "tar"
 
@@ -2074,9 +2077,8 @@ class TarFile(object):
 
         # Append the tar header and data to the archive.
         if tarinfo.isreg():
-            f = bltn_open(name, "rb")
-            self.addfile(tarinfo, f)
-            f.close()
+            with bltn_open(name, "rb") as f:
+                self.addfile(tarinfo, f)
 
         elif tarinfo.isdir():
             self.addfile(tarinfo)
@@ -2289,16 +2291,15 @@ class TarFile(object):
         """
         source = self.fileobj
         source.seek(tarinfo.offset_data)
-        target = bltn_open(targetpath, "wb")
-        if tarinfo.sparse is not None:
-            for offset, size in tarinfo.sparse:
-                target.seek(offset)
-                copyfileobj(source, target, size)
-        else:
-            copyfileobj(source, target, tarinfo.size)
-        target.seek(tarinfo.size)
-        target.truncate()
-        target.close()
+        with bltn_open(targetpath, "wb") as target:
+            if tarinfo.sparse is not None:
+                for offset, size in tarinfo.sparse:
+                    target.seek(offset)
+                    copyfileobj(source, target, size)
+            else:
+                copyfileobj(source, target, tarinfo.size)
+            target.seek(tarinfo.size)
+            target.truncate()
 
     def makeunknown(self, tarinfo, targetpath):
         """Make a file from a TarInfo object with an unknown type
@@ -2348,12 +2349,6 @@ class TarFile(object):
                     self._extract_member(self._find_link_target(tarinfo),
                                          targetpath)
         except symlink_exception:
-            if tarinfo.issym():
-                linkpath = os.path.join(os.path.dirname(tarinfo.name),
-                                        tarinfo.linkname)
-            else:
-                linkpath = tarinfo.linkname
-        else:
             try:
                 self._extract_member(self._find_link_target(tarinfo),
                                      targetpath)
@@ -2368,17 +2363,11 @@ class TarFile(object):
             try:
                 g = grp.getgrnam(tarinfo.gname)[2]
             except KeyError:
-                try:
-                    g = grp.getgrgid(tarinfo.gid)[2]
-                except KeyError:
-                    g = os.getgid()
+                g = tarinfo.gid
             try:
                 u = pwd.getpwnam(tarinfo.uname)[2]
             except KeyError:
-                try:
-                    u = pwd.getpwuid(tarinfo.uid)[2]
-                except KeyError:
-                    u = os.getuid()
+                u = tarinfo.uid
             try:
                 if tarinfo.issym() and hasattr(os, "lchown"):
                     os.lchown(targetpath, u, g)
@@ -2505,7 +2494,7 @@ class TarFile(object):
         """
         if tarinfo.issym():
             # Always search the entire archive.
-            linkname = os.path.dirname(tarinfo.name) + "/" + tarinfo.linkname
+            linkname = "/".join(filter(None, (os.path.dirname(tarinfo.name), tarinfo.linkname)))
             limit = None
         else:
             # Search the archive before the link, because a hard link is

@@ -383,7 +383,8 @@ From the Iterators list, about the types of these things.
 <class 'generator'>
 >>> [s for s in dir(i) if not s.startswith('_')]
 ['close', 'gi_code', 'gi_frame', 'gi_running', 'send', 'throw']
->>> print(i.__next__.__doc__)
+>>> from test.support import HAVE_DOCSTRINGS
+>>> print(i.__next__.__doc__ if HAVE_DOCSTRINGS else 'x.__next__() <==> next(x)')
 x.__next__() <==> next(x)
 >>> iter(i) is i
 True
@@ -1672,6 +1673,32 @@ ValueError: 6
 Traceback (most recent call last):
   ...
 ValueError: 7
+
+Plain "raise" inside a generator should preserve the traceback (#13188).
+The traceback should have 3 levels:
+- g.throw()
+- f()
+- 1/0
+
+>>> def f():
+...     try:
+...         yield
+...     except:
+...         raise
+>>> g = f()
+>>> try:
+...     1/0
+... except ZeroDivisionError as v:
+...     try:
+...         g.throw(v)
+...     except Exception as w:
+...         tb = w.__traceback__
+>>> levels = 0
+>>> while tb:
+...     levels += 1
+...     tb = tb.tb_next
+>>> levels
+3
 
 Now let's try closing a generator:
 

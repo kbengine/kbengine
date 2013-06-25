@@ -13,6 +13,14 @@ class DumpTests(unittest.TestCase):
 
     def CheckTableDump(self):
         expected_sqls = [
+                """CREATE TABLE "index"("index" blob);"""
+                ,
+                """INSERT INTO "index" VALUES(X'01');"""
+                ,
+                """CREATE TABLE "quoted""table"("quoted""field" text);"""
+                ,
+                """INSERT INTO "quoted""table" VALUES('quoted''value');"""
+                ,
                 "CREATE TABLE t1(id integer primary key, s1 text, " \
                 "t1_i1 integer not null, i2 integer, unique (s1), " \
                 "constraint t1_idx1 unique (i2));"
@@ -40,6 +48,27 @@ class DumpTests(unittest.TestCase):
             ['COMMIT;']
         [self.assertEqual(expected_sqls[i], actual_sqls[i])
             for i in range(len(expected_sqls))]
+
+    def CheckUnorderableRow(self):
+        # iterdump() should be able to cope with unorderable row types (issue #15545)
+        class UnorderableRow:
+            def __init__(self, cursor, row):
+                self.row = row
+            def __getitem__(self, index):
+                return self.row[index]
+        self.cx.row_factory = UnorderableRow
+        CREATE_ALPHA = """CREATE TABLE "alpha" ("one");"""
+        CREATE_BETA = """CREATE TABLE "beta" ("two");"""
+        expected = [
+            "BEGIN TRANSACTION;",
+            CREATE_ALPHA,
+            CREATE_BETA,
+            "COMMIT;"
+            ]
+        self.cu.execute(CREATE_BETA)
+        self.cu.execute(CREATE_ALPHA)
+        got = list(self.cx.iterdump())
+        self.assertEqual(expected, got)
 
 def suite():
     return unittest.TestSuite(unittest.makeSuite(DumpTests, "Check"))

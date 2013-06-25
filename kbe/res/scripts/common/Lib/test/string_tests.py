@@ -5,6 +5,7 @@ Common tests shared by test_str, test_unicode, test_userstring and test_string.
 import unittest, string, sys, struct
 from test import support
 from collections import UserList
+import _testcapi
 
 class Sequence:
     def __init__(self, seq='wxyz'): self.seq = seq
@@ -641,6 +642,23 @@ class CommonTest(BaseTest):
         self.checkequal('Aaaa', 'aaaa', 'capitalize')
         self.checkequal('Aaaa', 'AaAa', 'capitalize')
 
+        # check that titlecased chars are lowered correctly
+        # \u1ffc is the titlecased char
+        self.checkequal('\u1ffc\u1ff3\u1ff3\u1ff3',
+                        '\u1ff3\u1ff3\u1ffc\u1ffc', 'capitalize')
+        # check with cased non-letter chars
+        self.checkequal('\u24c5\u24e8\u24e3\u24d7\u24de\u24dd',
+                        '\u24c5\u24ce\u24c9\u24bd\u24c4\u24c3', 'capitalize')
+        self.checkequal('\u24c5\u24e8\u24e3\u24d7\u24de\u24dd',
+                        '\u24df\u24e8\u24e3\u24d7\u24de\u24dd', 'capitalize')
+        self.checkequal('\u2160\u2171\u2172',
+                        '\u2160\u2161\u2162', 'capitalize')
+        self.checkequal('\u2160\u2171\u2172',
+                        '\u2170\u2171\u2172', 'capitalize')
+        # check with Ll chars with no upper - nothing changes here
+        self.checkequal('\u019b\u1d00\u1d86\u0221\u1fb7',
+                        '\u019b\u1d00\u1d86\u0221\u1fb7', 'capitalize')
+
         self.checkraises(TypeError, 'hello', 'capitalize', 42)
 
     def test_lower(self):
@@ -1124,6 +1142,19 @@ class MixinStrUnicodeUserStringTest:
         self.checkraises(TypeError, '%*s', '__mod__', ('foo', 'bar'))
         self.checkraises(TypeError, '%10.*f', '__mod__', ('foo', 42.))
         self.checkraises(ValueError, '%10', '__mod__', (42,))
+
+        self.checkraises(OverflowError, '%*s', '__mod__',
+                         (_testcapi.PY_SSIZE_T_MAX + 1, ''))
+        self.checkraises(OverflowError, '%.*f', '__mod__',
+                         (_testcapi.INT_MAX + 1, 1. / 7))
+        # Issue 15989
+        self.checkraises(OverflowError, '%*s', '__mod__',
+                         (1 << (_testcapi.PY_SSIZE_T_MAX.bit_length() + 1), ''))
+        self.checkraises(OverflowError, '%.*f', '__mod__',
+                         (_testcapi.UINT_MAX + 1, 1. / 7))
+
+        class X(object): pass
+        self.checkraises(TypeError, 'abc', '__mod__', X())
 
     def test_floatformatting(self):
         # float formatting

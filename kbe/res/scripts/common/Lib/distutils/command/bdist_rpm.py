@@ -3,7 +3,7 @@
 Implements the Distutils 'bdist_rpm' command (create RPM source and binary
 distributions)."""
 
-import sys, os
+import subprocess, sys, os
 from distutils.core import Command
 from distutils.debug import DEBUG
 from distutils.util import get_platform
@@ -190,7 +190,7 @@ class bdist_rpm(Command):
             if self.fix_python:
                 self.python = sys.executable
             else:
-                self.python = "python"
+                self.python = "python3"
         elif self.fix_python:
             raise DistutilsOptionError(
                   "--python and --fix-python are mutually exclusive options")
@@ -320,6 +320,7 @@ class bdist_rpm(Command):
             rpm_cmd.append('-bb')
         else:
             rpm_cmd.append('-ba')
+        rpm_cmd.extend(['--define', '__python %s' % self.python])
         if self.rpm3_mode:
             rpm_cmd.extend(['--define',
                              '_topdir %s' % os.path.abspath(self.rpm_base)])
@@ -365,16 +366,28 @@ class bdist_rpm(Command):
         self.spawn(rpm_cmd)
 
         if not self.dry_run:
+            if self.distribution.has_ext_modules():
+                pyversion = get_python_version()
+            else:
+                pyversion = 'any'
+
             if not self.binary_only:
                 srpm = os.path.join(rpm_dir['SRPMS'], source_rpm)
                 assert(os.path.exists(srpm))
                 self.move_file(srpm, self.dist_dir)
+                filename = os.path.join(self.dist_dir, source_rpm)
+                self.distribution.dist_files.append(
+                    ('bdist_rpm', pyversion, filename))
 
             if not self.source_only:
                 for rpm in binary_rpms:
                     rpm = os.path.join(rpm_dir['RPMS'], rpm)
                     if os.path.exists(rpm):
                         self.move_file(rpm, self.dist_dir)
+                        filename = os.path.join(self.dist_dir,
+                                                os.path.basename(rpm))
+                        self.distribution.dist_files.append(
+                            ('bdist_rpm', pyversion, filename))
 
     def _dist_path(self, path):
         return os.path.join(self.dist_dir, os.path.basename(path))
@@ -392,6 +405,21 @@ class bdist_rpm(Command):
             '',
             'Summary: ' + self.distribution.get_description(),
             ]
+
+        # Workaround for #14443 which affects some RPM based systems such as
+        # RHEL6 (and probably derivatives)
+        vendor_hook = subprocess.getoutput('rpm --eval %{__os_install_post}')
+        # Generate a potential replacement value for __os_install_post (whilst
+        # normalizing the whitespace to simplify the test for whether the
+        # invocation of brp-python-bytecompile passes in __python):
+        vendor_hook = '\n'.join(['  %s \\' % line.strip()
+                                 for line in vendor_hook.splitlines()])
+        problem = "brp-python-bytecompile \\\n"
+        fixed = "brp-python-bytecompile %{__python} \\\n"
+        fixed_hook = vendor_hook.replace(problem, fixed)
+        if fixed_hook != vendor_hook:
+            spec_file.append('# Workaround for http://bugs.python.org/issue14443')
+            spec_file.append('%define __os_install_post ' + fixed_hook + '\n')
 
         # put locale summaries into spec file
         # XXX not supported for now (hard to put a dictionary

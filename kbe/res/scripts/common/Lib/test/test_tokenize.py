@@ -552,6 +552,11 @@ Evil tabs
     DEDENT     ''            (4, 0) (4, 0)
     DEDENT     ''            (4, 0) (4, 0)
 
+Pathological whitespace (http://bugs.python.org/issue16152)
+    >>> dump_tokens("@          ")
+    ENCODING   'utf-8'       (0, 0) (0, 0)
+    OP         '@'           (1, 0) (1, 1)
+
 Non-ascii identifiers
 
     >>> dump_tokens("Örter = 'places'\\ngrün = 'green'")
@@ -673,6 +678,10 @@ class TestTokenizerAdheresToPep0263(TestCase):
     def test_utf8_coding_cookie_and_utf8_bom(self):
         f = 'tokenize_tests-utf8-coding-cookie-and-utf8-bom-sig.txt'
         self.assertTrue(self._testFile(f))
+
+    def test_bad_coding_cookie(self):
+        self.assertRaises(SyntaxError, self._testFile, 'bad_coding.py')
+        self.assertRaises(SyntaxError, self._testFile, 'bad_coding2.py')
 
 
 class Test_Tokenize(TestCase):
@@ -824,6 +833,16 @@ class TestDetectEncoding(TestCase):
                 rl = self.get_readline(lines)
                 found, consumed_lines = detect_encoding(rl)
                 self.assertEqual(found, "iso-8859-1")
+
+    def test_syntaxerror_latin1(self):
+        # Issue 14629: need to raise SyntaxError if the first
+        # line(s) have non-UTF-8 characters
+        lines = (
+            b'print("\xdf")', # Latin-1: LATIN SMALL LETTER SHARP S
+            )
+        readline = self.get_readline(lines)
+        self.assertRaises(SyntaxError, detect_encoding, readline)
+
 
     def test_utf8_normalization(self):
         # See get_normal_name() in tokenizer.c.

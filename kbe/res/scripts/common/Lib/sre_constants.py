@@ -15,9 +15,7 @@
 
 MAGIC = 20031017
 
-# max code word in this release
-
-MAXREPEAT = 65535
+from _sre import MAXREPEAT
 
 # SRE standard exception (access as sre.error)
 # should this really be here?
@@ -219,8 +217,7 @@ SRE_INFO_CHARSET = 4 # pattern starts with character from given set
 
 if __name__ == "__main__":
     def dump(f, d, prefix):
-        items = d.items()
-        items.sort(key=lambda a: a[1])
+        items = sorted(d.items(), key=lambda a: a[1])
         for k, v in items:
             f.write("#define %s_%s %s\n" % (prefix, k.upper(), v))
     f = open("sre_constants.h", "w")

@@ -118,8 +118,10 @@ def copystat(src, dst):
         try:
             os.chflags(dst, st.st_flags)
         except OSError as why:
-            if (not hasattr(errno, 'EOPNOTSUPP') or
-                why.errno != errno.EOPNOTSUPP):
+            for err in 'EOPNOTSUPP', 'ENOTSUP':
+                if hasattr(errno, err) and why.errno == getattr(errno, err):
+                    break
+            else:
                 raise
 
 def copy(src, dst):
@@ -234,7 +236,7 @@ def copytree(src, dst, symlinks=False, ignore=None, copy_function=copy2,
             # Copying file access times may fail on Windows
             pass
         else:
-            errors.extend((src, dst, str(why)))
+            errors.append((src, dst, str(why)))
     if errors:
         raise Error(errors)
 
@@ -398,7 +400,7 @@ def _make_tarball(base_name, base_dir, compress="gzip", verbose=0, dry_run=0,
 
     if not os.path.exists(archive_dir):
         if logger is not None:
-            logger.info("creating %s" % archive_dir)
+            logger.info("creating %s", archive_dir)
         if not dry_run:
             os.makedirs(archive_dir)
 
@@ -493,7 +495,6 @@ def _make_zipfile(base_name, base_dir, verbose=0, dry_run=0, logger=None):
 
 _ARCHIVE_FORMATS = {
     'gztar': (_make_tarball, [('compress', 'gzip')], "gzip'ed tar-file"),
-    'bztar': (_make_tarball, [('compress', 'bzip2')], "bzip2'ed tar-file"),
     'tar':   (_make_tarball, [('compress', None)], "uncompressed tar file"),
     'zip':   (_make_zipfile, [],"ZIP file")
     }
@@ -523,7 +524,7 @@ def register_archive_format(name, function, extra_args=None, description=''):
     """
     if extra_args is None:
         extra_args = []
-    if not isinstance(function, collections.Callable):
+    if not callable(function):
         raise TypeError('The %s object is not callable' % function)
     if not isinstance(extra_args, (tuple, list)):
         raise TypeError('extra_args needs to be a sequence')
@@ -616,7 +617,7 @@ def _check_unpack_options(extensions, function, extra_args):
             raise RegistryError(msg % (extension,
                                        existing_extensions[extension]))
 
-    if not isinstance(function, collections.Callable):
+    if not callable(function):
         raise TypeError('The registered function must be a callable')
 
 

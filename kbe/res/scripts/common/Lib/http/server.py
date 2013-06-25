@@ -271,14 +271,11 @@ class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
         self.request_version = version = self.default_request_version
         self.close_connection = 1
         requestline = str(self.raw_requestline, 'iso-8859-1')
-        if requestline[-2:] == '\r\n':
-            requestline = requestline[:-2]
-        elif requestline[-1:] == '\n':
-            requestline = requestline[:-1]
+        requestline = requestline.rstrip('\r\n')
         self.requestline = requestline
         words = requestline.split()
         if len(words) == 3:
-            [command, path, version] = words
+            command, path, version = words
             if version[:5] != 'HTTP/':
                 self.send_error(400, "Bad request version (%r)" % version)
                 return False
@@ -304,7 +301,7 @@ class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
                           "Invalid HTTP Version (%s)" % base_version_number)
                 return False
         elif len(words) == 2:
-            [command, path] = words
+            command, path = words
             self.close_connection = 1
             if command != 'GET':
                 self.send_error(400,
@@ -511,13 +508,13 @@ class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
         specified as subsequent arguments (it's just like
         printf!).
 
-        The client host and current date/time are prefixed to
+        The client ip and current date/time are prefixed to
         every message.
 
         """
 
         sys.stderr.write("%s - - [%s] %s\n" %
-                         (self.address_string(),
+                         (self.client_address[0],
                           self.log_date_time_string(),
                           format%args))
 
@@ -828,44 +825,47 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
 # Utilities for CGIHTTPRequestHandler
 
-# TODO(gregory.p.smith): Move this into an appropriate library.
-def _url_collapse_path_split(path):
+def _url_collapse_path(path):
     """
     Given a URL path, remove extra '/'s and '.' path elements and collapse
-    any '..' references.
+    any '..' references and returns a colllapsed path.
 
     Implements something akin to RFC-2396 5.2 step 6 to parse relative paths.
+    The utility of this function is limited to is_cgi method and helps
+    preventing some security attacks.
 
     Returns: A tuple of (head, tail) where tail is everything after the final /
     and head is everything before it.  Head will always start with a '/' and,
     if it contains anything else, never have a trailing '/'.
 
     Raises: IndexError if too many '..' occur within the path.
+
     """
     # Similar to os.path.split(os.path.normpath(path)) but specific to URL
     # path semantics rather than local operating system semantics.
-    path_parts = []
-    for part in path.split('/'):
-        if part == '.':
-            path_parts.append('')
-        else:
-            path_parts.append(part)
-    # Filter out blank non trailing parts before consuming the '..'.
-    path_parts = [part for part in path_parts[:-1] if part] + path_parts[-1:]
+    path_parts = path.split('/')
+    head_parts = []
+    for part in path_parts[:-1]:
+        if part == '..':
+            head_parts.pop() # IndexError if more '..' than prior parts
+        elif part and part != '.':
+            head_parts.append( part )
     if path_parts:
         tail_part = path_parts.pop()
+        if tail_part:
+            if tail_part == '..':
+                head_parts.pop()
+                tail_part = ''
+            elif tail_part == '.':
+                tail_part = ''
     else:
         tail_part = ''
-    head_parts = []
-    for part in path_parts:
-        if part == '..':
-            head_parts.pop()
-        else:
-            head_parts.append(part)
-    if tail_part and tail_part == '..':
-        head_parts.pop()
-        tail_part = ''
-    return ('/' + '/'.join(head_parts), tail_part)
+
+    splitpath = ('/' + '/'.join(head_parts), tail_part)
+    collapsed_path = "/".join(splitpath)
+
+    return collapsed_path
+
 
 
 nobody = None
@@ -946,12 +946,14 @@ class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
         (and the next character is a '/' or the end of the string).
 
         """
-
-        splitpath = _url_collapse_path_split(self.path)
-        if splitpath[0] in self.cgi_directories:
-            self.cgi_info = splitpath
+        collapsed_path = _url_collapse_path(self.path)
+        dir_sep = collapsed_path.find('/', 1)
+        head, tail = collapsed_path[:dir_sep], collapsed_path[dir_sep+1:]
+        if head in self.cgi_directories:
+            self.cgi_info = head, tail
             return True
         return False
+
 
     cgi_directories = ['/cgi-bin', '/htbin']
 

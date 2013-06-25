@@ -5,9 +5,19 @@ import sys
 import unittest
 import pickle
 import weakref
+import errno
 
-from test.support import (TESTFN, unlink, run_unittest, captured_output,
-                          gc_collect, cpython_only)
+from test.support import (TESTFN, captured_output, check_impl_detail,
+                          cpython_only, gc_collect, run_unittest, unlink)
+
+class NaiveException(Exception):
+    def __init__(self, x):
+        self.x = x
+
+class SlottedNaiveException(Exception):
+    __slots__ = ('x',)
+    def __init__(self, x):
+        self.x = x
 
 # XXX This is not really enough, each *operation* should be tested!
 
@@ -37,7 +47,7 @@ class ExceptionTests(unittest.TestCase):
         try:
             try:
                 import marshal
-                marshal.loads('')
+                marshal.loads(b'')
             except EOFError:
                 pass
         finally:
@@ -271,6 +281,10 @@ class ExceptionTests(unittest.TestCase):
                 {'args' : ('\u3042', 0, 1, 'ouch'),
                  'object' : '\u3042', 'reason' : 'ouch',
                  'start' : 0, 'end' : 1}),
+            (NaiveException, ('foo',),
+                {'args': ('foo',), 'x': 'foo'}),
+            (SlottedNaiveException, ('foo',),
+                {'args': ('foo',), 'x': 'foo'}),
         ]
         try:
             exceptionList.append(
@@ -290,7 +304,8 @@ class ExceptionTests(unittest.TestCase):
                 raise
             else:
                 # Verify module name
-                self.assertEqual(type(e).__module__, 'builtins')
+                if not type(e).__name__.endswith('NaiveException'):
+                    self.assertEqual(type(e).__module__, 'builtins')
                 # Verify no ref leaks in Exc_str()
                 s = str(e)
                 for checkArgName in expected:
@@ -492,6 +507,9 @@ class ExceptionTests(unittest.TestCase):
             e.__context__ = None
             obj = None
             obj = wr()
+            # guarantee no ref cycles on CPython (don't gc_collect)
+            if check_impl_detail(cpython=False):
+                gc_collect()
             self.assertTrue(obj is None, "%s" % obj)
 
         # Some complicated construct
@@ -508,6 +526,8 @@ class ExceptionTests(unittest.TestCase):
             except MyException:
                 pass
         obj = None
+        if check_impl_detail(cpython=False):
+            gc_collect()
         obj = wr()
         self.assertTrue(obj is None, "%s" % obj)
 
@@ -522,6 +542,8 @@ class ExceptionTests(unittest.TestCase):
         with Context():
             inner_raising_func()
         obj = None
+        if check_impl_detail(cpython=False):
+            gc_collect()
         obj = wr()
         self.assertTrue(obj is None, "%s" % obj)
 
@@ -606,6 +628,68 @@ class ExceptionTests(unittest.TestCase):
         run_gen()
         gc_collect()
         self.assertEqual(sys.exc_info(), (None, None, None))
+
+    def _check_generator_cleanup_exc_state(self, testfunc):
+        # Issue #12791: exception state is cleaned up as soon as a generator
+        # is closed (reference cycles are broken).
+        class MyException(Exception):
+            def __init__(self, obj):
+                self.obj = obj
+        class MyObj:
+            pass
+
+        def raising_gen():
+            try:
+                raise MyException(obj)
+            except MyException:
+                yield
+
+        obj = MyObj()
+        wr = weakref.ref(obj)
+        g = raising_gen()
+        next(g)
+        testfunc(g)
+        g = obj = None
+        obj = wr()
+        self.assertIs(obj, None)
+
+    def test_generator_throw_cleanup_exc_state(self):
+        def do_throw(g):
+            try:
+                g.throw(RuntimeError())
+            except RuntimeError:
+                pass
+        self._check_generator_cleanup_exc_state(do_throw)
+
+    def test_generator_close_cleanup_exc_state(self):
+        def do_close(g):
+            g.close()
+        self._check_generator_cleanup_exc_state(do_close)
+
+    def test_generator_del_cleanup_exc_state(self):
+        def do_del(g):
+            g = None
+        self._check_generator_cleanup_exc_state(do_del)
+
+    def test_generator_next_cleanup_exc_state(self):
+        def do_next(g):
+            try:
+                next(g)
+            except StopIteration:
+                pass
+            else:
+                self.fail("should have raised StopIteration")
+        self._check_generator_cleanup_exc_state(do_next)
+
+    def test_generator_send_cleanup_exc_state(self):
+        def do_send(g):
+            try:
+                g.send(None)
+            except StopIteration:
+                pass
+            else:
+                self.fail("should have raised StopIteration")
+        self._check_generator_cleanup_exc_state(do_send)
 
     def test_3114(self):
         # Bug #3114: in its destructor, MyObject retrieves a pointer to
@@ -786,6 +870,13 @@ class ExceptionTests(unittest.TestCase):
         else:
             self.fail("RuntimeError not raised")
         self.assertEqual(wr(), None)
+
+    def test_errno_ENOTDIR(self):
+        # Issue #12802: "not a directory" errors are ENOTDIR even on Windows
+        with self.assertRaises(OSError) as cm:
+            os.listdir(__file__)
+        self.assertEqual(cm.exception.errno, errno.ENOTDIR, cm.exception)
+
 
 def test_main():
     run_unittest(ExceptionTests)

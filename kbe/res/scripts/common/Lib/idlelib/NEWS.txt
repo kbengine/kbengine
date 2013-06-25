@@ -1,3 +1,44 @@
+What's New in IDLE 3.2.4?
+=========================
+
+- Issue #17625: Close the replace dialog after it is used.
+
+- Issue #7163: Propagate return value of sys.stdout.write.
+
+- Issue #15318: Prevent writing to sys.stdin.
+
+- Issue #13532, #15319: Check that arguments to sys.stdout.write are strings.
+
+- Issue # 12510: Attempt to get certain tool tips no longer crashes IDLE.
+  Erroneous tool tips have been corrected. Default added for callables.
+
+- Issue10365: File open dialog now works instead of crashing even when
+  parent window is closed while dialog is open.
+
+- Issue 14876: use user-selected font for highlight configuration.
+
+- Issue #14937: Perform auto-completion of filenames in strings even for
+  non-ASCII filenames. Likewise for identifiers.
+
+- Issue #14018: Update checks for unstable system Tcl/Tk versions on OS X
+  to include versions shipped with OS X 10.7 and 10.8 in addition to 10.6.
+
+- Issue #15853: Prevent IDLE crash on OS X when opening Preferences menu
+  with certain versions of Tk 8.5.  Initial patch by Kevin Walzer.
+
+
+What's New in IDLE 3.2.3?
+=========================
+
+- Issue #14409: IDLE now properly executes commands in the Shell window
+  when it cannot read the normal config files on startup and
+  has to use the built-in default key bindings.
+  There was previously a bug in one of the defaults.
+
+- Issue #3573: IDLE hangs when passing invalid command line args
+  (directory(ies) instead of file(s)).
+
+
 What's New in IDLE 3.2.1?
 =========================
 
@@ -816,8 +857,4 @@ What's New in IDLEfork 0.9 Alpha 1?
 --------------------------------------------------------------------
 Refer to HISTORY.txt for additional information on earlier releases.
 --------------------------------------------------------------------
-
-
-
-
 

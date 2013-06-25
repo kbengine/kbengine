@@ -271,20 +271,21 @@ class Process(object):
         except SystemExit as e:
             if not e.args:
                 exitcode = 1
-            elif type(e.args[0]) is int:
+            elif isinstance(e.args[0], int):
                 exitcode = e.args[0]
             else:
-                sys.stderr.write(e.args[0] + '\n')
-                sys.stderr.flush()
-                exitcode = 1
+                sys.stderr.write(str(e.args[0]) + '\n')
+                exitcode = 0 if isinstance(e.args[0], str) else 1
         except:
             exitcode = 1
             import traceback
             sys.stderr.write('Process %s:\n' % self.name)
-            sys.stderr.flush()
             traceback.print_exc()
+        finally:
+            util.info('process exiting with exitcode %d' % exitcode)
+            sys.stdout.flush()
+            sys.stderr.flush()
 
-        util.info('process exiting with exitcode %d' % exitcode)
         return exitcode
 
 #

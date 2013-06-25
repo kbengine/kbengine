@@ -5,7 +5,6 @@ import _thread
 
 from time import time as _time, sleep as _sleep
 from traceback import format_exc as _format_exc
-from collections import deque
 from _weakrefset import WeakSet
 
 # Note regarding PEP 8 compliant names
@@ -418,9 +417,10 @@ class _Event(_Verbose):
     def wait(self, timeout=None):
         self._cond.acquire()
         try:
-            if not self._flag:
-                self._cond.wait(timeout)
-            return self._flag
+            signaled = self._flag
+            if not signaled:
+                signaled = self._cond.wait(timeout)
+            return signaled
         finally:
             self._cond.release()
 
@@ -435,7 +435,7 @@ class _Event(_Verbose):
 # to be cyclic.  Threads are not allowed into it until it has fully drained
 # since the previous cycle.  In addition, a 'resetting' state exists which is
 # similar to 'draining' except that threads leave with a BrokenBarrierError,
-# and a 'broken' state in which all threads get get the exception.
+# and a 'broken' state in which all threads get the exception.
 class Barrier(_Verbose):
     """
     Barrier.  Useful for synchronizing a fixed number of threads
@@ -1007,6 +1007,9 @@ class _DummyThread(Thread):
     def _set_daemon(self):
         return True
 
+    def _stop(self):
+        pass
+
     def join(self, timeout=None):
         assert False, "cannot join a dummy thread"
 
@@ -1068,21 +1071,18 @@ def _after_fork():
     current = current_thread()
     with _active_limbo_lock:
         for thread in _active.values():
+            # Any lock/condition variable may be currently locked or in an
+            # invalid state, so we reinitialize them.
+            thread._reset_internal_locks()
             if thread is current:
                 # There is only one active thread. We reset the ident to
                 # its new value since it can have changed.
                 ident = _get_ident()
                 thread._ident = ident
-                # Any condition variables hanging off of the active thread may
-                # be in an invalid state, so we reinitialize them.
-                thread._reset_internal_locks()
                 new_active[ident] = thread
             else:
                 # All the others are already stopped.
-                # We don't call _Thread__stop() because it tries to acquire
-                # thread._Thread__block which could also have been held while
-                # we forked.
-                thread._stopped = True
+                thread._stop()
 
         _limbo.clear()
         _active.clear()

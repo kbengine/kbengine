@@ -40,6 +40,7 @@ class OutputWindow(EditorWindow):
         self.text.insert(mark, s, tags)
         self.text.see(mark)
         self.text.update()
+        return len(s)
 
     def writelines(self, lines):
         for line in lines:
@@ -51,7 +52,11 @@ class OutputWindow(EditorWindow):
     # Our own right-button menu
 
     rmenu_specs = [
-        ("Go to file/line", "<<goto-file-line>>"),
+        ("Cut", "<<cut>>", "rmenu_check_cut"),
+        ("Copy", "<<copy>>", "rmenu_check_copy"),
+        ("Paste", "<<paste>>", "rmenu_check_paste"),
+        (None, None, None),
+        ("Go to file/line", "<<goto-file-line>>", None),
     ]
 
     file_line_pats = [

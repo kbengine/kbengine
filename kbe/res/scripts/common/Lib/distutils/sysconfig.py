@@ -147,6 +147,7 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
             "on platform '%s'" % os.name)
 
 
+
 def customize_compiler(compiler):
     """Do any platform-specific customization of a CCompiler instance.
 
@@ -154,10 +155,26 @@ def customize_compiler(compiler):
     varies across Unices and is stored in Python's Makefile.
     """
     if compiler.compiler_type == "unix":
-        (cc, cxx, opt, cflags, ccshared, ldshared, so_ext, ar, ar_flags) = \
-            get_config_vars('CC', 'CXX', 'OPT', 'CFLAGS',
-                            'CCSHARED', 'LDSHARED', 'SO', 'AR', 'ARFLAGS')
+        if sys.platform == "darwin":
+            # Perform first-time customization of compiler-related
+            # config vars on OS X now that we know we need a compiler.
+            # This is primarily to support Pythons from binary
+            # installers.  The kind and paths to build tools on
+            # the user system may vary significantly from the system
+            # that Python itself was built on.  Also the user OS
+            # version and build tools may not support the same set
+            # of CPU architectures for universal builds.
+            global _config_vars
+            if not _config_vars.get('CUSTOMIZED_OSX_COMPILER', ''):
+                import _osx_support
+                _osx_support.customize_compiler(_config_vars)
+                _config_vars['CUSTOMIZED_OSX_COMPILER'] = 'True'
 
+        (cc, cxx, opt, cflags, ccshared, ldshared, shlib_suffix, ar, ar_flags) = \
+            get_config_vars('CC', 'CXX', 'OPT', 'CFLAGS',
+                            'CCSHARED', 'LDSHARED', 'SHLIB_SUFFIX', 'AR', 'ARFLAGS')
+
+        newcc = None
         if 'CC' in os.environ:
             cc = os.environ['CC']
         if 'CXX' in os.environ:
@@ -194,7 +211,7 @@ def customize_compiler(compiler):
             linker_exe=cc,
             archiver=archiver)
 
-        compiler.shared_lib_extension = so_ext
+        compiler.shared_lib_extension = shlib_suffix
 
 
 def get_config_h_filename():
@@ -218,7 +235,7 @@ def get_makefile_filename():
     """Return full pathname of installed Makefile from the Python build."""
     if python_build:
         return os.path.join(os.path.dirname(sys.executable), "Makefile")
-    lib_dir = get_python_lib(plat_specific=1, standard_lib=1)
+    lib_dir = get_python_lib(plat_specific=0, standard_lib=1)
     config_file = 'config-{}{}'.format(get_python_version(), build_flags)
     return os.path.join(lib_dir, config_file, 'Makefile')
 
@@ -449,6 +466,7 @@ def _init_nt():
     g['INCLUDEPY'] = get_python_inc(plat_specific=0)
 
     g['SO'] = '.pyd'
+    g['EXT_SUFFIX'] = '.pyd'
     g['EXE'] = ".exe"
     g['VERSION'] = get_python_version().replace(".", "")
     g['BINDIR'] = os.path.dirname(os.path.abspath(sys.executable))
@@ -468,6 +486,7 @@ def _init_os2():
     g['INCLUDEPY'] = get_python_inc(plat_specific=0)
 
     g['SO'] = '.pyd'
+    g['EXT_SUFFIX'] = '.pyd'
     g['EXE'] = ".exe"
 
     global _config_vars
@@ -512,43 +531,11 @@ def get_config_vars(*args):
                 srcdir = os.path.join(base, _config_vars['srcdir'])
                 _config_vars['srcdir'] = os.path.normpath(srcdir)
 
+        # OS X platforms require special customization to handle
+        # multi-architecture, multi-os-version installers
         if sys.platform == 'darwin':
-            kernel_version = os.uname()[2] # Kernel version (8.4.3)
-            major_version = int(kernel_version.split('.')[0])
-
-            if major_version < 8:
-                # On Mac OS X before 10.4, check if -arch and -isysroot
-                # are in CFLAGS or LDFLAGS and remove them if they are.
-                # This is needed when building extensions on a 10.3 system
-                # using a universal build of python.
-                for key in ('LDFLAGS', 'BASECFLAGS',
-                        # a number of derived variables. These need to be
-                        # patched up as well.
-                        'CFLAGS', 'PY_CFLAGS', 'BLDSHARED'):
-                    flags = _config_vars[key]
-                    flags = re.sub('-arch\s+\w+\s', ' ', flags, re.ASCII)
-                    flags = re.sub('-isysroot [^ \t]*', ' ', flags)
-                    _config_vars[key] = flags
-
-            else:
-
-                # Allow the user to override the architecture flags using
-                # an environment variable.
-                # NOTE: This name was introduced by Apple in OSX 10.5 and
-                # is used by several scripting languages distributed with
-                # that OS release.
-
-                if 'ARCHFLAGS' in os.environ:
-                    arch = os.environ['ARCHFLAGS']
-                    for key in ('LDFLAGS', 'BASECFLAGS',
-                        # a number of derived variables. These need to be
-                        # patched up as well.
-                        'CFLAGS', 'PY_CFLAGS', 'BLDSHARED'):
-
-                        flags = _config_vars[key]
-                        flags = re.sub('-arch\s+\w+\s', ' ', flags)
-                        flags = flags + ' ' + arch
-                        _config_vars[key] = flags
+            import _osx_support
+            _osx_support.customize_config_vars(_config_vars)
 
     if args:
         vals = []

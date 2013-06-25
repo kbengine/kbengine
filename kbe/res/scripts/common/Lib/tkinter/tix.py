@@ -405,7 +405,7 @@ class TixWidget(tkinter.Widget):
         elif kw: cnf = kw
         options = ()
         for k, v in cnf.items():
-            if hasattr(v, '__call__'):
+            if callable(v):
                 v = self._register(v)
             options = options + ('-'+k, v)
         return master.tk.call(('image', 'create', imgtype,) + options)
@@ -1554,8 +1554,8 @@ class Tree(TixWidget):
         '''This command is used to indicate whether the entry given by
      entryPath has children entries and whether the children are visible. mode
      must be one of open, close or none. If mode is set to open, a (+)
-     indicator is drawn next the the entry. If mode is set to close, a (-)
-     indicator is drawn next the the entry. If mode is set to none, no
+     indicator is drawn next the entry. If mode is set to close, a (-)
+     indicator is drawn next the entry. If mode is set to none, no
      indicators will be drawn for this entry. The default mode is none. The
      open mode indicates the entry has hidden children and this entry can be
      opened by the user. The close mode indicates that all the children of the
@@ -1873,13 +1873,13 @@ class Grid(TixWidget, XView, YView):
         return self.tk.call(self, 'info', 'bbox', x, y)
 
     def move_column(self, from_, to, offset):
-        """Moves the the range of columns from position FROM through TO by
+        """Moves the range of columns from position FROM through TO by
         the distance indicated by OFFSET. For example, move_column(2, 4, 1)
         moves the columns 2,3,4 to columns 3,4,5."""
         self.tk.call(self, 'move', 'column', from_, to, offset)
 
     def move_row(self, from_, to, offset):
-        """Moves the the range of rows from position FROM through TO by
+        """Moves the range of rows from position FROM through TO by
         the distance indicated by OFFSET.
         For example, move_row(2, 4, 1) moves the rows 2,3,4 to rows 3,4,5."""
         self.tk.call(self, 'move', 'row', from_, to, offset)
@@ -1901,49 +1901,51 @@ class Grid(TixWidget, XView, YView):
         self.tk.call(self, 'set', x, y, *args)
 
     def size_column(self, index, **kw):
-        """Queries  or  sets the size of the column given by
-        INDEX.  INDEX may be any  non-negative
-        integer  that  gives  the  position  of a given column.
+        """Queries or sets the size of the column given by
+        INDEX.  INDEX may be any non-negative
+        integer that gives the position of a given column.
         INDEX can also be the string "default"; in this case, this command
         queries or sets the default size of all columns.
-        When  no  option-value  pair is given, this command returns a tuple
-        containing the current size setting of the given  column.  When
-        option-value  pairs  are  given,  the corresponding options of the
+        When no option-value pair is given, this command returns a tuple
+        containing the current size setting of the given column.  When
+        option-value pairs are given, the corresponding options of the
         size setting of the given column are changed. Options may be one
-        of  the  follwing:
+        of the follwing:
               pad0 pixels
                      Specifies the paddings to the left of a column.
               pad1 pixels
-                     Specifies the paddings to the right of a  column.
+                     Specifies the paddings to the right of a column.
               size val
-                     Specifies  the  width of a column .
-                     Val may be: "auto" -- the width of the column is set the
-                     the widest cell in the column; a valid Tk screen distance
-                     unit; or a real number following by the word chars
+                     Specifies the width of a column.  Val may be:
+                     "auto" -- the width of the column is set to the
+                     width of the widest cell in the column;
+                     a valid Tk screen distance unit;
+                     or a real number following by the word chars
                      (e.g. 3.4chars) that sets the width of the column to the
                      given number of characters."""
         return self.tk.split(self.tk.call(self._w, 'size', 'column', index,
                              *self._options({}, kw)))
 
     def size_row(self, index, **kw):
-        """Queries  or  sets the size of the row given by
-        INDEX. INDEX may be any  non-negative
-        integer  that  gives  the  position  of a given row .
+        """Queries or sets the size of the row given by
+        INDEX. INDEX may be any non-negative
+        integer that gives the position of a given row .
         INDEX can also be the string "default"; in this case, this command
         queries or sets the default size of all rows.
-        When  no option-value pair is given, this command returns a list con-
-        taining the current size setting of the given  row . When option-value
+        When no option-value pair is given, this command returns a list con-
+        taining the current size setting of the given row . When option-value
         pairs are given, the corresponding options of the size setting of the
         given row are changed. Options may be one of the follwing:
               pad0 pixels
                      Specifies the paddings to the top of a row.
               pad1 pixels
-                     Specifies the paddings to the the bottom of a row.
+                     Specifies the paddings to the bottom of a row.
               size val
-                     Specifies  the height of a row.
-                     Val may be: "auto" -- the height of the row  is  set  the
-                     the highest cell in the row; a valid Tk screen distance
-                     unit; or a real number following by the word chars
+                     Specifies the height of a row.  Val may be:
+                     "auto" -- the height of the row is set to the
+                     height of the highest cell in the row;
+                     a valid Tk screen distance unit;
+                     or a real number following by the word chars
                      (e.g. 3.4chars) that sets the height of the row to the
                      given number of characters."""
         return self.tk.split(self.tk.call(

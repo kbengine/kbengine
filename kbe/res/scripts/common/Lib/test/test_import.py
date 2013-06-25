@@ -4,12 +4,14 @@ from importlib.test.import_ import test_relative_imports
 from importlib.test.import_ import util as importlib_util
 import marshal
 import os
+import platform
 import py_compile
 import random
 import stat
 import sys
 import unittest
 import textwrap
+import errno
 
 from test.support import (
     EnvironmentVarGuard, TESTFN, check_warnings, forget, is_jython,
@@ -18,12 +20,27 @@ from test.support import (
 from test import script_helper
 
 
+skip_if_dont_write_bytecode = unittest.skipIf(
+        sys.dont_write_bytecode,
+        "test meaningful only when writing bytecode")
+
+def _files(name):
+    return (name + os.extsep + "py",
+            name + os.extsep + "pyc",
+            name + os.extsep + "pyo",
+            name + os.extsep + "pyw",
+            name + "$py.class")
+
+def chmod_files(name):
+    for f in _files(name):
+        try:
+            os.chmod(f, 0o600)
+        except OSError as exc:
+            if exc.errno != errno.ENOENT:
+                raise
+
 def remove_files(name):
-    for f in (name + ".py",
-              name + ".pyc",
-              name + ".pyo",
-              name + ".pyw",
-              name + "$py.class"):
+    for f in _files(name):
         unlink(f)
     rmtree('__pycache__')
 
@@ -96,6 +113,7 @@ class ImportTests(unittest.TestCase):
 
     @unittest.skipUnless(os.name == 'posix',
                          "test meaningful only on posix systems")
+    @skip_if_dont_write_bytecode
     def test_execute_bit_not_copied(self):
         # Issue 6070: under posix .pyc files got their execute bit set if
         # the .py file had the execute bit set, but they aren't executable.
@@ -106,19 +124,59 @@ class ImportTests(unittest.TestCase):
                 open(fname, 'w').close()
                 os.chmod(fname, (stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH |
                                  stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH))
-                __import__(TESTFN)
                 fn = imp.cache_from_source(fname)
+                unlink(fn)
+                __import__(TESTFN)
                 if not os.path.exists(fn):
                     self.fail("__import__ did not result in creation of "
                               "either a .pyc or .pyo file")
-                    s = os.stat(fn)
-                    self.assertEqual(
-                        stat.S_IMODE(s.st_mode),
-                        stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+                s = os.stat(fn)
+                self.assertEqual(stat.S_IMODE(s.st_mode),
+                                 stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
             finally:
                 del sys.path[0]
                 remove_files(TESTFN)
                 unload(TESTFN)
+
+    @skip_if_dont_write_bytecode
+    def test_rewrite_pyc_with_read_only_source(self):
+        # Issue 6074: a long time ago on posix, and more recently on Windows,
+        # a read only source file resulted in a read only pyc file, which
+        # led to problems with updating it later
+        sys.path.insert(0, os.curdir)
+        fname = TESTFN + os.extsep + "py"
+        try:
+            # Write a Python file, make it read-only and import it
+            with open(fname, 'w') as f:
+                f.write("x = 'original'\n")
+            # Tweak the mtime of the source to ensure pyc gets updated later
+            s = os.stat(fname)
+            os.utime(fname, (s.st_atime, s.st_mtime-100000000))
+            os.chmod(fname, 0o400)
+            m1 = __import__(TESTFN)
+            self.assertEqual(m1.x, 'original')
+            # Change the file and then reimport it
+            os.chmod(fname, 0o600)
+            with open(fname, 'w') as f:
+                f.write("x = 'rewritten'\n")
+            unload(TESTFN)
+            m2 = __import__(TESTFN)
+            self.assertEqual(m2.x, 'rewritten')
+            # Now delete the source file and check the pyc was rewritten
+            unlink(fname)
+            unload(TESTFN)
+            if __debug__:
+                bytecode_name = fname + "c"
+            else:
+                bytecode_name = fname + "o"
+            os.rename(imp.cache_from_source(fname), bytecode_name)
+            m3 = __import__(TESTFN)
+            self.assertEqual(m3.x, 'rewritten')
+        finally:
+            chmod_files(TESTFN)
+            remove_files(TESTFN)
+            unload(TESTFN)
+            del sys.path[0]
 
     def test_imp_module(self):
         # Verify that the imp module can correctly load and find .py files
@@ -138,6 +196,15 @@ class ImportTests(unittest.TestCase):
             self.assertIs(os, new_os)
             self.assertIs(orig_path, new_os.path)
             self.assertIsNot(orig_getenv, new_os.getenv)
+
+    def test_bug7732(self):
+        source = TESTFN + '.py'
+        os.mkdir(source)
+        try:
+            self.assertRaisesRegex(ImportError, '^No module',
+                imp.find_module, TESTFN, ["."])
+        finally:
+            os.rmdir(source)
 
     def test_module_with_large_stack(self, module='longlist'):
         # Regression test for http://bugs.python.org/issue561858.
@@ -238,6 +305,7 @@ class ImportTests(unittest.TestCase):
             remove_files(TESTFN)
             unload(TESTFN)
 
+    @skip_if_dont_write_bytecode
     def test_file_to_source(self):
         # check if __file__ points to the source file where available
         source = TESTFN + ".py"
@@ -299,6 +367,30 @@ class ImportTests(unittest.TestCase):
             sys.argv.insert(0, C())
             """))
         script_helper.assert_python_ok(testfn)
+
+    def test_timestamp_overflow(self):
+        # A modification timestamp larger than 2**32 should not be a problem
+        # when importing a module (issue #11235).
+        sys.path.insert(0, os.curdir)
+        try:
+            source = TESTFN + ".py"
+            compiled = imp.cache_from_source(source)
+            with open(source, 'w') as f:
+                pass
+            try:
+                os.utime(source, (2 ** 33 - 5, 2 ** 33 - 5))
+            except OverflowError:
+                self.skipTest("cannot set modification time to large integer")
+            except OSError as e:
+                if e.errno != getattr(errno, 'EOVERFLOW', None):
+                    raise
+                self.skipTest("cannot set modification time to large integer ({})".format(e))
+            __import__(TESTFN)
+            # The pyc file was created.
+            os.stat(compiled)
+        finally:
+            del sys.path[0]
+            remove_files(TESTFN)
 
 
 class PycRewritingTests(unittest.TestCase):
@@ -426,6 +518,13 @@ class PathsTests(unittest.TestCase):
         drive = path[0]
         unc = "\\\\%s\\%s$"%(hn, drive)
         unc += path[2:]
+        try:
+            os.listdir(unc)
+        except OSError as e:
+            if e.errno in (errno.EPERM, errno.EACCES):
+                # See issue #15338
+                self.skipTest("cannot access administrative share %r" % (unc,))
+            raise
         sys.path.append(path)
         mod = __import__("test_trailing_slash")
         self.assertEqual(mod.testdata, 'test_trailing_slash')
@@ -527,16 +626,20 @@ class PycacheTests(unittest.TestCase):
         del sys.path[0]
         self._clean()
 
+    @skip_if_dont_write_bytecode
     def test_import_pyc_path(self):
         self.assertFalse(os.path.exists('__pycache__'))
         __import__(TESTFN)
         self.assertTrue(os.path.exists('__pycache__'))
         self.assertTrue(os.path.exists(os.path.join(
             '__pycache__', '{}.{}.py{}'.format(
-            TESTFN, self.tag, __debug__ and 'c' or 'o'))))
+            TESTFN, self.tag, 'c' if __debug__ else 'o'))))
 
     @unittest.skipUnless(os.name == 'posix',
                          "test meaningful only on posix systems")
+    @unittest.skipIf(hasattr(os, 'geteuid') and os.geteuid() == 0,
+            "due to varying filesystem permission semantics (issue #11956)")
+    @skip_if_dont_write_bytecode
     def test_unwritable_directory(self):
         # When the umask causes the new __pycache__ directory to be
         # unwritable, the import still succeeds but no .pyc file is written.
@@ -546,6 +649,7 @@ class PycacheTests(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(
             '__pycache__', '{}.{}.pyc'.format(TESTFN, self.tag))))
 
+    @skip_if_dont_write_bytecode
     def test_missing_source(self):
         # With PEP 3147 cache layout, removing the source but leaving the pyc
         # file does not satisfy the import.
@@ -556,6 +660,7 @@ class PycacheTests(unittest.TestCase):
         forget(TESTFN)
         self.assertRaises(ImportError, __import__, TESTFN)
 
+    @skip_if_dont_write_bytecode
     def test_missing_source_legacy(self):
         # Like test_missing_source() except that for backward compatibility,
         # when the pyc file lives where the py file would have been (and named
@@ -576,6 +681,7 @@ class PycacheTests(unittest.TestCase):
         pyc_file = imp.cache_from_source(TESTFN + '.py')
         self.assertEqual(m.__cached__, os.path.join(os.curdir, pyc_file))
 
+    @skip_if_dont_write_bytecode
     def test___cached___legacy_pyc(self):
         # Like test___cached__() except that for backward compatibility,
         # when the pyc file lives where the py file would have been (and named
@@ -590,6 +696,7 @@ class PycacheTests(unittest.TestCase):
         self.assertEqual(m.__cached__,
                          os.path.join(os.curdir, os.path.relpath(pyc_file)))
 
+    @skip_if_dont_write_bytecode
     def test_package___cached__(self):
         # Like test___cached__ but for packages.
         def cleanup():

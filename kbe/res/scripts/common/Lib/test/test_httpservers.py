@@ -62,6 +62,7 @@ class BaseTestCase(unittest.TestCase):
 
     def tearDown(self):
         self.thread.stop()
+        self.thread = None
         os.environ.__exit__()
         support.threading_cleanup(*self._threads)
 
@@ -259,8 +260,9 @@ class SimpleHTTPServerTestCase(BaseTestCase):
         with open(os.path.join(self.tempdir_name, 'index.html'), 'w') as f:
             response = self.request('/' + self.tempdir_name + '/')
             self.check_status_and_reason(response, 200)
-            if os.name == 'posix':
-                # chmod won't work as expected on Windows platforms
+            # chmod() doesn't work as expected on Windows, and filesystem
+            # permissions are ignored by root on Unix.
+            if os.name == 'posix' and os.geteuid() != 0:
                 os.chmod(self.tempdir, 0)
                 response = self.request(self.tempdir_name + '/')
                 self.check_status_and_reason(response, 404)
@@ -305,9 +307,14 @@ print("%%s, %%s, %%s" %% (form.getfirst("spam"), form.getfirst("eggs"),
                           form.getfirst("bacon")))
 """
 
+
+@unittest.skipIf(hasattr(os, 'geteuid') and os.geteuid() == 0,
+        "This test can't be run reliably as root (issue #13308).")
 class CGIHTTPServerTestCase(BaseTestCase):
     class request_handler(NoLogRequestHandler, CGIHTTPRequestHandler):
         pass
+
+    linesep = os.linesep.encode('ascii')
 
     def setUp(self):
         BaseTestCase.setUp(self)
@@ -333,8 +340,7 @@ class CGIHTTPServerTestCase(BaseTestCase):
             self.pythonexe.encode('utf-8')
         except UnicodeEncodeError:
             self.tearDown()
-            raise self.skipTest(
-                "Python executable path is not encodable to utf-8")
+            self.skipTest("Python executable path is not encodable to utf-8")
 
         self.file1_path = os.path.join(self.cgi_dir, 'file1.py')
         with open(self.file1_path, 'w', encoding='utf-8') as file1:
@@ -362,48 +368,51 @@ class CGIHTTPServerTestCase(BaseTestCase):
         finally:
             BaseTestCase.tearDown(self)
 
-    def test_url_collapse_path_split(self):
+    def test_url_collapse_path(self):
+        # verify tail is the last portion and head is the rest on proper urls
         test_vectors = {
-            '': ('/', ''),
+            '': '//',
             '..': IndexError,
             '/.//..': IndexError,
-            '/': ('/', ''),
-            '//': ('/', ''),
-            '/\\': ('/', '\\'),
-            '/.//': ('/', ''),
-            'cgi-bin/file1.py': ('/cgi-bin', 'file1.py'),
-            '/cgi-bin/file1.py': ('/cgi-bin', 'file1.py'),
-            'a': ('/', 'a'),
-            '/a': ('/', 'a'),
-            '//a': ('/', 'a'),
-            './a': ('/', 'a'),
-            './C:/': ('/C:', ''),
-            '/a/b': ('/a', 'b'),
-            '/a/b/': ('/a/b', ''),
-            '/a/b/c/..': ('/a/b', ''),
-            '/a/b/c/../d': ('/a/b', 'd'),
-            '/a/b/c/../d/e/../f': ('/a/b/d', 'f'),
-            '/a/b/c/../d/e/../../f': ('/a/b', 'f'),
-            '/a/b/c/../d/e/.././././..//f': ('/a/b', 'f'),
+            '/': '//',
+            '//': '//',
+            '/\\': '//\\',
+            '/.//': '//',
+            'cgi-bin/file1.py': '/cgi-bin/file1.py',
+            '/cgi-bin/file1.py': '/cgi-bin/file1.py',
+            'a': '//a',
+            '/a': '//a',
+            '//a': '//a',
+            './a': '//a',
+            './C:/': '/C:/',
+            '/a/b': '/a/b',
+            '/a/b/': '/a/b/',
+            '/a/b/.': '/a/b/',
+            '/a/b/c/..': '/a/b/',
+            '/a/b/c/../d': '/a/b/d',
+            '/a/b/c/../d/e/../f': '/a/b/d/f',
+            '/a/b/c/../d/e/../../f': '/a/b/f',
+            '/a/b/c/../d/e/.././././..//f': '/a/b/f',
             '../a/b/c/../d/e/.././././..//f': IndexError,
-            '/a/b/c/../d/e/../../../f': ('/a', 'f'),
-            '/a/b/c/../d/e/../../../../f': ('/', 'f'),
+            '/a/b/c/../d/e/../../../f': '/a/f',
+            '/a/b/c/../d/e/../../../../f': '//f',
             '/a/b/c/../d/e/../../../../../f': IndexError,
-            '/a/b/c/../d/e/../../../../f/..': ('/', ''),
+            '/a/b/c/../d/e/../../../../f/..': '//',
+            '/a/b/c/../d/e/../../../../f/../.': '//',
         }
         for path, expected in test_vectors.items():
             if isinstance(expected, type) and issubclass(expected, Exception):
                 self.assertRaises(expected,
-                                  server._url_collapse_path_split, path)
+                                  server._url_collapse_path, path)
             else:
-                actual = server._url_collapse_path_split(path)
+                actual = server._url_collapse_path(path)
                 self.assertEqual(expected, actual,
                                  msg='path = %r\nGot:    %r\nWanted: %r' %
                                  (path, actual, expected))
 
     def test_headers_and_content(self):
         res = self.request('/cgi-bin/file1.py')
-        self.assertEqual((b'Hello World\n', 'text/html', 200),
+        self.assertEqual((b'Hello World' + self.linesep, 'text/html', 200),
             (res.read(), res.getheader('Content-type'), res.status))
 
     def test_post(self):
@@ -412,7 +421,7 @@ class CGIHTTPServerTestCase(BaseTestCase):
         headers = {'Content-type' : 'application/x-www-form-urlencoded'}
         res = self.request('/cgi-bin/file2.py', 'POST', params, headers)
 
-        self.assertEqual(res.read(), b'1, python, 123456\n')
+        self.assertEqual(res.read(), b'1, python, 123456' + self.linesep)
 
     def test_invaliduri(self):
         res = self.request('/cgi-bin/invalid')
@@ -423,20 +432,20 @@ class CGIHTTPServerTestCase(BaseTestCase):
         headers = {b'Authorization' : b'Basic ' +
                    base64.b64encode(b'username:pass')}
         res = self.request('/cgi-bin/file1.py', 'GET', headers=headers)
-        self.assertEqual((b'Hello World\n', 'text/html', 200),
+        self.assertEqual((b'Hello World' + self.linesep, 'text/html', 200),
                 (res.read(), res.getheader('Content-type'), res.status))
 
     def test_no_leading_slash(self):
         # http://bugs.python.org/issue2254
         res = self.request('cgi-bin/file1.py')
-        self.assertEqual((b'Hello World\n', 'text/html', 200),
+        self.assertEqual((b'Hello World' + self.linesep, 'text/html', 200),
              (res.read(), res.getheader('Content-type'), res.status))
 
     def test_os_environ_is_not_altered(self):
         signature = "Test CGI Server"
         os.environ['SERVER_SOFTWARE'] = signature
         res = self.request('/cgi-bin/file1.py')
-        self.assertEqual((b'Hello World\n', 'text/html', 200),
+        self.assertEqual((b'Hello World' + self.linesep, 'text/html', 200),
                 (res.read(), res.getheader('Content-type'), res.status))
         self.assertEqual(os.environ['SERVER_SOFTWARE'], signature)
 

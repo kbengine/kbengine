@@ -282,11 +282,11 @@ class TraceTestCase(unittest.TestCase):
         self.compare_events(func.__code__.co_firstlineno,
                             tracer.events, func.events)
 
-    def set_and_retrieve_none(self):
+    def test_set_and_retrieve_none(self):
         sys.settrace(None)
         assert sys.gettrace() is None
 
-    def set_and_retrieve_func(self):
+    def test_set_and_retrieve_func(self):
         def fn(*args):
             pass
 
@@ -418,7 +418,7 @@ class RaisingTraceFuncTestCase(unittest.TestCase):
                 except ValueError:
                     pass
                 else:
-                    self.fail("exception not thrown!")
+                    self.fail("exception not raised!")
         except RuntimeError:
             self.fail("recursion counter not reset")
 
@@ -671,6 +671,14 @@ def no_jump_to_non_integers(output):
 no_jump_to_non_integers.jump = (2, "Spam")
 no_jump_to_non_integers.output = [True]
 
+def jump_across_with(output):
+    with open(support.TESTFN, "wb") as fp:
+        pass
+    with open(support.TESTFN, "wb") as fp:
+        pass
+jump_across_with.jump = (1, 3)
+jump_across_with.output = []
+
 # This verifies that you can't set f_lineno via _getframe or similar
 # trickery.
 def no_jump_without_trace_function():
@@ -740,6 +748,9 @@ class JumpTestCase(unittest.TestCase):
         self.run_test(no_jump_to_non_integers)
     def test_19_no_jump_without_trace_function(self):
         no_jump_without_trace_function()
+    def test_jump_across_with(self):
+        self.addCleanup(support.unlink, support.TESTFN)
+        self.run_test(jump_across_with)
 
     def test_20_large_function(self):
         d = {}

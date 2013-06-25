@@ -1,6 +1,7 @@
 import unittest
 from test import support, test_genericpath
 
+import itertools
 import posixpath
 import os
 import sys
@@ -56,8 +57,21 @@ class PosixPathTest(unittest.TestCase):
         self.assertEqual(posixpath.join(b"/foo/", b"bar/", b"baz/"),
                          b"/foo/bar/baz/")
 
-        self.assertRaises(TypeError, posixpath.join, b"bytes", "str")
-        self.assertRaises(TypeError, posixpath.join, "str", b"bytes")
+        def check_error_msg(list_of_args, msg):
+            """Check posixpath.join raises friendly TypeErrors."""
+            for args in (item for perm in list_of_args
+                              for item in itertools.permutations(perm)):
+                with self.assertRaises(TypeError) as cm:
+                    posixpath.join(*args)
+                self.assertEqual(msg, cm.exception.args[0])
+
+        check_error_msg([[b'bytes', 'str'], [bytearray(b'bytes'), 'str']],
+                        "Can't mix strings and bytes in path components.")
+        # regression, see #15377
+        with self.assertRaises(TypeError) as cm:
+            posixpath.join(None, 'str')
+        self.assertNotEqual("Can't mix strings and bytes in path components.",
+                            cm.exception.args[0])
 
     def test_split(self):
         self.assertEqual(posixpath.split("/foo/bar"), ("/foo", "bar"))
@@ -298,6 +312,7 @@ class PosixPathTest(unittest.TestCase):
             with support.EnvironmentVarGuard() as env:
                 env['HOME'] = '/'
                 self.assertEqual(posixpath.expanduser("~"), "/")
+                self.assertEqual(posixpath.expanduser("~/foo"), "/foo")
                 # expanduser should fall back to using the password database
                 del env['HOME']
                 home = pwd.getpwuid(os.getuid()).pw_dir
@@ -322,6 +337,26 @@ class PosixPathTest(unittest.TestCase):
                          b"/foo/baz")
         self.assertEqual(posixpath.normpath(b"///..//./foo/.//bar"),
                          b"/foo/bar")
+
+    @skip_if_ABSTFN_contains_backslash
+    def test_realpath_curdir(self):
+        self.assertEqual(realpath('.'), os.getcwd())
+        self.assertEqual(realpath('./.'), os.getcwd())
+        self.assertEqual(realpath('/'.join(['.'] * 100)), os.getcwd())
+
+        self.assertEqual(realpath(b'.'), os.getcwdb())
+        self.assertEqual(realpath(b'./.'), os.getcwdb())
+        self.assertEqual(realpath(b'/'.join([b'.'] * 100)), os.getcwdb())
+
+    @skip_if_ABSTFN_contains_backslash
+    def test_realpath_pardir(self):
+        self.assertEqual(realpath('..'), dirname(os.getcwd()))
+        self.assertEqual(realpath('../..'), dirname(dirname(os.getcwd())))
+        self.assertEqual(realpath('/'.join(['..'] * 100)), '/')
+
+        self.assertEqual(realpath(b'..'), dirname(os.getcwdb()))
+        self.assertEqual(realpath(b'../..'), dirname(dirname(os.getcwdb())))
+        self.assertEqual(realpath(b'/'.join([b'..'] * 100)), b'/')
 
     @unittest.skipUnless(hasattr(os, "symlink"),
                          "Missing symlink implementation")
@@ -360,6 +395,22 @@ class PosixPathTest(unittest.TestCase):
             self.assertEqual(realpath(ABSTFN+"1"), ABSTFN+"1")
             self.assertEqual(realpath(ABSTFN+"2"), ABSTFN+"2")
 
+            self.assertEqual(realpath(ABSTFN+"1/x"), ABSTFN+"1/x")
+            self.assertEqual(realpath(ABSTFN+"1/.."), dirname(ABSTFN))
+            self.assertEqual(realpath(ABSTFN+"1/../x"), dirname(ABSTFN) + "/x")
+            os.symlink(ABSTFN+"x", ABSTFN+"y")
+            self.assertEqual(realpath(ABSTFN+"1/../" + basename(ABSTFN) + "y"),
+                             ABSTFN + "y")
+            self.assertEqual(realpath(ABSTFN+"1/../" + basename(ABSTFN) + "1"),
+                             ABSTFN + "1")
+
+            os.symlink(basename(ABSTFN) + "a/b", ABSTFN+"a")
+            self.assertEqual(realpath(ABSTFN+"a"), ABSTFN+"a/b")
+
+            os.symlink("../" + basename(dirname(ABSTFN)) + "/" +
+                       basename(ABSTFN) + "c", ABSTFN+"c")
+            self.assertEqual(realpath(ABSTFN+"c"), ABSTFN+"c")
+
             # Test using relative path as well.
             os.chdir(dirname(ABSTFN))
             self.assertEqual(realpath(basename(ABSTFN)), ABSTFN)
@@ -368,6 +419,46 @@ class PosixPathTest(unittest.TestCase):
             support.unlink(ABSTFN)
             support.unlink(ABSTFN+"1")
             support.unlink(ABSTFN+"2")
+            support.unlink(ABSTFN+"y")
+            support.unlink(ABSTFN+"c")
+            support.unlink(ABSTFN+"a")
+
+    @unittest.skipUnless(hasattr(os, "symlink"),
+                         "Missing symlink implementation")
+    @skip_if_ABSTFN_contains_backslash
+    def test_realpath_repeated_indirect_symlinks(self):
+        # Issue #6975.
+        try:
+            os.mkdir(ABSTFN)
+            os.symlink('../' + basename(ABSTFN), ABSTFN + '/self')
+            os.symlink('self/self/self', ABSTFN + '/link')
+            self.assertEqual(realpath(ABSTFN + '/link'), ABSTFN)
+        finally:
+            support.unlink(ABSTFN + '/self')
+            support.unlink(ABSTFN + '/link')
+            safe_rmdir(ABSTFN)
+
+    @unittest.skipUnless(hasattr(os, "symlink"),
+                         "Missing symlink implementation")
+    @skip_if_ABSTFN_contains_backslash
+    def test_realpath_deep_recursion(self):
+        depth = 10
+        old_path = abspath('.')
+        try:
+            os.mkdir(ABSTFN)
+            for i in range(depth):
+                os.symlink('/'.join(['%d' % i] * 10), ABSTFN + '/%d' % (i + 1))
+            os.symlink('.', ABSTFN + '/0')
+            self.assertEqual(realpath(ABSTFN + '/%d' % depth), ABSTFN)
+
+            # Test using relative path as well.
+            os.chdir(ABSTFN)
+            self.assertEqual(realpath('%d' % depth), ABSTFN)
+        finally:
+            os.chdir(old_path)
+            for i in range(depth + 1):
+                support.unlink(ABSTFN + '/%d' % i)
+            safe_rmdir(ABSTFN)
 
     @unittest.skipUnless(hasattr(os, "symlink"),
                          "Missing symlink implementation")

@@ -318,9 +318,9 @@ class MemoryTestMixin:
         self.assertEqual(memio.isatty(), False)
         self.assertEqual(memio.closed, False)
         memio.close()
-        self.assertEqual(memio.writable(), True)
-        self.assertEqual(memio.readable(), True)
-        self.assertEqual(memio.seekable(), True)
+        self.assertRaises(ValueError, memio.writable)
+        self.assertRaises(ValueError, memio.readable)
+        self.assertRaises(ValueError, memio.seekable)
         self.assertRaises(ValueError, memio.isatty)
         self.assertEqual(memio.closed, True)
 
@@ -654,6 +654,16 @@ class CBytesIOTest(PyBytesIOTest):
         memio.close()
         self.assertRaises(ValueError, memio.__setstate__, (b"closed", 0, None))
 
+    check_sizeof = support.check_sizeof
+
+    @support.cpython_only
+    def test_sizeof(self):
+        basesize = support.calcobjsize('P2PP2PP')
+        check = self.check_sizeof
+        self.assertEqual(object.__sizeof__(io.BytesIO()), basesize)
+        check(io.BytesIO(), basesize )
+        check(io.BytesIO(b'a'), basesize + 1 + 1 )
+        check(io.BytesIO(b'a' * 1000), basesize + 1000 + 1 )
 
 class CStringIOTest(PyStringIOTest):
     ioclass = io.StringIO

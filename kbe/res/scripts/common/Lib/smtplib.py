@@ -364,8 +364,10 @@ class SMTP:
         while 1:
             try:
                 line = self.file.readline()
-            except socket.error:
-                line = ''
+            except socket.error as e:
+                self.close()
+                raise SMTPServerDisconnected("Connection unexpectedly closed: "
+                                             + str(e))
             if not line:
                 self.close()
                 raise SMTPServerDisconnected("Connection unexpectedly closed")
@@ -740,7 +742,10 @@ class SMTP:
                 esmtp_opts.append(option)
         (code, resp) = self.mail(from_addr, esmtp_opts)
         if code != 250:
-            self.rset()
+            if code == 421:
+                self.close()
+            else:
+                self.rset()
             raise SMTPSenderRefused(code, resp, from_addr)
         senderrs = {}
         if isinstance(to_addrs, str):
@@ -749,13 +754,19 @@ class SMTP:
             (code, resp) = self.rcpt(each, rcpt_options)
             if (code != 250) and (code != 251):
                 senderrs[each] = (code, resp)
+            if code == 421:
+                self.close()
+                raise SMTPRecipientsRefused(senderrs)
         if len(senderrs) == len(to_addrs):
             # the server refused all our recipients
             self.rset()
             raise SMTPRecipientsRefused(senderrs)
         (code, resp) = self.data(msg)
         if code != 250:
-            self.rset()
+            if code == 421:
+                self.close()
+            else:
+                self.rset()
             raise SMTPDataError(code, resp)
         #if we got here then somebody got our mail
         return senderrs
@@ -890,13 +901,13 @@ class LMTP(SMTP):
         try:
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             self.sock.connect(host)
-        except socket.error as msg:
+        except socket.error:
             if self.debuglevel > 0:
                 print('connect fail:', host, file=stderr)
             if self.sock:
                 self.sock.close()
             self.sock = None
-            raise socket.error(msg)
+            raise
         (code, msg) = self.getreply()
         if self.debuglevel > 0:
             print('connect:', msg, file=stderr)
@@ -910,6 +921,7 @@ if __name__ == '__main__':
 
     def prompt(prompt):
         sys.stdout.write(prompt + ": ")
+        sys.stdout.flush()
         return sys.stdin.readline().strip()
 
     fromaddr = prompt("From")

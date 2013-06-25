@@ -27,8 +27,7 @@ for i in range(0x20):
     ESCAPE_DCT.setdefault(chr(i), '\\u{0:04x}'.format(i))
     #ESCAPE_DCT.setdefault(chr(i), '\\u%04x' % (i,))
 
-# Assume this produces an infinity on all machines (probably not guaranteed)
-INFINITY = float('1e66666')
+INFINITY = float('inf')
 FLOAT_REPR = repr
 
 def encode_basestring(s):
@@ -126,7 +125,10 @@ class JSONEncoder(object):
         If indent is a non-negative integer, then JSON array
         elements and object members will be pretty-printed with that
         indent level.  An indent level of 0 will only insert newlines.
-        None is the most compact representation.
+        None is the most compact representation.  Since the default
+        item separator is ', ',  the output might include trailing
+        whitespace when indent is specified.  You can use
+        separators=(',', ': ') to avoid this.
 
         If specified, separators should be a (item_separator, key_separator)
         tuple.  The default is (', ', ': ').  To get the most compact JSON
@@ -164,6 +166,7 @@ class JSONEncoder(object):
                     pass
                 else:
                     return list(iterable)
+                # Let the base class default method raise the TypeError
                 return JSONEncoder.default(self, o)
 
         """

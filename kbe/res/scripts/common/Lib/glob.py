@@ -9,7 +9,10 @@ __all__ = ["glob", "iglob"]
 def glob(pathname):
     """Return a list of paths matching a pathname pattern.
 
-    The pattern may contain simple shell-style wildcards a la fnmatch.
+    The pattern may contain simple shell-style wildcards a la
+    fnmatch. However, unlike fnmatch, filenames starting with a
+    dot are special cases that are not matched by '*' and '?'
+    patterns.
 
     """
     return list(iglob(pathname))
@@ -17,7 +20,10 @@ def glob(pathname):
 def iglob(pathname):
     """Return an iterator which yields the paths matching a pathname pattern.
 
-    The pattern may contain simple shell-style wildcards a la fnmatch.
+    The pattern may contain simple shell-style wildcards a la
+    fnmatch. However, unlike fnmatch, filenames starting with a
+    dot are special cases that are not matched by '*' and '?'
+    patterns.
 
     """
     if not has_magic(pathname):
@@ -29,7 +35,10 @@ def iglob(pathname):
         for name in glob1(None, basename):
             yield name
         return
-    if has_magic(dirname):
+    # `os.path.split()` returns the argument itself as a dirname if it is a
+    # drive or UNC path.  Prevent an infinite recursion if a drive or UNC path
+    # contains magic characters (i.e. r'\\?\C:').
+    if dirname != pathname and has_magic(dirname):
         dirs = iglob(dirname)
     else:
         dirs = [dirname]
@@ -55,12 +64,12 @@ def glob1(dirname, pattern):
         names = os.listdir(dirname)
     except os.error:
         return []
-    if pattern[0] != '.':
-        names = [x for x in names if x[0] != '.']
+    if not _ishidden(pattern):
+        names = [x for x in names if not _ishidden(x)]
     return fnmatch.filter(names, pattern)
 
 def glob0(dirname, basename):
-    if basename == '':
+    if not basename:
         # `os.path.split()` returns an empty basename for paths ending with a
         # directory separator.  'q*x/' should match only directories.
         if os.path.isdir(dirname):
@@ -80,3 +89,6 @@ def has_magic(s):
     else:
         match = magic_check.search(s)
     return match is not None
+
+def _ishidden(path):
+    return path[0] in ('.', b'.'[0])

@@ -109,6 +109,12 @@ class ExecutorShutdownTest(unittest.TestCase):
         self.assertFalse(err)
         self.assertEqual(out.strip(), b"apple")
 
+    def test_hang_issue12364(self):
+        fs = [self.executor.submit(time.sleep, 0.1) for _ in range(50)]
+        self.executor.shutdown()
+        for f in fs:
+            f.result()
+
 
 class ThreadPoolShutdownTest(ThreadPoolMixin, ExecutorShutdownTest):
     def _prime_executor(self):
@@ -177,7 +183,9 @@ class ProcessPoolShutdownTest(ProcessPoolMixin, ExecutorShutdownTest):
         for p in processes:
             p.join()
 
+
 class WaitTests(unittest.TestCase):
+
     def test_first_completed(self):
         future1 = self.executor.submit(mul, 21, 2)
         future2 = self.executor.submit(time.sleep, 1.5)
@@ -278,7 +286,21 @@ class WaitTests(unittest.TestCase):
 
 
 class ThreadPoolWaitTests(ThreadPoolMixin, WaitTests):
-    pass
+
+    def test_pending_calls_race(self):
+        # Issue #14406: multi-threaded race condition when waiting on all
+        # futures.
+        event = threading.Event()
+        def future_func():
+            event.wait()
+        oldswitchinterval = sys.getswitchinterval()
+        sys.setswitchinterval(1e-6)
+        try:
+            fs = {self.executor.submit(future_func) for i in range(100)}
+            event.set()
+            futures.wait(fs, return_when=futures.ALL_COMPLETED)
+        finally:
+            sys.setswitchinterval(oldswitchinterval)
 
 
 class ProcessPoolWaitTests(ProcessPoolMixin, WaitTests):

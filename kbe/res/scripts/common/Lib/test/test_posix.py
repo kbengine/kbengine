@@ -9,6 +9,7 @@ import errno
 import sys
 import time
 import os
+import platform
 import pwd
 import shutil
 import stat
@@ -106,7 +107,11 @@ class PosixTester(unittest.TestCase):
         # If a non-privileged user invokes it, it should fail with OSError
         # EPERM.
         if os.getuid() != 0:
-            name = pwd.getpwuid(posix.getuid()).pw_name
+            try:
+                name = pwd.getpwuid(posix.getuid()).pw_name
+            except KeyError:
+                # the current UID may not have a pwd entry
+                raise unittest.SkipTest("need a pwd entry")
             try:
                 posix.initgroups(name, 13)
             except OSError as e:
@@ -227,25 +232,64 @@ class PosixTester(unittest.TestCase):
         else:
             self.assertTrue(stat.S_ISFIFO(posix.stat(support.TESTFN).st_mode))
 
-    def _test_all_chown_common(self, chown_func, first_param):
+    def _test_all_chown_common(self, chown_func, first_param, stat_func):
         """Common code for chown, fchown and lchown tests."""
-        if os.getuid() == 0:
-            try:
-                # Many linux distros have a nfsnobody user as MAX_UID-2
-                # that makes a good test case for signedness issues.
-                #   http://bugs.python.org/issue1747858
-                # This part of the test only runs when run as root.
-                # Only scary people run their tests as root.
-                ent = pwd.getpwnam('nfsnobody')
-                chown_func(first_param, ent.pw_uid, ent.pw_gid)
-            except KeyError:
-                pass
+        def check_stat(uid, gid):
+            if stat_func is not None:
+                stat = stat_func(first_param)
+                self.assertEqual(stat.st_uid, uid)
+                self.assertEqual(stat.st_gid, gid)
+        uid = os.getuid()
+        gid = os.getgid()
+        # test a successful chown call
+        chown_func(first_param, uid, gid)
+        check_stat(uid, gid)
+        chown_func(first_param, -1, gid)
+        check_stat(uid, gid)
+        chown_func(first_param, uid, -1)
+        check_stat(uid, gid)
+
+        if uid == 0:
+            # Try an amusingly large uid/gid to make sure we handle
+            # large unsigned values.  (chown lets you use any
+            # uid/gid you like, even if they aren't defined.)
+            #
+            # This problem keeps coming up:
+            #   http://bugs.python.org/issue1747858
+            #   http://bugs.python.org/issue4591
+            #   http://bugs.python.org/issue15301
+            # Hopefully the fix in 4591 fixes it for good!
+            #
+            # This part of the test only runs when run as root.
+            # Only scary people run their tests as root.
+
+            big_value = 2**31
+            chown_func(first_param, big_value, big_value)
+            check_stat(big_value, big_value)
+            chown_func(first_param, -1, -1)
+            check_stat(big_value, big_value)
+            chown_func(first_param, uid, gid)
+            check_stat(uid, gid)
+        elif platform.system() in ('HP-UX', 'SunOS'):
+            # HP-UX and Solaris can allow a non-root user to chown() to root
+            # (issue #5113)
+            raise unittest.SkipTest("Skipping because of non-standard chown() "
+                                    "behavior")
         else:
             # non-root cannot chown to root, raises OSError
-            self.assertRaises(OSError, chown_func,
-                              first_param, 0, 0)
-        # test a successful chown call
-        chown_func(first_param, os.getuid(), os.getgid())
+            self.assertRaises(OSError, chown_func, first_param, 0, 0)
+            check_stat(uid, gid)
+            self.assertRaises(OSError, chown_func, first_param, 0, -1)
+            check_stat(uid, gid)
+            if 0 not in os.getgroups():
+                self.assertRaises(OSError, chown_func, first_param, -1, 0)
+                check_stat(uid, gid)
+        # test illegal types
+        for t in str, float:
+            self.assertRaises(TypeError, chown_func, first_param, t(uid), gid)
+            check_stat(uid, gid)
+            self.assertRaises(TypeError, chown_func, first_param, uid, t(gid))
+            check_stat(uid, gid)
 
     @unittest.skipUnless(hasattr(posix, 'chown'), "test needs os.chown()")
     def test_chown(self):
@@ -255,7 +299,8 @@ class PosixTester(unittest.TestCase):
 
         # re-create the file
         open(support.TESTFN, 'w').close()
-        self._test_all_chown_common(posix.chown, support.TESTFN)
+        self._test_all_chown_common(posix.chown, support.TESTFN,
+                                    getattr(posix, 'stat', None))
 
     @unittest.skipUnless(hasattr(posix, 'fchown'), "test needs os.fchown()")
     def test_fchown(self):
@@ -265,7 +310,8 @@ class PosixTester(unittest.TestCase):
         test_file = open(support.TESTFN, 'w')
         try:
             fd = test_file.fileno()
-            self._test_all_chown_common(posix.fchown, fd)
+            self._test_all_chown_common(posix.fchown, fd,
+                                        getattr(posix, 'fstat', None))
         finally:
             test_file.close()
 
@@ -274,7 +320,8 @@ class PosixTester(unittest.TestCase):
         os.unlink(support.TESTFN)
         # create a symlink
         os.symlink(_DUMMY_SYMLINK, support.TESTFN)
-        self._test_all_chown_common(posix.lchown, support.TESTFN)
+        self._test_all_chown_common(posix.lchown, support.TESTFN,
+                                    getattr(posix, 'lstat', None))
 
     def test_chdir(self):
         if hasattr(posix, 'chdir'):
@@ -323,7 +370,16 @@ class PosixTester(unittest.TestCase):
     def _test_chflags_regular_file(self, chflags_func, target_file):
         st = os.stat(target_file)
         self.assertTrue(hasattr(st, 'st_flags'))
-        chflags_func(target_file, st.st_flags | stat.UF_IMMUTABLE)
+
+        # ZFS returns EOPNOTSUPP when attempting to set flag UF_IMMUTABLE.
+        try:
+            chflags_func(target_file, st.st_flags | stat.UF_IMMUTABLE)
+        except OSError as err:
+            if err.errno != errno.EOPNOTSUPP:
+                raise
+            msg = 'chflag UF_IMMUTABLE not supported by underlying fs'
+            self.skipTest(msg)
+
         try:
             new_st = os.stat(target_file)
             self.assertEqual(st.st_flags | stat.UF_IMMUTABLE, new_st.st_flags)
@@ -352,8 +408,16 @@ class PosixTester(unittest.TestCase):
         self.teardown_files.append(_DUMMY_SYMLINK)
         dummy_symlink_st = os.lstat(_DUMMY_SYMLINK)
 
-        posix.lchflags(_DUMMY_SYMLINK,
-                       dummy_symlink_st.st_flags | stat.UF_IMMUTABLE)
+        # ZFS returns EOPNOTSUPP when attempting to set flag UF_IMMUTABLE.
+        try:
+            posix.lchflags(_DUMMY_SYMLINK,
+                           dummy_symlink_st.st_flags | stat.UF_IMMUTABLE)
+        except OSError as err:
+            if err.errno != errno.EOPNOTSUPP:
+                raise
+            msg = 'chflag UF_IMMUTABLE not supported by underlying fs'
+            self.skipTest(msg)
+
         try:
             new_testfn_st = os.stat(support.TESTFN)
             new_dummy_symlink_st = os.lstat(_DUMMY_SYMLINK)
@@ -414,9 +478,17 @@ class PosixTester(unittest.TestCase):
     def test_getgroups(self):
         with os.popen('id -G') as idg:
             groups = idg.read().strip()
+            ret = idg.close()
 
-        if not groups:
+        if ret != None or not groups:
             raise unittest.SkipTest("need working 'id -G'")
+
+        # Issues 16698: OS X ABIs prior to 10.6 have limits on getgroups()
+        if sys.platform == 'darwin':
+            import sysconfig
+            dt = sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET') or '10.0'
+            if float(dt) < 10.6:
+                raise unittest.SkipTest("getgroups(2) is broken prior to 10.6")
 
         # 'id -G' and 'os.getgroups()' should return the same
         # groups, ignoring order and duplicates.

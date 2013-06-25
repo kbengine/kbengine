@@ -67,25 +67,20 @@ class ScriptBinding:
 
     def tabnanny(self, filename):
         # XXX: tabnanny should work on binary files as well
-        with open(filename, 'r', encoding='iso-8859-1') as f:
-            two_lines = f.readline() + f.readline()
-        encoding = IOBinding.coding_spec(two_lines)
-        if not encoding:
-            encoding = 'utf-8'
-        f = open(filename, 'r', encoding=encoding)
-        try:
-            tabnanny.process_tokens(tokenize.generate_tokens(f.readline))
-        except tokenize.TokenError as msg:
-            msgtxt, (lineno, start) = msg
-            self.editwin.gotoline(lineno)
-            self.errorbox("Tabnanny Tokenizing Error",
-                          "Token Error: %s" % msgtxt)
-            return False
-        except tabnanny.NannyNag as nag:
-            # The error messages from tabnanny are too confusing...
-            self.editwin.gotoline(nag.get_lineno())
-            self.errorbox("Tab/space error", indent_message)
-            return False
+        with tokenize.open(filename) as f:
+            try:
+                tabnanny.process_tokens(tokenize.generate_tokens(f.readline))
+            except tokenize.TokenError as msg:
+                msgtxt, (lineno, start) = msg
+                self.editwin.gotoline(lineno)
+                self.errorbox("Tabnanny Tokenizing Error",
+                              "Token Error: %s" % msgtxt)
+                return False
+            except tabnanny.NannyNag as nag:
+                # The error messages from tabnanny are too confusing...
+                self.editwin.gotoline(nag.get_lineno())
+                self.errorbox("Tab/space error", indent_message)
+                return False
         return True
 
     def checksyntax(self, filename):
@@ -106,10 +101,10 @@ class ScriptBinding:
         try:
             # If successful, return the compiled code
             return compile(source, filename, "exec")
-        except (SyntaxError, OverflowError) as value:
-            msg = value.msg or "<no detail available>"
-            lineno = value.lineno or 1
-            offset = value.offset or 0
+        except (SyntaxError, OverflowError, ValueError) as value:
+            msg = getattr(value, 'msg', '') or value or "<no detail available>"
+            lineno = getattr(value, 'lineno', '') or 1
+            offset = getattr(value, 'offset', '') or 0
             if offset == 0:
                 lineno += 1  #mark end of offending line
             pos = "0.0 + %d lines + %d chars" % (lineno-1, offset-1)
@@ -149,10 +144,9 @@ class ScriptBinding:
             return 'break'
         if not self.tabnanny(filename):
             return 'break'
-        shell = self.shell
-        interp = shell.interp
+        interp = self.shell.interp
         if PyShell.use_subprocess:
-            shell.restart_shell()
+            interp.restart_subprocess(with_cwd=False)
         dirname = os.path.dirname(filename)
         # XXX Too often this discards arguments the user just set...
         interp.runcommand("""if 1:

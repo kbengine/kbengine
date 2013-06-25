@@ -179,6 +179,25 @@ class TestPartial(unittest.TestCase):
         f_copy = pickle.loads(pickle.dumps(f))
         self.assertEqual(signature(f), signature(f_copy))
 
+    # Issue 6083: Reference counting bug
+    def test_setstate_refcount(self):
+        class BadSequence:
+            def __len__(self):
+                return 4
+            def __getitem__(self, key):
+                if key == 0:
+                    return max
+                elif key == 1:
+                    return tuple(range(1000000))
+                elif key in (2, 3):
+                    return {}
+                raise IndexError
+
+        f = self.thetype(object)
+        self.assertRaisesRegex(SystemError,
+                "new style getargs format but argument is not a tuple",
+                f.__setstate__, BadSequence())
+
 class PartialSubclass(functools.partial):
     pass
 
@@ -195,6 +214,7 @@ class TestPythonPartial(TestPartial):
 
     # the python version isn't picklable
     def test_pickle(self): pass
+    def test_setstate_refcount(self): pass
 
 class TestUpdateWrapper(unittest.TestCase):
 
@@ -287,6 +307,7 @@ class TestUpdateWrapper(unittest.TestCase):
         with self.assertRaises(AttributeError):
             functools.update_wrapper(wrapper, f, assign, update)
 
+    @support.requires_docstrings
     @unittest.skipIf(sys.flags.optimize >= 2,
                      "Docstrings are omitted with -O2 and above")
     def test_builtin_update(self):
@@ -316,7 +337,7 @@ class TestWraps(TestUpdateWrapper):
         self.assertEqual(wrapper.__name__, 'f')
         self.assertEqual(wrapper.attr, 'This is also a test')
 
-    @unittest.skipIf(not sys.flags.optimize <= 1,
+    @unittest.skipIf(sys.flags.optimize >= 2,
                      "Docstrings are omitted with -O2 and above")
     def test_default_update_doc(self):
         wrapper = self._default_update()
@@ -654,6 +675,22 @@ class TestLRU(unittest.TestCase):
         fib.cache_clear()
         self.assertEqual(fib.cache_info(),
             functools._CacheInfo(hits=0, misses=0, maxsize=None, currsize=0))
+
+    def test_lru_with_exceptions(self):
+        # Verify that user_function exceptions get passed through without
+        # creating a hard-to-read chained exception.
+        # http://bugs.python.org/issue13177
+        for maxsize in (None, 100):
+            @functools.lru_cache(maxsize)
+            def func(i):
+                return 'abc'[i]
+            self.assertEqual(func(0), 'a')
+            with self.assertRaises(IndexError) as cm:
+                func(15)
+            self.assertIsNone(cm.exception.__context__)
+            # Verify that the previous exception did not result in a cached entry
+            with self.assertRaises(IndexError):
+                func(15)
 
 def test_main(verbose=None):
     test_classes = (

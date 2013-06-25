@@ -195,12 +195,6 @@ class AST_Tests(unittest.TestCase):
         with self.assertRaises(AttributeError):
             x.vararg
 
-        with self.assertRaises(AttributeError):
-            x.foobar = 21
-
-        with self.assertRaises(AttributeError):
-            ast.AST(lineno=2)
-
         with self.assertRaises(TypeError):
             # "_ast.AST constructor takes 0 positional arguments"
             ast.AST(2)
@@ -223,6 +217,12 @@ class AST_Tests(unittest.TestCase):
     def test_from_import(self):
         im = ast.parse("from . import y").body[0]
         self.assertIsNone(im.module)
+
+    def test_non_interned_future_from_ast(self):
+        mod = ast.parse("from __future__ import division")
+        self.assertIsInstance(mod.body[0], ast.ImportFrom)
+        mod.body[0].module = " __future__ ".strip()
+        compile(mod, "<test>", "exec")
 
     def test_base_classes(self):
         self.assertTrue(issubclass(ast.For, ast.stmt))
@@ -290,7 +290,7 @@ class AST_Tests(unittest.TestCase):
         self.assertEqual(x.body, body)
 
     def test_nodeclasses(self):
-        # Zero arguments constructor explicitely allowed
+        # Zero arguments constructor explicitly allowed
         x = ast.BinOp()
         self.assertEqual(x._fields, ('left', 'op', 'right'))
 
@@ -385,6 +385,12 @@ class ASTHelpers_Test(unittest.TestCase):
         a = ast.parse('foo(1 + 1)')
         b = compile('foo(1 + 1)', '<unknown>', 'exec', ast.PyCF_ONLY_AST)
         self.assertEqual(ast.dump(a), ast.dump(b))
+
+    def test_parse_in_error(self):
+        try:
+            1/0
+        except Exception:
+            self.assertRaises(SyntaxError, ast.parse, r"'\U'")
 
     def test_dump(self):
         node = ast.parse('spam(eggs, "and cheese")')
@@ -485,6 +491,17 @@ class ASTHelpers_Test(unittest.TestCase):
         self.assertEqual(ast.literal_eval('2j'), 2j)
         self.assertEqual(ast.literal_eval('10 + 2j'), 10 + 2j)
         self.assertEqual(ast.literal_eval('1.5 - 2j'), 1.5 - 2j)
+
+    def test_bad_integer(self):
+        # issue13436: Bad error message with invalid numeric values
+        body = [ast.ImportFrom(module='time',
+                               names=[ast.alias(name='sleep')],
+                               level=None,
+                               lineno=None, col_offset=None)]
+        mod = ast.Module(body)
+        with self.assertRaises(ValueError) as cm:
+            compile(mod, 'test', 'exec')
+        self.assertIn("invalid integer value: None", str(cm.exception))
 
 
 def test_main():

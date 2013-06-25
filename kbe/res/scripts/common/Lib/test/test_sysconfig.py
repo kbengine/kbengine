@@ -1,9 +1,5 @@
-"""Tests for 'site'.
+"""Tests for sysconfig."""
 
-Tests assume the initial paths in sys.path once the interpreter has begun
-executing have not been removed.
-
-"""
 import unittest
 import sys
 import os
@@ -11,7 +7,7 @@ import subprocess
 import shutil
 from copy import copy, deepcopy
 
-from test.support import (run_unittest, TESTFN, unlink, get_attribute,
+from test.support import (run_unittest, TESTFN, unlink,
                           captured_stdout, skip_unless_symlink)
 
 import sysconfig
@@ -19,6 +15,7 @@ from sysconfig import (get_paths, get_platform, get_config_vars,
                        get_path, get_path_names, _INSTALL_SCHEMES,
                        _get_default_scheme, _expand_vars,
                        get_scheme_names, get_config_var, _main)
+import _osx_support
 
 class TestSysConfig(unittest.TestCase):
 
@@ -139,8 +136,7 @@ class TestSysConfig(unittest.TestCase):
                    ('Darwin Kernel Version 8.11.1: '
                     'Wed Oct 10 18:23:28 PDT 2007; '
                     'root:xnu-792.25.20~1/RELEASE_I386'), 'PowerPC'))
-
-
+        _osx_support._remove_original_values(get_config_vars())
         get_config_vars()['MACOSX_DEPLOYMENT_TARGET'] = '10.3'
 
         get_config_vars()['CFLAGS'] = ('-fno-strict-aliasing -DNDEBUG -g '
@@ -155,12 +151,11 @@ class TestSysConfig(unittest.TestCase):
         finally:
             sys.maxsize = maxint
 
-
         self._set_uname(('Darwin', 'macziade', '8.11.1',
                    ('Darwin Kernel Version 8.11.1: '
                     'Wed Oct 10 18:23:28 PDT 2007; '
                     'root:xnu-792.25.20~1/RELEASE_I386'), 'i386'))
-        get_config_vars()['MACOSX_DEPLOYMENT_TARGET'] = '10.3'
+        _osx_support._remove_original_values(get_config_vars())
         get_config_vars()['MACOSX_DEPLOYMENT_TARGET'] = '10.3'
 
         get_config_vars()['CFLAGS'] = ('-fno-strict-aliasing -DNDEBUG -g '
@@ -175,6 +170,7 @@ class TestSysConfig(unittest.TestCase):
             sys.maxsize = maxint
 
         # macbook with fat binaries (fat, universal or fat64)
+        _osx_support._remove_original_values(get_config_vars())
         get_config_vars()['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
         get_config_vars()['CFLAGS'] = ('-arch ppc -arch i386 -isysroot '
                                        '/Developer/SDKs/MacOSX10.4u.sdk  '
@@ -183,6 +179,7 @@ class TestSysConfig(unittest.TestCase):
 
         self.assertEqual(get_platform(), 'macosx-10.4-fat')
 
+        _osx_support._remove_original_values(get_config_vars())
         get_config_vars()['CFLAGS'] = ('-arch x86_64 -arch i386 -isysroot '
                                        '/Developer/SDKs/MacOSX10.4u.sdk  '
                                        '-fno-strict-aliasing -fno-common '
@@ -190,18 +187,21 @@ class TestSysConfig(unittest.TestCase):
 
         self.assertEqual(get_platform(), 'macosx-10.4-intel')
 
+        _osx_support._remove_original_values(get_config_vars())
         get_config_vars()['CFLAGS'] = ('-arch x86_64 -arch ppc -arch i386 -isysroot '
                                        '/Developer/SDKs/MacOSX10.4u.sdk  '
                                        '-fno-strict-aliasing -fno-common '
                                        '-dynamic -DNDEBUG -g -O3')
         self.assertEqual(get_platform(), 'macosx-10.4-fat3')
 
+        _osx_support._remove_original_values(get_config_vars())
         get_config_vars()['CFLAGS'] = ('-arch ppc64 -arch x86_64 -arch ppc -arch i386 -isysroot '
                                        '/Developer/SDKs/MacOSX10.4u.sdk  '
                                        '-fno-strict-aliasing -fno-common '
                                        '-dynamic -DNDEBUG -g -O3')
         self.assertEqual(get_platform(), 'macosx-10.4-universal')
 
+        _osx_support._remove_original_values(get_config_vars())
         get_config_vars()['CFLAGS'] = ('-arch x86_64 -arch ppc64 -isysroot '
                                        '/Developer/SDKs/MacOSX10.4u.sdk  '
                                        '-fno-strict-aliasing -fno-common '
@@ -210,12 +210,13 @@ class TestSysConfig(unittest.TestCase):
         self.assertEqual(get_platform(), 'macosx-10.4-fat64')
 
         for arch in ('ppc', 'i386', 'x86_64', 'ppc64'):
+            _osx_support._remove_original_values(get_config_vars())
             get_config_vars()['CFLAGS'] = ('-arch %s -isysroot '
                                            '/Developer/SDKs/MacOSX10.4u.sdk  '
                                            '-fno-strict-aliasing -fno-common '
-                                           '-dynamic -DNDEBUG -g -O3'%(arch,))
+                                           '-dynamic -DNDEBUG -g -O3' % arch)
 
-            self.assertEqual(get_platform(), 'macosx-10.4-%s'%(arch,))
+            self.assertEqual(get_platform(), 'macosx-10.4-%s' % arch)
 
         # linux debian sarge
         os.name = 'posix'
@@ -261,14 +262,21 @@ class TestSysConfig(unittest.TestCase):
             unlink(link)
 
     def test_user_similar(self):
-        # Issue 8759 : make sure the posix scheme for the users
+        # Issue #8759: make sure the posix scheme for the users
         # is similar to the global posix_prefix one
         base = get_config_var('base')
         user = get_config_var('userbase')
+        # the global scheme mirrors the distinction between prefix and
+        # exec-prefix but not the user scheme, so we have to adapt the paths
+        # before comparing (issue #9100)
+        adapt = sys.prefix != sys.exec_prefix
         for name in ('stdlib', 'platstdlib', 'purelib', 'platlib'):
             global_path = get_path(name, 'posix_prefix')
+            if adapt:
+                global_path = global_path.replace(sys.exec_prefix, sys.prefix)
+                base = base.replace(sys.exec_prefix, sys.prefix)
             user_path = get_path(name, 'posix_user')
-            self.assertEqual(user_path, global_path.replace(base, user))
+            self.assertEqual(user_path, global_path.replace(base, user, 1))
 
     def test_main(self):
         # just making sure _main() runs and returns things in the stdout

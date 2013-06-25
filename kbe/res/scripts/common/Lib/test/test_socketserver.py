@@ -8,6 +8,8 @@ import os
 import select
 import signal
 import socket
+import select
+import errno
 import tempfile
 import unittest
 import socketserver
@@ -32,8 +34,11 @@ def signal_alarm(n):
     if hasattr(signal, 'alarm'):
         signal.alarm(n)
 
+# Remember real select() to avoid interferences with mocking
+_real_select = select.select
+
 def receive(sock, n, timeout=20):
-    r, w, x = select.select([sock], [], [], timeout)
+    r, w, x = _real_select([sock], [], [], timeout)
     if sock in r:
         return sock.recv(n)
     else:
@@ -53,7 +58,7 @@ if HAVE_UNIX_SOCKETS:
 def simple_subprocess(testcase):
     pid = os.fork()
     if pid == 0:
-        # Don't throw an exception; it would be caught by the test harness.
+        # Don't raise an exception; it would be caught by the test harness.
         os._exit(72)
     yield None
     pid2, status = os.waitpid(pid, 0)
@@ -123,7 +128,6 @@ class SocketServerTest(unittest.TestCase):
         self.assertEqual(server.server_address, server.socket.getsockname())
         return server
 
-    @unittest.skipUnless(threading, 'Threading required for this test.')
     @reap_threads
     def run_server(self, svrcls, hdlrbase, testfunc):
         server = self.make_server(self.pickaddr(svrcls.address_family),
@@ -226,6 +230,38 @@ class SocketServerTest(unittest.TestCase):
                 self.run_server(socketserver.ForkingUDPServer,
                                 socketserver.DatagramRequestHandler,
                                 self.dgram_examine)
+
+    @contextlib.contextmanager
+    def mocked_select_module(self):
+        """Mocks the select.select() call to raise EINTR for first call"""
+        old_select = select.select
+
+        class MockSelect:
+            def __init__(self):
+                self.called = 0
+
+            def __call__(self, *args):
+                self.called += 1
+                if self.called == 1:
+                    # raise the exception on first call
+                    raise select.error(errno.EINTR, os.strerror(errno.EINTR))
+                else:
+                    # Return real select value for consecutive calls
+                    return old_select(*args)
+
+        select.select = MockSelect()
+        try:
+            yield select.select
+        finally:
+            select.select = old_select
+
+    def test_InterruptServerSelectCall(self):
+        with self.mocked_select_module() as mock_select:
+            pid = self.run_server(socketserver.TCPServer,
+                                  socketserver.StreamRequestHandler,
+                                  self.stream_examine)
+            # Make sure select was called again:
+            self.assertGreater(mock_select.called, 1)
 
     # Alas, on Linux (at least) recvfrom() doesn't return a meaningful
     # client address so this cannot work:

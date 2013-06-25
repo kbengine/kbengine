@@ -8,7 +8,9 @@ import errno
 import pty
 import os
 import sys
+import select
 import signal
+import socket
 import unittest
 
 TEST_STRING_1 = b"I wish to buy a fish license.\n"
@@ -150,7 +152,7 @@ class PtyTest(unittest.TestCase):
             # platform-dependent amount of data is written to its fd.  On
             # Linux 2.6, it's 4000 bytes and the child won't block, but on OS
             # X even the small writes in the child above will block it.  Also
-            # on Linux, the read() will throw an OSError (input/output error)
+            # on Linux, the read() will raise an OSError (input/output error)
             # when it tries to read past the end of the buffer but the child's
             # already exited, so catch and discard those exceptions.  It's not
             # worth checking for EIO.
@@ -194,9 +196,98 @@ class PtyTest(unittest.TestCase):
 
         # pty.fork() passed.
 
+
+class SmallPtyTests(unittest.TestCase):
+    """These tests don't spawn children or hang."""
+
+    def setUp(self):
+        self.orig_stdin_fileno = pty.STDIN_FILENO
+        self.orig_stdout_fileno = pty.STDOUT_FILENO
+        self.orig_pty_select = pty.select
+        self.fds = []  # A list of file descriptors to close.
+        self.select_rfds_lengths = []
+        self.select_rfds_results = []
+
+    def tearDown(self):
+        pty.STDIN_FILENO = self.orig_stdin_fileno
+        pty.STDOUT_FILENO = self.orig_stdout_fileno
+        pty.select = self.orig_pty_select
+        for fd in self.fds:
+            try:
+                os.close(fd)
+            except OSError:
+                pass
+
+    def _pipe(self):
+        pipe_fds = os.pipe()
+        self.fds.extend(pipe_fds)
+        return pipe_fds
+
+    def _mock_select(self, rfds, wfds, xfds):
+        # This will raise IndexError when no more expected calls exist.
+        self.assertEqual(self.select_rfds_lengths.pop(0), len(rfds))
+        return self.select_rfds_results.pop(0), [], []
+
+    def test__copy_to_each(self):
+        """Test the normal data case on both master_fd and stdin."""
+        read_from_stdout_fd, mock_stdout_fd = self._pipe()
+        pty.STDOUT_FILENO = mock_stdout_fd
+        mock_stdin_fd, write_to_stdin_fd = self._pipe()
+        pty.STDIN_FILENO = mock_stdin_fd
+        socketpair = socket.socketpair()
+        for s in socketpair:
+            self.addCleanup(s.close)
+        masters = [s.fileno() for s in socketpair]
+
+        # Feed data.  Smaller than PIPEBUF.  These writes will not block.
+        os.write(masters[1], b'from master')
+        os.write(write_to_stdin_fd, b'from stdin')
+
+        # Expect two select calls, the last one will cause IndexError
+        pty.select = self._mock_select
+        self.select_rfds_lengths.append(2)
+        self.select_rfds_results.append([mock_stdin_fd, masters[0]])
+        self.select_rfds_lengths.append(2)
+
+        with self.assertRaises(IndexError):
+            pty._copy(masters[0])
+
+        # Test that the right data went to the right places.
+        rfds = select.select([read_from_stdout_fd, masters[1]], [], [], 0)[0]
+        self.assertEqual([read_from_stdout_fd, masters[1]], rfds)
+        self.assertEqual(os.read(read_from_stdout_fd, 20), b'from master')
+        self.assertEqual(os.read(masters[1], 20), b'from stdin')
+
+    def test__copy_eof_on_all(self):
+        """Test the empty read EOF case on both master_fd and stdin."""
+        read_from_stdout_fd, mock_stdout_fd = self._pipe()
+        pty.STDOUT_FILENO = mock_stdout_fd
+        mock_stdin_fd, write_to_stdin_fd = self._pipe()
+        pty.STDIN_FILENO = mock_stdin_fd
+        socketpair = socket.socketpair()
+        for s in socketpair:
+            self.addCleanup(s.close)
+        masters = [s.fileno() for s in socketpair]
+
+        os.close(masters[1])
+        socketpair[1].close()
+        os.close(write_to_stdin_fd)
+
+        # Expect two select calls, the last one will cause IndexError
+        pty.select = self._mock_select
+        self.select_rfds_lengths.append(2)
+        self.select_rfds_results.append([mock_stdin_fd, masters[0]])
+        # We expect that both fds were removed from the fds list as they
+        # both encountered an EOF before the second select call.
+        self.select_rfds_lengths.append(0)
+
+        with self.assertRaises(IndexError):
+            pty._copy(masters[0])
+
+
 def test_main(verbose=None):
     try:
-        run_unittest(PtyTest)
+        run_unittest(SmallPtyTests, PtyTest)
     finally:
         reap_children()
 

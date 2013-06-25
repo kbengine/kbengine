@@ -124,19 +124,26 @@ class AutoComplete:
         curline = self.text.get("insert linestart", "insert")
         i = j = len(curline)
         if hp.is_in_string() and (not mode or mode==COMPLETE_FILES):
+            # Find the beginning of the string
+            # fetch_completions will look at the file system to determine whether the
+            # string value constitutes an actual file name
+            # XXX could consider raw strings here and unescape the string value if it's
+            # not raw.
             self._remove_autocomplete_window()
             mode = COMPLETE_FILES
-            while i and curline[i-1] in FILENAME_CHARS:
+            # Find last separator or string start
+            while i and curline[i-1] not in "'\"" + SEPS:
                 i -= 1
             comp_start = curline[i:j]
             j = i
-            while i and curline[i-1] in FILENAME_CHARS + SEPS:
+            # Find string start
+            while i and curline[i-1] not in "'\"":
                 i -= 1
             comp_what = curline[i:j]
         elif hp.is_in_code() and (not mode or mode==COMPLETE_ATTRIBUTES):
             self._remove_autocomplete_window()
             mode = COMPLETE_ATTRIBUTES
-            while i and curline[i-1] in ID_CHARS:
+            while i and (curline[i-1] in ID_CHARS or ord(curline[i-1]) > 127):
                 i -= 1
             comp_start = curline[i:j]
             if i and curline[i-1] == '.':
@@ -190,8 +197,7 @@ class AutoComplete:
                     bigl = eval("dir()", namespace)
                     bigl.sort()
                     if "__all__" in bigl:
-                        smalll = eval("__all__", namespace)
-                        smalll.sort()
+                        smalll = sorted(eval("__all__", namespace))
                     else:
                         smalll = [s for s in bigl if s[:1] != '_']
                 else:
@@ -200,8 +206,7 @@ class AutoComplete:
                         bigl = dir(entity)
                         bigl.sort()
                         if "__all__" in bigl:
-                            smalll = entity.__all__
-                            smalll.sort()
+                            smalll = sorted(entity.__all__)
                         else:
                             smalll = [s for s in bigl if s[:1] != '_']
                     except:

@@ -8,6 +8,7 @@ Modified for Python 2.0 by Fredrik Lundh (fredrik@pythonware.com)
 """#"
 
 import unittest
+import _testcapi
 
 from test import support
 
@@ -140,6 +141,21 @@ class UnicodeNamesTest(unittest.TestCase):
             UnicodeError,
             str, b"\\NSPACE", 'unicode-escape', 'strict'
         )
+
+    @unittest.skipUnless(_testcapi.INT_MAX < _testcapi.PY_SSIZE_T_MAX,
+                         "needs UINT_MAX < SIZE_MAX")
+    @support.bigmemtest(size=_testcapi.UINT_MAX + 1,
+                        memuse=2 + 4 // len('\U00010000'), dry_run=False)
+    def test_issue16335(self, size):
+        # very very long bogus character name
+        x = b'\\N{SPACE' + b'x' * (_testcapi.UINT_MAX + 1) + b'}'
+        self.assertEqual(len(x), len(b'\\N{SPACE}') +
+                                    (_testcapi.UINT_MAX + 1))
+        self.assertRaisesRegex(UnicodeError,
+            'unknown Unicode character name',
+            x.decode, 'unicode-escape'
+        )
+
 
 def test_main():
     support.run_unittest(UnicodeNamesTest)

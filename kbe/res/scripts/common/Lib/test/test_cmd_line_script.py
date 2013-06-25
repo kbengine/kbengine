@@ -13,6 +13,8 @@ from test.script_helper import (
 
 verbose = support.verbose
 
+example_args = ['test1', 'test2', 'test3']
+
 test_source = """\
 # Script may be run with optimisation enabled, so don't rely on assert
 # statements being executed
@@ -36,6 +38,9 @@ print('__package__==%r' % __package__)
 # Check the sys module
 import sys
 assertIdentical(globals(), sys.modules[__name__].__dict__)
+from test import test_cmd_line_script
+example_args_list = test_cmd_line_script.example_args
+assertEqual(sys.argv[1:], example_args_list)
 print('sys.argv[0]==%a' % sys.argv[0])
 print('sys.path[0]==%a' % sys.path[0])
 # Check the working directory
@@ -100,7 +105,7 @@ class CmdLineTest(unittest.TestCase):
                             *cmd_line_switches):
         if not __debug__:
             cmd_line_switches += ('-' + 'O' * sys.flags.optimize,)
-        run_args = cmd_line_switches + (script_name,)
+        run_args = cmd_line_switches + (script_name,) + tuple(example_args)
         rc, out, err = assert_python_ok(*run_args)
         self._check_output(script_name, rc, out + err, expected_file,
                            expected_argv0, expected_path0, expected_package)
@@ -240,9 +245,9 @@ class CmdLineTest(unittest.TestCase):
                 pkg_dir = os.path.join(script_dir, 'test_pkg')
                 make_pkg(pkg_dir, "import sys; print('init_argv0==%r' % sys.argv[0])")
                 script_name = _make_test_script(pkg_dir, 'script')
-                rc, out, err = assert_python_ok('-m', 'test_pkg.script')
+                rc, out, err = assert_python_ok('-m', 'test_pkg.script', *example_args)
                 if verbose > 1:
-                    print(data)
+                    print(out)
                 expected = "init_argv0==%r" % '-m'
                 self.assertIn(expected.encode('utf-8'), out)
                 self._check_output(script_name, rc, out,
@@ -270,9 +275,48 @@ class CmdLineTest(unittest.TestCase):
             with support.temp_cwd(path=script_dir):
                 with open("-m", "w") as f:
                     f.write("data")
-                    rc, out, err = assert_python_ok('-m', 'other')
+                    rc, out, err = assert_python_ok('-m', 'other', *example_args)
                     self._check_output(script_name, rc, out,
                                       script_name, script_name, '', '')
+
+    def test_dash_m_error_code_is_one(self):
+        # If a module is invoked with the -m command line flag
+        # and results in an error that the return code to the
+        # shell is '1'
+        with temp_dir() as script_dir:
+            with support.temp_cwd(path=script_dir):
+                pkg_dir = os.path.join(script_dir, 'test_pkg')
+                make_pkg(pkg_dir)
+                script_name = _make_test_script(pkg_dir, 'other',
+                                                "if __name__ == '__main__': raise ValueError")
+                rc, out, err = assert_python_failure('-m', 'test_pkg.other', *example_args)
+                if verbose > 1:
+                    print(out)
+                self.assertEqual(rc, 1)
+
+    def test_non_ascii(self):
+        # Mac OS X denies the creation of a file with an invalid UTF-8 name.
+        # Windows allows to create a name with an arbitrary bytes name, but
+        # Python cannot a undecodable bytes argument to a subprocess.
+        if (support.TESTFN_UNDECODABLE
+        and sys.platform not in ('win32', 'darwin')):
+            name = os.fsdecode(support.TESTFN_UNDECODABLE)
+        elif support.TESTFN_NONASCII:
+            name = support.TESTFN_NONASCII
+        else:
+            self.skipTest("need support.TESTFN_NONASCII")
+
+        # Issue #16218
+        source = 'print(ascii(__file__))\n'
+        script_name = _make_test_script(os.curdir, name, source)
+        self.addCleanup(support.unlink, script_name)
+        rc, stdout, stderr = assert_python_ok(script_name)
+        self.assertEqual(
+            ascii(script_name),
+            stdout.rstrip().decode('ascii'),
+            'stdout=%r stderr=%r' % (stdout, stderr))
+        self.assertEqual(0, rc)
+
 
 def test_main():
     support.run_unittest(CmdLineTest)

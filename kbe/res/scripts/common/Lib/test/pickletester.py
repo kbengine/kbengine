@@ -2,10 +2,14 @@ import io
 import unittest
 import pickle
 import pickletools
+import sys
 import copyreg
 from http.cookies import SimpleCookie
 
-from test.support import TestFailed, TESTFN, run_with_locale
+from test.support import (
+    TestFailed, TESTFN, run_with_locale,
+    _2G, _4G, bigmemtest,
+    )
 
 from pickle import bytes_types
 
@@ -13,6 +17,8 @@ from pickle import bytes_types
 #     for proto in protocols:
 # kind of outer loop.
 protocols = range(pickle.HIGHEST_PROTOCOL + 1)
+
+character_size = 4 if sys.maxunicode > 0xFFFF else 2
 
 
 # Return True if opcode code appears in the pickle, else False.
@@ -114,6 +120,19 @@ class metaclass(type):
 
 class use_metaclass(object, metaclass=metaclass):
     pass
+
+class pickling_metaclass(type):
+    def __eq__(self, other):
+        return (type(self) == type(other) and
+                self.reduce_args == other.reduce_args)
+
+    def __reduce__(self):
+        return (create_dynamic_class, self.reduce_args)
+
+def create_dynamic_class(name, bases):
+    result = pickling_metaclass(name, bases, dict())
+    result.reduce_args = (name, bases)
+    return result
 
 # DATA0 .. DATA2 are the pickles we expect under the various protocols, for
 # the object returned by create_data().
@@ -558,10 +577,10 @@ class AbstractPickleTests(unittest.TestCase):
         i = C()
         i.attr = i
         for proto in protocols:
-            s = self.dumps(i, 2)
+            s = self.dumps(i, proto)
             x = self.loads(s)
             self.assertEqual(dir(x), dir(i))
-            self.assertTrue(x.attr is x)
+            self.assertIs(x.attr, x)
 
     def test_recursive_multi(self):
         l = []
@@ -617,9 +636,15 @@ class AbstractPickleTests(unittest.TestCase):
 
     def test_bytes(self):
         for proto in protocols:
-            for u in b'', b'xyz', b'xyz'*100:
-                p = self.dumps(u)
-                self.assertEqual(self.loads(p), u)
+            for s in b'', b'xyz', b'xyz'*100:
+                p = self.dumps(s, proto)
+                self.assertEqual(self.loads(p), s)
+            for s in [bytes([i]) for i in range(256)]:
+                p = self.dumps(s, proto)
+                self.assertEqual(self.loads(p), s)
+            for s in [bytes([i, i]) for i in range(256)]:
+                p = self.dumps(s, proto)
+                self.assertEqual(self.loads(p), s)
 
     def test_ints(self):
         import sys
@@ -682,12 +707,25 @@ class AbstractPickleTests(unittest.TestCase):
     def test_getinitargs(self):
         pass
 
+    def test_pop_empty_stack(self):
+        # Test issue7455
+        s = b'0'
+        self.assertRaises((pickle.UnpicklingError, IndexError), self.loads, s)
+
     def test_metaclass(self):
         a = use_metaclass()
         for proto in protocols:
             s = self.dumps(a, proto)
             b = self.loads(s)
             self.assertEqual(a.__class__, b.__class__)
+
+    def test_dynamic_class(self):
+        a = create_dynamic_class("my_dynamic_class", (object,))
+        copyreg.pickle(pickling_metaclass, pickling_metaclass.__reduce__)
+        for proto in protocols:
+            s = self.dumps(a, proto)
+            b = self.loads(s)
+            self.assertEqual(a, b)
 
     def test_structseq(self):
         import time
@@ -1098,6 +1136,117 @@ class AbstractPickleTests(unittest.TestCase):
         empty = self.loads(b'\x80\x03U\x00q\x00.', encoding='koi8-r')
         self.assertEqual(empty, '')
 
+    def check_negative_32b_binXXX(self, dumped):
+        if sys.maxsize > 2**32:
+            self.skipTest("test is only meaningful on 32-bit builds")
+        # XXX Pure Python pickle reads lengths as signed and passes
+        # them directly to read() (hence the EOFError)
+        with self.assertRaises((pickle.UnpicklingError, EOFError,
+                                ValueError, OverflowError)):
+            self.loads(dumped)
+
+    def test_negative_32b_binbytes(self):
+        # On 32-bit builds, a BINBYTES of 2**31 or more is refused
+        self.check_negative_32b_binXXX(b'\x80\x03B\xff\xff\xff\xffxyzq\x00.')
+
+    def test_negative_32b_binunicode(self):
+        # On 32-bit builds, a BINUNICODE of 2**31 or more is refused
+        self.check_negative_32b_binXXX(b'\x80\x03X\xff\xff\xff\xffxyzq\x00.')
+
+    def test_negative_put(self):
+        # Issue #12847
+        dumped = b'Va\np-1\n.'
+        self.assertRaises(ValueError, self.loads, dumped)
+
+    def test_negative_32b_binput(self):
+        # Issue #12847
+        if sys.maxsize > 2**32:
+            self.skipTest("test is only meaningful on 32-bit builds")
+        dumped = b'\x80\x03X\x01\x00\x00\x00ar\xff\xff\xff\xff.'
+        self.assertRaises(ValueError, self.loads, dumped)
+
+
+class BigmemPickleTests(unittest.TestCase):
+
+    # Binary protocols can serialize longs of up to 2GB-1
+
+    @bigmemtest(size=_2G, memuse=1 + 1, dry_run=False)
+    def test_huge_long_32b(self, size):
+        data = 1 << (8 * size)
+        try:
+            for proto in protocols:
+                if proto < 2:
+                    continue
+                with self.assertRaises((ValueError, OverflowError)):
+                    self.dumps(data, protocol=proto)
+        finally:
+            data = None
+
+    # Protocol 3 can serialize up to 4GB-1 as a bytes object
+    # (older protocols don't have a dedicated opcode for bytes and are
+    # too inefficient)
+
+    @bigmemtest(size=_2G, memuse=1 + 1, dry_run=False)
+    def test_huge_bytes_32b(self, size):
+        data = b"abcd" * (size // 4)
+        try:
+            for proto in protocols:
+                if proto < 3:
+                    continue
+                try:
+                    pickled = self.dumps(data, protocol=proto)
+                    self.assertTrue(b"abcd" in pickled[:15])
+                    self.assertTrue(b"abcd" in pickled[-15:])
+                finally:
+                    pickled = None
+        finally:
+            data = None
+
+    @bigmemtest(size=_4G, memuse=1 + 1, dry_run=False)
+    def test_huge_bytes_64b(self, size):
+        data = b"a" * size
+        try:
+            for proto in protocols:
+                if proto < 3:
+                    continue
+                with self.assertRaises((ValueError, OverflowError)):
+                    self.dumps(data, protocol=proto)
+        finally:
+            data = None
+
+    # All protocols use 1-byte per printable ASCII character; we add another
+    # byte because the encoded form has to be copied into the internal buffer.
+
+    @bigmemtest(size=_2G, memuse=2 + character_size, dry_run=False)
+    def test_huge_str_32b(self, size):
+        data = "abcd" * (size // 4)
+        try:
+            for proto in protocols:
+                try:
+                    pickled = self.dumps(data, protocol=proto)
+                    self.assertTrue(b"abcd" in pickled[:15])
+                    self.assertTrue(b"abcd" in pickled[-15:])
+                finally:
+                    pickled = None
+        finally:
+            data = None
+
+    # BINUNICODE (protocols 1, 2 and 3) cannot carry more than
+    # 2**32 - 1 bytes of utf-8 encoded unicode.
+
+    @bigmemtest(size=_4G, memuse=1 + character_size, dry_run=False)
+    def test_huge_str_64b(self, size):
+        data = "a" * size
+        try:
+            for proto in protocols:
+                if proto == 0:
+                    continue
+                with self.assertRaises((ValueError, OverflowError)):
+                    self.dumps(data, protocol=proto)
+        finally:
+            data = None
+
+
 # Test classes for reduce_ex
 
 class REX_one(object):
@@ -1239,9 +1388,6 @@ class AbstractPickleModuleTests(unittest.TestCase):
         # Test issue4298
         s = bytes([0x58, 0, 0, 0, 0x54])
         self.assertRaises(EOFError, pickle.loads, s)
-        # Test issue7455
-        s = b'0'
-        self.assertRaises(pickle.UnpicklingError, pickle.loads, s)
 
 
 class AbstractPersistentPicklerTests(unittest.TestCase):

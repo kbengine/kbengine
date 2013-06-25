@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from test import support
+import array
 import marshal
 import sys
 import unittest
@@ -137,6 +138,27 @@ class ContainerTestCase(unittest.TestCase, HelperMixin):
         for constructor in (set, frozenset):
             self.helper(constructor(self.d.keys()))
 
+
+class BufferTestCase(unittest.TestCase, HelperMixin):
+
+    def test_bytearray(self):
+        b = bytearray(b"abc")
+        self.helper(b)
+        new = marshal.loads(marshal.dumps(b))
+        self.assertEqual(type(new), bytes)
+
+    def test_memoryview(self):
+        b = memoryview(b"abc")
+        self.helper(b)
+        new = marshal.loads(marshal.dumps(b))
+        self.assertEqual(type(new), bytes)
+
+    def test_array(self):
+        a = array.array('B', b"abc")
+        new = marshal.loads(marshal.dumps(a))
+        self.assertEqual(new, b"abc")
+
+
 class BugsTestCase(unittest.TestCase):
     def test_bug_5888452(self):
         # Simple-minded check for SF 588452: Debug build crashes
@@ -162,7 +184,7 @@ class BugsTestCase(unittest.TestCase):
                 pass
 
     def test_loads_recursion(self):
-        s = 'c' + ('X' * 4*4) + '{' * 2**20
+        s = b'c' + (b'X' * 4*4) + b'{' * 2**20
         self.assertRaises(ValueError, marshal.loads, s)
 
     def test_recursion_limit(self):
@@ -235,15 +257,68 @@ class BugsTestCase(unittest.TestCase):
             finally:
                 support.unlink(support.TESTFN)
 
+    def test_loads_reject_unicode_strings(self):
+        # Issue #14177: marshal.loads() should not accept unicode strings
+        unicode_string = 'T'
+        self.assertRaises(TypeError, marshal.loads, unicode_string)
+
+LARGE_SIZE = 2**31
+character_size = 4 if sys.maxunicode > 0xFFFF else 2
+pointer_size = 8 if sys.maxsize > 0xFFFFFFFF else 4
+
+class NullWriter:
+    def write(self, s):
+        pass
+
+@unittest.skipIf(LARGE_SIZE > sys.maxsize, "test cannot run on 32-bit systems")
+class LargeValuesTestCase(unittest.TestCase):
+    def check_unmarshallable(self, data):
+        self.assertRaises(ValueError, marshal.dump, data, NullWriter())
+
+    @support.bigmemtest(size=LARGE_SIZE, memuse=1, dry_run=False)
+    def test_bytes(self, size):
+        self.check_unmarshallable(b'x' * size)
+
+    @support.bigmemtest(size=LARGE_SIZE, memuse=character_size, dry_run=False)
+    def test_str(self, size):
+        self.check_unmarshallable('x' * size)
+
+    @support.bigmemtest(size=LARGE_SIZE, memuse=pointer_size, dry_run=False)
+    def test_tuple(self, size):
+        self.check_unmarshallable((None,) * size)
+
+    @support.bigmemtest(size=LARGE_SIZE, memuse=pointer_size, dry_run=False)
+    def test_list(self, size):
+        self.check_unmarshallable([None] * size)
+
+    @support.bigmemtest(size=LARGE_SIZE,
+            memuse=pointer_size*12 + sys.getsizeof(LARGE_SIZE-1),
+            dry_run=False)
+    def test_set(self, size):
+        self.check_unmarshallable(set(range(size)))
+
+    @support.bigmemtest(size=LARGE_SIZE,
+            memuse=pointer_size*12 + sys.getsizeof(LARGE_SIZE-1),
+            dry_run=False)
+    def test_frozenset(self, size):
+        self.check_unmarshallable(frozenset(range(size)))
+
+    @support.bigmemtest(size=LARGE_SIZE, memuse=1, dry_run=False)
+    def test_bytearray(self, size):
+        self.check_unmarshallable(bytearray(size))
+
 
 def test_main():
     support.run_unittest(IntTestCase,
-                              FloatTestCase,
-                              StringTestCase,
-                              CodeTestCase,
-                              ContainerTestCase,
-                              ExceptionTestCase,
-                              BugsTestCase)
+                         FloatTestCase,
+                         StringTestCase,
+                         CodeTestCase,
+                         ContainerTestCase,
+                         ExceptionTestCase,
+                         BufferTestCase,
+                         BugsTestCase,
+                         LargeValuesTestCase,
+                        )
 
 if __name__ == "__main__":
     test_main()

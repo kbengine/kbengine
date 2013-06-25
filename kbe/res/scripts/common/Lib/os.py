@@ -146,14 +146,26 @@ def makedirs(name, mode=0o777, exist_ok=False):
             # be happy if someone already created the path
             if e.errno != errno.EEXIST:
                 raise
-        if tail == curdir:           # xxx/newdir/. exists if xxx/newdir exists
+        cdir = curdir
+        if isinstance(tail, bytes):
+            cdir = bytes(curdir, 'ASCII')
+        if tail == cdir:           # xxx/newdir/. exists if xxx/newdir exists
             return
     try:
         mkdir(name, mode)
     except OSError as e:
         import stat as st
-        if not (e.errno == errno.EEXIST and exist_ok and path.isdir(name) and
-                st.S_IMODE(lstat(name).st_mode) == _get_masked_mode(mode)):
+        dir_exists = path.isdir(name)
+        expected_mode = _get_masked_mode(mode)
+        if dir_exists:
+            # S_ISGID is automatically copied by the OS from parent to child
+            # directories on mkdir.  Don't consider it being set to be a mode
+            # mismatch as mkdir does not unset it when not specified in mode.
+            actual_mode = st.S_IMODE(lstat(name).st_mode) & ~st.S_ISGID
+        else:
+            actual_mode = -1
+        if not (e.errno == errno.EEXIST and exist_ok and dir_exists and
+                actual_mode == expected_mode):
             raise
 
 def removedirs(name):
@@ -760,23 +772,6 @@ try:
                      _make_statvfs_result)
 except NameError: # statvfs_result may not exist
     pass
-
-if not _exists("urandom"):
-    def urandom(n):
-        """urandom(n) -> str
-
-        Return a string of n random bytes suitable for cryptographic use.
-
-        """
-        try:
-            _urandomfd = open("/dev/urandom", O_RDONLY)
-        except (OSError, IOError):
-            raise NotImplementedError("/dev/urandom (or equivalent) not found")
-        bs = b""
-        while len(bs) < n:
-            bs += read(_urandomfd, n - len(bs))
-        close(_urandomfd)
-        return bs
 
 # Supply os.popen()
 def popen(cmd, mode="r", buffering=-1):

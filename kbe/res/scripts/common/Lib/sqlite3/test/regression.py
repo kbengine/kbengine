@@ -1,4 +1,4 @@
-#-*- coding: ISO-8859-1 -*-
+#-*- coding: iso-8859-1 -*-
 # pysqlite2/test/regression.py: pysqlite regression tests
 #
 # Copyright (C) 2006-2010 Gerhard Häring <gh@ghaering.de>
@@ -280,6 +280,54 @@ class RegressionTests(unittest.TestCase):
         self.assertRaises(sqlite.ProgrammingError, self.con.create_collation,
             # Lone surrogate cannot be encoded to the default encoding (utf8)
             "\uDC80", collation_cb)
+
+    def CheckRecursiveCursorUse(self):
+        """
+        http://bugs.python.org/issue10811
+
+        Recursively using a cursor, such as when reusing it from a generator led to segfaults.
+        Now we catch recursive cursor usage and raise a ProgrammingError.
+        """
+        con = sqlite.connect(":memory:")
+
+        cur = con.cursor()
+        cur.execute("create table a (bar)")
+        cur.execute("create table b (baz)")
+
+        def foo():
+            cur.execute("insert into a (bar) values (?)", (1,))
+            yield 1
+
+        with self.assertRaises(sqlite.ProgrammingError):
+            cur.executemany("insert into b (baz) values (?)",
+                            ((i,) for i in foo()))
+
+    def CheckConvertTimestampMicrosecondPadding(self):
+        """
+        http://bugs.python.org/issue14720
+
+        The microsecond parsing of convert_timestamp() should pad with zeros,
+        since the microsecond string "456" actually represents "456000".
+        """
+
+        con = sqlite.connect(":memory:", detect_types=sqlite.PARSE_DECLTYPES)
+        cur = con.cursor()
+        cur.execute("CREATE TABLE t (x TIMESTAMP)")
+
+        # Microseconds should be 456000
+        cur.execute("INSERT INTO t (x) VALUES ('2012-04-04 15:06:00.456')")
+
+        # Microseconds should be truncated to 123456
+        cur.execute("INSERT INTO t (x) VALUES ('2012-04-04 15:06:00.123456789')")
+
+        cur.execute("SELECT * FROM t")
+        values = [x[0] for x in cur.fetchall()]
+
+        self.assertEqual(values, [
+            datetime.datetime(2012, 4, 4, 15, 6, 0, 456000),
+            datetime.datetime(2012, 4, 4, 15, 6, 0, 123456),
+        ])
+
 
 def suite():
     regression_suite = unittest.makeSuite(RegressionTests, "Check")

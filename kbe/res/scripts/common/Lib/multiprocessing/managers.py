@@ -134,7 +134,7 @@ def all_methods(obj):
     temp = []
     for name in dir(obj):
         func = getattr(obj, name)
-        if hasattr(func, '__call__'):
+        if callable(func):
             temp.append(name)
     return temp
 
@@ -162,7 +162,7 @@ class Server(object):
         Listener, Client = listener_client[serializer]
 
         # do authentication later
-        self.listener = Listener(address=address, backlog=5)
+        self.listener = Listener(address=address, backlog=16)
         self.address = self.listener.address
 
         self.id_to_obj = {'0': (None, ())}
@@ -510,7 +510,7 @@ class BaseManager(object):
         '''
         assert self._state.value == State.INITIAL
 
-        if initializer is not None and not hasattr(initializer, '__call__'):
+        if initializer is not None and not callable(initializer):
             raise TypeError('initializer must be a callable')
 
         # pipe over which we will retrieve address of server

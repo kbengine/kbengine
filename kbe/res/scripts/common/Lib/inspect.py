@@ -100,11 +100,11 @@ def ismethoddescriptor(object):
     tests return false from the ismethoddescriptor() test, simply because
     the other tests promise more -- you can, e.g., count on having the
     __func__ attribute (etc) when an object passes ismethod()."""
-    return (hasattr(object, "__get__")
-            and not hasattr(object, "__set__") # else it's a data descriptor
-            and not ismethod(object)           # mutual exclusion
-            and not isfunction(object)
-            and not isclass(object))
+    if isclass(object) or ismethod(object) or isfunction(object):
+        # mutual exclusion
+        return False
+    tp = type(object)
+    return hasattr(tp, "__get__") and not hasattr(tp, "__set__")
 
 def isdatadescriptor(object):
     """Return true if the object is a data descriptor.
@@ -114,7 +114,11 @@ def isdatadescriptor(object):
     Typically, data descriptors will also have __name__ and __doc__ attributes
     (properties, getsets, and members have both of these attributes), but this
     is not guaranteed."""
-    return (hasattr(object, "__set__") and hasattr(object, "__get__"))
+    if isclass(object) or ismethod(object) or isfunction(object):
+        # mutual exclusion
+        return False
+    tp = type(object)
+    return hasattr(tp, "__set__") and hasattr(tp, "__get__")
 
 if hasattr(types, 'MemberDescriptorType'):
     # CPython and equivalent
@@ -254,12 +258,23 @@ def isabstract(object):
 def getmembers(object, predicate=None):
     """Return all members of an object as (name, value) pairs sorted by name.
     Optionally, only return members that satisfy a given predicate."""
+    if isclass(object):
+        mro = (object,) + getmro(object)
+    else:
+        mro = ()
     results = []
     for key in dir(object):
-        try:
-            value = getattr(object, key)
-        except AttributeError:
-            continue
+        # First try to get the value via __dict__. Some descriptors don't
+        # like calling their __get__ (see bug #1785).
+        for base in mro:
+            if key in base.__dict__:
+                value = base.__dict__[key]
+                break
+        else:
+            try:
+                value = getattr(object, key)
+            except AttributeError:
+                continue
         if not predicate or predicate(value):
             results.append((key, value))
     results.sort()
@@ -295,30 +310,21 @@ def classify_class_attrs(cls):
     names = dir(cls)
     result = []
     for name in names:
-        # Get the object associated with the name.
+        # Get the object associated with the name, and where it was defined.
         # Getting an obj from the __dict__ sometimes reveals more than
         # using getattr.  Static and class methods are dramatic examples.
-        if name in cls.__dict__:
-            obj = cls.__dict__[name]
+        # Furthermore, some objects may raise an Exception when fetched with
+        # getattr(). This is the case with some descriptors (bug #1785).
+        # Thus, we only use getattr() as a last resort.
+        homecls = None
+        for base in (cls,) + mro:
+            if name in base.__dict__:
+                obj = base.__dict__[name]
+                homecls = base
+                break
         else:
             obj = getattr(cls, name)
-
-        # Figure out where it was defined.
-        homecls = getattr(obj, "__objclass__", None)
-        if homecls is None:
-            # search the dicts.
-            for base in mro:
-                if name in base.__dict__:
-                    homecls = base
-                    break
-
-        # Get the object again, in order to get it from the defining
-        # __dict__ instead of via getattr (if possible).
-        if homecls is not None and name in homecls.__dict__:
-            obj = homecls.__dict__[name]
-
-        # Also get the object via getattr.
-        obj_via_getattr = getattr(cls, name)
+            homecls = getattr(obj, "__objclass__", homecls)
 
         # Classify the object.
         if isinstance(obj, staticmethod):
@@ -327,11 +333,18 @@ def classify_class_attrs(cls):
             kind = "class method"
         elif isinstance(obj, property):
             kind = "property"
-        elif (isfunction(obj_via_getattr) or
-              ismethoddescriptor(obj_via_getattr)):
+        elif ismethoddescriptor(obj):
             kind = "method"
-        else:
+        elif isdatadescriptor(obj):
             kind = "data"
+        else:
+            obj_via_getattr = getattr(cls, name)
+            if (isfunction(obj_via_getattr) or
+                ismethoddescriptor(obj_via_getattr)):
+                kind = "method"
+            else:
+                kind = "data"
+            obj = obj_via_getattr
 
         result.append(Attribute(name, kind, homecls, obj))
 
@@ -483,7 +496,7 @@ def getmodule(object, _filename=None):
         return sys.modules.get(modulesbyfile[file])
     # Update the filename to module name cache and check yet again
     # Copy sys.modules in order to cope with changes while iterating
-    for modname, module in sys.modules.items():
+    for modname, module in list(sys.modules.items()):
         if ismodule(module) and hasattr(module, '__file__'):
             f = module.__file__
             if f == _filesbymodname.get(modname, None):
@@ -1084,7 +1097,7 @@ def _check_instance(obj, attr):
 
 def _check_class(klass, attr):
     for entry in _static_getmro(klass):
-        if not _shadowed_dict(type(entry)):
+        if _shadowed_dict(type(entry)) is _sentinel:
             try:
                 return entry.__dict__[attr]
             except KeyError:
@@ -1109,8 +1122,8 @@ def _shadowed_dict(klass):
             if not (type(class_dict) is types.GetSetDescriptorType and
                     class_dict.__name__ == "__dict__" and
                     class_dict.__objclass__ is entry):
-                return True
-    return False
+                return class_dict
+    return _sentinel
 
 def getattr_static(obj, attr, default=_sentinel):
     """Retrieve attributes without triggering dynamic lookup via the
@@ -1126,7 +1139,9 @@ def getattr_static(obj, attr, default=_sentinel):
     instance_result = _sentinel
     if not _is_type(obj):
         klass = type(obj)
-        if not _shadowed_dict(klass):
+        dict_attr = _shadowed_dict(klass)
+        if (dict_attr is _sentinel or
+            type(dict_attr) is types.MemberDescriptorType):
             instance_result = _check_instance(obj, attr)
     else:
         klass = obj
@@ -1146,10 +1161,11 @@ def getattr_static(obj, attr, default=_sentinel):
     if obj is klass:
         # for types we check the metaclass too
         for entry in _static_getmro(type(klass)):
-            try:
-                return entry.__dict__[attr]
-            except KeyError:
-                pass
+            if _shadowed_dict(type(entry)) is _sentinel:
+                try:
+                    return entry.__dict__[attr]
+                except KeyError:
+                    pass
     if default is not _sentinel:
         return default
     raise AttributeError(attr)

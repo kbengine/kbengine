@@ -324,7 +324,7 @@ class HTTPResponse(io.RawIOBase):
                 # empty version will cause next test to fail.
                 version = ""
         if not version.startswith("HTTP/"):
-            self.close()
+            self._close_conn()
             raise BadStatusLine(line)
 
         # The status code is a three-digit number
@@ -446,22 +446,25 @@ class HTTPResponse(io.RawIOBase):
         # otherwise, assume it will close
         return True
 
+    def _close_conn(self):
+        fp = self.fp
+        self.fp = None
+        fp.close()
+
     def close(self):
+        super().close() # set "closed" flag
         if self.fp:
-            self.fp.close()
-            self.fp = None
+            self._close_conn()
 
     # These implementations are for the benefit of io.BufferedReader.
 
     # XXX This class should probably be revised to act more like
     # the "raw stream" that BufferedReader expects.
 
-    @property
-    def closed(self):
-        return self.isclosed()
-
     def flush(self):
-        self.fp.flush()
+        super().flush()
+        if self.fp:
+            self.fp.flush()
 
     def readable(self):
         return True
@@ -469,6 +472,7 @@ class HTTPResponse(io.RawIOBase):
     # End of "raw stream" methods
 
     def isclosed(self):
+        """True if the connection is closed."""
         # NOTE: it is possible that we will not ever call self.close(). This
         #       case occurs when will_close is TRUE, length is None, and we
         #       read up to the last byte, but NOT past it.
@@ -482,7 +486,7 @@ class HTTPResponse(io.RawIOBase):
             return b""
 
         if self._method == "HEAD":
-            self.close()
+            self._close_conn()
             return b""
 
         if self.chunked:
@@ -493,9 +497,13 @@ class HTTPResponse(io.RawIOBase):
             if self.length is None:
                 s = self.fp.read()
             else:
-                s = self._safe_read(self.length)
+                try:
+                    s = self._safe_read(self.length)
+                except IncompleteRead:
+                    self._close_conn()
+                    raise
                 self.length = 0
-            self.close()        # we read everything
+            self._close_conn()        # we read everything
             return s
 
         if self.length is not None:
@@ -507,10 +515,15 @@ class HTTPResponse(io.RawIOBase):
         # connection, and the user is reading more bytes than will be provided
         # (for example, reading in 1k chunks)
         s = self.fp.read(amt)
-        if self.length is not None:
+        if not s:
+            # Ideally, we would raise IncompleteRead if the content-length
+            # wasn't satisfied, but it might break compatibility.
+            self._close_conn()
+        elif self.length is not None:
             self.length -= len(s)
             if not self.length:
-                self.close()
+                self._close_conn()
+
         return s
 
     def _read_chunked(self, amt):
@@ -530,7 +543,7 @@ class HTTPResponse(io.RawIOBase):
                 except ValueError:
                     # close the connection as protocol synchronisation is
                     # probably lost
-                    self.close()
+                    self._close_conn()
                     raise IncompleteRead(b''.join(value))
                 if chunk_left == 0:
                     break
@@ -563,11 +576,11 @@ class HTTPResponse(io.RawIOBase):
                 # a vanishingly small number of sites EOF without
                 # sending the trailer
                 break
-            if line == b"\r\n":
+            if line in (b'\r\n', b'\n', b''):
                 break
 
         # we read everything; close the "file"
-        self.close()
+        self._close_conn()
 
         return b''.join(value)
 
@@ -678,7 +691,10 @@ class HTTPConnection:
                 try:
                     port = int(host[i+1:])
                 except ValueError:
-                    raise InvalidURL("nonnumeric port: '%s'" % host[i+1:])
+                    if host[i+1:] == "": # http://foo.com:/ == http://foo.com/
+                        port = self.default_port
+                    else:
+                        raise InvalidURL("nonnumeric port: '%s'" % host[i+1:])
                 host = host[:i]
             else:
                 port = self.default_port
@@ -712,7 +728,10 @@ class HTTPConnection:
             line = response.fp.readline(_MAXLINE + 1)
             if len(line) > _MAXLINE:
                 raise LineTooLong("header line")
-            if line == b'\r\n':
+            if not line:
+                # for sites which EOF without sending a trailer
+                break
+            if line in (b'\r\n', b'\n', b''):
                 break
 
     def connect(self):
@@ -947,11 +966,11 @@ class HTTPConnection:
     def endheaders(self, message_body=None):
         """Indicate that the last header line has been sent to the server.
 
-        This method sends the request to the server.  The optional
-        message_body argument can be used to pass message body
-        associated with the request.  The message body will be sent in
-        the same packet as the message headers if possible.  The
-        message_body should be a string.
+        This method sends the request to the server.  The optional message_body
+        argument can be used to pass a message body associated with the
+        request.  The message body will be sent in the same packet as the
+        message headers if it is a string, otherwise it is sent as a separate
+        packet.
         """
         if self.__state == _CS_REQ_STARTED:
             self.__state = _CS_REQ_SENT
@@ -991,7 +1010,7 @@ class HTTPConnection:
 
         self.putrequest(method, url, **skips)
 
-        if body and ('content-length' not in header_names):
+        if body is not None and ('content-length' not in header_names):
             self._set_content_length(body)
         for hdr, value in headers.items():
             self.putheader(hdr, value)

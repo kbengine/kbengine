@@ -59,6 +59,25 @@ class ListTest(list_tests.CommonTest):
         self.assertRaises((MemoryError, OverflowError), mul, lst, n)
         self.assertRaises((MemoryError, OverflowError), imul, lst, n)
 
+    def test_repr_large(self):
+        # Check the repr of large list objects
+        def check(n):
+            l = [0] * n
+            s = repr(l)
+            self.assertEqual(s,
+                '[' + ', '.join(['0'] * n) + ']')
+        check(10)       # check our checking code
+        check(1000000)
+
+
+    def test_no_comdat_folding(self):
+        # Issue 8847: In the PGO build, the MSVC linker's COMDAT folding
+        # optimization causes failures in code that relies on distinct
+        # function addresses.
+        class L(list): pass
+        with self.assertRaises(TypeError):
+            (3,) + L([1,2])
+
 def test_main(verbose=None):
     support.run_unittest(ListTest)
 

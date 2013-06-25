@@ -187,7 +187,7 @@ class ConfigDialog(Toplevel):
                               text=' Highlighting Theme ')
         #frameCustom
         self.textHighlightSample=Text(frameCustom,relief=SOLID,borderwidth=1,
-            font=('courier',12,''),cursor='hand2',width=21,height=10,
+            font=('courier',12,''),cursor='hand2',width=21,height=11,
             takefocus=FALSE,highlightthickness=0,wrap=NONE)
         text=self.textHighlightSample
         text.bind('<Double-Button-1>',lambda e: 'break')
@@ -199,7 +199,7 @@ class ConfigDialog(Toplevel):
             ("'string'",'string'),('\n  var1 = ','normal'),("'selected'",'hilite'),
             ('\n  var2 = ','normal'),("'found'",'hit'),
             ('\n  var3 = ','normal'),('list', 'builtin'), ('(','normal'),
-            ('None', 'builtin'),(')\n\n','normal'),
+            ('None', 'keyword'),(')\n\n','normal'),
             (' error ','error'),(' ','normal'),('cursor |','cursor'),
             ('\n ','normal'),('shell','console'),(' ','normal'),('stdout','stdout'),
             (' ','normal'),('stderr','stderr'),('\n','normal'))
@@ -821,8 +821,9 @@ class ConfigDialog(Toplevel):
             fontWeight=tkFont.BOLD
         else:
             fontWeight=tkFont.NORMAL
-        self.editFont.config(size=self.fontSize.get(),
-                weight=fontWeight,family=fontName)
+        newFont = (fontName, self.fontSize.get(), fontWeight)
+        self.labelFontSample.config(font=newFont)
+        self.textHighlightSample.configure(font=newFont)
 
     def SetHighlightTarget(self):
         if self.highlightTarget.get()=='Cursor': #bg not possible
@@ -924,7 +925,7 @@ class ConfigDialog(Toplevel):
         for font in fonts:
             self.listFontName.insert(END,font)
         configuredFont=idleConf.GetOption('main','EditorWindow','font',
-                default='courier')
+                                          default='courier')
         lc_configuredFont = configuredFont.lower()
         self.fontName.set(lc_configuredFont)
         lc_fonts = [s.lower() for s in fonts]
@@ -934,13 +935,13 @@ class ConfigDialog(Toplevel):
             self.listFontName.select_set(currentFontIndex)
             self.listFontName.select_anchor(currentFontIndex)
         ##font size dropdown
-        fontSize=idleConf.GetOption('main','EditorWindow','font-size',
-                default='10')
+        fontSize=idleConf.GetOption('main', 'EditorWindow', 'font-size',
+                                    type='int', default='10')
         self.optMenuFontSize.SetMenu(('7','8','9','10','11','12','13','14',
-                '16','18','20','22'),fontSize )
+                                      '16','18','20','22'), fontSize )
         ##fontWeight
         self.fontBold.set(idleConf.GetOption('main','EditorWindow',
-                'font-bold',default=0,type='bool'))
+                                             'font-bold',default=0,type='bool'))
         ##font sample
         self.SetFontSample()
 
@@ -1021,10 +1022,13 @@ class ConfigDialog(Toplevel):
         self.autoSave.set(idleConf.GetOption('main', 'General', 'autosave',
                                              default=0, type='bool'))
         #initial window size
-        self.winWidth.set(idleConf.GetOption('main','EditorWindow','width'))
-        self.winHeight.set(idleConf.GetOption('main','EditorWindow','height'))
+        self.winWidth.set(idleConf.GetOption('main','EditorWindow','width',
+                                             type='int'))
+        self.winHeight.set(idleConf.GetOption('main','EditorWindow','height',
+                                              type='int'))
         #initial paragraph reformat size
-        self.paraWidth.set(idleConf.GetOption('main','FormatParagraph','paragraph'))
+        self.paraWidth.set(idleConf.GetOption('main','FormatParagraph','paragraph',
+                                              type='int'))
         # default source encoding
         self.encoding.set(idleConf.GetOption('main', 'EditorWindow',
                                              'encoding', default='none'))

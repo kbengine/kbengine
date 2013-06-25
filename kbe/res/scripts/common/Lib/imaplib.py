@@ -22,7 +22,8 @@ Public functions:       Internaldate2tuple
 
 __version__ = "2.58"
 
-import binascii, errno, random, re, socket, subprocess, sys, time
+import binascii, errno, random, re, socket, subprocess, sys, time, calendar
+from io import DEFAULT_BUFFER_SIZE
 
 try:
     import ssl
@@ -360,10 +361,10 @@ class IMAP4:
 
                 data = authobject(response)
 
-        It will be called to process server continuation responses.
-        It should return data that will be encoded and sent to server.
-        It should return None if the client abort response '*' should
-        be sent instead.
+        It will be called to process server continuation responses; the
+        response argument it is passed will be a bytes.  It should return bytes
+        data that will be base64 encoded and sent to the server.  It should
+        return None if the client abort response '*' should be sent instead.
         """
         mech = mechanism.upper()
         # XXX: shouldn't this code be removed, not commented out?
@@ -546,7 +547,9 @@ class IMAP4:
     def _CRAM_MD5_AUTH(self, challenge):
         """ Authobject to use with CRAM-MD5 authentication. """
         import hmac
-        return self.user + " " + hmac.HMAC(self.password, challenge).hexdigest()
+        pwd = (self.password.encode('ASCII') if isinstance(self.password, str)
+                                             else self.password)
+        return self.user + " " + hmac.HMAC(pwd, challenge).hexdigest()
 
 
     def logout(self):
@@ -1235,6 +1238,7 @@ class IMAP4_stream(IMAP4):
         self.sock = None
         self.file = None
         self.process = subprocess.Popen(self.command,
+            bufsize=DEFAULT_BUFFER_SIZE,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             shell=True, close_fds=True)
         self.writefile = self.process.stdin
@@ -1288,14 +1292,16 @@ class _Authenticator:
         #  so when it gets to the end of the 8-bit input
         #  there's no partial 6-bit output.
         #
-        oup = ''
+        oup = b''
+        if isinstance(inp, str):
+            inp = inp.encode('ASCII')
         while inp:
             if len(inp) > 48:
                 t = inp[:48]
                 inp = inp[48:]
             else:
                 t = inp
-                inp = ''
+                inp = b''
             e = binascii.b2a_base64(t)
             if e:
                 oup = oup + e[:-1]
@@ -1303,7 +1309,7 @@ class _Authenticator:
 
     def decode(self, inp):
         if not inp:
-            return ''
+            return b''
         return binascii.a2b_base64(inp)
 
 
@@ -1340,19 +1346,9 @@ def Internaldate2tuple(resp):
         zone = -zone
 
     tt = (year, mon, day, hour, min, sec, -1, -1, -1)
+    utc = calendar.timegm(tt) - zone
 
-    utc = time.mktime(tt)
-
-    # Following is necessary because the time module has no 'mkgmtime'.
-    # 'mktime' assumes arg in local timezone, so adds timezone/altzone.
-
-    lt = time.localtime(utc)
-    if time.daylight and lt[-1]:
-        zone = zone + time.altzone
-    else:
-        zone = zone + time.timezone
-
-    return time.localtime(utc - zone)
+    return time.localtime(utc)
 
 
 
@@ -1385,7 +1381,7 @@ def Time2Internaldate(date_time):
     """Convert date_time to IMAP4 INTERNALDATE representation.
 
     Return string in form: '"DD-Mmm-YYYY HH:MM:SS +HHMM"'.  The
-    date_time argument can be a number (int or float) represening
+    date_time argument can be a number (int or float) representing
     seconds since epoch (as returned by time.time()), a 9-tuple
     representing local time (as returned by time.localtime()), or a
     double-quoted string.  In the last case, it is assumed to already

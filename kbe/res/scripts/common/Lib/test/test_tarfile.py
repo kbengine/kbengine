@@ -166,6 +166,9 @@ class UstarReadTest(ReadTest):
     def test_fileobj_symlink2(self):
         self._test_fileobj_link("./ustar/linktest2/symtype", "ustar/linktest1/regtype")
 
+    def test_issue14160(self):
+        self._test_fileobj_link("symtype2", "ustar/regtype")
+
 
 class CommonReadTest(ReadTest):
 
@@ -325,31 +328,21 @@ class MiscReadTest(CommonReadTest):
     @support.skip_unless_symlink
     def test_extract_hardlink(self):
         # Test hardlink extraction (e.g. bug #857297).
-        tar = tarfile.open(tarname, errorlevel=1, encoding="iso8859-1")
-
-        try:
+        with tarfile.open(tarname, errorlevel=1, encoding="iso8859-1") as tar:
             tar.extract("ustar/regtype", TEMPDIR)
-            try:
-                tar.extract("ustar/lnktype", TEMPDIR)
-            except EnvironmentError as e:
-                if e.errno == errno.ENOENT:
-                    self.fail("hardlink not extracted properly")
+            self.addCleanup(os.remove, os.path.join(TEMPDIR, "ustar/regtype"))
 
+            tar.extract("ustar/lnktype", TEMPDIR)
+            self.addCleanup(os.remove, os.path.join(TEMPDIR, "ustar/lnktype"))
             with open(os.path.join(TEMPDIR, "ustar/lnktype"), "rb") as f:
                 data = f.read()
             self.assertEqual(md5sum(data), md5_regtype)
 
-            try:
-                tar.extract("ustar/symtype", TEMPDIR)
-            except EnvironmentError as e:
-                if e.errno == errno.ENOENT:
-                    self.fail("symlink not extracted properly")
-
+            tar.extract("ustar/symtype", TEMPDIR)
+            self.addCleanup(os.remove, os.path.join(TEMPDIR, "ustar/symtype"))
             with open(os.path.join(TEMPDIR, "ustar/symtype"), "rb") as f:
                 data = f.read()
             self.assertEqual(md5sum(data), md5_regtype)
-        finally:
-            tar.close()
 
     def test_extractall(self):
         # Test if extractall() correctly restores directory permissions
@@ -528,6 +521,23 @@ class DetectReadTest(unittest.TestCase):
 
     def test_detect_fileobj(self):
         self._test_modes(self._testfunc_fileobj)
+
+    def test_detect_stream_bz2(self):
+        # Originally, tarfile's stream detection looked for the string
+        # "BZh91" at the start of the file. This is incorrect because
+        # the '9' represents the blocksize (900kB). If the file was
+        # compressed using another blocksize autodetection fails.
+        if not bz2:
+            return
+
+        with open(tarname, "rb") as fobj:
+            data = fobj.read()
+
+        # Compress with blocksize 100kB, the file starts with "BZh11".
+        with bz2.BZ2File(tmpname, "wb", compresslevel=1) as fobj:
+            fobj.write(data)
+
+        self._testfunc_file(tmpname, "r|*")
 
 
 class MemberReadTest(ReadTest):
@@ -1582,9 +1592,31 @@ class MiscTest(unittest.TestCase):
         self.assertEqual(tarfile.nts(b"foo\0\0\0\0\0", "ascii", "strict"), "foo")
         self.assertEqual(tarfile.nts(b"foo\0bar\0", "ascii", "strict"), "foo")
 
-    def test_number_fields(self):
+    def test_read_number_fields(self):
+        # Issue 13158: Test if GNU tar specific base-256 number fields
+        # are decoded correctly.
+        self.assertEqual(tarfile.nti(b"0000001\x00"), 1)
+        self.assertEqual(tarfile.nti(b"7777777\x00"), 0o7777777)
+        self.assertEqual(tarfile.nti(b"\x80\x00\x00\x00\x00\x20\x00\x00"), 0o10000000)
+        self.assertEqual(tarfile.nti(b"\x80\x00\x00\x00\xff\xff\xff\xff"), 0xffffffff)
+        self.assertEqual(tarfile.nti(b"\xff\xff\xff\xff\xff\xff\xff\xff"), -1)
+        self.assertEqual(tarfile.nti(b"\xff\xff\xff\xff\xff\xff\xff\x9c"), -100)
+        self.assertEqual(tarfile.nti(b"\xff\x00\x00\x00\x00\x00\x00\x00"), -0x100000000000000)
+
+    def test_write_number_fields(self):
         self.assertEqual(tarfile.itn(1), b"0000001\x00")
+        self.assertEqual(tarfile.itn(0o7777777), b"7777777\x00")
+        self.assertEqual(tarfile.itn(0o10000000), b"\x80\x00\x00\x00\x00\x20\x00\x00")
         self.assertEqual(tarfile.itn(0xffffffff), b"\x80\x00\x00\x00\xff\xff\xff\xff")
+        self.assertEqual(tarfile.itn(-1), b"\xff\xff\xff\xff\xff\xff\xff\xff")
+        self.assertEqual(tarfile.itn(-100), b"\xff\xff\xff\xff\xff\xff\xff\x9c")
+        self.assertEqual(tarfile.itn(-0x100000000000000), b"\xff\x00\x00\x00\x00\x00\x00\x00")
+
+    def test_number_field_limits(self):
+        self.assertRaises(ValueError, tarfile.itn, -1, 8, tarfile.USTAR_FORMAT)
+        self.assertRaises(ValueError, tarfile.itn, 0o10000000, 8, tarfile.USTAR_FORMAT)
+        self.assertRaises(ValueError, tarfile.itn, -0x10000000001, 6, tarfile.GNU_FORMAT)
+        self.assertRaises(ValueError, tarfile.itn, 0x10000000000, 6, tarfile.GNU_FORMAT)
 
 
 class ContextManagerTest(unittest.TestCase):
@@ -1796,11 +1828,8 @@ def test_main():
     if bz2:
         # Create testtar.tar.bz2 and add bz2-specific tests.
         support.unlink(bz2name)
-        tar = bz2.BZ2File(bz2name, "wb")
-        try:
+        with bz2.BZ2File(bz2name, "wb") as tar:
             tar.write(data)
-        finally:
-            tar.close()
 
         tests += [
             Bz2MiscReadTest,
