@@ -234,9 +234,9 @@ class ClusterControllerHandler:
 			for info in infos:
 				machineID = info[14]
 				
-				gourps = self._interfaces_machineGroups.get(machineID, [])
-				if machineID not in self._interfaces_machineGroups:
-					self._interfaces_machineGroups[machineID] = gourps
+				gourps = self._interfaces_groups.get(machineID, [])
+				if machineID not in self._interfaces_groups:
+					self._interfaces_groups[machineID] = gourps
 					self._interfaces_groups_uid[machineID] = []
 					
 				if info[13] != machineID:
@@ -272,12 +272,12 @@ class ClusterQueryHandler(ClusterControllerHandler):
 		self.uid = uid
 		
 	def do(self):
-		self._interfaces_machineGroups = {}
+		self._interfaces_groups = {}
 		self.queryAllInterfaces()
 		interfaces = self._interfaces
 
-		for machineID in self._interfaces_machineGroups:
-			infos = self._interfaces_machineGroups.get(machineID, [])
+		for machineID in self._interfaces_groups:
+			infos = self._interfaces_groups.get(machineID, [])
 			print('-----------------------------------------------------')
 			if len(infos) > 0:
 				info = infos.pop(0)
@@ -317,7 +317,7 @@ class ClusterQueryHandler(ClusterControllerHandler):
 			"""
 			
 		print('-----------------------------------------------------')
-		print("machines: %i, components=%i." % (len(self._interfaces_machineGroups), len(self._interfaces)))
+		print("machines: %i, components=%i." % (len(self._interfaces_groups), len(self._interfaces)))
 		
 class ClusterStartHandler(ClusterControllerHandler):
 	def __init__(self, uid, startTemplate):
@@ -490,8 +490,8 @@ def getDefaultUID():
 	
 if __name__ == "__main__":
 	clusterHandler = None
-	
-	if len(sys.argv)  > 2:
+
+	if len(sys.argv)  >= 2:
 		cmdType = sys.argv[1]
 		
 		if cmdType == "start":

@@ -478,6 +478,10 @@ $(KBE_PYTHONLIB): always
 		"KBE_STANDARD_PYTHON=$(KBE_STANDARD_PYTHON)" \
 		"KBE_CONFIG=$(KBE_CONFIG)" \
 		$(PYTHON_EXTRA_CFLAGS) 
+	
+	@$(MAKE) -C $(KBE_ROOT)/kbe/src/lib/python
+	@rm -rf $(KBE_ROOT)/kbe/res/scripts/common/lib-dynload
+	@cp -rf "$(KBE_ROOT)/kbe/src/lib/python/build/lib.linux-$(shell uname -m)-3.2" "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload"
 endif
 
 ifeq ($(USE_OPENSSL),1)
