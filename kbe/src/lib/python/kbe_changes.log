@@ -15,3 +15,5 @@ _ssl _ssl.c \
 cp Modules/Setup.dist to Modules/Setup
 
 * 改变了Makefile.pre.in， 使其能够和kbengine兼容编译
+
+* 将pythoncore， _socket, _ssl, select等windows项目改变为静态库
