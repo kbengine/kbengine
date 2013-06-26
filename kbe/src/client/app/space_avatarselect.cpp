@@ -101,21 +101,25 @@ void SpaceAvatarSelect::buttonHit(OgreBites::Button* button)
 			return;
 		}
 
+		kbe_lock();
 		PyObject* arg = Py_BuildValue("K", g_selAvatarDBID);
 		PyObject* args = PyTuple_New(1);
 		PyTuple_SetItem(args, 0, arg);
 		PyObject* ret = kbe_callEntityMethod(kbe_playerID(), "selectAvatarGame", args);
 		Py_DECREF(args);
 		Py_XDECREF(ret);
+		kbe_unlock();
 
 		OgreApplication::getSingleton().changeSpace(new SpaceWorld(mRoot, mWindow, mInputManager, mTrayMgr));
 	}
 	else if(button->getCaption() == "create avatar")
 	{
+		kbe_lock();
 		PyObject* args = Py_BuildValue("is", 1, "kbengine");
 		PyObject* ret = kbe_callEntityMethod(kbe_playerID(), "reqCreateAvatar", args);
 		Py_DECREF(args);
 		Py_XDECREF(ret);
+		kbe_unlock();
 	}
 	else
 	{

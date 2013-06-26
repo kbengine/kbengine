@@ -399,7 +399,7 @@ bool kbe_deregisterEventHandle(KBEngine::EventHandle* pHandle)
 PyObject* kbe_callEntityMethod(KBEngine::ENTITY_ID entityID, const char *method, 
 							   PyObject *args, PyObject *kw)
 {
-	KBEngine::script::PyThreadStateLock lock;
+	// KBEngine::script::PyThreadStateLock lock;
 	client::Entity* pEntity = g_pApp->pEntities()->find(entityID);
 	if(!pEntity)
 	{
