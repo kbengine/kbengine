@@ -409,8 +409,9 @@ class ClusterStopHandler(ClusterControllerHandler):
 		print("online-components:")
 		printed = []
 		for ctype in self.startTemplate:
-			if ctype not in COMPONENT_NAME2TYPE:
-				print("not found %s, stop failed!" % ctype)
+			if ctype not in COMPONENT_NAME2TYPE or ctype == "kbmachine":
+				if(ctype != "kbmachine"):
+					print("not found %s, stop failed!" % ctype)
 				continue
 			
 			infos = interfaces.get(COMPONENT_NAME2TYPE[ctype], [])
@@ -446,13 +447,13 @@ class ClusterStopHandler(ClusterControllerHandler):
 			
 			waitcount = 0
 			for ctype in interfacesCount:
-				if ctype not in COMPONENT_NAME2TYPE:
+				if ctype not in COMPONENT_NAME2TYPE or ctype not in self.startTemplate or ctype == "kbmachine":
 					continue
 			
 				infos = self._interfaces.get(COMPONENT_NAME2TYPE[ctype], [])
 				print("\t\t%s : %i" % (ctype, len(infos)))
 				waitcount += len(infos)
-			
+
 			if waitcount > 0:
 				time.sleep(3)
 			else:

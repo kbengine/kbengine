@@ -87,6 +87,9 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 									float cpu, float mem, uint32 usedmem, int8 state, uint32 machineID, uint64 extradata,
 									uint64 extradata1, uint64 extradata2)
 {
+	if(Componentbridge::getComponents().findComponent((COMPONENT_TYPE)componentType, uid, componentID))
+		return;
+
 	if(intaddr == this->getNetworkInterface().intaddr().ip)
 	{
 		// 一台硬件上只能存在一个machine
@@ -104,9 +107,8 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 		}
 	}
 
-
 	INFO_MSG(boost::format("Machine::onBroadcastInterface[%1%]: uid:%2%, username:%3%, componentType:%4%, "
-			"componentID:%5%, globalorderid=%10%, grouporderid=%11%, intaddr:%6%, intport:%7%, extaddr:%8%, extport:%9%.\n") %
+			"componentID:%5%, globalorderid=%10%, grouporderid=%11%, pid:%12%, intaddr:%6%, intport:%7%, extaddr:%8%, extport:%9%.\n") %
 			pChannel->c_str() % 
 			uid %
 			username.c_str() %
@@ -117,7 +119,8 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 			(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport") %
 			ntohs(extport) %
 			((int32)globalorderid) %
-			((int32)grouporderid));
+			((int32)grouporderid) %
+			pid);
 
 	Componentbridge::getComponents().addComponent(uid, username.c_str(), 
 		(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderid, grouporderid, intaddr, intport, extaddr, extport,

@@ -317,20 +317,26 @@ bool Componentbridge::process()
 {
 	if(state_ == 0)
 	{
-		// 如果是cellappmgr或者baseapmgrp则向machine请求获得dbmgr的地址
-		Mercury::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
-
-		bhandler.newMessage(MachineInterface::onBroadcastInterface);
 		uint64 cidex = 0;
-		MachineInterface::onBroadcastInterfaceArgs20::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
-			componentType_, componentID_, cidex, g_componentGlobalOrder, g_componentGroupOrder,
-			networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
-			networkInterface_.extaddr().ip, networkInterface_.extaddr().port, getProcessPID(),
-			SystemInfo::getSingleton().getCPUPerByPID(), 0.f, SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, 0, 0, 0);
-		
-		bhandler.broadcast();
+		while(cidex++ < 3)
+		{
+			// 如果是cellappmgr或者baseapmgrp则向machine请求获得dbmgr的地址
+			Mercury::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
 
-		bhandler.close();
+			bhandler.newMessage(MachineInterface::onBroadcastInterface);
+			MachineInterface::onBroadcastInterfaceArgs20::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+				componentType_, componentID_, cidex, g_componentGlobalOrder, g_componentGroupOrder,
+				networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
+				networkInterface_.extaddr().ip, networkInterface_.extaddr().port, getProcessPID(),
+				SystemInfo::getSingleton().getCPUPerByPID(), 0.f, SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, 0, 0, 0);
+			
+			bhandler.broadcast();
+
+			bhandler.close();
+
+			sleep(50);
+		}
+
 		state_ = 1;
 		return true;
 	}

@@ -42,9 +42,9 @@ DataTypes::~DataTypes()
 //-------------------------------------------------------------------------------------
 void DataTypes::finalise(void)
 {
-	DATATYPE_MAP::iterator iter = dataTypes_.begin();
-	for (; iter != dataTypes_.end(); iter++) 
-		iter->second->decRef();
+	//DATATYPE_MAP::iterator iter = dataTypes_.begin();
+	//for (; iter != dataTypes_.end(); iter++) 
+	//	iter->second->decRef();
 
 	uid_dataTypes_.clear();
 	dataTypesLowerName_.clear();

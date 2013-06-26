@@ -273,7 +273,6 @@ void EntityApp<E>::finalise(void)
 	pEntities_->finalise();
 	
 	uninstallPyScript();
-	EntityDef::finalise();
 
 	ServerApp::finalise();
 }

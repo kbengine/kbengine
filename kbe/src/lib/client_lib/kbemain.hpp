@@ -71,8 +71,7 @@ inline bool installPyScript(KBEngine::script::Script& script, COMPONENT_TYPE com
 
 	tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(kbe_res_path.c_str()));
 	bool ret = script.install(tbuf, pyPaths, "KBEngine", componentType);
-	// 此处经测试传入python之后被python释放了
-	// free(tbuf);
+	free(tbuf);
 
 	EntityDef::installScript(script.getModule());
 	client::Entity::installScript(script.getModule());
@@ -82,10 +81,9 @@ inline bool installPyScript(KBEngine::script::Script& script, COMPONENT_TYPE com
 
 inline bool uninstallPyScript(KBEngine::script::Script& script)
 {
-	EntityDef::uninstallScript();
-
 	client::Entity::uninstallScript();
 	Entities<client::Entity>::uninstallScript();
+	EntityDef::uninstallScript();
 	return script.uninstall();
 }
 

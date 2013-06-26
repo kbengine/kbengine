@@ -165,6 +165,8 @@ private:
 	static COMPONENT_TYPE __loadComponentType;									// 所需关系的组件类别的相关数据		
 
 	static KBE_MD5 __md5;														// defs-md5
+
+	static bool _isInit;
 };
 
 }

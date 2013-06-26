@@ -198,7 +198,7 @@ void ClientApp::registerScript(PyTypeObject* pto)
 bool ClientApp::uninstallPyScript()
 {
 	unregisterPyObjectToScript("entities");
-	return uninstallPyModules() && EntityDef::finalise();
+	return uninstallPyModules() && EntityDef::uninstallScript();
 }
 
 //-------------------------------------------------------------------------------------

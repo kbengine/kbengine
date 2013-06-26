@@ -37,6 +37,7 @@ std::vector<ScriptDefModulePtr>	EntityDef::__scriptModules;
 std::map<std::string, ENTITY_SCRIPT_UID> EntityDef::__scriptTypeMappingUType;
 COMPONENT_TYPE EntityDef::__loadComponentType;
 KBE_MD5 EntityDef::__md5;
+bool EntityDef::_isInit = false;
 
 // 方法产生时自动产生utype用的
 ENTITY_METHOD_UID g_methodUtypeAuto = 1;
@@ -49,7 +50,8 @@ EntityDef::EntityDef()
 
 //-------------------------------------------------------------------------------------
 EntityDef::~EntityDef()
-{	
+{
+	EntityDef::finalise();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1135,17 +1137,22 @@ bool EntityDef::installScript(PyObject* mod)
 	EntityMailbox::installScript(NULL);
 	FixedArray::installScript(NULL);
 	FixedDict::installScript(NULL);
+	_isInit = true;
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 bool EntityDef::uninstallScript()
 {
-	Blob::uninstallScript();
-	EntityMailbox::uninstallScript();
-	FixedArray::uninstallScript();
-	FixedDict::uninstallScript();
-	return true;
+	if(_isInit)
+	{
+		Blob::uninstallScript();
+		EntityMailbox::uninstallScript();
+		FixedArray::uninstallScript();
+		FixedDict::uninstallScript();
+	}
+
+	return EntityDef::finalise();
 }
 
 //-------------------------------------------------------------------------------------
