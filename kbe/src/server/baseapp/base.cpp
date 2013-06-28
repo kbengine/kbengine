@@ -443,7 +443,7 @@ void Base::onDestroyEntity(bool deleteFromDB, bool writeToDB)
 
 		if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 		{
-			ERROR_MSG("Base::onCellWriteToDBCompleted: not found dbmgr!\n");
+			ERROR_MSG(boost::format("Base::onDestroyEntity(%1%): writeToDB not found dbmgr!\n") % this->getID());
 			return;
 		}
 
@@ -868,7 +868,7 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		ERROR_MSG("Base::onCellWriteToDBCompleted: not found dbmgr!\n");
+		ERROR_MSG(boost::format("Base::onCellWriteToDBCompleted(%1%): not found dbmgr!\n") % this->getID());
 		return;
 	}
 

@@ -41,7 +41,7 @@ class RestoreEntityHandler : public Task
 	};
 
 public:
-	RestoreEntityHandler(Mercury::NetworkInterface & networkInterface);
+	RestoreEntityHandler(COMPONENT_ID cellappID, Mercury::NetworkInterface & networkInterface);
 	~RestoreEntityHandler();
 	
 	bool process();
@@ -59,7 +59,7 @@ private:
 	bool inProcess_;
 
 	std::vector<RestoreData> restoreSpaces_;
-	std::vector<RestoreData> ohterRestoredSpaces_;
+	std::vector<RestoreData> otherRestoredSpaces_;
 
 	// space创建好cell后广播给其他baseapp
 	bool broadcastOtherBaseapps_;
@@ -67,6 +67,8 @@ private:
 	uint64 tickReport_;
 
 	std::vector<SPACE_ID> spaceIDs_;
+
+	COMPONENT_ID cellappID_;
 };
 
 

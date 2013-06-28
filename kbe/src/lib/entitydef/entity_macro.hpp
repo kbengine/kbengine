@@ -611,8 +611,8 @@ public:																										\
 		{																									\
 			isDestroyed_ = true;																			\
 			onDestroy();																					\
+			Py_DECREF(this);																				\
 		}																									\
-		Py_DECREF(this);																					\
 	}																										\
 	INLINE bool isDestroyed()const																			\
 	{																										\

@@ -31,15 +31,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-RestoreEntityHandler::RestoreEntityHandler(Mercury::NetworkInterface & networkInterface):
+RestoreEntityHandler::RestoreEntityHandler(COMPONENT_ID cellappID, Mercury::NetworkInterface & networkInterface):
 Task(),
 networkInterface_(networkInterface),
 entities_(),
 inProcess_(false),
 restoreSpaces_(),
+otherRestoredSpaces_(),
 broadcastOtherBaseapps_(false),
 tickReport_(0),
-spaceIDs_()
+spaceIDs_(),
+cellappID_(cellappID)
 {
 	// networkInterface_.mainDispatcher().addFrequentTask(this);
 }
@@ -50,8 +52,8 @@ RestoreEntityHandler::~RestoreEntityHandler()
 	if(inProcess_)
 		networkInterface_.mainDispatcher().cancelFrequentTask(this);
 
-	std::vector<RestoreData>::iterator restoreSpacesIter = ohterRestoredSpaces_.begin();
-	for(; restoreSpacesIter != ohterRestoredSpaces_.end(); restoreSpacesIter++)
+	std::vector<RestoreData>::iterator restoreSpacesIter = otherRestoredSpaces_.begin();
+	for(; restoreSpacesIter != otherRestoredSpaces_.end(); restoreSpacesIter++)
 	{
 		if((*restoreSpacesIter).cell)
 		{
@@ -60,7 +62,7 @@ RestoreEntityHandler::~RestoreEntityHandler()
 		}
 	}
 
-	 DEBUG_MSG("RestoreEntityHandler::~RestoreEntityHandler()\n");
+	DEBUG_MSG(boost::format("RestoreEntityHandler::~RestoreEntityHandler(%1%)\n") % cellappID_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -131,8 +133,8 @@ bool RestoreEntityHandler::process()
 		if(timestamp() - tickReport_ > uint64( 3 * stampsPerSecond() ))
 		{
 			tickReport_ = timestamp();
-			INFO_MSG(boost::format("RestoreEntityHandler::process(): wait for localSpace to get cell!, entitiesSize(%1%), spaceSize=%2%\n") % 
-				entities_.size() % restoreSpaces_.size());
+			INFO_MSG(boost::format("RestoreEntityHandler::process(%3%): wait for localSpace to get cell!, entitiesSize(%1%), spaceSize=%2%\n") % 
+				entities_.size() % restoreSpaces_.size() % cellappID_);
 		}
 
 		int spaceCellCount = 0;
@@ -174,7 +176,7 @@ bool RestoreEntityHandler::process()
 			}
 			else
 			{
-				ERROR_MSG(boost::format("RestoreEntityHandler::process(): lose space(%1%).\n") % (*restoreSpacesIter).id);
+				ERROR_MSG(boost::format("RestoreEntityHandler::process(%1%): lose space(%2%).\n") % cellappID_ % (*restoreSpacesIter).id);
 			}
 		}
 		
@@ -186,7 +188,7 @@ bool RestoreEntityHandler::process()
 		{
 			broadcastOtherBaseapps_ = true;
 
-			INFO_MSG("RestoreEntityHandler::process(): begin broadcast-spaceGetCell to otherBaseapps...\n");
+			INFO_MSG(boost::format("RestoreEntityHandler::process(%1%): begin broadcast-spaceGetCell to otherBaseapps...\n") % cellappID_);
 
 			std::vector<RestoreData>::iterator restoreSpacesIter = restoreSpaces_.begin();
 			for(; restoreSpacesIter != restoreSpaces_.end(); restoreSpacesIter++)
@@ -216,8 +218,8 @@ bool RestoreEntityHandler::process()
 					
 					if(pChannel)
 					{
-						INFO_MSG(boost::format("RestoreEntityHandler::process(): broadcast baseapp[%1%, %2%], spaceID[%3%], utype[%4%]...\n") % 
-							(*comsiter).cid % pChannel->c_str() % spaceID % utype);
+						INFO_MSG(boost::format("RestoreEntityHandler::process(%5%): broadcast baseapp[%1%, %2%], spaceID[%3%], utype[%4%]...\n") % 
+							(*comsiter).cid % pChannel->c_str() % spaceID % utype % cellappID_);
 
 						Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 						(*pBundle).newMessage(BaseappInterface::onRestoreSpaceCellFromOtherBaseapp);
@@ -235,8 +237,8 @@ bool RestoreEntityHandler::process()
 		if(timestamp() - tickReport_ > uint64( 3 * stampsPerSecond() ))
 		{
 			tickReport_ = timestamp();
-			INFO_MSG(boost::format("RestoreEntityHandler::process(): wait for otherBaseappSpaces to get cell!, entitiesSize(%1%), spaceSize=%2%\n") % 
-				entities_.size() % spaceIDs_.size());
+			INFO_MSG(boost::format("RestoreEntityHandler::process(%1%): wait for otherBaseappSpaces to get cell!, entitiesSize(%2%), spaceSize=%3%\n") % 
+				cellappID_ % entities_.size() % spaceIDs_.size());
 		}
 
 		return true;
@@ -286,8 +288,8 @@ bool RestoreEntityHandler::process()
 					
 					if(cellMailbox == NULL)
 					{
-						restoreSpacesIter = ohterRestoredSpaces_.begin();
-						for(; restoreSpacesIter != ohterRestoredSpaces_.end(); restoreSpacesIter++)
+						restoreSpacesIter = otherRestoredSpaces_.begin();
+						for(; restoreSpacesIter != otherRestoredSpaces_.end(); restoreSpacesIter++)
 						{
 							if(pBase->getSpaceID() == (*restoreSpacesIter).spaceID && (*restoreSpacesIter).cell)
 							{
@@ -303,8 +305,15 @@ bool RestoreEntityHandler::process()
 					}
 					else
 					{
+						ENTITY_ID delID = pBase->getID();
+
 						pBase->destroy();
-						iter = entities_.erase(iter);
+						WARNING_MSG(boost::format("RestoreEntityHandler::process(%1%): not fount spaceCell, killed base(%2%)!") 
+							% cellappID_ % delID);
+
+						if(Baseapp::getSingleton().findEntity(delID) == NULL)
+							iter = entities_.erase(iter);
+
 						continue;
 					}
 				}
@@ -320,8 +329,8 @@ bool RestoreEntityHandler::process()
 
 	if(entities_.size() == 0)
 	{
-		std::vector<RestoreData>::iterator restoreSpacesIter = ohterRestoredSpaces_.begin();
-		for(; restoreSpacesIter != ohterRestoredSpaces_.end(); restoreSpacesIter++)
+		std::vector<RestoreData>::iterator restoreSpacesIter = otherRestoredSpaces_.begin();
+		for(; restoreSpacesIter != otherRestoredSpaces_.end(); restoreSpacesIter++)
 		{
 			if((*restoreSpacesIter).cell)
 			{
@@ -330,7 +339,7 @@ bool RestoreEntityHandler::process()
 			}
 		}
 		
-		ohterRestoredSpaces_.clear();
+		otherRestoredSpaces_.clear();
 
 		inProcess_ = false;
 		Baseapp::getSingleton().onRestoreEntitiesOver(this);
@@ -344,7 +353,10 @@ bool RestoreEntityHandler::process()
 void RestoreEntityHandler::onRestoreSpaceCellFromOtherBaseapp(COMPONENT_ID baseappID, COMPONENT_ID cellappID,
 															 SPACE_ID spaceID, ENTITY_ID spaceEntityID, ENTITY_SCRIPT_UID utype, bool destroyed)
 {
+	SIZE_T oldsize = spaceIDs_.size();
 	spaceIDs_.erase(std::remove(spaceIDs_.begin(), spaceIDs_.end(), spaceID), spaceIDs_.end());
+	if(oldsize == spaceIDs_.size())
+		return;
 
 	RestoreData data;
 	data.id = spaceEntityID;
@@ -358,7 +370,7 @@ void RestoreEntityHandler::onRestoreSpaceCellFromOtherBaseapp(COMPONENT_ID basea
 		ScriptDefModule* sm = EntityDef::findScriptModule(utype);
 		if(sm == NULL)
 		{
-			ERROR_MSG(boost::format("RestoreEntityHandler::onRestoreSpaceCellFromOtherBaseapp: not found utype %1%!\n") % utype);
+			ERROR_MSG(boost::format("RestoreEntityHandler::onRestoreSpaceCellFromOtherBaseapp(%1%): not found utype %2%!\n") % cellappID_ % utype);
 		}
 		else
 		{
@@ -367,7 +379,7 @@ void RestoreEntityHandler::onRestoreSpaceCellFromOtherBaseapp(COMPONENT_ID basea
 		}
 	}
 
-	ohterRestoredSpaces_.push_back(data);
+	otherRestoredSpaces_.push_back(data);
 }
 
 //-------------------------------------------------------------------------------------

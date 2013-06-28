@@ -521,7 +521,7 @@ void Baseapp::onCellAppDeath(Mercury::Channel * pChannel)
 		SCRIPT_ERROR_CHECK();
 
 
-	RestoreEntityHandler* pRestoreEntityHandler = new RestoreEntityHandler(this->getNetworkInterface());
+	RestoreEntityHandler* pRestoreEntityHandler = new RestoreEntityHandler(pChannel->componentID(), this->getNetworkInterface());
 	Entities<Base>::ENTITYS_MAP& entitiesMap = pEntities_->getEntities();
 	Entities<Base>::ENTITYS_MAP::const_iterator iter = entitiesMap.begin();
 	while (iter != entitiesMap.end())
