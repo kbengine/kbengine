@@ -353,7 +353,7 @@ bool RestoreEntityHandler::process()
 void RestoreEntityHandler::onRestoreSpaceCellFromOtherBaseapp(COMPONENT_ID baseappID, COMPONENT_ID cellappID,
 															 SPACE_ID spaceID, ENTITY_ID spaceEntityID, ENTITY_SCRIPT_UID utype, bool destroyed)
 {
-	SIZE_T oldsize = spaceIDs_.size();
+	std::vector<SPACE_ID>::size_type oldsize = spaceIDs_.size();
 	spaceIDs_.erase(std::remove(spaceIDs_.begin(), spaceIDs_.end(), spaceID), spaceIDs_.end());
 	if(oldsize == spaceIDs_.size())
 		return;
