@@ -113,7 +113,7 @@ PyObject* PyFileDescriptor::__py_deregisterFileDescriptor(PyObject* self, PyObje
 	}
 
 	PyFileDescriptor* pPyFileDescriptor = 
-		static_cast<PyFileDescriptor*>(Baseapp::getSingleton().getNetworkInterface().dispatcher().pPoller()->find(fd, false));
+		static_cast<PyFileDescriptor*>(Baseapp::getSingleton().getNetworkInterface().dispatcher().pPoller()->find(fd, true));
 
 	if(pPyFileDescriptor)
 		delete pPyFileDescriptor;
@@ -186,7 +186,7 @@ PyObject* PyFileDescriptor::__py_deregisterWriteFileDescriptor(PyObject* self, P
 	}
 
 	PyFileDescriptor* pPyFileDescriptor = 
-		static_cast<PyFileDescriptor*>(Baseapp::getSingleton().getNetworkInterface().dispatcher().pPoller()->find(fd, true));
+		static_cast<PyFileDescriptor*>(Baseapp::getSingleton().getNetworkInterface().dispatcher().pPoller()->find(fd, false));
 
 	if(pPyFileDescriptor)
 		delete pPyFileDescriptor;
