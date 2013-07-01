@@ -57,7 +57,8 @@ NetworkInterface::NetworkInterface(Mercury::EventDispatcher * pMainDispatcher,
 	pDelayedChannels_(new DelayedChannels()),
 	pChannelTimeOutHandler_(NULL),
 	pChannelDeregisterHandler_(NULL),
-	isExternal_(extlisteningPort_min != -1)
+	isExternal_(extlisteningPort_min != -1),
+	numExtChannels_(0)
 {
 	if(isExternal())
 	{
@@ -393,6 +394,10 @@ bool NetworkInterface::registerChannel(Channel* pChannel)
 	}
 
 	channelMap_[addr] = pChannel;
+
+	if(pChannel->isExternal())
+		numExtChannels_++;
+
 	INFO_MSG(boost::format("NetworkInterface::registerChannel: new channel: %1%.\n") % pChannel->c_str());
 	return true;
 }
@@ -409,6 +414,7 @@ bool NetworkInterface::deregisterAllChannels()
 	}
 
 	channelMap_.clear();
+	numExtChannels_ = 0;
 
 	return true;
 }
@@ -418,6 +424,9 @@ bool NetworkInterface::deregisterChannel(Channel* pChannel)
 {
 	const Address & addr = pChannel->addr();
 	KBE_ASSERT(pChannel->endpoint() != NULL);
+
+	if(pChannel->isExternal())
+		numExtChannels_--;
 
 	if(pChannelDeregisterHandler_)
 	{
@@ -453,6 +462,9 @@ bool NetworkInterface::deregisterChannel(const Address & addr)
 
 	Channel* pChannel = iter->second;
 	KBE_ASSERT(pChannel->endpoint() != NULL);
+
+	if(pChannel->isExternal())
+		numExtChannels_--;
 
 	if(pChannelDeregisterHandler_)
 	{

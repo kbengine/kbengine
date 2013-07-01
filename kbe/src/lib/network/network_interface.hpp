@@ -124,6 +124,8 @@ public:
 		获取一次send或者sendto操作产生错误的原因 
 	*/
 	static Reason getSendErrorReason(const EndPoint * endpoint, int retSendSize, int packetTotalSize);
+
+	INLINE int32 numExtChannels() const;
 private:
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 
@@ -147,6 +149,8 @@ private:
 	ChannelDeregisterHandler *				pChannelDeregisterHandler_;
 
 	const bool								isExternal_;
+
+	int32									numExtChannels_;
 };
 
 }

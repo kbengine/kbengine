@@ -124,7 +124,6 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 	pBackupSender_(),
 	load_(0.f),
 	numProxices_(0),
-	numClients_(0),
 	pTelnetServer_(NULL),
 	pRestoreEntityHandlers_()
 {
@@ -602,7 +601,6 @@ void Baseapp::onChannelDeregister(Mercury::Channel * pChannel)
 	// 有关联entity的客户端退出则需要设置entity的client
 	if(pid > 0)
 	{
-		decClientCount();
 		Proxy* proxy = static_cast<Proxy*>(this->findEntity(pid));
 		if(proxy)
 		{
@@ -1986,7 +1984,6 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 					INFO_MSG("Baseapp::loginGateway: script LOG_ON_ACCEPT.\n");
 				}
 				
-				incClientCount();
 				base->getClientMailbox()->addr(pChannel->addr());
 				base->addr(pChannel->addr());
 				createClientProxies(base, true);
@@ -1997,7 +1994,6 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 				EntityMailbox* entityClientMailbox = new EntityMailbox(base->getScriptModule(), 
 					&pChannel->addr(), 0, base->getID(), MAILBOX_TYPE_CLIENT);
 
-				incClientCount();
 				base->setClientMailbox(entityClientMailbox);
 				base->addr(pChannel->addr());
 
@@ -2125,7 +2121,6 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 		EntityMailbox* entityClientMailbox = new EntityMailbox(base->getScriptModule(), 
 			&pClientChannel->addr(), 0, base->getID(), MAILBOX_TYPE_CLIENT);
 
-		incClientCount();
 		base->setClientMailbox(entityClientMailbox);
 		base->addr(pClientChannel->addr());
 

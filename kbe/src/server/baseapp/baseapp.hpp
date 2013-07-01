@@ -334,19 +334,9 @@ public:
 	int32 numProxices()const{ return numProxices_; }
 
 	/**
-		增加numClients计数
-	*/
-	void incClientCount(){ ++numClients_; }
-
-	/**
-		减少numClients计数
-	*/
-	void decClientCount(){ --numClients_; }
-
-	/**
 		获得numClients计数
 	*/
-	int32 numClients()const{ return numClients_; }
+	int32 numClients(){ return this->getNetworkInterface().numExtChannels(); }
 	
 	/** 
 		请求充值
@@ -397,7 +387,6 @@ protected:
 	static uint64											_g_lastTimestamp;
 
 	int32													numProxices_;
-	int32													numClients_;
 
 	TelnetServer*											pTelnetServer_;
 

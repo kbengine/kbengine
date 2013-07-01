@@ -33,5 +33,10 @@ INLINE const Address & NetworkInterface::intaddr() const
 	return intEndpoint_.addr();
 }
 
+INLINE int32 NetworkInterface::numExtChannels() const
+{
+	return numExtChannels_;
+}
+
 }
 }
