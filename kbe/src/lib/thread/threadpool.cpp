@@ -278,7 +278,7 @@ bool ThreadPool::createThreadPool(uint32 inewThreadCount,
 	
 	for(uint32 i=0; i<normalThreadCount_; i++)
 	{
-		TPThread* tptd = createThread();
+		TPThread* tptd = createThread(0);
 		
 		if(!tptd)
 		{
