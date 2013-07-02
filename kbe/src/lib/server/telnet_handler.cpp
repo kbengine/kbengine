@@ -366,6 +366,27 @@ bool TelnetHandler::processCommand()
 		return true;
 	}
 
+	if(state_ == TELNET_STATE_PASSWD)
+	{
+		if(command_ == pTelnetServer_->passwd())
+		{
+			state_ = (TELNET_STATE)pTelnetServer_->deflayer();
+			std::string s = getWelcome();
+			pEndPoint_->send(s.c_str(), s.size());
+			command_ = "";
+			sendEnter();
+			sendNewLine();
+			return true;
+		}
+		else
+		{
+			command_ = "";
+			sendNewLine();
+			return true;
+		}
+	}
+
+
 	bool logcmd = true;
 	//for(int i=0; i<(int)historyCommand_.size(); i++)
 	{
@@ -547,16 +568,6 @@ bool TelnetHandler::processCommand()
 	if(state_ == TELNET_STATE_PYTHON)
 	{
 		processPythonCommand(cmd);
-	}
-	else if(state_ == TELNET_STATE_PASSWD)
-	{
-		if(cmd == pTelnetServer_->passwd())
-		{
-			state_ = (TELNET_STATE)pTelnetServer_->deflayer();
-			std::string s = getWelcome();
-			pEndPoint_->send(s.c_str(), s.size());
-			sendEnter();
-		}
 	}
 
 	sendNewLine();

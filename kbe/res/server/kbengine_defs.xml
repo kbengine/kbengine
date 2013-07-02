@@ -217,7 +217,7 @@
 			<port> 50000 </port>
 			<password> kbe </password>
 			<!-- ÃüÁîÄ¬ÈÏ²ã -->
-			<default_layer> root </default_layer>
+			<default_layer> python </default_layer>
 		</telnet_service>
 		
 		<shutdown>
@@ -268,7 +268,7 @@
 			<port> 40000 </port>
 			<password> kbe </password>
 			<!-- ÃüÁîÄ¬ÈÏ²ã -->
-			<default_layer> root </default_layer>
+			<default_layer> python </default_layer>
 		</telnet_service>
 		
 		<shutdown>
