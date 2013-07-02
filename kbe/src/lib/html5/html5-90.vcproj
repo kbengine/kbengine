@@ -159,6 +159,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\html5_packet_reader.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\sha1.cpp"
 				>
 			</File>
@@ -174,6 +178,10 @@
 			>
 			<File
 				RelativePath=".\base64.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\html5_packet_reader.hpp"
 				>
 			</File>
 			<File

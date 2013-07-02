@@ -37,7 +37,7 @@ public:
 	PacketReader(Channel* pChannel);
 	virtual ~PacketReader();
 
-	void reset();
+	virtual void reset();
 	
 	virtual void processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandlers, Packet* pPacket);
 	
