@@ -213,6 +213,9 @@ class ClusterControllerHandler:
 			
 			extradata2 = struct.unpack("Q", self.recvDatas[count][ii : ii + 8])[0]
 			ii += 8
+
+			extradata3 = struct.unpack("Q", self.recvDatas[count][ii : ii + 8])[0]
+			ii += 8
 			
 			#print("%s, uid=%i, cID=%i, gid=%i, groupid=%i, uname=%s" % (COMPONENT_NAME[componentType], \
 			#	uid, componentID, globalorderid, grouporderid, username))
@@ -223,7 +226,7 @@ class ClusterControllerHandler:
 				self._interfaces[componentType] = componentInfos
 			
 			componentInfos.append((uid, componentID, globalorderid, grouporderid, username, cpu, mem, usedmem, 0, \
-								intaddr, intport, extaddr, extport, pid, machineID, state, componentType, extradata, extradata1, extradata2))
+								intaddr, intport, extaddr, extport, pid, machineID, state, componentType, extradata, extradata1, extradata2, extradata3))
 			
 			count += 1
 		
@@ -247,24 +250,25 @@ class ClusterControllerHandler:
 					gourps.insert(0, info)
 				
 class ClusterConsoleHandler(ClusterControllerHandler):
-	def __init__(self, consoleType, startTemplate):
+	def __init__(self, uid, consoleType):
 		ClusterControllerHandler.__init__(self)
+		self.uid = uid
 		self.consoleType = consoleType
-		self.startTemplate = startTemplate.split("|")
 		
 	def do(self):
-		for ctype in self.startTemplate:
-			print ("ClusterConsoleHandler::do: find uid=%s, type=%s" % (self.uid, ctype))
-			
-			if ctype not in COMPONENT_NAME2TYPE:
-				print("not found %s!" % ctype)
-				continue
-				
-			self.writePacket("H", MachineInterface_onFindInterfaceAddr)
-			self.writePacket("H", 10)
-			self.writePacket("i", self.uid)
-			self.writePacket("i", COMPONENT_NAME2TYPE[ctype])
-			self.sendto()
+		self._interfaces_groups = {}
+		self.queryAllInterfaces()
+		interfaces = self._interfaces
+		
+		for machineID in self._interfaces_groups:
+			infos = self._interfaces_groups.get(machineID, [])
+			if len(infos) > 0:
+				info = infos.pop(0)
+
+			for info in infos:
+				if COMPONENT_NAME[info[16]] + str(info[3]) == self.consoleType:
+					os.system('telnet %s %i' % (socket.inet_ntoa(struct.pack('I', info[9])), info[20]))
+					
 
 class ClusterQueryHandler(ClusterControllerHandler):
 	def __init__(self, uid):
@@ -275,7 +279,13 @@ class ClusterQueryHandler(ClusterControllerHandler):
 		self._interfaces_groups = {}
 		self.queryAllInterfaces()
 		interfaces = self._interfaces
-
+		
+		numBases = 0
+		numEntities = 0
+		numClients = 0
+		numProxices = 0
+		numCells = 0
+		
 		for machineID in self._interfaces_groups:
 			infos = self._interfaces_groups.get(machineID, [])
 			print('-----------------------------------------------------')
@@ -291,10 +301,17 @@ class ClusterQueryHandler(ClusterControllerHandler):
 					print("|-%12s%i\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\tbases=%i\t\tclients=%i\tproxices=%i" % \
 					(COMPONENT_NAME[info[16]], info[3], info[1], info[0], info[13], info[2], info[5], info[6], info[7] / 1024.0 / 1024.0, \
 					info[17], info[18], info[19]))
+
+					numBases += info[17]
+					numClients += info[18]
+					numProxices += info[19]
+		
 				elif info[16] == CELLAPP_TYPE:
 					print("|-%12s%i\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\tentities=%i\tcells=%i\t\t%i" % \
 					(COMPONENT_NAME[info[16]], info[3], info[1], info[0],info[13], info[2], info[5], info[6], info[7] / 1024.0 / 1024.0, \
-					info[17], 0, info[18]))
+					info[17], info[18], 0))
+					
+					numEntities += info[17]
 				else:
 					print("|-%12s\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\t%i\t\t%i\t\t%i" % \
 					(COMPONENT_NAME[info[16]], info[1], info[0], info[13], info[2], info[5], info[6], info[7] / 1024.0 / 1024.0, \
@@ -317,7 +334,8 @@ class ClusterQueryHandler(ClusterControllerHandler):
 			"""
 			
 		print('-----------------------------------------------------')
-		print("machines: %i, components=%i." % (len(self._interfaces_groups), len(self._interfaces)))
+		print("machines: %i, components=%i, numBases=%i, numProxices=%i, numClients=%i, numEntities=%i, numCells=%i." % \
+			(len(self._interfaces_groups), len(self._interfaces), numBases, numProxices, numClients, numEntities, numCells))
 		
 class ClusterStartHandler(ClusterControllerHandler):
 	def __init__(self, uid, startTemplate):
@@ -538,9 +556,26 @@ if __name__ == "__main__":
 				
 			clusterHandler = ClusterStopHandler(uid, templatestr)
 		elif cmdType == "console":
-			assert(len(sys.argv) == 3)
-			consoleType = sys.argv[2]
-			clusterHandler = ClusterConsoleHandler(consoleType)
+			consoleType = ""
+			uid = -1
+			
+			if len(sys.argv) >= 3:
+				if sys.argv[2].isdigit():
+					uid = sys.argv[2]
+				else:
+					consoleType = sys.argv[2]
+
+			if len(sys.argv) == 4:
+				if sys.argv[3].isdigit():
+					uid = sys.argv[3]
+				else:
+					consoleType = sys.argv[3]
+					
+			uid = int(uid)
+			if uid < 0:
+				uid = getDefaultUID()
+				
+			clusterHandler = ClusterConsoleHandler(uid, consoleType)
 		elif cmdType == "query":
 			uid = -1
 

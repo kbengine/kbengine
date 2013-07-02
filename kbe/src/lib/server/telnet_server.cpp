@@ -37,7 +37,8 @@ listener_(),
 pDispatcher_(pDispatcher),
 passwd_(),
 deflayer_(TelnetHandler::TELNET_STATE_ROOT),
-pNetworkInterface_(networkInterface)
+pNetworkInterface_(networkInterface),
+port_(0)
 {
 }
 
@@ -60,6 +61,7 @@ bool TelnetServer::start(std::string passwd, std::string deflayer, u_int16_t por
 	int tryn = 0;
 	while(true)
 	{
+		port_ = port;
 		if (listener_.bind(htons(port), htonl(ip)) == -1)
 		{
 			port++;

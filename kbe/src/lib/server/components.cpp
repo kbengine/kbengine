@@ -108,7 +108,7 @@ void Components::addComponent(int32 uid, const char* username,
 			COMPONENT_TYPE componentType, COMPONENT_ID componentID, int8 globalorderid, int8 grouporderid,
 			uint32 intaddr, uint16 intport, 
 			uint32 extaddr, uint16 extport, uint32 pid,
-			float cpu, float mem, uint32 usedmem, uint64 extradata, uint64 extradata1, uint64 extradata2,
+			float cpu, float mem, uint32 usedmem, uint64 extradata, uint64 extradata1, uint64 extradata2, uint64 extradata3,
 			Mercury::Channel* pChannel)
 {
 	COMPONENTS& components = getComponents(componentType);
@@ -142,6 +142,7 @@ void Components::addComponent(int32 uid, const char* username,
 	componentInfos.extradata = extradata;
 	componentInfos.extradata1 = extradata1;
 	componentInfos.extradata2 = extradata2;
+	componentInfos.extradata3 = extradata3;
 	componentInfos.pid = pid;
 
 	if(pChannel)
@@ -614,6 +615,7 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 		int8 istate = 0;
 		ArraySize entitySize = 0, cellSize = 0;
 		int32 clientsSize = 0, proxicesSize = 0;
+		uint32 telnet_port = 0;
 
 		Mercury::TCPPacket packet;
 		packet.resize(255);
@@ -621,12 +623,12 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 
 		if(info->componentType == CELLAPP_TYPE)
 		{
-			recvsize += sizeof(entitySize) + sizeof(cellSize);
+			recvsize += sizeof(entitySize) + sizeof(cellSize) + sizeof(telnet_port);
 		}
 
 		if(info->componentType == BASEAPP_TYPE)
 		{
-			recvsize += sizeof(entitySize) + sizeof(clientsSize) + sizeof(proxicesSize);
+			recvsize += sizeof(entitySize) + sizeof(clientsSize) + sizeof(proxicesSize) + sizeof(telnet_port);
 		}
 
 		int len = epListen.recv(packet.data(), recvsize);
@@ -647,12 +649,12 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 		
 		if(ctype == CELLAPP_TYPE)
 		{
-			packet >> entitySize >> cellSize;
+			packet >> entitySize >> cellSize >> telnet_port;
 		}
 
 		if(ctype == BASEAPP_TYPE)
 		{
-			packet >> entitySize >> clientsSize >> proxicesSize;
+			packet >> entitySize >> clientsSize >> proxicesSize >> telnet_port;
 		}
 
 		if(ctype != info->componentType || cid != info->cid)
@@ -672,6 +674,7 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 			{
 				winfo->extradata = entitySize;
 				winfo->extradata1 = cellSize;
+				winfo->extradata3 = telnet_port;
 			}
 			
 			if(ctype == BASEAPP_TYPE)
@@ -679,6 +682,7 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 				winfo->extradata = entitySize;
 				winfo->extradata1 = clientsSize;
 				winfo->extradata2 = proxicesSize;
+				winfo->extradata3 = telnet_port;
 			}
 		}
 	}

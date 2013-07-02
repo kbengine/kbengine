@@ -1190,6 +1190,13 @@ void Cellapp::lookApp(Mercury::Channel* pChannel)
 	(*pBundle) << istate;
 	(*pBundle) << this->entitiesSize();
 	(*pBundle) << cells_.size();
+
+	uint32 port = 0;
+	if(pTelnetServer_)
+		port = pTelnetServer_->port();
+
+	(*pBundle) << port;
+
 	(*pBundle).send(getNetworkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);

@@ -85,7 +85,7 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 									uint32 intaddr, uint16 intport,
 									uint32 extaddr, uint16 extport, uint32 pid,
 									float cpu, float mem, uint32 usedmem, int8 state, uint32 machineID, uint64 extradata,
-									uint64 extradata1, uint64 extradata2)
+									uint64 extradata1, uint64 extradata2, uint64 extradata3)
 {
 	if(Componentbridge::getComponents().findComponent((COMPONENT_TYPE)componentType, uid, componentID))
 		return;
@@ -124,7 +124,7 @@ void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::s
 
 	Componentbridge::getComponents().addComponent(uid, username.c_str(), 
 		(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderid, grouporderid, intaddr, intport, extaddr, extport,
-		pid, cpu, mem, usedmem, extradata, extradata1, extradata2);
+		pid, cpu, mem, usedmem, extradata, extradata1, extradata2, extradata3);
 }
 
 //-------------------------------------------------------------------------------------
@@ -185,11 +185,11 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 				this->getNetworkInterface().extaddr().ip == pinfos->pIntAddr->ip)
 			{
 				found = true;
-				MachineInterface::onBroadcastInterfaceArgs20::staticAddToBundle(bundle, pinfos->uid, 
+				MachineInterface::onBroadcastInterfaceArgs21::staticAddToBundle(bundle, pinfos->uid, 
 					pinfos->username, findComponentType, pinfos->cid, componentID, pinfos->globalOrderid, pinfos->groupOrderid, 
 					pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
 					pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->pid, pinfos->cpu, pinfos->mem, pinfos->usedmem, 
-					pinfos->shutdownState, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2);
+					pinfos->shutdownState, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2, pinfos->extradata3);
 			}
 
 			++iter;
@@ -220,8 +220,8 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 			COMPONENT_NAME_EX(tComponentType) % 
 			COMPONENT_NAME_EX(tfindComponentType));
 
-		MachineInterface::onBroadcastInterfaceArgs20::staticAddToBundle(bundle, KBEngine::getUserUID(), 
-			"", UNKNOWN_COMPONENT_TYPE, 0, componentID, -1, -1, 0, 0, 0, 0, 0, 0.f, 0.f, 0, 0, 0, 0, 0, 0);
+		MachineInterface::onBroadcastInterfaceArgs21::staticAddToBundle(bundle, KBEngine::getUserUID(), 
+			"", UNKNOWN_COMPONENT_TYPE, 0, componentID, -1, -1, 0, 0, 0, 0, 0, 0.f, 0.f, 0, 0, 0, 0, 0, 0, 0);
 	}
 
 	if(finderAddr != 0 && finderRecvPort != 0)
@@ -263,12 +263,12 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 		uint64 totalmem = SystemInfo::getSingleton().getMemInfos().total;
 		uint64 totalusedmem = SystemInfo::getSingleton().getMemInfos().used;
 
-		MachineInterface::onBroadcastInterfaceArgs20::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+		MachineInterface::onBroadcastInterfaceArgs21::staticAddToBundle(bundle, getUserUID(), getUsername(), 
 			g_componentType, g_componentID, cidex, g_componentGlobalOrder, g_componentGroupOrder,
 			networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
 			networkInterface_.extaddr().ip, networkInterface_.extaddr().port, getProcessPID(),
 			cpu, float((totalusedmem * 1.0 / totalmem) * 100.0), SystemInfo::getSingleton().getMemUsedByPID(), 0, 
-			getProcessPID(), totalmem, totalusedmem, uint64(SystemInfo::getSingleton().getCPUPerByPID() * 100));
+			getProcessPID(), totalmem, totalusedmem, uint64(SystemInfo::getSingleton().getCPUPerByPID() * 100), 0);
 
 		if(finderRecvPort != 0)
 			bundle.sendto(ep, finderRecvPort, pChannel->addr().ip);
@@ -308,12 +308,12 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 				{
 					Mercury::Bundle bundle;
 					
-					MachineInterface::onBroadcastInterfaceArgs20::staticAddToBundle(bundle, pinfos->uid, 
+					MachineInterface::onBroadcastInterfaceArgs21::staticAddToBundle(bundle, pinfos->uid, 
 						pinfos->username, findComponentType, pinfos->cid, pinfos->cid, pinfos->globalOrderid, pinfos->groupOrderid, 
 						pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
 						pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->pid, 
 						pinfos->cpu, pinfos->mem, pinfos->usedmem, 
-						pinfos->shutdownState, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2);
+						pinfos->shutdownState, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2, pinfos->extradata3);
 
 					if(finderRecvPort != 0)
 						bundle.sendto(ep, finderRecvPort, pChannel->addr().ip);
