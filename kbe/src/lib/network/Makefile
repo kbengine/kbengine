@@ -18,6 +18,7 @@ SRCS =				\
 	listener_receiver	\
 	network_interface	\
 	packet_filter		\
+	packet_reader		\
 	packet_sender		\
 	packet_receiver		\
 	endpoint		\

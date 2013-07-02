@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "html5/websocket_protocol.hpp"
 #include "network/bundle.hpp"
+#include "network/packet_reader.hpp"
 #include "network/network_interface.hpp"
 #include "network/tcp_packet_receiver.hpp"
 #include "network/udp_packet_receiver.hpp"
@@ -71,13 +72,7 @@ Channel::Channel(NetworkInterface & networkInterface,
 											  INDEXED_CHANNEL_SIZE),
 
 	bufferedReceives_(),
-	pFragmentDatas_(NULL),
-	pFragmentDatasWpos_(0),
-	pFragmentDatasRemain_(0),
-	fragmentDatasFlag_(FRAGMENT_DATA_UNKNOW),
-	pFragmentStream_(NULL),
-	currMsgID_(0),
-	currMsgLen_(0),
+	pPacketReader_(0),
 	isDestroyed_(false),
 	shouldDropNextSend_(false),
 	// Stats
@@ -110,6 +105,7 @@ Channel::Channel(NetworkInterface & networkInterface,
 	else
 		pPacketReceiver_ = new UDPPacketReceiver(*pEndPoint_, networkInterface);
 	
+	pPacketReader_ = new PacketReader(this);
 	startInactivityDetection((traits == INTERNAL) ? g_channelInternalTimeout : g_channelExternalTimeout);
 }
 
@@ -125,13 +121,7 @@ Channel::Channel():
 	bundles_(),
 	windowSize_(EXTERNAL_CHANNEL_SIZE),
 	bufferedReceives_(),
-	pFragmentDatas_(NULL),
-	pFragmentDatasWpos_(0),
-	pFragmentDatasRemain_(0),
-	fragmentDatasFlag_(FRAGMENT_DATA_UNKNOW),
-	pFragmentStream_(NULL),
-	currMsgID_(0),
-	currMsgLen_(0),
+	pPacketReader_(0),
 	isDestroyed_(false),
 	shouldDropNextSend_(false),
 	// Stats
@@ -154,6 +144,8 @@ Channel::Channel():
 	this->incRef();
 	this->clearBundle();
 	this->endpoint(NULL);
+
+	pPacketReader_ = new PacketReader(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -175,6 +167,7 @@ Channel::~Channel()
 	
 	SAFE_RELEASE(pPacketReceiver_);
 	SAFE_RELEASE(pEndPoint_);
+	SAFE_RELEASE(pPacketReader_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -293,19 +286,12 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	numBytesSent_ = 0;
 	numBytesReceived_ = 0;
 	lastTickBytesReceived_ = 0;
-	fragmentDatasFlag_ = FRAGMENT_DATA_UNKNOW;
-	pFragmentDatasWpos_ = 0;
-	pFragmentDatasRemain_ = 0;
-	currMsgID_ = 0;
-	currMsgLen_ = 0;
 	proxyID_ = 0;
 	strextra_ = "";
 	isHandshake_ = false;
 	channelType_ = CHANNEL_NORMAL;
 
-	SAFE_RELEASE_ARRAY(pFragmentDatas_);
-	MemoryStream::ObjPool().reclaimObject(pFragmentStream_);
-	pFragmentStream_ = NULL;
+	pPacketReader_->reset();
 
 	stopInactivityDetection();
 	this->endpoint(NULL);
@@ -579,7 +565,7 @@ void Channel::processPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 		{
 			Packet* pPacket = (*packetIter);
 
-			processMessages(pMsgHandlers, pPacket);
+			pPacketReader_->processMessages(pMsgHandlers, pPacket);
 
 			if(pPacket->isTCPPacket())
 				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
@@ -589,232 +575,20 @@ void Channel::processPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 		}
 	}catch(MemoryStreamException &)
 	{
-		Mercury::MessageHandler* pMsgHandler = pMsgHandlers->find(currMsgID_);
+		Mercury::MessageHandler* pMsgHandler = pMsgHandlers->find(pPacketReader_->currMsgID());
 		WARNING_MSG(boost::format("Channel::processPackets(%1%): packet invalid. currMsg=(name=%2%, id=%3%, len=%4%), currMsgLen=%5%\n") %
 			this->c_str() 
 			% (pMsgHandler == NULL ? "unknown" : pMsgHandler->name) 
-			% currMsgID_ 
+			% pPacketReader_->currMsgID() 
 			% (pMsgHandler == NULL ? -1 : pMsgHandler->msgLen) 
-			% currMsgLen_);
+			% pPacketReader_->currMsgLen());
 
-		currMsgID_ = 0;
-		currMsgLen_ = 0;
+		pPacketReader_->currMsgID(0);
+		pPacketReader_->currMsgLen(0);
 		condemn();
 	}
 
 	bufferedReceives_.clear();
-}
-
-//-------------------------------------------------------------------------------------
-void Channel::processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandlers, Packet* pPacket)
-{
-	while(pPacket->totalSize() > 0 || pFragmentStream_ != NULL)
-	{
-		if(fragmentDatasFlag_ == FRAGMENT_DATA_UNKNOW)
-		{
-			if(currMsgID_ == 0)
-			{
-				if(MERCURY_MESSAGE_ID_SIZE > 1 && pPacket->opsize() < MERCURY_MESSAGE_ID_SIZE)
-				{
-					writeFragmentMessage(FRAGMENT_DATA_MESSAGE_ID, pPacket, MERCURY_MESSAGE_ID_SIZE);
-					break;
-				}
-
-				(*pPacket) >> currMsgID_;
-				pPacket->messageID(currMsgID_);
-			}
-
-			Mercury::MessageHandler* pMsgHandler = pMsgHandlers->find(currMsgID_);
-
-			if(pMsgHandler == NULL)
-			{
-				MemoryStream* pPacket1 = pFragmentStream_ != NULL ? pFragmentStream_ : pPacket;
-				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
-				
-				// 用作调试时比对
-				uint32 rpos = pPacket1->rpos();
-				pPacket1->rpos(0);
-				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
-				pPacket1->rpos(rpos);
-
-				WARNING_MSG(boost::format("Channel::processMessages: invalide msgID=%1%, msglen=%2%, from %3%.\n") %
-					currMsgID_ % pPacket1->opsize() % c_str());
-
-				currMsgID_ = 0;
-				currMsgLen_ = 0;
-				condemn();
-				break;
-			}
-
-			// 如果没有可操作的数据了则退出等待下一个包处理。
-			//if(pPacket->opsize() == 0)	// 可能是一个无参数数据包
-			//	break;
-			
-			if(currMsgLen_ == 0)
-			{
-				if(pMsgHandler->msgLen == MERCURY_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
-				{
-					// 如果长度信息不完整， 则等待下一个包处理
-					if(pPacket->opsize() < MERCURY_MESSAGE_LENGTH_SIZE)
-					{
-						writeFragmentMessage(FRAGMENT_DATA_MESSAGE_LENGTH, pPacket, MERCURY_MESSAGE_LENGTH_SIZE);
-						break;
-					}
-					else
-					{
-						(*pPacket) >> currMsgLen_;
-						MercuryStats::getSingleton().trackMessage(MercuryStats::RECV, *pMsgHandler, 
-							currMsgLen_ + MERCURY_MESSAGE_ID_SIZE + MERCURY_MESSAGE_LENGTH_SIZE);
-					}
-				}
-				else
-				{
-					currMsgLen_ = pMsgHandler->msgLen;
-					MercuryStats::getSingleton().trackMessage(MercuryStats::RECV, *pMsgHandler, 
-						currMsgLen_ + MERCURY_MESSAGE_LENGTH_SIZE);
-				}
-			}
-			
-			if(currMsgLen_ > pMsgHandler->msglenMax())
-			{
-				MemoryStream* pPacket1 = pFragmentStream_ != NULL ? pFragmentStream_ : pPacket;
-				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
-
-				// 用作调试时比对
-				uint32 rpos = pPacket1->rpos();
-				pPacket1->rpos(0);
-				TRACE_BUNDLE_DATA(true, pPacket1, pMsgHandler, pPacket1->opsize(), this->c_str());
-				pPacket1->rpos(rpos);
-
-				WARNING_MSG(boost::format("Channel::processMessages(%1%): msglen is error! msgID=%2%, msglen=(%3%:%4%), from %5%.\n") % 
-					pMsgHandler->name.c_str() % currMsgID_ % currMsgLen_ % pPacket1->opsize() % c_str());
-
-				currMsgLen_ = 0;
-				condemn();
-				break;
-			}
-
-			if(pFragmentStream_ != NULL)
-			{
-				TRACE_BUNDLE_DATA(true, pFragmentStream_, pMsgHandler, currMsgLen_, this->c_str());
-				pMsgHandler->handle(this, *pFragmentStream_);
-				MemoryStream::ObjPool().reclaimObject(pFragmentStream_);
-				pFragmentStream_ = NULL;
-			}
-			else
-			{
-				if(pPacket->opsize() < currMsgLen_)
-				{
-					writeFragmentMessage(FRAGMENT_DATA_MESSAGE_BODY, pPacket, currMsgLen_);
-					break;
-				}
-
-				// 临时设置有效读取位， 防止接口中溢出操作
-				size_t wpos = pPacket->wpos();
-				// size_t rpos = pPacket->rpos();
-				size_t frpos = pPacket->rpos() + currMsgLen_;
-				pPacket->wpos(frpos);
-
-				TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, currMsgLen_, this->c_str());
-				pMsgHandler->handle(this, *pPacket);
-
-				// 防止handle中没有将数据导出获取非法操作
-				if(currMsgLen_ > 0)
-				{
-					if(frpos != pPacket->rpos())
-					{
-						CRITICAL_MSG(boost::format("Channel::processMessages(%s): rpos(%d) invalid, expect=%d. msgID=%d, msglen=%d.\n") %
-							pMsgHandler->name.c_str() % pPacket->rpos() % frpos % currMsgID_ % currMsgLen_);
-
-						pPacket->rpos(frpos);
-					}
-				}
-
-				pPacket->wpos(wpos);
-			}
-
-			currMsgID_ = 0;
-			currMsgLen_ = 0;
-		}
-		else
-		{
-			mergeFragmentMessage(pPacket);
-		}
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void Channel::writeFragmentMessage(FragmentDataTypes fragmentDatasFlag, Packet* pPacket, uint32 datasize)
-{
-	KBE_ASSERT(pFragmentDatas_ == NULL);
-
-	size_t opsize = pPacket->opsize();
-	pFragmentDatasRemain_ = datasize - opsize;
-	pFragmentDatas_ = new uint8[opsize + pFragmentDatasRemain_ + 1];
-
-	fragmentDatasFlag_ = fragmentDatasFlag;
-	pFragmentDatasWpos_ = opsize;
-
-	if(pPacket->opsize() > 0)
-	{
-		memcpy(pFragmentDatas_, pPacket->data() + pPacket->rpos(), opsize);
-		pPacket->opfini();
-	}
-
-	DEBUG_MSG(boost::format("Channel::writeFragmentMessage(%1%): channel[%2%], fragmentDatasFlag=%3%, remainsize=%4%.\n") % 
-		this->c_str() % this % fragmentDatasFlag % pFragmentDatasRemain_);
-}
-
-//-------------------------------------------------------------------------------------
-void Channel::mergeFragmentMessage(Packet* pPacket)
-{
-	size_t opsize = pPacket->opsize();
-	if(opsize == 0)
-		return;
-
-	if(pPacket->opsize() >= pFragmentDatasRemain_)
-	{
-		pPacket->rpos(pPacket->rpos() + pFragmentDatasRemain_);
-		memcpy(pFragmentDatas_ + pFragmentDatasWpos_, pPacket->data(), pFragmentDatasRemain_);
-		
-		KBE_ASSERT(pFragmentStream_ == NULL);
-
-		switch(fragmentDatasFlag_)
-		{
-		case FRAGMENT_DATA_MESSAGE_ID:			// 消息ID信息不全
-			memcpy(&currMsgID_, pFragmentDatas_, MERCURY_MESSAGE_ID_SIZE);
-			break;
-
-		case FRAGMENT_DATA_MESSAGE_LENGTH:		// 消息长度信息不全
-			memcpy(&currMsgLen_, pFragmentDatas_, MERCURY_MESSAGE_LENGTH_SIZE);
-			break;
-
-		case FRAGMENT_DATA_MESSAGE_BODY:		// 消息内容信息不全
-			pFragmentStream_ = MemoryStream::ObjPool().createObject();
-			pFragmentStream_->data_resize(currMsgLen_);
-			pFragmentStream_->wpos(currMsgLen_);
-			memcpy(pFragmentStream_->data(), pFragmentDatas_, currMsgLen_);
-			break;
-
-		default:
-			break;
-		};
-
-		fragmentDatasFlag_ = FRAGMENT_DATA_UNKNOW;
-		pFragmentDatasRemain_ = 0;
-		SAFE_RELEASE_ARRAY(pFragmentDatas_);
-		DEBUG_MSG(boost::format("Channel::mergeFragmentMessage(%1%): channel[%2%], completed!\n") % 
-			this->c_str() % this);
-	}
-	else
-	{
-		memcpy(pFragmentDatas_ + pFragmentDatasWpos_, pPacket->data(), opsize);
-		pFragmentDatasRemain_ -= opsize;
-		pPacket->rpos(pPacket->rpos() + opsize);
-
-		DEBUG_MSG(boost::format("Channel::writeFragmentMessage(%1%): channel[%2%], fragmentDatasFlag=%3%, remainsize=%4%.\n") %
-			this->c_str() % this % fragmentDatasFlag_ % pFragmentDatasRemain_);
-	}	
 }
 
 //-------------------------------------------------------------------------------------

@@ -45,6 +45,7 @@ namespace Mercury
 class Bundle;
 class NetworkInterface;
 class MessageHandlers;
+class PacketReader;
 
 class Channel : public TimerHandler, public RefCountable, public PoolObject
 {
@@ -75,14 +76,6 @@ public:
 		SHOULD_PROCESS,
 		SHOULD_NOT_PROCESS,
 		PACKET_IS_CORRUPT
-	};
-
-	enum FragmentDataTypes
-	{
-		FRAGMENT_DATA_UNKNOW,
-		FRAGMENT_DATA_MESSAGE_ID,
-		FRAGMENT_DATA_MESSAGE_LENGTH,
-		FRAGMENT_DATA_MESSAGE_BODY
 	};
 
 	typedef std::vector<Packet*> BufferedReceives;
@@ -174,7 +167,6 @@ public:
 	BufferedReceives& bufferedReceives(){ return bufferedReceives_; }
 		
 	void processPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers);
-	void processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandlers, Packet* pPacket);
 
 	bool isCondemn()const { return isCondemn_; }
 	void condemn();
@@ -202,8 +194,6 @@ private:
 	void clearState( bool warnOnDiscard = false );
 	EventDispatcher & dispatcher();
 
-	void writeFragmentMessage(FragmentDataTypes fragmentDatasFlag, Packet* pPacket, uint32 datasize);
-	void mergeFragmentMessage(Packet* pPacket);
 private:
 	NetworkInterface * 			pNetworkInterface_;
 	Traits						traits_;
@@ -222,14 +212,7 @@ private:
 	uint32						windowSize_;
 	
 	BufferedReceives			bufferedReceives_;
-
-	uint8*						pFragmentDatas_;
-	uint32						pFragmentDatasWpos_;
-	uint32						pFragmentDatasRemain_;
-	FragmentDataTypes			fragmentDatasFlag_;
-	MemoryStream*				pFragmentStream_;
-	Mercury::MessageID			currMsgID_;
-	Mercury::MessageLength		currMsgLen_;
+	PacketReader*				pPacketReader_;
 
 	bool						isDestroyed_;
 	bool						shouldDropNextSend_;

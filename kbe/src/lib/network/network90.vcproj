@@ -227,6 +227,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\packet_reader.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\packet_receiver.cpp"
 				>
 			</File>
@@ -342,6 +346,10 @@
 			</File>
 			<File
 				RelativePath=".\packet_filter.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\packet_reader.hpp"
 				>
 			</File>
 			<File
