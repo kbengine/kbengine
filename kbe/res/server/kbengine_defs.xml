@@ -90,6 +90,7 @@
 		<!-- 一个游戏周期channel接收窗口溢出值 0无限制-->
 		<receiveWindowOverflow>
 			<messages>
+				<critical>	32			</critical>
 				<internal>	65535		</internal>
 				<external>	256			</external>
 			</messages>
