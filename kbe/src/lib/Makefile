@@ -22,7 +22,6 @@ LIBDIR=$(KBE_ROOT)/kbe/src/lib/bin
 all install clean full:
 	test -d $(LIBDIR) || mkdir $(LIBDIR)
 	cd client_lib && $(MAKE) $@
-	cd html5 && $(MAKE) $@
 	cd cstdkbe && $(MAKE) $@
 	cd db_mysql && $(MAKE) $@
 	cd dbmgr_lib && $(MAKE) $@

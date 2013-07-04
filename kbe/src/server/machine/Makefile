@@ -9,7 +9,6 @@ ASMS =
 MY_LIBS =		\
 	server		\
 	network		\
-	html5		\
 	thread
 	
 

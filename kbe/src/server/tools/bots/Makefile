@@ -16,7 +16,6 @@ MY_LIBS =		\
 	pyscript	\
 	server		\
 	network		\
-	html5		\
 	thread
 	
 	

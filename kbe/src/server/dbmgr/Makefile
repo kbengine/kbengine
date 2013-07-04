@@ -15,7 +15,6 @@ MY_LIBS =		\
 	server		\
 	pyscript	\
 	network		\
-	html5		\
 	thread		\
 	dbmgr_lib	\
 	db_mysql

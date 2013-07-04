@@ -10,6 +10,8 @@ SRCS =				\
 	kbeversion		\
 	kbekey			\
 	md5			\
+	sha1			\
+	base64			\
 	rsa			\
 	memorystream
 

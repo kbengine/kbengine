@@ -21,8 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "websocket_protocol.hpp"
 #include "cstdkbe/memorystream.hpp"
 #include "network/channel.hpp"
-#include "base64.hpp"
-#include "sha1.hpp"
+#include "cstdkbe/base64.hpp"
+#include "cstdkbe/sha1.hpp"
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma comment(lib, "libeay32.lib")
@@ -181,18 +181,6 @@ bool WebSocketProtocol::handshake(Mercury::Channel* pChannel, MemoryStream* s)
 	(*(*pBundle)) << ackHandshake;
 	pChannel->send(pBundle->get());
 	return true;
-}
-
-//-------------------------------------------------------------------------------------
-void WebSocketProtocol::onPacketProcessHeader(Mercury::Channel* pChannel, MemoryStream* s)
-{
-	s->read_skip(1);
-}
-
-//-------------------------------------------------------------------------------------
-void WebSocketProtocol::onPacketProcessEnd(Mercury::Channel* pChannel, MemoryStream* s)
-{
-	s->read_skip(1);
 }
 
 //-------------------------------------------------------------------------------------

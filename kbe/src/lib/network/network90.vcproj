@@ -203,6 +203,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\html5_packet_filter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\html5_packet_reader.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\interface_defs.cpp"
 				>
 			</File>
@@ -252,6 +260,10 @@
 			</File>
 			<File
 				RelativePath=".\udp_packet_receiver.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\websocket_protocol.cpp"
 				>
 			</File>
 		</Filter>
@@ -310,6 +322,14 @@
 			</File>
 			<File
 				RelativePath=".\fixed_messages.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\html5_packet_filter.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\html5_packet_reader.hpp"
 				>
 			</File>
 			<File
@@ -374,6 +394,10 @@
 			</File>
 			<File
 				RelativePath=".\udp_packet_receiver.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\websocket_protocol.hpp"
 				>
 			</File>
 		</Filter>

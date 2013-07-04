@@ -12,6 +12,8 @@ SRCS =				\
 	event_poller		\
 	encryption_filter	\
 	fixed_messages		\
+	html5_packet_reader	\
+	html5_packet_filter	\
 	interface_defs		\
 	message_handler		\
 	mercurystats		\
@@ -25,7 +27,8 @@ SRCS =				\
 	tcp_packet		\
 	tcp_packet_receiver	\
 	udp_packet		\
-	udp_packet_receiver
+	udp_packet_receiver	\
+	websocket_protocol	
 
 USE_OPENSSL = 1
 
