@@ -36,6 +36,22 @@ public:
 	virtual void reset();
 	virtual void processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandlers, Packet* pPacket);
 protected:
+	enum FragmentDataTypes
+	{
+		FRAGMENT_DATA_UNKNOW,
+		FRAGMENT_DATA_BASIC_LENGTH,
+		FRAGMENT_DATA_PAYLOAD_LENGTH,
+		FRAGMENT_DATA_PAYLOAD_MASKS,
+		FRAGMENT_DATA_MESSAGE_BODY
+	};
+
+	uint32						web_pFragmentDatasRemain_;
+	FragmentDataTypes			web_fragmentDatasFlag_;
+
+	uint8						basicSize_;
+	uint64						payloadSize_;
+	uint8						masks_[16];
+	std::pair<uint8, uint8>		data_xy_;
 };
 
 

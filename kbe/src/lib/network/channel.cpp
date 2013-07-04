@@ -25,6 +25,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include "html5/websocket_protocol.hpp"
+#include "html5/html5_packet_filter.hpp"
+#include "html5/html5_packet_reader.hpp"
 #include "network/bundle.hpp"
 #include "network/packet_reader.hpp"
 #include "network/network_interface.hpp"
@@ -87,7 +89,6 @@ Channel::Channel(NetworkInterface & networkInterface,
 	isCondemn_(false),
 	proxyID_(0),
 	strextra_(),
-	isHandshake_(false),
 	channelType_(CHANNEL_NORMAL),
 	componentID_(UNKNOWN_COMPONENT_TYPE),
 	pMsgHandlers_(NULL)
@@ -105,7 +106,6 @@ Channel::Channel(NetworkInterface & networkInterface,
 	else
 		pPacketReceiver_ = new UDPPacketReceiver(*pEndPoint_, networkInterface);
 	
-	pPacketReader_ = new PacketReader(this);
 	startInactivityDetection((traits == INTERNAL) ? g_channelInternalTimeout : g_channelExternalTimeout);
 }
 
@@ -136,7 +136,6 @@ Channel::Channel():
 	isCondemn_(false),
 	proxyID_(0),
 	strextra_(),
-	isHandshake_(false),
 	channelType_(CHANNEL_NORMAL),
 	componentID_(UNKNOWN_COMPONENT_TYPE),
 	pMsgHandlers_(NULL)
@@ -144,8 +143,6 @@ Channel::Channel():
 	this->incRef();
 	this->clearBundle();
 	this->endpoint(NULL);
-
-	pPacketReader_ = new PacketReader(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -288,10 +285,10 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	lastTickBytesReceived_ = 0;
 	proxyID_ = 0;
 	strextra_ = "";
-	isHandshake_ = false;
 	channelType_ = CHANNEL_NORMAL;
 
-	pPacketReader_->reset();
+	SAFE_RELEASE(pPacketReader_);
+	pFilter_ = NULL;
 
 	stopInactivityDetection();
 	this->endpoint(NULL);
@@ -452,8 +449,8 @@ void Channel::onPacketReceived(int bytes)
 		if(g_extReceiveWindowBytesOverflow > 0 && 
 			lastTickBytesReceived_ >= g_extReceiveWindowBytesOverflow)
 		{
-			WARNING_MSG(boost::format("Channel::onPacketReceived[%1%]: external channel(%2%), bufferedBytes is overflow(%3%).\n") % 
-				this % this->c_str() % lastTickBytesReceived_);
+			WARNING_MSG(boost::format("Channel::onPacketReceived[%1%]: external channel(%2%), bufferedBytes is overflow(%3% > %4%).\n") % 
+				this % this->c_str() % lastTickBytesReceived_ % g_extReceiveWindowBytesOverflow);
 
 			this->condemn();
 		}
@@ -463,8 +460,8 @@ void Channel::onPacketReceived(int bytes)
 		if(g_intReceiveWindowBytesOverflow > 0 && 
 			lastTickBytesReceived_ >= g_intReceiveWindowBytesOverflow)
 		{
-			WARNING_MSG(boost::format("Channel::onPacketReceived[%1%]: internal channel(%2%), bufferedBytes is overflow(%3%).\n") % 
-				this % this->c_str() % lastTickBytesReceived_);
+			WARNING_MSG(boost::format("Channel::onPacketReceived[%1%]: internal channel(%2%), bufferedBytes is overflow(%3% > %4%).\n") % 
+				this % this->c_str() % lastTickBytesReceived_ % g_intReceiveWindowBytesOverflow);
 		}
 	}
 }
@@ -509,10 +506,8 @@ void Channel::condemn()
 //-------------------------------------------------------------------------------------
 void Channel::handshake()
 {
-	if(!isHandshake_ && bufferedReceives_.size() > 0)
+	if(bufferedReceives_.size() > 0)
 	{
-		isHandshake_ = true;
-
 		BufferedReceives::iterator packetIter = bufferedReceives_.begin();
 		Packet* pPacket = (*packetIter);
 		
@@ -526,8 +521,19 @@ void Channel::handshake()
 				{
 					bufferedReceives_.erase(packetIter);
 				}
+
+				pPacketReader_ = new HTML5PacketReader(this);
+				pFilter_ = new HTML5PacketFilter(this);
+				DEBUG_MSG(boost::format("Channel::handshake: websocket(%1%) successfully!") % this->c_str());
+				return;
+			}
+			else
+			{
+				DEBUG_MSG(boost::format("Channel::handshake: websocket(%1%) error!") % this->c_str());
 			}
 		}
+
+		pPacketReader_ = new PacketReader(this);
 	}
 }
 
@@ -558,6 +564,11 @@ void Channel::processPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 		return;
 	}
 	
+	if(pPacketReader_ == NULL)
+	{
+		handshake();
+	}
+
 	try
 	{
 		BufferedReceives::iterator packetIter = bufferedReceives_.begin();

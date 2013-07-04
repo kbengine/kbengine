@@ -43,6 +43,9 @@ public:
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<UDPPacket>& ObjPool();
 	static void destroyObjPool();
+	static size_t maxBufferSize();
+
+	virtual size_t fillfree() const { return maxBufferSize() - wpos(); }
 
     UDPPacket(MessageID msgID = 0, size_t res = 0);
 	virtual ~UDPPacket(void);

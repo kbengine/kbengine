@@ -44,6 +44,10 @@ public:
 	static ObjectPool<TCPPacket>& ObjPool();
 	static void destroyObjPool();
 
+	static size_t maxBufferSize();
+
+	virtual size_t fillfree() const { return maxBufferSize() - wpos(); }
+
     TCPPacket(MessageID msgID = 0, size_t res = 0);
 	virtual ~TCPPacket(void);
 	

@@ -159,6 +159,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\html5_packet_filter.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\html5_packet_reader.cpp"
 				>
 			</File>
@@ -178,6 +182,10 @@
 			>
 			<File
 				RelativePath=".\base64.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\html5_packet_filter.hpp"
 				>
 			</File>
 			<File

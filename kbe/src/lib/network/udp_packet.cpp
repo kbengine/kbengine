@@ -57,7 +57,7 @@ UDPPacket::SmartPoolObjectPtr UDPPacket::createSmartPoolObj()
 UDPPacket::UDPPacket(MessageID msgID, size_t res):
 Packet(msgID, false, res)
 {
-	data_resize(PACKET_MAX_SIZE_UDP);
+	data_resize(maxBufferSize());
 	wpos(0);
 }
 
@@ -67,13 +67,19 @@ UDPPacket::~UDPPacket(void)
 }
 
 //-------------------------------------------------------------------------------------
+size_t UDPPacket::maxBufferSize()
+{
+	return PACKET_MAX_SIZE_UDP;
+}
+
+//-------------------------------------------------------------------------------------
 int UDPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 {
-	int len = ep.recvfrom(data(), PACKET_MAX_SIZE_UDP,
+	KBE_ASSERT(maxBufferSize() > wpos());
+	int len = ep.recvfrom(data() + wpos(), maxBufferSize() - wpos(),
 		(u_int16_t*)&pAddr->port, (u_int32_t*)&pAddr->ip);
 
-	KBE_ASSERT(rpos() == 0);
-	wpos(len);
+	wpos(wpos() + len);
 	return len;
 }
 

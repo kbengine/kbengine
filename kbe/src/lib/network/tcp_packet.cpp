@@ -57,7 +57,7 @@ TCPPacket::SmartPoolObjectPtr TCPPacket::createSmartPoolObj()
 TCPPacket::TCPPacket(MessageID msgID, size_t res):
 Packet(msgID, true, res)
 {
-	data_resize(PACKET_MAX_SIZE_TCP * 4);
+	data_resize(maxBufferSize());
 	wpos(0);
 }
 
@@ -67,13 +67,18 @@ TCPPacket::~TCPPacket(void)
 }
 
 //-------------------------------------------------------------------------------------
+size_t TCPPacket::maxBufferSize()
+{
+	return PACKET_MAX_SIZE_TCP * 4;
+}
+
+//-------------------------------------------------------------------------------------
 int TCPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 {
 	//KBE_ASSERT(MessageHandlers::pMainMessageHandlers != NULL && "Must set up a MainMessageHandlers!\n");
-	int len = ep.recv(data(), PACKET_MAX_SIZE_TCP * 4);
-	KBE_ASSERT(rpos() == 0);
-	wpos(len);
-
+	KBE_ASSERT(maxBufferSize() > wpos());
+	int len = ep.recv(data() + wpos(), maxBufferSize() - wpos());
+	wpos(wpos() + len);
 	//DEBUG_MSG(boost::format("TCPPacket::recvFromEndPoint: datasize=%1%, wpos=%2%.\n") % len % wpos());
 	return len;
 }

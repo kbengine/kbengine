@@ -131,6 +131,7 @@ enum Reason
 	REASON_TRANSMIT_QUEUE_FULL = -10,///< Corresponds to ENOBUFS
 	REASON_CHANNEL_LOST = -11,		 ///< Corresponds to channel lost
 	REASON_SHUTTING_DOWN = -12,		 ///< Corresponds to shutting down app.
+	REASON_HTML5_ERROR = -13,		 ///< html5 error.
 };
 
 inline
@@ -150,7 +151,8 @@ const char * reasonToString(Reason reason)
 		"REASON_CLIENT_DISCONNECTED",
 		"REASON_TRANSMIT_QUEUE_FULL",
 		"REASON_CHANNEL_LOST",
-		"REASON_SHUTTING_DOWN"
+		"REASON_SHUTTING_DOWN",
+		"REASON_HTML5_ERROR"
 	};
 
 	unsigned int index = -reason;

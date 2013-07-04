@@ -238,9 +238,6 @@ private:
 	// 扩展用
 	std::string					strextra_;
 
-	// 是否握手完成
-	bool						isHandshake_;
-
 	// 通道类别
 	ChannelTypes				channelType_;
 
