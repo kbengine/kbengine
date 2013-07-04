@@ -30,14 +30,10 @@ namespace KBEngine {
 namespace Mercury
 {
 
-#ifndef ULONG64
-#define unsigned long long ULONG64
-#endif
-
-ULONG64 hl64ton(ULONG64 host)   
+uint64 hl64ton(uint64 host)   
 {   
-	ULONG64   ret = 0;   
-	ULONG   high,low;
+	uint64   ret = 0;   
+	ulong   high,low;
 
 	low = host & 0xFFFFFFFF;
 	high = (host >> 32) & 0xFFFFFFFF;
@@ -49,10 +45,10 @@ ULONG64 hl64ton(ULONG64 host)
 	return ret;   
 }
 
-ULONG64 ntohl64(ULONG64 host)   
+uint64 ntohl64(uint64 host)   
 {   
-	ULONG64   ret = 0;   
-	ULONG   high,low;
+	uint64   ret = 0;   
+	ulong   high,low;
 
 	low = host & 0xFFFFFFFF;
 	high = (host >> 32) & 0xFFFFFFFF;
@@ -164,7 +160,7 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 						payloadSize_ = ntohs( *(u_short*) (masks_) );
 						break;
 					case 127:
-						payloadSize_ = ntohl64( *(ULONG64*) (masks_) );
+						payloadSize_ = ntohl64( *(uint64*) (masks_) );
 						break;
 					default:
 						payloadSize_ = basicSize_;

@@ -222,6 +222,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 				childnode2 = xml->enterNode(childnode1, "external");
 				if(childnode2)
 					Mercury::g_extReceiveWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+
+				childnode2 = xml->enterNode(childnode1, "critical");
+				if(childnode2)
+					Mercury::g_receiveWindowMessagesOverflowCritical = KBE_MAX(0, xml->getValInt(childnode2));
 			}
 
 			childnode1 = xml->enterNode(childnode, "bytes");

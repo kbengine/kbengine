@@ -471,16 +471,19 @@ void Channel::addReceiveWindow(Packet* pPacket)
 {
 	bufferedReceives_.push_back(pPacket);
 
-	if(bufferedReceives_.size() > 32)
+	if(Mercury::g_receiveWindowMessagesOverflowCritical > 0 && bufferedReceives_.size() > Mercury::g_receiveWindowMessagesOverflowCritical)
 	{
 		if(this->isExternal())
 		{
-			WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: external channel(%2%), bufferedMessages is overflow(%3%).\n") % 
-				this % this->c_str() % (int)bufferedReceives_.size());
+			WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: external channel(%2%), bufferedMessages is overflow(%3% > %4%).\n") % 
+				this % this->c_str() % (int)bufferedReceives_.size() % Mercury::g_receiveWindowMessagesOverflowCritical);
 
 			if(Mercury::g_extReceiveWindowMessagesOverflow > 0 && 
 				bufferedReceives_.size() >  Mercury::g_extReceiveWindowMessagesOverflow)
 			{
+				ERROR_MSG(boost::format("Channel::addReceiveWindow[%1%]: external channel(%2%), bufferedMessages is overflow(%3% > %4%).\n") % 
+					this % this->c_str() % (int)bufferedReceives_.size() % Mercury::g_extReceiveWindowMessagesOverflow);
+
 				this->condemn();
 			}
 		}
@@ -489,8 +492,8 @@ void Channel::addReceiveWindow(Packet* pPacket)
 			if(Mercury::g_intReceiveWindowMessagesOverflow > 0 && 
 				bufferedReceives_.size() > Mercury::g_intReceiveWindowMessagesOverflow)
 			{
-				WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: internal channel(%2%), bufferedMessages is overflow(%3%).\n") % 
-					this % this->c_str() % (int)bufferedReceives_.size());
+				WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: internal channel(%2%), bufferedMessages is overflow(%3% > %4%).\n") % 
+					this % this->c_str() % (int)bufferedReceives_.size() % Mercury::g_intReceiveWindowMessagesOverflow);
 			}
 		}
 	}

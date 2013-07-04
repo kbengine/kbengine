@@ -222,6 +222,7 @@ extern uint64						g_numBytesSent;
 extern uint64						g_numBytesReceived;
 
 // 包接收窗口溢出
+extern uint32						g_receiveWindowMessagesOverflowCritical;
 extern uint32						g_intReceiveWindowMessagesOverflow;
 extern uint32						g_extReceiveWindowMessagesOverflow;
 extern uint32						g_intReceiveWindowBytesOverflow;
