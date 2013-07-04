@@ -24,9 +24,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "channel.ipp"
 #endif
 
-#include "html5/websocket_protocol.hpp"
-#include "html5/html5_packet_filter.hpp"
-#include "html5/html5_packet_reader.hpp"
+#include "network/websocket_protocol.hpp"
+#include "network/html5_packet_filter.hpp"
+#include "network/html5_packet_reader.hpp"
 #include "network/bundle.hpp"
 #include "network/packet_reader.hpp"
 #include "network/network_interface.hpp"
