@@ -527,12 +527,12 @@ void Channel::handshake()
 
 				pPacketReader_ = new HTML5PacketReader(this);
 				pFilter_ = new HTML5PacketFilter(this);
-				DEBUG_MSG(boost::format("Channel::handshake: websocket(%1%) successfully!") % this->c_str());
+				DEBUG_MSG(boost::format("Channel::handshake: websocket(%1%) successfully!\n") % this->c_str());
 				return;
 			}
 			else
 			{
-				DEBUG_MSG(boost::format("Channel::handshake: websocket(%1%) error!") % this->c_str());
+				DEBUG_MSG(boost::format("Channel::handshake: websocket(%1%) error!\n") % this->c_str());
 			}
 		}
 

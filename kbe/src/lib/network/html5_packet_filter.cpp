@@ -84,13 +84,50 @@ HTML5PacketFilter::~HTML5PacketFilter()
 //-------------------------------------------------------------------------------------
 Reason HTML5PacketFilter::send(NetworkInterface & networkInterface, Channel * pChannel, Packet * pPacket)
 {
+	TCPPacket* pRetTCPPacket = TCPPacket::ObjPool().createObject();
+
+	uint64 payloadSize = pPacket->totalSize();
+
+	int8 basicSize = payloadSize;
+
+	//create the flags byte
+	const uint8 payloadFlags = 0x81;
+	(*pRetTCPPacket) << payloadFlags;
+
+	if(payloadSize <= 125)
+	{
+		(*pRetTCPPacket) << basicSize;
+	}
+	else if (payloadSize > 125 && payloadSize <= 65535)
+	{
+		basicSize = 126;
+		(*pRetTCPPacket) << basicSize;
+
+		char len[2];
+		len[0] = ( payloadSize >> 8 ) & 0xff;
+		len[1] = ( payloadSize ) & 0xff;
+		(*pRetTCPPacket).append(&len, 2);
+	}
+	else
+	{
+		basicSize = 127;
+		(*pRetTCPPacket) << basicSize;
+		MemoryStreamConverter::apply<uint64>(&payloadSize);
+		(*pRetTCPPacket) << payloadSize;
+	}
+
+	(*pRetTCPPacket).append(pPacket->data() + pPacket->rpos(), pPacket->opsize());
+	
+	pRetTCPPacket->swap(*(static_cast<KBEngine::MemoryStream*>(pPacket)));
+	TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
+	
 	return PacketFilter::send(networkInterface, pChannel, pPacket);
 }
 
 //-------------------------------------------------------------------------------------
 Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packet * pPacket)
 {
-	TCPPacket*	pRetTCPPacket = NULL;
+	TCPPacket* pRetTCPPacket = NULL;
 
 	while(pPacket->totalSize() > 0)
 	{
@@ -222,6 +259,7 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 					web_pFragmentDatasRemain_ = 0;
 					pPacket->read_skip(payloadSize_);
 					uint64 startSize = payloadTotalSize_ - payloadSize_;
+					payloadSize_ = 0;
 
 					for(uint64 i=0; i<pTCPPacket_->opsize(); i++)
 					{
