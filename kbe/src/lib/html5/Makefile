@@ -4,6 +4,7 @@ SRCS =				\
 	sha1			\
 	base64			\
 	html5_packet_reader	\
+	html5_packet_filter	\
 	websocket_protocol	
 
 ifndef KBE_ROOT
