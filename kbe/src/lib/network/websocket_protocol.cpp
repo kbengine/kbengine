@@ -179,6 +179,7 @@ bool WebSocketProtocol::handshake(Mercury::Channel* pChannel, MemoryStream* s)
 
 	Mercury::Bundle::SmartPoolObjectPtr pBundle = Mercury::Bundle::createSmartPoolObj();
 	(*(*pBundle)) << ackHandshake;
+	(*(*pBundle)).pCurrPacket()->wpos((*(*pBundle)).pCurrPacket()->wpos() - 1);
 	pChannel->send(pBundle->get());
 	return true;
 }
