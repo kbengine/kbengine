@@ -285,6 +285,7 @@ class ClusterQueryHandler(ClusterControllerHandler):
 		numClients = 0
 		numProxices = 0
 		numCells = 0
+		numComponent = 0
 		
 		for machineID in self._interfaces_groups:
 			infos = self._interfaces_groups.get(machineID, [])
@@ -294,6 +295,8 @@ class ClusterQueryHandler(ClusterControllerHandler):
 				print("[%s: %%CPU:%.2f, %%MEM:%.2f, %%pCPU:%.2f, pMem:%.2fm, totalMem=%.2fm/%.2fm, addr=%s]" % \
 					(COMPONENT_NAME[info[16]], info[5], info[6], info[19] / 100.0, info[7] / 1024.0 / 1024.0, info[18] / 1024.0 / 1024.0, info[17] / 1024.0 / 1024.0, \
 					socket.inet_ntoa(struct.pack('I', info[9]))))
+			
+			numComponent += len(infos)
 			
 			print("      proc\t\tcid\t\tuid\tpid\tgid\t%CPU\t%MEM\tusedMem\textra1\t\textra2\t\textra3")
 			for info in infos:
@@ -335,7 +338,7 @@ class ClusterQueryHandler(ClusterControllerHandler):
 			
 		print('-----------------------------------------------------')
 		print("machines: %i, components=%i, numBases=%i, numProxices=%i, numClients=%i, numEntities=%i, numCells=%i." % \
-			(len(self._interfaces_groups), len(self._interfaces), numBases, numProxices, numClients, numEntities, numCells))
+			(len(self._interfaces_groups), numComponent, numBases, numProxices, numClients, numEntities, numCells))
 		
 class ClusterStartHandler(ClusterControllerHandler):
 	def __init__(self, uid, startTemplate):
