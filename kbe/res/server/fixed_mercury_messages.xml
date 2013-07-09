@@ -41,6 +41,16 @@
 		<arg>STRING</arg> <!-- 密码 -->
 	</Loginapp::login>
 	
+	<Loginapp::hello>
+		<id>4</id>
+		<descr>hello。</descr>
+	</Loginapp::hello>
+	
+	<Baseapp::hello>
+		<id>200</id>
+		<descr>hello。</descr>
+	</Baseapp::hello>
+	
 	<Baseapp::reqClose>
 		<id>201</id>
 		<descr>客户端请求断线。</descr>
