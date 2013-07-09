@@ -265,6 +265,26 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 					{
 						pTCPPacket_->data()[i] = (pTCPPacket_->data()[i] ^ masks_[(i + startSize) % 4]);
 					}
+
+					web_fragmentDatasFlag_ = FRAGMENT_DATA_BASIC_LENGTH;
+					web_pFragmentDatasRemain_ = 0;
+					pRetTCPPacket = pTCPPacket_;
+					pTCPPacket_ = NULL;
+
+					if(pPacket->totalSize() == 0)
+					{
+						break;
+					}
+					else
+					{
+						Reason reason = PacketFilter::recv(pChannel, receiver, pRetTCPPacket);
+						if(REASON_SUCCESS != reason)
+						{
+							return reason;
+						}
+
+						pRetTCPPacket = NULL;
+					}
 				}
 				else
 				{

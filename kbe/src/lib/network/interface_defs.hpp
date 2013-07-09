@@ -213,11 +213,12 @@ namespace Mercury
 	public:															\
 		ARG_TYPE1 ARG_NAME1;										\
 	public:															\
-		NAME##Args1():Mercury::MessageArgs(){}						\
+		NAME##Args1():Mercury::MessageArgs(){						\
+		strArgsTypes.push_back(#ARG_TYPE1);}						\
 		NAME##Args1(ARG_TYPE1 init_##ARG_NAME1):					\
 		Mercury::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1)									\
-		{}															\
+		{strArgsTypes.push_back(#ARG_TYPE1);}						\
 		~NAME##Args1(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -268,13 +269,20 @@ namespace Mercury
 		ARG_TYPE1 ARG_NAME1;										\
 		ARG_TYPE2 ARG_NAME2;										\
 	public:															\
-		NAME##Args2():Mercury::MessageArgs(){}						\
+		NAME##Args2():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+		}															\
 		NAME##Args2(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2):								\
 		Mercury::MessageArgs(),										\
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2)									\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+		}															\
 		~NAME##Args2(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -337,7 +345,12 @@ namespace Mercury
 		ARG_TYPE2 ARG_NAME2;										\
 		ARG_TYPE3 ARG_NAME3;										\
 	public:															\
-		NAME##Args3():Mercury::MessageArgs(){}						\
+		NAME##Args3():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+		}															\
 		NAME##Args3(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3):								\
@@ -345,7 +358,11 @@ namespace Mercury
 		ARG_NAME1(init_##ARG_NAME1),								\
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3)									\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+		}															\
 		~NAME##Args3(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -421,7 +438,13 @@ namespace Mercury
 		ARG_TYPE3 ARG_NAME3;										\
 		ARG_TYPE4 ARG_NAME4;										\
 	public:															\
-		NAME##Args4():Mercury::MessageArgs(){}						\
+		NAME##Args4():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+		}															\
 		NAME##Args4(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -431,7 +454,12 @@ namespace Mercury
 		ARG_NAME2(init_##ARG_NAME2),								\
 		ARG_NAME3(init_##ARG_NAME3),								\
 		ARG_NAME4(init_##ARG_NAME4)									\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+		}															\
 		~NAME##Args4(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -519,7 +547,14 @@ namespace Mercury
 		ARG_TYPE4 ARG_NAME4;										\
 		ARG_TYPE5 ARG_NAME5;										\
 	public:															\
-		NAME##Args5():Mercury::MessageArgs(){}						\
+		NAME##Args5():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+		}															\
 		NAME##Args5(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -531,7 +566,13 @@ namespace Mercury
 		ARG_NAME3(init_##ARG_NAME3),								\
 		ARG_NAME4(init_##ARG_NAME4),								\
 		ARG_NAME5(init_##ARG_NAME5)									\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+		}															\
 		~NAME##Args5(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -630,7 +671,15 @@ namespace Mercury
 		ARG_TYPE5 ARG_NAME5;										\
 		ARG_TYPE6 ARG_NAME6;										\
 	public:															\
-		NAME##Args6():Mercury::MessageArgs(){}						\
+		NAME##Args6():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+		}															\
 		NAME##Args6(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -644,7 +693,14 @@ namespace Mercury
 		ARG_NAME4(init_##ARG_NAME4),								\
 		ARG_NAME5(init_##ARG_NAME5),								\
 		ARG_NAME6(init_##ARG_NAME6)									\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+		}															\
 		~NAME##Args6(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -755,7 +811,16 @@ namespace Mercury
 		ARG_TYPE6 ARG_NAME6;										\
 		ARG_TYPE7 ARG_NAME7;										\
 	public:															\
-		NAME##Args7():Mercury::MessageArgs(){}						\
+		NAME##Args7():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+		}															\
 		NAME##Args7(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -771,7 +836,15 @@ namespace Mercury
 		ARG_NAME5(init_##ARG_NAME5),								\
 		ARG_NAME6(init_##ARG_NAME6),								\
 		ARG_NAME7(init_##ARG_NAME7)									\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+		}															\
 		~NAME##Args7(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -894,7 +967,17 @@ namespace Mercury
 		ARG_TYPE7 ARG_NAME7;										\
 		ARG_TYPE8 ARG_NAME8;										\
 	public:															\
-		NAME##Args8():Mercury::MessageArgs(){}						\
+		NAME##Args8():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+		}															\
 		NAME##Args8(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -912,7 +995,16 @@ namespace Mercury
 		ARG_NAME6(init_##ARG_NAME6),								\
 		ARG_NAME7(init_##ARG_NAME7),								\
 		ARG_NAME8(init_##ARG_NAME8)									\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+		}															\
 		~NAME##Args8(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -1048,7 +1140,18 @@ namespace Mercury
 		ARG_TYPE8 ARG_NAME8;										\
 		ARG_TYPE9 ARG_NAME9;										\
 	public:															\
-		NAME##Args9():Mercury::MessageArgs(){}						\
+		NAME##Args9():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+		}															\
 		NAME##Args9(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -1068,7 +1171,17 @@ namespace Mercury
 		ARG_NAME7(init_##ARG_NAME7),								\
 		ARG_NAME8(init_##ARG_NAME8),								\
 		ARG_NAME9(init_##ARG_NAME9)									\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+		}															\
 		~NAME##Args9(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -1216,7 +1329,19 @@ namespace Mercury
 		ARG_TYPE9 ARG_NAME9;										\
 		ARG_TYPE10 ARG_NAME10;										\
 	public:															\
-		NAME##Args10():Mercury::MessageArgs(){}						\
+		NAME##Args10():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+		}															\
 		NAME##Args10(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -1238,7 +1363,18 @@ namespace Mercury
 		ARG_NAME8(init_##ARG_NAME8),								\
 		ARG_NAME9(init_##ARG_NAME9),								\
 		ARG_NAME10(init_##ARG_NAME10)								\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+		}															\
 		~NAME##Args10(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -1400,7 +1536,20 @@ namespace Mercury
 		ARG_TYPE10 ARG_NAME10;										\
 		ARG_TYPE11 ARG_NAME11;										\
 	public:															\
-		NAME##Args11():Mercury::MessageArgs(){}						\
+		NAME##Args11():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+		}															\
 		NAME##Args11(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -1424,7 +1573,19 @@ namespace Mercury
 		ARG_NAME9(init_##ARG_NAME9),								\
 		ARG_NAME10(init_##ARG_NAME10),								\
 		ARG_NAME11(init_##ARG_NAME11)								\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+		}															\
 		~NAME##Args11(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -1598,7 +1759,21 @@ namespace Mercury
 		ARG_TYPE11 ARG_NAME11;										\
 		ARG_TYPE12 ARG_NAME12;										\
 	public:															\
-		NAME##Args12():Mercury::MessageArgs(){}						\
+		NAME##Args12():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+		}															\
 		NAME##Args12(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -1624,7 +1799,20 @@ namespace Mercury
 		ARG_NAME10(init_##ARG_NAME10),								\
 		ARG_NAME11(init_##ARG_NAME11),								\
 		ARG_NAME12(init_##ARG_NAME12)								\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+		}															\
 		~NAME##Args12(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -1811,7 +1999,22 @@ namespace Mercury
 		ARG_TYPE12 ARG_NAME12;										\
 		ARG_TYPE13 ARG_NAME13;										\
 	public:															\
-		NAME##Args13():Mercury::MessageArgs(){}						\
+		NAME##Args13():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+		}															\
 		NAME##Args13(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -1839,7 +2042,21 @@ namespace Mercury
 		ARG_NAME11(init_##ARG_NAME11),								\
 		ARG_NAME12(init_##ARG_NAME12),								\
 		ARG_NAME13(init_##ARG_NAME13)								\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+		}															\
 		~NAME##Args13(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -2036,7 +2253,23 @@ namespace Mercury
 		ARG_TYPE13 ARG_NAME13;										\
 		ARG_TYPE14 ARG_NAME14;										\
 	public:															\
-		NAME##Args14():Mercury::MessageArgs(){}						\
+		NAME##Args14():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+		}															\
 		NAME##Args14(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -2066,7 +2299,22 @@ namespace Mercury
 		ARG_NAME12(init_##ARG_NAME12),								\
 		ARG_NAME13(init_##ARG_NAME13),								\
 		ARG_NAME14(init_##ARG_NAME14)								\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+		}															\
 		~NAME##Args14(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -2274,7 +2522,24 @@ namespace Mercury
 		ARG_TYPE14 ARG_NAME14;										\
 		ARG_TYPE15 ARG_NAME15;										\
 	public:															\
-		NAME##Args15():Mercury::MessageArgs(){}						\
+		NAME##Args15():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+		}															\
 		NAME##Args15(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -2306,7 +2571,23 @@ namespace Mercury
 		ARG_NAME13(init_##ARG_NAME13),								\
 		ARG_NAME14(init_##ARG_NAME14),								\
 		ARG_NAME15(init_##ARG_NAME15)								\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+		}															\
 		~NAME##Args15(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -2527,7 +2808,25 @@ namespace Mercury
 		ARG_TYPE15 ARG_NAME15;										\
 		ARG_TYPE16 ARG_NAME16;										\
 	public:															\
-		NAME##Args16():Mercury::MessageArgs(){}						\
+		NAME##Args16():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+			strArgsTypes.push_back(#ARG_TYPE16);					\
+		}															\
 		NAME##Args16(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -2561,7 +2860,24 @@ namespace Mercury
 		ARG_NAME14(init_##ARG_NAME14),								\
 		ARG_NAME15(init_##ARG_NAME15),								\
 		ARG_NAME16(init_##ARG_NAME16)								\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+			strArgsTypes.push_back(#ARG_TYPE16);					\
+		}															\
 		~NAME##Args16(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -2794,7 +3110,26 @@ namespace Mercury
 		ARG_TYPE16 ARG_NAME16;										\
 		ARG_TYPE17 ARG_NAME17;										\
 	public:															\
-		NAME##Args17():Mercury::MessageArgs(){}						\
+		NAME##Args17():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+			strArgsTypes.push_back(#ARG_TYPE16);					\
+			strArgsTypes.push_back(#ARG_TYPE17);					\
+		}															\
 		NAME##Args17(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -2830,7 +3165,25 @@ namespace Mercury
 		ARG_NAME15(init_##ARG_NAME15),								\
 		ARG_NAME16(init_##ARG_NAME16),								\
 		ARG_NAME17(init_##ARG_NAME17)								\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+			strArgsTypes.push_back(#ARG_TYPE16);					\
+			strArgsTypes.push_back(#ARG_TYPE17);					\
+		}															\
 		~NAME##Args17(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -3075,7 +3428,27 @@ namespace Mercury
 		ARG_TYPE17 ARG_NAME17;										\
 		ARG_TYPE18 ARG_NAME18;										\
 	public:															\
-		NAME##Args18():Mercury::MessageArgs(){}						\
+		NAME##Args18():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+			strArgsTypes.push_back(#ARG_TYPE16);					\
+			strArgsTypes.push_back(#ARG_TYPE17);					\
+			strArgsTypes.push_back(#ARG_TYPE18);					\
+		}															\
 		NAME##Args18(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -3113,7 +3486,26 @@ namespace Mercury
 		ARG_NAME16(init_##ARG_NAME16),								\
 		ARG_NAME17(init_##ARG_NAME17),								\
 		ARG_NAME18(init_##ARG_NAME18)								\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+			strArgsTypes.push_back(#ARG_TYPE16);					\
+			strArgsTypes.push_back(#ARG_TYPE17);					\
+			strArgsTypes.push_back(#ARG_TYPE18);					\
+		}															\
 		~NAME##Args18(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -3370,7 +3762,28 @@ namespace Mercury
 		ARG_TYPE18 ARG_NAME18;										\
 		ARG_TYPE19 ARG_NAME19;										\
 	public:															\
-		NAME##Args19():Mercury::MessageArgs(){}						\
+		NAME##Args19():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+			strArgsTypes.push_back(#ARG_TYPE16);					\
+			strArgsTypes.push_back(#ARG_TYPE17);					\
+			strArgsTypes.push_back(#ARG_TYPE18);					\
+			strArgsTypes.push_back(#ARG_TYPE19);					\
+		}															\
 		NAME##Args19(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -3410,7 +3823,27 @@ namespace Mercury
 		ARG_NAME17(init_##ARG_NAME17),								\
 		ARG_NAME18(init_##ARG_NAME18),								\
 		ARG_NAME19(init_##ARG_NAME19)								\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+			strArgsTypes.push_back(#ARG_TYPE16);					\
+			strArgsTypes.push_back(#ARG_TYPE17);					\
+			strArgsTypes.push_back(#ARG_TYPE18);					\
+			strArgsTypes.push_back(#ARG_TYPE19);					\
+		}															\
 		~NAME##Args19(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -3679,7 +4112,29 @@ namespace Mercury
 		ARG_TYPE19 ARG_NAME19;										\
 		ARG_TYPE20 ARG_NAME20;										\
 	public:															\
-		NAME##Args20():Mercury::MessageArgs(){}						\
+		NAME##Args20():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+			strArgsTypes.push_back(#ARG_TYPE16);					\
+			strArgsTypes.push_back(#ARG_TYPE17);					\
+			strArgsTypes.push_back(#ARG_TYPE18);					\
+			strArgsTypes.push_back(#ARG_TYPE19);					\
+			strArgsTypes.push_back(#ARG_TYPE20);					\
+		}															\
 		NAME##Args20(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -3721,7 +4176,28 @@ namespace Mercury
 		ARG_NAME18(init_##ARG_NAME18),								\
 		ARG_NAME19(init_##ARG_NAME19),								\
 		ARG_NAME20(init_##ARG_NAME20)								\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+			strArgsTypes.push_back(#ARG_TYPE16);					\
+			strArgsTypes.push_back(#ARG_TYPE17);					\
+			strArgsTypes.push_back(#ARG_TYPE18);					\
+			strArgsTypes.push_back(#ARG_TYPE19);					\
+			strArgsTypes.push_back(#ARG_TYPE20);					\
+		}															\
 		~NAME##Args20(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\
@@ -4003,7 +4479,30 @@ namespace Mercury
 		ARG_TYPE20 ARG_NAME20;										\
 		ARG_TYPE21 ARG_NAME21;										\
 	public:															\
-		NAME##Args21():Mercury::MessageArgs(){}						\
+		NAME##Args21():Mercury::MessageArgs()						\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+			strArgsTypes.push_back(#ARG_TYPE16);					\
+			strArgsTypes.push_back(#ARG_TYPE17);					\
+			strArgsTypes.push_back(#ARG_TYPE18);					\
+			strArgsTypes.push_back(#ARG_TYPE19);					\
+			strArgsTypes.push_back(#ARG_TYPE20);					\
+			strArgsTypes.push_back(#ARG_TYPE21);					\
+		}															\
 		NAME##Args21(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
@@ -4047,7 +4546,29 @@ namespace Mercury
 		ARG_NAME19(init_##ARG_NAME19),								\
 		ARG_NAME20(init_##ARG_NAME20),								\
 		ARG_NAME21(init_##ARG_NAME21)								\
-		{}															\
+		{															\
+			strArgsTypes.push_back(#ARG_TYPE1);						\
+			strArgsTypes.push_back(#ARG_TYPE2);						\
+			strArgsTypes.push_back(#ARG_TYPE3);						\
+			strArgsTypes.push_back(#ARG_TYPE4);						\
+			strArgsTypes.push_back(#ARG_TYPE5);						\
+			strArgsTypes.push_back(#ARG_TYPE6);						\
+			strArgsTypes.push_back(#ARG_TYPE7);						\
+			strArgsTypes.push_back(#ARG_TYPE8);						\
+			strArgsTypes.push_back(#ARG_TYPE9);						\
+			strArgsTypes.push_back(#ARG_TYPE10);					\
+			strArgsTypes.push_back(#ARG_TYPE11);					\
+			strArgsTypes.push_back(#ARG_TYPE12);					\
+			strArgsTypes.push_back(#ARG_TYPE13);					\
+			strArgsTypes.push_back(#ARG_TYPE14);					\
+			strArgsTypes.push_back(#ARG_TYPE15);					\
+			strArgsTypes.push_back(#ARG_TYPE16);					\
+			strArgsTypes.push_back(#ARG_TYPE17);					\
+			strArgsTypes.push_back(#ARG_TYPE18);					\
+			strArgsTypes.push_back(#ARG_TYPE19);					\
+			strArgsTypes.push_back(#ARG_TYPE20);					\
+			strArgsTypes.push_back(#ARG_TYPE21);					\
+		}															\
 		~NAME##Args21(){}											\
 																	\
 		static void staticAddToBundle(Mercury::Bundle& s,			\

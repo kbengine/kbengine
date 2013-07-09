@@ -35,11 +35,13 @@ class Channel;
 class MessageArgs
 {
 public:
-	MessageArgs(){};
+	MessageArgs():strArgsTypes(){};
 	virtual ~MessageArgs(){};
 	virtual void createFromStream(MemoryStream& s) = 0;
 	virtual void addToStream(MemoryStream& s) = 0;
 	virtual int32 msgsize(void) = 0;
+
+	std::vector<std::string> strArgsTypes;
 };
 
 class MessageHandler
@@ -111,6 +113,8 @@ public:
 	
 	static void finalise(void);
 	static std::vector<MessageHandlers*>& messageHandlers();
+
+	const MessageHandlerMap& msgHandlers(){ return msgHandlers_; }
 private:
 	MessageHandlerMap msgHandlers_;
 	MessageID msgID_;
