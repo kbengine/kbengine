@@ -91,22 +91,22 @@ Reason HTML5PacketFilter::send(NetworkInterface & networkInterface, Channel * pC
 	int8 basicSize = payloadSize;
 
 	//create the flags byte
-	const uint8 payloadFlags = 0x81;
+	const uint8 payloadFlags = BINARY_FRAME;
 	(*pRetTCPPacket) << payloadFlags;
 
 	if(payloadSize <= 125)
 	{
 		(*pRetTCPPacket) << basicSize;
 	}
-	else if (payloadSize > 125 && payloadSize <= 65535)
+	else if (payloadSize <= 65535)
 	{
 		basicSize = 126;
 		(*pRetTCPPacket) << basicSize;
 
-		char len[2];
+		uint8 len[2];
 		len[0] = ( payloadSize >> 8 ) & 0xff;
 		len[1] = ( payloadSize ) & 0xff;
-		(*pRetTCPPacket).append(&len, 2);
+		(*pRetTCPPacket).append((uint8*)&len, 2);
 	}
 	else
 	{
@@ -149,6 +149,14 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 					else
 					{
 						(*pPacket) >> basicSize_;
+						if(basicSize_ != BINARY_FRAME)
+						{
+							ERROR_MSG(boost::format("HTML5PacketFilter::recv: frame_opcode(%1%) != %2%, addr=%3%\n") % 
+								basicSize_ % BINARY_FRAME % pChannel->c_str());
+
+							this->pChannel_->condemn();
+							return REASON_HTML5_ERROR;
+						}
 					}
 				}
 
@@ -244,7 +252,7 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 			if(payloadSize_ == 0)
 			{
 				web_fragmentDatasFlag_ = FRAGMENT_DATA_BASIC_LENGTH;
-				web_pFragmentDatasRemain_ = 0;
+				web_pFragmentDatasRemain_ = 2;
 				pRetTCPPacket = pTCPPacket_;
 				pTCPPacket_ = NULL;
 				break;
@@ -256,7 +264,7 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 					memcpy(pTCPPacket_->data() + pTCPPacket_->wpos(), pPacket->data() + pPacket->rpos(), payloadSize_);
 					pTCPPacket_->wpos(pTCPPacket_->wpos() + payloadSize_);
 					web_fragmentDatasFlag_ = FRAGMENT_DATA_BASIC_LENGTH;
-					web_pFragmentDatasRemain_ = 0;
+					web_pFragmentDatasRemain_ = 2;
 					pPacket->read_skip(payloadSize_);
 					uint64 startSize = payloadTotalSize_ - payloadSize_;
 					payloadSize_ = 0;
@@ -267,7 +275,7 @@ Reason HTML5PacketFilter::recv(Channel * pChannel, PacketReceiver & receiver, Pa
 					}
 
 					web_fragmentDatasFlag_ = FRAGMENT_DATA_BASIC_LENGTH;
-					web_pFragmentDatasRemain_ = 0;
+					web_pFragmentDatasRemain_ = 2;
 					pRetTCPPacket = pTCPPacket_;
 					pTCPPacket_ = NULL;
 

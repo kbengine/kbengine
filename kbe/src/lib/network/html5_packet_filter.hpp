@@ -32,6 +32,18 @@ class TCPPacket;
 class HTML5PacketFilter : public PacketFilter
 {
 public:
+	enum WebSocketFrameType 
+	{
+		INCOMPLETE_TEXT_FRAME = 0x01,
+		INCOMPLETE_BINARY_FRAME = 0x02,
+
+		TEXT_FRAME = 0x81,
+		BINARY_FRAME = 0x82,
+
+		PING_FRAME = 0x19,
+		PONG_FRAME = 0x1A
+	};
+
 	HTML5PacketFilter(Channel* pChannel);
 	virtual ~HTML5PacketFilter();
 
