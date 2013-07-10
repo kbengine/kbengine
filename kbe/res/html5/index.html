@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>  
+<html>  
+<head>  
+	<meta http-equiv="content-type" content="text/html" />  
+	<meta name="author" content="www.kbengine.org" /> 
+    <link rel="icon"
+          type="image/GIF"
+          href="samples/tests/res/Images/favicon.ico"/>
+	<link href='http://fonts.googleapis.com/css?family=Nunito:700,300' rel='stylesheet' type='text/css'>
+	
+   <style type="text/css">
+        body {
+            margin: 0;
+            padding: 0 20px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 300;
+        }
+
+        H1 {
+            font-size: 68px;
+            font-weight: 700;
+            background: -webkit-gradient(linear, left top, left bottom, from(#29c9e2), to(#115e8b));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: impact;
+        }
+
+        ol {
+            font-size: 18px;
+        }
+
+        a:visited {
+            color: #2c4676;
+        }
+
+        a {
+            color: #1c8eb2;
+        }
+
+        a:hover {
+            color: #29c9e2;
+        }
+
+        .comment {
+            color: #4b4b4b;
+        }
+    </style>
+    
+	<td>
+		<script src="./kbengine.js"></script>
+	</td>
+</head>  
+
+<body style="background: #f2f6f8;">
+	<script>
+		function sendtest()
+		{
+			g_kbengine.connect('ws://127.0.0.1:20013');
+			
+			var bundle = new KBE_BUNDLE();
+			bundle.newMessage(g_messages.Loginapp_importClientMessages);
+			bundle.send(g_kbengine);
+		}
+	</script>
+		
+	<input id = "msg" type = "text">  
+	<button id = "connect" onclick = "g_kbengine.login_loginapp(true);">Connect</button>  
+	<button id = "send" onclick = "sendtest();">Send</button>  
+	<button id = "close" onclick = "g_kbengine.close();">Close</button> 
+</body>  
+</html>  
