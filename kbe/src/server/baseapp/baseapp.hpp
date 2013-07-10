@@ -368,6 +368,11 @@ public:
 		某个app请求查看该app
 	*/
 	virtual void lookApp(Mercury::Channel* pChannel);
+
+	/** 网络接口
+		客户端协议导出
+	*/
+	void importClientMessages(Mercury::Channel* pChannel);
 protected:
 	TimerHandle												loopCheckTimerHandle_;
 

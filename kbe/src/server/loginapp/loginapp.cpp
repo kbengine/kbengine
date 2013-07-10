@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/kbeversion.hpp"
 #include "server/componentbridge.hpp"
 #include "server/components.hpp"
+#include "entitydef/datatypes.hpp"
 #include "client_lib/client_interface.hpp"
 #include "network/encryption_filter.hpp"
 
@@ -625,6 +626,83 @@ void Loginapp::onHello(Mercury::Channel* pChannel,
 				% pChannel->c_str());
 		}
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::importClientMessages(Mercury::Channel* pChannel)
+{
+	static bool init = false;
+	static std::map< Mercury::MessageID, Mercury::ExposedMessageInfo > messages;
+
+	if(!init)
+	{
+		init = true;
+		{
+			const Mercury::MessageHandlers::MessageHandlerMap& msgHandlers = ClientInterface::messageHandlers.msgHandlers();
+			Mercury::MessageHandlers::MessageHandlerMap::const_iterator iter = msgHandlers.begin();
+			for(; iter != msgHandlers.end(); iter++)
+			{
+				Mercury::MessageHandler* pMessageHandler = iter->second;
+
+				Mercury::ExposedMessageInfo& info = messages[iter->first];
+				info.id = iter->first;
+				info.name = pMessageHandler->name;
+				info.msgLen = pMessageHandler->msgLen;
+				
+				KBEngine::strutil::kbe_replace(info.name, "::", "_");
+				std::vector<std::string>::iterator iter1 = pMessageHandler->pArgs->strArgsTypes.begin();
+				for(; iter1 !=  pMessageHandler->pArgs->strArgsTypes.end(); iter1++)
+				{
+					info.argsTypes.push_back(datatype2id((*iter1)));
+				}
+			}
+		}
+
+		{
+			const Mercury::MessageHandlers::MessageHandlerMap& msgHandlers = LoginappInterface::messageHandlers.msgHandlers();
+			Mercury::MessageHandlers::MessageHandlerMap::const_iterator iter = msgHandlers.begin();
+			for(; iter != msgHandlers.end(); iter++)
+			{
+				Mercury::MessageHandler* pMessageHandler = iter->second;
+				if(!iter->second->exposed)
+					continue;
+
+				Mercury::ExposedMessageInfo& info = messages[iter->first];
+				info.id = iter->first;
+				info.name = pMessageHandler->name;
+				info.msgLen = pMessageHandler->msgLen;
+				
+				KBEngine::strutil::kbe_replace(info.name, "::", "_");
+				std::vector<std::string>::iterator iter1 = pMessageHandler->pArgs->strArgsTypes.begin();
+				for(; iter1 !=  pMessageHandler->pArgs->strArgsTypes.end(); iter1++)
+				{
+					info.argsTypes.push_back(datatype2id((*iter1)));
+				}
+			}
+		}
+	}
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	pBundle->newMessage(ClientInterface::onImportClientMessages);
+	
+	uint16 size = messages.size();
+	(*pBundle) << size;
+
+	std::map< Mercury::MessageID, Mercury::ExposedMessageInfo >::iterator iter = messages.begin();
+	for(; iter != messages.end(); iter++)
+	{
+		uint8 argsize = iter->second.argsTypes.size();
+		(*pBundle) << iter->second.id << iter->second.msgLen << iter->second.name << argsize;
+
+		std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
+		for(; argiter != iter->second.argsTypes.end(); argiter++)
+		{
+			(*pBundle) << (*argiter);
+		}
+	}
+
+	(*pBundle).send(getNetworkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------

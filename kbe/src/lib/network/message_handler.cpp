@@ -37,7 +37,8 @@ static Mercury::FixedMessages* g_fm;
 //-------------------------------------------------------------------------------------
 MessageHandlers::MessageHandlers():
 msgHandlers_(),
-msgID_(1)
+msgID_(1),
+exposedMessages_()
 {
 	g_fm = Mercury::FixedMessages::getSingletonPtr();
 	if(g_fm == NULL)
@@ -85,6 +86,19 @@ const char* MessageHandler::c_str()
 //-------------------------------------------------------------------------------------
 bool MessageHandlers::initializeWatcher()
 {
+	std::vector< std::string >::iterator siter = exposedMessages_.begin();
+	for(; siter != exposedMessages_.end(); siter++)
+	{
+		MessageHandlerMap::iterator iter = msgHandlers_.begin();
+		for(; iter != msgHandlers_.end(); iter++)
+		{
+			if((*siter) == iter->second->name)
+			{
+				iter->second->exposed = true;
+			}
+		}
+	}
+
 	MessageHandlerMap::iterator iter = msgHandlers_.begin();
 	for(; iter != msgHandlers_.end(); iter++)
 	{
@@ -154,6 +168,7 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	msgHandler->name = ihName;					
 	msgHandler->pArgs = args;
 	msgHandler->msgLen = msgLen;	
+	msgHandler->exposed = false;
 
 	msgHandler->onInstall();
 	msgHandlers_[msgHandler->msgID] = msgHandler;
@@ -211,6 +226,13 @@ void MessageHandlers::finalise(void)
 {
 	SAFE_RELEASE(g_fm);
 	SAFE_RELEASE(g_pMessageHandlers);
+}
+
+//-------------------------------------------------------------------------------------
+bool MessageHandlers::pushExposedMessage(std::string msgname)
+{
+	exposedMessages_.push_back(msgname);
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

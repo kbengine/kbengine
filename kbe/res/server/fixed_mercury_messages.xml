@@ -45,6 +45,11 @@
 		<id>4</id>
 		<descr>hello。</descr>
 	</Loginapp::hello>
+
+	<Loginapp::importClientMessages>
+		<id>5</id>
+		<descr>客户端请求导入消息协议。</descr>
+	</Loginapp::importClientMessages>
 	
 	<Baseapp::hello>
 		<id>200</id>
@@ -84,6 +89,11 @@
 		<id>206</id>
 		<descr>客户端的tick。</descr>
 	</Baseapp::onClientActiveTick>
+	
+	<Baseapp::importClientMessages>
+		<id>207</id>
+		<descr>客户端请求导入消息协议。</descr>
+	</Baseapp::importClientMessages>
 	
 	<Base::onRemoteMethodCall>
 		<id>301</id>
@@ -248,6 +258,13 @@
 		</descr>
 		<arg>UINT16</arg> <!-- 错误码 mercury_errors.xml -->
 	</Client::onKicked>
+
+	<Client::onImportClientMessages>
+		<id>518</id>
+		<descr>服务器返回的协议包。
+		</descr>
+		<arg>UINT8_ARRAY</arg> <!-- 需要解析 -->
+	</Client::onImportClientMessages>
 	
 	<Property::position>
 		<id>40000</id>

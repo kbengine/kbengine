@@ -581,7 +581,8 @@ function KBE_MESSAGE(id, name, length, args)
 var g_messages = {};
 
 g_messages["Loginapp_importClientMessages"] = new KBE_MESSAGE(5, "importClientMessages", 0, new Array());
-g_messages["Loginapp_onImportClientMessages"] = new KBE_MESSAGE(518, "onImportClientMessages", -1, new Array());
+g_messages["Baseapp_importClientMessages"] = new KBE_MESSAGE(207, "importClientMessages", 0, new Array());
+g_messages["onImportClientMessages"] = new KBE_MESSAGE(518, "onImportClientMessages", -1, new Array());
 
 /*-----------------------------------------------------------------------------------------
 												network

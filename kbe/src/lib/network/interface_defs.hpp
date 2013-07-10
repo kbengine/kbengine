@@ -70,6 +70,7 @@ namespace Mercury
 	#undef NETWORK_MESSAGE_DECLARE_ARGS21
 
 	#undef NETWORK_MESSAGE_HANDLER
+	#undef NETWORK_MESSAGE_EXPOSED
 	#undef NETWORK_INTERFACE_DECLARE_END
 	
 	#undef MESSAGE_STREAM
@@ -106,10 +107,14 @@ namespace Mercury
 						 new NAME##Args##ARG_N, MSG_LENGTH, new HANDLER_TYPE));							\
 		const HANDLER_TYPE& NAME = *p##NAME;															\
 			
-		
+	#define NETWORK_MESSAGE_EXPOSED(DOMAIN, NAME);														\
+		bool p##DOMAIN##NAME##_exposed = messageHandlers.pushExposedMessage(#DOMAIN"::"#NAME);			\
+
 #else
 	#define NETWORK_MESSAGE_HANDLER(DOMAIN, NAME, HANDLER_TYPE, MSG_LENGTH, ARG_N)						\
 		extern const HANDLER_TYPE& NAME;																\
+
+	#define NETWORK_MESSAGE_EXPOSED(DOMAIN, NAME)														\
 	
 #endif
 

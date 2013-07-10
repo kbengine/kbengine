@@ -47,6 +47,9 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	// 某app主动请求断线。
+	LOGINAPP_MESSAGE_DECLARE_ARGS0(importClientMessages,							MERCURY_FIXED_MESSAGE)
+
+	// 某app主动请求断线。
 	LOGINAPP_MESSAGE_DECLARE_ARGS0(reqClose,										MERCURY_FIXED_MESSAGE)
 
 	// 某app主动请求look。
@@ -56,15 +59,19 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	LOGINAPP_MESSAGE_DECLARE_ARGS0(queryLoad,										MERCURY_FIXED_MESSAGE)
 
 	// hello握手。
+	NETWORK_MESSAGE_EXPOSED(Loginapp, hello)
 	LOGINAPP_MESSAGE_DECLARE_STREAM(hello,											MERCURY_VARIABLE_MESSAGE)
 
 	// 某个app向本app告知处于活动状态。
+	LOGINAPP_MESSAGE_EXPOSED(onClientActiveTick)
 	LOGINAPP_MESSAGE_DECLARE_ARGS0(onClientActiveTick,								MERCURY_FIXED_MESSAGE)
-
+	
 	// 请求创建账号
+	LOGINAPP_MESSAGE_EXPOSED(reqCreateAccount)
 	LOGINAPP_MESSAGE_DECLARE_STREAM(reqCreateAccount,								MERCURY_VARIABLE_MESSAGE)
 
 	// 用户登录服务器 
+	LOGINAPP_MESSAGE_EXPOSED(login)
 	LOGINAPP_MESSAGE_DECLARE_STREAM(login,											MERCURY_VARIABLE_MESSAGE)
 
 	// 某app请求获取一个entityID段的回调

@@ -42,7 +42,13 @@ namespace KBEngine{
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
 	#undef LOGINAPP_MESSAGE_HANDLER_STREAM
+	#undef LOGINAPP_MESSAGE_EXPOSED
 #endif
+
+
+#define LOGINAPP_MESSAGE_EXPOSED(NAME)											\
+	NETWORK_MESSAGE_EXPOSED(Loginapp, NAME)										\
+
 
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(LOGINAPP)

@@ -279,6 +279,11 @@ public:
 	*/
 	virtual void onStreamDataCompleted(Mercury::Channel* pChannel, int16 id);
 
+	/** 网络接口
+		接收到ClientMessages(通常是web等才会应用到)
+	*/
+	virtual void onImportClientMessages(Mercury::Channel* pChannel, MemoryStream& s){}
+
 	/** 
 		获得player实例
 	*/

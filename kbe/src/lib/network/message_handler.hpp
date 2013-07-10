@@ -44,6 +44,15 @@ public:
 	std::vector<std::string> strArgsTypes;
 };
 
+struct ExposedMessageInfo
+{
+	std::string name;
+	Mercury::MessageID id;
+	int16 msgLen; // 对外消息不会超过1500
+
+	std::vector<uint8> argsTypes;
+};
+
 class MessageHandler
 {
 public:
@@ -54,7 +63,8 @@ public:
 	MessageID msgID;
 	MessageArgs* pArgs;
 	int32 msgLen;					// 如果长度为-1则为非固定长度消息
-	
+	bool exposed;
+
 	// stats
 	volatile mutable uint32 send_size;
 	volatile mutable uint32 send_count;
@@ -105,6 +115,8 @@ public:
 	MessageHandler* add(std::string ihName, MessageArgs* args, int32 msgLen, 
 						MessageHandler* msgHandler);
 	
+	bool pushExposedMessage(std::string msgname);
+
 	MessageHandler* find(MessageID msgID);
 	
 	MessageID lastMsgID() {return msgID_ - 1;}
@@ -118,6 +130,8 @@ public:
 private:
 	MessageHandlerMap msgHandlers_;
 	MessageID msgID_;
+
+	std::vector< std::string > exposedMessages_;
 };
 
 }

@@ -48,6 +48,9 @@ namespace KBEngine{
 	BASEAPP所有消息接口在此定义
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
+	// 客户端请求导入协议。
+	BASEAPP_MESSAGE_DECLARE_ARGS0(importClientMessages,						MERCURY_FIXED_MESSAGE)
+		
 	// 某app主动请求断线。
 	BASEAPP_MESSAGE_DECLARE_ARGS0(reqClose,									MERCURY_FIXED_MESSAGE)
 
@@ -103,6 +106,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									std::string,							digest)
 
 	// hello握手。
+	BASEAPP_MESSAGE_EXPOSED(hello)
 	BASEAPP_MESSAGE_DECLARE_STREAM(hello,									MERCURY_VARIABLE_MESSAGE)
 
 	// global数据改变
@@ -115,6 +119,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									COMPONENT_ID,							componentID)
 
 	// 某个app向本app告知处于活动状态。
+	BASEAPP_MESSAGE_EXPOSED(onClientActiveTick)
 	BASEAPP_MESSAGE_DECLARE_ARGS0(onClientActiveTick,						MERCURY_FIXED_MESSAGE)
 
 	// 收到baseappmgr决定将某个baseapp要求createBaseAnywhere的请求在本baseapp上执行 
@@ -142,11 +147,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									DBID,									entityDBID)
 
 	// 前端请求登录到网关上。
+	BASEAPP_MESSAGE_EXPOSED(loginGateway)
 	BASEAPP_MESSAGE_DECLARE_ARGS2(loginGateway,								MERCURY_VARIABLE_MESSAGE,
 									std::string,							accountName,
 									std::string,							password)
 
 	// 前端请求重新登录到网关上。
+	BASEAPP_MESSAGE_EXPOSED(reLoginGateway)
 	BASEAPP_MESSAGE_DECLARE_ARGS4(reLoginGateway,							MERCURY_FIXED_MESSAGE,
 									std::string,							accountName,
 									std::string,							password,
@@ -178,9 +185,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASEAPP_MESSAGE_DECLARE_STREAM(onEntityMail,							MERCURY_VARIABLE_MESSAGE)
 	
 	// client访问entity的cell方法
+	BASEAPP_MESSAGE_EXPOSED(onRemoteCallCellMethodFromClient)
 	BASEAPP_MESSAGE_DECLARE_STREAM(onRemoteCallCellMethodFromClient,		MERCURY_VARIABLE_MESSAGE)
 
 	// client更新数据
+	BASEAPP_MESSAGE_EXPOSED(onUpdateDataFromClient)
 	BASEAPP_MESSAGE_DECLARE_STREAM(onUpdateDataFromClient,					MERCURY_VARIABLE_MESSAGE)
 
 	// executeRawDatabaseCommand从dbmgr的回调
@@ -222,12 +231,14 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 
 	//--------------------------------------------Base----------------------------------------------------------
 	// 远程呼叫entity方法
+	BASE_MESSAGE_EXPOSED(onRemoteMethodCall)
 	BASE_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,							MERCURY_VARIABLE_MESSAGE)
 
 	// cellapp通报该entity的cell部分销毁或者丢失
 	BASE_MESSAGE_DECLARE_STREAM(onLoseCell,									MERCURY_VARIABLE_MESSAGE)
 
 	// 客户端直接发送消息给cell实体
+	BASE_MESSAGE_EXPOSED(forwardEntityMessageToCellappFromClient)
 	BASE_MESSAGE_DECLARE_STREAM(forwardEntityMessageToCellappFromClient,	MERCURY_VARIABLE_MESSAGE)
 	
 	// 某个entity请求teleport到本entity的space上
@@ -248,6 +259,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	/**
 		远程呼叫entity方法
 	*/
+	PROXY_MESSAGE_EXPOSED(onClientGetCell)
 	PROXY_MESSAGE_DECLARE_ARGS0(onClientGetCell,							MERCURY_FIXED_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()

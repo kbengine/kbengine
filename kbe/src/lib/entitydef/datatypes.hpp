@@ -41,6 +41,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 typedef SmartPointer<DataType> DataTypePtr;
 
+/** c/c++数据类别转换成KBEDataTypeID */
+uint16 datatype2id(std::string datatype);
+
 class DataTypes
 {
 public:	
