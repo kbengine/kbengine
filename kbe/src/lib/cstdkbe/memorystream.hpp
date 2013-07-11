@@ -525,7 +525,8 @@ public:
     virtual size_t size() const { return data_.size(); }
     virtual bool empty() const { return data_.empty(); }
 	size_t opsize()const { return rpos() >= wpos() ? 0 : wpos() - rpos(); }
-	
+	virtual size_t fillfree() const { return size() - wpos(); }
+
 	void opfini(){ read_skip(opsize()); }
 
     void resize(size_t newsize)

@@ -116,6 +116,15 @@ Reason HTML5PacketFilter::send(NetworkInterface & networkInterface, Channel * pC
 		(*pRetTCPPacket) << payloadSize;
 	}
 
+	int space = pPacket->opsize() - pRetTCPPacket->fillfree();
+	if(space > 0)
+	{
+		WARNING_MSG(boost::format("HTML5PacketFilter::send: no free space, buffer added:%1%, total=%2%.\n") % 
+			space % pRetTCPPacket->size());
+
+		pRetTCPPacket->data_resize(pRetTCPPacket->size() + space);
+	}
+
 	(*pRetTCPPacket).append(pPacket->data() + pPacket->rpos(), pPacket->opsize());
 	
 	pRetTCPPacket->swap(*(static_cast<KBEngine::MemoryStream*>(pPacket)));

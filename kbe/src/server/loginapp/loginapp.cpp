@@ -362,7 +362,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	if(!g_kbeSrvConfig.getDBMgr().allowEmptyDigest)
+	if(!g_kbeSrvConfig.getDBMgr().allowEmptyDigest && ctype != CLIENT_TYPE_BROWSER)
 	{
 		std::string clientDigest;
 
@@ -375,7 +375,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 				loginName % clientDigest % digest_);
 
 			datas = "";
-			_loginFailed(pChannel, loginName, SERVER_ERR_DIGEST, datas);
+			_loginFailed(pChannel, loginName, SERVER_ERR_DIGEST, datas, true);
 			return;
 		}
 	}
@@ -450,13 +450,13 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& loginName, SERVER_ERROR_CODE failedcode, std::string& datas)
+void Loginapp::_loginFailed(Mercury::Channel* pChannel, std::string& loginName, SERVER_ERROR_CODE failedcode, std::string& datas, bool force)
 {
 	DEBUG_MSG(boost::format("Loginapp::loginFailed: loginName=%1% login is failed. failedcode=%2%, datas=%3%.\n") %
 		loginName.c_str() % SERVER_ERR_STR[failedcode] % datas);
 	
 	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.remove(loginName);
-	if(infos == NULL)
+	if(infos == NULL && !force)
 		return;
 
 	Mercury::Bundle bundle;

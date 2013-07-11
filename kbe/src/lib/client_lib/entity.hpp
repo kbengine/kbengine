@@ -138,8 +138,8 @@ public:
 	void onBecomePlayer();
 	void onBecomeNonPlayer();
 protected:
-	EntityMailbox*							cellMailbox_;						// 这个entity的客户端mailbox
-	EntityMailbox*							baseMailbox_;						// 这个entity的baseapp mailbox
+	EntityMailbox*							cellMailbox_;						// 这个entity的cell-mailbox
+	EntityMailbox*							baseMailbox_;						// 这个entity的base-mailbox
 
 	Position3D								position_, serverPosition_;			// entity的当前位置
 	Direction3D								direction_;							// entity的当前方向

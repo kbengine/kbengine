@@ -77,7 +77,7 @@ int TCPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 {
 	//KBE_ASSERT(MessageHandlers::pMainMessageHandlers != NULL && "Must set up a MainMessageHandlers!\n");
 	KBE_ASSERT(maxBufferSize() > wpos());
-	int len = ep.recv(data() + wpos(), maxBufferSize() - wpos());
+	int len = ep.recv(data() + wpos(), size() - wpos());
 	wpos(wpos() + len);
 	//DEBUG_MSG(boost::format("TCPPacket::recvFromEndPoint: datasize=%1%, wpos=%2%.\n") % len % wpos());
 	return len;

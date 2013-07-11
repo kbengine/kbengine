@@ -76,7 +76,7 @@ size_t UDPPacket::maxBufferSize()
 int UDPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 {
 	KBE_ASSERT(maxBufferSize() > wpos());
-	int len = ep.recvfrom(data() + wpos(), maxBufferSize() - wpos(),
+	int len = ep.recvfrom(data() + wpos(), size() - wpos(),
 		(u_int16_t*)&pAddr->port, (u_int32_t*)&pAddr->ip);
 
 	wpos(wpos() + len);

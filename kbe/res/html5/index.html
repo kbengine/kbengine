@@ -55,11 +55,9 @@
 	<script>
 		function sendtest()
 		{
-			g_kbengine.connect('ws://127.0.0.1:20013');
-			
-			var bundle = new KBE_BUNDLE();
-			bundle.newMessage(g_messages.Loginapp_importClientMessages);
-			bundle.send(g_kbengine);
+		g_kbengine[111] = 321;
+		alert(g_kbengine["login_loginapp"]);
+		g_kbengine["login_loginapp"](true);
 		}
 	</script>
 		

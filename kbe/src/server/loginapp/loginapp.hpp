@@ -108,7 +108,7 @@ public:
 									MERCURY_ERR_SRV_OVERLOAD:服务器负载过重, 
 									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	void _loginFailed(Mercury::Channel* pChannel, std::string& loginName, SERVER_ERROR_CODE failedcode, std::string& datas);
+	void _loginFailed(Mercury::Channel* pChannel, std::string& loginName, SERVER_ERROR_CODE failedcode, std::string& datas, bool force = false);
 	
 	/** 网络接口
 		dbmgr返回的登录账号检测结果

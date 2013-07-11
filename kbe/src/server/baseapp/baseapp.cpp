@@ -2571,7 +2571,7 @@ void Baseapp::importClientMessages(Mercury::Channel* pChannel)
 		init = true;
 
 		{
-			const Mercury::MessageHandlers::MessageHandlerMap& msgHandlers = LoginappInterface::messageHandlers.msgHandlers();
+			const Mercury::MessageHandlers::MessageHandlerMap& msgHandlers = BaseappInterface::messageHandlers.msgHandlers();
 			Mercury::MessageHandlers::MessageHandlerMap::const_iterator iter = msgHandlers.begin();
 			for(; iter != msgHandlers.end(); iter++)
 			{
