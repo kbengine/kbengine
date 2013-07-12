@@ -144,6 +144,10 @@ function KBE_MEMORYSTREAM(size_or_buffer)
 			}
 			
 			i++;
+			
+			if(this.rpos + i >= this.buffer.byteLength)
+				throw(new Error("KBE_MEMORYSTREAM::readString: rpos(" + (this.rpos + i) + ")>=" + 
+					this.buffer.byteLength + " overflow!"));
 		}
 		
 		this.rpos += i;
@@ -603,6 +607,14 @@ function KBE_MESSAGE(id, name, length, args, handler)
 		{
 			args[i] = this.reader.readString;
 		}
+		else if(argType == this.datatype2id("FIXED_DICT"))
+		{
+			args[i] = this.reader.readBlob;
+		}
+		else if(argType == this.datatype2id("ARRAY"))
+		{
+			args[i] = this.reader.readBlob;
+		}
 		else
 		{
 			args[i] = this.reader.readBlob;
@@ -646,12 +658,13 @@ var g_messages = {};
 
 g_messages["Loginapp_importClientMessages"] = new KBE_MESSAGE(5, "importClientMessages", 0, new Array(), null);
 g_messages["Baseapp_importClientMessages"] = new KBE_MESSAGE(207, "importClientMessages", 0, new Array(), null);
+g_messages["Baseapp_importClientEntityDef"] = new KBE_MESSAGE(208, "importClientEntityDef", 0, new Array(), null);
 g_messages["onImportClientMessages"] = new KBE_MESSAGE(518, "onImportClientMessages", -1, new Array(), null);
 
 /*-----------------------------------------------------------------------------------------
 												entity
 -----------------------------------------------------------------------------------------*/
-function KBE_ENTITY()
+function KBEENTITY()
 {
 	this.id = 0;
 	this.classtype = "";
@@ -664,6 +677,55 @@ function KBE_ENTITY()
 }
 
 /*-----------------------------------------------------------------------------------------
+												entity
+-----------------------------------------------------------------------------------------*/
+var MAILBOX_TYPE_CELL = 0;
+var MAILBOX_TYPE_BASE = 1;
+
+function KBEMAILBOX()
+{
+	this.id = 0;
+	this.type = MAILBOX_TYPE_CELL;
+	this.networkInterface = g_kbengine;
+	
+	this.bundle = null;
+	
+	this.isBase = function()
+	{
+		return this.type == MAILBOX_TYPE_BASE;
+	}
+
+	this.isCell = function()
+	{
+		return this.type == MAILBOX_TYPE_CELL;
+	}
+	
+	this.newMail = function()
+	{  
+		if(this.bundle == null)
+			this.bundle = new KBE_BUNDLE();
+		
+		if(this.type == MAILBOX_TYPE_CELL)
+			this.bundle.newMessage(g_messages.Baseapp_onRemoteCallCellMethodFromClient);
+		else
+			this.bundle.newMessage(g_messages.Base_onRemoteMethodCall);
+		
+		this.bundle.writeInt32(this.id);
+		
+		return this.bundle;
+	}
+	
+	this.postMail = function(bundle)
+	{
+		if(bundle == undefined)
+			bundle = this.bundle;
+		
+		bundle.send(this.networkInterface);
+		this.bundle = null;
+	}
+}
+
+/*-----------------------------------------------------------------------------------------
 												system
 -----------------------------------------------------------------------------------------*/
 function KBENGINE()
@@ -672,7 +734,8 @@ function KBENGINE()
 	this.password = "123456";
 	this.loginappMessageImported = false;
 	this.baseappMessageImported = false;
-		
+	this.entitydefImported = false;
+	
 	this.reset = function()
 	{  
 		this.socket = null;
@@ -758,8 +821,8 @@ function KBENGINE()
 	this.onclose = function(){  
 		console.info('connect close:' + g_kbengine.currserver);
 		
-		if(g_kbengine.currserver != "loginapp")
-			g_kbengine.reset();
+		//if(g_kbengine.currserver != "loginapp")
+		//	g_kbengine.reset();
 	}
 
 	this.send = function(msg)
@@ -783,6 +846,7 @@ function KBENGINE()
 			bundle.newMessage(g_messages.Loginapp_importClientMessages);
 			bundle.send(g_kbengine);
 			g_kbengine.socket.onmessage = g_kbengine.onImportClientMessages;  
+			console.info("KBENGINE::onOpenLoginapp: start importClientMessages ...");
 		}
 		else
 		{
@@ -792,9 +856,10 @@ function KBENGINE()
 	
 	this.onImportClientMessagesCompleted = function()
 	{
+		console.info("KBENGINE::onImportClientMessagesCompleted: successfully!");
 		g_kbengine.socket.onmessage = g_kbengine.onmessage; 
 		g_kbengine.hello();
-			
+		
 		if(g_kbengine.currserver == "loginapp")
 		{
 			g_kbengine.login_loginapp(false);
@@ -802,9 +867,50 @@ function KBENGINE()
 		}
 		else
 		{
-			g_kbengine.login_baseapp(false);
 			g_kbengine.baseappMessageImported = true;
+			
+			if(!g_kbengine.entitydefImported)
+			{
+				console.info("KBENGINE::onImportClientMessagesCompleted: start importEntityDef ...");
+				var bundle = new KBE_BUNDLE();
+				bundle.newMessage(g_messages.Baseapp_importClientEntityDef);
+				bundle.send(g_kbengine);
+			}
+			else
+			{
+				g_kbengine.onImportEntityDefCompleted();
+			}
 		}
+	}
+	
+	this.Client_onImportClientEntityDef = function(stream)
+	{
+		alert(1);
+		var scriptmethod_name = stream.readString();
+		var propertysize = stream.readUint16();
+		var methodsize = stream.readUint16();
+		
+		console.info("KBENGINE::Client_onImportClientEntityDef: import(" + scriptmethod_name + "), propertys(" + propertysize + "), " +
+				"methods(" + methodsize + ")!");
+		
+		while(propertysize > 0)
+		{
+			propertysize--;
+		};
+		
+		while(methodsize > 0)
+		{
+			methodsize--;
+		};
+
+		g_kbengine.onImportEntityDefCompleted();
+	}
+
+	this.onImportEntityDefCompleted = function()
+	{
+		console.info("KBENGINE::onImportEntityDefCompleted: successfully!");
+		g_kbengine.entitydefImported = true;
+		g_kbengine.login_baseapp(false);
 	}
 	
 	this.onImportClientMessages = function(msg)
@@ -857,8 +963,7 @@ function KBENGINE()
 				{
 					g_messages[msgid] = new KBE_MESSAGE(msgid, msgname, msglen, argstypes, handler);
 				}
-				
-			}
+			};
 
 			g_kbengine.onImportClientMessagesCompleted();
 		}
@@ -950,10 +1055,29 @@ function KBENGINE()
 		g_kbengine.login_baseapp(true);
 	}
 	
-	this.Client_onLoginGatewayFailed = function(args)
+	this.Client_onLoginGatewayFailed = function(failedcode)
 	{
-		var failedcode = args.readUint16();
 		console.error("KBENGINE::Client_onLoginGatewayFailed: failedcode(" + failedcode + ")!");
+	}
+	
+	this.entityclass = {};
+	this.getentityclass = function(entityType)
+	{
+		entityType = "KBE" + entityType;
+		var runclass = g_kbengine.entityclass[entityType];
+		if(runclass == undefined)
+		{
+			runclass = eval(entityType);
+			if(runclass == undefined)
+			{
+				console.error("KBENGINE::getentityclass: entityType(" + entityType + ") is error!");
+				return runclass;
+			}
+			else
+				g_kbengine.entityclass[entityType] = runclass;
+		}
+
+		return runclass;
 	}
 	
 	this.Client_onCreatedProxies = function(rndUUID, eid, entityType)
@@ -962,10 +1086,17 @@ function KBENGINE()
 		g_kbengine.entity_uuid = rndUUID;
 		g_kbengine.entity_id = eid;
 		
-		var entity = new KBE_ENTITY();
+		
+		var runclass = this.getentityclass(entityType);
+		if(runclass == undefined)
+			return;
+		
+		var entity = new runclass();
 		entity.id = eid;
 		entity.classtype = entityType;
 		
+		entity.base = new KBEMAILBOX();
+		entity.base.id = eid;
 		g_kbengine.entities[eid] = entity;
 	}
 }

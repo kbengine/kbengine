@@ -94,6 +94,11 @@
 		<id>207</id>
 		<descr>客户端请求导入消息协议。</descr>
 	</Baseapp::importClientMessages>
+
+	<Baseapp::importClientEntityDef>
+		<id>208</id>
+		<descr>客户端entitydef导出。</descr>
+	</Baseapp::importClientEntityDef>
 	
 	<Base::onRemoteMethodCall>
 		<id>301</id>
@@ -265,6 +270,13 @@
 		</descr>
 		<arg>UINT8_ARRAY</arg> <!-- 需要解析 -->
 	</Client::onImportClientMessages>
+
+	<Client::onImportClientEntityDef>
+		<id>519</id>
+		<descr>服务器返回的entitydef数据。
+		</descr>
+		<arg>UINT8_ARRAY</arg> <!-- 需要解析 -->
+	</Client::onImportClientEntityDef>
 	
 	<Property::position>
 		<id>40000</id>

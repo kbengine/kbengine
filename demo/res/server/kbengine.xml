@@ -1,4 +1,4 @@
-﻿<root>
+<root>
 	<trace_packet>
 		<debug_type>0</debug_type>
 	</trace_packet>
@@ -6,9 +6,23 @@
 	<app_publish>0</app_publish>
 	
 	<dbmgr>
-		<host> 127.0.0.1 </host>
-		<databaseName> demo </databaseName>
+		<host> 192.168.10.108 </host>
+		<databaseName> kbe </databaseName> 
 	</dbmgr>
+	
+	<channelCommon> 
+		<receiveWindowOverflow>
+			<messages>
+				<critical>  0		</critical>
+				<internal>	0		</internal>
+				<external>	0		</external>
+			</messages>
+			<bytes>
+				<internal>	0		</internal>
+				<external>	0		</external>
+			</bytes>
+		</receiveWindowOverflow>
+	</channelCommon> 
 	
 	<cellapp>
 	</cellapp>
@@ -33,5 +47,10 @@
 	</kbcenter>
 	
 	<bots>
+		<defaultAddBots> 
+			<totalcount> 10  </totalcount> <!-- Type: Integer -->
+			<ticktime> 0.1  </ticktime> <!-- Type: Float -->
+			<tickcount> 2  </tickcount> <!-- Type: Integer -->
+		</defaultAddBots>							
 	</bots>
 </root>
