@@ -2085,15 +2085,24 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 
 	s >> accountName >> password >> dbid >> success >> entityID;
 
-	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
-	if(ptinfos == NULL)
-		return;
-
 	if(!success)
 	{
-		ERROR_MSG(boost::format("Baseapp::onQueryAccountCBFromDbmgr: query %1% is failed!\n") %
+		std::string error;
+		s >> error;
+		ERROR_MSG(boost::format("Baseapp::onQueryAccountCBFromDbmgr: query %1% is failed! error(%2%)\n") %
+			accountName.c_str() % error);
+		
+		s.opfini();
+		return;
+	}
+
+	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
+	if(ptinfos == NULL)
+	{
+		ERROR_MSG(boost::format("Baseapp::onQueryAccountCBFromDbmgr: PendingLoginMgr not found(%1%)\n") %
 			accountName.c_str());
 
+		s.opfini();
 		return;
 	}
 
@@ -2615,6 +2624,65 @@ void Baseapp::importClientMessages(Mercury::Channel* pChannel)
 	}
 
 	(*pBundle).send(getNetworkInterface(), pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
+{
+	
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	
+	pBundle->newMessage(ClientInterface::onImportClientEntityDef);
+
+	const EntityDef::SCRIPT_MODULES& modules = EntityDef::getScriptModules();
+	EntityDef::SCRIPT_MODULES::const_iterator iter = modules.begin();
+	for(; iter != modules.end(); iter++)
+	{
+		const ScriptDefModule::PROPERTYDESCRIPTION_MAP& propers = iter->get()->getClientPropertyDescriptions();
+		const ScriptDefModule::METHODDESCRIPTION_MAP& methods = iter->get()->getClientMethodDescriptions();
+		
+		if(propers.size() == 0 && methods.size() == 0)
+			continue;
+
+		uint16 size = propers.size();
+		uint16 size1 = methods.size();
+
+		(*pBundle) << iter->get()->getName() << size << size1;
+
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator piter = propers.begin();
+		for(; piter != propers.end(); piter++)
+		{
+			ENTITY_PROPERTY_UID	properUtype = piter->second->getUType();
+			std::string	name = piter->second->getName();
+			std::string	defaultValStr = piter->second->getDefaultValStr();
+			uint8 utype = datatype2id(piter->second->getDataType()->getName());
+
+			(*pBundle) << properUtype << name << defaultValStr << utype;
+		}
+		
+		ScriptDefModule::METHODDESCRIPTION_MAP::const_iterator miter = methods.begin();
+		for(; miter != methods.end(); miter++)
+		{
+			ENTITY_METHOD_UID	properUtype = miter->second->getUType();
+			std::string	name = miter->second->getName();
+			
+			const std::vector<DataType*>& args = miter->second->getArgTypes();
+			uint8 argssize = args.size();
+
+			(*pBundle) << properUtype << name << argssize;
+			
+			std::vector<DataType*>::const_iterator argiter = args.begin();
+			for(; argiter != args.end(); argiter++)
+			{
+				uint8 utype = datatype2id((*argiter)->getName());
+				(*pBundle) << utype;
+			}
+		}
+	}
+
+	(*pBundle).send(getNetworkInterface(), pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

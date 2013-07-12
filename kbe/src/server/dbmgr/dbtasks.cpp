@@ -230,6 +230,8 @@ bool DBTaskWriteEntity::db_thread_process()
 
 	if(writeEntityLog && success_)
 	{
+		success_ = false;
+
 		// 先写log， 如果写失败则可能这个entity已经在线
 		KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
 						(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
@@ -428,7 +430,8 @@ success_(false),
 s_(),
 dbid_(entityDBID),
 componentID_(componentID),
-entityID_(entityID)
+entityID_(entityID),
+error_()
 {
 }
 
@@ -453,7 +456,7 @@ bool DBTaskQueryAccount::db_thread_process()
 	info.password = "";
 	info.dbid = dbid_;
 
-	if(dbid_  == 0)
+	if(dbid_ == 0)
 	{
 		if(!pTable->queryAccount(pdbi_, accountName_, info))
 			return false;
@@ -478,7 +481,14 @@ bool DBTaskQueryAccount::db_thread_process()
 	ScriptDefModule* pModule = EntityDef::findScriptModule(g_kbeSrvConfig.getDBMgr().dbAccountEntityScriptType);
 	success_ = EntityTables::getSingleton().queryEntity(pdbi_, info.dbid, &s_, pModule);
 
+	if(!success_ && pdbi_->getlasterror() > 0)
+	{
+		error_ += "queryEntity: ";
+		error_ += pdbi_->getstrerror();
+	}
+
 	dbid_ = info.dbid;
+	success_ = false;
 
 	// 先写log， 如果写失败则可能这个entity已经在线
 	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
@@ -488,6 +498,11 @@ bool DBTaskQueryAccount::db_thread_process()
 	success_ = pELTable->logEntity(pdbi_, addr_.ipAsString(), addr_.port, dbid_, 
 		componentID_, entityID_, pModule->getUType());
 
+	if(!success_ && pdbi_->getlasterror() > 0)
+	{
+		error_ += "logEntity: ";
+		error_ += pdbi_->getstrerror();
+	}
 	return false;
 }
 
@@ -507,6 +522,10 @@ thread::TPTask::TPTaskState DBTaskQueryAccount::presentMainThread()
 	if(success_)
 	{
 		pBundle->append(s_);
+	}
+	else
+	{
+		(*pBundle) << error_;
 	}
 
 	if(!this->send((*pBundle)))
@@ -704,6 +723,7 @@ bool DBTaskAccountLogin::db_thread_process()
 		}
 	}
 
+	success_ = false;
 	KBEEntityLogTable::EntityLog entitylog;
 
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();

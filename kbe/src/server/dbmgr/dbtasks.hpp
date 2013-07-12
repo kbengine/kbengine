@@ -202,6 +202,7 @@ protected:
 	DBID dbid_;
 	COMPONENT_ID componentID_;
 	ENTITY_ID entityID_;
+	std::string error_;
 };
 
 /**

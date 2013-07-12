@@ -217,6 +217,7 @@ Packet* Bundle::newPacket()
 	else
 		pCurrPacket_ = UDPPacket::ObjPool().createObject();
 	
+	pCurrPacket_->pBundle(this);
 	return pCurrPacket_;
 }
 
@@ -224,6 +225,8 @@ Packet* Bundle::newPacket()
 void Bundle::finish(bool issend)
 {
 	KBE_ASSERT(pCurrPacket_ != NULL);
+	
+	pCurrPacket_->pBundle(this);
 
 	if(issend)
 	{

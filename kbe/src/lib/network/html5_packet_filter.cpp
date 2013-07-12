@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "html5_packet_filter.hpp"
 
+#include "network/bundle.hpp"
 #include "network/channel.hpp"
 #include "network/tcp_packet.hpp"
 #include "network/network_interface.hpp"
@@ -86,12 +87,32 @@ Reason HTML5PacketFilter::send(NetworkInterface & networkInterface, Channel * pC
 {
 	TCPPacket* pRetTCPPacket = TCPPacket::ObjPool().createObject();
 
+	Bundle* pBundle = pPacket->pBundle();
+	
 	uint64 payloadSize = pPacket->totalSize();
-
 	int8 basicSize = payloadSize;
 
 	//create the flags byte
-	const uint8 payloadFlags = BINARY_FRAME;
+	uint8 payloadFlags = BINARY_FRAME;
+
+	if(pBundle && pBundle->packets().size() > 1)
+	{
+		bool isEnd = pBundle->packets().back() == pPacket;
+		bool isBegin = pBundle->packets().front() == pPacket;
+
+		if(!isEnd && !isBegin)
+		{
+			payloadFlags = NEXT_FRAME;
+		}
+		else
+		{
+			if(!isEnd)
+				payloadFlags = BEGIN_BINARY_FRAME;
+			else
+				payloadFlags = END_FRAME;
+		}
+	}
+
 	(*pRetTCPPacket) << payloadFlags;
 
 	if(payloadSize <= 125)

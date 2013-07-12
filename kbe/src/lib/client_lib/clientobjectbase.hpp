@@ -284,6 +284,11 @@ public:
 	*/
 	virtual void onImportClientMessages(Mercury::Channel* pChannel, MemoryStream& s){}
 
+	/** 网络接口
+		接收到entitydef(通常是web等才会应用到)
+	*/
+	virtual void onImportClientEntityDef(Mercury::Channel* pChannel, MemoryStream& s){}
+	
 	/** 
 		获得player实例
 	*/

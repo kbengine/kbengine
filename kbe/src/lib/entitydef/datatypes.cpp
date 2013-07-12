@@ -64,6 +64,10 @@ uint16 datatype2id(std::string datatype)
 		return 16;
 	else if(datatype == "VECTOR4")
 		return 17;
+	else if(datatype == "FIXED_DICT")
+		return 18;
+	else if(datatype == "ARRAY")
+		return 19;
 	else
 		assert(false);
 

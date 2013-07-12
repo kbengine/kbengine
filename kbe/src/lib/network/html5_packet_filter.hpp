@@ -34,8 +34,11 @@ class HTML5PacketFilter : public PacketFilter
 public:
 	enum WebSocketFrameType 
 	{
-		INCOMPLETE_TEXT_FRAME = 0x01,
-		INCOMPLETE_BINARY_FRAME = 0x02,
+		NEXT_FRAME = 0x0,
+		END_FRAME = 0x80,
+
+		BEGIN_TEXT_FRAME = 0x01,
+		BEGIN_BINARY_FRAME = 0x02,
 
 		TEXT_FRAME = 0x81,
 		BINARY_FRAME = 0x82,

@@ -373,6 +373,11 @@ public:
 		客户端协议导出
 	*/
 	void importClientMessages(Mercury::Channel* pChannel);
+
+	/** 网络接口
+		客户端entitydef导出
+	*/
+	void importClientEntityDef(Mercury::Channel* pChannel);
 protected:
 	TimerHandle												loopCheckTimerHandle_;
 

@@ -32,6 +32,7 @@ namespace Mercury
 {
 class EndPoint;
 class Address;
+class Bundle;
 
 class Packet : public MemoryStream, public RefCountable
 {
@@ -41,6 +42,7 @@ public:
 	msgID_(msgID),
 	isTCPPacket_(isTCPPacket),
 	encrypted_(false),
+	pBundle_(NULL),
 	sentSize(0)
 	{
 	};
@@ -55,6 +57,9 @@ public:
 		resetPacket();
 	}
 
+	Bundle* pBundle()const{ return pBundle_; }
+	void pBundle(Bundle* v){ pBundle_ = v; }
+
 	virtual int recvFromEndPoint(EndPoint & ep, Address* pAddr = NULL) = 0;
 	
 	virtual size_t totalSize() const { return wpos() - rpos(); }
@@ -67,6 +72,7 @@ public:
 		encrypted_ = false;
 		sentSize = 0;
 		msgID_ = 0;
+		pBundle_ = NULL;
 		// memset(data(), 0, size());
 	};
 	
@@ -85,6 +91,7 @@ protected:
 	MessageID msgID_;
 	bool isTCPPacket_;
 	bool encrypted_;
+	Bundle* pBundle_;
 public:
 	uint32 sentSize;
 

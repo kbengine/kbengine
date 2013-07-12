@@ -51,6 +51,11 @@ INLINE const char* PropertyDescription::getDataTypeName(void)const
 	return dataTypeName_.c_str(); 
 }
 
+INLINE const char* PropertyDescription::getDefaultValStr(void)const
+{ 
+	return defaultValStr_.c_str(); 
+}
+
 INLINE ENTITY_PROPERTY_UID PropertyDescription::getUType(void)const
 { 
 	return utype_; 

@@ -50,7 +50,10 @@ namespace KBEngine{
 NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// 客户端请求导入协议。
 	BASEAPP_MESSAGE_DECLARE_ARGS0(importClientMessages,						MERCURY_FIXED_MESSAGE)
-		
+
+	// 客户端entitydef导出。
+	BASEAPP_MESSAGE_DECLARE_ARGS0(importClientEntityDef,					MERCURY_FIXED_MESSAGE)
+
 	// 某app主动请求断线。
 	BASEAPP_MESSAGE_DECLARE_ARGS0(reqClose,									MERCURY_FIXED_MESSAGE)
 

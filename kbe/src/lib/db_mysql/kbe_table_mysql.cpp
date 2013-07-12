@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "entity_table_mysql.hpp"
 #include "kbe_table_mysql.hpp"
+#include "db_exception.hpp"
 #include "db_interface_mysql.hpp"
 #include "dbmgr_lib/db_interface.hpp"
 #include "dbmgr_lib/entity_table.hpp"
@@ -94,12 +95,26 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * dbi, const char* ip, uint32
 
 	SAFE_RELEASE_ARRAY(tbuf);
 
-	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	try
 	{
-		// 1062 int err = dbi->getlasterror(); 
+		if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+		{
+			// 1062 int err = dbi->getlasterror(); 
+			return false;
+		}
+	}
+	catch (std::exception & e)
+	{
+		DBException& dbe = static_cast<DBException&>(e);
+		if(dbe.isLostConnection())
+		{
+			if(dbi->processException(e))
+				return true;
+		}
+
 		return false;
 	}
-	
+
 	return true;
 }
 

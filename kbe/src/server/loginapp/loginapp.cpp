@@ -703,6 +703,7 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 	}
 
 	(*pBundle).send(getNetworkInterface(), pChannel);
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

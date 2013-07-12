@@ -89,6 +89,11 @@ public:
 	INLINE const char* getDataTypeName(void)const;
 	
 	/** 
+		获取初始值字符串
+	*/
+	INLINE const char* getDefaultValStr(void)const;
+
+	/** 
 		属性的数字类别， 用于网络上传输识别 
 	*/
 	INLINE ENTITY_PROPERTY_UID getUType(void)const;
