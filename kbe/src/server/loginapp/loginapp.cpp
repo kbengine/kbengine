@@ -631,12 +631,11 @@ void Loginapp::onHello(Mercury::Channel* pChannel,
 //-------------------------------------------------------------------------------------
 void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 {
-	static bool init = false;
-	static std::map< Mercury::MessageID, Mercury::ExposedMessageInfo > messages;
-
-	if(!init)
+	static Mercury::Bundle bundle;
+	
+	if(bundle.packets().size() == 0)
 	{
-		init = true;
+		std::map< Mercury::MessageID, Mercury::ExposedMessageInfo > messages;
 		{
 			const Mercury::MessageHandlers::MessageHandlerMap& msgHandlers = ClientInterface::messageHandlers.msgHandlers();
 			Mercury::MessageHandlers::MessageHandlerMap::const_iterator iter = msgHandlers.begin();
@@ -680,30 +679,27 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 				}
 			}
 		}
-	}
-
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	
-	pBundle->newMessage(ClientInterface::onImportClientMessages);
-	
-	uint16 size = messages.size();
-	(*pBundle) << size;
+		bundle.newMessage(ClientInterface::onImportClientMessages);
+		
+		uint16 size = messages.size();
+		bundle << size;
 
-	std::map< Mercury::MessageID, Mercury::ExposedMessageInfo >::iterator iter = messages.begin();
-	for(; iter != messages.end(); iter++)
-	{
-		uint8 argsize = iter->second.argsTypes.size();
-		(*pBundle) << iter->second.id << iter->second.msgLen << iter->second.name << argsize;
-
-		std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
-		for(; argiter != iter->second.argsTypes.end(); argiter++)
+		std::map< Mercury::MessageID, Mercury::ExposedMessageInfo >::iterator iter = messages.begin();
+		for(; iter != messages.end(); iter++)
 		{
-			(*pBundle) << (*argiter);
+			uint8 argsize = iter->second.argsTypes.size();
+			bundle << iter->second.id << iter->second.msgLen << iter->second.name << argsize;
+
+			std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
+			for(; argiter != iter->second.argsTypes.end(); argiter++)
+			{
+				bundle << (*argiter);
+			}
 		}
 	}
 
-	(*pBundle).send(getNetworkInterface(), pChannel);
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	bundle.resend(getNetworkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------

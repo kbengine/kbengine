@@ -123,6 +123,7 @@ public:
 	
 	void finish(bool issend = true);
 
+	void resend(NetworkInterface & networkInterface, Channel * pChannel);
 	void send(NetworkInterface & networkInterface, Channel * pChannel);
 	void send(EndPoint& ep);
 	void sendto(EndPoint& ep, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
@@ -154,6 +155,8 @@ public:
 	Packet* newPacket();
 	
 	inline MessageID messageID() const { return currMsgID_; }
+
+	bool reuse(){ return reuse_; } 
 public:
 	int32 onPacketAppend(int32 addsize, bool inseparable = true);
 
@@ -441,6 +444,8 @@ private:
 	bool isTCPPacket_;
 
 	const Mercury::MessageHandler* pCurrMsgHandler_;
+
+	bool reuse_;
 
 };
 

@@ -154,12 +154,19 @@ function KBE_MEMORYSTREAM(size_or_buffer)
 		return s;
 	}
 
-	this.readBlob = function(v)
+	this.readBlob = function()
 	{
 		size = this.readUint32();
 		var buf = new Uint8Array(this.buffer, this.rpos, size);
 		this.rpos += size;
 		return buf;
+	}
+
+	this.readStream = function()
+	{
+		var buf = new Uint8Array(this.buffer, this.rpos, this.buffer.byteLength - this.rpos);
+		this.rpos = this.buffer.byteLength;
+		return new KBE_MEMORYSTREAM(buf);
 	}
 	
 	//---------------------------------------------------------------------------------
@@ -318,6 +325,12 @@ function KBE_MEMORYSTREAM(size_or_buffer)
 		return this.wpos - this.rpos;
 	}
 
+	//---------------------------------------------------------------------------------
+	this.readEOF = function()
+	{
+		return this.buffer.byteLength - this.rpos <= 0;
+	}
+	
 	//---------------------------------------------------------------------------------
 	this.totalsize = function()
 	{
@@ -506,119 +519,208 @@ function KBE_BUNDLE()
 /*-----------------------------------------------------------------------------------------
 												messages
 -----------------------------------------------------------------------------------------*/
+var g_reader = new KBE_MEMORYSTREAM(0);
+var datatype2id = {};
+datatype2id["STRING"] = 1;
+datatype2id["STD::STRING"] = 1;
+
+datatype2id["UINT8"] = 2;
+datatype2id["BOOL"] = 2;
+datatype2id["DATATYPE"] = 2;
+datatype2id["CHAR"] = 2;
+datatype2id["DETAIL_TYPE"] = 2;
+datatype2id["MAIL_TYPE"] = 2;
+
+datatype2id["UINT16"] = 3;
+datatype2id["UNSIGNED SHORT"] = 3;
+datatype2id["SERVER_ERROR_CODE"] = 3;
+datatype2id["ENTITY_TYPE"] = 3;
+datatype2id["ENTITY_PROPERTY_UID"] = 3;
+datatype2id["ENTITY_METHOD_UID"] = 3;
+datatype2id["ENTITY_SCRIPT_UID"] = 3;
+datatype2id["DATATYPE_UID"] = 3;
+
+datatype2id["UINT32"] = 4;
+datatype2id["UINT"] = 4;
+datatype2id["UNSIGNED INT"] = 4;
+datatype2id["ARRAYSIZE"] = 4;
+datatype2id["SPACE_ID"] = 4;
+datatype2id["GAME_TIME"] = 4;
+datatype2id["TIMER_ID"] = 4;
+
+datatype2id["UINT64"] = 5;
+datatype2id["DBID"] = 5;
+datatype2id["COMPONENT_ID"] = 5;
+
+datatype2id["INT8"] = 6;
+datatype2id["COMPONENT_ORDER"] = 6;
+
+datatype2id["INT16"] = 7;
+datatype2id["SHORT"] = 7;
+
+datatype2id["INT32"] = 8;
+datatype2id["INT"] = 8;
+datatype2id["ENTITY_ID"] = 8;
+datatype2id["CALLBACK_ID"] = 8;
+datatype2id["COMPONENT_TYPE"] = 8;
+
+datatype2id["INT64"] = 9;
+
+datatype2id["PYTHON"] = 10;
+datatype2id["PY_DICT"] = 10;
+datatype2id["PY_TUPLE"] = 10;
+datatype2id["PY_LIST"] = 10;
+datatype2id["MAILBOX"] = 10;
+
+datatype2id["BLOB"] = 11;
+
+datatype2id["UNICODE"] = 12;
+
+datatype2id["FLOAT"] = 13;
+
+datatype2id["DOUBLE"] = 14;
+
+datatype2id["VECTOR2"] = 15;
+
+datatype2id["VECTOR3"] = 16;
+
+datatype2id["VECTOR4"] = 17;
+
+datatype2id["FIXED_DICT"] = 18;
+
+datatype2id["ARRAY"] = 19;
+
+
+bindwriter = function(writer, argType)
+{
+	if(argType == datatype2id["UINT8"])
+	{
+		return writer.writeUint8;
+	}
+	else if(argType == datatype2id["UINT16"])
+	{
+		return writer.writeUint16;
+	}
+	else if(argType == datatype2id["UINT32"])
+	{
+		return writer.writeUint32;
+	}
+	else if(argType == datatype2id["UINT64"])
+	{
+		return writer.writeUint64;
+	}
+	else if(argType == datatype2id["INT8"])
+	{
+		return writer.writeInt8;
+	}
+	else if(argType == datatype2id["INT16"])
+	{
+		return writer.writeInt16;
+	}
+	else if(argType == datatype2id["INT32"])
+	{
+		return writer.writeInt32;
+	}
+	else if(argType == datatype2id["INT64"])
+	{
+		return writer.writeInt64;
+	}
+	else if(argType == datatype2id["FLOAT"])
+	{
+		return writer.writeFloat;
+	}
+	else if(argType == datatype2id["DOUBLE"])
+	{
+		return writer.writeDouble;
+	}
+	else if(argType == datatype2id["STRING"])
+	{
+		return writer.writeString;
+	}
+	else if(argType == datatype2id["FIXED_DICT"])
+	{
+		return writer.writeStream;
+	}
+	else if(argType == datatype2id["ARRAY"])
+	{
+		return writer.writeStream;
+	}
+	else
+	{
+		return writer.writeStream;
+	}
+}
+
+bindReader = function(argType)
+{
+	if(argType == datatype2id["UINT8"])
+	{
+		return g_reader.readUint8;
+	}
+	else if(argType == datatype2id["UINT16"])
+	{
+		return g_reader.readUint16;
+	}
+	else if(argType == datatype2id["UINT32"])
+	{
+		return g_reader.readUint32;
+	}
+	else if(argType == datatype2id["UINT64"])
+	{
+		return g_reader.readUint64;
+	}
+	else if(argType == datatype2id["INT8"])
+	{
+		return g_reader.readInt8;
+	}
+	else if(argType == datatype2id["INT16"])
+	{
+		return g_reader.readInt16;
+	}
+	else if(argType == datatype2id["INT32"])
+	{
+		return g_reader.readInt32;
+	}
+	else if(argType == datatype2id["INT64"])
+	{
+		return g_reader.readInt64;
+	}
+	else if(argType == datatype2id["FLOAT"])
+	{
+		return g_reader.readFloat;
+	}
+	else if(argType == datatype2id["DOUBLE"])
+	{
+		return g_reader.readDouble;
+	}
+	else if(argType == datatype2id["STRING"])
+	{
+		return g_reader.readString;
+	}
+	else if(argType == datatype2id["FIXED_DICT"])
+	{
+		return g_reader.readStream;
+	}
+	else if(argType == datatype2id["ARRAY"])
+	{
+		return g_reader.readStream;
+	}
+	else
+	{
+		return g_reader.readStream;
+	}
+}
+	
 function KBE_MESSAGE(id, name, length, args, handler)
 {
 	this.id = id;
 	this.name = name;
 	this.length = length;
-	this.reader = new KBE_MEMORYSTREAM(0);
-
-	this.datatype2id = function(datatype)
-	{	
-		if(datatype == "STRING" || datatype == "STD::STRING")
-			return 1;
-		else if(datatype == "UINT8" || datatype == "BOOL" || datatype == "DATATYPE" || datatype == "CHAR" || datatype == "DETAIL_TYPE" ||
-			datatype == "MAIL_TYPE")
-			return 2;
-		else if(datatype == "UINT16" | datatype == "UNSIGNED SHORT" || datatype == "SERVER_ERROR_CODE" || datatype == "ENTITY_TYPE" ||
-			datatype == "ENTITY_PROPERTY_UID" || datatype == "ENTITY_METHOD_UID" || datatype == "ENTITY_SCRIPT_UID" || datatype == "DATATYPE_UID")
-			return 3;
-		else if(datatype == "UINT32" || datatype == "UINT" || datatype == "UNSIGNED INT" ||datatype == "ARRAYSIZE" || datatype == "SPACE_ID" || datatype == "GAME_TIME" ||
-			datatype == "TIMER_ID")
-			return 4;
-		else if(datatype == "UINT64" || datatype == "DBID" || datatype == "COMPONENT_ID")
-			return 5;
-		else if(datatype == "INT8" || datatype == "COMPONENT_ORDER")
-			return 6;
-		else if(datatype == "INT16" || datatype == "SHORT")
-			return 7;
-		else if(datatype == "INT32" || datatype == "INT" ||datatype == "ENTITY_ID" || datatype == "CALLBACK_ID" || datatype == "COMPONENT_TYPE")
-			return 8;
-		else if(datatype == "INT64")
-			return 9;
-		else if(datatype == "PYTHON" || datatype == "PY_DICT" || datatype == "PY_TUPLE" || datatype == "PY_LIST" || datatype == "MAILBOX")
-			return 10;
-		else if(datatype == "BLOB")
-			return 11;
-		else if(datatype == "UNICODE")
-			return 12;
-		else if(datatype == "FLOAT")
-			return 13;
-		else if(datatype == "DOUBLE")
-			return 14;
-		else if(datatype == "VECTOR2")
-			return 15;
-		else if(datatype == "VECTOR3")
-			return 16;
-		else if(datatype == "VECTOR4")
-			return 17;
-		else
-			alert("datatype2id error!");
-
-		return 0;
-	}
 
 	// °ó¶¨Ö´ÐÐ
 	for(i=0; i<args.length; i++)
 	{
-		argType = args[i];
-		
-		if(argType == this.datatype2id("UINT8"))
-		{
-			args[i] = this.reader.readUint8;
-		}
-		else if(argType == this.datatype2id("UINT16"))
-		{
-			args[i] = this.reader.readUint16;
-		}
-		else if(argType == this.datatype2id("UINT32"))
-		{
-			args[i] = this.reader.readUint32;
-		}
-		else if(argType == this.datatype2id("UINT64"))
-		{
-			args[i] = this.reader.readUint64;
-		}
-		else if(argType == this.datatype2id("INT8"))
-		{
-			args[i] = this.reader.readInt8;
-		}
-		else if(argType == this.datatype2id("INT16"))
-		{
-			args[i] = this.reader.readInt16;
-		}
-		else if(argType == this.datatype2id("INT32"))
-		{
-			args[i] = this.reader.readInt32;
-		}
-		else if(argType == this.datatype2id("INT64"))
-		{
-			args[i] = this.reader.readInt64;
-		}
-		else if(argType == this.datatype2id("FLOAT"))
-		{
-			args[i] = this.reader.readFloat;
-		}
-		else if(argType == this.datatype2id("DOUBLE"))
-		{
-			args[i] = this.reader.readDouble;
-		}
-		else if(argType == this.datatype2id("STRING"))
-		{
-			args[i] = this.reader.readString;
-		}
-		else if(argType == this.datatype2id("FIXED_DICT"))
-		{
-			args[i] = this.reader.readBlob;
-		}
-		else if(argType == this.datatype2id("ARRAY"))
-		{
-			args[i] = this.reader.readBlob;
-		}
-		else
-		{
-			args[i] = this.reader.readBlob;
-		}
+		args[i] = bindReader(args[i]);
 	}
 	
 	this.args = args;
@@ -674,6 +776,82 @@ function KBEENTITY()
 		
 	this.cell = null;
 	this.base = null;
+	
+	KBEENTITY.prototype.baseCall = function()
+	{
+		if(arguments.length < 1)
+		{
+			console.error('KBEENTITY::baseCall: not fount interfaceName!');  
+			return;
+		}
+		
+		var method = g_moduledefs[this.classtype].base_methods[arguments[0]];
+		var methodID = method[0];
+		var args = method[2];
+		
+		if(arguments.length - 1 != args.length)
+		{
+			console.error("KBEENTITY::baseCall: args(" + (arguments.length - 1) + "!= " + args.length + ") size is error!");  
+			return;
+		}
+		
+		this.base.newMail();
+		this.base.bundle.writeUint16(methodID);
+		
+		try
+		{
+			for(var i=0; i<args.length; i++)
+			{
+				bindwriter(args[i])(arguments[i + 1]);
+			}
+		}
+		catch(e)
+		{
+			console.error('KBEENTITY::baseCall: args is error!');  
+			this.base.bundle = null;
+			return;
+		}
+		
+		this.base.postMail();
+	}
+	
+	KBEENTITY.prototype.cellCall = function()
+	{
+		if(arguments.length < 1)
+		{
+			console.error('KBEENTITY::cellCall: not fount interfaceName!');  
+			return;
+		}
+		
+		var method = g_moduledefs[this.classtype].base_methods[arguments[0]];
+		var methodID = method[0];
+		var args = method[2];
+		
+		if(arguments.length - 1 != args.length)
+		{
+			console.error("KBEENTITY::cellCall: args(" + (arguments.length - 1) + "!= " + args.length + ") size is error!");  
+			return;
+		}
+		
+		this.cell.newMail();
+		this.cell.bundle.writeUint16(methodID);
+		
+		try
+		{
+			for(var i=0; i<args.length; i++)
+			{
+				bindwriter(args[i])(arguments[i + 1]);
+			}
+		}
+		catch(e)
+		{
+			console.error('KBEENTITY::cellCall: args is error!');  
+			this.cell.bundle = null;
+			return;
+		}
+		
+		this.cell.postMail();
+	}
 }
 
 /*-----------------------------------------------------------------------------------------
@@ -685,6 +863,7 @@ var MAILBOX_TYPE_BASE = 1;
 function KBEMAILBOX()
 {
 	this.id = 0;
+	this.classtype = "";
 	this.type = MAILBOX_TYPE_CELL;
 	this.networkInterface = g_kbengine;
 	
@@ -709,7 +888,7 @@ function KBEMAILBOX()
 			this.bundle.newMessage(g_messages.Baseapp_onRemoteCallCellMethodFromClient);
 		else
 			this.bundle.newMessage(g_messages.Base_onRemoteMethodCall);
-		
+
 		this.bundle.writeInt32(this.id);
 		
 		return this.bundle;
@@ -724,6 +903,11 @@ function KBEMAILBOX()
 		this.bundle = null;
 	}
 }
+
+/*-----------------------------------------------------------------------------------------
+												entitydef
+-----------------------------------------------------------------------------------------*/
+var g_moduledefs = {}
 
 /*-----------------------------------------------------------------------------------------
 												system
@@ -845,7 +1029,7 @@ function KBENGINE()
 			var bundle = new KBE_BUNDLE();
 			bundle.newMessage(g_messages.Loginapp_importClientMessages);
 			bundle.send(g_kbengine);
-			g_kbengine.socket.onmessage = g_kbengine.onImportClientMessages;  
+			g_kbengine.socket.onmessage = g_kbengine.Client_onImportClientMessages;  
 			console.info("KBENGINE::onOpenLoginapp: start importClientMessages ...");
 		}
 		else
@@ -885,24 +1069,131 @@ function KBENGINE()
 	
 	this.Client_onImportClientEntityDef = function(stream)
 	{
-		alert(1);
-		var scriptmethod_name = stream.readString();
-		var propertysize = stream.readUint16();
-		var methodsize = stream.readUint16();
-		
-		console.info("KBENGINE::Client_onImportClientEntityDef: import(" + scriptmethod_name + "), propertys(" + propertysize + "), " +
-				"methods(" + methodsize + ")!");
-		
-		while(propertysize > 0)
+		while(!stream.readEOF())
 		{
-			propertysize--;
-		};
-		
-		while(methodsize > 0)
-		{
-			methodsize--;
-		};
+			var scriptmethod_name = stream.readString();
+			var propertysize = stream.readUint16();
+			var methodsize = stream.readUint16();
+			var base_methodsize = stream.readUint16();
+			var cell_methodsize = stream.readUint16();
+			
+			console.info("KBENGINE::Client_onImportClientEntityDef: import(" + scriptmethod_name + "), propertys(" + propertysize + "), " +
+					"clientMethods(" + methodsize + "), baseMethods(" + base_methodsize + "), cellMethods(" + cell_methodsize + ")!");
+			
+			g_moduledefs[scriptmethod_name] = {};
+			g_moduledefs[scriptmethod_name]["propertys"] = {};
+			g_moduledefs[scriptmethod_name]["methods"] = {};
+			g_moduledefs[scriptmethod_name]["base_methods"] = {};
+			g_moduledefs[scriptmethod_name]["cell_methods"] = {};
+			
+			while(propertysize > 0)
+			{
+				propertysize--;
+				
+				var properUtype = stream.readUint16();
+				var name = stream.readString();
+				var defaultValStr = stream.readString();
+				var utype = bindReader(stream.readUint8());
+				
+				g_moduledefs[scriptmethod_name]["propertys"][name] = [properUtype, name, defaultValStr, utype];
+				console.info("KBENGINE::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), property(" + name + ").");
+			};
+			
+			while(methodsize > 0)
+			{
+				methodsize--;
+				
+				var methodUtype = stream.readUint16();
+				var name = stream.readString();
+				var argssize = stream.readUint8();
+				var args = [];
+				
+				while(argssize > 0)
+				{
+					argssize--;
+					args.push(bindReader(stream.readUint8()));
+				};
+				
+				var savedata = [methodUtype, name, args];
+				g_moduledefs[scriptmethod_name]["methods"][name] = savedata;
+				g_moduledefs[scriptmethod_name]["methods"][methodUtype] = savedata;
+				console.info("KBENGINE::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), method(" + name + ").");
+			};
 
+			while(base_methodsize > 0)
+			{
+				base_methodsize--;
+				
+				var methodUtype = stream.readUint16();
+				var name = stream.readString();
+				var argssize = stream.readUint8();
+				var args = [];
+				
+				while(argssize > 0)
+				{
+					argssize--;
+					args.push(stream.readUint8());
+				};
+				
+				g_moduledefs[scriptmethod_name]["base_methods"][name] = [methodUtype, name, args];
+				console.info("KBENGINE::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), base_method(" + name + ").");
+			};
+			
+			while(cell_methodsize > 0)
+			{
+				cell_methodsize--;
+				
+				var methodUtype = stream.readUint16();
+				var name = stream.readString();
+				var argssize = stream.readUint8();
+				var args = [];
+				
+				while(argssize > 0)
+				{
+					argssize--;
+					args.push(stream.readUint8());
+				};
+				
+				g_moduledefs[scriptmethod_name]["cell_methods"][name] = [methodUtype, name, args];
+				console.info("KBENGINE::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), cell_method(" + name + ").");
+			};
+			
+			try
+			{
+				defmethod = eval("KBE" + scriptmethod_name);
+			}
+			catch(e)
+			{
+				console.error("KBENGINE::Client_onImportClientEntityDef: module(KBE" + scriptmethod_name + ") not found!");
+				defmethod = undefined;
+			}
+			
+			for(name in g_moduledefs[scriptmethod_name].propertys)
+			{
+				var infos = g_moduledefs[scriptmethod_name].propertys[name];
+				var properUtype = infos[0];
+				var name = infos[1];
+				var defaultValStr = infos[2];
+				var utype = infos[3];
+				
+				if(defmethod != undefined)
+					defmethod.prototype[name] = eval(defaultValStr);
+			};
+
+			for(name in g_moduledefs[scriptmethod_name].methods)
+			{
+				var infos = g_moduledefs[scriptmethod_name].methods[name];
+				var properUtype = infos[0];
+				var name = infos[1];
+				var args = infos[2];
+				
+				if(defmethod != undefined && defmethod.prototype[name] == undefined)
+				{
+					console.warn("KBE" + scriptmethod_name + ":: method(" + name + ") no implement!");
+				}
+			};
+		}
+		
 		g_kbengine.onImportEntityDefCompleted();
 	}
 
@@ -913,7 +1204,7 @@ function KBENGINE()
 		g_kbengine.login_baseapp(false);
 	}
 	
-	this.onImportClientMessages = function(msg)
+	this.Client_onImportClientMessages = function(msg)
 	{
 		var stream = new KBE_MEMORYSTREAM(msg.data);
 		var msgid = stream.readUint16();
@@ -950,7 +1241,7 @@ function KBENGINE()
 					}
 					else
 					{
-						console.info("KBENGINE::onImportClientMessages: import(" + msgname + ") successfully!");
+						// console.info("KBENGINE::onImportClientMessages: import(" + msgname + ") successfully!");
 					}
 				}
 			
@@ -1001,7 +1292,7 @@ function KBENGINE()
 			var bundle = new KBE_BUNDLE();
 			bundle.newMessage(g_messages.Baseapp_importClientMessages);
 			bundle.send(g_kbengine);
-			g_kbengine.socket.onmessage = g_kbengine.onImportClientMessages;  
+			g_kbengine.socket.onmessage = g_kbengine.Client_onImportClientMessages;  
 		}
 		else
 		{
@@ -1086,7 +1377,6 @@ function KBENGINE()
 		g_kbengine.entity_uuid = rndUUID;
 		g_kbengine.entity_id = eid;
 		
-		
 		var runclass = this.getentityclass(entityType);
 		if(runclass == undefined)
 			return;
@@ -1097,8 +1387,69 @@ function KBENGINE()
 		
 		entity.base = new KBEMAILBOX();
 		entity.base.id = eid;
+		entity.base.classtype = entityType;
+		entity.base.type = MAILBOX_TYPE_BASE;
+		
 		g_kbengine.entities[eid] = entity;
+		
+		entity.__init__();
 	}
+	
+	this.Client_onUpdatePropertys = function(stream)
+	{
+		alert(stream);
+		var eid = stream.readInt32();
+		alert(eid);
+	}
+
+	this.Client_onRemoteMethodCall = function(stream)
+	{
+		var eid = stream.readInt32();
+		var entity = g_kbengine.entities[eid];
+		
+		if(entity == undefined)
+		{
+			console.error("KBENGINE::Client_onRemoteMethodCall: entity(" + eid + ") not found!");
+			return;
+		}
+		
+		var methodUtype = stream.readUint16();
+		var methoddata = g_moduledefs[entity.classtype].methods[methodUtype];
+		var args = [];
+		var argsdata = methoddata[2];
+		for(var i=0; i<argsdata.length; i++)
+		{
+			args.push(argsdata[i].call(stream));
+		}
+		
+		entity[methoddata[1]].apply(entity, args);
+	}
+		
+	this.Client_onEntityEnterWorld = function(eid, scriptType, spaceID)
+	{
+	}
+	
+	this.Client_onEntityLeaveWorld = function(eid, spaceID)
+	{
+	}
+	
+	this.Client_onEntityEnterSpace = function(spaceID, eid)
+	{
+	}
+	
+	this.Client_onEntityLeaveSpace = function(spaceID, eid)
+	{
+	}
+
+	this.Client_onSetEntityPosAndDir = function(stream)
+	{
+	}
+
+	this.Client_onCreateAccountResult = function(stream)
+	{
+	}
+	
+	
 }
 
 var g_kbengine = new KBENGINE();

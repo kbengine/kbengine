@@ -127,6 +127,16 @@ INLINE ScriptDefModule::METHODDESCRIPTION_MAP& ScriptDefModule::getClientMethodD
 	return methodClientDescr_; 
 }	
 
+INLINE ScriptDefModule::METHODDESCRIPTION_MAP& ScriptDefModule::getBaseExposedMethodDescriptions(void)
+{ 
+	return methodBaseExposedDescr_; 
+}	
+
+INLINE ScriptDefModule::METHODDESCRIPTION_MAP& ScriptDefModule::getCellExposedMethodDescriptions(void)
+{ 
+	return methodCellExposedDescr_; 
+}	
+	
 INLINE const char* ScriptDefModule::getName()
 {
 	return name_.c_str(); 

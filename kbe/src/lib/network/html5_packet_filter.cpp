@@ -148,10 +148,17 @@ Reason HTML5PacketFilter::send(NetworkInterface & networkInterface, Channel * pC
 
 	(*pRetTCPPacket).append(pPacket->data() + pPacket->rpos(), pPacket->opsize());
 	
-	pRetTCPPacket->swap(*(static_cast<KBEngine::MemoryStream*>(pPacket)));
-	TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
+	if(!pBundle->reuse())
+	{
+		pRetTCPPacket->swap(*(static_cast<KBEngine::MemoryStream*>(pPacket)));
+		TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
+		return PacketFilter::send(networkInterface, pChannel, pPacket);
+	}
 	
-	return PacketFilter::send(networkInterface, pChannel, pPacket);
+	Reason reason  = PacketFilter::send(networkInterface, pChannel, pRetTCPPacket);
+	TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
+
+	return reason;
 }
 
 //-------------------------------------------------------------------------------------

@@ -460,6 +460,10 @@ bool ScriptDefModule::addCellMethodDescription(const char* attrName,
 	setCell(true);
 	methodCellDescr_[attrName] = methodDescription;
 	methodCellDescr_uidmap_[methodDescription->getUType()] = methodDescription;
+
+	if(methodDescription->isExposed())
+		methodCellExposedDescr_[attrName] = methodDescription;
+
 	return true;
 }
 
@@ -503,6 +507,10 @@ bool ScriptDefModule::addBaseMethodDescription(const char* attrName,
 	setBase(true);
 	methodBaseDescr_[attrName] = methodDescription;
 	methodBaseDescr_uidmap_[methodDescription->getUType()] = methodDescription;
+
+	if(methodDescription->isExposed())
+		methodBaseExposedDescr_[attrName] = methodDescription;
+
 	return true;
 }
 

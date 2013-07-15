@@ -129,6 +129,9 @@ public:
 	MethodDescription* findMethodDescription(const char* attrName, COMPONENT_TYPE componentType);
 	MethodDescription* findMethodDescription(ENTITY_METHOD_UID utype, COMPONENT_TYPE componentType);
 
+	INLINE METHODDESCRIPTION_MAP& getBaseExposedMethodDescriptions(void);
+	INLINE METHODDESCRIPTION_MAP& getCellExposedMethodDescriptions(void);
+
 	INLINE const char* getName();
 
 	void autoMatchCompOwn();
@@ -167,6 +170,9 @@ protected:
 	METHODDESCRIPTION_MAP				methodBaseDescr_;						
 	METHODDESCRIPTION_MAP				methodClientDescr_;						
 	
+	METHODDESCRIPTION_MAP				methodBaseExposedDescr_;		
+	METHODDESCRIPTION_MAP				methodCellExposedDescr_;		
+
 	// 这个脚本所拥有的方法描述uid映射
 	METHODDESCRIPTION_UIDMAP			methodCellDescr_uidmap_;				
 	METHODDESCRIPTION_UIDMAP			methodBaseDescr_uidmap_;				

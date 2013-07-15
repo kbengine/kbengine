@@ -2572,12 +2572,11 @@ void Baseapp::lookApp(Mercury::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void Baseapp::importClientMessages(Mercury::Channel* pChannel)
 {
-	static bool init = false;
-	static std::map< Mercury::MessageID, Mercury::ExposedMessageInfo > messages;
+	Mercury::Bundle bundle;
 
-	if(!init)
+	if(bundle.packets().size() == 0)
 	{
-		init = true;
+		std::map< Mercury::MessageID, Mercury::ExposedMessageInfo > messages;
 
 		{
 			const Mercury::MessageHandlers::MessageHandlerMap& msgHandlers = BaseappInterface::messageHandlers.msgHandlers();
@@ -2601,88 +2600,127 @@ void Baseapp::importClientMessages(Mercury::Channel* pChannel)
 				}
 			}
 		}
-	}
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-	
-	pBundle->newMessage(ClientInterface::onImportClientMessages);
-	
-	uint16 size = messages.size();
-	(*pBundle) << size;
+		bundle.newMessage(ClientInterface::onImportClientMessages);
+		uint16 size = messages.size();
+		bundle << size;
 
-	std::map< Mercury::MessageID, Mercury::ExposedMessageInfo >::iterator iter = messages.begin();
-	for(; iter != messages.end(); iter++)
-	{
-		uint8 argsize = iter->second.argsTypes.size();
-		(*pBundle) << iter->second.id << iter->second.msgLen << iter->second.name << argsize;
-
-		std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
-		for(; argiter != iter->second.argsTypes.end(); argiter++)
+		std::map< Mercury::MessageID, Mercury::ExposedMessageInfo >::iterator iter = messages.begin();
+		for(; iter != messages.end(); iter++)
 		{
-			(*pBundle) << (*argiter);
+			uint8 argsize = iter->second.argsTypes.size();
+			bundle << iter->second.id << iter->second.msgLen << iter->second.name << argsize;
+
+			std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
+			for(; argiter != iter->second.argsTypes.end(); argiter++)
+			{
+				bundle << (*argiter);
+			}
 		}
 	}
 
-	(*pBundle).send(getNetworkInterface(), pChannel);
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	bundle.resend(getNetworkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------
 void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 {
+	static Mercury::Bundle bundle;
 	
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-	
-	pBundle->newMessage(ClientInterface::onImportClientEntityDef);
-
-	const EntityDef::SCRIPT_MODULES& modules = EntityDef::getScriptModules();
-	EntityDef::SCRIPT_MODULES::const_iterator iter = modules.begin();
-	for(; iter != modules.end(); iter++)
+	if(bundle.packets().size() == 0)
 	{
-		const ScriptDefModule::PROPERTYDESCRIPTION_MAP& propers = iter->get()->getClientPropertyDescriptions();
-		const ScriptDefModule::METHODDESCRIPTION_MAP& methods = iter->get()->getClientMethodDescriptions();
-		
-		if(propers.size() == 0 && methods.size() == 0)
-			continue;
+		bundle.newMessage(ClientInterface::onImportClientEntityDef);
 
-		uint16 size = propers.size();
-		uint16 size1 = methods.size();
-
-		(*pBundle) << iter->get()->getName() << size << size1;
-
-		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator piter = propers.begin();
-		for(; piter != propers.end(); piter++)
+		const EntityDef::SCRIPT_MODULES& modules = EntityDef::getScriptModules();
+		EntityDef::SCRIPT_MODULES::const_iterator iter = modules.begin();
+		for(; iter != modules.end(); iter++)
 		{
-			ENTITY_PROPERTY_UID	properUtype = piter->second->getUType();
-			std::string	name = piter->second->getName();
-			std::string	defaultValStr = piter->second->getDefaultValStr();
-			uint8 utype = datatype2id(piter->second->getDataType()->getName());
+			const ScriptDefModule::PROPERTYDESCRIPTION_MAP& propers = iter->get()->getClientPropertyDescriptions();
+			const ScriptDefModule::METHODDESCRIPTION_MAP& methods = iter->get()->getClientMethodDescriptions();
+			const ScriptDefModule::METHODDESCRIPTION_MAP& methods1 = iter->get()->getBaseExposedMethodDescriptions();
+			const ScriptDefModule::METHODDESCRIPTION_MAP& methods2 = iter->get()->getCellExposedMethodDescriptions();
 
-			(*pBundle) << properUtype << name << defaultValStr << utype;
-		}
-		
-		ScriptDefModule::METHODDESCRIPTION_MAP::const_iterator miter = methods.begin();
-		for(; miter != methods.end(); miter++)
-		{
-			ENTITY_METHOD_UID	properUtype = miter->second->getUType();
-			std::string	name = miter->second->getName();
-			
-			const std::vector<DataType*>& args = miter->second->getArgTypes();
-			uint8 argssize = args.size();
+			if(propers.size() == 0 && methods.size() == 0)
+				continue;
 
-			(*pBundle) << properUtype << name << argssize;
-			
-			std::vector<DataType*>::const_iterator argiter = args.begin();
-			for(; argiter != args.end(); argiter++)
+			uint16 size = propers.size();
+			uint16 size1 = methods.size();
+			uint16 size2 = methods1.size();
+			uint16 size3 = methods2.size();
+
+			bundle << iter->get()->getName() << size << size1 << size2 << size3;
+
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator piter = propers.begin();
+			for(; piter != propers.end(); piter++)
 			{
-				uint8 utype = datatype2id((*argiter)->getName());
-				(*pBundle) << utype;
+				ENTITY_PROPERTY_UID	properUtype = piter->second->getUType();
+				std::string	name = piter->second->getName();
+				std::string	defaultValStr = piter->second->getDefaultValStr();
+				uint8 utype = datatype2id(piter->second->getDataType()->getName());
+
+				bundle << properUtype << name << defaultValStr << utype;
+			}
+			
+			ScriptDefModule::METHODDESCRIPTION_MAP::const_iterator miter = methods.begin();
+			for(; miter != methods.end(); miter++)
+			{
+				ENTITY_METHOD_UID methodUtype = miter->second->getUType();
+				std::string	name = miter->second->getName();
+				
+				const std::vector<DataType*>& args = miter->second->getArgTypes();
+				uint8 argssize = args.size();
+
+				bundle << methodUtype << name << argssize;
+				
+				std::vector<DataType*>::const_iterator argiter = args.begin();
+				for(; argiter != args.end(); argiter++)
+				{
+					uint8 utype = datatype2id((*argiter)->getName());
+					bundle << utype;
+				}
+			}
+
+			miter = methods1.begin();
+			for(; miter != methods1.end(); miter++)
+			{
+				ENTITY_METHOD_UID methodUtype = miter->second->getUType();
+				std::string	name = miter->second->getName();
+				
+				const std::vector<DataType*>& args = miter->second->getArgTypes();
+				uint8 argssize = args.size();
+
+				bundle << methodUtype << name << argssize;
+				
+				std::vector<DataType*>::const_iterator argiter = args.begin();
+				for(; argiter != args.end(); argiter++)
+				{
+					uint8 utype = datatype2id((*argiter)->getName());
+					bundle << utype;
+				}
+			}
+
+			miter = methods2.begin();
+			for(; miter != methods2.end(); miter++)
+			{
+				ENTITY_METHOD_UID methodUtype = miter->second->getUType();
+				std::string	name = miter->second->getName();
+				
+				const std::vector<DataType*>& args = miter->second->getArgTypes();
+				uint8 argssize = args.size();
+
+				bundle << methodUtype << name << argssize;
+				
+				std::vector<DataType*>::const_iterator argiter = args.begin();
+				for(; argiter != args.end(); argiter++)
+				{
+					uint8 utype = datatype2id((*argiter)->getName());
+					bundle << utype;
+				}
 			}
 		}
 	}
 
-	(*pBundle).send(getNetworkInterface(), pChannel);
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	bundle.resend(getNetworkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------

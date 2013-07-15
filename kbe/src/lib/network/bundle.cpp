@@ -133,7 +133,8 @@ Bundle::Bundle(Channel * pChannel, ProtocolType pt):
 	currMsgLengthPos_(0),
 	packets_(),
 	isTCPPacket_(pt == PROTOCOL_TCP),
-	pCurrMsgHandler_(NULL)
+	pCurrMsgHandler_(NULL),
+	reuse_(false)
 {
 	 newPacket();
 }
@@ -311,6 +312,7 @@ void Bundle::clear(bool isRecl)
 		pCurrPacket_ = NULL;
 	}
 
+	reuse_ = false;
 	pChannel_ = NULL;
 	numMessages_ = 0;
 
@@ -332,6 +334,17 @@ void Bundle::send(NetworkInterface & networkInterface, Channel * pChannel)
 }
 
 //-------------------------------------------------------------------------------------
+void Bundle::resend(NetworkInterface & networkInterface, Channel * pChannel)
+{
+	if(!reuse_)
+		finish();
+
+	reuse_ = true;
+	pChannel_ = pChannel;
+	networkInterface.send(*this, pChannel);
+}
+
+//-------------------------------------------------------------------------------------
 void Bundle::send(EndPoint& ep)
 {
 	//AUTO_SCOPED_PROFILE("sendBundle");
@@ -349,6 +362,9 @@ void Bundle::sendto(EndPoint& ep, u_int16_t networkPort, u_int32_t networkAddr)
 //-------------------------------------------------------------------------------------
 void Bundle::onSendComplete()
 {
+	if(reuse_)
+		return;
+
 	Packets::iterator iter = packets_.begin();
 	for (; iter != packets_.end(); iter++)
 	{
