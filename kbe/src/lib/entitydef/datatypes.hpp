@@ -41,9 +41,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 typedef SmartPointer<DataType> DataTypePtr;
 
-/** c/c++数据类别转换成KBEDataTypeID */
-uint16 datatype2id(std::string datatype);
-
 class DataTypes
 {
 public:	
@@ -65,6 +62,8 @@ public:
 	static DataType* getDataType(DATATYPE_UID uid);
 
 	static bool loadAlias(std::string& file);
+
+	static const DATATYPE_MAP& dataTypes(){ return dataTypes_; }
 protected:
 	static DATATYPE_MAP dataTypes_;
 	static DATATYPE_MAP dataTypesLowerName_;

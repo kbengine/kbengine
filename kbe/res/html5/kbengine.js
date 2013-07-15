@@ -1069,6 +1069,18 @@ function KBENGINE()
 	
 	this.Client_onImportClientEntityDef = function(stream)
 	{
+		var aliassize = stream.readUint16();
+		console.info("KBENGINE::Client_onImportClientEntityDef: importAlias(size=" + aliassize + ")!");
+		while(aliassize > 0)
+		{
+			aliassize--;
+			// var utype = stream.readUint16();
+			var name = stream.readString();
+			var valname = stream.readString();
+			console.info("KBENGINE::Client_onImportClientEntityDef: importAlias(" + name + ":" + valname + ")!");
+			datatype2id[name] = datatype2id[valname];
+		};
+		
 		while(!stream.readEOF())
 		{
 			var scriptmethod_name = stream.readString();

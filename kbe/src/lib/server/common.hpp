@@ -160,5 +160,8 @@ inline uint64 secondsToStamps(float seconds)
 // 被用来描述任何只做一次后自动设置为不做的选项
 #define KBE_NEXT_ONLY 2
 
+/** c/c++数据类别转换成KBEDataTypeID */
+uint16 datatype2id(std::string datatype);
+
 }
 #endif

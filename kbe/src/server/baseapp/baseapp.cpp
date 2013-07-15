@@ -2630,6 +2630,43 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 	if(bundle.packets().size() == 0)
 	{
 		bundle.newMessage(ClientInterface::onImportClientEntityDef);
+		
+		const DataTypes::DATATYPE_MAP& dataTypes = DataTypes::dataTypes();
+		uint16 aliassize = 0;
+
+		DataTypes::DATATYPE_MAP::const_iterator dtiter = dataTypes.begin();
+		for(; dtiter != dataTypes.end(); dtiter++)
+		{
+			const DataType* datatype = dtiter->second.get();
+
+			if(strcmp(datatype->getName(), datatype->aliasName()) == 0)
+			{
+				continue;
+			}
+
+			aliassize++;
+		}
+
+		bundle << aliassize;
+
+		dtiter = dataTypes.begin();
+		for(; dtiter != dataTypes.end(); dtiter++)
+		{
+			const DataType* datatype = dtiter->second.get();
+
+			if(strcmp(datatype->getName(), datatype->aliasName()) == 0)
+			{
+				continue;
+			}
+
+			// bundle << datatype->id();
+			bundle << datatype->aliasName();
+			bundle << datatype->getName();
+
+			if(strcmp(datatype->getName(), "FIXED_DICT") != 0 && strcmp(datatype->getName(), "ARRAY") != 0)
+			{
+			}
+		}
 
 		const EntityDef::SCRIPT_MODULES& modules = EntityDef::getScriptModules();
 		EntityDef::SCRIPT_MODULES::const_iterator iter = modules.begin();
