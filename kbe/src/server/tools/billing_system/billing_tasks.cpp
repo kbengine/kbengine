@@ -114,8 +114,8 @@ bool CreateAccountTask::process()
 
 	if(endpoint.connect(htons(servicePort()), addr) == -1)
 	{
-		ERROR_MSG(boost::format("BillingTask::process: connect billing server is error(%1%)!\n") % 
-			kbe_strerror());
+		ERROR_MSG(boost::format("BillingTask::process: connect billingserver(%1%:%2%) is error(%3%)!\n") % 
+			serviceAddr() % servicePort() % kbe_strerror());
 
 		endpoint.close();
 		return false;
@@ -203,7 +203,7 @@ bool CreateAccountTask::process()
 
 						}
 
-						DEBUG_MSG(boost::format("BillingTask::process: (%1%)op is failed! err=%2%\nsend(%3%).\n") % commitName % err % postDatas);
+						DEBUG_MSG(boost::format("BillingTask::process: (%1%)op is failed! err=%2%\n<==send(%3%)\n==>recv(%4%).\n") % commitName % err % postDatas % getDatas);
 						return false;
 					}
 					else

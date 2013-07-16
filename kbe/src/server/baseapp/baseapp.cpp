@@ -2632,39 +2632,39 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 		bundle.newMessage(ClientInterface::onImportClientEntityDef);
 		
 		const DataTypes::DATATYPE_MAP& dataTypes = DataTypes::dataTypes();
-		uint16 aliassize = 0;
+		uint16 aliassize = dataTypes.size();
+		bundle << aliassize;
 
 		DataTypes::DATATYPE_MAP::const_iterator dtiter = dataTypes.begin();
 		for(; dtiter != dataTypes.end(); dtiter++)
 		{
 			const DataType* datatype = dtiter->second.get();
 
-			if(strcmp(datatype->getName(), datatype->aliasName()) == 0)
-			{
-				continue;
-			}
-
-			aliassize++;
-		}
-
-		bundle << aliassize;
-
-		dtiter = dataTypes.begin();
-		for(; dtiter != dataTypes.end(); dtiter++)
-		{
-			const DataType* datatype = dtiter->second.get();
-
-			if(strcmp(datatype->getName(), datatype->aliasName()) == 0)
-			{
-				continue;
-			}
-
-			// bundle << datatype->id();
-			bundle << datatype->aliasName();
+			bundle << datatype->id();
+			bundle << dtiter->first;
 			bundle << datatype->getName();
 
-			if(strcmp(datatype->getName(), "FIXED_DICT") != 0 && strcmp(datatype->getName(), "ARRAY") != 0)
+			if(strcmp(datatype->getName(), "FIXED_DICT") == 0)
 			{
+				FixedDictType* dictdatatype = const_cast<FixedDictType*>(static_cast<const FixedDictType*>(datatype));
+				
+				FixedDictType::FIXEDDICT_KEYTYPE_MAP& keys = dictdatatype->getKeyTypes();
+
+				uint8 keysize = keys.size();
+				bundle << keysize;
+				
+				bundle << dictdatatype->moduleName();
+
+				FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator keyiter = keys.begin();
+				for(; keyiter != keys.end(); keyiter++)
+				{
+					bundle << keyiter->first;
+					bundle << keyiter->second->dataType->id();
+				}
+			}
+			else if(strcmp(datatype->getName(), "ARRAY") == 0)
+			{
+				bundle << const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(datatype))->getDataType()->id();
 			}
 		}
 
@@ -2693,7 +2693,7 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 				ENTITY_PROPERTY_UID	properUtype = piter->second->getUType();
 				std::string	name = piter->second->getName();
 				std::string	defaultValStr = piter->second->getDefaultValStr();
-				uint8 utype = datatype2id(piter->second->getDataType()->getName());
+				uint8 utype = piter->second->getDataType()->id();
 
 				bundle << properUtype << name << defaultValStr << utype;
 			}
@@ -2712,7 +2712,7 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); argiter++)
 				{
-					uint8 utype = datatype2id((*argiter)->getName());
+					uint8 utype = (*argiter)->id();
 					bundle << utype;
 				}
 			}
@@ -2731,7 +2731,7 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); argiter++)
 				{
-					uint8 utype = datatype2id((*argiter)->getName());
+					uint8 utype = (*argiter)->id();
 					bundle << utype;
 				}
 			}
@@ -2750,7 +2750,7 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); argiter++)
 				{
-					uint8 utype = datatype2id((*argiter)->getName());
+					uint8 utype = (*argiter)->id();
 					bundle << utype;
 				}
 			}

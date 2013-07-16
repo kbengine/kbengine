@@ -704,6 +704,8 @@ public:
 	bool hasImpl()const { return implObj_ != NULL; }
 
 	virtual DATATYPE type()const{ return DATA_TYPE_FIXEDDICT; }
+
+	std::string& moduleName(){ return moduleName_; }
 protected:
 	// 这个固定字典里的各个key的类型
 	FIXEDDICT_KEYTYPE_MAP			keyTypes_;				

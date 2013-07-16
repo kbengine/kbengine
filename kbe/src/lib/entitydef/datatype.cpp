@@ -1249,6 +1249,9 @@ bool FixedArrayType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 		if(dataType->initialize(xmlplus, arrayNode)){
 			dataType_ = dataType;
 			dataType_->incRef();
+
+			DataTypes::addDateType(std::string("_") + KBEngine::StringConv::val2str(KBEngine::genUUID64()) + 
+				dataType->aliasName(), dataType);
 		}
 	}
 	else
@@ -1525,6 +1528,7 @@ bool FixedDictType::initialize(XmlPlus* xmlplus, TiXmlNode* node)
 					}
 
 					pDictItemDataType->persistent = persistent;
+					DataTypes::addDateType(std::string("_") + KBEngine::StringConv::val2str(KBEngine::genUUID64()) + typeName, dataType);
 				}
 				else
 				{

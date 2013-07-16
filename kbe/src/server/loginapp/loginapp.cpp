@@ -29,7 +29,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/kbeversion.hpp"
 #include "server/componentbridge.hpp"
 #include "server/components.hpp"
-#include "entitydef/datatypes.hpp"
 #include "client_lib/client_interface.hpp"
 #include "network/encryption_filter.hpp"
 

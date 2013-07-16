@@ -697,6 +697,30 @@ bindReader = function(argType)
 	{
 		return g_reader.readString;
 	}
+	else if(argType == datatype2id["PYTHON"])
+	{
+		return g_reader.readStream;
+	}
+	else if(argType == datatype2id["VECTOR2"])
+	{
+		return g_reader.readStream;
+	}
+	else if(argType == datatype2id["VECTOR3"])
+	{
+		return g_reader.readStream;
+	}
+	else if(argType == datatype2id["VECTOR4"])
+	{
+		return g_reader.readStream;
+	}
+	else if(argType == datatype2id["BLOB"])
+	{
+		return g_reader.readStream;
+	}
+	else if(argType == datatype2id["UNICODE"])
+	{
+		return g_reader.readStream;
+	}
 	else if(argType == datatype2id["FIXED_DICT"])
 	{
 		return g_reader.readStream;
@@ -802,7 +826,7 @@ function KBEENTITY()
 		{
 			for(var i=0; i<args.length; i++)
 			{
-				bindwriter(args[i])(arguments[i + 1]);
+				args[i].addToStream(this.base.bundle, arguments[i + 1]);
 			}
 		}
 		catch(e)
@@ -907,7 +931,458 @@ function KBEMAILBOX()
 /*-----------------------------------------------------------------------------------------
 												entitydef
 -----------------------------------------------------------------------------------------*/
-var g_moduledefs = {}
+var g_moduledefs = {};
+var g_datatypes = {};
+
+function KBEDATATYPE_UINT8()
+{
+	this.bind = function()
+	{
+	}
+	
+	this.createFromStream = function(stream)
+	{
+		return g_reader.readUint8.call(stream);
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+		stream.writeUint8(v);
+	}
+
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_UINT16()
+{
+	this.bind = function()
+	{
+	}
+	
+	this.createFromStream = function(stream)
+	{
+		return g_reader.readUint16.call(stream);
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+		stream.writeUint16(v);
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_UINT32()
+{
+	this.bind = function()
+	{
+	}
+	
+	this.createFromStream = function(stream)
+	{
+		return g_reader.readUint32.call(stream);
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+		stream.writeUint32(v);
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_UINT64()
+{
+	this.bind = function()
+	{
+	}
+	
+	this.createFromStream = function(stream)
+	{
+		return g_reader.readUint64.call(stream);
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+		stream.writeUint64(v);
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_INT8()
+{
+	this.bind = function()
+	{
+	}
+	
+	this.createFromStream = function(stream)
+	{
+		return g_reader.readInt8.call(stream);
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+		stream.writeInt8(v);
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_INT16()
+{
+	this.bind = function()
+	{
+	}
+	
+	this.createFromStream = function(stream)
+	{
+		return g_reader.readInt16.call(stream);
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+		stream.writeInt16(v);
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_INT32()
+{
+	this.bind = function()
+	{
+	}
+	
+	this.createFromStream = function(stream)
+	{
+		return g_reader.readInt32.call(stream);
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+		stream.writeInt32(v);
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_INT64()
+{
+	this.bind = function()
+	{
+	}
+	
+	this.createFromStream = function(stream)
+	{
+		return g_reader.readInt64.call(stream);
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+		stream.writeInt64(v);
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_FLOAT()
+{
+	this.bind = function()
+	{
+	}
+	
+	this.createFromStream = function(stream)
+	{
+		return g_reader.readFloat.call(stream);
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+		stream.writeFloat(v);
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_DOUBLE()
+{
+	this.bind = function()
+	{
+	}
+	
+	this.createFromStream = function(stream)
+	{
+		return g_reader.readDouble.call(stream);
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+		stream.writeDouble(v);
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_STRING()
+{
+	this.bind = function()
+	{
+	}
+	
+	this.createFromStream = function(stream)
+	{
+		return g_reader.readString.call(stream);
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+		stream.writeString(v);
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_VECTOR()
+{
+	this.bind = function()
+	{
+	}
+	
+	this.createFromStream = function(stream)
+	{
+		return g_reader.readFloat.call(stream);
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+		stream.readFloat(v);
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_PYTHON()
+{
+	this.bind = function()
+	{
+	}
+	
+	this.createFromStream = function(stream)
+	{
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_UNICODE()
+{
+	this.bind = function()
+	{
+	}
+	
+	this.createFromStream = function(stream)
+	{
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_MAILBOX()
+{
+	this.bind = function()
+	{
+	}
+	
+	this.createFromStream = function(stream)
+	{
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_BLOB()
+{
+	this.bind = function()
+	{
+	}
+	
+	this.createFromStream = function(stream)
+	{
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_ARRAY()
+{
+	this.type = null;
+	
+	this.bind = function()
+	{
+		if(!isNaN(this.type))
+			this.type = g_datatypes[this.type];
+		else
+			this.type.bind();
+	}
+	
+	this.createFromStream = function(stream)
+	{
+		var size = stream.readUint32();
+		var datas = [];
+		
+		while(size > 0)
+		{
+			size--;
+			datas.push(this.type.createFromStream(stream));
+		};
+		
+		return datas;
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+		stream.writeUint32(v.length);
+		for(var i=0; i<v.length; i++)
+		{
+			this.type.addToStream(stream);
+		}
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+function KBEDATATYPE_FIXED_DICT()
+{
+	this.dicttype = {};
+	this.implementedBy = null;
+	
+	this.bind = function()
+	{
+		for(itemkey in this.dicttype)
+		{
+			var utype = this.dicttype[itemkey];
+			
+			if(!isNaN(utype))
+				this.dicttype[itemkey] = g_datatypes[utype];
+			else
+				this.dicttype[itemkey].bind();
+		}
+	}
+	
+	this.createFromStream = function(stream)
+	{
+		var datas = {};
+		for(itemkey in this.dicttype)
+		{
+			datas[itemkey] = this.dicttype[itemkey].createFromStream(stream);
+		}
+		
+		return datas;
+	}
+	
+	this.addToStream = function(stream, v)
+	{
+		for(itemkey in this.dicttype)
+		{
+			this.dicttype[itemkey].addToStream(stream);
+		}
+	}
+	
+	this.parseDefaultValStr = function(v)
+	{
+		return eval(v);
+	}
+}
+
+g_datatypes["UINT8"] = new KBEDATATYPE_UINT8();
+g_datatypes["UINT16"] = new KBEDATATYPE_UINT16();
+g_datatypes["UINT32"] = new KBEDATATYPE_UINT32();
+g_datatypes["UINT64"] = new KBEDATATYPE_UINT64();
+
+g_datatypes["INT8"] = new KBEDATATYPE_INT8();
+g_datatypes["INT16"] = new KBEDATATYPE_INT16();
+g_datatypes["INT32"] = new KBEDATATYPE_INT32();
+g_datatypes["INT64"] = new KBEDATATYPE_INT64();
+
+g_datatypes["FLOAT"] = new KBEDATATYPE_FLOAT();
+g_datatypes["DOUBLE"] = new KBEDATATYPE_DOUBLE();
+
+g_datatypes["STRING"] = new KBEDATATYPE_STRING();
+g_datatypes["VECTOR2"] = new KBEDATATYPE_VECTOR();
+g_datatypes["VECTOR3"] = new KBEDATATYPE_VECTOR();
+g_datatypes["VECTOR4"] = new KBEDATATYPE_VECTOR();
+g_datatypes["PYTHON"] = new KBEDATATYPE_PYTHON();
+g_datatypes["UNICODE"] = new KBEDATATYPE_UNICODE();
+g_datatypes["MAILBOX"] = new KBEDATATYPE_MAILBOX();
+g_datatypes["BLOB"] = new KBEDATATYPE_BLOB();
 
 /*-----------------------------------------------------------------------------------------
 												system
@@ -1067,19 +1542,66 @@ function KBENGINE()
 		}
 	}
 	
+	this.createDataTypeFromStream = function(stream, canprint)
+	{
+		var utype = stream.readUint16();
+		var name = stream.readString();
+		var valname = stream.readString();
+		
+		if(canprint)
+			console.info("KBENGINE::Client_onImportClientEntityDef: importAlias(" + name + ":" + valname + ")!");
+		
+		if(valname == "FIXED_DICT")
+		{
+			var datatype = new KBEDATATYPE_FIXED_DICT();
+			var keysize = stream.readUint8();
+			datatype.implementedBy = stream.readString();
+				
+			while(keysize > 0)
+			{
+				keysize--;
+				
+				var keyname = stream.readString();
+				var keyutype = stream.readUint16();
+				datatype.dicttype[keyname] = keyutype;
+			};
+			
+			g_datatypes[name] = datatype;
+		}
+		else if(valname == "ARRAY")
+		{
+			var uitemtype = stream.readUint16();
+			var datatype = new KBEDATATYPE_ARRAY();
+			datatype.type = uitemtype;
+			g_datatypes[name] = datatype;
+		}
+		else
+		{
+			g_datatypes[name] = g_datatypes[valname];
+		}
+
+		g_datatypes[utype] = g_datatypes[name];
+		datatype2id[name] = datatype2id[valname];
+	}
+	
 	this.Client_onImportClientEntityDef = function(stream)
 	{
 		var aliassize = stream.readUint16();
 		console.info("KBENGINE::Client_onImportClientEntityDef: importAlias(size=" + aliassize + ")!");
+		
 		while(aliassize > 0)
 		{
 			aliassize--;
-			// var utype = stream.readUint16();
-			var name = stream.readString();
-			var valname = stream.readString();
-			console.info("KBENGINE::Client_onImportClientEntityDef: importAlias(" + name + ":" + valname + ")!");
-			datatype2id[name] = datatype2id[valname];
+			g_kbengine.createDataTypeFromStream(stream, true);
 		};
+	
+		for(datatype in g_datatypes)
+		{
+			if(isNaN(datatype) && g_datatypes[datatype] != undefined)
+			{
+				g_datatypes[datatype].bind();
+			}
+		}
 		
 		while(!stream.readEOF())
 		{
@@ -1105,7 +1627,7 @@ function KBENGINE()
 				var properUtype = stream.readUint16();
 				var name = stream.readString();
 				var defaultValStr = stream.readString();
-				var utype = bindReader(stream.readUint8());
+				var utype = g_datatypes[stream.readUint8()];
 				
 				g_moduledefs[scriptmethod_name]["propertys"][name] = [properUtype, name, defaultValStr, utype];
 				console.info("KBENGINE::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), property(" + name + ").");
@@ -1123,7 +1645,7 @@ function KBENGINE()
 				while(argssize > 0)
 				{
 					argssize--;
-					args.push(bindReader(stream.readUint8()));
+					args.push(g_datatypes[stream.readUint8()]);
 				};
 				
 				var savedata = [methodUtype, name, args];
@@ -1144,7 +1666,7 @@ function KBENGINE()
 				while(argssize > 0)
 				{
 					argssize--;
-					args.push(stream.readUint8());
+					args.push(g_datatypes[stream.readUint8()]);
 				};
 				
 				g_moduledefs[scriptmethod_name]["base_methods"][name] = [methodUtype, name, args];
@@ -1163,7 +1685,7 @@ function KBENGINE()
 				while(argssize > 0)
 				{
 					argssize--;
-					args.push(stream.readUint8());
+					args.push(g_datatypes[stream.readUint8()]);
 				};
 				
 				g_moduledefs[scriptmethod_name]["cell_methods"][name] = [methodUtype, name, args];
@@ -1187,9 +1709,9 @@ function KBENGINE()
 				var name = infos[1];
 				var defaultValStr = infos[2];
 				var utype = infos[3];
-				
+
 				if(defmethod != undefined)
-					defmethod.prototype[name] = eval(defaultValStr);
+					defmethod.prototype[name] = utype.parseDefaultValStr(defaultValStr);
 			};
 
 			for(name in g_moduledefs[scriptmethod_name].methods)
@@ -1409,7 +1931,7 @@ function KBENGINE()
 	
 	this.Client_onUpdatePropertys = function(stream)
 	{
-		alert(stream);
+		alert("stream");
 		var eid = stream.readInt32();
 		alert(eid);
 	}
@@ -1431,7 +1953,7 @@ function KBENGINE()
 		var argsdata = methoddata[2];
 		for(var i=0; i<argsdata.length; i++)
 		{
-			args.push(argsdata[i].call(stream));
+			args.push(argsdata[i].createFromStream(stream));
 		}
 		
 		entity[methoddata[1]].apply(entity, args);
