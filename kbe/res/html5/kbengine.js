@@ -13,14 +13,14 @@ var MESSAGE_LENGTH_LENGTH = 2;
 -----------------------------------------------------------------------------------------*/
 function KBE_INT64(hi, lo)
 {
-	var hi = hi;
-	var lo = lo;
+	this.hi = hi;
+	this.lo = lo;
 }
 
 function KBE_UINT64(hi, lo)
 {
-	var hi = hi;
-	var lo = lo;
+	this.hi = hi;
+	this.lo = lo;
 }
 
 /*-----------------------------------------------------------------------------------------
