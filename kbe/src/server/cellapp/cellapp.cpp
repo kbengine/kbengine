@@ -140,6 +140,7 @@ bool Cellapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		time,							__py_gametime,						METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createEntity,					__py_createEntity,					METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		executeRawDatabaseCommand,		__py_executeRawDatabaseCommand,		METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		reloadScript,					__py_reloadScript,					METH_VARARGS,			0);
 	return EntityApp<Entity>::installPyModules();
 }
 
@@ -1200,6 +1201,44 @@ void Cellapp::lookApp(Mercury::Channel* pChannel)
 	(*pBundle).send(getNetworkInterface(), pChannel);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Cellapp::__py_reloadScript(PyObject* self, PyObject* args)
+{
+	bool fullReload = true;
+	int argCount = PyTuple_Size(args);
+	if(argCount == 1)
+	{
+		if(PyArg_ParseTuple(args, "b", &fullReload) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "KBEngine::reloadScript(fullReload): args is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+
+	Cellapp::getSingleton().reloadScript(fullReload);
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::reloadScript(bool fullReload)
+{
+	EntityApp<Entity>::reloadScript(fullReload);
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::onReloadScript(bool fullReload)
+{
+	Entities<Entity>::ENTITYS_MAP& entities = pEntities_->getEntities();
+	Entities<Entity>::ENTITYS_MAP::iterator eiter = entities.begin();
+	for(; eiter != entities.end(); eiter++)
+	{
+		static_cast<Entity*>(eiter->second.get())->reload(fullReload);
+	}
+
+	EntityApp<Entity>::onReloadScript(fullReload);
 }
 
 //-------------------------------------------------------------------------------------

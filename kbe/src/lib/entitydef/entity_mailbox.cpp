@@ -35,6 +35,7 @@ namespace KBEngine
 EntityMailbox::GetEntityFunc EntityMailbox::__getEntityFunc;
 EntityMailbox::FindChannelFunc EntityMailbox::__findChannelFunc;
 EntityMailbox::MailboxCallHookFunc*	EntityMailbox::__hookCallFuncPtr = NULL;
+std::vector<EntityMailbox*> EntityMailbox::mailboxs;
 
 SCRIPT_METHOD_DECLARE_BEGIN(EntityMailbox)
 SCRIPT_METHOD_DECLARE_END()
@@ -56,8 +57,12 @@ EntityMailboxAbstract(getScriptType(),
 					  componentID, 
 					  eid, scriptModule->getUType(), 
 					  type),
-scriptModule_(scriptModule)
+					  scriptModuleName_(scriptModule->getName()),
+scriptModule_(scriptModule),
+atIdx_(MAILBOXS::size_type(-1))
 {
+	atIdx_ = EntityMailbox::mailboxs.size();
+	EntityMailbox::mailboxs.push_back(this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -67,6 +72,16 @@ EntityMailbox::~EntityMailbox()
 	c_str(s, 1024);
 
 	DEBUG_MSG(boost::format("EntityMailbox::~EntityMailbox(): %1%.\n") % s);
+
+	KBE_ASSERT(atIdx_ < EntityMailbox::mailboxs.size());
+	KBE_ASSERT(EntityMailbox::mailboxs[ atIdx_ ] == this);
+
+	// 如果有2个或以上的Mailbox则将最后一个Mailbox移至删除的这个Mailbox所在位置
+	EntityMailbox* pBack = EntityMailbox::mailboxs.back();
+	pBack->_setATIdx(atIdx_);
+	EntityMailbox::mailboxs[atIdx_] = pBack;
+	atIdx_ = MAILBOXS::size_type(-1);
+	EntityMailbox::mailboxs.pop_back();
 }
 
 //-------------------------------------------------------------------------------------
@@ -260,6 +275,12 @@ void EntityMailbox::onInstallScript(PyObject* mod)
 Mercury::Channel* EntityMailbox::getChannel(void)
 {
 	return __findChannelFunc(*this);
+}
+
+//-------------------------------------------------------------------------------------
+void EntityMailbox::reload()
+{
+	scriptModule_ = EntityDef::findScriptModule(scriptModuleName_.c_str());
 }
 
 //-------------------------------------------------------------------------------------

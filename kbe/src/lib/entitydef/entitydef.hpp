@@ -62,7 +62,9 @@ public:
 		std::vector<PyTypeObject*>& scriptBaseTypes, 
 		COMPONENT_TYPE loadComponentType);
 
-	static bool finalise(void);
+	static bool finalise(bool isReload = false);
+
+	static void reload(bool fullReload);
 
 	/** 
 		加载相关描述
@@ -146,6 +148,7 @@ public:
 	*/
 	static ScriptDefModule* findScriptModule(ENTITY_SCRIPT_UID utype);
 	static ScriptDefModule* findScriptModule(const char* scriptName);
+	static ScriptDefModule* findOldScriptModule(const char* scriptName);
 
 	static bool installScript(PyObject* mod);
 	static bool uninstallScript();
@@ -159,10 +162,14 @@ public:
 	static bool initializeWatcher();
 private:
 	static SCRIPT_MODULES __scriptModules;										// 所有的扩展脚本模块都存储在这里
+	static SCRIPT_MODULES __oldScriptModules;									// reload时旧的模块会放到这里用于判断
 
 	static SCRIPT_MODULE_UID_MAP __scriptTypeMappingUType;						// 脚本类别映射utype
+	static SCRIPT_MODULE_UID_MAP __oldScriptTypeMappingUType;					// reload时旧的脚本类别映射utype
 
 	static COMPONENT_TYPE __loadComponentType;									// 所需关系的组件类别的相关数据		
+	static std::vector<PyTypeObject*> __scriptBaseTypes;
+	static std::string __entitiesPath;
 
 	static KBE_MD5 __md5;														// defs-md5
 

@@ -110,12 +110,21 @@ public:
 	virtual RemoteEntityMethod* createRemoteMethod(MethodDescription* md);
 
 	virtual Mercury::Channel* getChannel(void);
+
+	void reload();
+
+	typedef std::vector<EntityMailbox*> MAILBOXS;
+	static MAILBOXS mailboxs;
 private:
 	static GetEntityFunc					__getEntityFunc;		// 获得一个entity的实体的函数地址
 	static MailboxCallHookFunc*				__hookCallFuncPtr;
 	static FindChannelFunc					__findChannelFunc;
 protected:
+	std::string								scriptModuleName_;
 	ScriptDefModule*						scriptModule_;			// 该entity所使用的脚本模块对象
+
+	void _setATIdx(MAILBOXS::size_type idx){ atIdx_ = idx; }
+	MAILBOXS::size_type	atIdx_;
 };
 
 }

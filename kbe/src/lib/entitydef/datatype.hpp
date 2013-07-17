@@ -66,6 +66,8 @@ public:
 
 	virtual PyObject* createFromStream(MemoryStream* mstream) = 0;
 
+	static bool finalise();
+
 	/**	
 		当传入的这个pyobj并不是当前类型时则按照当前类型创建出一个obj
 		前提是即使这个PyObject不是当前类型， 但必须拥有转换的共性

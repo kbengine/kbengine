@@ -378,6 +378,13 @@ public:
 		客户端entitydef导出
 	*/
 	void importClientEntityDef(Mercury::Channel* pChannel);
+
+	/**
+		重新导入所有的脚本
+	*/
+	static PyObject* __py_reloadScript(PyObject* self, PyObject* args);
+	virtual void reloadScript(bool fullReload);
+	virtual void onReloadScript(bool fullReload);
 protected:
 	TimerHandle												loopCheckTimerHandle_;
 

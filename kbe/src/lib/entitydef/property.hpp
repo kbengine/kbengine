@@ -142,6 +142,7 @@ public:
 	virtual PyObject* createFromStream(MemoryStream* mstream);
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
 
+	static uint32				propertyDescriptionCount_;						// 所有的属性描述的数量	
 protected:	
 	std::string					name_;											// 这个属性的名称
 	std::string					dataTypeName_;									// 这个属性的字符串数据类别名
@@ -153,7 +154,6 @@ protected:
 	ENTITY_PROPERTY_UID			utype_;											// 这个属性的数字类别， 用于网络上传输识别
 	std::string					defaultValStr_;									// 这个属性的默认值
 	DETAIL_TYPE					detailLevel_;									// 这个属性的lod详情级别 看common中的:属性的lod广播级别范围的定义
-	static uint32				propertyDescriptionCount_;						// 所有的属性描述的数量	
 };
 
 class FixedDictDescription : public PropertyDescription

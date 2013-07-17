@@ -266,6 +266,29 @@ public:																										\
 		initializeScript();																					\
 	}																										\
 																											\
+	bool _reload(bool fullReload);																			\
+	bool reload(bool fullReload)																			\
+	{																										\
+		if(fullReload)																						\
+		{																									\
+			scriptModule_ = EntityDef::findScriptModule(getScriptName());									\
+			KBE_ASSERT(scriptModule_);																		\
+			lpPropertyDescrs_ = &scriptModule_->getPropertyDescrs();										\
+		}																									\
+																											\
+		if(PyObject_SetAttrString(this, "__class__", (PyObject*)scriptModule_->getScriptType()) == -1)		\
+		{																									\
+			WARNING_MSG(boost::format("Base::reload: "														\
+				"%s %1% could not change __class__ to new class!\n") %										\
+				scriptModule_->getName() % id_);															\
+			PyErr_Print();																					\
+			return false;																					\
+		}																									\
+																											\
+		initProperty(true);																					\
+		return _reload(fullReload);																			\
+	}																										\
+																											\
 	void createNamespace(PyObject* dictData)																\
 	{																										\
 		if(dictData == NULL)																				\
@@ -623,7 +646,7 @@ public:																										\
 	void destroyEntity();																					\
 	static PyObject* __py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * kwargs);				\
 																											\
-	void initProperty();																					\
+	void initProperty(bool isReload = false);																\
 
 
 #define ENTITY_CPP_IMPL(APP, CLASS)																			\
@@ -760,13 +783,42 @@ public:																										\
 																											\
 	}																										\
 																											\
-	void CLASS::initProperty()																				\
+	void CLASS::initProperty(bool isReload)																	\
 	{																										\
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP* oldpropers = NULL;										\
+		if(isReload)																						\
+		{																									\
+			ScriptDefModule* pOldScriptDefModule =															\
+										EntityDef::findOldScriptModule(scriptModule_->getName());			\
+			if(!pOldScriptDefModule)																		\
+			{																								\
+				ERROR_MSG(boost::format("%1%::initProperty: not found oldmodule!\n") %						\
+					scriptModule_->getName());																\
+				KBE_ASSERT(false && "Entity::initProperty: not found oldmodule");							\
+			}																								\
+																											\
+			oldpropers =																					\
+											&pOldScriptDefModule->getPropertyDescrs();						\
+		}																									\
+																											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->begin();			\
 		for(; iter != lpPropertyDescrs_->end(); iter++)														\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\
 			DataType* dataType = propertyDescription->getDataType();										\
+																											\
+			if(oldpropers)																					\
+			{																								\
+				ScriptDefModule::PROPERTYDESCRIPTION_MAP::iterator olditer = oldpropers->find(iter->first);	\
+				if(olditer != oldpropers->end())															\
+				{																							\
+					if(strcmp(olditer->second->getDataType()->getName(),									\
+							propertyDescription->getDataType()->getName()) == 0 &&							\
+						strcmp(olditer->second->getDataType()->getName(),									\
+							propertyDescription->getDataType()->getName()) == 0)							\
+						continue;																			\
+				}																							\
+			}																								\
 																											\
 			if(dataType)																					\
 			{																								\

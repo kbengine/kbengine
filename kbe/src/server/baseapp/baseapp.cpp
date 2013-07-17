@@ -253,7 +253,7 @@ bool Baseapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		registerWriteFileDescriptor,	PyFileDescriptor::__py_registerWriteFileDescriptor,			METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		deregisterFileDescriptor,		PyFileDescriptor::__py_deregisterFileDescriptor,			METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		deregisterWriteFileDescriptor,	PyFileDescriptor::__py_deregisterWriteFileDescriptor,		METH_VARARGS,			0);
-
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		reloadScript,					__py_reloadScript,											METH_VARARGS,			0);
 	return EntityApp<Base>::installPyModules();
 }
 
@@ -2758,6 +2758,44 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 	}
 
 	bundle.resend(getNetworkInterface(), pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Baseapp::__py_reloadScript(PyObject* self, PyObject* args)
+{
+	bool fullReload = true;
+	int argCount = PyTuple_Size(args);
+	if(argCount == 1)
+	{
+		if(PyArg_ParseTuple(args, "b", &fullReload) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "KBEngine::reloadScript(fullReload): args is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+
+	Baseapp::getSingleton().reloadScript(fullReload);
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::reloadScript(bool fullReload)
+{
+	EntityApp<Base>::reloadScript(fullReload);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onReloadScript(bool fullReload)
+{
+	Entities<Base>::ENTITYS_MAP& entities = pEntities_->getEntities();
+	Entities<Base>::ENTITYS_MAP::iterator eiter = entities.begin();
+	for(; eiter != entities.end(); eiter++)
+	{
+		static_cast<Base*>(eiter->second.get())->reload(fullReload);
+	}
+
+	EntityApp<Base>::onReloadScript(fullReload);
 }
 
 //-------------------------------------------------------------------------------------

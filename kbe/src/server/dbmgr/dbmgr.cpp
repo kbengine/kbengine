@@ -146,11 +146,6 @@ bool Dbmgr::initializeBegin()
 //-------------------------------------------------------------------------------------
 bool Dbmgr::inInitialize()
 {
-	// 初始化数据类别
-	// demo/res/scripts/entity_defs/alias.xml
-	if(!DataTypes::initialize("scripts/entity_defs/alias.xml"))
-		return false;
-
 	// 初始化所有扩展模块
 	// demo/res/scripts/
 	std::vector<PyTypeObject*>	scriptBaseTypes;

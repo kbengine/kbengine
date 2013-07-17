@@ -34,14 +34,25 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 std::vector<ScriptDefModulePtr>	EntityDef::__scriptModules;
+std::vector<ScriptDefModulePtr>	EntityDef::__oldScriptModules;
+
 std::map<std::string, ENTITY_SCRIPT_UID> EntityDef::__scriptTypeMappingUType;
+std::map<std::string, ENTITY_SCRIPT_UID> EntityDef::__oldScriptTypeMappingUType;
+
 COMPONENT_TYPE EntityDef::__loadComponentType;
+std::vector<PyTypeObject*> EntityDef::__scriptBaseTypes;
+std::string EntityDef::__entitiesPath;
+
 KBE_MD5 EntityDef::__md5;
 bool EntityDef::_isInit = false;
+bool g_isReload = false;
 
 // 方法产生时自动产生utype用的
 ENTITY_METHOD_UID g_methodUtypeAuto = 1;
 std::vector<ENTITY_METHOD_UID> g_methodCusUtypes;																									
+
+ENTITY_PROPERTY_UID auto_puid = 1;
+std::vector<ENTITY_PROPERTY_UID> puids;
 
 //-------------------------------------------------------------------------------------
 EntityDef::EntityDef()
@@ -55,19 +66,72 @@ EntityDef::~EntityDef()
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::finalise(void)
+bool EntityDef::finalise(bool isReload)
 {
-	std::vector<ScriptDefModulePtr>::iterator iter = EntityDef::__scriptModules.begin();
-	for(; iter != EntityDef::__scriptModules.end(); iter++)
+	PropertyDescription::propertyDescriptionCount_ = 0;
+	MethodDescription::methodDescriptionCount_ = 0;
+
+	EntityDef::__md5.clear();
+	g_methodUtypeAuto = 1;
+	EntityDef::_isInit = false;
+
+	auto_puid = 1;
+	puids.clear();
+
+	if(!isReload)
 	{
-		(*iter)->finalise();
+		std::vector<ScriptDefModulePtr>::iterator iter = EntityDef::__scriptModules.begin();
+		for(; iter != EntityDef::__scriptModules.end(); iter++)
+		{
+			(*iter)->finalise();
+		}
+
+		iter = EntityDef::__oldScriptModules.begin();
+		for(; iter != EntityDef::__oldScriptModules.end(); iter++)
+		{
+			(*iter)->finalise();
+		}
+
+		EntityDef::__oldScriptModules.clear();
+		EntityDef::__oldScriptTypeMappingUType.clear();
 	}
 
 	EntityDef::__scriptModules.clear();
 	EntityDef::__scriptTypeMappingUType.clear();
 	g_methodCusUtypes.clear();
+	DataType::finalise();
 	DataTypes::finalise();
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityDef::reload(bool fullReload)
+{
+	g_isReload = true;
+	if(fullReload)
+	{
+		EntityDef::__oldScriptModules.clear();
+		EntityDef::__oldScriptTypeMappingUType.clear();
+
+		std::vector<ScriptDefModulePtr>::iterator iter = EntityDef::__scriptModules.begin();
+		for(; iter != EntityDef::__scriptModules.end(); iter++)
+		{
+			__oldScriptModules.push_back((*iter));
+			__oldScriptTypeMappingUType[(*iter)->getName()] = (*iter)->getUType();
+		}
+
+		bool ret = finalise(true);
+		KBE_ASSERT(ret && "EntityDef::reload: finalise is error!");
+
+		ret = initialize(EntityDef::__entitiesPath, EntityDef::__scriptBaseTypes, EntityDef::__loadComponentType);
+		KBE_ASSERT(ret && "EntityDef::reload: initialize is error!");
+	}
+	else
+	{
+		loadAllScriptModule(EntityDef::__entitiesPath, EntityDef::__scriptBaseTypes);
+	}
+
+	EntityDef::_isInit = true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -76,6 +140,9 @@ bool EntityDef::initialize(const std::string entitiesPath,
 						   COMPONENT_TYPE loadComponentType)
 {
 	__loadComponentType = loadComponentType;
+	__entitiesPath = entitiesPath;
+	__scriptBaseTypes = scriptBaseTypes;
+
 	g_entityFlagMapping["CELL_PUBLIC"]							= ED_FLAG_CELL_PUBLIC;
 	g_entityFlagMapping["CELL_PRIVATE"]							= ED_FLAG_CELL_PRIVATE;
 	g_entityFlagMapping["ALL_CLIENTS"]							= ED_FLAG_ALL_CLIENTS;
@@ -88,6 +155,11 @@ bool EntityDef::initialize(const std::string entitiesPath,
 	std::string defFilePath = entitiesPath + "entity_defs/";
 	ENTITY_SCRIPT_UID utype = 1;
 	
+	// 初始化数据类别
+	// demo/res/scripts/entity_defs/alias.xml
+	if(!DataTypes::initialize(defFilePath + "alias.xml"))
+		return false;
+
 	// 打开这个entities.xml文件
 	SmartPointer<XmlPlus> xml(new XmlPlus());
 	if(!xml.get()->openSection(entitiesFile.c_str()))
@@ -593,9 +665,6 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 					detailLevel = DETAIL_LEVEL_FAR;
 			}
 			
-			static ENTITY_PROPERTY_UID auto_puid = 1;
-			static std::vector<ENTITY_PROPERTY_UID> puids;
-
 			TiXmlNode* utypeValNode = 
 				xml->enterNode(defPropertyNode->FirstChild(), "Utype");
 
@@ -1016,6 +1085,9 @@ bool EntityDef::loadAllScriptModule(std::string entitiesPath,
 		PyObject* pyModule = 
 			PyImport_ImportModule(const_cast<char*>(moduleName.c_str()));
 
+		if(g_isReload)
+			pyModule = PyImport_ReloadModule(pyModule);
+
 		if (pyModule == NULL)
 		{
 			// 是否加载这个模块 （取决于是否在def文件中定义了与当前组件相关的方法或者属性）
@@ -1126,6 +1198,28 @@ ScriptDefModule* EntityDef::findScriptModule(const char* scriptName)
 	}
 
 	return findScriptModule(iter->second);
+}
+
+//-------------------------------------------------------------------------------------
+ScriptDefModule* EntityDef::findOldScriptModule(const char* scriptName)
+{
+	std::map<std::string, ENTITY_SCRIPT_UID>::iterator iter = 
+		__oldScriptTypeMappingUType.find(scriptName);
+
+	if(iter == __oldScriptTypeMappingUType.end())
+	{
+		ERROR_MSG(boost::format("EntityDef::findOldScriptModule: [%1%] not found!\n") % scriptName);
+		return NULL;
+	}
+
+	if (iter->second >= __oldScriptModules.size() + 1)
+	{
+		ERROR_MSG(boost::format("EntityDef::findOldScriptModule: is not exist(utype:%1%)!\n") % iter->second);
+		return NULL;
+	}
+
+	return __oldScriptModules[iter->second - 1].get();
+
 }
 
 //-------------------------------------------------------------------------------------

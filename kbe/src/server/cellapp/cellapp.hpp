@@ -194,6 +194,13 @@ public:
 		某个app请求查看该app
 	*/
 	virtual void lookApp(Mercury::Channel* pChannel);
+
+	/**
+		重新导入所有的脚本
+	*/
+	static PyObject* __py_reloadScript(PyObject* self, PyObject* args);
+	virtual void reloadScript(bool fullReload);
+	virtual void onReloadScript(bool fullReload);
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;

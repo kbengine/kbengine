@@ -96,10 +96,10 @@ public:
 	bool isClient()const{ return !isCell() && !isBase(); }
 	bool isCell()const{ return methodDomain_ == CELLAPP_TYPE; }
 	bool isBase()const{ return methodDomain_ == BASEAPP_TYPE; }
-protected:
-	COMPONENT_ID							methodDomain_;
 
 	static uint32							methodDescriptionCount_;					// 所有的属性描述的数量
+protected:
+	COMPONENT_ID							methodDomain_;
 
 	std::string								name_;										// 这个方法的名称
 	ENTITY_METHOD_UID						utype_;										// 这个方法的数字类别， 用于网络上传输识别

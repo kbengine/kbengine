@@ -178,6 +178,12 @@ public:
 		设置脚本输出类型前缀
 	*/
 	static PyObject* __py_setScriptLogType(PyObject* self, PyObject* args);
+
+	/**
+		重新导入所有的脚本
+	*/
+	virtual void reloadScript(bool fullReload);
+	virtual void onReloadScript(bool fullReload);
 protected:
 	KBEngine::script::Script								script_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
@@ -281,11 +287,6 @@ template<class E>
 bool EntityApp<E>::installEntityDef()
 {
 	if(!EntityDef::installScript(this->getScript().getModule()))
-		return false;
-
-	// 初始化数据类别
-	// demo/res/scripts/entity_defs/alias.xml
-	if(!DataTypes::initialize("scripts/entity_defs/alias.xml"))
 		return false;
 
 	// 初始化所有扩展模块
@@ -418,10 +419,11 @@ bool EntityApp<E>::installPyModules()
 
 	// 注册创建entity的方法到py
 	// 向脚本注册app发布状态
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	publish,		__py_getAppPublish,		METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	publish,			__py_getAppPublish,		METH_VARARGS,	0);
 
 	// 注册设置脚本输出类型
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	scriptLogType,	__py_setScriptLogType,	METH_VARARGS,	0)
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	scriptLogType,		__py_setScriptLogType,	METH_VARARGS,	0);
+
 	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_NORMAL", log4cxx::ScriptLevel::SCRIPT_INT))
 	{
 		ERROR_MSG( "EntityApp::installPyModules: Unable to set KBEngine.LOG_TYPE_NORMAL.\n");
@@ -823,6 +825,34 @@ void EntityApp<E>::onExecScriptCommand(Mercury::Channel* pChannel, KBEngine::Mem
 
 	Py_DECREF(pycmd);
 	Py_DECREF(pycmd1);
+}
+
+template<class E>
+void EntityApp<E>::onReloadScript(bool fullReload)
+{
+	EntityMailbox::MAILBOXS::iterator iter =  EntityMailbox::mailboxs.begin();
+	for(; iter != EntityMailbox::mailboxs.end(); iter++)
+	{
+		(*iter)->reload();
+	}
+}
+
+template<class E>
+void EntityApp<E>::reloadScript(bool fullReload)
+{
+	EntityDef::reload(fullReload);
+	onReloadScript(fullReload);
+
+	// 所有脚本都加载完毕
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onInit"), 
+										const_cast<char*>("i"), 
+										1);
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		SCRIPT_ERROR_CHECK();
 }
 
 }

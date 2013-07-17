@@ -1618,4 +1618,11 @@ PyObject* Entity::pyGetShouldAutoBackup()
 }
 
 //-------------------------------------------------------------------------------------
+bool Entity::_reload(bool fullReload)
+{
+	allClients_->setScriptModule(scriptModule_);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 }
