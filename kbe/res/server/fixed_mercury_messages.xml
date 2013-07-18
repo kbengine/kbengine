@@ -277,6 +277,14 @@
 		</descr>
 		<arg>UINT8_ARRAY</arg> <!-- 需要解析 -->
 	</Client::onImportClientEntityDef>
+
+	<Client::addSpaceGeometryMapping>
+		<id>520</id>
+		<descr>服务器向客户端添加几何映射。
+		</descr>
+		<arg>UINT32</arg> <!-- spaceID -->
+		<arg>STRING</arg> <!-- respath -->
+	</Client::addSpaceGeometryMapping>
 	
 	<Property::position>
 		<id>40000</id>

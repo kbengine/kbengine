@@ -21,7 +21,7 @@ SpaceWorld::SpaceWorld(Ogre::Root *pOgreRoot, Ogre::RenderWindow* pRenderWin,
 :   Space(pOgreRoot, pRenderWin, pInputMgr, pTrayMgr),
 	mLoader(0),
     mTerrainImported(true),
-    mSceneFile(Ogre::StringUtil::BLANK),
+    mSceneProjectDir(Ogre::StringUtil::BLANK),
     mHelpInfo(Ogre::StringUtil::BLANK),
     mFly(false),
 	mPlayerPtr(0),
@@ -68,45 +68,72 @@ SpaceWorld::~SpaceWorld(void)
 }
 
 //-------------------------------------------------------------------------------------
-void SpaceWorld::setupResources(void)
+void SpaceWorld::addSpaceGeometryMapping(std::string respath)
 {
+	mSceneProjectDir = respath;
+	loadSpaceGeometryMapping();
+}
+
+//-------------------------------------------------------------------------------------
+void SpaceWorld::loadSpaceGeometryMapping()
+{
+	if(mSceneProjectDir == Ogre::StringUtil::BLANK)
+		return;
+
+	/*
     rapidxml::xml_document<> XMLDoc;    // character type defaults to char
     rapidxml::xml_node<>* XMLRoot;
 
     std::ifstream fp;
+    
     fp.open("scenes.xml", std::ios::in | std::ios::binary);
     Ogre::DataStreamPtr stream(OGRE_NEW Ogre::FileStreamDataStream("scenes.xml", &fp, false));
     char* sampleAppConfig = strdup(stream->getAsString().c_str());
     XMLDoc.parse<0>(sampleAppConfig);
     XMLRoot = XMLDoc.first_node("Scene1");
 
-    Ogre::String projectDir = Ogre::String(XMLRoot->first_attribute("projectDir")->value());
+    mSceneProjectDir = Ogre::String(XMLRoot->first_attribute("projectDir")->value());
     mSceneFile = Ogre::String(XMLRoot->first_attribute("scene")->value());
-
+	*/
+	
+	// mSceneProjectDir = Ogre::String("../../res/Media/Scenes/Scene1");
+	
     // add sample project directory to the resource paths
     Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-        "" + projectDir, "FileSystem", "Space");
+        "" + mSceneProjectDir, "FileSystem", "Space");
 
     Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-        "" + projectDir + "/Materials", "FileSystem", "Space");
+        "" + mSceneProjectDir + "/Materials", "FileSystem", "Space");
     Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-        "" + projectDir + "/Models", "FileSystem", "Space");
+        "" + mSceneProjectDir + "/Models", "FileSystem", "Space");
     Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-        "" + projectDir + "/Terrain", "FileSystem", "Space");
+        "" + mSceneProjectDir + "/Terrain", "FileSystem", "Space");
 
 	mTrayMgr->showLoadingBar(1, 0);
 	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("Space");
 	mTrayMgr->hideLoadingBar();
+	
+    mLoader = new DotSceneLoader(SCENE_MASK);
+    mLoader->parseDotScene(Ogre::String("Scene.scene"), "Space", mSceneMgr);
+
+    for(unsigned int ij = 0;ij < mLoader->mPGHandles.size();ij++)
+    {
+        mLoader->mPGHandles[ij]->setCamera(mActiveCamera);
+    }
+}
+
+//-------------------------------------------------------------------------------------
+void SpaceWorld::setupResources(void)
+{
 }
 
 //-------------------------------------------------------------------------------------
 void SpaceWorld::createScene(void)
 {
 	mSceneMgr = mRoot->createSceneManager(Ogre::ST_GENERIC);
-
-    mLoader = new DotSceneLoader(SCENE_MASK);
-    mLoader->parseDotScene(mSceneFile, "Space", mSceneMgr);
-
+	
+	loadSpaceGeometryMapping();
+	
 	mTrayMgr->showCursor();
 	mTrayMgr->showFrameStats(OgreBites::TL_BOTTOMLEFT);
 	mTrayMgr->showBackdrop();
@@ -144,68 +171,69 @@ void SpaceWorld::createScene(void)
 	pSelDecalObj_ = new DecalObject("Examples/Sel_Decal", this, 1.0f, 1.5f);
 
 	pLensflare_ = new LensFlare(Ogre::Vector3(3000, 2000, 0), mActiveCamera, mSceneMgr);
-
-    for(unsigned int ij = 0;ij < mLoader->mPGHandles.size();ij++)
-    {
-        mLoader->mPGHandles[ij]->setCamera(mActiveCamera);
-    }
 }
 
 //----------------------------------------------------------------------------------------
 float SpaceWorld::getPositionHeight(const Ogre::Vector3& pos)
 { 
+	if(!mLoader)
+		return 0.f;
+
 	return mLoader->getTerrainGroup()->getHeightAtWorldPosition(pos); 
 }
 
 //-------------------------------------------------------------------------------------
 bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
 {
-    if (!mLoader->getTerrainGroup()->isDerivedDataUpdateInProgress())
-    {
-        if (mTerrainImported)
-        {
-            mLoader->getTerrainGroup()->saveAllTerrains(true);
-            mTerrainImported = false;
-        }
-    }
+	if(mLoader)
+	{
+		if (!mLoader->getTerrainGroup()->isDerivedDataUpdateInProgress())
+		{
+			if (mTerrainImported)
+			{
+				mLoader->getTerrainGroup()->saveAllTerrains(true);
+				mTerrainImported = false;
+			}
+		}
 
-    for(unsigned int ij = 0;ij < mLoader->mPGHandles.size();ij++)
-    {
-        mLoader->mPGHandles[ij]->update();
-    }
+		for(unsigned int ij = 0;ij < mLoader->mPGHandles.size();ij++)
+		{
+			mLoader->mPGHandles[ij]->update();
+		}
 	
-	ENTITIES::iterator iter = mEntities.begin();
-	for(; iter != mEntities.end(); iter++)
-	{
-		iter->second->addTime(evt.timeSinceLastFrame);
-	}
-	
-	if(mTargetPtr)
-	{
-		pSelDecalObj_->update(evt.timeSinceLastFrame);
+		ENTITIES::iterator iter = mEntities.begin();
+		for(; iter != mEntities.end(); iter++)
+		{
+			iter->second->addTime(evt.timeSinceLastFrame);
+		}
+		
+		if(mTargetPtr)
+		{
+			pSelDecalObj_->update(evt.timeSinceLastFrame);
+		}
+
+		if(showSelPosDecal_)
+		{
+			pDecalObj_->update(evt.timeSinceLastFrame);
+		}
+
+		if(mPlayerPtr) 
+		{
+			// kbe_lock();
+
+			kbe_updateVolatile(g_tickSelTargetID, 
+								mPlayerPtr->getPosition().x, 
+								mPlayerPtr->getPosition().y, 
+								mPlayerPtr->getPosition().z,
+								mPlayerPtr->getDirection().x, 
+								mPlayerPtr->getDirection().y, 
+								mPlayerPtr->getDirection().z);
+
+			g_tickSelTargetID = -1;
+			// kbe_unlock();
+		}
 	}
 
-	if(showSelPosDecal_)
-	{
-		pDecalObj_->update(evt.timeSinceLastFrame);
-	}
-
-	if(mPlayerPtr) 
-	{
-		// kbe_lock();
-
-		kbe_updateVolatile(g_tickSelTargetID, 
-							mPlayerPtr->getPosition().x, 
-							mPlayerPtr->getPosition().y, 
-							mPlayerPtr->getPosition().z,
-							mPlayerPtr->getDirection().x, 
-							mPlayerPtr->getDirection().y, 
-							mPlayerPtr->getDirection().z);
-
-		g_tickSelTargetID = -1;
-		// kbe_unlock();
-	}
-	
 	// ·þÎñÆ÷¹Ø±Õ
 	if(serverClosed_)
 	{
@@ -243,7 +271,7 @@ bool SpaceWorld::frameRenderingQueued(const Ogre::FrameEvent& evt)
 		}
 	}
 
-	if(pLensflare_)
+	if(mLoader && pLensflare_)
 		pLensflare_->update();
 
     return true;
@@ -293,6 +321,10 @@ bool SpaceWorld::keyPressed( const OIS::KeyEvent &arg )
     }
 
 	if(mPlayerPtr) mPlayerPtr->injectKeyDown(arg);
+
+	if(!mLoader)
+		return true;
+
     return true; 
 }
 
@@ -300,6 +332,10 @@ bool SpaceWorld::keyPressed( const OIS::KeyEvent &arg )
 bool SpaceWorld::keyReleased(const OIS::KeyEvent &arg)
 {
 	if(mPlayerPtr) mPlayerPtr->injectKeyUp(arg);
+
+	if(!mLoader)
+		return true;
+
     return true;
 }
 
@@ -308,8 +344,11 @@ bool SpaceWorld::mouseMoved( const OIS::MouseEvent &arg )
 {
     if(mPlayerPtr) mPlayerPtr->injectMouseMove(arg);
 
-		Ogre::Ray mouseRay = mActiveCamera->getCameraToViewportRay(arg.state.X.abs / float(arg.state.width),
-			arg.state.Y.abs / float(arg.state.height));
+	if(!mLoader)
+		return false;
+
+	Ogre::Ray mouseRay = mActiveCamera->getCameraToViewportRay(arg.state.X.abs / float(arg.state.width),
+		arg.state.Y.abs / float(arg.state.height));
 
 	Ogre::Entity* rayResult = NULL;
 	Ogre::Vector3 hitPoint;
@@ -354,6 +393,9 @@ bool SpaceWorld::mouseMoved( const OIS::MouseEvent &arg )
 bool SpaceWorld::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
 	if(mPlayerPtr) mPlayerPtr->injectMouseDown(arg, id);
+
+	if(!mLoader)
+		return false;
 
 	if(id == OIS::MB_Left)
 	{
@@ -417,6 +459,9 @@ bool SpaceWorld::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id
 //-------------------------------------------------------------------------------------
 bool SpaceWorld::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
+	if(!mLoader)
+		return true;
+
     return true;
 }
 
@@ -425,6 +470,13 @@ void SpaceWorld::kbengine_onEvent(const KBEngine::EventData* lpEventData)
 {
 	switch(lpEventData->id)
 	{
+	case CLIENT_EVENT_ADDSPACEGEOMAPPING:
+		{
+			const KBEngine::EventData_AddSpaceGEOMapping* pEventData = static_cast<const KBEngine::EventData_AddSpaceGEOMapping*>(lpEventData);
+			KBEngine::SPACE_ID spaceID = pEventData->spaceID;
+			addSpaceGeometryMapping(pEventData->respath);
+		}
+		break;
 	case CLIENT_EVENT_CREATEDENTITY:
 		{
 			const KBEngine::EventData_CreatedEntity* pEventData_createEntity = static_cast<const KBEngine::EventData_CreatedEntity*>(lpEventData);

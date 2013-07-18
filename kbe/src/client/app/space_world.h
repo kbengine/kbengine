@@ -43,11 +43,14 @@ public:
 	DotSceneLoader* getDotSceneLoader(){ return mLoader; }
 
 	float getPositionHeight(const Ogre::Vector3& pos);
+	
+	void addSpaceGeometryMapping(std::string respath);
+	void loadSpaceGeometryMapping();
 private:
     Ogre::TerrainGroup* mTerrainGroup;
     DotSceneLoader* mLoader;
     bool mTerrainImported;
-    Ogre::String mSceneFile;
+    Ogre::String mSceneProjectDir;
     Ogre::String mHelpInfo;
     bool mFly;
 

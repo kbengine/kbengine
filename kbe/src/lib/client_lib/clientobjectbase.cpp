@@ -71,7 +71,9 @@ typeClient_(CLIENT_TYPE_PC),
 bufferedCreateEntityMessage_(),
 eventHandler_(),
 ninterface_(ninterface),
-targetID_(0)
+targetID_(0),
+loadGeometryPath_(),
+isLoadedGeometry_(false)
 {
 	pServerChannel_->incRef();
 	appID_ = g_appID++;
@@ -1324,6 +1326,22 @@ void ClientObjectBase::onStreamDataRecv(Mercury::Channel* pChannel, MemoryStream
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onStreamDataCompleted(Mercury::Channel* pChannel, int16 id)
 {
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::addSpaceGeometryMapping(Mercury::Channel* pChannel, SPACE_ID spaceID, std::string& respath)
+{
+	INFO_MSG(boost::format("ClientObjectBase::addSpaceGeometryMapping: spaceID=%1%, respath=%2%!\n") %
+		spaceID % respath);
+
+	loadGeometryPath_ = respath;
+	isLoadedGeometry_ = false;
+	onAddSpaceGeometryMapping(spaceID, respath);
+
+	EventData_AddSpaceGEOMapping eventdata;
+	eventdata.spaceID = spaceID;
+	eventdata.respath = respath;
+	fireEvent(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------		

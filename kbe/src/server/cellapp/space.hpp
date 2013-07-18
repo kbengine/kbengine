@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/smartpointer.hpp"
-
+#include "pyscript/scriptobject.hpp"
 
 namespace KBEngine{
 
@@ -40,7 +40,8 @@ public:
 	Space(SPACE_ID spaceID);
 	~Space();
 
-	void loadSpaceGeometry(const char* path);
+	void unLoadSpaceGeometry();
+	void loadSpaceGeometry();
 
 	void creatorID(ENTITY_ID id){ creatorID_ = id; }
 	ENTITY_ID creatorID()const { return creatorID_; }
@@ -79,6 +80,20 @@ public:
 	*/
 	Cell * pCell() const	{ return pCell_; }
 	void pCell( Cell * pCell );
+
+	/**
+		添加space的几何映射
+	*/
+	static PyObject* __py_AddSpaceGeometryMapping(PyObject* self, PyObject* args);
+	bool addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer);
+	static PyObject* __py_GetSpaceGeometryMapping(PyObject* self, PyObject* args);
+	const std::string& getGeometryPath(){ return loadGeometryPath_; }
+	void onLoadedSpaceGeometryMapping();
+	void onAllSpaceGeometryLoaded();
+
+protected:
+	void _addSpaceGeometryMappingToEntityClient(const Entity* pEntity);
+
 protected:
 	// 这个space的ID
 	SPACE_ID id_;	
@@ -90,10 +105,10 @@ protected:
 	SPACE_ENTITIES entities_;							
 
 	// 是否加载过地形数据
-	bool isLoadGeometry_;
+	bool isLoadedGeometry_;
 
 	// 加载几何的路径
-	std::string loadGeometryPathName_;					
+	std::string loadGeometryPath_;					
 	
 	// 每个space最多只有一个cell
 	Cell* pCell_;

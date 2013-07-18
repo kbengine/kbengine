@@ -7,8 +7,8 @@ class Space(GameObject):
 	def __init__(self):
 		GameObject.__init__(self)
 		DEBUG_MSG('created space[%d] entityID = %i.' % (self.spaceUType, self.id))
-		#self.addSpaceGeometryMapping(self.spaceID, self.spaceName)
-
+		
+		KBEngine.addSpaceGeometryMapping(self.spaceID, None, "../../res/Media/Scenes/Scene1")
 		KBEngine.globalData["space_%i" % self.spaceID] = self.base
 	
 	def onDestroy(self):

@@ -289,6 +289,15 @@ public:
 	*/
 	virtual void onImportClientEntityDef(Mercury::Channel* pChannel, MemoryStream& s){}
 	
+	/** 网络接口
+		服务端添加了某个space的几何映射
+	*/
+	void addSpaceGeometryMapping(Mercury::Channel* pChannel, SPACE_ID spaceID, std::string& respath);
+	virtual void onAddSpaceGeometryMapping(SPACE_ID spaceID, std::string& respath){}
+	virtual void onLoadedSpaceGeometryMapping(SPACE_ID spaceID){
+		isLoadedGeometry_ = true;
+	}
+
 	/** 
 		获得player实例
 	*/
@@ -303,6 +312,7 @@ public:
 	ENTITY_ID getTargetID()const{ return targetID_; }
 	virtual void onTargetChanged(){}
 
+	const std::string& getGeometryPath(){ return loadGeometryPath_; }
 protected:				
 	int32 appID_;
 
@@ -345,6 +355,12 @@ protected:
 
 	// 当前客户端所选择的目标
 	ENTITY_ID												targetID_;
+
+	// 加载几何的路径
+	std::string loadGeometryPath_;
+
+	// 是否加载过地形数据
+	bool isLoadedGeometry_;
 };
 
 }

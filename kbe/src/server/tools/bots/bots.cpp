@@ -874,5 +874,15 @@ void Bots::onStreamDataCompleted(Mercury::Channel* pChannel, int16 id)
 }
 
 //-------------------------------------------------------------------------------------
+void Bots::addSpaceGeometryMapping(Mercury::Channel* pChannel, SPACE_ID spaceID, std::string& respath)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if(pClient)
+	{
+		pClient->addSpaceGeometryMapping(pChannel, spaceID, respath);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 
 }

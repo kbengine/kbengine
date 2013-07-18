@@ -285,6 +285,11 @@ public:
 		download stream完成了 
 	*/
 	virtual void onStreamDataCompleted(Mercury::Channel* pChannel, int16 id);
+
+	/** 网络接口
+		服务端添加了某个space的几何映射
+	*/
+	void addSpaceGeometryMapping(Mercury::Channel* pChannel, SPACE_ID spaceID, std::string& respath);
 protected:
 	PyBots*													pPyBots_;
 

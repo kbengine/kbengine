@@ -146,6 +146,8 @@ public:
 	virtual void onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s);
 
 	virtual void onTargetChanged();
+
+	virtual void onAddSpaceGeometryMapping(SPACE_ID spaceID, std::string& respath);
 protected:
 	KBEngine::script::Script*								pScript_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;

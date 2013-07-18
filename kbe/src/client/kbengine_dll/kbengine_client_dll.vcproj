@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Version.lib netapi32.lib pyexpat_d.pyd select_d.pyd _ctypes_d.pyd _elementtree_d.pyd unicodedata_d.pyd _hashlib_d.pyd _ssl_d.pyd _socket_d.pyd html5_d.lib resmgr_d.lib python32_d.lib pyscript_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib math_d.lib network_d.lib thread_d.lib entitydef_d.lib client_lib_d.lib server_d.lib ws2_32.lib"
+				AdditionalDependencies="Version.lib netapi32.lib pyexpat_d.pyd select_d.pyd _ctypes_d.pyd _elementtree_d.pyd unicodedata_d.pyd _hashlib_d.pyd _ssl_d.pyd _socket_d.pyd resmgr_d.lib python32_d.lib pyscript_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib math_d.lib network_d.lib thread_d.lib entitydef_d.lib client_lib_d.lib server_d.lib ws2_32.lib"
 				OutputFile="..\..\..\bin\client\kbengine_d.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\libs;"
@@ -139,7 +139,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Version.lib netapi32.lib pyexpat.pyd select.pyd _ctypes.pyd _elementtree.pyd unicodedata.pyd _hashlib.pyd _ssl.pyd _socket.pyd html5.lib resmgr.lib python32.lib pyscript.lib xmlplus.lib cstdkbe.lib helper.lib math.lib network.lib thread.lib entitydef.lib client_lib.lib server.lib ws2_32.lib"
+				AdditionalDependencies="Version.lib netapi32.lib pyexpat.pyd select.pyd _ctypes.pyd _elementtree.pyd unicodedata.pyd _hashlib.pyd _ssl.pyd _socket.pyd resmgr.lib python32.lib pyscript.lib xmlplus.lib cstdkbe.lib helper.lib math.lib network.lib thread.lib entitydef.lib client_lib.lib server.lib ws2_32.lib"
 				OutputFile="..\..\..\bin\client\kbengine.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\libs;"

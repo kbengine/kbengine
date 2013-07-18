@@ -47,7 +47,6 @@ namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 ENTITY_METHOD_DECLARE_BEGIN(Cellapp, Entity)
-SCRIPT_METHOD_DECLARE("addSpaceGeometryMapping",	pyAddSpaceGeometryMapping,		METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("setAoiRadius",				pySetAoiRadius,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("isReal",						pyIsReal,						METH_VARARGS,				0)	
 SCRIPT_METHOD_DECLARE("addProximity",				pyAddProximity,					METH_VARARGS,				0)
@@ -760,13 +759,6 @@ void Entity::onLeaveTrapID(ENTITY_ID entityID, float range_xz, float range_y, ui
 
 	SCRIPT_OBJECT_CALL_ARGS5(this, const_cast<char*>("onLeaveTrapID"), 
 		const_cast<char*>("kffIi"), entityID, range_xz, range_y, controllerID, userarg);
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Entity::pyAddSpaceGeometryMapping(SPACE_ID spaceID, const_charptr path)
-{
-	//App::getSingleton().addSpaceGeometryMapping(spaceID, path);
-	S_Return;
 }
 
 //-------------------------------------------------------------------------------------

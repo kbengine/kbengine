@@ -37,8 +37,8 @@ namespace KBEngine{
 Space::Space(SPACE_ID spaceID):
 id_(spaceID),
 entities_(),
-isLoadGeometry_(false),
-loadGeometryPathName_(),
+isLoadedGeometry_(false),
+loadGeometryPath_(),
 pCell_(NULL),
 rangeList_()
 {
@@ -51,15 +51,181 @@ Space::~Space()
 }
 
 //-------------------------------------------------------------------------------------
-void Space::loadSpaceGeometry(const char* path)
+PyObject* Space::__py_GetSpaceGeometryMapping(PyObject* self, PyObject* args)
 {
-	loadGeometryPathName_ = path;
+	SPACE_ID spaceID = 0;
+
+	if(PyTuple_Size(args) != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceGeometryMapping: (argssize != 1) is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(PyArg_ParseTuple(args, "I", &spaceID) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceGeometryMapping: args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	Space* space = Spaces::findSpace(spaceID);
+	if(space == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceGeometryMapping: (spaceID=%u) not found!", 
+			spaceID);
+
+		PyErr_PrintEx(0);
+		return false;
+	}
+
+	return PyUnicode_FromString(space->getGeometryPath().c_str());
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
+{
+	SPACE_ID spaceID = 0;
+	char* path = NULL;
+	bool shouldLoadOnServer = true;
+	PyObject* mapper = NULL;
+
+	int argCount = PyTuple_Size(args);
+	if(argCount < 3 || argCount > 4)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::addSpaceGeometryMapping: (argssize != 4) is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(argCount == 4)
+	{
+		if(PyArg_ParseTuple(args, "I|O|s|b", &spaceID, &mapper, &path, &shouldLoadOnServer) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "KBEngine::addSpaceGeometryMapping: args is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+	else
+	{
+		if(PyArg_ParseTuple(args, "I|O|s", &spaceID, &mapper, &path) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "KBEngine::addSpaceGeometryMapping: args is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+
+	Space* space = Spaces::findSpace(spaceID);
+	if(space == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) not found!", 
+			spaceID, path);
+
+		PyErr_PrintEx(0);
+		return false;
+	}
+
+	if(!space->addSpaceGeometryMapping(path, shouldLoadOnServer))
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) is error!", 
+			spaceID, path);
+
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer)
+{
+	INFO_MSG(boost::format("KBEngine::addSpaceGeometryMapping: spaceID=%1%, respath=%2%!\n") %
+		getID() % respath);
+
+	if(loadGeometryPath_ == respath)
+		return true;
+
+	loadGeometryPath_ = respath.c_str();
+
+	if(shouldLoadOnServer)
+		loadSpaceGeometry();
+
+	SPACE_ENTITIES::const_iterator iter = this->entities().begin();
+	for(; iter != this->entities().end(); iter++)
+	{
+		const Entity* pEntity = (*iter).get();
+
+		if(pEntity || pEntity->isDestroyed() || !pEntity->hasWitness())
+			continue;
+		
+		_addSpaceGeometryMappingToEntityClient(pEntity);
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void Space::_addSpaceGeometryMappingToEntityClient(const Entity* pEntity)
+{
+	if(!pEntity)
+	{
+		return;
+	}
+
+	if(pEntity->isDestroyed())
+	{
+		return;
+	}
+
+	if(!pEntity->hasWitness())
+	{
+		WARNING_MSG(boost::format("Space::_addSpaceGeometryMappingToEntityClient: entity %1% no client!\n") % 
+			pEntity->getID());
+
+		return;
+	}
+
+	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+	pForwardBundle->newMessage(ClientInterface::addSpaceGeometryMapping);
+	(*pForwardBundle) << this->getID();
+	(*pForwardBundle) << loadGeometryPath_;
+
+	Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
+	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->getID(), (*pSendBundle), (*pForwardBundle));
+	pEntity->pWitness()->sendToClient(ClientInterface::addSpaceGeometryMapping, pSendBundle);
+	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+}
+
+//-------------------------------------------------------------------------------------
+void Space::loadSpaceGeometry()
+{
+	isLoadedGeometry_ = false;
+	onLoadedSpaceGeometryMapping();
+}
+
+//-------------------------------------------------------------------------------------
+void Space::unLoadSpaceGeometry()
+{
+}
+
+//-------------------------------------------------------------------------------------
+void Space::onLoadedSpaceGeometryMapping()
+{
+	isLoadedGeometry_ = true;
+}
+
+//-------------------------------------------------------------------------------------
+void Space::onAllSpaceGeometryLoaded()
+{
 }
 
 //-------------------------------------------------------------------------------------
 void Space::update()
 {
-	if(!isLoadGeometry_)
+	if(!isLoadedGeometry_)
 		return;
 }
 
@@ -122,6 +288,7 @@ void Space::_onEnterWorld(Entity* pEntity)
 	if(pEntity->hasWitness())
 	{
 		pEntity->pWitness()->onEnterSpace(this);
+		_addSpaceGeometryMappingToEntityClient(pEntity);
 	}
 }
 

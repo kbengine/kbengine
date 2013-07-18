@@ -179,11 +179,6 @@ public:
 	*/
 	void setPosition_XYZ_float(Mercury::Channel* pChannel, float x, float y, float z);
 
-	/** 
-		脚本请求为当前所在space设置一个几何映射 
-	*/
-	DECLARE_PY_MOTHOD_ARG2(pyAddSpaceGeometryMapping, SPACE_ID, const_charptr);
-
 	/** 网络接口
 		entity传送
 		@cellAppID: 要传送到的目的cellappID

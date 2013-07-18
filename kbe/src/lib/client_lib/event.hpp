@@ -46,6 +46,7 @@ typedef int32 EventID;
 #define CLIENT_EVENT_SERVER_CLOSED 14
 #define CLIENT_EVENT_POSITION_FORCE 15
 #define CLIENT_EVENT_DIRECTION_FORCE 16
+#define CLIENT_EVENT_ADDSPACEGEOMAPPING 17
 
 struct EventData
 {
@@ -287,6 +288,19 @@ struct EventData_ServerCloased : public EventData
 	}
 };
 
+struct EventData_AddSpaceGEOMapping : public EventData
+{
+	EventData_AddSpaceGEOMapping():
+	EventData(CLIENT_EVENT_ADDSPACEGEOMAPPING)
+	{
+	}
+
+	SPACE_ID spaceID;
+	std::string respath;
+};
+
+
+
 inline EventData* newKBEngineEvent(EventID v)
 {
 	switch(v)
@@ -338,6 +352,10 @@ inline EventData* newKBEngineEvent(EventID v)
 			break;
 		case CLIENT_EVENT_DIRECTION_FORCE:
 			return new EventData_DirectionForce();
+			break;
+		case CLIENT_EVENT_ADDSPACEGEOMAPPING:
+			return new EventData_AddSpaceGEOMapping();
+			break;
 		default:
 			break;
 	}
@@ -414,6 +432,10 @@ inline EventData* copyKBEngineEvent(const KBEngine::EventData* lpEventData)
 		case CLIENT_EVENT_DIRECTION_FORCE:
 			peventdata = new EventData_DirectionForce();
 			(*static_cast<EventData_DirectionForce*>(peventdata)) = (*static_cast<const EventData_DirectionForce*>(lpEventData));
+			break;
+		case CLIENT_EVENT_ADDSPACEGEOMAPPING:
+			peventdata = new EventData_AddSpaceGEOMapping();
+			(*static_cast<EventData_AddSpaceGEOMapping*>(peventdata)) = (*static_cast<const EventData_AddSpaceGEOMapping*>(lpEventData));
 			break;
 		default:
 			break;

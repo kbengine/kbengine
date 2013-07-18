@@ -624,5 +624,10 @@ void ClientApp::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s
 	state_ = C_STATE_LOGIN_GATEWAY_CHANNEL;
 }
 
+//-------------------------------------------------------------------------------------	
+void ClientApp::onAddSpaceGeometryMapping(SPACE_ID spaceID, std::string& respath)
+{
+}
+
 //-------------------------------------------------------------------------------------		
 }
