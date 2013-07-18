@@ -2631,6 +2631,24 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 	
 	if(bundle.packets().size() == 0)
 	{
+		ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
+		ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
+		ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
+
+		Mercury::FixedMessages::MSGInfo* msgInfo =
+					Mercury::FixedMessages::getSingleton().isFixed("Property::position");
+
+		if(msgInfo != NULL)
+			posuid = msgInfo->msgid;
+
+		msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
+		if(msgInfo != NULL)
+			diruid = msgInfo->msgid;
+
+		msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::spaceID");
+		if(msgInfo != NULL)
+			spaceuid = msgInfo->msgid;
+
 		bundle.newMessage(ClientInterface::onImportClientEntityDef);
 		
 		const DataTypes::DATATYPE_MAP& dataTypes = DataTypes::dataTypes();
@@ -2682,12 +2700,16 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 			if(propers.size() == 0 && methods.size() == 0)
 				continue;
 
-			uint16 size = propers.size();
+			uint16 size = propers.size() + 3/*pos, dir, spaceID*/;
 			uint16 size1 = methods.size();
 			uint16 size2 = methods1.size();
 			uint16 size3 = methods2.size();
 
 			bundle << iter->get()->getName() << size << size1 << size2 << size3;
+			
+			bundle << posuid << "position" << "" << DataTypes::getDataType("VECTOR3")->id();
+			bundle << diruid << "direction" << "" << DataTypes::getDataType("VECTOR3")->id();
+			bundle << spaceuid << "spaceID" << "" << DataTypes::getDataType("UINT32")->id();
 
 			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator piter = propers.begin();
 			for(; piter != propers.end(); piter++)
@@ -2695,9 +2717,7 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 				ENTITY_PROPERTY_UID	properUtype = piter->second->getUType();
 				std::string	name = piter->second->getName();
 				std::string	defaultValStr = piter->second->getDefaultValStr();
-				uint8 utype = piter->second->getDataType()->id();
-
-				bundle << properUtype << name << defaultValStr << utype;
+				bundle << properUtype << name << defaultValStr << piter->second->getDataType()->id();
 			}
 			
 			ScriptDefModule::METHODDESCRIPTION_MAP::const_iterator miter = methods.begin();
@@ -2714,8 +2734,7 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); argiter++)
 				{
-					uint8 utype = (*argiter)->id();
-					bundle << utype;
+					bundle << (*argiter)->id();
 				}
 			}
 
@@ -2733,8 +2752,7 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); argiter++)
 				{
-					uint8 utype = (*argiter)->id();
-					bundle << utype;
+					bundle << (*argiter)->id();
 				}
 			}
 
@@ -2752,8 +2770,7 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); argiter++)
 				{
-					uint8 utype = (*argiter)->id();
-					bundle << utype;
+					bundle << (*argiter)->id();
 				}
 			}
 		}

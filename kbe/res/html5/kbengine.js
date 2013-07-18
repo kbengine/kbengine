@@ -1176,20 +1176,40 @@ function KBEDATATYPE_STRING()
 	}
 }
 
-function KBEDATATYPE_VECTOR()
+function KBEDATATYPE_VECTOR(size)
 {
+	this.itemsize = size;
+	
 	this.bind = function()
 	{
 	}
 	
 	this.createFromStream = function(stream)
 	{
-		return g_reader.readFloat.call(stream);
+		var data = new Array(this.itemsize);
+		var size = g_reader.readUint32.call(stream);
+		if(size != this.itemsize)
+		{
+			console.error("KBEDATATYPE_VECTOR::createFromStream: size(" + size + ") != thisSize(" + this.itemsize + ") !");
+			return undefined;
+		}
+		
+		for(var i=0; i<this.itemsize; i++)
+		{
+			data[i] = g_reader.readFloat.call(stream);
+		}
+		
+		return data;
 	}
 	
 	this.addToStream = function(stream, v)
 	{
-		stream.readFloat(v);
+		stream.writeUint32(this.itemsize);
+		
+		for(var i=0; i<this.itemsize; i++)
+		{
+			stream.writeFloat(v[i]);
+		}
 	}
 	
 	this.parseDefaultValStr = function(v)
@@ -1226,10 +1246,14 @@ function KBEDATATYPE_UNICODE()
 	
 	this.createFromStream = function(stream)
 	{
+		var size = g_reader.readUint32.call(stream);
+		var buf = new Uint8Array(stream.buffer, stream.rpos, size);
+		return buf;
 	}
 	
 	this.addToStream = function(stream, v)
 	{
+		stream.writeBlob(v);
 	}
 	
 	this.parseDefaultValStr = function(v)
@@ -1266,10 +1290,14 @@ function KBEDATATYPE_BLOB()
 	
 	this.createFromStream = function(stream)
 	{
+		var size = g_reader.readUint32.call(stream);
+		var buf = new Uint8Array(stream.buffer, stream.rpos, size);
+		return buf;
 	}
 	
 	this.addToStream = function(stream, v)
 	{
+		stream.writeBlob(v);
 	}
 	
 	this.parseDefaultValStr = function(v)
@@ -1376,9 +1404,9 @@ g_datatypes["FLOAT"] = new KBEDATATYPE_FLOAT();
 g_datatypes["DOUBLE"] = new KBEDATATYPE_DOUBLE();
 
 g_datatypes["STRING"] = new KBEDATATYPE_STRING();
-g_datatypes["VECTOR2"] = new KBEDATATYPE_VECTOR();
-g_datatypes["VECTOR3"] = new KBEDATATYPE_VECTOR();
-g_datatypes["VECTOR4"] = new KBEDATATYPE_VECTOR();
+g_datatypes["VECTOR2"] = new KBEDATATYPE_VECTOR(2);
+g_datatypes["VECTOR3"] = new KBEDATATYPE_VECTOR(3);
+g_datatypes["VECTOR4"] = new KBEDATATYPE_VECTOR(4);
 g_datatypes["PYTHON"] = new KBEDATATYPE_PYTHON();
 g_datatypes["UNICODE"] = new KBEDATATYPE_UNICODE();
 g_datatypes["MAILBOX"] = new KBEDATATYPE_MAILBOX();
@@ -1669,12 +1697,11 @@ function KBENGINE()
 				var properUtype = stream.readUint16();
 				var name = stream.readString();
 				var defaultValStr = stream.readString();
-				var utype = g_datatypes[stream.readUint8()];
+				var utype = g_datatypes[stream.readUint16()];
 				var setmethod = null;
 				if(Class != undefined)
 				{
-					var setmethodname = "KBE" + scriptmethod_name + ".prototype.set_" + name;
-					setmethod = eval(setmethodname);
+					setmethod = Class.prototype["set_" + name];
 					if(setmethod == undefined)
 						setmethod = null;
 				}
@@ -1682,7 +1709,7 @@ function KBENGINE()
 				var savedata = [properUtype, name, defaultValStr, utype, setmethod];
 				self_propertys[name] = savedata;
 				self_propertys[properUtype] = savedata;
-				console.info("KBENGINE::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), property(" + name + ").");
+				console.info("KBENGINE::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), property(" + name + "/" + properUtype + ").");
 			};
 			
 			while(methodsize > 0)
@@ -1697,7 +1724,7 @@ function KBENGINE()
 				while(argssize > 0)
 				{
 					argssize--;
-					args.push(g_datatypes[stream.readUint8()]);
+					args.push(g_datatypes[stream.readUint16()]);
 				};
 				
 				var savedata = [methodUtype, name, args];
@@ -1718,7 +1745,7 @@ function KBENGINE()
 				while(argssize > 0)
 				{
 					argssize--;
-					args.push(g_datatypes[stream.readUint8()]);
+					args.push(g_datatypes[stream.readUint16()]);
 				};
 				
 				self_base_methods[name] = [methodUtype, name, args];
@@ -1737,7 +1764,7 @@ function KBENGINE()
 				while(argssize > 0)
 				{
 					argssize--;
-					args.push(g_datatypes[stream.readUint8()]);
+					args.push(g_datatypes[stream.readUint16()]);
 				};
 				
 				self_cell_methods[name] = [methodUtype, name, args];
@@ -1998,9 +2025,9 @@ function KBENGINE()
 			var utype = stream.readUint16();
 			var propertydata = methoddata[utype];
 			var setmethod = propertydata[4];
-			var val = propertydata.createFromStream(stream);
+			var val = propertydata[3].createFromStream(stream);
 			var oldval = entity[utype];
-			
+			console.info("KBENGINE::Client_onUpdatePropertys: name(" + propertydata[1] + "val=" + val + "!");
 			entity[utype] = oldval;
 			if(setmethod != null)
 			{

@@ -455,7 +455,7 @@ public:
 	virtual DATATYPE type()const{ return DATA_TYPE_VECTOR; }
 protected:
 	std::string name_;
-	uint32 elemCount_;
+	ArraySize elemCount_;
 };
 
 class StringType : public DataType

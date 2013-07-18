@@ -670,7 +670,10 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 
 			if(utypeValNode)
 			{
-				futype = xml->getValInt(utypeValNode);
+				int iUtype = xml->getValInt(utypeValNode);
+				futype = iUtype;
+				KBE_ASSERT(iUtype == int(futype) && "EntityDef::loadDefPropertys: Utype overflow!\n");
+
 				puids.push_back(futype);
 			}
 			else
@@ -768,7 +771,11 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 					else if(argType == "Utype")
 					{
 						TiXmlNode* typeNode = argNode->FirstChild();
-						ENTITY_METHOD_UID muid = xml->getValInt(typeNode);
+
+						int iUtype = xml->getValInt(typeNode);
+						ENTITY_METHOD_UID muid = iUtype;
+						KBE_ASSERT(iUtype == int(muid) && "EntityDef::loadDefCellMethods: Utype overflow!\n");
+
 						methodDescription->setUType(muid);
 					}
 				}
@@ -852,7 +859,11 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 					else if(argType == "Utype")
 					{
 						TiXmlNode* typeNode = argNode->FirstChild();
-						ENTITY_METHOD_UID muid = xml->getValInt(typeNode);
+
+						int iUtype = xml->getValInt(typeNode);
+						ENTITY_METHOD_UID muid = iUtype;
+						KBE_ASSERT(iUtype == int(muid) && "EntityDef::loadDefBaseMethods: Utype overflow!\n");
+
 						methodDescription->setUType(muid);
 					}
 				}
@@ -931,7 +942,11 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml
 					else if(argType == "Utype")
 					{
 						TiXmlNode* typeNode = argNode->FirstChild();
-						ENTITY_METHOD_UID muid = xml->getValInt(typeNode);
+
+						int iUtype = xml->getValInt(typeNode);
+						ENTITY_METHOD_UID muid = iUtype;
+						KBE_ASSERT(iUtype == int(muid) && "EntityDef::loadDefClientMethods: Utype overflow!\n");
+
 						methodDescription->setUType(muid);
 					}
 				}

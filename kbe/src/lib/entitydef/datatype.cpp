@@ -706,7 +706,7 @@ PyObject* VectorType::parseDefaultStr(std::string defaultVal)
 void VectorType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
 	(*mstream) << elemCount_;
-	for(uint32 index=0; index<elemCount_; index++)
+	for(ArraySize index=0; index<elemCount_; index++)
 	{
 		PyObject* pyVal = PySequence_GetItem(pyValue, index);
 #ifdef CLIENT_NO_FLOAT
@@ -728,7 +728,7 @@ PyObject* VectorType::createFromStream(MemoryStream* mstream)
 		float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
 #endif
 
-	uint32 count = 0;
+	ArraySize count = 0;
 	(*mstream) >> count;
 	
 	if(count != elemCount_)

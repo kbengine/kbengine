@@ -16,7 +16,7 @@
 
 		<entityNO>
 			<Type>			ENTITY_NO		</Type>
-			<Utype> 		91007			</Utype>
+			<Utype> 		51007			</Utype>
 			<Flags>			ALL_CLIENTS		</Flags>
 			<Default>		0			</Default>
 		</entityNO>
