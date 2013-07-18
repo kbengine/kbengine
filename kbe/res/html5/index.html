@@ -59,17 +59,29 @@
 
 <body style="background: #f2f6f8;">
 	<script>
-		function sendtest()
+		function entergame()
 		{
-		g_kbengine[111] = 321;
-		alert(g_kbengine["login_loginapp"]);
-		g_kbengine["login_loginapp"](true);
+			var account = g_kbengine.player();
+			
+			if(account.avatars.values.length <= 0)
+			{
+				alert("please create a role!");
+				return;
+			}
+			
+			account.selectAvatarGame(account.avatars.values[0].dbid);
+		}
+		
+		function createrole()
+		{
+			var account = g_kbengine.player();
+			account.reqCreateAvatar(1, "kbengine");
 		}
 	</script>
 		
 	<input id = "msg" type = "text">  
-	<button id = "connect" onclick = "g_kbengine.login_loginapp(true);">Connect</button>  
-	<button id = "send" onclick = "sendtest();">Send</button>  
-	<button id = "close" onclick = "g_kbengine.close();">Close</button> 
+	<button id = "login" onclick = "g_kbengine.login_loginapp(true);">Login</button>  
+	<button id = "enter" onclick = "entergame();">enterworld[avatar1]</button>  
+	<button id = "create" onclick = "createrole();">create role</button> 
 </body>  
 </html>  

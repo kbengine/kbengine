@@ -191,8 +191,8 @@ function KBE_MEMORYSTREAM(size_or_buffer)
 
 	this.writeInt64 = function(v)
 	{
-		self.writeInt32(v.hi);
-		self.writeInt32(v.lo);
+		this.writeInt32(v.hi);
+		this.writeInt32(v.lo);
 	}
 	
 	this.writeUint8 = function(v)
@@ -216,8 +216,8 @@ function KBE_MEMORYSTREAM(size_or_buffer)
 
 	this.writeUint64 = function(v)
 	{
-		self.writeUint32(v.hi);
-		self.writeUint32(v.lo);
+		this.writeUint32(v.hi);
+		this.writeUint32(v.lo);
 	}
 	
 	this.writeFloat = function(v)
@@ -1409,6 +1409,8 @@ function KBENGINE()
 		this.entity_id = 0;
 		this.entity_type = "";
 		this.entities = {};
+		var dateObject = new Date();
+		this.lastticktime = dateObject.getTime();
 	}
 	
 	this.reset();
@@ -1425,6 +1427,11 @@ function KBENGINE()
 		bundle.send(g_kbengine);
 	}
 
+	this.player = function()
+	{
+		return g_kbengine.entities[g_kbengine.entity_id];
+	}
+	
 	this.connect = function(addr)
 	{
 		try{  
@@ -1492,6 +1499,27 @@ function KBENGINE()
 	this.close = function(){  
 		g_kbengine.socket.close();  
 		g_kbengine.reset();
+	}
+	
+	this.update = function()
+	{
+		var dateObject = new Date();
+		if((dateObject.getTime() - g_kbengine.lastticktime) / 1000 > 15)
+		{
+			var bundle = new KBE_BUNDLE();
+			if(g_kbengine.currserver == "loginapp")
+			{
+				bundle.newMessage(g_messages.Loginapp_onClientActiveTick);
+			}
+			else
+			{
+				bundle.newMessage(g_messages.Baseapp_onClientActiveTick);
+			}
+			
+			bundle.send(g_kbengine);
+			
+			g_kbengine.lastticktime = dateObject.getTime();
+		}
 	}
 	
 	this.onOpenLoginapp = function()
@@ -1620,6 +1648,20 @@ function KBENGINE()
 			g_moduledefs[scriptmethod_name]["base_methods"] = {};
 			g_moduledefs[scriptmethod_name]["cell_methods"] = {};
 			
+			var self_propertys = g_moduledefs[scriptmethod_name]["propertys"];
+			var self_methods = g_moduledefs[scriptmethod_name]["methods"];
+			var self_base_methods = g_moduledefs[scriptmethod_name]["base_methods"];
+			var self_cell_methods= g_moduledefs[scriptmethod_name]["cell_methods"];
+			
+			try
+			{
+				var Class = eval("KBE" + scriptmethod_name);
+			}
+			catch(e)
+			{
+				var Class = undefined;
+			}
+			
 			while(propertysize > 0)
 			{
 				propertysize--;
@@ -1628,8 +1670,18 @@ function KBENGINE()
 				var name = stream.readString();
 				var defaultValStr = stream.readString();
 				var utype = g_datatypes[stream.readUint8()];
+				var setmethod = null;
+				if(Class != undefined)
+				{
+					var setmethodname = "KBE" + scriptmethod_name + ".prototype.set_" + name;
+					setmethod = eval(setmethodname);
+					if(setmethod == undefined)
+						setmethod = null;
+				}
 				
-				g_moduledefs[scriptmethod_name]["propertys"][name] = [properUtype, name, defaultValStr, utype];
+				var savedata = [properUtype, name, defaultValStr, utype, setmethod];
+				self_propertys[name] = savedata;
+				self_propertys[properUtype] = savedata;
 				console.info("KBENGINE::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), property(" + name + ").");
 			};
 			
@@ -1649,8 +1701,8 @@ function KBENGINE()
 				};
 				
 				var savedata = [methodUtype, name, args];
-				g_moduledefs[scriptmethod_name]["methods"][name] = savedata;
-				g_moduledefs[scriptmethod_name]["methods"][methodUtype] = savedata;
+				self_methods[name] = savedata;
+				self_methods[methodUtype] = savedata;
 				console.info("KBENGINE::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), method(" + name + ").");
 			};
 
@@ -1669,7 +1721,7 @@ function KBENGINE()
 					args.push(g_datatypes[stream.readUint8()]);
 				};
 				
-				g_moduledefs[scriptmethod_name]["base_methods"][name] = [methodUtype, name, args];
+				self_base_methods[name] = [methodUtype, name, args];
 				console.info("KBENGINE::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), base_method(" + name + ").");
 			};
 			
@@ -1688,7 +1740,7 @@ function KBENGINE()
 					args.push(g_datatypes[stream.readUint8()]);
 				};
 				
-				g_moduledefs[scriptmethod_name]["cell_methods"][name] = [methodUtype, name, args];
+				self_cell_methods[name] = [methodUtype, name, args];
 				console.info("KBENGINE::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), cell_method(" + name + ").");
 			};
 			
@@ -1931,9 +1983,30 @@ function KBENGINE()
 	
 	this.Client_onUpdatePropertys = function(stream)
 	{
-		alert("stream");
 		var eid = stream.readInt32();
-		alert(eid);
+		var entity = g_kbengine.entities[eid];
+		
+		if(entity == undefined)
+		{
+			console.error("KBENGINE::Client_onUpdatePropertys: entity(" + eid + ") not found!");
+			return;
+		}
+		
+		var methoddata = g_moduledefs[entity.classtype].propertys;
+		while(!stream.readEOF())
+		{
+			var utype = stream.readUint16();
+			var propertydata = methoddata[utype];
+			var setmethod = propertydata[4];
+			var val = propertydata.createFromStream(stream);
+			var oldval = entity[utype];
+			
+			entity[utype] = oldval;
+			if(setmethod != null)
+			{
+				setmethod.apply(entity, oldval);
+			}
+		}
 	}
 
 	this.Client_onRemoteMethodCall = function(stream)
