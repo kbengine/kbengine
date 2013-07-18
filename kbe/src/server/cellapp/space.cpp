@@ -38,6 +38,7 @@ Space::Space(SPACE_ID spaceID):
 id_(spaceID),
 entities_(),
 isLoadedGeometry_(false),
+hasGeometry_(false),
 loadGeometryPath_(),
 pCell_(NULL),
 rangeList_()
@@ -145,6 +146,7 @@ bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer
 	INFO_MSG(boost::format("KBEngine::addSpaceGeometryMapping: spaceID=%1%, respath=%2%!\n") %
 		getID() % respath);
 
+	hasGeometry_ = true;
 	if(loadGeometryPath_ == respath)
 		return true;
 
@@ -170,6 +172,9 @@ bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer
 //-------------------------------------------------------------------------------------
 void Space::_addSpaceGeometryMappingToEntityClient(const Entity* pEntity)
 {
+	if(!hasGeometry_)
+		return;
+
 	if(!pEntity)
 	{
 		return;

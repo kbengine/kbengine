@@ -106,6 +106,7 @@ protected:
 
 	// 是否加载过地形数据
 	bool isLoadedGeometry_;
+	bool hasGeometry_;
 
 	// 加载几何的路径
 	std::string loadGeometryPath_;					
