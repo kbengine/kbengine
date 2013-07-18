@@ -201,6 +201,16 @@ public:
 	static PyObject* __py_reloadScript(PyObject* self, PyObject* args);
 	virtual void reloadScript(bool fullReload);
 	virtual void onReloadScript(bool fullReload);
+
+	/**
+		获取进程是否正在关闭中
+	*/
+	static PyObject* __py_isShuttingDown(PyObject* self, PyObject* args);
+
+	/**
+		获取进程内部网络地址
+	*/
+	static PyObject* __py_address(PyObject* self, PyObject* args);
 protected:
 	GlobalDataClient*					pCellAppData_;									// cellAppData
 	ForwardComponent_MessageBuffer		forward_messagebuffer_;

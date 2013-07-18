@@ -143,6 +143,8 @@ bool Cellapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		reloadScript,					__py_reloadScript,					METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		addSpaceGeometryMapping,		Space::__py_AddSpaceGeometryMapping,METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		getSpaceGeometryMapping,		Space::__py_GetSpaceGeometryMapping,METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		isShuttingDown,					__py_isShuttingDown,				METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		address,						__py_address,						METH_VARARGS,			0);
 	return EntityApp<Entity>::installPyModules();
 }
 
@@ -1241,6 +1243,22 @@ void Cellapp::onReloadScript(bool fullReload)
 	}
 
 	EntityApp<Entity>::onReloadScript(fullReload);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Cellapp::__py_isShuttingDown(PyObject* self, PyObject* args)
+{
+	return PyBool_FromLong(Cellapp::getSingleton().isShuttingdown() ? 1 : 0);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Cellapp::__py_address(PyObject* self, PyObject* args)
+{
+	PyObject* pyobj = PyTuple_New(2);
+	const Mercury::Address& addr = Cellapp::getSingleton().getNetworkInterface().intEndpoint().addr();
+	PyTuple_SetItem(pyobj, 0,  PyLong_FromUnsignedLong(addr.ip));
+	PyTuple_SetItem(pyobj, 1,  PyLong_FromUnsignedLong(addr.port));
+	return pyobj;
 }
 
 //-------------------------------------------------------------------------------------
