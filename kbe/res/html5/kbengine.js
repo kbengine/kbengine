@@ -8,6 +8,8 @@ var PACKET_MAX_SIZE_UDP = 1472;
 var MESSAGE_ID_LENGTH = 2;
 var MESSAGE_LENGTH_LENGTH = 2;
 
+var CLIENT_NO_FLOAT = 1
+
 /*-----------------------------------------------------------------------------------------
 												number64bits
 -----------------------------------------------------------------------------------------*/
@@ -768,7 +770,7 @@ function KBE_MESSAGE(id, name, length, args, handler)
 	{
 		if(this.handler == null)
 		{
-			console.error("KBE_MESSAGE::handleMessage: interface(" + this.name + ") no implement!");  
+			console.error("KBE_MESSAGE::handleMessage: interface(" + this.name + "/" + this.id + ") no implement!");  
 			return;
 		}
 
@@ -781,6 +783,9 @@ function KBE_MESSAGE(id, name, length, args, handler)
 
 // 上行消息
 var g_messages = {};
+g_messages["loginapp"] = {};
+g_messages["baseapp"] = {};
+var g_clientmessages = {};
 
 g_messages["Loginapp_importClientMessages"] = new KBE_MESSAGE(5, "importClientMessages", 0, new Array(), null);
 g_messages["Baseapp_importClientMessages"] = new KBE_MESSAGE(207, "importClientMessages", 0, new Array(), null);
@@ -1196,7 +1201,10 @@ function KBEDATATYPE_VECTOR(size)
 		
 		for(var i=0; i<this.itemsize; i++)
 		{
-			data[i] = g_reader.readFloat.call(stream);
+			if(CLIENT_NO_FLOAT)
+				data[i] = g_reader.readInt32.call(stream);
+			else
+				data[i] = g_reader.readFloat.call(stream);
 		}
 		
 		return data;
@@ -1208,7 +1216,10 @@ function KBEDATATYPE_VECTOR(size)
 		
 		for(var i=0; i<this.itemsize; i++)
 		{
-			stream.writeFloat(v[i]);
+			if(CLIENT_NO_FLOAT)
+				stream.writeInt32(v[i]);
+			else
+				stream.writeFloat(v[i]);
 		}
 	}
 	
@@ -1246,9 +1257,7 @@ function KBEDATATYPE_UNICODE()
 	
 	this.createFromStream = function(stream)
 	{
-		var size = g_reader.readUint32.call(stream);
-		var buf = new Uint8Array(stream.buffer, stream.rpos, size);
-		return buf;
+		return g_reader.readBlob.call(stream);
 	}
 	
 	this.addToStream = function(stream, v)
@@ -1496,11 +1505,11 @@ function KBENGINE()
 	{ 
 		var stream = new KBE_MEMORYSTREAM(msg.data);
 		var msgid = stream.readUint16();
-		var msgHandler = g_messages[msgid];
+		var msgHandler = g_clientmessages[msgid];
 		
 		if(!msgHandler)
 		{
-			console.error("KBENGINE::onmessage: not found msg(" + msgid + ")!");
+			console.error("KBENGINE::onmessage[" + g_kbengine.currserver + "]: not found msg(" + msgid + ")!");
 		}
 		else
 		{
@@ -1843,29 +1852,34 @@ function KBENGINE()
 				}
 				
 				var handler = null;
-				
-				if(msgname.indexOf("Client_") >= 0)
+				var isClientMethod = msgname.indexOf("Client_") >= 0;
+				if(isClientMethod)
 				{
 					handler = g_kbengine[msgname];
 					if(handler == null || handler == undefined)
 					{
-						console.warn("KBENGINE::onImportClientMessages: interface(" + msgname + ") no implement!");
+						console.warn("KBENGINE::onImportClientMessages[" + g_kbengine.currserver + "]: interface(" + msgname + "/" + msgid + ") no implement!");
 						handler = null;
 					}
 					else
 					{
-						// console.info("KBENGINE::onImportClientMessages: import(" + msgname + ") successfully!");
+						console.info("KBENGINE::onImportClientMessages: import(" + msgname + ") successfully!");
 					}
 				}
 			
 				if(msgname.length > 0)
 				{
 					g_messages[msgname] = new KBE_MESSAGE(msgid, msgname, msglen, argstypes, handler);
-					g_messages[msgid] = g_messages[msgname];
+					
+					if(isClientMethod)
+						g_clientmessages[msgid] = g_messages[msgname];
+					else
+						g_messages[g_kbengine.currserver][msgid] = g_messages[msgname];
 				}
 				else
 				{
-					g_messages[msgid] = new KBE_MESSAGE(msgid, msgname, msglen, argstypes, handler);
+					alert(1);
+					g_messages[g_kbengine.currserver][msgid] = new KBE_MESSAGE(msgid, msgname, msglen, argstypes, handler);
 				}
 			};
 
@@ -2027,7 +2041,7 @@ function KBENGINE()
 			var setmethod = propertydata[4];
 			var val = propertydata[3].createFromStream(stream);
 			var oldval = entity[utype];
-			console.info("KBENGINE::Client_onUpdatePropertys: name(" + propertydata[1] + "val=" + val + "!");
+			console.info("KBENGINE::Client_onUpdatePropertys: name(" + propertydata[1] + ", val=" + val + ")!");
 			entity[utype] = oldval;
 			if(setmethod != null)
 			{
@@ -2083,7 +2097,10 @@ function KBENGINE()
 	{
 	}
 	
-	
+	this.Client_addSpaceGeometryMapping = function(spaceID, respath)
+	{
+		console.info("KBENGINE::Client_addSpaceGeometryMapping: spaceID(" + spaceID + "), respath(" + respath + ")!");
+	}
 }
 
 var g_kbengine = new KBENGINE();

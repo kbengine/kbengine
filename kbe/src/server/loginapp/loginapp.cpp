@@ -634,7 +634,7 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 	
 	if(bundle.packets().size() == 0)
 	{
-		std::map< Mercury::MessageID, Mercury::ExposedMessageInfo > messages;
+		std::map< Mercury::MessageID, Mercury::ExposedMessageInfo > clientMessages;
 		{
 			const Mercury::MessageHandlers::MessageHandlerMap& msgHandlers = ClientInterface::messageHandlers.msgHandlers();
 			Mercury::MessageHandlers::MessageHandlerMap::const_iterator iter = msgHandlers.begin();
@@ -642,7 +642,7 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 			{
 				Mercury::MessageHandler* pMessageHandler = iter->second;
 
-				Mercury::ExposedMessageInfo& info = messages[iter->first];
+				Mercury::ExposedMessageInfo& info = clientMessages[iter->first];
 				info.id = iter->first;
 				info.name = pMessageHandler->name;
 				info.msgLen = pMessageHandler->msgLen;
@@ -656,6 +656,7 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 			}
 		}
 
+		std::map< Mercury::MessageID, Mercury::ExposedMessageInfo > messages;
 		{
 			const Mercury::MessageHandlers::MessageHandlerMap& msgHandlers = LoginappInterface::messageHandlers.msgHandlers();
 			Mercury::MessageHandlers::MessageHandlerMap::const_iterator iter = msgHandlers.begin();
@@ -681,10 +682,23 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 	
 		bundle.newMessage(ClientInterface::onImportClientMessages);
 		
-		uint16 size = messages.size();
+		uint16 size = messages.size() + clientMessages.size();
 		bundle << size;
 
-		std::map< Mercury::MessageID, Mercury::ExposedMessageInfo >::iterator iter = messages.begin();
+		std::map< Mercury::MessageID, Mercury::ExposedMessageInfo >::iterator iter = clientMessages.begin();
+		for(; iter != clientMessages.end(); iter++)
+		{
+			uint8 argsize = iter->second.argsTypes.size();
+			bundle << iter->second.id << iter->second.msgLen << iter->second.name << argsize;
+
+			std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
+			for(; argiter != iter->second.argsTypes.end(); argiter++)
+			{
+				bundle << (*argiter);
+			}
+		}
+
+		iter = messages.begin();
 		for(; iter != messages.end(); iter++)
 		{
 			uint8 argsize = iter->second.argsTypes.size();
