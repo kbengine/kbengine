@@ -8,7 +8,8 @@ var PACKET_MAX_SIZE_UDP = 1472;
 var MESSAGE_ID_LENGTH = 2;
 var MESSAGE_LENGTH_LENGTH = 2;
 
-var CLIENT_NO_FLOAT = 1
+var CLIENT_NO_FLOAT = 0;
+var KBE_FLT_MAX = 3.402823466e+38;
 
 /*-----------------------------------------------------------------------------------------
 												number64bits
@@ -169,6 +170,24 @@ function KBE_MEMORYSTREAM(size_or_buffer)
 		var buf = new Uint8Array(this.buffer, this.rpos, this.buffer.byteLength - this.rpos);
 		this.rpos = this.buffer.byteLength;
 		return new KBE_MEMORYSTREAM(buf);
+	}
+	
+	this.readPackXZ = function()
+	{
+		var v1 = this.readUint8();
+		var v2 = this.readUint8();
+		var v3 = this.readUint8();
+		
+		var data = new Array(2);
+		data[0] = 0.0;
+		data[1] = 0.0;
+		return data;
+	}
+
+	this.readPackY = function()
+	{
+		var v = this.readUint16();
+		return v;
 	}
 	
 	//---------------------------------------------------------------------------------
@@ -791,6 +810,8 @@ g_messages["Loginapp_importClientMessages"] = new KBE_MESSAGE(5, "importClientMe
 g_messages["Baseapp_importClientMessages"] = new KBE_MESSAGE(207, "importClientMessages", 0, new Array(), null);
 g_messages["Baseapp_importClientEntityDef"] = new KBE_MESSAGE(208, "importClientEntityDef", 0, new Array(), null);
 g_messages["onImportClientMessages"] = new KBE_MESSAGE(518, "onImportClientMessages", -1, new Array(), null);
+
+g_bufferedCreateEntityMessage = {};
 
 /*-----------------------------------------------------------------------------------------
 												entity
@@ -1448,6 +1469,8 @@ function KBENGINE()
 		this.entities = {};
 		var dateObject = new Date();
 		this.lastticktime = dateObject.getTime();
+		this.spaceID = 0;
+		this.spaceResPath = "";
 	}
 	
 	this.reset();
@@ -1504,20 +1527,30 @@ function KBENGINE()
 	this.onmessage = function(msg)
 	{ 
 		var stream = new KBE_MEMORYSTREAM(msg.data);
-		var msgid = stream.readUint16();
-		var msgHandler = g_clientmessages[msgid];
+		stream.wpos = msg.data.byteLength;
 		
-		if(!msgHandler)
+		while(stream.rpos < stream.wpos)
 		{
-			console.error("KBENGINE::onmessage[" + g_kbengine.currserver + "]: not found msg(" + msgid + ")!");
-		}
-		else
-		{
-			var msglen = msgHandler.length;
-			if(msglen == -1)
-				msglen = stream.readUint16();
+			var msgid = stream.readUint16();
+			var msgHandler = g_clientmessages[msgid];
 			
-			msgHandler.handleMessage(stream);
+			if(!msgHandler)
+			{
+				console.error("KBENGINE::onmessage[" + g_kbengine.currserver + "]: not found msg(" + msgid + ")!");
+			}
+			else
+			{
+				var msglen = msgHandler.length;
+				if(msglen == -1)
+					msglen = stream.readUint16();
+				
+				var wpos = stream.wpos;
+				var rpos = stream.rpos + msglen;
+				stream.wpos = rpos;
+				msgHandler.handleMessage(stream);
+				stream.wpos = wpos;
+				stream.rpos = rpos;
+			}
 		}
 	}  
 
@@ -1540,6 +1573,9 @@ function KBENGINE()
 	
 	this.update = function()
 	{
+		if(g_kbengine.socket == null)
+			return;
+
 		var dateObject = new Date();
 		if((dateObject.getTime() - g_kbengine.lastticktime) / 1000 > 15)
 		{
@@ -1557,6 +1593,8 @@ function KBENGINE()
 			
 			g_kbengine.lastticktime = dateObject.getTime();
 		}
+		
+		g_kbengine.updatePlayerToServer();
 	}
 	
 	this.onOpenLoginapp = function()
@@ -1671,6 +1709,7 @@ function KBENGINE()
 		while(!stream.readEOF())
 		{
 			var scriptmethod_name = stream.readString();
+			var scriptUtype = stream.readUint16();
 			var propertysize = stream.readUint16();
 			var methodsize = stream.readUint16();
 			var base_methodsize = stream.readUint16();
@@ -1680,10 +1719,12 @@ function KBENGINE()
 					"clientMethods(" + methodsize + "), baseMethods(" + base_methodsize + "), cellMethods(" + cell_methodsize + ")!");
 			
 			g_moduledefs[scriptmethod_name] = {};
+			g_moduledefs[scriptmethod_name]["name"] = scriptmethod_name;
 			g_moduledefs[scriptmethod_name]["propertys"] = {};
 			g_moduledefs[scriptmethod_name]["methods"] = {};
 			g_moduledefs[scriptmethod_name]["base_methods"] = {};
 			g_moduledefs[scriptmethod_name]["cell_methods"] = {};
+			g_moduledefs[scriptUtype] = g_moduledefs[scriptmethod_name];
 			
 			var self_propertys = g_moduledefs[scriptmethod_name]["propertys"];
 			var self_methods = g_moduledefs[scriptmethod_name]["methods"];
@@ -2029,20 +2070,30 @@ function KBENGINE()
 		
 		if(entity == undefined)
 		{
-			console.error("KBENGINE::Client_onUpdatePropertys: entity(" + eid + ") not found!");
+			entityMessage = g_bufferedCreateEntityMessage[eid];
+			if(entityMessage != undefined)
+			{
+				console.error("KBENGINE::Client_onUpdatePropertys: entity(" + eid + ") not found!");
+				return;
+			}
+			
+			var stream1 = new KBE_MEMORYSTREAM(stream.buffer);
+			stream1.wpos = stream.wpos;
+			stream1.rpos = stream.rpos - 4;
+			g_bufferedCreateEntityMessage[eid] = stream1;
 			return;
 		}
 		
 		var methoddata = g_moduledefs[entity.classtype].propertys;
-		while(!stream.readEOF())
+		while(stream.opsize() > 0)
 		{
 			var utype = stream.readUint16();
 			var propertydata = methoddata[utype];
 			var setmethod = propertydata[4];
 			var val = propertydata[3].createFromStream(stream);
 			var oldval = entity[utype];
-			console.info("KBENGINE::Client_onUpdatePropertys: name(" + propertydata[1] + ", val=" + val + ")!");
-			entity[utype] = oldval;
+			console.info("KBENGINE::Client_onUpdatePropertys: " + entity.classtype + "(id=" + eid  + " " + propertydata[1] + ", val=" + val + ")!");
+			entity[propertydata[1]] = val;
 			if(setmethod != null)
 			{
 				setmethod.apply(entity, oldval);
@@ -2073,35 +2124,459 @@ function KBENGINE()
 		entity[methoddata[1]].apply(entity, args);
 	}
 		
-	this.Client_onEntityEnterWorld = function(eid, scriptType, spaceID)
+	this.Client_onEntityEnterWorld = function(eid, entityType, spaceID)
 	{
+		entityType = g_moduledefs[entityType].name;
+		console.info("KBENGINE::Client_onEntityEnterWorld: " + entityType + "(" + eid + "), spaceID(" + spaceID + ")!");
+		
+		var entity = g_kbengine.entities[eid];
+		if(entity == undefined)
+		{
+			entityMessage = g_bufferedCreateEntityMessage[eid];
+			if(entityMessage == undefined)
+			{
+				console.error("KBENGINE::Client_onEntityEnterWorld: entity(" + eid + ") not found!");
+				return;
+			}
+			
+			var runclass = this.getentityclass(entityType);
+			if(runclass == undefined)
+				return;
+			
+			var entity = new runclass();
+			entity.id = eid;
+			entity.classtype = entityType;
+			
+			entity.base = new KBEMAILBOX();
+			entity.base.id = eid;
+			entity.base.classtype = entityType;
+			entity.base.type = MAILBOX_TYPE_CELL;
+			
+			g_kbengine.entities[eid] = entity;
+			
+			g_kbengine.Client_onUpdatePropertys(entityMessage);
+			delete g_bufferedCreateEntityMessage[eid];
+			
+			entity.__init__();
+			entity.enterWorld();
+		}
+		else
+		{
+			if(!entity.inWorld)
+			{
+				entity.enterWorld();
+			}
+		}
 	}
 	
 	this.Client_onEntityLeaveWorld = function(eid, spaceID)
 	{
+		var entity = g_kbengine.entities[eid];
+		if(entity == undefined)
+		{
+			console.error("KBENGINE::Client_onEntityLeaveWorld: entity(" + eid + ") not found!");
+			return;
+		}
+		
+		if(entity.inWorld)
+			entity.leaveWorld();
+		delete g_kbengine.entities[eid];
 	}
 	
 	this.Client_onEntityEnterSpace = function(spaceID, eid)
 	{
+		var entity = g_kbengine.entities[eid];
+		if(entity == undefined)
+		{
+			console.error("KBENGINE::Client_onEntityEnterSpace: entity(" + eid + ") not found!");
+			return;
+		}
 	}
 	
 	this.Client_onEntityLeaveSpace = function(spaceID, eid)
 	{
+		var entity = g_kbengine.entities[eid];
+		if(entity == undefined)
+		{
+			console.error("KBENGINE::Client_onEntityLeaveSpace: entity(" + eid + ") not found!");
+			return;
+		}
 	}
 
 	this.Client_onSetEntityPosAndDir = function(stream)
 	{
+		var eid = stream.readInt32();
+		var entity = g_kbengine.entities[eid];
+		if(entity == undefined)
+		{
+			console.error("KBENGINE::Client_onSetEntityPosAndDir: entity(" + eid + ") not found!");
+			return;
+		}
+		
+		entity.position[0] = stream.readFloat();
+		entity.position[1] = stream.readFloat();
+		entity.position[2] = stream.readFloat();
+		
+		entity.direction[0] = stream.readFloat();
+		entity.direction[1] = stream.readFloat();
+		entity.direction[2] = stream.readFloat();
 	}
 
 	this.Client_onCreateAccountResult = function(stream)
 	{
+		var retcode = stream.readUint16();
+		var datas = stream.readBlob();
+		
+		if(retcode != 0)
+		{
+			console.error("KBENGINE::Client_onCreateAccountResult: " + this.username + " create is failed! code=" + retcode + "!");
+			return;
+		}
+
+		console.info("KBENGINE::Client_onCreateAccountResult: " + this.username + " create is successfully!");
+	}
+	
+	this.updatePlayerToServer = function()
+	{
+		player = g_kbengine.player();
+		if(player == undefined || player.position == undefined)
+			return;
+		
+		var bundle = new KBE_BUNDLE();
+		bundle.newMessage(g_messages.Baseapp_onUpdateDataFromClient);
+		bundle.writeFloat(player.position[0]);
+		bundle.writeFloat(player.position[1]);
+		bundle.writeFloat(player.position[2]);
+		bundle.writeFloat(player.direction[2]);
+		bundle.writeFloat(player.direction[1]);
+		bundle.writeFloat(player.direction[0]);
+		bundle.send(g_kbengine);
 	}
 	
 	this.Client_addSpaceGeometryMapping = function(spaceID, respath)
 	{
 		console.info("KBENGINE::Client_addSpaceGeometryMapping: spaceID(" + spaceID + "), respath(" + respath + ")!");
+		
+		g_kbengine.spaceID = spaceID;
+		g_kbengine.spaceResPath = respath;
+	}
+	
+	this.Client_onUpdateBasePos = function(stream)
+	{
+		var pos = Array(3);
+		pos[0] = stream.readFloat();
+		pos[1] = stream.readFloat();
+		pos[2] = stream.readFloat();
+	}
+	
+	this.Client_onSetEntityPosAndDir = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var pos = Array(3);
+		var dir = Array(3);
+		
+		pos[0] = stream.readFloat();
+		pos[1] = stream.readFloat();
+		pos[2] = stream.readFloat();
+
+		dir[0] = stream.readFloat();
+		dir[1] = stream.readFloat();
+		dir[2] = stream.readFloat();
+		
+		var entity = g_kbengine.entities[eid];
+		if(entity == undefined)
+		{
+			console.error("KBENGINE::Client_onSetEntityPosAndDir: entity(" + eid + ") not found!");
+			return;
+		}
+	}
+	
+	this.Client_onUpdateData = function(stream)
+	{
+		var eid = stream.readInt32();
+		var entity = g_kbengine.entities[eid];
+		if(entity == undefined)
+		{
+			console.error("KBENGINE::Client_onUpdateData: entity(" + eid + ") not found!");
+			return;
+		}
+	}
+	
+	this.Client_onUpdateData_ypr = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var y = stream.readInt8();
+		var p = stream.readInt8();
+		var r = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, 0.0, 0.0, 0.0, y, p, r);
+	}
+	
+	this.Client_onUpdateData_yp = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var y = stream.readInt8();
+		var p = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, 0.0, 0.0, 0.0, y, p, KBE_FLT_MAX);
+	}
+	
+	this.Client_onUpdateData_yr = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var y = stream.readInt8();
+		var r = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, 0.0, 0.0, 0.0, y, KBE_FLT_MAX, r);
+	}
+	
+	this.Client_onUpdateData_pr = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var p = stream.readInt8();
+		var r = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, 0.0, 0.0, 0.0, KBE_FLT_MAX, p, r);
+	}
+	
+	this.Client_onUpdateData_y = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var y = stream.readPackY();
+		
+		g_kbengine._updateVolatileData(eid, 0.0, 0.0, 0.0, y, KBE_FLT_MAX, KBE_FLT_MAX);
+	}
+	
+	this.Client_onUpdateData_p = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var p = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, 0.0, 0.0, 0.0, KBE_FLT_MAX, p, KBE_FLT_MAX);
+	}
+	
+	this.Client_onUpdateData_r = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var r = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, 0.0, 0.0, 0.0, KBE_FLT_MAX, KBE_FLT_MAX, r);
+	}
+	
+	this.Client_onUpdateData_xz = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var xz = stream.readPackXZ();
+		
+		g_kbengine._updateVolatileData(eid, xz[0], 0.0, xz[1], KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX);
+	}
+	
+	this.Client_onUpdateData_xz_ypr = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var xz = stream.readPackXZ();
+
+		var y = stream.readInt8();
+		var p = stream.readInt8();
+		var r = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, xz[0], 0.0, xz[1], y, p, r);
+	}
+	
+	this.Client_onUpdateData_xz_yp = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var xz = stream.readPackXZ();
+
+		var y = stream.readInt8();
+		var p = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, xz[0], 0.0, xz[1], y, p, KBE_FLT_MAX);
+	}
+	
+	this.Client_onUpdateData_xz_yr = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var xz = stream.readPackXZ();
+
+		var y = stream.readInt8();
+		var r = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, xz[0], 0.0, xz[1], y, KBE_FLT_MAX, r);
+	}
+	
+	this.Client_onUpdateData_xz_pr = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var xz = stream.readPackXZ();
+
+		var p = stream.readInt8();
+		var r = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, xz[0], 0.0, xz[1], KBE_FLT_MAX, p, r);
+	}
+	
+	this.Client_onUpdateData_xz_y = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var xz = stream.readPackXZ();
+
+		var y = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, xz[0], 0.0, xz[1], y, KBE_FLT_MAX, KBE_FLT_MAX);
+	}
+	
+	this.Client_onUpdateData_xz_p = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var xz = stream.readPackXZ();
+
+		var p = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, xz[0], 0.0, xz[1], KBE_FLT_MAX, p, KBE_FLT_MAX);
+	}
+	
+	this.Client_onUpdateData_xz_r = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var xz = stream.readPackXZ();
+
+		var r = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, xz[0], 0.0, xz[1], KBE_FLT_MAX, KBE_FLT_MAX, r);
+	}
+	
+	this.Client_onUpdateData_xyz = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var xz = stream.readPackXZ();
+		var y = stream.readPackY();
+		
+		g_kbengine._updateVolatileData(eid, xz[0], y, xz[1], KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX);
+	}
+	
+	this.Client_onUpdateData_xyz_ypr = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var xz = stream.readPackXZ();
+		var y = stream.readPackY();
+		
+		var yaw = stream.readInt8();
+		var p = stream.readInt8();
+		var r = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, xz[0], y, xz[1], yaw, p, r);
+	}
+	
+	this.Client_onUpdateData_xyz_yp = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var xz = stream.readPackXZ();
+		var y = stream.readPackY();
+		
+		var yaw = stream.readInt8();
+		var p = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, xz[0], y, xz[1], yaw, p, KBE_FLT_MAX);
+	}
+	
+	this.Client_onUpdateData_xyz_yr = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var xz = stream.readPackXZ();
+		var y = stream.readPackY();
+		
+		var yaw = stream.readInt8();
+		var r = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, xz[0], y, xz[1], yaw, KBE_FLT_MAX, r);
+	}
+	
+	this.Client_onUpdateData_xyz_pr = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var xz = stream.readPackXZ();
+		var y = stream.readPackY();
+		
+		var p = stream.readInt8();
+		var r = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, x, y, z, KBE_FLT_MAX, p, r);
+	}
+	
+	this.Client_onUpdateData_xyz_y = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var xz = stream.readPackXZ();
+		var y = stream.readPackY();
+		
+		var yaw = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, xz[0], y, xz[1], yaw, KBE_FLT_MAX, KBE_FLT_MAX);
+	}
+	
+	this.Client_onUpdateData_xyz_p = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var xz = stream.readPackXZ();
+		var y = stream.readPackY();
+		
+		var p = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, xz[0], y, xz[1], KBE_FLT_MAX, p, KBE_FLT_MAX);
+	}
+	
+	this.Client_onUpdateData_xyz_r = function(stream)
+	{
+		var eid = stream.readInt32();
+		
+		var xz = stream.readPackXZ();
+		var y = stream.readPackY();
+		
+		var p = stream.readInt8();
+		
+		g_kbengine._updateVolatileData(eid, xz[0], y, xz[1], r, KBE_FLT_MAX, KBE_FLT_MAX);
+	}
+	
+	this._updateVolatileData = function(entityID, x, y, z, yaw, pitch, roll)
+	{
+	}
+	
+	this.Client_onStreamDataStarted = function(id, datasize, descr)
+	{
+	}
+	
+	this.Client_onStreamDataRecv = function(stream)
+	{
+	}
+	
+	this.Client_onStreamDataRecv = function(id)
+	{
 	}
 }
 
 var g_kbengine = new KBENGINE();
-
+setInterval(g_kbengine.update, 100);

@@ -133,6 +133,8 @@ public:
 
 	MessageLength currMsgLength()const { return currMsgLength_; }
 	
+	void pCurrMsgHandler(const Mercury::MessageHandler* pMsgHandler){ pCurrMsgHandler_ = pMsgHandler; }
+
 	/**
 		计算所有包包括当前还未写完的包的总长度
 	*/
@@ -157,6 +159,7 @@ public:
 	inline MessageID messageID() const { return currMsgID_; }
 
 	bool reuse(){ return reuse_; } 
+	void setreuse(bool v = true){ reuse_ = v; } 
 public:
 	int32 onPacketAppend(int32 addsize, bool inseparable = true);
 

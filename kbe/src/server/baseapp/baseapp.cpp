@@ -2263,8 +2263,26 @@ void Baseapp::forwardMessageToClientFromCellapp(Mercury::Channel* pChannel,
 		Mercury::MessageID fmsgid = 0;
 		s >> fmsgid;
 		Mercury::MessageHandler* pMessageHandler = ClientInterface::messageHandlers.find(fmsgid);
-		DEBUG_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: %1%(msgid=%2%).\n") %
-			(pMessageHandler == NULL ? "unknown" : pMessageHandler->name) % fmsgid);
+		bool isprint = true;
+
+		if(pMessageHandler)
+		{
+			(*pBundle).pCurrMsgHandler(pMessageHandler);
+			std::vector<std::string>::iterator iter = std::find(Mercury::g_trace_packet_disables.begin(),	
+													Mercury::g_trace_packet_disables.end(),				
+														pMessageHandler->name);							
+																											
+			if(iter != Mercury::g_trace_packet_disables.end())												
+			{																								
+				isprint = false;																			
+			}																								
+		}
+
+		if(isprint)
+		{
+			DEBUG_MSG(boost::format("Baseapp::forwardMessageToClientFromCellapp: %1%(msgid=%2%).\n") %
+				(pMessageHandler == NULL ? "unknown" : pMessageHandler->name) % fmsgid);
+		}
 	}
 
 	s.read_skip(s.opsize());
@@ -2705,7 +2723,7 @@ void Baseapp::importClientEntityDef(Mercury::Channel* pChannel)
 			uint16 size2 = methods1.size();
 			uint16 size3 = methods2.size();
 
-			bundle << iter->get()->getName() << size << size1 << size2 << size3;
+			bundle << iter->get()->getName() << iter->get()->getUType() << size << size1 << size2 << size3;
 			
 			bundle << posuid << "position" << "" << DataTypes::getDataType("VECTOR3")->id();
 			bundle << diruid << "direction" << "" << DataTypes::getDataType("VECTOR3")->id();

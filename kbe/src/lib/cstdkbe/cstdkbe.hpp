@@ -215,7 +215,7 @@ const COMPONENT_CLIENT_TYPE ALL_CLIENT_TYPES[] = {CLIENT_TYPE_MOBILE, CLIENT_TYP
 typedef int8 CLIENT_CTYPE;
 
 // 前端是否支持浮点数
-#define CLIENT_NO_FLOAT
+// #define CLIENT_NO_FLOAT
 
 // 一个cell的默认的边界或者最小大小
 #define CELL_DEF_MIN_AREA_SIZE				500.0f
