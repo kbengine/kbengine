@@ -24,19 +24,22 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __RESMGR_H__
 #define __RESMGR_H__
 
-// common include
+#include "resourceobject.hpp"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/singleton.hpp"
+#include "cstdkbe/timer.hpp"
 #include "xmlplus/xmlplus.hpp"	
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-#endif
+#include "cstdkbe/smartpointer.hpp"
 	
 namespace KBEngine{
 
+#define RESOURCE_NORMAL	0x00000000
+#define RESOURCE_RESIDENT 0x00000001
+#define RESOURCE_READ 0x00000002
+#define RESOURCE_WRITE 0x00000004
+#define RESOURCE_APPEND 0x00000008
 
-class Resmgr : public Singleton<Resmgr>
+class Resmgr : public Singleton<Resmgr>, public TimerHandler
 {
 public:
 	// 引擎环境变量
@@ -46,6 +49,10 @@ public:
 		std::string res_path;
 		std::string hybrid_path;
 	};
+
+	static uint64 respool_timeout;
+	static uint32 respool_buffersize;
+	static uint32 respool_checktick;
 public:
 	Resmgr();
 	~Resmgr();
@@ -66,21 +73,33 @@ public:
 	std::string matchPath(std::string path);
 	std::string matchPath(const char* path);
 
-	const std::vector<std::string>& respaths() { return respaths_; }
+	const std::vector<std::string>& respaths() { 
+		return respaths_; 
+	}
 
 	void pirnt(void);
 
-	bool isInit(){ return isInit_; }
+	bool isInit(){ 
+		return isInit_; 
+	}
 
 	std::string getPySysResPath();
 
-	FILE* openResource(const char* res, const char* model);
+	ResourceObjectPtr openResource(const char* res, const char* model, 
+		uint32 flags = RESOURCE_NORMAL);
 
 	bool initializeWatcher();
+
+	void update();
 private:
+
+	virtual void handleTimeout(TimerHandle handle, void * arg);
+
 	KBEEnv kb_env_;
 	std::vector<std::string> respaths_;
 	bool isInit_;
+
+	KBEUnordered_map< std::string, ResourceObjectPtr > respool_;
 };
 
 }

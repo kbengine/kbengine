@@ -418,6 +418,8 @@ protected:
 	TelnetServer*											pTelnetServer_;
 
 	std::vector< KBEShared_ptr< RestoreEntityHandler > >	pRestoreEntityHandlers_;
+
+	TimerHandle												pResmgrTimerHandle_;
 };
 
 }

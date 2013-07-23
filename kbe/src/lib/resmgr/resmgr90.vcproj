@@ -158,6 +158,10 @@
 				RelativePath=".\resmgr.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\resourceobject.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -166,6 +170,10 @@
 			>
 			<File
 				RelativePath=".\resmgr.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\resourceobject.hpp"
 				>
 			</File>
 		</Filter>

@@ -125,7 +125,8 @@ Baseapp::Baseapp(Mercury::EventDispatcher& dispatcher,
 	load_(0.f),
 	numProxices_(0),
 	pTelnetServer_(NULL),
-	pRestoreEntityHandlers_()
+	pRestoreEntityHandlers_(),
+	pResmgrTimerHandle_()
 {
 	KBEngine::Mercury::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
 
@@ -461,6 +462,15 @@ bool Baseapp::initializeEnd()
 	loopCheckTimerHandle_ = this->getMainDispatcher().addTimer(1000000, this,
 							reinterpret_cast<void *>(TIMEOUT_CHECK_STATUS));
 
+	if(Resmgr::respool_checktick > 0)
+	{
+		pResmgrTimerHandle_ = this->getMainDispatcher().addTimer(int(Resmgr::respool_checktick * 1000000),
+			Resmgr::getSingletonPtr(), NULL);
+
+		INFO_MSG(boost::format("Baseapp::initializeEnd: started resmgr tick(%1%s)!\n") % 
+			Resmgr::respool_checktick);
+	}
+
 	pBackupSender_.reset(new BackupSender());
 	pArchiver_.reset(new Archiver());
 
@@ -493,6 +503,7 @@ void Baseapp::finalise()
 
 	pRestoreEntityHandlers_.clear();
 	loopCheckTimerHandle_.cancel();
+	pResmgrTimerHandle_.cancel();
 	EntityApp<Base>::finalise();
 }
 

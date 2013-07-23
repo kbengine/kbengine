@@ -608,6 +608,25 @@ bool ServerConfig::loadConfig(std::string fileName)
 				_baseAppInfo.perSecsDestroyEntitySize = uint32(xml->getValInt(childnode));
 			}
 		}
+
+		node = xml->enterNode(rootNode, "respool");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "buffer_size");
+			if(childnode)
+				_baseAppInfo.respool_buffersize = xml->getValInt(childnode);
+
+			childnode = xml->enterNode(node, "timeout");
+			if(childnode)
+				_baseAppInfo.respool_timeout = uint64(xml->getValInt(childnode));
+
+			childnode = xml->enterNode(node, "checktick");
+			if(childnode)
+				Resmgr::respool_checktick = xml->getValInt(childnode);
+
+			Resmgr::respool_timeout = _baseAppInfo.respool_timeout;
+			Resmgr::respool_buffersize = _baseAppInfo.respool_buffersize;
+		}
 	}
 
 	rootNode = xml->getRootNode("dbmgr");
@@ -871,6 +890,25 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
 			_resourcemgrInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
+
+		node = xml->enterNode(rootNode, "respool");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "buffer_size");
+			if(childnode)
+				_resourcemgrInfo.respool_buffersize = xml->getValInt(childnode);
+
+			childnode = xml->enterNode(node, "timeout");
+			if(childnode)
+				_resourcemgrInfo.respool_timeout = uint64(xml->getValInt(childnode));
+
+			childnode = xml->enterNode(node, "checktick");
+			if(childnode)
+				Resmgr::respool_checktick = xml->getValInt(childnode);
+
+			Resmgr::respool_timeout = _resourcemgrInfo.respool_timeout;
+			Resmgr::respool_buffersize = _resourcemgrInfo.respool_buffersize;
 		}
 	}
 

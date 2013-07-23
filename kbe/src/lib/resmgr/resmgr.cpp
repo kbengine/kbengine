@@ -29,6 +29,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 KBE_SINGLETON_INIT(Resmgr);
 
+uint64 Resmgr::respool_timeout = 0;
+uint32 Resmgr::respool_buffersize = 0;
+uint32 Resmgr::respool_checktick = 0;
+
 //-------------------------------------------------------------------------------------
 Resmgr::Resmgr()
 {
@@ -37,6 +41,7 @@ Resmgr::Resmgr()
 //-------------------------------------------------------------------------------------
 Resmgr::~Resmgr()
 {
+	respool_.clear();
 }
 
 //-------------------------------------------------------------------------------------
@@ -118,6 +123,8 @@ bool Resmgr::initialize()
 		kb_env_.res_path.erase(kb_env_.res_path.size() - 1);
 
 	isInit_ = true;
+
+	respool_.clear();
 	return true;
 }
 
@@ -200,9 +207,49 @@ std::string Resmgr::getPySysResPath()
 }
 
 //-------------------------------------------------------------------------------------
-FILE* Resmgr::openResource(const char* res, const char* model)
+ResourceObjectPtr Resmgr::openResource(const char* res, const char* model, uint32 flags)
 {
-	return fopen(matchRes(res).c_str(), model);
+	std::string respath = matchRes(res);
+
+	if(Resmgr::respool_checktick == 0)
+	{
+		return new FileObject(respath.c_str(), flags, model);
+	}
+
+	KBEUnordered_map< std::string, ResourceObjectPtr >::iterator iter = respool_.find(respath);
+	if(iter == respool_.end())
+	{
+		FileObject* fobj = new FileObject(respath.c_str(), flags, model);
+		respool_[respath] = fobj;
+		fobj->update();
+		return fobj;
+	}
+
+	iter->second->update();
+	return iter->second;
+}
+
+//-------------------------------------------------------------------------------------
+void Resmgr::update()
+{
+	KBEUnordered_map< std::string, ResourceObjectPtr >::iterator iter = respool_.begin();
+	for(; iter != respool_.end();)
+	{
+		if(!iter->second->valid())
+		{
+			respool_.erase(iter++);
+		}
+		else
+		{
+			iter++;
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Resmgr::handleTimeout(TimerHandle handle, void * arg)
+{
+	update();
 }
 
 //-------------------------------------------------------------------------------------		

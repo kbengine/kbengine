@@ -1,7 +1,8 @@
 LIB =	resmgr
 
 SRCS =				\
-	resmgr		
+	resmgr			\
+	resourceobject
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))

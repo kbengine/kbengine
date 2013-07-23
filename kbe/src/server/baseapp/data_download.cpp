@@ -247,8 +247,8 @@ FileDataDownload::~FileDataDownload()
 //-------------------------------------------------------------------------------------
 bool FileDataDownload::process()
 {
-	FILE* f = Resmgr::getSingleton().openResource(path_.c_str(), "rb");
-	if(f == NULL)
+	ResourceObjectPtr fptr = Resmgr::getSingleton().openResource(path_.c_str(), "rb");
+	if(fptr == NULL || !fptr->valid())
 	{
 		ERROR_MSG(boost::format("FileDataDownload::process(): can't open %1%.\n") % 
 			Resmgr::getSingleton().matchRes(path_).c_str());
@@ -257,20 +257,20 @@ bool FileDataDownload::process()
 		return false;
 	}
 
+	FileObject* f = static_cast<FileObject*>(fptr.get());
 	if(totalBytes_ == 0)
 	{
-		fseek(f, 0, SEEK_END);
-		totalBytes_ = ftell(f);
+		f->seek(0, SEEK_END);
+		totalBytes_ = f->tell();
 	}
 
-	fseek(f, totalSentBytes_, SEEK_SET);
-	remainSent_ = fread(stream_, sizeof(char), 65535, f);
+	f->seek(totalSentBytes_, SEEK_SET);
+	remainSent_ = f->read(stream_, 65535);
 	currSent_ = 0;
 
 	if(remainSent_ == 0)
 		remainSent_ = totalBytes_ - totalSentBytes_;
 
-	fclose(f);
 	return false;
 }
 

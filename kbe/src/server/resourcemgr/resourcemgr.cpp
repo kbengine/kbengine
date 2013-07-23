@@ -39,8 +39,8 @@ Resourcemgr::Resourcemgr(Mercury::EventDispatcher& dispatcher,
 				 Mercury::NetworkInterface& ninterface, 
 				 COMPONENT_TYPE componentType,
 				 COMPONENT_ID componentID):
-	ServerApp(dispatcher, ninterface, componentType, componentID)
-
+	ServerApp(dispatcher, ninterface, componentType, componentID),
+	pResmgrTimerHandle_()
 {
 }
 
@@ -86,12 +86,22 @@ bool Resourcemgr::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Resourcemgr::initializeEnd()
 {
+	if(Resmgr::respool_checktick > 0)
+	{
+		pResmgrTimerHandle_ = this->getMainDispatcher().addTimer(int(Resmgr::respool_checktick * 1000000),
+			Resmgr::getSingletonPtr(), NULL);
+
+		INFO_MSG(boost::format("Resourcemgr::initializeEnd: started resmgr tick(%1%s)!\n") % 
+			Resmgr::respool_checktick);
+	}
+
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 void Resourcemgr::finalise()
 {
+	pResmgrTimerHandle_.cancel();
 	ServerApp::finalise();
 }
 

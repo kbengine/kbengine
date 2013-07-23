@@ -276,6 +276,15 @@
 			<!-- 每秒销毁base数量 -->
 			<perSecsDestroyEntitySize> 15 </perSecsDestroyEntitySize>
 		</shutdown>
+		
+		<respool>
+			<!-- 缓冲区大小也等于资源大小， 在这个kb范围以内的资源才可以进入资源池 -->
+			<buffer_size> 1024 </buffer_size>
+			<!-- 资源池中的资源超过这个时间未被访问则销毁(秒) -->
+			<timeout> 600 </timeout>
+			<!-- 资源池检查tick(秒) -->
+			<checktick>60</checktick>
+		</respool>
 	</baseapp>
 	
 	<cellappmgr>
@@ -346,5 +355,14 @@
 		
 		<!-- listen监听队列最大值 -->
 		<SOMAXCONN> 128 </SOMAXCONN>
+		
+		<respool>
+			<!-- 缓冲区大小也等于资源大小， 在这个kb范围以内的资源才可以进入资源池 -->
+			<buffer_size> 1024 </buffer_size>
+			<!-- 资源池中的资源超过这个时间未被访问则销毁(秒) -->
+			<timeout> 600 </timeout>
+			<!-- 资源池检查tick(秒) -->
+			<checktick>60</checktick>
+		</respool>
 	</resourcemgr>
 </root>

@@ -68,6 +68,7 @@ public:
 	bool initializeEnd();
 	void finalise();
 protected:
+	TimerHandle												pResmgrTimerHandle_;
 };
 
 }
