@@ -36,6 +36,12 @@ class DBUtil;
 class DBInterface
 {
 public:
+	enum DB_OP_STATE
+	{
+		DB_OP_READ,
+		DB_OP_WRITE,
+	};
+
 	friend class DBUtil;
 	DBInterface(){};
 	virtual ~DBInterface(){};

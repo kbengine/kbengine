@@ -22,6 +22,9 @@ public:
 
 	void onReceiveWatcherData(KBEngine::MemoryStream& s);
 	void addHeader(std::string name);
+	void addHeaderShow(CString name);
+	
+	void addItemShow(KBEngine::WatcherObject* wo);
 	void addItem(KBEngine::WatcherObject* wo);
 	void changePath(std::string path);
 	void addPath(std::string rootpath, std::string path);
@@ -39,4 +42,5 @@ public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	CListCtrl m_status;
 	afx_msg void OnTvnSelchangedTree1(NMHDR *pNMHDR, LRESULT *pResult);
+	CListCtrl m_statusShow;
 };

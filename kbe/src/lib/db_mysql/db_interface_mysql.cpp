@@ -22,8 +22,120 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "db_interface_mysql.hpp"
 #include "entity_table_mysql.hpp"
 #include "db_exception.hpp"
+#include "thread/threadguard.hpp"
+#include "helper/watcher.hpp"
 
 namespace KBEngine { 
+
+KBEngine::thread::ThreadMutex logMutex;
+KBEUnordered_map< std::string, uint32 > g_querystatistics;
+bool _g_installedWatcher = false;
+
+void querystatistics(const char* strCommand, uint32 size)
+{
+	std::string op;
+	for(uint32 i=0; i<size; i++)
+	{
+		if(strCommand[i] == ' ')
+			break;
+
+		op += strCommand[i];
+	}
+
+	if(op.size() == 0)
+		return;
+
+	std::transform(op.begin(), op.end(), op.begin(), toupper);
+
+	logMutex.lockMutex();
+
+	KBEUnordered_map< std::string, uint32 >::iterator iter = g_querystatistics.find(op);
+	if(iter == g_querystatistics.end())
+	{
+		g_querystatistics[op] = 1;
+	}
+	else
+	{
+		iter->second += 1;
+	}
+
+	logMutex.unlockMutex();
+}
+
+uint32 watcher_query(std::string cmd)
+{
+	KBEngine::thread::ThreadGuard tg(&logMutex); 
+
+	KBEUnordered_map< std::string, uint32 >::iterator iter = g_querystatistics.find(cmd);
+	if(iter != g_querystatistics.end())
+	{
+		return iter->second;
+	}
+
+	return 0;
+}
+
+uint32 watcher_select()
+{
+	return watcher_query("SELECT");
+}
+
+uint32 watcher_delete()
+{
+	return watcher_query("DELETE");
+}
+
+uint32 watcher_insert()
+{
+	return watcher_query("INSERT");
+}
+
+uint32 watcher_update()
+{
+	return watcher_query("UPDATE");
+}
+
+uint32 watcher_create()
+{
+	return watcher_query("CREATE");
+}
+
+uint32 watcher_drop()
+{
+	return watcher_query("DROP");
+}
+
+uint32 watcher_show()
+{
+	return watcher_query("SHOW");
+}
+
+uint32 watcher_alter()
+{
+	return watcher_query("ALTER");
+}
+
+uint32 watcher_grant()
+{
+	return watcher_query("GRANT");
+}
+
+void initializeWatcher()
+{
+	if(_g_installedWatcher)
+		return;
+
+	_g_installedWatcher = true;
+	WATCH_OBJECT("db_querys/select", &KBEngine::watcher_select);
+	WATCH_OBJECT("db_querys/delete", &KBEngine::watcher_delete);
+	WATCH_OBJECT("db_querys/insert", &KBEngine::watcher_insert);
+	WATCH_OBJECT("db_querys/update", &KBEngine::watcher_update);
+	WATCH_OBJECT("db_querys/create", &KBEngine::watcher_create);
+	WATCH_OBJECT("db_querys/drop", &KBEngine::watcher_drop);
+	WATCH_OBJECT("db_querys/show", &KBEngine::watcher_show);
+	WATCH_OBJECT("db_querys/alter", &KBEngine::watcher_alter);
+	WATCH_OBJECT("db_querys/grant", &KBEngine::watcher_grant);
+}
 
 //-------------------------------------------------------------------------------------
 DBInterfaceMysql::DBInterfaceMysql(std::string characterSet, std::string collation) :
@@ -47,6 +159,11 @@ DBInterfaceMysql::~DBInterfaceMysql()
 //-------------------------------------------------------------------------------------
 bool DBInterfaceMysql::attach(const char* databaseName)
 {
+	if(!_g_installedWatcher)
+	{
+		initializeWatcher();
+	}
+
 	if(db_port_ == 0)
 		db_port_ = 3306;
 	
@@ -198,6 +315,8 @@ bool DBInterfaceMysql::query(const char* strCommand, uint32 size, bool showexeci
 
 		return false;
 	}
+
+	querystatistics(strCommand, size);
 
 	lastquery_ = strCommand;
     int nResult = mysql_real_query(pMysql_, strCommand, size);  

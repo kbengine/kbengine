@@ -27,6 +27,7 @@ void CWatcherWindow::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_TREE1, m_tree);
 	DDX_Control(pDX, IDC_LIST1, m_status);
+	DDX_Control(pDX, IDC_LIST2, m_statusShow);
 }
 
 BOOL CWatcherWindow::OnInitDialog()
@@ -34,16 +35,26 @@ BOOL CWatcherWindow::OnInitDialog()
 	CDialog::OnInitDialog();
 	::SetTimer(m_hWnd, 1, 1500, NULL);
 
-	DWORD dwStyle = m_status.GetExtendedStyle();
-	dwStyle |= LVS_EX_FULLROWSELECT;					//选中某行使整行高亮（只适用与report风格的listctrl）
-	dwStyle |= LVS_EX_GRIDLINES;						//网格线（只适用与report风格的listctrl）
-	//dwStyle |= LVS_EX_ONECLICKACTIVATE;
-	m_status.SetExtendedStyle(dwStyle);					//设置扩展风格
+	{
+		DWORD dwStyle = m_status.GetExtendedStyle();
+		dwStyle |= LVS_EX_FULLROWSELECT;					//选中某行使整行高亮（只适用与report风格的listctrl）
+		dwStyle |= LVS_EX_GRIDLINES;						//网格线（只适用与report风格的listctrl）
+		//dwStyle |= LVS_EX_ONECLICKACTIVATE;
+		m_status.SetExtendedStyle(dwStyle);					//设置扩展风格
+	}
 
 	DWORD styles = ::GetWindowLong(m_tree.m_hWnd, GWL_STYLE);
 	styles |= TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS;
 	::SetWindowLong(m_tree.m_hWnd, GWL_STYLE, styles);
 
+	{
+		DWORD dwStyle = m_statusShow.GetExtendedStyle();
+		dwStyle |= LVS_EX_FULLROWSELECT;					//选中某行使整行高亮（只适用与report风格的listctrl）
+		dwStyle |= LVS_EX_GRIDLINES;						//网格线（只适用与report风格的listctrl）
+		//dwStyle |= LVS_EX_ONECLICKACTIVATE;
+		m_statusShow.SetExtendedStyle(dwStyle);				//设置扩展风格
+	}
+	
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -53,7 +64,7 @@ void CWatcherWindow::autoWndSize()
 	GetClientRect(&rect);
 
 	m_tree.MoveWindow(2, 3, int((rect.right - 2) * 0.3), rect.bottom - 3, TRUE);
-	m_status.MoveWindow(2 + int((rect.right - 2) * 0.3), 3, int((rect.right - 2) * 0.7), rect.bottom - 3, TRUE);
+	m_statusShow.MoveWindow(2 + int((rect.right - 2) * 0.3), 3, int((rect.right - 2) * 0.7), rect.bottom - 3, TRUE);
 }
 
 BEGIN_MESSAGE_MAP(CWatcherWindow, CDialog)
@@ -74,6 +85,110 @@ void CWatcherWindow::OnTimer(UINT_PTR nIDEvent)
 
 	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
 	dlg->reqQueryWatcher(getCurrSelPath());
+
+	if(m_status.GetItemCount() == 1)
+	{
+		int nColumnCount = m_status.GetHeaderCtrl()->GetItemCount();   
+
+		if(m_statusShow.GetItemCount() != nColumnCount)
+		{
+			m_statusShow.InsertColumn(0, L"WatcherName", LVCFMT_LEFT,	150);
+			m_statusShow.InsertColumn(1, L"WatcherValue", LVCFMT_LEFT, 1000);
+
+			m_statusShow.DeleteAllItems();
+
+			for (int i=0;i < nColumnCount; i++)
+			{
+				LVCOLUMN lvcol;
+				WCHAR str[256];
+				memset(str, 0, 256);
+				lvcol.mask = LVCF_TEXT|LVCF_WIDTH;
+				lvcol.pszText = str;
+				lvcol.cchTextMax = 256;
+				lvcol.cx = i;
+				m_status.GetColumn(i, &lvcol);
+				
+				m_statusShow.InsertItem(0, lvcol.pszText);
+			}
+		}
+
+		for(int ii = 0; ii<m_status.GetHeaderCtrl()->GetItemCount(); ii++)
+			m_statusShow.SetItemText(ii, 1, m_status.GetItemText(0, ii));
+	}
+	else
+	{
+		int nColumnCount = 0;
+
+		if(m_status.GetHeaderCtrl())
+		{
+			nColumnCount = m_status.GetHeaderCtrl()->GetItemCount();     
+
+			if(m_statusShow.GetHeaderCtrl() == NULL || nColumnCount != m_statusShow.GetHeaderCtrl()->GetItemCount() ||
+				m_status.GetItemCount() != m_statusShow.GetItemCount())
+			{
+				m_statusShow.DeleteAllItems();
+				if(m_statusShow.GetHeaderCtrl())
+				{
+					int nColumnCount = m_statusShow.GetHeaderCtrl()->GetItemCount();       
+					for (int i=0;i < nColumnCount;i++)
+					{
+						m_statusShow.DeleteColumn(0);
+					}
+				}
+
+				for (int i=0;i < nColumnCount;i++)
+				{
+					LVCOLUMN lvcol;
+					WCHAR str[256];
+					memset(str, 0, 256);
+					lvcol.mask=LVCF_TEXT|LVCF_WIDTH;
+					lvcol.pszText=str;
+					lvcol.cchTextMax=256;
+					lvcol.cx = i;
+					m_status.GetColumn(i, &lvcol);
+
+					addHeaderShow(lvcol.pszText);
+				}
+			}
+
+			for(int i=0; i<m_status.GetItemCount(); i++)
+			{
+				if(i + 1 > m_statusShow.GetItemCount())
+				{
+					m_statusShow.InsertItem(0, m_status.GetItemText(i, 0));
+				}
+
+				for(int ii = 0; ii<m_status.GetHeaderCtrl()->GetItemCount(); ii++)
+					m_statusShow.SetItemText(i, ii, m_status.GetItemText(i, ii));
+			}
+		}
+	}
+}
+
+void CWatcherWindow::addHeaderShow(CString name)
+{
+	int nColumnCount = 0;
+
+	if(m_statusShow.GetHeaderCtrl())
+	{
+		nColumnCount = m_statusShow.GetHeaderCtrl()->GetItemCount();       
+		for (int i=0;i < nColumnCount;i++)
+		{
+			LVCOLUMN lvcol;
+			WCHAR str[256];
+			memset(str, 0, 256);
+			lvcol.mask=LVCF_TEXT|LVCF_WIDTH;
+			lvcol.pszText=str;
+			lvcol.cchTextMax=256;
+			lvcol.cx = i;
+			m_status.GetColumn(i, &lvcol);
+
+			if(name == lvcol.pszText)
+				return;
+		}
+	}
+
+	m_statusShow.InsertColumn(nColumnCount, name, LVCFMT_CENTER,	100);
 }
 
 void CWatcherWindow::addHeader(std::string name)
@@ -103,6 +218,42 @@ void CWatcherWindow::addHeader(std::string name)
 	}
 
 	m_status.InsertColumn(nColumnCount, s, LVCFMT_CENTER,	100);
+}
+
+void CWatcherWindow::addItemShow(KBEngine::WatcherObject* wo)
+{
+	int idx = 0;
+	wchar_t* ws = KBEngine::strutil::char2wchar(wo->str());
+	CString s = ws;
+	free(ws);
+
+	ws = KBEngine::strutil::char2wchar(wo->name());
+	CString s1 = ws;
+	free(ws);
+
+	int nColumnCount = m_status.GetHeaderCtrl()->GetItemCount();       
+	for (int i=0;i < nColumnCount;i++)
+	{
+		LVCOLUMN lvcol;
+		WCHAR str[1024];
+		memset(str, 0, 1024);
+		lvcol.mask=LVCF_TEXT|LVCF_WIDTH;
+		lvcol.pszText=str;
+		lvcol.cchTextMax=1024;
+		lvcol.cx = i;
+		m_status.GetColumn(i, &lvcol);
+
+		if(s1 == lvcol.pszText)
+		{
+			idx = i;
+			break;
+		}
+	}
+
+	if(m_status.GetItemCount() <= 0)
+		m_status.InsertItem(0, L"");
+
+	m_status.SetItemText(0, idx, s);
 }
 
 void CWatcherWindow::addItem(KBEngine::WatcherObject* wo)
@@ -153,6 +304,16 @@ void CWatcherWindow::clearAllData(bool clearTree)
 		for (int i=0;i < nColumnCount;i++)
 		{
 			m_status.DeleteColumn(0);
+		}
+	}
+
+	m_statusShow.DeleteAllItems();
+	if(m_statusShow.GetHeaderCtrl())
+	{
+		int nColumnCount = m_statusShow.GetHeaderCtrl()->GetItemCount();       
+		for (int i=0;i < nColumnCount;i++)
+		{
+			m_statusShow.DeleteColumn(0);
 		}
 	}
 }
