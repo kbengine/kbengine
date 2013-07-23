@@ -1,0 +1,83 @@
+#!/usr/bin/env perl
+# This program is part of Aspersa (http://code.google.com/p/aspersa/)
+
+=pod
+
+=head1 NAME
+
+iodump - Compute per-PID I/O stats for Linux when iotop/pidstat/iopp are not available.
+
+=head1 SYNOPSIS
+
+Prepare the system:
+
+  dmesg -c
+  /etc/init.d/klogd stop
+  echo 1 > /proc/sys/vm/block_dump
+
+Start the reporting:
+
+  while true; do sleep 1; dmesg -c; done | perl iodump
+  CTRL-C
+
+Stop the system from dumping these messages:
+
+  echo 0 > /proc/sys/vm/block_dump
+  /etc/init.d/klogd start
+
+=head1 AUTHOR
+
+Baron Schwartz
+
+=cut
+
+use strict;
+use warnings FATAL => 'all';
+use English qw(-no_match_vars);
+use sigtrap qw(handler finish untrapped normal-signals);
+
+my %tasks;
+
+my $oktorun = 1;
+my $line;
+while ( $oktorun && (defined ($line = <>)) ) {
+   my ( $task, $pid, $activity, $where, $device );
+   ( $task, $pid, $activity, $where, $device )
+      = $line =~ m/(\S+)\((\d+)\): (READ|WRITE) block (\d+) on (\S+)/;
+   if ( !$task ) {
+      ( $task, $pid, $activity, $where, $device )
+         = $line =~ m/(\S+)\((\d+)\): (dirtied) inode \(.*?\) (\d+) on (\S+)/;
+   }
+   if ( $task ) {
+      my $s = $tasks{$pid} ||= { pid => $pid, task => $task };
+      ++$s->{lc $activity};
+      ++$s->{activity};
+      ++$s->{devices}->{$device};
+   }
+}
+
+printf("%-15s %10s %10s %10s %10s %10s %s\n",
+   qw(TASK PID TOTAL READ WRITE DIRTY DEVICES));
+foreach my $task (
+   reverse sort { $a->{activity} <=> $b->{activity} } values %tasks
+) {
+   printf("%-15s %10d %10d %10d %10d %10d %s\n",
+      $task->{task}, $task->{pid},
+      ($task->{'activity'}  || 0),
+      ($task->{'read'}      || 0),
+      ($task->{'write'}     || 0),
+      ($task->{'dirty'}     || 0),
+      join(', ', keys %{$task->{devices}}));
+}
+
+sub finish {
+   my ( $signal ) = @_;
+   if ( $oktorun ) {
+      print STDERR "# Caught SIG$signal.\n";
+      $oktorun = 0;
+   }
+   else {
+      print STDERR "# Exiting on SIG$signal.\n";
+      exit(1);
+   }
+}
