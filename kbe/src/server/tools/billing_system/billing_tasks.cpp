@@ -363,6 +363,8 @@ bool ChargeTask::process()
 	KBE_ASSERT(pOrders != NULL);
 
 	pOrders->state = Orders::STATE_FAILED;
+	orders.state = pOrders->state;
+	orders.postDatas = pOrders->postDatas;
 
 	// 如果是不需要请求的直接返回成功
 	if(pOrders->postDatas.size() == 0)
@@ -376,6 +378,8 @@ bool ChargeTask::process()
 	{
 		pOrders->state = Orders::STATE_SUCCESS;
 		pOrders->getDatas = pOrders->postDatas;
+		orders.state = pOrders->state;
+		orders.getDatas = pOrders->getDatas;
 		success = true;
 		return false;
 	}
@@ -387,6 +391,7 @@ bool ChargeTask::process()
 	{
 		ERROR_MSG("ChargeTask::process: couldn't create a socket\n");
 		pOrders->getDatas = "couldn't create a socket!";
+		orders.getDatas = pOrders->getDatas;
 		return false;
 	}
 
@@ -394,6 +399,7 @@ bool ChargeTask::process()
 	{
 		ERROR_MSG("ChargeTask::process: postData is NULL.\n");
 		pOrders->getDatas = "postDatas is error!";
+		orders.getDatas = pOrders->getDatas;
 		return false;
 	}
 
@@ -406,6 +412,7 @@ bool ChargeTask::process()
 			kbe_strerror());
 
 		pOrders->getDatas = "connect is error!";
+		orders.getDatas = pOrders->getDatas;
 		return false;
 	}
 
@@ -429,6 +436,7 @@ bool ChargeTask::process()
 	{
 		ERROR_MSG(boost::format("BillingTask::process: recv is error(%1%).\n") % KBEngine::kbe_strerror());
 		pOrders->getDatas = "recv is error!";
+		orders.getDatas = pOrders->getDatas;
 		return false;
 	}
 	
@@ -438,12 +446,14 @@ bool ChargeTask::process()
 	{
 		ERROR_MSG(boost::format("BillingTask::process: recv is size<= 0.\n===>postdatas=%1%\n") % pOrders->postDatas);
 		pOrders->getDatas = "recv is error!";
+		orders.getDatas = pOrders->getDatas;
 		return false;
 	}
 
 	packet.wpos(len);
 
 	pOrders->getDatas.assign((const char *)(packet.data() + packet.rpos()), packet.opsize());
+	orders.getDatas = pOrders->getDatas;
 
 	std::string::size_type fi = pOrders->getDatas.find("retcode:1");
 	success = fi != std::string::npos;
@@ -471,12 +481,12 @@ thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 		Mercury::Bundle::SmartPoolObjectPtr bundle = Mercury::Bundle::createSmartPoolObj();
 
 		(*(*bundle)).newMessage(DbmgrInterface::onChargeCB);
-		(*(*bundle)) << pOrders->baseappID << pOrders->ordersID << pOrders->dbid;
-		(*(*bundle)).appendBlob(pOrders->getDatas);
-		(*(*bundle)) << pOrders->cbid;
+		(*(*bundle)) << orders.baseappID << orders.ordersID << orders.dbid;
+		(*(*bundle)).appendBlob(orders.getDatas);
+		(*(*bundle)) << orders.cbid;
 		(*(*bundle)) << success;
 
-		Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(pOrders->address);
+		Mercury::Channel* pChannel = BillingSystem::getSingleton().getNetworkInterface().findChannel(orders.address);
 
 		if(pChannel)
 		{
@@ -488,11 +498,13 @@ thread::TPTask::TPTaskState ChargeTask::presentMainThread()
 		else
 		{
 			ERROR_MSG(boost::format("ChargeTask::presentMainThread: not found channel. orders=%1%\n") % 
-				pOrders->ordersID);
+				orders.ordersID);
 		}
 
 		BillingSystem::getSingleton().lockthread();
-		BillingSystem::getSingleton().orders().erase(pOrders->ordersID);
+		BillingSystem::ORDERS& ordersmap = BillingSystem::getSingleton().orders();
+		BillingSystem::ORDERS::iterator iter = ordersmap.find(orders.ordersID);
+		if(iter != ordersmap.end())ordersmap.erase(iter);
 		BillingSystem::getSingleton().unlockthread();
 	}
 
