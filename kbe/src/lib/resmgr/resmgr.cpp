@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "resmgr.hpp"
 #include "helper/watcher.hpp"
+#include "thread/threadguard.hpp"
 
 #if KBE_PLATFORM != PLATFORM_WIN32
 #include <unistd.h>
@@ -34,7 +35,12 @@ uint32 Resmgr::respool_buffersize = 0;
 uint32 Resmgr::respool_checktick = 0;
 
 //-------------------------------------------------------------------------------------
-Resmgr::Resmgr()
+Resmgr::Resmgr():
+kb_env_(),
+respaths_(),
+isInit_(false),
+respool_(),
+mutex_()
 {
 }
 
@@ -216,6 +222,7 @@ ResourceObjectPtr Resmgr::openResource(const char* res, const char* model, uint3
 		return new FileObject(respath.c_str(), flags, model);
 	}
 
+	KBEngine::thread::ThreadGuard tg(&mutex_); 
 	KBEUnordered_map< std::string, ResourceObjectPtr >::iterator iter = respool_.find(respath);
 	if(iter == respool_.end())
 	{
@@ -232,6 +239,7 @@ ResourceObjectPtr Resmgr::openResource(const char* res, const char* model, uint3
 //-------------------------------------------------------------------------------------
 void Resmgr::update()
 {
+	KBEngine::thread::ThreadGuard tg(&mutex_); 
 	KBEUnordered_map< std::string, ResourceObjectPtr >::iterator iter = respool_.begin();
 	for(; iter != respool_.end();)
 	{

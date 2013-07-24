@@ -100,6 +100,8 @@ private:
 	bool isInit_;
 
 	KBEUnordered_map< std::string, ResourceObjectPtr > respool_;
+
+	KBEngine::thread::ThreadMutex mutex_;
 };
 
 }
