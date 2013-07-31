@@ -17,8 +17,8 @@ MY_LIBS =		\
 	network		\
 	thread		\
 	dbmgr_lib	\
-	db_mysql
-	
+	db_mysql	\
+	jwsmtp
 
 BUILD_TIME_FILE = main
 USE_PYTHON = 1
