@@ -212,10 +212,15 @@ void BillingSystem::reqCreateAccount(Mercury::Channel* pChannel, KBEngine::Memor
 {
 	std::string registerName, accountName, password, datas;
 	COMPONENT_ID cid;
+	uint8 accountType = 0;
 
-	s >> cid >> registerName >> password;
+	s >> cid >> registerName >> password >> accountType;
 	s.readBlob(datas);
 	
+	if(accountType == (uint8)ACCOUNT_TYPE_MAIL)
+	{
+	}
+
 	lockthread();
 
 	REQCREATE_MAP::iterator iter = reqCreateAccount_requests_.find(registerName);

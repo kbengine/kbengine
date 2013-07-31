@@ -75,8 +75,17 @@ BillingHandler_Normal::~BillingHandler_Normal()
 
 //-------------------------------------------------------------------------------------
 bool BillingHandler_Normal::createAccount(Mercury::Channel* pChannel, std::string& registerName, 
-										  std::string& password, std::string& datas)
+										  std::string& password, std::string& datas, ACCOUNT_TYPE uatype)
 {
+	// 如果是email， 先查询账号是否存在然后将其登记入库
+	if(uatype == ACCOUNT_TYPE_MAIL)
+	{
+		dbThreadPool_.addTask(new DBTaskCreateMailAccount(pChannel->addr(), 
+			registerName, registerName, password, datas, datas));
+
+		return true;
+	}
+
 	dbThreadPool_.addTask(new DBTaskCreateAccount(pChannel->addr(), 
 		registerName, registerName, password, datas, datas));
 
@@ -138,7 +147,7 @@ BillingHandler_ThirdParty::~BillingHandler_ThirdParty()
 
 //-------------------------------------------------------------------------------------
 bool BillingHandler_ThirdParty::createAccount(Mercury::Channel* pChannel, std::string& registerName, 
-											  std::string& password, std::string& datas)
+											  std::string& password, std::string& datas, ACCOUNT_TYPE uatype)
 {
 	KBE_ASSERT(pBillingChannel_);
 
@@ -146,7 +155,9 @@ bool BillingHandler_ThirdParty::createAccount(Mercury::Channel* pChannel, std::s
 	
 	(*(*bundle)).newMessage(BillingSystemInterface::reqCreateAccount);
 	(*(*bundle)) << pChannel->componentID();
-	(*(*bundle)) << registerName << password;
+
+	uint8 accountType = uatype;
+	(*(*bundle)) << registerName << password << accountType;
 	(*(*bundle)).appendBlob(datas);
 
 	if(pBillingChannel_->isDestroyed())

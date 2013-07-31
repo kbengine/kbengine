@@ -1,0 +1,88 @@
+*.blue    {
+	color: rgb(51, 102, 255);
+}
+
+pre    {
+	color: rgb(102, 102, 102);
+	margin-left: 12px;
+}
+
+*.comment    {
+	color: green;
+}
+
+body    {
+	margin-left: 5px;
+	background-color: #FFFEDF;
+	margin-top: 6.25px;
+}
+
+*#leftside20    {
+	float: left;
+	width: 20%;
+	margin-right: 15px;
+	padding-bottom: 20px;
+	background-color: #FFF0D0;
+	border-color: #777711;
+	border-style: solid;
+	border-width: 1px;
+}
+
+*#leftside35    {
+	float: left;
+	width: 35%;
+	margin-right: 15px;
+	padding-bottom: 20px;
+	background-color: #FFF0D0;
+	border-color: #777711;
+	border-style: solid;
+	border-width: 1px;
+	margin-left: 5px;
+}
+
+*#rigntside    {
+}
+
+*#leftside20 p    {
+	margin-left: 10px;
+	font-size: smaller;
+}
+
+*#leftside35 p    {
+	margin-left: 10px;
+	font-size: smaller;
+}
+
+*#rightside p    {
+	margin-left: 0px;
+	font-size: smaller;
+}
+
+*#rightside h2    {
+	text-align: left;
+}
+
+*#rightside ul {
+   margin-left: 10px;
+}
+
+h1    {
+	font-size: 18px;
+	padding-top: 10px;
+}
+
+h2    {
+	font-size: 14px;
+	padding-top: 5px;
+	text-align: center;
+}
+
+p, h1, div    {
+	margin: 0px 30px 10px 30px;
+	font-size: medium;
+}
+
+a:link    {color: #000099;}
+a:visited {color: #000099;}
+a:active  {color: darkgreen;}
+a:hover   {color: darkgreen;}

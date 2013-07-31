@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include <regex>
 #include "loginapp.hpp"
 #include "loginapp_interface.hpp"
 #include "network/common.hpp"
@@ -40,6 +40,9 @@ namespace KBEngine{
 	
 ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Loginapp);
+
+std::tr1::regex _g_mail_pattern("([0-9A-Za-z\\-_\\.]+)@([0-9a-z]+\\.[a-z]{2,3}(\\.[a-z]{2})?)");
+std::tr1::regex _g_normalAccountName_pattern("([0-9A-Za-z_]+)");
 
 //-------------------------------------------------------------------------------------
 Loginapp::Loginapp(Mercury::EventDispatcher& dispatcher, 
@@ -183,40 +186,38 @@ void Loginapp::onClientActiveTick(Mercury::Channel* pChannel)
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s)
+bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountName, 
+								 std::string& password, std::string& datas, ACCOUNT_TYPE type)
 {
-	std::string accountName, password, datas, retdatas = "";
-
-	s >> accountName >> password;
-	s.readBlob(datas);
-	
+	accountName = KBEngine::strutil::kbe_trim(accountName);
 	if(accountName.size() > ACCOUNT_NAME_MAX_LENGTH)
 	{
-		ERROR_MSG(boost::format("Loginapp::reqCreateAccount: accountName too big, size=%1%, limit=%2%.\n") %
+		ERROR_MSG(boost::format("Loginapp::_createAccount: accountName too big, size=%1%, limit=%2%.\n") %
 			accountName.size() % ACCOUNT_NAME_MAX_LENGTH);
 
-		return;
+		return false;
 	}
 
 	if(password.size() > ACCOUNT_PASSWD_MAX_LENGTH)
 	{
-		ERROR_MSG(boost::format("Loginapp::reqCreateAccount: password too big, size=%1%, limit=%2%.\n") %
+		ERROR_MSG(boost::format("Loginapp::_createAccount: password too big, size=%1%, limit=%2%.\n") %
 			password.size() % ACCOUNT_PASSWD_MAX_LENGTH);
 
-		return;
+		return false;
 	}
 
 	if(datas.size() > ACCOUNT_DATA_MAX_LENGTH)
 	{
-		ERROR_MSG(boost::format("Loginapp::login: bindatas too big, size=%1%, limit=%2%.\n") %
+		ERROR_MSG(boost::format("Loginapp::_createAccount: bindatas too big, size=%1%, limit=%2%.\n") %
 			datas.size() % ACCOUNT_DATA_MAX_LENGTH);
 
-		return;
+		return false;
 	}
-
+	
+	std::string retdatas = "";
 	if(shuttingdown_)
 	{
-		INFO_MSG(boost::format("Loginapp::reqCreateAccount: shutting down, create %1% failed!\n") % accountName);
+		WARNING_MSG(boost::format("Loginapp::_createAccount: shutting down, create %1% failed!\n") % accountName);
 
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onCreateAccountResult);
@@ -224,24 +225,87 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s)
 		bundle << retcode;
 		bundle.appendBlob(retdatas);
 		bundle.send(this->getNetworkInterface(), pChannel);
-		return;
+		return false;
 	}
 
-	DEBUG_MSG(boost::format("Loginapp::reqCreateAccount: accountName=%1%, passwordsize=%2%.\n") %
-		accountName.c_str() % password.size());
-
-	PendingLoginMgr::PLInfos* ptinfos = pendingCreateMgr_.find(accountName);
+	PendingLoginMgr::PLInfos* ptinfos = pendingCreateMgr_.find(const_cast<std::string&>(accountName));
 	if(ptinfos != NULL)
 	{
+		WARNING_MSG(boost::format("Loginapp::_createAccount: pendingCreateMgr has %1%, request create failed!\n") % 
+			accountName);
+
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onCreateAccountResult);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_BUSY;
 		bundle << retcode;
 		bundle.appendBlob(retdatas);
 		bundle.send(this->getNetworkInterface(), pChannel);
-		return;
+		return false;
 	}
-			
+	
+	if(type == ACCOUNT_TYPE_SMART)
+	{
+		if (std::tr1::regex_match(accountName, _g_mail_pattern))
+		{
+			type = ACCOUNT_TYPE_MAIL;
+		}
+		else
+		{
+			if(!std::tr1::regex_match(accountName, _g_normalAccountName_pattern))
+			{
+				ERROR_MSG(boost::format("Loginapp::_createAccount: invalid accountName(%1%)\n") %
+					accountName);
+
+				Mercury::Bundle bundle;
+				bundle.newMessage(ClientInterface::onCreateAccountResult);
+				SERVER_ERROR_CODE retcode = SERVER_ERR_NAME;
+				bundle << retcode;
+				bundle.appendBlob(retdatas);
+				bundle.send(this->getNetworkInterface(), pChannel);
+				return false;
+			}
+
+			type = ACCOUNT_TYPE_NORMAL;
+		}
+	}
+	else if(type == ACCOUNT_TYPE_NORMAL)
+	{
+		if(!std::tr1::regex_match(accountName, _g_normalAccountName_pattern))
+		{
+			ERROR_MSG(boost::format("Loginapp::_createAccount: invalid accountName(%1%)\n") %
+				accountName);
+
+			Mercury::Bundle bundle;
+			bundle.newMessage(ClientInterface::onCreateAccountResult);
+			SERVER_ERROR_CODE retcode = SERVER_ERR_NAME;
+			bundle << retcode;
+			bundle.appendBlob(retdatas);
+			bundle.send(this->getNetworkInterface(), pChannel);
+			return false;
+		}
+	}
+	else if (!std::tr1::regex_match(accountName, _g_mail_pattern))
+    {
+		/*
+		std::string user_name, domain_name;
+        user_name = regex_replace(accountName, _g_mail_pattern, std::string("$1") );
+        domain_name = regex_replace(accountName, _g_mail_pattern, std::string("$2") );
+		*/
+		WARNING_MSG(boost::format("Loginapp::_createAccount: invalid mail=%1%\n") % 
+			accountName);
+
+		Mercury::Bundle bundle;
+		bundle.newMessage(ClientInterface::onCreateAccountResult);
+		SERVER_ERROR_CODE retcode = SERVER_ERR_NAME_MAIL;
+		bundle << retcode;
+		bundle.appendBlob(retdatas);
+		bundle.send(this->getNetworkInterface(), pChannel);
+		return false;
+    }
+
+	DEBUG_MSG(boost::format("Loginapp::_createAccount: accountName=%1%, passwordsize=%2%, type=%3%.\n") %
+		accountName.c_str() % password.size() % type);
+
 	ptinfos = new PendingLoginMgr::PLInfos;
 	ptinfos->accountName = accountName;
 	ptinfos->password = password;
@@ -257,22 +321,51 @@ void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s)
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
+		ERROR_MSG(boost::format("Loginapp::_createAccount: create(%1%), not found dbmgr!\n") % 
+			accountName);
+
 		Mercury::Bundle bundle;
 		bundle.newMessage(ClientInterface::onCreateAccountResult);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_SRV_NO_READY;
 		bundle << retcode;
 		bundle.appendBlob(retdatas);
 		bundle.send(this->getNetworkInterface(), pChannel);
-		return;
+		return false;
 	}
 
 	pChannel->extra(accountName);
 
 	Mercury::Bundle bundle;
 	bundle.newMessage(DbmgrInterface::reqCreateAccount);
-	bundle << accountName << password;
+	uint8 uatype = uint8(type);
+	bundle << accountName << password << uatype;
 	bundle.appendBlob(datas);
 	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	std::string accountName, password, datas;
+
+	s >> accountName >> password;
+	s.readBlob(datas);
+	
+	if(!_createAccount(pChannel, accountName, password, datas, ACCOUNT_TYPE(g_serverConfig.getLoginApp().account_type)))
+		return;
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::reqCreateMailAccount(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	std::string accountName, password, datas, retdatas = "";
+
+	s >> accountName >> password;
+	s.readBlob(datas);
+
+	if(!_createAccount(pChannel, accountName, password, datas, ACCOUNT_TYPE_MAIL))
+		return;
 }
 
 //-------------------------------------------------------------------------------------

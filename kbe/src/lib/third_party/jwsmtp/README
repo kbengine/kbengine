@@ -1,0 +1,55 @@
+ Note that the only valid version of the GPL as far as jwSMTP
+ is concerned is _this_ particular version of the license (ie v2, not
+ v2.2 or v3.x or whatever), unless explicitly otherwise stated.
+
+______________________________________________________________________________
+This file is part of the jwSMTP library.
+
+  jwSMTP library is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  jwSMTP library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with jwSMTP library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+   http://johnwiggins.net
+   jwSMTP@johnwiggins.net
+
+INSTALL
+----------------------------
+To just install the library
+./configure
+make
+make install           (as root)
+
+special note: If using MSYS or cygwin on windows do this:
+LDFLAGS=-lwsock32 ./configure
+make
+make install           (as root)
+
+
+To link against the library (replace <version> with the current jwSMTP version)
+g++ myfile.cpp -o myprogram `pkg-config --libs --cflags jwsmtp-<version>`
+
+or statically
+g++ myfile.cpp -o myprogram `pkg-config --cflags jwsmtp-<version>` /usr/local/lib/libjwsmtp.a
+
+if after compiling your own programs you get an error like this:
+./myprogram: error while loading shared libraries: libjwsmtp-<version>.so: cannot open shared object file: No such file or directory
+run ldconfig e.g.
+su
+ldconfig
+If it still doesn't work check /etc/ld.so.conf, if the library path is not in
+the file add it and run ldconfig again.
+
+-----------------------------------------------------
+Windows notes.
+There is a file named mail.dsw for users of Visual C
+(this is a VC version 6 file).

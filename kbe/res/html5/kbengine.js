@@ -1447,7 +1447,7 @@ g_datatypes["BLOB"] = new KBEDATATYPE_BLOB();
 -----------------------------------------------------------------------------------------*/
 function KBENGINE()
 {
-	this.username = "kbengine";
+	this.username = " 3603661@qq.com";
 	this.password = "123456";
 	this.loginappMessageImported = false;
 	this.baseappMessageImported = false;
@@ -1459,6 +1459,7 @@ function KBENGINE()
 		this.ip = "127.0.0.1";
 		this.port = 20013;
 		this.currserver = "loginapp";
+		this.currstate = "create";
 		this.serverdatas = "";
 		this.clientdatas = "";
 		this.serverVersion = "";
@@ -1597,10 +1598,11 @@ function KBENGINE()
 		g_kbengine.updatePlayerToServer();
 	}
 	
-	this.onOpenLoginapp = function()
+	this.onOpenLoginapp_login = function()
 	{  
-		console.info("KBENGINE::onOpenLoginapp: successfully!");
+		console.info("KBENGINE::onOpenLoginapp_login: successfully!");
 		g_kbengine.currserver = "loginapp";
+		g_kbengine.currstate = "login";
 		
 		if(!g_kbengine.loginappMessageImported)
 		{
@@ -1608,7 +1610,27 @@ function KBENGINE()
 			bundle.newMessage(g_messages.Loginapp_importClientMessages);
 			bundle.send(g_kbengine);
 			g_kbengine.socket.onmessage = g_kbengine.Client_onImportClientMessages;  
-			console.info("KBENGINE::onOpenLoginapp: start importClientMessages ...");
+			console.info("KBENGINE::onOpenLoginapp_login: start importClientMessages ...");
+		}
+		else
+		{
+			g_kbengine.onImportClientMessagesCompleted();
+		}
+	}
+	
+	this.onOpenLoginapp_createAccount = function()
+	{  
+		console.info("KBENGINE::onOpenLoginapp_createAccount: successfully!");
+		g_kbengine.currserver = "loginapp";
+		g_kbengine.currstate = "createAccount";
+		
+		if(!g_kbengine.loginappMessageImported)
+		{
+			var bundle = new KBE_BUNDLE();
+			bundle.newMessage(g_messages.Loginapp_importClientMessages);
+			bundle.send(g_kbengine);
+			g_kbengine.socket.onmessage = g_kbengine.Client_onImportClientMessages;  
+			console.info("KBENGINE::onOpenLoginapp_createAccount: start importClientMessages ...");
 		}
 		else
 		{
@@ -1624,7 +1646,11 @@ function KBENGINE()
 		
 		if(g_kbengine.currserver == "loginapp")
 		{
-			g_kbengine.login_loginapp(false);
+			if(g_kbengine.currstate == "login")
+				g_kbengine.login_loginapp(false);
+			else
+				g_kbengine.createAccount_loginapp(false);
+			
 			g_kbengine.loginappMessageImported = true;
 		}
 		else
@@ -1919,7 +1945,6 @@ function KBENGINE()
 				}
 				else
 				{
-					alert(1);
 					g_messages[g_kbengine.currserver][msgid] = new KBE_MESSAGE(msgid, msgname, msglen, argstypes, handler);
 				}
 			};
@@ -1930,13 +1955,32 @@ function KBENGINE()
 			console.error("KBENGINE::onmessage: not found msg(" + msgid + ")!");
 	}
 	
+	this.createAccount_loginapp = function(noconnect)
+	{  
+		if(noconnect)
+		{
+			console.info("KBENGINE::createAccount_loginapp: start connect to ws://" + g_kbengine.ip + ":" + g_kbengine.port + "!");
+			g_kbengine.connect("ws://" + g_kbengine.ip + ":" + g_kbengine.port);
+			g_kbengine.socket.onopen = g_kbengine.onOpenLoginapp_createAccount;  
+		}
+		else
+		{
+			var bundle = new KBE_BUNDLE();
+			bundle.newMessage(g_messages.Loginapp_reqCreateAccount);
+			bundle.writeString(g_kbengine.username);
+			bundle.writeString(g_kbengine.password);
+			bundle.writeBlob("");
+			bundle.send(g_kbengine);
+		}
+	}
+	
 	this.login_loginapp = function(noconnect)
 	{  
 		if(noconnect)
 		{
 			console.info("KBENGINE::login_loginapp: start connect to ws://" + g_kbengine.ip + ":" + g_kbengine.port + "!");
 			g_kbengine.connect("ws://" + g_kbengine.ip + ":" + g_kbengine.port);
-			g_kbengine.socket.onopen = g_kbengine.onOpenLoginapp;  
+			g_kbengine.socket.onopen = g_kbengine.onOpenLoginapp_login;  
 		}
 		else
 		{

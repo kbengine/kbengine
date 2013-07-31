@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Linux/x86 (vers 1st January 2004), see www.w3.org" />
+
+  <title>jwSMTP library documentation</title>
+  <link href="/css/main.css" rel="stylesheet" type="text/css" />
+  <link href="main.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+
+  <div style="text-align: center;">
+     <h2>jwSMTP library documentation (mailer class interface)</h2>
+  </div>
+
+  <div id="rightside">
+
+<a href="#mailer">Mailer Interface</a><br />
+<a href="basic_code.html">Basic Code Sample</a><br />
+<a href="usage.html">Howto
+use mailer class in your own programs</a><br />
+<br />
+<b>To use the mailer class:-</b>
+<pre>
+<a href="#mailer">mailer</a> mail(&quot;myspiffyfriend@spiffy.com&quot;,       <span class="comment">// who the mail is too</span>
+            &quot;me@somewhere.net&quot;,                <span class="comment">// who the mail is from</span>
+            &quot;There is always room for FooBar&quot;, <span class="comment">// subject for the email</span>
+            &quot;Foo\nBar&quot;,                        <span class="comment">// content of the message</span>
+            &quot;ns.somewhere.net&quot;);               <span class="comment">// the nameserver to contact</span>
+                                               <span class="comment">// to query for an MX record</span>
+
+mail.<a href="#operator">operator</a>( )( );
+</pre>
+The reason for this curious function call is to facilitate the<br />
+class being used with <i>Boost::Threads</i> <a href="http://www.Boost.org">http://www.Boost.org</a>.<br />
+e.g.
+<pre>
+<span class="blue">#include</span> &lt;boost\thread\thread.hpp&gt;
+boost::thread thrd(mail);<span class="comment">// <b>operator( )( )</b> called implicitly</span>
+<span class="comment">// thrd.join( ); // optional</span>
+</pre>
+If your not using boost::thread then just call <font
+ color="#000080"><a href="#operator">operator</a>( )( )</font> directly as above
+or use the <a href="#operator">send</a>( ) function.<br />
+That's it. If there is an error however. The class members<br />
+will not throw an exception or report failure. To find if<br />
+the mail was delivered correctly use the<font color="#000080"> <b>response</b></font>
+method<br />
+of class mailer, e.g.
+<pre>
+<span class="comment">// A valid response will begin with the string "250"
+// see rfc 821 for response codes, section 4.2.2.></span>
+<span class="blue">if</span>(mail.<a href="#response">response</a>( ).substr(0,3) != "250") {
+   <span class="comment">// error</span>
+}
+</pre>
+Alternatively you can use the second constructor for mailer, passing a vector<br />
+as the message body. The example below also shows how to send directly<br />
+to an SMTP server rather than querying dns for MX records.<br />
+<pre>
+std::vector&lt;<span class="blue">char</span>&gt; vec;
+std::string mess("Foo\nBar");
+<span class="blue">for</span>(std::string::size_type i = 0; i &lt; mess.length( ); ++i)
+   vec.push_back(mess[i]);
+
+jwsmtp::<a href="#mailer">mailer</a> mail(&quot;myspiffyfriend@spiffy.com&quot;,       <span class="comment">// who the mail is too</span>
+                    &quot;me@somewhere.net&quot;,                <span class="comment">// who the mail is from</span>
+                    &quot;There is always room for FooBar&quot;, <span class="comment">// subject for the email</span>
+                    vec,                               <span class="comment">// content of the message</span>
+                    &quot;mail.somewhere.net&quot;,              <span class="comment">// the smtp server to mail to</span>
+                    jwsmtp::mailer::SMTP_PORT,         <span class="comment">// default smtp port (25)<span>
+                    <span class="blue">false</span>);                            <span class="comment">// do not query MX records</span>
+                                                       <span class="comment">// mail directly to mail.somewhere.net</span>
+</pre>
+To send to mutiple recipients (to multiple email addresses), construct an<br />
+object of the mailer class as above. Then call the <b>addrecipient</b> method<br />
+(before calling <b>mailer::operator( )( )</b> ) to add email addresses to<br />
+send the mail to.
+e.g.
+<pre>
+mail.<a href="#addrecipient">addrecipient</a>("someoneElse@somewhere.net");
+<span class="comment">// blind carbon copy this next address</span>
+mail.addrecipient("whooton@somewhere.net", mailer::Bcc);
+</pre>
+The mail will now be sent to to these two addresses aswell as the address<br />
+passed in the constructor. To remove a recipient from the recipients list call<br />
+the removerecipient method with the <b><i>exact address</i></b><br />
+passed into the <b>constructor</b> or the <b>addrecipient</b> methods.
+e.g.
+<pre>
+mail.<a href="#removerecipient">removerecipient</a>("someoneElse@somewhere.net");
+</pre>
+To remove all recipients from the recipients list call<br />
+the <b>clearrecipients</b> method. e.g.
+<pre>
+mail.<a href="#clearrecipients">clearrecipients</a>( );
+</pre>
+After construction the body of the mail &amp; the subject of<br />
+the mail can be changed using the setmessage &amp; setsubject<br />
+functions respectively. e.g.
+<pre>
+mail.<a href="#setmessage">setmessage</a>(&quot;The new message that will be received&quot;);
+mail.<a href="#setsubject">setsubject</a>(&quot;Always room for improvement&quot;);
+</pre>
+To send a message in HTML format call the setmessage HTML functions:
+<pre>
+mail.<a href="#setmessageHTML">setmessageHTML</a>(<span class="blue">const</span> std::string& newmessage);
+mail.<a href="#setmessageHTML">setmessageHTML</a>(<span class="blue">const</span> std::vector&lt;<span class="blue">char&gt;</span>& newmessage);
+mail.<a href="#setmessageHTML">setmessageHTMLfile</a>(<span class="blue">const</span> std::string& filename);
+</pre>
+e.g.
+<pre>
+string html(&quot;&lt;html&gt;
+&quot;&lt;body&gt;"
+&quot;html message&lt;br&gt;&lt;br&gt;&quot;
+&quot;&lt;b&gt;bold&lt;/b&gt;&lt;br&gt;&quot;
+&quot;&lt;i&gt;italic&lt;/i&gt;&lt;br&gt;&quot;
+... etc
+&quot;&lt;/body&gt;&quot;
+&quot;&lt;/html&gt;&quot;);
+mail.<a href="#setmessageHTML">setmessageHTML</a>(html);
+</pre>
+To add an attachment use the <b><font color="#000080">attach</font></b>
+function e.g.
+<pre>
+mail.<a href="#attach">attach</a>(&quot;attachment.jpg&quot;);           <span class="comment">// relative to the current directory</span>
+mail.attach(&quot;D:\\adir\\attachment.jpg&quot;)  <span class="comment">// windows full path</span>
+mail.attach(&quot;/home/me/myprogram&quot;);       <span class="comment">// unix full path</span>
+</pre>
+When the mail is sent these files will automatically be sent<br />
+as part of the message also. Similarly to remove an attachment<br />
+call the removeattachment function. e.g.
+<pre>
+mail.<a href="#removeattachment">removeattachment</a>(&quot;/home/me/myprogram&quot;);
+</pre>
+To reset the mailer object (clearing all recipients, message &amp; errors if any)<br />
+call the reset function. e.g.
+<pre>
+mail.<a href="#reset">reset</a>( );
+</pre>
+To use the mail object again, add recipients and a new message and<br />
+optionally a new subject also, then call operator( )( ) to have the new<br />
+message mailed to the new recipients. The nameserver/smtpserver<br />
+can be changed using the <a href="#setserver">setserver</a> function, simararily the sender<br />
+can be changed using the <a href="#setsender">setsender</a> function. reset does not<br />
+change these values, so sending to a different server or using a<br />
+different nameserver will need setserver being called and<br />
+likewise to change who the mail is from will need a call to setsender.<br />
+<br />
+If the server to which you are connecting requires authentication set<br />
+the username/password pair before calling send. e.g.
+<pre>
+mail.<a href="#username">username</a>(&quot;loginname&quot;);
+mail.<a href="#password">password</a>(&quot;secret&quot;);
+</pre>
+To stop using authentication call the username function with the empty string.
+<pre>
+mail.<a href="#username">username</a>(&quot;&quot;);
+</pre>
+Currently only LOGIN and PLAIN authentication are supported, LOGIN by default,<br />
+to set to PLAIN call the authtype function
+<pre>
+mail.<a href="#authtype">authtype</a>(&quot;mailer::PLAIN&quot;);
+</pre>
+
+<a name="mailer"> </a>
+mailer public interface:
+<pre>
+construction
+<span class="comment">// if MXLookup is true:
+// server is a nameserver to lookup an MX record by.
+// if MXLookup is false.
+// server is an SMTP server which will be attempted directly for mailing
+// if an IP address is not found, either MX record or direct to SMTP server,
+// an attempt will be made to send mail directly to the server in the mail address.
+// e.g. mail to fred@somewhere.com will have a connection attempt made directly to:
+// somewhere.com</span>
+mailer(<span class="blue">const char</span>* TOaddress, <span class="blue">const char</span>* FROMaddress,
+       <span class="blue">const char</span>* Subject, <span class="blue">const</span> std::vector&lt;<span class="blue">char</span>&gt;&amp; Message,
+       <span class="blue">const char</span>* server = "127.0.0.1", <span class="comment">// default to localhost</span>
+
+       <span class="blue">unsigned short</span> Port = SMTP_PORT,  <span class="comment">// default SMTP port (25)</span>
+       <span class="blue">bool</span> MXLookup = true);
+mailer(<span class="blue">const char</span>* TOaddress, const char* FROMaddress,
+       <span class="blue">const char</span>* Subject, const char* Message,
+       <span class="blue">const char</span>* server = "127.0.0.1", <span class="comment">// default to localhost</span>
+
+       <span class="blue">unsigned short</span> Port = SMTP_PORT,  <span class="comment">// default SMTP port (25)</span>
+       <span class="blue">bool</span> MXLookup = <span class="blue">true</span>);
+mailer(<span class="blue">bool</span> MXLookup = <span class="blue">false</span>, <span class="blue">unsigned short</span> Port = SMTP_PORT);
+~mailer( );
+<a name="addrecipient"> </a>
+<span class="comment">// returns true if the address is added to the recipient list.
+// recipient_type must be in the range mailer::TO -> mailer::BCC if
+// not recipient_type defaults to BCC (blind copy), see const enum below.</span>
+<span class="blue">bool</span> addrecipient(<span class="blue">const</span> std::string&amp; newrecipient, <span class="blue">short</span> recipient_type = mailer::TO <span class="comment">/*CC, BCC*/</span>);
+<a name="removerecipient"> </a>
+<span class="comment">// remove an attachment from the list of attachments.
+// returns false if !filename.length() or
+// the file is not attached or there are no attachments.</span>
+<span class="blue">bool</span> removerecipient(<span class="blue">const</span> std::string&amp; recipient);
+<a name="clearrecipients"> </a>
+<span class="comment">// remove all recipients from the recipient list.</span>
+<span class="blue">void</span> clearrecipients( );
+<a name="attach"> </a>
+<span class="comment">// attach a file to the mail. (MIME 1.0)
+// returns false if !filename.length() or
+// the file could not be opened for reading...etc.
+// The file is unchanged, i.e. opened read-only.</span>
+<span class="blue">bool</span> attach(<span class="blue">const</span> std::string&amp; filename);
+<a name="removeattachment"> </a>
+<span class="comment">// remove an attachment from the list of attachments.
+// returns false if !filename.length() or
+// the file is not attached or there are no attachments.</span>
+<span class="blue">bool</span> removeattachment(<span class="blue">const</span> std::string&amp; filename);
+<a name="clearattachments"> </a>
+<span class="comment">// clear all attachments from the recipient list.</span>
+<span class="blue">void</span> clearattachments( );
+<a name="setmessage"> </a>
+<span class="comment">// Set a new message (replacing the old)
+// will return false and not change the message if newmessage is empty.</span>
+<span class="blue">bool</span> setmessage(<span class="blue">const</span> std::string&amp; newmessage);
+<span class="blue">bool</span> setmessage(<span class="blue">const</span> std::vector&lt;<span class="blue">char</span>&gt;& newmessage);
+<a name="setsubject"> </a>
+<span class="comment">// will return false if newSubject is empty.</span>
+<span class="blue">bool</span> setsubject(<span class="blue">const</span> std::string&amp; newSubject);
+<a name="setmessageHTML"> </a>
+<span class="comment">// Set a new HTML message (replacing the old)
+// will return false and not change the HTML message if newmessage is empty.</span>
+<span class="blue">bool</span> setmessageHTML(<span class="blue">const</span> std::string&amp; newmessage);
+<span class="blue">bool</span> setmessageHTML(<span class="blue">const</span> std::vector&lt;<span class="blue">char</span>&gt;& newmessage);
+<span class="comment">// Using a file as the html data.</span>
+<span class="blue">bool</span> setmessageHTMLfile(<span class="blue">const</span> std::string&amp; filename);
+<a name="reset"> </a>
+<span class="comment">// clear all recipients, message, attachments, errors.
+// does not reset the name/smtp server (use setserver for this)
+// does not set the senders address (use setsender for this)</span>
+<span class="blue">void</span> reset( );
+<a name="setserver"> </a>
+<span class="comment">// sets the nameserver or smtp server to connect to
+// dependant on the constructor call, i.e. whether
+// 'lookupMXRecord' was set to false or true.
+// (see constructor comment for details)</span>
+<span class="blue">bool</span> setserver(<span class="blue">const</span> std::string&amp; nameserver_or_smtpserver);
+<a name="setsender"> </a>
+<span class="comment">// sets the senders address (fromAddress variable)</span>
+<span class="blue">bool</span> setsender(<span class="blue">const</span> std::string&amp; newsender);
+<a name="operator"> </a>
+<span class="comment">// call this operator to have the mail mailed.
+// this is to facilitate using multiple threads
+// i.e. using boost::thread. ( see <a href="http://www.boost.org">http://www.boost.org</a> )
+//
+// e.g.
+// mailer mail(args...);
+// boost::thread thrd(mail); // operator( )( ) implicitly called.
+// thrd.join( ); // if needed.
+//
+// or:
+// mailer mail(args...);
+// mail.operator( )( );</span>
+<span class="blue">void</span> operator( )( );
+<span class="blue">void</span> send( ); <span class="comment">// implicitly call "operator( )( )"</span>
+<a name="response"> </a>
+<span class="comment">// returns the return code sent by the smtp server or a local error.
+// this is the only way to find if there is an error in processing.
+// if the mail is sent correctly this string will begin with 250
+// see smtp RFC 821 section 4.2.2 for response codes.</span>
+<span class="blue">const</span> std::string&amp; response( ) <span class="blue">const</span>;
+<a name="username"> </a>
+<span class="comment">// set the username for authentication.
+// If this function is called with a non empty string
+// jwSMTP will try to use authentication.
+// To not use authentication after this, call again
+// with the empty string e.g.
+//    mailerobject.username("");</span>
+<span class="blue">void</span> username(<span class="blue">const</span> std::string& User);
+<a name="password"> </a>
+<span class="comment">// set the password for authentication</span>
+<span class="blue">void</span> password(<span class="blue">const</span> std::string& Pass);
+<a name="authtype"> </a>
+<span class="comment">// set the authentication type
+// currently LOGIN or PLAIN only.
+// The default login type is <b>LOGIN</b>, set in the constructor</span>
+<span class="blue">void</span> authtype(<span class="blue">const enum</span> authtype Type);
+</pre>
+
+<a href="http://www.johnwiggins.net">JohnWiggins.net</a><br />
+bugs, questions email 
+<script type="text/javascript">
+// <![CDATA[
+user = "smtplib";
+site = "johnwiggins.net";
+document.write('<a href=\"mailto:' + user + '@' + site + '\">');
+document.write('jwsmtp</a>');
+// ]]> 
+</script>
+<!-- extra newlines for the name href's -->
+<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+</div>
+</body>
+</html>

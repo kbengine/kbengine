@@ -882,6 +882,23 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 	(*pBundle) << callbackID;
 
 	(*pBundle).append(*s);
+	
+	// ¼ÇÂ¼µÇÂ¼µØÖ·
+	if(this->getDBID() == 0)
+	{
+		uint32 ip = 0;
+		uint16 port = 0;
+		
+		if(this->getClientMailbox())
+		{
+			ip = this->getClientMailbox()->addr().ip;
+			port = this->getClientMailbox()->addr().port;
+		}
+
+		(*pBundle) << ip;
+		(*pBundle) << port;
+	}
+
 	(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
 	MemoryStream::ObjPool().reclaimObject(s);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);

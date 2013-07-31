@@ -2030,8 +2030,8 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 		ENTITY_ID entityID = idClient_.alloc();
 		KBE_ASSERT(entityID > 0);
 
-		DbmgrInterface::queryAccountArgs5::staticAddToBundle((*pBundle), accountName, password, g_componentID, 
-			entityID, ptinfos->entityDBID);
+		DbmgrInterface::queryAccountArgs7::staticAddToBundle((*pBundle), accountName, password, g_componentID, 
+			entityID, ptinfos->entityDBID, pChannel->addr().ip, pChannel->addr().port);
 
 		(*pBundle).send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);

@@ -84,6 +84,24 @@ public:
 protected:
 };
 
+
+class KBEAccountActivationTableMysql : public KBEAccountActivationTable
+{
+public:
+	KBEAccountActivationTableMysql();
+	virtual ~KBEAccountActivationTableMysql();
+
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB(DBInterface* dbi);
+
+	virtual bool queryAccount(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info);
+	virtual bool logAccount(DBInterface * dbi, ACCOUNT_INFOS& info);
+	virtual bool delAccount(DBInterface * dbi, const std::string& name);
+protected:
+};
+
 }
 
 #endif // __KBE_KBE_TABLE_MYSQL__

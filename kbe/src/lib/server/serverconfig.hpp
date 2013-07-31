@@ -79,6 +79,17 @@ struct ChannelCommon
 	uint32 intWriteBufferSize;
 };
 
+struct EmailAtivationInfo
+{
+	std::string smtp_server;
+	uint32 smtp_port;
+	std::string username;
+	std::string password;
+	std::string subject;
+	std::string message;
+	uint32 deadline;
+};
+
 // 引擎组件信息结构体
 typedef struct EngineComponentInfo
 {
@@ -161,6 +172,8 @@ typedef struct EngineComponentInfo
 
 	uint64 respool_timeout;
 	uint32 respool_buffersize;
+
+	uint8 account_type;										// 1: 普通账号, 2: email账号(需要激活), 3: 智能账号(自动识别email， 普通号码等) 
 }ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>
@@ -246,6 +259,10 @@ public:
 
 	float thread_timeout_;											// 默认超时时间(秒)
 	uint32 thread_init_create_, thread_pre_create_, thread_max_create_;
+
+	EmailAtivationInfo emailAtivationInfo_;
+
+
 };
 
 #define g_kbeSrvConfig ServerConfig::getSingleton()

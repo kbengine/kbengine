@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Linux/x86 (vers 1st January 2004), see www.w3.org" />
+
+  <title>jwSMTP library very basic code sample</title>
+  <link href="/css/main.css" rel="stylesheet" type="text/css" />
+  <link href="main.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+
+  <div style="text-align: center;">
+     <h2>jwSMTP library very basic code sample</h2>
+  </div>
+
+<div id="rightside">
+<pre>
+<span class="blue">#include</span> &lt;jwsmtp/jwsmtp.h&gt;
+
+<span class="blue">int</span> main(<span class="blue">int</span> argc, <span class="blue">char</span>* argv[])
+{
+   <span class="comment">//                 to     from     subject          message      smtp server          port 25            no MX</span>
+   jwsmtp::mailer m(&quot;root&quot;, &quot;root&quot;, &quot;subject line&quot;, &quot;message body&quot;, &quot;localhost&quot;, jwsmtp::mailer::SMTP_PORT, false);
+   m.send( ); <span class="comment">// send the mail</span>
+   std::cout &lt;&lt; m.response( ) << &quot;\n&quot;;
+   <span class="blue">return</span> 0;
+}
+</pre>
+    If this was a file called <span style="color: rgb(0, 0, 0);">myemailer.cpp</span> to compile it
+    into a working program, run the command:
+<pre>
+g++ myemailer.cpp -o myemailer `pkg-config --libs --cflags jwsmtp-&lt;version&gt;`
+</pre>
+where <b>&lt;version&gt;</b> is the latest
+    version of jwSMTP without the &lt;&gt; symbols.<br /><br />
+    <a href="http://JohnWiggins.net">JohnWiggins.net</a><br />
+    email me about 
+<script type="text/javaScript">
+// <![CDATA[
+user = "smtplib";
+site = "johnwiggins.net";
+document.write('<a href=\"mailto:' + user + '@' + site + '\">');
+document.write('jwSMTP</a>');
+// ]]> 
+</script>
+</div>
+</body>
+</html>

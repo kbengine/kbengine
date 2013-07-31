@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Linux/x86 (vers 1st January 2004), see www.w3.org" />
+
+  <title>jwSMTP How To</title>
+  <link href="/css/main.css" rel="stylesheet" type="text/css" />
+  <link href="main.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+  <div style="text-align: center;">
+    <h2>How To Use the jwSMTP library in your own programs</h2>
+  </div>
+
+  <div id="rightside">
+    The easiest way to use jwSMTP is to use the pkg-config program.
+    Chances are this is already on your system. As an example you
+    have a file (myemailingprogram.cpp) that you wish to compile into an
+    smtp enabled program ( Please note that the [ <b><span style=
+    "color: rgb(0, 0, 0);">`</span></b> ] character in this line is
+    not a [ <b><span style="color: rgb(0, 0, 0);">'</span></b> ]
+    character ). Just run at the command line<br />
+
+<pre>
+g++ myemailingprogram.cpp -o myemailingprogram `pkg-config --libs --cflags jwsmtp-&lt;version&gt;`
+</pre>
+where <span style="color: rgb(0, 0, 0);">&lt;version&gt;</span> is the latest
+    version of jwSMTP without the &lt;&gt; symbols.<br />
+    This compiles the program <b>myemailingprogram</b>, drop this file in a directory
+    somewhere in your path, simple huh<br />
+    <br />
+    One caveat this pre-supposes that the <span style=
+    "color: rgb(0, 0, 0);">PKG_CONFIG_PATH</span> environment
+    variable is set correctly. If not set it at the command line.
+    Please note that the [ <b><span style=
+    "color: rgb(0, 0, 0);">`</span></b> ] character in these lines
+    is not a [ <b><span style="color: rgb(0, 0, 0);">'</span></b> ]
+    character.<br />
+
+<pre>
+PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig
+
+g++ myemailingprogram.cpp -o myemailingprogram `pkg-config --libs --cflags jwsmtp-&lt;version&gt;`
+</pre>
+where <span style=
+    "color: rgb(0, 0, 0);">&lt;version&gt;</span> is the latest
+    version of jwSMTP without the &lt;&gt; symbols.<br />
+    <b>/usr/local/lib/pkgconfig</b> being the path to the
+    pkg-config directory where jwSMTP's pkg-config file is.<br />
+    <br />
+    Alternatively if you do not have the pkg-config program<br />
+<pre>
+g++  myemailingprogram.cpp -o myemailingprogram -I/usr/local/include/jwsmtp-&lt;version&gt; -L/usr/local/lib -ljwsmtp-&lt;version&gt;
+</pre>
+where <span style="color: rgb(0, 0, 0);">&lt;version&gt;</span> is the latest
+    version of jwSMTP without the &lt;&gt; symbols.<br />
+    If you wish to link statically
+<pre>
+g++  myemailingprogram.cpp -o myemailingprogram -I/usr/local/include/jwsmtp-&lt;version&gt; /usr/local/lib/libjwsmtp-&lt;version&gt;.a
+</pre>
+where <span style="color: rgb(0, 0, 0);">&lt;version&gt;</span> is the latest
+    version of jwSMTP without the &lt;&gt; symbols.<br />
+    <br />
+    email me about 
+<script type="text/javaScript">
+// <![CDATA[
+user = "smtplib";
+site = "johnwiggins.net";
+document.write('<a href=\"mailto:' + user + '@' + site + '\">');
+document.write('jwSMTP</a>');
+// ]]> 
+</script>
+  </div>
+</body>
+</html>

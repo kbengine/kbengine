@@ -52,7 +52,7 @@ public:
 	virtual void eraseClientReq(Mercury::Channel* pChannel, std::string& logkey) = 0;
 
 	virtual bool createAccount(Mercury::Channel* pChannel, std::string& registerName, 
-		std::string& password, std::string& datas) = 0;
+		std::string& password, std::string& datas, ACCOUNT_TYPE uatype) = 0;
 
 
 	virtual bool loginAccount(Mercury::Channel* pChannel, std::string& loginName, 
@@ -80,7 +80,7 @@ public:
 	virtual void eraseClientReq(Mercury::Channel* pChannel, std::string& logkey);
 
 	virtual bool createAccount(Mercury::Channel* pChannel, std::string& registerName, 
-		std::string& password, std::string& datas);
+		std::string& password, std::string& datas, ACCOUNT_TYPE uatype);
 
 	virtual bool loginAccount(Mercury::Channel* pChannel, std::string& loginName, 
 		std::string& password, std::string& datas);
@@ -106,7 +106,7 @@ public:
 	virtual void eraseClientReq(Mercury::Channel* pChannel, std::string& logkey);
 
 	virtual bool createAccount(Mercury::Channel* pChannel, std::string& registerName, 
-		std::string& password, std::string& datas);
+		std::string& password, std::string& datas, ACCOUNT_TYPE uatype);
 
 	virtual bool loginAccount(Mercury::Channel* pChannel, std::string& loginName, 
 		std::string& password, std::string& datas);

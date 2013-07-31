@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Linux/x86 (vers 1st January 2004), see www.w3.org" />
+
+  <title>CGI class interface</title>
+  <link href="/css/main.css" rel="stylesheet" type="text/css" />
+  <link href="main.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+
+  <div style="text-align: center;">
+     <h2>jwSMTP library documentation</h2>
+  </div>
+
+<div id="rightside">
+<b>howto use the mailer class in your own programs</b><br />
+First compile the code.<br />
+If you have VC++ double click the <b>mail.dsw</b> file in the jwsmtp directory. Change to the lib target and press F7 to compile.
+If you don't, use your development environment to compile the jwsmtp files into a lib.<br />
+Copy the jwsmtp.lib file in the build directory and the headers ( jwsmtp.h, mailer.h, compat.h, base64.h in the jwsmtp/jwsmtp directory) into their own directory. 
+Tell your development environment where the library file is and its headers. e.g. presuming you copied the files into the <b>C&#58;&#92;jwsmtp</b> directory.<br />
+<img src= "t-o-l.jpg" style="border: 0px solid; width: 417px; height: 319px;" title="";  alt=""; "/>&nbsp;&nbsp;
+<img src= "t-o-i.jpg" style="border: 0px solid; width: 417px; height: 319px;" title="";  alt=""; "/><br /><br />
+Now you need to tell the linker to link against this library file when
+linking. In VC use the project settings dialog to tell the current project the name of the library to use.<br />
+<img src="lib-set.jpg" style="border: 1px solid ; width: 637px; height: 432px;" title=""  alt="" /><br />
+Change to the <b>'Link'</b> tab and add <b>jwsmtp.lib</b> to the <b>Object/library modules</b> text box.<br />
+The source code file that references the jwsmtp library must have an include line for the libraries header, i.e:<br />
+<pre>
+<span class="blue">#include</span> &lt;jwsmtp.h&gt;
+
+<i>.... rest of program code</i>
+</pre>
+Alternatively you could just put the names of the three object files in this text box (mailer.o, compat.o, base64.o) if you do not wish to use the compiled library.<br /><br />
+That's about it, enjoy.<br /><br />
+<a href="http://www.johnwiggins.net">JohnWiggins.net</a><br />
+email:
+<script type="text/javascript">
+// <![CDATA[
+user = "smtplib";
+site = "johnwiggins.net";
+document.write('<a href=\"mailto:' + user + '@' + site + '\">');
+document.write('jwsmtp</a>');
+// ]]> 
+</script>
+</div>
+</body>
+</html>

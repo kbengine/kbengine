@@ -164,6 +164,38 @@ bool ServerConfig::loadConfig(std::string fileName)
 		}
 	}
 
+	rootNode = xml->getRootNode("email_activation");
+	if(rootNode != NULL)
+	{
+		TiXmlNode* childnode = xml->enterNode(rootNode, "smtp_server");
+		if(childnode)
+			emailAtivationInfo_.smtp_server = xml->getValStr(childnode);
+
+		childnode = xml->enterNode(rootNode, "smtp_port");
+		if(childnode)
+			emailAtivationInfo_.smtp_port = xml->getValInt(childnode);
+
+		childnode = xml->enterNode(rootNode, "username");
+		if(childnode)
+			emailAtivationInfo_.username = xml->getValStr(childnode);
+
+		childnode = xml->enterNode(rootNode, "password");
+		if(childnode)
+			emailAtivationInfo_.password = xml->getValStr(childnode);
+
+		childnode = xml->enterNode(rootNode, "subject");
+		if(childnode)
+			emailAtivationInfo_.subject = childnode->ToText()->Value();
+
+		childnode = xml->enterNode(rootNode, "message");
+		if(childnode)
+			emailAtivationInfo_.message = childnode->ToText()->Value();
+
+		childnode = xml->enterNode(rootNode, "deadline");
+		if(childnode)
+			emailAtivationInfo_.deadline = xml->getValInt(childnode);
+	}
+
 	rootNode = xml->getRootNode("channelCommon");
 	if(rootNode != NULL)
 	{
@@ -752,6 +784,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "encrypt_login");
 		if(node != NULL){
 			_loginAppInfo.encrypt_login = xml->getValInt(node);
+		}
+
+		node = xml->enterNode(rootNode, "account_type");
+		if(node != NULL){
+			_loginAppInfo.account_type = xml->getValInt(node);
 		}
 	}
 	

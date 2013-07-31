@@ -51,6 +51,14 @@
 		<descr>客户端请求导入消息协议。</descr>
 	</Loginapp::importClientMessages>
 	
+	<Loginapp::reqCreateMailAccount>
+		<id>6</id>
+		<descr>客户端请求创建一个mail账号。</descr>
+		<arg>STRING</arg> <!-- 账号名 -->
+		<arg>STRING</arg> <!-- 密码 -->
+		<arg>UINT8_ARRAY</arg> <!-- 二进制流， 具体由开发者来解析 -->
+	</Loginapp::reqCreateMailAccount>
+	
 	<Baseapp::hello>
 		<id>200</id>
 		<descr>hello。</descr>

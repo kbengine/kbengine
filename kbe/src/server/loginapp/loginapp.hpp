@@ -51,7 +51,7 @@ public:
 		TIMEOUT_CHECK_STATUS,
 		TIMEOUT_MAX
 	};
-	
+
 	Loginapp(Mercury::EventDispatcher& dispatcher, 
 		Mercury::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
@@ -86,7 +86,14 @@ public:
 	/** 网络接口
 		创建账号
 	*/
+	bool _createAccount(Mercury::Channel* pChannel, std::string& accountName, 
+		std::string& password, std::string& datas, ACCOUNT_TYPE type = ACCOUNT_TYPE_NORMAL);
 	void reqCreateAccount(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		创建email账号
+	*/
+	void reqCreateMailAccount(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		创建账号

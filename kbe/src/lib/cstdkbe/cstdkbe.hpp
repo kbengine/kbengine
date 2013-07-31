@@ -50,6 +50,14 @@ namespace KBEngine{
 /** kbe时间 */
 extern GAME_TIME g_kbetime;
 
+/** 账号的类别 */
+enum ACCOUNT_TYPE
+{
+	ACCOUNT_TYPE_NORMAL = 1,	// 普通账号
+	ACCOUNT_TYPE_MAIL = 2,		// email账号(需激活)
+	ACCOUNT_TYPE_SMART = 3		// 智能识别
+};
+
 /** entity的mailbox类别 */
 enum ENTITY_MAILBOX_TYPE
 {

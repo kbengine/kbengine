@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "dbmgr_lib/entity_table.hpp"
 #include "entitydef/entitydef.hpp"
 #include "entitydef/scriptdef_module.hpp"
+#include "server/serverconfig.hpp"
 
 namespace KBEngine { 
 
@@ -194,7 +195,9 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* dbi)
 			"(accountName varchar(255) not null, PRIMARY KEY idKey (accountName),"
 			"password varchar(255),"
 			"bindata blob,"
-			"entityDBID bigint(20) not null DEFAULT 0)"
+			"entityDBID bigint(20) not null DEFAULT 0,"
+			"flags int unsigned not null DEFAULT 0,"
+			"deadline bigint(20) not null DEFAULT 0)"
 		"ENGINE="MYSQL_ENGINE_TYPE;
 
 	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
@@ -212,7 +215,7 @@ KBEAccountTableMysql::KBEAccountTableMysql():
 //-------------------------------------------------------------------------------------
 bool KBEAccountTableMysql::queryAccount(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info)
 {
-	std::string sqlstr = "select entityDBID, password from kbe_accountinfos where accountName like \"";
+	std::string sqlstr = "select entityDBID, password, flags, deadline from kbe_accountinfos where accountName like \"";
 
 	char* tbuf = new char[name.size() * 2 + 1];
 
@@ -237,12 +240,21 @@ bool KBEAccountTableMysql::queryAccount(DBInterface * dbi, const std::string& na
 		{
 			std::stringstream sval;
 			sval << arow[0];
+
 			DBID old_dbid;
-			
 			sval >> old_dbid;
+
 			info.dbid = old_dbid;
 			info.name = name;
 			info.password = arow[1];
+
+			sval << arow[3];
+			uint32 flags = 0;
+			sval >> flags;
+
+			sval << arow[4];
+			uint64 deadline = 0;
+			sval >> deadline;
 		}
 
 		mysql_free_result(pResult);
@@ -254,7 +266,7 @@ bool KBEAccountTableMysql::queryAccount(DBInterface * dbi, const std::string& na
 //-------------------------------------------------------------------------------------
 bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
 {
-	std::string sqlstr = "insert into kbe_accountinfos (accountName, password, bindata, entityDBID) values(";
+	std::string sqlstr = "insert into kbe_accountinfos (accountName, password, bindata, entityDBID, flags, deadline) values(";
 
 	char* tbuf = new char[MAX_BUF * 3];
 
@@ -280,9 +292,9 @@ bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
 	sqlstr += "\",";
 
 	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, info.dbid);
-
 	sqlstr += tbuf;
-	sqlstr += ")";
+
+	sqlstr += ",0,0)";
 
 	SAFE_RELEASE_ARRAY(tbuf);
 
@@ -320,6 +332,139 @@ bool KBEEntityTypeMysql::syncToDB(DBInterface* dbi)
 			"PRIMARY KEY (entityType))"
 		"ENGINE="MYSQL_ENGINE_TYPE;
 
+	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
+	KBE_ASSERT(ret);
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+KBEAccountActivationTableMysql::KBEAccountActivationTableMysql():
+KBEAccountActivationTable()
+{
+}
+	
+//-------------------------------------------------------------------------------------
+KBEAccountActivationTableMysql::~KBEAccountActivationTableMysql()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool KBEAccountActivationTableMysql::queryAccount(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info)
+{
+	std::string sqlstr = "select datas, password from kbe_accountactivation where accountName like \"";
+
+	char* tbuf = new char[name.size() * 2 + 1];
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, name.c_str(), name.size());
+
+	sqlstr += tbuf;
+
+	SAFE_RELEASE_ARRAY(tbuf);
+	sqlstr += "\"";
+
+	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+		return false;
+
+	info.datas = "";
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+	if(pResult)
+	{
+		MYSQL_ROW arow;
+		while((arow = mysql_fetch_row(pResult)) != NULL)
+		{
+			info.name = name;
+			info.datas = arow[0];
+			info.password = arow[1];
+		}
+
+		mysql_free_result(pResult);
+	}
+
+	return info.datas.size() > 0;
+}
+
+//-------------------------------------------------------------------------------------
+bool KBEAccountActivationTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
+{
+	std::string sqlstr = "insert into kbe_accountactivation (accountName, password, datas, logtime) values(";
+
+	char* tbuf = new char[MAX_BUF * 3];
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, info.name.c_str(), info.name.size());
+
+	sqlstr += "\"";
+	sqlstr += tbuf;
+	sqlstr += "\",";
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, info.password.c_str(), info.password.size());
+
+	sqlstr += "md5(\"";
+	sqlstr += tbuf;
+	sqlstr += "\"),";
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, info.datas.data(), info.datas.size());
+
+	sqlstr += "\"";
+	sqlstr += tbuf;
+	sqlstr += "\",";
+
+	kbe_snprintf(tbuf, MAX_BUF, "%"PRDBID, getSystemTime());
+
+	sqlstr += tbuf;
+	sqlstr += ")";
+
+	SAFE_RELEASE_ARRAY(tbuf);
+
+	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+		return false;
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool KBEAccountActivationTableMysql::delAccount(DBInterface * dbi, const std::string& name)
+{
+	std::string sqlstr = "delete from kbe_accountactivation where accountName=";
+
+	char* tbuf = new char[MAX_BUF * 3];
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, name.c_str(), name.size());
+
+	sqlstr += "\"";
+	sqlstr += tbuf;
+	sqlstr += "\"";
+	
+	SAFE_RELEASE_ARRAY(tbuf);
+
+	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+		return false;
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool KBEAccountActivationTableMysql::syncToDB(DBInterface* dbi)
+{
+	bool ret = false;
+
+	std::string sqlstr = "CREATE TABLE IF NOT EXISTS kbe_accountactivation "
+			"(accountName varchar(255) not null,"
+			"password varchar(255),"
+			"datas varchar(255), PRIMARY KEY idKey (datas),"
+			"logtime bigint(20) not null DEFAULT 0)"
+		"ENGINE="MYSQL_ENGINE_TYPE;
+
+	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
+	KBE_ASSERT(ret);
+
+	// 删除24小时之前的记录
+	sqlstr = "delete from kbe_accountactivation where logtime<";
+	sqlstr += KBEngine::StringConv::val2str(getSystemTime() - g_kbeSrvConfig.emailAtivationInfo_.deadline);
 	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
 	KBE_ASSERT(ret);
 	return ret;

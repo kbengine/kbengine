@@ -1,0 +1,207 @@
+jwSMTP library changelog
+______________________________________________________________________________________________
+version 1.32.15        Feb 27th 2007
+  Bugfix:
+    makesmtpmessage now uses strftime to format date string for email headers. sn4k3 suggestion
+    Bcc no longer added to header. bugfix, Should never have been added to the envelope!
+
+   Quick note have not touched the WIN32 code in a few years, also was coded in VC6 so way
+   out of date. I do not change this code just here for the chance that it will work in windows
+______________________________________________________________________________________________
+version 1.32.13        Jul 4th 2006
+  Bugfix:
+    mailer.cpp warning about type hiding mailer::type (changed to typ)
+	Winfried Mevenkamp pointed out possible buffer overflow after recv calls, fixed by making
+	all recv calls say the buffer is one shorter than passed e.g.
+	   Recv(len1, s, buff, buffsize -1, 0);
+	then
+	   buff[len1] = '\0';
+	does not overwrite if buffsize characters are received.
+   Added Closesocket cleanup call if error in dns code line 1113 (also Winfried's suggestion).
+
+   Quick note have not touched the WIN32 code in a few years, also was coded in VC6 so way
+   out of date. I do not change this code just here for the chance that it will work in windows
+______________________________________________________________________________________________
+version 1.32.12        Jan 26th 2006
+  Bugfix:
+    checkRFCcompat() invalidates iterator!
+    added iterator reassignment to fix, thanks to Dan Litty & Lideng Ni
+    for the pointer.
+    Also did not comply fully with rfc 821 section 4.5.2.  TRANSPARENCY, fixed.
+______________________________________________________________________________________________
+version 1.32.11        May 15th 2005
+  Bugfix:
+    On the BSD's will not compile because of the timezone function. Corrected
+	 this to use the tm structure tm_gmtoff member instead. mailer.cpp Line 771
+______________________________________________________________________________________________
+version 1.32.10        May 2005
+  Bugfix:
+    Forgot to clear the headerline variable in makesmtpmessage (line 894)
+	 results in extra attachment artifacts. Thanks Jim Steel for the pointer
+	 and fix.
+______________________________________________________________________________________________
+version 1.32.9        April 2005
+  Bugfix:
+    When attaching files with filename less than 4 characters causes terminate
+    call as substr is overrun, big oopsy. Can now attach files of 1 character
+    and up, as it should be, wow what an idiot
+______________________________________________________________________________________________
+version 1.32.8        20th March 2005
+  Optimization:
+    when attaching file/message makesmtpmessage used to convert between strings
+    and vectors i.e. loop over every character in a vector and place it in a
+    string. When attaching large files/messages you should see a speed
+    improvement.
+  Bugfix:
+    The Date header was still not correct, I have not been putting in the
+    timezone offset. So added that, I hope the logic is correct. If you get mail
+    with the time incorrect, let me know your timezone and how much the clock
+    was out, maybe I can really understand what is going on then! (I think I got
+    it right ***nirg***)
+______________________________________________________________________________________________
+version 1.32.7        March 2005
+  Minor bug fix.
+  line 815 of mailer.cpp missing else clause
+     (bug found by Thomas Pflüger, Thanks)
+   This did not upset the logic, just halted its processing.
+   Essentially two if/else blocks were present instead of one.
+______________________________________________________________________________________________
+version 1.32.6        February 2005
+  Minor bug fix.
+  parseaddress has a minor bug, cuts off the end of a name outside of <> characters.
+  if the name is at the beginning of the address i.e.
+       "hoopla girl<hoopla@wibble.com>"
+  ends up:
+       "hoopla gir"
+  If your intersted see line 1237 of mailer.cpp for explanation
+    (bug found by David Irwin, thanks David)
+______________________________________________________________________________________________
+version 1.32.5        October 2004
+  Minor bug fixes.
+  Replaced checklinesarelessthan1000chars with checkRFCcompat
+     this function now also checks for invalid line breaks and fixes them up.
+     qmail will no longer balk with ....Lame Server... issues.
+     If a dot is in the message on a line by itself another dot is added to
+     that line to stop premature message closing. (suggestion by David Irwin, thanks David)
+______________________________________________________________________________________________
+version 1.32.4        August 2004
+  Minor bug fix.
+  Default mailer constructor does not set the authentication variables.
+   This causes errors when not using authentication when using the default constructor.
+     stupid error on my part, sorry.
+______________________________________________________________________________________________
+version 1.32.2        June 2004
+  Added the ability to send HTML formatted mail.
+  via:
+     setmessageHTML
+     setmessageHTMLfile
+  functions.
+______________________________________________________________________________________________
+version 1.31.1        April 2004
+  oops forgot to add the VC project files in last release.
+  No other changes.
+______________________________________________________________________________________________
+version 1.31.0        April 2004
+  Now under gnutools control
+    i.e. ./configure  make  make install       dance
+  SMTP authentication added  PLAIN & LOGIN
+    plain auth may not work yet, oops sorry, could not test properly.
+______________________________________________________________________________________________
+version 1.30
+  Now under the GNU GPL license
+  makefile changes to make a library
+    e.g.  make lib libinstall
+    link dynamic -ljwsmtp or static /usr/local/lib/libjwsmtp.a
+  added compatabilty code and moved most platform specifics from the mailer class
+  removed bugs (send/recv returns not checked correctly in old code)
+  removed errant MSG_DONTROUTE flags from network code. Fixes the case where
+   no network errors are encountered when not using a local nameserver.
+  added a sockaddr_in wrapper, life is easier for me now.
+  everything is in the jwsmtp namespace, need to do this now jwsmtp::mailer(...)
+  added default constructor + functions to get/set tan MX lookup
+  added second demo program, the shortest usage of the mailer class.
+______________________________________________________________________________________________
+version 1.21
+  added real email address functionality.
+    i.e can now use:
+        "foo bar <foo@bar.com>" or
+        "<foo@bar.com> foo bar" or
+        "foo@bar.com" for addresses
+	incorporated suggestions by Ken Weinert to resolve SunOS issues.
+    INTERFACE unchanged.
+
+______________________________________________________________________________________________
+version 1.20
+  Removed duplicated code in 'parseRR( )' function.
+  Removed extra vector in 'attach( )' function.
+______________________________________________________________________________________________
+version 1.19
+  fixed problem in gethostaddresses:
+  when an invalid nameserver is passed to the constructor and the servers
+  address does not resolve in dns, the code hangs! forgot to return at this point.
+  gethostaddresses now returns false at this point fixing this error.
+  
+  added Date to the SMTP header.
+______________________________________________________________________________________________
+version 1.18
+  bug fix, attachments did not work for binary files as
+  lines where longer than a 1000 characters, SMTP forbids
+  this, base64encode function now adds a newline every 79
+  chars into a line. Sorry stupid oversight on my part.
+
+  Added funtions to change all the values in the mail
+  message, recipients, servers etc..
+
+  new functions:
+    bool setserver(const std::string& nameserver_or_smtpserver);
+	bool setsender(const std::string& newsender);
+	void clearattachments();
+	void reset(); // erase recipients, message, attachments, errors.
+______________________________________________________________________________________________
+
+version 1.17
+  TO: Cc: Bcc: mail recipient capability added
+  added a function to remove attachments.
+  changed an existing function, does not break the interface
+  as the extra argument has a default value
+  i.e. addrecipient("someone@somewhere.net");
+    is the same as:
+	   addrecipient("someone@somewhere.net", mailer::TO);
+
+  new function:
+    bool mailer::removeattachment(const std::string& filename);
+  changed functions
+
+    bool addrecipient(const std::string& newrecipient, short recipient_type = TO /*CC, BCC*/);
+______________________________________________________________________________________________
+
+version 1.16
+  file attachments added
+
+  new function:
+    bool attach(const std::string& filename);
+______________________________________________________________________________________________
+
+version 1.15
+  subject & message change ability added
+
+  new functions:
+    bool setmessage(const std::string& newmessage);
+	bool setmessage(const std::vector<char>& newmessage);
+	bool setsubject(const std::string& newSubject);
+
+  new enum for convenience:
+    const static enum {SMTP_PORT = 25, DNS_PORT = 53}
+______________________________________________________________________________________________
+
+version 1.14
+  multiple recipients capabaility added
+
+  new functions:
+    bool addrecipient(const std::string& newrecipient);
+	bool removerecipient(const std::string& recipient);
+	void clearrecipients();
+______________________________________________________________________________________________
+
+pre 1.13 & below
+  interface stayed the same until 1.14

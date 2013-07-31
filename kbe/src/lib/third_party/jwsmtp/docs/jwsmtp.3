@@ -1,0 +1,93 @@
+.\" Copyright (c) 2004 John Wiggins (jw@johnwiggins.net).
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.2
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+.\" Texts.  A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\"
+.TH jwsmtp 3  "June 20, 2004" "version 1.32" "EMAIL PROGRAMMING"
+.SH NAME
+jwsmtp \- smtp library in C++
+.SH SYNOPSIS
+.B #include <jwsmtp/jwsmtp.h>
+.sp
+.nf
+mailer(const char* TOaddress, const char* FROMaddress,
+       const char* Subject, const std::vector<char>& Message,
+       const char* server = "127.0.0.1",
+       unsigned short Port = SMTP_PORT,
+       bool MXLookup = true);
+mailer(const char* TOaddress, const char* FROMaddress,
+       const char* Subject, const char* Message,
+       const char* server = "127.0.0.1",
+       unsigned short Port = SMTP_PORT,
+       bool MXLookup = true);
+mailer(bool MXLookup = false, unsigned short Port = SMTP_PORT);
+void operator()();
+void send();
+bool attach(const std::string& filename);
+bool removeattachment(const std::string& filename);
+bool setmessage(const std::string& newmessage);
+bool setmessage(const std::vector<char>& newmessage);
+bool setmessageHTML(const std::string& newmessage);
+bool setmessageHTML(const std::vector<char>& newmessage);
+bool setmessageHTMLfile(const std::string& filename);
+bool setsubject(const std::string& newSubject);
+bool setserver(const std::string& nameserver_or_smtpserver);
+bool setsender(const std::string& newsender);
+bool addrecipient(const std::string& newrecipient, short recipient_type = TO);
+bool removerecipient(const std::string& recipient);
+
+void clearrecipients();
+void clearattachments();
+void reset();
+
+const static enum {TO, Cc, Bcc, SMTP_PORT = 25, DNS_PORT = 53} consts;	
+enum authtype {LOGIN = 1, PLAIN} type;
+
+void authtype(const enum authtype Type);
+void username(const std::string& User);
+void password(const std::string& Pass);
+.fi
+.SH DESCRIPTION
+jwSMTP is a C++ library/code to facilitate sending email programmatically. send in plain text - html format, attachments, multiple recipients - BCC CC included. LOGIN & PLAIN authentication. Do an MX lookup or send direct via smtp server.
+.SH EXAMPLES
+Send an email to root on the machine the program is invoked on.
+.nf
+    #include <jwsmtp/jwsmtp.h>
+
+    jwsmtp::mailer m("root", "root", "subject line",
+                     "This is the plain text part of the message",
+                     "localhost", jwsmtp::mailer::SMTP_PORT, false);
+    m.send();
+
+.fi
+Send an email to
+.B someone@somewhere.net
+from
+.B me@myserver.net.
+Here we do an MX lookup on
+.B somewhere.net
+using the nameserver 
+.B ns.thenameserver.net
+.nf
+    #include <jwsmtp/jwsmtp.h>
+
+    jwsmtp::mailer m("someone@somewhere.net", "me@myserver.net",
+                     "subject line", "Hey what's up?",
+                     "ns.thenameserver.net");
+    m.send();
+
+.fi
+Check whether the mail got sent
+.nf
+    if(m.response( ).substr(0,3) != "250") {
+        // error, mail not sent
+    }
+
+.fi
+.SH AUTHOR
+John Wiggins (jw@johnwiggins.net)
+.SH BUGS
+

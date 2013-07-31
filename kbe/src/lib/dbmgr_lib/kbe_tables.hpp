@@ -139,6 +139,24 @@ public:
 protected:
 };
 
+class KBEAccountActivationTable : public KBETable
+{
+public:
+	KBEAccountActivationTable():
+	KBETable()
+	{
+		tableName("kbe_accountactivation");
+	}
+	
+	virtual ~KBEAccountActivationTable()
+	{
+	}
+
+	virtual bool queryAccount(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info) = 0;
+	virtual bool logAccount(DBInterface * dbi, ACCOUNT_INFOS& info) = 0;
+	virtual bool delAccount(DBInterface * dbi, const std::string& name) = 0;
+protected:
+};
 
 }
 

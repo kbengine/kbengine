@@ -454,7 +454,9 @@ void Dbmgr::onBroadcastGlobalDataChange(Mercury::Channel* pChannel, KBEngine::Me
 void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	std::string registerName, password, datas;
-	s >> registerName >> password;
+	uint8 uatype = 0;
+
+	s >> registerName >> password >> uatype;
 	s.readBlob(datas);
 
 	if(registerName.size() == 0)
@@ -463,7 +465,7 @@ void Dbmgr::reqCreateAccount(Mercury::Channel* pChannel, KBEngine::MemoryStream&
 		return;
 	}
 
-	pBillingHandler_->createAccount(pChannel, registerName, password, datas);
+	pBillingHandler_->createAccount(pChannel, registerName, password, datas, ACCOUNT_TYPE(uatype));
 	numCreatedAccount_++;
 }
 
@@ -501,7 +503,9 @@ void Dbmgr::queryAccount(Mercury::Channel* pChannel,
 						 std::string& password,
 						 COMPONENT_ID componentID,
 						 ENTITY_ID entityID,
-						 DBID entityDBID)
+						 DBID entityDBID, 
+						 uint32 ip, 
+						 uint16 port)
 {
 	if(accountName.size() == 0)
 	{
@@ -510,7 +514,7 @@ void Dbmgr::queryAccount(Mercury::Channel* pChannel,
 	}
 
 	bufferedDBTasks_.addTask(new DBTaskQueryAccount(pChannel->addr(), 
-		accountName, password, componentID, entityID, entityDBID));
+		accountName, password, componentID, entityID, entityDBID, ip, port));
 
 	numQueryEntity_++;
 }

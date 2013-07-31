@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Linux/x86 (vers 1st January 2004), see www.w3.org" />
+
+  <title>jwSMTP library documentation</title>
+  <link href="/css/main.css" rel="stylesheet" type="text/css" />
+  <link href="main.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+
+  <div style="text-align: center;">
+     <h2>jwSMTP library documentation</h2>
+  </div>
+
+<div id="rightside">
+As jwSMTP has to create MIME messages when using attachments it has to base64 encode data. Because of this there are a couple of helper functions for the mailer class in the library, unimaginatively called base64encode.
+<pre>
+std::vector&lt;<span class="blue">char</span>&gt; base64encode(<span class="blue">const</span> std::vector&lt;<span class="blue">char</span>&gt;& input, <span class="blue">const bool</span> returns = <span class="blue">true</span>);
+std::string base64encode(<span class="blue">const</span> std::string& input, <span class="blue">const bool</span> returns = <span class="blue">true</span>);
+</pre>
+These can be used for binary or string data respectively. Why the <b>returns = true</b> part? This is to make sure that jwSMTP complies with the smtp protocol and keeps the line lengths under 1000 characters. Call these functions with this parameter set to false, please note don't think that if your data is less than 1000 characters you don't need to set this, this is not true as jwSMTP puts in a line feed every 80 characters or so.<br /><br />
+Why is there no decode function? As jwSMTP only sends mail it does not ever have to decode messages, i.e. no need for base64decode, and will probably not ever get this function. jwSMTP is a minimal library, i.e. keep it simple.<br /><br />
+    <a href="http://JohnWiggins.net">JohnWiggins.net</a><br />
+    email me about
+<script type="text/javaScript">
+// <![CDATA[
+user = "smtplib";
+site = "johnwiggins.net";
+document.write('<a href=\"mailto:' + user + '@' + site + '\">');
+document.write('jwSMTP</a>');
+// ]]> 
+</script>
+</div>
+
+</body>
+</html>

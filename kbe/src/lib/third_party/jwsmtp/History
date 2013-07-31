@@ -1,0 +1,20 @@
+A quick n dirty history of jwSMTP:
+
+I was interested in making my home network accessible through my firewall. I had
+one of those little blue boxes with a web interface to control it. Didn't want 
+to use ddns as at the time I did not have a domain name anyway. So I decided 
+to have a program run on one of my servers that contacted the router parsed the 
+data in it's data section and send out the router's public IP address to an 
+email of my choosing. This was how the library was born.
+
+Two problems basically had to be solved (with regard to the email part of the 
+program): get the MX record of the server to send to and send the mail to this 
+server. I started with a hard coded routine to just send to an SMTP server as 
+this was the easiest part to code. Once that was up I set about coding the DNS 
+part of the problem. A lot of sending packets to DNS servers to see if I 
+understood what dns does and voila I had the two parts I needed. I realised 
+after the program was written that the code was a really simple drop in for 
+email send services in a program, so I ripped out that part of the code and 
+turned it into a library which I released under the GPL.
+
+April 2002 was the first sourceforge release.
