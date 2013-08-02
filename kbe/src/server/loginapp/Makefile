@@ -11,8 +11,7 @@ ASMS =
 MY_LIBS =		\
 	server		\
 	network		\
-	thread		\
-	jwsmtp
+	thread
 	
 
 BUILD_TIME_FILE = main
