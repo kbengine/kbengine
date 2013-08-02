@@ -30,14 +30,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/pendingLoginmgr.hpp"
 #include "cstdkbe/timer.hpp"
 #include "network/endpoint.hpp"
-
-//#define NDEBUG
-#include <map>	
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
 	
 namespace KBEngine{
 

@@ -30,24 +30,20 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-SendActivateEMailTask::~SendActivateEMailTask()
+bool SendEMailTask::process()
 {
-}
-
-//-------------------------------------------------------------------------------------
-bool SendActivateEMailTask::process()
-{
-	jwsmtp::mailer m(emailaddr_.c_str(), g_kbeSrvConfig.emailServerInfo_.username.c_str(), g_kbeSrvConfig.emailAtivationInfo_.subject.c_str(),
+	jwsmtp::mailer m(emailaddr_.c_str(), g_kbeSrvConfig.emailServerInfo_.username.c_str(), subject(),
 		g_kbeSrvConfig.emailAtivationInfo_.subject.c_str(), g_kbeSrvConfig.emailServerInfo_.smtp_server.c_str(),
 		g_kbeSrvConfig.emailServerInfo_.smtp_port, false);
 
 	m.authtype(g_kbeSrvConfig.emailServerInfo_.smtp_auth == 1 ? jwsmtp::mailer::LOGIN : jwsmtp::mailer::PLAIN);  
 
-	std::string mailmessage = g_kbeSrvConfig.emailAtivationInfo_.message;
+	std::string mailmessage = message();
 
-	KBEngine::strutil::kbe_replace(mailmessage, "${backlink}", (boost::format("http://%1%:%2%/accountactivate?%3%") % 
+	KBEngine::strutil::kbe_replace(mailmessage, "${backlink}", (boost::format("http://%1%:%2%/%3%?%4%") % 
 		cbaddr_ %
 		cbport_ %
+		getopkey() %
 		code_).str());
 
 	m.setmessageHTML(mailmessage);
@@ -56,14 +52,50 @@ bool SendActivateEMailTask::process()
 	m.password(g_kbeSrvConfig.emailServerInfo_.password.c_str());
 	m.send(); // send the mail
 
-	INFO_MSG(boost::format("SendActivateEMailTask::process: sendmail: %1%\n") % m.response());
+	INFO_MSG(boost::format("SendEMailTask::process: sendmail[%1%]: %2%\n") % getopkey() % m.response());
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-thread::TPTask::TPTaskState SendActivateEMailTask::presentMainThread()
+thread::TPTask::TPTaskState SendEMailTask::presentMainThread()
 {
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 
+}
+
+//-------------------------------------------------------------------------------------
+const char* SendActivateEMailTask::subject()
+{
+	return g_kbeSrvConfig.emailAtivationInfo_.subject.c_str();
+}
+
+//-------------------------------------------------------------------------------------
+const char* SendActivateEMailTask::message()
+{
+	return g_kbeSrvConfig.emailAtivationInfo_.message.c_str();
+}
+
+//-------------------------------------------------------------------------------------
+const char* SendResetPasswordEMailTask::subject()
+{
+	return g_kbeSrvConfig.emailResetPasswordInfo_.subject.c_str();
+}
+
+//-------------------------------------------------------------------------------------
+const char* SendResetPasswordEMailTask::message()
+{
+	return g_kbeSrvConfig.emailResetPasswordInfo_.message.c_str();
+}
+
+//-------------------------------------------------------------------------------------
+const char* SendBindEMailTask::subject()
+{
+	return g_kbeSrvConfig.emailBindInfo_.subject.c_str();
+}
+
+//-------------------------------------------------------------------------------------
+const char* SendBindEMailTask::message()
+{
+	return g_kbeSrvConfig.emailBindInfo_.message.c_str();
 }
 
 //-------------------------------------------------------------------------------------
