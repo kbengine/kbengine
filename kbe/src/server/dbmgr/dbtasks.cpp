@@ -872,9 +872,7 @@ bool DBTaskAccountLogin::db_thread_process()
 		deadline_ = info.deadline;
 		if(ACCOUNT_TYPE(g_kbeSrvConfig.getLoginApp().account_type) != ACCOUNT_TYPE_NORMAL)
 		{
-			// 据说regex不是线程安全的?
-			std::tr1::regex mail_pattern("([0-9A-Za-z\\-_\\.]+)@([0-9a-z]+\\.[a-z]{2,3}(\\.[a-z]{2})?)");
-			if (std::tr1::regex_match(accountName_, mail_pattern))
+			if (email_isvalid(accountName_.c_str()))
 			{
 				ERROR_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): account[%1%] is email, autocreate failed!\n") % 
 					accountName_);

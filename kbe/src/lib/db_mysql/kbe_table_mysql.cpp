@@ -462,8 +462,11 @@ bool KBEEmailVerificationTableMysql::queryAccount(DBInterface * dbi, int8 type, 
 
 	sqlstr += tbuf;
 
+	sqlstr += "\" and type=";
+	kbe_snprintf(tbuf, MAX_BUF, "%d", type);
+	sqlstr += tbuf;
+
 	SAFE_RELEASE_ARRAY(tbuf);
-	sqlstr += "\"";
 
 	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
 		return false;
@@ -489,7 +492,7 @@ bool KBEEmailVerificationTableMysql::queryAccount(DBInterface * dbi, int8 type, 
 //-------------------------------------------------------------------------------------
 bool KBEEmailVerificationTableMysql::logAccount(DBInterface * dbi, int8 type, ACCOUNT_INFOS& info)
 {
-	std::string sqlstr = "insert into kbe_email_verification (accountName, datas, code, logtime) values(";
+	std::string sqlstr = "insert into kbe_email_verification (accountName, type, datas, code, logtime) values(";
 
 	char* tbuf = new char[MAX_BUF * 3];
 
@@ -500,6 +503,9 @@ bool KBEEmailVerificationTableMysql::logAccount(DBInterface * dbi, int8 type, AC
 	sqlstr += tbuf;
 	sqlstr += "\",";
 
+	kbe_snprintf(tbuf, MAX_BUF, "%d,", type);
+	sqlstr += tbuf;
+	
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
 		tbuf, info.password.c_str(), info.password.size());
 
@@ -539,13 +545,16 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 
 	sqlstr += tbuf;
 
+	sqlstr += "\" and type=";
+	kbe_snprintf(tbuf, MAX_BUF, "%d", (int)KBEEmailVerificationTable::V_TYPE_CREATEACCOUNT);
+	sqlstr += tbuf;
+
 	SAFE_RELEASE_ARRAY(tbuf);
-	sqlstr += "\"";
 
 	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
 		return false;
 
-	uint64 logtime;
+	uint64 logtime = 1;
 
 	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
 	if(pResult)
@@ -651,11 +660,10 @@ bool KBEEmailVerificationTableMysql::delAccount(DBInterface * dbi, int8 type, co
 
 	sqlstr += "\"";
 	sqlstr += tbuf;
-	sqlstr += "\", and type=";
+	sqlstr += "\" and type=";
 	
 	kbe_snprintf(tbuf, MAX_BUF, "%d", type);
 	sqlstr += tbuf;
-	sqlstr += ")";
 
 	SAFE_RELEASE_ARRAY(tbuf);
 
@@ -684,15 +692,21 @@ bool KBEEmailVerificationTableMysql::syncToDB(DBInterface* dbi)
 	// 删除xx小时之前的记录
 	sqlstr = (boost::format("delete from kbe_email_verification where logtime<%1% and type=%2%") % 
 		KBEngine::StringConv::val2str(time(NULL) - g_kbeSrvConfig.emailAtivationInfo_.deadline) % 
-		((int8)KBEEmailVerificationTable::V_TYPE_CREATEACCOUNT)).str();
+		((int)KBEEmailVerificationTable::V_TYPE_CREATEACCOUNT)).str();
+
+	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
+	KBE_ASSERT(ret);
 
 	sqlstr = (boost::format("delete from kbe_email_verification where logtime<%1% and type=%2%") % 
 		KBEngine::StringConv::val2str(time(NULL) - g_kbeSrvConfig.emailResetPasswordInfo_.deadline) % 
-		((int8)KBEEmailVerificationTable::V_TYPE_RESETPASSWORD)).str();
+		((int)KBEEmailVerificationTable::V_TYPE_RESETPASSWORD)).str();
+
+	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
+	KBE_ASSERT(ret);
 
 	sqlstr = (boost::format("delete from kbe_email_verification where logtime<%1% and type=%2%") % 
 		KBEngine::StringConv::val2str(time(NULL) - g_kbeSrvConfig.emailBindInfo_.deadline) % 
-		((int8)KBEEmailVerificationTable::V_TYPE_BIND_MAIL)).str();
+		((int)KBEEmailVerificationTable::V_TYPE_BIND_MAIL)).str();
 
 	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
 	KBE_ASSERT(ret);

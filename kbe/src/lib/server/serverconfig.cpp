@@ -205,6 +205,14 @@ bool ServerConfig::loadConfig(std::string fileName)
 			childnode1 = xml->enterNode(rootNode1, "deadline");
 			if(childnode1)
 				emailAtivationInfo_.deadline = xml->getValInt(childnode1);
+
+			childnode1 = xml->enterNode(rootNode1, "backlink_success_message");
+			if(childnode1)
+				emailAtivationInfo_.backlink_success_message = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "backlink_fail_message");
+			if(childnode1)
+				emailAtivationInfo_.backlink_fail_message = childnode1->ToText()->Value();
 		}
 
 		rootNode1 = xml->enterNode(rootNode, "email_resetpassword");

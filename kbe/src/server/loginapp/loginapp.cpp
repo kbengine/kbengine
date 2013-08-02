@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
 #include "jwsmtp.h"
 #include "loginapp.hpp"
 #include "threadtasks.hpp"
@@ -37,14 +38,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "baseapp/baseapp_interface.hpp"
 #include "baseappmgr/baseappmgr_interface.hpp"
 #include "dbmgr/dbmgr_interface.hpp"
-
 namespace KBEngine{
 	
 ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Loginapp);
-
-std::tr1::regex _g_mail_pattern("([0-9A-Za-z\\-_\\.]+)@([0-9a-z]+\\.[a-z]{2,3}(\\.[a-z]{2})?)");
-std::tr1::regex _g_normalAccountName_pattern("([0-9A-Za-z_]+)");
 
 //-------------------------------------------------------------------------------------
 Loginapp::Loginapp(Mercury::EventDispatcher& dispatcher, 
@@ -252,13 +249,13 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 	
 	if(type == ACCOUNT_TYPE_SMART)
 	{
-		if (std::tr1::regex_match(accountName, _g_mail_pattern))
+		if (email_isvalid(accountName.c_str()))
 		{
 			type = ACCOUNT_TYPE_MAIL;
 		}
 		else
 		{
-			if(!std::tr1::regex_match(accountName, _g_normalAccountName_pattern))
+			if(!validName(accountName))
 			{
 				ERROR_MSG(boost::format("Loginapp::_createAccount: invalid accountName(%1%)\n") %
 					accountName);
@@ -277,7 +274,7 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 	}
 	else if(type == ACCOUNT_TYPE_NORMAL)
 	{
-		if(!std::tr1::regex_match(accountName, _g_normalAccountName_pattern))
+		if(!validName(accountName))
 		{
 			ERROR_MSG(boost::format("Loginapp::_createAccount: invalid accountName(%1%)\n") %
 				accountName);
@@ -291,7 +288,7 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 			return false;
 		}
 	}
-	else if (!std::tr1::regex_match(accountName, _g_mail_pattern))
+	else if (!email_isvalid(accountName.c_str()))
     {
 		/*
 		std::string user_name, domain_name;
@@ -454,7 +451,14 @@ void Loginapp::onReqCreateMailAccountResult(Mercury::Channel* pChannel, MemorySt
 //-------------------------------------------------------------------------------------
 void Loginapp::onAccountActivated(Mercury::Channel* pChannel, std::string& code, bool success)
 {
-	DEBUG_MSG(boost::format("Loginapp::onAccountActivated: success=%1%\n") % success);
+	DEBUG_MSG(boost::format("Loginapp::onAccountActivated: code=%1%, success=%2%\n") % code % success);
+	if(!pAccountActivateHandler)
+	{
+		WARNING_MSG("Loginapp::onAccountActivated: pAccountActivateHandler is NULL!\n");
+		return;
+	}
+
+	pAccountActivateHandler->onAccountActivated(code, success);
 }
 
 //-------------------------------------------------------------------------------------

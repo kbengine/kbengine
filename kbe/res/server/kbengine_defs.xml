@@ -134,13 +134,13 @@
 		<smtp_auth>2</smtp_auth>
 		<username> kbengine@163.com </username>
 		<password> test123 </password>
-		<!-- 邮件验证有效期 -->
-		<deadline> 259200 </deadline>
+		<!-- 用户回调接口 -->
+		<cb_port> 21103 </cb_port>
 			
 		<email_activation>
-			<!-- 用户激活回调接口 -->
-			<cb_port> 21103 </cb_port>
 			<subject>账号激活</subject>
+			<!-- 邮件验证有效期 -->
+			<deadline> 259200 </deadline>
 			<message>
 				<![CDATA[
 					<html>
@@ -161,10 +161,38 @@
 					</html>
 				]]>
 			</message>
+			
+			<backlink_success_message>
+				<![CDATA[
+					<html>
+					<body>
+					<font size="7">账号激活成功!</font><br>
+					----------------------------------------------------------------------<br><br>
+					<a href="${backlink}">点击进入官网</a><br><br>
+					感谢您的访问，祝您使用愉快！<br>
+					</body>
+					</html>
+				]]>
+			</backlink_success_message>
+			
+			<backlink_fail_message>
+				<![CDATA[
+					<html>
+					<body>
+					<font size="7">账号激活失败(可能是由于失效或者已被注册等原因)， 请重新发送激活邮件!</font><br>
+					----------------------------------------------------------------------<br><br>
+					<a href="${backlink}">点击进入官网</a><br><br>
+					感谢您的访问，祝您使用愉快！<br>
+					</body>
+					</html>
+				]]>
+			</backlink_fail_message>
 		</email_activation>
 		
 		<email_resetpassword>
 			<subject>密码重置</subject>
+			<!-- 邮件验证有效期 -->
+			<deadline> 3600 </deadline>
 			<message>
 				<![CDATA[
 					<html>
@@ -183,7 +211,83 @@
 					</html>
 				]]>
 			</message>
+			
+			<backlink_success_message>
+				<![CDATA[
+					<html>
+					<body>
+					<font size="7">操作成功!</font><br>
+					----------------------------------------------------------------------<br><br>
+					<a href="${backlink}">点击进入官网</a><br><br>
+					感谢您的访问，祝您使用愉快！<br>
+					</body>
+					</html>
+				]]>
+			</backlink_success_message>
+			
+			<backlink_fail_message>
+				<![CDATA[
+					<html>
+					<body>
+					<font size="7">操作失败， 请重新发送邮件!</font><br>
+					----------------------------------------------------------------------<br><br>
+					<a href="${backlink}">点击进入官网</a><br><br>
+					感谢您的访问，祝您使用愉快！<br>
+					</body>
+					</html>
+				]]>
+			</backlink_fail_message>
 		</email_resetpassword>
+		
+		<email_bind>
+			<subject>邮箱绑定</subject>
+			<!-- 邮件验证有效期 -->
+			<deadline> 3600 </deadline>
+			<message>
+				<![CDATA[
+					<html>
+					<body>
+					邮箱绑定<br><br>
+					这封信是由kbengine发送的。<br>
+					您收到这封邮件，是由于在kbengine的用户绑定了这个邮箱地址。如果您并没有访问过kbengine， 
+					或没有进行上述操作， 请忽略这封邮件。您不需要退订或进行其他进一步的操作。<br>
+					----------------------------------------------------------------------<br>
+					<font size="7">访问如下链接重置您的密码:</font><br>
+					----------------------------------------------------------------------<br><br>
+					以下链接有效期为3天。过期可以重新请求发送一封新的邮件进行重置：<br>
+					<a href="${backlink}">${backlink}</a><br>
+					(如果上面不是链接形式，请将该地址手工粘贴到浏览器地址栏再访问)<br><br>
+					</body>
+					</html>
+				]]>
+			</message>
+			
+			<backlink_success_message>
+				<![CDATA[
+					<html>
+					<body>
+					<font size="7">操作成功!</font><br>
+					----------------------------------------------------------------------<br><br>
+					<a href="${backlink}">点击进入官网</a><br><br>
+					感谢您的访问，祝您使用愉快！<br>
+					</body>
+					</html>
+				]]>
+			</backlink_success_message>
+			
+			<backlink_fail_message>
+				<![CDATA[
+					<html>
+					<body>
+					<font size="7">操作失败， 请重新发送邮件!</font><br>
+					----------------------------------------------------------------------<br><br>
+					<a href="${backlink}">点击进入官网</a><br><br>
+					感谢您的访问，祝您使用愉快！<br>
+					</body>
+					</html>
+				]]>
+			</backlink_fail_message>
+		</email_bind>
 	</email_server>
 		
 	<billingSystem>

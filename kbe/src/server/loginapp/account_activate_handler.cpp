@@ -217,4 +217,24 @@ int AccountActivateHandler::handleInputNotification(int fd)
 }
 
 //-------------------------------------------------------------------------------------
+void AccountActivateHandler::onAccountActivated(std::string& code, bool success)
+{
+	std::map< int, CLIENT >::iterator iter = clients_.begin();
+	for(; iter != clients_.end(); iter++)
+	{
+		if(iter->second.code == code)
+		{
+			if(!iter->second.endpoint->good())
+				continue;
+			
+			if(success)
+				iter->second.endpoint->send(g_kbeSrvConfig.emailAtivationInfo_.backlink_success_message.c_str(), g_kbeSrvConfig.emailAtivationInfo_.backlink_success_message.size());
+			else
+				iter->second.endpoint->send(g_kbeSrvConfig.emailAtivationInfo_.backlink_fail_message.c_str(), g_kbeSrvConfig.emailAtivationInfo_.backlink_fail_message.size());
+			iter->second.endpoint->close();
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
 }

@@ -93,6 +93,8 @@ struct EmailSendInfo
 {
 	std::string subject;
 	std::string message;
+	std::string backlink_success_message, backlink_fail_message;
+
 	uint32 deadline;
 };
 

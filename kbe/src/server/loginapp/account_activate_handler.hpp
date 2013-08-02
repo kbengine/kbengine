@@ -35,6 +35,8 @@ public:
 	virtual ~AccountActivateHandler();
 
 	Mercury::EndPoint* pEndPoint(){ return pEndPoint_; }
+
+	void onAccountActivated(std::string& code, bool success);
 protected:
 	
 	struct CLIENT
