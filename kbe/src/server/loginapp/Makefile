@@ -32,5 +32,7 @@ ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/server/$(BIN),,$(CURDIR))
 endif
 
+KBE_INCLUDES += -I$(KBE_ROOT)/kbe/src/lib/third_party/jwsmtp/jwsmtp/jwsmtp
+
 include $(KBE_ROOT)/kbe/src/build/common.mak
 
