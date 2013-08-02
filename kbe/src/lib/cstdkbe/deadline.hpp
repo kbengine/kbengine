@@ -52,12 +52,7 @@ public:
 	
 	virtual ~Deadline() {}
 
-	std::wstring wprint()
-	{
-		return (boost::wformat(L"%1%天%2%小时%3%分%4%秒") % days % hours % minutes % seconds).str();
-	}
-
-	std::string printCN()
+	std::string print()
 	{
 		return (boost::format("%1%days/%2%:%3%:%4%") % days % hours % minutes % seconds).str();
 	}
