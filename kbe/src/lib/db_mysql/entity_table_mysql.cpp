@@ -594,7 +594,7 @@ void EntityTableItemMysql_VECTOR2::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM
 #ifdef CLIENT_NO_FLOAT
 		int32 v = atoi(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++].c_str());
 #else
-		float v = atof(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++].c_str());
+		float v = (float)atof(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++].c_str());
 #endif
 		(*s) << v;
 	}
@@ -684,7 +684,7 @@ void EntityTableItemMysql_VECTOR3::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM
 #ifdef CLIENT_NO_FLOAT
 		int32 v = atoi(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++].c_str());
 #else
-		float v = atof(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++].c_str());
+		float v = (float)atof(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++].c_str());
 #endif
 		(*s) << v;
 	}
@@ -774,7 +774,7 @@ void EntityTableItemMysql_VECTOR4::addToStream(MemoryStream* s, DB_OP_TABLE_ITEM
 #ifdef CLIENT_NO_FLOAT
 		int32 v = atoi(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++].c_str());
 #else
-		float v = atof(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++].c_str());
+		float v = (float)atof(opTableItemDataBox.results[opTableItemDataBox.readresultIdx++].c_str());
 #endif
 		(*s) << v;
 	}

@@ -1,0 +1,298 @@
+<root>
+	<smtp_server> smtp.163.com </smtp_server>
+	<smtp_port> 25 </smtp_port>
+	<!-- 认证模式 LOGIN=1, PLAIN=2-->
+	<smtp_auth>2</smtp_auth>
+	<username> kbengine@163.com </username>
+	<password> test123 </password>
+	<!-- 用户回调接口 -->
+	<cb_port> 21103 </cb_port>
+		
+	<email_activation>
+		<subject>账号激活</subject>
+		<!-- 邮件验证有效期 -->
+		<deadline> 259200 </deadline>
+		<message>
+			<![CDATA[
+				<html>
+				<body>
+				账号激活<br><br>
+				这封信是由kbengine发送的。<br>
+				您收到这封邮件，是由于在kbengine新用户注册时使用了这个邮箱地址。如果您并没有访问过kbengine， 
+				或没有进行上述操作， 请忽略这封邮件。您不需要退订或进行其他进一步的操作。<br>
+				----------------------------------------------------------------------<br>
+				<font size="7">新用户注册说明</font><br>
+				----------------------------------------------------------------------<br><br>
+				如果您是kbengine的新用户， 或在修改您的注册Email时使用了本地址，我们需要对您的地址有效性进行验证以避免垃圾邮件或地址被滥用。<br>
+				您只需点击下面的链接即可进行用户注册，以下链接有效期为3天。过期可以重新请求发送一封新的邮件验证：<br>
+				<a href="${backlink}">${backlink}</a><br>
+				(如果上面不是链接形式，请将该地址手工粘贴到浏览器地址栏再访问)<br><br>
+				感谢您的访问，祝您使用愉快！<br>
+				</body>
+				</html>
+			]]>
+		</message>
+		
+		<backlink_hello_message></backlink_hello_message>
+		
+		<backlink_success_message>
+			<![CDATA[
+				<html>
+				<body>
+				<font size="7">账号激活成功!</font><br>
+				----------------------------------------------------------------------<br><br>
+				<a href="${backlink}">点击进入官网</a><br><br>
+				感谢您的访问，祝您使用愉快！<br>
+				</body>
+				</html>
+			]]>
+		</backlink_success_message>
+		
+		<backlink_fail_message>
+			<![CDATA[
+				<html>
+				<body>
+				<font size="7">账号激活失败(可能是由于失效或者已被注册等原因)， 请重新发送激活邮件!</font><br>
+				----------------------------------------------------------------------<br><br>
+				<a href="${backlink}">点击进入官网</a><br><br>
+				感谢您的访问，祝您使用愉快！<br>
+				</body>
+				</html>
+			]]>
+		</backlink_fail_message>
+	</email_activation>
+	
+	<email_resetpassword>
+		<subject>密码重置</subject>
+		<!-- 邮件验证有效期 -->
+		<deadline> 3600 </deadline>
+		<message>
+			<![CDATA[
+				<html>
+				<body>
+				密码重置<br><br>
+				这封信是由kbengine发送的。<br>
+				您收到这封邮件，是由于在kbengine的用户绑定了这个邮箱地址。如果您并没有访问过kbengine， 
+				或没有进行上述操作， 请忽略这封邮件。您不需要退订或进行其他进一步的操作。<br>
+				----------------------------------------------------------------------<br>
+				<font size="7">访问如下链接重置您的密码:</font><br>
+				----------------------------------------------------------------------<br><br>
+				以下链接有效期为3天。过期可以重新请求发送一封新的邮件进行重置：<br>
+				<a href="${backlink}">${backlink}</a><br>
+				(如果上面不是链接形式，请将该地址手工粘贴到浏览器地址栏再访问)<br><br>
+				</body>
+				</html>
+			]]>
+		</message>
+		
+		<backlink_hello_message>
+			<![CDATA[
+				<!DOCTYPE HTML>
+				<html lang="zh-CN">
+				<head>
+				<meta charset="UTF-8">
+				<title>重设密码</title>
+
+				<style type="text/css">
+				/* Font,  Link & Container */
+				body { font:12px/1.6 arial,helvetica,sans-serif; }
+				a:link { color:#369;text-decoration:none; }
+				a:visited { color:#669;text-decoration:none; }
+				a:hover { color:#fff;text-decoration:none;background:#039; }
+				a:active { color:#fff;text-decoration:none;background:#f93; }
+				button { cursor:pointer;line-height:1.2; }
+				.mod { width:100%; }
+				.hd:after, .bd:after, .ft:after, .mod:after {content:'\0020';display:block;clear:both;height:0; }
+				.error-tip { margin-left:10px; }
+				.error-tip, .error { color:#fe2617; }
+
+				/* form */
+				.item { clear:both;margin:15px 0;zoom:1; }
+				label { display: inline-block; float:left; margin-right: 15px; text-align: right; width: 60px; font-size: 14px; line-height: 30px; vertical-align: baseline }
+				.remember { cursor: pointer; font-size: 12px; display: inline; width: auto; text-align: left; float: none; margin: 0; color: #666 }
+				.basic-input { width: 200px; padding: 5px; height: 18px; font-size: 14px;vertical-align:middle; -moz-border-radius: 3px; -webkit-border-radius: 3px; border-radius: 3px; border: 1px solid #c9c9c9 }
+				.basic-input:focus { border: 1px solid #a9a9a9 }
+				.btn-submit { cursor: pointer;color: #ffffff;background: #3fa156; border: 1px solid #528641; font-size: 14px; font-weight: bold; padding:6px 26px; border-radius: 3px; -moz-border-radius: 3px; -webkit-border-radius: 3px; *width: 100px;*height:30px; }
+				.btn-submit:hover { background-color:#4fca6c;border-color:#6aad54; }
+				.btn-submit:active { background-color:#3fa156;border-color:#528641; }
+				#item-error { padding-left:75px; }
+				</style>
+
+				</head>
+				<body>
+				<form id="lzform" name="lzform" method="get" action="${backlink}" onsubmit="return validateForm(this);">
+				    <div id="item-error">
+				        <p class="error">重设密码不能为空</p>
+				    </div>
+				    <div class="item">
+				        <label>输入密码</label>
+				        <input id="password1" name="form_password1" type="password" class="basic-input" maxlength="60" value="" tabindex="1"/>
+				    </div>
+				    <div class="item">
+				        <label>重复密码</label>
+				        <input id="password" name="form_password" type="password" class="basic-input" maxlength="20" tabindex="2"/>
+				    </div>
+				    <div class="item">
+				        <label>&nbsp;</label>
+				        <input type="submit" value="提交" name="user_submit" class="btn-submit" tabindex="5"/>
+				    </div>
+				</form>
+
+				<script>
+				;(function(doc){
+				var $ = function(id) { return doc.getElementById(id); };
+				var placeholder = '';
+				var password1 = $('password1'), password = $('password');
+				    password1.onfocus = function(){
+				      if ( this.value == placeholder ) {
+				        this.value = '';
+				        this.style.color = '#000';
+				      }
+				    };
+				    password1.onblur = function(){
+				      if (!this.value) {
+				        this.value = placeholder;
+				        this.style.color = '#ccc';
+				      }
+				    };
+
+				  if (password1.value == placeholder) {
+				    password1.style.color = '#ccc';
+				  } else if(password.value === '') {
+				    password.focus();
+				  } else if (capcha) {
+				    capcha.focus();
+				  }
+
+				})(document);
+
+				function trim(str){
+				    return str.replace(/^(\s|\u00A0)+/,'').replace(/(\s|\u00A0)+$/,'');
+				}
+
+				function validateForm(frm) {
+				  var error = 0,
+				  passwd1 = frm.elements['form_password1'],
+				  passwd = frm.elements['form_password'],
+				  defaultError = document.getElementById('item-error');
+
+				  if (defaultError) {
+				    defaultError.style.display = 'none';
+				  }
+
+				  if (passwd && passwd.value === '') {
+				    displayError(passwd, '密码不能为空');
+				    error = 1;
+				  } else {
+				    passwd && clearError(passwd);
+				  }
+				  
+				   if (error == 0 && passwd1 && passwd1.value === '') {
+				    displayError(passwd1, '密码不能为空');
+				    error = 1;
+				  } else {
+				    passwd1 && clearError(passwd1);
+				  }
+				  
+				    if (error == 0 && passwd1.value != passwd.value) {
+				    clearError(passwd);
+				    displayError(passwd, '二次密码必须一致且不能为空!');
+				    error = 1;
+				  } else {
+				    passwd && clearError(passwd);
+				  }
+				  return !error;
+				}
+
+				function displayError(el, msg) {
+				  var err = document.getElementById(el.name + '_err');
+				  if (!err) {
+				    err = document.createElement('span');
+				    err.id = el.name + '_err';
+				    err.className = 'error-tip';
+				    el.parentNode.appendChild(err);
+				  }
+				  err.style.display = 'inline';
+				  err.innerHTML = msg;
+				}
+
+				function clearError(el) {
+				  var err = document.getElementById(el.name + '-err');
+				  if (err) {
+				    err.style.display = 'none';
+				  }
+				}
+				</script>
+
+				</div>
+				</body>
+				</html>
+			]]>
+		</backlink_hello_message>
+		
+		<backlink_fail_message>
+			<![CDATA[
+				<html>
+				<body>
+				<font size="7">操作失败， 请重新发送邮件!</font><br>
+				----------------------------------------------------------------------<br><br>
+				<a href="${backlink}">点击进入官网</a><br><br>
+				感谢您的访问，祝您使用愉快！<br>
+				</body>
+				</html>
+			]]>
+		</backlink_fail_message>
+	</email_resetpassword>
+	
+	<email_bind>
+		<subject>邮箱绑定</subject>
+		<!-- 邮件验证有效期 -->
+		<deadline> 3600 </deadline>
+		<message>
+			<![CDATA[
+				<html>
+				<body>
+				邮箱绑定<br><br>
+				这封信是由kbengine发送的。<br>
+				您收到这封邮件，是由于在kbengine的用户绑定了这个邮箱地址。如果您并没有访问过kbengine， 
+				或没有进行上述操作， 请忽略这封邮件。您不需要退订或进行其他进一步的操作。<br>
+				----------------------------------------------------------------------<br>
+				<font size="7">访问如下链接重置您的密码:</font><br>
+				----------------------------------------------------------------------<br><br>
+				以下链接有效期为3天。过期可以重新请求发送一封新的邮件进行重置：<br>
+				<a href="${backlink}">${backlink}</a><br>
+				(如果上面不是链接形式，请将该地址手工粘贴到浏览器地址栏再访问)<br><br>
+				</body>
+				</html>
+			]]>
+		</message>
+		
+		<backlink_hello_message></backlink_hello_message>
+		
+		<backlink_success_message>
+			<![CDATA[
+				<html>
+				<body>
+				<font size="7">操作成功!</font><br>
+				----------------------------------------------------------------------<br><br>
+				<a href="${backlink}">点击进入官网</a><br><br>
+				感谢您的访问，祝您使用愉快！<br>
+				</body>
+				</html>
+			]]>
+		</backlink_success_message>
+		
+		<backlink_fail_message>
+			<![CDATA[
+				<html>
+				<body>
+				<font size="7">操作失败， 请重新发送邮件!</font><br>
+				----------------------------------------------------------------------<br><br>
+				<a href="${backlink}">点击进入官网</a><br><br>
+				感谢您的访问，祝您使用愉快！<br>
+				</body>
+				</html>
+			]]>
+		</backlink_fail_message>
+	</email_bind>
+</root>
