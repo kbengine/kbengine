@@ -186,6 +186,28 @@ public:
 		充值回调
 	*/
 	void onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
+
+
+	/** 网络接口
+		激活回调
+	*/
+	void accountActivate(Mercury::Channel* pChannel, std::string& scode);
+
+	/** 网络接口
+		账号重置密码
+	*/
+	void accountReset(Mercury::Channel* pChannel, std::string& accountName);
+
+	/** 网络接口
+		账号绑定邮箱
+	*/
+	void accountBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email);
+
+	/** 网络接口
+		账号修改密码
+	*/
+	void accountNewPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& newpassword);
+	
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;

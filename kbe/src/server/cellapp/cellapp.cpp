@@ -265,7 +265,7 @@ void Cellapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 
 	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
 
-	Components::COMPONENTS cts = Componentbridge::getComponents().getComponents(DBMGR_TYPE);
+	Components::COMPONENTS& cts = Componentbridge::getComponents().getComponents(DBMGR_TYPE);
 	KBE_ASSERT(cts.size() >= 1);
 	
 	Components::ComponentInfos* cinfos = Componentbridge::getComponents().findComponent(tcomponentType, uid, componentID);
@@ -390,7 +390,7 @@ void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 		return;
 	}
 
-	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
 
 	if(cts.size() > 0)

@@ -107,6 +107,10 @@ public:
 
 	virtual bool queryAccount(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info) = 0;
 	virtual bool logAccount(DBInterface * dbi, ACCOUNT_INFOS& info) = 0;
+	virtual bool setFlagsDeadline(DBInterface * dbi, const std::string& name, uint32 flags, uint64 deadline) = 0;
+	virtual bool updateCount(DBInterface * dbi, DBID dbid) = 0;
+	virtual bool queryAccountAllInfos(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info) = 0;
+	virtual bool updatePassword(DBInterface * dbi, const std::string& name, const std::string& password) = 0;
 
 	MemoryStream& accountDefMemoryStream()
 	{ 
@@ -139,22 +143,23 @@ public:
 protected:
 };
 
-class KBEAccountActivationTable : public KBETable
+class KBEEmailVerificationTable : public KBETable
 {
 public:
-	KBEAccountActivationTable():
+	KBEEmailVerificationTable():
 	KBETable()
 	{
-		tableName("kbe_accountactivation");
+		tableName("kbe_email_verification");
 	}
 	
-	virtual ~KBEAccountActivationTable()
+	virtual ~KBEEmailVerificationTable()
 	{
 	}
 
 	virtual bool queryAccount(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info) = 0;
 	virtual bool logAccount(DBInterface * dbi, ACCOUNT_INFOS& info) = 0;
 	virtual bool delAccount(DBInterface * dbi, const std::string& name) = 0;
+	virtual bool activateAccount(DBInterface * dbi, const std::string& code, ACCOUNT_INFOS& info) = 0;
 protected:
 };
 

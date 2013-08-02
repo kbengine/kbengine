@@ -41,6 +41,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
+class AccountActivateHandler;
+
 class Loginapp :	public ServerApp, 
 					public Singleton<Loginapp>
 {
@@ -99,6 +101,12 @@ public:
 		创建账号
 	*/
 	void onReqCreateAccountResult(Mercury::Channel* pChannel, MemoryStream& s);
+	void onReqCreateMailAccountResult(Mercury::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
+		dbmgr账号激活返回
+	*/
+	void onAccountActivated(Mercury::Channel* pChannel, std::string& code, bool success);
 
 	/** 网络接口
 		用户登录服务器
@@ -150,6 +158,8 @@ protected:
 	PendingLoginMgr						pendingLoginMgr_;
 
 	std::string							digest_;
+
+	AccountActivateHandler*				pAccountActivateHandler;
 };
 
 }

@@ -100,6 +100,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 
 	// 向dbmgr请求创建账号返回结果
 	LOGINAPP_MESSAGE_DECLARE_STREAM(onReqCreateAccountResult,						MERCURY_VARIABLE_MESSAGE)
+	LOGINAPP_MESSAGE_DECLARE_STREAM(onReqCreateMailAccountResult,					MERCURY_VARIABLE_MESSAGE)
+
+	// dbmgr账号激活返回
+	LOGINAPP_MESSAGE_DECLARE_ARGS2(onAccountActivated,								MERCURY_VARIABLE_MESSAGE,
+									std::string,									code, 
+									bool,											success)
+	
 
 	// 请求关闭服务器
 	LOGINAPP_MESSAGE_DECLARE_STREAM(reqCloseServer,									MERCURY_VARIABLE_MESSAGE)

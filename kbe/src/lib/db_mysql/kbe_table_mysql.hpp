@@ -66,8 +66,11 @@ public:
 	virtual bool syncToDB(DBInterface* dbi);
 	
 	bool queryAccount(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info);
+	bool queryAccountAllInfos(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info);
 	bool logAccount(DBInterface * dbi, ACCOUNT_INFOS& info);
-
+	bool setFlagsDeadline(DBInterface * dbi, const std::string& name, uint32 flags, uint64 deadline);
+	virtual bool updateCount(DBInterface * dbi, DBID dbid);
+	virtual bool updatePassword(DBInterface * dbi, const std::string& name, const std::string& password);
 protected:
 };
 
@@ -85,11 +88,11 @@ protected:
 };
 
 
-class KBEAccountActivationTableMysql : public KBEAccountActivationTable
+class KBEEmailVerificationTableMysql : public KBEEmailVerificationTable
 {
 public:
-	KBEAccountActivationTableMysql();
-	virtual ~KBEAccountActivationTableMysql();
+	KBEEmailVerificationTableMysql();
+	virtual ~KBEEmailVerificationTableMysql();
 
 	/**
 		同步entity表到数据库中
@@ -99,6 +102,7 @@ public:
 	virtual bool queryAccount(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info);
 	virtual bool logAccount(DBInterface * dbi, ACCOUNT_INFOS& info);
 	virtual bool delAccount(DBInterface * dbi, const std::string& name);
+	virtual bool activateAccount(DBInterface * dbi, const std::string& code, ACCOUNT_INFOS& info);
 protected:
 };
 

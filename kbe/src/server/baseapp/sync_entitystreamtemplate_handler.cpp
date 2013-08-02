@@ -70,7 +70,7 @@ SyncEntityStreamTemplateHandler::~SyncEntityStreamTemplateHandler()
 //-------------------------------------------------------------------------------------
 bool SyncEntityStreamTemplateHandler::process()
 {
-	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Mercury::Channel* pChannel = NULL;
 
 	if(cts.size() > 0)

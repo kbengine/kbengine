@@ -110,7 +110,7 @@ void Base::onDestroy(void)
 		(*(*bundleptr)) << this->getDBID();
 
 
-		Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+		Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 		Components::ComponentInfos* dbmgrinfos = NULL;
 
 		if(cts.size() > 0)
@@ -435,7 +435,7 @@ void Base::onDestroyEntity(bool deleteFromDB, bool writeToDB)
 {
 	if(deleteFromDB && hasDB())
 	{
-		Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+		Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 		Components::ComponentInfos* dbmgrinfos = NULL;
 
 		if(cts.size() > 0)
@@ -860,7 +860,7 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
 	addPersistentsDataToStream(ED_FLAG_ALL, s);
 
-	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
 
 	if(cts.size() > 0)
@@ -881,8 +881,6 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 	(*pBundle) << this->getScriptModule()->getUType();
 	(*pBundle) << callbackID;
 
-	(*pBundle).append(*s);
-	
 	// ¼ÇÂ¼µÇÂ¼µØÖ·
 	if(this->getDBID() == 0)
 	{
@@ -898,6 +896,8 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 		(*pBundle) << ip;
 		(*pBundle) << port;
 	}
+
+	(*pBundle).append(*s);
 
 	(*pBundle).send(Baseapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
 	MemoryStream::ObjPool().reclaimObject(s);

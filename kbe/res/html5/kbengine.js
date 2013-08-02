@@ -2089,7 +2089,7 @@ function KBENGINE()
 		g_kbengine.entity_uuid = rndUUID;
 		g_kbengine.entity_id = eid;
 		
-		var runclass = this.getentityclass(entityType);
+		var runclass = g_kbengine.getentityclass(entityType);
 		if(runclass == undefined)
 			return;
 		
@@ -2183,7 +2183,7 @@ function KBENGINE()
 				return;
 			}
 			
-			var runclass = this.getentityclass(entityType);
+			var runclass = g_kbengine.getentityclass(entityType);
 			if(runclass == undefined)
 				return;
 			
@@ -2273,11 +2273,11 @@ function KBENGINE()
 		
 		if(retcode != 0)
 		{
-			console.error("KBENGINE::Client_onCreateAccountResult: " + this.username + " create is failed! code=" + retcode + "!");
+			console.error("KBENGINE::Client_onCreateAccountResult: " + g_kbengine.username + " create is failed! code=" + retcode + "!");
 			return;
 		}
 
-		console.info("KBENGINE::Client_onCreateAccountResult: " + this.username + " create is successfully!");
+		console.info("KBENGINE::Client_onCreateAccountResult: " + g_kbengine.username + " create is successfully!");
 	}
 	
 	this.updatePlayerToServer = function()

@@ -635,7 +635,7 @@ void Baseapp::onGetEntityAppFromDbmgr(Mercury::Channel* pChannel, int32 uid, std
 
 	KBEngine::COMPONENT_TYPE tcomponentType = (KBEngine::COMPONENT_TYPE)componentType;
 
-	Components::COMPONENTS cts = Componentbridge::getComponents().getComponents(DBMGR_TYPE);
+	Components::COMPONENTS& cts = Componentbridge::getComponents().getComponents(DBMGR_TYPE);
 	KBE_ASSERT(cts.size() >= 1);
 	
 	Components::ComponentInfos* cinfos = 
@@ -827,7 +827,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Baseapp::createBaseFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback)
 {
-	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
 
 	if(cts.size() > 0)
@@ -1432,7 +1432,7 @@ void Baseapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 		return;
 	}
 
-	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
 
 	if(cts.size() > 0)
@@ -1857,7 +1857,7 @@ void Baseapp::onBroadcastGlobalBasesChange(Mercury::Channel* pChannel, KBEngine:
 
 //-------------------------------------------------------------------------------------
 void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& loginName, std::string& accountName, 
-								   std::string& password, ENTITY_ID entityID, DBID entityDBID)
+								   std::string& password, ENTITY_ID entityID, DBID entityDBID, uint32 flags, uint64 deadline)
 {
 	if(pChannel->isExternal())
 		return;
@@ -1876,6 +1876,8 @@ void Baseapp::registerPendingLogin(Mercury::Channel* pChannel, std::string& logi
 	ptinfos->password = password;
 	ptinfos->entityID = entityID;
 	ptinfos->entityDBID = entityDBID;
+	ptinfos->flags = flags;
+	ptinfos->deadline = deadline;
 	pendingLoginMgr_.add(ptinfos);
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
@@ -1915,6 +1917,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 						   std::string& accountName, 
 						   std::string& password)
 {
+	accountName = KBEngine::strutil::kbe_trim(accountName);
 	if(accountName.size() > ACCOUNT_NAME_MAX_LENGTH)
 	{
 		ERROR_MSG(boost::format("Baseapp::loginGateway: accountName too big, size=%1%, limit=%2%.\n") %
@@ -1934,7 +1937,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 	INFO_MSG(boost::format("Baseapp::loginGateway: new user[%1%], channel[%2%].\n") % 
 		accountName.c_str() % pChannel->c_str());
 
-	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
 
 	if(cts.size() > 0)
@@ -1956,6 +1959,24 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 	if(ptinfos->password != password)
 	{
 		loginGatewayFailed(pChannel, accountName, SERVER_ERR_PASSWORD);
+		return;
+	}
+
+	if((ptinfos->flags & ACCOUNT_FLAG_LOCK) > 0)
+	{
+		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_LOCK);
+		return;
+	}
+
+	if((ptinfos->flags & ACCOUNT_FLAG_NOT_ACTIVATED) > 0)
+	{
+		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_NOT_ACTIVATED);
+		return;
+	}
+
+	if(ptinfos->deadline > 0 && ::time(NULL) - ptinfos->deadline <= 0)
+	{
+		loginGatewayFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_DEADLINE);
 		return;
 	}
 
@@ -2045,6 +2066,7 @@ void Baseapp::loginGateway(Mercury::Channel* pChannel,
 void Baseapp::reLoginGateway(Mercury::Channel* pChannel, std::string& accountName, 
 							 std::string& password, uint64 key, ENTITY_ID entityID)
 {
+	accountName = KBEngine::strutil::kbe_trim(accountName);
 	INFO_MSG(boost::format("Baseapp::reLoginGateway: accountName=%1%, key=%2%, entityID=%3%.\n") %
 		accountName % key % entityID);
 
@@ -2095,8 +2117,10 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 	bool success = false;
 	DBID dbid;
 	ENTITY_ID entityID;
+	uint32 flags;
+	uint64 deadline;
 
-	s >> accountName >> password >> dbid >> success >> entityID;
+	s >> accountName >> password >> dbid >> success >> entityID >> flags >> deadline;
 
 	if(!success)
 	{
@@ -2158,8 +2182,8 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
-	INFO_MSG(boost::format("Baseapp::onQueryAccountCBFromDbmgr: user[%1%], uuid[%2%], entityID=%3%.\n") %
-		accountName % base->rndUUID() % base->getID());
+	INFO_MSG(boost::format("Baseapp::onQueryAccountCBFromDbmgr: user=%1%, uuid=%2%, entityID=%3%, flags=%4%, deadline=%5%.\n") %
+		accountName % base->rndUUID() % base->getID() % flags % deadline);
 
 	SAFE_RELEASE(ptinfos);
 }

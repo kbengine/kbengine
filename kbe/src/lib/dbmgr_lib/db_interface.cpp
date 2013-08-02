@@ -187,7 +187,7 @@ bool DBUtil::initInterface(DBInterface* dbi)
 		EntityTables::getSingleton().addKBETable(new KBEEntityTypeMysql());
 		EntityTables::getSingleton().addKBETable(new KBEAccountTableMysql());
 		EntityTables::getSingleton().addKBETable(new KBEEntityLogTableMysql());
-		EntityTables::getSingleton().addKBETable(new KBEAccountActivationTableMysql());
+		EntityTables::getSingleton().addKBETable(new KBEEmailVerificationTableMysql());
 	}
 
 	return EntityTables::getSingleton().load(dbi) && EntityTables::getSingleton().syncToDB(dbi);

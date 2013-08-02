@@ -1,15 +1,18 @@
 BIN  = loginapp
 SRCS =						\
+	account_activate_handler		\
 	loginapp				\
 	loginapp_interface			\
-	main
+	main					\
+	threadtasks
 
 ASMS =
 
 MY_LIBS =		\
 	server		\
 	network		\
-	thread
+	thread		\
+	jwsmtp
 	
 
 BUILD_TIME_FILE = main

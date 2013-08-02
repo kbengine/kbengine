@@ -225,6 +225,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\deadline.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\kbekey.hpp"
 				>
 			</File>

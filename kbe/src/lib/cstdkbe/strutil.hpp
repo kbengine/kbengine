@@ -192,8 +192,8 @@ namespace strutil {
 // utf-8
 namespace strutil {
 	
-	char* wchar2char(const wchar_t* ts);
-	wchar_t* char2wchar(const char* cs);
+	char* wchar2char(const wchar_t* ts, size_t* outlen = NULL);
+	wchar_t* char2wchar(const char* cs, size_t* outlen = NULL);
 
 	/*
 	int wchar2utf8(const wchar_t* in, int in_len, char* out, int out_max);

@@ -153,7 +153,7 @@ bool ForwardAnywhere_MessageBuffer::process()
 		return false;
 	}
 	
-	Components::COMPONENTS cts = Components::getSingleton().getComponents(forwardComponentType_);
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(forwardComponentType_);
 	size_t idx = 0;
 
 	if(cts.size() > 0)

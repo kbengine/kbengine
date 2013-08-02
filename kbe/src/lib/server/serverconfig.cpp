@@ -164,36 +164,64 @@ bool ServerConfig::loadConfig(std::string fileName)
 		}
 	}
 
-	rootNode = xml->getRootNode("email_activation");
+	rootNode = xml->getRootNode("email_server");
 	if(rootNode != NULL)
 	{
 		TiXmlNode* childnode = xml->enterNode(rootNode, "smtp_server");
 		if(childnode)
-			emailAtivationInfo_.smtp_server = xml->getValStr(childnode);
+			emailServerInfo_.smtp_server = xml->getValStr(childnode);
 
 		childnode = xml->enterNode(rootNode, "smtp_port");
 		if(childnode)
-			emailAtivationInfo_.smtp_port = xml->getValInt(childnode);
+			emailServerInfo_.smtp_port = xml->getValInt(childnode);
 
 		childnode = xml->enterNode(rootNode, "username");
 		if(childnode)
-			emailAtivationInfo_.username = xml->getValStr(childnode);
+			emailServerInfo_.username = xml->getValStr(childnode);
 
 		childnode = xml->enterNode(rootNode, "password");
 		if(childnode)
-			emailAtivationInfo_.password = xml->getValStr(childnode);
+			emailServerInfo_.password = xml->getValStr(childnode);
 
-		childnode = xml->enterNode(rootNode, "subject");
+		childnode = xml->enterNode(rootNode, "smtp_auth");
 		if(childnode)
-			emailAtivationInfo_.subject = childnode->ToText()->Value();
-
-		childnode = xml->enterNode(rootNode, "message");
-		if(childnode)
-			emailAtivationInfo_.message = childnode->ToText()->Value();
+			emailServerInfo_.smtp_auth = xml->getValInt(childnode);
 
 		childnode = xml->enterNode(rootNode, "deadline");
 		if(childnode)
-			emailAtivationInfo_.deadline = xml->getValInt(childnode);
+			emailServerInfo_.deadline = xml->getValInt(childnode);
+
+		TiXmlNode* rootNode1 = xml->enterNode(rootNode, "email_activation");
+		if(rootNode1 != NULL)
+		{
+			TiXmlNode* childnode1 = xml->enterNode(rootNode1, "subject");
+			if(childnode1)
+				emailAtivationInfo_.subject = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "message");
+			if(childnode1)
+				emailAtivationInfo_.message = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "cb_port");
+			if(childnode1)
+				emailAtivationInfo_.cb_port = xml->getValInt(childnode1);
+		}
+
+		rootNode1 = xml->enterNode(rootNode, "email_resetpassword");
+		if(rootNode1 != NULL)
+		{
+			TiXmlNode* childnode1 = xml->enterNode(rootNode1, "subject");
+			if(childnode1)
+				emailResetPassword_.subject = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "message");
+			if(childnode1)
+				emailResetPassword_.message = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "cb_port");
+			if(childnode1)
+				emailResetPassword_.cb_port = xml->getValInt(childnode1);
+		}
 	}
 
 	rootNode = xml->getRootNode("channelCommon");
@@ -744,6 +772,14 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL){
 			_dbmgrInfo.allowEmptyDigest = (xml->getValStr(node) == "true");
 		}
+
+		node = xml->enterNode(rootNode, "accountDefaultFlags");	
+		if(node != NULL)
+			_dbmgrInfo.accountDefaultFlags = xml->getValInt(node);	
+
+		node = xml->enterNode(rootNode, "accountDefaultDeadline");	
+		if(node != NULL)
+			_dbmgrInfo.accountDefaultDeadline = xml->getValInt(node);	
 	}
 
 	if(_dbmgrInfo.db_unicodeString_characterSet.size() == 0)

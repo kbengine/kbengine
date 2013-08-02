@@ -204,6 +204,22 @@ protected:
 };
 
 /**
+	创建一个email账号
+*/
+class DBTaskActivateAccount : public DBTask
+{
+public:
+	DBTaskActivateAccount(const Mercury::Address& addr, std::string& code);
+	virtual ~DBTaskActivateAccount();
+	virtual bool db_thread_process();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+protected:
+	std::string code_; 
+	bool success_;
+	
+};
+
+/**
 	baseapp请求查询account信息
 */
 class DBTaskQueryAccount : public EntityDBTask
@@ -225,6 +241,9 @@ protected:
 	std::string error_;
 	uint32 ip_;
 	uint16 port_;
+
+	uint32 flags_;
+	uint64 deadline_;
 };
 
 /**
@@ -281,6 +300,9 @@ protected:
 	COMPONENT_ID componentID_;
 	ENTITY_ID entityID_;
 	DBID dbid_;
+
+	uint32 flags_;
+	uint64 deadline_;
 };
 
 /**

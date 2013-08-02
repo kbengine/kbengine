@@ -75,4 +75,19 @@
 		<id>14</id>
 		<descr>	email地址错误。</descr>
 	</MERCURY_ERR_NAME_MAIL>
+	
+	<MERCURY_ERR_ACCOUNT_LOCK>
+		<id>15</id>
+		<descr>	账号被冻结。</descr>
+	</MERCURY_ERR_ACCOUNT_LOCK>
+	
+	<MERCURY_ERR_ACCOUNT_DEADLINE>
+		<id>16</id>
+		<descr>	账号已过期。</descr>
+	</MERCURY_ERR_ACCOUNT_DEADLINE>
+	
+	<MERCURY_ERR_ACCOUNT_NOT_ACTIVATED>
+		<id>17</id>
+		<descr>	账号未激活。</descr>
+	</MERCURY_ERR_ACCOUNT_NOT_ACTIVATED>
 </root>

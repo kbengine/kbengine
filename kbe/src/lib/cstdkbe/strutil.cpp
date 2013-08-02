@@ -171,21 +171,25 @@ namespace strutil {
 		return result;
 	}
 
-	char* wchar2char(const wchar_t* ts)
+	char* wchar2char(const wchar_t* ts, size_t* outlen)
 	{
 		int len = (wcslen(ts) + 1) * 4;
 		char* ccattr =(char *)malloc(len);
 		memset(ccattr, 0, len);
-		wcstombs(ccattr, ts, len);
+		size_t slen = wcstombs(ccattr, ts, len);
+		if(outlen)
+			*outlen = slen;
 		return ccattr;
 	};
 
-	wchar_t* char2wchar(const char* cs)
+	wchar_t* char2wchar(const char* cs, size_t* outlen)
 	{
 		int len = (strlen(cs) + 1) * 4;
 		wchar_t* ccattr =(wchar_t *)malloc(len);
 		memset(ccattr, 0, len);
-		mbstowcs(ccattr, cs, len);
+		size_t slen = mbstowcs(ccattr, cs, len);
+		if(outlen)
+			*outlen = slen;
 		return ccattr;
 	};
 

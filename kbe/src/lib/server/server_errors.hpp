@@ -53,6 +53,9 @@ typedef uint16 SERVER_ERROR_CODE;								// 错误码类别
 #define SERVER_ERR_DIGEST							12			// defmd5不匹配。
 #define SERVER_ERR_SHUTTINGDOWN						13			// 服务器正在关闭中
 #define SERVER_ERR_NAME_MAIL						14			// email地址错误。
+#define SERVER_ERR_ACCOUNT_LOCK						15			// 账号被冻结。
+#define SERVER_ERR_ACCOUNT_DEADLINE					16			// 账号已过期。
+#define SERVER_ERR_ACCOUNT_NOT_ACTIVATED			17			// 账号未激活。
 
 const char SERVER_ERR_STR[][256] = {
 	"SERVER_SUCCESS",
@@ -69,7 +72,10 @@ const char SERVER_ERR_STR[][256] = {
 	"SERVER_ERR_PROXY_DESTROYED",
 	"SERVER_ERR_DIGEST",
 	"SERVER_ERR_SHUTTINGDOWN",
-	"SERVER_ERR_NAME_MAIL"
+	"SERVER_ERR_NAME_MAIL",
+	"SERVER_ERR_ACCOUNT_LOCK",
+	"SERVER_ERR_ACCOUNT_DEADLINE",
+	"SERVER_ERR_ACCOUNT_NOT_ACTIVATED"
 };
 
 }

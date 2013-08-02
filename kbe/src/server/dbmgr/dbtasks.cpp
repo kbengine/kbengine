@@ -18,9 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <regex>
 #include "dbtasks.hpp"
 #include "dbmgr.hpp"
-#include "jwsmtp.h"
 #include "buffered_dbtasks.hpp"
 #include "network/common.hpp"
 #include "network/message_handler.hpp"
@@ -226,6 +226,14 @@ bool DBTaskWriteEntity::db_thread_process()
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
 	bool writeEntityLog = (entityDBID_ == 0);
 
+	uint32 ip = 0;
+	uint16 port = 0;
+
+	if(writeEntityLog)
+	{
+		(*pDatas_) >> ip >> port;
+	}
+
 	entityDBID_ = EntityTables::getSingleton().writeEntity(pdbi_, entityDBID_, pDatas_, pModule);
 	success_ = entityDBID_ > 0;
 
@@ -237,11 +245,6 @@ bool DBTaskWriteEntity::db_thread_process()
 		KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
 						(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
 		KBE_ASSERT(pELTable);
-
-
-		uint32 ip = 0;
-		uint16 port = 0;
-		(*pDatas_) >> ip >> port;
 
 		success_ = pELTable->logEntity(pdbi_, inet_ntoa((struct in_addr&)ip), port, entityDBID_, 
 			componentID_, eid_, pModule->getUType());
@@ -364,7 +367,7 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
 
-	if(pTable->queryAccount(pdbi, accountName, info))
+	if(pTable->queryAccount(pdbi, accountName, info) && (info.flags & ACCOUNT_FLAG_NOT_ACTIVATED) <= 0)
 	{
 		if(pdbi->getlasterror() > 0)
 		{
@@ -375,11 +378,23 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 		return false;
 	}
 
-	// 防止多线程问题， 这里做一个拷贝。
-	MemoryStream copyAccountDefMemoryStream(pTable->accountDefMemoryStream());
+	bool hasset = (info.dbid != 0);
+	if(!hasset)
+	{
+		info.flags = g_kbeSrvConfig.getDBMgr().accountDefaultFlags;
+		info.deadline = g_kbeSrvConfig.getDBMgr().accountDefaultDeadline;
+	}
 
-	DBID entityDBID = EntityTables::getSingleton().writeEntity(pdbi, 0, 
-		&copyAccountDefMemoryStream, pModule);
+	DBID entityDBID = info.dbid;
+	
+	if(entityDBID == 0)
+	{
+		// 防止多线程问题， 这里做一个拷贝。
+		MemoryStream copyAccountDefMemoryStream(pTable->accountDefMemoryStream());
+
+		entityDBID = EntityTables::getSingleton().writeEntity(pdbi, 0, 
+				&copyAccountDefMemoryStream, pModule);
+	}
 
 	KBE_ASSERT(entityDBID > 0);
 
@@ -387,15 +402,32 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 	info.password = passwd;
 	info.dbid = entityDBID;
 	info.datas = datas;
-	if(!pTable->logAccount(pdbi, info))
+	
+	if(!hasset)
 	{
-		if(pdbi->getlasterror() > 0)
+		if(!pTable->logAccount(pdbi, info))
 		{
-			WARNING_MSG(boost::format("DBTaskCreateAccount::writeAccount(): logAccount error:%1%\n") % 
-				pdbi->getstrerror());
-		}
+			if(pdbi->getlasterror() > 0)
+			{
+				WARNING_MSG(boost::format("DBTaskCreateAccount::writeAccount(): logAccount error:%1%\n") % 
+					pdbi->getstrerror());
+			}
 
-		return false;
+			return false;
+		}
+	}
+	else
+	{
+		if(!pTable->setFlagsDeadline(pdbi, accountName, info.flags & ~ACCOUNT_FLAG_NOT_ACTIVATED, info.deadline))
+		{
+			if(pdbi->getlasterror() > 0)
+			{
+				WARNING_MSG(boost::format("DBTaskCreateAccount::writeAccount(): logAccount error:%1%\n") % 
+					pdbi->getstrerror());
+			}
+
+			return false;
+		}
 	}
 
 	return true;
@@ -463,8 +495,9 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	// 寻找dblog是否有此账号， 如果有则创建失败
 	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
 	KBE_ASSERT(pTable);
-
-	if(pTable->queryAccount(pdbi_, accountName_, info))
+	
+	info.flags = 0;
+	if(pTable->queryAccount(pdbi_, accountName_, info)  && (info.flags & ACCOUNT_FLAG_NOT_ACTIVATED) <= 0)
 	{
 		if(pdbi_->getlasterror() > 0)
 		{
@@ -475,40 +508,31 @@ bool DBTaskCreateMailAccount::db_thread_process()
 		return false;
 	}
 
-	if(info.name.size() > 0)
-		return false;
-
 	// 生成激活码并存储激活码到数据库
 	// 发送smtp邮件到邮箱， 用户点击确认后即可激活
 	std::string datas = KBEngine::StringConv::val2str(KBEngine::genUUID64());
 	datas += password_;
 	srand(getSystemTime());
 	datas += KBEngine::StringConv::val2str(rand());
-
-	pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountactivation"));
-	KBE_ASSERT(pTable);
+	getdatas_ = datas;
+	KBEEmailVerificationTable* pTable1 = static_cast<KBEEmailVerificationTable*>(EntityTables::getSingleton().findKBETable("kbe_email_verification"));
+	KBE_ASSERT(pTable1);
 	
 	info.datas = datas;
 	info.name = registerName_;
 	info.password = password_;
-	success_ = pTable->logAccount(pdbi_, info);
+	info.flags |= ACCOUNT_FLAG_NOT_ACTIVATED; 
+	info.email = info.name;
 
-	jwsmtp::mailer m("3603661@qq.com", g_kbeSrvConfig.emailAtivationInfo_.username.c_str(), g_kbeSrvConfig.emailAtivationInfo_.subject.c_str(),
-		g_kbeSrvConfig.emailAtivationInfo_.subject.c_str(), g_kbeSrvConfig.emailAtivationInfo_.smtp_server.c_str(),
-		g_kbeSrvConfig.emailAtivationInfo_.smtp_port, false);
+	try
+	{
+		pTable->logAccount(pdbi_, info);
+	}
+	catch (...)
+	{
+	}
 
-	// 经过测试，163支持的auth认证是PLAIN模式  
-	m.authtype(jwsmtp::mailer::PLAIN);  
-
-	std::string mailmessage = g_kbeSrvConfig.emailAtivationInfo_.message;
-	KBEngine::strutil::kbe_replace(mailmessage, "${backlink}", (boost::format("http://127.0.0.1:20013/%1%") % datas).str());
-	m.setmessageHTML(mailmessage);
-
-   m.username(g_kbeSrvConfig.emailAtivationInfo_.username.c_str());
-   m.password(g_kbeSrvConfig.emailAtivationInfo_.password.c_str());
-   m.send(); // send the mail
-
-   INFO_MSG(boost::format("sendmail: %1%\n") % m.response());
+	success_ = pTable1->logAccount(pdbi_, info);
 	return false;
 }
 
@@ -518,7 +542,7 @@ thread::TPTask::TPTaskState DBTaskCreateMailAccount::presentMainThread()
 	DEBUG_MSG(boost::format("Dbmgr::reqCreateMailAccount:%1%.\n") % registerName_.c_str());
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-	(*pBundle).newMessage(LoginappInterface::onReqCreateAccountResult);
+	(*pBundle).newMessage(LoginappInterface::onReqCreateMailAccountResult);
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
 	if(!success_)
@@ -530,6 +554,54 @@ thread::TPTask::TPTaskState DBTaskCreateMailAccount::presentMainThread()
 	if(!this->send((*pBundle)))
 	{
 		ERROR_MSG(boost::format("DBTaskCreateMailAccount::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+	}
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskActivateAccount::DBTaskActivateAccount(const Mercury::Address& addr, 
+										 std::string& code):
+DBTask(addr),
+code_(code),
+success_(false)
+{
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskActivateAccount::~DBTaskActivateAccount()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskActivateAccount::db_thread_process()
+{
+	ACCOUNT_INFOS info;
+	success_ = false;
+
+	KBEEmailVerificationTable* pTable1 = static_cast<KBEEmailVerificationTable*>(EntityTables::getSingleton().findKBETable("kbe_email_verification"));
+	KBE_ASSERT(pTable1);
+
+	success_ = pTable1->activateAccount(pdbi_, code_, info);
+	if(!success_)
+		return false;
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState DBTaskActivateAccount::presentMainThread()
+{
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(LoginappInterface::onAccountActivated);
+
+
+	(*pBundle) << code_ << success_;
+	if(!this->send((*pBundle)))
+	{
+		ERROR_MSG(boost::format("DBTaskActivateAccount::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
 	}
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
@@ -550,7 +622,9 @@ componentID_(componentID),
 entityID_(entityID),
 error_(),
 ip_(ip),
-port_(port)
+port_(port),
+flags_(0),
+deadline_(0)
 {
 }
 
@@ -622,6 +696,10 @@ bool DBTaskQueryAccount::db_thread_process()
 		error_ += "logEntity: ";
 		error_ += pdbi_->getstrerror();
 	}
+
+	flags_ = info.flags;
+	deadline_ = info.deadline;
+
 	return false;
 }
 
@@ -637,6 +715,8 @@ thread::TPTask::TPTaskState DBTaskQueryAccount::presentMainThread()
 	(*pBundle) << dbid_;
 	(*pBundle) << success_;
 	(*pBundle) << entityID_;
+	(*pBundle) << flags_;
+	(*pBundle) << deadline_;
 
 	if(success_)
 	{
@@ -749,7 +829,9 @@ getdatas_(getdatas),
 success_(success),
 componentID_(0),
 entityID_(0),
-dbid_(0)
+dbid_(0),
+flags_(0),
+deadline_(0)
 {
 }
 
@@ -783,8 +865,24 @@ bool DBTaskAccountLogin::db_thread_process()
 
 	ACCOUNT_INFOS info;
 	info.dbid = 0;
+	info.flags = 0;
+	info.deadline = 0;
 	if(!pTable->queryAccount(pdbi_, accountName_, info))
 	{
+		flags_ = info.flags;
+		deadline_ = info.deadline;
+		if(ACCOUNT_TYPE(g_kbeSrvConfig.getLoginApp().account_type) != ACCOUNT_TYPE_NORMAL)
+		{
+			// 据说regex不是线程安全的?
+			std::tr1::regex mail_pattern("([0-9A-Za-z\\-_\\.]+)@([0-9a-z]+\\.[a-z]{2,3}(\\.[a-z]{2})?)");
+			if (std::tr1::regex_match(accountName_, mail_pattern))
+			{
+				ERROR_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): account[%1%] is email, autocreate failed!\n") % 
+					accountName_);
+				return false;
+			}
+		}
+
 		if(g_kbeSrvConfig.getDBMgr().notFoundAccountAutoCreate)
 		{
 			if(!DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, postdatas_, info) || info.dbid == 0)
@@ -857,18 +955,23 @@ bool DBTaskAccountLogin::db_thread_process()
 	}
 
 	dbid_ = info.dbid;
+	flags_ = info.flags;
+	deadline_ = info.deadline;
+	pTable->updateCount(pdbi_, info.dbid);
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::onAccountLogin:loginName=%1%, accountName=%2%, success=%3%, componentID=%4%, dbid=%5%\n") % 
+	DEBUG_MSG(boost::format("Dbmgr::onAccountLogin:loginName=%1%, accountName=%2%, success=%3%, componentID=%4%, dbid=%5%, flags=%6%, deadline=%7%.\n") % 
 		loginName_ %
 		accountName_ %
 		success_ %
 		componentID_ %
-		dbid_
+		dbid_ %
+		flags_ %
+		deadline_
 		);
 
 	// 一个用户登录， 构造一个数据库查询指令并加入到执行队列， 执行完毕将结果返回给loginapp
@@ -882,6 +985,8 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 	(*pBundle) << componentID_;   // 如果大于0则表示账号还存活在某个baseapp上
 	(*pBundle) << entityID_;
 	(*pBundle) << dbid_;
+	(*pBundle) << flags_;
+	(*pBundle) << deadline_;
 	(*pBundle).appendBlob(getdatas_);
 
 	if(!this->send((*pBundle)))

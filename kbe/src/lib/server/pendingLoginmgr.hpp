@@ -45,6 +45,16 @@ class PendingLoginMgr : public Task
 public:
 	struct PLInfos
 	{
+		PLInfos()
+		{
+			ctype = UNKNOWN_CLIENT_COMPONENT_TYPE;
+			flags = 0;
+			deadline = 0;
+			entityDBID = 0;
+			entityID = 0;
+			lastProcessTime = 0;
+		}
+
 		Mercury::Address addr;
 		COMPONENT_CLIENT_TYPE ctype;
 		std::string accountName;
@@ -53,6 +63,8 @@ public:
 		TimeStamp lastProcessTime;
 		ENTITY_ID entityID;
 		DBID entityDBID;
+		uint32 flags;
+		uint64 deadline;
 	};
 
 	typedef KBEUnordered_map<std::string, PLInfos*> PTINFO_MAP;

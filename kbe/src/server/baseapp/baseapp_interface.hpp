@@ -142,12 +142,14 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									ENTITY_ID,								entityID)
 
 	// loginapp向自己注册一个将要登录的账号, 由baseappmgr转发。
-	BASEAPP_MESSAGE_DECLARE_ARGS5(registerPendingLogin,						MERCURY_VARIABLE_MESSAGE,
+	BASEAPP_MESSAGE_DECLARE_ARGS7(registerPendingLogin,						MERCURY_VARIABLE_MESSAGE,
 									std::string,							loginName, 
 									std::string,							accountName,
 									std::string,							password,
 									ENTITY_ID,								entityID,
-									DBID,									entityDBID)
+									DBID,									entityDBID,
+									uint32,									flags,
+									uint64,									deadline)
 
 	// 前端请求登录到网关上。
 	BASEAPP_MESSAGE_EXPOSED(loginGateway)

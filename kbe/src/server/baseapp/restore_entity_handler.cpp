@@ -106,7 +106,7 @@ void RestoreEntityHandler::pushEntity(ENTITY_ID id)
 //-------------------------------------------------------------------------------------
 bool RestoreEntityHandler::process()
 {
-	Components::COMPONENTS cts = Components::getSingleton().getComponents(CELLAPP_TYPE);
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(CELLAPP_TYPE);
 	Mercury::Channel* pChannel = NULL;
 
 	if(cts.size() > 0)
@@ -210,7 +210,7 @@ bool RestoreEntityHandler::process()
 				spaceIDs_.erase(std::remove(spaceIDs_.begin(), spaceIDs_.end(), spaceID), spaceIDs_.end());
 
 				Mercury::Channel* pChannel = NULL;
-				Components::COMPONENTS cts = Componentbridge::getComponents().getComponents(BASEAPP_TYPE);
+				Components::COMPONENTS& cts = Componentbridge::getComponents().getComponents(BASEAPP_TYPE);
 				Components::COMPONENTS::iterator comsiter = cts.begin();
 				for(; comsiter != cts.end(); comsiter++)
 				{

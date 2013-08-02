@@ -224,7 +224,7 @@ public:
 		注册将要登录的账号, 注册后则允许登录到此网关
 	*/
 	void registerPendingLogin(Mercury::Channel* pChannel, std::string& loginName, std::string& accountName, 
-		std::string& password, ENTITY_ID entityID, DBID entityDBID);
+		std::string& password, ENTITY_ID entityID, DBID entityDBID, uint32 flags, uint64 deadline);
 
 	/** 网络接口
 		新用户请求登录到网关上

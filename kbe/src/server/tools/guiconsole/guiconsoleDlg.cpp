@@ -950,15 +950,15 @@ void CguiconsoleDlg::updateTree()
 	if(!m_isInit)
 		return;
 
-	Components::COMPONENTS cts0 = Components::getSingleton().getComponents(BASEAPP_TYPE);
-	Components::COMPONENTS cts1 = Components::getSingleton().getComponents(CELLAPP_TYPE);
-	Components::COMPONENTS cts2 = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
-	Components::COMPONENTS cts3 = Components::getSingleton().getComponents(CELLAPPMGR_TYPE);
-	Components::COMPONENTS cts4 = Components::getSingleton().getComponents(DBMGR_TYPE);
-	Components::COMPONENTS cts5 = Components::getSingleton().getComponents(LOGINAPP_TYPE);
-	Components::COMPONENTS cts6 = Components::getSingleton().getComponents(MESSAGELOG_TYPE);
-	Components::COMPONENTS cts7 = Components::getSingleton().getComponents(RESOURCEMGR_TYPE);
-	Components::COMPONENTS cts8 = Components::getSingleton().getComponents(BOTS_TYPE);
+	Components::COMPONENTS& cts0 = Components::getSingleton().getComponents(BASEAPP_TYPE);
+	Components::COMPONENTS& cts1 = Components::getSingleton().getComponents(CELLAPP_TYPE);
+	Components::COMPONENTS& cts2 = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
+	Components::COMPONENTS& cts3 = Components::getSingleton().getComponents(CELLAPPMGR_TYPE);
+	Components::COMPONENTS& cts4 = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::COMPONENTS& cts5 = Components::getSingleton().getComponents(LOGINAPP_TYPE);
+	Components::COMPONENTS& cts6 = Components::getSingleton().getComponents(MESSAGELOG_TYPE);
+	Components::COMPONENTS& cts7 = Components::getSingleton().getComponents(RESOURCEMGR_TYPE);
+	Components::COMPONENTS& cts8 = Components::getSingleton().getComponents(BOTS_TYPE);
 	Components::COMPONENTS cts;
 	
 	if(cts0.size() > 0)

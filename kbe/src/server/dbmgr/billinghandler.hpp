@@ -64,6 +64,11 @@ public:
 
 	virtual void charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s) = 0;
 	virtual void onChargeCB(KBEngine::MemoryStream& s) = 0;
+
+	virtual void accountActivate(Mercury::Channel* pChannel, std::string& scode) = 0;
+	virtual void accountReset(Mercury::Channel* pChannel, std::string& accountName) = 0;
+	virtual void accountBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email) = 0;
+	virtual void accountNewPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& newpassword) = 0;
 protected:
 	DBThreadPool& dbThreadPool_;
 	thread::ThreadPool& threadPool_;
@@ -92,6 +97,11 @@ public:
 	virtual void charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	virtual void onChargeCB(KBEngine::MemoryStream& s);
+
+	virtual void accountActivate(Mercury::Channel* pChannel, std::string& scode);
+	virtual void accountReset(Mercury::Channel* pChannel, std::string& accountName);
+	virtual void accountBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email);
+	virtual void accountNewPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& newpassword);
 protected:
 };
 
@@ -118,6 +128,11 @@ public:
 	virtual void charge(Mercury::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	virtual void onChargeCB(KBEngine::MemoryStream& s);
+
+	virtual void accountActivate(Mercury::Channel* pChannel, std::string& scode);
+	virtual void accountReset(Mercury::Channel* pChannel, std::string& accountName);
+	virtual void accountBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email);
+	virtual void accountNewPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& newpassword);
 
 	bool reconnect();
 

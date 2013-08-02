@@ -111,7 +111,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									DBID,							dbid)
 
 	// 请求擦除客户端请求任务。
-	DBMGR_MESSAGE_DECLARE_ARGS1(eraseClientReq,					MERCURY_VARIABLE_MESSAGE,
+	DBMGR_MESSAGE_DECLARE_ARGS1(eraseClientReq,						MERCURY_VARIABLE_MESSAGE,
 									std::string,					logkey)
 
 	// 数据库查询
@@ -141,10 +141,30 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	DBMGR_MESSAGE_DECLARE_STREAM(queryWatcher,						MERCURY_VARIABLE_MESSAGE)
 
 	// 充值请求
-	DBMGR_MESSAGE_DECLARE_STREAM(charge,								MERCURY_VARIABLE_MESSAGE)
+	DBMGR_MESSAGE_DECLARE_STREAM(charge,							MERCURY_VARIABLE_MESSAGE)
 
 	// 充值回调
-	DBMGR_MESSAGE_DECLARE_STREAM(onChargeCB,							MERCURY_VARIABLE_MESSAGE)
+	DBMGR_MESSAGE_DECLARE_STREAM(onChargeCB,						MERCURY_VARIABLE_MESSAGE)
+
+	// 激活回调。
+	DBMGR_MESSAGE_DECLARE_ARGS1(accountActivate,					MERCURY_VARIABLE_MESSAGE,
+									std::string,					scode)
+
+	// 账号重置密码。
+	DBMGR_MESSAGE_DECLARE_ARGS1(accountReset,						MERCURY_VARIABLE_MESSAGE,
+									std::string,					accountName)
+
+	// 账号绑定邮箱。
+	DBMGR_MESSAGE_DECLARE_ARGS3(accountBindMail,					MERCURY_VARIABLE_MESSAGE,
+									std::string,					accountName,
+									std::string,					password,
+									std::string,					email)
+
+	// 账号修改密码。
+	DBMGR_MESSAGE_DECLARE_ARGS3(accountNewPassword,					MERCURY_VARIABLE_MESSAGE,
+									std::string,					accountName,
+									std::string,					password,
+									std::string,					newpassword)
 
 NETWORK_INTERFACE_DECLARE_END()
 

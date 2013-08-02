@@ -19,7 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <regex>
+#include "jwsmtp.h"
 #include "loginapp.hpp"
+#include "threadtasks.hpp"
+#include "account_activate_handler.hpp"
 #include "loginapp_interface.hpp"
 #include "network/common.hpp"
 #include "network/tcp_packet.hpp"
@@ -53,13 +56,15 @@ Loginapp::Loginapp(Mercury::EventDispatcher& dispatcher,
 	loopCheckTimerHandle_(),
 	pendingCreateMgr_(ninterface),
 	pendingLoginMgr_(ninterface),
-	digest_()
+	digest_(),
+	pAccountActivateHandler(NULL)
 {
 }
 
 //-------------------------------------------------------------------------------------
 Loginapp::~Loginapp()
 {
+	SAFE_RELEASE(pAccountActivateHandler);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -110,7 +115,7 @@ void Loginapp::onChannelDeregister(Mercury::Channel * pChannel)
 		// 通知billing从队列中清除他的请求， 避免拥塞
 		if(extra.size() > 0)
 		{
-			Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+			Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 			Components::ComponentInfos* dbmgrinfos = NULL;
 
 			if(cts.size() > 0)
@@ -173,6 +178,9 @@ void Loginapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, int32 startGloba
 	startGlobalOrder_ = startGlobalOrder;
 	startGroupOrder_ = startGroupOrder;
 	digest_ = digest;
+
+	if(startGroupOrder_ == 1)
+		pAccountActivateHandler = new AccountActivateHandler();
 }
 
 
@@ -313,7 +321,7 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 	ptinfos->addr = pChannel->addr();
 	pendingCreateMgr_.add(ptinfos);
 
-	Components::COMPONENTS cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
 
 	if(cts.size() > 0)
@@ -403,6 +411,54 @@ void Loginapp::onReqCreateAccountResult(Mercury::Channel* pChannel, MemoryStream
 }
 
 //-------------------------------------------------------------------------------------
+void Loginapp::onReqCreateMailAccountResult(Mercury::Channel* pChannel, MemoryStream& s)
+{
+	SERVER_ERROR_CODE failedcode;
+	std::string accountName;
+	std::string password;
+	std::string retdatas = "";
+
+	s >> failedcode >> accountName >> password;
+	s.readBlob(retdatas);
+
+	DEBUG_MSG(boost::format("Loginapp::onReqCreateMailAccountResult: accountName=%1%, failedcode=%2%.\n") %
+		accountName.c_str() % failedcode);
+
+	if(failedcode == SERVER_SUCCESS)
+	{
+		threadPool_.addTask(new SendActivateEMailTask(accountName, retdatas, 
+			getNetworkInterface().extEndpoint().addr().ipAsString(), 
+			g_kbeSrvConfig.emailAtivationInfo_.cb_port));
+	}
+
+	PendingLoginMgr::PLInfos* ptinfos = pendingCreateMgr_.remove(accountName);
+	if(ptinfos == NULL)
+		return;
+
+	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(ptinfos->addr);
+	if(pClientChannel == NULL)
+		return;
+
+	pClientChannel->extra("");
+	retdatas = "";
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(ClientInterface::onCreateAccountResult);
+	bundle << failedcode;
+	bundle.appendBlob(retdatas);
+
+	bundle.send(this->getNetworkInterface(), pClientChannel);
+
+	SAFE_RELEASE(ptinfos);
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::onAccountActivated(Mercury::Channel* pChannel, std::string& code, bool success)
+{
+	DEBUG_MSG(boost::format("Loginapp::onAccountActivated: success=%1%\n") % success);
+}
+
+//-------------------------------------------------------------------------------------
 void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 {
 	COMPONENT_CLIENT_TYPE ctype;
@@ -424,6 +480,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 	// 密码
 	s >> password;
 
+	loginName = KBEngine::strutil::kbe_trim(loginName);
 	if(loginName.size() == 0)
 	{
 		ERROR_MSG("Loginapp::login: loginName is NULL.\n");
@@ -506,7 +563,7 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 		COMPONENT_CLIENT_NAME[ctype] % loginName.c_str() % datas.c_str());
 
 	// 首先必须baseappmgr和dbmgr都已经准备完毕了。
-	Components::COMPONENTS cts = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
 	Components::ComponentInfos* baseappmgrinfos = NULL;
 	if(cts.size() > 0)
 		baseappmgrinfos = &(*cts.begin());
@@ -518,11 +575,11 @@ void Loginapp::login(Mercury::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::COMPONENTS& cts1 = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
 
-	if(cts.size() > 0)
-		dbmgrinfos = &(*cts.begin());
+	if(cts1.size() > 0)
+		dbmgrinfos = &(*cts1.begin());
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
@@ -581,6 +638,8 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 	COMPONENT_ID componentID;
 	ENTITY_ID entityID;
 	DBID dbid;
+	uint32 flags;
+	uint64 deadline;
 
 	s >> success;
 
@@ -596,8 +655,28 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 	s >> componentID;
 	s >> entityID;
 	s >> dbid;
+	s >> flags;
+	s >> deadline;
 
 	s.readBlob(datas);
+
+	if((flags & ACCOUNT_FLAG_LOCK) > 0)
+	{
+		_loginFailed(NULL, loginName, SERVER_ERR_ACCOUNT_LOCK, datas);
+		return;
+	}
+
+	if((flags & ACCOUNT_FLAG_NOT_ACTIVATED) > 0)
+	{
+		_loginFailed(NULL, loginName, SERVER_ERR_ACCOUNT_NOT_ACTIVATED, datas);
+		return;
+	}
+
+	if(deadline > 0 && ::time(NULL) - deadline <= 0)
+	{
+		_loginFailed(NULL, loginName, SERVER_ERR_ACCOUNT_DEADLINE, datas);
+		return;
+	}
 
 	PendingLoginMgr::PLInfos* infos = pendingLoginMgr_.find(loginName);
 	if(infos == NULL)
@@ -619,7 +698,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 	}
 
 	// 获得baseappmgr地址。
-	Components::COMPONENTS cts = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(BASEAPPMGR_TYPE);
 	Components::ComponentInfos* baseappmgrinfos = NULL;
 	if(cts.size() > 0)
 		baseappmgrinfos = &(*cts.begin());
@@ -635,7 +714,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 	{
 		Mercury::Bundle bundle;
 		bundle.newMessage(BaseappmgrInterface::registerPendingAccountToBaseappAddr);
-		bundle << componentID << loginName << accountName << password << entityID << dbid;
+		bundle << componentID << loginName << accountName << password << entityID << dbid << flags << deadline;
 		bundle.send(this->getNetworkInterface(), baseappmgrinfos->pChannel);
 		return;
 	}
@@ -649,6 +728,8 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Mercury::Channel* pChannel, Me
 		bundle << accountName;
 		bundle << password;
 		bundle << dbid;
+		bundle << flags;
+		bundle << deadline;
 		bundle.send(this->getNetworkInterface(), baseappmgrinfos->pChannel);
 	}
 }

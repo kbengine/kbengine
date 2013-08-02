@@ -353,7 +353,7 @@ void Dbmgr::onRegisterNewApp(Mercury::Channel* pChannel, int32 uid, std::string&
 		KBEngine::COMPONENT_TYPE broadcastCpTypes[2] = {BASEAPP_TYPE, CELLAPP_TYPE};
 		for(int idx = 0; idx < 2; idx++)
 		{
-			Components::COMPONENTS cts = Components::getSingleton().getComponents(broadcastCpTypes[idx]);
+			Components::COMPONENTS& cts = Components::getSingleton().getComponents(broadcastCpTypes[idx]);
 			Components::COMPONENTS::iterator fiter = cts.begin();
 			for(; fiter != cts.end(); fiter++)
 			{
@@ -617,6 +617,34 @@ void Dbmgr::onChargeCB(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 void Dbmgr::eraseClientReq(Mercury::Channel* pChannel, std::string& logkey)
 {
 	pBillingHandler_->eraseClientReq(pChannel, logkey);
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::accountActivate(Mercury::Channel* pChannel, std::string& scode)
+{
+	INFO_MSG(boost::format("Dbmgr::accountActivate: code=%1%.\n") % scode);
+	pBillingHandler_->accountActivate(pChannel, scode);
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::accountReset(Mercury::Channel* pChannel, std::string& accountName)
+{
+	INFO_MSG(boost::format("Dbmgr::accountReset: accountName=%1%.\n") % accountName);
+	pBillingHandler_->accountReset(pChannel, accountName);
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::accountBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email)
+{
+	INFO_MSG(boost::format("Dbmgr::accountBindMail: accountName=%1%, email=%1%.\n") % accountName % email);
+	pBillingHandler_->accountBindMail(pChannel, accountName, password, email);
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::accountNewPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& newpassword)
+{
+	INFO_MSG(boost::format("Dbmgr::accountNewPassword: accountName=%1%.\n") % accountName);
+	pBillingHandler_->accountNewPassword(pChannel, accountName, password, newpassword);
 }
 
 //-------------------------------------------------------------------------------------

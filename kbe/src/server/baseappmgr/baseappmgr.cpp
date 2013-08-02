@@ -231,7 +231,7 @@ void Baseappmgr::reqCreateBaseAnywhere(Mercury::Channel* pChannel, MemoryStream&
 //-------------------------------------------------------------------------------------
 void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel, 
 												 std::string& loginName, std::string& accountName, 
-												 std::string& password, DBID entityDBID)
+												 std::string& password, DBID entityDBID, uint32 flags, uint64 deadline)
 {
 	ENTITY_ID eid = 0;
 	Components::ComponentInfos* cinfos = 
@@ -244,7 +244,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
-		(*pBundle) << loginName << accountName << password << eid << entityDBID;
+		(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline;
 
 		WARNING_MSG("Baseappmgr::registerPendingAccountToBaseapp: not found baseapp, message is buffered.\n");
 		pFI->pHandler = NULL;
@@ -258,7 +258,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
-	(*pBundle) << loginName << accountName << password << eid << entityDBID;
+	(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline;
 	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
@@ -266,7 +266,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Mercury::Channel* pChannel,
 //-------------------------------------------------------------------------------------
 void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel, COMPONENT_ID componentID,
 								std::string& loginName, std::string& accountName, std::string& password, 
-								ENTITY_ID entityID, DBID entityDBID)
+								ENTITY_ID entityID, DBID entityDBID, uint32 flags, uint64 deadline)
 {
 	DEBUG_MSG(boost::format("Baseappmgr::registerPendingAccountToBaseappAddr:%1%, componentID=%2%, entityID=%3%.\n") % 
 		accountName.c_str() % componentID % entityID);
@@ -280,7 +280,7 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Mercury::Channel* pChannel,
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
-	(*pBundle) << loginName << accountName << password << entityID << entityDBID;
+	(*pBundle) << loginName << accountName << password << entityID << entityDBID << flags << deadline;
 	(*pBundle).send(this->getNetworkInterface(), cinfos->pChannel);
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 }
