@@ -241,7 +241,7 @@ CPPFLAGS += -DUSE_SIGAR
 #endif
 
 JWSMTP_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/jwsmtp
-KBE_INCLUDES += -I$JWSMTP_DIR/jwsmtp/jwsmtp
+KBE_INCLUDES += -I$(JWSMTP_DIR)/jwsmtp/jwsmtp
 #ifeq ($(USE_JWSMTP),1)
 LDLIBS += -ljwsmtp
 CPPFLAGS += -DUSE_JWSMTP
