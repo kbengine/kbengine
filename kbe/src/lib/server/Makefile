@@ -17,6 +17,7 @@ SRCS =				\
 	serverapp		\
 	serverconfig		\
 	serverinfos		\
+	sendmail_threadtasks	\
 	shutdowner		\
 	signal_handler		\
 	telnet_handler		\
@@ -27,6 +28,7 @@ export KBE_ROOT := $(subst /kbe/src/lib/$(LIB),,$(CURDIR))
 endif
 
 USE_PYTHON=1
+USE_JWSMTP = 1
 
 ifndef NO_USE_LOG4CXX
 	NO_USE_LOG4CXX = 0

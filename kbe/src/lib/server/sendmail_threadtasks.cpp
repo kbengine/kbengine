@@ -18,12 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "threadtasks.hpp"
-#include "loginapp.hpp"
 #include "jwsmtp.h"
-#include "thread/threadpool.hpp"
-#include "server/componentbridge.hpp"
-#include "server/components.hpp"
+#include "sendmail_threadtasks.hpp"
 #include "server/serverconfig.hpp"
 #include "cstdkbe/deadline.hpp"
 

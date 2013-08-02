@@ -18,12 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __LOGINAPPTHREADTASKS_H__
-#define __LOGINAPPTHREADTASKS_H__
+#ifndef __SENDMAIL_THREADTASKS_H__
+#define __SENDMAIL_THREADTASKS_H__
 
 #include "cstdkbe/cstdkbe.hpp"
-#include "cstdkbe/memorystream.hpp"
-#include "cstdkbe/timestamp.hpp"
 #include "thread/threadtask.hpp"
 #include "helper/debug_helper.hpp"
 #include "network/address.hpp"

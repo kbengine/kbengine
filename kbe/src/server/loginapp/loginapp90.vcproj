@@ -199,10 +199,6 @@
 				RelativePath="main.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\threadtasks.cpp"
-				>
-			</File>
 			<Filter
 				Name="Resource Files"
 				Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
@@ -229,10 +225,6 @@
 			</File>
 			<File
 				RelativePath=".\loginapp_interface_macros.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\threadtasks.hpp"
 				>
 			</File>
 		</Filter>

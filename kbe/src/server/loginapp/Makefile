@@ -3,8 +3,7 @@ SRCS =						\
 	account_activate_handler		\
 	loginapp				\
 	loginapp_interface			\
-	main					\
-	threadtasks
+	main
 
 ASMS =
 

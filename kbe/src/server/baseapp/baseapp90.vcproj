@@ -63,7 +63,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/ignore:4049&#x0D;&#x0A;/ignore:4217"
-				AdditionalDependencies="pyexpat_d.pyd select_d.pyd _ctypes_d.pyd _elementtree_d.pyd unicodedata_d.pyd _hashlib_d.pyd _ssl_d.pyd _socket_d.pyd Version.lib netapi32.lib zip_d.lib resmgr_d.lib python32_d.lib server_d.lib pyscript_d.lib entitydef_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib math_d.lib network_d.lib thread_d.lib ws2_32.lib"
+				AdditionalDependencies="jwsmtp_d.lib pyexpat_d.pyd select_d.pyd _ctypes_d.pyd _elementtree_d.pyd unicodedata_d.pyd _hashlib_d.pyd _ssl_d.pyd _socket_d.pyd Version.lib netapi32.lib zip_d.lib resmgr_d.lib python32_d.lib server_d.lib pyscript_d.lib entitydef_d.lib xmlplus_d.lib cstdkbe_d.lib helper_d.lib math_d.lib network_d.lib thread_d.lib ws2_32.lib"
 				OutputFile="../../../bin/Hybrid/$(ProjectName).exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../../libs;../../lib/third_party/vld"
@@ -142,7 +142,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/ignore:4049&#x0D;&#x0A;/ignore:4217"
-				AdditionalDependencies="pyexpat.pyd select.pyd _ctypes.pyd _elementtree.pyd unicodedata.pyd _hashlib.pyd _ssl.pyd _socket.pyd Version.lib netapi32.lib zip.lib resmgr.lib python32.lib server.lib pyscript.lib entitydef.lib xmlplus.lib cstdkbe.lib helper.lib math.lib network.lib thread.lib ws2_32.lib"
+				AdditionalDependencies="jwsmtp.lib pyexpat.pyd select.pyd _ctypes.pyd _elementtree.pyd unicodedata.pyd _hashlib.pyd _ssl.pyd _socket.pyd Version.lib netapi32.lib zip.lib resmgr.lib python32.lib server.lib pyscript.lib entitydef.lib xmlplus.lib cstdkbe.lib helper.lib math.lib network.lib thread.lib ws2_32.lib"
 				OutputFile="../../../bin/Hybrid\$(ProjectName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../../libs"
