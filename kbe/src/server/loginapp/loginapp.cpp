@@ -18,7 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <regex>
 #include "jwsmtp.h"
 #include "loginapp.hpp"
 #include "threadtasks.hpp"
@@ -428,7 +427,7 @@ void Loginapp::onReqCreateMailAccountResult(Mercury::Channel* pChannel, MemorySt
 	{
 		threadPool_.addTask(new SendActivateEMailTask(accountName, retdatas, 
 			getNetworkInterface().extEndpoint().addr().ipAsString(), 
-			g_kbeSrvConfig.emailAtivationInfo_.cb_port));
+			g_kbeSrvConfig.emailServerInfo_.cb_port));
 	}
 
 	PendingLoginMgr::PLInfos* ptinfos = pendingCreateMgr_.remove(accountName);

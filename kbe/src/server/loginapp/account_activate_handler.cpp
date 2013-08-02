@@ -45,7 +45,7 @@ clients_()
 		return;
 	}
 
-	if (pEndPoint_->bind(htons(g_kbeSrvConfig.emailAtivationInfo_.cb_port), 
+	if (pEndPoint_->bind(htons(g_kbeSrvConfig.emailServerInfo_.cb_port), 
 		Loginapp::getSingleton().getNetworkInterface().extaddr().ip) == -1)
 	{
 		ERROR_MSG(boost::format("AccountActivateHandler::bind(%1%): \n") %
@@ -70,7 +70,7 @@ clients_()
 
 	INFO_MSG(boost::format("AccountActivateHandler::bind: %1%:%2%\n") %
 		inet_ntoa((struct in_addr&)Loginapp::getSingleton().getNetworkInterface().extaddr().ip) % 
-		g_kbeSrvConfig.emailAtivationInfo_.cb_port);
+		g_kbeSrvConfig.emailServerInfo_.cb_port);
 }
 
 //-------------------------------------------------------------------------------------
@@ -135,14 +135,44 @@ int AccountActivateHandler::handleInputNotification(int fd)
 		if(client.state == 1)
 			clients_.erase(iter);
 
+		int type = 0;
+		std::string keys = "accountactivate?";
 		std::string s = buffer;
-		std::string::size_type fi1 = s.find("accountactivate?");
+		std::string::size_type fi1 = s.find(keys);
+		if(fi1 == std::string::npos)
+		{
+			keys = "resetpassword?";
+			fi1 = s.find(keys);
+			if(fi1 == std::string::npos)
+			{
+				keys = "bindmail?";
+				fi1 = s.find(keys);
+				if(fi1 != std::string::npos)
+				{
+					type = 3;
+				}
+			}
+			else
+			{
+				type = 2;
+			}
+		}
+		else
+		{
+			type = 1;
+		}
+
 		std::string::size_type fi2 = s.find(" HTTP/");
+		
+		if(fi2 <= fi1)
+		{
+			return 0;
+		}
 
 		std::string code;
 		if(fi1 != std::string::npos && fi2 != std::string::npos)
 		{
-			int ilen = strlen("accountactivate?");
+			int ilen = keys.size();
 			code.assign(s.c_str() + fi1 + ilen, fi2 - (fi1 + ilen));
 		}
 
@@ -167,11 +197,14 @@ int AccountActivateHandler::handleInputNotification(int fd)
 				return 0;
 			}
 
-			// 向dbmgr激活账号
-			Mercury::Bundle bundle;
-			bundle.newMessage(DbmgrInterface::accountActivate);
-			bundle << code;
-			bundle.send(Loginapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
+			if(type == 1)
+			{
+				// 向dbmgr激活账号
+				Mercury::Bundle bundle;
+				bundle.newMessage(DbmgrInterface::accountActivate);
+				bundle << code;
+				bundle.send(Loginapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
+			}
 		}
 		else
 		{

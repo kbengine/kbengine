@@ -18,7 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <regex>
 #include "dbtasks.hpp"
 #include "dbmgr.hpp"
 #include "buffered_dbtasks.hpp"
@@ -532,7 +531,7 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	{
 	}
 
-	success_ = pTable1->logAccount(pdbi_, info);
+	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_CREATEACCOUNT, info);
 	return false;
 }
 

@@ -86,21 +86,14 @@ struct EmailServerInfo
 	std::string username;
 	std::string password;
 	uint8 smtp_auth;
+	uint32 cb_port;
+};
+
+struct EmailSendInfo
+{
+	std::string subject;
+	std::string message;
 	uint32 deadline;
-};
-
-struct EmailAtivationInfo
-{
-	std::string subject;
-	std::string message;
-	uint32 cb_port;
-};
-
-struct EmailResetPassword
-{
-	std::string subject;
-	std::string message;
-	uint32 cb_port;
 };
 
 // 引擎组件信息结构体
@@ -276,9 +269,9 @@ public:
 	uint32 thread_init_create_, thread_pre_create_, thread_max_create_;
 	
 	EmailServerInfo	emailServerInfo_;
-	EmailAtivationInfo emailAtivationInfo_;
-	EmailResetPassword emailResetPassword_;
-
+	EmailSendInfo emailAtivationInfo_;
+	EmailSendInfo emailResetPasswordInfo_;
+	EmailSendInfo emailBindInfo_;
 
 };
 

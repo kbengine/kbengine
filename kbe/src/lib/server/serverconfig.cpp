@@ -187,9 +187,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(childnode)
 			emailServerInfo_.smtp_auth = xml->getValInt(childnode);
 
-		childnode = xml->enterNode(rootNode, "deadline");
+		childnode = xml->enterNode(rootNode, "cb_port");
 		if(childnode)
-			emailServerInfo_.deadline = xml->getValInt(childnode);
+			emailServerInfo_.cb_port = xml->getValInt(childnode);
 
 		TiXmlNode* rootNode1 = xml->enterNode(rootNode, "email_activation");
 		if(rootNode1 != NULL)
@@ -202,9 +202,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 			if(childnode1)
 				emailAtivationInfo_.message = childnode1->ToText()->Value();
 
-			childnode1 = xml->enterNode(rootNode1, "cb_port");
+			childnode1 = xml->enterNode(rootNode1, "deadline");
 			if(childnode1)
-				emailAtivationInfo_.cb_port = xml->getValInt(childnode1);
+				emailAtivationInfo_.deadline = xml->getValInt(childnode1);
 		}
 
 		rootNode1 = xml->enterNode(rootNode, "email_resetpassword");
@@ -212,15 +212,31 @@ bool ServerConfig::loadConfig(std::string fileName)
 		{
 			TiXmlNode* childnode1 = xml->enterNode(rootNode1, "subject");
 			if(childnode1)
-				emailResetPassword_.subject = childnode1->ToText()->Value();
+				emailResetPasswordInfo_.subject = childnode1->ToText()->Value();
 
 			childnode1 = xml->enterNode(rootNode1, "message");
 			if(childnode1)
-				emailResetPassword_.message = childnode1->ToText()->Value();
+				emailResetPasswordInfo_.message = childnode1->ToText()->Value();
 
-			childnode1 = xml->enterNode(rootNode1, "cb_port");
+			childnode1 = xml->enterNode(rootNode1, "deadline");
 			if(childnode1)
-				emailResetPassword_.cb_port = xml->getValInt(childnode1);
+				emailResetPasswordInfo_.deadline = xml->getValInt(childnode1);
+		}
+
+		rootNode1 = xml->enterNode(rootNode, "email_bind");
+		if(rootNode1 != NULL)
+		{
+			TiXmlNode* childnode1 = xml->enterNode(rootNode1, "subject");
+			if(childnode1)
+				emailBindInfo_.subject = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "message");
+			if(childnode1)
+				emailBindInfo_.message = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "deadline");
+			if(childnode1)
+				emailBindInfo_.deadline = xml->getValInt(childnode1);
 		}
 	}
 

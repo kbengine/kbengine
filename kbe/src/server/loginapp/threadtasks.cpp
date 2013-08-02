@@ -37,7 +37,7 @@ SendActivateEMailTask::~SendActivateEMailTask()
 //-------------------------------------------------------------------------------------
 bool SendActivateEMailTask::process()
 {
-	Deadline maildeadline(g_kbeSrvConfig.emailServerInfo_.deadline);
+	Deadline maildeadline(g_kbeSrvConfig.emailAtivationInfo_.deadline);
 	std::wstring wdeadline = maildeadline.wprint();
 
 	jwsmtp::mailer m(emailaddr_.c_str(), g_kbeSrvConfig.emailServerInfo_.username.c_str(), g_kbeSrvConfig.emailAtivationInfo_.subject.c_str(),

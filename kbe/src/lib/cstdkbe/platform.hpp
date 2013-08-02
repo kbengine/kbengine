@@ -57,6 +57,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <windows.h> 
 #include <unordered_map>
 #include <functional>
+#include <regex>
 #else
 // linux include
 #include <errno.h>
@@ -78,6 +79,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <tr1/unordered_map>
 #include <tr1/functional>
 #include <tr1/memory>
+#include <tr1/regex>
 #include <linux/types.h>
 #include <sys/time.h>
 #include <sys/types.h>

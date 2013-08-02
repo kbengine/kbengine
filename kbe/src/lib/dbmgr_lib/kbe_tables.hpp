@@ -146,6 +146,13 @@ protected:
 class KBEEmailVerificationTable : public KBETable
 {
 public:
+	enum V_TYPE
+	{
+		V_TYPE_CREATEACCOUNT = 1,
+		V_TYPE_RESETPASSWORD = 2,
+		V_TYPE_BIND_MAIL = 3
+	};
+
 	KBEEmailVerificationTable():
 	KBETable()
 	{
@@ -156,9 +163,9 @@ public:
 	{
 	}
 
-	virtual bool queryAccount(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info) = 0;
-	virtual bool logAccount(DBInterface * dbi, ACCOUNT_INFOS& info) = 0;
-	virtual bool delAccount(DBInterface * dbi, const std::string& name) = 0;
+	virtual bool queryAccount(DBInterface * dbi, int8 type, const std::string& name, ACCOUNT_INFOS& info) = 0;
+	virtual bool logAccount(DBInterface * dbi, int8 type, ACCOUNT_INFOS& info) = 0;
+	virtual bool delAccount(DBInterface * dbi, int8 type, const std::string& name) = 0;
 	virtual bool activateAccount(DBInterface * dbi, const std::string& code, ACCOUNT_INFOS& info) = 0;
 protected:
 };
