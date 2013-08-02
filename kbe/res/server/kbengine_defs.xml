@@ -162,6 +162,8 @@
 				]]>
 			</message>
 			
+			<backlink_hello_message></backlink_hello_message>
+			
 			<backlink_success_message>
 				<![CDATA[
 					<html>
@@ -212,18 +214,21 @@
 				]]>
 			</message>
 			
-			<backlink_success_message>
+			<backlink_hello_message>
 				<![CDATA[
 					<html>
 					<body>
-					<font size="7">操作成功!</font><br>
+					<font size="5">输入新密码:</font><br>
+					<input id = "password1" type = "text"><br>
+					<font size="5">重复新密码:</font><br>
+					<input id = "password2" type = "text"><br>
 					----------------------------------------------------------------------<br><br>
 					<a href="${backlink}">点击进入官网</a><br><br>
 					感谢您的访问，祝您使用愉快！<br>
 					</body>
 					</html>
 				]]>
-			</backlink_success_message>
+			</backlink_hello_message>
 			
 			<backlink_fail_message>
 				<![CDATA[
@@ -261,6 +266,8 @@
 					</html>
 				]]>
 			</message>
+			
+			<backlink_hello_message></backlink_hello_message>
 			
 			<backlink_success_message>
 				<![CDATA[

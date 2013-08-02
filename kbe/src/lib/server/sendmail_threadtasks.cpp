@@ -42,6 +42,9 @@ bool SendEMailTask::process()
 		getopkey() %
 		code_).str());
 
+	KBEngine::strutil::kbe_replace(mailmessage, "${username}", emailaddr_);
+	KBEngine::strutil::kbe_replace(mailmessage, "${code}", code_);
+
 	m.setmessageHTML(mailmessage);
 
 	m.username(g_kbeSrvConfig.emailServerInfo_.username.c_str());

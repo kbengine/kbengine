@@ -21,7 +21,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "jwsmtp.h"
 #include "loginapp.hpp"
-#include "server/sendmail_threadtasks.hpp"
 #include "account_activate_handler.hpp"
 #include "loginapp_interface.hpp"
 #include "network/common.hpp"
@@ -32,6 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "cstdkbe/kbeversion.hpp"
 #include "server/componentbridge.hpp"
 #include "server/components.hpp"
+#include "server/sendmail_threadtasks.hpp"
 #include "client_lib/client_interface.hpp"
 #include "network/encryption_filter.hpp"
 

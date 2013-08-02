@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/endpoint.hpp"
 #include "network/bundle.hpp"
 #include "helper/debug_helper.hpp"
+#include "server/serverconfig.hpp"
 
 #include "../../server/dbmgr/dbmgr_interface.hpp"
 
@@ -197,6 +198,8 @@ int AccountActivateHandler::handleInputNotification(int fd)
 				return 0;
 			}
 
+			std::string hellomessage;
+
 			if(type == 1)
 			{
 				// œÚdbmgrº§ªÓ’À∫≈
@@ -204,6 +207,32 @@ int AccountActivateHandler::handleInputNotification(int fd)
 				bundle.newMessage(DbmgrInterface::accountActivate);
 				bundle << code;
 				bundle.send(Loginapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
+
+				hellomessage = g_kbeSrvConfig.emailAtivationInfo_.backlink_hello_message;
+			}
+			else if(type == 2)
+			{
+				hellomessage = g_kbeSrvConfig.emailResetPasswordInfo_.backlink_hello_message;
+			}
+			else if(type == 3)
+			{
+				hellomessage = g_kbeSrvConfig.emailBindInfo_.backlink_hello_message;
+			}
+
+			if(hellomessage.size() > 0)
+			{
+				KBEngine::strutil::kbe_replace(hellomessage, "${backlink}", (boost::format("http://%1%:%2%/%3%?%4%") % 
+					Loginapp::getSingleton().getNetworkInterface().extaddr().ipAsString() %
+					g_kbeSrvConfig.emailServerInfo_.cb_port %
+					keys %
+					code).str());
+
+				KBEngine::strutil::kbe_replace(hellomessage, "${code}", code);
+
+				std::string response = (boost::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: %1%\r\n\r\n%2%") % 
+					hellomessage.size() % hellomessage).str();
+
+				newclient->send(response.c_str(), response.size());
 			}
 		}
 		else
@@ -227,11 +256,17 @@ void AccountActivateHandler::onAccountActivated(std::string& code, bool success)
 			if(!iter->second.endpoint->good())
 				continue;
 			
+			std::string message;
+
 			if(success)
-				iter->second.endpoint->send(g_kbeSrvConfig.emailAtivationInfo_.backlink_success_message.c_str(), g_kbeSrvConfig.emailAtivationInfo_.backlink_success_message.size());
+				message = g_kbeSrvConfig.emailAtivationInfo_.backlink_success_message;
 			else
-				iter->second.endpoint->send(g_kbeSrvConfig.emailAtivationInfo_.backlink_fail_message.c_str(), g_kbeSrvConfig.emailAtivationInfo_.backlink_fail_message.size());
-			iter->second.endpoint->close();
+				message = g_kbeSrvConfig.emailAtivationInfo_.backlink_fail_message;
+
+			std::string response = (boost::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: %1%\r\n\r\n%2%") % 
+				message.size() % message).str();
+
+			iter->second.endpoint->send(response.c_str(), response.size());
 		}
 	}
 }
