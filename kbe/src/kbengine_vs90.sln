@@ -230,6 +230,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unicodedata", "lib\python\P
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pyexpat", "lib\python\PCbuild\pyexpat.vcproj", "{D06B6426-4762-44CC-8BAD-D79052507F2F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jwsmtp", "lib\third_party\jwsmtp\jwsmtp.vcproj", "{45A08C1B-D249-42C4-932C-615ED3924CBB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Consumer_Release_Indie|Win32 = Consumer_Release_Indie|Win32
@@ -1370,6 +1372,38 @@ Global
 		{D06B6426-4762-44CC-8BAD-D79052507F2F}.Release|Win32.Build.0 = Release|Win32
 		{D06B6426-4762-44CC-8BAD-D79052507F2F}.Static_Release|Win32.ActiveCfg = Release|Win32
 		{D06B6426-4762-44CC-8BAD-D79052507F2F}.Static_Release|Win32.Build.0 = Release|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Consumer_Release_Indie|Win32.ActiveCfg = Release|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Consumer_Release_Indie|Win32.Build.0 = Release|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Consumer_Release|Win32.ActiveCfg = Release|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Consumer_Release|Win32.Build.0 = Release|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Debug|Win32.Build.0 = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Editor_Debug|Win32.ActiveCfg = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Editor_Debug|Win32.Build.0 = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Editor_Hybrid_Indie|Win32.ActiveCfg = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Editor_Hybrid_Indie|Win32.Build.0 = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Editor_Hybrid|Win32.ActiveCfg = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Editor_Hybrid|Win32.Build.0 = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Evaluation|Win32.ActiveCfg = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Evaluation|Win32.Build.0 = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Exporter_Debug|Win32.ActiveCfg = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Exporter_Debug|Win32.Build.0 = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Exporter_Release|Win32.ActiveCfg = Release|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Exporter_Release|Win32.Build.0 = Release|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Hybrid|Win32.ActiveCfg = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Hybrid|Win32.Build.0 = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.PGInstrument|Win32.ActiveCfg = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.PGInstrument|Win32.Build.0 = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.PGUpdate|Win32.ActiveCfg = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.PGUpdate|Win32.Build.0 = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.PyModule_Hybrid|Win32.ActiveCfg = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.PyModule_Hybrid|Win32.Build.0 = Debug|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Release_Indie|Win32.ActiveCfg = Release|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Release_Indie|Win32.Build.0 = Release|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Release|Win32.ActiveCfg = Release|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Release|Win32.Build.0 = Release|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Static_Release|Win32.ActiveCfg = Release|Win32
+		{45A08C1B-D249-42C4-932C-615ED3924CBB}.Static_Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
