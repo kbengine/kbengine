@@ -395,6 +395,20 @@ public:
 		获取进程内部网络地址
 	*/
 	static PyObject* __py_address(PyObject* self, PyObject* args);
+
+	/** 网络接口
+		请求绑定email
+	*/
+	void reqAccountBindEmail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email);
+	void onReqAccountBindEmailCB(Mercury::Channel* pChannel, std::string& accountName,  std::string& email,
+		SERVER_ERROR_CODE failedcode, std::string& code);
+
+	/** 网络接口
+		请求绑定email
+	*/
+	void reqAccountNewPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& oldpassworld, std::string& newpassword);
+	void onReqAccountNewPasswordCB(Mercury::Channel* pChannel, std::string& accountName,
+		SERVER_ERROR_CODE failedcode);
 protected:
 	TimerHandle												loopCheckTimerHandle_;
 

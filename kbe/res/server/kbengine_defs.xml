@@ -334,6 +334,7 @@
 		<account_type> 3 </account_type>
 		
 		<!-- 用户http回调接口，处理认证、密码重置等 -->
+		<http_cbhost> localhost </http_cbhost>
 		<http_cbport> 21103 </http_cbport>
 	</loginapp>		
 	

@@ -73,6 +73,17 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	LOGINAPP_MESSAGE_EXPOSED(reqCreateMailAccount)
 	LOGINAPP_MESSAGE_DECLARE_STREAM(reqCreateMailAccount,							MERCURY_VARIABLE_MESSAGE)
 
+	// 重置账号密码申请
+	LOGINAPP_MESSAGE_EXPOSED(reqAccountResetPassword)
+	LOGINAPP_MESSAGE_DECLARE_ARGS1(reqAccountResetPassword,							MERCURY_VARIABLE_MESSAGE,
+									std::string,									accountName)
+
+	// 重置账号密码申请的回调
+	LOGINAPP_MESSAGE_DECLARE_ARGS4(onReqAccountResetPasswordCB,						MERCURY_VARIABLE_MESSAGE,
+									std::string,									accountName,
+									std::string,									email,
+									SERVER_ERROR_CODE,								failedcode,
+									std::string,									code)
 	// 用户登录服务器 
 	LOGINAPP_MESSAGE_EXPOSED(login)
 	LOGINAPP_MESSAGE_DECLARE_STREAM(login,											MERCURY_VARIABLE_MESSAGE)

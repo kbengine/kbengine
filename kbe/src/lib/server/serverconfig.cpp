@@ -774,6 +774,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_loginAppInfo.account_type = xml->getValInt(node);
 		}
 
+		node = xml->enterNode(rootNode, "http_cbhost");
+		if(node)
+			_loginAppInfo.http_cbhost = xml->getValStr(node);
+
 		node = xml->enterNode(rootNode, "http_cbport");
 		if(node)
 			_loginAppInfo.http_cbport = xml->getValInt(node);

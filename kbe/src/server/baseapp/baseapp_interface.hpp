@@ -35,6 +35,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "base_interface_macros.hpp"
 #include "proxy_interface_macros.hpp"
 #include "network/interface_defs.hpp"
+#include "server/server_errors.hpp"
 //#define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -233,6 +234,32 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 
 	// 某个baseapp上的space恢复了cell， 判断当前baseapp是否有相关entity需要恢复cell
 	BASEAPP_MESSAGE_DECLARE_STREAM(onRestoreSpaceCellFromOtherBaseapp,		MERCURY_VARIABLE_MESSAGE)
+
+	// 请求绑定email
+	BASEAPP_MESSAGE_EXPOSED(reqAccountBindEmail)
+	BASEAPP_MESSAGE_DECLARE_ARGS3(reqAccountBindEmail,						MERCURY_VARIABLE_MESSAGE,
+									std::string,							accountName,
+									std::string,							password,
+									std::string,							email)
+
+	// 请求绑定email申请的回调
+	BASEAPP_MESSAGE_DECLARE_ARGS4(onReqAccountBindEmailCB,					MERCURY_VARIABLE_MESSAGE,
+									std::string,							accountName,
+									std::string,							email,
+									SERVER_ERROR_CODE,						failedcode,
+									std::string,							code)
+
+	// 请求修改密码
+	BASEAPP_MESSAGE_EXPOSED(reqAccountNewPassword)
+	BASEAPP_MESSAGE_DECLARE_ARGS3(reqAccountNewPassword,					MERCURY_VARIABLE_MESSAGE,
+									std::string,							accountName,
+									std::string,							oldpassword,
+									std::string,							newpassword)
+
+	// 请求修改密码的回调
+	BASEAPP_MESSAGE_DECLARE_ARGS2(onReqAccountNewPasswordCB,				MERCURY_VARIABLE_MESSAGE,
+									std::string,							accountName,
+									SERVER_ERROR_CODE,						failedcode)
 
 	//--------------------------------------------Base----------------------------------------------------------
 	// 远程呼叫entity方法

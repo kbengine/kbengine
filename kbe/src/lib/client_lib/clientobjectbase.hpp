@@ -298,6 +298,21 @@ public:
 		isLoadedGeometry_ = true;
 	}
 
+	/** 网络接口
+		重置账号密码请求返回
+	*/
+	virtual void onReqAccountResetPasswordCB(Mercury::Channel* pChannel, SERVER_ERROR_CODE failedcode){}
+
+	/** 网络接口
+		请求绑定邮箱返回
+	*/
+	virtual void onReqAccountBindEmailCB(Mercury::Channel* pChannel, SERVER_ERROR_CODE failedcode){}
+
+	/** 网络接口
+		请求修改密码返回
+	*/
+	virtual void onReqAccountNewPasswordCB(Mercury::Channel* pChannel, SERVER_ERROR_CODE failedcode){}
+
 	/** 
 		获得player实例
 	*/

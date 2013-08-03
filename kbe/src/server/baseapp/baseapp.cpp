@@ -40,6 +40,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/componentbridge.hpp"
 #include "server/components.hpp"
 #include "server/telnet_server.hpp"
+#include "server/sendmail_threadtasks.hpp"
 #include "math/math.hpp"
 #include "entitydef/blob.hpp"
 #include "client_lib/client_interface.hpp"
@@ -2884,6 +2885,39 @@ PyObject* Baseapp::__py_address(PyObject* self, PyObject* args)
 	PyTuple_SetItem(pyobj, 0,  PyLong_FromUnsignedLong(addr.ip));
 	PyTuple_SetItem(pyobj, 1,  PyLong_FromUnsignedLong(addr.port));
 	return pyobj;
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::reqAccountBindEmail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email)
+{
+	INFO_MSG(boost::format("Loginapp::reqAccountBindEmail: %1% email=%2%!\n") % accountName % email);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onReqAccountBindEmailCB(Mercury::Channel* pChannel, std::string& accountName, std::string& email,
+	SERVER_ERROR_CODE failedcode, std::string& code)
+{
+	INFO_MSG(boost::format("Loginapp::onReqAccountBindEmailCB: %1% failedcode=%2%!\n") % accountName % failedcode);
+
+	if(failedcode == SERVER_SUCCESS)
+	{
+		threadPool_.addTask(new SendBindEMailTask(email, code, 
+			g_kbeSrvConfig.getLoginApp().http_cbhost, 
+			g_kbeSrvConfig.getLoginApp().http_cbport));
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::reqAccountNewPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& oldpassworld, std::string& newpassword)
+{
+	INFO_MSG(boost::format("Loginapp::reqAccountNewPassword: %1%!\n") % accountName);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onReqAccountNewPasswordCB(Mercury::Channel* pChannel, std::string& accountName,
+	SERVER_ERROR_CODE failedcode)
+{
+	INFO_MSG(boost::format("Loginapp::onReqAccountNewPasswordCB: %1% failedcode=%2%!\n") % accountName % failedcode);
 }
 
 //-------------------------------------------------------------------------------------

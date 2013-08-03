@@ -163,6 +163,18 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 									SPACE_ID,								spaceID,
 									std::string,							respath)
 
+	// ÷ÿ÷√’À∫≈√‹¬Î«Î«Û∑µªÿ
+	CLIENT_MESSAGE_DECLARE_ARGS1(onReqAccountResetPasswordCB,				MERCURY_FIXED_MESSAGE,
+									SERVER_ERROR_CODE,						failedcode)
+
+	// ÷ÿ÷√’À∫≈√‹¬Î«Î«Û∑µªÿ
+	CLIENT_MESSAGE_DECLARE_ARGS1(onReqAccountBindEmailCB,					MERCURY_FIXED_MESSAGE,
+									SERVER_ERROR_CODE,						failedcode)
+
+	// ÷ÿ÷√’À∫≈√‹¬Î«Î«Û∑µªÿ
+	CLIENT_MESSAGE_DECLARE_ARGS1(onReqAccountNewPasswordCB,					MERCURY_FIXED_MESSAGE,
+									SERVER_ERROR_CODE,						failedcode)
+									
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

@@ -90,4 +90,10 @@
 		<id>17</id>
 		<descr>	ÕËºÅÎ´¼¤»î¡£</descr>
 	</MERCURY_ERR_ACCOUNT_NOT_ACTIVATED>
+	
+	<MERCURY_ERR_FAILED>
+		<id>18</id>
+		<descr>	²Ù×÷Ê§°Ü¡£</descr>
+	</MERCURY_ERR_FAILED>
+	
 </root>

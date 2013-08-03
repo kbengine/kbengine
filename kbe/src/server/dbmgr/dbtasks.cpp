@@ -641,6 +641,7 @@ thread::TPTask::TPTaskState DBTaskActivateAccount::presentMainThread()
 DBTaskReqAccountResetPassword::DBTaskReqAccountResetPassword(const Mercury::Address& addr, std::string& accountName):
 DBTask(addr),
 code_(),
+email_(),
 accountName_(accountName),
 success_(false)
 {
@@ -668,6 +669,7 @@ bool DBTaskReqAccountResetPassword::db_thread_process()
 
 	info.datas = genmail_code(accountName_);
 	info.name = accountName_;
+	email_ = accountName_;
 	code_ = info.datas;
 	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_RESETPASSWORD, accountName_, "", code_);
 	return false;
@@ -676,8 +678,27 @@ bool DBTaskReqAccountResetPassword::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskReqAccountResetPassword::presentMainThread()
 {
-	DEBUG_MSG(boost::format("DBTaskReqAccountResetPassword::presentMainThread: code_(%1%), success=%2%.\n") 
-		% code_ % success_);
+	DEBUG_MSG(boost::format("DBTaskReqAccountResetPassword::presentMainThread: accountName=%1%, code_=%2%, success=%3%.\n") 
+		% accountName_ % code_ % success_);
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(LoginappInterface::onReqAccountResetPasswordCB);
+	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
+
+	if(!success_)
+		failedcode = SERVER_ERR_FAILED;
+
+	(*pBundle) << accountName_;
+	(*pBundle) << email_;
+	(*pBundle) << failedcode;
+	(*pBundle) << code_;
+
+	if(!this->send((*pBundle)))
+	{
+		ERROR_MSG(boost::format("DBTaskReqAccountResetPassword::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+	}
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
@@ -752,6 +773,28 @@ bool DBTaskReqAccountBindEmail::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskReqAccountBindEmail::presentMainThread()
 {
+	DEBUG_MSG(boost::format("DBTaskReqAccountBindEmail::presentMainThread: code_(%1%), success=%2%.\n") 
+		% code_ % success_);
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::onReqAccountBindEmailCB);
+	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
+
+	if(!success_)
+		failedcode = SERVER_ERR_FAILED;
+
+	(*pBundle) << accountName_;
+	(*pBundle) << email_;
+	(*pBundle) << failedcode;
+	(*pBundle) << code_;
+
+	if(!this->send((*pBundle)))
+	{
+		ERROR_MSG(boost::format("DBTaskReqAccountBindEmail::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+	}
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
@@ -806,6 +849,26 @@ bool DBTaskAccountNewPassword::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskAccountNewPassword::presentMainThread()
 {
+	DEBUG_MSG(boost::format("DBTaskAccountNewPassword::presentMainThread: success=%1%.\n") 
+		% success_);
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::onReqAccountNewPasswordCB);
+
+	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
+
+	if(!success_)
+		failedcode = SERVER_ERR_FAILED;
+
+	(*pBundle) << accountName_;
+	(*pBundle) << failedcode;
+
+	if(!this->send((*pBundle)))
+	{
+		ERROR_MSG(boost::format("DBTaskAccountNewPassword::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+	}
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 

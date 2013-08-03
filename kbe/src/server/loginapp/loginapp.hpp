@@ -96,6 +96,13 @@ public:
 	void onReqCreateMailAccountResult(Mercury::Channel* pChannel, MemoryStream& s);
 
 	/** ÍøÂç½Ó¿Ú
+		ÖØÖÃÕËºÅÃÜÂëÉêÇë£¨Íü¼ÇÃÜÂë?£©
+	*/
+	void reqAccountResetPassword(Mercury::Channel* pChannel, std::string& accountName);
+	void onReqAccountResetPasswordCB(Mercury::Channel* pChannel, std::string& accountName, std::string& email,
+		SERVER_ERROR_CODE failedcode, std::string& code);
+
+	/** ÍøÂç½Ó¿Ú
 		dbmgrÕËºÅ¼¤»î·µ»Ø
 	*/
 	void onAccountActivated(Mercury::Channel* pChannel, std::string& code, bool success);

@@ -1648,6 +1648,8 @@ function KBENGINE()
 		{
 			if(g_kbengine.currstate == "login")
 				g_kbengine.login_loginapp(false);
+			else if(g_kbengine.currstate == "resetpassword")
+				g_kbengine.resetpassword_loginapp(false);
 			else
 				g_kbengine.createAccount_loginapp(false);
 			
@@ -1994,6 +1996,43 @@ function KBENGINE()
 		}
 	}
 
+	this.onOpenLoginapp_resetpassword = function()
+	{  
+		console.info("KBENGINE::onOpenLoginapp_resetpassword: successfully!");
+		g_kbengine.currserver = "loginapp";
+		g_kbengine.currstate = "resetpassword";
+		
+		if(!g_kbengine.loginappMessageImported)
+		{
+			var bundle = new KBE_BUNDLE();
+			bundle.newMessage(g_messages.Loginapp_importClientMessages);
+			bundle.send(g_kbengine);
+			g_kbengine.socket.onmessage = g_kbengine.Client_onImportClientMessages;  
+			console.info("KBENGINE::onOpenLoginapp_resetpassword: start importClientMessages ...");
+		}
+		else
+		{
+			g_kbengine.onImportClientMessagesCompleted();
+		}
+	}
+	
+	this.resetpassword_loginapp = function(noconnect)
+	{  
+		if(noconnect)
+		{
+			console.info("KBENGINE::createAccount_loginapp: start connect to ws://" + g_kbengine.ip + ":" + g_kbengine.port + "!");
+			g_kbengine.connect("ws://" + g_kbengine.ip + ":" + g_kbengine.port);
+			g_kbengine.socket.onopen = g_kbengine.onOpenLoginapp_resetpassword;  
+		}
+		else
+		{
+			var bundle = new KBE_BUNDLE();
+			bundle.newMessage(g_messages.Loginapp_reqAccountResetPassword);
+			bundle.writeString(g_kbengine.username);
+			bundle.send(g_kbengine);
+		}
+	}
+	
 	this.onOpenBaseapp = function()
 	{
 		console.info("KBENGINE::onOpenBaseapp: successfully!");
@@ -2619,6 +2658,39 @@ function KBENGINE()
 	
 	this.Client_onStreamDataRecv = function(id)
 	{
+	}
+	
+	this.Client_onReqAccountResetPasswordCB = function(failcode)
+	{
+		if(failcode != 0)
+		{
+			console.error("KBENGINE::Client_onReqAccountResetPasswordCB: " + g_kbengine.username + " is failed! code=" + failcode + "!");
+			return;
+		}
+
+		console.info("KBENGINE::Client_onReqAccountResetPasswordCB: " + g_kbengine.username + " is successfully!");
+	}
+	
+	this.Client_onReqAccountBindEmailCB = function(failcode)
+	{
+		if(failcode != 0)
+		{
+			console.error("KBENGINE::Client_onReqAccountBindEmailCB: " + g_kbengine.username + " is failed! code=" + failcode + "!");
+			return;
+		}
+
+		console.info("KBENGINE::Client_onReqAccountBindEmailCB: " + g_kbengine.username + " is successfully!");
+	}
+	
+	this.Client_onReqAccountNewPasswordCB = function(failcode)
+	{
+		if(failcode != 0)
+		{
+			console.error("KBENGINE::Client_onReqAccountNewPasswordCB: " + g_kbengine.username + " is failed! code=" + failcode + "!");
+			return;
+		}
+
+		console.info("KBENGINE::Client_onReqAccountNewPasswordCB: " + g_kbengine.username + " is successfully!");
 	}
 }
 

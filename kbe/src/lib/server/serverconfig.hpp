@@ -183,7 +183,8 @@ typedef struct EngineComponentInfo
 	uint8 account_type;										// 1: 普通账号, 2: email账号(需要激活), 3: 智能账号(自动识别email， 普通号码等) 
 	uint32 accountDefaultFlags;								// 新账号默认标记(ACCOUNT_FLAGS可叠加， 填写时按十进制格式) 
 	uint64 accountDefaultDeadline;							// 新账号默认过期时间(秒, 引擎会加上当前时间)
-
+	
+	std::string http_cbhost;
 	uint16 http_cbport;										// 用户http回调接口，处理认证、密码重置等
 }ENGINE_COMPONENT_INFO;
 

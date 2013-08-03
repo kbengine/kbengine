@@ -423,7 +423,7 @@ void Loginapp::onReqCreateMailAccountResult(Mercury::Channel* pChannel, MemorySt
 	if(failedcode == SERVER_SUCCESS)
 	{
 		threadPool_.addTask(new SendActivateEMailTask(accountName, retdatas, 
-			getNetworkInterface().extEndpoint().addr().ipAsString(), 
+			g_kbeSrvConfig.getLoginApp().http_cbhost, 
 			g_kbeSrvConfig.getLoginApp().http_cbport));
 	}
 
@@ -459,6 +459,62 @@ void Loginapp::onAccountActivated(Mercury::Channel* pChannel, std::string& code,
 	}
 
 	pHttpCBHandler->onAccountActivated(code, success);
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::reqAccountResetPassword(Mercury::Channel* pChannel, std::string& accountName)
+{
+	INFO_MSG(boost::format("Loginapp::reqAccountResetPassword: accountName(%1%)\n") %
+		accountName);
+
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::ComponentInfos* dbmgrinfos = NULL;
+
+	if(cts.size() > 0)
+		dbmgrinfos = &(*cts.begin());
+
+	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		ERROR_MSG(boost::format("Loginapp::_createAccount: create(%1%), not found dbmgr!\n") % 
+			accountName);
+
+		Mercury::Bundle bundle;
+		bundle.newMessage(ClientInterface::onReqAccountResetPasswordCB);
+		SERVER_ERROR_CODE retcode = SERVER_ERR_SRV_NO_READY;
+		bundle << retcode;
+		bundle.send(this->getNetworkInterface(), pChannel);
+		return;
+	}
+
+	{
+		Mercury::Bundle bundle;
+		bundle.newMessage(DbmgrInterface::accountReqResetPassword);
+		bundle << accountName;
+		bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
+	}
+
+	{
+		Mercury::Bundle bundle;
+		bundle.newMessage(ClientInterface::onReqAccountResetPasswordCB);
+		SERVER_ERROR_CODE retcode = SERVER_SUCCESS;
+		bundle << retcode;
+		bundle.send(this->getNetworkInterface(), pChannel);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::onReqAccountResetPasswordCB(Mercury::Channel* pChannel, std::string& accountName, std::string& email,
+	SERVER_ERROR_CODE failedcode, std::string& code)
+{
+	INFO_MSG(boost::format("Loginapp::onReqAccountResetPasswordCB: %1%, email=%2%, failedcode=%3%!\n") % 
+		accountName % email % failedcode);
+
+	if(failedcode == SERVER_SUCCESS)
+	{
+		threadPool_.addTask(new SendResetPasswordEMailTask(email, code, 
+			g_kbeSrvConfig.getLoginApp().http_cbhost,  
+			g_kbeSrvConfig.getLoginApp().http_cbport));
+	}
 }
 
 //-------------------------------------------------------------------------------------
