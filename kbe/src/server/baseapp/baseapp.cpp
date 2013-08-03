@@ -2651,7 +2651,7 @@ void Baseapp::importClientMessages(Mercury::Channel* pChannel)
 				std::vector<std::string>::iterator iter1 = pMessageHandler->pArgs->strArgsTypes.begin();
 				for(; iter1 !=  pMessageHandler->pArgs->strArgsTypes.end(); iter1++)
 				{
-					info.argsTypes.push_back(datatype2id((*iter1)));
+					info.argsTypes.push_back((uint8)datatype2id((*iter1)));
 				}
 			}
 		}

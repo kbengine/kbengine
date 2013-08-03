@@ -150,15 +150,26 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	DBMGR_MESSAGE_DECLARE_ARGS1(accountActivate,					MERCURY_VARIABLE_MESSAGE,
 									std::string,					scode)
 
-	// ’À∫≈÷ÿ÷√√‹¬Î°£
-	DBMGR_MESSAGE_DECLARE_ARGS1(accountReset,						MERCURY_VARIABLE_MESSAGE,
+	// ’À∫≈«Î«Û÷ÿ÷√√‹¬Î°£
+	DBMGR_MESSAGE_DECLARE_ARGS1(accountReqResetPassword,			MERCURY_VARIABLE_MESSAGE,
 									std::string,					accountName)
 
-	// ’À∫≈∞Û∂®” œ‰°£
-	DBMGR_MESSAGE_DECLARE_ARGS3(accountBindMail,					MERCURY_VARIABLE_MESSAGE,
+	// ’À∫≈ÕÍ≥…÷ÿ÷√√‹¬Î°£
+	DBMGR_MESSAGE_DECLARE_ARGS3(accountResetPassword,				MERCURY_VARIABLE_MESSAGE,
+									std::string,					accountName,
+									std::string,					newpassword,
+									std::string,					code)
+
+	// ’À∫≈«Î«Û∞Û∂®” œ‰°£
+	DBMGR_MESSAGE_DECLARE_ARGS3(accountReqBindMail,					MERCURY_VARIABLE_MESSAGE,
 									std::string,					accountName,
 									std::string,					password,
 									std::string,					email)
+
+	// ’À∫≈ÕÍ≥…∞Û∂®” œ‰°£
+	DBMGR_MESSAGE_DECLARE_ARGS2(accountBindMail,					MERCURY_VARIABLE_MESSAGE,
+									std::string,					username,
+									std::string,					code)
 
 	// ’À∫≈–ﬁ∏ƒ√‹¬Î°£
 	DBMGR_MESSAGE_DECLARE_ARGS3(accountNewPassword,					MERCURY_VARIABLE_MESSAGE,

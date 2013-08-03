@@ -196,12 +196,14 @@ public:
 	/** ÍøÂç½Ó¿Ú
 		ÕËºÅÖØÖÃÃÜÂë
 	*/
-	void accountReset(Mercury::Channel* pChannel, std::string& accountName);
+	void accountReqResetPassword(Mercury::Channel* pChannel, std::string& accountName);
+	void accountResetPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& code);
 
 	/** ÍøÂç½Ó¿Ú
 		ÕËºÅ°ó¶¨ÓÊÏä
 	*/
-	void accountBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email);
+	void accountReqBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email);
+	void accountBindMail(Mercury::Channel* pChannel, std::string& username, std::string& scode);
 
 	/** ÍøÂç½Ó¿Ú
 		ÕËºÅĞŞ¸ÄÃÜÂë

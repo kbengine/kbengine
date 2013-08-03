@@ -279,7 +279,7 @@
 				<font size="7">访问如下链接重置您的密码:</font><br>
 				----------------------------------------------------------------------<br><br>
 				以下链接有效期为3天。过期可以重新请求发送一封新的邮件进行重置：<br>
-				<a href="${backlink}">${backlink}</a><br>
+				<a href="${backlink}?username=${username}">${backlink}?username=${username}</a><br>
 				(如果上面不是链接形式，请将该地址手工粘贴到浏览器地址栏再访问)<br><br>
 				</body>
 				</html>

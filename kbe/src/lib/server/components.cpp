@@ -536,7 +536,7 @@ bool Components::checkComponentUsable(const Components::ComponentInfos* info)
 			if(winfo)
 			{
 				winfo->cpu = sysinfos.cpu;
-				winfo->usedmem = sysinfos.memused;
+				winfo->usedmem = (uint32)sysinfos.memused;
 
 				winfo->mem = float((winfo->usedmem * 1.0 / SystemInfo::getSingleton().totalmem()) * 100.0);
 			}

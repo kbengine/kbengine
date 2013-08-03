@@ -627,17 +627,31 @@ void Dbmgr::accountActivate(Mercury::Channel* pChannel, std::string& scode)
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::accountReset(Mercury::Channel* pChannel, std::string& accountName)
+void Dbmgr::accountReqResetPassword(Mercury::Channel* pChannel, std::string& accountName)
 {
-	INFO_MSG(boost::format("Dbmgr::accountReset: accountName=%1%.\n") % accountName);
-	pBillingHandler_->accountReset(pChannel, accountName);
+	INFO_MSG(boost::format("Dbmgr::accountReqResetPassword: accountName=%1%.\n") % accountName);
+	pBillingHandler_->accountReqResetPassword(pChannel, accountName);
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::accountBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email)
+void Dbmgr::accountResetPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& code)
 {
-	INFO_MSG(boost::format("Dbmgr::accountBindMail: accountName=%1%, email=%1%.\n") % accountName % email);
-	pBillingHandler_->accountBindMail(pChannel, accountName, password, email);
+	INFO_MSG(boost::format("Dbmgr::accountResetPassword: accountName=%1%.\n") % accountName);
+	pBillingHandler_->accountResetPassword(pChannel, accountName, newpassword, code);
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::accountReqBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email)
+{
+	INFO_MSG(boost::format("Dbmgr::accountReqBindMail: accountName=%1%, email=%1%.\n") % accountName % email);
+	pBillingHandler_->accountReqBindMail(pChannel, accountName, password, email);
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::accountBindMail(Mercury::Channel* pChannel, std::string& username, std::string& scode)
+{
+	INFO_MSG(boost::format("Dbmgr::accountBindMail: username=%1%, scode=%1%.\n") % username % scode);
+	pBillingHandler_->accountBindMail(pChannel, username, scode);
 }
 
 //-------------------------------------------------------------------------------------

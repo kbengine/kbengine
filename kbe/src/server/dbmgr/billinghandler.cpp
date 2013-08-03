@@ -136,18 +136,33 @@ void BillingHandler_Normal::accountActivate(Mercury::Channel* pChannel, std::str
 }
 
 //-------------------------------------------------------------------------------------
-void BillingHandler_Normal::accountReset(Mercury::Channel* pChannel, std::string& accountName)
+void BillingHandler_Normal::accountReqResetPassword(Mercury::Channel* pChannel, std::string& accountName)
 {
+	dbThreadPool_.addTask(new DBTaskReqAccountResetPassword(pChannel->addr(), accountName));
 }
 
 //-------------------------------------------------------------------------------------
-void BillingHandler_Normal::accountBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email)
+void BillingHandler_Normal::accountResetPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& scode)
 {
+	dbThreadPool_.addTask(new DBTaskAccountResetPassword(pChannel->addr(), accountName, newpassword, scode));
+}
+
+//-------------------------------------------------------------------------------------
+void BillingHandler_Normal::accountReqBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email)
+{
+	dbThreadPool_.addTask(new DBTaskReqAccountBindEmail(pChannel->addr(), accountName, password, email));
+}
+
+//-------------------------------------------------------------------------------------
+void BillingHandler_Normal::accountBindMail(Mercury::Channel* pChannel, std::string& username, std::string& scode)
+{
+	dbThreadPool_.addTask(new DBTaskAccountBindEmail(pChannel->addr(), username, scode));
 }
 
 //-------------------------------------------------------------------------------------
 void BillingHandler_Normal::accountNewPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& newpassword)
 {
+	dbThreadPool_.addTask(new DBTaskAccountNewPassword(pChannel->addr(), accountName, password, newpassword));
 }
 
 //-------------------------------------------------------------------------------------
@@ -448,13 +463,24 @@ void BillingHandler_ThirdParty::accountActivate(Mercury::Channel* pChannel, std:
 {
 }
 
+
 //-------------------------------------------------------------------------------------
-void BillingHandler_ThirdParty::accountReset(Mercury::Channel* pChannel, std::string& accountName)
+void BillingHandler_ThirdParty::accountReqResetPassword(Mercury::Channel* pChannel, std::string& accountName)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void BillingHandler_ThirdParty::accountBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email)
+void BillingHandler_ThirdParty::accountResetPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& scode)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void BillingHandler_ThirdParty::accountReqBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void BillingHandler_ThirdParty::accountBindMail(Mercury::Channel* pChannel, std::string& username, std::string& scode)
 {
 }
 

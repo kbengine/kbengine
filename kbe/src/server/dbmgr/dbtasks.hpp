@@ -220,6 +220,98 @@ protected:
 };
 
 /**
+	请求重置账号
+*/
+class DBTaskReqAccountResetPassword : public DBTask
+{
+public:
+	DBTaskReqAccountResetPassword(const Mercury::Address& addr, std::string& accountName);
+	virtual ~DBTaskReqAccountResetPassword();
+	virtual bool db_thread_process();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+protected:
+	std::string code_; 
+	std::string accountName_;
+	bool success_;
+	
+};
+
+/**
+	完成重置账号
+*/
+class DBTaskAccountResetPassword : public DBTask
+{
+public:
+	DBTaskAccountResetPassword(const Mercury::Address& addr, std::string& accountName, 
+		std::string& newpassword, std::string& code);
+	virtual ~DBTaskAccountResetPassword();
+	virtual bool db_thread_process();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+protected:
+	std::string code_; 
+	std::string accountName_;
+	std::string newpassword_;
+	bool success_;
+	
+};
+
+/**
+	请求绑定email
+*/
+class DBTaskReqAccountBindEmail : public DBTask
+{
+public:
+	DBTaskReqAccountBindEmail(const Mercury::Address& addr, std::string& accountName, 
+		std::string password,std::string& email);
+	virtual ~DBTaskReqAccountBindEmail();
+	virtual bool db_thread_process();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+protected:
+	std::string code_; 
+	std::string password_; 
+	std::string accountName_;
+	std::string email_; 
+	bool success_;
+	
+};
+
+/**
+	完成绑定email
+*/
+class DBTaskAccountBindEmail : public DBTask
+{
+public:
+	DBTaskAccountBindEmail(const Mercury::Address& addr, std::string& accountName, 
+		std::string& code);
+	virtual ~DBTaskAccountBindEmail();
+	virtual bool db_thread_process();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+protected:
+	std::string code_; 
+	std::string accountName_;
+	bool success_;
+	
+};
+
+/**
+	设置新密码
+*/
+class DBTaskAccountNewPassword : public DBTask
+{
+public:
+	DBTaskAccountNewPassword(const Mercury::Address& addr, std::string& accountName, 
+		std::string& oldpassword_, std::string& newpassword);
+	virtual ~DBTaskAccountNewPassword();
+	virtual bool db_thread_process();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+protected:
+	std::string accountName_;
+	std::string oldpassword_, newpassword_;
+	bool success_;
+	
+};
+
+/**
 	baseapp请求查询account信息
 */
 class DBTaskQueryAccount : public EntityDBTask

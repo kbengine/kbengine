@@ -247,12 +247,44 @@ int HTTPCBHandler::handleInputNotification(int fd)
 							username.assign(s.c_str() + fi1 + ilen, fi2 - (fi1 + ilen));
 						}
 					}
+
+					// 向dbmgr重置账号
+					Mercury::Bundle bundle;
+					bundle.newMessage(DbmgrInterface::accountResetPassword);
+					bundle << username;
+					bundle << password;
+					bundle << code;
+					bundle.send(Loginapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
 				}
 
 				hellomessage = g_kbeSrvConfig.emailResetPasswordInfo_.backlink_hello_message;
 			}
 			else if(type == 3)
 			{
+				std::string username;
+
+				std::string::size_type fi1 = s.find("username=");
+				std::string::size_type fi2 = s.find(" HTTP/");
+				
+				if(fi1 != std::string::npos && fi2 != std::string::npos)
+				{
+					if(fi1 < fi2)
+					{
+						int ilen = strlen("username=");
+						username.assign(s.c_str() + fi1 + ilen, fi2 - (fi1 + ilen));
+					}
+				}
+
+				if(username.size() > 0)
+				{
+					// 向dbmgr重置账号
+					Mercury::Bundle bundle;
+					bundle.newMessage(DbmgrInterface::accountBindMail);
+					bundle << username;
+					bundle << code;
+					bundle.send(Loginapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
+				}
+
 				hellomessage = g_kbeSrvConfig.emailBindInfo_.backlink_hello_message;
 			}
 

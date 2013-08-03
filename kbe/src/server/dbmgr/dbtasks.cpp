@@ -608,6 +608,144 @@ thread::TPTask::TPTaskState DBTaskActivateAccount::presentMainThread()
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
+
+//-------------------------------------------------------------------------------------
+DBTaskReqAccountResetPassword::DBTaskReqAccountResetPassword(const Mercury::Address& addr, std::string& accountName):
+DBTask(addr),
+code_(),
+accountName_(accountName),
+success_(false)
+{
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskReqAccountResetPassword::~DBTaskReqAccountResetPassword()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskReqAccountResetPassword::db_thread_process()
+{
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState DBTaskReqAccountResetPassword::presentMainThread()
+{
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskAccountResetPassword::DBTaskAccountResetPassword(const Mercury::Address& addr, std::string& accountName, 
+		std::string& newpassword, std::string& code):
+DBTask(addr),
+code_(code),
+accountName_(accountName),
+newpassword_(newpassword),
+success_(false)
+{
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskAccountResetPassword::~DBTaskAccountResetPassword()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskAccountResetPassword::db_thread_process()
+{
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState DBTaskAccountResetPassword::presentMainThread()
+{
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskReqAccountBindEmail::DBTaskReqAccountBindEmail(const Mercury::Address& addr, std::string& accountName, 
+		std::string password,std::string& email):
+DBTask(addr),
+code_(),
+password_(password),
+accountName_(accountName),
+email_(email),
+success_(false)
+{
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskReqAccountBindEmail::~DBTaskReqAccountBindEmail()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskReqAccountBindEmail::db_thread_process()
+{
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState DBTaskReqAccountBindEmail::presentMainThread()
+{
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskAccountBindEmail::DBTaskAccountBindEmail(const Mercury::Address& addr, std::string& accountName, 
+		std::string& code):
+DBTask(addr),
+code_(code),
+accountName_(accountName),
+success_(false)
+{
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskAccountBindEmail::~DBTaskAccountBindEmail()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskAccountBindEmail::db_thread_process()
+{
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState DBTaskAccountBindEmail::presentMainThread()
+{
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskAccountNewPassword::DBTaskAccountNewPassword(const Mercury::Address& addr, std::string& accountName, 
+		std::string& oldpassword_, std::string& newpassword):
+DBTask(addr),
+accountName_(accountName),
+oldpassword_(oldpassword_), newpassword_(newpassword),
+success_(false)
+{
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskAccountNewPassword::~DBTaskAccountNewPassword()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskAccountNewPassword::db_thread_process()
+{
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState DBTaskAccountNewPassword::presentMainThread()
+{
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
+}
+
 //-------------------------------------------------------------------------------------
 DBTaskQueryAccount::DBTaskQueryAccount(const Mercury::Address& addr, std::string& accountName, std::string& password, 
 		COMPONENT_ID componentID, ENTITY_ID entityID, DBID entityDBID, uint32 ip, uint16 port):
