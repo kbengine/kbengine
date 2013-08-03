@@ -101,7 +101,7 @@ public:
 	virtual bool syncToDB(DBInterface* dbi);
 
 	virtual bool queryAccount(DBInterface * dbi, int8 type, const std::string& name, ACCOUNT_INFOS& info);
-	virtual bool logAccount(DBInterface * dbi, int8 type, ACCOUNT_INFOS& info);
+	virtual bool logAccount(DBInterface * dbi, int8 type, const std::string& name, const std::string& datas, const std::string& code);
 	virtual bool delAccount(DBInterface * dbi, int8 type, const std::string& name);
 	virtual bool activateAccount(DBInterface * dbi, const std::string& code, ACCOUNT_INFOS& info);
 protected:

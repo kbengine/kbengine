@@ -100,7 +100,8 @@ int HTTPCBHandler::handleInputNotification(int fd)
 
 		INFO_MSG(boost::format("HTTPCBHandler:handleInputNotification: newclient = %1%\n") %
 			newclient->c_str());
-
+		
+		newclient->setnonblocking(true);
 		CLIENT& client = clients_[*newclient];
 		client.endpoint = KBEShared_ptr< Mercury::EndPoint >(newclient);
 		client.state = 0;
@@ -118,23 +119,28 @@ int HTTPCBHandler::handleInputNotification(int fd)
 
 		CLIENT& client = iter->second;
 		Mercury::EndPoint* newclient = iter->second.endpoint.get();
-		Loginapp::getSingleton().getNetworkInterface().dispatcher().deregisterFileDescriptor(*newclient);
 
 		char buffer[1024];
 		int len = newclient->recv(&buffer, 1024);
 
 		if(len <= 0)
 		{
-			ERROR_MSG(boost::format("HTTPCBHandler:handleInputNotification: recv error, newclient = %1%\n") %
-				newclient->c_str());
-
-			if(client.state == 1)
+			ERROR_MSG(boost::format("HTTPCBHandler:handleInputNotification: recv error, newclient = %1%, recv=%2%.\n") %
+				newclient->c_str() % len);
+		
+			if(len == 0)
+			{
+				Loginapp::getSingleton().getNetworkInterface().dispatcher().deregisterFileDescriptor(*newclient);
 				clients_.erase(iter);
+			}
 			return 0;
 		}
 
 		if(client.state == 1)
+		{
+			Loginapp::getSingleton().getNetworkInterface().dispatcher().deregisterFileDescriptor(*newclient);
 			clients_.erase(iter);
+		}
 
 		int type = 0;
 		std::string keys = "accountactivate_";
@@ -225,6 +231,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 				
 				if(fi1 != std::string::npos && fi2 != std::string::npos)
 				{
+					client.state = 2;
 					if(fi1 < fi2)
 					{
 						int ilen = strlen("password=");
@@ -309,7 +316,10 @@ int HTTPCBHandler::handleInputNotification(int fd)
 		else
 		{
 			if(client.state != 2)
+			{
+				Loginapp::getSingleton().getNetworkInterface().dispatcher().deregisterFileDescriptor(*newclient);
 				clients_.erase(iter);
+			}
 		}
 	}
 

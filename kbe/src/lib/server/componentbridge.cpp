@@ -328,7 +328,7 @@ bool Componentbridge::process()
 				componentType_, componentID_, cidex, g_componentGlobalOrder, g_componentGroupOrder,
 				networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
 				networkInterface_.extaddr().ip, networkInterface_.extaddr().port, getProcessPID(),
-				SystemInfo::getSingleton().getCPUPerByPID(), 0.f, SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, 0, 0, 0, 0);
+				SystemInfo::getSingleton().getCPUPerByPID(), 0.f, (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, 0, 0, 0, 0);
 			
 			bhandler.broadcast();
 

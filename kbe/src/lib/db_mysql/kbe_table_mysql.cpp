@@ -490,14 +490,15 @@ bool KBEEmailVerificationTableMysql::queryAccount(DBInterface * dbi, int8 type, 
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEEmailVerificationTableMysql::logAccount(DBInterface * dbi, int8 type, ACCOUNT_INFOS& info)
+bool KBEEmailVerificationTableMysql::logAccount(DBInterface * dbi, int8 type, const std::string& name, 
+												const std::string& datas, const std::string& code)
 {
 	std::string sqlstr = "insert into kbe_email_verification (accountName, type, datas, code, logtime) values(";
 
 	char* tbuf = new char[MAX_BUF * 3];
 
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
-		tbuf, info.name.c_str(), info.name.size());
+		tbuf, name.c_str(), name.size());
 
 	sqlstr += "\"";
 	sqlstr += tbuf;
@@ -507,14 +508,14 @@ bool KBEEmailVerificationTableMysql::logAccount(DBInterface * dbi, int8 type, AC
 	sqlstr += tbuf;
 	
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
-		tbuf, info.password.c_str(), info.password.size());
+		tbuf, datas.c_str(), datas.size());
 
-	sqlstr += "md5(\"";
+	sqlstr += "\"";
 	sqlstr += tbuf;
-	sqlstr += "\"),";
-
+	sqlstr += "\",";
+	
 	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
-		tbuf, info.datas.data(), info.datas.size());
+		tbuf, code.c_str(), code.size());
 
 	sqlstr += "\"";
 	sqlstr += tbuf;

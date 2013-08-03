@@ -458,6 +458,26 @@ thread::TPTask::TPTaskState DBTaskCreateAccount::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
+std::string genmail_code(const std::string& str)
+{
+	std::string datas = KBEngine::StringConv::val2str(KBEngine::genUUID64());
+
+	unsigned char md[16];
+	MD5((unsigned char *)str.c_str(), str.length(), md);
+
+	char tmp[3] = {'\0'};
+	for (int i = 0; i < 16; i++)
+	{
+		sprintf(tmp,"%2.2x", md[i]);
+		datas += tmp;
+	}
+
+	srand(getSystemTime());
+	datas += KBEngine::StringConv::val2str(rand());
+	return datas;
+}
+
+//-------------------------------------------------------------------------------------
 DBTaskCreateMailAccount::DBTaskCreateMailAccount(const Mercury::Address& addr, 
 										 std::string& registerName,
 										 std::string& accountName, 
@@ -483,9 +503,6 @@ DBTaskCreateMailAccount::~DBTaskCreateMailAccount()
 bool DBTaskCreateMailAccount::db_thread_process()
 {
 	ACCOUNT_INFOS info;
-	info.name = "";
-	success_ = false;
-
 	if(accountName_.size() == 0)
 	{
 		return false;
@@ -509,15 +526,11 @@ bool DBTaskCreateMailAccount::db_thread_process()
 
 	// 生成激活码并存储激活码到数据库
 	// 发送smtp邮件到邮箱， 用户点击确认后即可激活
-	std::string datas = KBEngine::StringConv::val2str(KBEngine::genUUID64());
-	datas += password_;
-	srand(getSystemTime());
-	datas += KBEngine::StringConv::val2str(rand());
-	getdatas_ = datas;
+	getdatas_ = genmail_code(password_);
 	KBEEmailVerificationTable* pTable1 = static_cast<KBEEmailVerificationTable*>(EntityTables::getSingleton().findKBETable("kbe_email_verification"));
 	KBE_ASSERT(pTable1);
 	
-	info.datas = datas;
+	info.datas = getdatas_;
 	info.name = registerName_;
 	info.password = password_;
 	info.flags |= ACCOUNT_FLAG_NOT_ACTIVATED; 
@@ -531,7 +544,21 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	{
 	}
 
-	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_CREATEACCOUNT, info);
+	unsigned char md[16];
+	MD5((unsigned char *)password_.c_str(), password_.length(), md);
+
+	char tmp[3]={'\0'}, md5password[33] = {'\0'};
+	for (int i = 0; i < 16; i++)
+	{
+		sprintf(tmp,"%2.2X", md[i]);
+		strcat(md5password, tmp);
+	}
+
+	password_ = md5password;
+
+	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_CREATEACCOUNT, 
+		registerName_, password_, getdatas_);
+
 	return false;
 }
 
@@ -578,9 +605,10 @@ DBTaskActivateAccount::~DBTaskActivateAccount()
 bool DBTaskActivateAccount::db_thread_process()
 {
 	ACCOUNT_INFOS info;
-	success_ = false;
 
-	KBEEmailVerificationTable* pTable1 = static_cast<KBEEmailVerificationTable*>(EntityTables::getSingleton().findKBETable("kbe_email_verification"));
+	KBEEmailVerificationTable* pTable1 = 
+		static_cast<KBEEmailVerificationTable*>(EntityTables::getSingleton().findKBETable("kbe_email_verification"));
+
 	KBE_ASSERT(pTable1);
 
 	success_ = pTable1->activateAccount(pdbi_, code_, info);
@@ -626,12 +654,31 @@ DBTaskReqAccountResetPassword::~DBTaskReqAccountResetPassword()
 //-------------------------------------------------------------------------------------
 bool DBTaskReqAccountResetPassword::db_thread_process()
 {
+	ACCOUNT_INFOS info;
+	if(accountName_.size() == 0)
+	{
+		return false;
+	}
+
+	// 生成激活码并存储激活码到数据库
+	// 发送smtp邮件到邮箱， 用户点击确认后即可激活
+	KBEEmailVerificationTable* pTable1 = 
+		static_cast<KBEEmailVerificationTable*>(EntityTables::getSingleton().findKBETable("kbe_email_verification"));
+	KBE_ASSERT(pTable1);
+
+	info.datas = genmail_code(accountName_);
+	info.name = accountName_;
+	code_ = info.datas;
+	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_RESETPASSWORD, accountName_, "", code_);
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskReqAccountResetPassword::presentMainThread()
 {
+	DEBUG_MSG(boost::format("DBTaskReqAccountResetPassword::presentMainThread: code_(%1%), success=%2%.\n") 
+		% code_ % success_);
+
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
@@ -683,6 +730,22 @@ DBTaskReqAccountBindEmail::~DBTaskReqAccountBindEmail()
 //-------------------------------------------------------------------------------------
 bool DBTaskReqAccountBindEmail::db_thread_process()
 {
+	ACCOUNT_INFOS info;
+	if(accountName_.size() == 0)
+	{
+		return false;
+	}
+
+	// 生成激活码并存储激活码到数据库
+	// 发送smtp邮件到邮箱， 用户点击确认后即可激活
+	KBEEmailVerificationTable* pTable1 = 
+		static_cast<KBEEmailVerificationTable*>(EntityTables::getSingleton().findKBETable("kbe_email_verification"));
+	KBE_ASSERT(pTable1);
+
+	info.datas = genmail_code(accountName_);
+	info.name = accountName_;
+	code_ = info.datas;
+	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_BIND_MAIL, accountName_, email_, code_);
 	return false;
 }
 
