@@ -125,15 +125,15 @@
 				    </div>
 				    <div class="item">
 				        <label>输入密码</label>
-				        <input id="password1" name="password1" type="password" class="basic-input" maxlength="10" value="" tabindex="1"/>
+				        <input id="password1" name="password1" type="password" class="basic-input" maxlength="16" value="" tabindex="2"/>
 				    </div>
 				    <div class="item">
 				        <label>重复密码</label>
-				        <input id="password" name="password" type="password" class="basic-input" maxlength="10" tabindex="2"/>
+				        <input id="password" name="password" type="password" class="basic-input" maxlength="16" tabindex="3"/>
 				    </div>
 				    <div class="item">
 				        <label>&nbsp;</label>
-				        <input type="submit" value="提交" name="user_submit" class="btn-submit" tabindex="5"/>
+				        <input type="submit" value="提交" name="user_submit" class="btn-submit" tabindex="4"/>
 				    </div>
 				</form>
 
@@ -196,8 +196,8 @@
 				   if (passwd1 && passwd1.value === '') {
 				    displayError(passwd1, '密码不能为空');
 				    return false;
-				  } else if (! (/^([a-zA-Z0-9\_])+$/.test(passwd1.value))){
-				    displayError(passwd1, '密码只能包含大小写字母，数字');
+				  } else if (! (/^([a-zA-Z0-9\_\-\.\\\~\!\@\#\$\%\&\=\^\*\(\)\[\]\"\:\;\?\<\{\+\-\=\`\>\/\|\,\.]{6,16})+$/.test(passwd1.value))){
+				    displayError(passwd1, '请输入6-16位数字、字母或常用符号，字母区分大小写');
 				    return false;
 				  } else {
 				    passwd1 && clearError(passwd1);
