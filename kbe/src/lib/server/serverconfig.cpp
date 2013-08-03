@@ -67,6 +67,13 @@ bool ServerConfig::loadConfig(std::string fileName)
 		return false;
 	}
 	
+	std::string email_service_config;
+	rootNode = xml->getRootNode("email_service_config");
+	if(rootNode != NULL)
+	{
+		email_service_config = xml->getValStr(rootNode);
+	}
+
 	rootNode = xml->getRootNode("packetAlwaysContainLength");
 	if(rootNode != NULL){
 		Mercury::g_packetAlwaysContainLength = xml->getValInt(rootNode) != 0;
@@ -161,118 +168,6 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(childnode)
 		{
 			thread_max_create_ = KBE_MAX(1, xml->getValInt(childnode));
-		}
-	}
-
-	rootNode = xml->getRootNode("email_server");
-	if(rootNode != NULL)
-	{
-		TiXmlNode* childnode = xml->enterNode(rootNode, "smtp_server");
-		if(childnode)
-			emailServerInfo_.smtp_server = xml->getValStr(childnode);
-
-		childnode = xml->enterNode(rootNode, "smtp_port");
-		if(childnode)
-			emailServerInfo_.smtp_port = xml->getValInt(childnode);
-
-		childnode = xml->enterNode(rootNode, "username");
-		if(childnode)
-			emailServerInfo_.username = xml->getValStr(childnode);
-
-		childnode = xml->enterNode(rootNode, "password");
-		if(childnode)
-			emailServerInfo_.password = xml->getValStr(childnode);
-
-		childnode = xml->enterNode(rootNode, "smtp_auth");
-		if(childnode)
-			emailServerInfo_.smtp_auth = xml->getValInt(childnode);
-
-		childnode = xml->enterNode(rootNode, "cb_port");
-		if(childnode)
-			emailServerInfo_.cb_port = xml->getValInt(childnode);
-
-		TiXmlNode* rootNode1 = xml->enterNode(rootNode, "email_activation");
-		if(rootNode1 != NULL)
-		{
-			TiXmlNode* childnode1 = xml->enterNode(rootNode1, "subject");
-			if(childnode1)
-				emailAtivationInfo_.subject = childnode1->ToText()->Value();
-
-			childnode1 = xml->enterNode(rootNode1, "message");
-			if(childnode1)
-				emailAtivationInfo_.message = childnode1->ToText()->Value();
-
-			childnode1 = xml->enterNode(rootNode1, "deadline");
-			if(childnode1)
-				emailAtivationInfo_.deadline = xml->getValInt(childnode1);
-
-			childnode1 = xml->enterNode(rootNode1, "backlink_success_message");
-			if(childnode1)
-				emailAtivationInfo_.backlink_success_message = childnode1->ToText()->Value();
-
-			childnode1 = xml->enterNode(rootNode1, "backlink_fail_message");
-			if(childnode1)
-				emailAtivationInfo_.backlink_fail_message = childnode1->ToText()->Value();
-
-			childnode1 = xml->enterNode(rootNode1, "backlink_hello_message");
-			if(childnode1)
-				emailAtivationInfo_.backlink_hello_message = childnode1->ToText()->Value();
-		}
-
-		rootNode1 = xml->enterNode(rootNode, "email_resetpassword");
-		if(rootNode1 != NULL)
-		{
-			TiXmlNode* childnode1 = xml->enterNode(rootNode1, "subject");
-			if(childnode1)
-				emailResetPasswordInfo_.subject = childnode1->ToText()->Value();
-
-			childnode1 = xml->enterNode(rootNode1, "message");
-			if(childnode1)
-				emailResetPasswordInfo_.message = childnode1->ToText()->Value();
-
-			childnode1 = xml->enterNode(rootNode1, "deadline");
-			if(childnode1)
-				emailResetPasswordInfo_.deadline = xml->getValInt(childnode1);
-
-			childnode1 = xml->enterNode(rootNode1, "backlink_success_message");
-			if(childnode1)
-				emailResetPasswordInfo_.backlink_success_message = childnode1->ToText()->Value();
-
-			childnode1 = xml->enterNode(rootNode1, "backlink_fail_message");
-			if(childnode1)
-				emailResetPasswordInfo_.backlink_fail_message = childnode1->ToText()->Value();
-
-			childnode1 = xml->enterNode(rootNode1, "backlink_hello_message");
-			if(childnode1)
-				emailResetPasswordInfo_.backlink_hello_message = childnode1->ToText()->Value();
-		}
-
-		rootNode1 = xml->enterNode(rootNode, "email_bind");
-		if(rootNode1 != NULL)
-		{
-			TiXmlNode* childnode1 = xml->enterNode(rootNode1, "subject");
-			if(childnode1)
-				emailBindInfo_.subject = childnode1->ToText()->Value();
-
-			childnode1 = xml->enterNode(rootNode1, "message");
-			if(childnode1)
-				emailBindInfo_.message = childnode1->ToText()->Value();
-
-			childnode1 = xml->enterNode(rootNode1, "deadline");
-			if(childnode1)
-				emailBindInfo_.deadline = xml->getValInt(childnode1);
-
-			childnode1 = xml->enterNode(rootNode1, "backlink_success_message");
-			if(childnode1)
-				emailBindInfo_.backlink_success_message = childnode1->ToText()->Value();
-
-			childnode1 = xml->enterNode(rootNode1, "backlink_fail_message");
-			if(childnode1)
-				emailBindInfo_.backlink_fail_message = childnode1->ToText()->Value();
-
-			childnode1 = xml->enterNode(rootNode1, "backlink_hello_message");
-			if(childnode1)
-				emailBindInfo_.backlink_hello_message = childnode1->ToText()->Value();
 		}
 	}
 
@@ -878,6 +773,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL){
 			_loginAppInfo.account_type = xml->getValInt(node);
 		}
+
+		node = xml->enterNode(rootNode, "http_cbport");
+		if(node)
+			_loginAppInfo.http_cbport = xml->getValInt(node);
 	}
 	
 	rootNode = xml->getRootNode("cellappmgr");
@@ -1034,6 +933,126 @@ bool ServerConfig::loadConfig(std::string fileName)
 
 			Resmgr::respool_timeout = _resourcemgrInfo.respool_timeout;
 			Resmgr::respool_buffersize = _resourcemgrInfo.respool_buffersize;
+		}
+	}
+
+	SAFE_RELEASE(xml);
+
+	if(email_service_config.size() > 0)
+	{
+		xml = new XmlPlus(Resmgr::getSingleton().matchRes(email_service_config).c_str());
+
+		if(!xml->isGood())
+		{
+			ERROR_MSG(boost::format("ServerConfig::loadConfig: load %1% is failed!\n") %
+				email_service_config.c_str());
+
+			SAFE_RELEASE(xml);
+			return false;
+		}
+
+		TiXmlNode* childnode = xml->getRootNode("smtp_server");
+		if(childnode)
+			emailServerInfo_.smtp_server = xml->getValStr(childnode);
+
+		childnode = xml->getRootNode("smtp_port");
+		if(childnode)
+			emailServerInfo_.smtp_port = xml->getValInt(childnode);
+
+		childnode = xml->getRootNode("username");
+		if(childnode)
+			emailServerInfo_.username = xml->getValStr(childnode);
+
+		childnode = xml->getRootNode("password");
+		if(childnode)
+			emailServerInfo_.password = xml->getValStr(childnode);
+
+		childnode = xml->getRootNode("smtp_auth");
+		if(childnode)
+			emailServerInfo_.smtp_auth = xml->getValInt(childnode);
+
+		TiXmlNode* rootNode1 = xml->getRootNode("email_activation");
+		if(rootNode1 != NULL)
+		{
+			TiXmlNode* childnode1 = xml->enterNode(rootNode1, "subject");
+			if(childnode1)
+				emailAtivationInfo_.subject = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "message");
+			if(childnode1)
+				emailAtivationInfo_.message = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "deadline");
+			if(childnode1)
+				emailAtivationInfo_.deadline = xml->getValInt(childnode1);
+
+			childnode1 = xml->enterNode(rootNode1, "backlink_success_message");
+			if(childnode1)
+				emailAtivationInfo_.backlink_success_message = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "backlink_fail_message");
+			if(childnode1)
+				emailAtivationInfo_.backlink_fail_message = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "backlink_hello_message");
+			if(childnode1)
+				emailAtivationInfo_.backlink_hello_message = childnode1->ToText()->Value();
+		}
+
+		rootNode1 = xml->getRootNode("email_resetpassword");
+		if(rootNode1 != NULL)
+		{
+			TiXmlNode* childnode1 = xml->enterNode(rootNode1, "subject");
+			if(childnode1)
+				emailResetPasswordInfo_.subject = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "message");
+			if(childnode1)
+				emailResetPasswordInfo_.message = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "deadline");
+			if(childnode1)
+				emailResetPasswordInfo_.deadline = xml->getValInt(childnode1);
+
+			childnode1 = xml->enterNode(rootNode1, "backlink_success_message");
+			if(childnode1)
+				emailResetPasswordInfo_.backlink_success_message = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "backlink_fail_message");
+			if(childnode1)
+				emailResetPasswordInfo_.backlink_fail_message = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "backlink_hello_message");
+			if(childnode1)
+				emailResetPasswordInfo_.backlink_hello_message = childnode1->ToText()->Value();
+		}
+
+		rootNode1 = xml->getRootNode("email_bind");
+		if(rootNode1 != NULL)
+		{
+			TiXmlNode* childnode1 = xml->enterNode(rootNode1, "subject");
+			if(childnode1)
+				emailBindInfo_.subject = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "message");
+			if(childnode1)
+				emailBindInfo_.message = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "deadline");
+			if(childnode1)
+				emailBindInfo_.deadline = xml->getValInt(childnode1);
+
+			childnode1 = xml->enterNode(rootNode1, "backlink_success_message");
+			if(childnode1)
+				emailBindInfo_.backlink_success_message = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "backlink_fail_message");
+			if(childnode1)
+				emailBindInfo_.backlink_fail_message = childnode1->ToText()->Value();
+
+			childnode1 = xml->enterNode(rootNode1, "backlink_hello_message");
+			if(childnode1)
+				emailBindInfo_.backlink_hello_message = childnode1->ToText()->Value();
 		}
 	}
 

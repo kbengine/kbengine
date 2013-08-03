@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ACCOUNT_ACTIVATE_HANDLER__
-#define __ACCOUNT_ACTIVATE_HANDLER__
+#ifndef __HTTP_CB_HANDLER__
+#define __HTTP_CB_HANDLER__
 
 #include "cstdkbe/cstdkbe.hpp"
 
@@ -28,11 +28,11 @@ namespace Mercury{
 class EndPoint;
 }
 
-class AccountActivateHandler : public Mercury::InputNotificationHandler
+class HTTPCBHandler : public Mercury::InputNotificationHandler
 {
 public:
-	AccountActivateHandler();
-	virtual ~AccountActivateHandler();
+	HTTPCBHandler();
+	virtual ~HTTPCBHandler();
 
 	Mercury::EndPoint* pEndPoint(){ return pEndPoint_; }
 

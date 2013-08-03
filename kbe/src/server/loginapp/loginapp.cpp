@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "jwsmtp.h"
 #include "loginapp.hpp"
-#include "account_activate_handler.hpp"
+#include "http_cb_handler.hpp"
 #include "loginapp_interface.hpp"
 #include "network/common.hpp"
 #include "network/tcp_packet.hpp"
@@ -53,14 +53,14 @@ Loginapp::Loginapp(Mercury::EventDispatcher& dispatcher,
 	pendingCreateMgr_(ninterface),
 	pendingLoginMgr_(ninterface),
 	digest_(),
-	pAccountActivateHandler(NULL)
+	pHttpCBHandler(NULL)
 {
 }
 
 //-------------------------------------------------------------------------------------
 Loginapp::~Loginapp()
 {
-	SAFE_RELEASE(pAccountActivateHandler);
+	SAFE_RELEASE(pHttpCBHandler);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -176,7 +176,7 @@ void Loginapp::onDbmgrInitCompleted(Mercury::Channel* pChannel, int32 startGloba
 	digest_ = digest;
 
 	if(startGroupOrder_ == 1)
-		pAccountActivateHandler = new AccountActivateHandler();
+		pHttpCBHandler = new HTTPCBHandler();
 }
 
 
@@ -424,7 +424,7 @@ void Loginapp::onReqCreateMailAccountResult(Mercury::Channel* pChannel, MemorySt
 	{
 		threadPool_.addTask(new SendActivateEMailTask(accountName, retdatas, 
 			getNetworkInterface().extEndpoint().addr().ipAsString(), 
-			g_kbeSrvConfig.emailServerInfo_.cb_port));
+			g_kbeSrvConfig.getLoginApp().http_cbport));
 	}
 
 	PendingLoginMgr::PLInfos* ptinfos = pendingCreateMgr_.remove(accountName);
@@ -452,13 +452,13 @@ void Loginapp::onReqCreateMailAccountResult(Mercury::Channel* pChannel, MemorySt
 void Loginapp::onAccountActivated(Mercury::Channel* pChannel, std::string& code, bool success)
 {
 	DEBUG_MSG(boost::format("Loginapp::onAccountActivated: code=%1%, success=%2%\n") % code % success);
-	if(!pAccountActivateHandler)
+	if(!pHttpCBHandler)
 	{
-		WARNING_MSG("Loginapp::onAccountActivated: pAccountActivateHandler is NULL!\n");
+		WARNING_MSG("Loginapp::onAccountActivated: pHttpCBHandler is NULL!\n");
 		return;
 	}
 
-	pAccountActivateHandler->onAccountActivated(code, success);
+	pHttpCBHandler->onAccountActivated(code, success);
 }
 
 //-------------------------------------------------------------------------------------
@@ -828,7 +828,7 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 				std::vector<std::string>::iterator iter1 = pMessageHandler->pArgs->strArgsTypes.begin();
 				for(; iter1 !=  pMessageHandler->pArgs->strArgsTypes.end(); iter1++)
 				{
-					info.argsTypes.push_back(datatype2id((*iter1)));
+					info.argsTypes.push_back((uint8)datatype2id((*iter1)));
 				}
 			}
 		}
@@ -852,7 +852,7 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 				std::vector<std::string>::iterator iter1 = pMessageHandler->pArgs->strArgsTypes.begin();
 				for(; iter1 !=  pMessageHandler->pArgs->strArgsTypes.end(); iter1++)
 				{
-					info.argsTypes.push_back(datatype2id((*iter1)));
+					info.argsTypes.push_back((uint8)datatype2id((*iter1)));
 				}
 			}
 		}

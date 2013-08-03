@@ -33,7 +33,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
-class AccountActivateHandler;
+class HTTPCBHandler;
 
 class Loginapp :	public ServerApp, 
 					public Singleton<Loginapp>
@@ -151,7 +151,7 @@ protected:
 
 	std::string							digest_;
 
-	AccountActivateHandler*				pAccountActivateHandler;
+	HTTPCBHandler*						pHttpCBHandler;
 };
 
 }

@@ -36,7 +36,7 @@ bool SendEMailTask::process()
 
 	std::string mailmessage = message();
 
-	KBEngine::strutil::kbe_replace(mailmessage, "${backlink}", (boost::format("http://%1%:%2%/%3%?%4%") % 
+	KBEngine::strutil::kbe_replace(mailmessage, "${backlink}", (boost::format("http://%1%:%2%/%3%_%4%") % 
 		cbaddr_ %
 		cbport_ %
 		getopkey() %

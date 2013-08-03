@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "loginapp.hpp"
-#include "account_activate_handler.hpp"
+#include "http_cb_handler.hpp"
 #include "network/event_dispatcher.hpp"
 #include "network/event_poller.hpp"
 #include "network/endpoint.hpp"
@@ -32,7 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-AccountActivateHandler::AccountActivateHandler():
+HTTPCBHandler::HTTPCBHandler():
 pEndPoint_(NULL),
 clients_()
 {
@@ -42,14 +42,14 @@ clients_()
 
 	if (!pEndPoint_->good())
 	{
-		ERROR_MSG("AccountActivateHandler::process: couldn't create a socket\n");
+		ERROR_MSG("HTTPCBHandler::process: couldn't create a socket\n");
 		return;
 	}
 
-	if (pEndPoint_->bind(htons(g_kbeSrvConfig.emailServerInfo_.cb_port), 
+	if (pEndPoint_->bind(htons(g_kbeSrvConfig.getLoginApp().http_cbport), 
 		Loginapp::getSingleton().getNetworkInterface().extaddr().ip) == -1)
 	{
-		ERROR_MSG(boost::format("AccountActivateHandler::bind(%1%): \n") %
+		ERROR_MSG(boost::format("HTTPCBHandler::bind(%1%): \n") %
 			 kbe_strerror());
 
 		pEndPoint_->close();
@@ -58,7 +58,7 @@ clients_()
 
 	if(pEndPoint_->listen() == -1)
 	{
-		ERROR_MSG(boost::format("AccountActivateHandler::listeningSocket(%1%): \n") %
+		ERROR_MSG(boost::format("HTTPCBHandler::listeningSocket(%1%): \n") %
 			 kbe_strerror());
 
 		pEndPoint_->close();
@@ -69,13 +69,13 @@ clients_()
 
 	Loginapp::getSingleton().getNetworkInterface().dispatcher().registerFileDescriptor(*pEndPoint_, this);
 
-	INFO_MSG(boost::format("AccountActivateHandler::bind: %1%:%2%\n") %
+	INFO_MSG(boost::format("HTTPCBHandler::bind: %1%:%2%\n") %
 		inet_ntoa((struct in_addr&)Loginapp::getSingleton().getNetworkInterface().extaddr().ip) % 
-		g_kbeSrvConfig.emailServerInfo_.cb_port);
+		g_kbeSrvConfig.getLoginApp().http_cbport);
 }
 
 //-------------------------------------------------------------------------------------
-AccountActivateHandler::~AccountActivateHandler()
+HTTPCBHandler::~HTTPCBHandler()
 {
 	clients_.clear();
 	Loginapp::getSingleton().getNetworkInterface().dispatcher().deregisterFileDescriptor(*pEndPoint_);
@@ -83,7 +83,7 @@ AccountActivateHandler::~AccountActivateHandler()
 }
 
 //-------------------------------------------------------------------------------------
-int AccountActivateHandler::handleInputNotification(int fd)
+int HTTPCBHandler::handleInputNotification(int fd)
 {
 	if(fd == *pEndPoint_)
 	{
@@ -94,11 +94,11 @@ int AccountActivateHandler::handleInputNotification(int fd)
 
 		if(newclient == NULL)
 		{
-			ERROR_MSG(boost::format("AccountActivateHandler::handleInputNotification: accept is error:%1%.\n") % kbe_strerror());
+			ERROR_MSG(boost::format("HTTPCBHandler::handleInputNotification: accept is error:%1%.\n") % kbe_strerror());
 			return 0;
 		}
 
-		INFO_MSG(boost::format("AccountActivateHandler:handleInputNotification: newclient = %1%\n") %
+		INFO_MSG(boost::format("HTTPCBHandler:handleInputNotification: newclient = %1%\n") %
 			newclient->c_str());
 
 		CLIENT& client = clients_[*newclient];
@@ -111,7 +111,7 @@ int AccountActivateHandler::handleInputNotification(int fd)
 		std::map< int, CLIENT >::iterator iter = clients_.find(fd);
 		if(iter == clients_.end())
 		{
-			ERROR_MSG(boost::format("AccountActivateHandler:handleInputNotification: fd(%1%) not found!\n") %
+			ERROR_MSG(boost::format("HTTPCBHandler:handleInputNotification: fd(%1%) not found!\n") %
 				fd);
 			return 0;
 		}
@@ -125,7 +125,7 @@ int AccountActivateHandler::handleInputNotification(int fd)
 
 		if(len <= 0)
 		{
-			ERROR_MSG(boost::format("AccountActivateHandler:handleInputNotification: recv error, newclient = %1%\n") %
+			ERROR_MSG(boost::format("HTTPCBHandler:handleInputNotification: recv error, newclient = %1%\n") %
 				newclient->c_str());
 
 			if(client.state == 1)
@@ -137,16 +137,16 @@ int AccountActivateHandler::handleInputNotification(int fd)
 			clients_.erase(iter);
 
 		int type = 0;
-		std::string keys = "accountactivate?";
+		std::string keys = "accountactivate_";
 		std::string s = buffer;
 		std::string::size_type fi1 = s.find(keys);
 		if(fi1 == std::string::npos)
 		{
-			keys = "resetpassword?";
+			keys = "resetpassword_";
 			fi1 = s.find(keys);
 			if(fi1 == std::string::npos)
 			{
-				keys = "bindmail?";
+				keys = "bindmail_";
 				fi1 = s.find(keys);
 				if(fi1 != std::string::npos)
 				{
@@ -163,8 +163,11 @@ int AccountActivateHandler::handleInputNotification(int fd)
 			type = 1;
 		}
 
-		std::string::size_type fi2 = s.find(" HTTP/");
+		std::string::size_type fi2 = s.find("?");
 		
+		if(fi2 == std::string::npos)
+			fi2 = s.find(" HTTP/");
+
 		if(fi2 <= fi1)
 		{
 			return 0;
@@ -181,10 +184,9 @@ int AccountActivateHandler::handleInputNotification(int fd)
 
 		if(code.size() > 0)
 		{
-			INFO_MSG(boost::format("AccountActivateHandler:handleInputNotification: code = %1%\n") %
+			INFO_MSG(boost::format("HTTPCBHandler:handleInputNotification: code = %1%\n") %
 				code.c_str());
 
-			client.state = 2;
 			client.code = code;
 
 			Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
@@ -212,6 +214,40 @@ int AccountActivateHandler::handleInputNotification(int fd)
 			}
 			else if(type == 2)
 			{
+				std::string::size_type fi1 = s.find("password=");
+				std::string::size_type fi2 = std::string::npos;
+				
+				if(fi1 != std::string::npos)
+					fi2 = s.find("&", fi1);
+
+				std::string password;
+				
+				if(fi1 != std::string::npos && fi2 != std::string::npos)
+				{
+					if(fi1 < fi2)
+					{
+						int ilen = strlen("password=");
+						password.assign(s.c_str() + fi1 + ilen, fi2 - (fi1 + ilen));
+					}
+
+					fi1 = s.find("username=");
+					fi2 = std::string::npos;
+				
+					if(fi1 != std::string::npos)
+						fi2 = s.find("&", fi1);
+
+					std::string username;
+					
+					if(fi1 != std::string::npos && fi2 != std::string::npos)
+					{
+						if(fi1 < fi2)
+						{
+							int ilen = strlen("username=");
+							username.assign(s.c_str() + fi1 + ilen, fi2 - (fi1 + ilen));
+						}
+					}
+				}
+
 				hellomessage = g_kbeSrvConfig.emailResetPasswordInfo_.backlink_hello_message;
 			}
 			else if(type == 3)
@@ -219,11 +255,11 @@ int AccountActivateHandler::handleInputNotification(int fd)
 				hellomessage = g_kbeSrvConfig.emailBindInfo_.backlink_hello_message;
 			}
 
-			if(hellomessage.size() > 0)
+			if(hellomessage.size() > 0 && client.state < 2)
 			{
-				KBEngine::strutil::kbe_replace(hellomessage, "${backlink}", (boost::format("http://%1%:%2%/%3%?%4%") % 
+				KBEngine::strutil::kbe_replace(hellomessage, "${backlink}", (boost::format("http://%1%:%2%/%3%%4%") % 
 					Loginapp::getSingleton().getNetworkInterface().extaddr().ipAsString() %
-					g_kbeSrvConfig.emailServerInfo_.cb_port %
+					g_kbeSrvConfig.getLoginApp().http_cbport %
 					keys %
 					code).str());
 
@@ -234,6 +270,8 @@ int AccountActivateHandler::handleInputNotification(int fd)
 
 				newclient->send(response.c_str(), response.size());
 			}
+
+			client.state = 2;
 		}
 		else
 		{
@@ -246,7 +284,7 @@ int AccountActivateHandler::handleInputNotification(int fd)
 }
 
 //-------------------------------------------------------------------------------------
-void AccountActivateHandler::onAccountActivated(std::string& code, bool success)
+void HTTPCBHandler::onAccountActivated(std::string& code, bool success)
 {
 	std::map< int, CLIENT >::iterator iter = clients_.begin();
 	for(; iter != clients_.end(); iter++)

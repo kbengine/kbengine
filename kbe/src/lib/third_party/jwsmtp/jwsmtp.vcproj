@@ -68,6 +68,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalOptions="/ignore:4049&#x0D;&#x0A;/ignore:4217&#x0D;&#x0A;/ignore:4996"
 				OutputFile="..\..\..\libs\jwsmtp.lib"
 				SuppressStartupBanner="true"
 			/>
@@ -142,6 +143,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalOptions="/ignore:4049&#x0D;&#x0A;/ignore:4217&#x0D;&#x0A;/ignore:4996"
 				OutputFile="..\..\..\libs\jwsmtp_d.lib"
 				SuppressStartupBanner="true"
 			/>

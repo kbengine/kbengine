@@ -62,6 +62,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalOptions="/ignore:4996"
 				OutputFile="../../libs\$(ProjectName)_d.lib"
 			/>
 			<Tool
@@ -127,6 +128,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalOptions="/ignore:4996"
 				OutputFile="../../libs\$(ProjectName).lib"
 			/>
 			<Tool

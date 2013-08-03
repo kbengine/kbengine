@@ -5,9 +5,7 @@
 	<smtp_auth>2</smtp_auth>
 	<username> kbengine@163.com </username>
 	<password> test123 </password>
-	<!-- 用户回调接口 -->
-	<cb_port> 21103 </cb_port>
-		
+
 	<email_activation>
 		<subject>账号激活</subject>
 		<!-- 邮件验证有效期 -->
@@ -88,11 +86,8 @@
 		<backlink_hello_message>
 			<![CDATA[
 				<!DOCTYPE HTML>
-				<html lang="zh-CN">
 				<head>
-				<meta charset="UTF-8">
 				<title>重设密码</title>
-
 				<style type="text/css">
 				/* Font,  Link & Container */
 				body { font:12px/1.6 arial,helvetica,sans-serif; }
@@ -125,12 +120,16 @@
 				        <p class="error">重设密码不能为空</p>
 				    </div>
 				    <div class="item">
+				        <label>用户名</label>
+				        <input id="username" name="username" type="text" class="basic-input" maxlength="60" value="" tabindex="1"/>
+				    </div>
+				    <div class="item">
 				        <label>输入密码</label>
-				        <input id="password1" name="form_password1" type="password" class="basic-input" maxlength="60" value="" tabindex="1"/>
+				        <input id="password1" name="password1" type="password" class="basic-input" maxlength="20" value="" tabindex="1"/>
 				    </div>
 				    <div class="item">
 				        <label>重复密码</label>
-				        <input id="password" name="form_password" type="password" class="basic-input" maxlength="20" tabindex="2"/>
+				        <input id="password" name="password" type="password" class="basic-input" maxlength="20" tabindex="2"/>
 				    </div>
 				    <div class="item">
 				        <label>&nbsp;</label>
@@ -172,15 +171,23 @@
 
 				function validateForm(frm) {
 				  var error = 0,
-				  passwd1 = frm.elements['form_password1'],
-				  passwd = frm.elements['form_password'],
+				  passwd1 = frm.elements['password1'],
+				  passwd = frm.elements['password'],
+				  username = frm.elements['username'],
 				  defaultError = document.getElementById('item-error');
 
 				  if (defaultError) {
 				    defaultError.style.display = 'none';
 				  }
 
-				  if (passwd && passwd.value === '') {
+				  if (error == 0 && username && username.value === '') {
+				    displayError(username, '用户名不能为空');
+				    error = 1;
+				  } else {
+				    username && clearError(username);
+				  }
+				  
+				  if (error == 0 && passwd && passwd.value === '') {
 				    displayError(passwd, '密码不能为空');
 				    error = 1;
 				  } else {
@@ -194,7 +201,7 @@
 				    passwd1 && clearError(passwd1);
 				  }
 				  
-				    if (error == 0 && passwd1.value != passwd.value) {
+				    if (error == 0 && passwd1.value != passwd.value && username.value != '') {
 				    clearError(passwd);
 				    displayError(passwd, '二次密码必须一致且不能为空!');
 				    error = 1;
