@@ -125,11 +125,11 @@
 				    </div>
 				    <div class="item">
 				        <label>输入密码</label>
-				        <input id="password1" name="password1" type="password" class="basic-input" maxlength="20" value="" tabindex="1"/>
+				        <input id="password1" name="password1" type="password" class="basic-input" maxlength="10" value="" tabindex="1"/>
 				    </div>
 				    <div class="item">
 				        <label>重复密码</label>
-				        <input id="password" name="password" type="password" class="basic-input" maxlength="20" tabindex="2"/>
+				        <input id="password" name="password" type="password" class="basic-input" maxlength="10" tabindex="2"/>
 				    </div>
 				    <div class="item">
 				        <label>&nbsp;</label>
@@ -140,25 +140,27 @@
 				<script>
 				;(function(doc){
 				var $ = function(id) { return doc.getElementById(id); };
-				var placeholder = '';
-				var password1 = $('password1'), password = $('password');
-				    password1.onfocus = function(){
+				var placeholder = '邮箱地址';
+				var password1 = $('password1'), password = $('password'),username = $('username');
+				    username.onfocus = function(){
 				      if ( this.value == placeholder ) {
 				        this.value = '';
 				        this.style.color = '#000';
 				      }
 				    };
-				    password1.onblur = function(){
+				    username.onblur = function(){
 				      if (!this.value) {
 				        this.value = placeholder;
 				        this.style.color = '#ccc';
 				      }
 				    };
-
-				  if (password1.value == placeholder) {
-				    password1.style.color = '#ccc';
+				    
+				  if (username.value == placeholder) {
+				    username.style.color = '#ccc';
 				  } else if(password.value === '') {
 				    password.focus();
+			 	 } else if(password1.value === '') {
+				    password1.focus();
 				  } else if (capcha) {
 				    capcha.focus();
 				  }
@@ -170,7 +172,6 @@
 				}
 
 				function validateForm(frm) {
-				  var error = 0,
 				  passwd1 = frm.elements['password1'],
 				  passwd = frm.elements['password'],
 				  username = frm.elements['username'],
@@ -179,36 +180,48 @@
 				  if (defaultError) {
 				    defaultError.style.display = 'none';
 				  }
-
-				  if (error == 0 && username && username.value === '') {
-				    displayError(username, '用户名不能为空');
-				    error = 1;
+				  
+				  if (username && username.value === '') {
+				    displayError(username, '请输入邮箱');
+				    return false;
+				  } else if (! (/^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(username.value)
+				                || /^1[358](\d){9}$/.test(username.value))){
+				    displayError(username, '请输入正确的邮箱');
+				    return false;
 				  } else {
 				    username && clearError(username);
+				    displayError(username, '');
 				  }
 				  
-				  if (error == 0 && passwd && passwd.value === '') {
-				    displayError(passwd, '密码不能为空');
-				    error = 1;
-				  } else {
-				    passwd && clearError(passwd);
-				  }
-				  
-				   if (error == 0 && passwd1 && passwd1.value === '') {
+				   if (passwd1 && passwd1.value === '') {
 				    displayError(passwd1, '密码不能为空');
-				    error = 1;
+				    return false;
+				  } else if (! (/^([a-zA-Z0-9\_])+$/.test(passwd1.value))){
+				    displayError(passwd1, '密码只能包含大小写字母，数字');
+				    return false;
 				  } else {
 				    passwd1 && clearError(passwd1);
+				    displayError(passwd1, '');
 				  }
 				  
-				    if (error == 0 && passwd1.value != passwd.value && username.value != '') {
-				    clearError(passwd);
-				    displayError(passwd, '二次密码必须一致且不能为空!');
-				    error = 1;
+				  if (passwd && passwd.value === '') {
+				    displayError(passwd, '密码不能为空');
+				    return false;
 				  } else {
 				    passwd && clearError(passwd);
+				    displayError(passwd, '');
 				  }
-				  return !error;
+				  
+				    if (passwd1.value != passwd.value && username.value != '') {
+				    clearError(passwd1);
+				    displayError(passwd1, '');
+				    displayError(passwd, '二次密码必须一致且不能为空!');
+				    return false;
+				  } else {
+				    passwd && clearError(passwd);
+				    displayError(passwd, '');
+				  }
+				  return true;
 				}
 
 				function displayError(el, msg) {
@@ -230,7 +243,6 @@
 				  }
 				}
 				</script>
-
 				</div>
 				</body>
 				</html>

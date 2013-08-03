@@ -164,9 +164,10 @@ int HTTPCBHandler::handleInputNotification(int fd)
 		}
 
 		std::string::size_type fi2 = s.find("?");
-		
-		if(fi2 == std::string::npos)
-			fi2 = s.find(" HTTP/");
+		std::string::size_type fi3 = s.find(" HTTP/");
+
+		if(fi2 == std::string::npos || fi2 > fi3)
+			fi2 = fi3;
 
 		if(fi2 <= fi1)
 		{
