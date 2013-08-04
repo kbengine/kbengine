@@ -2890,6 +2890,10 @@ PyObject* Baseapp::__py_address(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Baseapp::reqAccountBindEmail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email)
 {
+	accountName = KBEngine::strutil::kbe_trim(accountName);
+	password = KBEngine::strutil::kbe_trim(password);
+	email = KBEngine::strutil::kbe_trim(email);
+
 	INFO_MSG(boost::format("Loginapp::reqAccountBindEmail: %1% email=%2%!\n") % accountName % email);
 }
 
@@ -2910,6 +2914,10 @@ void Baseapp::onReqAccountBindEmailCB(Mercury::Channel* pChannel, std::string& a
 //-------------------------------------------------------------------------------------
 void Baseapp::reqAccountNewPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& oldpassworld, std::string& newpassword)
 {
+	accountName = KBEngine::strutil::kbe_trim(accountName);
+	oldpassworld = KBEngine::strutil::kbe_trim(oldpassworld);
+	newpassword = KBEngine::strutil::kbe_trim(newpassword);
+
 	INFO_MSG(boost::format("Loginapp::reqAccountNewPassword: %1%!\n") % accountName);
 }
 
