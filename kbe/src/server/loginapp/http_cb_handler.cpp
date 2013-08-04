@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/event_poller.hpp"
 #include "network/endpoint.hpp"
 #include "network/bundle.hpp"
+#include "network/http_utility.hpp"
 #include "helper/debug_helper.hpp"
 #include "server/serverconfig.hpp"
 
@@ -255,6 +256,9 @@ int HTTPCBHandler::handleInputNotification(int fd)
 						}
 					}
 
+					username = HttpUtility::URLDecode(username);
+					password = HttpUtility::URLDecode(password);
+
 					// 向dbmgr重置账号
 					Mercury::Bundle bundle;
 					bundle.newMessage(DbmgrInterface::accountResetPassword);
@@ -284,6 +288,8 @@ int HTTPCBHandler::handleInputNotification(int fd)
 
 				if(username.size() > 0)
 				{
+					username = HttpUtility::URLDecode(username);
+
 					// 向dbmgr重置账号
 					Mercury::Bundle bundle;
 					bundle.newMessage(DbmgrInterface::accountBindMail);
