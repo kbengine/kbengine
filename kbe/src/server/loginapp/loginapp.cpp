@@ -194,6 +194,8 @@ bool Loginapp::_createAccount(Mercury::Channel* pChannel, std::string& accountNa
 								 std::string& password, std::string& datas, ACCOUNT_TYPE type)
 {
 	accountName = KBEngine::strutil::kbe_trim(accountName);
+	password = KBEngine::strutil::kbe_trim(password);
+
 	if(accountName.size() > ACCOUNT_NAME_MAX_LENGTH)
 	{
 		ERROR_MSG(boost::format("Loginapp::_createAccount: accountName too big, size=%1%, limit=%2%.\n") %
@@ -464,6 +466,7 @@ void Loginapp::onAccountActivated(Mercury::Channel* pChannel, std::string& code,
 //-------------------------------------------------------------------------------------
 void Loginapp::reqAccountResetPassword(Mercury::Channel* pChannel, std::string& accountName)
 {
+	accountName = KBEngine::strutil::kbe_trim(accountName);
 	INFO_MSG(boost::format("Loginapp::reqAccountResetPassword: accountName(%1%)\n") %
 		accountName);
 

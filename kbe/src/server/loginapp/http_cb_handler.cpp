@@ -189,6 +189,8 @@ int HTTPCBHandler::handleInputNotification(int fd)
 		}
 
 		client.state = 1;
+		
+		code = KBEngine::strutil::kbe_trim(code);
 
 		if(code.size() > 0)
 		{
@@ -262,8 +264,8 @@ int HTTPCBHandler::handleInputNotification(int fd)
 					// 向dbmgr重置账号
 					Mercury::Bundle bundle;
 					bundle.newMessage(DbmgrInterface::accountResetPassword);
-					bundle << username;
-					bundle << password;
+					bundle << KBEngine::strutil::kbe_trim(username);
+					bundle << KBEngine::strutil::kbe_trim(password);
 					bundle << code;
 					bundle.send(Loginapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
 				}
@@ -293,7 +295,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 					// 向dbmgr重置账号
 					Mercury::Bundle bundle;
 					bundle.newMessage(DbmgrInterface::accountBindMail);
-					bundle << username;
+					bundle << KBEngine::strutil::kbe_trim(username);
 					bundle << code;
 					bundle.send(Loginapp::getSingleton().getNetworkInterface(), dbmgrinfos->pChannel);
 				}
