@@ -41,7 +41,7 @@ namespace HttpUtility
         std::string sOut;
         for( size_t ix = 0; ix < sIn.size(); ix++ )
         {      
-            BYTE buf[4];
+            uint8 buf[4];
             memset( buf, 0, 4 );
             if( isalnum( (uint8)sIn[ix] ) )
             {      
