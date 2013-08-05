@@ -988,6 +988,10 @@ bool DBTaskQueryAccount::db_thread_process()
 	}
 
 	dbid_ = info.dbid;
+
+	if(!success_)
+		return false;
+
 	success_ = false;
 
 	// 先写log， 如果写失败则可能这个entity已经在线
