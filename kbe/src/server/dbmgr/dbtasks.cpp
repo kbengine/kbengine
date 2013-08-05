@@ -754,14 +754,15 @@ thread::TPTask::TPTaskState DBTaskAccountResetPassword::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskReqAccountBindEmail::DBTaskReqAccountBindEmail(const Mercury::Address& addr, std::string& accountName, 
+DBTaskReqAccountBindEmail::DBTaskReqAccountBindEmail(const Mercury::Address& addr, ENTITY_ID entityID, std::string& accountName, 
 		std::string password,std::string& email):
 DBTask(addr),
 code_(),
 password_(password),
 accountName_(accountName),
 email_(email),
-success_(false)
+success_(false),
+entityID_(entityID)
 {
 }
 
@@ -805,6 +806,7 @@ thread::TPTask::TPTaskState DBTaskReqAccountBindEmail::presentMainThread()
 	if(!success_)
 		failedcode = SERVER_ERR_FAILED;
 
+	(*pBundle) << entityID_; 
 	(*pBundle) << accountName_;
 	(*pBundle) << email_;
 	(*pBundle) << failedcode;
@@ -870,12 +872,13 @@ thread::TPTask::TPTaskState DBTaskAccountBindEmail::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskAccountNewPassword::DBTaskAccountNewPassword(const Mercury::Address& addr, std::string& accountName, 
+DBTaskAccountNewPassword::DBTaskAccountNewPassword(const Mercury::Address& addr, ENTITY_ID entityID, std::string& accountName, 
 		std::string& oldpassword_, std::string& newpassword):
 DBTask(addr),
 accountName_(accountName),
 oldpassword_(oldpassword_), newpassword_(newpassword),
-success_(false)
+success_(false),
+entityID_(entityID)
 {
 }
 
@@ -904,6 +907,7 @@ thread::TPTask::TPTaskState DBTaskAccountNewPassword::presentMainThread()
 	if(!success_)
 		failedcode = SERVER_ERR_FAILED;
 
+	(*pBundle) << entityID_;
 	(*pBundle) << accountName_;
 	(*pBundle) << failedcode;
 

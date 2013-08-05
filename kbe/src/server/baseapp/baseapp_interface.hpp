@@ -238,12 +238,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// 请求绑定email
 	BASEAPP_MESSAGE_EXPOSED(reqAccountBindEmail)
 	BASEAPP_MESSAGE_DECLARE_ARGS3(reqAccountBindEmail,						MERCURY_VARIABLE_MESSAGE,
-									std::string,							accountName,
+									ENTITY_ID,								entityID,
 									std::string,							password,
 									std::string,							email)
 
 	// 请求绑定email申请的回调
-	BASEAPP_MESSAGE_DECLARE_ARGS4(onReqAccountBindEmailCB,					MERCURY_VARIABLE_MESSAGE,
+	BASEAPP_MESSAGE_DECLARE_ARGS5(onReqAccountBindEmailCB,					MERCURY_VARIABLE_MESSAGE,
+									ENTITY_ID,								entityID,
 									std::string,							accountName,
 									std::string,							email,
 									SERVER_ERROR_CODE,						failedcode,
@@ -252,12 +253,13 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// 请求修改密码
 	BASEAPP_MESSAGE_EXPOSED(reqAccountNewPassword)
 	BASEAPP_MESSAGE_DECLARE_ARGS3(reqAccountNewPassword,					MERCURY_VARIABLE_MESSAGE,
-									std::string,							accountName,
+									ENTITY_ID,								entityID,
 									std::string,							oldpassword,
 									std::string,							newpassword)
 
 	// 请求修改密码的回调
-	BASEAPP_MESSAGE_DECLARE_ARGS2(onReqAccountNewPasswordCB,				MERCURY_VARIABLE_MESSAGE,
+	BASEAPP_MESSAGE_DECLARE_ARGS3(onReqAccountNewPasswordCB,				MERCURY_VARIABLE_MESSAGE,
+									ENTITY_ID,								entityID,
 									std::string,							accountName,
 									SERVER_ERROR_CODE,						failedcode)
 

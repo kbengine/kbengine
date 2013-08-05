@@ -2888,13 +2888,41 @@ PyObject* Baseapp::__py_address(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::reqAccountBindEmail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email)
+void Baseapp::reqAccountBindEmail(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& password, std::string& email)
 {
-	accountName = KBEngine::strutil::kbe_trim(accountName);
+	Base* base = pEntities_->find(entityID);
+	if(base == NULL)
+	{
+		ERROR_MSG(boost::format("Baseapp::reqAccountBindEmail: can't found entity:%1%.\n") % entityID);
+		return;
+	}
+	
+	PyObject* py__ACCOUNT_NAME__ = PyObject_GetAttrString(base, "__account_name__");
+	if(py__ACCOUNT_NAME__ == NULL)
+	{
+		DEBUG_MSG(boost::format("Baseapp::reqAccountBindEmail: entity(%1%) __account_name__ is NULL\n") % entityID);
+		return;
+	}
+
+	wchar_t* wname = PyUnicode_AsWideCharString(py__ACCOUNT_NAME__, NULL);					
+	char* name = strutil::wchar2char(wname);									
+	PyMem_Free(wname);
+	
+	std::string accountName = name;
+	free(name);
+
+	Py_DECREF(py__ACCOUNT_NAME__);
+
+	if(accountName.size() == 0)
+	{
+		DEBUG_MSG(boost::format("Baseapp::reqAccountBindEmail: entity(%1%) __account_name__ is NULL\n") % entityID);
+		return;
+	}
+
 	password = KBEngine::strutil::kbe_trim(password);
 	email = KBEngine::strutil::kbe_trim(email);
 
-	INFO_MSG(boost::format("Loginapp::reqAccountBindEmail: %1% email=%2%!\n") % accountName % email);
+	INFO_MSG(boost::format("Baseapp::reqAccountBindEmail: %1%(%2%) email=%3%!\n") % accountName % entityID % email);
 
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
@@ -2904,7 +2932,7 @@ void Baseapp::reqAccountBindEmail(Mercury::Channel* pChannel, std::string& accou
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		ERROR_MSG(boost::format("Loginapp::reqAccountBindEmail: accountName(%1%), not found dbmgr!\n") % 
+		ERROR_MSG(boost::format("Baseapp::reqAccountBindEmail: accountName(%1%), not found dbmgr!\n") % 
 			accountName);
 
 		Mercury::Bundle bundle;
@@ -2917,15 +2945,15 @@ void Baseapp::reqAccountBindEmail(Mercury::Channel* pChannel, std::string& accou
 
 	Mercury::Bundle bundle;
 	bundle.newMessage(DbmgrInterface::accountReqBindMail);
-	bundle << accountName << password << email;
+	bundle << entityID << accountName << password << email;
 	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onReqAccountBindEmailCB(Mercury::Channel* pChannel, std::string& accountName, std::string& email,
+void Baseapp::onReqAccountBindEmailCB(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
 	SERVER_ERROR_CODE failedcode, std::string& code)
 {
-	INFO_MSG(boost::format("Loginapp::onReqAccountBindEmailCB: %1% failedcode=%2%!\n") % accountName % failedcode);
+	INFO_MSG(boost::format("Baseapp::onReqAccountBindEmailCB: %1%(%2%) failedcode=%3%!\n") % accountName % entityID % failedcode);
 
 	if(failedcode == SERVER_SUCCESS)
 	{
@@ -2934,20 +2962,57 @@ void Baseapp::onReqAccountBindEmailCB(Mercury::Channel* pChannel, std::string& a
 			g_kbeSrvConfig.getLoginApp().http_cbport));
 	}
 
+	Base* base = pEntities_->find(entityID);
+	if(base == NULL || base->getClientMailbox() == NULL || base->getClientMailbox()->getChannel() == NULL)
+	{
+		ERROR_MSG(boost::format("Baseapp::onReqAccountBindEmailCB: entity:%1%, channel is NULL.\n") % entityID);
+		return;
+	}
+
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onReqAccountBindEmailCB);
 	bundle << failedcode;
-	bundle.send(this->getNetworkInterface(), pChannel);
+	bundle.send(this->getNetworkInterface(), base->getClientMailbox()->getChannel());
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::reqAccountNewPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& oldpassworld, std::string& newpassword)
+void Baseapp::reqAccountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, 
+									std::string& oldpassworld, std::string& newpassword)
 {
-	accountName = KBEngine::strutil::kbe_trim(accountName);
+	Base* base = pEntities_->find(entityID);
+	if(base == NULL)
+	{
+		ERROR_MSG(boost::format("Baseapp::reqAccountNewPassword: can't found entity:%1%.\n") % entityID);
+		return;
+	}
+	
+	PyObject* py__ACCOUNT_NAME__ = PyObject_GetAttrString(base, "__account_name__");
+	if(py__ACCOUNT_NAME__ == NULL)
+	{
+		DEBUG_MSG(boost::format("Baseapp::reqAccountNewPassword: entity(%1%) __account_name__ is NULL\n") % entityID);
+		return;
+	}
+
+	wchar_t* wname = PyUnicode_AsWideCharString(py__ACCOUNT_NAME__, NULL);					
+	char* name = strutil::wchar2char(wname);									
+	PyMem_Free(wname);
+	
+	std::string accountName = name;
+	free(name);
+
+	Py_DECREF(py__ACCOUNT_NAME__);
+
+	if(accountName.size() == 0)
+	{
+		DEBUG_MSG(boost::format("Baseapp::reqAccountNewPassword: entity(%1%) __account_name__ is NULL\n") % entityID);
+		return;
+	}
+
 	oldpassworld = KBEngine::strutil::kbe_trim(oldpassworld);
 	newpassword = KBEngine::strutil::kbe_trim(newpassword);
 
-	INFO_MSG(boost::format("Loginapp::reqAccountNewPassword: %1%!\n") % accountName);
+	INFO_MSG(boost::format("Baseapp::reqAccountNewPassword: %1%(%2%)!\n") % 
+		accountName % entityID);
 
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
@@ -2957,7 +3022,7 @@ void Baseapp::reqAccountNewPassword(Mercury::Channel* pChannel, std::string& acc
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		ERROR_MSG(boost::format("Loginapp::reqAccountNewPassword: accountName(%1%), not found dbmgr!\n") % 
+		ERROR_MSG(boost::format("Baseapp::reqAccountNewPassword: accountName(%1%), not found dbmgr!\n") % 
 			accountName);
 
 		Mercury::Bundle bundle;
@@ -2970,20 +3035,28 @@ void Baseapp::reqAccountNewPassword(Mercury::Channel* pChannel, std::string& acc
 
 	Mercury::Bundle bundle;
 	bundle.newMessage(DbmgrInterface::accountReqBindMail);
-	bundle << accountName << oldpassworld << newpassword;
+	bundle << entityID << accountName << oldpassworld << newpassword;
 	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onReqAccountNewPasswordCB(Mercury::Channel* pChannel, std::string& accountName,
+void Baseapp::onReqAccountNewPasswordCB(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName,
 	SERVER_ERROR_CODE failedcode)
 {
-	INFO_MSG(boost::format("Loginapp::onReqAccountNewPasswordCB: %1% failedcode=%2%!\n") % accountName % failedcode);
+	INFO_MSG(boost::format("Baseapp::onReqAccountNewPasswordCB: %1%(%2%) failedcode=%3%!\n") % 
+		accountName % entityID % failedcode);
+
+	Base* base = pEntities_->find(entityID);
+	if(base == NULL || base->getClientMailbox() == NULL || base->getClientMailbox()->getChannel() == NULL)
+	{
+		ERROR_MSG(boost::format("Baseapp::onReqAccountNewPasswordCB: entity:%1%, channel is NULL.\n") % entityID);
+		return;
+	}
 
 	Mercury::Bundle bundle;
 	bundle.newMessage(ClientInterface::onReqAccountBindEmailCB);
 	bundle << failedcode;
-	bundle.send(this->getNetworkInterface(), pChannel);
+	bundle.send(this->getNetworkInterface(), base->getClientMailbox()->getChannel());
 }
 
 //-------------------------------------------------------------------------------------

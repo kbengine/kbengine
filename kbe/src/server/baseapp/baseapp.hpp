@@ -399,15 +399,17 @@ public:
 	/** 网络接口
 		请求绑定email
 	*/
-	void reqAccountBindEmail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email);
-	void onReqAccountBindEmailCB(Mercury::Channel* pChannel, std::string& accountName,  std::string& email,
+	void reqAccountBindEmail(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& password, std::string& email);
+
+	void onReqAccountBindEmailCB(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
 		SERVER_ERROR_CODE failedcode, std::string& code);
 
 	/** 网络接口
 		请求绑定email
 	*/
-	void reqAccountNewPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& oldpassworld, std::string& newpassword);
-	void onReqAccountNewPasswordCB(Mercury::Channel* pChannel, std::string& accountName,
+	void reqAccountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& oldpassworld, std::string& newpassword);
+
+	void onReqAccountNewPasswordCB(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName,
 		SERVER_ERROR_CODE failedcode);
 protected:
 	TimerHandle												loopCheckTimerHandle_;

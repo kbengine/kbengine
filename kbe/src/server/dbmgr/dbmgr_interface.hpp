@@ -161,7 +161,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									std::string,					code)
 
 	// ’À∫≈«Î«Û∞Û∂®” œ‰°£
-	DBMGR_MESSAGE_DECLARE_ARGS3(accountReqBindMail,					MERCURY_VARIABLE_MESSAGE,
+	DBMGR_MESSAGE_DECLARE_ARGS4(accountReqBindMail,					MERCURY_VARIABLE_MESSAGE,
+									ENTITY_ID,						entityID,
 									std::string,					accountName,
 									std::string,					password,
 									std::string,					email)
@@ -172,7 +173,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									std::string,					code)
 
 	// ’À∫≈–ﬁ∏ƒ√‹¬Î°£
-	DBMGR_MESSAGE_DECLARE_ARGS3(accountNewPassword,					MERCURY_VARIABLE_MESSAGE,
+	DBMGR_MESSAGE_DECLARE_ARGS4(accountNewPassword,					MERCURY_VARIABLE_MESSAGE,
+									ENTITY_ID,						entityID,
 									std::string,					accountName,
 									std::string,					password,
 									std::string,					newpassword)

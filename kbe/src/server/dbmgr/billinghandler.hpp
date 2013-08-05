@@ -68,9 +68,9 @@ public:
 	virtual void accountActivate(Mercury::Channel* pChannel, std::string& scode) = 0;
 	virtual void accountReqResetPassword(Mercury::Channel* pChannel, std::string& accountName) = 0;
 	virtual void accountResetPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& scode) = 0;
-	virtual void accountReqBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email) = 0;
+	virtual void accountReqBindMail(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& email) = 0;
 	virtual void accountBindMail(Mercury::Channel* pChannel, std::string& username, std::string& scode) = 0;
-	virtual void accountNewPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& newpassword) = 0;
+	virtual void accountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& newpassword) = 0;
 protected:
 	DBThreadPool& dbThreadPool_;
 	thread::ThreadPool& threadPool_;
@@ -103,9 +103,9 @@ public:
 	virtual void accountActivate(Mercury::Channel* pChannel, std::string& scode);
 	virtual void accountReqResetPassword(Mercury::Channel* pChannel, std::string& accountName);
 	virtual void accountResetPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& scode);
-	virtual void accountReqBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email);
+	virtual void accountReqBindMail(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& email);
 	virtual void accountBindMail(Mercury::Channel* pChannel, std::string& username, std::string& scode);
-	virtual void accountNewPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& newpassword);
+	virtual void accountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& newpassword);
 protected:
 };
 
@@ -136,9 +136,9 @@ public:
 	virtual void accountActivate(Mercury::Channel* pChannel, std::string& scode);
 	virtual void accountReqResetPassword(Mercury::Channel* pChannel, std::string& accountName);
 	virtual void accountResetPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& scode);
-	virtual void accountReqBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email);
+	virtual void accountReqBindMail(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& email);
 	virtual void accountBindMail(Mercury::Channel* pChannel, std::string& username, std::string& scode);
-	virtual void accountNewPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& newpassword);
+	virtual void accountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& newpassword);
 
 	bool reconnect();
 

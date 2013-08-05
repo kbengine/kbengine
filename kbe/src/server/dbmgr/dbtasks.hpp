@@ -262,7 +262,7 @@ protected:
 class DBTaskReqAccountBindEmail : public DBTask
 {
 public:
-	DBTaskReqAccountBindEmail(const Mercury::Address& addr, std::string& accountName, 
+	DBTaskReqAccountBindEmail(const Mercury::Address& addr, ENTITY_ID entityID, std::string& accountName, 
 		std::string password,std::string& email);
 	virtual ~DBTaskReqAccountBindEmail();
 	virtual bool db_thread_process();
@@ -273,6 +273,7 @@ protected:
 	std::string accountName_;
 	std::string email_; 
 	bool success_;
+	ENTITY_ID entityID_;
 	
 };
 
@@ -300,7 +301,7 @@ protected:
 class DBTaskAccountNewPassword : public DBTask
 {
 public:
-	DBTaskAccountNewPassword(const Mercury::Address& addr, std::string& accountName, 
+	DBTaskAccountNewPassword(const Mercury::Address& addr, ENTITY_ID entityID, std::string& accountName, 
 		std::string& oldpassword_, std::string& newpassword);
 	virtual ~DBTaskAccountNewPassword();
 	virtual bool db_thread_process();
@@ -309,7 +310,7 @@ protected:
 	std::string accountName_;
 	std::string oldpassword_, newpassword_;
 	bool success_;
-	
+	ENTITY_ID entityID_;
 };
 
 /**

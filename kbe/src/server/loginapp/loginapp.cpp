@@ -473,7 +473,7 @@ void Loginapp::onAccountBindedEmail(Mercury::Channel* pChannel, std::string& cod
 		return;
 	}
 
-	pHttpCBHandler->onAccountActivated(code, success);
+	pHttpCBHandler->onAccountBindedEmail(code, success);
 }
 
 //-------------------------------------------------------------------------------------
@@ -486,7 +486,7 @@ void Loginapp::onAccountResetPassword(Mercury::Channel* pChannel, std::string& c
 		return;
 	}
 
-	pHttpCBHandler->onAccountActivated(code, success);
+	pHttpCBHandler->onAccountResetPassword(code, success);
 }
 
 //-------------------------------------------------------------------------------------

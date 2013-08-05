@@ -641,24 +641,26 @@ void Dbmgr::accountResetPassword(Mercury::Channel* pChannel, std::string& accoun
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::accountReqBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email)
+void Dbmgr::accountReqBindMail(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, 
+							   std::string& password, std::string& email)
 {
-	INFO_MSG(boost::format("Dbmgr::accountReqBindMail: accountName=%1%, email=%1%.\n") % accountName % email);
-	pBillingHandler_->accountReqBindMail(pChannel, accountName, password, email);
+	INFO_MSG(boost::format("Dbmgr::accountReqBindMail: accountName=%1%, email=%2%.\n") % accountName % email);
+	pBillingHandler_->accountReqBindMail(pChannel, entityID, accountName, password, email);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountBindMail(Mercury::Channel* pChannel, std::string& username, std::string& scode)
 {
-	INFO_MSG(boost::format("Dbmgr::accountBindMail: username=%1%, scode=%1%.\n") % username % scode);
+	INFO_MSG(boost::format("Dbmgr::accountBindMail: username=%1%, scode=%2%.\n") % username % scode);
 	pBillingHandler_->accountBindMail(pChannel, username, scode);
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::accountNewPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& newpassword)
+void Dbmgr::accountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, 
+							   std::string& password, std::string& newpassword)
 {
 	INFO_MSG(boost::format("Dbmgr::accountNewPassword: accountName=%1%.\n") % accountName);
-	pBillingHandler_->accountNewPassword(pChannel, accountName, password, newpassword);
+	pBillingHandler_->accountNewPassword(pChannel, entityID, accountName, password, newpassword);
 }
 
 //-------------------------------------------------------------------------------------

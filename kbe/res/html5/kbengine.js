@@ -1980,9 +1980,19 @@ function KBENGINE()
 	{  
 		var bundle = new KBE_BUNDLE();
 		bundle.newMessage(g_messages.Baseapp_reqAccountBindEmail);
-		bundle.writeString(g_kbengine.username);
+		bundle.writeInt32(g_kbengine.entity_id);
 		bundle.writeString(g_kbengine.password);
 		bundle.writeString("3603661@qq.com");
+		bundle.send(g_kbengine);
+	}
+	
+	this.newpassword_baseapp = function(oldpassword, newpassword)
+	{  
+		var bundle = new KBE_BUNDLE();
+		bundle.newMessage(g_messages.Baseapp_reqAccountNewPassword);
+		bundle.writeInt32(g_kbengine.entity_id);
+		bundle.writeString(oldpassword);
+		bundle.writeString(newpassword);
 		bundle.send(g_kbengine);
 	}
 	

@@ -683,7 +683,8 @@ void NetworkInterface::processAllChannelPackets(KBEngine::Mercury::MessageHandle
 
 		if(pChannel->isDestroyed() || pChannel->isCondemn())
 		{
-			channelMap_.erase(iter++);
+			++iter;
+			deregisterChannel(pChannel);
 			pChannel->destroy();
 		}
 		else

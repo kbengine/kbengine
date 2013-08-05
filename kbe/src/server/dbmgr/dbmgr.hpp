@@ -197,18 +197,21 @@ public:
 		ÕËºÅÖØÖÃÃÜÂë
 	*/
 	void accountReqResetPassword(Mercury::Channel* pChannel, std::string& accountName);
-	void accountResetPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& code);
+	void accountResetPassword(Mercury::Channel* pChannel, std::string& accountName, 
+		std::string& newpassword, std::string& code);
 
 	/** ÍøÂç½Ó¿Ú
 		ÕËºÅ°ó¶¨ÓÊÏä
 	*/
-	void accountReqBindMail(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& email);
+	void accountReqBindMail(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, 
+		std::string& password, std::string& email);
 	void accountBindMail(Mercury::Channel* pChannel, std::string& username, std::string& scode);
 
 	/** ÍøÂç½Ó¿Ú
 		ÕËºÅĞŞ¸ÄÃÜÂë
 	*/
-	void accountNewPassword(Mercury::Channel* pChannel, std::string& accountName, std::string& password, std::string& newpassword);
+	void accountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, 
+		std::string& password, std::string& newpassword);
 	
 protected:
 	TimerHandle											loopCheckTimerHandle_;
