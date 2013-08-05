@@ -104,6 +104,10 @@ public:
 	virtual bool logAccount(DBInterface * dbi, int8 type, const std::string& name, const std::string& datas, const std::string& code);
 	virtual bool delAccount(DBInterface * dbi, int8 type, const std::string& name);
 	virtual bool activateAccount(DBInterface * dbi, const std::string& code, ACCOUNT_INFOS& info);
+	virtual bool bindEMail(DBInterface * dbi, const std::string& name, const std::string& code);
+	virtual bool resetpassword(DBInterface * dbi, const std::string& name, 
+		const std::string& password, const std::string& code);
+
 protected:
 };
 

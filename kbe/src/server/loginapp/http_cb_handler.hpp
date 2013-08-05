@@ -37,6 +37,9 @@ public:
 	Mercury::EndPoint* pEndPoint(){ return pEndPoint_; }
 
 	void onAccountActivated(std::string& code, bool success);
+	void onAccountBindedEmail(std::string& code, bool success);
+	void onAccountResetPassword(std::string& code, bool success);
+
 protected:
 	
 	struct CLIENT

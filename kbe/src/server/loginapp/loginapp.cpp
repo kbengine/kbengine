@@ -464,6 +464,32 @@ void Loginapp::onAccountActivated(Mercury::Channel* pChannel, std::string& code,
 }
 
 //-------------------------------------------------------------------------------------
+void Loginapp::onAccountBindedEmail(Mercury::Channel* pChannel, std::string& code, bool success)
+{
+	DEBUG_MSG(boost::format("Loginapp::onAccountBindedEmail: code=%1%, success=%2%\n") % code % success);
+	if(!pHttpCBHandler)
+	{
+		WARNING_MSG("Loginapp::onAccountBindedEmail: pHttpCBHandler is NULL!\n");
+		return;
+	}
+
+	pHttpCBHandler->onAccountActivated(code, success);
+}
+
+//-------------------------------------------------------------------------------------
+void Loginapp::onAccountResetPassword(Mercury::Channel* pChannel, std::string& code, bool success)
+{
+	DEBUG_MSG(boost::format("Loginapp::onAccountResetPassword: code=%1%, success=%2%\n") % code % success);
+	if(!pHttpCBHandler)
+	{
+		WARNING_MSG("Loginapp::onAccountResetPassword: pHttpCBHandler is NULL!\n");
+		return;
+	}
+
+	pHttpCBHandler->onAccountActivated(code, success);
+}
+
+//-------------------------------------------------------------------------------------
 void Loginapp::reqAccountResetPassword(Mercury::Channel* pChannel, std::string& accountName)
 {
 	accountName = KBEngine::strutil::kbe_trim(accountName);

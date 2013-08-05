@@ -118,6 +118,15 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 									std::string,									code, 
 									bool,											success)
 	
+	// dbmgr账号绑定email返回
+	LOGINAPP_MESSAGE_DECLARE_ARGS2(onAccountBindedEmail,							MERCURY_VARIABLE_MESSAGE,
+									std::string,									code, 
+									bool,											success)
+
+	// dbmgr账号重设密码返回
+	LOGINAPP_MESSAGE_DECLARE_ARGS2(onAccountResetPassword,							MERCURY_VARIABLE_MESSAGE,
+									std::string,									code, 
+									bool,											success)
 
 	// 请求关闭服务器
 	LOGINAPP_MESSAGE_DECLARE_STREAM(reqCloseServer,									MERCURY_VARIABLE_MESSAGE)

@@ -582,7 +582,7 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 	
 	std::string password = info.password;
 
-	// 寻找dblog是否有此账号， 如果有则创建失败
+	// 寻找dblog是否有此账号
 	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
 	KBE_ASSERT(pTable);
 	
@@ -646,6 +646,179 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * dbi, const st
 	{
 	}
 	
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool KBEEmailVerificationTableMysql::bindEMail(DBInterface * dbi, const std::string& name, const std::string& code)
+{
+	std::string sqlstr = "select accountName, datas, logtime from kbe_email_verification where code like \"";
+
+	char* tbuf = new char[code.size() * 2 + 1];
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, code.c_str(), code.size());
+
+	sqlstr += tbuf;
+
+	sqlstr += "\" and type=";
+	kbe_snprintf(tbuf, MAX_BUF, "%d", (int)KBEEmailVerificationTable::V_TYPE_BIND_MAIL);
+	sqlstr += tbuf;
+
+	SAFE_RELEASE_ARRAY(tbuf);
+
+	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+		return false;
+
+	uint64 logtime = 1;
+
+	std::string qname, qemail;
+
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+	if(pResult)
+	{
+		MYSQL_ROW arow;
+		while((arow = mysql_fetch_row(pResult)) != NULL)
+		{
+			qname = arow[0];
+			qemail = arow[1];
+			
+			KBEngine::StringConv::str2value(logtime, arow[2]);
+		}
+
+		mysql_free_result(pResult);
+	}
+
+	if(logtime > 0 && time(NULL) - logtime > g_kbeSrvConfig.emailBindInfo_.deadline)
+		return false;
+
+	if(qname.size() == 0 || qemail.size() == 0)
+	{
+		return false;
+	}
+	
+	if(qname != name)
+	{
+		WARNING_MSG(boost::format("KBEEmailVerificationTableMysql::bindEMail: code(%1%) username(%2%, %3%) not match.\n") 
+			% code % name % qname);
+
+		return false;
+	}
+
+	tbuf = new char[code.size() * 2 + 1];
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, qemail.c_str(), qemail.size());
+
+	sqlstr = "update kbe_accountinfos set email=\"";
+	sqlstr += tbuf;
+	sqlstr += "\" where accountName like \"";
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, name.c_str(), name.size());
+	
+	sqlstr += tbuf;
+	sqlstr += "\"";
+
+	SAFE_RELEASE_ARRAY(tbuf);
+
+	if(!dbi->query(sqlstr, false))
+	{
+		return false;
+	}
+
+	try
+	{
+		delAccount(dbi, (int8)V_TYPE_BIND_MAIL, name);
+	}
+	catch (...)
+	{
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool KBEEmailVerificationTableMysql::resetpassword(DBInterface * dbi, const std::string& name, 
+												   const std::string& password, const std::string& code)
+{
+	std::string sqlstr = "select accountName, logtime from kbe_email_verification where code like \"";
+
+	char* tbuf = new char[code.size() * 2 + 1];
+
+	mysql_real_escape_string(static_cast<DBInterfaceMysql*>(dbi)->mysql(), 
+		tbuf, code.c_str(), code.size());
+
+	sqlstr += tbuf;
+
+	sqlstr += "\" and type=";
+	kbe_snprintf(tbuf, MAX_BUF, "%d", (int)KBEEmailVerificationTable::V_TYPE_RESETPASSWORD);
+	sqlstr += tbuf;
+
+	SAFE_RELEASE_ARRAY(tbuf);
+
+	if(!dbi->query(sqlstr.c_str(), sqlstr.size(), false))
+		return false;
+
+	uint64 logtime = 1;
+	
+	std::string qname;
+
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+	if(pResult)
+	{
+		MYSQL_ROW arow;
+		while((arow = mysql_fetch_row(pResult)) != NULL)
+		{
+			qname = arow[0];
+			KBEngine::StringConv::str2value(logtime, arow[1]);
+		}
+
+		mysql_free_result(pResult);
+	}
+
+	if(logtime > 0 && time(NULL) - logtime > g_kbeSrvConfig.emailResetPasswordInfo_.deadline)
+		return false;
+
+	if(qname.size() == 0 || password.size() == 0)
+	{
+		return false;
+	}
+
+	if(qname != name)
+	{
+		WARNING_MSG(boost::format("KBEEmailVerificationTableMysql::resetpassword: code(%1%) username(%2%, %3%) not match.\n") 
+			% code % name % qname);
+
+		return false;
+	}
+
+	// 寻找dblog是否有此账号
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
+	KBE_ASSERT(pTable);
+	
+	unsigned char md[16];
+	MD5((unsigned char *)password.c_str(), password.length(), md);
+
+	char tmp[3]={'\0'}, md5password[33] = {'\0'};
+	for (int i = 0; i < 16; i++)
+	{
+		sprintf(tmp,"%2.2X", md[i]);
+		strcat(md5password, tmp);
+	}
+
+	if(!pTable->updatePassword(dbi, name, md5password))
+		return false;
+
+
+	try
+	{
+		delAccount(dbi, (int8)V_TYPE_RESETPASSWORD, name);
+	}
+	catch (...)
+	{
+	}
+
 	return true;
 }
 

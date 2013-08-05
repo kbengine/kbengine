@@ -361,4 +361,56 @@ void HTTPCBHandler::onAccountActivated(std::string& code, bool success)
 }
 
 //-------------------------------------------------------------------------------------
+void HTTPCBHandler::onAccountBindedEmail(std::string& code, bool success)
+{
+	std::map< int, CLIENT >::iterator iter = clients_.begin();
+	for(; iter != clients_.end(); iter++)
+	{
+		if(iter->second.code == code)
+		{
+			if(!iter->second.endpoint->good())
+				continue;
+			
+			std::string message;
+
+			if(success)
+				message = g_kbeSrvConfig.emailBindInfo_.backlink_success_message;
+			else
+				message = g_kbeSrvConfig.emailBindInfo_.backlink_fail_message;
+
+			std::string response = (boost::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: %1%\r\n\r\n%2%") % 
+				message.size() % message).str();
+
+			iter->second.endpoint->send(response.c_str(), response.size());
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void HTTPCBHandler::onAccountResetPassword(std::string& code, bool success)
+{
+	std::map< int, CLIENT >::iterator iter = clients_.begin();
+	for(; iter != clients_.end(); iter++)
+	{
+		if(iter->second.code == code)
+		{
+			if(!iter->second.endpoint->good())
+				continue;
+			
+			std::string message;
+
+			if(success)
+				message = g_kbeSrvConfig.emailResetPasswordInfo_.backlink_success_message;
+			else
+				message = g_kbeSrvConfig.emailResetPasswordInfo_.backlink_fail_message;
+
+			std::string response = (boost::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: %1%\r\n\r\n%2%") % 
+				message.size() % message).str();
+
+			iter->second.endpoint->send(response.c_str(), response.size());
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
 }

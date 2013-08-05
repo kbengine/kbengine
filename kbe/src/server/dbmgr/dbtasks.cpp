@@ -722,12 +722,34 @@ DBTaskAccountResetPassword::~DBTaskAccountResetPassword()
 //-------------------------------------------------------------------------------------
 bool DBTaskAccountResetPassword::db_thread_process()
 {
+	KBEEmailVerificationTable* pTable1 = 
+		static_cast<KBEEmailVerificationTable*>(EntityTables::getSingleton().findKBETable("kbe_email_verification"));
+
+	KBE_ASSERT(pTable1);
+
+	success_ = pTable1->resetpassword(pdbi_, accountName_, newpassword_, code_);
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskAccountResetPassword::presentMainThread()
 {
+	DEBUG_MSG(boost::format("DBTaskAccountResetPassword::presentMainThread: code(%1%), success=%2%.\n") 
+		% code_ % success_);
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(LoginappInterface::onAccountResetPassword);
+
+	(*pBundle) << code_;
+	(*pBundle) << success_;
+
+	if(!this->send((*pBundle)))
+	{
+		ERROR_MSG(boost::format("DBTaskAccountResetPassword::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+	}
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
@@ -773,7 +795,7 @@ bool DBTaskReqAccountBindEmail::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskReqAccountBindEmail::presentMainThread()
 {
-	DEBUG_MSG(boost::format("DBTaskReqAccountBindEmail::presentMainThread: code_(%1%), success=%2%.\n") 
+	DEBUG_MSG(boost::format("DBTaskReqAccountBindEmail::presentMainThread: code(%1%), success=%2%.\n") 
 		% code_ % success_);
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
@@ -816,12 +838,34 @@ DBTaskAccountBindEmail::~DBTaskAccountBindEmail()
 //-------------------------------------------------------------------------------------
 bool DBTaskAccountBindEmail::db_thread_process()
 {
+	KBEEmailVerificationTable* pTable1 = 
+		static_cast<KBEEmailVerificationTable*>(EntityTables::getSingleton().findKBETable("kbe_email_verification"));
+
+	KBE_ASSERT(pTable1);
+
+	success_ = pTable1->bindEMail(pdbi_, accountName_, code_);
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskAccountBindEmail::presentMainThread()
 {
+	DEBUG_MSG(boost::format("DBTaskAccountBindEmail::presentMainThread: code(%1%), success=%2%.\n") 
+		% code_ % success_);
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(LoginappInterface::onAccountBindedEmail);
+
+	(*pBundle) << code_;
+	(*pBundle) << success_;
+
+	if(!this->send((*pBundle)))
+	{
+		ERROR_MSG(boost::format("DBTaskAccountBindEmail::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+	}
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
