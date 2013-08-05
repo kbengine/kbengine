@@ -3034,7 +3034,7 @@ void Baseapp::reqAccountNewPassword(Mercury::Channel* pChannel, ENTITY_ID entity
 	}
 
 	Mercury::Bundle bundle;
-	bundle.newMessage(DbmgrInterface::accountReqBindMail);
+	bundle.newMessage(DbmgrInterface::accountNewPassword);
 	bundle << entityID << accountName << oldpassworld << newpassword;
 	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 }

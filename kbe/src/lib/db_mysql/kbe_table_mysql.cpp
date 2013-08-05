@@ -277,7 +277,7 @@ bool KBEAccountTableMysql::queryAccount(DBInterface * dbi, const std::string& na
 //-------------------------------------------------------------------------------------
 bool KBEAccountTableMysql::queryAccountAllInfos(DBInterface * dbi, const std::string& name, ACCOUNT_INFOS& info)
 {
-	std::string sqlstr = "select entityDBID, password, flags, deadline from kbe_accountinfos where accountName like \"";
+	std::string sqlstr = "select entityDBID, password, email, flags, deadline from kbe_accountinfos where accountName like \"";
 
 	char* tbuf = new char[name.size() * 2 + 1];
 
@@ -303,9 +303,9 @@ bool KBEAccountTableMysql::queryAccountAllInfos(DBInterface * dbi, const std::st
 			KBEngine::StringConv::str2value(info.dbid, arow[0]);
 			info.name = name;
 			info.password = arow[1];
-
-			KBEngine::StringConv::str2value(info.flags, arow[2]);
-			KBEngine::StringConv::str2value(info.deadline, arow[3]);
+			info.email = arow[2];
+			KBEngine::StringConv::str2value(info.flags, arow[3]);
+			KBEngine::StringConv::str2value(info.deadline, arow[4]);
 		}
 
 		mysql_free_result(pResult);

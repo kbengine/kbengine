@@ -77,6 +77,11 @@
 			var account = g_kbengine.player();
 			account.reqCreateAvatar(1, "kbengine");
 		}
+		
+		function newpassword_baseapp()
+		{
+			g_kbengine.newpassword_baseapp(g_kbengine.password, '000000');
+		}
 	</script>
 		
 	<input id = "msg" type = "text">
@@ -86,6 +91,6 @@
 	<button id = "create" onclick = "createrole();">create role</button> 
 	<button id = "reset" onclick = "g_kbengine.resetpassword_loginapp(true);">resetpassword</button> 
 	<button id = "bindmail" onclick = "g_kbengine.bindEMail_baseapp();">bindemail</button> 
-	<button id = "newpassword" onclick = "g_kbengine.newpassword_baseapp(g_kbengine.password, \"000000\");">newpassword</button> 
+	<button id = "newpassword" onclick = "newpassword_baseapp();">newpassword</button> 
 </body>  
 </html>  

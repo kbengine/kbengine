@@ -1580,17 +1580,20 @@ function KBENGINE()
 		var dateObject = new Date();
 		if((dateObject.getTime() - g_kbengine.lastticktime) / 1000 > 15)
 		{
-			var bundle = new KBE_BUNDLE();
-			if(g_kbengine.currserver == "loginapp")
+			if(g_messages.Loginapp_onClientActiveTick != undefined || g_messages.Baseapp_onClientActiveTick != undefined)
 			{
-				bundle.newMessage(g_messages.Loginapp_onClientActiveTick);
+				var bundle = new KBE_BUNDLE();
+				if(g_kbengine.currserver == "loginapp")
+				{
+					bundle.newMessage(g_messages.Loginapp_onClientActiveTick);
+				}
+				else
+				{
+					bundle.newMessage(g_messages.Baseapp_onClientActiveTick);
+				}
+				
+				bundle.send(g_kbengine);
 			}
-			else
-			{
-				bundle.newMessage(g_messages.Baseapp_onClientActiveTick);
-			}
-			
-			bundle.send(g_kbengine);
 			
 			g_kbengine.lastticktime = dateObject.getTime();
 		}
@@ -1987,7 +1990,8 @@ function KBENGINE()
 	}
 	
 	this.newpassword_baseapp = function(oldpassword, newpassword)
-	{  
+	{
+		alert(newpassword);
 		var bundle = new KBE_BUNDLE();
 		bundle.newMessage(g_messages.Baseapp_reqAccountNewPassword);
 		bundle.writeInt32(g_kbengine.entity_id);

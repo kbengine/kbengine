@@ -890,6 +890,43 @@ DBTaskAccountNewPassword::~DBTaskAccountNewPassword()
 //-------------------------------------------------------------------------------------
 bool DBTaskAccountNewPassword::db_thread_process()
 {
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
+	KBE_ASSERT(pTable);
+
+	ACCOUNT_INFOS info;
+	if(!pTable->queryAccount(pdbi_, accountName_, info))
+	{
+		return false;
+	}
+
+	if(info.dbid == 0)
+		return false;
+
+	unsigned char md[16];
+	MD5((unsigned char *)oldpassword_.c_str(), oldpassword_.length(), md);
+
+	char tmp[3]={'\0'}, md5password[33] = {'\0'};
+	for (int i = 0; i < 16; i++)
+	{
+		sprintf(tmp,"%2.2X", md[i]);
+		strcat(md5password, tmp);
+	}
+
+	if(kbe_stricmp(info.password.c_str(), md5password) != 0)
+	{
+		return false;
+	}
+
+	MD5((unsigned char *)newpassword_.c_str(), newpassword_.length(), md);
+	md5password[0] = '\0';
+
+	for (int i = 0; i < 16; i++)
+	{
+		sprintf(tmp,"%2.2X", md[i]);
+		strcat(md5password, tmp);
+	}
+
+	success_ = pTable->updatePassword(pdbi_, accountName_, md5password);
 	return false;
 }
 
