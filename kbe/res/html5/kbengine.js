@@ -1982,7 +1982,7 @@ function KBENGINE()
 		bundle.newMessage(g_messages.Baseapp_reqAccountBindEmail);
 		bundle.writeString(g_kbengine.username);
 		bundle.writeString(g_kbengine.password);
-		bundle.writeString("liquidx@163.com");
+		bundle.writeString("3603661@qq.com");
 		bundle.send(g_kbengine);
 	}
 	

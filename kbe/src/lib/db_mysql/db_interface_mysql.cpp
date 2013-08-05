@@ -562,8 +562,8 @@ bool DBInterfaceMysql::processException(std::exception & e)
 	}
 	else if (dbe->shouldRetry())
 	{
-		WARNING_MSG(boost::format("DBInterfaceMysql::processException: Retrying %1%\n") %
-				this );
+		WARNING_MSG(boost::format("DBInterfaceMysql::processException: Retrying %1%\nException:%2%\nnlastquery=%3%\n") %
+				this % dbe->what() % lastquery_);
 
 		retry = true;
 	}
