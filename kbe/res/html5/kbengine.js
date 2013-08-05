@@ -1991,7 +1991,6 @@ function KBENGINE()
 	
 	this.newpassword_baseapp = function(oldpassword, newpassword)
 	{
-		alert(newpassword);
 		var bundle = new KBE_BUNDLE();
 		bundle.newMessage(g_messages.Baseapp_reqAccountNewPassword);
 		bundle.writeInt32(g_kbengine.entity_id);
