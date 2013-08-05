@@ -1249,6 +1249,8 @@ bool DBTaskAccountLogin::db_thread_process()
 			return false;
 		}
 	}
+	
+	pTable->updateCount(pdbi_, info.dbid);
 
 	success_ = false;
 	KBEEntityLogTable::EntityLog entitylog;
@@ -1267,7 +1269,6 @@ bool DBTaskAccountLogin::db_thread_process()
 	dbid_ = info.dbid;
 	flags_ = info.flags;
 	deadline_ = info.deadline;
-	pTable->updateCount(pdbi_, info.dbid);
 	return false;
 }
 

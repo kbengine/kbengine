@@ -60,7 +60,17 @@ public:
 		if(sqlstr_ == "")
 			return true;
 
-		return static_cast<DBInterfaceMysql*>(dbi != NULL ? dbi : dbi_)->query(sqlstr_.c_str(), sqlstr_.size(), false);
+		bool ret = static_cast<DBInterfaceMysql*>(dbi != NULL ? dbi : dbi_)->query(sqlstr_.c_str(), sqlstr_.size(), false);
+
+		if(!ret)
+		{
+			ERROR_MSG(boost::format("SqlStatement::query: %1%\n\tsql:%2%\n") % 
+				(dbi != NULL ? dbi : dbi_)->getstrerror() % sqlstr_);
+
+			return false;
+		}
+
+		return ret;
 	}
 
 	DBID dbid()const{ return dbid_; }
