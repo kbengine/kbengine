@@ -1,6 +1,6 @@
 BIN  = loginapp
 SRCS =						\
-	account_activate_handler		\
+	http_cb_handler				\
 	loginapp				\
 	loginapp_interface			\
 	main
