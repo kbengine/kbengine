@@ -2895,6 +2895,30 @@ void Baseapp::reqAccountBindEmail(Mercury::Channel* pChannel, std::string& accou
 	email = KBEngine::strutil::kbe_trim(email);
 
 	INFO_MSG(boost::format("Loginapp::reqAccountBindEmail: %1% email=%2%!\n") % accountName % email);
+
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::ComponentInfos* dbmgrinfos = NULL;
+
+	if(cts.size() > 0)
+		dbmgrinfos = &(*cts.begin());
+
+	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		ERROR_MSG(boost::format("Loginapp::reqAccountBindEmail: accountName(%1%), not found dbmgr!\n") % 
+			accountName);
+
+		Mercury::Bundle bundle;
+		bundle.newMessage(ClientInterface::onReqAccountBindEmailCB);
+		SERVER_ERROR_CODE retcode = SERVER_ERR_SRV_NO_READY;
+		bundle << retcode;
+		bundle.send(this->getNetworkInterface(), pChannel);
+		return;
+	}
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(DbmgrInterface::accountReqBindMail);
+	bundle << accountName << password << email;
+	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2909,6 +2933,11 @@ void Baseapp::onReqAccountBindEmailCB(Mercury::Channel* pChannel, std::string& a
 			g_kbeSrvConfig.getLoginApp().http_cbhost, 
 			g_kbeSrvConfig.getLoginApp().http_cbport));
 	}
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(ClientInterface::onReqAccountBindEmailCB);
+	bundle << failedcode;
+	bundle.send(this->getNetworkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2919,6 +2948,30 @@ void Baseapp::reqAccountNewPassword(Mercury::Channel* pChannel, std::string& acc
 	newpassword = KBEngine::strutil::kbe_trim(newpassword);
 
 	INFO_MSG(boost::format("Loginapp::reqAccountNewPassword: %1%!\n") % accountName);
+
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::ComponentInfos* dbmgrinfos = NULL;
+
+	if(cts.size() > 0)
+		dbmgrinfos = &(*cts.begin());
+
+	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		ERROR_MSG(boost::format("Loginapp::reqAccountNewPassword: accountName(%1%), not found dbmgr!\n") % 
+			accountName);
+
+		Mercury::Bundle bundle;
+		bundle.newMessage(ClientInterface::onReqAccountNewPasswordCB);
+		SERVER_ERROR_CODE retcode = SERVER_ERR_SRV_NO_READY;
+		bundle << retcode;
+		bundle.send(this->getNetworkInterface(), pChannel);
+		return;
+	}
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(DbmgrInterface::accountReqBindMail);
+	bundle << accountName << oldpassworld << newpassword;
+	bundle.send(this->getNetworkInterface(), dbmgrinfos->pChannel);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2926,6 +2979,11 @@ void Baseapp::onReqAccountNewPasswordCB(Mercury::Channel* pChannel, std::string&
 	SERVER_ERROR_CODE failedcode)
 {
 	INFO_MSG(boost::format("Loginapp::onReqAccountNewPasswordCB: %1% failedcode=%2%!\n") % accountName % failedcode);
+
+	Mercury::Bundle bundle;
+	bundle.newMessage(ClientInterface::onReqAccountBindEmailCB);
+	bundle << failedcode;
+	bundle.send(this->getNetworkInterface(), pChannel);
 }
 
 //-------------------------------------------------------------------------------------

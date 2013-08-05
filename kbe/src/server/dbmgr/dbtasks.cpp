@@ -1013,7 +1013,8 @@ bool DBTaskQueryAccount::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskQueryAccount::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::queryAccount:%1%.\n") % accountName_.c_str());
+	DEBUG_MSG(boost::format("Dbmgr::queryAccount:%1%, success=%2%, flags=%3%, deadline=%4%.\n") 
+		% accountName_.c_str() % success_ % flags_ % deadline_);
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::onQueryAccountCBFromDbmgr);
