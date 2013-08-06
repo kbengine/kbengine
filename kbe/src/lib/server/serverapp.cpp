@@ -364,7 +364,7 @@ void ServerApp::onAppActiveTick(Mercury::Channel* pChannel, COMPONENT_TYPE compo
 		Components::ComponentInfos* cinfos = 
 			Componentbridge::getComponents().findComponent(componentType, KBEngine::getUserUID(), componentID);
 
-		if(cinfos == NULL)
+		if(cinfos == NULL || cinfos->pChannel == NULL)
 		{
 			ERROR_MSG(boost::format("ServerApp::onAppActiveTick[%1%]: %2%:%3% not found.\n") % 
 				pChannel % COMPONENT_NAME_EX(componentType) % componentID);
