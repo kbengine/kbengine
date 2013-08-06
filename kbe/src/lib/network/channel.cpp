@@ -76,7 +76,6 @@ Channel::Channel(NetworkInterface & networkInterface,
 	bufferedReceives_(),
 	pPacketReader_(0),
 	isDestroyed_(false),
-	shouldDropNextSend_(false),
 	// Stats
 	numPacketsSent_(0),
 	numPacketsReceived_(0),
@@ -123,7 +122,6 @@ Channel::Channel():
 	bufferedReceives_(),
 	pPacketReader_(0),
 	isDestroyed_(false),
-	shouldDropNextSend_(false),
 	// Stats
 	numPacketsSent_(0),
 	numPacketsReceived_(0),
@@ -277,7 +275,6 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	lastReceivedTime_ = timestamp();
 
 	isCondemn_ = false;
-	shouldDropNextSend_ = false;
 	numPacketsSent_ = 0;
 	numPacketsReceived_ = 0;
 	numBytesSent_ = 0;
@@ -339,30 +336,21 @@ void Channel::send(Bundle * pBundle)
 	
 	if(pBundle)
 	{
-		pBundle->send(*pNetworkInterface_, this);
+		bundles_.push_back(pBundle);
+	}
+
+	Bundles::iterator iter = bundles_.begin();
+	for(; iter != bundles_.end(); iter++)
+	{
+		(*iter)->send(*pNetworkInterface_, this);
 
 		++numPacketsSent_;
 		++g_numPacketsSent;
-		numBytesSent_ += pBundle->totalSize();
-		g_numBytesSent += pBundle->totalSize();
-
-		pBundle->clear(true);
+		numBytesSent_ += (*iter)->totalSize();
+		g_numBytesSent += (*iter)->totalSize();
 	}
-	else
-	{
-		Bundles::iterator iter = bundles_.begin();
-		for(; iter != bundles_.end(); iter++)
-		{
-			(*iter)->send(*pNetworkInterface_, this);
 
-			++numPacketsSent_;
-			++g_numPacketsSent;
-			numBytesSent_ += (*iter)->totalSize();
-			g_numBytesSent += (*iter)->totalSize();
-		}
-
-		this->clearBundle();
-	}
+	this->clearBundle();
 }
 
 //-------------------------------------------------------------------------------------

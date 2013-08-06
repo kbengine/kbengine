@@ -21,14 +21,18 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "delayed_channels.hpp"
 #include "network/channel.hpp"
+#include "network/address.hpp"
 #include "network/event_dispatcher.hpp"
+#include "network/network_interface.hpp"
 
 namespace KBEngine{
 namespace Mercury
 {
+
 //-------------------------------------------------------------------------------------
-void DelayedChannels::init(EventDispatcher & dispatcher)
+void DelayedChannels::init(EventDispatcher & dispatcher, NetworkInterface* pNetworkInterface)
 {
+	pNetworkInterface_ = pNetworkInterface;
 	dispatcher.addFrequentTask( this );
 }
 
@@ -41,13 +45,13 @@ void DelayedChannels::fini(EventDispatcher & dispatcher)
 //-------------------------------------------------------------------------------------
 void DelayedChannels::add(Channel & channel)
 {
-	channels_.insert( &channel );
+	channeladdrs_.insert(channel.addr());
 }
 
 //-------------------------------------------------------------------------------------
 void DelayedChannels::sendIfDelayed(Channel & channel)
 {
-	if (channels_.erase(&channel) > 0)
+	if (channeladdrs_.erase(channel.addr()) > 0)
 	{
 		channel.send();
 	}
@@ -56,11 +60,11 @@ void DelayedChannels::sendIfDelayed(Channel & channel)
 //-------------------------------------------------------------------------------------
 bool DelayedChannels::process()
 {
-	Channels::iterator iter = channels_.begin();
+	ChannelAddrs::iterator iter = channeladdrs_.begin();
 
-	while (iter != channels_.end())
+	while (iter != channeladdrs_.end())
 	{
-		Channel * pChannel = iter->get();
+		Channel * pChannel = pNetworkInterface_->findChannel((*iter));
 
 		if (!pChannel->isDead())
 		{
@@ -70,7 +74,7 @@ bool DelayedChannels::process()
 		++iter;
 	}
 
-	channels_.clear();
+	channeladdrs_.clear();
 	return true;
 }
 

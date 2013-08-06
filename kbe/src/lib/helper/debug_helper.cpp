@@ -240,7 +240,6 @@ void DebugHelper::sync()
 			totalLen += (*iter)->currMsgLength();
 			pChannel->send((*iter));
 			
-			Mercury::Bundle::ObjPool().reclaimObject((*iter));
 			bufferedLogPackets_.erase(iter++); 
 		}
 	}

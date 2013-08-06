@@ -177,10 +177,10 @@ bool WebSocketProtocol::handshake(Mercury::Channel* pChannel, MemoryStream* s)
 	ackHandshake += "/WebManagerSocket\r\n";
 	ackHandshake += "WebSocket-Protocol:WebManagerSocket\r\n\r\n";
 
-	Mercury::Bundle::SmartPoolObjectPtr pBundle = Mercury::Bundle::createSmartPoolObj();
-	(*(*pBundle)) << ackHandshake;
-	(*(*pBundle)).pCurrPacket()->wpos((*(*pBundle)).pCurrPacket()->wpos() - 1);
-	pChannel->send(pBundle->get());
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	(*pBundle) << ackHandshake;
+	(*pBundle).pCurrPacket()->wpos((*pBundle).pCurrPacket()->wpos() - 1);
+	pChannel->send(pBundle);
 	return true;
 }
 

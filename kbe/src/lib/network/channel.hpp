@@ -139,8 +139,6 @@ public:
 	void delayedSend();
 
 	void reset(const EndPoint* endpoint, bool warnOnDiscard = true);
-	
-	void dropNextSend() { shouldDropNextSend_ = true; }
 
 	Traits traits() const { return traits_; }
 	bool isExternal() const { return traits_ == EXTERNAL; }
@@ -215,8 +213,7 @@ private:
 	PacketReader*				pPacketReader_;
 
 	bool						isDestroyed_;
-	bool						shouldDropNextSend_;
-	
+
 	// Statistics
 	uint32						numPacketsSent_;
 	uint32						numPacketsReceived_;

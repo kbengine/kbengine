@@ -29,13 +29,14 @@ namespace KBEngine{
 namespace Mercury
 {
 class Channel;
+class Address;
 class EventDispatcher;
+class NetworkInterface;
 
-typedef SmartPointer<Channel> ChannelPtr;
 class DelayedChannels : public Task
 {
 public:
-	void init(EventDispatcher & dispatcher);
+	void init(EventDispatcher & dispatcher, NetworkInterface* pNetworkInterface);
 	void fini(EventDispatcher & dispatcher);
 
 	void add(Channel & channel);
@@ -45,8 +46,10 @@ public:
 private:
 	virtual bool process();
 
-	typedef std::set<ChannelPtr> Channels;
-	Channels channels_;
+	typedef std::set<Address> ChannelAddrs;
+	ChannelAddrs channeladdrs_;
+
+	NetworkInterface* pNetworkInterface_;
 };
 
 }

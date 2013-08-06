@@ -128,7 +128,7 @@ void NetworkInterface::attach(EventDispatcher & mainDispatcher)
 	pMainDispatcher_ = &mainDispatcher;
 	mainDispatcher.attach(this->dispatcher());
 	
-	pDelayedChannels_->init(this->mainDispatcher());
+	pDelayedChannels_->init(this->mainDispatcher(), this);
 }
 
 //-------------------------------------------------------------------------------------
