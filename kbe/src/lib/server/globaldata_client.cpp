@@ -140,7 +140,7 @@ void GlobalDataClient::onDataChanged(std::string& key, std::string& value, bool 
 
 		(*pBundle) << g_componentType;
 
-		(*pBundle).send(*lpChannel->endpoint());
+		(*pBundle).send(lpChannel->networkInterface(), lpChannel);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 }

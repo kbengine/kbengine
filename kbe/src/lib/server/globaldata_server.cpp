@@ -136,7 +136,7 @@ void GlobalDataServer::broadcastDataChange(Mercury::Channel* pChannel, COMPONENT
 				(*pBundle).assign(value.data(), slen);
 			}
 
-			(*pBundle).send(*lpChannel->endpoint());
+			(*pBundle).send(lpChannel->networkInterface(), lpChannel);
 			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 		}
 	}
@@ -201,7 +201,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONE
 		(*pBundle) << slen;
 		(*pBundle).assign(iter->second.data(), slen);
 
-		(*pBundle).send(*client->endpoint());
+		(*pBundle).send(client->networkInterface(), client);
 		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 }
