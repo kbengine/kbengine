@@ -292,7 +292,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 			ERROR_MSG(boost::format("Components::connectComponent: registerChannel(%1%) is failed!\n") %
 				pComponentInfos->pChannel->c_str());
 
-			delete pComponentInfos->pChannel;
+			pComponentInfos->pChannel->destroy();
 			pComponentInfos->pChannel = NULL;
 			return -1;
 		}
