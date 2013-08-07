@@ -532,7 +532,7 @@ Reason NetworkInterface::sendPacket(Packet * pPacket, Channel * pChannel)
 	Reason reason = REASON_SUCCESS;
 	if (pFilter)
 	{
-		pFilter->send(*this, pChannel, pPacket);
+		reason = pFilter->send(*this, pChannel, pPacket);
 	}
 	else
 	{
