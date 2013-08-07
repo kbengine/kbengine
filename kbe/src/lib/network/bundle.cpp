@@ -151,6 +151,7 @@ void Bundle::onReclaimObject()
 	clear(true);
 }
 
+//-------------------------------------------------------------------------------------
 int32 Bundle::packetsLength(bool calccurr)
 {
 	int32 len = 0;
