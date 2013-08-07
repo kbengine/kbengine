@@ -89,6 +89,8 @@ public:
 
 	INLINE EventPoller* createPoller();
 	EventPoller* pPoller(){ return pPoller_; }
+
+	int processNetwork(bool shouldIdle);
 private:
 	TimerHandle addTimerCommon(int64 microseconds,
 		TimerHandler * handler,
@@ -98,7 +100,6 @@ private:
 	void processFrequentTasks();
 	void processTimers();
 	void processStats();
-	int processNetwork(bool shouldIdle);
 	
 	double calculateWait() const;
 	

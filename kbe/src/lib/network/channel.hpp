@@ -162,7 +162,7 @@ public:
 		
 	void addReceiveWindow(Packet* pPacket);
 	
-	BufferedReceives& bufferedReceives(){ return bufferedReceives_; }
+	BufferedReceives& bufferedReceives(){ return bufferedReceives_[bufferedReceivesIdx_]; }
 		
 	void processPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers);
 
@@ -182,6 +182,9 @@ public:
 
 	KBEngine::Mercury::MessageHandlers* pMsgHandlers()const { return pMsgHandlers_; }
 	void pMsgHandlers(KBEngine::Mercury::MessageHandlers* pMsgHandlers) { pMsgHandlers_ = pMsgHandlers; }
+
+	void readDataToBuffer();
+	bool waitSend();
 private:
 	enum TimeOutType
 	{
@@ -209,7 +212,9 @@ private:
 
 	uint32						windowSize_;
 	
-	BufferedReceives			bufferedReceives_;
+	uint8						bufferedReceivesIdx_;
+	BufferedReceives			bufferedReceives_[2];
+
 	PacketReader*				pPacketReader_;
 
 	bool						isDestroyed_;

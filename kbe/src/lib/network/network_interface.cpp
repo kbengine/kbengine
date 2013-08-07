@@ -575,7 +575,7 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 				"Transmit queue full, waiting for space... (%1%)\n") %
 				retries );
 
-			KBEngine::sleep(10);
+			this->pDispatcher_->processNetwork(false);
 			continue;
 		}
 
@@ -648,15 +648,15 @@ Reason NetworkInterface::getSendErrorReason(const EndPoint * endpoint,
 	{
 		if (reason != REASON_NO_SUCH_PORT)
 		{
-			ERROR_MSG(boost::format("NetworkInterface::getSendErrorReason( %1% ): "
+			ERROR_MSG(boost::format("NetworkInterface::getSendErrorReason(%1%): "
 					"Could not send packet: %2%\n") %
 				endpoint->addr().c_str() % kbe_strerror( err ) );
 		}
 	}
 	else
 	{
-		WARNING_MSG(boost::format("NetworkInterface::getSendErrorReason( %1% ): "
-			"Packet length %2% does not match sent length %3% (err = %4%)\n") %
+		WARNING_MSG(boost::format("NetworkInterface::getSendErrorReason(%1%): "
+			"Packet length %2% does not match sent length %3% (%4%)\n") %
 			endpoint->addr().c_str() % packetTotalSize % retSendSize % kbe_strerror( err ) );
 	}
 

@@ -569,5 +569,16 @@ void EndPoint::initNetwork()
 }
 
 //-------------------------------------------------------------------------------------
+bool EndPoint::waitSend()
+{
+	fd_set	fds;
+	struct timeval tv = { 0, 10000 };
+	FD_ZERO( &fds );
+	FD_SET(socket_, &fds);
+
+	return select(socket_+1, NULL, &fds, NULL, &tv) > 0;
+}
+
+//-------------------------------------------------------------------------------------
 }
 }

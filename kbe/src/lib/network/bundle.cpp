@@ -72,7 +72,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 						"Transmit queue full, waiting for space... (%2%)\n") %								\
 						__FUNCTION__ % retries );															\
 																											\
-					KBEngine::sleep(10);																	\
+					ep.waitSend();																			\
 					continue;																				\
 				}																							\
 																											\
