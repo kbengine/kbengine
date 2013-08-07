@@ -79,8 +79,15 @@ int TCPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 	KBE_ASSERT(maxBufferSize() > wpos());
 	int len = ep.recv(data() + wpos(), size() - wpos());
 	wpos(wpos() + len);
-	//DEBUG_MSG(boost::format("TCPPacket::recvFromEndPoint: datasize=%1%, wpos=%2%.\n") % len % wpos());
-	return len;
+	
+	/*
+	// 注意:必须在大于0的时候否则DEBUG_MSG将会导致WSAGetLastError返回0从而陷入死循环
+	if(len > 0) 
+	{
+		DEBUG_MSG(boost::format("TCPPacket::recvFromEndPoint: datasize=%1%, wpos=%2%.\n") % len % wpos());
+	}
+	*/
+	return len; 
 }
 
 //-------------------------------------------------------------------------------------
