@@ -723,6 +723,7 @@ public:
     {
 		char buf[1024];
 		std::string fbuffer;
+		size_t trpos = rpos_;
 
 		kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 		fbuffer += buf;
@@ -735,6 +736,8 @@ public:
 
 		fbuffer += " \n";
         DEBUG_MSG(fbuffer.c_str());
+
+		rpos_ = trpos;
     }
 
 	/** 输出流数据字符串 */
@@ -742,6 +745,7 @@ public:
     {
 		char buf[1024];
 		std::string fbuffer;
+		size_t trpos = rpos_;
 
 		kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 		fbuffer += buf;
@@ -754,6 +758,8 @@ public:
 
 		fbuffer += " \n";
         DEBUG_MSG(fbuffer.c_str());
+
+		rpos_ = trpos;
     }
 
     void hexlike() const
@@ -761,6 +767,7 @@ public:
         uint32 j = 1, k = 1;
 		char buf[1024];
 		std::string fbuffer;
+		size_t trpos = rpos_;
 
 		kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 		fbuffer += buf;
@@ -817,6 +824,8 @@ public:
 		fbuffer += "\n";
 
 		DEBUG_MSG(fbuffer.c_str());
+
+		rpos_ = trpos;
     }
 protected:
 	mutable size_t rpos_, wpos_;

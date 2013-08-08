@@ -44,15 +44,15 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="DetourCrowd\Include;Detour\Include;DebugUtils\Include;Recast\Include;DetourTileCache\Include"
+				AdditionalIncludeDirectories=""
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\build/lib.pch"
-				AssemblerListingLocation=".\build/"
-				ObjectFile=".\build/"
-				ProgramDataBaseFileName=".\build/"
+				PrecompiledHeaderFile="../../../_objs\$(ProjectName)\$(ProjectName).pch"
+				AssemblerListingLocation="../../../_objs\$(ProjectName)\"
+				ObjectFile="../../../_objs\$(ProjectName)\"
+				ProgramDataBaseFileName="../../../_objs\$(ProjectName)\"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 			/>
@@ -118,15 +118,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="DetourCrowd\Include;Detour\Include;DebugUtils\Include;Recast\Include;DetourTileCache\Include"
+				AdditionalIncludeDirectories=""
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\build/lib.pch"
-				AssemblerListingLocation=".\build/"
-				ObjectFile=".\build/"
-				ProgramDataBaseFileName=".\build/"
+				PrecompiledHeaderFile="../../../_objs\$(ProjectName)\$(ProjectName).pch"
+				AssemblerListingLocation="../../../_objs\$(ProjectName)\"
+				ObjectFile="../../../_objs\$(ProjectName)\"
+				ProgramDataBaseFileName="../../../_objs\$(ProjectName)\"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
@@ -174,99 +174,99 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
-				RelativePath=".\Detour\Source\DetourAlloc.cpp"
+				RelativePath=".\DetourAlloc.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Detour\Source\DetourCommon.cpp"
+				RelativePath=".\DetourCommon.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\DetourCrowd\Source\DetourCrowd.cpp"
+				RelativePath=".\DetourCrowd.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\DetourCrowd\Source\DetourLocalBoundary.cpp"
+				RelativePath=".\DetourLocalBoundary.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Detour\Source\DetourNavMesh.cpp"
+				RelativePath=".\DetourNavMesh.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Detour\Source\DetourNavMeshBuilder.cpp"
+				RelativePath=".\DetourNavMeshBuilder.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Detour\Source\DetourNavMeshQuery.cpp"
+				RelativePath=".\DetourNavMeshQuery.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Detour\Source\DetourNode.cpp"
+				RelativePath=".\DetourNode.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\DetourCrowd\Source\DetourObstacleAvoidance.cpp"
+				RelativePath=".\DetourObstacleAvoidance.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\DetourCrowd\Source\DetourPathCorridor.cpp"
+				RelativePath=".\DetourPathCorridor.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\DetourCrowd\Source\DetourPathQueue.cpp"
+				RelativePath=".\DetourPathQueue.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\DetourCrowd\Source\DetourProximityGrid.cpp"
+				RelativePath=".\DetourProximityGrid.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\DetourTileCache\Source\DetourTileCache.cpp"
+				RelativePath=".\DetourTileCache.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\DetourTileCache\Source\DetourTileCacheBuilder.cpp"
+				RelativePath=".\DetourTileCacheBuilder.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Recast\Source\Recast.cpp"
+				RelativePath=".\Recast.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Recast\Source\RecastAlloc.cpp"
+				RelativePath=".\RecastAlloc.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Recast\Source\RecastArea.cpp"
+				RelativePath=".\RecastArea.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Recast\Source\RecastContour.cpp"
+				RelativePath=".\RecastContour.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Recast\Source\RecastFilter.cpp"
+				RelativePath=".\RecastFilter.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Recast\Source\RecastLayers.cpp"
+				RelativePath=".\RecastLayers.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Recast\Source\RecastMesh.cpp"
+				RelativePath=".\RecastMesh.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Recast\Source\RecastMeshDetail.cpp"
+				RelativePath=".\RecastMeshDetail.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Recast\Source\RecastRasterization.cpp"
+				RelativePath=".\RecastRasterization.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Recast\Source\RecastRegion.cpp"
+				RelativePath=".\RecastRegion.cpp"
 				>
 			</File>
 		</Filter>
@@ -275,79 +275,79 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
-				RelativePath=".\Detour\Include\DetourAlloc.h"
+				RelativePath=".\DetourAlloc.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Detour\Include\DetourAssert.h"
+				RelativePath=".\DetourAssert.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Detour\Include\DetourCommon.h"
+				RelativePath=".\DetourCommon.h"
 				>
 			</File>
 			<File
-				RelativePath=".\DetourCrowd\Include\DetourCrowd.h"
+				RelativePath=".\DetourCrowd.h"
 				>
 			</File>
 			<File
-				RelativePath=".\DetourCrowd\Include\DetourLocalBoundary.h"
+				RelativePath=".\DetourLocalBoundary.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Detour\Include\DetourNavMesh.h"
+				RelativePath=".\DetourNavMesh.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Detour\Include\DetourNavMeshBuilder.h"
+				RelativePath=".\DetourNavMeshBuilder.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Detour\Include\DetourNavMeshQuery.h"
+				RelativePath=".\DetourNavMeshQuery.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Detour\Include\DetourNode.h"
+				RelativePath=".\DetourNode.h"
 				>
 			</File>
 			<File
-				RelativePath=".\DetourCrowd\Include\DetourObstacleAvoidance.h"
+				RelativePath=".\DetourObstacleAvoidance.h"
 				>
 			</File>
 			<File
-				RelativePath=".\DetourCrowd\Include\DetourPathCorridor.h"
+				RelativePath=".\DetourPathCorridor.h"
 				>
 			</File>
 			<File
-				RelativePath=".\DetourCrowd\Include\DetourPathQueue.h"
+				RelativePath=".\DetourPathQueue.h"
 				>
 			</File>
 			<File
-				RelativePath=".\DetourCrowd\Include\DetourProximityGrid.h"
+				RelativePath=".\DetourProximityGrid.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Detour\Include\DetourStatus.h"
+				RelativePath=".\DetourStatus.h"
 				>
 			</File>
 			<File
-				RelativePath=".\DetourTileCache\Include\DetourTileCache.h"
+				RelativePath=".\DetourTileCache.h"
 				>
 			</File>
 			<File
-				RelativePath=".\DetourTileCache\Include\DetourTileCacheBuilder.h"
+				RelativePath=".\DetourTileCacheBuilder.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Recast\Include\Recast.h"
+				RelativePath=".\Recast.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Recast\Include\RecastAlloc.h"
+				RelativePath=".\RecastAlloc.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Recast\Include\RecastAssert.h"
+				RelativePath=".\RecastAssert.h"
 				>
 			</File>
 		</Filter>
