@@ -40,6 +40,7 @@ endif
 CPPFLAGS += -DKBE_BASEAPP
 
 #HAS_PCH = 1
+USE_JWSMTP = 1
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/server/$(BIN),,$(CURDIR))
