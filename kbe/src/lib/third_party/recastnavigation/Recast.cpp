@@ -491,3 +491,4 @@ static int getCompactHeightFieldMemoryusage(const rcCompactHeightfield& chf)
 	return size;
 }
 */
+
