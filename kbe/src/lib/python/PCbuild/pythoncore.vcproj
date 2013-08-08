@@ -20,6 +20,7 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
+			OutputDirectory="../../../_objs\$(ProjectName)\"
 			IntermediateDirectory="../../../_objs\$(ProjectName)\"
 			ConfigurationType="4"
 			InheritedPropertySheets=".\pyproject.vsprops;.\release.vsprops"
@@ -85,6 +86,7 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
+			OutputDirectory="../../../_objs\$(ProjectName)\"
 			IntermediateDirectory="../../../_objs\$(ProjectName)\"
 			ConfigurationType="4"
 			InheritedPropertySheets=".\pyproject.vsprops;.\debug.vsprops"
