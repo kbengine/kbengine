@@ -242,20 +242,20 @@ CPPFLAGS += -DUSE_SIGAR
 
 JWSMTP_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/jwsmtp
 KBE_INCLUDES += -I$(JWSMTP_DIR)/jwsmtp/jwsmtp
-#ifeq ($(USE_JWSMTP),1)
+ifeq ($(USE_JWSMTP),1)
 LDLIBS += -ljwsmtp
 CPPFLAGS += -DUSE_JWSMTP
-#endif
+endif
 
 RECASTNAV_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/recastnavigation
 KBE_INCLUDES += -I$(RECASTNAV_DIR)/Detour/Include
 KBE_INCLUDES += -I$(RECASTNAV_DIR)/DetourCrowd/Include
 KBE_INCLUDES += -I$(RECASTNAV_DIR)/DetourTileCache/Include
 KBE_INCLUDES += -I$(RECASTNAV_DIR)/Recast/Include
-#ifeq ($(USE_RECASTNAV),1)
+ifeq ($(USE_RECASTNAV),1)
 LDLIBS += -lrecastnav
 CPPFLAGS += -DUSE_RECASTNAV
-#endif
+endif
 
 LDLIBS += -ltinyxml
 
