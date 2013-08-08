@@ -37,6 +37,7 @@ MY_LIBS =		\
 	server		\
 	pyscript	\
 	network		\
+	navigation	\
 	thread
 	
 
@@ -44,7 +45,6 @@ BUILD_TIME_FILE = main
 USE_PYTHON = 1
 USE_G3DMATH=1
 USE_OPENSSL = 1
-USE_RECASTNAV = 1
 
 ifndef NO_USE_LOG4CXX
 	NO_USE_LOG4CXX = 0

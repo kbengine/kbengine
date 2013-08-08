@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="recastnavigation"
+	Name="navigation"
 	ProjectGUID="{9085A36E-CAF8-4E86-93AF-373D2554026B}"
-	RootNamespace="recastnavigation"
+	RootNamespace="navigation"
 	TargetFrameworkVersion="0"
 	>
 	<Platforms>
@@ -17,8 +17,8 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="../../../_objs\$(ProjectName)\"
-			IntermediateDirectory="../../../_objs\$(ProjectName)\"
+			OutputDirectory="../../_objs\$(ProjectName)\"
+			IntermediateDirectory="../../_objs\$(ProjectName)\"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -49,10 +49,10 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile="../../../_objs\$(ProjectName)\$(ProjectName).pch"
-				AssemblerListingLocation="../../../_objs\$(ProjectName)\"
-				ObjectFile="../../../_objs\$(ProjectName)\"
-				ProgramDataBaseFileName="../../../_objs\$(ProjectName)\"
+				PrecompiledHeaderFile="../../_objs\$(ProjectName)\$(ProjectName).pch"
+				AssemblerListingLocation="../../_objs\$(ProjectName)\"
+				ObjectFile="../../_objs\$(ProjectName)\"
+				ProgramDataBaseFileName="../../_objs\$(ProjectName)\"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 			/>
@@ -69,7 +69,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\libs\recastnavigation.lib"
+				OutputFile="..\..\libs\navigation.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -92,8 +92,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="../../../_objs\$(ProjectName)\"
-			IntermediateDirectory="../../../_objs\$(ProjectName)\"
+			OutputDirectory="../../_objs\$(ProjectName)\"
+			IntermediateDirectory="../../_objs\$(ProjectName)\"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -123,10 +123,10 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile="../../../_objs\$(ProjectName)\$(ProjectName).pch"
-				AssemblerListingLocation="../../../_objs\$(ProjectName)\"
-				ObjectFile="../../../_objs\$(ProjectName)\"
-				ProgramDataBaseFileName="../../../_objs\$(ProjectName)\"
+				PrecompiledHeaderFile="../../_objs\$(ProjectName)\$(ProjectName).pch"
+				AssemblerListingLocation="../../_objs\$(ProjectName)\"
+				ObjectFile="../../_objs\$(ProjectName)\"
+				ProgramDataBaseFileName="../../_objs\$(ProjectName)\"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
@@ -144,7 +144,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\libs\recastnavigation_d.lib"
+				OutputFile="..\..\libs\navigation_d.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool

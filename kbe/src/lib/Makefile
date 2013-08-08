@@ -30,6 +30,7 @@ all install clean full:
 	cd resmgr && $(MAKE) $@
 	cd pyscript && $(MAKE) $@
 	cd server && $(MAKE) $@
+	cd navigation && $(MAKE) $@
 	cd network && $(MAKE) $@
 	cd helper && $(MAKE) $@
 	cd thread && $(MAKE) $@
@@ -38,7 +39,6 @@ all install clean full:
 	cd third_party/g3dlite && $(MAKE) $@
 	cd third_party/tinyxml && $(MAKE) $@
 	cd third_party/sigar/linux && $(MAKE) $@
-	cd third_party/recastnavigation && $(MAKE) $@
 
 UNITTEST_LIBS = cstdkbe \
 				entitydef \
