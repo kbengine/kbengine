@@ -60,6 +60,7 @@ class Account(KBEngine.Proxy):
 		if self.activeCharacter:
 			self.activeCharacter.accountEntity = None
 			self.activeCharacter = None
+
 		DEBUG_MSG("Account[%i].onClientDeath:" % self.id)
 		self.destroy()
 	
@@ -68,7 +69,7 @@ class Account(KBEngine.Proxy):
 		exposed.
 		客户端请求查询角色列表
 		"""
-		DEBUG_MSG("Account[%i].reqAvatarList:" % self.id)
+		DEBUG_MSG("Account[%i].reqAvatarList: size=%i." % (self.id, len(self.characters)))
 		self.client.onReqAvatarList(self.characters)
 				
 	def reqCreateAvatar(self, roleType, name):
@@ -120,7 +121,8 @@ class Account(KBEngine.Proxy):
 
 			avatar.destroy()
 		
-		self.client.onCreateAvatarResult(0, avatarinfo)
+		if not self.isDestroyed and self.client:
+			self.client.onCreateAvatarResult(0, avatarinfo)
 			
 	def selectAvatarGame(self, dbid):
 		"""
@@ -133,7 +135,7 @@ class Account(KBEngine.Proxy):
 			if dbid in self.characters:
 				player = KBEngine.createBaseFromDBID("Avatar", dbid, self.__onAvatarCreated)
 			else:
-				ERROR_MSG("Account::selectAvatarGame: not found dbid(%i)" % dbid)
+				ERROR_MSG("Account[%i]::selectAvatarGame: not found dbid(%i)" % (self.id, dbid))
 		else:
 			self.giveClientTo(self.activeCharacter)
 			
@@ -142,17 +144,22 @@ class Account(KBEngine.Proxy):
 		选择角色进入游戏时被调用
 		"""
 		if wasActive:
-			ERROR_MSG("(%i): this character is in world now!" % (self.id))
+			ERROR_MSG("Account::__onAvatarCreated:(%i): this character is in world now!" % (self.id))
 			return
 		if baseRef is None:
-			ERROR_MSG("(%i): the character you wanted to created is not exist!" % (self.id))
+			ERROR_MSG("Account::__onAvatarCreated:(%i): the character you wanted to created is not exist!" % (self.id))
 			return
 			
 		avatar = KBEngine.entities.get(baseRef.id)
 		if avatar is None:
-			ERROR_MSG("(%i): when character was created, it died as well!" % (self.id))
+			ERROR_MSG("Account::__onAvatarCreated:(%i): when character was created, it died as well!" % (self.id))
 			return
-
+		
+		if self.isDestroyed:
+			ERROR_MSG("Account::__onAvatarCreated:(%i): i dead, will the destroy of Avatar!" % (self.id))
+			avatar.destroy()
+			return
+			
 		info = self.characters[dbid]
 		avatar.cellData["modelID"] = d_avatar_inittab.datas[info[1]]["modelID"]
 		avatar.cellData["moveSpeed"] = d_avatar_inittab.datas[info[1]]["moveSpeed"]
