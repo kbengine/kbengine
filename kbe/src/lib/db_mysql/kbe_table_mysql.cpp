@@ -196,7 +196,7 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* dbi)
 			"password varchar(255),"
 			"bindata blob,"
 			"email varchar(255),"
-			"entityDBID bigint(20) not null DEFAULT 0,"
+			"entityDBID bigint(20) not null DEFAULT 0, UNIQUE KEY (entityDBID),"
 			"flags int unsigned not null DEFAULT 0,"
 			"deadline bigint(20) not null DEFAULT 0,"
 			"lasttime bigint(20) not null DEFAULT 0,"
@@ -318,11 +318,10 @@ bool KBEAccountTableMysql::queryAccountAllInfos(DBInterface * dbi, const std::st
 bool KBEAccountTableMysql::updateCount(DBInterface * dbi, DBID dbid)
 {
 	// 如果查询失败则返回存在， 避免可能产生的错误
-	/*
 	if(!dbi->query((boost::format("update kbe_accountinfos set lasttime=%1%, numlogin=numlogin+1 where entityDBID=%2%") 
 		% time(NULL) % dbid).str(), false))
 		return false;
-	*/
+
 	return true;
 }
 
