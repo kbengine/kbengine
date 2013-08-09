@@ -192,15 +192,15 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* dbi)
 	bool ret = false;
 
 	std::string sqlstr = "CREATE TABLE IF NOT EXISTS kbe_accountinfos "
-			"(accountName varchar(255) not null, PRIMARY KEY idKey (accountName),"
-			"password varchar(255),"
-			"bindata blob,"
-			"email varchar(255),"
-			"entityDBID bigint(20) not null DEFAULT 0, UNIQUE KEY (entityDBID),"
-			"flags int unsigned not null DEFAULT 0,"
-			"deadline bigint(20) not null DEFAULT 0,"
-			"lasttime bigint(20) not null DEFAULT 0,"
-			"numlogin int unsigned not null DEFAULT 0)"
+			"(`accountName` varchar(255) not null, PRIMARY KEY idKey (`accountName`),"
+			"`password` varchar(255),"
+			"`bindata` blob,"
+			"`email` varchar(255),"
+			"`entityDBID` bigint(20) not null DEFAULT 0, UNIQUE KEY `entityDBID` (`entityDBID`),"
+			"`flags` int unsigned not null DEFAULT 0,"
+			"`deadline` bigint(20) not null DEFAULT 0,"
+			"`lasttime` bigint(20) not null DEFAULT 0,"
+			"`numlogin` int unsigned not null DEFAULT 0)"
 		"ENGINE="MYSQL_ENGINE_TYPE;
 
 	ret = dbi->query(sqlstr.c_str(), sqlstr.size(), true);
