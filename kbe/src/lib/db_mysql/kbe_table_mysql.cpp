@@ -318,10 +318,11 @@ bool KBEAccountTableMysql::queryAccountAllInfos(DBInterface * dbi, const std::st
 bool KBEAccountTableMysql::updateCount(DBInterface * dbi, DBID dbid)
 {
 	// 如果查询失败则返回存在， 避免可能产生的错误
+	/*
 	if(!dbi->query((boost::format("update kbe_accountinfos set lasttime=%1%, numlogin=numlogin+1 where entityDBID=%2%") 
 		% time(NULL) % dbid).str(), false))
 		return false;
-
+	*/
 	return true;
 }
 
