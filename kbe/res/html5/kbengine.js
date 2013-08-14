@@ -1908,6 +1908,8 @@ function KBENGINE()
 			var msglen = stream.readUint16();
 			var msgcount = stream.readUint16();
 			
+			console.info("KBENGINE::onImportClientMessages: start(" + msgcount + ") ...!");
+			
 			while(msgcount > 0)
 			{
 				msgcount--;
