@@ -4,7 +4,7 @@
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/stringconv.hpp"
 #include "pyscript/pythread_lock.hpp"
-#include "../kbengine_dll/kbengine_dll.h"
+#include "../../kbengine_dll/kbengine_dll.h"
 
 std::vector<Ogre::String> g_avatars;
 KBEngine::DBID g_selAvatarDBID = 0;

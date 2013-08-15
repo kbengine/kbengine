@@ -81,7 +81,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\libs\PagedGeometry_d.lib"
+				OutputFile="..\..\..\libs\PagedGeometry_d.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -169,7 +169,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\libs\PagedGeometry.lib"
+				OutputFile="..\..\..\libs\PagedGeometry.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"

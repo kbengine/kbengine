@@ -68,7 +68,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="OgreMain.lib"
-				OutputFile="..\..\..\..\bin\client\caelum.dll"
+				OutputFile="..\..\..\..\..\bin\client\caelum.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(OGRE_HOME)/lib;$(OGRE_HOME)/lib/release;$(OGRE_HOME)\boost\lib"
 				GenerateDebugInformation="false"
@@ -156,7 +156,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="OgreMain_d.lib"
-				OutputFile="..\..\..\..\bin\client\caelum_d.dll"
+				OutputFile="..\..\..\..\..\bin\client\caelum_d.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(OGRE_HOME)/lib;$(OGRE_HOME)/lib/debug;$(OGRE_HOME)\boost\lib"
 				GenerateDebugInformation="true"

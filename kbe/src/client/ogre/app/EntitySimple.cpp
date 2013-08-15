@@ -5,7 +5,7 @@
 #include <Terrain/OgreTerrain.h>
 #include <Terrain/OgreTerrainGroup.h>
 
-#include "../kbengine_dll/kbengine_dll.h"
+#include "../../kbengine_dll/kbengine_dll.h"
 
 Ogre::String animNames[] =
 {"Attack1", "Attack2", "Attack3", "Attack4", "Attack5", "Battleidle1", "Battleidle2",

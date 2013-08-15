@@ -3,7 +3,7 @@
 #include "OgreApplication.h"
 #include "cstdkbe/cstdkbe.hpp"
 #include "cstdkbe/stringconv.hpp"
-#include "../kbengine_dll/kbengine_dll.h"
+#include "../../kbengine_dll/kbengine_dll.h"
 
 Ogre::String g_accountName;
 

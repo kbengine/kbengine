@@ -11,7 +11,7 @@
 #include "cstdkbe/cstdkbe.hpp"
 #include "pyscript/pythread_lock.hpp"
 
-#include "../kbengine_dll/kbengine_dll.h"
+#include "../../kbengine_dll/kbengine_dll.h"
 
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
 HINSTANCE g_hKBEngineDll = NULL;

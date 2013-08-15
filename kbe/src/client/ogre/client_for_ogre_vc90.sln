@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PagedGeometry", "pagedgeometry\source\PagedGeometry.vcproj", "{32E48B49-F91F-4F62-830E-7F2F8F06C8DF}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "client_dll", "kbengine_dll\kbengine_client_dll.vcproj", "{65D320D2-7E54-4903-828A-C48185059AA4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "client_dll", "..\kbengine_dll\kbengine_client_dll.vcproj", "{65D320D2-7E54-4903-828A-C48185059AA4}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Caelum", "Caelum-0.5.0\main\Caelum_vs9.vcproj", "{A46CAB97-7D11-2041-998E-0040A09A0D47}"
 EndProject

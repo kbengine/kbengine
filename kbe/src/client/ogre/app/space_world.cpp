@@ -10,7 +10,7 @@
 #include "EntityComplex.h"
 #include "EntitySimple.h"
 
-#include "../kbengine_dll/kbengine_dll.h"
+#include "../../kbengine_dll/kbengine_dll.h"
 
 // ¼ÇÂ¼Ñ¡Ôñ
 KBEngine::ENTITY_ID g_tickSelTargetID = -1;

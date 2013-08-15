@@ -5,7 +5,7 @@
 #include <Terrain/OgreTerrain.h>
 #include <Terrain/OgreTerrainGroup.h>
 
-#include "../kbengine_dll/kbengine_dll.h"
+#include "../../kbengine_dll/kbengine_dll.h"
 
 //-------------------------------------------------------------------------------------
 KBEntity::KBEntity(SpaceWorld* pSpace, KBEngine::ENTITY_ID eid):
