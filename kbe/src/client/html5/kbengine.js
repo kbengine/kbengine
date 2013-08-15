@@ -1367,7 +1367,7 @@ function KBEDATATYPE_ARRAY()
 		stream.writeUint32(v.length);
 		for(var i=0; i<v.length; i++)
 		{
-			this.type.addToStream(stream);
+			this.type.addToStream(stream, v[i]]);
 		}
 	}
 	
@@ -1410,7 +1410,7 @@ function KBEDATATYPE_FIXED_DICT()
 	{
 		for(itemkey in this.dicttype)
 		{
-			this.dicttype[itemkey].addToStream(stream);
+			this.dicttype[itemkey].addToStream(stream, v[itemkey]);
 		}
 	}
 	
