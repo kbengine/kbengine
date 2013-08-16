@@ -950,7 +950,9 @@ function KBEMAILBOX()
 			bundle = this.bundle;
 		
 		bundle.send(this.networkInterface);
-		this.bundle = null;
+		
+		if(this.bundle == bundle)
+			this.bundle = null;
 	}
 }
 
