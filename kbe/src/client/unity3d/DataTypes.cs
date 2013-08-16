@@ -9,12 +9,16 @@ namespace KBEngine
 	
 	public class KBEDATATYPE_BASE
 	{
+		public virtual void bind()
+		{
+		}
+		
 		public virtual object createFromStream(MemoryStream stream)
 		{
 			return null;
 		}
 		
-		public virtual void addToStream(MemoryStream stream, object v)
+		public virtual void addToStream(Bundle stream, object v)
 		{
 		}
 		
@@ -31,14 +35,16 @@ namespace KBEngine
 			return stream.readInt8();
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeInt8(Convert.ToSByte(v));
 		}
 		
 		public override object parseDefaultValStr(string v)
 		{
-			return SByte.Parse(v);
+			SByte ret = 0;
+			SByte.TryParse(v, out ret);
+			return ret;
 		}
 	}
 	
@@ -49,14 +55,16 @@ namespace KBEngine
 			return stream.readInt16();
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeInt16(Convert.ToInt16(v));
 		}
 		
 		public override object parseDefaultValStr(string v)
 		{
-			return Int16.Parse(v);
+			Int16 ret = 0;
+			Int16.TryParse(v, out ret);
+			return ret;
 		}
 	}
 	
@@ -67,14 +75,16 @@ namespace KBEngine
 			return stream.readInt32();
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeInt32(Convert.ToInt32(v));
 		}
 		
 		public override object parseDefaultValStr(string v)
 		{
-			return Int32.Parse(v);
+			Int32 ret = 0;
+			Int32.TryParse(v, out ret);
+			return ret;
 		}
 	}
 	
@@ -85,14 +95,16 @@ namespace KBEngine
 			return stream.readInt64();
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeInt64(Convert.ToInt64(v));
 		}
 		
 		public override object parseDefaultValStr(string v)
 		{
-			return Int64.Parse(v);
+			Int64 ret = 0;
+			Int64.TryParse(v, out ret);
+			return ret;
 		}
 	}
 	
@@ -103,14 +115,16 @@ namespace KBEngine
 			return stream.readUint8();
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeUint8(Convert.ToByte(v));
 		}
 		
 		public override object parseDefaultValStr(string v)
 		{
-			return Byte.Parse(v);
+			Byte ret = 0;
+			Byte.TryParse(v, out ret);
+			return ret;
 		}
 	}
 	
@@ -121,14 +135,16 @@ namespace KBEngine
 			return stream.readUint16();
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeUint16(Convert.ToUInt16(v));
 		}
 		
 		public override object parseDefaultValStr(string v)
 		{
-			return UInt16.Parse(v);
+			UInt16 ret = 0;
+			UInt16.TryParse(v, out ret);
+			return ret;
 		}
 	}
 	
@@ -139,14 +155,16 @@ namespace KBEngine
 			return stream.readUint32();
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeUint32(Convert.ToUInt32(v));
 		}
 		
 		public override object parseDefaultValStr(string v)
 		{
-			return UInt32.Parse(v);
+			UInt32 ret = 0;
+			UInt32.TryParse(v, out ret);
+			return ret;
 		}
 	}
 	
@@ -157,14 +175,16 @@ namespace KBEngine
 			return stream.readUint64();
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeUint64(Convert.ToUInt64(v));
 		}
 		
 		public override object parseDefaultValStr(string v)
 		{
-			return UInt64.Parse(v);
+			UInt64 ret = 0;
+			UInt64.TryParse(v, out ret);
+			return ret;
 		}
 	}
 	
@@ -175,14 +195,16 @@ namespace KBEngine
 			return stream.readFloat();
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeFloat((float)Convert.ToDouble(v));
 		}
 		
 		public override object parseDefaultValStr(string v)
 		{
-			return float.Parse(v);
+			float ret = 0.0f;
+			float.TryParse(v, out ret);
+			return ret;
 		}
 	}
 	
@@ -193,14 +215,16 @@ namespace KBEngine
 			return stream.readDouble();
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeDouble(Convert.ToDouble(v));
 		}
 		
 		public override object parseDefaultValStr(string v)
 		{
-			return double.Parse(v);
+			double ret = 0.0;
+			double.TryParse(v, out ret);
+			return ret;
 		}
 	}
 	
@@ -211,7 +235,7 @@ namespace KBEngine
 			return stream.readString();
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeString(Convert.ToString(v));
 		}
@@ -235,7 +259,7 @@ namespace KBEngine
 			return new Vector2(stream.readFloat(), stream.readFloat());
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeUint32(2);
 			stream.writeFloat(((Vector2)v).x);
@@ -261,7 +285,7 @@ namespace KBEngine
 			return new Vector3(stream.readFloat(), stream.readFloat(), stream.readFloat());
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeUint32(3);
 			stream.writeFloat(((Vector3)v).x);
@@ -288,7 +312,7 @@ namespace KBEngine
 			return new Vector4(stream.readFloat(), stream.readFloat(), stream.readFloat(), stream.readFloat());
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeUint32(4);
 			stream.writeFloat(((Vector4)v).x);
@@ -310,7 +334,7 @@ namespace KBEngine
 			return stream.readBlob();
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeBlob((byte[])v);
 		}
@@ -328,7 +352,7 @@ namespace KBEngine
 			return stream.readBlob();
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeBlob((byte[])v);
 		}
@@ -346,7 +370,7 @@ namespace KBEngine
 			return stream.readBlob();
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeBlob((byte[])v);
 		}
@@ -364,7 +388,7 @@ namespace KBEngine
 			return stream.readBlob();
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override void addToStream(Bundle stream, object v)
 		{
 			stream.writeBlob((byte[])v);
 		}
@@ -377,15 +401,38 @@ namespace KBEngine
 	
 	public class KBEDATATYPE_ARRAY : KBEDATATYPE_BASE
 	{
-		public KBEDATATYPE_BASE type;
-		public override object createFromStream(MemoryStream stream)
+		public object type;
+		
+		public override void bind()
 		{
-			return stream.readBlob();
+			if(type.GetType() == typeof(KBEDATATYPE_BASE).GetType())
+				((KBEDATATYPE_BASE)type).bind();
+			else
+				if(EntityDef.iddatatypes.ContainsKey((UInt16)type))
+					type = EntityDef.iddatatypes[(UInt16)type];
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override object createFromStream(MemoryStream stream)
 		{
-			stream.writeBlob((byte[])v);
+			UInt32 size = stream.readUint32();
+			List<object> datas = new List<object>();
+			
+			while(size > 0)
+			{
+				size--;
+				datas.Add(((KBEDATATYPE_BASE)type).createFromStream(stream));
+			};
+			
+			return datas;
+		}
+		
+		public override void addToStream(Bundle stream, object v)
+		{
+			stream.writeUint32((UInt32)((List<object>)v).Count);
+			for(int i=0; i<((List<object>)v).Count; i++)
+			{
+				((KBEDATATYPE_BASE)type).addToStream(stream, ((List<object>)v)[i]);
+			}
 		}
 		
 		public override object parseDefaultValStr(string v)
@@ -396,19 +443,54 @@ namespace KBEngine
 	
 	public class KBEDATATYPE_FIXED_DICT : KBEDATATYPE_BASE
 	{
-		public override object createFromStream(MemoryStream stream)
+		public string implementedBy = "";
+		public Dictionary<string, object> dicttype = new Dictionary<string, object>();
+		
+		public override void bind()
 		{
-			return stream.readBlob();
+			string[] keys = new string[dicttype.Keys.Count];
+			dicttype.Keys.CopyTo(keys, 0);
+			
+			foreach(string itemkey in keys)
+			{
+				object type = dicttype[itemkey];
+				
+				if(type.GetType() == typeof(KBEDATATYPE_BASE).GetType())
+					((KBEDATATYPE_BASE)type).bind();
+				else
+					if(EntityDef.iddatatypes.ContainsKey((UInt16)type))
+						dicttype[itemkey] = EntityDef.iddatatypes[(UInt16)type];
+			}
 		}
 		
-		public override void addToStream(MemoryStream stream, object v)
+		public override object createFromStream(MemoryStream stream)
 		{
-			stream.writeBlob((byte[])v);
+			Dictionary<string, object> datas = new Dictionary<string, object>();
+			foreach(string itemkey in dicttype.Keys)
+			{
+				datas[itemkey] = ((KBEDATATYPE_BASE)dicttype[itemkey]).createFromStream(stream);
+			}
+			
+			return datas;
+		}
+		
+		public override void addToStream(Bundle stream, object v)
+		{
+			foreach(string itemkey in dicttype.Keys)
+			{
+				((KBEDATATYPE_BASE)dicttype[itemkey]).addToStream(stream, ((Dictionary<string, object>)v)[itemkey]);
+			}
 		}
 		
 		public override object parseDefaultValStr(string v)
 		{
-			return new byte[0];
+			Dictionary<string, object> datas = new Dictionary<string, object>();
+			foreach(string itemkey in dicttype.Keys)
+			{
+				datas[itemkey] = ((KBEDATATYPE_BASE)dicttype[itemkey]).parseDefaultValStr("");
+			}
+			
+			return datas;
 		}
 	}
 } 

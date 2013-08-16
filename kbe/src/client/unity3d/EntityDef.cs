@@ -4,12 +4,18 @@ namespace KBEngine
 	using System; 
 	using System.Collections; 
 	using System.Collections.Generic;
-	
+
     public class EntityDef
     {
 		public static Dictionary<string, Int32> datatype2id = new Dictionary<string, Int32>();
+		
 		public static Dictionary<string, KBEDATATYPE_BASE> datatypes = new Dictionary<string, KBEDATATYPE_BASE>();
+		public static Dictionary<UInt16, KBEDATATYPE_BASE> iddatatypes = new Dictionary<UInt16, KBEDATATYPE_BASE>();
+		
 		public static Dictionary<string, Int32> entityclass = new Dictionary<string, Int32>();
+		
+		public static Dictionary<string, ScriptModule> moduledefs = new Dictionary<string, ScriptModule>();
+		public static Dictionary<UInt16, ScriptModule> idmoduledefs = new Dictionary<UInt16, ScriptModule>();
 		
 		public EntityDef()
 		{

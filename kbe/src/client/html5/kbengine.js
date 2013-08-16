@@ -873,7 +873,7 @@ function KBEENTITY()
 			return;
 		}
 		
-		var method = g_moduledefs[this.classtype].base_methods[arguments[0]];
+		var method = g_moduledefs[this.classtype].cell_methods[arguments[0]];
 		var methodID = method[0];
 		var args = method[2];
 		
@@ -2194,11 +2194,11 @@ function KBENGINE()
 			return;
 		}
 		
-		var methoddata = g_moduledefs[entity.classtype].propertys;
+		var pdatas = g_moduledefs[entity.classtype].propertys;
 		while(stream.opsize() > 0)
 		{
 			var utype = stream.readUint16();
-			var propertydata = methoddata[utype];
+			var propertydata = pdatas[utype];
 			var setmethod = propertydata[4];
 			var val = propertydata[3].createFromStream(stream);
 			var oldval = entity[utype];
@@ -2257,10 +2257,10 @@ function KBENGINE()
 			entity.id = eid;
 			entity.classtype = entityType;
 			
-			entity.base = new KBEMAILBOX();
-			entity.base.id = eid;
-			entity.base.classtype = entityType;
-			entity.base.type = MAILBOX_TYPE_CELL;
+			entity.cell = new KBEMAILBOX();
+			entity.cell.id = eid;
+			entity.cell.classtype = entityType;
+			entity.cell.type = MAILBOX_TYPE_CELL;
 			
 			g_kbengine.entities[eid] = entity;
 			
@@ -2349,7 +2349,7 @@ function KBENGINE()
 	this.updatePlayerToServer = function()
 	{
 		player = g_kbengine.player();
-		if(player == undefined || player.position == undefined)
+		if(player == undefined || player.inWorld == false)
 			return;
 		
 		var bundle = new KBE_BUNDLE();
@@ -2377,29 +2377,6 @@ function KBENGINE()
 		pos[0] = stream.readFloat();
 		pos[1] = stream.readFloat();
 		pos[2] = stream.readFloat();
-	}
-	
-	this.Client_onSetEntityPosAndDir = function(stream)
-	{
-		var eid = stream.readInt32();
-		
-		var pos = Array(3);
-		var dir = Array(3);
-		
-		pos[0] = stream.readFloat();
-		pos[1] = stream.readFloat();
-		pos[2] = stream.readFloat();
-
-		dir[0] = stream.readFloat();
-		dir[1] = stream.readFloat();
-		dir[2] = stream.readFloat();
-		
-		var entity = g_kbengine.entities[eid];
-		if(entity == undefined)
-		{
-			console.error("KBENGINE::Client_onSetEntityPosAndDir: entity(" + eid + ") not found!");
-			return;
-		}
 	}
 	
 	this.Client_onUpdateData = function(stream)
@@ -2683,7 +2660,7 @@ function KBENGINE()
 	{
 	}
 	
-	this.Client_onStreamDataRecv = function(id)
+	this.Client_onStreamDataCompleted = function(id)
 	{
 	}
 	

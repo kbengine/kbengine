@@ -13,7 +13,7 @@ namespace KBEngine
 		public string name;
 		public Int16 msglen = -1;
 		public System.Reflection.MethodInfo handler = null;
-		public List<Byte> argtypes = null;
+		public System.Reflection.MethodInfo[] argtypes = null;
 		
 		public static Dictionary<MessageID, Message> loginappMessages = new Dictionary<MessageID, Message>();
 		public static Dictionary<MessageID, Message> baseappMessages = new Dictionary<MessageID, Message>();
@@ -27,7 +27,16 @@ namespace KBEngine
 			name = msgname;
 			msglen = length;
 			handler = msghandler;
-			argtypes = msgargtypes;
+			
+			argtypes = new System.Reflection.MethodInfo[msgargtypes.Count];
+			for(int i=0; i<msgargtypes.Count; i++)
+			{
+				argtypes[i] = StreamRWBinder.bindReader(msgargtypes[i]);
+				if(argtypes[i] == null)
+				{
+					Debug.LogError("Message::Message(): bindReader(" + msgargtypes[i] + ") is error!");
+				}
+			}
 			
 			// Debug.Log(string.Format("Message::Message(): ({0}/{1}/{2})!", 
 			//	msgname, msgid, msglen));
@@ -35,12 +44,22 @@ namespace KBEngine
 		
 		public object[] createFromStream(MemoryStream msgstream)
 		{
-			return new object[]{msgstream};
+			if(argtypes.Length <= 0)
+				return new object[]{msgstream};
+			
+			object[] result = new object[argtypes.Length];
+			
+			for(int i=0; i<argtypes.Length; i++)
+			{
+				result[i] = argtypes[i].Invoke(msgstream, new object[0]);
+			}
+			
+			return result;
 		}
 		
 		public void handleMessage(MemoryStream msgstream)
 		{
-			if(argtypes.Count <= 0)
+			if(argtypes.Length <= 0)
 				handler.Invoke(KBEngineApp.app, new object[]{msgstream});
 			else
 				handler.Invoke(KBEngineApp.app, createFromStream(msgstream));

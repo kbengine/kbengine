@@ -77,8 +77,6 @@ namespace KBEngine
 						msglen = stream.readUint16();
 						stream.clear();
 						
-						Message msg = Message.clientMessages[msgid];
-						
 						Debug.Log(string.Format("MessageReader::process(): msglen={0}!", msglen));
 						
 						state = READ_STATE.READ_STATE_BODY;
@@ -103,7 +101,7 @@ namespace KBEngine
 						Message msg = Message.clientMessages[msgid];	
 						stream.wpos += expectSize;
 						Debug.Log(string.Format("MessageReader::process(): handleMessage={0}, msglen={1}!", msg.name, stream.opsize()));
-						Debug.Log(string.Format("MessageReader::process(): wpos({0}), msg={1}!", stream.wpos, stream.toString()));
+						Debug.Log(string.Format("MessageReader::process(): rpos({0}), wpos({1}), msg={2}!", stream.rpos, stream.wpos, stream.toString()));
 						msg.handleMessage(stream);
 						stream.clear();
 						

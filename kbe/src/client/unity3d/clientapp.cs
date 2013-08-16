@@ -8,7 +8,9 @@ public class clientapp : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		MonoBehaviour.print("clientapp::start()");
+			
 		gameapp = new KBEngineApp();
+		//gameapp.createAccount_loginapp(true);
 		gameapp.login_loginapp(true);	
 	}
 	

@@ -14,13 +14,18 @@ function KBEAccount()
 
 KBEAccount.prototype = new KBEGameObject();
 
-KBEAccount.prototype.onCreateAvatarResult = function(v)
+KBEAccount.prototype.onCreateAvatarResult = function(retcode, info)
 {
+	if(retcode == 0)
+	{
+		this.avatars[info.dbid] = info;
+		console.info("KBEAccount::onCreateAvatarResult: name=" + info.name);
+	}
 }
 
-KBEAccount.prototype.onReqAvatarList = function(v)
+KBEAccount.prototype.onReqAvatarList = function(infos)
 {
-	this.avatars = v;
+	this.avatars = infos;
 	console.info("KBEAccount::onReqAvatarList: avatarsize=" + this.avatars.values.length);
 	for(var i=0; i< this.avatars.values.length; i++)
 	{

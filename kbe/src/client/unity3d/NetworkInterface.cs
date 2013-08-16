@@ -27,6 +27,11 @@ namespace KBEngine
         	packets_ = new List<MemoryStream>();
         }
 		
+		public bool valid()
+		{
+			return ((socket_ != null) && (socket_.Connected == true));
+		}
+		
 		public void bindMessage()
 		{
 			if(Message.messages.Count == 0)
@@ -43,6 +48,9 @@ namespace KBEngine
 		
 		public bool connect(string ip, int port) 
 		{
+			if(socket_ != null && socket_.Connected == true)
+				socket_.Close();
+			
 			socket_ = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp); 
 			
             try 
@@ -68,29 +76,79 @@ namespace KBEngine
 
         public void send(byte[] datas)
         {
-           if(socket_ == null || socket_.Connected == false) {
+           if(socket_ == null || socket_.Connected == false) 
+			{
                throw new ArgumentException ("invalid socket!");
             }
 			
-            if (datas == null || datas.Length == 0 ) {
+            if (datas == null || datas.Length == 0 ) 
+			{
                 throw new ArgumentException ("invalid datas!");
             }
 			
-            socket_.Send(datas);
+			try
+			{
+				socket_.Send(datas);
+			}
+			catch (SocketException err)
+			{
+                if (err.ErrorCode == 10054 || err.ErrorCode == 10053)
+                {
+					Debug.Log(string.Format("NetworkInterface::send(): disable connect!"));
+					socket_.Close();
+					socket_ = null;
+                }
+				else{
+					Debug.LogError(string.Format("NetworkInterface::send(): socket error(" + err.ErrorCode + ")!"));
+				}
+			}
         }
 		
 		public void recv()
 		{
-           if(socket_ == null || socket_.Connected == false) {
+           if(socket_ == null || socket_.Connected == false) 
+			{
                throw new ArgumentException ("invalid socket!");
             }
 			
             if (socket_.Poll(1000, SelectMode.SelectRead))
             {
 				byte[] datas = new byte[MemoryStream.BUFFER_MAX];
-				int successReceiveBytes = socket_.Receive(datas, MemoryStream.BUFFER_MAX, 0);
-
-				Debug.Log(string.Format("NetworkInterface::recv(): size={0}!", successReceiveBytes));
+				
+				int successReceiveBytes = 0;
+				
+				try
+				{
+					successReceiveBytes = socket_.Receive(datas, MemoryStream.BUFFER_MAX, 0);
+				}
+				catch (SocketException err)
+				{
+                    if (err.ErrorCode == 10054 || err.ErrorCode == 10053)
+                    {
+						Debug.Log(string.Format("NetworkInterface::recv(): disable connect!"));
+						socket_.Close();
+						socket_ = null;
+                    }
+					else{
+						Debug.LogError(string.Format("NetworkInterface::recv(): socket error(" + err.ErrorCode + ")!"));
+					}
+				}
+				
+				if(successReceiveBytes > 0)
+				{
+					Debug.Log(string.Format("NetworkInterface::recv(): size={0}!", successReceiveBytes));
+				}
+				else if(successReceiveBytes == 0)
+				{
+					Debug.Log(string.Format("NetworkInterface::recv(): disable connect!"));
+					socket_.Close();
+					socket_ = null;
+				}
+				else
+				{
+					Debug.LogError(string.Format("NetworkInterface::recv(): socket error!"));
+				}
+				
 				msgReader.process(datas, (MessageLength)successReceiveBytes);
             }
 		}
@@ -99,6 +157,8 @@ namespace KBEngine
 		{
 			if(socket_ != null && socket_.Connected)
 				recv();
+			else
+				System.Threading.Thread.Sleep(1);
 		}
 	}
 } 
