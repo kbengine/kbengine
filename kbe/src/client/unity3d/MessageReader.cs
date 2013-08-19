@@ -100,8 +100,10 @@ namespace KBEngine
 						totallen += expectSize;
 						Message msg = Message.clientMessages[msgid];	
 						stream.wpos += expectSize;
-						Debug.Log(string.Format("MessageReader::process(): handleMessage={0}, msglen={1}!", msg.name, stream.opsize()));
-						Debug.Log(string.Format("MessageReader::process(): rpos({0}), wpos({1}), msg={2}!", stream.rpos, stream.wpos, stream.toString()));
+						
+						Debug.Log(string.Format("MessageReader::process(): handleMessage={0}, msglen={1}, rpos({2}), wpos({3}), msg={4}!", 
+							msg.name, stream.opsize(), stream.rpos, stream.wpos, stream.toString()));
+						
 						msg.handleMessage(stream);
 						stream.clear();
 						
@@ -111,9 +113,9 @@ namespace KBEngine
 					else
 					{
 						expectSize -= length;
-						totallen += length;
 						Array.Copy(datas, totallen, stream.data(), stream.wpos, length);
 						stream.wpos += length;
+						totallen += length;
 						length = 0;
 						break;
 					}

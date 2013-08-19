@@ -890,7 +890,7 @@ namespace KBEngine
 			UInt16 methodUtype = stream.readUint16();
 			Method methoddata = EntityDef.moduledefs[entity.classtype].idmethods[methodUtype];
 			
-			Debug.LogError("KBEngine::Client_onRemoteMethodCall: " + entity.classtype + "." + methoddata.name);
+			Debug.Log("KBEngine::Client_onRemoteMethodCall: " + entity.classtype + "." + methoddata.name);
 			
 			object[] args = new object[methoddata.args.Count];
 	
