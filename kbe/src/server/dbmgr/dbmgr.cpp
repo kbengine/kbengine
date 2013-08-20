@@ -539,7 +539,14 @@ void Dbmgr::onEntityOffline(Mercury::Channel* pChannel, DBID dbid)
 void Dbmgr::executeRawDatabaseCommand(Mercury::Channel* pChannel, 
 									  KBEngine::MemoryStream& s)
 {
-	dbThreadPool_.addTask(new DBTaskExecuteRawDatabaseCommand(pChannel->addr(), s));
+	ENTITY_ID entityID = -1;
+	s >> entityID;
+
+	if(entityID == -1)
+		dbThreadPool_.addTask(new DBTaskExecuteRawDatabaseCommand(pChannel->addr(), s));
+	else
+		bufferedDBTasks_.addTask(new DBTaskExecuteRawDatabaseCommandByEntity(pChannel->addr(), s, entityID));
+
 	s.opfini();
 
 	numExecuteRawDatabaseCommand_++;

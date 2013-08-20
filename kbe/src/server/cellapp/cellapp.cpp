@@ -362,11 +362,14 @@ PyObject* Cellapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 	int argCount = PyTuple_Size(args);
 	PyObject* pycallback = NULL;
 	int ret = -1;
+	ENTITY_ID eid = -1;
 
 	char* data = NULL;
 	Py_ssize_t size;
 	
-	if(argCount == 2)
+	if(argCount == 3)
+		ret = PyArg_ParseTuple(args, "s#|O|i", &data, &size, &pycallback, &eid);
+	else if(argCount == 2)
 		ret = PyArg_ParseTuple(args, "s#|O", &data, &size, &pycallback);
 	else if(argCount == 1)
 		ret = PyArg_ParseTuple(args, "s#", &data, &size);
@@ -377,12 +380,12 @@ PyObject* Cellapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 		PyErr_PrintEx(0);
 	}
 	
-	Cellapp::getSingleton().executeRawDatabaseCommand(data, size, pycallback);
+	Cellapp::getSingleton().executeRawDatabaseCommand(data, size, pycallback, eid);
 	S_Return;
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback)
+void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback, ENTITY_ID eid)
 {
 	if(datas == NULL)
 	{
@@ -406,6 +409,7 @@ void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(DbmgrInterface::executeRawDatabaseCommand);
+	(*pBundle) << eid;
 	(*pBundle) << componentID_ << componentType_;
 
 	CALLBACK_ID callbackID = 0;

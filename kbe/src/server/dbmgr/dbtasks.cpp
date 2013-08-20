@@ -157,6 +157,94 @@ bool DBTaskExecuteRawDatabaseCommand::db_thread_process()
 }
 
 //-------------------------------------------------------------------------------------
+DBTaskExecuteRawDatabaseCommandByEntity::DBTaskExecuteRawDatabaseCommandByEntity(const Mercury::Address& addr, MemoryStream& datas, ENTITY_ID entityID):
+EntityDBTask(addr, datas, entityID, 0),
+componentID_(0),
+componentType_(UNKNOWN_COMPONENT_TYPE),
+sdatas_(),
+callbackID_(0),
+error_(),
+execret_()
+{
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskExecuteRawDatabaseCommandByEntity::~DBTaskExecuteRawDatabaseCommandByEntity()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskExecuteRawDatabaseCommandByEntity::db_thread_process()
+{
+	(*pDatas_) >> componentID_ >> componentType_;
+	(*pDatas_) >> callbackID_;
+	(*pDatas_).readBlob(sdatas_);
+
+	try
+	{
+		if(!static_cast<DBInterfaceMysql*>(pdbi_)->execute(sdatas_.data(), sdatas_.size(), &execret_))
+		{
+			error_ = pdbi_->getstrerror();
+		}
+	}
+	catch (std::exception & e)
+	{
+		DBException& dbe = static_cast<DBException&>(e);
+		if(dbe.isLostConnection())
+		{
+			static_cast<DBInterfaceMysql*>(pdbi_)->processException(e);
+			return true;
+		}
+
+		error_ = e.what();
+	}
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMainThread()
+{
+	DEBUG_MSG(boost::format("Dbmgr::DBTaskExecuteRawDatabaseCommandByEntity:%1%.\n") % sdatas_.c_str());
+
+	// 如果不需要回调则结束
+	if(callbackID_ <= 0)
+		return thread::TPTask::TPTASK_STATE_COMPLETED;
+
+	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+
+	if(componentType_ == BASEAPP_TYPE)
+		(*pBundle).newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
+	else if(componentType_ == CELLAPP_TYPE)
+		(*pBundle).newMessage(CellappInterface::onExecuteRawDatabaseCommandCB);
+	else
+	{
+		KBE_ASSERT(false && "no support!\n");
+	}
+
+	(*pBundle) << callbackID_;
+	(*pBundle) << error_;
+
+	if(error_.size() <= 0)
+		(*pBundle).append(execret_);
+
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentType_, componentID_);
+
+	if(cinfos && cinfos->pChannel)
+	{
+		(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), cinfos->pChannel);
+	}
+	else
+	{
+		ERROR_MSG(boost::format("DBTaskExecuteRawDatabaseCommandByEntity::presentMainThread: %1% not found.") %
+			COMPONENT_NAME_EX(componentType_));
+	}
+
+	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
+}
+
+//-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommand::presentMainThread()
 {
 	DEBUG_MSG(boost::format("Dbmgr::executeRawDatabaseCommand:%1%.\n") % sdatas_.c_str());

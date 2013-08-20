@@ -120,6 +120,26 @@ protected:
 	MemoryStream execret_;
 };
 
+
+/**
+	执行一条sql语句
+*/
+class DBTaskExecuteRawDatabaseCommandByEntity : public EntityDBTask
+{
+public:
+	DBTaskExecuteRawDatabaseCommandByEntity(const Mercury::Address& addr, MemoryStream& datas, ENTITY_ID entityID);
+	virtual ~DBTaskExecuteRawDatabaseCommandByEntity();
+	virtual bool db_thread_process();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+protected:
+	COMPONENT_ID componentID_;
+	COMPONENT_TYPE componentType_;
+	std::string sdatas_;
+	CALLBACK_ID callbackID_;
+	std::string error_;
+	MemoryStream execret_;
+};
+
 /**
 	向数据库写entity， 备份entity时也是这个机制
 */
