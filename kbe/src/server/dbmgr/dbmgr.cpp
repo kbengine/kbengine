@@ -82,7 +82,15 @@ Dbmgr::~Dbmgr()
 //-------------------------------------------------------------------------------------
 bool Dbmgr::canShutdown()
 {
-	return bufferedDBTasks_.size() == 0;
+	bool ret = bufferedDBTasks_.size() == 0;
+	
+	if(ret)
+	{
+		WARNING_MSG(boost::format("Dbmgr::canShutdown(): tasks=%1%, threads=%2%, threadpoolDestroyed=%3%!\n") % 
+			bufferedDBTasks_.size() % dbThreadPool_.getCurrentThreadCount() % dbThreadPool_.isDestroyed());
+	}
+
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------
