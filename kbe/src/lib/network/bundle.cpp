@@ -338,8 +338,22 @@ void Bundle::send(NetworkInterface & networkInterface, Channel * pChannel)
 void Bundle::resend(NetworkInterface & networkInterface, Channel * pChannel)
 {
 	if(!reuse_)
+	{
+		MessageID msgid = currMsgID_;
+		const Mercury::MessageHandler* pCurrMsgHandler = pCurrMsgHandler_;
 		finish();
+		currMsgID_ = msgid;
+		pCurrMsgHandler_ = pCurrMsgHandler;
+	}
+	else
+	{
+		if(this->totalSize() == 0)
+			return;
 
+		TRACE_BUNDLE_DATA(false, packets_[0], pCurrMsgHandler_, this->totalSize(), 
+			(pChannel_ != NULL ? pChannel_->c_str() : "None"));
+	}
+	
 	reuse_ = true;
 	pChannel_ = pChannel;
 	networkInterface.send(*this, pChannel);
