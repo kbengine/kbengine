@@ -351,7 +351,7 @@ void Bundle::resend(NetworkInterface & networkInterface, Channel * pChannel)
 			return;
 
 		TRACE_BUNDLE_DATA(false, packets_[0], pCurrMsgHandler_, this->totalSize(), 
-			(pChannel_ != NULL ? pChannel_->c_str() : "None"));
+			(pChannel != NULL ? pChannel->c_str() : "None"));
 	}
 	
 	reuse_ = true;
