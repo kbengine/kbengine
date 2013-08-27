@@ -1321,7 +1321,10 @@ void Baseapp::onCreateCellFailure(Mercury::Channel* pChannel, ENTITY_ID entityID
 
 	// 可能客户端在期间掉线了
 	if(base == NULL)
+	{
+		ERROR_MSG(boost::format("Baseapp::onCreateCellFailure: not found entity(%1%)!\n") % entityID);
 		return;
+	}
 
 	base->onCreateCellFailure();
 }
@@ -1339,7 +1342,15 @@ void Baseapp::onEntityGetCell(Mercury::Channel* pChannel, ENTITY_ID id,
 	
 	// 可能客户端在期间掉线了
 	if(base == NULL)
+	{
+		Mercury::Bundle::SmartPoolObjectPtr pBundle = Mercury::Bundle::createSmartPoolObj();
+
+		(*(*pBundle)).newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
+		(*(*pBundle)) << id;
+		(*(*pBundle)).send(this->getNetworkInterface(), pChannel);
+		ERROR_MSG(boost::format("Baseapp::onEntityGetCell: not found entity(%1%), I will destroyEntityCell!\n") % id);
 		return;
+	}
 
 	if(base->getSpaceID() != spaceID)
 		base->setSpaceID(spaceID);
