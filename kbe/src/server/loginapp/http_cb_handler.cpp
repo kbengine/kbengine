@@ -144,8 +144,24 @@ int HTTPCBHandler::handleInputNotification(int fd)
 		}
 
 		int type = 0;
-		std::string keys = "accountactivate_";
 		std::string s = buffer;
+		
+		std::string keys = "<policy-file-request/>";
+		std::string::size_type fi0 = s.find(keys);
+		if(fi0 != std::string::npos)
+		{
+			if(client.state != 1)
+			{
+				std::string response = "<?xml version='1.0'?><cross-domain-policy><allow-access-from domain=""*"" to-ports=""*"" /></cross-domain-policy>";
+				iter->second.endpoint->send(response.c_str(), response.size());
+				Loginapp::getSingleton().getNetworkInterface().dispatcher().deregisterFileDescriptor(*newclient);
+				clients_.erase(iter);
+			}
+
+			return 0;
+		}
+
+		keys = "accountactivate_";
 		std::string::size_type fi1 = s.find(keys);
 		if(fi1 == std::string::npos)
 		{
