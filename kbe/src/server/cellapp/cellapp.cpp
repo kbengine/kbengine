@@ -389,7 +389,7 @@ void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 {
 	if(datas == NULL)
 	{
-		ERROR_MSG("Cellapp::executeRawDatabaseCommand: execute is error!\n");
+		ERROR_MSG("KBEngine::executeRawDatabaseCommand: execute is error!\n");
 		return;
 	}
 
@@ -401,11 +401,11 @@ void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
 	{
-		ERROR_MSG("Cellapp::executeRawDatabaseCommand: not found dbmgr!\n");
+		ERROR_MSG("KBEngine::executeRawDatabaseCommand: not found dbmgr!\n");
 		return;
 	}
 
-	DEBUG_MSG(boost::format("KBEngine::executeRawDatabaseCommand:%1%.\n") % datas);
+	INFO_MSG(boost::format("KBEngine::executeRawDatabaseCommand%1%:%2%.\n") % (eid > 0 ? (boost::format("(entityID=%1%)") % eid).str() : "") % datas);
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(DbmgrInterface::executeRawDatabaseCommand);
