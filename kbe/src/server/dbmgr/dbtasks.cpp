@@ -209,7 +209,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 
 	// 如果不需要回调则结束
 	if(callbackID_ <= 0)
-		return thread::TPTask::TPTASK_STATE_COMPLETED;
+		return EntityDBTask::presentMainThread();
 
 	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 
@@ -241,7 +241,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 	}
 
 	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-	return thread::TPTask::TPTASK_STATE_COMPLETED;
+	return EntityDBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
