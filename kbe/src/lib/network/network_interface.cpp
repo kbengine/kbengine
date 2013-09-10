@@ -574,8 +574,14 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 			WARNING_MSG(boost::format("NetworkInterface::basicSendWithRetries: "
 				"Transmit queue full, waiting for space... (%1%)\n") %
 				retries );
-
+			
+			int fd = *pChannel->endpoint();
 			this->pDispatcher_->processNetwork(false);
+			
+			// 有可能会在processNetwork处理时被强制关闭通道而造成崩溃， 所以此处需要检查一下
+			if(this->findChannel(fd) == NULL)
+				return REASON_CHANNEL_LOST;
+
 			continue;
 		}
 
@@ -584,6 +590,13 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 
 	// 其他错误退出尝试
 	ERROR_MSG(boost::format("NetworkInterface::basicSendWithRetries: packet discarded(reason=%1%).\n") % (reasonToString(reason)));
+
+	// 如果是外部通道， 那么此时后续包都将出错， 没有必要继续和其通讯了
+	if(pChannel->isExternal())
+	{
+		pChannel->condemn();
+	}
+
 	return reason;
 }
 
