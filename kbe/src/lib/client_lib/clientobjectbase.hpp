@@ -290,6 +290,11 @@ public:
 	virtual void onImportClientEntityDef(Mercury::Channel* pChannel, MemoryStream& s){}
 	
 	/** 网络接口
+		错误码描述导出(通常是web等才会应用到)
+	*/
+	virtual void onImportMercuryErrorsDescr(Mercury::Channel* pChannel, MemoryStream& s){}
+
+	/** 网络接口
 		服务端添加了某个space的几何映射
 	*/
 	void addSpaceGeometryMapping(Mercury::Channel* pChannel, SPACE_ID spaceID, std::string& respath);

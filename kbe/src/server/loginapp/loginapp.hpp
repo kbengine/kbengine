@@ -157,6 +157,11 @@ public:
 		客户端协议导出
 	*/
 	void importClientMessages(Mercury::Channel* pChannel);
+
+	/** 网络接口
+		错误码描述导出
+	*/
+	void importMercuryErrorsDescr(Mercury::Channel* pChannel);
 protected:
 	TimerHandle							loopCheckTimerHandle_;
 

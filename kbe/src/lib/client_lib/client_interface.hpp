@@ -153,11 +153,14 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 									int16,									id)
 
 	// 导入协议
-	CLIENT_MESSAGE_DECLARE_STREAM(onImportClientMessages,					MERCURY_FIXED_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_STREAM(onImportClientMessages,					MERCURY_VARIABLE_MESSAGE)
 	
 	// 导入entitydef
-	CLIENT_MESSAGE_DECLARE_STREAM(onImportClientEntityDef,					MERCURY_FIXED_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_STREAM(onImportClientEntityDef,					MERCURY_VARIABLE_MESSAGE)
 
+	// 错误码描述导出
+	CLIENT_MESSAGE_DECLARE_STREAM(onImportMercuryErrorsDescr,				MERCURY_VARIABLE_MESSAGE)
+	
 	// 服务端添加了某个space的几何映射
 	CLIENT_MESSAGE_DECLARE_ARGS2(addSpaceGeometryMapping,					MERCURY_VARIABLE_MESSAGE,
 									SPACE_ID,								spaceID,

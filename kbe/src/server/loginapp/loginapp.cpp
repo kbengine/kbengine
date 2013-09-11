@@ -978,5 +978,51 @@ void Loginapp::importClientMessages(Mercury::Channel* pChannel)
 }
 
 //-------------------------------------------------------------------------------------
+void Loginapp::importMercuryErrorsDescr(Mercury::Channel* pChannel)
+{
+	static Mercury::Bundle bundle;
+	
+	if(bundle.packets().size() == 0)
+	{
+		std::map<uint16, std::pair< std::string, std::string> > errsDescrs;
+
+		TiXmlNode *rootNode = NULL;
+		XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes("server/mercury_errors.xml").c_str());
+
+		if(!xml->isGood())
+		{
+			ERROR_MSG(boost::format("ServerConfig::loadConfig: load %1% is failed!\n") %
+				"server/mercury_errors.xml");
+
+			SAFE_RELEASE(xml);
+			return;
+		}
+
+		rootNode = xml->getRootNode();
+		XML_FOR_BEGIN(rootNode)
+		{
+			TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
+			TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
+			errsDescrs[xml->getValInt(node)] = std::make_pair< std::string, std::string>(xml->getKey(rootNode), xml->getVal(node1));
+		}
+		XML_FOR_END(rootNode);
+
+		SAFE_RELEASE(xml);
+
+		bundle.newMessage(ClientInterface::onImportMercuryErrorsDescr);
+		std::map<uint16, std::pair< std::string, std::string> >::iterator iter = errsDescrs.begin();
+		uint16 size = errsDescrs.size();
+
+		bundle << size;
+		for(; iter != errsDescrs.end(); iter++)
+		{
+			bundle << iter->first << iter->second.first << iter->second.second;
+		}
+	}
+
+	bundle.resend(getNetworkInterface(), pChannel);
+}
+
+//-------------------------------------------------------------------------------------
 
 }
