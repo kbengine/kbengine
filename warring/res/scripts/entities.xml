@@ -1,0 +1,12 @@
+<root>
+	<Account/>
+	<Avatar/>
+	<Spaces/>
+	<Space/>
+	<SpaceCopy/>
+	<SpaceFightCopy/>
+	<SpawnPoint/>
+	<Monster/>
+	<NPC/>
+	<Gate/>
+</root>

@@ -1,0 +1,30 @@
+<root>
+	<Implements>
+	</Implements>
+
+	<Properties>
+		<moveSpeed>
+			<Type>			FLOAT			</Type>
+			<Flags>			ALL_CLIENTS		</Flags>
+			<Default>		5.0			</Default>
+		</moveSpeed>
+
+		<isMoving>
+			<Type>			BOOL			</Type>
+			<Flags>			CELL_PRIVATE		</Flags>
+			<Default>		0			</Default>
+		</isMoving>
+
+		<nextMoveTime>
+			<Type>			UINT32			</Type>
+			<Flags>			CELL_PRIVATE		</Flags>
+			<Default>		0			</Default>
+		</nextMoveTime>
+	</Properties>
+
+	<CellMethods>
+	</CellMethods>
+
+	<ClientMethods>
+	</ClientMethods>
+</root>

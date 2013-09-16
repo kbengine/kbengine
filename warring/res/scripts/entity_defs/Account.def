@@ -1,0 +1,74 @@
+<root>
+	<Properties>
+		<characters>
+			<Type>			AVATAR_INFOS_LIST		</Type>
+			<Flags>			BASE				</Flags>
+			<Default>						</Default>
+			<Persistent>		true				</Persistent>
+		</characters>
+
+		<accountName>
+			<Type>			STRING				</Type>
+			<Flags>			BASE				</Flags>
+			<Persistent>		true				</Persistent>
+			<DatabaseLength> 	100				</DatabaseLength>
+			<Default>		kbengine			</Default>
+			<Identifier>		true				</Identifier>
+		</accountName>
+		
+		<password>
+			<Type>			STRING				</Type>
+			<Flags>			BASE				</Flags>
+			<Default>						</Default>
+			<Persistent>		true				</Persistent>
+		</password>
+		
+		<activeCharacter>
+			<Type>			MAILBOX				</Type>
+			<Flags>			BASE				</Flags>
+		</activeCharacter>
+		
+		<lastClientIpAddr>
+			<Type>			UINT32				</Type>
+			<Flags>			BASE				</Flags>
+			<Default>		0				</Default>
+		</lastClientIpAddr>
+	</Properties>
+
+	<ClientMethods>
+		<onReqAvatarList>
+			<Utype> 10003 </Utype>
+			<Arg>	AVATAR_INFOS_LIST	</Arg>
+		</onReqAvatarList>
+
+		<onCreateAvatarResult>
+			<Utype> 10005		</Utype>
+			<Arg>	UINT8 		</Arg>
+			<Arg>	AVATAR_INFOS 	</Arg>
+		</onCreateAvatarResult>
+	</ClientMethods>
+
+	<BaseMethods>
+		<reqAvatarList>
+			<Exposed/>
+			<Utype> 10001 </Utype>
+		</reqAvatarList>
+
+		<reqCreateAvatar>
+			<Exposed/>
+			<Utype> 10002 </Utype>
+			<Arg>	UINT8	</Arg>	<!-- roleType -->
+			<Arg>	STRING	</Arg>	<!-- name -->
+		</reqCreateAvatar>
+
+		<selectAvatarGame>
+			<Exposed/>
+			<Utype> 10004 </Utype>
+			<Arg>	DBID	</Arg>	<!-- dbid -->
+		</selectAvatarGame>
+	</BaseMethods>
+
+	<CellMethods>
+	</CellMethods>
+
+</root>

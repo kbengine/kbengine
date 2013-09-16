@@ -1,0 +1,37 @@
+<root>
+	<trace_packet>
+		<debug_type>0</debug_type>
+	</trace_packet>
+	
+	<app_publish>0</app_publish>
+	
+	<dbmgr>
+		<host> 127.0.0.1 </host>
+		<databaseName> demo </databaseName>
+	</dbmgr>
+	
+	<cellapp>
+	</cellapp>
+	
+	<baseapp>
+		<backupPeriod> 500 </backupPeriod>
+	</baseapp>
+	
+	<cellappmgr>
+	</cellappmgr>
+	
+	<baseappmgr>
+	</baseappmgr>
+	
+	<loginapp>
+	</loginapp>	
+	
+	<kbmachine>
+	</kbmachine>
+	
+	<kbcenter>
+	</kbcenter>
+	
+	<bots>
+	</bots>
+</root>

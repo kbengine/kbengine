@@ -1,0 +1,19 @@
+<root>
+	<Parent>	SpaceCopy	</Parent>
+	<Implements>
+	</Implements>
+
+	<Properties>
+	</Properties>
+
+	<BaseMethods>
+	</BaseMethods>
+
+	<CellMethods>
+		<commitFight>
+			<Arg>		ENTITY_ID	</Arg>
+			<Arg>		ENTITY_ID	</Arg>
+			<Arg>		SKILLID		</Arg>
+		</commitFight>
+	</CellMethods>
+</root>

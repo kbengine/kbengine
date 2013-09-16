@@ -1,0 +1,17 @@
+<root>
+	<Properties>
+	</Properties>
+
+	<CellMethods>
+		<spellTargetFromClient>
+			<Exposed/>
+			<Utype> 11001 </Utype>
+			<Arg>		SKILLID		</Arg>
+			<Arg>		ENTITY_ID	</Arg>
+		</spellTargetFromClient>
+		<spellTarget>
+			<Arg>		SKILLID		</Arg>
+			<Arg>		ENTITY_ID	</Arg>
+		</spellTarget>
+	</CellMethods>
+</root>

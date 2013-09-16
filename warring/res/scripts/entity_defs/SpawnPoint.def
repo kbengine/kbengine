@@ -1,0 +1,34 @@
+<root>
+	<Volatile>
+		<position/>
+		<yaw/>
+		<pitch> 20 </pitch>
+	</Volatile>
+
+	<Implements>
+		<Interface>	GameObject		</Interface>
+	</Implements>
+
+	<Properties>
+		<spawnEntityNO>
+			<Type>			UINT32			</Type>
+			<Flags>			CELL_PRIVATE		</Flags>
+			<Persistent>		true			</Persistent>
+		</spawnEntityNO>
+
+		<createToCell>
+			<Type>			MAILBOX			</Type>
+			<Flags>			BASE			</Flags>
+			<Persistent>		true			</Persistent>
+		</createToCell>
+	</Properties>
+
+	<BaseMethods>
+	</BaseMethods>
+
+	<CellMethods>
+		<onEntityDestroyed>
+			<Arg>			ENTITY_NO		</Arg>
+		</onEntityDestroyed>
+	</CellMethods>
+</root>
