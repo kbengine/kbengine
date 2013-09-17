@@ -105,6 +105,7 @@ typedef struct EngineComponentInfo
 		tcp_SOMAXCONN = 5;
 		notFoundAccountAutoCreate = false;
 		use_coordinate_system = true;
+		account_type = 3;
 	}
 
 	~EngineComponentInfo()
