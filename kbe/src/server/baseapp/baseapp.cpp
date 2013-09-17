@@ -2138,17 +2138,6 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 
 	s >> accountName >> password >> dbid >> success >> entityID >> flags >> deadline;
 
-	if(!success)
-	{
-		std::string error;
-		s >> error;
-		ERROR_MSG(boost::format("Baseapp::onQueryAccountCBFromDbmgr: query %1% is failed! error(%2%)\n") %
-			accountName.c_str() % error);
-		
-		s.opfini();
-		return;
-	}
-
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
 	if(ptinfos == NULL)
 	{
@@ -2164,6 +2153,19 @@ void Baseapp::onQueryAccountCBFromDbmgr(Mercury::Channel* pChannel, KBEngine::Me
 
 	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(ptinfos->addr);
 
+	if(!success)
+	{
+		std::string error;
+		s >> error;
+		ERROR_MSG(boost::format("Baseapp::onQueryAccountCBFromDbmgr: query %1% is failed! error(%2%)\n") %
+			accountName.c_str() % error);
+		
+		s.opfini();
+		
+		loginGatewayFailed(pClientChannel, accountName, SERVER_ERR_SRV_NO_READY);
+		return;
+	}
+	
 	KBE_ASSERT(base != NULL);
 	base->hasDB(true);
 	base->setDBID(dbid);
