@@ -104,6 +104,20 @@ class Account(KBEngine.Proxy):
 		if avatar:
 			avatar.writeToDB(self._onCharacterSaved)
 		
+	def reqRemoveAvatar(self, name):
+		"""
+		exposed.
+		客户端请求删除一个角色
+		"""
+		found = 0
+		for key, info in self.characters.items():
+			if info[0] == name:
+				del self.characters[key]
+				found = key
+				break
+		
+		self.client.onRemoveAvatar(found)
+		
 	def _onCharacterSaved(self, success, avatar):
 		"""
 		新建角色写入数据库回调

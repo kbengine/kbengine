@@ -46,6 +46,10 @@
 			<Arg>	UINT8 		</Arg>
 			<Arg>	AVATAR_INFOS 	</Arg>
 		</onCreateAvatarResult>
+
+		<onRemoveAvatar>
+			<Arg>	DBID		</Arg>
+		</onRemoveAvatar>
 	</ClientMethods>
 
 	<BaseMethods>
@@ -66,6 +70,11 @@
 			<Utype> 10004 </Utype>
 			<Arg>	DBID	</Arg>	<!-- dbid -->
 		</selectAvatarGame>
+
+		<reqRemoveAvatar>
+			<Exposed/>
+			<Arg>	STRING	</Arg>	<!-- name -->
+		</reqRemoveAvatar>
 	</BaseMethods>
 
 	<CellMethods>
