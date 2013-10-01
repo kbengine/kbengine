@@ -428,10 +428,7 @@ bool NetworkInterface::deregisterChannel(Channel* pChannel)
 	if(pChannel->isExternal())
 		numExtChannels_--;
 
-	if(pChannelDeregisterHandler_)
-	{
-		pChannelDeregisterHandler_->onChannelDeregister(pChannel);
-	}
+	pChannel->incRef();
 
 	INFO_MSG(boost::format("NetworkInterface::deregisterChannel: del channel: %1%\n") %
 		pChannel->c_str());
@@ -444,7 +441,13 @@ bool NetworkInterface::deregisterChannel(Channel* pChannel)
 
 		return false;
 	}
-	
+
+	if(pChannelDeregisterHandler_)
+	{
+		pChannelDeregisterHandler_->onChannelDeregister(pChannel);
+	}	
+
+	pChannel->decRef();
 	return true;
 }
 

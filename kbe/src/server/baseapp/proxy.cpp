@@ -188,17 +188,22 @@ int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 //-------------------------------------------------------------------------------------
 void Proxy::onClientDeath(void)
 {
+	if(getClientMailbox() == NULL)
+	{
+		ERROR_MSG(boost::format("%1%::onClientDeath: %2%, channel is null!\n") % 
+			this->getScriptName() % this->getID());
+
+		return;
+	}
+
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	DEBUG_MSG(boost::format("%1%::onClientDeath: %2%.\n") % 
 		this->getScriptName() % this->getID());
 
-	if(getClientMailbox() != NULL)
-	{
-		Py_DECREF(getClientMailbox());
-		setClientMailbox(NULL);
-		addr(Mercury::Address::NONE);
-	}
+	Py_DECREF(getClientMailbox());
+	setClientMailbox(NULL);
+	addr(Mercury::Address::NONE);
 
 	entitiesEnabled_ = false;
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientDeath"));
