@@ -2475,10 +2475,16 @@ void Baseapp::onUpdateDataFromClient(Mercury::Channel* pChannel, KBEngine::Memor
 {
 	ENTITY_ID srcEntityID = pChannel->proxyID();
 	if(srcEntityID <= 0)
+	{
+		s.opfini();
 		return;
+	}
 	
 	if(s.opsize() <= 0)
+	{
+		s.opfini();
 		return;
+	}
 
 	KBEngine::Proxy* e = static_cast<KBEngine::Proxy*>
 			(KBEngine::Baseapp::getSingleton().findEntity(srcEntityID));	

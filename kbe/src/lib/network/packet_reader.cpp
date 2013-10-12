@@ -175,12 +175,12 @@ void PacketReader::processMessages(KBEngine::Mercury::MessageHandlers* pMsgHandl
 				TRACE_BUNDLE_DATA(true, pPacket, pMsgHandler, currMsgLen_, pChannel_->c_str());
 				pMsgHandler->handle(pChannel_, *pPacket);
 
-				// 防止handle中没有将数据导出获取非法操作
+				// 如果handler没有处理完数据则输出一个警告
 				if(currMsgLen_ > 0)
 				{
 					if(frpos != pPacket->rpos())
 					{
-						CRITICAL_MSG(boost::format("PacketReader::processMessages(%s): rpos(%d) invalid, expect=%d. msgID=%d, msglen=%d.\n") %
+						WARNING_MSG(boost::format("PacketReader::processMessages(%s): rpos(%d) invalid, expect=%d. msgID=%d, msglen=%d.\n") %
 							pMsgHandler->name.c_str() % pPacket->rpos() % frpos % currMsgID_ % currMsgLen_);
 
 						pPacket->rpos(frpos);
