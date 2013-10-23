@@ -94,7 +94,10 @@ bool DataTypes::loadAlias(std::string& file)
 	node = xml->getRootNode();
 
 	if(node == NULL)
+	{
+		ERROR_MSG("DataTypes::loadAlias: not found node<root->firstChildNode> !\n");
 		return false;
+	}
 
 	XML_FOR_BEGIN(node)
 	{

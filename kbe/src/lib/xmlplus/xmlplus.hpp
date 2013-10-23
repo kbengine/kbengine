@@ -100,8 +100,12 @@ public:
 	{
 	}
 
-	XmlPlus(const char* xmlFile){
-		isGood_ = openSection(xmlFile) != NULL;
+	XmlPlus(const char* xmlFile):
+		txdoc_(NULL),
+		rootElement_(NULL),
+		isGood_(false)
+	{
+		isGood_ = openSection(xmlFile) != NULL || rootElement_ != NULL;
 	}
 	
 	~XmlPlus(void){
@@ -138,6 +142,9 @@ public:
 	/**获取根节点， 带参数key为范围根节点下的某个子节点根*/
 	TiXmlNode* getRootNode(const char* key = "")
 	{
+		if(rootElement_ == NULL)
+			return rootElement_;
+
 		if(strlen(key) > 0){
 			TiXmlNode* node = rootElement_->FirstChild(key);
 			if(node == NULL)
