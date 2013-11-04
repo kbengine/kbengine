@@ -1,0 +1,11 @@
+<root>
+  <gameObject name="BEAR">
+    <transform>
+      <position>
+        <x>808.5873</x>
+        <y>210.9504</y>
+        <z>770.6456</z>
+      </position>
+    </transform>
+  </gameObject>
+</root>
