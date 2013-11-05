@@ -184,6 +184,16 @@ public:
 	*/
 	virtual void reloadScript(bool fullReload);
 	virtual void onReloadScript(bool fullReload);
+
+	/**
+		通过相对路径获取资源的全路径
+	*/
+	static PyObject* __py_getResFullPath(PyObject* self, PyObject* args);
+
+	/**
+		open文件
+	*/
+	static PyObject* __py_kbeOpen(PyObject* self, PyObject* args);
 protected:
 	KBEngine::script::Script								script_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;
@@ -424,6 +434,12 @@ bool EntityApp<E>::installPyModules()
 	// 注册设置脚本输出类型
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	scriptLogType,		__py_setScriptLogType,	METH_VARARGS,	0);
 	
+	// 获得资源全路径
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getResFullPath,		__py_getResFullPath,	METH_VARARGS,	0);
+
+	// 文件操作
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	open,				__py_kbeOpen,			METH_VARARGS,	0);
+
 	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_NORMAL", log4cxx::ScriptLevel::SCRIPT_INT))
 	{
 		ERROR_MSG( "EntityApp::installPyModules: Unable to set KBEngine.LOG_TYPE_NORMAL.\n");
@@ -678,6 +694,60 @@ PyObject* EntityApp<E>::__py_setScriptLogType(PyObject* self, PyObject* args)
 
 	DebugHelper::getSingleton().setScriptMsgType(type);
 	S_Return;
+}
+
+template<class E>
+PyObject* EntityApp<E>::__py_getResFullPath(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getResFullPath(): args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	char* respath = NULL;
+
+	if(PyArg_ParseTuple(args, "s", &respath) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getResFullPath(): args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	std::string fullpath = Resmgr::getSingleton().matchRes(respath);
+	return PyUnicode_FromString(fullpath.c_str());
+}
+
+template<class E>
+PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
+{
+	int argCount = PyTuple_Size(args);
+	if(argCount != 2)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	char* respath = NULL;
+	char* fargs = NULL;
+
+	if(PyArg_ParseTuple(args, "s|s", &respath, &fargs) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	std::string sfullpath = Resmgr::getSingleton().matchRes(respath);
+	FILE * fd = fopen(sfullpath.c_str(), fargs);
+
+	PyObject *ioMod = PyImport_ImportModule("io");
+	PyObject *openedFile = PyObject_CallMethod(ioMod, "open", "ss", const_cast<char*>(sfullpath.c_str()), fargs);
+	Py_DECREF(ioMod);
+	return openedFile;
 }
 
 template<class E>
