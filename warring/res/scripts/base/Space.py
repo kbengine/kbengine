@@ -7,7 +7,7 @@ from KBEDebug import *
 from interfaces.GameObject import GameObject
 import d_entities
 import d_spaces
-import d_spaces_spawns
+import xml.etree.ElementTree as etree 
 
 class Space(GameObject):
 	def __init__(self):
@@ -16,10 +16,28 @@ class Space(GameObject):
 		
 		self.spaceUTypeB = self.cellData["spaceUType"]
 		
-		# 这个地图上创建的entity总数
-		self.tmpCreateEntityDatas = copy.deepcopy(d_spaces_spawns.datas.get(self.spaceUTypeB, ()))
-		self.avatars = {}
+		self.spaceResName = d_spaces.datas.get(self.spaceUTypeB)['resPath']
 		
+		# 这个地图上创建的entity总数
+		self.tmpCreateEntityDatas = []
+		self.avatars = {}
+		self.createSpawnPointDatas()
+		
+	def createSpawnPointDatas(self):
+		"""
+		"""
+		res = KBEngine.getResFullPath(r"scripts\data\spawnpoints\%s_spawnpoints.xml" % self.spaceResName)
+		tree = etree.parse(res) 
+		root = tree.getroot()
+		DEBUG_MSG("Space::createSpawnPointDatas: %s" % (res))
+		for child in root:
+			position = child[0][0]
+			direction = child[0][1]
+			self.tmpCreateEntityDatas.append([int(child.attrib['name']), \
+			(float(position[0].text), float(position[1].text), float(position[2].text)), \
+			(float(direction[0].text), float(direction[1].text), float(direction[2].text)), \
+			])
+
 	def onLoseCell(self):
 		"""
 		KBEngine method.
@@ -54,7 +72,7 @@ class Space(GameObject):
 		KBEngine.createBaseAnywhere("SpawnPoint", 
 									{"spawnEntityNO"	: datas[0], 	\
 									"position"			: datas[1], 	\
-									"direction"			: (0, 0, datas[2]),	\
+									"direction"			: datas[2],	\
 									"createToCell"		: self.cell})
 				
 	def loginToSpace(self, avatarMailbox, context):

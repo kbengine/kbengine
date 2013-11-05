@@ -1,11 +1,72 @@
 <root>
-  <gameObject name="BEAR">
+  <gameObject name="10001001">
     <transform>
       <position>
-        <x>808.5873</x>
+        <x>788.5103</x>
         <y>210.9504</y>
-        <z>770.6456</z>
+        <z>781.6555</z>
       </position>
+      <direction>
+        <x>0</x>
+        <y>0</y>
+        <z>203.7771</z>
+      </direction>
+    </transform>
+  </gameObject>
+  <gameObject name="20001001">
+    <transform>
+      <position>
+        <x>802.5915</x>
+        <y>210.9504</y>
+        <z>769.6697</z>
+      </position>
+      <direction>
+        <x>0</x>
+        <y>0</y>
+        <z>77.61829</z>
+      </direction>
+    </transform>
+  </gameObject>
+  <gameObject name="20001001">
+    <transform>
+      <position>
+        <x>815.08</x>
+        <y>210.9504</y>
+        <z>776.8356</z>
+      </position>
+      <direction>
+        <x>0</x>
+        <y>0</y>
+        <z>0</z>
+      </direction>
+    </transform>
+  </gameObject>
+  <gameObject name="20001001">
+    <transform>
+      <position>
+        <x>801.0184</x>
+        <y>210.9504</y>
+        <z>776.8356</z>
+      </position>
+      <direction>
+        <x>0</x>
+        <y>0</y>
+        <z>0</z>
+      </direction>
+    </transform>
+  </gameObject>
+  <gameObject name="20002001">
+    <transform>
+      <position>
+        <x>810.2128</x>
+        <y>210.9959</y>
+        <z>772.8748</z>
+      </position>
+      <direction>
+        <x>0</x>
+        <y>0</y>
+        <z>0</z>
+      </direction>
     </transform>
   </gameObject>
 </root>
