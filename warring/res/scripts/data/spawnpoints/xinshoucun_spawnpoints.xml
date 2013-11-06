@@ -11,6 +11,11 @@
         <y>0</y>
         <z>203.7771</z>
       </direction>
+      <scale>
+        <x>1.5</x>
+        <y>1.5</y>
+        <z>1.5</z>
+      </scale>
     </transform>
   </gameObject>
   <gameObject name="20001001">
@@ -25,6 +30,11 @@
         <y>0</y>
         <z>77.61829</z>
       </direction>
+      <scale>
+        <x>3</x>
+        <y>3</y>
+        <z>3</z>
+      </scale>
     </transform>
   </gameObject>
   <gameObject name="20001001">
@@ -39,6 +49,11 @@
         <y>0</y>
         <z>0</z>
       </direction>
+      <scale>
+        <x>3</x>
+        <y>3</y>
+        <z>3</z>
+      </scale>
     </transform>
   </gameObject>
   <gameObject name="20001001">
@@ -53,6 +68,11 @@
         <y>0</y>
         <z>0</z>
       </direction>
+      <scale>
+        <x>3</x>
+        <y>3</y>
+        <z>3</z>
+      </scale>
     </transform>
   </gameObject>
   <gameObject name="20002001">
@@ -67,6 +87,11 @@
         <y>0</y>
         <z>0</z>
       </direction>
+      <scale>
+        <x>5</x>
+        <y>5</y>
+        <z>5</z>
+      </scale>
     </transform>
   </gameObject>
 </root>

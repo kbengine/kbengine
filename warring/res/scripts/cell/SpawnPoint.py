@@ -46,6 +46,7 @@ class SpawnPoint(GameObject):
 			"uid" : datas["id"],
 			"utype" : datas["etype"],
 			"modelID" : datas["modelID"],
+			"modelScale" : self.modelScale,
 			"dialogID" : datas["dialogID"],
 			"name" : datas["name"],
 			"descr" : datas.get("descr", ''),

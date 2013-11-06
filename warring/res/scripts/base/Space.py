@@ -33,11 +33,14 @@ class Space(GameObject):
 		for child in root:
 			position = child[0][0]
 			direction = child[0][1]
+			scaleNode = child[0][2]
+			scale = int(((float(scaleNode[0].text) + float(scaleNode[1].text) + float(scaleNode[2].text)) / 3.0) * 10)
 			self.tmpCreateEntityDatas.append([int(child.attrib['name']), \
 			(float(position[0].text), float(position[1].text), float(position[2].text)), \
 			(float(direction[0].text), float(direction[1].text), float(direction[2].text)), \
+			scale, \
 			])
-
+		
 	def onLoseCell(self):
 		"""
 		KBEngine method.
@@ -72,7 +75,8 @@ class Space(GameObject):
 		KBEngine.createBaseAnywhere("SpawnPoint", 
 									{"spawnEntityNO"	: datas[0], 	\
 									"position"			: datas[1], 	\
-									"direction"			: datas[2],	\
+									"direction"			: datas[2],		\
+									"modelScale"		: datas[3],		\
 									"createToCell"		: self.cell})
 				
 	def loginToSpace(self, avatarMailbox, context):
