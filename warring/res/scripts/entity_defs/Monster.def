@@ -4,7 +4,7 @@
 	<Volatile>
 		<position/>
 		<yaw/>
-		<pitch> 20 </pitch>
+		<!--<pitch> 20 </pitch>-->
 	</Volatile>
 
 	<Implements>
