@@ -3,6 +3,7 @@ import KBEngine
 import random
 import wtimer
 import copy
+import math
 from KBEDebug import *
 from interfaces.GameObject import GameObject
 import d_entities
@@ -37,7 +38,7 @@ class Space(GameObject):
 			scale = int(((float(scaleNode[0].text) + float(scaleNode[1].text) + float(scaleNode[2].text)) / 3.0) * 10)
 			self.tmpCreateEntityDatas.append([int(child.attrib['name']), \
 			(float(position[0].text), float(position[1].text), float(position[2].text)), \
-			(float(direction[0].text), float(direction[1].text), float(direction[2].text)), \
+			(float(direction[0].text) * (math.pi / 128), float(direction[1].text) * (math.pi / 128), float(direction[2].text) * (math.pi / 128)), \
 			scale, \
 			])
 		
