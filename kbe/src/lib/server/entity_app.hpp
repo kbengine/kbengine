@@ -742,7 +742,6 @@ PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 	}
 
 	std::string sfullpath = Resmgr::getSingleton().matchRes(respath);
-	FILE * fd = fopen(sfullpath.c_str(), fargs);
 
 	PyObject *ioMod = PyImport_ImportModule("io");
 	PyObject *openedFile = PyObject_CallMethod(ioMod, "open", "ss", const_cast<char*>(sfullpath.c_str()), fargs);
