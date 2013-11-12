@@ -6,6 +6,7 @@ namespace KBEngine
 	using System.Collections.Generic;
 	using System.Text;
     using System.Threading;
+	using System.Text.RegularExpressions;
 	
 	using MessageID = System.UInt16;
 	using MessageLength = System.UInt16;
@@ -14,7 +15,7 @@ namespace KBEngine
     {
 
         KBEngineApp app_;
-
+		
         public KBEThread(KBEngineApp app)
         {
             this.app_ = app;
@@ -23,7 +24,7 @@ namespace KBEngine
         public void run()
         {
 			MonoBehaviour.print("KBEThread::run()");
-			
+START_RUN:
             try
             {
                 this.app_.process();
@@ -31,7 +32,7 @@ namespace KBEngine
             catch (Exception e)
             {
                 MonoBehaviour.print(e.ToString());
-                this.app_.t().Abort();
+                goto START_RUN;
             }
 			
 			MonoBehaviour.print("KBEThread::end()");
@@ -42,6 +43,7 @@ namespace KBEngine
 	public class KBEngineApp
 	{
 		public static KBEngineApp app = null;
+		public float KBE_FLT_MAX = float.MaxValue;
 		private NetworkInterface networkInterface_ = null;
 		
         private Thread t_ = null;
@@ -50,12 +52,23 @@ namespace KBEngine
         public string username = "kbengine";
         public string password = "123456";
         
-		private bool loginappMessageImported_ = false;
-		private bool baseappMessageImported_ = false;
-		private bool entitydefImported_ = false;
+		private static bool loginappMessageImported_ = false;
+		private static bool baseappMessageImported_ = false;
+		private static bool entitydefImported_ = false;
+		private static bool isImportMercuryErrorsDescr_ = false;
 		
+		public static string url = "http://127.0.0.1";
 		public string ip = "127.0.0.1";
 		public UInt16 port = 20013;
+		
+		public string loginappIP = "";
+		public UInt16 loginappPort = 0;
+		
+		/*
+		public static string url = "http://117.135.154.72:20080";
+		public string ip = "117.135.154.72";
+		public UInt16 port = 20034;
+		*/
 		
 		private string currserver_ = "loginapp";
 		private string currstate_ = "create";
@@ -67,16 +80,26 @@ namespace KBEngine
 		public UInt64 entity_uuid = 0;
 		public Int32 entity_id = 0;
 		public string entity_type = "";
+		public Vector3 entityServerPos = new Vector3(0f, 0f, 0f);
 		
 		public Dictionary<Int32, Entity> entities = new Dictionary<Int32, Entity>();
 		
 		private Dictionary<Int32, MemoryStream> bufferedCreateEntityMessage = new Dictionary<Int32, MemoryStream>(); 
-			
+		
+		public struct MercuryErr
+		{
+			public string name;
+			public string descr;
+			public UInt16 id;
+		}
+		
+		public static Dictionary<UInt16, MercuryErr> mercuryErrs = new Dictionary<UInt16, MercuryErr>(); 
+		
 		private System.DateTime lastticktime_ = System.DateTime.Now;
 		public UInt32 spaceID = 0;
 		public string spaceResPath = "";
 		
-		public EntityDef entityDef = new EntityDef();
+		public static EntityDef entityDef = new EntityDef();
 		
 		public bool isbreak = false;
 		
@@ -84,6 +107,9 @@ namespace KBEngine
         {
 			app = this;
 
+			loginappIP = ip;
+			loginappPort = port;
+		
         	networkInterface_ = new NetworkInterface(this);
             kbethread_ = new KBEThread(this);
             t_ = new Thread(new ThreadStart(kbethread_.run));
@@ -100,12 +126,8 @@ namespace KBEngine
         
 		public void reset()
 		{
-			loginappMessageImported_ = false;
-			baseappMessageImported_ = false;
-			entitydefImported_ = false;
-			
-			ip = "127.0.0.1";
-			port = 20013;
+			ip = loginappIP;
+			port = loginappPort;
 			
 			currserver_ = "loginapp";
 			currstate_ = "create";
@@ -124,8 +146,15 @@ namespace KBEngine
 			lastticktime_ = System.DateTime.Now;
 			spaceID = 0;
 			spaceResPath = "";
+			
+			networkInterface_.reset();
 		}
 		
+		public static bool validEmail(string strEmail) 
+		{ 
+			return Regex.IsMatch(strEmail, @"^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$"); 
+		}  
+				
 		public static Type GetTypeByString(string type)
 	    {
 	        switch (type.ToLower())
@@ -175,7 +204,10 @@ namespace KBEngine
 			while(!isbreak)
 			{
 				networkInterface_.process();
+				sendTick();
 			}
+			
+			Dbg.WARNING_MSG("KBEngine::process(): break!");
 		}
 		
 		public Entity player(){
@@ -209,7 +241,7 @@ namespace KBEngine
 					{
 						bundle.newMessage(Message.messages["Baseapp_onClientActiveTick"]);
 					}
-					
+
 					bundle.send(networkInterface_);
 				}
 				
@@ -229,21 +261,42 @@ namespace KBEngine
 			bundle.send(networkInterface_);
 		}
 		
+		public void Client_onImportMercuryErrorsDescr(MemoryStream stream)
+		{
+			UInt16 size = stream.readUint16();
+			while(size > 0)
+			{
+				size -= 1;
+				
+				MercuryErr e;
+				e.id = stream.readUint16();
+				e.name = stream.readString();
+				e.descr = stream.readString();
+				
+				mercuryErrs.Add(e.id, e);
+					
+				Dbg.DEBUG_MSG("Client_onImportMercuryErrorsDescr: id=" + e.id + ", name=" + e.name + ", descr=" + e.descr);
+			}
+		}
+		
 		public bool login_loginapp(bool noconnect)
 		{
 			if(noconnect)
 			{
-				if(!networkInterface_.connect(ip, port))
+				reset();
+				if(!networkInterface_.connect(loginappIP, loginappPort))
 				{
-					Debug.LogError(string.Format("KBEngine::login_loginapp(): connect {0}:{1} is error!", ip, port));
+					Dbg.ERROR_MSG(string.Format("KBEngine::login_loginapp(): connect {0}:{1} is error!", loginappIP, loginappPort));  
 					return false;
 				}
 				
 				onLogin_loginapp();
-				Debug.Log(string.Format("KBEngine::login_loginapp(): connect {0}:{1} is successfylly!", ip, port));
+				Dbg.DEBUG_MSG(string.Format("KBEngine::login_loginapp(): connect {0}:{1} is successfylly!", loginappIP, loginappPort));
 			}
 			else
 			{
+				Dbg.DEBUG_MSG("KBEngine::login_loginapp(): send login! username=" + username);
+				
 				Bundle bundle = new Bundle();
 				bundle.newMessage(Message.messages["Loginapp_login"]);
 				bundle.writeInt8(3); // clientType
@@ -266,7 +319,8 @@ namespace KBEngine
 				var bundle = new Bundle();
 				bundle.newMessage(Message.messages["Loginapp_importClientMessages"]);
 				bundle.send(networkInterface_);
-				Debug.Log("KBEngine::onLogin_loginapp: start importClientMessages ...");
+				Dbg.DEBUG_MSG("KBEngine::onLogin_loginapp: start importClientMessages ...");
+				Event.fire("Loginapp_importClientMessages", new object[]{});
 			}
 			else
 			{
@@ -278,14 +332,15 @@ namespace KBEngine
 		{  
 			if(noconnect)
 			{
+				Event.fire("login_baseapp", new object[]{});
 				if(!networkInterface_.connect(ip, port))
 				{
-					Debug.LogError(string.Format("KBEngine::login_baseapp(): connect {0}:{1} is error!", ip, port));
+					Dbg.ERROR_MSG(string.Format("KBEngine::login_baseapp(): connect {0}:{1} is error!", ip, port));
 					return false;
 				}
 				
 				onLogin_baseapp();
-				Debug.Log(string.Format("KBEngine::login_baseapp(): connect {0}:{1} is successfylly!", ip, port));
+				Dbg.DEBUG_MSG(string.Format("KBEngine::login_baseapp(): connect {0}:{1} is successfylly!", ip, port));
 			}
 			else
 			{
@@ -302,13 +357,15 @@ namespace KBEngine
 		private void onLogin_baseapp()
 		{
 			currserver_ = "baseapp";
+			currstate_ = "";
 			
 			if(!baseappMessageImported_)
 			{
 				var bundle = new Bundle();
 				bundle.newMessage(Message.messages["Baseapp_importClientMessages"]);
 				bundle.send(networkInterface_);
-				Debug.Log("KBEngine::onLogin_baseapp: start importClientMessages ...");
+				Dbg.DEBUG_MSG("KBEngine::onLogin_baseapp: start importClientMessages ...");
+				Event.fire("Baseapp_importClientMessages", new object[]{});
 			}
 			else
 			{
@@ -316,20 +373,87 @@ namespace KBEngine
 			}
 		}
 		
+		public bool autoImportMessagesFromServer(bool isLoginapp)
+		{  
+			reset();
+			if(!networkInterface_.connect(ip, port))
+			{
+				Dbg.ERROR_MSG(string.Format("KBEngine::autoImportMessagesFromServer(): connect {0}:{1} is error!", ip, port));
+				return false;
+			}
+			
+			if(isLoginapp)
+			{
+				currserver_ = "loginapp";
+				currstate_ = "autoimport";
+				
+				if(!loginappMessageImported_)
+				{
+					var bundle = new Bundle();
+					bundle.newMessage(Message.messages["Loginapp_importClientMessages"]);
+					bundle.send(networkInterface_);
+					Dbg.DEBUG_MSG("KBEngine::autoImportMessagesFromServer: start importClientMessages ...");
+				}
+				else
+				{
+					onImportClientMessagesCompleted();
+				}
+			}
+			else{
+				currserver_ = "baseapp";
+				currstate_ = "autoimport";
+				
+				if(!baseappMessageImported_)
+				{
+					var bundle = new Bundle();
+					bundle.newMessage(Message.messages["Baseapp_importClientMessages"]);
+					bundle.send(networkInterface_);
+					Dbg.DEBUG_MSG("KBEngine::autoImportMessagesFromServer: start importClientMessages ...");
+				}
+				else
+				{
+					onImportClientMessagesCompleted();
+				}
+			}
+			
+			Dbg.DEBUG_MSG(string.Format("KBEngine::autoImportMessagesFromServer(): connect {0}:{1} is successfylly!", ip, port));
+			return true;
+		}
+	
+
 		private void onImportClientMessagesCompleted()
 		{
-			Debug.Log("KBEngine::onImportClientMessagesCompleted: successfully!");
+			Dbg.DEBUG_MSG("KBEngine::onImportClientMessagesCompleted: successfully! currserver=" + 
+				currserver_ + ", currstate=" + currstate_);
 
 			hello();
 			
 			if(currserver_ == "loginapp")
 			{
+				if(isImportMercuryErrorsDescr_ == false)
+				{
+					Dbg.DEBUG_MSG("KBEngine::onImportClientMessagesCompleted(): start importMercuryErrorsDescr!");
+					isImportMercuryErrorsDescr_ = true;
+					Bundle bundle = new Bundle();
+					bundle.newMessage(Message.messages["Loginapp_importMercuryErrorsDescr"]);
+					bundle.send(networkInterface_);
+				}
+				
 				if(currstate_ == "login")
+				{
 					login_loginapp(false);
+				}
+				else if(currstate_ == "autoimport")
+				{
+				}
 				else if(currstate_ == "resetpassword")
+				{
 					resetpassword_loginapp(false);
+				}
 				else
+				{
 					createAccount_loginapp(false);
+				}
 				
 				loginappMessageImported_ = true;
 			}
@@ -337,12 +461,13 @@ namespace KBEngine
 			{
 				baseappMessageImported_ = true;
 				
-				if(!entitydefImported_)
+				if(entitydefImported_ == false)
 				{
-					Debug.Log("KBEngine::onImportClientMessagesCompleted: start importEntityDef ...");
+					Dbg.DEBUG_MSG("KBEngine::onImportClientMessagesCompleted: start importEntityDef ...");
 					Bundle bundle = new Bundle();
 					bundle.newMessage(Message.messages["Baseapp_importClientEntityDef"]);
 					bundle.send(networkInterface_);
+					Event.fire("Baseapp_importClientEntityDef", new object[]{});
 				}
 				else
 				{
@@ -358,7 +483,7 @@ namespace KBEngine
 			string valname = stream.readString();
 			
 			if(canprint)
-				Debug.Log("KBEngine::Client_onImportClientEntityDef: importAlias(" + name + ":" + valname + ")!");
+				Dbg.DEBUG_MSG("KBEngine::Client_onImportClientEntityDef: importAlias(" + name + ":" + valname + ")!");
 			
 			if(valname == "FIXED_DICT")
 			{
@@ -398,7 +523,7 @@ namespace KBEngine
 		public void Client_onImportClientEntityDef(MemoryStream stream)
 		{
 			UInt16 aliassize = stream.readUint16();
-			Debug.Log("KBEngine::Client_onImportClientEntityDef: importAlias(size=" + aliassize + ")!");
+			Dbg.DEBUG_MSG("KBEngine::Client_onImportClientEntityDef: importAlias(size=" + aliassize + ")!");
 			
 			while(aliassize > 0)
 			{
@@ -423,7 +548,7 @@ namespace KBEngine
 				UInt16 base_methodsize = stream.readUint16();
 				UInt16 cell_methodsize = stream.readUint16();
 				
-				Debug.Log("KBEngine::Client_onImportClientEntityDef: import(" + scriptmethod_name + "), propertys(" + propertysize + "), " +
+				Dbg.DEBUG_MSG("KBEngine::Client_onImportClientEntityDef: import(" + scriptmethod_name + "), propertys(" + propertysize + "), " +
 						"clientMethods(" + methodsize + "), baseMethods(" + base_methodsize + "), cellMethods(" + cell_methodsize + ")!");
 				
 				
@@ -446,9 +571,10 @@ namespace KBEngine
 					KBEDATATYPE_BASE utype = EntityDef.iddatatypes[stream.readUint16()];
 					
 					System.Reflection.MethodInfo setmethod = null;
+					
 					if(Class != null)
 					{
-						setmethod = Class.GetType().GetMethod("set_" + name);
+						setmethod = Class.GetMethod("set_" + name);
 					}
 					
 					Property savedata = new Property();
@@ -461,7 +587,7 @@ namespace KBEngine
 					module.propertys[name] = savedata;
 					module.idpropertys[properUtype] = savedata;
 				
-					Debug.Log("KBEngine::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), property(" + name + "/" + properUtype + ").");
+					Dbg.DEBUG_MSG("KBEngine::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), property(" + name + "/" + properUtype + ").");
 				};
 				
 				while(methodsize > 0)
@@ -489,7 +615,7 @@ namespace KBEngine
 							
 					module.methods[name] = savedata;
 					module.idmethods[methodUtype] = savedata;
-					Debug.Log("KBEngine::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), method(" + name + ").");
+					Dbg.DEBUG_MSG("KBEngine::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), method(" + name + ").");
 				};
 	
 				while(base_methodsize > 0)
@@ -515,7 +641,7 @@ namespace KBEngine
 					module.base_methods[name] = savedata;
 					module.idbase_methods[methodUtype] = savedata;
 					
-					Debug.Log("KBEngine::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), base_method(" + name + ").");
+					Dbg.DEBUG_MSG("KBEngine::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), base_method(" + name + ").");
 				};
 				
 				while(cell_methodsize > 0)
@@ -540,12 +666,12 @@ namespace KBEngine
 					
 					module.cell_methods[name] = savedata;
 					module.idcell_methods[methodUtype] = savedata;
-					Debug.Log("KBEngine::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), cell_method(" + name + ").");
+					Dbg.DEBUG_MSG("KBEngine::Client_onImportClientEntityDef: add(" + scriptmethod_name + "), cell_method(" + name + ").");
 				};
 				
 				if(module.script == null)
 				{
-					Debug.LogError("KBEngine::Client_onImportClientEntityDef: module(" + scriptmethod_name + ") not found!");
+					Dbg.ERROR_MSG("KBEngine::Client_onImportClientEntityDef: module(" + scriptmethod_name + ") not found!");
 				}
 					
 				foreach(string name in module.propertys.Keys)
@@ -562,7 +688,7 @@ namespace KBEngine
 					defpropertys.Add(infos.name, newp);
 					if(module.script != null && module.script.GetType().GetMember(name) == null)
 					{
-						Debug.LogError(scriptmethod_name + ":: property(" + name + ") no defined!");
+						Dbg.ERROR_MSG(scriptmethod_name + ":: property(" + name + ") no defined!");
 					}
 				};
 	
@@ -572,7 +698,7 @@ namespace KBEngine
 
 					if(module.script != null && module.script.GetType().GetMethod(name) == null)
 					{
-						Debug.LogWarning(scriptmethod_name + ":: method(" + name + ") no implement!");
+						Dbg.WARNING_MSG(scriptmethod_name + ":: method(" + name + ") no implement!");
 					}
 				};
 			}
@@ -583,16 +709,29 @@ namespace KBEngine
 		
 		private void onImportEntityDefCompleted()
 		{
-			Debug.Log("KBEngine::onImportEntityDefCompleted: successfully!");
+			Dbg.DEBUG_MSG("KBEngine::onImportEntityDefCompleted: successfully!");
 			entitydefImported_ = true;
 			login_baseapp(false);
 		}
 
+		public string mercuryErr(UInt16 id)
+		{
+			MercuryErr e;
+			
+			if(!mercuryErrs.TryGetValue(id, out e))
+			{
+				return "";
+			}
+			
+			
+			return e.name;
+		}
+	
 		public void Client_onImportClientMessages(MemoryStream stream)
 		{
 			UInt16 msgcount = stream.readUint16();
 			
-			Debug.Log(string.Format("KBEngine::Client_onImportClientMessages: start({0})...", msgcount));
+			Dbg.DEBUG_MSG(string.Format("KBEngine::Client_onImportClientMessages: start({0})...", msgcount));
 			
 			while(msgcount > 0)
 			{
@@ -618,13 +757,13 @@ namespace KBEngine
 					handler = typeof(KBEngineApp).GetMethod(msgname);
 					if(handler == null)
 					{
-						Debug.LogWarning(string.Format("KBEngine::onImportClientMessages[{0}]: interface({1}/{2}/{3}) no implement!", 
+						Dbg.WARNING_MSG(string.Format("KBEngine::onImportClientMessages[{0}]: interface({1}/{2}/{3}) no implement!", 
 							currserver_, msgname, msgid, msglen));
 						handler = null;
 					}
 					else
 					{
-						Debug.Log(string.Format("KBEngine::onImportClientMessages: imported({0}/{1}/{2}) successfully!", 
+						Dbg.DEBUG_MSG(string.Format("KBEngine::onImportClientMessages: imported({0}/{1}/{2}) successfully!", 
 							msgname, msgid, msglen));
 					}
 				}
@@ -634,7 +773,7 @@ namespace KBEngine
 					Message.messages[msgname] = new Message(msgid, msgname, msglen, argstypes, handler);
 					
 					if(!isClientMethod)
-						Debug.Log(string.Format("KBEngine::onImportClientMessages[{0}]: imported({1}/{2}/{3}) successfully!", 
+						Dbg.DEBUG_MSG(string.Format("KBEngine::onImportClientMessages[{0}]: imported({1}/{2}/{3}) successfully!", 
 							currserver_, msgname, msgid, msglen));
 					
 					if(isClientMethod)
@@ -654,7 +793,7 @@ namespace KBEngine
 					Message msg = new Message(msgid, msgname, msglen, argstypes, handler);
 					
 					if(!isClientMethod)
-						Debug.Log(string.Format("KBEngine::onImportClientMessages[{0}]: imported({1}/{2}/{3}) successfully!", 
+						Dbg.DEBUG_MSG(string.Format("KBEngine::onImportClientMessages[{0}]: imported({1}/{2}/{3}) successfully!", 
 							currserver_, msgname, msgid, msglen));
 					
 					if(currserver_ == "loginapp")
@@ -669,7 +808,7 @@ namespace KBEngine
 		
 		public void onOpenLoginapp_resetpassword()
 		{  
-			Debug.Log("KBEngine::onOpenLoginapp_resetpassword: successfully!");
+			Dbg.DEBUG_MSG("KBEngine::onOpenLoginapp_resetpassword: successfully!");
 			currserver_ = "loginapp";
 			currstate_ = "resetpassword";
 			
@@ -678,7 +817,7 @@ namespace KBEngine
 				Bundle bundle = new Bundle();
 				bundle.newMessage(Message.messages["Loginapp_importClientMessages"]);
 				bundle.send(networkInterface_);
-				Debug.Log("KBEngine::onOpenLoginapp_resetpassword: start importClientMessages ...");
+				Dbg.DEBUG_MSG("KBEngine::onOpenLoginapp_resetpassword: start importClientMessages ...");
 			}
 			else
 			{
@@ -690,14 +829,15 @@ namespace KBEngine
 		{
 			if(noconnect)
 			{
+				reset();
 				if(!networkInterface_.connect(ip, port))
 				{
-					Debug.LogError(string.Format("KBEngine::resetpassword_loginapp(): connect {0}:{1} is error!", ip, port));
+					Dbg.ERROR_MSG(string.Format("KBEngine::resetpassword_loginapp(): connect {0}:{1} is error!", ip, port));
 					return false;
 				}
 				
 				onOpenLoginapp_resetpassword();
-				Debug.Log(string.Format("KBEngine::resetpassword_loginapp(): connect {0}:{1} is successfylly!", ip, port)); 
+				Dbg.DEBUG_MSG(string.Format("KBEngine::resetpassword_loginapp(): connect {0}:{1} is successfylly!", ip, port)); 
 			}
 			else
 			{
@@ -712,7 +852,7 @@ namespace KBEngine
 		
 		public void onOpenLoginapp_createAccount()
 		{  
-			Debug.Log("KBEngine::onOpenLoginapp_createAccount: successfully!");
+			Dbg.DEBUG_MSG("KBEngine::onOpenLoginapp_createAccount: successfully!");
 			currserver_ = "loginapp";
 			currstate_ = "createAccount";
 			
@@ -721,7 +861,7 @@ namespace KBEngine
 				Bundle bundle = new Bundle();
 				bundle.newMessage(Message.messages["Loginapp_importClientMessages"]);
 				bundle.send(networkInterface_);
-				Debug.Log("KBEngine::onOpenLoginapp_createAccount: start importClientMessages ...");
+				Dbg.DEBUG_MSG("KBEngine::onOpenLoginapp_createAccount: start importClientMessages ...");
 			}
 			else
 			{
@@ -733,14 +873,15 @@ namespace KBEngine
 		{
 			if(noconnect)
 			{
+				reset();
 				if(!networkInterface_.connect(ip, port))
 				{
-					Debug.LogError(string.Format("KBEngine::createAccount_loginapp(): connect {0}:{1} is error!", ip, port));
+					Dbg.ERROR_MSG(string.Format("KBEngine::createAccount_loginapp(): connect {0}:{1} is error!", ip, port));
 					return false;
 				}
 				
 				onOpenLoginapp_createAccount();
-				Debug.Log(string.Format("KBEngine::createAccount_loginapp(): connect {0}:{1} is successfylly!", ip, port));
+				Dbg.DEBUG_MSG(string.Format("KBEngine::createAccount_loginapp(): connect {0}:{1} is successfylly!", ip, port));
 			}
 			else
 			{
@@ -779,14 +920,15 @@ namespace KBEngine
 		{
 			serverVersion_ = stream.readString();
 			Int32 ctype = stream.readInt32();
-			Debug.Log("KBEngine::Client_onHelloCB: verInfo(" + serverVersion_ + "), ctype(" + ctype + ")!");
+			Dbg.DEBUG_MSG("KBEngine::Client_onHelloCB: verInfo(" + serverVersion_ + "), ctype(" + ctype + ")!");
 		}
 		
 		public void Client_onLoginFailed(MemoryStream stream)
 		{
 			UInt16 failedcode = stream.readUint16();
 			serverdatas_ = stream.readBlob();
-			Debug.Log("KBEngine::Client_onLoginFailed: failedcode(" + failedcode + "), datas(" + serverdatas_.Length + ")!");
+			Dbg.DEBUG_MSG("KBEngine::Client_onLoginFailed: failedcode(" + failedcode + "), datas(" + serverdatas_.Length + ")!");
+			Event.fire("onLoginFailed", new object[]{failedcode});
 		}
 		
 		public void Client_onLoginSuccessfully(MemoryStream stream)
@@ -796,7 +938,7 @@ namespace KBEngine
 			ip = stream.readString();
 			port = stream.readUint16();
 			
-			Debug.Log("KBEngine::Client_onLoginSuccessfully: accountName(" + accountName + "), addr(" + 
+			Dbg.DEBUG_MSG("KBEngine::Client_onLoginSuccessfully: accountName(" + accountName + "), addr(" + 
 					ip + ":" + port + "), datas(" + serverdatas_.Length + ")!");
 			
 			serverdatas_ = stream.readBlob();
@@ -805,12 +947,13 @@ namespace KBEngine
 		
 		public void Client_onLoginGatewayFailed(UInt16 failedcode)
 		{
-			Debug.Log("KBEngine::Client_onLoginGatewayFailed: failedcode(" + failedcode + ")!");
+			Dbg.DEBUG_MSG("KBEngine::Client_onLoginGatewayFailed: failedcode(" + failedcode + ")!");
+			Event.fire("onLoginGatewayFailed", new object[]{failedcode});
 		}
 		
 		public void Client_onCreatedProxies(UInt64 rndUUID, Int32 eid, string entityType)
 		{
-			Debug.Log("KBEngine::Client_onCreatedProxies: eid(" + eid + "), entityType(" + entityType + ")!");
+			Dbg.DEBUG_MSG("KBEngine::Client_onCreatedProxies: eid(" + eid + "), entityType(" + entityType + ")!");
 			entity_uuid = rndUUID;
 			entity_id = eid;
 			
@@ -831,7 +974,14 @@ namespace KBEngine
 			
 			entity.__init__();
 			
-			((Account)entity).reqCreateAvatar(1, "kebiao");
+			if(entityType == "Account")
+			{
+				Event.fire("onLoginSuccessfully", new object[]{rndUUID, eid, ((Account)entity)});
+			}
+			else
+			{
+				Event.fire("onAvatarEnterWorld", new object[]{rndUUID, eid, ((Avatar)entity)});
+			}
 		}
 		
 		public void Client_onUpdatePropertys(MemoryStream stream)
@@ -844,7 +994,7 @@ namespace KBEngine
 				MemoryStream entityMessage = null;
 				if(bufferedCreateEntityMessage.TryGetValue(eid, out entityMessage))
 				{
-					Debug.LogError("KBEngine::Client_onUpdatePropertys: entity(" + eid + ") not found!");
+					Dbg.ERROR_MSG("KBEngine::Client_onUpdatePropertys: entity(" + eid + ") not found!");
 					return;
 				}
 				
@@ -866,7 +1016,7 @@ namespace KBEngine
 				object val = propertydata.utype.createFromStream(stream);
 				object oldval = entity.getDefinedProptertyByUType(utype);
 				
-				Debug.Log("KBEngine::Client_onUpdatePropertys: " + entity.classtype + "(id=" + eid  + " " + propertydata.name + ", val=" + val + ")!");
+				Dbg.DEBUG_MSG("KBEngine::Client_onUpdatePropertys: " + entity.classtype + "(id=" + eid  + " " + propertydata.name + "=" + val + "), hasSetMethod=" + setmethod + "!");
 				
 				entity.setDefinedProptertyByUType(utype, val);
 				if(setmethod != null)
@@ -883,14 +1033,14 @@ namespace KBEngine
 			
 			if(!entities.TryGetValue(eid, out entity))
 			{
-				Debug.LogError("KBEngine::Client_onRemoteMethodCall: entity(" + eid + ") not found!");
+				Dbg.ERROR_MSG("KBEngine::Client_onRemoteMethodCall: entity(" + eid + ") not found!");
 				return;
 			}
 			
 			UInt16 methodUtype = stream.readUint16();
 			Method methoddata = EntityDef.moduledefs[entity.classtype].idmethods[methodUtype];
 			
-			Debug.Log("KBEngine::Client_onRemoteMethodCall: " + entity.classtype + "." + methoddata.name);
+			Dbg.DEBUG_MSG("KBEngine::Client_onRemoteMethodCall: " + entity.classtype + "." + methoddata.name);
 			
 			object[] args = new object[methoddata.args.Count];
 	
@@ -905,7 +1055,7 @@ namespace KBEngine
 		public void Client_onEntityEnterWorld(Int32 eid, UInt16 uentityType, UInt32 spaceID)
 		{
 			string entityType = EntityDef.idmoduledefs[uentityType].name;
-			Debug.Log("KBEngine::Client_onEntityEnterWorld: " + entityType + "(" + eid + "), spaceID(" + spaceID + ")!");
+			Dbg.DEBUG_MSG("KBEngine::Client_onEntityEnterWorld: " + entityType + "(" + eid + "), spaceID(" + spaceID + ")!");
 			
 			Entity entity = null;
 			
@@ -914,7 +1064,7 @@ namespace KBEngine
 				MemoryStream entityMessage = null;
 				if(!bufferedCreateEntityMessage.TryGetValue(eid, out entityMessage))
 				{
-					Debug.LogError("KBEngine::Client_onEntityEnterWorld: entity(" + eid + ") not found!");
+					Dbg.ERROR_MSG("KBEngine::Client_onEntityEnterWorld: entity(" + eid + ") not found!");
 					return;
 				}
 				
@@ -954,7 +1104,7 @@ namespace KBEngine
 			
 			if(!entities.TryGetValue(eid, out entity))
 			{
-				Debug.LogError("KBEngine::Client_onEntityLeaveWorld: entity(" + eid + ") not found!");
+				Dbg.ERROR_MSG("KBEngine::Client_onEntityLeaveWorld: entity(" + eid + ") not found!");
 				return;
 			}
 			
@@ -970,7 +1120,7 @@ namespace KBEngine
 			
 			if(!entities.TryGetValue(eid, out entity))
 			{
-				Debug.LogError("KBEngine::Client_onEntityEnterSpace: entity(" + eid + ") not found!");
+				Dbg.ERROR_MSG("KBEngine::Client_onEntityEnterSpace: entity(" + eid + ") not found!");
 				return;
 			}
 		}
@@ -981,32 +1131,9 @@ namespace KBEngine
 			
 			if(!entities.TryGetValue(eid, out entity))
 			{
-				Debug.LogError("KBEngine::Client_onEntityLeaveSpace: entity(" + eid + ") not found!");
+				Dbg.ERROR_MSG("KBEngine::Client_onEntityLeaveSpace: entity(" + eid + ") not found!");
 				return;
 			}
-		}
-	
-		public void Client_onSetEntityPosAndDir(MemoryStream stream)
-		{
-			Int32 eid = stream.readInt32();
-			Entity entity = null;
-			
-			if(!entities.TryGetValue(eid, out entity))
-			{
-				Debug.LogError("KBEngine::Client_onSetEntityPosAndDir: entity(" + eid + ") not found!");
-				return;
-			}
-			
-			Vector3 position = (Vector3)entity.getDefinedPropterty("position");
-			Vector3 direction = (Vector3)entity.getDefinedPropterty("direction");
-			
-			position.x = stream.readFloat();
-			position.y = stream.readFloat();
-			position.z = stream.readFloat();
-			
-			direction.x = stream.readFloat();
-			direction.y = stream.readFloat();
-			direction.z = stream.readFloat();
 		}
 	
 		public void Client_onCreateAccountResult(MemoryStream stream)
@@ -1014,13 +1141,15 @@ namespace KBEngine
 			UInt16 retcode = stream.readUint16();
 			byte[] datas = stream.readBlob();
 			
+			Event.fire("onCreateAccountResult", new object[]{retcode, datas});
+			
 			if(retcode != 0)
 			{
-				Debug.LogError("KBEngine::Client_onCreateAccountResult: " + username + " create is failed! code=" + retcode + "!");
+				Dbg.WARNING_MSG("KBEngine::Client_onCreateAccountResult: " + username + " create is failed! code=" + retcode + "!");
 				return;
 			}
 	
-			Debug.Log("KBEngine::Client_onCreateAccountResult: " + username + " create is successfully!");
+			Dbg.DEBUG_MSG("KBEngine::Client_onCreateAccountResult: " + username + " create is successfully!");
 		}
 		
 		public void updatePlayerToServer()
@@ -1029,8 +1158,8 @@ namespace KBEngine
 			if(playerEntity == null || playerEntity.inWorld == false)
 				return;
 			
-			Vector3 position = (Vector3)playerEntity.getDefinedPropterty("position");
-			Vector3 direction = (Vector3)playerEntity.getDefinedPropterty("direction");
+			Vector3 position = playerEntity.position;
+			Vector3 direction = playerEntity.direction;
 			
 			Bundle bundle = new Bundle();
 			bundle.newMessage(Message.messages["Baseapp_onUpdateDataFromClient"]);
@@ -1040,20 +1169,24 @@ namespace KBEngine
 			bundle.writeFloat(direction.z);
 			bundle.writeFloat(direction.y);
 			bundle.writeFloat(direction.x);
+			bundle.writeUint8((Byte)(playerEntity.isOnGound == true ? 1 : 0));
 			bundle.send(networkInterface_);
 		}
 		
 		public void Client_addSpaceGeometryMapping(UInt32 spaceID, string respath)
 		{
-			Debug.Log("KBEngine::Client_addSpaceGeometryMapping: spaceID(" + spaceID + "), respath(" + respath + ")!");
+			Dbg.DEBUG_MSG("KBEngine::Client_addSpaceGeometryMapping: spaceID(" + spaceID + "), respath(" + respath + ")!");
 			
 			spaceID = spaceID;
 			spaceResPath = respath;
+			Event.fire("addSpaceGeometryMapping", new object[]{spaceResPath});
 		}
 		
 		public void Client_onUpdateBasePos(MemoryStream stream)
 		{
-			Vector3 pos = new Vector3(stream.readFloat(), stream.readFloat(), stream.readFloat());
+			entityServerPos.x = stream.readFloat();
+			entityServerPos.y = stream.readFloat();
+			entityServerPos.z = stream.readFloat();
 		}
 		
 		public void Client_onUpdateData(MemoryStream stream)
@@ -1063,9 +1196,43 @@ namespace KBEngine
 			
 			if(!entities.TryGetValue(eid, out entity))
 			{
-				Debug.LogError("KBEngine::Client_onUpdateData: entity(" + eid + ") not found!");
+				Dbg.ERROR_MSG("KBEngine::Client_onUpdateData: entity(" + eid + ") not found!");
 				return;
 			}
+		}
+		
+		public void Client_onSetEntityPosAndDir(MemoryStream stream)
+		{
+			Int32 eid = stream.readInt32();
+			Entity entity = null;
+			
+			if(!entities.TryGetValue(eid, out entity))
+			{
+				Dbg.ERROR_MSG("KBEngine::Client_onSetEntityPosAndDir: entity(" + eid + ") not found!");
+				return;
+			}
+			
+			entity.position.x = stream.readFloat();
+			entity.position.y = stream.readFloat();
+			entity.position.z = stream.readFloat();
+			
+			entity.direction.z = stream.readFloat();
+			entity.direction.y = stream.readFloat();
+			entity.direction.x = stream.readFloat();
+			
+			Vector3 position = (Vector3)entity.getDefinedPropterty("position");
+			Vector3 direction = (Vector3)entity.getDefinedPropterty("direction");
+			
+			position.x = entity.position.x;
+			position.y = entity.position.y;
+			position.z = entity.position.z;
+			
+			direction.x = entity.direction.x;
+			direction.y = entity.direction.y;
+			direction.z = entity.direction.z;
+			
+			Event.fire("set_direction", new object[]{entity});
+			Event.fire("set_position", new object[]{entity});
 		}
 		
 		public void Client_onUpdateData_ypr(MemoryStream stream)
@@ -1076,7 +1243,7 @@ namespace KBEngine
 			SByte p = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			//_updateVolatileData(eid, 0.0, 0.0, 0.0, y, p, r);
+			_updateVolatileData(eid, 0.0f, 0.0f, 0.0f, y, p, r);
 		}
 		
 		public void Client_onUpdateData_yp(MemoryStream stream)
@@ -1086,7 +1253,7 @@ namespace KBEngine
 			SByte y = stream.readInt8();
 			SByte p = stream.readInt8();
 			
-			//_updateVolatileData(eid, 0.0, 0.0, 0.0, y, p, KBE_FLT_MAX);
+			_updateVolatileData(eid, 0.0f, 0.0f, 0.0f, y, p, KBE_FLT_MAX);
 		}
 		
 		public void Client_onUpdateData_yr(MemoryStream stream)
@@ -1096,7 +1263,7 @@ namespace KBEngine
 			SByte y = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			//_updateVolatileData(eid, 0.0, 0.0, 0.0, y, KBE_FLT_MAX, r);
+			_updateVolatileData(eid, 0.0f, 0.0f, 0.0f, y, KBE_FLT_MAX, r);
 		}
 		
 		public void Client_onUpdateData_pr(MemoryStream stream)
@@ -1106,7 +1273,7 @@ namespace KBEngine
 			SByte p = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			//_updateVolatileData(eid, 0.0, 0.0, 0.0, KBE_FLT_MAX, p, r);
+			_updateVolatileData(eid, 0.0f, 0.0f, 0.0f, KBE_FLT_MAX, p, r);
 		}
 		
 		public void Client_onUpdateData_y(MemoryStream stream)
@@ -1115,7 +1282,7 @@ namespace KBEngine
 			
 			float y = stream.readPackY();
 			
-			//_updateVolatileData(eid, 0.0, 0.0, 0.0, y, KBE_FLT_MAX, KBE_FLT_MAX);
+			_updateVolatileData(eid, 0.0f, 0.0f, 0.0f, y, KBE_FLT_MAX, KBE_FLT_MAX);
 		}
 		
 		public void Client_onUpdateData_p(MemoryStream stream)
@@ -1124,7 +1291,7 @@ namespace KBEngine
 			
 			SByte p = stream.readInt8();
 			
-			//_updateVolatileData(eid, 0.0, 0.0, 0.0, KBE_FLT_MAX, p, KBE_FLT_MAX);
+			_updateVolatileData(eid, 0.0f, 0.0f, 0.0f, KBE_FLT_MAX, p, KBE_FLT_MAX);
 		}
 		
 		public void Client_onUpdateData_r(MemoryStream stream)
@@ -1133,7 +1300,7 @@ namespace KBEngine
 			
 			SByte r = stream.readInt8();
 			
-			//_updateVolatileData(eid, 0.0, 0.0, 0.0, KBE_FLT_MAX, KBE_FLT_MAX, r);
+			_updateVolatileData(eid, 0.0f, 0.0f, 0.0f, KBE_FLT_MAX, KBE_FLT_MAX, r);
 		}
 		
 		public void Client_onUpdateData_xz(MemoryStream stream)
@@ -1142,7 +1309,7 @@ namespace KBEngine
 			
 			Vector2 xz = stream.readPackXZ();
 			
-			//_updateVolatileData(eid, xz[0], 0.0, xz[1], KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX);
+			_updateVolatileData(eid, xz[0], 0.0f, xz[1], KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX);
 		}
 		
 		public void Client_onUpdateData_xz_ypr(MemoryStream stream)
@@ -1155,7 +1322,7 @@ namespace KBEngine
 			SByte p = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			//_updateVolatileData(eid, xz[0], 0.0, xz[1], y, p, r);
+			_updateVolatileData(eid, xz[0], 0.0f, xz[1], y, p, r);
 		}
 		
 		public void Client_onUpdateData_xz_yp(MemoryStream stream)
@@ -1167,7 +1334,7 @@ namespace KBEngine
 			SByte y = stream.readInt8();
 			SByte p = stream.readInt8();
 			
-			//_updateVolatileData(eid, xz[0], 0.0, xz[1], y, p, KBE_FLT_MAX);
+			_updateVolatileData(eid, xz[0], 0.0f, xz[1], y, p, KBE_FLT_MAX);
 		}
 		
 		public void Client_onUpdateData_xz_yr(MemoryStream stream)
@@ -1179,7 +1346,7 @@ namespace KBEngine
 			SByte y = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			//_updateVolatileData(eid, xz[0], 0.0, xz[1], y, KBE_FLT_MAX, r);
+			_updateVolatileData(eid, xz[0], 0.0f, xz[1], y, KBE_FLT_MAX, r);
 		}
 		
 		public void Client_onUpdateData_xz_pr(MemoryStream stream)
@@ -1191,18 +1358,15 @@ namespace KBEngine
 			SByte p = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			//_updateVolatileData(eid, xz[0], 0.0, xz[1], KBE_FLT_MAX, p, r);
+			_updateVolatileData(eid, xz[0], 0.0f, xz[1], KBE_FLT_MAX, p, r);
 		}
 		
 		public void Client_onUpdateData_xz_y(MemoryStream stream)
 		{
-			var eid = stream.readInt32();
-			
+			Int32 eid = stream.readInt32();
 			Vector2 xz = stream.readPackXZ();
-	
-			SByte y = stream.readInt8();
-			
-			//_updateVolatileData(eid, xz[0], 0.0, xz[1], y, KBE_FLT_MAX, KBE_FLT_MAX);
+			SByte yaw = stream.readInt8();
+			_updateVolatileData(eid, xz[0], 0.0f, xz[1], yaw, KBE_FLT_MAX, KBE_FLT_MAX);
 		}
 		
 		public void Client_onUpdateData_xz_p(MemoryStream stream)
@@ -1213,7 +1377,7 @@ namespace KBEngine
 	
 			SByte p = stream.readInt8();
 			
-			//_updateVolatileData(eid, xz[0], 0.0, xz[1], KBE_FLT_MAX, p, KBE_FLT_MAX);
+			_updateVolatileData(eid, xz[0], 0.0f, xz[1], KBE_FLT_MAX, p, KBE_FLT_MAX);
 		}
 		
 		public void Client_onUpdateData_xz_r(MemoryStream stream)
@@ -1224,7 +1388,7 @@ namespace KBEngine
 	
 			SByte r = stream.readInt8();
 			
-			//_updateVolatileData(eid, xz[0], 0.0, xz[1], KBE_FLT_MAX, KBE_FLT_MAX, r);
+			_updateVolatileData(eid, xz[0], 0.0f, xz[1], KBE_FLT_MAX, KBE_FLT_MAX, r);
 		}
 		
 		public void Client_onUpdateData_xyz(MemoryStream stream)
@@ -1234,7 +1398,7 @@ namespace KBEngine
 			Vector2 xz = stream.readPackXZ();
 			float y = stream.readPackY();
 			
-			//_updateVolatileData(eid, xz[0], y, xz[1], KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX);
+			_updateVolatileData(eid, xz[0], y, xz[1], KBE_FLT_MAX, KBE_FLT_MAX, KBE_FLT_MAX);
 		}
 		
 		public void Client_onUpdateData_xyz_ypr(MemoryStream stream)
@@ -1248,7 +1412,7 @@ namespace KBEngine
 			SByte p = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			//_updateVolatileData(eid, xz[0], y, xz[1], yaw, p, r);
+			_updateVolatileData(eid, xz[0], y, xz[1], yaw, p, r);
 		}
 		
 		public void Client_onUpdateData_xyz_yp(MemoryStream stream)
@@ -1260,8 +1424,8 @@ namespace KBEngine
 			
 			SByte yaw = stream.readInt8();
 			SByte p = stream.readInt8();
-			
-			//_updateVolatileData(eid, xz[0], y, xz[1], yaw, p, KBE_FLT_MAX);
+
+			_updateVolatileData(eid, xz[0], y, xz[1], yaw, p, KBE_FLT_MAX);
 		}
 		
 		public void Client_onUpdateData_xyz_yr(MemoryStream stream)
@@ -1274,7 +1438,7 @@ namespace KBEngine
 			SByte yaw = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			//_updateVolatileData(eid, xz[0], y, xz[1], yaw, KBE_FLT_MAX, r);
+			_updateVolatileData(eid, xz[0], y, xz[1], yaw, KBE_FLT_MAX, r);
 		}
 		
 		public void Client_onUpdateData_xyz_pr(MemoryStream stream)
@@ -1287,7 +1451,7 @@ namespace KBEngine
 			SByte p = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			//_updateVolatileData(eid, x, y, z, KBE_FLT_MAX, p, r);
+			_updateVolatileData(eid, xz[0], y, xz[1], KBE_FLT_MAX, p, r);
 		}
 		
 		public void Client_onUpdateData_xyz_y(MemoryStream stream)
@@ -1298,8 +1462,7 @@ namespace KBEngine
 			float y = stream.readPackY();
 			
 			SByte yaw = stream.readInt8();
-			
-			//_updateVolatileData(eid, xz[0], y, xz[1], yaw, KBE_FLT_MAX, KBE_FLT_MAX);
+			_updateVolatileData(eid, xz[0], y, xz[1], yaw, KBE_FLT_MAX, KBE_FLT_MAX);
 		}
 		
 		public void Client_onUpdateData_xyz_p(MemoryStream stream)
@@ -1311,7 +1474,7 @@ namespace KBEngine
 			
 			SByte p = stream.readInt8();
 			
-			//_updateVolatileData(eid, xz[0], y, xz[1], KBE_FLT_MAX, p, KBE_FLT_MAX);
+			_updateVolatileData(eid, xz[0], y, xz[1], KBE_FLT_MAX, p, KBE_FLT_MAX);
 		}
 		
 		public void Client_onUpdateData_xyz_r(MemoryStream stream)
@@ -1321,13 +1484,53 @@ namespace KBEngine
 			Vector2 xz = stream.readPackXZ();
 			float y = stream.readPackY();
 			
-			SByte p = stream.readInt8();
+			SByte r = stream.readInt8();
 			
-			//_updateVolatileData(eid, xz[0], y, xz[1], r, KBE_FLT_MAX, KBE_FLT_MAX);
+			_updateVolatileData(eid, xz[0], y, xz[1], KBE_FLT_MAX, KBE_FLT_MAX, r);
 		}
 		
 		public void _updateVolatileData(Int32 entityID, float x, float y, float z, float yaw, float pitch, float roll)
 		{
+			Entity entity = null;
+			
+			if(!entities.TryGetValue(entityID, out entity))
+			{
+				Dbg.ERROR_MSG("KBEngine::_updateVolatileData: entity(" + entityID + ") not found!");
+				return;
+			}
+			
+			bool changeDirection = false;
+			
+			if(roll != KBE_FLT_MAX)
+			{
+				changeDirection = true;
+				entity.direction.x = KBEMath.int82angle((SByte)roll, false) * 360 / ((float)System.Math.PI * 2);
+			}
+
+			if(pitch != KBE_FLT_MAX)
+			{
+				changeDirection = true;
+				entity.direction.y = KBEMath.int82angle((SByte)pitch, false) * 360 / ((float)System.Math.PI * 2);
+			}
+			
+			if(yaw != KBE_FLT_MAX)
+			{
+				changeDirection = true;
+				entity.direction.z = KBEMath.int82angle((SByte)yaw, false) * 360 / ((float)System.Math.PI * 2);
+			}
+			
+			if(changeDirection == true)
+			{
+				Event.fire("set_direction", new object[]{entity});
+			}
+			
+			if(!KBEMath.almostEqual(x + y + z, 0f, 0.000001f))
+			{
+				Vector3 pos = new Vector3(x + entityServerPos.x, y + entityServerPos.y, z + entityServerPos.z);
+
+				entity.position = pos;
+				Event.fire("update_position", new object[]{entity});
+			}
 		}
 		
 		public void Client_onStreamDataStarted(Int16 id, UInt32 datasize, string descr)
@@ -1346,33 +1549,33 @@ namespace KBEngine
 		{
 			if(failcode != 0)
 			{
-				Debug.LogError("KBEngine::Client_onReqAccountResetPasswordCB: " + username + " is failed! code=" + failcode + "!");
+				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountResetPasswordCB: " + username + " is failed! code=" + failcode + "!");
 				return;
 			}
 	
-			Debug.Log("KBEngine::Client_onReqAccountResetPasswordCB: " + username + " is successfully!");
+			Dbg.DEBUG_MSG("KBEngine::Client_onReqAccountResetPasswordCB: " + username + " is successfully!");
 		}
 		
 		public void Client_onReqAccountBindEmailCB(UInt16 failcode)
 		{
 			if(failcode != 0)
 			{
-				Debug.LogError("KBEngine::Client_onReqAccountBindEmailCB: " + username + " is failed! code=" + failcode + "!");
+				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountBindEmailCB: " + username + " is failed! code=" + failcode + "!");
 				return;
 			}
 	
-			Debug.Log("KBEngine::Client_onReqAccountBindEmailCB: " + username + " is successfully!");
+			Dbg.DEBUG_MSG("KBEngine::Client_onReqAccountBindEmailCB: " + username + " is successfully!");
 		}
 		
 		public void Client_onReqAccountNewPasswordCB(UInt16 failcode)
 		{
 			if(failcode != 0)
 			{
-				Debug.LogError("KBEngine::Client_onReqAccountNewPasswordCB: " + username + " is failed! code=" + failcode + "!");
+				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountNewPasswordCB: " + username + " is failed! code=" + failcode + "!");
 				return;
 			}
 	
-			Debug.Log("KBEngine::Client_onReqAccountNewPasswordCB: " + username + " is successfully!");
+			Dbg.DEBUG_MSG("KBEngine::Client_onReqAccountNewPasswordCB: " + username + " is successfully!");
 		}
 	}
 } 

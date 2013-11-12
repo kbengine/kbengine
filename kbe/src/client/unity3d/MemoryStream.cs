@@ -7,6 +7,7 @@ namespace KBEngine
 	using System.Collections.Generic;
 	using System.Text;
     using System.Threading; 
+	using System.Runtime.InteropServices;
 	
     public class MemoryStream 
     {
@@ -16,6 +17,19 @@ namespace KBEngine
     	public int wpos = 0;
     	private byte[] datas_ = new byte[BUFFER_MAX]; 
     	
+		[StructLayout(LayoutKind.Explicit, Size = 4)]
+		struct PackFloatXType
+		{
+		    [FieldOffset(0)]
+		    public float fv;
+
+		    [FieldOffset(0)]
+		    public UInt32 uv;
+
+		    [FieldOffset(0)]
+		    public Int32 iv;
+		}
+
     	public byte[] data()
     	{
     		return datas_;
@@ -116,18 +130,50 @@ namespace KBEngine
 	
 		public Vector2 readPackXZ()
 		{
+			PackFloatXType xPackData;
+			PackFloatXType zPackData;
+			
+			xPackData.fv = 0f;
+			zPackData.fv = 0f;
+			
+			xPackData.uv = 0x40000000;
+			zPackData.uv = 0x40000000;
+		
 			Byte v1 = readUint8();
 			Byte v2 = readUint8();
 			Byte v3 = readUint8();
 			
-			Vector2 vec = new Vector2(0, 0);
+			UInt32 data = 0;
+			data |= ((UInt32)v1 << 16);
+			data |= ((UInt32)v2 << 8);
+			data |= (UInt32)v3;
+
+			xPackData.uv |= (data & 0x7ff000) << 3;
+			zPackData.uv |= (data & 0x0007ff) << 15;
+
+			xPackData.fv -= 2.0f;
+			zPackData.fv -= 2.0f;
+		
+			xPackData.uv |= (data & 0x800000) << 8;
+			zPackData.uv |= (data & 0x000800) << 20;
+		
+			Vector2 vec = new Vector2(xPackData.fv, zPackData.fv);
 			return vec;
 		}
 	
 		public float readPackY()
 		{
-			UInt16 v = readUint16();
-			return 0.0f;
+			PackFloatXType yPackData; 
+			yPackData.fv = 0f;
+			yPackData.uv = 0x40000000;
+
+			UInt16 data = readUint16();
+
+			yPackData.uv |= ((UInt32)data & 0x7fff) << 12;
+			yPackData.fv -= 2f;
+			yPackData.uv |= ((UInt32)data & 0x8000) << 16;
+
+			return yPackData.fv;
 		}
 		
 		//---------------------------------------------------------------------------------
@@ -206,7 +252,7 @@ namespace KBEngine
 			UInt32 size = (UInt32)v.Length;
 			if(size + 4> fillfree())
 			{
-				Debug.LogError("memorystream::writeBlob: no free!");
+				Dbg.ERROR_MSG("memorystream::writeBlob: no free!");
 				return;
 			}
 			
@@ -224,7 +270,7 @@ namespace KBEngine
 		{
 			if(v.Length > fillfree())
 			{
-				Debug.LogError("memorystream::writeString: no free!");
+				Dbg.ERROR_MSG("memorystream::writeString: no free!");
 				return;
 			}
 

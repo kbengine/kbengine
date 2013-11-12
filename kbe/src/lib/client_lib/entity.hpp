@@ -137,6 +137,9 @@ public:
 
 	void onBecomePlayer();
 	void onBecomeNonPlayer();
+	
+	bool isOnGound()const { return isOnGound_;}
+	void isOnGound(bool v) { isOnGound_ = v;}
 protected:
 	EntityMailbox*							cellMailbox_;						// 这个entity的cell-mailbox
 	EntityMailbox*							baseMailbox_;						// 这个entity的base-mailbox
@@ -151,6 +154,8 @@ protected:
 	float									velocity_;
 
 	bool									enterword_;							// 是否已经enterworld了， restore时有用
+	
+	bool									isOnGound_;
 };																										
 
 }

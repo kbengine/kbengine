@@ -2360,6 +2360,7 @@ function KBENGINE()
 		bundle.writeFloat(player.direction[2]);
 		bundle.writeFloat(player.direction[1]);
 		bundle.writeFloat(player.direction[0]);
+		bundle.writeUint8(1); // isOnGound
 		bundle.send(g_kbengine);
 	}
 	

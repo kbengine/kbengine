@@ -2480,7 +2480,7 @@ void Baseapp::onUpdateDataFromClient(Mercury::Channel* pChannel, KBEngine::Memor
 		return;
 	}
 	
-	if(s.opsize() <= 0)
+	if(s.opsize() <= 0 || s.opsize() != (sizeof(float) * 6 + sizeof(uint8)))
 	{
 		s.opfini();
 		return;

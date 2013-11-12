@@ -743,6 +743,8 @@ void ClientObjectBase::updatePlayerToServer()
 	(*pBundle) << pEntity->getDirection().pitch;
 	(*pBundle) << pEntity->getDirection().roll;
 
+	(*pBundle) << pEntity->isOnGound();
+	
 	pServerChannel_->pushBundle(pBundle);
 }
 

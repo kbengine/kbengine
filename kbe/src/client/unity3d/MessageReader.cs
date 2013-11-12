@@ -35,13 +35,13 @@ namespace KBEngine
 				{
 					if(length >= expectSize)
 					{
-						Array.Copy(datas, 0, stream.data(), stream.wpos, expectSize);
+						Array.Copy(datas, totallen, stream.data(), stream.wpos, expectSize);
 						length -= expectSize;
 						expectSize = 0;
 						
 						msgid = stream.readUint16();
 						stream.clear();
-						
+
 						Message msg = Message.clientMessages[msgid];
 
 						if(msg.msglen == -1)
@@ -55,14 +55,15 @@ namespace KBEngine
 							expectSize = (MessageLength)msg.msglen;
 						}
 						
-						totallen = 2;
-						Debug.Log(string.Format("MessageReader::process(): msgid={0}/{1}/{2}, msgname={3}!", 
-							msg.id, msg.msglen, expectSize, msg.name));
+						totallen += 2;
+						//Dbg.DEBUG_MSG(string.Format("MessageReader::process(): msgid={0}/{1}/{2}, msgname={3}!", 
+						//	msg.id, msg.msglen, expectSize, msg.name));
 					}
 					else
 					{
 						expectSize -= length;
-						Array.Copy(datas, 0, stream.data(), stream.wpos, length);
+						Array.Copy(datas, totallen, stream.data(), stream.wpos, length);
+						// totallen += length; // 要退出循环了无序这一步
 						length = 0;
 						break;
 					}
@@ -77,16 +78,17 @@ namespace KBEngine
 						msglen = stream.readUint16();
 						stream.clear();
 						
-						Debug.Log(string.Format("MessageReader::process(): msglen={0}!", msglen));
+						// Dbg.DEBUG_MSG(string.Format("MessageReader::process(): msglen={0}!", msglen));
 						
 						state = READ_STATE.READ_STATE_BODY;
 						expectSize = msglen;
-						totallen = 4;
+						totallen += 2;
 					}
 					else
 					{
 						expectSize -= length;
 						Array.Copy(datas, totallen, stream.data(), stream.wpos, length);
+						// totallen += length; // 要退出循环了无序这一步
 						length = 0;
 						break;
 					}
@@ -101,8 +103,8 @@ namespace KBEngine
 						Message msg = Message.clientMessages[msgid];	
 						stream.wpos += expectSize;
 						
-						Debug.Log(string.Format("MessageReader::process(): handleMessage={0}, msglen={1}, rpos({2}), wpos({3}), msg={4}!", 
-							msg.name, stream.opsize(), stream.rpos, stream.wpos, stream.toString()));
+						// Dbg.DEBUG_MSG(string.Format("MessageReader::process(): handleMessage={0}, msglen={1}, rpos({2}), wpos({3}), msg={4}!", 
+						//	msg.name, stream.opsize(), stream.rpos, stream.wpos, stream.toString()));
 						
 						msg.handleMessage(stream);
 						stream.clear();
@@ -115,7 +117,7 @@ namespace KBEngine
 						expectSize -= length;
 						Array.Copy(datas, totallen, stream.data(), stream.wpos, length);
 						stream.wpos += length;
-						totallen += length;
+						// totallen += length; // 要退出循环了无序这一步
 						length = 0;
 						break;
 					}

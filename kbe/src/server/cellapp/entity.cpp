@@ -952,9 +952,10 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 {
 	Position3D pos;
 	Direction3D dir;
-
-	s >> pos.x >> pos.y >> pos.z >> dir.yaw >> dir.pitch >> dir.roll;
+	uint8 isOnGround = 0;
 	
+	s >> pos.x >> pos.y >> pos.z >> dir.yaw >> dir.pitch >> dir.roll >> isOnGround;
+	isOnGround_ = isOnGround > 0;
 	this->setDirection(dir);
 
 	if(checkMoveForTopSpeed(pos))

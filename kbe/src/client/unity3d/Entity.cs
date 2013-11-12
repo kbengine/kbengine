@@ -13,6 +13,10 @@ namespace KBEngine
 		public Vector3 direction = new Vector3(0.0f, 0.0f, 0.0f);
 		public float velocity = 0.0f;
 		
+		public bool isOnGound = true;
+		
+		public object renderObj = null;
+		
 		public Mailbox baseMailbox = null;
 		public Mailbox cellMailbox = null;
 		
@@ -41,6 +45,11 @@ namespace KBEngine
 				defpropertys_.Add(e.name, newp);
 				iddefpropertys_.Add(e.properUtype, newp);
 			}
+		}
+		
+		public bool isPlayer()
+		{
+			return id == KBEngineApp.app.entity_id;
 		}
 		
 		public object getDefinedPropterty(string name)
@@ -74,7 +83,7 @@ namespace KBEngine
 			
 			if(arguments.Length != method.args.Count)
 			{
-				Debug.LogError("Entity::baseCall: args(" + (arguments.Length) + "!= " + method.args.Count + ") size is error!");  
+				Dbg.ERROR_MSG("Entity::baseCall: args(" + (arguments.Length) + "!= " + method.args.Count + ") size is error!");  
 				return;
 			}
 			
@@ -90,7 +99,7 @@ namespace KBEngine
 			}
 			catch(Exception e)
 			{
-				Debug.LogError("Entity::baseCall: args is error(" + e.Message + ")!");  
+				Dbg.ERROR_MSG("Entity::baseCall: args is error(" + e.Message + ")!");  
 				baseMailbox.bundle = null;
 				return;
 			}
@@ -105,7 +114,7 @@ namespace KBEngine
 			
 			if(arguments.Length != method.args.Count)
 			{
-				Debug.LogError("Entity::cellCall: args(" + (arguments.Length) + "!= " + method.args.Count + ") size is error!");  
+				Dbg.ERROR_MSG("Entity::cellCall: args(" + (arguments.Length) + "!= " + method.args.Count + ") size is error!");  
 				return;
 			}
 			
@@ -121,7 +130,7 @@ namespace KBEngine
 			}
 			catch(Exception e)
 			{
-				Debug.LogError("Entity::cellCall: args is error(" + e.Message + ")!");  
+				Dbg.ERROR_MSG("Entity::cellCall: args is error(" + e.Message + ")!");  
 				cellMailbox.bundle = null;
 				return;
 			}
@@ -131,14 +140,132 @@ namespace KBEngine
 	
 		public virtual void enterWorld()
 		{
-			Debug.Log(classtype + "::enterWorld: " + id); 
+			Dbg.DEBUG_MSG(classtype + "::enterWorld(" + getDefinedPropterty("uid") + "): " + id); 
 			inWorld = true;
+			Event.fire("onEnterWorld", new object[]{this});
 		}
 		
 		public virtual void leaveWorld()
 		{
-			Debug.Log(classtype + "::leaveWorld: " + id); 
+			Dbg.DEBUG_MSG(classtype + "::leaveWorld: " + id); 
 			inWorld = false;
+			Event.fire("onLeaveWorld", new object[]{this});
+		}
+		
+		public virtual void set_HP(object old)
+		{
+			object hp = getDefinedPropterty("HP");
+			Dbg.DEBUG_MSG(classtype + "::set_HP: " + hp); 
+			Event.fire("set_HP", new object[]{this, hp});
+		}
+		
+		public virtual void set_MP(object old)
+		{
+			object mp = getDefinedPropterty("MP");
+			Dbg.DEBUG_MSG(classtype + "::set_MP: " + mp); 
+			Event.fire("set_MP", new object[]{this, mp});
+		}
+		
+		public virtual void set_HP_Max(object old)
+		{
+			object v = getDefinedPropterty("HP_Max");
+			Dbg.DEBUG_MSG(classtype + "::set_HP_Max: " + v); 
+			Event.fire("set_HP_Max", new object[]{this, v});
+		}
+		
+		public virtual void set_MP_Max(object old)
+		{
+			object v = getDefinedPropterty("MP_Max");
+			Dbg.DEBUG_MSG(classtype + "::set_MP_Max: " + v); 
+			Event.fire("set_MP_Max", new object[]{this, v});
+		}
+		
+		public virtual void set_level(object old)
+		{
+			object v = getDefinedPropterty("level");
+			Dbg.DEBUG_MSG(classtype + "::set_level: " + v); 
+			Event.fire("set_level", new object[]{this, v});
+		}
+		
+		public virtual void set_name(object old)
+		{
+			object v = getDefinedPropterty("name");
+			Dbg.DEBUG_MSG(classtype + "::set_name: " + v); 
+			Event.fire("set_name", new object[]{this, v});
+		}
+		
+		public virtual void set_state(object old)
+		{
+			object v = getDefinedPropterty("state");
+			Dbg.DEBUG_MSG(classtype + "::set_state: " + v); 
+			Event.fire("set_state", new object[]{this, v});
+		}
+		
+		public virtual void set_subState(object old)
+		{
+			Dbg.DEBUG_MSG(classtype + "::set_subState: " + getDefinedPropterty("subState")); 
+		}
+		
+		public virtual void set_utype(object old)
+		{
+			Dbg.DEBUG_MSG(classtype + "::set_utype: " + getDefinedPropterty("utype")); 
+		}
+		
+		public virtual void set_uid(object old)
+		{
+			Dbg.DEBUG_MSG(classtype + "::set_uid: " + getDefinedPropterty("uid")); 
+		}
+		
+		public virtual void set_spaceUType(object old)
+		{
+			Dbg.DEBUG_MSG(classtype + "::set_spaceUType: " + getDefinedPropterty("spaceUType")); 
+		}
+		
+		public virtual void set_moveSpeed(object old)
+		{
+			object v = getDefinedPropterty("moveSpeed");
+			Dbg.DEBUG_MSG(classtype + "::set_moveSpeed: " + v); 
+			Event.fire("set_moveSpeed", new object[]{this, v});
+		}
+		
+		public virtual void set_modelScale(object old)
+		{
+			object v = getDefinedPropterty("modelScale");
+			Dbg.DEBUG_MSG(classtype + "::set_modelScale: " + v); 
+			Event.fire("set_modelScale", new object[]{this, v});
+		}
+		
+		public virtual void set_modelID(object old)
+		{
+			object v = getDefinedPropterty("modelID");
+			Dbg.DEBUG_MSG(classtype + "::set_modelID: " + v); 
+			Event.fire("set_modelID", new object[]{this, v});
+		}
+		
+		public virtual void set_forbids(object old)
+		{
+			Dbg.DEBUG_MSG(classtype + "::set_forbids: " + getDefinedPropterty("forbids")); 
+		}
+		
+		public void set_position(object old)
+		{
+			Vector3 v = (Vector3)getDefinedPropterty("position");
+			position = v;
+			Dbg.DEBUG_MSG(classtype + "::set_position: " + v); 
+			Event.fire("set_position", new object[]{this});
+		}
+
+		public void set_direction(object old)
+		{
+			Vector3 v = (Vector3)getDefinedPropterty("direction");
+			direction = v;
+			Dbg.DEBUG_MSG(classtype + "::set_direction: " + v); 
+			Event.fire("set_direction", new object[]{this});
+		}
+		
+		public void recvDamage(Int32 attackerID, Int32 skillID, Int32 damageType, Int32 damage)
+		{
+			Dbg.DEBUG_MSG(classtype + "::recvDamage: attackerID=" + attackerID + ", skillID=" + skillID + ", damageType=" + damageType + ", damage=" + damage);
 		}
     }
     

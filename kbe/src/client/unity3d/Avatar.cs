@@ -7,9 +7,15 @@ namespace KBEngine
 	
     public class Avatar : KBEngine.GameObject   
     {
+    	public CombatImpl combat = null;
+    	
 		public Avatar()
 		{
 		}
+		
+		public override void __init__()
+		{
+			combat = new CombatImpl(this);
+		}
     }
-    
 } 

@@ -4,14 +4,16 @@ using System.Collections;
 using KBEngine;
 
 public class clientapp : MonoBehaviour {
-	public KBEngineApp gameapp = null;
+	public static KBEngineApp gameapp = null;
 	// Use this for initialization
 	void Start () {
 		MonoBehaviour.print("clientapp::start()");
 			
 		gameapp = new KBEngineApp();
 		//gameapp.createAccount_loginapp(true);
-		gameapp.login_loginapp(true);
+		// gameapp.login_loginapp(true);
+		
+		gameapp.autoImportMessagesFromServer(true);
 	}
 	
 	void OnDestroy()
@@ -20,8 +22,12 @@ public class clientapp : MonoBehaviour {
 		gameapp.isbreak = true;
 	}
 	
-	// Update is called once per frame
-	void Update () {
-	
+	void FixedUpdate () {
+		KBEUpdate();
+	}
+		
+	void KBEUpdate()
+	{
+		KBEngine.Event.processEventsMainThread();
 	}
 }

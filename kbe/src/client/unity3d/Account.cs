@@ -24,12 +24,22 @@ namespace KBEngine
 			if(retcode == 0)
 			{
 				avatars.Add((UInt64)((Dictionary<string, object>)info)["dbid"], (Dictionary<string, object>)info);
-				Debug.Log("Account::onCreateAvatarResult: name=" + (string)((Dictionary<string, object>)info)["name"]);
+				Dbg.DEBUG_MSG("Account::onCreateAvatarResult: name=" + (string)((Dictionary<string, object>)info)["name"]);
 			}
 			else
 			{
-				Debug.LogError("Account::onCreateAvatarResult: retcode=" + retcode);
+				Dbg.ERROR_MSG("Account::onCreateAvatarResult: retcode=" + retcode);
 			}
+			
+			Event.fire("onCreateAvatarResult", new object[]{retcode, info});
+		}
+		
+		public void onRemoveAvatar(UInt64 dbid)
+		{
+			Dbg.DEBUG_MSG("Account::onRemoveAvatar: dbid=" + dbid);
+			
+			avatars.Remove(dbid);
+			Event.fire("onRemoveAvatar", new object[]{dbid});
 		}
 		
 		public void onReqAvatarList(Dictionary<string, object> infos)
@@ -38,24 +48,37 @@ namespace KBEngine
 			
 			List<object> listinfos = (List<object>)infos["values"];
 				
-			Debug.Log("Account::onReqAvatarList: avatarsize=" + listinfos.Count);
+			Dbg.DEBUG_MSG("Account::onReqAvatarList: avatarsize=" + listinfos.Count);
 			for(int i=0; i< listinfos.Count; i++)
 			{
 				Dictionary<string, object> info = (Dictionary<string, object>)listinfos[i];
-				Debug.Log("Account::onReqAvatarList: name" + i + "=" + (string)info["name"]);
+				Dbg.DEBUG_MSG("Account::onReqAvatarList: name" + i + "=" + (string)info["name"]);
 				avatars.Add((UInt64)info["dbid"], info);
 			}
+
+			Event.fire("onReqAvatarList", new object[]{});
+
+			if(listinfos.Count == 0)
+				return;
 			
-			selectAvatarGame(avatars.Keys.ToList()[0]);
+			// selectAvatarGame(avatars.Keys.ToList()[0]);
 		}
 		
 		public void reqCreateAvatar(Byte roleType, string name)
 		{
+			Dbg.DEBUG_MSG("Account::reqCreateAvatar: roleType=" + roleType);
 			baseCall("reqCreateAvatar", new object[]{roleType, name});
+		}
+
+		public void reqRemoveAvatar(string name)
+		{
+			Dbg.DEBUG_MSG("Account::reqRemoveAvatar: name=" + name);
+			baseCall("reqRemoveAvatar", new object[]{name});
 		}
 		
 		public void selectAvatarGame(UInt64 dbid)
 		{
+			Dbg.DEBUG_MSG("Account::selectAvatarGame: dbid=" + dbid);
 			baseCall("selectAvatarGame", new object[]{dbid});
 		}
     }

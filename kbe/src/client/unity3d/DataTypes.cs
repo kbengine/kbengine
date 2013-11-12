@@ -253,7 +253,7 @@ namespace KBEngine
 			UInt32 size = stream.readUint32();
 			if(2 != size)
 			{
-				Debug.LogError(string.Format("KBEDATATYPE_VECTOR2::createFromStream: size({0}) is error!", size));
+				Dbg.ERROR_MSG(string.Format("KBEDATATYPE_VECTOR2::createFromStream: size({0}) is error!", size));
 			}
 			
 			return new Vector2(stream.readFloat(), stream.readFloat());
@@ -279,7 +279,7 @@ namespace KBEngine
 			UInt32 size = stream.readUint32();
 			if(3 != size)
 			{
-				Debug.LogError(string.Format("KBEDATATYPE_VECTOR3::createFromStream: size({0}) is error!", size));
+				Dbg.ERROR_MSG(string.Format("KBEDATATYPE_VECTOR3::createFromStream: size({0}) is error!", size));
 			}
 			
 			return new Vector3(stream.readFloat(), stream.readFloat(), stream.readFloat());
@@ -306,7 +306,7 @@ namespace KBEngine
 			UInt32 size = stream.readUint32();
 			if(4 != size)
 			{
-				Debug.LogError(string.Format("KBEDATATYPE_VECTOR4::createFromStream: size({0}) is error!", size));
+				Dbg.ERROR_MSG(string.Format("KBEDATATYPE_VECTOR4::createFromStream: size({0}) is error!", size));
 			}
 			
 			return new Vector4(stream.readFloat(), stream.readFloat(), stream.readFloat(), stream.readFloat());

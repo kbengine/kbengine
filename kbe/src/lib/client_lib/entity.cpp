@@ -67,7 +67,8 @@ direction_(),
 pClientApp_(NULL),
 aspect_(id),
 velocity_(3.0f),
-enterword_(false)
+enterword_(false),
+isOnGound_(true)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
 }

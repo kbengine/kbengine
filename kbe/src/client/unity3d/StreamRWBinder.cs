@@ -70,7 +70,7 @@ namespace KBEngine
 			}
 			
 			if(info == null)
-				Debug.LogWarning("StreamRWBinder:: bindwriter(" + argType + ") is error!");
+				Dbg.WARNING_MSG("StreamRWBinder:: bindwriter(" + argType + ") is error!");
 			
 			return info;
 		}
@@ -162,7 +162,7 @@ namespace KBEngine
 			}
 			
 			if(info == null)
-				Debug.LogWarning("StreamRWBinder:: bindReader(" + argType + ") is error!");
+				Dbg.WARNING_MSG("StreamRWBinder:: bindReader(" + argType + ") is error!");
 			
 			return info;
 		}

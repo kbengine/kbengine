@@ -476,8 +476,7 @@ protected:
 
 	// 是否进行自动备份 <= 0为false, 1为true, KBE_NEXT_ONLY为执行一次后自动为false
 	int8									shouldAutoBackup_;
-};																										
-																											
+};
 
 }
 

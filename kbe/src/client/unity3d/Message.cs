@@ -34,11 +34,11 @@ namespace KBEngine
 				argtypes[i] = StreamRWBinder.bindReader(msgargtypes[i]);
 				if(argtypes[i] == null)
 				{
-					Debug.LogError("Message::Message(): bindReader(" + msgargtypes[i] + ") is error!");
+					Dbg.ERROR_MSG("Message::Message(): bindReader(" + msgargtypes[i] + ") is error!");
 				}
 			}
 			
-			// Debug.Log(string.Format("Message::Message(): ({0}/{1}/{2})!", 
+			// Dbg.DEBUG_MSG(string.Format("Message::Message(): ({0}/{1}/{2})!", 
 			//	msgname, msgid, msglen));
 		}
 		

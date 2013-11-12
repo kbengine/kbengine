@@ -27,6 +27,16 @@ namespace KBEngine
         	packets_ = new List<MemoryStream>();
         }
 		
+		public void reset()
+		{
+			if(valid())
+				close();
+			
+			socket_ = null;
+			msgReader = new MessageReader();
+			packets_.Clear();
+		}
+		
 		public bool valid()
 		{
 			return ((socket_ != null) && (socket_.Connected == true));
@@ -48,9 +58,11 @@ namespace KBEngine
 		
 		public bool connect(string ip, int port) 
 		{
-			if(socket_ != null && socket_.Connected == true)
-				socket_.Close();
+			int count = 0;
+__RETRY:
+			reset();
 			
+			// Security.PrefetchSocketPolicy(ip, 843);
 			socket_ = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp); 
 			
             try 
@@ -62,6 +74,13 @@ namespace KBEngine
             catch (Exception e) 
             {
                 MonoBehaviour.print(e.ToString());
+                
+                if(count < 3)
+                {
+                	Dbg.WARNING_MSG("connect(" + ip + ":" + port + ") is error, try=" + count + "!");
+                	goto __RETRY;
+           		 }
+            
 				return false;
             } 
 			
@@ -94,12 +113,14 @@ namespace KBEngine
 			{
                 if (err.ErrorCode == 10054 || err.ErrorCode == 10053)
                 {
-					Debug.Log(string.Format("NetworkInterface::send(): disable connect!"));
-					socket_.Close();
+					Dbg.DEBUG_MSG(string.Format("NetworkInterface::send(): disable connect!"));
+					if(socket_ != null && socket_.Connected)
+						socket_.Close();
 					socket_ = null;
+					Event.fire("onDisableConnect", new object[]{});
                 }
 				else{
-					Debug.LogError(string.Format("NetworkInterface::send(): socket error(" + err.ErrorCode + ")!"));
+					Dbg.ERROR_MSG(string.Format("NetworkInterface::send(): socket error(" + err.ErrorCode + ")!"));
 				}
 			}
         }
@@ -108,11 +129,17 @@ namespace KBEngine
 		{
            if(socket_ == null || socket_.Connected == false) 
 			{
-               throw new ArgumentException ("invalid socket!");
+				throw new ArgumentException ("invalid socket!");
             }
 			
             if (socket_.Poll(1000, SelectMode.SelectRead))
             {
+	           if(socket_ == null || socket_.Connected == false) 
+				{
+					Dbg.WARNING_MSG("invalid socket!");
+					return;
+	            }
+				
 				byte[] datas = new byte[MemoryStream.BUFFER_MAX];
 				
 				int successReceiveBytes = 0;
@@ -125,28 +152,31 @@ namespace KBEngine
 				{
                     if (err.ErrorCode == 10054 || err.ErrorCode == 10053)
                     {
-						Debug.Log(string.Format("NetworkInterface::recv(): disable connect!"));
-						socket_.Close();
+						Dbg.DEBUG_MSG(string.Format("NetworkInterface::recv(): disable connect!"));
+						if(socket_ != null && socket_.Connected)
+							socket_.Close();
 						socket_ = null;
+						Event.fire("onDisableConnect", new object[]{});
                     }
 					else{
-						Debug.LogError(string.Format("NetworkInterface::recv(): socket error(" + err.ErrorCode + ")!"));
+						Dbg.ERROR_MSG(string.Format("NetworkInterface::recv(): socket error(" + err.ErrorCode + ")!"));
 					}
 				}
 				
 				if(successReceiveBytes > 0)
 				{
-					Debug.Log(string.Format("NetworkInterface::recv(): size={0}!", successReceiveBytes));
+				//	Dbg.DEBUG_MSG(string.Format("NetworkInterface::recv(): size={0}!", successReceiveBytes));
 				}
 				else if(successReceiveBytes == 0)
 				{
-					Debug.Log(string.Format("NetworkInterface::recv(): disable connect!"));
-					socket_.Close();
+					Dbg.DEBUG_MSG(string.Format("NetworkInterface::recv(): disable connect!"));
+					if(socket_ != null && socket_.Connected)
+						socket_.Close();
 					socket_ = null;
 				}
 				else
 				{
-					Debug.LogError(string.Format("NetworkInterface::recv(): socket error!"));
+					Dbg.ERROR_MSG(string.Format("NetworkInterface::recv(): socket error!"));
 				}
 				
 				msgReader.process(datas, (MessageLength)successReceiveBytes);
@@ -156,9 +186,13 @@ namespace KBEngine
 		public void process() 
 		{
 			if(socket_ != null && socket_.Connected)
+			{
 				recv();
+			}
 			else
+			{
 				System.Threading.Thread.Sleep(1);
+			}
 		}
 	}
 } 
