@@ -263,7 +263,7 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 		{
 			PyObject *key = PyUnicode_FromString(attrname);
 
-			if(PyDict_Contains(cellDataDict_, key) > 0)
+			if(cellDataDict_ != NULL && PyDict_Contains(cellDataDict_, key) > 0)
 			{
 				PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
 				(*s) << propertyDescription->getUType();
