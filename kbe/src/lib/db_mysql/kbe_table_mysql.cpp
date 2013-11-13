@@ -354,7 +354,7 @@ bool KBEAccountTableMysql::updatePassword(DBInterface * dbi, const std::string& 
 //-------------------------------------------------------------------------------------
 bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
 {
-	std::string sqlstr = "insert into kbe_accountinfos (accountName, password, bindata, email, entityDBID, flags, deadline) values(";
+	std::string sqlstr = "insert into kbe_accountinfos (accountName, password, bindata, email, entityDBID, flags, deadline, lasttime) values(";
 
 	char* tbuf = new char[MAX_BUF * 3];
 
@@ -395,6 +395,10 @@ bool KBEAccountTableMysql::logAccount(DBInterface * dbi, ACCOUNT_INFOS& info)
 	sqlstr += ",";
 	
 	kbe_snprintf(tbuf, MAX_BUF, "%"PRTime, info.deadline);
+	sqlstr += tbuf;
+	sqlstr += ",";
+	
+	kbe_snprintf(tbuf, MAX_BUF, "%"PRTime, time(NULL));
 	sqlstr += tbuf;
 	sqlstr += ")";
 
