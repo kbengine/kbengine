@@ -805,6 +805,7 @@ void Base::onWriteToDBCallback(ENTITY_ID eid,
 								CALLBACK_ID callbackID, 
 								bool success)
 {
+	isArchiveing_ = false;
 
 	PyObjectPtr pyCallback;
 
@@ -852,10 +853,12 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID)
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onPreArchive"));
 
 	hasDB(true);
-
+	
 	onWriteToDB();
-
-	isArchiveing_ = false;
+	
+	// 如果在数据库中已经存在该entity则允许应用层多次调用写库进行数据及时覆盖需求
+	if(this->DBID_ > 0)
+		isArchiveing_ = false;
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
 	addPersistentsDataToStream(ED_FLAG_ALL, s);
