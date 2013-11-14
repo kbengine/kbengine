@@ -573,7 +573,7 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 	{
 		mstream->appendPackXZ(relativePos.x, relativePos.z);
 
-		if(otherEntity->isOnGround())
+		if(!otherEntity->isOnGround())
 		{
 			mstream->appendPackY(relativePos.y);
 			flags |= UPDATE_FLAG_XYZ; 
