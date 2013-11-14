@@ -176,6 +176,7 @@ class Account(KBEngine.Proxy):
 			
 		info = self.characters[dbid]
 		avatar.cellData["modelID"] = d_avatar_inittab.datas[info[1]]["modelID"]
+		avatar.cellData["modelScale"] = d_avatar_inittab.datas[info[1]]["modelScale"]
 		avatar.cellData["moveSpeed"] = d_avatar_inittab.datas[info[1]]["moveSpeed"]
 		avatar.accountEntity = self
 		self.activeCharacter = avatar
