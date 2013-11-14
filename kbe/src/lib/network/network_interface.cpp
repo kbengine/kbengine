@@ -578,12 +578,17 @@ Reason NetworkInterface::basicSendWithRetries(Channel * pChannel, Packet * pPack
 				"Transmit queue full, waiting for space... (%1%)\n") %
 				retries );
 			
+			/* 这个做法导致很多意外问题
 			int fd = *pChannel->endpoint();
 			this->pDispatcher_->processNetwork(false);
 			
 			// 有可能会在processNetwork处理时被强制关闭通道而造成崩溃， 所以此处需要检查一下
 			if(this->findChannel(fd) == NULL)
 				return REASON_CHANNEL_LOST;
+			*/
+
+			if(retries > 256)
+				break;
 
 			continue;
 		}
