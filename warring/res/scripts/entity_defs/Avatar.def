@@ -38,7 +38,10 @@
 	</BaseMethods>
 
 	<CellMethods>
-		<relive/>
+		<relive>
+			<Exposed/>
+			<Arg>		UINT8		</Arg>
+		</relive>
 	</CellMethods>
 
 	<ClientMethods>

@@ -64,12 +64,20 @@ class Avatar(GameObject,
 		Teleport.onDestroy(self)
 		Combat.onDestroy(self)
 		
-	def relive(self):
+	def relive(self, exposed, type):
 		"""
 		defined.
 		复活
 		"""
-		DEBUG_MSG("Avatar::relive: %i." % self.id)
+		if exposed != self.id:
+			return
+			
+		DEBUG_MSG("Avatar::relive: %i, type=%i." % (self.id, type))
+		
+		# 回城复活
+		if type == 0:
+			pass
+			
 		self.fullPower()
 		self.changeState(GlobalDefine.ENTITY_STATE_FREE)
 		
