@@ -21,101 +21,6 @@
   <gameObject name="20001001">
     <transform>
       <position>
-        <x>817.7436</x>
-        <y>211.4718</y>
-        <z>786.606</z>
-      </position>
-      <direction>
-        <x>0</x>
-        <y>0</y>
-        <z>52.29956</z>
-      </direction>
-      <scale>
-        <x>1</x>
-        <y>1</y>
-        <z>1</z>
-      </scale>
-    </transform>
-  </gameObject>
-  <gameObject name="20001001">
-    <transform>
-      <position>
-        <x>818.2598</x>
-        <y>211.3802</y>
-        <z>771.84</z>
-      </position>
-      <direction>
-        <x>0</x>
-        <y>0</y>
-        <z>52.29956</z>
-      </direction>
-      <scale>
-        <x>1</x>
-        <y>1</y>
-        <z>1</z>
-      </scale>
-    </transform>
-  </gameObject>
-  <gameObject name="20001001">
-    <transform>
-      <position>
-        <x>813.1639</x>
-        <y>210.9753</y>
-        <z>805.5999</z>
-      </position>
-      <direction>
-        <x>0</x>
-        <y>0</y>
-        <z>52.29956</z>
-      </direction>
-      <scale>
-        <x>1</x>
-        <y>1</y>
-        <z>1</z>
-      </scale>
-    </transform>
-  </gameObject>
-  <gameObject name="20001001">
-    <transform>
-      <position>
-        <x>814.7413</x>
-        <y>211.192</y>
-        <z>797.9786</z>
-      </position>
-      <direction>
-        <x>0</x>
-        <y>0</y>
-        <z>52.29956</z>
-      </direction>
-      <scale>
-        <x>1</x>
-        <y>1</y>
-        <z>1</z>
-      </scale>
-    </transform>
-  </gameObject>
-  <gameObject name="20001001">
-    <transform>
-      <position>
-        <x>805.931</x>
-        <y>210.9504</y>
-        <z>778.5491</z>
-      </position>
-      <direction>
-        <x>0</x>
-        <y>0</y>
-        <z>52.29956</z>
-      </direction>
-      <scale>
-        <x>1</x>
-        <y>1</y>
-        <z>1</z>
-      </scale>
-    </transform>
-  </gameObject>
-  <gameObject name="20001001">
-    <transform>
-      <position>
         <x>816.3684</x>
         <y>211.1963</y>
         <z>805.4818</z>
@@ -211,9 +116,66 @@
   <gameObject name="20001001">
     <transform>
       <position>
+        <x>806.8275</x>
+        <y>210.9504</y>
+        <z>767.3723</z>
+      </position>
+      <direction>
+        <x>0</x>
+        <y>0</y>
+        <z>52.29956</z>
+      </direction>
+      <scale>
+        <x>1</x>
+        <y>1</y>
+        <z>1</z>
+      </scale>
+    </transform>
+  </gameObject>
+  <gameObject name="20001001">
+    <transform>
+      <position>
+        <x>822.0499</x>
+        <y>211.8686</y>
+        <z>778.1108</z>
+      </position>
+      <direction>
+        <x>0</x>
+        <y>0</y>
+        <z>52.29956</z>
+      </direction>
+      <scale>
+        <x>1</x>
+        <y>1</y>
+        <z>1</z>
+      </scale>
+    </transform>
+  </gameObject>
+  <gameObject name="20001001">
+    <transform>
+      <position>
         <x>833.2962</x>
         <y>210.7761</y>
         <z>837.4518</z>
+      </position>
+      <direction>
+        <x>0</x>
+        <y>0</y>
+        <z>52.29956</z>
+      </direction>
+      <scale>
+        <x>1</x>
+        <y>1</y>
+        <z>1</z>
+      </scale>
+    </transform>
+  </gameObject>
+  <gameObject name="20001001">
+    <transform>
+      <position>
+        <x>818.2598</x>
+        <y>211.3802</y>
+        <z>771.84</z>
       </position>
       <direction>
         <x>0</x>
@@ -271,6 +233,25 @@
         <x>828.1472</x>
         <y>212.0382</y>
         <z>790.446</z>
+      </position>
+      <direction>
+        <x>0</x>
+        <y>0</y>
+        <z>52.29956</z>
+      </direction>
+      <scale>
+        <x>1</x>
+        <y>1</y>
+        <z>1</z>
+      </scale>
+    </transform>
+  </gameObject>
+  <gameObject name="20001001">
+    <transform>
+      <position>
+        <x>814.7413</x>
+        <y>211.192</y>
+        <z>797.9786</z>
       </position>
       <direction>
         <x>0</x>
@@ -363,47 +344,85 @@
   <gameObject name="20001001">
     <transform>
       <position>
-        <x>806.8275</x>
-        <y>210.9504</y>
-        <z>767.3723</z>
-      </position>
-      <direction>
-        <x>0</x>
-        <y>0</y>
-        <z>52.29956</z>
-      </direction>
-      <scale>
-        <x>1</x>
-        <y>1</y>
-        <z>1</z>
-      </scale>
-    </transform>
-  </gameObject>
-  <gameObject name="20001001">
-    <transform>
-      <position>
-        <x>822.0499</x>
-        <y>211.7137</y>
-        <z>778.1108</z>
-      </position>
-      <direction>
-        <x>0</x>
-        <y>0</y>
-        <z>52.29956</z>
-      </direction>
-      <scale>
-        <x>1</x>
-        <y>1</y>
-        <z>1</z>
-      </scale>
-    </transform>
-  </gameObject>
-  <gameObject name="20001001">
-    <transform>
-      <position>
         <x>842.2277</x>
         <y>210.7555</y>
         <z>859.8251</z>
+      </position>
+      <direction>
+        <x>0</x>
+        <y>0</y>
+        <z>52.29956</z>
+      </direction>
+      <scale>
+        <x>1</x>
+        <y>1</y>
+        <z>1</z>
+      </scale>
+    </transform>
+  </gameObject>
+  <gameObject name="20001001">
+    <transform>
+      <position>
+        <x>817.7436</x>
+        <y>211.4718</y>
+        <z>786.606</z>
+      </position>
+      <direction>
+        <x>0</x>
+        <y>0</y>
+        <z>52.29956</z>
+      </direction>
+      <scale>
+        <x>1</x>
+        <y>1</y>
+        <z>1</z>
+      </scale>
+    </transform>
+  </gameObject>
+  <gameObject name="20001001">
+    <transform>
+      <position>
+        <x>805.931</x>
+        <y>210.9504</y>
+        <z>778.5491</z>
+      </position>
+      <direction>
+        <x>0</x>
+        <y>0</y>
+        <z>52.29956</z>
+      </direction>
+      <scale>
+        <x>1</x>
+        <y>1</y>
+        <z>1</z>
+      </scale>
+    </transform>
+  </gameObject>
+  <gameObject name="20001001">
+    <transform>
+      <position>
+        <x>590.4968</x>
+        <y>212.5984</y>
+        <z>842.9255</z>
+      </position>
+      <direction>
+        <x>0</x>
+        <y>0</y>
+        <z>52.29956</z>
+      </direction>
+      <scale>
+        <x>1</x>
+        <y>1</y>
+        <z>1</z>
+      </scale>
+    </transform>
+  </gameObject>
+  <gameObject name="20001001">
+    <transform>
+      <position>
+        <x>813.1639</x>
+        <y>210.9753</y>
+        <z>805.5999</z>
       </position>
       <direction>
         <x>0</x>
@@ -440,7 +459,7 @@
     <transform>
       <position>
         <x>810.2128</x>
-        <y>210.9959</y>
+        <y>211.2895</y>
         <z>772.8748</z>
       </position>
       <direction>

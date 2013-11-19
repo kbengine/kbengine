@@ -63,13 +63,19 @@ class Motion:
 		self.isMoving = True
 		self.nextMoveTime = int(time.time() + random.randint(5, 15))
 
+	def resetSpeed(self):
+		walkSpeed = self.getDatas()["moveSpeed"]
+		if walkSpeed != self.moveSpeed:
+			self.moveSpeed = walkSpeed
+				
 	def backSpawnPos(self):
 		"""
 		virtual method.
 		"""
 		INFO_MSG("%s::backSpawnPos: %i, pos=%s, speed=%f." % \
-			(self.getScriptName(), self.id, self.spawnPos, self.moveSpeed))
-			
+			(self.getScriptName(), self.id, self.spawnPos, self.moveSpeed * 0.1))
+		
+		self.resetSpeed()
 		self.gotoPosition(self.spawnPos)
 	
 	def gotoEntity(self, targetID, dist = 0.0):
@@ -89,7 +95,7 @@ class Motion:
 			return
 			
 		self.isMoving = True
-		self.moveToEntity(targetID, self.moveSpeed, dist, 1, True, True)
+		self.moveToEntity(targetID, self.moveSpeed * 0.1, dist, 1, True, True)
 		
 	def gotoPosition(self, position):
 		"""
@@ -103,6 +109,6 @@ class Motion:
 			return
 			
 		self.isMoving = True
-		self.moveToPoint(tuple(position), self.moveSpeed, 1, True, True)
+		self.moveToPoint(tuple(position), self.moveSpeed * 0.1, 1, True, True)
 		
 Motion._timermap = {}

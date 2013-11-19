@@ -33,6 +33,12 @@ class Avatar(GameObject,
 		self.topSpeed = 10.0
 		# self.topSpeedY = 10.0
 
+	def isPlayer(self):
+		"""
+		virtual method.
+		"""
+		return True
+		
 	def startDestroyTimer(self):
 		"""
 		virtual method.

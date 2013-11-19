@@ -43,4 +43,4 @@ def onMousePressedInWorld(dx, dy, dz):
 	"""
 	player = KBEngine.player()
 	if player:
-		player.seek((dx / 10.0, dy / 10.0, dz / 10.0), player.moveSpeed, 1, 1, None)
+		player.seek((dx / 10.0, dy / 10.0, dz / 10.0), player.moveSpeed * 0.1, 1, 1, None)

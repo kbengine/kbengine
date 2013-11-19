@@ -17,6 +17,12 @@ class NPC(NPCObject, Motion):
 		entity销毁
 		"""
 		NPCObject.onDestroy(self)
+
+	def isNPC(self):
+		"""
+		virtual method.
+		"""
+		return True
 		
 NPC._timermap = {}
 NPC._timermap.update(NPCObject._timermap)
