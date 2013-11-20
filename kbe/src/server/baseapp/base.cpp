@@ -266,17 +266,34 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 			if(cellDataDict_ != NULL && PyDict_Contains(cellDataDict_, key) > 0)
 			{
 				PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
-				(*s) << propertyDescription->getUType();
-				log.push_back(propertyDescription->getUType());
-				propertyDescription->addPersistentToStream(s, pyVal);
-				DEBUG_PERSISTENT_PROPERTY("addCellPersistentsDataToStream", attrname);
+				if(!propertyDescription->getDataType()->isSameType(pyVal))
+				{
+					CRITICAL_MSG(boost::format("%1%::addPersistentsDataToStream: %2% persistent[%3%] type is error.\n") %
+						this->getScriptName() % this->getID() % attrname);
+				}
+				else
+				{
+					(*s) << propertyDescription->getUType();
+					log.push_back(propertyDescription->getUType());
+					propertyDescription->addPersistentToStream(s, pyVal);
+					DEBUG_PERSISTENT_PROPERTY("addCellPersistentsDataToStream", attrname);
+				}
 			}
 			else if(PyDict_Contains(pydict, key) > 0)
 			{
-	    		(*s) << propertyDescription->getUType();
-				log.push_back(propertyDescription->getUType());
-	    		propertyDescription->addPersistentToStream(s, PyDict_GetItem(pydict, key));
-				DEBUG_PERSISTENT_PROPERTY("addBasePersistentsDataToStream", attrname);
+				PyObject* pyVal = PyDict_GetItem(pydict, key);
+				if(!propertyDescription->getDataType()->isSameType(pyVal))
+				{
+					CRITICAL_MSG(boost::format("%1%::addPersistentsDataToStream: %2% persistent[%3%] type is error.\n") %
+						this->getScriptName() % this->getID() % attrname);
+				}
+				else
+				{
+	    			(*s) << propertyDescription->getUType();
+					log.push_back(propertyDescription->getUType());
+	    			propertyDescription->addPersistentToStream(s, pyVal);
+					DEBUG_PERSISTENT_PROPERTY("addBasePersistentsDataToStream", attrname);
+				}
 			}
 			else
 			{

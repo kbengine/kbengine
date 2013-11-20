@@ -131,7 +131,10 @@
 		
 	<billingSystem>
 		<!-- normal: 普通, thirdparty: 第三方此时需要提供ip地址 -->
-		<type> normal </type>
+		<accountType> normal </accountType>
+		<chargeType> normal </chargeType>
+		
+		<!-- 进程地址 -->
 		<host> localhost </host>
 		<port> 30099 	</port>
 		
