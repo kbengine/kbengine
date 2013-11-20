@@ -2218,7 +2218,7 @@ void Baseapp::onEntityEnterWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_I
 	
 	if(base == NULL)
 	{
-		ERROR_MSG("Baseapp::onEntityEnterWorldFromCellapp: not found entity %d.\n", entityID);
+		ERROR_MSG(boost::format("Baseapp::onEntityEnterWorldFromCellapp: not found entity %d.\n") % entityID);
 
 		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
