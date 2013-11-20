@@ -91,7 +91,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 																											\
 	}																										\
 																											\
-	onSendComplete();																						\
+	onSendCompleted();																						\
 																											\
 
 
@@ -375,7 +375,7 @@ void Bundle::sendto(EndPoint& ep, u_int16_t networkPort, u_int32_t networkAddr)
 }
 
 //-------------------------------------------------------------------------------------
-void Bundle::onSendComplete()
+void Bundle::onSendCompleted()
 {
 	if(reuse_)
 		return;

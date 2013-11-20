@@ -127,7 +127,7 @@ public:
 	void send(NetworkInterface & networkInterface, Channel * pChannel);
 	void send(EndPoint& ep);
 	void sendto(EndPoint& ep, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
-	void onSendComplete();
+	void onSendCompleted();
 	
 	void clearPackets(){packets_.clear();}
 

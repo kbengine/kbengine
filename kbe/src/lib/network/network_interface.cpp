@@ -522,7 +522,7 @@ Reason NetworkInterface::send(Bundle & bundle, Channel * pChannel)
 			break; 
 	}
 	
-	bundle.onSendComplete();
+	bundle.onSendCompleted();
 	return reason;
 }
 

@@ -82,6 +82,7 @@ public:
 
 	inline MessageID messageID() const { return msgID_; }
 
+	void isTCPPacket(bool v) { isTCPPacket_ = v; }
 	bool isTCPPacket()const { return isTCPPacket_; }
 
 	bool encrypted()const { return encrypted_; }
