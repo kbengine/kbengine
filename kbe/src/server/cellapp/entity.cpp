@@ -263,13 +263,13 @@ int Entity::pySetTopSpeedY(PyObject *value)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetTopSpeedY()
 { 
-	return PyFloat_FromDouble(getTopSpeedY()); 
+	return PyFloat_FromDouble(getTopSpeedY() * g_kbeSrvConfig.gameUpdateHertz()); 
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetTopSpeed()
 { 
-	return PyFloat_FromDouble(getTopSpeed()); 
+	return PyFloat_FromDouble(getTopSpeed() * g_kbeSrvConfig.gameUpdateHertz()); 
 }
 
 //-------------------------------------------------------------------------------------
@@ -931,7 +931,7 @@ bool Entity::checkMoveForTopSpeed(const Position3D& position)
 	bool move = true;
 	
 	// ¼ì²éÒÆ¶¯
-	if(topSpeedY_ > 0.01f && movment.y > topSpeedY_)
+	if(topSpeedY_ > 0.01f && movment.y > topSpeedY_ + 0.5f)
 	{
 		move = false;
 	}
@@ -940,7 +940,7 @@ bool Entity::checkMoveForTopSpeed(const Position3D& position)
 	{
 		movment.y = 0.f;
 		
-		if(movment.length() > topSpeed_)
+		if(movment.length() > topSpeed_ + 0.5f)
 			move = false;
 	}
 
@@ -969,15 +969,19 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 
 		Position3D currpos = this->getPosition();
 		Position3D movment = pos - currpos;
+		float ydist = fabs(movment.y);
 		movment.y = 0.f;
 
-		DEBUG_MSG(boost::format("%1%::onUpdateDataFromClient: %2% position[(%3%,%4%,%5%) -> (%6%,%7%,%8%), length=%9%>%10%] invalid. reset client!\n") % 
+		DEBUG_MSG(boost::format("%1%::onUpdateDataFromClient: %2% position[(%3%,%4%,%5%) -> (%6%,%7%,%8%), (xzDist=%9%)>(topSpeed=%10%) || (yDist=%11%)>(topSpeedY=%12%)] invalid. reset client!\n") % 
 			this->getScriptName() % this->getID() %
 			this->getPosition().x % this->getPosition().y % this->getPosition().z %
 			pos.x % pos.y % pos.z %
-			movment.length() % topSpeed_);
-
-		movment *= topSpeed_ / 2.0f;
+			movment.length() % topSpeed_ %
+			ydist % topSpeedY_);
+		
+		if(movment.length() > 0.1f)
+			movment *= topSpeed_ / 2.0f;
+		
 		currpos += movment;
 		this->setPosition(currpos);
 
