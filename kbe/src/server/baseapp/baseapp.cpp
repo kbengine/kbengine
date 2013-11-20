@@ -2214,7 +2214,17 @@ void Baseapp::onEntityEnterWorldFromCellapp(Mercury::Channel* pChannel, ENTITY_I
 
 	Proxy* base = static_cast<Proxy*>(pEntities_->find(entityID));
 	// DEBUG_MSG("Baseapp::onEntityEnterWorldFromCellapp: entityID %d.\n", entityID);
-	KBE_ASSERT(base != NULL);
+	// KBE_ASSERT(base != NULL);
+	
+	if(base == NULL)
+	{
+		ERROR_MSG("Baseapp::onEntityEnterWorldFromCellapp: not found entity %d.\n", entityID);
+
+		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		(*pBundle).newMessage(CellappInterface::onDestroyCellEntityFromBaseapp);
+		CellappInterface::onDestroyCellEntityFromBaseappArgs1::staticAddToBundle((*pBundle), entityID);
+		base->sendToClient(CellappInterface::onDestroyCellEntityFromBaseapp, pBundle);
+	}
 
 	Mercury::Channel* pClientChannel = this->getNetworkInterface().findChannel(base->addr());
 	if(pClientChannel)
